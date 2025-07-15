@@ -1,5 +1,3 @@
-"use client";
-
 import { memo } from "react";
 import ReactMarkdown, { type Components } from "react-markdown";
 import rehypeKatex from "rehype-katex";

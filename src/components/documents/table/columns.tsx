@@ -1,5 +1,3 @@
-"use client";
-
 import { useMutation } from "@tanstack/react-query";
 import { Link } from "@tanstack/react-router";
 import type { ColumnDef, Row } from "@tanstack/react-table";

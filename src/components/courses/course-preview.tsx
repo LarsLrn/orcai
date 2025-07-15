@@ -1,5 +1,3 @@
-"use client";
-
 import { skipToken, useQuery } from "@tanstack/react-query";
 import { Link } from "@tanstack/react-router";
 import { BookMarkedIcon } from "lucide-react";

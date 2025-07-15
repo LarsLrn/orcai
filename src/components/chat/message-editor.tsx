@@ -1,5 +1,3 @@
-"use client";
-
 import type { UseChatHelpers } from "@ai-sdk/react";
 import type { ChatRequestOptions, Message } from "ai";
 import { useEffect, useRef, useState } from "react";

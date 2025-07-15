@@ -1,5 +1,3 @@
-"use client";
-
 import { CheckCircle, Database, FileText, Upload, X } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";

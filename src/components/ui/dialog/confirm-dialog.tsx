@@ -1,5 +1,3 @@
-"use client";
-
 /** Credit: https://github.com/Aslam97/react-confirm-dialog
  * Not using the NPM package, as it's a bit unnecessary for a single file.
  */

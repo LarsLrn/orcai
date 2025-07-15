@@ -1,0 +1,8 @@
+{
+	"$schema": "https://inlang.com/schema/inlang-message-format",
+	"example_message": "Guten Tag {username}",
+	"language": "Sprache",
+	"acidic_last_llama_peek": "Guten Morgen",
+	"awful_salty_tern_cut": "Guten Tag",
+	"yummy_watery_hawk_grin": "Guten Abend"
+}

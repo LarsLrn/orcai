@@ -1,5 +1,3 @@
-"use client";
-
 import { MoonIcon, SunIcon } from "lucide-react";
 import { AnimatePresence, motion } from "motion/react";
 import { useTheme } from "next-themes";

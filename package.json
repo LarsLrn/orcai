@@ -18,7 +18,8 @@
 		"db:up": "drizzle-kit up",
 		"spice:deploy-schema": "tsx scripts/deploy-spicedb-schema.ts",
 		"trigger:dev": "npx trigger.dev@latest dev",
-		"trigger:deploy": "npx trigger.dev deploy -p proj_tfobsghmqalnxwzabpqm --self-hosted --push --registry ghcr.io --namespace sokratest"
+		"trigger:deploy": "npx trigger.dev deploy -p proj_tfobsghmqalnxwzabpqm --self-hosted --push --registry ghcr.io --namespace sokratest",
+		"machine-translate": "inlang machine translate --project project.inlang"
 	},
 	"keywords": [],
 	"author": "",
@@ -141,7 +142,8 @@
 	},
 	"devDependencies": {
 		"@biomejs/biome": "2.1.1",
-		"@inlang/paraglide-js": "^2.2.0",
+		"@inlang/cli": "^3.0.12",
+		"@inlang/paraglide-js": "2.2.0",
 		"@inlang/paraglide-vite": "^1.4.0",
 		"@types/nodemailer": "^6.4.17",
 		"@types/pg": "^8.15.4",

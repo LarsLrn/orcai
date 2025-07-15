@@ -1,5 +1,3 @@
-"use client";
-
 import { DropdownMenuTrigger } from "@radix-ui/react-dropdown-menu";
 import { ReplaceAllIcon } from "lucide-react";
 import { toast } from "sonner";

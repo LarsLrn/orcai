@@ -1,5 +1,3 @@
-"use client";
-
 import { useTransition } from "react";
 import { useDebounceCallback } from "usehooks-ts";
 import { Input } from "@/components/ui/input";

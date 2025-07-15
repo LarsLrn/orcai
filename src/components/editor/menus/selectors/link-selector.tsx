@@ -1,5 +1,3 @@
-"use client";
-
 import type { Editor } from "@tiptap/core";
 import { useEditorState } from "@tiptap/react";
 import { CheckIcon, LinkIcon, Trash2Icon } from "lucide-react";

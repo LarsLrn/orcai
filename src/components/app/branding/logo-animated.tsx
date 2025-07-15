@@ -1,5 +1,3 @@
-"use client";
-
 import { type Easing, motion } from "motion/react";
 import { useTheme } from "next-themes";
 import type React from "react";

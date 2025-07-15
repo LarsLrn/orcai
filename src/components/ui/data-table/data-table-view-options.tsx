@@ -1,5 +1,3 @@
-"use client";
-
 import { DropdownMenuTrigger } from "@radix-ui/react-dropdown-menu";
 import { Settings2Icon } from "lucide-react";
 import { Button } from "@/components/ui/button";

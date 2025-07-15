@@ -1,3 +1,4 @@
+import { paraglideVitePlugin as paraglide } from "@inlang/paraglide-js";
 import tailwindcss from "@tailwindcss/vite";
 import { tanstackStart } from "@tanstack/react-start/plugin/vite";
 import react from "@vitejs/plugin-react";
@@ -21,5 +22,12 @@ export default defineConfig({
 		}),
 		tailwindcss(),
 		react(),
+		paraglide({
+			project: "./project.inlang",
+			outdir: "./src/paraglide",
+			outputStructure: "message-modules",
+			cookieName: "PARAGLIDE_LOCALE",
+			strategy: ["cookie", "url", "preferredLanguage", "baseLocale"],
+		}),
 	],
 });

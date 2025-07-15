@@ -1,5 +1,3 @@
-"use client";
-
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import type { ApiGetScoresResponseData } from "langfuse";
 import { CheckIcon } from "lucide-react";

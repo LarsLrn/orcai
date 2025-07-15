@@ -1,5 +1,3 @@
-"use client";
-
 import { Slot } from "@radix-ui/react-slot";
 import { useQuery } from "@tanstack/react-query";
 import type { VariantProps } from "class-variance-authority";

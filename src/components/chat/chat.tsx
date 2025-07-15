@@ -1,5 +1,3 @@
-"use client";
-
 import { type Message, useChat } from "@ai-sdk/react";
 import type { ApiGetScoresResponseData } from "langfuse";
 import { toast } from "sonner";

@@ -1,5 +1,3 @@
-"use client";
-
 import { Bot } from "lucide-react";
 import { useEffect, useState } from "react";
 import { Card, CardContent, CardHeader } from "@/components/ui/card";

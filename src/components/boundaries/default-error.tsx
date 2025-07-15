@@ -21,20 +21,20 @@ export function DefaultErrorBoundary({ error }: ErrorComponentProps) {
 
 	return (
 		<div className="flex min-h-[60vh] items-center justify-center p-4">
-			<div className="text-center space-y-6 max-w-lg w-full">
+			<div className="w-full max-w-lg space-y-6 text-center">
 				<Card>
-					<CardContent className="p-8 space-y-6">
+					<CardContent className="space-y-6 p-8">
 						{/* Error Icon */}
-						<div className="mx-auto w-16 h-16 bg-destructive/10 rounded-full flex items-center justify-center">
-							<AlertTriangle className="w-8 h-8 text-destructive" />
+						<div className="mx-auto flex h-16 w-16 items-center justify-center rounded-full bg-destructive/10">
+							<AlertTriangle className="h-8 w-8 text-destructive" />
 						</div>
 
 						{/* Error Title */}
 						<div className="space-y-2">
-							<h1 className="text-2xl font-bold text-foreground">
+							<h1 className="font-bold text-2xl text-foreground">
 								Something went wrong
 							</h1>
-							<h2 className="text-lg font-semibold text-muted-foreground">
+							<h2 className="font-semibold text-lg text-muted-foreground">
 								An unexpected error occurred
 							</h2>
 						</div>
@@ -47,7 +47,7 @@ export function DefaultErrorBoundary({ error }: ErrorComponentProps) {
 							</p>
 
 							{/* Error Component (collapsible details) */}
-							<details className="text-left bg-muted/50 rounded-md p-3 text-xs">
+							<details className="rounded-md bg-muted/50 p-3 text-left text-xs">
 								<summary className="cursor-pointer font-medium text-muted-foreground hover:text-foreground">
 									Technical Details
 								</summary>
@@ -60,14 +60,14 @@ export function DefaultErrorBoundary({ error }: ErrorComponentProps) {
 				</Card>
 
 				{/* Action Buttons */}
-				<div className="flex justify-center flex-col sm:flex-row gap-3">
+				<div className="flex flex-col justify-center gap-3 sm:flex-row">
 					<Button
 						onClick={() => {
 							router.invalidate();
 						}}
 						className="flex items-center gap-2"
 					>
-						<RefreshCw className="w-4 h-4" />
+						<RefreshCw className="h-4 w-4" />
 						Try Again
 					</Button>
 					{isRoot ? (
@@ -77,7 +77,7 @@ export function DefaultErrorBoundary({ error }: ErrorComponentProps) {
 							className="flex items-center gap-2"
 						>
 							<Link to="/app">
-								<Home className="w-4 h-4" />
+								<Home className="h-4 w-4" />
 								Return Home
 							</Link>
 						</Button>
@@ -90,7 +90,7 @@ export function DefaultErrorBoundary({ error }: ErrorComponentProps) {
 								window.history.back();
 							}}
 						>
-							<ArrowLeft className="w-4 h-4" />
+							<ArrowLeft className="h-4 w-4" />
 							Go Back
 						</Button>
 					)}

@@ -1,0 +1,98 @@
+{
+	"$schema": "https://biomejs.dev/schemas/2.1.1/schema.json",
+	"vcs": {
+		"enabled": true,
+		"clientKind": "git",
+		"useIgnoreFile": true
+	},
+	"files": {
+		"ignoreUnknown": false,
+		"includes": [
+			"**",
+			"!src/routeTree.gen.ts",
+			"!**/public",
+			"!**/migrations",
+			"!src/paraglide/**",
+			"!**/.tanstack",
+			"!**/.trigger"
+		]
+	},
+	"formatter": {
+		"enabled": true,
+		"formatWithErrors": true,
+		"indentStyle": "tab",
+		"indentWidth": 2,
+		"lineEnding": "lf",
+		"lineWidth": 80,
+		"attributePosition": "auto"
+	},
+	"linter": {
+		"enabled": true,
+		"rules": {
+			"recommended": true,
+			"style": {
+				"useFragmentSyntax": "warn", // Not in recommended ruleset, turning on manually
+				"noYodaExpression": "warn", // Not in recommended ruleset, turning on manually
+				"useDefaultParameterLast": "warn", // Not in recommended ruleset, turning on manually
+				"useExponentiationOperator": "off", // Obscure and arguably not easily readable
+				"noUnusedTemplateLiteral": "warn", // Stylistic opinion
+				"noUselessElse": "warn", // Stylistic opinion
+				"noParameterAssign": "error",
+				"useAsConstAssertion": "error",
+				"useEnumInitializers": "error",
+				"useSelfClosingElements": "error",
+				"useSingleVarDeclarator": "error",
+				"useNumberNamespace": "error",
+				"noInferrableTypes": "error",
+				"useArrayLiterals": "warn"
+			},
+			"suspicious": {
+				"noExplicitAny": "off", // We trust Vercelians to use any only when necessary
+				"noHeadImportInDocument": "warn",
+				"noDocumentImportInPage": "warn",
+				"noDuplicateElseIf": "warn",
+				"noIrregularWhitespace": "warn"
+			},
+			"nursery": {
+				"useSortedClasses": {
+					"level": "warn",
+					"options": {
+						"attributes": ["classList"],
+						"functions": ["clsx", "cva", "cn", "tw", "tw.*"]
+					}
+				}
+			}
+		}
+	},
+	"javascript": {
+		"formatter": {
+			"quoteStyle": "double"
+		}
+	},
+	"json": {
+		"formatter": {
+			"enabled": true,
+			"trailingCommas": "none"
+		},
+		"parser": {
+			"allowComments": true,
+			"allowTrailingCommas": false
+		}
+	},
+	"css": {
+		"formatter": {
+			"enabled": true
+		},
+		"linter": {
+			"enabled": false
+		}
+	},
+	"assist": {
+		"enabled": true,
+		"actions": {
+			"source": {
+				"organizeImports": "on"
+			}
+		}
+	}
+}

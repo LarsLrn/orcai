@@ -1,5 +1,3 @@
-"use client";
-
 import { renderToString } from "katex";
 import { useEffect, useState } from "react";
 

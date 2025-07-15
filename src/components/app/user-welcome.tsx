@@ -2,6 +2,7 @@ import { useRouteContext } from "@tanstack/react-router";
 import { CompassIcon } from "lucide-react";
 import { AppTourButton } from "@/components/next-step/app-tour-button";
 import { Button } from "@/components/ui/button";
+import { m } from "@/paraglide/messages";
 import { AboutModal } from "./about-modal";
 
 const UserWelcome = () => {
@@ -9,9 +10,9 @@ const UserWelcome = () => {
 
 	const getTimeBasedGreeting = () => {
 		const hour = new Date().getHours();
-		if (hour < 12) return "Good morning";
-		if (hour < 18) return "Good afternoon";
-		return "Good evening";
+		if (hour < 12) return m.acidic_last_llama_peek();
+		if (hour < 18) return m.awful_salty_tern_cut();
+		return m.yummy_watery_hawk_grin();
 	};
 
 	return (

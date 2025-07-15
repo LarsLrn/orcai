@@ -1,5 +1,3 @@
-"use client";
-
 import { zodResolver } from "@hookform/resolvers/zod";
 import { AlertCircle, CircleMinusIcon } from "lucide-react";
 import { useFieldArray, useForm } from "react-hook-form";

@@ -1,5 +1,3 @@
-"use client";
-
 import { convert } from "convert";
 import { FileText, Upload, X } from "lucide-react";
 import { useCallback, useEffect } from "react";

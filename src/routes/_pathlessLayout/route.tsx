@@ -1,5 +1,3 @@
-"use client";
-
 import { createFileRoute, Outlet } from "@tanstack/react-router";
 import { LogoTextAnimated } from "@/components/app/branding/logo-text-animated";
 import { FundingNotice } from "@/components/app/legal/funding-notice";

@@ -1,5 +1,3 @@
-"use client";
-
 import { keepPreviousData, useQuery } from "@tanstack/react-query";
 import { Link } from "@tanstack/react-router";
 import { MessagesSquareIcon, MoreHorizontalIcon } from "lucide-react";

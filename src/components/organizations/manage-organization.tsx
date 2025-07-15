@@ -1,5 +1,3 @@
-"use client";
-
 import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
 import type { Organization } from "@/db/schema/auth";

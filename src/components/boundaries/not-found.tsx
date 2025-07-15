@@ -9,18 +9,18 @@ export function NotFound({ children }: { children?: any }) {
 
 	return (
 		<div className="flex min-h-[60vh] items-center justify-center p-4">
-			<div className="text-center space-y-6 max-w-md w-full">
+			<div className="w-full max-w-md space-y-6 text-center">
 				<Card>
-					<CardContent className="p-8 space-y-6">
+					<CardContent className="space-y-6 p-8">
 						{/* Error Icon */}
-						<div className="mx-auto w-16 h-16 bg-muted rounded-full flex items-center justify-center">
-							<AlertCircle className="w-8 h-8 text-muted-foreground" />
+						<div className="mx-auto flex h-16 w-16 items-center justify-center rounded-full bg-muted">
+							<AlertCircle className="h-8 w-8 text-muted-foreground" />
 						</div>
 
 						{/* Error Code */}
 						<div className="space-y-2">
-							<h1 className="text-4xl font-bold text-foreground">404</h1>
-							<h2 className="text-lg font-semibold text-muted-foreground">
+							<h1 className="font-bold text-4xl text-foreground">404</h1>
+							<h2 className="font-semibold text-lg text-muted-foreground">
 								Page Not Found
 							</h2>
 						</div>
@@ -37,18 +37,18 @@ export function NotFound({ children }: { children?: any }) {
 				</Card>
 
 				{/* Action Buttons */}
-				<div className="flex justify-center flex-col sm:flex-row gap-3">
+				<div className="flex flex-col justify-center gap-3 sm:flex-row">
 					<Button
 						onClick={() => router.history.back()}
 						variant="outline"
 						className="flex items-center gap-2"
 					>
-						<ArrowLeft className="w-4 h-4" />
+						<ArrowLeft className="h-4 w-4" />
 						Go Back
 					</Button>
 					<Button asChild className="flex items-center gap-2">
 						<Link to="/app">
-							<Home className="w-4 h-4" />
+							<Home className="h-4 w-4" />
 							Return Home
 						</Link>
 					</Button>

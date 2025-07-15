@@ -1,0 +1,32 @@
+import { StartClient } from "@tanstack/react-start";
+import { StrictMode } from "react";
+import { hydrateRoot } from "react-dom/client";
+import {
+	getLocale,
+	overwriteGetLocale,
+	strategy,
+} from "./paraglide/runtime.js";
+import { createRouter } from "./router";
+
+const router = createRouter(window.location.pathname);
+
+/**
+ * BEGINING
+ * This is to make sure locale is not pulled from a cookie to prevent weird behaviour
+ * when the language was changed manually in the cookie or in another tab. If you don't
+ * rely on cookies for locale, you can remove this line.
+ */
+if (strategy.includes("cookie")) {
+	const inMemoryLocale = getLocale();
+	overwriteGetLocale(() => inMemoryLocale);
+}
+/**
+ * END
+ */
+
+hydrateRoot(
+	document,
+	<StrictMode>
+		<StartClient router={router} />
+	</StrictMode>,
+);

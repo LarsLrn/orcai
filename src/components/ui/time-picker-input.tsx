@@ -1,5 +1,3 @@
-"use client";
-
 import { Clock } from "lucide-react";
 import React, { useEffect } from "react";
 import { Input } from "@/components/ui/input";

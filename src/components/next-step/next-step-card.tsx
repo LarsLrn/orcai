@@ -1,5 +1,3 @@
-"use client";
-
 import type { CardComponentProps } from "nextstepjs";
 import { Button } from "@/components/ui/button";
 import {

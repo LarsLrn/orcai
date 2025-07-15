@@ -1,5 +1,3 @@
-"use client";
-
 import { useRouter } from "@tanstack/react-router";
 import { type NavigationAdapter, NextStepReact, type Tour } from "nextstepjs";
 import type { ReactNode } from "react";

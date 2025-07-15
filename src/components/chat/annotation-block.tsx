@@ -1,5 +1,3 @@
-"use client";
-
 import type { JSONValue } from "ai";
 import { ArrowUpRightIcon, CopyIcon } from "lucide-react";
 import type { ComponentProps } from "react";

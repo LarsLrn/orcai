@@ -1,5 +1,3 @@
-"use client";
-
 import type { Session } from "better-auth";
 import { KeyIcon, ShieldIcon, UserCogIcon } from "lucide-react";
 import { useEffect, useState } from "react";

@@ -19,6 +19,7 @@ import { TooltipProvider } from "@/components/ui/tooltip";
 import { auth } from "@/lib/auth";
 import { seo } from "@/lib/seo";
 import { cn } from "@/lib/utils";
+import { getLocale } from "@/paraglide/runtime";
 import appCss from "@/styles/app.css?url";
 
 const getSession = createServerFn({ method: "GET" }).handler(async () => {
@@ -103,7 +104,7 @@ function RootComponent() {
 
 function RootDocument({ children }: Readonly<{ children: ReactNode }>) {
 	return (
-		<html lang="en" suppressHydrationWarning>
+		<html lang={getLocale()} suppressHydrationWarning>
 			<head>
 				<HeadContent />
 			</head>

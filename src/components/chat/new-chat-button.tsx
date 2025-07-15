@@ -1,5 +1,3 @@
-"use client";
-
 import { Slot } from "@radix-ui/react-slot";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { useNavigate } from "@tanstack/react-router";

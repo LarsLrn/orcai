@@ -1,5 +1,3 @@
-"use client";
-
 import { DropdownMenuTrigger } from "@radix-ui/react-dropdown-menu";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { ReplaceAllIcon } from "lucide-react";

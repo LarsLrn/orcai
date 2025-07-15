@@ -1,5 +1,3 @@
-"use client";
-
 import { Link } from "@tanstack/react-router";
 import { LogoText } from "@/components/app/branding/logo-text";
 import { useSidebar } from "@/components/ui/sidebar";
