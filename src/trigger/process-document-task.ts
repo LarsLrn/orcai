@@ -1,0 +1,313 @@
+import https from "node:https";
+import { PutObjectCommand } from "@aws-sdk/client-s3";
+import type { Size } from "@docling/docling-core";
+import { logger, task } from "@trigger.dev/sdk/v3";
+import nodeFetch from "node-fetch";
+/* import type { ProcessingStatus } from "@/app/api/docs/processing/route"; */
+import {
+	type SerializedDocument,
+	serializeDoclingDocument,
+} from "@/lib/ai/docling-serialize";
+import {
+	createPresignedUrlToDownload,
+	deletePrefixRecursively,
+} from "@/lib/s3/file-functions";
+import { s3Client } from "@/lib/s3/s3-client";
+import { getFileTypeFromMime } from "@/lib/s3/upload-helpers";
+import { buckets } from "@/settings/buckets";
+import { ROUTES } from "@/settings/routes";
+import type { SaiaDoclingData } from "@/types/docling";
+import type {
+	ProcessDocumentTaskPayload,
+	ProcessingStatus,
+} from "@/types/trigger";
+
+/**
+ * Validates if an image meets minimum resolution requirements
+ * @param imageBuffer The image buffer to check
+ * @returns An object containing validation result and metadata
+ */
+async function validateImageResolution(size: Size, upscaleFactor = 1) {
+	// Define minimum resolution requirements
+	const MIN_IMAGE_WIDTH = 100 * upscaleFactor; // pixels
+	const MIN_IMAGE_HEIGHT = 100 * upscaleFactor; // pixels
+	const MIN_SINGLE_DIMENSION = 50 * upscaleFactor; // pixels
+
+	try {
+		const width = size.width || 0;
+		const height = size.height || 0;
+
+		/* Images have to be at least 20 pixels in any dimension
+    and at least 100 pixels in either width or height
+    to be considered valid
+    MIN_SINGLE_DIMENSION ensures very narrow or flat images are not accepted */
+		const isValidResolution =
+			(width >= MIN_IMAGE_WIDTH || height >= MIN_IMAGE_HEIGHT) &&
+			width > MIN_SINGLE_DIMENSION &&
+			height > MIN_SINGLE_DIMENSION;
+
+		return {
+			isValid: isValidResolution,
+		};
+	} catch (error) {
+		logger.error(
+			`Error validating image resolution: ${error instanceof Error ? error.message : String(error)}`,
+		);
+		return {
+			isValid: false,
+			width: 0,
+			height: 0,
+			error: error instanceof Error ? error.message : String(error),
+		};
+	}
+}
+
+export const processDocumentTask = task({
+	id: "process-document-task",
+	maxDuration: 1200,
+	queue: {
+		concurrencyLimit: 2,
+	},
+	run: async (payload: ProcessDocumentTaskPayload) => {
+		const doclingApi = `${process.env.OPENAI_COMPATIBLE_BASE_URL}/documents/convert`;
+
+		const presignedUrl = await createPresignedUrlToDownload(
+			payload.documentRef,
+		);
+
+		// Download the file using the presigned URL
+		const fileResponse = await logger.trace("download-file", async () => {
+			try {
+				return await nodeFetch(presignedUrl);
+			} catch (error) {
+				logger.error(
+					`Error downloading file: ${error instanceof Error ? error.message : String(error)}`,
+				);
+				throw error;
+			}
+		});
+
+		if (!fileResponse.ok) {
+			throw new Error(
+				`Failed to download file: ${fileResponse.status} ${fileResponse.statusText}`,
+			);
+		}
+
+		// Get the file content as a blob
+		const fileBlob = await fileResponse.blob();
+
+		const doclingResponse = await logger.trace("process-document", async () => {
+			try {
+				const controller = new AbortController();
+				const timeoutId = setTimeout(
+					() => {
+						controller.abort();
+					},
+					15 * 60 * 1000,
+				); // 15 minutes timeout
+
+				// Create FormData to properly send the file
+				const formData = new FormData();
+				formData.append("document", fileBlob);
+
+				const params = new URLSearchParams({
+					response_type: "json",
+					extract_tables_as_images: "true",
+				});
+
+				// Use the signal from the controller in the fetch call
+				const response = await nodeFetch(`${doclingApi}?${params}`, {
+					method: "POST",
+					headers: {
+						Authorization: `Bearer ${process.env.OPENAI_COMPATIBLE_API_KEY}`,
+					},
+					body: formData,
+					signal: controller.signal, // Connect the AbortController
+				});
+
+				// Clear the timeout to prevent memory leaks
+				clearTimeout(timeoutId);
+				return response;
+			} catch (error) {
+				logger.error(
+					`Docling API fetch error: ${error instanceof Error ? error.message : String(error)}`,
+				);
+
+				throw error;
+			}
+		});
+
+		// Check if the response is successful
+		if (!doclingResponse.ok) {
+			throw new Error(
+				`Docling API returned ${doclingResponse.status}: ${await doclingResponse.text()}`,
+			);
+		}
+
+		// Parse the response properly
+		let processedDocument: SaiaDoclingData;
+		try {
+			const responseText = await doclingResponse.text();
+
+			processedDocument = JSON.parse(responseText) as SaiaDoclingData;
+		} catch (error) {
+			logger.error(
+				`Failed to parse Docling API response: ${error instanceof Error ? error.message : String(error)}`,
+			);
+			throw error;
+		}
+
+		const json = processedDocument.json_data;
+
+		const serializedDocling: SerializedDocument[] | undefined =
+			serializeDoclingDocument(json, {
+				keepImageRefs: true,
+				mergePages: payload.mergePages,
+			});
+
+		await logger.trace("clear-prefix", async () => {
+			await deletePrefixRecursively({
+				bucket: buckets.processed.name,
+				prefix: `${payload.documentRef.id}/`,
+			});
+		});
+
+		await logger.trace("upload-pages", async () => {
+			if (!serializedDocling || serializedDocling.length === 0) {
+				logger.info("No serialized docling content to upload for markdown.");
+				return;
+			}
+
+			await Promise.all(
+				serializedDocling.map(async (page) => {
+					await logger.trace(
+						`Processing page ${page.page} of ${serializedDocling.length}`,
+						async () => {
+							logger.trace(
+								`Uploading markdown from page ${page.page} of ${serializedDocling.length}`,
+								async () => {
+									const markdown = page.markdown;
+
+									const command = new PutObjectCommand({
+										Bucket: buckets.processed.name,
+										Key: `${payload.documentRef.id}/page-${page.page}.md`,
+										Body: Buffer.from(markdown, "utf-8"),
+										ContentType: "text/markdown",
+									});
+
+									await s3Client.send(command);
+								},
+							);
+
+							await logger.trace(
+								`Uploading Images from page ${page.page} of ${serializedDocling.length}`,
+								async () => {
+									const images = page.images;
+
+									await Promise.all(
+										images.map(async (image) => {
+											if (!image) {
+												logger.warn("Undefined image. Skipping upload.");
+												return;
+											}
+
+											logger.info(
+												`Processing image ${image.label}-${image.index} (${image.mimetype})`,
+											);
+
+											const imageData = image.uri.includes("base64,")
+												? image.uri.split("base64,")[1]
+												: image.uri;
+
+											const imageBuffer = Buffer.from(imageData, "base64");
+											const fileType = getFileTypeFromMime(image.mimetype);
+											const validationResult = await validateImageResolution(
+												image.size,
+												2, // TODO: Use the actual upscale factor
+											);
+											if (!validationResult.isValid) {
+												logger.warn(
+													`Insufficient resolution (${validationResult.width}x${validationResult.height}).`,
+												);
+												return;
+											}
+
+											const command = new PutObjectCommand({
+												Bucket: buckets.processed.name,
+												Key: `${payload.documentRef.id}/${image.label}-${image.index}.${fileType}`,
+												Body: imageBuffer,
+												ContentType: image.mimetype,
+											});
+
+											await s3Client.send(command);
+										}),
+									);
+								},
+							);
+						},
+					);
+				}),
+			);
+		});
+
+		const updateNextResponse = await logger.trace(
+			"update-next-api",
+			async () => {
+				const apiUrl = `${process.env.NEXT_PUBLIC_BASE_URL}${ROUTES.API.docs.processing.getPath()}`;
+				const requestBody = {
+					documentId: payload.documentRef.id,
+					courseId: payload.courseId,
+					mergePages: payload.mergePages,
+					step: "processing",
+					status: "success",
+				} as ProcessingStatus;
+
+				logger.info(`Sending processing status update to: ${apiUrl}`);
+				logger.info(`Request body: ${JSON.stringify(requestBody)}`);
+
+				try {
+					// Create an https agent that ignores SSL errors
+					const httpsAgent = new https.Agent({
+						rejectUnauthorized: false,
+					});
+
+					const response = await nodeFetch(apiUrl, {
+						method: "POST",
+						headers: {
+							"Content-Type": "application/json",
+							"x-api-key": process.env.SOKRATEST_API_KEY || "",
+						},
+						body: JSON.stringify(requestBody),
+						// Use the agent that ignores SSL errors
+						agent: apiUrl.startsWith("https") ? httpsAgent : undefined,
+					});
+
+					const responseText = await response.text();
+					logger.info(`Response status: ${response.status}`);
+					logger.info(`Response body: ${responseText}`);
+
+					if (!response.ok) {
+						logger.error(
+							`Failed API request with status ${response.status}: ${responseText}`,
+						);
+						throw new Error(
+							`API request failed with status ${response.status}: ${responseText}`,
+						);
+					}
+
+					return { response, text: responseText };
+				} catch (error) {
+					logger.error(
+						`Error during API request: ${error instanceof Error ? error.message : String(error)}`,
+					);
+					logger.error(
+						`Stack trace: ${error instanceof Error ? error.stack : "No stack trace"}`,
+					);
+					throw error;
+				}
+			},
+		);
+
+		return { payload, result: { next: updateNextResponse } };
+	},
+});

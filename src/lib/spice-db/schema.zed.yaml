@@ -1,0 +1,31 @@
+schemaFile: schema.zed
+
+relationships: |-
+  // Create some test users - only alice is org owner now
+  organization:acme#owner@user:alice
+  
+  // Create a course owned by alice with acme as parent org
+  course:math101#parent@organization:acme
+  course:math101#owner@user:alice
+  
+  // Create another course owned by bob
+  course:physics101#parent@organization:acme
+  course:physics101#owner@user:bob
+
+assertions:
+  assertTrue:
+    - course:math101#read@user:alice     # owner can read
+    - course:math101#create@user:alice   # owner can create
+    - course:math101#update@user:alice   # owner can update
+    - course:math101#delete@user:alice   # owner can delete
+    - course:physics101#read@user:alice  # org owner can read other courses
+    - course:physics101#create@user:alice # org owner can create on other courses
+    - course:physics101#update@user:alice # org owner can update other courses
+    - course:physics101#read@user:bob    # course owner can read
+    - course:physics101#delete@user:bob  # course owner can delete
+    
+  assertFalse:
+    - course:math101#create@user:bob     # non-owner cannot create
+    - course:math101#update@user:bob     # non-owner cannot update
+    - course:math101#delete@user:bob     # non-owner cannot delete
+    - course:physics101#delete@user:alice # org owner cannot delete others' courses

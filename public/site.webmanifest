@@ -1,0 +1,21 @@
+{
+  "name": "SokratesT",
+  "short_name": "SokratesT",
+  "icons": [
+    {
+      "src": "/seo/web-app-manifest-192x192.png",
+      "sizes": "192x192",
+      "type": "image/png",
+      "purpose": "maskable"
+    },
+    {
+      "src": "/seo/web-app-manifest-512x512.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "maskable"
+    }
+  ],
+  "theme_color": "#298fa2",
+  "background_color": "#298fa2",
+  "display": "standalone"
+}

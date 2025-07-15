@@ -1,0 +1,39 @@
+definition user {}
+
+definition organization {
+	relation owner: user
+	relation member: user | user:*
+	permission owner_access = owner
+	permission any_access = member
+	permission read = member
+	permission create = member
+	permission update = member
+	permission delete = member
+}
+
+definition course {
+	relation parent: organization
+	relation owner: user
+	permission read = parent->any_access + owner
+	permission create = parent->owner_access + owner
+	permission update = parent->owner_access + owner
+	permission delete = owner
+}
+
+definition chat {
+	relation owner: user
+	relation parent: course
+	permission read = owner
+	permission create = parent->read
+	permission update = owner
+	permission delete = owner
+}
+
+definition asset {
+	relation parent: course
+	relation owner: user
+	permission read = parent->read + owner
+	permission create = parent->update + owner
+	permission update = parent->update + owner
+	permission delete = parent->update + owner
+}

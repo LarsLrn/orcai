@@ -1,0 +1,115 @@
+"use client";
+
+import { type Message, useChat } from "@ai-sdk/react";
+import type { ApiGetScoresResponseData } from "langfuse";
+import { toast } from "sonner";
+import { v4 as uuidv4 } from "uuid";
+import { ChatInput } from "@/components/ui/chat/chat-input";
+import { ChatMessageList } from "@/components/ui/chat/chat-message-list";
+/* import { deleteTrailingMessages } from "@/db/actions/ai-actions"; */
+/* import {
+  type DataStreamDelta,
+  useStreamingText,
+} from "@/hooks/use-streaming-text"; */
+import { ChatPlaceholder } from "./chat-placeholder";
+import { MessageBlock } from "./message-block";
+import { ShinyText } from "./shiny-text";
+
+const Chat = ({
+	id,
+	initialMessages,
+	scores,
+}: {
+	id: string;
+	initialMessages: Message[];
+	scores: ApiGetScoresResponseData[];
+}) => {
+	const {
+		data: dataStream,
+		messages,
+		input,
+		handleInputChange,
+		handleSubmit,
+		status,
+		setMessages,
+		setInput,
+		stop,
+		reload,
+	} = useChat({
+		id,
+		body: { id },
+		api: "/api/ai/chat",
+		experimental_throttle: 100,
+		sendExtraMessageFields: true,
+		generateId: uuidv4,
+		initialMessages,
+		onFinish: () => {
+			/* resetStream(); */
+		},
+		onError: (error) => {
+			toast.error("An error occurred, please try again!", {
+				description: error.message,
+			});
+		},
+	});
+
+	/* const { toolStream, reset: resetStream } = useStreamingText(
+    dataStream as DataStreamDelta[],
+  ); */
+
+	const handleReload = () => {
+		/* deleteTrailingMessages({
+			chatId: id,
+			messageId: messages[messages.length - 1].id,
+		}).then(() => {
+			reload();
+		}); */
+	};
+
+	return (
+		<div className="flex size-full min-h-0 min-w-0 flex-col gap-4 bg-background">
+			<ChatMessageList>
+				{messages.map((m: Message) => (
+					<MessageBlock
+						key={m.id}
+						message={m}
+						chatId={id}
+						/* toolStream={toolStream} */
+						setMessages={setMessages}
+						reload={reload}
+						status={status}
+						score={scores.find((s) => s.id === m.id)}
+						data={dataStream}
+					/>
+				))}
+				{messages.length === 0 && <ChatPlaceholder />}
+				{status === "submitted" && (
+					<div className="sticky m-0 w-full max-w-full whitespace-pre-wrap break-words rounded-none bg-transparent p-4 text-foreground">
+						<ShinyText>Gathering information...</ShinyText>
+					</div>
+				)}
+				{status === "error" && (
+					<div className="sticky m-0 w-full max-w-full whitespace-pre-wrap break-words rounded-none bg-transparent p-4 text-foreground">
+						Something went wrong. Please try again.
+					</div>
+				)}
+			</ChatMessageList>
+
+			<ChatInput
+				hasMessages={messages.length > 0}
+				onChange={handleInputChange}
+				status={status}
+				handleSubmit={handleSubmit}
+				handleReload={handleReload}
+				setMessages={setMessages}
+				chatId={id}
+				input={input}
+				setInput={setInput}
+				stop={stop}
+				placeholder="How can I help?"
+			/>
+		</div>
+	);
+};
+
+export { Chat };

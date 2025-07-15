@@ -1,0 +1,17 @@
+{
+	"drizzle": {
+		"config": ["drizzle.config.{ts,js,json}"]
+	},
+	"tailwind": {
+		"entry": ["tailwind.config.{js,cjs,mjs,ts}"]
+	},
+	"postcss": {
+		"config": [
+			"package.json",
+			"postcss.config.json",
+			".postcssrc",
+			".postcssrc.{json,js,cjs,mjs,ts,mts,cts,yaml,yml}",
+			"postcss.config.{js,cjs,mjs,ts,mts,cts}"
+		]
+	}
+}

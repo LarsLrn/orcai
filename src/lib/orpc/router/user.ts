@@ -1,0 +1,100 @@
+import { ORPCError } from "@orpc/server";
+import { and, count, eq, getTableColumns } from "drizzle-orm";
+import { db } from "@/db/drizzle";
+import { account, user } from "@/db/schema/auth";
+import { auth } from "@/lib/auth";
+import { authed } from "@/lib/orpc";
+import { retry } from "@/lib/orpc/middlewares/retry";
+
+export const listUsers = authed.user.list
+	.use(retry({ times: 3 }))
+	.handler(async ({ input }) => {
+		/* const { entityIds } = await listAllowedEntities({
+			entityType: "course",
+			action: "read",
+			userId: context.session.user.id,
+		}); */
+
+		const query = await db
+			.select({ ...getTableColumns(user) })
+			.from(user)
+			/* .where(inArray(course.id, entityIds)) */
+			.limit(input.pageSize)
+			.offset(input.pageIndex * input.pageSize);
+
+		const [rowCount] = await db.select({ count: count() }).from(user);
+
+		return { data: query, rowCount: rowCount.count };
+	});
+
+export const findUser = authed.user.find
+	/* .use(
+    checkPermissionMiddleware,
+    (input) =>
+      ({
+        entityId: input.id,
+        action: "read",
+        entityType: "user",
+      }) as const,
+  ) */
+	.use(retry({ times: 3 }))
+	.handler(async ({ input, context }) => {
+		const userId = input?.id ?? context.session.user.id;
+
+		// TODO: Implement better permission checks
+		if (userId !== context.session.user.id) {
+			throw new ORPCError("FORBIDDEN", {
+				message: "You can only view your own user data",
+			});
+		}
+		const [query] = await db
+			.select({ ...getTableColumns(user) })
+			.from(user)
+			.where(eq(user.id, userId));
+
+		if (!query) {
+			throw new ORPCError("NOT_FOUND", { message: "User not found" });
+		}
+
+		return { data: query };
+	});
+
+export const updatePassword = authed.user.updatePassword.handler(
+	async ({ input, context }) => {
+		const ctx = await auth.$context;
+
+		const [acc] = await db
+			.select({ password: account.password })
+			.from(account)
+			.where(
+				and(
+					eq(account.userId, context.session.user.id),
+					eq(account.providerId, "credential"),
+				),
+			)
+			.limit(1);
+
+		if (!acc.password) {
+			throw new ORPCError("NOT_FOUND", {
+				message: "No password found for the user",
+			});
+		}
+
+		const passwordMatches = await ctx.password.verify({
+			password: input.currentPassword,
+			hash: acc.password,
+		});
+
+		if (!passwordMatches) {
+			throw new ORPCError("UNAUTHORIZED", {
+				message: "Current password is incorrect",
+			});
+		}
+
+		const newHash = await ctx.password.hash(input.password);
+
+		await ctx.internalAdapter.updatePassword(context.session.user.id, newHash);
+
+		return { success: true };
+	},
+);
