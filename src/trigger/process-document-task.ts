@@ -2,6 +2,7 @@ import https from "node:https";
 import { PutObjectCommand } from "@aws-sdk/client-s3";
 import type { Size } from "@docling/docling-core";
 import { logger, task } from "@trigger.dev/sdk/v3";
+import FormData from "form-data";
 import nodeFetch from "node-fetch";
 /* import type { ProcessingStatus } from "@/app/api/docs/processing/route"; */
 import {
@@ -93,8 +94,8 @@ export const processDocumentTask = task({
 			);
 		}
 
-		// Get the file content as a blob
-		const fileBlob = await fileResponse.blob();
+		// Get the file content as a buffer
+		const fileBuffer = Buffer.from(await fileResponse.arrayBuffer());
 
 		const doclingResponse = await logger.trace("process-document", async () => {
 			try {
@@ -108,7 +109,9 @@ export const processDocumentTask = task({
 
 				// Create FormData to properly send the file
 				const formData = new FormData();
-				formData.append("document", fileBlob);
+				formData.append("document", fileBuffer, {
+					filename: `document.${payload.documentRef.id}`,
+				});
 
 				const params = new URLSearchParams({
 					response_type: "json",
@@ -120,6 +123,7 @@ export const processDocumentTask = task({
 					method: "POST",
 					headers: {
 						Authorization: `Bearer ${process.env.OPENAI_COMPATIBLE_API_KEY}`,
+						...formData.getHeaders(), // This adds the correct Content-Type header
 					},
 					body: formData,
 					signal: controller.signal, // Connect the AbortController
