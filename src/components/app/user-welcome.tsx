@@ -31,13 +31,10 @@ const UserWelcome = () => {
 					<CompassIcon />
 				</AppTourButton>
 			</div>
-			<p className="text-muted-foreground">
-				Welcome to your personal AI Tutoring System. Initiate a new conversation
-				or continue one of your previous chats (if any).
-			</p>
+			<p className="text-muted-foreground">{m.only_pink_meerkat_relish()}</p>
 			<AboutModal>
 				<Button size="sm" variant="outline">
-					About Sokratesᵗ
+					{m.fluffy_short_halibut_enchant()}
 				</Button>
 			</AboutModal>
 		</div>
