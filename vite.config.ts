@@ -27,7 +27,7 @@ export default defineConfig({
 			outdir: "./src/paraglide",
 			outputStructure: "message-modules",
 			cookieName: "PARAGLIDE_LOCALE",
-			strategy: ["cookie", "url", "preferredLanguage", "baseLocale"],
+			strategy: ["cookie", "preferredLanguage", "baseLocale"],
 		}),
 	],
 });
