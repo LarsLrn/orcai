@@ -15,7 +15,6 @@ export const assetInsertSchema = createInsertSchema(document).omit({
 	bucket: true,
 	prefix: true,
 	uploadedBy: true,
-	courseId: true,
 });
 
 export const assetUpdateSchema = createUpdateSchema(document, {
@@ -35,6 +34,7 @@ export const listAssetsContract = base
 	})
 	.input(
 		z.object({
+			courseId: z.uuidv4(),
 			pageSize: z.number().int().min(1).max(100).default(10),
 			pageIndex: z.number().int().min(0).default(0),
 		}),

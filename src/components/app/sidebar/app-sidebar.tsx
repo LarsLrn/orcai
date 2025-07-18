@@ -1,8 +1,6 @@
 import { Suspense } from "react";
 import { NavUser } from "@/components/account/nav-user";
-/* import { NavUser } from "@/components/account/nav-user"; */
-/* import { NewChatButton } from "@/components/chat/new-chat-button"; */
-import { CourseSwitcher } from "@/components/courses/course-switcher/course-switcher";
+import { NewChatButton } from "@/components/chat/new-chat-button";
 import { SkeletonsArray } from "@/components/placeholders/skeletons-array";
 import {
 	Sidebar,
@@ -23,10 +21,7 @@ const AppSidebar = () => {
 		<Sidebar id="tour-sidebar">
 			<SidebarHeader>
 				<SidebarLogo />
-				<Suspense fallback={<Skeleton className="h-12 w-full" />}>
-					<CourseSwitcher />
-				</Suspense>
-				{/* <NewChatButton size="sm">New Chat</NewChatButton> */}
+				<NewChatButton size="sm">New Chat</NewChatButton>
 			</SidebarHeader>
 			<SidebarContent>
 				<SidebarGroup>

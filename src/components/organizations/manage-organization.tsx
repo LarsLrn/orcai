@@ -1,7 +1,8 @@
+import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
-import type { Organization } from "@/db/schema/auth";
-import { authClient } from "@/lib/auth-client";
+import type { Organization } from "@/db/schema/organization";
+import { orpc } from "@/lib/orpc/orpc";
 import { OrganizationForm } from "./organization-form";
 
 const ManageOrganization = ({
@@ -9,8 +10,19 @@ const ManageOrganization = ({
 }: {
 	organization: Organization;
 }) => {
+	const queryClient = useQueryClient();
+	const { mutateAsync: deleteOrganization } = useMutation(
+		orpc.organization.delete.mutationOptions({
+			onSuccess() {
+				queryClient.invalidateQueries({
+					queryKey: orpc.organization.list.key(),
+				});
+			},
+		}),
+	);
+
 	const handleDeleteOrganization = async (organizationId: string) => {
-		toast.promise(authClient.organization.delete({ organizationId }), {
+		toast.promise(deleteOrganization({ refs: [{ id: organizationId }] }), {
 			loading: "Deleting organisation...",
 			success: "Organisation deleted",
 			error: (error) => ({

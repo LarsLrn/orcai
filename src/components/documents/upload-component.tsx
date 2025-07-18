@@ -19,7 +19,9 @@ import { useFileUpload } from "./use-file-upload";
 
 const UploadComponent = () => {
 	const navigate = useNavigate();
-	const { upload, isUploading, uploadState, cancelUpload } = useFileUpload();
+	const courseId = "placeholder"; // TODO: Replace with actual courseId when available
+	const { upload, isUploading, uploadState, cancelUpload } =
+		useFileUpload(courseId);
 
 	const form = useForm<FileUploadSchemaType>({
 		resolver: zodResolver(fileUploadSchema),

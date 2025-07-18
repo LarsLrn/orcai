@@ -4,12 +4,14 @@ import {
 	createUpdateSchema,
 } from "drizzle-zod";
 import { z } from "zod/v4";
-import { organization } from "@/db/schema/auth";
+import { organization } from "@/db/schema/organization";
 import { base } from "./base";
 
 export const organizationSelectSchema = createSelectSchema(organization);
 
-export const organizationInsertSchema = createInsertSchema(organization);
+export const organizationInsertSchema = createInsertSchema(organization).omit({
+	createdAt: true,
+});
 
 export const organizationUpdateSchema = createUpdateSchema(organization, {
 	id: z.uuidv4(),
@@ -53,6 +55,7 @@ export const findOrganizationContract = base
 		summary: "Find an organization",
 		tags: ["Organizations"],
 	})
+	/* .input(organizationSelectSchema.pick({ id: true })) */
 	.input(organizationSelectSchema.pick({ id: true }))
 	.output(z.object({ data: organizationSelectSchema }));
 

@@ -3,7 +3,6 @@ import { and, count, desc, eq, getTableColumns, inArray } from "drizzle-orm";
 import { db } from "@/db/drizzle";
 import { chat } from "@/db/schema/chat";
 import { authed } from "@/lib/orpc";
-import { requireActiveCourseMiddleware } from "@/lib/orpc/middlewares/auth";
 import {
 	checkManyPermissionMiddleware,
 	checkPermissionMiddleware,
@@ -12,11 +11,10 @@ import { retry } from "@/lib/orpc/middlewares/retry";
 import { createRelation, listAllowedEntities } from "@/lib/spice-db/actions";
 
 export const listChats = authed.chat.list
-	.use(requireActiveCourseMiddleware)
 	.use(retry({ times: 3 }))
 	.handler(async ({ input, context }) => {
 		const { entityIds } = await listAllowedEntities({
-			userId: context.session.user.id,
+			userId: context.auth.user.id,
 			action: "read",
 			entityType: "chat",
 		});
@@ -24,12 +22,7 @@ export const listChats = authed.chat.list
 		const query = await db
 			.select({ ...getTableColumns(chat) })
 			.from(chat)
-			.where(
-				and(
-					inArray(chat.id, entityIds),
-					eq(chat.courseId, context.activeCourseId),
-				),
-			)
+			.where(and(inArray(chat.id, entityIds)))
 			.orderBy(desc(chat.createdAt))
 			.limit(input.pageSize)
 			.offset(input.pageIndex * input.pageSize);
@@ -66,27 +59,27 @@ export const findChat = authed.chat.find
 		return { data: query };
 	});
 
-export const createChat = authed.chat.create
-	.use(requireActiveCourseMiddleware)
-	.handler(async ({ input, context }) => {
+export const createChat = authed.chat.create.handler(
+	async ({ input, context }) => {
 		const [query] = await db
 			.insert(chat)
 			.values({
 				title: input.title ?? "New Chat",
-				userId: context.session.user.id,
-				courseId: context.activeCourseId,
+				userId: context.auth.user.id,
+				courseId: input.courseId,
 			})
 			.returning({ ...getTableColumns(chat) });
 
 		await createRelation({
 			entityId: query.id,
 			entityType: "chat",
-			userId: context.session.user.id,
+			userId: context.auth.user.id,
 			relation: "owner",
 		});
 
 		return { data: query };
-	});
+	},
+);
 
 export const updateChat = authed.chat.update
 	.use(

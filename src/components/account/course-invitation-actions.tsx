@@ -12,9 +12,12 @@ interface CourseInvitationActionsProps {
 export function CourseInvitationActions({
 	invitation,
 }: CourseInvitationActionsProps) {
+	// TODO: Replace with actual courseId
+	const courseId = "placeholder";
+
 	const queryClient = useQueryClient();
 	const { mutateAsync: respondToInvitation } = useMutation(
-		orpc.invitation.respond.mutationOptions({
+		orpc.courseInvitation.respond.mutationOptions({
 			onSuccess() {
 				queryClient.invalidateQueries({
 					queryKey: orpc.asset.key(),
@@ -31,7 +34,7 @@ export function CourseInvitationActions({
 
 	const handleAccept = async () => {
 		toast.promise(
-			respondToInvitation({ id: invitation.id, response: "accept" }),
+			respondToInvitation({ courseId, id: invitation.id, response: "accept" }),
 			{
 				loading: "Accepting invitation...",
 				success: () => {
@@ -50,7 +53,7 @@ export function CourseInvitationActions({
 
 	const handleReject = async () => {
 		toast.promise(
-			respondToInvitation({ id: invitation.id, response: "reject" }),
+			respondToInvitation({ courseId, id: invitation.id, response: "reject" }),
 			{
 				loading: "Rejecting invitation...",
 				success: () => {

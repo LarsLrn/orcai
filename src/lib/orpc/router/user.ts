@@ -1,10 +1,11 @@
 import { ORPCError } from "@orpc/server";
 import { and, count, eq, getTableColumns } from "drizzle-orm";
 import { db } from "@/db/drizzle";
-import { account, user } from "@/db/schema/auth";
+import { account, session, user } from "@/db/schema/auth";
 import { auth } from "@/lib/auth";
 import { authed } from "@/lib/orpc";
 import { retry } from "@/lib/orpc/middlewares/retry";
+import { requirePreferencesMiddleware } from "../middlewares/auth";
 
 export const listUsers = authed.user.list
 	.use(retry({ times: 3 }))
@@ -12,7 +13,7 @@ export const listUsers = authed.user.list
 		/* const { entityIds } = await listAllowedEntities({
 			entityType: "course",
 			action: "read",
-			userId: context.session.user.id,
+			userId: context.auth.user.id,
 		}); */
 
 		const query = await db
@@ -39,10 +40,10 @@ export const findUser = authed.user.find
   ) */
 	.use(retry({ times: 3 }))
 	.handler(async ({ input, context }) => {
-		const userId = input?.id ?? context.session.user.id;
+		const userId = input?.id ?? context.auth.user.id;
 
 		// TODO: Implement better permission checks
-		if (userId !== context.session.user.id) {
+		if (userId !== context.auth.user.id) {
 			throw new ORPCError("FORBIDDEN", {
 				message: "You can only view your own user data",
 			});
@@ -68,7 +69,7 @@ export const updatePassword = authed.user.updatePassword.handler(
 			.from(account)
 			.where(
 				and(
-					eq(account.userId, context.session.user.id),
+					eq(account.userId, context.auth.user.id),
 					eq(account.providerId, "credential"),
 				),
 			)
@@ -93,7 +94,39 @@ export const updatePassword = authed.user.updatePassword.handler(
 
 		const newHash = await ctx.password.hash(input.password);
 
-		await ctx.internalAdapter.updatePassword(context.session.user.id, newHash);
+		await ctx.internalAdapter.updatePassword(context.auth.user.id, newHash);
+
+		return { success: true };
+	},
+);
+
+export const setTourState = authed.user.setTourState
+	.use(requirePreferencesMiddleware)
+	.handler(async ({ input, context }) => {
+		console.log("Prefs", context.preferences);
+
+		await db.update(user).set({
+			preferences: {
+				...context.preferences,
+				tours: {
+					...context.preferences?.tours,
+					[input.tourId]: input.state,
+				},
+			},
+		});
+
+		return { success: true };
+	});
+
+// TODO: Add permission checks
+export const setActiveOrganization = authed.user.setActiveOrganization.handler(
+	async ({ input, context }) => {
+		await db
+			.update(session)
+			.set({
+				activeOrganizationId: input.organizationId,
+			})
+			.where(eq(session.id, context.auth.session.id));
 
 		return { success: true };
 	},

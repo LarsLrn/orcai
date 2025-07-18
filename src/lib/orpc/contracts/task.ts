@@ -10,6 +10,7 @@ export const createDocumentTaskContract = base
 	})
 	.input(
 		z.object({
+			courseId: z.uuidv4(),
 			taskType: z.enum(["extract", "embed"]),
 			ids: z.array(z.string()),
 		}),

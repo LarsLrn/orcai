@@ -1,5 +1,5 @@
-import { useQueryClient } from "@tanstack/react-query";
-import { useNavigate } from "@tanstack/react-router";
+import { useMutation, useQuery } from "@tanstack/react-query";
+import { useNavigate, useRouteContext } from "@tanstack/react-router";
 import { Check } from "lucide-react";
 import { toast } from "sonner";
 import {
@@ -8,46 +8,64 @@ import {
 } from "@/components/ui/dropdown-menu";
 import { useSidebar } from "@/components/ui/sidebar";
 import { Skeleton } from "@/components/ui/skeleton";
+import type { Organization } from "@/db/schema/organization";
 import { authClient } from "@/lib/auth-client";
+import { orpc } from "@/lib/orpc/orpc";
 
 const OrganizationSwitcher = () => {
-	const queryClient = useQueryClient();
-	const { data: organizations, isPending } = authClient.useListOrganizations();
-	const { data: activeOrganization } = authClient.useActiveOrganization();
+	const { auth } = useRouteContext({ from: "/app" });
+	const { refetch } = authClient.useSession();
+
+	const { data: organizations, status } = useQuery(
+		orpc.organization.list.queryOptions({
+			input: { pageIndex: 0, pageSize: 100 },
+			queryKey: orpc.organization.list.key({
+				input: { pageIndex: 0, pageSize: 100 },
+			}),
+		}),
+	);
+
+	const { mutateAsync: setActiveOrganization } = useMutation(
+		orpc.user.setActiveOrganization.mutationOptions({
+			onSuccess() {
+				refetch();
+				// TODO: Check if that's needed. Depends on future implementations
+				/* queryClient.clear(); */
+				setOpenMobile(false);
+				navigate({ to: "/app" });
+			},
+		}),
+	);
 
 	const navigate = useNavigate();
 	const { setOpenMobile } = useSidebar();
 
-	const handleOrganizationChange = async (
-		organization: typeof authClient.$Infer.Organization,
-	) => {
+	const handleOrganizationChange = async (organization: Organization) => {
 		// TODO: Refactor to use toast.promise
-		await authClient.organization
-			.setActive({
-				organizationId: organization.id,
-			})
-			.then(() => {
-				navigate({ to: "/app" });
-				queryClient.clear();
-				toast.success(`Organization changed to ${organization?.name}`);
-				setOpenMobile(false);
-			})
-			.catch((error) => {
-				toast.error(`Failed to change organization: ${error.message}`);
-			});
+		toast.promise(setActiveOrganization({ organizationId: organization.id }), {
+			loading: `Changing organization to ${organization.name}...`,
+			success: "Organization changed successfully!",
+			error: (error) => ({
+				message: "Failed to change organization",
+				description: error.message,
+			}),
+		});
 	};
 
-	if (isPending || !organizations) return <Skeleton className="h-12 w-full" />;
+	if (status === "pending") return <Skeleton className="h-12 w-full" />;
+	if (status === "error") {
+		return <div>Error loading organizations</div>;
+	}
 
 	return (
 		<DropdownMenuGroup>
-			{organizations.map((organization) => (
+			{organizations.data.map((organization) => (
 				<DropdownMenuItem
 					key={organization.id}
 					onSelect={() => handleOrganizationChange(organization)}
 				>
 					{organization.name}
-					{activeOrganization?.id === organization.id && (
+					{auth.session.activeOrganizationId === organization.id && (
 						<Check className="ml-auto" />
 					)}
 				</DropdownMenuItem>

@@ -122,10 +122,10 @@ const DeleteItem = ({
 	const queryClient = useQueryClient();
 
 	const { mutateAsync: deleteInvitations } = useMutation(
-		orpc.invitation.delete.mutationOptions({
+		orpc.courseInvitation.delete.mutationOptions({
 			onSuccess() {
 				queryClient.invalidateQueries({
-					queryKey: ["invitations"],
+					queryKey: orpc.courseInvitation.list.key(),
 				});
 			},
 			onError(error) {
@@ -136,14 +136,18 @@ const DeleteItem = ({
 	);
 
 	const handleDelete = async (id: CourseInvitation["id"]) => {
-		toast.promise(deleteInvitations({ refs: [{ id }] }), {
-			loading: "Deleting course invitation...",
-			success: "Course invitation deleted",
-			error: (error) => ({
-				message: "Failed to delete course invitation",
-				description: error.message,
-			}),
-		});
+		toast.promise(
+			// TODO: Replace with actual courseId
+			deleteInvitations({ courseId: "placeholder", refs: [{ id }] }),
+			{
+				loading: "Deleting course invitation...",
+				success: "Course invitation deleted",
+				error: (error) => ({
+					message: "Failed to delete course invitation",
+					description: error.message,
+				}),
+			},
+		);
 	};
 
 	return (

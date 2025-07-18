@@ -39,13 +39,13 @@ import {
 	updateCourseContract,
 } from "./course";
 import {
-	createInvitationsContract,
-	deleteInvitationContract,
-	findInvitationContract,
-	listInvitationsContract,
-	respondToInvitationContract,
-	updateInvitationContract,
-} from "./invitations";
+	createCourseInvitationsContract,
+	deleteCourseInvitationsContract,
+	findCourseInvitationContract,
+	listCourseInvitationsContract,
+	respondToCourseInvitationContract,
+	updateCourseInvitationContract,
+} from "./course-invitation";
 import {
 	createOrganizationContract,
 	deleteOrganizationContract,
@@ -53,11 +53,28 @@ import {
 	listOrganizationsContract,
 	updateOrganizationContract,
 } from "./organization";
+import {
+	createOrganizationInvitationsContract,
+	deleteOrganizationInvitationsContract,
+	findOrganizationInvitationContract,
+	listOrganizationInvitationsContract,
+	respondToOrganizationInvitationContract,
+	updateOrganizationInvitationContract,
+} from "./organization-invitation";
+import {
+	createOrganizationMemberContract,
+	deleteOrganizationMemberContract,
+	findOrganizationMemberContract,
+	listOrganizationMembersContract,
+	updateOrganizationMemberContract,
+} from "./organization-member";
 import { createDownloadUrlContract, createUploadUrlsContract } from "./storage";
 import { createDocumentTaskContract } from "./task";
 import {
 	findUserContract,
 	listUsersContract,
+	setActiveOrganizationContract,
+	setTourStateContract,
 	updatePasswordContract,
 } from "./user";
 
@@ -69,12 +86,35 @@ export const contracts = {
 		update: updateOrganizationContract,
 		delete: deleteOrganizationContract,
 	},
+	organizationMember: {
+		list: listOrganizationMembersContract,
+		find: findOrganizationMemberContract,
+		create: createOrganizationMemberContract,
+		update: updateOrganizationMemberContract,
+		delete: deleteOrganizationMemberContract,
+	},
+	organizationInvitation: {
+		list: listOrganizationInvitationsContract,
+		create: createOrganizationInvitationsContract,
+		find: findOrganizationInvitationContract,
+		update: updateOrganizationInvitationContract,
+		delete: deleteOrganizationInvitationsContract,
+		respond: respondToOrganizationInvitationContract,
+	},
 	course: {
 		list: listCoursesContract,
 		find: findCourseContract,
 		create: createCourseContract,
 		update: updateCourseContract,
 		delete: deleteCourseContract,
+	},
+	courseInvitation: {
+		list: listCourseInvitationsContract,
+		create: createCourseInvitationsContract,
+		find: findCourseInvitationContract,
+		update: updateCourseInvitationContract,
+		delete: deleteCourseInvitationsContract,
+		respond: respondToCourseInvitationContract,
 	},
 	chat: {
 		list: listChatsContract,
@@ -109,14 +149,8 @@ export const contracts = {
 		list: listUsersContract,
 		find: findUserContract,
 		updatePassword: updatePasswordContract,
-	},
-	invitation: {
-		list: listInvitationsContract,
-		create: createInvitationsContract,
-		find: findInvitationContract,
-		update: updateInvitationContract,
-		delete: deleteInvitationContract,
-		respond: respondToInvitationContract,
+		setActiveOrganization: setActiveOrganizationContract,
+		setTourState: setTourStateContract,
 	},
 	storage: {
 		createUploadUrls: createUploadUrlsContract,

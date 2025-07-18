@@ -8,7 +8,8 @@ import {
 	uuid,
 	varchar,
 } from "drizzle-orm/pg-core";
-import { organization, user } from "./auth";
+import { user } from "./auth";
+import { organization } from "./organization";
 
 export interface CourseConfigType {
 	systemPrompt?: string;

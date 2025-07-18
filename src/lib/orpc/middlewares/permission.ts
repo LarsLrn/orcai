@@ -6,7 +6,13 @@ import { checkManyRelations, checkRelation } from "@/lib/spice-db/actions";
 import type { Action, EntityType } from "@/lib/spice-db/types";
 
 const base = os
-	.$context<{ session: typeof authClient.$Infer.Session }>()
+	.$context<{
+		auth: {
+			isAuthenticated: true;
+			session: typeof authClient.$Infer.Session.session;
+			user: typeof authClient.$Infer.Session.user;
+		};
+	}>()
 	.errors({
 		FORBIDDEN: {
 			data: z.object({ allowed: z.boolean() }),
@@ -28,7 +34,7 @@ export const checkPermissionMiddleware = base.middleware(
 			entityId: entityId,
 			entityType,
 			action,
-			userId: context.session.user.id,
+			userId: context.auth.user.id,
 		});
 
 		if (
@@ -61,7 +67,7 @@ export const checkManyPermissionMiddleware = base.middleware(
 			entityIds,
 			entityType,
 			action,
-			userId: context.session.user.id,
+			userId: context.auth.user.id,
 		});
 
 		const allowedIds = relation.pairs

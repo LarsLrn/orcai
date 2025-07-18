@@ -1,6 +1,9 @@
 import { zodResolver } from "@hookform/resolvers/zod";
+import { useMutation, useQueryClient } from "@tanstack/react-query";
+import { useRouteContext } from "@tanstack/react-router";
 import { AlertCircle, CircleMinusIcon } from "lucide-react";
 import { useFieldArray, useForm } from "react-hook-form";
+import { toast } from "sonner";
 import { z } from "zod/v4";
 import { FormInputField } from "@/components/forms/fields/formInputField";
 import { FormSelect } from "@/components/forms/fields/formSelect";
@@ -9,7 +12,7 @@ import { Button } from "@/components/ui/button";
 import { Form, FormField } from "@/components/ui/form";
 import { Label } from "@/components/ui/label";
 import type { Course } from "@/db/schema/course";
-import { authClient } from "@/lib/auth-client";
+import { orpc } from "@/lib/orpc/orpc";
 
 // Define Zod schema
 const schema = z.object({
@@ -39,6 +42,18 @@ const schema = z.object({
 type FormValues = z.infer<typeof schema>;
 
 const AddUserForm = ({ courses }: { courses: Course[] }) => {
+	const { auth } = useRouteContext({ from: "/app" });
+	const queryClient = useQueryClient();
+	const { mutateAsync: createInvitation } = useMutation(
+		orpc.organizationInvitation.create.mutationOptions({
+			onSuccess() {
+				queryClient.invalidateQueries({
+					queryKey: orpc.organizationInvitation.list.key(),
+				});
+			},
+		}),
+	);
+
 	const form = useForm<FormValues>({
 		resolver: zodResolver(schema),
 		defaultValues: {
@@ -53,11 +68,30 @@ const AddUserForm = ({ courses }: { courses: Course[] }) => {
 	});
 
 	const onSubmit = (data: FormValues) => {
-		data.items.forEach(async (user) => {
-			await authClient.organization.inviteMember({
-				email: user.email,
-				role: "member",
-			});
+		if (!auth.session.activeOrganizationId) {
+			toast.error("No active organization found");
+			return;
+		}
+
+		const invitationData = {
+			organizationId: auth.session.activeOrganizationId,
+			role: "member", // TODO: Make this configurable
+			expiresAt: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000), // 7 days from now
+			items: data.items.map((item) => ({
+				email: item.email.toLowerCase(),
+			})),
+		};
+
+		toast.promise(createInvitation(invitationData), {
+			loading: "Creating invitation...",
+			success: () => {
+				form.reset();
+				return "Invitation created successfully";
+			},
+			error: (error) => ({
+				message: "Failed to create invitation",
+				description: error.message,
+			}),
 		});
 	};
 

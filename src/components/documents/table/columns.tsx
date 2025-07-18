@@ -99,6 +99,8 @@ export const columns: ColumnDef<Document>[] = [
 ];
 
 const ActionCell = ({ row }: { row: Row<Document> }) => {
+	const courseId = "placeholder"; // TODO: Replace with actual courseId when available
+
 	const { mutateAsync: createDocumentTask } = useMutation(
 		orpc.task.createDocumentTask.mutationOptions(),
 	);
@@ -106,14 +108,17 @@ const ActionCell = ({ row }: { row: Row<Document> }) => {
 	const document = row.original;
 
 	const handleEnqueueDocuments = async (id: string) => {
-		toast.promise(createDocumentTask({ taskType: "extract", ids: [id] }), {
-			loading: "Enqueuing documents for processing...",
-			success: "Enqueued documents for processing",
-			error: (error) => ({
-				message: "Failed to enqueue documents for processing",
-				description: error.message,
-			}),
-		});
+		toast.promise(
+			createDocumentTask({ courseId, taskType: "extract", ids: [id] }),
+			{
+				loading: "Enqueuing documents for processing...",
+				success: "Enqueued documents for processing",
+				error: (error) => ({
+					message: "Failed to enqueue documents for processing",
+					description: error.message,
+				}),
+			},
+		);
 	};
 
 	return (

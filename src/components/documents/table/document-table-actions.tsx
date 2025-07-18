@@ -14,6 +14,8 @@ import { useDeleteAssets } from "@/lib/client-actions/use-delete";
 import { orpc } from "@/lib/orpc/orpc";
 
 const DocumentTableActions = () => {
+	const courseId = "placeholder"; // TODO: Replace with actual courseId when available
+
 	const { mutateAsync: createDocumentTask } = useMutation(
 		orpc.task.createDocumentTask.mutationOptions(),
 	);
@@ -24,14 +26,17 @@ const DocumentTableActions = () => {
 	const handleEnqueueDocument = async () => {
 		const fileIds = table.getSelectedRowModel().flatRows.map((row) => row.id);
 
-		toast.promise(createDocumentTask({ taskType: "extract", ids: fileIds }), {
-			loading: "Enqueuing document for processing...",
-			success: "Enqueued document for processing",
-			error: (error) => ({
-				message: "Failed to enqueue document for processing",
-				description: error.message,
-			}),
-		});
+		toast.promise(
+			createDocumentTask({ courseId, taskType: "extract", ids: fileIds }),
+			{
+				loading: "Enqueuing document for processing...",
+				success: "Enqueued document for processing",
+				error: (error) => ({
+					message: "Failed to enqueue document for processing",
+					description: error.message,
+				}),
+			},
+		);
 	};
 
 	return (

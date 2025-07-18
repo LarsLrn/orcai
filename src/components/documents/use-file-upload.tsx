@@ -1,5 +1,6 @@
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { useState } from "react";
+import type { Course } from "@/db/schema/course";
 import type { Document } from "@/db/schema/document";
 import { orpc } from "@/lib/orpc/orpc";
 import { getFileTypeFromMime, uploadToS3 } from "@/lib/s3/upload-helpers";
@@ -11,7 +12,10 @@ export interface UploadState {
 	fileProgress: Record<string, number>;
 }
 
-export const useFileUpload = (options?: { timeoutMs?: number }) => {
+export const useFileUpload = (
+	courseId: Course["id"],
+	options?: { timeoutMs?: number },
+) => {
 	const queryClient = useQueryClient();
 	const timeoutMs = options?.timeoutMs ?? 10 * 60 * 1000; // Default 10 minutes
 	const [uploadState, setUploadState] = useState<UploadState>({
@@ -59,7 +63,10 @@ export const useFileUpload = (options?: { timeoutMs?: number }) => {
 			}));
 
 			// Step 1: Get presigned URLs
-			const presignedUrls = await getPresignedUrls(filesInfo);
+			const presignedUrls = await getPresignedUrls({
+				courseId,
+				files: filesInfo,
+			});
 			setUploadState((prev) => ({
 				...prev,
 				step: "uploading",
@@ -143,6 +150,7 @@ export const useFileUpload = (options?: { timeoutMs?: number }) => {
 					title: presignedUrl.name,
 					size: presignedUrl.size,
 					fileType: presignedUrl.type,
+					courseId: "placeholder", // TODO: Replace with actual courseId
 				});
 
 				documents.push(document);

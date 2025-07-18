@@ -1,12 +1,12 @@
 import { ORPCError } from "@orpc/server";
 import { count, eq, getTableColumns, inArray } from "drizzle-orm";
 import { db } from "@/db/drizzle";
-import { member, organization } from "@/db/schema/auth";
+import { organization } from "@/db/schema/organization";
 import { authed } from "@/lib/orpc";
 import { requireActiveOrganizationMiddleware } from "@/lib/orpc/middlewares/auth";
 import { checkManyPermissionMiddleware } from "@/lib/orpc/middlewares/permission";
 import { retry } from "@/lib/orpc/middlewares/retry";
-import { createRelation } from "@/lib/spice-db/actions";
+import { client } from "../orpc";
 
 export const listOrganizations = authed.organization.list
 	.use(retry({ times: 3 }))
@@ -14,7 +14,7 @@ export const listOrganizations = authed.organization.list
 		/* const { entityIds } = await listAllowedEntities({
 			entityType: "organization",
 			action: "read",
-			userId: context.session.user.id,
+			userId: context.auth.user.id,
 		}); */
 
 		const query = await db
@@ -56,26 +56,18 @@ export const findOrganization = authed.organization.find
 export const createOrganization = authed.organization.create
 	.use(requireActiveOrganizationMiddleware)
 	.handler(async ({ input, context }) => {
-		const [query] = await db
+		const [newOrganization] = await db
 			.insert(organization)
-			.values(input)
+			.values({ ...input, createdAt: new Date() })
 			.returning({ ...getTableColumns(organization) });
 
-		await db.insert(member).values({
-			organizationId: query.id,
-			userId: context.session.user.id,
+		const newOrganizationMember = await client.organizationMember.create({
+			organizationId: newOrganization.id,
+			userId: context.auth.user.id,
 			role: "owner",
-			createdAt: new Date(),
 		});
 
-		await createRelation({
-			entityId: query.id,
-			entityType: "organization",
-			userId: context.session.user.id,
-			relation: "owner",
-		});
-
-		return { data: query };
+		return { data: newOrganization, relation: newOrganizationMember };
 	});
 
 export const updateOrganization = authed.organization.update

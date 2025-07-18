@@ -1,21 +1,18 @@
 import { ORPCError } from "@orpc/server";
-import { getWebRequest } from "@tanstack/react-start/server";
 import { count, eq, getTableColumns, inArray, or } from "drizzle-orm";
 import { db } from "@/db/drizzle";
-import { course, courseMember } from "@/db/schema/course";
 import { courseInvitation } from "@/db/schema/course-invitation";
-import { auth } from "@/lib/auth";
 import { authed } from "@/lib/orpc";
 import { requireActiveOrganizationMiddleware } from "@/lib/orpc/middlewares/auth";
 import { retry } from "@/lib/orpc/middlewares/retry";
 
-export const listInvitations = authed.invitation.list
+export const listCourseInvitations = authed.courseInvitation.list
 	.use(retry({ times: 3 }))
 	.handler(async ({ input, context }) => {
 		/* const { entityIds } = await listAllowedEntities({
       entityType: "invitation",
       action: "read",
-      userId: context.session.user.id,
+      userId: context.auth.user.id,
     }); */
 
 		const query = await db
@@ -23,8 +20,8 @@ export const listInvitations = authed.invitation.list
 			.from(courseInvitation)
 			.where(
 				or(
-					eq(courseInvitation.email, context.session.user.email),
-					eq(courseInvitation.inviterId, context.session.user.id),
+					eq(courseInvitation.email, context.auth.user.email),
+					eq(courseInvitation.inviterId, context.auth.user.id),
 				),
 			)
 			.limit(input.pageSize)
@@ -35,15 +32,15 @@ export const listInvitations = authed.invitation.list
 			.from(courseInvitation)
 			.where(
 				or(
-					eq(courseInvitation.email, context.session.user.email),
-					eq(courseInvitation.inviterId, context.session.user.id),
+					eq(courseInvitation.email, context.auth.user.email),
+					eq(courseInvitation.inviterId, context.auth.user.id),
 				),
 			);
 
 		return { data: query, rowCount: rowCount.count };
 	});
 
-export const findInvitation = authed.invitation.find
+export const findCourseInvitation = authed.courseInvitation.find
 	/* .use(
 		checkPermissionMiddleware,
 		(input) =>
@@ -67,7 +64,7 @@ export const findInvitation = authed.invitation.find
 		return { data: query };
 	});
 
-export const createInvitations = authed.invitation.create
+export const createCourseInvitations = authed.courseInvitation.create
 	.use(requireActiveOrganizationMiddleware)
 	.handler(async ({ input, context }) => {
 		const invitations = input.items.map((item) => ({
@@ -76,7 +73,7 @@ export const createInvitations = authed.invitation.create
 			role: input.role,
 			status: "pending",
 			expiresAt: input.expiresAt,
-			inviterId: context.session.user.id,
+			inviterId: context.auth.user.id,
 		}));
 
 		const query = await db
@@ -87,14 +84,14 @@ export const createInvitations = authed.invitation.create
 		/* await createRelation({
 			entityId: query.id,
 			entityType: "course",
-			userId: context.session.user.id,
+			userId: context.auth.user.id,
 			relation: "owner",
 		}); */
 
 		return { data: query };
 	});
 
-export const updateInvitation = authed.invitation.update
+export const updateCourseInvitation = authed.courseInvitation.update
 	/* .use(
 		checkPermissionMiddleware,
 		(input) =>
@@ -114,7 +111,7 @@ export const updateInvitation = authed.invitation.update
 		return { data: query };
 	});
 
-export const deleteInvitations = authed.invitation.delete
+export const deleteCourseInvitations = authed.courseInvitation.delete
 	/* .use(
 		checkManyPermissionMiddleware,
 		(input) =>
@@ -145,11 +142,11 @@ export const deleteInvitations = authed.invitation.delete
 		}
 	});
 
-export const respondToInvitation = authed.invitation.respond
+export const respondToCourseInvitation = authed.courseInvitation.respond
 	.use(retry({ times: 3 }))
 	.handler(async ({ input, context }) => {
 		const acceptInvitation = async () => {
-			const [invitation] = await db
+			/* const [invitation] = await db
 				.select({ ...getTableColumns(courseInvitation) })
 				.from(courseInvitation)
 				.where(eq(courseInvitation.id, input.id));
@@ -173,7 +170,7 @@ export const respondToInvitation = authed.invitation.respond
 			) {
 				await auth.api.addMember({
 					body: {
-						userId: context.session.user.id,
+						userId: context.auth.user.id,
 						organizationId: invitationCourse.organizationId,
 						role: "member", // TODO: Make dynamic
 					},
@@ -184,7 +181,7 @@ export const respondToInvitation = authed.invitation.respond
 				.insert(courseMember)
 				.values({
 					courseId: invitation.courseId,
-					userId: context.session.user.id,
+					userId: context.auth.user.id,
 					role: invitation.role,
 					createdAt: new Date(),
 				})
@@ -203,7 +200,7 @@ export const respondToInvitation = authed.invitation.respond
 					organizationId: invitationCourse.organizationId,
 				},
 				headers,
-			});
+			}); */
 
 			return { success: true, message: "Invitation accepted successfully" };
 		};

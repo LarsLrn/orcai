@@ -1,4 +1,3 @@
-import { ORPCError } from "@orpc/client";
 import { tasks } from "@trigger.dev/sdk/v3";
 import { inArray } from "drizzle-orm";
 import { db } from "@/db/drizzle";
@@ -11,13 +10,7 @@ import type { FilePayload } from "@/types/file";
 
 export const createDocumentTask = authed.task.createDocumentTask
 	.use(retry({ times: 3 }))
-	.handler(async ({ input, context }) => {
-		const activeCourseId = context.session.session.activeCourseId;
-
-		if (!activeCourseId) {
-			throw new ORPCError("BAD_REQUEST", { message: "No active course found" });
-		}
-
+	.handler(async ({ input }) => {
 		switch (input.taskType) {
 			case "extract": {
 				await db
@@ -40,7 +33,7 @@ export const createDocumentTask = authed.task.createDocumentTask
 					"process-document-task",
 					docs.map((doc) => ({
 						payload: {
-							courseId: activeCourseId,
+							courseId: input.courseId,
 							documentRef: doc as FilePayload,
 							mergePages: doc.metadata.mergePages ?? true,
 						},
@@ -78,7 +71,7 @@ export const createDocumentTask = authed.task.createDocumentTask
 					docs.map((doc) => ({
 						payload: {
 							prefix: doc.id,
-							courseId: activeCourseId,
+							courseId: input.courseId,
 							documentId: doc.id,
 							mergePages: doc.metadata.mergePages ?? true,
 						},

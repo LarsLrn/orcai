@@ -14,6 +14,7 @@ import type { ReactNode } from "react";
 import { ConfirmDialogProvider } from "@/components/ui/dialog/confirm-dialog";
 import { Toaster } from "@/components/ui/sonner";
 import { TooltipProvider } from "@/components/ui/tooltip";
+import type { User } from "@/db/schema/auth";
 import { auth } from "@/lib/auth";
 import { seo } from "@/lib/seo";
 import { cn } from "@/lib/utils";
@@ -46,7 +47,8 @@ export const Route = createRootRouteWithContext<{
 		return {
 			auth: {
 				isAuthenticated: true as const,
-				...session,
+				session: session.session,
+				user: session.user as User,
 			},
 		};
 	},

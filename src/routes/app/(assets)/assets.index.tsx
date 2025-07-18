@@ -26,10 +26,14 @@ export const Route = createFileRoute("/app/(assets)/assets/")({
 		context: { queryClient },
 		deps: { pageIndex, pageSize },
 	}) => {
+		const courseId = "placeholder"; // TODO: Replace with actual courseId when available
+
 		await queryClient.ensureQueryData(
-			orpc.course.list.queryOptions({
-				input: { pageIndex, pageSize },
-				queryKey: orpc.course.list.key({ input: { pageIndex, pageSize } }),
+			orpc.asset.list.queryOptions({
+				input: { courseId, pageIndex, pageSize },
+				queryKey: orpc.asset.list.key({
+					input: { courseId, pageIndex, pageSize },
+				}),
 			}),
 		);
 	},
@@ -37,11 +41,15 @@ export const Route = createFileRoute("/app/(assets)/assets/")({
 });
 
 function RouteComponent() {
+	const courseId = "placeholder"; // TODO: Replace with actual courseId when available
+
 	const { pageIndex, pageSize } = Route.useSearch();
 	const { data: assets } = useSuspenseQuery(
 		orpc.asset.list.queryOptions({
-			input: { pageIndex, pageSize },
-			queryKey: orpc.asset.list.key({ input: { pageIndex, pageSize } }),
+			input: { courseId, pageIndex, pageSize },
+			queryKey: orpc.asset.list.key({
+				input: { courseId, pageIndex, pageSize },
+			}),
 			placeholderData: keepPreviousData,
 		}),
 	);

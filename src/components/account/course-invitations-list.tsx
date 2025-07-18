@@ -12,9 +12,9 @@ const CourseInvitationsList = () => {
 		status,
 		error,
 	} = useQuery(
-		orpc.invitation.list.queryOptions({
+		orpc.courseInvitation.list.queryOptions({
 			input: { pageIndex: 0, pageSize: 100 },
-			queryKey: orpc.invitation.list.key({
+			queryKey: orpc.courseInvitation.list.key({
 				input: { pageIndex: 0, pageSize: 100 },
 			}),
 			placeholderData: keepPreviousData,

@@ -76,6 +76,7 @@ const assetPointSelectSchema = z.object({
 });
 
 export const assetPointInsertSchema = z.object({
+	courseId: z.uuidv4(),
 	payload: chunkPayloadSchema,
 	vector: assetPointSelectSchema.pick({ vector: true }),
 });
@@ -100,6 +101,7 @@ export const listAssetPointsContract = base
 	})
 	.input(
 		z.object({
+			courseId: z.uuidv4(),
 			filters: z.object({
 				search: z.string().optional(),
 				documentId: z.uuidv4().optional(),

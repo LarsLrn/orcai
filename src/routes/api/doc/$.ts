@@ -1,4 +1,3 @@
-import { experimental_SmartCoercionPlugin as SmartCoercionPlugin } from "@orpc/json-schema";
 import { OpenAPIGenerator } from "@orpc/openapi";
 import { OpenAPIHandler } from "@orpc/openapi/fetch";
 import { OpenAPIReferencePlugin } from "@orpc/openapi/plugins";
@@ -8,11 +7,18 @@ import {
 	SimpleCsrfProtectionHandlerPlugin,
 	StrictGetMethodPlugin,
 } from "@orpc/server/plugins";
-import { ZodToJsonSchemaConverter } from "@orpc/zod/zod4";
+import {
+	experimental_ZodSmartCoercionPlugin as ZodSmartCoercionPlugin,
+	experimental_ZodToJsonSchemaConverter as ZodToJsonSchemaConverter,
+} from "@orpc/zod/zod4";
 import { createServerFileRoute } from "@tanstack/react-start/server";
 import { router } from "@/lib/orpc/router";
 
-const openAPIGenerator = new OpenAPIGenerator();
+const openAPIGenerator = new OpenAPIGenerator({
+	schemaConverters: [
+		new ZodToJsonSchemaConverter(), // <-- if you use Zod
+	],
+});
 
 const specFromRouter = await openAPIGenerator.generate(router, {
 	info: {
@@ -37,9 +43,6 @@ const openAPIHandler = new OpenAPIHandler(router, {
 		}),
 	],
 	plugins: [
-		new SmartCoercionPlugin({
-			schemaConverters: [new ZodToJsonSchemaConverter()],
-		}),
 		new BatchHandlerPlugin(),
 		/**
 		 * Restricts GET methods to only use GET requests:
@@ -51,6 +54,7 @@ const openAPIHandler = new OpenAPIHandler(router, {
 		 * https://orpc.unnoq.com/docs/plugins/simple-csrf-protection
 		 */
 		new SimpleCsrfProtectionHandlerPlugin(),
+		new ZodSmartCoercionPlugin(),
 		new OpenAPIReferencePlugin({
 			schemaConverters: [new ZodToJsonSchemaConverter()],
 			specGenerateOptions: specFromRouter,

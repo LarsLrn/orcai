@@ -1,25 +1,28 @@
-import { skipToken, useQuery } from "@tanstack/react-query";
+import { useQuery } from "@tanstack/react-query";
 import { Link } from "@tanstack/react-router";
-import { BookMarkedIcon } from "lucide-react";
+import { Building2Icon } from "lucide-react";
 import { Placeholder } from "@/components/placeholders/placeholder";
 import { buttonVariants } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { LoadingSpinner } from "@/components/ui/loading-spinner";
-import { authClient } from "@/lib/auth-client";
+import type { Organization } from "@/db/schema/organization";
 import { orpc } from "@/lib/orpc/orpc";
 
-const CoursePreview = () => {
-	const { data: sessionData } = authClient.useSession();
-
-	const activeCourseId = sessionData?.session.activeCourseId;
-
+const OrganizationPreview = ({
+	organizationId,
+}: {
+	organizationId: Organization["id"];
+}) => {
 	const {
-		data: course,
+		data: organization,
 		status,
 		error,
 	} = useQuery(
-		orpc.course.find.queryOptions({
-			input: activeCourseId ? { id: activeCourseId } : skipToken,
+		orpc.organization.find.queryOptions({
+			input: { id: organizationId },
+			queryKey: orpc.organization.find.key({
+				input: { id: organizationId },
+			}),
 		}),
 	);
 
@@ -31,33 +34,33 @@ const CoursePreview = () => {
 		return <Placeholder>{error.message}</Placeholder>;
 	}
 
-	if (!course) {
-		return <Placeholder>No such course</Placeholder>;
+	if (!organization) {
+		return <Placeholder>No such organisation</Placeholder>;
 	}
 
-	const { id, title, description } = course.data;
+	const { name, slug } = organization.data;
 
 	return (
 		<Card>
 			<CardHeader className="flex flex-col justify-between sm:flex-row">
 				<div className="flex flex-col gap-1">
-					<p className="text-muted-foreground text-xs">Active Course</p>
+					<p className="text-muted-foreground text-xs">Organisation</p>
 					<CardTitle className="flex items-center gap-2">
-						<BookMarkedIcon className="size-5" />
-						{title}
+						<Building2Icon className="size-5" />
+						{name}
 					</CardTitle>
 				</div>
 				<Link
-					to={"/app/courses/$courseId"}
-					params={{ courseId: id }}
+					to={"/app/orgs/$orgId"}
+					params={{ orgId: organizationId }}
 					className={buttonVariants({ variant: "outline", size: "sm" })}
 				>
-					About the course
+					About the organisation
 				</Link>
 			</CardHeader>
-			<CardContent>{description}</CardContent>
+			<CardContent>{slug}</CardContent>
 		</Card>
 	);
 };
 
-export { CoursePreview };
+export { OrganizationPreview };

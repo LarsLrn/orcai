@@ -2,17 +2,15 @@ import { GetObjectCommand, PutObjectCommand } from "@aws-sdk/client-s3";
 import { getSignedUrl } from "@aws-sdk/s3-request-presigner";
 import { v4 as uuidv4 } from "uuid";
 import { authed } from "@/lib/orpc";
-import { requireActiveCourseMiddleware } from "@/lib/orpc/middlewares/auth";
 import { s3Client } from "@/lib/s3/s3-client";
 import { createBucketIfNotExists } from "@/lib/s3/utils";
 import { buckets } from "@/settings/buckets";
 
-export const createUploadUrls = authed.storage.createUploadUrls
-	.use(requireActiveCourseMiddleware)
-	.handler(async ({ input, context }) => {
+export const createUploadUrls = authed.storage.createUploadUrls.handler(
+	async ({ input }) => {
 		const bucket = buckets.main.name;
 		const expiry = 60 * 60;
-		const prefix = context.activeCourseId;
+		const prefix = input.courseId;
 
 		// Create bucket if it doesn't exist
 		const status = await createBucketIfNotExists(bucket);
@@ -22,7 +20,7 @@ export const createUploadUrls = authed.storage.createUploadUrls
 		}
 
 		const presignedUrls = await Promise.all(
-			input.map(async (file) => {
+			input.files.map(async (file) => {
 				const id = uuidv4();
 				const filePath = `${prefix}/${id}.${file.type}`;
 
@@ -47,11 +45,11 @@ export const createUploadUrls = authed.storage.createUploadUrls
 		);
 
 		return { data: presignedUrls };
-	});
+	},
+);
 
-export const createDownloadUrl = authed.storage.createDownloadUrl
-	.use(requireActiveCourseMiddleware)
-	.handler(async ({ input }) => {
+export const createDownloadUrl = authed.storage.createDownloadUrl.handler(
+	async ({ input }) => {
 		const expiry = 60 * 60;
 		const filePath = `${input.prefix}/${input.id}.${input.type}`;
 
@@ -65,4 +63,5 @@ export const createDownloadUrl = authed.storage.createDownloadUrl
 		});
 
 		return { url: presignedUrl };
-	});
+	},
+);

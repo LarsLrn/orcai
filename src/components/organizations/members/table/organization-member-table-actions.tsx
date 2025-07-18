@@ -1,4 +1,5 @@
 import { DropdownMenuTrigger } from "@radix-ui/react-dropdown-menu";
+import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { ReplaceAllIcon } from "lucide-react";
 import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
@@ -8,8 +9,8 @@ import {
 	DropdownMenuContent,
 	DropdownMenuItem,
 } from "@/components/ui/dropdown-menu";
-import type { Organization } from "@/db/schema/auth";
-import { authClient } from "@/lib/auth-client";
+import type { Organization } from "@/db/schema/organization";
+import { orpc } from "@/lib/orpc/orpc";
 
 const OrganizationMemberTableActions = ({
 	organizationId,
@@ -17,6 +18,18 @@ const OrganizationMemberTableActions = ({
 	organizationId: Organization["id"];
 }) => {
 	const { table } = useTable();
+	const queryClient = useQueryClient();
+	const { mutateAsync: deleteMember } = useMutation(
+		orpc.organizationMember.delete.mutationOptions({
+			onSuccess: () => {
+				queryClient.invalidateQueries({
+					queryKey: orpc.organizationMember.list.queryKey({
+						input: { organizationId },
+					}),
+				});
+			},
+		}),
+	);
 
 	const handleDelete = async () => {
 		const userIds = table.getSelectedRowModel().flatRows.map((row) => row.id);
@@ -24,9 +37,9 @@ const OrganizationMemberTableActions = ({
 		toast.promise(
 			Promise.all(
 				userIds.map((userId) =>
-					authClient.organization.removeMember({
+					deleteMember({
 						organizationId,
-						memberIdOrEmail: userId,
+						refs: [{ userId }],
 					}),
 				),
 			),

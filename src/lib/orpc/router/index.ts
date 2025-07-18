@@ -29,13 +29,13 @@ import {
 	updateCourse,
 } from "./course";
 import {
-	createInvitations,
-	deleteInvitations,
-	findInvitation,
-	listInvitations,
-	respondToInvitation,
-	updateInvitation,
-} from "./invitation";
+	createCourseInvitations,
+	deleteCourseInvitations,
+	findCourseInvitation,
+	listCourseInvitations,
+	respondToCourseInvitation,
+	updateCourseInvitation,
+} from "./course-invitation";
 import {
 	createOrganization,
 	deleteOrganizations,
@@ -43,10 +43,30 @@ import {
 	listOrganizations,
 	updateOrganization,
 } from "./organization";
+import {
+	createOrganizationInvitations,
+	deleteOrganizationInvitations,
+	findOrganizationInvitation,
+	listOrganizationInvitations,
+	updateOrganizationInvitation,
+} from "./organization-invitation";
+import {
+	createOrganizationMember,
+	deleteOrganizationMembers,
+	findOrganizationMember,
+	listOrganizationMembers,
+	updateOrganizationMember,
+} from "./organization-member";
 import { sse } from "./sse";
 import { createDownloadUrl, createUploadUrls } from "./storage";
 import { createDocumentTask } from "./task";
-import { findUser, listUsers, updatePassword } from "./user";
+import {
+	findUser,
+	listUsers,
+	setActiveOrganization,
+	setTourState,
+	updatePassword,
+} from "./user";
 
 export const router = {
 	organization: {
@@ -56,12 +76,35 @@ export const router = {
 		update: updateOrganization,
 		delete: deleteOrganizations,
 	},
+	organizationMember: {
+		list: listOrganizationMembers,
+		create: createOrganizationMember,
+		find: findOrganizationMember,
+		update: updateOrganizationMember,
+		delete: deleteOrganizationMembers,
+	},
+	organizationInvitation: {
+		list: listOrganizationInvitations,
+		create: createOrganizationInvitations,
+		find: findOrganizationInvitation,
+		update: updateOrganizationInvitation,
+		delete: deleteOrganizationInvitations,
+		respond: findOrganizationInvitation,
+	},
 	course: {
 		list: listCourses,
 		create: createCourse,
 		find: findCourse,
 		update: updateCourse,
 		delete: deleteCourses,
+	},
+	courseInvitation: {
+		list: listCourseInvitations,
+		create: createCourseInvitations,
+		find: findCourseInvitation,
+		update: updateCourseInvitation,
+		delete: deleteCourseInvitations,
+		respond: respondToCourseInvitation,
 	},
 	chat: {
 		list: listChats,
@@ -92,14 +135,8 @@ export const router = {
 		list: listUsers,
 		find: findUser,
 		updatePassword: updatePassword,
-	},
-	invitation: {
-		list: listInvitations,
-		create: createInvitations,
-		find: findInvitation,
-		update: updateInvitation,
-		delete: deleteInvitations,
-		respond: respondToInvitation,
+		setTourState: setTourState,
+		setActiveOrganization: setActiveOrganization,
 	},
 	storage: {
 		createUploadUrls: createUploadUrls,

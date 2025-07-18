@@ -14,7 +14,6 @@ export const chatInsertSchema = createInsertSchema(chat).omit({
 	createdAt: true,
 	updatedAt: true,
 	id: true,
-	courseId: true,
 });
 
 export const chatUpdateSchema = createUpdateSchema(chat, {

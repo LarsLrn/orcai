@@ -1,39 +1,16 @@
 import { betterAuth } from "better-auth";
 import { drizzleAdapter } from "better-auth/adapters/drizzle";
-import { admin, organization as organizationPlugin } from "better-auth/plugins";
+import { admin } from "better-auth/plugins";
 import { reactStartCookies } from "better-auth/react-start";
 import { createTransport } from "nodemailer";
 import type SMTPTransport from "nodemailer/lib/smtp-transport";
 import { v4 as uuidv4 } from "uuid";
 import { db } from "@/db/drizzle";
-/* import { getUserCoursesOnLogin } from "@/db/queries/course";
-import { getUserOrganizationsOnLogin } from "@/db/queries/organizations"; */
-import {
-	account,
-	invitation,
-	member,
-	organization,
-	session,
-	user,
-	verification,
-} from "@/db/schema/auth";
+import { account, session, user, verification } from "@/db/schema/auth";
 
 export const auth = betterAuth({
 	trustedOrigins: ["http://localhost:3000", "http://host.docker.internal:3000"],
-	plugins: [
-		reactStartCookies(),
-		admin(),
-		organizationPlugin({
-			async sendInvitationEmail(data) {
-				const inviteLink = `https://example.com/accept-invitation/${data.id}`;
-				sendEmail({
-					to: data.email,
-					subject: "You've been invited to join an organisation",
-					text: `Click the link to accept the invitation: ${inviteLink}`,
-				});
-			},
-		}),
-	],
+	plugins: [reactStartCookies(), admin()],
 	database: drizzleAdapter(db, {
 		provider: "pg",
 		schema: {
@@ -41,9 +18,6 @@ export const auth = betterAuth({
 			account,
 			session,
 			verification,
-			organization,
-			member,
-			invitation,
 		},
 	}),
 	emailAndPassword: {
@@ -70,52 +44,9 @@ export const auth = betterAuth({
 			generateId: () => uuidv4(),
 		},
 	},
-	databaseHooks: {
-		session: {
-			create: {
-				/* before: async (session) => {
-					let activeOrganizationId = null;
-					let activeCourseId = null;
-
-					// TODO: Separate org and course handling to avoid mutual failure
-					try {
-						const orgs = await getUserOrganizationsOnLogin(session);
-						const courses = await getUserCoursesOnLogin(session);
-
-						if (orgs.length === 0) {
-							throw new Error("User is not a member of any organizations");
-						}
-
-						if (courses.length === 0) {
-							throw new Error("User is not a member of any courses");
-						}
-
-						activeOrganizationId = orgs[0].id;
-						activeCourseId = courses[0].id;
-					} catch (error) {
-						console.error(
-							"Failed to set user organization on login: ",
-							error,
-							"Session: ",
-							session,
-						);
-					}
-
-					return {
-						data: {
-							...session,
-							// TODO: Set active organization based on preference instead of simply the first one
-							activeOrganizationId,
-							activeCourseId,
-						},
-					};
-				}, */
-			},
-		},
-	},
 	session: {
 		additionalFields: {
-			activeCourseId: {
+			activeOrganizationId: {
 				type: "string",
 				required: false,
 				input: true,

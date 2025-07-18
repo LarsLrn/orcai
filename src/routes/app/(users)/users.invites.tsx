@@ -28,9 +28,9 @@ export const Route = createFileRoute("/app/(users)/users/invites")({
 		deps: { pageIndex, pageSize },
 	}) => {
 		await queryClient.ensureQueryData(
-			orpc.invitation.list.queryOptions({
+			orpc.courseInvitation.list.queryOptions({
 				input: { pageIndex, pageSize },
-				queryKey: orpc.invitation.list.key({
+				queryKey: orpc.courseInvitation.list.key({
 					input: { pageIndex, pageSize },
 				}),
 			}),
@@ -42,9 +42,11 @@ export const Route = createFileRoute("/app/(users)/users/invites")({
 function RouteComponent() {
 	const { pageIndex, pageSize } = Route.useSearch();
 	const { data: invitations } = useSuspenseQuery(
-		orpc.invitation.list.queryOptions({
+		orpc.courseInvitation.list.queryOptions({
 			input: { pageIndex, pageSize },
-			queryKey: orpc.invitation.list.key({ input: { pageIndex, pageSize } }),
+			queryKey: orpc.courseInvitation.list.key({
+				input: { pageIndex, pageSize },
+			}),
 			placeholderData: keepPreviousData,
 		}),
 	);

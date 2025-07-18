@@ -13,7 +13,7 @@ import { orpc } from "@/lib/orpc/orpc";
 
 const InvitesTableActions = () => {
 	const { mutateAsync: deleteInvitations } = useMutation(
-		orpc.invitation.delete.mutationOptions(),
+		orpc.courseInvitation.delete.mutationOptions(),
 	);
 
 	const { table } = useTable();
@@ -25,6 +25,7 @@ const InvitesTableActions = () => {
 
 		toast.promise(
 			deleteInvitations({
+				courseId: "placeholder", // TODO: Replace with actual courseId
 				refs: courseInvitationIds.map((id) => ({ id })),
 			}),
 			{

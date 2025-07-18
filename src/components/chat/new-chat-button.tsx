@@ -52,7 +52,8 @@ const NewChatButton = ({
 	);
 
 	const handleNewChat = async () => {
-		toast.promise(createChat({}), {
+		// TODO: Replace with actual courseId when available
+		toast.promise(createChat({ courseId: "placeholder" }), {
 			loading: "Creating new chat...",
 			success: (result) => {
 				trackEvent("chat-create", { chatId: result.data.id });

@@ -1,14 +1,12 @@
 import { generateEmbedding } from "@/lib/ai/embedding";
 import { authed } from "@/lib/orpc";
-import { requireActiveCourseMiddleware } from "@/lib/orpc/middlewares/auth";
 import { retry } from "@/lib/orpc/middlewares/retry";
 import { qdrant } from "@/qdrant/qdrant";
 import { qdrantCollections } from "@/qdrant/qdrant-constants";
 
 export const listAssetPoints = authed.assetPoints.list
-	.use(requireActiveCourseMiddleware)
 	.use(retry({ times: 3 }))
-	.handler(async ({ input, context }) => {
+	.handler(async ({ input }) => {
 		/* const { entityIds } = await listAllowedEntities({
 			userId: context.session.user.id,
 			action: "read",
@@ -24,7 +22,7 @@ export const listAssetPoints = authed.assetPoints.list
 					{
 						key: qdrantCollections.chunks.index.courseId,
 						match: {
-							value: context.activeCourseId,
+							value: input.courseId,
 						},
 					},
 					input.filters.documentId && {

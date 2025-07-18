@@ -6,7 +6,8 @@ import type { QdrantChunk } from "@/types/qdrant";
 const QdrantPlaygroundResults = ({ search }: { search: string }) => {
 	const { data: points } = useQuery(
 		orpc.assetPoints.list.queryOptions({
-			input: { filters: { search, limit: 10 } },
+			// TODO: replace with actual courseId
+			input: { courseId: "placeholder", filters: { search, limit: 10 } },
 		}),
 	);
 

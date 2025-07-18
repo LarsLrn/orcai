@@ -36,6 +36,8 @@ const FileActions = ({
 	filePath: string;
 	className?: string;
 }) => {
+	const courseId = "placeholder"; // TODO: Replace with actual courseId when available
+
 	const { mutateAsync: createDocumentTask } = useMutation(
 		orpc.task.createDocumentTask.mutationOptions(),
 	);
@@ -107,7 +109,11 @@ const FileActions = ({
 						<DropdownMenuItem
 							disabled={isProcessing}
 							onClick={() =>
-								createDocumentTask({ taskType: "extract", ids: [fileInfo.id] })
+								createDocumentTask({
+									courseId,
+									taskType: "extract",
+									ids: [fileInfo.id],
+								})
 							}
 							className="flex items-center gap-2"
 						>
@@ -121,7 +127,11 @@ const FileActions = ({
 						<DropdownMenuItem
 							disabled={isProcessing}
 							onClick={() =>
-								createDocumentTask({ taskType: "embed", ids: [fileInfo.id] })
+								createDocumentTask({
+									courseId,
+									taskType: "embed",
+									ids: [fileInfo.id],
+								})
 							}
 							className="flex items-center gap-2"
 						>

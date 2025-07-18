@@ -9,13 +9,16 @@ export const createUploadUrlsContract = base
 		tags: ["Files"],
 	})
 	.input(
-		z.array(
-			z.object({
-				name: z.string(),
-				size: z.number(),
-				type: z.string(),
-			}),
-		),
+		z.object({
+			courseId: z.uuidv4(),
+			files: z.array(
+				z.object({
+					name: z.string(),
+					size: z.number().int().min(1),
+					type: z.string(),
+				}),
+			),
+		}),
 	)
 	.output(
 		z.object({

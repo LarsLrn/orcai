@@ -17,7 +17,7 @@ export const listCourses = authed.course.list
 		const { entityIds } = await listAllowedEntities({
 			entityType: "course",
 			action: "read",
-			userId: context.session.user.id,
+			userId: context.auth.user.id,
 		});
 
 		const query = await db
@@ -73,14 +73,14 @@ export const createCourse = authed.course.create
 
 		await db.insert(courseMember).values({
 			courseId: query.id,
-			userId: context.session.user.id,
+			userId: context.auth.user.id,
 			role: "instructor", // TODO: Make enum
 		});
 
 		await createRelation({
 			entityId: query.id,
 			entityType: "course",
-			userId: context.session.user.id,
+			userId: context.auth.user.id,
 			relation: "owner",
 		});
 

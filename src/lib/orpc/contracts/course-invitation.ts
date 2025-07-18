@@ -40,20 +40,23 @@ export const courseInvitationInsertSchema = z.object({
 export const courseInvitationUpdateSchema = createUpdateSchema(
 	courseInvitation,
 	{
-		id: z.uuidv4(),
+		id: courseInvitationSelectSchema.shape.id,
+		courseId: courseInvitationSelectSchema.shape.courseId,
 	},
 );
 
 export const courseInvitationDeleteSchema = z.object({
+	courseId: courseInvitationSelectSchema.shape.courseId,
 	refs: z.array(courseInvitationUpdateSchema.pick({ id: true })),
 });
 
-export const listInvitationsContract = base
+// TODO: Refactor. There should be endpoints for a) getting all invitations within a course, b) getting all invitations for a user
+export const listCourseInvitationsContract = base
 	.route({
 		method: "GET",
-		path: "/invitations",
-		summary: "List all invitations",
-		tags: ["Invitations"],
+		path: "/courses/invitations",
+		summary: "List all course invitations",
+		tags: ["Course Invitations"],
 	})
 	.input(
 		z.object({
@@ -68,62 +71,63 @@ export const listInvitationsContract = base
 		}),
 	);
 
-export const createInvitationsContract = base
+export const createCourseInvitationsContract = base
 	.route({
 		method: "POST",
-		path: "/invitations",
-		summary: "Create many invitations",
-		tags: ["Invitations"],
+		path: "/courses/{courseId}/invitations",
+		summary: "Create many course invitations",
+		tags: ["Course Invitations"],
 	})
 	.input(courseInvitationInsertSchema)
 	.output(z.object({ data: z.array(courseInvitationSelectSchema) }));
 
-export const findInvitationContract = base
+export const findCourseInvitationContract = base
 	.route({
 		method: "GET",
-		path: "/invitations/{id}",
-		summary: "Find an invitation",
-		tags: ["Invitations"],
+		path: "/courses/{courseId}/invitations/{id}",
+		summary: "Find a course invitation",
+		tags: ["Course Invitations"],
 	})
-	.input(courseInvitationSelectSchema.pick({ id: true }))
+	.input(courseInvitationSelectSchema.pick({ id: true, courseId: true }))
 	.output(z.object({ data: courseInvitationSelectSchema }));
 
-export const updateInvitationContract = base
+export const updateCourseInvitationContract = base
 	.route({
 		method: "PUT",
-		path: "/invitations/{id}",
-		summary: "Update an invitation",
-		tags: ["Invitations"],
+		path: "/courses/{courseId}/invitations/{id}",
+		summary: "Update a course invitation",
+		tags: ["Course Invitations"],
 	})
 	.errors({
 		NOT_FOUND: {
-			message: "Invitation not found",
+			message: "Course invitation not found",
 			data: z.object({ id: courseInvitationUpdateSchema.shape.id }),
 		},
 	})
 	.input(courseInvitationUpdateSchema)
 	.output(z.object({ data: courseInvitationSelectSchema }));
 
-export const deleteInvitationContract = base
+export const deleteCourseInvitationsContract = base
 	.route({
 		method: "DELETE",
-		path: "/invitations/",
-		summary: "Delete an invitation",
-		tags: ["Invitations"],
+		path: "/courses/{courseId}/invitations",
+		summary: "Delete a course invitations",
+		tags: ["Course Invitations"],
 	})
 	.input(courseInvitationDeleteSchema)
 	.output(z.object({ success: z.boolean(), message: z.string().optional() }));
 
-export const respondToInvitationContract = base
+export const respondToCourseInvitationContract = base
 	.route({
 		method: "POST",
-		path: "/invitations/{id}/respond",
-		summary: "Respond to an invitation",
-		tags: ["Invitations"],
+		path: "/courses/{courseId}/invitations/{id}/respond",
+		summary: "Respond to a course invitation",
+		tags: ["Course Invitations"],
 	})
 	.input(
 		z.object({
 			id: courseInvitationSelectSchema.shape.id,
+			courseId: courseInvitationSelectSchema.shape.courseId,
 			response: z.enum(["accept", "reject"]),
 		}),
 	)

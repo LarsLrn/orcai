@@ -36,7 +36,7 @@ export const findUserContract = base
 export const updatePasswordContract = base
 	.route({
 		method: "POST",
-		path: "/users/password",
+		path: "/users/actions/password",
 		summary: "Update user password",
 		tags: ["Users"],
 		description: "Update the password for a user.",
@@ -45,6 +45,38 @@ export const updatePasswordContract = base
 		z.object({
 			currentPassword: sharedSchemas.password,
 			password: sharedSchemas.password,
+		}),
+	)
+	.output(z.object({ success: z.boolean() }));
+
+export const setActiveOrganizationContract = base
+	.route({
+		method: "POST",
+		path: "/users/actions/set-active-organization",
+		summary: "Set active organization",
+		tags: ["Users"],
+		description: "Set the active organization for a user.",
+	})
+	.input(
+		z.object({
+			organizationId: z.string().uuid(),
+		}),
+	)
+	.output(z.object({ success: z.boolean() }));
+
+export const setTourStateContract = base
+	.$route({
+		method: "POST",
+		path: "/users/actions/set-tour-state",
+		summary: "Set tour state",
+		tags: ["Users"],
+		description: "Set the tour state for a user.",
+	})
+	.input(
+		z.object({
+			// TODO: Actually type this with enum
+			tourId: z.string(),
+			state: z.enum(["skipped", "completed", "pending"]),
 		}),
 	)
 	.output(z.object({ success: z.boolean() }));

@@ -1,3 +1,4 @@
+import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { Link } from "@tanstack/react-router";
 import type { ColumnDef } from "@tanstack/react-table";
 import { format } from "date-fns";
@@ -13,19 +14,8 @@ import {
 	DropdownMenuSeparator,
 	DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
-import type { Organization } from "@/db/schema/auth";
-import { authClient } from "@/lib/auth-client";
-
-const handleDelete = async (id: string) => {
-	toast.promise(authClient.organization.delete({ organizationId: id }), {
-		loading: "Deleting organisation...",
-		success: "Organisation deleted",
-		error: (error) => ({
-			message: "Failed to delete organisation",
-			description: error.message,
-		}),
-	});
-};
+import type { Organization } from "@/db/schema/organization";
+import { orpc } from "@/lib/orpc/orpc";
 
 export const organizationTableColumns: ColumnDef<Organization>[] = [
 	{
@@ -77,7 +67,7 @@ export const organizationTableColumns: ColumnDef<Organization>[] = [
 		id: "actions",
 		size: 32,
 		cell: ({ row }) => {
-			const user = row.original;
+			const organization = row.original;
 
 			return (
 				<DropdownMenu>
@@ -98,15 +88,52 @@ export const organizationTableColumns: ColumnDef<Organization>[] = [
 							<DropdownMenuItem>Edit Organisation</DropdownMenuItem>
 						</Link>
 						<DropdownMenuSeparator />
-						<DropdownMenuItem
-							variant="destructive"
-							onClick={() => handleDelete(user.id)}
-						>
-							Delete Organisation
-						</DropdownMenuItem>
+						<DeleteItem organizationId={organization.id} />
 					</DropdownMenuContent>
 				</DropdownMenu>
 			);
 		},
 	},
 ];
+
+const DeleteItem = ({
+	organizationId,
+}: {
+	organizationId: Organization["id"];
+}) => {
+	const queryClient = useQueryClient();
+
+	const { mutateAsync: deleteOrganizations } = useMutation(
+		orpc.organization.delete.mutationOptions({
+			onSuccess() {
+				queryClient.invalidateQueries({
+					queryKey: orpc.organization.list.key(),
+				});
+			},
+			onError(error) {
+				console.error(error);
+				alert(error.message);
+			},
+		}),
+	);
+
+	const handleDelete = async (id: Organization["id"]) => {
+		toast.promise(deleteOrganizations({ refs: [{ id }] }), {
+			loading: "Deleting organization...",
+			success: "Organization deleted",
+			error: (error) => ({
+				message: "Failed to delete organization",
+				description: error.message,
+			}),
+		});
+	};
+
+	return (
+		<DropdownMenuItem
+			variant="destructive"
+			onClick={() => handleDelete(organizationId)}
+		>
+			Delete Organization
+		</DropdownMenuItem>
+	);
+};

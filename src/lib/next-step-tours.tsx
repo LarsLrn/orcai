@@ -1,10 +1,13 @@
+import { useMutation } from "@tanstack/react-query";
 import { useRouter } from "@tanstack/react-router";
 import { type NavigationAdapter, NextStepReact, type Tour } from "nextstepjs";
 import type { ReactNode } from "react";
+import { toast } from "sonner";
 import { NextStepCard } from "@/components/next-step/next-step-card";
 import { useSidebar } from "@/components/ui/sidebar";
 /* import { completeTour } from "@/db/actions/user"; */
 import { useUmami } from "@/hooks/use-umami";
+import { orpc } from "./orpc/orpc";
 
 const nextStepTours: Tour[] = [
 	{
@@ -204,6 +207,10 @@ export const NextStepTours = ({ children }: { children: ReactNode }) => {
 	const { setOpenMobile } = useSidebar();
 	const { trackEvent } = useUmami();
 
+	const { mutateAsync: setTourState } = useMutation(
+		orpc.user.setTourState.mutationOptions(),
+	);
+
 	const nextStepCallbacks = {
 		onStepChange: (step: number, tourName: string | null) => {
 			if (step === 1 && tourName === "initialTour") {
@@ -212,7 +219,7 @@ export const NextStepTours = ({ children }: { children: ReactNode }) => {
 		},
 		onComplete: async (tourName: string | null) => {
 			if (tourName === "initialTour" || tourName === "chatTour") {
-				/* await completeTour({ tour: tourName, action: "completed" }); */
+				setTourState({ tourId: tourName, state: "completed" });
 				trackEvent("tour-completed", {
 					tour: tourName,
 				});
@@ -220,7 +227,11 @@ export const NextStepTours = ({ children }: { children: ReactNode }) => {
 		},
 		onSkip: async (_step: number, tourName: string | null) => {
 			if (tourName === "initialTour" || tourName === "chatTour") {
-				/* await completeTour({ tour: tourName, action: "skipped" }); */
+				toast.promise(setTourState({ tourId: tourName, state: "skipped" }), {
+					loading: "Skipping tour...",
+					success: "Tour skipped",
+					error: "Failed to skip tour",
+				});
 				trackEvent("tour-skipped", {
 					tour: tourName,
 				});

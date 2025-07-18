@@ -3,7 +3,6 @@ import { and, count, desc, eq, getTableColumns, inArray } from "drizzle-orm";
 import { db } from "@/db/drizzle";
 import { document } from "@/db/schema/document";
 import { authed } from "@/lib/orpc";
-import { requireActiveCourseMiddleware } from "@/lib/orpc/middlewares/auth";
 import {
 	checkManyPermissionMiddleware,
 	checkPermissionMiddleware,
@@ -19,11 +18,10 @@ import { buckets } from "@/settings/buckets";
 import type { FileType } from "@/types/file";
 
 export const listAssets = authed.asset.list
-	.use(requireActiveCourseMiddleware)
 	.use(retry({ times: 3 }))
 	.handler(async ({ input, context }) => {
 		const { entityIds } = await listAllowedEntities({
-			userId: context.session.user.id,
+			userId: context.auth.user.id,
 			action: "read",
 			entityType: "asset",
 		});
@@ -34,7 +32,7 @@ export const listAssets = authed.asset.list
 			.where(
 				and(
 					inArray(document.id, entityIds),
-					eq(document.courseId, context.activeCourseId),
+					eq(document.courseId, input.courseId),
 				),
 			)
 			.orderBy(desc(document.createdAt))
@@ -73,32 +71,32 @@ export const findAsset = authed.asset.find
 		return { data: query };
 	});
 
-export const createAsset = authed.asset.create
-	.use(requireActiveCourseMiddleware)
-	.handler(async ({ input, context }) => {
+export const createAsset = authed.asset.create.handler(
+	async ({ input, context }) => {
 		const [query] = await db
 			.insert(document)
 			.values({
 				id: input.id, // TODO: This shouldnt come from the client, but needs to match the S3 file ID. Think of a solution to this
 				title: input.title ?? "New Document",
-				courseId: context.activeCourseId,
+				courseId: input.courseId,
 				size: input.size,
 				fileType: input.fileType,
 				bucket: buckets.main.name,
-				prefix: context.activeCourseId,
-				uploadedBy: context.session.user.id,
+				prefix: input.courseId, // TODO: Should not necessarily based on courseId
+				uploadedBy: context.auth.user.id,
 			})
 			.returning({ ...getTableColumns(document) });
 
 		await createRelation({
 			entityId: query.id,
 			entityType: "asset",
-			userId: context.session.user.id,
+			userId: context.auth.user.id,
 			relation: "owner",
 		});
 
 		return query;
-	});
+	},
+);
 
 export const updateAsset = authed.asset.update
 	.use(
