@@ -2,6 +2,7 @@ import type {
 	InferContractRouterInputs,
 	InferContractRouterOutputs,
 } from "@orpc/contract";
+import { aiChatContract } from "./ai";
 import {
 	createAssetContract,
 	deleteAssetContract,
@@ -158,6 +159,9 @@ export const contracts = {
 	},
 	task: {
 		createDocumentTask: createDocumentTaskContract,
+	},
+	ai: {
+		chat: aiChatContract,
 	},
 };
 

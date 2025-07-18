@@ -1,4 +1,5 @@
 import { useChat } from "@ai-sdk/react";
+import { eventIteratorToStream } from "@orpc/client";
 import { DefaultChatTransport } from "ai";
 import type { ApiGetScoresResponseData } from "langfuse";
 import { toast } from "sonner";
@@ -6,6 +7,7 @@ import { v4 as uuidv4 } from "uuid";
 import { ChatInput } from "@/components/ui/chat/chat-input";
 import { ChatMessageList } from "@/components/ui/chat/chat-message-list";
 import type { CustomUIMessage } from "@/lib/ai/tools";
+import { client, orpc } from "@/lib/orpc/orpc";
 /* import { deleteTrailingMessages } from "@/db/actions/ai-actions"; */
 /* import {
   type DataStreamDelta,
@@ -27,10 +29,27 @@ const Chat = ({
 	const { messages, status, setMessages, stop, regenerate, sendMessage } =
 		useChat({
 			id,
-			transport: new DefaultChatTransport({
+			/* transport: new DefaultChatTransport({
 				api: "/api/ai/chat",
 				body: { id },
-			}),
+			}), */
+			transport: {
+				async sendMessages(options) {
+					return eventIteratorToStream(
+						await client.ai.testChat(
+							{
+								chatId: options.chatId,
+								messages: options.messages,
+							},
+							{ signal: options.abortSignal },
+						),
+					);
+				},
+				reconnectToStream(options) {
+					throw new Error("Unsupported");
+				},
+			},
+
 			experimental_throttle: 100,
 			generateId: uuidv4,
 			messages: initialMessages,

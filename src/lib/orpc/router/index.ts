@@ -1,3 +1,4 @@
+import { aiChat, testChat } from "./ai";
 import {
 	createAsset,
 	deleteAssets,
@@ -144,6 +145,10 @@ export const router = {
 	},
 	task: {
 		createDocumentTask: createDocumentTask,
+	},
+	ai: {
+		chat: aiChat,
+		testChat: testChat,
 	},
 	sse,
 };
