@@ -5,7 +5,7 @@ import { getSaiaModel } from "@/lib/ai/saia-models";
 export const generateJokeTool = () =>
 	tool({
 		description: "Generate a joke based on a text prompt",
-		parameters: z.object({
+		inputSchema: z.object({
 			topic: z.string().describe("The topic or theme for the joke"),
 			style: z
 				.string()

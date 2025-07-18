@@ -1,8 +1,7 @@
 import type { UseChatHelpers } from "@ai-sdk/react";
 import { useRouter } from "@tanstack/react-router";
-import type { ChatRequestOptions, Message } from "ai";
 import { CompassIcon, RefreshCcwIcon } from "lucide-react";
-import { useCallback, useEffect, useRef } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 import { toast } from "sonner";
 import { useLocalStorage, useWindowSize } from "usehooks-ts";
 import { AppTourButton } from "@/components/next-step/app-tour-button";
@@ -10,25 +9,17 @@ import { AppTourButton } from "@/components/next-step/app-tour-button";
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
 import { useUmami } from "@/hooks/use-umami";
+import type { CustomUIMessage } from "@/lib/ai/tools";
 import { cn } from "@/lib/utils";
 import { SendButton, StopButton } from "./chat-buttons";
 
 interface ChatInputProps
 	extends React.TextareaHTMLAttributes<HTMLTextAreaElement> {
-	status?: UseChatHelpers["status"];
+	status?: UseChatHelpers<CustomUIMessage>["status"];
 	chatId: string;
-	handleSubmit: (
-		event?: {
-			preventDefault?: () => void;
-		},
-		chatRequestOptions?: ChatRequestOptions,
-	) => void;
+	sendMessage: UseChatHelpers<CustomUIMessage>["sendMessage"];
 	handleReload: () => void;
-	setMessages: (
-		messages: Message[] | ((messages: Message[]) => Message[]),
-	) => void;
-	input: string;
-	setInput: (value: string) => void;
+	setMessages: UseChatHelpers<CustomUIMessage>["setMessages"];
 	stop: () => void;
 	hasMessages: boolean;
 }
@@ -37,11 +28,9 @@ const ChatInput = ({
 	className,
 	status,
 	chatId,
-	handleSubmit,
+	sendMessage,
 	handleReload,
 	setMessages,
-	input,
-	setInput,
 	stop,
 	hasMessages,
 	...props
@@ -51,6 +40,8 @@ const ChatInput = ({
 	const { width } = useWindowSize();
 	const { trackEvent } = useUmami();
 	const isLoading = status === "streaming" || status === "submitted";
+
+	const [input, setInput] = useState("");
 
 	// biome-ignore lint/correctness/useExhaustiveDependencies: <FIXME: Check later>
 	useEffect(() => {
@@ -102,6 +93,10 @@ const ChatInput = ({
 
 	// biome-ignore lint/correctness/useExhaustiveDependencies: <FIXME: Check later>
 	const submitForm = useCallback(() => {
+		if (!input.trim()) {
+			return; // Don't send empty messages
+		}
+
 		window.history.replaceState(
 			{},
 			"",
@@ -113,13 +108,16 @@ const ChatInput = ({
 
 		trackEvent("chat-request", { chatId });
 
-		handleSubmit(
-			/* undefined, {
+		/* handleSubmit(
+			undefined, {
         experimental_attachments: attachments,
-      } */
-		);
+      }
+		); */
 
-		// setAttachments([]);
+		sendMessage({ text: input });
+
+		// Clear the input after sending
+		setInput("");
 		setLocalStorageInput("");
 		resetHeight();
 
@@ -127,12 +125,13 @@ const ChatInput = ({
 			textareaRef.current?.focus();
 		}
 	}, [
-		// attachments,
-		handleSubmit,
-		// setAttachments,
+		input,
+		router,
+		chatId,
+		trackEvent,
+		sendMessage,
 		setLocalStorageInput,
 		width,
-		chatId,
 	]);
 
 	return (

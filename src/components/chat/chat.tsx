@@ -1,9 +1,11 @@
-import { type Message, useChat } from "@ai-sdk/react";
+import { useChat } from "@ai-sdk/react";
+import { DefaultChatTransport } from "ai";
 import type { ApiGetScoresResponseData } from "langfuse";
 import { toast } from "sonner";
 import { v4 as uuidv4 } from "uuid";
 import { ChatInput } from "@/components/ui/chat/chat-input";
 import { ChatMessageList } from "@/components/ui/chat/chat-message-list";
+import type { CustomUIMessage } from "@/lib/ai/tools";
 /* import { deleteTrailingMessages } from "@/db/actions/ai-actions"; */
 /* import {
   type DataStreamDelta,
@@ -19,37 +21,28 @@ const Chat = ({
 	scores,
 }: {
 	id: string;
-	initialMessages: Message[];
+	initialMessages: CustomUIMessage[];
 	scores: ApiGetScoresResponseData[];
 }) => {
-	const {
-		data: dataStream,
-		messages,
-		input,
-		handleInputChange,
-		handleSubmit,
-		status,
-		setMessages,
-		setInput,
-		stop,
-		reload,
-	} = useChat({
-		id,
-		body: { id },
-		api: "/api/ai/chat",
-		experimental_throttle: 100,
-		sendExtraMessageFields: true,
-		generateId: uuidv4,
-		initialMessages,
-		onFinish: () => {
-			/* resetStream(); */
-		},
-		onError: (error) => {
-			toast.error("An error occurred, please try again!", {
-				description: error.message,
-			});
-		},
-	});
+	const { messages, status, setMessages, stop, regenerate, sendMessage } =
+		useChat({
+			id,
+			transport: new DefaultChatTransport({
+				api: "/api/ai/chat",
+				body: { id },
+			}),
+			experimental_throttle: 100,
+			generateId: uuidv4,
+			messages: initialMessages,
+			onFinish: () => {
+				/* resetStream(); */
+			},
+			onError: (error) => {
+				toast.error("An error occurred, please try again!", {
+					description: error.message,
+				});
+			},
+		});
 
 	/* const { toolStream, reset: resetStream } = useStreamingText(
     dataStream as DataStreamDelta[],
@@ -67,17 +60,16 @@ const Chat = ({
 	return (
 		<div className="flex size-full min-h-0 min-w-0 flex-col gap-4 bg-background">
 			<ChatMessageList>
-				{messages.map((m: Message) => (
+				{messages.map((m) => (
 					<MessageBlock
 						key={m.id}
 						message={m}
 						chatId={id}
 						/* toolStream={toolStream} */
 						setMessages={setMessages}
-						reload={reload}
+						regenerate={regenerate}
 						status={status}
 						score={scores.find((s) => s.id === m.id)}
-						data={dataStream}
 					/>
 				))}
 				{messages.length === 0 && <ChatPlaceholder />}
@@ -95,14 +87,11 @@ const Chat = ({
 
 			<ChatInput
 				hasMessages={messages.length > 0}
-				onChange={handleInputChange}
 				status={status}
-				handleSubmit={handleSubmit}
+				sendMessage={sendMessage}
 				handleReload={handleReload}
 				setMessages={setMessages}
 				chatId={id}
-				input={input}
-				setInput={setInput}
 				stop={stop}
 				placeholder="How can I help?"
 			/>

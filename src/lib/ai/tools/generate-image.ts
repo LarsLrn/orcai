@@ -1,23 +1,23 @@
 import { createOpenAI } from "@ai-sdk/openai";
 import {
-	type DataStreamWriter,
-	experimental_generateImage,
+	experimental_generateImage as generateImage,
 	generateText,
 	tool,
+	type UIMessageStreamWriter,
 } from "ai";
 import { z } from "zod";
 import { getSaiaModel } from "@/lib/ai/saia-models";
 
 export const generateImageTool = ({
-	dataStream,
+	writer,
 	assistantMessageId,
 }: {
-	dataStream: DataStreamWriter;
+	writer: UIMessageStreamWriter;
 	assistantMessageId: string;
 }) =>
 	tool({
 		description: "Generate an image based on a text prompt",
-		parameters: z.object({
+		inputSchema: z.object({
 			prompt: z
 				.string()
 				.describe(
@@ -29,10 +29,9 @@ export const generateImageTool = ({
 				baseURL: process.env.OPENAI_COMPATIBLE_BASE_URL,
 				apiKey: process.env.OPENAI_COMPATIBLE_API_KEY,
 				name: "chatAi",
-				compatibility: "compatible",
 			});
 
-			const { image } = await experimental_generateImage({
+			const { image } = await generateImage({
 				model: openai.image("flux"),
 				prompt,
 			});
@@ -57,11 +56,10 @@ export const generateImageTool = ({
 				],
 			});
 
-			dataStream.writeData({
-				type: "image",
-				image: image.base64,
-				prompt,
-				messageId: assistantMessageId, // Associate with the current message
+			writer.write({
+				type: "file",
+				mediaType: "image/png",
+				url: `data:image/png;base64,${image.base64}`,
 			});
 
 			// Return only a summary for the LLM context, not the full image data

@@ -1,23 +1,19 @@
 import type { UseChatHelpers } from "@ai-sdk/react";
-import type { ChatRequestOptions, Message } from "ai";
 import { useEffect, useRef, useState } from "react";
 import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
 /* import { deleteTrailingMessages } from "@/db/actions/ai-actions"; */
 import type { Chat } from "@/db/schema/chat";
+import type { CustomUIMessage } from "@/lib/ai/tools";
 
 type MessageEditorProps = {
 	chatId: Chat["id"];
-	message: Message;
+	message: CustomUIMessage;
 	setMode: React.Dispatch<React.SetStateAction<"view" | "edit">>;
-	setMessages: (
-		messages: Message[] | ((messages: Message[]) => Message[]),
-	) => void;
-	reload: (
-		chatRequestOptions?: ChatRequestOptions,
-	) => Promise<string | null | undefined>;
-	status: UseChatHelpers["status"];
+	setMessages: UseChatHelpers<CustomUIMessage>["setMessages"];
+	regenerate: UseChatHelpers<CustomUIMessage>["regenerate"];
+	status: UseChatHelpers<CustomUIMessage>["status"];
 };
 
 const MessageEditor = ({
@@ -25,7 +21,7 @@ const MessageEditor = ({
 	message,
 	setMode,
 	setMessages,
-	reload,
+	regenerate,
 	status,
 }: MessageEditorProps) => {
 	const [draftContent, setDraftContent] = useState<string>(
@@ -70,7 +66,7 @@ const MessageEditor = ({
 			const index = messages.findIndex((m) => m.id === message.id);
 
 			if (index !== -1) {
-				const updatedMessage: Message = {
+				const updatedMessage: CustomUIMessage = {
 					...message,
 					parts: message.parts?.map((part) => {
 						if (part.type === "text") {
@@ -82,7 +78,7 @@ const MessageEditor = ({
 
 						return part;
 					}),
-					content: draftContent,
+					/* content: draftContent, */
 				};
 
 				return [...messages.slice(0, index), updatedMessage];
@@ -92,7 +88,7 @@ const MessageEditor = ({
 		});
 
 		setMode("view");
-		reload();
+		regenerate();
 	};
 
 	return (

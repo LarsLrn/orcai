@@ -42,7 +42,7 @@ export const vectorizeFilesTask = task({
 
 		const images: {
 			description: string;
-			tokens: number;
+			tokens: number | undefined;
 			name: string;
 			type: FileType;
 		}[] = [];
@@ -286,7 +286,7 @@ const processImageFile = async (
 				input: ["image"],
 				model: "gemma-3-27b-it",
 			}).provider,
-			maxTokens: 1024,
+			maxOutputTokens: 1024,
 			system:
 				imageType === "table" ? describeTableImagePrompt : describeImagePrompt,
 			messages: [
@@ -302,14 +302,14 @@ const processImageFile = async (
 			],
 		});
 
-		const step = result.steps.find((step) => step.stepType === "initial");
+		/* const step = result.steps.find((step) => step. === "initial"); */
 		/* const imageRef = extractFileInfoFromReference(name)?.id; */
 
-		if (!step) return;
+		/* if (!step) return; */
 
 		return {
-			description: step.text,
-			tokens: step.usage.completionTokens,
+			description: result.text,
+			tokens: result.usage.totalTokens,
 			name,
 			type: mimeType.split("/")[1] as FileType,
 		};

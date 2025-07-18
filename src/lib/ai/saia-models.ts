@@ -1,5 +1,5 @@
 import { createOpenAI } from "@ai-sdk/openai";
-import type { EmbeddingModel, LanguageModelV1 } from "ai";
+import type { EmbeddingModel, LanguageModel } from "ai";
 import { extractReasoningMiddleware, wrapLanguageModel } from "ai";
 
 interface SaiaModel {
@@ -227,43 +227,42 @@ const chatAiProviderFactory = createOpenAI({
 	baseURL: process.env.OPENAI_COMPATIBLE_BASE_URL,
 	apiKey: process.env.OPENAI_COMPATIBLE_API_KEY,
 	name: "chatAi",
-	compatibility: "compatible",
 });
 
 function getSaiaModel(params: { input: ["text"]; model: ModelsWithText }): {
-	provider: LanguageModelV1;
+	provider: LanguageModel;
 	meta: SaiaModel;
 };
 function getSaiaModel(params: { input: ["image"]; model: ModelsWithImage }): {
-	provider: LanguageModelV1;
+	provider: LanguageModel;
 	meta: SaiaModel;
 };
 function getSaiaModel(params: { input: ["video"]; model: ModelsWithVideo }): {
-	provider: LanguageModelV1;
+	provider: LanguageModel;
 	meta: SaiaModel;
 };
 function getSaiaModel(params: {
 	input: ["text", "image"];
 	model: ModelsWithImage;
-}): { provider: LanguageModelV1; meta: SaiaModel };
+}): { provider: LanguageModel; meta: SaiaModel };
 function getSaiaModel(params: {
 	input: ["text", "video"];
 	model: ModelsWithVideo;
-}): { provider: LanguageModelV1; meta: SaiaModel };
+}): { provider: LanguageModel; meta: SaiaModel };
 function getSaiaModel(params: {
 	input: ["image", "video"];
 	model: ModelsWithVideo;
-}): { provider: LanguageModelV1; meta: SaiaModel };
+}): { provider: LanguageModel; meta: SaiaModel };
 function getSaiaModel(params: {
 	input: ["text", "image", "video"];
 	model: MultimodalModelIds;
-}): { provider: LanguageModelV1; meta: SaiaModel };
+}): { provider: LanguageModel; meta: SaiaModel };
 function getSaiaModel(params: { input: InputCapability[]; model: string }): {
-	provider: LanguageModelV1;
+	provider: LanguageModel;
 	meta: SaiaModel;
 };
 function getSaiaModel(params: { input: InputCapability[]; model: string }): {
-	provider: LanguageModelV1;
+	provider: LanguageModel;
 	meta: SaiaModel;
 } {
 	const foundModel = saiaModels.find((m) => m.id === params.model);
@@ -280,7 +279,7 @@ function getSaiaModel(params: { input: InputCapability[]; model: string }): {
 			)}. Supported: ${foundModel.input.join(", ")}`,
 		);
 	}
-	const modelProvider = chatAiProviderFactory(foundModel.id);
+	const modelProvider = chatAiProviderFactory.chat(foundModel.id);
 	if (foundModel.output.includes("thought")) {
 		return {
 			provider: wrapLanguageModel({

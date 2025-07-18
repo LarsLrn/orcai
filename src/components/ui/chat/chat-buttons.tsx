@@ -1,13 +1,14 @@
 import type { UseChatHelpers } from "@ai-sdk/react";
 import { CornerDownLeft, StopCircleIcon } from "lucide-react";
 import { Button } from "@/components/ui/button";
+import type { CustomUIMessage } from "@/lib/ai/tools";
 
 export const StopButton = ({
 	stop,
 	setMessages,
 }: {
 	stop: () => void;
-	setMessages: UseChatHelpers["setMessages"];
+	setMessages: UseChatHelpers<CustomUIMessage>["setMessages"];
 }) => (
 	<Button
 		className="rounded-full"

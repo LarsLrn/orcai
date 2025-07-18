@@ -1,9 +1,12 @@
 import { createServerFileRoute } from "@tanstack/react-start/server";
 import {
-	createDataStreamResponse,
-	type Message,
+	convertToModelMessages,
+	createUIMessageStream,
+	createUIMessageStreamResponse,
 	smoothStream,
+	stepCountIs,
 	streamText,
+	type UIMessage,
 } from "ai";
 import { v4 as uuidv4 } from "uuid";
 import {
@@ -11,14 +14,15 @@ import {
 	type ModelsWithText,
 	saiaModels,
 } from "@/lib/ai/saia-models";
+import { generateImageTool } from "@/lib/ai/tools/generate-image";
 import { client } from "@/lib/orpc/orpc";
 
 export const ServerRoute = createServerFileRoute("/api/ai/chat").methods({
 	POST: ChatCompletion,
 });
 
-async function ChatCompletion({ request }) {
-	const { id: chatId, messages }: { id: string; messages: Array<Message> } =
+async function ChatCompletion({ request }: { request: Request }) {
+	const { id: chatId, messages }: { id: string; messages: Array<UIMessage> } =
 		await request.json();
 
 	console.log("Messages received:", messages);
@@ -29,28 +33,34 @@ async function ChatCompletion({ request }) {
 		id: activeCourseId,
 	});
 
-	return createDataStreamResponse({
-		execute: async (dataStream) => {
-			const assistantMessageId = uuidv4();
+	const modelIdFromConfig = course.data.config.model;
+	const isValidModelId = saiaModels.some((m) => m.id === modelIdFromConfig);
 
-			/* references.forEach((reference) => {
+	const { provider: modelProvider } = getSaiaModel({
+		input: ["text"], // User only sends text
+		model: isValidModelId
+			? (modelIdFromConfig as ModelsWithText)
+			: "llama-3.3-70b-instruct",
+	});
+
+	const assistantMessageId = uuidv4();
+
+	const response = createUIMessageStreamResponse({
+		status: 200,
+		statusText: "OK",
+		stream: createUIMessageStream({
+			generateId: () => assistantMessageId,
+			originalMessages: messages,
+			execute: async ({ writer }) => {
+				/* references.forEach((reference) => {
 				dataStream.writeMessageAnnotation(reference as unknown as JSONValue);
 			}); */
 
-			// Validate and get the model ID from course configuration
-			const modelIdFromConfig = course.data.config.model;
-			const isValidModelId = saiaModels.some((m) => m.id === modelIdFromConfig);
-
-			const { provider: modelProvider } = getSaiaModel({
-				input: ["text"], // User only sends text
-				model: isValidModelId
-					? (modelIdFromConfig as ModelsWithText)
-					: "llama-3.3-70b-instruct",
-			});
-
-			const streamOperationResult = streamText({
-				model: modelProvider,
-				/* system: createSocraticSystemPrompt({
+				// Validate and get the model ID from course configuration
+				console.log(assistantMessageId);
+				const result = streamText({
+					model: modelProvider,
+					/* system: createSocraticSystemPrompt({
 					context: relevantChunks.map((chunk) => ({
 						documentId: String(
 							references.indexOf(
@@ -63,11 +73,10 @@ async function ChatCompletion({ request }) {
 					courseTitle: course.data.title,
 					override: course.data.config.systemPrompt,
 				}), */
-				system: "You are a helpful assistant.",
-				messages,
-				experimental_generateMessageId: () => assistantMessageId,
-				experimental_transform: smoothStream({ chunking: "word" }),
-				/* experimental_telemetry: {
+					system: "You are a helpful assistant.",
+					messages: convertToModelMessages(messages),
+					experimental_transform: smoothStream({ chunking: "word" }),
+					/* experimental_telemetry: {
 					isEnabled: true,
 					metadata: {
 						langfuseTraceId: assistantMessageId,
@@ -77,20 +86,19 @@ async function ChatCompletion({ request }) {
 						tags: ["user", "chat"],
 					},
 				}, */
-				maxSteps: 5,
-				toolCallStreaming: true,
-				/* tools: {
-					generateImage: generateImageTool({
-						dataStream,
-						assistantMessageId,
-					}),
-					generateJoke: generateJokeTool(),
+					stopWhen: stepCountIs(5),
+					tools: {
+						generateImage: generateImageTool({
+							writer,
+							assistantMessageId,
+						}),
+						/* generateJoke: generateJokeTool(),
 					searchKnowledgeBase: searchKnowledgeBaseTool({
 						config: course.data.config,
 						courseId: activeCourseId,
-					}),
-				}, */
-				/* onFinish: async ({ response }) => {
+					}), */
+					},
+					/* onFinish: async ({ response }) => {
 					if (session.user?.id) {
 						try {
 							const assistantId = getTrailingMessageId({
@@ -138,17 +146,19 @@ async function ChatCompletion({ request }) {
 						}
 					}
 				}, */
-			});
+				});
 
-			streamOperationResult.consumeStream();
-
-			streamOperationResult.mergeIntoDataStream(dataStream, {
-				sendReasoning: true,
-			});
-		},
-		onError: (error) => {
-			console.error("Error in data stream execution:", error);
-			return "Oops, an error occurred while processing your request!";
-		},
+				writer.merge(result.toUIMessageStream());
+			},
+			onFinish: ({ messages, isContinuation, responseMessage }) => {
+				console.log("Stream finished with messages:", messages);
+			},
+			onError: (error) => {
+				console.error("Error in data stream execution:", error);
+				return "Oops, an error occurred while processing your request!";
+			},
+		}),
 	});
+
+	return response;
 }

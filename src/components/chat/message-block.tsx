@@ -1,8 +1,7 @@
 import type { UseChatHelpers } from "@ai-sdk/react";
-import type { ChatRequestOptions, Message } from "ai";
+import type { UIMessage } from "ai";
 import type { ApiGetScoresResponseData } from "langfuse";
 import {
-	CheckIcon,
 	CopyIcon,
 	DownloadIcon,
 	ImageIcon,
@@ -27,8 +26,8 @@ import {
 	ChatBubbleMessage,
 } from "@/components/ui/chat/chat-bubble";
 import type { Chat } from "@/db/schema/chat";
+import type { CustomUIMessage } from "@/lib/ai/tools";
 import { cn } from "@/lib/utils";
-import { AnnotationBlock } from "./annotation-block";
 import { Markdown } from "./markdown";
 import { MessageEditor } from "./message-editor";
 import { MessageRate } from "./message-rate";
@@ -46,26 +45,22 @@ const MessageBlock = ({
 	chatId,
 	/* toolStream, */
 	setMessages,
-	reload,
+	regenerate,
 	status,
 	score,
-	data, // Add data prop to receive data stream
 }: {
-	message: Message;
+	message: CustomUIMessage;
 	chatId: Chat["id"];
 	/* toolStream: ToolStream | null; */
-	setMessages: (
-		messages: Message[] | ((messages: Message[]) => Message[]),
-	) => void;
-	reload: (
-		chatRequestOptions?: ChatRequestOptions,
-	) => Promise<string | null | undefined>;
-	status: UseChatHelpers["status"];
+	setMessages: UseChatHelpers<CustomUIMessage>["setMessages"];
+	regenerate: () => Promise<void>;
+	status: UseChatHelpers<UIMessage>["status"];
 	score?: ApiGetScoresResponseData;
-	data?: any[]; // Add data prop type
 }) => {
 	const [mode, setMode] = useState<"view" | "edit">("view");
 	const [, copy] = useCopyToClipboard();
+
+	console.log("Message:", JSON.stringify(message, null, 2));
 
 	const handleCopy = async (text: string) => {
 		toast.promise(copy(text), {
@@ -138,12 +133,6 @@ const MessageBlock = ({
 		},
 	];
 
-	// Filter image data from the data stream for this specific message
-	const imageData =
-		data?.filter(
-			(item) => item.type === "image" && item.messageId === message.id,
-		) || [];
-
 	return (
 		<ChatBubble
 			variant={variant}
@@ -189,77 +178,52 @@ const MessageBlock = ({
 												Show Reasoning
 											</AccordionTrigger>
 											<AccordionContent>
-												<Markdown className="text-sm">
-													{part.reasoning}
-												</Markdown>
+												<Markdown className="text-sm">{part.text}</Markdown>
 											</AccordionContent>
 										</AccordionItem>
 									</Accordion>
 								)}
 
-								{part.type === "tool-invocation" &&
-									part.toolInvocation.state === "result" &&
-									part.toolInvocation.toolName === "generateImage" && (
-										<div
-											key={`${part.toolInvocation.toolCallId}${i}`}
-											className="mb-6 space-y-4"
-										>
-											<div className="flex items-center space-x-2 text-muted-foreground text-sm">
-												<ImageIcon className="h-4 w-4" />
-												<span>{part.toolInvocation.result.description}</span>
-											</div>
-											{imageData.length > 0 && variant === "received" && (
-												<div className="space-y-6">
-													{imageData.map((image, index) => (
-														<div
-															key={`image-${image.messageId}-${image.prompt}-${index}`}
-															className="space-y-3"
-														>
-															<div className="flex items-center space-x-2 text-muted-foreground text-sm">
-																<ImageIcon className="h-4 w-4" />
-																<span className="font-medium">
-																	Generated image:
-																</span>
-																<span>{image.prompt}</span>
-															</div>
-															<div className="group relative overflow-hidden rounded-xl border bg-muted/20 shadow-sm transition-all hover:shadow-md">
-																<img
-																	src={`data:image/png;base64,${image.image}`}
-																	alt={image.prompt}
-																	width={400}
-																	height={400}
-																	className="h-auto w-full transition-transform duration-300 group-hover:scale-[1.02]"
-																/>
-																<Button
-																	size="sm"
-																	variant="default"
-																	className="absolute top-2 right-2 h-8 w-8 p-0 opacity-0 shadow-lg backdrop-blur-sm transition-opacity duration-200 group-hover:opacity-100"
-																	onClick={() =>
-																		handleDownloadImage(
-																			image.image,
-																			image.prompt,
-																		)
-																	}
-																	title="Download image"
-																>
-																	<DownloadIcon className="h-4 w-4" />
-																</Button>
-															</div>
-														</div>
-													))}
-												</div>
-											)}
+								{part.type === "file" && part.mediaType === "image/png" && (
+									<div key={`${part.type}${i}`} className="mb-6 space-y-4">
+										<div className="flex items-center space-x-2 text-muted-foreground text-sm">
+											<ImageIcon className="h-4 w-4" />
+											<span>{part.type}</span>
 										</div>
-									)}
 
-								{part.type === "tool-invocation" &&
-									(part.toolInvocation.state === "call" ||
-										part.toolInvocation.state === "partial-call") && (
+										<div className="space-y-6">
+											<div className="group relative overflow-hidden rounded-xl border bg-muted/20 shadow-sm transition-all hover:shadow-md">
+												<img
+													src={part.url}
+													alt={part.type}
+													width={400}
+													height={400}
+													className="h-auto w-full transition-transform duration-300 group-hover:scale-[1.02]"
+												/>
+												<Button
+													size="sm"
+													variant="default"
+													className="absolute top-2 right-2 h-8 w-8 p-0 opacity-0 shadow-lg backdrop-blur-sm transition-opacity duration-200 group-hover:opacity-100"
+													onClick={() =>
+														handleDownloadImage(part.url, part.type)
+													}
+													title="Download image"
+												>
+													<DownloadIcon className="h-4 w-4" />
+												</Button>
+											</div>
+										</div>
+									</div>
+								)}
+
+								{part.type === "tool-generateImage" &&
+									(part.state === "input-available" ||
+										part.state === "input-streaming") && (
 										<div className="flex items-center gap-3 rounded-lg border border-dashed bg-muted/50 p-4">
 											<Loader2Icon className="h-4 w-4 animate-spin text-primary" />
 											<div className="flex flex-col gap-1">
 												<p className="font-medium text-foreground text-sm">
-													Calling tool {part.toolInvocation.toolName}
+													Calling tool {part.type}
 												</p>
 												<p className="text-muted-foreground text-xs">
 													Please wait while we process your request...
@@ -268,7 +232,7 @@ const MessageBlock = ({
 										</div>
 									)}
 
-								{part.type === "tool-invocation" &&
+								{/* {part.type === "tool-invocation" &&
 									part.toolInvocation.toolName === "generateJoke" &&
 									part.toolInvocation.state === "result" && (
 										<div className="mb-4 flex items-center gap-3 rounded-lg border border-dashed bg-muted/50 p-4">
@@ -285,7 +249,7 @@ const MessageBlock = ({
 												</p>
 											</div>
 										</div>
-									)}
+									)} */}
 
 								{part.type === "text" && variant === "sent" && (
 									<div>
@@ -296,7 +260,7 @@ const MessageBlock = ({
 												message={message}
 												setMode={setMode}
 												setMessages={setMessages}
-												reload={reload}
+												regenerate={regenerate}
 												status={status}
 											/>
 										) : (
@@ -321,10 +285,10 @@ const MessageBlock = ({
 							</div>
 						))}
 
-						<AnnotationBlock
+						{/* <AnnotationBlock
 							annotations={message.annotations}
 							id="ai-annotations"
-						/>
+						/> */}
 						{message.role === "user" && (
 							<ChatBubbleActionWrapper
 								variant="sent"
