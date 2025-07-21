@@ -1,5 +1,5 @@
 {
-	"$schema": "https://biomejs.dev/schemas/2.1.1/schema.json",
+	"$schema": "https://biomejs.dev/schemas/2.1.2/schema.json",
 	"vcs": {
 		"enabled": true,
 		"clientKind": "git",
@@ -33,10 +33,10 @@
 			"style": {
 				"useFragmentSyntax": "warn", // Not in recommended ruleset, turning on manually
 				"noYodaExpression": "warn", // Not in recommended ruleset, turning on manually
-				"useDefaultParameterLast": "warn", // Not in recommended ruleset, turning on manually
+				"useDefaultParameterLast": "error", // Not in recommended ruleset, turning on manually
 				"useExponentiationOperator": "off", // Obscure and arguably not easily readable
-				"noUnusedTemplateLiteral": "warn", // Stylistic opinion
-				"noUselessElse": "warn", // Stylistic opinion
+				"noUnusedTemplateLiteral": "error", // Stylistic opinion
+				"noUselessElse": "error",
 				"noParameterAssign": "error",
 				"useAsConstAssertion": "error",
 				"useEnumInitializers": "error",
@@ -44,18 +44,45 @@
 				"useSingleVarDeclarator": "error",
 				"useNumberNamespace": "error",
 				"noInferrableTypes": "error",
-				"useArrayLiterals": "warn"
+				"useConst": "error",
+				"useShorthandAssign": "warn",
+				"useArrayLiterals": "warn",
+				"useTemplate": "warn"
 			},
 			"suspicious": {
-				"noExplicitAny": "off", // We trust Vercelians to use any only when necessary
+				"noExplicitAny": "off", // Controversial, but use of `any` is can be justified. Trust to only use when strictly necessary.
 				"noHeadImportInDocument": "warn",
-				"noDocumentImportInPage": "warn",
 				"noDuplicateElseIf": "warn",
-				"noIrregularWhitespace": "warn"
+				"noIrregularWhitespace": "warn",
+				"noEmptyBlockStatements": "error",
+				"noFallthroughSwitchClause": "error",
+				"noVar": "error",
+				"useAwait": "warn" // Typically async functions without await don't need it
+			},
+			"correctness": {
+				"useValidForDirection": "error",
+				"noUndeclaredVariables": "error",
+				"noUnusedVariables": "warn",
+				"noUnusedImports": "warn"
+			},
+			"complexity": {
+				"noExcessiveCognitiveComplexity": {
+					"level": "warn",
+					"options": { "maxAllowedComplexity": 15 }
+				},
+				"noStaticOnlyClass": "error",
+				"noUselessConstructor": "error",
+				"useFlatMap": "warn"
+			},
+			"performance": {
+				"noDelete": "error",
+				"noAccumulatingSpread": "warn"
 			},
 			"nursery": {
+				"noFloatingPromises": "warn", // Typically promises should be returned or awaited
 				"useSortedClasses": {
 					"level": "warn",
+					"fix": "safe",
 					"options": {
 						"attributes": ["classList"],
 						"functions": ["clsx", "cva", "cn", "tw", "tw.*"]
