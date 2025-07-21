@@ -112,7 +112,7 @@ const DeleteItem = ({ courseId }: { courseId: Course["id"] }) => {
 		}),
 	);
 
-	const handleDelete = async (id: string) => {
+	const handleDelete = (id: string) => {
 		toast.promise(deleteCourses({ refs: [{ id }] }), {
 			loading: "Deleting course...",
 			success: "Course deleted",

@@ -10,7 +10,7 @@ import { client } from "../orpc";
 
 export const listOrganizations = authed.organization.list
 	.use(retry({ times: 3 }))
-	.handler(async ({ input, context }) => {
+	.handler(async ({ input }) => {
 		/* const { entityIds } = await listAllowedEntities({
 			entityType: "organization",
 			action: "read",

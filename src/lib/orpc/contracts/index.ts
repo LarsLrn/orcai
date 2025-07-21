@@ -18,6 +18,20 @@ import {
 	updateAssetPointContract,
 } from "./asset-point";
 import {
+	createBlockContract,
+	deleteBlockContract,
+	findBlockContract,
+	listBlocksContract,
+	updateBlockContract,
+} from "./block";
+import {
+	createBotContract,
+	deleteBotContract,
+	findBotContract,
+	listBotsContract,
+	updateBotContract,
+} from "./bot";
+import {
 	createChatContract,
 	deleteChatContract,
 	findChatContract,
@@ -69,6 +83,13 @@ import {
 	listOrganizationMembersContract,
 	updateOrganizationMemberContract,
 } from "./organization-member";
+import {
+	createOrganizationProviderContract,
+	deleteOrganizationProviderContract,
+	findOrganizationProviderContract,
+	listOrganizationProvidersContract,
+	updateOrganizationProviderContract,
+} from "./organization-provider";
 import { createDownloadUrlContract, createUploadUrlsContract } from "./storage";
 import { createDocumentTaskContract } from "./task";
 import {
@@ -102,6 +123,13 @@ export const contracts = {
 		delete: deleteOrganizationInvitationsContract,
 		respond: respondToOrganizationInvitationContract,
 	},
+	organizationProvider: {
+		list: listOrganizationProvidersContract,
+		create: createOrganizationProviderContract,
+		find: findOrganizationProviderContract,
+		update: updateOrganizationProviderContract,
+		delete: deleteOrganizationProviderContract,
+	},
 	course: {
 		list: listCoursesContract,
 		find: findCourseContract,
@@ -131,6 +159,20 @@ export const contracts = {
 		update: updateChatMessageContract,
 		delete: deleteChatMessageContract,
 		rate: rateChatMessageContract,
+	},
+	block: {
+		list: listBlocksContract,
+		find: findBlockContract,
+		create: createBlockContract,
+		update: updateBlockContract,
+		delete: deleteBlockContract,
+	},
+	bot: {
+		list: listBotsContract,
+		find: findBotContract,
+		create: createBotContract,
+		update: updateBotContract,
+		delete: deleteBotContract,
 	},
 	asset: {
 		list: listAssetsContract,

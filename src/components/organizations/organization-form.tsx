@@ -4,9 +4,9 @@ import { useNavigate } from "@tanstack/react-router";
 import { useForm } from "react-hook-form";
 import { toast } from "sonner";
 import type z from "zod/v4";
-import { FormInputField } from "@/components/forms/fields/formInputField";
+import { FormInputField } from "@/components/forms/fields/form-input-field";
 import { Button } from "@/components/ui/button";
-import { Form, FormField } from "@/components/ui/form";
+import { Form } from "@/components/ui/form";
 import type { Organization } from "@/db/schema/organization";
 import { organizationInsertSchema } from "@/lib/orpc/contracts/organization";
 import { orpc } from "@/lib/orpc/orpc";
@@ -46,7 +46,7 @@ const OrganizationForm = ({
 		},
 	});
 
-	const onSubmit = async (values: z.infer<typeof organizationInsertSchema>) => {
+	const onSubmit = (values: z.infer<typeof organizationInsertSchema>) => {
 		if (organization) {
 			toast.promise(
 				updateOrganization({
@@ -58,8 +58,8 @@ const OrganizationForm = ({
 				}),
 				{
 					loading: "Updating organisation...",
-					success: () => {
-						navigate({
+					success: async () => {
+						await navigate({
 							to: "/app/orgs/$orgId",
 							params: { orgId: organization.id },
 						});
@@ -80,16 +80,10 @@ const OrganizationForm = ({
 				}),
 				{
 					loading: "Creating organisation...",
-					success: (result) => {
-						const orgId = result.data?.id;
-
-						if (!orgId) {
-							throw new Error("Organization ID is missing in the response");
-						}
-
-						navigate({
+					success: async (result) => {
+						await navigate({
 							to: "/app/orgs/$orgId",
-							params: { orgId },
+							params: { orgId: result.data.id },
 						});
 						return "Organisation created successfully";
 					},
@@ -108,29 +102,19 @@ const OrganizationForm = ({
 				onSubmit={form.handleSubmit(onSubmit)}
 				className="flex flex-col gap-4"
 			>
-				<FormField
-					control={form.control}
+				<FormInputField
+					form={form}
 					name="name"
-					render={({ field }) => (
-						<FormInputField
-							field={field}
-							label="Organisation Name"
-							placeholder="Your organisation"
-							inputType="text"
-						/>
-					)}
+					label="Organisation Name"
+					placeholder="Your organisation"
+					inputType="text"
 				/>
-				<FormField
-					control={form.control}
+				<FormInputField
+					form={form}
 					name="slug"
-					render={({ field }) => (
-						<FormInputField
-							field={field}
-							label="Organisation Slug"
-							placeholder="your-organisation"
-							inputType="text"
-						/>
-					)}
+					label="Organisation Slug"
+					placeholder="your-organisation"
+					inputType="text"
 				/>
 				<Button type="submit">Save Organisation</Button>
 			</form>

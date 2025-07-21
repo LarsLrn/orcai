@@ -1,5 +1,7 @@
 import {
+	BlocksIcon,
 	BookMarkedIcon,
+	BotIcon,
 	Building2Icon,
 	FolderOpenIcon,
 	UserIcon,
@@ -17,6 +19,16 @@ export const sidebarInstructorMenu = [
 		title: "Resources",
 		url: ROUTES.PRIVATE.documents.root.getPath(),
 		icon: FolderOpenIcon,
+	},
+	{
+		title: "Bots",
+		url: "/app/bots",
+		icon: BotIcon,
+	},
+	{
+		title: "Blocks",
+		url: "/app/blocks",
+		icon: BlocksIcon,
 	},
 ];
 

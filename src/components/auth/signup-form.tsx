@@ -3,11 +3,11 @@ import { Link, useNavigate } from "@tanstack/react-router";
 import { FileTextIcon } from "lucide-react";
 import { useForm } from "react-hook-form";
 import { toast } from "sonner";
-import { FormInputField } from "@/components/forms/fields/formInputField";
-import { FormPasswordField } from "@/components/forms/fields/formPasswordField";
-import { FormSwitch } from "@/components/forms/fields/formSwitch";
+import { FormInputField } from "@/components/forms/fields/form-input-field";
+import { FormPasswordField } from "@/components/forms/fields/form-password-field";
+import { FormSwitchField } from "@/components/forms/fields/form-switch-field";
 import { Button, buttonVariants } from "@/components/ui/button";
-import { Form, FormField } from "@/components/ui/form";
+import { Form } from "@/components/ui/form";
 import type { CourseInvitation } from "@/db/schema/course-invitation";
 import { type SignupSchemaType, signupSchema } from "@/db/zod/signup";
 import { useUmami } from "@/hooks/use-umami";
@@ -28,31 +28,32 @@ const SignUpForm = ({ invitation }: { invitation: CourseInvitation }) => {
 		},
 	});
 
-	const onSubmit = async (values: SignupSchemaType) => {
+	const onSubmit = (values: SignupSchemaType) => {
 		if (invitation.id !== values.invitationId) {
 			return;
 		}
 
-		await authClient.signUp.email(
-			{
+		toast.promise(
+			authClient.signUp.email({
 				name: values.name ?? "User",
 				email: values.email,
 				password: values.password,
-			},
+			}),
 			{
-				onSuccess: async (_ctx) => {
+				loading: "Creating your account...",
+				success: async () => {
 					trackEvent("auth-register", {
 						email: values.email,
 						invitationId: values.invitationId,
 					});
 					toast.success("Welcome to Sokratesᵗ!");
-					navigate({ to: "/", replace: true });
+					await navigate({ to: "/", replace: true });
+					return "Account successfully created!";
 				},
-				onError: (ctx) => {
-					toast.error("An error occured.", {
-						description: ctx.error.message,
-					});
-				},
+				error: (error) => ({
+					message: "Account creation failed",
+					description: error.message,
+				}),
 			},
 		);
 	};
@@ -60,67 +61,46 @@ const SignUpForm = ({ invitation }: { invitation: CourseInvitation }) => {
 	return (
 		<Form {...form}>
 			<form onSubmit={form.handleSubmit(onSubmit)} className="space-y-8">
-				<FormField
-					control={form.control}
+				<FormInputField
+					form={form}
 					name="name"
-					render={({ field }) => (
-						<FormInputField
-							field={field}
-							placeholder="Your Name"
-							label="Name"
-							inputType="text"
-						/>
-					)}
+					placeholder="Your Name"
+					label="Name"
+					inputType="text"
 				/>
-				<FormField
-					control={form.control}
+
+				<FormInputField
+					form={form}
 					name="email"
-					render={({ field }) => (
-						<FormInputField
-							disabled={invitation && true}
-							field={field}
-							placeholder="your@email.com"
-							label="Email"
-							inputType="email"
-						/>
-					)}
+					disabled={invitation && true}
+					placeholder="your@email.com"
+					label="Email"
+					inputType="email"
 				/>
-				<FormField
-					control={form.control}
+
+				<FormInputField
+					form={form}
 					name="invitationId"
-					render={({ field }) => (
-						<FormInputField
-							disabled={invitation && true}
-							field={field}
-							placeholder="Unique invitation code"
-							label="Invitation Code"
-							inputType="text"
-						/>
-					)}
+					disabled={invitation && true}
+					placeholder="Unique invitation code"
+					label="Invitation Code"
+					inputType="text"
 				/>
-				<FormField
-					control={form.control}
+
+				<FormPasswordField
+					form={form}
 					name="password"
-					render={({ field }) => (
-						<FormPasswordField
-							field={field}
-							placeholder="Password"
-							label="Password"
-							showTogglePassword
-						/>
-					)}
+					placeholder="Password"
+					label="Password"
+					showTogglePassword
 				/>
-				<FormField
-					control={form.control}
+
+				<FormPasswordField
+					form={form}
 					name="confirmPassword"
-					render={({ field }) => (
-						<FormPasswordField
-							field={field}
-							placeholder="Password"
-							label="Confirm Password"
-							showTogglePassword
-						/>
-					)}
+					placeholder="Password"
+					label="Confirm Password"
+					showTogglePassword
 				/>
 				<div className="space-y-4 rounded-lg border bg-background/50 p-4 shadow-sm">
 					<div className="space-y-2">
@@ -152,15 +132,10 @@ const SignUpForm = ({ invitation }: { invitation: CourseInvitation }) => {
 						</Link>
 					</div>
 
-					<FormField
-						control={form.control}
+					<FormSwitchField
+						form={form}
 						name="privacyConsent"
-						render={({ field }) => (
-							<FormSwitch
-								field={field}
-								description="Yes, I have read, understood, and agree to the privacy policy and terms of use of the Sokratesᵗ platform."
-							/>
-						)}
+						description="Yes, I have read, understood, and agree to the privacy policy and terms of use of the Sokratesᵗ platform."
 					/>
 				</div>
 				<Button type="submit" className="w-full">

@@ -145,8 +145,8 @@ export const deleteOrganizationInvitations =
 export const respondToOrganisationInvitation =
 	authed.organizationInvitation.respond
 		.use(retry({ times: 3 }))
-		.handler(async ({ input, context }) => {
-			const acceptInvitation = async () => {
+		.handler(({ input }) => {
+			const acceptInvitation = () => {
 				/* const [invitation] = await db
 				.select({ ...getTableColumns(organisationInvitation) })
 				.from(organisationInvitation)

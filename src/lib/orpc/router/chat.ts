@@ -59,6 +59,7 @@ export const findChat = authed.chat.find
 		return { data: query };
 	});
 
+// TODO: Add permission check for botId
 export const createChat = authed.chat.create.handler(
 	async ({ input, context }) => {
 		const [query] = await db
@@ -66,7 +67,7 @@ export const createChat = authed.chat.create.handler(
 			.values({
 				title: input.title ?? "New Chat",
 				userId: context.auth.user.id,
-				courseId: input.courseId,
+				botId: input.botId,
 			})
 			.returning({ ...getTableColumns(chat) });
 

@@ -19,7 +19,6 @@ const ChatMessageList = ({
 	const { scrollRef, isAtBottom, scrollToBottom, disableAutoScroll } =
 		useAutoScroll({
 			smooth,
-			content: children,
 		});
 
 	// Add debounced version of isAtBottom

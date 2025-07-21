@@ -62,7 +62,7 @@ const MessageBlock = ({
 
 	console.log("Message:", JSON.stringify(message, null, 2));
 
-	const handleCopy = async (text: string) => {
+	const handleCopy = (text: string) => {
 		toast.promise(copy(text), {
 			loading: "Copying to clipboard...",
 			success: "Copied to clipboard!",

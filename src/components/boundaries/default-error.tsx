@@ -17,6 +17,7 @@ export function DefaultErrorBoundary({ error }: ErrorComponentProps) {
 		select: (state) => state.id === rootRouteId,
 	});
 
+	// TODO: Log error to an error tracking service
 	console.error(error);
 
 	return (
@@ -32,10 +33,10 @@ export function DefaultErrorBoundary({ error }: ErrorComponentProps) {
 						{/* Error Title */}
 						<div className="space-y-2">
 							<h1 className="font-bold text-2xl text-foreground">
-								Something went wrong
+								{error.name}
 							</h1>
 							<h2 className="font-semibold text-lg text-muted-foreground">
-								An unexpected error occurred
+								{error.message}
 							</h2>
 						</div>
 

@@ -1,6 +1,6 @@
 import { useChat } from "@ai-sdk/react";
 import { eventIteratorToStream } from "@orpc/client";
-import { DefaultChatTransport } from "ai";
+import { useQuery, useSuspenseQuery } from "@tanstack/react-query";
 import type { ApiGetScoresResponseData } from "langfuse";
 import { toast } from "sonner";
 import { v4 as uuidv4 } from "uuid";
@@ -14,6 +14,7 @@ import { client, orpc } from "@/lib/orpc/orpc";
   useStreamingText,
 } from "@/hooks/use-streaming-text"; */
 import { ChatPlaceholder } from "./chat-placeholder";
+import { ChatSettings } from "./chat-settings";
 import { MessageBlock } from "./message-block";
 import { ShinyText } from "./shiny-text";
 
@@ -26,26 +27,30 @@ const Chat = ({
 	initialMessages: CustomUIMessage[];
 	scores: ApiGetScoresResponseData[];
 }) => {
+	const { data: chat } = useSuspenseQuery(
+		orpc.chat.find.queryOptions({
+			input: { id },
+			queryKey: orpc.chat.find.key({ input: { id } }),
+		}),
+	);
+
 	const { messages, status, setMessages, stop, regenerate, sendMessage } =
 		useChat({
 			id,
-			/* transport: new DefaultChatTransport({
-				api: "/api/ai/chat",
-				body: { id },
-			}), */
 			transport: {
 				async sendMessages(options) {
 					return eventIteratorToStream(
-						await client.ai.testChat(
+						await client.ai.chat(
 							{
 								chatId: options.chatId,
 								messages: options.messages,
+								botId: chat.data.botId,
 							},
 							{ signal: options.abortSignal },
 						),
 					);
 				},
-				reconnectToStream(options) {
+				reconnectToStream() {
 					throw new Error("Unsupported");
 				},
 			},
@@ -104,6 +109,7 @@ const Chat = ({
 				)}
 			</ChatMessageList>
 
+			<ChatSettings chatId={id} />
 			<ChatInput
 				hasMessages={messages.length > 0}
 				status={status}

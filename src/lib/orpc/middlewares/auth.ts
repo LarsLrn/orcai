@@ -14,6 +14,12 @@ export const requiredAuthMiddleware = os
 			user?: typeof authClient.$Infer.Session.user;
 		};
 	}>()
+	.errors({
+		UNAUTHORIZED: {
+			message: "You must be logged in to access this resource.",
+			status: 401,
+		},
+	})
 	.middleware(async ({ context, next }) => {
 		/**
 		 * Why we should ?? here?
@@ -25,7 +31,9 @@ export const requiredAuthMiddleware = os
 		const auth = context.auth ?? (await betterAuth.api.getSession({ headers }));
 
 		if (!auth?.session || !auth?.user) {
-			throw new ORPCError("UNAUTHORIZED");
+			throw new ORPCError("UNAUTHORIZED", {
+				message: "You must be logged in to access this resource.",
+			});
 		}
 
 		return next({
@@ -47,9 +55,17 @@ export const requireActiveOrganizationMiddleware = os
 			user: typeof authClient.$Infer.Session.user;
 		};
 	}>()
-	.middleware(async ({ context, next }) => {
+	.errors({
+		BAD_REQUEST: {
+			message: "No active organization for the current session.",
+			status: 400,
+		},
+	})
+	.middleware(({ context, next }) => {
 		if (!context.auth.session.activeOrganizationId) {
-			throw new ORPCError("NOT_FOUND");
+			throw new ORPCError("BAD_REQUEST", {
+				message: "No active organization for the current session.",
+			});
 		}
 
 		return next({
@@ -67,11 +83,23 @@ export const requirePreferencesMiddleware = os
 			user: typeof authClient.$Infer.Session.user;
 		};
 	}>()
+	.errors({
+		NOT_FOUND: {
+			message: "User preferences not found.",
+			status: 404,
+		},
+	})
 	.middleware(async ({ context, next }) => {
 		const [userPrefs] = await db
 			.select({ preferences: user.preferences })
 			.from(user)
 			.where(eq(user.id, context.auth.user.id));
+
+		if (!userPrefs) {
+			throw new ORPCError("NOT_FOUND", {
+				message: "User preferences not found.",
+			});
+		}
 
 		return next({
 			context: {

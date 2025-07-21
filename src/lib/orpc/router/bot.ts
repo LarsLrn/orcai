@@ -1,0 +1,166 @@
+import { ORPCError } from "@orpc/server";
+import { count, eq, getTableColumns, inArray } from "drizzle-orm";
+import { db } from "@/db/drizzle";
+import { blockTable } from "@/db/schema/block";
+import { botBlockTable, botTable } from "@/db/schema/bot";
+import { authed } from "@/lib/orpc";
+import { requireActiveOrganizationMiddleware } from "@/lib/orpc/middlewares/auth";
+import {
+	checkManyPermissionMiddleware,
+	checkPermissionMiddleware,
+} from "@/lib/orpc/middlewares/permission";
+import { retry } from "@/lib/orpc/middlewares/retry";
+import { createRelation, listAllowedEntities } from "@/lib/spice-db/actions";
+
+export const listBots = authed.bot.list
+	.use(retry({ times: 3 }))
+	.handler(async ({ input, context }) => {
+		const { entityIds } = await listAllowedEntities({
+			entityType: "bot",
+			action: "read",
+			userId: context.auth.user.id,
+		});
+
+		const query = await db
+			.select({ ...getTableColumns(botTable) })
+			.from(botTable)
+			.where(inArray(botTable.id, entityIds))
+			.limit(input.pageSize)
+			.offset(input.pageIndex * input.pageSize);
+
+		const [rowCount] = await db.select({ count: count() }).from(botTable);
+
+		return { data: query, rowCount: rowCount.count };
+	});
+
+export const findBot = authed.bot.find
+	.use(
+		checkPermissionMiddleware,
+		(input) =>
+			({
+				entityId: input.id,
+				action: "read",
+				entityType: "bot",
+			}) as const,
+	)
+	.use(retry({ times: 3 }))
+	.handler(async ({ input }) => {
+		const [bot] = await db
+			.select({ ...getTableColumns(botTable) })
+			.from(botTable)
+			.where(eq(botTable.id, input.id));
+
+		if (!bot) {
+			throw new ORPCError("NOT_FOUND", { message: "Bot not found" });
+		}
+
+		// Fetch the associated blocks
+		const blocks = await db
+			.select({ ...getTableColumns(blockTable) })
+			.from(blockTable)
+			.innerJoin(botBlockTable, eq(botBlockTable.blockId, blockTable.id));
+
+		return { data: { ...bot, blocks } };
+	});
+
+export const createBot = authed.bot.create
+	.use(requireActiveOrganizationMiddleware)
+	.handler(async ({ input, context }) => {
+		const [bot] = await db
+			.insert(botTable)
+			.values({
+				...input,
+				userId: context.auth.user.id,
+				createdAt: new Date(),
+				updatedAt: new Date(),
+			})
+			.returning({ ...getTableColumns(botTable) });
+
+		const botBlocks = await db
+			.insert(botBlockTable)
+			.values(
+				input.blocks.map((block) => ({
+					blockId: block.id,
+					botId: bot.id,
+					createdAt: new Date(),
+				})),
+			)
+			.returning({ ...getTableColumns(botBlockTable) });
+
+		await createRelation({
+			entityId: bot.id,
+			entityType: "bot",
+			userId: context.auth.user.id,
+			relation: "owner",
+		});
+
+		return { data: { ...bot, blockIds: botBlocks.map((bb) => bb.blockId) } };
+	});
+
+export const updateBot = authed.bot.update
+	.use(
+		checkPermissionMiddleware,
+		(input) =>
+			({
+				entityId: input.id,
+				action: "read",
+				entityType: "bot",
+			}) as const,
+	)
+	.handler(async ({ input }) => {
+		const [bot] = await db
+			.update(botTable)
+			.set({
+				...input,
+				updatedAt: new Date(),
+			})
+			.where(eq(botTable.id, input.id))
+			.returning({ ...getTableColumns(botTable) });
+
+		// Remove all existing bot-block relationships
+		// TODO: Handle this more elegantly rather then deleting and recreating
+		await db.delete(botBlockTable).where(eq(botBlockTable.botId, bot.id));
+
+		const botBlocks = await db
+			.insert(botBlockTable)
+			.values(
+				input.blocks.map((block) => ({
+					blockId: block.id,
+					botId: bot.id,
+					createdAt: new Date(),
+				})),
+			)
+			.returning({ ...getTableColumns(botBlockTable) });
+
+		return { data: { ...bot, blockIds: botBlocks.map((bb) => bb.blockId) } };
+	});
+
+export const deleteBots = authed.bot.delete
+	.use(
+		checkManyPermissionMiddleware,
+		(input) =>
+			({
+				entityIds: input.refs.map((ref) => ref.id),
+				action: "delete",
+				entityType: "bot",
+			}) as const,
+	)
+	.handler(async ({ context }) => {
+		console.log("Deleting bots with allowed IDs:", context.allowedIds);
+
+		// Check if there are any IDs to delete
+		if (!context.allowedIds || context.allowedIds.length === 0) {
+			return { success: true, message: "No bots to delete" };
+		}
+
+		try {
+			await db.delete(botTable).where(inArray(botTable.id, context.allowedIds));
+
+			return { success: true, message: "Bots deleted successfully" };
+		} catch (error) {
+			console.error("Error deleting bots:", error);
+			throw new ORPCError("INTERNAL_SERVER_ERROR", {
+				message: "Failed to delete bots",
+			});
+		}
+	});

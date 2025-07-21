@@ -9,11 +9,10 @@ interface ScrollState {
 interface UseAutoScrollOptions {
 	offset?: number;
 	smooth?: boolean;
-	content?: React.ReactNode;
 }
 
 export function useAutoScroll(options: UseAutoScrollOptions = {}) {
-	const { offset = 20, smooth = false, content } = options;
+	const { offset = 20, smooth = false } = options;
 	const scrollRef = useRef<HTMLDivElement>(null);
 	const lastContentHeight = useRef(0);
 	const userHasScrolled = useRef(false);

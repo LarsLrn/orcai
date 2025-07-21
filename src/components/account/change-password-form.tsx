@@ -3,9 +3,9 @@ import { useMutation } from "@tanstack/react-query";
 import { useForm } from "react-hook-form";
 import { toast } from "sonner";
 import { z } from "zod/v4";
-import { FormPasswordField } from "@/components/forms/fields/formPasswordField";
+import { FormPasswordField } from "@/components/forms/fields/form-password-field";
 import { Button } from "@/components/ui/button";
-import { Form, FormField } from "@/components/ui/form";
+import { Form } from "@/components/ui/form";
 import { sharedSchemas } from "@/db/zod/shared";
 import { orpc } from "@/lib/orpc/orpc";
 
@@ -38,7 +38,7 @@ const ChangePasswordForm = () => {
 		},
 	});
 
-	const onSubmit = async (values: ChangePasswordSchemaType) => {
+	const onSubmit = (values: ChangePasswordSchemaType) => {
 		toast.promise(
 			updatePassword({
 				currentPassword: values.currentPassword,
@@ -62,42 +62,30 @@ const ChangePasswordForm = () => {
 	return (
 		<Form {...form}>
 			<form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
-				<FormField
-					control={form.control}
+				<FormPasswordField
+					form={form}
 					name="currentPassword"
-					render={({ field }) => (
-						<FormPasswordField
-							field={field}
-							label="Current Password"
-							placeholder="Enter your current password"
-							showTogglePassword
-						/>
-					)}
+					label="Current Password"
+					placeholder="Enter your current password"
+					showTogglePassword
 				/>
-				<FormField
-					control={form.control}
+
+				<FormPasswordField
+					form={form}
 					name="password"
-					render={({ field }) => (
-						<FormPasswordField
-							field={field}
-							label="New Password"
-							placeholder="Enter new password"
-							showTogglePassword
-						/>
-					)}
+					label="New Password"
+					placeholder="Enter new password"
+					showTogglePassword
 				/>
-				<FormField
-					control={form.control}
+
+				<FormPasswordField
+					form={form}
 					name="confirmPassword"
-					render={({ field }) => (
-						<FormPasswordField
-							field={field}
-							label="Confirm New Password"
-							placeholder="Confirm new password"
-							showTogglePassword
-						/>
-					)}
+					label="Confirm New Password"
+					placeholder="Confirm new password"
+					showTogglePassword
 				/>
+
 				<Button
 					type="submit"
 					variant="destructive"

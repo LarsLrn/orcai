@@ -1,54 +1,39 @@
 import { zodResolver } from "@hookform/resolvers/zod";
-import { useEffect, useState } from "react";
+import { useRouteContext } from "@tanstack/react-router";
 import { useForm } from "react-hook-form";
-import { FormInputField } from "@/components/forms/fields/formInputField";
+import { toast } from "sonner";
+import { FormInputField } from "@/components/forms/fields/form-input-field";
 import { Button } from "@/components/ui/button";
-import { Form, FormField } from "@/components/ui/form";
+import { Form } from "@/components/ui/form";
 import { type UserUpdateSchemaType, userUpdateSchema } from "@/db/zod/profile";
 import { authClient } from "@/lib/auth-client";
 
 const ProfileForm = () => {
-	const { data, isPending } = authClient.useSession();
-	const [loading, setLoading] = useState(true);
-	const [submitting, setSubmitting] = useState(false);
+	const { auth } = useRouteContext({ from: "/app" });
+	const { refetch } = authClient.useSession();
 
 	const form = useForm<UserUpdateSchemaType>({
 		resolver: zodResolver(userUpdateSchema),
 		defaultValues: {
-			name: data?.user.name,
+			name: auth.user.name,
 		},
 	});
 
-	// FIXME: Pass data as props instead of this shit?
-	// biome-ignore lint/correctness/useExhaustiveDependencies: <FIXME: Check later>
-	useEffect(() => {
-		form.reset({
-			name: data?.user.name,
-		});
-
-		if (!isPending && data) {
-			setLoading(false);
-		}
-	}, [data]);
-
-	const onSubmit = async (values: UserUpdateSchemaType) => {
-		await authClient.updateUser(
-			{
+	const onSubmit = (values: UserUpdateSchemaType) => {
+		toast.promise(
+			authClient.updateUser({
 				name: values.name,
-			},
+			}),
 			{
-				onRequest: () => {
-					setSubmitting(true);
-					console.log("loading");
+				loading: "Saving profile...",
+				success: () => {
+					refetch(); // Refetch session with updated user data
+					return "Profile updated successfully!";
 				},
-				onSuccess: () => {
-					setSubmitting(false);
-					console.log("success");
-				},
-				onError: () => {
-					setSubmitting(false);
-					console.log("error");
-				},
+				error: (error) => ({
+					message: "Failed to update profile",
+					description: error.message,
+				}),
 			},
 		);
 	};
@@ -56,22 +41,14 @@ const ProfileForm = () => {
 	return (
 		<Form {...form}>
 			<form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
-				<FormField
-					control={form.control}
+				<FormInputField
+					form={form}
 					name="name"
-					render={({ field }) => (
-						<FormInputField
-							field={field}
-							placeholder="Your name"
-							label="Name"
-							inputType="text"
-							loading={loading}
-						/>
-					)}
+					placeholder="Your name"
+					label="Name"
+					inputType="text"
 				/>
-				<Button type="submit" disabled={loading || submitting}>
-					Save Profile
-				</Button>
+				<Button type="submit">Save Profile</Button>
 			</form>
 		</Form>
 	);

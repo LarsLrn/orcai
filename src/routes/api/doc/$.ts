@@ -51,7 +51,7 @@ const openAPIHandler = new OpenAPIHandler(router, {
 		 * Adds CSRF protection to the handler:
 		 * https://orpc.unnoq.com/docs/plugins/simple-csrf-protection
 		 */
-		new SimpleCsrfProtectionHandlerPlugin(),
+		/* new SimpleCsrfProtectionHandlerPlugin(), */
 		new SmartCoercionPlugin(),
 		new OpenAPIReferencePlugin({
 			schemaConverters: [new ZodToJsonSchemaConverter()],

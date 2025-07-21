@@ -5,6 +5,7 @@ import type { VariantProps } from "class-variance-authority";
 import { toast } from "sonner";
 import { buttonVariants } from "@/components/ui/button";
 import { useSidebar } from "@/components/ui/sidebar";
+import type { Bot } from "@/db/schema/bot";
 import { useUmami } from "@/hooks/use-umami";
 import type { OrpcOutputs } from "@/lib/orpc/contracts";
 import { orpc } from "@/lib/orpc/orpc";
@@ -15,10 +16,12 @@ const NewChatButton = ({
 	variant,
 	size,
 	asChild = false,
+	botId,
 	...props
 }: React.ComponentProps<"button"> &
 	VariantProps<typeof buttonVariants> & {
 		asChild?: boolean;
+		botId?: Bot["id"];
 	}) => {
 	const navigate = useNavigate();
 	const { setOpenMobile } = useSidebar();
@@ -28,7 +31,7 @@ const NewChatButton = ({
 
 	const { mutateAsync: createChat } = useMutation(
 		orpc.chat.create.mutationOptions({
-			onSuccess(newChat) {
+			async onSuccess(newChat) {
 				// Cache needs to be updated directly as SpiceDB takes time to propagate changes
 				// and the query will return stale data if we wait for the next refetch.
 				queryClient.setQueryData(
@@ -42,7 +45,7 @@ const NewChatButton = ({
 					},
 				);
 
-				navigate({
+				await navigate({
 					to: "/app/chat/$chatId",
 					params: { chatId: newChat.data.id },
 				});
@@ -51,9 +54,9 @@ const NewChatButton = ({
 		}),
 	);
 
-	const handleNewChat = async () => {
+	const handleNewChat = () => {
 		// TODO: Replace with actual courseId when available
-		toast.promise(createChat({ courseId: "placeholder" }), {
+		toast.promise(createChat({ botId }), {
 			loading: "Creating new chat...",
 			success: (result) => {
 				trackEvent("chat-create", { chatId: result.data.id });

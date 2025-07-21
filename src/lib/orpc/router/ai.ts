@@ -1,9 +1,7 @@
 import { streamToEventIterator } from "@orpc/client";
-import { os, type } from "@orpc/server";
 import {
 	convertToModelMessages,
 	createUIMessageStream,
-	createUIMessageStreamResponse,
 	smoothStream,
 	stepCountIs,
 	streamText,
@@ -14,36 +12,32 @@ import {
 	type ModelsWithText,
 	saiaModels,
 } from "@/lib/ai/saia-models";
-import type { CustomUIMessage } from "@/lib/ai/tools";
 import { generateImageTool } from "@/lib/ai/tools/generate-image";
 import { retry } from "@/lib/orpc/middlewares/retry";
 import { authed } from "..";
-import { requiredAuthMiddleware } from "../middlewares/auth";
 import { client } from "../orpc";
 
 export const aiChat = authed.ai.chat
 	.use(retry({ times: 3 }))
-	.handler(async ({ input, context }) => {
-		const {
-			chatId,
-			messages,
-		}: { chatId: string; messages: Array<CustomUIMessage> } = input;
+	.handler(async ({ input }) => {
+		let modelId: ModelsWithText | undefined;
 
-		console.log("Messages received:", messages);
+		if (input.botId) {
+			// Fetch the bot to get its model configuration
+			const bot = await client.bot.find({
+				id: input.botId,
+			});
 
-		const activeCourseId = "1db469a0-3f64-4395-9430-ae64dee30523";
-
-		const course = await client.course.find({
-			id: activeCourseId,
-		});
-
-		const modelIdFromConfig = course.data.config.model;
-		const isValidModelId = saiaModels.some((m) => m.id === modelIdFromConfig);
+			// TODO: Improve typesafety. Probably with some Zod validation
+			modelId = bot.data.blocks.find((block) => block.type === "template")
+				?.config.model as ModelsWithText;
+		}
+		const isValidModelId = saiaModels.some((m) => m.id === modelId);
 
 		const { provider: modelProvider } = getSaiaModel({
 			input: ["text"], // User only sends text
 			model: isValidModelId
-				? (modelIdFromConfig as ModelsWithText)
+				? (modelId as ModelsWithText)
 				: "llama-3.3-70b-instruct",
 		});
 
@@ -51,8 +45,8 @@ export const aiChat = authed.ai.chat
 
 		const stream = createUIMessageStream({
 			generateId: () => assistantMessageId,
-			originalMessages: messages,
-			execute: async ({ writer }) => {
+			originalMessages: input.messages,
+			execute: ({ writer }) => {
 				/* references.forEach((reference) => {
             dataStream.writeMessageAnnotation(reference as unknown as JSONValue);
           }); */
@@ -75,7 +69,7 @@ export const aiChat = authed.ai.chat
               override: course.data.config.systemPrompt,
             }), */
 					system: "You are a helpful assistant.",
-					messages: convertToModelMessages(messages),
+					messages: convertToModelMessages(input.messages),
 					experimental_transform: smoothStream({ chunking: "word" }),
 					/* experimental_telemetry: {
               isEnabled: true,
@@ -151,7 +145,7 @@ export const aiChat = authed.ai.chat
 
 				writer.merge(result.toUIMessageStream());
 			},
-			onFinish: ({ messages, isContinuation, responseMessage }) => {
+			onFinish: ({ messages }) => {
 				console.log("Stream finished with messages:", messages);
 			},
 			onError: (error) => {
@@ -159,39 +153,6 @@ export const aiChat = authed.ai.chat
 				return "Oops, an error occurred while processing your request!";
 			},
 		});
-
-		streamToEventIterator(stream);
-	});
-
-export const testChat = os
-	.use(requiredAuthMiddleware)
-	.input(type<{ chatId: string; messages: CustomUIMessage[] }>())
-	.handler(({ input }) => {
-		const model = getSaiaModel({
-			input: ["text"],
-			model: "qwen3-32b",
-		});
-
-		/* const result = streamText({
-			model: model.provider,
-			system: "You are a helpful assistant.",
-			messages: convertToModelMessages(input.messages),
-		}); */
-
-		const stream = createUIMessageStream({
-			generateId: () => uuidv4(),
-			execute: async ({ writer }) => {
-				const result = streamText({
-					model: model.provider,
-					system: "You are a helpful assistant.",
-					messages: convertToModelMessages(input.messages),
-				});
-
-				return writer.merge(result.toUIMessageStream());
-			},
-		});
-
-		/* const test = result.toUIMessageStream(); */
 
 		return streamToEventIterator(stream);
 	});

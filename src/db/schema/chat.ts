@@ -1,18 +1,16 @@
 import { type InferSelectModel, relations } from "drizzle-orm";
 import { pgTable, timestamp, uuid, varchar } from "drizzle-orm/pg-core";
 import { user } from "./auth";
+import { botTable } from "./bot";
 import { chatMessage } from "./chat-message";
-import { course } from "./course";
 
 export const chat = pgTable("chat", {
 	id: uuid("id").primaryKey().notNull().defaultRandom(),
 	title: varchar("title"),
-	courseId: uuid("course_id")
-		.notNull()
-		.references(() => course.id, { onDelete: "cascade" }),
 	userId: uuid("user_id")
 		.notNull()
 		.references(() => user.id, { onDelete: "cascade" }),
+	botId: uuid("bot_id").references(() => botTable.id, { onDelete: "set null" }),
 	createdAt: timestamp("created_at").notNull().defaultNow(),
 	updatedAt: timestamp("updated_at").notNull().defaultNow(),
 });

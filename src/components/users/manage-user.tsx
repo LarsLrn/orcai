@@ -62,7 +62,7 @@ const ManageUser = ({
 		}); */
 	};
 
-	const handleBanUser = async (userId: string) => {
+	const handleBanUser = (userId: string) => {
 		toast.promise(authClient.admin.banUser({ userId }), {
 			loading: "Banning user...",
 			success: "User banned",
@@ -73,7 +73,7 @@ const ManageUser = ({
 		});
 	};
 
-	const handleUnbanUser = async (userId: string) => {
+	const handleUnbanUser = (userId: string) => {
 		toast.promise(authClient.admin.unbanUser({ userId }), {
 			loading: "Unbanning user...",
 			success: "User unbanned",
@@ -84,7 +84,7 @@ const ManageUser = ({
 		});
 	};
 
-	const handleRevokeSession = async (sessionToken: string) => {
+	const handleRevokeSession = (sessionToken: string) => {
 		toast.promise(
 			authClient.admin.revokeUserSession({
 				sessionToken,
@@ -128,7 +128,7 @@ const ManageUser = ({
 		); */
 	};
 
-	const handleDeleteUser = async (userId: string) => {
+	const handleDeleteUser = (userId: string) => {
 		toast.promise(authClient.admin.removeUser({ userId }), {
 			loading: "Deleting user...",
 			success: "User deleted",

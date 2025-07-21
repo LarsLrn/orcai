@@ -29,6 +29,24 @@ definition chat {
 	permission delete = owner
 }
 
+definition bot {
+	relation parent: course
+	relation owner: user
+	permission read = parent->read + owner
+	permission create = parent->update + owner
+	permission update = parent->update + owner
+	permission delete = parent->update + owner
+}
+
+definition block {
+	relation parent: course
+	relation owner: user
+	permission read = parent->read + owner
+	permission create = parent->update + owner
+	permission update = parent->update + owner
+	permission delete = parent->update + owner
+}
+
 definition asset {
 	relation parent: course
 	relation owner: user

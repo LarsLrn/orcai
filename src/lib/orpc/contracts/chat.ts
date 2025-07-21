@@ -19,7 +19,7 @@ export const chatInsertSchema = createInsertSchema(chat).omit({
 export const chatUpdateSchema = createUpdateSchema(chat, {
 	id: z.uuidv4(),
 	title: z.string().min(1).max(250),
-}).omit({ userId: true, courseId: true, updatedAt: true, createdAt: true });
+}).omit({ userId: true, updatedAt: true, createdAt: true });
 
 export const chatDeleteSchema = z.object({
 	refs: z.array(chatUpdateSchema.pick({ id: true })),

@@ -23,9 +23,9 @@ export const course = pgTable("course", {
 	organizationId: uuid("organization_id")
 		.notNull()
 		.references(() => organization.id, { onDelete: "cascade" }),
+	description: varchar("description", { length: 500 }).notNull(),
 	contentJson: json("content_json").notNull().default({}),
 	contentHtml: text("content_html").notNull(),
-	description: varchar("description", { length: 500 }).notNull(),
 	config: json("config").notNull().$type<CourseConfigType>().default({}),
 	createdAt: timestamp("created_at").defaultNow(),
 	updatedAt: timestamp("updated_at").defaultNow(),

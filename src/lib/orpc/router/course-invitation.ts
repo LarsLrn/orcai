@@ -144,8 +144,8 @@ export const deleteCourseInvitations = authed.courseInvitation.delete
 
 export const respondToCourseInvitation = authed.courseInvitation.respond
 	.use(retry({ times: 3 }))
-	.handler(async ({ input, context }) => {
-		const acceptInvitation = async () => {
+	.handler(({ input }) => {
+		const acceptInvitation = () => {
 			/* const [invitation] = await db
 				.select({ ...getTableColumns(courseInvitation) })
 				.from(courseInvitation)

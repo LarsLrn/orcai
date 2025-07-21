@@ -1,4 +1,4 @@
-import { aiChat, testChat } from "./ai";
+import { aiChat } from "./ai";
 import {
 	createAsset,
 	deleteAssets,
@@ -7,6 +7,14 @@ import {
 	updateAsset,
 } from "./asset";
 import { listAssetPoints } from "./asset-points";
+import {
+	createBlock,
+	deleteBlocks,
+	findBlock,
+	listBlocks,
+	updateBlock,
+} from "./block";
+import { createBot, deleteBots, findBot, listBots, updateBot } from "./bot";
 import {
 	createChat,
 	deleteChats,
@@ -58,6 +66,13 @@ import {
 	listOrganizationMembers,
 	updateOrganizationMember,
 } from "./organization-member";
+import {
+	createOrganizationProvider,
+	deleteOrganizationProviders,
+	findOrganizationProvider,
+	listOrganizationProviders,
+	updateOrganizationProvider,
+} from "./organization-provider";
 import { sse } from "./sse";
 import { createDownloadUrl, createUploadUrls } from "./storage";
 import { createDocumentTask } from "./task";
@@ -92,6 +107,13 @@ export const router = {
 		delete: deleteOrganizationInvitations,
 		respond: findOrganizationInvitation,
 	},
+	organizationProvider: {
+		list: listOrganizationProviders,
+		create: createOrganizationProvider,
+		find: findOrganizationProvider,
+		update: updateOrganizationProvider,
+		delete: deleteOrganizationProviders,
+	},
 	course: {
 		list: listCourses,
 		create: createCourse,
@@ -122,6 +144,20 @@ export const router = {
 		delete: deleteChatMessages,
 		rate: rateChatMessage,
 	},
+	block: {
+		list: listBlocks,
+		create: createBlock,
+		find: findBlock,
+		update: updateBlock,
+		delete: deleteBlocks,
+	},
+	bot: {
+		list: listBots,
+		create: createBot,
+		find: findBot,
+		update: updateBot,
+		delete: deleteBots,
+	},
 	asset: {
 		list: listAssets,
 		create: createAsset,
@@ -148,7 +184,6 @@ export const router = {
 	},
 	ai: {
 		chat: aiChat,
-		testChat: testChat,
 	},
 	sse,
 };

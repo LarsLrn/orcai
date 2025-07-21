@@ -13,7 +13,7 @@ import type { Course } from "@/db/schema/course";
 const CourseMemberTableActions = ({ courseId }: { courseId: Course["id"] }) => {
 	const { table } = useTable();
 
-	const handleDelete = async () => {
+	const handleDelete = () => {
 		const _userIds = table.getSelectedRowModel().flatRows.map((row) => row.id);
 
 		/* toast.promise(

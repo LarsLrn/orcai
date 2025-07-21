@@ -5,18 +5,18 @@ import { useForm } from "react-hook-form";
 import { toast } from "sonner";
 import type { z } from "zod/v4";
 import { BlockEditor } from "@/components/editor";
-/* import { BlockEditor } from "@/components/editor"; */
-import { FormInputField } from "@/components/forms/fields/formInputField";
-import { FormSelect } from "@/components/forms/fields/formSelect";
-import { FormTextField } from "@/components/forms/fields/formTextField";
+import { FormInputField } from "@/components/forms/fields/form-input-field";
+import { FormTextField } from "@/components/forms/fields/form-text-field";
+import { FormValidationErrors } from "@/components/forms/fields/form-validation-errors";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Form, FormField } from "@/components/ui/form";
+import { Form } from "@/components/ui/form";
 import { Label } from "@/components/ui/label";
 import type { Course } from "@/db/schema/course";
 import { saiaModels } from "@/lib/ai/saia-models";
 import { courseInsertSchema } from "@/lib/orpc/contracts/course";
 import { orpc } from "@/lib/orpc/orpc";
+import { FormSelectField } from "../forms/fields/form-select-field";
 
 const CourseForm = ({ course }: { course?: Course }) => {
 	const queryClient = useQueryClient();
@@ -29,10 +29,6 @@ const CourseForm = ({ course }: { course?: Course }) => {
 					queryKey: orpc.course.key(),
 				});
 			},
-			onError(error) {
-				console.error(error);
-				alert(error.message);
-			},
 		}),
 	);
 
@@ -42,10 +38,6 @@ const CourseForm = ({ course }: { course?: Course }) => {
 				queryClient.invalidateQueries({
 					queryKey: orpc.course.key(),
 				});
-			},
-			onError(error) {
-				console.error(error);
-				alert(error.message);
 			},
 		}),
 	);
@@ -65,7 +57,7 @@ const CourseForm = ({ course }: { course?: Course }) => {
 		},
 	});
 
-	const onSubmit = async (values: z.infer<typeof courseInsertSchema>) => {
+	const onSubmit = (values: z.infer<typeof courseInsertSchema>) => {
 		if (course) {
 			toast.promise(
 				updateCourse({
@@ -103,35 +95,34 @@ const CourseForm = ({ course }: { course?: Course }) => {
 	};
 	return (
 		<Form {...form}>
-			<form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
+			<form
+				onSubmit={form.handleSubmit(onSubmit)}
+				className="space-y-4"
+				noValidate
+			>
+				{/* Validation Errors Section */}
+				<FormValidationErrors form={form} />
+
 				<div className="grid grid-cols-1 gap-4 lg:grid-cols-3">
 					<Card className="lg:col-span-2">
 						<CardContent className="flex flex-col gap-4 p-6">
-							<FormField
-								control={form.control}
+							<FormInputField
+								form={form}
 								name="title"
-								render={({ field }) => (
-									<FormInputField
-										field={field}
-										label="Title"
-										placeholder="Course title"
-										inputType="text"
-										required={true}
-									/>
-								)}
+								label="Title"
+								placeholder="Course title"
+								inputType="text"
+								required={true}
 							/>
-							<FormField
-								control={form.control}
+
+							<FormTextField
+								form={form}
 								name="description"
-								render={({ field }) => (
-									<FormTextField
-										field={field}
-										label="Short Description"
-										placeholder="Short course description"
-										required={true}
-									/>
-								)}
+								label="Short Description"
+								placeholder="Short course description"
+								required={true}
 							/>
+
 							<div className="space-y-2">
 								<Label>
 									Course Description
@@ -153,60 +144,39 @@ const CourseForm = ({ course }: { course?: Course }) => {
 							<CardTitle>Course AI Settings</CardTitle>
 						</CardHeader>
 						<CardContent className="flex flex-col gap-4">
-							<div className="grid w-full gap-1.5">
-								<FormField
-									control={form.control}
-									name="config.model"
-									render={({ field }) => (
-										<FormSelect
-											field={field}
-											options={saiaModels.map((model) => ({
-												value: model.id,
-												label: model.name,
-											}))}
-											label="Model"
-											placeholder="Choose an AI Model"
-											required={false}
-										/>
-									)}
-								/>
-							</div>
+							<FormSelectField
+								form={form}
+								name="config.model"
+								options={saiaModels.map((model) => ({
+									value: model.id,
+									label: model.name,
+								}))}
+								label="Model"
+								placeholder="Choose an AI Model"
+								required={false}
+							/>
 
-							<div className="grid w-full gap-1.5">
-								<FormField
-									control={form.control}
-									name="config.systemPrompt"
-									render={({ field }) => (
-										<FormTextField
-											field={field}
-											rows={10}
-											label="System Prompt"
-											placeholder="Your custom system prompt..."
-											required={false}
-										/>
-									)}
-								/>
-							</div>
+							<FormTextField
+								form={form}
+								name="config.systemPrompt"
+								rows={10}
+								label="System Prompt"
+								placeholder="Your custom system prompt..."
+								required={false}
+							/>
 
-							<div>
-								<FormField
-									control={form.control}
-									name="config.maxReferences"
-									render={({ field }) => (
-										<FormInputField
-											field={field}
-											label="Maximum References"
-											placeholder="5"
-											required={false}
-											inputType="number"
-											description="The maximum number of references that can be used in a
+							<FormInputField
+								form={form}
+								name="config.maxReferences"
+								label="Maximum References"
+								placeholder="5"
+								required={false}
+								inputType="number"
+								description="The maximum number of references that can be used in a
                     response. Note that this is referring to the number of individual chunks received by the AI,
                     which may stem from the same document. This therefore does not directly correlate to the
                     number of references cited in the response."
-										/>
-									)}
-								/>
-							</div>
+							/>
 						</CardContent>
 					</Card>
 				</div>

@@ -1,0 +1,56 @@
+import type { InferSelectModel } from "drizzle-orm";
+import {
+	type AnyPgColumn,
+	integer,
+	json,
+	pgTable,
+	primaryKey,
+	text,
+	timestamp,
+	uuid,
+} from "drizzle-orm/pg-core";
+import { user } from "./auth";
+import { chat } from "./chat";
+
+export interface BlockConfigType {
+	systemPrompt?: string;
+	maxReferences?: number;
+	model?: string;
+}
+
+export type BlockTypes = "template" | "database";
+
+export const blockTable = pgTable("block", {
+	id: uuid("id").primaryKey().defaultRandom(),
+	type: text("type").$type<BlockTypes>().notNull(),
+	name: text("name").notNull(),
+	config: json("config").notNull().$type<BlockConfigType>().default({}),
+	userId: uuid("user_id")
+		.notNull()
+		.references(() => user.id, { onDelete: "cascade" }),
+	forkedFromId: uuid("forked_from_id").references(
+		(): AnyPgColumn => blockTable.id,
+		{
+			onDelete: "set null",
+		},
+	),
+	version: integer("version").notNull().default(1),
+	createdAt: timestamp("created_at").defaultNow(),
+	updatedAt: timestamp("updated_at").defaultNow(),
+});
+
+export type Block = InferSelectModel<typeof blockTable>;
+
+export const chatBlockTable = pgTable(
+	"chat_block",
+	{
+		blockId: uuid("block_id")
+			.notNull()
+			.references(() => blockTable.id, { onDelete: "cascade" }),
+		chatId: uuid("chat_id")
+			.notNull()
+			.references(() => chat.id, { onDelete: "cascade" }),
+		createdAt: timestamp("created_at").notNull().defaultNow(),
+	},
+	(table) => [primaryKey({ columns: [table.blockId, table.chatId] })],
+);

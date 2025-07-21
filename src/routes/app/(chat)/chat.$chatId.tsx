@@ -1,22 +1,10 @@
 import { useSuspenseQuery } from "@tanstack/react-query";
 import { createFileRoute } from "@tanstack/react-router";
+import { Suspense } from "react";
+import { LoadingPage } from "@/components/app/loading/loading-page";
 import { Chat } from "@/components/chat/chat";
 import type { CustomUIMessage } from "@/lib/ai/tools";
 import { orpc } from "@/lib/orpc/orpc";
-
-/* // TODO: Will be deprecated with v5 of @ai-sdk anyway
-function convertToUIMessages(messages: Array<ChatMessage>): Array<UIMessage> {
-	return messages.map((message) => ({
-		id: message.id,
-		parts: message.parts as UIMessage["parts"],
-		role: message.role as UIMessage["role"],
-		// Note: content will soon be deprecated in @ai-sdk/react
-		content: "",
-		annotations: message.annotations as UIMessage["annotations"],
-		createdAt: message.createdAt,
-		experimental_attachments: (message.attachments as Array<Attachment>) ?? [],
-	}));
-} */
 
 export const Route = createFileRoute("/app/(chat)/chat/$chatId")({
 	component: RouteComponent,
@@ -46,11 +34,13 @@ function RouteComponent() {
 
 	return (
 		<div className="-my-6 -mx-2 sm:-mx-2 h-[calc(100dvh-56px)]">
-			<Chat
-				id={chatId}
-				initialMessages={messagesQuery.data.data as CustomUIMessage[]}
-				scores={messagesQuery.data.scores.data}
-			/>
+			<Suspense fallback={<LoadingPage />}>
+				<Chat
+					id={chatId}
+					initialMessages={messagesQuery.data.data as CustomUIMessage[]}
+					scores={messagesQuery.data.scores.data}
+				/>
+			</Suspense>
 		</div>
 	);
 }

@@ -8,9 +8,9 @@ import { useNavigate } from "@tanstack/react-router";
 import { AlertCircle, CircleMinusIcon } from "lucide-react";
 import { useFieldArray, useForm } from "react-hook-form";
 import { toast } from "sonner";
-import { FormDatePicker } from "@/components/forms/fields/formDatePicker";
-import { FormInputField } from "@/components/forms/fields/formInputField";
-import { FormSelect } from "@/components/forms/fields/formSelect";
+import { FormDatetimeField } from "@/components/forms/fields/form-datetime-field";
+import { FormInputField } from "@/components/forms/fields/form-input-field";
+import { FormSelectField } from "@/components/forms/fields/form-select-field";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { Button } from "@/components/ui/button";
 import {
@@ -29,7 +29,7 @@ import {
 	DialogTitle,
 	DialogTrigger,
 } from "@/components/ui/dialog";
-import { Form, FormField } from "@/components/ui/form";
+import { Form } from "@/components/ui/form";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import {
@@ -76,8 +76,8 @@ const CourseInvitationForm = () => {
 	const onSubmit = (values: CourseInvitationsInsertSchemaType) => {
 		toast.promise(createCourseInvitations(values), {
 			loading: "Creating course invitation...",
-			success: () => {
-				navigate({ to: "/app/users/invites" });
+			success: async () => {
+				await navigate({ to: "/app/users/invites" });
 				return "Course invitation created successfully";
 			},
 			error: (error) => ({
@@ -114,60 +114,46 @@ const CourseInvitationForm = () => {
 						</CardDescription>
 					</CardHeader>
 					<CardContent className="flex flex-col gap-4">
-						<FormField
-							control={form.control}
+						<FormSelectField
+							form={form}
 							name="courseId"
-							render={({ field }) => (
-								<FormSelect
-									field={field}
-									label="Course"
-									placeholder="Select course"
-									options={courses.data.map((course) => ({
-										label: course.title,
-										value: course.id,
-									}))}
-									required={true}
-								/>
-							)}
+							label="Course"
+							placeholder="Select course"
+							options={courses.data.map((course) => ({
+								label: course.title,
+								value: course.id,
+							}))}
+							required={true}
 						/>
 
-						<FormField
-							control={form.control}
+						<FormSelectField
+							form={form}
 							name="role"
-							render={({ field }) => (
-								<FormSelect
-									field={field}
-									label="Role"
-									placeholder="Select role"
-									// TODO: Replace with global roles defined in spiceDb
-									options={[
-										{
-											label: "Instructor",
-											value: "instructor",
-										},
-										{
-											label: "Student",
-											value: "student",
-										},
-									]}
-									required={true}
-								/>
-							)}
+							label="Role"
+							placeholder="Select role"
+							// TODO: Replace with global roles defined in spiceDb
+							options={[
+								{
+									label: "Instructor",
+									value: "instructor",
+								},
+								{
+									label: "Student",
+									value: "student",
+								},
+							]}
+							required={true}
 						/>
 
-						<FormField
-							control={form.control}
+						<FormDatetimeField
+							form={form}
 							name="expiresAt"
-							render={({ field }) => (
-								<FormDatePicker
-									field={field}
-									label="Expires At"
-									showTimePicker={true}
-									placeholder="Select expiration date"
-									required={true}
-								/>
-							)}
+							label="Expires At"
+							showTimePicker={true}
+							placeholder="Select expiration date"
+							required={true}
 						/>
+
 						<Button type="submit" className="w-fit">
 							Create Invitations
 						</Button>
@@ -189,18 +175,14 @@ const CourseInvitationForm = () => {
 									User {index + 1} Email
 								</Label>
 								<div className="flex flex-row items-start gap-2">
-									<FormField
-										control={form.control}
+									<FormInputField
+										form={form}
 										name={`items.${index}.email`}
-										render={({ field }) => (
-											<FormInputField
-												className="w-full"
-												field={field}
-												placeholder="User email"
-												inputType="email"
-											/>
-										)}
+										className="w-full"
+										placeholder="User email"
+										inputType="email"
 									/>
+
 									{fields.length > 1 && (
 										<Button
 											size="icon"

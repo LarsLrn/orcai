@@ -5,11 +5,11 @@ import { AlertCircle, CircleMinusIcon } from "lucide-react";
 import { useFieldArray, useForm } from "react-hook-form";
 import { toast } from "sonner";
 import { z } from "zod/v4";
-import { FormInputField } from "@/components/forms/fields/formInputField";
-import { FormSelect } from "@/components/forms/fields/formSelect";
+import { FormInputField } from "@/components/forms/fields/form-input-field";
+import { FormSelectField } from "@/components/forms/fields/form-select-field";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { Button } from "@/components/ui/button";
-import { Form, FormField } from "@/components/ui/form";
+import { Form } from "@/components/ui/form";
 import { Label } from "@/components/ui/label";
 import type { Course } from "@/db/schema/course";
 import { orpc } from "@/lib/orpc/orpc";
@@ -105,21 +105,16 @@ const AddUserForm = ({ courses }: { courses: Course[] }) => {
 					invitation link that you can manually provide to each user.
 				</p>
 				<div className="mt-8 flex max-w-[500px] flex-col gap-2">
-					<FormField
-						control={form.control}
+					<FormSelectField
+						form={form}
 						name="courseId"
-						render={({ field }) => (
-							<FormSelect
-								field={field}
-								label="Course"
-								placeholder="Select course"
-								options={courses.map((course) => ({
-									label: course.title,
-									value: course.id,
-								}))}
-								required={true}
-							/>
-						)}
+						label="Course"
+						placeholder="Select course"
+						options={courses.map((course) => ({
+							label: course.title,
+							value: course.id,
+						}))}
+						required={true}
 					/>
 
 					{fields.map((field, index) => (
@@ -128,17 +123,12 @@ const AddUserForm = ({ courses }: { courses: Course[] }) => {
 								User {index + 1} Email
 							</Label>
 							<div className="flex flex-row items-start gap-2">
-								<FormField
-									control={form.control}
+								<FormInputField
+									form={form}
 									name={`items.${index}.email`}
-									render={({ field }) => (
-										<FormInputField
-											className="w-full"
-											field={field}
-											placeholder="User email"
-											inputType="email"
-										/>
-									)}
+									className="w-full"
+									placeholder="User email"
+									inputType="email"
 								/>
 								{fields.length > 1 && (
 									<Button

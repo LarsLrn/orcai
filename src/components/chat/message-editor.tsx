@@ -49,7 +49,7 @@ const MessageEditor = ({
 		adjustHeight();
 	};
 
-	const handleEdit = async () => {
+	const handleEdit = () => {
 		const messageId = message.id;
 
 		if (!messageId) {

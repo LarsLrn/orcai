@@ -51,7 +51,7 @@ async function ChatCompletion({ request }: { request: Request }) {
 		stream: createUIMessageStream({
 			generateId: () => assistantMessageId,
 			originalMessages: messages,
-			execute: async ({ writer }) => {
+			execute: ({ writer }) => {
 				/* references.forEach((reference) => {
 				dataStream.writeMessageAnnotation(reference as unknown as JSONValue);
 			}); */
@@ -150,7 +150,7 @@ async function ChatCompletion({ request }: { request: Request }) {
 
 				writer.merge(result.toUIMessageStream());
 			},
-			onFinish: ({ messages, isContinuation, responseMessage }) => {
+			onFinish: ({ messages }) => {
 				console.log("Stream finished with messages:", messages);
 			},
 			onError: (error) => {

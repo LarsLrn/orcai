@@ -8,7 +8,7 @@ import { createRelation } from "@/lib/spice-db/actions";
 
 export const listOrganizationMembers = authed.organizationMember.list
 	.use(retry({ times: 3 }))
-	.handler(async ({ input, context }) => {
+	.handler(async ({ input }) => {
 		/* const { entityIds } = await listAllowedEntities({
       entityType: "organization",
       action: "read",
@@ -109,7 +109,7 @@ export const deleteOrganizationMembers = authed.organizationMember.delete
 				entityType: "organization",
 			}) as const,
 	) */
-	.handler(async ({ context, input }) => {
+	.handler(async ({ input }) => {
 		/* console.log(
 			"Deleting organization members with allowed IDs:",
 			context.allowedIds,
