@@ -7,8 +7,10 @@
 # testing
 /coverage
 
-# TanStack Start
+# TanStack Start / Vite
 .tanstack
+.output
+.nitro
 
 # production
 /build
