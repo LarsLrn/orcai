@@ -1,6 +1,4 @@
-import { useId, useState } from "react";
 import type { FieldValues, Path, UseFormReturn } from "react-hook-form";
-import { Checkbox } from "@/components/ui/checkbox";
 import {
 	FormControl,
 	FormDescription,
@@ -24,7 +22,7 @@ type FormSelectFieldProps<TFieldValues extends FieldValues = FieldValues> = {
 	/** The name of the field (type-safe based on form schema) */
 	name: Path<TFieldValues>;
 	/** An array of objects with value and label properties, used to populate the options of the select box */
-	options: { value: string; label: string }[];
+	options: { value: string; label: string }[] | undefined;
 	/** The placeholder text to display when no option is selected */
 	placeholder: string;
 	/** The label text for the form field */
@@ -33,8 +31,8 @@ type FormSelectFieldProps<TFieldValues extends FieldValues = FieldValues> = {
 	description?: string;
 	/** Whether the select box should be disabled */
 	disabled?: boolean;
-	/** The text to display in the checkbox that, when checked, sets the selected value to undefined and disables the select box */
-	optOutLabel?: string;
+	/** Callback function when the value changes */
+	onValueChange?: (value: string | undefined) => void;
 	/** Whether the field is required (adds asterisk to label) */
 	required?: boolean;
 	/** Additional CSS class name for the component */
@@ -49,58 +47,15 @@ function FormSelectField<TFieldValues extends FieldValues = FieldValues>({
 	label,
 	description,
 	disabled = false,
-	optOutLabel,
+	onValueChange,
 	required = false,
 	className,
 }: FormSelectFieldProps<TFieldValues>) {
-	const [selected, setSelected] = useState<string | undefined | null>(
-		undefined,
-	);
-	const [disableField, setDisableField] = useState<boolean>(false);
-
-	const labelId = useId();
-
 	return (
 		<FormField
 			control={form.control}
 			name={name}
 			render={({ field }) => {
-				// Initialize selected state from field value
-				if (selected === undefined && field.value) {
-					setSelected(field.value);
-				}
-
-				/**
-				 * Handles the change event of the select component.
-				 *
-				 * @param {string} value - The selected value from the select component.
-				 * @return {void} This function does not return anything.
-				 */
-				const handleSelectChange = (value: string): void => {
-					if (options.map((option) => option.value).includes(value)) {
-						setSelected(value);
-						field.onChange(value);
-					} else {
-						setSelected("");
-						field.onChange(undefined);
-					}
-				};
-
-				/**
-				 * Handles the change event of the check component.
-				 *
-				 * @param {boolean} checked - The state of the check.
-				 * @return {void} This function does not return anything.
-				 */
-				const handleCheckChange = (checked: boolean): void => {
-					if (checked) {
-						setSelected("");
-						field.onChange(undefined);
-					}
-
-					setDisableField(checked);
-				};
-
 				return (
 					<FormItem className={cn(className)}>
 						{label && (
@@ -113,15 +68,18 @@ function FormSelectField<TFieldValues extends FieldValues = FieldValues>({
 						)}
 						<FormControl>
 							<Select
-								onValueChange={handleSelectChange}
-								value={(selected || field.value) as string}
-								disabled={disableField || disabled}
+								onValueChange={(value) => {
+									field.onChange(value);
+									onValueChange?.(value);
+								}}
+								value={field.value}
+								disabled={disabled}
 							>
 								<SelectTrigger>
 									<SelectValue placeholder={placeholder} />
 								</SelectTrigger>
 								<SelectContent>
-									{options.map((option) => (
+									{options?.map((option) => (
 										<SelectItem key={option.value} value={option.value}>
 											{option.label}
 										</SelectItem>
@@ -129,21 +87,6 @@ function FormSelectField<TFieldValues extends FieldValues = FieldValues>({
 								</SelectContent>
 							</Select>
 						</FormControl>
-						{optOutLabel && (
-							<div className="flex items-center space-x-2">
-								<Checkbox
-									id={labelId}
-									disabled={disabled}
-									onCheckedChange={handleCheckChange}
-								/>
-								<label
-									htmlFor={labelId}
-									className="font-medium text-sm leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70"
-								>
-									{optOutLabel}
-								</label>
-							</div>
-						)}
 						{description && <FormDescription>{description}</FormDescription>}
 						<FormMessage />
 					</FormItem>

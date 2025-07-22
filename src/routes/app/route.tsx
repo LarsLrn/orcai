@@ -1,4 +1,4 @@
-import { createFileRoute, Outlet } from "@tanstack/react-router";
+import { createFileRoute, Outlet, redirect } from "@tanstack/react-router";
 import { NextStepProvider } from "nextstepjs";
 import { Header } from "@/components/app/header";
 import { AppSidebar } from "@/components/app/sidebar/app-sidebar";
@@ -7,13 +7,23 @@ import { useUmami } from "@/hooks/use-umami";
 import { NextStepTours } from "@/lib/next-step-tours";
 
 export const Route = createFileRoute("/app")({
-	beforeLoad: async ({ context }) => {
+	beforeLoad: ({ context }) => {
 		if (!context.auth.isAuthenticated) {
-			throw new Error("User is not authenticated");
+			throw redirect({ to: "/login" });
+		}
+
+		if (!context.auth.session.activeOrganizationId) {
+			throw new Error("No active organization found");
 		}
 
 		return {
-			auth: context.auth,
+			auth: {
+				...context.auth,
+				session: {
+					...context.auth.session,
+					activeOrganizationId: context.auth.session.activeOrganizationId,
+				},
+			},
 		};
 	},
 	component: RouteComponent,

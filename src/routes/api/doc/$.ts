@@ -5,7 +5,6 @@ import { OpenAPIReferencePlugin } from "@orpc/openapi/plugins";
 import { onError } from "@orpc/server";
 import {
 	BatchHandlerPlugin,
-	SimpleCsrfProtectionHandlerPlugin,
 	StrictGetMethodPlugin,
 } from "@orpc/server/plugins";
 import { ZodToJsonSchemaConverter } from "@orpc/zod/zod4";
@@ -48,6 +47,7 @@ const openAPIHandler = new OpenAPIHandler(router, {
 		 */
 		new StrictGetMethodPlugin(),
 		/**
+		 * TODO: Uncomment this when CSRF protection is needed
 		 * Adds CSRF protection to the handler:
 		 * https://orpc.unnoq.com/docs/plugins/simple-csrf-protection
 		 */

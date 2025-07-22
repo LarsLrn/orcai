@@ -1,6 +1,12 @@
 import { zodResolver } from "@hookform/resolvers/zod";
-import { useMutation, useQueryClient } from "@tanstack/react-query";
-import { useRouter } from "@tanstack/react-router";
+import {
+	skipToken,
+	useMutation,
+	useQuery,
+	useQueryClient,
+	useSuspenseQuery,
+} from "@tanstack/react-query";
+import { useRouteContext, useRouter } from "@tanstack/react-router";
 import { useForm } from "react-hook-form";
 import { toast } from "sonner";
 import type { z } from "zod/v4";
@@ -11,7 +17,6 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Form } from "@/components/ui/form";
 import type { Block } from "@/db/schema/block";
-import { saiaModels } from "@/lib/ai/saia-models";
 import { blockInsertSchema } from "@/lib/orpc/contracts/block";
 import { orpc } from "@/lib/orpc/orpc";
 import { FormInputField } from "../forms/fields/form-input-field";
@@ -19,6 +24,16 @@ import { FormInputField } from "../forms/fields/form-input-field";
 const BlockForm = ({ block }: { block?: Block }) => {
 	const queryClient = useQueryClient();
 	const router = useRouter();
+	const { auth } = useRouteContext({ from: "/app" });
+
+	const { data: providers } = useSuspenseQuery(
+		orpc.organizationProvider.list.queryOptions({
+			input: { organizationId: auth.session.activeOrganizationId },
+			queryKey: orpc.organizationProvider.list.key({
+				input: { organizationId: auth.session.activeOrganizationId },
+			}),
+		}),
+	);
 
 	const { mutateAsync: updateBlock } = useMutation(
 		orpc.block.update.mutationOptions({
@@ -49,9 +64,21 @@ const BlockForm = ({ block }: { block?: Block }) => {
 				systemPrompt: block?.config?.systemPrompt ?? "",
 				maxReferences: block?.config?.maxReferences ?? 5,
 				model: block?.config?.model ?? "",
+				provider: block?.config?.provider ?? "",
 			},
 		},
 	});
+
+	const providerSlug = form.watch("config.provider");
+
+	const { data: models, status: modelsStatus } = useQuery(
+		orpc.model.list.queryOptions({
+			input: providerSlug ? { providerSlug } : skipToken,
+			queryKey: orpc.model.list.key({
+				input: { providerSlug },
+			}),
+		}),
+	);
 
 	const onSubmit = (values: z.infer<typeof blockInsertSchema>) => {
 		if (block) {
@@ -125,14 +152,30 @@ const BlockForm = ({ block }: { block?: Block }) => {
 							<div className="grid w-full gap-1.5">
 								<FormSelectField
 									form={form}
+									name="config.provider"
+									options={providers.data.map((provider) => ({
+										value: provider.providerSlug,
+										label: provider.providerSlug,
+									}))}
+									label="Provider"
+									placeholder="Choose a Provider"
+									required={false}
+									onValueChange={() => {
+										form.setValue("config.model", undefined);
+									}}
+								/>
+
+								<FormSelectField
+									form={form}
 									name="config.model"
-									options={saiaModels.map((model) => ({
-										value: model.id,
+									options={models?.data?.map((model) => ({
+										value: model.slug,
 										label: model.name,
 									}))}
 									label="Model"
 									placeholder="Choose an AI Model"
 									required={false}
+									disabled={!providerSlug || modelsStatus !== "success"}
 								/>
 							</div>
 

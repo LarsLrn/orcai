@@ -1,3 +1,4 @@
+import { createOpenAI } from "@ai-sdk/openai";
 import { streamToEventIterator } from "@orpc/client";
 import {
 	convertToModelMessages,
@@ -7,12 +8,8 @@ import {
 	streamText,
 } from "ai";
 import { v4 as uuidv4 } from "uuid";
-import {
-	getSaiaModel,
-	type ModelsWithText,
-	saiaModels,
-} from "@/lib/ai/saia-models";
 import { generateImageTool } from "@/lib/ai/tools/generate-image";
+import { decryptApiKey } from "@/lib/encryption";
 import { retry } from "@/lib/orpc/middlewares/retry";
 import { authed } from "..";
 import { client } from "../orpc";
@@ -20,7 +17,16 @@ import { client } from "../orpc";
 export const aiChat = authed.ai.chat
 	.use(retry({ times: 3 }))
 	.handler(async ({ input }) => {
-		let modelId: ModelsWithText | undefined;
+		let modelId: string;
+
+		const systemProvider = await client.provider.find({
+			slug: "saia",
+		});
+
+		const organizationProvider = await client.organizationProvider.find({
+			organizationId: "0451b241-37fb-4fd6-95e0-652191d9b484",
+			providerSlug: "saia",
+		});
 
 		if (input.botId) {
 			// Fetch the bot to get its model configuration
@@ -29,17 +35,16 @@ export const aiChat = authed.ai.chat
 			});
 
 			// TODO: Improve typesafety. Probably with some Zod validation
-			modelId = bot.data.blocks.find((block) => block.type === "template")
-				?.config.model as ModelsWithText;
+			modelId =
+				bot.data.blocks.find((block) => block.type === "template")?.config
+					.model ?? "meta-llama-3.1-8b-instruct";
 		}
-		const isValidModelId = saiaModels.some((m) => m.id === modelId);
 
-		const { provider: modelProvider } = getSaiaModel({
-			input: ["text"], // User only sends text
-			model: isValidModelId
-				? (modelId as ModelsWithText)
-				: "llama-3.3-70b-instruct",
-		});
+		const chatProvider = createOpenAI({
+			baseURL: systemProvider.data.endpoint ?? undefined,
+			apiKey: decryptApiKey(organizationProvider.data.apiKeyEncrypted),
+			name: systemProvider.data.slug,
+		}).chat;
 
 		const assistantMessageId = uuidv4();
 
@@ -54,7 +59,7 @@ export const aiChat = authed.ai.chat
 				// Validate and get the model ID from course configuration
 				console.log(assistantMessageId);
 				const result = streamText({
-					model: modelProvider,
+					model: chatProvider(modelId),
 					/* system: createSocraticSystemPrompt({
               context: relevantChunks.map((chunk) => ({
                 documentId: String(

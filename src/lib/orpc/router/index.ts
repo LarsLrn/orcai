@@ -45,6 +45,7 @@ import {
 	respondToCourseInvitation,
 	updateCourseInvitation,
 } from "./course-invitation";
+import { findModel, listModels } from "./model";
 import {
 	createOrganization,
 	deleteOrganizations,
@@ -73,6 +74,7 @@ import {
 	listOrganizationProviders,
 	updateOrganizationProvider,
 } from "./organization-provider";
+import { findProvider, listProviders } from "./provider";
 import { sse } from "./sse";
 import { createDownloadUrl, createUploadUrls } from "./storage";
 import { createDocumentTask } from "./task";
@@ -178,6 +180,14 @@ export const router = {
 	storage: {
 		createUploadUrls: createUploadUrls,
 		createDownloadUrl: createDownloadUrl,
+	},
+	provider: {
+		list: listProviders,
+		find: findProvider,
+	},
+	model: {
+		list: listModels,
+		find: findModel,
 	},
 	task: {
 		createDocumentTask: createDocumentTask,

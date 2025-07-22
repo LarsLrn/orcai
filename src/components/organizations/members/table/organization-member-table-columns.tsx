@@ -102,7 +102,7 @@ const DeleteItem = ({ userId }: { userId: User["id"] }) => {
 		}),
 	);
 
-	const handleDelete = async (
+	const handleDelete = (
 		userId: User["id"],
 		organizationId: Organization["id"],
 	) => {

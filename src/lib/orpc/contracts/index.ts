@@ -61,6 +61,7 @@ import {
 	respondToCourseInvitationContract,
 	updateCourseInvitationContract,
 } from "./course-invitation";
+import { findModelContract, listModelsContract } from "./model";
 import {
 	createOrganizationContract,
 	deleteOrganizationContract,
@@ -90,6 +91,7 @@ import {
 	listOrganizationProvidersContract,
 	updateOrganizationProviderContract,
 } from "./organization-provider";
+import { findProviderContract, listProvidersContract } from "./provider";
 import { createDownloadUrlContract, createUploadUrlsContract } from "./storage";
 import { createDocumentTaskContract } from "./task";
 import {
@@ -194,6 +196,14 @@ export const contracts = {
 		updatePassword: updatePasswordContract,
 		setActiveOrganization: setActiveOrganizationContract,
 		setTourState: setTourStateContract,
+	},
+	provider: {
+		list: listProvidersContract,
+		find: findProviderContract,
+	},
+	model: {
+		list: listModelsContract,
+		find: findModelContract,
 	},
 	storage: {
 		createUploadUrls: createUploadUrlsContract,

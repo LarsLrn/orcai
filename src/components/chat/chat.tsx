@@ -1,6 +1,6 @@
 import { useChat } from "@ai-sdk/react";
 import { eventIteratorToStream } from "@orpc/client";
-import { useQuery, useSuspenseQuery } from "@tanstack/react-query";
+import { useSuspenseQuery } from "@tanstack/react-query";
 import type { ApiGetScoresResponseData } from "langfuse";
 import { toast } from "sonner";
 import { v4 as uuidv4 } from "uuid";

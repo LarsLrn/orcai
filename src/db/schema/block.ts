@@ -16,6 +16,7 @@ export interface BlockConfigType {
 	systemPrompt?: string;
 	maxReferences?: number;
 	model?: string;
+	provider?: string;
 }
 
 export type BlockTypes = "template" | "database";

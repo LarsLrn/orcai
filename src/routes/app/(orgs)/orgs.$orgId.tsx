@@ -1,5 +1,5 @@
 import { useSuspenseQuery } from "@tanstack/react-query";
-import { createFileRoute, Link } from "@tanstack/react-router";
+import { createFileRoute, Link, Outlet } from "@tanstack/react-router";
 import { buttonVariants } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { orpc } from "@/lib/orpc/orpc";
@@ -32,14 +32,15 @@ function RouteComponent() {
 					{organization.data.name}
 				</h4>
 				<div className="flex gap-2">
-					{/* <Link
-						href={ROUTES.PRIVATE.organizations.members.getPath({ id })}
+					<Link
+						to="/app/orgs/$orgId/providers"
+						params={{ orgId }}
 						className={buttonVariants({ variant: "default" })}
 					>
-						Manage Users
-					</Link> */}
+						Manage Providers
+					</Link>
 					<Link
-						to={"/app/orgs/$orgId/edit"}
+						to="/app/orgs/$orgId/edit"
 						params={{ orgId }}
 						className={buttonVariants({ variant: "default" })}
 					>
@@ -51,6 +52,7 @@ function RouteComponent() {
 				<Card className="max-w-full lg:w-[60%]">
 					<CardContent className="p-4">
 						{organization.data.id} | {organization.data.slug}
+						<Outlet />
 					</CardContent>
 				</Card>
 			</div>

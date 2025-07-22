@@ -1,10 +1,6 @@
 import { createORPCClient } from "@orpc/client";
 import { RPCLink } from "@orpc/client/fetch";
-import {
-	BatchLinkPlugin,
-	DedupeRequestsPlugin,
-	SimpleCsrfProtectionLinkPlugin,
-} from "@orpc/client/plugins";
+import { BatchLinkPlugin, DedupeRequestsPlugin } from "@orpc/client/plugins";
 import type { RouterClient } from "@orpc/server";
 import { createRouterClient } from "@orpc/server";
 import { createRouterUtils } from "@orpc/tanstack-query";
@@ -49,6 +45,7 @@ const getORPCClient = createIsomorphicFn()
 					],
 				}),
 				/**
+				 * TODO: Uncomment this when CSRF protection is needed
 				 * Adds CSRF protection to the link:
 				 * https://orpc.unnoq.com/docs/plugins/simple-csrf-protection
 				 */

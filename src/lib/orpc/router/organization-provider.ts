@@ -2,6 +2,7 @@ import { ORPCError } from "@orpc/server";
 import { and, count, eq, getTableColumns, inArray } from "drizzle-orm";
 import { db } from "@/db/drizzle";
 import { organizationProviderTable } from "@/db/schema/model";
+import { encryptApiKey } from "@/lib/encryption";
 import { authed } from "@/lib/orpc";
 import { retry } from "@/lib/orpc/middlewares/retry";
 
@@ -17,7 +18,7 @@ export const listOrganizationProviders = authed.organizationProvider.list
 		const query = await db
 			.select({ ...getTableColumns(organizationProviderTable) })
 			.from(organizationProviderTable)
-			/* .where(inArray(organization.id, entityIds)) */
+			.where(eq(organizationProviderTable.organizationId, input.organizationId))
 			.limit(input.pageSize)
 			.offset(input.pageIndex * input.pageSize);
 
@@ -40,7 +41,7 @@ export const findOrganizationProvider = authed.organizationProvider.find
   ) */
 	.use(retry({ times: 3 }))
 	.handler(async ({ input }) => {
-		const [query] = await db
+		const [organizationProvider] = await db
 			.select({ ...getTableColumns(organizationProviderTable) })
 			.from(organizationProviderTable)
 			.where(
@@ -50,21 +51,31 @@ export const findOrganizationProvider = authed.organizationProvider.find
 				),
 			);
 
-		if (!query) {
+		if (!organizationProvider) {
 			throw new ORPCError("NOT_FOUND", {
 				message: "Organization provider not found",
 			});
 		}
 
-		return { data: query };
+		return { data: organizationProvider };
 	});
 
 export const createOrganizationProvider = authed.organizationProvider.create
 	/* .use(requireActiveOrganizationMiddleware) */
 	.handler(async ({ input }) => {
+		// Encrypt the plain text API key received from frontend
+		const apiKeyEncrypted = encryptApiKey(input.apiKey);
+
+		// Remove the plain text apiKey from input and add the encrypted version
+		const { apiKey: _, ...inputWithoutApiKey } = input;
+
 		const [query] = await db
 			.insert(organizationProviderTable)
-			.values({ ...input, createdAt: new Date() })
+			.values({
+				...inputWithoutApiKey,
+				apiKeyEncrypted,
+				createdAt: new Date(),
+			})
 			.returning({ ...getTableColumns(organizationProviderTable) });
 
 		/* await createRelation({
@@ -88,9 +99,21 @@ export const updateOrganizationProvider = authed.organizationProvider.update
       }) as const,
   ) */
 	.handler(async ({ input }) => {
+		// Prepare the update data
+		let updateData: any = { ...input };
+
+		// If apiKey is provided, encrypt it and replace with apiKeyEncrypted
+		if (input.apiKey) {
+			const { apiKey: _, ...inputWithoutApiKey } = input;
+			updateData = {
+				...inputWithoutApiKey,
+				apiKeyEncrypted: encryptApiKey(input.apiKey),
+			};
+		}
+
 		const [query] = await db
 			.update(organizationProviderTable)
-			.set(input)
+			.set(updateData)
 			.where(
 				and(
 					eq(organizationProviderTable.organizationId, input.organizationId),

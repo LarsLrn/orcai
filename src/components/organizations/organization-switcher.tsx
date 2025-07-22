@@ -27,12 +27,12 @@ const OrganizationSwitcher = () => {
 
 	const { mutateAsync: setActiveOrganization } = useMutation(
 		orpc.user.setActiveOrganization.mutationOptions({
-			onSuccess() {
+			async onSuccess() {
 				refetch();
 				// TODO: Check if that's needed. Depends on future implementations
 				/* queryClient.clear(); */
 				setOpenMobile(false);
-				navigate({ to: "/app" });
+				await navigate({ to: "/app" });
 			},
 		}),
 	);
@@ -40,7 +40,7 @@ const OrganizationSwitcher = () => {
 	const navigate = useNavigate();
 	const { setOpenMobile } = useSidebar();
 
-	const handleOrganizationChange = async (organization: Organization) => {
+	const handleOrganizationChange = (organization: Organization) => {
 		// TODO: Refactor to use toast.promise
 		toast.promise(setActiveOrganization({ organizationId: organization.id }), {
 			loading: `Changing organization to ${organization.name}...`,

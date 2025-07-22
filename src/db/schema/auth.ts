@@ -48,7 +48,6 @@ export const session = pgTable("session", {
 		.references(() => user.id),
 	impersonatedBy: text("impersonated_by"),
 	activeOrganizationId: uuid("active_organization_id"),
-	activeCourseId: uuid("active_course_id"),
 });
 
 export type Session = InferSelectModel<typeof session>;

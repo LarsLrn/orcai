@@ -13,11 +13,6 @@ import {
 	SelectTrigger,
 	SelectValue,
 } from "@/components/ui/select";
-/* import {
-	updateUserCourseRole,
-	updateUserOrganizationRole,
-	updateUserPassword,
-} from "@/db/actions/user"; */
 import type { User } from "@/db/schema/auth";
 import { authClient } from "@/lib/auth-client";
 

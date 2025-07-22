@@ -48,10 +48,13 @@ import { Route as AppbotsBotsBotIdEditRouteImport } from './routes/app/(bots)/bo
 import { Route as AppblocksBlocksBlockIdEditRouteImport } from './routes/app/(blocks)/blocks_.$blockId.edit'
 import { Route as AppassetsAssetsAssetIdEditRouteImport } from './routes/app/(assets)/assets_.$assetId.edit'
 import { Route as AppassetsAssetsAssetIdChunksRouteImport } from './routes/app/(assets)/assets_.$assetId.chunks'
+import { Route as ApporgsOrgsOrgIdProvidersIndexRouteImport } from './routes/app/(orgs)/orgs.$orgId_.providers.index'
+import { Route as ApporgsOrgsOrgIdProvidersAddRouteImport } from './routes/app/(orgs)/orgs.$orgId_.providers.add'
+import { Route as ApporgsOrgsOrgIdProvidersProviderSlugRouteImport } from './routes/app/(orgs)/orgs.$orgId_.providers.$providerSlug'
+import { Route as ApporgsOrgsOrgIdProvidersProviderSlugEditRouteImport } from './routes/app/(orgs)/orgs.$orgId_.providers_.$providerSlug.edit'
 import { ServerRoute as ApiRpcSplatServerRouteImport } from './routes/api/rpc/$'
 import { ServerRoute as ApiDocSplatServerRouteImport } from './routes/api/doc/$'
 import { ServerRoute as ApiAuthSplatServerRouteImport } from './routes/api/auth/$'
-import { ServerRoute as ApiAiChatServerRouteImport } from './routes/api/ai/chat'
 
 const rootServerRouteImport = createServerRootRoute()
 
@@ -245,6 +248,30 @@ const AppassetsAssetsAssetIdChunksRoute =
     path: '/assets/$assetId/chunks',
     getParentRoute: () => AppRouteRoute,
   } as any)
+const ApporgsOrgsOrgIdProvidersIndexRoute =
+  ApporgsOrgsOrgIdProvidersIndexRouteImport.update({
+    id: '/(orgs)/orgs/$orgId_/providers/',
+    path: '/orgs/$orgId/providers/',
+    getParentRoute: () => AppRouteRoute,
+  } as any)
+const ApporgsOrgsOrgIdProvidersAddRoute =
+  ApporgsOrgsOrgIdProvidersAddRouteImport.update({
+    id: '/(orgs)/orgs/$orgId_/providers/add',
+    path: '/orgs/$orgId/providers/add',
+    getParentRoute: () => AppRouteRoute,
+  } as any)
+const ApporgsOrgsOrgIdProvidersProviderSlugRoute =
+  ApporgsOrgsOrgIdProvidersProviderSlugRouteImport.update({
+    id: '/(orgs)/orgs/$orgId_/providers/$providerSlug',
+    path: '/orgs/$orgId/providers/$providerSlug',
+    getParentRoute: () => AppRouteRoute,
+  } as any)
+const ApporgsOrgsOrgIdProvidersProviderSlugEditRoute =
+  ApporgsOrgsOrgIdProvidersProviderSlugEditRouteImport.update({
+    id: '/(orgs)/orgs/$orgId_/providers_/$providerSlug/edit',
+    path: '/orgs/$orgId/providers/$providerSlug/edit',
+    getParentRoute: () => AppRouteRoute,
+  } as any)
 const ApiRpcSplatServerRoute = ApiRpcSplatServerRouteImport.update({
   id: '/api/rpc/$',
   path: '/api/rpc/$',
@@ -258,11 +285,6 @@ const ApiDocSplatServerRoute = ApiDocSplatServerRouteImport.update({
 const ApiAuthSplatServerRoute = ApiAuthSplatServerRouteImport.update({
   id: '/api/auth/$',
   path: '/api/auth/$',
-  getParentRoute: () => rootServerRouteImport,
-} as any)
-const ApiAiChatServerRoute = ApiAiChatServerRouteImport.update({
-  id: '/api/ai/chat',
-  path: '/api/ai/chat',
   getParentRoute: () => rootServerRouteImport,
 } as any)
 
@@ -303,6 +325,10 @@ export interface FileRoutesByFullPath {
   '/app/courses/$courseId/edit': typeof AppcoursesCoursesCourseIdEditRoute
   '/app/orgs/$orgId/edit': typeof ApporgsOrgsOrgIdEditRoute
   '/app/users/$userId/edit': typeof AppusersUsersUserIdEditRoute
+  '/app/orgs/$orgId/providers/$providerSlug': typeof ApporgsOrgsOrgIdProvidersProviderSlugRoute
+  '/app/orgs/$orgId/providers/add': typeof ApporgsOrgsOrgIdProvidersAddRoute
+  '/app/orgs/$orgId/providers': typeof ApporgsOrgsOrgIdProvidersIndexRoute
+  '/app/orgs/$orgId/providers/$providerSlug/edit': typeof ApporgsOrgsOrgIdProvidersProviderSlugEditRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
@@ -340,6 +366,10 @@ export interface FileRoutesByTo {
   '/app/courses/$courseId/edit': typeof AppcoursesCoursesCourseIdEditRoute
   '/app/orgs/$orgId/edit': typeof ApporgsOrgsOrgIdEditRoute
   '/app/users/$userId/edit': typeof AppusersUsersUserIdEditRoute
+  '/app/orgs/$orgId/providers/$providerSlug': typeof ApporgsOrgsOrgIdProvidersProviderSlugRoute
+  '/app/orgs/$orgId/providers/add': typeof ApporgsOrgsOrgIdProvidersAddRoute
+  '/app/orgs/$orgId/providers': typeof ApporgsOrgsOrgIdProvidersIndexRoute
+  '/app/orgs/$orgId/providers/$providerSlug/edit': typeof ApporgsOrgsOrgIdProvidersProviderSlugEditRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
@@ -380,6 +410,10 @@ export interface FileRoutesById {
   '/app/(courses)/courses_/$courseId/edit': typeof AppcoursesCoursesCourseIdEditRoute
   '/app/(orgs)/orgs_/$orgId/edit': typeof ApporgsOrgsOrgIdEditRoute
   '/app/(users)/users_/$userId/edit': typeof AppusersUsersUserIdEditRoute
+  '/app/(orgs)/orgs/$orgId_/providers/$providerSlug': typeof ApporgsOrgsOrgIdProvidersProviderSlugRoute
+  '/app/(orgs)/orgs/$orgId_/providers/add': typeof ApporgsOrgsOrgIdProvidersAddRoute
+  '/app/(orgs)/orgs/$orgId_/providers/': typeof ApporgsOrgsOrgIdProvidersIndexRoute
+  '/app/(orgs)/orgs/$orgId_/providers_/$providerSlug/edit': typeof ApporgsOrgsOrgIdProvidersProviderSlugEditRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
@@ -420,6 +454,10 @@ export interface FileRouteTypes {
     | '/app/courses/$courseId/edit'
     | '/app/orgs/$orgId/edit'
     | '/app/users/$userId/edit'
+    | '/app/orgs/$orgId/providers/$providerSlug'
+    | '/app/orgs/$orgId/providers/add'
+    | '/app/orgs/$orgId/providers'
+    | '/app/orgs/$orgId/providers/$providerSlug/edit'
   fileRoutesByTo: FileRoutesByTo
   to:
     | '/'
@@ -457,6 +495,10 @@ export interface FileRouteTypes {
     | '/app/courses/$courseId/edit'
     | '/app/orgs/$orgId/edit'
     | '/app/users/$userId/edit'
+    | '/app/orgs/$orgId/providers/$providerSlug'
+    | '/app/orgs/$orgId/providers/add'
+    | '/app/orgs/$orgId/providers'
+    | '/app/orgs/$orgId/providers/$providerSlug/edit'
   id:
     | '__root__'
     | '/'
@@ -496,6 +538,10 @@ export interface FileRouteTypes {
     | '/app/(courses)/courses_/$courseId/edit'
     | '/app/(orgs)/orgs_/$orgId/edit'
     | '/app/(users)/users_/$userId/edit'
+    | '/app/(orgs)/orgs/$orgId_/providers/$providerSlug'
+    | '/app/(orgs)/orgs/$orgId_/providers/add'
+    | '/app/(orgs)/orgs/$orgId_/providers/'
+    | '/app/(orgs)/orgs/$orgId_/providers_/$providerSlug/edit'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
@@ -504,34 +550,30 @@ export interface RootRouteChildren {
   AppRouteRoute: typeof AppRouteRouteWithChildren
 }
 export interface FileServerRoutesByFullPath {
-  '/api/ai/chat': typeof ApiAiChatServerRoute
   '/api/auth/$': typeof ApiAuthSplatServerRoute
   '/api/doc/$': typeof ApiDocSplatServerRoute
   '/api/rpc/$': typeof ApiRpcSplatServerRoute
 }
 export interface FileServerRoutesByTo {
-  '/api/ai/chat': typeof ApiAiChatServerRoute
   '/api/auth/$': typeof ApiAuthSplatServerRoute
   '/api/doc/$': typeof ApiDocSplatServerRoute
   '/api/rpc/$': typeof ApiRpcSplatServerRoute
 }
 export interface FileServerRoutesById {
   __root__: typeof rootServerRouteImport
-  '/api/ai/chat': typeof ApiAiChatServerRoute
   '/api/auth/$': typeof ApiAuthSplatServerRoute
   '/api/doc/$': typeof ApiDocSplatServerRoute
   '/api/rpc/$': typeof ApiRpcSplatServerRoute
 }
 export interface FileServerRouteTypes {
   fileServerRoutesByFullPath: FileServerRoutesByFullPath
-  fullPaths: '/api/ai/chat' | '/api/auth/$' | '/api/doc/$' | '/api/rpc/$'
+  fullPaths: '/api/auth/$' | '/api/doc/$' | '/api/rpc/$'
   fileServerRoutesByTo: FileServerRoutesByTo
-  to: '/api/ai/chat' | '/api/auth/$' | '/api/doc/$' | '/api/rpc/$'
-  id: '__root__' | '/api/ai/chat' | '/api/auth/$' | '/api/doc/$' | '/api/rpc/$'
+  to: '/api/auth/$' | '/api/doc/$' | '/api/rpc/$'
+  id: '__root__' | '/api/auth/$' | '/api/doc/$' | '/api/rpc/$'
   fileServerRoutesById: FileServerRoutesById
 }
 export interface RootServerRouteChildren {
-  ApiAiChatServerRoute: typeof ApiAiChatServerRoute
   ApiAuthSplatServerRoute: typeof ApiAuthSplatServerRoute
   ApiDocSplatServerRoute: typeof ApiDocSplatServerRoute
   ApiRpcSplatServerRoute: typeof ApiRpcSplatServerRoute
@@ -798,6 +840,34 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AppassetsAssetsAssetIdChunksRouteImport
       parentRoute: typeof AppRouteRoute
     }
+    '/app/(orgs)/orgs/$orgId_/providers/': {
+      id: '/app/(orgs)/orgs/$orgId_/providers/'
+      path: '/orgs/$orgId/providers'
+      fullPath: '/app/orgs/$orgId/providers'
+      preLoaderRoute: typeof ApporgsOrgsOrgIdProvidersIndexRouteImport
+      parentRoute: typeof AppRouteRoute
+    }
+    '/app/(orgs)/orgs/$orgId_/providers/add': {
+      id: '/app/(orgs)/orgs/$orgId_/providers/add'
+      path: '/orgs/$orgId/providers/add'
+      fullPath: '/app/orgs/$orgId/providers/add'
+      preLoaderRoute: typeof ApporgsOrgsOrgIdProvidersAddRouteImport
+      parentRoute: typeof AppRouteRoute
+    }
+    '/app/(orgs)/orgs/$orgId_/providers/$providerSlug': {
+      id: '/app/(orgs)/orgs/$orgId_/providers/$providerSlug'
+      path: '/orgs/$orgId/providers/$providerSlug'
+      fullPath: '/app/orgs/$orgId/providers/$providerSlug'
+      preLoaderRoute: typeof ApporgsOrgsOrgIdProvidersProviderSlugRouteImport
+      parentRoute: typeof AppRouteRoute
+    }
+    '/app/(orgs)/orgs/$orgId_/providers_/$providerSlug/edit': {
+      id: '/app/(orgs)/orgs/$orgId_/providers_/$providerSlug/edit'
+      path: '/orgs/$orgId/providers/$providerSlug/edit'
+      fullPath: '/app/orgs/$orgId/providers/$providerSlug/edit'
+      preLoaderRoute: typeof ApporgsOrgsOrgIdProvidersProviderSlugEditRouteImport
+      parentRoute: typeof AppRouteRoute
+    }
   }
 }
 declare module '@tanstack/react-start/server' {
@@ -821,13 +891,6 @@ declare module '@tanstack/react-start/server' {
       path: '/api/auth/$'
       fullPath: '/api/auth/$'
       preLoaderRoute: typeof ApiAuthSplatServerRouteImport
-      parentRoute: typeof rootServerRouteImport
-    }
-    '/api/ai/chat': {
-      id: '/api/ai/chat'
-      path: '/api/ai/chat'
-      fullPath: '/api/ai/chat'
-      preLoaderRoute: typeof ApiAiChatServerRouteImport
       parentRoute: typeof rootServerRouteImport
     }
   }
@@ -881,6 +944,10 @@ interface AppRouteRouteChildren {
   AppcoursesCoursesCourseIdEditRoute: typeof AppcoursesCoursesCourseIdEditRoute
   ApporgsOrgsOrgIdEditRoute: typeof ApporgsOrgsOrgIdEditRoute
   AppusersUsersUserIdEditRoute: typeof AppusersUsersUserIdEditRoute
+  ApporgsOrgsOrgIdProvidersProviderSlugRoute: typeof ApporgsOrgsOrgIdProvidersProviderSlugRoute
+  ApporgsOrgsOrgIdProvidersAddRoute: typeof ApporgsOrgsOrgIdProvidersAddRoute
+  ApporgsOrgsOrgIdProvidersIndexRoute: typeof ApporgsOrgsOrgIdProvidersIndexRoute
+  ApporgsOrgsOrgIdProvidersProviderSlugEditRoute: typeof ApporgsOrgsOrgIdProvidersProviderSlugEditRoute
 }
 
 const AppRouteRouteChildren: AppRouteRouteChildren = {
@@ -914,6 +981,12 @@ const AppRouteRouteChildren: AppRouteRouteChildren = {
   AppcoursesCoursesCourseIdEditRoute: AppcoursesCoursesCourseIdEditRoute,
   ApporgsOrgsOrgIdEditRoute: ApporgsOrgsOrgIdEditRoute,
   AppusersUsersUserIdEditRoute: AppusersUsersUserIdEditRoute,
+  ApporgsOrgsOrgIdProvidersProviderSlugRoute:
+    ApporgsOrgsOrgIdProvidersProviderSlugRoute,
+  ApporgsOrgsOrgIdProvidersAddRoute: ApporgsOrgsOrgIdProvidersAddRoute,
+  ApporgsOrgsOrgIdProvidersIndexRoute: ApporgsOrgsOrgIdProvidersIndexRoute,
+  ApporgsOrgsOrgIdProvidersProviderSlugEditRoute:
+    ApporgsOrgsOrgIdProvidersProviderSlugEditRoute,
 }
 
 const AppRouteRouteWithChildren = AppRouteRoute._addFileChildren(
@@ -929,7 +1002,6 @@ export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)
   ._addFileTypes<FileRouteTypes>()
 const rootServerRouteChildren: RootServerRouteChildren = {
-  ApiAiChatServerRoute: ApiAiChatServerRoute,
   ApiAuthSplatServerRoute: ApiAuthSplatServerRoute,
   ApiDocSplatServerRoute: ApiDocSplatServerRoute,
   ApiRpcSplatServerRoute: ApiRpcSplatServerRoute,

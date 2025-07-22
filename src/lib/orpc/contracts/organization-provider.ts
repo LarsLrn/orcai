@@ -13,9 +13,14 @@ export const organizationProviderSelectSchema = createSelectSchema(
 
 export const organizationProviderInsertSchema = createInsertSchema(
 	organizationProviderTable,
-).omit({
-	createdAt: true,
-});
+)
+	.omit({
+		createdAt: true,
+		apiKeyEncrypted: true, // Remove encrypted field from input
+	})
+	.extend({
+		apiKey: z.string().min(1, "API key is required"), // Add plain text API key input
+	});
 
 export const organizationProviderUpdateSchema = createUpdateSchema(
 	organizationProviderTable,
@@ -23,7 +28,13 @@ export const organizationProviderUpdateSchema = createUpdateSchema(
 		organizationId: organizationProviderSelectSchema.shape.organizationId,
 		providerSlug: organizationProviderSelectSchema.shape.providerSlug,
 	},
-);
+)
+	.omit({
+		apiKeyEncrypted: true, // Remove encrypted field from input
+	})
+	.extend({
+		apiKey: z.string().min(1, "API key is required").optional(), // Add optional plain text API key input for updates
+	});
 
 export const organizationProviderDeleteSchema = z.object({
 	organizationId: z.uuidv4(),
@@ -64,7 +75,7 @@ export const createOrganizationProviderContract = base
 export const findOrganizationProviderContract = base
 	.route({
 		method: "GET",
-		path: "/organizations/{organizationId}/providers/{userId}",
+		path: "/organizations/{organizationId}/providers/{providerSlug}",
 		summary: "Find a provider of an organization",
 		tags: ["Organization Providers"],
 	})
@@ -79,7 +90,7 @@ export const findOrganizationProviderContract = base
 export const updateOrganizationProviderContract = base
 	.route({
 		method: "PUT",
-		path: "/organizations/{organizationId}/providers/{userId}",
+		path: "/organizations/{organizationId}/providers/{providerSlug}",
 		summary: "Update a provider of an organization",
 		tags: ["Organization Providers"],
 	})
