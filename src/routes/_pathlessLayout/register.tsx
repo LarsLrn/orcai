@@ -54,7 +54,7 @@ export const Route = createFileRoute("/_pathlessLayout/register")({
 	loaderDeps: ({ search }) => ({
 		inv: search.inv,
 	}),
-	loader: async ({ deps }) => {
+	loader: ({ deps }) => {
 		if (!deps.inv) {
 			return { query: undefined };
 		}
