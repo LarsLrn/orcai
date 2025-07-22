@@ -26,7 +26,7 @@ function RouteComponent() {
 	const { assetId } = Route.useParams();
 	const { data: assetPoints } = useSuspenseQuery(
 		orpc.assetPoints.list.queryOptions({
-			input: { courseId, filters: { documentId: assetId } },
+			input: { courseId, filters: { assetId } },
 			queryKey: orpc.assetPoints.list.key({
 				input: { filters: { assetId } },
 			}),
