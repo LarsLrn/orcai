@@ -104,13 +104,6 @@ const MODELS = [
 		capabilities: ["text-generation"] as const,
 	}),
 	createModel({
-		slug: "anthropic/claude-3-5-sonnet",
-		providerSlug: "saia", // ✅ Type-safe: must be one of the provider slugs
-		name: "Claude 3.5 Sonnet",
-		description: "Most intelligent model for complex reasoning tasks",
-		capabilities: ["text-generation"] as const,
-	}),
-	createModel({
 		slug: "gemini-2.0-flash",
 		providerSlug: "google", // ✅ Type-safe: must be one of the provider slugs
 		name: "Gemini 2.0 Flash",
