@@ -3,16 +3,16 @@ export function useUmami() {
 		uniqueId: string,
 		data: { name: string; email: string },
 	) => {
+		if (!import.meta.env.PROD) return;
+
 		if (typeof window !== "undefined" && window.umami) {
 			window.umami.identify(uniqueId, data);
 		}
 	};
 
-	const trackEvent = (
-		eventName: string,
-		// biome-ignore lint/suspicious/noExplicitAny: <Broad type for eventData>
-		eventData?: Record<string, any>,
-	) => {
+	const trackEvent = (eventName: string, eventData?: Record<string, any>) => {
+		if (!import.meta.env.PROD) return;
+
 		if (typeof window !== "undefined" && window.umami) {
 			window.umami.track(eventName, eventData);
 		} else {
