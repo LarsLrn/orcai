@@ -35,7 +35,7 @@ const SignInForm = () => {
 						email: values.email,
 					});
 
-					await navigate({ to: "/" });
+					await navigate({ to: "/app" });
 
 					return "Welcome back!";
 				},
