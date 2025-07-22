@@ -13,7 +13,7 @@ export const Route = createFileRoute("/app")({
 		}
 
 		if (!context.auth.session.activeOrganizationId) {
-			throw new Error("No active organization found");
+			throw redirect({ to: "/select-organization" });
 		}
 
 		return {

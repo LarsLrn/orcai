@@ -16,6 +16,7 @@ import { Route as PathlessLayoutRouteRouteImport } from './routes/_pathlessLayou
 import { Route as IndexRouteImport } from './routes/index'
 import { Route as AppIndexRouteImport } from './routes/app/index'
 import { Route as PathlessLayoutTouRouteImport } from './routes/_pathlessLayout/tou'
+import { Route as PathlessLayoutSelectOrganizationRouteImport } from './routes/_pathlessLayout/select-organization'
 import { Route as PathlessLayoutRegisterRouteImport } from './routes/_pathlessLayout/register'
 import { Route as PathlessLayoutPrivacyRouteImport } from './routes/_pathlessLayout/privacy'
 import { Route as PathlessLayoutLoginRouteImport } from './routes/_pathlessLayout/login'
@@ -82,6 +83,12 @@ const PathlessLayoutTouRoute = PathlessLayoutTouRouteImport.update({
   path: '/tou',
   getParentRoute: () => PathlessLayoutRouteRoute,
 } as any)
+const PathlessLayoutSelectOrganizationRoute =
+  PathlessLayoutSelectOrganizationRouteImport.update({
+    id: '/select-organization',
+    path: '/select-organization',
+    getParentRoute: () => PathlessLayoutRouteRoute,
+  } as any)
 const PathlessLayoutRegisterRoute = PathlessLayoutRegisterRouteImport.update({
   id: '/register',
   path: '/register',
@@ -294,6 +301,7 @@ export interface FileRoutesByFullPath {
   '/login': typeof PathlessLayoutLoginRoute
   '/privacy': typeof PathlessLayoutPrivacyRoute
   '/register': typeof PathlessLayoutRegisterRoute
+  '/select-organization': typeof PathlessLayoutSelectOrganizationRoute
   '/tou': typeof PathlessLayoutTouRoute
   '/app/': typeof AppIndexRoute
   '/app/account': typeof AppAccountIndexRoute
@@ -335,6 +343,7 @@ export interface FileRoutesByTo {
   '/login': typeof PathlessLayoutLoginRoute
   '/privacy': typeof PathlessLayoutPrivacyRoute
   '/register': typeof PathlessLayoutRegisterRoute
+  '/select-organization': typeof PathlessLayoutSelectOrganizationRoute
   '/tou': typeof PathlessLayoutTouRoute
   '/app': typeof AppIndexRoute
   '/app/account': typeof AppAccountIndexRoute
@@ -379,6 +388,7 @@ export interface FileRoutesById {
   '/_pathlessLayout/login': typeof PathlessLayoutLoginRoute
   '/_pathlessLayout/privacy': typeof PathlessLayoutPrivacyRoute
   '/_pathlessLayout/register': typeof PathlessLayoutRegisterRoute
+  '/_pathlessLayout/select-organization': typeof PathlessLayoutSelectOrganizationRoute
   '/_pathlessLayout/tou': typeof PathlessLayoutTouRoute
   '/app/': typeof AppIndexRoute
   '/app/account/': typeof AppAccountIndexRoute
@@ -423,6 +433,7 @@ export interface FileRouteTypes {
     | '/login'
     | '/privacy'
     | '/register'
+    | '/select-organization'
     | '/tou'
     | '/app/'
     | '/app/account'
@@ -464,6 +475,7 @@ export interface FileRouteTypes {
     | '/login'
     | '/privacy'
     | '/register'
+    | '/select-organization'
     | '/tou'
     | '/app'
     | '/app/account'
@@ -507,6 +519,7 @@ export interface FileRouteTypes {
     | '/_pathlessLayout/login'
     | '/_pathlessLayout/privacy'
     | '/_pathlessLayout/register'
+    | '/_pathlessLayout/select-organization'
     | '/_pathlessLayout/tou'
     | '/app/'
     | '/app/account/'
@@ -614,6 +627,13 @@ declare module '@tanstack/react-router' {
       path: '/tou'
       fullPath: '/tou'
       preLoaderRoute: typeof PathlessLayoutTouRouteImport
+      parentRoute: typeof PathlessLayoutRouteRoute
+    }
+    '/_pathlessLayout/select-organization': {
+      id: '/_pathlessLayout/select-organization'
+      path: '/select-organization'
+      fullPath: '/select-organization'
+      preLoaderRoute: typeof PathlessLayoutSelectOrganizationRouteImport
       parentRoute: typeof PathlessLayoutRouteRoute
     }
     '/_pathlessLayout/register': {
@@ -900,6 +920,7 @@ interface PathlessLayoutRouteRouteChildren {
   PathlessLayoutLoginRoute: typeof PathlessLayoutLoginRoute
   PathlessLayoutPrivacyRoute: typeof PathlessLayoutPrivacyRoute
   PathlessLayoutRegisterRoute: typeof PathlessLayoutRegisterRoute
+  PathlessLayoutSelectOrganizationRoute: typeof PathlessLayoutSelectOrganizationRoute
   PathlessLayoutTouRoute: typeof PathlessLayoutTouRoute
 }
 
@@ -907,6 +928,7 @@ const PathlessLayoutRouteRouteChildren: PathlessLayoutRouteRouteChildren = {
   PathlessLayoutLoginRoute: PathlessLayoutLoginRoute,
   PathlessLayoutPrivacyRoute: PathlessLayoutPrivacyRoute,
   PathlessLayoutRegisterRoute: PathlessLayoutRegisterRoute,
+  PathlessLayoutSelectOrganizationRoute: PathlessLayoutSelectOrganizationRoute,
   PathlessLayoutTouRoute: PathlessLayoutTouRoute,
 }
 
