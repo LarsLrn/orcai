@@ -121,28 +121,28 @@ export const ROUTES = {
 		},
 		documents: {
 			root: {
-				name: "Documents",
+				name: "Assets",
 				pathTemplate: "/app/assets",
 				getPath: function () {
 					return makePath(this.pathTemplate);
 				},
 			},
 			add: {
-				name: "Add Document",
+				name: "Add Asset",
 				pathTemplate: "/app/assets/add",
 				getPath: function () {
 					return makePath(this.pathTemplate);
 				},
 			},
 			view: {
-				name: "View Document",
+				name: "View Asset",
 				pathTemplate: "/app/assets/view/:id",
 				getPath: function (params: { id: string }) {
 					return makePath(this.pathTemplate, params);
 				},
 			},
 			edit: {
-				name: "Edit Document",
+				name: "Edit Asset",
 				pathTemplate: "/app/assets/edit/:id",
 				getPath: function (params: { id: string }) {
 					return makePath(this.pathTemplate, params);
@@ -150,7 +150,7 @@ export const ROUTES = {
 			},
 			chunks: {
 				root: {
-					name: "View Chunks",
+					name: "View Points",
 					pathTemplate: "/app/assets/view/:id/chunks",
 					getPath: function (params: { id: string }) {
 						return makePath(this.pathTemplate, params);
@@ -158,7 +158,7 @@ export const ROUTES = {
 				},
 			},
 			playground: {
-				name: "Document Playground",
+				name: "Asset Playground",
 				pathTemplate: "/app/assets/playground",
 				getPath: function () {
 					return makePath(this.pathTemplate);
@@ -273,7 +273,7 @@ export const ROUTES = {
 	API: {
 		docs: {
 			processing: {
-				name: "Processing Document",
+				name: "Processing Asset",
 				pathTemplate: "/api/assets/processing",
 				getPath: function () {
 					return makePath(this.pathTemplate);
