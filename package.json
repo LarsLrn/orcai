@@ -20,7 +20,8 @@
 		"spice:deploy-schema": "tsx scripts/deploy-spicedb-schema.ts",
 		"trigger:dev": "npx trigger.dev@latest dev",
 		"trigger:deploy": "npx trigger.dev deploy -p proj_tfobsghmqalnxwzabpqm --self-hosted --push --registry ghcr.io --namespace sokratest",
-		"machine-translate": "inlang machine translate --project project.inlang"
+		"machine-translate": "inlang machine translate --project project.inlang",
+		"prepare": "husky"
 	},
 	"keywords": [],
 	"author": "",
@@ -147,6 +148,8 @@
 	},
 	"devDependencies": {
 		"@biomejs/biome": "2.1.2",
+		"@commitlint/cli": "^19.8.1",
+		"@commitlint/config-conventional": "^19.8.1",
 		"@inlang/cli": "^3.0.12",
 		"@inlang/paraglide-js": "2.2.0",
 		"@inlang/paraglide-vite": "^1.4.0",
@@ -156,6 +159,7 @@
 		"@types/react": "^19.1.8",
 		"@types/react-dom": "^19.1.6",
 		"drizzle-kit": "^0.31.4",
+		"husky": "^9.1.7",
 		"tsx": "^4.20.3",
 		"tw-animate-css": "^1.3.5",
 		"typescript": "^5.8.3",
