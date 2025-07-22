@@ -18,7 +18,7 @@ export const Route = createFileRoute(
 					input: { organizationId: orgId, providerSlug },
 				}),
 			}),
-		)
+		);
 	},
 	component: RouteComponent,
 });
@@ -32,7 +32,7 @@ function RouteComponent() {
 				input: { organizationId: orgId, providerSlug },
 			}),
 		}),
-	)
+	);
 
 	return (
 		<div className="flex flex-col gap-14">
@@ -75,5 +75,5 @@ function RouteComponent() {
 				</Card>
 			</div>
 		</div>
-	)
+	);
 }

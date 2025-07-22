@@ -8,10 +8,8 @@ import { toast } from "sonner";
 import { useCopyToClipboard } from "usehooks-ts";
 
 interface CodeBlockProps {
-	// biome-ignore lint/suspicious/noExplicitAny: <Fine for now>
 	node: any;
 	className: string;
-	// biome-ignore lint/suspicious/noExplicitAny: <Fine for now>
 	children: any;
 }
 

@@ -15,7 +15,7 @@ const PROVIDERS = [
 		name: "SAIA (GWDG)",
 		description: "Open source AI models provided by GWDG",
 		website: "https://gwdg.de/",
-		compatibility: "anthropic",
+		compatibility: "openai",
 		endpoint: "https://chat-ai.academiccloud.de/v1",
 	},
 	{

@@ -17,7 +17,7 @@ import {
 	PopoverTrigger,
 } from "@/components/ui/popover";
 import { ScrollArea } from "@/components/ui/scroll-area";
-import type { DocumentMetadataType } from "@/db/schema/document";
+import type { AssetMetadataType } from "@/db/schema/asset";
 import { useUmami } from "@/hooks/use-umami";
 import { cn } from "@/lib/utils";
 
@@ -28,7 +28,7 @@ interface BaseAnnotation extends Record<string, JSONValue> {
 interface AnnotationReference extends BaseAnnotation {
 	id: string;
 	title: string;
-	metadata: DocumentMetadataType & JSONValue;
+	metadata: AssetMetadataType & JSONValue;
 	type: "reference";
 }
 

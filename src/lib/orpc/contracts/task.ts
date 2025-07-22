@@ -1,16 +1,15 @@
 import { z } from "zod/v4";
 import { base } from "./base";
 
-export const createDocumentTaskContract = base
+export const createAssetTaskContract = base
 	.route({
 		method: "POST",
-		path: "/tasks/documents",
-		summary: "Create a document task",
+		path: "/tasks/assets",
+		summary: "Create an asset task",
 		tags: ["Tasks"],
 	})
 	.input(
 		z.object({
-			courseId: z.uuidv4(),
 			taskType: z.enum(["extract", "embed"]),
 			ids: z.array(z.string()),
 		}),

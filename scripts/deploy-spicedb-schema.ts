@@ -53,4 +53,4 @@ async function deploySchema() {
 }
 
 // Run the deployment
-deploySchema();
+await deploySchema();

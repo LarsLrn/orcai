@@ -11,11 +11,11 @@ import { FormTextField } from "@/components/forms/fields/form-text-field";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Form } from "@/components/ui/form";
-import type { Document } from "@/db/schema/document";
+import type { Asset } from "@/db/schema/asset";
 import { assetUpdateSchema } from "@/lib/orpc/contracts/asset";
 import { orpc } from "@/lib/orpc/orpc";
 
-const DocumentForm = ({ document }: { document: Document }) => {
+const AssetForm = ({ asset }: { asset: Asset }) => {
 	const queryClient = useQueryClient();
 	const router = useRouter();
 
@@ -36,30 +36,30 @@ const DocumentForm = ({ document }: { document: Document }) => {
 	const form = useForm<z.infer<typeof assetUpdateSchema>>({
 		resolver: zodResolver(assetUpdateSchema),
 		defaultValues: {
-			id: document.id,
-			title: document?.title ?? undefined,
+			id: asset.id,
+			title: asset?.title ?? undefined,
 			metadata: {
-				citation: document.metadata?.citation ?? undefined,
-				externalUrl: document.metadata?.externalUrl ?? undefined,
-				relevance: document.metadata?.relevance ?? "medium",
-				showReference: document.metadata?.showReference ?? true,
-				pageRange: document.metadata?.pageRange ?? undefined,
-				author: document.metadata?.author ?? undefined,
-				chapterTitle: document.metadata?.chapterTitle ?? undefined,
-				mergePages: document.metadata?.mergePages ?? true,
+				citation: asset.metadata?.citation ?? undefined,
+				externalUrl: asset.metadata?.externalUrl ?? undefined,
+				relevance: asset.metadata?.relevance ?? "medium",
+				showReference: asset.metadata?.showReference ?? true,
+				pageRange: asset.metadata?.pageRange ?? undefined,
+				author: asset.metadata?.author ?? undefined,
+				chapterTitle: asset.metadata?.chapterTitle ?? undefined,
+				mergePages: asset.metadata?.mergePages ?? true,
 			},
 		},
 	});
 
 	const onSubmit = (values: z.infer<typeof assetUpdateSchema>) => {
-		toast.promise(updateAsset({ ...values, id: document.id }), {
-			loading: "Updating document...",
+		toast.promise(updateAsset({ ...values, id: asset.id }), {
+			loading: "Updating asset...",
 			success: () => {
 				router.history.back();
-				return "Document updated successfully";
+				return "Asset updated successfully";
 			},
 			error: (error) => ({
-				message: "Failed to update document",
+				message: "Failed to update asset",
 				description: error.message,
 			}),
 		});
@@ -74,16 +74,16 @@ const DocumentForm = ({ document }: { document: Document }) => {
 				<div className="grid grid-cols-1 gap-4 lg:grid-cols-2">
 					<Card>
 						<CardHeader>
-							<CardTitle>Document Metadata</CardTitle>
+							<CardTitle>Asset Metadata</CardTitle>
 						</CardHeader>
 						<CardContent className="flex flex-col gap-4">
 							<FormInputField
 								form={form}
 								name="title"
 								label="Title"
-								placeholder="Document title"
+								placeholder="Asset title"
 								inputType="text"
-								description="The title of the document. This will be displayed in the student chat view."
+								description="The title of the asset. This will be displayed in the student chat view."
 							/>
 							<FormInputField
 								form={form}
@@ -99,7 +99,7 @@ const DocumentForm = ({ document }: { document: Document }) => {
 								label="Page Range (If applicable)"
 								placeholder="12-56"
 								inputType="text"
-								description="If the document is part of a larger work, you can specify the page range here. This will be displayed in the student chat view."
+								description="If the asset is part of a larger work, you can specify the page range here. This will be displayed in the student chat view."
 							/>
 							<FormInputField
 								form={form}
@@ -107,7 +107,7 @@ const DocumentForm = ({ document }: { document: Document }) => {
 								label="Chapter Title (If applicable)"
 								placeholder="Chapter 1: Introduction"
 								inputType="text"
-								description="If the document is a chapter in a book, you can specify the chapter title here. This will be displayed in the student chat view."
+								description="If the asset is a chapter in a book, you can specify the chapter title here. This will be displayed in the student chat view."
 							/>
 						</CardContent>
 					</Card>
@@ -121,7 +121,7 @@ const DocumentForm = ({ document }: { document: Document }) => {
 								name="metadata.citation"
 								label="Citation"
 								placeholder="Citation"
-								description="This citation will be displayed in the student chat view when the AI uses this document."
+								description="This citation will be displayed in the student chat view when the AI uses this asset."
 							/>
 							<FormInputField
 								form={form}
@@ -129,7 +129,7 @@ const DocumentForm = ({ document }: { document: Document }) => {
 								label="External URL"
 								placeholder="moodle.com/course"
 								inputType="text"
-								description="This URL will be used to link to an external resource referencing the document in the student chat view, for example a deep link to your LMS."
+								description="This URL will be used to link to an external resource referencing the asset in the student chat view, for example a deep link to your LMS."
 							/>
 							<FormSelectField
 								form={form}
@@ -141,27 +141,27 @@ const DocumentForm = ({ document }: { document: Document }) => {
 								]}
 								placeholder="Select relevance"
 								label="Relevance"
-								description="Adjusts whether the document is used more frequently (scored higher) or less frequently (scored lower) in the AI's responses."
+								description="Adjusts whether the asset is used more frequently (scored higher) or less frequently (scored lower) in the AI's responses."
 							/>
 							<FormSwitchField
 								form={form}
 								name="metadata.showReference"
 								label="Show Reference"
-								description="Include a reference to this document in the student chat view when the AI uses it. When disabled, the AI can still use information from this document, but will not display a reference."
+								description="Include a reference to this asset in the student chat view when the AI uses it. When disabled, the AI can still use information from this asset, but will not display a reference."
 							/>
 							<FormSwitchField
 								form={form}
 								name="metadata.mergePages"
 								label="Merge Pages"
-								description="If this is disabled, the document will be split on pages, instead of the AI trying to figure out semantically coherent chunks. Highly recommended for files like Presentations or content that is logically grouped on pages."
+								description="If this is disabled, the asset will be split on pages, instead of the AI trying to figure out semantically coherent chunks. Highly recommended for files like Presentations or content that is logically grouped on pages."
 							/>
 						</CardContent>
 					</Card>
 				</div>
-				<Button type="submit">Save Document</Button>
+				<Button type="submit">Save Asset</Button>
 			</form>
 		</Form>
 	);
 };
 
-export { DocumentForm };
+export { AssetForm };

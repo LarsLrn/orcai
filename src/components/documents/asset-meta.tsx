@@ -18,7 +18,7 @@ import {
 	TooltipContent,
 	TooltipTrigger,
 } from "@/components/ui/tooltip";
-import type { Document } from "@/db/schema/document";
+import type { Asset } from "@/db/schema/asset";
 
 const getFileTypeColor = (fileType: string): string => {
 	const typeMap: Record<string, string> = {
@@ -53,11 +53,9 @@ const getRelevanceBadgeColor = (relevance: string): string => {
 	return relevanceMap[relevance.toLowerCase()] || "bg-zinc-100 text-zinc-800";
 };
 
-const FileMeta = ({ document }: { document: Document }) => {
-	const fileTypeColor = getFileTypeColor(document.fileType);
-	const relevanceBadgeColor = getRelevanceBadgeColor(
-		document.metadata.relevance,
-	);
+const AssetMeta = ({ asset }: { asset: Asset }) => {
+	const fileTypeColor = getFileTypeColor(asset.fileType);
+	const relevanceBadgeColor = getRelevanceBadgeColor(asset.metadata.relevance);
 
 	return (
 		<Card>
@@ -69,7 +67,7 @@ const FileMeta = ({ document }: { document: Document }) => {
 							<Badge
 								className={`${fileTypeColor} font-medium text-xs uppercase`}
 							>
-								{document.fileType}
+								{asset.fileType}
 							</Badge>
 						</TooltipTrigger>
 						<TooltipContent>File Type</TooltipContent>
@@ -81,24 +79,20 @@ const FileMeta = ({ document }: { document: Document }) => {
 					<div className="flex items-center gap-2">
 						<Calendar className="h-4 w-4 text-muted-foreground" />
 						<span className="text-muted-foreground">Created:</span>
-						<span className="font-medium">
-							{formatDate(document.createdAt)}
-						</span>
+						<span className="font-medium">{formatDate(asset.createdAt)}</span>
 					</div>
 
 					<div className="flex items-center gap-2">
 						<Clock className="h-4 w-4 text-muted-foreground" />
 						<span className="text-muted-foreground">Updated:</span>
-						<span className="font-medium">
-							{formatDate(document.updatedAt)}
-						</span>
+						<span className="font-medium">{formatDate(asset.updatedAt)}</span>
 					</div>
 
 					<div className="flex items-center gap-2">
 						<HardDrive className="h-4 w-4 text-muted-foreground" />
 						<span className="text-muted-foreground">Size:</span>
 						<span className="font-medium">
-							{convert(document.size, "bytes").to("best").toString()}
+							{convert(asset.size, "bytes").to("best").toString()}
 						</span>
 					</div>
 
@@ -106,90 +100,90 @@ const FileMeta = ({ document }: { document: Document }) => {
 						<Star className="h-4 w-4 text-muted-foreground" />
 						<span className="text-muted-foreground">Relevance:</span>
 						<Badge className={`${relevanceBadgeColor} font-normal text-xs`}>
-							{document.metadata.relevance.charAt(0).toUpperCase() +
-								document.metadata.relevance.slice(1)}
+							{asset.metadata.relevance.charAt(0).toUpperCase() +
+								asset.metadata.relevance.slice(1)}
 						</Badge>
 					</div>
 
-					{document.metadata.citation && (
+					{asset.metadata.citation && (
 						<div className="flex items-center gap-2">
 							<FileSpreadsheet className="h-4 w-4 text-muted-foreground" />
 							<span className="text-muted-foreground">Citation:</span>
 							<span
 								className="truncate font-medium text-xs"
-								title={document.metadata.citation}
+								title={asset.metadata.citation}
 							>
-								{document.metadata.citation}
+								{asset.metadata.citation}
 							</span>
 						</div>
 					)}
 
-					{document.metadata.externalUrl && (
+					{asset.metadata.externalUrl && (
 						<div className="flex items-center gap-2">
 							<ExternalLink className="h-4 w-4 text-muted-foreground" />
 							<span className="text-muted-foreground">External:</span>
 							<a
-								href={document.metadata.externalUrl}
+								href={asset.metadata.externalUrl}
 								target="_blank"
 								rel="noopener noreferrer"
 								className="truncate font-medium text-primary text-xs hover:underline"
-								title={document.metadata.externalUrl}
+								title={asset.metadata.externalUrl}
 							>
 								View source
 							</a>
 						</div>
 					)}
 
-					{document.metadata.chapterTitle && (
+					{asset.metadata.chapterTitle && (
 						<div className="flex items-center gap-2">
 							<BookMarkedIcon className="h-4 w-4 text-muted-foreground" />
 							<span className="text-muted-foreground">Chapter:</span>
 							<span
 								className="truncate font-medium text-xs"
-								title={document.metadata.chapterTitle}
+								title={asset.metadata.chapterTitle}
 							>
-								{document.metadata.chapterTitle}
+								{asset.metadata.chapterTitle}
 							</span>
 						</div>
 					)}
 
-					{document.metadata.pageRange && (
+					{asset.metadata.pageRange && (
 						<div className="flex items-center gap-2">
 							<MoveHorizontalIcon className="h-4 w-4 text-muted-foreground" />
 							<span className="text-muted-foreground">Page Range:</span>
 							<span
 								className="truncate font-medium text-xs"
-								title={document.metadata.pageRange}
+								title={asset.metadata.pageRange}
 							>
-								{document.metadata.pageRange}
+								{asset.metadata.pageRange}
 							</span>
 						</div>
 					)}
 
-					{document.metadata.author && (
+					{asset.metadata.author && (
 						<div className="flex items-center gap-2">
 							<SignatureIcon className="h-4 w-4 text-muted-foreground" />
 							<span className="text-muted-foreground">Author(s):</span>
 							<span
 								className="truncate font-medium text-xs"
-								title={document.metadata.author}
+								title={asset.metadata.author}
 							>
-								{document.metadata.author}
+								{asset.metadata.author}
 							</span>
 						</div>
 					)}
 				</div>
 
 				<div className="mt-4 flex flex-wrap gap-2">
-					<Badge variant="outline" className="font-normal text-xs">
-						{document.status}
-					</Badge>
+					{/* <Badge variant="outline" className="font-normal text-xs">
+						{asset.status}
+					</Badge> */}
 
 					<Badge
-						variant={document.metadata.showReference ? "default" : "outline"}
+						variant={asset.metadata.showReference ? "default" : "outline"}
 						className="font-normal text-xs"
 					>
-						{document.metadata.showReference
+						{asset.metadata.showReference
 							? "Reference Shown"
 							: "Reference Hidden"}
 					</Badge>
@@ -199,4 +193,4 @@ const FileMeta = ({ document }: { document: Document }) => {
 	);
 };
 
-export { FileMeta };
+export { AssetMeta };

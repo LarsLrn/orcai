@@ -1,10 +1,9 @@
-import https from "node:https";
 import { RecursiveCharacterTextSplitter } from "@langchain/textsplitters";
 import { logger, task } from "@trigger.dev/sdk/v3";
 import { embedMany, generateText } from "ai";
-import nodeFetch from "node-fetch";
 import pMap from "p-map";
 import { v4 as uuidv4 } from "uuid";
+import type { Asset } from "@/db/schema/asset";
 import { getSaiaEmbeddingModel, getSaiaModel } from "@/lib/ai/saia-models";
 import type { MarkdownNode } from "@/lib/chunk/markdown-chunker";
 import {
@@ -13,28 +12,24 @@ import {
 	listAllFilesInPrefix,
 } from "@/lib/s3/file-functions";
 import {
-	deleteChunksByDocumentId,
-	upsertChunksToQdrant,
+	deletePointsByAssetId,
+	upsertPointsToQdrant,
 } from "@/qdrant/mutations";
 import { buckets } from "@/settings/buckets";
 import {
 	describeImagePrompt,
 	describeTableImagePrompt,
 } from "@/settings/prompts";
-import { ROUTES } from "@/settings/routes";
 import type { FileType } from "@/types/file";
-import type {
-	ProcessingStatus,
-	VectorizeFilesTaskPayload,
-} from "@/types/trigger";
+import type { VectorizeAssetTaskPayload } from "@/types/trigger";
 
-export const vectorizeFilesTask = task({
-	id: "vectorize-files-task",
+export const vectorizeAssetTask = task({
+	id: "vectorize-asset-task",
 	maxDuration: 1800,
 	queue: {
 		concurrencyLimit: 1,
 	},
-	run: async (payload: VectorizeFilesTaskPayload) => {
+	run: async (payload: VectorizeAssetTaskPayload) => {
 		const files = await listAllFilesInPrefix({
 			bucket: buckets.processed.name,
 			prefix: `${payload.prefix}/`,
@@ -112,120 +107,10 @@ export const vectorizeFilesTask = task({
 
 		const qdrantResponse = await generateEmbeddings({
 			chunks: mergedChunks,
-			courseId: payload.courseId,
-			documentId: payload.prefix,
+			assetId: payload.prefix,
 		});
 
-		const nextResponse = await logger.trace("update-next-api", async () => {
-			const apiUrl = `${process.env.NEXT_PUBLIC_BASE_URL}${ROUTES.API.docs.processing.getPath()}`;
-			const requestBody = {
-				documentId: payload.documentId,
-				courseId: payload.courseId,
-				step: "embedding",
-				status: "success",
-			} as ProcessingStatus;
-
-			logger.info(`Sending processing status update to: ${apiUrl}`);
-			logger.info(`Request body: ${JSON.stringify(requestBody)}`);
-
-			try {
-				// Create an https agent that ignores SSL errors
-				const httpsAgent = new https.Agent({
-					rejectUnauthorized: false,
-				});
-
-				const response = await nodeFetch(apiUrl, {
-					method: "POST",
-					headers: {
-						"Content-Type": "application/json",
-						"x-api-key": process.env.SOKRATEST_API_KEY || "",
-					},
-					body: JSON.stringify(requestBody),
-					// Use the agent that ignores SSL errors
-					agent: apiUrl.startsWith("https") ? httpsAgent : undefined,
-				});
-
-				const responseText = await response.text();
-				logger.info(`Response status: ${response.status}`);
-				logger.info(`Response body: ${responseText}`);
-
-				if (!response.ok) {
-					logger.error(
-						`Failed API request with status ${response.status}: ${responseText}`,
-					);
-					throw new Error(
-						`Failed to send processing status: ${response.status} - ${responseText}`,
-					);
-				}
-
-				return response;
-			} catch (error) {
-				logger.error(
-					`Error during API request: ${error instanceof Error ? error.message : String(error)}`,
-				);
-				logger.error(
-					`Stack trace: ${error instanceof Error ? error.stack : "No stack trace"}`,
-				);
-				throw error;
-			}
-		});
-
-		return { payload, results: { qdrant: qdrantResponse, next: nextResponse } };
-	},
-	onFailure: async (payload) => {
-		await logger.trace("update-next-api", async () => {
-			const apiUrl = `${process.env.NEXT_PUBLIC_BASE_URL}${ROUTES.API.docs.processing.getPath()}`;
-			const requestBody = {
-				documentId: payload.documentId,
-				courseId: payload.courseId,
-				step: "embedding",
-				status: "error",
-			} as ProcessingStatus;
-
-			logger.info(`Sending processing status update to: ${apiUrl}`);
-			logger.info(`Request body: ${JSON.stringify(requestBody)}`);
-
-			try {
-				// Create an https agent that ignores SSL errors
-				const httpsAgent = new https.Agent({
-					rejectUnauthorized: false,
-				});
-
-				const response = await nodeFetch(apiUrl, {
-					method: "POST",
-					headers: {
-						"Content-Type": "application/json",
-						"x-api-key": process.env.SOKRATEST_API_KEY || "",
-					},
-					body: JSON.stringify(requestBody),
-					// Use the agent that ignores SSL errors
-					agent: apiUrl.startsWith("https") ? httpsAgent : undefined,
-				});
-
-				const responseText = await response.text();
-				logger.info(`Response status: ${response.status}`);
-				logger.info(`Response body: ${responseText}`);
-
-				if (!response.ok) {
-					logger.error(
-						`Failed API request with status ${response.status}: ${responseText}`,
-					);
-					throw new Error(
-						`Failed to send processing status: ${response.status} - ${responseText}`,
-					);
-				}
-
-				return response;
-			} catch (error) {
-				logger.error(
-					`Error during API request: ${error instanceof Error ? error.message : String(error)}`,
-				);
-				logger.error(
-					`Stack trace: ${error instanceof Error ? error.stack : "No stack trace"}`,
-				);
-				throw error;
-			}
-		});
+		return { payload, results: { qdrant: qdrantResponse } };
 	},
 });
 
@@ -318,12 +203,10 @@ const processImageFile = async (
 
 const generateEmbeddings = async ({
 	chunks,
-	courseId,
-	documentId,
+	assetId,
 }: {
 	chunks: MarkdownNode[];
-	courseId: string;
-	documentId: string;
+	assetId: Asset["id"];
 }) => {
 	// Embed the chunks
 	const embedResults = await logger.trace("embed-chunks", async () =>
@@ -338,8 +221,7 @@ const generateEmbeddings = async ({
 	const metaDataChunks = chunks.map((chunk, index) => {
 		// Create the base payload properties common to both types
 		const basePayload = {
-			course_id: courseId,
-			document_id: documentId,
+			asset_id: assetId,
 			text: embedResults.values[index],
 			title: chunk.title,
 			depth: chunk.depth,
@@ -376,15 +258,15 @@ const generateEmbeddings = async ({
 
 	await logger.trace(
 		"delete-existing-embeddings",
-		async () => await deleteChunksByDocumentId({ courseId, documentId }),
+		async () => await deletePointsByAssetId({ assetId }),
 	);
 
 	// Save to Qdrant
 	const qdrantResult = await logger.trace(
 		"save-embeddings",
 		async () =>
-			await upsertChunksToQdrant({
-				chunks: metaDataChunks,
+			await upsertPointsToQdrant({
+				points: metaDataChunks,
 			}),
 	);
 

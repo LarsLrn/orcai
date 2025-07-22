@@ -5,7 +5,6 @@ import { convert } from "convert";
 import { format } from "date-fns";
 import { MoreHorizontal } from "lucide-react";
 import { toast } from "sonner";
-import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Checkbox } from "@/components/ui/checkbox";
 import { DataTableColumnHeader } from "@/components/ui/data-table/data-table-column-header";
@@ -16,12 +15,11 @@ import {
 	DropdownMenuSeparator,
 	DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
-import type { Document } from "@/db/schema/document";
+import type { Asset } from "@/db/schema/asset";
 import { useDeleteAssets } from "@/lib/client-actions/use-delete";
 import { orpc } from "@/lib/orpc/orpc";
-import { cn } from "@/lib/utils";
 
-export const columns: ColumnDef<Document>[] = [
+export const columns: ColumnDef<Asset>[] = [
 	{
 		id: "select",
 		size: 32,
@@ -61,7 +59,7 @@ export const columns: ColumnDef<Document>[] = [
 			return convert(row.original.size, "bytes").to("best").toString(2);
 		},
 	},
-	{
+	/* {
 		accessorKey: "embeddingStatus",
 		header: ({ column }) => (
 			<DataTableColumnHeader column={column} title="Embedding" />
@@ -81,7 +79,7 @@ export const columns: ColumnDef<Document>[] = [
 				</Badge>
 			);
 		},
-	},
+	}, */
 	{
 		accessorKey: "createdAt",
 		header: ({ column }) => (
@@ -98,27 +96,22 @@ export const columns: ColumnDef<Document>[] = [
 	},
 ];
 
-const ActionCell = ({ row }: { row: Row<Document> }) => {
-	const courseId = "placeholder"; // TODO: Replace with actual courseId when available
-
-	const { mutateAsync: createDocumentTask } = useMutation(
-		orpc.task.createDocumentTask.mutationOptions(),
+const ActionCell = ({ row }: { row: Row<Asset> }) => {
+	const { mutateAsync: createAssetTask } = useMutation(
+		orpc.task.createAssetTask.mutationOptions(),
 	);
 	const { deleteAssets } = useDeleteAssets();
-	const document = row.original;
+	const asset = row.original;
 
-	const handleEnqueueDocuments = async (id: string) => {
-		toast.promise(
-			createDocumentTask({ courseId, taskType: "extract", ids: [id] }),
-			{
-				loading: "Enqueuing documents for processing...",
-				success: "Enqueued documents for processing",
-				error: (error) => ({
-					message: "Failed to enqueue documents for processing",
-					description: error.message,
-				}),
-			},
-		);
+	const handleEnqueueAssets = (id: string) => {
+		toast.promise(createAssetTask({ taskType: "extract", ids: [id] }), {
+			loading: "Enqueuing assets for processing...",
+			success: "Enqueued assets for processing",
+			error: (error) => ({
+				message: "Failed to enqueue assets for processing",
+				description: error.message,
+			}),
+		});
 	};
 
 	return (
@@ -130,24 +123,21 @@ const ActionCell = ({ row }: { row: Row<Document> }) => {
 				</Button>
 			</DropdownMenuTrigger>
 			<DropdownMenuContent align="end">
-				<Link to={"/app/assets/$assetId"} params={{ assetId: document.id }}>
-					<DropdownMenuItem>View Document</DropdownMenuItem>
+				<Link to={"/app/assets/$assetId"} params={{ assetId: asset.id }}>
+					<DropdownMenuItem>View Asset</DropdownMenuItem>
 				</Link>
-				<Link
-					to={"/app/assets/$assetId/edit"}
-					params={{ assetId: document.id }}
-				>
-					<DropdownMenuItem>Edit Document</DropdownMenuItem>
+				<Link to={"/app/assets/$assetId/edit"} params={{ assetId: asset.id }}>
+					<DropdownMenuItem>Edit Asset</DropdownMenuItem>
 				</Link>
-				<DropdownMenuItem onClick={() => handleEnqueueDocuments(document.id)}>
-					Process Document
+				<DropdownMenuItem onClick={() => handleEnqueueAssets(asset.id)}>
+					Process Asset
 				</DropdownMenuItem>
 				<DropdownMenuSeparator />
 				<DropdownMenuItem
 					variant="destructive"
-					onSelect={() => deleteAssets({ refs: [{ id: document.id }] })}
+					onSelect={() => deleteAssets({ refs: [{ id: asset.id }] })}
 				>
-					Delete Document
+					Delete Asset
 				</DropdownMenuItem>
 			</DropdownMenuContent>
 		</DropdownMenu>

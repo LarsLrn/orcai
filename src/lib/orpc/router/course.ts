@@ -66,7 +66,7 @@ export const createCourse = authed.course.create
 				description: input.description,
 				contentJson: input.contentJson,
 				contentHtml: input.contentHtml,
-				organizationId: context.activeOrganizationId,
+				organizationId: context.auth.session.activeOrganizationId,
 				config: input.config,
 			})
 			.returning({ ...getTableColumns(course) });

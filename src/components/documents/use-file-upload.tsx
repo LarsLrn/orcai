@@ -1,7 +1,6 @@
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { useState } from "react";
-import type { Course } from "@/db/schema/course";
-import type { Document } from "@/db/schema/document";
+import type { Asset } from "@/db/schema/asset";
 import { orpc } from "@/lib/orpc/orpc";
 import { getFileTypeFromMime, uploadToS3 } from "@/lib/s3/upload-helpers";
 
@@ -12,10 +11,7 @@ export interface UploadState {
 	fileProgress: Record<string, number>;
 }
 
-export const useFileUpload = (
-	courseId: Course["id"],
-	options?: { timeoutMs?: number },
-) => {
+export const useFileUpload = (options?: { timeoutMs?: number }) => {
 	const queryClient = useQueryClient();
 	const timeoutMs = options?.timeoutMs ?? 10 * 60 * 1000; // Default 10 minutes
 	const [uploadState, setUploadState] = useState<UploadState>({
@@ -37,16 +33,13 @@ export const useFileUpload = (
 		}),
 	);
 
-	// Save document info mutation using ORPC
-	const { mutateAsync: saveDocumentInfo } = useMutation(
+	// Save asset info mutation using ORPC
+	const { mutateAsync: saveAssetInfo } = useMutation(
 		orpc.asset.create.mutationOptions({
 			onSuccess() {
 				queryClient.invalidateQueries({
 					queryKey: orpc.asset.key(),
 				});
-			},
-			onError(error) {
-				console.error("Failed to save document info:", error);
 			},
 		}),
 	);
@@ -64,7 +57,6 @@ export const useFileUpload = (
 
 			// Step 1: Get presigned URLs
 			const presignedUrls = await getPresignedUrls({
-				courseId,
 				files: filesInfo,
 			});
 			setUploadState((prev) => ({
@@ -140,20 +132,19 @@ export const useFileUpload = (
 				progress: 80,
 			}));
 
-			const documents: Document[] = [];
+			const assets: Asset[] = [];
 			for (let i = 0; i < uploadResults.length; i++) {
 				const { presignedUrl } = uploadResults[i];
 
-				// Use ORPC mutation to save document info
-				const document = await saveDocumentInfo({
+				// Use ORPC mutation to save asset info
+				const asset = await saveAssetInfo({
 					id: presignedUrl.id,
 					title: presignedUrl.name,
 					size: presignedUrl.size,
 					fileType: presignedUrl.type,
-					courseId: "placeholder", // TODO: Replace with actual courseId
 				});
 
-				documents.push(document);
+				assets.push(asset);
 
 				setUploadState((prev) => ({
 					...prev,
@@ -167,7 +158,7 @@ export const useFileUpload = (
 				progress: 100,
 			}));
 
-			return documents;
+			return assets;
 		},
 		onSuccess: () => {
 			// Clear the uploads array on success

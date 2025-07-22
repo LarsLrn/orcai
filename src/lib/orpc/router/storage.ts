@@ -10,7 +10,7 @@ export const createUploadUrls = authed.storage.createUploadUrls.handler(
 	async ({ input }) => {
 		const bucket = buckets.main.name;
 		const expiry = 60 * 60;
-		const prefix = input.courseId;
+		const prefix = "placeholder"; // TODO: Replace with actual prefix
 
 		// Create bucket if it doesn't exist
 		const status = await createBucketIfNotExists(bucket);

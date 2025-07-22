@@ -5,7 +5,7 @@ import { cn } from "@/lib/utils";
 import type { BucketName } from "@/settings/buckets";
 import type { FileType } from "@/types/file";
 
-const DisplayChunkImage = ({
+const DisplayPointImage = ({
 	imageRef,
 }: {
 	imageRef: {
@@ -46,4 +46,4 @@ const DisplayChunkImage = ({
 	);
 };
 
-export { DisplayChunkImage };
+export { DisplayPointImage };

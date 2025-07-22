@@ -77,7 +77,7 @@ import {
 import { findProvider, listProviders } from "./provider";
 import { sse } from "./sse";
 import { createDownloadUrl, createUploadUrls } from "./storage";
-import { createDocumentTask } from "./task";
+import { createAssetTask } from "./task";
 import {
 	findUser,
 	listUsers,
@@ -190,7 +190,7 @@ export const router = {
 		find: findModel,
 	},
 	task: {
-		createDocumentTask: createDocumentTask,
+		createAssetTask: createAssetTask,
 	},
 	ai: {
 		chat: aiChat,

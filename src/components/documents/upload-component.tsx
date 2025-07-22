@@ -19,9 +19,7 @@ import { useFileUpload } from "./use-file-upload";
 
 const UploadComponent = () => {
 	const navigate = useNavigate();
-	const courseId = "placeholder"; // TODO: Replace with actual courseId when available
-	const { upload, isUploading, uploadState, cancelUpload } =
-		useFileUpload(courseId);
+	const { upload, isUploading, uploadState, cancelUpload } = useFileUpload();
 
 	const form = useForm<FileUploadSchemaType>({
 		resolver: zodResolver(fileUploadSchema),
@@ -33,9 +31,9 @@ const UploadComponent = () => {
 	function onSubmit(input: FileUploadSchemaType) {
 		toast.promise(upload(input.files), {
 			loading: "Uploading files...",
-			success: () => {
+			success: async () => {
 				form.reset();
-				navigate({ to: "/app/assets", replace: true });
+				await navigate({ to: "/app/assets", replace: true });
 				return "Files uploaded";
 			},
 			error: (err) => {

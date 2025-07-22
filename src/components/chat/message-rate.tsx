@@ -36,7 +36,7 @@ const MessageRate = ({
 		}),
 	);
 
-	const handleRate = async (sentiment: number) => {
+	const handleRate = (sentiment: number) => {
 		toast.promise(
 			rateMessage({
 				id: messageId,

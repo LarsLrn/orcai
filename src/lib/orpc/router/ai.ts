@@ -1,32 +1,27 @@
 import { createOpenAI } from "@ai-sdk/openai";
-import { streamToEventIterator } from "@orpc/client";
+import { ORPCError, streamToEventIterator } from "@orpc/client";
 import {
 	convertToModelMessages,
 	createUIMessageStream,
+	extractReasoningMiddleware,
 	smoothStream,
 	stepCountIs,
 	streamText,
+	wrapLanguageModel,
 } from "ai";
 import { v4 as uuidv4 } from "uuid";
-import { generateImageTool } from "@/lib/ai/tools/generate-image";
+import type { Block } from "@/db/schema/block";
 import { decryptApiKey } from "@/lib/encryption";
 import { retry } from "@/lib/orpc/middlewares/retry";
 import { authed } from "..";
+import { requireActiveOrganizationMiddleware } from "../middlewares/auth";
 import { client } from "../orpc";
 
 export const aiChat = authed.ai.chat
+	.use(requireActiveOrganizationMiddleware)
 	.use(retry({ times: 3 }))
-	.handler(async ({ input }) => {
-		let modelId: string;
-
-		const systemProvider = await client.provider.find({
-			slug: "saia",
-		});
-
-		const organizationProvider = await client.organizationProvider.find({
-			organizationId: "0451b241-37fb-4fd6-95e0-652191d9b484",
-			providerSlug: "saia",
-		});
+	.handler(async ({ context, input }) => {
+		let templateBlock: Block | undefined;
 
 		if (input.botId) {
 			// Fetch the bot to get its model configuration
@@ -35,16 +30,37 @@ export const aiChat = authed.ai.chat
 			});
 
 			// TODO: Improve typesafety. Probably with some Zod validation
-			modelId =
-				bot.data.blocks.find((block) => block.type === "template")?.config
-					.model ?? "meta-llama-3.1-8b-instruct";
+			templateBlock = bot.data.blocks.find(
+				(block) => block.type === "template",
+			);
 		}
+
+		if (!templateBlock) {
+			throw new ORPCError("BAD_REQUEST", {
+				message: "No valid template block found.",
+			});
+		}
+
+		const systemProvider = await client.provider.find({
+			slug: templateBlock.config.provider,
+		});
+
+		const organizationProvider = await client.organizationProvider.find({
+			organizationId: context.auth.session.activeOrganizationId,
+			providerSlug: templateBlock.config.provider,
+		});
 
 		const chatProvider = createOpenAI({
 			baseURL: systemProvider.data.endpoint ?? undefined,
 			apiKey: decryptApiKey(organizationProvider.data.apiKeyEncrypted),
 			name: systemProvider.data.slug,
 		}).chat;
+
+		// Only wrap if the model has reasoning capabilities
+		const model = wrapLanguageModel({
+			model: chatProvider(templateBlock.config.model),
+			middleware: extractReasoningMiddleware({ tagName: "think" }),
+		});
 
 		const assistantMessageId = uuidv4();
 
@@ -59,7 +75,8 @@ export const aiChat = authed.ai.chat
 				// Validate and get the model ID from course configuration
 				console.log(assistantMessageId);
 				const result = streamText({
-					model: chatProvider(modelId),
+					/* model: model, */
+					model,
 					/* system: createSocraticSystemPrompt({
               context: relevantChunks.map((chunk) => ({
                 documentId: String(
@@ -87,17 +104,17 @@ export const aiChat = authed.ai.chat
               },
             }, */
 					stopWhen: stepCountIs(5),
-					tools: {
+					/* tools: {
 						generateImage: generateImageTool({
 							writer,
 							assistantMessageId,
 						}),
-						/* generateJoke: generateJokeTool(),
+						generateJoke: generateJokeTool(),
               searchKnowledgeBase: searchKnowledgeBaseTool({
                 config: course.data.config,
                 courseId: activeCourseId,
-              }), */
-					},
+              }),
+					}, */
 					/* onFinish: async ({ response }) => {
               if (session.user?.id) {
                 try {

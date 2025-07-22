@@ -2,8 +2,8 @@ import { keepPreviousData, useSuspenseQuery } from "@tanstack/react-query";
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { zodValidator } from "@tanstack/zod-adapter";
 import { z } from "zod/v4";
+import { AssetTableActions } from "@/components/documents/table/asset-table-actions";
 import { columns } from "@/components/documents/table/columns";
-import { DocumentTableActions } from "@/components/documents/table/document-table-actions";
 import { buttonVariants } from "@/components/ui/button";
 import { DataTable } from "@/components/ui/data-table/data-table";
 import { DataTableBody } from "@/components/ui/data-table/data-table-body";
@@ -26,13 +26,11 @@ export const Route = createFileRoute("/app/(assets)/assets/")({
 		context: { queryClient },
 		deps: { pageIndex, pageSize },
 	}) => {
-		const courseId = "placeholder"; // TODO: Replace with actual courseId when available
-
 		await queryClient.ensureQueryData(
 			orpc.asset.list.queryOptions({
-				input: { courseId, pageIndex, pageSize },
+				input: { pageIndex, pageSize },
 				queryKey: orpc.asset.list.key({
-					input: { courseId, pageIndex, pageSize },
+					input: { pageIndex, pageSize },
 				}),
 			}),
 		);
@@ -48,7 +46,7 @@ function RouteComponent() {
 		orpc.asset.list.queryOptions({
 			input: { courseId, pageIndex, pageSize },
 			queryKey: orpc.asset.list.key({
-				input: { courseId, pageIndex, pageSize },
+				input: { pageIndex, pageSize },
 			}),
 			placeholderData: keepPreviousData,
 		}),
@@ -58,7 +56,7 @@ function RouteComponent() {
 		<div className="flex flex-col gap-14">
 			<div className="flex w-full flex-col gap-8 sm:flex-row sm:items-center sm:justify-between">
 				<h4 className="max-w-xl font-regular text-3xl tracking-tighter md:text-5xl">
-					Documents
+					Assets
 				</h4>
 				<div className="flex gap-2">
 					<Link
@@ -72,7 +70,7 @@ function RouteComponent() {
 						to={"/app/assets/add"}
 						className={buttonVariants({ variant: "default" })}
 					>
-						Add Document
+						Add Asset
 					</Link>
 				</div>
 			</div>
@@ -97,7 +95,7 @@ function RouteComponent() {
 				>
 					<div className="flex items-center gap-2">
 						<DataTableViewOptions />
-						<DocumentTableActions />
+						<AssetTableActions />
 						{/* <SearchInput /> */}
 					</div>
 					<DataTableBody />

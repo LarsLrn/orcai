@@ -1,4 +1,3 @@
-import https from "node:https";
 import { PutObjectCommand } from "@aws-sdk/client-s3";
 import type { Size } from "@docling/docling-core";
 import { logger, task } from "@trigger.dev/sdk/v3";
@@ -16,19 +15,15 @@ import {
 import { s3Client } from "@/lib/s3/s3-client";
 import { getFileTypeFromMime } from "@/lib/s3/upload-helpers";
 import { buckets } from "@/settings/buckets";
-import { ROUTES } from "@/settings/routes";
 import type { SaiaDoclingData } from "@/types/docling";
-import type {
-	ProcessDocumentTaskPayload,
-	ProcessingStatus,
-} from "@/types/trigger";
+import type { ProcessAssetTaskPayload } from "@/types/trigger";
 
 /**
  * Validates if an image meets minimum resolution requirements
  * @param imageBuffer The image buffer to check
  * @returns An object containing validation result and metadata
  */
-async function validateImageResolution(size: Size, upscaleFactor = 1) {
+function validateImageResolution(size: Size, upscaleFactor = 1) {
 	// Define minimum resolution requirements
 	const MIN_IMAGE_WIDTH = 100 * upscaleFactor; // pixels
 	const MIN_IMAGE_HEIGHT = 100 * upscaleFactor; // pixels
@@ -63,18 +58,16 @@ async function validateImageResolution(size: Size, upscaleFactor = 1) {
 	}
 }
 
-export const processDocumentTask = task({
-	id: "process-document-task",
+export const processAssetTask = task({
+	id: "process-asset-task",
 	maxDuration: 1200,
 	queue: {
 		concurrencyLimit: 2,
 	},
-	run: async (payload: ProcessDocumentTaskPayload) => {
+	run: async (payload: ProcessAssetTaskPayload) => {
 		const doclingApi = `${process.env.OPENAI_COMPATIBLE_BASE_URL}/documents/convert`;
 
-		const presignedUrl = await createPresignedUrlToDownload(
-			payload.documentRef,
-		);
+		const presignedUrl = await createPresignedUrlToDownload(payload.assetRef);
 
 		// Download the file using the presigned URL
 		const fileResponse = await logger.trace("download-file", async () => {
@@ -110,7 +103,7 @@ export const processDocumentTask = task({
 				// Create FormData to properly send the file
 				const formData = new FormData();
 				formData.append("document", fileBuffer, {
-					filename: `document.${payload.documentRef.id}`,
+					filename: `document.${payload.assetRef.id}`,
 				});
 
 				const params = new URLSearchParams({
@@ -172,7 +165,7 @@ export const processDocumentTask = task({
 		await logger.trace("clear-prefix", async () => {
 			await deletePrefixRecursively({
 				bucket: buckets.processed.name,
-				prefix: `${payload.documentRef.id}/`,
+				prefix: `${payload.assetRef.id}/`,
 			});
 		});
 
@@ -194,7 +187,7 @@ export const processDocumentTask = task({
 
 									const command = new PutObjectCommand({
 										Bucket: buckets.processed.name,
-										Key: `${payload.documentRef.id}/page-${page.page}.md`,
+										Key: `${payload.assetRef.id}/page-${page.page}.md`,
 										Body: Buffer.from(markdown, "utf-8"),
 										ContentType: "text/markdown",
 									});
@@ -238,7 +231,7 @@ export const processDocumentTask = task({
 
 											const command = new PutObjectCommand({
 												Bucket: buckets.processed.name,
-												Key: `${payload.documentRef.id}/${image.label}-${image.index}.${fileType}`,
+												Key: `${payload.assetRef.id}/${image.label}-${image.index}.${fileType}`,
 												Body: imageBuffer,
 												ContentType: image.mimetype,
 											});
@@ -254,64 +247,6 @@ export const processDocumentTask = task({
 			);
 		});
 
-		const updateNextResponse = await logger.trace(
-			"update-next-api",
-			async () => {
-				const apiUrl = `${process.env.NEXT_PUBLIC_BASE_URL}${ROUTES.API.docs.processing.getPath()}`;
-				const requestBody = {
-					documentId: payload.documentRef.id,
-					courseId: payload.courseId,
-					mergePages: payload.mergePages,
-					step: "processing",
-					status: "success",
-				} as ProcessingStatus;
-
-				logger.info(`Sending processing status update to: ${apiUrl}`);
-				logger.info(`Request body: ${JSON.stringify(requestBody)}`);
-
-				try {
-					// Create an https agent that ignores SSL errors
-					const httpsAgent = new https.Agent({
-						rejectUnauthorized: false,
-					});
-
-					const response = await nodeFetch(apiUrl, {
-						method: "POST",
-						headers: {
-							"Content-Type": "application/json",
-							"x-api-key": process.env.SOKRATEST_API_KEY || "",
-						},
-						body: JSON.stringify(requestBody),
-						// Use the agent that ignores SSL errors
-						agent: apiUrl.startsWith("https") ? httpsAgent : undefined,
-					});
-
-					const responseText = await response.text();
-					logger.info(`Response status: ${response.status}`);
-					logger.info(`Response body: ${responseText}`);
-
-					if (!response.ok) {
-						logger.error(
-							`Failed API request with status ${response.status}: ${responseText}`,
-						);
-						throw new Error(
-							`API request failed with status ${response.status}: ${responseText}`,
-						);
-					}
-
-					return { response, text: responseText };
-				} catch (error) {
-					logger.error(
-						`Error during API request: ${error instanceof Error ? error.message : String(error)}`,
-					);
-					logger.error(
-						`Stack trace: ${error instanceof Error ? error.stack : "No stack trace"}`,
-					);
-					throw error;
-				}
-			},
-		);
-
-		return { payload, result: { next: updateNextResponse } };
+		return { payload };
 	},
 });

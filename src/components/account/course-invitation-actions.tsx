@@ -32,7 +32,7 @@ export function CourseInvitationActions({
 
 	const { trackEvent } = useUmami();
 
-	const handleAccept = async () => {
+	const handleAccept = () => {
 		toast.promise(
 			respondToInvitation({ courseId, id: invitation.id, response: "accept" }),
 			{
@@ -51,7 +51,7 @@ export function CourseInvitationActions({
 		);
 	};
 
-	const handleReject = async () => {
+	const handleReject = () => {
 		toast.promise(
 			respondToInvitation({ courseId, id: invitation.id, response: "reject" }),
 			{

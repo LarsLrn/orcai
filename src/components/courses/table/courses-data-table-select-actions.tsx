@@ -32,7 +32,7 @@ const CoursesDataTableSelectActions = () => {
 
 	if (!table) return null;
 
-	const handleDelete = async () => {
+	const handleDelete = () => {
 		const courseIds = table.getSelectedRowModel().flatRows.map((row) => row.id);
 
 		toast.promise(deleteCourses({ refs: courseIds.map((id) => ({ id })) }), {

@@ -3,7 +3,6 @@ import { AlertCircle, ArrowLeft, Home } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 
-// biome-ignore lint/suspicious/noExplicitAny: <Okay here as it is a fallback>
 export function NotFound({ children }: { children?: any }) {
 	const router = useRouter();
 

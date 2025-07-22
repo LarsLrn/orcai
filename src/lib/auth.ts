@@ -9,7 +9,10 @@ import { db } from "@/db/drizzle";
 import { account, session, user, verification } from "@/db/schema/auth";
 
 export const auth = betterAuth({
-	trustedOrigins: ["http://localhost:3000", "http://host.docker.internal:3000"],
+	trustedOrigins: [
+		import.meta.env.VITE_BASE_URL,
+		"http://host.docker.internal:3000",
+	],
 	plugins: [reactStartCookies(), admin()],
 	database: drizzleAdapter(db, {
 		provider: "pg",

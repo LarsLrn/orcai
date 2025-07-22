@@ -161,7 +161,7 @@ const calculateOverviewStats = (traces: FilteredTrace[]) => {
 	};
 };
 
-const ExportChats = async () => {
+const ExportChats = () => {
 	const tracesFn = useServerFn(fetchAllTraces);
 
 	const { data: traces } = useQuery({

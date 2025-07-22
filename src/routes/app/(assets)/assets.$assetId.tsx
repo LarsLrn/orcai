@@ -24,5 +24,5 @@ function RouteComponent() {
 		}),
 	);
 
-	return <FileViewer document={asset.data} />;
+	return <FileViewer asset={asset.data} />;
 }

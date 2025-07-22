@@ -14,7 +14,7 @@ import {
 import type { User } from "@/db/schema/auth";
 import type { Course } from "@/db/schema/course";
 
-const handleDelete = async (_id: string, courseId?: Course["id"]) => {
+const handleDelete = (_id: string, courseId?: Course["id"]) => {
 	if (!courseId) {
 		toast.error("Course ID is required", {
 			description: "Try switching your active course.",

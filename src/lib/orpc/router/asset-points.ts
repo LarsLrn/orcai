@@ -13,22 +13,16 @@ export const listAssetPoints = authed.assetPoints.list
 			entityType: "asset",
 		}); */
 
-		const { points } = await qdrant.query(qdrantCollections.chunks.name, {
+		const { points } = await qdrant.query(qdrantCollections.asset.name, {
 			query: input.filters.search
 				? await generateEmbedding(input.filters.search)
 				: undefined,
 			filter: {
 				must: [
-					{
-						key: qdrantCollections.chunks.index.courseId,
+					input.filters.assetId && {
+						key: "asset_id", // TODO: get type properly
 						match: {
-							value: input.courseId,
-						},
-					},
-					input.filters.documentId && {
-						key: "document_id", // TODO: get type properly
-						match: {
-							value: input.filters.documentId,
+							value: input.filters.assetId,
 						},
 					},
 				],

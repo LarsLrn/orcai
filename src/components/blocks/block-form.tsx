@@ -62,9 +62,8 @@ const BlockForm = ({ block }: { block?: Block }) => {
 			type: block?.type ?? undefined,
 			config: {
 				systemPrompt: block?.config?.systemPrompt ?? "",
-				maxReferences: block?.config?.maxReferences ?? 5,
-				model: block?.config?.model ?? "",
-				provider: block?.config?.provider ?? "",
+				model: block?.config?.model ?? undefined,
+				provider: block?.config?.provider ?? undefined,
 			},
 		},
 	});
@@ -149,61 +148,42 @@ const BlockForm = ({ block }: { block?: Block }) => {
 							<CardTitle>Block AI Settings</CardTitle>
 						</CardHeader>
 						<CardContent className="flex flex-col gap-4">
-							<div className="grid w-full gap-1.5">
-								<FormSelectField
-									form={form}
-									name="config.provider"
-									options={providers.data.map((provider) => ({
-										value: provider.providerSlug,
-										label: provider.providerSlug,
-									}))}
-									label="Provider"
-									placeholder="Choose a Provider"
-									required={false}
-									onValueChange={() => {
-										form.setValue("config.model", undefined);
-									}}
-								/>
+							<FormSelectField
+								form={form}
+								name="config.provider"
+								options={providers.data.map((provider) => ({
+									value: provider.providerSlug,
+									label: provider.providerSlug,
+								}))}
+								label="Provider"
+								placeholder="Choose a Provider"
+								required={false}
+								onValueChange={() => {
+									form.setValue("config.model", "");
+								}}
+							/>
 
-								<FormSelectField
-									form={form}
-									name="config.model"
-									options={models?.data?.map((model) => ({
-										value: model.slug,
-										label: model.name,
-									}))}
-									label="Model"
-									placeholder="Choose an AI Model"
-									required={false}
-									disabled={!providerSlug || modelsStatus !== "success"}
-								/>
-							</div>
+							<FormSelectField
+								form={form}
+								name="config.model"
+								options={models?.data?.map((model) => ({
+									value: model.slug,
+									label: model.name,
+								}))}
+								label="Model"
+								placeholder="Choose an AI Model"
+								required={false}
+								disabled={!providerSlug || modelsStatus !== "success"}
+							/>
 
-							<div className="grid w-full gap-1.5">
-								<FormTextField
-									form={form}
-									name={"config.systemPrompt"}
-									rows={10}
-									label="System Prompt"
-									placeholder="Your custom system prompt..."
-									required={false}
-								/>
-							</div>
-
-							<div>
-								<FormInputField
-									form={form}
-									name="config.maxReferences"
-									label="Maximum References"
-									placeholder="5"
-									required={false}
-									inputType="number"
-									description="The maximum number of references that can be used in a
-                    response. Note that this is referring to the number of individual chunks received by the AI,
-                    which may stem from the same document. This therefore does not directly correlate to the
-                    number of references cited in the response."
-								/>
-							</div>
+							<FormTextField
+								form={form}
+								name={"config.systemPrompt"}
+								rows={10}
+								label="System Prompt"
+								placeholder="Your custom system prompt..."
+								required={false}
+							/>
 						</CardContent>
 					</Card>
 				</div>

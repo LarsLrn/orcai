@@ -85,9 +85,9 @@ export const Route = createRootRouteWithContext<{
 		],
 		scripts: [
 			{
-				src: "https://umami.sokratest.ai/script.js",
+				src: import.meta.env.VITE_UMAMI_SCRIPT_URL,
 				defer: true,
-				"data-website-id": "ec476348-8128-41ab-9a50-5fa7b729327c",
+				"data-website-id": import.meta.env.VITE_UMAMI_WEBSITE_ID,
 			},
 		],
 	}),

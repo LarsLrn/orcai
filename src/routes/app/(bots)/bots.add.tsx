@@ -16,7 +16,7 @@ export const Route = createFileRoute("/app/(bots)/bots/add")({
 					input: { pageIndex: 0, pageSize: 50 },
 				}),
 			}),
-		)
+		);
 	},
 });
 
@@ -29,7 +29,7 @@ function RouteComponent() {
 				queryClient.invalidateQueries({ queryKey: orpc.bot.key() });
 			},
 		}),
-	)
+	);
 
 	const handleBotSubmit = (data: BotInsert) => {
 		toast.promise(createBot(data), {
@@ -39,8 +39,8 @@ function RouteComponent() {
 				return "Bot created successfully";
 			},
 			error: "Failed to create bot",
-		})
-	}
+		});
+	};
 
 	return (
 		<div className="p-6">
@@ -54,5 +54,5 @@ function RouteComponent() {
 
 			<BotBuilderForm onSubmit={handleBotSubmit} />
 		</div>
-	)
+	);
 }

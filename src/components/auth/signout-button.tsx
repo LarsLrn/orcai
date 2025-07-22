@@ -18,11 +18,11 @@ export const SignOutButton = ({
 	const handleSignOut = async () => {
 		await authClient.signOut({
 			fetchOptions: {
-				onSuccess: (_ctx) => {
+				onSuccess: async (_ctx) => {
 					trackEvent("auth-signout");
 
 					toast.message("Goodbye!");
-					navigate({ to: "/" });
+					await navigate({ to: "/" });
 					queryClient.clear();
 				},
 			},

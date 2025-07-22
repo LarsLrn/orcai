@@ -4,22 +4,22 @@ import { useState } from "react";
 import { Placeholder } from "@/components/placeholders/placeholder";
 import { Card } from "@/components/ui/card";
 import { LoadingSpinner } from "@/components/ui/loading-spinner";
-import type { Document } from "@/db/schema/document";
+import type { Asset } from "@/db/schema/asset";
 import { useIsMobile } from "@/hooks/use-mobile";
 import { orpc } from "@/lib/orpc/orpc";
 import { cn } from "@/lib/utils";
-import { FileActions } from "./file-actions";
-import { FileMeta } from "./file-meta";
+import { AssetActions } from "./asset-actions";
+import { AssetMeta } from "./asset-meta";
 
-const FileViewer = ({ document }: { document: Document }) => {
+const FileViewer = ({ asset }: { asset: Asset }) => {
 	const isMobile = useIsMobile();
 	const { data, status, error } = useQuery(
 		orpc.storage.createDownloadUrl.queryOptions({
 			input: {
-				id: document.id,
-				prefix: document.prefix,
-				bucket: document.bucket,
-				type: document.fileType,
+				id: asset.id,
+				prefix: asset.prefix,
+				bucket: asset.bucket,
+				type: asset.fileType,
 			},
 			queryKey: orpc.storage.createDownloadUrl.key(),
 		}),
@@ -36,7 +36,7 @@ const FileViewer = ({ document }: { document: Document }) => {
 	if (status === "error") {
 		return (
 			<Placeholder>
-				<p>Error loading document: {error.message}</p>
+				<p>Error loading asset: {error.message}</p>
 			</Placeholder>
 		);
 	}
@@ -46,9 +46,9 @@ const FileViewer = ({ document }: { document: Document }) => {
 			<div className="flex items-center justify-between">
 				<h3
 					className="max-w-[80%] truncate font-semibold text-lg"
-					title={document.title}
+					title={asset.title}
 				>
-					{document.title}
+					{asset.title}
 				</h3>
 			</div>
 			<div
@@ -60,15 +60,15 @@ const FileViewer = ({ document }: { document: Document }) => {
 				<div className="size-full xl:col-span-3">
 					{isMobile ? (
 						<Placeholder Icon={SmartphoneIcon} size={30}>
-							Document preview is not available on mobile.
+							Asset preview is not available on mobile.
 						</Placeholder>
 					) : (
-						<Viewport fileType={document.fileType} filePath={data.url} />
+						<Viewport fileType={asset.fileType} filePath={data.url} />
 					)}
 				</div>
 				<div className="col-span-1 flex flex-col gap-4">
-					<FileMeta document={document} />
-					<FileActions fileInfo={document} filePath={data.url} />
+					<AssetMeta asset={asset} />
+					<AssetActions assetInfo={asset} filePath={data.url} />
 				</div>
 			</div>
 		</div>

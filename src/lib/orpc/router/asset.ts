@@ -1,7 +1,7 @@
 import { ORPCError } from "@orpc/server";
 import { and, count, desc, eq, getTableColumns, inArray } from "drizzle-orm";
 import { db } from "@/db/drizzle";
-import { document } from "@/db/schema/document";
+import { assetTable } from "@/db/schema/asset";
 import { authed } from "@/lib/orpc";
 import {
 	checkManyPermissionMiddleware,
@@ -13,7 +13,7 @@ import {
 	deletePrefixRecursively,
 } from "@/lib/s3/file-functions";
 import { createRelation, listAllowedEntities } from "@/lib/spice-db/actions";
-import { deleteChunksByDocumentId } from "@/qdrant/mutations";
+import { deletePointsByAssetId } from "@/qdrant/mutations";
 import { buckets } from "@/settings/buckets";
 import type { FileType } from "@/types/file";
 
@@ -27,22 +27,17 @@ export const listAssets = authed.asset.list
 		});
 
 		const query = await db
-			.select({ ...getTableColumns(document) })
-			.from(document)
-			.where(
-				and(
-					inArray(document.id, entityIds),
-					eq(document.courseId, input.courseId),
-				),
-			)
-			.orderBy(desc(document.createdAt))
+			.select({ ...getTableColumns(assetTable) })
+			.from(assetTable)
+			.where(and(inArray(assetTable.id, entityIds)))
+			.orderBy(desc(assetTable.createdAt))
 			.limit(input.pageSize)
 			.offset(input.pageIndex * input.pageSize);
 
 		const [rowCount] = await db
 			.select({ count: count() })
-			.from(document)
-			.where(inArray(document.id, entityIds));
+			.from(assetTable)
+			.where(inArray(assetTable.id, entityIds));
 
 		return { data: query, rowCount: rowCount.count };
 	});
@@ -60,12 +55,12 @@ export const findAsset = authed.asset.find
 	.use(retry({ times: 3 }))
 	.handler(async ({ input }) => {
 		const [query] = await db
-			.select({ ...getTableColumns(document) })
-			.from(document)
-			.where(eq(document.id, input.id));
+			.select({ ...getTableColumns(assetTable) })
+			.from(assetTable)
+			.where(eq(assetTable.id, input.id));
 
 		if (!query) {
-			throw new ORPCError("NOT_FOUND", { message: "Document not found" });
+			throw new ORPCError("NOT_FOUND", { message: "Asset not found" });
 		}
 
 		return { data: query };
@@ -73,28 +68,27 @@ export const findAsset = authed.asset.find
 
 export const createAsset = authed.asset.create.handler(
 	async ({ input, context }) => {
-		const [query] = await db
-			.insert(document)
+		const [asset] = await db
+			.insert(assetTable)
 			.values({
 				id: input.id, // TODO: This shouldnt come from the client, but needs to match the S3 file ID. Think of a solution to this
 				title: input.title ?? "New Document",
-				courseId: input.courseId,
 				size: input.size,
 				fileType: input.fileType,
 				bucket: buckets.main.name,
-				prefix: input.courseId, // TODO: Should not necessarily based on courseId
-				uploadedBy: context.auth.user.id,
+				prefix: "placeholder", // TODO: Make this dynamic
+				userId: context.auth.user.id,
 			})
-			.returning({ ...getTableColumns(document) });
+			.returning({ ...getTableColumns(assetTable) });
 
 		await createRelation({
-			entityId: query.id,
+			entityId: asset.id,
 			entityType: "asset",
 			userId: context.auth.user.id,
 			relation: "owner",
 		});
 
-		return query;
+		return asset;
 	},
 );
 
@@ -109,16 +103,16 @@ export const updateAsset = authed.asset.update
 			}) as const,
 	)
 	.handler(async ({ input }) => {
-		const [query] = await db
-			.update(document)
+		const [asset] = await db
+			.update(assetTable)
 			.set({
 				title: input.title,
 				updatedAt: new Date(),
 			})
-			.where(eq(document.id, input.id))
-			.returning({ ...getTableColumns(document) });
+			.where(eq(assetTable.id, input.id))
+			.returning({ ...getTableColumns(assetTable) });
 
-		return { data: query };
+		return { data: asset };
 	});
 
 export const deleteAssets = authed.asset.delete
@@ -140,31 +134,32 @@ export const deleteAssets = authed.asset.delete
 		}
 
 		try {
-			const filesToDelete = await db
+			const assetsToDelete = await db
 				.select()
-				.from(document)
-				.where(inArray(document.id, context.allowedIds));
+				.from(assetTable)
+				.where(inArray(assetTable.id, context.allowedIds));
 
-			Promise.all(
-				filesToDelete.map(async (file) => {
+			await Promise.all(
+				assetsToDelete.map(async (asset) => {
 					await deleteFileFromBucket({
-						bucket: file.bucket,
-						id: file.id,
-						prefix: file.prefix,
-						type: file.fileType as FileType,
+						bucket: asset.bucket,
+						id: asset.id,
+						prefix: asset.prefix,
+						type: asset.fileType as FileType,
 					});
-					await deleteChunksByDocumentId({
-						courseId: file.courseId,
-						documentId: file.id,
+					await deletePointsByAssetId({
+						assetId: asset.id,
 					});
 					await deletePrefixRecursively({
 						bucket: buckets.processed.name,
-						prefix: `${file.id}/`,
+						prefix: `${asset.id}/`,
 					});
 				}),
 			);
 
-			await db.delete(document).where(inArray(document.id, context.allowedIds));
+			await db
+				.delete(assetTable)
+				.where(inArray(assetTable.id, context.allowedIds));
 
 			return { success: true, message: "Assets deleted successfully" };
 		} catch (error) {

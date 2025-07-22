@@ -33,7 +33,7 @@ export const Route = createFileRoute("/app/(orgs)/orgs/$orgId_/providers/")({
 					input: { organizationId: orgId, pageIndex, pageSize },
 				}),
 			}),
-		)
+		);
 	},
 	component: RouteComponent,
 });
@@ -49,7 +49,7 @@ function RouteComponent() {
 			}),
 			placeholderData: keepPreviousData,
 		}),
-	)
+	);
 
 	return (
 		<div className="flex flex-col gap-14">
@@ -95,5 +95,5 @@ function RouteComponent() {
 				</DataTable>
 			</div>
 		</div>
-	)
+	);
 }

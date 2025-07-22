@@ -3,14 +3,14 @@
 import type { FileType } from "./file";
 
 export interface QdrantPoints {
-	points: QdrantChunk[];
+	points: QdrantPoint[];
 }
 
-export interface QdrantChunk {
+export interface QdrantPoint {
 	id: string | number;
 	version: number;
 	score: number;
-	payload: ChunkPayload;
+	payload: AssetPointPayload;
 	vector?:
 		| Record<string, unknown>
 		| number[]
@@ -31,9 +31,8 @@ export interface QdrantChunk {
 	order_value?: number | Record<string, unknown> | null | undefined;
 }
 
-export type ChunkPayload = {
-	course_id: string;
-	document_id: string;
+export type AssetPointPayload = {
+	asset_id: string;
 	text: string;
 	title: string;
 	depth: number;

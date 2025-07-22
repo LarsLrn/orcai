@@ -3,7 +3,7 @@ import { base } from "./base";
 
 const baseChunkPayloadSchema = z.object({
 	course_id: z.string(),
-	document_id: z.string(),
+	asset_id: z.string(),
 	text: z.string(),
 	title: z.string(),
 	depth: z.number(),
@@ -88,7 +88,7 @@ export const assetPointUpdateSchema = assetPointInsertSchema.extend(
 );
 
 export const assetPointDeleteSchema = z.object({
-	document_id: z.uuidv4(),
+	assetId: z.uuidv4(),
 	refs: z.array(assetPointSelectSchema.pick({ id: true })),
 });
 
@@ -101,10 +101,9 @@ export const listAssetPointsContract = base
 	})
 	.input(
 		z.object({
-			courseId: z.uuidv4(),
 			filters: z.object({
 				search: z.string().optional(),
-				documentId: z.uuidv4().optional(),
+				assetId: z.uuidv4().optional(),
 				limit: z.number().int().min(1).optional(),
 			}),
 		}),
@@ -114,7 +113,7 @@ export const listAssetPointsContract = base
 export const createAssetPointContract = base
 	.route({
 		method: "POST",
-		path: "/assets/{document_id}/points",
+		path: "/assets/{assetId}/points",
 		summary: "Create an asset point",
 		tags: ["Asset Points"],
 	})
@@ -124,7 +123,7 @@ export const createAssetPointContract = base
 export const findAssetPointContract = base
 	.route({
 		method: "GET",
-		path: "/assets/{document_id}/points/{id}",
+		path: "/assets/{assetId}/points/{id}",
 		summary: "Find an asset point",
 		tags: ["Asset Points"],
 	})
@@ -134,7 +133,7 @@ export const findAssetPointContract = base
 export const updateAssetPointContract = base
 	.route({
 		method: "PUT",
-		path: "/assets/{document_id}/points/{id}",
+		path: "/assets/{assetId}/points/{id}",
 		summary: "Update an asset point",
 		tags: ["Asset Points"],
 	})
@@ -150,7 +149,7 @@ export const updateAssetPointContract = base
 export const deleteAssetPointContract = base
 	.route({
 		method: "DELETE",
-		path: "/assets/{document_id}/points",
+		path: "/assets/{assetId}/points",
 		summary: "Delete an asset point",
 		tags: ["Asset Points"],
 	})

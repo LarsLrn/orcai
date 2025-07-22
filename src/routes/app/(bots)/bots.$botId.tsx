@@ -1,5 +1,5 @@
 import { useSuspenseQuery } from "@tanstack/react-query";
-import { createFileRoute } from "@tanstack/react-router";
+import { createFileRoute, Link } from "@tanstack/react-router";
 import { format } from "date-fns";
 import {
 	BotIcon,
@@ -17,7 +17,7 @@ import {
 } from "lucide-react";
 import { NewChatButton } from "@/components/chat/new-chat-button";
 import { Badge } from "@/components/ui/badge";
-import { Button } from "@/components/ui/button";
+import { Button, buttonVariants } from "@/components/ui/button";
 import {
 	Card,
 	CardContent,
@@ -243,13 +243,17 @@ function RouteComponent() {
 															"MMM d, yyyy",
 														)}
 													</span>
-													<Button
-														variant="ghost"
-														size="sm"
-														className="h-6 px-2"
+													<Link
+														to="/app/blocks/$blockId"
+														params={{ blockId: block.id }}
+														className={buttonVariants({
+															variant: "ghost",
+															size: "sm",
+															className: "h-6 px-2",
+														})}
 													>
 														View
-													</Button>
+													</Link>
 												</div>
 											</CardContent>
 										</Card>

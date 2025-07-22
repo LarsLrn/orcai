@@ -1,8 +1,8 @@
 import { useSuspenseQuery } from "@tanstack/react-query";
 import { createFileRoute } from "@tanstack/react-router";
-import { DisplayChunk } from "@/components/documents/chunks/display-chunk";
+import { DisplayPoint } from "@/components/documents/chunks/display-point";
 import { orpc } from "@/lib/orpc/orpc";
-import type { QdrantChunk } from "@/types/qdrant";
+import type { QdrantPoint } from "@/types/qdrant";
 
 export const Route = createFileRoute("/app/(assets)/assets_/$assetId/chunks")({
 	loader: async ({ context: { queryClient }, params: { assetId } }) => {
@@ -10,9 +10,9 @@ export const Route = createFileRoute("/app/(assets)/assets_/$assetId/chunks")({
 
 		await queryClient.ensureQueryData(
 			orpc.assetPoints.list.queryOptions({
-				input: { courseId, filters: { documentId: assetId } },
+				input: { courseId, filters: { assetId } },
 				queryKey: orpc.assetPoints.list.key({
-					input: { filters: { documentId: assetId } },
+					input: { filters: { assetId } },
 				}),
 			}),
 		);
@@ -28,7 +28,7 @@ function RouteComponent() {
 		orpc.assetPoints.list.queryOptions({
 			input: { courseId, filters: { documentId: assetId } },
 			queryKey: orpc.assetPoints.list.key({
-				input: { filters: { documentId: assetId } },
+				input: { filters: { assetId } },
 			}),
 		}),
 	);
@@ -36,7 +36,7 @@ function RouteComponent() {
 	return (
 		<div className="grid grid-cols-1 gap-2">
 			{assetPoints.data.map((point) => (
-				<DisplayChunk key={point.id} chunk={point as QdrantChunk} />
+				<DisplayPoint key={point.id} point={point as QdrantPoint} />
 			))}
 		</div>
 	);

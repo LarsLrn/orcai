@@ -10,7 +10,6 @@ export const createUploadUrlsContract = base
 	})
 	.input(
 		z.object({
-			courseId: z.uuidv4(),
 			files: z.array(
 				z.object({
 					name: z.string(),

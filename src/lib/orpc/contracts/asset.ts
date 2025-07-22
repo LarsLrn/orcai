@@ -4,20 +4,20 @@ import {
 	createUpdateSchema,
 } from "drizzle-zod";
 import { z } from "zod/v4";
-import { document } from "@/db/schema/document";
+import { assetTable } from "@/db/schema/asset";
 import { base } from "./base";
 
-export const assetSelectSchema = createSelectSchema(document);
+export const assetSelectSchema = createSelectSchema(assetTable);
 
-export const assetInsertSchema = createInsertSchema(document).omit({
+export const assetInsertSchema = createInsertSchema(assetTable).omit({
 	createdAt: true,
 	updatedAt: true,
 	bucket: true,
 	prefix: true,
-	uploadedBy: true,
+	userId: true,
 });
 
-export const assetUpdateSchema = createUpdateSchema(document, {
+export const assetUpdateSchema = createUpdateSchema(assetTable, {
 	id: z.uuidv4(),
 }).omit({ updatedAt: true, createdAt: true });
 
@@ -34,7 +34,6 @@ export const listAssetsContract = base
 	})
 	.input(
 		z.object({
-			courseId: z.uuidv4(),
 			pageSize: z.number().int().min(1).max(100).default(10),
 			pageIndex: z.number().int().min(0).default(0),
 		}),

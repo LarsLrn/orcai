@@ -13,30 +13,25 @@ import {
 import { useDeleteAssets } from "@/lib/client-actions/use-delete";
 import { orpc } from "@/lib/orpc/orpc";
 
-const DocumentTableActions = () => {
-	const courseId = "placeholder"; // TODO: Replace with actual courseId when available
-
-	const { mutateAsync: createDocumentTask } = useMutation(
-		orpc.task.createDocumentTask.mutationOptions(),
+const AssetTableActions = () => {
+	const { mutateAsync: createAssetTask } = useMutation(
+		orpc.task.createAssetTask.mutationOptions(),
 	);
 
 	const { table } = useTable();
 	const { deleteAssets } = useDeleteAssets();
 
-	const handleEnqueueDocument = async () => {
+	const handleEnqueueAsset = () => {
 		const fileIds = table.getSelectedRowModel().flatRows.map((row) => row.id);
 
-		toast.promise(
-			createDocumentTask({ courseId, taskType: "extract", ids: fileIds }),
-			{
-				loading: "Enqueuing document for processing...",
-				success: "Enqueued document for processing",
-				error: (error) => ({
-					message: "Failed to enqueue document for processing",
-					description: error.message,
-				}),
-			},
-		);
+		toast.promise(createAssetTask({ taskType: "extract", ids: fileIds }), {
+			loading: "Enqueuing asset for processing...",
+			success: "Enqueued asset for processing",
+			error: (error) => ({
+				message: "Failed to enqueue asset for processing",
+				description: error.message,
+			}),
+		});
 	};
 
 	return (
@@ -49,10 +44,10 @@ const DocumentTableActions = () => {
 			</DropdownMenuTrigger>
 			<DropdownMenuContent align="end" className="w-[200px]">
 				<DropdownMenuItem
-					onClick={() => handleEnqueueDocument()}
+					onClick={() => handleEnqueueAsset()}
 					disabled={table.getSelectedRowModel().rows.length === 0}
 				>
-					Process Documents
+					Process Asset
 				</DropdownMenuItem>
 				<DropdownMenuSeparator />
 				<DropdownMenuItem
@@ -66,11 +61,11 @@ const DocumentTableActions = () => {
 						})
 					}
 				>
-					Delete Documents
+					Delete Asset
 				</DropdownMenuItem>
 			</DropdownMenuContent>
 		</DropdownMenu>
 	);
 };
 
-export { DocumentTableActions };
+export { AssetTableActions };

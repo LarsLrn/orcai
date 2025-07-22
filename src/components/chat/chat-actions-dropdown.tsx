@@ -80,7 +80,7 @@ const ChatActionsDropdown = ({
 			});
 
 			if (params.chatId && params.chatId === chatId) {
-				navigate({ to: "/app/chat" });
+				await navigate({ to: "/app/chat" });
 			}
 		}
 	};

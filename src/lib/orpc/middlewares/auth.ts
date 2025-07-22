@@ -70,7 +70,13 @@ export const requireActiveOrganizationMiddleware = os
 
 		return next({
 			context: {
-				activeOrganizationId: context.auth.session.activeOrganizationId,
+				auth: {
+					...context.auth,
+					session: {
+						...context.auth.session,
+						activeOrganizationId: context.auth.session.activeOrganizationId,
+					},
+				},
 			},
 		});
 	});

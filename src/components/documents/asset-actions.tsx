@@ -22,30 +22,27 @@ import {
 	TooltipContent,
 	TooltipTrigger,
 } from "@/components/ui/tooltip";
-import type { Document } from "@/db/schema/document";
+import type { Asset } from "@/db/schema/asset";
 import { useDeleteAssets } from "@/lib/client-actions/use-delete";
 import { orpc } from "@/lib/orpc/orpc";
 import { cn } from "@/lib/utils";
 
-const FileActions = ({
-	fileInfo,
+const AssetActions = ({
+	assetInfo,
 	filePath,
 	className,
 }: {
-	fileInfo: Document;
+	assetInfo: Asset;
 	filePath: string;
 	className?: string;
 }) => {
-	const courseId = "placeholder"; // TODO: Replace with actual courseId when available
-
-	const { mutateAsync: createDocumentTask } = useMutation(
-		orpc.task.createDocumentTask.mutationOptions(),
+	const { mutateAsync: createAssetTask } = useMutation(
+		orpc.task.createAssetTask.mutationOptions(),
 	);
 	const { deleteAssets } = useDeleteAssets();
 
-	const isProcessing =
-		fileInfo.status === "generating-embedding" ||
-		fileInfo.status === "processing-document";
+	// TODO: Replace with actual processing state when available
+	const isProcessing = false;
 
 	return (
 		<div
@@ -67,14 +64,14 @@ const FileActions = ({
 							<span className="hidden sm:inline">Download</span>
 						</Button>
 					</TooltipTrigger>
-					<TooltipContent>Download this document</TooltipContent>
+					<TooltipContent>Download this asset</TooltipContent>
 				</Tooltip>
 
 				<Tooltip>
 					<TooltipTrigger asChild>
 						<Link
 							to={"/app/assets/$assetId/chunks"}
-							params={{ assetId: fileInfo.id }}
+							params={{ assetId: assetInfo.id }}
 						>
 							<Button
 								variant="outline"
@@ -82,11 +79,11 @@ const FileActions = ({
 								className="flex items-center gap-1"
 							>
 								<FileSearch className="h-4 w-4" />
-								<span className="hidden sm:inline">View Chunks</span>
+								<span className="hidden sm:inline">View Points</span>
 							</Button>
 						</Link>
 					</TooltipTrigger>
-					<TooltipContent>View document chunks</TooltipContent>
+					<TooltipContent>View asset points</TooltipContent>
 				</Tooltip>
 			</div>
 
@@ -109,10 +106,9 @@ const FileActions = ({
 						<DropdownMenuItem
 							disabled={isProcessing}
 							onClick={() =>
-								createDocumentTask({
-									courseId,
+								createAssetTask({
 									taskType: "extract",
-									ids: [fileInfo.id],
+									ids: [assetInfo.id],
 								})
 							}
 							className="flex items-center gap-2"
@@ -122,15 +118,14 @@ const FileActions = ({
 							) : (
 								<FileSearch className="h-4 w-4" />
 							)}
-							Process Document
+							Process Asset
 						</DropdownMenuItem>
 						<DropdownMenuItem
 							disabled={isProcessing}
 							onClick={() =>
-								createDocumentTask({
-									courseId,
+								createAssetTask({
 									taskType: "embed",
-									ids: [fileInfo.id],
+									ids: [assetInfo.id],
 								})
 							}
 							className="flex items-center gap-2"
@@ -148,7 +143,7 @@ const FileActions = ({
 				<Link
 					className={buttonVariants({ size: "sm", variant: "outline" })}
 					to={"/app/assets/$assetId/edit"}
-					params={{ assetId: fileInfo.id }}
+					params={{ assetId: assetInfo.id }}
 				>
 					<PencilIcon className="h-4 w-4" />
 					<span className="hidden sm:inline">Edit</span>
@@ -159,18 +154,18 @@ const FileActions = ({
 						<Button
 							variant="destructive"
 							size="sm"
-							onClick={() => deleteAssets({ refs: [{ id: fileInfo.id }] })}
+							onClick={() => deleteAssets({ refs: [{ id: assetInfo.id }] })}
 							className="flex items-center gap-1"
 						>
 							<Trash2 className="h-4 w-4" />
 							<span className="hidden sm:inline">Delete</span>
 						</Button>
 					</TooltipTrigger>
-					<TooltipContent>Delete this document</TooltipContent>
+					<TooltipContent>Delete this asset</TooltipContent>
 				</Tooltip>
 			</div>
 		</div>
 	);
 };
 
-export { FileActions };
+export { AssetActions };

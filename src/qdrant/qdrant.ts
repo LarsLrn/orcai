@@ -8,11 +8,11 @@ let client: QdrantClient | null = null;
 const initCollectionIfNeeded = async (qdrant: QdrantClient) => {
 	const collections = await qdrant.getCollections();
 	const exists = collections.collections.some(
-		(c) => c.name === qdrantCollections.chunks.name,
+		(c) => c.name === qdrantCollections.asset.name,
 	);
 
 	if (!exists) {
-		await qdrant.createCollection(qdrantCollections.chunks.name, {
+		await qdrant.createCollection(qdrantCollections.asset.name, {
 			vectors: {
 				size: 4096,
 				distance: "Cosine",
@@ -26,23 +26,23 @@ const initCollectionIfNeeded = async (qdrant: QdrantClient) => {
 			},
 		});
 
-		await qdrant.createPayloadIndex(qdrantCollections.chunks.name, {
-			field_name: qdrantCollections.chunks.index.courseId,
+		await qdrant.createPayloadIndex(qdrantCollections.asset.name, {
+			field_name: qdrantCollections.asset.index.repositoryId,
 			field_schema: {
 				type: "uuid",
 				is_tenant: true,
 			},
 		});
 
-		await qdrant.createPayloadIndex(qdrantCollections.chunks.name, {
-			field_name: qdrantCollections.chunks.index.chunkIndex,
+		await qdrant.createPayloadIndex(qdrantCollections.asset.name, {
+			field_name: qdrantCollections.asset.index.chunkIndex,
 			field_schema: {
 				type: "integer",
 			},
 		});
 
 		console.log(
-			`[Qdrant] Collection '${qdrantCollections.chunks.name}' created.`,
+			`[Qdrant] Collection '${qdrantCollections.asset.name}' created.`,
 		);
 	}
 };

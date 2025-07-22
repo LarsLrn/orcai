@@ -3,6 +3,8 @@ import { buckets } from "@/settings/buckets";
 import { s3Client } from "./s3-client";
 
 export async function createBucketIfNotExists(bucketName: string) {
+	// TODO: Add this to an initialization script or migration instead of checking every time
+
 	const allowedBuckets = Object.keys(buckets).map(
 		(bucket) => buckets[bucket as keyof typeof buckets].name,
 	);
@@ -16,6 +18,7 @@ export async function createBucketIfNotExists(bucketName: string) {
 	try {
 		// Check if bucket exists
 		await s3Client.send(new HeadBucketCommand({ Bucket: bucketName }));
+
 		return { status: "exists" };
 	} catch (error: any) {
 		// If bucket doesn't exist, create it

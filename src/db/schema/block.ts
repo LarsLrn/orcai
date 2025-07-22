@@ -14,9 +14,8 @@ import { chat } from "./chat";
 
 export interface BlockConfigType {
 	systemPrompt?: string;
-	maxReferences?: number;
-	model?: string;
-	provider?: string;
+	model: string;
+	provider: string;
 }
 
 export type BlockTypes = "template" | "database";
@@ -25,7 +24,7 @@ export const blockTable = pgTable("block", {
 	id: uuid("id").primaryKey().defaultRandom(),
 	type: text("type").$type<BlockTypes>().notNull(),
 	name: text("name").notNull(),
-	config: json("config").notNull().$type<BlockConfigType>().default({}),
+	config: json("config").notNull().$type<BlockConfigType>(),
 	userId: uuid("user_id")
 		.notNull()
 		.references(() => user.id, { onDelete: "cascade" }),
