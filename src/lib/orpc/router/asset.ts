@@ -72,7 +72,7 @@ export const createAsset = authed.asset.create.handler(
 			.insert(assetTable)
 			.values({
 				id: input.id, // TODO: This shouldnt come from the client, but needs to match the S3 file ID. Think of a solution to this
-				title: input.title ?? "New Document",
+				title: input.title ?? "New Asset",
 				size: input.size,
 				fileType: input.fileType,
 				bucket: buckets.main.name,

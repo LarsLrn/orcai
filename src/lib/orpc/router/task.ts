@@ -32,9 +32,9 @@ export const createAssetTask = authed.task.createAssetTask
 							mergePages: doc.metadata.mergePages ?? true,
 						},
 						options: {
-							concurrencyKey: "PROCESSING_DOCUMENT_CONCURRENCY_KEY",
+							concurrencyKey: "PROCESSING_ASSET_CONCURRENCY_KEY",
 							queue: {
-								name: "processing-documents-queue",
+								name: "processing-assets-queue",
 								concurrencyLimit: 1,
 							},
 						},
@@ -43,7 +43,7 @@ export const createAssetTask = authed.task.createAssetTask
 
 				return {
 					success: true,
-					message: `Processing ${docs.length} documents`,
+					message: `Processing ${docs.length} assets`,
 				};
 			}
 			case "embed": {
