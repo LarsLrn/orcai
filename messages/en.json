@@ -1,10 +1,10 @@
 {
-  "$schema": "https://inlang.com/schema/inlang-message-format",
-  "example_message": "Hello world {username}",
-  "language": "Language",
-  "acidic_last_llama_peek": "Good morning",
-  "awful_salty_tern_cut": "Good afternoon",
-  "yummy_watery_hawk_grin": "Good evening",
-  "only_pink_meerkat_relish": "Welcome to your personal AI Tutoring System. Initiate a new conversation\n\t\t\t\tor continue one of your previous chats (if any).",
-  "fluffy_short_halibut_enchant": "About Sokratesᵗ"
+	"$schema": "https://inlang.com/schema/inlang-message-format",
+	"example_message": "Hello world {username}",
+	"language": "Language",
+	"acidic_last_llama_peek": "Good morning",
+	"awful_salty_tern_cut": "Good afternoon",
+	"yummy_watery_hawk_grin": "Good evening",
+	"only_pink_meerkat_relish": "Welcome to your personal AI Tutoring System. Initiate a new conversation\n\t\t\t\tor continue one of your previous chats (if any).",
+	"fluffy_short_halibut_enchant": "About Sokratesᵗ"
 }
