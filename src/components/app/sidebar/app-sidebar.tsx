@@ -18,7 +18,7 @@ import { SidebarLogo } from "./sidebar-logo";
 
 const AppSidebar = () => {
 	return (
-		<Sidebar id="tour-sidebar">
+		<Sidebar id="tour-sidebar" variant="floating">
 			<SidebarHeader>
 				<SidebarLogo />
 				<NewChatButton size="sm">New Chat</NewChatButton>
