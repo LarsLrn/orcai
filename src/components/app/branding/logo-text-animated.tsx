@@ -157,8 +157,6 @@ const LogoTextAnimated = ({
 
 	return (
 		<div {...props}>
-			{/* FIXME: Check later */}
-			{/** biome-ignore lint/a11y/noSvgWithoutTitle: <okay for now> */}
 			<svg
 				width="100%"
 				height="100%"
@@ -168,6 +166,7 @@ const LogoTextAnimated = ({
 				xmlnsXlink="http://www.w3.org/1999/xlink"
 				xmlSpace="preserve"
 			>
+				<title>loading</title>
 				<g transform="matrix(1,0,0,1,-1.13687e-13,-2273)">
 					<g
 						id="svg_animate"

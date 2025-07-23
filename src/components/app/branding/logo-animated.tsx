@@ -201,8 +201,6 @@ const LogoAnimated = ({
 
 	return (
 		<div {...props}>
-			{/* FIXME: Check this */}
-			{/** biome-ignore lint/a11y/noSvgWithoutTitle: <okay for now> */}
 			<svg
 				width="100%"
 				height="100%"
@@ -220,6 +218,7 @@ const LogoAnimated = ({
 					strokeMiterlimit: 1.5,
 				}}
 			>
+				<title>SokratesT</title>
 				<g transform="matrix(1,0,0,1,-1197,-2600)">
 					<g
 						id="logo_svg"
