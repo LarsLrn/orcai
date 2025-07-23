@@ -75,7 +75,6 @@
 				"noAccumulatingSpread": "warn"
 			},
 			"nursery": {
-				"noFloatingPromises": "warn", // Typically promises should be returned or awaited
 				"useSortedClasses": {
 					"level": "info",
 					"fix": "safe",
