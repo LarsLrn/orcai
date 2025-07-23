@@ -70,7 +70,7 @@ const AssetActions = ({
 				<Tooltip>
 					<TooltipTrigger asChild>
 						<Link
-							to={"/app/assets/$assetId/chunks"}
+							to={"/app/assets/$assetId/points"}
 							params={{ assetId: assetInfo.id }}
 						>
 							<Button
