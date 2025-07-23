@@ -23,21 +23,21 @@ const fileTypeSchema = z.enum([
 	"unknown",
 ]);
 
-const imageChunkPayloadSchema = baseChunkPayloadSchema.extend({
+const imagePointPayloadSchema = baseChunkPayloadSchema.extend({
 	source: z.literal("image"),
 	file_reference: z.string(),
 	file_type: fileTypeSchema,
 });
 
-const textChunkPayloadSchema = baseChunkPayloadSchema.extend({
+const textPointPayloadSchema = baseChunkPayloadSchema.extend({
 	source: z.literal("text"),
 	file_reference: z.string().optional(),
 	file_type: fileTypeSchema.optional(),
 });
 
-export const chunkPayloadSchema = z.discriminatedUnion("source", [
-	imageChunkPayloadSchema,
-	textChunkPayloadSchema,
+export const assetPointPayloadSchema = z.discriminatedUnion("source", [
+	imagePointPayloadSchema,
+	textPointPayloadSchema,
 ]);
 
 const assetPointSelectSchema = z.object({
@@ -77,7 +77,7 @@ const assetPointSelectSchema = z.object({
 
 export const assetPointInsertSchema = z.object({
 	courseId: z.uuidv4(),
-	payload: chunkPayloadSchema,
+	payload: assetPointPayloadSchema,
 	vector: assetPointSelectSchema.pick({ vector: true }),
 });
 
