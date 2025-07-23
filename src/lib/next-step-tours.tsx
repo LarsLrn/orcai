@@ -217,7 +217,7 @@ export const NextStepTours = ({ children }: { children: ReactNode }) => {
 				setOpenMobile(true);
 			}
 		},
-		onComplete: async (tourName: string | null) => {
+		onComplete: (tourName: string | null) => {
 			if (tourName === "initialTour" || tourName === "chatTour") {
 				setTourState({ tourId: tourName, state: "completed" });
 				trackEvent("tour-completed", {
@@ -225,7 +225,7 @@ export const NextStepTours = ({ children }: { children: ReactNode }) => {
 				});
 			}
 		},
-		onSkip: async (_step: number, tourName: string | null) => {
+		onSkip: (_step: number, tourName: string | null) => {
 			if (tourName === "initialTour" || tourName === "chatTour") {
 				toast.promise(setTourState({ tourId: tourName, state: "skipped" }), {
 					loading: "Skipping tour...",
