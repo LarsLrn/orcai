@@ -66,10 +66,6 @@
 				"noUnusedImports": "warn"
 			},
 			"complexity": {
-				"noExcessiveCognitiveComplexity": {
-					"level": "warn",
-					"options": { "maxAllowedComplexity": 15 }
-				},
 				"noStaticOnlyClass": "error",
 				"noUselessConstructor": "error",
 				"useFlatMap": "warn"
