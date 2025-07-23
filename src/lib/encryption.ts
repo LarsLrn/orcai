@@ -22,7 +22,7 @@ function deriveKey(salt: Buffer): Buffer {
  * Encrypts a plain text string using AES-256-GCM
  * Returns a base64-encoded string containing salt:iv:tag:encrypted_data
  */
-export function encrypt(plaintext: string): string {
+function encrypt(plaintext: string): string {
 	try {
 		// Generate random salt and IV
 		const salt = crypto.randomBytes(SALT_LENGTH);
@@ -61,7 +61,7 @@ export function encrypt(plaintext: string): string {
  * Decrypts a base64-encoded encrypted string
  * Expected format: salt:iv:tag:encrypted_data
  */
-export function decrypt(encryptedData: string): string {
+function decrypt(encryptedData: string): string {
 	try {
 		// Decode from base64
 		const combined = Buffer.from(encryptedData, "base64");
