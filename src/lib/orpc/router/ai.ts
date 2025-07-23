@@ -81,7 +81,6 @@ export const aiChat = authed.ai.chat
               context: relevantChunks.map((chunk) => ({
                 documentId: String(
                   references.indexOf(
-                    // biome-ignore lint/style/noNonNullAssertion: <Previously ensured to exist>
                     references.find((r) => r.id === chunk.documentId)!,
                   ) + 1,
                 ),

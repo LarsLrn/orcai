@@ -134,8 +134,8 @@ export const NodeSelector = ({ editor }: { editor: Editor }) => {
 			<PopoverContent className="w-48 p-1 shadow-xl" align="start" noPortal>
 				{items.map((item) => {
 					return (
-						// biome-ignore lint/a11y/noStaticElementInteractions: <TODO: Fix this>
-						<div
+						<button
+							type="button"
 							key={item.name}
 							onClick={() => item.onClick(editor)}
 							className="flex cursor-pointer items-center rounded-md px-2 py-1.5 text-sm hover:bg-accent hover:text-accent-foreground"
@@ -146,7 +146,7 @@ export const NodeSelector = ({ editor }: { editor: Editor }) => {
 							{item.isActive(editorState) && (
 								<CheckIcon className="ms-4 size-3.5" />
 							)}
-						</div>
+						</button>
 					);
 				})}
 			</PopoverContent>

@@ -22,6 +22,7 @@ interface SelectorResult {
 
 const items = [
 	{
+		id: "bold",
 		icon: BoldIcon,
 		onClick: (editor: Editor) => {
 			editor.chain().focus().toggleBold().run();
@@ -29,6 +30,7 @@ const items = [
 		isActive: (state: SelectorResult) => state.isBold,
 	},
 	{
+		id: "italic",
 		icon: ItalicIcon,
 		onClick: (editor: Editor) => {
 			editor.chain().focus().toggleItalic().run();
@@ -36,6 +38,7 @@ const items = [
 		isActive: (state: SelectorResult) => state.isItalic,
 	},
 	{
+		id: "underline",
 		icon: UnderlineIcon,
 		onClick: (editor: Editor) => {
 			editor.chain().focus().toggleUnderline().run();
@@ -43,6 +46,7 @@ const items = [
 		isActive: (state: SelectorResult) => state.isUnderline,
 	},
 	{
+		id: "strike",
 		icon: StrikethroughIcon,
 		onClick: (editor: Editor) => {
 			editor.chain().focus().toggleStrike().run();
@@ -50,6 +54,7 @@ const items = [
 		isActive: (state: SelectorResult) => state.isStrike,
 	},
 	{
+		id: "code",
 		icon: CodeIcon,
 		onClick: (editor: Editor) => {
 			editor.chain().focus().toggleCode().run();
@@ -73,11 +78,10 @@ export const TextButtons = ({ editor }: { editor: Editor }) => {
 
 	return (
 		<>
-			{items.map((item, i) => {
+			{items.map((item) => {
 				return (
 					<Button
-						// biome-ignore lint/suspicious/noArrayIndexKey: <TODO: Fix this>
-						key={i}
+						key={item.id}
 						variant="ghost"
 						size="icon"
 						disabled={editorState.isMath}

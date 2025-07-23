@@ -1,6 +1,5 @@
 import { Link, useMatches } from "@tanstack/react-router";
 import { HomeIcon } from "lucide-react";
-/* import { PageTitle } from "@/components/app/page-title"; */
 import { ThemeSwitcher } from "@/components/app/theme-switcher";
 import { buttonVariants } from "@/components/ui/button";
 import { Separator } from "@/components/ui/separator";
@@ -24,8 +23,6 @@ const Header = () => {
 			label: meta?.find((m) => m?.title)?.title,
 		}))
 		.filter((i) => i.href !== "/" && i.href !== "/app");
-
-	console.log("breadcrumbItems", breadcrumbItems);
 
 	return (
 		<header className="flex h-16 shrink-0 items-center gap-2 px-4 text-muted-foreground">

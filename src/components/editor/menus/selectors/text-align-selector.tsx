@@ -55,8 +55,7 @@ export const TextAlignSelector = ({ editor }: { editor: Editor }) => {
 	});
 
 	const activeItem =
-		// biome-ignore lint/style/noNonNullAssertion: <TODO: Fix this>
-		items.find((item) => item.isActive(editorState)) ?? items[0]!;
+		items.find((item) => item.isActive(editorState)) ?? items[0];
 
 	return (
 		<Popover>
@@ -69,8 +68,8 @@ export const TextAlignSelector = ({ editor }: { editor: Editor }) => {
 			<PopoverContent className="w-32 p-1 shadow-xl" align="end" noPortal>
 				{items.map((item) => {
 					return (
-						// biome-ignore lint/a11y/noStaticElementInteractions: <TODO: Fix this>
-						<div
+						<button
+							type="button"
 							key={item.title}
 							onClick={() => item.onClick(editor)}
 							className="flex cursor-pointer items-center space-x-2 rounded-md px-2 py-1.5 hover:bg-accent hover:text-accent-foreground"
@@ -79,7 +78,7 @@ export const TextAlignSelector = ({ editor }: { editor: Editor }) => {
 							<span className="text-sm">{item.title}</span>
 							<div className="flex-1" />
 							{item.isActive(editorState) && <CheckIcon className="size-3.5" />}
-						</div>
+						</button>
 					);
 				})}
 			</PopoverContent>
