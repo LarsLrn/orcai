@@ -1,17 +1,55 @@
 {
+	"entry": [
+		"src/router.tsx",
+		"src/client.tsx",
+		"src/server.ts",
+		"src/global-middleware.ts"
+	],
+	"project": [
+		"src/**"
+	],
+	"ignore": [
+		"src/paraglide/**"
+	],
+	"biome": {
+		"config": [
+			"biome.json",
+			"biome.jsonc"
+		]
+	},
+	"commitlint": {
+		"config": [
+			"package.json",
+			"package.yaml",
+			".commitlintrc",
+			".config/commitlintrc",
+			".commitlintrc.{json,yaml,yml,js,ts,cjs,mjs,cts}",
+			"commitlint.config.{js,ts,cjs,mjs,cts}",
+			".config/commitlintrc.{json,yaml,yml,js,ts,cjs,mjs,cts}"
+		]
+	},
+	"vite": {
+		"config": [
+			"vite.config.{js,mjs,ts,cjs,mts,cts}"
+		]
+	},
 	"drizzle": {
-		"config": ["drizzle.config.{ts,js,json}"]
+		"config": [
+			"drizzle.config.{ts,js,json}"
+		]
 	},
 	"tailwind": {
-		"entry": ["tailwind.config.{js,cjs,mjs,ts}"]
+		"entry": [
+			"tailwind.config.{js,cjs,mjs,ts}"
+		]
 	},
 	"postcss": {
 		"config": [
 			"package.json",
 			"postcss.config.json",
 			".postcssrc",
-			".postcssrc.{json,js,cjs,mjs,ts,mts,cts,yaml,yml}",
-			"postcss.config.{js,cjs,mjs,ts,mts,cts}"
+			".postcssrc.{json,ts,js,cjs,mjs,mts,cts,yaml,yml}",
+			"postcss.config.{ts,js,cjs,mjs,mts,cts}"
 		]
 	}
 }
