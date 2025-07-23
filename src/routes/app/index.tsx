@@ -3,7 +3,7 @@ import { Suspense } from "react";
 import { UserStats } from "@/components/app/user-stats";
 import { UserWelcome } from "@/components/app/user-welcome";
 import { ChatsPreview } from "@/components/chat/chats-preview";
-import { OrganizationPreview } from "@/components/courses/course-preview";
+import { OrganizationPreview } from "@/components/organizations/organization-preview";
 import { Skeleton } from "@/components/ui/skeleton";
 
 export const Route = createFileRoute("/app/")({
