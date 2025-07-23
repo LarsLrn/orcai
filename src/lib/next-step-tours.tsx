@@ -7,7 +7,7 @@ import { NextStepCard } from "@/components/next-step/next-step-card";
 import { useSidebar } from "@/components/ui/sidebar";
 /* import { completeTour } from "@/db/actions/user"; */
 import { useUmami } from "@/hooks/use-umami";
-import { orpc } from "./orpc/orpc";
+import { userQueryOptions } from "./query-options/user";
 
 const nextStepTours: Tour[] = [
 	{
@@ -208,7 +208,7 @@ export const NextStepTours = ({ children }: { children: ReactNode }) => {
 	const { trackEvent } = useUmami();
 
 	const { mutateAsync: setTourState } = useMutation(
-		orpc.user.setTourState.mutationOptions(),
+		userQueryOptions.setTourState(),
 	);
 
 	const nextStepCallbacks = {

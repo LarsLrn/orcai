@@ -4,23 +4,20 @@ import { Suspense } from "react";
 import { LoadingPage } from "@/components/app/loading/loading-page";
 import { Chat } from "@/components/chat/chat";
 import type { CustomUIMessage } from "@/lib/ai/tools";
-import { orpc } from "@/lib/orpc/orpc";
+import { chatQueryOptions } from "@/lib/query-options/chat";
+import { chatMessageQueryOptions } from "@/lib/query-options/chat-message";
 
 export const Route = createFileRoute("/app/chat/$chatId")({
 	loader: async ({ context: { queryClient }, params: { chatId } }) => {
 		await queryClient.ensureQueryData(
-			orpc.chatMessage.list.queryOptions({
+			chatMessageQueryOptions.list({
 				input: { chatId, includeScores: true },
-				queryKey: orpc.chatMessage.list.key({
-					input: { chatId, includeScores: true },
-				}),
 			}),
 		);
 
 		return await queryClient.ensureQueryData(
-			orpc.chat.find.queryOptions({
+			chatQueryOptions.find({
 				input: { id: chatId },
-				queryKey: orpc.chat.find.key({ input: { id: chatId } }),
 			}),
 		);
 	},
@@ -38,11 +35,8 @@ function RouteComponent() {
 	const { chatId } = Route.useParams();
 
 	const messagesQuery = useSuspenseQuery(
-		orpc.chatMessage.list.queryOptions({
+		chatMessageQueryOptions.list({
 			input: { chatId, includeScores: true },
-			queryKey: orpc.chatMessage.list.key({
-				input: { chatId, includeScores: true },
-			}),
 		}),
 	);
 

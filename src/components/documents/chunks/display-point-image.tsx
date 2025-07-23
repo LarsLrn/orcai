@@ -1,6 +1,6 @@
 import { useQuery } from "@tanstack/react-query";
 import { Skeleton } from "@/components/ui/skeleton";
-import { orpc } from "@/lib/orpc/orpc";
+import { storageQueryOptions } from "@/lib/query-options/storage";
 import { cn } from "@/lib/utils";
 import type { BucketName } from "@/settings/buckets";
 import type { FileType } from "@/types/file";
@@ -16,14 +16,13 @@ const DisplayPointImage = ({
 	};
 }) => {
 	const { data, status } = useQuery(
-		orpc.storage.createDownloadUrl.queryOptions({
+		storageQueryOptions.createDownloadUrl({
 			input: {
 				id: imageRef.reference,
 				prefix: imageRef.prefix,
 				bucket: imageRef.bucket,
 				type: imageRef.type,
 			},
-			queryKey: orpc.storage.createDownloadUrl.key(),
 		}),
 	);
 

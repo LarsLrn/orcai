@@ -1,5 +1,5 @@
 import { zodResolver } from "@hookform/resolvers/zod";
-import { useMutation, useQueryClient } from "@tanstack/react-query";
+import { useMutation } from "@tanstack/react-query";
 import { useNavigate } from "@tanstack/react-router";
 import { useForm } from "react-hook-form";
 import { toast } from "sonner";
@@ -9,7 +9,7 @@ import { Button } from "@/components/ui/button";
 import { Form } from "@/components/ui/form";
 import type { Organization } from "@/db/schema/organization";
 import { organizationInsertSchema } from "@/lib/orpc/contracts/organization";
-import { orpc } from "@/lib/orpc/orpc";
+import { organizationQueryOptions } from "@/lib/query-options/organization";
 
 const OrganizationForm = ({
 	organization,
@@ -17,25 +17,12 @@ const OrganizationForm = ({
 	organization?: Organization;
 }) => {
 	const navigate = useNavigate();
-	const queryClient = useQueryClient();
 	const { mutateAsync: updateOrganization } = useMutation(
-		orpc.organization.update.mutationOptions({
-			onSuccess: () => {
-				queryClient.invalidateQueries({
-					queryKey: orpc.organization.list.key(),
-				});
-			},
-		}),
+		organizationQueryOptions.update(),
 	);
 
 	const { mutateAsync: createOrganization } = useMutation(
-		orpc.organization.create.mutationOptions({
-			onSuccess: () => {
-				queryClient.invalidateQueries({
-					queryKey: orpc.organization.list.key(),
-				});
-			},
-		}),
+		organizationQueryOptions.create(),
 	);
 
 	const form = useForm<z.infer<typeof organizationInsertSchema>>({

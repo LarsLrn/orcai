@@ -6,7 +6,7 @@ import { Card } from "@/components/ui/card";
 import { LoadingSpinner } from "@/components/ui/loading-spinner";
 import type { Asset } from "@/db/schema/asset";
 import { useIsMobile } from "@/hooks/use-mobile";
-import { orpc } from "@/lib/orpc/orpc";
+import { storageQueryOptions } from "@/lib/query-options/storage";
 import { cn } from "@/lib/utils";
 import { AssetActions } from "./asset-actions";
 import { AssetMeta } from "./asset-meta";
@@ -14,14 +14,13 @@ import { AssetMeta } from "./asset-meta";
 const FileViewer = ({ asset }: { asset: Asset }) => {
 	const isMobile = useIsMobile();
 	const { data, status, error } = useQuery(
-		orpc.storage.createDownloadUrl.queryOptions({
+		storageQueryOptions.createDownloadUrl({
 			input: {
 				id: asset.id,
 				prefix: asset.prefix,
 				bucket: asset.bucket,
 				type: asset.fileType,
 			},
-			queryKey: orpc.storage.createDownloadUrl.key(),
 		}),
 	);
 

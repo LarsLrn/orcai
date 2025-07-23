@@ -1,11 +1,11 @@
 import { useQuery } from "@tanstack/react-query";
 import { DisplayPoint } from "@/components/documents/chunks/display-point";
-import { orpc } from "@/lib/orpc/orpc";
+import { assetPointQueryOptions } from "@/lib/query-options/asset-point";
 import type { QdrantPoint } from "@/types/qdrant";
 
 const QdrantPlaygroundResults = ({ search }: { search: string }) => {
 	const { data: points } = useQuery(
-		orpc.assetPoints.list.queryOptions({
+		assetPointQueryOptions.list({
 			input: { filters: { search, limit: 10 } },
 		}),
 	);

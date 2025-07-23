@@ -1,4 +1,4 @@
-import { useMutation, useQueryClient } from "@tanstack/react-query";
+import { useMutation } from "@tanstack/react-query";
 import { useNavigate, useParams } from "@tanstack/react-router";
 import { useRef, useState } from "react";
 import { toast } from "sonner";
@@ -11,7 +11,7 @@ import {
 } from "@/components/ui/dropdown-menu";
 import { Input } from "@/components/ui/input";
 import { useUmami } from "@/hooks/use-umami";
-import { orpc } from "@/lib/orpc/orpc";
+import { chatQueryOptions } from "@/lib/query-options/chat";
 
 const ChatActionsDropdown = ({
 	children,
@@ -27,27 +27,9 @@ const ChatActionsDropdown = ({
 	const confirm = useConfirm();
 	const { trackEvent } = useUmami();
 
-	const queryClient = useQueryClient();
+	const { mutateAsync: updateChat } = useMutation(chatQueryOptions.update());
 
-	const { mutateAsync: updateChat } = useMutation(
-		orpc.chat.update.mutationOptions({
-			onSuccess() {
-				queryClient.invalidateQueries({
-					queryKey: orpc.chat.list.key(),
-				});
-			},
-		}),
-	);
-
-	const { mutateAsync: deleteChat } = useMutation(
-		orpc.chat.delete.mutationOptions({
-			onSuccess() {
-				queryClient.invalidateQueries({
-					queryKey: orpc.chat.list.key(),
-				});
-			},
-		}),
-	);
+	const { mutateAsync: deleteChat } = useMutation(chatQueryOptions.delete());
 
 	const [isDropdownOpen, setIsDropdownOpen] = useState(false);
 

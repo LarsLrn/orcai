@@ -1,33 +1,17 @@
-import { keepPreviousData, useQuery } from "@tanstack/react-query";
+import { useSuspenseQuery } from "@tanstack/react-query";
 import { BadgeCheck, BadgeX, ClipboardList, SearchXIcon } from "lucide-react";
 import { Placeholder } from "@/components/placeholders/placeholder";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import type { CourseInvitation } from "@/db/schema/course-invitation";
-import { orpc } from "@/lib/orpc/orpc";
+import { courseInvitationQueryOptions } from "@/lib/query-options/course-invitation";
 import { CourseInvitationEntry } from "./course-invitation-entry";
 
 const CourseInvitationsList = () => {
-	const {
-		data: courseInvitations,
-		status,
-		error,
-	} = useQuery(
-		orpc.courseInvitation.list.queryOptions({
+	const { data: courseInvitations } = useSuspenseQuery(
+		courseInvitationQueryOptions.list({
 			input: { pageIndex: 0, pageSize: 100 },
-			queryKey: orpc.courseInvitation.list.key({
-				input: { pageIndex: 0, pageSize: 100 },
-			}),
-			placeholderData: keepPreviousData,
 		}),
 	);
-
-	if (status === "pending") {
-		return <div>Loading...</div>;
-	}
-	if (status === "error") {
-		console.error(error);
-		return <div>Error loading course invitations</div>;
-	}
 
 	if (courseInvitations.data.length === 0) {
 		return (

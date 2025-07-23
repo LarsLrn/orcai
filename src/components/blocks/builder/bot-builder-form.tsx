@@ -1,6 +1,6 @@
 import { DndContext, type DragEndEvent } from "@dnd-kit/core";
 import { zodResolver } from "@hookform/resolvers/zod";
-import { keepPreviousData, useSuspenseQuery } from "@tanstack/react-query";
+import { useSuspenseQuery } from "@tanstack/react-query";
 import { useState } from "react";
 import { useForm } from "react-hook-form";
 import { toast } from "sonner";
@@ -17,7 +17,7 @@ import { Form } from "@/components/ui/form";
 import { Label } from "@/components/ui/label";
 import type { Block } from "@/db/schema/block";
 import { botInsertSchema } from "@/lib/orpc/contracts/bot";
-import { orpc } from "@/lib/orpc/orpc";
+import { blockQueryOptions } from "@/lib/query-options/block";
 
 interface BotBuilderFormProps {
 	initialData?: z.infer<typeof botInsertSchema>;
@@ -26,10 +26,8 @@ interface BotBuilderFormProps {
 
 const BotBuilderForm = ({ initialData, onSubmit }: BotBuilderFormProps) => {
 	const { data: blocks } = useSuspenseQuery(
-		orpc.block.list.queryOptions({
-			input: { pageIndex: 0, pageSize: 50 }, // Increase page size to get more blocks
-			queryKey: orpc.block.list.key({ input: { pageIndex: 0, pageSize: 50 } }),
-			placeholderData: keepPreviousData,
+		blockQueryOptions.list({
+			input: { pageIndex: 0, pageSize: 50 },
 		}),
 	);
 

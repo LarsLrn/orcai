@@ -10,41 +10,34 @@ import { useSidebar } from "@/components/ui/sidebar";
 import { Skeleton } from "@/components/ui/skeleton";
 import type { Organization } from "@/db/schema/organization";
 import { authClient } from "@/lib/auth-client";
-import { orpc } from "@/lib/orpc/orpc";
+import { organizationQueryOptions } from "@/lib/query-options/organization";
+import { userQueryOptions } from "@/lib/query-options/user";
 
 const OrganizationSwitcher = () => {
 	const { auth } = useRouteContext({ from: "/app" });
-	const { refetch } = authClient.useSession();
+	const { refetch: refetchSession } = authClient.useSession();
 
 	const { data: organizations, status } = useQuery(
-		orpc.organization.list.queryOptions({
-			input: { pageIndex: 0, pageSize: 100 },
-			queryKey: orpc.organization.list.key({
-				input: { pageIndex: 0, pageSize: 100 },
-			}),
-		}),
+		organizationQueryOptions.list({ input: { pageIndex: 0, pageSize: 100 } }),
 	);
 
 	const { mutateAsync: setActiveOrganization } = useMutation(
-		orpc.user.setActiveOrganization.mutationOptions({
-			async onSuccess() {
-				refetch();
-				// TODO: Check if that's needed. Depends on future implementations
-				/* queryClient.clear(); */
-				setOpenMobile(false);
-				await navigate({ to: "/app" });
-			},
-		}),
+		userQueryOptions.setActiveOrganization(),
 	);
 
 	const navigate = useNavigate();
 	const { setOpenMobile } = useSidebar();
 
 	const handleOrganizationChange = (organization: Organization) => {
-		// TODO: Refactor to use toast.promise
 		toast.promise(setActiveOrganization({ organizationId: organization.id }), {
 			loading: `Changing organization to ${organization.name}...`,
-			success: "Organization changed successfully!",
+			success: async () => {
+				refetchSession();
+				setOpenMobile(false);
+				await navigate({ to: "/app" });
+
+				return "Organization changed successfully!";
+			},
 			error: (error) => ({
 				message: "Failed to change organization",
 				description: error.message,

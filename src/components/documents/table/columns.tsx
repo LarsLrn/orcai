@@ -17,7 +17,7 @@ import {
 } from "@/components/ui/dropdown-menu";
 import type { Asset } from "@/db/schema/asset";
 import { useDeleteAssets } from "@/lib/client-actions/use-delete";
-import { orpc } from "@/lib/orpc/orpc";
+import { taskQueryOptions } from "@/lib/query-options/task";
 
 export const columns: ColumnDef<Asset>[] = [
 	{
@@ -98,7 +98,7 @@ export const columns: ColumnDef<Asset>[] = [
 
 const ActionCell = ({ row }: { row: Row<Asset> }) => {
 	const { mutateAsync: createAssetTask } = useMutation(
-		orpc.task.createAssetTask.mutationOptions(),
+		taskQueryOptions.createAssetTask(),
 	);
 	const { deleteAssets } = useDeleteAssets();
 	const asset = row.original;

@@ -187,5 +187,9 @@ export const rateChatMessage = authed.chatMessage.rate
 			environment: process.env.NODE_ENV,
 		});
 
-		return { success: true, message: "Message rated successfully" };
+		return {
+			success: true,
+			message: "Message rated successfully",
+			data: input,
+		};
 	});

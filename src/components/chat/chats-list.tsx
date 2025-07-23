@@ -1,4 +1,4 @@
-import { keepPreviousData, useQuery } from "@tanstack/react-query";
+import { useQuery } from "@tanstack/react-query";
 import { Link } from "@tanstack/react-router";
 import { format } from "date-fns";
 import { MessagesSquareIcon, MoreHorizontalIcon } from "lucide-react";
@@ -14,7 +14,7 @@ import {
 	CardHeader,
 	CardTitle,
 } from "@/components/ui/card";
-import { orpc } from "@/lib/orpc/orpc";
+import { chatQueryOptions } from "@/lib/query-options/chat";
 import { cn } from "@/lib/utils";
 import { ChatActionsDropdown } from "./chat-actions-dropdown";
 
@@ -24,11 +24,7 @@ const ChatsList = ({
 }: { limit?: number } & ComponentProps<"div">) => {
 	const pageSize = limit ?? 100;
 	const { data, status } = useQuery(
-		orpc.chat.list.queryOptions({
-			input: { pageIndex: 0, pageSize },
-			queryKey: [...orpc.chat.list.key(), pageSize],
-			placeholderData: keepPreviousData,
-		}),
+		chatQueryOptions.list({ input: { pageIndex: 0, pageSize } }),
 	);
 
 	if (status === "pending") {

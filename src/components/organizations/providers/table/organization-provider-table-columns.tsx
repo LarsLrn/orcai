@@ -1,4 +1,4 @@
-import { useMutation, useQueryClient } from "@tanstack/react-query";
+import { useMutation } from "@tanstack/react-query";
 import { Link } from "@tanstack/react-router";
 import type { ColumnDef } from "@tanstack/react-table";
 import { format } from "date-fns";
@@ -16,7 +16,7 @@ import {
 	DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import type { organizationProviderSelectSchema } from "@/lib/orpc/contracts/organization-provider";
-import { orpc } from "@/lib/orpc/orpc";
+import { organizationProviderQueryOptions } from "@/lib/query-options/organization-provider";
 
 type OrganizationProvider = z.infer<typeof organizationProviderSelectSchema>;
 
@@ -130,20 +130,8 @@ export const organizationProviderTableColumns: ColumnDef<OrganizationProvider>[]
 	];
 
 const DeleteItem = ({ provider }: { provider: OrganizationProvider }) => {
-	const queryClient = useQueryClient();
-
 	const { mutateAsync: deleteProviders } = useMutation(
-		orpc.organizationProvider.delete.mutationOptions({
-			onSuccess() {
-				queryClient.invalidateQueries({
-					queryKey: orpc.organizationProvider.list.key(),
-				});
-			},
-			onError(error) {
-				console.error(error);
-				alert(error.message);
-			},
-		}),
+		organizationProviderQueryOptions.delete(),
 	);
 
 	const handleDelete = (provider: OrganizationProvider) => {

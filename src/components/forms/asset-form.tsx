@@ -1,5 +1,5 @@
 import { zodResolver } from "@hookform/resolvers/zod";
-import { useMutation, useQueryClient } from "@tanstack/react-query";
+import { useMutation } from "@tanstack/react-query";
 import { useRouter } from "@tanstack/react-router";
 import { useForm } from "react-hook-form";
 import { toast } from "sonner";
@@ -13,25 +13,12 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Form } from "@/components/ui/form";
 import type { Asset } from "@/db/schema/asset";
 import { assetUpdateSchema } from "@/lib/orpc/contracts/asset";
-import { orpc } from "@/lib/orpc/orpc";
+import { assetQueryOptions } from "@/lib/query-options/asset";
 
 const AssetForm = ({ asset }: { asset: Asset }) => {
-	const queryClient = useQueryClient();
 	const router = useRouter();
 
-	const { mutateAsync: updateAsset } = useMutation(
-		orpc.asset.update.mutationOptions({
-			onSuccess() {
-				queryClient.invalidateQueries({
-					queryKey: orpc.asset.key(),
-				});
-			},
-			onError(error) {
-				console.error(error);
-				alert(error.message);
-			},
-		}),
-	);
+	const { mutateAsync: updateAsset } = useMutation(assetQueryOptions.update());
 
 	const form = useForm<z.infer<typeof assetUpdateSchema>>({
 		resolver: zodResolver(assetUpdateSchema),

@@ -1,9 +1,5 @@
 import { zodResolver } from "@hookform/resolvers/zod";
-import {
-	useMutation,
-	useQueryClient,
-	useSuspenseQuery,
-} from "@tanstack/react-query";
+import { useMutation, useSuspenseQuery } from "@tanstack/react-query";
 import { useNavigate } from "@tanstack/react-router";
 import { useForm } from "react-hook-form";
 import { toast } from "sonner";
@@ -15,7 +11,8 @@ import { Button } from "@/components/ui/button";
 import { Form } from "@/components/ui/form";
 import type { organizationProviderSelectSchema } from "@/lib/orpc/contracts/organization-provider";
 import { organizationProviderInsertSchema } from "@/lib/orpc/contracts/organization-provider";
-import { orpc } from "@/lib/orpc/orpc";
+import { organizationProviderQueryOptions } from "@/lib/query-options/organization-provider";
+import { providerQueryOptions } from "@/lib/query-options/provider";
 
 type OrganizationProvider = z.infer<typeof organizationProviderSelectSchema>;
 
@@ -27,29 +24,14 @@ const OrganizationProviderForm = ({
 	organizationProvider?: OrganizationProvider;
 }) => {
 	const navigate = useNavigate();
-	const queryClient = useQueryClient();
-	const { data: providers } = useSuspenseQuery(
-		orpc.provider.list.queryOptions(),
-	);
+	const { data: providers } = useSuspenseQuery(providerQueryOptions.list());
 
 	const { mutateAsync: updateProvider } = useMutation(
-		orpc.organizationProvider.update.mutationOptions({
-			onSuccess: () => {
-				queryClient.invalidateQueries({
-					queryKey: orpc.organizationProvider.list.key(),
-				});
-			},
-		}),
+		organizationProviderQueryOptions.update(),
 	);
 
 	const { mutateAsync: createProvider } = useMutation(
-		orpc.organizationProvider.create.mutationOptions({
-			onSuccess: () => {
-				queryClient.invalidateQueries({
-					queryKey: orpc.organizationProvider.list.key(),
-				});
-			},
-		}),
+		organizationProviderQueryOptions.create(),
 	);
 
 	const form = useForm<z.infer<typeof organizationProviderInsertSchema>>({

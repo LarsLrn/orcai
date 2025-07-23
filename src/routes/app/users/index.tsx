@@ -1,4 +1,4 @@
-import { keepPreviousData, useSuspenseQuery } from "@tanstack/react-query";
+import { useSuspenseQuery } from "@tanstack/react-query";
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { zodValidator } from "@tanstack/zod-adapter";
 import { z } from "zod/v4";
@@ -9,7 +9,7 @@ import { DataTablePagination } from "@/components/ui/data-table/data-table-pagin
 import { DataTableViewOptions } from "@/components/ui/data-table/data-table-view-options";
 import { columns } from "@/components/users/table/columns";
 import { UsersDataTableSelectActions } from "@/components/users/table/users-data-table-select-actions";
-import { orpc } from "@/lib/orpc/orpc";
+import { userQueryOptions } from "@/lib/query-options/user";
 
 const searchParams = z.object({
 	pageIndex: z.coerce.number().default(0),
@@ -27,11 +27,8 @@ export const Route = createFileRoute("/app/users/")({
 		deps: { pageIndex, pageSize },
 	}) => {
 		await queryClient.ensureQueryData(
-			orpc.user.list.queryOptions({
+			userQueryOptions.list({
 				input: { pageIndex, pageSize },
-				queryKey: orpc.user.list.key({
-					input: { pageIndex, pageSize },
-				}),
 			}),
 		);
 	},
@@ -41,10 +38,8 @@ export const Route = createFileRoute("/app/users/")({
 function RouteComponent() {
 	const { pageIndex, pageSize } = Route.useSearch();
 	const { data: users } = useSuspenseQuery(
-		orpc.user.list.queryOptions({
+		userQueryOptions.list({
 			input: { pageIndex, pageSize },
-			queryKey: orpc.user.list.key({ input: { pageIndex, pageSize } }),
-			placeholderData: keepPreviousData,
 		}),
 	);
 

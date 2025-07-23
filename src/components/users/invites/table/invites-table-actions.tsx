@@ -9,11 +9,11 @@ import {
 	DropdownMenuContent,
 	DropdownMenuItem,
 } from "@/components/ui/dropdown-menu";
-import { orpc } from "@/lib/orpc/orpc";
+import { courseInvitationQueryOptions } from "@/lib/query-options/course-invitation";
 
 const InvitesTableActions = () => {
 	const { mutateAsync: deleteInvitations } = useMutation(
-		orpc.courseInvitation.delete.mutationOptions(),
+		courseInvitationQueryOptions.delete(),
 	);
 
 	const { table } = useTable();

@@ -7,7 +7,8 @@ import { v4 as uuidv4 } from "uuid";
 import { ChatInput } from "@/components/ui/chat/chat-input";
 import { ChatMessageList } from "@/components/ui/chat/chat-message-list";
 import type { CustomUIMessage } from "@/lib/ai/tools";
-import { client, orpc } from "@/lib/orpc/orpc";
+import { client } from "@/lib/orpc/orpc";
+import { chatQueryOptions } from "@/lib/query-options/chat";
 /* import { deleteTrailingMessages } from "@/db/actions/ai-actions"; */
 /* import {
   type DataStreamDelta,
@@ -28,10 +29,7 @@ const Chat = ({
 	scores: ApiGetScoresResponseData[];
 }) => {
 	const { data: chat } = useSuspenseQuery(
-		orpc.chat.find.queryOptions({
-			input: { id },
-			queryKey: orpc.chat.find.key({ input: { id } }),
-		}),
+		chatQueryOptions.find({ input: { id } }),
 	);
 
 	const { messages, status, setMessages, stop, regenerate, sendMessage } =

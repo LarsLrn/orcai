@@ -1,5 +1,5 @@
 import { createFileRoute, Outlet } from "@tanstack/react-router";
-import { orpc } from "@/lib/orpc/orpc";
+import { organizationProviderQueryOptions } from "@/lib/query-options/organization-provider";
 
 export const Route = createFileRoute(
 	"/app/orgs/$orgId/providers/$providerSlug",
@@ -9,11 +9,8 @@ export const Route = createFileRoute(
 		params: { orgId, providerSlug },
 	}) => {
 		return await queryClient.ensureQueryData(
-			orpc.organizationProvider.find.queryOptions({
+			organizationProviderQueryOptions.find({
 				input: { organizationId: orgId, providerSlug },
-				queryKey: orpc.organizationProvider.find.key({
-					input: { organizationId: orgId, providerSlug },
-				}),
 			}),
 		);
 	},

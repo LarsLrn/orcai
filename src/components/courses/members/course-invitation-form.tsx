@@ -1,9 +1,5 @@
 import { zodResolver } from "@hookform/resolvers/zod";
-import {
-	useMutation,
-	useQueryClient,
-	useSuspenseQuery,
-} from "@tanstack/react-query";
+import { useMutation, useSuspenseQuery } from "@tanstack/react-query";
 import { useNavigate } from "@tanstack/react-router";
 import { AlertCircle, CircleMinusIcon } from "lucide-react";
 import { useFieldArray, useForm } from "react-hook-form";
@@ -36,28 +32,20 @@ import {
 	type CourseInvitationsInsertSchemaType,
 	courseInvitationsInsertSchema,
 } from "@/db/zod/course-invitation";
-import { orpc } from "@/lib/orpc/orpc";
+import { courseQueryOptions } from "@/lib/query-options/course";
+import { courseInvitationQueryOptions } from "@/lib/query-options/course-invitation";
 
 const CourseInvitationForm = () => {
-	const { data: courses } = useSuspenseQuery(
-		orpc.course.list.queryOptions({
-			input: { pageIndex: 0, pageSize: 100 },
-			queryKey: orpc.course.list.key(),
-		}),
-	);
-
-	const queryClient = useQueryClient();
-	const { mutateAsync: createCourseInvitations } = useMutation(
-		orpc.courseInvitation.create.mutationOptions({
-			onSuccess() {
-				queryClient.invalidateQueries({
-					queryKey: orpc.courseInvitation.key(),
-				});
-			},
-		}),
-	);
-
 	const navigate = useNavigate();
+	const { data: courses } = useSuspenseQuery(
+		courseQueryOptions.list({
+			input: { pageIndex: 0, pageSize: 100 },
+		}),
+	);
+
+	const { mutateAsync: createCourseInvitations } = useMutation(
+		courseInvitationQueryOptions.create(),
+	);
 
 	const form = useForm<CourseInvitationsInsertSchemaType>({
 		resolver: zodResolver(courseInvitationsInsertSchema),

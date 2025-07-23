@@ -1,25 +1,11 @@
-import {
-	useMutation,
-	useQueryClient,
-	useSuspenseQuery,
-} from "@tanstack/react-query";
+import { useMutation, useSuspenseQuery } from "@tanstack/react-query";
 import { createFileRoute, useNavigate } from "@tanstack/react-router";
 import { toast } from "sonner";
 import { BotBuilderForm } from "@/components/blocks/builder/bot-builder-form";
 import type { BotInsert, BotUpdate } from "@/lib/orpc/contracts/bot";
-import { orpc } from "@/lib/orpc/orpc";
+import { botQueryOptions } from "@/lib/query-options/bot";
 
 export const Route = createFileRoute("/app/bots/$botId/edit")({
-	loader: async ({ context: { queryClient }, params: { botId } }) => {
-		await queryClient.ensureQueryData(
-			orpc.bot.find.queryOptions({
-				input: { id: botId },
-				queryKey: orpc.bot.find.key({
-					input: { id: botId },
-				}),
-			}),
-		);
-	},
 	component: RouteComponent,
 	head: () => ({
 		meta: [
@@ -31,26 +17,16 @@ export const Route = createFileRoute("/app/bots/$botId/edit")({
 });
 
 function RouteComponent() {
-	const queryClient = useQueryClient();
 	const { botId } = Route.useParams();
 	const navigate = useNavigate();
 
 	const { data: bot } = useSuspenseQuery(
-		orpc.bot.find.queryOptions({
+		botQueryOptions.find({
 			input: { id: botId },
-			queryKey: orpc.bot.find.key({
-				input: { id: botId },
-			}),
 		}),
 	);
 
-	const { mutateAsync: updateBot } = useMutation(
-		orpc.bot.update.mutationOptions({
-			onSuccess: () => {
-				queryClient.invalidateQueries({ queryKey: orpc.bot.key() });
-			},
-		}),
-	);
+	const { mutateAsync: updateBot } = useMutation(botQueryOptions.update());
 
 	const handleBotSubmit = (data: BotInsert) => {
 		// TODO: Handle BotUpdate type properly

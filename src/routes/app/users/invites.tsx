@@ -1,4 +1,4 @@
-import { keepPreviousData, useSuspenseQuery } from "@tanstack/react-query";
+import { useSuspenseQuery } from "@tanstack/react-query";
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { zodValidator } from "@tanstack/zod-adapter";
 import { z } from "zod/v4";
@@ -10,7 +10,7 @@ import { DataTablePagination } from "@/components/ui/data-table/data-table-pagin
 import { DataTableViewOptions } from "@/components/ui/data-table/data-table-view-options";
 import { InvitesTableActions } from "@/components/users/invites/table/invites-table-actions";
 import { invitesTableColumns } from "@/components/users/invites/table/invites-table-columns";
-import { orpc } from "@/lib/orpc/orpc";
+import { courseInvitationQueryOptions } from "@/lib/query-options/course-invitation";
 
 const searchParams = z.object({
 	pageIndex: z.coerce.number().default(0),
@@ -27,12 +27,9 @@ export const Route = createFileRoute("/app/users/invites")({
 		context: { queryClient },
 		deps: { pageIndex, pageSize },
 	}) => {
-		await queryClient.ensureQueryData(
-			orpc.courseInvitation.list.queryOptions({
+		return await queryClient.ensureQueryData(
+			courseInvitationQueryOptions.list({
 				input: { pageIndex, pageSize },
-				queryKey: orpc.courseInvitation.list.key({
-					input: { pageIndex, pageSize },
-				}),
 			}),
 		);
 	},
@@ -49,12 +46,8 @@ export const Route = createFileRoute("/app/users/invites")({
 function RouteComponent() {
 	const { pageIndex, pageSize } = Route.useSearch();
 	const { data: invitations } = useSuspenseQuery(
-		orpc.courseInvitation.list.queryOptions({
+		courseInvitationQueryOptions.list({
 			input: { pageIndex, pageSize },
-			queryKey: orpc.courseInvitation.list.key({
-				input: { pageIndex, pageSize },
-			}),
-			placeholderData: keepPreviousData,
 		}),
 	);
 

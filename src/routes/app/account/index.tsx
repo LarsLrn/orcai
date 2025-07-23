@@ -64,7 +64,9 @@ function RouteComponent() {
 						<CardDescription>Manage your course invitations</CardDescription>
 					</CardHeader>
 					<CardContent>
-						<CourseInvitationsList />
+						<Suspense fallback={<Skeleton className="h-[120px] w-full" />}>
+							<CourseInvitationsList />
+						</Suspense>
 					</CardContent>
 				</Card>
 				<Card>

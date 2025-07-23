@@ -1,9 +1,9 @@
-import { useMutation, useQueryClient } from "@tanstack/react-query";
+import { useMutation } from "@tanstack/react-query";
 import { toast } from "sonner";
 import type z from "zod/v4";
 import { Button } from "@/components/ui/button";
 import type { organizationProviderSelectSchema } from "@/lib/orpc/contracts/organization-provider";
-import { orpc } from "@/lib/orpc/orpc";
+import { organizationProviderQueryOptions } from "@/lib/query-options/organization-provider";
 import { OrganizationProviderForm } from "./organization-provider-form";
 
 type OrganizationProvider = z.infer<typeof organizationProviderSelectSchema>;
@@ -15,15 +15,8 @@ const ManageOrganizationProvider = ({
 	organizationId: string;
 	organizationProvider: OrganizationProvider;
 }) => {
-	const queryClient = useQueryClient();
 	const { mutateAsync: deleteProvider } = useMutation(
-		orpc.organizationProvider.delete.mutationOptions({
-			onSuccess() {
-				queryClient.invalidateQueries({
-					queryKey: orpc.organizationProvider.list.key(),
-				});
-			},
-		}),
+		organizationProviderQueryOptions.delete(),
 	);
 
 	const handleDeleteProvider = (provider: OrganizationProvider) => {

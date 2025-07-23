@@ -10,7 +10,7 @@ import {
 } from "lucide-react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { ManageUser } from "@/components/users/manage-user";
-import { orpc } from "@/lib/orpc/orpc";
+import { userQueryOptions } from "@/lib/query-options/user";
 
 export const Route = createFileRoute("/app/users/$userId/edit")({
 	component: RouteComponent,
@@ -26,9 +26,8 @@ export const Route = createFileRoute("/app/users/$userId/edit")({
 function RouteComponent() {
 	const { userId } = Route.useParams();
 	const { data: user } = useSuspenseQuery(
-		orpc.user.find.queryOptions({
+		userQueryOptions.find({
 			input: { id: userId },
-			queryKey: orpc.user.find.key({ input: { id: userId } }),
 		}),
 	);
 

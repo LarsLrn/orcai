@@ -3,17 +3,14 @@ import { createFileRoute, useNavigate } from "@tanstack/react-router";
 import { toast } from "sonner";
 import { BotBuilderForm } from "@/components/blocks/builder/bot-builder-form";
 import type { BotInsert } from "@/lib/orpc/contracts/bot";
-import { orpc } from "@/lib/orpc/orpc";
+import { blockQueryOptions } from "@/lib/query-options/block";
+import { botQueryOptions } from "@/lib/query-options/bot";
 
 export const Route = createFileRoute("/app/bots/add")({
 	loader: async ({ context: { queryClient } }) => {
-		// Preload blocks data for the form
 		await queryClient.ensureQueryData(
-			orpc.block.list.queryOptions({
-				input: { pageIndex: 0, pageSize: 50 },
-				queryKey: orpc.block.list.key({
-					input: { pageIndex: 0, pageSize: 50 },
-				}),
+			blockQueryOptions.list({
+				input: { pageIndex: 0, pageSize: 100 },
 			}),
 		);
 	},
@@ -28,15 +25,8 @@ export const Route = createFileRoute("/app/bots/add")({
 });
 
 function RouteComponent() {
-	const { queryClient } = Route.useRouteContext();
 	const navigate = useNavigate();
-	const { mutateAsync: createBot } = useMutation(
-		orpc.bot.create.mutationOptions({
-			onSuccess: () => {
-				queryClient.invalidateQueries({ queryKey: orpc.bot.key() });
-			},
-		}),
-	);
+	const { mutateAsync: createBot } = useMutation(botQueryOptions.create());
 
 	const handleBotSubmit = (data: BotInsert) => {
 		toast.promise(createBot(data), {

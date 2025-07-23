@@ -2,6 +2,8 @@ import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { useState } from "react";
 import type { Asset } from "@/db/schema/asset";
 import { orpc } from "@/lib/orpc/orpc";
+import { assetQueryOptions } from "@/lib/query-options/asset";
+import { storageQueryOptions } from "@/lib/query-options/storage";
 import { getFileTypeFromMime, uploadToS3 } from "@/lib/s3/upload-helpers";
 
 export interface UploadState {
@@ -25,24 +27,11 @@ export const useFileUpload = (options?: { timeoutMs?: number }) => {
 
 	// Get presigned URLs mutation using ORPC
 	const { mutateAsync: getPresignedUrls } = useMutation(
-		orpc.storage.createUploadUrls.mutationOptions({
-			onError(error) {
-				console.error("Failed to get presigned URLs:", error);
-				alert(error.message);
-			},
-		}),
+		storageQueryOptions.createUploadUrls(),
 	);
 
 	// Save asset info mutation using ORPC
-	const { mutateAsync: saveAssetInfo } = useMutation(
-		orpc.asset.create.mutationOptions({
-			onSuccess() {
-				queryClient.invalidateQueries({
-					queryKey: orpc.asset.key(),
-				});
-			},
-		}),
-	);
+	const { mutateAsync: createAsset } = useMutation(assetQueryOptions.create());
 
 	// Main upload mutation that orchestrates everything
 	const uploadMutation = useMutation({
@@ -137,7 +126,7 @@ export const useFileUpload = (options?: { timeoutMs?: number }) => {
 				const { presignedUrl } = uploadResults[i];
 
 				// Use ORPC mutation to save asset info
-				const asset = await saveAssetInfo({
+				const asset = await createAsset({
 					id: presignedUrl.id,
 					title: presignedUrl.name,
 					size: presignedUrl.size,

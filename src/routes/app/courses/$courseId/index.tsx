@@ -5,7 +5,7 @@ import { BotIcon, CalendarIcon } from "lucide-react";
 import { ContentRenderer } from "@/components/editor/content-renderer";
 import { Badge } from "@/components/ui/badge";
 import { buttonVariants } from "@/components/ui/button";
-import { orpc } from "@/lib/orpc/orpc";
+import { courseQueryOptions } from "@/lib/query-options/course";
 
 export const Route = createFileRoute("/app/courses/$courseId/")({
 	component: RouteComponent,
@@ -14,9 +14,8 @@ export const Route = createFileRoute("/app/courses/$courseId/")({
 function RouteComponent() {
 	const { courseId } = Route.useParams();
 	const { data: course } = useSuspenseQuery(
-		orpc.course.find.queryOptions({
+		courseQueryOptions.find({
 			input: { id: courseId },
-			queryKey: orpc.course.find.key({ input: { id: courseId } }),
 		}),
 	);
 
@@ -29,15 +28,7 @@ function RouteComponent() {
 					<h4 className="w-fit font-regular text-3xl tracking-tighter md:text-5xl">
 						{title}
 					</h4>
-					{/* {hasCourseEditPermission && ( */}
 					<div className="flex gap-2">
-						{/* <Link
-              href={ROUTES.PRIVATE.courses.members.getPath({ id })}
-              className={buttonVariants({ variant: "default" })}
-            >
-              Manage Users
-            </Link> */}
-
 						<Link
 							to={"/app/courses/add"}
 							className={buttonVariants({ variant: "default" })}
@@ -52,7 +43,6 @@ function RouteComponent() {
 							Edit Course
 						</Link>
 					</div>
-					{/* )} */}
 				</div>
 			</div>
 

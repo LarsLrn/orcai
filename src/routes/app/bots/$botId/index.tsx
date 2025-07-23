@@ -38,7 +38,7 @@ import {
 	TooltipContent,
 	TooltipTrigger,
 } from "@/components/ui/tooltip";
-import { orpc } from "@/lib/orpc/orpc";
+import { botQueryOptions } from "@/lib/query-options/bot";
 import { cn } from "@/lib/utils";
 
 export const Route = createFileRoute("/app/bots/$botId/")({
@@ -49,11 +49,8 @@ function RouteComponent() {
 	const { botId } = Route.useParams();
 
 	const { data: botData } = useSuspenseQuery(
-		orpc.bot.find.queryOptions({
+		botQueryOptions.find({
 			input: { id: botId },
-			queryKey: orpc.bot.find.key({
-				input: { id: botId },
-			}),
 		}),
 	);
 

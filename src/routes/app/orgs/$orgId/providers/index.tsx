@@ -1,4 +1,4 @@
-import { keepPreviousData, useSuspenseQuery } from "@tanstack/react-query";
+import { useSuspenseQuery } from "@tanstack/react-query";
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { zodValidator } from "@tanstack/zod-adapter";
 import { z } from "zod/v4";
@@ -8,7 +8,7 @@ import { DataTable } from "@/components/ui/data-table/data-table";
 import { DataTableBody } from "@/components/ui/data-table/data-table-body";
 import { DataTablePagination } from "@/components/ui/data-table/data-table-pagination";
 import { DataTableViewOptions } from "@/components/ui/data-table/data-table-view-options";
-import { orpc } from "@/lib/orpc/orpc";
+import { organizationProviderQueryOptions } from "@/lib/query-options/organization-provider";
 
 const searchParams = z.object({
 	pageIndex: z.coerce.number().default(0),
@@ -27,11 +27,8 @@ export const Route = createFileRoute("/app/orgs/$orgId/providers/")({
 		params: { orgId },
 	}) => {
 		await queryClient.ensureQueryData(
-			orpc.organizationProvider.list.queryOptions({
+			organizationProviderQueryOptions.list({
 				input: { organizationId: orgId, pageIndex, pageSize },
-				queryKey: orpc.organizationProvider.list.key({
-					input: { organizationId: orgId, pageIndex, pageSize },
-				}),
 			}),
 		);
 	},
@@ -42,12 +39,8 @@ function RouteComponent() {
 	const { pageIndex, pageSize } = Route.useSearch();
 	const { orgId } = Route.useParams();
 	const { data: providers } = useSuspenseQuery(
-		orpc.organizationProvider.list.queryOptions({
+		organizationProviderQueryOptions.list({
 			input: { organizationId: orgId, pageIndex, pageSize },
-			queryKey: orpc.organizationProvider.list.key({
-				input: { organizationId: orgId, pageIndex, pageSize },
-			}),
-			placeholderData: keepPreviousData,
 		}),
 	);
 

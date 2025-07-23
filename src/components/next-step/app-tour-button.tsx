@@ -1,10 +1,11 @@
 import { Slot } from "@radix-ui/react-slot";
 import { useQuery } from "@tanstack/react-query";
+import { useRouteContext } from "@tanstack/react-router";
 import type { VariantProps } from "class-variance-authority";
 import { useNextStep } from "nextstepjs";
 import { useEffect } from "react";
 import { buttonVariants } from "@/components/ui/button";
-import { orpc } from "@/lib/orpc/orpc";
+import { userQueryOptions } from "@/lib/query-options/user";
 import { cn } from "@/lib/utils";
 
 const AppTourButton = ({
@@ -22,10 +23,11 @@ const AppTourButton = ({
 	VariantProps<typeof buttonVariants> & {
 		asChild?: boolean;
 	}) => {
+	const { auth } = useRouteContext({ from: "/app" });
 	const { startNextStep } = useNextStep();
 	const { data: userPrefs, status } = useQuery(
-		orpc.user.find.queryOptions({
-			queryKey: orpc.user.find.key(),
+		userQueryOptions.find({
+			input: { id: auth.user.id },
 		}),
 	);
 

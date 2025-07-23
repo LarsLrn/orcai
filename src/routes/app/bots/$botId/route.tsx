@@ -1,14 +1,11 @@
 import { createFileRoute, Outlet } from "@tanstack/react-router";
-import { orpc } from "@/lib/orpc/orpc";
+import { botQueryOptions } from "@/lib/query-options/bot";
 
 export const Route = createFileRoute("/app/bots/$botId")({
 	loader: async ({ context: { queryClient }, params: { botId } }) => {
 		return await queryClient.ensureQueryData(
-			orpc.bot.find.queryOptions({
+			botQueryOptions.find({
 				input: { id: botId },
-				queryKey: orpc.bot.find.key({
-					input: { id: botId },
-				}),
 			}),
 		);
 	},

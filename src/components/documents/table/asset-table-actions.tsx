@@ -11,11 +11,11 @@ import {
 	DropdownMenuSeparator,
 } from "@/components/ui/dropdown-menu";
 import { useDeleteAssets } from "@/lib/client-actions/use-delete";
-import { orpc } from "@/lib/orpc/orpc";
+import { taskQueryOptions } from "@/lib/query-options/task";
 
 const AssetTableActions = () => {
 	const { mutateAsync: createAssetTask } = useMutation(
-		orpc.task.createAssetTask.mutationOptions(),
+		taskQueryOptions.createAssetTask(),
 	);
 
 	const { table } = useTable();

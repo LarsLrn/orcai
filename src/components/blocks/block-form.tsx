@@ -3,14 +3,12 @@ import {
 	skipToken,
 	useMutation,
 	useQuery,
-	useQueryClient,
 	useSuspenseQuery,
 } from "@tanstack/react-query";
 import { useRouteContext, useRouter } from "@tanstack/react-router";
 import { useForm } from "react-hook-form";
 import { toast } from "sonner";
 import type { z } from "zod/v4";
-/* import { BlockEditor } from "@/components/editor"; */
 import { FormSelectField } from "@/components/forms/fields/form-select-field";
 import { FormTextField } from "@/components/forms/fields/form-text-field";
 import { Button } from "@/components/ui/button";
@@ -18,42 +16,23 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Form } from "@/components/ui/form";
 import type { Block } from "@/db/schema/block";
 import { blockInsertSchema } from "@/lib/orpc/contracts/block";
-import { orpc } from "@/lib/orpc/orpc";
+import { blockQueryOptions } from "@/lib/query-options/block";
+import { modelQueryOptions } from "@/lib/query-options/model";
+import { organizationProviderQueryOptions } from "@/lib/query-options/organization-provider";
 import { FormInputField } from "../forms/fields/form-input-field";
 
 const BlockForm = ({ block }: { block?: Block }) => {
-	const queryClient = useQueryClient();
 	const router = useRouter();
 	const { auth } = useRouteContext({ from: "/app" });
 
 	const { data: providers } = useSuspenseQuery(
-		orpc.organizationProvider.list.queryOptions({
+		organizationProviderQueryOptions.list({
 			input: { organizationId: auth.session.activeOrganizationId },
-			queryKey: orpc.organizationProvider.list.key({
-				input: { organizationId: auth.session.activeOrganizationId },
-			}),
 		}),
 	);
 
-	const { mutateAsync: updateBlock } = useMutation(
-		orpc.block.update.mutationOptions({
-			onSuccess() {
-				queryClient.invalidateQueries({
-					queryKey: orpc.block.key(),
-				});
-			},
-		}),
-	);
-
-	const { mutateAsync: createBlock } = useMutation(
-		orpc.block.create.mutationOptions({
-			onSuccess() {
-				queryClient.invalidateQueries({
-					queryKey: orpc.block.key(),
-				});
-			},
-		}),
-	);
+	const { mutateAsync: updateBlock } = useMutation(blockQueryOptions.update());
+	const { mutateAsync: createBlock } = useMutation(blockQueryOptions.create());
 
 	const form = useForm<z.infer<typeof blockInsertSchema>>({
 		resolver: zodResolver(blockInsertSchema),
@@ -71,11 +50,8 @@ const BlockForm = ({ block }: { block?: Block }) => {
 	const providerSlug = form.watch("config.provider");
 
 	const { data: models, status: modelsStatus } = useQuery(
-		orpc.model.list.queryOptions({
+		modelQueryOptions.list({
 			input: providerSlug ? { providerSlug } : skipToken,
-			queryKey: orpc.model.list.key({
-				input: { providerSlug },
-			}),
 		}),
 	);
 

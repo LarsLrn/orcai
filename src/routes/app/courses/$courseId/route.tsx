@@ -1,12 +1,11 @@
 import { createFileRoute, Outlet } from "@tanstack/react-router";
-import { orpc } from "@/lib/orpc/orpc";
+import { courseQueryOptions } from "@/lib/query-options/course";
 
 export const Route = createFileRoute("/app/courses/$courseId")({
 	loader: async ({ context: { queryClient }, params: { courseId } }) => {
 		return await queryClient.ensureQueryData(
-			orpc.course.find.queryOptions({
+			courseQueryOptions.find({
 				input: { id: courseId },
-				queryKey: orpc.course.find.key({ input: { id: courseId } }),
 			}),
 		);
 	},

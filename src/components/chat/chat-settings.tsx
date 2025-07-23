@@ -1,21 +1,16 @@
 import { skipToken, useQuery } from "@tanstack/react-query";
 import type { Chat } from "@/db/schema/chat";
-import { orpc } from "@/lib/orpc/orpc";
+import { botQueryOptions } from "@/lib/query-options/bot";
+import { chatQueryOptions } from "@/lib/query-options/chat";
 
 const ChatSettings = ({ chatId }: { chatId: Chat["id"] }) => {
 	const { data: chat } = useQuery(
-		orpc.chat.find.queryOptions({
-			input: { id: chatId },
-			queryKey: orpc.chat.find.key({ input: { id: chatId } }),
-		}),
+		chatQueryOptions.find({ input: { id: chatId } }),
 	);
 
 	const { data: bot } = useQuery(
-		orpc.bot.find.queryOptions({
+		botQueryOptions.find({
 			input: chat?.data.botId ? { id: chat.data.botId } : skipToken,
-			queryKey: orpc.bot.find.key({
-				input: { id: chat?.data.botId ?? undefined },
-			}),
 		}),
 	);
 

@@ -1,12 +1,11 @@
 import { createFileRoute, Outlet } from "@tanstack/react-router";
-import { orpc } from "@/lib/orpc/orpc";
+import { blockQueryOptions } from "@/lib/query-options/block";
 
 export const Route = createFileRoute("/app/blocks/$blockId")({
 	loader: async ({ context: { queryClient }, params: { blockId } }) => {
 		return await queryClient.ensureQueryData(
-			orpc.block.find.queryOptions({
+			blockQueryOptions.find({
 				input: { id: blockId },
-				queryKey: orpc.block.find.key({ input: { id: blockId } }),
 			}),
 		);
 	},

@@ -17,23 +17,15 @@ import {
 	SidebarMenuButton,
 	SidebarMenuItem,
 } from "@/components/ui/sidebar";
-import { orpc } from "@/lib/orpc/orpc";
+import { organizationQueryOptions } from "@/lib/query-options/organization";
+import { getNameInitial } from "@/lib/utils";
 import { UserMenuActions } from "./user-menu-actions";
-
-const userInitial = (name: string) => name[0].toUpperCase();
 
 const NavUser = () => {
 	const { data: organisations } = useQuery(
-		orpc.organization.list.queryOptions({
-			input: { pageIndex: 0, pageSize: 6 },
-			queryKey: orpc.organization.list.key(),
-		}),
+		organizationQueryOptions.list({ input: { pageIndex: 0, pageSize: 6 } }),
 	);
 	const { auth } = useRouteContext({ from: "/app" });
-
-	if (!auth.isAuthenticated) {
-		return null;
-	}
 
 	const activeOrganization = organisations?.data.find(
 		(org) => org.id === auth.session.activeOrganizationId,
@@ -55,12 +47,11 @@ const NavUser = () => {
 									alt={auth.user.name}
 								/>
 								<AvatarFallback className="rounded-lg">
-									{userInitial(auth.user.name)}
+									{getNameInitial(auth.user.name)}
 								</AvatarFallback>
 							</Avatar>
 							<div className="grid flex-1 text-left text-sm leading-tight">
 								<span className="truncate font-semibold">{auth.user.name}</span>
-								{/* <span className="truncate text-xs">{data.user.email}</span> */}
 								{activeOrganization && (
 									<span className="truncate text-xs">
 										{activeOrganization.name}
@@ -83,7 +74,7 @@ const NavUser = () => {
 										alt={auth.user.name}
 									/>
 									<AvatarFallback className="rounded-lg">
-										{userInitial(auth.user.name)}
+										{getNameInitial(auth.user.name)}
 									</AvatarFallback>
 								</Avatar>
 								<div className="grid flex-1 text-left text-sm leading-tight">

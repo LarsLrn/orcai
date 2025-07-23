@@ -6,7 +6,7 @@ import { buttonVariants } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { LoadingSpinner } from "@/components/ui/loading-spinner";
 import type { Organization } from "@/db/schema/organization";
-import { orpc } from "@/lib/orpc/orpc";
+import { organizationQueryOptions } from "@/lib/query-options/organization";
 
 const OrganizationPreview = ({
 	organizationId,
@@ -18,12 +18,7 @@ const OrganizationPreview = ({
 		status,
 		error,
 	} = useQuery(
-		orpc.organization.find.queryOptions({
-			input: { id: organizationId },
-			queryKey: orpc.organization.find.key({
-				input: { id: organizationId },
-			}),
-		}),
+		organizationQueryOptions.find({ input: { id: organizationId } }),
 	);
 
 	if (status === "pending") {

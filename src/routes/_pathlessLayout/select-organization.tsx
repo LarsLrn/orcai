@@ -12,7 +12,8 @@ import {
 } from "@/components/ui/card";
 import type { Organization } from "@/db/schema/organization";
 import { authClient } from "@/lib/auth-client";
-import { orpc } from "@/lib/orpc/orpc";
+import { organizationQueryOptions } from "@/lib/query-options/organization";
+import { userQueryOptions } from "@/lib/query-options/user";
 
 export const Route = createFileRoute("/_pathlessLayout/select-organization")({
 	component: RouteComponent,
@@ -26,45 +27,35 @@ export const Route = createFileRoute("/_pathlessLayout/select-organization")({
 	},
 	loader: async ({ context: { queryClient } }) => {
 		await queryClient.ensureQueryData(
-			orpc.organization.list.queryOptions({
+			organizationQueryOptions.list({
 				input: { pageIndex: 0, pageSize: 100 },
-				queryKey: orpc.organization.list.key({
-					input: { pageIndex: 0, pageSize: 100 },
-				}),
 			}),
 		);
 	},
 });
 
 function RouteComponent() {
-	const { refetch } = authClient.useSession();
+	const { refetch: refetchSession } = authClient.useSession();
 	const navigate = useNavigate();
 
 	const { data: organizations } = useSuspenseQuery(
-		orpc.organization.list.queryOptions({
+		organizationQueryOptions.list({
 			input: { pageIndex: 0, pageSize: 100 },
-			queryKey: orpc.organization.list.key({
-				input: { pageIndex: 0, pageSize: 100 },
-			}),
 		}),
 	);
 
 	const { mutateAsync: setActiveOrganization } = useMutation(
-		orpc.user.setActiveOrganization.mutationOptions({
-			async onSuccess() {
-				refetch();
-				// TODO: Check if that's needed. Depends on future implementations
-				/* queryClient.clear(); */
-				await navigate({ to: "/app" });
-			},
-		}),
+		userQueryOptions.setActiveOrganization(),
 	);
 
 	const handleOrganizationChange = (organization: Organization) => {
-		// TODO: Refactor to use toast.promise
 		toast.promise(setActiveOrganization({ organizationId: organization.id }), {
 			loading: `Switching to ${organization.name}...`,
-			success: "Organization selected successfully!",
+			success: async () => {
+				refetchSession();
+				await navigate({ to: "/app" });
+				return "Organization selected successfully!";
+			},
 			error: (error) => ({
 				message: "Failed to select organization",
 				description: error.message,

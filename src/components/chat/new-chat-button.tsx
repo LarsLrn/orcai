@@ -1,5 +1,5 @@
 import { Slot } from "@radix-ui/react-slot";
-import { useMutation, useQueryClient } from "@tanstack/react-query";
+import { useMutation } from "@tanstack/react-query";
 import { useNavigate } from "@tanstack/react-router";
 import type { VariantProps } from "class-variance-authority";
 import { toast } from "sonner";
@@ -7,8 +7,7 @@ import { buttonVariants } from "@/components/ui/button";
 import { useSidebar } from "@/components/ui/sidebar";
 import type { Bot } from "@/db/schema/bot";
 import { useUmami } from "@/hooks/use-umami";
-import type { OrpcOutputs } from "@/lib/orpc/contracts";
-import { orpc } from "@/lib/orpc/orpc";
+import { chatQueryOptions } from "@/lib/query-options/chat";
 import { cn } from "@/lib/utils";
 
 const NewChatButton = ({
@@ -27,38 +26,17 @@ const NewChatButton = ({
 	const { setOpenMobile } = useSidebar();
 	const { trackEvent } = useUmami();
 
-	const queryClient = useQueryClient();
-
-	const { mutateAsync: createChat } = useMutation(
-		orpc.chat.create.mutationOptions({
-			async onSuccess(newChat) {
-				// Cache needs to be updated directly as SpiceDB takes time to propagate changes
-				// and the query will return stale data if we wait for the next refetch.
-				queryClient.setQueryData(
-					orpc.chat.list.key(),
-					(oldData: OrpcOutputs["chat"]["list"] | undefined) => {
-						if (!oldData) return { data: [newChat.data], rowCount: 1 };
-						return {
-							data: [newChat.data, ...oldData.data],
-							rowCount: oldData.rowCount + 1,
-						};
-					},
-				);
-
-				await navigate({
-					to: "/app/chat/$chatId",
-					params: { chatId: newChat.data.id },
-				});
-				setOpenMobile(false);
-			},
-		}),
-	);
+	const { mutateAsync: createChat } = useMutation(chatQueryOptions.create());
 
 	const handleNewChat = () => {
-		// TODO: Replace with actual courseId when available
 		toast.promise(createChat({ botId }), {
 			loading: "Creating new chat...",
-			success: (result) => {
+			success: async (result) => {
+				await navigate({
+					to: "/app/chat/$chatId",
+					params: { chatId: result.data.id },
+				});
+				setOpenMobile(false);
 				trackEvent("chat-create", { chatId: result.data.id });
 				return "New chat created";
 			},

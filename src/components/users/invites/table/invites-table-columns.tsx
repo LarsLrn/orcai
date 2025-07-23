@@ -1,4 +1,4 @@
-import { useMutation, useQueryClient } from "@tanstack/react-query";
+import { useMutation } from "@tanstack/react-query";
 import type { ColumnDef } from "@tanstack/react-table";
 import { format } from "date-fns";
 import { MoreHorizontal } from "lucide-react";
@@ -14,11 +14,11 @@ import {
 	DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import type { CourseInvitation } from "@/db/schema/course-invitation";
-import { orpc } from "@/lib/orpc/orpc";
+import { courseInvitationQueryOptions } from "@/lib/query-options/course-invitation";
 
 const handleCopy = (id: CourseInvitation["id"]) => {
 	// TODO: Replace with actual URL generation logic (useRouter)
-	const url = `${process.env.NEXT_PUBLIC_BASE_URL}/signup?invitationId=${id}`;
+	const url = `${import.meta.env.VITE_BASE_URL}/signup?invitationId=${id}`;
 
 	toast.promise(navigator.clipboard.writeText(url), {
 		loading: "Copying invitation link...",
@@ -119,20 +119,8 @@ const DeleteItem = ({
 }: {
 	invitationId: CourseInvitation["id"];
 }) => {
-	const queryClient = useQueryClient();
-
 	const { mutateAsync: deleteInvitations } = useMutation(
-		orpc.courseInvitation.delete.mutationOptions({
-			onSuccess() {
-				queryClient.invalidateQueries({
-					queryKey: orpc.courseInvitation.list.key(),
-				});
-			},
-			onError(error) {
-				console.error(error);
-				alert(error.message);
-			},
-		}),
+		courseInvitationQueryOptions.delete(),
 	);
 
 	const handleDelete = (id: CourseInvitation["id"]) => {

@@ -1,9 +1,9 @@
-import { useMutation, useQueryClient } from "@tanstack/react-query";
+import { useMutation } from "@tanstack/react-query";
 import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
 import type { CourseInvitation } from "@/db/schema/course-invitation";
 import { useUmami } from "@/hooks/use-umami";
-import { orpc } from "@/lib/orpc/orpc";
+import { courseInvitationQueryOptions } from "@/lib/query-options/course-invitation";
 
 interface CourseInvitationActionsProps {
 	invitation: CourseInvitation;
@@ -15,19 +15,8 @@ export function CourseInvitationActions({
 	// TODO: Replace with actual courseId
 	const courseId = "placeholder";
 
-	const queryClient = useQueryClient();
 	const { mutateAsync: respondToInvitation } = useMutation(
-		orpc.courseInvitation.respond.mutationOptions({
-			onSuccess() {
-				queryClient.invalidateQueries({
-					queryKey: orpc.asset.key(),
-				});
-			},
-			onError(error) {
-				console.error(error);
-				alert(error.message);
-			},
-		}),
+		courseInvitationQueryOptions.respond(),
 	);
 
 	const { trackEvent } = useUmami();
@@ -57,9 +46,9 @@ export function CourseInvitationActions({
 			{
 				loading: "Rejecting invitation...",
 				success: () => {
-					/* trackEvent("reject-course-invitation", {
+					trackEvent("reject-course-invitation", {
 						courseId: invitation.courseId,
-					}); */
+					});
 					return "Invitation rejected!";
 				},
 				error: (error) => ({

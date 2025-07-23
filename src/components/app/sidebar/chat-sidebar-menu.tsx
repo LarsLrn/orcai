@@ -1,4 +1,4 @@
-import { keepPreviousData, useQuery } from "@tanstack/react-query";
+import { useQuery } from "@tanstack/react-query";
 import { Link } from "@tanstack/react-router";
 import { MessagesSquareIcon, MoreHorizontalIcon } from "lucide-react";
 import { ChatActionsDropdown } from "@/components/chat/chat-actions-dropdown";
@@ -9,14 +9,12 @@ import {
 	SidebarMenuButton,
 	SidebarMenuItem,
 } from "@/components/ui/sidebar";
-import { orpc } from "@/lib/orpc/orpc";
+import { chatQueryOptions } from "@/lib/query-options/chat";
 
 const ChatSidebarMenu = () => {
 	const { data, status, error } = useQuery(
-		orpc.chat.list.queryOptions({
+		chatQueryOptions.list({
 			input: { pageIndex: 0, pageSize: 100 },
-			queryKey: [...orpc.chat.list.key()],
-			placeholderData: keepPreviousData,
 		}),
 	);
 

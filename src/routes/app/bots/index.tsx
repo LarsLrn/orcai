@@ -21,17 +21,13 @@ import {
 	CardTitle,
 } from "@/components/ui/card";
 import { Separator } from "@/components/ui/separator";
-import { orpc } from "@/lib/orpc/orpc";
+import { botQueryOptions } from "@/lib/query-options/bot";
 
 export const Route = createFileRoute("/app/bots/")({
 	loader: async ({ context: { queryClient } }) => {
-		// Preload bots data for the page
 		await queryClient.ensureQueryData(
-			orpc.bot.list.queryOptions({
+			botQueryOptions.list({
 				input: { pageIndex: 0, pageSize: 50 },
-				queryKey: orpc.bot.list.key({
-					input: { pageIndex: 0, pageSize: 50 },
-				}),
 			}),
 		);
 	},
@@ -40,11 +36,8 @@ export const Route = createFileRoute("/app/bots/")({
 
 function RouteComponent() {
 	const { data: bots } = useSuspenseQuery(
-		orpc.bot.list.queryOptions({
+		botQueryOptions.list({
 			input: { pageIndex: 0, pageSize: 50 },
-			queryKey: orpc.bot.list.key({
-				input: { pageIndex: 0, pageSize: 50 },
-			}),
 		}),
 	);
 

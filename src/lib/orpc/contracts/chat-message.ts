@@ -115,4 +115,14 @@ export const rateChatMessageContract = base
 			sentiment: z.number().min(1).max(5),
 		}),
 	)
-	.output(z.object({ success: z.boolean(), message: z.string().optional() }));
+	.output(
+		z.object({
+			success: z.boolean(),
+			message: z.string().optional(),
+			data: z.object({
+				id: chatMessageSelectSchema.shape.id,
+				chatId: chatMessageSelectSchema.shape.chatId,
+				sentiment: z.number().min(1).max(5),
+			}),
+		}),
+	);
