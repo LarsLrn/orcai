@@ -1,8 +1,10 @@
 {
-	"name": "tanstack-test",
-	"version": "1.0.0",
-	"description": "",
-	"main": "index.js",
+	"name": "sokratest",
+	"version": "0.2.0",
+	"description": "AI tutoring platform for higher education",
+	"author": "Lars Lorenz",
+	"private": true,
+	"type": "module",
 	"scripts": {
 		"dev": "vite dev",
 		"build": "vite build",
@@ -23,10 +25,6 @@
 		"machine-translate": "inlang machine translate --project project.inlang",
 		"prepare": "husky"
 	},
-	"keywords": [],
-	"author": "",
-	"license": "ISC",
-	"type": "module",
 	"dependencies": {
 		"@ai-sdk/openai": "^2.0.0-beta.11",
 		"@ai-sdk/react": "^2.0.0-beta.25",
