@@ -1,4 +1,4 @@
-import { useMutation, useQuery } from "@tanstack/react-query";
+import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { useNavigate, useRouteContext } from "@tanstack/react-router";
 import { Check } from "lucide-react";
 import { toast } from "sonner";
@@ -16,13 +16,14 @@ import { userQueryOptions } from "@/lib/query-options/user";
 const OrganizationSwitcher = () => {
 	const { auth } = useRouteContext({ from: "/app" });
 	const { refetch: refetchSession } = authClient.useSession();
+	const queryClient = useQueryClient();
 
 	const { data: organizations, status } = useQuery(
 		organizationQueryOptions.list({ input: { pageIndex: 0, pageSize: 100 } }),
 	);
 
 	const { mutateAsync: setActiveOrganization } = useMutation(
-		userQueryOptions.setActiveOrganization(),
+		userQueryOptions.setActiveOrganization(queryClient),
 	);
 
 	const navigate = useNavigate();

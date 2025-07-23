@@ -1,4 +1,4 @@
-import { useMutation } from "@tanstack/react-query";
+import { useMutation, useQueryClient } from "@tanstack/react-query";
 import type { ApiGetScoresResponseData } from "langfuse";
 import { CheckIcon } from "lucide-react";
 import { type ComponentProps, useState } from "react";
@@ -25,8 +25,9 @@ const MessageRate = ({
 		number | undefined | null
 	>(score?.value);
 	const { trackEvent } = useUmami();
+	const queryClient = useQueryClient();
 	const { mutateAsync: rateMessage } = useMutation(
-		chatMessageQueryOptions.rate(),
+		chatMessageQueryOptions.rate(queryClient),
 	);
 
 	const handleRate = (sentiment: number) => {

@@ -1,4 +1,4 @@
-import { useMutation } from "@tanstack/react-query";
+import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { Link } from "@tanstack/react-router";
 import type { ColumnDef } from "@tanstack/react-table";
 import { format } from "date-fns";
@@ -96,8 +96,9 @@ export const columns: ColumnDef<Course>[] = [
 ];
 
 const DeleteItem = ({ courseId }: { courseId: Course["id"] }) => {
+	const queryClient = useQueryClient();
 	const { mutateAsync: deleteCourses } = useMutation(
-		courseQueryOptions.delete(),
+		courseQueryOptions.delete(queryClient),
 	);
 
 	const handleDelete = (id: string) => {

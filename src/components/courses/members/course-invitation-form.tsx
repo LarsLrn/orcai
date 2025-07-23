@@ -1,5 +1,9 @@
 import { zodResolver } from "@hookform/resolvers/zod";
-import { useMutation, useSuspenseQuery } from "@tanstack/react-query";
+import {
+	useMutation,
+	useQueryClient,
+	useSuspenseQuery,
+} from "@tanstack/react-query";
 import { useNavigate } from "@tanstack/react-router";
 import { AlertCircle, CircleMinusIcon } from "lucide-react";
 import { useFieldArray, useForm } from "react-hook-form";
@@ -37,6 +41,7 @@ import { courseInvitationQueryOptions } from "@/lib/query-options/course-invitat
 
 const CourseInvitationForm = () => {
 	const navigate = useNavigate();
+	const queryClient = useQueryClient();
 	const { data: courses } = useSuspenseQuery(
 		courseQueryOptions.list({
 			input: { pageIndex: 0, pageSize: 100 },
@@ -44,7 +49,7 @@ const CourseInvitationForm = () => {
 	);
 
 	const { mutateAsync: createCourseInvitations } = useMutation(
-		courseInvitationQueryOptions.create(),
+		courseInvitationQueryOptions.create(queryClient),
 	);
 
 	const form = useForm<CourseInvitationsInsertSchemaType>({

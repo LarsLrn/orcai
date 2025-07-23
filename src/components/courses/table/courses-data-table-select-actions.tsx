@@ -1,5 +1,5 @@
 import { DropdownMenuTrigger } from "@radix-ui/react-dropdown-menu";
-import { useMutation } from "@tanstack/react-query";
+import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { ReplaceAllIcon } from "lucide-react";
 import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
@@ -13,9 +13,10 @@ import { courseQueryOptions } from "@/lib/query-options/course";
 
 const CoursesDataTableSelectActions = () => {
 	const { table } = useTable();
+	const queryClient = useQueryClient();
 
 	const { mutateAsync: deleteCourses } = useMutation(
-		courseQueryOptions.delete(),
+		courseQueryOptions.delete(queryClient),
 	);
 
 	if (!table) return null;

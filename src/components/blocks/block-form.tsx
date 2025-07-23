@@ -3,6 +3,7 @@ import {
 	skipToken,
 	useMutation,
 	useQuery,
+	useQueryClient,
 	useSuspenseQuery,
 } from "@tanstack/react-query";
 import { useRouteContext, useRouter } from "@tanstack/react-router";
@@ -23,6 +24,7 @@ import { FormInputField } from "../forms/fields/form-input-field";
 
 const BlockForm = ({ block }: { block?: Block }) => {
 	const router = useRouter();
+	const queryClient = useQueryClient();
 	const { auth } = useRouteContext({ from: "/app" });
 
 	const { data: providers } = useSuspenseQuery(
@@ -31,8 +33,12 @@ const BlockForm = ({ block }: { block?: Block }) => {
 		}),
 	);
 
-	const { mutateAsync: updateBlock } = useMutation(blockQueryOptions.update());
-	const { mutateAsync: createBlock } = useMutation(blockQueryOptions.create());
+	const { mutateAsync: updateBlock } = useMutation(
+		blockQueryOptions.update(queryClient),
+	);
+	const { mutateAsync: createBlock } = useMutation(
+		blockQueryOptions.create(queryClient),
+	);
 
 	const form = useForm<z.infer<typeof blockInsertSchema>>({
 		resolver: zodResolver(blockInsertSchema),

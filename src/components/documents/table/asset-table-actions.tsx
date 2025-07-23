@@ -1,5 +1,5 @@
 import { DropdownMenuTrigger } from "@radix-ui/react-dropdown-menu";
-import { useMutation } from "@tanstack/react-query";
+import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { ReplaceAllIcon } from "lucide-react";
 import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
@@ -14,8 +14,9 @@ import { useDeleteAssets } from "@/lib/client-actions/use-delete";
 import { taskQueryOptions } from "@/lib/query-options/task";
 
 const AssetTableActions = () => {
+	const queryClient = useQueryClient();
 	const { mutateAsync: createAssetTask } = useMutation(
-		taskQueryOptions.createAssetTask(),
+		taskQueryOptions.createAssetTask(queryClient),
 	);
 
 	const { table } = useTable();

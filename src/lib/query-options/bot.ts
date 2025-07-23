@@ -1,6 +1,9 @@
-import { keepPreviousData, type skipToken } from "@tanstack/react-query";
+import {
+	keepPreviousData,
+	type QueryClient,
+	type skipToken,
+} from "@tanstack/react-query";
 import { orpc } from "@/lib/orpc/orpc";
-import { queryClient } from "@/router";
 import type { OrpcInputs } from "../orpc/contracts";
 
 export const botQueryOptions = {
@@ -32,7 +35,7 @@ export const botQueryOptions = {
 		});
 	},
 
-	create: () => {
+	create: (queryClient: QueryClient) => {
 		return orpc.bot.create.mutationOptions({
 			onSuccess: () => {
 				queryClient.invalidateQueries({
@@ -42,7 +45,7 @@ export const botQueryOptions = {
 		});
 	},
 
-	update: () => {
+	update: (queryClient: QueryClient) => {
 		return orpc.bot.update.mutationOptions({
 			onSuccess: () => {
 				queryClient.invalidateQueries({
@@ -52,7 +55,7 @@ export const botQueryOptions = {
 		});
 	},
 
-	delete: () => {
+	delete: (queryClient: QueryClient) => {
 		return orpc.bot.delete.mutationOptions({
 			onSuccess: () => {
 				queryClient.invalidateQueries({

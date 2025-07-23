@@ -31,7 +31,9 @@ export const useFileUpload = (options?: { timeoutMs?: number }) => {
 	);
 
 	// Save asset info mutation using ORPC
-	const { mutateAsync: createAsset } = useMutation(assetQueryOptions.create());
+	const { mutateAsync: createAsset } = useMutation(
+		assetQueryOptions.create(queryClient),
+	);
 
 	// Main upload mutation that orchestrates everything
 	const uploadMutation = useMutation({

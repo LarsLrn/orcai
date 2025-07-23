@@ -1,4 +1,4 @@
-import { useMutation } from "@tanstack/react-query";
+import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { createFileRoute, useNavigate } from "@tanstack/react-router";
 import { toast } from "sonner";
 import { BotBuilderForm } from "@/components/blocks/builder/bot-builder-form";
@@ -26,7 +26,10 @@ export const Route = createFileRoute("/app/bots/add")({
 
 function RouteComponent() {
 	const navigate = useNavigate();
-	const { mutateAsync: createBot } = useMutation(botQueryOptions.create());
+	const queryClient = useQueryClient();
+	const { mutateAsync: createBot } = useMutation(
+		botQueryOptions.create(queryClient),
+	);
 
 	const handleBotSubmit = (data: BotInsert) => {
 		toast.promise(createBot(data), {

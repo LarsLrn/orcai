@@ -1,4 +1,4 @@
-import { useMutation } from "@tanstack/react-query";
+import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { Link } from "@tanstack/react-router";
 import {
 	Database,
@@ -36,8 +36,9 @@ const AssetActions = ({
 	filePath: string;
 	className?: string;
 }) => {
+	const queryClient = useQueryClient();
 	const { mutateAsync: createAssetTask } = useMutation(
-		taskQueryOptions.createAssetTask(),
+		taskQueryOptions.createAssetTask(queryClient),
 	);
 	const { deleteAssets } = useDeleteAssets();
 

@@ -1,4 +1,4 @@
-import { useMutation } from "@tanstack/react-query";
+import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { useCallback } from "react";
 import { toast } from "sonner";
 import { useConfirm } from "@/components/ui/dialog/confirm-dialog";
@@ -18,9 +18,10 @@ interface DeleteAssetsParams {
 
 const useDeleteAssets = () => {
 	const confirm = useConfirm();
+	const queryClient = useQueryClient();
 
 	const { mutateAsync: deleteAssets, isPending } = useMutation(
-		assetQueryOptions.delete(),
+		assetQueryOptions.delete(queryClient),
 	);
 
 	const handleDelete = useCallback(

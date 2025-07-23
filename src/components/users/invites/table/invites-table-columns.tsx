@@ -1,4 +1,4 @@
-import { useMutation } from "@tanstack/react-query";
+import { useMutation, useQueryClient } from "@tanstack/react-query";
 import type { ColumnDef } from "@tanstack/react-table";
 import { format } from "date-fns";
 import { MoreHorizontal } from "lucide-react";
@@ -119,8 +119,9 @@ const DeleteItem = ({
 }: {
 	invitationId: CourseInvitation["id"];
 }) => {
+	const queryClient = useQueryClient();
 	const { mutateAsync: deleteInvitations } = useMutation(
-		courseInvitationQueryOptions.delete(),
+		courseInvitationQueryOptions.delete(queryClient),
 	);
 
 	const handleDelete = (id: CourseInvitation["id"]) => {

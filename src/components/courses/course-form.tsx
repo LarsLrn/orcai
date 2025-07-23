@@ -1,5 +1,5 @@
 import { zodResolver } from "@hookform/resolvers/zod";
-import { useMutation } from "@tanstack/react-query";
+import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { useRouter } from "@tanstack/react-router";
 import { useForm } from "react-hook-form";
 import { toast } from "sonner";
@@ -20,12 +20,13 @@ import { courseQueryOptions } from "@/lib/query-options/course";
 
 const CourseForm = ({ course }: { course?: Course }) => {
 	const router = useRouter();
+	const queryClient = useQueryClient();
 
 	const { mutateAsync: updateCourse } = useMutation(
-		courseQueryOptions.update(),
+		courseQueryOptions.update(queryClient),
 	);
 	const { mutateAsync: createCourse } = useMutation(
-		courseQueryOptions.create(),
+		courseQueryOptions.create(queryClient),
 	);
 
 	const form = useForm<z.infer<typeof courseInsertSchema>>({

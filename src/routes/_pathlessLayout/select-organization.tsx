@@ -1,4 +1,8 @@
-import { useMutation, useSuspenseQuery } from "@tanstack/react-query";
+import {
+	useMutation,
+	useQueryClient,
+	useSuspenseQuery,
+} from "@tanstack/react-query";
 import { createFileRoute, redirect, useNavigate } from "@tanstack/react-router";
 import { BuildingIcon, ChevronRightIcon } from "lucide-react";
 import { toast } from "sonner";
@@ -37,6 +41,7 @@ export const Route = createFileRoute("/_pathlessLayout/select-organization")({
 function RouteComponent() {
 	const { refetch: refetchSession } = authClient.useSession();
 	const navigate = useNavigate();
+	const queryClient = useQueryClient();
 
 	const { data: organizations } = useSuspenseQuery(
 		organizationQueryOptions.list({
@@ -45,7 +50,7 @@ function RouteComponent() {
 	);
 
 	const { mutateAsync: setActiveOrganization } = useMutation(
-		userQueryOptions.setActiveOrganization(),
+		userQueryOptions.setActiveOrganization(queryClient),
 	);
 
 	const handleOrganizationChange = (organization: Organization) => {

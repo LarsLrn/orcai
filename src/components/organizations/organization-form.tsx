@@ -1,5 +1,5 @@
 import { zodResolver } from "@hookform/resolvers/zod";
-import { useMutation } from "@tanstack/react-query";
+import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { useNavigate } from "@tanstack/react-router";
 import { useForm } from "react-hook-form";
 import { toast } from "sonner";
@@ -17,12 +17,13 @@ const OrganizationForm = ({
 	organization?: Organization;
 }) => {
 	const navigate = useNavigate();
+	const queryClient = useQueryClient();
 	const { mutateAsync: updateOrganization } = useMutation(
-		organizationQueryOptions.update(),
+		organizationQueryOptions.update(queryClient),
 	);
 
 	const { mutateAsync: createOrganization } = useMutation(
-		organizationQueryOptions.create(),
+		organizationQueryOptions.create(queryClient),
 	);
 
 	const form = useForm<z.infer<typeof organizationInsertSchema>>({

@@ -1,4 +1,4 @@
-import { useMutation } from "@tanstack/react-query";
+import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { toast } from "sonner";
 import type z from "zod/v4";
 import { Button } from "@/components/ui/button";
@@ -15,8 +15,9 @@ const ManageOrganizationProvider = ({
 	organizationId: string;
 	organizationProvider: OrganizationProvider;
 }) => {
+	const queryClient = useQueryClient();
 	const { mutateAsync: deleteProvider } = useMutation(
-		organizationProviderQueryOptions.delete(),
+		organizationProviderQueryOptions.delete(queryClient),
 	);
 
 	const handleDeleteProvider = (provider: OrganizationProvider) => {

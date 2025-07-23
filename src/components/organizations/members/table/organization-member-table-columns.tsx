@@ -83,11 +83,11 @@ export const organizationMemberTableColumns: ColumnDef<User>[] = [
 ];
 
 const DeleteItem = ({ userId }: { userId: User["id"] }) => {
-	const { auth } = useRouteContext({ from: "/app" });
+	const { auth, queryClient } = useRouteContext({ from: "/app" });
 	const organizationId = auth.session.activeOrganizationId;
 
 	const { mutateAsync: deleteMembers } = useMutation(
-		organizationMemberQueryOptions.delete(),
+		organizationMemberQueryOptions.delete(queryClient),
 	);
 
 	const handleDelete = (

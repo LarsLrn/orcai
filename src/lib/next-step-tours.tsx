@@ -1,4 +1,4 @@
-import { useMutation } from "@tanstack/react-query";
+import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { useRouter } from "@tanstack/react-router";
 import { type NavigationAdapter, NextStepReact, type Tour } from "nextstepjs";
 import type { ReactNode } from "react";
@@ -206,9 +206,10 @@ const useCustomAdapter = (): NavigationAdapter => {
 export const NextStepTours = ({ children }: { children: ReactNode }) => {
 	const { setOpenMobile } = useSidebar();
 	const { trackEvent } = useUmami();
+	const queryClient = useQueryClient();
 
 	const { mutateAsync: setTourState } = useMutation(
-		userQueryOptions.setTourState(),
+		userQueryOptions.setTourState(queryClient),
 	);
 
 	const nextStepCallbacks = {

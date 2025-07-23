@@ -1,6 +1,9 @@
-import { keepPreviousData, type skipToken } from "@tanstack/react-query";
+import {
+	keepPreviousData,
+	type QueryClient,
+	type skipToken,
+} from "@tanstack/react-query";
 import { orpc } from "@/lib/orpc/orpc";
-import { queryClient } from "@/router";
 import type { OrpcInputs } from "../orpc/contracts";
 
 export const userQueryOptions = {
@@ -36,7 +39,7 @@ export const userQueryOptions = {
 		return orpc.user.updatePassword.mutationOptions();
 	},
 
-	setActiveOrganization: () => {
+	setActiveOrganization: (queryClient: QueryClient) => {
 		return orpc.user.setActiveOrganization.mutationOptions({
 			onSuccess: () => {
 				// TODO: Unsure if this is actually needed, but probably a good idea to avoid stale data
@@ -45,7 +48,7 @@ export const userQueryOptions = {
 		});
 	},
 
-	setTourState: () => {
+	setTourState: (queryClient: QueryClient) => {
 		return orpc.user.setTourState.mutationOptions({
 			onSuccess: () => {
 				queryClient.invalidateQueries({

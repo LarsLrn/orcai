@@ -1,4 +1,4 @@
-import { useMutation } from "@tanstack/react-query";
+import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { Link } from "@tanstack/react-router";
 import type { ColumnDef } from "@tanstack/react-table";
 import { format } from "date-fns";
@@ -93,7 +93,10 @@ export const columns: ColumnDef<Block>[] = [
 ];
 
 const DeleteItem = ({ blockId }: { blockId: Block["id"] }) => {
-	const { mutateAsync: deleteBlocks } = useMutation(blockQueryOptions.delete());
+	const queryClient = useQueryClient();
+	const { mutateAsync: deleteBlocks } = useMutation(
+		blockQueryOptions.delete(queryClient),
+	);
 
 	const handleDelete = (id: string) => {
 		toast.promise(deleteBlocks({ refs: [{ id }] }), {

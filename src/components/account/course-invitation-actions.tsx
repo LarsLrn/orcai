@@ -1,4 +1,4 @@
-import { useMutation } from "@tanstack/react-query";
+import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
 import type { CourseInvitation } from "@/db/schema/course-invitation";
@@ -12,14 +12,15 @@ interface CourseInvitationActionsProps {
 export function CourseInvitationActions({
 	invitation,
 }: CourseInvitationActionsProps) {
-	// TODO: Replace with actual courseId
-	const courseId = "placeholder";
+	const { trackEvent } = useUmami();
+	const queryClient = useQueryClient();
 
 	const { mutateAsync: respondToInvitation } = useMutation(
-		courseInvitationQueryOptions.respond(),
+		courseInvitationQueryOptions.respond(queryClient),
 	);
 
-	const { trackEvent } = useUmami();
+	// TODO: Replace with actual courseId
+	const courseId = "placeholder";
 
 	const handleAccept = () => {
 		toast.promise(

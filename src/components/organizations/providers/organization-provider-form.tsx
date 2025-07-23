@@ -1,5 +1,9 @@
 import { zodResolver } from "@hookform/resolvers/zod";
-import { useMutation, useSuspenseQuery } from "@tanstack/react-query";
+import {
+	useMutation,
+	useQueryClient,
+	useSuspenseQuery,
+} from "@tanstack/react-query";
 import { useNavigate } from "@tanstack/react-router";
 import { useForm } from "react-hook-form";
 import { toast } from "sonner";
@@ -24,14 +28,15 @@ const OrganizationProviderForm = ({
 	organizationProvider?: OrganizationProvider;
 }) => {
 	const navigate = useNavigate();
+	const queryClient = useQueryClient();
 	const { data: providers } = useSuspenseQuery(providerQueryOptions.list());
 
 	const { mutateAsync: updateProvider } = useMutation(
-		organizationProviderQueryOptions.update(),
+		organizationProviderQueryOptions.update(queryClient),
 	);
 
 	const { mutateAsync: createProvider } = useMutation(
-		organizationProviderQueryOptions.create(),
+		organizationProviderQueryOptions.create(queryClient),
 	);
 
 	const form = useForm<z.infer<typeof organizationProviderInsertSchema>>({

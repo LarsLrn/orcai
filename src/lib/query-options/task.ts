@@ -1,8 +1,8 @@
+import type { QueryClient } from "@tanstack/react-query";
 import { orpc } from "@/lib/orpc/orpc";
-import { queryClient } from "@/router";
 
 export const taskQueryOptions = {
-	createAssetTask: () => {
+	createAssetTask: (queryClient: QueryClient) => {
 		return orpc.task.createAssetTask.mutationOptions({
 			onSuccess: () => {
 				queryClient.invalidateQueries({

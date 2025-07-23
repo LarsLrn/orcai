@@ -1,4 +1,8 @@
-import { useMutation, useSuspenseQuery } from "@tanstack/react-query";
+import {
+	useMutation,
+	useQueryClient,
+	useSuspenseQuery,
+} from "@tanstack/react-query";
 import { createFileRoute, useNavigate } from "@tanstack/react-router";
 import { toast } from "sonner";
 import { BotBuilderForm } from "@/components/blocks/builder/bot-builder-form";
@@ -19,6 +23,7 @@ export const Route = createFileRoute("/app/bots/$botId/edit")({
 function RouteComponent() {
 	const { botId } = Route.useParams();
 	const navigate = useNavigate();
+	const queryClient = useQueryClient();
 
 	const { data: bot } = useSuspenseQuery(
 		botQueryOptions.find({
@@ -26,7 +31,9 @@ function RouteComponent() {
 		}),
 	);
 
-	const { mutateAsync: updateBot } = useMutation(botQueryOptions.update());
+	const { mutateAsync: updateBot } = useMutation(
+		botQueryOptions.update(queryClient),
+	);
 
 	const handleBotSubmit = (data: BotInsert) => {
 		// TODO: Handle BotUpdate type properly

@@ -1,5 +1,5 @@
 import { zodResolver } from "@hookform/resolvers/zod";
-import { useMutation } from "@tanstack/react-query";
+import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { useRouteContext } from "@tanstack/react-router";
 import { AlertCircle, CircleMinusIcon } from "lucide-react";
 import { useFieldArray, useForm } from "react-hook-form";
@@ -43,8 +43,9 @@ type FormValues = z.infer<typeof schema>;
 
 const AddUserForm = ({ courses }: { courses: Course[] }) => {
 	const { auth } = useRouteContext({ from: "/app" });
+	const queryClient = useQueryClient();
 	const { mutateAsync: createInvitation } = useMutation(
-		organizationInvitationQueryOptions.create(),
+		organizationInvitationQueryOptions.create(queryClient),
 	);
 
 	const form = useForm<FormValues>({

@@ -1,4 +1,4 @@
-import { useMutation } from "@tanstack/react-query";
+import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { Link } from "@tanstack/react-router";
 import type { ColumnDef, Row } from "@tanstack/react-table";
 import { convert } from "convert";
@@ -97,8 +97,9 @@ export const columns: ColumnDef<Asset>[] = [
 ];
 
 const ActionCell = ({ row }: { row: Row<Asset> }) => {
+	const queryClient = useQueryClient();
 	const { mutateAsync: createAssetTask } = useMutation(
-		taskQueryOptions.createAssetTask(),
+		taskQueryOptions.createAssetTask(queryClient),
 	);
 	const { deleteAssets } = useDeleteAssets();
 	const asset = row.original;

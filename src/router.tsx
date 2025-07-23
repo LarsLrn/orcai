@@ -5,7 +5,7 @@ import { NotFound } from "./components/boundaries/not-found";
 import { getRouterBasepath } from "./lib/i18n/router-basepath";
 import { routeTree } from "./routeTree.gen";
 
-export const queryClient = new QueryClient();
+const queryClient = new QueryClient();
 
 export function createRouter(pathname?: string) {
 	const router = createTanStackRouter({

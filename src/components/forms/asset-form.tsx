@@ -1,5 +1,5 @@
 import { zodResolver } from "@hookform/resolvers/zod";
-import { useMutation } from "@tanstack/react-query";
+import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { useRouter } from "@tanstack/react-router";
 import { useForm } from "react-hook-form";
 import { toast } from "sonner";
@@ -17,8 +17,11 @@ import { assetQueryOptions } from "@/lib/query-options/asset";
 
 const AssetForm = ({ asset }: { asset: Asset }) => {
 	const router = useRouter();
+	const queryClient = useQueryClient();
 
-	const { mutateAsync: updateAsset } = useMutation(assetQueryOptions.update());
+	const { mutateAsync: updateAsset } = useMutation(
+		assetQueryOptions.update(queryClient),
+	);
 
 	const form = useForm<z.infer<typeof assetUpdateSchema>>({
 		resolver: zodResolver(assetUpdateSchema),

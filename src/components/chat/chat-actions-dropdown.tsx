@@ -1,4 +1,4 @@
-import { useMutation } from "@tanstack/react-query";
+import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { useNavigate, useParams } from "@tanstack/react-router";
 import { useRef, useState } from "react";
 import { toast } from "sonner";
@@ -26,10 +26,15 @@ const ChatActionsDropdown = ({
 	const navigate = useNavigate();
 	const confirm = useConfirm();
 	const { trackEvent } = useUmami();
+	const queryClient = useQueryClient();
 
-	const { mutateAsync: updateChat } = useMutation(chatQueryOptions.update());
+	const { mutateAsync: updateChat } = useMutation(
+		chatQueryOptions.update(queryClient),
+	);
 
-	const { mutateAsync: deleteChat } = useMutation(chatQueryOptions.delete());
+	const { mutateAsync: deleteChat } = useMutation(
+		chatQueryOptions.delete(queryClient),
+	);
 
 	const [isDropdownOpen, setIsDropdownOpen] = useState(false);
 

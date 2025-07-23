@@ -1,5 +1,5 @@
 import { Slot } from "@radix-ui/react-slot";
-import { useMutation } from "@tanstack/react-query";
+import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { useNavigate } from "@tanstack/react-router";
 import type { VariantProps } from "class-variance-authority";
 import { toast } from "sonner";
@@ -25,8 +25,11 @@ const NewChatButton = ({
 	const navigate = useNavigate();
 	const { setOpenMobile } = useSidebar();
 	const { trackEvent } = useUmami();
+	const queryClient = useQueryClient();
 
-	const { mutateAsync: createChat } = useMutation(chatQueryOptions.create());
+	const { mutateAsync: createChat } = useMutation(
+		chatQueryOptions.create(queryClient),
+	);
 
 	const handleNewChat = () => {
 		toast.promise(createChat({ botId }), {

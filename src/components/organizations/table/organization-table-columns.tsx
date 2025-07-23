@@ -1,4 +1,4 @@
-import { useMutation } from "@tanstack/react-query";
+import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { Link } from "@tanstack/react-router";
 import type { ColumnDef } from "@tanstack/react-table";
 import { format } from "date-fns";
@@ -101,8 +101,9 @@ const DeleteItem = ({
 }: {
 	organizationId: Organization["id"];
 }) => {
+	const queryClient = useQueryClient();
 	const { mutateAsync: deleteOrganizations } = useMutation(
-		organizationQueryOptions.delete(),
+		organizationQueryOptions.delete(queryClient),
 	);
 
 	const handleDelete = (id: Organization["id"]) => {

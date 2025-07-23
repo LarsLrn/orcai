@@ -1,6 +1,9 @@
-import { keepPreviousData, type skipToken } from "@tanstack/react-query";
+import {
+	keepPreviousData,
+	type QueryClient,
+	type skipToken,
+} from "@tanstack/react-query";
 import { orpc } from "@/lib/orpc/orpc";
-import { queryClient } from "@/router";
 import type { OrpcInputs, OrpcOutputs } from "../orpc/contracts";
 
 export const chatQueryOptions = {
@@ -32,7 +35,7 @@ export const chatQueryOptions = {
 		});
 	},
 
-	create: () => {
+	create: (queryClient: QueryClient) => {
 		return orpc.chat.create.mutationOptions({
 			onSuccess: (result) => {
 				// Cache needs to be updated directly as SpiceDB takes time to propagate changes
@@ -55,7 +58,7 @@ export const chatQueryOptions = {
 		});
 	},
 
-	update: () => {
+	update: (queryClient: QueryClient) => {
 		return orpc.chat.update.mutationOptions({
 			onSuccess: () => {
 				queryClient.invalidateQueries({
@@ -65,7 +68,7 @@ export const chatQueryOptions = {
 		});
 	},
 
-	delete: () => {
+	delete: (queryClient: QueryClient) => {
 		return orpc.chat.delete.mutationOptions({
 			onSuccess: () => {
 				queryClient.invalidateQueries({
