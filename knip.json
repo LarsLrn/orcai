@@ -5,17 +5,10 @@
 		"src/server.ts",
 		"src/global-middleware.ts"
 	],
-	"project": [
-		"src/**"
-	],
-	"ignore": [
-		"src/paraglide/**"
-	],
+	"project": ["src/**"],
+	"ignore": ["src/paraglide/**"],
 	"biome": {
-		"config": [
-			"biome.json",
-			"biome.jsonc"
-		]
+		"config": ["biome.json", "biome.jsonc"]
 	},
 	"commitlint": {
 		"config": [
@@ -29,19 +22,13 @@
 		]
 	},
 	"vite": {
-		"config": [
-			"vite.config.{js,mjs,ts,cjs,mts,cts}"
-		]
+		"config": ["vite.config.{js,mjs,ts,cjs,mts,cts}"]
 	},
 	"drizzle": {
-		"config": [
-			"drizzle.config.{ts,js,json}"
-		]
+		"config": ["drizzle.config.{ts,js,json}"]
 	},
 	"tailwind": {
-		"entry": [
-			"tailwind.config.{js,cjs,mjs,ts}"
-		]
+		"entry": ["tailwind.config.{js,cjs,mjs,ts}"]
 	},
 	"postcss": {
 		"config": [
