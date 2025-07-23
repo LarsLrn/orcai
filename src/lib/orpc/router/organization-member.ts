@@ -15,16 +15,19 @@ export const listOrganizationMembers = authed.organizationMember.list
       userId: context.auth.user.id,
     }); */
 
-		const query = await db
-			.select({ ...getTableColumns(member) })
-			.from(member)
-			/* .where(inArray(organization.id, entityIds)) */
-			.limit(input.pageSize)
-			.offset(input.pageIndex * input.pageSize);
+		const [data, [rowCount]] = await Promise.all([
+			db
+				.select({ ...getTableColumns(member) })
+				.from(member)
+				/* .where(inArray(organization.id, entityIds)) */
+				.limit(input.pageSize)
+				.offset(input.pageIndex * input.pageSize),
+			db
+				.select({ count: count() })
+				.from(member) /* .where(inArray(organization.id, entityIds)) */,
+		]);
 
-		const [rowCount] = await db.select({ count: count() }).from(member);
-
-		return { data: query, rowCount: rowCount.count };
+		return { data, rowCount: rowCount.count };
 	});
 
 export const findOrganizationMember = authed.organizationMember.find

@@ -21,18 +21,19 @@ export const listChatMessages = authed.chatMessage.list
 			}) as const,
 	)
 	.handler(async ({ input }) => {
-		const query = await db
-			.select({ ...getTableColumns(chatMessage) })
-			.from(chatMessage)
-			.where(eq(chatMessage.chatId, input.chatId))
-			.orderBy(asc(chatMessage.createdAt))
-			.limit(input.pageSize)
-			.offset(input.pageIndex * input.pageSize);
-
-		const [rowCount] = await db
-			.select({ count: count() })
-			.from(chatMessage)
-			.where(eq(chatMessage.chatId, input.chatId));
+		const [data, [rowCount]] = await Promise.all([
+			db
+				.select({ ...getTableColumns(chatMessage) })
+				.from(chatMessage)
+				.where(eq(chatMessage.chatId, input.chatId))
+				.orderBy(asc(chatMessage.createdAt))
+				.limit(input.pageSize)
+				.offset(input.pageIndex * input.pageSize),
+			db
+				.select({ count: count() })
+				.from(chatMessage)
+				.where(eq(chatMessage.chatId, input.chatId)),
+		]);
 
 		let scores: ApiGetScoresResponse = {
 			data: [],
@@ -41,7 +42,7 @@ export const listChatMessages = authed.chatMessage.list
 
 		if (input.includeScores) {
 			scores = await langfuseServer.api.scoreV2Get({
-				scoreIds: query
+				scoreIds: data
 					.map((message) => {
 						if (message.role !== "user") {
 							return message.id;
@@ -51,7 +52,7 @@ export const listChatMessages = authed.chatMessage.list
 			});
 		}
 
-		return { data: query, rowCount: rowCount.count, scores };
+		return { data, rowCount: rowCount.count, scores };
 	});
 
 export const findChatMessage = authed.chatMessage.find

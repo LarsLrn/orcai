@@ -15,29 +15,30 @@ export const listOrganizationInvitations = authed.organizationInvitation.list
       userId: context.auth.user.id,
     }); */
 
-		const query = await db
-			.select({ ...getTableColumns(invitation) })
-			.from(invitation)
-			.where(
-				or(
-					eq(invitation.email, context.auth.user.email),
-					eq(invitation.inviterId, context.auth.user.id),
+		const [data, [rowCount]] = await Promise.all([
+			db
+				.select({ ...getTableColumns(invitation) })
+				.from(invitation)
+				.where(
+					or(
+						eq(invitation.email, context.auth.user.email),
+						eq(invitation.inviterId, context.auth.user.id),
+					),
+				)
+				.limit(input.pageSize)
+				.offset(input.pageIndex * input.pageSize),
+			db
+				.select({ count: count() })
+				.from(invitation)
+				.where(
+					or(
+						eq(invitation.email, context.auth.user.email),
+						eq(invitation.inviterId, context.auth.user.id),
+					),
 				),
-			)
-			.limit(input.pageSize)
-			.offset(input.pageIndex * input.pageSize);
+		]);
 
-		const [rowCount] = await db
-			.select({ count: count() })
-			.from(invitation)
-			.where(
-				or(
-					eq(invitation.email, context.auth.user.email),
-					eq(invitation.inviterId, context.auth.user.id),
-				),
-			);
-
-		return { data: query, rowCount: rowCount.count };
+		return { data, rowCount: rowCount.count };
 	});
 
 export const findOrganizationInvitation = authed.organizationInvitation.find

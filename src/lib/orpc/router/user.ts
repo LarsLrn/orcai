@@ -16,16 +16,20 @@ export const listUsers = authed.user.list
 			userId: context.auth.user.id,
 		}); */
 
-		const query = await db
-			.select({ ...getTableColumns(user) })
-			.from(user)
+		const [data, [rowCount]] = await Promise.all([
+			db
+				.select({ ...getTableColumns(user) })
+				.from(user)
+				/* .where(inArray(course.id, entityIds)) */
+				.limit(input.pageSize)
+				.offset(input.pageIndex * input.pageSize),
+			db
+				.select({ count: count() })
+				.from(user),
 			/* .where(inArray(course.id, entityIds)) */
-			.limit(input.pageSize)
-			.offset(input.pageIndex * input.pageSize);
+		]);
 
-		const [rowCount] = await db.select({ count: count() }).from(user);
-
-		return { data: query, rowCount: rowCount.count };
+		return { data, rowCount: rowCount.count };
 	});
 
 export const findUser = authed.user.find

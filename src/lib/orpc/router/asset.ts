@@ -26,20 +26,21 @@ export const listAssets = authed.asset.list
 			entityType: "asset",
 		});
 
-		const query = await db
-			.select({ ...getTableColumns(assetTable) })
-			.from(assetTable)
-			.where(and(inArray(assetTable.id, entityIds)))
-			.orderBy(desc(assetTable.createdAt))
-			.limit(input.pageSize)
-			.offset(input.pageIndex * input.pageSize);
+		const [data, [rowCount]] = await Promise.all([
+			db
+				.select({ ...getTableColumns(assetTable) })
+				.from(assetTable)
+				.where(and(inArray(assetTable.id, entityIds)))
+				.orderBy(desc(assetTable.createdAt))
+				.limit(input.pageSize)
+				.offset(input.pageIndex * input.pageSize),
+			db
+				.select({ count: count() })
+				.from(assetTable)
+				.where(inArray(assetTable.id, entityIds)),
+		]);
 
-		const [rowCount] = await db
-			.select({ count: count() })
-			.from(assetTable)
-			.where(inArray(assetTable.id, entityIds));
-
-		return { data: query, rowCount: rowCount.count };
+		return { data, rowCount: rowCount.count };
 	});
 
 export const findAsset = authed.asset.find

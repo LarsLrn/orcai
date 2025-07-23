@@ -17,16 +17,20 @@ export const listOrganizations = authed.organization.list
 			userId: context.auth.user.id,
 		}); */
 
-		const query = await db
-			.select({ ...getTableColumns(organization) })
-			.from(organization)
+		const [data, [rowCount]] = await Promise.all([
+			db
+				.select({ ...getTableColumns(organization) })
+				.from(organization)
+				/* .where(inArray(organization.id, entityIds)) */
+				.limit(input.pageSize)
+				.offset(input.pageIndex * input.pageSize),
+			db
+				.select({ count: count() })
+				.from(organization),
 			/* .where(inArray(organization.id, entityIds)) */
-			.limit(input.pageSize)
-			.offset(input.pageIndex * input.pageSize);
+		]);
 
-		const [rowCount] = await db.select({ count: count() }).from(organization);
-
-		return { data: query, rowCount: rowCount.count };
+		return { data, rowCount: rowCount.count };
 	});
 
 export const findOrganization = authed.organization.find

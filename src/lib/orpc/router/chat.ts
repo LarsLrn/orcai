@@ -1,5 +1,5 @@
 import { ORPCError } from "@orpc/server";
-import { and, count, desc, eq, getTableColumns, inArray } from "drizzle-orm";
+import { count, desc, eq, getTableColumns, inArray } from "drizzle-orm";
 import { db } from "@/db/drizzle";
 import { chat } from "@/db/schema/chat";
 import { authed } from "@/lib/orpc";
@@ -19,20 +19,21 @@ export const listChats = authed.chat.list
 			entityType: "chat",
 		});
 
-		const query = await db
-			.select({ ...getTableColumns(chat) })
-			.from(chat)
-			.where(and(inArray(chat.id, entityIds)))
-			.orderBy(desc(chat.createdAt))
-			.limit(input.pageSize)
-			.offset(input.pageIndex * input.pageSize);
+		const [data, [rowCount]] = await Promise.all([
+			db
+				.select({ ...getTableColumns(chat) })
+				.from(chat)
+				.where(inArray(chat.id, entityIds))
+				.orderBy(desc(chat.createdAt))
+				.limit(input.pageSize)
+				.offset(input.pageIndex * input.pageSize),
+			db
+				.select({ count: count() })
+				.from(chat)
+				.where(inArray(chat.id, entityIds)),
+		]);
 
-		const [rowCount] = await db
-			.select({ count: count() })
-			.from(chat)
-			.where(inArray(chat.id, entityIds));
-
-		return { data: query, rowCount: rowCount.count };
+		return { data, rowCount: rowCount.count };
 	});
 
 export const findChat = authed.chat.find

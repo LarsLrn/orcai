@@ -20,16 +20,20 @@ export const listCourses = authed.course.list
 			userId: context.auth.user.id,
 		});
 
-		const query = await db
-			.select({ ...getTableColumns(course) })
-			.from(course)
-			.where(inArray(course.id, entityIds))
-			.limit(input.pageSize)
-			.offset(input.pageIndex * input.pageSize);
+		const [data, [rowCount]] = await Promise.all([
+			db
+				.select({ ...getTableColumns(course) })
+				.from(course)
+				.where(inArray(course.id, entityIds))
+				.limit(input.pageSize)
+				.offset(input.pageIndex * input.pageSize),
+			db
+				.select({ count: count() })
+				.from(course)
+				.where(inArray(course.id, entityIds)),
+		]);
 
-		const [rowCount] = await db.select({ count: count() }).from(course);
-
-		return { data: query, rowCount: rowCount.count };
+		return { data, rowCount: rowCount.count };
 	});
 
 export const findCourse = authed.course.find

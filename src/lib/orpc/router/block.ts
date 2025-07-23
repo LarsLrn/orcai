@@ -1,5 +1,5 @@
 import { ORPCError } from "@orpc/server";
-import { count, eq, getTableColumns, inArray } from "drizzle-orm";
+import { count, desc, eq, getTableColumns, inArray } from "drizzle-orm";
 import { db } from "@/db/drizzle";
 import { blockTable } from "@/db/schema/block";
 import { authed } from "@/lib/orpc";
@@ -20,16 +20,21 @@ export const listBlocks = authed.block.list
 			userId: context.auth.user.id,
 		});
 
-		const query = await db
-			.select({ ...getTableColumns(blockTable) })
-			.from(blockTable)
-			.where(inArray(blockTable.id, entityIds))
-			.limit(input.pageSize)
-			.offset(input.pageIndex * input.pageSize);
+		const [data, [rowCount]] = await Promise.all([
+			db
+				.select({ ...getTableColumns(blockTable) })
+				.from(blockTable)
+				.where(inArray(blockTable.id, entityIds))
+				.orderBy(desc(blockTable.createdAt))
+				.limit(input.pageSize)
+				.offset(input.pageIndex * input.pageSize),
+			db
+				.select({ count: count() })
+				.from(blockTable)
+				.where(inArray(blockTable.id, entityIds)),
+		]);
 
-		const [rowCount] = await db.select({ count: count() }).from(blockTable);
-
-		return { data: query, rowCount: rowCount.count };
+		return { data, rowCount: rowCount.count };
 	});
 
 export const findBlock = authed.block.find
