@@ -1,84 +1,58 @@
+import type { LinkProps } from "@tanstack/react-router";
 import {
 	BlocksIcon,
 	BookMarkedIcon,
 	BotIcon,
 	Building2Icon,
 	FolderOpenIcon,
+	type LucideIcon,
 	UserIcon,
 	UsersIcon,
 } from "lucide-react";
-import { ROUTES } from "./routes";
 
-export const sidebarInstructorMenu = [
+interface SidebarMenuItem {
+	title: string;
+	linkProps: LinkProps;
+	icon: LucideIcon;
+}
+
+export const sidebarMenu: SidebarMenuItem[] = [
 	{
 		title: "Courses",
-		url: ROUTES.PRIVATE.courses.root.getPath(),
+		linkProps: { to: "/app/courses" },
 		icon: BookMarkedIcon,
 	},
 	{
-		title: "Resources",
-		url: ROUTES.PRIVATE.documents.root.getPath(),
+		title: "Assets",
+		linkProps: { to: "/app/assets" },
 		icon: FolderOpenIcon,
 	},
 	{
 		title: "Bots",
-		url: "/app/bots",
+		linkProps: { to: "/app/bots" },
 		icon: BotIcon,
 	},
 	{
 		title: "Blocks",
-		url: "/app/blocks",
+		linkProps: { to: "/app/blocks" },
 		icon: BlocksIcon,
 	},
-];
-
-export const sidebarOrganizationAdminMenu = [
 	{
 		title: "Users",
-		url: ROUTES.PRIVATE.users.root.getPath(),
+		linkProps: { to: "/app/users" },
 		icon: UsersIcon,
 	},
 	{
 		title: "Organisations",
-		url: ROUTES.PRIVATE.organizations.root.getPath(),
+		linkProps: { to: "/app/orgs" },
 		icon: Building2Icon,
 	},
 ];
 
-export const sidebarUserMenu = [
+export const sidebarUserMenu: SidebarMenuItem[] = [
 	{
 		title: "Account",
-		url: ROUTES.PRIVATE.app.account.getPath(),
+		linkProps: { to: "/app/account" },
 		icon: UserIcon,
-	},
-];
-
-export const navigationItems = [
-	{
-		title: "Home",
-		href: ROUTES.PUBLIC.root.getPath(),
-		description: "",
-	},
-	{
-		title: "About",
-		description: "Learn more about our project.",
-		items: [
-			{
-				title: "About us",
-				href: "#",
-			},
-			{
-				title: "Funding",
-				href: "#",
-			},
-			{
-				title: "Roadmap",
-				href: "#",
-			},
-			{
-				title: "Contact us",
-				href: "#",
-			},
-		],
 	},
 ];
