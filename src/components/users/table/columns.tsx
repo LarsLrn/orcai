@@ -15,7 +15,7 @@ import {
 import type { User } from "@/db/schema/auth";
 import { authClient } from "@/lib/auth-client";
 
-const handleDelete = async (id: string) => {
+const handleDelete = (id: string) => {
 	toast.promise(authClient.admin.removeUser({ userId: id }), {
 		loading: "Deleting user...",
 		success: "User deleted",

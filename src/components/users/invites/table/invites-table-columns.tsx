@@ -16,7 +16,7 @@ import {
 import type { CourseInvitation } from "@/db/schema/course-invitation";
 import { orpc } from "@/lib/orpc/orpc";
 
-const handleCopy = async (id: CourseInvitation["id"]) => {
+const handleCopy = (id: CourseInvitation["id"]) => {
 	// TODO: Replace with actual URL generation logic (useRouter)
 	const url = `${process.env.NEXT_PUBLIC_BASE_URL}/signup?invitationId=${id}`;
 
@@ -135,7 +135,7 @@ const DeleteItem = ({
 		}),
 	);
 
-	const handleDelete = async (id: CourseInvitation["id"]) => {
+	const handleDelete = (id: CourseInvitation["id"]) => {
 		toast.promise(
 			// TODO: Replace with actual courseId
 			deleteInvitations({ courseId: "placeholder", refs: [{ id }] }),

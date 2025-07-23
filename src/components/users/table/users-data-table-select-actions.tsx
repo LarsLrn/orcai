@@ -13,7 +13,7 @@ import { authClient } from "@/lib/auth-client";
 const UsersDataTableSelectActions = () => {
 	const { table } = useTable();
 
-	const handleDelete = async () => {
+	const handleDelete = () => {
 		const userIds = table.getSelectedRowModel().flatRows.map((row) => row.id);
 
 		toast.promise(

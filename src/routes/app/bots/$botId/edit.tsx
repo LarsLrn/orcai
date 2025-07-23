@@ -56,8 +56,11 @@ function RouteComponent() {
 		// TODO: Handle BotUpdate type properly
 		toast.promise(updateBot(data as BotUpdate), {
 			loading: "Updating bot...",
-			success: (result) => {
-				navigate({ to: "/app/bots/$botId", params: { botId: result.data.id } });
+			success: async (result) => {
+				await navigate({
+					to: "/app/bots/$botId",
+					params: { botId: result.data.id },
+				});
 				return "Bot updated successfully";
 			},
 			error: "Failed to update bot",

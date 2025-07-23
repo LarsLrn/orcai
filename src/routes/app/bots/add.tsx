@@ -41,8 +41,11 @@ function RouteComponent() {
 	const handleBotSubmit = (data: BotInsert) => {
 		toast.promise(createBot(data), {
 			loading: "Creating bot...",
-			success: (result) => {
-				navigate({ to: "/app/bots/$botId", params: { botId: result.data.id } });
+			success: async (result) => {
+				await navigate({
+					to: "/app/bots/$botId",
+					params: { botId: result.data.id },
+				});
 				return "Bot created successfully";
 			},
 			error: "Failed to create bot",

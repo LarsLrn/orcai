@@ -31,7 +31,7 @@ const OrganizationMemberTableActions = ({
 		}),
 	);
 
-	const handleDelete = async () => {
+	const handleDelete = () => {
 		const userIds = table.getSelectedRowModel().flatRows.map((row) => row.id);
 
 		toast.promise(

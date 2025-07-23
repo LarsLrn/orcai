@@ -18,7 +18,7 @@ const InvitesTableActions = () => {
 
 	const { table } = useTable();
 
-	const handleDelete = async () => {
+	const handleDelete = () => {
 		const courseInvitationIds = table
 			.getSelectedRowModel()
 			.flatRows.map((row) => row.id);

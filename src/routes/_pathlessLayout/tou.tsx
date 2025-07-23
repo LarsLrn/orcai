@@ -5,14 +5,12 @@ import { createServerFn } from "@tanstack/react-start";
 import { Markdown } from "@/components/chat/markdown";
 import { Card, CardContent } from "@/components/ui/card";
 
-const getMarkdownContent = createServerFn({ method: "GET" }).handler(
-	async () => {
-		const markdownPath = path.join(process.cwd(), "src/md/terms-of-use.md");
-		const markdownContent = fs.readFileSync(markdownPath, "utf8");
+const getMarkdownContent = createServerFn({ method: "GET" }).handler(() => {
+	const markdownPath = path.join(process.cwd(), "src/md/terms-of-use.md");
+	const markdownContent = fs.readFileSync(markdownPath, "utf8");
 
-		return markdownContent;
-	},
-);
+	return markdownContent;
+});
 
 export const Route = createFileRoute("/_pathlessLayout/tou")({
 	component: RouteComponent,

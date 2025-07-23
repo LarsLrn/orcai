@@ -48,12 +48,12 @@ const DataTable = <TData, TValue>({
 		manualSorting: true,
 		manualFiltering: true,
 		rowCount: rowCount,
-		onPaginationChange: (updater) => {
+		onPaginationChange: async (updater) => {
 			if (typeof updater !== "function") return;
 
 			const newPageInfo = updater(table.getState().pagination);
 
-			navigate({
+			await navigate({
 				to: ".",
 				search: {
 					pageIndex: newPageInfo.pageIndex,

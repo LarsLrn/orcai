@@ -178,7 +178,7 @@ export const rateChatMessage = authed.chatMessage.rate
 				entityType: "chat",
 			}) as const,
 	)
-	.handler(async ({ input }) => {
+	.handler(({ input }) => {
 		langfuseServer.score({
 			id: input.id,
 			traceId: input.id,

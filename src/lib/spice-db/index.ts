@@ -4,7 +4,7 @@ import { v1 } from "@authzed/authzed-node";
  * Creates a SpiceDB client (schema should be deployed separately via build script)
  * @returns Promise that resolves to the SpiceDB client
  */
-const createClient = async () => {
+const createClient = () => {
 	try {
 		// Create SpiceDB client
 		// TODO: Replace with your actual SpiceDB server address and security settings

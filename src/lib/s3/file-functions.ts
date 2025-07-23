@@ -101,7 +101,7 @@ export async function deletePrefixRecursively({
 	}
 
 	// Delete all objects
-	const deletePromises = result.Contents.map(async (object) => {
+	const deletePromises = result.Contents.map((object) => {
 		if (!object.Key) return;
 		const deleteCommand = new DeleteObjectCommand({
 			Bucket: bucket,
