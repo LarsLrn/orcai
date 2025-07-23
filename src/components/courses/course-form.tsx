@@ -1,11 +1,12 @@
 import { zodResolver } from "@hookform/resolvers/zod";
-import { useMutation, useQueryClient } from "@tanstack/react-query";
+import { useMutation } from "@tanstack/react-query";
 import { useRouter } from "@tanstack/react-router";
 import { useForm } from "react-hook-form";
 import { toast } from "sonner";
 import type { z } from "zod/v4";
 import { BlockEditor } from "@/components/editor";
 import { FormInputField } from "@/components/forms/fields/form-input-field";
+import { FormSelectField } from "@/components/forms/fields/form-select-field";
 import { FormTextField } from "@/components/forms/fields/form-text-field";
 import { FormValidationErrors } from "@/components/forms/fields/form-validation-errors";
 import { Button } from "@/components/ui/button";
@@ -15,31 +16,16 @@ import { Label } from "@/components/ui/label";
 import type { Course } from "@/db/schema/course";
 import { saiaModels } from "@/lib/ai/saia-models";
 import { courseInsertSchema } from "@/lib/orpc/contracts/course";
-import { orpc } from "@/lib/orpc/orpc";
-import { FormSelectField } from "../forms/fields/form-select-field";
+import { courseQueryOptions } from "@/lib/query-options/course";
 
 const CourseForm = ({ course }: { course?: Course }) => {
-	const queryClient = useQueryClient();
 	const router = useRouter();
 
 	const { mutateAsync: updateCourse } = useMutation(
-		orpc.course.update.mutationOptions({
-			onSuccess() {
-				queryClient.invalidateQueries({
-					queryKey: orpc.course.key(),
-				});
-			},
-		}),
+		courseQueryOptions.update(),
 	);
-
 	const { mutateAsync: createCourse } = useMutation(
-		orpc.course.create.mutationOptions({
-			onSuccess() {
-				queryClient.invalidateQueries({
-					queryKey: orpc.course.key(),
-				});
-			},
-		}),
+		courseQueryOptions.create(),
 	);
 
 	const form = useForm<z.infer<typeof courseInsertSchema>>({

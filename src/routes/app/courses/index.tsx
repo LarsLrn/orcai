@@ -1,4 +1,4 @@
-import { keepPreviousData, useSuspenseQuery } from "@tanstack/react-query";
+import { useSuspenseQuery } from "@tanstack/react-query";
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { zodValidator } from "@tanstack/zod-adapter";
 import { z } from "zod/v4";
@@ -9,7 +9,7 @@ import { DataTable } from "@/components/ui/data-table/data-table";
 import { DataTableBody } from "@/components/ui/data-table/data-table-body";
 import { DataTablePagination } from "@/components/ui/data-table/data-table-pagination";
 import { DataTableViewOptions } from "@/components/ui/data-table/data-table-view-options";
-import { orpc } from "@/lib/orpc/orpc";
+import { courseQueryOptions } from "@/lib/query-options/course";
 
 const searchParams = z.object({
 	pageIndex: z.coerce.number().default(0),
@@ -27,9 +27,8 @@ export const Route = createFileRoute("/app/courses/")({
 		deps: { pageIndex, pageSize },
 	}) => {
 		await queryClient.ensureQueryData(
-			orpc.course.list.queryOptions({
+			courseQueryOptions.list({
 				input: { pageIndex, pageSize },
-				queryKey: orpc.course.list.key({ input: { pageIndex, pageSize } }),
 			}),
 		);
 	},
@@ -39,11 +38,7 @@ export const Route = createFileRoute("/app/courses/")({
 function RouteComponent() {
 	const { pageIndex, pageSize } = Route.useSearch();
 	const { data: courses } = useSuspenseQuery(
-		orpc.course.list.queryOptions({
-			input: { pageIndex, pageSize },
-			queryKey: orpc.course.list.key({ input: { pageIndex, pageSize } }),
-			placeholderData: keepPreviousData,
-		}),
+		courseQueryOptions.list({ input: { pageIndex, pageSize } }),
 	);
 
 	return (
