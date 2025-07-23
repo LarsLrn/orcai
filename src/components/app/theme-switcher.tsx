@@ -33,7 +33,7 @@ const ThemeSwitcher = ({ className }: { className?: string }) => {
 
 	return (
 		<Button
-			variant="ghost"
+			variant="subtle"
 			size="icon"
 			className={cn("group/toggle overflow-hidden", className)}
 			onClick={toggleTheme}
