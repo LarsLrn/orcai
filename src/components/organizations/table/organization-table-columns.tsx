@@ -117,7 +117,7 @@ const DeleteItem = ({
 		}),
 	);
 
-	const handleDelete = async (id: Organization["id"]) => {
+	const handleDelete = (id: Organization["id"]) => {
 		toast.promise(deleteOrganizations({ refs: [{ id }] }), {
 			loading: "Deleting organization...",
 			success: "Organization deleted",
