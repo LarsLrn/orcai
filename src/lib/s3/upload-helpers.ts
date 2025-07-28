@@ -1,51 +1,63 @@
 import type { FileType } from "@/types/file";
 
-export const uploadToS3 = (
-	presignedUrl: string,
-	file: File,
-	onProgress?: (progress: number) => void,
-	timeoutMs: number = 5 * 60 * 1000, // Default 5 minutes
-): { promise: Promise<Response>; xhr: XMLHttpRequest } => {
+export type ObjectMetadata = Record<string, string>;
+
+function createAbortHandler(
+	xhr: XMLHttpRequest,
+	reject: (reason?: any) => void,
+) {
+	return () => {
+		xhr.abort();
+		reject(new Error("Upload aborted."));
+	};
+}
+
+export async function uploadFileToS3(params: {
+	signedUrl: string;
+	file: File;
+	objectMetadata: ObjectMetadata;
+	onProgress?: (progress: number) => void;
+	signal?: AbortSignal;
+}) {
 	const xhr = new XMLHttpRequest();
 
-	// Set timeout (5 minutes by default)
-	xhr.timeout = timeoutMs;
+	await new Promise<void>((resolve, reject) => {
+		const abortHandler = createAbortHandler(xhr, reject);
 
-	const promise = new Promise<Response>((resolve, reject) => {
-		xhr.upload.addEventListener("progress", (event) => {
-			if (event.lengthComputable && onProgress) {
-				const progress = (event.loaded / event.total) * 100;
-				onProgress(progress);
-			}
-		});
+		if (params.signal?.aborted) {
+			abortHandler();
+		}
 
-		xhr.addEventListener("load", () => {
-			if (xhr.status === 200) {
-				resolve(new Response(xhr.response, { status: xhr.status }));
+		params.signal?.addEventListener("abort", abortHandler);
+
+		xhr.onloadend = () => {
+			params.signal?.removeEventListener("abort", abortHandler);
+
+			if (xhr.readyState === 4 && xhr.status === 200) {
+				params.onProgress?.(1);
+
+				resolve();
 			} else {
-				reject(new Error(`Upload failed with status ${xhr.status}`));
+				reject(new Error("Failed to upload file to S3."));
 			}
+		};
+
+		xhr.upload.onprogress = (event) => {
+			if (event.lengthComputable) {
+				params.onProgress?.(Math.min(event.loaded / event.total, 0.99));
+			}
+		};
+
+		xhr.open("PUT", params.signedUrl, true);
+		xhr.setRequestHeader("Content-Type", params.file.type);
+
+		Object.entries(params.objectMetadata).forEach(([key, value]) => {
+			xhr.setRequestHeader(`x-amz-meta-${key}`, value);
 		});
 
-		xhr.addEventListener("error", () => {
-			reject(new Error("Network error during upload"));
-		});
-
-		xhr.addEventListener("timeout", () => {
-			reject(new Error(`Upload timeout after ${timeoutMs / 1000} seconds`));
-		});
-
-		xhr.addEventListener("abort", () => {
-			reject(new Error("Upload was cancelled"));
-		});
-
-		xhr.open("PUT", presignedUrl);
-		xhr.setRequestHeader("Content-Type", file.type);
-		xhr.send(file);
+		xhr.send(params.file);
 	});
-
-	return { promise, xhr };
-};
+}
 
 export function getFileTypeFromMime(mimeType: File["type"]): FileType {
 	if (mimeType.startsWith("image/jpeg")) {

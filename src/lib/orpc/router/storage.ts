@@ -3,6 +3,7 @@ import { getSignedUrl } from "@aws-sdk/s3-request-presigner";
 import { v4 as uuidv4 } from "uuid";
 import { authed } from "@/lib/orpc";
 import { s3Client } from "@/lib/s3/s3-client";
+import { getFileTypeFromMime } from "@/lib/s3/upload-helpers";
 import { createBucketIfNotExists } from "@/lib/s3/utils";
 import { buckets } from "@/settings/buckets";
 
@@ -22,7 +23,8 @@ export const createUploadUrls = authed.storage.createUploadUrls.handler(
 		const presignedUrls = await Promise.all(
 			input.files.map(async (file) => {
 				const id = uuidv4();
-				const filePath = `${prefix}/${id}.${file.type}`;
+				const extension = getFileTypeFromMime(file.type);
+				const filePath = `${prefix}/${id}.${extension}`;
 
 				const command = new PutObjectCommand({
 					Bucket: bucket,
@@ -35,11 +37,14 @@ export const createUploadUrls = authed.storage.createUploadUrls.handler(
 				});
 
 				return {
-					id,
-					url,
-					name: file.name,
-					size: file.size,
-					type: file.type,
+					signedUrl: url,
+					file: {
+						objectKey: id,
+						objectMetadata: { id },
+						name: file.name,
+						size: file.size,
+						type: file.type,
+					},
 				};
 			}),
 		);
@@ -51,7 +56,8 @@ export const createUploadUrls = authed.storage.createUploadUrls.handler(
 export const createDownloadUrl = authed.storage.createDownloadUrl.handler(
 	async ({ input }) => {
 		const expiry = 60 * 60;
-		const filePath = `${input.prefix}/${input.id}.${input.type}`;
+		const extension = getFileTypeFromMime(input.type);
+		const filePath = `${input.prefix}/${input.id}.${extension}`;
 
 		const command = new GetObjectCommand({
 			Bucket: input.bucket,

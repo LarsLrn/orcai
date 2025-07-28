@@ -7,6 +7,7 @@ import { LoadingSpinner } from "@/components/ui/loading-spinner";
 import type { Asset } from "@/db/schema/asset";
 import { useIsMobile } from "@/hooks/use-mobile";
 import { storageQueryOptions } from "@/lib/query-options/storage";
+import { getFileTypeFromMime } from "@/lib/s3/upload-helpers";
 import { cn } from "@/lib/utils";
 import { AssetActions } from "./asset-actions";
 import { AssetMeta } from "./asset-meta";
@@ -85,8 +86,11 @@ const Viewport = ({
 }) => {
 	const [isLoading, setIsLoading] = useState(true);
 
-	switch (fileType) {
-		case "image":
+	const extension = getFileTypeFromMime(fileType);
+
+	switch (extension) {
+		case "png":
+		case "jpeg":
 			return (
 				<>
 					{isLoading && (
@@ -114,7 +118,6 @@ const Viewport = ({
 				</>
 			);
 		case "pdf":
-		case "video":
 			return (
 				<Card className="h-full overflow-hidden">
 					<iframe title={filePath} src={filePath} className="size-full" />

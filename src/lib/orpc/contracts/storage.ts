@@ -23,11 +23,14 @@ export const createUploadUrlsContract = base
 		z.object({
 			data: z.array(
 				z.object({
-					id: z.string(),
-					url: z.url(),
-					name: z.string(),
-					size: z.number(),
-					type: z.string(),
+					signedUrl: z.url(),
+					file: z.object({
+						objectKey: z.string(),
+						objectMetadata: z.record(z.string(), z.string()),
+						name: z.string(),
+						size: z.number().int().min(1),
+						type: z.string(),
+					}),
 				}),
 			),
 		}),
