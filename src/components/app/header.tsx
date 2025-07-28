@@ -1,16 +1,17 @@
 import { Link, useMatches } from "@tanstack/react-router";
 import { HomeIcon } from "lucide-react";
+import { Fragment } from "react/jsx-runtime";
 import { ThemeSwitcher } from "@/components/app/theme-switcher";
-import { buttonVariants } from "@/components/ui/button";
-import { Separator } from "@/components/ui/separator";
-import { SidebarTrigger } from "@/components/ui/sidebar";
-import { cn } from "@/lib/utils";
 import {
 	Breadcrumb,
 	BreadcrumbItem,
 	BreadcrumbList,
 	BreadcrumbSeparator,
-} from "../ui/breadcrumb";
+} from "@/components/ui/breadcrumb";
+import { buttonVariants } from "@/components/ui/button";
+import { Separator } from "@/components/ui/separator";
+import { SidebarTrigger } from "@/components/ui/sidebar";
+import { cn } from "@/lib/utils";
 import { LocaleSwitcher } from "./locale/locale-switcher";
 
 const Header = () => {
@@ -50,9 +51,9 @@ const Header = () => {
 						</BreadcrumbItem>
 
 						{breadcrumbItems.map((item) => (
-							<>
+							<Fragment key={item.href}>
 								<BreadcrumbSeparator className="hidden md:block" />
-								<BreadcrumbItem key={item.href}>
+								<BreadcrumbItem>
 									<Link
 										to={item.href}
 										className={cn(
@@ -66,7 +67,7 @@ const Header = () => {
 										{item.label}
 									</Link>
 								</BreadcrumbItem>
-							</>
+							</Fragment>
 						))}
 					</BreadcrumbList>
 				</Breadcrumb>
