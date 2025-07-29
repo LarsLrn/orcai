@@ -1,7 +1,6 @@
 import { EyeIcon, EyeOffIcon } from "lucide-react";
 import { useState } from "react";
 import type { FieldValues, Path, UseFormReturn } from "react-hook-form";
-import { Button } from "@/components/ui/button";
 import {
 	FormControl,
 	FormField,
@@ -11,6 +10,7 @@ import {
 } from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
 import { cn } from "@/lib/utils";
+import { PasswordStrengthIndicator } from "../utility/password-strength-indicator";
 
 type FormPasswordFieldProps<TFieldValues extends FieldValues = FieldValues> = {
 	/** The react-hook-form instance */
@@ -21,6 +21,8 @@ type FormPasswordFieldProps<TFieldValues extends FieldValues = FieldValues> = {
 	label?: string;
 	/** Whether to show the password toggle button */
 	showTogglePassword?: boolean;
+	/** Whether to show the password strength indicator */
+	showStrength?: boolean;
 	/** Additional CSS class name for the component */
 	className?: string;
 } & Omit<React.ComponentProps<"input">, "name" | "type" | "form" | "value">;
@@ -31,56 +33,65 @@ function FormPasswordField<TFieldValues extends FieldValues = FieldValues>({
 	placeholder,
 	label,
 	showTogglePassword = false,
+	showStrength = false,
 	className,
 	...props
 }: FormPasswordFieldProps<TFieldValues>) {
 	// The state for the password visibility toggle
-	const [showPassword, setShowPassword] = useState(false);
+	const [isPasswordVisible, setIsPasswordVisible] = useState(false);
 
 	return (
 		<FormField
 			control={form.control}
 			name={name}
-			render={({ field }) => (
-				<FormItem className={cn(className)}>
-					{/* Render the label if it is defined */}
-					{label && <FormLabel>{label}</FormLabel>}
-					<FormControl>
-						<div className="relative">
-							<Input
-								// If the password is visible, the type is text, otherwise it is password.
-								type={showPassword ? "text" : "password"}
-								placeholder={placeholder}
-								// Pass through the field props
-								{...props}
-								{...field}
-								value={field.value ?? ""}
-								// Add padding-right if the toggle is shown
-								className={cn(
-									showTogglePassword ? "pr-14" : "",
-									"text-md md:text-sm",
-								)}
-							/>
-							{/* Render the toggle button if it is shown */}
-							{showTogglePassword && (
-								<div className="absolute inset-y-0 right-0 flex cursor-pointer items-center pr-0">
-									<Button
-										className="h-full w-12 rounded-l-none p-1 shadow-none"
+			render={({ field }) => {
+				return (
+					<FormItem className={cn(className)}>
+						{/* Render the label if it is defined */}
+						{label && <FormLabel>{label}</FormLabel>}
+						<FormControl>
+							<div className="relative">
+								<Input
+									id={field.name}
+									type={isPasswordVisible ? "text" : "password"}
+									placeholder={placeholder}
+									{...props}
+									{...field}
+									value={field.value ?? ""}
+									aria-describedby={`${field.name}-description`}
+								/>
+								{/* Render the toggle button if it is shown */}
+								{showTogglePassword && (
+									<button
+										className="absolute inset-y-0 end-0 flex h-full w-9 items-center justify-center rounded-e-md text-muted-foreground/80 outline-none transition-[color,box-shadow] hover:text-foreground focus:z-10 focus-visible:border-ring focus-visible:ring-[3px] focus-visible:ring-ring/50 disabled:pointer-events-none disabled:cursor-not-allowed disabled:opacity-50"
 										type="button"
-										variant={"outline"}
+										onClick={() => setIsPasswordVisible(!isPasswordVisible)}
 										tabIndex={-1}
-										onClick={() => setShowPassword(!showPassword)}
+										aria-label={
+											isPasswordVisible ? "Hide password" : "Show password"
+										}
+										aria-pressed={isPasswordVisible}
+										aria-controls="password"
 									>
-										{/* Render the eye or eye off icon based on the state */}
-										{showPassword ? <EyeOffIcon /> : <EyeIcon />}
-									</Button>
-								</div>
-							)}
-						</div>
-					</FormControl>
-					<FormMessage />
-				</FormItem>
-			)}
+										{isPasswordVisible ? (
+											<EyeOffIcon size={16} aria-hidden="true" />
+										) : (
+											<EyeIcon size={16} aria-hidden="true" />
+										)}
+									</button>
+								)}
+							</div>
+						</FormControl>
+						<FormMessage />
+						{showStrength && (
+							<PasswordStrengthIndicator
+								value={field.value}
+								fieldName={field.name}
+							/>
+						)}
+					</FormItem>
+				);
+			}}
 		/>
 	);
 }

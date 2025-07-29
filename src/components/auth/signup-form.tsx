@@ -93,6 +93,7 @@ const SignUpForm = ({ invitation }: { invitation: CourseInvitation }) => {
 					placeholder="Password"
 					label="Password"
 					showTogglePassword
+					showStrength={true}
 				/>
 
 				<FormPasswordField
