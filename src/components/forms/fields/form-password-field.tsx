@@ -1,6 +1,7 @@
 import { EyeIcon, EyeOffIcon } from "lucide-react";
 import { useState } from "react";
 import type { FieldValues, Path, UseFormReturn } from "react-hook-form";
+import { PasswordStrengthIndicator } from "@/components/forms/utility/password-strength-indicator";
 import {
 	FormControl,
 	FormField,
@@ -10,7 +11,6 @@ import {
 } from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
 import { cn } from "@/lib/utils";
-import { PasswordStrengthIndicator } from "../utility/password-strength-indicator";
 
 type FormPasswordFieldProps<TFieldValues extends FieldValues = FieldValues> = {
 	/** The react-hook-form instance */

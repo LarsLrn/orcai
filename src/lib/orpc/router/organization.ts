@@ -6,7 +6,7 @@ import { authed } from "@/lib/orpc";
 import { requireActiveOrganizationMiddleware } from "@/lib/orpc/middlewares/auth";
 import { checkManyPermissionMiddleware } from "@/lib/orpc/middlewares/permission";
 import { retry } from "@/lib/orpc/middlewares/retry";
-import { client } from "../orpc";
+import { client } from "@/lib/orpc/orpc";
 
 export const listOrganizations = authed.organization.list
 	.use(retry({ times: 3 }))

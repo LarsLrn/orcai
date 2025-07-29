@@ -3,8 +3,8 @@ import {
 	type QueryClient,
 	type skipToken,
 } from "@tanstack/react-query";
+import type { OrpcInputs, OrpcOutputs } from "@/lib/orpc/contracts";
 import { orpc } from "@/lib/orpc/orpc";
-import type { OrpcInputs, OrpcOutputs } from "../orpc/contracts";
 
 export const chatQueryOptions = {
 	list: ({

@@ -4,8 +4,8 @@ import { db } from "@/db/drizzle";
 import { account, session, user } from "@/db/schema/auth";
 import { auth } from "@/lib/auth";
 import { authed } from "@/lib/orpc";
+import { requirePreferencesMiddleware } from "@/lib/orpc/middlewares/auth";
 import { retry } from "@/lib/orpc/middlewares/retry";
-import { requirePreferencesMiddleware } from "../middlewares/auth";
 
 export const listUsers = authed.user.list
 	.use(retry({ times: 3 }))

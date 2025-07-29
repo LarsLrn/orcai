@@ -10,6 +10,7 @@ import { useRouteContext, useRouter } from "@tanstack/react-router";
 import { useForm } from "react-hook-form";
 import { toast } from "sonner";
 import type { z } from "zod/v4";
+import { FormInputField } from "@/components/forms/fields/form-input-field";
 import { FormSelectField } from "@/components/forms/fields/form-select-field";
 import { FormTextField } from "@/components/forms/fields/form-text-field";
 import { Button } from "@/components/ui/button";
@@ -20,7 +21,6 @@ import { blockInsertSchema } from "@/lib/orpc/contracts/block";
 import { blockQueryOptions } from "@/lib/query-options/block";
 import { modelQueryOptions } from "@/lib/query-options/model";
 import { organizationProviderQueryOptions } from "@/lib/query-options/organization-provider";
-import { FormInputField } from "../forms/fields/form-input-field";
 
 const BlockForm = ({ block }: { block?: Block }) => {
 	const router = useRouter();

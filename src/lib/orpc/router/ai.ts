@@ -12,10 +12,10 @@ import {
 import { v4 as uuidv4 } from "uuid";
 import type { Block } from "@/db/schema/block";
 import { decryptApiKey } from "@/lib/encryption";
+import { requireActiveOrganizationMiddleware } from "@/lib/orpc/middlewares/auth";
 import { retry } from "@/lib/orpc/middlewares/retry";
+import { client } from "@/lib/orpc/orpc";
 import { authed } from "..";
-import { requireActiveOrganizationMiddleware } from "../middlewares/auth";
-import { client } from "../orpc";
 
 export const aiChat = authed.ai.chat
 	.use(requireActiveOrganizationMiddleware)

@@ -2,7 +2,7 @@ import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { useCallback } from "react";
 import { toast } from "sonner";
 import { useConfirm } from "@/components/ui/dialog/confirm-dialog";
-import { assetQueryOptions } from "../query-options/asset";
+import { assetQueryOptions } from "@/lib/query-options/asset";
 
 interface DeleteAssetsParams {
 	refs: { id: string }[];
