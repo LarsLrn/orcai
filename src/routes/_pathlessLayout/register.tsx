@@ -86,19 +86,6 @@ const InvitationExpired = () => {
 function RouteComponent() {
 	const { query } = Route.useLoaderData();
 
-	if (!query) {
-		return (
-			<Card className="w-full max-w-md">
-				<CardContent>
-					<RegistrationDisabled className="border-0" />
-				</CardContent>
-				<CardFooter className="text-muted-foreground text-sm">
-					<Link to={"/"}>Already have an account?</Link>
-				</CardFooter>
-			</Card>
-		);
-	}
-
 	return (
 		<Card className="max-w-xl">
 			<CardHeader>
@@ -106,7 +93,7 @@ function RouteComponent() {
 				<CardDescription>Create a new account to continue.</CardDescription>
 			</CardHeader>
 			<CardContent>
-				{query ? (
+				{/* {query ? (
 					<div>
 						{query.expiresAt < new Date() ? (
 							<InvitationExpired />
@@ -116,7 +103,8 @@ function RouteComponent() {
 					</div>
 				) : (
 					<RegistrationDisabled />
-				)}
+				)} */}
+				<SignUpForm invitation={query} />
 			</CardContent>
 			<CardFooter className="text-muted-foreground text-sm">
 				<Link to={"/login"}>Already have an account?</Link>
