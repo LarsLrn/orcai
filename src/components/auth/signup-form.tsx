@@ -13,23 +13,27 @@ import { type SignupSchemaType, signupSchema } from "@/db/zod/signup";
 import { useUmami } from "@/hooks/use-umami";
 import { authClient } from "@/lib/auth-client";
 
-const SignUpForm = ({ invitation }: { invitation: CourseInvitation }) => {
+const SignUpForm = ({
+	invitation,
+}: {
+	invitation: CourseInvitation | undefined;
+}) => {
 	const navigate = useNavigate();
 	const { trackEvent } = useUmami();
 
 	const form = useForm<SignupSchemaType>({
 		resolver: zodResolver(signupSchema),
 		defaultValues: {
-			email: invitation.email,
-			password: undefined,
-			confirmPassword: undefined,
-			invitationId: invitation.id,
+			email: invitation?.email || "",
+			password: "",
+			confirmPassword: "",
+			invitationId: invitation?.id || "",
 			privacyConsent: false,
 		},
 	});
 
 	const onSubmit = (values: SignupSchemaType) => {
-		if (invitation.id !== values.invitationId) {
+		if (invitation?.id !== values.invitationId) {
 			return;
 		}
 
