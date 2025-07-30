@@ -122,7 +122,7 @@ const SignUpForm = ({
 								variant: "outline",
 								size: "sm",
 							})}
-							to={"/"}
+							to={"/privacy"}
 						>
 							<FileTextIcon /> Review Privacy Policy
 						</Link>
@@ -131,7 +131,7 @@ const SignUpForm = ({
 								variant: "outline",
 								size: "sm",
 							})}
-							to={"/"}
+							to={"/tou"}
 						>
 							<FileTextIcon /> Review Terms of Use
 						</Link>
