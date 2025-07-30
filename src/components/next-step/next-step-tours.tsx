@@ -7,7 +7,7 @@ import { NextStepCard } from "@/components/next-step/next-step-card";
 import { useSidebar } from "@/components/ui/sidebar";
 /* import { completeTour } from "@/db/actions/user"; */
 import { useUmami } from "@/hooks/use-umami";
-import { userQueryOptions } from "./query-options/user";
+import { userQueryOptions } from "../../lib/query-options/user";
 
 const nextStepTours: Tour[] = [
 	{

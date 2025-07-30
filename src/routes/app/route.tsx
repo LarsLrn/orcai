@@ -2,9 +2,9 @@ import { createFileRoute, Outlet, redirect } from "@tanstack/react-router";
 import { NextStepProvider } from "nextstepjs";
 import { Header } from "@/components/app/header";
 import { AppSidebar } from "@/components/app/sidebar/app-sidebar";
+import { NextStepTours } from "@/components/next-step/next-step-tours";
 import { SidebarInset, SidebarProvider } from "@/components/ui/sidebar";
 import { useUmami } from "@/hooks/use-umami";
-import { NextStepTours } from "@/lib/next-step-tours";
 
 export const Route = createFileRoute("/app")({
 	beforeLoad: ({ context }) => {
