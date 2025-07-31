@@ -80,8 +80,13 @@ export async function uploadMultipartFileToS3(params: {
 				params.signal?.removeEventListener("abort", abortHandler);
 
 				if (xhr.readyState === 4 && xhr.status === 200) {
+					const etag = xhr.getResponseHeader("ETag");
+					if (!etag) {
+						throw new Error("Missing ETag in response.");
+					}
+
 					uploadedParts.push({
-						etag: xhr.getResponseHeader("ETag")!.replace(/"/g, ""),
+						etag: etag.replace(/"/g, ""),
 						number: part.partNumber,
 					});
 
