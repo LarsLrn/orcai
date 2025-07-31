@@ -11,15 +11,15 @@ export const StopButton = ({
 	setMessages: UseChatHelpers<CustomUIMessage>["setMessages"];
 }) => (
 	<Button
-		className="rounded-full"
-		size="icon"
+		className="size-8 rounded-full"
+		size="sm"
 		onClick={(event) => {
 			event.preventDefault();
 			stop();
 			setMessages((messages) => messages);
 		}}
 	>
-		<StopCircleIcon />
+		<StopCircleIcon className="size-4" />
 	</Button>
 );
 
@@ -31,14 +31,14 @@ export const SendButton = ({
 	input: string;
 }) => (
 	<Button
-		className="rounded-full"
-		size="icon"
+		className="size-8 rounded-full"
+		size="sm"
 		onClick={(event) => {
 			event.preventDefault();
 			submitForm();
 		}}
 		disabled={input.length === 0}
 	>
-		<CornerDownLeft />
+		<CornerDownLeft className="size-4" />
 	</Button>
 );
