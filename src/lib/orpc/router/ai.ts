@@ -11,6 +11,7 @@ import {
 } from "ai";
 import { v4 as uuidv4 } from "uuid";
 import type { Block } from "@/db/schema/block";
+import { generateImageTool } from "@/lib/ai/tools/generate-image";
 import { decryptApiKey } from "@/lib/encryption";
 import { requireActiveOrganizationMiddleware } from "@/lib/orpc/middlewares/auth";
 import { retry } from "@/lib/orpc/middlewares/retry";
@@ -21,63 +22,64 @@ export const aiChat = authed.ai.chat
 	.use(requireActiveOrganizationMiddleware)
 	.use(retry({ times: 3 }))
 	.handler(async ({ context, input }) => {
-		let templateBlock: Block | undefined;
+		try {
+			let templateBlock: Block | undefined;
 
-		if (input.botId) {
-			// Fetch the bot to get its model configuration
-			const bot = await client.bot.find({
-				id: input.botId,
+			if (input.botId) {
+				// Fetch the bot to get its model configuration
+				const bot = await client.bot.find({
+					id: input.botId,
+				});
+
+				// TODO: Improve typesafety. Probably with some Zod validation
+				templateBlock = bot.data.blocks.find(
+					(block) => block.type === "template",
+				);
+			}
+
+			if (!templateBlock) {
+				throw new ORPCError("BAD_REQUEST", {
+					message: "No valid template block found.",
+				});
+			}
+
+			const systemProvider = await client.provider.find({
+				slug: templateBlock.config.provider,
 			});
 
-			// TODO: Improve typesafety. Probably with some Zod validation
-			templateBlock = bot.data.blocks.find(
-				(block) => block.type === "template",
-			);
-		}
-
-		if (!templateBlock) {
-			throw new ORPCError("BAD_REQUEST", {
-				message: "No valid template block found.",
+			const organizationProvider = await client.organizationProvider.find({
+				organizationId: context.auth.session.activeOrganizationId,
+				providerSlug: templateBlock.config.provider,
 			});
-		}
 
-		const systemProvider = await client.provider.find({
-			slug: templateBlock.config.provider,
-		});
+			const chatProvider = createOpenAI({
+				baseURL: systemProvider.data.endpoint ?? undefined,
+				apiKey: decryptApiKey(organizationProvider.data.apiKeyEncrypted),
+				name: systemProvider.data.slug,
+			}).chat;
 
-		const organizationProvider = await client.organizationProvider.find({
-			organizationId: context.auth.session.activeOrganizationId,
-			providerSlug: templateBlock.config.provider,
-		});
+			// Only wrap if the model has reasoning capabilities
+			const model = wrapLanguageModel({
+				model: chatProvider(templateBlock.config.model),
+				middleware: extractReasoningMiddleware({ tagName: "think" }),
+			});
 
-		const chatProvider = createOpenAI({
-			baseURL: systemProvider.data.endpoint ?? undefined,
-			apiKey: decryptApiKey(organizationProvider.data.apiKeyEncrypted),
-			name: systemProvider.data.slug,
-		}).chat;
+			const assistantMessageId = uuidv4();
 
-		// Only wrap if the model has reasoning capabilities
-		const model = wrapLanguageModel({
-			model: chatProvider(templateBlock.config.model),
-			middleware: extractReasoningMiddleware({ tagName: "think" }),
-		});
-
-		const assistantMessageId = uuidv4();
-
-		const stream = createUIMessageStream({
-			generateId: () => assistantMessageId,
-			originalMessages: input.messages,
-			execute: ({ writer }) => {
-				/* references.forEach((reference) => {
+			const stream = createUIMessageStream({
+				generateId: () => assistantMessageId,
+				originalMessages: input.messages,
+				execute: ({ writer }) => {
+					/* references.forEach((reference) => {
             dataStream.writeMessageAnnotation(reference as unknown as JSONValue);
           }); */
 
-				// Validate and get the model ID from course configuration
-				console.log(assistantMessageId);
-				const result = streamText({
-					/* model: model, */
-					model,
-					/* system: createSocraticSystemPrompt({
+					// Validate and get the model ID from course configuration
+					console.log(assistantMessageId);
+					const result = streamText({
+						/* model: model, */
+						model,
+						/* system: createSocraticSystemPrompt({
               context: relevantChunks.map((chunk) => ({
                 documentId: String(
                   references.indexOf(
@@ -89,10 +91,10 @@ export const aiChat = authed.ai.chat
               courseTitle: course.data.title,
               override: course.data.config.systemPrompt,
             }), */
-					system: "You are a helpful assistant.",
-					messages: convertToModelMessages(input.messages),
-					experimental_transform: smoothStream({ chunking: "word" }),
-					/* experimental_telemetry: {
+						system: "You are a helpful assistant.",
+						messages: convertToModelMessages(input.messages),
+						experimental_transform: smoothStream({ chunking: "word" }),
+						/* experimental_telemetry: {
               isEnabled: true,
               metadata: {
                 langfuseTraceId: assistantMessageId,
@@ -102,19 +104,19 @@ export const aiChat = authed.ai.chat
                 tags: ["user", "chat"],
               },
             }, */
-					stopWhen: stepCountIs(5),
-					/* tools: {
-						generateImage: generateImageTool({
-							writer,
-							assistantMessageId,
-						}),
-						generateJoke: generateJokeTool(),
+						stopWhen: stepCountIs(5),
+						tools: {
+							generateImage: generateImageTool({
+								writer,
+								assistantMessageId,
+							}),
+							/* generateJoke: generateJokeTool(),
               searchKnowledgeBase: searchKnowledgeBaseTool({
                 config: course.data.config,
                 courseId: activeCourseId,
-              }),
-					}, */
-					/* onFinish: async ({ response }) => {
+              }), */
+						},
+						/* onFinish: async ({ response }) => {
               if (session.user?.id) {
                 try {
                   const assistantId = getTrailingMessageId({
@@ -162,18 +164,24 @@ export const aiChat = authed.ai.chat
                 }
               }
             }, */
-				});
+					});
 
-				writer.merge(result.toUIMessageStream());
-			},
-			onFinish: ({ messages }) => {
-				console.log("Stream finished with messages:", messages);
-			},
-			onError: (error) => {
-				console.error("Error in data stream execution:", error);
-				return "Oops, an error occurred while processing your request!";
-			},
-		});
+					writer.merge(result.toUIMessageStream());
+				},
+				onFinish: ({ messages }) => {
+					console.log("Stream finished with messages:", messages);
+				},
+				onError: (error) => {
+					console.error("Error in data stream execution:", error);
+					return "Oops, an error occurred while processing your request!";
+				},
+			});
 
-		return streamToEventIterator(stream);
+			return streamToEventIterator(stream);
+		} catch (error) {
+			console.error("Error in AI chat handler:", error);
+			throw new ORPCError("INTERNAL_SERVER_ERROR", {
+				message: "An error occurred while processing your request.",
+			});
+		}
 	});
