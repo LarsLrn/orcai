@@ -2,7 +2,6 @@ import { useQuery } from "@tanstack/react-query";
 import { useRouteContext } from "@tanstack/react-router";
 import { ChevronsUpDown, LogOut } from "lucide-react";
 import { SignOutButton } from "@/components/auth/signout-button";
-import { OrganizationSwitcher } from "@/components/organizations/organization-switcher";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import {
 	DropdownMenu,
@@ -87,8 +86,6 @@ const NavUser = () => {
 						</DropdownMenuLabel>
 						<DropdownMenuSeparator />
 						<UserMenuActions />
-						<DropdownMenuSeparator />
-						<OrganizationSwitcher />
 						<DropdownMenuSeparator />
 						<SignOutButton asChild>
 							<DropdownMenuItem

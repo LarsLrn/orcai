@@ -4,16 +4,10 @@ import {
 	useSuspenseQuery,
 } from "@tanstack/react-query";
 import { createFileRoute, redirect, useNavigate } from "@tanstack/react-router";
-import { BuildingIcon, ChevronRightIcon } from "lucide-react";
+import { BuildingIcon } from "lucide-react";
 import { toast } from "sonner";
-import { Button } from "@/components/ui/button";
-import {
-	Card,
-	CardAction,
-	CardContent,
-	CardHeader,
-	CardTitle,
-} from "@/components/ui/card";
+import { OrganizationCard } from "@/components/organizations/organization-card";
+import { Card, CardContent } from "@/components/ui/card";
 import type { Organization } from "@/db/schema/organization";
 import { authClient } from "@/lib/auth-client";
 import { organizationQueryOptions } from "@/lib/query-options/organization";
@@ -23,10 +17,7 @@ export const Route = createFileRoute("/_pathlessLayout/select-organization")({
 	component: RouteComponent,
 	beforeLoad: ({ context }) => {
 		if (!context.auth.isAuthenticated) {
-			throw redirect({ to: "/login" });
-		}
-		if (context.auth.session.activeOrganizationId) {
-			throw redirect({ to: "/app" });
+			throw redirect({ to: "/login", statusCode: 401 });
 		}
 	},
 	loader: async ({ context: { queryClient } }) => {
@@ -59,7 +50,7 @@ function RouteComponent() {
 			success: async () => {
 				refetchSession();
 				await navigate({ to: "/app" });
-				return "Organization selected successfully!";
+				return `Welcome to ${organization.name}!`;
 			},
 			error: (error) => ({
 				message: "Failed to select organization",
@@ -71,56 +62,21 @@ function RouteComponent() {
 	return (
 		<div className="w-full max-w-2xl space-y-6">
 			<div className="space-y-2 text-center">
-				<h1 className="font-bold text-3xl tracking-tight">
-					Choose Your Organization
+				<h1 className="font-bold text-2xl tracking-tight">
+					Select which organization you want to work with
 				</h1>
 				<p className="text-lg text-muted-foreground">
-					Select an organization to continue to the application
+					You can always switch to a different organization later.
 				</p>
 			</div>
 
-			<div className="grid gap-4 sm:grid-cols-1 md:grid-cols-2 lg:grid-cols-1">
+			<div className="grid gap-4 sm:grid-cols-1 md:grid-cols-2">
 				{organizations.data.map((organization) => (
-					<button
+					<OrganizationCard
 						key={organization.id}
-						type="button"
-						className="group cursor-pointer text-left transition-all hover:scale-[1.02] hover:shadow-md focus:outline-none focus:ring-2 focus:ring-primary focus:ring-offset-2"
-						onClick={() => handleOrganizationChange(organization)}
-						aria-label={`Select ${organization.name} organization`}
-					>
-						<Card className="h-full">
-							<CardHeader>
-								<div className="flex items-center justify-between">
-									<div className="flex items-center gap-3">
-										<div className="flex h-12 w-12 items-center justify-center rounded-lg bg-primary/10">
-											<BuildingIcon className="h-6 w-6 text-primary" />
-										</div>
-										<div className="space-y-1">
-											<CardTitle className="text-xl transition-colors group-hover:text-primary">
-												{organization.name}
-											</CardTitle>
-											{organization.slug && (
-												<p className="text-muted-foreground text-sm">
-													@{organization.slug}
-												</p>
-											)}
-										</div>
-									</div>
-									<CardAction>
-										<Button
-											variant="outline"
-											size="sm"
-											className="transition-all group-hover:bg-primary group-hover:text-primary-foreground"
-											tabIndex={-1}
-										>
-											Select
-											<ChevronRightIcon className="ml-1 h-4 w-4" />
-										</Button>
-									</CardAction>
-								</div>
-							</CardHeader>
-						</Card>
-					</button>
+						organization={organization}
+						onSelect={() => handleOrganizationChange(organization)}
+					/>
 				))}
 			</div>
 

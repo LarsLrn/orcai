@@ -1,5 +1,6 @@
 import type { LinkProps } from "@tanstack/react-router";
 import {
+	ArrowLeftRightIcon,
 	BlocksIcon,
 	BookMarkedIcon,
 	BotIcon,
@@ -54,5 +55,10 @@ export const sidebarUserMenu: SidebarMenuItem[] = [
 		title: "Account",
 		linkProps: { to: "/app/account" },
 		icon: UserIcon,
+	},
+	{
+		title: "Switch Organisation",
+		linkProps: { to: "/select-organization" },
+		icon: ArrowLeftRightIcon,
 	},
 ];
