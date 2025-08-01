@@ -9,6 +9,7 @@ import { ChatMessageList } from "@/components/ui/chat/chat-message-list";
 import type { CustomUIMessage } from "@/lib/ai/tools";
 import { client } from "@/lib/orpc/orpc";
 import { chatQueryOptions } from "@/lib/query-options/chat";
+import { ChatInputUtilityActions } from "../ui/chat/chat-input-actions";
 /* import { deleteTrailingMessages } from "@/db/actions/ai-actions"; */
 /* import {
   type DataStreamDelta,
@@ -109,7 +110,6 @@ const Chat = ({
 
 			<ChatSettings chatId={id} />
 			<ChatInput
-				hasMessages={messages.length > 0}
 				status={status}
 				sendMessage={sendMessage}
 				handleReload={handleReload}
@@ -117,6 +117,10 @@ const Chat = ({
 				chatId={id}
 				stop={stop}
 				placeholder="How can I help?"
+			/>
+			<ChatInputUtilityActions
+				hasMessages={messages.length > 0}
+				handleReload={handleReload}
 			/>
 		</div>
 	);

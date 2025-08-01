@@ -4,10 +4,7 @@ import { useChatInput } from "@/components/ui/chat/hooks/use-chat-input";
 import { Textarea } from "@/components/ui/textarea";
 import type { CustomUIMessage } from "@/lib/ai/tools";
 import { cn } from "@/lib/utils";
-import {
-	ChatInputActions,
-	ChatInputUtilityActions,
-} from "./chat-input-actions";
+import { ChatInputActions } from "./chat-input-actions";
 
 interface ChatInputProps
 	extends React.TextareaHTMLAttributes<HTMLTextAreaElement> {
@@ -17,7 +14,6 @@ interface ChatInputProps
 	handleReload: () => void;
 	setMessages: UseChatHelpers<CustomUIMessage>["setMessages"];
 	stop: UseChatHelpers<CustomUIMessage>["stop"];
-	hasMessages: boolean;
 }
 
 const ChatInput = ({
@@ -28,7 +24,6 @@ const ChatInput = ({
 	handleReload,
 	setMessages,
 	stop,
-	hasMessages,
 	...props
 }: ChatInputProps) => {
 	const { input, textareaRef, isLoading, submitForm, handleInput } =
@@ -78,11 +73,6 @@ const ChatInput = ({
 						/>
 					</div>
 				</div>
-
-				<ChatInputUtilityActions
-					hasMessages={hasMessages}
-					handleReload={handleReload}
-				/>
 			</div>
 		</form>
 	);
