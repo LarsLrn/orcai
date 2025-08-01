@@ -26,11 +26,11 @@
 		"prepare": "husky"
 	},
 	"dependencies": {
-		"@ai-sdk/openai": "^2.0.0-beta.11",
-		"@ai-sdk/react": "^2.0.0-beta.25",
+		"@ai-sdk/openai": "^2.0.0",
+		"@ai-sdk/react": "^2.0.0",
 		"@authzed/authzed-node": "^1.5.1",
-		"@aws-sdk/client-s3": "^3.855.0",
-		"@aws-sdk/s3-request-presigner": "^3.855.0",
+		"@aws-sdk/client-s3": "^3.858.0",
+		"@aws-sdk/s3-request-presigner": "^3.858.0",
 		"@dnd-kit/core": "^6.3.1",
 		"@docling/docling-core": "^0.0.7",
 		"@fontsource-variable/geist": "^5.2.6",
@@ -72,8 +72,8 @@
 		"@tailwindcss/postcss": "^4.1.11",
 		"@tailwindcss/typography": "^0.5.16",
 		"@tailwindcss/vite": "^4.1.11",
-		"@tanstack/react-query": "^5.83.1",
-		"@tanstack/react-query-devtools": "^5.83.1",
+		"@tanstack/react-query": "^5.84.0",
+		"@tanstack/react-query-devtools": "^5.84.0",
 		"@tanstack/react-router": "^1.130.9",
 		"@tanstack/react-router-devtools": "^1.130.9",
 		"@tanstack/react-start": "^1.130.9",
@@ -101,7 +101,7 @@
 		"@trigger.dev/sdk": "^3.3.17",
 		"@types/react-syntax-highlighter": "^15.5.13",
 		"@vitejs/plugin-react": "^4.7.0",
-		"ai": "^5.0.0-beta.25",
+		"ai": "^5.0.0",
 		"better-auth": "^1.3.4",
 		"class-variance-authority": "^0.7.1",
 		"clsx": "^2.1.1",
@@ -163,7 +163,7 @@
 		"knip": "^5.62.0",
 		"tsx": "^4.20.3",
 		"tw-animate-css": "^1.3.6",
-		"typescript": "^5.9.2",
+		"typescript": "^5.8.3",
 		"vite-tsconfig-paths": "^5.1.4"
 	}
 }
