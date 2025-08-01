@@ -1,5 +1,4 @@
 import { StartClient } from "@tanstack/react-start";
-import { StrictMode } from "react";
 import { hydrateRoot } from "react-dom/client";
 import {
 	getLocale,
@@ -24,9 +23,4 @@ if (strategy.includes("cookie")) {
  * END
  */
 
-hydrateRoot(
-	document,
-	<StrictMode>
-		<StartClient router={router} />
-	</StrictMode>,
-);
+hydrateRoot(document, <StartClient router={router} />);
