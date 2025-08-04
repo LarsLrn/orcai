@@ -16,13 +16,13 @@ import { FormTextField } from "@/components/forms/fields/form-text-field";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Form } from "@/components/ui/form";
-import type { Block } from "@/db/schema/block";
+import type { TemplateBlock } from "@/db/schema/block";
 import { blockInsertSchema } from "@/lib/orpc/contracts/block";
 import { blockQueryOptions } from "@/lib/query-options/block";
 import { modelQueryOptions } from "@/lib/query-options/model";
 import { organizationProviderQueryOptions } from "@/lib/query-options/organization-provider";
 
-const BlockForm = ({ block }: { block?: Block }) => {
+const TemplateBlockForm = ({ block }: { block?: TemplateBlock }) => {
 	const router = useRouter();
 	const queryClient = useQueryClient();
 	const { auth } = useRouteContext({ from: "/app" });
@@ -43,12 +43,11 @@ const BlockForm = ({ block }: { block?: Block }) => {
 	const form = useForm<z.infer<typeof blockInsertSchema>>({
 		resolver: zodResolver(blockInsertSchema),
 		defaultValues: {
-			name: block?.name ?? undefined,
-			type: block?.type ?? undefined,
+			name: block?.name ?? "",
 			config: {
-				systemPrompt: block?.config?.systemPrompt ?? "",
-				model: block?.config?.model ?? undefined,
-				provider: block?.config?.provider ?? undefined,
+				systemPrompt: block?.config.systemPrompt ?? "",
+				model: block?.config.model ?? undefined,
+				provider: block?.config.provider ?? undefined,
 			},
 		},
 	});
@@ -66,6 +65,7 @@ const BlockForm = ({ block }: { block?: Block }) => {
 			toast.promise(
 				updateBlock({
 					...values,
+					type: "template",
 					id: block.id,
 				}),
 				{
@@ -109,18 +109,6 @@ const BlockForm = ({ block }: { block?: Block }) => {
 								inputType="text"
 								placeholder="Block name"
 								label="Name"
-								required={true}
-							/>
-
-							<FormSelectField
-								form={form}
-								name="type"
-								options={[
-									{ value: "database", label: "Database" },
-									{ value: "template", label: "Template" },
-								]}
-								label="Type"
-								placeholder="Choose a Block Type"
 								required={true}
 							/>
 						</CardContent>
@@ -175,4 +163,4 @@ const BlockForm = ({ block }: { block?: Block }) => {
 	);
 };
 
-export { BlockForm };
+export { TemplateBlockForm };

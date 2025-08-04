@@ -7,11 +7,30 @@ import { z } from "zod/v4";
 import { blockTable } from "@/db/schema/block";
 import { base } from "./base";
 
-export const blockSelectSchema = createSelectSchema(blockTable, {
-	type: z.enum(["template", "database"]),
+export const templateBlockSchema = z.object({
+	type: z.literal("template"),
+	systemPrompt: z.string(),
+	model: z.string(),
+	provider: z.string(),
 });
 
-export const blockInsertSchema = createInsertSchema(blockTable, {
+export const databaseBlockSchema = z.object({
+	type: z.literal("database"),
+	embeddingModel: z.string(),
+});
+
+export const blockSelectSchema = createSelectSchema(blockTable, {
+	type: z.enum(["template", "database"]),
+}).extend({
+	config: z.discriminatedUnion("type", [
+		templateBlockSchema,
+		databaseBlockSchema,
+	]),
+});
+
+export type Block = z.infer<typeof blockSelectSchema>;
+
+const baseBlockInsertSchema = createInsertSchema(blockTable, {
 	type: z.enum(["template", "database"]),
 }).omit({
 	userId: true,
@@ -19,6 +38,20 @@ export const blockInsertSchema = createInsertSchema(blockTable, {
 	updatedAt: true,
 	id: true,
 });
+
+export const blockInsertSchema = z.discriminatedUnion("type", [
+	baseBlockInsertSchema.extend({
+		type: z.literal("template"),
+		assets: z.array(z.string()).optional(),
+	}),
+	baseBlockInsertSchema.extend({
+		type: z.literal("database"),
+		embeddingModel: z.string(),
+		assets: z
+			.array(z.string())
+			.min(1, "At least one asset is required for database blocks"),
+	}),
+]);
 
 export const blockUpdateSchema = createUpdateSchema(blockTable, {
 	id: z.uuidv4(),

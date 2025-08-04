@@ -9,14 +9,18 @@ import {
 	timestamp,
 	uuid,
 } from "drizzle-orm/pg-core";
+import type { z } from "zod/v4";
+import type {
+	databaseBlockSchema,
+	templateBlockSchema,
+} from "@/lib/orpc/contracts/block";
+import { assetTable } from "./asset";
 import { user } from "./auth";
 import { chat } from "./chat";
 
-export interface BlockConfigType {
-	systemPrompt?: string;
-	model: string;
-	provider: string;
-}
+export type BlockConfigType =
+	| z.infer<typeof templateBlockSchema>
+	| z.infer<typeof databaseBlockSchema>;
 
 export type BlockTypes = "template" | "database";
 
@@ -39,7 +43,14 @@ export const blockTable = pgTable("block", {
 	updatedAt: timestamp("updated_at").defaultNow(),
 });
 
-export type Block = InferSelectModel<typeof blockTable>;
+// Type-safe block variants
+export type TemplateBlock = InferSelectModel<typeof blockTable> & {
+	config: Extract<BlockConfigType, { type: "template" }>;
+};
+
+export type DatabaseBlock = InferSelectModel<typeof blockTable> & {
+	config: Extract<BlockConfigType, { type: "database" }>;
+};
 
 export const chatBlockTable = pgTable(
 	"chat_block",
@@ -54,3 +65,15 @@ export const chatBlockTable = pgTable(
 	},
 	(table) => [primaryKey({ columns: [table.blockId, table.chatId] })],
 );
+
+export const blockAssetTable = pgTable("block_asset", {
+	blockId: uuid("block_id")
+		.notNull()
+		.references(() => blockTable.id, { onDelete: "cascade" }),
+	assetId: uuid("asset_id")
+		.notNull()
+		.references(() => assetTable.id, { onDelete: "cascade" }),
+	createdAt: timestamp("created_at").notNull().defaultNow(),
+});
+
+export type BlockAsset = InferSelectModel<typeof blockAssetTable>;

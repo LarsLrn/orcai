@@ -1,6 +1,6 @@
 import { useDraggable } from "@dnd-kit/core";
 import { CSS } from "@dnd-kit/utilities";
-import type { Block } from "@/db/schema/block";
+import type { Block } from "@/lib/orpc/contracts/block";
 import { cn } from "@/lib/utils";
 
 const DraggableBlock = ({ block }: { block: Block }) => {
