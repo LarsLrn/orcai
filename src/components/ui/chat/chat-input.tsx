@@ -4,7 +4,7 @@ import { useChatInput } from "@/components/ui/chat/hooks/use-chat-input";
 import { Textarea } from "@/components/ui/textarea";
 import type { CustomUIMessage } from "@/lib/ai/tools";
 import { cn } from "@/lib/utils";
-import { ChatInputActions } from "./chat-input-actions";
+import { SendButton, StopButton } from "./chat-buttons";
 
 interface ChatInputProps
 	extends React.TextareaHTMLAttributes<HTMLTextAreaElement> {
@@ -42,7 +42,7 @@ const ChatInput = ({
 	};
 
 	return (
-		<form className="mx-auto flex w-full gap-2 bg-background px-4 pb-4 md:max-w-3xl md:pb-6">
+		<form>
 			<div className="flex w-full flex-col gap-3">
 				<div className="relative rounded-2xl bg-card">
 					<Textarea
@@ -64,13 +64,11 @@ const ChatInput = ({
 					/>
 
 					<div className="absolute right-2 bottom-3">
-						<ChatInputActions
-							status={status}
-							input={input}
-							submitForm={submitForm}
-							stop={stop}
-							setMessages={setMessages}
-						/>
+						{status === "streaming" || status === "submitted" ? (
+							<StopButton stop={stop} setMessages={setMessages} />
+						) : (
+							<SendButton input={input} submitForm={submitForm} />
+						)}
 					</div>
 				</div>
 			</div>

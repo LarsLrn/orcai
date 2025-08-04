@@ -3,20 +3,14 @@ import { eventIteratorToStream } from "@orpc/client";
 import { useSuspenseQuery } from "@tanstack/react-query";
 import type { ApiGetScoresResponseData } from "langfuse";
 import { toast } from "sonner";
-import { v4 as uuidv4 } from "uuid";
 import { ChatInput } from "@/components/ui/chat/chat-input";
 import { ChatMessageList } from "@/components/ui/chat/chat-message-list";
 import type { CustomUIMessage } from "@/lib/ai/tools";
 import { client } from "@/lib/orpc/orpc";
 import { chatQueryOptions } from "@/lib/query-options/chat";
-import { ChatInputUtilityActions } from "../ui/chat/chat-input-actions";
+import { ChatUtilities } from "../ui/chat/chat-input-actions";
 /* import { deleteTrailingMessages } from "@/db/actions/ai-actions"; */
-/* import {
-  type DataStreamDelta,
-  useStreamingText,
-} from "@/hooks/use-streaming-text"; */
 import { ChatPlaceholder } from "./chat-placeholder";
-import { ChatSettings } from "./chat-settings";
 import { MessageBlock } from "./message-block";
 import { ShinyText } from "./shiny-text";
 
@@ -53,23 +47,13 @@ const Chat = ({
 					throw new Error("Unsupported");
 				},
 			},
-
-			experimental_throttle: 100,
-			generateId: uuidv4,
 			messages: initialMessages,
-			onFinish: () => {
-				/* resetStream(); */
-			},
 			onError: (error) => {
 				toast.error("An error occurred, please try again!", {
 					description: error.message,
 				});
 			},
 		});
-
-	/* const { toolStream, reset: resetStream } = useStreamingText(
-    dataStream as DataStreamDelta[],
-  ); */
 
 	const handleReload = () => {
 		/* deleteTrailingMessages({
@@ -88,7 +72,6 @@ const Chat = ({
 						key={m.id}
 						message={m}
 						chatId={id}
-						/* toolStream={toolStream} */
 						setMessages={setMessages}
 						regenerate={regenerate}
 						status={status}
@@ -108,20 +91,24 @@ const Chat = ({
 				)}
 			</ChatMessageList>
 
-			<ChatSettings chatId={id} />
-			<ChatInput
-				status={status}
-				sendMessage={sendMessage}
-				handleReload={handleReload}
-				setMessages={setMessages}
-				chatId={id}
-				stop={stop}
-				placeholder="How can I help?"
-			/>
-			<ChatInputUtilityActions
-				hasMessages={messages.length > 0}
-				handleReload={handleReload}
-			/>
+			<div className="mx-auto flex w-full flex-col gap-2 bg-background px-4 pb-4 md:max-w-3xl md:pb-6">
+				<ChatInput
+					status={status}
+					sendMessage={sendMessage}
+					handleReload={handleReload}
+					setMessages={setMessages}
+					chatId={id}
+					stop={stop}
+					placeholder="How can I help?"
+				/>
+				<div className="flex items-center gap-2">
+					<ChatUtilities
+						chatId={id}
+						hasMessages={messages.length > 0}
+						handleReload={handleReload}
+					/>
+				</div>
+			</div>
 		</div>
 	);
 };
