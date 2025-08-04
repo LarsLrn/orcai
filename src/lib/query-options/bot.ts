@@ -31,7 +31,6 @@ export const botQueryOptions = {
 			queryKey: orpc.bot.find.key({
 				input: typeof input === "symbol" ? undefined : input,
 			}),
-			placeholderData: keepPreviousData,
 		});
 	},
 
