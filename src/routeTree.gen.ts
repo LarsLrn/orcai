@@ -39,7 +39,6 @@ import { Route as AppUsersInvitesRouteImport } from './routes/app/users/invites'
 import { Route as AppUsersAddRouteImport } from './routes/app/users/add'
 import { Route as AppOrgsAddRouteImport } from './routes/app/orgs/add'
 import { Route as AppCoursesAddRouteImport } from './routes/app/courses/add'
-import { Route as AppChatChatIdRouteImport } from './routes/app/chat/$chatId'
 import { Route as AppBotsAddRouteImport } from './routes/app/bots/add'
 import { Route as AppBlocksAddRouteImport } from './routes/app/blocks/add'
 import { Route as AppAssetsPlaygroundRouteImport } from './routes/app/assets/playground'
@@ -52,6 +51,7 @@ import { Route as AppBlocksBlockIdRouteRouteImport } from './routes/app/blocks/$
 import { Route as AppAssetsAssetIdRouteRouteImport } from './routes/app/assets/$assetId/route'
 import { Route as AppOrgsOrgIdIndexRouteImport } from './routes/app/orgs/$orgId/index'
 import { Route as AppCoursesCourseIdIndexRouteImport } from './routes/app/courses/$courseId/index'
+import { Route as AppChatChatIdIndexRouteImport } from './routes/app/chat/$chatId/index'
 import { Route as AppBotsBotIdIndexRouteImport } from './routes/app/bots/$botId/index'
 import { Route as AppBlocksBlockIdIndexRouteImport } from './routes/app/blocks/$blockId/index'
 import { Route as AppAssetsAssetIdIndexRouteImport } from './routes/app/assets/$assetId/index'
@@ -214,11 +214,6 @@ const AppCoursesAddRoute = AppCoursesAddRouteImport.update({
   path: '/add',
   getParentRoute: () => AppCoursesRouteRoute,
 } as any)
-const AppChatChatIdRoute = AppChatChatIdRouteImport.update({
-  id: '/$chatId',
-  path: '/$chatId',
-  getParentRoute: () => AppChatRouteRoute,
-} as any)
 const AppBotsAddRoute = AppBotsAddRouteImport.update({
   id: '/add',
   path: '/add',
@@ -278,6 +273,11 @@ const AppCoursesCourseIdIndexRoute = AppCoursesCourseIdIndexRouteImport.update({
   id: '/',
   path: '/',
   getParentRoute: () => AppCoursesCourseIdRouteRoute,
+} as any)
+const AppChatChatIdIndexRoute = AppChatChatIdIndexRouteImport.update({
+  id: '/$chatId/',
+  path: '/$chatId/',
+  getParentRoute: () => AppChatRouteRoute,
 } as any)
 const AppBotsBotIdIndexRoute = AppBotsBotIdIndexRouteImport.update({
   id: '/',
@@ -407,7 +407,6 @@ export interface FileRoutesByFullPath {
   '/app/assets/playground': typeof AppAssetsPlaygroundRoute
   '/app/blocks/add': typeof AppBlocksAddRoute
   '/app/bots/add': typeof AppBotsAddRoute
-  '/app/chat/$chatId': typeof AppChatChatIdRoute
   '/app/courses/add': typeof AppCoursesAddRoute
   '/app/orgs/add': typeof AppOrgsAddRoute
   '/app/users/add': typeof AppUsersAddRoute
@@ -431,6 +430,7 @@ export interface FileRoutesByFullPath {
   '/app/assets/$assetId/': typeof AppAssetsAssetIdIndexRoute
   '/app/blocks/$blockId/': typeof AppBlocksBlockIdIndexRoute
   '/app/bots/$botId/': typeof AppBotsBotIdIndexRoute
+  '/app/chat/$chatId': typeof AppChatChatIdIndexRoute
   '/app/courses/$courseId/': typeof AppCoursesCourseIdIndexRoute
   '/app/orgs/$orgId/': typeof AppOrgsOrgIdIndexRoute
   '/app/orgs/$orgId/providers/$providerSlug': typeof AppOrgsOrgIdProvidersProviderSlugRouteRouteWithChildren
@@ -452,7 +452,6 @@ export interface FileRoutesByTo {
   '/app/assets/playground': typeof AppAssetsPlaygroundRoute
   '/app/blocks/add': typeof AppBlocksAddRoute
   '/app/bots/add': typeof AppBotsAddRoute
-  '/app/chat/$chatId': typeof AppChatChatIdRoute
   '/app/courses/add': typeof AppCoursesAddRoute
   '/app/orgs/add': typeof AppOrgsAddRoute
   '/app/users/add': typeof AppUsersAddRoute
@@ -475,6 +474,7 @@ export interface FileRoutesByTo {
   '/app/assets/$assetId': typeof AppAssetsAssetIdIndexRoute
   '/app/blocks/$blockId': typeof AppBlocksBlockIdIndexRoute
   '/app/bots/$botId': typeof AppBotsBotIdIndexRoute
+  '/app/chat/$chatId': typeof AppChatChatIdIndexRoute
   '/app/courses/$courseId': typeof AppCoursesCourseIdIndexRoute
   '/app/orgs/$orgId': typeof AppOrgsOrgIdIndexRoute
   '/app/orgs/$orgId/providers/add': typeof AppOrgsOrgIdProvidersAddRoute
@@ -510,7 +510,6 @@ export interface FileRoutesById {
   '/app/assets/playground': typeof AppAssetsPlaygroundRoute
   '/app/blocks/add': typeof AppBlocksAddRoute
   '/app/bots/add': typeof AppBotsAddRoute
-  '/app/chat/$chatId': typeof AppChatChatIdRoute
   '/app/courses/add': typeof AppCoursesAddRoute
   '/app/orgs/add': typeof AppOrgsAddRoute
   '/app/users/add': typeof AppUsersAddRoute
@@ -534,6 +533,7 @@ export interface FileRoutesById {
   '/app/assets/$assetId/': typeof AppAssetsAssetIdIndexRoute
   '/app/blocks/$blockId/': typeof AppBlocksBlockIdIndexRoute
   '/app/bots/$botId/': typeof AppBotsBotIdIndexRoute
+  '/app/chat/$chatId/': typeof AppChatChatIdIndexRoute
   '/app/courses/$courseId/': typeof AppCoursesCourseIdIndexRoute
   '/app/orgs/$orgId/': typeof AppOrgsOrgIdIndexRoute
   '/app/orgs/$orgId/providers/$providerSlug': typeof AppOrgsOrgIdProvidersProviderSlugRouteRouteWithChildren
@@ -570,7 +570,6 @@ export interface FileRouteTypes {
     | '/app/assets/playground'
     | '/app/blocks/add'
     | '/app/bots/add'
-    | '/app/chat/$chatId'
     | '/app/courses/add'
     | '/app/orgs/add'
     | '/app/users/add'
@@ -594,6 +593,7 @@ export interface FileRouteTypes {
     | '/app/assets/$assetId/'
     | '/app/blocks/$blockId/'
     | '/app/bots/$botId/'
+    | '/app/chat/$chatId'
     | '/app/courses/$courseId/'
     | '/app/orgs/$orgId/'
     | '/app/orgs/$orgId/providers/$providerSlug'
@@ -615,7 +615,6 @@ export interface FileRouteTypes {
     | '/app/assets/playground'
     | '/app/blocks/add'
     | '/app/bots/add'
-    | '/app/chat/$chatId'
     | '/app/courses/add'
     | '/app/orgs/add'
     | '/app/users/add'
@@ -638,6 +637,7 @@ export interface FileRouteTypes {
     | '/app/assets/$assetId'
     | '/app/blocks/$blockId'
     | '/app/bots/$botId'
+    | '/app/chat/$chatId'
     | '/app/courses/$courseId'
     | '/app/orgs/$orgId'
     | '/app/orgs/$orgId/providers/add'
@@ -672,7 +672,6 @@ export interface FileRouteTypes {
     | '/app/assets/playground'
     | '/app/blocks/add'
     | '/app/bots/add'
-    | '/app/chat/$chatId'
     | '/app/courses/add'
     | '/app/orgs/add'
     | '/app/users/add'
@@ -696,6 +695,7 @@ export interface FileRouteTypes {
     | '/app/assets/$assetId/'
     | '/app/blocks/$blockId/'
     | '/app/bots/$botId/'
+    | '/app/chat/$chatId/'
     | '/app/courses/$courseId/'
     | '/app/orgs/$orgId/'
     | '/app/orgs/$orgId/providers/$providerSlug'
@@ -938,13 +938,6 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AppCoursesAddRouteImport
       parentRoute: typeof AppCoursesRouteRoute
     }
-    '/app/chat/$chatId': {
-      id: '/app/chat/$chatId'
-      path: '/$chatId'
-      fullPath: '/app/chat/$chatId'
-      preLoaderRoute: typeof AppChatChatIdRouteImport
-      parentRoute: typeof AppChatRouteRoute
-    }
     '/app/bots/add': {
       id: '/app/bots/add'
       path: '/add'
@@ -1028,6 +1021,13 @@ declare module '@tanstack/react-router' {
       fullPath: '/app/courses/$courseId/'
       preLoaderRoute: typeof AppCoursesCourseIdIndexRouteImport
       parentRoute: typeof AppCoursesCourseIdRouteRoute
+    }
+    '/app/chat/$chatId/': {
+      id: '/app/chat/$chatId/'
+      path: '/$chatId'
+      fullPath: '/app/chat/$chatId'
+      preLoaderRoute: typeof AppChatChatIdIndexRouteImport
+      parentRoute: typeof AppChatRouteRoute
     }
     '/app/bots/$botId/': {
       id: '/app/bots/$botId/'
@@ -1284,13 +1284,13 @@ const AppBotsRouteRouteWithChildren = AppBotsRouteRoute._addFileChildren(
 )
 
 interface AppChatRouteRouteChildren {
-  AppChatChatIdRoute: typeof AppChatChatIdRoute
   AppChatIndexRoute: typeof AppChatIndexRoute
+  AppChatChatIdIndexRoute: typeof AppChatChatIdIndexRoute
 }
 
 const AppChatRouteRouteChildren: AppChatRouteRouteChildren = {
-  AppChatChatIdRoute: AppChatChatIdRoute,
   AppChatIndexRoute: AppChatIndexRoute,
+  AppChatChatIdIndexRoute: AppChatChatIdIndexRoute,
 }
 
 const AppChatRouteRouteWithChildren = AppChatRouteRoute._addFileChildren(
