@@ -10,7 +10,7 @@ import {
 	wrapLanguageModel,
 } from "ai";
 import { v4 as uuidv4 } from "uuid";
-import type { Block } from "@/db/schema/block";
+import type { TemplateBlock } from "@/db/schema/block";
 import { generateImageTool } from "@/lib/ai/tools/generate-image";
 import { decryptApiKey } from "@/lib/encryption";
 import { requireActiveOrganizationMiddleware } from "@/lib/orpc/middlewares/auth";
@@ -23,7 +23,18 @@ export const aiChat = authed.ai.chat
 	.use(retry({ times: 3 }))
 	.handler(async ({ context, input }) => {
 		try {
-			let templateBlock: Block | undefined;
+			const userMessage = input.messages[input.messages.length - 1];
+
+			client.chatMessage.create({
+				id: uuidv4(),
+				chatId: input.chatId,
+				role: "user",
+				parts: userMessage.parts,
+				attachments: [],
+				annotations: [],
+			});
+
+			let templateBlock: TemplateBlock | undefined;
 
 			if (input.botId) {
 				// Fetch the bot to get its model configuration
@@ -34,7 +45,7 @@ export const aiChat = authed.ai.chat
 				// TODO: Improve typesafety. Probably with some Zod validation
 				templateBlock = bot.data.blocks.find(
 					(block) => block.type === "template",
-				);
+				) as TemplateBlock;
 			}
 
 			if (!templateBlock) {
@@ -168,8 +179,15 @@ export const aiChat = authed.ai.chat
 
 					writer.merge(result.toUIMessageStream());
 				},
-				onFinish: ({ messages }) => {
-					console.log("Stream finished with messages:", messages);
+				onFinish: ({ responseMessage }) => {
+					client.chatMessage.create({
+						id: responseMessage.id,
+						chatId: input.chatId,
+						role: responseMessage.role,
+						parts: responseMessage.parts,
+						attachments: [],
+						annotations: [],
+					});
 				},
 				onError: (error) => {
 					console.error("Error in data stream execution:", error);
