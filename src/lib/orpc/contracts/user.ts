@@ -2,6 +2,7 @@ import { createSelectSchema } from "drizzle-zod";
 import { z } from "zod/v4";
 import { user } from "@/db/schema/auth";
 import { sharedSchemas } from "@/db/zod/shared";
+import { paginationSchema } from "../schemas/shared";
 import { base } from "./base";
 
 const userSelectSchema = createSelectSchema(user);
@@ -13,12 +14,7 @@ export const listUsersContract = base
 		summary: "List all users",
 		tags: ["Users"],
 	})
-	.input(
-		z.object({
-			pageSize: z.number().int().min(1).max(100).default(10),
-			pageIndex: z.number().int().min(0).default(0),
-		}),
-	)
+	.input(paginationSchema)
 	.output(z.object({ data: z.array(userSelectSchema), rowCount: z.number() }));
 
 export const findUserContract = base

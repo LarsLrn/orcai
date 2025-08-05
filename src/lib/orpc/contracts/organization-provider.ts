@@ -5,6 +5,7 @@ import {
 } from "drizzle-zod";
 import { z } from "zod/v4";
 import { organizationProviderTable } from "@/db/schema/model";
+import { paginationSchema } from "../schemas/shared";
 import { base } from "./base";
 
 export const organizationProviderSelectSchema = createSelectSchema(
@@ -49,10 +50,8 @@ export const listOrganizationProvidersContract = base
 		tags: ["Organization Providers"],
 	})
 	.input(
-		z.object({
+		paginationSchema.extend({
 			organizationId: z.uuidv4(),
-			pageSize: z.number().int().min(1).max(100).default(10),
-			pageIndex: z.number().int().min(0).default(0),
 		}),
 	)
 	.output(

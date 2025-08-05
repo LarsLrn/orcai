@@ -5,6 +5,7 @@ import {
 } from "drizzle-zod";
 import { z } from "zod/v4";
 import { chat } from "@/db/schema/chat";
+import { paginationSchema } from "../schemas/shared";
 import { base } from "./base";
 
 export const chatSelectSchema = createSelectSchema(chat);
@@ -32,12 +33,7 @@ export const listChatsContract = base
 		summary: "List all chats",
 		tags: ["Chats"],
 	})
-	.input(
-		z.object({
-			pageSize: z.number().int().min(1).max(100).default(10),
-			pageIndex: z.number().int().min(0).default(0),
-		}),
-	)
+	.input(paginationSchema)
 	.output(z.object({ data: z.array(chatSelectSchema), rowCount: z.number() }));
 
 export const createChatContract = base

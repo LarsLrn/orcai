@@ -5,6 +5,7 @@ import {
 } from "drizzle-zod";
 import { z } from "zod/v4";
 import { chatMessage } from "@/db/schema/chat-message";
+import { paginationSchema } from "../schemas/shared";
 import { base } from "./base";
 
 export const chatMessageSelectSchema = createSelectSchema(chatMessage);
@@ -31,10 +32,8 @@ export const listChatMessagesContract = base
 		tags: ["Chat Messages"],
 	})
 	.input(
-		z.object({
+		paginationSchema.extend({
 			chatId: chatMessageSelectSchema.shape.chatId,
-			pageSize: z.number().int().min(1).max(100).default(10),
-			pageIndex: z.number().int().min(0).default(0),
 			includeScores: z.boolean().default(false),
 		}),
 	)

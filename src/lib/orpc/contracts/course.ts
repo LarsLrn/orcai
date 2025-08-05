@@ -5,6 +5,7 @@ import {
 } from "drizzle-zod";
 import { z } from "zod/v4";
 import { course } from "@/db/schema/course";
+import { paginationSchema } from "../schemas/shared";
 import { base } from "./base";
 
 export const courseSelectSchema = createSelectSchema(course);
@@ -34,12 +35,7 @@ export const listCoursesContract = base
 		summary: "List all courses",
 		tags: ["Courses"],
 	})
-	.input(
-		z.object({
-			pageSize: z.number().int().min(1).max(100).default(10),
-			pageIndex: z.number().int().min(0).default(0),
-		}),
-	)
+	.input(paginationSchema)
 	.output(
 		z.object({ data: z.array(courseSelectSchema), rowCount: z.number() }),
 	);

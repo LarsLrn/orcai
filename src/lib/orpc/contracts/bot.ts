@@ -5,8 +5,9 @@ import {
 } from "drizzle-zod";
 import { z } from "zod/v4";
 import { botTable } from "@/db/schema/bot";
+import { blockSelectSchema } from "../schemas/block";
+import { paginationSchema } from "../schemas/shared";
 import { base } from "./base";
-import { blockSelectSchema } from "./block";
 
 export const botSelectSchema = createSelectSchema(botTable);
 
@@ -44,12 +45,7 @@ export const listBotsContract = base
 		summary: "List all bots",
 		tags: ["Bots"],
 	})
-	.input(
-		z.object({
-			pageSize: z.number().int().min(1).max(100).default(10),
-			pageIndex: z.number().int().min(0).default(0),
-		}),
-	)
+	.input(paginationSchema)
 	.output(z.object({ data: z.array(botSelectSchema), rowCount: z.number() }));
 
 export const createBotContract = base

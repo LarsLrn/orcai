@@ -1,6 +1,7 @@
 import { createSelectSchema, createUpdateSchema } from "drizzle-zod";
 import { z } from "zod/v4";
 import { courseInvitation } from "@/db/schema/course-invitation";
+import { paginationSchema } from "../schemas/shared";
 import { base } from "./base";
 
 export const courseInvitationSelectSchema =
@@ -58,12 +59,7 @@ export const listCourseInvitationsContract = base
 		summary: "List all course invitations",
 		tags: ["Course Invitations"],
 	})
-	.input(
-		z.object({
-			pageSize: z.number().int().min(1).max(100).default(10),
-			pageIndex: z.number().int().min(0).default(0),
-		}),
-	)
+	.input(paginationSchema)
 	.output(
 		z.object({
 			data: z.array(courseInvitationSelectSchema),
