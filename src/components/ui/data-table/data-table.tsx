@@ -20,7 +20,6 @@ interface DataTableProps<TData, TValue> {
 interface DataTableOptions<TData> {
 	rowCount: number;
 	uidAccessor: keyof TData;
-	meta?: Record<string, unknown>;
 	clientPagination?: PaginationState;
 	clientSetPagination?: Dispatch<SetStateAction<PaginationState>>;
 }
@@ -37,11 +36,10 @@ const DataTable = <TData, TValue>({
 	children: React.ReactNode;
 } & React.HTMLAttributes<HTMLDivElement>) => {
 	const navigate = useNavigate();
-	const { rowCount, uidAccessor, meta } = options;
+	const { rowCount, uidAccessor } = options;
 
 	const table = useReactTable({
 		data,
-		meta,
 		columns,
 		getCoreRowModel: getCoreRowModel(),
 		manualPagination: true,

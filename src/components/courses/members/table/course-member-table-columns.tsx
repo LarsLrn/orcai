@@ -1,6 +1,5 @@
 import type { ColumnDef } from "@tanstack/react-table";
 import { MoreHorizontal } from "lucide-react";
-import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
 import { Checkbox } from "@/components/ui/checkbox";
 import { DataTableColumnHeader } from "@/components/ui/data-table/data-table-column-header";
@@ -10,17 +9,15 @@ import {
 	DropdownMenuItem,
 	DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
-import type { Course } from "@/lib/orpc/schemas/course";
 import type { User } from "@/lib/orpc/schemas/user";
 
-const handleDelete = (_id: string, courseId?: Course["id"]) => {
-	if (!courseId) {
+const handleDelete = (_id: string) => {
+	/* if (!courseId) {
 		toast.error("Course ID is required", {
 			description: "Try switching your active course.",
 		});
 		return;
-	}
-
+	} */
 	/* toast.promise(removeCourseMembers({ refs: [{ id }], courseId }), {
 		loading: "Removing member...",
 		success: "Member removed",
@@ -77,7 +74,7 @@ export const courseMemberTableColumns: ColumnDef<User>[] = [
 	{
 		id: "actions",
 		size: 32,
-		cell: ({ row, table }) => {
+		cell: ({ row }) => {
 			const user = row.original;
 
 			return (
@@ -92,7 +89,7 @@ export const courseMemberTableColumns: ColumnDef<User>[] = [
 						<DropdownMenuItem
 							variant="destructive"
 							onClick={() => {
-								handleDelete(user.id, table.options.meta?.courseId);
+								handleDelete(user.id);
 							}}
 						>
 							Remove Member
