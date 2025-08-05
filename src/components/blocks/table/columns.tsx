@@ -14,7 +14,7 @@ import {
 	DropdownMenuSeparator,
 	DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
-import type { Block } from "@/lib/orpc/contracts/block";
+import type { Block } from "@/lib/orpc/schemas/block";
 import { blockQueryOptions } from "@/lib/query-options/block";
 
 export const columns: ColumnDef<Block>[] = [

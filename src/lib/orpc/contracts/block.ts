@@ -1,67 +1,12 @@
-import {
-	createInsertSchema,
-	createSelectSchema,
-	createUpdateSchema,
-} from "drizzle-zod";
 import { z } from "zod/v4";
-import { blockTable } from "@/db/schema/block";
+import {
+	blockDeleteSchema,
+	blockInsertSchema,
+	blockSelectSchema,
+	blockUpdateSchema,
+} from "../schemas/block";
+import { paginationSchema } from "../schemas/shared";
 import { base } from "./base";
-
-export const templateBlockSchema = z.object({
-	type: z.literal("template"),
-	systemPrompt: z.string(),
-	model: z.string(),
-	provider: z.string(),
-});
-
-export const databaseBlockSchema = z.object({
-	type: z.literal("database"),
-	embeddingModel: z.string(),
-});
-
-export const blockSelectSchema = createSelectSchema(blockTable, {
-	type: z.enum(["template", "database"]),
-}).extend({
-	config: z.discriminatedUnion("type", [
-		templateBlockSchema,
-		databaseBlockSchema,
-	]),
-});
-
-export type Block = z.infer<typeof blockSelectSchema>;
-
-const baseBlockInsertSchema = createInsertSchema(blockTable, {
-	type: z.enum(["template", "database"]),
-}).omit({
-	userId: true,
-	createdAt: true,
-	updatedAt: true,
-	id: true,
-});
-
-export const blockInsertSchema = z.discriminatedUnion("type", [
-	baseBlockInsertSchema.extend({
-		type: z.literal("template"),
-		assets: z.array(z.string()).optional(),
-	}),
-	baseBlockInsertSchema.extend({
-		type: z.literal("database"),
-		embeddingModel: z.string(),
-		assets: z
-			.array(z.string())
-			.min(1, "At least one asset is required for database blocks"),
-	}),
-]);
-
-export const blockUpdateSchema = createUpdateSchema(blockTable, {
-	id: z.uuidv4(),
-	title: z.string().min(1).max(250),
-	type: z.enum(["template", "database"]),
-}).omit({ userId: true, updatedAt: true, createdAt: true });
-
-export const blockDeleteSchema = z.object({
-	refs: z.array(blockUpdateSchema.pick({ id: true })),
-});
 
 export const listBlocksContract = base
 	.route({
@@ -70,12 +15,7 @@ export const listBlocksContract = base
 		summary: "List all blocks",
 		tags: ["Blocks"],
 	})
-	.input(
-		z.object({
-			pageSize: z.number().int().min(1).max(100).default(10),
-			pageIndex: z.number().int().min(0).default(0),
-		}),
-	)
+	.input(paginationSchema)
 	.output(z.object({ data: z.array(blockSelectSchema), rowCount: z.number() }));
 
 export const createBlockContract = base

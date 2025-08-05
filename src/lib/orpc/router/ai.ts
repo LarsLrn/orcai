@@ -10,13 +10,13 @@ import {
 	wrapLanguageModel,
 } from "ai";
 import { v4 as uuidv4 } from "uuid";
-import type { TemplateBlock } from "@/db/schema/block";
 import { generateImageTool } from "@/lib/ai/tools/generate-image";
 import { decryptApiKey } from "@/lib/encryption";
 import { requireActiveOrganizationMiddleware } from "@/lib/orpc/middlewares/auth";
 import { retry } from "@/lib/orpc/middlewares/retry";
 import { client } from "@/lib/orpc/orpc";
 import { authed } from "..";
+import type { TemplateBlock } from "../schemas/block";
 
 export const aiChat = authed.ai.chat
 	.use(requireActiveOrganizationMiddleware)

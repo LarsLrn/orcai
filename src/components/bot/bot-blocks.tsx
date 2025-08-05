@@ -1,8 +1,7 @@
 import { Link } from "@tanstack/react-router";
 import { format } from "date-fns";
 import { TagIcon } from "lucide-react";
-import type { z } from "zod/v4";
-import type { blockSelectSchema } from "@/lib/orpc/contracts/block";
+import type { Block } from "@/lib/orpc/schemas/block";
 import { cn } from "@/lib/utils";
 import { Badge } from "../ui/badge";
 import { buttonVariants } from "../ui/button";
@@ -15,9 +14,7 @@ import {
 } from "../ui/card";
 import { Tooltip, TooltipContent, TooltipTrigger } from "../ui/tooltip";
 
-type BlockFromAPI = z.infer<typeof blockSelectSchema>;
-
-const BotBlocks = ({ blocks }: { blocks: BlockFromAPI[] }) => {
+const BotBlocks = ({ blocks }: { blocks: Block[] }) => {
 	const getBlockTypeColor = (type: string): string => {
 		const typeColors: Record<string, string> = {
 			prompt: "bg-blue-100 text-blue-800 dark:bg-blue-900 dark:text-blue-200",

@@ -9,15 +9,14 @@ import {
 import { useRouteContext, useRouter } from "@tanstack/react-router";
 import { useForm } from "react-hook-form";
 import { toast } from "sonner";
-import type { z } from "zod/v4";
 import { FormInputField } from "@/components/forms/fields/form-input-field";
 import { FormSelectField } from "@/components/forms/fields/form-select-field";
 import { FormTextField } from "@/components/forms/fields/form-text-field";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Form } from "@/components/ui/form";
-import type { TemplateBlock } from "@/db/schema/block";
-import { blockInsertSchema } from "@/lib/orpc/contracts/block";
+import type { TemplateBlock } from "@/lib/orpc/schemas/block";
+import { type BlockInsert, blockInsertSchema } from "@/lib/orpc/schemas/block";
 import { blockQueryOptions } from "@/lib/query-options/block";
 import { modelQueryOptions } from "@/lib/query-options/model";
 import { organizationProviderQueryOptions } from "@/lib/query-options/organization-provider";
@@ -40,14 +39,14 @@ const TemplateBlockForm = ({ block }: { block?: TemplateBlock }) => {
 		blockQueryOptions.create(queryClient),
 	);
 
-	const form = useForm<z.infer<typeof blockInsertSchema>>({
+	const form = useForm<BlockInsert>({
 		resolver: zodResolver(blockInsertSchema),
 		defaultValues: {
 			name: block?.name ?? "",
 			config: {
 				systemPrompt: block?.config.systemPrompt ?? "",
-				model: block?.config.model ?? undefined,
-				provider: block?.config.provider ?? undefined,
+				model: block?.config.model ?? "",
+				provider: block?.config.provider ?? "",
 			},
 		},
 	});
@@ -60,7 +59,7 @@ const TemplateBlockForm = ({ block }: { block?: TemplateBlock }) => {
 		}),
 	);
 
-	const onSubmit = (values: z.infer<typeof blockInsertSchema>) => {
+	const onSubmit = (values: BlockInsert) => {
 		if (block) {
 			toast.promise(
 				updateBlock({

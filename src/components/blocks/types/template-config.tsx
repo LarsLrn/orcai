@@ -7,7 +7,7 @@ import {
 	CardHeader,
 	CardTitle,
 } from "@/components/ui/card";
-import type { TemplateBlock } from "@/db/schema/block";
+import type { TemplateBlock } from "@/lib/orpc/schemas/block";
 
 const TemplateBlockConfigCard = ({
 	config,

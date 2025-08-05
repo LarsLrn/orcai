@@ -4,14 +4,13 @@ import { useRouter } from "@tanstack/react-router";
 import { useState } from "react";
 import { useForm } from "react-hook-form";
 import { toast } from "sonner";
-import type { z } from "zod/v4";
 import { FormInputField } from "@/components/forms/fields/form-input-field";
 import { FormSelectField } from "@/components/forms/fields/form-select-field";
 import { Button } from "@/components/ui/button";
 import { Card, CardAction, CardContent } from "@/components/ui/card";
 import { Form } from "@/components/ui/form";
-import type { DatabaseBlock } from "@/db/schema/block";
-import { blockInsertSchema } from "@/lib/orpc/contracts/block";
+import type { DatabaseBlock } from "@/lib/orpc/schemas/block";
+import { type BlockInsert, blockInsertSchema } from "@/lib/orpc/schemas/block";
 import { assetQueryOptions } from "@/lib/query-options/asset";
 import { blockQueryOptions } from "@/lib/query-options/block";
 import { StatePagination } from "./state-pagination";
@@ -35,7 +34,7 @@ const DatabaseBlockForm = ({ block }: { block?: DatabaseBlock }) => {
 		}),
 	);
 
-	const form = useForm<z.infer<typeof blockInsertSchema>>({
+	const form = useForm<BlockInsert>({
 		resolver: zodResolver(blockInsertSchema),
 		defaultValues: {
 			name: block?.name || "",
@@ -44,7 +43,7 @@ const DatabaseBlockForm = ({ block }: { block?: DatabaseBlock }) => {
 		},
 	});
 
-	const onSubmit = (values: z.infer<typeof blockInsertSchema>) => {
+	const onSubmit = (values: BlockInsert) => {
 		if (block) {
 			toast.promise(
 				updateBlock({

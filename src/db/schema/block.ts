@@ -1,4 +1,3 @@
-import type { InferSelectModel } from "drizzle-orm";
 import {
 	type AnyPgColumn,
 	integer,
@@ -9,20 +8,10 @@ import {
 	timestamp,
 	uuid,
 } from "drizzle-orm/pg-core";
-import type { z } from "zod/v4";
-import type {
-	databaseBlockSchema,
-	templateBlockSchema,
-} from "@/lib/orpc/contracts/block";
+import type { BlockConfigType, BlockTypes } from "@/lib/orpc/schemas/block";
 import { assetTable } from "./asset";
 import { user } from "./auth";
 import { chat } from "./chat";
-
-export type BlockConfigType =
-	| z.infer<typeof templateBlockSchema>
-	| z.infer<typeof databaseBlockSchema>;
-
-export type BlockTypes = "template" | "database";
 
 export const blockTable = pgTable("block", {
 	id: uuid("id").primaryKey().defaultRandom(),
@@ -42,15 +31,6 @@ export const blockTable = pgTable("block", {
 	createdAt: timestamp("created_at").defaultNow(),
 	updatedAt: timestamp("updated_at").defaultNow(),
 });
-
-// Type-safe block variants
-export type TemplateBlock = InferSelectModel<typeof blockTable> & {
-	config: Extract<BlockConfigType, { type: "template" }>;
-};
-
-export type DatabaseBlock = InferSelectModel<typeof blockTable> & {
-	config: Extract<BlockConfigType, { type: "database" }>;
-};
 
 export const chatBlockTable = pgTable(
 	"chat_block",
@@ -75,5 +55,3 @@ export const blockAssetTable = pgTable("block_asset", {
 		.references(() => assetTable.id, { onDelete: "cascade" }),
 	createdAt: timestamp("created_at").notNull().defaultNow(),
 });
-
-export type BlockAsset = InferSelectModel<typeof blockAssetTable>;

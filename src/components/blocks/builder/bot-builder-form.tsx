@@ -15,8 +15,8 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Form } from "@/components/ui/form";
 import { Label } from "@/components/ui/label";
-import type { Block } from "@/lib/orpc/contracts/block";
 import { botInsertSchema } from "@/lib/orpc/contracts/bot";
+import type { Block } from "@/lib/orpc/schemas/block";
 import { blockQueryOptions } from "@/lib/query-options/block";
 
 interface BotBuilderFormProps {
