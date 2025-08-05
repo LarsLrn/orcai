@@ -63,3 +63,18 @@ export const deleteBlockContract = base
 	})
 	.input(blockDeleteSchema)
 	.output(z.object({ success: z.boolean(), message: z.string().optional() }));
+
+export const addAssetsToBlockContract = base
+	.route({
+		method: "POST",
+		path: "/blocks/{id}/assets",
+		summary: "Add assets to a block",
+		tags: ["Blocks"],
+	})
+	.input(
+		z.object({
+			blockId: z.uuidv4(),
+			assets: z.array(z.uuidv4()),
+		}),
+	)
+	.output(z.object({ success: z.boolean(), message: z.string().optional() }));
