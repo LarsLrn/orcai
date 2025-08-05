@@ -1,28 +1,12 @@
-import {
-	createInsertSchema,
-	createSelectSchema,
-	createUpdateSchema,
-} from "drizzle-zod";
 import { z } from "zod/v4";
-import { chatMessage } from "@/db/schema/chat-message";
-import { paginationSchema } from "../schemas/shared";
+import {
+	chatMessageDeleteSchema,
+	chatMessageInsertSchema,
+	chatMessageSelectSchema,
+	chatMessageUpdateSchema,
+} from "../schemas/chat-message";
+import { paginationSchema, statusSchema } from "../schemas/shared";
 import { base } from "./base";
-
-export const chatMessageSelectSchema = createSelectSchema(chatMessage);
-
-export const chatMessageInsertSchema = createInsertSchema(chatMessage).omit({
-	createdAt: true,
-});
-
-export const chatMessageUpdateSchema = createUpdateSchema(chatMessage, {
-	id: chatMessageSelectSchema.shape.id,
-	chatId: chatMessageSelectSchema.shape.chatId,
-}).omit({ createdAt: true });
-
-export const chatMessageDeleteSchema = z.object({
-	chatId: chatMessageSelectSchema.shape.chatId,
-	refs: z.array(chatMessageUpdateSchema.pick({ id: true })),
-});
 
 export const listChatMessagesContract = base
 	.route({
@@ -98,7 +82,7 @@ export const deleteChatMessageContract = base
 		tags: ["Chat Messages"],
 	})
 	.input(chatMessageDeleteSchema)
-	.output(z.object({ success: z.boolean(), message: z.string().optional() }));
+	.output(statusSchema);
 
 export const rateChatMessageContract = base
 	.route({

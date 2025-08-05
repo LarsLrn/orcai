@@ -1,6 +1,6 @@
 import { format } from "date-fns";
 import { CalendarIcon, Clock, GitForkIcon, UserIcon } from "lucide-react";
-import type { Bot } from "@/db/schema/bot";
+import type { Bot } from "@/lib/orpc/schemas/bot";
 import { Card, CardContent, CardHeader, CardTitle } from "../ui/card";
 
 const BotMetadata = ({ bot }: { bot: Bot }) => {

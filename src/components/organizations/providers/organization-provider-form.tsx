@@ -7,18 +7,18 @@ import {
 import { useNavigate } from "@tanstack/react-router";
 import { useForm } from "react-hook-form";
 import { toast } from "sonner";
-import type z from "zod/v4";
 import { FormPasswordField } from "@/components/forms/fields/form-password-field";
 import { FormSelectField } from "@/components/forms/fields/form-select-field";
 import { FormSwitchField } from "@/components/forms/fields/form-switch-field";
 import { Button } from "@/components/ui/button";
 import { Form } from "@/components/ui/form";
-import type { organizationProviderSelectSchema } from "@/lib/orpc/contracts/organization-provider";
-import { organizationProviderInsertSchema } from "@/lib/orpc/contracts/organization-provider";
+import {
+	type OrganizationProvider,
+	type OrganizationProviderInsert,
+	organizationProviderInsertSchema,
+} from "@/lib/orpc/schemas/organization-provider";
 import { organizationProviderQueryOptions } from "@/lib/query-options/organization-provider";
 import { providerQueryOptions } from "@/lib/query-options/provider";
-
-type OrganizationProvider = z.infer<typeof organizationProviderSelectSchema>;
 
 const OrganizationProviderForm = ({
 	organizationId,
@@ -39,7 +39,7 @@ const OrganizationProviderForm = ({
 		organizationProviderQueryOptions.create(queryClient),
 	);
 
-	const form = useForm<z.infer<typeof organizationProviderInsertSchema>>({
+	const form = useForm<OrganizationProviderInsert>({
 		resolver: zodResolver(organizationProviderInsertSchema),
 		defaultValues: {
 			organizationId,
@@ -49,9 +49,7 @@ const OrganizationProviderForm = ({
 		},
 	});
 
-	const onSubmit = (
-		values: z.infer<typeof organizationProviderInsertSchema>,
-	) => {
+	const onSubmit = (values: OrganizationProviderInsert) => {
 		if (organizationProvider) {
 			toast.promise(
 				updateProvider({

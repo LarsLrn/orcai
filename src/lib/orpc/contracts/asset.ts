@@ -1,30 +1,12 @@
-import {
-	createInsertSchema,
-	createSelectSchema,
-	createUpdateSchema,
-} from "drizzle-zod";
 import { z } from "zod/v4";
-import { assetTable } from "@/db/schema/asset";
-import { paginationSchema } from "../schemas/shared";
+import {
+	assetDeleteSchema,
+	assetInsertSchema,
+	assetSelectSchema,
+	assetUpdateSchema,
+} from "../schemas/asset";
+import { paginationSchema, statusSchema } from "../schemas/shared";
 import { base } from "./base";
-
-export const assetSelectSchema = createSelectSchema(assetTable);
-
-export const assetInsertSchema = createInsertSchema(assetTable).omit({
-	createdAt: true,
-	updatedAt: true,
-	bucket: true,
-	prefix: true,
-	userId: true,
-});
-
-export const assetUpdateSchema = createUpdateSchema(assetTable, {
-	id: z.uuidv4(),
-}).omit({ updatedAt: true, createdAt: true });
-
-export const assetDeleteSchema = z.object({
-	refs: z.array(assetUpdateSchema.pick({ id: true })),
-});
 
 export const listAssetsContract = base
 	.route({
@@ -80,4 +62,4 @@ export const deleteAssetContract = base
 		tags: ["Assets"],
 	})
 	.input(assetDeleteSchema)
-	.output(z.object({ success: z.boolean(), message: z.string().optional() }));
+	.output(statusSchema);

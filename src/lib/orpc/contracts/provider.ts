@@ -1,9 +1,6 @@
-import { createSelectSchema } from "drizzle-zod";
 import { z } from "zod/v4";
-import { providerTable } from "@/db/schema/model";
+import { providerSelectSchema } from "../schemas/provider";
 import { base } from "./base";
-
-export const providerSelectSchema = createSelectSchema(providerTable);
 
 export const listProvidersContract = base
 	.route({

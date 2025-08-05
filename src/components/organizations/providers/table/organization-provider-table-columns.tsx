@@ -4,7 +4,6 @@ import type { ColumnDef } from "@tanstack/react-table";
 import { format } from "date-fns";
 import { MoreHorizontal } from "lucide-react";
 import { toast } from "sonner";
-import type z from "zod/v4";
 import { Button } from "@/components/ui/button";
 import { Checkbox } from "@/components/ui/checkbox";
 import { DataTableColumnHeader } from "@/components/ui/data-table/data-table-column-header";
@@ -15,10 +14,8 @@ import {
 	DropdownMenuSeparator,
 	DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
-import type { organizationProviderSelectSchema } from "@/lib/orpc/contracts/organization-provider";
+import type { OrganizationProvider } from "@/lib/orpc/schemas/organization-provider";
 import { organizationProviderQueryOptions } from "@/lib/query-options/organization-provider";
-
-type OrganizationProvider = z.infer<typeof organizationProviderSelectSchema>;
 
 export const organizationProviderTableColumns: ColumnDef<OrganizationProvider>[] =
 	[

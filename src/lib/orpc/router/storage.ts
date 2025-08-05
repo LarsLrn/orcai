@@ -56,7 +56,7 @@ export const createUploadUrls = authed.storage.createUploadUrls.handler(
 export const createDownloadUrl = authed.storage.createDownloadUrl.handler(
 	async ({ input }) => {
 		const expiry = 60 * 60;
-		const extension = getFileTypeFromMime(input.type);
+		const extension = getFileTypeFromMime(input.fileType);
 		const filePath = `${input.prefix}/${input.id}.${extension}`;
 
 		const command = new GetObjectCommand({

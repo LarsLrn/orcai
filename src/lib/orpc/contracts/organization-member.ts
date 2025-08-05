@@ -1,28 +1,12 @@
-import {
-	createInsertSchema,
-	createSelectSchema,
-	createUpdateSchema,
-} from "drizzle-zod";
 import { z } from "zod/v4";
-import { member } from "@/db/schema/organization";
+import {
+	organizationMemberDeleteSchema,
+	organizationMemberInsertSchema,
+	organizationMemberSelectSchema,
+	organizationMemberUpdateSchema,
+} from "../schemas/organization-member";
 import { paginationSchema } from "../schemas/shared";
 import { base } from "./base";
-
-export const organizationMemberSelectSchema = createSelectSchema(member);
-
-export const organizationMemberInsertSchema = createInsertSchema(member).omit({
-	createdAt: true,
-});
-
-export const organizationMemberUpdateSchema = createUpdateSchema(member, {
-	organizationId: z.uuidv4(),
-	userId: z.uuidv4(),
-});
-
-export const organizationMemberDeleteSchema = z.object({
-	organizationId: z.uuidv4(),
-	refs: z.array(organizationMemberUpdateSchema.pick({ userId: true })),
-});
 
 export const listOrganizationMembersContract = base
 	.route({

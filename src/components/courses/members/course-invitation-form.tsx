@@ -33,9 +33,9 @@ import { Form } from "@/components/ui/form";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import {
-	type CourseInvitationsInsertSchemaType,
-	courseInvitationsInsertSchema,
-} from "@/db/zod/course-invitation";
+	type CourseInvitationInsert,
+	courseInvitationInsertSchema,
+} from "@/lib/orpc/schemas/course-invitations";
 import { courseQueryOptions } from "@/lib/query-options/course";
 import { courseInvitationQueryOptions } from "@/lib/query-options/course-invitation";
 
@@ -52,8 +52,8 @@ const CourseInvitationForm = () => {
 		courseInvitationQueryOptions.create(queryClient),
 	);
 
-	const form = useForm<CourseInvitationsInsertSchemaType>({
-		resolver: zodResolver(courseInvitationsInsertSchema),
+	const form = useForm<CourseInvitationInsert>({
+		resolver: zodResolver(courseInvitationInsertSchema),
 		defaultValues: {
 			courseId: undefined,
 			items: [{ email: "" }],
@@ -66,7 +66,7 @@ const CourseInvitationForm = () => {
 		name: "items",
 	});
 
-	const onSubmit = (values: CourseInvitationsInsertSchemaType) => {
+	const onSubmit = (values: CourseInvitationInsert) => {
 		toast.promise(createCourseInvitations(values), {
 			loading: "Creating course invitation...",
 			success: async () => {

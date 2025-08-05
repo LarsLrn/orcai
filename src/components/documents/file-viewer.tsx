@@ -20,7 +20,7 @@ const FileViewer = ({ asset }: { asset: Asset }) => {
 				id: asset.id,
 				prefix: asset.prefix,
 				bucket: asset.bucket,
-				type: asset.fileType,
+				fileType: asset.fileType,
 			},
 		}),
 	);

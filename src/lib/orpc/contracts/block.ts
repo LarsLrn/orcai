@@ -5,7 +5,7 @@ import {
 	blockSelectSchema,
 	blockUpdateSchema,
 } from "../schemas/block";
-import { paginationSchema } from "../schemas/shared";
+import { paginationSchema, statusSchema } from "../schemas/shared";
 import { base } from "./base";
 
 export const listBlocksContract = base
@@ -62,7 +62,7 @@ export const deleteBlockContract = base
 		tags: ["Blocks"],
 	})
 	.input(blockDeleteSchema)
-	.output(z.object({ success: z.boolean(), message: z.string().optional() }));
+	.output(statusSchema);
 
 export const addAssetsToBlockContract = base
 	.route({
@@ -77,4 +77,4 @@ export const addAssetsToBlockContract = base
 			assets: z.array(z.uuidv4()),
 		}),
 	)
-	.output(z.object({ success: z.boolean(), message: z.string().optional() }));
+	.output(statusSchema);

@@ -1,30 +1,12 @@
-import {
-	createInsertSchema,
-	createSelectSchema,
-	createUpdateSchema,
-} from "drizzle-zod";
 import { z } from "zod/v4";
-import { chat } from "@/db/schema/chat";
+import {
+	chatDeleteSchema,
+	chatInsertSchema,
+	chatSelectSchema,
+	chatUpdateSchema,
+} from "../schemas/chat";
 import { paginationSchema } from "../schemas/shared";
 import { base } from "./base";
-
-export const chatSelectSchema = createSelectSchema(chat);
-
-export const chatInsertSchema = createInsertSchema(chat).omit({
-	userId: true,
-	createdAt: true,
-	updatedAt: true,
-	id: true,
-});
-
-export const chatUpdateSchema = createUpdateSchema(chat, {
-	id: z.uuidv4(),
-	title: z.string().min(1).max(250),
-}).omit({ userId: true, updatedAt: true, createdAt: true });
-
-export const chatDeleteSchema = z.object({
-	refs: z.array(chatUpdateSchema.pick({ id: true })),
-});
 
 export const listChatsContract = base
 	.route({

@@ -1,56 +1,12 @@
-import { createSelectSchema, createUpdateSchema } from "drizzle-zod";
 import { z } from "zod/v4";
-import { invitation } from "@/db/schema/organization";
-import { paginationSchema } from "../schemas/shared";
+import {
+	organizationInvitationDeleteSchema,
+	organizationInvitationInsertSchema,
+	organizationInvitationSelectSchema,
+	organizationInvitationUpdateSchema,
+} from "../schemas/organization-invitation";
+import { paginationSchema, statusSchema } from "../schemas/shared";
 import { base } from "./base";
-
-export const organizationInvitationSelectSchema =
-	createSelectSchema(invitation);
-
-export const organizationInvitationInsertSchema = z.object({
-	organizationId:
-		organizationInvitationSelectSchema.shape.organizationId.nonempty(
-			"Please select an organization",
-		),
-	role: organizationInvitationSelectSchema.shape.role,
-	expiresAt: organizationInvitationSelectSchema.shape.expiresAt, // TODO: Set constraints
-	items: z
-		.array(
-			z.object({
-				email: z.email("Field must be a valid email"),
-			}),
-		)
-		.min(1, "Please add at least one email")
-		.max(200, "Max 200 emails")
-		.check((ctx) => {
-			const emails = ctx.value.map((item) => item.email.toLowerCase());
-			const uniqueEmails = new Set(emails);
-
-			if (uniqueEmails.size !== emails.length) {
-				ctx.issues.push({
-					code: "custom",
-					message: "Emails must be unique",
-					path: ["root"],
-					input: "",
-				});
-			}
-		}),
-});
-
-export const organizationInvitationUpdateSchema = createUpdateSchema(
-	invitation,
-	{
-		organizationId: organizationInvitationSelectSchema.shape.organizationId,
-		id: organizationInvitationSelectSchema.shape.id,
-	},
-);
-
-export const organizationInvitationDeleteSchema = z.object({
-	organizationId: organizationInvitationSelectSchema.shape.organizationId,
-	refs: z.array(
-		organizationInvitationUpdateSchema.pick({ organizationId: true, id: true }),
-	),
-});
 
 // TODO: Refactor. There should be endpoints for a) getting all invitations within a course, b) getting all invitations for a user
 export const listOrganizationInvitationsContract = base
@@ -86,9 +42,9 @@ export const findOrganizationInvitationContract = base
 		tags: ["Organization Invitations"],
 	})
 	.input(
-		z.object({
-			organizationId: z.uuidv4(),
-			id: organizationInvitationSelectSchema.shape.id,
+		organizationInvitationSelectSchema.pick({
+			id: true,
+			organizationId: true,
 		}),
 	)
 	.output(z.object({ data: organizationInvitationSelectSchema }));
@@ -117,7 +73,7 @@ export const deleteOrganizationInvitationsContract = base
 		tags: ["Organization Invitations"],
 	})
 	.input(organizationInvitationDeleteSchema)
-	.output(z.object({ success: z.boolean(), message: z.string().optional() }));
+	.output(statusSchema);
 
 export const respondToOrganizationInvitationContract = base
 	.route({
@@ -132,4 +88,4 @@ export const respondToOrganizationInvitationContract = base
 			response: z.enum(["accept", "reject"]),
 		}),
 	)
-	.output(z.object({ success: z.boolean(), message: z.string().optional() }));
+	.output(statusSchema);

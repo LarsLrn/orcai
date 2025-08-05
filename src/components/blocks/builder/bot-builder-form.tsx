@@ -4,7 +4,6 @@ import { useSuspenseQuery } from "@tanstack/react-query";
 import { useState } from "react";
 import { useForm } from "react-hook-form";
 import { toast } from "sonner";
-import type { z } from "zod/v4";
 import { DraggableBlock } from "@/components/blocks/builder/draggable-block";
 import { DroppableZone } from "@/components/blocks/builder/droppable-zone";
 import { BlockEditor } from "@/components/editor";
@@ -15,13 +14,13 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Form } from "@/components/ui/form";
 import { Label } from "@/components/ui/label";
-import { botInsertSchema } from "@/lib/orpc/contracts/bot";
 import type { Block } from "@/lib/orpc/schemas/block";
+import { type BotInsert, botInsertSchema } from "@/lib/orpc/schemas/bot";
 import { blockQueryOptions } from "@/lib/query-options/block";
 
 interface BotBuilderFormProps {
-	initialData?: z.infer<typeof botInsertSchema>;
-	onSubmit?: (data: z.infer<typeof botInsertSchema>) => void;
+	initialData?: BotInsert;
+	onSubmit?: (data: BotInsert) => void;
 }
 
 const BotBuilderForm = ({ initialData, onSubmit }: BotBuilderFormProps) => {
@@ -33,7 +32,7 @@ const BotBuilderForm = ({ initialData, onSubmit }: BotBuilderFormProps) => {
 
 	const [isDragging, setIsDragging] = useState(false);
 
-	const form = useForm<z.infer<typeof botInsertSchema>>({
+	const form = useForm<BotInsert>({
 		resolver: zodResolver(botInsertSchema),
 		mode: "onSubmit", // Validate on submit
 		reValidateMode: "onChange", // Re-validate on change after first submit
@@ -89,7 +88,7 @@ const BotBuilderForm = ({ initialData, onSubmit }: BotBuilderFormProps) => {
 			!activeBlocks.find((activeBlock) => activeBlock.id === block.id),
 	);
 
-	const handleSubmit = (data: z.infer<typeof botInsertSchema>) => {
+	const handleSubmit = (data: BotInsert) => {
 		if (onSubmit) {
 			onSubmit(data);
 		} else {

@@ -1,55 +1,12 @@
-import { createSelectSchema, createUpdateSchema } from "drizzle-zod";
 import { z } from "zod/v4";
-import { courseInvitation } from "@/db/schema/course-invitation";
-import { paginationSchema } from "../schemas/shared";
+import {
+	courseInvitationDeleteSchema,
+	courseInvitationInsertSchema,
+	courseInvitationSelectSchema,
+	courseInvitationUpdateSchema,
+} from "../schemas/course-invitations";
+import { paginationSchema, statusSchema } from "../schemas/shared";
 import { base } from "./base";
-
-export const courseInvitationSelectSchema =
-	createSelectSchema(courseInvitation);
-
-export const courseInvitationInsertSchema = z.object({
-	courseId: courseInvitationSelectSchema.shape.courseId.nonempty(
-		"Please select a course",
-	),
-	role: courseInvitationSelectSchema.shape.role.nonempty(
-		"Please select a course",
-	), // TODO: Validate against courseRoles
-	expiresAt: courseInvitationSelectSchema.shape.expiresAt, // TODO: Set constraints
-	items: z
-		.array(
-			z.object({
-				email: z.email("Field must be a valid email"),
-			}),
-		)
-		.min(1, "Please add at least one email")
-		.max(200, "Max 200 emails")
-		.check((ctx) => {
-			const emails = ctx.value.map((item) => item.email.toLowerCase());
-			const uniqueEmails = new Set(emails);
-
-			if (uniqueEmails.size !== emails.length) {
-				ctx.issues.push({
-					code: "custom",
-					message: "Emails must be unique",
-					path: ["root"],
-					input: "",
-				});
-			}
-		}),
-});
-
-export const courseInvitationUpdateSchema = createUpdateSchema(
-	courseInvitation,
-	{
-		id: courseInvitationSelectSchema.shape.id,
-		courseId: courseInvitationSelectSchema.shape.courseId,
-	},
-);
-
-export const courseInvitationDeleteSchema = z.object({
-	courseId: courseInvitationSelectSchema.shape.courseId,
-	refs: z.array(courseInvitationUpdateSchema.pick({ id: true })),
-});
 
 // TODO: Refactor. There should be endpoints for a) getting all invitations within a course, b) getting all invitations for a user
 export const listCourseInvitationsContract = base
@@ -111,7 +68,7 @@ export const deleteCourseInvitationsContract = base
 		tags: ["Course Invitations"],
 	})
 	.input(courseInvitationDeleteSchema)
-	.output(z.object({ success: z.boolean(), message: z.string().optional() }));
+	.output(statusSchema);
 
 export const respondToCourseInvitationContract = base
 	.route({
@@ -127,4 +84,4 @@ export const respondToCourseInvitationContract = base
 			response: z.enum(["accept", "reject"]),
 		}),
 	)
-	.output(z.object({ success: z.boolean(), message: z.string().optional() }));
+	.output(statusSchema);

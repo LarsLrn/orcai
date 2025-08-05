@@ -1,26 +1,12 @@
-import {
-	createInsertSchema,
-	createSelectSchema,
-	createUpdateSchema,
-} from "drizzle-zod";
 import { z } from "zod/v4";
-import { organization } from "@/db/schema/organization";
-import { paginationSchema } from "../schemas/shared";
+import {
+	organizationDeleteSchema,
+	organizationInsertSchema,
+	organizationSelectSchema,
+	organizationUpdateSchema,
+} from "../schemas/organization";
+import { paginationSchema, statusSchema } from "../schemas/shared";
 import { base } from "./base";
-
-export const organizationSelectSchema = createSelectSchema(organization);
-
-export const organizationInsertSchema = createInsertSchema(organization).omit({
-	createdAt: true,
-});
-
-export const organizationUpdateSchema = createUpdateSchema(organization, {
-	id: z.uuidv4(),
-});
-
-export const organizationDeleteSchema = z.object({
-	refs: z.array(organizationUpdateSchema.pick({ id: true })),
-});
 
 export const listOrganizationsContract = base
 	.route({
@@ -79,4 +65,4 @@ export const deleteOrganizationContract = base
 		tags: ["Organizations"],
 	})
 	.input(organizationDeleteSchema)
-	.output(z.object({ success: z.boolean(), message: z.string().optional() }));
+	.output(statusSchema);

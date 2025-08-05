@@ -1,11 +1,9 @@
-import { createSelectSchema } from "drizzle-zod";
 import { z } from "zod/v4";
-import { user } from "@/db/schema/auth";
 import { sharedSchemas } from "@/db/zod/shared";
-import { paginationSchema } from "../schemas/shared";
+import { organizationSelectSchema } from "../schemas/organization";
+import { paginationSchema, statusSchema } from "../schemas/shared";
+import { userSelectSchema } from "../schemas/user";
 import { base } from "./base";
-
-const userSelectSchema = createSelectSchema(user);
 
 export const listUsersContract = base
 	.route({
@@ -43,7 +41,7 @@ export const updatePasswordContract = base
 			password: sharedSchemas.password,
 		}),
 	)
-	.output(z.object({ success: z.boolean() }));
+	.output(statusSchema);
 
 export const setActiveOrganizationContract = base
 	.route({
@@ -55,10 +53,10 @@ export const setActiveOrganizationContract = base
 	})
 	.input(
 		z.object({
-			organizationId: z.string().uuid(),
+			organizationId: organizationSelectSchema.shape.id,
 		}),
 	)
-	.output(z.object({ success: z.boolean() }));
+	.output(statusSchema);
 
 export const setTourStateContract = base
 	.$route({
@@ -75,4 +73,4 @@ export const setTourStateContract = base
 			state: z.enum(["skipped", "completed", "pending"]),
 		}),
 	)
-	.output(z.object({ success: z.boolean() }));
+	.output(statusSchema);

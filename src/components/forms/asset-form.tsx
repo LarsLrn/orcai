@@ -3,7 +3,6 @@ import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { useRouter } from "@tanstack/react-router";
 import { useForm } from "react-hook-form";
 import { toast } from "sonner";
-import type z from "zod/v4";
 import { FormInputField } from "@/components/forms/fields/form-input-field";
 import { FormSelectField } from "@/components/forms/fields/form-select-field";
 import { FormSwitchField } from "@/components/forms/fields/form-switch-field";
@@ -12,7 +11,7 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Form } from "@/components/ui/form";
 import type { Asset } from "@/db/schema/asset";
-import { assetUpdateSchema } from "@/lib/orpc/contracts/asset";
+import { type AssetUpdate, assetUpdateSchema } from "@/lib/orpc/schemas/asset";
 import { assetQueryOptions } from "@/lib/query-options/asset";
 
 const AssetForm = ({ asset }: { asset: Asset }) => {
@@ -23,7 +22,7 @@ const AssetForm = ({ asset }: { asset: Asset }) => {
 		assetQueryOptions.update(queryClient),
 	);
 
-	const form = useForm<z.infer<typeof assetUpdateSchema>>({
+	const form = useForm<AssetUpdate>({
 		resolver: zodResolver(assetUpdateSchema),
 		defaultValues: {
 			id: asset.id,
@@ -41,7 +40,7 @@ const AssetForm = ({ asset }: { asset: Asset }) => {
 		},
 	});
 
-	const onSubmit = (values: z.infer<typeof assetUpdateSchema>) => {
+	const onSubmit = (values: AssetUpdate) => {
 		toast.promise(updateAsset({ ...values, id: asset.id }), {
 			loading: "Updating asset...",
 			success: () => {

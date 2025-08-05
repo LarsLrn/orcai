@@ -3,12 +3,14 @@ import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { useNavigate } from "@tanstack/react-router";
 import { useForm } from "react-hook-form";
 import { toast } from "sonner";
-import type z from "zod/v4";
 import { FormInputField } from "@/components/forms/fields/form-input-field";
 import { Button } from "@/components/ui/button";
 import { Form } from "@/components/ui/form";
 import type { Organization } from "@/db/schema/organization";
-import { organizationInsertSchema } from "@/lib/orpc/contracts/organization";
+import {
+	type OrganizationInsert,
+	organizationInsertSchema,
+} from "@/lib/orpc/schemas/organization";
 import { organizationQueryOptions } from "@/lib/query-options/organization";
 
 const OrganizationForm = ({
@@ -26,7 +28,7 @@ const OrganizationForm = ({
 		organizationQueryOptions.create(queryClient),
 	);
 
-	const form = useForm<z.infer<typeof organizationInsertSchema>>({
+	const form = useForm<OrganizationInsert>({
 		resolver: zodResolver(organizationInsertSchema),
 		defaultValues: {
 			name: organization?.name ?? undefined,
@@ -34,7 +36,7 @@ const OrganizationForm = ({
 		},
 	});
 
-	const onSubmit = (values: z.infer<typeof organizationInsertSchema>) => {
+	const onSubmit = (values: OrganizationInsert) => {
 		if (organization) {
 			toast.promise(
 				updateOrganization({

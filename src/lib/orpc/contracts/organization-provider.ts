@@ -1,46 +1,12 @@
-import {
-	createInsertSchema,
-	createSelectSchema,
-	createUpdateSchema,
-} from "drizzle-zod";
 import { z } from "zod/v4";
-import { organizationProviderTable } from "@/db/schema/model";
-import { paginationSchema } from "../schemas/shared";
+import {
+	organizationProviderDeleteSchema,
+	organizationProviderInsertSchema,
+	organizationProviderSelectSchema,
+	organizationProviderUpdateSchema,
+} from "../schemas/organization-provider";
+import { paginationSchema, statusSchema } from "../schemas/shared";
 import { base } from "./base";
-
-export const organizationProviderSelectSchema = createSelectSchema(
-	organizationProviderTable,
-);
-
-export const organizationProviderInsertSchema = createInsertSchema(
-	organizationProviderTable,
-)
-	.omit({
-		createdAt: true,
-		apiKeyEncrypted: true, // Remove encrypted field from input
-	})
-	.extend({
-		apiKey: z.string().min(1, "API key is required"), // Add plain text API key input
-	});
-
-export const organizationProviderUpdateSchema = createUpdateSchema(
-	organizationProviderTable,
-	{
-		organizationId: organizationProviderSelectSchema.shape.organizationId,
-		providerSlug: organizationProviderSelectSchema.shape.providerSlug,
-	},
-)
-	.omit({
-		apiKeyEncrypted: true, // Remove encrypted field from input
-	})
-	.extend({
-		apiKey: z.string().min(1, "API key is required").optional(), // Add optional plain text API key input for updates
-	});
-
-export const organizationProviderDeleteSchema = z.object({
-	organizationId: z.uuidv4(),
-	refs: z.array(organizationProviderUpdateSchema.pick({ providerSlug: true })),
-});
 
 export const listOrganizationProvidersContract = base
 	.route({
@@ -104,4 +70,4 @@ export const deleteOrganizationProviderContract = base
 		tags: ["Organization Providers"],
 	})
 	.input(organizationProviderDeleteSchema)
-	.output(z.object({ success: z.boolean(), message: z.string().optional() }));
+	.output(statusSchema);

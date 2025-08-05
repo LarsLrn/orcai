@@ -1,5 +1,5 @@
 import { Code2Icon } from "lucide-react";
-import type { Bot } from "@/db/schema/bot";
+import type { Bot } from "@/lib/orpc/schemas/bot";
 import { ContentRenderer } from "../editor";
 import {
 	Card,

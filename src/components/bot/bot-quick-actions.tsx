@@ -4,7 +4,7 @@ import {
 	GitForkIcon,
 	Trash2Icon,
 } from "lucide-react";
-import type { Bot } from "@/db/schema/bot";
+import type { Bot } from "@/lib/orpc/schemas/bot";
 import { NewChatButton } from "../chat/new-chat-button";
 import { Button } from "../ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "../ui/card";

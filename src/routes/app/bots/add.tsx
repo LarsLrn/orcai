@@ -2,7 +2,7 @@ import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { createFileRoute, useNavigate } from "@tanstack/react-router";
 import { toast } from "sonner";
 import { BotBuilderForm } from "@/components/blocks/builder/bot-builder-form";
-import type { BotInsert } from "@/lib/orpc/contracts/bot";
+import type { BotInsert } from "@/lib/orpc/schemas/bot";
 import { blockQueryOptions } from "@/lib/query-options/block";
 import { botQueryOptions } from "@/lib/query-options/bot";
 

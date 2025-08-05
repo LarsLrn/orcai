@@ -5,8 +5,8 @@ import type { VariantProps } from "class-variance-authority";
 import { toast } from "sonner";
 import { buttonVariants } from "@/components/ui/button";
 import { useSidebar } from "@/components/ui/sidebar";
-import type { Bot } from "@/db/schema/bot";
 import { useUmami } from "@/hooks/use-umami";
+import type { Bot } from "@/lib/orpc/schemas/bot";
 import { chatQueryOptions } from "@/lib/query-options/chat";
 import { cn } from "@/lib/utils";
 

@@ -1,4 +1,3 @@
-import type { InferSelectModel } from "drizzle-orm";
 import {
 	type AnyPgColumn,
 	integer,
@@ -32,8 +31,6 @@ export const botTable = pgTable("bot", {
 	createdAt: timestamp("created_at").defaultNow(),
 	updatedAt: timestamp("updated_at").defaultNow(),
 });
-
-export type Bot = InferSelectModel<typeof botTable>;
 
 export const botBlockTable = pgTable(
 	"bot_block",

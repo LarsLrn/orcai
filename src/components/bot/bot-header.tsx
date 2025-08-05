@@ -7,7 +7,7 @@ import {
 	MoreVerticalIcon,
 	Trash2Icon,
 } from "lucide-react";
-import type { Bot } from "@/db/schema/bot";
+import type { Bot } from "@/lib/orpc/schemas/bot";
 import { Button } from "../ui/button";
 import {
 	DropdownMenu,

@@ -3,7 +3,6 @@ import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { useRouter } from "@tanstack/react-router";
 import { useForm } from "react-hook-form";
 import { toast } from "sonner";
-import type { z } from "zod/v4";
 import { BlockEditor } from "@/components/editor";
 import { FormInputField } from "@/components/forms/fields/form-input-field";
 import { FormSelectField } from "@/components/forms/fields/form-select-field";
@@ -15,7 +14,10 @@ import { Form } from "@/components/ui/form";
 import { Label } from "@/components/ui/label";
 import type { Course } from "@/db/schema/course";
 import { saiaModels } from "@/lib/ai/saia-models";
-import { courseInsertSchema } from "@/lib/orpc/contracts/course";
+import {
+	type CourseInsert,
+	courseInsertSchema,
+} from "@/lib/orpc/schemas/course";
 import { courseQueryOptions } from "@/lib/query-options/course";
 
 const CourseForm = ({ course }: { course?: Course }) => {
@@ -29,7 +31,7 @@ const CourseForm = ({ course }: { course?: Course }) => {
 		courseQueryOptions.create(queryClient),
 	);
 
-	const form = useForm<z.infer<typeof courseInsertSchema>>({
+	const form = useForm<CourseInsert>({
 		resolver: zodResolver(courseInsertSchema),
 		defaultValues: {
 			title: course?.title ?? undefined,
@@ -44,7 +46,7 @@ const CourseForm = ({ course }: { course?: Course }) => {
 		},
 	});
 
-	const onSubmit = (values: z.infer<typeof courseInsertSchema>) => {
+	const onSubmit = (values: CourseInsert) => {
 		if (course) {
 			toast.promise(
 				updateCourse({

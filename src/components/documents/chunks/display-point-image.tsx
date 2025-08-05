@@ -21,7 +21,7 @@ const DisplayPointImage = ({
 				id: imageRef.reference,
 				prefix: imageRef.prefix,
 				bucket: imageRef.bucket,
-				type: imageRef.type,
+				fileType: imageRef.type,
 			},
 		}),
 	);

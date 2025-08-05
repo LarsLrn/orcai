@@ -6,7 +6,7 @@ import {
 import { createFileRoute, useNavigate } from "@tanstack/react-router";
 import { toast } from "sonner";
 import { BotBuilderForm } from "@/components/blocks/builder/bot-builder-form";
-import type { BotInsert, BotUpdate } from "@/lib/orpc/contracts/bot";
+import type { BotInsert, BotUpdate } from "@/lib/orpc/schemas/bot";
 import { botQueryOptions } from "@/lib/query-options/bot";
 
 export const Route = createFileRoute("/app/bots/$botId/edit")({

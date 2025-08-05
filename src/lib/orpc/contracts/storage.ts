@@ -1,4 +1,6 @@
 import { z } from "zod/v4";
+import { assetSelectSchema } from "../schemas/asset";
+import { storageSelectSchema } from "../schemas/storage";
 import { base } from "./base";
 
 export const createUploadUrlsContract = base
@@ -14,6 +16,7 @@ export const createUploadUrlsContract = base
 				z.object({
 					name: z.string(),
 					size: z.number().int().min(1),
+					// TODO: Narrow file types
 					type: z.string(),
 				}),
 			),
@@ -21,18 +24,7 @@ export const createUploadUrlsContract = base
 	)
 	.output(
 		z.object({
-			data: z.array(
-				z.object({
-					signedUrl: z.url(),
-					file: z.object({
-						objectKey: z.string(),
-						objectMetadata: z.record(z.string(), z.string()),
-						name: z.string(),
-						size: z.number().int().min(1),
-						type: z.string(),
-					}),
-				}),
-			),
+			data: z.array(storageSelectSchema),
 		}),
 	);
 
@@ -44,15 +36,15 @@ export const createDownloadUrlContract = base
 		tags: ["Files"],
 	})
 	.input(
-		z.object({
-			id: z.uuidv4(),
-			prefix: z.string(),
-			bucket: z.string(),
-			type: z.string(),
+		assetSelectSchema.pick({
+			id: true,
+			prefix: true,
+			bucket: true,
+			fileType: true,
 		}),
 	)
 	.output(
 		z.object({
-			url: z.url(),
+			url: storageSelectSchema.shape.signedUrl,
 		}),
 	);

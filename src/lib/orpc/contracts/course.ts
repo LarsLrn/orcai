@@ -1,32 +1,12 @@
-import {
-	createInsertSchema,
-	createSelectSchema,
-	createUpdateSchema,
-} from "drizzle-zod";
 import { z } from "zod/v4";
-import { course } from "@/db/schema/course";
-import { paginationSchema } from "../schemas/shared";
+import {
+	courseDeleteSchema,
+	courseInsertSchema,
+	courseSelectSchema,
+	courseUpdateSchema,
+} from "../schemas/course";
+import { paginationSchema, statusSchema } from "../schemas/shared";
 import { base } from "./base";
-
-export const courseSelectSchema = createSelectSchema(course);
-
-export const courseInsertSchema = createInsertSchema(course, {
-	organizationId: (schema) => schema.optional(),
-	description: (schema) =>
-		schema.min(20, {
-			message: "Description must be at least 20 characters long",
-		}),
-	// TODO: Coerce received string for maxReferences
-	config: (schema) => schema.optional(),
-});
-
-export const courseUpdateSchema = createUpdateSchema(course, {
-	id: z.uuidv4(),
-});
-
-export const courseDeleteSchema = z.object({
-	refs: z.array(courseUpdateSchema.pick({ id: true })),
-});
 
 export const listCoursesContract = base
 	.route({
@@ -84,4 +64,4 @@ export const deleteCourseContract = base
 		tags: ["Courses"],
 	})
 	.input(courseDeleteSchema)
-	.output(z.object({ success: z.boolean(), message: z.string().optional() }));
+	.output(statusSchema);

@@ -1,42 +1,13 @@
-import {
-	createInsertSchema,
-	createSelectSchema,
-	createUpdateSchema,
-} from "drizzle-zod";
 import { z } from "zod/v4";
-import { botTable } from "@/db/schema/bot";
 import { blockSelectSchema } from "../schemas/block";
-import { paginationSchema } from "../schemas/shared";
+import {
+	botDeleteSchema,
+	botInsertSchema,
+	botSelectSchema,
+	botUpdateSchema,
+} from "../schemas/bot";
+import { paginationSchema, statusSchema } from "../schemas/shared";
 import { base } from "./base";
-
-export const botSelectSchema = createSelectSchema(botTable);
-
-export const botInsertSchema = createInsertSchema(botTable)
-	.omit({
-		userId: true,
-		createdAt: true,
-		updatedAt: true,
-	})
-	.extend({
-		name: z.string().min(1, "Bot name is required"),
-		description: z.string().min(1, "Bot description is required"),
-		blocks: z
-			.array(blockSelectSchema)
-			.min(1, "At least one active block is required"),
-	});
-
-export const botUpdateSchema = createUpdateSchema(botTable, {
-	id: z.uuidv4(),
-}).extend({
-	blocks: z.array(blockSelectSchema.pick({ id: true, name: true, type: true })),
-});
-
-export const botDeleteSchema = z.object({
-	refs: z.array(botUpdateSchema.pick({ id: true })),
-});
-
-export type BotInsert = z.infer<typeof botInsertSchema>;
-export type BotUpdate = z.infer<typeof botUpdateSchema>;
 
 export const listBotsContract = base
 	.route({
@@ -104,4 +75,4 @@ export const deleteBotContract = base
 		tags: ["Bots"],
 	})
 	.input(botDeleteSchema)
-	.output(z.object({ success: z.boolean(), message: z.string().optional() }));
+	.output(statusSchema);
