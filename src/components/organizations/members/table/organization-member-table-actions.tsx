@@ -9,7 +9,7 @@ import {
 	DropdownMenuContent,
 	DropdownMenuItem,
 } from "@/components/ui/dropdown-menu";
-import type { Organization } from "@/db/schema/organization";
+import type { Organization } from "@/lib/orpc/schemas/organization";
 import { organizationMemberQueryOptions } from "@/lib/query-options/organization-member";
 
 const OrganizationMemberTableActions = ({

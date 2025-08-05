@@ -2,7 +2,7 @@ import { useQuery, useSuspenseQuery } from "@tanstack/react-query";
 import { Link } from "@tanstack/react-router";
 import { CogIcon } from "lucide-react";
 import { Suspense } from "react";
-import type { Chat } from "@/db/schema/chat";
+import type { Chat } from "@/lib/orpc/schemas/chat";
 import { botQueryOptions } from "@/lib/query-options/bot";
 import { chatQueryOptions } from "@/lib/query-options/chat";
 import { BotBlocks } from "../bot/bot-blocks";

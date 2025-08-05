@@ -1,4 +1,4 @@
-import type { Asset } from "@/db/schema/asset";
+import type { Asset } from "@/lib/orpc/schemas/asset";
 import type { FilePayload } from "./file";
 
 export interface ProcessAssetTaskPayload {

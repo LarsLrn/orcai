@@ -5,21 +5,21 @@ import { toast } from "sonner";
 import { FormInputField } from "@/components/forms/fields/form-input-field";
 import { Button } from "@/components/ui/button";
 import { Form } from "@/components/ui/form";
-import { type UserUpdateSchemaType, userUpdateSchema } from "@/db/zod/profile";
 import { authClient } from "@/lib/auth-client";
+import { type UserUpdate, userUpdateSchema } from "@/lib/orpc/schemas/user";
 
 const ProfileForm = () => {
 	const { auth } = useRouteContext({ from: "/app" });
 	const { refetch } = authClient.useSession();
 
-	const form = useForm<UserUpdateSchemaType>({
+	const form = useForm<UserUpdate>({
 		resolver: zodResolver(userUpdateSchema),
 		defaultValues: {
 			name: auth.user.name,
 		},
 	});
 
-	const onSubmit = (values: UserUpdateSchemaType) => {
+	const onSubmit = (values: UserUpdate) => {
 		toast.promise(
 			authClient.updateUser({
 				name: values.name,

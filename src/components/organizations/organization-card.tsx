@@ -1,7 +1,7 @@
 import { BuildingIcon, ChevronRightIcon } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card, CardAction, CardHeader, CardTitle } from "@/components/ui/card";
-import type { Organization } from "@/db/schema/organization";
+import type { Organization } from "@/lib/orpc/schemas/organization";
 
 const OrganizationCard = ({
 	organization,

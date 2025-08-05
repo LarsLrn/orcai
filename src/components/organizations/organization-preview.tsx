@@ -5,7 +5,7 @@ import { Placeholder } from "@/components/placeholders/placeholder";
 import { buttonVariants } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { LoadingSpinner } from "@/components/ui/loading-spinner";
-import type { Organization } from "@/db/schema/organization";
+import type { Organization } from "@/lib/orpc/schemas/organization";
 import { organizationQueryOptions } from "@/lib/query-options/organization";
 
 const OrganizationPreview = ({

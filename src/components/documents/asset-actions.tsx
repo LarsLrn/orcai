@@ -22,8 +22,8 @@ import {
 	TooltipContent,
 	TooltipTrigger,
 } from "@/components/ui/tooltip";
-import type { Asset } from "@/db/schema/asset";
 import { useDeleteAssets } from "@/lib/client-actions/use-delete";
+import type { Asset } from "@/lib/orpc/schemas/asset";
 import { taskQueryOptions } from "@/lib/query-options/task";
 import { cn } from "@/lib/utils";
 

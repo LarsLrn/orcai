@@ -1,4 +1,4 @@
-import { type InferSelectModel, relations } from "drizzle-orm";
+import { relations } from "drizzle-orm";
 import {
 	json,
 	pgTable,
@@ -31,8 +31,6 @@ export const course = pgTable("course", {
 	updatedAt: timestamp("updated_at").defaultNow(),
 });
 
-export type Course = InferSelectModel<typeof course>;
-
 export const courseMember = pgTable(
 	"course_member",
 	{
@@ -51,8 +49,6 @@ export const courseMember = pgTable(
 		}),
 	],
 );
-
-export type CourseMember = InferSelectModel<typeof course>;
 
 export const coursesRelations = relations(course, ({ one }) => ({
 	organizationId: one(organization, {

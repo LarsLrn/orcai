@@ -11,7 +11,7 @@ import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { Button } from "@/components/ui/button";
 import { Form } from "@/components/ui/form";
 import { Label } from "@/components/ui/label";
-import type { Course } from "@/db/schema/course";
+import type { Course } from "@/lib/orpc/schemas/course";
 import { organizationInvitationQueryOptions } from "@/lib/query-options/organization-invitation";
 
 // Define Zod schema

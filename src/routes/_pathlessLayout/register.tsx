@@ -15,10 +15,8 @@ import {
 	CardTitle,
 } from "@/components/ui/card";
 import { db } from "@/db/drizzle";
-import {
-	type CourseInvitation,
-	courseInvitation,
-} from "@/db/schema/course-invitation";
+import { courseInvitation } from "@/db/schema/course-invitation";
+import type { CourseInvitation } from "@/lib/orpc/schemas/course-invitations";
 
 const getCourseInvitationById = createServerFn({
 	method: "GET",

@@ -4,8 +4,8 @@ import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
 /* import { deleteTrailingMessages } from "@/db/actions/ai-actions"; */
-import type { Chat } from "@/db/schema/chat";
 import type { CustomUIMessage } from "@/lib/ai/tools";
+import type { Chat } from "@/lib/orpc/schemas/chat";
 
 type MessageEditorProps = {
 	chatId: Chat["id"];

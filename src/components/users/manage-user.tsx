@@ -13,8 +13,8 @@ import {
 	SelectTrigger,
 	SelectValue,
 } from "@/components/ui/select";
-import type { User } from "@/db/schema/auth";
 import { authClient } from "@/lib/auth-client";
+import type { User } from "@/lib/orpc/schemas/user";
 
 const ManageUser = ({
 	user,

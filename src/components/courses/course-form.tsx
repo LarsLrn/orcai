@@ -12,9 +12,9 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Form } from "@/components/ui/form";
 import { Label } from "@/components/ui/label";
-import type { Course } from "@/db/schema/course";
 import { saiaModels } from "@/lib/ai/saia-models";
 import {
+	type Course,
 	type CourseInsert,
 	courseInsertSchema,
 } from "@/lib/orpc/schemas/course";

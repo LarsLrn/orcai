@@ -12,8 +12,8 @@ import {
 	DropdownMenuSeparator,
 	DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
-import type { User } from "@/db/schema/auth";
 import { authClient } from "@/lib/auth-client";
+import type { User } from "@/lib/orpc/schemas/user";
 
 const handleDelete = (id: string) => {
 	toast.promise(authClient.admin.removeUser({ userId: id }), {

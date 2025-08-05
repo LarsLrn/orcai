@@ -1,5 +1,5 @@
 import { z } from "zod/v4";
-import { userInsertSchema } from "./profile";
+import { userInsertSchema } from "@/lib/orpc/schemas/user";
 import { sharedSchemas } from "./shared";
 
 export const signupSchema = z

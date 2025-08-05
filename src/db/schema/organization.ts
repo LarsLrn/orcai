@@ -1,4 +1,3 @@
-import type { InferSelectModel } from "drizzle-orm";
 import { pgTable, text, timestamp, uuid } from "drizzle-orm/pg-core";
 import { user } from "./auth";
 
@@ -11,8 +10,6 @@ export const organization = pgTable("organization", {
 	metadata: text("metadata"),
 });
 
-export type Organization = InferSelectModel<typeof organization>;
-
 export const member = pgTable("member", {
 	id: uuid("id").primaryKey().defaultRandom(),
 	organizationId: uuid("organization_id")
@@ -24,8 +21,6 @@ export const member = pgTable("member", {
 	role: text("role").notNull(),
 	createdAt: timestamp("created_at").defaultNow(),
 });
-
-export type Member = InferSelectModel<typeof member>;
 
 export const invitation = pgTable("invitation", {
 	id: uuid("id").primaryKey().defaultRandom(),
@@ -43,5 +38,3 @@ export const invitation = pgTable("invitation", {
 	createdAt: timestamp("created_at").defaultNow(),
 	updatedAt: timestamp("updated_at").defaultNow(),
 });
-
-export type Invitation = InferSelectModel<typeof invitation>;

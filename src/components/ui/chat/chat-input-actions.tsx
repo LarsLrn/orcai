@@ -2,7 +2,7 @@ import { CompassIcon, RefreshCcwIcon } from "lucide-react";
 import { ChatSettings } from "@/components/chat/chat-settings";
 import { AppTourButton } from "@/components/next-step/app-tour-button";
 import { Button } from "@/components/ui/button";
-import type { Chat } from "@/db/schema/chat";
+import type { Chat } from "@/lib/orpc/schemas/chat";
 
 const ChatUtilities = ({
 	chatId,

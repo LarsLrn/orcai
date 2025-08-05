@@ -1,4 +1,4 @@
-import { type InferSelectModel, relations } from "drizzle-orm";
+import { relations } from "drizzle-orm";
 import { pgTable, timestamp, uuid, varchar } from "drizzle-orm/pg-core";
 import { user } from "./auth";
 import { botTable } from "./bot";
@@ -14,8 +14,6 @@ export const chat = pgTable("chat", {
 	createdAt: timestamp("created_at").notNull().defaultNow(),
 	updatedAt: timestamp("updated_at").notNull().defaultNow(),
 });
-
-export type Chat = InferSelectModel<typeof chat>;
 
 export const chatsRelations = relations(chat, ({ one, many }) => ({
 	user: one(user, {

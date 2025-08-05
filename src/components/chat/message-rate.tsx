@@ -4,9 +4,9 @@ import { CheckIcon } from "lucide-react";
 import { type ComponentProps, useState } from "react";
 import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
-import type { Chat } from "@/db/schema/chat";
-import type { ChatMessage } from "@/db/schema/chat-message";
 import { useUmami } from "@/hooks/use-umami";
+import type { Chat } from "@/lib/orpc/schemas/chat";
+import type { ChatMessage } from "@/lib/orpc/schemas/chat-message";
 import { chatMessageQueryOptions } from "@/lib/query-options/chat-message";
 import { cn } from "@/lib/utils";
 

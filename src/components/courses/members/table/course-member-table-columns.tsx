@@ -10,9 +10,8 @@ import {
 	DropdownMenuItem,
 	DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
-/* import { removeCourseMembers } from "@/db/actions/course"; */
-import type { User } from "@/db/schema/auth";
-import type { Course } from "@/db/schema/course";
+import type { Course } from "@/lib/orpc/schemas/course";
+import type { User } from "@/lib/orpc/schemas/user";
 
 const handleDelete = (_id: string, courseId?: Course["id"]) => {
 	if (!courseId) {

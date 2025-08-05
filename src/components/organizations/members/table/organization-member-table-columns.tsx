@@ -12,8 +12,8 @@ import {
 	DropdownMenuItem,
 	DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
-import type { User } from "@/db/schema/auth";
-import type { Organization } from "@/db/schema/organization";
+import type { Organization } from "@/lib/orpc/schemas/organization";
+import type { User } from "@/lib/orpc/schemas/user";
 import { organizationMemberQueryOptions } from "@/lib/query-options/organization-member";
 
 export const organizationMemberTableColumns: ColumnDef<User>[] = [

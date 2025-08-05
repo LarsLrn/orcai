@@ -1,17 +1,15 @@
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
-import type { CourseInvitation } from "@/db/schema/course-invitation";
 import { useUmami } from "@/hooks/use-umami";
+import type { CourseInvitation } from "@/lib/orpc/schemas/course-invitations";
 import { courseInvitationQueryOptions } from "@/lib/query-options/course-invitation";
-
-interface CourseInvitationActionsProps {
-	invitation: CourseInvitation;
-}
 
 export function CourseInvitationActions({
 	invitation,
-}: CourseInvitationActionsProps) {
+}: {
+	invitation: CourseInvitation;
+}) {
 	const { trackEvent } = useUmami();
 	const queryClient = useQueryClient();
 

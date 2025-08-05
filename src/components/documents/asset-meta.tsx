@@ -18,7 +18,7 @@ import {
 	TooltipContent,
 	TooltipTrigger,
 } from "@/components/ui/tooltip";
-import type { Asset } from "@/db/schema/asset";
+import type { Asset } from "@/lib/orpc/schemas/asset";
 
 const getFileTypeColor = (fileType: string): string => {
 	const typeMap: Record<string, string> = {

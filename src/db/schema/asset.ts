@@ -1,4 +1,3 @@
-import type { InferSelectModel } from "drizzle-orm";
 import {
 	integer,
 	json,
@@ -39,5 +38,3 @@ export const assetTable = pgTable("asset", {
 	updatedAt: timestamp("updated_at").defaultNow(),
 	createdAt: timestamp("created_at").defaultNow(),
 });
-
-export type Asset = InferSelectModel<typeof assetTable>;

@@ -6,8 +6,8 @@ import { toast } from "sonner";
 import { FormInputField } from "@/components/forms/fields/form-input-field";
 import { Button } from "@/components/ui/button";
 import { Form } from "@/components/ui/form";
-import type { Organization } from "@/db/schema/organization";
 import {
+	type Organization,
 	type OrganizationInsert,
 	organizationInsertSchema,
 } from "@/lib/orpc/schemas/organization";

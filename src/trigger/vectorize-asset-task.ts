@@ -3,9 +3,9 @@ import { logger, task } from "@trigger.dev/sdk/v3";
 import { embedMany, generateText } from "ai";
 import pMap from "p-map";
 import { v4 as uuidv4 } from "uuid";
-import type { Asset } from "@/db/schema/asset";
 import { getSaiaEmbeddingModel, getSaiaModel } from "@/lib/ai/saia-models";
 import type { MarkdownNode } from "@/lib/chunk/markdown-chunker";
+import type { Asset } from "@/lib/orpc/schemas/asset";
 import {
 	getImageAsBase64,
 	getMarkdownAsString,

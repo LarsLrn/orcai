@@ -7,8 +7,9 @@ import {
 	DropdownMenuContent,
 	DropdownMenuItem,
 } from "@/components/ui/dropdown-menu";
+import type { Course } from "@/lib/orpc/schemas/course";
+
 /* import { removeCourseMembers } from "@/db/actions/course"; */
-import type { Course } from "@/db/schema/course";
 
 const CourseMemberTableActions = ({ courseId }: { courseId: Course["id"] }) => {
 	const { table } = useTable();

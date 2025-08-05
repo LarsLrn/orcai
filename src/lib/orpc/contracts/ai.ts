@@ -1,7 +1,7 @@
 import { type } from "@orpc/server";
-import type { Chat } from "@/db/schema/chat";
 import type { CustomUIMessage } from "@/lib/ai/tools";
 import type { Bot } from "../schemas/bot";
+import type { Chat } from "../schemas/chat";
 import { base } from "./base";
 
 export const aiChatContract = base

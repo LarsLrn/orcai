@@ -14,7 +14,7 @@ import {
 	DropdownMenuSeparator,
 	DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
-import type { Organization } from "@/db/schema/organization";
+import type { Organization } from "@/lib/orpc/schemas/organization";
 import { organizationQueryOptions } from "@/lib/query-options/organization";
 
 export const organizationTableColumns: ColumnDef<Organization>[] = [

@@ -10,8 +10,11 @@ import { FormTextField } from "@/components/forms/fields/form-text-field";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Form } from "@/components/ui/form";
-import type { Asset } from "@/db/schema/asset";
-import { type AssetUpdate, assetUpdateSchema } from "@/lib/orpc/schemas/asset";
+import {
+	type Asset,
+	type AssetUpdate,
+	assetUpdateSchema,
+} from "@/lib/orpc/schemas/asset";
 import { assetQueryOptions } from "@/lib/query-options/asset";
 
 const AssetForm = ({ asset }: { asset: Asset }) => {

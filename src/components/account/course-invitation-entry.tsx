@@ -14,17 +14,15 @@ import {
 } from "@/components/ui/card";
 import { LoadingSpinner } from "@/components/ui/loading-spinner";
 import { Skeleton } from "@/components/ui/skeleton";
-import type { CourseInvitation } from "@/db/schema/course-invitation";
+import type { CourseInvitation } from "@/lib/orpc/schemas/course-invitations";
 import { courseQueryOptions } from "@/lib/query-options/course";
 import { CourseInvitationActions } from "./course-invitation-actions";
 
-interface CourseInvitationEntryProps {
-	invitation: CourseInvitation;
-}
-
 const CourseInvitationContent = ({
 	invitation,
-}: CourseInvitationEntryProps) => {
+}: {
+	invitation: CourseInvitation;
+}) => {
 	const { data: course, status } = useQuery(
 		courseQueryOptions.find({
 			input: { id: invitation.courseId },
@@ -111,7 +109,9 @@ const CourseInvitationContent = ({
 
 export function CourseInvitationEntry({
 	invitation,
-}: CourseInvitationEntryProps) {
+}: {
+	invitation: CourseInvitation;
+}) {
 	return (
 		<Suspense
 			fallback={

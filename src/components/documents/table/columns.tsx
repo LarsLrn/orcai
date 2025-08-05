@@ -15,8 +15,8 @@ import {
 	DropdownMenuSeparator,
 	DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
-import type { Asset } from "@/db/schema/asset";
 import { useDeleteAssets } from "@/lib/client-actions/use-delete";
+import type { Asset } from "@/lib/orpc/schemas/asset";
 import { taskQueryOptions } from "@/lib/query-options/task";
 
 export const columns: ColumnDef<Asset>[] = [

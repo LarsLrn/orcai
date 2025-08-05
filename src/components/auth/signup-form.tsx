@@ -8,10 +8,10 @@ import { FormPasswordField } from "@/components/forms/fields/form-password-field
 import { FormSwitchField } from "@/components/forms/fields/form-switch-field";
 import { Button, buttonVariants } from "@/components/ui/button";
 import { Form } from "@/components/ui/form";
-import type { CourseInvitation } from "@/db/schema/course-invitation";
 import { type SignupSchemaType, signupSchema } from "@/db/zod/signup";
 import { useUmami } from "@/hooks/use-umami";
 import { authClient } from "@/lib/auth-client";
+import type { CourseInvitation } from "@/lib/orpc/schemas/course-invitations";
 
 const SignUpForm = ({
 	invitation,

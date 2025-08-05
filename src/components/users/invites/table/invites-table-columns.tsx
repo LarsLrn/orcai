@@ -13,7 +13,7 @@ import {
 	DropdownMenuSeparator,
 	DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
-import type { CourseInvitation } from "@/db/schema/course-invitation";
+import type { CourseInvitation } from "@/lib/orpc/schemas/course-invitations";
 import { courseInvitationQueryOptions } from "@/lib/query-options/course-invitation";
 
 const handleCopy = (id: CourseInvitation["id"]) => {

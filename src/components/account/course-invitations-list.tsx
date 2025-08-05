@@ -2,7 +2,7 @@ import { useSuspenseQuery } from "@tanstack/react-query";
 import { BadgeCheck, BadgeX, ClipboardList, SearchXIcon } from "lucide-react";
 import { Placeholder } from "@/components/placeholders/placeholder";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import type { CourseInvitation } from "@/db/schema/course-invitation";
+import type { CourseInvitation } from "@/lib/orpc/schemas/course-invitations";
 import { courseInvitationQueryOptions } from "@/lib/query-options/course-invitation";
 import { CourseInvitationEntry } from "./course-invitation-entry";
 

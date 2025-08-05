@@ -1,7 +1,7 @@
-/* import "server-only"; */
+import "server-only";
 
 import pMap from "p-map";
-import type { Asset } from "@/db/schema/asset";
+import type { Asset } from "@/lib/orpc/schemas/asset";
 import type { AssetPointPayload } from "@/types/qdrant";
 import { qdrant } from "./qdrant";
 import { qdrantCollections } from "./qdrant-constants";

@@ -8,8 +8,8 @@ import { BuildingIcon } from "lucide-react";
 import { toast } from "sonner";
 import { OrganizationCard } from "@/components/organizations/organization-card";
 import { Card, CardContent } from "@/components/ui/card";
-import type { Organization } from "@/db/schema/organization";
 import { authClient } from "@/lib/auth-client";
+import type { Organization } from "@/lib/orpc/schemas/organization";
 import { organizationQueryOptions } from "@/lib/query-options/organization";
 import { userQueryOptions } from "@/lib/query-options/user";
 

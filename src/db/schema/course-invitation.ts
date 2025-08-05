@@ -1,4 +1,3 @@
-import type { InferSelectModel } from "drizzle-orm";
 import { pgTable, text, timestamp, uuid } from "drizzle-orm/pg-core";
 import { user } from "./auth";
 import { course } from "./course";
@@ -18,5 +17,3 @@ export const courseInvitation = pgTable("course_invitation", {
 	createdAt: timestamp("created_at").defaultNow(),
 	updatedAt: timestamp("updated_at").defaultNow(),
 });
-
-export type CourseInvitation = InferSelectModel<typeof courseInvitation>;

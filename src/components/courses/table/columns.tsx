@@ -14,7 +14,7 @@ import {
 	DropdownMenuSeparator,
 	DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
-import type { Course } from "@/db/schema/course";
+import type { Course } from "@/lib/orpc/schemas/course";
 import { courseQueryOptions } from "@/lib/query-options/course";
 
 export const columns: ColumnDef<Course>[] = [

@@ -6,8 +6,8 @@ import {
 	ChatBubble,
 	ChatBubbleMessage,
 } from "@/components/ui/chat/chat-bubble";
-import type { Chat } from "@/db/schema/chat";
 import type { CustomUIMessage } from "@/lib/ai/tools";
+import type { Chat } from "@/lib/orpc/schemas/chat";
 import { cn } from "@/lib/utils";
 import { MessageEditor } from "../message-editor";
 import { useMessageEditor } from "./hooks/use-message-editor";

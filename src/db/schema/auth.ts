@@ -33,8 +33,6 @@ export const user = pgTable("user", {
 		.default({}),
 });
 
-export type User = InferSelectModel<typeof user>;
-
 export const session = pgTable("session", {
 	id: uuid("id").primaryKey().defaultRandom(),
 	expiresAt: timestamp("expires_at").notNull(),
