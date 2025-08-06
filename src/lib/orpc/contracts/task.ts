@@ -1,5 +1,8 @@
 import { statusSchema } from "@/lib/orpc/schemas/shared";
-import { taskInsertSchema } from "@/lib/orpc/schemas/task";
+import {
+	databaseBlockTaskInsertSchema,
+	taskInsertSchema,
+} from "@/lib/orpc/schemas/task";
 import { base } from "./base";
 
 export const createAssetTaskContract = base
@@ -10,4 +13,14 @@ export const createAssetTaskContract = base
 		tags: ["Tasks"],
 	})
 	.input(taskInsertSchema)
+	.output(statusSchema);
+
+export const createDatabaseBlockVectorStoreContract = base
+	.route({
+		method: "POST",
+		path: "/tasks/blocks/database",
+		summary: "Create a database block vector store task",
+		tags: ["Tasks"],
+	})
+	.input(databaseBlockTaskInsertSchema)
 	.output(statusSchema);

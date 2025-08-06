@@ -11,4 +11,13 @@ export const taskQueryOptions = {
 			},
 		});
 	},
+	createDatabaseBlockVectorStore: (queryClient: QueryClient) => {
+		return orpc.task.createDatabaseBlockVectorStore.mutationOptions({
+			onSuccess: () => {
+				queryClient.invalidateQueries({
+					queryKey: orpc.task.key(),
+				});
+			},
+		});
+	},
 } as const;
