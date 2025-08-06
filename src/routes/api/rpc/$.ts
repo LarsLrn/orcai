@@ -1,13 +1,51 @@
-import { onError } from "@orpc/server";
+import { ORPCError, onError, ValidationError } from "@orpc/server";
 import { RPCHandler } from "@orpc/server/fetch";
 import {
 	BatchHandlerPlugin,
 	StrictGetMethodPlugin,
 } from "@orpc/server/plugins";
 import { createServerFileRoute } from "@tanstack/react-start/server";
+import { z } from "zod/v4";
 import { router } from "@/lib/orpc/router";
 
 const handler = new RPCHandler(router, {
+	clientInterceptors: [
+		onError((error) => {
+			if (
+				error instanceof ORPCError &&
+				error.code === "BAD_REQUEST" &&
+				error.cause instanceof ValidationError
+			) {
+				const zodError = new z.ZodError(
+					error.cause.issues as z.core.$ZodIssue[],
+				);
+
+				throw new ORPCError("INPUT_VALIDATION_FAILED", {
+					status: 422,
+					message: z.prettifyError(zodError),
+					data: z.flattenError(zodError),
+					cause: error.cause,
+				});
+			}
+
+			if (
+				error instanceof ORPCError &&
+				error.code === "INTERNAL_SERVER_ERROR" &&
+				error.cause instanceof ValidationError
+			) {
+				const zodError = new z.ZodError(
+					error.cause.issues as z.core.$ZodIssue[],
+				);
+
+				throw new ORPCError("OUTPUT_VALIDATION_FAILED", {
+					status: 422,
+					message: z.prettifyError(zodError),
+					data: z.flattenError(zodError),
+					cause: error.cause,
+				});
+			}
+		}),
+	],
 	interceptors: [
 		onError((error) => {
 			console.error(error);
