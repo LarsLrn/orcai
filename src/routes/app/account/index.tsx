@@ -18,13 +18,6 @@ import { Skeleton } from "@/components/ui/skeleton";
 
 export const Route = createFileRoute("/app/account/")({
 	component: RouteComponent,
-	head: () => ({
-		meta: [
-			{
-				title: "Account",
-			},
-		],
-	}),
 });
 
 function RouteComponent() {

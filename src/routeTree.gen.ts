@@ -27,6 +27,7 @@ import { Route as AppChatRouteRouteImport } from './routes/app/chat/route'
 import { Route as AppBotsRouteRouteImport } from './routes/app/bots/route'
 import { Route as AppBlocksRouteRouteImport } from './routes/app/blocks/route'
 import { Route as AppAssetsRouteRouteImport } from './routes/app/assets/route'
+import { Route as AppAccountRouteRouteImport } from './routes/app/account/route'
 import { Route as AppUsersIndexRouteImport } from './routes/app/users/index'
 import { Route as AppOrgsIndexRouteImport } from './routes/app/orgs/index'
 import { Route as AppCoursesIndexRouteImport } from './routes/app/courses/index'
@@ -154,6 +155,11 @@ const AppAssetsRouteRoute = AppAssetsRouteRouteImport.update({
   path: '/assets',
   getParentRoute: () => AppRouteRoute,
 } as any)
+const AppAccountRouteRoute = AppAccountRouteRouteImport.update({
+  id: '/account',
+  path: '/account',
+  getParentRoute: () => AppRouteRoute,
+} as any)
 const AppUsersIndexRoute = AppUsersIndexRouteImport.update({
   id: '/',
   path: '/',
@@ -190,9 +196,9 @@ const AppAssetsIndexRoute = AppAssetsIndexRouteImport.update({
   getParentRoute: () => AppAssetsRouteRoute,
 } as any)
 const AppAccountIndexRoute = AppAccountIndexRouteImport.update({
-  id: '/account/',
-  path: '/account/',
-  getParentRoute: () => AppRouteRoute,
+  id: '/',
+  path: '/',
+  getParentRoute: () => AppAccountRouteRoute,
 } as any)
 const AppUsersInvitesRoute = AppUsersInvitesRouteImport.update({
   id: '/invites',
@@ -384,6 +390,7 @@ const ApiAuthSplatServerRoute = ApiAuthSplatServerRouteImport.update({
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
   '/app': typeof AppRouteRouteWithChildren
+  '/app/account': typeof AppAccountRouteRouteWithChildren
   '/app/assets': typeof AppAssetsRouteRouteWithChildren
   '/app/blocks': typeof AppBlocksRouteRouteWithChildren
   '/app/bots': typeof AppBotsRouteRouteWithChildren
@@ -411,7 +418,7 @@ export interface FileRoutesByFullPath {
   '/app/orgs/add': typeof AppOrgsAddRoute
   '/app/users/add': typeof AppUsersAddRoute
   '/app/users/invites': typeof AppUsersInvitesRoute
-  '/app/account': typeof AppAccountIndexRoute
+  '/app/account/': typeof AppAccountIndexRoute
   '/app/assets/': typeof AppAssetsIndexRoute
   '/app/blocks/': typeof AppBlocksIndexRoute
   '/app/bots/': typeof AppBotsIndexRoute
@@ -487,6 +494,7 @@ export interface FileRoutesById {
   '/': typeof IndexRoute
   '/_pathlessLayout': typeof PathlessLayoutRouteRouteWithChildren
   '/app': typeof AppRouteRouteWithChildren
+  '/app/account': typeof AppAccountRouteRouteWithChildren
   '/app/assets': typeof AppAssetsRouteRouteWithChildren
   '/app/blocks': typeof AppBlocksRouteRouteWithChildren
   '/app/bots': typeof AppBotsRouteRouteWithChildren
@@ -547,6 +555,7 @@ export interface FileRouteTypes {
   fullPaths:
     | '/'
     | '/app'
+    | '/app/account'
     | '/app/assets'
     | '/app/blocks'
     | '/app/bots'
@@ -574,7 +583,7 @@ export interface FileRouteTypes {
     | '/app/orgs/add'
     | '/app/users/add'
     | '/app/users/invites'
-    | '/app/account'
+    | '/app/account/'
     | '/app/assets/'
     | '/app/blocks/'
     | '/app/bots/'
@@ -649,6 +658,7 @@ export interface FileRouteTypes {
     | '/'
     | '/_pathlessLayout'
     | '/app'
+    | '/app/account'
     | '/app/assets'
     | '/app/blocks'
     | '/app/bots'
@@ -854,6 +864,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AppAssetsRouteRouteImport
       parentRoute: typeof AppRouteRoute
     }
+    '/app/account': {
+      id: '/app/account'
+      path: '/account'
+      fullPath: '/app/account'
+      preLoaderRoute: typeof AppAccountRouteRouteImport
+      parentRoute: typeof AppRouteRoute
+    }
     '/app/users/': {
       id: '/app/users/'
       path: '/'
@@ -905,10 +922,10 @@ declare module '@tanstack/react-router' {
     }
     '/app/account/': {
       id: '/app/account/'
-      path: '/account'
-      fullPath: '/app/account'
+      path: '/'
+      fullPath: '/app/account/'
       preLoaderRoute: typeof AppAccountIndexRouteImport
-      parentRoute: typeof AppRouteRoute
+      parentRoute: typeof AppAccountRouteRoute
     }
     '/app/users/invites': {
       id: '/app/users/invites'
@@ -1188,6 +1205,18 @@ const PathlessLayoutRouteRouteChildren: PathlessLayoutRouteRouteChildren = {
 const PathlessLayoutRouteRouteWithChildren =
   PathlessLayoutRouteRoute._addFileChildren(PathlessLayoutRouteRouteChildren)
 
+interface AppAccountRouteRouteChildren {
+  AppAccountIndexRoute: typeof AppAccountIndexRoute
+}
+
+const AppAccountRouteRouteChildren: AppAccountRouteRouteChildren = {
+  AppAccountIndexRoute: AppAccountIndexRoute,
+}
+
+const AppAccountRouteRouteWithChildren = AppAccountRouteRoute._addFileChildren(
+  AppAccountRouteRouteChildren,
+)
+
 interface AppAssetsAssetIdRouteRouteChildren {
   AppAssetsAssetIdEditRoute: typeof AppAssetsAssetIdEditRoute
   AppAssetsAssetIdPointsRoute: typeof AppAssetsAssetIdPointsRoute
@@ -1427,6 +1456,7 @@ const AppUsersRouteRouteWithChildren = AppUsersRouteRoute._addFileChildren(
 )
 
 interface AppRouteRouteChildren {
+  AppAccountRouteRoute: typeof AppAccountRouteRouteWithChildren
   AppAssetsRouteRoute: typeof AppAssetsRouteRouteWithChildren
   AppBlocksRouteRoute: typeof AppBlocksRouteRouteWithChildren
   AppBotsRouteRoute: typeof AppBotsRouteRouteWithChildren
@@ -1435,10 +1465,10 @@ interface AppRouteRouteChildren {
   AppOrgsRouteRoute: typeof AppOrgsRouteRouteWithChildren
   AppUsersRouteRoute: typeof AppUsersRouteRouteWithChildren
   AppIndexRoute: typeof AppIndexRoute
-  AppAccountIndexRoute: typeof AppAccountIndexRoute
 }
 
 const AppRouteRouteChildren: AppRouteRouteChildren = {
+  AppAccountRouteRoute: AppAccountRouteRouteWithChildren,
   AppAssetsRouteRoute: AppAssetsRouteRouteWithChildren,
   AppBlocksRouteRoute: AppBlocksRouteRouteWithChildren,
   AppBotsRouteRoute: AppBotsRouteRouteWithChildren,
@@ -1447,7 +1477,6 @@ const AppRouteRouteChildren: AppRouteRouteChildren = {
   AppOrgsRouteRoute: AppOrgsRouteRouteWithChildren,
   AppUsersRouteRoute: AppUsersRouteRouteWithChildren,
   AppIndexRoute: AppIndexRoute,
-  AppAccountIndexRoute: AppAccountIndexRoute,
 }
 
 const AppRouteRouteWithChildren = AppRouteRoute._addFileChildren(

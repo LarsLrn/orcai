@@ -9,7 +9,6 @@ export const Route = createFileRoute("/app/orgs/$orgId")({
 			}),
 		);
 	},
-	component: RouteComponent,
 	head: ({ loaderData }) => ({
 		meta: [
 			{
@@ -17,6 +16,7 @@ export const Route = createFileRoute("/app/orgs/$orgId")({
 			},
 		],
 	}),
+	component: RouteComponent,
 });
 
 function RouteComponent() {
