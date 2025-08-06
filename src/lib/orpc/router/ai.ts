@@ -123,7 +123,6 @@ export const aiChat = authed.ai.chat
 						tools: {
 							generateImage: generateImageTool({
 								writer,
-								assistantMessageId,
 							}),
 							...(databaseBlock && {
 								searchKnowledgeBase: searchKnowledgeBaseTool({

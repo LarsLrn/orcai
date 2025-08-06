@@ -10,10 +10,8 @@ import { getSaiaModel } from "@/lib/ai/saia-models";
 
 export const generateImageTool = ({
 	writer,
-	assistantMessageId,
 }: {
 	writer: UIMessageStreamWriter;
-	assistantMessageId: string;
 }) =>
 	tool({
 		description: "Generate an image based on a text prompt",
