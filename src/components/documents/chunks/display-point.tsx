@@ -13,14 +13,13 @@ const DisplayPoint = ({ point }: { point: QdrantPoint }) => {
 		<Card key={point.id}>
 			<CardHeader>
 				<CardTitle>
-					{point.id} | {point.payload.chunkIndex + 1} /{" "}
+					{point.id} | {point.payload.chunk_index + 1} /{" "}
 					{point.payload.chunkCount}
 				</CardTitle>
 				<CardDescription>
 					{point.score && <p>Score: {point.score}</p>}
 					<p>
 						{point.payload.source} | {point.payload.title} |{" "}
-						{point.payload.file_reference} | {point.payload.file_type} |{" "}
 						{point.payload.tokens} tokens
 					</p>
 					<p>
