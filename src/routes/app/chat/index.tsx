@@ -1,6 +1,6 @@
-import { createFileRoute } from "@tanstack/react-router";
+import { createFileRoute, Link } from "@tanstack/react-router";
 import { ChatsList } from "@/components/chat/chats-list";
-import { NewChatButton } from "@/components/chat/new-chat-button";
+import { buttonVariants } from "@/components/ui/button";
 
 export const Route = createFileRoute("/app/chat/")({
 	component: RouteComponent,
@@ -14,7 +14,9 @@ function RouteComponent() {
 					Chats
 				</h4>
 				<div className="flex gap-2">
-					<NewChatButton>New Chat</NewChatButton>
+					<Link to="/app/chat/setup" className={buttonVariants()}>
+						New Chat
+					</Link>
 				</div>
 			</div>
 

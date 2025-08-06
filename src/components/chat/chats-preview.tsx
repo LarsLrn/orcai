@@ -2,7 +2,6 @@ import { Link } from "@tanstack/react-router";
 import { PlusIcon } from "lucide-react";
 import { buttonVariants } from "@/components/ui/button";
 import { ChatsList } from "./chats-list";
-import { NewChatButton } from "./new-chat-button";
 
 const ChatsPreview = () => {
 	return (
@@ -18,9 +17,12 @@ const ChatsPreview = () => {
 					>
 						Show all
 					</Link>
-					<NewChatButton id="tour-newChat" size="icon" variant="outline">
+					<Link
+						to="/app/chat/setup"
+						className={buttonVariants({ size: "icon", variant: "outline" })}
+					>
 						<PlusIcon />
-					</NewChatButton>
+					</Link>
 				</div>
 			</div>
 			<ChatsList limit={6} />

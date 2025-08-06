@@ -4,8 +4,7 @@ import { format } from "date-fns";
 import { MessagesSquareIcon, MoreHorizontalIcon } from "lucide-react";
 import { motion } from "motion/react";
 import type { ComponentProps } from "react";
-import { NewChatButton } from "@/components/chat/new-chat-button";
-import { Button } from "@/components/ui/button";
+import { Button, buttonVariants } from "@/components/ui/button";
 import {
 	Card,
 	CardContent,
@@ -41,7 +40,12 @@ const ChatsList = ({
 					</CardDescription>
 				</CardHeader>
 				<CardFooter className="flex justify-center">
-					<NewChatButton variant="outline">New Chat</NewChatButton>
+					<Link
+						to="/app/chat/setup"
+						className={buttonVariants({ variant: "outline" })}
+					>
+						New Chat
+					</Link>
 				</CardFooter>
 			</Card>
 		);
