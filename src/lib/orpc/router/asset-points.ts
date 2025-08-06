@@ -3,6 +3,7 @@ import { authed } from "@/lib/orpc";
 import { retry } from "@/lib/orpc/middlewares/retry";
 import { qdrant } from "@/qdrant/qdrant";
 import { qdrantCollections } from "@/qdrant/qdrant-constants";
+import type { QdrantPoints } from "@/types/qdrant";
 
 export const listAssetPoints = authed.assetPoints.list
 	.use(retry({ times: 3 }))
@@ -13,7 +14,7 @@ export const listAssetPoints = authed.assetPoints.list
 			entityType: "asset",
 		}); */
 
-		const { points } = await qdrant.query(qdrantCollections.asset.name, {
+		const { points } = (await qdrant.query(qdrantCollections.asset.name, {
 			query: input.filters.search
 				? await generateEmbedding(input.filters.search)
 				: undefined,
@@ -25,13 +26,19 @@ export const listAssetPoints = authed.assetPoints.list
 							value: input.filters.assetId,
 						},
 					},
-				],
+					input.filters.blockId && {
+						key: "block_id",
+						match: {
+							value: input.filters.blockId,
+						},
+					},
+				].filter(Boolean),
 			},
 			limit: input.filters.limit ?? undefined,
 			with_payload: true,
 			with_vector: false,
 			score_threshold: input.filters.search ? 0.5 : undefined,
-		});
+		})) as QdrantPoints;
 
 		return { data: points };
 	});

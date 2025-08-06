@@ -1,6 +1,6 @@
 // Basically just the types used by qdrant, but they aren't exported properly
 
-import type { FileType } from "./file";
+import type { AssetPointPayload } from "@/lib/orpc/schemas/asset-point";
 
 export interface QdrantPoints {
 	points: QdrantPoint[];
@@ -30,25 +30,3 @@ export interface QdrantPoint {
 	shard_key?: string | number | Record<string, unknown> | null | undefined;
 	order_value?: number | Record<string, unknown> | null | undefined;
 }
-
-export type AssetPointPayload = {
-	asset_id: string;
-	text: string;
-	title: string;
-	depth: number;
-	tokens: number;
-	chunkIndex: number;
-	chunkCount: number;
-	createdAt: string;
-} & (
-	| {
-			source: "image";
-			file_reference: string;
-			file_type: FileType;
-	  }
-	| {
-			source: "text";
-			file_reference?: string;
-			file_type?: FileType;
-	  }
-);

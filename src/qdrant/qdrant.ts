@@ -27,7 +27,7 @@ const initCollectionIfNeeded = async (qdrant: QdrantClient) => {
 		});
 
 		await qdrant.createPayloadIndex(qdrantCollections.asset.name, {
-			field_name: qdrantCollections.asset.index.repositoryId,
+			field_name: qdrantCollections.asset.index.blockId,
 			field_schema: {
 				type: "uuid",
 				is_tenant: true,

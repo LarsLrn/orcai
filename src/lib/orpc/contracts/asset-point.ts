@@ -6,11 +6,12 @@ import {
 	assetPointUpdateSchema,
 } from "@/lib/orpc/schemas/asset-point";
 import { statusSchema } from "@/lib/orpc/schemas/shared";
+import { baseBlockSelectSchema } from "../schemas/block";
 import { base } from "./base";
 
 export const listAssetPointsContract = base
 	.route({
-		method: "GET",
+		method: "POST",
 		path: "/assets/points",
 		summary: "List all asset points",
 		tags: ["Asset Points"],
@@ -21,6 +22,7 @@ export const listAssetPointsContract = base
 				search: z.string().optional(),
 				assetId: assetPointSelectSchema.shape.id.optional(),
 				limit: z.number().int().min(1).optional(),
+				blockId: baseBlockSelectSchema.shape.id.optional(),
 			}),
 		}),
 	)
