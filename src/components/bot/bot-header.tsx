@@ -1,3 +1,4 @@
+import { Link } from "@tanstack/react-router";
 import {
 	BotIcon,
 	Code2Icon,
@@ -7,7 +8,7 @@ import {
 	MoreVerticalIcon,
 	Trash2Icon,
 } from "lucide-react";
-import { Button } from "@/components/ui/button";
+import { Button, buttonVariants } from "@/components/ui/button";
 import {
 	DropdownMenu,
 	DropdownMenuContent,
@@ -42,10 +43,14 @@ const BotHeader = ({ bot }: { bot: Bot }) => {
 					<CopyIcon className="size-4" />
 					Clone
 				</Button>
-				<Button className="gap-2">
+				<Link
+					to="/app/bots/$botId/edit"
+					params={{ botId: bot.id }}
+					className={buttonVariants({ className: "gap-2" })}
+				>
 					<EditIcon className="size-4" />
 					Edit Bot
-				</Button>
+				</Link>
 				<DropdownMenu>
 					<DropdownMenuTrigger asChild>
 						<Button variant="ghost" size="icon">
