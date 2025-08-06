@@ -1,8 +1,5 @@
 import { z } from "zod/v4";
-import {
-	baseBlockSelectSchema,
-	blockSelectSchema,
-} from "@/lib/orpc/schemas/block";
+import { baseBlockSelectSchema } from "@/lib/orpc/schemas/block";
 import {
 	botDeleteSchema,
 	botInsertSchema,

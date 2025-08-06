@@ -8,7 +8,7 @@ import { retry } from "@/lib/orpc/middlewares/retry";
 import { getFileTypeFromMime } from "@/lib/s3/upload-helpers";
 import type { processAssetTask } from "@/trigger/process-asset-task";
 import type { vectorizeAssetTask } from "@/trigger/vectorize-asset-task";
-import type { FilePayload, FileType } from "@/types/file";
+import type { FilePayload } from "@/types/file";
 
 export const createAssetTask = authed.task.createAssetTask
 	.use(retry({ times: 3 }))
