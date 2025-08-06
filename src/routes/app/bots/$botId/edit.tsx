@@ -6,7 +6,7 @@ import {
 import { createFileRoute, useNavigate } from "@tanstack/react-router";
 import { toast } from "sonner";
 import { BotBuilderForm } from "@/components/blocks/builder/bot-builder-form";
-import type { BotInsert, BotUpdate } from "@/lib/orpc/schemas/bot";
+import type { BotUpdate } from "@/lib/orpc/schemas/bot";
 import { botQueryOptions } from "@/lib/query-options/bot";
 
 export const Route = createFileRoute("/app/bots/$botId/edit")({
@@ -35,9 +35,9 @@ function RouteComponent() {
 		botQueryOptions.update(queryClient),
 	);
 
-	const handleBotSubmit = (data: BotInsert) => {
+	const handleBotSubmit = (data: Omit<BotUpdate, "id">) => {
 		// TODO: Handle BotUpdate type properly
-		toast.promise(updateBot(data as BotUpdate), {
+		toast.promise(updateBot({ id: botId, ...data }), {
 			loading: "Updating bot...",
 			success: async (result) => {
 				await navigate({
