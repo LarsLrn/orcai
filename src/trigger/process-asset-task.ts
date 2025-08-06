@@ -17,6 +17,7 @@ import { getFileTypeFromMime } from "@/lib/s3/upload-helpers";
 import { buckets } from "@/settings/buckets";
 import type { SaiaDoclingData } from "@/types/docling";
 import type { ProcessAssetTaskPayload } from "@/types/trigger";
+import { vectorizeAssetTask } from "./vectorize-asset-task";
 
 /**
  * Validates if an image meets minimum resolution requirements
@@ -63,6 +64,18 @@ export const processAssetTask = task({
 	maxDuration: 1200,
 	queue: {
 		concurrencyLimit: 2,
+	},
+	async onSuccess(payload) {
+		// Wait for 5 seconds before vectorizing the asset
+		// TODO: This is a temporary workaround to ensure the file is fully processed
+		await new Promise((resolve) => setTimeout(resolve, 5000));
+
+		await vectorizeAssetTask.trigger({
+			prefix: payload.assetRef.id,
+			assetId: payload.assetRef.id,
+			blockId: payload.blockId,
+			mergePages: payload.mergePages,
+		});
 	},
 	run: async (payload: ProcessAssetTaskPayload) => {
 		const doclingApi = `${process.env.OPENAI_COMPATIBLE_BASE_URL}/documents/convert`;
@@ -218,7 +231,7 @@ export const processAssetTask = task({
 
 											const imageBuffer = Buffer.from(imageData, "base64");
 											const fileType = getFileTypeFromMime(image.mimetype);
-											const validationResult = await validateImageResolution(
+											const validationResult = validateImageResolution(
 												image.size,
 												2, // TODO: Use the actual upscale factor
 											);

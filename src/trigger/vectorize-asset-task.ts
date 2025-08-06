@@ -6,6 +6,7 @@ import { v4 as uuidv4 } from "uuid";
 import { getSaiaEmbeddingModel, getSaiaModel } from "@/lib/ai/saia-models";
 import type { MarkdownNode } from "@/lib/chunk/markdown-chunker";
 import type { Asset } from "@/lib/orpc/schemas/asset";
+import type { Block } from "@/lib/orpc/schemas/block";
 import {
 	getImageAsBase64,
 	getMarkdownAsString,
@@ -108,6 +109,7 @@ export const vectorizeAssetTask = task({
 		const qdrantResponse = await generateEmbeddings({
 			chunks: mergedChunks,
 			assetId: payload.prefix,
+			blockId: payload.blockId,
 		});
 
 		return { payload, results: { qdrant: qdrantResponse } };
@@ -204,9 +206,11 @@ const processImageFile = async (
 const generateEmbeddings = async ({
 	chunks,
 	assetId,
+	blockId,
 }: {
 	chunks: MarkdownNode[];
 	assetId: Asset["id"];
+	blockId: Block["id"];
 }) => {
 	// Embed the chunks
 	const embedResults = await logger.trace("embed-chunks", async () =>
@@ -222,11 +226,12 @@ const generateEmbeddings = async ({
 		// Create the base payload properties common to both types
 		const basePayload = {
 			asset_id: assetId,
+			block_id: blockId,
 			text: embedResults.values[index],
 			title: chunk.title,
 			depth: chunk.depth,
 			tokens: chunk.length,
-			chunkIndex: index,
+			chunk_index: index,
 			chunkCount: chunks.length,
 			createdAt: new Date().toISOString(),
 		};
