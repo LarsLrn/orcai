@@ -11,12 +11,12 @@ import { base } from "./base";
 
 export const listBotsContract = base
 	.route({
-		method: "GET",
+		method: "POST",
 		path: "/bots",
 		summary: "List all bots",
 		tags: ["Bots"],
 	})
-	.input(paginationSchema)
+	.input(paginationSchema.extend({ search: z.string().optional() }))
 	.output(z.object({ data: z.array(botSelectSchema), rowCount: z.number() }));
 
 export const createBotContract = base

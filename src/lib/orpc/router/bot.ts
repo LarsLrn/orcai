@@ -1,5 +1,5 @@
 import { ORPCError } from "@orpc/server";
-import { count, eq, getTableColumns, inArray } from "drizzle-orm";
+import { and, count, eq, getTableColumns, ilike, inArray } from "drizzle-orm";
 import { db } from "@/db/drizzle";
 import { botBlockTable, botTable } from "@/db/schema/bot";
 import { authed } from "@/lib/orpc";
@@ -20,17 +20,22 @@ export const listBots = authed.bot.list
 			userId: context.auth.user.id,
 		});
 
+		const whereConditions = [inArray(botTable.id, entityIds)];
+		if (input.search) {
+			whereConditions.push(ilike(botTable.name, `%${input.search}%`));
+		}
+
 		const [data, [rowCount]] = await Promise.all([
 			db
 				.select({ ...getTableColumns(botTable) })
 				.from(botTable)
-				.where(inArray(botTable.id, entityIds))
+				.where(and(...whereConditions))
 				.limit(input.pageSize)
 				.offset(input.pageIndex * input.pageSize),
 			db
 				.select({ count: count() })
 				.from(botTable)
-				.where(inArray(botTable.id, entityIds)),
+				.where(and(...whereConditions)),
 		]);
 
 		return { data, rowCount: rowCount.count };
