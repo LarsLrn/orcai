@@ -4,12 +4,12 @@ import {
 	ChevronsLeftIcon,
 	ChevronsRightIcon,
 } from "lucide-react";
-import { Button } from "../ui/button";
+import { Button } from "@/components/ui/button";
 import {
 	Pagination,
 	PaginationContent,
 	PaginationItem,
-} from "../ui/pagination";
+} from "@/components/ui/pagination";
 
 const StatePagination = ({
 	maxPages,

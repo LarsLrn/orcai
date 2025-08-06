@@ -1,13 +1,13 @@
 import { z } from "zod/v4";
-import { assetSelectSchema } from "../schemas/asset";
+import { assetSelectSchema } from "@/lib/orpc/schemas/asset";
 import {
 	baseBlockSelectSchema,
 	blockDeleteSchema,
 	blockInsertSchema,
 	blockSelectSchema,
 	blockUpdateSchema,
-} from "../schemas/block";
-import { paginationSchema, statusSchema } from "../schemas/shared";
+} from "@/lib/orpc/schemas/block";
+import { paginationSchema, statusSchema } from "@/lib/orpc/schemas/shared";
 import { base } from "./base";
 
 export const listBlocksContract = base

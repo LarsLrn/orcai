@@ -4,8 +4,8 @@ import {
 	assetPointInsertSchema,
 	assetPointSelectSchema,
 	assetPointUpdateSchema,
-} from "../schemas/asset-point";
-import { statusSchema } from "../schemas/shared";
+} from "@/lib/orpc/schemas/asset-point";
+import { statusSchema } from "@/lib/orpc/schemas/shared";
 import { base } from "./base";
 
 export const listAssetPointsContract = base

@@ -1,12 +1,12 @@
 import { CopyIcon, PencilIcon } from "lucide-react";
 import { toast } from "sonner";
 import { useCopyToClipboard } from "usehooks-ts";
+import { MessageRate } from "@/components/chat/message-rate";
 import {
 	ChatBubbleAction,
 	ChatBubbleActionWrapper,
 } from "@/components/ui/chat/chat-bubble";
 import type { CustomUIMessage } from "@/lib/ai/tools";
-import { MessageRate } from "../message-rate";
 
 interface MessageActionsProps {
 	message: CustomUIMessage;

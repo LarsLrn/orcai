@@ -4,8 +4,8 @@ import {
 	courseInsertSchema,
 	courseSelectSchema,
 	courseUpdateSchema,
-} from "../schemas/course";
-import { paginationSchema, statusSchema } from "../schemas/shared";
+} from "@/lib/orpc/schemas/course";
+import { paginationSchema, statusSchema } from "@/lib/orpc/schemas/shared";
 import { base } from "./base";
 
 export const listCoursesContract = base

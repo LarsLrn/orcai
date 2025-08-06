@@ -1,5 +1,5 @@
 import { z } from "zod/v4";
-import { providerSelectSchema } from "../schemas/provider";
+import { providerSelectSchema } from "@/lib/orpc/schemas/provider";
 import { base } from "./base";
 
 export const listProvidersContract = base

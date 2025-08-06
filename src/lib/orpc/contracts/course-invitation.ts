@@ -4,8 +4,8 @@ import {
 	courseInvitationInsertSchema,
 	courseInvitationSelectSchema,
 	courseInvitationUpdateSchema,
-} from "../schemas/course-invitations";
-import { paginationSchema, statusSchema } from "../schemas/shared";
+} from "@/lib/orpc/schemas/course-invitations";
+import { paginationSchema, statusSchema } from "@/lib/orpc/schemas/shared";
 import { base } from "./base";
 
 // TODO: Refactor. There should be endpoints for a) getting all invitations within a course, b) getting all invitations for a user

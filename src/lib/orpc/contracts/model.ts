@@ -1,6 +1,6 @@
 import { z } from "zod/v4";
-import { capabilitySelectSchema } from "../schemas/capability";
-import { modelSelectSchema } from "../schemas/model";
+import { capabilitySelectSchema } from "@/lib/orpc/schemas/capability";
+import { modelSelectSchema } from "@/lib/orpc/schemas/model";
 import { base } from "./base";
 
 export const listModelsContract = base

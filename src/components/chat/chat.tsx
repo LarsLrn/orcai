@@ -4,11 +4,11 @@ import { useSuspenseQuery } from "@tanstack/react-query";
 import type { ApiGetScoresResponseData } from "langfuse";
 import { toast } from "sonner";
 import { ChatInput } from "@/components/ui/chat/chat-input";
+import { ChatUtilities } from "@/components/ui/chat/chat-input-actions";
 import { ChatMessageList } from "@/components/ui/chat/chat-message-list";
 import type { CustomUIMessage } from "@/lib/ai/tools";
 import { client } from "@/lib/orpc/orpc";
 import { chatQueryOptions } from "@/lib/query-options/chat";
-import { ChatUtilities } from "../ui/chat/chat-input-actions";
 /* import { deleteTrailingMessages } from "@/db/actions/ai-actions"; */
 import { ChatPlaceholder } from "./chat-placeholder";
 import { MessageBlock } from "./message-block";

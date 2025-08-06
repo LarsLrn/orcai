@@ -1,12 +1,12 @@
 import { z } from "zod/v4";
-import { blockSelectSchema } from "../schemas/block";
+import { blockSelectSchema } from "@/lib/orpc/schemas/block";
 import {
 	botDeleteSchema,
 	botInsertSchema,
 	botSelectSchema,
 	botUpdateSchema,
-} from "../schemas/bot";
-import { paginationSchema, statusSchema } from "../schemas/shared";
+} from "@/lib/orpc/schemas/bot";
+import { paginationSchema, statusSchema } from "@/lib/orpc/schemas/shared";
 import { base } from "./base";
 
 export const listBotsContract = base

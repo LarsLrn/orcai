@@ -2,13 +2,10 @@ import { useQuery, useSuspenseQuery } from "@tanstack/react-query";
 import { Link } from "@tanstack/react-router";
 import { CogIcon } from "lucide-react";
 import { Suspense } from "react";
-import type { Chat } from "@/lib/orpc/schemas/chat";
-import { botQueryOptions } from "@/lib/query-options/bot";
-import { chatQueryOptions } from "@/lib/query-options/chat";
-import { BotBlocks } from "../bot/bot-blocks";
-import { BotConfiguration } from "../bot/bot-configuration";
-import { BotMetadata } from "../bot/bot-metadata";
-import { Button, buttonVariants } from "../ui/button";
+import { BotBlocks } from "@/components/bot/bot-blocks";
+import { BotConfiguration } from "@/components/bot/bot-configuration";
+import { BotMetadata } from "@/components/bot/bot-metadata";
+import { Button, buttonVariants } from "@/components/ui/button";
 import {
 	Dialog,
 	DialogClose,
@@ -18,8 +15,8 @@ import {
 	DialogHeader,
 	DialogTitle,
 	DialogTrigger,
-} from "../ui/dialog";
-import { ScrollArea } from "../ui/scroll-area";
+} from "@/components/ui/dialog";
+import { ScrollArea } from "@/components/ui/scroll-area";
 import {
 	Sheet,
 	SheetContent,
@@ -27,7 +24,10 @@ import {
 	SheetHeader,
 	SheetTitle,
 	SheetTrigger,
-} from "../ui/sheet";
+} from "@/components/ui/sheet";
+import type { Chat } from "@/lib/orpc/schemas/chat";
+import { botQueryOptions } from "@/lib/query-options/bot";
+import { chatQueryOptions } from "@/lib/query-options/chat";
 
 const ChatSettings = ({ chatId }: { chatId: Chat["id"] }) => {
 	const { data: chat } = useQuery(

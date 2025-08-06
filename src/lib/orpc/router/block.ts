@@ -9,8 +9,8 @@ import {
 	checkPermissionMiddleware,
 } from "@/lib/orpc/middlewares/permission";
 import { retry } from "@/lib/orpc/middlewares/retry";
+import type { Block } from "@/lib/orpc/schemas/block";
 import { createRelation, listAllowedEntities } from "@/lib/spice-db/actions";
-import type { Block } from "../schemas/block";
 
 export const listBlocks = authed.block.list
 	.use(retry({ times: 3 }))

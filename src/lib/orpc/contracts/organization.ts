@@ -4,8 +4,8 @@ import {
 	organizationInsertSchema,
 	organizationSelectSchema,
 	organizationUpdateSchema,
-} from "../schemas/organization";
-import { paginationSchema, statusSchema } from "../schemas/shared";
+} from "@/lib/orpc/schemas/organization";
+import { paginationSchema, statusSchema } from "@/lib/orpc/schemas/shared";
 import { base } from "./base";
 
 export const listOrganizationsContract = base

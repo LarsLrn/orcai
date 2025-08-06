@@ -1,5 +1,5 @@
-import { statusSchema } from "../schemas/shared";
-import { taskInsertSchema } from "../schemas/task";
+import { statusSchema } from "@/lib/orpc/schemas/shared";
+import { taskInsertSchema } from "@/lib/orpc/schemas/task";
 import { base } from "./base";
 
 export const createAssetTaskContract = base

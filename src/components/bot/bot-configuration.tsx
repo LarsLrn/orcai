@@ -1,13 +1,13 @@
 import { Code2Icon } from "lucide-react";
-import type { Bot } from "@/lib/orpc/schemas/bot";
-import { ContentRenderer } from "../editor";
+import { ContentRenderer } from "@/components/editor";
 import {
 	Card,
 	CardContent,
 	CardDescription,
 	CardHeader,
 	CardTitle,
-} from "../ui/card";
+} from "@/components/ui/card";
+import type { Bot } from "@/lib/orpc/schemas/bot";
 
 const BotConfiguration = ({ bot }: { bot: Bot }) => {
 	return (

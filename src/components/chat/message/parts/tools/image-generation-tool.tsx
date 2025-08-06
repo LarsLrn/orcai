@@ -1,4 +1,4 @@
-import { ToolLoadingState } from "../tool-loading-state";
+import { ToolLoadingState } from "@/components/chat/message/parts/tool-loading-state";
 
 interface ImageGenerationToolProps {
 	part: any; // Using any for now since the tool part types are complex

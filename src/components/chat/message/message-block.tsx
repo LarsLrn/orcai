@@ -2,6 +2,7 @@ import type { UseChatHelpers } from "@ai-sdk/react";
 import type { UIMessage } from "ai";
 import type { ApiGetScoresResponseData } from "langfuse";
 import { AnimatePresence, motion } from "motion/react";
+import { MessageEditor } from "@/components/chat/message-editor";
 import {
 	ChatBubble,
 	ChatBubbleMessage,
@@ -9,7 +10,6 @@ import {
 import type { CustomUIMessage } from "@/lib/ai/tools";
 import type { Chat } from "@/lib/orpc/schemas/chat";
 import { cn } from "@/lib/utils";
-import { MessageEditor } from "../message-editor";
 import { useMessageEditor } from "./hooks/use-message-editor";
 import { MessageActions } from "./message-actions";
 import { MessageContent } from "./message-content";

@@ -4,11 +4,11 @@ import {
 	GitForkIcon,
 	Trash2Icon,
 } from "lucide-react";
+import { NewChatButton } from "@/components/chat/new-chat-button";
+import { Button } from "@/components/ui/button";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Separator } from "@/components/ui/separator";
 import type { Bot } from "@/lib/orpc/schemas/bot";
-import { NewChatButton } from "../chat/new-chat-button";
-import { Button } from "../ui/button";
-import { Card, CardContent, CardHeader, CardTitle } from "../ui/card";
-import { Separator } from "../ui/separator";
 
 const BotQuickActions = ({ bot }: { bot: Bot }) => {
 	return (

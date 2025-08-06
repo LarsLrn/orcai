@@ -4,8 +4,8 @@ import {
 	chatMessageInsertSchema,
 	chatMessageSelectSchema,
 	chatMessageUpdateSchema,
-} from "../schemas/chat-message";
-import { paginationSchema, statusSchema } from "../schemas/shared";
+} from "@/lib/orpc/schemas/chat-message";
+import { paginationSchema, statusSchema } from "@/lib/orpc/schemas/shared";
 import { base } from "./base";
 
 export const listChatMessagesContract = base

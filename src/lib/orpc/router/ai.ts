@@ -12,11 +12,11 @@ import {
 import { v4 as uuidv4 } from "uuid";
 import { generateImageTool } from "@/lib/ai/tools/generate-image";
 import { decryptApiKey } from "@/lib/encryption";
+import { authed } from "@/lib/orpc";
 import { requireActiveOrganizationMiddleware } from "@/lib/orpc/middlewares/auth";
 import { retry } from "@/lib/orpc/middlewares/retry";
 import { client } from "@/lib/orpc/orpc";
-import { authed } from "..";
-import type { TemplateBlock } from "../schemas/block";
+import type { TemplateBlock } from "@/lib/orpc/schemas/block";
 
 export const aiChat = authed.ai.chat
 	.use(requireActiveOrganizationMiddleware)

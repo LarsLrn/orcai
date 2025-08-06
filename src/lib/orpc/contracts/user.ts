@@ -1,8 +1,8 @@
 import { z } from "zod/v4";
 import { sharedSchemas } from "@/db/zod/shared";
-import { organizationSelectSchema } from "../schemas/organization";
-import { paginationSchema, statusSchema } from "../schemas/shared";
-import { userSelectSchema } from "../schemas/user";
+import { organizationSelectSchema } from "@/lib/orpc/schemas/organization";
+import { paginationSchema, statusSchema } from "@/lib/orpc/schemas/shared";
+import { userSelectSchema } from "@/lib/orpc/schemas/user";
 import { base } from "./base";
 
 export const listUsersContract = base

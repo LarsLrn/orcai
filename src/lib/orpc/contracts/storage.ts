@@ -1,6 +1,6 @@
 import { z } from "zod/v4";
-import { assetSelectSchema } from "../schemas/asset";
-import { storageSelectSchema } from "../schemas/storage";
+import { assetSelectSchema } from "@/lib/orpc/schemas/asset";
+import { storageSelectSchema } from "@/lib/orpc/schemas/storage";
 import { base } from "./base";
 
 export const createUploadUrlsContract = base

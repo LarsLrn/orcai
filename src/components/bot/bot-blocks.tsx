@@ -1,18 +1,22 @@
 import { Link } from "@tanstack/react-router";
 import { format } from "date-fns";
 import { TagIcon } from "lucide-react";
-import type { Block } from "@/lib/orpc/schemas/block";
-import { cn } from "@/lib/utils";
-import { Badge } from "../ui/badge";
-import { buttonVariants } from "../ui/button";
+import { Badge } from "@/components/ui/badge";
+import { buttonVariants } from "@/components/ui/button";
 import {
 	Card,
 	CardContent,
 	CardDescription,
 	CardHeader,
 	CardTitle,
-} from "../ui/card";
-import { Tooltip, TooltipContent, TooltipTrigger } from "../ui/tooltip";
+} from "@/components/ui/card";
+import {
+	Tooltip,
+	TooltipContent,
+	TooltipTrigger,
+} from "@/components/ui/tooltip";
+import type { Block } from "@/lib/orpc/schemas/block";
+import { cn } from "@/lib/utils";
 
 const BotBlocks = ({ blocks }: { blocks: Block[] }) => {
 	const getBlockTypeColor = (type: string): string => {

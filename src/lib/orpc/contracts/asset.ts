@@ -4,8 +4,8 @@ import {
 	assetInsertSchema,
 	assetSelectSchema,
 	assetUpdateSchema,
-} from "../schemas/asset";
-import { paginationSchema, statusSchema } from "../schemas/shared";
+} from "@/lib/orpc/schemas/asset";
+import { paginationSchema, statusSchema } from "@/lib/orpc/schemas/shared";
 import { base } from "./base";
 
 export const listAssetsContract = base
