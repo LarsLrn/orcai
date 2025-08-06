@@ -40,6 +40,7 @@ import { Route as AppUsersInvitesRouteImport } from './routes/app/users/invites'
 import { Route as AppUsersAddRouteImport } from './routes/app/users/add'
 import { Route as AppOrgsAddRouteImport } from './routes/app/orgs/add'
 import { Route as AppCoursesAddRouteImport } from './routes/app/courses/add'
+import { Route as AppChatSetupRouteImport } from './routes/app/chat/setup'
 import { Route as AppBotsAddRouteImport } from './routes/app/bots/add'
 import { Route as AppBlocksAddRouteImport } from './routes/app/blocks/add'
 import { Route as AppAssetsPlaygroundRouteImport } from './routes/app/assets/playground'
@@ -219,6 +220,11 @@ const AppCoursesAddRoute = AppCoursesAddRouteImport.update({
   id: '/add',
   path: '/add',
   getParentRoute: () => AppCoursesRouteRoute,
+} as any)
+const AppChatSetupRoute = AppChatSetupRouteImport.update({
+  id: '/setup',
+  path: '/setup',
+  getParentRoute: () => AppChatRouteRoute,
 } as any)
 const AppBotsAddRoute = AppBotsAddRouteImport.update({
   id: '/add',
@@ -414,6 +420,7 @@ export interface FileRoutesByFullPath {
   '/app/assets/playground': typeof AppAssetsPlaygroundRoute
   '/app/blocks/add': typeof AppBlocksAddRoute
   '/app/bots/add': typeof AppBotsAddRoute
+  '/app/chat/setup': typeof AppChatSetupRoute
   '/app/courses/add': typeof AppCoursesAddRoute
   '/app/orgs/add': typeof AppOrgsAddRoute
   '/app/users/add': typeof AppUsersAddRoute
@@ -459,6 +466,7 @@ export interface FileRoutesByTo {
   '/app/assets/playground': typeof AppAssetsPlaygroundRoute
   '/app/blocks/add': typeof AppBlocksAddRoute
   '/app/bots/add': typeof AppBotsAddRoute
+  '/app/chat/setup': typeof AppChatSetupRoute
   '/app/courses/add': typeof AppCoursesAddRoute
   '/app/orgs/add': typeof AppOrgsAddRoute
   '/app/users/add': typeof AppUsersAddRoute
@@ -518,6 +526,7 @@ export interface FileRoutesById {
   '/app/assets/playground': typeof AppAssetsPlaygroundRoute
   '/app/blocks/add': typeof AppBlocksAddRoute
   '/app/bots/add': typeof AppBotsAddRoute
+  '/app/chat/setup': typeof AppChatSetupRoute
   '/app/courses/add': typeof AppCoursesAddRoute
   '/app/orgs/add': typeof AppOrgsAddRoute
   '/app/users/add': typeof AppUsersAddRoute
@@ -579,6 +588,7 @@ export interface FileRouteTypes {
     | '/app/assets/playground'
     | '/app/blocks/add'
     | '/app/bots/add'
+    | '/app/chat/setup'
     | '/app/courses/add'
     | '/app/orgs/add'
     | '/app/users/add'
@@ -624,6 +634,7 @@ export interface FileRouteTypes {
     | '/app/assets/playground'
     | '/app/blocks/add'
     | '/app/bots/add'
+    | '/app/chat/setup'
     | '/app/courses/add'
     | '/app/orgs/add'
     | '/app/users/add'
@@ -682,6 +693,7 @@ export interface FileRouteTypes {
     | '/app/assets/playground'
     | '/app/blocks/add'
     | '/app/bots/add'
+    | '/app/chat/setup'
     | '/app/courses/add'
     | '/app/orgs/add'
     | '/app/users/add'
@@ -954,6 +966,13 @@ declare module '@tanstack/react-router' {
       fullPath: '/app/courses/add'
       preLoaderRoute: typeof AppCoursesAddRouteImport
       parentRoute: typeof AppCoursesRouteRoute
+    }
+    '/app/chat/setup': {
+      id: '/app/chat/setup'
+      path: '/setup'
+      fullPath: '/app/chat/setup'
+      preLoaderRoute: typeof AppChatSetupRouteImport
+      parentRoute: typeof AppChatRouteRoute
     }
     '/app/bots/add': {
       id: '/app/bots/add'
@@ -1313,11 +1332,13 @@ const AppBotsRouteRouteWithChildren = AppBotsRouteRoute._addFileChildren(
 )
 
 interface AppChatRouteRouteChildren {
+  AppChatSetupRoute: typeof AppChatSetupRoute
   AppChatIndexRoute: typeof AppChatIndexRoute
   AppChatChatIdIndexRoute: typeof AppChatChatIdIndexRoute
 }
 
 const AppChatRouteRouteChildren: AppChatRouteRouteChildren = {
+  AppChatSetupRoute: AppChatSetupRoute,
   AppChatIndexRoute: AppChatIndexRoute,
   AppChatChatIdIndexRoute: AppChatChatIdIndexRoute,
 }
