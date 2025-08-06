@@ -98,6 +98,7 @@ const TemplateBlockForm = ({ block }: { block?: TemplateBlock }) => {
 	};
 	return (
 		<Form {...form}>
+			<FormValidationErrors form={form} />
 			<form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
 				<div className="grid grid-cols-1 gap-4 lg:grid-cols-3">
 					<Card className="lg:col-span-2">

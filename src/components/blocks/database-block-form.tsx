@@ -85,6 +85,7 @@ const DatabaseBlockForm = ({ block }: { block?: DatabaseBlock }) => {
 
 	return (
 		<Form {...form}>
+			<FormValidationErrors form={form} />
 			<form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
 				<div className="flex flex-col gap-4">
 					<Card className="lg:col-span-2">
@@ -137,6 +138,7 @@ const DatabaseBlockForm = ({ block }: { block?: DatabaseBlock }) => {
 										<CardAction>
 											{formAssets?.includes(asset.id) ? (
 												<Button
+													type="button"
 													variant="destructive"
 													onClick={() => {
 														const currentAssets = formAssets || [];
@@ -150,6 +152,7 @@ const DatabaseBlockForm = ({ block }: { block?: DatabaseBlock }) => {
 												</Button>
 											) : (
 												<Button
+													type="button"
 													variant="default"
 													onClick={() => {
 														const currentAssets = formAssets || [];
