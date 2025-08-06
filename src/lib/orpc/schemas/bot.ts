@@ -5,7 +5,7 @@ import {
 } from "drizzle-zod";
 import { z } from "zod/v4";
 import { botTable } from "@/db/schema/bot";
-import { blockSelectSchema } from "./block";
+import { baseBlockSelectSchema, blockSelectSchema } from "./block";
 
 /**
  * ----------------
@@ -44,7 +44,9 @@ export const botInsertSchema = createInsertSchema(botTable)
 export const botUpdateSchema = createUpdateSchema(botTable, {
 	id: z.uuidv4(),
 }).extend({
-	blocks: z.array(blockSelectSchema.pick({ id: true, name: true, type: true })),
+	blocks: z.array(
+		baseBlockSelectSchema.pick({ id: true, name: true, type: true }),
+	),
 });
 
 /**

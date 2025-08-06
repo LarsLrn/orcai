@@ -11,6 +11,7 @@ import {
 } from "@/lib/orpc/middlewares/permission";
 import { retry } from "@/lib/orpc/middlewares/retry";
 import { createRelation, listAllowedEntities } from "@/lib/spice-db/actions";
+import type { Block } from "../schemas/block";
 
 export const listBots = authed.bot.list
 	.use(retry({ times: 3 }))
@@ -59,10 +60,13 @@ export const findBot = authed.bot.find
 		}
 
 		// Fetch the associated blocks
-		const blocks = await db
+		const blocks = (await db
 			.select({ ...getTableColumns(blockTable) })
 			.from(blockTable)
-			.innerJoin(botBlockTable, eq(botBlockTable.blockId, blockTable.id));
+			.innerJoin(
+				botBlockTable,
+				eq(botBlockTable.blockId, blockTable.id),
+			)) as Block[]; // TODO: Check if typecasting is really the best approach
 
 		return { data: { ...bot, blocks } };
 	});

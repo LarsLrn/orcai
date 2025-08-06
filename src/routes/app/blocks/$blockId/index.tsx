@@ -148,9 +148,7 @@ function RouteComponent() {
 			<Separator />
 
 			{/* Configuration Card */}
-			{config.type === "template" && (
-				<TemplateBlockConfigCard config={config} />
-			)}
+			{type === "template" && <TemplateBlockConfigCard config={config} />}
 
 			{/* Usage Statistics Card (Placeholder) */}
 			<Card>

@@ -5,32 +5,36 @@ import {
 } from "drizzle-zod";
 import { z } from "zod/v4";
 import { blockTable } from "@/db/schema/block";
+import { assetSelectSchema } from "./asset";
 
 /**
  * ----------------
  * Select Schema
  * ----------------
  */
+
 export const templateBlockSchema = z.object({
 	type: z.literal("template"),
-	systemPrompt: z.string(),
-	model: z.string(),
-	provider: z.string(),
+	config: z.object({
+		systemPrompt: z.string(),
+		model: z.string(),
+		provider: z.string(),
+	}),
 });
 
 export const databaseBlockSchema = z.object({
 	type: z.literal("database"),
-	embeddingModel: z.string(),
+	config: z.object({
+		embeddingModel: z.string(),
+	}),
 });
 
-export const blockSelectSchema = createSelectSchema(blockTable, {
-	type: z.enum(["template", "database"]),
-}).extend({
-	config: z.discriminatedUnion("type", [
-		templateBlockSchema,
-		databaseBlockSchema,
-	]),
-});
+export const baseBlockSelectSchema = createSelectSchema(blockTable);
+
+export const blockSelectSchema = z.discriminatedUnion("type", [
+	baseBlockSelectSchema.extend(templateBlockSchema.shape),
+	baseBlockSelectSchema.extend(databaseBlockSchema.shape),
+]);
 
 /**
  * ----------------
@@ -38,25 +42,32 @@ export const blockSelectSchema = createSelectSchema(blockTable, {
  * ----------------
  */
 
-const baseBlockInsertSchema = createInsertSchema(blockTable, {
-	type: z.enum(["template", "database"]),
-}).omit({
+const baseBlockInsertSchema = createInsertSchema(blockTable).omit({
 	userId: true,
 	createdAt: true,
 	updatedAt: true,
 	id: true,
 });
 
+/* export const templateBlockInsertSchema = baseBlockInsertSchema.extend({
+	type: z.literal("template"),
+	config: templateBlockSchema.shape.config,
+});
+
+export const databaseBlockInsertSchema = baseBlockInsertSchema.extend({
+	type: z.literal("database"),
+	config: databaseBlockSchema.shape.config,
+	assets: z
+		.array(z.string())
+		.min(1, "At least one asset is required for database blocks"),
+}); */
+
 export const blockInsertSchema = z.discriminatedUnion("type", [
+	baseBlockInsertSchema.extend(templateBlockSchema.shape),
 	baseBlockInsertSchema.extend({
-		type: z.literal("template"),
-		assets: z.array(z.string()).optional(),
-	}),
-	baseBlockInsertSchema.extend({
-		type: z.literal("database"),
-		embeddingModel: z.string(),
+		...databaseBlockSchema.shape,
 		assets: z
-			.array(z.string())
+			.array(assetSelectSchema.shape.id)
 			.min(1, "At least one asset is required for database blocks"),
 	}),
 ]);
@@ -67,11 +78,37 @@ export const blockInsertSchema = z.discriminatedUnion("type", [
  * ----------------
  */
 
-export const blockUpdateSchema = createUpdateSchema(blockTable, {
+const baseBlockUpdateSchema = createUpdateSchema(blockTable, {
 	id: z.uuidv4(),
-	title: z.string().min(1).max(250),
-	type: z.enum(["template", "database"]),
-}).omit({ userId: true, updatedAt: true, createdAt: true });
+}).omit({
+	userId: true,
+	createdAt: true,
+	updatedAt: true,
+});
+
+/* export const blockUpdateSchema = z.discriminatedUnion("type", [
+	baseBlockUpdateSchema.extend({
+		type: z.literal("template"),
+		config: templateBlockSchema.shape.config,
+	}),
+	baseBlockUpdateSchema.extend({
+		type: z.literal("database"),
+		config: databaseBlockSchema.shape.config,
+		assets: z
+			.array(z.string())
+			.min(1, "At least one asset is required for database blocks"),
+	}),
+]); */
+
+export const blockUpdateSchema = z.discriminatedUnion("type", [
+	baseBlockUpdateSchema.extend(templateBlockSchema.shape),
+	baseBlockUpdateSchema.extend({
+		...databaseBlockSchema.shape,
+		assets: z
+			.array(z.string())
+			.min(1, "At least one asset is required for database blocks"),
+	}),
+]);
 
 /**
  * ----------------
@@ -80,7 +117,7 @@ export const blockUpdateSchema = createUpdateSchema(blockTable, {
  */
 
 export const blockDeleteSchema = z.object({
-	refs: z.array(blockUpdateSchema.pick({ id: true })),
+	refs: z.array(baseBlockSelectSchema.pick({ id: true })),
 });
 
 /**
@@ -95,19 +132,14 @@ export type BlockUpdate = z.infer<typeof blockUpdateSchema>;
 export type BlockDelete = z.infer<typeof blockDeleteSchema>;
 
 export type BlockConfigType =
-	| z.infer<typeof templateBlockSchema>
-	| z.infer<typeof databaseBlockSchema>;
+	| z.infer<typeof templateBlockSchema.shape.config>
+	| z.infer<typeof databaseBlockSchema.shape.config>;
 
-export type BlockTypes = "template" | "database";
+// export type BlockTypes = "template" | "database";
 
 // Type-safe block variants
-export type TemplateBlock = Block & {
-	config: z.infer<typeof templateBlockSchema>;
-};
-
-export type DatabaseBlock = Block & {
-	config: z.infer<typeof databaseBlockSchema>;
-};
+export type TemplateBlock = Extract<Block, { type: "template" }>;
+export type DatabaseBlock = Extract<Block, { type: "database" }>;
 
 /**
  * ----------------
@@ -116,9 +148,9 @@ export type DatabaseBlock = Block & {
  */
 
 export function isTemplateBlock(block: Block): block is TemplateBlock {
-	return block.config.type === "template";
+	return block.type === "template";
 }
 
 export function isDatabaseBlock(block: Block): block is DatabaseBlock {
-	return block.config.type === "database";
+	return block.type === "database";
 }

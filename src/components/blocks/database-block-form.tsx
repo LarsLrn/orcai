@@ -9,10 +9,14 @@ import { FormSelectField } from "@/components/forms/fields/form-select-field";
 import { Button } from "@/components/ui/button";
 import { Card, CardAction, CardContent } from "@/components/ui/card";
 import { Form } from "@/components/ui/form";
-import type { DatabaseBlock } from "@/lib/orpc/schemas/block";
-import { type BlockInsert, blockInsertSchema } from "@/lib/orpc/schemas/block";
+import {
+	type BlockInsert,
+	blockInsertSchema,
+	type DatabaseBlock,
+} from "@/lib/orpc/schemas/block";
 import { assetQueryOptions } from "@/lib/query-options/asset";
 import { blockQueryOptions } from "@/lib/query-options/block";
+import { FormValidationErrors } from "../forms/fields/form-validation-errors";
 import { StatePagination } from "./state-pagination";
 
 const DatabaseBlockForm = ({ block }: { block?: DatabaseBlock }) => {
@@ -34,16 +38,20 @@ const DatabaseBlockForm = ({ block }: { block?: DatabaseBlock }) => {
 		}),
 	);
 
-	const form = useForm<BlockInsert>({
-		resolver: zodResolver(blockInsertSchema),
+	const form = useForm<Extract<BlockInsert, { type: "database" }>>({
+		resolver: zodResolver(blockInsertSchema.def.options[1]),
+		mode: "onChange",
 		defaultValues: {
 			name: block?.name || "",
-			embeddingModel: block?.config.embeddingModel || "",
+			type: "database",
+			config: {
+				embeddingModel: block?.config.embeddingModel || "",
+			},
 			assets: [],
 		},
 	});
 
-	const onSubmit = (values: BlockInsert) => {
+	const onSubmit = (values: Extract<BlockInsert, { type: "database" }>) => {
 		if (block) {
 			toast.promise(
 				updateBlock({
@@ -101,7 +109,7 @@ const DatabaseBlockForm = ({ block }: { block?: DatabaseBlock }) => {
 
 							<FormSelectField
 								form={form}
-								name="embeddingModel"
+								name="config.embeddingModel"
 								options={[
 									{
 										value: "e5-mistral-7b-instruct",

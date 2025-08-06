@@ -1,5 +1,7 @@
 import { z } from "zod/v4";
+import { assetSelectSchema } from "../schemas/asset";
 import {
+	baseBlockSelectSchema,
 	blockDeleteSchema,
 	blockInsertSchema,
 	blockSelectSchema,
@@ -26,7 +28,12 @@ export const createBlockContract = base
 		tags: ["Blocks"],
 	})
 	.input(blockInsertSchema)
-	.output(z.object({ data: blockSelectSchema }));
+	.output(
+		z.object({
+			data: blockSelectSchema,
+			assets: z.array(assetSelectSchema.shape.id).optional(),
+		}),
+	);
 
 export const findBlockContract = base
 	.route({
@@ -35,24 +42,34 @@ export const findBlockContract = base
 		summary: "Find a block",
 		tags: ["Blocks"],
 	})
-	.input(blockSelectSchema.pick({ id: true }))
-	.output(z.object({ data: blockSelectSchema }));
+	.input(baseBlockSelectSchema.pick({ id: true }))
+	.output(
+		z.object({
+			data: blockSelectSchema,
+			assets: z.array(assetSelectSchema.shape.id).optional(),
+		}),
+	);
 
 export const updateBlockContract = base
 	.route({
 		method: "PUT", //TODO:Probably should be PATCH
-		path: "/blocks/{id}",
+		path: "/blocks/", // TODO: Should be /blocks/{id}
 		summary: "Update a block",
 		tags: ["Blocks"],
 	})
 	.errors({
 		NOT_FOUND: {
 			message: "Block not found",
-			data: z.object({ id: blockUpdateSchema.shape.id }),
+			data: z.object({ id: baseBlockSelectSchema.shape.id }),
 		},
 	})
 	.input(blockUpdateSchema)
-	.output(z.object({ data: blockSelectSchema }));
+	.output(
+		z.object({
+			data: blockSelectSchema,
+			assets: z.array(assetSelectSchema.shape.id).optional(),
+		}),
+	);
 
 export const deleteBlockContract = base
 	.route({

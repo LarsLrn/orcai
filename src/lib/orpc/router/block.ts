@@ -1,7 +1,7 @@
 import { ORPCError } from "@orpc/server";
 import { count, desc, eq, getTableColumns, inArray } from "drizzle-orm";
 import { db } from "@/db/drizzle";
-import { blockTable } from "@/db/schema/block";
+import { blockAssetTable, blockTable } from "@/db/schema/block";
 import { authed } from "@/lib/orpc";
 import { requireActiveOrganizationMiddleware } from "@/lib/orpc/middlewares/auth";
 import {
@@ -10,6 +10,7 @@ import {
 } from "@/lib/orpc/middlewares/permission";
 import { retry } from "@/lib/orpc/middlewares/retry";
 import { createRelation, listAllowedEntities } from "@/lib/spice-db/actions";
+import type { Block } from "../schemas/block";
 
 export const listBlocks = authed.block.list
 	.use(retry({ times: 3 }))
@@ -27,7 +28,7 @@ export const listBlocks = authed.block.list
 				.where(inArray(blockTable.id, entityIds))
 				.orderBy(desc(blockTable.createdAt))
 				.limit(input.pageSize)
-				.offset(input.pageIndex * input.pageSize),
+				.offset(input.pageIndex * input.pageSize) as Promise<Block[]>,
 			db
 				.select({ count: count() })
 				.from(blockTable)
@@ -49,22 +50,31 @@ export const findBlock = authed.block.find
 	)
 	.use(retry({ times: 3 }))
 	.handler(async ({ input }) => {
-		const [query] = await db
+		const [block] = (await db
 			.select({ ...getTableColumns(blockTable) })
 			.from(blockTable)
-			.where(eq(blockTable.id, input.id));
+			.where(eq(blockTable.id, input.id))) as Block[];
 
-		if (!query) {
+		if (!block) {
 			throw new ORPCError("NOT_FOUND", { message: "Block not found" });
 		}
 
-		return { data: query };
+		if (block.type === "database") {
+			const assets = await db
+				.select({ assetId: blockAssetTable.assetId })
+				.from(blockAssetTable)
+				.where(eq(blockAssetTable.blockId, input.id));
+
+			return { data: block, assets: assets.map((a) => a.assetId) };
+		}
+
+		return { data: block };
 	});
 
 export const createBlock = authed.block.create
 	.use(requireActiveOrganizationMiddleware)
 	.handler(async ({ input, context }) => {
-		const [query] = await db
+		const [block] = (await db
 			.insert(blockTable)
 			.values({
 				...input,
@@ -72,16 +82,30 @@ export const createBlock = authed.block.create
 				createdAt: new Date(),
 				updatedAt: new Date(),
 			})
-			.returning({ ...getTableColumns(blockTable) });
+			.returning({ ...getTableColumns(blockTable) })) as Block[];
 
 		await createRelation({
-			entityId: query.id,
+			entityId: block.id,
 			entityType: "block",
 			userId: context.auth.user.id,
 			relation: "owner",
 		});
 
-		return { data: query };
+		if (input.type === "database") {
+			const assets = await db
+				.insert(blockAssetTable)
+				.values(
+					input.assets.map((assetId) => ({
+						blockId: block.id,
+						assetId,
+					})),
+				)
+				.returning({ assetId: blockAssetTable.assetId });
+
+			return { data: block, assets: assets.map((a) => a.assetId) };
+		}
+
+		return { data: block };
 	});
 
 export const updateBlock = authed.block.update
@@ -95,16 +119,34 @@ export const updateBlock = authed.block.update
 			}) as const,
 	)
 	.handler(async ({ input }) => {
-		const [query] = await db
+		const [block] = (await db
 			.update(blockTable)
 			.set({
 				...input,
 				updatedAt: new Date(),
 			})
 			.where(eq(blockTable.id, input.id))
-			.returning({ ...getTableColumns(blockTable) });
+			.returning({ ...getTableColumns(blockTable) })) as Block[];
 
-		return { data: query };
+		if (input.type === "database" && block.type === "database") {
+			await db
+				.delete(blockAssetTable)
+				.where(eq(blockAssetTable.blockId, block.id));
+
+			const assets = await db
+				.insert(blockAssetTable)
+				.values(
+					input.assets.map((assetId) => ({
+						blockId: block.id,
+						assetId,
+					})),
+				)
+				.returning({ assetId: blockAssetTable.assetId });
+
+			return { data: block, assets: assets.map((a) => a.assetId) };
+		}
+
+		return { data: block };
 	});
 
 export const deleteBlocks = authed.block.delete

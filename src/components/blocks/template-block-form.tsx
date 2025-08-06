@@ -15,11 +15,15 @@ import { FormTextField } from "@/components/forms/fields/form-text-field";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Form } from "@/components/ui/form";
-import type { TemplateBlock } from "@/lib/orpc/schemas/block";
-import { type BlockInsert, blockInsertSchema } from "@/lib/orpc/schemas/block";
+import {
+	type BlockInsert,
+	blockInsertSchema,
+	type TemplateBlock,
+} from "@/lib/orpc/schemas/block";
 import { blockQueryOptions } from "@/lib/query-options/block";
 import { modelQueryOptions } from "@/lib/query-options/model";
 import { organizationProviderQueryOptions } from "@/lib/query-options/organization-provider";
+import { FormValidationErrors } from "../forms/fields/form-validation-errors";
 
 const TemplateBlockForm = ({ block }: { block?: TemplateBlock }) => {
 	const router = useRouter();
@@ -39,9 +43,10 @@ const TemplateBlockForm = ({ block }: { block?: TemplateBlock }) => {
 		blockQueryOptions.create(queryClient),
 	);
 
-	const form = useForm<BlockInsert>({
-		resolver: zodResolver(blockInsertSchema),
+	const form = useForm<Extract<BlockInsert, { type: "template" }>>({
+		resolver: zodResolver(blockInsertSchema.def.options[0]),
 		defaultValues: {
+			type: "template",
 			name: block?.name ?? "",
 			config: {
 				systemPrompt: block?.config.systemPrompt ?? "",
@@ -59,7 +64,7 @@ const TemplateBlockForm = ({ block }: { block?: TemplateBlock }) => {
 		}),
 	);
 
-	const onSubmit = (values: BlockInsert) => {
+	const onSubmit = (values: Extract<BlockInsert, { type: "template" }>) => {
 		if (block) {
 			toast.promise(
 				updateBlock({
