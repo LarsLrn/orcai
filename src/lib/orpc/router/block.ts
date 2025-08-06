@@ -1,7 +1,8 @@
 import { ORPCError } from "@orpc/server";
-import { count, desc, eq, getTableColumns, inArray } from "drizzle-orm";
+import { and, count, desc, eq, getTableColumns, inArray } from "drizzle-orm";
 import { db } from "@/db/drizzle";
 import { blockAssetTable, blockTable } from "@/db/schema/block";
+import { botBlockTable } from "@/db/schema/bot";
 import { authed } from "@/lib/orpc";
 import { requireActiveOrganizationMiddleware } from "@/lib/orpc/middlewares/auth";
 import {
@@ -21,18 +22,25 @@ export const listBlocks = authed.block.list
 			userId: context.auth.user.id,
 		});
 
+		const whereConditions = [inArray(blockTable.id, entityIds)];
+		if (input.filters?.botId) {
+			whereConditions.push(eq(botBlockTable.botId, input.filters.botId));
+		}
+
 		const [data, [rowCount]] = await Promise.all([
 			db
 				.select({ ...getTableColumns(blockTable) })
 				.from(blockTable)
-				.where(inArray(blockTable.id, entityIds))
+				.leftJoin(botBlockTable, eq(botBlockTable.blockId, blockTable.id))
+				.where(and(...whereConditions))
 				.orderBy(desc(blockTable.createdAt))
 				.limit(input.pageSize)
 				.offset(input.pageIndex * input.pageSize) as Promise<Block[]>,
 			db
 				.select({ count: count() })
 				.from(blockTable)
-				.where(inArray(blockTable.id, entityIds)),
+				.leftJoin(botBlockTable, eq(botBlockTable.blockId, blockTable.id))
+				.where(and(...whereConditions)),
 		]);
 
 		return { data, rowCount: rowCount.count };
@@ -113,7 +121,7 @@ export const updateBlock = authed.block.update
 		checkPermissionMiddleware,
 		(input) =>
 			({
-				entityId: input.id,
+				entityId: input.params.id,
 				action: "read",
 				entityType: "block",
 			}) as const,
@@ -122,13 +130,14 @@ export const updateBlock = authed.block.update
 		const [block] = (await db
 			.update(blockTable)
 			.set({
-				...input,
+				...input.body,
+				id: input.params.id,
 				updatedAt: new Date(),
 			})
-			.where(eq(blockTable.id, input.id))
+			.where(eq(blockTable.id, input.params.id))
 			.returning({ ...getTableColumns(blockTable) })) as Block[];
 
-		if (input.type === "database" && block.type === "database") {
+		if (input.body.type === "database" && block.type === "database") {
 			await db
 				.delete(blockAssetTable)
 				.where(eq(blockAssetTable.blockId, block.id));
@@ -136,7 +145,7 @@ export const updateBlock = authed.block.update
 			const assets = await db
 				.insert(blockAssetTable)
 				.values(
-					input.assets.map((assetId) => ({
+					input.body.assets.map((assetId) => ({
 						blockId: block.id,
 						assetId,
 					})),

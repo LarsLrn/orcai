@@ -8,6 +8,7 @@ import {
 	blockUpdateSchema,
 } from "@/lib/orpc/schemas/block";
 import { paginationSchema, statusSchema } from "@/lib/orpc/schemas/shared";
+import { botSelectSchema } from "../schemas/bot";
 import { base } from "./base";
 
 export const listBlocksContract = base
@@ -17,7 +18,15 @@ export const listBlocksContract = base
 		summary: "List all blocks",
 		tags: ["Blocks"],
 	})
-	.input(paginationSchema)
+	.input(
+		paginationSchema.extend({
+			filters: z
+				.object({
+					botId: botSelectSchema.shape.id.optional(),
+				})
+				.optional(),
+		}),
+	)
 	.output(z.object({ data: z.array(blockSelectSchema), rowCount: z.number() }));
 
 export const createBlockContract = base
@@ -53,9 +62,10 @@ export const findBlockContract = base
 export const updateBlockContract = base
 	.route({
 		method: "PUT", //TODO:Probably should be PATCH
-		path: "/blocks/", // TODO: Should be /blocks/{id}
+		path: "/blocks/{id}", // TODO: Should be /blocks/{id}
 		summary: "Update a block",
 		tags: ["Blocks"],
+		inputStructure: "detailed",
 	})
 	.errors({
 		NOT_FOUND: {
@@ -63,7 +73,14 @@ export const updateBlockContract = base
 			data: z.object({ id: baseBlockSelectSchema.shape.id }),
 		},
 	})
-	.input(blockUpdateSchema)
+	.input(
+		z.object({
+			params: baseBlockSelectSchema.pick({ id: true }),
+			query: z.object({}).optional(),
+			body: blockUpdateSchema,
+			headers: z.object({}).optional(),
+		}),
+	)
 	.output(
 		z.object({
 			data: blockSelectSchema,
