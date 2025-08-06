@@ -1,4 +1,5 @@
-import type { CustomUIMessage } from "@/lib/ai/tools";
+import type { ToolUIPart } from "ai";
+import type { CustomTools, CustomUIMessage } from "@/lib/ai/tools";
 import { ImagePart } from "./parts/image-part";
 import { ReasoningPart } from "./parts/reasoning-part";
 import { TextPart } from "./parts/text-part";
@@ -29,7 +30,8 @@ export const MessagePartRenderer = ({
 	}
 
 	if (part.type.startsWith("tool-")) {
-		return <ToolCallPart part={part} />;
+		// We can be sure this is a tool call part
+		return <ToolCallPart part={part as ToolUIPart<CustomTools>} />;
 	}
 
 	if (part.type === "text") {
