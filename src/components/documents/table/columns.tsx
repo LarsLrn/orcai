@@ -1,10 +1,8 @@
-import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { Link } from "@tanstack/react-router";
 import type { ColumnDef, Row } from "@tanstack/react-table";
 import { convert } from "convert";
 import { format } from "date-fns";
 import { MoreHorizontal } from "lucide-react";
-import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
 import { Checkbox } from "@/components/ui/checkbox";
 import { DataTableColumnHeader } from "@/components/ui/data-table/data-table-column-header";
@@ -17,7 +15,6 @@ import {
 } from "@/components/ui/dropdown-menu";
 import { useDeleteAssets } from "@/lib/client-actions/use-delete";
 import type { Asset } from "@/lib/orpc/schemas/asset";
-import { taskQueryOptions } from "@/lib/query-options/task";
 
 export const columns: ColumnDef<Asset>[] = [
 	{
@@ -59,27 +56,6 @@ export const columns: ColumnDef<Asset>[] = [
 			return convert(row.original.size, "bytes").to("best").toString(2);
 		},
 	},
-	/* {
-		accessorKey: "embeddingStatus",
-		header: ({ column }) => (
-			<DataTableColumnHeader column={column} title="Embedding" />
-		),
-		cell: ({ row }) => {
-			return (
-				<Badge
-					className={cn({
-						"bg-emerald-600": row.original.status === "ready",
-						"bg-red-600": row.original.status === "failed",
-						"bg-cyan-600": row.original.status === "pending",
-						"bg-yellow-600": row.original.status === "processing-document",
-						"bg-yellow-400": row.original.status === "generating-embedding",
-					})}
-				>
-					{row.original.status}
-				</Badge>
-			);
-		},
-	}, */
 	{
 		accessorKey: "createdAt",
 		header: ({ column }) => (
@@ -97,23 +73,8 @@ export const columns: ColumnDef<Asset>[] = [
 ];
 
 const ActionCell = ({ row }: { row: Row<Asset> }) => {
-	const queryClient = useQueryClient();
-	const { mutateAsync: createAssetTask } = useMutation(
-		taskQueryOptions.createAssetTask(queryClient),
-	);
 	const { deleteAssets } = useDeleteAssets();
 	const asset = row.original;
-
-	const handleEnqueueAssets = (id: string) => {
-		toast.promise(createAssetTask({ taskType: "extract", ids: [id] }), {
-			loading: "Enqueuing assets for processing...",
-			success: "Enqueued assets for processing",
-			error: (error) => ({
-				message: "Failed to enqueue assets for processing",
-				description: error.message,
-			}),
-		});
-	};
 
 	return (
 		<DropdownMenu>
@@ -130,9 +91,6 @@ const ActionCell = ({ row }: { row: Row<Asset> }) => {
 				<Link to={"/app/assets/$assetId/edit"} params={{ assetId: asset.id }}>
 					<DropdownMenuItem>Edit Asset</DropdownMenuItem>
 				</Link>
-				<DropdownMenuItem onClick={() => handleEnqueueAssets(asset.id)}>
-					Process Asset
-				</DropdownMenuItem>
 				<DropdownMenuSeparator />
 				<DropdownMenuItem
 					variant="destructive"

@@ -1,22 +1,6 @@
-import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { Link } from "@tanstack/react-router";
-import {
-	Database,
-	Download,
-	FileSearch,
-	Loader2,
-	PencilIcon,
-	Trash2,
-} from "lucide-react";
+import { Download, FileSearch, PencilIcon, Trash2 } from "lucide-react";
 import { Button, buttonVariants } from "@/components/ui/button";
-import {
-	DropdownMenu,
-	DropdownMenuContent,
-	DropdownMenuItem,
-	DropdownMenuLabel,
-	DropdownMenuSeparator,
-	DropdownMenuTrigger,
-} from "@/components/ui/dropdown-menu";
 import {
 	Tooltip,
 	TooltipContent,
@@ -24,7 +8,6 @@ import {
 } from "@/components/ui/tooltip";
 import { useDeleteAssets } from "@/lib/client-actions/use-delete";
 import type { Asset } from "@/lib/orpc/schemas/asset";
-import { taskQueryOptions } from "@/lib/query-options/task";
 import { cn } from "@/lib/utils";
 
 const AssetActions = ({
@@ -36,14 +19,7 @@ const AssetActions = ({
 	filePath: string;
 	className?: string;
 }) => {
-	const queryClient = useQueryClient();
-	const { mutateAsync: createAssetTask } = useMutation(
-		taskQueryOptions.createAssetTask(queryClient),
-	);
 	const { deleteAssets } = useDeleteAssets();
-
-	// TODO: Replace with actual processing state when available
-	const isProcessing = false;
 
 	return (
 		<div
@@ -90,57 +66,6 @@ const AssetActions = ({
 
 			{/* Processing Actions */}
 			<div className="flex flex-wrap items-center gap-2">
-				<DropdownMenu>
-					<DropdownMenuTrigger asChild>
-						<Button
-							variant="secondary"
-							size="sm"
-							className="flex items-center gap-1"
-						>
-							<Database className="h-4 w-4" />
-							<span className="hidden sm:inline">Process</span>
-						</Button>
-					</DropdownMenuTrigger>
-					<DropdownMenuContent align="end">
-						<DropdownMenuLabel>Processing Options</DropdownMenuLabel>
-						<DropdownMenuSeparator />
-						<DropdownMenuItem
-							disabled={isProcessing}
-							onClick={() =>
-								createAssetTask({
-									taskType: "extract",
-									ids: [assetInfo.id],
-								})
-							}
-							className="flex items-center gap-2"
-						>
-							{isProcessing ? (
-								<Loader2 className="h-4 w-4 animate-spin" />
-							) : (
-								<FileSearch className="h-4 w-4" />
-							)}
-							Process Asset
-						</DropdownMenuItem>
-						<DropdownMenuItem
-							disabled={isProcessing}
-							onClick={() =>
-								createAssetTask({
-									taskType: "embed",
-									ids: [assetInfo.id],
-								})
-							}
-							className="flex items-center gap-2"
-						>
-							{isProcessing ? (
-								<Loader2 className="h-4 w-4 animate-spin" />
-							) : (
-								<Database className="h-4 w-4" />
-							)}
-							Generate Embedding
-						</DropdownMenuItem>
-					</DropdownMenuContent>
-				</DropdownMenu>
-
 				<Link
 					className={buttonVariants({ size: "sm", variant: "outline" })}
 					to={"/app/assets/$assetId/edit"}
