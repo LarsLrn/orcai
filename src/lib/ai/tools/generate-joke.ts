@@ -1,5 +1,5 @@
 import { generateText, tool } from "ai";
-import { z } from "zod";
+import { z } from "zod/v4";
 import { getSaiaModel } from "@/lib/ai/saia-models";
 
 export const generateJokeTool = () =>
