@@ -5,6 +5,7 @@ import { BotConfiguration } from "@/components/bot/bot-configuration";
 import { BotHeader } from "@/components/bot/bot-header";
 import { BotMetadata } from "@/components/bot/bot-metadata";
 import { BotQuickActions } from "@/components/bot/bot-quick-actions";
+import { blockQueryOptions } from "@/lib/query-options/block";
 import { botQueryOptions } from "@/lib/query-options/bot";
 
 export const Route = createFileRoute("/app/bots/$botId/")({
@@ -20,6 +21,12 @@ function RouteComponent() {
 		}),
 	);
 
+	const { data: blocks } = useSuspenseQuery(
+		blockQueryOptions.list({
+			input: { filters: { botId } },
+		}),
+	);
+
 	return (
 		<div className="container mx-auto space-y-6 p-6">
 			<BotHeader bot={bot.data} />
@@ -27,7 +34,7 @@ function RouteComponent() {
 				{/* Main Content */}
 				<div className="space-y-6 lg:col-span-2">
 					<BotConfiguration bot={bot.data} />
-					<BotBlocks blocks={bot.data.blocks} />
+					<BotBlocks blocks={blocks.data} />
 				</div>
 
 				{/* Aside */}

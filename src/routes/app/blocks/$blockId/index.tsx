@@ -10,6 +10,7 @@ import {
 	SettingsIcon,
 	TagIcon,
 } from "lucide-react";
+import { DatabaseBlockConfigCard } from "@/components/blocks/types/database-config";
 import { TemplateBlockConfigCard } from "@/components/blocks/types/template-config";
 import { Badge } from "@/components/ui/badge";
 import { Button, buttonVariants } from "@/components/ui/button";
@@ -149,6 +150,13 @@ function RouteComponent() {
 
 			{/* Configuration Card */}
 			{type === "template" && <TemplateBlockConfigCard config={config} />}
+			{type === "database" && block.assets && (
+				<DatabaseBlockConfigCard
+					blockId={id}
+					config={config}
+					assetIds={block.assets}
+				/>
+			)}
 
 			{/* Usage Statistics Card (Placeholder) */}
 			<Card>

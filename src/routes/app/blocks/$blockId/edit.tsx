@@ -27,7 +27,9 @@ function RouteComponent() {
 	return (
 		<>
 			{isTemplateBlock(block.data) && <TemplateBlockForm block={block.data} />}
-			{isDatabaseBlock(block.data) && <DatabaseBlockForm block={block.data} />}
+			{isDatabaseBlock(block.data) && block.assets && (
+				<DatabaseBlockForm block={block.data} assetIds={block.assets} />
+			)}
 		</>
 	);
 }
