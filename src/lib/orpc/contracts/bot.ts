@@ -1,5 +1,8 @@
 import { z } from "zod/v4";
-import { blockSelectSchema } from "@/lib/orpc/schemas/block";
+import {
+	baseBlockSelectSchema,
+	blockSelectSchema,
+} from "@/lib/orpc/schemas/block";
 import {
 	botDeleteSchema,
 	botInsertSchema,
@@ -29,7 +32,9 @@ export const createBotContract = base
 	.input(botInsertSchema)
 	.output(
 		z.object({
-			data: botSelectSchema.extend({ blockIds: z.array(z.uuidv4()) }),
+			data: botSelectSchema.extend({
+				blockIds: z.array(baseBlockSelectSchema.shape.id),
+			}),
 		}),
 	);
 
@@ -43,7 +48,9 @@ export const findBotContract = base
 	.input(botSelectSchema.pick({ id: true }))
 	.output(
 		z.object({
-			data: botSelectSchema.extend({ blocks: z.array(blockSelectSchema) }),
+			data: botSelectSchema.extend({
+				blockIds: z.array(baseBlockSelectSchema.shape.id),
+			}),
 		}),
 	);
 
@@ -63,7 +70,9 @@ export const updateBotContract = base
 	.input(botUpdateSchema)
 	.output(
 		z.object({
-			data: botSelectSchema.extend({ blockIds: z.array(z.uuidv4()) }),
+			data: botSelectSchema.extend({
+				blockIds: z.array(baseBlockSelectSchema.shape.id),
+			}),
 		}),
 	);
 

@@ -5,7 +5,7 @@ import {
 } from "drizzle-zod";
 import { z } from "zod/v4";
 import { botTable } from "@/db/schema/bot";
-import { baseBlockSelectSchema, blockSelectSchema } from "./block";
+import { baseBlockSelectSchema } from "./block";
 
 /**
  * ----------------
@@ -30,8 +30,8 @@ export const botInsertSchema = createInsertSchema(botTable)
 	.extend({
 		name: z.string().min(1, "Bot name is required"),
 		description: z.string().min(1, "Bot description is required"),
-		blocks: z
-			.array(blockSelectSchema)
+		blockIds: z
+			.array(baseBlockSelectSchema.shape.id)
 			.min(1, "At least one active block is required"),
 	});
 
@@ -44,9 +44,9 @@ export const botInsertSchema = createInsertSchema(botTable)
 export const botUpdateSchema = createUpdateSchema(botTable, {
 	id: z.uuidv4(),
 }).extend({
-	blocks: z.array(
-		baseBlockSelectSchema.pick({ id: true, name: true, type: true }),
-	),
+	blockIds: z
+		.array(baseBlockSelectSchema.shape.id)
+		.min(1, "At least one active block is required"),
 });
 
 /**

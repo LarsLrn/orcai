@@ -1,7 +1,6 @@
 import { ORPCError } from "@orpc/server";
 import { count, eq, getTableColumns, inArray } from "drizzle-orm";
 import { db } from "@/db/drizzle";
-import { blockTable } from "@/db/schema/block";
 import { botBlockTable, botTable } from "@/db/schema/bot";
 import { authed } from "@/lib/orpc";
 import { requireActiveOrganizationMiddleware } from "@/lib/orpc/middlewares/auth";
@@ -10,7 +9,6 @@ import {
 	checkPermissionMiddleware,
 } from "@/lib/orpc/middlewares/permission";
 import { retry } from "@/lib/orpc/middlewares/retry";
-import type { Block } from "@/lib/orpc/schemas/block";
 import { createRelation, listAllowedEntities } from "@/lib/spice-db/actions";
 
 export const listBots = authed.bot.list
@@ -59,16 +57,13 @@ export const findBot = authed.bot.find
 			throw new ORPCError("NOT_FOUND", { message: "Bot not found" });
 		}
 
-		// Fetch the associated blocks
-		const blocks = (await db
-			.select({ ...getTableColumns(blockTable) })
-			.from(blockTable)
-			.innerJoin(
-				botBlockTable,
-				eq(botBlockTable.blockId, blockTable.id),
-			)) as Block[]; // TODO: Check if typecasting is really the best approach
+		// Fetch the associated blockIds
+		const blockIds = await db
+			.select({ ...getTableColumns(botBlockTable) })
+			.from(botBlockTable)
+			.where(eq(botBlockTable.botId, bot.id));
 
-		return { data: { ...bot, blocks } };
+		return { data: { ...bot, blockIds: blockIds.map((b) => b.blockId) } };
 	});
 
 export const createBot = authed.bot.create
@@ -87,8 +82,8 @@ export const createBot = authed.bot.create
 		const botBlocks = await db
 			.insert(botBlockTable)
 			.values(
-				input.blocks.map((block) => ({
-					blockId: block.id,
+				input.blockIds.map((blockId) => ({
+					blockId,
 					botId: bot.id,
 					createdAt: new Date(),
 				})),
@@ -132,8 +127,8 @@ export const updateBot = authed.bot.update
 		const botBlocks = await db
 			.insert(botBlockTable)
 			.values(
-				input.blocks.map((block) => ({
-					blockId: block.id,
+				input.blockIds.map((blockId) => ({
+					blockId,
 					botId: bot.id,
 					createdAt: new Date(),
 				})),
