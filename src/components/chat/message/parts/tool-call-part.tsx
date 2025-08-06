@@ -1,19 +1,17 @@
+import type { ToolUIPart } from "ai";
+import type { CustomTools } from "@/lib/ai/tools";
 import { ImageGenerationTool } from "./tools/image-generation-tool";
+import { SearchKnowledgeBaseTool } from "./tools/search-knowledgebase-tool";
 
-interface ToolCallPartProps {
-	part: any; // Using any for now since tool part types are complex
-}
-
-export const ToolCallPart = ({ part }: ToolCallPartProps) => {
+export const ToolCallPart = ({ part }: { part: ToolUIPart<CustomTools> }) => {
 	// Route to specific tool components based on tool type
 	if (part.type === "tool-generateImage") {
 		return <ImageGenerationTool part={part} />;
 	}
 
-	// Add more tool types here as needed
-	// if (part.type === "tool-codeExecution") {
-	//   return <CodeExecutionTool part={part} />;
-	// }
+	if (part.type === "tool-searchKnowledgeBase") {
+		return <SearchKnowledgeBaseTool part={part} />;
+	}
 
 	// Fallback for unknown tool types
 	return (
