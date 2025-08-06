@@ -40,8 +40,8 @@ export const chatQueryOptions = {
 			onSuccess: (result) => {
 				// Cache needs to be updated directly as SpiceDB takes time to propagate changes
 				// and the query will return stale data if we wait for the next refetch.
-				queryClient.setQueryData(
-					orpc.chat.list.key(),
+				queryClient.setQueriesData(
+					{ queryKey: orpc.chat.list.key() },
 					(oldData: OrpcOutputs["chat"]["list"] | undefined) => {
 						if (!oldData) return { data: [result.data], rowCount: 1 };
 						return {
