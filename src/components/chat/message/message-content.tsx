@@ -12,7 +12,7 @@ export const MessageContent = ({ message, variant }: MessageContentProps) => {
 	const sortedParts = sortMessageParts(message.parts);
 
 	return (
-		<div>
+		<div className="flex flex-col gap-2">
 			{sortedParts.map((part, i) => (
 				<MessagePartRenderer
 					key={`${part.type}${message.id}${i}`}
