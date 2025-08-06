@@ -198,8 +198,11 @@ export const aiChat = authed.ai.chat
 			return streamToEventIterator(stream);
 		} catch (error) {
 			console.error("Error in AI chat handler:", error);
-			throw new ORPCError("INTERNAL_SERVER_ERROR", {
-				message: "An error occurred while processing your request.",
-			});
+
+			if (error instanceof ORPCError) {
+				throw new ORPCError("INTERNAL_SERVER_ERROR", {
+					message: `An error occurred while processing your request: ${error.message}`,
+				});
+			}
 		}
 	});
