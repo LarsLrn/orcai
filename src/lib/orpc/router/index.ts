@@ -77,7 +77,7 @@ import {
 import { findProvider, listProviders } from "./provider";
 import { sse } from "./sse";
 import { createDownloadUrl, createUploadUrls } from "./storage";
-import { createAssetTask } from "./task";
+import { createAssetTask, createDatabaseBlockVectorStore } from "./task";
 import {
 	findUser,
 	listUsers,
@@ -191,6 +191,7 @@ export const router = {
 	},
 	task: {
 		createAssetTask: createAssetTask,
+		createDatabaseBlockVectorStore: createDatabaseBlockVectorStore,
 	},
 	ai: {
 		chat: aiChat,
