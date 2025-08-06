@@ -10,6 +10,7 @@ import { FormValidationErrors } from "@/components/forms/fields/form-validation-
 import { Button } from "@/components/ui/button";
 import { Card, CardAction, CardContent } from "@/components/ui/card";
 import { Form } from "@/components/ui/form";
+import type { Asset } from "@/lib/orpc/schemas/asset";
 import {
 	type BlockInsert,
 	blockInsertSchema,
@@ -19,7 +20,13 @@ import { assetQueryOptions } from "@/lib/query-options/asset";
 import { blockQueryOptions } from "@/lib/query-options/block";
 import { StatePagination } from "./state-pagination";
 
-const DatabaseBlockForm = ({ block }: { block?: DatabaseBlock }) => {
+const DatabaseBlockForm = ({
+	block,
+	assetIds,
+}: {
+	block?: DatabaseBlock;
+	assetIds?: Asset["id"][];
+}) => {
 	const router = useRouter();
 	const queryClient = useQueryClient();
 
@@ -34,7 +41,7 @@ const DatabaseBlockForm = ({ block }: { block?: DatabaseBlock }) => {
 
 	const { data: assets, status: assetsStatus } = useQuery(
 		assetQueryOptions.list({
-			input: { pageIndex: page, pageSize: 1 },
+			input: { pageIndex: page, pageSize: 20 },
 		}),
 	);
 
@@ -47,7 +54,7 @@ const DatabaseBlockForm = ({ block }: { block?: DatabaseBlock }) => {
 			config: {
 				embeddingModel: block?.config.embeddingModel || "",
 			},
-			assets: [],
+			assets: assetIds || [],
 		},
 	});
 
@@ -55,9 +62,12 @@ const DatabaseBlockForm = ({ block }: { block?: DatabaseBlock }) => {
 		if (block) {
 			toast.promise(
 				updateBlock({
-					...values,
-					type: "database",
-					id: block.id,
+					params: { id: block.id },
+					body: {
+						...values,
+						type: "database",
+						id: block.id,
+					},
 				}),
 				{
 					loading: "Updating block...",
@@ -180,7 +190,7 @@ const DatabaseBlockForm = ({ block }: { block?: DatabaseBlock }) => {
 					</div>
 					{assetsStatus === "success" && (
 						<StatePagination
-							maxPages={Math.ceil(assets.rowCount / 1)}
+							maxPages={Math.ceil(assets.rowCount / 20)}
 							page={page}
 							onPageChange={setPage}
 						/>

@@ -1,7 +1,7 @@
 import { DndContext, type DragEndEvent } from "@dnd-kit/core";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useSuspenseQuery } from "@tanstack/react-query";
-import { useState } from "react";
+import { Suspense, useState } from "react";
 import { useForm } from "react-hook-form";
 import { toast } from "sonner";
 import { DraggableBlock } from "@/components/blocks/builder/draggable-block";
@@ -42,11 +42,11 @@ const BotBuilderForm = ({ initialData, onSubmit }: BotBuilderFormProps) => {
 			description: initialData?.description ?? "",
 			contentJson: initialData?.contentJson ?? "",
 			contentHtml: initialData?.contentHtml ?? "",
-			blocks: initialData?.blocks ?? [],
+			blockIds: initialData?.blockIds ?? [],
 		},
 	});
 
-	const activeBlocks = form.watch("blocks");
+	const activeBlockIds = form.watch("blockIds");
 	const activeZoneId = "active-zone";
 	const availableZoneId = "available-zone";
 
@@ -59,33 +59,37 @@ const BotBuilderForm = ({ initialData, onSubmit }: BotBuilderFormProps) => {
 			const draggedBlock = blocks.data.find(
 				(block: Block) => block.id === active.id,
 			);
-			if (draggedBlock && !activeBlocks.find((b) => b.id === draggedBlock.id)) {
-				const newActiveBlocks = [...activeBlocks, { ...draggedBlock }];
-				form.setValue("blocks", newActiveBlocks);
+			if (draggedBlock && !activeBlockIds.find((b) => b === draggedBlock.id)) {
+				const newActiveBlockIds = [...activeBlockIds, draggedBlock.id];
+				form.setValue("blockIds", newActiveBlockIds);
 			}
 		} else if (over && over.id === availableZoneId) {
 			// Remove block from active zone if dragged back to available zone
-			const draggedBlock = activeBlocks.find((block) => block.id === active.id);
-			if (draggedBlock) {
-				const newActiveBlocks = activeBlocks.filter(
-					(block) => block.id !== draggedBlock.id,
+			const draggedBlockId = activeBlockIds.find(
+				(blockId) => blockId === active.id,
+			);
+			if (draggedBlockId) {
+				const newActiveBlockIds = activeBlockIds.filter(
+					(blockId) => blockId !== draggedBlockId,
 				);
-				form.setValue("blocks", newActiveBlocks);
+				form.setValue("blockIds", newActiveBlockIds);
 			}
 		}
 	};
 
 	const removeFromActiveZone = (blockId: string) => {
-		const newActiveBlocks = activeBlocks.filter(
-			(block) => block.id !== blockId,
-		);
-		form.setValue("blocks", newActiveBlocks);
+		const newActiveBlockIds = activeBlockIds.filter((b) => b !== blockId);
+		form.setValue("blockIds", newActiveBlockIds);
 	};
 
 	// Filter out blocks that are already active
 	const availableBlocks = blocks.data.filter(
 		(block: Block) =>
-			!activeBlocks.find((activeBlock) => activeBlock.id === block.id),
+			!activeBlockIds.find((activeBlockId) => activeBlockId === block.id),
+	);
+
+	const activeBlocks = blocks.data.filter((block: Block) =>
+		activeBlockIds.includes(block.id),
 	);
 
 	const handleSubmit = (data: BotInsert) => {
@@ -93,7 +97,7 @@ const BotBuilderForm = ({ initialData, onSubmit }: BotBuilderFormProps) => {
 			onSubmit(data);
 		} else {
 			toast.success("Bot configuration saved!", {
-				description: `${data.name} configured with ${data.blocks.length} blocks`,
+				description: `${data.name} configured with ${data.blockIds.length} blocks`,
 			});
 		}
 	};
@@ -194,7 +198,7 @@ const BotBuilderForm = ({ initialData, onSubmit }: BotBuilderFormProps) => {
 								{/* Active Zone Section */}
 								<div>
 									<h3 className="mb-4 font-semibold text-base">
-										Active Blocks ({activeBlocks.length})
+										Active Blocks ({activeBlockIds.length})
 									</h3>
 									<DroppableZone id={activeZoneId} dragging={isDragging}>
 										{activeBlocks.length > 0 ? (
@@ -204,16 +208,18 @@ const BotBuilderForm = ({ initialData, onSubmit }: BotBuilderFormProps) => {
 														key={block.id}
 														className="rounded border border-blue-300 bg-blue-100 p-3"
 													>
-														<div className="flex items-center justify-between">
-															<DraggableBlock block={block as Block} />
-															<button
-																type="button"
-																onClick={() => removeFromActiveZone(block.id)}
-																className="text-red-500 text-sm hover:text-red-700"
-															>
-																×
-															</button>
-														</div>
+														<Suspense fallback={<div>Loading block...</div>}>
+															<div className="flex items-center justify-between">
+																<DraggableBlock block={block} />
+																<button
+																	type="button"
+																	onClick={() => removeFromActiveZone(block.id)}
+																	className="text-red-500 text-sm hover:text-red-700"
+																>
+																	×
+																</button>
+															</div>
+														</Suspense>
 													</div>
 												))}
 											</div>

@@ -68,9 +68,12 @@ const TemplateBlockForm = ({ block }: { block?: TemplateBlock }) => {
 		if (block) {
 			toast.promise(
 				updateBlock({
-					...values,
-					type: "template",
-					id: block.id,
+					params: { id: block.id },
+					body: {
+						...values,
+						type: "template",
+						id: block.id,
+					},
 				}),
 				{
 					loading: "Updating block...",

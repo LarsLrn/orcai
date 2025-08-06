@@ -26,6 +26,7 @@ import {
 	SheetTrigger,
 } from "@/components/ui/sheet";
 import type { Chat } from "@/lib/orpc/schemas/chat";
+import { blockQueryOptions } from "@/lib/query-options/block";
 import { botQueryOptions } from "@/lib/query-options/bot";
 import { chatQueryOptions } from "@/lib/query-options/chat";
 
@@ -65,6 +66,12 @@ const BotDialog = ({ botId }: { botId: string }) => {
 		botQueryOptions.find({ input: { id: botId } }),
 	);
 
+	const { data: blocks } = useSuspenseQuery(
+		blockQueryOptions.list({
+			input: { filters: { botId } },
+		}),
+	);
+
 	return (
 		<Dialog>
 			<DialogTrigger asChild>
@@ -78,7 +85,7 @@ const BotDialog = ({ botId }: { botId: string }) => {
 				<ScrollArea className="max-h-[calc(100dvh-200px)]">
 					<div className="flex flex-col gap-4">
 						<BotConfiguration bot={bot.data} />
-						<BotBlocks blocks={bot.data.blocks} />
+						<BotBlocks blocks={blocks.data} />
 						<BotMetadata bot={bot.data} />
 					</div>
 				</ScrollArea>
