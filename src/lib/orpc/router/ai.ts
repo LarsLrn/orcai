@@ -1,22 +1,22 @@
-import { createOpenAI } from "@ai-sdk/openai";
+import { createOpenAICompatible } from "@ai-sdk/openai-compatible";
 import { ORPCError, streamToEventIterator } from "@orpc/client";
 import {
 	convertToModelMessages,
 	createUIMessageStream,
 	extractReasoningMiddleware,
-	smoothStream,
 	stepCountIs,
 	streamText,
 	wrapLanguageModel,
 } from "ai";
 import { v4 as uuidv4 } from "uuid";
 import { generateImageTool } from "@/lib/ai/tools/generate-image";
+import { searchKnowledgeBaseTool } from "@/lib/ai/tools/search-knowledgebase";
 import { decryptApiKey } from "@/lib/encryption";
 import { authed } from "@/lib/orpc";
 import { requireActiveOrganizationMiddleware } from "@/lib/orpc/middlewares/auth";
 import { retry } from "@/lib/orpc/middlewares/retry";
 import { client } from "@/lib/orpc/orpc";
-import type { TemplateBlock } from "@/lib/orpc/schemas/block";
+import type { DatabaseBlock, TemplateBlock } from "@/lib/orpc/schemas/block";
 
 export const aiChat = authed.ai.chat
 	.use(requireActiveOrganizationMiddleware)
@@ -35,17 +35,22 @@ export const aiChat = authed.ai.chat
 			});
 
 			let templateBlock: TemplateBlock | undefined;
+			let databaseBlock: DatabaseBlock | undefined;
 
 			if (input.botId) {
 				// Fetch the bot to get its model configuration
-				const bot = await client.bot.find({
-					id: input.botId,
+				const botBlocks = await client.block.list({
+					filters: { botId: input.botId },
 				});
 
 				// TODO: Improve typesafety. Probably with some Zod validation
-				templateBlock = bot.data.blocks.find(
+				templateBlock = botBlocks.data.find(
 					(block) => block.type === "template",
 				) as TemplateBlock;
+
+				databaseBlock = botBlocks.data.find(
+					(block) => block.type === "database",
+				) as DatabaseBlock;
 			}
 
 			if (!templateBlock) {
@@ -63,11 +68,12 @@ export const aiChat = authed.ai.chat
 				providerSlug: templateBlock.config.provider,
 			});
 
-			const chatProvider = createOpenAI({
-				baseURL: systemProvider.data.endpoint ?? undefined,
+			const chatProvider = createOpenAICompatible({
+				baseURL: systemProvider.data.endpoint ?? "", // TODO: Fix?
 				apiKey: decryptApiKey(organizationProvider.data.apiKeyEncrypted),
 				name: systemProvider.data.slug,
-			}).chat;
+				includeUsage: true,
+			});
 
 			// Only wrap if the model has reasoning capabilities
 			const model = wrapLanguageModel({
@@ -85,8 +91,6 @@ export const aiChat = authed.ai.chat
             dataStream.writeMessageAnnotation(reference as unknown as JSONValue);
           }); */
 
-					// Validate and get the model ID from course configuration
-					console.log(assistantMessageId);
 					const result = streamText({
 						/* model: model, */
 						model,
@@ -104,7 +108,7 @@ export const aiChat = authed.ai.chat
             }), */
 						system: "You are a helpful assistant.",
 						messages: convertToModelMessages(input.messages),
-						experimental_transform: smoothStream({ chunking: "word" }),
+						/* experimental_transform: smoothStream({ chunking: "word" }), */
 						/* experimental_telemetry: {
               isEnabled: true,
               metadata: {
@@ -120,6 +124,11 @@ export const aiChat = authed.ai.chat
 							generateImage: generateImageTool({
 								writer,
 								assistantMessageId,
+							}),
+							...(databaseBlock && {
+								searchKnowledgeBase: searchKnowledgeBaseTool({
+									block: databaseBlock,
+								}),
 							}),
 							/* generateJoke: generateJokeTool(),
               searchKnowledgeBase: searchKnowledgeBaseTool({
@@ -177,7 +186,7 @@ export const aiChat = authed.ai.chat
             }, */
 					});
 
-					writer.merge(result.toUIMessageStream());
+					writer.merge(result.toUIMessageStream({ sendReasoning: true }));
 				},
 				onFinish: ({ responseMessage }) => {
 					client.chatMessage.create({
