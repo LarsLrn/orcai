@@ -1,4 +1,5 @@
 import { z } from "zod/v4";
+import { baseBlockSelectSchema } from "./block";
 
 /**
  * ----------------
@@ -9,6 +10,8 @@ import { z } from "zod/v4";
 export const taskInsertSchema = z.object({
 	taskType: z.enum(["extract", "embed"]),
 	ids: z.array(z.string()),
+	blockId: baseBlockSelectSchema.shape.id,
+});
 
 export const databaseBlockTaskInsertSchema = z.object({
 	taskType: z.enum(["extract", "embed"]),
