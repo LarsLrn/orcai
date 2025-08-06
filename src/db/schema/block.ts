@@ -8,16 +8,15 @@ import {
 	timestamp,
 	uuid,
 } from "drizzle-orm/pg-core";
-import type { BlockConfigType, BlockTypes } from "@/lib/orpc/schemas/block";
 import { assetTable } from "./asset";
 import { user } from "./auth";
 import { chat } from "./chat";
 
 export const blockTable = pgTable("block", {
 	id: uuid("id").primaryKey().defaultRandom(),
-	type: text("type").$type<BlockTypes>().notNull(),
+	type: text("type").notNull(),
 	name: text("name").notNull(),
-	config: json("config").notNull().$type<BlockConfigType>(),
+	config: json("config").notNull(),
 	userId: uuid("user_id")
 		.notNull()
 		.references(() => user.id, { onDelete: "cascade" }),
