@@ -90,7 +90,7 @@ const BotSelect = ({ onBotSelect, selectedBot }: BotSelectProps) => {
 				)}
 
 				{status === "success" && (
-					<div>
+					<div className="flex flex-col gap-2">
 						{bots.data.length === 0 ? (
 							<div className="py-8 text-center text-muted-foreground">
 								{searchQuery

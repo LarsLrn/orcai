@@ -1,4 +1,4 @@
-import { BotIcon, BuildingIcon } from "lucide-react";
+import { BotIcon, ServerIcon } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import {
 	Card,
@@ -30,7 +30,7 @@ const TemplateBlockConfigCard = ({
 					<div className="space-y-2">
 						<div className="font-medium text-sm">Provider</div>
 						<div className="flex items-center gap-2">
-							<BuildingIcon className="h-4 w-4 text-muted-foreground" />
+							<ServerIcon className="h-4 w-4 text-muted-foreground" />
 							<Badge variant="secondary" className="capitalize">
 								{config.provider}
 							</Badge>
