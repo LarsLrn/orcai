@@ -87,12 +87,7 @@ export const aiChat = authed.ai.chat
 				generateId: () => assistantMessageId,
 				originalMessages: input.messages,
 				execute: ({ writer }) => {
-					/* references.forEach((reference) => {
-            dataStream.writeMessageAnnotation(reference as unknown as JSONValue);
-          }); */
-
 					const result = streamText({
-						/* model: model, */
 						model,
 						/* system: createSocraticSystemPrompt({
               context: relevantChunks.map((chunk) => ({
@@ -136,54 +131,6 @@ export const aiChat = authed.ai.chat
                 courseId: activeCourseId,
               }), */
 						},
-						/* onFinish: async ({ response }) => {
-              if (session.user?.id) {
-                try {
-                  const assistantId = getTrailingMessageId({
-                    messages: response.messages.filter(
-                      (message) => message.role === "assistant",
-                    ),
-                  });
-    
-                  if (!assistantId) {
-                    throw new Error("No assistant message found!");
-                  }
-    
-                  const [, assistantMessage] = appendResponseMessages({
-                    messages: [userMessage],
-                    responseMessages: response.messages,
-                  });
-    
-                  const filteredParts = assistantMessage.parts?.filter((part) => {
-                    if (
-                      part.type === "tool-invocation" &&
-                      part.toolInvocation.toolName === "searchKnowledgeBase"
-                    ) {
-                      return false; // Exclude tool invocations from the parts
-                    }
-                    return true; // Include all other parts
-                  });
-    
-                  await saveMessages({
-                    messages: [
-                      {
-                        id: assistantId,
-                        chatId,
-                        role: assistantMessage.role,
-                        // parts: assistantMessage.parts,
-                        parts: filteredParts ?? [],
-                        annotations: references ?? [],
-                        attachments:
-                          assistantMessage.experimental_attachments ?? [],
-                        createdAt: new Date(),
-                      },
-                    ],
-                  });
-                } catch (error) {
-                  console.error("Error saving assistant message:", error);
-                }
-              }
-            }, */
 					});
 
 					writer.merge(result.toUIMessageStream({ sendReasoning: true }));
