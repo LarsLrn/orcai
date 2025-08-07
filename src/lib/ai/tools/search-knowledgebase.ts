@@ -7,12 +7,23 @@ export const searchKnowledgeBaseTool = ({ block }: { block: DatabaseBlock }) =>
 	tool({
 		description: `ALWAYS base your response on the knowledge base. Use it to find relevant information about the user's query.`,
 		inputSchema: z.object({
-			query: z.string().describe("The query to search the knowledge base with"),
+			query: z
+				.string()
+				.describe(
+					"The query to search the knowledge base with. If not directly specified, should be a summary of the conversation so far, focusing on the user's intent.",
+				),
+			limit: z
+				.number()
+				.max(block.config.maxReferences)
+				.min(block.config.minReferences)
+				.describe("The number of results to return.")
+				.default(block.config.defaultReferences),
 		}),
-		execute: async ({ query }) => {
+		execute: async ({ query, limit }) => {
 			const result = await client.assetPoints.list({
 				filters: {
 					search: query,
+					limit: limit,
 					blockId: block.id,
 				},
 			});
