@@ -106,9 +106,10 @@ export const aiChat = authed.ai.chat
               courseTitle: course.data.title,
               override: course.data.config.systemPrompt,
             }), */
-						system: "You are a helpful assistant.",
+						system:
+							templateBlock.config.systemPrompt ??
+							"You are a helpful assistant.",
 						messages: convertToModelMessages(input.messages),
-						/* experimental_transform: smoothStream({ chunking: "word" }), */
 						/* experimental_telemetry: {
               isEnabled: true,
               metadata: {
