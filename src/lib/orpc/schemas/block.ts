@@ -13,6 +13,35 @@ import { assetSelectSchema } from "./asset";
  * ----------------
  */
 
+export const referencesConfigSchema = z
+	.object({
+		minReferences: z.number().int().min(1),
+		maxReferences: z.number().int().min(1),
+		defaultReferences: z.number().int().min(1),
+	})
+	.check((ctx) => {
+		if (ctx.value.maxReferences < ctx.value.minReferences) {
+			ctx.issues.push({
+				code: "custom",
+				message: "maxReferences cannot be less than minReferences",
+				path: ["maxReferences"],
+				input: ctx.value,
+			});
+		}
+		if (
+			ctx.value.defaultReferences < ctx.value.minReferences ||
+			ctx.value.defaultReferences > ctx.value.maxReferences
+		) {
+			ctx.issues.push({
+				code: "custom",
+				message:
+					"defaultReferences must be between minReferences and maxReferences",
+				path: ["defaultReferences"],
+				input: ctx.value,
+			});
+		}
+	});
+
 export const templateBlockSchema = z.object({
 	type: z.literal("template"),
 	config: z.object({
@@ -25,7 +54,9 @@ export const templateBlockSchema = z.object({
 export const databaseBlockSchema = z.object({
 	type: z.literal("database"),
 	config: z.object({
+		provider: z.string(),
 		embeddingModel: z.string(),
+		...referencesConfigSchema.shape,
 	}),
 });
 
