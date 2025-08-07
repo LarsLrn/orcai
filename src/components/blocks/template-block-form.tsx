@@ -60,7 +60,9 @@ const TemplateBlockForm = ({ block }: { block?: TemplateBlock }) => {
 
 	const { data: models, status: modelsStatus } = useQuery(
 		modelQueryOptions.list({
-			input: providerSlug ? { providerSlug } : skipToken,
+			input: providerSlug
+				? { providerSlug, capabilities: ["text-generation"] }
+				: skipToken,
 		}),
 	);
 
