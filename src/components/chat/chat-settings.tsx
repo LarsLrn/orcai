@@ -6,16 +6,6 @@ import { BotBlocks } from "@/components/bot/bot-blocks";
 import { BotConfiguration } from "@/components/bot/bot-configuration";
 import { BotMetadata } from "@/components/bot/bot-metadata";
 import { Button, buttonVariants } from "@/components/ui/button";
-import {
-	Dialog,
-	DialogClose,
-	DialogContent,
-	DialogDescription,
-	DialogFooter,
-	DialogHeader,
-	DialogTitle,
-	DialogTrigger,
-} from "@/components/ui/dialog";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import {
 	Sheet,
@@ -29,6 +19,7 @@ import type { Chat } from "@/lib/orpc/schemas/chat";
 import { blockQueryOptions } from "@/lib/query-options/block";
 import { botQueryOptions } from "@/lib/query-options/bot";
 import { chatQueryOptions } from "@/lib/query-options/chat";
+import { Skeleton } from "../ui/skeleton";
 
 const ChatSettings = ({ chatId }: { chatId: Chat["id"] }) => {
 	const { data: chat } = useQuery(
@@ -42,26 +33,29 @@ const ChatSettings = ({ chatId }: { chatId: Chat["id"] }) => {
 					<CogIcon />
 				</Button>
 			</SheetTrigger>
-			<SheetContent>
+			<SheetContent className="h-dvh pb-4 sm:max-w-3xl">
 				<SheetHeader>
-					<SheetTitle>Edit profile</SheetTitle>
+					<SheetTitle>Chat Settings</SheetTitle>
 					<SheetDescription>
-						Make changes to your profile here. Click save when you&apos;re done.
+						You are using a bot for this chat. Settings can only be adjusted
+						when building your own bot or custom chat.
 					</SheetDescription>
 				</SheetHeader>
-				<div className="grid flex-1 auto-rows-min gap-6 px-4">
-					{chat?.data.botId && (
-						<Suspense fallback={<div>Loading...</div>}>
-							<BotDialog botId={chat.data.botId} />
-						</Suspense>
-					)}
-				</div>
+				<ScrollArea className="min-h-0">
+					<div className="grid auto-rows-min gap-6 px-4">
+						{chat?.data.botId && (
+							<Suspense fallback={<Skeleton className="h-12 w-full" />}>
+								<BotDetails botId={chat.data.botId} />
+							</Suspense>
+						)}
+					</div>
+				</ScrollArea>
 			</SheetContent>
 		</Sheet>
 	);
 };
 
-const BotDialog = ({ botId }: { botId: string }) => {
+const BotDetails = ({ botId }: { botId: string }) => {
 	const { data: bot } = useSuspenseQuery(
 		botQueryOptions.find({ input: { id: botId } }),
 	);
@@ -73,39 +67,19 @@ const BotDialog = ({ botId }: { botId: string }) => {
 	);
 
 	return (
-		<Dialog>
-			<DialogTrigger asChild>
-				<Button variant="outline">{bot.data.name}</Button>
-			</DialogTrigger>
-			<DialogContent className="max-w-3xl">
-				<DialogHeader>
-					<DialogTitle>{bot.data.name}</DialogTitle>
-					<DialogDescription>{bot.data.description}</DialogDescription>
-				</DialogHeader>
-				<ScrollArea className="max-h-[calc(100dvh-200px)]">
-					<div className="flex flex-col gap-4">
-						<BotConfiguration bot={bot.data} />
-						<BotBlocks blocks={blocks.data} />
-						<BotMetadata bot={bot.data} />
-					</div>
-				</ScrollArea>
-				<DialogFooter>
-					<DialogClose asChild>
-						<Button variant="outline">Close</Button>
-					</DialogClose>
-					<Link
-						to="/app/bots/$botId"
-						params={{ botId: bot.data.id }}
-						className={buttonVariants({
-							variant: "default",
-						})}
-					>
-						Got to Bot
-					</Link>
-				</DialogFooter>
-			</DialogContent>
-		</Dialog>
+		<div className="flex w-full flex-col gap-2">
+			<BotConfiguration bot={bot.data} />
+			<BotBlocks blocks={blocks.data} />
+			<BotMetadata bot={bot.data} />
+			<Link
+				to="/app/bots/$botId"
+				params={{ botId: bot.data.id }}
+				className={buttonVariants({ variant: "outline" })}
+			>
+				Go to Bot
+			</Link>
+		</div>
 	);
 };
 
-export { BotDialog, ChatSettings };
+export { ChatSettings };
