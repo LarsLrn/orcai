@@ -39,19 +39,8 @@ export const modelTable = pgTable(
 	(table) => [unique().on(table.slug, table.providerSlug)],
 );
 
-export type Capability =
-	| "image-generation"
-	| "text-generation"
-	| "embedding"
-	| "tool-calling"
-	| "reasoning";
-
 export const capabilityTable = pgTable("capability", {
-	capability: text("capability")
-		.notNull()
-		.$type<Capability>()
-		.unique()
-		.primaryKey(),
+	capability: text("capability").notNull().unique().primaryKey(),
 	name: text("name").notNull(),
 	description: varchar("description", { length: 500 }).notNull(),
 });

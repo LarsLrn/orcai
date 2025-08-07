@@ -1,4 +1,5 @@
-import type { Capability, Compatibility } from "../../src/db/schema/model";
+import type { Compatibility } from "../../src/db/schema/model";
+import type { Capability } from "../../src/lib/orpc/schemas/capability";
 
 // Define the providers first with a const assertion to create literal types
 const PROVIDERS = [
@@ -71,7 +72,7 @@ export interface SeedProvider {
 }
 
 export interface SeedCapability {
-	capability: Capability;
+	capability: Capability["capability"];
 	name: string;
 	description: string;
 }
@@ -82,7 +83,7 @@ export interface SeedModel<TProviderSlug extends ProviderSlug = ProviderSlug> {
 	providerSlug: TProviderSlug;
 	name: string;
 	description: string;
-	capabilities: readonly Capability[];
+	capabilities: readonly Capability["capability"][];
 	isDeprecated?: boolean;
 }
 
