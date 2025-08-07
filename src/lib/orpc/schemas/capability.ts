@@ -1,5 +1,5 @@
 import { createSelectSchema } from "drizzle-zod";
-import type { z } from "zod/v4";
+import { z } from "zod/v4";
 import { capabilityTable } from "@/db/schema/model";
 
 /**
@@ -8,7 +8,17 @@ import { capabilityTable } from "@/db/schema/model";
  * ----------------
  */
 
-export const capabilitySelectSchema = createSelectSchema(capabilityTable);
+const capabilities = z.enum([
+	"embedding",
+	"image-generation",
+	"reasoning",
+	"text-generation",
+	"tool-calling",
+]);
+
+export const capabilitySelectSchema = createSelectSchema(capabilityTable, {
+	capability: capabilities,
+});
 
 /**
  * ----------------

@@ -5,12 +5,16 @@ import { base } from "./base";
 
 export const listModelsContract = base
 	.route({
-		method: "GET",
+		method: "POST",
 		path: "/models",
 		summary: "List all available models",
 		tags: ["Models"],
 	})
-	.input(modelSelectSchema.pick({ providerSlug: true }))
+	.input(
+		modelSelectSchema.pick({ providerSlug: true }).extend({
+			capabilities: z.array(capabilitySelectSchema.shape.capability).optional(),
+		}),
+	)
 	.output(
 		z.object({
 			data: z.array(
