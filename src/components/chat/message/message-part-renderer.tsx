@@ -2,27 +2,16 @@ import type { ToolUIPart } from "ai";
 import type { CustomTools, CustomUIMessage } from "@/lib/ai/tools";
 import { ImagePart } from "./parts/image-part";
 import { ReasoningPart } from "./parts/reasoning-part";
-import { TextPart } from "./parts/text-part";
+import { ResponsePart } from "./parts/text-part";
 import { ToolCallPart } from "./parts/tool-call-part";
 
 interface MessagePartRendererProps {
-	part:
-		| CustomUIMessage["parts"][0]
-		| { type: "unified-reasoning"; reasoningParts: any[] };
-	variant: "sent" | "received";
+	part: CustomUIMessage["parts"][number];
 }
 
-export const MessagePartRenderer = ({
-	part,
-	variant,
-}: MessagePartRendererProps) => {
-	if (part.type === "unified-reasoning") {
-		return <ReasoningPart reasoningParts={part.reasoningParts} />;
-	}
-
+const MessagePartRenderer = ({ part }: MessagePartRendererProps) => {
 	if (part.type === "reasoning") {
-		// Legacy support for individual reasoning parts
-		return <ReasoningPart reasoningParts={[{ text: part.text }]} />;
+		return <ReasoningPart part={part} />;
 	}
 
 	if (part.type === "file" && part.mediaType === "image/png") {
@@ -35,8 +24,10 @@ export const MessagePartRenderer = ({
 	}
 
 	if (part.type === "text") {
-		return <TextPart text={part.text} variant={variant} />;
+		return <ResponsePart part={part} />;
 	}
 
 	return null;
 };
+
+export { MessagePartRenderer };

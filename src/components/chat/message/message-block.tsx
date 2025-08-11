@@ -1,18 +1,13 @@
 import type { UseChatHelpers } from "@ai-sdk/react";
 import type { UIMessage } from "ai";
 import type { ApiGetScoresResponseData } from "langfuse";
-import { AnimatePresence, motion } from "motion/react";
+import { Message, MessageContent } from "@/components/ai-elements/message";
 import { MessageEditor } from "@/components/chat/message-editor";
-import {
-	ChatBubble,
-	ChatBubbleMessage,
-} from "@/components/ui/chat/chat-bubble";
 import type { CustomUIMessage } from "@/lib/ai/tools";
 import type { Chat } from "@/lib/orpc/schemas/chat";
-import { cn } from "@/lib/utils";
 import { useMessageEditor } from "./hooks/use-message-editor";
 import { MessageActions } from "./message-actions";
-import { MessageContent } from "./message-content";
+import { MessagePartRenderer } from "./message-part-renderer";
 
 interface MessageBlockProps {
 	message: CustomUIMessage;
@@ -33,56 +28,37 @@ export const MessageBlock = ({
 }: MessageBlockProps) => {
 	const { mode, toggleMode, setViewMode } = useMessageEditor();
 	const variant = message.role === "user" ? "sent" : "received";
-	const isLoading = message.parts?.length === 0 && status === "streaming";
 
 	return (
-		<ChatBubble
-			variant={variant}
-			className={cn("items-start", {
-				"max-w-full": variant === "received",
-			})}
-		>
-			<AnimatePresence>
-				<motion.div
-					initial={{ y: 5, opacity: 0 }}
-					whileInView={{ y: 0, opacity: 1 }}
-					transition={{ duration: 0.5, ease: "easeIn" }}
-					data-role={message.role}
-				>
-					<ChatBubbleMessage
-						isLoading={isLoading}
-						variant={variant}
-						className={cn(
-							{
-								"w-[calc(100dvw-31px)] rounded-none bg-transparent md:w-[calc(100dvw-316px)] lg:max-w-[800px]":
-									variant === "received",
-							},
-							"sticky",
-						)}
-					>
-						{mode === "edit" && variant === "sent" ? (
-							<MessageEditor
-								chatId={chatId}
-								message={message}
-								setMode={setViewMode}
-								setMessages={setMessages}
-								regenerate={regenerate}
-								status={status}
+		<Message from={message.role} key={message.id}>
+			<div className="flex flex-col">
+				{mode === "edit" && variant === "sent" ? (
+					<MessageEditor
+						chatId={chatId}
+						message={message}
+						setMode={setViewMode}
+						setMessages={setMessages}
+						regenerate={regenerate}
+						status={status}
+					/>
+				) : (
+					<MessageContent>
+						{message.parts.map((part, i) => (
+							<MessagePartRenderer
+								key={`${part.type}${message.id}${i}`}
+								part={part}
 							/>
-						) : (
-							<MessageContent message={message} variant={variant} />
-						)}
-
-						<MessageActions
-							message={message}
-							variant={variant}
-							chatId={chatId}
-							onEdit={variant === "sent" ? toggleMode : undefined}
-							score={score}
-						/>
-					</ChatBubbleMessage>
-				</motion.div>
-			</AnimatePresence>
-		</ChatBubble>
+						))}
+					</MessageContent>
+				)}
+				<MessageActions
+					message={message}
+					variant={variant}
+					chatId={chatId}
+					onEdit={variant === "sent" ? toggleMode : undefined}
+					score={score}
+				/>
+			</div>
+		</Message>
 	);
 };

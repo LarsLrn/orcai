@@ -1,6 +1,6 @@
 import { useQuery, useSuspenseQuery } from "@tanstack/react-query";
 import { Link } from "@tanstack/react-router";
-import { CogIcon } from "lucide-react";
+import { BotIcon } from "lucide-react";
 import { Suspense } from "react";
 import { BotBlocks } from "@/components/bot/bot-blocks";
 import { BotConfiguration } from "@/components/bot/bot-configuration";
@@ -21,7 +21,13 @@ import { botQueryOptions } from "@/lib/query-options/bot";
 import { chatQueryOptions } from "@/lib/query-options/chat";
 import { Skeleton } from "../ui/skeleton";
 
-const ChatSettings = ({ chatId }: { chatId: Chat["id"] }) => {
+const ChatSettings = ({
+	className,
+	chatId,
+}: {
+	className?: string;
+	chatId: Chat["id"];
+}) => {
 	const { data: chat } = useQuery(
 		chatQueryOptions.find({ input: { id: chatId } }),
 	);
@@ -29,8 +35,8 @@ const ChatSettings = ({ chatId }: { chatId: Chat["id"] }) => {
 	return (
 		<Sheet>
 			<SheetTrigger asChild>
-				<Button variant="ghost" size="icon">
-					<CogIcon />
+				<Button variant="ghost" size="icon" className={className}>
+					<BotIcon />
 				</Button>
 			</SheetTrigger>
 			<SheetContent className="h-dvh pb-4 sm:max-w-3xl">

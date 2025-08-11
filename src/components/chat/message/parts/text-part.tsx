@@ -1,14 +1,8 @@
-import { Markdown } from "@/components/chat/markdown";
+import type { TextPart } from "ai";
+import { Response } from "@/components/ai-elements/response";
 
-interface TextPartProps {
-	text: string;
-	variant: "sent" | "received";
-}
-
-export const TextPart = ({ text, variant }: TextPartProps) => {
-	if (variant === "sent") {
-		return <div>{text}</div>;
-	}
-
-	return <Markdown className="text-foreground">{text}</Markdown>;
+const ResponsePart = ({ part }: { part: TextPart }) => {
+	return <Response className="text-foreground">{part.text}</Response>;
 };
+
+export { ResponsePart };

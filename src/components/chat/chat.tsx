@@ -3,13 +3,15 @@ import { eventIteratorToStream } from "@orpc/client";
 import { useSuspenseQuery } from "@tanstack/react-query";
 import type { ApiGetScoresResponseData } from "langfuse";
 import { toast } from "sonner";
-import { ChatInput } from "@/components/ui/chat/chat-input";
-import { ChatUtilities } from "@/components/ui/chat/chat-input-actions";
-import { ChatMessageList } from "@/components/ui/chat/chat-message-list";
 import type { CustomUIMessage } from "@/lib/ai/tools";
 import { client } from "@/lib/orpc/orpc";
 import { chatQueryOptions } from "@/lib/query-options/chat";
-/* import { deleteTrailingMessages } from "@/db/actions/ai-actions"; */
+import {
+	Conversation,
+	ConversationContent,
+	ConversationScrollButton,
+} from "../ai-elements/conversation";
+import { ChatInput } from "./chat-input";
 import { ChatPlaceholder } from "./chat-placeholder";
 import { MessageBlock } from "./message-block";
 import { ShinyText } from "./shiny-text";
@@ -27,87 +29,65 @@ const Chat = ({
 		chatQueryOptions.find({ input: { id } }),
 	);
 
-	const { messages, status, setMessages, stop, regenerate, sendMessage } =
-		useChat({
-			id,
-			transport: {
-				async sendMessages(options) {
-					return eventIteratorToStream(
-						await client.ai.chat(
-							{
-								chatId: options.chatId,
-								messages: options.messages,
-								botId: chat.data.botId,
-							},
-							{ signal: options.abortSignal },
-						),
-					);
-				},
-				reconnectToStream() {
-					throw new Error("Unsupported");
-				},
+	const { messages, status, setMessages, regenerate, sendMessage } = useChat({
+		id,
+		transport: {
+			async sendMessages(options) {
+				return eventIteratorToStream(
+					await client.ai.chat(
+						{
+							chatId: options.chatId,
+							messages: options.messages,
+							botId: chat.data.botId,
+						},
+						{ signal: options.abortSignal },
+					),
+				);
 			},
-			messages: initialMessages,
-			onError: (error) => {
-				toast.error("An error occurred, please try again!", {
-					description: error.message,
-				});
+			reconnectToStream() {
+				throw new Error("Unsupported");
 			},
-		});
-
-	const handleReload = () => {
-		/* deleteTrailingMessages({
-			chatId: id,
-			messageId: messages[messages.length - 1].id,
-		}).then(() => {
-			reload();
-		}); */
-	};
+		},
+		messages: initialMessages,
+		onError: (error) => {
+			toast.error("An error occurred, please try again!", {
+				description: error.message,
+			});
+		},
+	});
 
 	return (
-		<div className="flex size-full min-h-0 min-w-0 flex-col gap-4 bg-background">
-			<ChatMessageList>
-				{messages.map((m) => (
-					<MessageBlock
-						key={m.id}
-						message={m}
-						chatId={id}
-						setMessages={setMessages}
-						regenerate={regenerate}
-						status={status}
-						score={scores.find((s) => s.id === m.id)}
-					/>
-				))}
-				{messages.length === 0 && <ChatPlaceholder />}
-				{status === "submitted" && (
-					<div className="sticky m-0 w-full max-w-full whitespace-pre-wrap break-words rounded-none bg-transparent p-4 text-foreground">
-						<ShinyText>Gathering information...</ShinyText>
-					</div>
-				)}
-				{status === "error" && (
-					<div className="sticky m-0 w-full max-w-full whitespace-pre-wrap break-words rounded-none bg-transparent p-4 text-foreground">
-						Something went wrong. Please try again.
-					</div>
-				)}
-			</ChatMessageList>
+		<div className="flex size-full min-h-0 min-w-0 flex-col">
+			<Conversation className="flex w-full">
+				<ConversationContent className="mx-auto w-full max-w-[800px]">
+					{messages.map((m) => (
+						<MessageBlock
+							key={m.id}
+							message={m}
+							chatId={id}
+							setMessages={setMessages}
+							regenerate={regenerate}
+							status={status}
+							score={scores.find((s) => s.id === m.id)}
+						/>
+					))}
+					{messages.length === 0 && <ChatPlaceholder />}
+					{status === "submitted" && (
+						<div className="sticky m-0 w-full max-w-full whitespace-pre-wrap break-words rounded-none bg-transparent p-4 text-foreground">
+							<ShinyText>Gathering information...</ShinyText>
+						</div>
+					)}
+					{status === "error" && (
+						<div className="sticky m-0 w-full max-w-full whitespace-pre-wrap break-words rounded-none bg-transparent p-4 text-foreground">
+							Something went wrong. Please try again.
+						</div>
+					)}
+				</ConversationContent>
+				<ConversationScrollButton />
+			</Conversation>
 
 			<div className="mx-auto flex w-full flex-col gap-2 bg-background px-4 pb-4 md:max-w-3xl md:pb-6">
-				<ChatInput
-					status={status}
-					sendMessage={sendMessage}
-					handleReload={handleReload}
-					setMessages={setMessages}
-					chatId={id}
-					stop={stop}
-					placeholder="How can I help?"
-				/>
-				<div className="flex items-center gap-2">
-					<ChatUtilities
-						chatId={id}
-						hasMessages={messages.length > 0}
-						handleReload={handleReload}
-					/>
-				</div>
+				<ChatInput chatId={id} status={status} sendMessage={sendMessage} />
 			</div>
 		</div>
 	);

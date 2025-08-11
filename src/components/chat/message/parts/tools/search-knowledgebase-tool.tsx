@@ -1,70 +1,103 @@
-import { Markdown } from "@/components/chat/markdown";
+import { FileTextIcon } from "lucide-react";
 import {
-	Accordion,
-	AccordionContent,
-	AccordionItem,
-	AccordionTrigger,
-} from "@/components/ui/accordion";
+	Tool,
+	ToolContent,
+	ToolHeader,
+	ToolInput,
+	ToolOutput,
+} from "@/components/ai-elements/tool";
+import { Markdown } from "@/components/app/markdown";
+import { Badge } from "@/components/ui/badge";
+import { Button } from "@/components/ui/button";
+import {
+	Popover,
+	PopoverContent,
+	PopoverTrigger,
+} from "@/components/ui/popover";
 import type { SearchKnowledgeBaseToolPart } from "@/lib/ai/tools";
-import { ToolLoadingState } from "../tool-loading-state";
 
 const SearchKnowledgeBaseTool = ({
 	part,
 }: {
 	part: SearchKnowledgeBaseToolPart;
 }) => {
-	// Handle loading states
-	if (part.state === "input-available" || part.state === "input-streaming") {
-		return (
-			<ToolLoadingState
-				toolName="Searching Knowledge Base"
-				description="Please wait while we search the knowledge base..."
-			/>
-		);
+	return (
+		<Tool defaultOpen={true}>
+			<ToolHeader type="tool-generateImage" state={part.state} />
+			<ToolContent>
+				<ToolInput input={part.input} />
+				<ToolOutput
+					output={<Output output={part.output} />}
+					errorText={part.errorText}
+				/>
+			</ToolContent>
+		</Tool>
+	);
+};
+
+const Output = ({
+	output,
+}: {
+	output: SearchKnowledgeBaseToolPart["output"];
+}) => {
+	if (!output || !output.result || output.result.length === 0) {
+		return null;
 	}
 
-	// Handle completed state
-	if (part.state === "output-available" && part.output) {
-		return (
-			<div className="rounded-lg border bg-muted/20 p-4">
-				<p className="mb-2 font-medium text-foreground text-sm">
-					Knowledge Base Search Results
-				</p>
-				<Accordion
-					type="single"
-					collapsible
-					className="w-full"
-					defaultValue="item-1"
-				>
-					{part.output.result.map((result, index) => (
-						<AccordionItem key={result.id} value={`item-${index + 1}`}>
-							<AccordionTrigger>{result.id}</AccordionTrigger>
-							<AccordionContent className="flex flex-col gap-4 text-balance text-xs">
-								<Markdown className="text-xs">{result.text}</Markdown>
-							</AccordionContent>
-						</AccordionItem>
-					))}
-				</Accordion>
+	return (
+		<div className="space-y-3">
+			<p className="text-muted-foreground text-sm">
+				Found {output.result.length} reference
+				{output.result.length !== 1 ? "s" : ""}
+			</p>
+			<div className="flex flex-wrap gap-2">
+				{output.result.map((result, index) => (
+					<Popover key={result.id}>
+						<PopoverTrigger asChild>
+							<Button
+								variant="outline"
+								size="sm"
+								className="group h-auto min-h-8 gap-2 border-muted-foreground/20 px-3 py-2 transition-all hover:border-primary/40 hover:bg-primary/5 hover:shadow-sm"
+							>
+								<FileTextIcon className="size-3 text-muted-foreground group-hover:text-primary" />
+								<span className="truncate font-medium text-xs">
+									Reference {index + 1}
+								</span>
+								<Badge
+									variant="secondary"
+									className="ml-1 h-4 bg-muted/60 px-1.5 py-0 text-[10px] group-hover:bg-primary/10"
+								>
+									{result.id}
+								</Badge>
+							</Button>
+						</PopoverTrigger>
+						<PopoverContent
+							className="max-h-80 w-96 overflow-y-auto p-4"
+							align="start"
+							side="top"
+						>
+							<div className="space-y-3">
+								<div className="flex items-center gap-2 border-b pb-2">
+									<FileTextIcon className="size-4 text-primary" />
+									<h4 className="font-semibold text-sm">
+										Reference {index + 1}
+									</h4>
+									<Badge variant="outline" className="ml-auto text-[10px]">
+										{result.id}
+									</Badge>
+								</div>
+								<div className="prose prose-sm dark:prose-invert max-w-none">
+									<Markdown className="text-xs leading-relaxed">
+										{result.text}
+									</Markdown>
+								</div>
+							</div>
+						</PopoverContent>
+					</Popover>
+				))}
 			</div>
-		);
-	}
-
-	// Handle error state
-	if (part.state === "output-error") {
-		return (
-			<div className="rounded-lg border border-destructive/20 bg-destructive/10 p-4">
-				<p className="font-medium text-destructive text-sm">
-					Searching Knowledge Base Failed
-				</p>
-				<p className="text-destructive/80 text-xs">
-					There was an error searching the knowledge base. Please try again.
-					{part.errorText}
-				</p>
-			</div>
-		);
-	}
-
-	return null;
+		</div>
+	);
 };
 
 export { SearchKnowledgeBaseTool };

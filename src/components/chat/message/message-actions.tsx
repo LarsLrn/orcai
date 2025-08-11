@@ -1,11 +1,8 @@
 import { CopyIcon, PencilIcon } from "lucide-react";
 import { toast } from "sonner";
 import { useCopyToClipboard } from "usehooks-ts";
+import { Action, Actions } from "@/components/ai-elements/actions";
 import { MessageRate } from "@/components/chat/message-rate";
-import {
-	ChatBubbleAction,
-	ChatBubbleActionWrapper,
-} from "@/components/ui/chat/chat-bubble";
 import type { CustomUIMessage } from "@/lib/ai/tools";
 
 interface MessageActionsProps {
@@ -40,39 +37,30 @@ export const MessageActions = ({
 
 	if (variant === "sent") {
 		return (
-			<ChatBubbleActionWrapper variant="sent" className="w-full gap-2 pt-2">
+			<Actions className="mt-2">
 				{onEdit && (
-					<ChatBubbleAction
-						className="size-6 text-primary"
-						actionLabel="Edit"
-						icon={<PencilIcon className="size-3" />}
-						onClick={onEdit}
-					/>
+					<Action label="Edit" onClick={onEdit}>
+						<PencilIcon className="size-3" />
+					</Action>
 				)}
-				<ChatBubbleAction
-					className="size-6 text-primary"
-					actionLabel="Copy"
-					icon={<CopyIcon className="size-3" />}
-					onClick={handleCopy}
-				/>
-			</ChatBubbleActionWrapper>
+				<Action label="Copy" onClick={handleCopy}>
+					<CopyIcon className="size-3" />
+				</Action>
+			</Actions>
 		);
 	}
 
 	return (
-		<ChatBubbleActionWrapper variant="received" className="gap-2 pt-2">
-			<ChatBubbleAction
-				className="size-6"
-				actionLabel="Copy"
-				icon={<CopyIcon className="size-3" />}
-				onClick={handleCopy}
-			/>
+		<Actions className="mt-2">
+			<Action label="Copy" onClick={handleCopy}>
+				<CopyIcon className="size-3" />
+			</Action>
 			<MessageRate
 				chatId={chatId}
 				messageId={message.id}
 				score={score}
 				id="ai-message-rate"
 			/>
-		</ChatBubbleActionWrapper>
+		</Actions>
 	);
 };
