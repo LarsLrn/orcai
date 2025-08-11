@@ -6,10 +6,11 @@ import {
 import { overwriteGetLocale } from "./paraglide/runtime.js";
 import { paraglideMiddleware } from "./paraglide/server.js";
 import { createRouter } from "./router";
-import { ensureTelemetryStarted } from "./telemetry";
+import { startTelemetry } from "./telemetry";
 
-// Kick off telemetry startup (non-blocking)
-void ensureTelemetryStarted();
+// Initialize telemetry SYNCHRONOUSLY before any other imports or operations
+// This ensures instrumentation captures all operations
+startTelemetry();
 
 export default createStartHandler({
 	createRouter: () => createRouter(getWebRequest().url),
