@@ -1,15 +1,12 @@
 "use client";
 
+import hardenReactMarkdown from "harden-react-markdown";
+import { cn } from "@/lib/utils";
+import "katex/dist/katex.min.css";
 import type { ComponentProps, HTMLAttributes } from "react";
 import { memo } from "react";
 import ReactMarkdown, { type Options } from "react-markdown";
-import rehypeKatex from "rehype-katex";
-import remarkGfm from "remark-gfm";
-import remarkMath from "remark-math";
-import { cn } from "@/lib/utils";
-import "katex/dist/katex.min.css";
-import hardenReactMarkdown from "harden-react-markdown";
-import { components } from "../app/markdown";
+import { components, reactMarkdownPlugins } from "../app/markdown";
 
 /**
  * Parses markdown text and removes incomplete tokens to prevent partial rendering
@@ -197,8 +194,7 @@ export const Response = memo(
 			>
 				<HardenedMarkdown
 					components={components}
-					rehypePlugins={[rehypeKatex]}
-					remarkPlugins={[remarkGfm, remarkMath]}
+					{...reactMarkdownPlugins}
 					allowedImagePrefixes={allowedImagePrefixes ?? ["*"]}
 					allowedLinkPrefixes={allowedLinkPrefixes ?? ["*"]}
 					defaultOrigin={defaultOrigin}

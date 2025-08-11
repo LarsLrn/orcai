@@ -3,8 +3,14 @@ import ReactMarkdown, { type Options } from "react-markdown";
 import rehypeKatex from "rehype-katex";
 import remarkGfm from "remark-gfm";
 import remarkMath from "remark-math";
+import supersub from "remark-supersub";
 import { cn } from "@/lib/utils";
 import { CodeBlock } from "../ai-elements/code-block";
+
+export const reactMarkdownPlugins = {
+	rehypePlugins: [rehypeKatex],
+	remarkPlugins: [remarkGfm, supersub, remarkMath],
+};
 
 export const components: Options["components"] = {
 	ol: ({ node, children, className, ...props }) => (
@@ -95,8 +101,6 @@ export const Markdown = memo(
 		children: Options["children"];
 		className?: string;
 	} & HTMLAttributes<HTMLDivElement>) => {
-		// Parse the children to remove incomplete markdown tokens if enabled
-
 		return (
 			<div
 				className={cn(
@@ -105,11 +109,7 @@ export const Markdown = memo(
 				)}
 				{...props}
 			>
-				<ReactMarkdown
-					rehypePlugins={[rehypeKatex]}
-					remarkPlugins={[remarkGfm, remarkMath]}
-					components={components}
-				>
+				<ReactMarkdown {...reactMarkdownPlugins} components={components}>
 					{children}
 				</ReactMarkdown>
 			</div>
