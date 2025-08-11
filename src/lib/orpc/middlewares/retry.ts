@@ -1,6 +1,7 @@
 import { os } from "@orpc/server";
+import { withName } from "./utils";
 
-export function retry(options: { times: number }) {
+export const retry = withName((options: { times: number }) => {
 	/**
 	 * Best practices for dedupe-middlewares
 	 * {@link https://orpc.unnoq.com/docs/best-practices/dedupe-middleware}
@@ -31,4 +32,4 @@ export function retry(options: { times: number }) {
 				}
 			}
 		});
-}
+}, "retry");
