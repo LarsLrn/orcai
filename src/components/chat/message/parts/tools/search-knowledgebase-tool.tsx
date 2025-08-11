@@ -22,8 +22,8 @@ const SearchKnowledgeBaseTool = ({
 	part: SearchKnowledgeBaseToolPart;
 }) => {
 	return (
-		<Tool defaultOpen={true}>
-			<ToolHeader type="tool-generateImage" state={part.state} />
+		<Tool defaultOpen={part.state !== "output-available"}>
+			<ToolHeader type={part.type} state={part.state} />
 			<ToolContent>
 				<ToolInput input={part.input} />
 				<ToolOutput
@@ -45,7 +45,7 @@ const Output = ({
 	}
 
 	return (
-		<div className="space-y-3">
+		<div className="space-y-3 p-4">
 			<p className="text-muted-foreground text-sm">
 				Found {output.result.length} reference
 				{output.result.length !== 1 ? "s" : ""}
@@ -57,18 +57,12 @@ const Output = ({
 							<Button
 								variant="outline"
 								size="sm"
-								className="group h-auto min-h-8 gap-2 border-muted-foreground/20 px-3 py-2 transition-all hover:border-primary/40 hover:bg-primary/5 hover:shadow-sm"
+								className="group h-auto min-h-8 w-full gap-2 border-muted-foreground/20 px-3 py-2 transition-all hover:border-primary/40 hover:bg-primary/5 hover:text-foreground hover:shadow-sm"
 							>
-								<FileTextIcon className="size-3 text-muted-foreground group-hover:text-primary" />
-								<span className="truncate font-medium text-xs">
+								<FileTextIcon className="size-3 text-muted-foreground" />
+								<span className="font-medium text-xs">
 									Reference {index + 1}
 								</span>
-								<Badge
-									variant="secondary"
-									className="ml-1 h-4 bg-muted/60 px-1.5 py-0 text-[10px] group-hover:bg-primary/10"
-								>
-									{result.id}
-								</Badge>
 							</Button>
 						</PopoverTrigger>
 						<PopoverContent

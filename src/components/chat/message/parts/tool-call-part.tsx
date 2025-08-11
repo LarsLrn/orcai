@@ -23,7 +23,7 @@ export const ToolCallPart = ({ part }: { part: ToolUIPart<CustomTools> }) => {
 	// Fallback for unknown tool types
 	return (
 		<Tool defaultOpen={true}>
-			<ToolHeader type="unknown" state={part.state} />
+			<ToolHeader type={part.type} state={part.state} />
 			<ToolContent>
 				<ToolInput input={part.input} />
 				<ToolOutput

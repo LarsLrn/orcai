@@ -28,7 +28,7 @@ export const Tool = ({ className, ...props }: ToolProps) => (
 );
 
 export type ToolHeaderProps = {
-	type: ToolUIPart<CustomTools>["type"] | "unknown";
+	type: ToolUIPart<CustomTools>["type"] | (string & {});
 	state: ToolUIPart["state"];
 	className?: string;
 };
@@ -134,7 +134,7 @@ export const ToolOutput = ({
 			</h4>
 			<div
 				className={cn(
-					"overflow-x-auto rounded-md text-xs [&_table]:w-full",
+					"rounded-md text-xs [&_table]:w-full",
 					errorText
 						? "bg-destructive/10 text-destructive"
 						: "bg-muted/50 text-foreground",
