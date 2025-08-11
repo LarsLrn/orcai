@@ -9,7 +9,9 @@ export const ReasoningPart = ({ part }: { part: ReasoningUIPart }) => {
 	return (
 		<Reasoning className="w-full" isStreaming={part.state === "streaming"}>
 			<ReasoningTrigger />
-			<ReasoningContent>{part.text}</ReasoningContent>
+			<ReasoningContent className="text-muted-foreground">
+				{part.text}
+			</ReasoningContent>
 		</Reasoning>
 	);
 };
