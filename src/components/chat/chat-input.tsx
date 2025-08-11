@@ -31,7 +31,7 @@ const ChatInput = ({
 	};
 
 	return (
-		<PromptInput onSubmit={handleSubmit} className="mt-4">
+		<PromptInput onSubmit={handleSubmit} className="mt-4 bg-card">
 			<PromptInputTextarea
 				onChange={(e) => setText(e.target.value)}
 				value={text}
