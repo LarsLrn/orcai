@@ -1,5 +1,7 @@
 {
 	"entry": [
+		"src/routeTree.gen.ts",
+		"src/routes/**/*.{ts,tsx}",
 		"src/router.tsx",
 		"src/client.tsx",
 		"src/server.ts",
