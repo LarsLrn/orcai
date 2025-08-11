@@ -58,7 +58,7 @@ export const Reasoning = memo(
 			defaultProp: 0,
 		});
 
-		const [hasAutoClosedRef, setHasAutoClosedRef] = useState(false);
+		const [hasAutoClosedRef, setHasAutoClosedRef] = useState(!isStreaming);
 		const [startTime, setStartTime] = useState<number | null>(null);
 
 		// Track duration when streaming starts and ends
@@ -93,7 +93,12 @@ export const Reasoning = memo(
 
 		return (
 			<ReasoningContext.Provider
-				value={{ isStreaming, isOpen, setIsOpen, duration }}
+				value={{
+					isStreaming,
+					isOpen,
+					setIsOpen,
+					duration,
+				}}
 			>
 				<Collapsible
 					className={cn("not-prose mb-4", className)}
@@ -123,6 +128,12 @@ export const ReasoningTrigger = memo(
 	}: ReasoningTriggerProps) => {
 		const { isStreaming, isOpen, duration } = useReasoning();
 
+		let thinkingText = title;
+
+		if (!isStreaming && duration > 0) {
+			thinkingText = `Reasoned for ${duration} seconds`;
+		}
+
 		return (
 			<CollapsibleTrigger
 				className={cn(
@@ -134,11 +145,7 @@ export const ReasoningTrigger = memo(
 				{children ?? (
 					<>
 						<BrainIcon className="size-4" />
-						{isStreaming || duration === 0 ? (
-							<p>Thinking...</p>
-						) : (
-							<p>Thought for {duration} seconds</p>
-						)}
+						{thinkingText}
 						<ChevronDownIcon
 							className={cn(
 								"size-4 text-muted-foreground transition-transform",
