@@ -1,9 +1,17 @@
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import type { ApiGetScoresResponseData } from "langfuse";
-import { CheckIcon } from "lucide-react";
-import { type ComponentProps, useState } from "react";
+import { CheckIcon, StarIcon } from "lucide-react";
+import { useState } from "react";
 import { toast } from "sonner";
-import { Button } from "@/components/ui/button";
+import { Action } from "@/components/ai-elements/actions";
+import {
+	DropdownMenu,
+	DropdownMenuContent,
+	DropdownMenuItem,
+	DropdownMenuLabel,
+	DropdownMenuSeparator,
+	DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
 import { useUmami } from "@/hooks/use-umami";
 import type { Chat } from "@/lib/orpc/schemas/chat";
 import type { ChatMessage } from "@/lib/orpc/schemas/chat-message";
@@ -15,12 +23,12 @@ const MessageRate = ({
 	chatId,
 	score,
 	className,
-	...props
 }: {
 	messageId: ChatMessage["id"];
 	chatId: Chat["id"];
 	score?: ApiGetScoresResponseData;
-} & ComponentProps<"div">) => {
+	className?: string;
+}) => {
 	const [optimisticScore, setOptimisticScore] = useState<
 		number | undefined | null
 	>(score?.value);
@@ -68,46 +76,47 @@ const MessageRate = ({
 	];
 
 	return (
-		<div
-			className={cn(
-				"flex flex-col gap-0.5 rounded-sm border p-1.5 pt-0.5 pb-1",
-				className,
-			)}
-			{...props}
-		>
-			<span className="w-full px-1 text-muted-foreground text-xs">
-				Was this response helpful for your learning?
-			</span>
-			<div className="flex items-center gap-2">
+		<DropdownMenu>
+			<DropdownMenuTrigger asChild>
+				<Action
+					label="Rate response"
+					tooltip="Rate how helpful this response was for your learning"
+					className={cn(
+						className,
+						optimisticScore &&
+							"bg-primary/10 text-primary hover:bg-primary/20 hover:text-primary",
+					)}
+				>
+					<StarIcon
+						fill={optimisticScore ? "currentColor" : "none"}
+						className="size-3"
+					/>
+				</Action>
+			</DropdownMenuTrigger>
+			<DropdownMenuContent align="start" className="w-48">
+				<DropdownMenuLabel className="text-xs">
+					Was this response helpful for your learning?
+				</DropdownMenuLabel>
+				<DropdownMenuSeparator />
 				{ratings.map((rating) => (
-					<RateButton
-						onClick={() => handleRate(rating.value)}
-						checked={optimisticScore === rating.value}
+					<DropdownMenuItem
 						key={rating.value}
+						onClick={() => handleRate(rating.value)}
+						className={cn(
+							"cursor-pointer",
+							optimisticScore === rating.value && "bg-primary/10 text-primary",
+						)}
 					>
-						{rating.label}
-					</RateButton>
+						<span className="flex items-center gap-2">
+							{optimisticScore === rating.value && (
+								<CheckIcon className="size-3" />
+							)}
+							{rating.label}
+						</span>
+					</DropdownMenuItem>
 				))}
-			</div>
-		</div>
-	);
-};
-
-const RateButton = ({
-	checked,
-	...props
-}: { checked: boolean } & ComponentProps<"button">) => {
-	return (
-		<Button
-			variant="ghost"
-			className={cn("h-5 px-1 text-xs", checked && "bg-primary/30")}
-			{...props}
-		>
-			<span className="flex items-center gap-1">
-				{checked && <CheckIcon className="size-3" />}
-				{props.children}
-			</span>
-		</Button>
+			</DropdownMenuContent>
+		</DropdownMenu>
 	);
 };
 

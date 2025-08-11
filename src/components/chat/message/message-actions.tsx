@@ -2,7 +2,7 @@ import { CopyIcon, PencilIcon } from "lucide-react";
 import { toast } from "sonner";
 import { useCopyToClipboard } from "usehooks-ts";
 import { Action, Actions } from "@/components/ai-elements/actions";
-import { MessageRate } from "@/components/chat/message-rate";
+import { MessageRate } from "@/components/chat/message/message-rate";
 import type { CustomUIMessage } from "@/lib/ai/tools";
 
 interface MessageActionsProps {
@@ -39,11 +39,11 @@ export const MessageActions = ({
 		return (
 			<Actions className="mt-2">
 				{onEdit && (
-					<Action label="Edit" onClick={onEdit}>
+					<Action label="Edit" tooltip="Edit message" onClick={onEdit}>
 						<PencilIcon className="size-3" />
 					</Action>
 				)}
-				<Action label="Copy" onClick={handleCopy}>
+				<Action label="Copy" tooltip="Copy message" onClick={handleCopy}>
 					<CopyIcon className="size-3" />
 				</Action>
 			</Actions>
@@ -52,15 +52,10 @@ export const MessageActions = ({
 
 	return (
 		<Actions className="mt-2">
-			<Action label="Copy" onClick={handleCopy}>
+			<Action label="Copy" tooltip="Copy response" onClick={handleCopy}>
 				<CopyIcon className="size-3" />
 			</Action>
-			<MessageRate
-				chatId={chatId}
-				messageId={message.id}
-				score={score}
-				id="ai-message-rate"
-			/>
+			<MessageRate chatId={chatId} messageId={message.id} score={score} />
 		</Actions>
 	);
 };
