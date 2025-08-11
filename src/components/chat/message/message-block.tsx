@@ -70,6 +70,10 @@ export const MessageBlock = ({
 					onEdit={variant === "sent" ? toggleMode : undefined}
 					score={score}
 				/>
+				<div className="mt-1 flex items-center justify-end gap-2">
+					<MessageModel message={message} />
+					<MessageUsage message={message} />
+				</div>
 			</div>
 		</Message>
 	);

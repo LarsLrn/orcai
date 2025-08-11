@@ -5,7 +5,16 @@ import type { generateJokeTool } from "./generate-joke";
 import type { searchKnowledgeBaseTool } from "./search-knowledgebase";
 
 const metadataSchema = z.object({
-	someMetadata: z.string(),
+	model: z.string().optional(),
+	totalUsage: z
+		.object({
+			cachedInputTokens: z.number().optional(),
+			inputTokens: z.number().optional(),
+			outputTokens: z.number().optional(),
+			reasoningTokens: z.number().optional(),
+			totalTokens: z.number().optional(),
+		})
+		.optional(),
 });
 
 type CustomMetadata = z.infer<typeof metadataSchema>;

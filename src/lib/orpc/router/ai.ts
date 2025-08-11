@@ -32,7 +32,7 @@ export const aiChat = authed.ai.chat
 				role: "user",
 				parts: userMessage.parts,
 				attachments: [],
-				annotations: [],
+				metadata: userMessage.metadata || {},
 			});
 
 			let templateBlock: TemplateBlock | undefined;
@@ -138,7 +138,23 @@ export const aiChat = authed.ai.chat
 						},
 					});
 
-					writer.merge(result.toUIMessageStream({ sendReasoning: true }));
+					writer.merge(
+						result.toUIMessageStream({
+							sendReasoning: true,
+							messageMetadata: ({ part }) => {
+								if (part.type === "start") {
+									return {
+										model: model.modelId,
+									};
+								}
+								if (part.type === "finish") {
+									return {
+										totalUsage: part.totalUsage,
+									};
+								}
+							},
+						}),
+					);
 				},
 				onFinish: ({ responseMessage }) => {
 					client.chatMessage.create({
@@ -147,7 +163,7 @@ export const aiChat = authed.ai.chat
 						role: responseMessage.role,
 						parts: responseMessage.parts,
 						attachments: [],
-						annotations: [],
+						metadata: responseMessage.metadata,
 					});
 				},
 				onError: (error) => {

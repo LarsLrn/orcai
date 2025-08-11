@@ -10,7 +10,7 @@ export const chatMessage = pgTable("chat_message", {
 	role: varchar("role").notNull(),
 	parts: json("parts").notNull(),
 	attachments: json("attachments").notNull(),
-	annotations: json("annotations").notNull(),
+	metadata: json("metadata").notNull(),
 	createdAt: timestamp("created_at").defaultNow().notNull(),
 });
 
