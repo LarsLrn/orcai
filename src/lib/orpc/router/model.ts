@@ -8,8 +8,8 @@ import {
 } from "@/db/schema/model";
 import { authed } from "@/lib/orpc";
 import { retry } from "@/lib/orpc/middlewares/retry";
-import type { Capability } from "../schemas/capability";
-import type { Model } from "../schemas/model";
+import type { Capability } from "@/lib/orpc/schemas/capability";
+import type { Model } from "@/lib/orpc/schemas/model";
 
 export const listModels = authed.model.list
 	.use(retry({ times: 3 }))

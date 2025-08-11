@@ -2,12 +2,14 @@ import type { UseChatHelpers } from "@ai-sdk/react";
 import type { UIMessage } from "ai";
 import type { ApiGetScoresResponseData } from "langfuse";
 import { Message, MessageContent } from "@/components/ai-elements/message";
-import { MessageEditor } from "@/components/chat/message-editor";
+import { MessageEditor } from "@/components/chat/message/message-editor";
 import type { CustomUIMessage } from "@/lib/ai/tools";
 import type { Chat } from "@/lib/orpc/schemas/chat";
 import { useMessageEditor } from "./hooks/use-message-editor";
 import { MessageActions } from "./message-actions";
 import { MessagePartRenderer } from "./message-part-renderer";
+import { MessageModel } from "./metadata/message-model";
+import { MessageUsage } from "./metadata/message-usage";
 
 interface MessageBlockProps {
 	message: CustomUIMessage;

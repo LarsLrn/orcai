@@ -6,7 +6,7 @@ import "katex/dist/katex.min.css";
 import type { ComponentProps, HTMLAttributes } from "react";
 import { memo } from "react";
 import ReactMarkdown, { type Options } from "react-markdown";
-import { components, reactMarkdownPlugins } from "../app/markdown";
+import { components, reactMarkdownPlugins } from "@/components/app/markdown";
 
 /**
  * Parses markdown text and removes incomplete tokens to prevent partial rendering

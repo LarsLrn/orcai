@@ -15,11 +15,11 @@ import {
 	SheetTitle,
 	SheetTrigger,
 } from "@/components/ui/sheet";
+import { Skeleton } from "@/components/ui/skeleton";
 import type { Chat } from "@/lib/orpc/schemas/chat";
 import { blockQueryOptions } from "@/lib/query-options/block";
 import { botQueryOptions } from "@/lib/query-options/bot";
 import { chatQueryOptions } from "@/lib/query-options/chat";
-import { Skeleton } from "../ui/skeleton";
 
 const ChatSettings = ({
 	className,

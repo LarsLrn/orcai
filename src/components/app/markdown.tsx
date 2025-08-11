@@ -4,8 +4,8 @@ import rehypeKatex from "rehype-katex";
 import remarkGfm from "remark-gfm";
 import remarkMath from "remark-math";
 import supersub from "remark-supersub";
+import { CodeBlock } from "@/components/ai-elements/code-block";
 import { cn } from "@/lib/utils";
-import { CodeBlock } from "../ai-elements/code-block";
 
 export const reactMarkdownPlugins = {
 	rehypePlugins: [rehypeKatex],

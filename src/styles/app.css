@@ -6,7 +6,7 @@
 
 @plugin "tailwindcss-animate";
 @plugin "@tailwindcss/typography";
-@plugin "tailwind-scrollbar-hide/v4";
+@plugin "tailwind-scrollbar-hide";
 
 @custom-variant dark (&:is(.dark *));
 

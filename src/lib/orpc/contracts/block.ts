@@ -7,8 +7,8 @@ import {
 	blockSelectSchema,
 	blockUpdateSchema,
 } from "@/lib/orpc/schemas/block";
+import { botSelectSchema } from "@/lib/orpc/schemas/bot";
 import { paginationSchema, statusSchema } from "@/lib/orpc/schemas/shared";
-import { botSelectSchema } from "../schemas/bot";
 import { base } from "./base";
 
 export const listBlocksContract = base

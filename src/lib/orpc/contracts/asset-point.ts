@@ -5,8 +5,8 @@ import {
 	assetPointSelectSchema,
 	assetPointUpdateSchema,
 } from "@/lib/orpc/schemas/asset-point";
+import { baseBlockSelectSchema } from "@/lib/orpc/schemas/block";
 import { statusSchema } from "@/lib/orpc/schemas/shared";
-import { baseBlockSelectSchema } from "../schemas/block";
 import { base } from "./base";
 
 export const listAssetPointsContract = base

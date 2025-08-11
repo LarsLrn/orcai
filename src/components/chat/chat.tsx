@@ -3,17 +3,17 @@ import { eventIteratorToStream } from "@orpc/client";
 import { useSuspenseQuery } from "@tanstack/react-query";
 import type { ApiGetScoresResponseData } from "langfuse";
 import { toast } from "sonner";
-import type { CustomUIMessage } from "@/lib/ai/tools";
-import { client } from "@/lib/orpc/orpc";
-import { chatQueryOptions } from "@/lib/query-options/chat";
 import {
 	Conversation,
 	ConversationContent,
 	ConversationScrollButton,
-} from "../ai-elements/conversation";
+} from "@/components/ai-elements/conversation";
+import type { CustomUIMessage } from "@/lib/ai/tools";
+import { client } from "@/lib/orpc/orpc";
+import { chatQueryOptions } from "@/lib/query-options/chat";
 import { ChatInput } from "./chat-input";
 import { ChatPlaceholder } from "./chat-placeholder";
-import { MessageBlock } from "./message-block";
+import { MessageBlock } from "./message/message-block";
 import { ShinyText } from "./shiny-text";
 
 const Chat = ({

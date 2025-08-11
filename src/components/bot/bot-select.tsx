@@ -1,12 +1,17 @@
 import { useQuery } from "@tanstack/react-query";
 import { BotIcon, SearchIcon } from "lucide-react";
 import { useDebounceValue } from "usehooks-ts";
+import { Badge } from "@/components/ui/badge";
+import {
+	Card,
+	CardDescription,
+	CardHeader,
+	CardTitle,
+} from "@/components/ui/card";
+import { Input } from "@/components/ui/input";
+import { Skeleton } from "@/components/ui/skeleton";
 import type { Bot } from "@/lib/orpc/schemas/bot";
 import { botQueryOptions } from "@/lib/query-options/bot";
-import { Badge } from "../ui/badge";
-import { Card, CardDescription, CardHeader, CardTitle } from "../ui/card";
-import { Input } from "../ui/input";
-import { Skeleton } from "../ui/skeleton";
 
 interface BotSelectProps {
 	onBotSelect: (bot: Bot | null) => void;
