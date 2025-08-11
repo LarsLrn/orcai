@@ -1,5 +1,3 @@
-/* import "server-only"; */
-
 import { Langfuse } from "langfuse";
 
 export const langfuseServer = new Langfuse({

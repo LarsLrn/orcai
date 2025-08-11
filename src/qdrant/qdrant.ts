@@ -1,5 +1,3 @@
-/* import "server-only"; */
-
 import { QdrantClient } from "@qdrant/qdrant-js";
 import { qdrantCollections } from "./qdrant-constants";
 
