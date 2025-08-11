@@ -1,6 +1,5 @@
 import { useSuspenseQuery } from "@tanstack/react-query";
 import { createFileRoute, Link } from "@tanstack/react-router";
-import { zodValidator } from "@tanstack/zod-adapter";
 import { columns } from "@/components/blocks/table/columns";
 import { buttonVariants } from "@/components/ui/button";
 import { DataTable } from "@/components/ui/data-table/data-table";
@@ -11,7 +10,7 @@ import { paginationSchema } from "@/lib/orpc/schemas/shared";
 import { blockQueryOptions } from "@/lib/query-options/block";
 
 export const Route = createFileRoute("/app/blocks/")({
-	validateSearch: zodValidator(paginationSchema),
+	validateSearch: paginationSchema,
 	loaderDeps: ({ search: { pageIndex, pageSize } }) => ({
 		pageIndex,
 		pageSize,

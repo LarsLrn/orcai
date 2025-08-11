@@ -1,5 +1,4 @@
 import { createFileRoute } from "@tanstack/react-router";
-import { zodValidator } from "@tanstack/zod-adapter";
 import { z } from "zod/v4";
 import { QdrantPlaygroundForm } from "@/components/documents/playground/qdrant-playground-form";
 import QdrantPlaygroundResults from "@/components/documents/playground/qdrant-playground-results";
@@ -10,7 +9,7 @@ const searchParams = z.object({
 });
 
 export const Route = createFileRoute("/app/assets/playground")({
-	validateSearch: zodValidator(searchParams),
+	validateSearch: searchParams,
 	component: RouteComponent,
 	head: () => ({
 		meta: [

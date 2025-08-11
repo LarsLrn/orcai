@@ -1,6 +1,5 @@
 import { useSuspenseQuery } from "@tanstack/react-query";
 import { createFileRoute, Link } from "@tanstack/react-router";
-import { zodValidator } from "@tanstack/zod-adapter";
 import { columns } from "@/components/courses/table/columns";
 import { CoursesDataTableSelectActions } from "@/components/courses/table/courses-data-table-select-actions";
 import { buttonVariants } from "@/components/ui/button";
@@ -12,7 +11,7 @@ import { paginationSchema } from "@/lib/orpc/schemas/shared";
 import { courseQueryOptions } from "@/lib/query-options/course";
 
 export const Route = createFileRoute("/app/courses/")({
-	validateSearch: zodValidator(paginationSchema),
+	validateSearch: paginationSchema,
 	loaderDeps: ({ search: { pageIndex, pageSize } }) => ({
 		pageIndex,
 		pageSize,

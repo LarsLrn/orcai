@@ -1,6 +1,5 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { createServerFn } from "@tanstack/react-start";
-import { zodValidator } from "@tanstack/zod-adapter";
 import { eq, getTableColumns } from "drizzle-orm";
 import { CalendarXIcon } from "lucide-react";
 import z from "zod/v4";
@@ -44,11 +43,9 @@ const getCourseInvitationById = createServerFn({
 
 export const Route = createFileRoute("/_pathlessLayout/register")({
 	component: RouteComponent,
-	validateSearch: zodValidator(
-		z.object({
-			inv: z.string().optional(),
-		}),
-	),
+	validateSearch: z.object({
+		inv: z.string().optional(),
+	}),
 	loaderDeps: ({ search }) => ({
 		inv: search.inv,
 	}),

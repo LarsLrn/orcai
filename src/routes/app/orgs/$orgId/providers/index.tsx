@@ -1,6 +1,5 @@
 import { useSuspenseQuery } from "@tanstack/react-query";
 import { createFileRoute, Link } from "@tanstack/react-router";
-import { zodValidator } from "@tanstack/zod-adapter";
 import { organizationProviderTableColumns } from "@/components/organizations/providers/table/organization-provider-table-columns";
 import { buttonVariants } from "@/components/ui/button";
 import { DataTable } from "@/components/ui/data-table/data-table";
@@ -11,7 +10,7 @@ import { paginationSchema } from "@/lib/orpc/schemas/shared";
 import { organizationProviderQueryOptions } from "@/lib/query-options/organization-provider";
 
 export const Route = createFileRoute("/app/orgs/$orgId/providers/")({
-	validateSearch: zodValidator(paginationSchema),
+	validateSearch: paginationSchema,
 	loaderDeps: ({ search: { pageIndex, pageSize } }) => ({
 		pageIndex,
 		pageSize,

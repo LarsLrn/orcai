@@ -1,6 +1,5 @@
 import { useSuspenseQuery } from "@tanstack/react-query";
 import { createFileRoute, Link } from "@tanstack/react-router";
-import { zodValidator } from "@tanstack/zod-adapter";
 import { AssetTableActions } from "@/components/documents/table/asset-table-actions";
 import { columns } from "@/components/documents/table/columns";
 import { buttonVariants } from "@/components/ui/button";
@@ -12,7 +11,7 @@ import { paginationSchema } from "@/lib/orpc/schemas/shared";
 import { assetQueryOptions } from "@/lib/query-options/asset";
 
 export const Route = createFileRoute("/app/assets/")({
-	validateSearch: zodValidator(paginationSchema),
+	validateSearch: paginationSchema,
 	loaderDeps: ({ search: { pageIndex, pageSize } }) => ({
 		pageIndex,
 		pageSize,
