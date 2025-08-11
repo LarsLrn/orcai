@@ -2,7 +2,7 @@ import fs from "node:fs";
 import path from "node:path";
 import { createFileRoute } from "@tanstack/react-router";
 import { createServerFn } from "@tanstack/react-start";
-import { Markdown } from "@/components/chat/markdown";
+import { Markdown } from "@/components/app/markdown";
 import { Card, CardContent } from "@/components/ui/card";
 
 const getMarkdownContent = createServerFn({ method: "GET" }).handler(() => {

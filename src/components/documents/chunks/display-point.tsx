@@ -1,4 +1,4 @@
-import { Markdown } from "@/components/chat/markdown";
+import { Markdown } from "@/components/app/markdown";
 import {
 	Card,
 	CardContent,
