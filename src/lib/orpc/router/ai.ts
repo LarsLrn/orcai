@@ -4,6 +4,7 @@ import {
 	convertToModelMessages,
 	createUIMessageStream,
 	extractReasoningMiddleware,
+	smoothStream,
 	stepCountIs,
 	streamText,
 	wrapLanguageModel,
@@ -105,6 +106,10 @@ export const aiChat = authed.ai.chat
 							templateBlock.config.systemPrompt ??
 							"You are a helpful assistant.",
 						messages: convertToModelMessages(input.messages),
+						experimental_transform: smoothStream({
+							delayInMs: 20,
+							chunking: "line",
+						}),
 						/* experimental_telemetry: {
               isEnabled: true,
               metadata: {
