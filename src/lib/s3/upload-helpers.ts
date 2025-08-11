@@ -1,7 +1,5 @@
 import type { FileType } from "@/types/file";
 
-export type ObjectMetadata = Record<string, string>;
-
 function createAbortHandler(
 	xhr: XMLHttpRequest,
 	reject: (reason?: any) => void,
@@ -15,7 +13,7 @@ function createAbortHandler(
 export async function uploadFileToS3(params: {
 	signedUrl: string;
 	file: File;
-	objectMetadata: ObjectMetadata;
+	objectMetadata: Record<string, string>;
 	onProgress?: (progress: number) => void;
 	signal?: AbortSignal;
 }) {
