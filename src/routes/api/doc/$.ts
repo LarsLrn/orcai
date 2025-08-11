@@ -1,20 +1,20 @@
+import { trace } from "@opentelemetry/api";
 import { experimental_SmartCoercionPlugin as SmartCoercionPlugin } from "@orpc/json-schema";
 import { OpenAPIGenerator } from "@orpc/openapi";
 import { OpenAPIHandler } from "@orpc/openapi/fetch";
 import { OpenAPIReferencePlugin } from "@orpc/openapi/plugins";
-import { onError } from "@orpc/server";
+import { ORPCError, onError, ValidationError } from "@orpc/server";
 import {
 	BatchHandlerPlugin,
 	StrictGetMethodPlugin,
 } from "@orpc/server/plugins";
 import { ZodToJsonSchemaConverter } from "@orpc/zod/zod4";
 import { createServerFileRoute } from "@tanstack/react-start/server";
+import { z } from "zod/v4";
 import { router } from "@/lib/orpc/router";
 
 const openAPIGenerator = new OpenAPIGenerator({
-	schemaConverters: [
-		new ZodToJsonSchemaConverter(), // <-- if you use Zod
-	],
+	schemaConverters: [new ZodToJsonSchemaConverter()],
 });
 
 const specFromRouter = await openAPIGenerator.generate(router, {
@@ -34,10 +34,56 @@ const specFromRouter = await openAPIGenerator.generate(router, {
 });
 
 const openAPIHandler = new OpenAPIHandler(router, {
+	clientInterceptors: [
+		onError((error) => {
+			if (
+				error instanceof ORPCError &&
+				error.code === "BAD_REQUEST" &&
+				error.cause instanceof ValidationError
+			) {
+				const zodError = new z.ZodError(
+					error.cause.issues as z.core.$ZodIssue[],
+				);
+
+				throw new ORPCError("INPUT_VALIDATION_FAILED", {
+					status: 422,
+					message: z.prettifyError(zodError),
+					data: z.flattenError(zodError),
+					cause: error.cause,
+				});
+			}
+
+			if (
+				error instanceof ORPCError &&
+				error.code === "INTERNAL_SERVER_ERROR" &&
+				error.cause instanceof ValidationError
+			) {
+				const zodError = new z.ZodError(
+					error.cause.issues as z.core.$ZodIssue[],
+				);
+
+				throw new ORPCError("OUTPUT_VALIDATION_FAILED", {
+					status: 422,
+					message: z.prettifyError(zodError),
+					data: z.flattenError(zodError),
+					cause: error.cause,
+				});
+			}
+		}),
+	],
 	interceptors: [
 		onError((error) => {
 			console.error(error);
 		}),
+		({ request, next }) => {
+			const span = trace.getActiveSpan();
+
+			request.signal?.addEventListener("abort", () => {
+				span?.addEvent("aborted", { reason: String(request.signal?.reason) });
+			});
+
+			return next();
+		},
 	],
 	plugins: [
 		new BatchHandlerPlugin(),

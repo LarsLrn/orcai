@@ -1,3 +1,4 @@
+import { trace } from "@opentelemetry/api";
 import { ORPCError, onError, ValidationError } from "@orpc/server";
 import { RPCHandler } from "@orpc/server/fetch";
 import {
@@ -50,6 +51,15 @@ const handler = new RPCHandler(router, {
 		onError((error) => {
 			console.error(error);
 		}),
+		({ request, next }) => {
+			const span = trace.getActiveSpan();
+
+			request.signal?.addEventListener("abort", () => {
+				span?.addEvent("aborted", { reason: String(request.signal?.reason) });
+			});
+
+			return next();
+		},
 	],
 	plugins: [new BatchHandlerPlugin(), new StrictGetMethodPlugin()],
 });
