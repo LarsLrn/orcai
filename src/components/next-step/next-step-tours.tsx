@@ -166,7 +166,6 @@ const nextStepTours: Tour[] = [
 				showSkip: true,
 				pointerPadding: 10,
 				pointerRadius: 10,
-				viewportID: "chat-viewport",
 			},
 			{
 				icon: null,
