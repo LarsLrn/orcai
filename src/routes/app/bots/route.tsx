@@ -3,7 +3,7 @@ import { LoadingPage } from "@/components/app/loading/loading-page";
 
 export const Route = createFileRoute("/app/bots")({
 	component: RouteComponent,
-	pendingComponent: () => LoadingPage,
+	pendingComponent: LoadingPage,
 	head: () => ({
 		meta: [
 			{
