@@ -7,6 +7,7 @@ import type { ComponentProps, HTMLAttributes } from "react";
 import { memo } from "react";
 import ReactMarkdown, { type Options } from "react-markdown";
 import { components, reactMarkdownPlugins } from "@/components/app/markdown";
+import { useHydrated } from "@/hooks/use-hydrated";
 
 /**
  * Parses markdown text and removes incomplete tokens to prevent partial rendering
@@ -149,9 +150,6 @@ function parseIncompleteMarkdown(text: string): string {
 	return result;
 }
 
-// Create a hardened version of ReactMarkdown
-const HardenedMarkdown = hardenReactMarkdown(ReactMarkdown);
-
 export type ResponseProps = HTMLAttributes<HTMLDivElement> & {
 	options?: Options;
 	children: Options["children"];
@@ -183,6 +181,16 @@ export const Response = memo(
 			typeof children === "string" && shouldParseIncompleteMarkdown
 				? parseIncompleteMarkdown(children)
 				: children;
+
+		/**
+		 * HardenReactMarkdown does not work with SSR, so we are checking
+		 * hydration to skip SSR
+		 * FIXME: Check whether this was resolved upstream
+		 */
+		const hydrated = useHydrated();
+		if (!hydrated) return null;
+
+		const HardenedMarkdown = hardenReactMarkdown(ReactMarkdown);
 
 		return (
 			<div
