@@ -1,3 +1,4 @@
+import path from "node:path";
 import { paraglideVitePlugin as paraglide } from "@inlang/paraglide-js";
 import tailwindcss from "@tailwindcss/vite";
 import { tanstackStart } from "@tanstack/react-start/plugin/vite";
@@ -11,6 +12,16 @@ export default defineConfig({
 	},
 	ssr: {
 		noExternal: ["nextstepjs", "motion"],
+	},
+	resolve: {
+		// Mock Next.js navigation imports that nextstepjs tries to access
+		// FIXME: Check whether this was addressed upstream
+		alias: {
+			"next/navigation": path.resolve(
+				__dirname,
+				"./src/mocks/next-navigation.ts",
+			),
+		},
 	},
 	plugins: [
 		tsConfigPaths({
