@@ -1,5 +1,3 @@
-"use client";
-
 import hardenReactMarkdown from "harden-react-markdown";
 import { cn } from "@/lib/utils";
 import "katex/dist/katex.min.css";
