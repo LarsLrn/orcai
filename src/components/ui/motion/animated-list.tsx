@@ -15,8 +15,8 @@ const AnimatedList = <T,>({
 	children,
 	keyExtractor,
 	className,
-	staggerDelay = 0.15,
-	duration = 0.4,
+	staggerDelay = 0.05,
+	duration = 0.2,
 }: AnimatedListProps<T>) => {
 	return (
 		<div className={className}>
