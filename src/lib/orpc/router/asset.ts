@@ -26,18 +26,23 @@ export const listAssets = authed.asset.list
 			entityType: "asset",
 		});
 
+		const whereConditions = [inArray(assetTable.id, entityIds)];
+		if (input.filters?.ids) {
+			whereConditions.push(inArray(assetTable.id, input.filters.ids));
+		}
+
 		const [data, [rowCount]] = await Promise.all([
 			db
 				.select({ ...getTableColumns(assetTable) })
 				.from(assetTable)
-				.where(and(inArray(assetTable.id, entityIds)))
+				.where(and(...whereConditions))
 				.orderBy(desc(assetTable.createdAt))
 				.limit(input.pageSize)
 				.offset(input.pageIndex * input.pageSize),
 			db
 				.select({ count: count() })
 				.from(assetTable)
-				.where(inArray(assetTable.id, entityIds)),
+				.where(and(...whereConditions)),
 		]);
 
 		return { data, rowCount: rowCount.count };

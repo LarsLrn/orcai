@@ -10,12 +10,20 @@ import { base } from "./base";
 
 export const listAssetsContract = base
 	.route({
-		method: "GET",
+		method: "POST",
 		path: "/assets",
 		summary: "List all assets",
 		tags: ["Assets"],
 	})
-	.input(paginationSchema)
+	.input(
+		paginationSchema.extend({
+			filters: z
+				.object({
+					ids: z.array(assetSelectSchema.shape.id).optional(),
+				})
+				.optional(),
+		}),
+	)
 	.output(z.object({ data: z.array(assetSelectSchema), rowCount: z.number() }));
 
 export const createAssetContract = base
