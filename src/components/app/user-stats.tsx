@@ -26,7 +26,7 @@ const UserStats = ({
 			)}
 			<CardContent className="flex flex-col gap-2">
 				<div className="flex items-center gap-2">
-					<UserIcon className="text-secondary" />
+					<UserIcon className="text-primary" />
 					<div className="space-y-0.5">
 						<p className="text-muted-foreground text-xs">Name</p>
 						<p className="font-medium text-sm">{auth.user.name}</p>
@@ -34,7 +34,7 @@ const UserStats = ({
 				</div>
 
 				<div className="flex items-center gap-2">
-					<MailIcon className="text-secondary" />
+					<MailIcon className="text-primary" />
 					<div className="space-y-0.5">
 						<p className="text-muted-foreground text-xs">Email</p>
 						<p className="font-medium text-sm">{auth.user.email}</p>
