@@ -1,4 +1,4 @@
-import { useMutation, useQueries, useQueryClient } from "@tanstack/react-query";
+import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { convert } from "convert";
 import { formatDistanceToNow } from "date-fns";
 import {
@@ -114,22 +114,13 @@ const AssetCard = ({ asset }: { asset: Asset }) => {
 
 /** --- Grid --- */
 const AssetGrid = ({ assetIds }: { assetIds: Asset["id"][] }) => {
-	const queries = useQueries({
-		queries: assetIds.map((id) =>
-			assetQueryOptions.find({
-				input: { id },
-			}),
-		),
-	});
+	const { data: assets, status } = useQuery(
+		assetQueryOptions.list({
+			input: { filters: { ids: assetIds } },
+		}),
+	);
 
-	const isLoading = queries.some((q) => q.isPending);
-	const hasErrors = queries.some((q) => q.isError);
-	const assets = queries
-		.filter((q) => q.isSuccess && q.data?.data)
-		.map((q) => q.data?.data)
-		.filter((a): a is Asset => Boolean(a));
-
-	if (isLoading) {
+	if (status === "pending") {
 		return (
 			<div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-2 2xl:grid-cols-3">
 				{assetIds.map((id) => (
@@ -143,7 +134,7 @@ const AssetGrid = ({ assetIds }: { assetIds: Asset["id"][] }) => {
 		);
 	}
 
-	if (hasErrors && assets.length === 0) {
+	if (status === "error") {
 		return (
 			<Card>
 				<CardContent className="flex h-28 items-center justify-center gap-2 text-red-600 text-sm">
@@ -154,7 +145,7 @@ const AssetGrid = ({ assetIds }: { assetIds: Asset["id"][] }) => {
 		);
 	}
 
-	if (assets.length === 0) {
+	if (assets.rowCount === 0) {
 		return (
 			<Card>
 				<CardContent className="flex h-28 items-center justify-center gap-2 text-muted-foreground text-sm">
@@ -167,7 +158,7 @@ const AssetGrid = ({ assetIds }: { assetIds: Asset["id"][] }) => {
 
 	return (
 		<div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-2 2xl:grid-cols-3">
-			{assets.map((asset) => (
+			{assets.data.map((asset) => (
 				<AssetCard key={asset.id} asset={asset} />
 			))}
 		</div>
