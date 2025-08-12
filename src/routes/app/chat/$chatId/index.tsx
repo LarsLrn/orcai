@@ -1,6 +1,5 @@
 import { useSuspenseQuery } from "@tanstack/react-query";
 import { createFileRoute } from "@tanstack/react-router";
-import { Suspense } from "react";
 import { Chat } from "@/components/chat/chat";
 import type { CustomUIMessage } from "@/lib/ai/tools";
 import { chatQueryOptions } from "@/lib/query-options/chat";
@@ -41,13 +40,11 @@ function RouteComponent() {
 
 	return (
 		<div className="-my-6 -mx-2 sm:-mx-2 h-[calc(100dvh-64px)]">
-			<Suspense fallback={<div>Loading...</div>}>
-				<Chat
-					id={chatId}
-					initialMessages={messagesQuery.data.data as CustomUIMessage[]}
-					scores={messagesQuery.data.scores.data}
-				/>
-			</Suspense>
+			<Chat
+				id={chatId}
+				initialMessages={messagesQuery.data.data as CustomUIMessage[]}
+				scores={messagesQuery.data.scores.data}
+			/>
 		</div>
 	);
 }
