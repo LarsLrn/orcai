@@ -1,5 +1,5 @@
 import type { UseChatHelpers } from "@ai-sdk/react";
-import { GlobeIcon, MicIcon } from "lucide-react";
+import { CompassIcon, GlobeIcon, MicIcon } from "lucide-react";
 import { useState } from "react";
 import {
 	PromptInput,
@@ -10,6 +10,7 @@ import {
 	PromptInputTools,
 } from "@/components/ai-elements/prompt-input";
 import { ChatSettings } from "@/components/chat/chat-settings";
+import { AppTourButton } from "@/components/next-step/app-tour-button";
 import type { CustomUIMessage } from "@/lib/ai/tools";
 import type { Chat } from "@/lib/orpc/schemas/chat";
 
@@ -44,6 +45,18 @@ const ChatInput = ({
 					<PromptInputButton>
 						<GlobeIcon size={16} />
 						<span>Search</span>
+					</PromptInputButton>
+					<PromptInputButton asChild>
+						<AppTourButton
+							tour="chatTour"
+							type="button"
+							variant="ghost"
+							size="icon"
+							autoTrigger={true}
+						>
+							<CompassIcon className="size-4" />
+							<span className="sr-only">Start tour</span>
+						</AppTourButton>
 					</PromptInputButton>
 					<PromptInputButton asChild>
 						<ChatSettings chatId={chatId} className="text-muted-foreground" />
