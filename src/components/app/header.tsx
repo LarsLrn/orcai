@@ -1,6 +1,5 @@
 import { Link, useMatches } from "@tanstack/react-router";
 import { HomeIcon } from "lucide-react";
-import { Fragment } from "react/jsx-runtime";
 import { ThemeSwitcher } from "@/components/app/theme-switcher";
 import {
 	Breadcrumb,
@@ -9,6 +8,7 @@ import {
 	BreadcrumbSeparator,
 } from "@/components/ui/breadcrumb";
 import { buttonVariants } from "@/components/ui/button";
+import { AnimatedList } from "@/components/ui/motion/animated-list";
 import { Separator } from "@/components/ui/separator";
 import { SidebarTrigger } from "@/components/ui/sidebar";
 import { cn } from "@/lib/utils";
@@ -50,25 +50,33 @@ const Header = () => {
 							</Link>
 						</BreadcrumbItem>
 
-						{breadcrumbItems.map((item) => (
-							<Fragment key={item.href}>
-								<BreadcrumbSeparator className="hidden md:block" />
-								<BreadcrumbItem>
-									<Link
-										to={item.href}
-										className={cn(
-											buttonVariants({
-												variant: "subtle",
-												size: "sm",
-												className: "h-7",
-											}),
-										)}
-									>
-										{item.label}
-									</Link>
-								</BreadcrumbItem>
-							</Fragment>
-						))}
+						<AnimatedList
+							items={breadcrumbItems}
+							keyExtractor={(item) => item.href}
+							staggerDelay={0.15}
+							duration={0.4}
+							className="flex items-center gap-1"
+						>
+							{(item) => (
+								<div className="flex items-center gap-1" key={item.href}>
+									<BreadcrumbSeparator className="hidden md:block" />
+									<BreadcrumbItem>
+										<Link
+											to={item.href}
+											className={cn(
+												buttonVariants({
+													variant: "subtle",
+													size: "sm",
+													className: "h-7",
+												}),
+											)}
+										>
+											{item.label}
+										</Link>
+									</BreadcrumbItem>
+								</div>
+							)}
+						</AnimatedList>
 					</BreadcrumbList>
 				</Breadcrumb>
 				<div className="flex gap-2">
