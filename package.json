@@ -25,6 +25,11 @@
 		"machine-translate": "inlang machine translate --project project.inlang",
 		"prepare": "husky"
 	},
+	"lint-staged": {
+		"*.{ts,tsx,js,jsx,cjs,mjs,json,css,md}": [
+			"biome format --write"
+		]
+	},
 	"dependencies": {
 		"@ai-sdk/openai": "^2.0.9",
 		"@ai-sdk/openai-compatible": "^1.0.5",
@@ -173,6 +178,7 @@
 		"drizzle-kit": "^0.31.4",
 		"husky": "^9.1.7",
 		"knip": "^5.62.0",
+		"lint-staged": "^16.1.5",
 		"tsx": "^4.20.3",
 		"tw-animate-css": "^1.3.6",
 		"typescript": "^5.9.2",
