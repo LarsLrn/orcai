@@ -1,6 +1,6 @@
 import { trace } from "@opentelemetry/api";
 import { ORPCError, onError, ValidationError } from "@orpc/server";
-import { RPCHandler } from "@orpc/server/fetch";
+import { CompressionPlugin, RPCHandler } from "@orpc/server/fetch";
 import {
 	BatchHandlerPlugin,
 	StrictGetMethodPlugin,
@@ -61,7 +61,11 @@ const handler = new RPCHandler(router, {
 			return next();
 		},
 	],
-	plugins: [new BatchHandlerPlugin(), new StrictGetMethodPlugin()],
+	plugins: [
+		new BatchHandlerPlugin(),
+		new StrictGetMethodPlugin(),
+		new CompressionPlugin(),
+	],
 });
 
 async function handle({ request }: { request: Request }) {
