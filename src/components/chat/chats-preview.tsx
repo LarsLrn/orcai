@@ -7,6 +7,8 @@ const ChatsPreview = () => {
 	return (
 		<div className="col-span-3 space-y-4">
 			<div className="flex items-center justify-between">
+				{/** TODO: Consider centralising ids used by next-step */}
+				{/** biome-ignore lint/correctness/useUniqueElementIds: <Required for next-step to work properly> */}
 				<h2 id="tour-history" className="font-semibold text-2xl tracking-tight">
 					Your Recent Conversations
 				</h2>

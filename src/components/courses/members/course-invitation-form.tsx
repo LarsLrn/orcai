@@ -6,6 +6,7 @@ import {
 } from "@tanstack/react-query";
 import { useNavigate } from "@tanstack/react-router";
 import { AlertCircle, CircleMinusIcon } from "lucide-react";
+import { useId } from "react";
 import { useFieldArray, useForm } from "react-hook-form";
 import { toast } from "sonner";
 import { FormDatetimeField } from "@/components/forms/fields/form-datetime-field";
@@ -42,6 +43,7 @@ import { courseInvitationQueryOptions } from "@/lib/query-options/course-invitat
 const CourseInvitationForm = () => {
 	const navigate = useNavigate();
 	const queryClient = useQueryClient();
+	const bulkEmailsId = useId();
 	const { data: courses } = useSuspenseQuery(
 		courseQueryOptions.list({
 			input: { pageIndex: 0, pageSize: 100 },
@@ -221,7 +223,7 @@ const CourseInvitationForm = () => {
 									<div className="flex flex-col gap-4">
 										<Textarea
 											name="bulkEmails"
-											id="bulkEmails"
+											id={bulkEmailsId}
 											rows={5}
 											placeholder="Add emails here, separated by new lines"
 										/>
@@ -230,7 +232,7 @@ const CourseInvitationForm = () => {
 												type="button"
 												onClick={() => {
 													const textArea = document.getElementById(
-														"bulkEmails",
+														bulkEmailsId,
 													) as HTMLTextAreaElement;
 
 													handleBulkPaste(textArea);

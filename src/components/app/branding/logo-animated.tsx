@@ -220,14 +220,8 @@ const LogoAnimated = ({
 			>
 				<title>SokratesT</title>
 				<g transform="matrix(1,0,0,1,-1197,-2600)">
-					<g
-						id="logo_svg"
-						transform="matrix(1.07715,0,0,0.765273,684.275,2117.88)"
-					>
-						<g
-							id="Layer4"
-							transform="matrix(0.928372,0,0,1.30672,105.58,-195.849)"
-						>
+					<g transform="matrix(1.07715,0,0,0.765273,684.275,2117.88)">
+						<g transform="matrix(0.928372,0,0,1.30672,105.58,-195.849)">
 							{/* Background elements - drawn first */}
 							<g>
 								{/* Path backgrounds */}

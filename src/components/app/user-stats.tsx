@@ -11,6 +11,8 @@ const UserStats = ({
 	const { auth } = useRouteContext({ from: "/app" });
 
 	return (
+		// TODO: Consider centralising ids used by next-step
+		// biome-ignore lint/correctness/useUniqueElementIds: <Required for next-step to work properly>
 		<Card className="relative h-fit" id="tour-account">
 			{showSettingsLink && (
 				<Link

@@ -178,14 +178,8 @@ const LogoTextAnimated = ({
 			>
 				<title>loading</title>
 				<g transform="matrix(1,0,0,1,-1.13687e-13,-2273)">
-					<g
-						id="svg_animate"
-						transform="matrix(0.932866,0,0,0.27224,-444.044,2101.49)"
-					>
-						<g
-							id="Layer4"
-							transform="matrix(1.07197,0,0,3.67323,-32.1117,-3906.44)"
-						>
+					<g transform="matrix(0.932866,0,0,0.27224,-444.044,2101.49)">
+						<g transform="matrix(1.07197,0,0,3.67323,-32.1117,-3906.44)">
 							<g>
 								{paths.map((path, i) => (
 									<AnimatePath
