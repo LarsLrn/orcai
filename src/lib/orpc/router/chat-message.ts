@@ -43,11 +43,7 @@ export const listChatMessages = authed.chatMessage.list
 		if (input.includeScores) {
 			scores = await langfuseServer.api.scoreV2Get({
 				scoreIds: data
-					.map((message) => {
-						if (message.role !== "user") {
-							return message.id;
-						}
-					})
+					.map((message) => (message.role !== "user" ? message.id : undefined))
 					.join(","),
 			});
 		}
