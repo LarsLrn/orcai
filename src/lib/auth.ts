@@ -9,6 +9,7 @@ import { db } from "@/db/drizzle";
 import { account, session, user, verification } from "@/db/schema/auth";
 
 export const auth = betterAuth({
+	telemetry: { enabled: false },
 	trustedOrigins: [
 		import.meta.env.VITE_BASE_URL,
 		"http://host.docker.internal:3000",
