@@ -5,9 +5,9 @@ import {
 	overwriteGetLocale,
 	strategy,
 } from "./paraglide/runtime.js";
-import { createRouter } from "./router";
+import { createAppRouter } from "./router";
 
-const router = createRouter(window.location.pathname);
+const router = createAppRouter(window.location.pathname);
 
 /**
  * BEGINING

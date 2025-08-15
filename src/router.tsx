@@ -1,14 +1,14 @@
-import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
-import { createRouter as createTanStackRouter } from "@tanstack/react-router";
+import { QueryClient } from "@tanstack/react-query";
+import { createRouter } from "@tanstack/react-router";
+import { setupRouterSsrQueryIntegration } from "@tanstack/react-router-ssr-query";
 import { DefaultErrorBoundary } from "./components/boundaries/default-error";
 import { NotFound } from "./components/boundaries/not-found";
 import { getRouterBasepath } from "./lib/i18n/router-basepath";
 import { routeTree } from "./routeTree.gen";
 
-const queryClient = new QueryClient();
-
-export function createRouter(pathname?: string) {
-	const router = createTanStackRouter({
+export function createAppRouter(pathname?: string) {
+	const queryClient = new QueryClient();
+	const router = createRouter({
 		routeTree,
 		scrollRestoration: true,
 		defaultPreload: "intent",
@@ -16,13 +16,11 @@ export function createRouter(pathname?: string) {
 		defaultErrorComponent: DefaultErrorBoundary,
 		defaultNotFoundComponent: () => <NotFound />,
 		context: { queryClient },
-		Wrap: function WrapComponent({ children }) {
-			return (
-				<QueryClientProvider client={queryClient}>
-					{children}
-				</QueryClientProvider>
-			);
-		},
+	});
+
+	setupRouterSsrQueryIntegration({
+		router,
+		queryClient,
 	});
 
 	return router;
