@@ -417,7 +417,7 @@ const splitRef = (
 		DoclingDocument,
 		"pictures" | "texts" | "groups" | "tables"
 	>;
-	const index = Number.parseInt(refComponents[2]);
+	const index = Number.parseInt(refComponents[2], 10);
 
 	return {
 		type,

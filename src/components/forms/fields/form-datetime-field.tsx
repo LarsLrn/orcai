@@ -95,9 +95,9 @@ function FormDatetimeField<TFieldValues extends FieldValues = FieldValues>({
 						const today = new Date();
 						const [hours, minutes, seconds = "00"] = timeString.split(":");
 						today.setHours(
-							Number.parseInt(hours),
-							Number.parseInt(minutes),
-							Number.parseInt(seconds),
+							Number.parseInt(hours, 10),
+							Number.parseInt(minutes, 10),
+							Number.parseInt(seconds, 10),
 						);
 						field.onChange(today);
 						return;
@@ -106,9 +106,9 @@ function FormDatetimeField<TFieldValues extends FieldValues = FieldValues>({
 					const newDate = new Date(field.value);
 					const [hours, minutes, seconds = "00"] = timeString.split(":");
 					newDate.setHours(
-						Number.parseInt(hours),
-						Number.parseInt(minutes),
-						Number.parseInt(seconds),
+						Number.parseInt(hours, 10),
+						Number.parseInt(minutes, 10),
+						Number.parseInt(seconds, 10),
 					);
 					field.onChange(newDate);
 				};
