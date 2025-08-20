@@ -1,6 +1,6 @@
 import { PutObjectCommand } from "@aws-sdk/client-s3";
 import type { Size } from "@docling/docling-core";
-import { logger, task } from "@trigger.dev/sdk/v3";
+import { logger, task } from "@trigger.dev/sdk";
 import FormData from "form-data";
 import nodeFetch from "node-fetch";
 /* import type { ProcessingStatus } from "@/app/api/docs/processing/route"; */
@@ -63,9 +63,10 @@ export const processAssetTask = task({
 	id: "process-asset-task",
 	maxDuration: 1200,
 	queue: {
+		name: "processing-assets-queue",
 		concurrencyLimit: 2,
 	},
-	async onSuccess(payload) {
+	async onSuccess({ payload }) {
 		// Wait for 5 seconds before vectorizing the asset
 		// TODO: This is a temporary workaround to ensure the file is fully processed
 		await new Promise((resolve) => setTimeout(resolve, 5000));

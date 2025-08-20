@@ -1,5 +1,5 @@
 import { RecursiveCharacterTextSplitter } from "@langchain/textsplitters";
-import { logger, task } from "@trigger.dev/sdk/v3";
+import { logger, task } from "@trigger.dev/sdk";
 import { embedMany, generateText } from "ai";
 import pMap from "p-map";
 import { v4 as uuidv4 } from "uuid";
@@ -28,6 +28,7 @@ export const vectorizeAssetTask = task({
 	id: "vectorize-asset-task",
 	maxDuration: 1800,
 	queue: {
+		name: "processing-embeddings-queue",
 		concurrencyLimit: 1,
 	},
 	run: async (payload: VectorizeAssetTaskPayload) => {

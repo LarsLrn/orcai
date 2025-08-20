@@ -1,4 +1,4 @@
-import { tasks } from "@trigger.dev/sdk/v3";
+import { tasks } from "@trigger.dev/sdk";
 import { eq, inArray } from "drizzle-orm";
 import { db } from "@/db/drizzle";
 import { assetTable } from "@/db/schema/asset";
@@ -34,13 +34,6 @@ export const createAssetTask = authed.task.createAssetTask
 							blockId: input.blockId,
 							mergePages: doc.metadata.mergePages ?? true,
 						},
-						options: {
-							concurrencyKey: "PROCESSING_ASSET_CONCURRENCY_KEY",
-							queue: {
-								name: "processing-assets-queue",
-								concurrencyLimit: 1,
-							},
-						},
 					})),
 				);
 
@@ -66,13 +59,6 @@ export const createAssetTask = authed.task.createAssetTask
 							assetId: doc.id,
 							blockId: input.blockId,
 							mergePages: doc.metadata.mergePages ?? true,
-						},
-						options: {
-							concurrencyKey: "GENERATING_EMBEDDING_CONCURRENCY_KEY",
-							queue: {
-								name: "processing-embeddings-queue",
-								concurrencyLimit: 2,
-							},
 						},
 					})),
 				);
@@ -123,13 +109,6 @@ export const createDatabaseBlockVectorStore =
 								},
 								blockId: input.blockId,
 								mergePages: doc.metadata.mergePages ?? true,
-							},
-							options: {
-								concurrencyKey: "PROCESSING_ASSET_CONCURRENCY_KEY",
-								queue: {
-									name: "processing-assets-queue",
-									concurrencyLimit: 1,
-								},
 							},
 						})),
 					);
