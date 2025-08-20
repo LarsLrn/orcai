@@ -42,7 +42,7 @@ const UploadComponent = () => {
 		},
 	});
 
-	const form = useForm<FileUploadSchemaType>({
+	const form = useForm({
 		resolver: zodResolver(fileUploadSchema),
 		defaultValues: {
 			files: [],

@@ -21,7 +21,7 @@ const SignUpForm = ({
 	const navigate = useNavigate();
 	const { trackEvent } = useUmami();
 
-	const form = useForm<SignupSchemaType>({
+	const form = useForm({
 		resolver: zodResolver(signupSchema),
 		defaultValues: {
 			email: invitation?.email || "",

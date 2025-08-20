@@ -25,7 +25,7 @@ const AssetForm = ({ asset }: { asset: Asset }) => {
 		assetQueryOptions.update(queryClient),
 	);
 
-	const form = useForm<AssetUpdate>({
+	const form = useForm({
 		resolver: zodResolver(assetUpdateSchema),
 		defaultValues: {
 			id: asset.id,

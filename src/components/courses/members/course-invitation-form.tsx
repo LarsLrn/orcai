@@ -54,7 +54,7 @@ const CourseInvitationForm = () => {
 		courseInvitationQueryOptions.create(queryClient),
 	);
 
-	const form = useForm<CourseInvitationInsert>({
+	const form = useForm({
 		resolver: zodResolver(courseInvitationInsertSchema),
 		defaultValues: {
 			courseId: undefined,

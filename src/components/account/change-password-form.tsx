@@ -21,15 +21,12 @@ const changePasswordSchema = z
 		path: ["confirmPassword"],
 	});
 
-// Infer the type from the local schema
-type ChangePasswordSchemaType = z.infer<typeof changePasswordSchema>;
-
 const ChangePasswordForm = () => {
 	const { mutateAsync: updatePassword } = useMutation(
 		userQueryOptions.updatePassword(),
 	);
 
-	const form = useForm<ChangePasswordSchemaType>({
+	const form = useForm({
 		resolver: zodResolver(changePasswordSchema),
 		defaultValues: {
 			currentPassword: "",
@@ -38,7 +35,7 @@ const ChangePasswordForm = () => {
 		},
 	});
 
-	const onSubmit = (values: ChangePasswordSchemaType) => {
+	const onSubmit = (values: z.infer<typeof changePasswordSchema>) => {
 		toast.promise(
 			updatePassword({
 				currentPassword: values.currentPassword,

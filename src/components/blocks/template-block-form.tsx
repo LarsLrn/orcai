@@ -43,7 +43,7 @@ const TemplateBlockForm = ({ block }: { block?: TemplateBlock }) => {
 		blockQueryOptions.create(queryClient),
 	);
 
-	const form = useForm<Extract<BlockInsert, { type: "template" }>>({
+	const form = useForm({
 		resolver: zodResolver(blockInsertSchema.def.options[0]),
 		defaultValues: {
 			type: "template",

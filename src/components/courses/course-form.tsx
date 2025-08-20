@@ -1,6 +1,7 @@
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { useRouter } from "@tanstack/react-router";
+import type { Content } from "@tiptap/core";
 import { useForm } from "react-hook-form";
 import { toast } from "sonner";
 import { BlockEditor } from "@/components/editor";
@@ -31,7 +32,7 @@ const CourseForm = ({ course }: { course?: Course }) => {
 		courseQueryOptions.create(queryClient),
 	);
 
-	const form = useForm<CourseInsert>({
+	const form = useForm({
 		resolver: zodResolver(courseInsertSchema),
 		defaultValues: {
 			title: course?.title ?? undefined,
@@ -119,7 +120,7 @@ const CourseForm = ({ course }: { course?: Course }) => {
 								</Label>
 								{/* TODO: Improve handling of JSON */}
 								<BlockEditor
-									content={form.getValues("contentJson")}
+									content={form.getValues("contentJson") as Content}
 									onUpdate={(value) => {
 										form.setValue("contentJson", value.getJSON());
 										form.setValue("contentHtml", value.getHTML());

@@ -1,6 +1,7 @@
 import { DndContext, type DragEndEvent } from "@dnd-kit/core";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useSuspenseQuery } from "@tanstack/react-query";
+import type { Content } from "@tiptap/core";
 import { Suspense, useState } from "react";
 import { useForm } from "react-hook-form";
 import { toast } from "sonner";
@@ -32,7 +33,7 @@ const BotBuilderForm = ({ initialData, onSubmit }: BotBuilderFormProps) => {
 
 	const [isDragging, setIsDragging] = useState(false);
 
-	const form = useForm<BotInsert>({
+	const form = useForm({
 		resolver: zodResolver(botInsertSchema),
 		mode: "onSubmit", // Validate on submit
 		reValidateMode: "onChange", // Re-validate on change after first submit
@@ -149,7 +150,7 @@ const BotBuilderForm = ({ initialData, onSubmit }: BotBuilderFormProps) => {
 							</Label>
 							{/* TODO: Improve handling of JSON */}
 							<BlockEditor
-								content={form.getValues("contentJson")}
+								content={form.getValues("contentJson") as Content}
 								onUpdate={(value) => {
 									form.setValue("contentJson", value.getJSON());
 									form.setValue("contentHtml", value.getHTML());

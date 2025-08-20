@@ -60,7 +60,7 @@ const DatabaseBlockForm = ({
 		}),
 	);
 
-	const form = useForm<Extract<BlockInsert, { type: "database" }>>({
+	const form = useForm({
 		resolver: zodResolver(blockInsertSchema.def.options[1]),
 		mode: "onChange",
 		defaultValues: {

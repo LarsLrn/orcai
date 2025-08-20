@@ -14,7 +14,7 @@ const SignInForm = () => {
 	const navigate = useNavigate();
 	const { trackEvent } = useUmami();
 
-	const form = useForm<LoginSchemaType>({
+	const form = useForm({
 		resolver: zodResolver(loginSchema),
 		defaultValues: {
 			email: undefined,

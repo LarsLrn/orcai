@@ -13,7 +13,7 @@ const QdrantPlaygroundForm = () => {
 	const { search } = useSearch({ from: "/app/assets/playground" });
 	const navigate = useNavigate();
 
-	const form = useForm<QdrantPlaygroundSearchSchemaType>({
+	const form = useForm({
 		resolver: zodResolver(qdrantPlaygroundSearchSchema),
 		defaultValues: {
 			search: search ?? undefined,

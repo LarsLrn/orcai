@@ -48,7 +48,7 @@ const AddUserForm = ({ courses }: { courses: Course[] }) => {
 		organizationInvitationQueryOptions.create(queryClient),
 	);
 
-	const form = useForm<FormValues>({
+	const form = useForm({
 		resolver: zodResolver(schema),
 		defaultValues: {
 			courseId: undefined,

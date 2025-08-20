@@ -28,7 +28,7 @@ const OrganizationForm = ({
 		organizationQueryOptions.create(queryClient),
 	);
 
-	const form = useForm<OrganizationInsert>({
+	const form = useForm({
 		resolver: zodResolver(organizationInsertSchema),
 		defaultValues: {
 			name: organization?.name ?? undefined,

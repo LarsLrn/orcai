@@ -12,7 +12,7 @@ const ProfileForm = () => {
 	const { auth } = useRouteContext({ from: "/app" });
 	const { refetch } = authClient.useSession();
 
-	const form = useForm<UserUpdate>({
+	const form = useForm({
 		resolver: zodResolver(userUpdateSchema),
 		defaultValues: {
 			name: auth.user.name,
