@@ -1,12 +1,13 @@
+import { TanStackDevtools } from "@tanstack/react-devtools";
 import type { QueryClient } from "@tanstack/react-query";
-import { ReactQueryDevtools } from "@tanstack/react-query-devtools";
+import { ReactQueryDevtoolsPanel } from "@tanstack/react-query-devtools";
 import {
 	createRootRouteWithContext,
 	HeadContent,
 	Outlet,
 	Scripts,
 } from "@tanstack/react-router";
-import { TanStackRouterDevtools } from "@tanstack/react-router-devtools";
+import { TanStackRouterDevtoolsPanel } from "@tanstack/react-router-devtools";
 import { createServerFn } from "@tanstack/react-start";
 import { getWebRequest } from "@tanstack/react-start/server";
 import { ThemeProvider } from "next-themes";
@@ -123,8 +124,19 @@ function RootDocument({ children }: Readonly<{ children: ReactNode }>) {
 								mobilePosition="top-right"
 								mobileOffset={{ top: "60px" }}
 							/>
-							<TanStackRouterDevtools position="bottom-right" />
-							<ReactQueryDevtools buttonPosition="bottom-left" />
+							<TanStackDevtools
+								config={{ position: "bottom-right", panelLocation: "bottom" }}
+								plugins={[
+									{
+										name: "TanStack Query",
+										render: <ReactQueryDevtoolsPanel />,
+									},
+									{
+										name: "TanStack Router",
+										render: <TanStackRouterDevtoolsPanel />,
+									},
+								]}
+							/>
 							<Scripts />
 						</TooltipProvider>
 					</ThemeProvider>
