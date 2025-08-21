@@ -28,7 +28,7 @@ import {
 	CollapsibleTrigger,
 } from "@/components/ui/collapsible";
 import { LoadingSpinner } from "@/components/ui/loading-spinner";
-import { AnimatedList } from "@/components/ui/motion/animated-list";
+import { AnimatedGroup } from "@/components/ui/motion/animated-group";
 import type { Asset } from "@/lib/orpc/schemas/asset";
 import type { DatabaseBlock } from "@/lib/orpc/schemas/block";
 import { assetQueryOptions } from "@/lib/query-options/asset";
@@ -153,13 +153,14 @@ const AssetGrid = ({ assetIds }: { assetIds: Asset["id"][] }) => {
 
 	return (
 		<div>
-			<AnimatedList
-				items={assets.data}
-				keyExtractor={(item) => item.id}
+			<AnimatedGroup
 				className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-2 2xl:grid-cols-3"
+				preset="fade"
 			>
-				{(asset) => <AssetCard key={asset.id} asset={asset} />}
-			</AnimatedList>
+				{assets.data.map((asset) => (
+					<AssetCard key={asset.id} asset={asset} />
+				))}
+			</AnimatedGroup>
 		</div>
 	);
 };
