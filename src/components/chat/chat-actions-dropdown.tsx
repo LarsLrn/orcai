@@ -52,12 +52,19 @@ const ChatActionsDropdown = ({
 		});
 
 		if (isConfirmed) {
+			// We need to navigate away from the chat before it's deleted to avoid
+			// refetching the deleted chat. This is not critical, but avoids a backend error.
+			if (params.chatId && params.chatId === chatId) {
+				navigate({ to: "/app/chat" });
+			}
+
 			toast.promise(deleteChat({ refs: [{ id: chatId }] }), {
 				loading: "Deleting chat...",
 				success: () => {
 					trackEvent("chat-delete", {
 						chatId,
 					});
+
 					return "Chat deleted";
 				},
 				error: (error) => ({
@@ -65,10 +72,6 @@ const ChatActionsDropdown = ({
 					description: error.message,
 				}),
 			});
-
-			if (params.chatId && params.chatId === chatId) {
-				await navigate({ to: "/app/chat" });
-			}
 		}
 	};
 
