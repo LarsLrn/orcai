@@ -32,7 +32,7 @@ export const Route = createFileRoute("/app/chat/$chatId/")({
 function RouteComponent() {
 	const { chatId } = Route.useParams();
 
-	const messagesQuery = useSuspenseQuery(
+	const { data } = useSuspenseQuery(
 		chatMessageQueryOptions.list({
 			input: { chatId, includeScores: true },
 		}),
@@ -42,8 +42,8 @@ function RouteComponent() {
 		<div className="-my-6 -mx-2 sm:-mx-2 h-[calc(100dvh-64px)]">
 			<Chat
 				id={chatId}
-				initialMessages={messagesQuery.data.data as CustomUIMessage[]}
-				scores={messagesQuery.data.scores.data}
+				initialMessages={data.data as CustomUIMessage[]}
+				scores={data.scores.data ?? []}
 			/>
 		</div>
 	);
