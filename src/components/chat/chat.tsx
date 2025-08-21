@@ -8,13 +8,13 @@ import {
 	ConversationContent,
 	ConversationScrollButton,
 } from "@/components/ai-elements/conversation";
+import { TextShimmer } from "@/components/ui/motion/text-shimmer";
 import type { CustomUIMessage } from "@/lib/ai/tools";
 import { client } from "@/lib/orpc/orpc";
 import { chatQueryOptions } from "@/lib/query-options/chat";
 import { ChatInput } from "./chat-input";
 import { ChatPlaceholder } from "./chat-placeholder";
 import { MessageBlock } from "./message/message-block";
-import { ShinyText } from "./shiny-text";
 
 const Chat = ({
 	id,
@@ -74,7 +74,7 @@ const Chat = ({
 					{messages.length === 0 && <ChatPlaceholder />}
 					{status === "submitted" && (
 						<div className="sticky m-0 w-full max-w-full whitespace-pre-wrap break-words rounded-none bg-transparent p-4 text-foreground">
-							<ShinyText>Gathering information...</ShinyText>
+							<TextShimmer>Gathering information...</TextShimmer>
 						</div>
 					)}
 					{status === "error" && (
