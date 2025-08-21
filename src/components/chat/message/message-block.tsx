@@ -3,6 +3,7 @@ import type { UIMessage } from "ai";
 import type { ApiGetScoresResponseData } from "langfuse";
 import { Message, MessageContent } from "@/components/ai-elements/message";
 import { MessageEditor } from "@/components/chat/message/message-editor";
+import { InView } from "@/components/ui/motion/in-view";
 import type { CustomUIMessage } from "@/lib/ai/tools";
 import type { Chat } from "@/lib/orpc/schemas/chat";
 import { useMessageEditor } from "./hooks/use-message-editor";
@@ -42,39 +43,48 @@ export const MessageBlock = ({
 	});
 
 	return (
-		<Message from={message.role} key={message.id}>
-			<div className="flex flex-col">
-				{mode === "edit" && variant === "sent" ? (
-					<MessageEditor
-						chatId={chatId}
+		<InView
+			variants={{
+				hidden: { opacity: 0, y: 100, filter: "blur(4px)" },
+				visible: { opacity: 1, y: 0, filter: "blur(0px)" },
+			}}
+			viewOptions={{ margin: "0px 0px -200px 0px" }}
+			transition={{ duration: 0.3, ease: "easeInOut" }}
+		>
+			<Message from={message.role} key={message.id}>
+				<div className="flex flex-col">
+					{mode === "edit" && variant === "sent" ? (
+						<MessageEditor
+							chatId={chatId}
+							message={message}
+							setMode={setViewMode}
+							setMessages={setMessages}
+							regenerate={regenerate}
+							status={status}
+						/>
+					) : (
+						<MessageContent>
+							{sortedParts.map((part, i) => (
+								<MessagePartRenderer
+									key={`${part.type}${message.id}${i}`}
+									part={part}
+								/>
+							))}
+						</MessageContent>
+					)}
+					<MessageActions
 						message={message}
-						setMode={setViewMode}
-						setMessages={setMessages}
-						regenerate={regenerate}
-						status={status}
+						variant={variant}
+						chatId={chatId}
+						onEdit={variant === "sent" ? toggleMode : undefined}
+						score={score}
 					/>
-				) : (
-					<MessageContent>
-						{sortedParts.map((part, i) => (
-							<MessagePartRenderer
-								key={`${part.type}${message.id}${i}`}
-								part={part}
-							/>
-						))}
-					</MessageContent>
-				)}
-				<MessageActions
-					message={message}
-					variant={variant}
-					chatId={chatId}
-					onEdit={variant === "sent" ? toggleMode : undefined}
-					score={score}
-				/>
-				<div className="mt-1 flex items-center justify-end gap-2">
-					<MessageModel message={message} />
-					<MessageUsage message={message} />
+					<div className="mt-1 flex items-center justify-end gap-2">
+						<MessageModel message={message} />
+						<MessageUsage message={message} />
+					</div>
 				</div>
-			</div>
-		</Message>
+			</Message>
+		</InView>
 	);
 };
