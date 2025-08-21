@@ -44,6 +44,7 @@ export const findChat = authed.chat.find
 				entityId: input.id,
 				action: "read",
 				entityType: "chat",
+				consistency: "fullyConsistent",
 			}) as const,
 	)
 	.use(retry({ times: 3 }))

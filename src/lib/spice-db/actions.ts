@@ -1,8 +1,8 @@
 import { v1 } from "@authzed/authzed-node";
 import { getSpiceClient } from ".";
-import type { Action, EntityType, Relation } from "./types";
+import type { Action, Consistency, EntityType, Relation } from "./types";
 
-const spiceClient = await getSpiceClient();
+const spiceClient = getSpiceClient();
 
 export const createRelation = async ({
 	entityId,
@@ -46,11 +46,13 @@ export const checkRelation = async ({
 	entityType,
 	action,
 	userId,
+	consistency = "minimizeLatency",
 }: {
 	entityId: string;
 	entityType: EntityType;
 	action: Action;
 	userId: string;
+	consistency?: Consistency;
 }) => {
 	const resource = v1.ObjectReference.create({
 		objectType: entityType,
@@ -62,8 +64,26 @@ export const checkRelation = async ({
 		objectId: userId,
 	});
 
+	const consistencyMinimizeLatency = v1.Consistency.create({
+		requirement: {
+			oneofKind: "minimizeLatency",
+			minimizeLatency: true,
+		},
+	});
+
+	const consistencyFullyConsistent = v1.Consistency.create({
+		requirement: {
+			oneofKind: "fullyConsistent",
+			fullyConsistent: true,
+		},
+	});
+
 	return await spiceClient.checkPermission(
 		v1.CheckPermissionRequest.create({
+			consistency:
+				consistency === "minimizeLatency"
+					? consistencyMinimizeLatency
+					: consistencyFullyConsistent,
 			resource,
 			permission: action,
 			subject: v1.SubjectReference.create({ object: user }),

@@ -1,4 +1,5 @@
 export type Action = "read" | "create" | "update" | "delete";
+
 export type EntityType =
 	| "course"
 	| "user"
@@ -7,4 +8,7 @@ export type EntityType =
 	| "organization"
 	| "block"
 	| "bot";
+
 export type Relation = "owner" | "member";
+
+export type Consistency = "minimizeLatency" | "fullyConsistent";
