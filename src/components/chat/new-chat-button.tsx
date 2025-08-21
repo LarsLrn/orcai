@@ -36,7 +36,7 @@ const NewChatButton = ({
 			loading: "Creating new chat...",
 			success: async (result) => {
 				// TODO: This is to avoid spiceDB not updating immediately. Find a better solution
-				await new Promise((resolve) => setTimeout(resolve, 500));
+				await new Promise((resolve) => setTimeout(resolve, 1000));
 				await navigate({
 					to: "/app/chat/$chatId",
 					params: { chatId: result.data.id },
