@@ -8,7 +8,7 @@ import {
 	BreadcrumbSeparator,
 } from "@/components/ui/breadcrumb";
 import { buttonVariants } from "@/components/ui/button";
-import { AnimatedList } from "@/components/ui/motion/animated-list";
+import { TextEffect } from "@/components/ui/motion/text-effect";
 import { Separator } from "@/components/ui/separator";
 import { SidebarTrigger } from "@/components/ui/sidebar";
 import { cn } from "@/lib/utils";
@@ -50,33 +50,27 @@ const Header = () => {
 							</Link>
 						</BreadcrumbItem>
 
-						<AnimatedList
-							items={breadcrumbItems}
-							keyExtractor={(item) => item.href}
-							staggerDelay={0.15}
-							duration={0.4}
-							className="flex items-center gap-1"
-						>
-							{(item) => (
-								<div className="flex items-center gap-1" key={item.href}>
-									<BreadcrumbSeparator className="hidden md:block" />
-									<BreadcrumbItem>
-										<Link
-											to={item.href}
-											className={cn(
-												buttonVariants({
-													variant: "subtle",
-													size: "sm",
-													className: "h-7",
-												}),
-											)}
-										>
-											{item.label}
-										</Link>
-									</BreadcrumbItem>
-								</div>
-							)}
-						</AnimatedList>
+						{breadcrumbItems.map((item) => (
+							<div className="flex items-center gap-1" key={item.href}>
+								<BreadcrumbSeparator className="hidden md:block" />
+								<BreadcrumbItem>
+									<Link
+										to={item.href}
+										className={cn(
+											buttonVariants({
+												variant: "subtle",
+												size: "sm",
+												className: "h-7",
+											}),
+										)}
+									>
+										<TextEffect per="char" preset="fade">
+											{item.label as string}
+										</TextEffect>
+									</Link>
+								</BreadcrumbItem>
+							</div>
+						))}
 					</BreadcrumbList>
 				</Breadcrumb>
 				<div className="flex gap-2">
