@@ -9,22 +9,22 @@ importers:
   .:
     dependencies:
       '@ai-sdk/openai':
-        specifier: ^2.0.16
+        specifier: ^2.0.20
         version: 2.0.20(zod@4.1.1)
       '@ai-sdk/openai-compatible':
-        specifier: ^1.0.10
+        specifier: ^1.0.11
         version: 1.0.11(zod@4.1.1)
       '@ai-sdk/react':
-        specifier: ^2.0.18
+        specifier: ^2.0.23
         version: 2.0.23(react@19.1.1)(zod@4.1.1)
       '@authzed/authzed-node':
         specifier: ^1.5.1
         version: 1.5.1
       '@aws-sdk/client-s3':
-        specifier: ^3.864.0
+        specifier: ^3.873.0
         version: 3.873.0
       '@aws-sdk/s3-request-presigner':
-        specifier: ^3.864.0
+        specifier: ^3.873.0
         version: 3.873.0
       '@dnd-kit/core':
         specifier: ^6.3.1
@@ -57,28 +57,28 @@ importers:
         specifier: ^0.203.0
         version: 0.203.0(@opentelemetry/api@1.9.0)
       '@orpc/client':
-        specifier: ^1.8.2
+        specifier: ^1.8.5
         version: 1.8.5(@opentelemetry/api@1.9.0)
       '@orpc/contract':
-        specifier: ^1.8.2
+        specifier: ^1.8.5
         version: 1.8.5(@opentelemetry/api@1.9.0)
       '@orpc/json-schema':
-        specifier: ^1.8.2
+        specifier: ^1.8.5
         version: 1.8.5(@opentelemetry/api@1.9.0)(crossws@0.3.5)(ws@8.18.3)
       '@orpc/openapi':
-        specifier: ^1.8.2
+        specifier: ^1.8.5
         version: 1.8.5(@opentelemetry/api@1.9.0)(crossws@0.3.5)(ws@8.18.3)
       '@orpc/otel':
-        specifier: ^1.8.2
+        specifier: ^1.8.5
         version: 1.8.5(@opentelemetry/api@1.9.0)(@opentelemetry/instrumentation@0.203.0(@opentelemetry/api@1.9.0))
       '@orpc/server':
-        specifier: ^1.8.2
+        specifier: ^1.8.5
         version: 1.8.5(@opentelemetry/api@1.9.0)(crossws@0.3.5)(ws@8.18.3)
       '@orpc/tanstack-query':
-        specifier: ^1.8.2
+        specifier: ^1.8.5
         version: 1.8.5(@opentelemetry/api@1.9.0)(@orpc/client@1.8.5(@opentelemetry/api@1.9.0))(@tanstack/query-core@5.85.5)
       '@orpc/zod':
-        specifier: ^1.8.2
+        specifier: ^1.8.5
         version: 1.8.5(@opentelemetry/api@1.9.0)(@orpc/contract@1.8.5(@opentelemetry/api@1.9.0))(@orpc/server@1.8.5(@opentelemetry/api@1.9.0)(crossws@0.3.5)(ws@8.18.3))(crossws@0.3.5)(ws@8.18.3)(zod@4.1.1)
       '@qdrant/qdrant-js':
         specifier: 1.13.0
@@ -189,73 +189,73 @@ importers:
         specifier: ^8.21.3
         version: 8.21.3(react-dom@19.1.1(react@19.1.1))(react@19.1.1)
       '@tiptap/core':
-        specifier: ^3.2.0
+        specifier: ^3.3.0
         version: 3.3.0(@tiptap/pm@3.3.0)
       '@tiptap/extension-character-count':
-        specifier: ^3.2.0
+        specifier: ^3.3.0
         version: 3.3.0(@tiptap/extensions@3.3.0(@tiptap/core@3.3.0(@tiptap/pm@3.3.0))(@tiptap/pm@3.3.0))
       '@tiptap/extension-code-block-lowlight':
-        specifier: ^3.2.0
+        specifier: ^3.3.0
         version: 3.3.0(@tiptap/core@3.3.0(@tiptap/pm@3.3.0))(@tiptap/extension-code-block@3.3.0(@tiptap/core@3.3.0(@tiptap/pm@3.3.0))(@tiptap/pm@3.3.0))(@tiptap/pm@3.3.0)(highlight.js@10.7.3)(lowlight@1.20.0)
       '@tiptap/extension-heading':
-        specifier: ^3.2.0
+        specifier: ^3.3.0
         version: 3.3.0(@tiptap/core@3.3.0(@tiptap/pm@3.3.0))
       '@tiptap/extension-image':
-        specifier: ^3.2.0
+        specifier: ^3.3.0
         version: 3.3.0(@tiptap/core@3.3.0(@tiptap/pm@3.3.0))
       '@tiptap/extension-link':
-        specifier: ^3.2.0
+        specifier: ^3.3.0
         version: 3.3.0(@tiptap/core@3.3.0(@tiptap/pm@3.3.0))(@tiptap/pm@3.3.0)
       '@tiptap/extension-placeholder':
-        specifier: ^3.2.0
+        specifier: ^3.3.0
         version: 3.3.0(@tiptap/extensions@3.3.0(@tiptap/core@3.3.0(@tiptap/pm@3.3.0))(@tiptap/pm@3.3.0))
       '@tiptap/extension-table':
-        specifier: ^3.2.0
+        specifier: ^3.3.0
         version: 3.3.0(@tiptap/core@3.3.0(@tiptap/pm@3.3.0))(@tiptap/pm@3.3.0)
       '@tiptap/extension-table-cell':
-        specifier: ^3.2.0
+        specifier: ^3.3.0
         version: 3.3.0(@tiptap/extension-table@3.3.0(@tiptap/core@3.3.0(@tiptap/pm@3.3.0))(@tiptap/pm@3.3.0))
       '@tiptap/extension-table-header':
-        specifier: ^3.2.0
+        specifier: ^3.3.0
         version: 3.3.0(@tiptap/extension-table@3.3.0(@tiptap/core@3.3.0(@tiptap/pm@3.3.0))(@tiptap/pm@3.3.0))
       '@tiptap/extension-table-row':
-        specifier: ^3.2.0
+        specifier: ^3.3.0
         version: 3.3.0(@tiptap/extension-table@3.3.0(@tiptap/core@3.3.0(@tiptap/pm@3.3.0))(@tiptap/pm@3.3.0))
       '@tiptap/extension-text-align':
-        specifier: ^3.2.0
+        specifier: ^3.3.0
         version: 3.3.0(@tiptap/core@3.3.0(@tiptap/pm@3.3.0))
       '@tiptap/extension-text-style':
-        specifier: ^3.2.0
+        specifier: ^3.3.0
         version: 3.3.0(@tiptap/core@3.3.0(@tiptap/pm@3.3.0))
       '@tiptap/extension-underline':
-        specifier: ^3.2.0
+        specifier: ^3.3.0
         version: 3.3.0(@tiptap/core@3.3.0(@tiptap/pm@3.3.0))
       '@tiptap/extension-youtube':
-        specifier: ^3.2.0
+        specifier: ^3.3.0
         version: 3.3.0(@tiptap/core@3.3.0(@tiptap/pm@3.3.0))
       '@tiptap/pm':
-        specifier: ^3.2.0
+        specifier: ^3.3.0
         version: 3.3.0
       '@tiptap/react':
-        specifier: ^3.2.0
+        specifier: ^3.3.0
         version: 3.3.0(@floating-ui/dom@1.7.4)(@tiptap/core@3.3.0(@tiptap/pm@3.3.0))(@tiptap/pm@3.3.0)(react-dom@19.1.1(react@19.1.1))(react@19.1.1)
       '@tiptap/starter-kit':
-        specifier: ^3.2.0
+        specifier: ^3.3.0
         version: 3.3.0
       '@tiptap/suggestion':
-        specifier: ^3.2.0
+        specifier: ^3.3.0
         version: 3.3.0(@tiptap/core@3.3.0(@tiptap/pm@3.3.0))(@tiptap/pm@3.3.0)
       '@trigger.dev/build':
-        specifier: ^4.0.0
+        specifier: ^4.0.1
         version: 4.0.1(typescript@5.9.2)
       '@trigger.dev/sdk':
-        specifier: ^4.0.0
+        specifier: ^4.0.1
         version: 4.0.1(ai@5.0.23(zod@4.1.1))(zod@4.1.1)
       '@vitejs/plugin-react':
         specifier: 5.0.1
         version: 5.0.1(vite@7.1.3(@types/node@24.3.0)(jiti@2.5.1)(lightningcss@1.30.1)(terser@5.43.1)(tsx@4.20.5)(yaml@2.8.1))
       ai:
-        specifier: ^5.0.18
+        specifier: ^5.0.23
         version: 5.0.23(zod@4.1.1)
       better-auth:
         specifier: ^1.3.7
@@ -303,8 +303,8 @@ importers:
         specifier: ^1.2.2
         version: 1.2.2
       lucide-react:
-        specifier: ^0.540.0
-        version: 0.540.0(react@19.1.1)
+        specifier: ^0.541.0
+        version: 0.541.0(react@19.1.1)
       motion:
         specifier: ^12.23.12
         version: 12.23.12(react-dom@19.1.1(react@19.1.1))(react@19.1.1)
@@ -345,7 +345,7 @@ importers:
         specifier: ^10.1.0
         version: 10.1.0(@types/react@19.1.11)(react@19.1.1)
       react-syntax-highlighter:
-        specifier: ^15.6.1
+        specifier: ^15.6.5
         version: 15.6.5(react@19.1.1)
       rehype-katex:
         specifier: ^7.0.1
@@ -396,12 +396,12 @@ importers:
         specifier: ^7.1.3
         version: 7.1.3(@types/node@24.3.0)(jiti@2.5.1)(lightningcss@1.30.1)(terser@5.43.1)(tsx@4.20.5)(yaml@2.8.1)
       zod:
-        specifier: ^4.0.17
+        specifier: ^4.1.1
         version: 4.1.1
     devDependencies:
       '@biomejs/biome':
-        specifier: 2.2.0
-        version: 2.2.0
+        specifier: 2.2.2
+        version: 2.2.2
       '@commitlint/cli':
         specifier: ^19.8.1
         version: 19.8.1(@types/node@24.3.0)(typescript@5.9.2)
@@ -427,13 +427,13 @@ importers:
         specifier: ^2.6.13
         version: 2.6.13
       '@types/nodemailer':
-        specifier: ^7.0.0
+        specifier: ^7.0.1
         version: 7.0.1
       '@types/pg':
         specifier: ^8.15.5
         version: 8.15.5
       '@types/react':
-        specifier: ^19.1.10
+        specifier: ^19.1.11
         version: 19.1.11
       '@types/react-dom':
         specifier: ^19.1.7
@@ -448,13 +448,13 @@ importers:
         specifier: ^9.1.7
         version: 9.1.7
       knip:
-        specifier: ^5.62.0
+        specifier: ^5.63.0
         version: 5.63.0(@types/node@24.3.0)(typescript@5.9.2)
       lint-staged:
         specifier: ^16.1.5
         version: 16.1.5
       tsx:
-        specifier: ^4.20.4
+        specifier: ^4.20.5
         version: 4.20.5
       tw-animate-css:
         specifier: ^1.3.7
@@ -839,55 +839,55 @@ packages:
   '@better-fetch/fetch@1.1.18':
     resolution: {integrity: sha512-rEFOE1MYIsBmoMJtQbl32PGHHXuG2hDxvEd7rUHE0vCBoFQVSDqaVs9hkZEtHCxRoY+CljXKFCOuJ8uxqw1LcA==}
 
-  '@biomejs/biome@2.2.0':
-    resolution: {integrity: sha512-3On3RSYLsX+n9KnoSgfoYlckYBoU6VRM22cw1gB4Y0OuUVSYd/O/2saOJMrA4HFfA1Ff0eacOvMN1yAAvHtzIw==}
+  '@biomejs/biome@2.2.2':
+    resolution: {integrity: sha512-j1omAiQWCkhuLgwpMKisNKnsM6W8Xtt1l0WZmqY/dFj8QPNkIoTvk4tSsi40FaAAkBE1PU0AFG2RWFBWenAn+w==}
     engines: {node: '>=14.21.3'}
     hasBin: true
 
-  '@biomejs/cli-darwin-arm64@2.2.0':
-    resolution: {integrity: sha512-zKbwUUh+9uFmWfS8IFxmVD6XwqFcENjZvEyfOxHs1epjdH3wyyMQG80FGDsmauPwS2r5kXdEM0v/+dTIA9FXAg==}
+  '@biomejs/cli-darwin-arm64@2.2.2':
+    resolution: {integrity: sha512-6ePfbCeCPryWu0CXlzsWNZgVz/kBEvHiPyNpmViSt6A2eoDf4kXs3YnwQPzGjy8oBgQulrHcLnJL0nkCh80mlQ==}
     engines: {node: '>=14.21.3'}
     cpu: [arm64]
     os: [darwin]
 
-  '@biomejs/cli-darwin-x64@2.2.0':
-    resolution: {integrity: sha512-+OmT4dsX2eTfhD5crUOPw3RPhaR+SKVspvGVmSdZ9y9O/AgL8pla6T4hOn1q+VAFBHuHhsdxDRJgFCSC7RaMOw==}
+  '@biomejs/cli-darwin-x64@2.2.2':
+    resolution: {integrity: sha512-Tn4JmVO+rXsbRslml7FvKaNrlgUeJot++FkvYIhl1OkslVCofAtS35MPlBMhXgKWF9RNr9cwHanrPTUUXcYGag==}
     engines: {node: '>=14.21.3'}
     cpu: [x64]
     os: [darwin]
 
-  '@biomejs/cli-linux-arm64-musl@2.2.0':
-    resolution: {integrity: sha512-egKpOa+4FL9YO+SMUMLUvf543cprjevNc3CAgDNFLcjknuNMcZ0GLJYa3EGTCR2xIkIUJDVneBV3O9OcIlCEZQ==}
+  '@biomejs/cli-linux-arm64-musl@2.2.2':
+    resolution: {integrity: sha512-/MhYg+Bd6renn6i1ylGFL5snYUn/Ct7zoGVKhxnro3bwekiZYE8Kl39BSb0MeuqM+72sThkQv4TnNubU9njQRw==}
     engines: {node: '>=14.21.3'}
     cpu: [arm64]
     os: [linux]
 
-  '@biomejs/cli-linux-arm64@2.2.0':
-    resolution: {integrity: sha512-6eoRdF2yW5FnW9Lpeivh7Mayhq0KDdaDMYOJnH9aT02KuSIX5V1HmWJCQQPwIQbhDh68Zrcpl8inRlTEan0SXw==}
+  '@biomejs/cli-linux-arm64@2.2.2':
+    resolution: {integrity: sha512-JfrK3gdmWWTh2J5tq/rcWCOsImVyzUnOS2fkjhiYKCQ+v8PqM+du5cfB7G1kXas+7KQeKSWALv18iQqdtIMvzw==}
     engines: {node: '>=14.21.3'}
     cpu: [arm64]
     os: [linux]
 
-  '@biomejs/cli-linux-x64-musl@2.2.0':
-    resolution: {integrity: sha512-I5J85yWwUWpgJyC1CcytNSGusu2p9HjDnOPAFG4Y515hwRD0jpR9sT9/T1cKHtuCvEQ/sBvx+6zhz9l9wEJGAg==}
+  '@biomejs/cli-linux-x64-musl@2.2.2':
+    resolution: {integrity: sha512-ZCLXcZvjZKSiRY/cFANKg+z6Fhsf9MHOzj+NrDQcM+LbqYRT97LyCLWy2AS+W2vP+i89RyRM+kbGpUzbRTYWig==}
     engines: {node: '>=14.21.3'}
     cpu: [x64]
     os: [linux]
 
-  '@biomejs/cli-linux-x64@2.2.0':
-    resolution: {integrity: sha512-5UmQx/OZAfJfi25zAnAGHUMuOd+LOsliIt119x2soA2gLggQYrVPA+2kMUxR6Mw5M1deUF/AWWP2qpxgH7Nyfw==}
+  '@biomejs/cli-linux-x64@2.2.2':
+    resolution: {integrity: sha512-Ogb+77edO5LEP/xbNicACOWVLt8mgC+E1wmpUakr+O4nKwLt9vXe74YNuT3T1dUBxC/SnrVmlzZFC7kQJEfquQ==}
     engines: {node: '>=14.21.3'}
     cpu: [x64]
     os: [linux]
 
-  '@biomejs/cli-win32-arm64@2.2.0':
-    resolution: {integrity: sha512-n9a1/f2CwIDmNMNkFs+JI0ZjFnMO0jdOyGNtihgUNFnlmd84yIYY2KMTBmMV58ZlVHjgmY5Y6E1hVTnSRieggA==}
+  '@biomejs/cli-win32-arm64@2.2.2':
+    resolution: {integrity: sha512-wBe2wItayw1zvtXysmHJQoQqXlTzHSpQRyPpJKiNIR21HzH/CrZRDFic1C1jDdp+zAPtqhNExa0owKMbNwW9cQ==}
     engines: {node: '>=14.21.3'}
     cpu: [arm64]
     os: [win32]
 
-  '@biomejs/cli-win32-x64@2.2.0':
-    resolution: {integrity: sha512-Nawu5nHjP/zPKTIryh2AavzTc/KEg4um/MxWdXW0A6P/RZOyIpa7+QSjeXwAwX/utJGaCoXRPWtF3m5U/bB3Ww==}
+  '@biomejs/cli-win32-x64@2.2.2':
+    resolution: {integrity: sha512-DAuHhHekGfiGb6lCcsT4UyxQmVwQiBCBUMwVra/dcOSs9q8OhfaZgey51MlekT3p8UwRqtXQfFuEJBhJNdLZwg==}
     engines: {node: '>=14.21.3'}
     cpu: [x64]
     os: [win32]
@@ -5850,8 +5850,8 @@ packages:
   lru-cache@5.1.1:
     resolution: {integrity: sha512-KpNARQA3Iwv+jTA0utUVVbrh+Jlrr1Fv0e56GGzAFOXN7dk/FviaDW8LHmK52DlcH4WP2n6gI8vN1aesBFgo9w==}
 
-  lucide-react@0.540.0:
-    resolution: {integrity: sha512-armkCAqQvO62EIX4Hq7hqX/q11WSZu0Jd23cnnqx0/49yIxGXyL/zyZfBxNN9YDx0ensPTb4L+DjTh3yQXUxtQ==}
+  lucide-react@0.541.0:
+    resolution: {integrity: sha512-s0Vircsu5WaGv2KoJZ5+SoxiAJ3UXV5KqEM3eIFDHaHkcLIFdIWgXtZ412+Gh02UsdS7Was+jvEpBvPCWQISlg==}
     peerDependencies:
       react: ^16.5.1 || ^17.0.0 || ^18.0.0 || ^19.0.0
 
@@ -8639,39 +8639,39 @@ snapshots:
 
   '@better-fetch/fetch@1.1.18': {}
 
-  '@biomejs/biome@2.2.0':
+  '@biomejs/biome@2.2.2':
     optionalDependencies:
-      '@biomejs/cli-darwin-arm64': 2.2.0
-      '@biomejs/cli-darwin-x64': 2.2.0
-      '@biomejs/cli-linux-arm64': 2.2.0
-      '@biomejs/cli-linux-arm64-musl': 2.2.0
-      '@biomejs/cli-linux-x64': 2.2.0
-      '@biomejs/cli-linux-x64-musl': 2.2.0
-      '@biomejs/cli-win32-arm64': 2.2.0
-      '@biomejs/cli-win32-x64': 2.2.0
+      '@biomejs/cli-darwin-arm64': 2.2.2
+      '@biomejs/cli-darwin-x64': 2.2.2
+      '@biomejs/cli-linux-arm64': 2.2.2
+      '@biomejs/cli-linux-arm64-musl': 2.2.2
+      '@biomejs/cli-linux-x64': 2.2.2
+      '@biomejs/cli-linux-x64-musl': 2.2.2
+      '@biomejs/cli-win32-arm64': 2.2.2
+      '@biomejs/cli-win32-x64': 2.2.2
 
-  '@biomejs/cli-darwin-arm64@2.2.0':
+  '@biomejs/cli-darwin-arm64@2.2.2':
     optional: true
 
-  '@biomejs/cli-darwin-x64@2.2.0':
+  '@biomejs/cli-darwin-x64@2.2.2':
     optional: true
 
-  '@biomejs/cli-linux-arm64-musl@2.2.0':
+  '@biomejs/cli-linux-arm64-musl@2.2.2':
     optional: true
 
-  '@biomejs/cli-linux-arm64@2.2.0':
+  '@biomejs/cli-linux-arm64@2.2.2':
     optional: true
 
-  '@biomejs/cli-linux-x64-musl@2.2.0':
+  '@biomejs/cli-linux-x64-musl@2.2.2':
     optional: true
 
-  '@biomejs/cli-linux-x64@2.2.0':
+  '@biomejs/cli-linux-x64@2.2.2':
     optional: true
 
-  '@biomejs/cli-win32-arm64@2.2.0':
+  '@biomejs/cli-win32-arm64@2.2.2':
     optional: true
 
-  '@biomejs/cli-win32-x64@2.2.0':
+  '@biomejs/cli-win32-x64@2.2.2':
     optional: true
 
   '@bufbuild/connect-node@0.10.1(@bufbuild/protobuf@1.10.1)':
@@ -14048,7 +14048,7 @@ snapshots:
     dependencies:
       yallist: 3.1.1
 
-  lucide-react@0.540.0(react@19.1.1):
+  lucide-react@0.541.0(react@19.1.1):
     dependencies:
       react: 19.1.1
 
