@@ -5,6 +5,7 @@
 	"author": "Lars Lorenz",
 	"private": true,
 	"type": "module",
+	"packageManager": "pnpm@10.15.0",
 	"scripts": {
 		"dev": "vite dev",
 		"build": "vite build",
@@ -20,8 +21,8 @@
 		"db:up": "drizzle-kit up",
 		"db:seed": "tsx scripts/seed.ts",
 		"spice:deploy-schema": "tsx scripts/deploy-spicedb-schema.ts",
-		"trigger:dev": "npx trigger.dev@latest dev",
-		"trigger:deploy": "npx trigger.dev deploy -p proj_fzvmhxlzuofelfokxmnf --self-hosted --push --registry ghcr.io --namespace sokratest",
+		"trigger:dev": "pnpx trigger.dev@latest dev",
+		"trigger:deploy": "pnpx trigger.dev deploy -p proj_fzvmhxlzuofelfokxmnf --self-hosted --push --registry ghcr.io --namespace sokratest",
 		"machine-translate": "inlang machine translate --project project.inlang",
 		"prepare": "husky"
 	},
