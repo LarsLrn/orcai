@@ -9,11 +9,11 @@ import { useUmami } from "@/hooks/use-umami";
 export const Route = createFileRoute("/app")({
 	beforeLoad: ({ context }) => {
 		if (!context.auth.isAuthenticated) {
-			throw redirect({ to: "/login", statusCode: 401 });
+			throw redirect({ to: "/login", statusCode: 302 });
 		}
 
 		if (!context.auth.session.activeOrganizationId) {
-			throw redirect({ to: "/select-organization", statusCode: 422 });
+			throw redirect({ to: "/select-organization", statusCode: 302 });
 		}
 
 		return {

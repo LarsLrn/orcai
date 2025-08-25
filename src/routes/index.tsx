@@ -6,7 +6,7 @@ export const Route = createFileRoute("/")({
 		if (context.auth.isAuthenticated) {
 			return redirect({ to: "/app" });
 		}
-		return redirect({ to: "/login", statusCode: 401 });
+		return redirect({ to: "/login", statusCode: 302 });
 	},
 });
 

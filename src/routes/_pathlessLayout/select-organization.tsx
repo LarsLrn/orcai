@@ -17,7 +17,7 @@ export const Route = createFileRoute("/_pathlessLayout/select-organization")({
 	component: RouteComponent,
 	beforeLoad: ({ context }) => {
 		if (!context.auth.isAuthenticated) {
-			throw redirect({ to: "/login", statusCode: 401 });
+			throw redirect({ to: "/login", statusCode: 302 });
 		}
 	},
 	loader: async ({ context: { queryClient } }) => {
