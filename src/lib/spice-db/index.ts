@@ -10,8 +10,8 @@ export const getSpiceClient = () => {
 		// TODO: Replace with actual SpiceDB server address and security settings
 		const { promises: client } = v1.NewClient(
 			"test",
-			"localhost:50051",
-			v1.ClientSecurity.INSECURE_LOCALHOST_ALLOWED,
+			process.env.SPICEDB_ENDPOINT || "localhost:50051",
+			v1.ClientSecurity.INSECURE_PLAINTEXT_CREDENTIALS,
 		);
 
 		console.log("SpiceDB client initialized successfully");

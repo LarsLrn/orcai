@@ -14,5 +14,5 @@ export const authClient = createAuthClient({
 			},
 		}),
 	],
-	baseURL: process.env.NEXT_PUBLIC_BASE_URL,
+	baseURL: process.env.VITE_BASE_URL,
 });
