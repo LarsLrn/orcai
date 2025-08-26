@@ -1,0 +1,55 @@
+# syntax=docker/dockerfile:1.7
+
+# Optimized multi-stage build for TanStack Start (React) + Vite
+# Produces a minimal runtime image that runs the Node server
+
+ARG NODE_BUILD_IMAGE=node:22-alpine
+ARG NODE_RUNTIME_IMAGE=node:22-alpine
+
+# Build stage - install dependencies and build the application
+FROM ${NODE_BUILD_IMAGE} AS builder
+WORKDIR /app
+
+# Install build tools for native dependencies
+RUN apk add --no-cache python3 make g++ pkgconfig
+
+# Setup pnpm
+ENV PNPM_HOME=/pnpm
+ENV PATH=$PNPM_HOME:$PATH
+RUN corepack enable && corepack prepare pnpm@10.15.0 --activate
+
+# Copy package files for dependency installation
+COPY pnpm-lock.yaml package.json pnpm-workspace.yaml* .npmrc* ./
+
+# Install all dependencies (including devDependencies for build)
+RUN --mount=type=cache,id=pnpm-store,target=/root/.pnpm-store \
+  pnpm install --frozen-lockfile
+
+# Copy source code and build
+COPY . .
+ENV NODE_ENV=production
+RUN pnpm build
+
+# Runtime stage - minimal image with only the built application
+FROM ${NODE_RUNTIME_IMAGE} AS runtime
+WORKDIR /app
+
+# Set production environment
+ENV NODE_ENV=production
+ENV PORT=3000
+
+# Create non-root user for security
+RUN addgroup -g 1001 -S nodejs && \
+  adduser -S nodejs -u 1001
+
+# Copy only the built output (no source code, no node_modules)
+COPY --from=builder --chown=nodejs:nodejs /app/.output ./.output
+
+# Switch to non-root user
+USER nodejs
+
+EXPOSE 3000
+
+# Start the application
+CMD ["node", ".output/server/index.mjs"]
+

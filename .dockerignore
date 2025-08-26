@@ -1,0 +1,34 @@
+# Node & pnpm
+node_modules
+.pnpm-store
+pnpm-lock.yaml.prev
+
+# Vite/TanStack Start outputs
+.output
+.dist
+dist
+build
+
+# VCS & editor
+.git
+.gitignore
+.gitattributes
+.vscode
+.idea
+
+# OS / misc
+.DS_Store
+*.log
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+
+# Env
+.env*
+!.env.example
+
+# Tests, coverage
+coverage
+
+# Project-specific caches
+project.inlang/cache
