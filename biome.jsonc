@@ -10,6 +10,7 @@
 		"includes": [
 			"**",
 			"!src/routeTree.gen.ts",
+			"!src/styles/app.css", // Not fully compatible with Tailwind v4 syntax
 			"!**/public",
 			"!**/migrations",
 			"!src/paraglide",
