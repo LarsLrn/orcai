@@ -22,7 +22,7 @@
 		"db:seed": "tsx scripts/seed.ts",
 		"spice:deploy-schema": "tsx scripts/deploy-spicedb-schema.ts",
 		"trigger:dev": "pnpx trigger.dev@latest dev",
-		"trigger:deploy": "pnpx trigger.dev deploy -p proj_hjnzhaemgowsbreuwyfy --self-hosted --push --registry ghcr.io --namespace sokratest",
+		"trigger:deploy": "pnpx trigger.dev deploy -p ${TRIGGER_PROJECT:?TRIGGER_PROJECT not set} --self-hosted --push --registry ghcr.io --namespace sokratest",
 		"machine-translate": "inlang machine translate --project project.inlang",
 		"prepare": "husky"
 	},
