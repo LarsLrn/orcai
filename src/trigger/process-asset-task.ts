@@ -1,8 +1,6 @@
 import { PutObjectCommand } from "@aws-sdk/client-s3";
 import type { Size } from "@docling/docling-core";
 import { logger, task } from "@trigger.dev/sdk";
-import FormData from "form-data";
-import nodeFetch from "node-fetch";
 /* import type { ProcessingStatus } from "@/app/api/docs/processing/route"; */
 import {
 	type SerializedDocument,
@@ -86,7 +84,7 @@ export const processAssetTask = task({
 		// Download the file using the presigned URL
 		const fileResponse = await logger.trace("download-file", async () => {
 			try {
-				return await nodeFetch(presignedUrl);
+				return await fetch(presignedUrl);
 			} catch (error) {
 				logger.error(
 					`Error downloading file: ${error instanceof Error ? error.message : String(error)}`,
@@ -114,11 +112,14 @@ export const processAssetTask = task({
 					15 * 60 * 1000,
 				); // 15 minutes timeout
 
-				// Create FormData to properly send the file
+				// Create FormData to properly send the file using Web FormData
 				const formData = new FormData();
-				formData.append("document", fileBuffer, {
-					filename: `document.${payload.assetRef.id}`,
-				});
+				const fileBlob = new Blob([fileBuffer]);
+				formData.append(
+					"document",
+					fileBlob,
+					`document.${payload.assetRef.id}`,
+				);
 
 				const params = new URLSearchParams({
 					response_type: "json",
@@ -126,11 +127,10 @@ export const processAssetTask = task({
 				});
 
 				// Use the signal from the controller in the fetch call
-				const response = await nodeFetch(`${doclingApi}?${params}`, {
+				const response = await fetch(`${doclingApi}?${params}`, {
 					method: "POST",
 					headers: {
 						Authorization: `Bearer ${process.env.OPENAI_COMPATIBLE_API_KEY}`,
-						...formData.getHeaders(), // This adds the correct Content-Type header
 					},
 					body: formData,
 					signal: controller.signal, // Connect the AbortController
