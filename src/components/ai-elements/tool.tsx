@@ -14,7 +14,6 @@ import {
 	CollapsibleContent,
 	CollapsibleTrigger,
 } from "@/components/ui/collapsible";
-import type { CustomTools } from "@/lib/ai/tools";
 import { cn } from "@/lib/utils";
 import { CodeBlock } from "./code-block";
 
@@ -28,7 +27,7 @@ export const Tool = ({ className, ...props }: ToolProps) => (
 );
 
 export type ToolHeaderProps = {
-	type: ToolUIPart<CustomTools>["type"] | (string & {});
+	type: ToolUIPart["type"];
 	state: ToolUIPart["state"];
 	className?: string;
 };
@@ -44,19 +43,12 @@ const getStatusBadge = (status: ToolUIPart["state"]) => {
 	const icons = {
 		"input-streaming": <CircleIcon className="size-4" />,
 		"input-available": <ClockIcon className="size-4 animate-pulse" />,
-		"output-available": (
-			<CheckCircleIcon className="size-4 text-secondary-foreground" />
-		),
-		"output-error": (
-			<XCircleIcon className="size-4 text-destructive-foreground" />
-		),
+		"output-available": <CheckCircleIcon className="size-4 text-green-600" />,
+		"output-error": <XCircleIcon className="size-4 text-red-600" />,
 	} as const;
 
 	return (
-		<Badge
-			className="rounded-full text-xs"
-			variant={status === "output-error" ? "destructive" : "secondary"}
-		>
+		<Badge className="gap-1.5 rounded-full text-xs" variant="secondary">
 			{icons[status]}
 			{labels[status]}
 		</Badge>
@@ -113,7 +105,7 @@ export const ToolInput = ({ className, input, ...props }: ToolInputProps) => (
 );
 
 export type ToolOutputProps = ComponentProps<"div"> & {
-	output: ReactNode;
+	output: ToolUIPart["output"];
 	errorText: ToolUIPart["errorText"];
 };
 
@@ -127,6 +119,16 @@ export const ToolOutput = ({
 		return null;
 	}
 
+	let Output = <div>{output as ReactNode}</div>;
+
+	if (typeof output === "object") {
+		Output = (
+			<CodeBlock language="json">{JSON.stringify(output, null, 2)}</CodeBlock>
+		);
+	} else if (typeof output === "string") {
+		Output = <CodeBlock language="json">{output}</CodeBlock>;
+	}
+
 	return (
 		<div className={cn("space-y-2 p-4", className)} {...props}>
 			<h4 className="font-medium text-muted-foreground text-xs uppercase tracking-wide">
@@ -134,14 +136,14 @@ export const ToolOutput = ({
 			</h4>
 			<div
 				className={cn(
-					"rounded-md text-xs [&_table]:w-full",
+					"overflow-x-auto rounded-md text-xs [&_table]:w-full",
 					errorText
 						? "bg-destructive/10 text-destructive"
 						: "bg-muted/50 text-foreground",
 				)}
 			>
 				{errorText && <div>{errorText}</div>}
-				{output && <div>{output}</div>}
+				{Output}
 			</div>
 		</div>
 	);
