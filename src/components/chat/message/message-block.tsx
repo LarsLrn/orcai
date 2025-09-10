@@ -63,7 +63,7 @@ export const MessageBlock = ({
 							status={status}
 						/>
 					) : (
-						<MessageContent>
+						<MessageContent variant="flat">
 							{sortedParts.map((part, i) => (
 								<MessagePartRenderer
 									key={`${part.type}${message.id}${i}`}
