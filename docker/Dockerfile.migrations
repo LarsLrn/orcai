@@ -1,0 +1,23 @@
+# Use Node.js base image
+FROM node:22-alpine
+
+# Set working directory
+WORKDIR /app
+
+# Copy only package.json to extract the drizzle-kit version
+COPY package.json ./
+
+# Extract and install only drizzle-kit with the exact version from package.json
+RUN export DRIZZLE_KIT_VERSION=$(node -pe "require('./package.json').devDependencies['drizzle-kit']") && \
+  export DRIZZLE_ORM_VERSION=$(node -pe "require('./package.json').dependencies['drizzle-orm']") && \
+  export PG_VERSION=$(node -pe "require('./package.json').dependencies['pg']") && \
+  export DOTENV_VERSION=$(node -pe "require('./package.json').dependencies['dotenv']") && \
+  rm package.json && \
+  npm install drizzle-kit@$DRIZZLE_KIT_VERSION --force && \
+  npm install drizzle-orm@$DRIZZLE_ORM_VERSION --force && \
+  npm install pg@$PG_VERSION --force && \
+  npm install dotenv@$DOTENV_VERSION --force
+
+# Copy only necessary files for migrations
+COPY drizzle.config.ts ./
+COPY migrations ./migrations
