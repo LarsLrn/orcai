@@ -1,3 +1,4 @@
+/** biome-ignore-all lint/complexity/useOptionalChain: <need typeof check for SSR safety> */
 export function useUmami() {
 	const identifyUser = (
 		uniqueId: string,
