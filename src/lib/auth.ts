@@ -11,6 +11,7 @@ import { account, session, user, verification } from "@/db/schema/auth";
 export const auth = betterAuth({
 	telemetry: { enabled: false },
 	trustedOrigins: [
+		"http://localhost:3000",
 		process.env.VITE_BASE_URL || "http://localhost:3000",
 		"http://host.docker.internal:3000",
 	],
