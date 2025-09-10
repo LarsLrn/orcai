@@ -11,7 +11,7 @@ interface CodeBlockProps {
 	className?: string;
 	showLineNumbers?: boolean;
 	language?: string;
-	children: any;
+	children?: any;
 }
 
 const CodeBlock = ({
