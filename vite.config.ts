@@ -12,7 +12,7 @@ export default defineConfig({
 		port: 3000,
 	},
 	ssr: {
-		noExternal: ["nextstepjs", "motion"],
+		noExternal: ["nextstepjs", "motion", "streamdown"],
 	},
 	resolve: {
 		// Mock Next.js navigation imports that nextstepjs tries to access
