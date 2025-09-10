@@ -3,6 +3,8 @@
 @import "@fontsource-variable/geist";
 @import "@fontsource-variable/geist-mono";
 
+@source "../../node_modules/streamdown/dist/index.js";
+
 @plugin "tailwindcss-animate";
 @plugin "@tailwindcss/typography";
 @plugin "tailwind-scrollbar-hide";
