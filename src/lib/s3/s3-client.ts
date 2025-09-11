@@ -1,7 +1,7 @@
 import { S3Client } from "@aws-sdk/client-s3";
 
 export const s3Client = new S3Client({
-	region: "eu-central-1",
+	region: process.env.S3_REGION || "eu-central-1",
 	endpoint: process.env.S3_ENDPOINT || "",
 	// port: Number(process.env.S3_PORT) || undefined,
 	credentials: {
