@@ -4,6 +4,7 @@ import { useState } from "react";
 import {
 	PromptInput,
 	PromptInputButton,
+	type PromptInputMessage,
 	PromptInputSubmit,
 	PromptInputTextarea,
 	PromptInputToolbar,
@@ -25,9 +26,18 @@ const ChatInput = ({
 }) => {
 	const [text, setText] = useState<string>("");
 
-	const handleSubmit = (e: React.FormEvent<HTMLFormElement>) => {
-		e.preventDefault();
-		sendMessage({ text: text });
+	const handleSubmit = (message: PromptInputMessage) => {
+		const hasText = Boolean(message.text);
+		const hasAttachments = Boolean(message.files?.length);
+
+		if (!(hasText || hasAttachments)) {
+			return;
+		}
+
+		sendMessage({
+			text: message.text || "Sent with attachments",
+			files: message.files,
+		});
 		setText("");
 	};
 
