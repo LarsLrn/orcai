@@ -1,47 +1,56 @@
-import type { ObjectMetadata } from "./types/internal";
-
 export async function uploadFileToS3(params: {
 	signedUrl: string;
 	file: File;
-	objectMetadata: ObjectMetadata;
 	onProgress?: (progress: number) => void;
 	signal?: AbortSignal;
+	// Optional: headers provided by your server (only those included in the signature)
+	signedHeaders?: Record<string, string>;
 }) {
 	const xhr = new XMLHttpRequest();
 
 	await new Promise<void>((resolve, reject) => {
-		const abortHandler = createAbortHandler(xhr, reject);
+		const abortHandler = () => {
+			xhr.abort();
+			reject(new DOMException("Upload aborted", "AbortError"));
+		};
 
-		if (params.signal?.aborted) {
-			abortHandler();
-		}
-
+		if (params.signal?.aborted) abortHandler();
 		params.signal?.addEventListener("abort", abortHandler);
 
 		xhr.onloadend = () => {
 			params.signal?.removeEventListener("abort", abortHandler);
-
-			if (xhr.readyState === 4 && xhr.status === 200) {
+			const ok =
+				xhr.readyState === 4 && (xhr.status === 200 || xhr.status === 204);
+			if (ok) {
 				params.onProgress?.(1);
-
 				resolve();
 			} else {
-				reject(new Error("Failed to upload file to S3."));
+				reject(
+					new Error(
+						`Failed to upload: ${xhr.status} ${xhr.statusText} — ${xhr.responseText || ""}`,
+					),
+				);
 			}
 		};
 
-		xhr.upload.onprogress = (event) => {
-			if (event.lengthComputable) {
-				params.onProgress?.(Math.min(event.loaded / event.total, 0.99));
-			}
+		xhr.upload.onprogress = (e) => {
+			if (e.lengthComputable)
+				params.onProgress?.(Math.min(e.loaded / e.total, 0.99));
 		};
 
 		xhr.open("PUT", params.signedUrl, true);
-		xhr.setRequestHeader("Content-Type", params.file.type);
+		// Always set Content-Type if it was part of the presign (common case)
+		xhr.setRequestHeader(
+			"Content-Type",
+			params.file.type || "application/octet-stream",
+		);
 
-		Object.entries(params.objectMetadata).forEach(([key, value]) => {
-			xhr.setRequestHeader(`x-amz-meta-${key}`, value);
-		});
+		// Only set headers that your server told you to set (and signed)
+		if (params.signedHeaders) {
+			for (const [k, v] of Object.entries(params.signedHeaders)) {
+				xhr.setRequestHeader(k, v);
+			}
+		}
 
 		xhr.send(params.file);
 	});
