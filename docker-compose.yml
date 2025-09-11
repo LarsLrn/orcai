@@ -75,6 +75,8 @@ services:
       dockerfile: ./docker/Dockerfile.sokratest
       target: runtime
     container_name: sokratest-app
+    env_file:
+      - .env.docker
     ports:
       - "3000:3000"
     environment:
@@ -86,8 +88,8 @@ services:
       POSTGRES_SSL: "false"
 
       # S3/MinIO Configuration
-      S3_ENDPOINT: "minio"
-      S3_PORT: 9000
+      S3_ENDPOINT: "http://host.docker.internal:9002"
+      S3_PORT: 9002
       S3_ACCESS_KEY: minioadmin
       S3_SECRET_KEY: minioadmin
       S3_USE_SSL: false
@@ -96,14 +98,51 @@ services:
       QDRANT_URL: http://qdrant:6333/
 
       # Application Configuration
-      BETTER_AUTH_URL: "http://localhost:3000"
-      VITE_BASE_URL: "http://localhost:3000"
-      NODE_ENV: production
-      PORT: 3000
+      BETTER_AUTH_URL: ${BETTER_AUTH_URL}
+      VITE_BASE_URL: ${VITE_BASE_URL}
 
-      # Default secrets (change in production!)
-      BETTER_AUTH_SECRET: "your_development_secret_key_change_in_production"
-      ENCRYPTION_KEY: "your_32_char_dev_encryption_key!!"
+      # Secrets (from environment)
+      BETTER_AUTH_SECRET: ${BETTER_AUTH_SECRET}
+      ENCRYPTION_KEY: ${ENCRYPTION_KEY}
+
+      # External Services (from environment)
+      TRIGGER_SECRET_KEY: ${TRIGGER_SECRET_KEY}
+      TRIGGER_API_URL: ${TRIGGER_API_URL}
+      TRIGGER_PROJECT: ${TRIGGER_PROJECT}
+
+      # Email Configuration
+      SMTP_HOST: ${SMTP_HOST}
+      SMTP_PORT: ${SMTP_PORT}
+      SMTP_USERNAME: ${SMTP_USERNAME}
+      SMTP_PASSWORD: ${SMTP_PASSWORD}
+
+      # AI Services
+      OPENAI_COMPATIBLE_BASE_URL: ${OPENAI_COMPATIBLE_BASE_URL}
+      OPENAI_COMPATIBLE_API_KEY: ${OPENAI_COMPATIBLE_API_KEY}
+
+      # Spice DB
+      SPICEDB_ENDPOINT: ${SPICEDB_ENDPOINT}
+
+      # LLM Observability
+      LANGFUSE_SECRET_KEY: ${LANGFUSE_SECRET_KEY}
+      LANGFUSE_PUBLIC_KEY: ${LANGFUSE_PUBLIC_KEY}
+      LANGFUSE_BASEURL: ${LANGFUSE_BASEURL}
+
+      # Analytics
+      VITE_UMAMI_SCRIPT_URL: ${VITE_UMAMI_SCRIPT_URL}
+      VITE_UMAMI_WEBSITE_ID: ${VITE_UMAMI_WEBSITE_ID}
+
+      # Document Processing
+      DOCLING_API: ${DOCLING_API}
+      DOCLING_API_KEY: ${DOCLING_API_KEY}
+
+      # Open Telemetry
+      OTEL_TRACES_EXPORTER: ${OTEL_TRACES_EXPORTER}
+      OTEL_EXPORTER_OTLP_PROTOCOL: ${OTEL_EXPORTER_OTLP_PROTOCOL}
+      OTEL_EXPORTER_OTLP_TRACES_ENDPOINT: ${OTEL_EXPORTER_OTLP_TRACES_ENDPOINT}
+      OTEL_NODE_RESOURCE_DETECTORS: ${OTEL_NODE_RESOURCE_DETECTORS}
+      OTEL_SERVICE_NAME: ${OTEL_SERVICE_NAME}
+      OTEL_EXPORTER_OTLP_HEADERS: ${OTEL_EXPORTER_OTLP_HEADERS}
     depends_on:
       postgres:
         condition: service_healthy
