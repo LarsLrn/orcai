@@ -33,9 +33,9 @@ const SignUpForm = ({
 	});
 
 	const onSubmit = (values: SignupSchemaType) => {
-		if (invitation?.id !== values.invitationId) {
+		/* if (invitation?.id !== values.invitationId) {
 			return;
-		}
+		} */
 
 		toast.promise(
 			authClient.signUp.email({
