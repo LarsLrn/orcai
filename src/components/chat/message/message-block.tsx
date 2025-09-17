@@ -51,27 +51,31 @@ export const MessageBlock = ({
 			viewOptions={{ margin: "0px 0px -200px 0px" }}
 			transition={{ duration: 0.3, ease: "easeInOut" }}
 		>
-			<Message from={message.role} key={message.id}>
-				<div className="flex flex-col">
-					{mode === "edit" && variant === "sent" ? (
-						<MessageEditor
-							chatId={chatId}
-							message={message}
-							setMode={setViewMode}
-							setMessages={setMessages}
-							regenerate={regenerate}
-							status={status}
-						/>
-					) : (
-						<MessageContent variant="flat">
-							{sortedParts.map((part, i) => (
-								<MessagePartRenderer
-									key={`${part.type}${message.id}${i}`}
-									part={part}
-								/>
-							))}
-						</MessageContent>
-					)}
+			<Message
+				from={message.role}
+				key={message.id}
+				className="grid grid-cols-1"
+			>
+				{mode === "edit" && variant === "sent" ? (
+					<MessageEditor
+						chatId={chatId}
+						message={message}
+						setMode={setViewMode}
+						setMessages={setMessages}
+						regenerate={regenerate}
+						status={status}
+					/>
+				) : (
+					<MessageContent variant="flat">
+						{sortedParts.map((part, i) => (
+							<MessagePartRenderer
+								key={`${part.type}${message.id}${i}`}
+								part={part}
+							/>
+						))}
+					</MessageContent>
+				)}
+				<div className="flex justify-between">
 					<MessageActions
 						message={message}
 						variant={variant}
