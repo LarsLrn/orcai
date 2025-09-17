@@ -1,6 +1,6 @@
 import { Link } from "@tanstack/react-router";
-import { format } from "date-fns";
 import { TagIcon } from "lucide-react";
+import { BlockPreview } from "@/components/blocks/block-preview";
 import { Badge } from "@/components/ui/badge";
 import { buttonVariants } from "@/components/ui/button";
 import {
@@ -10,31 +10,9 @@ import {
 	CardHeader,
 	CardTitle,
 } from "@/components/ui/card";
-import {
-	Tooltip,
-	TooltipContent,
-	TooltipTrigger,
-} from "@/components/ui/tooltip";
 import type { Block } from "@/lib/orpc/schemas/block";
-import { cn } from "@/lib/utils";
 
 const BotBlocks = ({ blocks }: { blocks: Block[] }) => {
-	const getBlockTypeColor = (type: string): string => {
-		const typeColors: Record<string, string> = {
-			prompt: "bg-blue-100 text-blue-800 dark:bg-blue-900 dark:text-blue-200",
-			context:
-				"bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-200",
-			memory:
-				"bg-purple-100 text-purple-800 dark:bg-purple-900 dark:text-purple-200",
-			tool: "bg-orange-100 text-orange-800 dark:bg-orange-900 dark:text-orange-200",
-			output: "bg-red-100 text-red-800 dark:bg-red-900 dark:text-red-200",
-		};
-		return (
-			typeColors[type] ||
-			"bg-gray-100 text-gray-800 dark:bg-gray-900 dark:text-gray-200"
-		);
-	};
-
 	return (
 		<Card>
 			<CardHeader>
@@ -51,51 +29,25 @@ const BotBlocks = ({ blocks }: { blocks: Block[] }) => {
 			</CardHeader>
 			<CardContent>
 				{blocks && blocks.length > 0 ? (
-					<div className="grid gap-3 sm:grid-cols-2">
+					<div className="grid gap-3 sm:grid-cols-1">
 						{blocks.map((block) => (
-							<Card key={block.id} className="border-border/50">
-								<CardHeader className="pb-2">
-									<div className="flex items-start justify-between">
-										<div className="space-y-1">
-											<CardTitle className="text-base">{block.name}</CardTitle>
-											<Badge
-												className={cn("text-xs", getBlockTypeColor(block.type))}
-											>
-												{block.type}
-											</Badge>
-										</div>
-										<Tooltip>
-											<TooltipTrigger asChild>
-												<div className="text-muted-foreground text-xs">
-													v{block.version}
-												</div>
-											</TooltipTrigger>
-											<TooltipContent>
-												<p>Block version {block.version}</p>
-											</TooltipContent>
-										</Tooltip>
-									</div>
-								</CardHeader>
-								<CardContent className="pt-0">
-									<div className="flex items-center justify-between text-muted-foreground text-xs">
-										<span>
-											Created{" "}
-											{format(block.createdAt || new Date(), "MMM d, yyyy")}
-										</span>
-										<Link
-											to="/app/blocks/$blockId"
-											params={{ blockId: block.id }}
-											className={buttonVariants({
-												variant: "ghost",
-												size: "sm",
-												className: "h-6 px-2",
-											})}
-										>
-											View
-										</Link>
-									</div>
-								</CardContent>
-							</Card>
+							<BlockPreview
+								key={block.id}
+								block={block}
+								className="bg-muted/50"
+							>
+								<Link
+									to="/app/blocks/$blockId"
+									params={{ blockId: block.id }}
+									className={buttonVariants({
+										variant: "outline",
+										size: "sm",
+										className: "h-6 px-2",
+									})}
+								>
+									View
+								</Link>
+							</BlockPreview>
 						))}
 					</div>
 				) : (
