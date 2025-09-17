@@ -4,7 +4,6 @@ import {
 	ToolContent,
 	ToolHeader,
 	ToolInput,
-	ToolOutput,
 } from "@/components/ai-elements/tool";
 import { Markdown } from "@/components/app/markdown";
 import { Badge } from "@/components/ui/badge";
@@ -26,10 +25,7 @@ const SearchKnowledgeBaseTool = ({
 			<ToolHeader type={part.type} state={part.state} />
 			<ToolContent>
 				<ToolInput input={part.input} />
-				<ToolOutput
-					output={<Output output={part.output} />}
-					errorText={part.errorText}
-				/>
+				<Output output={part.output} />
 			</ToolContent>
 		</Tool>
 	);
