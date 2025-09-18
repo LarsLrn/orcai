@@ -1,5 +1,12 @@
 import { ORPCError } from "@orpc/server";
-import { and, count, desc, eq, getTableColumns, inArray } from "drizzle-orm";
+import {
+	and,
+	countDistinct,
+	desc,
+	eq,
+	getTableColumns,
+	inArray,
+} from "drizzle-orm";
 import { db } from "@/db/drizzle";
 import { blockAssetTable, blockTable } from "@/db/schema/block";
 import { botBlockTable } from "@/db/schema/bot";
@@ -29,7 +36,9 @@ export const listBlocks = authed.block.list
 
 		const [data, [rowCount]] = await Promise.all([
 			db
-				.select({ ...getTableColumns(blockTable) })
+				.selectDistinctOn([blockTable.id, blockTable.createdAt], {
+					...getTableColumns(blockTable),
+				})
 				.from(blockTable)
 				.leftJoin(botBlockTable, eq(botBlockTable.blockId, blockTable.id))
 				.where(and(...whereConditions))
@@ -37,7 +46,9 @@ export const listBlocks = authed.block.list
 				.limit(input.pageSize)
 				.offset(input.pageIndex * input.pageSize) as Promise<Block[]>,
 			db
-				.select({ count: count() })
+				.select({
+					count: countDistinct(blockTable.id),
+				})
 				.from(blockTable)
 				.leftJoin(botBlockTable, eq(botBlockTable.blockId, blockTable.id))
 				.where(and(...whereConditions)),
