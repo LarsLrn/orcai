@@ -4,11 +4,11 @@ import { DisplayPoint } from "@/components/documents/chunks/display-point";
 import { assetPointQueryOptions } from "@/lib/query-options/asset-point";
 import type { QdrantPoint } from "@/types/qdrant";
 
-export const Route = createFileRoute("/app/assets/$assetId/points")({
-	loader: async ({ context: { queryClient }, params: { assetId } }) => {
+export const Route = createFileRoute("/app/blocks/$blockId/points")({
+	loader: async ({ context: { queryClient }, params: { blockId } }) => {
 		await queryClient.ensureQueryData(
 			assetPointQueryOptions.list({
-				input: { filters: { assetId } },
+				input: { filters: { blockId } },
 			}),
 		);
 	},

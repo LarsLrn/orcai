@@ -61,8 +61,8 @@ import { Route as AppUsersUserIdEditRouteImport } from './routes/app/users/$user
 import { Route as AppOrgsOrgIdEditRouteImport } from './routes/app/orgs/$orgId/edit'
 import { Route as AppCoursesCourseIdEditRouteImport } from './routes/app/courses/$courseId/edit'
 import { Route as AppBotsBotIdEditRouteImport } from './routes/app/bots/$botId/edit'
+import { Route as AppBlocksBlockIdPointsRouteImport } from './routes/app/blocks/$blockId/points'
 import { Route as AppBlocksBlockIdEditRouteImport } from './routes/app/blocks/$blockId/edit'
-import { Route as AppAssetsAssetIdPointsRouteImport } from './routes/app/assets/$assetId/points'
 import { Route as AppAssetsAssetIdEditRouteImport } from './routes/app/assets/$assetId/edit'
 import { Route as AppOrgsOrgIdProvidersRouteRouteImport } from './routes/app/orgs/$orgId/providers/route'
 import { Route as AppOrgsOrgIdProvidersIndexRouteImport } from './routes/app/orgs/$orgId/providers/index'
@@ -326,15 +326,15 @@ const AppBotsBotIdEditRoute = AppBotsBotIdEditRouteImport.update({
   path: '/edit',
   getParentRoute: () => AppBotsBotIdRouteRoute,
 } as any)
+const AppBlocksBlockIdPointsRoute = AppBlocksBlockIdPointsRouteImport.update({
+  id: '/points',
+  path: '/points',
+  getParentRoute: () => AppBlocksBlockIdRouteRoute,
+} as any)
 const AppBlocksBlockIdEditRoute = AppBlocksBlockIdEditRouteImport.update({
   id: '/edit',
   path: '/edit',
   getParentRoute: () => AppBlocksBlockIdRouteRoute,
-} as any)
-const AppAssetsAssetIdPointsRoute = AppAssetsAssetIdPointsRouteImport.update({
-  id: '/points',
-  path: '/points',
-  getParentRoute: () => AppAssetsAssetIdRouteRoute,
 } as any)
 const AppAssetsAssetIdEditRoute = AppAssetsAssetIdEditRouteImport.update({
   id: '/edit',
@@ -435,8 +435,8 @@ export interface FileRoutesByFullPath {
   '/app/users/': typeof AppUsersIndexRoute
   '/app/orgs/$orgId/providers': typeof AppOrgsOrgIdProvidersRouteRouteWithChildren
   '/app/assets/$assetId/edit': typeof AppAssetsAssetIdEditRoute
-  '/app/assets/$assetId/points': typeof AppAssetsAssetIdPointsRoute
   '/app/blocks/$blockId/edit': typeof AppBlocksBlockIdEditRoute
+  '/app/blocks/$blockId/points': typeof AppBlocksBlockIdPointsRoute
   '/app/bots/$botId/edit': typeof AppBotsBotIdEditRoute
   '/app/courses/$courseId/edit': typeof AppCoursesCourseIdEditRoute
   '/app/orgs/$orgId/edit': typeof AppOrgsOrgIdEditRoute
@@ -480,8 +480,8 @@ export interface FileRoutesByTo {
   '/app/orgs': typeof AppOrgsIndexRoute
   '/app/users': typeof AppUsersIndexRoute
   '/app/assets/$assetId/edit': typeof AppAssetsAssetIdEditRoute
-  '/app/assets/$assetId/points': typeof AppAssetsAssetIdPointsRoute
   '/app/blocks/$blockId/edit': typeof AppBlocksBlockIdEditRoute
+  '/app/blocks/$blockId/points': typeof AppBlocksBlockIdPointsRoute
   '/app/bots/$botId/edit': typeof AppBotsBotIdEditRoute
   '/app/courses/$courseId/edit': typeof AppCoursesCourseIdEditRoute
   '/app/orgs/$orgId/edit': typeof AppOrgsOrgIdEditRoute
@@ -541,8 +541,8 @@ export interface FileRoutesById {
   '/app/users/': typeof AppUsersIndexRoute
   '/app/orgs/$orgId/providers': typeof AppOrgsOrgIdProvidersRouteRouteWithChildren
   '/app/assets/$assetId/edit': typeof AppAssetsAssetIdEditRoute
-  '/app/assets/$assetId/points': typeof AppAssetsAssetIdPointsRoute
   '/app/blocks/$blockId/edit': typeof AppBlocksBlockIdEditRoute
+  '/app/blocks/$blockId/points': typeof AppBlocksBlockIdPointsRoute
   '/app/bots/$botId/edit': typeof AppBotsBotIdEditRoute
   '/app/courses/$courseId/edit': typeof AppCoursesCourseIdEditRoute
   '/app/orgs/$orgId/edit': typeof AppOrgsOrgIdEditRoute
@@ -603,8 +603,8 @@ export interface FileRouteTypes {
     | '/app/users/'
     | '/app/orgs/$orgId/providers'
     | '/app/assets/$assetId/edit'
-    | '/app/assets/$assetId/points'
     | '/app/blocks/$blockId/edit'
+    | '/app/blocks/$blockId/points'
     | '/app/bots/$botId/edit'
     | '/app/courses/$courseId/edit'
     | '/app/orgs/$orgId/edit'
@@ -648,8 +648,8 @@ export interface FileRouteTypes {
     | '/app/orgs'
     | '/app/users'
     | '/app/assets/$assetId/edit'
-    | '/app/assets/$assetId/points'
     | '/app/blocks/$blockId/edit'
+    | '/app/blocks/$blockId/points'
     | '/app/bots/$botId/edit'
     | '/app/courses/$courseId/edit'
     | '/app/orgs/$orgId/edit'
@@ -708,8 +708,8 @@ export interface FileRouteTypes {
     | '/app/users/'
     | '/app/orgs/$orgId/providers'
     | '/app/assets/$assetId/edit'
-    | '/app/assets/$assetId/points'
     | '/app/blocks/$blockId/edit'
+    | '/app/blocks/$blockId/points'
     | '/app/bots/$botId/edit'
     | '/app/courses/$courseId/edit'
     | '/app/orgs/$orgId/edit'
@@ -1114,19 +1114,19 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AppBotsBotIdEditRouteImport
       parentRoute: typeof AppBotsBotIdRouteRoute
     }
+    '/app/blocks/$blockId/points': {
+      id: '/app/blocks/$blockId/points'
+      path: '/points'
+      fullPath: '/app/blocks/$blockId/points'
+      preLoaderRoute: typeof AppBlocksBlockIdPointsRouteImport
+      parentRoute: typeof AppBlocksBlockIdRouteRoute
+    }
     '/app/blocks/$blockId/edit': {
       id: '/app/blocks/$blockId/edit'
       path: '/edit'
       fullPath: '/app/blocks/$blockId/edit'
       preLoaderRoute: typeof AppBlocksBlockIdEditRouteImport
       parentRoute: typeof AppBlocksBlockIdRouteRoute
-    }
-    '/app/assets/$assetId/points': {
-      id: '/app/assets/$assetId/points'
-      path: '/points'
-      fullPath: '/app/assets/$assetId/points'
-      preLoaderRoute: typeof AppAssetsAssetIdPointsRouteImport
-      parentRoute: typeof AppAssetsAssetIdRouteRoute
     }
     '/app/assets/$assetId/edit': {
       id: '/app/assets/$assetId/edit'
@@ -1238,13 +1238,11 @@ const AppAccountRouteRouteWithChildren = AppAccountRouteRoute._addFileChildren(
 
 interface AppAssetsAssetIdRouteRouteChildren {
   AppAssetsAssetIdEditRoute: typeof AppAssetsAssetIdEditRoute
-  AppAssetsAssetIdPointsRoute: typeof AppAssetsAssetIdPointsRoute
   AppAssetsAssetIdIndexRoute: typeof AppAssetsAssetIdIndexRoute
 }
 
 const AppAssetsAssetIdRouteRouteChildren: AppAssetsAssetIdRouteRouteChildren = {
   AppAssetsAssetIdEditRoute: AppAssetsAssetIdEditRoute,
-  AppAssetsAssetIdPointsRoute: AppAssetsAssetIdPointsRoute,
   AppAssetsAssetIdIndexRoute: AppAssetsAssetIdIndexRoute,
 }
 
@@ -1273,11 +1271,13 @@ const AppAssetsRouteRouteWithChildren = AppAssetsRouteRoute._addFileChildren(
 
 interface AppBlocksBlockIdRouteRouteChildren {
   AppBlocksBlockIdEditRoute: typeof AppBlocksBlockIdEditRoute
+  AppBlocksBlockIdPointsRoute: typeof AppBlocksBlockIdPointsRoute
   AppBlocksBlockIdIndexRoute: typeof AppBlocksBlockIdIndexRoute
 }
 
 const AppBlocksBlockIdRouteRouteChildren: AppBlocksBlockIdRouteRouteChildren = {
   AppBlocksBlockIdEditRoute: AppBlocksBlockIdEditRoute,
+  AppBlocksBlockIdPointsRoute: AppBlocksBlockIdPointsRoute,
   AppBlocksBlockIdIndexRoute: AppBlocksBlockIdIndexRoute,
 }
 
