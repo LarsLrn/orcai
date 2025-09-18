@@ -13,7 +13,7 @@ import {
 	deletePrefixRecursively,
 } from "@/lib/s3/file-functions";
 import { createRelation, listAllowedEntities } from "@/lib/spice-db/actions";
-import { deletePointsByAssetId } from "@/qdrant/mutations";
+import { deletePointsByIdentifier } from "@/qdrant/mutations";
 import { buckets } from "@/settings/buckets";
 import type { FileType } from "@/types/file";
 
@@ -153,8 +153,9 @@ export const deleteAssets = authed.asset.delete
 						prefix: asset.prefix,
 						type: asset.fileType as FileType,
 					});
-					await deletePointsByAssetId({
+					await deletePointsByIdentifier({
 						assetId: asset.id,
+						blockId: undefined,
 					});
 					await deletePrefixRecursively({
 						bucket: buckets.processed.name,

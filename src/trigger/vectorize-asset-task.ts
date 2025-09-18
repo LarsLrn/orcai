@@ -13,7 +13,7 @@ import {
 	listAllFilesInPrefix,
 } from "@/lib/s3/file-functions";
 import {
-	deletePointsByAssetId,
+	deletePointsByIdentifier,
 	upsertPointsToQdrant,
 } from "@/qdrant/mutations";
 import { buckets } from "@/settings/buckets";
@@ -264,7 +264,7 @@ const generateEmbeddings = async ({
 
 	await logger.trace(
 		"delete-existing-embeddings",
-		async () => await deletePointsByAssetId({ assetId }),
+		async () => await deletePointsByIdentifier({ assetId, blockId }),
 	);
 
 	// Save to Qdrant
