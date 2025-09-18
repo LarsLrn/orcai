@@ -1,4 +1,5 @@
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
+import { Link } from "@tanstack/react-router";
 import { convert } from "convert";
 import { formatDistanceToNow } from "date-fns";
 import {
@@ -14,7 +15,7 @@ import {
 import { useState } from "react";
 import { toast } from "sonner";
 import { Badge } from "@/components/ui/badge";
-import { Button } from "@/components/ui/button";
+import { Button, buttonVariants } from "@/components/ui/button";
 import {
 	Card,
 	CardContent,
@@ -284,6 +285,13 @@ const AssetSection = ({
 					<Button size="sm" onClick={handleCreateVectorStore}>
 						Create Vector Store
 					</Button>
+					<Link
+						to="/app/blocks/$blockId/points"
+						params={{ blockId }}
+						className={buttonVariants({ variant: "outline", size: "sm" })}
+					>
+						View Vector Points
+					</Link>
 					<CollapsibleTrigger asChild>
 						<Button size="sm" variant="outline">
 							{isOpen ? "Hide Assets" : "Show Assets"}

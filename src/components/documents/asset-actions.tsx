@@ -1,5 +1,5 @@
 import { Link } from "@tanstack/react-router";
-import { Download, FileSearch, PencilIcon, Trash2 } from "lucide-react";
+import { Download, PencilIcon, Trash2 } from "lucide-react";
 import { Button, buttonVariants } from "@/components/ui/button";
 import {
 	Tooltip,
@@ -42,25 +42,6 @@ const AssetActions = ({
 						</Button>
 					</TooltipTrigger>
 					<TooltipContent>Download this asset</TooltipContent>
-				</Tooltip>
-
-				<Tooltip>
-					<TooltipTrigger asChild>
-						<Link
-							to={"/app/assets/$assetId/points"}
-							params={{ assetId: assetInfo.id }}
-						>
-							<Button
-								variant="outline"
-								size="sm"
-								className="flex items-center gap-1"
-							>
-								<FileSearch className="h-4 w-4" />
-								<span className="hidden sm:inline">View Points</span>
-							</Button>
-						</Link>
-					</TooltipTrigger>
-					<TooltipContent>View asset points</TooltipContent>
 				</Tooltip>
 			</div>
 
