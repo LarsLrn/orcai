@@ -274,7 +274,7 @@ const AssetSection = ({
 			onOpenChange={setIsOpen}
 			className="flex flex-col gap-4"
 		>
-			<div className="flex items-center justify-between gap-4 px-4">
+			<div className="flex flex-col justify-between gap-4 px-4 xl:flex-row xl:items-center">
 				<div>
 					<h4 className="font-semibold text-sm">Assets ({assetIds.length})</h4>
 					<span className="text-muted-foreground text-sm">
