@@ -1,4 +1,5 @@
 import { Markdown } from "@/components/app/markdown";
+import { Badge } from "@/components/ui/badge";
 import {
 	Card,
 	CardContent,
@@ -6,43 +7,106 @@ import {
 	CardHeader,
 	CardTitle,
 } from "@/components/ui/card";
+import {
+	HoverCard,
+	HoverCardContent,
+	HoverCardTrigger,
+} from "@/components/ui/hover-card";
 import type { QdrantPoint } from "@/types/qdrant";
 
 const DisplayPoint = ({ point }: { point: QdrantPoint }) => {
+	const { id, payload, score } = point;
+	const hasScore = typeof score === "number" && Number.isFinite(score);
+
 	return (
-		<Card key={point.id}>
-			<CardHeader>
-				<CardTitle>
-					{point.id} | {point.payload.chunk_index + 1} /{" "}
-					{point.payload.chunkCount}
-				</CardTitle>
-				<CardDescription>
-					{point.score && <p>Score: {point.score}</p>}
-					<p>
-						{point.payload.source} | {point.payload.title} |{" "}
-						{point.payload.tokens} tokens
-					</p>
-					<p>
-						{point.payload.createdAt}
-						{point.payload.depth}
-					</p>
-					<p>
-						{point.payload.text.length} characters |{" "}
-						{point.payload.text.split(" ").length} words
-					</p>
-				</CardDescription>
+		<Card className="h-full">
+			<CardHeader className="space-y-3">
+				<div className="flex flex-wrap items-start justify-between gap-3">
+					<div className="space-y-1">
+						<CardTitle className="break-words text-lg leading-tight">
+							{payload.title || payload.source || id}
+						</CardTitle>
+						<CardDescription className="flex flex-wrap items-center gap-x-3 gap-y-1 text-muted-foreground text-sm">
+							{payload.source && (
+								<span className="font-medium text-foreground">
+									{payload.source}
+								</span>
+							)}
+							{payload.createdAt && (
+								<>
+									{payload.source && (
+										<span className="text-muted-foreground">•</span>
+									)}
+									<span>{payload.createdAt}</span>
+								</>
+							)}
+						</CardDescription>
+					</div>
+					{hasScore && (
+						<Badge variant="secondary" className="mt-1 font-mono text-xs">
+							Score {score.toFixed(3)}
+						</Badge>
+					)}
+				</div>
+				<div className="flex flex-wrap items-center gap-2 text-xs">
+					<Badge variant="outline" className="font-mono">
+						Point {id}
+					</Badge>
+					{payload.block_id && (
+						<Badge variant="outline" className="font-mono">
+							Block {payload.block_id}
+						</Badge>
+					)}
+					{payload.asset_id && (
+						<Badge variant="outline" className="font-mono">
+							Asset {payload.asset_id}
+						</Badge>
+					)}
+					<HoverCard>
+						<HoverCardTrigger asChild>
+							<Badge
+								variant="outline"
+								className="cursor-pointer border border-dashed text-muted-foreground"
+							>
+								Details
+							</Badge>
+						</HoverCardTrigger>
+						<HoverCardContent className="space-y-2">
+							{typeof payload.depth === "number" && (
+								<div className="flex items-center justify-between text-muted-foreground text-sm">
+									<span>Depth</span>
+									<span className="font-medium text-foreground">
+										{payload.depth}
+									</span>
+								</div>
+							)}
+							{typeof payload.chunk_index === "number" &&
+								payload.chunkCount != null && (
+									<div className="flex items-center justify-between text-muted-foreground text-sm">
+										<span>Chunk</span>
+										<span className="font-medium text-foreground">
+											{payload.chunk_index + 1} / {payload.chunkCount}
+										</span>
+									</div>
+								)}
+							{typeof payload.tokens === "number" && (
+								<div className="flex items-center justify-between text-muted-foreground text-sm">
+									<span>Tokens</span>
+									<span className="font-medium text-foreground">
+										{payload.tokens}
+									</span>
+								</div>
+							)}
+						</HoverCardContent>
+					</HoverCard>
+				</div>
 			</CardHeader>
-			<CardContent>
-				<Markdown>{point.payload.text}</Markdown>
-				{/* {point.payload.source === "image" && (
-          <DisplayChunkImage
-            imageRef={{
-              reference: point.payload.file_reference,
-              type: point.payload.file_type,
-              bucket: buckets.processed.name,
-            }}
-          />
-        )} */}
+			<CardContent className="pt-0">
+				<div className="rounded-lg bg-background/60 p-4">
+					<Markdown className="prose prose-sm dark:prose-invert max-w-none">
+						{payload.text ?? ""}
+					</Markdown>
+				</div>
 			</CardContent>
 		</Card>
 	);
