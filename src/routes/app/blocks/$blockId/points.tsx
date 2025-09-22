@@ -8,7 +8,7 @@ export const Route = createFileRoute("/app/blocks/$blockId/points")({
 	loader: async ({ context: { queryClient }, params: { blockId } }) => {
 		await queryClient.ensureQueryData(
 			assetPointQueryOptions.list({
-				input: { filters: { blockId } },
+				input: { filters: { blockId, limit: 1000 } },
 			}),
 		);
 	},
@@ -23,10 +23,10 @@ export const Route = createFileRoute("/app/blocks/$blockId/points")({
 });
 
 function RouteComponent() {
-	const { assetId } = Route.useParams();
+	const { blockId } = Route.useParams();
 	const { data: assetPoints } = useSuspenseQuery(
 		assetPointQueryOptions.list({
-			input: { filters: { assetId } },
+			input: { filters: { blockId, limit: 1000 } },
 		}),
 	);
 
