@@ -14,25 +14,32 @@ export const listAssetPoints = authed.assetPoints.list
 			entityType: "asset",
 		}); */
 
+		const filters = [];
+
+		if (input.filters.assetId !== undefined) {
+			filters.push({
+				key: "asset_id",
+				match: {
+					value: input.filters.assetId,
+				},
+			});
+		}
+
+		if (input.filters.blockId !== undefined) {
+			filters.push({
+				key: "block_id",
+				match: {
+					value: input.filters.blockId,
+				},
+			});
+		}
+
 		const { points } = (await qdrant.query(qdrantCollections.asset.name, {
 			query: input.filters.search
 				? await generateEmbedding(input.filters.search)
 				: undefined,
 			filter: {
-				must: [
-					input.filters.assetId && {
-						key: "asset_id", // TODO: get type properly
-						match: {
-							value: input.filters.assetId,
-						},
-					},
-					input.filters.blockId && {
-						key: "block_id",
-						match: {
-							value: input.filters.blockId,
-						},
-					},
-				].filter(Boolean),
+				must: filters,
 			},
 			limit: input.filters.limit ?? undefined,
 			with_payload: true,
