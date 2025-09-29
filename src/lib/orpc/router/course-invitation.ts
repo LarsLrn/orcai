@@ -4,11 +4,9 @@ import { db } from "@/db/drizzle";
 import { courseInvitation } from "@/db/schema/course-invitation";
 import { authed } from "@/lib/orpc";
 import { requireActiveOrganizationMiddleware } from "@/lib/orpc/middlewares/auth";
-import { retry } from "@/lib/orpc/middlewares/retry";
 
-export const listCourseInvitations = authed.courseInvitation.list
-	.use(retry({ times: 3 }))
-	.handler(async ({ input, context }) => {
+export const listCourseInvitations = authed.courseInvitation.list.handler(
+	async ({ input, context }) => {
 		/* const { entityIds } = await listAllowedEntities({
       entityType: "invitation",
       action: "read",
@@ -39,7 +37,8 @@ export const listCourseInvitations = authed.courseInvitation.list
 		]);
 
 		return { data, rowCount: rowCount.count };
-	});
+	},
+);
 
 export const findCourseInvitation = authed.courseInvitation.find
 	/* .use(
@@ -51,7 +50,6 @@ export const findCourseInvitation = authed.courseInvitation.find
 				entityType: "course",
 			}) as const,
 	) */
-	.use(retry({ times: 3 }))
 	.handler(async ({ input }) => {
 		const [query] = await db
 			.select({ ...getTableColumns(courseInvitation) })
@@ -143,9 +141,8 @@ export const deleteCourseInvitations = authed.courseInvitation.delete
 		}
 	});
 
-export const respondToCourseInvitation = authed.courseInvitation.respond
-	.use(retry({ times: 3 }))
-	.handler(({ input }) => {
+export const respondToCourseInvitation =
+	authed.courseInvitation.respond.handler(({ input }) => {
 		const acceptInvitation = () => {
 			/* const [invitation] = await db
 				.select({ ...getTableColumns(courseInvitation) })

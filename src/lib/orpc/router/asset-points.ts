@@ -1,13 +1,11 @@
 import { generateEmbedding } from "@/lib/ai/embedding";
 import { authed } from "@/lib/orpc";
-import { retry } from "@/lib/orpc/middlewares/retry";
 import { qdrant } from "@/qdrant/qdrant";
 import { qdrantCollections } from "@/qdrant/qdrant-constants";
 import type { QdrantPoints } from "@/types/qdrant";
 
-export const listAssetPoints = authed.assetPoints.list
-	.use(retry({ times: 3 }))
-	.handler(async ({ input }) => {
+export const listAssetPoints = authed.assetPoints.list.handler(
+	async ({ input }) => {
 		/* const { entityIds } = await listAllowedEntities({
 			userId: context.session.user.id,
 			action: "read",
@@ -48,4 +46,5 @@ export const listAssetPoints = authed.assetPoints.list
 		})) as QdrantPoints;
 
 		return { data: points };
-	});
+	},
+);

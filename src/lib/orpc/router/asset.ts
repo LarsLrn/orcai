@@ -7,7 +7,6 @@ import {
 	checkManyPermissionMiddleware,
 	checkPermissionMiddleware,
 } from "@/lib/orpc/middlewares/permission";
-import { retry } from "@/lib/orpc/middlewares/retry";
 import {
 	deleteFileFromBucket,
 	deletePrefixRecursively,
@@ -17,9 +16,8 @@ import { deletePointsByIdentifier } from "@/qdrant/mutations";
 import { buckets } from "@/settings/buckets";
 import type { FileType } from "@/types/file";
 
-export const listAssets = authed.asset.list
-	.use(retry({ times: 3 }))
-	.handler(async ({ input, context }) => {
+export const listAssets = authed.asset.list.handler(
+	async ({ input, context }) => {
 		const { entityIds } = await listAllowedEntities({
 			userId: context.auth.user.id,
 			action: "read",
@@ -46,7 +44,8 @@ export const listAssets = authed.asset.list
 		]);
 
 		return { data, rowCount: rowCount.count };
-	});
+	},
+);
 
 export const findAsset = authed.asset.find
 	.use(
@@ -58,7 +57,6 @@ export const findAsset = authed.asset.find
 				entityType: "asset",
 			}) as const,
 	)
-	.use(retry({ times: 3 }))
 	.handler(async ({ input }) => {
 		const [query] = await db
 			.select({ ...getTableColumns(assetTable) })

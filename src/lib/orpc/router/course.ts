@@ -8,12 +8,10 @@ import {
 	checkManyPermissionMiddleware,
 	checkPermissionMiddleware,
 } from "@/lib/orpc/middlewares/permission";
-import { retry } from "@/lib/orpc/middlewares/retry";
 import { createRelation, listAllowedEntities } from "@/lib/spice-db/actions";
 
-export const listCourses = authed.course.list
-	.use(retry({ times: 3 }))
-	.handler(async ({ input, context }) => {
+export const listCourses = authed.course.list.handler(
+	async ({ input, context }) => {
 		const { entityIds } = await listAllowedEntities({
 			entityType: "course",
 			action: "read",
@@ -34,7 +32,8 @@ export const listCourses = authed.course.list
 		]);
 
 		return { data, rowCount: rowCount.count };
-	});
+	},
+);
 
 export const findCourse = authed.course.find
 	.use(
@@ -46,7 +45,6 @@ export const findCourse = authed.course.find
 				entityType: "course",
 			}) as const,
 	)
-	.use(retry({ times: 3 }))
 	.handler(async ({ input }) => {
 		const [query] = await db
 			.select({ ...getTableColumns(course) })

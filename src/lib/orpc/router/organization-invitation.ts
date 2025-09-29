@@ -4,11 +4,9 @@ import { db } from "@/db/drizzle";
 import { invitation } from "@/db/schema/organization";
 import { authed } from "@/lib/orpc";
 import { requireActiveOrganizationMiddleware } from "@/lib/orpc/middlewares/auth";
-import { retry } from "@/lib/orpc/middlewares/retry";
 
-export const listOrganizationInvitations = authed.organizationInvitation.list
-	.use(retry({ times: 3 }))
-	.handler(async ({ input, context }) => {
+export const listOrganizationInvitations =
+	authed.organizationInvitation.list.handler(async ({ input, context }) => {
 		/* const { entityIds } = await listAllowedEntities({
       entityType: "invitation",
       action: "read",
@@ -51,7 +49,6 @@ export const findOrganizationInvitation = authed.organizationInvitation.find
 				entityType: "course",
 			}) as const,
 	) */
-	.use(retry({ times: 3 }))
 	.handler(async ({ input }) => {
 		const [query] = await db
 			.select({ ...getTableColumns(invitation) })
@@ -144,11 +141,9 @@ export const deleteOrganizationInvitations =
 		});
 
 export const respondToOrganisationInvitation =
-	authed.organizationInvitation.respond
-		.use(retry({ times: 3 }))
-		.handler(({ input }) => {
-			const acceptInvitation = () => {
-				/* const [invitation] = await db
+	authed.organizationInvitation.respond.handler(({ input }) => {
+		const acceptInvitation = () => {
+			/* const [invitation] = await db
 				.select({ ...getTableColumns(organisationInvitation) })
 				.from(organisationInvitation)
 				.where(eq(organisationInvitation.id, input.id));
@@ -204,29 +199,29 @@ export const respondToOrganisationInvitation =
 				headers,
 			}); */
 
-				return { success: true, message: "Invitation accepted successfully" };
-			};
+			return { success: true, message: "Invitation accepted successfully" };
+		};
 
-			const rejectInvitation = async () => {
-				await db
-					.update(invitation)
-					.set({
-						status: "rejected",
-						updatedAt: new Date(),
-					})
-					.where(eq(invitation.id, input.id));
+		const rejectInvitation = async () => {
+			await db
+				.update(invitation)
+				.set({
+					status: "rejected",
+					updatedAt: new Date(),
+				})
+				.where(eq(invitation.id, input.id));
 
-				return { success: true, message: "Invitation rejected successfully" };
-			};
+			return { success: true, message: "Invitation rejected successfully" };
+		};
 
-			switch (input.response) {
-				case "accept":
-					return acceptInvitation();
-				case "reject":
-					return rejectInvitation();
-				default:
-					throw new ORPCError("BAD_REQUEST", {
-						message: "Invalid response to organization invitation",
-					});
-			}
-		});
+		switch (input.response) {
+			case "accept":
+				return acceptInvitation();
+			case "reject":
+				return rejectInvitation();
+			default:
+				throw new ORPCError("BAD_REQUEST", {
+					message: "Invalid response to organization invitation",
+				});
+		}
+	});

@@ -16,13 +16,11 @@ import {
 	checkManyPermissionMiddleware,
 	checkPermissionMiddleware,
 } from "@/lib/orpc/middlewares/permission";
-import { retry } from "@/lib/orpc/middlewares/retry";
 import type { Block } from "@/lib/orpc/schemas/block";
 import { createRelation, listAllowedEntities } from "@/lib/spice-db/actions";
 
-export const listBlocks = authed.block.list
-	.use(retry({ times: 3 }))
-	.handler(async ({ input, context }) => {
+export const listBlocks = authed.block.list.handler(
+	async ({ input, context }) => {
 		const { entityIds } = await listAllowedEntities({
 			entityType: "block",
 			action: "read",
@@ -55,7 +53,8 @@ export const listBlocks = authed.block.list
 		]);
 
 		return { data, rowCount: rowCount.count };
-	});
+	},
+);
 
 export const findBlock = authed.block.find
 	.use(
@@ -67,7 +66,6 @@ export const findBlock = authed.block.find
 				entityType: "block",
 			}) as const,
 	)
-	.use(retry({ times: 3 }))
 	.handler(async ({ input }) => {
 		const [block] = (await db
 			.select({ ...getTableColumns(blockTable) })

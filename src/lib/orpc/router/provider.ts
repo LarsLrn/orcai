@@ -3,17 +3,14 @@ import { eq, getTableColumns } from "drizzle-orm";
 import { db } from "@/db/drizzle";
 import { providerTable } from "@/db/schema/model";
 import { authed } from "@/lib/orpc";
-import { retry } from "@/lib/orpc/middlewares/retry";
 
-export const listProviders = authed.provider.list
-	.use(retry({ times: 3 }))
-	.handler(async () => {
-		const providers = await db
-			.select({ ...getTableColumns(providerTable) })
-			.from(providerTable);
+export const listProviders = authed.provider.list.handler(async () => {
+	const providers = await db
+		.select({ ...getTableColumns(providerTable) })
+		.from(providerTable);
 
-		return { data: providers };
-	});
+	return { data: providers };
+});
 
 export const findProvider = authed.provider.find
 	/* .use(
@@ -25,7 +22,6 @@ export const findProvider = authed.provider.find
         entityType: "organization",
       }) as const,
   ) */
-	.use(retry({ times: 3 }))
 	.handler(async ({ input }) => {
 		const [provider] = await db
 			.select({ ...getTableColumns(providerTable) })

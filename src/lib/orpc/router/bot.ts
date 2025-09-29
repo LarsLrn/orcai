@@ -8,38 +8,35 @@ import {
 	checkManyPermissionMiddleware,
 	checkPermissionMiddleware,
 } from "@/lib/orpc/middlewares/permission";
-import { retry } from "@/lib/orpc/middlewares/retry";
 import { createRelation, listAllowedEntities } from "@/lib/spice-db/actions";
 
-export const listBots = authed.bot.list
-	.use(retry({ times: 3 }))
-	.handler(async ({ input, context }) => {
-		const { entityIds } = await listAllowedEntities({
-			entityType: "bot",
-			action: "read",
-			userId: context.auth.user.id,
-		});
-
-		const whereConditions = [inArray(botTable.id, entityIds)];
-		if (input.search) {
-			whereConditions.push(ilike(botTable.name, `%${input.search}%`));
-		}
-
-		const [data, [rowCount]] = await Promise.all([
-			db
-				.select({ ...getTableColumns(botTable) })
-				.from(botTable)
-				.where(and(...whereConditions))
-				.limit(input.pageSize)
-				.offset(input.pageIndex * input.pageSize),
-			db
-				.select({ count: count() })
-				.from(botTable)
-				.where(and(...whereConditions)),
-		]);
-
-		return { data, rowCount: rowCount.count };
+export const listBots = authed.bot.list.handler(async ({ input, context }) => {
+	const { entityIds } = await listAllowedEntities({
+		entityType: "bot",
+		action: "read",
+		userId: context.auth.user.id,
 	});
+
+	const whereConditions = [inArray(botTable.id, entityIds)];
+	if (input.search) {
+		whereConditions.push(ilike(botTable.name, `%${input.search}%`));
+	}
+
+	const [data, [rowCount]] = await Promise.all([
+		db
+			.select({ ...getTableColumns(botTable) })
+			.from(botTable)
+			.where(and(...whereConditions))
+			.limit(input.pageSize)
+			.offset(input.pageIndex * input.pageSize),
+		db
+			.select({ count: count() })
+			.from(botTable)
+			.where(and(...whereConditions)),
+	]);
+
+	return { data, rowCount: rowCount.count };
+});
 
 export const findBot = authed.bot.find
 	.use(
@@ -51,7 +48,6 @@ export const findBot = authed.bot.find
 				entityType: "bot",
 			}) as const,
 	)
-	.use(retry({ times: 3 }))
 	.handler(async ({ input }) => {
 		const [bot] = await db
 			.select({ ...getTableColumns(botTable) })

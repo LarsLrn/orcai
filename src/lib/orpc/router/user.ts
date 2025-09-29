@@ -5,32 +5,29 @@ import { account, session, user } from "@/db/schema/auth";
 import { auth } from "@/lib/auth";
 import { authed } from "@/lib/orpc";
 import { requirePreferencesMiddleware } from "@/lib/orpc/middlewares/auth";
-import { retry } from "@/lib/orpc/middlewares/retry";
 
-export const listUsers = authed.user.list
-	.use(retry({ times: 3 }))
-	.handler(async ({ input }) => {
-		/* const { entityIds } = await listAllowedEntities({
+export const listUsers = authed.user.list.handler(async ({ input }) => {
+	/* const { entityIds } = await listAllowedEntities({
 			entityType: "course",
 			action: "read",
 			userId: context.auth.user.id,
 		}); */
 
-		const [data, [rowCount]] = await Promise.all([
-			db
-				.select({ ...getTableColumns(user) })
-				.from(user)
-				/* .where(inArray(course.id, entityIds)) */
-				.limit(input.pageSize)
-				.offset(input.pageIndex * input.pageSize),
-			db
-				.select({ count: count() })
-				.from(user),
+	const [data, [rowCount]] = await Promise.all([
+		db
+			.select({ ...getTableColumns(user) })
+			.from(user)
 			/* .where(inArray(course.id, entityIds)) */
-		]);
+			.limit(input.pageSize)
+			.offset(input.pageIndex * input.pageSize),
+		db
+			.select({ count: count() })
+			.from(user),
+		/* .where(inArray(course.id, entityIds)) */
+	]);
 
-		return { data, rowCount: rowCount.count };
-	});
+	return { data, rowCount: rowCount.count };
+});
 
 export const findUser = authed.user.find
 	/* .use(
@@ -42,7 +39,6 @@ export const findUser = authed.user.find
         entityType: "user",
       }) as const,
   ) */
-	.use(retry({ times: 3 }))
 	.handler(async ({ input, context }) => {
 		const userId = input?.id ?? context.auth.user.id;
 

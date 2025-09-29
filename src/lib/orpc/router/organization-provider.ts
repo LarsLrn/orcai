@@ -4,11 +4,9 @@ import { db } from "@/db/drizzle";
 import { organizationProviderTable } from "@/db/schema/model";
 import { encryptApiKey } from "@/lib/encryption";
 import { authed } from "@/lib/orpc";
-import { retry } from "@/lib/orpc/middlewares/retry";
 
-export const listOrganizationProviders = authed.organizationProvider.list
-	.use(retry({ times: 3 }))
-	.handler(async ({ input }) => {
+export const listOrganizationProviders =
+	authed.organizationProvider.list.handler(async ({ input }) => {
 		/* const { entityIds } = await listAllowedEntities({
       entityType: "organization",
       action: "read",
@@ -45,7 +43,6 @@ export const findOrganizationProvider = authed.organizationProvider.find
         entityType: "organization",
       }) as const,
   ) */
-	.use(retry({ times: 3 }))
 	.handler(async ({ input }) => {
 		const [organizationProvider] = await db
 			.select({ ...getTableColumns(organizationProviderTable) })

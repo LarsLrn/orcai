@@ -7,67 +7,64 @@ import {
 	modelTable,
 } from "@/db/schema/model";
 import { authed } from "@/lib/orpc";
-import { retry } from "@/lib/orpc/middlewares/retry";
 import type { Capability } from "@/lib/orpc/schemas/capability";
 import type { Model } from "@/lib/orpc/schemas/model";
 
-export const listModels = authed.model.list
-	.use(retry({ times: 3 }))
-	.handler(async ({ input }) => {
-		let models: (typeof modelTable.$inferSelect)[];
+export const listModels = authed.model.list.handler(async ({ input }) => {
+	let models: (typeof modelTable.$inferSelect)[];
 
-		// If capabilities are specified, filter models that have those capabilities
-		if (input.capabilities && input.capabilities.length > 0) {
-			models = await db
-				.select({ ...getTableColumns(modelTable) })
-				.from(modelTable)
-				.innerJoin(
-					modelCapabilityTable,
-					eq(modelCapabilityTable.modelId, modelTable.id),
-				)
-				.where(
-					and(
-						eq(modelTable.providerSlug, input.providerSlug),
-						inArray(modelCapabilityTable.capability, input.capabilities),
-					),
-				)
-				.groupBy(modelTable.id)
-				.having(
-					sql`COUNT(DISTINCT ${modelCapabilityTable.capability}) = ${input.capabilities.length}`,
-				);
-		} else {
-			models = await db
-				.select({ ...getTableColumns(modelTable) })
-				.from(modelTable)
-				.where(eq(modelTable.providerSlug, input.providerSlug));
-		}
-
-		const capabilities = (await db
-			.select({
-				...getTableColumns(capabilityTable),
-				...getTableColumns(modelCapabilityTable),
-			})
-			.from(capabilityTable)
+	// If capabilities are specified, filter models that have those capabilities
+	if (input.capabilities && input.capabilities.length > 0) {
+		models = await db
+			.select({ ...getTableColumns(modelTable) })
+			.from(modelTable)
 			.innerJoin(
 				modelCapabilityTable,
-				eq(modelCapabilityTable.capability, capabilityTable.capability),
+				eq(modelCapabilityTable.modelId, modelTable.id),
 			)
 			.where(
-				inArray(
-					modelCapabilityTable.modelId,
-					models.map((m) => m.id),
+				and(
+					eq(modelTable.providerSlug, input.providerSlug),
+					inArray(modelCapabilityTable.capability, input.capabilities),
 				),
-			)) as (Capability & { modelId: Model["id"] })[];
+			)
+			.groupBy(modelTable.id)
+			.having(
+				sql`COUNT(DISTINCT ${modelCapabilityTable.capability}) = ${input.capabilities.length}`,
+			);
+	} else {
+		models = await db
+			.select({ ...getTableColumns(modelTable) })
+			.from(modelTable)
+			.where(eq(modelTable.providerSlug, input.providerSlug));
+	}
 
-		return {
-			data: models.map((model) => ({
-				...model,
-				capabilities: capabilities.filter(
-					(capability) => capability.modelId === model.id,
-				),
-			})),
-		};
-	});
+	const capabilities = (await db
+		.select({
+			...getTableColumns(capabilityTable),
+			...getTableColumns(modelCapabilityTable),
+		})
+		.from(capabilityTable)
+		.innerJoin(
+			modelCapabilityTable,
+			eq(modelCapabilityTable.capability, capabilityTable.capability),
+		)
+		.where(
+			inArray(
+				modelCapabilityTable.modelId,
+				models.map((m) => m.id),
+			),
+		)) as (Capability & { modelId: Model["id"] })[];
+
+	return {
+		data: models.map((model) => ({
+			...model,
+			capabilities: capabilities.filter(
+				(capability) => capability.modelId === model.id,
+			),
+		})),
+	};
+});
 
 export const findModel = authed.model.find
 	/* .use(
@@ -79,7 +76,6 @@ export const findModel = authed.model.find
         entityType: "organization",
       }) as const,
   ) */
-	.use(retry({ times: 3 }))
 	.handler(async ({ input }) => {
 		const [model] = await db
 			.select({ ...getTableColumns(modelTable) })

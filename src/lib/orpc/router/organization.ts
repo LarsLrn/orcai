@@ -5,12 +5,10 @@ import { organization } from "@/db/schema/organization";
 import { authed } from "@/lib/orpc";
 import { requireActiveOrganizationMiddleware } from "@/lib/orpc/middlewares/auth";
 import { checkManyPermissionMiddleware } from "@/lib/orpc/middlewares/permission";
-import { retry } from "@/lib/orpc/middlewares/retry";
 import { client } from "@/lib/orpc/orpc";
 
-export const listOrganizations = authed.organization.list
-	.use(retry({ times: 3 }))
-	.handler(async ({ input }) => {
+export const listOrganizations = authed.organization.list.handler(
+	async ({ input }) => {
 		/* const { entityIds } = await listAllowedEntities({
 			entityType: "organization",
 			action: "read",
@@ -31,7 +29,8 @@ export const listOrganizations = authed.organization.list
 		]);
 
 		return { data, rowCount: rowCount.count };
-	});
+	},
+);
 
 export const findOrganization = authed.organization.find
 	/* .use(
@@ -43,7 +42,6 @@ export const findOrganization = authed.organization.find
 				entityType: "organization",
 			}) as const,
 	) */
-	.use(retry({ times: 3 }))
 	.handler(async ({ input }) => {
 		const [query] = await db
 			.select({ ...getTableColumns(organization) })

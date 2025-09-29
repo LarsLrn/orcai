@@ -7,12 +7,10 @@ import {
 	checkManyPermissionMiddleware,
 	checkPermissionMiddleware,
 } from "@/lib/orpc/middlewares/permission";
-import { retry } from "@/lib/orpc/middlewares/retry";
 import { createRelation, listAllowedEntities } from "@/lib/spice-db/actions";
 
-export const listChats = authed.chat.list
-	.use(retry({ times: 3 }))
-	.handler(async ({ input, context }) => {
+export const listChats = authed.chat.list.handler(
+	async ({ input, context }) => {
 		const { entityIds } = await listAllowedEntities({
 			userId: context.auth.user.id,
 			action: "read",
@@ -34,7 +32,8 @@ export const listChats = authed.chat.list
 		]);
 
 		return { data, rowCount: rowCount.count };
-	});
+	},
+);
 
 export const findChat = authed.chat.find
 	.use(
@@ -47,7 +46,6 @@ export const findChat = authed.chat.find
 				consistency: "fullyConsistent",
 			}) as const,
 	)
-	.use(retry({ times: 3 }))
 	.handler(async ({ input }) => {
 		const [query] = await db
 			.select({ ...getTableColumns(chat) })

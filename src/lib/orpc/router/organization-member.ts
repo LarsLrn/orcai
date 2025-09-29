@@ -3,12 +3,10 @@ import { and, count, eq, getTableColumns, inArray } from "drizzle-orm";
 import { db } from "@/db/drizzle";
 import { member } from "@/db/schema/organization";
 import { authed } from "@/lib/orpc";
-import { retry } from "@/lib/orpc/middlewares/retry";
 import { createRelation } from "@/lib/spice-db/actions";
 
-export const listOrganizationMembers = authed.organizationMember.list
-	.use(retry({ times: 3 }))
-	.handler(async ({ input }) => {
+export const listOrganizationMembers = authed.organizationMember.list.handler(
+	async ({ input }) => {
 		/* const { entityIds } = await listAllowedEntities({
       entityType: "organization",
       action: "read",
@@ -28,7 +26,8 @@ export const listOrganizationMembers = authed.organizationMember.list
 		]);
 
 		return { data, rowCount: rowCount.count };
-	});
+	},
+);
 
 export const findOrganizationMember = authed.organizationMember.find
 	/* .use(
@@ -40,7 +39,6 @@ export const findOrganizationMember = authed.organizationMember.find
         entityType: "organization",
       }) as const,
   ) */
-	.use(retry({ times: 3 }))
 	.handler(async ({ input }) => {
 		const [query] = await db
 			.select({ ...getTableColumns(member) })

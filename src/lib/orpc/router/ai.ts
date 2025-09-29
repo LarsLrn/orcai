@@ -15,13 +15,11 @@ import { searchKnowledgeBaseTool } from "@/lib/ai/tools/search-knowledgebase";
 import { decryptApiKey } from "@/lib/encryption";
 import { authed } from "@/lib/orpc";
 import { requireActiveOrganizationMiddleware } from "@/lib/orpc/middlewares/auth";
-import { retry } from "@/lib/orpc/middlewares/retry";
 import { client } from "@/lib/orpc/orpc";
 import type { DatabaseBlock, TemplateBlock } from "@/lib/orpc/schemas/block";
 
 export const aiChat = authed.ai.chat
 	.use(requireActiveOrganizationMiddleware)
-	.use(retry({ times: 3 }))
 	.handler(async ({ context, input }) => {
 		try {
 			const userMessage = input.messages[input.messages.length - 1];

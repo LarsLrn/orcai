@@ -7,10 +7,8 @@ import { chatMessage } from "@/db/schema/chat-message";
 import { langfuseServer } from "@/lib/langfuse/langfuse-server";
 import { authed } from "@/lib/orpc";
 import { checkPermissionMiddleware } from "@/lib/orpc/middlewares/permission";
-import { retry } from "@/lib/orpc/middlewares/retry";
 
 export const listChatMessages = authed.chatMessage.list
-	.use(retry({ times: 3 }))
 	.use(
 		checkPermissionMiddleware,
 		(input) =>
@@ -61,7 +59,6 @@ export const findChatMessage = authed.chatMessage.find
 				entityType: "chat",
 			}) as const,
 	)
-	.use(retry({ times: 3 }))
 	.handler(async ({ input }) => {
 		const [query] = await db
 			.select({ ...getTableColumns(chatMessage) })
