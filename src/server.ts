@@ -7,6 +7,7 @@ import { overwriteGetLocale } from "./paraglide/runtime.js";
 import { paraglideMiddleware } from "./paraglide/server.js";
 import { createAppRouter } from "./router";
 import { startTelemetry } from "./telemetry";
+import "./instrumentation";
 
 // Initialize telemetry SYNCHRONOUSLY before any other imports or operations
 // This ensures instrumentation captures all operations
