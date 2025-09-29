@@ -1,9 +1,10 @@
 import path from "node:path";
-import { paraglideVitePlugin as paraglide } from "@inlang/paraglide-js";
+import { paraglideVitePlugin } from "@inlang/paraglide-js";
 import tailwindcss from "@tailwindcss/vite";
 import { devtools } from "@tanstack/devtools-vite";
+import { nitroV2Plugin } from "@tanstack/nitro-v2-vite-plugin";
 import { tanstackStart } from "@tanstack/react-start/plugin/vite";
-import react from "@vitejs/plugin-react";
+import viteReact from "@vitejs/plugin-react";
 import { defineConfig } from "vite";
 import tsConfigPaths from "vite-tsconfig-paths";
 
@@ -26,21 +27,35 @@ export default defineConfig({
 	},
 	plugins: [
 		devtools(), // must be first plugin
-		tsConfigPaths({
-			projects: ["./tsconfig.json"],
-		}),
-		tanstackStart({
-			react: { reactRefreshHost: "http://localhost:3000" },
-			customViteReactPlugin: true,
-		}),
-		tailwindcss(),
-		react(),
-		paraglide({
+		nitroV2Plugin(),
+		paraglideVitePlugin({
 			project: "./project.inlang",
 			outdir: "./src/paraglide",
 			outputStructure: "message-modules",
 			cookieName: "PARAGLIDE_LOCALE",
-			strategy: ["cookie", "preferredLanguage", "baseLocale"],
+			strategy: ["url", "cookie", "preferredLanguage", "baseLocale"],
+			urlPatterns: [
+				{
+					pattern: "/about",
+					localized: [
+						["en", "/en/about"],
+						["de", "/de/ueber"],
+					],
+				},
+				{
+					pattern: "/:path(.*)?",
+					localized: [
+						["en", "/en/:path(.*)?"],
+						["de", "/de/:path(.*)?"],
+					],
+				},
+			],
 		}),
+		tsConfigPaths({
+			projects: ["./tsconfig.json"],
+		}),
+		tanstackStart(),
+		viteReact(),
+		tailwindcss(),
 	],
 });

@@ -1,23 +1,10 @@
-import {
-	createStartHandler,
-	defaultStreamHandler,
-	getWebRequest,
-} from "@tanstack/react-start/server";
-import { overwriteGetLocale } from "./paraglide/runtime.js";
-import { paraglideMiddleware } from "./paraglide/server.js";
-import { createAppRouter } from "./router";
-import { startTelemetry } from "./telemetry";
 import "./instrumentation";
 
-// Initialize telemetry SYNCHRONOUSLY before any other imports or operations
-// This ensures instrumentation captures all operations
-startTelemetry();
+import handler from "@tanstack/react-start/server-entry";
+import { paraglideMiddleware } from "./paraglide/server.js";
 
-export default createStartHandler({
-	createRouter: () => createAppRouter(getWebRequest().url),
-})((event) => {
-	return paraglideMiddleware(getWebRequest(), ({ locale }) => {
-		overwriteGetLocale(() => locale);
-		return defaultStreamHandler(event);
-	});
-});
+export default {
+	fetch(req: Request): Promise<Response> {
+		return paraglideMiddleware(req, ({ request }) => handler.fetch(request));
+	},
+};

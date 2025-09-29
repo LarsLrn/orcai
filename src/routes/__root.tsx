@@ -11,7 +11,7 @@ import {
 } from "@tanstack/react-router";
 import { TanStackRouterDevtoolsPanel } from "@tanstack/react-router-devtools";
 import { createServerFn } from "@tanstack/react-start";
-import { getWebRequest } from "@tanstack/react-start/server";
+import { getRequest } from "@tanstack/react-start/server";
 import { ThemeProvider } from "next-themes";
 import type { ReactNode } from "react";
 import { ConfirmDialogProvider } from "@/components/ui/dialog/confirm-dialog";
@@ -25,12 +25,17 @@ import { getLocale } from "@/paraglide/runtime";
 import appCss from "@/styles/app.css?url";
 
 const getSession = createServerFn({ method: "GET" }).handler(async () => {
-	const { headers } = getWebRequest();
-	const session = await auth.api.getSession({
+	const { headers } = getRequest();
+	const sessionData = await auth.api.getSession({
 		headers,
 	});
 
-	return session;
+	return sessionData
+		? {
+				session: { ...sessionData.session },
+				user: { ...sessionData.user },
+			}
+		: null;
 });
 
 export const Route = createRootRouteWithContext<{

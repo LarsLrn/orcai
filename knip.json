@@ -4,8 +4,7 @@
 		"src/routes/**/*.{ts,tsx}",
 		"src/router.tsx",
 		"src/client.tsx",
-		"src/server.ts",
-		"src/global-middleware.ts"
+		"src/server.ts"
 	],
 	"project": ["src/**"],
 	"ignore": ["src/paraglide/**"],

@@ -3,16 +3,19 @@ import { createRouter } from "@tanstack/react-router";
 import { setupRouterSsrQueryIntegration } from "@tanstack/react-router-ssr-query";
 import { DefaultErrorBoundary } from "./components/boundaries/default-error";
 import { NotFound } from "./components/boundaries/not-found";
-import { getRouterBasepath } from "./lib/i18n/router-basepath";
+import { deLocalizeUrl, localizeUrl } from "./paraglide/runtime";
 import { routeTree } from "./routeTree.gen";
 
-export function createAppRouter(pathname?: string) {
+export function getRouter() {
 	const queryClient = new QueryClient();
 	const router = createRouter({
 		routeTree,
+		rewrite: {
+			input: ({ url }) => deLocalizeUrl(url),
+			output: ({ url }) => localizeUrl(url),
+		},
 		scrollRestoration: true,
 		defaultPreload: "intent",
-		basepath: getRouterBasepath(pathname),
 		defaultErrorComponent: DefaultErrorBoundary,
 		defaultNotFoundComponent: () => <NotFound />,
 		context: { queryClient },
@@ -28,6 +31,6 @@ export function createAppRouter(pathname?: string) {
 
 declare module "@tanstack/react-router" {
 	interface Register {
-		router: ReturnType<typeof createRouter>;
+		router: ReturnType<typeof getRouter>;
 	}
 }

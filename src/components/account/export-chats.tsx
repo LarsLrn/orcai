@@ -1,6 +1,6 @@
 import { useQuery } from "@tanstack/react-query";
 import { createServerFn, useServerFn } from "@tanstack/react-start";
-import { getWebRequest } from "@tanstack/react-start/server";
+import { getRequest } from "@tanstack/react-start/server";
 import type {
 	ApiGetScoresResponseData,
 	ApiTraceWithDetails,
@@ -31,7 +31,7 @@ const fetchAllTraces = createServerFn({
 	method: "GET",
 }).handler(
 	async (): Promise<{ meta: ApiUtilsMetaResponse; data: FilteredTrace[] }> => {
-		const { headers } = getWebRequest();
+		const { headers } = getRequest();
 
 		const session = await auth.api.getSession({ headers });
 

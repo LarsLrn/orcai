@@ -19,9 +19,8 @@ import type { CourseInvitation } from "@/lib/orpc/schemas/course-invitations";
 
 const getCourseInvitationById = createServerFn({
 	method: "GET",
-	response: "data",
 })
-	.validator(
+	.inputValidator(
 		z.object({
 			id: z.uuidv4(),
 		}),

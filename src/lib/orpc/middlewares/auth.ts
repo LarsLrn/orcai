@@ -1,5 +1,5 @@
 import { ORPCError, os } from "@orpc/server";
-import { getWebRequest } from "@tanstack/react-start/server";
+import { getRequest } from "@tanstack/react-start/server";
 import { eq } from "drizzle-orm";
 import { db } from "@/db/drizzle";
 import { user } from "@/db/schema/auth";
@@ -28,7 +28,7 @@ export const requiredAuthMiddleware = withName(
 			 * Because it can avoid `getSession` being called when unnecessary.
 			 * {@link https://orpc.unnoq.com/docs/best-practices/dedupe-middleware}
 			 */
-			const { headers } = getWebRequest();
+			const { headers } = getRequest();
 
 			const auth =
 				context.auth ?? (await betterAuth.api.getSession({ headers }));

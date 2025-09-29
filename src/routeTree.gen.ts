@@ -8,8 +8,6 @@
 // You should NOT make any changes in this file as it will be overwritten.
 // Additionally, you should also exclude this file from your linter and/or formatter to prevent it from being checked or modified.
 
-import { createServerRootRoute } from '@tanstack/react-start/server'
-
 import { Route as rootRouteImport } from './routes/__root'
 import { Route as AppRouteRouteImport } from './routes/app/route'
 import { Route as PathlessLayoutRouteRouteImport } from './routes/_pathlessLayout/route'
@@ -45,6 +43,9 @@ import { Route as AppBotsAddRouteImport } from './routes/app/bots/add'
 import { Route as AppBlocksAddRouteImport } from './routes/app/blocks/add'
 import { Route as AppAssetsPlaygroundRouteImport } from './routes/app/assets/playground'
 import { Route as AppAssetsAddRouteImport } from './routes/app/assets/add'
+import { Route as ApiRpcSplatRouteImport } from './routes/api/rpc/$'
+import { Route as ApiDocSplatRouteImport } from './routes/api/doc/$'
+import { Route as ApiAuthSplatRouteImport } from './routes/api/auth/$'
 import { Route as AppUsersUserIdRouteRouteImport } from './routes/app/users/$userId/route'
 import { Route as AppOrgsOrgIdRouteRouteImport } from './routes/app/orgs/$orgId/route'
 import { Route as AppCoursesCourseIdRouteRouteImport } from './routes/app/courses/$courseId/route'
@@ -70,11 +71,6 @@ import { Route as AppOrgsOrgIdProvidersAddRouteImport } from './routes/app/orgs/
 import { Route as AppOrgsOrgIdProvidersProviderSlugRouteRouteImport } from './routes/app/orgs/$orgId/providers/$providerSlug/route'
 import { Route as AppOrgsOrgIdProvidersProviderSlugIndexRouteImport } from './routes/app/orgs/$orgId/providers/$providerSlug/index'
 import { Route as AppOrgsOrgIdProvidersProviderSlugEditRouteImport } from './routes/app/orgs/$orgId/providers/$providerSlug/edit'
-import { ServerRoute as ApiRpcSplatServerRouteImport } from './routes/api/rpc/$'
-import { ServerRoute as ApiDocSplatServerRouteImport } from './routes/api/doc/$'
-import { ServerRoute as ApiAuthSplatServerRouteImport } from './routes/api/auth/$'
-
-const rootServerRouteImport = createServerRootRoute()
 
 const AppRouteRoute = AppRouteRouteImport.update({
   id: '/app',
@@ -246,6 +242,21 @@ const AppAssetsAddRoute = AppAssetsAddRouteImport.update({
   path: '/add',
   getParentRoute: () => AppAssetsRouteRoute,
 } as any)
+const ApiRpcSplatRoute = ApiRpcSplatRouteImport.update({
+  id: '/api/rpc/$',
+  path: '/api/rpc/$',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ApiDocSplatRoute = ApiDocSplatRouteImport.update({
+  id: '/api/doc/$',
+  path: '/api/doc/$',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ApiAuthSplatRoute = ApiAuthSplatRouteImport.update({
+  id: '/api/auth/$',
+  path: '/api/auth/$',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const AppUsersUserIdRouteRoute = AppUsersUserIdRouteRouteImport.update({
   id: '/$userId',
   path: '/$userId',
@@ -377,21 +388,6 @@ const AppOrgsOrgIdProvidersProviderSlugEditRoute =
     path: '/edit',
     getParentRoute: () => AppOrgsOrgIdProvidersProviderSlugRouteRoute,
   } as any)
-const ApiRpcSplatServerRoute = ApiRpcSplatServerRouteImport.update({
-  id: '/api/rpc/$',
-  path: '/api/rpc/$',
-  getParentRoute: () => rootServerRouteImport,
-} as any)
-const ApiDocSplatServerRoute = ApiDocSplatServerRouteImport.update({
-  id: '/api/doc/$',
-  path: '/api/doc/$',
-  getParentRoute: () => rootServerRouteImport,
-} as any)
-const ApiAuthSplatServerRoute = ApiAuthSplatServerRouteImport.update({
-  id: '/api/auth/$',
-  path: '/api/auth/$',
-  getParentRoute: () => rootServerRouteImport,
-} as any)
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
@@ -416,6 +412,9 @@ export interface FileRoutesByFullPath {
   '/app/courses/$courseId': typeof AppCoursesCourseIdRouteRouteWithChildren
   '/app/orgs/$orgId': typeof AppOrgsOrgIdRouteRouteWithChildren
   '/app/users/$userId': typeof AppUsersUserIdRouteRouteWithChildren
+  '/api/auth/$': typeof ApiAuthSplatRoute
+  '/api/doc/$': typeof ApiDocSplatRoute
+  '/api/rpc/$': typeof ApiRpcSplatRoute
   '/app/assets/add': typeof AppAssetsAddRoute
   '/app/assets/playground': typeof AppAssetsPlaygroundRoute
   '/app/blocks/add': typeof AppBlocksAddRoute
@@ -462,6 +461,9 @@ export interface FileRoutesByTo {
   '/tou': typeof PathlessLayoutTouRoute
   '/app': typeof AppIndexRoute
   '/app/users/$userId': typeof AppUsersUserIdRouteRouteWithChildren
+  '/api/auth/$': typeof ApiAuthSplatRoute
+  '/api/doc/$': typeof ApiDocSplatRoute
+  '/api/rpc/$': typeof ApiRpcSplatRoute
   '/app/assets/add': typeof AppAssetsAddRoute
   '/app/assets/playground': typeof AppAssetsPlaygroundRoute
   '/app/blocks/add': typeof AppBlocksAddRoute
@@ -522,6 +524,9 @@ export interface FileRoutesById {
   '/app/courses/$courseId': typeof AppCoursesCourseIdRouteRouteWithChildren
   '/app/orgs/$orgId': typeof AppOrgsOrgIdRouteRouteWithChildren
   '/app/users/$userId': typeof AppUsersUserIdRouteRouteWithChildren
+  '/api/auth/$': typeof ApiAuthSplatRoute
+  '/api/doc/$': typeof ApiDocSplatRoute
+  '/api/rpc/$': typeof ApiRpcSplatRoute
   '/app/assets/add': typeof AppAssetsAddRoute
   '/app/assets/playground': typeof AppAssetsPlaygroundRoute
   '/app/blocks/add': typeof AppBlocksAddRoute
@@ -584,6 +589,9 @@ export interface FileRouteTypes {
     | '/app/courses/$courseId'
     | '/app/orgs/$orgId'
     | '/app/users/$userId'
+    | '/api/auth/$'
+    | '/api/doc/$'
+    | '/api/rpc/$'
     | '/app/assets/add'
     | '/app/assets/playground'
     | '/app/blocks/add'
@@ -630,6 +638,9 @@ export interface FileRouteTypes {
     | '/tou'
     | '/app'
     | '/app/users/$userId'
+    | '/api/auth/$'
+    | '/api/doc/$'
+    | '/api/rpc/$'
     | '/app/assets/add'
     | '/app/assets/playground'
     | '/app/blocks/add'
@@ -689,6 +700,9 @@ export interface FileRouteTypes {
     | '/app/courses/$courseId'
     | '/app/orgs/$orgId'
     | '/app/users/$userId'
+    | '/api/auth/$'
+    | '/api/doc/$'
+    | '/api/rpc/$'
     | '/app/assets/add'
     | '/app/assets/playground'
     | '/app/blocks/add'
@@ -731,35 +745,9 @@ export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
   PathlessLayoutRouteRoute: typeof PathlessLayoutRouteRouteWithChildren
   AppRouteRoute: typeof AppRouteRouteWithChildren
-}
-export interface FileServerRoutesByFullPath {
-  '/api/auth/$': typeof ApiAuthSplatServerRoute
-  '/api/doc/$': typeof ApiDocSplatServerRoute
-  '/api/rpc/$': typeof ApiRpcSplatServerRoute
-}
-export interface FileServerRoutesByTo {
-  '/api/auth/$': typeof ApiAuthSplatServerRoute
-  '/api/doc/$': typeof ApiDocSplatServerRoute
-  '/api/rpc/$': typeof ApiRpcSplatServerRoute
-}
-export interface FileServerRoutesById {
-  __root__: typeof rootServerRouteImport
-  '/api/auth/$': typeof ApiAuthSplatServerRoute
-  '/api/doc/$': typeof ApiDocSplatServerRoute
-  '/api/rpc/$': typeof ApiRpcSplatServerRoute
-}
-export interface FileServerRouteTypes {
-  fileServerRoutesByFullPath: FileServerRoutesByFullPath
-  fullPaths: '/api/auth/$' | '/api/doc/$' | '/api/rpc/$'
-  fileServerRoutesByTo: FileServerRoutesByTo
-  to: '/api/auth/$' | '/api/doc/$' | '/api/rpc/$'
-  id: '__root__' | '/api/auth/$' | '/api/doc/$' | '/api/rpc/$'
-  fileServerRoutesById: FileServerRoutesById
-}
-export interface RootServerRouteChildren {
-  ApiAuthSplatServerRoute: typeof ApiAuthSplatServerRoute
-  ApiDocSplatServerRoute: typeof ApiDocSplatServerRoute
-  ApiRpcSplatServerRoute: typeof ApiRpcSplatServerRoute
+  ApiAuthSplatRoute: typeof ApiAuthSplatRoute
+  ApiDocSplatRoute: typeof ApiDocSplatRoute
+  ApiRpcSplatRoute: typeof ApiRpcSplatRoute
 }
 
 declare module '@tanstack/react-router' {
@@ -1002,6 +990,27 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AppAssetsAddRouteImport
       parentRoute: typeof AppAssetsRouteRoute
     }
+    '/api/rpc/$': {
+      id: '/api/rpc/$'
+      path: '/api/rpc/$'
+      fullPath: '/api/rpc/$'
+      preLoaderRoute: typeof ApiRpcSplatRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/api/doc/$': {
+      id: '/api/doc/$'
+      path: '/api/doc/$'
+      fullPath: '/api/doc/$'
+      preLoaderRoute: typeof ApiDocSplatRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/api/auth/$': {
+      id: '/api/auth/$'
+      path: '/api/auth/$'
+      fullPath: '/api/auth/$'
+      preLoaderRoute: typeof ApiAuthSplatRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/app/users/$userId': {
       id: '/app/users/$userId'
       path: '/$userId'
@@ -1176,31 +1185,6 @@ declare module '@tanstack/react-router' {
       fullPath: '/app/orgs/$orgId/providers/$providerSlug/edit'
       preLoaderRoute: typeof AppOrgsOrgIdProvidersProviderSlugEditRouteImport
       parentRoute: typeof AppOrgsOrgIdProvidersProviderSlugRouteRoute
-    }
-  }
-}
-declare module '@tanstack/react-start/server' {
-  interface ServerFileRoutesByPath {
-    '/api/rpc/$': {
-      id: '/api/rpc/$'
-      path: '/api/rpc/$'
-      fullPath: '/api/rpc/$'
-      preLoaderRoute: typeof ApiRpcSplatServerRouteImport
-      parentRoute: typeof rootServerRouteImport
-    }
-    '/api/doc/$': {
-      id: '/api/doc/$'
-      path: '/api/doc/$'
-      fullPath: '/api/doc/$'
-      preLoaderRoute: typeof ApiDocSplatServerRouteImport
-      parentRoute: typeof rootServerRouteImport
-    }
-    '/api/auth/$': {
-      id: '/api/auth/$'
-      path: '/api/auth/$'
-      fullPath: '/api/auth/$'
-      preLoaderRoute: typeof ApiAuthSplatServerRouteImport
-      parentRoute: typeof rootServerRouteImport
     }
   }
 }
@@ -1508,15 +1492,19 @@ const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
   PathlessLayoutRouteRoute: PathlessLayoutRouteRouteWithChildren,
   AppRouteRoute: AppRouteRouteWithChildren,
+  ApiAuthSplatRoute: ApiAuthSplatRoute,
+  ApiDocSplatRoute: ApiDocSplatRoute,
+  ApiRpcSplatRoute: ApiRpcSplatRoute,
 }
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)
   ._addFileTypes<FileRouteTypes>()
-const rootServerRouteChildren: RootServerRouteChildren = {
-  ApiAuthSplatServerRoute: ApiAuthSplatServerRoute,
-  ApiDocSplatServerRoute: ApiDocSplatServerRoute,
-  ApiRpcSplatServerRoute: ApiRpcSplatServerRoute,
+
+import type { getRouter } from './router.tsx'
+import type { createStart } from '@tanstack/react-start'
+declare module '@tanstack/react-start' {
+  interface Register {
+    ssr: true
+    router: Awaited<ReturnType<typeof getRouter>>
+  }
 }
-export const serverRouteTree = rootServerRouteImport
-  ._addFileChildren(rootServerRouteChildren)
-  ._addFileTypes<FileServerRouteTypes>()

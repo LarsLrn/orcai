@@ -5,7 +5,7 @@ import {
 	BatchHandlerPlugin,
 	StrictGetMethodPlugin,
 } from "@orpc/server/plugins";
-import { createServerFileRoute } from "@tanstack/react-start/server";
+import { createFileRoute } from "@tanstack/react-router";
 import { z } from "zod/v4";
 import { router } from "@/lib/orpc/router";
 
@@ -77,11 +77,15 @@ async function handle({ request }: { request: Request }) {
 	return response ?? new Response("Not Found", { status: 404 });
 }
 
-export const ServerRoute = createServerFileRoute("/api/rpc/$").methods({
-	HEAD: handle,
-	GET: handle,
-	POST: handle,
-	PUT: handle,
-	PATCH: handle,
-	DELETE: handle,
+export const Route = createFileRoute("/api/rpc/$")({
+	server: {
+		handlers: {
+			HEAD: handle,
+			GET: handle,
+			POST: handle,
+			PUT: handle,
+			PATCH: handle,
+			DELETE: handle,
+		},
+	},
 });
