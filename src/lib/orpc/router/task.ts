@@ -1,18 +1,63 @@
 import { tasks } from "@trigger.dev/sdk";
-import { eq, inArray } from "drizzle-orm";
+import { and, count, eq } from "drizzle-orm";
 import { db } from "@/db/drizzle";
 import { assetTable } from "@/db/schema/asset";
 import { blockAssetTable } from "@/db/schema/block";
+import { taskTable } from "@/db/schema/task";
 import { authed } from "@/lib/orpc";
-import { retry } from "@/lib/orpc/middlewares/retry";
 import { getFileTypeFromMime } from "@/lib/s3/upload-helpers";
-import type { processAssetTask } from "@/trigger/process-asset-task";
-import type { vectorizeAssetTask } from "@/trigger/vectorize-asset-task";
-import type { FilePayload } from "@/types/file";
+import { processAssetTask } from "@/trigger/process-asset-task";
+import { client } from "../orpc";
 
-export const createAssetTask = authed.task.createAssetTask
-	.use(retry({ times: 3 }))
-	.handler(async ({ input }) => {
+export const listTasks = authed.task.list.handler(async ({ input }) => {
+	const whereConditions = [eq(taskTable.resourceId, input.resourceId)];
+
+	const [data, [rowCount]] = await Promise.all([
+		db
+			.select()
+			.from(taskTable)
+			.where(and(...whereConditions)),
+		db
+			.select({ count: count() })
+			.from(taskTable)
+			.where(and(...whereConditions)),
+	]);
+
+	return { data, rowCount: rowCount.count };
+});
+
+export const createTask = authed.task.create.handler(async ({ input }) => {
+	const [task] = await db
+		.insert(taskTable)
+		.values({
+			...input,
+			status: "queued",
+		})
+		.returning();
+
+	return { data: task };
+});
+
+export const updateTask = authed.task.update.handler(async ({ input }) => {
+	const [task] = await db
+		.update(taskTable)
+		.set({
+			...input,
+		})
+		.where(eq(taskTable.runId, input.runId))
+		.returning();
+
+	return { data: task };
+});
+
+export const createDatabaseBlockVectorStore =
+	authed.task.createDatabaseBlockVectorStore.handler(async ({ input }) => {
+		console.log(
+			"Creating vector store for block:",
+			input.blockId,
+			input.taskType,
+		);
+
 		switch (input.taskType) {
 			case "extract": {
 				const docs = await db
@@ -23,104 +68,40 @@ export const createAssetTask = authed.task.createAssetTask
 						prefix: assetTable.prefix,
 						metadata: assetTable.metadata,
 					})
-					.from(assetTable)
-					.where(inArray(assetTable.id, input.ids));
+					.from(blockAssetTable)
+					.where(eq(blockAssetTable.blockId, input.blockId))
+					.innerJoin(assetTable, eq(blockAssetTable.assetId, assetTable.id));
 
-				const _handle = await tasks.batchTrigger<typeof processAssetTask>(
+				const handle = await tasks.batchTrigger<typeof processAssetTask>(
 					"process-asset-task",
 					docs.map((doc) => ({
 						payload: {
-							assetRef: doc as FilePayload,
+							assetRef: {
+								bucket: doc.bucket,
+								prefix: doc.prefix,
+								id: doc.id,
+								type: getFileTypeFromMime(doc.type),
+							},
 							blockId: input.blockId,
 							mergePages: doc.metadata.mergePages ?? true,
 						},
 					})),
 				);
+
+				await client.task.create({
+					resourceId: input.blockId,
+					resourceType: "block",
+					task: processAssetTask.id,
+					runId: handle.batchId,
+					publicAccessToken: handle.publicAccessToken,
+				});
 
 				return {
 					success: true,
 					message: `Processing ${docs.length} assets`,
 				};
 			}
-			case "embed": {
-				const docs = await db
-					.select({
-						id: assetTable.id,
-						metadata: assetTable.metadata,
-					})
-					.from(assetTable)
-					.where(inArray(assetTable.id, input.ids));
-
-				const _handle = await tasks.batchTrigger<typeof vectorizeAssetTask>(
-					"vectorize-asset-task",
-					docs.map((doc) => ({
-						payload: {
-							prefix: doc.id,
-							assetId: doc.id,
-							blockId: input.blockId,
-							mergePages: doc.metadata.mergePages ?? true,
-						},
-					})),
-				);
-
-				return {
-					success: true,
-					message: `Embedding ${docs.length} documents`,
-				};
-			}
-			default:
-				throw new Error("Invalid task type");
-		}
-	});
-
-export const createDatabaseBlockVectorStore =
-	authed.task.createDatabaseBlockVectorStore
-		.use(retry({ times: 3 }))
-		.handler(async ({ input }) => {
-			console.log(
-				"Creating vector store for block:",
-				input.blockId,
-				input.taskType,
-			);
-
-			switch (input.taskType) {
-				case "extract": {
-					const docs = await db
-						.select({
-							id: assetTable.id,
-							bucket: assetTable.bucket,
-							type: assetTable.fileType,
-							prefix: assetTable.prefix,
-							metadata: assetTable.metadata,
-						})
-						.from(blockAssetTable)
-						.where(eq(blockAssetTable.blockId, input.blockId))
-						.innerJoin(assetTable, eq(blockAssetTable.assetId, assetTable.id));
-
-					const _handle = await tasks.batchTrigger<typeof processAssetTask>(
-						"process-asset-task",
-						docs.map((doc) => ({
-							payload: {
-								assetRef: {
-									bucket: doc.bucket,
-									prefix: doc.prefix,
-									id: doc.id,
-									type: getFileTypeFromMime(doc.type),
-								},
-								blockId: input.blockId,
-								mergePages: doc.metadata.mergePages ?? true,
-							},
-						})),
-					);
-
-					console.log("Processing assets for vector store creation:", _handle);
-
-					return {
-						success: true,
-						message: `Processing ${docs.length} assets`,
-					};
-				}
-				/* case "embed": {
+			/* case "embed": {
 					const docs = await db
 						.select({
 							id: assetTable.id,
@@ -152,7 +133,7 @@ export const createDatabaseBlockVectorStore =
 						message: `Embedding ${docs.length} documents`,
 					};
 				} */
-				default:
-					throw new Error("Invalid task type");
-			}
-		});
+			default:
+				throw new Error("Invalid task type");
+		}
+	});

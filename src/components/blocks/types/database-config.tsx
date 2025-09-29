@@ -1,5 +1,6 @@
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { Link } from "@tanstack/react-router";
+import { useRealtimeBatch } from "@trigger.dev/react-hooks";
 import {
 	BotIcon,
 	Move3dIcon,
@@ -212,10 +213,63 @@ const AssetSection = ({
 					</CollapsibleTrigger>
 				</div>
 			</div>
+			<TaskSection blockId={blockId} />
 			<CollapsibleContent>
 				<AssetGrid assetIds={assetIds} />
 			</CollapsibleContent>
 		</Collapsible>
+	);
+};
+
+const TaskSection = ({ blockId }: { blockId: DatabaseBlock["id"] }) => {
+	const { data } = useQuery(
+		taskQueryOptions.list({ input: { resourceId: blockId } }),
+	);
+
+	return (
+		<div>
+			<p>Task Section</p>
+			{data?.data.map((task) => (
+				<TaskProgress
+					key={task.runId}
+					runId={task.runId}
+					publicAccessToken={task.publicAccessToken}
+				/>
+			))}
+		</div>
+	);
+};
+
+const TaskProgress = ({
+	runId,
+	publicAccessToken,
+}: {
+	runId: string;
+	publicAccessToken: string;
+}) => {
+	const { runs, error } = useRealtimeBatch(runId, {
+		accessToken: publicAccessToken,
+		baseURL: "http://host.docker.internal:8030",
+		/* onComplete: (run, error) => {
+			console.log("Run completed", run);
+		}, */
+	});
+
+	return (
+		<div>
+			{runs.map((run) => (
+				<div key={run.id} className="mb-2 rounded border p-4">
+					<div className="mb-2 flex items-center gap-2">
+						<BotIcon className="h-4 w-4" />
+						<span className="font-medium">Run ID: {run.id}</span>
+						<span className="text-muted-foreground text-sm">
+							Status: {run.status}
+						</span>
+					</div>
+				</div>
+			))}
+			{error && <div className="text-red-600">Error: {error.message}</div>}
+		</div>
 	);
 };
 

@@ -94,8 +94,10 @@ import {
 import { findProviderContract, listProvidersContract } from "./provider";
 import { createDownloadUrlContract, createUploadUrlsContract } from "./storage";
 import {
-	createAssetTaskContract,
 	createDatabaseBlockVectorStoreContract,
+	createTaskContract,
+	listTasksContract,
+	updateTaskContract,
 } from "./task";
 import {
 	findUserContract,
@@ -213,7 +215,9 @@ export const contracts = {
 		createDownloadUrl: createDownloadUrlContract,
 	},
 	task: {
-		createAssetTask: createAssetTaskContract,
+		list: listTasksContract,
+		create: createTaskContract,
+		update: updateTaskContract,
 		createDatabaseBlockVectorStore: createDatabaseBlockVectorStoreContract,
 	},
 	ai: {

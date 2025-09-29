@@ -1,5 +1,29 @@
+import {
+	createInsertSchema,
+	createSelectSchema,
+	createUpdateSchema,
+} from "drizzle-zod";
 import { z } from "zod/v4";
+import { taskTable } from "@/db/schema/task";
 import { baseBlockSelectSchema } from "./block";
+
+const taskStatus = z.enum([
+	"queued",
+	"processing",
+	"completed",
+	"failed",
+	"canceled",
+]);
+
+/**
+ * ----------------
+ * Select Schema
+ * ----------------
+ */
+
+export const taskSelectSchema = createSelectSchema(taskTable, {
+	status: taskStatus,
+});
 
 /**
  * ----------------
@@ -7,10 +31,10 @@ import { baseBlockSelectSchema } from "./block";
  * ----------------
  */
 
-export const taskInsertSchema = z.object({
-	taskType: z.enum(["extract", "embed"]),
-	ids: z.array(z.string()),
-	blockId: baseBlockSelectSchema.shape.id,
+export const taskInsertSchema = createInsertSchema(taskTable).omit({
+	status: true,
+	createdAt: true,
+	updatedAt: true,
 });
 
 export const databaseBlockTaskInsertSchema = z.object({
@@ -20,8 +44,23 @@ export const databaseBlockTaskInsertSchema = z.object({
 
 /**
  * ----------------
+ * Update Schema
+ * ----------------
+ */
+
+export const taskUpdateSchema = createUpdateSchema(taskTable, {
+	resourceId: z.string(),
+	status: taskStatus.optional(),
+	runId: z.string(),
+});
+
+/**
+ * ----------------
  * Type Definitions
  * ----------------
  */
 
+export type Task = z.infer<typeof taskSelectSchema>;
 export type TaskInsert = z.infer<typeof taskInsertSchema>;
+export type TaskUpdate = z.infer<typeof taskUpdateSchema>;
+export type TaskStatus = z.infer<typeof taskStatus>;

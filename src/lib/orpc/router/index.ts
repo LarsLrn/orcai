@@ -77,7 +77,12 @@ import {
 import { findProvider, listProviders } from "./provider";
 import { sse } from "./sse";
 import { createDownloadUrl, createUploadUrls } from "./storage";
-import { createAssetTask, createDatabaseBlockVectorStore } from "./task";
+import {
+	createDatabaseBlockVectorStore,
+	createTask,
+	listTasks,
+	updateTask,
+} from "./task";
 import {
 	findUser,
 	listUsers,
@@ -190,7 +195,9 @@ export const router = {
 		find: findModel,
 	},
 	task: {
-		createAssetTask: createAssetTask,
+		list: listTasks,
+		create: createTask,
+		update: updateTask,
 		createDatabaseBlockVectorStore: createDatabaseBlockVectorStore,
 	},
 	ai: {
