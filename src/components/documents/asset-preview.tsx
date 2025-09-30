@@ -1,10 +1,10 @@
 import convert from "convert";
 import { formatDistanceToNow } from "date-fns";
 import { CalendarIcon, HardDriveIcon, SparklesIcon } from "lucide-react";
+import { Badge } from "@/components/ui/badge";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import type { Asset } from "@/lib/orpc/schemas/asset";
 import { getFileTypeFromMime } from "@/lib/s3/upload-helpers";
-import { Badge } from "../ui/badge";
-import { Card, CardContent, CardHeader, CardTitle } from "../ui/card";
 
 /** --- Utility --- */
 const fileTypeClass = (ext: string): string => {

@@ -5,9 +5,9 @@ import { assetTable } from "@/db/schema/asset";
 import { blockAssetTable } from "@/db/schema/block";
 import { taskTable } from "@/db/schema/task";
 import { authed } from "@/lib/orpc";
+import { client } from "@/lib/orpc/orpc";
 import { getFileTypeFromMime } from "@/lib/s3/upload-helpers";
 import { processAssetTask } from "@/trigger/process-asset-task";
-import { client } from "../orpc";
 
 export const listTasks = authed.task.list.handler(async ({ input }) => {
 	const whereConditions = [eq(taskTable.resourceId, input.resourceId)];
