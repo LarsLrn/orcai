@@ -4,9 +4,9 @@ export const Route = createFileRoute("/")({
 	component: Home,
 	beforeLoad: ({ context }) => {
 		if (context.auth.isAuthenticated) {
-			return redirect({ to: "/app" });
+			throw redirect({ to: "/app" });
 		}
-		return redirect({ to: "/login", statusCode: 302 });
+		throw redirect({ to: "/login", statusCode: 302 });
 	},
 });
 
