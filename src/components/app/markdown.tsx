@@ -84,9 +84,11 @@ export const components: Options["components"] = {
 	),
 	code: ({ node, className, children, ...props }) => {
 		return (
-			<CodeBlock className={className || ""} {...props}>
-				{children}
-			</CodeBlock>
+			<CodeBlock
+				code={String(children)}
+				className={className || ""}
+				{...props}
+			/>
 		);
 	},
 	pre: ({ children }) => <>{children}</>,

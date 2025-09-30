@@ -8,17 +8,17 @@ import { toast } from "sonner";
 import { useCopyToClipboard } from "usehooks-ts";
 
 interface CodeBlockProps {
+	code: string;
 	className?: string;
 	showLineNumbers?: boolean;
 	language?: string;
-	children?: any;
 }
 
 const CodeBlock = ({
 	className,
 	showLineNumbers = false,
 	language: overrideLanguage,
-	children,
+	code,
 	...props
 }: CodeBlockProps) => {
 	const [copied, setCopied] = useState(false);
@@ -27,7 +27,7 @@ const CodeBlock = ({
 
 	const match = /language-(\w+)/.exec(className || "");
 	const language = overrideLanguage || (match ? match[1] : "");
-	const codeContent = String(children).replace(/\n$/, "");
+	const codeContent = String(code).replace(/\n$/, "");
 	const isInline = !match && !overrideLanguage;
 
 	const handleCopy = () => {

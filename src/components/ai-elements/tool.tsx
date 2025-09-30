@@ -27,6 +27,7 @@ export const Tool = ({ className, ...props }: ToolProps) => (
 );
 
 export type ToolHeaderProps = {
+	title?: string;
 	type: ToolUIPart["type"];
 	state: ToolUIPart["state"];
 	className?: string;
@@ -57,6 +58,7 @@ const getStatusBadge = (status: ToolUIPart["state"]) => {
 
 export const ToolHeader = ({
 	className,
+	title,
 	type,
 	state,
 	...props
@@ -70,7 +72,9 @@ export const ToolHeader = ({
 	>
 		<div className="flex items-center gap-2">
 			<WrenchIcon className="size-4 text-muted-foreground" />
-			<span className="font-medium text-sm">{type}</span>
+			<span className="font-medium text-sm">
+				{title ?? type.split("-").slice(1).join("-")}
+			</span>
 			{getStatusBadge(state)}
 		</div>
 		<ChevronDownIcon className="size-4 text-muted-foreground transition-transform group-data-[state=open]:rotate-180" />
@@ -99,7 +103,7 @@ export const ToolInput = ({ className, input, ...props }: ToolInputProps) => (
 			Parameters
 		</h4>
 		<div className="rounded-md bg-muted/50">
-			<CodeBlock language="json">{JSON.stringify(input, null, 2)}</CodeBlock>
+			<CodeBlock code={JSON.stringify(input, null, 2)} language="json" />
 		</div>
 	</div>
 );
@@ -123,10 +127,10 @@ export const ToolOutput = ({
 
 	if (typeof output === "object") {
 		Output = (
-			<CodeBlock language="json">{JSON.stringify(output, null, 2)}</CodeBlock>
+			<CodeBlock code={JSON.stringify(output, null, 2)} language="json" />
 		);
 	} else if (typeof output === "string") {
-		Output = <CodeBlock language="json">{output}</CodeBlock>;
+		Output = <CodeBlock code={output} language="json" />;
 	}
 
 	return (
