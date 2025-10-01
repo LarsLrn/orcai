@@ -1,5 +1,4 @@
 import { PutObjectCommand } from "@aws-sdk/client-s3";
-import type { Size } from "@docling/docling-core";
 import { logger, task } from "@trigger.dev/sdk";
 /* import type { ProcessingStatus } from "@/app/api/docs/processing/route"; */
 import {
@@ -15,47 +14,8 @@ import { getFileTypeFromMime } from "@/lib/s3/upload-helpers";
 import { buckets } from "@/settings/buckets";
 import type { SaiaDoclingData } from "@/types/docling";
 import type { ProcessAssetTaskPayload } from "@/types/trigger";
+import { validateImageResolution } from "./utils/validate-image-resolution";
 import { vectorizeAssetTask } from "./vectorize-asset-task";
-
-/**
- * Validates if an image meets minimum resolution requirements
- * @param imageBuffer The image buffer to check
- * @returns An object containing validation result and metadata
- */
-function validateImageResolution(size: Size, upscaleFactor = 1) {
-	// Define minimum resolution requirements
-	const MIN_IMAGE_WIDTH = 100 * upscaleFactor; // pixels
-	const MIN_IMAGE_HEIGHT = 100 * upscaleFactor; // pixels
-	const MIN_SINGLE_DIMENSION = 50 * upscaleFactor; // pixels
-
-	try {
-		const width = size.width || 0;
-		const height = size.height || 0;
-
-		/* Images have to be at least 20 pixels in any dimension
-    and at least 100 pixels in either width or height
-    to be considered valid
-    MIN_SINGLE_DIMENSION ensures very narrow or flat images are not accepted */
-		const isValidResolution =
-			(width >= MIN_IMAGE_WIDTH || height >= MIN_IMAGE_HEIGHT) &&
-			width > MIN_SINGLE_DIMENSION &&
-			height > MIN_SINGLE_DIMENSION;
-
-		return {
-			isValid: isValidResolution,
-		};
-	} catch (error) {
-		logger.error(
-			`Error validating image resolution: ${error instanceof Error ? error.message : String(error)}`,
-		);
-		return {
-			isValid: false,
-			width: 0,
-			height: 0,
-			error: error instanceof Error ? error.message : String(error),
-		};
-	}
-}
 
 export const processAssetTask = task({
 	id: "process-asset-task",
@@ -237,9 +197,15 @@ export const processAssetTask = task({
 												2, // TODO: Use the actual upscale factor
 											);
 											if (!validationResult.isValid) {
-												logger.warn(
-													`Insufficient resolution (${validationResult.width}x${validationResult.height}).`,
-												);
+												if (validationResult.error) {
+													logger.warn(
+														`Error validating image resolution: ${validationResult.error}. Skipping image upload.`,
+													);
+												} else {
+													logger.warn(
+														`Insufficient resolution (${validationResult.width}x${validationResult.height}).`,
+													);
+												}
 												return;
 											}
 
