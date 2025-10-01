@@ -1,6 +1,6 @@
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { Link } from "@tanstack/react-router";
-import { useRealtimeBatch } from "@trigger.dev/react-hooks";
+import { useRealtimeRun } from "@trigger.dev/react-hooks";
 import {
 	BotIcon,
 	Move3dIcon,
@@ -247,27 +247,26 @@ const TaskProgress = ({
 	runId: string;
 	publicAccessToken: string;
 }) => {
-	const { runs, error } = useRealtimeBatch(runId, {
+	const { run, error } = useRealtimeRun(runId, {
 		accessToken: publicAccessToken,
-		baseURL: "http://host.docker.internal:8030",
-		/* onComplete: (run, error) => {
-			console.log("Run completed", run);
-		}, */
+		baseURL: process.env.VITE_TRIGGER_API_URL,
 	});
+
+	if (!run) {
+		return null;
+	}
 
 	return (
 		<div>
-			{runs.map((run) => (
-				<div key={run.id} className="mb-2 rounded border p-4">
-					<div className="mb-2 flex items-center gap-2">
-						<BotIcon className="h-4 w-4" />
-						<span className="font-medium">Run ID: {run.id}</span>
-						<span className="text-muted-foreground text-sm">
-							Status: {run.status}
-						</span>
-					</div>
+			<div key={run.id} className="mb-2 rounded border p-4">
+				<div className="mb-2 flex items-center gap-2">
+					<BotIcon className="h-4 w-4" />
+					<span className="font-medium">Run ID: {run.id}</span>
+					<span className="text-muted-foreground text-sm">
+						Status: {run.status}
+					</span>
 				</div>
-			))}
+			</div>
 			{error && <div className="text-red-600">Error: {error.message}</div>}
 		</div>
 	);
