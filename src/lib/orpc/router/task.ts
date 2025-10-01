@@ -1,10 +1,10 @@
-import { tasks } from "@trigger.dev/sdk";
+import { auth, batch, tasks } from "@trigger.dev/sdk";
 import { and, count, eq } from "drizzle-orm";
 import { db } from "@/db/drizzle";
 import { assetTable } from "@/db/schema/asset";
 import { blockAssetTable } from "@/db/schema/block";
 import { taskTable } from "@/db/schema/task";
-import { authed } from "@/lib/orpc";
+import { authed, os } from "@/lib/orpc";
 import { client } from "@/lib/orpc/orpc";
 import { getFileTypeFromMime } from "@/lib/s3/upload-helpers";
 import { processAssetTask } from "@/trigger/process-asset-task";
@@ -26,7 +26,7 @@ export const listTasks = authed.task.list.handler(async ({ input }) => {
 	return { data, rowCount: rowCount.count };
 });
 
-export const createTask = authed.task.create.handler(async ({ input }) => {
+export const createTask = os.task.create.handler(async ({ input }) => {
 	const [task] = await db
 		.insert(taskTable)
 		.values({
@@ -38,7 +38,7 @@ export const createTask = authed.task.create.handler(async ({ input }) => {
 	return { data: task };
 });
 
-export const updateTask = authed.task.update.handler(async ({ input }) => {
+export const updateTask = os.task.update.handler(async ({ input }) => {
 	const [task] = await db
 		.update(taskTable)
 		.set({
@@ -88,13 +88,25 @@ export const createDatabaseBlockVectorStore =
 					})),
 				);
 
-				await client.task.create({
-					resourceId: input.blockId,
-					resourceType: "block",
-					task: processAssetTask.id,
-					runId: handle.batchId,
-					publicAccessToken: handle.publicAccessToken,
+				const batchDetails = await batch.retrieve(handle.batchId);
+				const publicAccessToken = await auth.createPublicToken({
+					scopes: {
+						read: {
+							runs: batchDetails.runs,
+						},
+					},
 				});
+				await Promise.all(
+					batchDetails.runs.map(async (run) => {
+						await client.task.create({
+							resourceId: input.blockId,
+							resourceType: "block",
+							task: processAssetTask.id,
+							runId: run,
+							publicAccessToken,
+						});
+					}),
+				);
 
 				return {
 					success: true,
