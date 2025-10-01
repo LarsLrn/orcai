@@ -5,7 +5,7 @@ import type { DatabaseBlock } from "@/lib/orpc/schemas/block";
 
 export const searchKnowledgeBaseTool = ({ block }: { block: DatabaseBlock }) =>
 	tool({
-		description: `ALWAYS base your response on the knowledge base. Use it to find relevant information about the user's query.`,
+		description: `ALWAYS base your response on the knowledge base. Use it to find relevant information about the user's query. If the results returned are not relevant, try to rephrase the query and search again. NEVER make up information that is not in the knowledge base. If you cannot find relevant information, respond with "I don't know".`,
 		inputSchema: z.object({
 			query: z
 				.string()
