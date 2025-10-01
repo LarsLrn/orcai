@@ -1,4 +1,4 @@
-import { createOpenAI } from "@ai-sdk/openai";
+import { createOpenAICompatible } from "@ai-sdk/openai-compatible";
 import {
 	experimental_generateImage as generateImage,
 	generateText,
@@ -23,14 +23,17 @@ export const generateImageTool = ({
 				),
 		}),
 		execute: async ({ prompt }) => {
-			const openai = createOpenAI({
-				baseURL: process.env.OPENAI_COMPATIBLE_BASE_URL,
+			const provider = createOpenAICompatible({
+				baseURL:
+					process.env.OPENAI_COMPATIBLE_BASE_URL ||
+					"https://localhost:11434/v1",
 				apiKey: process.env.OPENAI_COMPATIBLE_API_KEY,
 				name: "chatAi",
+				includeUsage: true,
 			});
 
 			const { image } = await generateImage({
-				model: openai.image("flux"),
+				model: provider.imageModel("flux"),
 				prompt,
 			});
 
