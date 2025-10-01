@@ -98,7 +98,9 @@ const openAPIHandler = new OpenAPIHandler(router, {
 		 * https://orpc.unnoq.com/docs/plugins/simple-csrf-protection
 		 */
 		/* new SimpleCsrfProtectionHandlerPlugin(), */
-		new SmartCoercionPlugin(),
+		new SmartCoercionPlugin({
+			schemaConverters: [new ZodToJsonSchemaConverter()],
+		}),
 		new OpenAPIReferencePlugin({
 			schemaConverters: [new ZodToJsonSchemaConverter()],
 			specGenerateOptions: specFromRouter,
