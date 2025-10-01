@@ -1,6 +1,5 @@
 import { PutObjectCommand } from "@aws-sdk/client-s3";
 import { logger, task } from "@trigger.dev/sdk";
-/* import type { ProcessingStatus } from "@/app/api/docs/processing/route"; */
 import {
 	type SerializedDocument,
 	serializeDoclingDocument,
@@ -14,6 +13,7 @@ import { getFileTypeFromMime } from "@/lib/s3/upload-helpers";
 import { buckets } from "@/settings/buckets";
 import type { SaiaDoclingData } from "@/types/docling";
 import type { ProcessAssetTaskPayload } from "@/types/trigger";
+import { mutateTaskStatus } from "./utils/mutate-task-status";
 import { validateImageResolution } from "./utils/validate-image-resolution";
 import { vectorizeAssetTask } from "./vectorize-asset-task";
 
@@ -24,7 +24,28 @@ export const processAssetTask = task({
 		name: "processing-assets-queue",
 		concurrencyLimit: 2,
 	},
-	async onSuccess({ payload }) {
+	async onStart({ payload, ctx }) {
+		await mutateTaskStatus({
+			status: "processing",
+			startedAt: new Date(),
+			task: ctx.task.id,
+			resourceId: payload.blockId,
+			resourceType: "block",
+			payload,
+			runId: ctx.run.id,
+		});
+	},
+	async onSuccess({ payload, ctx }) {
+		await mutateTaskStatus({
+			status: "completed",
+			finishedAt: new Date(),
+			task: ctx.task.id,
+			resourceId: payload.blockId,
+			resourceType: "block",
+			payload,
+			runId: ctx.run.id,
+		});
+
 		// Wait for 5 seconds before vectorizing the asset
 		// TODO: This is a temporary workaround to ensure the file is fully processed
 		await new Promise((resolve) => setTimeout(resolve, 5000));
@@ -34,6 +55,35 @@ export const processAssetTask = task({
 			assetId: payload.assetRef.id,
 			blockId: payload.blockId,
 			mergePages: payload.mergePages,
+		});
+	},
+	async onFailure({ payload, ctx, error }) {
+		const errorMessage =
+			error instanceof Error
+				? error.message
+				: typeof error === "string"
+					? error
+					: String(error);
+
+		await mutateTaskStatus({
+			status: "failed",
+			finishedAt: new Date(),
+			task: ctx.task.id,
+			resourceId: payload.blockId,
+			resourceType: "block",
+			payload: { ...payload, error: errorMessage },
+			runId: ctx.run.id,
+		});
+	},
+	async onCancel({ payload, ctx }) {
+		await mutateTaskStatus({
+			status: "canceled",
+			finishedAt: new Date(),
+			task: ctx.task.id,
+			resourceId: payload.blockId,
+			resourceType: "block",
+			payload,
+			runId: ctx.run.id,
 		});
 	},
 	run: async (payload: ProcessAssetTaskPayload) => {
