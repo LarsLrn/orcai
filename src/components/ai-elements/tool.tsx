@@ -21,7 +21,7 @@ export type ToolProps = ComponentProps<typeof Collapsible>;
 
 export const Tool = ({ className, ...props }: ToolProps) => (
 	<Collapsible
-		className={cn("not-prose mb-4 w-full rounded-md border", className)}
+		className={cn("not-prose mb-4 w-full rounded-lg border", className)}
 		{...props}
 	/>
 );
@@ -102,9 +102,8 @@ export const ToolInput = ({ className, input, ...props }: ToolInputProps) => (
 		<h4 className="font-medium text-muted-foreground text-xs uppercase tracking-wide">
 			Parameters
 		</h4>
-		<div className="rounded-md bg-muted/50">
-			<CodeBlock code={JSON.stringify(input, null, 2)} language="json" />
-		</div>
+
+		<CodeBlock code={JSON.stringify(input, null, 2)} language="json" />
 	</div>
 );
 

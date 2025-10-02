@@ -10,7 +10,7 @@ const MessageModel = ({ message }: { message: CustomUIMessage }) => {
 
 	return (
 		<div className="mt-1 flex items-center justify-end">
-			<span className="flex items-center gap-1 rounded-md px-2 py-1 text-muted-foreground text-xs transition-colors hover:bg-muted/50 hover:text-foreground">
+			<span className="flex h-8 items-center gap-1 rounded-md px-2 py-1 text-muted-foreground text-xs transition-colors hover:bg-muted/50 hover:text-foreground">
 				<BrainCircuitIcon className="h-3 w-3" />
 				<span className="font-medium">{model}</span>
 			</span>
