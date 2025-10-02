@@ -87,7 +87,12 @@ const Chat = ({
 			</Conversation>
 
 			<div className="mx-auto flex w-full flex-col gap-2 bg-background px-4 pb-4 md:max-w-3xl md:pb-6">
-				<ChatInput chatId={id} status={status} sendMessage={sendMessage} />
+				<ChatInput
+					chatId={id}
+					status={status}
+					sendMessage={sendMessage}
+					chatLength={messages.length}
+				/>
 			</div>
 		</div>
 	);
