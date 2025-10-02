@@ -10,6 +10,7 @@ import {
 	wrapLanguageModel,
 } from "ai";
 import { v4 as uuidv4 } from "uuid";
+import { generateChatTitle } from "@/lib/ai/generate-chat-title";
 import { generateImageTool } from "@/lib/ai/tools/generate-image";
 import { searchKnowledgeBaseTool } from "@/lib/ai/tools/search-knowledgebase";
 import { decryptApiKey } from "@/lib/encryption";
@@ -32,6 +33,13 @@ export const aiChat = authed.ai.chat
 				attachments: [],
 				metadata: userMessage.metadata || {},
 			});
+
+			if (input.messages.length < 2) {
+				client.chat.update({
+					id: input.chatId,
+					title: (await generateChatTitle({ messages: input.messages })).title,
+				});
+			}
 
 			let templateBlock: TemplateBlock | undefined;
 			let databaseBlock: DatabaseBlock | undefined;
