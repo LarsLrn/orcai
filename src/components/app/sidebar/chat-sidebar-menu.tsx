@@ -1,5 +1,5 @@
 import { useQuery } from "@tanstack/react-query";
-import { Link } from "@tanstack/react-router";
+import { Link, useParams } from "@tanstack/react-router";
 import { MessagesSquareIcon, MoreHorizontalIcon } from "lucide-react";
 import { ChatActionsDropdown } from "@/components/chat/chat-actions-dropdown";
 import { SimplePlaceholder } from "@/components/placeholders/simple-placeholder";
@@ -10,6 +10,7 @@ import {
 	SidebarMenuItem,
 } from "@/components/ui/sidebar";
 import { chatQueryOptions } from "@/lib/query-options/chat";
+import { cn } from "@/lib/utils";
 
 const ChatSidebarMenu = () => {
 	const { data, status, error } = useQuery(
@@ -17,6 +18,8 @@ const ChatSidebarMenu = () => {
 			input: { pageIndex: 0, pageSize: 100 },
 		}),
 	);
+
+	const { chatId: activeChatId } = useParams({ strict: false });
 
 	if (status === "pending") {
 		return <div>Loading...</div>;
@@ -42,13 +45,17 @@ const ChatSidebarMenu = () => {
 		<SidebarMenu>
 			{chats.map((chat) => (
 				<SidebarMenuItem key={chat.id}>
-					<SidebarMenuButton asChild>
+					<SidebarMenuButton asChild isActive={chat.id === activeChatId}>
 						<Link to={"/app/chat/$chatId"} params={{ chatId: chat.id }}>
 							<span className="truncate">{chat.title}</span>
 						</Link>
 					</SidebarMenuButton>
 					<ChatActionsDropdown chatId={chat.id} title={chat.title}>
-						<SidebarMenuAction>
+						<SidebarMenuAction
+							className={cn(
+								chat.id === activeChatId && "text-accent-foreground",
+							)}
+						>
 							<MoreHorizontalIcon />
 						</SidebarMenuAction>
 					</ChatActionsDropdown>
