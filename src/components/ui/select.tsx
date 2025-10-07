@@ -50,6 +50,7 @@ function SelectContent({
 	className,
 	children,
 	position = "popper",
+	align = "center",
 	...props
 }: React.ComponentProps<typeof SelectPrimitive.Content>) {
 	return (
@@ -63,6 +64,7 @@ function SelectContent({
 					className,
 				)}
 				position={position}
+				align={align}
 				{...props}
 			>
 				<SelectScrollUpButton />
@@ -110,7 +112,7 @@ function SelectItem({
 		>
 			<span className="absolute right-2 flex size-3.5 items-center justify-center">
 				<SelectPrimitive.ItemIndicator>
-					<CheckIcon className="size-4 hover:text-accent-foreground" />
+					<CheckIcon className="size-4" />
 				</SelectPrimitive.ItemIndicator>
 			</span>
 			<SelectPrimitive.ItemText>{children}</SelectPrimitive.ItemText>
