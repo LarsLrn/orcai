@@ -1,6 +1,7 @@
 import { Link } from "@tanstack/react-router";
 import { PlusIcon } from "lucide-react";
 import { buttonVariants } from "@/components/ui/button";
+import { CardTitle } from "../ui/card";
 import { ChatsList } from "./chats-list";
 
 const ChatsPreview = () => {
@@ -9,9 +10,9 @@ const ChatsPreview = () => {
 			<div className="flex items-center justify-between">
 				{/** TODO: Consider centralising ids used by next-step */}
 				{/** biome-ignore lint/correctness/useUniqueElementIds: <Required for next-step to work properly> */}
-				<h2 id="tour-history" className="font-semibold text-2xl tracking-tight">
+				<CardTitle id="tour-history" className="text-xl">
 					Your Recent Conversations
-				</h2>
+				</CardTitle>
 				<div className="flex items-center gap-2">
 					<Link
 						to={"/app/chat"}

@@ -1,25 +1,9 @@
 import { useSuspenseQuery } from "@tanstack/react-query";
 import { createFileRoute, Link } from "@tanstack/react-router";
-import { format } from "date-fns";
-import {
-	BotIcon,
-	CalendarIcon,
-	EditIcon,
-	EyeIcon,
-	GitForkIcon,
-	PlusIcon,
-	UserIcon,
-} from "lucide-react";
-import { Badge } from "@/components/ui/badge";
+import { BotIcon, EditIcon, EyeIcon, PlusIcon } from "lucide-react";
+import { BotPreview } from "@/components/bot/bot-preview";
 import { Button } from "@/components/ui/button";
-import {
-	Card,
-	CardContent,
-	CardDescription,
-	CardFooter,
-	CardHeader,
-	CardTitle,
-} from "@/components/ui/card";
+import { CardFooter } from "@/components/ui/card";
 import { Separator } from "@/components/ui/separator";
 import { botQueryOptions } from "@/lib/query-options/bot";
 
@@ -95,49 +79,7 @@ function RouteComponent() {
 			) : (
 				<div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
 					{bots.data.map((bot) => (
-						<Card
-							key={bot.id}
-							className="flex flex-col transition-all hover:shadow-md"
-						>
-							<CardHeader className="flex-1">
-								<div className="flex items-start justify-between">
-									<div className="space-y-1">
-										<CardTitle className="line-clamp-1 text-lg">
-											{bot.name}
-										</CardTitle>
-										<div className="flex items-center gap-2">
-											<Badge variant="secondary" className="text-xs">
-												<UserIcon className="mr-1 h-3 w-3" />v{bot.version}
-											</Badge>
-											{bot.forkedFromId && (
-												<Badge variant="outline" className="text-xs">
-													<GitForkIcon className="mr-1 h-3 w-3" />
-													Forked
-												</Badge>
-											)}
-										</div>
-									</div>
-								</div>
-								<CardDescription className="line-clamp-2 text-sm">
-									{bot.description}
-								</CardDescription>
-							</CardHeader>
-
-							<CardContent className="flex-1">
-								<div className="space-y-3">
-									<div className="flex items-center gap-2 text-muted-foreground text-xs">
-										<CalendarIcon className="h-3 w-3" />
-										Created {format(bot.createdAt ?? "", "MMM dd, yyyy")}
-									</div>
-									{bot.updatedAt && bot.updatedAt !== bot.createdAt && (
-										<div className="flex items-center gap-2 text-muted-foreground text-xs">
-											<EditIcon className="h-3 w-3" />
-											Updated {format(bot.updatedAt, "MMM dd, yyyy")}
-										</div>
-									)}
-								</div>
-							</CardContent>
-
+						<BotPreview key={bot.id} bot={bot}>
 							<CardFooter className="gap-2 pt-4">
 								<Button variant="outline" size="sm" asChild className="flex-1">
 									<Link to="/app/bots/$botId" params={{ botId: bot.id }}>
@@ -152,7 +94,7 @@ function RouteComponent() {
 									</Link>
 								</Button>
 							</CardFooter>
-						</Card>
+						</BotPreview>
 					))}
 				</div>
 			)}

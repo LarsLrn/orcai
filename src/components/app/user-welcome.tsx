@@ -17,26 +17,28 @@ const UserWelcome = () => {
 
 	return (
 		<div className="space-y-2">
-			<div className="flex items-center justify-between gap-2">
+			<div className="flex flex-col justify-between gap-2 sm:flex-row sm:items-center">
 				<h1 className="font-bold text-3xl tracking-tight">
 					{getTimeBasedGreeting()}, {auth.user.name?.split(" ")[0]}!
 				</h1>
-				<AppTourButton
-					variant="ghost"
-					size="sm"
-					className="right-0 size-8 text-muted-foreground"
-					tour="initialTour"
-					autoTrigger={true}
-				>
-					<CompassIcon />
-				</AppTourButton>
+				<div className="flex items-center gap-2">
+					<AppTourButton
+						variant="ghost"
+						size="sm"
+						className="right-0 size-8 text-muted-foreground"
+						tour="initialTour"
+						autoTrigger={true}
+					>
+						<CompassIcon />
+					</AppTourButton>
+					<AboutModal>
+						<Button size="sm" variant="outline">
+							{m.fluffy_short_halibut_enchant()}
+						</Button>
+					</AboutModal>
+				</div>
 			</div>
 			<p className="text-muted-foreground">{m.only_pink_meerkat_relish()}</p>
-			<AboutModal>
-				<Button size="sm" variant="outline">
-					{m.fluffy_short_halibut_enchant()}
-				</Button>
-			</AboutModal>
 		</div>
 	);
 };
