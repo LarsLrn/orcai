@@ -6,7 +6,7 @@ import {
 	type LucideIcon,
 } from "lucide-react";
 import type { ComponentProps } from "react";
-import { createContext, memo, useContext } from "react";
+import { createContext, memo, useContext, useMemo } from "react";
 import { Badge } from "@/components/ui/badge";
 import {
 	Collapsible,
@@ -55,8 +55,13 @@ export const ChainOfThought = memo(
 			onChange: onOpenChange,
 		});
 
+		const chainOfThoughtContext = useMemo(
+			() => ({ isOpen, setIsOpen }),
+			[isOpen, setIsOpen],
+		);
+
 		return (
-			<ChainOfThoughtContext.Provider value={{ isOpen, setIsOpen }}>
+			<ChainOfThoughtContext.Provider value={chainOfThoughtContext}>
 				<div
 					className={cn("not-prose max-w-prose space-y-4", className)}
 					{...props}

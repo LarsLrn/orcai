@@ -8,6 +8,7 @@ import {
 	XCircleIcon,
 } from "lucide-react";
 import type { ComponentProps, ReactNode } from "react";
+import { isValidElement } from "react";
 import { Badge } from "@/components/ui/badge";
 import {
 	Collapsible,
@@ -21,7 +22,7 @@ export type ToolProps = ComponentProps<typeof Collapsible>;
 
 export const Tool = ({ className, ...props }: ToolProps) => (
 	<Collapsible
-		className={cn("not-prose mb-4 w-full rounded-lg border", className)}
+		className={cn("not-prose mb-4 w-full rounded-md border", className)}
 		{...props}
 	/>
 );
@@ -44,8 +45,8 @@ const getStatusBadge = (status: ToolUIPart["state"]) => {
 	const icons = {
 		"input-streaming": <CircleIcon className="size-4" />,
 		"input-available": <ClockIcon className="size-4 animate-pulse" />,
-		"output-available": <CheckCircleIcon className="size-4 text-green-600" />,
-		"output-error": <XCircleIcon className="size-4 text-red-600" />,
+		"output-available": <CheckCircleIcon className="size-4" />,
+		"output-error": <XCircleIcon className="size-4" />,
 	} as const;
 
 	return (
@@ -102,8 +103,9 @@ export const ToolInput = ({ className, input, ...props }: ToolInputProps) => (
 		<h4 className="font-medium text-muted-foreground text-xs uppercase tracking-wide">
 			Parameters
 		</h4>
-
-		<CodeBlock code={JSON.stringify(input, null, 2)} language="json" />
+		<div className="rounded-md bg-muted/50">
+			<CodeBlock code={JSON.stringify(input, null, 2)} language="json" />
+		</div>
 	</div>
 );
 
@@ -124,7 +126,7 @@ export const ToolOutput = ({
 
 	let Output = <div>{output as ReactNode}</div>;
 
-	if (typeof output === "object") {
+	if (typeof output === "object" && !isValidElement(output)) {
 		Output = (
 			<CodeBlock code={JSON.stringify(output, null, 2)} language="json" />
 		);
