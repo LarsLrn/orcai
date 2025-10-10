@@ -7,7 +7,7 @@ function Empty({ className, ...props }: React.ComponentProps<"div">) {
 		<div
 			data-slot="empty"
 			className={cn(
-				"flex min-w-0 flex-1 flex-col items-center justify-center gap-6 rounded-lg border-dashed p-6 text-center text-balance md:p-12",
+				"flex min-w-0 flex-1 flex-col items-center justify-center gap-6 text-balance rounded-lg border-dashed p-6 text-center md:p-12",
 				className,
 			)}
 			{...props}
@@ -29,12 +29,12 @@ function EmptyHeader({ className, ...props }: React.ComponentProps<"div">) {
 }
 
 const emptyMediaVariants = cva(
-	"flex shrink-0 items-center justify-center mb-2 [&_svg]:pointer-events-none [&_svg]:shrink-0",
+	"mb-2 flex shrink-0 items-center justify-center [&_svg]:pointer-events-none [&_svg]:shrink-0",
 	{
 		variants: {
 			variant: {
 				default: "bg-transparent",
-				icon: "bg-muted text-foreground flex size-10 shrink-0 items-center justify-center rounded-lg [&_svg:not([class*='size-'])]:size-6",
+				icon: "flex size-10 shrink-0 items-center justify-center rounded-lg bg-muted text-foreground [&_svg:not([class*='size-'])]:size-6",
 			},
 		},
 		defaultVariants: {
@@ -62,7 +62,7 @@ function EmptyTitle({ className, ...props }: React.ComponentProps<"div">) {
 	return (
 		<div
 			data-slot="empty-title"
-			className={cn("text-lg font-medium tracking-tight", className)}
+			className={cn("font-medium text-lg tracking-tight", className)}
 			{...props}
 		/>
 	);
@@ -73,7 +73,7 @@ function EmptyDescription({ className, ...props }: React.ComponentProps<"p">) {
 		<div
 			data-slot="empty-description"
 			className={cn(
-				"text-muted-foreground [&>a:hover]:text-primary text-sm/relaxed [&>a]:underline [&>a]:underline-offset-4",
+				"text-muted-foreground text-sm/relaxed [&>a:hover]:text-primary [&>a]:underline [&>a]:underline-offset-4",
 				className,
 			)}
 			{...props}
@@ -86,7 +86,7 @@ function EmptyContent({ className, ...props }: React.ComponentProps<"div">) {
 		<div
 			data-slot="empty-content"
 			className={cn(
-				"flex w-full max-w-sm min-w-0 flex-col items-center gap-4 text-sm text-balance",
+				"flex w-full min-w-0 max-w-sm flex-col items-center gap-4 text-balance text-sm",
 				className,
 			)}
 			{...props}
