@@ -3,6 +3,7 @@ import {
 	ToolContent,
 	ToolHeader,
 	ToolInput,
+	ToolOutput,
 } from "@/components/ai-elements/tool";
 import type { GenerateImageToolPart } from "@/lib/ai/tools";
 
@@ -16,7 +17,10 @@ export const ImageGenerationTool = ({
 			<ToolHeader type="tool-generateImage" state={part.state} />
 			<ToolContent>
 				<ToolInput input={part.input} />
-				<Output output={part.output} />
+				<ToolOutput
+					output={Output({ output: part.output })}
+					errorText={part.errorText}
+				/>
 			</ToolContent>
 		</Tool>
 	);
