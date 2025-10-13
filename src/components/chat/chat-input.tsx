@@ -58,7 +58,7 @@ const ChatInput = ({
 	};
 
 	return (
-		<PromptInput onSubmit={handleSubmit} className="mt-4 bg-card">
+		<PromptInput onSubmit={handleSubmit} className="rounded-md bg-card">
 			<PromptInputTextarea
 				onChange={(e) => setText(e.target.value)}
 				value={text}

@@ -86,7 +86,7 @@ const Chat = ({
 				<ConversationScrollButton />
 			</Conversation>
 
-			<div className="mx-auto flex w-full flex-col gap-2 bg-background px-4 pb-4 md:max-w-3xl md:pb-6">
+			<div className="mx-auto flex w-full flex-col gap-2 px-4 pt-2 pb-6 md:max-w-3xl md:pb-2">
 				<ChatInput
 					chatId={id}
 					status={status}

@@ -26,7 +26,7 @@ const Header = () => {
 		.filter((i) => i.href !== "/" && i.href !== "/app");
 
 	return (
-		<header className="flex h-16 shrink-0 items-center gap-2 px-4 text-muted-foreground">
+		<header className="sticky top-2 z-10 mx-2 flex h-12 shrink-0 items-center gap-2 rounded-lg border bg-sidebar px-4 text-muted-foreground shadow-sm">
 			<SidebarTrigger className="-ml-1" variant="subtle" />
 			<Separator
 				orientation="vertical"

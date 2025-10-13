@@ -57,9 +57,9 @@ const Output = ({
 							<Button
 								variant="outline"
 								size="sm"
-								className="group h-auto min-h-8 w-full gap-2 border-muted-foreground/20 px-3 py-2 transition-all hover:border-primary/40 hover:bg-primary/5 hover:text-foreground hover:shadow-sm"
+								className="group/popover-trigger w-full"
 							>
-								<FileTextIcon className="size-3 text-muted-foreground" />
+								<FileTextIcon className="size-3 text-muted-foreground group-hover/popover-trigger:text-accent-foreground" />
 								<span className="font-medium text-xs">
 									Reference {index + 1}
 								</span>
