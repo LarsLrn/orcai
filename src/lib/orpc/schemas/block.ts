@@ -60,11 +60,21 @@ export const databaseBlockSchema = z.object({
 	}),
 });
 
+export const imageGenerationBlockSchema = z.object({
+	type: z.literal("imageGeneration"),
+	config: z.object({
+		provider: z.string(),
+		model: z.string(),
+		prompt: z.string().optional(),
+	}),
+});
+
 export const baseBlockSelectSchema = createSelectSchema(blockTable);
 
 export const blockSelectSchema = z.discriminatedUnion("type", [
 	baseBlockSelectSchema.extend(templateBlockSchema.shape),
 	baseBlockSelectSchema.extend(databaseBlockSchema.shape),
+	baseBlockSelectSchema.extend(imageGenerationBlockSchema.shape),
 ]);
 
 /**
@@ -80,19 +90,6 @@ const baseBlockInsertSchema = createInsertSchema(blockTable).omit({
 	id: true,
 });
 
-/* export const templateBlockInsertSchema = baseBlockInsertSchema.extend({
-	type: z.literal("template"),
-	config: templateBlockSchema.shape.config,
-});
-
-export const databaseBlockInsertSchema = baseBlockInsertSchema.extend({
-	type: z.literal("database"),
-	config: databaseBlockSchema.shape.config,
-	assets: z
-		.array(z.string())
-		.min(1, "At least one asset is required for database blocks"),
-}); */
-
 export const blockInsertSchema = z.discriminatedUnion("type", [
 	baseBlockInsertSchema.extend(templateBlockSchema.shape),
 	baseBlockInsertSchema.extend({
@@ -101,6 +98,7 @@ export const blockInsertSchema = z.discriminatedUnion("type", [
 			.array(assetSelectSchema.shape.id)
 			.min(1, "At least one asset is required for database blocks"),
 	}),
+	baseBlockInsertSchema.extend(imageGenerationBlockSchema.shape),
 ]);
 
 /**
@@ -117,20 +115,6 @@ const baseBlockUpdateSchema = createUpdateSchema(blockTable, {
 	updatedAt: true,
 });
 
-/* export const blockUpdateSchema = z.discriminatedUnion("type", [
-	baseBlockUpdateSchema.extend({
-		type: z.literal("template"),
-		config: templateBlockSchema.shape.config,
-	}),
-	baseBlockUpdateSchema.extend({
-		type: z.literal("database"),
-		config: databaseBlockSchema.shape.config,
-		assets: z
-			.array(z.string())
-			.min(1, "At least one asset is required for database blocks"),
-	}),
-]); */
-
 export const blockUpdateSchema = z.discriminatedUnion("type", [
 	baseBlockUpdateSchema.extend(templateBlockSchema.shape),
 	baseBlockUpdateSchema.extend({
@@ -139,6 +123,7 @@ export const blockUpdateSchema = z.discriminatedUnion("type", [
 			.array(z.string())
 			.min(1, "At least one asset is required for database blocks"),
 	}),
+	baseBlockUpdateSchema.extend(imageGenerationBlockSchema.shape),
 ]);
 
 /**
@@ -164,13 +149,15 @@ export type BlockDelete = z.infer<typeof blockDeleteSchema>;
 
 export type BlockConfigType =
 	| z.infer<typeof templateBlockSchema.shape.config>
-	| z.infer<typeof databaseBlockSchema.shape.config>;
+	| z.infer<typeof databaseBlockSchema.shape.config>
+	| z.infer<typeof imageGenerationBlockSchema.shape.config>;
 
-// export type BlockTypes = "template" | "database";
+export type BlockType = "template" | "database" | "imageGeneration";
 
 // Type-safe block variants
 export type TemplateBlock = Extract<Block, { type: "template" }>;
 export type DatabaseBlock = Extract<Block, { type: "database" }>;
+export type ImageGenerationBlock = Extract<Block, { type: "imageGeneration" }>;
 
 /**
  * ----------------
@@ -184,4 +171,10 @@ export function isTemplateBlock(block: Block): block is TemplateBlock {
 
 export function isDatabaseBlock(block: Block): block is DatabaseBlock {
 	return block.type === "database";
+}
+
+export function isImageGenerationBlock(
+	block: Block,
+): block is ImageGenerationBlock {
+	return block.type === "imageGeneration";
 }

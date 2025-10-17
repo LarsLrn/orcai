@@ -17,7 +17,11 @@ import { decryptApiKey } from "@/lib/encryption";
 import { authed } from "@/lib/orpc";
 import { requireActiveOrganizationMiddleware } from "@/lib/orpc/middlewares/auth";
 import { client } from "@/lib/orpc/orpc";
-import type { DatabaseBlock, TemplateBlock } from "@/lib/orpc/schemas/block";
+import type {
+	DatabaseBlock,
+	ImageGenerationBlock,
+	TemplateBlock,
+} from "@/lib/orpc/schemas/block";
 
 export const aiChat = authed.ai.chat
 	.use(requireActiveOrganizationMiddleware)
@@ -43,6 +47,7 @@ export const aiChat = authed.ai.chat
 
 			let templateBlock: TemplateBlock | undefined;
 			let databaseBlock: DatabaseBlock | undefined;
+			let imageGenerationBlock: ImageGenerationBlock | undefined;
 
 			if (input.botId) {
 				// Fetch the bot to get its model configuration
@@ -58,6 +63,10 @@ export const aiChat = authed.ai.chat
 				databaseBlock = botBlocks.data.find(
 					(block) => block.type === "database",
 				) as DatabaseBlock;
+
+				imageGenerationBlock = botBlocks.data.find(
+					(block) => block.type === "imageGeneration",
+				) as ImageGenerationBlock;
 			}
 
 			if (!templateBlock) {
@@ -128,19 +137,18 @@ export const aiChat = authed.ai.chat
             }, */
 						stopWhen: stepCountIs(5),
 						tools: {
-							generateImage: generateImageTool({
-								writer,
+							...(imageGenerationBlock && {
+								generateImage: generateImageTool({
+									writer,
+									block: imageGenerationBlock,
+									organizationId: context.auth.session.activeOrganizationId,
+								}),
 							}),
 							...(databaseBlock && {
 								searchKnowledgeBase: searchKnowledgeBaseTool({
 									block: databaseBlock,
 								}),
 							}),
-							/* generateJoke: generateJokeTool(),
-              searchKnowledgeBase: searchKnowledgeBaseTool({
-                config: course.data.config,
-                courseId: activeCourseId,
-              }), */
 						},
 					});
 

@@ -7,11 +7,18 @@ import {
 } from "ai";
 import { z } from "zod/v4";
 import { getSaiaModel } from "@/lib/ai/saia-models";
+import { decryptApiKey } from "@/lib/encryption";
+import { client } from "@/lib/orpc/orpc";
+import type { ImageGenerationBlock } from "@/lib/orpc/schemas/block";
 
 export const generateImageTool = ({
 	writer,
+	block,
+	organizationId,
 }: {
 	writer: UIMessageStreamWriter;
+	block: ImageGenerationBlock;
+	organizationId: string;
 }) =>
 	tool({
 		description: "Generate an image based on a text prompt",
@@ -23,18 +30,25 @@ export const generateImageTool = ({
 				),
 		}),
 		execute: async ({ prompt }) => {
+			const systemProvider = await client.provider.find({
+				slug: block.config.provider,
+			});
+
+			const organizationProvider = await client.organizationProvider.find({
+				organizationId,
+				providerSlug: block.config.provider,
+			});
+
 			const provider = createOpenAICompatible({
-				baseURL:
-					process.env.OPENAI_COMPATIBLE_BASE_URL ||
-					"https://localhost:11434/v1",
-				apiKey: process.env.OPENAI_COMPATIBLE_API_KEY,
-				name: "chatAi",
+				baseURL: systemProvider.data.endpoint ?? "", // TODO: Fix?
+				apiKey: decryptApiKey(organizationProvider.data.apiKeyEncrypted),
+				name: systemProvider.data.slug,
 				includeUsage: true,
 			});
 
 			const { image } = await generateImage({
-				model: provider.imageModel("flux"),
-				prompt,
+				model: provider.imageModel(block.config.model),
+				prompt: `${block.config.prompt}\n\n${prompt}`,
 			});
 
 			const description = await generateText({
