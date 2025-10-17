@@ -1,3 +1,5 @@
+import "./tiptap.css";
+
 import { renderToString } from "katex";
 import { useEffect, useState } from "react";
 

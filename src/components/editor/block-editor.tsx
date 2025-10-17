@@ -1,12 +1,15 @@
+import "./tiptap.css";
+
 import {
 	type Content,
 	type Editor,
 	EditorContent,
 	useEditor,
 } from "@tiptap/react";
-import { defaultExtensions } from "./default-extensions";
+import { extensions } from "./extensions";
 import { DefaultBubbleMenu } from "./menus/default-bubble-menu";
 import { TableOptionsMenu } from "./menus/table-options-menu";
+import { EditorToolbar } from "./toolbars/editor-toolbar";
 
 interface BlockEditorProps {
 	content?: Content;
@@ -17,7 +20,7 @@ interface BlockEditorProps {
 
 const BlockEditor = ({ content, onCreate, onUpdate }: BlockEditorProps) => {
 	const editor = useEditor({
-		extensions: [...defaultExtensions],
+		extensions: [...extensions],
 		content,
 		immediatelyRender: false,
 		shouldRerenderOnTransaction: false,
@@ -37,14 +40,19 @@ const BlockEditor = ({ content, onCreate, onUpdate }: BlockEditorProps) => {
 		},
 	});
 
+	if (!editor) {
+		return null;
+	}
+
 	return (
 		<>
+			<DefaultBubbleMenu editor={editor} />
+			<EditorToolbar editor={editor} />
 			<EditorContent
 				editor={editor}
 				className="prose dark:prose-invert z-0 max-w-full focus:outline-none"
 			/>
 			<TableOptionsMenu editor={editor} />
-			<DefaultBubbleMenu editor={editor} />
 		</>
 	);
 };

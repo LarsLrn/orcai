@@ -1,18 +1,28 @@
 import { mergeAttributes } from "@tiptap/core";
 import { CharacterCount } from "@tiptap/extension-character-count";
+import { Color } from "@tiptap/extension-color";
 import { Heading } from "@tiptap/extension-heading";
+import Highlight from "@tiptap/extension-highlight";
 import { Image } from "@tiptap/extension-image";
+import Link from "@tiptap/extension-link";
+import Placeholder from "@tiptap/extension-placeholder";
+import Subscript from "@tiptap/extension-subscript";
+import Superscript from "@tiptap/extension-superscript";
 import { createColGroup, Table } from "@tiptap/extension-table";
 import { TableCell } from "@tiptap/extension-table-cell";
 import { TableHeader } from "@tiptap/extension-table-header";
 import { TableRow } from "@tiptap/extension-table-row";
-import { TextAlign } from "@tiptap/extension-text-align";
+import TextAlign from "@tiptap/extension-text-align";
 import { TextStyle } from "@tiptap/extension-text-style";
+import Typography from "@tiptap/extension-typography";
+import Underline from "@tiptap/extension-underline";
 import { Youtube } from "@tiptap/extension-youtube";
 import type { DOMOutputSpec } from "@tiptap/pm/model";
-import { StarterKit } from "@tiptap/starter-kit";
+import StarterKit from "@tiptap/starter-kit";
 import GlobalDragHandle from "tiptap-extension-global-drag-handle";
 import { cn } from "@/lib/utils";
+import { ImageExtension } from "./extensions/image";
+import { ImagePlaceholder } from "./extensions/image-placeholder";
 
 const TiptapStarterKit = StarterKit.configure({
 	bulletList: {
@@ -158,7 +168,7 @@ const TiptapCharacterCount = CharacterCount;
 //   },
 // });
 
-export const defaultExtensions = [
+export const extensions = [
 	TiptapStarterKit,
 	TiptapHeading,
 	TiptapTextAlign,
@@ -171,4 +181,32 @@ export const defaultExtensions = [
 	TiptapImage,
 	TextStyle,
 	DragHandle,
+	Placeholder.configure({
+		emptyNodeClass: "is-editor-empty",
+		placeholder: ({ node }) => {
+			switch (node.type.name) {
+				case "heading":
+					return `Heading ${node.attrs.level}`;
+				case "detailsSummary":
+					return "Section title";
+				case "codeBlock":
+					// never show the placeholder when editing code
+					return "";
+				default:
+					return "Write, type '/' for commands";
+			}
+		},
+		includeChildren: false,
+	}),
+	Subscript,
+	Superscript,
+	Underline,
+	Link,
+	Color,
+	Highlight.configure({
+		multicolor: true,
+	}),
+	ImageExtension,
+	ImagePlaceholder,
+	Typography,
 ];

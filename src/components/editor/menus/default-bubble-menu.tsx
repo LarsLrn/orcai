@@ -6,7 +6,7 @@ import { Separator } from "@/components/ui/separator";
 import { cn } from "@/lib/utils";
 import { NodeSelector, TextAlignSelector, TextButtons } from "./selectors";
 
-export const DefaultBubbleMenu = ({ editor }: { editor: Editor | null }) => {
+export const DefaultBubbleMenu = ({ editor }: { editor: Editor }) => {
 	const scrollContainerRef = useRef<HTMLDivElement>(null);
 	const [canScrollLeft] = useState(false);
 	const [canScrollRight] = useState(false);
