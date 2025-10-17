@@ -11,12 +11,12 @@ import {
 	CardHeader,
 	CardTitle,
 } from "@/components/ui/card";
-import type { Block } from "@/lib/orpc/schemas/block";
-import { DROP_ZONE_IDS, MAX_DATABASE_BLOCKS } from "@/settings/bots";
-import type { BotBuilderFormValues } from "./bot-builder-form.types";
+import type { Block, BlockType } from "@/lib/orpc/schemas/block";
+import type { BotInsert } from "@/lib/orpc/schemas/bot";
+import { BLOCK_TYPE_CONFIGS } from "./bot-builder-config";
 
 interface BotBuilderBlocksSectionProps {
-	form: UseFormReturn<BotBuilderFormValues>;
+	form: UseFormReturn<BotInsert>;
 	blocks: Block[];
 }
 
@@ -31,60 +31,64 @@ const BotBuilderBlocksSection = ({
 		return new Map(blocks.map((block) => [block.id, block] as const));
 	}, [blocks]);
 
-	const { templateId, databaseIds, unknownIds } = useMemo(() => {
-		let template: string | undefined;
-		const database: string[] = [];
+	// Group blocks by type
+	const blocksByType = useMemo(() => {
+		const grouped: Record<string, string[]> = {};
 		const unknown: string[] = [];
 
-		blockIds.forEach((id) => {
+		for (const id of blockIds) {
 			const block = blockMap.get(id);
 			if (!block) {
 				unknown.push(id);
-				return;
+				continue;
 			}
 
-			if (block.type === "template" && !template) {
-				template = block.id;
-				return;
+			const config = BLOCK_TYPE_CONFIGS.find((c) => c.type === block.type);
+			if (!config) {
+				unknown.push(id);
+				continue;
 			}
 
-			if (block.type === "database") {
-				if (!database.includes(block.id)) {
-					database.push(block.id);
-				}
-				return;
+			if (!grouped[block.type]) {
+				grouped[block.type] = [];
 			}
 
-			unknown.push(id);
-		});
+			const maxCount = config.maxCount;
+			if (grouped[block.type].length < maxCount) {
+				grouped[block.type].push(id);
+			}
+		}
 
-		return { templateId: template, databaseIds: database, unknownIds: unknown };
+		return { grouped, unknown };
 	}, [blockIds, blockMap]);
 
-	const templateBlock = templateId ? blockMap.get(templateId) : undefined;
-	const databaseBlocks = useMemo(() => {
-		return databaseIds
-			.map((id) => blockMap.get(id))
-			.filter((block): block is Block => Boolean(block));
-	}, [databaseIds, blockMap]);
+	// Get active blocks for each type
+	const activeBlocks = useMemo(() => {
+		const result: Record<string, Block[]> = {};
+		for (const [type, ids] of Object.entries(blocksByType.grouped)) {
+			result[type] = ids
+				.map((id) => blockMap.get(id))
+				.filter((block): block is Block => Boolean(block));
+		}
+		return result;
+	}, [blocksByType.grouped, blockMap]);
 
-	const templateBlocksAvailable = useMemo(() => {
-		return blocks.filter(
-			(block) => block.type === "template" && block.id !== templateId,
-		);
-	}, [blocks, templateId]);
+	// Get available (unused) blocks for each type
+	const availableBlocks = useMemo(() => {
+		const result: Record<string, Block[]> = {};
+		const activeIds = new Set(blockIds);
 
-	const databaseBlocksAvailable = useMemo(() => {
-		return blocks.filter((block) => {
-			return block.type === "database" && !databaseIds.includes(block.id);
-		});
-	}, [blocks, databaseIds]);
+		for (const config of BLOCK_TYPE_CONFIGS) {
+			result[config.type] = blocks.filter(
+				(block) => block.type === config.type && !activeIds.has(block.id),
+			);
+		}
+		return result;
+	}, [blocks, blockIds]);
 
 	const updateBlockIds = useCallback(
 		(nextIds: string[]) => {
-			const deduped = nextIds.filter(
-				(id, index) => nextIds.indexOf(id) === index,
-			);
+			const deduped = Array.from(new Set(nextIds));
 			form.setValue("blockIds", deduped, {
 				shouldDirty: true,
 				shouldTouch: true,
@@ -94,68 +98,53 @@ const BotBuilderBlocksSection = ({
 		[form],
 	);
 
-	const assignTemplateBlock = useCallback(
-		(block: Block) => {
-			if (block.type !== "template") {
-				toast.error("Only template blocks can occupy the template slot.");
+	const assignBlock = useCallback(
+		(block: Block, targetType: BlockType) => {
+			const config = BLOCK_TYPE_CONFIGS.find((c) => c.type === targetType);
+			if (!config) {
 				return;
 			}
 
-			if (templateId === block.id) {
-				return;
-			}
-
-			const filteredDatabase = databaseIds.filter((id) => id !== block.id);
-			const filteredUnknown = unknownIds.filter((id) => id !== block.id);
-			updateBlockIds([block.id, ...filteredDatabase, ...filteredUnknown]);
-		},
-		[databaseIds, templateId, unknownIds, updateBlockIds],
-	);
-
-	const addDatabaseBlock = useCallback(
-		(block: Block) => {
-			if (block.type !== "database") {
-				toast.error("Only database blocks can be added to the knowledge slot.");
-				return;
-			}
-
-			if (databaseIds.includes(block.id)) {
-				return;
-			}
-
-			if (databaseIds.length >= MAX_DATABASE_BLOCKS) {
+			if (block.type !== targetType) {
 				toast.error(
-					`You can only add up to ${MAX_DATABASE_BLOCKS} database blocks.`,
+					`Only ${config.label} blocks can be assigned to this slot.`,
 				);
 				return;
 			}
 
-			const filteredUnknown = unknownIds.filter((id) => id !== block.id);
-			const filteredDatabase = databaseIds.filter((id) => id !== block.id);
-			const prefix = templateId ? [templateId] : [];
-			updateBlockIds([
-				...prefix,
-				...filteredDatabase,
-				block.id,
-				...filteredUnknown,
-			]);
+			const currentIds = blocksByType.grouped[targetType] || [];
+
+			// Already assigned
+			if (currentIds.includes(block.id)) {
+				return;
+			}
+
+			// Check max count
+			if (currentIds.length >= config.maxCount) {
+				if (config.maxCount === 1) {
+					// Replace single block
+					const nextIds = blockIds.filter((id) => !currentIds.includes(id));
+					updateBlockIds([...nextIds, block.id]);
+				} else {
+					toast.error(
+						`You can only add up to ${config.maxCount} ${config.label} blocks.`,
+					);
+				}
+				return;
+			}
+
+			// Add block (remove from other locations first)
+			const nextIds = blockIds.filter((id) => id !== block.id);
+			updateBlockIds([...nextIds, block.id]);
 		},
-		[databaseIds, templateId, unknownIds, updateBlockIds],
+		[blockIds, blocksByType.grouped, updateBlockIds],
 	);
 
 	const removeBlock = useCallback(
 		(blockId: string) => {
-			const nextTemplate = templateId === blockId ? undefined : templateId;
-			const filteredDatabase = databaseIds.filter((id) => id !== blockId);
-			const filteredUnknown = unknownIds.filter((id) => id !== blockId);
-			const nextIds = [
-				...(nextTemplate ? [nextTemplate] : []),
-				...filteredDatabase,
-				...filteredUnknown,
-			];
-			updateBlockIds(nextIds);
+			updateBlockIds(blockIds.filter((id) => id !== blockId));
 		},
-		[databaseIds, templateId, unknownIds, updateBlockIds],
+		[blockIds, updateBlockIds],
 	);
 
 	const handleDragEnd = useCallback(
@@ -171,24 +160,22 @@ const BotBuilderBlocksSection = ({
 				return;
 			}
 
-			if (over.id === DROP_ZONE_IDS.activeTemplate) {
-				assignTemplateBlock(block);
-				return;
+			// Build drop zone map dynamically from config
+			const dropZoneMap: Record<string, BlockType | null> = {};
+			for (const config of BLOCK_TYPE_CONFIGS) {
+				dropZoneMap[config.activeDropZoneId] = config.type;
+				dropZoneMap[config.availableDropZoneId] = null;
 			}
 
-			if (over.id === DROP_ZONE_IDS.activeDatabase) {
-				addDatabaseBlock(block);
-				return;
-			}
+			const targetType = dropZoneMap[String(over.id)];
 
-			if (
-				over.id === DROP_ZONE_IDS.availableTemplate ||
-				over.id === DROP_ZONE_IDS.availableDatabase
-			) {
+			if (targetType) {
+				assignBlock(block, targetType);
+			} else if (targetType === null) {
 				removeBlock(block.id);
 			}
 		},
-		[addDatabaseBlock, assignTemplateBlock, blockMap, removeBlock],
+		[assignBlock, blockMap, removeBlock],
 	);
 
 	return (
@@ -208,13 +195,11 @@ const BotBuilderBlocksSection = ({
 				>
 					<div className="grid grid-cols-1 gap-6 lg:grid-cols-2">
 						<BotBuilderAvailableBlocks
-							templateBlocks={templateBlocksAvailable}
-							databaseBlocks={databaseBlocksAvailable}
+							blocksByType={availableBlocks}
 							isDragging={isDragging}
 						/>
 						<BotBuilderActiveBlocks
-							templateBlock={templateBlock}
-							databaseBlocks={databaseBlocks}
+							blocksByType={activeBlocks}
 							isDragging={isDragging}
 							onRemoveBlock={removeBlock}
 						/>

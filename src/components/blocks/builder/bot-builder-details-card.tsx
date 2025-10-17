@@ -11,10 +11,10 @@ import {
 	CardTitle,
 } from "@/components/ui/card";
 import { Label } from "@/components/ui/label";
-import type { BotBuilderFormValues } from "./bot-builder-form.types";
+import type { BotInsert } from "@/lib/orpc/schemas/bot";
 
 interface BotBuilderDetailsCardProps {
-	form: UseFormReturn<BotBuilderFormValues>;
+	form: UseFormReturn<BotInsert>;
 }
 
 const BotBuilderDetailsCard = ({ form }: BotBuilderDetailsCardProps) => {
@@ -51,7 +51,7 @@ const BotBuilderDetailsCard = ({ form }: BotBuilderDetailsCardProps) => {
 				<div className="space-y-2">
 					<div className="flex items-center justify-between">
 						<Label className="font-medium text-sm">
-							Course Description
+							Bot Description
 							<span className="text-destructive"> *</span>
 						</Label>
 					</div>

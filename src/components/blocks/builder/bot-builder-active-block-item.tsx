@@ -22,7 +22,7 @@ const BotBuilderActiveBlockItem = ({
 				onMouseDown={(event) => event.stopPropagation()}
 				className={cn(
 					buttonVariants({ variant: "ghost", size: "icon" }),
-					"absolute top-2 right-2 size-7 rounded-full border border-border/60 bg-background/90 shadow-sm hover:bg-destructive/10",
+					"-top-2 -right-2 absolute size-7 rounded-full border border-border/60 bg-card shadow-sm hover:bg-destructive",
 				)}
 				aria-label={`Remove ${block.name}`}
 			>
