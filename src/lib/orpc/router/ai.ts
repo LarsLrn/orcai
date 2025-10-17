@@ -46,27 +46,26 @@ export const aiChat = authed.ai.chat
 			}
 
 			let templateBlock: TemplateBlock | undefined;
-			let databaseBlock: DatabaseBlock | undefined;
 			let imageGenerationBlock: ImageGenerationBlock | undefined;
+			let databaseBlocks: DatabaseBlock[] = [];
 
+			// If provided, fetch the bot to get its model configuration
 			if (input.botId) {
-				// Fetch the bot to get its model configuration
 				const botBlocks = await client.block.list({
 					filters: { botId: input.botId },
 				});
 
-				// TODO: Improve typesafety. Probably with some Zod validation
 				templateBlock = botBlocks.data.find(
 					(block) => block.type === "template",
-				) as TemplateBlock;
-
-				databaseBlock = botBlocks.data.find(
-					(block) => block.type === "database",
-				) as DatabaseBlock;
+				);
 
 				imageGenerationBlock = botBlocks.data.find(
 					(block) => block.type === "imageGeneration",
-				) as ImageGenerationBlock;
+				);
+
+				databaseBlocks = botBlocks.data.filter(
+					(block) => block.type === "database",
+				);
 			}
 
 			if (!templateBlock) {
@@ -105,18 +104,6 @@ export const aiChat = authed.ai.chat
 				execute: ({ writer }) => {
 					const result = streamText({
 						model,
-						/* system: createSocraticSystemPrompt({
-              context: relevantChunks.map((chunk) => ({
-                documentId: String(
-                  references.indexOf(
-                    references.find((r) => r.id === chunk.documentId)!,
-                  ) + 1,
-                ),
-                text: chunk.text,
-              })),
-              courseTitle: course.data.title,
-              override: course.data.config.systemPrompt,
-            }), */
 						system:
 							templateBlock.config.systemPrompt ??
 							"You are a helpful assistant.",
@@ -144,9 +131,9 @@ export const aiChat = authed.ai.chat
 									organizationId: context.auth.session.activeOrganizationId,
 								}),
 							}),
-							...(databaseBlock && {
+							...(databaseBlocks.length > 0 && {
 								searchKnowledgeBase: searchKnowledgeBaseTool({
-									block: databaseBlock,
+									block: databaseBlocks[0], // TODO: Support multiple databases
 								}),
 							}),
 						},
