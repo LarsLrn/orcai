@@ -62,7 +62,7 @@ export const findBlockContract = base
 export const updateBlockContract = base
 	.route({
 		method: "PUT", //TODO:Probably should be PATCH
-		path: "/blocks/{id}", // TODO: Should be /blocks/{id}
+		path: "/blocks/{id}",
 		summary: "Update a block",
 		tags: ["Blocks"],
 		inputStructure: "detailed",
