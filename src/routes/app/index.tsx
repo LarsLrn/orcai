@@ -1,10 +1,5 @@
 import { useSuspenseQuery } from "@tanstack/react-query";
-import {
-	createFileRoute,
-	Link,
-	type LinkProps,
-	useRouteContext,
-} from "@tanstack/react-router";
+import { createFileRoute, Link, type LinkProps } from "@tanstack/react-router";
 import {
 	ArrowRightIcon,
 	BlocksIcon,
@@ -17,12 +12,10 @@ import {
 	SparklesIcon,
 } from "lucide-react";
 import { Suspense } from "react";
-import { UserStats } from "@/components/app/user-stats";
 import { UserWelcome } from "@/components/app/user-welcome";
 import { BotPreview } from "@/components/bot/bot-preview";
 import { ChatsPreview } from "@/components/chat/chats-preview";
 import { NewChatButton } from "@/components/chat/new-chat-button";
-import { OrganizationPreview } from "@/components/organizations/organization-preview";
 import { SkeletonsArray } from "@/components/placeholders/skeletons-array";
 import { Badge } from "@/components/ui/badge";
 import { Button, buttonVariants } from "@/components/ui/button";
@@ -79,12 +72,14 @@ export const Route = createFileRoute("/app/")({
 });
 
 function RouteComponent() {
-	const { auth } = useRouteContext({ from: "/app" });
-
 	return (
 		<div className="space-y-12">
 			<Suspense fallback={<HomeHeroSkeleton />}>
 				<HomeHero />
+			</Suspense>
+
+			<Suspense fallback={<ChatsSectionSkeleton />}>
+				<ChatsPreview />
 			</Suspense>
 
 			<div className="grid gap-8 xl:grid-cols-[3fr,2fr]">
@@ -97,19 +92,11 @@ function RouteComponent() {
 				</div>
 
 				<div className="space-y-8">
-					<WorkspaceSummary
-						organizationId={auth.session.activeOrganizationId}
-					/>
-
 					<Suspense fallback={<ResourceHighlightsSkeleton />}>
 						<ResourceHighlights />
 					</Suspense>
 				</div>
 			</div>
-
-			<Suspense fallback={<ChatsSectionSkeleton />}>
-				<ChatsPreview />
-			</Suspense>
 		</div>
 	);
 }
@@ -152,59 +139,11 @@ const HomeHero = () => {
 					</div>
 				</div>
 
-				<div className="grid w-full max-w-lg gap-4 sm:grid-cols-2">
-					<HeroStat
-						icon={BotIcon}
-						title="Bots ready"
-						value={bots.rowCount}
-						cta={{ label: "Manage bots", to: "/app/bots" }}
-					/>
+				<div className="grid w-full max-w-xs gap-4 sm:grid-cols-1">
 					<HeroLatestBotCard botName={latestBot?.name} botId={latestBot?.id} />
 				</div>
 			</CardContent>
 		</Card>
-	);
-};
-
-const HeroStat = ({
-	icon: Icon,
-	title,
-	value,
-	cta,
-}: {
-	icon: LucideIcon;
-	title: string;
-	value: number;
-	cta?: { label: string; to: string };
-}) => {
-	return (
-		<Item className="group items-start bg-card" variant="outline">
-			<ItemMedia
-				variant="icon"
-				className="size-12 bg-purple-500/10 text-purple-500"
-			>
-				<Icon className="size-6" />
-			</ItemMedia>
-			<ItemContent>
-				<ItemTitle className="text-muted-foreground text-xs uppercase tracking-wide">
-					{title}
-				</ItemTitle>
-				<p className="font-semibold text-3xl">{value}</p>
-			</ItemContent>
-			{cta && (
-				<Link
-					to={cta.to}
-					className={buttonVariants({
-						variant: "outline",
-						className: "self-end",
-						size: "sm",
-					})}
-				>
-					{cta.label}
-					<ArrowRightIcon className="h-4 w-4" />
-				</Link>
-			)}
-		</Item>
 	);
 };
 
@@ -216,7 +155,7 @@ const HeroLatestBotCard = ({
 	botId?: string;
 }) => {
 	return (
-		<Item className="items-start justify-between bg-card">
+		<Item className="items-start justify-between bg-card" variant="outline">
 			<ItemContent>
 				<p className="font-medium text-primary text-sm">Quick start</p>
 				<ItemTitle className="font-bold text-card-foreground text-xl">
@@ -423,39 +362,6 @@ const QuickActions = () => {
 				))}
 			</div>
 		</div>
-	);
-};
-
-const WorkspaceSummary = ({
-	organizationId,
-}: {
-	organizationId: string | null;
-}) => {
-	return (
-		<section className="space-y-4">
-			<div>
-				<CardTitle className="text-xl">Workspace snapshot</CardTitle>
-				<CardDescription>
-					Keep your organisation and account context close at hand.
-				</CardDescription>
-			</div>
-
-			<div className={cn("grid gap-4", organizationId ? "md:grid-cols-2" : "")}>
-				{organizationId ? (
-					<Suspense
-						fallback={<Skeleton className="h-[220px] w-full rounded-2xl" />}
-					>
-						<OrganizationPreview organizationId={organizationId} />
-					</Suspense>
-				) : null}
-
-				<Suspense
-					fallback={<Skeleton className="h-[220px] w-full rounded-2xl" />}
-				>
-					<UserStats showSettingsLink />
-				</Suspense>
-			</div>
-		</section>
 	);
 };
 
