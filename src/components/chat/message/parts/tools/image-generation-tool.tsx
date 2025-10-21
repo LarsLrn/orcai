@@ -13,8 +13,12 @@ export const ImageGenerationTool = ({
 	part: GenerateImageToolPart;
 }) => {
 	return (
-		<Tool defaultOpen={part.state !== "output-available"}>
-			<ToolHeader type="tool-generateImage" state={part.state} />
+		<Tool defaultOpen={false}>
+			<ToolHeader
+				type="tool-generateImage"
+				state={part.state}
+				title="Image Generation"
+			/>
 			<ToolContent>
 				<ToolInput input={part.input} />
 				<ToolOutput

@@ -22,8 +22,8 @@ const SearchKnowledgeBaseTool = ({
 	part: SearchKnowledgeBaseToolPart;
 }) => {
 	return (
-		<Tool defaultOpen={part.state !== "output-available"}>
-			<ToolHeader type={part.type} state={part.state} />
+		<Tool defaultOpen={false}>
+			<ToolHeader type={part.type} state={part.state} title="RAG Search" />
 			<ToolContent>
 				<ToolInput input={part.input} />
 				<ToolOutput

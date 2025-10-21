@@ -7,7 +7,11 @@ import {
 
 export const ReasoningPart = ({ part }: { part: ReasoningUIPart }) => {
 	return (
-		<Reasoning className="w-full" isStreaming={part.state === "streaming"}>
+		<Reasoning
+			className="w-full"
+			isStreaming={part.state === "streaming"}
+			defaultOpen={false}
+		>
 			<ReasoningTrigger />
 			<ReasoningContent className="text-muted-foreground">
 				{part.text}
