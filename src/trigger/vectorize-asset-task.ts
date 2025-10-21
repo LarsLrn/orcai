@@ -1,4 +1,4 @@
-import { RecursiveCharacterTextSplitter } from "@langchain/textsplitters";
+import { RecursiveChunker } from "@chonkiejs/core";
 import { logger, task } from "@trigger.dev/sdk";
 import { embedMany, generateText } from "ai";
 import pMap from "p-map";
@@ -139,22 +139,21 @@ const processMarkdownFile = async ({
 			] as MarkdownNode[];
 		}
 
-		const splitter = new RecursiveCharacterTextSplitter({
-			chunkSize: 1024,
-			chunkOverlap: 128,
+		const chunker = await RecursiveChunker.create({
+			chunkSize: 2048,
 		});
 
-		const parsedDocuments = await splitter.splitText(fileContent);
+		const chunks = await chunker.chunk(fileContent);
 
-		const chunks = parsedDocuments.map((chunk) => ({
-			title: "title",
+		const nodes = chunks.map((chunk) => ({
+			title: fileName,
 			depth: 0,
-			content: chunk,
-			length: chunk.length,
+			content: chunk.text,
+			length: chunk.tokenCount,
 			type: "text",
 		})) as MarkdownNode[];
 
-		return chunks;
+		return nodes;
 	});
 };
 
