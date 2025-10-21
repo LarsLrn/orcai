@@ -45,15 +45,15 @@ const BlockEditor = ({ content, onCreate, onUpdate }: BlockEditorProps) => {
 	}
 
 	return (
-		<>
+		<div className="overflow-hidden rounded-md border">
 			<DefaultBubbleMenu editor={editor} />
 			<EditorToolbar editor={editor} />
 			<EditorContent
 				editor={editor}
-				className="prose dark:prose-invert z-0 max-w-full focus:outline-none"
+				className="prose dark:prose-invert z-0 max-h-[50vh] max-w-full overflow-scroll focus:outline-none"
 			/>
 			<TableOptionsMenu editor={editor} />
-		</>
+		</div>
 	);
 };
 

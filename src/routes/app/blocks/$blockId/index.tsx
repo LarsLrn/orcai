@@ -76,7 +76,9 @@ function RouteComponent() {
 						</div>
 						<p className="text-muted-foreground">
 							Block ID:{" "}
-							<code className="rounded bg-muted px-1 py-0.5 text-xs">{id}</code>
+							<code className="rounded border bg-muted/30 px-1 py-0.5 text-xs">
+								{id}
+							</code>
 						</p>
 					</div>
 					<div className="flex gap-2">

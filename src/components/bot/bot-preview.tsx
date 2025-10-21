@@ -41,7 +41,7 @@ const BotPreview = ({
 				</CardDescription>
 			</CardHeader>
 
-			<CardContent className="flex-1">
+			{/* <CardContent className="flex-1">
 				<div className="space-y-3">
 					<div className="flex items-center gap-2 text-muted-foreground text-xs">
 						<CalendarIcon className="h-3 w-3" />
@@ -54,7 +54,7 @@ const BotPreview = ({
 						</div>
 					)}
 				</div>
-			</CardContent>
+			</CardContent> */}
 
 			{children}
 		</Card>

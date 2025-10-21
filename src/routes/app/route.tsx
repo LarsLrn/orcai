@@ -42,7 +42,7 @@ function RouteComponent() {
 		<NextStepProvider>
 			<SidebarProvider>
 				<AppSidebar />
-				<SidebarInset className="h-dvh max-h-dvh max-w-full">
+				<SidebarInset className="max-w-full">
 					<Header />
 					<NextStepTours>
 						<div className="z-10 mx-auto flex w-full flex-1 flex-col px-2 py-6 md:px-6">
