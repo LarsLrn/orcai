@@ -46,6 +46,11 @@ export const columns: ColumnDef<Asset>[] = [
 		header: ({ column }) => (
 			<DataTableColumnHeader column={column} title="Title" />
 		),
+		cell: ({ row }) => (
+			<Link to="/app/assets/$assetId" params={{ assetId: row.original.id }}>
+				{row.original.title}
+			</Link>
+		),
 	},
 	{
 		accessorKey: "size",
