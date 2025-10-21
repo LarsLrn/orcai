@@ -29,7 +29,7 @@ export const vectorizeAssetTask = task({
 	maxDuration: 1800,
 	queue: {
 		name: "processing-embeddings-queue",
-		concurrencyLimit: 1,
+		concurrencyLimit: 2,
 	},
 	run: async (payload: VectorizeAssetTaskPayload) => {
 		const files = await listAllFilesInPrefix({

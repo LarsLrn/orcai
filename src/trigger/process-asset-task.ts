@@ -22,7 +22,7 @@ export const processAssetTask = task({
 	maxDuration: 1200,
 	queue: {
 		name: "processing-assets-queue",
-		concurrencyLimit: 2,
+		concurrencyLimit: 4,
 	},
 	async onStart({ payload, ctx }) {
 		await mutateTaskStatus({
