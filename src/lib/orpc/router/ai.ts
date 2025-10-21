@@ -110,7 +110,7 @@ export const aiChat = authed.ai.chat
 						messages: convertToModelMessages(input.messages),
 						experimental_transform: smoothStream({
 							delayInMs: 20,
-							chunking: "line",
+							chunking: "word",
 						}),
 						/* experimental_telemetry: {
               isEnabled: true,
