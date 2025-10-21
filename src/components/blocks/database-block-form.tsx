@@ -67,6 +67,7 @@ const DatabaseBlockForm = ({
 			name: block?.name || "",
 			type: "database",
 			config: {
+				provider: block?.config.provider || "",
 				embeddingModel: block?.config.embeddingModel || "",
 				maxReferences: block?.config.maxReferences || 10,
 				minReferences: block?.config.minReferences || 1,
