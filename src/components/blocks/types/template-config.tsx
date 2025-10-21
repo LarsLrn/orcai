@@ -1,4 +1,5 @@
 import { BotIcon, ServerIcon } from "lucide-react";
+import { Markdown } from "@/components/app/markdown";
 import { Badge } from "@/components/ui/badge";
 import {
 	Card,
@@ -48,10 +49,8 @@ const TemplateBlockConfigCard = ({
 				{config.systemPrompt && (
 					<div className="space-y-2">
 						<div className="font-medium text-sm">System Prompt</div>
-						<div className="rounded-md border bg-muted/50 p-4">
-							<pre className="whitespace-pre-wrap text-muted-foreground text-sm">
-								{config.systemPrompt}
-							</pre>
+						<div className="rounded-md border bg-muted/30 p-4">
+							<Markdown>{config.systemPrompt}</Markdown>
 						</div>
 					</div>
 				)}
