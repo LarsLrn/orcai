@@ -4,6 +4,7 @@ import type { ApiGetScoresResponseData } from "langfuse";
 import { Message, MessageContent } from "@/components/ai-elements/message";
 import { MessageEditor } from "@/components/chat/message/message-editor";
 import { InView } from "@/components/ui/motion/in-view";
+import { TextShimmer } from "@/components/ui/motion/text-shimmer";
 import type { CustomUIMessage } from "@/lib/ai/tools";
 import type { Chat } from "@/lib/orpc/schemas/chat";
 import { useMessageEditor } from "./hooks/use-message-editor";
@@ -41,6 +42,18 @@ export const MessageBlock = ({
 		// Otherwise, maintain original order
 		return 0;
 	});
+
+	if (
+		status === "streaming" &&
+		message.role === "assistant" &&
+		message.parts.length === 0
+	) {
+		return (
+			<div className="sticky m-0 w-full max-w-full whitespace-pre-wrap break-words rounded-none bg-transparent p-4 text-foreground">
+				<TextShimmer>Gathering information...</TextShimmer>
+			</div>
+		);
+	}
 
 	return (
 		<InView
