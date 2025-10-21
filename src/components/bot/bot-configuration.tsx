@@ -24,8 +24,7 @@ const BotConfiguration = ({ bot }: { bot: Bot }) => {
 			<CardContent className="space-y-4">
 				<div>
 					<div className="font-medium text-sm">Description</div>
-					<div>{bot.description}</div>
-					<div className="mt-2 max-h-32 overflow-y-auto rounded-md border bg-muted/50 p-3 text-sm">
+					<div className="mt-2 rounded-md border bg-muted/30 p-3 text-sm">
 						<div className="prose prose-sm max-w-none">
 							<ContentRenderer html={bot.contentHtml} />
 						</div>
