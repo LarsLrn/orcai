@@ -15,6 +15,7 @@ import {
 import {
 	type Block,
 	isDatabaseBlock,
+	isImageGenerationBlock,
 	isTemplateBlock,
 } from "@/lib/orpc/schemas/block";
 import { cn } from "@/lib/utils";
@@ -37,6 +38,12 @@ const blockTypeThemes: Record<
 		badge:
 			"border-emerald-200/70 bg-emerald-500/10 text-emerald-700 dark:border-emerald-500/40 dark:bg-emerald-500/10 dark:text-emerald-200",
 		accent: "from-emerald-500/50 via-emerald-400/25 to-transparent",
+	},
+	imageGeneration: {
+		label: "Image Generation",
+		badge:
+			"border-rose-200/70 bg-rose-500/10 text-rose-700 dark:border-rose-500/40 dark:bg-rose-500/10 dark:text-rose-200",
+		accent: "from-rose-500/50 via-rose-400/25 to-transparent",
 	},
 };
 
@@ -67,6 +74,11 @@ const BlockPreview = ({
 	};
 
 	if (isTemplateBlock(block)) {
+		addDetail("Model", block.config.model);
+		addDetail("Provider", block.config.provider);
+	}
+
+	if (isImageGenerationBlock(block)) {
 		addDetail("Model", block.config.model);
 		addDetail("Provider", block.config.provider);
 	}
