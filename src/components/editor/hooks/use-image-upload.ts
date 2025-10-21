@@ -14,7 +14,10 @@ export function useImageUpload({ onUpload }: UseImageUploadProps = {}) {
 	const [error, setError] = useState<string | null>(null);
 
 	// Dummy upload function that simulates a delay and returns the local preview URL
-	const dummyUpload = async (file: File, localUrl: string): Promise<string> => {
+	const dummyUpload = async (
+		_file: File,
+		localUrl: string,
+	): Promise<string> => {
 		try {
 			setUploading(true);
 			// Simulate network delay

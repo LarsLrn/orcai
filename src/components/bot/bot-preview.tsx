@@ -1,9 +1,7 @@
-import { format } from "date-fns";
-import { CalendarIcon, EditIcon, GitForkIcon, UserIcon } from "lucide-react";
+import { GitForkIcon, UserIcon } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import {
 	Card,
-	CardContent,
 	CardDescription,
 	CardHeader,
 	CardTitle,
