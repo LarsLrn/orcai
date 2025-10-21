@@ -133,7 +133,7 @@ export const processAssetTask = task({
 
 				const params = new URLSearchParams({
 					response_type: "json",
-					extract_tables_as_images: "true",
+					extract_tables_as_images: "false",
 				});
 
 				// Use the signal from the controller in the fetch call
