@@ -1,4 +1,5 @@
-import { Link } from "@tanstack/react-router";
+import { useMutation, useQueryClient } from "@tanstack/react-query";
+import { Link, useNavigate, useParams } from "@tanstack/react-router";
 import {
 	BotIcon,
 	Code2Icon,
@@ -8,7 +9,9 @@ import {
 	MoreVerticalIcon,
 	Trash2Icon,
 } from "lucide-react";
+import { toast } from "sonner";
 import { Button, buttonVariants } from "@/components/ui/button";
+import { useConfirm } from "@/components/ui/dialog/confirm-dialog";
 import {
 	DropdownMenu,
 	DropdownMenuContent,
@@ -16,9 +19,60 @@ import {
 	DropdownMenuSeparator,
 	DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
+import { useUmami } from "@/hooks/use-umami";
 import type { Bot } from "@/lib/orpc/schemas/bot";
+import { botQueryOptions } from "@/lib/query-options/bot";
 
 const BotHeader = ({ bot }: { bot: Bot }) => {
+	const params = useParams({ strict: false });
+	const navigate = useNavigate();
+	const confirm = useConfirm();
+	const { trackEvent } = useUmami();
+	const queryClient = useQueryClient();
+
+	const { mutateAsync: deleteChat } = useMutation(
+		botQueryOptions.delete(queryClient),
+	);
+
+	const onDelete = async (e: React.MouseEvent<HTMLDivElement>) => {
+		e.stopPropagation();
+
+		const isConfirmed = await confirm({
+			title: "Delete Bot",
+			description: (
+				<>
+					<p>Are you sure you want to delete this bot?</p>
+					<p className="font-bold">This action cannot be undone.</p>
+				</>
+			),
+			confirmText: "Delete",
+			cancelText: "Cancel",
+		});
+
+		if (isConfirmed) {
+			// We need to navigate away from the bot before it's deleted to avoid
+			// refetching the deleted bot. This is not critical, but avoids a backend error.
+			if (params.botId && params.botId === bot.id) {
+				navigate({ to: "/app/bots" });
+			}
+
+			toast.promise(deleteChat({ refs: [{ id: bot.id }] }), {
+				loading: "Deleting bot...",
+				success: () => {
+					trackEvent("bot-delete", {
+						botId: bot.id,
+					});
+
+					return "Bot deleted";
+				},
+				error: (error) => ({
+					message: "Failed to delete bot",
+					description: error.message,
+				}),
+			});
+		}
+	};
+
 	return (
 		<div className="flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
 			<div className="space-y-2">
@@ -68,7 +122,7 @@ const BotHeader = ({ bot }: { bot: Bot }) => {
 							Export Config
 						</DropdownMenuItem>
 						<DropdownMenuSeparator />
-						<DropdownMenuItem className="text-destructive">
+						<DropdownMenuItem variant="destructive" onClick={onDelete}>
 							<Trash2Icon className="mr-2 size-4" />
 							Delete Bot
 						</DropdownMenuItem>
