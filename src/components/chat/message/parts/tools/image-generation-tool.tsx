@@ -2,7 +2,6 @@ import {
 	Tool,
 	ToolContent,
 	ToolHeader,
-	ToolInput,
 	ToolOutput,
 } from "@/components/ai-elements/tool";
 import type { GenerateImageToolPart } from "@/lib/ai/tools";
@@ -13,14 +12,23 @@ export const ImageGenerationTool = ({
 	part: GenerateImageToolPart;
 }) => {
 	return (
-		<Tool defaultOpen={false}>
+		<Tool defaultOpen={true}>
 			<ToolHeader
 				type="tool-generateImage"
 				state={part.state}
 				title="Image Generation"
 			/>
 			<ToolContent>
-				<ToolInput input={part.input} />
+				<div>
+					{part.input?.prompt && (
+						<div className="space-y-1 p-4">
+							<h4 className="font-medium text-sm">Prompt</h4>
+							<p className="rounded-md text-muted-foreground text-sm">
+								{part.input.prompt}
+							</p>
+						</div>
+					)}
+				</div>
 				<ToolOutput
 					output={Output({ output: part.output })}
 					errorText={part.errorText}
