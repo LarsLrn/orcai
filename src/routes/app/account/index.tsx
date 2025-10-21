@@ -29,53 +29,57 @@ function RouteComponent() {
 				</h4>
 			</div>
 
-			<div className="grid grid-cols-1 gap-4 lg:grid-cols-2">
-				<Suspense fallback={<Skeleton className="h-[86px] w-full" />}>
-					<UserStats />
-				</Suspense>
-				<Card>
-					<CardHeader>
-						<CardTitle>Your Profile</CardTitle>
-						<CardDescription>Adjust your profile information</CardDescription>
-					</CardHeader>
-					<CardContent className="flex flex-col gap-4">
-						<ProfileForm />
-					</CardContent>
-				</Card>
-				<Card>
-					<CardHeader>
-						<CardTitle>Change Password</CardTitle>
-					</CardHeader>
-					<CardContent className="flex flex-col gap-4">
-						<ChangePasswordForm />
-					</CardContent>
-				</Card>
+			<div className="flex flex-col gap-4 lg:flex-row lg:items-start">
+				<div className="flex flex-1 flex-col gap-4">
+					<Suspense fallback={<Skeleton className="h-[86px] w-full" />}>
+						<UserStats />
+					</Suspense>
+					<Card>
+						<CardHeader>
+							<CardTitle>Change Password</CardTitle>
+						</CardHeader>
+						<CardContent className="flex flex-col gap-4">
+							<ChangePasswordForm />
+						</CardContent>
+					</Card>
+					<Card>
+						<CardHeader>
+							<CardTitle>Chat Usage</CardTitle>
+							<CardDescription>
+								Your chat usage statistics. This may include deleted messages
+								and chats.
+							</CardDescription>
+						</CardHeader>
+						<CardContent>
+							<Suspense fallback={<Skeleton className="h-[120px] w-full" />}>
+								<ExportChats />
+							</Suspense>
+						</CardContent>
+					</Card>
+				</div>
 
-				<Card>
-					<CardHeader>
-						<CardTitle>Course Invitations</CardTitle>
-						<CardDescription>Manage your course invitations</CardDescription>
-					</CardHeader>
-					<CardContent>
-						<Suspense fallback={<Skeleton className="h-[120px] w-full" />}>
-							<CourseInvitationsList />
-						</Suspense>
-					</CardContent>
-				</Card>
-				<Card>
-					<CardHeader>
-						<CardTitle>Chat Usage</CardTitle>
-						<CardDescription>
-							Your chat usage statistics. This may include deleted messages and
-							chats.
-						</CardDescription>
-					</CardHeader>
-					<CardContent>
-						<Suspense fallback={<Skeleton className="h-[120px] w-full" />}>
-							<ExportChats />
-						</Suspense>
-					</CardContent>
-				</Card>
+				<div className="flex flex-1 flex-col gap-4">
+					<Card>
+						<CardHeader>
+							<CardTitle>Your Profile</CardTitle>
+							<CardDescription>Adjust your profile information</CardDescription>
+						</CardHeader>
+						<CardContent className="flex flex-col gap-4">
+							<ProfileForm />
+						</CardContent>
+					</Card>
+					<Card>
+						<CardHeader>
+							<CardTitle>Course Invitations</CardTitle>
+							<CardDescription>Manage your course invitations</CardDescription>
+						</CardHeader>
+						<CardContent>
+							<Suspense fallback={<Skeleton className="h-[120px] w-full" />}>
+								<CourseInvitationsList />
+							</Suspense>
+						</CardContent>
+					</Card>
+				</div>
 			</div>
 			<div className="flex flex-col gap-2">
 				<p className="text-xl">Legal</p>
