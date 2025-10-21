@@ -132,7 +132,11 @@ function RootDocument({ children }: Readonly<{ children: ReactNode }>) {
 								mobileOffset={{ top: "60px" }}
 							/>
 							<TanStackDevtools
-								config={{ position: "bottom-right", panelLocation: "bottom" }}
+								config={{
+									position: "bottom-right",
+									panelLocation: "bottom",
+									openHotkey: ["Meta", "Shift", "A"],
+								}}
 								plugins={[
 									{
 										name: "TanStack Query",
