@@ -1,3 +1,4 @@
+import { expo } from "@better-auth/expo";
 import { betterAuth } from "better-auth";
 import { drizzleAdapter } from "better-auth/adapters/drizzle";
 import { admin } from "better-auth/plugins";
@@ -14,8 +15,9 @@ export const auth = betterAuth({
 		"http://localhost:3000",
 		process.env.VITE_BASE_URL || "http://localhost:3000",
 		"http://host.docker.internal:3000",
+		"sokratest://",
 	],
-	plugins: [reactStartCookies(), admin()],
+	plugins: [reactStartCookies(), admin(), expo()],
 	database: drizzleAdapter(db, {
 		provider: "pg",
 		schema: {
