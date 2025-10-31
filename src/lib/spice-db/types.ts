@@ -10,5 +10,3 @@ export type EntityType =
 	| "bot";
 
 export type Relation = "owner" | "member";
-
-export type Consistency = "minimizeLatency" | "fullyConsistent";

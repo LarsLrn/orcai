@@ -1,6 +1,8 @@
 import { v1 } from "@authzed/authzed-node";
+import { db } from "@/db/drizzle";
+import { zedTokenTable } from "@/db/schema/zed-token";
 import { getSpiceClient } from ".";
-import type { Action, Consistency, EntityType, Relation } from "./types";
+import type { Action, EntityType, Relation } from "./types";
 
 const spiceClient = getSpiceClient();
 
@@ -38,7 +40,27 @@ export const createRelation = async ({
 		],
 	});
 
-	return await spiceClient.writeRelationships(writeRequest);
+	const response = await spiceClient.writeRelationships(writeRequest);
+
+	if (!response.writtenAt?.token) {
+		throw new Error("Failed to obtain zed token from Spice write response");
+	}
+
+	const [result] = await db
+		.insert(zedTokenTable)
+		.values({
+			resourceId: entityId,
+			resourceType: entityType,
+			zedToken: response.writtenAt.token,
+			createdAt: new Date(),
+		})
+		.onConflictDoUpdate({
+			target: zedTokenTable.resourceId,
+			set: { zedToken: response.writtenAt.token, createdAt: new Date() },
+		})
+		.returning();
+
+	return { data: result };
 };
 
 export const checkRelation = async ({
@@ -46,13 +68,13 @@ export const checkRelation = async ({
 	entityType,
 	action,
 	userId,
-	consistency = "minimizeLatency",
+	zedToken,
 }: {
 	entityId: string;
 	entityType: EntityType;
 	action: Action;
 	userId: string;
-	consistency?: Consistency;
+	zedToken: v1.ZedToken["token"] | null | undefined;
 }) => {
 	const resource = v1.ObjectReference.create({
 		objectType: entityType,
@@ -64,26 +86,33 @@ export const checkRelation = async ({
 		objectId: userId,
 	});
 
-	const consistencyMinimizeLatency = v1.Consistency.create({
-		requirement: {
-			oneofKind: "minimizeLatency",
-			minimizeLatency: true,
-		},
-	});
+	let consistency: v1.Consistency;
 
-	const consistencyFullyConsistent = v1.Consistency.create({
-		requirement: {
-			oneofKind: "fullyConsistent",
-			fullyConsistent: true,
-		},
-	});
+	if (zedToken) {
+		consistency = v1.Consistency.create({
+			requirement: {
+				oneofKind: "atLeastAsFresh",
+				atLeastAsFresh: {
+					token: zedToken,
+				},
+			},
+		});
+	} else {
+		consistency = v1.Consistency.create({
+			requirement: {
+				oneofKind: "fullyConsistent",
+				fullyConsistent: true,
+			},
+		});
+	}
 
 	return await spiceClient.checkPermission(
 		v1.CheckPermissionRequest.create({
-			consistency:
+			/* consistency:
 				consistency === "minimizeLatency"
 					? consistencyMinimizeLatency
-					: consistencyFullyConsistent,
+					: consistencyFullyConsistent, */
+			consistency,
 			resource,
 			permission: action,
 			subject: v1.SubjectReference.create({ object: user }),

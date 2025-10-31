@@ -1,9 +1,12 @@
 import { v1 } from "@authzed/authzed-node";
 import { os } from "@orpc/server";
+import { and, eq } from "drizzle-orm";
 import { z } from "zod/v4";
+import { db } from "@/db/drizzle";
+import { zedTokenTable } from "@/db/schema/zed-token";
 import type { authClient } from "@/lib/auth-client";
 import { checkManyRelations, checkRelation } from "@/lib/spice-db/actions";
-import type { Action, Consistency, EntityType } from "@/lib/spice-db/types";
+import type { Action, EntityType } from "@/lib/spice-db/types";
 import { withName } from "./utils";
 
 const base = os
@@ -28,17 +31,28 @@ export const checkPermissionMiddleware = withName(
 				entityId: string;
 				action: Action;
 				entityType: EntityType;
-				consistency?: Consistency;
 			},
 		) => {
-			const { entityId, action, entityType, consistency } = input;
+			const { entityId, action, entityType } = input;
+
+			const [token] = await db
+				.select({ zedToken: zedTokenTable.zedToken })
+				.from(zedTokenTable)
+				.where(
+					and(
+						eq(zedTokenTable.resourceId, entityId),
+						eq(zedTokenTable.resourceType, entityType),
+					),
+				);
+
+			console.log("Zed Token fetched in middleware:", token);
 
 			const relation = await checkRelation({
 				entityId: entityId,
 				entityType,
 				action,
 				userId: context.auth.user.id,
-				consistency,
+				zedToken: token?.zedToken,
 			});
 
 			if (
