@@ -1,5 +1,5 @@
 import { useChat } from "@ai-sdk/react";
-import { eventIteratorToStream } from "@orpc/client";
+import { eventIteratorToUnproxiedDataStream } from "@orpc/client";
 import { useSuspenseQuery } from "@tanstack/react-query";
 import type { ApiGetScoresResponseData } from "langfuse";
 import { toast } from "sonner";
@@ -33,7 +33,7 @@ const Chat = ({
 		id,
 		transport: {
 			async sendMessages(options) {
-				return eventIteratorToStream(
+				return eventIteratorToUnproxiedDataStream(
 					await client.ai.chat(
 						{
 							chatId: options.chatId,
