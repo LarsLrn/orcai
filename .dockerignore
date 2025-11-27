@@ -1,7 +1,5 @@
-# Node & pnpm
+# Node & bun
 node_modules
-.pnpm-store
-pnpm-lock.yaml.prev
 
 # Vite/TanStack Start outputs
 .output

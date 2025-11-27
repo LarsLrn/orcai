@@ -5,7 +5,6 @@
 	"author": "Lars Lorenz",
 	"private": true,
 	"type": "module",
-	"packageManager": "pnpm@10.20.0",
 	"scripts": {
 		"dev": "vite dev",
 		"build": "vite build",
@@ -21,8 +20,8 @@
 		"db:up": "drizzle-kit up",
 		"db:seed": "tsx scripts/seed.ts",
 		"spice:deploy-schema": "tsx scripts/deploy-spicedb-schema.ts",
-		"trigger:dev": "dotenv -- sh -c 'pnpx trigger.dev@latest dev -a ${TRIGGER_API_URL}'",
-		"trigger:deploy": "dotenv -- sh -c 'pnpx trigger.dev deploy -p ${TRIGGER_PROJECT:?TRIGGER_PROJECT not set} --self-hosted --push --registry ghcr.io --namespace sokratest'",
+		"trigger:dev": "dotenv -- sh -c 'bunx trigger.dev@latest dev -a ${TRIGGER_API_URL}'",
+		"trigger:deploy": "dotenv -- sh -c 'bunx trigger.dev deploy -p ${TRIGGER_PROJECT:?TRIGGER_PROJECT not set} --self-hosted --push --registry ghcr.io --namespace sokratest'",
 		"machine-translate": "inlang machine translate --project project.inlang",
 		"precommit": "lint-staged"
 	},
@@ -199,5 +198,9 @@
 		"tw-animate-css": "1.4.0",
 		"typescript": "5.9.3",
 		"vite-tsconfig-paths": "5.1.4"
-	}
+	},
+	"trustedDependencies": [
+		"@parcel/watcher",
+		"protobufjs"
+	]
 }
