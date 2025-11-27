@@ -16,9 +16,5 @@ export default defineConfig({
 			randomize: true,
 		},
 	},
-	build: {
-		// This is required to use the Sharp library
-		external: ["sharp"],
-	},
 	dirs: ["./src/trigger"],
 });
