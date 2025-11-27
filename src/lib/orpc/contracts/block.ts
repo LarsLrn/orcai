@@ -65,7 +65,6 @@ export const updateBlockContract = base
 		path: "/blocks/{id}",
 		summary: "Update a block",
 		tags: ["Blocks"],
-		inputStructure: "detailed",
 	})
 	.errors({
 		NOT_FOUND: {
@@ -73,14 +72,7 @@ export const updateBlockContract = base
 			data: z.object({ id: baseBlockSelectSchema.shape.id }),
 		},
 	})
-	.input(
-		z.object({
-			params: baseBlockSelectSchema.pick({ id: true }),
-			query: z.object({}).optional(),
-			body: blockUpdateSchema,
-			headers: z.object({}).optional(),
-		}),
-	)
+	.input(blockUpdateSchema)
 	.output(
 		z.object({
 			data: blockSelectSchema,

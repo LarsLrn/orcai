@@ -76,12 +76,9 @@ const ImageGenerationBlockForm = ({
 		if (block) {
 			toast.promise(
 				updateBlock({
-					params: { id: block.id },
-					body: {
-						...values,
-						type: "imageGeneration",
-						id: block.id,
-					},
+					...values,
+					type: "imageGeneration",
+					id: block.id,
 				}),
 				{
 					loading: "Updating block...",

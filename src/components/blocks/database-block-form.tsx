@@ -81,12 +81,9 @@ const DatabaseBlockForm = ({
 		if (block) {
 			toast.promise(
 				updateBlock({
-					params: { id: block.id },
-					body: {
-						...values,
-						type: "database",
-						id: block.id,
-					},
+					...values,
+					type: "database",
+					id: block.id,
 				}),
 				{
 					loading: "Updating block...",

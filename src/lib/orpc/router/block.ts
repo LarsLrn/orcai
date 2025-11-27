@@ -130,7 +130,7 @@ export const updateBlock = authed.block.update
 		checkPermissionMiddleware,
 		(input) =>
 			({
-				entityId: input.params.id,
+				entityId: input.id,
 				action: "read",
 				entityType: "block",
 			}) as const,
@@ -139,14 +139,13 @@ export const updateBlock = authed.block.update
 		const [block] = (await db
 			.update(blockTable)
 			.set({
-				...input.body,
-				id: input.params.id,
+				...input,
 				updatedAt: new Date(),
 			})
-			.where(eq(blockTable.id, input.params.id))
+			.where(eq(blockTable.id, input.id))
 			.returning({ ...getTableColumns(blockTable) })) as Block[];
 
-		if (input.body.type === "database" && block.type === "database") {
+		if (input.type === "database" && block.type === "database") {
 			await db
 				.delete(blockAssetTable)
 				.where(eq(blockAssetTable.blockId, block.id));
@@ -154,7 +153,7 @@ export const updateBlock = authed.block.update
 			const assets = await db
 				.insert(blockAssetTable)
 				.values(
-					input.body.assets.map((assetId) => ({
+					input.assets.map((assetId) => ({
 						blockId: block.id,
 						assetId,
 					})),
