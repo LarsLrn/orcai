@@ -109,8 +109,7 @@ const HomeHero = () => {
 
 	return (
 		<Card className="relative overflow-hidden border bg-card shadow-xl">
-			<div className="pointer-events-none absolute inset-0 bg-gradient-to-br from-primary/20 via-accent/20 to-transparent" />
-
+			<div className="pointer-events-none absolute inset-0 bg-linear-to-br from-primary/20 via-accent/20 to-transparent" />
 			<CardContent className="relative flex flex-col gap-10 p-10 lg:flex-row lg:items-start lg:justify-between">
 				<div className="space-y-6 text-card-foreground">
 					<UserWelcome />
@@ -480,6 +479,6 @@ const ResourceHighlightsSkeleton = () => (
 const ChatsSectionSkeleton = () => (
 	<section className="space-y-4">
 		<Skeleton className="h-7 w-40" />
-		<Skeleton className="h-[320px] w-full rounded-2xl" />
+		<Skeleton className="h-80 w-full rounded-2xl" />
 	</section>
 );

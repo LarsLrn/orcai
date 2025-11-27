@@ -20,7 +20,6 @@ import { SidebarLogo } from "./sidebar-logo";
 const AppSidebar = () => {
 	return (
 		// TODO: Consider centralising ids used by next-step
-		// biome-ignore lint/correctness/useUniqueElementIds: <Required for next-step to work properly>
 		<Sidebar id="tour-sidebar" variant="floating">
 			<SidebarHeader>
 				<SidebarLogo />

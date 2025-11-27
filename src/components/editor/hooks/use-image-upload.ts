@@ -1,4 +1,3 @@
-/** biome-ignore-all lint/correctness/useExhaustiveDependencies: <explanation> */
 import { useCallback, useEffect, useRef, useState } from "react";
 
 interface UseImageUploadProps {
@@ -44,6 +43,7 @@ export function useImageUpload({ onUpload }: UseImageUploadProps = {}) {
 		fileInputRef.current?.click();
 	}, []);
 
+	// biome-ignore lint/correctness/useExhaustiveDependencies: <explanation>
 	const handleFileChange = useCallback(
 		async (event: React.ChangeEvent<HTMLInputElement>) => {
 			const file = event.target.files?.[0];

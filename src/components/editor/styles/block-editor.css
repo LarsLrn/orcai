@@ -1,5 +1,5 @@
 .tippy-box {
-	max-width: none !important;
+	max-width: none;
 }
 
 .drag-handle {
@@ -57,7 +57,7 @@
 	pointer-events: none;
 }
 .tiptap pre {
-	text-wrap: nowrap !important;
+	text-wrap: nowrap;
 }
 .tiptap pre code {
 	color: inherit;
@@ -141,8 +141,8 @@
 }
 .tiptap div[data-youtube-video] iframe {
 	aspect-ratio: 16 / 9;
-	width: 100% !important;
-	height: auto !important;
+	width: 100%;
+	height: auto;
 }
 .tiptap div[data-youtube-video].ProseMirror-selectednode iframe {
 	transition: outline 0.15s;
