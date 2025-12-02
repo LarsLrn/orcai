@@ -10,12 +10,15 @@ import {
 } from "@tiptap/react";
 import { Image, Link, Loader2, Upload, X } from "lucide-react";
 import { type FormEvent, useId, useState } from "react";
+import { useImageUpload } from "@/components/editor/hooks/use-image-upload";
+import {
+	isValidUrl,
+	NODE_HANDLES_SELECTED_STYLE_CLASSNAME,
+} from "@/components/editor/utils";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { cn } from "@/lib/utils";
-import { useImageUpload } from "../hooks/use-image-upload";
-import { isValidUrl, NODE_HANDLES_SELECTED_STYLE_CLASSNAME } from "../utils";
 
 export interface ImagePlaceholderOptions {
 	HTMLAttributes: Record<string, any>;

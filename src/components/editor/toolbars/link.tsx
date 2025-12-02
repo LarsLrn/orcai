@@ -2,6 +2,7 @@ import { PopoverClose } from "@radix-ui/react-popover";
 import type { VariantProps } from "class-variance-authority";
 import { Trash2, X } from "lucide-react";
 import { useEffect, useState } from "react";
+import { getUrlFromString } from "@/components/editor/utils";
 import { Button, type buttonVariants } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -16,7 +17,6 @@ import {
 	TooltipTrigger,
 } from "@/components/ui/tooltip";
 import { cn } from "@/lib/utils";
-import { getUrlFromString } from "../utils";
 import { useToolbar } from "./toolbar-provider";
 
 const LinkToolbar = ({

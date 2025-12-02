@@ -2,7 +2,7 @@ import { useMutation } from "@tanstack/react-query";
 import { useCallback } from "react";
 import { toast } from "sonner";
 import { useConfirm } from "@/components/ui/dialog/confirm-dialog";
-import { orpc } from "../orpc/orpc";
+import { orpc } from "@/lib/orpc/orpc";
 
 interface DeleteAssetsParams {
 	refs: { id: string }[];

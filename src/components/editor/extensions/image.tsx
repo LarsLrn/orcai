@@ -20,7 +20,7 @@ import {
 	Trash,
 } from "lucide-react";
 import { useEffect, useRef, useState } from "react";
-
+import { useImageUpload } from "@/components/editor/hooks/use-image-upload";
 import { Button } from "@/components/ui/button";
 import {
 	DropdownMenu,
@@ -35,7 +35,6 @@ import {
 import { Input } from "@/components/ui/input";
 import { Separator } from "@/components/ui/separator";
 import { cn } from "@/lib/utils";
-import { useImageUpload } from "../hooks/use-image-upload";
 
 export const ImageExtension = Image.extend({
 	addAttributes() {
@@ -231,7 +230,7 @@ function TiptapImage(props: NodeViewProps) {
 			className={cn(
 				"relative flex flex-col rounded-md border-2 border-transparent transition-all duration-200",
 				selected ? "border-blue-300" : "",
-				node.attrs.align === "left" && "-translate-x-0 left-0",
+				node.attrs.align === "left" && "left-0 translate-x-0",
 				node.attrs.align === "center" && "-translate-x-1/2 left-1/2",
 				node.attrs.align === "right" && "-translate-x-full left-full",
 			)}
@@ -342,7 +341,7 @@ function TiptapImage(props: NodeViewProps) {
 						>
 							<AlignRight className="size-4" />
 						</Button>
-						<Separator orientation="vertical" className="h-[20px]" />
+						<Separator orientation="vertical" className="h-5" />
 						<DropdownMenu open={openedMore} onOpenChange={setOpenedMore}>
 							<DropdownMenuTrigger asChild>
 								<Button size="icon" className="size-7" variant="ghost">
