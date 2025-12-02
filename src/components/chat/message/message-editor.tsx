@@ -95,7 +95,7 @@ const MessageEditor = ({
 		<div className="flex w-full flex-col gap-2">
 			<Textarea
 				ref={textareaRef}
-				className="!text-base w-full resize-none overflow-hidden rounded-xl bg-transparent outline-none dark:bg-transparent"
+				className="w-full resize-none overflow-hidden rounded-xl bg-transparent text-base! outline-none dark:bg-transparent"
 				value={draftContent}
 				onChange={handleInput}
 			/>
