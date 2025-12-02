@@ -1,8 +1,9 @@
-@import "tailwindcss" source("../");
+@import "tailwindcss";
 @import "tw-animate-css";
 @import "@fontsource-variable/geist";
 @import "@fontsource-variable/geist-mono";
 
+@source "../";
 @source "../../node_modules/streamdown/dist/index.js";
 
 @plugin "tailwindcss-animate";
