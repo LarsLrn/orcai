@@ -2,7 +2,7 @@ import { expo } from "@better-auth/expo";
 import { betterAuth } from "better-auth";
 import { drizzleAdapter } from "better-auth/adapters/drizzle";
 import { admin } from "better-auth/plugins";
-import { reactStartCookies } from "better-auth/react-start";
+import { tanstackStartCookies } from "better-auth/tanstack-start";
 import { createTransport } from "nodemailer";
 import type SMTPTransport from "nodemailer/lib/smtp-transport";
 import { v4 as uuidv4 } from "uuid";
@@ -17,7 +17,7 @@ export const auth = betterAuth({
 		"http://host.docker.internal:3000",
 		"sokratest://",
 	],
-	plugins: [reactStartCookies(), admin(), expo()],
+	plugins: [tanstackStartCookies(), admin(), expo()],
 	database: drizzleAdapter(db, {
 		provider: "pg",
 		schema: {
