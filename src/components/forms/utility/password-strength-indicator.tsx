@@ -5,16 +5,23 @@ const PasswordStrengthIndicator = ({
 	value,
 	fieldName,
 }: {
-	value: string;
+	value: string | undefined;
 	fieldName: string;
 }) => {
-	const checkStrength = (pass: string) => {
+	const checkStrength = (pass: string | undefined) => {
 		const requirements = [
 			{ regex: /.{8,}/, text: "At least 8 characters" },
 			{ regex: /[0-9]/, text: "At least 1 number" },
 			{ regex: /[a-z]/, text: "At least 1 lowercase letter" },
 			{ regex: /[A-Z]/, text: "At least 1 uppercase letter" },
 		];
+
+		if (!pass) {
+			return requirements.map((req) => ({
+				met: false,
+				text: req.text,
+			}));
+		}
 
 		return requirements.map((req) => ({
 			met: req.regex.test(pass),
