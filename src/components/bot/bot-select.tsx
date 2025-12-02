@@ -10,8 +10,8 @@ import {
 } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Skeleton } from "@/components/ui/skeleton";
+import { orpc } from "@/lib/orpc/orpc";
 import type { Bot } from "@/lib/orpc/schemas/bot";
-import { botQueryOptions } from "@/lib/query-options/bot";
 
 interface BotSelectProps {
 	onBotSelect: (bot: Bot | null) => void;
@@ -26,7 +26,7 @@ const BotSelect = ({ onBotSelect, selectedBot }: BotSelectProps) => {
 		status,
 		error,
 	} = useQuery(
-		botQueryOptions.list({
+		orpc.bot.list.queryOptions({
 			input: {
 				pageSize: 50,
 				pageIndex: 0,
@@ -117,7 +117,7 @@ const BotSelect = ({ onBotSelect, selectedBot }: BotSelectProps) => {
 										<div className="flex items-start justify-between">
 											<div className="min-w-0 flex-1">
 												<CardTitle className="flex items-center gap-2 truncate text-base">
-													<BotIcon className="h-4 w-4 flex-shrink-0" />
+													<BotIcon className="h-4 w-4 shrink-0" />
 													<span className="truncate">{bot.name}</span>
 												</CardTitle>
 												<CardDescription className="mt-1 line-clamp-2 text-sm">
@@ -126,7 +126,7 @@ const BotSelect = ({ onBotSelect, selectedBot }: BotSelectProps) => {
 											</div>
 											<Badge
 												variant="secondary"
-												className="ml-2 flex-shrink-0 text-xs"
+												className="ml-2 shrink-0 text-xs"
 											>
 												v{bot.version}
 											</Badge>

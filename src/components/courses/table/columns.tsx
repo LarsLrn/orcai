@@ -1,4 +1,4 @@
-import { useMutation, useQueryClient } from "@tanstack/react-query";
+import { useMutation } from "@tanstack/react-query";
 import { Link } from "@tanstack/react-router";
 import type { ColumnDef } from "@tanstack/react-table";
 import { format } from "date-fns";
@@ -14,8 +14,8 @@ import {
 	DropdownMenuSeparator,
 	DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
+import { orpc } from "@/lib/orpc/orpc";
 import type { Course } from "@/lib/orpc/schemas/course";
-import { courseQueryOptions } from "@/lib/query-options/course";
 
 export const columns: ColumnDef<Course>[] = [
 	{
@@ -96,9 +96,8 @@ export const columns: ColumnDef<Course>[] = [
 ];
 
 const DeleteItem = ({ courseId }: { courseId: Course["id"] }) => {
-	const queryClient = useQueryClient();
 	const { mutateAsync: deleteCourses } = useMutation(
-		courseQueryOptions.delete(queryClient),
+		orpc.course.delete.mutationOptions(),
 	);
 
 	const handleDelete = (id: string) => {

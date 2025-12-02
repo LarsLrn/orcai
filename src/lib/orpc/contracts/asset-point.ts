@@ -9,7 +9,7 @@ import { baseBlockSelectSchema } from "@/lib/orpc/schemas/block";
 import { statusSchema } from "@/lib/orpc/schemas/shared";
 import { base } from "./base";
 
-export const listAssetPointsContract = base
+export const listAssetPointContract = base
 	.route({
 		method: "POST",
 		path: "/assets/points",

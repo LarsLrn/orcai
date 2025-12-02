@@ -1,4 +1,4 @@
-import { useMutation, useQueryClient } from "@tanstack/react-query";
+import { useMutation } from "@tanstack/react-query";
 import { Link, useNavigate, useParams } from "@tanstack/react-router";
 import {
 	BotIcon,
@@ -20,18 +20,17 @@ import {
 	DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import { useUmami } from "@/hooks/use-umami";
+import { orpc } from "@/lib/orpc/orpc";
 import type { Bot } from "@/lib/orpc/schemas/bot";
-import { botQueryOptions } from "@/lib/query-options/bot";
 
 const BotHeader = ({ bot }: { bot: Bot }) => {
 	const params = useParams({ strict: false });
 	const navigate = useNavigate();
 	const confirm = useConfirm();
 	const { trackEvent } = useUmami();
-	const queryClient = useQueryClient();
 
 	const { mutateAsync: deleteChat } = useMutation(
-		botQueryOptions.delete(queryClient),
+		orpc.bot.delete.mutationOptions(),
 	);
 
 	const onDelete = async (e: React.MouseEvent<HTMLDivElement>) => {

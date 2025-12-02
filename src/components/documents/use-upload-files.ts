@@ -1,6 +1,6 @@
 import { useMutation } from "@tanstack/react-query";
 import { useCallback, useMemo, useState } from "react";
-import { storageQueryOptions } from "@/lib/query-options/storage";
+import { orpc } from "@/lib/orpc/orpc";
 import { ClientUploadErrorClass } from "@/lib/s3/types/error";
 import type {
 	ServerMetadata,
@@ -33,7 +33,7 @@ export function useUploadFiles({
 	const [serverMetadata, setServerMetadata] = useState<ServerMetadata>({});
 
 	const { mutateAsync: getPresignedUrls } = useMutation(
-		storageQueryOptions.createUploadUrls(),
+		orpc.storage.createUploadUrls.mutationOptions(),
 	);
 
 	const [isPending, setIsPending] = useState(false);

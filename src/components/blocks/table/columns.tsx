@@ -1,4 +1,4 @@
-import { useMutation, useQueryClient } from "@tanstack/react-query";
+import { useMutation } from "@tanstack/react-query";
 import { Link } from "@tanstack/react-router";
 import type { ColumnDef } from "@tanstack/react-table";
 import { format } from "date-fns";
@@ -14,8 +14,8 @@ import {
 	DropdownMenuSeparator,
 	DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
+import { orpc } from "@/lib/orpc/orpc";
 import type { Block } from "@/lib/orpc/schemas/block";
-import { blockQueryOptions } from "@/lib/query-options/block";
 
 export const columns: ColumnDef<Block>[] = [
 	{
@@ -93,9 +93,8 @@ export const columns: ColumnDef<Block>[] = [
 ];
 
 const DeleteItem = ({ blockId }: { blockId: Block["id"] }) => {
-	const queryClient = useQueryClient();
 	const { mutateAsync: deleteBlocks } = useMutation(
-		blockQueryOptions.delete(queryClient),
+		orpc.block.delete.mutationOptions(),
 	);
 
 	const handleDelete = (id: string) => {

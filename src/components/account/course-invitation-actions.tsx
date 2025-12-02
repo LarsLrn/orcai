@@ -1,9 +1,9 @@
-import { useMutation, useQueryClient } from "@tanstack/react-query";
+import { useMutation } from "@tanstack/react-query";
 import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
 import { useUmami } from "@/hooks/use-umami";
+import { orpc } from "@/lib/orpc/orpc";
 import type { CourseInvitation } from "@/lib/orpc/schemas/course-invitations";
-import { courseInvitationQueryOptions } from "@/lib/query-options/course-invitation";
 
 export function CourseInvitationActions({
 	invitation,
@@ -11,10 +11,9 @@ export function CourseInvitationActions({
 	invitation: CourseInvitation;
 }) {
 	const { trackEvent } = useUmami();
-	const queryClient = useQueryClient();
 
 	const { mutateAsync: respondToInvitation } = useMutation(
-		courseInvitationQueryOptions.respond(queryClient),
+		orpc.courseInvitation.respond.mutationOptions(),
 	);
 
 	// TODO: Replace with actual courseId

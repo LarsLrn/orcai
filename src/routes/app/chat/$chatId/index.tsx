@@ -2,19 +2,18 @@ import { useSuspenseQuery } from "@tanstack/react-query";
 import { createFileRoute } from "@tanstack/react-router";
 import { Chat } from "@/components/chat/chat";
 import type { CustomUIMessage } from "@/lib/ai/tools";
-import { chatQueryOptions } from "@/lib/query-options/chat";
-import { chatMessageQueryOptions } from "@/lib/query-options/chat-message";
+import { orpc } from "@/lib/orpc/orpc";
 
 export const Route = createFileRoute("/app/chat/$chatId/")({
 	loader: async ({ context: { queryClient }, params: { chatId } }) => {
 		await queryClient.ensureQueryData(
-			chatMessageQueryOptions.list({
+			orpc.chatMessage.list.queryOptions({
 				input: { chatId, includeScores: true },
 			}),
 		);
 
 		return await queryClient.ensureQueryData(
-			chatQueryOptions.find({
+			orpc.chat.find.queryOptions({
 				input: { id: chatId },
 			}),
 		);
@@ -33,7 +32,7 @@ function RouteComponent() {
 	const { chatId } = Route.useParams();
 
 	const { data } = useSuspenseQuery(
-		chatMessageQueryOptions.list({
+		orpc.chatMessage.list.queryOptions({
 			input: { chatId, includeScores: true },
 		}),
 	);

@@ -1,10 +1,10 @@
 import { createFileRoute, Outlet } from "@tanstack/react-router";
-import { assetQueryOptions } from "@/lib/query-options/asset";
+import { orpc } from "@/lib/orpc/orpc";
 
 export const Route = createFileRoute("/app/assets/$assetId")({
 	loader: async ({ context: { queryClient }, params: { assetId } }) => {
 		return await queryClient.ensureQueryData(
-			assetQueryOptions.find({
+			orpc.asset.find.queryOptions({
 				input: { id: assetId },
 			}),
 		);

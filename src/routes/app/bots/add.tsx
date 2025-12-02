@@ -1,15 +1,14 @@
-import { useMutation, useQueryClient } from "@tanstack/react-query";
+import { useMutation } from "@tanstack/react-query";
 import { createFileRoute, useNavigate } from "@tanstack/react-router";
 import { toast } from "sonner";
 import { BotBuilderForm } from "@/components/blocks/builder/bot-builder-form";
+import { orpc } from "@/lib/orpc/orpc";
 import type { BotInsert } from "@/lib/orpc/schemas/bot";
-import { blockQueryOptions } from "@/lib/query-options/block";
-import { botQueryOptions } from "@/lib/query-options/bot";
 
 export const Route = createFileRoute("/app/bots/add")({
 	loader: async ({ context: { queryClient } }) => {
 		await queryClient.ensureQueryData(
-			blockQueryOptions.list({
+			orpc.block.list.queryOptions({
 				input: { pageIndex: 0, pageSize: 100 },
 			}),
 		);
@@ -26,9 +25,8 @@ export const Route = createFileRoute("/app/bots/add")({
 
 function RouteComponent() {
 	const navigate = useNavigate();
-	const queryClient = useQueryClient();
 	const { mutateAsync: createBot } = useMutation(
-		botQueryOptions.create(queryClient),
+		orpc.bot.create.mutationOptions(),
 	);
 
 	const handleBotSubmit = (data: BotInsert) => {

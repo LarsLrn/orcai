@@ -1,4 +1,4 @@
-import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
+import { useMutation, useQuery } from "@tanstack/react-query";
 import { Link } from "@tanstack/react-router";
 import { useRealtimeRun } from "@trigger.dev/react-hooks";
 import {
@@ -27,15 +27,14 @@ import {
 } from "@/components/ui/collapsible";
 import { LoadingSpinner } from "@/components/ui/loading-spinner";
 import { AnimatedGroup } from "@/components/ui/motion/animated-group";
+import { orpc } from "@/lib/orpc/orpc";
 import type { Asset } from "@/lib/orpc/schemas/asset";
 import type { DatabaseBlock } from "@/lib/orpc/schemas/block";
-import { assetQueryOptions } from "@/lib/query-options/asset";
-import { taskQueryOptions } from "@/lib/query-options/task";
 
 /** --- Grid --- */
 const AssetGrid = ({ assetIds }: { assetIds: Asset["id"][] }) => {
 	const { data: assets, status } = useQuery(
-		assetQueryOptions.list({
+		orpc.asset.list.queryOptions({
 			input: { filters: { ids: assetIds } },
 		}),
 	);
@@ -161,9 +160,8 @@ const AssetSection = ({
 	assetIds: Asset["id"][];
 	blockId: DatabaseBlock["id"];
 }) => {
-	const queryClient = useQueryClient();
 	const { mutateAsync: createDatabaseBlockVectorStore } = useMutation(
-		taskQueryOptions.createDatabaseBlockVectorStore(queryClient),
+		orpc.task.createDatabaseBlockVectorStore.mutationOptions(),
 	);
 
 	const [isOpen, setIsOpen] = useState(false);
@@ -223,7 +221,7 @@ const AssetSection = ({
 
 const TaskSection = ({ blockId }: { blockId: DatabaseBlock["id"] }) => {
 	const { data } = useQuery(
-		taskQueryOptions.list({ input: { resourceId: blockId } }),
+		orpc.task.list.queryOptions({ input: { resourceId: blockId } }),
 	);
 
 	return (

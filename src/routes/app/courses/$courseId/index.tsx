@@ -5,7 +5,7 @@ import { BotIcon, CalendarIcon } from "lucide-react";
 import { ContentRenderer } from "@/components/editor/content-renderer";
 import { Badge } from "@/components/ui/badge";
 import { buttonVariants } from "@/components/ui/button";
-import { courseQueryOptions } from "@/lib/query-options/course";
+import { orpc } from "@/lib/orpc/orpc";
 
 export const Route = createFileRoute("/app/courses/$courseId/")({
 	component: RouteComponent,
@@ -14,7 +14,7 @@ export const Route = createFileRoute("/app/courses/$courseId/")({
 function RouteComponent() {
 	const { courseId } = Route.useParams();
 	const { data: course } = useSuspenseQuery(
-		courseQueryOptions.find({
+		orpc.course.find.queryOptions({
 			input: { id: courseId },
 		}),
 	);

@@ -8,9 +8,9 @@ import { BotBuilderDetailsCard } from "@/components/blocks/builder/bot-builder-d
 import { FormValidationErrors } from "@/components/forms/fields/form-validation-errors";
 import { Button } from "@/components/ui/button";
 import { Form } from "@/components/ui/form";
+import { orpc } from "@/lib/orpc/orpc";
 import type { Block } from "@/lib/orpc/schemas/block";
 import { type BotInsert, botInsertSchema } from "@/lib/orpc/schemas/bot";
-import { blockQueryOptions } from "@/lib/query-options/block";
 
 interface BotBuilderFormProps {
 	initialData?: BotInsert;
@@ -19,7 +19,7 @@ interface BotBuilderFormProps {
 
 const BotBuilderForm = ({ initialData, onSubmit }: BotBuilderFormProps) => {
 	const { data: blocksResponse } = useSuspenseQuery(
-		blockQueryOptions.list({
+		orpc.block.list.queryOptions({
 			input: { pageIndex: 0, pageSize: 50 },
 		}),
 	);

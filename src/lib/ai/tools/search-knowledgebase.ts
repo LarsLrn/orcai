@@ -23,7 +23,7 @@ export const searchKnowledgeBaseTool = ({ block }: { block: DatabaseBlock }) =>
 				.default(block.config.defaultReferences),
 		}),
 		execute: async ({ limit, detailedQuery }) => {
-			const result = await client.assetPoints.list({
+			const result = await client.assetPoint.list({
 				filters: {
 					search: detailedQuery,
 					limit: limit,

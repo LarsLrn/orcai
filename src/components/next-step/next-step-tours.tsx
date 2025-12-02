@@ -1,4 +1,4 @@
-import { useMutation, useQueryClient } from "@tanstack/react-query";
+import { useMutation } from "@tanstack/react-query";
 import { useRouter } from "@tanstack/react-router";
 import { type NavigationAdapter, NextStepReact, type Tour } from "nextstepjs";
 import type { ReactNode } from "react";
@@ -6,7 +6,7 @@ import { toast } from "sonner";
 import { NextStepCard } from "@/components/next-step/next-step-card";
 import { useSidebar } from "@/components/ui/sidebar";
 import { useUmami } from "@/hooks/use-umami";
-import { userQueryOptions } from "@/lib/query-options/user";
+import { orpc } from "@/lib/orpc/orpc";
 
 const nextStepTours: Tour[] = [
 	{
@@ -204,10 +204,9 @@ const useCustomAdapter = (): NavigationAdapter => {
 export const NextStepTours = ({ children }: { children: ReactNode }) => {
 	const { setOpenMobile } = useSidebar();
 	const { trackEvent } = useUmami();
-	const queryClient = useQueryClient();
 
 	const { mutateAsync: setTourState } = useMutation(
-		userQueryOptions.setTourState(queryClient),
+		orpc.user.setTourState.mutationOptions(),
 	);
 
 	const nextStepCallbacks = {

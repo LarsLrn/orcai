@@ -7,7 +7,7 @@ import { FormPasswordField } from "@/components/forms/fields/form-password-field
 import { Button } from "@/components/ui/button";
 import { Form } from "@/components/ui/form";
 import { sharedSchemas } from "@/db/zod/shared";
-import { userQueryOptions } from "@/lib/query-options/user";
+import { orpc } from "@/lib/orpc/orpc";
 
 // Define the schema locally by picking fields from signupSchema
 const changePasswordSchema = z
@@ -23,7 +23,7 @@ const changePasswordSchema = z
 
 const ChangePasswordForm = () => {
 	const { mutateAsync: updatePassword } = useMutation(
-		userQueryOptions.updatePassword(),
+		orpc.user.updatePassword.mutationOptions(),
 	);
 
 	const form = useForm({

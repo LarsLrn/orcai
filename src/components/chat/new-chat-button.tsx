@@ -1,13 +1,13 @@
 import { Slot } from "@radix-ui/react-slot";
-import { useMutation, useQueryClient } from "@tanstack/react-query";
+import { useMutation } from "@tanstack/react-query";
 import { useNavigate } from "@tanstack/react-router";
 import type { VariantProps } from "class-variance-authority";
 import { toast } from "sonner";
 import { buttonVariants } from "@/components/ui/button";
 import { useSidebar } from "@/components/ui/sidebar";
 import { useUmami } from "@/hooks/use-umami";
+import { orpc } from "@/lib/orpc/orpc";
 import type { Bot } from "@/lib/orpc/schemas/bot";
-import { chatQueryOptions } from "@/lib/query-options/chat";
 import { cn } from "@/lib/utils";
 
 const NewChatButton = ({
@@ -25,10 +25,9 @@ const NewChatButton = ({
 	const navigate = useNavigate();
 	const { setOpenMobile } = useSidebar();
 	const { trackEvent } = useUmami();
-	const queryClient = useQueryClient();
 
 	const { mutateAsync: createChat } = useMutation(
-		chatQueryOptions.create(queryClient),
+		orpc.chat.create.mutationOptions(),
 	);
 
 	const handleNewChat = () => {

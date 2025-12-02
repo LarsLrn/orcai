@@ -10,8 +10,7 @@ import {
 } from "@/components/ai-elements/conversation";
 import { TextShimmer } from "@/components/ui/motion/text-shimmer";
 import type { CustomUIMessage } from "@/lib/ai/tools";
-import { client } from "@/lib/orpc/orpc";
-import { chatQueryOptions } from "@/lib/query-options/chat";
+import { client, orpc } from "@/lib/orpc/orpc";
 import { ChatInput } from "./chat-input";
 import { ChatPlaceholder } from "./chat-placeholder";
 import { MessageBlock } from "./message/message-block";
@@ -26,7 +25,7 @@ const Chat = ({
 	scores: ApiGetScoresResponseData[];
 }) => {
 	const { data: chat } = useSuspenseQuery(
-		chatQueryOptions.find({ input: { id } }),
+		orpc.chat.find.queryOptions({ input: { id } }),
 	);
 
 	const { messages, status, setMessages, regenerate, sendMessage } = useChat({

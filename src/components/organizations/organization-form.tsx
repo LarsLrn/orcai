@@ -1,17 +1,17 @@
 import { zodResolver } from "@hookform/resolvers/zod";
-import { useMutation, useQueryClient } from "@tanstack/react-query";
+import { useMutation } from "@tanstack/react-query";
 import { useNavigate } from "@tanstack/react-router";
 import { useForm } from "react-hook-form";
 import { toast } from "sonner";
 import { FormInputField } from "@/components/forms/fields/form-input-field";
 import { Button } from "@/components/ui/button";
 import { Form } from "@/components/ui/form";
+import { orpc } from "@/lib/orpc/orpc";
 import {
 	type Organization,
 	type OrganizationInsert,
 	organizationInsertSchema,
 } from "@/lib/orpc/schemas/organization";
-import { organizationQueryOptions } from "@/lib/query-options/organization";
 
 const OrganizationForm = ({
 	organization,
@@ -19,13 +19,12 @@ const OrganizationForm = ({
 	organization?: Organization;
 }) => {
 	const navigate = useNavigate();
-	const queryClient = useQueryClient();
 	const { mutateAsync: updateOrganization } = useMutation(
-		organizationQueryOptions.update(queryClient),
+		orpc.organization.update.mutationOptions(),
 	);
 
 	const { mutateAsync: createOrganization } = useMutation(
-		organizationQueryOptions.create(queryClient),
+		orpc.organization.create.mutationOptions(),
 	);
 
 	const form = useForm({

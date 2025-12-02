@@ -6,8 +6,8 @@ import { DataTable } from "@/components/ui/data-table/data-table";
 import { DataTableBody } from "@/components/ui/data-table/data-table-body";
 import { DataTablePagination } from "@/components/ui/data-table/data-table-pagination";
 import { DataTableViewOptions } from "@/components/ui/data-table/data-table-view-options";
+import { orpc } from "@/lib/orpc/orpc";
 import { paginationSchema } from "@/lib/orpc/schemas/shared";
-import { organizationProviderQueryOptions } from "@/lib/query-options/organization-provider";
 
 export const Route = createFileRoute("/app/orgs/$orgId/providers/")({
 	validateSearch: paginationSchema,
@@ -21,7 +21,7 @@ export const Route = createFileRoute("/app/orgs/$orgId/providers/")({
 		params: { orgId },
 	}) => {
 		await queryClient.ensureQueryData(
-			organizationProviderQueryOptions.list({
+			orpc.organizationProvider.list.queryOptions({
 				input: { organizationId: orgId, pageIndex, pageSize },
 			}),
 		);
@@ -33,7 +33,7 @@ function RouteComponent() {
 	const { pageIndex, pageSize } = Route.useSearch();
 	const { orgId } = Route.useParams();
 	const { data: providers } = useSuspenseQuery(
-		organizationProviderQueryOptions.list({
+		orpc.organizationProvider.list.queryOptions({
 			input: { organizationId: orgId, pageIndex, pageSize },
 		}),
 	);

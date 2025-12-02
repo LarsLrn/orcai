@@ -1,17 +1,12 @@
-import {
-	useMutation,
-	useQueryClient,
-	useSuspenseQuery,
-} from "@tanstack/react-query";
+import { useMutation, useSuspenseQuery } from "@tanstack/react-query";
 import { createFileRoute, redirect, useNavigate } from "@tanstack/react-router";
 import { BuildingIcon } from "lucide-react";
 import { toast } from "sonner";
 import { OrganizationCard } from "@/components/organizations/organization-card";
 import { Card, CardContent } from "@/components/ui/card";
 import { authClient } from "@/lib/auth-client";
+import { orpc } from "@/lib/orpc/orpc";
 import type { Organization } from "@/lib/orpc/schemas/organization";
-import { organizationQueryOptions } from "@/lib/query-options/organization";
-import { userQueryOptions } from "@/lib/query-options/user";
 
 export const Route = createFileRoute("/_pathlessLayout/select-organization")({
 	component: RouteComponent,
@@ -22,7 +17,7 @@ export const Route = createFileRoute("/_pathlessLayout/select-organization")({
 	},
 	loader: async ({ context: { queryClient } }) => {
 		await queryClient.ensureQueryData(
-			organizationQueryOptions.list({
+			orpc.organization.list.queryOptions({
 				input: { pageIndex: 0, pageSize: 100 },
 			}),
 		);
@@ -32,16 +27,15 @@ export const Route = createFileRoute("/_pathlessLayout/select-organization")({
 function RouteComponent() {
 	const { refetch: refetchSession } = authClient.useSession();
 	const navigate = useNavigate();
-	const queryClient = useQueryClient();
 
 	const { data: organizations } = useSuspenseQuery(
-		organizationQueryOptions.list({
+		orpc.organization.list.queryOptions({
 			input: { pageIndex: 0, pageSize: 100 },
 		}),
 	);
 
 	const { mutateAsync: setActiveOrganization } = useMutation(
-		userQueryOptions.setActiveOrganization(queryClient),
+		orpc.user.setActiveOrganization.mutationOptions(),
 	);
 
 	const handleOrganizationChange = (organization: Organization) => {

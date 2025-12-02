@@ -7,8 +7,8 @@ import { DataTable } from "@/components/ui/data-table/data-table";
 import { DataTableBody } from "@/components/ui/data-table/data-table-body";
 import { DataTablePagination } from "@/components/ui/data-table/data-table-pagination";
 import { DataTableViewOptions } from "@/components/ui/data-table/data-table-view-options";
+import { orpc } from "@/lib/orpc/orpc";
 import { paginationSchema } from "@/lib/orpc/schemas/shared";
-import { courseQueryOptions } from "@/lib/query-options/course";
 
 export const Route = createFileRoute("/app/courses/")({
 	validateSearch: paginationSchema,
@@ -21,7 +21,7 @@ export const Route = createFileRoute("/app/courses/")({
 		deps: { pageIndex, pageSize },
 	}) => {
 		await queryClient.ensureQueryData(
-			courseQueryOptions.list({
+			orpc.course.list.queryOptions({
 				input: { pageIndex, pageSize },
 			}),
 		);
@@ -32,7 +32,7 @@ export const Route = createFileRoute("/app/courses/")({
 function RouteComponent() {
 	const { pageIndex, pageSize } = Route.useSearch();
 	const { data: courses } = useSuspenseQuery(
-		courseQueryOptions.list({ input: { pageIndex, pageSize } }),
+		orpc.course.list.queryOptions({ input: { pageIndex, pageSize } }),
 	);
 
 	return (

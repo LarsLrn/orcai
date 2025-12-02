@@ -13,7 +13,7 @@ import {
 	CardTitle,
 } from "@/components/ui/card";
 import { AnimatedGroup } from "@/components/ui/motion/animated-group";
-import { chatQueryOptions } from "@/lib/query-options/chat";
+import { orpc } from "@/lib/orpc/orpc";
 import { cn } from "@/lib/utils";
 import { ChatActionsDropdown } from "./chat-actions-dropdown";
 
@@ -23,7 +23,7 @@ const ChatsList = ({
 }: { limit?: number } & ComponentProps<"div">) => {
 	const pageSize = limit ?? 100;
 	const { data, status } = useQuery(
-		chatQueryOptions.list({ input: { pageIndex: 0, pageSize } }),
+		orpc.chat.list.queryOptions({ input: { pageIndex: 0, pageSize } }),
 	);
 
 	if (status === "pending") {

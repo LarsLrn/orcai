@@ -5,8 +5,7 @@ import { BotConfiguration } from "@/components/bot/bot-configuration";
 import { BotHeader } from "@/components/bot/bot-header";
 import { BotMetadata } from "@/components/bot/bot-metadata";
 import { BotQuickActions } from "@/components/bot/bot-quick-actions";
-import { blockQueryOptions } from "@/lib/query-options/block";
-import { botQueryOptions } from "@/lib/query-options/bot";
+import { orpc } from "@/lib/orpc/orpc";
 
 export const Route = createFileRoute("/app/bots/$botId/")({
 	component: RouteComponent,
@@ -16,13 +15,13 @@ function RouteComponent() {
 	const { botId } = Route.useParams();
 
 	const { data: bot } = useSuspenseQuery(
-		botQueryOptions.find({
+		orpc.bot.find.queryOptions({
 			input: { id: botId },
 		}),
 	);
 
 	const { data: blocks } = useSuspenseQuery(
-		blockQueryOptions.list({
+		orpc.block.list.queryOptions({
 			input: { filters: { botId } },
 		}),
 	);

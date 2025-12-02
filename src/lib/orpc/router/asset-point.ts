@@ -4,7 +4,7 @@ import { qdrant } from "@/qdrant/qdrant";
 import { qdrantCollections } from "@/qdrant/qdrant-constants";
 import type { QdrantPoints } from "@/types/qdrant";
 
-export const listAssetPoints = authed.assetPoints.list.handler(
+export const listAssetPoint = authed.assetPoint.list.handler(
 	async ({ input }) => {
 		/* const { entityIds } = await listAllowedEntities({
 			userId: context.session.user.id,

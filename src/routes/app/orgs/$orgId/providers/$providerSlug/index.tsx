@@ -2,7 +2,7 @@ import { useSuspenseQuery } from "@tanstack/react-query";
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { buttonVariants } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
-import { organizationProviderQueryOptions } from "@/lib/query-options/organization-provider";
+import { orpc } from "@/lib/orpc/orpc";
 
 export const Route = createFileRoute(
 	"/app/orgs/$orgId/providers/$providerSlug/",
@@ -13,7 +13,7 @@ export const Route = createFileRoute(
 function RouteComponent() {
 	const { orgId, providerSlug } = Route.useParams();
 	const { data: organizationProvider } = useSuspenseQuery(
-		organizationProviderQueryOptions.find({
+		orpc.organizationProvider.find.queryOptions({
 			input: { organizationId: orgId, providerSlug },
 		}),
 	);

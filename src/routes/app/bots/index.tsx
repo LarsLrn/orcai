@@ -5,12 +5,12 @@ import { BotPreview } from "@/components/bot/bot-preview";
 import { Button } from "@/components/ui/button";
 import { CardFooter } from "@/components/ui/card";
 import { Separator } from "@/components/ui/separator";
-import { botQueryOptions } from "@/lib/query-options/bot";
+import { orpc } from "@/lib/orpc/orpc";
 
 export const Route = createFileRoute("/app/bots/")({
 	loader: async ({ context: { queryClient } }) => {
 		await queryClient.ensureQueryData(
-			botQueryOptions.list({
+			orpc.bot.list.queryOptions({
 				input: { pageIndex: 0, pageSize: 50 },
 			}),
 		);
@@ -20,7 +20,7 @@ export const Route = createFileRoute("/app/bots/")({
 
 function RouteComponent() {
 	const { data: bots } = useSuspenseQuery(
-		botQueryOptions.list({
+		orpc.bot.list.queryOptions({
 			input: { pageIndex: 0, pageSize: 50 },
 		}),
 	);

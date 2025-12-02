@@ -3,12 +3,12 @@ import { createFileRoute } from "@tanstack/react-router";
 import { DatabaseBlockForm } from "@/components/blocks/database-block-form";
 import { ImageGenerationBlockForm } from "@/components/blocks/image-generation-block-form";
 import { TemplateBlockForm } from "@/components/blocks/template-block-form";
+import { orpc } from "@/lib/orpc/orpc";
 import {
 	isDatabaseBlock,
 	isImageGenerationBlock,
 	isTemplateBlock,
 } from "@/lib/orpc/schemas/block";
-import { blockQueryOptions } from "@/lib/query-options/block";
 
 export const Route = createFileRoute("/app/blocks/$blockId/edit")({
 	component: RouteComponent,
@@ -24,7 +24,7 @@ export const Route = createFileRoute("/app/blocks/$blockId/edit")({
 function RouteComponent() {
 	const { blockId } = Route.useParams();
 	const { data: block } = useSuspenseQuery(
-		blockQueryOptions.find({
+		orpc.block.find.queryOptions({
 			input: { id: blockId },
 		}),
 	);

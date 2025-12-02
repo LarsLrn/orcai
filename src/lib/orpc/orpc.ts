@@ -3,9 +3,10 @@ import { RPCLink } from "@orpc/client/fetch";
 import { BatchLinkPlugin, DedupeRequestsPlugin } from "@orpc/client/plugins";
 import type { RouterClient } from "@orpc/server";
 import { createRouterClient } from "@orpc/server";
-import { createRouterUtils } from "@orpc/tanstack-query";
+import { createTanstackQueryUtils } from "@orpc/tanstack-query";
 import { createIsomorphicFn } from "@tanstack/react-start";
 import { getRequestHeaders } from "@tanstack/react-start/server";
+import { queryDefaults } from "./query-defaults";
 import { router } from "./router";
 
 const getORPCClient = createIsomorphicFn()
@@ -58,4 +59,8 @@ const getORPCClient = createIsomorphicFn()
 
 export const client: RouterClient<typeof router> = getORPCClient();
 
-export const orpc = createRouterUtils(client);
+export const orpc = createTanstackQueryUtils(client, {
+	experimental_defaults: {
+		...queryDefaults,
+	},
+});

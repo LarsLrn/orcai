@@ -16,13 +16,15 @@ import {
 	SidebarMenuButton,
 	SidebarMenuItem,
 } from "@/components/ui/sidebar";
-import { organizationQueryOptions } from "@/lib/query-options/organization";
+import { orpc } from "@/lib/orpc/orpc";
 import { getNameInitial } from "@/lib/utils";
 import { UserMenuActions } from "./user-menu-actions";
 
 const NavUser = () => {
 	const { data: organisations } = useQuery(
-		organizationQueryOptions.list({ input: { pageIndex: 0, pageSize: 6 } }),
+		orpc.organization.list.queryOptions({
+			input: { pageIndex: 0, pageSize: 6 },
+		}),
 	);
 	const { auth } = useRouteContext({ from: "/app" });
 

@@ -9,12 +9,12 @@ import {
 	SidebarMenuButton,
 	SidebarMenuItem,
 } from "@/components/ui/sidebar";
-import { chatQueryOptions } from "@/lib/query-options/chat";
+import { orpc } from "@/lib/orpc/orpc";
 import { cn } from "@/lib/utils";
 
 const ChatSidebarMenu = () => {
 	const { data, status, error } = useQuery(
-		chatQueryOptions.list({
+		orpc.chat.list.queryOptions({
 			input: { pageIndex: 0, pageSize: 100 },
 		}),
 	);

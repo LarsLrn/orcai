@@ -1,4 +1,4 @@
-import { useMutation, useQueryClient } from "@tanstack/react-query";
+import { useMutation } from "@tanstack/react-query";
 import type { ColumnDef } from "@tanstack/react-table";
 import { format } from "date-fns";
 import { MoreHorizontal } from "lucide-react";
@@ -13,8 +13,8 @@ import {
 	DropdownMenuSeparator,
 	DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
+import { orpc } from "@/lib/orpc/orpc";
 import type { CourseInvitation } from "@/lib/orpc/schemas/course-invitations";
-import { courseInvitationQueryOptions } from "@/lib/query-options/course-invitation";
 
 const handleCopy = (id: CourseInvitation["id"]) => {
 	// TODO: Replace with actual URL generation logic (useRouter)
@@ -119,9 +119,8 @@ const DeleteItem = ({
 }: {
 	invitationId: CourseInvitation["id"];
 }) => {
-	const queryClient = useQueryClient();
 	const { mutateAsync: deleteInvitations } = useMutation(
-		courseInvitationQueryOptions.delete(queryClient),
+		orpc.courseInvitation.delete.mutationOptions(),
 	);
 
 	const handleDelete = (id: CourseInvitation["id"]) => {

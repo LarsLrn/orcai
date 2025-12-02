@@ -2,13 +2,13 @@ import { useSuspenseQuery } from "@tanstack/react-query";
 import { BadgeCheck, BadgeX, ClipboardList, SearchXIcon } from "lucide-react";
 import { Placeholder } from "@/components/placeholders/placeholder";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { orpc } from "@/lib/orpc/orpc";
 import type { CourseInvitation } from "@/lib/orpc/schemas/course-invitations";
-import { courseInvitationQueryOptions } from "@/lib/query-options/course-invitation";
 import { CourseInvitationEntry } from "./course-invitation-entry";
 
 const CourseInvitationsList = () => {
 	const { data: courseInvitations } = useSuspenseQuery(
-		courseInvitationQueryOptions.list({
+		orpc.courseInvitation.list.queryOptions({
 			input: { pageIndex: 0, pageSize: 100 },
 		}),
 	);

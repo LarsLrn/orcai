@@ -8,8 +8,8 @@ import { DataTablePagination } from "@/components/ui/data-table/data-table-pagin
 import { DataTableViewOptions } from "@/components/ui/data-table/data-table-view-options";
 import { InvitesTableActions } from "@/components/users/invites/table/invites-table-actions";
 import { invitesTableColumns } from "@/components/users/invites/table/invites-table-columns";
+import { orpc } from "@/lib/orpc/orpc";
 import { paginationSchema } from "@/lib/orpc/schemas/shared";
-import { courseInvitationQueryOptions } from "@/lib/query-options/course-invitation";
 
 export const Route = createFileRoute("/app/users/invites")({
 	validateSearch: paginationSchema,
@@ -22,7 +22,7 @@ export const Route = createFileRoute("/app/users/invites")({
 		deps: { pageIndex, pageSize },
 	}) => {
 		return await queryClient.ensureQueryData(
-			courseInvitationQueryOptions.list({
+			orpc.courseInvitation.list.queryOptions({
 				input: { pageIndex, pageSize },
 			}),
 		);
@@ -40,7 +40,7 @@ export const Route = createFileRoute("/app/users/invites")({
 function RouteComponent() {
 	const { pageIndex, pageSize } = Route.useSearch();
 	const { data: invitations } = useSuspenseQuery(
-		courseInvitationQueryOptions.list({
+		orpc.courseInvitation.list.queryOptions({
 			input: { pageIndex, pageSize },
 		}),
 	);

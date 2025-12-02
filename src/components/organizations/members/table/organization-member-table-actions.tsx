@@ -1,5 +1,5 @@
 import { DropdownMenuTrigger } from "@radix-ui/react-dropdown-menu";
-import { useMutation, useQueryClient } from "@tanstack/react-query";
+import { useMutation } from "@tanstack/react-query";
 import { ReplaceAllIcon } from "lucide-react";
 import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
@@ -9,8 +9,8 @@ import {
 	DropdownMenuContent,
 	DropdownMenuItem,
 } from "@/components/ui/dropdown-menu";
+import { orpc } from "@/lib/orpc/orpc";
 import type { Organization } from "@/lib/orpc/schemas/organization";
-import { organizationMemberQueryOptions } from "@/lib/query-options/organization-member";
 
 const OrganizationMemberTableActions = ({
 	organizationId,
@@ -18,9 +18,8 @@ const OrganizationMemberTableActions = ({
 	organizationId: Organization["id"];
 }) => {
 	const { table } = useTable();
-	const queryClient = useQueryClient();
 	const { mutateAsync: deleteMember } = useMutation(
-		organizationMemberQueryOptions.delete(queryClient),
+		orpc.organizationMember.delete.mutationOptions(),
 	);
 
 	const handleDelete = () => {

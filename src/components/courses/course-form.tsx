@@ -1,5 +1,5 @@
 import { zodResolver } from "@hookform/resolvers/zod";
-import { useMutation, useQueryClient } from "@tanstack/react-query";
+import { useMutation } from "@tanstack/react-query";
 import { useRouter } from "@tanstack/react-router";
 import type { Content } from "@tiptap/core";
 import { useForm } from "react-hook-form";
@@ -14,22 +14,21 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Form } from "@/components/ui/form";
 import { Label } from "@/components/ui/label";
 import { saiaModels } from "@/lib/ai/saia-models";
+import { orpc } from "@/lib/orpc/orpc";
 import {
 	type Course,
 	type CourseInsert,
 	courseInsertSchema,
 } from "@/lib/orpc/schemas/course";
-import { courseQueryOptions } from "@/lib/query-options/course";
 
 const CourseForm = ({ course }: { course?: Course }) => {
 	const router = useRouter();
-	const queryClient = useQueryClient();
 
 	const { mutateAsync: updateCourse } = useMutation(
-		courseQueryOptions.update(queryClient),
+		orpc.course.update.mutationOptions(),
 	);
 	const { mutateAsync: createCourse } = useMutation(
-		courseQueryOptions.create(queryClient),
+		orpc.course.create.mutationOptions(),
 	);
 
 	const form = useForm({

@@ -6,7 +6,7 @@ import {
 	listAssets,
 	updateAsset,
 } from "./asset";
-import { listAssetPoints } from "./asset-points";
+import { listAssetPoint } from "./asset-point";
 import {
 	createBlock,
 	deleteBlocks,
@@ -172,8 +172,8 @@ export const router = {
 		update: updateAsset,
 		delete: deleteAssets,
 	},
-	assetPoints: {
-		list: listAssetPoints,
+	assetPoint: {
+		list: listAssetPoint,
 	},
 	user: {
 		list: listUsers,

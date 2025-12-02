@@ -1,10 +1,10 @@
 import { createFileRoute, Outlet } from "@tanstack/react-router";
-import { userQueryOptions } from "@/lib/query-options/user";
+import { orpc } from "@/lib/orpc/orpc";
 
 export const Route = createFileRoute("/app/users/$userId")({
 	loader: async ({ context: { queryClient }, params: { userId } }) => {
 		return await queryClient.ensureQueryData(
-			userQueryOptions.find({
+			orpc.user.find.queryOptions({
 				input: { id: userId },
 			}),
 		);

@@ -1,8 +1,8 @@
-import { useMutation, useQueryClient } from "@tanstack/react-query";
+import { useMutation } from "@tanstack/react-query";
 import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
+import { orpc } from "@/lib/orpc/orpc";
 import type { Organization } from "@/lib/orpc/schemas/organization";
-import { organizationQueryOptions } from "@/lib/query-options/organization";
 import { OrganizationForm } from "./organization-form";
 
 const ManageOrganization = ({
@@ -10,9 +10,8 @@ const ManageOrganization = ({
 }: {
 	organization: Organization;
 }) => {
-	const queryClient = useQueryClient();
 	const { mutateAsync: deleteOrganization } = useMutation(
-		organizationQueryOptions.delete(queryClient),
+		orpc.organization.delete.mutationOptions(),
 	);
 
 	const handleDeleteOrganization = (organizationId: string) => {

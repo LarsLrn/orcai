@@ -3,7 +3,6 @@ import {
 	skipToken,
 	useMutation,
 	useQuery,
-	useQueryClient,
 	useSuspenseQuery,
 } from "@tanstack/react-query";
 import { useRouteContext, useRouter } from "@tanstack/react-router";
@@ -16,31 +15,28 @@ import { FormValidationErrors } from "@/components/forms/fields/form-validation-
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Form } from "@/components/ui/form";
+import { orpc } from "@/lib/orpc/orpc";
 import {
 	type BlockInsert,
 	blockInsertSchema,
 	type TemplateBlock,
 } from "@/lib/orpc/schemas/block";
-import { blockQueryOptions } from "@/lib/query-options/block";
-import { modelQueryOptions } from "@/lib/query-options/model";
-import { organizationProviderQueryOptions } from "@/lib/query-options/organization-provider";
 
 const TemplateBlockForm = ({ block }: { block?: TemplateBlock }) => {
 	const router = useRouter();
-	const queryClient = useQueryClient();
 	const { auth } = useRouteContext({ from: "/app" });
 
 	const { data: providers } = useSuspenseQuery(
-		organizationProviderQueryOptions.list({
+		orpc.organizationProvider.list.queryOptions({
 			input: { organizationId: auth.session.activeOrganizationId },
 		}),
 	);
 
 	const { mutateAsync: updateBlock } = useMutation(
-		blockQueryOptions.update(queryClient),
+		orpc.block.update.mutationOptions(),
 	);
 	const { mutateAsync: createBlock } = useMutation(
-		blockQueryOptions.create(queryClient),
+		orpc.block.create.mutationOptions(),
 	);
 
 	const form = useForm({
@@ -59,7 +55,7 @@ const TemplateBlockForm = ({ block }: { block?: TemplateBlock }) => {
 	const providerSlug = form.watch("config.provider");
 
 	const { data: models, status: modelsStatus } = useQuery(
-		modelQueryOptions.list({
+		orpc.model.list.queryOptions({
 			input: providerSlug
 				? { providerSlug, capabilities: ["text-generation"] }
 				: skipToken,

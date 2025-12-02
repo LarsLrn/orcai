@@ -5,7 +5,7 @@ import type { VariantProps } from "class-variance-authority";
 import { useNextStep } from "nextstepjs";
 import { useEffect } from "react";
 import { buttonVariants } from "@/components/ui/button";
-import { userQueryOptions } from "@/lib/query-options/user";
+import { orpc } from "@/lib/orpc/orpc";
 import { cn } from "@/lib/utils";
 
 const AppTourButton = ({
@@ -26,7 +26,7 @@ const AppTourButton = ({
 	const { auth } = useRouteContext({ from: "/app" });
 	const { startNextStep } = useNextStep();
 	const { data: userPrefs, status } = useQuery(
-		userQueryOptions.find({
+		orpc.user.find.queryOptions({
 			input: { id: auth.user.id },
 		}),
 	);

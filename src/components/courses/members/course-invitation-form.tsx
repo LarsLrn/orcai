@@ -1,9 +1,5 @@
 import { zodResolver } from "@hookform/resolvers/zod";
-import {
-	useMutation,
-	useQueryClient,
-	useSuspenseQuery,
-} from "@tanstack/react-query";
+import { useMutation, useSuspenseQuery } from "@tanstack/react-query";
 import { useNavigate } from "@tanstack/react-router";
 import { AlertCircle, CircleMinusIcon } from "lucide-react";
 import { useId } from "react";
@@ -33,25 +29,23 @@ import {
 import { Form } from "@/components/ui/form";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
+import { orpc } from "@/lib/orpc/orpc";
 import {
 	type CourseInvitationInsert,
 	courseInvitationInsertSchema,
 } from "@/lib/orpc/schemas/course-invitations";
-import { courseQueryOptions } from "@/lib/query-options/course";
-import { courseInvitationQueryOptions } from "@/lib/query-options/course-invitation";
 
 const CourseInvitationForm = () => {
 	const navigate = useNavigate();
-	const queryClient = useQueryClient();
 	const bulkEmailsId = useId();
 	const { data: courses } = useSuspenseQuery(
-		courseQueryOptions.list({
+		orpc.course.list.queryOptions({
 			input: { pageIndex: 0, pageSize: 100 },
 		}),
 	);
 
 	const { mutateAsync: createCourseInvitations } = useMutation(
-		courseInvitationQueryOptions.create(queryClient),
+		orpc.courseInvitation.create.mutationOptions(),
 	);
 
 	const form = useForm({

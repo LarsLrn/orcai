@@ -16,10 +16,8 @@ import {
 	SheetTrigger,
 } from "@/components/ui/sheet";
 import { Skeleton } from "@/components/ui/skeleton";
+import { orpc } from "@/lib/orpc/orpc";
 import type { Chat } from "@/lib/orpc/schemas/chat";
-import { blockQueryOptions } from "@/lib/query-options/block";
-import { botQueryOptions } from "@/lib/query-options/bot";
-import { chatQueryOptions } from "@/lib/query-options/chat";
 
 const ChatSettings = ({
 	className,
@@ -29,7 +27,7 @@ const ChatSettings = ({
 	chatId: Chat["id"];
 }) => {
 	const { data: chat } = useQuery(
-		chatQueryOptions.find({ input: { id: chatId } }),
+		orpc.chat.find.queryOptions({ input: { id: chatId } }),
 	);
 
 	return (
@@ -63,11 +61,11 @@ const ChatSettings = ({
 
 const BotDetails = ({ botId }: { botId: string }) => {
 	const { data: bot } = useSuspenseQuery(
-		botQueryOptions.find({ input: { id: botId } }),
+		orpc.bot.find.queryOptions({ input: { id: botId } }),
 	);
 
 	const { data: blocks } = useSuspenseQuery(
-		blockQueryOptions.list({
+		orpc.block.list.queryOptions({
 			input: { filters: { botId } },
 		}),
 	);

@@ -1,4 +1,4 @@
-import { useMutation, useQueryClient } from "@tanstack/react-query";
+import { useMutation } from "@tanstack/react-query";
 import { useNavigate, useParams } from "@tanstack/react-router";
 import { useRef, useState } from "react";
 import { toast } from "sonner";
@@ -11,7 +11,7 @@ import {
 } from "@/components/ui/dropdown-menu";
 import { Input } from "@/components/ui/input";
 import { useUmami } from "@/hooks/use-umami";
-import { chatQueryOptions } from "@/lib/query-options/chat";
+import { orpc } from "@/lib/orpc/orpc";
 
 const ChatActionsDropdown = ({
 	children,
@@ -26,14 +26,13 @@ const ChatActionsDropdown = ({
 	const navigate = useNavigate();
 	const confirm = useConfirm();
 	const { trackEvent } = useUmami();
-	const queryClient = useQueryClient();
 
 	const { mutateAsync: updateChat } = useMutation(
-		chatQueryOptions.update(queryClient),
+		orpc.chat.update.mutationOptions(),
 	);
 
 	const { mutateAsync: deleteChat } = useMutation(
-		chatQueryOptions.delete(queryClient),
+		orpc.chat.delete.mutationOptions(),
 	);
 
 	const [isDropdownOpen, setIsDropdownOpen] = useState(false);

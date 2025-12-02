@@ -1,7 +1,7 @@
 import { useSuspenseQuery } from "@tanstack/react-query";
 import { createFileRoute } from "@tanstack/react-router";
 import { CourseForm } from "@/components/courses/course-form";
-import { courseQueryOptions } from "@/lib/query-options/course";
+import { orpc } from "@/lib/orpc/orpc";
 
 export const Route = createFileRoute("/app/courses/$courseId/edit")({
 	component: RouteComponent,
@@ -10,7 +10,7 @@ export const Route = createFileRoute("/app/courses/$courseId/edit")({
 function RouteComponent() {
 	const { courseId } = Route.useParams();
 	const { data: course } = useSuspenseQuery(
-		courseQueryOptions.find({
+		orpc.course.find.queryOptions({
 			input: { id: courseId },
 		}),
 	);

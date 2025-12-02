@@ -12,9 +12,9 @@ import {
 	DropdownMenuItem,
 	DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
+import { orpc } from "@/lib/orpc/orpc";
 import type { Organization } from "@/lib/orpc/schemas/organization";
 import type { User } from "@/lib/orpc/schemas/user";
-import { organizationMemberQueryOptions } from "@/lib/query-options/organization-member";
 
 export const organizationMemberTableColumns: ColumnDef<User>[] = [
 	{
@@ -83,11 +83,11 @@ export const organizationMemberTableColumns: ColumnDef<User>[] = [
 ];
 
 const DeleteItem = ({ userId }: { userId: User["id"] }) => {
-	const { auth, queryClient } = useRouteContext({ from: "/app" });
+	const { auth } = useRouteContext({ from: "/app" });
 	const organizationId = auth.session.activeOrganizationId;
 
 	const { mutateAsync: deleteMembers } = useMutation(
-		organizationMemberQueryOptions.delete(queryClient),
+		orpc.organizationMember.delete.mutationOptions(),
 	);
 
 	const handleDelete = (

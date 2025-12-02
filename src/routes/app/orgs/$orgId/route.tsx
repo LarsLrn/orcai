@@ -1,10 +1,10 @@
 import { createFileRoute, Outlet } from "@tanstack/react-router";
-import { organizationQueryOptions } from "@/lib/query-options/organization";
+import { orpc } from "@/lib/orpc/orpc";
 
 export const Route = createFileRoute("/app/orgs/$orgId")({
 	loader: async ({ context: { queryClient }, params: { orgId } }) => {
 		return await queryClient.ensureQueryData(
-			organizationQueryOptions.find({
+			orpc.organization.find.queryOptions({
 				input: { id: orgId },
 			}),
 		);

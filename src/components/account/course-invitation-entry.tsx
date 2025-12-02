@@ -14,8 +14,8 @@ import {
 } from "@/components/ui/card";
 import { LoadingSpinner } from "@/components/ui/loading-spinner";
 import { Skeleton } from "@/components/ui/skeleton";
+import { orpc } from "@/lib/orpc/orpc";
 import type { CourseInvitation } from "@/lib/orpc/schemas/course-invitations";
-import { courseQueryOptions } from "@/lib/query-options/course";
 import { CourseInvitationActions } from "./course-invitation-actions";
 
 const CourseInvitationContent = ({
@@ -24,7 +24,7 @@ const CourseInvitationContent = ({
 	invitation: CourseInvitation;
 }) => {
 	const { data: course, status } = useQuery(
-		courseQueryOptions.find({
+		orpc.course.find.queryOptions({
 			input: { id: invitation.courseId },
 		}),
 	);

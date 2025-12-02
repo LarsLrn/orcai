@@ -1,8 +1,8 @@
-import { useMutation, useQueryClient } from "@tanstack/react-query";
+import { useMutation } from "@tanstack/react-query";
 import { useCallback } from "react";
 import { toast } from "sonner";
 import { useConfirm } from "@/components/ui/dialog/confirm-dialog";
-import { assetQueryOptions } from "@/lib/query-options/asset";
+import { orpc } from "../orpc/orpc";
 
 interface DeleteAssetsParams {
 	refs: { id: string }[];
@@ -18,10 +18,9 @@ interface DeleteAssetsParams {
 
 const useDeleteAssets = () => {
 	const confirm = useConfirm();
-	const queryClient = useQueryClient();
 
 	const { mutateAsync: deleteAssets, isPending } = useMutation(
-		assetQueryOptions.delete(queryClient),
+		orpc.asset.delete.mutationOptions(),
 	);
 
 	const handleDelete = useCallback(

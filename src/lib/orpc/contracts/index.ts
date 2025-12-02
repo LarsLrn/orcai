@@ -14,7 +14,7 @@ import {
 	createAssetPointContract,
 	deleteAssetPointContract,
 	findAssetPointContract,
-	listAssetPointsContract,
+	listAssetPointContract,
 	updateAssetPointContract,
 } from "./asset-point";
 import {
@@ -188,8 +188,8 @@ export const contracts = {
 		update: updateAssetContract,
 		delete: deleteAssetContract,
 	},
-	assetPoints: {
-		list: listAssetPointsContract,
+	assetPoint: {
+		list: listAssetPointContract,
 		find: findAssetPointContract,
 		create: createAssetPointContract,
 		update: updateAssetPointContract,

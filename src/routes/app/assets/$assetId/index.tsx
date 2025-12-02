@@ -1,7 +1,7 @@
 import { useSuspenseQuery } from "@tanstack/react-query";
 import { createFileRoute } from "@tanstack/react-router";
 import { FileViewer } from "@/components/documents/file-viewer";
-import { assetQueryOptions } from "@/lib/query-options/asset";
+import { orpc } from "@/lib/orpc/orpc";
 
 export const Route = createFileRoute("/app/assets/$assetId/")({
 	component: RouteComponent,
@@ -10,7 +10,7 @@ export const Route = createFileRoute("/app/assets/$assetId/")({
 function RouteComponent() {
 	const { assetId } = Route.useParams();
 	const { data: asset } = useSuspenseQuery(
-		assetQueryOptions.find({
+		orpc.asset.find.queryOptions({
 			input: { id: assetId },
 		}),
 	);

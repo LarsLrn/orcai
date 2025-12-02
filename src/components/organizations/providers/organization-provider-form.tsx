@@ -1,9 +1,5 @@
 import { zodResolver } from "@hookform/resolvers/zod";
-import {
-	useMutation,
-	useQueryClient,
-	useSuspenseQuery,
-} from "@tanstack/react-query";
+import { useMutation, useSuspenseQuery } from "@tanstack/react-query";
 import { useNavigate } from "@tanstack/react-router";
 import { useForm } from "react-hook-form";
 import { toast } from "sonner";
@@ -12,13 +8,12 @@ import { FormSelectField } from "@/components/forms/fields/form-select-field";
 import { FormSwitchField } from "@/components/forms/fields/form-switch-field";
 import { Button } from "@/components/ui/button";
 import { Form } from "@/components/ui/form";
+import { orpc } from "@/lib/orpc/orpc";
 import {
 	type OrganizationProvider,
 	type OrganizationProviderInsert,
 	organizationProviderInsertSchema,
 } from "@/lib/orpc/schemas/organization-provider";
-import { organizationProviderQueryOptions } from "@/lib/query-options/organization-provider";
-import { providerQueryOptions } from "@/lib/query-options/provider";
 
 const OrganizationProviderForm = ({
 	organizationId,
@@ -28,15 +23,16 @@ const OrganizationProviderForm = ({
 	organizationProvider?: OrganizationProvider;
 }) => {
 	const navigate = useNavigate();
-	const queryClient = useQueryClient();
-	const { data: providers } = useSuspenseQuery(providerQueryOptions.list());
+	const { data: providers } = useSuspenseQuery(
+		orpc.provider.list.queryOptions(),
+	);
 
 	const { mutateAsync: updateProvider } = useMutation(
-		organizationProviderQueryOptions.update(queryClient),
+		orpc.organizationProvider.update.mutationOptions(),
 	);
 
 	const { mutateAsync: createProvider } = useMutation(
-		organizationProviderQueryOptions.create(queryClient),
+		orpc.organizationProvider.create.mutationOptions(),
 	);
 
 	const form = useForm({

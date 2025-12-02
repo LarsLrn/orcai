@@ -1,5 +1,5 @@
 import { zodResolver } from "@hookform/resolvers/zod";
-import { useMutation, useQueryClient } from "@tanstack/react-query";
+import { useMutation } from "@tanstack/react-query";
 import { useState } from "react";
 import { useForm } from "react-hook-form";
 import { toast } from "sonner";
@@ -13,17 +13,16 @@ import {
 	FormMessage,
 } from "@/components/ui/form";
 import { type FileUploadSchemaType, fileUploadSchema } from "@/db/zod/file";
-import { assetQueryOptions } from "@/lib/query-options/asset";
+import { orpc } from "@/lib/orpc/orpc";
 import { FileUploader } from "./file-uploader";
 import { UploadProgress } from "./upload-progress";
 import { useUploadFiles } from "./use-upload-files";
 
 const UploadComponent = () => {
-	const queryClient = useQueryClient();
 	const [showProgress, setShowProgress] = useState(false);
 
 	const { mutateAsync: createAsset } = useMutation(
-		assetQueryOptions.create(queryClient),
+		orpc.asset.create.mutationOptions(),
 	);
 
 	const { upload, control } = useUploadFiles({

@@ -6,8 +6,8 @@ import { DataTable } from "@/components/ui/data-table/data-table";
 import { DataTableBody } from "@/components/ui/data-table/data-table-body";
 import { DataTablePagination } from "@/components/ui/data-table/data-table-pagination";
 import { DataTableViewOptions } from "@/components/ui/data-table/data-table-view-options";
+import { orpc } from "@/lib/orpc/orpc";
 import { paginationSchema } from "@/lib/orpc/schemas/shared";
-import { blockQueryOptions } from "@/lib/query-options/block";
 
 export const Route = createFileRoute("/app/blocks/")({
 	validateSearch: paginationSchema,
@@ -20,7 +20,7 @@ export const Route = createFileRoute("/app/blocks/")({
 		deps: { pageIndex, pageSize },
 	}) => {
 		await queryClient.ensureQueryData(
-			blockQueryOptions.list({
+			orpc.block.list.queryOptions({
 				input: { pageIndex, pageSize },
 			}),
 		);
@@ -31,7 +31,7 @@ export const Route = createFileRoute("/app/blocks/")({
 function RouteComponent() {
 	const { pageIndex, pageSize } = Route.useSearch();
 	const { data: blocks } = useSuspenseQuery(
-		blockQueryOptions.list({
+		orpc.block.list.queryOptions({
 			input: { pageIndex, pageSize },
 		}),
 	);

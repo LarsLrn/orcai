@@ -1,4 +1,4 @@
-import { useMutation, useQueryClient } from "@tanstack/react-query";
+import { useMutation } from "@tanstack/react-query";
 import { Link } from "@tanstack/react-router";
 import type { ColumnDef } from "@tanstack/react-table";
 import { format } from "date-fns";
@@ -14,8 +14,8 @@ import {
 	DropdownMenuSeparator,
 	DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
+import { orpc } from "@/lib/orpc/orpc";
 import type { OrganizationProvider } from "@/lib/orpc/schemas/organization-provider";
-import { organizationProviderQueryOptions } from "@/lib/query-options/organization-provider";
 
 export const organizationProviderTableColumns: ColumnDef<OrganizationProvider>[] =
 	[
@@ -127,9 +127,8 @@ export const organizationProviderTableColumns: ColumnDef<OrganizationProvider>[]
 	];
 
 const DeleteItem = ({ provider }: { provider: OrganizationProvider }) => {
-	const queryClient = useQueryClient();
 	const { mutateAsync: deleteProviders } = useMutation(
-		organizationProviderQueryOptions.delete(queryClient),
+		orpc.organizationProvider.delete.mutationOptions(),
 	);
 
 	const handleDelete = (provider: OrganizationProvider) => {

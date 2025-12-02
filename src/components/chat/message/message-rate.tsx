@@ -1,4 +1,4 @@
-import { useMutation, useQueryClient } from "@tanstack/react-query";
+import { useMutation } from "@tanstack/react-query";
 import type { ApiGetScoresResponseData } from "langfuse";
 import { CheckIcon, StarIcon } from "lucide-react";
 import { useState } from "react";
@@ -13,9 +13,9 @@ import {
 	DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import { useUmami } from "@/hooks/use-umami";
+import { orpc } from "@/lib/orpc/orpc";
 import type { Chat } from "@/lib/orpc/schemas/chat";
 import type { ChatMessage } from "@/lib/orpc/schemas/chat-message";
-import { chatMessageQueryOptions } from "@/lib/query-options/chat-message";
 import { cn } from "@/lib/utils";
 
 const MessageRate = ({
@@ -33,9 +33,8 @@ const MessageRate = ({
 		number | undefined | null
 	>(score?.value);
 	const { trackEvent } = useUmami();
-	const queryClient = useQueryClient();
 	const { mutateAsync: rateMessage } = useMutation(
-		chatMessageQueryOptions.rate(queryClient),
+		orpc.chatMessage.rate.mutationOptions(),
 	);
 
 	const handleRate = (sentiment: number) => {

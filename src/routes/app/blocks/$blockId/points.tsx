@@ -1,13 +1,13 @@
 import { useSuspenseQuery } from "@tanstack/react-query";
 import { createFileRoute } from "@tanstack/react-router";
 import { DisplayPoint } from "@/components/documents/chunks/display-point";
-import { assetPointQueryOptions } from "@/lib/query-options/asset-point";
+import { orpc } from "@/lib/orpc/orpc";
 import type { QdrantPoint } from "@/types/qdrant";
 
 export const Route = createFileRoute("/app/blocks/$blockId/points")({
 	loader: async ({ context: { queryClient }, params: { blockId } }) => {
 		await queryClient.ensureQueryData(
-			assetPointQueryOptions.list({
+			orpc.assetPoint.list.queryOptions({
 				input: { filters: { blockId, limit: 1000 } },
 			}),
 		);
@@ -25,7 +25,7 @@ export const Route = createFileRoute("/app/blocks/$blockId/points")({
 function RouteComponent() {
 	const { blockId } = Route.useParams();
 	const { data: assetPoints } = useSuspenseQuery(
-		assetPointQueryOptions.list({
+		orpc.assetPoint.list.queryOptions({
 			input: { filters: { blockId, limit: 1000 } },
 		}),
 	);

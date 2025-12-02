@@ -34,7 +34,7 @@ import {
 	HoverCardTrigger,
 } from "@/components/ui/hover-card";
 import { Separator } from "@/components/ui/separator";
-import { blockQueryOptions } from "@/lib/query-options/block";
+import { orpc } from "@/lib/orpc/orpc";
 
 export const Route = createFileRoute("/app/blocks/$blockId/")({
 	component: RouteComponent,
@@ -43,7 +43,7 @@ export const Route = createFileRoute("/app/blocks/$blockId/")({
 function RouteComponent() {
 	const { blockId } = Route.useParams();
 	const { data: block } = useSuspenseQuery(
-		blockQueryOptions.find({
+		orpc.block.find.queryOptions({
 			input: { id: blockId },
 		}),
 	);

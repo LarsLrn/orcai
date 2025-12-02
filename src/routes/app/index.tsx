@@ -46,9 +46,7 @@ import {
 	ItemTitle,
 } from "@/components/ui/item";
 import { Skeleton } from "@/components/ui/skeleton";
-import { assetQueryOptions } from "@/lib/query-options/asset";
-import { blockQueryOptions } from "@/lib/query-options/block";
-import { botQueryOptions } from "@/lib/query-options/bot";
+import { orpc } from "@/lib/orpc/orpc";
 import { cn } from "@/lib/utils";
 
 const HOME_BOT_LIST_PARAMS = { pageIndex: 0, pageSize: 6 } as const;
@@ -58,13 +56,13 @@ export const Route = createFileRoute("/app/")({
 	loader: async ({ context: { queryClient } }) => {
 		await Promise.all([
 			queryClient.ensureQueryData(
-				botQueryOptions.list({ input: HOME_BOT_LIST_PARAMS }),
+				orpc.bot.list.queryOptions({ input: HOME_BOT_LIST_PARAMS }),
 			),
 			queryClient.ensureQueryData(
-				blockQueryOptions.list({ input: RESOURCE_SUMMARY_PARAMS }),
+				orpc.block.list.queryOptions({ input: RESOURCE_SUMMARY_PARAMS }),
 			),
 			queryClient.ensureQueryData(
-				assetQueryOptions.list({ input: RESOURCE_SUMMARY_PARAMS }),
+				orpc.asset.list.queryOptions({ input: RESOURCE_SUMMARY_PARAMS }),
 			),
 		]);
 	},
@@ -103,7 +101,7 @@ function RouteComponent() {
 
 const HomeHero = () => {
 	const { data: bots } = useSuspenseQuery(
-		botQueryOptions.list({ input: HOME_BOT_LIST_PARAMS }),
+		orpc.bot.list.queryOptions({ input: HOME_BOT_LIST_PARAMS }),
 	);
 	const latestBot = bots.data.at(0);
 
@@ -198,7 +196,7 @@ const HeroLatestBotCard = ({
 
 const BotsShowcase = () => {
 	const { data: bots } = useSuspenseQuery(
-		botQueryOptions.list({ input: HOME_BOT_LIST_PARAMS }),
+		orpc.bot.list.queryOptions({ input: HOME_BOT_LIST_PARAMS }),
 	);
 
 	return (
@@ -366,13 +364,13 @@ const QuickActions = () => {
 
 const ResourceHighlights = () => {
 	const { data: botSummary } = useSuspenseQuery(
-		botQueryOptions.list({ input: RESOURCE_SUMMARY_PARAMS }),
+		orpc.bot.list.queryOptions({ input: RESOURCE_SUMMARY_PARAMS }),
 	);
 	const { data: blockSummary } = useSuspenseQuery(
-		blockQueryOptions.list({ input: RESOURCE_SUMMARY_PARAMS }),
+		orpc.block.list.queryOptions({ input: RESOURCE_SUMMARY_PARAMS }),
 	);
 	const { data: assetSummary } = useSuspenseQuery(
-		assetQueryOptions.list({ input: RESOURCE_SUMMARY_PARAMS }),
+		orpc.asset.list.queryOptions({ input: RESOURCE_SUMMARY_PARAMS }),
 	);
 
 	const resources = [
