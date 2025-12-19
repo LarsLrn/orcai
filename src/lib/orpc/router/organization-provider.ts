@@ -4,9 +4,11 @@ import { db } from "@/db/drizzle";
 import { organizationProviderTable } from "@/db/schema/model";
 import { encryptApiKey } from "@/lib/encryption";
 import { authed } from "@/lib/orpc";
+import { requireActiveOrganizationMiddleware } from "@/lib/orpc/middlewares/auth";
 
-export const listOrganizationProviders =
-	authed.organizationProvider.list.handler(async ({ input }) => {
+export const listOrganizationProviders = authed.organizationProvider.list
+	.use(requireActiveOrganizationMiddleware)
+	.handler(async ({ input, context }) => {
 		/* const { entityIds } = await listAllowedEntities({
       entityType: "organization",
       action: "read",
@@ -18,7 +20,10 @@ export const listOrganizationProviders =
 				.select({ ...getTableColumns(organizationProviderTable) })
 				.from(organizationProviderTable)
 				.where(
-					eq(organizationProviderTable.organizationId, input.organizationId),
+					eq(
+						organizationProviderTable.organizationId,
+						context.auth.session.activeOrganizationId,
+					),
 				)
 				.limit(input.pageSize)
 				.offset(input.pageIndex * input.pageSize),
@@ -26,7 +31,10 @@ export const listOrganizationProviders =
 				.select({ count: count() })
 				.from(organizationProviderTable)
 				.where(
-					eq(organizationProviderTable.organizationId, input.organizationId),
+					eq(
+						organizationProviderTable.organizationId,
+						context.auth.session.activeOrganizationId,
+					),
 				),
 		]);
 
@@ -34,6 +42,7 @@ export const listOrganizationProviders =
 	});
 
 export const findOrganizationProvider = authed.organizationProvider.find
+	.use(requireActiveOrganizationMiddleware)
 	/* .use(
     checkPermissionMiddleware,
     (input) =>
@@ -43,14 +52,17 @@ export const findOrganizationProvider = authed.organizationProvider.find
         entityType: "organization",
       }) as const,
   ) */
-	.handler(async ({ input }) => {
+	.handler(async ({ input, context }) => {
 		const [organizationProvider] = await db
 			.select({ ...getTableColumns(organizationProviderTable) })
 			.from(organizationProviderTable)
 			.where(
 				and(
 					eq(organizationProviderTable.providerSlug, input.providerSlug),
-					eq(organizationProviderTable.organizationId, input.organizationId),
+					eq(
+						organizationProviderTable.organizationId,
+						context.auth.session.activeOrganizationId,
+					),
 				),
 			);
 
@@ -64,8 +76,8 @@ export const findOrganizationProvider = authed.organizationProvider.find
 	});
 
 export const createOrganizationProvider = authed.organizationProvider.create
-	/* .use(requireActiveOrganizationMiddleware) */
-	.handler(async ({ input }) => {
+	.use(requireActiveOrganizationMiddleware)
+	.handler(async ({ input, context }) => {
 		// Encrypt the plain text API key received from frontend
 		const apiKeyEncrypted = encryptApiKey(input.apiKey);
 
@@ -76,6 +88,7 @@ export const createOrganizationProvider = authed.organizationProvider.create
 			.insert(organizationProviderTable)
 			.values({
 				...inputWithoutApiKey,
+				organizationId: context.auth.session.activeOrganizationId,
 				apiKeyEncrypted,
 				createdAt: new Date(),
 			})
@@ -92,6 +105,7 @@ export const createOrganizationProvider = authed.organizationProvider.create
 	});
 
 export const updateOrganizationProvider = authed.organizationProvider.update
+	.use(requireActiveOrganizationMiddleware)
 	/* .use(
     checkPermissionMiddleware,
     (input) =>
@@ -101,7 +115,7 @@ export const updateOrganizationProvider = authed.organizationProvider.update
         entityType: "organization",
       }) as const,
   ) */
-	.handler(async ({ input }) => {
+	.handler(async ({ input, context }) => {
 		// Prepare the update data
 		let updateData: any = { ...input };
 
@@ -119,7 +133,10 @@ export const updateOrganizationProvider = authed.organizationProvider.update
 			.set(updateData)
 			.where(
 				and(
-					eq(organizationProviderTable.organizationId, input.organizationId),
+					eq(
+						organizationProviderTable.organizationId,
+						context.auth.session.activeOrganizationId,
+					),
 					eq(organizationProviderTable.providerSlug, input.providerSlug),
 				),
 			)
@@ -129,6 +146,7 @@ export const updateOrganizationProvider = authed.organizationProvider.update
 	});
 
 export const deleteOrganizationProviders = authed.organizationProvider.delete
+	.use(requireActiveOrganizationMiddleware)
 	/* .use(
 		checkManyPermissionMiddleware,
 		(input) =>
@@ -138,7 +156,7 @@ export const deleteOrganizationProviders = authed.organizationProvider.delete
 				entityType: "organization",
 			}) as const,
 	) */
-	.handler(async ({ input }) => {
+	.handler(async ({ input, context }) => {
 		/* console.log(
 			"Deleting organization members with allowed IDs:",
 			context.allowedIds,
@@ -152,7 +170,10 @@ export const deleteOrganizationProviders = authed.organizationProvider.delete
 		try {
 			await db.delete(organizationProviderTable).where(
 				and(
-					eq(organizationProviderTable.organizationId, input.organizationId),
+					eq(
+						organizationProviderTable.organizationId,
+						context.auth.session.activeOrganizationId,
+					),
 					inArray(
 						organizationProviderTable.providerSlug,
 						input.refs.map((ref) => ref.providerSlug),

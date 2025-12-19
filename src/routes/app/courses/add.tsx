@@ -1,5 +1,5 @@
 import { createFileRoute } from "@tanstack/react-router";
-import { CourseForm } from "@/components/courses/course-form";
+import { CourseForm } from "@/components/courses/form/course-form";
 
 export const Route = createFileRoute("/app/courses/add")({
 	component: RouteComponent,
@@ -13,5 +13,5 @@ export const Route = createFileRoute("/app/courses/add")({
 });
 
 function RouteComponent() {
-	return <CourseForm />;
+	return <CourseForm action="create" />;
 }

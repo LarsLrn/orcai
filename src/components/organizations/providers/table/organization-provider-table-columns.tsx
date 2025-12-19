@@ -134,7 +134,6 @@ const DeleteItem = ({ provider }: { provider: OrganizationProvider }) => {
 	const handleDelete = (provider: OrganizationProvider) => {
 		toast.promise(
 			deleteProviders({
-				organizationId: provider.organizationId,
 				refs: [{ providerSlug: provider.providerSlug }],
 			}),
 			{

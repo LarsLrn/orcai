@@ -26,6 +26,7 @@ export const organizationProviderInsertSchema = createInsertSchema(
 	organizationProviderTable,
 )
 	.omit({
+		organizationId: true,
 		createdAt: true,
 		apiKeyEncrypted: true, // Remove encrypted field from input
 	})
@@ -42,11 +43,11 @@ export const organizationProviderInsertSchema = createInsertSchema(
 export const organizationProviderUpdateSchema = createUpdateSchema(
 	organizationProviderTable,
 	{
-		organizationId: organizationProviderSelectSchema.shape.organizationId,
 		providerSlug: organizationProviderSelectSchema.shape.providerSlug,
 	},
 )
 	.omit({
+		organizationId: true,
 		apiKeyEncrypted: true, // Remove encrypted field from input
 	})
 	.extend({
@@ -60,7 +61,6 @@ export const organizationProviderUpdateSchema = createUpdateSchema(
  */
 
 export const organizationProviderDeleteSchema = z.object({
-	organizationId: z.uuidv4(),
 	refs: z.array(organizationProviderUpdateSchema.pick({ providerSlug: true })),
 });
 

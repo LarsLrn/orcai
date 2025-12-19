@@ -1,9 +1,7 @@
-import { useMutation, useSuspenseQuery } from "@tanstack/react-query";
-import { createFileRoute, useNavigate } from "@tanstack/react-router";
-import { toast } from "sonner";
-import { BotBuilderForm } from "@/components/blocks/builder/bot-builder-form";
+import { useSuspenseQuery } from "@tanstack/react-query";
+import { createFileRoute } from "@tanstack/react-router";
+import { BotForm } from "@/components/blocks/form/bot-form";
 import { orpc } from "@/lib/orpc/orpc";
-import type { BotUpdate } from "@/lib/orpc/schemas/bot";
 
 export const Route = createFileRoute("/app/bots/$botId/edit")({
 	component: RouteComponent,
@@ -18,32 +16,12 @@ export const Route = createFileRoute("/app/bots/$botId/edit")({
 
 function RouteComponent() {
 	const { botId } = Route.useParams();
-	const navigate = useNavigate();
 
 	const { data: bot } = useSuspenseQuery(
 		orpc.bot.find.queryOptions({
 			input: { id: botId },
 		}),
 	);
-
-	const { mutateAsync: updateBot } = useMutation(
-		orpc.bot.update.mutationOptions(),
-	);
-
-	const handleBotSubmit = (data: Omit<BotUpdate, "id">) => {
-		// TODO: Handle BotUpdate type properly
-		toast.promise(updateBot({ id: botId, ...data }), {
-			loading: "Updating bot...",
-			success: async (result) => {
-				await navigate({
-					to: "/app/bots/$botId",
-					params: { botId: result.data.id },
-				});
-				return "Bot updated successfully";
-			},
-			error: "Failed to update bot",
-		});
-	};
 
 	return (
 		<div className="p-6">
@@ -55,7 +33,7 @@ function RouteComponent() {
 				</p>
 			</div>
 
-			<BotBuilderForm initialData={bot.data} onSubmit={handleBotSubmit} />
+			<BotForm bot={bot.data} blockIds={bot.data.blockIds} action="update" />
 		</div>
 	);
 }

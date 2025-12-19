@@ -1,5 +1,5 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
-import { SignInForm } from "@/components/auth/signin-form";
+import { SignInForm } from "@/components/auth/signin/signin-form";
 import {
 	Card,
 	CardContent,

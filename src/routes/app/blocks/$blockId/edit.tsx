@@ -1,8 +1,8 @@
 import { useSuspenseQuery } from "@tanstack/react-query";
 import { createFileRoute } from "@tanstack/react-router";
-import { DatabaseBlockForm } from "@/components/blocks/database-block-form";
-import { ImageGenerationBlockForm } from "@/components/blocks/image-generation-block-form";
-import { TemplateBlockForm } from "@/components/blocks/template-block-form";
+import { DatabaseBlockForm } from "@/components/blocks/database-block/form/database-block-form";
+import { ImageGenerationBlockForm } from "@/components/blocks/image-generation-block/form/image-generation-block-form";
+import { TemplateBlockForm } from "@/components/blocks/template-block/form/template-block-form";
 import { orpc } from "@/lib/orpc/orpc";
 import {
 	isDatabaseBlock,
@@ -31,12 +31,18 @@ function RouteComponent() {
 
 	return (
 		<>
-			{isTemplateBlock(block.data) && <TemplateBlockForm block={block.data} />}
+			{isTemplateBlock(block.data) && (
+				<TemplateBlockForm action="update" block={block.data} />
+			)}
 			{isDatabaseBlock(block.data) && block.assets && (
-				<DatabaseBlockForm block={block.data} assetIds={block.assets} />
+				<DatabaseBlockForm
+					action="update"
+					block={block.data}
+					assetIds={block.assets}
+				/>
 			)}
 			{isImageGenerationBlock(block.data) && (
-				<ImageGenerationBlockForm block={block.data} />
+				<ImageGenerationBlockForm action="update" block={block.data} />
 			)}
 		</>
 	);

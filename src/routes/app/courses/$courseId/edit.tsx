@@ -1,6 +1,6 @@
 import { useSuspenseQuery } from "@tanstack/react-query";
 import { createFileRoute } from "@tanstack/react-router";
-import { CourseForm } from "@/components/courses/course-form";
+import { CourseForm } from "@/components/courses/form/course-form";
 import { orpc } from "@/lib/orpc/orpc";
 
 export const Route = createFileRoute("/app/courses/$courseId/edit")({
@@ -15,5 +15,5 @@ function RouteComponent() {
 		}),
 	);
 
-	return <CourseForm course={course.data} />;
+	return <CourseForm action="update" course={course.data} />;
 }

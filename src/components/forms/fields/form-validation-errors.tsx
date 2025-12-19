@@ -1,84 +1,73 @@
+import type { AnyFieldMeta } from "@tanstack/react-form";
+import { useStore } from "@tanstack/react-form";
 import { AlertTriangle } from "lucide-react";
-import type { FieldValues, UseFormReturn } from "react-hook-form";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
-
-interface FormValidationErrorsProps<
-	TFieldValues extends FieldValues = FieldValues,
-> {
-	form: UseFormReturn<TFieldValues>;
-	title?: string;
-	className?: string;
-}
+import { useFormContext } from "@/hooks/form/context";
 
 /**
- * A reusable component that displays all form validation errors in a clear, organized way.
- * Automatically extracts and formats errors from react-hook-form validation state.
+ * A reusable component that displays all form validation errors.
+ * Must be used within form.AppForm context (as a formComponent).
  */
-const FormValidationErrors = <TFieldValues extends FieldValues = FieldValues>({
-	form,
+const FormValidationErrors = ({
 	title = "Please fix the following errors:",
 	className,
-}: FormValidationErrorsProps<TFieldValues>) => {
-	// Watch form state to ensure re-renders on changes
-	const formState = form.formState;
-	const errors = formState.errors;
-	const hasErrors = Object.keys(errors).length > 0;
+}: {
+	title?: string;
+	className?: string;
+}) => {
+	const form = useFormContext();
+	const fieldMeta = useStore(form.store, (state) => state.fieldMeta) as Record<
+		string,
+		AnyFieldMeta | undefined
+	>;
+	const formErrorMap = useStore(form.store, (state) => state.errorMap);
+
+	// Collect all field errors
+	const fieldErrors: Array<{ field: string; message: string }> = [];
+	for (const [fieldName, meta] of Object.entries(fieldMeta)) {
+		if (meta?.errors?.length) {
+			for (const error of meta.errors) {
+				if (typeof error === "string") {
+					fieldErrors.push({ field: fieldName, message: error });
+				} else if (error && typeof error === "object" && "message" in error) {
+					fieldErrors.push({
+						field: fieldName,
+						message: String(error.message),
+					});
+				}
+			}
+		}
+	}
+
+	// Collect form-level errors
+	const formErrors: string[] = [];
+	for (const error of Object.values(formErrorMap)) {
+		if (typeof error === "string") {
+			formErrors.push(error);
+		} else if (error && typeof error === "object" && "message" in error) {
+			formErrors.push(String(error.message));
+		}
+	}
+
+	const hasErrors = fieldErrors.length > 0 || formErrors.length > 0;
 
 	if (!hasErrors) {
 		return null;
 	}
 
-	// Helper to process a single error entry
-	const processErrorEntry = (
-		key: string,
-		value: any,
-		prefix: string,
-	): Array<{ field: string; message: string }> => {
-		if (!value || typeof value !== "object") return [];
-
-		const fieldPath = prefix ? `${prefix}.${key}` : key;
-		const errorValue = value as Record<string, any>;
-
-		if (typeof errorValue.message === "string") {
-			return [{ field: fieldPath, message: errorValue.message }];
-		}
-
-		if (errorValue.type === "required") {
-			return [{ field: fieldPath, message: "This field is required" }];
-		}
-
-		return extractErrors(errorValue, fieldPath);
-	};
-
-	// Extract error messages from nested objects
-	const extractErrors = (
-		errorObj: any,
-		prefix = "",
-	): Array<{ field: string; message: string }> => {
-		const errorList: Array<{ field: string; message: string }> = [];
-
-		for (const [key, value] of Object.entries(errorObj)) {
-			errorList.push(...processErrorEntry(key, value, prefix));
-		}
-
-		return errorList;
-	};
-
-	const allErrors = extractErrors(errors);
-
-	// Format field names for better readability
 	const formatFieldName = (fieldPath: string): string => {
 		return fieldPath
 			.split(".")
-			.map((part) => {
-				const cleanPart = part.replace(/\[\d+\]/g, "");
-				return cleanPart
+			.map((part) =>
+				part
 					.replace(/([A-Z])/g, " $1")
 					.replace(/^./, (str) => str.toUpperCase())
-					.trim();
-			})
+					.trim(),
+			)
 			.join(" → ");
 	};
+
+	const totalErrors = fieldErrors.length + formErrors.length;
 
 	return (
 		<Alert variant="destructive" className={className}>
@@ -86,12 +75,18 @@ const FormValidationErrors = <TFieldValues extends FieldValues = FieldValues>({
 			<AlertTitle>{title}</AlertTitle>
 			<AlertDescription>
 				<ul className="mt-2 space-y-1">
-					{allErrors.map((error, index) => (
+					{formErrors.map((error) => (
+						<li key={error} className="flex items-start gap-2">
+							<span className="mt-1 h-1 w-1 shrink-0 rounded-full bg-current" />
+							<span>{error}</span>
+						</li>
+					))}
+					{fieldErrors.map((error) => (
 						<li
-							key={`${error.field}-${index}`}
+							key={`${error.field}-${error.message}`}
 							className="flex items-start gap-2"
 						>
-							<span className="mt-1 h-1 w-1 flex-shrink-0 rounded-full bg-current" />
+							<span className="mt-1 h-1 w-1 shrink-0 rounded-full bg-current" />
 							<div>
 								<span className="font-medium">
 									{formatFieldName(error.field)}:
@@ -101,15 +96,13 @@ const FormValidationErrors = <TFieldValues extends FieldValues = FieldValues>({
 						</li>
 					))}
 				</ul>
-				{allErrors.length > 1 && (
+				{totalErrors > 1 && (
 					<p className="mt-2 text-xs opacity-75">
-						Please correct {allErrors.length} error
-						{allErrors.length === 1 ? "" : "s"} above.
+						Please correct {totalErrors} errors above.
 					</p>
 				)}
 			</AlertDescription>
 		</Alert>
 	);
 };
-
-export { FormValidationErrors };
+export default FormValidationErrors;

@@ -14,7 +14,6 @@ import type { ImageGenerationBlock } from "@/lib/orpc/schemas/block";
 export const generateImageTool = ({
 	writer,
 	block,
-	organizationId,
 }: {
 	writer: UIMessageStreamWriter;
 	block: ImageGenerationBlock;
@@ -35,7 +34,6 @@ export const generateImageTool = ({
 			});
 
 			const organizationProvider = await client.organizationProvider.find({
-				organizationId,
 				providerSlug: block.config.provider,
 			});
 

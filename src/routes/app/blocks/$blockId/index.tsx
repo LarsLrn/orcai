@@ -10,8 +10,8 @@ import {
 	SettingsIcon,
 	TagIcon,
 } from "lucide-react";
-import { DatabaseBlockConfigCard } from "@/components/blocks/types/database-config";
-import { TemplateBlockConfigCard } from "@/components/blocks/types/template-config";
+import { DatabaseBlockConfigCard } from "@/components/blocks/database-block/database-config";
+import { TemplateBlockConfigCard } from "@/components/blocks/template-block/template-config";
 import { Badge } from "@/components/ui/badge";
 import { Button, buttonVariants } from "@/components/ui/button";
 import {

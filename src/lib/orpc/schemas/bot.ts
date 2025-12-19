@@ -33,6 +33,16 @@ export const botInsertSchema = createInsertSchema(botTable)
 		blockIds: z
 			.array(baseBlockSelectSchema.shape.id)
 			.min(1, "At least one active block is required"),
+		contentJson: z
+			.json()
+			.refine(
+				(val) =>
+					val !== null &&
+					typeof val === "object" &&
+					!Array.isArray(val) &&
+					Object.keys(val as object).length > 0,
+				{ message: "Content is required" },
+			),
 	});
 
 /**

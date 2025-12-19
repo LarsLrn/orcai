@@ -26,8 +26,22 @@ export const courseInsertSchema = createInsertSchema(course, {
 		schema.min(20, {
 			message: "Description must be at least 20 characters long",
 		}),
+	contentJson: z
+		.json()
+		.refine(
+			(val) =>
+				val !== null &&
+				typeof val === "object" &&
+				!Array.isArray(val) &&
+				Object.keys(val as object).length > 0,
+			{ message: "Content is required" },
+		),
 	// TODO: Coerce received string for maxReferences
-	config: (schema) => schema.optional(),
+	config: z.object({
+		systemPrompt: z.string(),
+		maxReferences: z.number().min(1).max(20),
+		model: z.string(),
+	}),
 });
 
 /**

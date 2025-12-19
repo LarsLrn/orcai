@@ -1,11 +1,10 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { FileTextIcon } from "lucide-react";
 import { Suspense } from "react";
-import { ChangePasswordForm } from "@/components/account/change-password-form";
 import { CourseInvitationsList } from "@/components/account/course-invitations-list";
 import { ExportChats } from "@/components/account/export-chats";
 import { UserStats } from "@/components/app/user-stats";
-import { ProfileForm } from "@/components/forms/profile-form";
+import { ChangePasswordForm } from "@/components/auth/change-password/change-password-form";
 import { buttonVariants } from "@/components/ui/button";
 import {
 	Card,
@@ -15,6 +14,7 @@ import {
 	CardTitle,
 } from "@/components/ui/card";
 import { Skeleton } from "@/components/ui/skeleton";
+import { ProfileForm } from "@/components/users/profile/form/profile-form";
 
 export const Route = createFileRoute("/app/account/")({
 	component: RouteComponent,

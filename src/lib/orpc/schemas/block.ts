@@ -9,6 +9,27 @@ import { assetSelectSchema } from "./asset";
 
 /**
  * ----------------
+ * Utility
+ * ----------------
+ */
+
+export const BLOCK_TYPES = [
+	{
+		label: "Template",
+		value: "template",
+	},
+	{
+		label: "Database",
+		value: "database",
+	},
+	{
+		label: "Image Generation",
+		value: "imageGeneration",
+	},
+] as const;
+
+/**
+ * ----------------
  * Select Schema
  * ----------------
  */
@@ -90,15 +111,25 @@ const baseBlockInsertSchema = createInsertSchema(blockTable).omit({
 	id: true,
 });
 
+export const templateBlockInsertSchema = baseBlockInsertSchema.extend(
+	templateBlockSchema.shape,
+);
+
+export const databaseBlockInsertSchema = baseBlockInsertSchema.extend({
+	...databaseBlockSchema.shape,
+	assets: z
+		.array(assetSelectSchema.shape.id)
+		.min(1, "At least one asset is required for database blocks"),
+});
+
+export const imageGenerationBlockInsertSchema = baseBlockInsertSchema.extend(
+	imageGenerationBlockSchema.shape,
+);
+
 export const blockInsertSchema = z.discriminatedUnion("type", [
-	baseBlockInsertSchema.extend(templateBlockSchema.shape),
-	baseBlockInsertSchema.extend({
-		...databaseBlockSchema.shape,
-		assets: z
-			.array(assetSelectSchema.shape.id)
-			.min(1, "At least one asset is required for database blocks"),
-	}),
-	baseBlockInsertSchema.extend(imageGenerationBlockSchema.shape),
+	templateBlockInsertSchema,
+	databaseBlockInsertSchema,
+	imageGenerationBlockInsertSchema,
 ]);
 
 /**

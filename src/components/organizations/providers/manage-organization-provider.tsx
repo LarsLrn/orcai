@@ -3,13 +3,11 @@ import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
 import { orpc } from "@/lib/orpc/orpc";
 import type { OrganizationProvider } from "@/lib/orpc/schemas/organization-provider";
-import { OrganizationProviderForm } from "./organization-provider-form";
+import { OrganizationProviderForm } from "./form/organization-provider-form";
 
 const ManageOrganizationProvider = ({
-	organizationId,
 	organizationProvider,
 }: {
-	organizationId: string;
 	organizationProvider: OrganizationProvider;
 }) => {
 	const { mutateAsync: deleteProvider } = useMutation(
@@ -19,7 +17,6 @@ const ManageOrganizationProvider = ({
 	const handleDeleteProvider = (provider: OrganizationProvider) => {
 		toast.promise(
 			deleteProvider({
-				organizationId: provider.organizationId,
 				refs: [{ providerSlug: provider.providerSlug }],
 			}),
 			{
@@ -36,7 +33,7 @@ const ManageOrganizationProvider = ({
 	return (
 		<div className="mt-4 flex flex-col gap-4">
 			<OrganizationProviderForm
-				organizationId={organizationId}
+				action="update"
 				organizationProvider={organizationProvider}
 			/>
 			<div className="flex gap-2">

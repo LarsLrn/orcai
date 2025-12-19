@@ -63,7 +63,8 @@
 				"useValidForDirection": "error",
 				"noUndeclaredVariables": "error",
 				"noUnusedVariables": "warn",
-				"noUnusedImports": "warn"
+				"noUnusedImports": "warn",
+				"noChildrenProp": "off" // Perfectly valid pattern in some cases (e.g. used in tanstack/react-form)
 			},
 			"complexity": {
 				"noStaticOnlyClass": "error",

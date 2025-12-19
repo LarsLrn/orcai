@@ -1,9 +1,6 @@
-import { useMutation } from "@tanstack/react-query";
-import { createFileRoute, useNavigate } from "@tanstack/react-router";
-import { toast } from "sonner";
-import { BotBuilderForm } from "@/components/blocks/builder/bot-builder-form";
+import { createFileRoute } from "@tanstack/react-router";
+import { BotForm } from "@/components/blocks/form/bot-form";
 import { orpc } from "@/lib/orpc/orpc";
-import type { BotInsert } from "@/lib/orpc/schemas/bot";
 
 export const Route = createFileRoute("/app/bots/add")({
 	loader: async ({ context: { queryClient } }) => {
@@ -24,25 +21,6 @@ export const Route = createFileRoute("/app/bots/add")({
 });
 
 function RouteComponent() {
-	const navigate = useNavigate();
-	const { mutateAsync: createBot } = useMutation(
-		orpc.bot.create.mutationOptions(),
-	);
-
-	const handleBotSubmit = (data: BotInsert) => {
-		toast.promise(createBot(data), {
-			loading: "Creating bot...",
-			success: async (result) => {
-				await navigate({
-					to: "/app/bots/$botId",
-					params: { botId: result.data.id },
-				});
-				return "Bot created successfully";
-			},
-			error: "Failed to create bot",
-		});
-	};
-
 	return (
 		<div className="p-6">
 			<div className="mb-6">
@@ -53,7 +31,7 @@ function RouteComponent() {
 				</p>
 			</div>
 
-			<BotBuilderForm onSubmit={handleBotSubmit} />
+			<BotForm action="create" />
 		</div>
 	);
 }

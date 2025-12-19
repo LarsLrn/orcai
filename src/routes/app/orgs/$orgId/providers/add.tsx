@@ -1,5 +1,5 @@
 import { createFileRoute } from "@tanstack/react-router";
-import { OrganizationProviderForm } from "@/components/organizations/providers/organization-provider-form";
+import { OrganizationProviderForm } from "@/components/organizations/providers/form/organization-provider-form";
 
 export const Route = createFileRoute("/app/orgs/$orgId/providers/add")({
 	component: RouteComponent,
@@ -13,7 +13,5 @@ export const Route = createFileRoute("/app/orgs/$orgId/providers/add")({
 });
 
 function RouteComponent() {
-	const { orgId } = Route.useParams();
-
-	return <OrganizationProviderForm organizationId={orgId} />;
+	return <OrganizationProviderForm action="create" />;
 }

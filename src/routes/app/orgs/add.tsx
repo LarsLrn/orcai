@@ -1,5 +1,5 @@
 import { createFileRoute } from "@tanstack/react-router";
-import { OrganizationForm } from "@/components/organizations/organization-form";
+import { OrganizationForm } from "@/components/organizations/form/organization-form";
 
 export const Route = createFileRoute("/app/orgs/add")({
 	component: RouteComponent,
@@ -13,5 +13,5 @@ export const Route = createFileRoute("/app/orgs/add")({
 });
 
 function RouteComponent() {
-	return <OrganizationForm />;
+	return <OrganizationForm action="create" />;
 }

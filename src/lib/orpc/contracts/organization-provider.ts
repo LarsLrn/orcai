@@ -11,15 +11,11 @@ import { base } from "./base";
 export const listOrganizationProvidersContract = base
 	.route({
 		method: "GET",
-		path: "/organizations/{organizationId}/providers",
-		summary: "List all providers of an organization",
+		path: "/organization/providers",
+		summary: "List all providers of the active organization",
 		tags: ["Organization Providers"],
 	})
-	.input(
-		paginationSchema.extend({
-			organizationId: z.uuidv4(),
-		}),
-	)
+	.input(paginationSchema)
 	.output(
 		z.object({
 			data: z.array(organizationProviderSelectSchema),
@@ -30,8 +26,8 @@ export const listOrganizationProvidersContract = base
 export const createOrganizationProviderContract = base
 	.route({
 		method: "POST",
-		path: "/organizations/{organizationId}/providers",
-		summary: "Create a provider for an organization",
+		path: "/organization/providers",
+		summary: "Create a provider for the active organization",
 		tags: ["Organization Providers"],
 	})
 	.input(organizationProviderInsertSchema)
@@ -40,14 +36,13 @@ export const createOrganizationProviderContract = base
 export const findOrganizationProviderContract = base
 	.route({
 		method: "GET",
-		path: "/organizations/{organizationId}/providers/{providerSlug}",
-		summary: "Find a provider of an organization",
+		path: "/organization/providers/{providerSlug}",
+		summary: "Find a provider for the active organization",
 		tags: ["Organization Providers"],
 	})
 	.input(
 		organizationProviderSelectSchema.pick({
 			providerSlug: true,
-			organizationId: true,
 		}),
 	)
 	.output(z.object({ data: organizationProviderSelectSchema }));
@@ -55,8 +50,8 @@ export const findOrganizationProviderContract = base
 export const updateOrganizationProviderContract = base
 	.route({
 		method: "PUT",
-		path: "/organizations/{organizationId}/providers/{providerSlug}",
-		summary: "Update a provider of an organization",
+		path: "/organization/providers/{providerSlug}",
+		summary: "Update a provider for the active organization",
 		tags: ["Organization Providers"],
 	})
 	.input(organizationProviderUpdateSchema)
@@ -65,8 +60,8 @@ export const updateOrganizationProviderContract = base
 export const deleteOrganizationProviderContract = base
 	.route({
 		method: "DELETE",
-		path: "/organizations/{organizationId}/providers",
-		summary: "Delete a provider of an organization",
+		path: "/organization/providers",
+		summary: "Delete a provider for the active organization",
 		tags: ["Organization Providers"],
 	})
 	.input(organizationProviderDeleteSchema)

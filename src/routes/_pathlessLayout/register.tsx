@@ -3,7 +3,7 @@ import { createServerFn } from "@tanstack/react-start";
 import { eq, getTableColumns } from "drizzle-orm";
 import { CalendarXIcon } from "lucide-react";
 import z from "zod/v4";
-import { SignUpForm } from "@/components/auth/signup-form";
+import { SignUpForm } from "@/components/auth/signup/signup-form";
 import { SimplePlaceholder } from "@/components/placeholders/simple-placeholder";
 import {
 	Card,
@@ -56,7 +56,7 @@ export const Route = createFileRoute("/_pathlessLayout/register")({
 	},
 });
 
-const RegistrationDisabled = ({
+const _RegistrationDisabled = ({
 	className,
 	...props
 }: React.ComponentProps<"div">) => {
@@ -68,7 +68,7 @@ const RegistrationDisabled = ({
 	);
 };
 
-const InvitationExpired = () => {
+const _InvitationExpired = () => {
 	return (
 		<SimplePlaceholder Icon={CalendarXIcon}>
 			Your invitation has expired. Please contact the administrator for a new

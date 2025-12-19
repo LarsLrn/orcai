@@ -3,7 +3,7 @@ import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
 import { orpc } from "@/lib/orpc/orpc";
 import type { Organization } from "@/lib/orpc/schemas/organization";
-import { OrganizationForm } from "./organization-form";
+import { OrganizationForm } from "./form/organization-form";
 
 const ManageOrganization = ({
 	organization,
@@ -27,7 +27,7 @@ const ManageOrganization = ({
 
 	return (
 		<div className="mt-4 flex flex-col gap-4">
-			<OrganizationForm organization={organization} />
+			<OrganizationForm action="update" organization={organization} />
 			<div className="flex gap-2">
 				<Button
 					variant="destructive"

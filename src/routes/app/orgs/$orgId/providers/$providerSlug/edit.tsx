@@ -17,16 +17,15 @@ export const Route = createFileRoute(
 });
 
 function RouteComponent() {
-	const { orgId, providerSlug } = Route.useParams();
+	const { providerSlug } = Route.useParams();
 	const { data: organizationProvider } = useSuspenseQuery(
 		orpc.organizationProvider.find.queryOptions({
-			input: { organizationId: orgId, providerSlug },
+			input: { providerSlug },
 		}),
 	);
 
 	return (
 		<ManageOrganizationProvider
-			organizationId={orgId}
 			organizationProvider={organizationProvider.data}
 		/>
 	);

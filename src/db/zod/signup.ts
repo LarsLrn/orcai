@@ -5,7 +5,7 @@ import { sharedSchemas } from "./shared";
 export const signupSchema = z
 	.object({
 		email: userInsertSchema.shape.email,
-		name: userInsertSchema.shape.name.optional(),
+		name: userInsertSchema.shape.name,
 		password: sharedSchemas.password,
 		confirmPassword: sharedSchemas.password,
 		invitationId: z.string(),

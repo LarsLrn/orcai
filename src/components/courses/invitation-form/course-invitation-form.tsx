@@ -1,0 +1,236 @@
+import { useSuspenseQuery } from "@tanstack/react-query";
+import { CircleMinusIcon } from "lucide-react";
+import { useId } from "react";
+import { Button } from "@/components/ui/button";
+import {
+	Card,
+	CardContent,
+	CardDescription,
+	CardHeader,
+	CardTitle,
+} from "@/components/ui/card";
+import {
+	Dialog,
+	DialogClose,
+	DialogContent,
+	DialogDescription,
+	DialogHeader,
+	DialogTitle,
+	DialogTrigger,
+} from "@/components/ui/dialog";
+import { Textarea } from "@/components/ui/textarea";
+import { useAppForm } from "@/hooks/form";
+import { orpc } from "@/lib/orpc/orpc";
+import { courseInvitationFormOptions } from "./course-invitation-form-options";
+import { useCourseInvitationFormSubmission } from "./use-course-invitation-submission";
+
+const CourseInvitationForm = () => {
+	const { create } = useCourseInvitationFormSubmission();
+
+	const bulkEmailsId = useId();
+
+	const { data: courses } = useSuspenseQuery(
+		orpc.course.list.queryOptions({
+			input: { pageIndex: 0, pageSize: 100 },
+		}),
+	);
+
+	const form = useAppForm({
+		...courseInvitationFormOptions(),
+		onSubmit: ({ value }) => {
+			create(value);
+		},
+	});
+
+	const handleBulkPaste = (textArea: HTMLTextAreaElement) => {
+		const rawEmails = textArea.value as string;
+
+		const emails = rawEmails
+			.split("\n")
+			.map((email) => email.trim())
+			.filter((email) => email.length > 0);
+
+		form.setFieldValue(
+			"items",
+			emails.map((email) => ({ email })),
+		);
+	};
+
+	return (
+		<form
+			onSubmit={(e) => {
+				e.preventDefault();
+				form.handleSubmit();
+			}}
+			className="space-y-4"
+			noValidate
+		>
+			<form.AppForm>
+				<form.FormValidationErrors />
+			</form.AppForm>
+
+			<Card className="order-last h-fit lg:order-first">
+				<CardHeader>
+					<CardTitle>Set invitation details</CardTitle>
+					<CardDescription>
+						These settings will apply to all users invited in this batch. Note
+						that users will also automatically be added to the organisation
+						corresponding to the course.
+					</CardDescription>
+				</CardHeader>
+				<CardContent className="flex flex-col gap-4">
+					<form.AppField
+						name="courseId"
+						children={(field) => (
+							<field.SelectField
+								label="Course"
+								placeholder="Select course"
+								options={courses.data.map((course) => ({
+									label: course.title,
+									value: course.id,
+								}))}
+							/>
+						)}
+					/>
+
+					<form.AppField
+						name="role"
+						children={(field) => (
+							<field.SelectField
+								label="Role"
+								placeholder="Select role"
+								// TODO: Replace with global roles defined in spiceDb
+								options={[
+									{
+										label: "Instructor",
+										value: "instructor",
+									},
+									{
+										label: "Student",
+										value: "student",
+									},
+								]}
+							/>
+						)}
+					/>
+
+					<form.AppField
+						name="expiresAt"
+						children={(field) => (
+							<field.DatetimeField
+								label="Expires At"
+								placeholder="Select expiration date"
+								showTimePicker={true}
+							/>
+						)}
+					/>
+
+					<form.AppForm>
+						<form.SubmitButton label="Create Invitations" />
+					</form.AppForm>
+				</CardContent>
+			</Card>
+
+			<Card className="h-fit">
+				<CardHeader>
+					<CardTitle>Add user emails</CardTitle>
+					<CardDescription>
+						Add the emails of users you want to invite. You can manually add
+						each email, or all at once using &quot;Bulk Add Emails&quot;.
+					</CardDescription>
+				</CardHeader>
+				<CardContent className="flex flex-col gap-4">
+					<form.AppField name="items" mode="array">
+						{(field) => {
+							return (
+								<div className="space-y-4">
+									{field.state.value.map((_, index) => {
+										return (
+											<div
+												// biome-ignore lint/suspicious/noArrayIndexKey: <ignore>
+												key={index}
+												className="flex flex-row items-end gap-2"
+											>
+												<form.AppField
+													name={`items[${index}].email`}
+													children={(field) => (
+														<field.TextField
+															label={`User ${index + 1} Email`}
+															placeholder="User email"
+														/>
+													)}
+												/>
+												{field.state.value.length > 1 && (
+													<Button
+														size="icon"
+														variant="destructive"
+														onClick={() => field.removeValue(index)}
+													>
+														<CircleMinusIcon />
+													</Button>
+												)}
+											</div>
+										);
+									})}
+								</div>
+							);
+						}}
+					</form.AppField>
+					<div className="flex gap-2">
+						<Button
+							type="button"
+							variant="outline"
+							onClick={() =>
+								form.insertFieldValue(
+									"items",
+									form.state.values.items.length + 1,
+									{ email: "" },
+								)
+							}
+						>
+							Add email field
+						</Button>
+						<Dialog>
+							<DialogTrigger asChild>
+								<Button variant="outline">Bulk Add Emails</Button>
+							</DialogTrigger>
+							<DialogContent className="max-w-[600px]">
+								<DialogHeader>
+									<DialogTitle>Bulk Add Emails</DialogTitle>
+									<DialogDescription>
+										Add multiple emails at once once by pasting them here. Make
+										sure each email is on a new line and formatted correctly.
+									</DialogDescription>
+								</DialogHeader>
+								<div className="flex flex-col gap-4">
+									<Textarea
+										name="bulkEmails"
+										id={bulkEmailsId}
+										rows={5}
+										placeholder="Add emails here, separated by new lines"
+									/>
+									<DialogClose asChild>
+										<Button
+											type="button"
+											onClick={() => {
+												const textArea = document.getElementById(
+													bulkEmailsId,
+												) as HTMLTextAreaElement;
+
+												handleBulkPaste(textArea);
+											}}
+										>
+											Add Emails
+										</Button>
+									</DialogClose>
+								</div>
+							</DialogContent>
+						</Dialog>
+					</div>
+				</CardContent>
+			</Card>
+		</form>
+	);
+};
+
+export { CourseInvitationForm };

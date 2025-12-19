@@ -1,0 +1,26 @@
+import { formOptions } from "@tanstack/react-form";
+import type { z } from "zod/v4";
+import {
+	type TemplateBlock,
+	templateBlockInsertSchema,
+} from "@/lib/orpc/schemas/block";
+
+const defaultValues = (
+	block?: TemplateBlock,
+): z.input<typeof templateBlockInsertSchema> => ({
+	name: block?.name || "",
+	type: "template",
+	config: {
+		systemPrompt: block?.config.systemPrompt ?? "",
+		model: block?.config.model ?? "",
+		provider: block?.config.provider ?? "",
+	},
+});
+
+export const templateBlockFormOptions = (block?: TemplateBlock) =>
+	formOptions({
+		defaultValues: defaultValues(block),
+		validators: {
+			onChange: templateBlockInsertSchema,
+		},
+	});

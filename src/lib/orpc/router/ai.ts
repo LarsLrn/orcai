@@ -79,7 +79,6 @@ export const aiChat = authed.ai.chat
 			});
 
 			const organizationProvider = await client.organizationProvider.find({
-				organizationId: context.auth.session.activeOrganizationId,
 				providerSlug: templateBlock.config.provider,
 			});
 
