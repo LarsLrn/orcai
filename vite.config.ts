@@ -27,7 +27,9 @@ export default defineConfig({
 	},
 	plugins: [
 		devtools(), // must be first plugin
-		nitroV2Plugin(),
+		nitroV2Plugin({
+			compatibilityDate: "2025-12-19",
+		}),
 		paraglideVitePlugin({
 			project: "./project.inlang",
 			outdir: "./src/paraglide",
