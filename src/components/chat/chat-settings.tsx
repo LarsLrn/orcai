@@ -32,11 +32,13 @@ const ChatSettings = ({
 
 	return (
 		<Sheet>
-			<SheetTrigger asChild>
-				<Button variant="ghost" size="icon" className={className}>
-					<BotIcon />
-				</Button>
-			</SheetTrigger>
+			<SheetTrigger
+				render={
+					<Button variant="ghost" size="icon" className={className}>
+						<BotIcon />
+					</Button>
+				}
+			/>
 			<SheetContent className="h-dvh pb-4 sm:max-w-3xl">
 				<SheetHeader>
 					<SheetTitle>Chat Settings</SheetTitle>

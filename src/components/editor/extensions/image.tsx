@@ -231,8 +231,8 @@ function TiptapImage(props: NodeViewProps) {
 				"relative flex flex-col rounded-md border-2 border-transparent transition-all duration-200",
 				selected ? "border-blue-300" : "",
 				node.attrs.align === "left" && "left-0 translate-x-0",
-				node.attrs.align === "center" && "-translate-x-1/2 left-1/2",
-				node.attrs.align === "right" && "-translate-x-full left-full",
+				node.attrs.align === "center" && "left-1/2 -translate-x-1/2",
+				node.attrs.align === "right" && "left-full -translate-x-full",
 			)}
 			style={{ width: node.attrs.width }}
 		>

@@ -100,13 +100,13 @@ export const aiChat = authed.ai.chat
 			const stream = createUIMessageStream({
 				generateId: () => assistantMessageId,
 				originalMessages: input.messages,
-				execute: ({ writer }) => {
+				execute: async ({ writer }) => {
 					const result = streamText({
 						model,
 						system:
 							templateBlock.config.systemPrompt ??
 							"You are a helpful assistant.",
-						messages: convertToModelMessages(input.messages),
+						messages: await convertToModelMessages(input.messages),
 						experimental_transform: smoothStream({
 							delayInMs: 20,
 							chunking: "word",

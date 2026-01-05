@@ -294,7 +294,7 @@ function getSaiaModel(params: { input: InputCapability[]; model: string }): {
 
 export function getSaiaEmbeddingModel(params: {
 	model: SaiaEmbeddingModelIdsType;
-}): { provider: EmbeddingModel<string>; meta: SaiaEmbeddingModel } {
+}): { provider: EmbeddingModel; meta: SaiaEmbeddingModel } {
 	if (params.model === e5Mistral7bInstruct.id) {
 		const embeddingProvider = chatAiProviderFactory.embedding(params.model);
 		return { provider: embeddingProvider, meta: e5Mistral7bInstruct };

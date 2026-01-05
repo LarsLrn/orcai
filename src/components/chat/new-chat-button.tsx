@@ -18,7 +18,6 @@ const NewChatButton = ({
 	...props
 }: ButtonPrimitive.Props &
 	VariantProps<typeof buttonVariants> & {
-		asChild?: boolean;
 		botId?: Bot["id"];
 	}) => {
 	const navigate = useNavigate();

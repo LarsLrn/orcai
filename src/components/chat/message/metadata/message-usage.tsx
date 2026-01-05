@@ -24,10 +24,17 @@ const MessageUsage = ({ message }: { message: CustomUIMessage }) => {
 			usedTokens={message.metadata.totalUsage.totalTokens}
 			usage={{
 				inputTokens: message.metadata.totalUsage.inputTokens,
+				inputTokenDetails: {
+					noCacheTokens: message.metadata.totalUsage.cachedInputTokens,
+					cacheReadTokens: undefined,
+					cacheWriteTokens: undefined,
+				},
 				outputTokens: message.metadata.totalUsage.outputTokens,
+				outputTokenDetails: {
+					textTokens: message.metadata.totalUsage.outputTokens,
+					reasoningTokens: message.metadata.totalUsage.reasoningTokens,
+				},
 				totalTokens: message.metadata.totalUsage.totalTokens,
-				cachedInputTokens: message.metadata.totalUsage.cachedInputTokens,
-				reasoningTokens: message.metadata.totalUsage.reasoningTokens,
 			}}
 		>
 			<ContextTrigger size="sm" />
