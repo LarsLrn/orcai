@@ -4,6 +4,7 @@ import { Button } from "@/components/ui/button";
 import {
 	DropdownMenu,
 	DropdownMenuContent,
+	DropdownMenuGroup,
 	DropdownMenuItem,
 	DropdownMenuLabel,
 	DropdownMenuTrigger,
@@ -44,20 +45,22 @@ const LocaleSwitcherSelect = ({ defaultValue, items, label }: Props) => {
 				}
 			/>
 			<DropdownMenuContent>
-				<DropdownMenuLabel>{label}</DropdownMenuLabel>
-				{items.map((item) => (
-					<DropdownMenuItem
-						key={item.value}
-						onSelect={() => onChange(item.value)}
-					>
-						<div className="mr-2 w-4">
-							{item.value === defaultValue && (
-								<CheckIcon className="h-5 w-5 text-slate-600" />
-							)}
-						</div>
-						<span className="text-slate-900">{item.label}</span>
-					</DropdownMenuItem>
-				))}
+				<DropdownMenuGroup>
+					<DropdownMenuLabel>{label}</DropdownMenuLabel>
+					{items.map((item) => (
+						<DropdownMenuItem
+							key={item.value}
+							onSelect={() => onChange(item.value)}
+						>
+							<div className="mr-2 w-4">
+								{item.value === defaultValue && (
+									<CheckIcon className="h-5 w-5 text-slate-600" />
+								)}
+							</div>
+							<span className="text-slate-900">{item.label}</span>
+						</DropdownMenuItem>
+					))}
+				</DropdownMenuGroup>
 			</DropdownMenuContent>
 		</DropdownMenu>
 	);

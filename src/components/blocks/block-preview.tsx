@@ -8,13 +8,17 @@ import {
 	CardTitle,
 } from "@/components/ui/card";
 import {
+	Tooltip,
+	TooltipContent,
+	TooltipTrigger,
+} from "@/components/ui/tooltip";
+import {
 	type Block,
 	isDatabaseBlock,
 	isImageGenerationBlock,
 	isTemplateBlock,
 } from "@/lib/orpc/schemas/block";
 import { cn } from "@/lib/utils";
-import { Tooltip, TooltipContent, TooltipTrigger } from "../ui/tooltip";
 
 const toTitleCase = (value: string) =>
 	value.replace(/[-_]+/g, " ").replace(/\b\w/g, (match) => match.toUpperCase());

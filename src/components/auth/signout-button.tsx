@@ -2,9 +2,9 @@ import type { Button as ButtonPrimitive } from "@base-ui/react/button";
 import { useQueryClient } from "@tanstack/react-query";
 import { useNavigate } from "@tanstack/react-router";
 import { toast } from "sonner";
+import { Button } from "@/components/ui/button";
 import { useUmami } from "@/hooks/use-umami";
 import { authClient } from "@/lib/auth-client";
-import { Button } from "../ui/button";
 
 export const SignOutButton = ({ ...props }: ButtonPrimitive.Props) => {
 	const queryClient = useQueryClient();
