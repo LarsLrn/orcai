@@ -21,12 +21,12 @@ type Props = {
 const LocaleSwitcherSelect = ({ defaultValue, items, label }: Props) => {
 	const [isPending, startTransition] = useTransition();
 
-	function onChange(value: Locale) {
+	const onChange = (value: Locale) => {
 		const locale = value;
 		startTransition(() => {
 			setLocale(locale);
 		});
-	}
+	};
 
 	return (
 		<DropdownMenu>
@@ -50,14 +50,14 @@ const LocaleSwitcherSelect = ({ defaultValue, items, label }: Props) => {
 					{items.map((item) => (
 						<DropdownMenuItem
 							key={item.value}
-							onSelect={() => onChange(item.value)}
+							onClick={() => onChange(item.value)}
 						>
 							<div className="mr-2 w-4">
 								{item.value === defaultValue && (
-									<CheckIcon className="h-5 w-5 text-slate-600" />
+									<CheckIcon className="h-5 w-5" />
 								)}
 							</div>
-							<span className="text-slate-900">{item.label}</span>
+							<span>{item.label}</span>
 						</DropdownMenuItem>
 					))}
 				</DropdownMenuGroup>
