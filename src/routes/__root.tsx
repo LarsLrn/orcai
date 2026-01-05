@@ -19,7 +19,6 @@ import { ConfirmDialogProvider } from "@/components/ui/dialog/confirm-dialog";
 import { Toaster } from "@/components/ui/sonner";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import { auth } from "@/lib/auth";
-import type { User } from "@/lib/orpc/schemas/user";
 import { seo } from "@/lib/seo";
 import { cn } from "@/lib/utils";
 import { getLocale } from "@/paraglide/runtime";
@@ -45,7 +44,8 @@ export const Route = createRootRouteWithContext<{
 	beforeLoad: async () => {
 		const session = await getSession();
 
-		if (!session) {
+		// Check if session and user actually exist
+		if (!session?.session || !session?.user) {
 			return {
 				auth: {
 					isAuthenticated: false as const,
@@ -57,7 +57,7 @@ export const Route = createRootRouteWithContext<{
 			auth: {
 				isAuthenticated: true as const,
 				session: session.session,
-				user: session.user as User,
+				user: session.user,
 			},
 		};
 	},

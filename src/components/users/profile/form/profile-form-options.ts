@@ -2,11 +2,13 @@ import { formOptions } from "@tanstack/react-form";
 import type { z } from "zod/v4";
 import { type User, userUpdateSchema } from "@/lib/orpc/schemas/user";
 
-const defaultValues = (user: User): z.input<typeof userUpdateSchema> => ({
+const defaultValues = (
+	user: Omit<User, "preferences">,
+): z.input<typeof userUpdateSchema> => ({
 	name: user.name,
 });
 
-export const profileFormOptions = (user: User) =>
+export const profileFormOptions = (user: Omit<User, "preferences">) =>
 	formOptions({
 		defaultValues: defaultValues(user),
 		validators: {

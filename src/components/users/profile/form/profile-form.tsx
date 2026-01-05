@@ -2,13 +2,15 @@ import { useRouteContext } from "@tanstack/react-router";
 import { profileFormOptions } from "@/components/users/profile/form/profile-form-options";
 import { useProfileFormSubmission } from "@/components/users/profile/form/use-profile-submission";
 import { useAppForm } from "@/hooks/form";
+import type { User } from "@/lib/orpc/schemas/user";
 
 const ProfileForm = () => {
 	const { auth } = useRouteContext({ from: "/app" });
 	const { update } = useProfileFormSubmission();
 
 	const form = useAppForm({
-		...profileFormOptions(auth.user),
+		// TODO: Improve type after refactoring schemas
+		...profileFormOptions(auth.user as Omit<User, "preferences">),
 		onSubmit: ({ value }) => {
 			update({ name: value.name ?? "" }); // FIXME: Check why name can be undefined
 		},
