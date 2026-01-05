@@ -39,11 +39,17 @@ export const listChatMessages = authed.chatMessage.list
 		};
 
 		if (input.includeScores) {
-			scores = await langfuseServer.api.scoreV2Get({
-				scoreIds: data
-					.map((message) => (message.role !== "user" ? message.id : undefined))
-					.join(","),
-			});
+			try {
+				scores = await langfuseServer.api.scoreV2Get({
+					scoreIds: data
+						.map((message) =>
+							message.role !== "user" ? message.id : undefined,
+						)
+						.join(","),
+				});
+			} catch (error) {
+				console.error("Error fetching scores from Langfuse:", error);
+			}
 		}
 
 		return { data, rowCount: rowCount.count, scores };
