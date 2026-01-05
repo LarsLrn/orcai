@@ -14,15 +14,12 @@ const AppTourButton = ({
 	className,
 	variant,
 	size,
-	asChild = false,
 	...props
 }: {
 	tour: "initialTour" | "chatTour";
 	autoTrigger?: boolean;
 } & ButtonPrimitive.Props &
-	VariantProps<typeof buttonVariants> & {
-		asChild?: boolean;
-	}) => {
+	VariantProps<typeof buttonVariants>) => {
 	const { auth } = useRouteContext({ from: "/app" });
 	const { startNextStep } = useNextStep();
 	const { data: userPrefs, status } = useQuery(

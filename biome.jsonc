@@ -80,16 +80,8 @@
 					"level": "info",
 					"fix": "safe",
 					"options": {
-						"attributes": [
-							"classList"
-						],
-						"functions": [
-							"clsx",
-							"cva",
-							"cn",
-							"tw",
-							"tw.*"
-						]
+						"attributes": ["classList"],
+						"functions": ["clsx", "cva", "cn", "tw", "tw.*"]
 					}
 				}
 			}

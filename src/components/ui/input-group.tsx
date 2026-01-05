@@ -47,17 +47,27 @@ function InputGroupAddon({
 	...props
 }: React.ComponentProps<"fieldset"> &
 	VariantProps<typeof inputGroupAddonVariants>) {
+	const handleInteraction = (
+		e:
+			| React.MouseEvent<HTMLFieldSetElement>
+			| React.KeyboardEvent<HTMLFieldSetElement>,
+	) => {
+		if ("key" in e && e.key !== "Enter" && e.key !== " ") {
+			return;
+		}
+		if ((e.target as HTMLElement).closest("button")) {
+			return;
+		}
+		e.currentTarget.parentElement?.querySelector("input")?.focus();
+	};
+
 	return (
 		<fieldset
 			data-slot="input-group-addon"
 			data-align={align}
 			className={cn(inputGroupAddonVariants({ align }), className)}
-			onClick={(e) => {
-				if ((e.target as HTMLElement).closest("button")) {
-					return;
-				}
-				e.currentTarget.parentElement?.querySelector("input")?.focus();
-			}}
+			onClick={handleInteraction}
+			onKeyDown={handleInteraction}
 			{...props}
 		/>
 	);

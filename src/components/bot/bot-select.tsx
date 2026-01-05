@@ -48,7 +48,7 @@ const BotSelect = ({ onBotSelect, selectedBot }: BotSelectProps) => {
 		<div className="flex min-h-0 flex-1 flex-col gap-4">
 			{/* Search Input */}
 			<div className="relative">
-				<SearchIcon className="-translate-y-1/2 absolute top-1/2 left-3 h-4 w-4 transform text-muted-foreground" />
+				<SearchIcon className="absolute top-1/2 left-3 h-4 w-4 -translate-y-1/2 transform text-muted-foreground" />
 				<Input
 					placeholder="Search bot templates..."
 					onChange={(e) => setSearchQuery(e.target.value)}

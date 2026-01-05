@@ -38,7 +38,7 @@ function RouteComponent() {
 	);
 
 	return (
-		<div className="-mb-6 -mx-2 sm:-mx-2 h-[calc(100dvh-72px)]">
+		<div className="-mx-2 -mb-6 h-[calc(100dvh-72px)] sm:-mx-2">
 			<Chat
 				id={chatId}
 				initialMessages={data.data as CustomUIMessage[]}
