@@ -35,7 +35,7 @@ const ProfileForm = () => {
 			/>
 
 			<form.AppForm>
-				<form.SubmitButton label="Save Block" />
+				<form.SubmitButton label="Save Profile" />
 			</form.AppForm>
 		</form>
 	);

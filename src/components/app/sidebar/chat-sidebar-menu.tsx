@@ -46,14 +46,14 @@ const ChatSidebarMenu = () => {
 			{chats.map((chat) => (
 				<SidebarMenuItem key={chat.id}>
 					<SidebarMenuButton
-						asChild
 						isActive={chat.id === activeChatId}
 						className="border"
-					>
-						<Link to={"/app/chat/$chatId"} params={{ chatId: chat.id }}>
-							<span className="truncate">{chat.title}</span>
-						</Link>
-					</SidebarMenuButton>
+						render={
+							<Link to={"/app/chat/$chatId"} params={{ chatId: chat.id }}>
+								<span className="truncate">{chat.title}</span>
+							</Link>
+						}
+					/>
 					<ChatActionsDropdown chatId={chat.id} title={chat.title}>
 						<SidebarMenuAction
 							className={cn(

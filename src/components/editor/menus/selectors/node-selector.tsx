@@ -125,13 +125,15 @@ export const NodeSelector = ({ editor }: { editor: Editor }) => {
 
 	return (
 		<Popover>
-			<PopoverTrigger asChild>
-				<Button variant="ghost" className="rounded-none">
-					<span className="me-2 whitespace-nowrap text-sm">{name}</span>
-					<ChevronDownIcon className="size-3" />
-				</Button>
-			</PopoverTrigger>
-			<PopoverContent className="w-48 p-1 shadow-xl" align="start" noPortal>
+			<PopoverTrigger
+				render={
+					<Button variant="ghost" className="rounded-none">
+						<span className="me-2 whitespace-nowrap text-sm">{name}</span>
+						<ChevronDownIcon className="size-3" />
+					</Button>
+				}
+			/>
+			<PopoverContent className="w-48 p-1 shadow-xl" align="start">
 				{items.map((item) => {
 					return (
 						<button

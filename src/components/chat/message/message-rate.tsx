@@ -7,6 +7,7 @@ import { Action } from "@/components/ai-elements/actions";
 import {
 	DropdownMenu,
 	DropdownMenuContent,
+	DropdownMenuGroup,
 	DropdownMenuItem,
 	DropdownMenuLabel,
 	DropdownMenuSeparator,
@@ -76,44 +77,50 @@ const MessageRate = ({
 
 	return (
 		<DropdownMenu>
-			<DropdownMenuTrigger asChild>
-				<Action
-					label="Rate response"
-					tooltip="Rate how helpful this response was for your learning"
-					className={cn(
-						className,
-						optimisticScore &&
-							"bg-primary/10 text-primary hover:bg-primary/20 hover:text-primary",
-					)}
-				>
-					<StarIcon
-						fill={optimisticScore ? "currentColor" : "none"}
-						className="size-3"
-					/>
-				</Action>
-			</DropdownMenuTrigger>
-			<DropdownMenuContent align="start" className="w-48">
-				<DropdownMenuLabel className="text-xs">
-					Was this response helpful for your learning?
-				</DropdownMenuLabel>
-				<DropdownMenuSeparator />
-				{ratings.map((rating) => (
-					<DropdownMenuItem
-						key={rating.value}
-						onClick={() => handleRate(rating.value)}
+			<DropdownMenuTrigger
+				render={
+					<Action
+						label="Rate response"
+						tooltip="Rate how helpful this response was for your learning"
 						className={cn(
-							"cursor-pointer",
-							optimisticScore === rating.value && "bg-primary/10 text-primary",
+							className,
+							optimisticScore &&
+								"bg-primary/10 text-primary hover:bg-primary/20 hover:text-primary",
 						)}
 					>
-						<span className="flex items-center gap-2">
-							{optimisticScore === rating.value && (
-								<CheckIcon className="size-3" />
+						<StarIcon
+							fill={optimisticScore ? "currentColor" : "none"}
+							className="size-3"
+						/>
+					</Action>
+				}
+			/>
+			<DropdownMenuContent align="start" className="w-48">
+				<DropdownMenuGroup>
+					<DropdownMenuLabel className="text-xs">
+						Was this response helpful for your learning?
+					</DropdownMenuLabel>
+					<DropdownMenuSeparator />
+
+					{ratings.map((rating) => (
+						<DropdownMenuItem
+							key={rating.value}
+							onClick={() => handleRate(rating.value)}
+							className={cn(
+								"cursor-pointer",
+								optimisticScore === rating.value &&
+									"bg-primary/10 text-primary",
 							)}
-							{rating.label}
-						</span>
-					</DropdownMenuItem>
-				))}
+						>
+							<span className="flex items-center gap-2">
+								{optimisticScore === rating.value && (
+									<CheckIcon className="size-3" />
+								)}
+								{rating.label}
+							</span>
+						</DropdownMenuItem>
+					))}
+				</DropdownMenuGroup>
 			</DropdownMenuContent>
 		</DropdownMenu>
 	);

@@ -112,26 +112,28 @@ const DatetimeField = ({
 		<Field data-invalid={isInvalid}>
 			<FieldLabel htmlFor={id}>{label}</FieldLabel>
 			<Popover>
-				<PopoverTrigger asChild>
-					<Button
-						id={id}
-						variant="outline"
-						className={cn(
-							"w-full justify-start text-left font-normal",
-							!value && "text-muted-foreground",
-						)}
-						aria-invalid={isInvalid}
-					>
-						{value ? formatDate(value) : <span>{placeholder}</span>}
-						<CalendarIcon className="ml-auto h-4 w-4 opacity-50" />
-						{showClearButton && value && (
-							<XIcon
-								className="ml-2 h-4 w-4 cursor-pointer opacity-50"
-								onClick={handleClear}
-							/>
-						)}
-					</Button>
-				</PopoverTrigger>
+				<PopoverTrigger
+					render={
+						<Button
+							id={id}
+							variant="outline"
+							className={cn(
+								"w-full justify-start text-left font-normal",
+								!value && "text-muted-foreground",
+							)}
+							aria-invalid={isInvalid}
+						>
+							{value ? formatDate(value) : <span>{placeholder}</span>}
+							<CalendarIcon className="ml-auto h-4 w-4 opacity-50" />
+							{showClearButton && value && (
+								<XIcon
+									className="ml-2 h-4 w-4 cursor-pointer opacity-50"
+									onClick={handleClear}
+								/>
+							)}
+						</Button>
+					}
+				/>
 				<PopoverContent className="w-auto p-0" align="start">
 					<div className="flex">
 						<div className="flex flex-col">

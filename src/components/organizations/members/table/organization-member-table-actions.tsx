@@ -1,4 +1,3 @@
-import { DropdownMenuTrigger } from "@radix-ui/react-dropdown-menu";
 import { useMutation } from "@tanstack/react-query";
 import { ReplaceAllIcon } from "lucide-react";
 import { toast } from "sonner";
@@ -8,6 +7,7 @@ import {
 	DropdownMenu,
 	DropdownMenuContent,
 	DropdownMenuItem,
+	DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import { orpc } from "@/lib/orpc/orpc";
 import type { Organization } from "@/lib/orpc/schemas/organization";
@@ -47,12 +47,14 @@ const OrganizationMemberTableActions = ({
 
 	return (
 		<DropdownMenu>
-			<DropdownMenuTrigger asChild>
-				<Button variant="outline" size="sm" className="h-8">
-					<ReplaceAllIcon />
-					Actions
-				</Button>
-			</DropdownMenuTrigger>
+			<DropdownMenuTrigger
+				render={
+					<Button variant="outline" size="sm" className="h-8">
+						<ReplaceAllIcon />
+						Actions
+					</Button>
+				}
+			/>
 			<DropdownMenuContent align="end" className="w-[200px]">
 				<DropdownMenuItem
 					variant="destructive"

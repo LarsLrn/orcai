@@ -150,21 +150,26 @@ export const ColorHighlightToolbar = () => {
 		<Popover>
 			<div className="relative h-full">
 				<Tooltip>
-					<TooltipTrigger asChild>
-						<PopoverTrigger disabled={isDisabled} asChild>
-							<Button
-								variant="ghost"
-								size="sm"
-								style={{
-									color: currentColor,
-								}}
-								className={cn("h-8 w-14 p-0 font-normal")}
-							>
-								<span className="text-md">A</span>
-								<ChevronDownIcon className="ml-2 h-4 w-4" />
-							</Button>
-						</PopoverTrigger>
-					</TooltipTrigger>
+					<TooltipTrigger
+						render={
+							<PopoverTrigger
+								disabled={isDisabled}
+								render={
+									<Button
+										variant="ghost"
+										size="sm"
+										style={{
+											color: currentColor,
+										}}
+										className={cn("h-8 w-14 p-0 font-normal")}
+									>
+										<span className="text-md">A</span>
+										<ChevronDownIcon className="ml-2 h-4 w-4" />
+									</Button>
+								}
+							/>
+						}
+					/>
 					<TooltipContent>Text Color & Highlight</TooltipContent>
 				</Tooltip>
 

@@ -1,5 +1,5 @@
 import { ExternalLinkIcon } from "lucide-react";
-import type { ReactNode } from "react";
+import type { ReactElement } from "react";
 import { buttonVariants } from "@/components/ui/button";
 import {
 	Dialog,
@@ -11,10 +11,10 @@ import {
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { cn } from "@/lib/utils";
 
-const AboutModal = ({ children }: { children: ReactNode }) => {
+const AboutModal = ({ children }: { children: ReactElement }) => {
 	return (
 		<Dialog>
-			<DialogTrigger asChild>{children}</DialogTrigger>
+			<DialogTrigger render={children} />
 			<DialogContent className="max-h-10/12 max-w-2xl">
 				<DialogHeader>
 					<DialogTitle>

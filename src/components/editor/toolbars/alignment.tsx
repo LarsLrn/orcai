@@ -101,30 +101,30 @@ export const AlignmentTooolbar = () => {
 	return (
 		<DropdownMenu>
 			<Tooltip>
-				<TooltipTrigger asChild>
-					<DropdownMenuTrigger disabled={isDisabled} asChild>
-						<Button
-							type="button"
-							variant="ghost"
-							size="sm"
-							className="h-8 w-max font-normal"
-						>
-							<span className="mr-2">
-								{alignmentOptions[findIndex(currentTextAlign())]?.icon}
-							</span>
-							{alignmentOptions[findIndex(currentTextAlign())]?.name}
-							<ChevronDown className="ml-2 h-4 w-4" />
-						</Button>
-					</DropdownMenuTrigger>
-				</TooltipTrigger>
+				<TooltipTrigger
+					render={
+						<DropdownMenuTrigger
+							disabled={isDisabled}
+							render={
+								<Button
+									type="button"
+									variant="ghost"
+									size="sm"
+									className="h-8 w-max font-normal"
+								>
+									<span className="mr-2">
+										{alignmentOptions[findIndex(currentTextAlign())]?.icon}
+									</span>
+									{alignmentOptions[findIndex(currentTextAlign())]?.name}
+									<ChevronDown className="ml-2 h-4 w-4" />
+								</Button>
+							}
+						/>
+					}
+				/>
 				<TooltipContent>Text Alignment</TooltipContent>
 			</Tooltip>
-			<DropdownMenuContent
-				loop
-				onCloseAutoFocus={(e) => {
-					e.preventDefault();
-				}}
-			>
+			<DropdownMenuContent>
 				<DropdownMenuGroup className="w-40">
 					{alignmentOptions.map((option) => (
 						<DropdownMenuItem

@@ -1,9 +1,9 @@
-import { Slot } from "@radix-ui/react-slot";
+import type { Button as ButtonPrimitive } from "@base-ui/react/button";
 import { useMutation } from "@tanstack/react-query";
 import { useNavigate } from "@tanstack/react-router";
 import type { VariantProps } from "class-variance-authority";
 import { toast } from "sonner";
-import { buttonVariants } from "@/components/ui/button";
+import { Button, buttonVariants } from "@/components/ui/button";
 import { useSidebar } from "@/components/ui/sidebar";
 import { useUmami } from "@/hooks/use-umami";
 import { orpc } from "@/lib/orpc/orpc";
@@ -14,10 +14,9 @@ const NewChatButton = ({
 	className,
 	variant,
 	size,
-	asChild = false,
 	botId,
 	...props
-}: React.ComponentProps<"button"> &
+}: ButtonPrimitive.Props &
 	VariantProps<typeof buttonVariants> & {
 		asChild?: boolean;
 		botId?: Bot["id"];
@@ -51,10 +50,8 @@ const NewChatButton = ({
 		});
 	};
 
-	const Comp = asChild ? Slot : "button";
-
 	return (
-		<Comp
+		<Button
 			onClick={handleNewChat}
 			data-slot="button"
 			className={cn(buttonVariants({ variant, size, className }))}

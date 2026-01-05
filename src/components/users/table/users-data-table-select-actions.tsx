@@ -1,4 +1,3 @@
-import { DropdownMenuTrigger } from "@radix-ui/react-dropdown-menu";
 import { ReplaceAllIcon } from "lucide-react";
 import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
@@ -7,6 +6,7 @@ import {
 	DropdownMenu,
 	DropdownMenuContent,
 	DropdownMenuItem,
+	DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import { authClient } from "@/lib/auth-client";
 
@@ -33,12 +33,14 @@ const UsersDataTableSelectActions = () => {
 
 	return (
 		<DropdownMenu>
-			<DropdownMenuTrigger asChild>
-				<Button variant="outline" size="sm" className="h-8">
-					<ReplaceAllIcon />
-					Actions
-				</Button>
-			</DropdownMenuTrigger>
+			<DropdownMenuTrigger
+				render={
+					<Button variant="outline" size="sm" className="h-8">
+						<ReplaceAllIcon />
+						Actions
+					</Button>
+				}
+			/>
 			<DropdownMenuContent align="end" className="w-[200px]">
 				<DropdownMenuItem
 					variant="destructive"

@@ -1,10 +1,10 @@
-import { Slot } from "@radix-ui/react-slot";
+import type { Button as ButtonPrimitive } from "@base-ui/react/button";
 import { useQuery } from "@tanstack/react-query";
 import { useRouteContext } from "@tanstack/react-router";
 import type { VariantProps } from "class-variance-authority";
 import { useNextStep } from "nextstepjs";
 import { useEffect } from "react";
-import { buttonVariants } from "@/components/ui/button";
+import { Button, buttonVariants } from "@/components/ui/button";
 import { orpc } from "@/lib/orpc/orpc";
 import { cn } from "@/lib/utils";
 
@@ -19,7 +19,7 @@ const AppTourButton = ({
 }: {
 	tour: "initialTour" | "chatTour";
 	autoTrigger?: boolean;
-} & React.ComponentProps<"button"> &
+} & ButtonPrimitive.Props &
 	VariantProps<typeof buttonVariants> & {
 		asChild?: boolean;
 	}) => {
@@ -40,7 +40,7 @@ const AppTourButton = ({
 		startNextStep(tour);
 	};
 
-	// biome-ignore lint/correctness/useExhaustiveDependencies: <Dependency for startNextStep not needed>
+	// biome-ignore lint/correctness/useExhaustiveDependencies: Dependency for startNextStep not needed
 	useEffect(() => {
 		if (status !== "success" || isTourCompleted) return;
 		if (autoTrigger) {
@@ -48,10 +48,8 @@ const AppTourButton = ({
 		}
 	}, [autoTrigger, isTourCompleted, status]);
 
-	const Comp = asChild ? Slot : "button";
-
 	return (
-		<Comp
+		<Button
 			onClick={handleStartTour}
 			data-slot="button"
 			className={cn(buttonVariants({ variant, size, className }))}

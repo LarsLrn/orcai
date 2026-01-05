@@ -19,7 +19,7 @@ interface FileUploaderProps extends React.HTMLAttributes<HTMLDivElement> {
 	 * @default undefined
 	 * @example value={files}
 	 */
-	value?: File[];
+	value: File[];
 
 	/**
 	 * Function to be called when the value changes.
@@ -27,7 +27,7 @@ interface FileUploaderProps extends React.HTMLAttributes<HTMLDivElement> {
 	 * @default undefined
 	 * @example onValueChange={(files) => setFiles(files)}
 	 */
-	onValueChange?: (files: File[]) => void;
+	onValueChange: (files: File[]) => void;
 
 	/**
 	 * Function to be called when files are uploaded.
@@ -108,6 +108,7 @@ const FileUploader = (props: FileUploaderProps) => {
 
 	const [files, setFiles] = useControllableState({
 		prop: valueProp,
+		defaultProp: [],
 		onChange: onValueChange,
 	});
 

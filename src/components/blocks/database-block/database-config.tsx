@@ -204,11 +204,13 @@ const AssetSection = ({
 					>
 						View Vector Points
 					</Link>
-					<CollapsibleTrigger asChild>
-						<Button size="sm" variant="outline">
-							{isOpen ? "Hide Assets" : "Show Assets"}
-						</Button>
-					</CollapsibleTrigger>
+					<CollapsibleTrigger
+						render={
+							<Button size="sm" variant="outline">
+								{isOpen ? "Hide Assets" : "Show Assets"}
+							</Button>
+						}
+					/>
 				</div>
 			</div>
 			<TaskSection blockId={blockId} />

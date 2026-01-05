@@ -24,25 +24,26 @@ export const LinkSelector = ({ editor }: { editor: Editor }) => {
 
 	return (
 		<Popover>
-			<PopoverTrigger asChild>
-				<Button
-					variant="ghost"
-					size="icon"
-					className="flex-shrink-0 rounded-none"
-					disabled={editorState.isMath}
-				>
-					<LinkIcon
-						className={cn("size-4", {
-							"text-primary": editorState.isLink,
-						})}
-						strokeWidth={2.5}
-					/>
-				</Button>
-			</PopoverTrigger>
+			<PopoverTrigger
+				render={
+					<Button
+						variant="ghost"
+						size="icon"
+						className="shrink-0 rounded-none"
+						disabled={editorState.isMath}
+					>
+						<LinkIcon
+							className={cn("size-4", {
+								"text-primary": editorState.isLink,
+							})}
+							strokeWidth={2.5}
+						/>
+					</Button>
+				}
+			/>
 			<PopoverContent
 				className="w-fit rounded-md border p-1 shadow-xl"
 				align="end"
-				noPortal
 			>
 				<form
 					className="flex items-center space-x-1"

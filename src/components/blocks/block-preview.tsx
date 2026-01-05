@@ -1,8 +1,3 @@
-import {
-	Tooltip,
-	TooltipContent,
-	TooltipTrigger,
-} from "@radix-ui/react-tooltip";
 import { Badge } from "@/components/ui/badge";
 import {
 	Card,
@@ -19,6 +14,7 @@ import {
 	isTemplateBlock,
 } from "@/lib/orpc/schemas/block";
 import { cn } from "@/lib/utils";
+import { Tooltip, TooltipContent, TooltipTrigger } from "../ui/tooltip";
 
 const toTitleCase = (value: string) =>
 	value.replace(/[-_]+/g, " ").replace(/\b\w/g, (match) => match.toUpperCase());
@@ -107,7 +103,7 @@ const BlockPreview = ({
 		>
 			<span
 				className={cn(
-					"pointer-events-none absolute inset-x-0 top-0 h-1 bg-gradient-to-r",
+					"pointer-events-none absolute inset-x-0 top-0 h-1 bg-linear-to-r",
 					theme.accent,
 				)}
 			/>
@@ -127,11 +123,13 @@ const BlockPreview = ({
 				</Badge>
 				<CardAction className="flex flex-col items-end gap-2 text-muted-foreground text-xs">
 					<Tooltip>
-						<TooltipTrigger asChild>
-							<span className="inline-flex items-center rounded-full border border-border/60 bg-muted/40 px-2 py-1 font-medium text-foreground/70 transition-colors group-hover:border-primary/40 group-hover:text-foreground">
-								v{block.version}
-							</span>
-						</TooltipTrigger>
+						<TooltipTrigger
+							render={
+								<span className="inline-flex items-center rounded-full border border-border/60 bg-muted/40 px-2 py-1 font-medium text-foreground/70 transition-colors group-hover:border-primary/40 group-hover:text-foreground">
+									v{block.version}
+								</span>
+							}
+						/>
 						<TooltipContent sideOffset={6}>
 							<p>Block version {block.version}</p>
 						</TooltipContent>

@@ -1,7 +1,6 @@
 import type { Editor } from "@tiptap/core";
 import { ScrollArea, ScrollBar } from "@/components/ui/scroll-area";
 import { Separator } from "@/components/ui/separator";
-import { TooltipProvider } from "@/components/ui/tooltip";
 import { AlignmentTooolbar } from "./alignment";
 import { BlockquoteToolbar } from "./blockquote";
 import { BoldToolbar } from "./bold";
@@ -24,51 +23,49 @@ export const EditorToolbar = ({ editor }: { editor: Editor }) => {
 	return (
 		<div className="sticky top-0 hidden w-full border-b bg-background sm:block">
 			<ToolbarProvider editor={editor}>
-				<TooltipProvider>
-					<ScrollArea className="h-fit py-0.5">
-						<div>
-							<div className="flex items-center gap-1 px-2">
-								{/* History Group */}
-								<UndoToolbar />
-								<RedoToolbar />
-								<Separator orientation="vertical" className="mx-1 h-7" />
+				<ScrollArea className="h-fit py-0.5">
+					<div>
+						<div className="flex items-center gap-1 px-2">
+							{/* History Group */}
+							<UndoToolbar />
+							<RedoToolbar />
+							<Separator orientation="vertical" className="mx-1 h-7" />
 
-								{/* Text Structure Group */}
-								<HeadingsToolbar />
-								<BlockquoteToolbar />
-								<CodeToolbar />
-								{/* <CodeBlockToolbar /> */}
-								<Separator orientation="vertical" className="mx-1 h-7" />
+							{/* Text Structure Group */}
+							<HeadingsToolbar />
+							<BlockquoteToolbar />
+							<CodeToolbar />
+							{/* <CodeBlockToolbar /> */}
+							<Separator orientation="vertical" className="mx-1 h-7" />
 
-								{/* Basic Formatting Group */}
-								<BoldToolbar />
-								<ItalicToolbar />
-								<UnderlineToolbar />
-								<StrikeThroughToolbar />
-								<LinkToolbar />
-								<Separator orientation="vertical" className="mx-1 h-7" />
+							{/* Basic Formatting Group */}
+							<BoldToolbar />
+							<ItalicToolbar />
+							<UnderlineToolbar />
+							<StrikeThroughToolbar />
+							<LinkToolbar />
+							<Separator orientation="vertical" className="mx-1 h-7" />
 
-								{/* Lists & Structure Group */}
-								<BulletListToolbar />
-								<OrderedListToolbar />
-								<HorizontalRuleToolbar />
-								<Separator orientation="vertical" className="mx-1 h-7" />
+							{/* Lists & Structure Group */}
+							<BulletListToolbar />
+							<OrderedListToolbar />
+							<HorizontalRuleToolbar />
+							<Separator orientation="vertical" className="mx-1 h-7" />
 
-								{/* Alignment Group */}
-								<AlignmentTooolbar />
-								<Separator orientation="vertical" className="mx-1 h-7" />
+							{/* Alignment Group */}
+							<AlignmentTooolbar />
+							<Separator orientation="vertical" className="mx-1 h-7" />
 
-								{/* Media & Styling Group */}
-								<ImagePlaceholderToolbar />
-								<ColorHighlightToolbar />
-								<Separator orientation="vertical" className="mx-1 h-7" />
+							{/* Media & Styling Group */}
+							<ImagePlaceholderToolbar />
+							<ColorHighlightToolbar />
+							<Separator orientation="vertical" className="mx-1 h-7" />
 
-								<div className="flex-1" />
-							</div>
+							<div className="flex-1" />
 						</div>
-						<ScrollBar className="hidden" orientation="horizontal" />
-					</ScrollArea>
-				</TooltipProvider>
+					</div>
+					<ScrollBar className="hidden" orientation="horizontal" />
+				</ScrollArea>
 			</ToolbarProvider>
 		</div>
 	);

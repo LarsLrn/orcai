@@ -54,7 +54,7 @@ const TextField = ({
 					onChange={handleChange}
 					aria-invalid={isInvalid}
 					className={cn(
-						"text-md [appearance:textfield] md:text-sm [&::-webkit-inner-spin-button]:appearance-none [&::-webkit-outer-spin-button]:appearance-none",
+						"[appearance:textfield] [&::-webkit-inner-spin-button]:appearance-none [&::-webkit-outer-spin-button]:appearance-none",
 						unit && "pr-16",
 						props.className,
 					)}

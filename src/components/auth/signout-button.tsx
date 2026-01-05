@@ -1,16 +1,12 @@
-import { Slot } from "@radix-ui/react-slot";
+import type { Button as ButtonPrimitive } from "@base-ui/react/button";
 import { useQueryClient } from "@tanstack/react-query";
 import { useNavigate } from "@tanstack/react-router";
 import { toast } from "sonner";
 import { useUmami } from "@/hooks/use-umami";
 import { authClient } from "@/lib/auth-client";
+import { Button } from "../ui/button";
 
-export const SignOutButton = ({
-	asChild = false,
-	...props
-}: React.ComponentProps<"button"> & {
-	asChild?: boolean;
-}) => {
+export const SignOutButton = ({ ...props }: ButtonPrimitive.Props) => {
 	const queryClient = useQueryClient();
 	const navigate = useNavigate();
 	const { trackEvent } = useUmami();
@@ -29,7 +25,5 @@ export const SignOutButton = ({
 		});
 	};
 
-	const Comp = asChild ? Slot : "button";
-
-	return <Comp onClick={handleSignOut} data-slot="button" {...props} />;
+	return <Button onClick={handleSignOut} {...props} />;
 };

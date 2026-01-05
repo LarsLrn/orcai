@@ -1,4 +1,3 @@
-import { DropdownMenuTrigger } from "@radix-ui/react-dropdown-menu";
 import { Settings2Icon } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import {
@@ -7,6 +6,7 @@ import {
 	DropdownMenuContent,
 	DropdownMenuLabel,
 	DropdownMenuSeparator,
+	DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import { useTable } from "./data-table-context";
 
@@ -16,12 +16,14 @@ const DataTableViewOptions = () => {
 
 	return (
 		<DropdownMenu>
-			<DropdownMenuTrigger asChild>
-				<Button variant="outline" size="sm" className="h-8">
-					<Settings2Icon />
-					View
-				</Button>
-			</DropdownMenuTrigger>
+			<DropdownMenuTrigger
+				render={
+					<Button variant="outline" size="sm" className="h-8">
+						<Settings2Icon />
+						View
+					</Button>
+				}
+			/>
 			<DropdownMenuContent align="end" className="w-[150px]">
 				<DropdownMenuLabel>Toggle columns</DropdownMenuLabel>
 				<DropdownMenuSeparator />

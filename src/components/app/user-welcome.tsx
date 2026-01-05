@@ -23,13 +23,13 @@ const UserWelcome = () => {
 				</h1>
 				<div className="flex items-center gap-2">
 					<AppTourButton
-						variant="ghost"
+						variant="outline"
 						size="sm"
-						className="right-0 size-8 text-muted-foreground"
+						className="right-0 size-8"
 						tour="initialTour"
 						autoTrigger={true}
 					>
-						<CompassIcon />
+						<CompassIcon className="text-foreground" />
 					</AppTourButton>
 					<AboutModal>
 						<Button size="sm" variant="outline">

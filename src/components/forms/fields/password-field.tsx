@@ -50,11 +50,7 @@ const PasswordField = ({
 					onChange={(e) => field.handleChange(e.target.value)}
 					aria-invalid={isInvalid}
 					aria-describedby={showStrength ? `${id}-description` : undefined}
-					className={cn(
-						"text-md md:text-sm",
-						showTogglePassword && "pr-9",
-						className,
-					)}
+					className={cn(showTogglePassword && "pr-9", className)}
 					{...props}
 				/>
 				{showTogglePassword && (

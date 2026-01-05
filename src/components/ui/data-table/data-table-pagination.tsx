@@ -34,8 +34,10 @@ const DataTablePagination = () => {
 							table.setPageSize(Number(value));
 						}}
 					>
-						<SelectTrigger className="h-8 w-[80px]">
-							<SelectValue placeholder={table.getState().pagination.pageSize} />
+						<SelectTrigger className="h-8 w-20">
+							<SelectValue
+								placeholder={table.getState().pagination.pageSize.toString()}
+							/>
 						</SelectTrigger>
 						<SelectContent side="top">
 							{[20, 30, 50, 100, 200].map((pageSize) => (

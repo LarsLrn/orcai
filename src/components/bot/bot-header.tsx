@@ -105,12 +105,14 @@ const BotHeader = ({ bot }: { bot: Bot }) => {
 					Edit Bot
 				</Link>
 				<DropdownMenu>
-					<DropdownMenuTrigger asChild>
-						<Button variant="ghost" size="icon">
-							<MoreVerticalIcon className="size-4" />
-							<span className="sr-only">More options</span>
-						</Button>
-					</DropdownMenuTrigger>
+					<DropdownMenuTrigger
+						render={
+							<Button variant="ghost" size="icon">
+								<MoreVerticalIcon className="size-4" />
+								<span className="sr-only">More options</span>
+							</Button>
+						}
+					/>
 					<DropdownMenuContent align="end">
 						<DropdownMenuItem>
 							<GitForkIcon className="mr-2 size-4" />

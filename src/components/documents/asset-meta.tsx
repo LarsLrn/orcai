@@ -63,13 +63,15 @@ const AssetMeta = ({ asset }: { asset: Asset }) => {
 				<CardTitle className="flex items-center justify-between gap-2">
 					Metadata
 					<Tooltip>
-						<TooltipTrigger asChild>
-							<Badge
-								className={`${fileTypeColor} font-medium text-xs uppercase`}
-							>
-								{asset.fileType}
-							</Badge>
-						</TooltipTrigger>
+						<TooltipTrigger
+							render={
+								<Badge
+									className={`${fileTypeColor} font-medium text-xs uppercase`}
+								>
+									{asset.fileType}
+								</Badge>
+							}
+						/>
 						<TooltipContent>File Type</TooltipContent>
 					</Tooltip>
 				</CardTitle>

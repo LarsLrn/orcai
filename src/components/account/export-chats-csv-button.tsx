@@ -383,16 +383,18 @@ const ExportChatsCSVButton = ({ traces }: { traces: FilteredTrace[] }) => {
 			</Button>
 
 			<Popover>
-				<PopoverTrigger asChild>
-					<Button
-						variant="ghost"
-						size="sm"
-						className="h-8 w-8 p-0 text-muted-foreground hover:text-foreground"
-					>
-						<Info className="h-4 w-4" />
-						<span className="sr-only">CSV format information</span>
-					</Button>
-				</PopoverTrigger>
+				<PopoverTrigger
+					render={
+						<Button
+							variant="ghost"
+							size="sm"
+							className="h-8 w-8 p-0 text-muted-foreground hover:text-foreground"
+						>
+							<Info className="h-4 w-4" />
+							<span className="sr-only">CSV format information</span>
+						</Button>
+					}
+				/>
 				<PopoverContent className="w-96" align="start">
 					<div className="space-y-3">
 						<div>

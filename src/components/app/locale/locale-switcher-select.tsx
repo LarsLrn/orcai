@@ -29,18 +29,20 @@ const LocaleSwitcherSelect = ({ defaultValue, items, label }: Props) => {
 
 	return (
 		<DropdownMenu>
-			<DropdownMenuTrigger asChild defaultValue={defaultValue}>
-				<Button
-					className={cn(
-						"size-8",
-						isPending && "pointer-events-none opacity-60",
-					)}
-					size="icon"
-					variant="subtle"
-				>
-					<LanguagesIcon className="h-6 w-6" />
-				</Button>
-			</DropdownMenuTrigger>
+			<DropdownMenuTrigger
+				render={
+					<Button
+						className={cn(
+							"size-8",
+							isPending && "pointer-events-none opacity-60",
+						)}
+						size="icon"
+						variant="subtle"
+					>
+						<LanguagesIcon className="h-6 w-6" />
+					</Button>
+				}
+			/>
 			<DropdownMenuContent>
 				<DropdownMenuLabel>{label}</DropdownMenuLabel>
 				{items.map((item) => (
@@ -48,7 +50,7 @@ const LocaleSwitcherSelect = ({ defaultValue, items, label }: Props) => {
 						key={item.value}
 						onSelect={() => onChange(item.value)}
 					>
-						<div className="mr-2 w-[1rem]">
+						<div className="mr-2 w-4">
 							{item.value === defaultValue && (
 								<CheckIcon className="h-5 w-5 text-slate-600" />
 							)}

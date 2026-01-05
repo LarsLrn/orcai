@@ -91,11 +91,13 @@ function RouteComponent() {
 							Edit Block
 						</Link>
 						<DropdownMenu>
-							<DropdownMenuTrigger asChild>
-								<Button variant="outline" size="icon">
-									<MoreVerticalIcon className="h-4 w-4" />
-								</Button>
-							</DropdownMenuTrigger>
+							<DropdownMenuTrigger
+								render={
+									<Button variant="outline" size="icon">
+										<MoreVerticalIcon className="h-4 w-4" />
+									</Button>
+								}
+							/>
 							<DropdownMenuContent align="end">
 								<DropdownMenuItem>
 									<CopyIcon className="mr-2 h-4 w-4" />
@@ -129,12 +131,14 @@ function RouteComponent() {
 					<Badge variant="outline">Version {version}</Badge>
 					{forkedFromId && (
 						<HoverCard>
-							<HoverCardTrigger asChild>
-								<Badge variant="outline" className="cursor-help">
-									<GitForkIcon className="mr-1 h-3 w-3" />
-									Forked
-								</Badge>
-							</HoverCardTrigger>
+							<HoverCardTrigger
+								render={
+									<Badge variant="outline" className="cursor-help">
+										<GitForkIcon className="mr-1 h-3 w-3" />
+										Forked
+									</Badge>
+								}
+							/>
 							<HoverCardContent>
 								<p className="text-sm">
 									This block was forked from another block.
@@ -188,9 +192,15 @@ function RouteComponent() {
 
 			{/* Actions */}
 			<div className="flex justify-between">
-				<Button variant="outline" asChild>
-					<Link to="/app/blocks">← Back to Blocks</Link>
-				</Button>
+				<Link
+					to="/app/blocks"
+					className={buttonVariants({
+						variant: "outline",
+					})}
+				>
+					← Back to Blocks
+				</Link>
+
 				<div className="flex gap-2">
 					<Button variant="outline">Export Block</Button>
 					<Button variant="outline">Share Block</Button>

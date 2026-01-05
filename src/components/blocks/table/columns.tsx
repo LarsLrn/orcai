@@ -23,10 +23,8 @@ export const columns: ColumnDef<Block>[] = [
 		size: 32,
 		header: ({ table }) => (
 			<Checkbox
-				checked={
-					table.getIsAllPageRowsSelected() ||
-					(table.getIsSomePageRowsSelected() && "indeterminate")
-				}
+				checked={table.getIsAllPageRowsSelected()}
+				indeterminate={table.getIsSomePageRowsSelected()}
 				onCheckedChange={(value) => table.toggleAllPageRowsSelected(!!value)}
 				aria-label="Select all"
 			/>
@@ -70,12 +68,14 @@ export const columns: ColumnDef<Block>[] = [
 
 			return (
 				<DropdownMenu>
-					<DropdownMenuTrigger asChild>
-						<Button variant="ghost" className="size-8 p-0">
-							<span className="sr-only">Open menu</span>
-							<MoreHorizontal className="size-4" />
-						</Button>
-					</DropdownMenuTrigger>
+					<DropdownMenuTrigger
+						render={
+							<Button variant="ghost" className="size-8 p-0">
+								<span className="sr-only">Open menu</span>
+								<MoreHorizontal className="size-4" />
+							</Button>
+						}
+					/>
 					<DropdownMenuContent align="end">
 						<Link to="/app/blocks/$blockId" params={{ blockId: block.id }}>
 							<DropdownMenuItem>View Block</DropdownMenuItem>

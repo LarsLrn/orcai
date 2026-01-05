@@ -281,7 +281,7 @@ export function PromptInputAttachment({
 			) : (
 				<div className="flex size-full max-w-full cursor-pointer items-center justify-start gap-2 overflow-hidden px-2 text-muted-foreground">
 					<PaperclipIcon className="size-4 shrink-0" />
-					<Tooltip delayDuration={400}>
+					<Tooltip>
 						<TooltipTrigger className="min-w-0 flex-1">
 							<h4 className="w-full truncate text-left font-medium text-sm">
 								{data.filename || "Unknown file"}
@@ -289,7 +289,7 @@ export function PromptInputAttachment({
 						</TooltipTrigger>
 						<TooltipContent>
 							<div className="text-muted-foreground text-xs">
-								<h4 className="max-w-[240px] overflow-hidden whitespace-normal break-words text-left font-semibold text-sm">
+								<h4 className="wrap-break-word max-w-60 overflow-hidden whitespace-normal text-left font-semibold text-sm">
 									{data.filename || "Unknown file"}
 								</h4>
 								{data.mediaType && <div>{data.mediaType}</div>}
@@ -905,11 +905,13 @@ export const PromptInputActionMenuTrigger = ({
 	children,
 	...props
 }: PromptInputActionMenuTriggerProps) => (
-	<DropdownMenuTrigger asChild>
-		<PromptInputButton className={className} {...props}>
-			{children ?? <PlusIcon className="size-4" />}
-		</PromptInputButton>
-	</DropdownMenuTrigger>
+	<DropdownMenuTrigger
+		render={
+			<PromptInputButton className={className} {...props}>
+				{children ?? <PlusIcon className="size-4" />}
+			</PromptInputButton>
+		}
+	/>
 );
 
 export type PromptInputActionMenuContentProps = ComponentProps<
@@ -1144,7 +1146,7 @@ export const PromptInputModelSelectTrigger = ({
 	<SelectTrigger
 		className={cn(
 			"border-none bg-transparent font-medium text-muted-foreground shadow-none transition-colors",
-			'hover:bg-accent hover:text-foreground [&[aria-expanded="true"]]:bg-accent [&[aria-expanded="true"]]:text-foreground',
+			"hover:bg-accent hover:text-foreground aria-expanded:bg-accent aria-expanded:text-foreground",
 			className,
 		)}
 		{...props}

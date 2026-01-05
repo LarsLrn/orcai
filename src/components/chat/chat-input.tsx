@@ -72,21 +72,25 @@ const ChatInput = ({
 						<GlobeIcon size={16} />
 						<span>Search</span>
 					</PromptInputButton>
-					<PromptInputButton asChild>
-						<AppTourButton
-							tour="chatTour"
-							type="button"
-							variant="ghost"
-							size="icon"
-							autoTrigger={true}
-						>
-							<CompassIcon className="size-4" />
-							<span className="sr-only">Start tour</span>
-						</AppTourButton>
-					</PromptInputButton>
-					<PromptInputButton asChild>
-						<ChatSettings chatId={chatId} className="text-muted-foreground" />
-					</PromptInputButton>
+					<PromptInputButton
+						render={
+							<AppTourButton
+								tour="chatTour"
+								type="button"
+								variant="ghost"
+								size="icon"
+								autoTrigger={true}
+							>
+								<CompassIcon className="size-4" />
+								<span className="sr-only">Start tour</span>
+							</AppTourButton>
+						}
+					/>
+					<PromptInputButton
+						render={
+							<ChatSettings chatId={chatId} className="text-muted-foreground" />
+						}
+					/>
 				</PromptInputTools>
 				<PromptInputSubmit disabled={!text} status={status} />
 			</PromptInputToolbar>

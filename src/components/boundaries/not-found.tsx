@@ -1,6 +1,6 @@
 import { Link, useRouter } from "@tanstack/react-router";
 import { AlertCircle, ArrowLeft, Home } from "lucide-react";
-import { Button } from "@/components/ui/button";
+import { Button, buttonVariants } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 
 export function NotFound({ children }: { children?: any }) {
@@ -45,12 +45,17 @@ export function NotFound({ children }: { children?: any }) {
 						<ArrowLeft className="h-4 w-4" />
 						Go Back
 					</Button>
-					<Button asChild className="flex items-center gap-2">
-						<Link to="/app">
-							<Home className="h-4 w-4" />
-							Return Home
-						</Link>
-					</Button>
+
+					<Link
+						to="/app"
+						className={buttonVariants({
+							variant: "outline",
+							className: "flex items-center gap-2",
+						})}
+					>
+						<Home className="h-4 w-4" />
+						Return Home
+					</Link>
 				</div>
 			</div>
 		</div>

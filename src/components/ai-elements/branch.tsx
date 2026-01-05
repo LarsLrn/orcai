@@ -131,7 +131,7 @@ export const BranchSelector = ({
 	);
 };
 
-export type BranchPreviousProps = ComponentProps<typeof Button>;
+export type BranchPreviousProps = Omit<ComponentProps<typeof Button>, "type">;
 
 export const BranchPrevious = ({
 	className,
@@ -161,7 +161,7 @@ export const BranchPrevious = ({
 	);
 };
 
-export type BranchNextProps = ComponentProps<typeof Button>;
+export type BranchNextProps = Omit<ComponentProps<typeof Button>, "type">;
 
 export const BranchNext = ({
 	className,

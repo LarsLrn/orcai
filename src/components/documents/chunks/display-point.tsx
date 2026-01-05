@@ -23,7 +23,7 @@ const DisplayPoint = ({ point }: { point: QdrantPoint }) => {
 			<CardHeader className="space-y-3">
 				<div className="flex flex-wrap items-start justify-between gap-3">
 					<div className="space-y-1">
-						<CardTitle className="break-words text-lg leading-tight">
+						<CardTitle className="wrap-break-word text-lg leading-tight">
 							{payload.title || payload.source || id}
 						</CardTitle>
 						<CardDescription className="flex flex-wrap items-center gap-x-3 gap-y-1 text-muted-foreground text-sm">
@@ -63,14 +63,16 @@ const DisplayPoint = ({ point }: { point: QdrantPoint }) => {
 						</Badge>
 					)}
 					<HoverCard>
-						<HoverCardTrigger asChild>
-							<Badge
-								variant="outline"
-								className="cursor-pointer border border-dashed text-muted-foreground"
-							>
-								Details
-							</Badge>
-						</HoverCardTrigger>
+						<HoverCardTrigger
+							render={
+								<Badge
+									variant="outline"
+									className="cursor-pointer border border-dashed text-muted-foreground"
+								>
+									Details
+								</Badge>
+							}
+						/>
 						<HoverCardContent className="space-y-2">
 							{typeof payload.depth === "number" && (
 								<div className="flex items-center justify-between text-muted-foreground text-sm">

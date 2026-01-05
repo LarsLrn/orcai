@@ -54,32 +54,34 @@ function RouteComponent() {
 			<div className="grid gap-6 md:grid-cols-2">
 				{/* Bot Template Option */}
 				<Dialog open={dialogOpen} onOpenChange={setDialogOpen}>
-					<DialogTrigger asChild>
-						<Card className="group cursor-pointer justify-between transition-shadow hover:shadow-lg">
-							<CardHeader className="text-center">
-								<div className="mx-auto mb-4 flex h-16 w-16 items-center justify-center rounded-full bg-primary/10 transition-colors group-hover:bg-primary/20">
-									<BotIcon className="h-8 w-8 text-primary" />
-								</div>
-								<CardTitle className="text-xl">Use a Bot Template</CardTitle>
-								<CardDescription>
-									Start with a pre-configured AI assistant designed for specific
-									tasks
-								</CardDescription>
-							</CardHeader>
-							<CardContent>
-								<div className="space-y-2 text-muted-foreground text-sm">
-									<div className="flex items-center gap-2">
-										<SparklesIcon className="h-4 w-4" />
-										<span>Ready-to-use templates</span>
+					<DialogTrigger
+						render={
+							<Card className="group cursor-pointer justify-between transition-shadow hover:shadow-lg">
+								<CardHeader className="text-center">
+									<div className="mx-auto mb-4 flex h-16 w-16 items-center justify-center rounded-full bg-primary/10 transition-colors group-hover:bg-primary/20">
+										<BotIcon className="h-8 w-8 text-primary" />
 									</div>
-									<div className="flex items-center gap-2">
-										<UserIcon className="h-4 w-4" />
-										<span>Specialized AI personalities</span>
+									<CardTitle className="text-xl">Use a Bot Template</CardTitle>
+									<CardDescription>
+										Start with a pre-configured AI assistant designed for
+										specific tasks
+									</CardDescription>
+								</CardHeader>
+								<CardContent>
+									<div className="space-y-2 text-muted-foreground text-sm">
+										<div className="flex items-center gap-2">
+											<SparklesIcon className="h-4 w-4" />
+											<span>Ready-to-use templates</span>
+										</div>
+										<div className="flex items-center gap-2">
+											<UserIcon className="h-4 w-4" />
+											<span>Specialized AI personalities</span>
+										</div>
 									</div>
-								</div>
-							</CardContent>
-						</Card>
-					</DialogTrigger>
+								</CardContent>
+							</Card>
+						}
+					/>
 
 					<DialogContent className="flex max-h-[80vh] max-w-2xl flex-col overflow-hidden">
 						<DialogHeader>

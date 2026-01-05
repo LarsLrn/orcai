@@ -7,7 +7,7 @@ import {
 	useRouter,
 } from "@tanstack/react-router";
 import { AlertTriangle, ArrowLeft, Home, RefreshCw } from "lucide-react";
-import { Button } from "@/components/ui/button";
+import { Button, buttonVariants } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 
 export function DefaultErrorBoundary({ error }: ErrorComponentProps) {
@@ -72,16 +72,16 @@ export function DefaultErrorBoundary({ error }: ErrorComponentProps) {
 						Try Again
 					</Button>
 					{isRoot ? (
-						<Button
-							asChild
-							variant="outline"
-							className="flex items-center gap-2"
+						<Link
+							to="/app"
+							className={buttonVariants({
+								variant: "outline",
+								className: "flex items-center gap-2",
+							})}
 						>
-							<Link to="/app">
-								<Home className="h-4 w-4" />
-								Return Home
-							</Link>
-						</Button>
+							<Home className="h-4 w-4" />
+							Return Home
+						</Link>
 					) : (
 						<Button
 							variant="outline"

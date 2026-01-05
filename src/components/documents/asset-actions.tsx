@@ -30,17 +30,19 @@ const AssetActions = ({
 		>
 			<div className="flex flex-wrap gap-2">
 				<Tooltip>
-					<TooltipTrigger asChild>
-						<Button
-							variant="default"
-							size="sm"
-							onClick={() => window.open(filePath, "_blank")}
-							className="flex items-center gap-1"
-						>
-							<Download className="h-4 w-4" />
-							<span className="hidden sm:inline">Download</span>
-						</Button>
-					</TooltipTrigger>
+					<TooltipTrigger
+						render={
+							<Button
+								variant="default"
+								size="sm"
+								onClick={() => window.open(filePath, "_blank")}
+								className="flex items-center gap-1"
+							>
+								<Download className="h-4 w-4" />
+								<span className="hidden sm:inline">Download</span>
+							</Button>
+						}
+					/>
 					<TooltipContent>Download this asset</TooltipContent>
 				</Tooltip>
 			</div>
@@ -57,17 +59,19 @@ const AssetActions = ({
 				</Link>
 
 				<Tooltip>
-					<TooltipTrigger asChild>
-						<Button
-							variant="destructive"
-							size="sm"
-							onClick={() => deleteAssets({ refs: [{ id: assetInfo.id }] })}
-							className="flex items-center gap-1"
-						>
-							<Trash2 className="h-4 w-4" />
-							<span className="hidden sm:inline">Delete</span>
-						</Button>
-					</TooltipTrigger>
+					<TooltipTrigger
+						render={
+							<Button
+								variant="destructive"
+								size="sm"
+								onClick={() => deleteAssets({ refs: [{ id: assetInfo.id }] })}
+								className="flex items-center gap-1"
+							>
+								<Trash2 className="h-4 w-4" />
+								<span className="hidden sm:inline">Delete</span>
+							</Button>
+						}
+					/>
 					<TooltipContent>Delete this asset</TooltipContent>
 				</Tooltip>
 			</div>

@@ -53,18 +53,20 @@ const Output = ({
 			<div className="flex flex-wrap gap-2">
 				{output.result.map((result, index) => (
 					<Popover key={result.id}>
-						<PopoverTrigger asChild>
-							<Button
-								variant="outline"
-								size="sm"
-								className="group/popover-trigger w-full"
-							>
-								<FileTextIcon className="size-3 text-muted-foreground group-hover/popover-trigger:text-accent-foreground" />
-								<span className="font-medium text-xs">
-									Reference {index + 1}
-								</span>
-							</Button>
-						</PopoverTrigger>
+						<PopoverTrigger
+							render={
+								<Button
+									variant="outline"
+									size="sm"
+									className="group/popover-trigger w-full"
+								>
+									<FileTextIcon className="size-3 text-muted-foreground group-hover/popover-trigger:text-accent-foreground" />
+									<span className="font-medium text-xs">
+										Reference {index + 1}
+									</span>
+								</Button>
+							}
+						/>
 						<PopoverContent
 							className="max-h-80 w-96 overflow-y-auto p-4"
 							align="start"

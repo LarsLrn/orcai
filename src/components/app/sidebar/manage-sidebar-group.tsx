@@ -17,12 +17,14 @@ const ManageSidebarGroup = () => {
 				<SidebarMenu>
 					{sidebarMenu.map((item) => (
 						<SidebarMenuItem key={item.title}>
-							<SidebarMenuButton asChild>
-								<Link {...item.linkProps}>
-									<item.icon />
-									<span>{item.title}</span>
-								</Link>
-							</SidebarMenuButton>
+							<SidebarMenuButton
+								render={
+									<Link {...item.linkProps}>
+										<item.icon />
+										<span>{item.title}</span>
+									</Link>
+								}
+							/>
 						</SidebarMenuItem>
 					))}
 				</SidebarMenu>

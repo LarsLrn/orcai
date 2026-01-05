@@ -191,9 +191,9 @@ const CourseInvitationForm = () => {
 							Add email field
 						</Button>
 						<Dialog>
-							<DialogTrigger asChild>
-								<Button variant="outline">Bulk Add Emails</Button>
-							</DialogTrigger>
+							<DialogTrigger
+								render={<Button variant="outline">Bulk Add Emails</Button>}
+							/>
 							<DialogContent className="max-w-[600px]">
 								<DialogHeader>
 									<DialogTitle>Bulk Add Emails</DialogTitle>
@@ -209,20 +209,22 @@ const CourseInvitationForm = () => {
 										rows={5}
 										placeholder="Add emails here, separated by new lines"
 									/>
-									<DialogClose asChild>
-										<Button
-											type="button"
-											onClick={() => {
-												const textArea = document.getElementById(
-													bulkEmailsId,
-												) as HTMLTextAreaElement;
+									<DialogClose
+										render={
+											<Button
+												type="button"
+												onClick={() => {
+													const textArea = document.getElementById(
+														bulkEmailsId,
+													) as HTMLTextAreaElement;
 
-												handleBulkPaste(textArea);
-											}}
-										>
-											Add Emails
-										</Button>
-									</DialogClose>
+													handleBulkPaste(textArea);
+												}}
+											>
+												Add Emails
+											</Button>
+										}
+									/>
 								</div>
 							</DialogContent>
 						</Dialog>

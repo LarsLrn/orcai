@@ -1,14 +1,8 @@
 import useEmblaCarousel, {
 	type UseEmblaCarouselType,
 } from "embla-carousel-react";
-import { ArrowLeft, ArrowRight } from "lucide-react";
-import {
-	createContext,
-	useCallback,
-	useContext,
-	useEffect,
-	useState,
-} from "react";
+import { ChevronLeftIcon, ChevronRightIcon } from "lucide-react";
+import * as React from "react";
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
 
@@ -33,10 +27,10 @@ type CarouselContextProps = {
 	canScrollNext: boolean;
 } & CarouselProps;
 
-const CarouselContext = createContext<CarouselContextProps | null>(null);
+const CarouselContext = React.createContext<CarouselContextProps | null>(null);
 
-export function useCarousel() {
-	const context = useContext(CarouselContext);
+function useCarousel() {
+	const context = React.useContext(CarouselContext);
 
 	if (!context) {
 		throw new Error("useCarousel must be used within a <Carousel />");
@@ -61,24 +55,24 @@ function Carousel({
 		},
 		plugins,
 	);
-	const [canScrollPrev, setCanScrollPrev] = useState(false);
-	const [canScrollNext, setCanScrollNext] = useState(false);
+	const [canScrollPrev, setCanScrollPrev] = React.useState(false);
+	const [canScrollNext, setCanScrollNext] = React.useState(false);
 
-	const onSelect = useCallback((api: CarouselApi) => {
+	const onSelect = React.useCallback((api: CarouselApi) => {
 		if (!api) return;
 		setCanScrollPrev(api.canScrollPrev());
 		setCanScrollNext(api.canScrollNext());
 	}, []);
 
-	const scrollPrev = useCallback(() => {
+	const scrollPrev = React.useCallback(() => {
 		api?.scrollPrev();
 	}, [api]);
 
-	const scrollNext = useCallback(() => {
+	const scrollNext = React.useCallback(() => {
 		api?.scrollNext();
 	}, [api]);
 
-	const handleKeyDown = useCallback(
+	const handleKeyDown = React.useCallback(
 		(event: React.KeyboardEvent<HTMLDivElement>) => {
 			if (event.key === "ArrowLeft") {
 				event.preventDefault();
@@ -91,12 +85,12 @@ function Carousel({
 		[scrollPrev, scrollNext],
 	);
 
-	useEffect(() => {
+	React.useEffect(() => {
 		if (!api || !setApi) return;
 		setApi(api);
 	}, [api, setApi]);
 
-	useEffect(() => {
+	React.useEffect(() => {
 		if (!api) return;
 		onSelect(api);
 		api.on("reInit", onSelect);
@@ -124,6 +118,8 @@ function Carousel({
 			<section
 				onKeyDownCapture={handleKeyDown}
 				className={cn("relative", className)}
+				role="region"
+				aria-roledescription="carousel"
 				data-slot="carousel"
 				{...props}
 			>
@@ -177,7 +173,7 @@ function CarouselItem({
 function CarouselPrevious({
 	className,
 	variant = "outline",
-	size = "icon",
+	size = "icon-sm",
 	...props
 }: React.ComponentProps<typeof Button>) {
 	const { orientation, scrollPrev, canScrollPrev } = useCarousel();
@@ -188,7 +184,7 @@ function CarouselPrevious({
 			variant={variant}
 			size={size}
 			className={cn(
-				"absolute size-8 rounded-full",
+				"absolute touch-manipulation rounded-full",
 				orientation === "horizontal"
 					? "-left-12 -translate-y-1/2 top-1/2"
 					: "-top-12 -translate-x-1/2 left-1/2 rotate-90",
@@ -198,7 +194,7 @@ function CarouselPrevious({
 			onClick={scrollPrev}
 			{...props}
 		>
-			<ArrowLeft />
+			<ChevronLeftIcon />
 			<span className="sr-only">Previous slide</span>
 		</Button>
 	);
@@ -207,7 +203,7 @@ function CarouselPrevious({
 function CarouselNext({
 	className,
 	variant = "outline",
-	size = "icon",
+	size = "icon-sm",
 	...props
 }: React.ComponentProps<typeof Button>) {
 	const { orientation, scrollNext, canScrollNext } = useCarousel();
@@ -218,7 +214,7 @@ function CarouselNext({
 			variant={variant}
 			size={size}
 			className={cn(
-				"absolute size-8 rounded-full",
+				"absolute touch-manipulation rounded-full",
 				orientation === "horizontal"
 					? "-right-12 -translate-y-1/2 top-1/2"
 					: "-bottom-12 -translate-x-1/2 left-1/2 rotate-90",
@@ -228,7 +224,7 @@ function CarouselNext({
 			onClick={scrollNext}
 			{...props}
 		>
-			<ArrowRight />
+			<ChevronRightIcon />
 			<span className="sr-only">Next slide</span>
 		</Button>
 	);
@@ -241,4 +237,5 @@ export {
 	CarouselItem,
 	CarouselPrevious,
 	CarouselNext,
+	useCarousel,
 };

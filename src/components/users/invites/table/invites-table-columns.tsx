@@ -36,10 +36,8 @@ export const invitesTableColumns: ColumnDef<CourseInvitation>[] = [
 		size: 32,
 		header: ({ table }) => (
 			<Checkbox
-				checked={
-					table.getIsAllPageRowsSelected() ||
-					(table.getIsSomePageRowsSelected() && "indeterminate")
-				}
+				checked={table.getIsAllPageRowsSelected()}
+				indeterminate={table.getIsSomePageRowsSelected()}
 				onCheckedChange={(value) => table.toggleAllPageRowsSelected(!!value)}
 				aria-label="Select all"
 			/>
@@ -95,12 +93,14 @@ export const invitesTableColumns: ColumnDef<CourseInvitation>[] = [
 
 			return (
 				<DropdownMenu>
-					<DropdownMenuTrigger asChild>
-						<Button variant="ghost" className="size-8 p-0">
-							<span className="sr-only">Open menu</span>
-							<MoreHorizontal className="size-4" />
-						</Button>
-					</DropdownMenuTrigger>
+					<DropdownMenuTrigger
+						render={
+							<Button variant="ghost" className="size-8 p-0">
+								<span className="sr-only">Open menu</span>
+								<MoreHorizontal className="size-4" />
+							</Button>
+						}
+					/>
 					<DropdownMenuContent align="end">
 						<DropdownMenuItem onClick={() => handleCopy(invitation.id)}>
 							Copy Invitation Link

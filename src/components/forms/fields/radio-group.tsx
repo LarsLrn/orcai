@@ -1,4 +1,3 @@
-import { RadioGroup } from "@radix-ui/react-dropdown-menu";
 import { useStore } from "@tanstack/react-form";
 import {
 	Field,
@@ -10,6 +9,7 @@ import {
 	FieldSet,
 	FieldTitle,
 } from "@/components/ui/field";
+import { RadioGroup } from "@/components/ui/radio-group";
 import { useFieldContext } from "@/hooks/form/context";
 
 const CheckboxGroup = ({
@@ -34,7 +34,10 @@ const CheckboxGroup = ({
 		<FieldSet>
 			<FieldLegend variant="label">{label}</FieldLegend>
 			{description && <FieldDescription>{description}</FieldDescription>}
-			<RadioGroup value={field.state.value} onValueChange={field.handleChange}>
+			<RadioGroup
+				value={field.state.value}
+				onValueChange={() => field.handleChange}
+			>
 				{options?.map((item) => (
 					<FieldLabel
 						key={item.value}

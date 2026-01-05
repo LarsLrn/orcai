@@ -59,13 +59,15 @@ export const TextAlignSelector = ({ editor }: { editor: Editor }) => {
 
 	return (
 		<Popover>
-			<PopoverTrigger asChild>
-				<Button variant="ghost" className="rounded-none">
-					<activeItem.icon className="me-2 size-4" strokeWidth={2.5} />
-					<ChevronDownIcon className="size-3" />
-				</Button>
-			</PopoverTrigger>
-			<PopoverContent className="w-32 p-1 shadow-xl" align="end" noPortal>
+			<PopoverTrigger
+				render={
+					<Button variant="ghost" className="rounded-none">
+						<activeItem.icon className="me-2 size-4" strokeWidth={2.5} />
+						<ChevronDownIcon className="size-3" />
+					</Button>
+				}
+			/>
+			<PopoverContent className="w-32 p-1 shadow-xl" align="end">
 				{items.map((item) => {
 					return (
 						<button

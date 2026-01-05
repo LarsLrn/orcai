@@ -331,16 +331,18 @@ const ManageUser = ({
 				<CardContent>
 					{sessions && sessions.length > 0 ? (
 						<Collapsible open={isSessionsOpen} onOpenChange={setIsSessionsOpen}>
-							<CollapsibleTrigger asChild>
-								<Button variant="outline" className="w-full gap-2">
-									<span>{isSessionsOpen ? "Hide" : "Show"} Sessions</span>
-									<ChevronDownIcon
-										className={`h-4 w-4 transition-transform ${
-											isSessionsOpen ? "rotate-180" : ""
-										}`}
-									/>
-								</Button>
-							</CollapsibleTrigger>
+							<CollapsibleTrigger
+								render={
+									<Button variant="outline" className="w-full gap-2">
+										<span>{isSessionsOpen ? "Hide" : "Show"} Sessions</span>
+										<ChevronDownIcon
+											className={`h-4 w-4 transition-transform ${
+												isSessionsOpen ? "rotate-180" : ""
+											}`}
+										/>
+									</Button>
+								}
+							/>
 							<CollapsibleContent className="mt-4">
 								<ScrollArea className="max-h-96">
 									<div className="flex flex-col gap-3">

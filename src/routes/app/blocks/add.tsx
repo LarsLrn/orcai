@@ -26,11 +26,11 @@ export const Route = createFileRoute("/app/blocks/add")({
 });
 
 function RouteComponent() {
-	const [type, setType] = useState<string | undefined>();
+	const [type, setType] = useState<string | null>();
 
 	return (
 		<div className="space-y-4">
-			<Select onValueChange={(value) => setType(value)}>
+			<Select defaultValue={type} onValueChange={(value) => setType(value)}>
 				<SelectTrigger className="w-[180px]">
 					<SelectValue placeholder="Select a block type" />
 				</SelectTrigger>

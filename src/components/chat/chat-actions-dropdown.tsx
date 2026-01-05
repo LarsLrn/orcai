@@ -110,7 +110,7 @@ const ChatActionsDropdown = ({
 
 	return (
 		<DropdownMenu open={isDropdownOpen} onOpenChange={setIsDropdownOpen}>
-			<DropdownMenuTrigger asChild>{children}</DropdownMenuTrigger>
+			<DropdownMenuTrigger render={children} />
 			<DropdownMenuContent align="end" className="w-40">
 				<DropdownMenuItem onClick={onUpdate}>Rename Chat</DropdownMenuItem>
 				<DropdownMenuItem variant="destructive" onClick={onDelete}>

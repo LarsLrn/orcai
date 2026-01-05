@@ -63,7 +63,10 @@ export const ConversationEmptyState = ({
 	</div>
 );
 
-export type ConversationScrollButtonProps = ComponentProps<typeof Button>;
+export type ConversationScrollButtonProps = Omit<
+	ComponentProps<typeof Button>,
+	"type"
+>;
 
 export const ConversationScrollButton = ({
 	className,

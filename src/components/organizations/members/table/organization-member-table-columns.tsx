@@ -22,10 +22,8 @@ export const organizationMemberTableColumns: ColumnDef<User>[] = [
 		size: 32,
 		header: ({ table }) => (
 			<Checkbox
-				checked={
-					table.getIsAllPageRowsSelected() ||
-					(table.getIsSomePageRowsSelected() && "indeterminate")
-				}
+				checked={table.getIsAllPageRowsSelected()}
+				indeterminate={table.getIsSomePageRowsSelected()}
 				onCheckedChange={(value) => table.toggleAllPageRowsSelected(!!value)}
 				aria-label="Select all"
 			/>
@@ -67,12 +65,14 @@ export const organizationMemberTableColumns: ColumnDef<User>[] = [
 
 			return (
 				<DropdownMenu>
-					<DropdownMenuTrigger asChild>
-						<Button variant="ghost" className="size-8 p-0">
-							<span className="sr-only">Open menu</span>
-							<MoreHorizontal className="size-4" />
-						</Button>
-					</DropdownMenuTrigger>
+					<DropdownMenuTrigger
+						render={
+							<Button variant="ghost" className="size-8 p-0">
+								<span className="sr-only">Open menu</span>
+								<MoreHorizontal className="size-4" />
+							</Button>
+						}
+					/>
 					<DropdownMenuContent align="end">
 						<DeleteItem userId={user.id} />
 					</DropdownMenuContent>

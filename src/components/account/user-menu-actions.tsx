@@ -12,12 +12,15 @@ const UserMenuActions = () => {
 	return (
 		<DropdownMenuGroup>
 			{sidebarUserMenu.map((item) => (
-				<DropdownMenuItem key={item.title} asChild>
-					<Link {...item.linkProps} onClick={() => setOpenMobile(false)}>
-						<item.icon className="hover:text-foreground" />
-						{item.title}
-					</Link>
-				</DropdownMenuItem>
+				<DropdownMenuItem
+					key={item.title}
+					render={
+						<Link {...item.linkProps} onClick={() => setOpenMobile(false)}>
+							<item.icon className="hover:text-foreground" />
+							{item.title}
+						</Link>
+					}
+				/>
 			))}
 		</DropdownMenuGroup>
 	);

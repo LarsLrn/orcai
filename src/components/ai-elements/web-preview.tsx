@@ -11,7 +11,6 @@ import { Input } from "@/components/ui/input";
 import {
 	Tooltip,
 	TooltipContent,
-	TooltipProvider,
 	TooltipTrigger,
 } from "@/components/ui/tooltip";
 import { cn } from "@/lib/utils";
@@ -101,9 +100,9 @@ export const WebPreviewNavigationButton = ({
 	children,
 	...props
 }: WebPreviewNavigationButtonProps) => (
-	<TooltipProvider>
-		<Tooltip>
-			<TooltipTrigger asChild>
+	<Tooltip>
+		<TooltipTrigger
+			render={
 				<Button
 					className="h-8 w-8 p-0 hover:text-foreground"
 					disabled={disabled}
@@ -114,12 +113,12 @@ export const WebPreviewNavigationButton = ({
 				>
 					{children}
 				</Button>
-			</TooltipTrigger>
-			<TooltipContent>
-				<p>{tooltip}</p>
-			</TooltipContent>
-		</Tooltip>
-	</TooltipProvider>
+			}
+		/>
+		<TooltipContent>
+			<p>{tooltip}</p>
+		</TooltipContent>
+	</Tooltip>
 );
 
 export type WebPreviewUrlProps = ComponentProps<typeof Input>;
@@ -212,20 +211,22 @@ export const WebPreviewConsole = ({
 			open={consoleOpen}
 			{...props}
 		>
-			<CollapsibleTrigger asChild>
-				<Button
-					className="flex w-full items-center justify-between p-4 text-left font-medium hover:bg-muted/50"
-					variant="ghost"
-				>
-					Console
-					<ChevronDownIcon
-						className={cn(
-							"h-4 w-4 transition-transform duration-200",
-							consoleOpen && "rotate-180",
-						)}
-					/>
-				</Button>
-			</CollapsibleTrigger>
+			<CollapsibleTrigger
+				render={
+					<Button
+						className="flex w-full items-center justify-between p-4 text-left font-medium hover:bg-muted/50"
+						variant="ghost"
+					>
+						Console
+						<ChevronDownIcon
+							className={cn(
+								"h-4 w-4 transition-transform duration-200",
+								consoleOpen && "rotate-180",
+							)}
+						/>
+					</Button>
+				}
+			/>
 			<CollapsibleContent
 				className={cn(
 					"px-4 pb-4",

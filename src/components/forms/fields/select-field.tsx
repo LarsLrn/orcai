@@ -48,7 +48,11 @@ const SelectField = ({
 			<Select
 				name={field.name}
 				value={field.state.value}
-				onValueChange={field.handleChange}
+				onValueChange={(newValue) => {
+					if (newValue) {
+						field.handleChange(newValue);
+					}
+				}}
 				disabled={disabled || options === undefined || options.length === 0}
 			>
 				<SelectTrigger
@@ -56,9 +60,9 @@ const SelectField = ({
 					aria-invalid={isInvalid}
 					className="min-w-[120px]"
 				>
-					<SelectValue placeholder={placeholder ?? "Select"} />
+					<SelectValue placeholder={placeholder ?? "Select an option"} />
 				</SelectTrigger>
-				<SelectContent position="item-aligned">
+				<SelectContent>
 					{options?.map((option) => (
 						<SelectItem key={option.value} value={option.value}>
 							{option.label}

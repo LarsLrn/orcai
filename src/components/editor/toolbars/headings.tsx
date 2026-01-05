@@ -54,51 +54,55 @@ export const HeadingsToolbar = ({
 
 	return (
 		<Tooltip>
-			<TooltipTrigger asChild>
-				<DropdownMenu>
-					<DropdownMenuTrigger asChild>
-						<Button
-							type="button"
-							variant="ghost"
-							size="sm"
-							className={cn(
-								"h-8 w-max gap-1 px-3 font-normal",
-								editor?.isActive("heading") && "bg-accent",
-								className,
-							)}
-							{...props}
-						>
-							{activeLevel ? `H${activeLevel}` : "Normal"}
-							<ChevronDown className="h-4 w-4" />
-						</Button>
-					</DropdownMenuTrigger>
-					<DropdownMenuContent align="start">
-						<DropdownMenuItem
-							onClick={() => editor?.chain().focus().setParagraph().run()}
-							className={cn(
-								"flex h-fit items-center gap-2",
-								!editor?.isActive("heading") && "bg-accent",
-							)}
-						>
-							Normal
-						</DropdownMenuItem>
-						{levels.map((level) => (
+			<TooltipTrigger
+				render={
+					<DropdownMenu>
+						<DropdownMenuTrigger
+							render={
+								<Button
+									type="button"
+									variant="ghost"
+									size="sm"
+									className={cn(
+										"h-8 w-max gap-1 px-3 font-normal",
+										editor?.isActive("heading") && "bg-accent",
+										className,
+									)}
+									{...props}
+								>
+									{activeLevel ? `H${activeLevel}` : "Normal"}
+									<ChevronDown className="h-4 w-4" />
+								</Button>
+							}
+						/>
+						<DropdownMenuContent align="start">
 							<DropdownMenuItem
-								key={level}
-								onClick={() =>
-									editor?.chain().focus().toggleHeading({ level }).run()
-								}
+								onClick={() => editor?.chain().focus().setParagraph().run()}
 								className={cn(
-									"flex items-center gap-2",
-									editor?.isActive("heading", { level }) && "bg-accent",
+									"flex h-fit items-center gap-2",
+									!editor?.isActive("heading") && "bg-accent",
 								)}
 							>
-								H{level}
+								Normal
 							</DropdownMenuItem>
-						))}
-					</DropdownMenuContent>
-				</DropdownMenu>
-			</TooltipTrigger>
+							{levels.map((level) => (
+								<DropdownMenuItem
+									key={level}
+									onClick={() =>
+										editor?.chain().focus().toggleHeading({ level }).run()
+									}
+									className={cn(
+										"flex items-center gap-2",
+										editor?.isActive("heading", { level }) && "bg-accent",
+									)}
+								>
+									H{level}
+								</DropdownMenuItem>
+							))}
+						</DropdownMenuContent>
+					</DropdownMenu>
+				}
+			/>
 			<TooltipContent>
 				<span>Headings</span>
 			</TooltipContent>

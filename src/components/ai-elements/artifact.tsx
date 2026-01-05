@@ -4,7 +4,6 @@ import { Button } from "@/components/ui/button";
 import {
 	Tooltip,
 	TooltipContent,
-	TooltipProvider,
 	TooltipTrigger,
 } from "@/components/ui/tooltip";
 import { cn } from "@/lib/utils";
@@ -36,7 +35,7 @@ export const ArtifactHeader = ({
 	/>
 );
 
-export type ArtifactCloseProps = ComponentProps<typeof Button>;
+export type ArtifactCloseProps = Omit<ComponentProps<typeof Button>, "type">;
 
 export const ArtifactClose = ({
 	className,
@@ -87,7 +86,10 @@ export const ArtifactActions = ({
 	<div className={cn("flex items-center gap-1", className)} {...props} />
 );
 
-export type ArtifactActionProps = ComponentProps<typeof Button> & {
+export type ArtifactActionProps = Omit<
+	ComponentProps<typeof Button>,
+	"type"
+> & {
 	tooltip?: string;
 	label?: string;
 	icon?: LucideIcon;
@@ -121,14 +123,12 @@ export const ArtifactAction = ({
 
 	if (tooltip) {
 		return (
-			<TooltipProvider>
-				<Tooltip>
-					<TooltipTrigger asChild>{button}</TooltipTrigger>
-					<TooltipContent>
-						<p>{tooltip}</p>
-					</TooltipContent>
-				</Tooltip>
-			</TooltipProvider>
+			<Tooltip>
+				<TooltipTrigger render={button} />
+				<TooltipContent>
+					<p>{tooltip}</p>
+				</TooltipContent>
+			</Tooltip>
 		);
 	}
 

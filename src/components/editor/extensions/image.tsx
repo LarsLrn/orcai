@@ -1,5 +1,5 @@
 /** biome-ignore-all lint/a11y/noStaticElementInteractions: <test> */
-/** biome-ignore-all lint/correctness/useExhaustiveDependencies: <explanation> */
+/** biome-ignore-all lint/correctness/useExhaustiveDependencies: <TODO: Fix these properly> */
 /** biome-ignore-all lint/correctness/useUniqueElementIds: <test> */
 /** biome-ignore-all lint/a11y/useKeyWithClickEvents: <test> */
 import Image from "@tiptap/extension-image";
@@ -343,11 +343,13 @@ function TiptapImage(props: NodeViewProps) {
 						</Button>
 						<Separator orientation="vertical" className="h-5" />
 						<DropdownMenu open={openedMore} onOpenChange={setOpenedMore}>
-							<DropdownMenuTrigger asChild>
-								<Button size="icon" className="size-7" variant="ghost">
-									<MoreVertical className="size-4" />
-								</Button>
-							</DropdownMenuTrigger>
+							<DropdownMenuTrigger
+								render={
+									<Button size="icon" className="size-7" variant="ghost">
+										<MoreVertical className="size-4" />
+									</Button>
+								}
+							/>
 							<DropdownMenuContent
 								align="start"
 								alignOffset={-90}

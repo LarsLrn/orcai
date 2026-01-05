@@ -50,7 +50,7 @@ export const Context = ({
 			usage,
 		}}
 	>
-		<HoverCard closeDelay={0} openDelay={0} {...props} />
+		<HoverCard {...props} />
 	</ContextContext.Provider>
 );
 
@@ -95,9 +95,12 @@ const ContextIcon = () => {
 	);
 };
 
-export type ContextTriggerProps = ComponentProps<typeof Button>;
+export type ContextTriggerProps = Omit<ComponentProps<typeof Button>, "type">;
 
-export const ContextTrigger = ({ children, ...props }: ContextTriggerProps) => {
+export const ContextTrigger = ({
+	children,
+	...props
+}: ContextTriggerProps & { children?: React.ReactElement }) => {
 	const { usedTokens, maxTokens } = useContextValue();
 	const usedPercent = usedTokens / maxTokens;
 	const renderedPercent = new Intl.NumberFormat("en-US", {
@@ -106,19 +109,21 @@ export const ContextTrigger = ({ children, ...props }: ContextTriggerProps) => {
 	}).format(usedPercent);
 
 	return (
-		<HoverCardTrigger asChild>
-			{children ?? (
-				<Button
-					type="button"
-					variant="ghost"
-					{...props}
-					className="text-muted-foreground"
-				>
-					<span className="font-medium">{renderedPercent}</span>
-					<ContextIcon />
-				</Button>
-			)}
-		</HoverCardTrigger>
+		<HoverCardTrigger
+			render={
+				children ?? (
+					<Button
+						type="button"
+						variant="ghost"
+						{...props}
+						className="text-muted-foreground"
+					>
+						<span className="font-medium">{renderedPercent}</span>
+						<ContextIcon />
+					</Button>
+				)
+			}
+		/>
 	);
 };
 
@@ -129,7 +134,7 @@ export const ContextContent = ({
 	...props
 }: ContextContentProps) => (
 	<HoverCardContent
-		className={cn("min-w-[240px] divide-y overflow-hidden p-0", className)}
+		className={cn("min-w-60 divide-y overflow-hidden p-0", className)}
 		{...props}
 	/>
 );

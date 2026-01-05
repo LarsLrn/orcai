@@ -1,4 +1,3 @@
-import { DropdownMenuTrigger } from "@radix-ui/react-dropdown-menu";
 import { ReplaceAllIcon } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { useTable } from "@/components/ui/data-table/data-table-context";
@@ -6,6 +5,7 @@ import {
 	DropdownMenu,
 	DropdownMenuContent,
 	DropdownMenuItem,
+	DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import { useDeleteAssets } from "@/lib/client-actions/use-delete";
 
@@ -15,12 +15,14 @@ const AssetTableActions = () => {
 
 	return (
 		<DropdownMenu>
-			<DropdownMenuTrigger asChild>
-				<Button variant="outline" size="sm" className="h-8">
-					<ReplaceAllIcon />
-					Actions
-				</Button>
-			</DropdownMenuTrigger>
+			<DropdownMenuTrigger
+				render={
+					<Button variant="outline" size="sm" className="h-8">
+						<ReplaceAllIcon />
+						Actions
+					</Button>
+				}
+			/>
 			<DropdownMenuContent align="end" className="w-[200px]">
 				<DropdownMenuItem
 					variant="destructive"

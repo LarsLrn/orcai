@@ -172,22 +172,29 @@ const HeroLatestBotCard = ({
 							Start chat
 						</NewChatButton>
 						<ButtonGroupSeparator />
-						<Link
-							to="/app/bots/$botId"
-							params={{ botId }}
-							className={buttonVariants({ variant: "outline", size: "sm" })}
-						>
-							<ArrowRightIcon className="h-4 w-4" />
-							View bot
-						</Link>
+						<Button
+							variant="outline"
+							size="sm"
+							render={
+								<Link to="/app/bots/$botId" params={{ botId }}>
+									<ArrowRightIcon className="h-4 w-4" />
+									View bot
+								</Link>
+							}
+						/>
 					</ButtonGroup>
 				) : (
-					<Button asChild size="sm" variant="secondary" className="gap-2">
-						<Link to="/app/bots/add">
-							<SparklesIcon className="h-4 w-4" />
-							Create bot
-						</Link>
-					</Button>
+					<Link
+						to="/app/bots/add"
+						className={buttonVariants({
+							variant: "secondary",
+							size: "sm",
+							className: "gap-2",
+						})}
+					>
+						<SparklesIcon className="h-4 w-4" />
+						Create bot
+					</Link>
 				)}
 			</div>
 		</Item>
@@ -208,14 +215,17 @@ const BotsShowcase = () => {
 						Select an assistant and jump straight into a tailored conversation.
 					</CardDescription>
 				</div>
-				<Button
-					asChild
-					variant="outline"
-					size="sm"
-					className="w-full sm:w-auto"
+
+				<Link
+					to="/app/bots"
+					className={buttonVariants({
+						variant: "outline",
+						size: "sm",
+						className: "w-full sm:w-auto",
+					})}
 				>
-					<Link to="/app/bots">Manage library</Link>
-				</Button>
+					Manage library
+				</Link>
 			</div>
 
 			{bots.data.length === 0 ? (
@@ -251,16 +261,17 @@ const BotsShowcase = () => {
 										Start chat
 									</NewChatButton>
 									<ButtonGroupSeparator />
+
 									<Button
-										asChild
-										variant="outline"
 										size="sm"
 										className="flex-1"
-									>
-										<Link to="/app/bots/$botId" params={{ botId: bot.id }}>
-											View details
-										</Link>
-									</Button>
+										variant="outline"
+										render={
+											<Link to="/app/bots/$botId" params={{ botId: bot.id }}>
+												View details
+											</Link>
+										}
+									/>
 								</ButtonGroup>
 							</CardFooter>
 						</BotPreview>
@@ -284,42 +295,42 @@ const QuickActions = () => {
 			description: "Start a guided conversation from scratch.",
 			icon: MessageSquarePlusIcon,
 			linkProps: { to: "/app/chat/setup" },
-			accent: "bg-primary/10 text-primary",
+			accent: "text-primary",
 		},
 		{
 			title: "Manage bots",
 			description: "Review and iterate on your assistants.",
 			icon: BotIcon,
 			linkProps: { to: "/app/bots" },
-			accent: "bg-purple-500/10 text-purple-500",
+			accent: "text-purple-500",
 		},
 		{
 			title: "Manage blocks",
 			description: "Compose reusable logic components.",
 			icon: BlocksIcon,
 			linkProps: { to: "/app/blocks" },
-			accent: "bg-green-500/10 text-green-500",
+			accent: "text-green-500",
 		},
 		{
 			title: "Manage assets",
 			description: "Curate knowledge sources for grounding.",
 			icon: FolderOpenIcon,
 			linkProps: { to: "/app/assets" },
-			accent: "bg-orange-500/10 text-orange-500",
+			accent: "text-orange-500",
 		},
 		{
 			title: "Create bot",
 			description: "Design a new tailored assistant.",
 			icon: SparklesIcon,
 			linkProps: { to: "/app/bots/add" },
-			accent: "bg-primary/10 text-primary",
+			accent: "text-primary",
 		},
 		{
 			title: "Create block",
 			description: "Add a new building block to your toolkit.",
 			icon: BlocksIcon,
 			linkProps: { to: "/app/blocks/add" },
-			accent: "bg-primary/10 text-primary",
+			accent: "text-primary",
 		},
 	];
 
@@ -334,28 +345,28 @@ const QuickActions = () => {
 			<div className="grid gap-2 md:grid-cols-2 xl:grid-cols-3">
 				{actions.map((action) => (
 					<Item
-						asChild
 						key={action.title}
 						variant="outline"
 						className="bg-card"
-					>
-						<Link key={action.title} {...action.linkProps}>
-							<ItemMedia
-								variant="icon"
-								className={cn("size-12", action.accent)}
-							>
-								<action.icon className="size-6" />
-							</ItemMedia>
-							<ItemContent>
-								<ItemTitle>{action.title}</ItemTitle>
-								<ItemDescription>{action.description}</ItemDescription>
-							</ItemContent>
-							<ItemActions>
-								Go now
-								<ArrowRightIcon className="size-4" />
-							</ItemActions>
-						</Link>
-					</Item>
+						render={
+							<Link key={action.title} {...action.linkProps}>
+								<ItemMedia
+									variant="icon"
+									className={cn("size-12", action.accent)}
+								>
+									<action.icon className="size-6" />
+								</ItemMedia>
+								<ItemContent>
+									<ItemTitle>{action.title}</ItemTitle>
+									<ItemDescription>{action.description}</ItemDescription>
+								</ItemContent>
+								<ItemActions>
+									Go now
+									<ArrowRightIcon className="size-4" />
+								</ItemActions>
+							</Link>
+						}
+					/>
 				))}
 			</div>
 		</div>
@@ -413,22 +424,28 @@ const ResourceHighlights = () => {
 			</div>
 			<div className="grid gap-4 md:grid-cols-3">
 				{resources.map((resource) => (
-					<Item key={resource.label} asChild variant="outline">
-						<Link to={resource.href} className="bg-card">
-							<ItemMedia variant="icon" className={cn(resource.accentBg)}>
-								<resource.icon className={cn("size-5", resource.accentColor)} />
-							</ItemMedia>
-							<ItemContent>
-								<ItemTitle>{resource.label}</ItemTitle>
-								<ItemDescription className="text-xs">
-									{resource.description}
-								</ItemDescription>
-							</ItemContent>
-							<Badge variant="secondary" className="text-xs">
-								{resource.count}
-							</Badge>
-						</Link>
-					</Item>
+					<Item
+						key={resource.label}
+						variant="outline"
+						render={
+							<Link to={resource.href} className="bg-card">
+								<ItemMedia variant="icon">
+									<resource.icon
+										className={cn("size-5", resource.accentColor)}
+									/>
+								</ItemMedia>
+								<ItemContent>
+									<ItemTitle>{resource.label}</ItemTitle>
+									<ItemDescription className="text-xs">
+										{resource.description}
+									</ItemDescription>
+								</ItemContent>
+								<Badge variant="secondary" className="text-xs">
+									{resource.count}
+								</Badge>
+							</Link>
+						}
+					/>
 				))}
 			</div>
 		</div>
