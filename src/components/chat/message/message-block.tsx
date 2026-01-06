@@ -49,7 +49,7 @@ export const MessageBlock = ({
 		message.parts.length === 0
 	) {
 		return (
-			<div className="sticky m-0 w-full max-w-full whitespace-pre-wrap break-words rounded-none bg-transparent p-4 text-foreground">
+			<div className="wrap-break-word sticky m-0 w-full max-w-full whitespace-pre-wrap rounded-none bg-transparent p-4 text-foreground">
 				<TextShimmer>Gathering information...</TextShimmer>
 			</div>
 		);

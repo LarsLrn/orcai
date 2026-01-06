@@ -90,7 +90,6 @@ export const aiChat = authed.ai.chat
 				includeUsage: true,
 			});
 
-			// Only wrap if the model has reasoning capabilities
 			const model = wrapLanguageModel({
 				model: chatProvider(templateBlock.config.model),
 				middleware: [
