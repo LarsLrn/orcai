@@ -1,3 +1,4 @@
+import { devToolsMiddleware } from "@ai-sdk/devtools";
 import { createOpenAICompatible } from "@ai-sdk/openai-compatible";
 import { ORPCError, streamToEventIterator } from "@orpc/client";
 import {
@@ -92,7 +93,10 @@ export const aiChat = authed.ai.chat
 			// Only wrap if the model has reasoning capabilities
 			const model = wrapLanguageModel({
 				model: chatProvider(templateBlock.config.model),
-				middleware: extractReasoningMiddleware({ tagName: "think" }),
+				middleware: [
+					devToolsMiddleware(),
+					extractReasoningMiddleware({ tagName: "think" }),
+				],
 			});
 
 			const assistantMessageId = uuidv4();
