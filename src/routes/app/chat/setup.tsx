@@ -7,7 +7,6 @@ import {
 } from "lucide-react";
 import { useState } from "react";
 import { BotSelect } from "@/components/bot/bot-select";
-import { NewChatButton } from "@/components/chat/new-chat-button";
 import { Button } from "@/components/ui/button";
 import {
 	Card,
@@ -25,6 +24,7 @@ import {
 	DialogTrigger,
 } from "@/components/ui/dialog";
 import { Separator } from "@/components/ui/separator";
+import { useCreateChat } from "@/hooks/actions/use-create-chat";
 import type { Bot } from "@/lib/orpc/schemas/bot";
 
 export const Route = createFileRoute("/app/chat/setup")({
@@ -39,6 +39,7 @@ export const Route = createFileRoute("/app/chat/setup")({
 });
 
 function RouteComponent() {
+	const { createChat } = useCreateChat();
 	const [selectedBot, setSelectedBot] = useState<Bot | null>(null);
 	const [dialogOpen, setDialogOpen] = useState(false);
 
@@ -98,9 +99,12 @@ function RouteComponent() {
 							<Button variant="outline" onClick={() => setDialogOpen(false)}>
 								Cancel
 							</Button>
-							<NewChatButton botId={selectedBot?.id} disabled={!selectedBot}>
+							<Button
+								disabled={!selectedBot}
+								onClick={() => createChat(selectedBot?.id)}
+							>
 								Start Chat
-							</NewChatButton>
+							</Button>
 						</div>
 					</DialogContent>
 				</Dialog>

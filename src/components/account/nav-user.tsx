@@ -1,7 +1,6 @@
 import { useQuery } from "@tanstack/react-query";
 import { useRouteContext } from "@tanstack/react-router";
 import { ChevronsUpDown, LogOut } from "lucide-react";
-import { SignOutButton } from "@/components/auth/signout-button";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import {
 	DropdownMenu,
@@ -17,11 +16,13 @@ import {
 	SidebarMenuButton,
 	SidebarMenuItem,
 } from "@/components/ui/sidebar";
+import { useSignOut } from "@/hooks/actions/use-sign-out";
 import { orpc } from "@/lib/orpc/orpc";
 import { getNameInitial } from "@/lib/utils";
 import { UserMenuActions } from "./user-menu-actions";
 
 const NavUser = () => {
+	const { signOut } = useSignOut();
 	const { data: organisations } = useQuery(
 		orpc.organization.list.queryOptions({
 			input: { pageIndex: 0, pageSize: 6 },
@@ -67,20 +68,16 @@ const NavUser = () => {
 							</SidebarMenuButton>
 						}
 					/>
-					<DropdownMenuContent
-						className="min-w-56 rounded-lg"
-						align="end"
-						sideOffset={4}
-					>
+					<DropdownMenuContent className="min-w-56" align="end" sideOffset={4}>
 						<DropdownMenuGroup>
 							<DropdownMenuLabel className="p-0 font-normal">
 								<div className="flex items-center gap-2 px-1 py-1.5 text-left text-sm">
-									<Avatar className="size-8 rounded-lg">
+									<Avatar className="size-8">
 										<AvatarImage
 											src={auth.user.image ?? undefined}
 											alt={auth.user.name}
 										/>
-										<AvatarFallback className="rounded-lg">
+										<AvatarFallback>
 											{getNameInitial(auth.user.name)}
 										</AvatarFallback>
 									</Avatar>
@@ -95,14 +92,10 @@ const NavUser = () => {
 							<DropdownMenuSeparator />
 							<UserMenuActions />
 							<DropdownMenuSeparator />
-							<DropdownMenuItem
-								render={
-									<SignOutButton className="w-full">
-										<LogOut />
-										Sign Out
-									</SignOutButton>
-								}
-							/>
+							<DropdownMenuItem variant="destructive" onClick={() => signOut()}>
+								<LogOut />
+								Sign Out
+							</DropdownMenuItem>
 						</DropdownMenuGroup>
 					</DropdownMenuContent>
 				</DropdownMenu>

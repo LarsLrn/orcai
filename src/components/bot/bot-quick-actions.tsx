@@ -4,27 +4,29 @@ import {
 	GitForkIcon,
 	Trash2Icon,
 } from "lucide-react";
-import { NewChatButton } from "@/components/chat/new-chat-button";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Separator } from "@/components/ui/separator";
+import { useCreateChat } from "@/hooks/actions/use-create-chat";
 import type { Bot } from "@/lib/orpc/schemas/bot";
 
 const BotQuickActions = ({ bot }: { bot: Bot }) => {
+	const { createChat } = useCreateChat();
+
 	return (
 		<Card>
 			<CardHeader>
 				<CardTitle className="text-base">Quick Actions</CardTitle>
 			</CardHeader>
 			<CardContent className="space-y-2">
-				<NewChatButton
+				<Button
 					variant="outline"
-					botId={bot.id}
+					onClick={() => createChat(bot.id)}
 					className="w-full justify-start gap-2"
 				>
 					<BotMessageSquareIcon className="size-4" />
 					Start Chat
-				</NewChatButton>
+				</Button>
 				<Button variant="outline" className="w-full justify-start gap-2">
 					<CopyIcon className="size-4" />
 					Duplicate

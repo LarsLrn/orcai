@@ -15,7 +15,6 @@ import { Suspense } from "react";
 import { UserWelcome } from "@/components/app/user-welcome";
 import { BotPreview } from "@/components/bot/bot-preview";
 import { ChatsPreview } from "@/components/chat/chats-preview";
-import { NewChatButton } from "@/components/chat/new-chat-button";
 import { SkeletonsArray } from "@/components/placeholders/skeletons-array";
 import { Badge } from "@/components/ui/badge";
 import { Button, buttonVariants } from "@/components/ui/button";
@@ -46,6 +45,7 @@ import {
 	ItemTitle,
 } from "@/components/ui/item";
 import { Skeleton } from "@/components/ui/skeleton";
+import { useCreateChat } from "@/hooks/actions/use-create-chat";
 import { orpc } from "@/lib/orpc/orpc";
 import { cn } from "@/lib/utils";
 
@@ -100,6 +100,7 @@ function RouteComponent() {
 }
 
 const HomeHero = () => {
+	const { createChat } = useCreateChat();
 	const { data: bots } = useSuspenseQuery(
 		orpc.bot.list.queryOptions({ input: HOME_BOT_LIST_PARAMS }),
 	);
@@ -112,10 +113,13 @@ const HomeHero = () => {
 				<div className="space-y-6 text-card-foreground">
 					<UserWelcome />
 					<div className="flex flex-wrap items-center gap-2">
-						<NewChatButton className="gap-2 px-6">
+						<Button
+							className="gap-2 px-6"
+							onClick={() => createChat(latestBot?.id)}
+						>
 							<SparklesIcon className="h-4 w-4" />
 							Start a new chat
-						</NewChatButton>
+						</Button>
 						<ButtonGroup>
 							<Link
 								to="/app/chat/setup"
@@ -151,6 +155,8 @@ const HeroLatestBotCard = ({
 	botName?: string;
 	botId?: string;
 }) => {
+	const { createChat } = useCreateChat();
+
 	return (
 		<Item className="items-start justify-between bg-card" variant="outline">
 			<ItemContent>
@@ -167,10 +173,14 @@ const HeroLatestBotCard = ({
 			<div className="mt-4 flex gap-2 self-end">
 				{botId ? (
 					<ButtonGroup>
-						<NewChatButton botId={botId} size="sm" className="gap-2">
+						<Button
+							size="sm"
+							className="gap-2"
+							onClick={() => createChat(botId)}
+						>
 							<SparklesIcon className="h-4 w-4" />
 							Start chat
-						</NewChatButton>
+						</Button>
 						<ButtonGroupSeparator />
 						<Button
 							variant="outline"
@@ -202,6 +212,7 @@ const HeroLatestBotCard = ({
 };
 
 const BotsShowcase = () => {
+	const { createChat } = useCreateChat();
 	const { data: bots } = useSuspenseQuery(
 		orpc.bot.list.queryOptions({ input: HOME_BOT_LIST_PARAMS }),
 	);
@@ -252,14 +263,14 @@ const BotsShowcase = () => {
 						<BotPreview key={bot.id} bot={bot}>
 							<CardFooter className="gap-2 pt-4">
 								<ButtonGroup className="w-full">
-									<NewChatButton
-										botId={bot.id}
+									<Button
+										onClick={() => createChat(bot.id)}
 										size="sm"
 										className="flex-1 gap-2"
 									>
 										<SparklesIcon className="h-4 w-4" />
 										Start chat
-									</NewChatButton>
+									</Button>
 									<ButtonGroupSeparator />
 
 									<Button
