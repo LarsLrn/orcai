@@ -20,8 +20,7 @@ import {
 	AlertDialogDescription,
 	AlertDialogFooter,
 	AlertDialogHeader,
-	AlertDialogOverlay,
-	AlertDialogPortal,
+	type AlertDialogOverlay,
 	AlertDialogTitle,
 } from "@/components/ui/alert-dialog";
 
@@ -119,7 +118,6 @@ const ConfirmDialogContent: React.FC<{
 		icon,
 		contentSlot,
 		customActions,
-		alertDialogOverlay,
 		alertDialogContent,
 		alertDialogHeader,
 		alertDialogTitle,
@@ -169,23 +167,20 @@ const ConfirmDialogContent: React.FC<{
 	};
 
 	return (
-		<AlertDialogPortal>
-			<AlertDialogOverlay {...alertDialogOverlay} />
-			<AlertDialogContent {...alertDialogContent}>
-				<AlertDialogHeader {...alertDialogHeader}>
-					{renderTitle()}
-					{description && (
-						<AlertDialogDescription {...alertDialogDescription}>
-							{description}
-						</AlertDialogDescription>
-					)}
-					{contentSlot}
-				</AlertDialogHeader>
-				<AlertDialogFooter {...alertDialogFooter}>
-					{renderActions()}
-				</AlertDialogFooter>
-			</AlertDialogContent>
-		</AlertDialogPortal>
+		<AlertDialogContent {...alertDialogContent}>
+			<AlertDialogHeader {...alertDialogHeader}>
+				{renderTitle()}
+				{description && (
+					<AlertDialogDescription {...alertDialogDescription}>
+						{description}
+					</AlertDialogDescription>
+				)}
+				{contentSlot}
+			</AlertDialogHeader>
+			<AlertDialogFooter {...alertDialogFooter}>
+				{renderActions()}
+			</AlertDialogFooter>
+		</AlertDialogContent>
 	);
 });
 

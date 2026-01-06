@@ -30,7 +30,7 @@ const Header = () => {
 			<SidebarTrigger className="-ml-1" variant="subtle" />
 			<Separator
 				orientation="vertical"
-				className="mr-2 data-[orientation=vertical]:h-4"
+				className="my-auto mr-2 data-[orientation=vertical]:h-7"
 			/>
 			<div className="flex w-full items-center justify-between gap-2">
 				<Breadcrumb>

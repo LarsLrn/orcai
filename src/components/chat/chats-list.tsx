@@ -71,6 +71,7 @@ const ChatsList = ({
 							<Button
 								variant="ghost"
 								className="absolute top-2 right-2 h-8 w-8 p-0 data-[state=open]:bg-muted"
+								onClick={(e) => e.preventDefault()}
 							>
 								<MoreHorizontalIcon className="h-4 w-4" />
 								<span className="sr-only">Open menu</span>
