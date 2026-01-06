@@ -56,6 +56,7 @@
 		"@orpc/tanstack-query": "1.13.2",
 		"@orpc/zod": "1.13.2",
 		"@qdrant/qdrant-js": "1.13.0",
+		"@tailwindcss/typography": "0.5.19",
 		"@tailwindcss/vite": "4.1.18",
 		"@tanstack/nitro-v2-vite-plugin": "1.141.0",
 		"@tanstack/react-devtools": "0.9.0",
