@@ -35,7 +35,8 @@ export const chatInsertSchema = createInsertSchema(chat).omit({
 
 export const chatUpdateSchema = createUpdateSchema(chat, {
 	id: chatSelectSchema.shape.id,
-	title: z.string().min(1).max(250),
+	title: z.string().min(1).max(250).optional(),
+	activeBranchId: z.uuidv4().optional(),
 }).omit({ userId: true, updatedAt: true, createdAt: true });
 
 /**

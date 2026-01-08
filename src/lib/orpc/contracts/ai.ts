@@ -17,6 +17,7 @@ export const aiChatContract = base
 			chatId: Chat["id"];
 			messages: CustomUIMessage[];
 			botId?: Bot["id"] | null | undefined;
+			branchId?: string;
 		}>(),
 	)
 	// TODO: Improve return type

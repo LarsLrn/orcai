@@ -1,6 +1,6 @@
 import { useChat } from "@ai-sdk/react";
 import { eventIteratorToUnproxiedDataStream } from "@orpc/client";
-import { useSuspenseQuery } from "@tanstack/react-query";
+import { useQueryClient, useSuspenseQuery } from "@tanstack/react-query";
 import type { ApiGetScoresResponseData } from "langfuse";
 import { toast } from "sonner";
 import {
@@ -11,6 +11,8 @@ import {
 import { TextShimmer } from "@/components/ui/motion/text-shimmer";
 import type { CustomUIMessage } from "@/lib/ai/tools";
 import { client, orpc } from "@/lib/orpc/orpc";
+import type { ChatBranch } from "@/lib/orpc/schemas/chat-branch";
+import { BranchSwitcher } from "./branch-switcher";
 import { ChatInput } from "./chat-input";
 import { ChatPlaceholder } from "./chat-placeholder";
 import { MessageBlock } from "./message/message-block";
@@ -19,11 +21,15 @@ const Chat = ({
 	id,
 	initialMessages,
 	scores,
+	branchId,
 }: {
 	id: string;
 	initialMessages: CustomUIMessage[];
 	scores: ApiGetScoresResponseData[];
+	branchId?: ChatBranch["id"];
 }) => {
+	const queryClient = useQueryClient();
+
 	const { data: chat } = useSuspenseQuery(
 		orpc.chat.find.queryOptions({ input: { id } }),
 	);
@@ -38,6 +44,7 @@ const Chat = ({
 							chatId: options.chatId,
 							messages: options.messages,
 							botId: chat.data.botId,
+							branchId,
 						},
 						{ signal: options.abortSignal },
 					),
@@ -48,6 +55,21 @@ const Chat = ({
 			},
 		},
 		messages: initialMessages,
+		onFinish: async () => {
+			// Invalidate chat data to fetch updated activeBranchId and branches
+			await queryClient.invalidateQueries({
+				queryKey: orpc.chat.find.key({ input: { id } }),
+			});
+			await queryClient.invalidateQueries({
+				queryKey: orpc.chatMessage.list.key({
+					input: {
+						chatId: id,
+						includeScores: true,
+						branchId,
+					},
+				}),
+			});
+		},
 		onError: (error) => {
 			toast.error("An error occurred, please try again!", {
 				description: error.message,
@@ -57,7 +79,11 @@ const Chat = ({
 
 	return (
 		<div className="flex size-full min-h-0 min-w-0 flex-col">
-			<Conversation className="flex w-full">
+			<div className="absolute top-2 right-4 z-10">
+				<BranchSwitcher chat={chat.data} branches={chat.data.branches} />
+			</div>
+
+			<Conversation className="flex w-full" initial="instant">
 				<ConversationContent className="mx-auto w-full max-w-200">
 					{messages.map((m) => (
 						<MessageBlock

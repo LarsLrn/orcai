@@ -6,6 +6,8 @@ import {
 	chatMessageUpdateSchema,
 } from "@/lib/orpc/schemas/chat-message";
 import { paginationSchema, statusSchema } from "@/lib/orpc/schemas/shared";
+import { chatSelectSchema } from "../schemas/chat";
+import { chatBranchSelectSchema } from "../schemas/chat-branch";
 import { base } from "./base";
 
 export const listChatMessagesContract = base
@@ -19,6 +21,7 @@ export const listChatMessagesContract = base
 		paginationSchema.extend({
 			chatId: chatMessageSelectSchema.shape.chatId,
 			includeScores: z.boolean().default(false),
+			branchId: chatBranchSelectSchema.shape.id,
 		}),
 	)
 	.output(
@@ -45,8 +48,17 @@ export const createChatMessageContract = base
 		summary: "Create a chat message",
 		tags: ["Chat Messages"],
 	})
-	.input(chatMessageInsertSchema)
-	.output(z.object({ data: chatMessageSelectSchema }));
+	.input(
+		chatMessageInsertSchema.extend({
+			branchId: chatBranchSelectSchema.shape.id.optional(),
+		}),
+	)
+	.output(
+		z.object({
+			data: chatMessageSelectSchema,
+			branchId: chatBranchSelectSchema.shape.id.optional(),
+		}),
+	);
 
 export const findChatMessageContract = base
 	.route({
@@ -71,8 +83,17 @@ export const updateChatMessageContract = base
 			data: z.object({ id: chatMessageUpdateSchema.shape.id }),
 		},
 	})
-	.input(chatMessageUpdateSchema)
-	.output(z.object({ data: chatMessageSelectSchema }));
+	.input(
+		chatMessageUpdateSchema.extend({
+			branchId: chatBranchSelectSchema.shape.id.optional(),
+		}),
+	)
+	.output(
+		z.object({
+			data: chatMessageSelectSchema,
+			branchId: chatBranchSelectSchema.shape.id.optional(),
+		}),
+	);
 
 export const deleteChatMessageContract = base
 	.route({
@@ -107,5 +128,24 @@ export const rateChatMessageContract = base
 				chatId: chatMessageSelectSchema.shape.chatId,
 				sentiment: z.number().min(1).max(5),
 			}),
+		}),
+	);
+
+export const getBranchIdForMessageContract = base
+	.route({
+		method: "GET",
+		path: "/chats/{chatId}/messages/{messageId}/branch",
+		summary: "Get the branch ID for a message",
+		tags: ["Chat Messages"],
+	})
+	.input(
+		z.object({
+			messageId: chatMessageSelectSchema.shape.id,
+			chatId: chatSelectSchema.shape.id,
+		}),
+	)
+	.output(
+		z.object({
+			branchId: chatBranchSelectSchema.shape.id,
 		}),
 	);

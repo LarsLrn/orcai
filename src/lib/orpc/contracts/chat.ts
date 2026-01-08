@@ -6,6 +6,7 @@ import {
 	chatUpdateSchema,
 } from "@/lib/orpc/schemas/chat";
 import { paginationSchema } from "@/lib/orpc/schemas/shared";
+import { chatBranchSelectSchema } from "../schemas/chat-branch";
 import { base } from "./base";
 
 export const listChatsContract = base
@@ -36,7 +37,13 @@ export const findChatContract = base
 		tags: ["Chats"],
 	})
 	.input(chatSelectSchema.pick({ id: true }))
-	.output(z.object({ data: chatSelectSchema }));
+	.output(
+		z.object({
+			data: chatSelectSchema.extend({
+				branches: z.array(chatBranchSelectSchema),
+			}),
+		}),
+	);
 
 export const updateChatContract = base
 	.route({

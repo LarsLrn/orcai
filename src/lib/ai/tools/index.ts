@@ -15,6 +15,9 @@ const metadataSchema = z.object({
 			totalTokens: z.number().optional(),
 		})
 		.optional(),
+	siblingCount: z.number().optional(),
+	siblingIndex: z.number().optional(),
+	siblingIds: z.array(z.string()).optional(),
 });
 
 type CustomMetadata = z.infer<typeof metadataSchema>;

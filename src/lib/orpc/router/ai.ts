@@ -30,13 +30,23 @@ export const aiChat = authed.ai.chat
 		try {
 			const userMessage = input.messages[input.messages.length - 1];
 
-			client.chatMessage.create({
+			// Determine parent ID if this is a regeneration/branching
+			// If we have >1 messages, the parent of the new message is the second to last message
+			const parentMessageId =
+				input.messages.length > 1
+					? input.messages[input.messages.length - 2].id
+					: undefined;
+
+			// Create initial user message in the correct branch or new branch
+			const { branchId: currentBranchId } = await client.chatMessage.create({
 				id: uuidv4(),
 				chatId: input.chatId,
 				role: "user",
 				parts: userMessage.parts,
 				attachments: [],
 				metadata: userMessage.metadata || {},
+				branchId: input.branchId,
+				parentMessageId, // Identify where we are attaching this message
 			});
 
 			if (input.messages.length < 2) {
@@ -167,6 +177,7 @@ export const aiChat = authed.ai.chat
 						parts: responseMessage.parts,
 						attachments: [],
 						metadata: responseMessage.metadata,
+						branchId: currentBranchId,
 					});
 				},
 				onError: (error) => {

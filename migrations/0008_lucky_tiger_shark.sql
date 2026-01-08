@@ -1,0 +1,1 @@
+ALTER TABLE "chat_branch" ALTER COLUMN "leaf_message_id" DROP NOT NULL;

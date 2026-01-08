@@ -42,6 +42,7 @@ import {
 	createChatMessageContract,
 	deleteChatMessageContract,
 	findChatMessageContract,
+	getBranchIdForMessageContract,
 	listChatMessagesContract,
 	rateChatMessageContract,
 	updateChatMessageContract,
@@ -166,6 +167,7 @@ export const contracts = {
 		update: updateChatMessageContract,
 		delete: deleteChatMessageContract,
 		rate: rateChatMessageContract,
+		getBranch: getBranchIdForMessageContract,
 	},
 	block: {
 		list: listBlocksContract,

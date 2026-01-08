@@ -26,6 +26,7 @@ import {
 	createChatMessage,
 	deleteChatMessages,
 	findChatMessage,
+	getBranchIdForMessage,
 	listChatMessages,
 	rateChatMessage,
 	updateChatMessage,
@@ -150,6 +151,7 @@ export const router = {
 		update: updateChatMessage,
 		delete: deleteChatMessages,
 		rate: rateChatMessage,
+		getBranch: getBranchIdForMessage,
 	},
 	block: {
 		list: listBlocks,

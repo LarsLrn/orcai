@@ -2,6 +2,7 @@ import { ORPCError } from "@orpc/server";
 import { count, desc, eq, getTableColumns, inArray } from "drizzle-orm";
 import { db } from "@/db/drizzle";
 import { chat } from "@/db/schema/chat";
+import { chatBranch } from "@/db/schema/chat-branch";
 import { authed } from "@/lib/orpc";
 import {
 	checkManyPermissionMiddleware,
@@ -47,16 +48,28 @@ export const findChat = authed.chat.find
 			}) as const,
 	)
 	.handler(async ({ input }) => {
-		const [query] = await db
-			.select({ ...getTableColumns(chat) })
-			.from(chat)
-			.where(eq(chat.id, input.id));
+		const [[data], branches] = await Promise.all([
+			db
+				.select({ ...getTableColumns(chat) })
+				.from(chat)
+				.where(eq(chat.id, input.id)),
+			db
+				.select({ ...getTableColumns(chatBranch) })
+				.from(chatBranch)
+				.where(eq(chatBranch.chatId, input.id))
+				.orderBy(desc(chatBranch.updatedAt)),
+		]);
 
-		if (!query) {
+		if (!data) {
 			throw new ORPCError("NOT_FOUND", { message: "Chat not found" });
 		}
 
-		return { data: query };
+		return {
+			data: {
+				...data,
+				branches,
+			},
+		};
 	});
 
 // TODO: Add permission check for botId
@@ -71,14 +84,31 @@ export const createChat = authed.chat.create.handler(
 			})
 			.returning({ ...getTableColumns(chat) });
 
-		await createRelation({
-			entityId: query.id,
-			entityType: "chat",
-			userId: context.auth.user.id,
-			relation: "owner",
-		});
+		// Create initial "Main" branch
+		const [mainBranch] = await db
+			.insert(chatBranch)
+			.values({
+				chatId: query.id,
+				name: "Main",
+				leafMessageId: null,
+			})
+			.returning();
 
-		return { data: query };
+		// Set active branch and create relation concurrently
+		await Promise.all([
+			db
+				.update(chat)
+				.set({ activeBranchId: mainBranch.id })
+				.where(eq(chat.id, query.id)),
+			createRelation({
+				entityId: query.id,
+				entityType: "chat",
+				userId: context.auth.user.id,
+				relation: "owner",
+			}),
+		]);
+
+		return { data: { ...query, activeBranchId: mainBranch.id } };
 	},
 );
 
@@ -93,12 +123,25 @@ export const updateChat = authed.chat.update
 			}) as const,
 	)
 	.handler(async ({ input }) => {
+		const updateData: {
+			title?: string;
+			activeBranchId?: string;
+			updatedAt: Date;
+		} = {
+			updatedAt: new Date(),
+		};
+
+		if (input.title !== undefined) {
+			updateData.title = input.title;
+		}
+
+		if (input.activeBranchId !== undefined) {
+			updateData.activeBranchId = input.activeBranchId;
+		}
+
 		const [query] = await db
 			.update(chat)
-			.set({
-				title: input.title,
-				updatedAt: new Date(),
-			})
+			.set(updateData)
 			.where(eq(chat.id, input.id))
 			.returning({ ...getTableColumns(chat) });
 
