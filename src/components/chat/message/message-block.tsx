@@ -1,16 +1,20 @@
 import type { UseChatHelpers } from "@ai-sdk/react";
 import type { UIMessage } from "ai";
 import type { ApiGetScoresResponseData } from "langfuse";
-import { Message, MessageContent } from "@/components/ai-elements/message";
+import {
+	Message,
+	MessageContent,
+	MessageToolbar,
+} from "@/components/ai-elements/message";
+import { Shimmer } from "@/components/ai-elements/shimmer";
 import { MessageEditor } from "@/components/chat/message/message-editor";
 import { InView } from "@/components/ui/motion/in-view";
-import { TextShimmer } from "@/components/ui/motion/text-shimmer";
 import type { CustomUIMessage } from "@/lib/ai/tools";
 import type { Chat } from "@/lib/orpc/schemas/chat";
+import { cn } from "@/lib/utils";
 import { useMessageEditor } from "./hooks/use-message-editor";
 import { MessageActions } from "./message-actions";
 import { MessagePartRenderer } from "./message-part-renderer";
-import { MessageModel } from "./metadata/message-model";
 import { MessageUsage } from "./metadata/message-usage";
 
 interface MessageBlockProps {
@@ -50,7 +54,7 @@ export const MessageBlock = ({
 	) {
 		return (
 			<div className="wrap-break-word sticky m-0 w-full max-w-full whitespace-pre-wrap rounded-none bg-transparent p-4 text-foreground">
-				<TextShimmer>Gathering information...</TextShimmer>
+				<Shimmer>Gathering information...</Shimmer>
 			</div>
 		);
 	}
@@ -79,7 +83,7 @@ export const MessageBlock = ({
 						status={status}
 					/>
 				) : (
-					<MessageContent variant="flat">
+					<MessageContent>
 						{sortedParts.map((part, i) => (
 							<MessagePartRenderer
 								key={`${part.type}${message.id}${i}`}
@@ -88,19 +92,21 @@ export const MessageBlock = ({
 						))}
 					</MessageContent>
 				)}
-				<div className="flex justify-between">
+				<MessageToolbar>
 					<MessageActions
 						message={message}
 						variant={variant}
 						chatId={chatId}
 						onEdit={variant === "sent" ? toggleMode : undefined}
 						score={score}
+						className={cn({ "w-full justify-end": variant === "sent" })}
 					/>
-					<div className="mt-1 flex items-center justify-end gap-2">
-						<MessageModel message={message} />
-						<MessageUsage message={message} />
-					</div>
-				</div>
+					{variant === "received" && (
+						<div className="mt-1 flex items-center justify-end gap-2">
+							<MessageUsage message={message} />
+						</div>
+					)}
+				</MessageToolbar>
 			</Message>
 		</InView>
 	);

@@ -4,6 +4,7 @@ import rehypeKatex from "rehype-katex";
 import remarkGfm from "remark-gfm";
 import remarkMath from "remark-math";
 import supersub from "remark-supersub";
+import type { BundledLanguage } from "shiki";
 import { CodeBlock } from "@/components/ai-elements/code-block";
 import { cn } from "@/lib/utils";
 
@@ -83,10 +84,14 @@ export const components: Options["components"] = {
 		</h6>
 	),
 	code: ({ node, className, children, ...props }) => {
+		const match = /language-(\w+)/.exec(className || "");
+		const language = (match ? match[1] : "text") as BundledLanguage;
+
 		return (
 			<CodeBlock
 				code={String(children)}
 				className={className || ""}
+				language={language}
 				{...props}
 			/>
 		);

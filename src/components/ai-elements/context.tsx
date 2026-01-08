@@ -1,5 +1,3 @@
-"use client";
-
 import type { LanguageModelUsage } from "ai";
 import { type ComponentProps, createContext, useContext } from "react";
 import { Button } from "@/components/ui/button";
@@ -10,6 +8,7 @@ import {
 } from "@/components/ui/hover-card";
 import { Progress } from "@/components/ui/progress";
 import { cn } from "@/lib/utils";
+import { Separator } from "../ui/separator";
 
 const PERCENT_MAX = 100;
 const ICON_RADIUS = 10;
@@ -17,10 +16,13 @@ const ICON_VIEWBOX = 24;
 const ICON_CENTER = 12;
 const ICON_STROKE_WIDTH = 2;
 
+type ModelId = string;
+
 type ContextSchema = {
 	usedTokens: number;
 	maxTokens: number;
 	usage?: LanguageModelUsage;
+	modelId?: ModelId;
 };
 
 const ContextContext = createContext<ContextSchema | null>(null);
@@ -41,6 +43,7 @@ export const Context = ({
 	usedTokens,
 	maxTokens,
 	usage,
+	modelId,
 	...props
 }: ContextProps) => (
 	<ContextContext.Provider
@@ -48,6 +51,7 @@ export const Context = ({
 			usedTokens,
 			maxTokens,
 			usage,
+			modelId,
 		}}
 	>
 		<HoverCard {...props} />
@@ -95,12 +99,14 @@ const ContextIcon = () => {
 	);
 };
 
-export type ContextTriggerProps = Omit<ComponentProps<typeof Button>, "type">;
+export type ContextTriggerProps = Omit<
+	ComponentProps<typeof Button>,
+	"type"
+> & {
+	children?: React.ReactElement;
+};
 
-export const ContextTrigger = ({
-	children,
-	...props
-}: ContextTriggerProps & { children?: React.ReactElement }) => {
+export const ContextTrigger = ({ children, ...props }: ContextTriggerProps) => {
 	const { usedTokens, maxTokens } = useContextValue();
 	const usedPercent = usedTokens / maxTokens;
 	const renderedPercent = new Intl.NumberFormat("en-US", {
@@ -111,17 +117,23 @@ export const ContextTrigger = ({
 	return (
 		<HoverCardTrigger
 			render={
-				children ?? (
-					<Button
-						type="button"
-						variant="ghost"
-						{...props}
-						className="text-muted-foreground"
-					>
-						<span className="font-medium">{renderedPercent}</span>
+				<div className="flex">
+					<Button type="button" variant="ghost" {...props}>
+						{children && (
+							<>
+								{children}
+								<Separator
+									orientation="vertical"
+									className="mx-2 my-auto h-4"
+								/>
+							</>
+						)}
+						<span className="font-medium text-muted-foreground">
+							{renderedPercent}
+						</span>
 						<ContextIcon />
 					</Button>
-				)
+				</div>
 			}
 		/>
 	);
@@ -139,13 +151,13 @@ export const ContextContent = ({
 	/>
 );
 
-export type ContextContentHeader = ComponentProps<"div">;
+export type ContextContentHeaderProps = ComponentProps<"div">;
 
 export const ContextContentHeader = ({
 	children,
 	className,
 	...props
-}: ContextContentHeader) => {
+}: ContextContentHeaderProps) => {
 	const { usedTokens, maxTokens } = useContextValue();
 	const usedPercent = usedTokens / maxTokens;
 	const displayPct = new Intl.NumberFormat("en-US", {
@@ -178,31 +190,31 @@ export const ContextContentHeader = ({
 	);
 };
 
-export type ContextContentBody = ComponentProps<"div">;
+export type ContextContentBodyProps = ComponentProps<"div">;
 
 export const ContextContentBody = ({
 	children,
 	className,
 	...props
-}: ContextContentBody) => (
+}: ContextContentBodyProps) => (
 	<div className={cn("w-full p-3", className)} {...props}>
 		{children}
 	</div>
 );
 
-export type ContextContentFooter = ComponentProps<"div">;
+export type ContextContentFooterProps = ComponentProps<"div">;
 
 export const ContextContentFooter = ({
 	children,
 	className,
 	...props
-}: ContextContentFooter) => {
+}: ContextContentFooterProps) => {
 	const { usage } = useContextValue();
 
 	return (
 		<div
 			className={cn(
-				"flex w-full items-center justify-between gap-3 p-3 text-xs",
+				"flex w-full items-center justify-between gap-3 bg-secondary p-3 text-xs",
 				className,
 			)}
 			{...props}
