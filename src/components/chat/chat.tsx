@@ -8,10 +8,10 @@ import {
 	ConversationContent,
 	ConversationScrollButton,
 } from "@/components/ai-elements/conversation";
-import { TextShimmer } from "@/components/ui/motion/text-shimmer";
 import type { CustomUIMessage } from "@/lib/ai/tools";
 import { client, orpc } from "@/lib/orpc/orpc";
 import type { ChatBranch } from "@/lib/orpc/schemas/chat-branch";
+import { Shimmer } from "../ai-elements/shimmer";
 import { BranchSwitcher } from "./branch-switcher";
 import { ChatInput } from "./chat-input";
 import { ChatPlaceholder } from "./chat-placeholder";
@@ -99,7 +99,7 @@ const Chat = ({
 					{messages.length === 0 && <ChatPlaceholder />}
 					{status === "submitted" && (
 						<div className="wrap-break-word sticky m-0 w-full max-w-full whitespace-pre-wrap rounded-none bg-transparent p-4 text-foreground">
-							<TextShimmer>Gathering information...</TextShimmer>
+							<Shimmer>Gathering information...</Shimmer>
 						</div>
 					)}
 					{status === "error" && (

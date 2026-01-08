@@ -1,113 +1,176 @@
-import { Check, Copy } from "lucide-react";
-import { useTheme } from "next-themes";
-import { useState } from "react";
-import { Prism as SyntaxHighlighter } from "react-syntax-highlighter";
-import oneDark from "react-syntax-highlighter/dist/esm/styles/prism/one-dark";
-import oneLight from "react-syntax-highlighter/dist/esm/styles/prism/one-light";
-import { toast } from "sonner";
-import { useCopyToClipboard } from "usehooks-ts";
+import { CheckIcon, CopyIcon } from "lucide-react";
+import {
+	type ComponentProps,
+	createContext,
+	type HTMLAttributes,
+	useContext,
+	useEffect,
+	useRef,
+	useState,
+} from "react";
+import { type BundledLanguage, codeToHtml, type ShikiTransformer } from "shiki";
+import { Button } from "@/components/ui/button";
+import { cn } from "@/lib/utils";
 
-interface CodeBlockProps {
+type CodeBlockProps = HTMLAttributes<HTMLDivElement> & {
 	code: string;
-	className?: string;
+	language: BundledLanguage;
 	showLineNumbers?: boolean;
-	language?: string;
+};
+
+type CodeBlockContextType = {
+	code: string;
+};
+
+const CodeBlockContext = createContext<CodeBlockContextType>({
+	code: "",
+});
+
+const lineNumberTransformer: ShikiTransformer = {
+	name: "line-numbers",
+	line(node, line) {
+		node.children.unshift({
+			type: "element",
+			tagName: "span",
+			properties: {
+				className: [
+					"inline-block",
+					"min-w-10",
+					"mr-4",
+					"text-right",
+					"select-none",
+					"text-muted-foreground",
+				],
+			},
+			children: [{ type: "text", value: String(line) }],
+		});
+	},
+};
+
+export async function highlightCode(
+	code: string,
+	language: BundledLanguage,
+	showLineNumbers = false,
+) {
+	const transformers: ShikiTransformer[] = showLineNumbers
+		? [lineNumberTransformer]
+		: [];
+
+	return await Promise.all([
+		codeToHtml(code, {
+			lang: language,
+			theme: "one-light",
+			transformers,
+		}),
+		codeToHtml(code, {
+			lang: language,
+			theme: "one-dark-pro",
+			transformers,
+		}),
+	]);
 }
 
-const CodeBlock = ({
-	className,
-	showLineNumbers = false,
-	language: overrideLanguage,
+export const CodeBlock = ({
 	code,
+	language,
+	showLineNumbers = false,
+	className,
+	children,
 	...props
 }: CodeBlockProps) => {
-	const [copied, setCopied] = useState(false);
-	const [, copy] = useCopyToClipboard();
-	const { theme } = useTheme();
+	const [html, setHtml] = useState<string>("");
+	const [darkHtml, setDarkHtml] = useState<string>("");
+	const mounted = useRef(false);
 
-	const match = /language-(\w+)/.exec(className || "");
-	const language = overrideLanguage || (match ? match[1] : "");
-	const codeContent = String(code).replace(/\n$/, "");
-	const isInline = !match && !overrideLanguage;
-
-	const handleCopy = () => {
-		toast.promise(copy(codeContent), {
-			loading: "Copying code...",
-			success: () => {
-				setCopied(true);
-				return "Code copied to clipboard!";
-			},
-			error: "Failed to copy code",
+	useEffect(() => {
+		highlightCode(code, language, showLineNumbers).then(([light, dark]) => {
+			if (!mounted.current) {
+				setHtml(light);
+				setDarkHtml(dark);
+				mounted.current = true;
+			}
 		});
-		setTimeout(() => setCopied(false), 2000);
-	};
 
-	if (isInline) {
-		return (
-			<code
-				className="rounded-md bg-zinc-100 px-1.5 py-0.5 font-normal dark:bg-zinc-600"
-				style={{
-					fontFamily:
-						"ui-monospace, SFMono-Regular, 'SF Mono', Menlo, Monaco, Consolas, 'Liberation Mono', 'Courier New', monospace",
-				}}
-				{...props}
-			>
-				{codeContent}
-			</code>
-		);
-	}
+		return () => {
+			mounted.current = false;
+		};
+	}, [code, language, showLineNumbers]);
 
 	return (
-		<div className="not-prose my-4 overflow-hidden rounded-lg border border-zinc-200 dark:border-zinc-700">
-			<div className="flex items-center justify-between bg-secondary/10 px-4 py-2 dark:bg-zinc-800">
-				<span className="font-medium text-sm text-zinc-600 dark:text-zinc-400">
-					{language || "text"}
-				</span>
-				<button
-					onClick={handleCopy}
-					className="flex items-center gap-1 rounded px-2 py-1 text-xs text-zinc-600 transition-colors hover:bg-primary/10 dark:text-zinc-400 dark:hover:bg-zinc-700"
-					type="button"
-				>
-					{copied ? (
-						<>
-							<Check className="h-3 w-3" />
-							Copied
-						</>
-					) : (
-						<>
-							<Copy className="h-3 w-3" />
-							Copy
-						</>
+		<CodeBlockContext.Provider value={{ code }}>
+			<div
+				className={cn(
+					"group relative w-full overflow-hidden rounded-md border bg-background text-foreground",
+					className,
+				)}
+				{...props}
+			>
+				<div className="relative">
+					<div
+						className="overflow-auto dark:hidden [&>pre]:m-0 [&>pre]:bg-background! [&>pre]:p-4 [&>pre]:text-foreground! [&>pre]:text-sm [&_code]:font-mono [&_code]:text-sm"
+						// biome-ignore lint/security/noDangerouslySetInnerHtml: "this is needed."
+						dangerouslySetInnerHTML={{ __html: html }}
+					/>
+					<div
+						className="hidden overflow-auto dark:block [&>pre]:m-0 [&>pre]:bg-background! [&>pre]:p-4 [&>pre]:text-foreground! [&>pre]:text-sm [&_code]:font-mono [&_code]:text-sm"
+						// biome-ignore lint/security/noDangerouslySetInnerHtml: "this is needed."
+						dangerouslySetInnerHTML={{ __html: darkHtml }}
+					/>
+					{children && (
+						<div className="absolute top-2 right-2 flex items-center gap-2">
+							{children}
+						</div>
 					)}
-				</button>
+				</div>
 			</div>
-
-			<div className="overflow-x-auto bg-transparent">
-				<SyntaxHighlighter
-					language={language}
-					style={theme === "dark" ? oneDark : oneLight}
-					customStyle={{
-						margin: 0,
-						padding: "1rem",
-						fontSize: "0.875rem",
-						borderRadius: "0",
-					}}
-					showLineNumbers={showLineNumbers}
-					lineNumberStyle={{
-						color: "hsl(var(--muted-foreground))",
-						paddingRight: "1rem",
-						minWidth: "2.5rem",
-					}}
-					codeTagProps={{
-						className: "font-mono text-sm",
-					}}
-					{...props}
-				>
-					{codeContent}
-				</SyntaxHighlighter>
-			</div>
-		</div>
+		</CodeBlockContext.Provider>
 	);
 };
 
-export { CodeBlock };
+export type CodeBlockCopyButtonProps = ComponentProps<typeof Button> & {
+	onCopy?: () => void;
+	onError?: (error: Error) => void;
+	timeout?: number;
+};
+
+export const CodeBlockCopyButton = ({
+	onCopy,
+	onError,
+	timeout = 2000,
+	children,
+	className,
+	...props
+}: CodeBlockCopyButtonProps) => {
+	const [isCopied, setIsCopied] = useState(false);
+	const { code } = useContext(CodeBlockContext);
+
+	const copyToClipboard = async () => {
+		if (typeof window === "undefined" || !navigator?.clipboard?.writeText) {
+			onError?.(new Error("Clipboard API not available"));
+			return;
+		}
+
+		try {
+			await navigator.clipboard.writeText(code);
+			setIsCopied(true);
+			onCopy?.();
+			setTimeout(() => setIsCopied(false), timeout);
+		} catch (error) {
+			onError?.(error as Error);
+		}
+	};
+
+	const Icon = isCopied ? CheckIcon : CopyIcon;
+
+	return (
+		<Button
+			className={cn("shrink-0", className)}
+			onClick={copyToClipboard}
+			size="icon"
+			variant="ghost"
+			{...props}
+		>
+			{children ?? <Icon size={14} />}
+		</Button>
+	);
+};

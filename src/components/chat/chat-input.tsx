@@ -1,14 +1,23 @@
 import type { UseChatHelpers } from "@ai-sdk/react";
 import { useQueryClient } from "@tanstack/react-query";
-import { CompassIcon, GlobeIcon, MicIcon } from "lucide-react";
-import { useState } from "react";
+import { CompassIcon, GlobeIcon } from "lucide-react";
+import { useRef } from "react";
 import {
 	PromptInput,
+	PromptInputActionAddAttachments,
+	PromptInputActionMenu,
+	PromptInputActionMenuContent,
+	PromptInputActionMenuTrigger,
+	PromptInputAttachment,
+	PromptInputAttachments,
+	PromptInputBody,
 	PromptInputButton,
+	PromptInputFooter,
 	type PromptInputMessage,
+	PromptInputProvider,
+	PromptInputSpeechButton,
 	PromptInputSubmit,
 	PromptInputTextarea,
-	PromptInputToolbar,
 	PromptInputTools,
 } from "@/components/ai-elements/prompt-input";
 import { ChatSettings } from "@/components/chat/chat-settings";
@@ -16,6 +25,7 @@ import { AppTourButton } from "@/components/next-step/app-tour-button";
 import type { CustomUIMessage } from "@/lib/ai/tools";
 import { orpc } from "@/lib/orpc/orpc";
 import type { Chat } from "@/lib/orpc/schemas/chat";
+import { ModelSelectorButton } from "./model-selector";
 
 const ChatInput = ({
 	chatId,
@@ -28,8 +38,8 @@ const ChatInput = ({
 	status: UseChatHelpers<CustomUIMessage>["status"];
 	chatLength: number;
 }) => {
-	const [text, setText] = useState<string>("");
 	const queryClient = useQueryClient();
+	const textareaRef = useRef<HTMLTextAreaElement>(null);
 
 	const handleSubmit = async (message: PromptInputMessage) => {
 		const hasText = Boolean(message.text);
@@ -43,7 +53,6 @@ const ChatInput = ({
 			text: message.text || "Sent with attachments",
 			files: message.files,
 		});
-		setText("");
 
 		if (chatLength < 2) {
 			// TODO: Ultimately this would be rolled into chat creation, where new chats are only created on the first user message.
@@ -58,43 +67,56 @@ const ChatInput = ({
 	};
 
 	return (
-		<PromptInput onSubmit={handleSubmit} className="rounded-md bg-card">
-			<PromptInputTextarea
-				onChange={(e) => setText(e.target.value)}
-				value={text}
-			/>
-			<PromptInputToolbar className="border-t">
-				<PromptInputTools>
-					<PromptInputButton>
-						<MicIcon size={16} />
-					</PromptInputButton>
-					<PromptInputButton>
-						<GlobeIcon size={16} />
-						<span>Search</span>
-					</PromptInputButton>
-					<PromptInputButton
-						render={
-							<AppTourButton
-								tour="chatTour"
-								type="button"
-								variant="ghost"
-								size="icon"
-								autoTrigger={true}
-							>
-								<CompassIcon className="size-4" />
-								<span className="sr-only">Start tour</span>
-							</AppTourButton>
-						}
-					/>
-					<PromptInputButton
-						render={
-							<ChatSettings chatId={chatId} className="text-muted-foreground" />
-						}
-					/>
-				</PromptInputTools>
-				<PromptInputSubmit disabled={!text} status={status} />
-			</PromptInputToolbar>
-		</PromptInput>
+		<PromptInputProvider>
+			<PromptInput globalDrop multiple onSubmit={handleSubmit}>
+				<PromptInputAttachments>
+					{(attachment) => <PromptInputAttachment data={attachment} />}
+				</PromptInputAttachments>
+				<PromptInputBody>
+					<PromptInputTextarea ref={textareaRef} />
+				</PromptInputBody>
+				<PromptInputFooter>
+					<PromptInputTools>
+						<PromptInputActionMenu>
+							<PromptInputActionMenuTrigger />
+							<PromptInputActionMenuContent>
+								<PromptInputActionAddAttachments />
+							</PromptInputActionMenuContent>
+						</PromptInputActionMenu>
+						<PromptInputSpeechButton textareaRef={textareaRef} />
+						<PromptInputButton>
+							<GlobeIcon size={16} />
+							<span>Search</span>
+						</PromptInputButton>
+						<PromptInputButton
+							render={
+								<AppTourButton
+									tour="chatTour"
+									type="button"
+									variant="ghost"
+									size="icon"
+									autoTrigger={true}
+								>
+									<CompassIcon className="size-4" />
+									<span className="sr-only">Start tour</span>
+								</AppTourButton>
+							}
+						/>
+						<PromptInputButton
+							render={
+								<ChatSettings
+									chatId={chatId}
+									className="text-muted-foreground"
+								/>
+							}
+						/>
+					</PromptInputTools>
+					{/* // TODO: Implement functionality for model selection */}
+					<ModelSelectorButton />
+					<PromptInputSubmit status={status} />
+				</PromptInputFooter>
+			</PromptInput>
+		</PromptInputProvider>
 	);
 };
 

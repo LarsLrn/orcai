@@ -3,7 +3,7 @@ import type { ApiGetScoresResponseData } from "langfuse";
 import { CheckIcon, StarIcon } from "lucide-react";
 import { useState } from "react";
 import { toast } from "sonner";
-import { Action } from "@/components/ai-elements/actions";
+import { MessageAction as Action } from "@/components/ai-elements/message";
 import {
 	DropdownMenu,
 	DropdownMenuContent,

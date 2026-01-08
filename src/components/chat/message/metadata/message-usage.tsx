@@ -1,3 +1,4 @@
+import { BotIcon } from "lucide-react";
 import {
 	Context,
 	ContextCacheUsage,
@@ -36,8 +37,14 @@ const MessageUsage = ({ message }: { message: CustomUIMessage }) => {
 				},
 				totalTokens: message.metadata.totalUsage.totalTokens,
 			}}
+			modelId={message.metadata.model}
 		>
-			<ContextTrigger size="sm" />
+			<ContextTrigger size="sm">
+				<span className="flex h-8 items-center gap-1 font-medium text-muted-foreground">
+					<BotIcon className="size-4" />
+					<span>{message.metadata.model}</span>
+				</span>
+			</ContextTrigger>
 			<ContextContent>
 				<ContextContentHeader />
 				<ContextContentBody>

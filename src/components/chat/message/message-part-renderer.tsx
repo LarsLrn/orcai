@@ -1,8 +1,8 @@
 import type { ToolUIPart } from "ai";
+import { MessageResponse } from "@/components/ai-elements/message";
 import type { CustomTools, CustomUIMessage } from "@/lib/ai/tools";
 import { ImagePart } from "./parts/image-part";
 import { ReasoningPart } from "./parts/reasoning-part";
-import { ResponsePart } from "./parts/text-part";
 import { ToolCallPart } from "./parts/tool-call-part";
 
 interface MessagePartRendererProps {
@@ -24,7 +24,7 @@ const MessagePartRenderer = ({ part }: MessagePartRendererProps) => {
 	}
 
 	if (part.type === "text") {
-		return <ResponsePart part={part} />;
+		return <MessageResponse>{part.text}</MessageResponse>;
 	}
 
 	return null;
