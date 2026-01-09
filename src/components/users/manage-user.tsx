@@ -229,7 +229,7 @@ const ManageUser = ({
 							defaultValue={organizationRole || "member"}
 						>
 							<SelectTrigger className="w-full">
-								<SelectValue placeholder="Select organization role" />
+								<SelectValue />
 							</SelectTrigger>
 							<SelectContent>
 								<SelectItem value="admin">
@@ -264,7 +264,7 @@ const ManageUser = ({
 							defaultValue={courseRole || "student"}
 						>
 							<SelectTrigger className="w-full">
-								<SelectValue placeholder="Select course role" />
+								<SelectValue />
 							</SelectTrigger>
 							<SelectContent>
 								<SelectItem value="instructor">

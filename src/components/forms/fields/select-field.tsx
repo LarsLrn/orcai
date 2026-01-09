@@ -20,8 +20,8 @@ const SelectField = ({
 	label,
 	options,
 	description,
-	placeholder,
-	disabled,
+	placeholder = "Select an option",
+	disabled = false,
 }: {
 	label: string;
 	options: { value: string; label: string }[] | undefined;
@@ -55,12 +55,12 @@ const SelectField = ({
 				}}
 				disabled={disabled || options === undefined || options.length === 0}
 			>
-				<SelectTrigger
-					id={id}
-					aria-invalid={isInvalid}
-					className="min-w-[120px]"
-				>
-					<SelectValue placeholder={placeholder ?? "Select an option"} />
+				<SelectTrigger id={id} aria-invalid={isInvalid} className="min-w-30">
+					<SelectValue>
+						{(value) =>
+							options?.find((o) => o.value === value)?.label ?? placeholder
+						}
+					</SelectValue>
 				</SelectTrigger>
 				<SelectContent>
 					{options?.map((option) => (

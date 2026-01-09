@@ -30,9 +30,17 @@ function RouteComponent() {
 
 	return (
 		<div className="space-y-4">
-			<Select defaultValue={type} onValueChange={(value) => setType(value)}>
-				<SelectTrigger className="w-[180px]">
-					<SelectValue placeholder="Select a block type" />
+			<Select
+				value={type ?? undefined}
+				onValueChange={(value) => setType(value)}
+			>
+				<SelectTrigger className="w-50">
+					<SelectValue>
+						{(value) =>
+							BLOCK_TYPES.find((blockType) => blockType.value === value)
+								?.label || "Select block type"
+						}
+					</SelectValue>
 				</SelectTrigger>
 				<SelectContent>
 					<SelectGroup>
