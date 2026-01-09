@@ -10,6 +10,47 @@ import { AlertTriangle, ArrowLeft, Home, RefreshCw } from "lucide-react";
 import { Button, buttonVariants } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 
+// Type for ORPC validation error structure
+interface ORPCValidationError {
+	data?: {
+		fieldErrors?: Record<string, string[]>;
+		formErrors?: string[];
+	};
+}
+
+/**
+ * Extract human-readable error messages from ORPC validation errors
+ */
+function getValidationErrorMessages(error: Error): string[] {
+	// Try to parse as ORPC error with validation data
+	const orpcError = error as Error & ORPCValidationError;
+
+	if (orpcError.data?.fieldErrors) {
+		const messages: string[] = [];
+		for (const errors of Object.values(orpcError.data.fieldErrors)) {
+			messages.push(...errors);
+		}
+		if (orpcError.data.formErrors?.length) {
+			messages.push(...orpcError.data.formErrors);
+		}
+		return messages;
+	}
+
+	// Try to parse error.message as JSON array (fallback for stringified errors)
+	try {
+		const parsed = JSON.parse(error.message);
+		if (Array.isArray(parsed)) {
+			return parsed
+				.filter((item) => item && typeof item === "object" && "message" in item)
+				.map((item) => item.message);
+		}
+	} catch {
+		// Not JSON, continue to default
+	}
+
+	return [];
+}
+
 export function DefaultErrorBoundary({ error }: ErrorComponentProps) {
 	const router = useRouter();
 	const isRoot = useMatch({
@@ -19,6 +60,10 @@ export function DefaultErrorBoundary({ error }: ErrorComponentProps) {
 
 	// TODO: Log error to an error tracking service
 	console.error(error);
+
+	// Extract validation messages if available
+	const validationMessages = getValidationErrorMessages(error);
+	const hasValidationErrors = validationMessages.length > 0;
 
 	return (
 		<div className="flex min-h-[60vh] items-center justify-center p-4">
@@ -35,9 +80,22 @@ export function DefaultErrorBoundary({ error }: ErrorComponentProps) {
 							<h1 className="font-bold text-2xl text-foreground">
 								{error.name}
 							</h1>
-							<h2 className="font-semibold text-lg text-muted-foreground">
-								{error.message}
-							</h2>
+							{hasValidationErrors ? (
+								<div className="space-y-2 text-left">
+									{validationMessages.map((msg) => (
+										<div
+											key={msg}
+											className="rounded-md bg-destructive/10 px-3 py-2 text-destructive text-sm"
+										>
+											{msg}
+										</div>
+									))}
+								</div>
+							) : (
+								<h2 className="font-semibold text-lg text-muted-foreground">
+									{error.message}
+								</h2>
+							)}
 						</div>
 
 						{/* Error Details */}
