@@ -70,7 +70,8 @@ export type FileUploadInfo<T extends UploadStatus> = {
 	? {
 			error: ClientUploadError;
 		}
-	: {});
+	: // biome-ignore lint/complexity/noBannedTypes: empty object in conditional type intentionally adds no properties
+		{});
 
 export type UploadHookControl<T extends boolean> = {
 	/**

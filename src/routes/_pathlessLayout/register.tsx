@@ -1,10 +1,8 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { createServerFn } from "@tanstack/react-start";
 import { eq, getTableColumns } from "drizzle-orm";
-import { CalendarXIcon } from "lucide-react";
 import z from "zod/v4";
 import { SignUpForm } from "@/components/auth/signup/signup-form";
-import { SimplePlaceholder } from "@/components/placeholders/simple-placeholder";
 import {
 	Card,
 	CardContent,
@@ -56,7 +54,7 @@ export const Route = createFileRoute("/_pathlessLayout/register")({
 	},
 });
 
-const _RegistrationDisabled = ({
+/* const _RegistrationDisabled = ({
 	className,
 	...props
 }: React.ComponentProps<"div">) => {
@@ -75,7 +73,7 @@ const _InvitationExpired = () => {
 			invitation.
 		</SimplePlaceholder>
 	);
-};
+}; */
 
 function RouteComponent() {
 	const { query } = Route.useLoaderData();

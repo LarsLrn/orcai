@@ -48,7 +48,7 @@ const DataTablePagination = () => {
 						</SelectContent>
 					</Select>
 				</div>
-				<div className="flex w-[100px] items-center justify-center font-medium text-sm">
+				<div className="flex w-25 items-center justify-center font-medium text-sm">
 					Page {table.getState().pagination.pageIndex + 1} of{" "}
 					{table.getPageCount()}
 				</div>

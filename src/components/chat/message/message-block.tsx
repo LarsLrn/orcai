@@ -75,7 +75,6 @@ export const MessageBlock = ({
 			>
 				{mode === "edit" && variant === "sent" ? (
 					<MessageEditor
-						chatId={chatId}
 						message={message}
 						setMode={setViewMode}
 						setMessages={setMessages}

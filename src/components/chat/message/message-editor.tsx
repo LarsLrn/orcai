@@ -3,12 +3,9 @@ import { useEffect, useRef, useState } from "react";
 import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
-/* import { deleteTrailingMessages } from "@/db/actions/ai-actions"; */
 import type { CustomUIMessage } from "@/lib/ai/tools";
-import type { Chat } from "@/lib/orpc/schemas/chat";
 
 type MessageEditorProps = {
-	chatId: Chat["id"];
 	message: CustomUIMessage;
 	setMode: React.Dispatch<React.SetStateAction<"view" | "edit">>;
 	setMessages: UseChatHelpers<CustomUIMessage>["setMessages"];
@@ -17,7 +14,6 @@ type MessageEditorProps = {
 };
 
 const MessageEditor = ({
-	chatId,
 	message,
 	setMode,
 	setMessages,
@@ -57,11 +53,6 @@ const MessageEditor = ({
 			return;
 		}
 
-		/* await deleteTrailingMessages({
-			chatId,
-			messageId: messageId,
-		}); */
-
 		setMessages((messages) => {
 			const index = messages.findIndex((m) => m.id === message.id);
 
@@ -78,7 +69,6 @@ const MessageEditor = ({
 
 						return part;
 					}),
-					/* content: draftContent, */
 				};
 
 				return [...messages.slice(0, index), updatedMessage];
