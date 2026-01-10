@@ -3,9 +3,9 @@ import { z } from "zod/v4";
 import { client } from "@/lib/orpc/orpc";
 import type { DatabaseBlock } from "@/lib/orpc/schemas/block";
 
-export const searchKnowledgeBaseTool = ({ block }: { block: DatabaseBlock }) =>
+export const searchKnowledgeBaseTool = ({ block }: { block?: DatabaseBlock }) =>
 	tool({
-		description: `ALWAYS base your response on the knowledge base. Use it to find relevant information about the user's message. If the results returned are not relevant, try to rephrase the query and search again. NEVER make up information that is not in the knowledge base. If you cannot find relevant information, respond with "I don't know". Formulate long and detailed queries to get the best results. Expand abbreviations where possible.`,
+		description: `Base your response on the knowledge base. Use it to find relevant information about the user's message. If the results returned are not relevant, try to rephrase the query and search again. NEVER make up information that is not in the knowledge base. If you cannot find relevant information, respond with "I don't know". Formulate long and detailed queries to get the best results. Expand abbreviations where possible.`,
 		inputSchema: z.object({
 			query: z
 				.string()
@@ -17,12 +17,18 @@ export const searchKnowledgeBaseTool = ({ block }: { block: DatabaseBlock }) =>
 				),
 			limit: z.coerce
 				.number()
-				.max(block.config.maxReferences)
-				.min(block.config.minReferences)
+				.max(block?.config.maxReferences ?? 10)
+				.min(block?.config.minReferences ?? 1)
 				.describe("The number of results to return.")
-				.default(block.config.defaultReferences),
+				.default(block?.config.defaultReferences ?? 5),
 		}),
 		execute: async ({ limit, detailedQuery }) => {
+			if (!block) {
+				throw new Error(
+					"No database block provided for searchKnowledgeBaseTool.",
+				);
+			}
+
 			const result = await client.assetPoint.list({
 				filters: {
 					search: detailedQuery,

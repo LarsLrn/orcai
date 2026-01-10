@@ -1,7 +1,7 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { z } from "zod/v4";
 import { Chat } from "@/components/chat/chat";
-import type { CustomUIMessage } from "@/lib/ai/tools";
+import type { ChatAgentUIMessage } from "@/lib/ai/types/chat-agent-message";
 import { orpc } from "@/lib/orpc/orpc";
 
 const searchSchema = z.object({
@@ -70,7 +70,7 @@ function RouteComponent() {
 			<Chat
 				key={`${chatId}-${loaderData.branchId ?? "new"}`}
 				id={chatId}
-				initialMessages={loaderData.messages.data as CustomUIMessage[]}
+				initialMessages={loaderData.messages.data as ChatAgentUIMessage[]}
 				scores={loaderData.messages.scores.data ?? []}
 				branchId={loaderData.branchId}
 			/>

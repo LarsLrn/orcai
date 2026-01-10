@@ -11,9 +11,9 @@ import {
 	ContextReasoningUsage,
 	ContextTrigger,
 } from "@/components/ai-elements/context";
-import type { CustomUIMessage } from "@/lib/ai/tools";
+import type { ChatAgentUIMessage } from "@/lib/ai/types/chat-agent-message";
 
-const MessageUsage = ({ message }: { message: CustomUIMessage }) => {
+const MessageUsage = ({ message }: { message: ChatAgentUIMessage }) => {
 	if (message.role === "user") return null;
 
 	if (!message.metadata?.totalUsage || !message.metadata.totalUsage.totalTokens)

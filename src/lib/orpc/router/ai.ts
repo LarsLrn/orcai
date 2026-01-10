@@ -1,32 +1,15 @@
-import { devToolsMiddleware } from "@ai-sdk/devtools";
-import { createOpenAICompatible } from "@ai-sdk/openai-compatible";
 import { ORPCError, streamToEventIterator } from "@orpc/client";
-import {
-	convertToModelMessages,
-	createUIMessageStream,
-	extractReasoningMiddleware,
-	smoothStream,
-	stepCountIs,
-	streamText,
-	wrapLanguageModel,
-} from "ai";
+import { createAgentUIStream, smoothStream } from "ai";
 import { v4 as uuidv4 } from "uuid";
+import { chatAgent } from "@/lib/ai/agents/chat-agent";
 import { generateChatTitle } from "@/lib/ai/generate-chat-title";
-import { generateImageTool } from "@/lib/ai/tools/generate-image";
-import { searchKnowledgeBaseTool } from "@/lib/ai/tools/search-knowledgebase";
-import { decryptApiKey } from "@/lib/encryption";
 import { authed } from "@/lib/orpc";
 import { requireActiveOrganizationMiddleware } from "@/lib/orpc/middlewares/auth";
 import { client } from "@/lib/orpc/orpc";
-import type {
-	DatabaseBlock,
-	ImageGenerationBlock,
-	TemplateBlock,
-} from "@/lib/orpc/schemas/block";
 
 export const aiChat = authed.ai.chat
 	.use(requireActiveOrganizationMiddleware)
-	.handler(async ({ context, input }) => {
+	.handler(async ({ input }) => {
 		try {
 			const userMessage = input.messages[input.messages.length - 1];
 
@@ -56,133 +39,66 @@ export const aiChat = authed.ai.chat
 				});
 			}
 
-			let templateBlock: TemplateBlock | undefined;
-			let imageGenerationBlock: ImageGenerationBlock | undefined;
-			let databaseBlocks: DatabaseBlock[] = [];
-
-			// If provided, fetch the bot to get its model configuration
-			if (input.botId) {
-				const botBlocks = await client.block.list({
-					filters: { botId: input.botId },
-				});
-
-				templateBlock = botBlocks.data.find(
-					(block) => block.type === "template",
-				);
-
-				imageGenerationBlock = botBlocks.data.find(
-					(block) => block.type === "imageGeneration",
-				);
-
-				databaseBlocks = botBlocks.data.filter(
-					(block) => block.type === "database",
-				);
-			}
-
-			if (!templateBlock) {
-				throw new ORPCError("BAD_REQUEST", {
-					message: "No valid template block found.",
-				});
-			}
-
-			const systemProvider = await client.provider.find({
-				slug: templateBlock.config.provider,
-			});
-
-			const organizationProvider = await client.organizationProvider.find({
-				providerSlug: templateBlock.config.provider,
-			});
-
-			const chatProvider = createOpenAICompatible({
-				baseURL: systemProvider.data.endpoint ?? "", // TODO: Fix?
-				apiKey: decryptApiKey(organizationProvider.data.apiKeyEncrypted),
-				name: systemProvider.data.slug,
-				includeUsage: true,
-			});
-
-			const model = wrapLanguageModel({
-				model: chatProvider(templateBlock.config.model),
-				middleware: [
-					devToolsMiddleware(),
-					extractReasoningMiddleware({ tagName: "think" }),
-				],
-			});
-
 			const assistantMessageId = uuidv4();
 
-			const stream = createUIMessageStream({
-				generateId: () => assistantMessageId,
-				originalMessages: input.messages,
-				execute: async ({ writer }) => {
-					const result = streamText({
-						model,
-						system:
-							templateBlock.config.systemPrompt ??
-							"You are a helpful assistant.",
-						messages: await convertToModelMessages(input.messages),
-						experimental_transform: smoothStream({
-							delayInMs: 20,
-							chunking: "word",
-						}),
-						/* experimental_telemetry: {
-              isEnabled: true,
-              metadata: {
-                langfuseTraceId: assistantMessageId,
-                sessionId: chatId,
-                courseId: activeCourseId,
-                userId: session.user.id,
-                tags: ["user", "chat"],
-              },
-            }, */
-						stopWhen: stepCountIs(5),
-						tools: {
-							...(imageGenerationBlock && {
-								generateImage: generateImageTool({
-									writer,
-									block: imageGenerationBlock,
-									organizationId: context.auth.session.activeOrganizationId,
-								}),
-							}),
-							...(databaseBlocks.length > 0 && {
-								searchKnowledgeBase: searchKnowledgeBaseTool({
-									block: databaseBlocks[0], // TODO: Support multiple databases
-								}),
-							}),
-						},
-					});
+			if (!input.botId)
+				throw new ORPCError("BAD_REQUEST", {
+					message: "botId is required.",
+				});
 
-					writer.merge(
-						result.toUIMessageStream({
-							sendReasoning: true,
-							messageMetadata: ({ part }) => {
-								if (part.type === "start") {
-									return {
-										model: model.modelId,
-									};
-								}
-								if (part.type === "finish") {
-									return {
-										totalUsage: part.totalUsage,
-									};
-								}
-							},
-						}),
-					);
+			const blocks = await client.block.list({
+				filters: { botId: input.botId },
+			});
+
+			const stream = await createAgentUIStream({
+				agent: chatAgent,
+				uiMessages: input.messages,
+				originalMessages: input.messages,
+				options: {
+					blocks: blocks.data,
 				},
-				onFinish: ({ responseMessage }) => {
-					client.chatMessage.create({
+				generateMessageId: () => assistantMessageId,
+				experimental_transform: smoothStream({
+					delayInMs: 20,
+					chunking: "word",
+				}),
+				/* experimental_telemetry: {
+					isEnabled: true,
+					metadata: {
+						langfuseTraceId: assistantMessageId,
+						sessionId: chatId,
+						courseId: activeCourseId,
+						userId: session.user.id,
+						tags: ["user", "chat"],
+					},
+				}, */
+				onFinish: async ({ responseMessage }) => {
+					console.log("AI response finished, saving message...");
+					await client.chatMessage.create({
 						id: responseMessage.id,
 						chatId: input.chatId,
 						role: responseMessage.role,
 						parts: responseMessage.parts,
 						attachments: [],
-						metadata: responseMessage.metadata,
+						metadata: responseMessage.metadata ?? {},
 						branchId: currentBranchId,
 					});
 				},
 				onError: (error) => {
 					console.error("Error in data stream execution:", error);
 					return "Oops, an error occurred while processing your request!";
+				},
+				messageMetadata: ({ part }) => {
+					if (part.type === "finish-step") {
+						return {
+							model: part.response.modelId,
+						};
+					}
+					if (part.type === "finish") {
+						return {
+							totalUsage: part.totalUsage,
+						};
+					}
 				},
 			});
 

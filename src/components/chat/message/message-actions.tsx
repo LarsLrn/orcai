@@ -7,7 +7,7 @@ import {
 	type MessageActionsProps,
 } from "@/components/ai-elements/message";
 import { MessageRate } from "@/components/chat/message/message-rate";
-import type { CustomUIMessage } from "@/lib/ai/tools";
+import type { ChatAgentUIMessage } from "@/lib/ai/types/chat-agent-message";
 import { cn } from "@/lib/utils";
 
 export const MessageActions = ({
@@ -18,7 +18,7 @@ export const MessageActions = ({
 	score,
 	className,
 }: {
-	message: CustomUIMessage;
+	message: ChatAgentUIMessage;
 	variant: "sent" | "received";
 	chatId: string;
 	onEdit?: () => void;

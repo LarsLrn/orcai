@@ -1,4 +1,3 @@
-import type { ToolUIPart } from "ai";
 import {
 	Tool,
 	ToolContent,
@@ -6,22 +5,25 @@ import {
 	ToolInput,
 	ToolOutput,
 } from "@/components/ai-elements/tool";
-import type { CustomTools } from "@/lib/ai/tools";
-import { ImageGenerationTool } from "./tools/image-generation-tool";
+import type { ChatAgentUIMessage } from "@/lib/ai/types/chat-agent-message";
 import { SearchKnowledgeBaseTool } from "./tools/search-knowledgebase-tool";
 
-export const ToolCallPart = ({ part }: { part: ToolUIPart<CustomTools> }) => {
+export const ToolCallPart = ({
+	part,
+}: {
+	part: ChatAgentUIMessage["parts"][number];
+}) => {
 	// Route to specific tool components based on tool type
-	if (part.type === "tool-generateImage") {
+	/* if (part.type === "tool-generateImage") {
 		return <ImageGenerationTool part={part} />;
-	}
+	} */
 
 	if (part.type === "tool-searchKnowledgeBase") {
 		return <SearchKnowledgeBaseTool part={part} />;
 	}
 
 	// Fallback for unknown tool types
-	return (
+	if (part.type === "dynamic-tool") {
 		<Tool defaultOpen={false}>
 			<ToolHeader type={part.type} state={part.state} />
 			<ToolContent>
@@ -31,6 +33,9 @@ export const ToolCallPart = ({ part }: { part: ToolUIPart<CustomTools> }) => {
 					errorText={part.errorText}
 				/>
 			</ToolContent>
-		</Tool>
-	);
+		</Tool>;
+	}
+
+	// Don't render unknown parts
+	return null;
 };

@@ -1,9 +1,9 @@
 import { generateText } from "ai";
+import type { ChatAgentUIMessage } from "@/lib/ai/types/chat-agent-message";
 import { getSaiaModel } from "./saia-models";
-import type { CustomUIMessage } from "./tools";
 
 export const generateChatTitle = async (params: {
-	messages: CustomUIMessage[];
+	messages: ChatAgentUIMessage[];
 }): Promise<{ title: string }> => {
 	const { messages } = params;
 

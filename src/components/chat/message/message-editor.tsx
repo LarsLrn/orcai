@@ -3,14 +3,14 @@ import { useEffect, useRef, useState } from "react";
 import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
-import type { CustomUIMessage } from "@/lib/ai/tools";
+import type { ChatAgentUIMessage } from "@/lib/ai/types/chat-agent-message";
 
 type MessageEditorProps = {
-	message: CustomUIMessage;
+	message: ChatAgentUIMessage;
 	setMode: React.Dispatch<React.SetStateAction<"view" | "edit">>;
-	setMessages: UseChatHelpers<CustomUIMessage>["setMessages"];
-	regenerate: UseChatHelpers<CustomUIMessage>["regenerate"];
-	status: UseChatHelpers<CustomUIMessage>["status"];
+	setMessages: UseChatHelpers<ChatAgentUIMessage>["setMessages"];
+	regenerate: UseChatHelpers<ChatAgentUIMessage>["regenerate"];
+	status: UseChatHelpers<ChatAgentUIMessage>["status"];
 };
 
 const MessageEditor = ({
@@ -57,7 +57,7 @@ const MessageEditor = ({
 			const index = messages.findIndex((m) => m.id === message.id);
 
 			if (index !== -1) {
-				const updatedMessage: CustomUIMessage = {
+				const updatedMessage: ChatAgentUIMessage = {
 					...message,
 					parts: message.parts?.map((part) => {
 						if (part.type === "text") {

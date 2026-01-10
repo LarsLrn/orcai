@@ -1,5 +1,4 @@
 import { type } from "@orpc/server";
-import type { CustomUIMessage } from "@/lib/ai/tools";
 import type { Bot } from "@/lib/orpc/schemas/bot";
 import type { Chat } from "@/lib/orpc/schemas/chat";
 import { base } from "./base";
@@ -15,7 +14,9 @@ export const aiChatContract = base
 	.input(
 		type<{
 			chatId: Chat["id"];
-			messages: CustomUIMessage[];
+			// Typing this properly as ChatAgentUIMessage[] would create a circular type dependency
+			// TODO: Check for a solution to fix circular type dependency
+			messages: any;
 			botId?: Bot["id"] | null | undefined;
 			branchId?: string;
 		}>(),

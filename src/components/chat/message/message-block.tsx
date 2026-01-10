@@ -1,5 +1,4 @@
 import type { UseChatHelpers } from "@ai-sdk/react";
-import type { UIMessage } from "ai";
 import type { ApiGetScoresResponseData } from "langfuse";
 import {
 	Message,
@@ -9,7 +8,7 @@ import {
 import { Shimmer } from "@/components/ai-elements/shimmer";
 import { MessageEditor } from "@/components/chat/message/message-editor";
 import { InView } from "@/components/ui/motion/in-view";
-import type { CustomUIMessage } from "@/lib/ai/tools";
+import type { ChatAgentUIMessage } from "@/lib/ai/types/chat-agent-message";
 import type { Chat } from "@/lib/orpc/schemas/chat";
 import { cn } from "@/lib/utils";
 import { useMessageEditor } from "./hooks/use-message-editor";
@@ -18,11 +17,11 @@ import { MessagePartRenderer } from "./message-part-renderer";
 import { MessageUsage } from "./metadata/message-usage";
 
 interface MessageBlockProps {
-	message: CustomUIMessage;
+	message: ChatAgentUIMessage;
 	chatId: Chat["id"];
-	setMessages: UseChatHelpers<CustomUIMessage>["setMessages"];
+	setMessages: UseChatHelpers<ChatAgentUIMessage>["setMessages"];
 	regenerate: () => Promise<void>;
-	status: UseChatHelpers<UIMessage>["status"];
+	status: UseChatHelpers<ChatAgentUIMessage>["status"];
 	score?: ApiGetScoresResponseData;
 }
 
@@ -37,15 +36,31 @@ export const MessageBlock = ({
 	const { mode, toggleMode, setViewMode } = useMessageEditor();
 	const variant = message.role === "user" ? "sent" : "received";
 
-	// Sort message parts to place "text" type parts at the end
-	const sortedParts = [...message.parts].sort((a, b) => {
-		// If a is text and b is not text, a should come after b
-		if (a.type === "text" && b.type !== "text") return 1;
-		// If b is text and a is not text, b should come after a
-		if (b.type === "text" && a.type !== "text") return -1;
-		// Otherwise, maintain original order
-		return 0;
-	});
+	// Filter and sort message parts:
+	// keep only the last text part; keep all non-text parts
+	// Some models tend to generate text WITH their tool calls, which this filters out
+	const sortedParts = (() => {
+		const parts = [...message.parts];
+
+		let lastTextIndex = -1;
+		for (let i = parts.length - 1; i >= 0; i--) {
+			if (parts[i].type === "text") {
+				lastTextIndex = i;
+				break;
+			}
+		}
+
+		const filteredParts = parts.filter((part, index) => {
+			if (part.type !== "text") return true;
+			return index === lastTextIndex;
+		});
+
+		return filteredParts.sort((a, b) => {
+			if (a.type === "text" && b.type !== "text") return 1;
+			if (b.type === "text" && a.type !== "text") return -1;
+			return 0;
+		});
+	})();
 
 	if (
 		status === "streaming" &&

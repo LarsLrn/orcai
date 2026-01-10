@@ -1,0 +1,27 @@
+import type { InferAgentUIMessage } from "ai";
+import { z } from "zod/v4";
+import type { chatAgent } from "../agents/chat-agent";
+
+const metadataSchema = z.object({
+	model: z.string().optional(),
+	totalUsage: z
+		.object({
+			cachedInputTokens: z.number().optional(),
+			inputTokens: z.number().optional(),
+			outputTokens: z.number().optional(),
+			reasoningTokens: z.number().optional(),
+			totalTokens: z.number().optional(),
+		})
+		.optional(),
+	siblingCount: z.number().optional(),
+	siblingIndex: z.number().optional(),
+	siblingIds: z.array(z.string()).optional(),
+});
+
+export type ChatAgentMessageMetadata = z.infer<typeof metadataSchema>;
+
+// Define the agent type independently to avoid circular dependency
+export type ChatAgentUIMessage = InferAgentUIMessage<
+	typeof chatAgent,
+	ChatAgentMessageMetadata
+>;

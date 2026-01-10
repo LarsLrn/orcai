@@ -22,7 +22,7 @@ import {
 } from "@/components/ai-elements/prompt-input";
 import { ChatSettings } from "@/components/chat/chat-settings";
 import { AppTourButton } from "@/components/next-step/app-tour-button";
-import type { CustomUIMessage } from "@/lib/ai/tools";
+import type { ChatAgentUIMessage } from "@/lib/ai/types/chat-agent-message";
 import { orpc } from "@/lib/orpc/orpc";
 import type { Chat } from "@/lib/orpc/schemas/chat";
 import { ModelSelectorButton } from "./model-selector";
@@ -34,8 +34,8 @@ const ChatInput = ({
 	chatLength,
 }: {
 	chatId: Chat["id"];
-	sendMessage: UseChatHelpers<CustomUIMessage>["sendMessage"];
-	status: UseChatHelpers<CustomUIMessage>["status"];
+	sendMessage: UseChatHelpers<ChatAgentUIMessage>["sendMessage"];
+	status: UseChatHelpers<ChatAgentUIMessage>["status"];
 	chatLength: number;
 }) => {
 	const queryClient = useQueryClient();

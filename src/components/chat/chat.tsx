@@ -8,7 +8,7 @@ import {
 	ConversationContent,
 	ConversationScrollButton,
 } from "@/components/ai-elements/conversation";
-import type { CustomUIMessage } from "@/lib/ai/tools";
+import type { ChatAgentUIMessage } from "@/lib/ai/types/chat-agent-message";
 import { client, orpc } from "@/lib/orpc/orpc";
 import type { ChatBranch } from "@/lib/orpc/schemas/chat-branch";
 import { Shimmer } from "../ai-elements/shimmer";
@@ -24,7 +24,7 @@ const Chat = ({
 	branchId,
 }: {
 	id: string;
-	initialMessages: CustomUIMessage[];
+	initialMessages: ChatAgentUIMessage[];
 	scores: ApiGetScoresResponseData[];
 	branchId?: ChatBranch["id"];
 }) => {
@@ -34,48 +34,49 @@ const Chat = ({
 		orpc.chat.find.queryOptions({ input: { id } }),
 	);
 
-	const { messages, status, setMessages, regenerate, sendMessage } = useChat({
-		id,
-		transport: {
-			async sendMessages(options) {
-				return eventIteratorToUnproxiedDataStream(
-					await client.ai.chat(
-						{
-							chatId: options.chatId,
-							messages: options.messages,
-							botId: chat.data.botId,
+	const { messages, status, setMessages, regenerate, sendMessage } =
+		useChat<ChatAgentUIMessage>({
+			id,
+			transport: {
+				async sendMessages(options) {
+					return eventIteratorToUnproxiedDataStream(
+						await client.ai.chat(
+							{
+								chatId: options.chatId,
+								messages: options.messages,
+								botId: chat.data.botId,
+								branchId,
+							},
+							{ signal: options.abortSignal },
+						),
+					);
+				},
+				reconnectToStream() {
+					throw new Error("Unsupported");
+				},
+			},
+			messages: initialMessages,
+			onFinish: async () => {
+				// Invalidate chat data to fetch updated activeBranchId and branches
+				await queryClient.invalidateQueries({
+					queryKey: orpc.chat.find.key({ input: { id } }),
+				});
+				await queryClient.invalidateQueries({
+					queryKey: orpc.chatMessage.list.key({
+						input: {
+							chatId: id,
+							includeScores: true,
 							branchId,
 						},
-						{ signal: options.abortSignal },
-					),
-				);
+					}),
+				});
 			},
-			reconnectToStream() {
-				throw new Error("Unsupported");
+			onError: (error) => {
+				toast.error("An error occurred, please try again!", {
+					description: error.message,
+				});
 			},
-		},
-		messages: initialMessages,
-		onFinish: async () => {
-			// Invalidate chat data to fetch updated activeBranchId and branches
-			await queryClient.invalidateQueries({
-				queryKey: orpc.chat.find.key({ input: { id } }),
-			});
-			await queryClient.invalidateQueries({
-				queryKey: orpc.chatMessage.list.key({
-					input: {
-						chatId: id,
-						includeScores: true,
-						branchId,
-					},
-				}),
-			});
-		},
-		onError: (error) => {
-			toast.error("An error occurred, please try again!", {
-				description: error.message,
-			});
-		},
-	});
+		});
 
 	return (
 		<div className="flex size-full min-h-0 min-w-0 flex-col">
