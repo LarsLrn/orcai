@@ -8,6 +8,7 @@ import { NotFound } from "./components/boundaries/not-found";
 import type { OrpcOutputs } from "./lib/orpc/contracts";
 import { deLocalizeUrl, localizeUrl } from "./paraglide/runtime";
 import { routeTree } from "./routeTree.gen";
+import { COOKIES } from "./settings/constants";
 
 export function getRouter() {
 	const serializer = new StandardRPCJsonSerializer();
@@ -19,7 +20,9 @@ export function getRouter() {
 				const d = data as OrpcOutputs["chat"]["create"];
 				// Global listener: If ANY mutation returns a zedToken, save it.
 				if (d.meta?.zedToken) {
-					Cookies.set("zed_token", d.meta.zedToken, { expires: 1 });
+					Cookies.set(COOKIES.ZED_TOKEN.name, d.meta.zedToken, {
+						expires: COOKIES.ZED_TOKEN.expires,
+					});
 				}
 			},
 		}),
