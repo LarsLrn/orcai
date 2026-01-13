@@ -8,10 +8,10 @@ import {
 	ConversationContent,
 	ConversationScrollButton,
 } from "@/components/ai-elements/conversation";
+import { Shimmer } from "@/components/ai-elements/shimmer";
 import type { ChatAgentUIMessage } from "@/lib/ai/types/chat-agent-message";
 import { client, orpc } from "@/lib/orpc/orpc";
 import type { ChatBranch } from "@/lib/orpc/schemas/chat-branch";
-import { Shimmer } from "../ai-elements/shimmer";
 import { BranchSwitcher } from "./branch-switcher";
 import { ChatInput } from "./chat-input";
 import { ChatPlaceholder } from "./chat-placeholder";

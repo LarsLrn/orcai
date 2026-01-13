@@ -1,6 +1,6 @@
 import type { InferAgentUIMessage } from "ai";
 import { z } from "zod/v4";
-import type { chatAgent } from "../agents/chat-agent";
+import type { chatAgent } from "@/lib/ai/agents/chat-agent";
 
 const metadataSchema = z.object({
 	model: z.string().optional(),
@@ -20,7 +20,6 @@ const metadataSchema = z.object({
 
 export type ChatAgentMessageMetadata = z.infer<typeof metadataSchema>;
 
-// Define the agent type independently to avoid circular dependency
 export type ChatAgentUIMessage = InferAgentUIMessage<
 	typeof chatAgent,
 	ChatAgentMessageMetadata

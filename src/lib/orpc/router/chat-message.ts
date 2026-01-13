@@ -17,7 +17,7 @@ import { chatMessage } from "@/db/schema/chat-message";
 import { langfuseServer } from "@/lib/langfuse/langfuse-server";
 import { authed } from "@/lib/orpc";
 import { checkPermissionMiddleware } from "@/lib/orpc/middlewares/permission";
-import type { ChatMessage } from "../schemas/chat-message";
+import type { ChatMessage } from "@/lib/orpc/schemas/chat-message";
 
 export const listChatMessages = authed.chatMessage.list
 	.use(

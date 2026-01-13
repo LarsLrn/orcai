@@ -1,4 +1,6 @@
 import { z } from "zod/v4";
+import { chatSelectSchema } from "@/lib/orpc/schemas/chat";
+import { chatBranchSelectSchema } from "@/lib/orpc/schemas/chat-branch";
 import {
 	chatMessageDeleteSchema,
 	chatMessageInsertSchema,
@@ -6,8 +8,6 @@ import {
 	chatMessageUpdateSchema,
 } from "@/lib/orpc/schemas/chat-message";
 import { paginationSchema, statusSchema } from "@/lib/orpc/schemas/shared";
-import { chatSelectSchema } from "../schemas/chat";
-import { chatBranchSelectSchema } from "../schemas/chat-branch";
 import { base } from "./base";
 
 export const listChatMessagesContract = base

@@ -12,8 +12,8 @@ import {
 	ModelSelectorLogoGroup,
 	ModelSelectorName,
 	ModelSelectorTrigger,
-} from "../ai-elements/model-selector";
-import { PromptInputButton } from "../ai-elements/prompt-input";
+} from "@/components/ai-elements/model-selector";
+import { PromptInputButton } from "@/components/ai-elements/prompt-input";
 
 const models = [
 	{

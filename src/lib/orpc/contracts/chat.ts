@@ -5,8 +5,8 @@ import {
 	chatSelectSchema,
 	chatUpdateSchema,
 } from "@/lib/orpc/schemas/chat";
+import { chatBranchSelectSchema } from "@/lib/orpc/schemas/chat-branch";
 import { paginationSchema } from "@/lib/orpc/schemas/shared";
-import { chatBranchSelectSchema } from "../schemas/chat-branch";
 import { base } from "./base";
 
 export const listChatsContract = base

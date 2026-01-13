@@ -7,8 +7,8 @@ import {
 	HoverCardTrigger,
 } from "@/components/ui/hover-card";
 import { Progress } from "@/components/ui/progress";
+import { Separator } from "@/components/ui/separator";
 import { cn } from "@/lib/utils";
-import { Separator } from "../ui/separator";
 
 const PERCENT_MAX = 100;
 const ICON_RADIUS = 10;
