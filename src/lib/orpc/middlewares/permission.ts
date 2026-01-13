@@ -13,6 +13,9 @@ const permissionBase = os
 			session: typeof authClient.$Infer.Session.session;
 			user: typeof authClient.$Infer.Session.user;
 		};
+		meta?: {
+			zedToken?: string;
+		};
 	}>()
 	.errors({
 		FORBIDDEN: {
@@ -22,7 +25,10 @@ const permissionBase = os
 				entityIds: z.array(z.string()).optional(),
 				action: z.string().optional(),
 				entityType: z.string().optional(),
+				zedToken: z.string().optional(),
 			}),
+			message: "You do not have permission to perform this action.",
+			status: 403,
 		},
 	});
 
@@ -37,9 +43,9 @@ export const checkPermissionMiddleware = withName(
 				zedToken?: string;
 			},
 		) => {
-			const { entityId, action, entityType, zedToken } = input;
+			const { entityId, action, entityType } = input;
 
-			console.log("Zed Token in middleware:", zedToken);
+			const zedToken = input.zedToken ?? context.meta?.zedToken;
 
 			const relation = await checkRelation({
 				entityId: entityId,
@@ -59,6 +65,7 @@ export const checkPermissionMiddleware = withName(
 						entityId,
 						action,
 						entityType,
+						zedToken,
 					},
 				});
 			}
@@ -77,15 +84,19 @@ export const checkManyPermissionMiddleware = withName(
 				entityIds: string[];
 				action: Action;
 				entityType: EntityType;
+				zedToken?: string;
 			},
 		) => {
 			const { entityIds, action, entityType } = input;
+
+			const zedToken = input.zedToken || context.meta?.zedToken;
 
 			const relation = await checkManyRelations({
 				entityIds,
 				entityType,
 				action,
 				userId: context.auth.user.id,
+				zedToken,
 			});
 
 			const allowedIds = relation.pairs
@@ -108,6 +119,7 @@ export const checkManyPermissionMiddleware = withName(
 						entityIds,
 						action,
 						entityType,
+						zedToken,
 					},
 				});
 			}

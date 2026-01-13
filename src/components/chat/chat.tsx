@@ -1,7 +1,6 @@
 import { useChat } from "@ai-sdk/react";
 import { eventIteratorToUnproxiedDataStream } from "@orpc/client";
 import { useQueryClient, useSuspenseQuery } from "@tanstack/react-query";
-import { useRouteContext } from "@tanstack/react-router";
 import type { ApiGetScoresResponseData } from "langfuse";
 import { toast } from "sonner";
 import {
@@ -31,9 +30,8 @@ const Chat = ({
 }) => {
 	const queryClient = useQueryClient();
 
-	const { zedToken } = useRouteContext({ from: "/app" });
 	const { data: chat } = useSuspenseQuery(
-		orpc.chat.find.queryOptions({ input: { id, zedToken } }),
+		orpc.chat.find.queryOptions({ input: { id } }),
 	);
 
 	const { messages, status, setMessages, regenerate, sendMessage } =

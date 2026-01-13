@@ -12,14 +12,14 @@ export const Route = createFileRoute("/app/chat/$chatId/")({
 	validateSearch: searchSchema,
 	loaderDeps: ({ search: { branch } }) => ({ branch }),
 	loader: async ({
-		context: { queryClient, zedToken },
+		context: { queryClient },
 		params: { chatId },
 		deps: { branch },
 	}) => {
 		// Fetch the chat to get activeBranchId if branch is not specified
 		const chat = await queryClient.ensureQueryData(
 			orpc.chat.find.queryOptions({
-				input: { id: chatId, zedToken },
+				input: { id: chatId },
 			}),
 		);
 
@@ -37,7 +37,6 @@ export const Route = createFileRoute("/app/chat/$chatId/")({
 					includeScores: true,
 					branchId,
 					pageSize: 100,
-					zedToken,
 				},
 			}),
 		);

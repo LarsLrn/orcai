@@ -1,9 +1,11 @@
 import { StandardRPCJsonSerializer } from "@orpc/client/standard";
-import { QueryClient } from "@tanstack/react-query";
+import { MutationCache, QueryClient } from "@tanstack/react-query";
 import { createRouter } from "@tanstack/react-router";
 import { setupRouterSsrQueryIntegration } from "@tanstack/react-router-ssr-query";
+import Cookies from "js-cookie";
 import { DefaultErrorBoundary } from "./components/boundaries/default-error";
 import { NotFound } from "./components/boundaries/not-found";
+import type { OrpcOutputs } from "./lib/orpc/contracts";
 import { deLocalizeUrl, localizeUrl } from "./paraglide/runtime";
 import { routeTree } from "./routeTree.gen";
 
@@ -11,6 +13,16 @@ export function getRouter() {
 	const serializer = new StandardRPCJsonSerializer();
 
 	const queryClient = new QueryClient({
+		mutationCache: new MutationCache({
+			onSuccess: (data) => {
+				// Provides just a tiny bit of type safety, assuming all procedures follow the same meta structure (which they should)
+				const d = data as OrpcOutputs["chat"]["create"];
+				// Global listener: If ANY mutation returns a zedToken, save it.
+				if (d.meta?.zedToken) {
+					Cookies.set("zed_token", d.meta.zedToken, { expires: 1 });
+				}
+			},
+		}),
 		defaultOptions: {
 			queries: {
 				queryKeyHashFn(queryKey) {

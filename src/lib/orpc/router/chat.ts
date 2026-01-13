@@ -45,7 +45,6 @@ export const findChat = authed.chat.find
 				entityId: input.id,
 				action: "read",
 				entityType: "chat",
-				consistency: "fullyConsistent",
 				zedToken: input.zedToken,
 			}) as const,
 	)

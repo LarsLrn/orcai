@@ -20,7 +20,6 @@ export const useCreateChat = () => {
 				await navigate({
 					to: "/app/chat/$chatId",
 					params: { chatId: result.data.id },
-					search: { zedToken: result.meta?.zedToken },
 				});
 				trackEvent("chat-create", { chatId: result.data.id });
 				return "New chat created";

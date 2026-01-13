@@ -6,8 +6,10 @@ import {
 	StrictGetMethodPlugin,
 } from "@orpc/server/plugins";
 import { createFileRoute } from "@tanstack/react-router";
+import { getCookie } from "@tanstack/react-start/server";
 import { z } from "zod/v4";
 import { router } from "@/lib/orpc/router";
+import { COOKIES, HEADERS } from "@/settings/constants";
 
 const handler = new RPCHandler(router, {
 	clientInterceptors: [
@@ -62,6 +64,7 @@ const handler = new RPCHandler(router, {
 		},
 	],
 	plugins: [
+		new RequestHeadersPlugin(),
 		new BatchHandlerPlugin(),
 		new StrictGetMethodPlugin(),
 		new CompressionPlugin(),
@@ -72,9 +75,17 @@ export const Route = createFileRoute("/api/rpc/$")({
 	server: {
 		handlers: {
 			ANY: async ({ request }) => {
+				// 1. Try explicit header (from Client Fetch)
+				let zedToken = request.headers.get(HEADERS.X_ZED_TOKEN) || undefined;
+
+				// 2. Fallback to Cookie (from SSR/Loader calls)
+				if (!zedToken) {
+					zedToken = getCookie(COOKIES.ZED_TOKEN.name);
+				}
+
 				const { response } = await handler.handle(request, {
 					prefix: "/api/rpc",
-					context: { headers: request.headers },
+					context: { headers: request.headers, meta: { zedToken } },
 				});
 
 				return response ?? new Response("Not Found", { status: 404 });

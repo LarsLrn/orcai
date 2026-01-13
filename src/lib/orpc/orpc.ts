@@ -6,6 +6,8 @@ import { createRouterClient } from "@orpc/server";
 import { createTanstackQueryUtils } from "@orpc/tanstack-query";
 import { createIsomorphicFn } from "@tanstack/react-start";
 import { getRequestHeaders } from "@tanstack/react-start/server";
+import Cookies from "js-cookie";
+import { COOKIES, HEADERS } from "@/settings/constants";
 import { queryDefaults } from "./query-defaults";
 import { router } from "./router";
 
@@ -27,6 +29,10 @@ const getORPCClient = createIsomorphicFn()
 	.client((): RouterClient<typeof router> => {
 		const link = new RPCLink({
 			url: `${window.location.origin}/api/rpc`,
+			headers: () => {
+				const token = Cookies.get(COOKIES.ZED_TOKEN.name);
+				return token ? { [HEADERS.X_ZED_TOKEN]: token } : {};
+			},
 			plugins: [
 				new BatchLinkPlugin({
 					groups: [
