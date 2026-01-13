@@ -4,7 +4,7 @@ import {
 	ToolHeader,
 	ToolOutput,
 } from "@/components/ai-elements/tool";
-import type { GenerateImageToolPart } from "@/lib/ai/tools";
+import type { GenerateImageToolPart } from "@/lib/ai/types/tools";
 
 export const ImageGenerationTool = ({
 	part,

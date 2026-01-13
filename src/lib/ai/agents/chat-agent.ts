@@ -4,13 +4,15 @@ import { searchKnowledgeBaseTool } from "@/lib/ai/tools/search-knowledgebase";
 import { getChatAiSettings } from "@/lib/ai/utils/get-chat-ai-settings";
 import { blockSelectSchema } from "@/lib/orpc/schemas/block";
 
+export const chatAgentToolSet = {
+	searchKnowledgeBase: searchKnowledgeBaseTool({
+		block: undefined, // Placeholder, will be set in prepareCall
+	}),
+};
+
 export const chatAgent = new ToolLoopAgent({
 	model: {} as unknown as LanguageModel, // Placeholder, will be set in prepareCall
-	tools: {
-		searchKnowledgeBase: searchKnowledgeBaseTool({
-			block: undefined, // Placeholder, will be set in prepareCall
-		}),
-	},
+	tools: chatAgentToolSet,
 	callOptionsSchema: z.object({
 		blocks: z.array(blockSelectSchema),
 	}),

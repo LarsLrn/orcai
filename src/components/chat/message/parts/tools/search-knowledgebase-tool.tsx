@@ -14,7 +14,7 @@ import {
 	PopoverContent,
 	PopoverTrigger,
 } from "@/components/ui/popover";
-import type { SearchKnowledgeBaseToolPart } from "@/lib/ai/tools";
+import type { SearchKnowledgeBaseToolPart } from "@/lib/ai/types/tools";
 
 const SearchKnowledgeBaseTool = ({
 	part,
