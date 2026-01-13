@@ -1,36 +1,20 @@
 import { v1 } from "@authzed/authzed-node";
-import { os } from "@orpc/server";
-import { z } from "zod/v4";
 import type { authClient } from "@/lib/auth-client";
+import { os } from "@/lib/orpc/implementation/base";
 import { checkManyRelations, checkRelation } from "@/lib/spice-db/actions";
 import type { Action, EntityType } from "@/lib/spice-db/types";
 import { withName } from "./utils";
 
-const permissionBase = os
-	.$context<{
-		auth: {
-			isAuthenticated: true;
-			session: typeof authClient.$Infer.Session.session;
-			user: typeof authClient.$Infer.Session.user;
-		};
-		meta?: {
-			zedToken?: string;
-		};
-	}>()
-	.errors({
-		FORBIDDEN: {
-			data: z.object({
-				allowed: z.boolean(),
-				entityId: z.string().optional(),
-				entityIds: z.array(z.string()).optional(),
-				action: z.string().optional(),
-				entityType: z.string().optional(),
-				zedToken: z.string().optional(),
-			}),
-			message: "You do not have permission to perform this action.",
-			status: 403,
-		},
-	});
+const permissionBase = os.$context<{
+	auth: {
+		isAuthenticated: true;
+		session: typeof authClient.$Infer.Session.session;
+		user: typeof authClient.$Infer.Session.user;
+	};
+	meta?: {
+		zedToken?: string;
+	};
+}>();
 
 export const checkPermissionMiddleware = withName(
 	permissionBase.middleware(
@@ -62,7 +46,6 @@ export const checkPermissionMiddleware = withName(
 				throw errors.FORBIDDEN({
 					data: {
 						allowed: false,
-						entityId,
 						action,
 						entityType,
 						zedToken,
@@ -116,7 +99,6 @@ export const checkManyPermissionMiddleware = withName(
 				throw errors.FORBIDDEN({
 					data: {
 						allowed: false,
-						entityIds,
 						action,
 						entityType,
 						zedToken,

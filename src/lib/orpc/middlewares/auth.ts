@@ -1,36 +1,32 @@
-import { ORPCError, os } from "@orpc/server";
+import { ORPCError } from "@orpc/server";
 import { eq } from "drizzle-orm";
 import { db } from "@/db/drizzle";
 import { user } from "@/db/schema/auth";
 import { auth as betterAuth } from "@/lib/auth";
 import type { authClient } from "@/lib/auth-client";
+import { os } from "../implementation/base";
 import { withName } from "./utils";
 
 export const requiredAuthMiddleware = withName(
 	os
 		.$context<{
-			headers: Headers;
+			reqHeaders?: Headers | undefined;
 			auth?: {
 				isAuthenticated?: boolean;
 				session?: typeof authClient.$Infer.Session.session;
 				user?: typeof authClient.$Infer.Session.user;
 			};
 		}>()
-		.errors({
-			UNAUTHORIZED: {
-				message: "You must be logged in to access this resource.",
-				status: 401,
-			},
-		})
 		.middleware(async ({ context, next }) => {
-			/**
-			 * Why we should ?? here?
-			 * Because it can avoid `getSession` being called when unnecessary.
-			 * {@link https://orpc.unnoq.com/docs/best-practices/dedupe-middleware}
-			 */
+			if (!context.reqHeaders) {
+				throw new ORPCError("BAD_REQUEST", {
+					message: "Request headers are required for authentication.",
+				});
+			}
+
 			const auth =
 				context.auth ??
-				(await betterAuth.api.getSession({ headers: context.headers }));
+				(await betterAuth.api.getSession({ headers: context.reqHeaders }));
 
 			if (!auth?.session || !auth?.user) {
 				throw new ORPCError("UNAUTHORIZED", {
@@ -61,12 +57,6 @@ export const requireActiveOrganizationMiddleware = withName(
 				user: typeof authClient.$Infer.Session.user;
 			};
 		}>()
-		.errors({
-			BAD_REQUEST: {
-				message: "No active organization for the current session.",
-				status: 400,
-			},
-		})
 		.middleware(({ context, next }) => {
 			if (!context.auth.session.activeOrganizationId) {
 				throw new ORPCError("BAD_REQUEST", {
@@ -98,12 +88,6 @@ export const requirePreferencesMiddleware = withName(
 				user: typeof authClient.$Infer.Session.user;
 			};
 		}>()
-		.errors({
-			NOT_FOUND: {
-				message: "User preferences not found.",
-				status: 404,
-			},
-		})
 		.middleware(async ({ context, next }) => {
 			const [userPrefs] = await db
 				.select({ preferences: user.preferences })
