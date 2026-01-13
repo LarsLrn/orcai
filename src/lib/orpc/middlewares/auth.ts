@@ -4,7 +4,7 @@ import { db } from "@/db/drizzle";
 import { user } from "@/db/schema/auth";
 import { auth as betterAuth } from "@/lib/auth";
 import type { authClient } from "@/lib/auth-client";
-import { os } from "../implementation/base";
+import { os } from "@/lib/orpc/implementation/os";
 import { withName } from "./utils";
 
 export const requiredAuthMiddleware = withName(

@@ -5,7 +5,7 @@ import { assetTable } from "@/db/schema/asset";
 import { blockAssetTable } from "@/db/schema/block";
 import { taskTable } from "@/db/schema/task";
 import { authed } from "@/lib/orpc/implementation/authed";
-import { os } from "@/lib/orpc/implementation/base";
+import { os } from "@/lib/orpc/implementation/os";
 import { client } from "@/lib/orpc/orpc";
 import { getFileTypeFromMime } from "@/lib/s3/upload-helpers";
 import { processAssetTask } from "@/trigger/process-asset-task";

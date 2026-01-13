@@ -1,6 +1,6 @@
 import { v1 } from "@authzed/authzed-node";
 import type { authClient } from "@/lib/auth-client";
-import { os } from "@/lib/orpc/implementation/base";
+import { os } from "@/lib/orpc/implementation/os";
 import { checkManyRelations, checkRelation } from "@/lib/spice-db/actions";
 import type { Action, EntityType } from "@/lib/spice-db/types";
 import { withName } from "./utils";
