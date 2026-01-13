@@ -2,7 +2,7 @@ import { ORPCError } from "@orpc/server";
 import { count, eq, getTableColumns, inArray, or } from "drizzle-orm";
 import { db } from "@/db/drizzle";
 import { courseInvitation } from "@/db/schema/course-invitation";
-import { authed } from "@/lib/orpc";
+import { authed } from "@/lib/orpc/implementation/authed";
 import { requireActiveOrganizationMiddleware } from "@/lib/orpc/middlewares/auth";
 
 export const listCourseInvitations = authed.courseInvitation.list.handler(

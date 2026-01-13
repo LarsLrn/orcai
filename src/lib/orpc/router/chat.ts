@@ -3,7 +3,7 @@ import { count, desc, eq, getTableColumns, inArray } from "drizzle-orm";
 import { db } from "@/db/drizzle";
 import { chat } from "@/db/schema/chat";
 import { chatBranch } from "@/db/schema/chat-branch";
-import { authed } from "@/lib/orpc";
+import { authed } from "@/lib/orpc/implementation/authed";
 import {
 	checkManyPermissionMiddleware,
 	checkPermissionMiddleware,

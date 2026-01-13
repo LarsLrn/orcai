@@ -3,7 +3,7 @@ import { and, count, eq, getTableColumns, inArray } from "drizzle-orm";
 import { db } from "@/db/drizzle";
 import { organizationProviderTable } from "@/db/schema/model";
 import { encryptApiKey } from "@/lib/encryption";
-import { authed } from "@/lib/orpc";
+import { authed } from "@/lib/orpc/implementation/authed";
 import { requireActiveOrganizationMiddleware } from "@/lib/orpc/middlewares/auth";
 
 export const listOrganizationProviders = authed.organizationProvider.list

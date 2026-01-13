@@ -10,7 +10,7 @@ import {
 import { db } from "@/db/drizzle";
 import { blockAssetTable, blockTable } from "@/db/schema/block";
 import { botBlockTable } from "@/db/schema/bot";
-import { authed } from "@/lib/orpc";
+import { authed } from "@/lib/orpc/implementation/authed";
 import { requireActiveOrganizationMiddleware } from "@/lib/orpc/middlewares/auth";
 import {
 	checkManyPermissionMiddleware,

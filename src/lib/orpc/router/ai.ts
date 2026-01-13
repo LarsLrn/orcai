@@ -3,7 +3,7 @@ import { createAgentUIStream, smoothStream } from "ai";
 import { v4 as uuidv4 } from "uuid";
 import { chatAgent } from "@/lib/ai/agents/chat-agent";
 import { generateChatTitle } from "@/lib/ai/generate-chat-title";
-import { authed } from "@/lib/orpc";
+import { authed } from "@/lib/orpc/implementation/authed";
 import { requireActiveOrganizationMiddleware } from "@/lib/orpc/middlewares/auth";
 import { client } from "@/lib/orpc/orpc";
 

@@ -3,7 +3,7 @@ import { and, count, eq, getTableColumns } from "drizzle-orm";
 import { db } from "@/db/drizzle";
 import { account, session, user } from "@/db/schema/auth";
 import { auth } from "@/lib/auth";
-import { authed } from "@/lib/orpc";
+import { authed } from "@/lib/orpc/implementation/authed";
 import { requirePreferencesMiddleware } from "@/lib/orpc/middlewares/auth";
 
 export const listUsers = authed.user.list.handler(async ({ input }) => {

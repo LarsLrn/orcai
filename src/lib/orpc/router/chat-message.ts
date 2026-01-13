@@ -15,7 +15,7 @@ import { chat } from "@/db/schema/chat";
 import { chatBranch } from "@/db/schema/chat-branch";
 import { chatMessage } from "@/db/schema/chat-message";
 import { langfuseServer } from "@/lib/langfuse/langfuse-server";
-import { authed } from "@/lib/orpc";
+import { authed } from "@/lib/orpc/implementation/authed";
 import { checkPermissionMiddleware } from "@/lib/orpc/middlewares/permission";
 import type { ChatMessage } from "@/lib/orpc/schemas/chat-message";
 

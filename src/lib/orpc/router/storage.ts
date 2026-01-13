@@ -1,7 +1,7 @@
 import { GetObjectCommand, PutObjectCommand } from "@aws-sdk/client-s3";
 import { getSignedUrl } from "@aws-sdk/s3-request-presigner";
 import { v4 as uuidv4 } from "uuid";
-import { authed } from "@/lib/orpc";
+import { authed } from "@/lib/orpc/implementation/authed";
 import { s3Client } from "@/lib/s3/s3-client";
 import { getFileTypeFromMime } from "@/lib/s3/upload-helpers";
 import { createBucketIfNotExists } from "@/lib/s3/utils";

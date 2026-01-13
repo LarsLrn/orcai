@@ -2,7 +2,7 @@ import { ORPCError } from "@orpc/server";
 import { eq, getTableColumns } from "drizzle-orm";
 import { db } from "@/db/drizzle";
 import { providerTable } from "@/db/schema/model";
-import { authed } from "@/lib/orpc";
+import { authed } from "@/lib/orpc/implementation/authed";
 
 export const listProviders = authed.provider.list.handler(async () => {
 	const providers = await db

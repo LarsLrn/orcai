@@ -2,7 +2,7 @@ import { ORPCError } from "@orpc/server";
 import { and, count, eq, getTableColumns, inArray } from "drizzle-orm";
 import { db } from "@/db/drizzle";
 import { member } from "@/db/schema/organization";
-import { authed } from "@/lib/orpc";
+import { authed } from "@/lib/orpc/implementation/authed";
 import { createRelation } from "@/lib/spice-db/actions";
 
 export const listOrganizationMembers = authed.organizationMember.list.handler(

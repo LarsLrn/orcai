@@ -6,7 +6,7 @@ import {
 	modelCapabilityTable,
 	modelTable,
 } from "@/db/schema/model";
-import { authed } from "@/lib/orpc";
+import { authed } from "@/lib/orpc/implementation/authed";
 import type { Capability } from "@/lib/orpc/schemas/capability";
 import type { Model } from "@/lib/orpc/schemas/model";
 

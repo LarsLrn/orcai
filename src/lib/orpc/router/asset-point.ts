@@ -1,5 +1,5 @@
 import { generateEmbedding } from "@/lib/ai/embedding";
-import { authed } from "@/lib/orpc";
+import { authed } from "@/lib/orpc/implementation/authed";
 import { qdrant } from "@/qdrant/qdrant";
 import { qdrantCollections } from "@/qdrant/qdrant-constants";
 import type { QdrantPoints } from "@/types/qdrant";
