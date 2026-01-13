@@ -1,12 +1,13 @@
 import { trace } from "@opentelemetry/api";
 import { ORPCError, onError, ValidationError } from "@orpc/server";
 import { CompressionPlugin, RPCHandler } from "@orpc/server/fetch";
+import { getCookie } from "@orpc/server/helpers";
 import {
 	BatchHandlerPlugin,
+	RequestHeadersPlugin,
 	StrictGetMethodPlugin,
 } from "@orpc/server/plugins";
 import { createFileRoute } from "@tanstack/react-router";
-import { getCookie } from "@tanstack/react-start/server";
 import { z } from "zod/v4";
 import { router } from "@/lib/orpc/router";
 import { COOKIES, HEADERS } from "@/settings/constants";
@@ -80,12 +81,12 @@ export const Route = createFileRoute("/api/rpc/$")({
 
 				// 2. Fallback to Cookie (from SSR/Loader calls)
 				if (!zedToken) {
-					zedToken = getCookie(COOKIES.ZED_TOKEN.name);
+					zedToken = getCookie(request.headers, COOKIES.ZED_TOKEN.name);
 				}
 
 				const { response } = await handler.handle(request, {
 					prefix: "/api/rpc",
-					context: { headers: request.headers, meta: { zedToken } },
+					context: { reqHeaders: request.headers, meta: { zedToken } },
 				});
 
 				return response ?? new Response("Not Found", { status: 404 });

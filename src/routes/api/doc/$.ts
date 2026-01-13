@@ -4,14 +4,17 @@ import { OpenAPIGenerator } from "@orpc/openapi";
 import { OpenAPIHandler } from "@orpc/openapi/fetch";
 import { OpenAPIReferencePlugin } from "@orpc/openapi/plugins";
 import { ORPCError, onError, ValidationError } from "@orpc/server";
+import { getCookie } from "@orpc/server/helpers";
 import {
 	BatchHandlerPlugin,
+	RequestHeadersPlugin,
 	StrictGetMethodPlugin,
 } from "@orpc/server/plugins";
 import { ZodToJsonSchemaConverter } from "@orpc/zod/zod4";
 import { createFileRoute } from "@tanstack/react-router";
 import { z } from "zod/v4";
 import { router } from "@/lib/orpc/router";
+import { COOKIES, HEADERS } from "@/settings/constants";
 
 const openAPIGenerator = new OpenAPIGenerator({
 	schemaConverters: [new ZodToJsonSchemaConverter()],
@@ -22,12 +25,19 @@ const specFromRouter = await openAPIGenerator.generate(router, {
 		title: "SokratesT API Documentation",
 		version: "1.0.0",
 	},
-	security: [{ bearerAuth: [] }],
+	security: [{ bearerAuth: [], zedToken: [] }],
 	components: {
 		securitySchemes: {
 			bearerAuth: {
 				type: "http",
 				scheme: "bearer",
+			},
+			zedToken: {
+				type: "apiKey",
+				in: "header",
+				name: HEADERS.X_ZED_TOKEN,
+				description:
+					"ZedToken for SpiceDB consistency. Optional and not a secret.",
 			},
 		},
 	},
@@ -86,6 +96,7 @@ const openAPIHandler = new OpenAPIHandler(router, {
 		},
 	],
 	plugins: [
+		new RequestHeadersPlugin(),
 		new BatchHandlerPlugin(),
 		/**
 		 * Restricts GET methods to only use GET requests:
@@ -110,6 +121,9 @@ const openAPIHandler = new OpenAPIHandler(router, {
 						bearerAuth: {
 							token: "default-token",
 						},
+						zedToken: {
+							token: "some-zed-token",
+						},
 					},
 				},
 			},
@@ -117,26 +131,25 @@ const openAPIHandler = new OpenAPIHandler(router, {
 	],
 });
 
-async function handle({ request }: { request: Request }) {
-	const { response } = await openAPIHandler.handle(request, {
-		prefix: "/api/doc",
-		context: {
-			headers: request.headers,
-		},
-	});
-
-	return response ?? new Response("Not found", { status: 404 });
-}
-
 export const Route = createFileRoute("/api/doc/$")({
 	server: {
 		handlers: {
-			HEAD: handle,
-			GET: handle,
-			POST: handle,
-			PUT: handle,
-			PATCH: handle,
-			DELETE: handle,
+			ANY: async ({ request }) => {
+				// 1. Try explicit header (from Client Fetch)
+				let zedToken = request.headers.get(HEADERS.X_ZED_TOKEN) || undefined;
+
+				// 2. Fallback to Cookie (from SSR/Loader calls)
+				if (!zedToken) {
+					zedToken = getCookie(request.headers, COOKIES.ZED_TOKEN.name);
+				}
+
+				const { response } = await openAPIHandler.handle(request, {
+					prefix: "/api/doc",
+					context: { reqHeaders: request.headers, meta: { zedToken } },
+				});
+
+				return response ?? new Response("Not Found", { status: 404 });
+			},
 		},
 	},
 });
