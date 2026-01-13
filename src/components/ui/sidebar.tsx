@@ -3,6 +3,7 @@
 import { mergeProps } from "@base-ui/react/merge-props";
 import { useRender } from "@base-ui/react/use-render";
 import { cva, type VariantProps } from "class-variance-authority";
+import Cookies from "js-cookie";
 import { PanelLeftIcon } from "lucide-react";
 import * as React from "react";
 import { Button } from "@/components/ui/button";
@@ -71,6 +72,16 @@ function SidebarProvider({
 	// This is the internal state of the sidebar.
 	// We use openProp and setOpenProp for control from outside the component.
 	const [_open, _setOpen] = React.useState(defaultOpen);
+
+	React.useEffect(() => {
+		const cookieSidebarState = Cookies.get(SIDEBAR_COOKIE_NAME);
+		if (cookieSidebarState === "open") {
+			_setOpen(true);
+		} else if (cookieSidebarState === "closed") {
+			_setOpen(false);
+		}
+	}, []);
+
 	const open = openProp ?? _open;
 	const setOpen = React.useCallback(
 		(value: boolean | ((value: boolean) => boolean)) => {
@@ -82,8 +93,9 @@ function SidebarProvider({
 			}
 
 			// This sets the cookie to keep the sidebar state.
-			// biome-ignore lint/suspicious/noDocumentCookie: <TODO: Refactor to use a better storage solution>
-			document.cookie = `${SIDEBAR_COOKIE_NAME}=${openState}; path=/; max-age=${SIDEBAR_COOKIE_MAX_AGE}`;
+			Cookies.set(SIDEBAR_COOKIE_NAME, openState ? "open" : "closed", {
+				expires: SIDEBAR_COOKIE_MAX_AGE / (60 * 60 * 24),
+			});
 		},
 		[setOpenProp, open],
 	);
