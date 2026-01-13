@@ -1,6 +1,5 @@
 import type { CreateRouterUtilsOptions } from "@orpc/tanstack-query";
 import { keepPreviousData } from "@tanstack/react-query";
-import type { OrpcOutputs } from "./contracts";
 import { type client, orpc } from "./orpc";
 
 export const queryDefaults: CreateRouterUtilsOptions<
@@ -143,21 +142,7 @@ export const queryDefaults: CreateRouterUtilsOptions<
 		},
 		create: {
 			mutationOptions: {
-				onSuccess: (output, _input, _, ctx) => {
-					/**
-					 * Cache needs to be updated directly as SpiceDB takes time to propagate changes and the query will return stale data if we wait for the next refetch.
-					 */
-					ctx.client.setQueriesData(
-						{ queryKey: orpc.chat.list.key() },
-						(oldData: OrpcOutputs["chat"]["list"] | undefined) => {
-							if (!oldData) return { data: [output.data], rowCount: 1 };
-							return {
-								data: [output.data, ...oldData.data],
-								rowCount: oldData.rowCount + 1,
-							};
-						},
-					);
-
+				onSuccess: (_output, _input, _, ctx) => {
 					ctx.client.invalidateQueries({
 						queryKey: orpc.chat.key(),
 					});
