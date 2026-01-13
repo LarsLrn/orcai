@@ -9,7 +9,7 @@ import { checkManyRelations, checkRelation } from "@/lib/spice-db/actions";
 import type { Action, EntityType } from "@/lib/spice-db/types";
 import { withName } from "./utils";
 
-const base = os
+const permissionBase = os
 	.$context<{
 		auth: {
 			isAuthenticated: true;
@@ -24,7 +24,7 @@ const base = os
 	});
 
 export const checkPermissionMiddleware = withName(
-	base.middleware(
+	permissionBase.middleware(
 		async (
 			{ context, next, errors },
 			input: {
@@ -73,7 +73,7 @@ export const checkPermissionMiddleware = withName(
 );
 
 export const checkManyPermissionMiddleware = withName(
-	base.middleware(
+	permissionBase.middleware(
 		async (
 			{ context, next, errors },
 			input: {

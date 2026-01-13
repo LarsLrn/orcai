@@ -120,7 +120,9 @@ const openAPIHandler = new OpenAPIHandler(router, {
 async function handle({ request }: { request: Request }) {
 	const { response } = await openAPIHandler.handle(request, {
 		prefix: "/api/doc",
-		context: {},
+		context: {
+			headers: request.headers,
+		},
 	});
 
 	return response ?? new Response("Not found", { status: 404 });

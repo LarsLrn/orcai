@@ -1,5 +1,4 @@
 import { ORPCError, os } from "@orpc/server";
-import { getRequest } from "@tanstack/react-start/server";
 import { eq } from "drizzle-orm";
 import { db } from "@/db/drizzle";
 import { user } from "@/db/schema/auth";
@@ -10,6 +9,7 @@ import { withName } from "./utils";
 export const requiredAuthMiddleware = withName(
 	os
 		.$context<{
+			headers: Headers;
 			auth?: {
 				isAuthenticated?: boolean;
 				session?: typeof authClient.$Infer.Session.session;
@@ -28,10 +28,9 @@ export const requiredAuthMiddleware = withName(
 			 * Because it can avoid `getSession` being called when unnecessary.
 			 * {@link https://orpc.unnoq.com/docs/best-practices/dedupe-middleware}
 			 */
-			const { headers } = getRequest();
-
 			const auth =
-				context.auth ?? (await betterAuth.api.getSession({ headers }));
+				context.auth ??
+				(await betterAuth.api.getSession({ headers: context.headers }));
 
 			if (!auth?.session || !auth?.user) {
 				throw new ORPCError("UNAUTHORIZED", {
@@ -41,6 +40,7 @@ export const requiredAuthMiddleware = withName(
 
 			return next({
 				context: {
+					...context,
 					auth: {
 						isAuthenticated: true as const,
 						session: auth.session,
