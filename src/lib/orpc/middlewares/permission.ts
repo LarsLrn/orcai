@@ -1,9 +1,6 @@
 import { v1 } from "@authzed/authzed-node";
 import { os } from "@orpc/server";
-import { and, eq } from "drizzle-orm";
 import { z } from "zod/v4";
-import { db } from "@/db/drizzle";
-import { zedTokenTable } from "@/db/schema/zed-token";
 import type { authClient } from "@/lib/auth-client";
 import { checkManyRelations, checkRelation } from "@/lib/spice-db/actions";
 import type { Action, EntityType } from "@/lib/spice-db/types";
@@ -19,7 +16,13 @@ const permissionBase = os
 	}>()
 	.errors({
 		FORBIDDEN: {
-			data: z.object({ allowed: z.boolean() }),
+			data: z.object({
+				allowed: z.boolean(),
+				entityId: z.string().optional(),
+				entityIds: z.array(z.string()).optional(),
+				action: z.string().optional(),
+				entityType: z.string().optional(),
+			}),
 		},
 	});
 
@@ -31,28 +34,19 @@ export const checkPermissionMiddleware = withName(
 				entityId: string;
 				action: Action;
 				entityType: EntityType;
+				zedToken?: string;
 			},
 		) => {
-			const { entityId, action, entityType } = input;
+			const { entityId, action, entityType, zedToken } = input;
 
-			const [token] = await db
-				.select({ zedToken: zedTokenTable.zedToken })
-				.from(zedTokenTable)
-				.where(
-					and(
-						eq(zedTokenTable.resourceId, entityId),
-						eq(zedTokenTable.resourceType, entityType),
-					),
-				);
-
-			console.log("Zed Token fetched in middleware:", token);
+			console.log("Zed Token in middleware:", zedToken);
 
 			const relation = await checkRelation({
 				entityId: entityId,
 				entityType,
 				action,
 				userId: context.auth.user.id,
-				zedToken: token?.zedToken,
+				zedToken,
 			});
 
 			if (
@@ -62,6 +56,9 @@ export const checkPermissionMiddleware = withName(
 				throw errors.FORBIDDEN({
 					data: {
 						allowed: false,
+						entityId,
+						action,
+						entityType,
 					},
 				});
 			}
@@ -108,6 +105,9 @@ export const checkManyPermissionMiddleware = withName(
 				throw errors.FORBIDDEN({
 					data: {
 						allowed: false,
+						entityIds,
+						action,
+						entityType,
 					},
 				});
 			}

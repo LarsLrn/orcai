@@ -7,7 +7,11 @@ import {
 	chatMessageSelectSchema,
 	chatMessageUpdateSchema,
 } from "@/lib/orpc/schemas/chat-message";
-import { paginationSchema, statusSchema } from "@/lib/orpc/schemas/shared";
+import {
+	paginationSchema,
+	statusSchema,
+	zedTokenSchema,
+} from "@/lib/orpc/schemas/shared";
 import { base } from "./base";
 
 export const listChatMessagesContract = base
@@ -18,7 +22,9 @@ export const listChatMessagesContract = base
 		tags: ["Chat Messages"],
 	})
 	.input(
-		paginationSchema.extend({
+		z.object({
+			...paginationSchema.shape,
+			...zedTokenSchema.shape,
 			chatId: chatMessageSelectSchema.shape.chatId,
 			includeScores: z.boolean().default(false),
 			branchId: chatBranchSelectSchema.shape.id,
@@ -67,7 +73,13 @@ export const findChatMessageContract = base
 		summary: "Find a chat message",
 		tags: ["Chat Messages"],
 	})
-	.input(chatMessageSelectSchema.pick({ chatId: true, id: true }))
+	.input(
+		z.object({
+			chatId: chatMessageSelectSchema.shape.chatId,
+			id: chatMessageSelectSchema.shape.id,
+			...zedTokenSchema.shape,
+		}),
+	)
 	.output(z.object({ data: chatMessageSelectSchema }));
 
 export const updateChatMessageContract = base

@@ -1,0 +1,1 @@
+DROP TABLE "zed_token" CASCADE;

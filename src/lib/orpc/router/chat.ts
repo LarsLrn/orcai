@@ -16,6 +16,7 @@ export const listChats = authed.chat.list.handler(
 			userId: context.auth.user.id,
 			action: "read",
 			entityType: "chat",
+			zedToken: input.zedToken,
 		});
 
 		const [data, [rowCount]] = await Promise.all([
@@ -45,6 +46,7 @@ export const findChat = authed.chat.find
 				action: "read",
 				entityType: "chat",
 				consistency: "fullyConsistent",
+				zedToken: input.zedToken,
 			}) as const,
 	)
 	.handler(async ({ input }) => {
@@ -95,7 +97,7 @@ export const createChat = authed.chat.create.handler(
 			.returning();
 
 		// Set active branch and create relation concurrently
-		await Promise.all([
+		const [, relationResult] = await Promise.all([
 			db
 				.update(chat)
 				.set({ activeBranchId: mainBranch.id })
@@ -108,7 +110,10 @@ export const createChat = authed.chat.create.handler(
 			}),
 		]);
 
-		return { data: { ...query, activeBranchId: mainBranch.id } };
+		return {
+			data: { ...query, activeBranchId: mainBranch.id },
+			meta: { zedToken: relationResult.data.zedToken },
+		};
 	},
 );
 

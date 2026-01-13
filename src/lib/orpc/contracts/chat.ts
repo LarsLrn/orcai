@@ -6,7 +6,7 @@ import {
 	chatUpdateSchema,
 } from "@/lib/orpc/schemas/chat";
 import { chatBranchSelectSchema } from "@/lib/orpc/schemas/chat-branch";
-import { paginationSchema } from "@/lib/orpc/schemas/shared";
+import { paginationSchema, zedTokenSchema } from "@/lib/orpc/schemas/shared";
 import { base } from "./base";
 
 export const listChatsContract = base
@@ -16,7 +16,12 @@ export const listChatsContract = base
 		summary: "List all chats",
 		tags: ["Chats"],
 	})
-	.input(paginationSchema)
+	.input(
+		z.object({
+			...paginationSchema.shape,
+			...zedTokenSchema.shape,
+		}),
+	)
 	.output(z.object({ data: z.array(chatSelectSchema), rowCount: z.number() }));
 
 export const createChatContract = base
@@ -27,7 +32,12 @@ export const createChatContract = base
 		tags: ["Chats"],
 	})
 	.input(chatInsertSchema)
-	.output(z.object({ data: chatSelectSchema }));
+	.output(
+		z.object({
+			data: chatSelectSchema,
+			meta: zedTokenSchema.optional(),
+		}),
+	);
 
 export const findChatContract = base
 	.route({
@@ -36,7 +46,12 @@ export const findChatContract = base
 		summary: "Find a chat",
 		tags: ["Chats"],
 	})
-	.input(chatSelectSchema.pick({ id: true }))
+	.input(
+		z.object({
+			...chatSelectSchema.pick({ id: true }).shape,
+			...zedTokenSchema.shape,
+		}),
+	)
 	.output(
 		z.object({
 			data: chatSelectSchema.extend({

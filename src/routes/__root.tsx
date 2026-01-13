@@ -19,6 +19,7 @@ import { ConfirmDialogProvider } from "@/components/ui/dialog/confirm-dialog";
 import { Toaster } from "@/components/ui/sonner";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import { auth } from "@/lib/auth";
+import { zedTokenSchema } from "@/lib/orpc/schemas/shared";
 import { seo } from "@/lib/seo";
 import { cn } from "@/lib/utils";
 import { getLocale } from "@/paraglide/runtime";
@@ -41,8 +42,11 @@ const getSession = createServerFn({ method: "GET" }).handler(async () => {
 export const Route = createRootRouteWithContext<{
 	queryClient: QueryClient;
 }>()({
-	beforeLoad: async () => {
+	validateSearch: zedTokenSchema.optional(),
+	beforeLoad: async ({ search }) => {
 		const session = await getSession();
+
+		const zedToken = search?.zedToken;
 
 		// Check if session and user actually exist
 		if (!session?.session || !session?.user) {
@@ -50,6 +54,7 @@ export const Route = createRootRouteWithContext<{
 				auth: {
 					isAuthenticated: false as const,
 				},
+				zedToken,
 			};
 		}
 
@@ -59,6 +64,7 @@ export const Route = createRootRouteWithContext<{
 				session: session.session,
 				user: session.user,
 			},
+			zedToken,
 		};
 	},
 	head: () => ({

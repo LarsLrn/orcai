@@ -64,6 +64,13 @@
       "when": 1767799671102,
       "tag": "0008_lucky_tiger_shark",
       "breakpoints": true
+    },
+    {
+      "idx": 9,
+      "version": "7",
+      "when": 1768321135761,
+      "tag": "0009_furry_cyclops",
+      "breakpoints": true
     }
   ]
 }

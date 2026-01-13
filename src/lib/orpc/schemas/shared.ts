@@ -13,3 +13,7 @@ export const statusSchema = z.object({
 	success: z.boolean(),
 	message: z.string().optional(),
 });
+
+export const zedTokenSchema = z.object({
+	zedToken: z.string().optional(),
+});

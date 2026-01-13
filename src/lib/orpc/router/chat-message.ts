@@ -27,6 +27,7 @@ export const listChatMessages = authed.chatMessage.list
 				entityId: input.chatId,
 				action: "read",
 				entityType: "chat",
+				zedToken: input.zedToken,
 			}) as const,
 	)
 	.handler(async ({ input }) => {
@@ -169,6 +170,7 @@ export const findChatMessage = authed.chatMessage.find
 				entityId: input.chatId,
 				action: "read",
 				entityType: "chat",
+				zedToken: input.zedToken,
 			}) as const,
 	)
 	.handler(async ({ input }) => {
