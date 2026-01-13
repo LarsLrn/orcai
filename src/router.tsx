@@ -50,6 +50,7 @@ export function getRouter() {
 
 	const router = createRouter({
 		routeTree,
+		defaultViewTransition: true,
 		rewrite: {
 			input: ({ url }) => deLocalizeUrl(url),
 			output: ({ url }) => localizeUrl(url),
