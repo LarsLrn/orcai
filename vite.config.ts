@@ -51,6 +51,10 @@ export default defineConfig({
 		}),
 		tailwindcss(),
 		tanstackStart(),
-		viteReact(),
+		viteReact({
+			babel: {
+				plugins: ["babel-plugin-react-compiler"],
+			},
+		}),
 	],
 });
