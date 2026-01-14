@@ -132,10 +132,6 @@ VITE_BASE_URL=http://localhost:3000
 TRIGGER_SECRET_KEY=your_trigger_dev_secret_key
 TRIGGER_API_URL=https://your-trigger-instance.com
 
-# Document Processing
-DOCLING_API=https://your-docling-api.com
-DOCLING_API_KEY=your_docling_api_key
-
 # AI Services (OpenAI-compatible API)
 OPENAI_COMPATIBLE_BASE_URL=https://your-ai-provider.com/v1
 OPENAI_COMPATIBLE_API_KEY=your_ai_api_key
