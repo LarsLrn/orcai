@@ -13,12 +13,13 @@ import {
 	DropdownMenuSeparator,
 	DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
+import { clientEnv } from "@/lib/env/client";
 import { orpc } from "@/lib/orpc/orpc";
 import type { CourseInvitation } from "@/lib/orpc/schemas/course-invitations";
 
 const handleCopy = (id: CourseInvitation["id"]) => {
 	// TODO: Replace with actual URL generation logic (useRouter)
-	const url = `${import.meta.env.VITE_BASE_URL}/signup?invitationId=${id}`;
+	const url = `${clientEnv.VITE_BASE_URL}/signup?invitationId=${id}`;
 
 	toast.promise(navigator.clipboard.writeText(url), {
 		loading: "Copying invitation link...",

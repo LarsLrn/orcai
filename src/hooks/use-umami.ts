@@ -1,10 +1,12 @@
-/** biome-ignore-all lint/complexity/useOptionalChain: <need typeof check for SSR safety> */
+import { clientEnv } from "@/lib/env/client";
+
 export function useUmami() {
 	const identifyUser = (
 		uniqueId: string,
 		data: { name: string; email: string },
 	) => {
-		if (!import.meta.env.PROD) return;
+		if (!clientEnv.VITE_UMAMI_SCRIPT_URL || !clientEnv.VITE_UMAMI_WEBSITE_ID)
+			return;
 
 		if (typeof window !== "undefined" && window.umami) {
 			window.umami.identify(uniqueId, data);
@@ -12,7 +14,8 @@ export function useUmami() {
 	};
 
 	const trackEvent = (eventName: string, eventData?: Record<string, any>) => {
-		if (!import.meta.env.PROD) return;
+		if (!clientEnv.VITE_UMAMI_SCRIPT_URL || !clientEnv.VITE_UMAMI_WEBSITE_ID)
+			return;
 
 		if (typeof window !== "undefined" && window.umami) {
 			window.umami.track(eventName, eventData);

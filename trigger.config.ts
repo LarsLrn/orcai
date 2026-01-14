@@ -1,8 +1,8 @@
-import "dotenv/config";
 import { defineConfig } from "@trigger.dev/sdk";
+import { serverEnv } from "@/lib/env/server";
 
 export default defineConfig({
-	project: process.env.TRIGGER_PROJECT || "default",
+	project: serverEnv.TRIGGER_PROJECT,
 	runtime: "node",
 	logLevel: "log",
 	maxDuration: 300,

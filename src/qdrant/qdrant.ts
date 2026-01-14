@@ -1,4 +1,5 @@
 import { QdrantClient } from "@qdrant/qdrant-js";
+import { serverEnv } from "@/lib/env/server";
 import { qdrantCollections } from "./qdrant-constants";
 
 let client: QdrantClient | null = null;
@@ -49,9 +50,9 @@ const getQdrantClient = async (): Promise<QdrantClient> => {
 	if (client) return client;
 
 	client = new QdrantClient({
-		url: process.env.QDRANT_URL,
+		url: serverEnv.QDRANT_URL,
 		port: null,
-		apiKey: process.env.QDRANT_API_KEY,
+		apiKey: serverEnv.QDRANT_API_KEY,
 	});
 
 	// Init only once when client is first created

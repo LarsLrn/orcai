@@ -1,5 +1,6 @@
 import { adminClient, inferAdditionalFields } from "better-auth/client/plugins";
 import { createAuthClient } from "better-auth/react";
+import { clientEnv } from "@/lib/env/client";
 
 export const authClient = createAuthClient({
 	plugins: [
@@ -14,5 +15,5 @@ export const authClient = createAuthClient({
 			},
 		}),
 	],
-	baseURL: process.env.VITE_BASE_URL,
+	baseURL: clientEnv.VITE_BASE_URL,
 });

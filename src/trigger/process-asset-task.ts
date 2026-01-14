@@ -4,6 +4,7 @@ import {
 	type SerializedDocument,
 	serializeDoclingDocument,
 } from "@/lib/ai/docling-serialize";
+import { serverEnv } from "@/lib/env/server";
 import {
 	createPresignedUrlToDownload,
 	deletePrefixRecursively,
@@ -87,7 +88,7 @@ export const processAssetTask = task({
 		});
 	},
 	run: async (payload: ProcessAssetTaskPayload) => {
-		const doclingApi = `${process.env.OPENAI_COMPATIBLE_BASE_URL}/documents/convert`;
+		const doclingApi = `${serverEnv.OPENAI_COMPATIBLE_BASE_URL}/documents/convert`;
 
 		const presignedUrl = await createPresignedUrlToDownload(payload.assetRef);
 
@@ -140,7 +141,7 @@ export const processAssetTask = task({
 				const response = await fetch(`${doclingApi}?${params}`, {
 					method: "POST",
 					headers: {
-						Authorization: `Bearer ${process.env.OPENAI_COMPATIBLE_API_KEY}`,
+						Authorization: `Bearer ${serverEnv.OPENAI_COMPATIBLE_API_KEY}`,
 					},
 					body: formData,
 					signal: controller.signal, // Connect the AbortController

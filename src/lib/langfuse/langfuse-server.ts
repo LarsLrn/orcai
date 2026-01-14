@@ -1,7 +1,8 @@
 import { Langfuse } from "langfuse";
+import { serverEnv } from "@/lib/env/server";
 
 export const langfuseServer = new Langfuse({
-	secretKey: process.env.LANGFUSE_SECRET_KEY,
-	publicKey: process.env.LANGFUSE_PUBLIC_KEY,
-	baseUrl: process.env.LANGFUSE_BASEURL,
+	secretKey: serverEnv.LANGFUSE_SECRET_KEY,
+	publicKey: serverEnv.LANGFUSE_PUBLIC_KEY,
+	baseUrl: serverEnv.LANGFUSE_BASEURL,
 });

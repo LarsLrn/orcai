@@ -14,6 +14,7 @@ import { db } from "@/db/drizzle";
 import { chat } from "@/db/schema/chat";
 import { chatBranch } from "@/db/schema/chat-branch";
 import { chatMessage } from "@/db/schema/chat-message";
+import { serverEnv } from "@/lib/env/server";
 import { langfuseServer } from "@/lib/langfuse/langfuse-server";
 import { authed } from "@/lib/orpc/implementation/authed";
 import { checkPermissionMiddleware } from "@/lib/orpc/middlewares/permission";
@@ -508,7 +509,8 @@ export const rateChatMessage = authed.chatMessage.rate
 			traceId: input.id,
 			name: "rate_helpfulness",
 			value: input.sentiment,
-			environment: process.env.NODE_ENV,
+			environment:
+				serverEnv.NODE_ENV === "production" ? "production" : "development",
 		});
 
 		return {

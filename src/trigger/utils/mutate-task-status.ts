@@ -1,3 +1,4 @@
+import { serverEnv } from "@/lib/env/server";
 import { contracts, type OrpcInputs } from "@/lib/orpc/contracts";
 import type { TaskUpdate } from "@/lib/orpc/schemas/task";
 
@@ -41,7 +42,7 @@ export const mutateTaskStatus = async ({
 	console.log("Path:", path);
 	console.log("Body:", body);
 
-	const url = `${process.env.VITE_BASE_URL}/api/doc${path}`;
+	const url = `${serverEnv.BASE_URL}/api/doc${path}`;
 	console.log("Trying to fetch", url);
 
 	const response = await fetch(url, {

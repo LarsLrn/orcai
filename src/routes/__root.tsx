@@ -19,6 +19,7 @@ import { ConfirmDialogProvider } from "@/components/ui/dialog/confirm-dialog";
 import { Toaster } from "@/components/ui/sonner";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import { auth } from "@/lib/auth";
+import { clientEnv } from "@/lib/env/client";
 import { seo } from "@/lib/seo";
 import { cn } from "@/lib/utils";
 import { getLocale } from "@/paraglide/runtime";
@@ -94,9 +95,9 @@ export const Route = createRootRouteWithContext<{
 		],
 		scripts: [
 			{
-				src: import.meta.env.VITE_UMAMI_SCRIPT_URL,
+				src: clientEnv.VITE_UMAMI_SCRIPT_URL,
 				defer: true,
-				"data-website-id": import.meta.env.VITE_UMAMI_WEBSITE_ID,
+				"data-website-id": clientEnv.VITE_UMAMI_WEBSITE_ID,
 			},
 		],
 	}),

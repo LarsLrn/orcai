@@ -1,7 +1,9 @@
+import { serverEnv } from "@/lib/env/server";
+
 export const qdrantCollections = {
 	asset: {
 		name:
-			process.env.NODE_ENV === "production"
+			serverEnv.NODE_ENV === "production"
 				? "sokratest-v2-chunks-PROD"
 				: "sokratest-v2-chunks-DEV",
 		dimensions: 4096,

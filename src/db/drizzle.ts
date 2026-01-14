@@ -1,5 +1,6 @@
 import { drizzle } from "drizzle-orm/node-postgres";
+import { serverEnv } from "@/lib/env/server";
 
 export const db = drizzle(
-	`postgres://${process.env.POSTGRES_USER}:${process.env.POSTGRES_PASSWORD}@${process.env.POSTGRES_HOST}:${process.env.POSTGRES_PORT ?? 5432}/${process.env.POSTGRES_DB}`,
+	`postgres://${serverEnv.POSTGRES_USER}:${serverEnv.POSTGRES_PASSWORD}@${serverEnv.POSTGRES_HOST}:${serverEnv.POSTGRES_PORT}/${serverEnv.POSTGRES_DB}`,
 );

@@ -1,4 +1,5 @@
 import crypto from "node:crypto";
+import { serverEnv } from "@/lib/env/server";
 
 const ALGORITHM = "aes-256-gcm";
 const IV_LENGTH = 16; // For AES, this is always 16
@@ -9,7 +10,7 @@ const TAG_LENGTH = 16; // For GCM authentication tag
  * Derives a key from the ENCRYPTION_KEY environment variable using PBKDF2
  */
 function deriveKey(salt: Buffer): Buffer {
-	const encryptionKey = process.env.ENCRYPTION_KEY;
+	const encryptionKey = serverEnv.ENCRYPTION_KEY;
 	if (!encryptionKey) {
 		throw new Error("ENCRYPTION_KEY environment variable is not set");
 	}

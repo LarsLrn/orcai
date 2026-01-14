@@ -1,4 +1,5 @@
 import { v1 } from "@authzed/authzed-node";
+import { serverEnv } from "@/lib/env/server";
 
 /**
  * Creates a SpiceDB client (schema should be deployed separately via build script)
@@ -9,8 +10,8 @@ export const getSpiceClient = () => {
 		// Create SpiceDB client
 		// TODO: Replace with actual SpiceDB server address and security settings
 		const { promises: client } = v1.NewClient(
-			"test",
-			process.env.SPICEDB_ENDPOINT || "localhost:50051",
+			serverEnv.SPICEDB_TOKEN,
+			serverEnv.SPICEDB_ENDPOINT,
 			v1.ClientSecurity.INSECURE_PLAINTEXT_CREDENTIALS,
 		);
 

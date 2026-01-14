@@ -1,6 +1,7 @@
 import { createOpenAI } from "@ai-sdk/openai";
 import type { EmbeddingModel, LanguageModel } from "ai";
 import { extractReasoningMiddleware, wrapLanguageModel } from "ai";
+import { serverEnv } from "@/lib/env/server";
 
 interface SaiaModel {
 	id: string;
@@ -224,8 +225,8 @@ type ModelsWithImage = TextImageModelIds | MultimodalModelIds;
 type ModelsWithVideo = MultimodalModelIds;
 
 const chatAiProviderFactory = createOpenAI({
-	baseURL: process.env.OPENAI_COMPATIBLE_BASE_URL,
-	apiKey: process.env.OPENAI_COMPATIBLE_API_KEY,
+	baseURL: serverEnv.OPENAI_COMPATIBLE_BASE_URL,
+	apiKey: serverEnv.OPENAI_COMPATIBLE_API_KEY,
 	name: "chatAi",
 });
 

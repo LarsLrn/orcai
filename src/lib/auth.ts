@@ -8,14 +8,16 @@ import type SMTPTransport from "nodemailer/lib/smtp-transport";
 import { v4 as uuidv4 } from "uuid";
 import { db } from "@/db/drizzle";
 import { account, session, user, verification } from "@/db/schema/auth";
+import { serverEnv } from "@/lib/env/server";
 
 export const auth = betterAuth({
 	telemetry: { enabled: false },
 	trustedOrigins: [
+		serverEnv.BASE_URL,
 		"http://localhost:3000",
-		process.env.VITE_BASE_URL || "http://localhost:3000",
 		"http://host.docker.internal:3000",
 		"sokratest://",
+		"http://10.0.2.2:3000",
 	],
 	plugins: [tanstackStartCookies(), admin(), expo()],
 	database: drizzleAdapter(db, {
@@ -63,13 +65,13 @@ export const auth = betterAuth({
 });
 
 const smtpConfig: SMTPTransport.Options = {
-	host: process.env.SMTP_HOST,
-	port: Number(process.env.SMTP_PORT) || 587,
+	host: serverEnv.SMTP_HOST,
+	port: serverEnv.SMTP_PORT,
 	secure: false, // upgrade later with STARTTLS
 	tls: { rejectUnauthorized: false },
 	auth: {
-		user: process.env.SMTP_USERNAME,
-		pass: process.env.SMTP_PASSWORD,
+		user: serverEnv.SMTP_USERNAME,
+		pass: serverEnv.SMTP_PASSWORD,
 	},
 };
 
