@@ -2,9 +2,9 @@ import path from "node:path";
 import { paraglideVitePlugin } from "@inlang/paraglide-js";
 import tailwindcss from "@tailwindcss/vite";
 import { devtools } from "@tanstack/devtools-vite";
-import { nitroV2Plugin } from "@tanstack/nitro-v2-vite-plugin";
 import { tanstackStart } from "@tanstack/react-start/plugin/vite";
 import viteReact from "@vitejs/plugin-react";
+import { nitro } from "nitro/vite";
 import { defineConfig } from "vite";
 import tsConfigPaths from "vite-tsconfig-paths";
 
@@ -27,8 +27,8 @@ export default defineConfig({
 	},
 	plugins: [
 		devtools(), // must be first plugin
-		nitroV2Plugin({
-			compatibilityDate: "2025-12-19",
+		nitro({
+			compatibilityDate: "2026-01-15",
 		}),
 		paraglideVitePlugin({
 			project: "./project.inlang",
