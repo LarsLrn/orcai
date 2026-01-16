@@ -1,8 +1,8 @@
 import { defineConfig } from "@trigger.dev/sdk";
-import { serverEnv } from "@/lib/env/server";
 
 export default defineConfig({
-	project: serverEnv.TRIGGER_PROJECT,
+	// biome-ignore lint/style/noNonNullAssertion: Env variable has to be defined.
+	project: process.env.TRIGGER_PROJECT!,
 	runtime: "node",
 	logLevel: "log",
 	maxDuration: 300,

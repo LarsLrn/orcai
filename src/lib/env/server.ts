@@ -34,7 +34,6 @@ export const serverEnv = createEnv({
 		OTEL_NODE_RESOURCE_DETECTORS: z.string().default("env,host,os"),
 		OTEL_SERVICE_NAME: z.string().default("sokratest-v2"),
 		OTEL_EXPORTER_OTLP_HEADERS: z.string().optional(),
-		NODE_ENV: z.string(),
 	},
 
 	/**
