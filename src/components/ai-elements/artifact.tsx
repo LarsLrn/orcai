@@ -36,7 +36,7 @@ export const ArtifactHeader = ({
 	/>
 );
 
-export type ArtifactCloseProps = Omit<ComponentProps<typeof Button>, "type">;
+export type ArtifactCloseProps = ComponentProps<typeof Button>;
 
 export const ArtifactClose = ({
 	className,
@@ -87,10 +87,7 @@ export const ArtifactActions = ({
 	<div className={cn("flex items-center gap-1", className)} {...props} />
 );
 
-export type ArtifactActionProps = Omit<
-	ComponentProps<typeof Button>,
-	"type"
-> & {
+export type ArtifactActionProps = ComponentProps<typeof Button> & {
 	tooltip?: string;
 	label?: string;
 	icon?: LucideIcon;

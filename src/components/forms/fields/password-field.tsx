@@ -17,7 +17,7 @@ type PasswordFieldProps = {
 	description?: string;
 	showTogglePassword?: boolean;
 	showStrength?: boolean;
-} & Omit<React.ComponentProps<"input">, "type">;
+} & React.ComponentProps<typeof Input>;
 
 const PasswordField = ({
 	label,

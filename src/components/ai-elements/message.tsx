@@ -65,7 +65,7 @@ export const MessageActions = ({
 	</div>
 );
 
-export type MessageActionProps = Omit<ComponentProps<typeof Button>, "type"> & {
+export type MessageActionProps = ComponentProps<typeof Button> & {
 	tooltip?: string;
 	label?: string;
 };
@@ -231,10 +231,7 @@ export const MessageBranchSelector = ({
 	);
 };
 
-export type MessageBranchPreviousProps = Omit<
-	ComponentProps<typeof Button>,
-	"type"
->;
+export type MessageBranchPreviousProps = ComponentProps<typeof Button>;
 
 export const MessageBranchPrevious = ({
 	children,
@@ -257,10 +254,7 @@ export const MessageBranchPrevious = ({
 	);
 };
 
-export type MessageBranchNextProps = Omit<
-	ComponentProps<typeof Button>,
-	"type"
->;
+export type MessageBranchNextProps = ComponentProps<typeof Button>;
 
 export const MessageBranchNext = ({
 	children,

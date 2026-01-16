@@ -99,10 +99,7 @@ const ContextIcon = () => {
 	);
 };
 
-export type ContextTriggerProps = Omit<
-	ComponentProps<typeof Button>,
-	"type"
-> & {
+export type ContextTriggerProps = ComponentProps<typeof Button> & {
 	children?: React.ReactElement;
 };
 

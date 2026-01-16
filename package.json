@@ -39,7 +39,7 @@
 		"@authzed/authzed-node": "1.5.1",
 		"@aws-sdk/client-s3": "3.969.0",
 		"@aws-sdk/s3-request-presigner": "3.969.0",
-		"@base-ui/react": "1.0.0",
+		"@base-ui/react": "1.1.0",
 		"@better-auth/expo": "1.4.10",
 		"@chonkiejs/core": "0.0.5",
 		"@docling/docling-core": "0.0.7",
