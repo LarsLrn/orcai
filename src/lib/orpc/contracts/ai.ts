@@ -1,6 +1,7 @@
 import { type } from "@orpc/server";
 import type { Bot } from "@/lib/orpc/schemas/bot";
 import type { Chat } from "@/lib/orpc/schemas/chat";
+import type { ChatBranch } from "@/lib/orpc/schemas/chat-branch";
 import { base } from "./base";
 
 export const aiChatContract = base
@@ -18,7 +19,7 @@ export const aiChatContract = base
 			// TODO: Check for a solution to fix circular type dependency
 			messages: any;
 			botId?: Bot["id"] | null | undefined;
-			branchId?: string;
+			branchId?: ChatBranch["id"];
 		}>(),
 	)
 	// TODO: Improve return type

@@ -12,7 +12,10 @@ import { chat } from "@/db/schema/chat";
  * ----------------
  */
 
-export const chatSelectSchema = createSelectSchema(chat);
+export const chatSelectSchema = createSelectSchema(chat, {
+	id: (schema) => schema.brand("chatId"),
+	activeBranchId: (schema) => schema.brand("chatBranchId"),
+});
 
 /**
  * ----------------

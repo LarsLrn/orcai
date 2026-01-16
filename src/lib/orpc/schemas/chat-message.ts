@@ -12,7 +12,9 @@ import { chatMessage } from "@/db/schema/chat-message";
  * ----------------
  */
 
-export const chatMessageSelectSchema = createSelectSchema(chatMessage);
+export const chatMessageSelectSchema = createSelectSchema(chatMessage, {
+	id: (schema) => schema.brand("chatMessageId"),
+});
 
 /**
  * ----------------
@@ -20,7 +22,9 @@ export const chatMessageSelectSchema = createSelectSchema(chatMessage);
  * ----------------
  */
 
-export const chatMessageInsertSchema = createInsertSchema(chatMessage).omit({
+export const chatMessageInsertSchema = createInsertSchema(chatMessage, {
+	id: (schema) => schema.brand("chatMessageId"),
+}).omit({
 	createdAt: true,
 });
 

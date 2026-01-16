@@ -3,19 +3,31 @@ import { z } from "zod/v4";
 import { Chat } from "@/components/chat/chat";
 import type { ChatAgentUIMessage } from "@/lib/ai/types/chat-agent-message";
 import { orpc } from "@/lib/orpc/orpc";
+import {
+	type Chat as ChatType,
+	chatSelectSchema,
+} from "@/lib/orpc/schemas/chat";
+import { chatBranchSelectSchema } from "@/lib/orpc/schemas/chat-branch";
 
 const searchSchema = z.object({
-	branch: z.string().optional(),
+	branch: chatBranchSelectSchema.shape.id.optional(),
 });
 
 export const Route = createFileRoute("/app/chat/$chatId/")({
+	beforeLoad: ({ params }) => {
+		const { chatId } = params;
+
+		if (!chatSelectSchema.shape.id.safeParse(chatId).success) {
+			throw new Error("Invalid chat ID");
+		}
+
+		return {
+			chatId: chatId as ChatType["id"],
+		};
+	},
 	validateSearch: searchSchema,
 	loaderDeps: ({ search: { branch } }) => ({ branch }),
-	loader: async ({
-		context: { queryClient },
-		params: { chatId },
-		deps: { branch },
-	}) => {
+	loader: async ({ context: { queryClient, chatId }, deps: { branch } }) => {
 		// Fetch the chat to get activeBranchId if branch is not specified
 		const chat = await queryClient.ensureQueryData(
 			orpc.chat.find.queryOptions({
@@ -62,7 +74,7 @@ export const Route = createFileRoute("/app/chat/$chatId/")({
 });
 
 function RouteComponent() {
-	const { chatId } = Route.useParams();
+	const { chatId } = Route.useRouteContext();
 	const loaderData = Route.useLoaderData();
 
 	return (

@@ -11,6 +11,7 @@ import {
 import { Shimmer } from "@/components/ai-elements/shimmer";
 import type { ChatAgentUIMessage } from "@/lib/ai/types/chat-agent-message";
 import { client, orpc } from "@/lib/orpc/orpc";
+import type { Chat as ChatType } from "@/lib/orpc/schemas/chat";
 import type { ChatBranch } from "@/lib/orpc/schemas/chat-branch";
 import { BranchSwitcher } from "./branch-switcher";
 import { ChatInput } from "./chat-input";
@@ -23,7 +24,7 @@ const Chat = ({
 	scores,
 	branchId,
 }: {
-	id: string;
+	id: ChatType["id"];
 	initialMessages: ChatAgentUIMessage[];
 	scores: ApiGetScoresResponseData[];
 	branchId?: ChatBranch["id"];
@@ -42,7 +43,7 @@ const Chat = ({
 					return eventIteratorToUnproxiedDataStream(
 						await client.ai.chat(
 							{
-								chatId: options.chatId,
+								chatId: options.chatId as ChatType["id"],
 								messages: options.messages,
 								botId: chat.data.botId,
 								branchId,

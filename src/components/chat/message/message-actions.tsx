@@ -8,6 +8,7 @@ import {
 } from "@/components/ai-elements/message";
 import { MessageRate } from "@/components/chat/message/message-rate";
 import type { ChatAgentUIMessage } from "@/lib/ai/types/chat-agent-message";
+import type { Chat } from "@/lib/orpc/schemas/chat";
 import { cn } from "@/lib/utils";
 
 export const MessageActions = ({
@@ -20,7 +21,7 @@ export const MessageActions = ({
 }: {
 	message: ChatAgentUIMessage;
 	variant: "sent" | "received";
-	chatId: string;
+	chatId: Chat["id"];
 	onEdit?: () => void;
 	score?: any;
 } & MessageActionsProps) => {

@@ -12,7 +12,9 @@ import { chatBranch } from "@/db/schema/chat-branch";
  * ----------------
  */
 
-export const chatBranchSelectSchema = createSelectSchema(chatBranch);
+export const chatBranchSelectSchema = createSelectSchema(chatBranch, {
+	id: (schema) => schema.brand("chatBranchId"),
+});
 
 /**
  * ----------------
@@ -23,6 +25,7 @@ export const chatBranchSelectSchema = createSelectSchema(chatBranch);
 export const chatBranchInsertSchema = createInsertSchema(chatBranch).omit({
 	createdAt: true,
 	updatedAt: true,
+	id: true,
 });
 
 /**
@@ -31,7 +34,9 @@ export const chatBranchInsertSchema = createInsertSchema(chatBranch).omit({
  * ----------------
  */
 
-export const chatBranchUpdateSchema = createUpdateSchema(chatBranch).omit({
+export const chatBranchUpdateSchema = createUpdateSchema(chatBranch, {
+	id: chatBranchSelectSchema.shape.id,
+}).omit({
 	createdAt: true,
 	updatedAt: true,
 });

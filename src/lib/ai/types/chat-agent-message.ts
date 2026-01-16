@@ -1,6 +1,7 @@
 import type { InferAgentUIMessage } from "ai";
 import { z } from "zod/v4";
 import type { chatAgent } from "@/lib/ai/agents/chat-agent";
+import type { ChatMessage } from "@/lib/orpc/schemas/chat-message";
 
 const metadataSchema = z.object({
 	model: z.string().optional(),
@@ -20,7 +21,9 @@ const metadataSchema = z.object({
 
 export type ChatAgentMessageMetadata = z.infer<typeof metadataSchema>;
 
-export type ChatAgentUIMessage = InferAgentUIMessage<
-	typeof chatAgent,
-	ChatAgentMessageMetadata
->;
+export type ChatAgentUIMessage = Omit<
+	InferAgentUIMessage<typeof chatAgent, ChatAgentMessageMetadata>,
+	"id"
+> & {
+	id: ChatMessage["id"];
+};
