@@ -47,10 +47,6 @@ export default defineConfig({
 		}),
 		tailwindcss(),
 		tanstackStart(),
-		// TODO: Nitro v3 is still in alpha and has some issues, uncomment when stable
-		/* 		nitro({
-			preset: "bun",
-		}), */
 		viteReact({
 			babel: {
 				plugins: ["babel-plugin-react-compiler"],
