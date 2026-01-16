@@ -26,7 +26,7 @@ const SearchInput = ({
 			/* defaultValue={search} */
 			onChange={(e) => handleSearch(e.target.value)}
 			placeholder={placeholder || "Search..."}
-			className={cn("h-8 max-w-[300px]", className)}
+			className={cn("h-8 max-w-75", className)}
 			{...props}
 		/>
 	);

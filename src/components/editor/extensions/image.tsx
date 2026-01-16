@@ -258,24 +258,24 @@ function TiptapImage(props: NodeViewProps) {
 					{editor?.isEditable && (
 						<>
 							<div
-								className="absolute inset-y-0 z-20 flex w-[25px] cursor-col-resize items-center justify-start p-2"
+								className="absolute inset-y-0 z-20 flex w-6.25 cursor-col-resize items-center justify-start p-2"
 								style={{ left: 0 }}
 								onMouseDown={(event) => {
 									handleResizingPosition({ e: event, position: "left" });
 								}}
 								onTouchStart={(event) => handleTouchStart(event, "left")}
 							>
-								<div className="z-20 h-[70px] w-1 rounded-xl border bg-[rgba(0,0,0,0.65)] opacity-0 transition-all group-hover:opacity-100" />
+								<div className="z-20 h-17.5 w-1 rounded-xl border bg-[rgba(0,0,0,0.65)] opacity-0 transition-all group-hover:opacity-100" />
 							</div>
 							<div
-								className="absolute inset-y-0 z-20 flex w-[25px] cursor-col-resize items-center justify-end p-2"
+								className="absolute inset-y-0 z-20 flex w-6.25 cursor-col-resize items-center justify-end p-2"
 								style={{ right: 0 }}
 								onMouseDown={(event) => {
 									handleResizingPosition({ e: event, position: "right" });
 								}}
 								onTouchStart={(event) => handleTouchStart(event, "right")}
 							>
-								<div className="z-20 h-[70px] w-1 rounded-xl border bg-[rgba(0,0,0,0.65)] opacity-0 transition-all group-hover:opacity-100" />
+								<div className="z-20 h-17.5 w-1 rounded-xl border bg-[rgba(0,0,0,0.65)] opacity-0 transition-all group-hover:opacity-100" />
 							</div>
 						</>
 					)}

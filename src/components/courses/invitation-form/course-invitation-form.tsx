@@ -194,7 +194,7 @@ const CourseInvitationForm = () => {
 							<DialogTrigger
 								render={<Button variant="outline">Bulk Add Emails</Button>}
 							/>
-							<DialogContent className="max-w-[600px]">
+							<DialogContent className="max-w-150">
 								<DialogHeader>
 									<DialogTitle>Bulk Add Emails</DialogTitle>
 									<DialogDescription>

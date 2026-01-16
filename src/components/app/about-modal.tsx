@@ -22,7 +22,7 @@ const AboutModal = ({ children }: { children: ReactElement }) => {
 					</DialogTitle>
 				</DialogHeader>
 
-				<ScrollArea className="max-h-[300px] w-full sm:max-h-[500px]">
+				<ScrollArea className="max-h-75 w-full sm:max-h-125">
 					<div className="flex flex-col gap-4">
 						<p>
 							You are using a prototypical Turoring System based on generative

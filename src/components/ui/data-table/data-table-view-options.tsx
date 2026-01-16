@@ -24,7 +24,7 @@ const DataTableViewOptions = () => {
 					</Button>
 				}
 			/>
-			<DropdownMenuContent align="end" className="w-[150px]">
+			<DropdownMenuContent align="end" className="w-37.5">
 				<DropdownMenuLabel>Toggle columns</DropdownMenuLabel>
 				<DropdownMenuSeparator />
 				{table

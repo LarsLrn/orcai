@@ -31,7 +31,7 @@ function RouteComponent() {
 
 			<div className="flex flex-col gap-4 lg:flex-row lg:items-start">
 				<div className="flex flex-1 flex-col gap-4">
-					<Suspense fallback={<Skeleton className="h-[86px] w-full" />}>
+					<Suspense fallback={<Skeleton className="h-21.5 w-full" />}>
 						<UserStats />
 					</Suspense>
 					<Card>
@@ -51,7 +51,7 @@ function RouteComponent() {
 							</CardDescription>
 						</CardHeader>
 						<CardContent>
-							<Suspense fallback={<Skeleton className="h-[120px] w-full" />}>
+							<Suspense fallback={<Skeleton className="h-30 w-full" />}>
 								<ExportChats />
 							</Suspense>
 						</CardContent>
@@ -74,7 +74,7 @@ function RouteComponent() {
 							<CardDescription>Manage your course invitations</CardDescription>
 						</CardHeader>
 						<CardContent>
-							<Suspense fallback={<Skeleton className="h-[120px] w-full" />}>
+							<Suspense fallback={<Skeleton className="h-30 w-full" />}>
 								<CourseInvitationsList />
 							</Suspense>
 						</CardContent>

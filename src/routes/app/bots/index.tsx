@@ -61,7 +61,7 @@ function RouteComponent() {
 
 			{/* Bots Grid */}
 			{bots.data.length === 0 ? (
-				<div className="flex min-h-[400px] flex-col items-center justify-center space-y-4 text-center">
+				<div className="flex min-h-100 flex-col items-center justify-center space-y-4 text-center">
 					<div className="rounded-full bg-muted p-4">
 						<BotIcon className="h-8 w-8 text-muted-foreground" />
 					</div>

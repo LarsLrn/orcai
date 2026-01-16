@@ -50,7 +50,7 @@ const FundingNotice = ({ className }: FundingNoticeProps) => {
 								width={220}
 								height={100}
 								style={{ objectFit: "contain", height: "auto" }}
-								className="w-full max-w-[270px]"
+								className="w-full max-w-67.5"
 							/>
 							<img
 								src="/funding/DHnrw.png"
@@ -58,7 +58,7 @@ const FundingNotice = ({ className }: FundingNoticeProps) => {
 								width={200}
 								height={100}
 								style={{ objectFit: "contain", height: "auto" }}
-								className="w-full max-w-[250px]"
+								className="w-full max-w-62.5"
 							/>
 							<img
 								src="/funding/MKW NRW.png"
@@ -66,7 +66,7 @@ const FundingNotice = ({ className }: FundingNoticeProps) => {
 								width={240}
 								height={100}
 								style={{ objectFit: "contain", height: "auto" }}
-								className="w-full max-w-[290px]"
+								className="w-full max-w-72.5"
 							/>
 						</div>
 					</div>

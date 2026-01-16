@@ -23,7 +23,7 @@ const AssetTableActions = () => {
 					</Button>
 				}
 			/>
-			<DropdownMenuContent align="end" className="w-[200px]">
+			<DropdownMenuContent align="end" className="w-50">
 				<DropdownMenuItem
 					variant="destructive"
 					disabled={table.getSelectedRowModel().rows.length === 0}

@@ -229,7 +229,7 @@ function ImagePlaceholderComponent(props: NodeViewProps) {
 											<img
 												src={previewUrl}
 												alt="Preview"
-												className="mx-auto max-h-[200px] rounded-lg object-cover"
+												className="mx-auto max-h-50 rounded-lg object-cover"
 											/>
 											<div className="space-y-2">
 												<Input

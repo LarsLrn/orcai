@@ -39,7 +39,7 @@ const TextareaField = ({
 				onBlur={field.handleBlur}
 				onChange={(e) => field.handleChange(e.target.value)}
 				aria-invalid={isInvalid}
-				className={cn("min-h-[120px]", props.className)}
+				className={cn("min-h-30", props.className)}
 				{...props}
 			/>
 			{description && <FieldDescription>{description}</FieldDescription>}

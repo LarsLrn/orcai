@@ -27,10 +27,8 @@ const DisplayPointImage = ({
 	);
 
 	return (
-		<div className="max-h-[100px] w-full">
-			{status === "pending" && data && (
-				<Skeleton className="h-[100px] w-full" />
-			)}
+		<div className="max-h-25 w-full">
+			{status === "pending" && data && <Skeleton className="h-25 w-full" />}
 			{status === "success" && (
 				<img
 					src={data.url}
