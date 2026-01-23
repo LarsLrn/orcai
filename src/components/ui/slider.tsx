@@ -23,7 +23,7 @@ function Slider({
 
 	return (
 		<SliderPrimitive.Root
-			className="data-vertical:h-full data-horizontal:w-full"
+			className={cn("data-vertical:h-full data-horizontal:w-full", className)}
 			data-slot="slider"
 			defaultValue={defaultValue}
 			value={value}
@@ -32,15 +32,10 @@ function Slider({
 			thumbAlignment="edge"
 			{...props}
 		>
-			<SliderPrimitive.Control
-				className={cn(
-					"relative flex w-full touch-none select-none items-center data-vertical:h-full data-vertical:min-h-40 data-vertical:w-auto data-vertical:flex-col data-disabled:opacity-50",
-					className,
-				)}
-			>
+			<SliderPrimitive.Control className="relative flex w-full touch-none select-none items-center data-vertical:h-full data-vertical:min-h-40 data-vertical:w-auto data-vertical:flex-col data-disabled:opacity-50">
 				<SliderPrimitive.Track
 					data-slot="slider-track"
-					className="relative select-none overflow-hidden rounded-4xl bg-muted data-horizontal:h-3 data-vertical:h-full data-horizontal:w-full data-vertical:w-3"
+					className="relative grow select-none overflow-hidden rounded-4xl bg-muted data-horizontal:h-3 data-vertical:h-full data-horizontal:w-full data-vertical:w-3"
 				>
 					<SliderPrimitive.Indicator
 						data-slot="slider-range"

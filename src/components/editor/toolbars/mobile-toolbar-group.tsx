@@ -1,5 +1,3 @@
-"use client";
-
 import { ChevronDown } from "lucide-react";
 import { Children, cloneElement, isValidElement, useState } from "react";
 import { Button } from "@/components/ui/button";
