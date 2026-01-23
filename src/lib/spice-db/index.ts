@@ -1,11 +1,19 @@
 import { v1 } from "@authzed/authzed-node";
 import { serverEnv } from "@/lib/env/server";
 
+const globalForSpice = globalThis as unknown as {
+	__SPICEDB_CLIENT__?: ReturnType<typeof v1.NewClient>["promises"];
+};
+
 /**
  * Creates a SpiceDB client (schema should be deployed separately via build script)
  * @returns Promise that resolves to the SpiceDB client
  */
 export const getSpiceClient = () => {
+	// Reuse existing client if available (prevents multiple connections on HMR)
+	if (globalForSpice.__SPICEDB_CLIENT__)
+		return globalForSpice.__SPICEDB_CLIENT__;
+
 	try {
 		// Create SpiceDB client
 		// TODO: Replace with actual SpiceDB server address and security settings
@@ -15,10 +23,12 @@ export const getSpiceClient = () => {
 			v1.ClientSecurity.INSECURE_PLAINTEXT_CREDENTIALS,
 		);
 
+		globalForSpice.__SPICEDB_CLIENT__ = client;
 		console.log("SpiceDB client initialized successfully");
 
 		return client;
 	} catch (error) {
+		globalForSpice.__SPICEDB_CLIENT__ = undefined;
 		console.error("Error initializing SpiceDB client:", error);
 		throw error;
 	}
