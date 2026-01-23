@@ -1,8 +1,10 @@
-import "./instrumentation";
-
 import handler from "@tanstack/react-start/server-entry";
+import { initOtel } from "./instrumentation";
 import { startPgBossWorkers } from "./lib/pg-boss/worker";
 import { paraglideMiddleware } from "./paraglide/server.js";
+
+// Initialize OpenTelemetry instrumentation
+initOtel();
 
 // Initialize pg-boss workers
 startPgBossWorkers().catch((error) => {
