@@ -12,13 +12,12 @@
 import "dotenv/config";
 import { asc, eq } from "drizzle-orm";
 import { drizzle } from "drizzle-orm/node-postgres";
+import { pgConnectionString } from "@/settings/db";
 import { chat } from "../src/db/schema/chat";
 import { chatBranch } from "../src/db/schema/chat-branch";
 import { chatMessage } from "../src/db/schema/chat-message";
 
-const db = drizzle(
-	`postgres://${process.env.POSTGRES_USER}:${process.env.POSTGRES_PASSWORD}@${process.env.POSTGRES_HOST}:${process.env.POSTGRES_PORT ?? 5432}/${process.env.POSTGRES_DB}`,
-);
+const db = drizzle(pgConnectionString);
 
 async function backfillChatBranches() {
 	console.log("🚀 Starting chat branching backfill migration...\n");
