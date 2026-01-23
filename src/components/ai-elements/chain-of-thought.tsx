@@ -15,10 +15,10 @@ import {
 import { useControllableState } from "@/hooks/use-controllable-state";
 import { cn } from "@/lib/utils";
 
-type ChainOfThoughtContextValue = {
+interface ChainOfThoughtContextValue {
 	isOpen: boolean;
 	setIsOpen: (open: boolean) => void;
-};
+}
 
 const ChainOfThoughtContext = createContext<ChainOfThoughtContextValue | null>(
 	null,

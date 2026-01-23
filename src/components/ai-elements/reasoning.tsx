@@ -1,5 +1,7 @@
-"use client";
-
+import { cjk } from "@streamdown/cjk";
+import { code } from "@streamdown/code";
+import { math } from "@streamdown/math";
+import { mermaid } from "@streamdown/mermaid";
 import { BrainIcon, ChevronDownIcon } from "lucide-react";
 import type { ComponentProps, ReactNode } from "react";
 import { createContext, memo, useContext, useEffect, useState } from "react";
@@ -13,12 +15,12 @@ import { useControllableState } from "@/hooks/use-controllable-state";
 import { cn } from "@/lib/utils";
 import { Shimmer } from "./shimmer";
 
-type ReasoningContextValue = {
+interface ReasoningContextValue {
 	isStreaming: boolean;
 	isOpen: boolean;
 	setIsOpen: (open: boolean) => void;
 	duration: number | undefined;
-};
+}
 
 const ReasoningContext = createContext<ReasoningContextValue | null>(null);
 
@@ -177,7 +179,9 @@ export const ReasoningContent = memo(
 			)}
 			{...props}
 		>
-			<Streamdown {...props}>{children}</Streamdown>
+			<Streamdown plugins={{ code, mermaid, math, cjk }} {...props}>
+				{children}
+			</Streamdown>
 		</CollapsibleContent>
 	),
 );

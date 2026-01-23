@@ -8,23 +8,28 @@ import {
 	PromptInputActionMenu,
 	PromptInputActionMenuContent,
 	PromptInputActionMenuTrigger,
-	PromptInputAttachment,
-	PromptInputAttachments,
 	PromptInputBody,
 	PromptInputButton,
 	PromptInputFooter,
+	PromptInputHeader,
 	type PromptInputMessage,
 	PromptInputProvider,
-	PromptInputSpeechButton,
 	PromptInputSubmit,
 	PromptInputTextarea,
 	PromptInputTools,
+	usePromptInputAttachments,
 } from "@/components/ai-elements/prompt-input";
 import { ChatSettings } from "@/components/chat/chat-settings";
 import { AppTourButton } from "@/components/next-step/app-tour-button";
 import type { ChatAgentUIMessage } from "@/lib/ai/types/chat-agent-message";
 import { orpc } from "@/lib/orpc/orpc";
 import type { Chat } from "@/lib/orpc/schemas/chat";
+import {
+	Attachment,
+	AttachmentPreview,
+	AttachmentRemove,
+	Attachments,
+} from "../ai-elements/attachments";
 import { ModelSelectorButton } from "./model-selector";
 
 const ChatInput = ({
@@ -69,9 +74,9 @@ const ChatInput = ({
 	return (
 		<PromptInputProvider>
 			<PromptInput globalDrop multiple onSubmit={handleSubmit}>
-				<PromptInputAttachments>
-					{(attachment) => <PromptInputAttachment data={attachment} />}
-				</PromptInputAttachments>
+				<PromptInputHeader>
+					<PromptInputAttachmentsDisplay />
+				</PromptInputHeader>
 				<PromptInputBody>
 					<PromptInputTextarea ref={textareaRef} />
 				</PromptInputBody>
@@ -83,7 +88,6 @@ const ChatInput = ({
 								<PromptInputActionAddAttachments />
 							</PromptInputActionMenuContent>
 						</PromptInputActionMenu>
-						<PromptInputSpeechButton textareaRef={textareaRef} />
 						<PromptInputButton>
 							<GlobeIcon size={16} />
 							<span>Search</span>
@@ -117,6 +121,29 @@ const ChatInput = ({
 				</PromptInputFooter>
 			</PromptInput>
 		</PromptInputProvider>
+	);
+};
+
+const PromptInputAttachmentsDisplay = () => {
+	const attachments = usePromptInputAttachments();
+
+	if (attachments.files.length === 0) {
+		return null;
+	}
+
+	return (
+		<Attachments variant="inline">
+			{attachments.files.map((attachment) => (
+				<Attachment
+					data={attachment}
+					key={attachment.id}
+					onRemove={() => attachments.remove(attachment.id)}
+				>
+					<AttachmentPreview />
+					<AttachmentRemove />
+				</Attachment>
+			))}
+		</Attachments>
 	);
 };
 

@@ -25,7 +25,11 @@ export const ToolCallPart = ({
 	// Fallback for unknown tool types
 	if (part.type === "dynamic-tool") {
 		<Tool defaultOpen={false}>
-			<ToolHeader type={part.type} state={part.state} />
+			<ToolHeader
+				toolName={part.toolName}
+				type={part.type}
+				state={part.state}
+			/>
 			<ToolContent>
 				<ToolInput input={part.input} />
 				<ToolOutput
