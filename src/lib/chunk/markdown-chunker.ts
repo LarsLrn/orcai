@@ -1,7 +1,7 @@
 // Implementation taken from a PR suggestion on the mastra Discord server.
 
 import llamaTokenizer from "llama-tokenizer-js";
-import type { FileType } from "@/types/file";
+import type { FileType } from "@/lib/s3/schema/file-schema";
 import { extractFileInfoFromReference } from "./utils";
 
 const encoding = llamaTokenizer;

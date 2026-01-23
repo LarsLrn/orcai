@@ -46,6 +46,7 @@ import {
 	respondToCourseInvitation,
 	updateCourseInvitation,
 } from "./course-invitation";
+import { createJobs, listJobs } from "./job";
 import { findModel, listModels } from "./model";
 import {
 	createOrganization,
@@ -78,12 +79,6 @@ import {
 import { findProvider, listProviders } from "./provider";
 import { sse } from "./sse";
 import { createDownloadUrl, createUploadUrls } from "./storage";
-import {
-	createDatabaseBlockVectorStore,
-	createTask,
-	listTasks,
-	updateTask,
-} from "./task";
 import {
 	findUser,
 	listUsers,
@@ -196,11 +191,9 @@ export const router = {
 		list: listModels,
 		find: findModel,
 	},
-	task: {
-		list: listTasks,
-		create: createTask,
-		update: updateTask,
-		createDatabaseBlockVectorStore: createDatabaseBlockVectorStore,
+	job: {
+		list: listJobs,
+		create: createJobs,
 	},
 	ai: {
 		chat: aiChat,

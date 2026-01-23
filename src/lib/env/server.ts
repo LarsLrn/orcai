@@ -4,7 +4,6 @@ import { z } from "zod/v4";
 export const serverEnv = createEnv({
 	server: {
 		BASE_URL: z.url(),
-		TRIGGER_PROJECT: z.string(),
 		POSTGRES_USER: z.string(),
 		POSTGRES_PASSWORD: z.string(),
 		POSTGRES_HOST: z.string(),

@@ -62,6 +62,7 @@ import {
 	respondToCourseInvitationContract,
 	updateCourseInvitationContract,
 } from "./course-invitation";
+import { createJobsContract, listJobsContract } from "./job";
 import { findModelContract, listModelsContract } from "./model";
 import {
 	createOrganizationContract,
@@ -94,12 +95,6 @@ import {
 } from "./organization-provider";
 import { findProviderContract, listProvidersContract } from "./provider";
 import { createDownloadUrlContract, createUploadUrlsContract } from "./storage";
-import {
-	createDatabaseBlockVectorStoreContract,
-	createTaskContract,
-	listTasksContract,
-	updateTaskContract,
-} from "./task";
 import {
 	findUserContract,
 	listUsersContract,
@@ -216,11 +211,9 @@ export const contracts = {
 		createUploadUrls: createUploadUrlsContract,
 		createDownloadUrl: createDownloadUrlContract,
 	},
-	task: {
-		list: listTasksContract,
-		create: createTaskContract,
-		update: updateTaskContract,
-		createDatabaseBlockVectorStore: createDatabaseBlockVectorStoreContract,
+	job: {
+		list: listJobsContract,
+		create: createJobsContract,
 	},
 	ai: {
 		chat: aiChatContract,

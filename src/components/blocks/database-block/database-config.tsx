@@ -1,6 +1,5 @@
 import { useMutation, useQuery } from "@tanstack/react-query";
 import { Link } from "@tanstack/react-router";
-import { useRealtimeRun } from "@trigger.dev/react-hooks";
 import {
 	BotIcon,
 	Move3dIcon,
@@ -30,6 +29,7 @@ import { AnimatedGroup } from "@/components/ui/motion/animated-group";
 import { orpc } from "@/lib/orpc/orpc";
 import type { Asset } from "@/lib/orpc/schemas/asset";
 import type { DatabaseBlock } from "@/lib/orpc/schemas/block";
+import type { Job } from "@/lib/pg-boss/schema/job";
 
 /** --- Grid --- */
 const AssetGrid = ({ assetIds }: { assetIds: Asset["id"][] }) => {
@@ -161,7 +161,7 @@ const AssetSection = ({
 	blockId: DatabaseBlock["id"];
 }) => {
 	const { mutateAsync: createDatabaseBlockVectorStore } = useMutation(
-		orpc.task.createDatabaseBlockVectorStore.mutationOptions(),
+		orpc.job.create.mutationOptions(),
 	);
 
 	const [isOpen, setIsOpen] = useState(false);
@@ -169,7 +169,7 @@ const AssetSection = ({
 	const handleCreateVectorStore = () => {
 		toast.promise(
 			createDatabaseBlockVectorStore({
-				taskType: "extract",
+				jobRunner: "process-asset-job",
 				blockId,
 			}),
 			{
@@ -213,7 +213,7 @@ const AssetSection = ({
 					/>
 				</div>
 			</div>
-			<TaskSection blockId={blockId} />
+			<JobSection blockId={blockId} />
 			<CollapsibleContent>
 				<AssetGrid assetIds={assetIds} />
 			</CollapsibleContent>
@@ -221,53 +221,40 @@ const AssetSection = ({
 	);
 };
 
-const TaskSection = ({ blockId }: { blockId: DatabaseBlock["id"] }) => {
-	const { data } = useQuery(
-		orpc.task.list.queryOptions({ input: { resourceId: blockId } }),
+const JobSection = ({ blockId }: { blockId: DatabaseBlock["id"] }) => {
+	const { data: tasks } = useQuery(
+		orpc.job.list.queryOptions({
+			input: { resourceId: blockId, resourceType: "block" },
+			refetchInterval: (query) => {
+				// Refetch every 5 seconds if there are any queued or processing jobs
+				const data = query.state.data;
+				const hasActiveTasks = data?.data.some(
+					(task) => task.state === "created" || task.state === "active",
+				);
+				return hasActiveTasks ? 5000 : false;
+			},
+		}),
 	);
 
 	return (
 		<div>
-			<p>Task Section</p>
-			{data?.data.map((task) => (
-				<TaskProgress
-					key={task.runId}
-					runId={task.runId}
-					publicAccessToken={task.publicAccessToken}
-				/>
+			<p>Job Section</p>
+			{tasks?.data?.map((task) => (
+				<JobProgress key={task.id} task={task} />
 			))}
 		</div>
 	);
 };
 
-const TaskProgress = ({
-	runId,
-	publicAccessToken,
-}: {
-	runId: string;
-	publicAccessToken: string;
-}) => {
-	const { run, error } = useRealtimeRun(runId, {
-		accessToken: publicAccessToken,
-		baseURL: "http://localhost:8030", // TODO: Use env variable
-	});
-
-	if (!run) {
-		return null;
-	}
-
+const JobProgress = ({ task }: { task: Job }) => {
 	return (
-		<div>
-			<div key={run.id} className="mb-2 rounded border p-4">
-				<div className="mb-2 flex items-center gap-2">
-					<BotIcon className="h-4 w-4" />
-					<span className="font-medium">Run ID: {run.id}</span>
-					<span className="text-muted-foreground text-sm">
-						Status: {run.status}
-					</span>
-				</div>
+		<div className="mb-2 rounded border p-4">
+			<div className="mb-2 flex flex-col gap-2">
+				<span className="font-medium">
+					Job ID: {task.id} | Name: {task.name}
+				</span>
+				<Badge variant="outline">State: {task.state}</Badge>
 			</div>
-			{error && <div className="text-red-600">Error: {error.message}</div>}
 		</div>
 	);
 };

@@ -34,9 +34,6 @@ yarn-error.log*
 *.tsbuildinfo
 next-env.d.ts
 
-# Trigger.dev
-.trigger
-
 # Paraglide
 /src/paraglide
 .devtools

@@ -510,17 +510,17 @@ export const queryDefaults: CreateRouterUtilsOptions<
 			},
 		},
 	},
-	task: {
+	job: {
 		list: {
 			queryOptions: {
 				placeholderData: keepPreviousData,
 			},
 		},
-		createDatabaseBlockVectorStore: {
+		create: {
 			mutationOptions: {
 				onSuccess: (_output, _input, _, ctx) => {
 					ctx.client.invalidateQueries({
-						queryKey: orpc.task.key(),
+						queryKey: orpc.job.key(),
 					});
 				},
 			},

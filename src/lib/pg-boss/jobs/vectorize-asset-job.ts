@@ -1,17 +1,19 @@
 import { RecursiveChunker } from "@chonkiejs/core";
-import { logger, task } from "@trigger.dev/sdk";
 import { embedMany, generateText } from "ai";
 import pMap from "p-map";
+import type { Job } from "pg-boss";
 import { v4 as uuidv4 } from "uuid";
 import { getSaiaEmbeddingModel, getSaiaModel } from "@/lib/ai/saia-models";
 import type { MarkdownNode } from "@/lib/chunk/markdown-chunker";
 import type { Asset } from "@/lib/orpc/schemas/asset";
 import type { Block } from "@/lib/orpc/schemas/block";
+import type { VectorizeAssetPayload } from "@/lib/pg-boss/schema/vectorize-asset";
 import {
 	getImageAsBase64,
 	getMarkdownAsString,
 	listAllFilesInPrefix,
 } from "@/lib/s3/file-functions";
+import type { FileType } from "@/lib/s3/schema/file-schema";
 import {
 	deletePointsByIdentifier,
 	upsertPointsToQdrant,
@@ -21,20 +23,18 @@ import {
 	describeImagePrompt,
 	describeTableImagePrompt,
 } from "@/settings/prompts";
-import type { FileType } from "@/types/file";
-import type { VectorizeAssetTaskPayload } from "@/types/trigger";
 
-export const vectorizeAssetTask = task({
-	id: "vectorize-asset-task",
-	maxDuration: 1800,
-	queue: {
-		name: "processing-embeddings-queue",
-		concurrencyLimit: 2,
-	},
-	run: async (payload: VectorizeAssetTaskPayload) => {
+export const VECTORIZE_ASSET_JOB_NAME = "vectorize-asset-job";
+
+export async function handleVectorizeAssetJob(
+	jobs: Job<VectorizeAssetPayload>[],
+) {
+	for (const job of jobs) {
+		const { prefix, blockId, assetId, mergePages } = job.data;
+
 		const files = await listAllFilesInPrefix({
 			bucket: buckets.processed.name,
-			prefix: `${payload.prefix}/`,
+			prefix: `${prefix}/`,
 		});
 
 		const images: {
@@ -64,7 +64,7 @@ export const vectorizeAssetTask = task({
 				const processedMarkdown = await processMarkdownFile({
 					fileContent: text,
 					fileName: file.name,
-					chunkingStrategy: payload.mergePages
+					chunkingStrategy: mergePages
 						? "RecursiveCharacterTextSplitter"
 						: "none",
 				});
@@ -87,7 +87,7 @@ export const vectorizeAssetTask = task({
 					images.push(processedImage);
 				}
 			} else {
-				logger.info(`Skipping unsupported file type: ${fileExtension}`, {
+				console.info(`Skipping unsupported file type: ${fileExtension}`, {
 					fileName: file.name,
 				});
 			}
@@ -109,13 +109,19 @@ export const vectorizeAssetTask = task({
 
 		const qdrantResponse = await generateEmbeddings({
 			chunks: mergedChunks,
-			assetId: payload.prefix,
-			blockId: payload.blockId,
+			assetId: prefix,
+			blockId,
 		});
 
-		return { payload, results: { qdrant: qdrantResponse } };
-	},
-});
+		return {
+			payload: {
+				assetId,
+				blockId,
+			},
+			results: { qdrant: qdrantResponse },
+		};
+	}
+}
 
 const processMarkdownFile = async ({
 	fileContent,
@@ -126,35 +132,33 @@ const processMarkdownFile = async ({
 	fileName: string;
 	chunkingStrategy: "none" | "RecursiveCharacterTextSplitter";
 }) => {
-	return await logger.trace(`process-markdown-${fileName}`, async () => {
-		if (chunkingStrategy === "none") {
-			return [
-				{
-					title: fileName,
-					depth: 0,
-					content: fileContent,
-					length: fileContent.length,
-					type: "text",
-				},
-			] as MarkdownNode[];
-		}
+	if (chunkingStrategy === "none") {
+		return [
+			{
+				title: fileName,
+				depth: 0,
+				content: fileContent,
+				length: fileContent.length,
+				type: "text",
+			},
+		] as MarkdownNode[];
+	}
 
-		const chunker = await RecursiveChunker.create({
-			chunkSize: 2048,
-		});
-
-		const chunks = await chunker.chunk(fileContent);
-
-		const nodes = chunks.map((chunk) => ({
-			title: fileName,
-			depth: 0,
-			content: chunk.text,
-			length: chunk.tokenCount,
-			type: "text",
-		})) as MarkdownNode[];
-
-		return nodes;
+	const chunker = await RecursiveChunker.create({
+		chunkSize: 2048,
 	});
+
+	const chunks = await chunker.chunk(fileContent);
+
+	const nodes = chunks.map((chunk) => ({
+		title: fileName,
+		depth: 0,
+		content: chunk.text,
+		length: chunk.tokenCount,
+		type: "text",
+	})) as MarkdownNode[];
+
+	return nodes;
 };
 
 const processImageFile = async (
@@ -162,45 +166,43 @@ const processImageFile = async (
 	name: string,
 	fileExtension: FileType,
 ) => {
-	return await logger.trace(`process-image-${name}`, async () => {
-		const mimeType = `image/${fileExtension}`;
-		const imageType = name.startsWith("table") ? "table" : "picture";
+	const mimeType = `image/${fileExtension}`;
+	const imageType = name.startsWith("table") ? "table" : "picture";
 
-		const dataUrl = `data:${mimeType};base64,${base64Image}`;
+	const dataUrl = `data:${mimeType};base64,${base64Image}`;
 
-		const result = await generateText({
-			model: getSaiaModel({
-				input: ["image"],
-				model: "gemma-3-27b-it",
-			}).provider,
-			maxOutputTokens: 1024,
-			system:
-				imageType === "table" ? describeTableImagePrompt : describeImagePrompt,
-			messages: [
-				{
-					role: "user",
-					content: [
-						{
-							type: "image",
-							image: dataUrl,
-						},
-					],
-				},
-			],
-		});
-
-		/* const step = result.steps.find((step) => step. === "initial"); */
-		/* const imageRef = extractFileInfoFromReference(name)?.id; */
-
-		/* if (!step) return; */
-
-		return {
-			description: result.text,
-			tokens: result.usage.totalTokens,
-			name,
-			type: mimeType.split("/")[1] as FileType,
-		};
+	const result = await generateText({
+		model: getSaiaModel({
+			input: ["image"],
+			model: "gemma-3-27b-it",
+		}).provider,
+		maxOutputTokens: 1024,
+		system:
+			imageType === "table" ? describeTableImagePrompt : describeImagePrompt,
+		messages: [
+			{
+				role: "user",
+				content: [
+					{
+						type: "image",
+						image: dataUrl,
+					},
+				],
+			},
+		],
 	});
+
+	/* const step = result.steps.find((step) => step. === "initial"); */
+	/* const imageRef = extractFileInfoFromReference(name)?.id; */
+
+	/* if (!step) return; */
+
+	return {
+		description: result.text,
+		tokens: result.usage.totalTokens,
+		name,
+		type: mimeType.split("/")[1] as FileType,
+	};
 };
 
 const generateEmbeddings = async ({
@@ -213,13 +215,10 @@ const generateEmbeddings = async ({
 	blockId: Block["id"];
 }) => {
 	// Embed the chunks
-	const embedResults = await logger.trace("embed-chunks", async () =>
-		embedMany({
-			model: getSaiaEmbeddingModel({ model: "e5-mistral-7b-instruct" })
-				.provider,
-			values: chunks.map((chunk) => chunk.content),
-		}),
-	);
+	const embedResults = await embedMany({
+		model: getSaiaEmbeddingModel({ model: "e5-mistral-7b-instruct" }).provider,
+		values: chunks.map((chunk) => chunk.content),
+	});
 
 	// Create metadata for each chunk
 	const metaDataChunks = chunks.map((chunk, index) => {
@@ -261,19 +260,11 @@ const generateEmbeddings = async ({
 		};
 	});
 
-	await logger.trace(
-		"delete-existing-embeddings",
-		async () => await deletePointsByIdentifier({ assetId, blockId }),
-	);
+	await deletePointsByIdentifier({ assetId, blockId });
 
-	// Save to Qdrant
-	const qdrantResult = await logger.trace(
-		"save-embeddings",
-		async () =>
-			await upsertPointsToQdrant({
-				points: metaDataChunks,
-			}),
-	);
+	const qdrantResult = await upsertPointsToQdrant({
+		points: metaDataChunks,
+	});
 
 	return { success: true, type: "markdown", qdrant: qdrantResult };
 };

@@ -1,13 +1,5 @@
+import type { FileType } from "@/lib/s3/schema/file-schema";
 import type { BucketName } from "@/settings/buckets";
-
-export type FileType =
-	| "pdf"
-	| "jpeg"
-	| "png"
-	| "docx"
-	| "pptx"
-	| "md"
-	| "unknown";
 
 export type FilePayload = {
 	bucket: BucketName;

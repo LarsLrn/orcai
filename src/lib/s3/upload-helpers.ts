@@ -1,4 +1,4 @@
-import type { FileType } from "@/types/file";
+import type { FileType } from "./schema/file-schema";
 
 function createAbortHandler(
 	xhr: XMLHttpRequest,

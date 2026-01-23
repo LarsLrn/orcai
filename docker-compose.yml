@@ -105,11 +105,6 @@ services:
       BETTER_AUTH_SECRET: ${BETTER_AUTH_SECRET}
       ENCRYPTION_KEY: ${ENCRYPTION_KEY}
 
-      # External Services (from environment)
-      TRIGGER_SECRET_KEY: ${TRIGGER_SECRET_KEY}
-      TRIGGER_API_URL: ${TRIGGER_API_URL}
-      TRIGGER_PROJECT: ${TRIGGER_PROJECT}
-
       # Email Configuration
       SMTP_HOST: ${SMTP_HOST}
       SMTP_PORT: ${SMTP_PORT}

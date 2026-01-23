@@ -44,7 +44,7 @@ Sokrates<sup>t</sup> is designed to enhance the learning experience through AI-p
 - **GWDG** - AI model hosting (German infrastructure)
 
 ### Infrastructure
-- **Trigger.dev** - Background job processing
+- **pg-boss** - Background job processing
 - **S3-compatible Storage** - Object storage (MinIO, Supabase Storage, AWS S3)
 - **Umami** - Privacy-focused analytics
 
@@ -81,10 +81,9 @@ Before running the application, you'll need to set up the following services:
 #### AI Services
 6. **OpenAI-compatible API**: For LLM inference (GWDG Academic Cloud or similar)
 7. **Docling API**: Document processing service
-8. **Trigger.dev**: Background job processing
 
 #### Email Service
-9. **SMTP Server**: For sending invitations and notifications
+8. **SMTP Server**: For sending invitations and notifications
 
 ### Installation
 
@@ -127,10 +126,6 @@ S3_USE_SSL=true
 
 # Application Base URL
 VITE_BASE_URL=http://localhost:3000
-
-# Background Jobs (Trigger.dev)
-TRIGGER_SECRET_KEY=your_trigger_dev_secret_key
-TRIGGER_API_URL=https://your-trigger-instance.com
 
 # AI Services (OpenAI-compatible API)
 OPENAI_COMPATIBLE_BASE_URL=https://your-ai-provider.com/v1
@@ -247,13 +242,12 @@ docker-compose up -d
 - `npm run db:studio` - Open Drizzle Studio
 - `npm run db:seed` - Seed the database
 - `npm run format` - Format code with Biome
-- `npm run trigger:dev` - Start Trigger.dev development
 
 ## Architecture
 
 ### Data Flow
 1. **Document Upload**: Instructors upload course materials
-2. **Processing Pipeline**: Documents are processed through Trigger.dev jobs for text/image extraction
+2. **Processing Pipeline**: Documents are processed through pg-boss jobs for text/image extraction
 3. **Vectorization**: Content is converted to embeddings and stored in Qdrant
 4. **Chat Interface**: Students interact with AI tutor
 5. **RAG Retrieval**: Relevant course material is retrieved based on chat context

@@ -11,10 +11,10 @@ import {
 	deleteFileFromBucket,
 	deletePrefixRecursively,
 } from "@/lib/s3/file-functions";
+import type { FileType } from "@/lib/s3/schema/file-schema";
 import { createRelation, listAllowedEntities } from "@/lib/spice-db/actions";
 import { deletePointsByIdentifier } from "@/qdrant/mutations";
 import { buckets } from "@/settings/buckets";
-import type { FileType } from "@/types/file";
 
 export const listAssets = authed.asset.list.handler(
 	async ({ input, context }) => {

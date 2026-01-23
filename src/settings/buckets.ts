@@ -1,4 +1,4 @@
-export type BucketName = (typeof buckets)[keyof typeof buckets]["name"];
+import z from "zod/v4";
 
 export const buckets = {
 	main: {
@@ -11,3 +11,7 @@ export const buckets = {
 				: "processed-files-dev",
 	},
 };
+
+export const bucketSchema = z.enum([buckets.main.name, buckets.processed.name]);
+
+export type BucketName = z.infer<typeof bucketSchema>;

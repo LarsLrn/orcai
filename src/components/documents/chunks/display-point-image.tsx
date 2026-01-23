@@ -1,9 +1,9 @@
 import { useQuery } from "@tanstack/react-query";
 import { Skeleton } from "@/components/ui/skeleton";
 import { orpc } from "@/lib/orpc/orpc";
+import type { FileType } from "@/lib/s3/schema/file-schema";
 import { cn } from "@/lib/utils";
 import type { BucketName } from "@/settings/buckets";
-import type { FileType } from "@/types/file";
 
 const DisplayPointImage = ({
 	imageRef,

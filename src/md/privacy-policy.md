@@ -61,7 +61,7 @@ The processing of Your personal data is conducted based on the following legal g
 
 #### 7.1. Location of Storage and Processing:
 All personal data collected and processed for Sokrates^t^ is stored and processed exclusively within the Federal Republic of Germany.
-*   **Primary Platform Hosting:** The core Sokrates^t^ application, databases (PostgreSQL), vector database (Qdrant), object storage (Minio), LLM observability tools (Langfuse), task queue (trigger.dev), and web analytics (Umami) are operated on a Virtual Private Server (VPS) hosted by IONOS SE, with servers located physically within Germany.
+*   **Primary Platform Hosting:** The core Sokrates^t^ application, databases (PostgreSQL), vector database (Qdrant), object storage (Minio), LLM observability tools (Langfuse), and web analytics (Umami) are operated on a Virtual Private Server (VPS) hosted by IONOS SE, with servers located physically within Germany.
 *   **AI Model Processing:** The AI models underpinning the dialogue functionality are provided and hosted exclusively by Gesellschaft für wissenschaftliche Datenverarbeitung mbH Göttingen (GWDG), Burckhardtweg 4, 37077 Göttingen, Germany ("GWDG"). All AI-related processing occurs solely within GWDG's own infrastructure in Göttingen, Germany. Based on information provided by GWDG (refer to their privacy policy linked below), they do not persistently store user prompts or AI responses sent to their service for the operation of Sokrates^t^ and utilise open source self-hosted models, not commercial third-party AI services (e.g., OpenAI, Anthropic, Google).
 
 #### 7.2. Data Security:
