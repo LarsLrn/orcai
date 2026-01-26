@@ -3,6 +3,12 @@ import { useQueryClient } from "@tanstack/react-query";
 import { CompassIcon, GlobeIcon } from "lucide-react";
 import { useRef } from "react";
 import {
+	Attachment,
+	AttachmentPreview,
+	AttachmentRemove,
+	Attachments,
+} from "@/components/ai-elements/attachments";
+import {
 	PromptInput,
 	PromptInputActionAddAttachments,
 	PromptInputActionMenu,
@@ -24,12 +30,6 @@ import { AppTourButton } from "@/components/next-step/app-tour-button";
 import type { ChatAgentUIMessage } from "@/lib/ai/types/chat-agent-message";
 import { orpc } from "@/lib/orpc/orpc";
 import type { Chat } from "@/lib/orpc/schemas/chat";
-import {
-	Attachment,
-	AttachmentPreview,
-	AttachmentRemove,
-	Attachments,
-} from "../ai-elements/attachments";
 import { ModelSelectorButton } from "./model-selector";
 
 const ChatInput = ({
