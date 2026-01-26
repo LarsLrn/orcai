@@ -24,12 +24,13 @@ import {
 	CollapsibleContent,
 	CollapsibleTrigger,
 } from "@/components/ui/collapsible";
+import { Item, ItemContent, ItemTitle } from "@/components/ui/item";
 import { LoadingSpinner } from "@/components/ui/loading-spinner";
 import { AnimatedGroup } from "@/components/ui/motion/animated-group";
 import { orpc } from "@/lib/orpc/orpc";
 import type { Asset } from "@/lib/orpc/schemas/asset";
 import type { DatabaseBlock } from "@/lib/orpc/schemas/block";
-import type { Job } from "@/lib/pg-boss/schema/job";
+import type { Job, JobQueue } from "@/lib/pg-boss/schema/job";
 
 /** --- Grid --- */
 const AssetGrid = ({ assetIds }: { assetIds: Asset["id"][] }) => {
@@ -213,7 +214,24 @@ const AssetSection = ({
 					/>
 				</div>
 			</div>
-			<JobSection blockId={blockId} />
+			<div className="flex flex-col gap-4 px-4 xl:flex-row xl:items-start">
+				<Item variant="outline">
+					<ItemContent>
+						<ItemTitle className="font-bold text-xl">
+							Process Asset Jobs
+						</ItemTitle>
+						<JobSection jobQueue="process-asset-job" blockId={blockId} />
+					</ItemContent>
+				</Item>
+				<Item variant="outline">
+					<ItemContent>
+						<ItemTitle className="font-bold text-xl">
+							Vectorise Asset Jobs
+						</ItemTitle>
+						<JobSection jobQueue="vectorize-asset-job" blockId={blockId} />
+					</ItemContent>
+				</Item>
+			</div>
 			<CollapsibleContent>
 				<AssetGrid assetIds={assetIds} />
 			</CollapsibleContent>
@@ -221,10 +239,16 @@ const AssetSection = ({
 	);
 };
 
-const JobSection = ({ blockId }: { blockId: DatabaseBlock["id"] }) => {
+const JobSection = ({
+	jobQueue,
+	blockId,
+}: {
+	jobQueue: JobQueue;
+	blockId: DatabaseBlock["id"];
+}) => {
 	const { data: tasks } = useQuery(
 		orpc.job.list.queryOptions({
-			input: { resourceId: blockId, resourceType: "block" },
+			input: { jobQueue, resourceId: blockId },
 			refetchInterval: (query) => {
 				// Refetch every 5 seconds if there are any queued or processing jobs
 				const data = query.state.data;

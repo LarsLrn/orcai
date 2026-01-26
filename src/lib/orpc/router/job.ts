@@ -10,7 +10,10 @@ import { getFileTypeFromMime } from "@/lib/s3/upload-helpers";
 
 export const listJobs = authed.job.list.handler(async ({ input }) => {
 	// Query pg-boss directly instead of taskTable
-	const jobs = await getJobsByResource(input.resourceId);
+	const jobs = await getJobsByResource({
+		jobQueue: input.jobQueue,
+		resourceId: input.resourceId,
+	});
 
 	return { data: jobs, rowCount: jobs.length };
 });

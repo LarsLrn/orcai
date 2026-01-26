@@ -3,7 +3,7 @@ import { baseBlockSelectSchema } from "@/lib/orpc/schemas/block";
 import { statusSchema } from "@/lib/orpc/schemas/shared";
 import { PROCESS_ASSET_JOB_NAME } from "@/lib/pg-boss/jobs/process-asset-job";
 import { VECTORIZE_ASSET_JOB_NAME } from "@/lib/pg-boss/jobs/vectorize-asset-job";
-import { jobSchema } from "@/lib/pg-boss/schema/job";
+import { jobQueues, jobSchema } from "@/lib/pg-boss/schema/job";
 import { base } from "./base";
 
 export const createJobsContract = base
@@ -30,7 +30,7 @@ export const listJobsContract = base
 	})
 	.input(
 		z.object({
-			resourceType: z.string(),
+			jobQueue: jobQueues,
 			resourceId: z.uuidv4(),
 		}),
 	)

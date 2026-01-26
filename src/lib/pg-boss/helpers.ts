@@ -1,5 +1,5 @@
 import { getPgBoss } from "./pg-boss-client";
-import type { Job } from "./schema/job";
+import type { Job, JobQueue } from "./schema/job";
 
 /**
  * Send a single job to pg-boss
@@ -83,65 +83,20 @@ export async function sendJobBatch<T extends object = object>(
  * Get all pg-boss jobs for a specific resource.
  * Reads canonical records from pgboss.job (not pgboss.job_common).
  */
-export async function getJobsByResource(
-	resourceId: string,
-	options?: {
-		queueName?: string;
-		limit?: number;
-		// if your payload key is not assetId, rename this or change the query
-		dataKey?: string; // optional improvement
-	},
-) {
+export async function getJobsByResource({
+	jobQueue,
+	resourceId,
+}: {
+	jobQueue: JobQueue;
+	resourceId: string;
+}) {
 	const boss = await getPgBoss();
-	const db = boss.getDb();
 
-	const dataKey = options?.dataKey ?? "resourceId"; // or "resourceId" if that's what you store
-	const where: string[] = [];
-	const params: any[] = [];
+	const dataKey = jobQueue === "process-asset-job" ? "resourceId" : "blockId";
 
-	// data->>'key' = value, with key safely injected via identifier-like whitelist
-	// IMPORTANT: you cannot parameterize JSON key names; use a whitelist.
-	const allowedKeys = new Set(["assetId", "resourceId"]);
-	if (!allowedKeys.has(dataKey)) {
-		throw new Error(`Invalid dataKey: ${dataKey}`);
-	}
+	const data = await boss.findJobs(jobQueue, {
+		data: { [dataKey]: resourceId },
+	});
 
-	params.push(resourceId);
-	where.push(`data->>'${dataKey}' = $${params.length}`);
-
-	if (options?.queueName) {
-		params.push(options.queueName);
-		where.push(`name = $${params.length}`);
-	}
-
-	const limit = Math.max(1, Math.min(options?.limit ?? 100, 1000));
-	params.push(limit);
-	const limitPlaceholder = `$${params.length}`;
-
-	const sql = `
-    SELECT
-      id,
-      name,
-      data,
-      state,
-      priority,
-      retry_limit  AS "retryLimit",
-      retry_count  AS "retryCount",
-      retry_delay  AS "retryDelay",
-      created_on   AS "createdOn",
-      started_on   AS "startedOn",
-      completed_on AS "completedOn",
-			expire_seconds AS "expireSeconds",
-			deletion_seconds AS "deletionSeconds",
-			start_after	 AS "startAfter",
-			keep_until	 AS "keepUntil",
-      output
-    FROM pgboss.job
-    WHERE ${where.join(" AND ")}
-    ORDER BY created_on DESC
-    LIMIT ${limitPlaceholder}
-  `;
-
-	const result = await db.executeSql(sql, params);
-	return result.rows as Job[];
+	return data as Job[];
 }

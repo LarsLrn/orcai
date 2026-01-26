@@ -11,6 +11,13 @@ import {
 	vectorizeAssetPayloadSchema,
 } from "./vectorize-asset";
 
+export const jobQueues = z.enum([
+	PROCESS_ASSET_JOB_NAME,
+	VECTORIZE_ASSET_JOB_NAME,
+]);
+
+export type JobQueue = z.infer<typeof jobQueues>;
+
 const jobState = z.enum([
 	states.created,
 	states.retry,
@@ -29,8 +36,6 @@ export const baseJobSchema = z.object({
 	retryDelay: z.int(),
 	retryBackoff: z.boolean().default(false),
 	retryDelayMax: z.int().nullable().optional(),
-	expireSeconds: z.int(),
-	deletionSeconds: z.int(),
 	singletonKey: z.string().nullable().optional(),
 	singletonOn: z.date().nullable().optional(),
 	startAfter: z.date(),
