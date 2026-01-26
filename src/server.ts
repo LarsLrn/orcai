@@ -1,5 +1,5 @@
 import handler from "@tanstack/react-start/server-entry";
-import { initOtel } from "./instrumentation";
+import { initOtel } from "./lib/observability/instrumentation";
 import { startPgBossWorkers } from "./lib/pg-boss/worker";
 import { paraglideMiddleware } from "./paraglide/server.js";
 

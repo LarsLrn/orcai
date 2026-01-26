@@ -1,5 +1,6 @@
 import { v1 } from "@authzed/authzed-node";
 import { serverEnv } from "@/lib/env/server";
+import { logger } from "@/lib/observability/logger";
 
 const globalForSpice = globalThis as unknown as {
 	__SPICEDB_CLIENT__?: ReturnType<typeof v1.NewClient>["promises"];
@@ -24,12 +25,12 @@ export const getSpiceClient = () => {
 		);
 
 		globalForSpice.__SPICEDB_CLIENT__ = client;
-		console.log("SpiceDB client initialized successfully");
+		logger.info("SpiceDB client initialized successfully");
 
 		return client;
 	} catch (error) {
 		globalForSpice.__SPICEDB_CLIENT__ = undefined;
-		console.error("Error initializing SpiceDB client:", error);
+		logger.error({ error }, "Error initializing SpiceDB client");
 		throw error;
 	}
 };

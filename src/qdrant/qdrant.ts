@@ -1,5 +1,6 @@
 import { QdrantClient } from "@qdrant/qdrant-js";
 import { serverEnv } from "@/lib/env/server";
+import { logger } from "@/lib/observability/logger";
 import { qdrantCollections } from "./qdrant-constants";
 
 let client: QdrantClient | null = null;
@@ -40,7 +41,7 @@ const initCollectionIfNeeded = async (qdrant: QdrantClient) => {
 			},
 		});
 
-		console.log(
+		logger.info(
 			`[Qdrant] Collection '${qdrantCollections.asset.name}' created.`,
 		);
 	}

@@ -103,8 +103,6 @@ export const updatePassword = authed.user.updatePassword.handler(
 export const setTourState = authed.user.setTourState
 	.use(requirePreferencesMiddleware)
 	.handler(async ({ input, context }) => {
-		console.log("Prefs", context.preferences);
-
 		await db.update(user).set({
 			preferences: {
 				...context.preferences,

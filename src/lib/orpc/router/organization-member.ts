@@ -1,3 +1,4 @@
+import { getLogger } from "@orpc/experimental-pino";
 import { ORPCError } from "@orpc/server";
 import { and, count, eq, getTableColumns, inArray } from "drizzle-orm";
 import { db } from "@/db/drizzle";
@@ -110,10 +111,12 @@ export const deleteOrganizationMembers = authed.organizationMember.delete
 				entityType: "organization",
 			}) as const,
 	) */
-	.handler(async ({ input }) => {
-		/* console.log(
-			"Deleting organization members with allowed IDs:",
-			context.allowedIds,
+	.handler(async ({ input, context }) => {
+		const logger = getLogger(context);
+		logger?.info({ ids: input.refs }, "Deleting organization members by IDs");
+		/* logger.info(
+			{ids: context.allowedIds},
+			"Deleting organization members with allowed IDs"
 		);
 
 		// Check if there are any IDs to delete
@@ -137,7 +140,7 @@ export const deleteOrganizationMembers = authed.organizationMember.delete
 				message: "Organization members deleted successfully",
 			};
 		} catch (error) {
-			console.error("Error deleting organization members:", error);
+			logger?.error({ error }, "Error deleting organization members:");
 			throw new ORPCError("INTERNAL_SERVER_ERROR", {
 				message: "Failed to delete organization members",
 			});

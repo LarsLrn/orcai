@@ -1,3 +1,4 @@
+import { getLogger } from "@orpc/experimental-pino";
 import { ORPCError } from "@orpc/server";
 import { count, eq, getTableColumns, inArray } from "drizzle-orm";
 import { db } from "@/db/drizzle";
@@ -103,7 +104,8 @@ export const deleteOrganizations = authed.organization.delete
 			}) as const,
 	)
 	.handler(async ({ context }) => {
-		console.log("Deleting organizations with allowed IDs:", context.allowedIds);
+		const logger = getLogger(context);
+		logger?.info({ ids: context.allowedIds }, "Deleting organizations by IDs");
 
 		// Check if there are any IDs to delete
 		if (!context.allowedIds || context.allowedIds.length === 0) {
@@ -117,7 +119,7 @@ export const deleteOrganizations = authed.organization.delete
 
 			return { success: true, message: "Organizations deleted successfully" };
 		} catch (error) {
-			console.error("Error deleting organizations:", error);
+			logger?.error({ error }, "Error deleting organizations:");
 			throw new ORPCError("INTERNAL_SERVER_ERROR", {
 				message: "Failed to delete organizations",
 			});

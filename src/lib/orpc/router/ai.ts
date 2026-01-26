@@ -1,4 +1,6 @@
+import { trace } from "@opentelemetry/api";
 import { ORPCError, streamToEventIterator } from "@orpc/client";
+import { getLogger } from "@orpc/experimental-pino";
 import { createAgentUIStream, smoothStream } from "ai";
 import { v4 as uuidv4 } from "uuid";
 import { chatAgent } from "@/lib/ai/agents/chat-agent";
@@ -9,7 +11,13 @@ import { client } from "@/lib/orpc/orpc";
 
 export const aiChat = authed.ai.chat
 	.use(requireActiveOrganizationMiddleware)
-	.handler(async ({ input }) => {
+	.handler(async ({ input, context }) => {
+		const logger = getLogger(context);
+		const span = trace.getActiveSpan();
+		const traceId = span?.spanContext().traceId;
+
+		logger?.info({ trace_id: traceId }, "Starting AI chat handler...");
+
 		try {
 			const userMessage = input.messages[input.messages.length - 1];
 
@@ -73,7 +81,7 @@ export const aiChat = authed.ai.chat
 					},
 				}, */
 				onFinish: async ({ responseMessage }) => {
-					console.log("AI response finished, saving message...");
+					logger?.info("AI response finished, saving message...");
 					await client.chatMessage.create({
 						id: responseMessage.id,
 						chatId: input.chatId,
@@ -85,7 +93,7 @@ export const aiChat = authed.ai.chat
 					});
 				},
 				onError: (error) => {
-					console.error("Error in data stream execution:", error);
+					logger?.error({ err: error }, "Error in data stream execution");
 					return "Oops, an error occurred while processing your request!";
 				},
 				messageMetadata: ({ part }) => {
@@ -104,7 +112,7 @@ export const aiChat = authed.ai.chat
 
 			return streamToEventIterator(stream);
 		} catch (error) {
-			console.error("Error in AI chat handler:", error);
+			logger?.error({ err: error }, "Error in AI chat handler");
 
 			if (error instanceof ORPCError) {
 				throw new ORPCError("INTERNAL_SERVER_ERROR", {

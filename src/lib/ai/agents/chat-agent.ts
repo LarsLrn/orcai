@@ -2,6 +2,7 @@ import { type LanguageModel, Output, stepCountIs, ToolLoopAgent } from "ai";
 import z from "zod/v4";
 import { searchKnowledgeBaseTool } from "@/lib/ai/tools/search-knowledgebase";
 import { getChatAiSettings } from "@/lib/ai/utils/get-chat-ai-settings";
+import { logger } from "@/lib/observability/logger";
 import { blockSelectSchema } from "@/lib/orpc/schemas/block";
 
 export const chatAgentToolSet = {
@@ -60,7 +61,7 @@ export const chatAgent = new ToolLoopAgent({
 		};
 	},
 	onStepFinish: (step) => {
-		console.log("Step finished:", step.rawFinishReason);
+		logger.info({ reason: step.rawFinishReason }, "Chat agent step finished");
 	},
 	output: Output.text(),
 });

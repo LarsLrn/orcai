@@ -1,8 +1,9 @@
+import type { LoggerContext } from "@orpc/experimental-pino";
 import { implement } from "@orpc/server";
 import type { RequestHeadersPluginContext } from "@orpc/server/plugins";
 import { contracts } from "@/lib/orpc/contracts";
 
-interface ORPCContext extends RequestHeadersPluginContext {
+interface ORPCContext extends LoggerContext, RequestHeadersPluginContext {
 	meta?: { zedToken?: string };
 }
 

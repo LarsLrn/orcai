@@ -1,4 +1,5 @@
 import { trace } from "@opentelemetry/api";
+import { LoggingHandlerPlugin } from "@orpc/experimental-pino";
 import { SmartCoercionPlugin } from "@orpc/json-schema";
 import { OpenAPIGenerator } from "@orpc/openapi";
 import { OpenAPIHandler } from "@orpc/openapi/fetch";
@@ -12,7 +13,9 @@ import {
 } from "@orpc/server/plugins";
 import { ZodToJsonSchemaConverter } from "@orpc/zod/zod4";
 import { createFileRoute } from "@tanstack/react-router";
+import { v4 as uuidv4 } from "uuid";
 import { z } from "zod/v4";
+import { logger } from "@/lib/observability/logger";
 import { router } from "@/lib/orpc/router";
 import { COOKIES, HEADERS } from "@/settings/constants";
 
@@ -83,7 +86,7 @@ const openAPIHandler = new OpenAPIHandler(router, {
 	],
 	interceptors: [
 		onError((error) => {
-			console.error(error);
+			logger.error(error);
 		}),
 		({ request, next }) => {
 			const span = trace.getActiveSpan();
@@ -127,6 +130,10 @@ const openAPIHandler = new OpenAPIHandler(router, {
 					},
 				},
 			},
+		}),
+		new LoggingHandlerPlugin({
+			logger,
+			generateId: () => uuidv4(),
 		}),
 	],
 });

@@ -1,3 +1,4 @@
+import { getLogger } from "@orpc/experimental-pino";
 import { ORPCError } from "@orpc/server";
 import {
 	and,
@@ -30,7 +31,9 @@ export const listChatMessages = authed.chatMessage.list
 				zedToken: input.zedToken,
 			}) as const,
 	)
-	.handler(async ({ input }) => {
+	.handler(async ({ input, context }) => {
+		const logger = getLogger(context);
+
 		if (!input.branchId) {
 			throw new ORPCError("BAD_REQUEST", {
 				message: "branchId is required to list messages",
@@ -155,7 +158,7 @@ export const listChatMessages = authed.chatMessage.list
 						.join(","),
 				});
 			} catch (error) {
-				console.error("Error fetching scores from Langfuse:", error);
+				logger?.error({ error }, "Error fetching scores from Langfuse");
 			}
 		}
 
@@ -470,7 +473,9 @@ export const deleteChatMessages = authed.chatMessage.delete
 				entityType: "chat",
 			}) as const,
 	)
-	.handler(async ({ input }) => {
+	.handler(async ({ input, context }) => {
+		const logger = getLogger(context);
+
 		const messageIds = input.refs.map((ref) => ref.id);
 
 		try {
@@ -485,7 +490,7 @@ export const deleteChatMessages = authed.chatMessage.delete
 
 			return { success: true, message: "Chat messages deleted successfully" };
 		} catch (error) {
-			console.error("Error deleting chat messages:", error);
+			logger?.error({ error }, "Error deleting chat messages:");
 			throw new ORPCError("INTERNAL_SERVER_ERROR", {
 				message: "Failed to delete chat messages",
 			});

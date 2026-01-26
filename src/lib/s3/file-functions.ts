@@ -4,6 +4,7 @@ import {
 	ListObjectsV2Command,
 } from "@aws-sdk/client-s3";
 import { getSignedUrl } from "@aws-sdk/s3-request-presigner";
+import { logger } from "@/lib/observability/logger";
 import type { BucketName } from "@/settings/buckets";
 import type { FilePayload } from "@/types/file";
 import { s3Client } from "./s3-client";
@@ -68,7 +69,7 @@ export async function deleteFileFromBucket({
 		});
 		await s3Client.send(command);
 	} catch (error) {
-		console.error(error);
+		logger.error({ error }, "Error deleting file from bucket");
 		return false;
 	}
 	return true;

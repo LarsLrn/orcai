@@ -1,3 +1,4 @@
+import { getLogger } from "@orpc/experimental-pino";
 import { ORPCError } from "@orpc/server";
 import { and, count, desc, eq, getTableColumns, inArray } from "drizzle-orm";
 import { db } from "@/db/drizzle";
@@ -130,7 +131,7 @@ export const deleteAssets = authed.asset.delete
 			}) as const,
 	)
 	.handler(async ({ context }) => {
-		console.log("Deleting assets with allowed IDs:", context.allowedIds);
+		const logger = getLogger(context);
 
 		// Check if there are any IDs to delete
 		if (!context.allowedIds || context.allowedIds.length === 0) {
@@ -168,7 +169,7 @@ export const deleteAssets = authed.asset.delete
 
 			return { success: true, message: "Assets deleted successfully" };
 		} catch (error) {
-			console.error("Error deleting assets:", error);
+			logger?.error({ error }, "Error deleting assets:");
 			throw new ORPCError("INTERNAL_SERVER_ERROR", {
 				message: "Failed to delete assets",
 			});

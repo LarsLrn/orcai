@@ -5,6 +5,7 @@ import {
 	serializeDoclingDocument,
 } from "@/lib/ai/docling-serialize";
 import { serverEnv } from "@/lib/env/server";
+import { logger } from "@/lib/observability/logger";
 import { getPgBoss } from "@/lib/pg-boss/pg-boss-client";
 import type { ProcessAssetPayload } from "@/lib/pg-boss/schema/process-asset";
 import { validateImageResolution } from "@/lib/pg-boss/utils/validate-image-resolution";
@@ -21,14 +22,15 @@ import { VECTORIZE_ASSET_JOB_NAME } from "./vectorize-asset-job";
 export const PROCESS_ASSET_JOB_NAME = "process-asset-job";
 
 export async function handleProcessAssetJob(jobs: Job<ProcessAssetPayload>[]) {
+	const log = logger.child({ module: "process-asset-job" });
+
 	for (const job of jobs) {
 		const { assetRef, blockId, mergePages } = job.data;
 
-		console.log(`[${PROCESS_ASSET_JOB_NAME}] Starting job ${job.id}:`, {
-			assetRef,
-			blockId,
-			mergePages,
-		});
+		log.info(
+			{ jobId: job.id, assetRef, blockId },
+			"Starting process asset job",
+		);
 
 		const doclingApi = `${serverEnv.OPENAI_COMPATIBLE_BASE_URL}/documents/convert`;
 
@@ -39,10 +41,7 @@ export async function handleProcessAssetJob(jobs: Job<ProcessAssetPayload>[]) {
 			try {
 				return await fetch(presignedUrl);
 			} catch (error) {
-				console.error(
-					`[${PROCESS_ASSET_JOB_NAME}] Error downloading file for job ${job.id}:`,
-					error,
-				);
+				log.error({ err: error, jobId: job.id }, "Error downloading file");
 				throw error;
 			}
 		})();
@@ -90,9 +89,7 @@ export async function handleProcessAssetJob(jobs: Job<ProcessAssetPayload>[]) {
 				clearTimeout(timeoutId);
 				return response;
 			} catch (error) {
-				console.error(
-					`[${PROCESS_ASSET_JOB_NAME}] Docling API fetch error: ${error instanceof Error ? error.message : String(error)}`,
-				);
+				log.error({ err: error, jobId: job.id }, "Docling API fetch error");
 
 				throw error;
 			}
@@ -112,8 +109,9 @@ export async function handleProcessAssetJob(jobs: Job<ProcessAssetPayload>[]) {
 
 			processedDocument = JSON.parse(responseText) as SaiaDoclingData;
 		} catch (error) {
-			console.error(
-				`[${PROCESS_ASSET_JOB_NAME}] Failed to parse Docling API response for job ${job.id}: ${error instanceof Error ? error.message : String(error)}`,
+			log.error(
+				{ err: error, jobId: job.id },
+				"Failed to parse Docling API response",
 			);
 			throw error;
 		}
@@ -126,81 +124,82 @@ export async function handleProcessAssetJob(jobs: Job<ProcessAssetPayload>[]) {
 				mergePages,
 			});
 
-		async () => {
-			await deletePrefixRecursively({
-				bucket: buckets.processed.name,
-				prefix: `${assetRef.id}/`,
-			});
-		};
+		await deletePrefixRecursively({
+			bucket: buckets.processed.name,
+			prefix: `${assetRef.id}/`,
+		});
 
-		async () => {
-			if (!serializedDocling || serializedDocling.length === 0) {
-				console.log("No serialized docling content to upload for markdown.");
-				return;
-			}
+		if (!serializedDocling || serializedDocling.length === 0) {
+			log.warn({ jobId: job.id }, "No serialized docling content to upload");
+			continue;
+		}
 
-			await Promise.all(
-				serializedDocling.map(async (page) => {
-					const markdown = page.markdown;
+		log.info(
+			{ jobId: job.id, pageCount: serializedDocling.length },
+			"Uploading processed content",
+		);
 
-					const command = new PutObjectCommand({
-						Bucket: buckets.processed.name,
-						Key: `${assetRef.id}/page-${page.page}.md`,
-						Body: Buffer.from(markdown, "utf-8"),
-						ContentType: "text/markdown",
-					});
+		await Promise.all(
+			serializedDocling.map(async (page) => {
+				const markdown = page.markdown;
 
-					await s3Client.send(command);
+				const command = new PutObjectCommand({
+					Bucket: buckets.processed.name,
+					Key: `${assetRef.id}/page-${page.page}.md`,
+					Body: Buffer.from(markdown, "utf-8"),
+					ContentType: "text/markdown",
+				});
 
-					const images = page.images;
+				await s3Client.send(command);
 
-					await Promise.all(
-						images.map(async (image) => {
-							if (!image) {
-								console.info("Undefined image. Skipping upload.");
-								return;
-							}
+				const images = page.images;
 
-							console.log(
-								`Processing image ${image.label}-${image.index} (${image.mimetype})`,
+				await Promise.all(
+					images.map(async (image) => {
+						if (!image) {
+							log.warn("Undefined image. Skipping upload.");
+							return;
+						}
+
+						log.debug(
+							{ label: image.label, index: image.index, mime: image.mimetype },
+							"Processing image",
+						);
+
+						const imageData = image.uri.includes("base64,")
+							? image.uri.split("base64,")[1]
+							: image.uri;
+
+						const imageBuffer = Buffer.from(imageData, "base64");
+						const fileType = getFileTypeFromMime(image.mimetype);
+						const validationResult = validateImageResolution(
+							image.size,
+							2, // TODO: Use the actual upscale factor
+						);
+						if (!validationResult.isValid) {
+							log.warn(
+								{
+									error: validationResult.error,
+									width: validationResult.width,
+									height: validationResult.height,
+								},
+								"Skipping image upload due to resolution/validation",
 							);
+							return;
+						}
 
-							const imageData = image.uri.includes("base64,")
-								? image.uri.split("base64,")[1]
-								: image.uri;
+						const command = new PutObjectCommand({
+							Bucket: buckets.processed.name,
+							Key: `${assetRef.id}/${image.label}-${image.index}.${fileType}`,
+							Body: imageBuffer,
+							ContentType: image.mimetype,
+						});
 
-							const imageBuffer = Buffer.from(imageData, "base64");
-							const fileType = getFileTypeFromMime(image.mimetype);
-							const validationResult = validateImageResolution(
-								image.size,
-								2, // TODO: Use the actual upscale factor
-							);
-							if (!validationResult.isValid) {
-								if (validationResult.error) {
-									console.error(
-										`Error validating image resolution: ${validationResult.error}. Skipping image upload.`,
-									);
-								} else {
-									console.error(
-										`Insufficient resolution (${validationResult.width}x${validationResult.height}). Skipping image upload.`,
-									);
-								}
-								return;
-							}
-
-							const command = new PutObjectCommand({
-								Bucket: buckets.processed.name,
-								Key: `${assetRef.id}/${image.label}-${image.index}.${fileType}`,
-								Body: imageBuffer,
-								ContentType: image.mimetype,
-							});
-
-							await s3Client.send(command);
-						}),
-					);
-				}),
-			);
-		};
+						await s3Client.send(command);
+					}),
+				);
+			}),
+		);
 
 		const boss = await getPgBoss();
 		await boss.send(
@@ -213,5 +212,7 @@ export async function handleProcessAssetJob(jobs: Job<ProcessAssetPayload>[]) {
 			},
 			{ startAfter: 5 },
 		);
+
+		log.info({ jobId: job.id }, "Process asset job completed");
 	}
 }

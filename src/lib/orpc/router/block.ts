@@ -1,3 +1,4 @@
+import { getLogger } from "@orpc/experimental-pino";
 import { ORPCError } from "@orpc/server";
 import {
 	and,
@@ -177,8 +178,7 @@ export const deleteBlocks = authed.block.delete
 			}) as const,
 	)
 	.handler(async ({ context }) => {
-		console.log("Deleting blocks with allowed IDs:", context.allowedIds);
-
+		const logger = getLogger(context);
 		// Check if there are any IDs to delete
 		if (!context.allowedIds || context.allowedIds.length === 0) {
 			return { success: true, message: "No blocks to delete" };
@@ -191,7 +191,7 @@ export const deleteBlocks = authed.block.delete
 
 			return { success: true, message: "Blocks deleted successfully" };
 		} catch (error) {
-			console.error("Error deleting blocks:", error);
+			logger?.error({ error }, "Error deleting blocks:");
 			throw new ORPCError("INTERNAL_SERVER_ERROR", {
 				message: "Failed to delete blocks",
 			});

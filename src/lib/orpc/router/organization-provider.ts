@@ -1,3 +1,4 @@
+import { getLogger } from "@orpc/experimental-pino";
 import { ORPCError } from "@orpc/server";
 import { and, count, eq, getTableColumns, inArray } from "drizzle-orm";
 import { db } from "@/db/drizzle";
@@ -157,11 +158,9 @@ export const deleteOrganizationProviders = authed.organizationProvider.delete
 			}) as const,
 	) */
 	.handler(async ({ input, context }) => {
-		/* console.log(
-			"Deleting organization members with allowed IDs:",
-			context.allowedIds,
-		);
-
+		const logger = getLogger(context);
+		logger?.info({ ids: input.refs }, "Deleting organization providers by IDs");
+		/* 
 		// Check if there are any IDs to delete
 		if (!context.allowedIds || context.allowedIds.length === 0) {
 			return { success: true, message: "No organization members to delete" };
@@ -186,7 +185,7 @@ export const deleteOrganizationProviders = authed.organizationProvider.delete
 				message: "Organization providers deleted successfully",
 			};
 		} catch (error) {
-			console.error("Error deleting organization providers:", error);
+			logger?.error({ error }, "Error deleting organization providers:");
 			throw new ORPCError("INTERNAL_SERVER_ERROR", {
 				message: "Failed to delete organization providers",
 			});

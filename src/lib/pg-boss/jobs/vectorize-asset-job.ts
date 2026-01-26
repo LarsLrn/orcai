@@ -5,6 +5,7 @@ import type { Job } from "pg-boss";
 import { v4 as uuidv4 } from "uuid";
 import { getSaiaEmbeddingModel, getSaiaModel } from "@/lib/ai/saia-models";
 import type { MarkdownNode } from "@/lib/chunk/markdown-chunker";
+import { logger } from "@/lib/observability/logger";
 import type { Asset } from "@/lib/orpc/schemas/asset";
 import type { Block } from "@/lib/orpc/schemas/block";
 import type { VectorizeAssetPayload } from "@/lib/pg-boss/schema/vectorize-asset";
@@ -29,8 +30,15 @@ export const VECTORIZE_ASSET_JOB_NAME = "vectorize-asset-job";
 export async function handleVectorizeAssetJob(
 	jobs: Job<VectorizeAssetPayload>[],
 ) {
+	const log = logger.child({ module: "vectorize-asset-job" });
+
 	for (const job of jobs) {
 		const { prefix, blockId, assetId, mergePages } = job.data;
+
+		log.info(
+			{ jobId: job.id, assetId, blockId },
+			"Processing vectorize asset job",
+		);
 
 		const files = await listAllFilesInPrefix({
 			bucket: buckets.processed.name,
@@ -87,9 +95,10 @@ export async function handleVectorizeAssetJob(
 					images.push(processedImage);
 				}
 			} else {
-				console.info(`Skipping unsupported file type: ${fileExtension}`, {
-					fileName: file.name,
-				});
+				log.warn(
+					{ extension: fileExtension, fileName: file.name },
+					"Skipping unsupported file type",
+				);
 			}
 		};
 
@@ -105,13 +114,22 @@ export async function handleVectorizeAssetJob(
 
 		const mergedChunks = [...markdown, ...imageChunks];
 
-		console.log("Merged chunks:", mergedChunks);
+		log.info(
+			{
+				chunkCount: mergedChunks.length,
+				markdownCount: markdown.length,
+				imageCount: imageChunks.length,
+			},
+			"Generated chunks for asset",
+		);
 
 		const qdrantResponse = await generateEmbeddings({
 			chunks: mergedChunks,
 			assetId: prefix,
 			blockId,
 		});
+
+		log.info("Vectorize asset job completed");
 
 		return {
 			payload: {

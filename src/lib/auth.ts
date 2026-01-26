@@ -9,6 +9,7 @@ import { v4 as uuidv4 } from "uuid";
 import { db } from "@/db/drizzle";
 import { account, session, user, verification } from "@/db/schema/auth";
 import { serverEnv } from "@/lib/env/server";
+import { logger } from "./observability/logger";
 
 export const auth = betterAuth({
 	telemetry: { enabled: false },
@@ -95,8 +96,11 @@ async function sendEmail({
 
 	try {
 		await transporter.sendMail(mailOptions);
-		console.log("Email sent successfully");
+		logger.info(`Email sent to ${to} with subject "${subject}"`);
 	} catch (error) {
-		console.error("Error sending email:", error);
+		logger.error(
+			{ error },
+			`Error sending email to ${to} with subject "${subject}"`,
+		);
 	}
 }

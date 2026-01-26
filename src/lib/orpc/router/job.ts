@@ -16,12 +16,6 @@ export const listJobs = authed.job.list.handler(async ({ input }) => {
 });
 
 export const createJobs = authed.job.create.handler(async ({ input }) => {
-	console.log(
-		"Creating vector store for block:",
-		input.blockId,
-		input.jobRunner,
-	);
-
 	if (input.jobRunner !== PROCESS_ASSET_JOB_NAME)
 		throw new ORPCError("BAD_REQUEST", {
 			message: `Only ${PROCESS_ASSET_JOB_NAME} jobRunner is currently supported`,

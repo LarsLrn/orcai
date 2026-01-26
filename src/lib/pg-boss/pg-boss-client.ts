@@ -1,4 +1,5 @@
 import { PgBoss } from "pg-boss";
+import { logger } from "@/lib/observability/logger";
 import { pgConnectionString } from "@/settings/db";
 
 const globalForPgBoss = globalThis as unknown as {
@@ -23,14 +24,14 @@ async function initPgBoss(): Promise<PgBoss> {
 
 	try {
 		await boss.start();
-		console.log("pg-boss client started successfully");
+		logger.info("pg-boss client started successfully");
 
 		registerProcessCleanup();
 		return boss;
-	} catch (err) {
+	} catch (error) {
 		globalForPgBoss.__PG_BOSS_PROMISE__ = undefined;
-		console.error("Failed to start pg-boss:", err);
-		throw err;
+		logger.error({ error }, "Failed to start pg-boss");
+		throw error;
 	}
 }
 
@@ -51,10 +52,10 @@ export async function shutdownPgBoss() {
 
 	try {
 		const boss = await promise;
-		console.log("Stopping pg-boss client...");
+		logger.info("Stopping pg-boss client...");
 		await boss.stop({ timeout: 5000, graceful: true });
-		console.log("pg-boss client stopped successfully");
-	} catch (err) {
-		console.error("Error stopping pg-boss:", err);
+		logger.info("pg-boss client stopped successfully");
+	} catch (error) {
+		logger.error({ error }, "Error stopping pg-boss");
 	}
 }

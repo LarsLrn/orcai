@@ -1,3 +1,4 @@
+import { getLogger } from "@orpc/experimental-pino";
 import { ORPCError } from "@orpc/server";
 import { count, desc, eq, getTableColumns, inArray } from "drizzle-orm";
 import { db } from "@/db/drizzle";
@@ -163,7 +164,8 @@ export const deleteChats = authed.chat.delete
 			}) as const,
 	)
 	.handler(async ({ context }) => {
-		console.log("Deleting chats with allowed IDs:", context.allowedIds);
+		const logger = getLogger(context);
+		logger?.info({ ids: context.allowedIds }, "Deleting chats by IDs");
 
 		// Check if there are any IDs to delete
 		if (!context.allowedIds || context.allowedIds.length === 0) {
@@ -175,7 +177,7 @@ export const deleteChats = authed.chat.delete
 
 			return { success: true, message: "Chats deleted successfully" };
 		} catch (error) {
-			console.error("Error deleting chats:", error);
+			logger?.error({ error }, "Error deleting chats:");
 			throw new ORPCError("INTERNAL_SERVER_ERROR", {
 				message: "Failed to delete chats",
 			});

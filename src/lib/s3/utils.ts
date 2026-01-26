@@ -1,4 +1,5 @@
 import { CreateBucketCommand, HeadBucketCommand } from "@aws-sdk/client-s3";
+import { logger } from "@/lib/observability/logger";
 import { buckets } from "@/settings/buckets";
 import { s3Client } from "./s3-client";
 
@@ -35,18 +36,22 @@ export async function createBucketIfNotExists(bucketName: string) {
 				await s3Client.send(new CreateBucketCommand({ Bucket: bucketName }));
 				// TODO: Add bucket policy
 				return { status: "created" };
-			} catch (createError) {
-				throw new Error(`Failed to create bucket: ${createError}`);
+			} catch (error) {
+				logger.error(
+					{ error },
+					"Error creating bucket in createBucketIfNotExists",
+				);
+				throw new Error(`Failed to create bucket: ${error}`);
 			}
 		}
 
-		// Log the error for debugging
-		console.error("Unexpected error in createBucketIfNotExists:", {
-			name: error?.name,
-			message: error?.message,
-			metadata: error?.$metadata,
-			statusCode: error?.statusCode,
-		});
+		logger.error(
+			{
+				error,
+			},
+			"Unexpected error in createBucketIfNotExists",
+		);
+
 		throw error;
 	}
 }

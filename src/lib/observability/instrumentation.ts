@@ -1,11 +1,8 @@
 import { getNodeAutoInstrumentations } from "@opentelemetry/auto-instrumentations-node";
-import { resourceFromAttributes } from "@opentelemetry/resources";
+import { PinoInstrumentation } from "@opentelemetry/instrumentation-pino";
 import { NodeSDK } from "@opentelemetry/sdk-node";
-import {
-	ATTR_SERVICE_NAME,
-	ATTR_SERVICE_VERSION,
-} from "@opentelemetry/semantic-conventions";
 import { ORPCInstrumentation } from "@orpc/otel";
+import { otelResource } from "./resource-config";
 
 const globalForOtel = globalThis as {
 	__OTEL_SDK_INSTANCE__?: NodeSDK;
@@ -20,13 +17,11 @@ export function initOtel(): void {
 	if (globalForOtel.__OTEL_SDK_INSTANCE__) return;
 
 	const sdk = new NodeSDK({
-		resource: resourceFromAttributes({
-			[ATTR_SERVICE_NAME]: "tanstack",
-			[ATTR_SERVICE_VERSION]: "0.2.0",
-		}),
+		resource: otelResource,
 		instrumentations: [
 			getNodeAutoInstrumentations(),
 			new ORPCInstrumentation(),
+			new PinoInstrumentation(),
 		],
 	});
 
@@ -35,7 +30,7 @@ export function initOtel(): void {
 		globalForOtel.__OTEL_SDK_INSTANCE__ = sdk;
 		registerShutdownOnce();
 	} catch (err) {
-		console.error("Failed to start OTEL SDK:", err);
+		console.error("Failed to start Otel SDK:", err);
 	}
 }
 
@@ -53,11 +48,8 @@ function shutdownOtel() {
 
 	globalForOtel.__OTEL_SDK_INSTANCE__ = undefined;
 
-	try {
-		sdk
-			.shutdown()
-			.catch((err) => console.error("Error shutting down OTEL SDK:", err));
-	} catch (err) {
-		console.error("Error initiating OTEL SDK shutdown:", err);
-	}
+	sdk
+		.shutdown()
+		.then(() => console.log("Otel SDK shut down successfully"))
+		.catch((error) => console.error("Error shutting down Otel SDK", error));
 }

@@ -1,3 +1,4 @@
+import { getLogger } from "@orpc/experimental-pino";
 import { ORPCError } from "@orpc/server";
 import { count, eq, getTableColumns, inArray, or } from "drizzle-orm";
 import { db } from "@/db/drizzle";
@@ -120,7 +121,9 @@ export const deleteCourseInvitations = authed.courseInvitation.delete
 				entityType: "course",
 			}) as const,
 	) */
-	.handler(async ({ input }) => {
+	.handler(async ({ input, context }) => {
+		const logger = getLogger(context);
+		logger?.info({ ids: input.refs }, "Deleting course invitations by IDs");
 		/* // Check if there are any IDs to delete
 		if (!context.allowedIds || context.allowedIds.length === 0) {
 			return { success: true, message: "No courses to delete" };
@@ -134,7 +137,7 @@ export const deleteCourseInvitations = authed.courseInvitation.delete
 
 			return { success: true, message: "Invitations deleted successfully" };
 		} catch (error) {
-			console.error("Error deleting invitations:", error);
+			logger?.error({ error }, "Error deleting invitations");
 			throw new ORPCError("INTERNAL_SERVER_ERROR", {
 				message: "Failed to delete invitations",
 			});
