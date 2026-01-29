@@ -49,7 +49,7 @@ export const findCourseInvitation = authed.courseInvitation.find
 				entityId: input.id,
 				action: "read",
 				entityType: "course",
-			}) as const,
+			}) satisfies CheckPermissionInput,
 	) */
 	.handler(async ({ input }) => {
 		const [query] = await db
@@ -99,7 +99,7 @@ export const updateCourseInvitation = authed.courseInvitation.update
 				entityId: input.id,
 				action: "read",
 				entityType: "course",
-			}) as const,
+			}) satisfies CheckPermissionInput,
 	) */
 	.handler(async ({ input }) => {
 		const [query] = await db
@@ -119,7 +119,7 @@ export const deleteCourseInvitations = authed.courseInvitation.delete
 				entityIds: input.refs.map((ref) => ref.id),
 				action: "delete",
 				entityType: "course",
-			}) as const,
+			}) satisfies CheckManyPermissionInput,
 	) */
 	.handler(async ({ input, context }) => {
 		const logger = getLogger(context);

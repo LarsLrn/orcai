@@ -37,7 +37,7 @@ export const findUser = authed.user.find
         entityId: input.id,
         action: "read",
         entityType: "user",
-      }) as const,
+      }) satisfies CheckPermissionInput,
   ) */
 	.handler(async ({ input, context }) => {
 		const userId = input?.id ?? context.auth.user.id;

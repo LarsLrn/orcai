@@ -6,6 +6,8 @@ import { course, courseMember } from "@/db/schema/course";
 import { authed } from "@/lib/orpc/implementation/authed";
 import { requireActiveOrganizationMiddleware } from "@/lib/orpc/middlewares/auth";
 import {
+	type CheckManyPermissionInput,
+	type CheckPermissionInput,
 	checkManyPermissionMiddleware,
 	checkPermissionMiddleware,
 } from "@/lib/orpc/middlewares/permission";
@@ -44,7 +46,7 @@ export const findCourse = authed.course.find
 				entityId: input.id,
 				action: "read",
 				entityType: "course",
-			}) as const,
+			}) satisfies CheckPermissionInput,
 	)
 	.handler(async ({ input }) => {
 		const [query] = await db
@@ -98,7 +100,7 @@ export const updateCourse = authed.course.update
 				entityId: input.id,
 				action: "read",
 				entityType: "course",
-			}) as const,
+			}) satisfies CheckPermissionInput,
 	)
 	.handler(async ({ input }) => {
 		const [query] = await db
@@ -125,7 +127,7 @@ export const deleteCourses = authed.course.delete
 				entityIds: input.refs.map((ref) => ref.id),
 				action: "delete",
 				entityType: "course",
-			}) as const,
+			}) satisfies CheckManyPermissionInput,
 	)
 	.handler(async ({ context }) => {
 		const logger = getLogger(context);

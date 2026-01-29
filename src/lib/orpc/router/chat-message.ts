@@ -17,7 +17,10 @@ import { chatBranch } from "@/db/schema/chat-branch";
 import { chatMessage } from "@/db/schema/chat-message";
 import { langfuseServer } from "@/lib/langfuse/langfuse-server";
 import { authed } from "@/lib/orpc/implementation/authed";
-import { checkPermissionMiddleware } from "@/lib/orpc/middlewares/permission";
+import {
+	type CheckPermissionInput,
+	checkPermissionMiddleware,
+} from "@/lib/orpc/middlewares/permission";
 import type { ChatMessage } from "@/lib/orpc/schemas/chat-message";
 
 export const listChatMessages = authed.chatMessage.list
@@ -29,7 +32,7 @@ export const listChatMessages = authed.chatMessage.list
 				action: "read",
 				entityType: "chat",
 				zedToken: input.zedToken,
-			}) as const,
+			}) satisfies CheckPermissionInput,
 	)
 	.handler(async ({ input, context }) => {
 		const logger = getLogger(context);
@@ -174,7 +177,7 @@ export const findChatMessage = authed.chatMessage.find
 				action: "read",
 				entityType: "chat",
 				zedToken: input.zedToken,
-			}) as const,
+			}) satisfies CheckPermissionInput,
 	)
 	.handler(async ({ input }) => {
 		const [query] = await db
@@ -199,7 +202,7 @@ export const getBranchIdForMessage = authed.chatMessage.getBranch
 				entityId: input.chatId,
 				action: "read",
 				entityType: "chat",
-			}) as const,
+			}) satisfies CheckPermissionInput,
 	)
 	.handler(async ({ input }) => {
 		// Find the best branch that leads to or descends from the given message
@@ -238,7 +241,7 @@ export const createChatMessage = authed.chatMessage.create
 				entityId: input.chatId,
 				action: "update",
 				entityType: "chat",
-			}) as const,
+			}) satisfies CheckPermissionInput,
 	)
 	.handler(async ({ input }) => {
 		if (!input.branchId) {
@@ -373,7 +376,7 @@ export const updateChatMessage = authed.chatMessage.update
 				entityId: input.chatId,
 				action: "update",
 				entityType: "chat",
-			}) as const,
+			}) satisfies CheckPermissionInput,
 	)
 	.handler(async ({ input }) => {
 		// 1. Get target message to check if it has children
@@ -471,7 +474,7 @@ export const deleteChatMessages = authed.chatMessage.delete
 				entityId: input.chatId,
 				action: "update",
 				entityType: "chat",
-			}) as const,
+			}) satisfies CheckPermissionInput,
 	)
 	.handler(async ({ input, context }) => {
 		const logger = getLogger(context);
@@ -505,7 +508,7 @@ export const rateChatMessage = authed.chatMessage.rate
 				entityId: input.chatId,
 				action: "update",
 				entityType: "chat",
-			}) as const,
+			}) satisfies CheckPermissionInput,
 	)
 	.handler(({ input }) => {
 		langfuseServer.score({

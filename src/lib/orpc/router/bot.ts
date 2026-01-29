@@ -6,6 +6,8 @@ import { botBlockTable, botTable } from "@/db/schema/bot";
 import { authed } from "@/lib/orpc/implementation/authed";
 import { requireActiveOrganizationMiddleware } from "@/lib/orpc/middlewares/auth";
 import {
+	type CheckManyPermissionInput,
+	type CheckPermissionInput,
 	checkManyPermissionMiddleware,
 	checkPermissionMiddleware,
 } from "@/lib/orpc/middlewares/permission";
@@ -47,7 +49,7 @@ export const findBot = authed.bot.find
 				entityId: input.id,
 				action: "read",
 				entityType: "bot",
-			}) as const,
+			}) satisfies CheckPermissionInput,
 	)
 	.handler(async ({ input }) => {
 		const [bot] = await db
@@ -110,7 +112,7 @@ export const updateBot = authed.bot.update
 				entityId: input.id,
 				action: "read",
 				entityType: "bot",
-			}) as const,
+			}) satisfies CheckPermissionInput,
 	)
 	.handler(async ({ input }) => {
 		const [bot] = await db
@@ -148,7 +150,7 @@ export const deleteBots = authed.bot.delete
 				entityIds: input.refs.map((ref) => ref.id),
 				action: "delete",
 				entityType: "bot",
-			}) as const,
+			}) satisfies CheckManyPermissionInput,
 	)
 	.handler(async ({ context }) => {
 		const logger = getLogger(context);

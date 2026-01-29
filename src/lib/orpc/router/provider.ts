@@ -20,7 +20,7 @@ export const findProvider = authed.provider.find
         entityId: input.id,
         action: "read",
         entityType: "organization",
-      }) as const,
+      }) satisfies CheckPermissionInput,
   ) */
 	.handler(async ({ input }) => {
 		const [provider] = await db

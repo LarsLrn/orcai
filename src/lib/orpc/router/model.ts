@@ -74,7 +74,7 @@ export const findModel = authed.model.find
         entityId: input.id,
         action: "read",
         entityType: "organization",
-      }) as const,
+      }) satisfies CheckPermissionInput,
   ) */
 	.handler(async ({ input }) => {
 		const [model] = await db

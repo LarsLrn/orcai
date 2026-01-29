@@ -38,7 +38,7 @@ export const findOrganizationMember = authed.organizationMember.find
         entityId: input.id,
         action: "read",
         entityType: "organization",
-      }) as const,
+      }) satisfies CheckPermissionInput,
   ) */
 	.handler(async ({ input }) => {
 		const [query] = await db
@@ -84,7 +84,7 @@ export const updateOrganizationMember = authed.organizationMember.update
         entityId: input.id,
         action: "read",
         entityType: "organization",
-      }) as const,
+      }) satisfies CheckPermissionInput,
   ) */
 	.handler(async ({ input }) => {
 		const [query] = await db
@@ -109,7 +109,7 @@ export const deleteOrganizationMembers = authed.organizationMember.delete
 				entityIds: input.refs.map((ref) => ref.userId),
 				action: "delete",
 				entityType: "organization",
-			}) as const,
+			}) satisfies CheckManyPermissionInput,
 	) */
 	.handler(async ({ input, context }) => {
 		const logger = getLogger(context);

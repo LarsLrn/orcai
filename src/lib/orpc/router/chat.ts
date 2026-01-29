@@ -6,6 +6,8 @@ import { chat } from "@/db/schema/chat";
 import { chatBranch } from "@/db/schema/chat-branch";
 import { authed } from "@/lib/orpc/implementation/authed";
 import {
+	type CheckManyPermissionInput,
+	type CheckPermissionInput,
 	checkManyPermissionMiddleware,
 	checkPermissionMiddleware,
 } from "@/lib/orpc/middlewares/permission";
@@ -47,7 +49,7 @@ export const findChat = authed.chat.find
 				action: "read",
 				entityType: "chat",
 				zedToken: input.zedToken,
-			}) as const,
+			}) satisfies CheckPermissionInput,
 	)
 	.handler(async ({ input }) => {
 		const [[data], branches] = await Promise.all([
@@ -125,7 +127,7 @@ export const updateChat = authed.chat.update
 				entityId: input.id,
 				action: "read",
 				entityType: "chat",
-			}) as const,
+			}) satisfies CheckPermissionInput,
 	)
 	.handler(async ({ input }) => {
 		const updateData: {
@@ -161,7 +163,7 @@ export const deleteChats = authed.chat.delete
 				entityIds: input.refs.map((ref) => ref.id),
 				action: "delete",
 				entityType: "chat",
-			}) as const,
+			}) satisfies CheckManyPermissionInput,
 	)
 	.handler(async ({ context }) => {
 		const logger = getLogger(context);

@@ -48,7 +48,7 @@ export const findOrganizationInvitation = authed.organizationInvitation.find
 				entityId: input.id,
 				action: "read",
 				entityType: "course",
-			}) as const,
+			}) satisfies CheckPermissionInput,
 	) */
 	.handler(async ({ input }) => {
 		const [query] = await db
@@ -95,8 +95,8 @@ export const updateOrganizationInvitation = authed.organizationInvitation.update
 			({
 				entityId: input.id,
 				action: "read",
-				entityType: "course",
-			}) as const,
+				entityType: "organizationInvitation",
+			}) satisfies CheckPermissionInput,
 	) */
 	.handler(async ({ input }) => {
 		const [query] = await db
@@ -116,8 +116,8 @@ export const deleteOrganizationInvitations =
 			({
 				entityIds: input.refs.map((ref) => ref.id),
 				action: "delete",
-				entityType: "course",
-			}) as const,
+				entityType: "organizationInvitation",
+			}) satisfies CheckManyPermissionInput,
 	) */
 		.handler(async ({ input, context }) => {
 			const logger = getLogger(context);

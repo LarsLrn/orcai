@@ -5,6 +5,8 @@ import { db } from "@/db/drizzle";
 import { assetTable } from "@/db/schema/asset";
 import { authed } from "@/lib/orpc/implementation/authed";
 import {
+	type CheckManyPermissionInput,
+	type CheckPermissionInput,
 	checkManyPermissionMiddleware,
 	checkPermissionMiddleware,
 } from "@/lib/orpc/middlewares/permission";
@@ -56,7 +58,7 @@ export const findAsset = authed.asset.find
 				entityId: input.id,
 				action: "read",
 				entityType: "asset",
-			}) as const,
+			}) satisfies CheckPermissionInput,
 	)
 	.handler(async ({ input }) => {
 		const [query] = await db
@@ -105,7 +107,7 @@ export const updateAsset = authed.asset.update
 				entityId: input.id,
 				action: "read",
 				entityType: "asset",
-			}) as const,
+			}) satisfies CheckPermissionInput,
 	)
 	.handler(async ({ input }) => {
 		const [asset] = await db
@@ -128,7 +130,7 @@ export const deleteAssets = authed.asset.delete
 				entityIds: input.refs.map((ref) => ref.id),
 				action: "delete",
 				entityType: "asset",
-			}) as const,
+			}) satisfies CheckManyPermissionInput,
 	)
 	.handler(async ({ context }) => {
 		const logger = getLogger(context);

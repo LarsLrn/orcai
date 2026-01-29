@@ -51,7 +51,7 @@ export const findOrganizationProvider = authed.organizationProvider.find
         entityId: input.id,
         action: "read",
         entityType: "organization",
-      }) as const,
+      }) satisfies CheckPermissionInput,
   ) */
 	.handler(async ({ input, context }) => {
 		const [organizationProvider] = await db
@@ -114,7 +114,7 @@ export const updateOrganizationProvider = authed.organizationProvider.update
         entityId: input.id,
         action: "read",
         entityType: "organization",
-      }) as const,
+      }) satisfies CheckPermissionInput,
   ) */
 	.handler(async ({ input, context }) => {
 		// Prepare the update data
@@ -155,7 +155,7 @@ export const deleteOrganizationProviders = authed.organizationProvider.delete
 				entityIds: input.refs.map((ref) => ref.userId),
 				action: "delete",
 				entityType: "organization",
-			}) as const,
+			}) satisfies CheckManyPermissionInput,
 	) */
 	.handler(async ({ input, context }) => {
 		const logger = getLogger(context);

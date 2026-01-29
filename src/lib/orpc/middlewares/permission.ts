@@ -5,6 +5,13 @@ import { checkManyRelations, checkRelation } from "@/lib/spice-db/actions";
 import type { Action, EntityType } from "@/lib/spice-db/types";
 import { withName } from "./utils";
 
+export interface CheckPermissionInput {
+	entityId: string;
+	action: Action;
+	entityType: EntityType;
+	zedToken?: string;
+}
+
 const permissionBase = os.$context<{
 	auth: {
 		isAuthenticated: true;
@@ -18,15 +25,7 @@ const permissionBase = os.$context<{
 
 export const checkPermissionMiddleware = withName(
 	permissionBase.middleware(
-		async (
-			{ context, next, errors },
-			input: {
-				entityId: string;
-				action: Action;
-				entityType: EntityType;
-				zedToken?: string;
-			},
-		) => {
+		async ({ context, next, errors }, input: CheckPermissionInput) => {
 			const { entityId, action, entityType } = input;
 
 			const zedToken = input.zedToken ?? context.meta?.zedToken;
@@ -59,17 +58,16 @@ export const checkPermissionMiddleware = withName(
 	"checkPermission",
 );
 
+export interface CheckManyPermissionInput {
+	entityIds: string[];
+	action: Action;
+	entityType: EntityType;
+	zedToken?: string;
+}
+
 export const checkManyPermissionMiddleware = withName(
 	permissionBase.middleware(
-		async (
-			{ context, next, errors },
-			input: {
-				entityIds: string[];
-				action: Action;
-				entityType: EntityType;
-				zedToken?: string;
-			},
-		) => {
+		async ({ context, next, errors }, input: CheckManyPermissionInput) => {
 			const { entityIds, action, entityType } = input;
 
 			const zedToken = input.zedToken || context.meta?.zedToken;
