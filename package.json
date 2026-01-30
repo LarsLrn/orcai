@@ -9,7 +9,7 @@
 		"dev": "vite dev",
 		"build": "vite build",
 		"biome:check:unsafe": "biome check . --write --unsafe",
-		"format": "biome format --write",
+		"lint": "biome check . && tsc --noEmit",
 		"knip": "knip",
 		"ai:devtools": "bunx @ai-sdk/devtools",
 		"db:generate": "drizzle-kit generate",
