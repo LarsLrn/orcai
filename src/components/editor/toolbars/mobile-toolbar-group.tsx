@@ -27,17 +27,19 @@ export const MobileToolbarGroup = ({
 
 	return (
 		<Drawer open={isOpen} onOpenChange={setIsOpen}>
-			<DrawerTrigger asChild>
-				<Button
-					type="button"
-					variant="ghost"
-					size="sm"
-					className={cn("h-8 w-max gap-1 px-3 font-normal", className)}
-				>
-					{label}
-					<ChevronDown className="h-4 w-4" />
-				</Button>
-			</DrawerTrigger>
+			<DrawerTrigger
+				render={
+					<Button
+						type="button"
+						variant="ghost"
+						size="sm"
+						className={cn("h-8 w-max gap-1 px-3 font-normal", className)}
+					>
+						{label}
+						<ChevronDown className="h-4 w-4" />
+					</Button>
+				}
+			/>
 			<DrawerContent>
 				<DrawerHeader>
 					<DrawerTitle className="text-start">{label}</DrawerTitle>
