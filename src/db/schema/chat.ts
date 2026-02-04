@@ -1,4 +1,3 @@
-import { relations } from "drizzle-orm";
 import {
 	type AnyPgColumn,
 	pgTable,
@@ -9,7 +8,6 @@ import {
 import { user } from "./auth";
 import { botTable } from "./bot";
 import { chatBranch } from "./chat-branch";
-import { chatMessage } from "./chat-message";
 
 export const chat = pgTable("chat", {
 	id: uuid("id").primaryKey().notNull().defaultRandom(),
@@ -25,16 +23,3 @@ export const chat = pgTable("chat", {
 	createdAt: timestamp("created_at").notNull().defaultNow(),
 	updatedAt: timestamp("updated_at").notNull().defaultNow(),
 });
-
-export const chatsRelations = relations(chat, ({ one, many }) => ({
-	user: one(user, {
-		fields: [chat.userId],
-		references: [user.id],
-	}),
-	activeBranch: one(chatBranch, {
-		fields: [chat.activeBranchId],
-		references: [chatBranch.id],
-	}),
-	messages: many(chatMessage),
-	branches: many(chatBranch),
-}));

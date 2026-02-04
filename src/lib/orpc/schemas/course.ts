@@ -1,8 +1,4 @@
-import {
-	createInsertSchema,
-	createSelectSchema,
-	createUpdateSchema,
-} from "drizzle-zod";
+import { createInsertSchema, createSelectSchema } from "drizzle-zod";
 import { z } from "zod/v4";
 import { course } from "@/db/schema/course";
 
@@ -12,7 +8,17 @@ import { course } from "@/db/schema/course";
  * ----------------
  */
 
-export const courseSelectSchema = createSelectSchema(course);
+const configSchema = z.object({
+	systemPrompt: z.string(),
+	maxReferences: z.number().min(1).max(20),
+	model: z.string(),
+});
+
+export type CourseConfigType = z.infer<typeof configSchema>;
+
+export const courseSelectSchema = createSelectSchema(course).extend({
+	config: configSchema,
+});
 
 /**
  * ----------------
@@ -37,12 +43,8 @@ export const courseInsertSchema = createInsertSchema(course, {
 			{ message: "Content is required" },
 		),
 	// TODO: Coerce received string for maxReferences
-	config: z.object({
-		systemPrompt: z.string(),
-		maxReferences: z.number().min(1).max(20),
-		model: z.string(),
-	}),
-});
+	config: configSchema,
+}).omit({ id: true });
 
 /**
  * ----------------
@@ -50,7 +52,7 @@ export const courseInsertSchema = createInsertSchema(course, {
  * ----------------
  */
 
-export const courseUpdateSchema = createUpdateSchema(course, {
+export const courseUpdateSchema = courseInsertSchema.extend({
 	id: courseSelectSchema.shape.id,
 });
 

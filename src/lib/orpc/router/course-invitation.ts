@@ -1,6 +1,6 @@
 import { getLogger } from "@orpc/experimental-pino";
 import { ORPCError } from "@orpc/server";
-import { count, eq, getTableColumns, inArray, or } from "drizzle-orm";
+import { count, eq, getColumns, inArray, or } from "drizzle-orm";
 import { db } from "@/db/drizzle";
 import { courseInvitation } from "@/db/schema/course-invitation";
 import { authed } from "@/lib/orpc/implementation/authed";
@@ -16,7 +16,7 @@ export const listCourseInvitations = authed.courseInvitation.list.handler(
 
 		const [data, [rowCount]] = await Promise.all([
 			db
-				.select({ ...getTableColumns(courseInvitation) })
+				.select({ ...getColumns(courseInvitation) })
 				.from(courseInvitation)
 				.where(
 					or(
@@ -53,7 +53,7 @@ export const findCourseInvitation = authed.courseInvitation.find
 	) */
 	.handler(async ({ input }) => {
 		const [query] = await db
-			.select({ ...getTableColumns(courseInvitation) })
+			.select({ ...getColumns(courseInvitation) })
 			.from(courseInvitation)
 			.where(eq(courseInvitation.id, input.id));
 
@@ -106,7 +106,7 @@ export const updateCourseInvitation = authed.courseInvitation.update
 			.update(courseInvitation)
 			.set(input)
 			.where(eq(courseInvitation.id, input.id))
-			.returning({ ...getTableColumns(courseInvitation) });
+			.returning({ ...getColumns(courseInvitation) });
 
 		return { data: query };
 	});
@@ -148,7 +148,7 @@ export const respondToCourseInvitation =
 	authed.courseInvitation.respond.handler(({ input }) => {
 		const acceptInvitation = () => {
 			/* const [invitation] = await db
-				.select({ ...getTableColumns(courseInvitation) })
+				.select({ ...getColumns(courseInvitation) })
 				.from(courseInvitation)
 				.where(eq(courseInvitation.id, input.id));
 

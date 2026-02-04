@@ -12,7 +12,20 @@ import { user } from "@/db/schema/auth";
  * ----------------
  */
 
-export const userSelectSchema = createSelectSchema(user);
+const preferencesSchema = z.object({
+	tours: z
+		.object({
+			initialTour: z.enum(["completed", "skipped"]).optional(),
+			chatTour: z.enum(["completed", "skipped"]).optional(),
+		})
+		.optional(),
+});
+
+export type UserPreferencesType = z.infer<typeof preferencesSchema>;
+
+export const userSelectSchema = createSelectSchema(user).extend({
+	preferences: preferencesSchema.optional(),
+});
 
 /**
  * ----------------
@@ -20,7 +33,9 @@ export const userSelectSchema = createSelectSchema(user);
  * ----------------
  */
 
-export const userInsertSchema = createInsertSchema(user);
+export const userInsertSchema = createInsertSchema(user).extend({
+	preferences: preferencesSchema.optional(),
+});
 
 /**
  * ----------------

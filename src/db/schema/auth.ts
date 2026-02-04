@@ -7,13 +7,7 @@ import {
 	timestamp,
 	uuid,
 } from "drizzle-orm/pg-core";
-
-export interface UserPreferencesType {
-	tours?: {
-		initialTour?: "completed" | "skipped";
-		chatTour?: "completed" | "skipped";
-	};
-}
+import type { UserPreferencesType } from "@/lib/orpc/schemas/user";
 
 export const user = pgTable("user", {
 	id: uuid("id").primaryKey().defaultRandom(),

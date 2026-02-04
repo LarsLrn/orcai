@@ -1,8 +1,4 @@
-import {
-	createInsertSchema,
-	createSelectSchema,
-	createUpdateSchema,
-} from "drizzle-zod";
+import { createInsertSchema, createSelectSchema } from "drizzle-zod";
 import { z } from "zod/v4";
 import { assetTable } from "@/db/schema/asset";
 
@@ -12,7 +8,22 @@ import { assetTable } from "@/db/schema/asset";
  * ----------------
  */
 
-export const assetSelectSchema = createSelectSchema(assetTable);
+const metadataSchema = z.object({
+	showReference: z.boolean(),
+	relevance: z.enum(["high", "medium", "low"]),
+	citation: z.string().optional(),
+	externalUrl: z.string().optional(),
+	pageRange: z.string().optional(),
+	author: z.string().optional(),
+	chapterTitle: z.string().optional(),
+	mergePages: z.boolean().optional(),
+});
+
+export type AssetMetadataType = z.infer<typeof metadataSchema>;
+
+export const assetSelectSchema = createSelectSchema(assetTable).extend({
+	metadata: metadataSchema,
+});
 
 /**
  * ----------------
@@ -20,13 +31,17 @@ export const assetSelectSchema = createSelectSchema(assetTable);
  * ----------------
  */
 
-export const assetInsertSchema = createInsertSchema(assetTable).omit({
-	createdAt: true,
-	updatedAt: true,
-	bucket: true,
-	prefix: true,
-	userId: true,
-});
+export const assetInsertSchema = createInsertSchema(assetTable)
+	.omit({
+		createdAt: true,
+		updatedAt: true,
+		bucket: true,
+		prefix: true,
+		userId: true,
+	})
+	.extend({
+		metadata: metadataSchema.optional(),
+	});
 
 /**
  * ----------------
@@ -34,9 +49,14 @@ export const assetInsertSchema = createInsertSchema(assetTable).omit({
  * ----------------
  */
 
-export const assetUpdateSchema = createUpdateSchema(assetTable, {
-	id: assetSelectSchema.shape.id,
-}).omit({ updatedAt: true, createdAt: true });
+export const assetUpdateSchema = assetInsertSchema
+	.extend({
+		id: assetSelectSchema.shape.id,
+	})
+	.omit({
+		size: true,
+		fileType: true,
+	});
 
 /**
  * ----------------

@@ -1,5 +1,5 @@
 import { ORPCError } from "@orpc/server";
-import { and, eq, getTableColumns, inArray, sql } from "drizzle-orm";
+import { and, eq, getColumns, inArray, sql } from "drizzle-orm";
 import { db } from "@/db/drizzle";
 import {
 	capabilityTable,
@@ -16,7 +16,7 @@ export const listModels = authed.model.list.handler(async ({ input }) => {
 	// If capabilities are specified, filter models that have those capabilities
 	if (input.capabilities && input.capabilities.length > 0) {
 		models = await db
-			.select({ ...getTableColumns(modelTable) })
+			.select({ ...getColumns(modelTable) })
 			.from(modelTable)
 			.innerJoin(
 				modelCapabilityTable,
@@ -34,15 +34,15 @@ export const listModels = authed.model.list.handler(async ({ input }) => {
 			);
 	} else {
 		models = await db
-			.select({ ...getTableColumns(modelTable) })
+			.select({ ...getColumns(modelTable) })
 			.from(modelTable)
 			.where(eq(modelTable.providerSlug, input.providerSlug));
 	}
 
 	const capabilities = (await db
 		.select({
-			...getTableColumns(capabilityTable),
-			...getTableColumns(modelCapabilityTable),
+			...getColumns(capabilityTable),
+			...getColumns(modelCapabilityTable),
 		})
 		.from(capabilityTable)
 		.innerJoin(
@@ -78,7 +78,7 @@ export const findModel = authed.model.find
   ) */
 	.handler(async ({ input }) => {
 		const [model] = await db
-			.select({ ...getTableColumns(modelTable) })
+			.select({ ...getColumns(modelTable) })
 			.from(modelTable)
 			.where(
 				and(
@@ -88,7 +88,7 @@ export const findModel = authed.model.find
 			);
 
 		const capabilities = (await db
-			.select({ ...getTableColumns(capabilityTable) })
+			.select({ ...getColumns(capabilityTable) })
 			.from(capabilityTable)
 			.innerJoin(
 				capabilityTable,

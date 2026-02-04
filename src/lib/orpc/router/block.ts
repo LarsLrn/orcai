@@ -1,13 +1,6 @@
 import { getLogger } from "@orpc/experimental-pino";
 import { ORPCError } from "@orpc/server";
-import {
-	and,
-	countDistinct,
-	desc,
-	eq,
-	getTableColumns,
-	inArray,
-} from "drizzle-orm";
+import { and, countDistinct, desc, eq, getColumns, inArray } from "drizzle-orm";
 import { db } from "@/db/drizzle";
 import { blockAssetTable, blockTable } from "@/db/schema/block";
 import { botBlockTable } from "@/db/schema/bot";
@@ -38,7 +31,7 @@ export const listBlocks = authed.block.list.handler(
 		const [data, [rowCount]] = await Promise.all([
 			db
 				.selectDistinctOn([blockTable.id, blockTable.createdAt], {
-					...getTableColumns(blockTable),
+					...getColumns(blockTable),
 				})
 				.from(blockTable)
 				.leftJoin(botBlockTable, eq(botBlockTable.blockId, blockTable.id))
@@ -71,7 +64,7 @@ export const findBlock = authed.block.find
 	)
 	.handler(async ({ input }) => {
 		const [block] = (await db
-			.select({ ...getTableColumns(blockTable) })
+			.select({ ...getColumns(blockTable) })
 			.from(blockTable)
 			.where(eq(blockTable.id, input.id))) as Block[];
 
@@ -102,7 +95,7 @@ export const createBlock = authed.block.create
 				createdAt: new Date(),
 				updatedAt: new Date(),
 			})
-			.returning({ ...getTableColumns(blockTable) })) as Block[];
+			.returning({ ...getColumns(blockTable) })) as Block[];
 
 		await createRelation({
 			entityId: block.id,
@@ -146,7 +139,7 @@ export const updateBlock = authed.block.update
 				updatedAt: new Date(),
 			})
 			.where(eq(blockTable.id, input.id))
-			.returning({ ...getTableColumns(blockTable) })) as Block[];
+			.returning({ ...getColumns(blockTable) })) as Block[];
 
 		if (input.type === "database" && block.type === "database") {
 			await db

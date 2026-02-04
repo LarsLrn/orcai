@@ -1,5 +1,5 @@
 import { ORPCError } from "@orpc/server";
-import { and, count, eq, getTableColumns } from "drizzle-orm";
+import { and, count, eq, getColumns } from "drizzle-orm";
 import { db } from "@/db/drizzle";
 import { account, session, user } from "@/db/schema/auth";
 import { auth } from "@/lib/auth";
@@ -15,7 +15,7 @@ export const listUsers = authed.user.list.handler(async ({ input }) => {
 
 	const [data, [rowCount]] = await Promise.all([
 		db
-			.select({ ...getTableColumns(user) })
+			.select({ ...getColumns(user) })
 			.from(user)
 			/* .where(inArray(course.id, entityIds)) */
 			.limit(input.pageSize)
@@ -49,7 +49,7 @@ export const findUser = authed.user.find
 			});
 		}
 		const [query] = await db
-			.select({ ...getTableColumns(user) })
+			.select({ ...getColumns(user) })
 			.from(user)
 			.where(eq(user.id, userId));
 

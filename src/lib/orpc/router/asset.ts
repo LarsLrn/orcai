@@ -1,6 +1,6 @@
 import { getLogger } from "@orpc/experimental-pino";
 import { ORPCError } from "@orpc/server";
-import { and, count, desc, eq, getTableColumns, inArray } from "drizzle-orm";
+import { and, count, desc, eq, getColumns, inArray } from "drizzle-orm";
 import { db } from "@/db/drizzle";
 import { assetTable } from "@/db/schema/asset";
 import { authed } from "@/lib/orpc/implementation/authed";
@@ -34,7 +34,7 @@ export const listAssets = authed.asset.list.handler(
 
 		const [data, [rowCount]] = await Promise.all([
 			db
-				.select({ ...getTableColumns(assetTable) })
+				.select({ ...getColumns(assetTable) })
 				.from(assetTable)
 				.where(and(...whereConditions))
 				.orderBy(desc(assetTable.createdAt))
@@ -62,7 +62,7 @@ export const findAsset = authed.asset.find
 	)
 	.handler(async ({ input }) => {
 		const [query] = await db
-			.select({ ...getTableColumns(assetTable) })
+			.select({ ...getColumns(assetTable) })
 			.from(assetTable)
 			.where(eq(assetTable.id, input.id));
 
@@ -86,7 +86,7 @@ export const createAsset = authed.asset.create.handler(
 				prefix: "placeholder", // TODO: Make this dynamic
 				userId: context.auth.user.id,
 			})
-			.returning({ ...getTableColumns(assetTable) });
+			.returning({ ...getColumns(assetTable) });
 
 		await createRelation({
 			entityId: asset.id,
@@ -117,7 +117,7 @@ export const updateAsset = authed.asset.update
 				updatedAt: new Date(),
 			})
 			.where(eq(assetTable.id, input.id))
-			.returning({ ...getTableColumns(assetTable) });
+			.returning({ ...getColumns(assetTable) });
 
 		return { data: asset };
 	});

@@ -1,4 +1,3 @@
-import { relations } from "drizzle-orm";
 import {
 	type AnyPgColumn,
 	integer,
@@ -28,16 +27,3 @@ export const chatMessage = pgTable("chat_message", {
 	// Optimization: Distance from root. 0 = System/Root, 1 = First User Msg, etc.
 	depth: integer("depth").notNull().default(0),
 });
-
-export const messagesRelations = relations(chatMessage, ({ one, many }) => ({
-	chat: one(chat, {
-		fields: [chatMessage.chatId],
-		references: [chat.id],
-	}),
-	parent: one(chatMessage, {
-		fields: [chatMessage.parentMessageId],
-		references: [chatMessage.id],
-		relationName: "child_parent",
-	}),
-	children: many(chatMessage, { relationName: "child_parent" }),
-}));

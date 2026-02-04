@@ -1,6 +1,6 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { createServerFn } from "@tanstack/react-start";
-import { eq, getTableColumns } from "drizzle-orm";
+import { eq, getColumns } from "drizzle-orm";
 import z from "zod/v4";
 import { SignUpForm } from "@/components/auth/signup/signup-form";
 import {
@@ -26,7 +26,7 @@ const getCourseInvitationById = createServerFn({
 	.handler(async (ctx): Promise<{ query: CourseInvitation | undefined }> => {
 		try {
 			const [query] = await db
-				.select({ ...getTableColumns(courseInvitation) })
+				.select({ ...getColumns(courseInvitation) })
 				.from(courseInvitation)
 				.where(eq(courseInvitation.id, ctx.data.id))
 				.limit(1);

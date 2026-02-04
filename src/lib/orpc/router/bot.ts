@@ -1,6 +1,6 @@
 import { getLogger } from "@orpc/experimental-pino";
 import { ORPCError } from "@orpc/server";
-import { and, count, eq, getTableColumns, ilike, inArray } from "drizzle-orm";
+import { and, count, eq, getColumns, ilike, inArray } from "drizzle-orm";
 import { db } from "@/db/drizzle";
 import { botBlockTable, botTable } from "@/db/schema/bot";
 import { authed } from "@/lib/orpc/implementation/authed";
@@ -27,7 +27,7 @@ export const listBots = authed.bot.list.handler(async ({ input, context }) => {
 
 	const [data, [rowCount]] = await Promise.all([
 		db
-			.select({ ...getTableColumns(botTable) })
+			.select({ ...getColumns(botTable) })
 			.from(botTable)
 			.where(and(...whereConditions))
 			.limit(input.pageSize)
@@ -53,7 +53,7 @@ export const findBot = authed.bot.find
 	)
 	.handler(async ({ input }) => {
 		const [bot] = await db
-			.select({ ...getTableColumns(botTable) })
+			.select({ ...getColumns(botTable) })
 			.from(botTable)
 			.where(eq(botTable.id, input.id));
 
@@ -63,7 +63,7 @@ export const findBot = authed.bot.find
 
 		// Fetch the associated blockIds
 		const blockIds = await db
-			.select({ ...getTableColumns(botBlockTable) })
+			.select({ ...getColumns(botBlockTable) })
 			.from(botBlockTable)
 			.where(eq(botBlockTable.botId, bot.id));
 
@@ -81,7 +81,7 @@ export const createBot = authed.bot.create
 				createdAt: new Date(),
 				updatedAt: new Date(),
 			})
-			.returning({ ...getTableColumns(botTable) });
+			.returning({ ...getColumns(botTable) });
 
 		const botBlocks = await db
 			.insert(botBlockTable)
@@ -92,7 +92,7 @@ export const createBot = authed.bot.create
 					createdAt: new Date(),
 				})),
 			)
-			.returning({ ...getTableColumns(botBlockTable) });
+			.returning({ ...getColumns(botBlockTable) });
 
 		await createRelation({
 			entityId: bot.id,
@@ -122,7 +122,7 @@ export const updateBot = authed.bot.update
 				updatedAt: new Date(),
 			})
 			.where(eq(botTable.id, input.id))
-			.returning({ ...getTableColumns(botTable) });
+			.returning({ ...getColumns(botTable) });
 
 		// Remove all existing bot-block relationships
 		// TODO: Handle this more elegantly rather then deleting and recreating
@@ -137,7 +137,7 @@ export const updateBot = authed.bot.update
 					createdAt: new Date(),
 				})),
 			)
-			.returning({ ...getTableColumns(botBlockTable) });
+			.returning({ ...getColumns(botBlockTable) });
 
 		return { data: { ...bot, blockIds: botBlocks.map((bb) => bb.blockId) } };
 	});

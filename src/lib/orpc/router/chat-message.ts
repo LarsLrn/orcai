@@ -4,7 +4,7 @@ import {
 	and,
 	count,
 	eq,
-	getTableColumns,
+	getColumns,
 	inArray,
 	isNull,
 	or,
@@ -181,7 +181,7 @@ export const findChatMessage = authed.chatMessage.find
 	)
 	.handler(async ({ input }) => {
 		const [query] = await db
-			.select({ ...getTableColumns(chatMessage) })
+			.select({ ...getColumns(chatMessage) })
 			.from(chatMessage)
 			.where(
 				and(eq(chatMessage.id, input.id), eq(chatMessage.chatId, input.chatId)),
@@ -320,7 +320,7 @@ export const createChatMessage = authed.chatMessage.create
 				depth,
 				createdAt: new Date(),
 			})
-			.returning({ ...getTableColumns(chatMessage) });
+			.returning({ ...getColumns(chatMessage) });
 
 		// 4. Handle Branch Updates
 		if (isForking) {
@@ -409,7 +409,7 @@ export const updateChatMessage = authed.chatMessage.update
 					metadata: input.metadata,
 				})
 				.where(eq(chatMessage.id, input.id))
-				.returning({ ...getTableColumns(chatMessage) });
+				.returning({ ...getColumns(chatMessage) });
 
 			await db
 				.update(chat)
@@ -437,7 +437,7 @@ export const updateChatMessage = authed.chatMessage.update
 				depth,
 				createdAt: new Date(),
 			})
-			.returning({ ...getTableColumns(chatMessage) });
+			.returning({ ...getColumns(chatMessage) });
 
 		// Create new branch
 		const [countRes] = await db

@@ -1,4 +1,3 @@
-import { relations } from "drizzle-orm";
 import {
 	json,
 	pgTable,
@@ -8,14 +7,9 @@ import {
 	uuid,
 	varchar,
 } from "drizzle-orm/pg-core";
+import type { CourseConfigType } from "@/lib/orpc/schemas/course";
 import { user } from "./auth";
 import { organization } from "./organization";
-
-export interface CourseConfigType {
-	systemPrompt?: string;
-	maxReferences?: number;
-	model?: string;
-}
 
 export const course = pgTable("course", {
 	id: uuid("id").primaryKey().defaultRandom(),
@@ -26,7 +20,7 @@ export const course = pgTable("course", {
 	description: varchar("description", { length: 500 }).notNull(),
 	contentJson: json("content_json").notNull().default({}),
 	contentHtml: text("content_html").notNull(),
-	config: json("config").notNull().$type<CourseConfigType>().default({}),
+	config: json("config").notNull().$type<CourseConfigType>(),
 	createdAt: timestamp("created_at").defaultNow(),
 	updatedAt: timestamp("updated_at").defaultNow(),
 });
@@ -49,10 +43,3 @@ export const courseMember = pgTable(
 		}),
 	],
 );
-
-export const coursesRelations = relations(course, ({ one }) => ({
-	organizationId: one(organization, {
-		fields: [course.organizationId],
-		references: [organization.id],
-	}),
-}));

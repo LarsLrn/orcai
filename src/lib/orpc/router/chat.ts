@@ -1,6 +1,6 @@
 import { getLogger } from "@orpc/experimental-pino";
 import { ORPCError } from "@orpc/server";
-import { count, desc, eq, getTableColumns, inArray } from "drizzle-orm";
+import { count, desc, eq, getColumns, inArray } from "drizzle-orm";
 import { db } from "@/db/drizzle";
 import { chat } from "@/db/schema/chat";
 import { chatBranch } from "@/db/schema/chat-branch";
@@ -24,7 +24,7 @@ export const listChats = authed.chat.list.handler(
 
 		const [data, [rowCount]] = await Promise.all([
 			db
-				.select({ ...getTableColumns(chat) })
+				.select({ ...getColumns(chat) })
 				.from(chat)
 				.where(inArray(chat.id, entityIds))
 				.orderBy(desc(chat.createdAt))
@@ -54,11 +54,11 @@ export const findChat = authed.chat.find
 	.handler(async ({ input }) => {
 		const [[data], branches] = await Promise.all([
 			db
-				.select({ ...getTableColumns(chat) })
+				.select({ ...getColumns(chat) })
 				.from(chat)
 				.where(eq(chat.id, input.id)),
 			db
-				.select({ ...getTableColumns(chatBranch) })
+				.select({ ...getColumns(chatBranch) })
 				.from(chatBranch)
 				.where(eq(chatBranch.chatId, input.id))
 				.orderBy(desc(chatBranch.updatedAt)),
@@ -86,7 +86,7 @@ export const createChat = authed.chat.create.handler(
 				userId: context.auth.user.id,
 				botId: input.botId,
 			})
-			.returning({ ...getTableColumns(chat) });
+			.returning({ ...getColumns(chat) });
 
 		// Create initial "Main" branch
 		const [mainBranch] = await db
@@ -150,7 +150,7 @@ export const updateChat = authed.chat.update
 			.update(chat)
 			.set(updateData)
 			.where(eq(chat.id, input.id))
-			.returning({ ...getTableColumns(chat) });
+			.returning({ ...getColumns(chat) });
 
 		return { data: query };
 	});

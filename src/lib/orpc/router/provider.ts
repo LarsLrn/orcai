@@ -1,12 +1,12 @@
 import { ORPCError } from "@orpc/server";
-import { eq, getTableColumns } from "drizzle-orm";
+import { eq, getColumns } from "drizzle-orm";
 import { db } from "@/db/drizzle";
 import { providerTable } from "@/db/schema/model";
 import { authed } from "@/lib/orpc/implementation/authed";
 
 export const listProviders = authed.provider.list.handler(async () => {
 	const providers = await db
-		.select({ ...getTableColumns(providerTable) })
+		.select({ ...getColumns(providerTable) })
 		.from(providerTable);
 
 	return { data: providers };
@@ -24,7 +24,7 @@ export const findProvider = authed.provider.find
   ) */
 	.handler(async ({ input }) => {
 		const [provider] = await db
-			.select({ ...getTableColumns(providerTable) })
+			.select({ ...getColumns(providerTable) })
 			.from(providerTable)
 			.where(eq(providerTable.slug, input.slug));
 

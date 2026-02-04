@@ -1,6 +1,6 @@
 import { getLogger } from "@orpc/experimental-pino";
 import { ORPCError } from "@orpc/server";
-import { count, eq, getTableColumns, inArray } from "drizzle-orm";
+import { count, eq, getColumns, inArray } from "drizzle-orm";
 import { db } from "@/db/drizzle";
 import { course, courseMember } from "@/db/schema/course";
 import { authed } from "@/lib/orpc/implementation/authed";
@@ -23,7 +23,7 @@ export const listCourses = authed.course.list.handler(
 
 		const [data, [rowCount]] = await Promise.all([
 			db
-				.select({ ...getTableColumns(course) })
+				.select({ ...getColumns(course) })
 				.from(course)
 				.where(inArray(course.id, entityIds))
 				.limit(input.pageSize)
@@ -50,7 +50,7 @@ export const findCourse = authed.course.find
 	)
 	.handler(async ({ input }) => {
 		const [query] = await db
-			.select({ ...getTableColumns(course) })
+			.select({ ...getColumns(course) })
 			.from(course)
 			.where(eq(course.id, input.id));
 
@@ -74,7 +74,7 @@ export const createCourse = authed.course.create
 				organizationId: context.auth.session.activeOrganizationId,
 				config: input.config,
 			})
-			.returning({ ...getTableColumns(course) });
+			.returning({ ...getColumns(course) });
 
 		await db.insert(courseMember).values({
 			courseId: query.id,
@@ -114,7 +114,7 @@ export const updateCourse = authed.course.update
 				updatedAt: new Date(),
 			})
 			.where(eq(course.id, input.id))
-			.returning({ ...getTableColumns(course) });
+			.returning({ ...getColumns(course) });
 
 		return { data: query };
 	});

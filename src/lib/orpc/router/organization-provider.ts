@@ -1,6 +1,6 @@
 import { getLogger } from "@orpc/experimental-pino";
 import { ORPCError } from "@orpc/server";
-import { and, count, eq, getTableColumns, inArray } from "drizzle-orm";
+import { and, count, eq, getColumns, inArray } from "drizzle-orm";
 import { db } from "@/db/drizzle";
 import { organizationProviderTable } from "@/db/schema/model";
 import { encryptApiKey } from "@/lib/encryption";
@@ -18,7 +18,7 @@ export const listOrganizationProviders = authed.organizationProvider.list
 
 		const [data, [rowCount]] = await Promise.all([
 			db
-				.select({ ...getTableColumns(organizationProviderTable) })
+				.select({ ...getColumns(organizationProviderTable) })
 				.from(organizationProviderTable)
 				.where(
 					eq(
@@ -55,7 +55,7 @@ export const findOrganizationProvider = authed.organizationProvider.find
   ) */
 	.handler(async ({ input, context }) => {
 		const [organizationProvider] = await db
-			.select({ ...getTableColumns(organizationProviderTable) })
+			.select({ ...getColumns(organizationProviderTable) })
 			.from(organizationProviderTable)
 			.where(
 				and(
@@ -93,7 +93,7 @@ export const createOrganizationProvider = authed.organizationProvider.create
 				apiKeyEncrypted,
 				createdAt: new Date(),
 			})
-			.returning({ ...getTableColumns(organizationProviderTable) });
+			.returning({ ...getColumns(organizationProviderTable) });
 
 		/* await createRelation({
 			entityId: query.,
@@ -141,7 +141,7 @@ export const updateOrganizationProvider = authed.organizationProvider.update
 					eq(organizationProviderTable.providerSlug, input.providerSlug),
 				),
 			)
-			.returning({ ...getTableColumns(organizationProviderTable) });
+			.returning({ ...getColumns(organizationProviderTable) });
 
 		return { data: query };
 	});

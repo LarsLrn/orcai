@@ -1,6 +1,6 @@
 import { getLogger } from "@orpc/experimental-pino";
 import { ORPCError } from "@orpc/server";
-import { and, count, eq, getTableColumns, inArray } from "drizzle-orm";
+import { and, count, eq, getColumns, inArray } from "drizzle-orm";
 import { db } from "@/db/drizzle";
 import { member } from "@/db/schema/organization";
 import { authed } from "@/lib/orpc/implementation/authed";
@@ -16,7 +16,7 @@ export const listOrganizationMembers = authed.organizationMember.list.handler(
 
 		const [data, [rowCount]] = await Promise.all([
 			db
-				.select({ ...getTableColumns(member) })
+				.select({ ...getColumns(member) })
 				.from(member)
 				/* .where(inArray(organization.id, entityIds)) */
 				.limit(input.pageSize)
@@ -42,7 +42,7 @@ export const findOrganizationMember = authed.organizationMember.find
   ) */
 	.handler(async ({ input }) => {
 		const [query] = await db
-			.select({ ...getTableColumns(member) })
+			.select({ ...getColumns(member) })
 			.from(member)
 			.where(
 				and(
@@ -64,7 +64,7 @@ export const createOrganizationMember = authed.organizationMember.create
 		const [query] = await db
 			.insert(member)
 			.values({ ...input, createdAt: new Date() })
-			.returning({ ...getTableColumns(member) });
+			.returning({ ...getColumns(member) });
 
 		await createRelation({
 			entityId: query.id,
@@ -96,7 +96,7 @@ export const updateOrganizationMember = authed.organizationMember.update
 					eq(member.userId, input.userId),
 				),
 			)
-			.returning({ ...getTableColumns(member) });
+			.returning({ ...getColumns(member) });
 
 		return { data: query };
 	});

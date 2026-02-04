@@ -6,18 +6,8 @@ import {
 	timestamp,
 	uuid,
 } from "drizzle-orm/pg-core";
+import type { AssetMetadataType } from "@/lib/orpc/schemas/asset";
 import { user } from "./auth";
-
-export interface AssetMetadataType {
-	showReference: boolean;
-	relevance: "high" | "medium" | "low";
-	citation?: string;
-	externalUrl?: string;
-	pageRange?: string;
-	author?: string;
-	chapterTitle?: string;
-	mergePages?: boolean;
-}
 
 export const assetTable = pgTable("asset", {
 	id: uuid("id").primaryKey().defaultRandom(),
