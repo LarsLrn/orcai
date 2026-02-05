@@ -165,7 +165,7 @@
 		"@types/react": "19.2.8",
 		"@types/react-dom": "19.2.3",
 		"dotenv-cli": "11.0.0",
-		"drizzle-kit": "0.31.8",
+		"drizzle-kit": "beta",
 		"husky": "9.1.7",
 		"knip": "5.81.0",
 		"lint-staged": "16.2.7",
