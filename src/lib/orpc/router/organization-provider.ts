@@ -10,12 +10,6 @@ import { requireActiveOrganizationMiddleware } from "@/lib/orpc/middlewares/auth
 export const listOrganizationProviders = authed.organizationProvider.list
 	.use(requireActiveOrganizationMiddleware)
 	.handler(async ({ input, context }) => {
-		/* const { entityIds } = await listAllowedEntities({
-      entityType: "organization",
-      action: "read",
-      userId: context.auth.user.id,
-    }); */
-
 		const [data, [rowCount]] = await Promise.all([
 			db
 				.select({ ...getColumns(organizationProviderTable) })
@@ -94,13 +88,6 @@ export const createOrganizationProvider = authed.organizationProvider.create
 				createdAt: new Date(),
 			})
 			.returning({ ...getColumns(organizationProviderTable) });
-
-		/* await createRelation({
-			entityId: query.,
-			entityType: "organization",
-			userId: context.auth.user.id,
-			relation: "owner",
-		}); */
 
 		return { data: query };
 	});

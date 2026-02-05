@@ -8,7 +8,11 @@ import {
 	blockUpdateSchema,
 } from "@/lib/orpc/schemas/block";
 import { botSelectSchema } from "@/lib/orpc/schemas/bot";
-import { paginationSchema, statusSchema } from "@/lib/orpc/schemas/shared";
+import {
+	paginationSchema,
+	statusSchema,
+	zedTokenSchema,
+} from "@/lib/orpc/schemas/shared";
 import { base } from "./base";
 
 export const listBlocksContract = base
@@ -19,7 +23,9 @@ export const listBlocksContract = base
 		tags: ["Blocks"],
 	})
 	.input(
-		paginationSchema.extend({
+		z.object({
+			...paginationSchema.shape,
+			...zedTokenSchema.shape,
 			filters: z
 				.object({
 					botId: botSelectSchema.shape.id.optional(),
@@ -41,6 +47,7 @@ export const createBlockContract = base
 		z.object({
 			data: blockSelectSchema,
 			assets: z.array(assetSelectSchema.shape.id).optional(),
+			meta: zedTokenSchema.optional(),
 		}),
 	);
 
@@ -51,7 +58,12 @@ export const findBlockContract = base
 		summary: "Find a block",
 		tags: ["Blocks"],
 	})
-	.input(baseBlockSelectSchema.pick({ id: true }))
+	.input(
+		z.object({
+			...baseBlockSelectSchema.pick({ id: true }).shape,
+			...zedTokenSchema.shape,
+		}),
+	)
 	.output(
 		z.object({
 			data: blockSelectSchema,

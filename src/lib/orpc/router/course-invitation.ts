@@ -8,12 +8,6 @@ import { requireActiveOrganizationMiddleware } from "@/lib/orpc/middlewares/auth
 
 export const listCourseInvitations = authed.courseInvitation.list.handler(
 	async ({ input, context }) => {
-		/* const { entityIds } = await listAllowedEntities({
-      entityType: "invitation",
-      action: "read",
-      userId: context.auth.user.id,
-    }); */
-
 		const [data, [rowCount]] = await Promise.all([
 			db
 				.select({ ...getColumns(courseInvitation) })
@@ -80,13 +74,6 @@ export const createCourseInvitations = authed.courseInvitation.create
 			.insert(courseInvitation)
 			.values(invitations)
 			.returning();
-
-		/* await createRelation({
-			entityId: query.id,
-			entityType: "course",
-			userId: context.auth.user.id,
-			relation: "owner",
-		}); */
 
 		return { data: query };
 	});

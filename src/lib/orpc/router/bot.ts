@@ -1,8 +1,9 @@
 import { getLogger } from "@orpc/experimental-pino";
-import { ORPCError } from "@orpc/server";
 import { and, count, eq, getColumns, ilike, inArray } from "drizzle-orm";
-import { db } from "@/db/drizzle";
+import * as Effect from "effect/Effect";
 import { botBlockTable, botTable } from "@/db/schema/bot";
+import { DB } from "@/lib/effect/services/drizzle";
+import { runOrpcEffect } from "@/lib/effect/utils/orpc-helpers";
 import { authed } from "@/lib/orpc/implementation/authed";
 import { requireActiveOrganizationMiddleware } from "@/lib/orpc/middlewares/auth";
 import {
@@ -13,33 +14,48 @@ import {
 } from "@/lib/orpc/middlewares/permission";
 import { createRelation, listAllowedEntities } from "@/lib/spice-db/actions";
 
-export const listBots = authed.bot.list.handler(async ({ input, context }) => {
-	const { entityIds } = await listAllowedEntities({
-		entityType: "bot",
-		action: "read",
-		userId: context.auth.user.id,
-	});
+export const listBots = authed.bot.list.handler(async ({ input, context }) =>
+	runOrpcEffect(
+		Effect.gen(function* () {
+			const db = yield* DB;
 
-	const whereConditions = [inArray(botTable.id, entityIds)];
-	if (input.search) {
-		whereConditions.push(ilike(botTable.name, `%${input.search}%`));
-	}
+			const allowedIds = yield* listAllowedEntities({
+				userId: context.auth.user.id,
+				action: "read",
+				entityType: "bot",
+				zedToken: input.zedToken,
+			}).pipe(
+				Effect.map((response) => response.map((item) => item.resourceObjectId)),
+			);
 
-	const [data, [rowCount]] = await Promise.all([
-		db
-			.select({ ...getColumns(botTable) })
-			.from(botTable)
-			.where(and(...whereConditions))
-			.limit(input.pageSize)
-			.offset(input.pageIndex * input.pageSize),
-		db
-			.select({ count: count() })
-			.from(botTable)
-			.where(and(...whereConditions)),
-	]);
+			const whereConditions = [inArray(botTable.id, allowedIds)];
+			if (input.search) {
+				whereConditions.push(ilike(botTable.name, `%${input.search}%`));
+			}
 
-	return { data, rowCount: rowCount.count };
-});
+			return yield* Effect.all(
+				[
+					db
+						.select({ ...getColumns(botTable) })
+						.from(botTable)
+						.where(and(...whereConditions))
+						.limit(input.pageSize)
+						.offset(input.pageIndex * input.pageSize),
+					db
+						.select({ count: count() })
+						.from(botTable)
+						.where(and(...whereConditions)),
+				],
+				{ concurrency: "unbounded" },
+			).pipe(
+				Effect.map(([data, [countResult]]) => ({
+					data,
+					rowCount: countResult.count,
+				})),
+			);
+		}),
+	),
+);
 
 export const findBot = authed.bot.find
 	.use(
@@ -49,60 +65,78 @@ export const findBot = authed.bot.find
 				entityId: input.id,
 				action: "read",
 				entityType: "bot",
+				zedToken: input.zedToken,
 			}) satisfies CheckPermissionInput,
 	)
-	.handler(async ({ input }) => {
-		const [bot] = await db
-			.select({ ...getColumns(botTable) })
-			.from(botTable)
-			.where(eq(botTable.id, input.id));
+	.handler(async ({ input, errors }) =>
+		runOrpcEffect(
+			Effect.gen(function* () {
+				const db = yield* DB;
 
-		if (!bot) {
-			throw new ORPCError("NOT_FOUND", { message: "Bot not found" });
-		}
+				const [bot] = yield* db
+					.select({ ...getColumns(botTable) })
+					.from(botTable)
+					.where(eq(botTable.id, input.id));
 
-		// Fetch the associated blockIds
-		const blockIds = await db
-			.select({ ...getColumns(botBlockTable) })
-			.from(botBlockTable)
-			.where(eq(botBlockTable.botId, bot.id));
+				if (!bot) {
+					return yield* Effect.fail(
+						errors.NOT_FOUND({ message: "Bot not found" }),
+					);
+				}
 
-		return { data: { ...bot, blockIds: blockIds.map((b) => b.blockId) } };
-	});
+				// Fetch the associated blockIds
+				const blockIds = yield* db
+					.select({ ...getColumns(botBlockTable) })
+					.from(botBlockTable)
+					.where(eq(botBlockTable.botId, bot.id));
+
+				return { data: { ...bot, blockIds: blockIds.map((b) => b.blockId) } };
+			}),
+		),
+	);
 
 export const createBot = authed.bot.create
 	.use(requireActiveOrganizationMiddleware)
-	.handler(async ({ input, context }) => {
-		const [bot] = await db
-			.insert(botTable)
-			.values({
-				...input,
-				userId: context.auth.user.id,
-				createdAt: new Date(),
-				updatedAt: new Date(),
-			})
-			.returning({ ...getColumns(botTable) });
+	.handler(async ({ input, context }) =>
+		runOrpcEffect(
+			Effect.gen(function* () {
+				const db = yield* DB;
 
-		const botBlocks = await db
-			.insert(botBlockTable)
-			.values(
-				input.blockIds.map((blockId) => ({
-					blockId,
-					botId: bot.id,
-					createdAt: new Date(),
-				})),
-			)
-			.returning({ ...getColumns(botBlockTable) });
+				const [bot] = yield* db
+					.insert(botTable)
+					.values({
+						...input,
+						userId: context.auth.user.id,
+						createdAt: new Date(),
+						updatedAt: new Date(),
+					})
+					.returning({ ...getColumns(botTable) });
 
-		await createRelation({
-			entityId: bot.id,
-			entityType: "bot",
-			userId: context.auth.user.id,
-			relation: "owner",
-		});
+				const botBlocks = yield* db
+					.insert(botBlockTable)
+					.values(
+						input.blockIds.map((blockId) => ({
+							blockId,
+							botId: bot.id,
+							createdAt: new Date(),
+						})),
+					)
+					.returning({ ...getColumns(botBlockTable) });
 
-		return { data: { ...bot, blockIds: botBlocks.map((bb) => bb.blockId) } };
-	});
+				const relationResult = yield* createRelation({
+					entityId: bot.id,
+					entityType: "bot",
+					userId: context.auth.user.id,
+					relation: "owner",
+				});
+
+				return {
+					data: { ...bot, blockIds: botBlocks.map((bb) => bb.blockId) },
+					meta: { zedToken: relationResult.zedToken },
+				};
+			}),
+		),
+	);
 
 export const updateBot = authed.bot.update
 	.use(
@@ -110,37 +144,45 @@ export const updateBot = authed.bot.update
 		(input) =>
 			({
 				entityId: input.id,
-				action: "read",
+				action: "update",
 				entityType: "bot",
 			}) satisfies CheckPermissionInput,
 	)
-	.handler(async ({ input }) => {
-		const [bot] = await db
-			.update(botTable)
-			.set({
-				...input,
-				updatedAt: new Date(),
-			})
-			.where(eq(botTable.id, input.id))
-			.returning({ ...getColumns(botTable) });
+	.handler(async ({ input }) =>
+		runOrpcEffect(
+			Effect.gen(function* () {
+				const db = yield* DB;
 
-		// Remove all existing bot-block relationships
-		// TODO: Handle this more elegantly rather then deleting and recreating
-		await db.delete(botBlockTable).where(eq(botBlockTable.botId, bot.id));
+				const [bot] = yield* db
+					.update(botTable)
+					.set({
+						...input,
+						updatedAt: new Date(),
+					})
+					.where(eq(botTable.id, input.id))
+					.returning({ ...getColumns(botTable) });
 
-		const botBlocks = await db
-			.insert(botBlockTable)
-			.values(
-				input.blockIds.map((blockId) => ({
-					blockId,
-					botId: bot.id,
-					createdAt: new Date(),
-				})),
-			)
-			.returning({ ...getColumns(botBlockTable) });
+				// Remove all existing bot-block relationships
+				// TODO: Handle this more elegantly rather then deleting and recreating
+				yield* db.delete(botBlockTable).where(eq(botBlockTable.botId, bot.id));
 
-		return { data: { ...bot, blockIds: botBlocks.map((bb) => bb.blockId) } };
-	});
+				const botBlocks = yield* db
+					.insert(botBlockTable)
+					.values(
+						input.blockIds.map((blockId) => ({
+							blockId,
+							botId: bot.id,
+							createdAt: new Date(),
+						})),
+					)
+					.returning({ ...getColumns(botBlockTable) });
+
+				return {
+					data: { ...bot, blockIds: botBlocks.map((bb) => bb.blockId) },
+				};
+			}),
+		),
+	);
 
 export const deleteBots = authed.bot.delete
 	.use(
@@ -152,23 +194,23 @@ export const deleteBots = authed.bot.delete
 				entityType: "bot",
 			}) satisfies CheckManyPermissionInput,
 	)
-	.handler(async ({ context }) => {
-		const logger = getLogger(context);
-		logger?.info({ ids: context.allowedIds }, "Deleting bots by IDs");
+	.handler(async ({ context }) =>
+		runOrpcEffect(
+			Effect.gen(function* () {
+				const db = yield* DB;
+				const logger = getLogger(context);
+				logger?.info({ ids: context.allowedIds }, "Deleting bots by IDs");
 
-		// Check if there are any IDs to delete
-		if (!context.allowedIds || context.allowedIds.length === 0) {
-			return { success: true, message: "No bots to delete" };
-		}
+				// Check if there are any IDs to delete
+				if (!context.allowedIds || context.allowedIds.length === 0) {
+					return { success: true, message: "No bots to delete" };
+				}
 
-		try {
-			await db.delete(botTable).where(inArray(botTable.id, context.allowedIds));
+				yield* db
+					.delete(botTable)
+					.where(inArray(botTable.id, context.allowedIds));
 
-			return { success: true, message: "Bots deleted successfully" };
-		} catch (error) {
-			logger?.error({ error }, "Error deleting bots:");
-			throw new ORPCError("INTERNAL_SERVER_ERROR", {
-				message: "Failed to delete bots",
-			});
-		}
-	});
+				return { success: true, message: "Bots deleted successfully" };
+			}),
+		),
+	);

@@ -1,14 +1,14 @@
 import { RecursiveChunker } from "@chonkiejs/core";
 import { embedMany, generateText } from "ai";
-import pMap from "p-map";
+import * as Effect from "effect/Effect";
 import type { Job } from "pg-boss";
 import { v4 as uuidv4 } from "uuid";
 import { getSaiaEmbeddingModel, getSaiaModel } from "@/lib/ai/saia-models";
 import type { MarkdownNode } from "@/lib/chunk/markdown-chunker";
-import { logger } from "@/lib/observability/logger";
 import type { Asset } from "@/lib/orpc/schemas/asset";
 import type { Block } from "@/lib/orpc/schemas/block";
 import type { VectorizeAssetPayload } from "@/lib/pg-boss/schema/vectorize-asset";
+import { toPgBossRunError } from "@/lib/pg-boss/utils/error-helper";
 import {
 	getImageAsBase64,
 	getMarkdownAsString,
@@ -27,22 +27,22 @@ import {
 
 export const VECTORIZE_ASSET_JOB_NAME = "vectorize-asset-job";
 
-export async function handleVectorizeAssetJob(
-	jobs: Job<VectorizeAssetPayload>[],
-) {
-	const log = logger.child({ module: "vectorize-asset-job" });
+export const vectorizeAssetBatchEffect = (jobs: Job<VectorizeAssetPayload>[]) =>
+	Effect.forEach(jobs, (job) => vectorizeAssetsEffect({ job }), {
+		discard: true,
+	});
 
-	for (const job of jobs) {
-		const { prefix, blockId, assetId, mergePages } = job.data;
+const vectorizeAssetsEffect = (params: { job: Job<VectorizeAssetPayload> }) =>
+	Effect.gen(function* () {
+		const { prefix, blockId, assetId, mergePages } = params.job.data;
 
-		log.info(
-			{ jobId: job.id, assetId, blockId },
-			"Processing vectorize asset job",
-		);
-
-		const files = await listAllFilesInPrefix({
-			bucket: buckets.processed.name,
-			prefix: `${prefix}/`,
+		const files = yield* Effect.tryPromise({
+			try: () =>
+				listAllFilesInPrefix({
+					bucket: buckets.processed.name,
+					prefix: `${prefix}/`,
+				}),
+			catch: toPgBossRunError(params.job.id, VECTORIZE_ASSET_JOB_NAME),
 		});
 
 		const images: {
@@ -54,55 +54,69 @@ export async function handleVectorizeAssetJob(
 
 		const markdown: MarkdownNode[] = [];
 
-		const processFile = async (file: {
-			name: string;
-			lastModified?: Date;
-			size?: number;
-		}) => {
-			const fileExtension = file.name.split(".").pop()?.toLowerCase();
-			if (!fileExtension) {
-				return;
-			}
-			if (fileExtension === "md") {
-				const text = (await getMarkdownAsString({
-					bucket: buckets.processed.name,
-					name: file.name,
-				})) as string;
+		yield* Effect.forEach(
+			files,
+			(file) =>
+				Effect.gen(function* () {
+					const fileExtension = file.name.split(".").pop()?.toLowerCase();
+					if (!fileExtension) {
+						return;
+					}
+					if (fileExtension === "md") {
+						const text = (yield* Effect.tryPromise({
+							try: async () =>
+								await getMarkdownAsString({
+									bucket: buckets.processed.name,
+									name: file.name,
+								}),
+							catch: toPgBossRunError(params.job.id, VECTORIZE_ASSET_JOB_NAME),
+						})) as string;
 
-				const processedMarkdown = await processMarkdownFile({
-					fileContent: text,
-					fileName: file.name,
-					chunkingStrategy: mergePages
-						? "RecursiveCharacterTextSplitter"
-						: "none",
-				});
+						const processedMarkdown = yield* Effect.tryPromise({
+							try: async () =>
+								await processMarkdownFile({
+									fileContent: text,
+									fileName: file.name,
+									chunkingStrategy: mergePages
+										? "RecursiveCharacterTextSplitter"
+										: "none",
+								}),
+							catch: toPgBossRunError(params.job.id, VECTORIZE_ASSET_JOB_NAME),
+						});
 
-				markdown.push(...processedMarkdown);
-			} else if (["jpeg", "png"].includes(fileExtension)) {
-				// TODO: Expand supported file types, centralised with upload formats
-				const image = await getImageAsBase64({
-					bucket: buckets.processed.name,
-					name: file.name,
-				});
+						markdown.push(...processedMarkdown);
+					} else if (["jpeg", "png"].includes(fileExtension)) {
+						const image = yield* Effect.tryPromise({
+							try: async () =>
+								await getImageAsBase64({
+									bucket: buckets.processed.name,
+									name: file.name,
+								}),
+							catch: toPgBossRunError(params.job.id, VECTORIZE_ASSET_JOB_NAME),
+						});
 
-				const processedImage = await processImageFile(
-					image,
-					file.name,
-					fileExtension as FileType,
-				);
+						const processedImage = yield* Effect.tryPromise({
+							try: async () =>
+								await processImageFile(
+									image,
+									file.name,
+									fileExtension as FileType,
+								),
+							catch: toPgBossRunError(params.job.id, VECTORIZE_ASSET_JOB_NAME),
+						});
 
-				if (processedImage) {
-					images.push(processedImage);
-				}
-			} else {
-				log.warn(
-					{ extension: fileExtension, fileName: file.name },
-					"Skipping unsupported file type",
-				);
-			}
-		};
-
-		await pMap(files, processFile, { concurrency: 2 });
+						if (processedImage) {
+							images.push(processedImage);
+						}
+					} else {
+						yield* Effect.logWarning(
+							{ fileName: file.name },
+							"Unsupported file type, skipping",
+						);
+					}
+				}),
+			{ concurrency: 2 },
+		);
 
 		const imageChunks = images.map((image) => ({
 			content: image.description,
@@ -114,7 +128,7 @@ export async function handleVectorizeAssetJob(
 
 		const mergedChunks = [...markdown, ...imageChunks];
 
-		log.info(
+		yield* Effect.logInfo(
 			{
 				chunkCount: mergedChunks.length,
 				markdownCount: markdown.length,
@@ -123,13 +137,15 @@ export async function handleVectorizeAssetJob(
 			"Generated chunks for asset",
 		);
 
-		const qdrantResponse = await generateEmbeddings({
-			chunks: mergedChunks,
-			assetId: prefix,
-			blockId,
+		const qdrantResponse = yield* Effect.tryPromise({
+			try: async () =>
+				await generateEmbeddings({
+					chunks: mergedChunks,
+					assetId: prefix,
+					blockId,
+				}),
+			catch: toPgBossRunError(params.job.id, VECTORIZE_ASSET_JOB_NAME),
 		});
-
-		log.info("Vectorize asset job completed");
 
 		return {
 			payload: {
@@ -138,8 +154,7 @@ export async function handleVectorizeAssetJob(
 			},
 			results: { qdrant: qdrantResponse },
 		};
-	}
-}
+	});
 
 const processMarkdownFile = async ({
 	fileContent,

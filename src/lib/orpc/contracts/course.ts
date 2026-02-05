@@ -5,7 +5,11 @@ import {
 	courseSelectSchema,
 	courseUpdateSchema,
 } from "@/lib/orpc/schemas/course";
-import { paginationSchema, statusSchema } from "@/lib/orpc/schemas/shared";
+import {
+	paginationSchema,
+	statusSchema,
+	zedTokenSchema,
+} from "@/lib/orpc/schemas/shared";
 import { base } from "./base";
 
 export const listCoursesContract = base
@@ -15,7 +19,7 @@ export const listCoursesContract = base
 		summary: "List all courses",
 		tags: ["Courses"],
 	})
-	.input(paginationSchema)
+	.input(z.object({ ...paginationSchema.shape, ...zedTokenSchema.shape }))
 	.output(
 		z.object({ data: z.array(courseSelectSchema), rowCount: z.number() }),
 	);
@@ -28,7 +32,9 @@ export const createCourseContract = base
 		tags: ["Courses"],
 	})
 	.input(courseInsertSchema)
-	.output(z.object({ data: courseSelectSchema }));
+	.output(
+		z.object({ data: courseSelectSchema, meta: zedTokenSchema.optional() }),
+	);
 
 export const findCourseContract = base
 	.route({
@@ -37,7 +43,7 @@ export const findCourseContract = base
 		summary: "Find a course",
 		tags: ["Courses"],
 	})
-	.input(courseSelectSchema.pick({ id: true }))
+	.input(z.object({ id: courseSelectSchema.shape.id, ...zedTokenSchema.shape }))
 	.output(z.object({ data: courseSelectSchema }));
 
 export const updateCourseContract = base

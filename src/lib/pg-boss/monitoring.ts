@@ -1,67 +1,70 @@
-import { getPgBoss } from "./pg-boss-client";
+import * as Effect from "effect/Effect";
+import { PgBossService } from "@/lib/effect/services/pg-boss";
+import { PgBossError } from "@/lib/effect/utils/errors";
+import type { JobQueue } from "./schema/job";
 
-/**
- * Utility functions for monitoring and managing pg-boss jobs
- */
+export const getJobStatus = (params: { queueName: JobQueue; jobId: string }) =>
+	Effect.gen(function* () {
+		const { boss } = yield* PgBossService;
 
-export async function getJobStatus(queueName: string, jobId: string) {
-	const boss = await getPgBoss();
-	const job = await boss.getJobById(queueName, jobId);
-	return job;
-}
+		return yield* Effect.tryPromise({
+			try: () =>
+				boss.findJobs(params.queueName, {
+					id: params.jobId,
+				}),
+			catch: (error) =>
+				new PgBossError({
+					operation: "query",
+					jobId: params.jobId,
+					queue: params.queueName,
+					cause: error,
+				}),
+		});
+	});
 
-export async function getQueueInfo(queueName: string) {
-	const boss = await getPgBoss();
-	const queue = await boss.getQueue(queueName);
-	return queue;
-}
+export const getQueueInfo = (params: { queueName: JobQueue }) =>
+	Effect.gen(function* () {
+		const { boss } = yield* PgBossService;
 
-export async function cancelJob(queueName: string, jobId: string) {
-	const boss = await getPgBoss();
-	await boss.cancel(queueName, jobId);
-}
+		return yield* Effect.tryPromise({
+			try: () => boss.getQueue(params.queueName),
+			catch: (error) =>
+				new PgBossError({
+					operation: "query",
+					queue: params.queueName,
+					cause: error,
+				}),
+		});
+	});
 
-export async function resumeJob(queueName: string, jobId: string) {
-	const boss = await getPgBoss();
-	await boss.resume(queueName, jobId);
-}
+export const cancelJob = (params: { queueName: JobQueue; jobId: string }) =>
+	Effect.gen(function* () {
+		const { boss } = yield* PgBossService;
 
-/**
- * Get statistics for all queues
- */
-export async function getAllQueueStats() {
-	const boss = await getPgBoss();
+		return yield* Effect.tryPromise({
+			try: () => boss.cancel(params.queueName, params.jobId),
+			catch: (error) =>
+				new PgBossError({
+					operation: "cancel",
+					jobId: params.jobId,
+					queue: params.queueName,
+					cause: error,
+				}),
+		});
+	});
 
-	const queues = await boss.getQueues();
-	return queues;
-}
+export const resumeJob = (params: { queueName: JobQueue; jobId: string }) =>
+	Effect.gen(function* () {
+		const { boss } = yield* PgBossService;
 
-/**
- * Cleanup old completed/failed jobs manually
- */
-export async function cleanupOldJobs(queueName?: string) {
-	const boss = await getPgBoss();
-
-	await boss.deleteAllJobs(queueName);
-}
-
-/**
- * Get failed jobs for debugging (using direct database access)
- */
-export async function getFailedJobs(limit = 10) {
-	const boss = await getPgBoss();
-	const db = boss.getDb();
-
-	const result = await db.executeSql(
-		`
-		SELECT id, name, data, output, createdon, completedon
-		FROM pgboss.job
-		WHERE state = 'failed'
-		ORDER BY completedon DESC
-		LIMIT $1
-	`,
-		[limit],
-	);
-
-	return result.rows;
-}
+		return yield* Effect.tryPromise({
+			try: () => boss.resume(params.queueName, params.jobId),
+			catch: (error) =>
+				new PgBossError({
+					operation: "resume",
+					jobId: params.jobId,
+					queue: params.queueName,
+					cause: error,
+				}),
+		});
+	});

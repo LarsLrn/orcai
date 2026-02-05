@@ -13,12 +13,6 @@ import { client } from "@/lib/orpc/orpc";
 
 export const listOrganizations = authed.organization.list.handler(
 	async ({ input }) => {
-		/* const { entityIds } = await listAllowedEntities({
-			entityType: "organization",
-			action: "read",
-			userId: context.auth.user.id,
-		}); */
-
 		const [data, [rowCount]] = await Promise.all([
 			db
 				.select({ ...getColumns(organization) })

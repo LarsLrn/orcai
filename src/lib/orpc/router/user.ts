@@ -7,12 +7,6 @@ import { authed } from "@/lib/orpc/implementation/authed";
 import { requirePreferencesMiddleware } from "@/lib/orpc/middlewares/auth";
 
 export const listUsers = authed.user.list.handler(async ({ input }) => {
-	/* const { entityIds } = await listAllowedEntities({
-			entityType: "course",
-			action: "read",
-			userId: context.auth.user.id,
-		}); */
-
 	const [data, [rowCount]] = await Promise.all([
 		db
 			.select({ ...getColumns(user) })

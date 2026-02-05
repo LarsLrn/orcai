@@ -6,12 +6,6 @@ import type { QdrantPoints } from "@/types/qdrant";
 
 export const listAssetPoint = authed.assetPoint.list.handler(
 	async ({ input }) => {
-		/* const { entityIds } = await listAllowedEntities({
-			userId: context.session.user.id,
-			action: "read",
-			entityType: "asset",
-		}); */
-
 		const filters = [];
 
 		if (input.filters.assetId !== undefined) {

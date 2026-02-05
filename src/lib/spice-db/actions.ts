@@ -1,191 +1,168 @@
 import { v1 } from "@authzed/authzed-node";
-import { getSpiceClient } from ".";
+import * as Effect from "effect/Effect";
+import { SpiceDbService } from "@/lib/effect/services/spice";
+import { SpiceDbError } from "@/lib/effect/utils/errors";
+import {
+	createConsistency,
+	createResourceReference,
+	createUserReference,
+} from "./helpers";
 import type { Action, EntityType, Relation } from "./types";
 
-const spiceClient = getSpiceClient();
-
-export const createRelation = async ({
-	entityId,
-	entityType,
-	userId,
-	relation,
-}: {
+export const createRelation = (params: {
 	entityId: string;
 	entityType: EntityType;
 	userId: string;
 	relation: Relation;
-}) => {
-	const resource = v1.ObjectReference.create({
-		objectType: entityType,
-		objectId: entityId,
-	});
+}) =>
+	Effect.gen(function* () {
+		const { spice } = yield* SpiceDbService;
 
-	const user = v1.ObjectReference.create({
-		objectType: "user",
-		objectId: userId,
-	});
+		const resource = createResourceReference({
+			entityType: params.entityType,
+			entityId: params.entityId,
+		});
+		const user = createUserReference({ userId: params.userId });
 
-	const writeRequest = v1.WriteRelationshipsRequest.create({
-		updates: [
-			v1.RelationshipUpdate.create({
-				relationship: v1.Relationship.create({
-					resource,
-					relation,
-					subject: v1.SubjectReference.create({ object: user }),
-				}),
-				operation: v1.RelationshipUpdate_Operation.CREATE,
+		return yield* Effect.tryPromise({
+			try: () =>
+				spice.writeRelationships(
+					v1.WriteRelationshipsRequest.create({
+						updates: [
+							v1.RelationshipUpdate.create({
+								relationship: v1.Relationship.create({
+									resource,
+									relation: params.relation,
+									subject: v1.SubjectReference.create({ object: user }),
+								}),
+								operation: v1.RelationshipUpdate_Operation.CREATE,
+							}),
+						],
+					}),
+				),
+			catch: (error) => new SpiceDbError({ operation: "mutate", cause: error }),
+		}).pipe(
+			Effect.flatMap((response) => {
+				const token = response.writtenAt?.token;
+				if (!token) {
+					return Effect.fail(
+						new SpiceDbError({
+							operation: "mutate",
+							cause: new Error(
+								"Failed to obtain zed token from Spice write response",
+							),
+						}),
+					);
+				}
+				return Effect.succeed({
+					zedToken: token,
+					entityId: params.entityId,
+					entityType: params.entityType,
+				});
 			}),
-		],
+		);
 	});
 
-	const response = await spiceClient.writeRelationships(writeRequest);
-
-	if (!response.writtenAt?.token) {
-		throw new Error("Failed to obtain zed token from Spice write response");
-	}
-
-	return { data: { zedToken: response.writtenAt.token, entityId, entityType } };
-};
-
-export const checkRelation = async ({
-	entityId,
-	entityType,
-	action,
-	userId,
-	zedToken,
-}: {
+export const checkRelation = (params: {
 	entityId: string;
 	entityType: EntityType;
 	action: Action;
 	userId: string;
 	zedToken: v1.ZedToken["token"] | null | undefined;
-}) => {
-	const resource = v1.ObjectReference.create({
-		objectType: entityType,
-		objectId: entityId,
+}) =>
+	Effect.gen(function* () {
+		const { spice } = yield* SpiceDbService;
+
+		const resource = createResourceReference({
+			entityType: params.entityType,
+			entityId: params.entityId,
+		});
+		const user = createUserReference({ userId: params.userId });
+		const consistency = createConsistency({ zedToken: params.zedToken });
+
+		return yield* Effect.tryPromise({
+			try: () =>
+				spice.checkPermission(
+					v1.CheckPermissionRequest.create({
+						consistency,
+						resource,
+						permission: params.action,
+						subject: v1.SubjectReference.create({ object: user }),
+					}),
+				),
+			catch: (error) =>
+				new SpiceDbError({
+					operation: "query",
+					cause: error,
+				}),
+		});
 	});
 
-	const user = v1.ObjectReference.create({
-		objectType: "user",
-		objectId: userId,
-	});
-
-	const consistency = v1.Consistency.create({
-		requirement: zedToken
-			? {
-					oneofKind: "atLeastAsFresh",
-					atLeastAsFresh: {
-						token: zedToken ?? "",
-					},
-				}
-			: {
-					oneofKind: "minimizeLatency",
-					minimizeLatency: true,
-				},
-	});
-
-	return await spiceClient.checkPermission(
-		v1.CheckPermissionRequest.create({
-			consistency,
-			resource,
-			permission: action,
-			subject: v1.SubjectReference.create({ object: user }),
-		}),
-	);
-};
-
-export const checkManyRelations = async ({
-	entityIds,
-	entityType,
-	action,
-	userId,
-	zedToken,
-}: {
+export const checkManyRelations = (params: {
 	entityIds: string[];
 	entityType: EntityType;
 	action: Action;
 	userId: string;
 	zedToken?: v1.ZedToken["token"] | null | undefined;
-}) => {
-	const resources = entityIds.map((entityId) =>
-		v1.ObjectReference.create({
-			objectType: entityType,
-			objectId: entityId,
-		}),
-	);
+}) =>
+	Effect.gen(function* () {
+		const { spice } = yield* SpiceDbService;
 
-	const user = v1.ObjectReference.create({
-		objectType: "user",
-		objectId: userId,
+		const resources = params.entityIds.map((entityId) =>
+			createResourceReference({
+				entityType: params.entityType,
+				entityId,
+			}),
+		);
+		const user = createUserReference({ userId: params.userId });
+		const consistency = createConsistency({ zedToken: params.zedToken });
+
+		return yield* Effect.tryPromise({
+			try: () =>
+				spice.checkBulkPermissions(
+					v1.CheckBulkPermissionsRequest.create({
+						consistency,
+						items: resources.map((resource) => ({
+							resource,
+							permission: params.action,
+							subject: v1.SubjectReference.create({ object: user }),
+						})),
+					}),
+				),
+			catch: (error) =>
+				new SpiceDbError({
+					operation: "query",
+					cause: error,
+				}),
+		});
 	});
 
-	const consistency = v1.Consistency.create({
-		requirement: zedToken
-			? {
-					oneofKind: "atLeastAsFresh",
-					atLeastAsFresh: {
-						token: zedToken ?? "",
-					},
-				}
-			: {
-					oneofKind: "minimizeLatency",
-					minimizeLatency: true,
-				},
-	});
-
-	return await spiceClient.checkBulkPermissions(
-		v1.CheckBulkPermissionsRequest.create({
-			consistency,
-			items: resources.map((resource) => ({
-				resource,
-				permission: action,
-				subject: v1.SubjectReference.create({ object: user }),
-			})),
-		}),
-	);
-};
-
-export const listAllowedEntities = async ({
-	entityType,
-	action,
-	userId,
-	zedToken,
-}: {
+export const listAllowedEntities = (params: {
 	entityType: EntityType;
 	action: Action;
 	userId: string;
 	zedToken?: v1.ZedToken["token"] | null | undefined;
-}) => {
-	const user = v1.ObjectReference.create({
-		objectType: "user",
-		objectId: userId,
+}) =>
+	Effect.gen(function* () {
+		const { spice } = yield* SpiceDbService;
+
+		const user = createUserReference({ userId: params.userId });
+		const consistency = createConsistency({ zedToken: params.zedToken });
+
+		return yield* Effect.tryPromise({
+			try: () =>
+				spice.lookupResources(
+					v1.LookupResourcesRequest.create({
+						consistency,
+						resourceObjectType: params.entityType,
+						subject: v1.SubjectReference.create({ object: user }),
+						permission: params.action,
+					}),
+				),
+			catch: (error) =>
+				new SpiceDbError({
+					operation: "query",
+					cause: error,
+				}),
+		});
 	});
-
-	const consistency = v1.Consistency.create({
-		requirement: zedToken
-			? {
-					oneofKind: "atLeastAsFresh",
-					atLeastAsFresh: {
-						token: zedToken ?? "",
-					},
-				}
-			: {
-					oneofKind: "minimizeLatency",
-					minimizeLatency: true,
-				},
-	});
-
-	const spiceResponse = await spiceClient.lookupResources(
-		v1.LookupResourcesRequest.create({
-			consistency,
-			resourceObjectType: entityType,
-			subject: v1.SubjectReference.create({ object: user }),
-			permission: action,
-		}),
-	);
-
-	return {
-		spiceResponse,
-		entityIds: spiceResponse.map((entity) => entity.resourceObjectId),
-	};
-};

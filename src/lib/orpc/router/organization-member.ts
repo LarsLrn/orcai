@@ -1,19 +1,17 @@
 import { getLogger } from "@orpc/experimental-pino";
 import { ORPCError } from "@orpc/server";
 import { and, count, eq, getColumns, inArray } from "drizzle-orm";
+import * as Effect from "effect/Effect";
 import { db } from "@/db/drizzle";
+import { dbSchema } from "@/db/schema";
 import { member } from "@/db/schema/organization";
+import { DB } from "@/lib/effect/services/drizzle";
+import { runOrpcEffect } from "@/lib/effect/utils/orpc-helpers";
 import { authed } from "@/lib/orpc/implementation/authed";
 import { createRelation } from "@/lib/spice-db/actions";
 
 export const listOrganizationMembers = authed.organizationMember.list.handler(
 	async ({ input }) => {
-		/* const { entityIds } = await listAllowedEntities({
-      entityType: "organization",
-      action: "read",
-      userId: context.auth.user.id,
-    }); */
-
 		const [data, [rowCount]] = await Promise.all([
 			db
 				.select({ ...getColumns(member) })
@@ -60,21 +58,28 @@ export const findOrganizationMember = authed.organizationMember.find
 
 export const createOrganizationMember = authed.organizationMember.create
 	/* .use(requireActiveOrganizationMiddleware) */
-	.handler(async ({ input, context }) => {
-		const [query] = await db
-			.insert(member)
-			.values({ ...input, createdAt: new Date() })
-			.returning({ ...getColumns(member) });
+	.handler(async ({ input, context }) =>
+		runOrpcEffect(
+			Effect.gen(function* () {
+				const db = yield* DB;
 
-		await createRelation({
-			entityId: query.id,
-			entityType: "organization",
-			userId: context.auth.user.id,
-			relation: "owner",
-		});
+				const member = yield* db
+					.insert(dbSchema.member)
+					.values({ ...input, createdAt: new Date() })
+					.returning({ ...getColumns(dbSchema.member) })
+					.pipe(Effect.map(([member]) => member));
 
-		return { data: query };
-	});
+				yield* createRelation({
+					entityId: member.id,
+					entityType: "organization",
+					userId: context.auth.user.id,
+					relation: "owner",
+				});
+
+				return { data: member };
+			}),
+		),
+	);
 
 export const updateOrganizationMember = authed.organizationMember.update
 	/* .use(

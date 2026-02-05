@@ -5,7 +5,11 @@ import {
 	assetSelectSchema,
 	assetUpdateSchema,
 } from "@/lib/orpc/schemas/asset";
-import { paginationSchema, statusSchema } from "@/lib/orpc/schemas/shared";
+import {
+	paginationSchema,
+	statusSchema,
+	zedTokenSchema,
+} from "@/lib/orpc/schemas/shared";
 import { base } from "./base";
 
 export const listAssetsContract = base
@@ -16,7 +20,9 @@ export const listAssetsContract = base
 		tags: ["Assets"],
 	})
 	.input(
-		paginationSchema.extend({
+		z.object({
+			...paginationSchema.shape,
+			...zedTokenSchema.shape,
 			filters: z
 				.object({
 					ids: z.array(assetSelectSchema.shape.id).optional(),
@@ -34,7 +40,9 @@ export const createAssetContract = base
 		tags: ["Assets"],
 	})
 	.input(assetInsertSchema)
-	.output(assetSelectSchema);
+	.output(
+		z.object({ data: assetSelectSchema, meta: zedTokenSchema.optional() }),
+	);
 
 export const findAssetContract = base
 	.route({
@@ -43,7 +51,12 @@ export const findAssetContract = base
 		summary: "Find an asset",
 		tags: ["Assets"],
 	})
-	.input(assetSelectSchema.pick({ id: true }))
+	.input(
+		z.object({
+			...assetSelectSchema.pick({ id: true }).shape,
+			...zedTokenSchema.shape,
+		}),
+	)
 	.output(z.object({ data: assetSelectSchema }));
 
 export const updateAssetContract = base

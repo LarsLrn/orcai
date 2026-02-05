@@ -1,13 +1,14 @@
 import { PutObjectCommand } from "@aws-sdk/client-s3";
+import * as Effect from "effect/Effect";
 import type { Job } from "pg-boss";
 import {
 	type SerializedDocument,
 	serializeDoclingDocument,
 } from "@/lib/ai/docling-serialize";
+import { PgBossService } from "@/lib/effect/services/pg-boss";
 import { serverEnv } from "@/lib/env/server";
-import { logger } from "@/lib/observability/logger";
-import { getPgBoss } from "@/lib/pg-boss/pg-boss-client";
 import type { ProcessAssetPayload } from "@/lib/pg-boss/schema/process-asset";
+import { toPgBossRunError } from "@/lib/pg-boss/utils/error-helper";
 import { validateImageResolution } from "@/lib/pg-boss/utils/validate-image-resolution";
 import {
 	createPresignedUrlToDownload,
@@ -21,51 +22,61 @@ import { VECTORIZE_ASSET_JOB_NAME } from "./vectorize-asset-job";
 
 export const PROCESS_ASSET_JOB_NAME = "process-asset-job";
 
-export async function handleProcessAssetJob(jobs: Job<ProcessAssetPayload>[]) {
-	const log = logger.child({ module: "process-asset-job" });
+export const processAssetBatchEffect = (jobs: Job<ProcessAssetPayload>[]) =>
+	Effect.forEach(jobs, (job) => processAssetsEffect({ job }), {
+		discard: true,
+	});
 
-	for (const job of jobs) {
-		const { assetRef, blockId, mergePages } = job.data;
-
-		log.info(
-			{ jobId: job.id, assetRef, blockId },
-			"Starting process asset job",
-		);
+const processAssetsEffect = (params: { job: Job<ProcessAssetPayload> }) =>
+	Effect.gen(function* () {
+		const { assetRef, blockId, mergePages } = params.job.data;
 
 		const doclingApi = `${serverEnv.OPENAI_COMPATIBLE_BASE_URL}/documents/convert`;
 
-		const presignedUrl = await createPresignedUrlToDownload(assetRef);
+		const presignedUrl = yield* Effect.tryPromise({
+			try: () => createPresignedUrlToDownload(assetRef),
+			catch: toPgBossRunError(params.job.id, PROCESS_ASSET_JOB_NAME),
+		}).pipe(
+			Effect.tapError((err) =>
+				Effect.logError({ err }, "Error creating presigned URL"),
+			),
+		);
 
-		// Download the file using the presigned URL
-		const fileResponse = await (async () => {
-			try {
-				return await fetch(presignedUrl);
-			} catch (error) {
-				log.error({ err: error, jobId: job.id }, "Error downloading file");
-				throw error;
-			}
-		})();
+		const fileResponse = yield* Effect.tryPromise({
+			try: () => fetch(presignedUrl),
+			catch: toPgBossRunError(params.job.id, PROCESS_ASSET_JOB_NAME),
+		}).pipe(
+			Effect.flatMap((response) => {
+				if (!response.ok) {
+					return Effect.fail(
+						toPgBossRunError(
+							params.job.id,
+							PROCESS_ASSET_JOB_NAME,
+						)(
+							new Error(
+								`Failed to fetch file from presigned URL: ${response.status} ${response.statusText}`,
+							),
+						),
+					);
+				}
+				return Effect.succeed(response);
+			}),
+			Effect.tapError((err) =>
+				Effect.logError({ err }, "Error fetching file from presigned URL"),
+			),
+		);
 
-		if (!fileResponse.ok) {
-			throw new Error(
-				`Failed to download file: ${fileResponse.status} ${fileResponse.statusText}`,
-			);
-		}
+		const fileBuffer = yield* Effect.tryPromise({
+			try: () => fileResponse.arrayBuffer().then(Buffer.from),
+			catch: toPgBossRunError(params.job.id, PROCESS_ASSET_JOB_NAME),
+		}).pipe(
+			Effect.tapError((err) =>
+				Effect.logError({ err }, "Error reading file buffer"),
+			),
+		);
 
-		// Get the file content as a buffer
-		const fileBuffer = Buffer.from(await fileResponse.arrayBuffer());
-
-		const doclingResponse = await (async () => {
-			try {
-				const controller = new AbortController();
-				const timeoutId = setTimeout(
-					() => {
-						controller.abort();
-					},
-					15 * 60 * 1000,
-				); // 15 minutes timeout
-
-				// Create FormData to properly send the file using Web FormData
+		const doclingResponse = yield* Effect.tryPromise({
+			try: async (signal) => {
 				const formData = new FormData();
 				const fileBlob = new Blob([fileBuffer]);
 				formData.append("document", fileBlob, `document.${assetRef.id}`);
@@ -75,73 +86,103 @@ export async function handleProcessAssetJob(jobs: Job<ProcessAssetPayload>[]) {
 					extract_tables_as_images: "false",
 				});
 
-				// Use the signal from the controller in the fetch call
 				const response = await fetch(`${doclingApi}?${params}`, {
 					method: "POST",
 					headers: {
 						Authorization: `Bearer ${serverEnv.OPENAI_COMPATIBLE_API_KEY}`,
 					},
 					body: formData,
-					signal: controller.signal, // Connect the AbortController
+					signal,
 				});
 
-				// Clear the timeout to prevent memory leaks
-				clearTimeout(timeoutId);
 				return response;
-			} catch (error) {
-				log.error({ err: error, jobId: job.id }, "Docling API fetch error");
+			},
+			catch: toPgBossRunError(params.job.id, PROCESS_ASSET_JOB_NAME),
+		}).pipe(
+			Effect.timeoutFail({
+				duration: "15 minutes",
+				onTimeout: () =>
+					toPgBossRunError(
+						params.job.id,
+						PROCESS_ASSET_JOB_NAME,
+					)(new Error("Docling API request timed out after 15 minutes")),
+			}),
+			Effect.flatMap((response) => {
+				if (!response.ok) {
+					return Effect.fail(
+						toPgBossRunError(
+							params.job.id,
+							PROCESS_ASSET_JOB_NAME,
+						)(
+							new Error(
+								`Docling API request failed: ${response.status} ${response.statusText}`,
+							),
+						),
+					);
+				}
+				return Effect.succeed(response);
+			}),
+			Effect.tapError((err) =>
+				Effect.logError({ err }, "Error in Docling API response"),
+			),
+		);
 
-				throw error;
-			}
-		})();
-
-		// Check if the response is successful
-		if (!doclingResponse.ok) {
-			throw new Error(
-				`Docling API returned ${doclingResponse.status}: ${await doclingResponse.text()}`,
-			);
-		}
-
-		// Parse the response properly
-		let processedDocument: SaiaDoclingData;
-		try {
-			const responseText = await doclingResponse.text();
-
-			processedDocument = JSON.parse(responseText) as SaiaDoclingData;
-		} catch (error) {
-			log.error(
-				{ err: error, jobId: job.id },
-				"Failed to parse Docling API response",
-			);
-			throw error;
-		}
+		const processedDocument = yield* Effect.tryPromise({
+			try: async () => {
+				const text = await doclingResponse.text();
+				return JSON.parse(text) as SaiaDoclingData;
+			},
+			catch: toPgBossRunError(params.job.id, PROCESS_ASSET_JOB_NAME),
+		}).pipe(
+			Effect.tapError((err) =>
+				Effect.logError({ err }, "Error parsing Docling API response"),
+			),
+		);
 
 		const json = processedDocument.json_data;
 
-		const serializedDocling: SerializedDocument[] | undefined =
-			serializeDoclingDocument(json, {
-				keepImageRefs: true,
-				mergePages,
-			});
+		const serializedDocling = yield* Effect.try({
+			try: () =>
+				serializeDoclingDocument(json, {
+					keepImageRefs: true,
+					mergePages,
+				}) as SerializedDocument[],
+			catch: toPgBossRunError(params.job.id, PROCESS_ASSET_JOB_NAME),
+		}).pipe(
+			Effect.tapError((err) =>
+				Effect.logError({ err }, "Error serializing Docling document"),
+			),
+		);
 
-		await deletePrefixRecursively({
-			bucket: buckets.processed.name,
-			prefix: `${assetRef.id}/`,
-		});
+		yield* Effect.tryPromise({
+			try: async () =>
+				await deletePrefixRecursively({
+					bucket: buckets.processed.name,
+					prefix: `${assetRef.id}/`,
+				}),
+			catch: toPgBossRunError(params.job.id, PROCESS_ASSET_JOB_NAME),
+		}).pipe(
+			Effect.tapError((err) =>
+				Effect.logError({ err }, "Error clearing existing processed content"),
+			),
+		);
 
 		if (!serializedDocling || serializedDocling.length === 0) {
-			log.warn({ jobId: job.id }, "No serialized docling content to upload");
-			continue;
+			yield* Effect.logWarning(
+				{ jobId: params.job.id },
+				"No serialized docling content to upload",
+			);
+			return;
 		}
 
-		log.info(
-			{ jobId: job.id, pageCount: serializedDocling.length },
+		yield* Effect.logInfo(
+			{ jobId: params.job.id, pageCount: serializedDocling.length },
 			"Uploading processed content",
 		);
 
-		await Promise.all(
-			serializedDocling.map(async (page) => {
-				const markdown = page.markdown;
+		yield* Effect.forEach(serializedDocling, (page, index) =>
+			Effect.gen(function* () {
+				const { markdown, images } = page;
 
 				const command = new PutObjectCommand({
 					Bucket: buckets.processed.name,
@@ -150,20 +191,28 @@ export async function handleProcessAssetJob(jobs: Job<ProcessAssetPayload>[]) {
 					ContentType: "text/markdown",
 				});
 
-				await s3Client.send(command);
+				yield* Effect.tryPromise({
+					try: () => s3Client.send(command),
+					catch: toPgBossRunError(params.job.id, PROCESS_ASSET_JOB_NAME),
+				}).pipe(
+					Effect.tapError((err) =>
+						Effect.logError({ err }, "Error uploading processed markdown"),
+					),
+				);
 
-				const images = page.images;
-
-				await Promise.all(
-					images.map(async (image) => {
+				yield* Effect.forEach(images, (image, imageIndex) =>
+					Effect.gen(function* () {
 						if (!image) {
-							log.warn("Undefined image. Skipping upload.");
+							yield* Effect.logWarning(
+								{ jobId: params.job.id, pageIndex: index, imageIndex },
+								"No image data to upload for this image",
+							);
 							return;
 						}
 
-						log.debug(
-							{ label: image.label, index: image.index, mime: image.mimetype },
-							"Processing image",
+						yield* Effect.logInfo(
+							{ jobId: params.job.id, pageIndex: index, imageIndex },
+							"Uploading processed image",
 						);
 
 						const imageData = image.uri.includes("base64,")
@@ -176,12 +225,16 @@ export async function handleProcessAssetJob(jobs: Job<ProcessAssetPayload>[]) {
 							image.size,
 							2, // TODO: Use the actual upscale factor
 						);
+
 						if (!validationResult.isValid) {
-							log.warn(
+							yield* Effect.logWarning(
 								{
-									error: validationResult.error,
+									jobId: params.job.id,
+									pageIndex: index,
+									imageIndex,
 									width: validationResult.width,
 									height: validationResult.height,
+									error: validationResult.error,
 								},
 								"Skipping image upload due to resolution/validation",
 							);
@@ -195,24 +248,47 @@ export async function handleProcessAssetJob(jobs: Job<ProcessAssetPayload>[]) {
 							ContentType: image.mimetype,
 						});
 
-						await s3Client.send(command);
+						return yield* Effect.tryPromise({
+							try: () => s3Client.send(command),
+							catch: toPgBossRunError(params.job.id, PROCESS_ASSET_JOB_NAME),
+						}).pipe(
+							Effect.tapError((err) =>
+								Effect.logError({ err }, "Error uploading processed image"),
+							),
+						);
 					}),
 				);
+				yield* Effect.logInfo(
+					{ jobId: params.job.id, pageIndex: index },
+					"Completed uploading processed page",
+				);
 			}),
+		).pipe(
+			Effect.tapError((err) =>
+				Effect.logError({ err }, "Error uploading processed content"),
+			),
 		);
 
-		const boss = await getPgBoss();
-		await boss.send(
-			VECTORIZE_ASSET_JOB_NAME,
-			{
-				prefix: assetRef.id,
-				blockId,
-				assetId: assetRef.id,
-				mergePages,
-			},
-			{ startAfter: 5 },
+		const { boss } = yield* PgBossService;
+
+		yield* Effect.tryPromise({
+			try: () =>
+				boss.send(
+					VECTORIZE_ASSET_JOB_NAME,
+					{
+						prefix: assetRef.id,
+						blockId,
+						assetId: assetRef.id,
+						mergePages,
+					},
+					{ startAfter: 5 },
+				),
+			catch: toPgBossRunError(params.job.id, PROCESS_ASSET_JOB_NAME),
+		}).pipe(
+			Effect.tapError((err) =>
+				Effect.logError({ err }, "Error scheduling vectorization job"),
+			),
 		);
 
-		log.info({ jobId: job.id }, "Process asset job completed");
-	}
-}
+		yield* Effect.logInfo(`Completed job ${params.job.id}`);
+	});

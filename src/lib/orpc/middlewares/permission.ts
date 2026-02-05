@@ -1,5 +1,7 @@
 import { v1 } from "@authzed/authzed-node";
+import * as Effect from "effect/Effect";
 import type { authClient } from "@/lib/auth-client";
+import { runOrpcEffect } from "@/lib/effect/utils/orpc-helpers";
 import { os } from "@/lib/orpc/implementation/os";
 import { checkManyRelations, checkRelation } from "@/lib/spice-db/actions";
 import type { Action, EntityType } from "@/lib/spice-db/types";
@@ -25,35 +27,32 @@ const permissionBase = os.$context<{
 
 export const checkPermissionMiddleware = withName(
 	permissionBase.middleware(
-		async ({ context, next, errors }, input: CheckPermissionInput) => {
-			const { entityId, action, entityType } = input;
-
-			const zedToken = input.zedToken ?? context.meta?.zedToken;
-
-			const relation = await checkRelation({
-				entityId: entityId,
-				entityType,
-				action,
-				userId: context.auth.user.id,
-				zedToken,
-			});
-
-			if (
-				relation.permissionship !==
-				v1.CheckPermissionResponse_Permissionship.HAS_PERMISSION
-			) {
-				throw errors.FORBIDDEN({
-					data: {
-						allowed: false,
-						action,
-						entityType,
-						zedToken,
-					},
-				});
-			}
-
-			return next();
-		},
+		({ context, next, errors }, input: CheckPermissionInput) =>
+			runOrpcEffect(
+				checkRelation({
+					entityId: input.entityId,
+					entityType: input.entityType,
+					action: input.action,
+					userId: context.auth.user.id,
+					zedToken: input.zedToken ?? context.meta?.zedToken,
+				}).pipe(
+					Effect.filterOrFail(
+						(relation) =>
+							relation.permissionship ===
+							v1.CheckPermissionResponse_Permissionship.HAS_PERMISSION,
+						() =>
+							errors.FORBIDDEN({
+								data: {
+									allowed: false,
+									action: input.action,
+									entityType: input.entityType,
+									zedToken: input.zedToken ?? context.meta?.zedToken,
+								},
+							}),
+					),
+					Effect.flatMap(() => Effect.promise(() => Promise.resolve(next()))),
+				),
+			),
 	),
 	"checkPermission",
 );
@@ -67,45 +66,71 @@ export interface CheckManyPermissionInput {
 
 export const checkManyPermissionMiddleware = withName(
 	permissionBase.middleware(
-		async ({ context, next, errors }, input: CheckManyPermissionInput) => {
-			const { entityIds, action, entityType } = input;
+		({ context, next, errors }, input: CheckManyPermissionInput) =>
+			runOrpcEffect(
+				Effect.gen(function* () {
+					const zedToken = input.zedToken ?? context.meta?.zedToken;
 
-			const zedToken = input.zedToken || context.meta?.zedToken;
+					// Normalize to unique IDs so checks are deterministic.
+					const requestedIds = Array.from(new Set(input.entityIds));
+					const requestedSet = new Set(requestedIds);
 
-			const relation = await checkManyRelations({
-				entityIds,
-				entityType,
-				action,
-				userId: context.auth.user.id,
-				zedToken,
-			});
-
-			const allowedIds = relation.pairs
-				.map((pair) => {
-					if (
-						pair.response.oneofKind === "item" &&
-						pair.response.item.permissionship ===
-							v1.CheckPermissionResponse_Permissionship.HAS_PERMISSION
-					) {
-						return pair.request?.resource?.objectId;
-					}
-					return null;
-				})
-				.filter((id): id is string => id !== null);
-
-			if (allowedIds.length === 0 || allowedIds.length !== entityIds.length) {
-				throw errors.FORBIDDEN({
-					data: {
-						allowed: false,
-						action,
-						entityType,
+					const relation = yield* checkManyRelations({
+						entityIds: requestedIds,
+						entityType: input.entityType,
+						action: input.action,
+						userId: context.auth.user.id,
 						zedToken,
-					},
-				});
-			}
+					});
 
-			return next({ context: { ...context, allowedIds } });
-		},
+					const allowedSet = new Set(
+						relation.pairs
+							.map((pair) => {
+								const allowed =
+									pair.response.oneofKind === "item" &&
+									pair.response.item.permissionship ===
+										v1.CheckPermissionResponse_Permissionship.HAS_PERMISSION;
+
+								const id = pair.request?.resource?.objectId;
+								return allowed && id && requestedSet.has(id) ? id : undefined;
+							})
+							.filter((id): id is string => id !== undefined),
+					);
+
+					const allowedIds = requestedIds.filter((id) => allowedSet.has(id));
+
+					if (allowedIds.length !== requestedIds.length) {
+						return yield* Effect.fail(
+							errors.FORBIDDEN({
+								data: {
+									allowed: false,
+									action: input.action,
+									entityType: input.entityType,
+									zedToken,
+								},
+							}),
+						);
+					}
+
+					if (allowedIds.length === 0) {
+						return yield* Effect.fail(
+							errors.BAD_REQUEST({
+								message: "No valid entity IDs provided",
+								data: {
+									allowed: false,
+									action: input.action,
+									entityType: input.entityType,
+									zedToken,
+								},
+							}),
+						);
+					}
+
+					return yield* Effect.promise(() =>
+						Promise.resolve(next({ context: { ...context, allowedIds } })),
+					);
+				}),
+			),
 	),
 	"checkManyPermissions",
 );

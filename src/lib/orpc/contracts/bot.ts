@@ -6,7 +6,11 @@ import {
 	botSelectSchema,
 	botUpdateSchema,
 } from "@/lib/orpc/schemas/bot";
-import { paginationSchema, statusSchema } from "@/lib/orpc/schemas/shared";
+import {
+	paginationSchema,
+	statusSchema,
+	zedTokenSchema,
+} from "@/lib/orpc/schemas/shared";
 import { base } from "./base";
 
 export const listBotsContract = base
@@ -16,7 +20,13 @@ export const listBotsContract = base
 		summary: "List all bots",
 		tags: ["Bots"],
 	})
-	.input(paginationSchema.extend({ search: z.string().optional() }))
+	.input(
+		z.object({
+			...paginationSchema.shape,
+			...zedTokenSchema.shape,
+			search: z.string().optional(),
+		}),
+	)
 	.output(z.object({ data: z.array(botSelectSchema), rowCount: z.number() }));
 
 export const createBotContract = base
@@ -32,6 +42,7 @@ export const createBotContract = base
 			data: botSelectSchema.extend({
 				blockIds: z.array(baseBlockSelectSchema.shape.id),
 			}),
+			meta: zedTokenSchema.optional(),
 		}),
 	);
 
@@ -42,7 +53,12 @@ export const findBotContract = base
 		summary: "Find a bot",
 		tags: ["Bots"],
 	})
-	.input(botSelectSchema.pick({ id: true }))
+	.input(
+		z.object({
+			...botSelectSchema.pick({ id: true }).shape,
+			...zedTokenSchema.shape,
+		}),
+	)
 	.output(
 		z.object({
 			data: botSelectSchema.extend({

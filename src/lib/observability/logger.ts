@@ -2,23 +2,27 @@ import { trace } from "@opentelemetry/api";
 import pino from "pino";
 import { otelResource } from "./resource-config";
 
-const targets: pino.TransportTargetOptions[] = [
-	{
-		target: "pino-opentelemetry-transport",
-		options: {
-			resourceAttributes: otelResource.attributes,
+export const getPinoTargets = (): pino.TransportTargetOptions[] => {
+	const pinoTargets: pino.TransportTargetOptions[] = [
+		{
+			target: "pino-opentelemetry-transport",
+			options: {
+				resourceAttributes: otelResource.attributes,
+			},
+			level: process.env.LOG_LEVEL || "info",
 		},
-		level: process.env.LOG_LEVEL || "info",
-	},
-];
+	];
 
-if (process.env.NODE_ENV === "development") {
-	targets.push({
-		target: "pino-pretty",
-		options: { colorize: true },
-		level: process.env.LOG_LEVEL || "info",
-	});
-}
+	if (process.env.NODE_ENV === "development") {
+		pinoTargets.push({
+			target: "pino-pretty",
+			options: { colorize: true },
+			level: process.env.LOG_LEVEL || "info",
+		});
+	}
+
+	return pinoTargets;
+};
 
 export const logger = pino(
 	{
@@ -38,6 +42,6 @@ export const logger = pino(
 		},
 	},
 	pino.transport({
-		targets,
+		targets: getPinoTargets(),
 	}),
 );

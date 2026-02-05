@@ -6,7 +6,11 @@ import {
 	chatUpdateSchema,
 } from "@/lib/orpc/schemas/chat";
 import { chatBranchSelectSchema } from "@/lib/orpc/schemas/chat-branch";
-import { paginationSchema, zedTokenSchema } from "@/lib/orpc/schemas/shared";
+import {
+	paginationSchema,
+	statusSchema,
+	zedTokenSchema,
+} from "@/lib/orpc/schemas/shared";
 import { base } from "./base";
 
 export const listChatsContract = base
@@ -84,4 +88,4 @@ export const deleteChatContract = base
 		tags: ["Chats"],
 	})
 	.input(chatDeleteSchema)
-	.output(z.object({ success: z.boolean(), message: z.string().optional() }));
+	.output(statusSchema);

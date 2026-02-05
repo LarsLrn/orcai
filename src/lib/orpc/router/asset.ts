@@ -1,8 +1,8 @@
-import { getLogger } from "@orpc/experimental-pino";
-import { ORPCError } from "@orpc/server";
 import { and, count, desc, eq, getColumns, inArray } from "drizzle-orm";
-import { db } from "@/db/drizzle";
+import * as Effect from "effect/Effect";
 import { assetTable } from "@/db/schema/asset";
+import { DB } from "@/lib/effect/services/drizzle";
+import { runOrpcEffect } from "@/lib/effect/utils/orpc-helpers";
 import { authed } from "@/lib/orpc/implementation/authed";
 import {
 	type CheckManyPermissionInput,
@@ -20,34 +20,50 @@ import { deletePointsByIdentifier } from "@/qdrant/mutations";
 import { buckets } from "@/settings/buckets";
 
 export const listAssets = authed.asset.list.handler(
-	async ({ input, context }) => {
-		const { entityIds } = await listAllowedEntities({
-			userId: context.auth.user.id,
-			action: "read",
-			entityType: "asset",
-		});
+	async ({ input, context }) =>
+		runOrpcEffect(
+			Effect.gen(function* () {
+				const db = yield* DB;
 
-		const whereConditions = [inArray(assetTable.id, entityIds)];
-		if (input.filters?.ids) {
-			whereConditions.push(inArray(assetTable.id, input.filters.ids));
-		}
+				const allowedIds = yield* listAllowedEntities({
+					userId: context.auth.user.id,
+					action: "read",
+					entityType: "asset",
+					zedToken: input.zedToken,
+				}).pipe(
+					Effect.map((response) =>
+						response.map((item) => item.resourceObjectId),
+					),
+				);
 
-		const [data, [rowCount]] = await Promise.all([
-			db
-				.select({ ...getColumns(assetTable) })
-				.from(assetTable)
-				.where(and(...whereConditions))
-				.orderBy(desc(assetTable.createdAt))
-				.limit(input.pageSize)
-				.offset(input.pageIndex * input.pageSize),
-			db
-				.select({ count: count() })
-				.from(assetTable)
-				.where(and(...whereConditions)),
-		]);
+				const whereConditions = [inArray(assetTable.id, allowedIds)];
+				if (input.filters?.ids) {
+					whereConditions.push(inArray(assetTable.id, input.filters.ids));
+				}
 
-		return { data, rowCount: rowCount.count };
-	},
+				return yield* Effect.all(
+					[
+						db
+							.select({ ...getColumns(assetTable) })
+							.from(assetTable)
+							.where(and(...whereConditions))
+							.orderBy(desc(assetTable.createdAt))
+							.limit(input.pageSize)
+							.offset(input.pageIndex * input.pageSize),
+						db
+							.select({ count: count() })
+							.from(assetTable)
+							.where(and(...whereConditions)),
+					],
+					{ concurrency: "unbounded" },
+				).pipe(
+					Effect.map(([data, [countResult]]) => ({
+						data,
+						rowCount: countResult.count,
+					})),
+				);
+			}),
+		),
 );
 
 export const findAsset = authed.asset.find
@@ -58,45 +74,62 @@ export const findAsset = authed.asset.find
 				entityId: input.id,
 				action: "read",
 				entityType: "asset",
+				zedToken: input.zedToken,
 			}) satisfies CheckPermissionInput,
 	)
-	.handler(async ({ input }) => {
-		const [query] = await db
-			.select({ ...getColumns(assetTable) })
-			.from(assetTable)
-			.where(eq(assetTable.id, input.id));
+	.handler(async ({ input, errors }) =>
+		runOrpcEffect(
+			Effect.gen(function* () {
+				const db = yield* DB;
 
-		if (!query) {
-			throw new ORPCError("NOT_FOUND", { message: "Asset not found" });
-		}
+				const [query] = yield* db
+					.select({ ...getColumns(assetTable) })
+					.from(assetTable)
+					.where(eq(assetTable.id, input.id));
 
-		return { data: query };
-	});
+				if (!query) {
+					return yield* Effect.fail(
+						errors.NOT_FOUND({ message: "Asset not found" }),
+					);
+				}
+
+				return { data: query };
+			}),
+		),
+	);
 
 export const createAsset = authed.asset.create.handler(
-	async ({ input, context }) => {
-		const [asset] = await db
-			.insert(assetTable)
-			.values({
-				id: input.id, // TODO: This shouldnt come from the client, but needs to match the S3 file ID. Think of a solution to this
-				title: input.title ?? "New Asset",
-				size: input.size,
-				fileType: input.fileType,
-				bucket: buckets.main.name,
-				prefix: "placeholder", // TODO: Make this dynamic
-				userId: context.auth.user.id,
-			})
-			.returning({ ...getColumns(assetTable) });
+	async ({ input, context }) =>
+		runOrpcEffect(
+			Effect.gen(function* () {
+				const db = yield* DB;
 
-		await createRelation({
-			entityId: asset.id,
-			entityType: "asset",
-			userId: context.auth.user.id,
-			relation: "owner",
-		});
+				const [asset] = yield* db
+					.insert(assetTable)
+					.values({
+						id: input.id, // TODO: This shouldnt come from the client, but needs to match the S3 file ID. Think of a solution to this
+						title: input.title ?? "New Asset",
+						size: input.size,
+						fileType: input.fileType,
+						bucket: buckets.main.name,
+						prefix: "placeholder", // TODO: Make this dynamic
+						userId: context.auth.user.id,
+					})
+					.returning({ ...getColumns(assetTable) });
 
-		return asset;
-	},
+				const relationResult = yield* createRelation({
+					entityId: asset.id,
+					entityType: "asset",
+					userId: context.auth.user.id,
+					relation: "owner",
+				});
+
+				return {
+					data: asset,
+					meta: { zedToken: relationResult.zedToken },
+				};
+			}),
+		),
 );
 
 export const updateAsset = authed.asset.update
@@ -105,22 +138,28 @@ export const updateAsset = authed.asset.update
 		(input) =>
 			({
 				entityId: input.id,
-				action: "read",
+				action: "update",
 				entityType: "asset",
 			}) satisfies CheckPermissionInput,
 	)
-	.handler(async ({ input }) => {
-		const [asset] = await db
-			.update(assetTable)
-			.set({
-				title: input.title,
-				updatedAt: new Date(),
-			})
-			.where(eq(assetTable.id, input.id))
-			.returning({ ...getColumns(assetTable) });
+	.handler(async ({ input }) =>
+		runOrpcEffect(
+			Effect.gen(function* () {
+				const db = yield* DB;
 
-		return { data: asset };
-	});
+				const [asset] = yield* db
+					.update(assetTable)
+					.set({
+						title: input.title,
+						updatedAt: new Date(),
+					})
+					.where(eq(assetTable.id, input.id))
+					.returning({ ...getColumns(assetTable) });
+
+				return { data: asset };
+			}),
+		),
+	);
 
 export const deleteAssets = authed.asset.delete
 	.use(
@@ -132,48 +171,54 @@ export const deleteAssets = authed.asset.delete
 				entityType: "asset",
 			}) satisfies CheckManyPermissionInput,
 	)
-	.handler(async ({ context }) => {
-		const logger = getLogger(context);
+	.handler(async ({ context }) =>
+		runOrpcEffect(
+			Effect.gen(function* () {
+				const db = yield* DB;
 
-		// Check if there are any IDs to delete
-		if (!context.allowedIds || context.allowedIds.length === 0) {
-			return { success: true, message: "No assets to delete" };
-		}
+				// Check if there are any IDs to delete
+				if (!context.allowedIds || context.allowedIds.length === 0) {
+					return { success: true, message: "No assets to delete" };
+				}
 
-		try {
-			const assetsToDelete = await db
-				.select()
-				.from(assetTable)
-				.where(inArray(assetTable.id, context.allowedIds));
+				const assetsToDelete = yield* db
+					.select()
+					.from(assetTable)
+					.where(inArray(assetTable.id, context.allowedIds));
 
-			await Promise.all(
-				assetsToDelete.map(async (asset) => {
-					await deleteFileFromBucket({
-						bucket: asset.bucket,
-						id: asset.id,
-						prefix: asset.prefix,
-						type: asset.fileType as FileType,
-					});
-					await deletePointsByIdentifier({
-						assetId: asset.id,
-						blockId: undefined,
-					});
-					await deletePrefixRecursively({
-						bucket: buckets.processed.name,
-						prefix: `${asset.id}/`,
-					});
-				}),
-			);
+				yield* Effect.all(
+					assetsToDelete.map((asset) =>
+						Effect.gen(function* () {
+							yield* Effect.promise(() =>
+								deleteFileFromBucket({
+									bucket: asset.bucket,
+									id: asset.id,
+									prefix: asset.prefix,
+									type: asset.fileType as FileType,
+								}),
+							);
+							yield* Effect.promise(() =>
+								deletePointsByIdentifier({
+									assetId: asset.id,
+									blockId: undefined,
+								}),
+							);
+							yield* Effect.promise(() =>
+								deletePrefixRecursively({
+									bucket: buckets.processed.name,
+									prefix: `${asset.id}/`,
+								}),
+							);
+						}),
+					),
+					{ concurrency: "unbounded" },
+				);
 
-			await db
-				.delete(assetTable)
-				.where(inArray(assetTable.id, context.allowedIds));
+				yield* db
+					.delete(assetTable)
+					.where(inArray(assetTable.id, context.allowedIds));
 
-			return { success: true, message: "Assets deleted successfully" };
-		} catch (error) {
-			logger?.error({ error }, "Error deleting assets:");
-			throw new ORPCError("INTERNAL_SERVER_ERROR", {
-				message: "Failed to delete assets",
-			});
-		}
-	});
+				return { success: true, message: "Assets deleted successfully" };
+			}),
+		),
+	);

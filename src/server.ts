@@ -1,15 +1,33 @@
 import handler from "@tanstack/react-start/server-entry";
-import { initOtel } from "./lib/observability/instrumentation";
-import { startPgBossWorkers } from "./lib/pg-boss/worker";
+import * as Effect from "effect/Effect";
+import { runtime } from "./lib/effect/runtime";
 import { paraglideMiddleware } from "./paraglide/server.js";
 
-// Initialize OpenTelemetry instrumentation
-initOtel();
+// Eagerly initialize the runtime and forces all layers to build.
+// If any layer fails, the process exits immediately before serving requests.
+runtime
+	.runPromise(Effect.logInfo("Effect runtime initialized successfully"))
+	.catch((error) => {
+		console.error("Failed to initialize AppLayer:", error);
+		process.exit(1);
+	});
 
-// Initialize pg-boss workers
-startPgBossWorkers().catch((error) => {
-	console.error("Failed to start pg-boss workers:", error);
-});
+// Graceful shutdown
+// Disposes the runtime so all finalizers run in order
+const shutdown = () => {
+	runtime
+		.dispose()
+		.then(() => {
+			console.log("Effect runtime disposed successfully");
+			process.exit(0);
+		})
+		.catch((error) => {
+			console.error("Failed to dispose effect runtime:", error);
+			process.exit(1);
+		});
+};
+process.once("SIGTERM", shutdown);
+process.once("SIGINT", shutdown);
 
 export default {
 	fetch(req: Request): Promise<Response> {
