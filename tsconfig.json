@@ -7,14 +7,12 @@
 		"lib": ["ES2022", "DOM", "DOM.Iterable"],
 		"types": ["vite/client"],
 		"allowJs": true,
-
 		/* Bundler Options */
 		"moduleResolution": "bundler",
 		"noEmit": true,
 		"esModuleInterop": true,
 		"isolatedModules": true,
 		"resolveJsonModule": true,
-
 		/* Linting Options */
 		"skipLibCheck": true,
 		"strict": true,
@@ -26,6 +24,12 @@
 		"baseUrl": ".",
 		"paths": {
 			"@/*": ["./src/*"]
-		}
+		},
+		/* Plugins */
+		"plugins": [
+			{
+				"name": "@effect/language-service"
+			}
+		]
 	}
 }
