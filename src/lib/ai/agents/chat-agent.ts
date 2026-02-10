@@ -5,7 +5,7 @@ import { getChatAiSettings } from "@/lib/ai/utils/get-chat-ai-settings";
 import { logger } from "@/lib/observability/logger";
 import { blockSelectSchema } from "@/lib/orpc/schemas/block";
 
-export const chatAgentToolSet = {
+const chatAgentToolSet = {
 	searchKnowledgeBase: searchKnowledgeBaseTool({
 		block: undefined, // Placeholder, will be set in prepareCall
 	}),

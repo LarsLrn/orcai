@@ -2,7 +2,7 @@ import { trace } from "@opentelemetry/api";
 import pino from "pino";
 import { otelResource } from "./resource-config";
 
-export const getPinoTargets = (): pino.TransportTargetOptions[] => {
+const getPinoTargets = (): pino.TransportTargetOptions[] => {
 	const pinoTargets: pino.TransportTargetOptions[] = [
 		{
 			target: "pino-opentelemetry-transport",
