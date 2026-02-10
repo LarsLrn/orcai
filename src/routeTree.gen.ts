@@ -443,7 +443,7 @@ export interface FileRoutesByFullPath {
   '/app/assets/$assetId/': typeof AppAssetsAssetIdIndexRoute
   '/app/blocks/$blockId/': typeof AppBlocksBlockIdIndexRoute
   '/app/bots/$botId/': typeof AppBotsBotIdIndexRoute
-  '/app/chat/$chatId': typeof AppChatChatIdIndexRoute
+  '/app/chat/$chatId/': typeof AppChatChatIdIndexRoute
   '/app/courses/$courseId/': typeof AppCoursesCourseIdIndexRoute
   '/app/orgs/$orgId/': typeof AppOrgsOrgIdIndexRoute
   '/app/orgs/$orgId/providers/$providerSlug': typeof AppOrgsOrgIdProvidersProviderSlugRouteRouteWithChildren
@@ -620,7 +620,7 @@ export interface FileRouteTypes {
     | '/app/assets/$assetId/'
     | '/app/blocks/$blockId/'
     | '/app/bots/$botId/'
-    | '/app/chat/$chatId'
+    | '/app/chat/$chatId/'
     | '/app/courses/$courseId/'
     | '/app/orgs/$orgId/'
     | '/app/orgs/$orgId/providers/$providerSlug'
@@ -762,7 +762,7 @@ declare module '@tanstack/react-router' {
     '/_pathlessLayout': {
       id: '/_pathlessLayout'
       path: ''
-      fullPath: ''
+      fullPath: '/'
       preLoaderRoute: typeof PathlessLayoutRouteRouteImport
       parentRoute: typeof rootRouteImport
     }
@@ -1070,7 +1070,7 @@ declare module '@tanstack/react-router' {
     '/app/chat/$chatId/': {
       id: '/app/chat/$chatId/'
       path: '/$chatId'
-      fullPath: '/app/chat/$chatId'
+      fullPath: '/app/chat/$chatId/'
       preLoaderRoute: typeof AppChatChatIdIndexRouteImport
       parentRoute: typeof AppChatRouteRoute
     }
