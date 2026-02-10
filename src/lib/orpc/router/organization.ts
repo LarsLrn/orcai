@@ -19,9 +19,7 @@ export const listOrganizations = authed.organization.list.handler(
 				/* .where(inArray(dbSchema.organization.id, entityIds)) */
 				.limit(input.pageSize)
 				.offset(input.pageIndex * input.pageSize),
-			db
-				.select({ count: count() })
-				.from(dbSchema.organization),
+			db.select({ count: count() }).from(dbSchema.organization),
 			/* .where(inArray(dbSchema.organization.id, entityIds)) */
 		]);
 

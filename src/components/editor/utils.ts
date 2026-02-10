@@ -18,9 +18,7 @@ export const duplicateContent = (editor: Editor) => {
 			selection.to,
 			/* eslint-disable */
 			// @ts-nocheck
-			selection
-				.content()
-				.content.firstChild?.toJSON(),
+			selection.content().content.firstChild?.toJSON(),
 			{
 				updateSelection: true,
 			},

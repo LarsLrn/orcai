@@ -14,9 +14,7 @@ export const listUsers = authed.user.list.handler(async ({ input }) => {
 			/* .where(inArray(course.id, entityIds)) */
 			.limit(input.pageSize)
 			.offset(input.pageIndex * input.pageSize),
-		db
-			.select({ count: count() })
-			.from(dbSchema.user),
+		db.select({ count: count() }).from(dbSchema.user),
 		/* .where(inArray(course.id, entityIds)) */
 	]);
 
