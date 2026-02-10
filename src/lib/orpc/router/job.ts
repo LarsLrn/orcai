@@ -1,7 +1,6 @@
 import { eq } from "drizzle-orm";
 import * as Effect from "effect/Effect";
-import { assetTable } from "@/db/schema/asset";
-import { blockAssetTable } from "@/db/schema/block";
+import { dbSchema } from "@/db/schema";
 import { DB } from "@/lib/effect/services/drizzle";
 import { runOrpcEffect } from "@/lib/effect/utils/orpc-helpers";
 import { authed } from "@/lib/orpc/implementation/authed";
@@ -40,15 +39,18 @@ export const createJobs = authed.job.create.handler(async ({ input, errors }) =>
 
 			const assets = yield* db
 				.select({
-					id: assetTable.id,
-					bucket: assetTable.bucket,
-					type: assetTable.fileType,
-					prefix: assetTable.prefix,
-					metadata: assetTable.metadata,
+					id: dbSchema.asset.id,
+					bucket: dbSchema.asset.bucket,
+					type: dbSchema.asset.fileType,
+					prefix: dbSchema.asset.prefix,
+					metadata: dbSchema.asset.metadata,
 				})
-				.from(blockAssetTable)
-				.where(eq(blockAssetTable.blockId, input.blockId))
-				.innerJoin(assetTable, eq(blockAssetTable.assetId, assetTable.id));
+				.from(dbSchema.blockAsset)
+				.where(eq(dbSchema.blockAsset.blockId, input.blockId))
+				.innerJoin(
+					dbSchema.asset,
+					eq(dbSchema.blockAsset.assetId, dbSchema.asset.id),
+				);
 
 			yield* sendJobBatchEffect({
 				jobName: PROCESS_ASSET_JOB_NAME,

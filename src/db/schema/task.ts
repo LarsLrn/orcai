@@ -1,7 +1,7 @@
 import { integer, json, pgTable, text, timestamp } from "drizzle-orm/pg-core";
 import type { TaskStatus } from "@/lib/orpc/schemas/task";
 
-export const taskTable = pgTable("task", {
+export const task = pgTable("task", {
 	resourceId: text("resource_id").notNull(),
 	resourceType: text("resource_type").notNull(),
 	runId: text("run_id").primaryKey(),

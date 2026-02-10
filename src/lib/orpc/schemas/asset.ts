@@ -1,6 +1,6 @@
 import { createInsertSchema, createSelectSchema } from "drizzle-zod";
 import { z } from "zod/v4";
-import { assetTable } from "@/db/schema/asset";
+import { dbSchema } from "@/db/schema";
 
 /**
  * ----------------
@@ -21,7 +21,7 @@ const metadataSchema = z.object({
 
 export type AssetMetadataType = z.infer<typeof metadataSchema>;
 
-export const assetSelectSchema = createSelectSchema(assetTable).extend({
+export const assetSelectSchema = createSelectSchema(dbSchema.asset).extend({
 	metadata: metadataSchema,
 });
 
@@ -31,7 +31,7 @@ export const assetSelectSchema = createSelectSchema(assetTable).extend({
  * ----------------
  */
 
-export const assetInsertSchema = createInsertSchema(assetTable)
+export const assetInsertSchema = createInsertSchema(dbSchema.asset)
 	.omit({
 		createdAt: true,
 		updatedAt: true,

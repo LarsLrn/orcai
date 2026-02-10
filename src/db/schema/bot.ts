@@ -10,9 +10,9 @@ import {
 	varchar,
 } from "drizzle-orm/pg-core";
 import { user } from "./auth";
-import { blockTable } from "./block";
+import { block } from "./block";
 
-export const botTable = pgTable("bot", {
+export const bot = pgTable("bot", {
 	id: uuid("id").primaryKey().defaultRandom(),
 	name: text("name").notNull(),
 	description: varchar("description", { length: 500 }).notNull(),
@@ -21,26 +21,23 @@ export const botTable = pgTable("bot", {
 	userId: uuid("user_id")
 		.notNull()
 		.references(() => user.id, { onDelete: "cascade" }),
-	forkedFromId: uuid("forked_from_id").references(
-		(): AnyPgColumn => botTable.id,
-		{
-			onDelete: "set null",
-		},
-	),
+	forkedFromId: uuid("forked_from_id").references((): AnyPgColumn => bot.id, {
+		onDelete: "set null",
+	}),
 	version: integer("version").notNull().default(1),
 	createdAt: timestamp("created_at").defaultNow(),
 	updatedAt: timestamp("updated_at").defaultNow(),
 });
 
-export const botBlockTable = pgTable(
+export const botBlock = pgTable(
 	"bot_block",
 	{
 		blockId: uuid("block_id")
 			.notNull()
-			.references(() => blockTable.id, { onDelete: "cascade" }),
+			.references(() => block.id, { onDelete: "cascade" }),
 		botId: uuid("bot_id")
 			.notNull()
-			.references(() => botTable.id, { onDelete: "cascade" }),
+			.references(() => bot.id, { onDelete: "cascade" }),
 		createdAt: timestamp("created_at").notNull().defaultNow(),
 	},
 	(table) => [primaryKey({ columns: [table.blockId, table.botId] })],

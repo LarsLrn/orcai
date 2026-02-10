@@ -9,7 +9,7 @@ import {
 import type { AssetMetadataType } from "@/lib/orpc/schemas/asset";
 import { user } from "./auth";
 
-export const assetTable = pgTable("asset", {
+export const asset = pgTable("asset", {
 	id: uuid("id").primaryKey().defaultRandom(),
 	bucket: text("bucket").notNull(),
 	prefix: text("prefix").notNull(),

@@ -4,7 +4,7 @@ import {
 	createUpdateSchema,
 } from "drizzle-zod";
 import { z } from "zod/v4";
-import { chatBranch } from "@/db/schema/chat-branch";
+import { dbSchema } from "@/db/schema";
 
 /**
  * ----------------
@@ -12,7 +12,7 @@ import { chatBranch } from "@/db/schema/chat-branch";
  * ----------------
  */
 
-export const chatBranchSelectSchema = createSelectSchema(chatBranch, {
+export const chatBranchSelectSchema = createSelectSchema(dbSchema.chatBranch, {
 	id: (schema) => schema.brand("chatBranchId"),
 });
 
@@ -22,7 +22,9 @@ export const chatBranchSelectSchema = createSelectSchema(chatBranch, {
  * ----------------
  */
 
-export const chatBranchInsertSchema = createInsertSchema(chatBranch).omit({
+export const chatBranchInsertSchema = createInsertSchema(
+	dbSchema.chatBranch,
+).omit({
 	createdAt: true,
 	updatedAt: true,
 	id: true,
@@ -34,7 +36,7 @@ export const chatBranchInsertSchema = createInsertSchema(chatBranch).omit({
  * ----------------
  */
 
-export const chatBranchUpdateSchema = createUpdateSchema(chatBranch, {
+export const chatBranchUpdateSchema = createUpdateSchema(dbSchema.chatBranch, {
 	id: chatBranchSelectSchema.shape.id,
 }).omit({
 	createdAt: true,

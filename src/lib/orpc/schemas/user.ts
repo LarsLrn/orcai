@@ -4,7 +4,7 @@ import {
 	createUpdateSchema,
 } from "drizzle-zod";
 import { z } from "zod/v4";
-import { user } from "@/db/schema/auth";
+import { dbSchema } from "@/db/schema";
 
 /**
  * ----------------
@@ -23,7 +23,7 @@ const preferencesSchema = z.object({
 
 export type UserPreferencesType = z.infer<typeof preferencesSchema>;
 
-export const userSelectSchema = createSelectSchema(user).extend({
+export const userSelectSchema = createSelectSchema(dbSchema.user).extend({
 	preferences: preferencesSchema.optional(),
 });
 
@@ -33,7 +33,7 @@ export const userSelectSchema = createSelectSchema(user).extend({
  * ----------------
  */
 
-export const userInsertSchema = createInsertSchema(user).extend({
+export const userInsertSchema = createInsertSchema(dbSchema.user).extend({
 	preferences: preferencesSchema.optional(),
 });
 
@@ -43,7 +43,7 @@ export const userInsertSchema = createInsertSchema(user).extend({
  * ----------------
  */
 
-export const userUpdateSchema = createUpdateSchema(user);
+export const userUpdateSchema = createUpdateSchema(dbSchema.user);
 
 /**
  * ----------------

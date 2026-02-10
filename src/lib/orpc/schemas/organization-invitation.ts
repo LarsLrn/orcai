@@ -1,6 +1,6 @@
 import { createSelectSchema, createUpdateSchema } from "drizzle-zod";
 import { z } from "zod/v4";
-import { invitation } from "@/db/schema/organization";
+import { dbSchema } from "@/db/schema";
 
 /**
  * ----------------
@@ -8,8 +8,9 @@ import { invitation } from "@/db/schema/organization";
  * ----------------
  */
 
-export const organizationInvitationSelectSchema =
-	createSelectSchema(invitation);
+export const organizationInvitationSelectSchema = createSelectSchema(
+	dbSchema.invitation,
+);
 
 /**
  * ----------------
@@ -54,7 +55,7 @@ export const organizationInvitationInsertSchema = z.object({
  */
 
 export const organizationInvitationUpdateSchema = createUpdateSchema(
-	invitation,
+	dbSchema.invitation,
 	{
 		organizationId: organizationInvitationSelectSchema.shape.organizationId,
 		id: organizationInvitationSelectSchema.shape.id,

@@ -1,7 +1,7 @@
 import { ORPCError } from "@orpc/server";
 import { and, count, eq, getColumns } from "drizzle-orm";
 import { db } from "@/db/drizzle";
-import { account, session, user } from "@/db/schema/auth";
+import { dbSchema } from "@/db/schema";
 import { auth } from "@/lib/auth";
 import { authed } from "@/lib/orpc/implementation/authed";
 import { requirePreferencesMiddleware } from "@/lib/orpc/middlewares/auth";
@@ -9,14 +9,14 @@ import { requirePreferencesMiddleware } from "@/lib/orpc/middlewares/auth";
 export const listUsers = authed.user.list.handler(async ({ input }) => {
 	const [data, [rowCount]] = await Promise.all([
 		db
-			.select({ ...getColumns(user) })
-			.from(user)
+			.select({ ...getColumns(dbSchema.user) })
+			.from(dbSchema.user)
 			/* .where(inArray(course.id, entityIds)) */
 			.limit(input.pageSize)
 			.offset(input.pageIndex * input.pageSize),
 		db
 			.select({ count: count() })
-			.from(user),
+			.from(dbSchema.user),
 		/* .where(inArray(course.id, entityIds)) */
 	]);
 
@@ -43,9 +43,9 @@ export const findUser = authed.user.find
 			});
 		}
 		const [query] = await db
-			.select({ ...getColumns(user) })
-			.from(user)
-			.where(eq(user.id, userId));
+			.select({ ...getColumns(dbSchema.user) })
+			.from(dbSchema.user)
+			.where(eq(dbSchema.user.id, userId));
 
 		if (!query) {
 			throw new ORPCError("NOT_FOUND", { message: "User not found" });
@@ -59,12 +59,12 @@ export const updatePassword = authed.user.updatePassword.handler(
 		const ctx = await auth.$context;
 
 		const [acc] = await db
-			.select({ password: account.password })
-			.from(account)
+			.select({ password: dbSchema.account.password })
+			.from(dbSchema.account)
 			.where(
 				and(
-					eq(account.userId, context.auth.user.id),
-					eq(account.providerId, "credential"),
+					eq(dbSchema.account.userId, context.auth.user.id),
+					eq(dbSchema.account.providerId, "credential"),
 				),
 			)
 			.limit(1);
@@ -97,7 +97,7 @@ export const updatePassword = authed.user.updatePassword.handler(
 export const setTourState = authed.user.setTourState
 	.use(requirePreferencesMiddleware)
 	.handler(async ({ input, context }) => {
-		await db.update(user).set({
+		await db.update(dbSchema.user).set({
 			preferences: {
 				...context.preferences,
 				tours: {
@@ -114,11 +114,11 @@ export const setTourState = authed.user.setTourState
 export const setActiveOrganization = authed.user.setActiveOrganization.handler(
 	async ({ input, context }) => {
 		await db
-			.update(session)
+			.update(dbSchema.session)
 			.set({
 				activeOrganizationId: input.organizationId,
 			})
-			.where(eq(session.id, context.auth.session.id));
+			.where(eq(dbSchema.session.id, context.auth.session.id));
 
 		return { success: true };
 	},

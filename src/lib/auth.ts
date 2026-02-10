@@ -7,7 +7,7 @@ import { createTransport } from "nodemailer";
 import type SMTPTransport from "nodemailer/lib/smtp-transport";
 import { v4 as uuidv4 } from "uuid";
 import { db } from "@/db/drizzle";
-import { account, session, user, verification } from "@/db/schema/auth";
+import { dbSchema } from "@/db/schema";
 import { serverEnv } from "@/lib/env/server";
 import { logger } from "./observability/logger";
 
@@ -24,10 +24,10 @@ export const auth = betterAuth({
 	database: drizzleAdapter(db, {
 		provider: "pg",
 		schema: {
-			user,
-			account,
-			session,
-			verification,
+			user: dbSchema.user,
+			account: dbSchema.account,
+			session: dbSchema.session,
+			verification: dbSchema.verification,
 		},
 	}),
 	emailAndPassword: {

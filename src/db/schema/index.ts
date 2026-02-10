@@ -1,46 +1,46 @@
-import { assetTable } from "./asset";
+import { asset } from "./asset";
 import { account, session, user, verification } from "./auth";
-import { blockAssetTable, blockTable, chatBlockTable } from "./block";
-import { botBlockTable, botTable } from "./bot";
+import { block, blockAsset, chatBlock } from "./block";
+import { bot, botBlock } from "./bot";
 import { chat } from "./chat";
 import { chatBranch } from "./chat-branch";
 import { chatMessage } from "./chat-message";
 import { course, courseMember } from "./course";
 import { courseInvitation } from "./course-invitation";
 import {
-	capabilityTable,
-	modelCapabilityTable,
-	modelTable,
-	organizationProviderTable,
-	providerTable,
+	capability,
+	model,
+	modelCapability,
+	organizationProvider,
+	provider,
 } from "./model";
 import { invitation, member, organization } from "./organization";
-import { taskTable } from "./task";
+import { task } from "./task";
 
 export const dbSchema = {
 	user,
 	session,
 	account,
 	verification,
-	assetTable,
-	blockTable,
-	chatBlockTable,
-	blockAssetTable,
-	botTable,
-	botBlockTable,
+	asset,
+	block,
+	chatBlock,
+	blockAsset,
+	bot,
+	botBlock,
 	chatBranch,
 	chatMessage,
 	chat,
 	courseInvitation,
 	course,
 	courseMember,
-	providerTable,
-	modelTable,
-	capabilityTable,
-	modelCapabilityTable,
-	organizationProviderTable,
+	provider,
+	model,
+	capability,
+	modelCapability,
+	organizationProvider,
 	organization,
 	member,
 	invitation,
-	taskTable,
+	task,
 };

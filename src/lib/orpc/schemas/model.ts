@@ -1,6 +1,6 @@
 import { createSelectSchema } from "drizzle-zod";
 import type { z } from "zod/v4";
-import { modelTable } from "@/db/schema/model";
+import { dbSchema } from "@/db/schema";
 
 /**
  * ----------------
@@ -8,7 +8,7 @@ import { modelTable } from "@/db/schema/model";
  * ----------------
  */
 
-export const modelSelectSchema = createSelectSchema(modelTable);
+export const modelSelectSchema = createSelectSchema(dbSchema.model);
 
 /**
  * ----------------

@@ -1,7 +1,7 @@
 import { ORPCError } from "@orpc/server";
 import { eq } from "drizzle-orm";
 import { db } from "@/db/drizzle";
-import { user } from "@/db/schema/auth";
+import { dbSchema } from "@/db/schema";
 import { auth as betterAuth } from "@/lib/auth";
 import type { authClient } from "@/lib/auth-client";
 import { os } from "@/lib/orpc/implementation/os";
@@ -90,9 +90,9 @@ export const requirePreferencesMiddleware = withName(
 		}>()
 		.middleware(async ({ context, next }) => {
 			const [userPrefs] = await db
-				.select({ preferences: user.preferences })
-				.from(user)
-				.where(eq(user.id, context.auth.user.id));
+				.select({ preferences: dbSchema.user.preferences })
+				.from(dbSchema.user)
+				.where(eq(dbSchema.user.id, context.auth.user.id));
 
 			if (!userPrefs) {
 				throw new ORPCError("NOT_FOUND", {

@@ -4,7 +4,7 @@ import {
 	createUpdateSchema,
 } from "drizzle-zod";
 import { z } from "zod/v4";
-import { blockTable } from "@/db/schema/block";
+import { dbSchema } from "@/db/schema";
 import { assetSelectSchema } from "./asset";
 
 /**
@@ -90,7 +90,7 @@ export const imageGenerationBlockSchema = z.object({
 	}),
 });
 
-export const baseBlockSelectSchema = createSelectSchema(blockTable);
+export const baseBlockSelectSchema = createSelectSchema(dbSchema.block);
 
 export const blockSelectSchema = z.discriminatedUnion("type", [
 	baseBlockSelectSchema.extend(templateBlockSchema.shape),
@@ -104,7 +104,7 @@ export const blockSelectSchema = z.discriminatedUnion("type", [
  * ----------------
  */
 
-const baseBlockInsertSchema = createInsertSchema(blockTable).omit({
+const baseBlockInsertSchema = createInsertSchema(dbSchema.block).omit({
 	userId: true,
 	createdAt: true,
 	updatedAt: true,
@@ -138,7 +138,7 @@ export const blockInsertSchema = z.discriminatedUnion("type", [
  * ----------------
  */
 
-const baseBlockUpdateSchema = createUpdateSchema(blockTable, {
+const baseBlockUpdateSchema = createUpdateSchema(dbSchema.block, {
 	id: z.uuidv4(),
 }).omit({
 	userId: true,

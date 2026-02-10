@@ -1,8 +1,7 @@
-import { getLogger } from "@orpc/experimental-pino";
 import { ORPCError } from "@orpc/server";
 import { count, eq, getColumns, inArray, or } from "drizzle-orm";
 import { db } from "@/db/drizzle";
-import { invitation } from "@/db/schema/organization";
+import { dbSchema } from "@/db/schema";
 import { authed } from "@/lib/orpc/implementation/authed";
 import { requireActiveOrganizationMiddleware } from "@/lib/orpc/middlewares/auth";
 
@@ -10,23 +9,23 @@ export const listOrganizationInvitations =
 	authed.organizationInvitation.list.handler(async ({ input, context }) => {
 		const [data, [rowCount]] = await Promise.all([
 			db
-				.select({ ...getColumns(invitation) })
-				.from(invitation)
+				.select({ ...getColumns(dbSchema.invitation) })
+				.from(dbSchema.invitation)
 				.where(
 					or(
-						eq(invitation.email, context.auth.user.email),
-						eq(invitation.inviterId, context.auth.user.id),
+						eq(dbSchema.invitation.email, context.auth.user.email),
+						eq(dbSchema.invitation.inviterId, context.auth.user.id),
 					),
 				)
 				.limit(input.pageSize)
 				.offset(input.pageIndex * input.pageSize),
 			db
 				.select({ count: count() })
-				.from(invitation)
+				.from(dbSchema.invitation)
 				.where(
 					or(
-						eq(invitation.email, context.auth.user.email),
-						eq(invitation.inviterId, context.auth.user.id),
+						eq(dbSchema.invitation.email, context.auth.user.email),
+						eq(dbSchema.invitation.inviterId, context.auth.user.id),
 					),
 				),
 		]);
@@ -46,9 +45,9 @@ export const findOrganizationInvitation = authed.organizationInvitation.find
 	) */
 	.handler(async ({ input }) => {
 		const [query] = await db
-			.select({ ...getColumns(invitation) })
-			.from(invitation)
-			.where(eq(invitation.id, input.id));
+			.select({ ...getColumns(dbSchema.invitation) })
+			.from(dbSchema.invitation)
+			.where(eq(dbSchema.invitation.id, input.id));
 
 		if (!query) {
 			throw new ORPCError("NOT_FOUND", { message: "Invitation not found" });
@@ -70,7 +69,10 @@ export const createOrganizationInvitations =
 				inviterId: context.auth.user.id,
 			}));
 
-			const query = await db.insert(invitation).values(invitations).returning();
+			const query = await db
+				.insert(dbSchema.invitation)
+				.values(invitations)
+				.returning();
 
 			return { data: query };
 		});
@@ -87,10 +89,10 @@ export const updateOrganizationInvitation = authed.organizationInvitation.update
 	) */
 	.handler(async ({ input }) => {
 		const [query] = await db
-			.update(invitation)
+			.update(dbSchema.invitation)
 			.set(input)
-			.where(eq(invitation.id, input.id))
-			.returning({ ...getColumns(invitation) });
+			.where(eq(dbSchema.invitation.id, input.id))
+			.returning({ ...getColumns(dbSchema.invitation) });
 
 		return { data: query };
 	});
@@ -106,12 +108,7 @@ export const deleteOrganizationInvitations =
 				entityType: "organizationInvitation",
 			}) satisfies CheckManyPermissionInput,
 	) */
-		.handler(async ({ input, context }) => {
-			const logger = getLogger(context);
-			logger?.info(
-				{ ids: input.refs },
-				"Deleting organization invitations by IDs",
-			);
+		.handler(async ({ input }) => {
 			/* // Check if there are any IDs to delete
 		if (!context.allowedIds || context.allowedIds.length === 0) {
 			return { success: true, message: "No courses to delete" };
@@ -119,14 +116,15 @@ export const deleteOrganizationInvitations =
 
 			try {
 				const ids = input.refs.map((ref) => ref.id);
-				await db.delete(invitation).where(inArray(invitation.id, ids));
+				await db
+					.delete(dbSchema.invitation)
+					.where(inArray(dbSchema.invitation.id, ids));
 
 				return {
 					success: true,
 					message: "Organisation invitations deleted successfully",
 				};
-			} catch (error) {
-				logger?.error({ error }, "Error deleting organisation invitations:");
+			} catch {
 				throw new ORPCError("INTERNAL_SERVER_ERROR", {
 					message: "Failed to delete organisation invitations",
 				});
@@ -137,14 +135,14 @@ export const respondToOrganisationInvitation =
 	authed.organizationInvitation.respond.handler(({ input }) => {
 		const acceptInvitation = () => {
 			/* const [invitation] = await db
-				.select({ ...getColumns(organisationInvitation) })
-				.from(organisationInvitation)
-				.where(eq(organisationInvitation.id, input.id));
+				.select({ ...getColumns(dbSchema.invitation) })
+				.from(dbSchema.invitation)
+				.where(eq(dbSchema.invitation.id, input.id));
 
 			const [invitationCourse] = await db
-				.select({ organizationId: course.organizationId })
-				.from(course)
-				.where(eq(course.id, invitation.courseId))
+				.select({ organizationId: dbSchema.course.organizationId })
+				.from(dbSchema.course)
+				.where(eq(dbSchema.course.id, invitation.courseId))
 				.limit(1);
 
 			const { headers } = getWebRequest();
@@ -168,7 +166,7 @@ export const respondToOrganisationInvitation =
 			}
 
 			await db
-				.insert(courseMember)
+				.insert(dbSchema.courseMember)
 				.values({
 					courseId: invitation.courseId,
 					userId: context.auth.user.id,
@@ -178,12 +176,12 @@ export const respondToOrganisationInvitation =
 				.onConflictDoNothing();
 
 			await db
-				.update(courseInvitation)
+				.update(dbSchema.invitation)
 				.set({
 					status: "accepted",
 					updatedAt: new Date(),
 				})
-				.where(eq(courseInvitation.id, input.id));
+				.where(eq(dbSchema.invitation.id, input.id));
 
 			await auth.api.setActiveOrganization({
 				body: {
@@ -197,12 +195,12 @@ export const respondToOrganisationInvitation =
 
 		const rejectInvitation = async () => {
 			await db
-				.update(invitation)
+				.update(dbSchema.invitation)
 				.set({
 					status: "rejected",
 					updatedAt: new Date(),
 				})
-				.where(eq(invitation.id, input.id));
+				.where(eq(dbSchema.invitation.id, input.id));
 
 			return { success: true, message: "Invitation rejected successfully" };
 		};

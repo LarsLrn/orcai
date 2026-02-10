@@ -1,7 +1,6 @@
 import { and, countDistinct, desc, eq, getColumns, inArray } from "drizzle-orm";
 import * as Effect from "effect/Effect";
-import { blockAssetTable, blockTable } from "@/db/schema/block";
-import { botBlockTable } from "@/db/schema/bot";
+import { dbSchema } from "@/db/schema";
 import { DB } from "@/lib/effect/services/drizzle";
 import { runOrpcEffect } from "@/lib/effect/utils/orpc-helpers";
 import { authed } from "@/lib/orpc/implementation/authed";
@@ -32,29 +31,37 @@ export const listBlocks = authed.block.list.handler(
 					),
 				);
 
-				const whereConditions = [inArray(blockTable.id, allowedIds)];
+				const whereConditions = [inArray(dbSchema.block.id, allowedIds)];
 				if (input.filters?.botId) {
-					whereConditions.push(eq(botBlockTable.botId, input.filters.botId));
+					whereConditions.push(
+						eq(dbSchema.botBlock.botId, input.filters.botId),
+					);
 				}
 
 				return yield* Effect.all(
 					[
 						db
-							.selectDistinctOn([blockTable.id, blockTable.createdAt], {
-								...getColumns(blockTable),
+							.selectDistinctOn([dbSchema.block.id, dbSchema.block.createdAt], {
+								...getColumns(dbSchema.block),
 							})
-							.from(blockTable)
-							.leftJoin(botBlockTable, eq(botBlockTable.blockId, blockTable.id))
+							.from(dbSchema.block)
+							.leftJoin(
+								dbSchema.botBlock,
+								eq(dbSchema.botBlock.blockId, dbSchema.block.id),
+							)
 							.where(and(...whereConditions))
-							.orderBy(desc(blockTable.createdAt))
+							.orderBy(desc(dbSchema.block.createdAt))
 							.limit(input.pageSize)
 							.offset(input.pageIndex * input.pageSize),
 						db
 							.select({
-								count: countDistinct(blockTable.id),
+								count: countDistinct(dbSchema.block.id),
 							})
-							.from(blockTable)
-							.leftJoin(botBlockTable, eq(botBlockTable.blockId, blockTable.id))
+							.from(dbSchema.block)
+							.leftJoin(
+								dbSchema.botBlock,
+								eq(dbSchema.botBlock.blockId, dbSchema.block.id),
+							)
 							.where(and(...whereConditions)),
 					],
 					{ concurrency: "unbounded" },
@@ -85,9 +92,9 @@ export const findBlock = authed.block.find
 				const db = yield* DB;
 
 				const [block] = (yield* db
-					.select({ ...getColumns(blockTable) })
-					.from(blockTable)
-					.where(eq(blockTable.id, input.id))) as Block[];
+					.select({ ...getColumns(dbSchema.block) })
+					.from(dbSchema.block)
+					.where(eq(dbSchema.block.id, input.id))) as Block[];
 
 				if (!block) {
 					return yield* Effect.fail(
@@ -97,9 +104,9 @@ export const findBlock = authed.block.find
 
 				if (block.type === "database") {
 					const assets = yield* db
-						.select({ assetId: blockAssetTable.assetId })
-						.from(blockAssetTable)
-						.where(eq(blockAssetTable.blockId, input.id));
+						.select({ assetId: dbSchema.blockAsset.assetId })
+						.from(dbSchema.blockAsset)
+						.where(eq(dbSchema.blockAsset.blockId, input.id));
 
 					return { data: block, assets: assets.map((a) => a.assetId) };
 				}
@@ -117,14 +124,14 @@ export const createBlock = authed.block.create
 				const db = yield* DB;
 
 				const [block] = (yield* db
-					.insert(blockTable)
+					.insert(dbSchema.block)
 					.values({
 						...input,
 						userId: context.auth.user.id,
 						createdAt: new Date(),
 						updatedAt: new Date(),
 					})
-					.returning({ ...getColumns(blockTable) })) as Block[];
+					.returning({ ...getColumns(dbSchema.block) })) as Block[];
 
 				const relationResult = yield* createRelation({
 					entityId: block.id,
@@ -135,14 +142,14 @@ export const createBlock = authed.block.create
 
 				if (input.type === "database") {
 					const assets = yield* db
-						.insert(blockAssetTable)
+						.insert(dbSchema.blockAsset)
 						.values(
 							input.assets.map((assetId) => ({
 								blockId: block.id,
 								assetId,
 							})),
 						)
-						.returning({ assetId: blockAssetTable.assetId });
+						.returning({ assetId: dbSchema.blockAsset.assetId });
 
 					return {
 						data: block,
@@ -175,28 +182,28 @@ export const updateBlock = authed.block.update
 				const db = yield* DB;
 
 				const [block] = (yield* db
-					.update(blockTable)
+					.update(dbSchema.block)
 					.set({
 						...input,
 						updatedAt: new Date(),
 					})
-					.where(eq(blockTable.id, input.id))
-					.returning({ ...getColumns(blockTable) })) as Block[];
+					.where(eq(dbSchema.block.id, input.id))
+					.returning({ ...getColumns(dbSchema.block) })) as Block[];
 
 				if (input.type === "database" && block.type === "database") {
 					yield* db
-						.delete(blockAssetTable)
-						.where(eq(blockAssetTable.blockId, block.id));
+						.delete(dbSchema.blockAsset)
+						.where(eq(dbSchema.blockAsset.blockId, block.id));
 
 					const assets = yield* db
-						.insert(blockAssetTable)
+						.insert(dbSchema.blockAsset)
 						.values(
 							input.assets.map((assetId) => ({
 								blockId: block.id,
 								assetId,
 							})),
 						)
-						.returning({ assetId: blockAssetTable.assetId });
+						.returning({ assetId: dbSchema.blockAsset.assetId });
 
 					return { data: block, assets: assets.map((a) => a.assetId) };
 				}
@@ -227,8 +234,8 @@ export const deleteBlocks = authed.block.delete
 				}
 
 				yield* db
-					.delete(blockTable)
-					.where(inArray(blockTable.id, context.allowedIds));
+					.delete(dbSchema.block)
+					.where(inArray(dbSchema.block.id, context.allowedIds));
 
 				return { success: true, message: "Blocks deleted successfully" };
 			}),

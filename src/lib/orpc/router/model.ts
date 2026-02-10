@@ -1,57 +1,53 @@
 import { ORPCError } from "@orpc/server";
 import { and, eq, getColumns, inArray, sql } from "drizzle-orm";
 import { db } from "@/db/drizzle";
-import {
-	capabilityTable,
-	modelCapabilityTable,
-	modelTable,
-} from "@/db/schema/model";
+import { dbSchema } from "@/db/schema";
 import { authed } from "@/lib/orpc/implementation/authed";
 import type { Capability } from "@/lib/orpc/schemas/capability";
 import type { Model } from "@/lib/orpc/schemas/model";
 
 export const listModels = authed.model.list.handler(async ({ input }) => {
-	let models: (typeof modelTable.$inferSelect)[];
+	let models: (typeof dbSchema.model.$inferSelect)[];
 
 	// If capabilities are specified, filter models that have those capabilities
 	if (input.capabilities && input.capabilities.length > 0) {
 		models = await db
-			.select({ ...getColumns(modelTable) })
-			.from(modelTable)
+			.select({ ...getColumns(dbSchema.model) })
+			.from(dbSchema.model)
 			.innerJoin(
-				modelCapabilityTable,
-				eq(modelCapabilityTable.modelId, modelTable.id),
+				dbSchema.modelCapability,
+				eq(dbSchema.modelCapability.modelId, dbSchema.model.id),
 			)
 			.where(
 				and(
-					eq(modelTable.providerSlug, input.providerSlug),
-					inArray(modelCapabilityTable.capability, input.capabilities),
+					eq(dbSchema.model.providerSlug, input.providerSlug),
+					inArray(dbSchema.modelCapability.capability, input.capabilities),
 				),
 			)
-			.groupBy(modelTable.id)
+			.groupBy(dbSchema.model.id)
 			.having(
-				sql`COUNT(DISTINCT ${modelCapabilityTable.capability}) = ${input.capabilities.length}`,
+				sql`COUNT(DISTINCT ${dbSchema.modelCapability.capability}) = ${input.capabilities.length}`,
 			);
 	} else {
 		models = await db
-			.select({ ...getColumns(modelTable) })
-			.from(modelTable)
-			.where(eq(modelTable.providerSlug, input.providerSlug));
+			.select({ ...getColumns(dbSchema.model) })
+			.from(dbSchema.model)
+			.where(eq(dbSchema.model.providerSlug, input.providerSlug));
 	}
 
 	const capabilities = (await db
 		.select({
-			...getColumns(capabilityTable),
-			...getColumns(modelCapabilityTable),
+			...getColumns(dbSchema.capability),
+			...getColumns(dbSchema.modelCapability),
 		})
-		.from(capabilityTable)
+		.from(dbSchema.capability)
 		.innerJoin(
-			modelCapabilityTable,
-			eq(modelCapabilityTable.capability, capabilityTable.capability),
+			dbSchema.modelCapability,
+			eq(dbSchema.modelCapability.capability, dbSchema.capability.capability),
 		)
 		.where(
 			inArray(
-				modelCapabilityTable.modelId,
+				dbSchema.modelCapability.modelId,
 				models.map((m) => m.id),
 			),
 		)) as (Capability & { modelId: Model["id"] })[];
@@ -78,23 +74,23 @@ export const findModel = authed.model.find
   ) */
 	.handler(async ({ input }) => {
 		const [model] = await db
-			.select({ ...getColumns(modelTable) })
-			.from(modelTable)
+			.select({ ...getColumns(dbSchema.model) })
+			.from(dbSchema.model)
 			.where(
 				and(
-					eq(modelTable.slug, input.slug),
-					eq(modelTable.providerSlug, input.providerSlug),
+					eq(dbSchema.model.slug, input.slug),
+					eq(dbSchema.model.providerSlug, input.providerSlug),
 				),
 			);
 
 		const capabilities = (await db
-			.select({ ...getColumns(capabilityTable) })
-			.from(capabilityTable)
+			.select({ ...getColumns(dbSchema.capability) })
+			.from(dbSchema.capability)
 			.innerJoin(
-				capabilityTable,
-				eq(capabilityTable.capability, modelCapabilityTable.capability),
+				dbSchema.capability,
+				eq(dbSchema.capability.capability, dbSchema.modelCapability.capability),
 			)
-			.where(eq(modelCapabilityTable.modelId, model.id))) as Capability[];
+			.where(eq(dbSchema.modelCapability.modelId, model.id))) as Capability[];
 
 		if (!model) {
 			throw new ORPCError("NOT_FOUND", {

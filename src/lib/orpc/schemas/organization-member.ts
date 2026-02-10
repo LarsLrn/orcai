@@ -4,7 +4,7 @@ import {
 	createUpdateSchema,
 } from "drizzle-zod";
 import { z } from "zod/v4";
-import { member } from "@/db/schema/organization";
+import { dbSchema } from "@/db/schema";
 
 /**
  * ----------------
@@ -12,7 +12,9 @@ import { member } from "@/db/schema/organization";
  * ----------------
  */
 
-export const organizationMemberSelectSchema = createSelectSchema(member);
+export const organizationMemberSelectSchema = createSelectSchema(
+	dbSchema.member,
+);
 
 /**
  * ----------------
@@ -20,7 +22,9 @@ export const organizationMemberSelectSchema = createSelectSchema(member);
  * ----------------
  */
 
-export const organizationMemberInsertSchema = createInsertSchema(member).omit({
+export const organizationMemberInsertSchema = createInsertSchema(
+	dbSchema.member,
+).omit({
 	createdAt: true,
 });
 
@@ -30,10 +34,13 @@ export const organizationMemberInsertSchema = createInsertSchema(member).omit({
  * ----------------
  */
 
-export const organizationMemberUpdateSchema = createUpdateSchema(member, {
-	organizationId: z.uuidv4(),
-	userId: z.uuidv4(),
-});
+export const organizationMemberUpdateSchema = createUpdateSchema(
+	dbSchema.member,
+	{
+		organizationId: z.uuidv4(),
+		userId: z.uuidv4(),
+	},
+);
 
 /**
  * ----------------

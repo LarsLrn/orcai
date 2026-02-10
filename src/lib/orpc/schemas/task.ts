@@ -4,7 +4,7 @@ import {
 	createUpdateSchema,
 } from "drizzle-zod";
 import { z } from "zod/v4";
-import { taskTable } from "@/db/schema/task";
+import { dbSchema } from "@/db/schema";
 import { baseBlockSelectSchema } from "./block";
 
 const taskStatus = z.enum([
@@ -21,7 +21,7 @@ const taskStatus = z.enum([
  * ----------------
  */
 
-export const taskSelectSchema = createSelectSchema(taskTable, {
+export const taskSelectSchema = createSelectSchema(dbSchema.task, {
 	status: taskStatus,
 });
 
@@ -31,7 +31,7 @@ export const taskSelectSchema = createSelectSchema(taskTable, {
  * ----------------
  */
 
-export const taskInsertSchema = createInsertSchema(taskTable).omit({
+export const taskInsertSchema = createInsertSchema(dbSchema.task).omit({
 	status: true,
 	createdAt: true,
 	updatedAt: true,
@@ -48,7 +48,7 @@ export const databaseBlockTaskInsertSchema = z.object({
  * ----------------
  */
 
-export const taskUpdateSchema = createUpdateSchema(taskTable, {
+export const taskUpdateSchema = createUpdateSchema(dbSchema.task, {
 	resourceId: z.string(),
 	status: taskStatus.optional(),
 	runId: z.string(),

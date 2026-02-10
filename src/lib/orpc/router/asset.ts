@@ -1,6 +1,6 @@
 import { and, count, desc, eq, getColumns, inArray } from "drizzle-orm";
 import * as Effect from "effect/Effect";
-import { assetTable } from "@/db/schema/asset";
+import { dbSchema } from "@/db/schema";
 import { DB } from "@/lib/effect/services/drizzle";
 import { runOrpcEffect } from "@/lib/effect/utils/orpc-helpers";
 import { authed } from "@/lib/orpc/implementation/authed";
@@ -36,23 +36,23 @@ export const listAssets = authed.asset.list.handler(
 					),
 				);
 
-				const whereConditions = [inArray(assetTable.id, allowedIds)];
+				const whereConditions = [inArray(dbSchema.asset.id, allowedIds)];
 				if (input.filters?.ids) {
-					whereConditions.push(inArray(assetTable.id, input.filters.ids));
+					whereConditions.push(inArray(dbSchema.asset.id, input.filters.ids));
 				}
 
 				return yield* Effect.all(
 					[
 						db
-							.select({ ...getColumns(assetTable) })
-							.from(assetTable)
+							.select({ ...getColumns(dbSchema.asset) })
+							.from(dbSchema.asset)
 							.where(and(...whereConditions))
-							.orderBy(desc(assetTable.createdAt))
+							.orderBy(desc(dbSchema.asset.createdAt))
 							.limit(input.pageSize)
 							.offset(input.pageIndex * input.pageSize),
 						db
 							.select({ count: count() })
-							.from(assetTable)
+							.from(dbSchema.asset)
 							.where(and(...whereConditions)),
 					],
 					{ concurrency: "unbounded" },
@@ -83,9 +83,9 @@ export const findAsset = authed.asset.find
 				const db = yield* DB;
 
 				const [query] = yield* db
-					.select({ ...getColumns(assetTable) })
-					.from(assetTable)
-					.where(eq(assetTable.id, input.id));
+					.select({ ...getColumns(dbSchema.asset) })
+					.from(dbSchema.asset)
+					.where(eq(dbSchema.asset.id, input.id));
 
 				if (!query) {
 					return yield* Effect.fail(
@@ -105,7 +105,7 @@ export const createAsset = authed.asset.create.handler(
 				const db = yield* DB;
 
 				const [asset] = yield* db
-					.insert(assetTable)
+					.insert(dbSchema.asset)
 					.values({
 						id: input.id, // TODO: This shouldnt come from the client, but needs to match the S3 file ID. Think of a solution to this
 						title: input.title ?? "New Asset",
@@ -115,7 +115,7 @@ export const createAsset = authed.asset.create.handler(
 						prefix: "placeholder", // TODO: Make this dynamic
 						userId: context.auth.user.id,
 					})
-					.returning({ ...getColumns(assetTable) });
+					.returning({ ...getColumns(dbSchema.asset) });
 
 				const relationResult = yield* createRelation({
 					entityId: asset.id,
@@ -148,13 +148,13 @@ export const updateAsset = authed.asset.update
 				const db = yield* DB;
 
 				const [asset] = yield* db
-					.update(assetTable)
+					.update(dbSchema.asset)
 					.set({
 						title: input.title,
 						updatedAt: new Date(),
 					})
-					.where(eq(assetTable.id, input.id))
-					.returning({ ...getColumns(assetTable) });
+					.where(eq(dbSchema.asset.id, input.id))
+					.returning({ ...getColumns(dbSchema.asset) });
 
 				return { data: asset };
 			}),
@@ -183,8 +183,8 @@ export const deleteAssets = authed.asset.delete
 
 				const assetsToDelete = yield* db
 					.select()
-					.from(assetTable)
-					.where(inArray(assetTable.id, context.allowedIds));
+					.from(dbSchema.asset)
+					.where(inArray(dbSchema.asset.id, context.allowedIds));
 
 				yield* Effect.all(
 					assetsToDelete.map((asset) =>
@@ -215,8 +215,8 @@ export const deleteAssets = authed.asset.delete
 				);
 
 				yield* db
-					.delete(assetTable)
-					.where(inArray(assetTable.id, context.allowedIds));
+					.delete(dbSchema.asset)
+					.where(inArray(dbSchema.asset.id, context.allowedIds));
 
 				return { success: true, message: "Assets deleted successfully" };
 			}),

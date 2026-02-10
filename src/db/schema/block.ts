@@ -8,11 +8,11 @@ import {
 	timestamp,
 	uuid,
 } from "drizzle-orm/pg-core";
-import { assetTable } from "./asset";
+import { asset } from "./asset";
 import { user } from "./auth";
 import { chat } from "./chat";
 
-export const blockTable = pgTable("block", {
+export const block = pgTable("block", {
 	id: uuid("id").primaryKey().defaultRandom(),
 	type: text("type").notNull(),
 	name: text("name").notNull(),
@@ -20,23 +20,20 @@ export const blockTable = pgTable("block", {
 	userId: uuid("user_id")
 		.notNull()
 		.references(() => user.id, { onDelete: "cascade" }),
-	forkedFromId: uuid("forked_from_id").references(
-		(): AnyPgColumn => blockTable.id,
-		{
-			onDelete: "set null",
-		},
-	),
+	forkedFromId: uuid("forked_from_id").references((): AnyPgColumn => block.id, {
+		onDelete: "set null",
+	}),
 	version: integer("version").notNull().default(1),
 	createdAt: timestamp("created_at").defaultNow(),
 	updatedAt: timestamp("updated_at").defaultNow(),
 });
 
-export const chatBlockTable = pgTable(
+export const chatBlock = pgTable(
 	"chat_block",
 	{
 		blockId: uuid("block_id")
 			.notNull()
-			.references(() => blockTable.id, { onDelete: "cascade" }),
+			.references(() => block.id, { onDelete: "cascade" }),
 		chatId: uuid("chat_id")
 			.notNull()
 			.references(() => chat.id, { onDelete: "cascade" }),
@@ -45,12 +42,12 @@ export const chatBlockTable = pgTable(
 	(table) => [primaryKey({ columns: [table.blockId, table.chatId] })],
 );
 
-export const blockAssetTable = pgTable("block_asset", {
+export const blockAsset = pgTable("block_asset", {
 	blockId: uuid("block_id")
 		.notNull()
-		.references(() => blockTable.id, { onDelete: "cascade" }),
+		.references(() => block.id, { onDelete: "cascade" }),
 	assetId: uuid("asset_id")
 		.notNull()
-		.references(() => assetTable.id, { onDelete: "cascade" }),
+		.references(() => asset.id, { onDelete: "cascade" }),
 	createdAt: timestamp("created_at").notNull().defaultNow(),
 });

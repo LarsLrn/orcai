@@ -1,8 +1,7 @@
-import { getLogger } from "@orpc/experimental-pino";
 import { ORPCError } from "@orpc/server";
 import { count, eq, getColumns, inArray, or } from "drizzle-orm";
 import { db } from "@/db/drizzle";
-import { courseInvitation } from "@/db/schema/course-invitation";
+import { dbSchema } from "@/db/schema";
 import { authed } from "@/lib/orpc/implementation/authed";
 import { requireActiveOrganizationMiddleware } from "@/lib/orpc/middlewares/auth";
 
@@ -10,23 +9,23 @@ export const listCourseInvitations = authed.courseInvitation.list.handler(
 	async ({ input, context }) => {
 		const [data, [rowCount]] = await Promise.all([
 			db
-				.select({ ...getColumns(courseInvitation) })
-				.from(courseInvitation)
+				.select({ ...getColumns(dbSchema.courseInvitation) })
+				.from(dbSchema.courseInvitation)
 				.where(
 					or(
-						eq(courseInvitation.email, context.auth.user.email),
-						eq(courseInvitation.inviterId, context.auth.user.id),
+						eq(dbSchema.courseInvitation.email, context.auth.user.email),
+						eq(dbSchema.courseInvitation.inviterId, context.auth.user.id),
 					),
 				)
 				.limit(input.pageSize)
 				.offset(input.pageIndex * input.pageSize),
 			db
 				.select({ count: count() })
-				.from(courseInvitation)
+				.from(dbSchema.courseInvitation)
 				.where(
 					or(
-						eq(courseInvitation.email, context.auth.user.email),
-						eq(courseInvitation.inviterId, context.auth.user.id),
+						eq(dbSchema.courseInvitation.email, context.auth.user.email),
+						eq(dbSchema.courseInvitation.inviterId, context.auth.user.id),
 					),
 				),
 		]);
@@ -47,9 +46,9 @@ export const findCourseInvitation = authed.courseInvitation.find
 	) */
 	.handler(async ({ input }) => {
 		const [query] = await db
-			.select({ ...getColumns(courseInvitation) })
-			.from(courseInvitation)
-			.where(eq(courseInvitation.id, input.id));
+			.select({ ...getColumns(dbSchema.courseInvitation) })
+			.from(dbSchema.courseInvitation)
+			.where(eq(dbSchema.courseInvitation.id, input.id));
 
 		if (!query) {
 			throw new ORPCError("NOT_FOUND", { message: "Invitation not found" });
@@ -71,7 +70,7 @@ export const createCourseInvitations = authed.courseInvitation.create
 		}));
 
 		const query = await db
-			.insert(courseInvitation)
+			.insert(dbSchema.courseInvitation)
 			.values(invitations)
 			.returning();
 
@@ -90,10 +89,10 @@ export const updateCourseInvitation = authed.courseInvitation.update
 	) */
 	.handler(async ({ input }) => {
 		const [query] = await db
-			.update(courseInvitation)
+			.update(dbSchema.courseInvitation)
 			.set(input)
-			.where(eq(courseInvitation.id, input.id))
-			.returning({ ...getColumns(courseInvitation) });
+			.where(eq(dbSchema.courseInvitation.id, input.id))
+			.returning({ ...getColumns(dbSchema.courseInvitation) });
 
 		return { data: query };
 	});
@@ -108,9 +107,7 @@ export const deleteCourseInvitations = authed.courseInvitation.delete
 				entityType: "course",
 			}) satisfies CheckManyPermissionInput,
 	) */
-	.handler(async ({ input, context }) => {
-		const logger = getLogger(context);
-		logger?.info({ ids: input.refs }, "Deleting course invitations by IDs");
+	.handler(async ({ input }) => {
 		/* // Check if there are any IDs to delete
 		if (!context.allowedIds || context.allowedIds.length === 0) {
 			return { success: true, message: "No courses to delete" };
@@ -119,12 +116,11 @@ export const deleteCourseInvitations = authed.courseInvitation.delete
 		try {
 			const ids = input.refs.map((ref) => ref.id);
 			await db
-				.delete(courseInvitation)
-				.where(inArray(courseInvitation.id, ids));
+				.delete(dbSchema.courseInvitation)
+				.where(inArray(dbSchema.courseInvitation.id, ids));
 
 			return { success: true, message: "Invitations deleted successfully" };
-		} catch (error) {
-			logger?.error({ error }, "Error deleting invitations");
+		} catch {
 			throw new ORPCError("INTERNAL_SERVER_ERROR", {
 				message: "Failed to delete invitations",
 			});
@@ -195,12 +191,12 @@ export const respondToCourseInvitation =
 
 		const rejectInvitation = async () => {
 			await db
-				.update(courseInvitation)
+				.update(dbSchema.courseInvitation)
 				.set({
 					status: "rejected",
 					updatedAt: new Date(),
 				})
-				.where(eq(courseInvitation.id, input.id));
+				.where(eq(dbSchema.courseInvitation.id, input.id));
 
 			return { success: true, message: "Invitation rejected successfully" };
 		};

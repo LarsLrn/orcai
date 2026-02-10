@@ -12,7 +12,7 @@ import {
 	CardTitle,
 } from "@/components/ui/card";
 import { db } from "@/db/drizzle";
-import { courseInvitation } from "@/db/schema/course-invitation";
+import { dbSchema } from "@/db/schema";
 import type { CourseInvitation } from "@/lib/orpc/schemas/course-invitations";
 
 const getCourseInvitationById = createServerFn({
@@ -26,9 +26,9 @@ const getCourseInvitationById = createServerFn({
 	.handler(async (ctx): Promise<{ query: CourseInvitation | undefined }> => {
 		try {
 			const [query] = await db
-				.select({ ...getColumns(courseInvitation) })
-				.from(courseInvitation)
-				.where(eq(courseInvitation.id, ctx.data.id))
+				.select({ ...getColumns(dbSchema.courseInvitation) })
+				.from(dbSchema.courseInvitation)
+				.where(eq(dbSchema.courseInvitation.id, ctx.data.id))
 				.limit(1);
 
 			return { query };

@@ -46,7 +46,22 @@
 				"useConst": "error",
 				"useShorthandAssign": "warn",
 				"useArrayLiterals": "warn",
-				"useTemplate": "warn"
+				"useTemplate": "warn",
+				"noRestrictedImports": {
+					"level": "error",
+					"options": {
+						"patterns": [
+							{
+								"group": [
+									"@/db/schema/*",
+									"@/db/schema/**",
+									"!@/db/schema/relations"
+								],
+								"message": "Import tables via '@/db/schema' only."
+							}
+						]
+					}
+				}
 			},
 			"suspicious": {
 				"noExplicitAny": "off", // Controversial, but use of `any` is can be justified. Trust to only use when strictly necessary.

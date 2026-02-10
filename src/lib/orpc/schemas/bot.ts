@@ -4,7 +4,7 @@ import {
 	createUpdateSchema,
 } from "drizzle-zod";
 import { z } from "zod/v4";
-import { botTable } from "@/db/schema/bot";
+import { dbSchema } from "@/db/schema";
 import { baseBlockSelectSchema } from "./block";
 
 /**
@@ -13,7 +13,7 @@ import { baseBlockSelectSchema } from "./block";
  * ----------------
  */
 
-export const botSelectSchema = createSelectSchema(botTable);
+export const botSelectSchema = createSelectSchema(dbSchema.bot);
 
 /**
  * ----------------
@@ -21,7 +21,7 @@ export const botSelectSchema = createSelectSchema(botTable);
  * ----------------
  */
 
-export const botInsertSchema = createInsertSchema(botTable)
+export const botInsertSchema = createInsertSchema(dbSchema.bot)
 	.omit({
 		userId: true,
 		createdAt: true,
@@ -51,7 +51,7 @@ export const botInsertSchema = createInsertSchema(botTable)
  * ----------------
  */
 
-export const botUpdateSchema = createUpdateSchema(botTable, {
+export const botUpdateSchema = createUpdateSchema(dbSchema.bot, {
 	id: z.uuidv4(),
 }).extend({
 	blockIds: z

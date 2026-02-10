@@ -1,6 +1,6 @@
 import { createInsertSchema, createSelectSchema } from "drizzle-zod";
 import { z } from "zod/v4";
-import { course } from "@/db/schema/course";
+import { dbSchema } from "@/db/schema";
 
 /**
  * ----------------
@@ -16,7 +16,7 @@ const configSchema = z.object({
 
 export type CourseConfigType = z.infer<typeof configSchema>;
 
-export const courseSelectSchema = createSelectSchema(course).extend({
+export const courseSelectSchema = createSelectSchema(dbSchema.course).extend({
 	config: configSchema,
 });
 
@@ -26,7 +26,7 @@ export const courseSelectSchema = createSelectSchema(course).extend({
  * ----------------
  */
 
-export const courseInsertSchema = createInsertSchema(course, {
+export const courseInsertSchema = createInsertSchema(dbSchema.course, {
 	organizationId: (schema) => schema.optional(),
 	description: (schema) =>
 		schema.min(20, {

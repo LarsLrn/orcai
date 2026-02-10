@@ -1,7 +1,6 @@
-import { getLogger } from "@orpc/experimental-pino";
 import { count, eq, getColumns, inArray } from "drizzle-orm";
 import * as Effect from "effect/Effect";
-import { course, courseMember } from "@/db/schema/course";
+import { dbSchema } from "@/db/schema";
 import { DB } from "@/lib/effect/services/drizzle";
 import { runOrpcEffect } from "@/lib/effect/utils/orpc-helpers";
 import { authed } from "@/lib/orpc/implementation/authed";
@@ -34,15 +33,15 @@ export const listCourses = authed.course.list.handler(
 				return yield* Effect.all(
 					[
 						db
-							.select({ ...getColumns(course) })
-							.from(course)
-							.where(inArray(course.id, allowedIds))
+							.select({ ...getColumns(dbSchema.course) })
+							.from(dbSchema.course)
+							.where(inArray(dbSchema.course.id, allowedIds))
 							.limit(input.pageSize)
 							.offset(input.pageIndex * input.pageSize),
 						db
 							.select({ count: count() })
-							.from(course)
-							.where(inArray(course.id, allowedIds)),
+							.from(dbSchema.course)
+							.where(inArray(dbSchema.course.id, allowedIds)),
 					],
 					{ concurrency: "unbounded" },
 				).pipe(
@@ -72,9 +71,9 @@ export const findCourse = authed.course.find
 				const db = yield* DB;
 
 				const [query] = yield* db
-					.select({ ...getColumns(course) })
-					.from(course)
-					.where(eq(course.id, input.id));
+					.select({ ...getColumns(dbSchema.course) })
+					.from(dbSchema.course)
+					.where(eq(dbSchema.course.id, input.id));
 
 				if (!query) {
 					return yield* Effect.fail(
@@ -95,7 +94,7 @@ export const createCourse = authed.course.create
 				const db = yield* DB;
 
 				const [query] = yield* db
-					.insert(course)
+					.insert(dbSchema.course)
 					.values({
 						title: input.title,
 						description: input.description,
@@ -104,9 +103,9 @@ export const createCourse = authed.course.create
 						organizationId: context.auth.session.activeOrganizationId,
 						config: input.config,
 					})
-					.returning({ ...getColumns(course) });
+					.returning({ ...getColumns(dbSchema.course) });
 
-				yield* db.insert(courseMember).values({
+				yield* db.insert(dbSchema.courseMember).values({
 					courseId: query.id,
 					userId: context.auth.user.id,
 					role: "instructor", // TODO: Make enum
@@ -143,7 +142,7 @@ export const updateCourse = authed.course.update
 				const db = yield* DB;
 
 				const [query] = yield* db
-					.update(course)
+					.update(dbSchema.course)
 					.set({
 						contentJson: input.contentJson,
 						contentHtml: input.contentHtml,
@@ -152,8 +151,8 @@ export const updateCourse = authed.course.update
 						config: input.config,
 						updatedAt: new Date(),
 					})
-					.where(eq(course.id, input.id))
-					.returning({ ...getColumns(course) });
+					.where(eq(dbSchema.course.id, input.id))
+					.returning({ ...getColumns(dbSchema.course) });
 
 				return { data: query };
 			}),
@@ -174,15 +173,15 @@ export const deleteCourses = authed.course.delete
 		runOrpcEffect(
 			Effect.gen(function* () {
 				const db = yield* DB;
-				const logger = getLogger(context);
-				logger?.info({ ids: context.allowedIds }, "Deleting courses by IDs");
 
 				// Check if there are any IDs to delete
 				if (!context.allowedIds || context.allowedIds.length === 0) {
 					return { success: true, message: "No courses to delete" };
 				}
 
-				yield* db.delete(course).where(inArray(course.id, context.allowedIds));
+				yield* db
+					.delete(dbSchema.course)
+					.where(inArray(dbSchema.course.id, context.allowedIds));
 
 				return { success: true, message: "Courses deleted successfully" };
 			}),

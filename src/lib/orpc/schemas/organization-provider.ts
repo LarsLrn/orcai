@@ -4,7 +4,7 @@ import {
 	createUpdateSchema,
 } from "drizzle-zod";
 import { z } from "zod/v4";
-import { organizationProviderTable } from "@/db/schema/model";
+import { dbSchema } from "@/db/schema";
 
 /**
  * ----------------
@@ -13,7 +13,7 @@ import { organizationProviderTable } from "@/db/schema/model";
  */
 
 export const organizationProviderSelectSchema = createSelectSchema(
-	organizationProviderTable,
+	dbSchema.organizationProvider,
 );
 
 /**
@@ -23,7 +23,7 @@ export const organizationProviderSelectSchema = createSelectSchema(
  */
 
 export const organizationProviderInsertSchema = createInsertSchema(
-	organizationProviderTable,
+	dbSchema.organizationProvider,
 )
 	.omit({
 		organizationId: true,
@@ -41,7 +41,7 @@ export const organizationProviderInsertSchema = createInsertSchema(
  */
 
 export const organizationProviderUpdateSchema = createUpdateSchema(
-	organizationProviderTable,
+	dbSchema.organizationProvider,
 	{
 		providerSlug: organizationProviderSelectSchema.shape.providerSlug,
 	},

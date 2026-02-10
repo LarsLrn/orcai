@@ -1,13 +1,13 @@
 import { ORPCError } from "@orpc/server";
 import { eq, getColumns } from "drizzle-orm";
 import { db } from "@/db/drizzle";
-import { providerTable } from "@/db/schema/model";
+import { dbSchema } from "@/db/schema";
 import { authed } from "@/lib/orpc/implementation/authed";
 
 export const listProviders = authed.provider.list.handler(async () => {
 	const providers = await db
-		.select({ ...getColumns(providerTable) })
-		.from(providerTable);
+		.select({ ...getColumns(dbSchema.provider) })
+		.from(dbSchema.provider);
 
 	return { data: providers };
 });
@@ -24,9 +24,9 @@ export const findProvider = authed.provider.find
   ) */
 	.handler(async ({ input }) => {
 		const [provider] = await db
-			.select({ ...getColumns(providerTable) })
-			.from(providerTable)
-			.where(eq(providerTable.slug, input.slug));
+			.select({ ...getColumns(dbSchema.provider) })
+			.from(dbSchema.provider)
+			.where(eq(dbSchema.provider.slug, input.slug));
 
 		if (!provider) {
 			throw new ORPCError("NOT_FOUND", {

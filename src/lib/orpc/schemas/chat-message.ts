@@ -4,7 +4,7 @@ import {
 	createUpdateSchema,
 } from "drizzle-zod";
 import { z } from "zod/v4";
-import { chatMessage } from "@/db/schema/chat-message";
+import { dbSchema } from "@/db/schema";
 
 /**
  * ----------------
@@ -12,9 +12,12 @@ import { chatMessage } from "@/db/schema/chat-message";
  * ----------------
  */
 
-export const chatMessageSelectSchema = createSelectSchema(chatMessage, {
-	id: (schema) => schema.brand("chatMessageId"),
-});
+export const chatMessageSelectSchema = createSelectSchema(
+	dbSchema.chatMessage,
+	{
+		id: (schema) => schema.brand("chatMessageId"),
+	},
+);
 
 /**
  * ----------------
@@ -22,9 +25,12 @@ export const chatMessageSelectSchema = createSelectSchema(chatMessage, {
  * ----------------
  */
 
-export const chatMessageInsertSchema = createInsertSchema(chatMessage, {
-	id: (schema) => schema.brand("chatMessageId"),
-}).omit({
+export const chatMessageInsertSchema = createInsertSchema(
+	dbSchema.chatMessage,
+	{
+		id: (schema) => schema.brand("chatMessageId"),
+	},
+).omit({
 	createdAt: true,
 });
 
@@ -34,10 +40,13 @@ export const chatMessageInsertSchema = createInsertSchema(chatMessage, {
  * ----------------
  */
 
-export const chatMessageUpdateSchema = createUpdateSchema(chatMessage, {
-	id: chatMessageSelectSchema.shape.id,
-	chatId: chatMessageSelectSchema.shape.chatId,
-}).omit({ createdAt: true });
+export const chatMessageUpdateSchema = createUpdateSchema(
+	dbSchema.chatMessage,
+	{
+		id: chatMessageSelectSchema.shape.id,
+		chatId: chatMessageSelectSchema.shape.chatId,
+	},
+).omit({ createdAt: true });
 
 /**
  * ----------------

@@ -6,7 +6,7 @@ import {
 	varchar,
 } from "drizzle-orm/pg-core";
 import { user } from "./auth";
-import { botTable } from "./bot";
+import { bot } from "./bot";
 import { chatBranch } from "./chat-branch";
 
 export const chat = pgTable("chat", {
@@ -15,7 +15,7 @@ export const chat = pgTable("chat", {
 	userId: uuid("user_id")
 		.notNull()
 		.references(() => user.id, { onDelete: "cascade" }),
-	botId: uuid("bot_id").references(() => botTable.id, { onDelete: "set null" }),
+	botId: uuid("bot_id").references(() => bot.id, { onDelete: "set null" }),
 	activeBranchId: uuid("active_branch_id").references(
 		(): AnyPgColumn => chatBranch.id,
 		{ onDelete: "set null" },

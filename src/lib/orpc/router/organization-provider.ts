@@ -1,8 +1,7 @@
-import { getLogger } from "@orpc/experimental-pino";
 import { ORPCError } from "@orpc/server";
 import { and, count, eq, getColumns, inArray } from "drizzle-orm";
 import { db } from "@/db/drizzle";
-import { organizationProviderTable } from "@/db/schema/model";
+import { dbSchema } from "@/db/schema";
 import { encryptApiKey } from "@/lib/encryption";
 import { authed } from "@/lib/orpc/implementation/authed";
 import { requireActiveOrganizationMiddleware } from "@/lib/orpc/middlewares/auth";
@@ -12,11 +11,11 @@ export const listOrganizationProviders = authed.organizationProvider.list
 	.handler(async ({ input, context }) => {
 		const [data, [rowCount]] = await Promise.all([
 			db
-				.select({ ...getColumns(organizationProviderTable) })
-				.from(organizationProviderTable)
+				.select({ ...getColumns(dbSchema.organizationProvider) })
+				.from(dbSchema.organizationProvider)
 				.where(
 					eq(
-						organizationProviderTable.organizationId,
+						dbSchema.organizationProvider.organizationId,
 						context.auth.session.activeOrganizationId,
 					),
 				)
@@ -24,10 +23,10 @@ export const listOrganizationProviders = authed.organizationProvider.list
 				.offset(input.pageIndex * input.pageSize),
 			db
 				.select({ count: count() })
-				.from(organizationProviderTable)
+				.from(dbSchema.organizationProvider)
 				.where(
 					eq(
-						organizationProviderTable.organizationId,
+						dbSchema.organizationProvider.organizationId,
 						context.auth.session.activeOrganizationId,
 					),
 				),
@@ -49,13 +48,13 @@ export const findOrganizationProvider = authed.organizationProvider.find
   ) */
 	.handler(async ({ input, context }) => {
 		const [organizationProvider] = await db
-			.select({ ...getColumns(organizationProviderTable) })
-			.from(organizationProviderTable)
+			.select({ ...getColumns(dbSchema.organizationProvider) })
+			.from(dbSchema.organizationProvider)
 			.where(
 				and(
-					eq(organizationProviderTable.providerSlug, input.providerSlug),
+					eq(dbSchema.organizationProvider.providerSlug, input.providerSlug),
 					eq(
-						organizationProviderTable.organizationId,
+						dbSchema.organizationProvider.organizationId,
 						context.auth.session.activeOrganizationId,
 					),
 				),
@@ -80,14 +79,14 @@ export const createOrganizationProvider = authed.organizationProvider.create
 		const { apiKey: _, ...inputWithoutApiKey } = input;
 
 		const [query] = await db
-			.insert(organizationProviderTable)
+			.insert(dbSchema.organizationProvider)
 			.values({
 				...inputWithoutApiKey,
 				organizationId: context.auth.session.activeOrganizationId,
 				apiKeyEncrypted,
 				createdAt: new Date(),
 			})
-			.returning({ ...getColumns(organizationProviderTable) });
+			.returning({ ...getColumns(dbSchema.organizationProvider) });
 
 		return { data: query };
 	});
@@ -117,18 +116,18 @@ export const updateOrganizationProvider = authed.organizationProvider.update
 		}
 
 		const [query] = await db
-			.update(organizationProviderTable)
+			.update(dbSchema.organizationProvider)
 			.set(updateData)
 			.where(
 				and(
 					eq(
-						organizationProviderTable.organizationId,
+						dbSchema.organizationProvider.organizationId,
 						context.auth.session.activeOrganizationId,
 					),
-					eq(organizationProviderTable.providerSlug, input.providerSlug),
+					eq(dbSchema.organizationProvider.providerSlug, input.providerSlug),
 				),
 			)
-			.returning({ ...getColumns(organizationProviderTable) });
+			.returning({ ...getColumns(dbSchema.organizationProvider) });
 
 		return { data: query };
 	});
@@ -145,8 +144,6 @@ export const deleteOrganizationProviders = authed.organizationProvider.delete
 			}) satisfies CheckManyPermissionInput,
 	) */
 	.handler(async ({ input, context }) => {
-		const logger = getLogger(context);
-		logger?.info({ ids: input.refs }, "Deleting organization providers by IDs");
 		/* 
 		// Check if there are any IDs to delete
 		if (!context.allowedIds || context.allowedIds.length === 0) {
@@ -154,14 +151,14 @@ export const deleteOrganizationProviders = authed.organizationProvider.delete
 		} */
 
 		try {
-			await db.delete(organizationProviderTable).where(
+			await db.delete(dbSchema.organizationProvider).where(
 				and(
 					eq(
-						organizationProviderTable.organizationId,
+						dbSchema.organizationProvider.organizationId,
 						context.auth.session.activeOrganizationId,
 					),
 					inArray(
-						organizationProviderTable.providerSlug,
+						dbSchema.organizationProvider.providerSlug,
 						input.refs.map((ref) => ref.providerSlug),
 					),
 				),
@@ -171,8 +168,7 @@ export const deleteOrganizationProviders = authed.organizationProvider.delete
 				success: true,
 				message: "Organization providers deleted successfully",
 			};
-		} catch (error) {
-			logger?.error({ error }, "Error deleting organization providers:");
+		} catch {
 			throw new ORPCError("INTERNAL_SERVER_ERROR", {
 				message: "Failed to delete organization providers",
 			});

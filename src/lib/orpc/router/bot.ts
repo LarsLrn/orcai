@@ -1,7 +1,6 @@
-import { getLogger } from "@orpc/experimental-pino";
 import { and, count, eq, getColumns, ilike, inArray } from "drizzle-orm";
 import * as Effect from "effect/Effect";
-import { botBlockTable, botTable } from "@/db/schema/bot";
+import { dbSchema } from "@/db/schema";
 import { DB } from "@/lib/effect/services/drizzle";
 import { runOrpcEffect } from "@/lib/effect/utils/orpc-helpers";
 import { authed } from "@/lib/orpc/implementation/authed";
@@ -28,22 +27,22 @@ export const listBots = authed.bot.list.handler(async ({ input, context }) =>
 				Effect.map((response) => response.map((item) => item.resourceObjectId)),
 			);
 
-			const whereConditions = [inArray(botTable.id, allowedIds)];
+			const whereConditions = [inArray(dbSchema.bot.id, allowedIds)];
 			if (input.search) {
-				whereConditions.push(ilike(botTable.name, `%${input.search}%`));
+				whereConditions.push(ilike(dbSchema.bot.name, `%${input.search}%`));
 			}
 
 			return yield* Effect.all(
 				[
 					db
-						.select({ ...getColumns(botTable) })
-						.from(botTable)
+						.select({ ...getColumns(dbSchema.bot) })
+						.from(dbSchema.bot)
 						.where(and(...whereConditions))
 						.limit(input.pageSize)
 						.offset(input.pageIndex * input.pageSize),
 					db
 						.select({ count: count() })
-						.from(botTable)
+						.from(dbSchema.bot)
 						.where(and(...whereConditions)),
 				],
 				{ concurrency: "unbounded" },
@@ -74,9 +73,9 @@ export const findBot = authed.bot.find
 				const db = yield* DB;
 
 				const [bot] = yield* db
-					.select({ ...getColumns(botTable) })
-					.from(botTable)
-					.where(eq(botTable.id, input.id));
+					.select({ ...getColumns(dbSchema.bot) })
+					.from(dbSchema.bot)
+					.where(eq(dbSchema.bot.id, input.id));
 
 				if (!bot) {
 					return yield* Effect.fail(
@@ -86,9 +85,9 @@ export const findBot = authed.bot.find
 
 				// Fetch the associated blockIds
 				const blockIds = yield* db
-					.select({ ...getColumns(botBlockTable) })
-					.from(botBlockTable)
-					.where(eq(botBlockTable.botId, bot.id));
+					.select({ ...getColumns(dbSchema.botBlock) })
+					.from(dbSchema.botBlock)
+					.where(eq(dbSchema.botBlock.botId, bot.id));
 
 				return { data: { ...bot, blockIds: blockIds.map((b) => b.blockId) } };
 			}),
@@ -103,17 +102,17 @@ export const createBot = authed.bot.create
 				const db = yield* DB;
 
 				const [bot] = yield* db
-					.insert(botTable)
+					.insert(dbSchema.bot)
 					.values({
 						...input,
 						userId: context.auth.user.id,
 						createdAt: new Date(),
 						updatedAt: new Date(),
 					})
-					.returning({ ...getColumns(botTable) });
+					.returning({ ...getColumns(dbSchema.bot) });
 
 				const botBlocks = yield* db
-					.insert(botBlockTable)
+					.insert(dbSchema.botBlock)
 					.values(
 						input.blockIds.map((blockId) => ({
 							blockId,
@@ -121,7 +120,7 @@ export const createBot = authed.bot.create
 							createdAt: new Date(),
 						})),
 					)
-					.returning({ ...getColumns(botBlockTable) });
+					.returning({ ...getColumns(dbSchema.botBlock) });
 
 				const relationResult = yield* createRelation({
 					entityId: bot.id,
@@ -154,20 +153,22 @@ export const updateBot = authed.bot.update
 				const db = yield* DB;
 
 				const [bot] = yield* db
-					.update(botTable)
+					.update(dbSchema.bot)
 					.set({
 						...input,
 						updatedAt: new Date(),
 					})
-					.where(eq(botTable.id, input.id))
-					.returning({ ...getColumns(botTable) });
+					.where(eq(dbSchema.bot.id, input.id))
+					.returning({ ...getColumns(dbSchema.bot) });
 
 				// Remove all existing bot-block relationships
 				// TODO: Handle this more elegantly rather then deleting and recreating
-				yield* db.delete(botBlockTable).where(eq(botBlockTable.botId, bot.id));
+				yield* db
+					.delete(dbSchema.botBlock)
+					.where(eq(dbSchema.botBlock.botId, bot.id));
 
 				const botBlocks = yield* db
-					.insert(botBlockTable)
+					.insert(dbSchema.botBlock)
 					.values(
 						input.blockIds.map((blockId) => ({
 							blockId,
@@ -175,7 +176,7 @@ export const updateBot = authed.bot.update
 							createdAt: new Date(),
 						})),
 					)
-					.returning({ ...getColumns(botBlockTable) });
+					.returning({ ...getColumns(dbSchema.botBlock) });
 
 				return {
 					data: { ...bot, blockIds: botBlocks.map((bb) => bb.blockId) },
@@ -198,8 +199,6 @@ export const deleteBots = authed.bot.delete
 		runOrpcEffect(
 			Effect.gen(function* () {
 				const db = yield* DB;
-				const logger = getLogger(context);
-				logger?.info({ ids: context.allowedIds }, "Deleting bots by IDs");
 
 				// Check if there are any IDs to delete
 				if (!context.allowedIds || context.allowedIds.length === 0) {
@@ -207,8 +206,8 @@ export const deleteBots = authed.bot.delete
 				}
 
 				yield* db
-					.delete(botTable)
-					.where(inArray(botTable.id, context.allowedIds));
+					.delete(dbSchema.bot)
+					.where(inArray(dbSchema.bot.id, context.allowedIds));
 
 				return { success: true, message: "Bots deleted successfully" };
 			}),

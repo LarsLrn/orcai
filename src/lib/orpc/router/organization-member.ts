@@ -1,10 +1,8 @@
-import { getLogger } from "@orpc/experimental-pino";
 import { ORPCError } from "@orpc/server";
 import { and, count, eq, getColumns, inArray } from "drizzle-orm";
 import * as Effect from "effect/Effect";
 import { db } from "@/db/drizzle";
 import { dbSchema } from "@/db/schema";
-import { member } from "@/db/schema/organization";
 import { DB } from "@/lib/effect/services/drizzle";
 import { runOrpcEffect } from "@/lib/effect/utils/orpc-helpers";
 import { authed } from "@/lib/orpc/implementation/authed";
@@ -14,14 +12,16 @@ export const listOrganizationMembers = authed.organizationMember.list.handler(
 	async ({ input }) => {
 		const [data, [rowCount]] = await Promise.all([
 			db
-				.select({ ...getColumns(member) })
-				.from(member)
+				.select({ ...getColumns(dbSchema.member) })
+				.from(dbSchema.member)
 				/* .where(inArray(organization.id, entityIds)) */
 				.limit(input.pageSize)
 				.offset(input.pageIndex * input.pageSize),
 			db
 				.select({ count: count() })
-				.from(member) /* .where(inArray(organization.id, entityIds)) */,
+				.from(
+					dbSchema.member,
+				) /* .where(inArray(organization.id, entityIds)) */,
 		]);
 
 		return { data, rowCount: rowCount.count };
@@ -40,12 +40,12 @@ export const findOrganizationMember = authed.organizationMember.find
   ) */
 	.handler(async ({ input }) => {
 		const [query] = await db
-			.select({ ...getColumns(member) })
-			.from(member)
+			.select({ ...getColumns(dbSchema.member) })
+			.from(dbSchema.member)
 			.where(
 				and(
-					eq(member.userId, input.userId),
-					eq(member.organizationId, input.organizationId),
+					eq(dbSchema.member.userId, input.userId),
+					eq(dbSchema.member.organizationId, input.organizationId),
 				),
 			);
 
@@ -93,15 +93,15 @@ export const updateOrganizationMember = authed.organizationMember.update
   ) */
 	.handler(async ({ input }) => {
 		const [query] = await db
-			.update(member)
+			.update(dbSchema.member)
 			.set(input)
 			.where(
 				and(
-					eq(member.organizationId, input.organizationId),
-					eq(member.userId, input.userId),
+					eq(dbSchema.member.organizationId, input.organizationId),
+					eq(dbSchema.member.userId, input.userId),
 				),
 			)
-			.returning({ ...getColumns(member) });
+			.returning({ ...getColumns(dbSchema.member) });
 
 		return { data: query };
 	});
@@ -116,9 +116,7 @@ export const deleteOrganizationMembers = authed.organizationMember.delete
 				entityType: "organization",
 			}) satisfies CheckManyPermissionInput,
 	) */
-	.handler(async ({ input, context }) => {
-		const logger = getLogger(context);
-		logger?.info({ ids: input.refs }, "Deleting organization members by IDs");
+	.handler(async ({ input }) => {
 		/* logger.info(
 			{ids: context.allowedIds},
 			"Deleting organization members with allowed IDs"
@@ -130,11 +128,11 @@ export const deleteOrganizationMembers = authed.organizationMember.delete
 		} */
 
 		try {
-			await db.delete(member).where(
+			await db.delete(dbSchema.member).where(
 				and(
-					eq(member.organizationId, input.organizationId),
+					eq(dbSchema.member.organizationId, input.organizationId),
 					inArray(
-						member.userId,
+						dbSchema.member.userId,
 						input.refs.map((ref) => ref.userId),
 					),
 				),
@@ -144,8 +142,7 @@ export const deleteOrganizationMembers = authed.organizationMember.delete
 				success: true,
 				message: "Organization members deleted successfully",
 			};
-		} catch (error) {
-			logger?.error({ error }, "Error deleting organization members:");
+		} catch {
 			throw new ORPCError("INTERNAL_SERVER_ERROR", {
 				message: "Failed to delete organization members",
 			});

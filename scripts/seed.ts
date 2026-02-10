@@ -1,11 +1,6 @@
 import "dotenv/config";
 import { db } from "../src/db/drizzle";
-import {
-	capabilityTable,
-	modelCapabilityTable,
-	modelTable,
-	providerTable,
-} from "../src/db/schema/model";
+import { dbSchema } from "../src/db/schema";
 import { seedData, validateSeedData } from "./data/seed-data";
 
 async function seed() {
@@ -19,10 +14,10 @@ async function seed() {
 		console.log("📝 Seeding capabilities...");
 		for (const capability of seedData.capabilities) {
 			await db
-				.insert(capabilityTable)
+				.insert(dbSchema.capability)
 				.values(capability)
 				.onConflictDoUpdate({
-					target: capabilityTable.capability,
+					target: dbSchema.capability.capability,
 					set: {
 						name: capability.name,
 						description: capability.description,
@@ -34,7 +29,7 @@ async function seed() {
 		console.log("🏢 Seeding providers...");
 		for (const provider of seedData.providers) {
 			await db
-				.insert(providerTable)
+				.insert(dbSchema.provider)
 				.values({
 					slug: provider.slug,
 					name: provider.name,
@@ -44,7 +39,7 @@ async function seed() {
 					endpoint: provider.endpoint || null,
 				})
 				.onConflictDoUpdate({
-					target: providerTable.slug,
+					target: dbSchema.provider.slug,
 					set: {
 						name: provider.name,
 						description: provider.description,
@@ -63,22 +58,22 @@ async function seed() {
 
 			// Insert or update model
 			const [insertedModel] = await db
-				.insert(modelTable)
+				.insert(dbSchema.model)
 				.values(modelData)
 				.onConflictDoUpdate({
-					target: [modelTable.slug, modelTable.providerSlug],
+					target: [dbSchema.model.slug, dbSchema.model.providerSlug],
 					set: {
 						name: modelData.name,
 						description: modelData.description,
 						isDeprecated: modelData.isDeprecated ?? false,
 					},
 				})
-				.returning({ id: modelTable.id });
+				.returning({ id: dbSchema.model.id });
 
 			// Link model capabilities
 			for (const capability of capabilities) {
 				await db
-					.insert(modelCapabilityTable)
+					.insert(dbSchema.modelCapability)
 					.values({
 						modelId: insertedModel.id,
 						capability,
