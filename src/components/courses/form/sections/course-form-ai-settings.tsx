@@ -1,7 +1,6 @@
 import { courseFormOptions } from "@/components/courses/form/course-form-options";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { withForm } from "@/hooks/form";
-import { saiaModels } from "@/lib/ai/saia-models";
 
 const CourseFormAiSettings = withForm({
 	...courseFormOptions(),
@@ -21,10 +20,12 @@ const CourseFormAiSettings = withForm({
 							<field.SelectField
 								label="Model"
 								placeholder="Choose an AI Model"
-								options={saiaModels.map((model) => ({
-									value: model.id,
-									label: model.name,
-								}))}
+								options={[
+									{
+										label: "placeholder",
+										value: "Placeholder Model",
+									},
+								]}
 							/>
 						)}
 					/>
