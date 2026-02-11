@@ -1,7 +1,11 @@
 import { z } from "zod/v4";
 import { sharedSchemas } from "@/db/zod/shared";
 import { organizationSelectSchema } from "@/lib/orpc/schemas/organization";
-import { paginationSchema, statusSchema } from "@/lib/orpc/schemas/shared";
+import {
+	paginationSchema,
+	statusSchema,
+	zedTokenSchema,
+} from "@/lib/orpc/schemas/shared";
 import { userSelectSchema } from "@/lib/orpc/schemas/user";
 import { base } from "./base";
 
@@ -12,7 +16,12 @@ export const listUsersContract = base
 		summary: "List all users",
 		tags: ["Users"],
 	})
-	.input(paginationSchema)
+	.input(
+		z.object({
+			...paginationSchema.shape,
+			...zedTokenSchema.shape,
+		}),
+	)
 	.output(z.object({ data: z.array(userSelectSchema), rowCount: z.number() }));
 
 export const findUserContract = base
@@ -24,7 +33,12 @@ export const findUserContract = base
 		description:
 			"Find a user by their ID. If no ID is provided, the current user's data is returned.",
 	})
-	.input(userSelectSchema.pick({ id: true }).optional())
+	.input(
+		z.object({
+			id: userSelectSchema.shape.id.optional(),
+			...zedTokenSchema.shape,
+		}),
+	)
 	.output(z.object({ data: userSelectSchema }));
 
 export const updatePasswordContract = base
