@@ -36,13 +36,9 @@ const vectorizeAssetsEffect = (params: { job: Job<VectorizeAssetPayload> }) =>
 	Effect.gen(function* () {
 		const { prefix, blockId, assetId, mergePages } = params.job.data;
 
-		const files = yield* Effect.tryPromise({
-			try: () =>
-				listAllFilesInPrefix({
-					bucket: buckets.processed.name,
-					prefix: `${prefix}/`,
-				}),
-			catch: toPgBossRunError(params.job.id, VECTORIZE_ASSET_JOB_NAME),
+		const files = yield* listAllFilesInPrefix({
+			bucket: buckets.processed.name,
+			prefix: `${prefix}/`,
 		});
 
 		const images: {
@@ -58,25 +54,23 @@ const vectorizeAssetsEffect = (params: { job: Job<VectorizeAssetPayload> }) =>
 			files,
 			(file) =>
 				Effect.gen(function* () {
-					const fileExtension = file.name.split(".").pop()?.toLowerCase();
+					const fileExtension = file.Key?.split(".").pop()?.toLowerCase();
 					if (!fileExtension) {
 						return;
 					}
-					if (fileExtension === "md") {
-						const text = (yield* Effect.tryPromise({
-							try: async () =>
-								await getMarkdownAsString({
-									bucket: buckets.processed.name,
-									name: file.name,
-								}),
-							catch: toPgBossRunError(params.job.id, VECTORIZE_ASSET_JOB_NAME),
-						})) as string;
+					const name = file.Key;
+
+					if (fileExtension === "md" && name) {
+						const text = yield* getMarkdownAsString({
+							bucket: buckets.processed.name,
+							name,
+						});
 
 						const processedMarkdown = yield* Effect.tryPromise({
 							try: async () =>
 								await processMarkdownFile({
 									fileContent: text,
-									fileName: file.name,
+									fileName: name,
 									chunkingStrategy: mergePages
 										? "RecursiveCharacterTextSplitter"
 										: "none",
@@ -85,23 +79,15 @@ const vectorizeAssetsEffect = (params: { job: Job<VectorizeAssetPayload> }) =>
 						});
 
 						markdown.push(...processedMarkdown);
-					} else if (["jpeg", "png"].includes(fileExtension)) {
-						const image = yield* Effect.tryPromise({
-							try: async () =>
-								await getImageAsBase64({
-									bucket: buckets.processed.name,
-									name: file.name,
-								}),
-							catch: toPgBossRunError(params.job.id, VECTORIZE_ASSET_JOB_NAME),
+					} else if (["jpeg", "png"].includes(fileExtension) && name) {
+						const image = yield* getImageAsBase64({
+							bucket: buckets.processed.name,
+							name,
 						});
 
 						const processedImage = yield* Effect.tryPromise({
 							try: async () =>
-								await processImageFile(
-									image,
-									file.name,
-									fileExtension as FileType,
-								),
+								await processImageFile(image, name, fileExtension as FileType),
 							catch: toPgBossRunError(params.job.id, VECTORIZE_ASSET_JOB_NAME),
 						});
 
@@ -110,7 +96,7 @@ const vectorizeAssetsEffect = (params: { job: Job<VectorizeAssetPayload> }) =>
 						}
 					} else {
 						yield* Effect.logWarning(
-							{ fileName: file.name },
+							{ fileName: name },
 							"Unsupported file type, skipping",
 						);
 					}

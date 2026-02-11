@@ -189,26 +189,22 @@ export const deleteAssets = authed.asset.delete
 				yield* Effect.all(
 					assetsToDelete.map((asset) =>
 						Effect.gen(function* () {
-							yield* Effect.promise(() =>
-								deleteFileFromBucket({
-									bucket: asset.bucket,
-									id: asset.id,
-									prefix: asset.prefix,
-									type: asset.fileType as FileType,
-								}),
-							);
+							yield* deleteFileFromBucket({
+								bucket: asset.bucket,
+								id: asset.id,
+								prefix: asset.prefix,
+								type: asset.fileType as FileType,
+							});
 							yield* Effect.promise(() =>
 								deletePointsByIdentifier({
 									assetId: asset.id,
 									blockId: undefined,
 								}),
 							);
-							yield* Effect.promise(() =>
-								deletePrefixRecursively({
-									bucket: buckets.processed.name,
-									prefix: `${asset.id}/`,
-								}),
-							);
+							yield* deletePrefixRecursively({
+								bucket: buckets.processed.name,
+								prefix: `${asset.id}/`,
+							});
 						}),
 					),
 					{ concurrency: "unbounded" },

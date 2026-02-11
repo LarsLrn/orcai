@@ -16,6 +16,7 @@ import type { JobQueue } from "@/lib/pg-boss/schema/job";
 import type { ProcessAssetPayload } from "@/lib/pg-boss/schema/process-asset";
 import type { VectorizeAssetPayload } from "@/lib/pg-boss/schema/vectorize-asset";
 import { PgBossService } from "./pg-boss";
+import type { S3Service } from "./s3";
 
 // Exponential backoff starting at 1s, with jitter, max 10 retries
 const retryPolicy = Schedule.exponential("1 second").pipe(
@@ -48,7 +49,7 @@ const registerWorkers = Effect.gen(function* () {
 	// Capture the full runtime so worker callbacks have access to all
 	// services that their effects may require (PgBossService today,
 	// but potentially DB, SpiceDb, etc. in the future).
-	const rt = yield* Effect.runtime<PgBossService>();
+	const rt = yield* Effect.runtime<PgBossService | S3Service>();
 
 	type WorkerRegistration = {
 		name: JobQueue;

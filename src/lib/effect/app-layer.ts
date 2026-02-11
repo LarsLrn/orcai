@@ -4,13 +4,17 @@ import { DrizzleLive } from "./services/drizzle";
 import { LoggerLive } from "./services/logger";
 import { PgBossLive } from "./services/pg-boss";
 import { PgBossWorkersLive } from "./services/pg-boss-workers";
+import { S3Live } from "./services/s3";
 import { SpiceDbLive } from "./services/spice";
 import { TracerLive } from "./services/tracer";
 
 // Provide PgBossLive to PgBossWorkersLive and merge their outputs.
-const BaseInfra = Layer.mergeAll(DrizzleLive, SpiceDbLive, PgBossLive).pipe(
-	Layer.provide(AppConfigLive),
-);
+const BaseInfra = Layer.mergeAll(
+	DrizzleLive,
+	SpiceDbLive,
+	S3Live,
+	PgBossLive,
+).pipe(Layer.provide(AppConfigLive));
 
 const InfraWithWorkers = Layer.provideMerge(PgBossWorkersLive, BaseInfra);
 

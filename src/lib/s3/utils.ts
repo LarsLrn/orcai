@@ -1,57 +1,61 @@
 import { CreateBucketCommand, HeadBucketCommand } from "@aws-sdk/client-s3";
-import { logger } from "@/lib/observability/logger";
+import * as Effect from "effect/Effect";
+import * as Match from "effect/Match";
+import { S3Service } from "@/lib/effect/services/s3";
+import { S3Error } from "@/lib/effect/utils/errors";
 import { buckets } from "@/settings/buckets";
-import { s3Client } from "./s3-client";
 
-export async function createBucketIfNotExists(bucketName: string) {
-	// TODO: Add this to an initialization script or migration instead of checking every time
-
-	const allowedBuckets = Object.keys(buckets).map(
-		(bucket) => buckets[bucket as keyof typeof buckets].name,
+const isMissingBucket = (cause: unknown) => {
+	const e = cause as { name?: string; $metadata?: { httpStatusCode?: number } };
+	return (
+		e?.$metadata?.httpStatusCode === 404 ||
+		e?.name === "NotFound" ||
+		e?.name === "NoSuchBucket"
 	);
+};
 
-	if (!allowedBuckets.includes(bucketName)) {
-		return {
-			status: "forbidden",
-		};
-	}
+export const createBucketIfNotExists = (bucketName: string) =>
+	Effect.gen(function* () {
+		// TODO: Add this to an initialization script or migration instead of checking every time
+		const { client } = yield* S3Service;
 
-	try {
-		// Check if bucket exists
-		await s3Client.send(new HeadBucketCommand({ Bucket: bucketName }));
+		const allowedBuckets = Object.values(buckets).map((b) => b.name);
 
-		return { status: "exists" };
-	} catch (error: any) {
-		// If bucket doesn't exist, create it
-		// Handle both AWS and Supabase error names
-		const is404Error =
-			error?.name === "NoSuchBucket" ||
-			error?.name === "NotFound" ||
-			error?.message?.includes("NotFound") ||
-			error?.$metadata?.httpStatusCode === 404 ||
-			error?.statusCode === 404;
-
-		if (is404Error) {
-			try {
-				await s3Client.send(new CreateBucketCommand({ Bucket: bucketName }));
-				// TODO: Add bucket policy
-				return { status: "created" };
-			} catch (error) {
-				logger.error(
-					{ error },
-					"Error creating bucket in createBucketIfNotExists",
-				);
-				throw new Error(`Failed to create bucket: ${error}`);
-			}
+		if (!allowedBuckets.includes(bucketName)) {
+			return yield* new S3Error({
+				operation: "createBucketIfNotExists",
+				cause: "forbidden_bucket",
+			});
 		}
 
-		logger.error(
-			{
-				error,
-			},
-			"Unexpected error in createBucketIfNotExists",
+		return yield* Effect.tryPromise({
+			try: async () =>
+				client.send(new HeadBucketCommand({ Bucket: bucketName })),
+			catch: (cause) =>
+				new S3Error({ operation: "createBucketIfNotExists", cause }),
+		}).pipe(
+			Effect.catchAll((err) =>
+				Match.value(err.cause).pipe(
+					Match.when(isMissingBucket, () =>
+						Effect.tryPromise({
+							try: () =>
+								client.send(
+									new CreateBucketCommand({
+										Bucket: bucketName,
+									}),
+								),
+							catch: (cause) =>
+								new S3Error({ operation: "createBucketIfNotExists", cause }),
+						}),
+					),
+					Match.orElse(
+						() =>
+							new S3Error({
+								operation: "createBucketIfNotExists",
+								cause: err.cause,
+							}),
+					),
+				),
+			),
 		);
-
-		throw error;
-	}
-}
+	});

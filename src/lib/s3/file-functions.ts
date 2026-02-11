@@ -4,205 +4,201 @@ import {
 	ListObjectsV2Command,
 } from "@aws-sdk/client-s3";
 import { getSignedUrl } from "@aws-sdk/s3-request-presigner";
-import { logger } from "@/lib/observability/logger";
+import * as Effect from "effect/Effect";
+import { S3Service } from "@/lib/effect/services/s3";
+import { S3Error } from "@/lib/effect/utils/errors";
 import type { BucketName } from "@/settings/buckets";
 import type { FilePayload } from "@/types/file";
-import { s3Client } from "./s3-client";
 import { createBucketIfNotExists } from "./utils";
 
-/**
- * Generate presigned urls for downloading files from S3
- * @returns promise with array of presigned urls
- */
-export async function createPresignedUrlToDownload({
+export const createPresignedUrlToDownload = ({
 	bucket,
 	prefix,
 	id,
 	type,
 	expiry = 60 * 60, // 1 hour
-}: FilePayload) {
-	const filePath = `${prefix}/${id}.${type}`;
+}: FilePayload) =>
+	Effect.gen(function* () {
+		const { client } = yield* S3Service;
 
-	const command = new GetObjectCommand({
-		Bucket: bucket,
-		Key: filePath,
+		const filePath = `${prefix}/${id}.${type}`;
+
+		return yield* Effect.tryPromise({
+			try: () =>
+				getSignedUrl(
+					client,
+					new GetObjectCommand({
+						Bucket: bucket,
+						Key: filePath,
+					}),
+					{
+						expiresIn: expiry,
+					},
+				),
+			catch: (cause) =>
+				new S3Error({ operation: "createPresignedUrlToDownload", cause }),
+		});
 	});
 
-	return await getSignedUrl(s3Client, command, { expiresIn: expiry });
-}
-
-/**
- * List files urls in bucket by prefix
- * @returns promise with array of file references
- */
-export async function listFiles({
+export const listFiles = ({
 	bucket,
 	prefix,
 }: {
 	bucket: string;
 	prefix: string;
-}) {
-	const command = new ListObjectsV2Command({
-		Bucket: bucket,
-		Prefix: prefix,
+}) =>
+	Effect.gen(function* () {
+		const { client } = yield* S3Service;
+
+		return yield* Effect.tryPromise({
+			try: () =>
+				client.send(
+					new ListObjectsV2Command({
+						Bucket: bucket,
+						Prefix: prefix,
+					}),
+				),
+			catch: (cause) => new S3Error({ operation: "listFiles", cause }),
+		});
 	});
 
-	return await s3Client.send(command);
-}
-
-/**
- * Delete file from S3 bucket
- * @returns true if file was deleted, false if not
- */
-export async function deleteFileFromBucket({
+export const deleteFileFromBucket = ({
 	bucket,
 	prefix,
 	id,
 	type,
-}: Omit<FilePayload, "expiry">) {
-	const filePath = `${prefix}/${id}.${type}`;
+}: Omit<FilePayload, "expiry">) =>
+	Effect.gen(function* () {
+		const { client } = yield* S3Service;
+		const filePath = `${prefix}/${id}.${type}`;
 
-	try {
-		const command = new DeleteObjectCommand({
-			Bucket: bucket,
-			Key: filePath,
+		return yield* Effect.tryPromise({
+			try: () =>
+				client.send(
+					new DeleteObjectCommand({
+						Bucket: bucket,
+						Key: filePath,
+					}),
+				),
+			catch: (cause) =>
+				new S3Error({ operation: "deleteFileFromBucket", cause }),
 		});
-		await s3Client.send(command);
-	} catch (error) {
-		logger.error({ error }, "Error deleting file from bucket");
-		return false;
-	}
-	return true;
-}
+	});
 
-export async function deletePrefixRecursively({
+export const deletePrefixRecursively = ({
 	bucket,
 	prefix,
 }: {
 	bucket: BucketName;
 	prefix: string;
-}) {
-	// Create bucket if it doesn't exist
-	const status = await createBucketIfNotExists(bucket);
+}) =>
+	Effect.gen(function* () {
+		const { client } = yield* S3Service;
 
-	if (status.status === "forbidden") {
-		throw new Error("Bucket is not allowed");
-	}
+		yield* createBucketIfNotExists(bucket);
 
-	// List all objects with the prefix
-	const listCommand = new ListObjectsV2Command({
-		Bucket: bucket,
-		Prefix: prefix,
-	});
-
-	const result = await s3Client.send(listCommand);
-
-	if (!result.Contents || result.Contents.length === 0) {
-		return;
-	}
-
-	// Delete all objects
-	const deletePromises = result.Contents.map((object) => {
-		if (!object.Key) return Promise.resolve();
-		const deleteCommand = new DeleteObjectCommand({
-			Bucket: bucket,
-			Key: object.Key,
+		const result = yield* Effect.tryPromise({
+			try: () =>
+				client.send(
+					new ListObjectsV2Command({
+						Bucket: bucket,
+						Prefix: prefix,
+					}),
+				),
+			catch: (cause) =>
+				new S3Error({ operation: "deletePrefixRecursively", cause }),
 		});
-		return s3Client.send(deleteCommand);
+
+		if (!result.Contents || result.Contents.length === 0) {
+			return;
+		}
+
+		yield* Effect.forEach(
+			result.Contents,
+			(object) =>
+				Effect.gen(function* () {
+					if (!object.Key) return;
+
+					const deleteCommand = new DeleteObjectCommand({
+						Bucket: bucket,
+						Key: object.Key,
+					});
+
+					yield* Effect.tryPromise({
+						try: () => client.send(deleteCommand),
+						catch: (cause) =>
+							new S3Error({ operation: "deletePrefixRecursively", cause }),
+					});
+				}),
+			{ concurrency: 10 },
+		);
 	});
 
-	await Promise.all(deletePromises);
-}
-
-/**
- * Lists all files in a bucket with the given prefix
- * @returns Promise with array of file objects
- */
-export async function listAllFilesInPrefix({
+export const listAllFilesInPrefix = ({
 	bucket,
 	prefix,
 }: {
 	bucket: BucketName;
 	prefix: string;
-}) {
-	const command = new ListObjectsV2Command({
-		Bucket: bucket,
-		Prefix: prefix,
+}) =>
+	Effect.gen(function* () {
+		const { client } = yield* S3Service;
+
+		return yield* Effect.tryPromise({
+			try: () =>
+				client.send(
+					new ListObjectsV2Command({
+						Bucket: bucket,
+						Prefix: prefix,
+					}),
+				),
+			catch: (cause) =>
+				new S3Error({ operation: "listAllFilesInPrefix", cause }),
+		}).pipe(Effect.map((result) => result.Contents || []));
 	});
 
-	const result = await s3Client.send(command);
-
-	if (!result.Contents) {
-		return [];
-	}
-
-	return result.Contents.map((object) => ({
-		name: object.Key || "",
-		lastModified: object.LastModified,
-		size: object.Size,
-	}));
-}
-
-export async function getMarkdownAsString({
+const getObjectBytes = ({
 	bucket,
 	name,
 }: {
 	bucket: BucketName;
 	name: string;
-}) {
-	const command = new GetObjectCommand({
-		Bucket: bucket,
-		Key: name,
-	});
+}) =>
+	Effect.gen(function* () {
+		const { client } = yield* S3Service;
 
-	const response = await s3Client.send(command);
-
-	if (!response.Body) {
-		throw new Error("No body in response");
-	}
-
-	const chunks: Uint8Array[] = [];
-	const stream = response.Body as any;
-
-	return new Promise((resolve, reject) => {
-		stream.on("data", (chunk: any) => chunks.push(chunk));
-		stream.on("end", () => {
-			const buffer = Buffer.concat(chunks);
-			const markdownContent = buffer.toString("utf-8");
-			resolve(markdownContent);
+		const response = yield* Effect.tryPromise({
+			try: () =>
+				client.send(
+					new GetObjectCommand({
+						Bucket: bucket,
+						Key: name,
+					}),
+				),
+			catch: (cause) => new S3Error({ operation: "getObjectBytes", cause }),
 		});
-		stream.on("error", reject);
-	});
-}
 
-export async function getImageAsBase64({
-	bucket,
-	name,
-}: {
+		const body = yield* Effect.fromNullable(response.Body).pipe(
+			Effect.orElseFail(
+				() => new S3Error({ operation: "getObjectBytes", cause: "empty_body" }),
+			),
+		);
+
+		return yield* Effect.tryPromise({
+			try: () => body.transformToByteArray(),
+			catch: (cause) => new S3Error({ operation: "getObjectBytes", cause }),
+		});
+	});
+
+export const getMarkdownAsString = (input: {
 	bucket: BucketName;
 	name: string;
-}) {
-	const command = new GetObjectCommand({
-		Bucket: bucket,
-		Key: name,
-	});
+}) =>
+	getObjectBytes(input).pipe(
+		Effect.map((bytes) => Buffer.from(bytes).toString("utf-8")),
+	);
 
-	const response = await s3Client.send(command);
-
-	if (!response.Body) {
-		throw new Error("No body in response");
-	}
-
-	const chunks: Uint8Array[] = [];
-	const stream = response.Body as any;
-
-	return new Promise<string>((resolve, reject) => {
-		stream.on("data", (chunk: any) => chunks.push(chunk));
-		stream.on("end", () => {
-			const buffer = Buffer.concat(chunks);
-			const base64Image = buffer.toString("base64");
-			resolve(base64Image);
-		});
-		stream.on("error", reject);
-	});
-}
+export const getImageAsBase64 = (input: { bucket: BucketName; name: string }) =>
+	getObjectBytes(input).pipe(
+		Effect.map((bytes) => Buffer.from(bytes).toString("base64")),
+	);

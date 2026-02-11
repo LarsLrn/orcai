@@ -6,6 +6,7 @@ import {
 	serializeDoclingDocument,
 } from "@/lib/ai/docling-serialize";
 import { PgBossService } from "@/lib/effect/services/pg-boss";
+import { S3Service } from "@/lib/effect/services/s3";
 import { serverEnv } from "@/lib/env/server";
 import type { ProcessAssetPayload } from "@/lib/pg-boss/schema/process-asset";
 import { toPgBossRunError } from "@/lib/pg-boss/utils/error-helper";
@@ -14,7 +15,6 @@ import {
 	createPresignedUrlToDownload,
 	deletePrefixRecursively,
 } from "@/lib/s3/file-functions";
-import { s3Client } from "@/lib/s3/s3-client";
 import { getFileTypeFromMime } from "@/lib/s3/upload-helpers";
 import { buckets } from "@/settings/buckets";
 import type { SaiaDoclingData } from "@/types/docling";
@@ -33,14 +33,7 @@ const processAssetsEffect = (params: { job: Job<ProcessAssetPayload> }) =>
 
 		const doclingApi = `${serverEnv.OPENAI_COMPATIBLE_BASE_URL}/documents/convert`;
 
-		const presignedUrl = yield* Effect.tryPromise({
-			try: () => createPresignedUrlToDownload(assetRef),
-			catch: toPgBossRunError(params.job.id, PROCESS_ASSET_JOB_NAME),
-		}).pipe(
-			Effect.tapError((err) =>
-				Effect.logError({ err }, "Error creating presigned URL"),
-			),
-		);
+		const presignedUrl = yield* createPresignedUrlToDownload(assetRef);
 
 		const fileResponse = yield* Effect.tryPromise({
 			try: () => fetch(presignedUrl),
@@ -154,18 +147,10 @@ const processAssetsEffect = (params: { job: Job<ProcessAssetPayload> }) =>
 			),
 		);
 
-		yield* Effect.tryPromise({
-			try: async () =>
-				await deletePrefixRecursively({
-					bucket: buckets.processed.name,
-					prefix: `${assetRef.id}/`,
-				}),
-			catch: toPgBossRunError(params.job.id, PROCESS_ASSET_JOB_NAME),
-		}).pipe(
-			Effect.tapError((err) =>
-				Effect.logError({ err }, "Error clearing existing processed content"),
-			),
-		);
+		yield* deletePrefixRecursively({
+			bucket: buckets.processed.name,
+			prefix: `${assetRef.id}/`,
+		});
 
 		if (!serializedDocling || serializedDocling.length === 0) {
 			yield* Effect.logWarning(
@@ -182,6 +167,8 @@ const processAssetsEffect = (params: { job: Job<ProcessAssetPayload> }) =>
 
 		yield* Effect.forEach(serializedDocling, (page, index) =>
 			Effect.gen(function* () {
+				const { client } = yield* S3Service;
+
 				const { markdown, images } = page;
 
 				const command = new PutObjectCommand({
@@ -192,7 +179,7 @@ const processAssetsEffect = (params: { job: Job<ProcessAssetPayload> }) =>
 				});
 
 				yield* Effect.tryPromise({
-					try: () => s3Client.send(command),
+					try: () => client.send(command),
 					catch: toPgBossRunError(params.job.id, PROCESS_ASSET_JOB_NAME),
 				}).pipe(
 					Effect.tapError((err) =>
@@ -249,7 +236,7 @@ const processAssetsEffect = (params: { job: Job<ProcessAssetPayload> }) =>
 						});
 
 						return yield* Effect.tryPromise({
-							try: () => s3Client.send(command),
+							try: () => client.send(command),
 							catch: toPgBossRunError(params.job.id, PROCESS_ASSET_JOB_NAME),
 						}).pipe(
 							Effect.tapError((err) =>
