@@ -1,15 +1,14 @@
 import * as Context from "effect/Context";
 import * as Effect from "effect/Effect";
 import * as Layer from "effect/Layer";
+import * as Redacted from "effect/Redacted";
 import { PgBoss } from "pg-boss";
 import { PgBossError } from "@/lib/effect/utils/errors";
-import { pgConnectionString } from "@/settings/db";
+import { pgUrl } from "@/lib/effect/utils/pg-url";
 
 export class PgBossService extends Context.Tag("PgBossService")<
 	PgBossService,
-	{
-		readonly boss: PgBoss;
-	}
+	{ readonly boss: PgBoss }
 >() {}
 
 export const PgBossLive = Layer.scoped(
@@ -17,10 +16,11 @@ export const PgBossLive = Layer.scoped(
 	Effect.acquireRelease(
 		Effect.gen(function* () {
 			yield* Effect.logInfo("Starting PgBoss service...");
+			const url = yield* pgUrl;
 
 			const boss = yield* Effect.tryPromise({
 				try: async () => {
-					const boss = new PgBoss({ connectionString: pgConnectionString });
+					const boss = new PgBoss({ connectionString: Redacted.value(url) });
 					await boss.start();
 					return boss;
 				},

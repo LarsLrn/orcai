@@ -1,28 +1,11 @@
 import { PgClient } from "@effect/sql-pg";
 import * as PgDrizzle from "drizzle-orm/effect-postgres";
-import * as Config from "effect/Config";
 import * as Context from "effect/Context";
 import * as Effect from "effect/Effect";
 import * as Layer from "effect/Layer";
-import * as Redacted from "effect/Redacted";
 import { types } from "pg";
 import { relations } from "@/db/schema/relations";
-
-// Build the connection URL from individual env vars via Effect Config,
-// avoiding bare secrets at module scope.
-const pgUrl = Config.all({
-	user: Config.string("POSTGRES_USER"),
-	password: Config.redacted("POSTGRES_PASSWORD"),
-	host: Config.string("POSTGRES_HOST"),
-	port: Config.withDefault(Config.number("POSTGRES_PORT"), 5432),
-	db: Config.string("POSTGRES_DB"),
-}).pipe(
-	Config.map(({ user, password, host, port, db }) =>
-		Redacted.make(
-			`postgres://${user}:${Redacted.value(password)}@${host}:${port}/${db}`,
-		),
-	),
-);
+import { pgUrl } from "@/lib/effect/utils/pg-url";
 
 // Unwrap the Config into a layer so the connection string
 // is only resolved when the layer builds (not at import time).
