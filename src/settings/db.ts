@@ -1,3 +1,5 @@
-import { serverEnv } from "@/lib/env/server";
+import { loadAppConfigSync } from "@/lib/effect/services/config";
 
-export const pgConnectionString = `postgres://${serverEnv.POSTGRES_USER}:${serverEnv.POSTGRES_PASSWORD}@${serverEnv.POSTGRES_HOST}:${serverEnv.POSTGRES_PORT || "5432"}/${serverEnv.POSTGRES_DB}`;
+const cfg = loadAppConfigSync();
+
+export const pgConnectionString = `postgres://${cfg.postgres.user}:${cfg.postgres.password}@${cfg.postgres.host}:${cfg.postgres.port || "5432"}/${cfg.postgres.db}`;

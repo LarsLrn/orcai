@@ -25,6 +25,20 @@ const appConfig = Config.all({
 		baseUrl: Config.string("OPENAI_COMPATIBLE_BASE_URL"),
 		apiKey: Config.string("OPENAI_COMPATIBLE_API_KEY"),
 	}),
+	auth: Config.all({
+		secret: Config.string("BETTER_AUTH_SECRET"),
+		url: Config.string("BETTER_AUTH_URL"),
+	}),
+	qdrant: Config.all({
+		url: Config.string("QDRANT_URL"),
+		apiKey: Config.string("QDRANT_API_KEY"),
+	}),
+	mail: Config.all({
+		host: Config.string("SMTP_HOST"),
+		port: Config.withDefault(Config.port("SMTP_PORT"), 587),
+		username: Config.string("SMTP_USERNAME"),
+		password: Config.string("SMTP_PASSWORD"),
+	}),
 });
 
 type AppConfig = Config.Config.Success<typeof appConfig>;
@@ -38,3 +52,5 @@ export const AppConfigLive = Layer.effect(
 	AppConfigService,
 	appConfig.pipe(Effect.map((config) => ({ config }))),
 );
+
+export const loadAppConfigSync = (): AppConfig => Effect.runSync(appConfig);

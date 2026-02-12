@@ -4,16 +4,15 @@ import * as Context from "effect/Context";
 import * as Effect from "effect/Effect";
 import * as Layer from "effect/Layer";
 import { types } from "pg";
+import { pgPool } from "@/db/pool";
 import { relations } from "@/db/schema/relations";
-import { pgUrl } from "@/lib/effect/utils/pg-url";
 
 // Unwrap the Config into a layer so the connection string
 // is only resolved when the layer builds (not at import time).
 const PgClientLive = Layer.unwrapEffect(
 	Effect.gen(function* () {
-		const url = yield* pgUrl;
-		return PgClient.layer({
-			url,
+		return PgClient.layerFromPool({
+			acquire: Effect.succeed(pgPool),
 			types: {
 				getTypeParser: (typeId, format) => {
 					if (
