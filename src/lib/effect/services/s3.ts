@@ -2,6 +2,7 @@ import { S3Client } from "@aws-sdk/client-s3";
 import * as Context from "effect/Context";
 import * as Effect from "effect/Effect";
 import * as Layer from "effect/Layer";
+import * as Option from "effect/Option";
 import { S3Error } from "@/lib/effect/utils/errors";
 import { AppConfigService } from "./config";
 
@@ -19,7 +20,7 @@ export const S3Live = Layer.scoped(
 			return yield* Effect.try({
 				try: () => ({
 					client: new S3Client({
-						region: config.s3.region,
+						region: Option.getOrUndefined(config.s3.region),
 						endpoint: config.s3.endpoint,
 						credentials: {
 							accessKeyId: config.s3.accessKey,
