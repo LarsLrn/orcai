@@ -38,13 +38,8 @@ export const aiChat = authed.ai.chat
 				});
 
 				if (input.messages.length < 2) {
-					yield* Effect.tryPromise({
-						try: async () => generateChatTitle({ messages: input.messages }),
-						catch: () =>
-							errors.BAD_REQUEST({ message: "Failed to generate chat title" }),
-					}).pipe(
-						Effect.map((title) => title.title),
-						Effect.flatMap((title) =>
+					yield* generateChatTitle({ messages: input.messages }).pipe(
+						Effect.flatMap(({ title }) =>
 							Effect.tryPromise({
 								try: async () =>
 									client.chat.update({

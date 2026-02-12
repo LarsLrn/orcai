@@ -14,6 +14,9 @@ export const ErrorTags = {
 	VALIDATION: "ValidationError",
 	BAD_REQUEST: "BadRequestError",
 
+	// AI errors
+	AI: "AiError",
+
 	// Infrastructure errors
 	PG_BOSS: "PgBossError",
 	PG_BOSS_WORKER: "PgBossWorkerError",
@@ -99,6 +102,11 @@ export class QdrantError extends Data.TaggedError(ErrorTags.QDRANT)<{
 	readonly cause: unknown;
 }> {}
 
+export class AiError extends Data.TaggedError(ErrorTags.AI)<{
+	readonly operation: string;
+	readonly cause: unknown;
+}> {}
+
 export type AppError =
 	| SpiceDbError
 	| PgBossError
@@ -111,4 +119,5 @@ export type AppError =
 	| BadRequestError
 	| DatabaseError
 	| S3Error
-	| QdrantError;
+	| QdrantError
+	| AiError;
