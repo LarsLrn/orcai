@@ -1,4 +1,3 @@
-import { ORPCError } from "@orpc/server";
 import * as Effect from "effect/Effect";
 import { auth as betterAuth } from "@/lib/auth";
 import type { authClient } from "@/lib/auth-client";
@@ -73,7 +72,7 @@ export const requireActiveOrganizationMiddleware = withName(
 				user: typeof authClient.$Infer.Session.user;
 			};
 		}>()
-		.middleware(({ context, next }) =>
+		.middleware(({ context, errors, next }) =>
 			runOrpcEffect(
 				Effect.gen(function* () {
 					const activeOrganizationId =
@@ -81,8 +80,9 @@ export const requireActiveOrganizationMiddleware = withName(
 
 					if (!activeOrganizationId) {
 						return yield* Effect.fail(
-							new ORPCError("BAD_REQUEST", {
-								message: "No active organization for the current session.",
+							errors.BAD_REQUEST({
+								message:
+									"An active organization must be selected to access this resource.",
 							}),
 						);
 					}
@@ -113,7 +113,7 @@ export const requirePreferencesMiddleware = withName(
 				user: typeof authClient.$Infer.Session.user;
 			};
 		}>()
-		.middleware(async ({ context, next }) =>
+		.middleware(async ({ context, errors, next }) =>
 			runOrpcEffect(
 				Effect.gen(function* () {
 					const db = yield* DB;
@@ -132,8 +132,9 @@ export const requirePreferencesMiddleware = withName(
 								Effect.fromNullable(prefs).pipe(
 									Effect.orElse(() =>
 										Effect.fail(
-											new ORPCError("NOT_FOUND", {
-												message: "User preferences not found.",
+											errors.NOT_FOUND({
+												message: "User preferences not found",
+												data: { id: context.auth.user.id },
 											}),
 										),
 									),
