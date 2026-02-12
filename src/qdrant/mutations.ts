@@ -1,8 +1,9 @@
-import pMap from "p-map";
+import * as Effect from "effect/Effect";
+import { QdrantError } from "@/lib/effect/utils/errors";
 import type { Asset } from "@/lib/orpc/schemas/asset";
 import type { AssetPointPayload } from "@/lib/orpc/schemas/asset-point";
 import type { Block } from "@/lib/orpc/schemas/block";
-import { qdrant } from "./qdrant";
+import { QdrantService } from "../lib/effect/services/qdrant";
 import { qdrantCollections } from "./qdrant-constants";
 
 interface Point {
@@ -11,54 +12,80 @@ interface Point {
 	payload: AssetPointPayload;
 }
 
-export const upsertPointsToQdrant = async ({ points }: { points: Point[] }) => {
-	const mappedPoints = points.map((point) => ({
-		id: point.id,
-		vector: point.vector,
-		payload: point.payload,
-	}));
+export const upsertPointsToQdrant = ({ points }: { points: Point[] }) =>
+	Effect.gen(function* () {
+		const { client } = yield* QdrantService;
 
-	// TODO: Uploading chunks one by one is not optimal, but batching was flaking out
-	// Specifically this:
-	// return qdrant.upsert(qdrantCollections.chunks.name, { points });
+		const mappedPoints = points.map((point) => ({
+			id: point.id,
+			vector: point.vector,
+			payload: point.payload,
+		}));
 
-	const savePoint = async (point: Point) => {
-		await qdrant.upsert(qdrantCollections.asset.name, {
-			points: [point],
-		});
-	};
+		// TODO: Uploading chunks one by one is not optimal, but batching was flaking out
+		// Specifically this:
+		// qdrant.upsert(qdrantCollections.chunks.name, { points });
 
-	await pMap(mappedPoints, savePoint, { concurrency: 10 });
-};
+		yield* Effect.forEach(
+			mappedPoints,
+			(point) =>
+				Effect.tryPromise({
+					try: async () =>
+						client.upsert(qdrantCollections.asset.name, {
+							points: [point],
+						}),
+					catch: (cause) =>
+						new QdrantError({
+							operation: "upsert",
+							cause,
+						}),
+				}),
+			{ concurrency: 10 },
+		);
+	});
 
-export const deletePointsByIdentifier = async ({
+export const deletePointsByIdentifier = ({
 	assetId,
 	blockId,
 }: {
 	assetId: Asset["id"];
 	blockId: Block["id"] | undefined;
-}) => {
-	const filters = [
-		{
-			key: "asset_id",
-			match: {
-				value: assetId,
-			},
-		},
-	];
+}) =>
+	Effect.gen(function* () {
+		const { client } = yield* QdrantService;
 
-	if (blockId !== undefined) {
-		filters.push({
-			key: "block_id",
-			match: {
-				value: blockId,
-			},
+		const filters: Array<{ key: string; match: { value: string | number } }> =
+			[];
+
+		if (assetId !== undefined) {
+			filters.push({
+				key: "asset_id",
+				match: {
+					value: assetId,
+				},
+			});
+		}
+
+		if (blockId !== undefined) {
+			filters.push({
+				key: "block_id",
+				match: {
+					value: blockId,
+				},
+			});
+		}
+
+		return yield* Effect.tryPromise({
+			try: async () =>
+				client.delete(qdrantCollections.asset.name, {
+					filter: {
+						must: filters,
+					},
+				}),
+			catch: (error) =>
+				new QdrantError({
+					operation: "delete",
+					cause: error,
+				}),
 		});
-	}
-
-	return await qdrant.delete(qdrantCollections.asset.name, {
-		filter: {
-			must: filters,
-		},
 	});
-};

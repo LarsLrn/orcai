@@ -5,6 +5,7 @@ import type { Job } from "pg-boss";
 import { v4 as uuidv4 } from "uuid";
 import { getSaiaEmbeddingModel, getSaiaModel } from "@/lib/ai/saia-models";
 import type { MarkdownNode } from "@/lib/chunk/markdown-chunker";
+import { PgBossError } from "@/lib/effect/utils/errors";
 import type { Asset } from "@/lib/orpc/schemas/asset";
 import type { Block } from "@/lib/orpc/schemas/block";
 import type { VectorizeAssetPayload } from "@/lib/pg-boss/schema/vectorize-asset";
@@ -85,11 +86,11 @@ const vectorizeAssetsEffect = (params: { job: Job<VectorizeAssetPayload> }) =>
 							name,
 						});
 
-						const processedImage = yield* Effect.tryPromise({
-							try: async () =>
-								await processImageFile(image, name, fileExtension as FileType),
-							catch: toPgBossRunError(params.job.id, VECTORIZE_ASSET_JOB_NAME),
-						});
+						const processedImage = yield* processImageFile(
+							image,
+							name,
+							fileExtension as FileType,
+						);
 
 						if (processedImage) {
 							images.push(processedImage);
@@ -123,14 +124,10 @@ const vectorizeAssetsEffect = (params: { job: Job<VectorizeAssetPayload> }) =>
 			"Generated chunks for asset",
 		);
 
-		const qdrantResponse = yield* Effect.tryPromise({
-			try: async () =>
-				await generateEmbeddings({
-					chunks: mergedChunks,
-					assetId: prefix,
-					blockId,
-				}),
-			catch: toPgBossRunError(params.job.id, VECTORIZE_ASSET_JOB_NAME),
+		const qdrantResponse = yield* generateEmbeddings({
+			chunks: mergedChunks,
+			assetId: prefix,
+			blockId,
 		});
 
 		return {
@@ -180,51 +177,56 @@ const processMarkdownFile = async ({
 	return nodes;
 };
 
-const processImageFile = async (
+const processImageFile = (
 	base64Image: string,
 	name: string,
 	fileExtension: FileType,
-) => {
-	const mimeType = `image/${fileExtension}`;
-	const imageType = name.startsWith("table") ? "table" : "picture";
+) =>
+	Effect.gen(function* () {
+		const mimeType = `image/${fileExtension}`;
+		const imageType = name.startsWith("table") ? "table" : "picture";
+		const dataUrl = `data:${mimeType};base64,${base64Image}`;
 
-	const dataUrl = `data:${mimeType};base64,${base64Image}`;
-
-	const result = await generateText({
-		model: getSaiaModel({
-			input: ["image"],
-			model: "gemma-3-27b-it",
-		}).provider,
-		maxOutputTokens: 1024,
-		system:
-			imageType === "table" ? describeTableImagePrompt : describeImagePrompt,
-		messages: [
-			{
-				role: "user",
-				content: [
-					{
-						type: "image",
-						image: dataUrl,
-					},
-				],
-			},
-		],
+		return yield* Effect.tryPromise({
+			try: () =>
+				generateText({
+					model: getSaiaModel({
+						input: ["image"],
+						model: "gemma-3-27b-it",
+					}).provider,
+					maxOutputTokens: 1024,
+					system:
+						imageType === "table"
+							? describeTableImagePrompt
+							: describeImagePrompt,
+					messages: [
+						{
+							role: "user",
+							content: [
+								{
+									type: "image",
+									image: dataUrl,
+								},
+							],
+						},
+					],
+				}),
+			catch: (cause) =>
+				new PgBossError({
+					operation: "run",
+					cause,
+				}),
+		}).pipe(
+			Effect.map((result) => ({
+				description: result.text,
+				tokens: result.usage.totalTokens,
+				name,
+				type: mimeType.split("/")[1] as FileType,
+			})),
+		);
 	});
 
-	/* const step = result.steps.find((step) => step. === "initial"); */
-	/* const imageRef = extractFileInfoFromReference(name)?.id; */
-
-	/* if (!step) return; */
-
-	return {
-		description: result.text,
-		tokens: result.usage.totalTokens,
-		name,
-		type: mimeType.split("/")[1] as FileType,
-	};
-};
-
-const generateEmbeddings = async ({
+const generateEmbeddings = ({
 	chunks,
 	assetId,
 	blockId,
@@ -232,58 +234,67 @@ const generateEmbeddings = async ({
 	chunks: MarkdownNode[];
 	assetId: Asset["id"];
 	blockId: Block["id"];
-}) => {
-	// Embed the chunks
-	const embedResults = await embedMany({
-		model: getSaiaEmbeddingModel({ model: "e5-mistral-7b-instruct" }).provider,
-		values: chunks.map((chunk) => chunk.content),
+}) =>
+	Effect.gen(function* () {
+		const embedResults = yield* Effect.tryPromise({
+			try: async () =>
+				await embedMany({
+					model: getSaiaEmbeddingModel({ model: "e5-mistral-7b-instruct" })
+						.provider,
+					values: chunks.map((chunk) => chunk.content),
+				}),
+			catch: (cause) =>
+				new PgBossError({
+					operation: "run",
+					cause,
+				}),
+		});
+
+		// Create metadata for each chunk
+		const metaDataChunks = chunks.map((chunk, index) => {
+			// Create the base payload properties common to both types
+			const basePayload = {
+				asset_id: assetId,
+				block_id: blockId,
+				text: embedResults.values[index],
+				title: chunk.title,
+				depth: chunk.depth,
+				tokens: chunk.length,
+				chunk_index: index,
+				chunkCount: chunks.length,
+				createdAt: new Date().toISOString(),
+			};
+
+			// Create the discriminated union part based on the chunk type
+			const specificPayload =
+				chunk.type === "image"
+					? {
+							source: "image" as const,
+							file_reference: chunk.fileReference,
+							file_type: chunk.fileType,
+						}
+					: {
+							source: "text" as const,
+							file_reference: undefined,
+							file_type: undefined,
+						};
+
+			// Combine them and return the complete chunk
+			return {
+				id: uuidv4(),
+				vector: embedResults.embeddings[index],
+				payload: {
+					...basePayload,
+					...specificPayload,
+				},
+			};
+		});
+
+		yield* deletePointsByIdentifier({ assetId, blockId });
+
+		const qdrantResult = yield* upsertPointsToQdrant({
+			points: metaDataChunks,
+		});
+
+		return { success: true, type: "markdown", qdrant: qdrantResult };
 	});
-
-	// Create metadata for each chunk
-	const metaDataChunks = chunks.map((chunk, index) => {
-		// Create the base payload properties common to both types
-		const basePayload = {
-			asset_id: assetId,
-			block_id: blockId,
-			text: embedResults.values[index],
-			title: chunk.title,
-			depth: chunk.depth,
-			tokens: chunk.length,
-			chunk_index: index,
-			chunkCount: chunks.length,
-			createdAt: new Date().toISOString(),
-		};
-
-		// Create the discriminated union part based on the chunk type
-		const specificPayload =
-			chunk.type === "image"
-				? {
-						source: "image" as const,
-						file_reference: chunk.fileReference,
-						file_type: chunk.fileType,
-					}
-				: {
-						source: "text" as const,
-						file_reference: undefined,
-						file_type: undefined,
-					};
-
-		// Combine them and return the complete chunk
-		return {
-			id: uuidv4(),
-			vector: embedResults.embeddings[index],
-			payload: {
-				...basePayload,
-				...specificPayload,
-			},
-		};
-	});
-
-	await deletePointsByIdentifier({ assetId, blockId });
-
-	const qdrantResult = await upsertPointsToQdrant({
-		points: metaDataChunks,
-	});
-
-	return { success: true, type: "markdown", qdrant: qdrantResult };
-};

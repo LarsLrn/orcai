@@ -195,12 +195,10 @@ export const deleteAssets = authed.asset.delete
 								prefix: asset.prefix,
 								type: asset.fileType as FileType,
 							});
-							yield* Effect.promise(() =>
-								deletePointsByIdentifier({
-									assetId: asset.id,
-									blockId: undefined,
-								}),
-							);
+							yield* deletePointsByIdentifier({
+								assetId: asset.id,
+								blockId: undefined,
+							});
 							yield* deletePrefixRecursively({
 								bucket: buckets.processed.name,
 								prefix: `${asset.id}/`,
