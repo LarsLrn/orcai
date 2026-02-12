@@ -15,6 +15,7 @@ import {
 import type { JobQueue } from "@/lib/pg-boss/schema/job";
 import type { ProcessAssetPayload } from "@/lib/pg-boss/schema/process-asset";
 import type { VectorizeAssetPayload } from "@/lib/pg-boss/schema/vectorize-asset";
+import type { AppConfigService } from "./config";
 import { PgBossService } from "./pg-boss";
 import type { S3Service } from "./s3";
 
@@ -49,7 +50,9 @@ const registerWorkers = Effect.gen(function* () {
 	// Capture the full runtime so worker callbacks have access to all
 	// services that their effects may require (PgBossService today,
 	// but potentially DB, SpiceDb, etc. in the future).
-	const rt = yield* Effect.runtime<PgBossService | S3Service>();
+	const rt = yield* Effect.runtime<
+		PgBossService | S3Service | AppConfigService
+	>();
 
 	type WorkerRegistration = {
 		name: JobQueue;

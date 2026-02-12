@@ -21,6 +21,10 @@ const appConfig = Config.all({
 		endpoint: Config.string("SPICEDB_ENDPOINT"),
 		token: Config.string("SPICEDB_TOKEN"),
 	}),
+	ai: Config.all({
+		baseUrl: Config.string("OPENAI_COMPATIBLE_BASE_URL"),
+		apiKey: Config.string("OPENAI_COMPATIBLE_API_KEY"),
+	}),
 });
 
 type AppConfig = Config.Config.Success<typeof appConfig>;

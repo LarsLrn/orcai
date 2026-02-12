@@ -14,7 +14,7 @@ const BaseInfra = Layer.mergeAll(
 	SpiceDbLive,
 	S3Live,
 	PgBossLive,
-).pipe(Layer.provide(AppConfigLive));
+).pipe(Layer.provideMerge(AppConfigLive));
 
 const InfraWithWorkers = Layer.provideMerge(PgBossWorkersLive, BaseInfra);
 

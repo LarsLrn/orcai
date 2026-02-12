@@ -5,9 +5,9 @@ import {
 	type SerializedDocument,
 	serializeDoclingDocument,
 } from "@/lib/ai/docling-serialize";
+import { AppConfigService } from "@/lib/effect/services/config";
 import { PgBossService } from "@/lib/effect/services/pg-boss";
 import { S3Service } from "@/lib/effect/services/s3";
-import { serverEnv } from "@/lib/env/server";
 import type { ProcessAssetPayload } from "@/lib/pg-boss/schema/process-asset";
 import { toPgBossRunError } from "@/lib/pg-boss/utils/error-helper";
 import { validateImageResolution } from "@/lib/pg-boss/utils/validate-image-resolution";
@@ -29,9 +29,10 @@ export const processAssetBatchEffect = (jobs: Job<ProcessAssetPayload>[]) =>
 
 const processAssetsEffect = (params: { job: Job<ProcessAssetPayload> }) =>
 	Effect.gen(function* () {
+		const { config } = yield* AppConfigService;
 		const { assetRef, blockId, mergePages } = params.job.data;
 
-		const doclingApi = `${serverEnv.OPENAI_COMPATIBLE_BASE_URL}/documents/convert`;
+		const doclingApi = `${config.ai.baseUrl}/documents/convert`;
 
 		const presignedUrl = yield* createPresignedUrlToDownload(assetRef);
 
@@ -82,7 +83,7 @@ const processAssetsEffect = (params: { job: Job<ProcessAssetPayload> }) =>
 				const response = await fetch(`${doclingApi}?${params}`, {
 					method: "POST",
 					headers: {
-						Authorization: `Bearer ${serverEnv.OPENAI_COMPATIBLE_API_KEY}`,
+						Authorization: `Bearer ${config.ai.apiKey}`,
 					},
 					body: formData,
 					signal,
