@@ -182,16 +182,12 @@ const HeroLatestBotCard = ({
 							Start chat
 						</Button>
 						<ButtonGroupSeparator />
-						<Button
-							variant="outline"
-							size="sm"
-							render={
-								<Link to="/app/bots/$botId" params={{ botId }}>
-									<ArrowRightIcon className="h-4 w-4" />
-									View bot
-								</Link>
-							}
-						/>
+						<Button variant="outline" size="sm">
+							<Link to="/app/bots/$botId" params={{ botId }}>
+								<ArrowRightIcon className="h-4 w-4" />
+								View bot
+							</Link>
+						</Button>
 					</ButtonGroup>
 				) : (
 					<Link
@@ -273,16 +269,11 @@ const BotsShowcase = () => {
 									</Button>
 									<ButtonGroupSeparator />
 
-									<Button
-										size="sm"
-										className="flex-1"
-										variant="outline"
-										render={
-											<Link to="/app/bots/$botId" params={{ botId: bot.id }}>
-												View details
-											</Link>
-										}
-									/>
+									<Button size="sm" className="flex-1" variant="outline">
+										<Link to="/app/bots/$botId" params={{ botId: bot.id }}>
+											View details
+										</Link>
+									</Button>
 								</ButtonGroup>
 							</CardFooter>
 						</BotPreview>
