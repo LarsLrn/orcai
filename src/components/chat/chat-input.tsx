@@ -30,16 +30,19 @@ import { AppTourButton } from "@/components/next-step/app-tour-button";
 import type { ChatAgentUIMessage } from "@/lib/ai/types/chat-agent-message";
 import { orpc } from "@/lib/orpc/orpc";
 import type { Chat } from "@/lib/orpc/schemas/chat";
+import { ConversationDownload } from "../ai-elements/conversation";
 import { ModelSelectorButton } from "./model-selector";
 
 const ChatInput = ({
 	chatId,
 	sendMessage,
+	messages,
 	status,
 	chatLength,
 }: {
 	chatId: Chat["id"];
 	sendMessage: UseChatHelpers<ChatAgentUIMessage>["sendMessage"];
+	messages: ChatAgentUIMessage[];
 	status: UseChatHelpers<ChatAgentUIMessage>["status"];
 	chatLength: number;
 }) => {
@@ -113,6 +116,16 @@ const ChatInput = ({
 									className="text-muted-foreground"
 								/>
 							}
+						/>
+						<ConversationDownload
+							messages={messages.map((m) => ({
+								role: m.role,
+								content: m.parts
+									.map((part) =>
+										"text" in part ? part.text : "[file attachment]",
+									)
+									.join(""),
+							}))}
 						/>
 					</PromptInputTools>
 					{/* // TODO: Implement functionality for model selection */}

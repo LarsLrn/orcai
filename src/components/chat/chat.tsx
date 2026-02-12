@@ -118,6 +118,7 @@ const Chat = ({
 					chatId={id}
 					status={status}
 					sendMessage={sendMessage}
+					messages={messages}
 					chatLength={messages.length}
 				/>
 			</div>
