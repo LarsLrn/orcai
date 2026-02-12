@@ -1,6 +1,7 @@
 import { tool } from "ai";
 import * as Effect from "effect/Effect";
 import { z } from "zod/v4";
+import { runtime } from "@/lib/effect/runtime";
 import { AiError } from "@/lib/effect/utils/errors";
 import { client } from "@/lib/orpc/orpc";
 import type { DatabaseBlock } from "@/lib/orpc/schemas/block";
@@ -25,7 +26,7 @@ export const searchKnowledgeBaseTool = ({ block }: { block?: DatabaseBlock }) =>
 				.default(block?.config.defaultReferences ?? 5),
 		}),
 		execute: async ({ limit, detailedQuery }) =>
-			Effect.runPromise(
+			runtime.runPromise(
 				Effect.gen(function* () {
 					if (!block) {
 						return yield* new AiError({
