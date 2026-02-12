@@ -1,4 +1,3 @@
-import { ORPCError } from "@orpc/server";
 import {
 	and,
 	count,
@@ -11,7 +10,6 @@ import {
 } from "drizzle-orm";
 import * as Effect from "effect/Effect";
 import type { ApiGetScoresResponse } from "langfuse";
-import { db } from "@/db/drizzle";
 import { dbSchema } from "@/db/schema";
 import { DB } from "@/lib/effect/services/drizzle";
 import { runOrpcEffect } from "@/lib/effect/utils/orpc-helpers";
@@ -283,130 +281,147 @@ export const createChatMessage = authed.chatMessage.create
 				entityType: "chat",
 			}) satisfies CheckPermissionInput,
 	)
-	.handler(async ({ input }) => {
-		if (!input.branchId) {
-			throw new ORPCError("BAD_REQUEST", {
-				message: "branchId is required",
-			});
-		}
+	.handler(async ({ input, errors }) =>
+		runOrpcEffect(
+			Effect.gen(function* () {
+				const db = yield* DB;
 
-		// 1. Determine parent and depth
-		let parentMessageId = input.parentMessageId;
-		let depth = 0;
-		const branchIdToUpdate = input.branchId;
+				if (!input.branchId) {
+					return yield* Effect.fail(
+						errors.BAD_REQUEST({ message: "branchId is required" }),
+					);
+				}
 
-		// Get current branch to determine leaf
-		const [branch] = await db
-			.select()
-			.from(dbSchema.chatBranch)
-			.where(eq(dbSchema.chatBranch.id, branchIdToUpdate));
+				// 1. Determine parent and depth
+				let parentMessageId = input.parentMessageId;
+				let depth = 0;
+				const branchIdToUpdate = input.branchId;
 
-		if (!branch) {
-			throw new ORPCError("NOT_FOUND", {
-				message: "Branch not found",
-			});
-		}
+				// Get current branch to determine leaf
+				const branch = yield* db.query.chatBranch
+					.findFirst({
+						where: {
+							id: branchIdToUpdate,
+						},
+					})
+					.pipe(
+						Effect.flatMap((branch) =>
+							Effect.fromNullable(branch).pipe(
+								Effect.orElse(() =>
+									Effect.fail(
+										errors.NOT_FOUND({ message: "Branch not found" }),
+									),
+								),
+							),
+						),
+					);
 
-		const currentBranchLeafId = branch.leafMessageId;
+				const currentBranchLeafId = branch.leafMessageId;
 
-		// If no manual parent specified, use branch leaf
-		if (!parentMessageId) {
-			parentMessageId = currentBranchLeafId;
-		}
+				// If no manual parent specified, use branch leaf
+				if (!parentMessageId) {
+					parentMessageId = currentBranchLeafId;
+				}
 
-		// Calculate depth from parent
-		if (parentMessageId) {
-			const [parent] = await db
-				.select()
-				.from(dbSchema.chatMessage)
-				.where(eq(dbSchema.chatMessage.id, parentMessageId));
-			if (parent) {
-				depth = parent.depth + 1;
-			}
-		}
+				// Calculate depth from parent
+				if (parentMessageId) {
+					const parent = yield* db.query.chatMessage.findFirst({
+						where: {
+							id: parentMessageId,
+						},
+					});
 
-		// 2. Check for branching (Fork Logic)
-		// We fork if we're inserting at a point that's not the current branch tip
-		// However, we should check if the parent is actually part of this branch's history
-		let isForking = false;
+					if (parent) {
+						depth = parent.depth + 1;
+					}
+				}
 
-		if (branchIdToUpdate && parentMessageId && currentBranchLeafId) {
-			if (parentMessageId !== currentBranchLeafId) {
-				// Check if parentMessageId is in the branch's history (ancestor of current leaf)
-				// If it is, this is a regeneration/edit scenario, so we should fork
-				const isAncestor = await db
-					.execute(sql`
-						WITH RECURSIVE ancestors AS (
-							SELECT id, parentMessageId FROM ${dbSchema.chatMessage} WHERE id = ${currentBranchLeafId}
-							UNION ALL
-							SELECT parent.id, parent.parentMessageId 
-							FROM ${dbSchema.chatMessage} parent
-							INNER JOIN ancestors ON ancestors.parentMessageId = parent.id
-						)
-						SELECT EXISTS(SELECT 1 FROM ancestors WHERE id = ${parentMessageId}) as is_ancestor
-					`)
-					.then((res: any) => res.rows[0]?.is_ancestor ?? false);
+				// 2. Check for branching (Fork Logic)
+				// We fork if we're inserting at a point that's not the current branch tip
+				// However, we should check if the parent is actually part of this branch's history
+				let isForking = false;
 
-				isForking = isAncestor;
-			}
-		}
+				if (branchIdToUpdate && parentMessageId && currentBranchLeafId) {
+					if (parentMessageId !== currentBranchLeafId) {
+						// Check if parentMessageId is in the branch's history (ancestor of current leaf)
+						// If it is, this is a regeneration/edit scenario, so we should fork
+						const isAncestor = yield* db
+							.execute(sql`
+								WITH RECURSIVE ancestors AS (
+									SELECT id, parentMessageId FROM ${dbSchema.chatMessage} WHERE id = ${currentBranchLeafId}
+									UNION ALL
+									SELECT parent.id, parent.parentMessageId 
+									FROM ${dbSchema.chatMessage} parent
+									INNER JOIN ancestors ON ancestors.parentMessageId = parent.id
+								)
+								SELECT EXISTS(SELECT 1 FROM ancestors WHERE id = ${parentMessageId}) as is_ancestor
+							`)
+							.pipe(
+								Effect.map((res: any) => res.rows[0]?.is_ancestor ?? false),
+							);
 
-		// 3. Insert Message
-		const [query] = await db
-			.insert(dbSchema.chatMessage)
-			.values({
-				...input,
-				parentMessageId,
-				depth,
-				createdAt: new Date(),
-			})
-			.returning({ ...getColumns(dbSchema.chatMessage) });
+						isForking = isAncestor;
+					}
+				}
 
-		// 4. Handle Branch Updates
-		if (isForking) {
-			// Create a new branch
-			const [countRes] = await db
-				.select({ count: count() })
-				.from(dbSchema.chatBranch)
-				.where(eq(dbSchema.chatBranch.chatId, input.chatId));
+				// 3. Insert Message
+				const [newMessage] = yield* db
+					.insert(dbSchema.chatMessage)
+					.values({
+						...input,
+						parentMessageId,
+						depth,
+						createdAt: new Date(),
+					})
+					.returning({ ...getColumns(dbSchema.chatMessage) });
 
-			const [newBranch] = await db
-				.insert(dbSchema.chatBranch)
-				.values({
-					chatId: input.chatId,
-					name: `Branch ${countRes.count + 1}`,
-					leafMessageId: query.id,
-				})
-				.returning();
+				// 4. Handle Branch Updates
+				if (isForking) {
+					// Create a new branch
+					const [countRes] = yield* db
+						.select({ count: count() })
+						.from(dbSchema.chatBranch)
+						.where(eq(dbSchema.chatBranch.chatId, input.chatId));
 
-			// Set the new branch as active
-			await db
-				.update(dbSchema.chat)
-				.set({
-					activeBranchId: newBranch.id,
-					updatedAt: new Date(),
-				})
-				.where(eq(dbSchema.chat.id, input.chatId));
+					const [newBranch] = yield* db
+						.insert(dbSchema.chatBranch)
+						.values({
+							chatId: input.chatId,
+							name: `Branch ${countRes.count + 1}`,
+							leafMessageId: newMessage.id,
+						})
+						.returning();
 
-			return { data: query, branchId: newBranch.id };
-		}
+					// Set the new branch as active
+					yield* db
+						.update(dbSchema.chat)
+						.set({
+							activeBranchId: newBranch.id,
+							updatedAt: new Date(),
+						})
+						.where(eq(dbSchema.chat.id, input.chatId));
 
-		// Extend the existing branch
-		await db
-			.update(dbSchema.chatBranch)
-			.set({
-				leafMessageId: query.id,
-				updatedAt: new Date(),
-			})
-			.where(eq(dbSchema.chatBranch.id, branchIdToUpdate));
+					return { data: newMessage, branchId: newBranch.id };
+				}
 
-		await db
-			.update(dbSchema.chat)
-			.set({ updatedAt: new Date() })
-			.where(eq(dbSchema.chat.id, input.chatId));
+				// Extend the existing branch
+				yield* db
+					.update(dbSchema.chatBranch)
+					.set({
+						leafMessageId: newMessage.id,
+						updatedAt: new Date(),
+					})
+					.where(eq(dbSchema.chatBranch.id, branchIdToUpdate));
 
-		return { data: query, branchId: branchIdToUpdate };
-	});
+				yield* db
+					.update(dbSchema.chat)
+					.set({ updatedAt: new Date() })
+					.where(eq(dbSchema.chat.id, input.chatId));
+
+				return { data: newMessage, branchId: branchIdToUpdate };
+			}),
+		),
+	);
 
 export const updateChatMessage = authed.chatMessage.update
 	.use(
@@ -418,96 +433,108 @@ export const updateChatMessage = authed.chatMessage.update
 				entityType: "chat",
 			}) satisfies CheckPermissionInput,
 	)
-	.handler(async ({ input }) => {
-		// 1. Get target message to check if it has children
-		const [targetMsg] = await db
-			.select()
-			.from(dbSchema.chatMessage)
-			.where(
-				and(
-					eq(dbSchema.chatMessage.id, input.id),
-					eq(dbSchema.chatMessage.chatId, input.chatId),
-				),
-			);
+	.handler(async ({ input, errors }) =>
+		runOrpcEffect(
+			Effect.gen(function* () {
+				const db = yield* DB;
 
-		if (!targetMsg) {
-			throw new ORPCError("NOT_FOUND", { message: "Message not found" });
-		}
+				const targetMsg = yield* db.query.chatMessage
+					.findFirst({
+						where: {
+							AND: [{ id: input.id }, { chatId: input.chatId }],
+						},
+					})
+					.pipe(
+						Effect.flatMap((msg) =>
+							Effect.fromNullable(msg).pipe(
+								Effect.orElse(() =>
+									Effect.fail(
+										errors.NOT_FOUND({
+											message: "Chat Message not found",
+											data: { id: input.id },
+										}),
+									),
+								),
+							),
+						),
+					);
 
-		// 2. Check for children (indicating this message is not a leaf)
-		const [childCount] = await db
-			.select({ count: count() })
-			.from(dbSchema.chatMessage)
-			.where(eq(dbSchema.chatMessage.parentMessageId, targetMsg.id));
+				// 2. Check for children (indicating this message is not a leaf)
+				const [childCount] = yield* db
+					.select({ count: count() })
+					.from(dbSchema.chatMessage)
+					.where(eq(dbSchema.chatMessage.parentMessageId, targetMsg.id));
 
-		const hasChildren = childCount.count > 0;
+				const hasChildren = childCount.count > 0;
 
-		if (!hasChildren) {
-			// Case A: Leaf message - Edit in place
-			const [query] = await db
-				.update(dbSchema.chatMessage)
-				.set({
-					parts: input.parts,
-					attachments: input.attachments,
-					metadata: input.metadata,
-				})
-				.where(eq(dbSchema.chatMessage.id, input.id))
-				.returning({ ...getColumns(dbSchema.chatMessage) });
+				if (!hasChildren) {
+					// Case A: Leaf message - Edit in place
+					const [chatMessage] = yield* db
+						.update(dbSchema.chatMessage)
+						.set({
+							parts: input.parts,
+							attachments: input.attachments,
+							metadata: input.metadata,
+						})
+						.where(eq(dbSchema.chatMessage.id, input.id))
+						.returning({ ...getColumns(dbSchema.chatMessage) });
 
-			await db
-				.update(dbSchema.chat)
-				.set({ updatedAt: new Date() })
-				.where(eq(dbSchema.chat.id, input.chatId));
+					yield* db
+						.update(dbSchema.chat)
+						.set({ updatedAt: new Date() })
+						.where(eq(dbSchema.chat.id, input.chatId));
 
-			return { data: query, branchId: input.branchId };
-		}
+					return { data: chatMessage, branchId: input.branchId };
+				}
 
-		// Case B: Non-leaf message - Fork by creating a new message
-		// This duplicates some logic from createChatMessage, but keeps it self-contained
-		const newMessageId = input.id; // Can reuse or generate new
-		const depth = targetMsg.depth;
+				// Case B: Non-leaf message - Fork by creating a new message
+				// This duplicates some logic from createChatMessage, but keeps it self-contained
+				const newMessageId = input.id; // Can reuse or generate new
+				const depth = targetMsg.depth;
 
-		const [newMessage] = await db
-			.insert(dbSchema.chatMessage)
-			.values({
-				id: newMessageId,
-				chatId: input.chatId,
-				role: targetMsg.role,
-				parts: input.parts ?? targetMsg.parts,
-				attachments: input.attachments ?? targetMsg.attachments,
-				metadata: input.metadata ?? targetMsg.metadata,
-				parentMessageId: targetMsg.parentMessageId,
-				depth,
-				createdAt: new Date(),
-			})
-			.returning({ ...getColumns(dbSchema.chatMessage) });
+				const [newMessage] = yield* db
+					.insert(dbSchema.chatMessage)
+					.values({
+						id: newMessageId,
+						chatId: input.chatId,
+						role: targetMsg.role,
+						parts: input.parts ?? targetMsg.parts,
+						attachments: input.attachments ?? targetMsg.attachments,
+						metadata: input.metadata ?? targetMsg.metadata,
+						parentMessageId: targetMsg.parentMessageId,
+						depth,
+						createdAt: new Date(),
+					})
+					.returning({ ...getColumns(dbSchema.chatMessage) });
 
-		// Create new branch
-		const [countRes] = await db
-			.select({ count: count() })
-			.from(dbSchema.chatBranch)
-			.where(eq(dbSchema.chatBranch.chatId, input.chatId));
+				// Create new branch
+				const [countRes] = yield* db
+					.select({ count: count() })
+					.from(dbSchema.chatBranch)
+					.where(eq(dbSchema.chatBranch.chatId, input.chatId));
 
-		const [newBranch] = await db
-			.insert(dbSchema.chatBranch)
-			.values({
-				chatId: input.chatId,
-				name: `Branch ${countRes.count + 1}`,
-				leafMessageId: newMessage.id,
-			})
-			.returning();
+				const [newBranch] = yield* db
+					.insert(dbSchema.chatBranch)
+					.values({
+						chatId: input.chatId,
+						name: `Branch ${countRes.count + 1}`,
+						leafMessageId: newMessage.id,
+					})
+					.returning();
 
-		// Set as active branch
-		await db
-			.update(dbSchema.chat)
-			.set({
-				activeBranchId: newBranch.id,
-				updatedAt: new Date(),
-			})
-			.where(eq(dbSchema.chat.id, input.chatId));
+				// Set as active branch
+				yield* db
+					.update(dbSchema.chat)
+					.set({
+						activeBranchId: newBranch.id,
+						updatedAt: new Date(),
+					})
+					.where(eq(dbSchema.chat.id, input.chatId));
 
-		return { data: newMessage, branchId: newBranch.id };
-	});
+				return { data: newMessage, branchId: newBranch.id };
+			}),
+		),
+	);
 
 export const deleteChatMessages = authed.chatMessage.delete
 	.use(
@@ -550,19 +577,30 @@ export const rateChatMessage = authed.chatMessage.rate
 				entityType: "chat",
 			}) satisfies CheckPermissionInput,
 	)
-	.handler(({ input }) => {
-		langfuseServer.score({
-			id: input.id,
-			traceId: input.id,
-			name: "rate_helpfulness",
-			value: input.sentiment,
-			environment:
-				process.env.NODE_ENV === "production" ? "production" : "development",
-		});
-
-		return {
-			success: true,
-			message: "Message rated successfully",
-			data: input,
-		};
-	});
+	.handler(({ input, errors }) =>
+		runOrpcEffect(
+			Effect.try({
+				try: () =>
+					langfuseServer.score({
+						id: input.id,
+						traceId: input.id,
+						name: "rate_helpfulness",
+						value: input.sentiment,
+						environment:
+							process.env.NODE_ENV === "production"
+								? "production"
+								: "development",
+					}),
+				catch: () =>
+					errors.BAD_REQUEST({
+						message: "Error rating message",
+					}),
+			}).pipe(
+				Effect.map(() => ({
+					success: true,
+					message: "Message rated successfully",
+					data: input,
+				})),
+			),
+		),
+	);

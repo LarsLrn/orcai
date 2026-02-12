@@ -1,16 +1,19 @@
-import { ORPCError } from "@orpc/server";
-import { eq, getColumns } from "drizzle-orm";
-import { db } from "@/db/drizzle";
-import { dbSchema } from "@/db/schema";
+import * as Effect from "effect/Effect";
+import { DB } from "@/lib/effect/services/drizzle";
+import { runOrpcEffect } from "@/lib/effect/utils/orpc-helpers";
 import { authed } from "@/lib/orpc/implementation/authed";
 
-export const listProviders = authed.provider.list.handler(async () => {
-	const providers = await db
-		.select({ ...getColumns(dbSchema.provider) })
-		.from(dbSchema.provider);
+export const listProviders = authed.provider.list.handler(async () =>
+	runOrpcEffect(
+		Effect.gen(function* () {
+			const db = yield* DB;
 
-	return { data: providers };
-});
+			return yield* db.query.provider
+				.findMany()
+				.pipe(Effect.map((providers) => ({ data: providers })));
+		}),
+	),
+);
 
 export const findProvider = authed.provider.find
 	/* .use(
@@ -22,17 +25,29 @@ export const findProvider = authed.provider.find
         entityType: "organization",
       }) satisfies CheckPermissionInput,
   ) */
-	.handler(async ({ input }) => {
-		const [provider] = await db
-			.select({ ...getColumns(dbSchema.provider) })
-			.from(dbSchema.provider)
-			.where(eq(dbSchema.provider.slug, input.slug));
+	.handler(async ({ input, errors }) =>
+		runOrpcEffect(
+			Effect.gen(function* () {
+				const db = yield* DB;
 
-		if (!provider) {
-			throw new ORPCError("NOT_FOUND", {
-				message: "Provider not found",
-			});
-		}
-
-		return { data: provider };
-	});
+				return yield* db.query.provider
+					.findFirst({
+						where: {
+							slug: input.slug,
+						},
+					})
+					.pipe(
+						Effect.flatMap((provider) =>
+							Effect.fromNullable(provider).pipe(
+								Effect.orElse(() =>
+									Effect.fail(
+										errors.NOT_FOUND({ message: "Provider not found" }),
+									),
+								),
+							),
+						),
+						Effect.map((provider) => ({ data: provider })),
+					);
+			}),
+		),
+	);

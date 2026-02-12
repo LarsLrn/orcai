@@ -1,66 +1,91 @@
-import { ORPCError } from "@orpc/server";
 import { and, eq, getColumns, inArray, sql } from "drizzle-orm";
-import { db } from "@/db/drizzle";
+import * as Effect from "effect/Effect";
 import { dbSchema } from "@/db/schema";
+import { DB } from "@/lib/effect/services/drizzle";
+import { runOrpcEffect } from "@/lib/effect/utils/orpc-helpers";
 import { authed } from "@/lib/orpc/implementation/authed";
 import type { Capability } from "@/lib/orpc/schemas/capability";
 import type { Model } from "@/lib/orpc/schemas/model";
 
-export const listModels = authed.model.list.handler(async ({ input }) => {
-	let models: (typeof dbSchema.model.$inferSelect)[];
+export const listModels = authed.model.list.handler(async ({ input }) =>
+	runOrpcEffect(
+		Effect.gen(function* () {
+			const db = yield* DB;
 
-	// If capabilities are specified, filter models that have those capabilities
-	if (input.capabilities && input.capabilities.length > 0) {
-		models = await db
-			.select({ ...getColumns(dbSchema.model) })
-			.from(dbSchema.model)
-			.innerJoin(
-				dbSchema.modelCapability,
-				eq(dbSchema.modelCapability.modelId, dbSchema.model.id),
-			)
-			.where(
-				and(
-					eq(dbSchema.model.providerSlug, input.providerSlug),
-					inArray(dbSchema.modelCapability.capability, input.capabilities),
-				),
-			)
-			.groupBy(dbSchema.model.id)
-			.having(
-				sql`COUNT(DISTINCT ${dbSchema.modelCapability.capability}) = ${input.capabilities.length}`,
-			);
-	} else {
-		models = await db
-			.select({ ...getColumns(dbSchema.model) })
-			.from(dbSchema.model)
-			.where(eq(dbSchema.model.providerSlug, input.providerSlug));
-	}
+			const models =
+				input.capabilities && input.capabilities.length > 0
+					? yield* db
+							.select({ ...getColumns(dbSchema.model) })
+							.from(dbSchema.model)
+							.innerJoin(
+								dbSchema.modelCapability,
+								eq(dbSchema.modelCapability.modelId, dbSchema.model.id),
+							)
+							.where(
+								and(
+									eq(dbSchema.model.providerSlug, input.providerSlug),
+									inArray(
+										dbSchema.modelCapability.capability,
+										input.capabilities,
+									),
+								),
+							)
+							.groupBy(dbSchema.model.id)
+							.having(
+								sql`COUNT(DISTINCT ${dbSchema.modelCapability.capability}) = ${input.capabilities.length}`,
+							)
+					: yield* db.query.model.findMany({
+							where: {
+								providerSlug: input.providerSlug,
+							},
+						});
 
-	const capabilities = (await db
-		.select({
-			...getColumns(dbSchema.capability),
-			...getColumns(dbSchema.modelCapability),
-		})
-		.from(dbSchema.capability)
-		.innerJoin(
-			dbSchema.modelCapability,
-			eq(dbSchema.modelCapability.capability, dbSchema.capability.capability),
-		)
-		.where(
-			inArray(
-				dbSchema.modelCapability.modelId,
-				models.map((m) => m.id),
-			),
-		)) as (Capability & { modelId: Model["id"] })[];
+			if (models.length === 0) {
+				return { data: [] };
+			}
 
-	return {
-		data: models.map((model) => ({
-			...model,
-			capabilities: capabilities.filter(
-				(capability) => capability.modelId === model.id,
-			),
-		})),
-	};
-});
+			const capabilityRows = (yield* db
+				.select({
+					modelId: dbSchema.modelCapability.modelId,
+					...getColumns(dbSchema.capability),
+				})
+				.from(dbSchema.modelCapability)
+				.innerJoin(
+					dbSchema.capability,
+					eq(
+						dbSchema.modelCapability.capability,
+						dbSchema.capability.capability,
+					),
+				)
+				.where(
+					inArray(
+						dbSchema.modelCapability.modelId,
+						models.map((model) => model.id),
+					),
+				)) as (Capability & { modelId: Model["id"] })[];
+
+			const capabilitiesByModel = new Map<Model["id"], Capability[]>();
+
+			for (const capabilityRow of capabilityRows) {
+				const capabilities =
+					capabilitiesByModel.get(capabilityRow.modelId) ?? [];
+				capabilities.push({
+					capability: capabilityRow.capability,
+					name: capabilityRow.name,
+					description: capabilityRow.description,
+				});
+				capabilitiesByModel.set(capabilityRow.modelId, capabilities);
+			}
+
+			return {
+				data: models.map((model) => ({
+					...model,
+					capabilities: capabilitiesByModel.get(model.id) ?? [],
+				})),
+			};
+		}),
+	),
+);
 
 export const findModel = authed.model.find
 	/* .use(
@@ -72,31 +97,49 @@ export const findModel = authed.model.find
         entityType: "organization",
       }) satisfies CheckPermissionInput,
   ) */
-	.handler(async ({ input }) => {
-		const [model] = await db
-			.select({ ...getColumns(dbSchema.model) })
-			.from(dbSchema.model)
-			.where(
-				and(
-					eq(dbSchema.model.slug, input.slug),
-					eq(dbSchema.model.providerSlug, input.providerSlug),
-				),
-			);
+	.handler(async ({ input, errors }) =>
+		runOrpcEffect(
+			Effect.gen(function* () {
+				const db = yield* DB;
 
-		const capabilities = (await db
-			.select({ ...getColumns(dbSchema.capability) })
-			.from(dbSchema.capability)
-			.innerJoin(
-				dbSchema.capability,
-				eq(dbSchema.capability.capability, dbSchema.modelCapability.capability),
-			)
-			.where(eq(dbSchema.modelCapability.modelId, model.id))) as Capability[];
+				const model = yield* db.query.model
+					.findFirst({
+						where: {
+							AND: [
+								{
+									slug: input.slug,
+								},
+								{
+									providerSlug: input.providerSlug,
+								},
+							],
+						},
+					})
+					.pipe(
+						Effect.flatMap((model) =>
+							Effect.fromNullable(model).pipe(
+								Effect.orElse(() =>
+									Effect.fail(errors.NOT_FOUND({ message: "Model not found" })),
+								),
+							),
+						),
+					);
 
-		if (!model) {
-			throw new ORPCError("NOT_FOUND", {
-				message: "Model not found",
-			});
-		}
+				const capabilities = (yield* db
+					.select({ ...getColumns(dbSchema.capability) })
+					.from(dbSchema.modelCapability)
+					.innerJoin(
+						dbSchema.capability,
+						eq(
+							dbSchema.modelCapability.capability,
+							dbSchema.capability.capability,
+						),
+					)
+					.where(
+						eq(dbSchema.modelCapability.modelId, model.id),
+					)) as Capability[];
 
-		return { data: { ...model, capabilities } };
-	});
+				return { data: { ...model, capabilities } };
+			}),
+		),
+	);

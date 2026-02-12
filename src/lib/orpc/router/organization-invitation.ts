@@ -1,37 +1,50 @@
-import { ORPCError } from "@orpc/server";
-import { count, eq, getColumns, inArray, or } from "drizzle-orm";
-import { db } from "@/db/drizzle";
+import { and, count, eq, getColumns, inArray, or } from "drizzle-orm";
+import * as Effect from "effect/Effect";
 import { dbSchema } from "@/db/schema";
+import { DB } from "@/lib/effect/services/drizzle";
+import { runOrpcEffect } from "@/lib/effect/utils/orpc-helpers";
 import { authed } from "@/lib/orpc/implementation/authed";
 import { requireActiveOrganizationMiddleware } from "@/lib/orpc/middlewares/auth";
 
 export const listOrganizationInvitations =
-	authed.organizationInvitation.list.handler(async ({ input, context }) => {
-		const [data, [rowCount]] = await Promise.all([
-			db
-				.select({ ...getColumns(dbSchema.invitation) })
-				.from(dbSchema.invitation)
-				.where(
-					or(
-						eq(dbSchema.invitation.email, context.auth.user.email),
-						eq(dbSchema.invitation.inviterId, context.auth.user.id),
-					),
-				)
-				.limit(input.pageSize)
-				.offset(input.pageIndex * input.pageSize),
-			db
-				.select({ count: count() })
-				.from(dbSchema.invitation)
-				.where(
-					or(
-						eq(dbSchema.invitation.email, context.auth.user.email),
-						eq(dbSchema.invitation.inviterId, context.auth.user.id),
-					),
-				),
-		]);
+	authed.organizationInvitation.list.handler(async ({ input, context }) =>
+		runOrpcEffect(
+			Effect.gen(function* () {
+				const db = yield* DB;
 
-		return { data, rowCount: rowCount.count };
-	});
+				const [data, [rowCount]] = yield* Effect.all(
+					[
+						db.query.invitation.findMany({
+							where: {
+								OR: [
+									{
+										email: context.auth.user.email,
+									},
+									{
+										inviterId: context.auth.user.id,
+									},
+								],
+							},
+							limit: input.pageSize,
+							offset: input.pageIndex * input.pageSize,
+						}),
+						db
+							.select({ count: count() })
+							.from(dbSchema.invitation)
+							.where(
+								or(
+									eq(dbSchema.invitation.email, context.auth.user.email),
+									eq(dbSchema.invitation.inviterId, context.auth.user.id),
+								),
+							),
+					],
+					{ concurrency: "unbounded" },
+				);
+
+				return { data, rowCount: rowCount.count };
+			}),
+		),
+	);
 
 export const findOrganizationInvitation = authed.organizationInvitation.find
 	/* .use(
@@ -43,39 +56,66 @@ export const findOrganizationInvitation = authed.organizationInvitation.find
 				entityType: "course",
 			}) satisfies CheckPermissionInput,
 	) */
-	.handler(async ({ input }) => {
-		const [query] = await db
-			.select({ ...getColumns(dbSchema.invitation) })
-			.from(dbSchema.invitation)
-			.where(eq(dbSchema.invitation.id, input.id));
+	.handler(async ({ input, errors }) =>
+		runOrpcEffect(
+			Effect.gen(function* () {
+				const db = yield* DB;
 
-		if (!query) {
-			throw new ORPCError("NOT_FOUND", { message: "Invitation not found" });
-		}
-
-		return { data: query };
-	});
+				return yield* db.query.invitation
+					.findFirst({
+						where: {
+							AND: [
+								{
+									id: input.id,
+								},
+								{
+									organizationId: input.organizationId,
+								},
+							],
+						},
+					})
+					.pipe(
+						Effect.flatMap((invitation) =>
+							Effect.fromNullable(invitation).pipe(
+								Effect.orElse(() =>
+									Effect.fail(
+										errors.NOT_FOUND({ message: "Invitation not found" }),
+									),
+								),
+							),
+						),
+						Effect.map((invitation) => ({ data: invitation })),
+					);
+			}),
+		),
+	);
 
 export const createOrganizationInvitations =
 	authed.organizationInvitation.create
 		.use(requireActiveOrganizationMiddleware)
-		.handler(async ({ input, context }) => {
-			const invitations = input.items.map((item) => ({
-				email: item.email,
-				organizationId: input.organizationId,
-				role: input.role,
-				status: "pending",
-				expiresAt: input.expiresAt,
-				inviterId: context.auth.user.id,
-			}));
+		.handler(async ({ input, context }) =>
+			runOrpcEffect(
+				Effect.gen(function* () {
+					const db = yield* DB;
 
-			const query = await db
-				.insert(dbSchema.invitation)
-				.values(invitations)
-				.returning();
+					const invitations = input.items.map((item) => ({
+						email: item.email,
+						organizationId: input.organizationId,
+						role: input.role,
+						status: "pending",
+						expiresAt: input.expiresAt,
+						inviterId: context.auth.user.id,
+					}));
 
-			return { data: query };
-		});
+					const data = yield* db
+						.insert(dbSchema.invitation)
+						.values(invitations)
+						.returning({ ...getColumns(dbSchema.invitation) });
+
+					return { data };
+				}),
+			),
+		);
 
 export const updateOrganizationInvitation = authed.organizationInvitation.update
 	/* .use(
@@ -87,15 +127,36 @@ export const updateOrganizationInvitation = authed.organizationInvitation.update
 				entityType: "organizationInvitation",
 			}) satisfies CheckPermissionInput,
 	) */
-	.handler(async ({ input }) => {
-		const [query] = await db
-			.update(dbSchema.invitation)
-			.set(input)
-			.where(eq(dbSchema.invitation.id, input.id))
-			.returning({ ...getColumns(dbSchema.invitation) });
+	.handler(async ({ input, errors }) =>
+		runOrpcEffect(
+			Effect.gen(function* () {
+				const db = yield* DB;
 
-		return { data: query };
-	});
+				const [invitation] = yield* db
+					.update(dbSchema.invitation)
+					.set(input)
+					.where(
+						and(
+							eq(dbSchema.invitation.id, input.id),
+							eq(dbSchema.invitation.organizationId, input.organizationId),
+						),
+					)
+					.returning({ ...getColumns(dbSchema.invitation) });
+
+				return yield* Effect.fromNullable(invitation).pipe(
+					Effect.orElse(() =>
+						Effect.fail(
+							errors.NOT_FOUND({
+								message: "Organization invitation not found",
+								data: { id: input.id },
+							}),
+						),
+					),
+					Effect.map((data) => ({ data })),
+				);
+			}),
+		),
+	);
 
 export const deleteOrganizationInvitations =
 	authed.organizationInvitation.delete
@@ -108,33 +169,42 @@ export const deleteOrganizationInvitations =
 				entityType: "organizationInvitation",
 			}) satisfies CheckManyPermissionInput,
 	) */
-		.handler(async ({ input }) => {
-			/* // Check if there are any IDs to delete
+		.handler(async ({ input }) =>
+			runOrpcEffect(
+				Effect.gen(function* () {
+					const db = yield* DB;
+
+					/* // Check if there are any IDs to delete
 		if (!context.allowedIds || context.allowedIds.length === 0) {
 			return { success: true, message: "No courses to delete" };
 		} */
 
-			try {
-				const ids = input.refs.map((ref) => ref.id);
-				await db
-					.delete(dbSchema.invitation)
-					.where(inArray(dbSchema.invitation.id, ids));
+					const ids = input.refs.map((ref) => ref.id);
+					yield* db
+						.delete(dbSchema.invitation)
+						.where(
+							and(
+								eq(dbSchema.invitation.organizationId, input.organizationId),
+								inArray(dbSchema.invitation.id, ids),
+							),
+						);
 
-				return {
-					success: true,
-					message: "Organisation invitations deleted successfully",
-				};
-			} catch {
-				throw new ORPCError("INTERNAL_SERVER_ERROR", {
-					message: "Failed to delete organisation invitations",
-				});
-			}
-		});
+					return {
+						success: true,
+						message: "Organisation invitations deleted successfully",
+					};
+				}),
+			),
+		);
 
 export const respondToOrganisationInvitation =
-	authed.organizationInvitation.respond.handler(({ input }) => {
-		const acceptInvitation = () => {
-			/* const [invitation] = await db
+	authed.organizationInvitation.respond.handler(async ({ input, errors }) =>
+		runOrpcEffect(
+			Effect.gen(function* () {
+				const db = yield* DB;
+
+				const acceptInvitation = () => {
+					/* const [invitation] = await db
 				.select({ ...getColumns(dbSchema.invitation) })
 				.from(dbSchema.invitation)
 				.where(eq(dbSchema.invitation.id, input.id));
@@ -190,29 +260,33 @@ export const respondToOrganisationInvitation =
 				headers,
 			}); */
 
-			return { success: true, message: "Invitation accepted successfully" };
-		};
+					return { success: true, message: "Invitation accepted successfully" };
+				};
 
-		const rejectInvitation = async () => {
-			await db
-				.update(dbSchema.invitation)
-				.set({
-					status: "rejected",
-					updatedAt: new Date(),
-				})
-				.where(eq(dbSchema.invitation.id, input.id));
+				const rejectInvitation = Effect.gen(function* () {
+					yield* db
+						.update(dbSchema.invitation)
+						.set({
+							status: "rejected",
+							updatedAt: new Date(),
+						})
+						.where(eq(dbSchema.invitation.id, input.id));
 
-			return { success: true, message: "Invitation rejected successfully" };
-		};
-
-		switch (input.response) {
-			case "accept":
-				return acceptInvitation();
-			case "reject":
-				return rejectInvitation();
-			default:
-				throw new ORPCError("BAD_REQUEST", {
-					message: "Invalid response to organization invitation",
+					return { success: true, message: "Invitation rejected successfully" };
 				});
-		}
-	});
+
+				switch (input.response) {
+					case "accept":
+						return acceptInvitation();
+					case "reject":
+						return yield* rejectInvitation;
+					default:
+						return yield* Effect.fail(
+							errors.BAD_REQUEST({
+								message: "Invalid response to organization invitation",
+							}),
+						);
+				}
+			}),
+		),
+	);

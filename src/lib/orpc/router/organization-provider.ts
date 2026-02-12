@@ -1,39 +1,45 @@
-import { ORPCError } from "@orpc/server";
 import { and, count, eq, getColumns, inArray } from "drizzle-orm";
-import { db } from "@/db/drizzle";
+import * as Effect from "effect/Effect";
 import { dbSchema } from "@/db/schema";
+import { DB } from "@/lib/effect/services/drizzle";
+import { runOrpcEffect } from "@/lib/effect/utils/orpc-helpers";
 import { encryptApiKey } from "@/lib/encryption";
 import { authed } from "@/lib/orpc/implementation/authed";
 import { requireActiveOrganizationMiddleware } from "@/lib/orpc/middlewares/auth";
 
 export const listOrganizationProviders = authed.organizationProvider.list
 	.use(requireActiveOrganizationMiddleware)
-	.handler(async ({ input, context }) => {
-		const [data, [rowCount]] = await Promise.all([
-			db
-				.select({ ...getColumns(dbSchema.organizationProvider) })
-				.from(dbSchema.organizationProvider)
-				.where(
-					eq(
-						dbSchema.organizationProvider.organizationId,
-						context.auth.session.activeOrganizationId,
-					),
-				)
-				.limit(input.pageSize)
-				.offset(input.pageIndex * input.pageSize),
-			db
-				.select({ count: count() })
-				.from(dbSchema.organizationProvider)
-				.where(
-					eq(
-						dbSchema.organizationProvider.organizationId,
-						context.auth.session.activeOrganizationId,
-					),
-				),
-		]);
+	.handler(async ({ input, context }) =>
+		runOrpcEffect(
+			Effect.gen(function* () {
+				const db = yield* DB;
 
-		return { data, rowCount: rowCount.count };
-	});
+				const [data, [rowCount]] = yield* Effect.all(
+					[
+						db.query.organizationProvider.findMany({
+							where: {
+								organizationId: context.auth.session.activeOrganizationId,
+							},
+							limit: input.pageSize,
+							offset: input.pageIndex * input.pageSize,
+						}),
+						db
+							.select({ count: count() })
+							.from(dbSchema.organizationProvider)
+							.where(
+								eq(
+									dbSchema.organizationProvider.organizationId,
+									context.auth.session.activeOrganizationId,
+								),
+							),
+					],
+					{ concurrency: "unbounded" },
+				);
+
+				return { data, rowCount: rowCount.count };
+			}),
+		),
+	);
 
 export const findOrganizationProvider = authed.organizationProvider.find
 	.use(requireActiveOrganizationMiddleware)
@@ -46,50 +52,71 @@ export const findOrganizationProvider = authed.organizationProvider.find
         entityType: "organization",
       }) satisfies CheckPermissionInput,
   ) */
-	.handler(async ({ input, context }) => {
-		const [organizationProvider] = await db
-			.select({ ...getColumns(dbSchema.organizationProvider) })
-			.from(dbSchema.organizationProvider)
-			.where(
-				and(
-					eq(dbSchema.organizationProvider.providerSlug, input.providerSlug),
-					eq(
-						dbSchema.organizationProvider.organizationId,
-						context.auth.session.activeOrganizationId,
-					),
-				),
-			);
+	.handler(async ({ input, context, errors }) =>
+		runOrpcEffect(
+			Effect.gen(function* () {
+				const db = yield* DB;
 
-		if (!organizationProvider) {
-			throw new ORPCError("NOT_FOUND", {
-				message: "Organization provider not found",
-			});
-		}
-
-		return { data: organizationProvider };
-	});
+				return yield* db.query.organizationProvider
+					.findFirst({
+						where: {
+							AND: [
+								{
+									providerSlug: input.providerSlug,
+								},
+								{
+									organizationId: context.auth.session.activeOrganizationId,
+								},
+							],
+						},
+					})
+					.pipe(
+						Effect.flatMap((organizationProvider) =>
+							Effect.fromNullable(organizationProvider).pipe(
+								Effect.orElse(() =>
+									Effect.fail(
+										errors.NOT_FOUND({
+											message: "Organization provider not found",
+										}),
+									),
+								),
+							),
+						),
+						Effect.map((organizationProvider) => ({
+							data: organizationProvider,
+						})),
+					);
+			}),
+		),
+	);
 
 export const createOrganizationProvider = authed.organizationProvider.create
 	.use(requireActiveOrganizationMiddleware)
-	.handler(async ({ input, context }) => {
-		// Encrypt the plain text API key received from frontend
-		const apiKeyEncrypted = await encryptApiKey(input.apiKey);
+	.handler(async ({ input, context }) =>
+		runOrpcEffect(
+			Effect.gen(function* () {
+				const db = yield* DB;
 
-		// Remove the plain text apiKey from input and add the encrypted version
-		const { apiKey: _, ...inputWithoutApiKey } = input;
+				const apiKeyEncrypted = yield* Effect.promise(() =>
+					encryptApiKey(input.apiKey),
+				);
 
-		const [query] = await db
-			.insert(dbSchema.organizationProvider)
-			.values({
-				...inputWithoutApiKey,
-				organizationId: context.auth.session.activeOrganizationId,
-				apiKeyEncrypted,
-				createdAt: new Date(),
-			})
-			.returning({ ...getColumns(dbSchema.organizationProvider) });
+				const { apiKey: _apiKey, ...inputWithoutApiKey } = input;
 
-		return { data: query };
-	});
+				const [organizationProvider] = yield* db
+					.insert(dbSchema.organizationProvider)
+					.values({
+						...inputWithoutApiKey,
+						organizationId: context.auth.session.activeOrganizationId,
+						apiKeyEncrypted,
+						createdAt: new Date(),
+					})
+					.returning({ ...getColumns(dbSchema.organizationProvider) });
+
+				return { data: organizationProvider };
+			}),
+		),
+	);
 
 export const updateOrganizationProvider = authed.organizationProvider.update
 	.use(requireActiveOrganizationMiddleware)
@@ -102,35 +129,43 @@ export const updateOrganizationProvider = authed.organizationProvider.update
         entityType: "organization",
       }) satisfies CheckPermissionInput,
   ) */
-	.handler(async ({ input, context }) => {
-		// Prepare the update data
-		let updateData: any = { ...input };
+	.handler(async ({ input, context }) =>
+		runOrpcEffect(
+			Effect.gen(function* () {
+				const db = yield* DB;
 
-		// If apiKey is provided, encrypt it and replace with apiKeyEncrypted
-		if (input.apiKey) {
-			const { apiKey: _, ...inputWithoutApiKey } = input;
-			updateData = {
-				...inputWithoutApiKey,
-				apiKeyEncrypted: await encryptApiKey(input.apiKey),
-			};
-		}
+				const { apiKey, ...inputWithoutApiKey } = input;
+				const updateData =
+					apiKey === undefined
+						? inputWithoutApiKey
+						: {
+								...inputWithoutApiKey,
+								apiKeyEncrypted: yield* Effect.promise(() =>
+									encryptApiKey(apiKey),
+								),
+							};
 
-		const [query] = await db
-			.update(dbSchema.organizationProvider)
-			.set(updateData)
-			.where(
-				and(
-					eq(
-						dbSchema.organizationProvider.organizationId,
-						context.auth.session.activeOrganizationId,
-					),
-					eq(dbSchema.organizationProvider.providerSlug, input.providerSlug),
-				),
-			)
-			.returning({ ...getColumns(dbSchema.organizationProvider) });
+				const [organizationProvider] = yield* db
+					.update(dbSchema.organizationProvider)
+					.set(updateData)
+					.where(
+						and(
+							eq(
+								dbSchema.organizationProvider.organizationId,
+								context.auth.session.activeOrganizationId,
+							),
+							eq(
+								dbSchema.organizationProvider.providerSlug,
+								input.providerSlug,
+							),
+						),
+					)
+					.returning({ ...getColumns(dbSchema.organizationProvider) });
 
-		return { data: query };
-	});
+				return { data: organizationProvider };
+			}),
+		),
+	);
 
 export const deleteOrganizationProviders = authed.organizationProvider.delete
 	.use(requireActiveOrganizationMiddleware)
@@ -138,39 +173,33 @@ export const deleteOrganizationProviders = authed.organizationProvider.delete
 		checkManyPermissionMiddleware,
 		(input) =>
 			({
-				entityIds: input.refs.map((ref) => ref.userId),
+				entityIds: input.refs.map((ref) => ref.providerSlug),
 				action: "delete",
 				entityType: "organization",
 			}) satisfies CheckManyPermissionInput,
 	) */
-	.handler(async ({ input, context }) => {
-		/* 
-		// Check if there are any IDs to delete
-		if (!context.allowedIds || context.allowedIds.length === 0) {
-			return { success: true, message: "No organization members to delete" };
-		} */
+	.handler(async ({ input, context }) =>
+		runOrpcEffect(
+			Effect.gen(function* () {
+				const db = yield* DB;
 
-		try {
-			await db.delete(dbSchema.organizationProvider).where(
-				and(
-					eq(
-						dbSchema.organizationProvider.organizationId,
-						context.auth.session.activeOrganizationId,
+				yield* db.delete(dbSchema.organizationProvider).where(
+					and(
+						eq(
+							dbSchema.organizationProvider.organizationId,
+							context.auth.session.activeOrganizationId,
+						),
+						inArray(
+							dbSchema.organizationProvider.providerSlug,
+							input.refs.map((ref) => ref.providerSlug),
+						),
 					),
-					inArray(
-						dbSchema.organizationProvider.providerSlug,
-						input.refs.map((ref) => ref.providerSlug),
-					),
-				),
-			);
+				);
 
-			return {
-				success: true,
-				message: "Organization providers deleted successfully",
-			};
-		} catch {
-			throw new ORPCError("INTERNAL_SERVER_ERROR", {
-				message: "Failed to delete organization providers",
-			});
-		}
-	});
+				return {
+					success: true,
+					message: "Organization providers deleted successfully",
+				};
+			}),
+		),
+	);
