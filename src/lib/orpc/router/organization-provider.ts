@@ -73,7 +73,7 @@ export const createOrganizationProvider = authed.organizationProvider.create
 	.use(requireActiveOrganizationMiddleware)
 	.handler(async ({ input, context }) => {
 		// Encrypt the plain text API key received from frontend
-		const apiKeyEncrypted = encryptApiKey(input.apiKey);
+		const apiKeyEncrypted = await encryptApiKey(input.apiKey);
 
 		// Remove the plain text apiKey from input and add the encrypted version
 		const { apiKey: _, ...inputWithoutApiKey } = input;
@@ -111,7 +111,7 @@ export const updateOrganizationProvider = authed.organizationProvider.update
 			const { apiKey: _, ...inputWithoutApiKey } = input;
 			updateData = {
 				...inputWithoutApiKey,
-				apiKeyEncrypted: encryptApiKey(input.apiKey),
+				apiKeyEncrypted: await encryptApiKey(input.apiKey),
 			};
 		}
 

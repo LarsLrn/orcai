@@ -20,7 +20,9 @@ export const getChatAiSettings = async ({
 
 	const provider = createOpenAICompatible({
 		baseURL: baseProvider.data.endpoint ?? "", // TODO: Fix?
-		apiKey: decryptApiKey(organizationProviderSettings.data.apiKeyEncrypted),
+		apiKey: await decryptApiKey(
+			organizationProviderSettings.data.apiKeyEncrypted,
+		),
 		name: baseProvider.data.slug,
 		includeUsage: true,
 	});

@@ -1,6 +1,6 @@
 import { createOpenAICompatible } from "@ai-sdk/openai-compatible";
 import {
-	experimental_generateImage as generateImage,
+	generateImage,
 	generateText,
 	tool,
 	type UIMessageStreamWriter,
@@ -39,7 +39,7 @@ export const generateImageTool = ({
 
 			const provider = createOpenAICompatible({
 				baseURL: systemProvider.data.endpoint ?? "", // TODO: Fix?
-				apiKey: decryptApiKey(organizationProvider.data.apiKeyEncrypted),
+				apiKey: await decryptApiKey(organizationProvider.data.apiKeyEncrypted),
 				name: systemProvider.data.slug,
 				includeUsage: true,
 			});
