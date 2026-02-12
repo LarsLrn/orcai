@@ -9,7 +9,7 @@ import {
 	XIcon,
 } from "lucide-react";
 import type { ComponentProps, HTMLAttributes, ReactNode } from "react";
-import { createContext, useContext, useMemo } from "react";
+import { createContext, useCallback, useContext, useMemo } from "react";
 import { Button } from "@/components/ui/button";
 import {
 	HoverCard,
@@ -35,6 +35,15 @@ export type AttachmentMediaCategory =
 	| "unknown";
 
 export type AttachmentVariant = "grid" | "inline" | "list";
+
+const mediaCategoryIcons: Record<AttachmentMediaCategory, typeof ImageIcon> = {
+	audio: Music2Icon,
+	document: FileTextIcon,
+	image: ImageIcon,
+	source: GlobeIcon,
+	unknown: PaperclipIcon,
+	video: VideoIcon,
+};
 
 // ============================================================================
 // Utility Functions
@@ -73,6 +82,29 @@ export const getAttachmentLabel = (data: AttachmentData): string => {
 	const category = getMediaCategory(data);
 	return data.filename || (category === "image" ? "Image" : "Attachment");
 };
+
+const renderAttachmentImage = (
+	url: string,
+	filename: string | undefined,
+	isGrid: boolean,
+) =>
+	isGrid ? (
+		<img
+			alt={filename || "Image"}
+			className="size-full object-cover"
+			height={96}
+			src={url}
+			width={96}
+		/>
+	) : (
+		<img
+			alt={filename || "Image"}
+			className="size-full rounded object-cover"
+			height={20}
+			src={url}
+			width={20}
+		/>
+	);
 
 // ============================================================================
 // Contexts
@@ -208,52 +240,20 @@ export const AttachmentPreview = ({
 
 	const iconSize = variant === "inline" ? "size-3" : "size-4";
 
-	const renderImage = (
-		url: string,
-		filename: string | undefined,
-		isGrid: boolean,
-	) =>
-		isGrid ? (
-			<img
-				alt={filename || "Image"}
-				className="size-full object-cover"
-				height={96}
-				src={url}
-				width={96}
-			/>
-		) : (
-			<img
-				alt={filename || "Image"}
-				className="size-full rounded object-cover"
-				height={20}
-				src={url}
-				width={20}
-			/>
-		);
-
 	const renderIcon = (Icon: typeof ImageIcon) => (
 		<Icon className={cn(iconSize, "text-muted-foreground")} />
 	);
 
 	const renderContent = () => {
 		if (mediaCategory === "image" && data.type === "file" && data.url) {
-			return renderImage(data.url, data.filename, variant === "grid");
+			return renderAttachmentImage(data.url, data.filename, variant === "grid");
 		}
 
 		if (mediaCategory === "video" && data.type === "file" && data.url) {
 			return <video className="size-full object-cover" muted src={data.url} />;
 		}
 
-		const iconMap: Record<AttachmentMediaCategory, typeof ImageIcon> = {
-			image: ImageIcon,
-			video: VideoIcon,
-			audio: Music2Icon,
-			source: GlobeIcon,
-			document: FileTextIcon,
-			unknown: PaperclipIcon,
-		};
-
-		const Icon = iconMap[mediaCategory];
+		const Icon = mediaCategoryIcons[mediaCategory];
 		return fallbackIcon ?? renderIcon(Icon);
 	};
 
@@ -321,6 +321,14 @@ export const AttachmentRemove = ({
 }: AttachmentRemoveProps) => {
 	const { onRemove, variant } = useAttachmentContext();
 
+	const handleClick = useCallback(
+		(e: React.MouseEvent) => {
+			e.stopPropagation();
+			onRemove?.();
+		},
+		[onRemove],
+	);
+
 	if (!onRemove) {
 		return null;
 	}
@@ -344,10 +352,7 @@ export const AttachmentRemove = ({
 				variant === "list" && ["size-8 shrink-0 rounded p-0", "[&>svg]:size-4"],
 				className,
 			)}
-			onClick={(e) => {
-				e.stopPropagation();
-				onRemove();
-			}}
+			onClick={handleClick}
 			type="button"
 			variant="ghost"
 			{...props}
@@ -364,7 +369,7 @@ export const AttachmentRemove = ({
 
 export type AttachmentHoverCardProps = ComponentProps<typeof HoverCard>;
 
-export const AttachmentHoverCard = ({ ...props }: AttachmentHoverCardProps) => (
+export const AttachmentHoverCard = (props: AttachmentHoverCardProps) => (
 	<HoverCard {...props} />
 );
 

@@ -1,23 +1,22 @@
 import { CheckIcon, CopyIcon } from "lucide-react";
+import type { ComponentProps, CSSProperties, HTMLAttributes } from "react";
 import {
-	type ComponentProps,
-	type CSSProperties,
 	createContext,
-	type HTMLAttributes,
 	memo,
+	useCallback,
 	useContext,
 	useEffect,
 	useMemo,
 	useRef,
 	useState,
 } from "react";
-import {
-	type BundledLanguage,
-	type BundledTheme,
-	createHighlighter,
-	type HighlighterGeneric,
-	type ThemedToken,
+import type {
+	BundledLanguage,
+	BundledTheme,
+	HighlighterGeneric,
+	ThemedToken,
 } from "shiki";
+import { createHighlighter } from "shiki";
 import { Button } from "@/components/ui/button";
 import {
 	Select,
@@ -48,8 +47,8 @@ const addKeysToTokens = (lines: ThemedToken[][]): KeyedLine[] =>
 	lines.map((line, lineIdx) => ({
 		key: `line-${lineIdx}`,
 		tokens: line.map((token, tokenIdx) => ({
-			token,
 			key: `line-${lineIdx}-${tokenIdx}`,
+			token,
 		})),
 	}));
 
@@ -59,12 +58,12 @@ const TokenSpan = ({ token }: { token: ThemedToken }) => (
 		className="dark:bg-(--shiki-dark-bg)! dark:text-(--shiki-dark)!"
 		style={
 			{
-				color: token.color,
 				backgroundColor: token.bgColor,
-				...token.htmlStyle,
+				color: token.color,
 				fontStyle: isItalic(token.fontStyle) ? "italic" : undefined,
 				fontWeight: isBold(token.fontStyle) ? "bold" : undefined,
 				textDecoration: isUnderline(token.fontStyle) ? "underline" : undefined,
+				...token.htmlStyle,
 			} as CSSProperties
 		}
 	>
@@ -138,8 +137,8 @@ const getHighlighter = (
 	}
 
 	const highlighterPromise = createHighlighter({
-		themes: ["github-light", "github-dark"],
 		langs: [language],
+		themes: ["github-light", "github-dark"],
 	});
 
 	highlighterCache.set(language, highlighterPromise);
@@ -148,26 +147,26 @@ const getHighlighter = (
 
 // Create raw tokens for immediate display while highlighting loads
 const createRawTokens = (code: string): TokenizedCode => ({
+	bg: "transparent",
+	fg: "inherit",
 	tokens: code.split("\n").map((line) =>
 		line === ""
 			? []
 			: [
 					{
-						content: line,
 						color: "inherit",
+						content: line,
 					} as ThemedToken,
 				],
 	),
-	fg: "inherit",
-	bg: "transparent",
 });
 
 // Synchronous highlight with callback for async results
-export function highlightCode(
+export const highlightCode = (
 	code: string,
 	language: BundledLanguage,
 	callback?: (result: TokenizedCode) => void,
-): TokenizedCode | null {
+): TokenizedCode | null => {
 	const tokensCacheKey = getTokensCacheKey(code, language);
 
 	// Return cached result if available
@@ -184,7 +183,7 @@ export function highlightCode(
 		subscribers.get(tokensCacheKey)?.add(callback);
 	}
 
-	// Start highlighting in background
+	// Start highlighting in background - fire-and-forget async pattern
 	getHighlighter(language)
 		.then((highlighter) => {
 			const availableLangs = highlighter.getLoadedLanguages();
@@ -193,15 +192,15 @@ export function highlightCode(
 			const result = highlighter.codeToTokens(code, {
 				lang: langToUse,
 				themes: {
-					light: "github-light",
 					dark: "github-dark",
+					light: "github-light",
 				},
 			});
 
 			const tokenized: TokenizedCode = {
+				bg: result.bg ?? "transparent",
+				fg: result.fg ?? "inherit",
 				tokens: result.tokens,
-				fg: result.fg || "",
-				bg: result.bg || "",
 			};
 
 			// Cache the result
@@ -222,7 +221,7 @@ export function highlightCode(
 		});
 
 	return null;
-}
+};
 
 // Line number styles using CSS counters
 const LINE_NUMBER_CLASSES = cn(
@@ -293,6 +292,8 @@ const CodeBlockBody = memo(
 		prevProps.className === nextProps.className,
 );
 
+CodeBlockBody.displayName = "CodeBlockBody";
+
 export const CodeBlockContainer = ({
 	className,
 	language,
@@ -306,8 +307,8 @@ export const CodeBlockContainer = ({
 		)}
 		data-language={language}
 		style={{
-			contentVisibility: "auto",
 			containIntrinsicSize: "auto 200px",
+			contentVisibility: "auto",
 			...style,
 		}}
 		{...props}
@@ -321,7 +322,7 @@ export const CodeBlockHeader = ({
 }: HTMLAttributes<HTMLDivElement>) => (
 	<div
 		className={cn(
-			"flex items-center justify-between bg-muted/80 px-3 py-2 text-muted-foreground text-xs",
+			"flex items-center justify-between border-b bg-muted/80 px-3 py-2 text-muted-foreground text-xs",
 			className,
 		)}
 		{...props}
@@ -355,7 +356,10 @@ export const CodeBlockActions = ({
 	className,
 	...props
 }: HTMLAttributes<HTMLDivElement>) => (
-	<div className={cn("flex items-center gap-2", className)} {...props}>
+	<div
+		className={cn("-my-1 -mr-1 flex items-center gap-2", className)}
+		{...props}
+	>
 		{children}
 	</div>
 );
@@ -378,11 +382,21 @@ export const CodeBlockContent = ({
 	);
 
 	useEffect(() => {
+		let cancelled = false;
+
 		// Reset to raw tokens when code changes (shows current code, not stale tokens)
 		setTokenized(highlightCode(code, language) ?? rawTokens);
 
 		// Subscribe to async highlighting result
-		highlightCode(code, language, setTokenized);
+		highlightCode(code, language, (result) => {
+			if (!cancelled) {
+				setTokenized(result);
+			}
+		});
+
+		return () => {
+			cancelled = true;
+		};
 	}, [code, language, rawTokens]);
 
 	return (
@@ -399,18 +413,22 @@ export const CodeBlock = ({
 	className,
 	children,
 	...props
-}: CodeBlockProps) => (
-	<CodeBlockContext.Provider value={{ code }}>
-		<CodeBlockContainer className={className} language={language} {...props}>
-			{children}
-			<CodeBlockContent
-				code={code}
-				language={language}
-				showLineNumbers={showLineNumbers}
-			/>
-		</CodeBlockContainer>
-	</CodeBlockContext.Provider>
-);
+}: CodeBlockProps) => {
+	const contextValue = useMemo(() => ({ code }), [code]);
+
+	return (
+		<CodeBlockContext.Provider value={contextValue}>
+			<CodeBlockContainer className={className} language={language} {...props}>
+				{children}
+				<CodeBlockContent
+					code={code}
+					language={language}
+					showLineNumbers={showLineNumbers}
+				/>
+			</CodeBlockContainer>
+		</CodeBlockContext.Provider>
+	);
+};
 
 export type CodeBlockCopyButtonProps = ComponentProps<typeof Button> & {
 	onCopy?: () => void;
@@ -430,7 +448,7 @@ export const CodeBlockCopyButton = ({
 	const timeoutRef = useRef<number>(0);
 	const { code } = useContext(CodeBlockContext);
 
-	const copyToClipboard = async () => {
+	const copyToClipboard = useCallback(async () => {
 		if (typeof window === "undefined" || !navigator?.clipboard?.writeText) {
 			onError?.(new Error("Clipboard API not available"));
 			return;
@@ -449,7 +467,7 @@ export const CodeBlockCopyButton = ({
 		} catch (error) {
 			onError?.(error as Error);
 		}
-	};
+	}, [code, onCopy, onError, timeout, isCopied]);
 
 	useEffect(
 		() => () => {
