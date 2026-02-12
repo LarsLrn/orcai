@@ -12,7 +12,7 @@ const appConfig = Config.all({
 		db: Config.string("POSTGRES_DB"),
 	}),
 	s3: Config.all({
-		region: Config.string("S3_REGION"),
+		region: Config.option(Config.string("S3_REGION")),
 		endpoint: Config.string("S3_ENDPOINT"),
 		accessKey: Config.string("S3_ACCESS_KEY"),
 		secretKey: Config.string("S3_SECRET_KEY"),
@@ -38,6 +38,9 @@ const appConfig = Config.all({
 		port: Config.withDefault(Config.port("SMTP_PORT"), 587),
 		username: Config.string("SMTP_USERNAME"),
 		password: Config.string("SMTP_PASSWORD"),
+	}),
+	app: Config.all({
+		encryptionKey: Config.string("ENCRYPTION_KEY"),
 	}),
 });
 

@@ -1,5 +1,7 @@
 import { tool } from "ai";
+import * as Effect from "effect/Effect";
 import { z } from "zod/v4";
+import { AiError } from "@/lib/effect/utils/errors";
 import { client } from "@/lib/orpc/orpc";
 import type { DatabaseBlock } from "@/lib/orpc/schemas/block";
 
@@ -22,32 +24,47 @@ export const searchKnowledgeBaseTool = ({ block }: { block?: DatabaseBlock }) =>
 				.describe("The number of results to return.")
 				.default(block?.config.defaultReferences ?? 5),
 		}),
-		execute: async ({ limit, detailedQuery }) => {
-			if (!block) {
-				throw new Error(
-					"No database block provided for searchKnowledgeBaseTool.",
-				);
-			}
+		execute: async ({ limit, detailedQuery }) =>
+			Effect.runPromise(
+				Effect.gen(function* () {
+					if (!block) {
+						return yield* new AiError({
+							operation: "searchKnowledgeBaseTool",
+							cause: new Error(
+								"No database block provided for searchKnowledgeBaseTool.",
+							),
+						});
+					}
 
-			const result = await client.assetPoint.list({
-				filters: {
-					search: detailedQuery,
-					limit: limit,
-					blockId: block.id,
-				},
-			});
+					const result = yield* Effect.tryPromise({
+						try: () =>
+							client.assetPoint.list({
+								filters: {
+									search: detailedQuery,
+									limit: limit,
+									blockId: block.id,
+								},
+							}),
 
-			const chunks = result.data
-				.filter((point) => point.score > 0.5)
-				.map((point) => ({
-					id: point.id,
-					score: point.score,
-					title: point.payload.title,
-					text: point.payload.text,
-				}));
+						catch: (cause) =>
+							new AiError({
+								operation: "searchKnowledgeBaseTool",
+								cause,
+							}),
+					});
 
-			return {
-				result: chunks,
-			};
-		},
+					const chunks = result.data
+						.filter((point) => point.score > 0.5)
+						.map((point) => ({
+							id: point.id,
+							score: point.score,
+							title: point.payload.title,
+							text: point.payload.text,
+						}));
+
+					return {
+						result: chunks,
+					};
+				}),
+			),
 	});

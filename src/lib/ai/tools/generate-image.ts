@@ -5,8 +5,11 @@ import {
 	tool,
 	type UIMessageStreamWriter,
 } from "ai";
+import * as Effect from "effect/Effect";
 import { z } from "zod/v4";
 import { getSaiaModel } from "@/lib/ai/saia-models";
+import { runtime } from "@/lib/effect/runtime";
+import { AiError } from "@/lib/effect/utils/errors";
 import { decryptApiKey } from "@/lib/encryption";
 import { client } from "@/lib/orpc/orpc";
 import type { ImageGenerationBlock } from "@/lib/orpc/schemas/block";
@@ -28,60 +31,96 @@ export const generateImageTool = ({
 					"The prompt to generate the image from. If the user requests a revision of a previous image, inspect the 'description' field of the image in question, combined with the original prompt as 'prompt'.",
 				),
 		}),
-		execute: async ({ prompt }) => {
-			const systemProvider = await client.provider.find({
-				slug: block.config.provider,
-			});
+		execute: async ({ prompt }) =>
+			runtime.runPromise(
+				Effect.gen(function* () {
+					const systemProvider = yield* Effect.tryPromise({
+						try: () => client.provider.find({ slug: block.config.provider }),
+						catch: (cause) =>
+							new AiError({
+								operation: "generateImageTool.fetch.provider",
+								cause,
+							}),
+					});
 
-			const organizationProvider = await client.organizationProvider.find({
-				providerSlug: block.config.provider,
-			});
+					const organizationProvider = yield* Effect.tryPromise({
+						try: () =>
+							client.organizationProvider.find({
+								providerSlug: block.config.provider,
+							}),
+						catch: (cause) =>
+							new AiError({
+								operation: "generateImageTool.fetch.organizationProvider",
+								cause,
+							}),
+					});
 
-			const provider = createOpenAICompatible({
-				baseURL: systemProvider.data.endpoint ?? "", // TODO: Fix?
-				apiKey: await decryptApiKey(organizationProvider.data.apiKeyEncrypted),
-				name: systemProvider.data.slug,
-				includeUsage: true,
-			});
+					const apiKey = yield* decryptApiKey(
+						organizationProvider.data.apiKeyEncrypted,
+					);
 
-			const { image } = await generateImage({
-				model: provider.imageModel(block.config.model),
-				prompt: `${block.config.prompt}\n\n${prompt}`,
-			});
+					const provider = createOpenAICompatible({
+						baseURL: systemProvider.data.endpoint ?? "", // TODO: Fix?
+						apiKey,
+						name: systemProvider.data.slug,
+						includeUsage: true,
+					});
 
-			const description = await generateText({
-				model: getSaiaModel({
-					input: ["image"],
-					model: "qwen2.5-vl-72b-instruct",
-				}).provider,
-				// maxTokens: 1024,
-				system: `You are passed an AI generated image. Write a highly detailed description of the image and what it shows. Include a description of all elements, their position, color, and composition. Output ONLY the description, nothing else. Do not start your response with "This image shows..." or something like that. Simply start with the description.`,
-				messages: [
-					{
-						role: "user",
-						content: [
-							{
-								type: "image",
-								image: `data:image/png;base64,${image.base64}`,
-							},
-						],
-					},
-				],
-			});
+					const { image } = yield* Effect.tryPromise({
+						try: () =>
+							generateImage({
+								model: provider.imageModel(block.config.model),
+								prompt: `${block.config.prompt}\n\n${prompt}`,
+							}),
+						catch: (cause) =>
+							new AiError({
+								operation: "generateImageTool.generateImage",
+								cause,
+							}),
+					});
 
-			writer.write({
-				type: "file",
-				mediaType: "image/png",
-				url: `data:image/png;base64,${image.base64}`,
-			});
+					const description = yield* Effect.tryPromise({
+						try: () =>
+							generateText({
+								model: getSaiaModel({
+									input: ["image"],
+									model: "qwen2.5-vl-72b-instruct",
+								}).provider,
+								// maxTokens: 1024,
+								system: `You are passed an AI generated image. Write a highly detailed description of the image and what it shows. Include a description of all elements, their position, color, and composition. Output ONLY the description, nothing else. Do not start your response with "This image shows..." or something like that. Simply start with the description.`,
+								messages: [
+									{
+										role: "user",
+										content: [
+											{
+												type: "image",
+												image: `data:image/png;base64,${image.base64}`,
+											},
+										],
+									},
+								],
+							}),
+						catch: (cause) =>
+							new AiError({
+								operation: "generateImageTool.describeImage",
+								cause,
+							}),
+					});
 
-			// Return only a summary for the LLM context, not the full image data
-			return {
-				imageGenerated: true,
-				prompt,
-				description: description.text,
-				nextAction:
-					"Successfully generated an image. The image has been displayed to the user already. Do not attempt to return the image itself. Simply acknowledge that the image was generated and provide a brief description.",
-			};
-		},
+					writer.write({
+						type: "file",
+						mediaType: "image/png",
+						url: `data:image/png;base64,${image.base64}`,
+					});
+
+					// Return only a summary for the LLM context, not the full image data
+					return {
+						imageGenerated: true,
+						prompt,
+						description: description.text,
+						nextAction:
+							"Successfully generated an image. The image has been displayed to the user already. Do not attempt to return the image itself. Simply acknowledge that the image was generated and provide a brief description.",
+					};
+				}),
+			),
 	});

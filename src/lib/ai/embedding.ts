@@ -1,12 +1,19 @@
 import { embed } from "ai";
+import * as Effect from "effect/Effect";
+import { AiError } from "../effect/utils/errors";
 import { getSaiaEmbeddingModel } from "./saia-models";
 
-export const generateEmbedding = async (value: string): Promise<number[]> => {
-	const input = value.replaceAll("\\n", " ");
-	const { embedding } = await embed({
-		model: getSaiaEmbeddingModel({ model: "e5-mistral-7b-instruct" }).provider,
-		value: input,
-	});
+export const generateEmbedding = (value: string) =>
+	Effect.gen(function* () {
+		const input = value.replaceAll("\\n", " ");
 
-	return embedding;
-};
+		return yield* Effect.tryPromise({
+			try: () =>
+				embed({
+					model: getSaiaEmbeddingModel({ model: "e5-mistral-7b-instruct" })
+						.provider,
+					value: input,
+				}),
+			catch: (cause) => new AiError({ operation: "generateEmbedding", cause }),
+		});
+	});

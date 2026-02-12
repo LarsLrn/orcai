@@ -78,6 +78,8 @@ const appErrorToCode: (error: AppError) => ORPCErrorCode =
 		Match.tag("S3Error", () => "INTERNAL_SERVER_ERROR" as const),
 		Match.tag("SpiceDbError", () => "INTERNAL_SERVER_ERROR" as const),
 		Match.tag("QdrantError", () => "INTERNAL_SERVER_ERROR" as const),
+		Match.tag("AiError", () => "INTERNAL_SERVER_ERROR" as const),
+		Match.tag("InternalError", () => "INTERNAL_SERVER_ERROR" as const),
 		Match.exhaustive,
 	);
 

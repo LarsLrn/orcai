@@ -33,12 +33,14 @@ export const listAssetPoint = authed.assetPoint.list.handler(({ input }) =>
 				});
 			}
 
+			const query = input.filters.search
+				? (yield* generateEmbedding(input.filters.search)).embedding
+				: undefined;
+
 			return yield* Effect.tryPromise({
 				try: async () =>
 					client.query(qdrantCollections.asset.name, {
-						query: input.filters.search
-							? await generateEmbedding(input.filters.search)
-							: undefined,
+						query,
 						filter: {
 							must: filters,
 						},

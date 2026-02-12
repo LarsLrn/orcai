@@ -97,9 +97,7 @@ export const createOrganizationProvider = authed.organizationProvider.create
 			Effect.gen(function* () {
 				const db = yield* DB;
 
-				const apiKeyEncrypted = yield* Effect.promise(() =>
-					encryptApiKey(input.apiKey),
-				);
+				const apiKeyEncrypted = yield* encryptApiKey(input.apiKey);
 
 				const { apiKey: _apiKey, ...inputWithoutApiKey } = input;
 
@@ -140,9 +138,7 @@ export const updateOrganizationProvider = authed.organizationProvider.update
 						? inputWithoutApiKey
 						: {
 								...inputWithoutApiKey,
-								apiKeyEncrypted: yield* Effect.promise(() =>
-									encryptApiKey(apiKey),
-								),
+								apiKeyEncrypted: yield* encryptApiKey(apiKey),
 							};
 
 				const [organizationProvider] = yield* db

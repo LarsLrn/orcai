@@ -24,6 +24,9 @@ export const ErrorTags = {
 	DATABASE: "DatabaseError",
 	S3: "S3Error",
 	QDRANT: "QdrantError",
+
+	// Catch-all for unexpected errors
+	INTERNAL: "InternalError",
 } as const;
 
 export class SpiceDbError extends Data.TaggedError(ErrorTags.SPICE_DB)<{
@@ -107,6 +110,11 @@ export class AiError extends Data.TaggedError(ErrorTags.AI)<{
 	readonly cause: unknown;
 }> {}
 
+export class InternalError extends Data.TaggedError(ErrorTags.INTERNAL)<{
+	readonly operation: string;
+	readonly cause: unknown;
+}> {}
+
 export type AppError =
 	| SpiceDbError
 	| PgBossError
@@ -120,4 +128,5 @@ export type AppError =
 	| DatabaseError
 	| S3Error
 	| QdrantError
-	| AiError;
+	| AiError
+	| InternalError;
