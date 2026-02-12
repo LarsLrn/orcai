@@ -9,7 +9,6 @@ import { PgBossError } from "@/lib/effect/utils/errors";
 import type { Asset } from "@/lib/orpc/schemas/asset";
 import type { Block } from "@/lib/orpc/schemas/block";
 import type { VectorizeAssetPayload } from "@/lib/pg-boss/schema/vectorize-asset";
-import { toPgBossRunError } from "@/lib/pg-boss/utils/error-helper";
 import {
 	getImageAsBase64,
 	getMarkdownAsString,
@@ -67,16 +66,12 @@ const vectorizeAssetsEffect = (params: { job: Job<VectorizeAssetPayload> }) =>
 							name,
 						});
 
-						const processedMarkdown = yield* Effect.tryPromise({
-							try: async () =>
-								await processMarkdownFile({
-									fileContent: text,
-									fileName: name,
-									chunkingStrategy: mergePages
-										? "RecursiveCharacterTextSplitter"
-										: "none",
-								}),
-							catch: toPgBossRunError(params.job.id, VECTORIZE_ASSET_JOB_NAME),
+						const processedMarkdown = yield* processMarkdownFile({
+							fileContent: text,
+							fileName: name,
+							chunkingStrategy: mergePages
+								? "RecursiveCharacterTextSplitter"
+								: "none",
 						});
 
 						markdown.push(...processedMarkdown);
@@ -139,7 +134,7 @@ const vectorizeAssetsEffect = (params: { job: Job<VectorizeAssetPayload> }) =>
 		};
 	});
 
-const processMarkdownFile = async ({
+const processMarkdownFile = ({
 	fileContent,
 	fileName,
 	chunkingStrategy,
@@ -147,35 +142,46 @@ const processMarkdownFile = async ({
 	fileContent: string;
 	fileName: string;
 	chunkingStrategy: "none" | "RecursiveCharacterTextSplitter";
-}) => {
-	if (chunkingStrategy === "none") {
-		return [
-			{
-				title: fileName,
-				depth: 0,
-				content: fileContent,
-				length: fileContent.length,
-				type: "text",
-			},
-		] as MarkdownNode[];
-	}
+}) =>
+	Effect.gen(function* () {
+		if (chunkingStrategy === "none") {
+			return [
+				{
+					title: fileName,
+					depth: 0,
+					content: fileContent,
+					length: fileContent.length,
+					type: "text",
+				},
+			] as MarkdownNode[];
+		}
 
-	const chunker = await RecursiveChunker.create({
-		chunkSize: 2048,
+		const chunker = yield* Effect.promise(() =>
+			RecursiveChunker.create({
+				chunkSize: 2048,
+			}),
+		);
+
+		return yield* Effect.tryPromise({
+			try: () => chunker.chunk(fileContent),
+			catch: (cause) =>
+				new PgBossError({
+					operation: "run",
+					cause,
+				}),
+		}).pipe(
+			Effect.map(
+				(chunks) =>
+					chunks.map((chunk) => ({
+						title: fileName,
+						depth: 0,
+						content: chunk.text,
+						length: chunk.tokenCount,
+						type: "text",
+					})) as MarkdownNode[],
+			),
+		);
 	});
-
-	const chunks = await chunker.chunk(fileContent);
-
-	const nodes = chunks.map((chunk) => ({
-		title: fileName,
-		depth: 0,
-		content: chunk.text,
-		length: chunk.tokenCount,
-		type: "text",
-	})) as MarkdownNode[];
-
-	return nodes;
-};
 
 const processImageFile = (
 	base64Image: string,

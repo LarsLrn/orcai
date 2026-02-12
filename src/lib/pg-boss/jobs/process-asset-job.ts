@@ -215,18 +215,16 @@ const processAssetsEffect = (params: { job: Job<ProcessAssetPayload> }) =>
 						);
 
 						if (!validationResult.isValid) {
-							yield* Effect.logWarning(
+							return yield* Effect.logWarning(
 								{
 									jobId: params.job.id,
 									pageIndex: index,
 									imageIndex,
-									width: validationResult.width,
-									height: validationResult.height,
-									error: validationResult.error,
+									width: image.size.width,
+									height: image.size.height,
 								},
 								"Skipping image upload due to resolution/validation",
 							);
-							return;
 						}
 
 						const command = new PutObjectCommand({
