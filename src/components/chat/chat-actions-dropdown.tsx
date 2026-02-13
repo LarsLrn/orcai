@@ -55,6 +55,8 @@ const ChatActionsDropdown = ({
 			// refetching the deleted chat. This is not critical, but avoids a backend error.
 			if (params.chatId && params.chatId === chatId) {
 				navigate({ to: "/app/chat" });
+
+				await new Promise((resolve) => setTimeout(resolve, 500));
 			}
 
 			toast.promise(deleteChat({ refs: [{ id: chatId }] }), {
