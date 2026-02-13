@@ -66,6 +66,7 @@ import { createJobsContract, listJobsContract } from "./job";
 import {
 	createModelContract,
 	deleteModelContract,
+	discoverModelsContract,
 	findModelContract,
 	listModelsContract,
 	updateModelContract,
@@ -210,6 +211,7 @@ export const contracts = {
 		find: findModelContract,
 		update: updateModelContract,
 		delete: deleteModelContract,
+		discover: discoverModelsContract,
 	},
 	storage: {
 		createUploadUrls: createUploadUrlsContract,

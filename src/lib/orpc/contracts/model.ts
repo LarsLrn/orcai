@@ -5,6 +5,7 @@ import {
 	modelSelectSchema,
 	modelUpdateSchema,
 } from "@/lib/orpc/schemas/model";
+import { providerSelectSchema } from "../schemas/provider";
 import { paginationSchema, statusSchema } from "../schemas/shared";
 import { base } from "./base";
 
@@ -78,3 +79,26 @@ export const deleteModelContract = base
 	})
 	.input(modelDeleteSchema)
 	.output(statusSchema);
+
+export const discoverModelsContract = base
+	.route({
+		method: "POST",
+		path: "/models/{providerId}/discover",
+		summary:
+			"Automatically discover and add/update all available models for a given provider",
+		tags: ["Models"],
+	})
+	.input(
+		z.object({
+			providerId: providerSelectSchema.shape.id,
+		}),
+	)
+	.output(
+		z.object({
+			data: z.object({
+				foundCount: z.number().int().nonnegative(),
+				addedCount: z.number().int().nonnegative(),
+				alreadyExistedCount: z.number().int().nonnegative(),
+			}),
+		}),
+	);

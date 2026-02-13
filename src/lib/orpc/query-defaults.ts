@@ -305,18 +305,6 @@ export const queryDefaults: CreateRouterUtilsOptions<
 			},
 		},
 	},
-	model: {
-		list: {
-			queryOptions: {
-				placeholderData: keepPreviousData,
-			},
-		},
-		find: {
-			queryOptions: {
-				placeholderData: keepPreviousData,
-			},
-		},
-	},
 	organizationInvitation: {
 		list: {
 			queryOptions: {
@@ -438,6 +426,54 @@ export const queryDefaults: CreateRouterUtilsOptions<
 				onSuccess: (_output, _input, _, ctx) => {
 					ctx.client.invalidateQueries({
 						queryKey: orpc.provider.key(),
+					});
+				},
+			},
+		},
+	},
+	model: {
+		list: {
+			queryOptions: {
+				placeholderData: keepPreviousData,
+			},
+		},
+		find: {
+			queryOptions: {
+				placeholderData: keepPreviousData,
+			},
+		},
+		create: {
+			mutationOptions: {
+				onSuccess: (_output, _input, _, ctx) => {
+					ctx.client.invalidateQueries({
+						queryKey: orpc.model.key(),
+					});
+				},
+			},
+		},
+		update: {
+			mutationOptions: {
+				onSuccess: (_output, _input, _, ctx) => {
+					ctx.client.invalidateQueries({
+						queryKey: orpc.model.key(),
+					});
+				},
+			},
+		},
+		delete: {
+			mutationOptions: {
+				onSuccess: (_output, _input, _, ctx) => {
+					ctx.client.invalidateQueries({
+						queryKey: orpc.model.key(),
+					});
+				},
+			},
+		},
+		discover: {
+			mutationOptions: {
+				onSuccess: (_output, _input, _, ctx) => {
+					ctx.client.invalidateQueries({
+						queryKey: orpc.model.key(),
 					});
 				},
 			},

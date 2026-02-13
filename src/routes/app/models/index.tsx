@@ -1,5 +1,6 @@
 import { useSuspenseQuery } from "@tanstack/react-query";
 import { createFileRoute, Link } from "@tanstack/react-router";
+import { DiscoverModels } from "@/components/model/discover-models";
 import { modelTableColumns } from "@/components/model/table/model-table-columns";
 import { buttonVariants } from "@/components/ui/button";
 import { DataTable } from "@/components/ui/data-table/data-table";
@@ -49,6 +50,7 @@ function RouteComponent() {
 					>
 						Add Model
 					</Link>
+					<DiscoverModels />
 				</div>
 			</div>
 			<div>

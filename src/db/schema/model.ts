@@ -3,25 +3,35 @@ import {
 	pgTable,
 	text,
 	timestamp,
+	unique,
 	uuid,
 	varchar,
 } from "drizzle-orm/pg-core";
 import type { ModelCapability } from "@/lib/orpc/schemas/model";
 import type { ProviderCompatibility } from "@/lib/orpc/schemas/provider";
 
-export const model = pgTable("model", {
-	id: uuid("id").primaryKey().defaultRandom(),
-	providerId: uuid("provider_id")
-		.notNull()
-		.references(() => provider.id, { onDelete: "cascade" }),
-	providerModelId: text("provider_model_id").notNull(),
-	name: text("name").notNull(),
-	description: varchar("description", { length: 500 }).notNull(),
-	isDeprecated: boolean("is_deprecated").notNull().default(false),
-	capabilities: text("capability").$type<ModelCapability>().array().notNull(),
-	createdAt: timestamp("created_at").defaultNow(),
-	// TODO: Add updatedAt field and trigger to update it on change
-});
+export const model = pgTable(
+	"model",
+	{
+		id: uuid("id").primaryKey().defaultRandom(),
+		providerId: uuid("provider_id")
+			.notNull()
+			.references(() => provider.id, { onDelete: "cascade" }),
+		providerModelId: text("provider_model_id").notNull(),
+		name: text("name").notNull(),
+		description: varchar("description", { length: 500 }).notNull(),
+		isDeprecated: boolean("is_deprecated").notNull().default(false),
+		capabilities: text("capability").$type<ModelCapability>().array().notNull(),
+		createdAt: timestamp("created_at").defaultNow(),
+		// TODO: Add updatedAt field and trigger to update it on change
+	},
+	(table) => [
+		unique("provider_model_id_provider_id_unique").on(
+			table.providerModelId,
+			table.providerId,
+		),
+	],
+);
 
 export const provider = pgTable("provider", {
 	id: uuid("id").primaryKey().defaultRandom(),

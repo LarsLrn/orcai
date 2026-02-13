@@ -50,6 +50,7 @@ import { createJobs, listJobs } from "./job";
 import {
 	createModel,
 	deleteModel,
+	discoverModels,
 	findModel,
 	listModels,
 	updateModel,
@@ -194,6 +195,7 @@ export const router = {
 		find: findModel,
 		update: updateModel,
 		delete: deleteModel,
+		discover: discoverModels,
 	},
 	job: {
 		list: listJobs,

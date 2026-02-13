@@ -40,7 +40,12 @@ export const modelTableColumns: ColumnDef<Model>[] = [
 		enableHiding: false,
 	},
 	{
-		size: 300,
+		accessorKey: "name",
+		header: ({ column }) => (
+			<DataTableColumnHeader column={column} title="Name" />
+		),
+	},
+	{
 		accessorKey: "providerId",
 		header: ({ column }) => (
 			<DataTableColumnHeader column={column} title="Provider" />
