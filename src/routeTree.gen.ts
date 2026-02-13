@@ -18,6 +18,7 @@ import { Route as PathlessLayoutSelectOrganizationRouteImport } from './routes/_
 import { Route as PathlessLayoutRegisterRouteImport } from './routes/_pathlessLayout/register'
 import { Route as PathlessLayoutPrivacyRouteImport } from './routes/_pathlessLayout/privacy'
 import { Route as PathlessLayoutLoginRouteImport } from './routes/_pathlessLayout/login'
+import { Route as PathlessLayoutInitRouteImport } from './routes/_pathlessLayout/init'
 import { Route as AppUsersRouteRouteImport } from './routes/app/users/route'
 import { Route as AppProvidersRouteRouteImport } from './routes/app/providers/route'
 import { Route as AppOrgsRouteRouteImport } from './routes/app/orgs/route'
@@ -121,6 +122,11 @@ const PathlessLayoutPrivacyRoute = PathlessLayoutPrivacyRouteImport.update({
 const PathlessLayoutLoginRoute = PathlessLayoutLoginRouteImport.update({
   id: '/login',
   path: '/login',
+  getParentRoute: () => PathlessLayoutRouteRoute,
+} as any)
+const PathlessLayoutInitRoute = PathlessLayoutInitRouteImport.update({
+  id: '/init',
+  path: '/init',
   getParentRoute: () => PathlessLayoutRouteRoute,
 } as any)
 const AppUsersRouteRoute = AppUsersRouteRouteImport.update({
@@ -435,6 +441,7 @@ export interface FileRoutesByFullPath {
   '/app/orgs': typeof AppOrgsRouteRouteWithChildren
   '/app/providers': typeof AppProvidersRouteRouteWithChildren
   '/app/users': typeof AppUsersRouteRouteWithChildren
+  '/init': typeof PathlessLayoutInitRoute
   '/login': typeof PathlessLayoutLoginRoute
   '/privacy': typeof PathlessLayoutPrivacyRoute
   '/register': typeof PathlessLayoutRegisterRoute
@@ -493,6 +500,7 @@ export interface FileRoutesByFullPath {
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
+  '/init': typeof PathlessLayoutInitRoute
   '/login': typeof PathlessLayoutLoginRoute
   '/privacy': typeof PathlessLayoutPrivacyRoute
   '/register': typeof PathlessLayoutRegisterRoute
@@ -557,6 +565,7 @@ export interface FileRoutesById {
   '/app/orgs': typeof AppOrgsRouteRouteWithChildren
   '/app/providers': typeof AppProvidersRouteRouteWithChildren
   '/app/users': typeof AppUsersRouteRouteWithChildren
+  '/_pathlessLayout/init': typeof PathlessLayoutInitRoute
   '/_pathlessLayout/login': typeof PathlessLayoutLoginRoute
   '/_pathlessLayout/privacy': typeof PathlessLayoutPrivacyRoute
   '/_pathlessLayout/register': typeof PathlessLayoutRegisterRoute
@@ -628,6 +637,7 @@ export interface FileRouteTypes {
     | '/app/orgs'
     | '/app/providers'
     | '/app/users'
+    | '/init'
     | '/login'
     | '/privacy'
     | '/register'
@@ -686,6 +696,7 @@ export interface FileRouteTypes {
   fileRoutesByTo: FileRoutesByTo
   to:
     | '/'
+    | '/init'
     | '/login'
     | '/privacy'
     | '/register'
@@ -749,6 +760,7 @@ export interface FileRouteTypes {
     | '/app/orgs'
     | '/app/providers'
     | '/app/users'
+    | '/_pathlessLayout/init'
     | '/_pathlessLayout/login'
     | '/_pathlessLayout/privacy'
     | '/_pathlessLayout/register'
@@ -878,6 +890,13 @@ declare module '@tanstack/react-router' {
       path: '/login'
       fullPath: '/login'
       preLoaderRoute: typeof PathlessLayoutLoginRouteImport
+      parentRoute: typeof PathlessLayoutRouteRoute
+    }
+    '/_pathlessLayout/init': {
+      id: '/_pathlessLayout/init'
+      path: '/init'
+      fullPath: '/init'
+      preLoaderRoute: typeof PathlessLayoutInitRouteImport
       parentRoute: typeof PathlessLayoutRouteRoute
     }
     '/app/users': {
@@ -1297,6 +1316,7 @@ declare module '@tanstack/react-router' {
 }
 
 interface PathlessLayoutRouteRouteChildren {
+  PathlessLayoutInitRoute: typeof PathlessLayoutInitRoute
   PathlessLayoutLoginRoute: typeof PathlessLayoutLoginRoute
   PathlessLayoutPrivacyRoute: typeof PathlessLayoutPrivacyRoute
   PathlessLayoutRegisterRoute: typeof PathlessLayoutRegisterRoute
@@ -1305,6 +1325,7 @@ interface PathlessLayoutRouteRouteChildren {
 }
 
 const PathlessLayoutRouteRouteChildren: PathlessLayoutRouteRouteChildren = {
+  PathlessLayoutInitRoute: PathlessLayoutInitRoute,
   PathlessLayoutLoginRoute: PathlessLayoutLoginRoute,
   PathlessLayoutPrivacyRoute: PathlessLayoutPrivacyRoute,
   PathlessLayoutRegisterRoute: PathlessLayoutRegisterRoute,

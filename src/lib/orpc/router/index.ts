@@ -14,6 +14,7 @@ import {
 	listBlocks,
 	updateBlock,
 } from "./block";
+import { getBootstrapStatus, initializeBootstrap } from "./bootstrap";
 import { createBot, deleteBots, findBot, listBots, updateBot } from "./bot";
 import {
 	createChat,
@@ -94,6 +95,10 @@ import {
 } from "./user";
 
 export const router = {
+	bootstrap: {
+		status: getBootstrapStatus,
+		initialize: initializeBootstrap,
+	},
 	organization: {
 		list: listOrganizations,
 		create: createOrganization,

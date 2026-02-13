@@ -25,6 +25,10 @@ import {
 	updateBlockContract,
 } from "./block";
 import {
+	bootstrapInitializeContract,
+	bootstrapStatusContract,
+} from "./bootstrap";
+import {
 	createBotContract,
 	deleteBotContract,
 	findBotContract,
@@ -110,6 +114,10 @@ import {
 } from "./user";
 
 export const contracts = {
+	bootstrap: {
+		status: bootstrapStatusContract,
+		initialize: bootstrapInitializeContract,
+	},
 	organization: {
 		list: listOrganizationsContract,
 		find: findOrganizationContract,

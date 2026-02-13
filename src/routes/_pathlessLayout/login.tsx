@@ -1,4 +1,4 @@
-import { createFileRoute, Link } from "@tanstack/react-router";
+import { createFileRoute, Link, redirect } from "@tanstack/react-router";
 import { SignInForm } from "@/components/auth/signin/signin-form";
 import {
 	Card,
@@ -8,8 +8,18 @@ import {
 	CardHeader,
 	CardTitle,
 } from "@/components/ui/card";
+import { orpc } from "@/lib/orpc/orpc";
 
 export const Route = createFileRoute("/_pathlessLayout/login")({
+	loader: async ({ context: { queryClient } }) => {
+		const status = await queryClient.ensureQueryData(
+			orpc.bootstrap.status.queryOptions({ input: {} }),
+		);
+
+		if (!status.data.initialized) {
+			throw redirect({ to: "/init", statusCode: 302 });
+		}
+	},
 	component: RouteComponent,
 });
 

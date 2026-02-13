@@ -1,4 +1,4 @@
-import { createFileRoute, Link } from "@tanstack/react-router";
+import { createFileRoute, Link, redirect } from "@tanstack/react-router";
 import { createServerFn } from "@tanstack/react-start";
 import { eq, getColumns } from "drizzle-orm";
 import z from "zod/v4";
@@ -13,6 +13,7 @@ import {
 } from "@/components/ui/card";
 import { db } from "@/db/drizzle";
 import { dbSchema } from "@/db/schema";
+import { orpc } from "@/lib/orpc/orpc";
 import type { CourseInvitation } from "@/lib/orpc/schemas/course-invitations";
 
 const getCourseInvitationById = createServerFn({
@@ -46,7 +47,15 @@ export const Route = createFileRoute("/_pathlessLayout/register")({
 	loaderDeps: ({ search }) => ({
 		inv: search.inv,
 	}),
-	loader: ({ deps }) => {
+	loader: async ({ deps, context: { queryClient } }) => {
+		const status = await queryClient.ensureQueryData(
+			orpc.bootstrap.status.queryOptions({ input: {} }),
+		);
+
+		if (!status.data.initialized) {
+			throw redirect({ to: "/init", statusCode: 302 });
+		}
+
 		if (!deps.inv) {
 			return { query: undefined };
 		}
