@@ -1,3 +1,4 @@
+import { call } from "@orpc/server";
 import { count, eq, getColumns, inArray } from "drizzle-orm";
 import * as Effect from "effect/Effect";
 import { dbSchema } from "@/db/schema";
@@ -9,7 +10,7 @@ import {
 	type CheckManyPermissionInput,
 	checkManyPermissionMiddleware,
 } from "@/lib/orpc/middlewares/permission";
-import { client } from "@/lib/orpc/orpc";
+import { createOrganizationMember } from "./organization-member";
 
 export const listOrganizations = authed.organization.list.handler(
 	async ({ input }) =>
@@ -72,7 +73,7 @@ export const findOrganization = authed.organization.find
 
 export const createOrganization = authed.organization.create
 	.use(requireActiveOrganizationMiddleware)
-	.handler(async ({ input, context }) =>
+	.handler(async ({ input, errors, context }) =>
 		runOrpcEffect(
 			Effect.gen(function* () {
 				const db = yield* DB;
@@ -82,10 +83,21 @@ export const createOrganization = authed.organization.create
 					.values({ ...input, createdAt: new Date() })
 					.returning({ ...getColumns(dbSchema.organization) });
 
-				const newOrganizationMember = client.organizationMember.create({
-					organizationId: newOrganization.id,
-					userId: context.auth.user.id,
-					role: "owner",
+				const newOrganizationMember = Effect.tryPromise({
+					try: () =>
+						call(
+							createOrganizationMember,
+							{
+								organizationId: newOrganization.id,
+								userId: context.auth.user.id,
+								role: "owner",
+							},
+							{ context },
+						),
+					catch: () =>
+						errors.BAD_REQUEST({
+							message: "Failed to create organization member",
+						}),
 				});
 
 				return { data: newOrganization, relation: newOrganizationMember };

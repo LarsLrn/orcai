@@ -1,4 +1,5 @@
 import { streamToEventIterator } from "@orpc/client";
+import { call } from "@orpc/server";
 import { createAgentUIStream, smoothStream } from "ai";
 import * as Effect from "effect/Effect";
 import { v4 as uuidv4 } from "uuid";
@@ -7,11 +8,13 @@ import { generateChatTitle } from "@/lib/ai/generate-chat-title";
 import { runOrpcEffect } from "@/lib/effect/utils/orpc-helpers";
 import { authed } from "@/lib/orpc/implementation/authed";
 import { requireActiveOrganizationMiddleware } from "@/lib/orpc/middlewares/auth";
-import { client } from "@/lib/orpc/orpc";
+import { listBlocks } from "./block";
+import { updateChat } from "./chat";
+import { createChatMessage } from "./chat-message";
 
 export const aiChat = authed.ai.chat
 	.use(requireActiveOrganizationMiddleware)
-	.handler(async ({ input, errors }) =>
+	.handler(async ({ input, errors, context }) =>
 		runOrpcEffect(
 			Effect.gen(function* () {
 				const userMessage = input.messages[input.messages.length - 1];
@@ -23,16 +26,20 @@ export const aiChat = authed.ai.chat
 
 				const { branchId: currentBranchId } = yield* Effect.tryPromise({
 					try: async () =>
-						client.chatMessage.create({
-							id: uuidv4(),
-							chatId: input.chatId,
-							role: "user",
-							parts: userMessage.parts,
-							attachments: [],
-							metadata: userMessage.metadata || {},
-							branchId: input.branchId,
-							parentMessageId, // Identify where we are attaching this message
-						}),
+						call(
+							createChatMessage,
+							{
+								id: uuidv4(),
+								chatId: input.chatId,
+								role: "user",
+								parts: userMessage.parts,
+								attachments: [],
+								metadata: userMessage.metadata || {},
+								branchId: input.branchId,
+								parentMessageId, // Identify where we are attaching this message
+							},
+							{ context },
+						),
 					catch: () =>
 						errors.BAD_REQUEST({ message: "Failed to create user message" }),
 				});
@@ -42,10 +49,14 @@ export const aiChat = authed.ai.chat
 						Effect.flatMap(({ title }) =>
 							Effect.tryPromise({
 								try: async () =>
-									client.chat.update({
-										id: input.chatId,
-										title,
-									}),
+									call(
+										updateChat,
+										{
+											id: input.chatId,
+											title,
+										},
+										{ context },
+									),
 								catch: () =>
 									errors.BAD_REQUEST({
 										message: "Failed to update chat title",
@@ -64,10 +75,14 @@ export const aiChat = authed.ai.chat
 				);
 
 				const blocks = yield* Effect.tryPromise({
-					try: async () =>
-						client.block.list({
-							filters: { botId },
-						}),
+					try: () =>
+						call(
+							listBlocks,
+							{
+								filters: { botId },
+							},
+							{ context },
+						),
 					catch: () =>
 						errors.BAD_REQUEST({ message: "Failed to fetch blocks for bot" }),
 				});
@@ -98,15 +113,19 @@ export const aiChat = authed.ai.chat
 							}, */
 							onFinish: async ({ responseMessage }) => {
 								// Consider adding an Effect adapter to interface with AI SDK callbacks
-								await client.chatMessage.create({
-									id: responseMessage.id,
-									chatId: input.chatId,
-									role: responseMessage.role,
-									parts: responseMessage.parts,
-									attachments: [],
-									metadata: responseMessage.metadata ?? {},
-									branchId: currentBranchId,
-								});
+								await call(
+									createChatMessage,
+									{
+										id: responseMessage.id,
+										chatId: input.chatId,
+										role: responseMessage.role,
+										parts: responseMessage.parts,
+										attachments: [],
+										metadata: responseMessage.metadata ?? {},
+										branchId: currentBranchId,
+									},
+									{ context },
+								);
 							},
 							onError: () =>
 								"Oops, an error occurred while processing your request!",

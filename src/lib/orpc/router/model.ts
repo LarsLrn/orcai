@@ -1,3 +1,4 @@
+import { call } from "@orpc/server";
 import { count, eq, inArray } from "drizzle-orm";
 import * as Effect from "effect/Effect";
 import OpenAI from "openai";
@@ -6,8 +7,8 @@ import { DB } from "@/lib/effect/services/drizzle";
 import { runOrpcEffect } from "@/lib/effect/utils/orpc-helpers";
 import { decryptApiKey } from "@/lib/encryption";
 import { authed } from "@/lib/orpc/implementation/authed";
-import { client } from "../orpc";
 import type { ModelCapability } from "../schemas/model";
+import { findProvider } from "./provider";
 
 export const listModels = authed.model.list.handler(async ({ input }) =>
 	runOrpcEffect(
@@ -122,13 +123,13 @@ export const deleteModel = authed.model.delete.handler(async ({ input }) =>
 );
 
 export const discoverModels = authed.model.discover.handler(
-	async ({ input, errors }) =>
+	async ({ input, context, errors }) =>
 		runOrpcEffect(
 			Effect.gen(function* () {
 				const db = yield* DB;
 
 				const { data: provider } = yield* Effect.tryPromise({
-					try: () => client.provider.find({ id: input.providerId }),
+					try: () => call(findProvider, { id: input.providerId }, { context }),
 					catch: (cause) =>
 						errors.BAD_REQUEST({
 							message: "Failed to find provider",
