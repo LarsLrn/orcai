@@ -20,7 +20,7 @@ const TemplateBlockForm = ({
 	const { auth } = useRouteContext({ from: "/app" });
 
 	const { data: providers } = useSuspenseQuery(
-		orpc.organizationProvider.list.queryOptions({
+		orpc.provider.list.queryOptions({
 			input: { organizationId: auth.session.activeOrganizationId },
 		}),
 	);
@@ -36,15 +36,15 @@ const TemplateBlockForm = ({
 		},
 	});
 
-	const providerSlug = useStore(
+	const providerId = useStore(
 		form.store,
 		(state) => state.values.config.provider,
 	);
 
 	const { data: models } = useQuery(
 		orpc.model.list.queryOptions({
-			input: providerSlug
-				? { providerSlug, capabilities: ["text-generation"] }
+			input: providerId
+				? { providerId, capabilities: ["text-generation"] }
 				: skipToken,
 		}),
 	);
@@ -88,8 +88,8 @@ const TemplateBlockForm = ({
 									label="Provider"
 									placeholder="Choose a Provider"
 									options={providers.data.map((provider) => ({
-										value: provider.providerSlug,
-										label: provider.providerSlug,
+										value: provider.id,
+										label: provider.name,
 									}))}
 								/>
 							)}
@@ -102,7 +102,7 @@ const TemplateBlockForm = ({
 									label="AI Model"
 									placeholder="Choose an AI Model"
 									options={models?.data?.map((model) => ({
-										value: model.slug,
+										value: model.id,
 										label: model.name,
 									}))}
 								/>

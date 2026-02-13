@@ -26,7 +26,7 @@ const DatabaseBlockForm = ({
 	const { auth } = useRouteContext({ from: "/app" });
 
 	const { data: providers } = useSuspenseQuery(
-		orpc.organizationProvider.list.queryOptions({
+		orpc.provider.list.queryOptions({
 			input: { organizationId: auth.session.activeOrganizationId },
 		}),
 	);
@@ -50,7 +50,7 @@ const DatabaseBlockForm = ({
 		},
 	});
 
-	const providerSlug = useStore(
+	const providerId = useStore(
 		form.store,
 		(state) => state.values.config.provider,
 	);
@@ -59,8 +59,8 @@ const DatabaseBlockForm = ({
 
 	const { data: embeddingModels } = useQuery(
 		orpc.model.list.queryOptions({
-			input: providerSlug
-				? { providerSlug, capabilities: ["embedding"] }
+			input: providerId
+				? { providerId, capabilities: ["embedding"] }
 				: skipToken,
 		}),
 	);
@@ -98,8 +98,8 @@ const DatabaseBlockForm = ({
 									label="Provider"
 									placeholder="Choose a Provider"
 									options={providers.data.map((provider) => ({
-										value: provider.providerSlug,
-										label: provider.providerSlug,
+										value: provider.id,
+										label: provider.name,
 									}))}
 								/>
 							)}
@@ -112,7 +112,7 @@ const DatabaseBlockForm = ({
 									label="Embedding Model"
 									placeholder="Choose an Embedding Model"
 									options={embeddingModels?.data?.map((embeddingModel) => ({
-										value: embeddingModel.slug,
+										value: embeddingModel.id,
 										label: embeddingModel.name,
 									}))}
 								/>

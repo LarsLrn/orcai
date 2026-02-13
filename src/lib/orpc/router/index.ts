@@ -47,7 +47,13 @@ import {
 	updateCourseInvitation,
 } from "./course-invitation";
 import { createJobs, listJobs } from "./job";
-import { findModel, listModels } from "./model";
+import {
+	createModel,
+	deleteModel,
+	findModel,
+	listModels,
+	updateModel,
+} from "./model";
 import {
 	createOrganization,
 	deleteOrganizations,
@@ -70,13 +76,12 @@ import {
 	updateOrganizationMember,
 } from "./organization-member";
 import {
-	createOrganizationProvider,
-	deleteOrganizationProviders,
-	findOrganizationProvider,
-	listOrganizationProviders,
-	updateOrganizationProvider,
-} from "./organization-provider";
-import { findProvider, listProviders } from "./provider";
+	createProvider,
+	deleteProviders,
+	findProvider,
+	listProviders,
+	updateProvider,
+} from "./provider";
 import { sse } from "./sse";
 import { createDownloadUrl, createUploadUrls } from "./storage";
 import {
@@ -110,12 +115,12 @@ export const router = {
 		delete: deleteOrganizationInvitations,
 		respond: findOrganizationInvitation,
 	},
-	organizationProvider: {
-		list: listOrganizationProviders,
-		create: createOrganizationProvider,
-		find: findOrganizationProvider,
-		update: updateOrganizationProvider,
-		delete: deleteOrganizationProviders,
+	provider: {
+		list: listProviders,
+		create: createProvider,
+		find: findProvider,
+		update: updateProvider,
+		delete: deleteProviders,
 	},
 	course: {
 		list: listCourses,
@@ -183,13 +188,12 @@ export const router = {
 		createUploadUrls: createUploadUrls,
 		createDownloadUrl: createDownloadUrl,
 	},
-	provider: {
-		list: listProviders,
-		find: findProvider,
-	},
 	model: {
 		list: listModels,
+		create: createModel,
 		find: findModel,
+		update: updateModel,
+		delete: deleteModel,
 	},
 	job: {
 		list: listJobs,

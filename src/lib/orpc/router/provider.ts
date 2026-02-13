@@ -1,16 +1,38 @@
+import { and, count, eq, inArray } from "drizzle-orm";
 import * as Effect from "effect/Effect";
+import { dbSchema } from "@/db/schema";
 import { DB } from "@/lib/effect/services/drizzle";
 import { runOrpcEffect } from "@/lib/effect/utils/orpc-helpers";
+import { encryptApiKey } from "@/lib/encryption";
 import { authed } from "@/lib/orpc/implementation/authed";
 
-export const listProviders = authed.provider.list.handler(async () =>
+// TODO: Add permission checks to all organization provider operations
+export const listProviders = authed.provider.list.handler(async ({ input }) =>
 	runOrpcEffect(
 		Effect.gen(function* () {
 			const db = yield* DB;
 
-			return yield* db.query.provider
-				.findMany()
-				.pipe(Effect.map((providers) => ({ data: providers })));
+			const [data, [rowCount]] = yield* Effect.all(
+				[
+					db.query.provider.findMany({
+						/* where: {
+								organizationId: context.auth.session.activeOrganizationId,
+							}, */
+						limit: input.pageSize,
+						offset: input.pageIndex * input.pageSize,
+					}),
+					db.select({ count: count() }).from(dbSchema.provider),
+					/* .where(
+								eq(
+									dbSchema.provider.organizationId,
+									context.auth.session.activeOrganizationId,
+								),
+							) */
+				],
+				{ concurrency: "unbounded" },
+			);
+
+			return { data, rowCount: rowCount.count };
 		}),
 	),
 );
@@ -33,7 +55,7 @@ export const findProvider = authed.provider.find
 				return yield* db.query.provider
 					.findFirst({
 						where: {
-							slug: input.slug,
+							id: input.id,
 						},
 					})
 					.pipe(
@@ -41,13 +63,108 @@ export const findProvider = authed.provider.find
 							Effect.fromNullable(provider).pipe(
 								Effect.orElse(() =>
 									Effect.fail(
-										errors.NOT_FOUND({ message: "Provider not found" }),
+										errors.NOT_FOUND({
+											message: "Provider not found",
+										}),
 									),
 								),
 							),
 						),
-						Effect.map((provider) => ({ data: provider })),
+						Effect.map((provider) => ({
+							data: provider,
+						})),
 					);
+			}),
+		),
+	);
+
+export const createProvider = authed.provider.create.handler(
+	async ({ input }) =>
+		runOrpcEffect(
+			Effect.gen(function* () {
+				const db = yield* DB;
+
+				const apiKeyEncrypted = yield* encryptApiKey(input.apiKey);
+
+				const { apiKey: _apiKey, ...inputWithoutApiKey } = input;
+
+				const [provider] = yield* db
+					.insert(dbSchema.provider)
+					.values({
+						...inputWithoutApiKey,
+						apiKeyEncrypted,
+						createdAt: new Date(),
+					})
+					.returning();
+
+				return { data: provider };
+			}),
+		),
+);
+
+export const updateProvider = authed.provider.update
+	/* .use(
+    checkPermissionMiddleware,
+    (input) =>
+      ({
+        entityId: input.id,
+        action: "read",
+        entityType: "organization",
+      }) satisfies CheckPermissionInput,
+  ) */
+	.handler(async ({ input }) =>
+		runOrpcEffect(
+			Effect.gen(function* () {
+				const db = yield* DB;
+
+				const { apiKey, ...inputWithoutApiKey } = input;
+				const updateData =
+					apiKey === undefined
+						? inputWithoutApiKey
+						: {
+								...inputWithoutApiKey,
+								apiKeyEncrypted: yield* encryptApiKey(apiKey),
+							};
+
+				const [provider] = yield* db
+					.update(dbSchema.provider)
+					.set(updateData)
+					.where(eq(dbSchema.provider.id, input.id))
+					.returning();
+
+				return { data: provider };
+			}),
+		),
+	);
+
+export const deleteProviders = authed.provider.delete
+	/* .use(
+		checkManyPermissionMiddleware,
+		(input) =>
+			({
+				entityIds: input.refs.map((ref) => ref.slug),
+				action: "delete",
+				entityType: "organization",
+			}) satisfies CheckManyPermissionInput,
+	) */
+	.handler(async ({ input }) =>
+		runOrpcEffect(
+			Effect.gen(function* () {
+				const db = yield* DB;
+
+				yield* db.delete(dbSchema.provider).where(
+					and(
+						inArray(
+							dbSchema.provider.id,
+							input.refs.map((ref) => ref.id),
+						),
+					),
+				);
+
+				return {
+					success: true,
+					message: "Providers deleted successfully",
+				};
 			}),
 		),
 	);

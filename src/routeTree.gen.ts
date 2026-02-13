@@ -19,7 +19,9 @@ import { Route as PathlessLayoutRegisterRouteImport } from './routes/_pathlessLa
 import { Route as PathlessLayoutPrivacyRouteImport } from './routes/_pathlessLayout/privacy'
 import { Route as PathlessLayoutLoginRouteImport } from './routes/_pathlessLayout/login'
 import { Route as AppUsersRouteRouteImport } from './routes/app/users/route'
+import { Route as AppProvidersRouteRouteImport } from './routes/app/providers/route'
 import { Route as AppOrgsRouteRouteImport } from './routes/app/orgs/route'
+import { Route as AppModelsRouteRouteImport } from './routes/app/models/route'
 import { Route as AppCoursesRouteRouteImport } from './routes/app/courses/route'
 import { Route as AppChatRouteRouteImport } from './routes/app/chat/route'
 import { Route as AppBotsRouteRouteImport } from './routes/app/bots/route'
@@ -27,7 +29,9 @@ import { Route as AppBlocksRouteRouteImport } from './routes/app/blocks/route'
 import { Route as AppAssetsRouteRouteImport } from './routes/app/assets/route'
 import { Route as AppAccountRouteRouteImport } from './routes/app/account/route'
 import { Route as AppUsersIndexRouteImport } from './routes/app/users/index'
+import { Route as AppProvidersIndexRouteImport } from './routes/app/providers/index'
 import { Route as AppOrgsIndexRouteImport } from './routes/app/orgs/index'
+import { Route as AppModelsIndexRouteImport } from './routes/app/models/index'
 import { Route as AppCoursesIndexRouteImport } from './routes/app/courses/index'
 import { Route as AppChatIndexRouteImport } from './routes/app/chat/index'
 import { Route as AppBotsIndexRouteImport } from './routes/app/bots/index'
@@ -36,7 +40,9 @@ import { Route as AppAssetsIndexRouteImport } from './routes/app/assets/index'
 import { Route as AppAccountIndexRouteImport } from './routes/app/account/index'
 import { Route as AppUsersInvitesRouteImport } from './routes/app/users/invites'
 import { Route as AppUsersAddRouteImport } from './routes/app/users/add'
+import { Route as AppProvidersAddRouteImport } from './routes/app/providers/add'
 import { Route as AppOrgsAddRouteImport } from './routes/app/orgs/add'
+import { Route as AppModelsAddRouteImport } from './routes/app/models/add'
 import { Route as AppCoursesAddRouteImport } from './routes/app/courses/add'
 import { Route as AppChatSetupRouteImport } from './routes/app/chat/setup'
 import { Route as AppBotsAddRouteImport } from './routes/app/bots/add'
@@ -47,30 +53,30 @@ import { Route as ApiRpcSplatRouteImport } from './routes/api/rpc/$'
 import { Route as ApiDocSplatRouteImport } from './routes/api/doc/$'
 import { Route as ApiAuthSplatRouteImport } from './routes/api/auth/$'
 import { Route as AppUsersUserIdRouteRouteImport } from './routes/app/users/$userId/route'
+import { Route as AppProvidersProviderIdRouteRouteImport } from './routes/app/providers/$providerId/route'
 import { Route as AppOrgsOrgIdRouteRouteImport } from './routes/app/orgs/$orgId/route'
+import { Route as AppModelsModelIdRouteRouteImport } from './routes/app/models/$modelId/route'
 import { Route as AppCoursesCourseIdRouteRouteImport } from './routes/app/courses/$courseId/route'
 import { Route as AppBotsBotIdRouteRouteImport } from './routes/app/bots/$botId/route'
 import { Route as AppBlocksBlockIdRouteRouteImport } from './routes/app/blocks/$blockId/route'
 import { Route as AppAssetsAssetIdRouteRouteImport } from './routes/app/assets/$assetId/route'
+import { Route as AppProvidersProviderIdIndexRouteImport } from './routes/app/providers/$providerId/index'
 import { Route as AppOrgsOrgIdIndexRouteImport } from './routes/app/orgs/$orgId/index'
+import { Route as AppModelsModelIdIndexRouteImport } from './routes/app/models/$modelId/index'
 import { Route as AppCoursesCourseIdIndexRouteImport } from './routes/app/courses/$courseId/index'
 import { Route as AppChatChatIdIndexRouteImport } from './routes/app/chat/$chatId/index'
 import { Route as AppBotsBotIdIndexRouteImport } from './routes/app/bots/$botId/index'
 import { Route as AppBlocksBlockIdIndexRouteImport } from './routes/app/blocks/$blockId/index'
 import { Route as AppAssetsAssetIdIndexRouteImport } from './routes/app/assets/$assetId/index'
 import { Route as AppUsersUserIdEditRouteImport } from './routes/app/users/$userId/edit'
+import { Route as AppProvidersProviderIdEditRouteImport } from './routes/app/providers/$providerId/edit'
 import { Route as AppOrgsOrgIdEditRouteImport } from './routes/app/orgs/$orgId/edit'
+import { Route as AppModelsModelIdEditRouteImport } from './routes/app/models/$modelId/edit'
 import { Route as AppCoursesCourseIdEditRouteImport } from './routes/app/courses/$courseId/edit'
 import { Route as AppBotsBotIdEditRouteImport } from './routes/app/bots/$botId/edit'
 import { Route as AppBlocksBlockIdPointsRouteImport } from './routes/app/blocks/$blockId/points'
 import { Route as AppBlocksBlockIdEditRouteImport } from './routes/app/blocks/$blockId/edit'
 import { Route as AppAssetsAssetIdEditRouteImport } from './routes/app/assets/$assetId/edit'
-import { Route as AppOrgsOrgIdProvidersRouteRouteImport } from './routes/app/orgs/$orgId/providers/route'
-import { Route as AppOrgsOrgIdProvidersIndexRouteImport } from './routes/app/orgs/$orgId/providers/index'
-import { Route as AppOrgsOrgIdProvidersAddRouteImport } from './routes/app/orgs/$orgId/providers/add'
-import { Route as AppOrgsOrgIdProvidersProviderSlugRouteRouteImport } from './routes/app/orgs/$orgId/providers/$providerSlug/route'
-import { Route as AppOrgsOrgIdProvidersProviderSlugIndexRouteImport } from './routes/app/orgs/$orgId/providers/$providerSlug/index'
-import { Route as AppOrgsOrgIdProvidersProviderSlugEditRouteImport } from './routes/app/orgs/$orgId/providers/$providerSlug/edit'
 
 const AppRouteRoute = AppRouteRouteImport.update({
   id: '/app',
@@ -122,9 +128,19 @@ const AppUsersRouteRoute = AppUsersRouteRouteImport.update({
   path: '/users',
   getParentRoute: () => AppRouteRoute,
 } as any)
+const AppProvidersRouteRoute = AppProvidersRouteRouteImport.update({
+  id: '/providers',
+  path: '/providers',
+  getParentRoute: () => AppRouteRoute,
+} as any)
 const AppOrgsRouteRoute = AppOrgsRouteRouteImport.update({
   id: '/orgs',
   path: '/orgs',
+  getParentRoute: () => AppRouteRoute,
+} as any)
+const AppModelsRouteRoute = AppModelsRouteRouteImport.update({
+  id: '/models',
+  path: '/models',
   getParentRoute: () => AppRouteRoute,
 } as any)
 const AppCoursesRouteRoute = AppCoursesRouteRouteImport.update({
@@ -162,10 +178,20 @@ const AppUsersIndexRoute = AppUsersIndexRouteImport.update({
   path: '/',
   getParentRoute: () => AppUsersRouteRoute,
 } as any)
+const AppProvidersIndexRoute = AppProvidersIndexRouteImport.update({
+  id: '/',
+  path: '/',
+  getParentRoute: () => AppProvidersRouteRoute,
+} as any)
 const AppOrgsIndexRoute = AppOrgsIndexRouteImport.update({
   id: '/',
   path: '/',
   getParentRoute: () => AppOrgsRouteRoute,
+} as any)
+const AppModelsIndexRoute = AppModelsIndexRouteImport.update({
+  id: '/',
+  path: '/',
+  getParentRoute: () => AppModelsRouteRoute,
 } as any)
 const AppCoursesIndexRoute = AppCoursesIndexRouteImport.update({
   id: '/',
@@ -207,10 +233,20 @@ const AppUsersAddRoute = AppUsersAddRouteImport.update({
   path: '/add',
   getParentRoute: () => AppUsersRouteRoute,
 } as any)
+const AppProvidersAddRoute = AppProvidersAddRouteImport.update({
+  id: '/add',
+  path: '/add',
+  getParentRoute: () => AppProvidersRouteRoute,
+} as any)
 const AppOrgsAddRoute = AppOrgsAddRouteImport.update({
   id: '/add',
   path: '/add',
   getParentRoute: () => AppOrgsRouteRoute,
+} as any)
+const AppModelsAddRoute = AppModelsAddRouteImport.update({
+  id: '/add',
+  path: '/add',
+  getParentRoute: () => AppModelsRouteRoute,
 } as any)
 const AppCoursesAddRoute = AppCoursesAddRouteImport.update({
   id: '/add',
@@ -262,10 +298,21 @@ const AppUsersUserIdRouteRoute = AppUsersUserIdRouteRouteImport.update({
   path: '/$userId',
   getParentRoute: () => AppUsersRouteRoute,
 } as any)
+const AppProvidersProviderIdRouteRoute =
+  AppProvidersProviderIdRouteRouteImport.update({
+    id: '/$providerId',
+    path: '/$providerId',
+    getParentRoute: () => AppProvidersRouteRoute,
+  } as any)
 const AppOrgsOrgIdRouteRoute = AppOrgsOrgIdRouteRouteImport.update({
   id: '/$orgId',
   path: '/$orgId',
   getParentRoute: () => AppOrgsRouteRoute,
+} as any)
+const AppModelsModelIdRouteRoute = AppModelsModelIdRouteRouteImport.update({
+  id: '/$modelId',
+  path: '/$modelId',
+  getParentRoute: () => AppModelsRouteRoute,
 } as any)
 const AppCoursesCourseIdRouteRoute = AppCoursesCourseIdRouteRouteImport.update({
   id: '/$courseId',
@@ -287,10 +334,21 @@ const AppAssetsAssetIdRouteRoute = AppAssetsAssetIdRouteRouteImport.update({
   path: '/$assetId',
   getParentRoute: () => AppAssetsRouteRoute,
 } as any)
+const AppProvidersProviderIdIndexRoute =
+  AppProvidersProviderIdIndexRouteImport.update({
+    id: '/',
+    path: '/',
+    getParentRoute: () => AppProvidersProviderIdRouteRoute,
+  } as any)
 const AppOrgsOrgIdIndexRoute = AppOrgsOrgIdIndexRouteImport.update({
   id: '/',
   path: '/',
   getParentRoute: () => AppOrgsOrgIdRouteRoute,
+} as any)
+const AppModelsModelIdIndexRoute = AppModelsModelIdIndexRouteImport.update({
+  id: '/',
+  path: '/',
+  getParentRoute: () => AppModelsModelIdRouteRoute,
 } as any)
 const AppCoursesCourseIdIndexRoute = AppCoursesCourseIdIndexRouteImport.update({
   id: '/',
@@ -322,10 +380,21 @@ const AppUsersUserIdEditRoute = AppUsersUserIdEditRouteImport.update({
   path: '/edit',
   getParentRoute: () => AppUsersUserIdRouteRoute,
 } as any)
+const AppProvidersProviderIdEditRoute =
+  AppProvidersProviderIdEditRouteImport.update({
+    id: '/edit',
+    path: '/edit',
+    getParentRoute: () => AppProvidersProviderIdRouteRoute,
+  } as any)
 const AppOrgsOrgIdEditRoute = AppOrgsOrgIdEditRouteImport.update({
   id: '/edit',
   path: '/edit',
   getParentRoute: () => AppOrgsOrgIdRouteRoute,
+} as any)
+const AppModelsModelIdEditRoute = AppModelsModelIdEditRouteImport.update({
+  id: '/edit',
+  path: '/edit',
+  getParentRoute: () => AppModelsModelIdRouteRoute,
 } as any)
 const AppCoursesCourseIdEditRoute = AppCoursesCourseIdEditRouteImport.update({
   id: '/edit',
@@ -352,42 +421,6 @@ const AppAssetsAssetIdEditRoute = AppAssetsAssetIdEditRouteImport.update({
   path: '/edit',
   getParentRoute: () => AppAssetsAssetIdRouteRoute,
 } as any)
-const AppOrgsOrgIdProvidersRouteRoute =
-  AppOrgsOrgIdProvidersRouteRouteImport.update({
-    id: '/providers',
-    path: '/providers',
-    getParentRoute: () => AppOrgsOrgIdRouteRoute,
-  } as any)
-const AppOrgsOrgIdProvidersIndexRoute =
-  AppOrgsOrgIdProvidersIndexRouteImport.update({
-    id: '/',
-    path: '/',
-    getParentRoute: () => AppOrgsOrgIdProvidersRouteRoute,
-  } as any)
-const AppOrgsOrgIdProvidersAddRoute =
-  AppOrgsOrgIdProvidersAddRouteImport.update({
-    id: '/add',
-    path: '/add',
-    getParentRoute: () => AppOrgsOrgIdProvidersRouteRoute,
-  } as any)
-const AppOrgsOrgIdProvidersProviderSlugRouteRoute =
-  AppOrgsOrgIdProvidersProviderSlugRouteRouteImport.update({
-    id: '/$providerSlug',
-    path: '/$providerSlug',
-    getParentRoute: () => AppOrgsOrgIdProvidersRouteRoute,
-  } as any)
-const AppOrgsOrgIdProvidersProviderSlugIndexRoute =
-  AppOrgsOrgIdProvidersProviderSlugIndexRouteImport.update({
-    id: '/',
-    path: '/',
-    getParentRoute: () => AppOrgsOrgIdProvidersProviderSlugRouteRoute,
-  } as any)
-const AppOrgsOrgIdProvidersProviderSlugEditRoute =
-  AppOrgsOrgIdProvidersProviderSlugEditRouteImport.update({
-    id: '/edit',
-    path: '/edit',
-    getParentRoute: () => AppOrgsOrgIdProvidersProviderSlugRouteRoute,
-  } as any)
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
@@ -398,7 +431,9 @@ export interface FileRoutesByFullPath {
   '/app/bots': typeof AppBotsRouteRouteWithChildren
   '/app/chat': typeof AppChatRouteRouteWithChildren
   '/app/courses': typeof AppCoursesRouteRouteWithChildren
+  '/app/models': typeof AppModelsRouteRouteWithChildren
   '/app/orgs': typeof AppOrgsRouteRouteWithChildren
+  '/app/providers': typeof AppProvidersRouteRouteWithChildren
   '/app/users': typeof AppUsersRouteRouteWithChildren
   '/login': typeof PathlessLayoutLoginRoute
   '/privacy': typeof PathlessLayoutPrivacyRoute
@@ -410,7 +445,9 @@ export interface FileRoutesByFullPath {
   '/app/blocks/$blockId': typeof AppBlocksBlockIdRouteRouteWithChildren
   '/app/bots/$botId': typeof AppBotsBotIdRouteRouteWithChildren
   '/app/courses/$courseId': typeof AppCoursesCourseIdRouteRouteWithChildren
+  '/app/models/$modelId': typeof AppModelsModelIdRouteRouteWithChildren
   '/app/orgs/$orgId': typeof AppOrgsOrgIdRouteRouteWithChildren
+  '/app/providers/$providerId': typeof AppProvidersProviderIdRouteRouteWithChildren
   '/app/users/$userId': typeof AppUsersUserIdRouteRouteWithChildren
   '/api/auth/$': typeof ApiAuthSplatRoute
   '/api/doc/$': typeof ApiDocSplatRoute
@@ -421,7 +458,9 @@ export interface FileRoutesByFullPath {
   '/app/bots/add': typeof AppBotsAddRoute
   '/app/chat/setup': typeof AppChatSetupRoute
   '/app/courses/add': typeof AppCoursesAddRoute
+  '/app/models/add': typeof AppModelsAddRoute
   '/app/orgs/add': typeof AppOrgsAddRoute
+  '/app/providers/add': typeof AppProvidersAddRoute
   '/app/users/add': typeof AppUsersAddRoute
   '/app/users/invites': typeof AppUsersInvitesRoute
   '/app/account/': typeof AppAccountIndexRoute
@@ -430,27 +469,27 @@ export interface FileRoutesByFullPath {
   '/app/bots/': typeof AppBotsIndexRoute
   '/app/chat/': typeof AppChatIndexRoute
   '/app/courses/': typeof AppCoursesIndexRoute
+  '/app/models/': typeof AppModelsIndexRoute
   '/app/orgs/': typeof AppOrgsIndexRoute
+  '/app/providers/': typeof AppProvidersIndexRoute
   '/app/users/': typeof AppUsersIndexRoute
-  '/app/orgs/$orgId/providers': typeof AppOrgsOrgIdProvidersRouteRouteWithChildren
   '/app/assets/$assetId/edit': typeof AppAssetsAssetIdEditRoute
   '/app/blocks/$blockId/edit': typeof AppBlocksBlockIdEditRoute
   '/app/blocks/$blockId/points': typeof AppBlocksBlockIdPointsRoute
   '/app/bots/$botId/edit': typeof AppBotsBotIdEditRoute
   '/app/courses/$courseId/edit': typeof AppCoursesCourseIdEditRoute
+  '/app/models/$modelId/edit': typeof AppModelsModelIdEditRoute
   '/app/orgs/$orgId/edit': typeof AppOrgsOrgIdEditRoute
+  '/app/providers/$providerId/edit': typeof AppProvidersProviderIdEditRoute
   '/app/users/$userId/edit': typeof AppUsersUserIdEditRoute
   '/app/assets/$assetId/': typeof AppAssetsAssetIdIndexRoute
   '/app/blocks/$blockId/': typeof AppBlocksBlockIdIndexRoute
   '/app/bots/$botId/': typeof AppBotsBotIdIndexRoute
   '/app/chat/$chatId/': typeof AppChatChatIdIndexRoute
   '/app/courses/$courseId/': typeof AppCoursesCourseIdIndexRoute
+  '/app/models/$modelId/': typeof AppModelsModelIdIndexRoute
   '/app/orgs/$orgId/': typeof AppOrgsOrgIdIndexRoute
-  '/app/orgs/$orgId/providers/$providerSlug': typeof AppOrgsOrgIdProvidersProviderSlugRouteRouteWithChildren
-  '/app/orgs/$orgId/providers/add': typeof AppOrgsOrgIdProvidersAddRoute
-  '/app/orgs/$orgId/providers/': typeof AppOrgsOrgIdProvidersIndexRoute
-  '/app/orgs/$orgId/providers/$providerSlug/edit': typeof AppOrgsOrgIdProvidersProviderSlugEditRoute
-  '/app/orgs/$orgId/providers/$providerSlug/': typeof AppOrgsOrgIdProvidersProviderSlugIndexRoute
+  '/app/providers/$providerId/': typeof AppProvidersProviderIdIndexRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
@@ -470,7 +509,9 @@ export interface FileRoutesByTo {
   '/app/bots/add': typeof AppBotsAddRoute
   '/app/chat/setup': typeof AppChatSetupRoute
   '/app/courses/add': typeof AppCoursesAddRoute
+  '/app/models/add': typeof AppModelsAddRoute
   '/app/orgs/add': typeof AppOrgsAddRoute
+  '/app/providers/add': typeof AppProvidersAddRoute
   '/app/users/add': typeof AppUsersAddRoute
   '/app/users/invites': typeof AppUsersInvitesRoute
   '/app/account': typeof AppAccountIndexRoute
@@ -479,25 +520,27 @@ export interface FileRoutesByTo {
   '/app/bots': typeof AppBotsIndexRoute
   '/app/chat': typeof AppChatIndexRoute
   '/app/courses': typeof AppCoursesIndexRoute
+  '/app/models': typeof AppModelsIndexRoute
   '/app/orgs': typeof AppOrgsIndexRoute
+  '/app/providers': typeof AppProvidersIndexRoute
   '/app/users': typeof AppUsersIndexRoute
   '/app/assets/$assetId/edit': typeof AppAssetsAssetIdEditRoute
   '/app/blocks/$blockId/edit': typeof AppBlocksBlockIdEditRoute
   '/app/blocks/$blockId/points': typeof AppBlocksBlockIdPointsRoute
   '/app/bots/$botId/edit': typeof AppBotsBotIdEditRoute
   '/app/courses/$courseId/edit': typeof AppCoursesCourseIdEditRoute
+  '/app/models/$modelId/edit': typeof AppModelsModelIdEditRoute
   '/app/orgs/$orgId/edit': typeof AppOrgsOrgIdEditRoute
+  '/app/providers/$providerId/edit': typeof AppProvidersProviderIdEditRoute
   '/app/users/$userId/edit': typeof AppUsersUserIdEditRoute
   '/app/assets/$assetId': typeof AppAssetsAssetIdIndexRoute
   '/app/blocks/$blockId': typeof AppBlocksBlockIdIndexRoute
   '/app/bots/$botId': typeof AppBotsBotIdIndexRoute
   '/app/chat/$chatId': typeof AppChatChatIdIndexRoute
   '/app/courses/$courseId': typeof AppCoursesCourseIdIndexRoute
+  '/app/models/$modelId': typeof AppModelsModelIdIndexRoute
   '/app/orgs/$orgId': typeof AppOrgsOrgIdIndexRoute
-  '/app/orgs/$orgId/providers/add': typeof AppOrgsOrgIdProvidersAddRoute
-  '/app/orgs/$orgId/providers': typeof AppOrgsOrgIdProvidersIndexRoute
-  '/app/orgs/$orgId/providers/$providerSlug/edit': typeof AppOrgsOrgIdProvidersProviderSlugEditRoute
-  '/app/orgs/$orgId/providers/$providerSlug': typeof AppOrgsOrgIdProvidersProviderSlugIndexRoute
+  '/app/providers/$providerId': typeof AppProvidersProviderIdIndexRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
@@ -510,7 +553,9 @@ export interface FileRoutesById {
   '/app/bots': typeof AppBotsRouteRouteWithChildren
   '/app/chat': typeof AppChatRouteRouteWithChildren
   '/app/courses': typeof AppCoursesRouteRouteWithChildren
+  '/app/models': typeof AppModelsRouteRouteWithChildren
   '/app/orgs': typeof AppOrgsRouteRouteWithChildren
+  '/app/providers': typeof AppProvidersRouteRouteWithChildren
   '/app/users': typeof AppUsersRouteRouteWithChildren
   '/_pathlessLayout/login': typeof PathlessLayoutLoginRoute
   '/_pathlessLayout/privacy': typeof PathlessLayoutPrivacyRoute
@@ -522,7 +567,9 @@ export interface FileRoutesById {
   '/app/blocks/$blockId': typeof AppBlocksBlockIdRouteRouteWithChildren
   '/app/bots/$botId': typeof AppBotsBotIdRouteRouteWithChildren
   '/app/courses/$courseId': typeof AppCoursesCourseIdRouteRouteWithChildren
+  '/app/models/$modelId': typeof AppModelsModelIdRouteRouteWithChildren
   '/app/orgs/$orgId': typeof AppOrgsOrgIdRouteRouteWithChildren
+  '/app/providers/$providerId': typeof AppProvidersProviderIdRouteRouteWithChildren
   '/app/users/$userId': typeof AppUsersUserIdRouteRouteWithChildren
   '/api/auth/$': typeof ApiAuthSplatRoute
   '/api/doc/$': typeof ApiDocSplatRoute
@@ -533,7 +580,9 @@ export interface FileRoutesById {
   '/app/bots/add': typeof AppBotsAddRoute
   '/app/chat/setup': typeof AppChatSetupRoute
   '/app/courses/add': typeof AppCoursesAddRoute
+  '/app/models/add': typeof AppModelsAddRoute
   '/app/orgs/add': typeof AppOrgsAddRoute
+  '/app/providers/add': typeof AppProvidersAddRoute
   '/app/users/add': typeof AppUsersAddRoute
   '/app/users/invites': typeof AppUsersInvitesRoute
   '/app/account/': typeof AppAccountIndexRoute
@@ -542,27 +591,27 @@ export interface FileRoutesById {
   '/app/bots/': typeof AppBotsIndexRoute
   '/app/chat/': typeof AppChatIndexRoute
   '/app/courses/': typeof AppCoursesIndexRoute
+  '/app/models/': typeof AppModelsIndexRoute
   '/app/orgs/': typeof AppOrgsIndexRoute
+  '/app/providers/': typeof AppProvidersIndexRoute
   '/app/users/': typeof AppUsersIndexRoute
-  '/app/orgs/$orgId/providers': typeof AppOrgsOrgIdProvidersRouteRouteWithChildren
   '/app/assets/$assetId/edit': typeof AppAssetsAssetIdEditRoute
   '/app/blocks/$blockId/edit': typeof AppBlocksBlockIdEditRoute
   '/app/blocks/$blockId/points': typeof AppBlocksBlockIdPointsRoute
   '/app/bots/$botId/edit': typeof AppBotsBotIdEditRoute
   '/app/courses/$courseId/edit': typeof AppCoursesCourseIdEditRoute
+  '/app/models/$modelId/edit': typeof AppModelsModelIdEditRoute
   '/app/orgs/$orgId/edit': typeof AppOrgsOrgIdEditRoute
+  '/app/providers/$providerId/edit': typeof AppProvidersProviderIdEditRoute
   '/app/users/$userId/edit': typeof AppUsersUserIdEditRoute
   '/app/assets/$assetId/': typeof AppAssetsAssetIdIndexRoute
   '/app/blocks/$blockId/': typeof AppBlocksBlockIdIndexRoute
   '/app/bots/$botId/': typeof AppBotsBotIdIndexRoute
   '/app/chat/$chatId/': typeof AppChatChatIdIndexRoute
   '/app/courses/$courseId/': typeof AppCoursesCourseIdIndexRoute
+  '/app/models/$modelId/': typeof AppModelsModelIdIndexRoute
   '/app/orgs/$orgId/': typeof AppOrgsOrgIdIndexRoute
-  '/app/orgs/$orgId/providers/$providerSlug': typeof AppOrgsOrgIdProvidersProviderSlugRouteRouteWithChildren
-  '/app/orgs/$orgId/providers/add': typeof AppOrgsOrgIdProvidersAddRoute
-  '/app/orgs/$orgId/providers/': typeof AppOrgsOrgIdProvidersIndexRoute
-  '/app/orgs/$orgId/providers/$providerSlug/edit': typeof AppOrgsOrgIdProvidersProviderSlugEditRoute
-  '/app/orgs/$orgId/providers/$providerSlug/': typeof AppOrgsOrgIdProvidersProviderSlugIndexRoute
+  '/app/providers/$providerId/': typeof AppProvidersProviderIdIndexRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
@@ -575,7 +624,9 @@ export interface FileRouteTypes {
     | '/app/bots'
     | '/app/chat'
     | '/app/courses'
+    | '/app/models'
     | '/app/orgs'
+    | '/app/providers'
     | '/app/users'
     | '/login'
     | '/privacy'
@@ -587,7 +638,9 @@ export interface FileRouteTypes {
     | '/app/blocks/$blockId'
     | '/app/bots/$botId'
     | '/app/courses/$courseId'
+    | '/app/models/$modelId'
     | '/app/orgs/$orgId'
+    | '/app/providers/$providerId'
     | '/app/users/$userId'
     | '/api/auth/$'
     | '/api/doc/$'
@@ -598,7 +651,9 @@ export interface FileRouteTypes {
     | '/app/bots/add'
     | '/app/chat/setup'
     | '/app/courses/add'
+    | '/app/models/add'
     | '/app/orgs/add'
+    | '/app/providers/add'
     | '/app/users/add'
     | '/app/users/invites'
     | '/app/account/'
@@ -607,27 +662,27 @@ export interface FileRouteTypes {
     | '/app/bots/'
     | '/app/chat/'
     | '/app/courses/'
+    | '/app/models/'
     | '/app/orgs/'
+    | '/app/providers/'
     | '/app/users/'
-    | '/app/orgs/$orgId/providers'
     | '/app/assets/$assetId/edit'
     | '/app/blocks/$blockId/edit'
     | '/app/blocks/$blockId/points'
     | '/app/bots/$botId/edit'
     | '/app/courses/$courseId/edit'
+    | '/app/models/$modelId/edit'
     | '/app/orgs/$orgId/edit'
+    | '/app/providers/$providerId/edit'
     | '/app/users/$userId/edit'
     | '/app/assets/$assetId/'
     | '/app/blocks/$blockId/'
     | '/app/bots/$botId/'
     | '/app/chat/$chatId/'
     | '/app/courses/$courseId/'
+    | '/app/models/$modelId/'
     | '/app/orgs/$orgId/'
-    | '/app/orgs/$orgId/providers/$providerSlug'
-    | '/app/orgs/$orgId/providers/add'
-    | '/app/orgs/$orgId/providers/'
-    | '/app/orgs/$orgId/providers/$providerSlug/edit'
-    | '/app/orgs/$orgId/providers/$providerSlug/'
+    | '/app/providers/$providerId/'
   fileRoutesByTo: FileRoutesByTo
   to:
     | '/'
@@ -647,7 +702,9 @@ export interface FileRouteTypes {
     | '/app/bots/add'
     | '/app/chat/setup'
     | '/app/courses/add'
+    | '/app/models/add'
     | '/app/orgs/add'
+    | '/app/providers/add'
     | '/app/users/add'
     | '/app/users/invites'
     | '/app/account'
@@ -656,25 +713,27 @@ export interface FileRouteTypes {
     | '/app/bots'
     | '/app/chat'
     | '/app/courses'
+    | '/app/models'
     | '/app/orgs'
+    | '/app/providers'
     | '/app/users'
     | '/app/assets/$assetId/edit'
     | '/app/blocks/$blockId/edit'
     | '/app/blocks/$blockId/points'
     | '/app/bots/$botId/edit'
     | '/app/courses/$courseId/edit'
+    | '/app/models/$modelId/edit'
     | '/app/orgs/$orgId/edit'
+    | '/app/providers/$providerId/edit'
     | '/app/users/$userId/edit'
     | '/app/assets/$assetId'
     | '/app/blocks/$blockId'
     | '/app/bots/$botId'
     | '/app/chat/$chatId'
     | '/app/courses/$courseId'
+    | '/app/models/$modelId'
     | '/app/orgs/$orgId'
-    | '/app/orgs/$orgId/providers/add'
-    | '/app/orgs/$orgId/providers'
-    | '/app/orgs/$orgId/providers/$providerSlug/edit'
-    | '/app/orgs/$orgId/providers/$providerSlug'
+    | '/app/providers/$providerId'
   id:
     | '__root__'
     | '/'
@@ -686,7 +745,9 @@ export interface FileRouteTypes {
     | '/app/bots'
     | '/app/chat'
     | '/app/courses'
+    | '/app/models'
     | '/app/orgs'
+    | '/app/providers'
     | '/app/users'
     | '/_pathlessLayout/login'
     | '/_pathlessLayout/privacy'
@@ -698,7 +759,9 @@ export interface FileRouteTypes {
     | '/app/blocks/$blockId'
     | '/app/bots/$botId'
     | '/app/courses/$courseId'
+    | '/app/models/$modelId'
     | '/app/orgs/$orgId'
+    | '/app/providers/$providerId'
     | '/app/users/$userId'
     | '/api/auth/$'
     | '/api/doc/$'
@@ -709,7 +772,9 @@ export interface FileRouteTypes {
     | '/app/bots/add'
     | '/app/chat/setup'
     | '/app/courses/add'
+    | '/app/models/add'
     | '/app/orgs/add'
+    | '/app/providers/add'
     | '/app/users/add'
     | '/app/users/invites'
     | '/app/account/'
@@ -718,27 +783,27 @@ export interface FileRouteTypes {
     | '/app/bots/'
     | '/app/chat/'
     | '/app/courses/'
+    | '/app/models/'
     | '/app/orgs/'
+    | '/app/providers/'
     | '/app/users/'
-    | '/app/orgs/$orgId/providers'
     | '/app/assets/$assetId/edit'
     | '/app/blocks/$blockId/edit'
     | '/app/blocks/$blockId/points'
     | '/app/bots/$botId/edit'
     | '/app/courses/$courseId/edit'
+    | '/app/models/$modelId/edit'
     | '/app/orgs/$orgId/edit'
+    | '/app/providers/$providerId/edit'
     | '/app/users/$userId/edit'
     | '/app/assets/$assetId/'
     | '/app/blocks/$blockId/'
     | '/app/bots/$botId/'
     | '/app/chat/$chatId/'
     | '/app/courses/$courseId/'
+    | '/app/models/$modelId/'
     | '/app/orgs/$orgId/'
-    | '/app/orgs/$orgId/providers/$providerSlug'
-    | '/app/orgs/$orgId/providers/add'
-    | '/app/orgs/$orgId/providers/'
-    | '/app/orgs/$orgId/providers/$providerSlug/edit'
-    | '/app/orgs/$orgId/providers/$providerSlug/'
+    | '/app/providers/$providerId/'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
@@ -822,11 +887,25 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AppUsersRouteRouteImport
       parentRoute: typeof AppRouteRoute
     }
+    '/app/providers': {
+      id: '/app/providers'
+      path: '/providers'
+      fullPath: '/app/providers'
+      preLoaderRoute: typeof AppProvidersRouteRouteImport
+      parentRoute: typeof AppRouteRoute
+    }
     '/app/orgs': {
       id: '/app/orgs'
       path: '/orgs'
       fullPath: '/app/orgs'
       preLoaderRoute: typeof AppOrgsRouteRouteImport
+      parentRoute: typeof AppRouteRoute
+    }
+    '/app/models': {
+      id: '/app/models'
+      path: '/models'
+      fullPath: '/app/models'
+      preLoaderRoute: typeof AppModelsRouteRouteImport
       parentRoute: typeof AppRouteRoute
     }
     '/app/courses': {
@@ -878,12 +957,26 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AppUsersIndexRouteImport
       parentRoute: typeof AppUsersRouteRoute
     }
+    '/app/providers/': {
+      id: '/app/providers/'
+      path: '/'
+      fullPath: '/app/providers/'
+      preLoaderRoute: typeof AppProvidersIndexRouteImport
+      parentRoute: typeof AppProvidersRouteRoute
+    }
     '/app/orgs/': {
       id: '/app/orgs/'
       path: '/'
       fullPath: '/app/orgs/'
       preLoaderRoute: typeof AppOrgsIndexRouteImport
       parentRoute: typeof AppOrgsRouteRoute
+    }
+    '/app/models/': {
+      id: '/app/models/'
+      path: '/'
+      fullPath: '/app/models/'
+      preLoaderRoute: typeof AppModelsIndexRouteImport
+      parentRoute: typeof AppModelsRouteRoute
     }
     '/app/courses/': {
       id: '/app/courses/'
@@ -941,12 +1034,26 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AppUsersAddRouteImport
       parentRoute: typeof AppUsersRouteRoute
     }
+    '/app/providers/add': {
+      id: '/app/providers/add'
+      path: '/add'
+      fullPath: '/app/providers/add'
+      preLoaderRoute: typeof AppProvidersAddRouteImport
+      parentRoute: typeof AppProvidersRouteRoute
+    }
     '/app/orgs/add': {
       id: '/app/orgs/add'
       path: '/add'
       fullPath: '/app/orgs/add'
       preLoaderRoute: typeof AppOrgsAddRouteImport
       parentRoute: typeof AppOrgsRouteRoute
+    }
+    '/app/models/add': {
+      id: '/app/models/add'
+      path: '/add'
+      fullPath: '/app/models/add'
+      preLoaderRoute: typeof AppModelsAddRouteImport
+      parentRoute: typeof AppModelsRouteRoute
     }
     '/app/courses/add': {
       id: '/app/courses/add'
@@ -1018,12 +1125,26 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AppUsersUserIdRouteRouteImport
       parentRoute: typeof AppUsersRouteRoute
     }
+    '/app/providers/$providerId': {
+      id: '/app/providers/$providerId'
+      path: '/$providerId'
+      fullPath: '/app/providers/$providerId'
+      preLoaderRoute: typeof AppProvidersProviderIdRouteRouteImport
+      parentRoute: typeof AppProvidersRouteRoute
+    }
     '/app/orgs/$orgId': {
       id: '/app/orgs/$orgId'
       path: '/$orgId'
       fullPath: '/app/orgs/$orgId'
       preLoaderRoute: typeof AppOrgsOrgIdRouteRouteImport
       parentRoute: typeof AppOrgsRouteRoute
+    }
+    '/app/models/$modelId': {
+      id: '/app/models/$modelId'
+      path: '/$modelId'
+      fullPath: '/app/models/$modelId'
+      preLoaderRoute: typeof AppModelsModelIdRouteRouteImport
+      parentRoute: typeof AppModelsRouteRoute
     }
     '/app/courses/$courseId': {
       id: '/app/courses/$courseId'
@@ -1053,12 +1174,26 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AppAssetsAssetIdRouteRouteImport
       parentRoute: typeof AppAssetsRouteRoute
     }
+    '/app/providers/$providerId/': {
+      id: '/app/providers/$providerId/'
+      path: '/'
+      fullPath: '/app/providers/$providerId/'
+      preLoaderRoute: typeof AppProvidersProviderIdIndexRouteImport
+      parentRoute: typeof AppProvidersProviderIdRouteRoute
+    }
     '/app/orgs/$orgId/': {
       id: '/app/orgs/$orgId/'
       path: '/'
       fullPath: '/app/orgs/$orgId/'
       preLoaderRoute: typeof AppOrgsOrgIdIndexRouteImport
       parentRoute: typeof AppOrgsOrgIdRouteRoute
+    }
+    '/app/models/$modelId/': {
+      id: '/app/models/$modelId/'
+      path: '/'
+      fullPath: '/app/models/$modelId/'
+      preLoaderRoute: typeof AppModelsModelIdIndexRouteImport
+      parentRoute: typeof AppModelsModelIdRouteRoute
     }
     '/app/courses/$courseId/': {
       id: '/app/courses/$courseId/'
@@ -1102,12 +1237,26 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AppUsersUserIdEditRouteImport
       parentRoute: typeof AppUsersUserIdRouteRoute
     }
+    '/app/providers/$providerId/edit': {
+      id: '/app/providers/$providerId/edit'
+      path: '/edit'
+      fullPath: '/app/providers/$providerId/edit'
+      preLoaderRoute: typeof AppProvidersProviderIdEditRouteImport
+      parentRoute: typeof AppProvidersProviderIdRouteRoute
+    }
     '/app/orgs/$orgId/edit': {
       id: '/app/orgs/$orgId/edit'
       path: '/edit'
       fullPath: '/app/orgs/$orgId/edit'
       preLoaderRoute: typeof AppOrgsOrgIdEditRouteImport
       parentRoute: typeof AppOrgsOrgIdRouteRoute
+    }
+    '/app/models/$modelId/edit': {
+      id: '/app/models/$modelId/edit'
+      path: '/edit'
+      fullPath: '/app/models/$modelId/edit'
+      preLoaderRoute: typeof AppModelsModelIdEditRouteImport
+      parentRoute: typeof AppModelsModelIdRouteRoute
     }
     '/app/courses/$courseId/edit': {
       id: '/app/courses/$courseId/edit'
@@ -1143,48 +1292,6 @@ declare module '@tanstack/react-router' {
       fullPath: '/app/assets/$assetId/edit'
       preLoaderRoute: typeof AppAssetsAssetIdEditRouteImport
       parentRoute: typeof AppAssetsAssetIdRouteRoute
-    }
-    '/app/orgs/$orgId/providers': {
-      id: '/app/orgs/$orgId/providers'
-      path: '/providers'
-      fullPath: '/app/orgs/$orgId/providers'
-      preLoaderRoute: typeof AppOrgsOrgIdProvidersRouteRouteImport
-      parentRoute: typeof AppOrgsOrgIdRouteRoute
-    }
-    '/app/orgs/$orgId/providers/': {
-      id: '/app/orgs/$orgId/providers/'
-      path: '/'
-      fullPath: '/app/orgs/$orgId/providers/'
-      preLoaderRoute: typeof AppOrgsOrgIdProvidersIndexRouteImport
-      parentRoute: typeof AppOrgsOrgIdProvidersRouteRoute
-    }
-    '/app/orgs/$orgId/providers/add': {
-      id: '/app/orgs/$orgId/providers/add'
-      path: '/add'
-      fullPath: '/app/orgs/$orgId/providers/add'
-      preLoaderRoute: typeof AppOrgsOrgIdProvidersAddRouteImport
-      parentRoute: typeof AppOrgsOrgIdProvidersRouteRoute
-    }
-    '/app/orgs/$orgId/providers/$providerSlug': {
-      id: '/app/orgs/$orgId/providers/$providerSlug'
-      path: '/$providerSlug'
-      fullPath: '/app/orgs/$orgId/providers/$providerSlug'
-      preLoaderRoute: typeof AppOrgsOrgIdProvidersProviderSlugRouteRouteImport
-      parentRoute: typeof AppOrgsOrgIdProvidersRouteRoute
-    }
-    '/app/orgs/$orgId/providers/$providerSlug/': {
-      id: '/app/orgs/$orgId/providers/$providerSlug/'
-      path: '/'
-      fullPath: '/app/orgs/$orgId/providers/$providerSlug/'
-      preLoaderRoute: typeof AppOrgsOrgIdProvidersProviderSlugIndexRouteImport
-      parentRoute: typeof AppOrgsOrgIdProvidersProviderSlugRouteRoute
-    }
-    '/app/orgs/$orgId/providers/$providerSlug/edit': {
-      id: '/app/orgs/$orgId/providers/$providerSlug/edit'
-      path: '/edit'
-      fullPath: '/app/orgs/$orgId/providers/$providerSlug/edit'
-      preLoaderRoute: typeof AppOrgsOrgIdProvidersProviderSlugEditRouteImport
-      parentRoute: typeof AppOrgsOrgIdProvidersProviderSlugRouteRoute
     }
   }
 }
@@ -1363,51 +1470,43 @@ const AppCoursesRouteRouteWithChildren = AppCoursesRouteRoute._addFileChildren(
   AppCoursesRouteRouteChildren,
 )
 
-interface AppOrgsOrgIdProvidersProviderSlugRouteRouteChildren {
-  AppOrgsOrgIdProvidersProviderSlugEditRoute: typeof AppOrgsOrgIdProvidersProviderSlugEditRoute
-  AppOrgsOrgIdProvidersProviderSlugIndexRoute: typeof AppOrgsOrgIdProvidersProviderSlugIndexRoute
+interface AppModelsModelIdRouteRouteChildren {
+  AppModelsModelIdEditRoute: typeof AppModelsModelIdEditRoute
+  AppModelsModelIdIndexRoute: typeof AppModelsModelIdIndexRoute
 }
 
-const AppOrgsOrgIdProvidersProviderSlugRouteRouteChildren: AppOrgsOrgIdProvidersProviderSlugRouteRouteChildren =
-  {
-    AppOrgsOrgIdProvidersProviderSlugEditRoute:
-      AppOrgsOrgIdProvidersProviderSlugEditRoute,
-    AppOrgsOrgIdProvidersProviderSlugIndexRoute:
-      AppOrgsOrgIdProvidersProviderSlugIndexRoute,
-  }
-
-const AppOrgsOrgIdProvidersProviderSlugRouteRouteWithChildren =
-  AppOrgsOrgIdProvidersProviderSlugRouteRoute._addFileChildren(
-    AppOrgsOrgIdProvidersProviderSlugRouteRouteChildren,
-  )
-
-interface AppOrgsOrgIdProvidersRouteRouteChildren {
-  AppOrgsOrgIdProvidersProviderSlugRouteRoute: typeof AppOrgsOrgIdProvidersProviderSlugRouteRouteWithChildren
-  AppOrgsOrgIdProvidersAddRoute: typeof AppOrgsOrgIdProvidersAddRoute
-  AppOrgsOrgIdProvidersIndexRoute: typeof AppOrgsOrgIdProvidersIndexRoute
+const AppModelsModelIdRouteRouteChildren: AppModelsModelIdRouteRouteChildren = {
+  AppModelsModelIdEditRoute: AppModelsModelIdEditRoute,
+  AppModelsModelIdIndexRoute: AppModelsModelIdIndexRoute,
 }
 
-const AppOrgsOrgIdProvidersRouteRouteChildren: AppOrgsOrgIdProvidersRouteRouteChildren =
-  {
-    AppOrgsOrgIdProvidersProviderSlugRouteRoute:
-      AppOrgsOrgIdProvidersProviderSlugRouteRouteWithChildren,
-    AppOrgsOrgIdProvidersAddRoute: AppOrgsOrgIdProvidersAddRoute,
-    AppOrgsOrgIdProvidersIndexRoute: AppOrgsOrgIdProvidersIndexRoute,
-  }
-
-const AppOrgsOrgIdProvidersRouteRouteWithChildren =
-  AppOrgsOrgIdProvidersRouteRoute._addFileChildren(
-    AppOrgsOrgIdProvidersRouteRouteChildren,
+const AppModelsModelIdRouteRouteWithChildren =
+  AppModelsModelIdRouteRoute._addFileChildren(
+    AppModelsModelIdRouteRouteChildren,
   )
+
+interface AppModelsRouteRouteChildren {
+  AppModelsModelIdRouteRoute: typeof AppModelsModelIdRouteRouteWithChildren
+  AppModelsAddRoute: typeof AppModelsAddRoute
+  AppModelsIndexRoute: typeof AppModelsIndexRoute
+}
+
+const AppModelsRouteRouteChildren: AppModelsRouteRouteChildren = {
+  AppModelsModelIdRouteRoute: AppModelsModelIdRouteRouteWithChildren,
+  AppModelsAddRoute: AppModelsAddRoute,
+  AppModelsIndexRoute: AppModelsIndexRoute,
+}
+
+const AppModelsRouteRouteWithChildren = AppModelsRouteRoute._addFileChildren(
+  AppModelsRouteRouteChildren,
+)
 
 interface AppOrgsOrgIdRouteRouteChildren {
-  AppOrgsOrgIdProvidersRouteRoute: typeof AppOrgsOrgIdProvidersRouteRouteWithChildren
   AppOrgsOrgIdEditRoute: typeof AppOrgsOrgIdEditRoute
   AppOrgsOrgIdIndexRoute: typeof AppOrgsOrgIdIndexRoute
 }
 
 const AppOrgsOrgIdRouteRouteChildren: AppOrgsOrgIdRouteRouteChildren = {
-  AppOrgsOrgIdProvidersRouteRoute: AppOrgsOrgIdProvidersRouteRouteWithChildren,
   AppOrgsOrgIdEditRoute: AppOrgsOrgIdEditRoute,
   AppOrgsOrgIdIndexRoute: AppOrgsOrgIdIndexRoute,
 }
@@ -1430,6 +1529,38 @@ const AppOrgsRouteRouteChildren: AppOrgsRouteRouteChildren = {
 const AppOrgsRouteRouteWithChildren = AppOrgsRouteRoute._addFileChildren(
   AppOrgsRouteRouteChildren,
 )
+
+interface AppProvidersProviderIdRouteRouteChildren {
+  AppProvidersProviderIdEditRoute: typeof AppProvidersProviderIdEditRoute
+  AppProvidersProviderIdIndexRoute: typeof AppProvidersProviderIdIndexRoute
+}
+
+const AppProvidersProviderIdRouteRouteChildren: AppProvidersProviderIdRouteRouteChildren =
+  {
+    AppProvidersProviderIdEditRoute: AppProvidersProviderIdEditRoute,
+    AppProvidersProviderIdIndexRoute: AppProvidersProviderIdIndexRoute,
+  }
+
+const AppProvidersProviderIdRouteRouteWithChildren =
+  AppProvidersProviderIdRouteRoute._addFileChildren(
+    AppProvidersProviderIdRouteRouteChildren,
+  )
+
+interface AppProvidersRouteRouteChildren {
+  AppProvidersProviderIdRouteRoute: typeof AppProvidersProviderIdRouteRouteWithChildren
+  AppProvidersAddRoute: typeof AppProvidersAddRoute
+  AppProvidersIndexRoute: typeof AppProvidersIndexRoute
+}
+
+const AppProvidersRouteRouteChildren: AppProvidersRouteRouteChildren = {
+  AppProvidersProviderIdRouteRoute:
+    AppProvidersProviderIdRouteRouteWithChildren,
+  AppProvidersAddRoute: AppProvidersAddRoute,
+  AppProvidersIndexRoute: AppProvidersIndexRoute,
+}
+
+const AppProvidersRouteRouteWithChildren =
+  AppProvidersRouteRoute._addFileChildren(AppProvidersRouteRouteChildren)
 
 interface AppUsersUserIdRouteRouteChildren {
   AppUsersUserIdEditRoute: typeof AppUsersUserIdEditRoute
@@ -1467,7 +1598,9 @@ interface AppRouteRouteChildren {
   AppBotsRouteRoute: typeof AppBotsRouteRouteWithChildren
   AppChatRouteRoute: typeof AppChatRouteRouteWithChildren
   AppCoursesRouteRoute: typeof AppCoursesRouteRouteWithChildren
+  AppModelsRouteRoute: typeof AppModelsRouteRouteWithChildren
   AppOrgsRouteRoute: typeof AppOrgsRouteRouteWithChildren
+  AppProvidersRouteRoute: typeof AppProvidersRouteRouteWithChildren
   AppUsersRouteRoute: typeof AppUsersRouteRouteWithChildren
   AppIndexRoute: typeof AppIndexRoute
 }
@@ -1479,7 +1612,9 @@ const AppRouteRouteChildren: AppRouteRouteChildren = {
   AppBotsRouteRoute: AppBotsRouteRouteWithChildren,
   AppChatRouteRoute: AppChatRouteRouteWithChildren,
   AppCoursesRouteRoute: AppCoursesRouteRouteWithChildren,
+  AppModelsRouteRoute: AppModelsRouteRouteWithChildren,
   AppOrgsRouteRoute: AppOrgsRouteRouteWithChildren,
+  AppProvidersRouteRoute: AppProvidersRouteRouteWithChildren,
   AppUsersRouteRoute: AppUsersRouteRouteWithChildren,
   AppIndexRoute: AppIndexRoute,
 }

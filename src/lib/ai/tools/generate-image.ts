@@ -34,8 +34,11 @@ export const generateImageTool = ({
 		execute: async ({ prompt }) =>
 			runtime.runPromise(
 				Effect.gen(function* () {
-					const systemProvider = yield* Effect.tryPromise({
-						try: () => client.provider.find({ slug: block.config.provider }),
+					const provider = yield* Effect.tryPromise({
+						try: () =>
+							client.provider.find({
+								id: block.config.provider,
+							}),
 						catch: (cause) =>
 							new AiError({
 								operation: "generateImageTool.fetch.provider",
@@ -43,33 +46,19 @@ export const generateImageTool = ({
 							}),
 					});
 
-					const organizationProvider = yield* Effect.tryPromise({
-						try: () =>
-							client.organizationProvider.find({
-								providerSlug: block.config.provider,
-							}),
-						catch: (cause) =>
-							new AiError({
-								operation: "generateImageTool.fetch.organizationProvider",
-								cause,
-							}),
-					});
+					const apiKey = yield* decryptApiKey(provider.data.apiKeyEncrypted);
 
-					const apiKey = yield* decryptApiKey(
-						organizationProvider.data.apiKeyEncrypted,
-					);
-
-					const provider = createOpenAICompatible({
-						baseURL: systemProvider.data.endpoint ?? "", // TODO: Fix?
+					const providerInstance = createOpenAICompatible({
+						baseURL: provider.data.endpoint ?? "", // TODO: Fix?
 						apiKey,
-						name: systemProvider.data.slug,
+						name: provider.data.name,
 						includeUsage: true,
 					});
 
 					const { image } = yield* Effect.tryPromise({
 						try: () =>
 							generateImage({
-								model: provider.imageModel(block.config.model),
+								model: providerInstance.imageModel(block.config.model),
 								prompt: `${block.config.prompt}\n\n${prompt}`,
 							}),
 						catch: (cause) =>

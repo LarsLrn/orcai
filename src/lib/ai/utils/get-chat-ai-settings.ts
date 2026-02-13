@@ -13,40 +13,42 @@ export const getChatAiSettings = ({
 	templateBlock: TemplateBlock;
 }) =>
 	Effect.gen(function* () {
-		const baseProvider = yield* Effect.tryPromise({
-			try: () => client.provider.find({ slug: templateBlock.config.provider }),
-			catch: (cause) =>
-				new AiError({
-					operation: "chatAgent.getChatAiSettings.fetch.provider",
-					cause,
+		const [{ data: provider }, { data: modelSettings }] = yield* Effect.all(
+			[
+				Effect.tryPromise({
+					try: () =>
+						client.provider.find({
+							id: templateBlock.config.provider,
+						}),
+					catch: (cause) =>
+						new AiError({
+							operation: "chatAgent.getChatAiSettings.fetch.provider",
+							cause,
+						}),
 				}),
-		});
-
-		const organizationProviderSettings = yield* Effect.tryPromise({
-			try: () =>
-				client.organizationProvider.find({
-					providerSlug: templateBlock.config.provider,
+				Effect.tryPromise({
+					try: () => client.model.find({ id: templateBlock.config.model }),
+					catch: (cause) =>
+						new AiError({
+							operation: "chatAgent.getChatAiSettings.fetch.model",
+							cause,
+						}),
 				}),
-			catch: (cause) =>
-				new AiError({
-					operation: "chatAgent.getChatAiSettings.fetch.organizationProvider",
-					cause,
-				}),
-		});
-
-		const apiKey = yield* decryptApiKey(
-			organizationProviderSettings.data.apiKeyEncrypted,
+			],
+			{ concurrency: "unbounded" },
 		);
 
-		const provider = createOpenAICompatible({
-			baseURL: baseProvider.data.endpoint ?? "", // TODO: Fix?
+		const apiKey = yield* decryptApiKey(provider.apiKeyEncrypted);
+
+		const providerInstance = createOpenAICompatible({
+			baseURL: provider.endpoint ?? "", // TODO: Fix?
 			apiKey,
-			name: baseProvider.data.slug,
+			name: provider.name,
 			includeUsage: true,
 		});
 
 		const model = wrapLanguageModel({
-			model: provider(templateBlock.config.model),
+			model: providerInstance(modelSettings.providerModelId),
 			middleware: [
 				devToolsMiddleware(),
 				extractReasoningMiddleware({ tagName: "think" }),

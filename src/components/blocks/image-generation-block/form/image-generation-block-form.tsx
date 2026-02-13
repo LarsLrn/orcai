@@ -20,7 +20,7 @@ const ImageGenerationBlockForm = ({
 	const { auth } = useRouteContext({ from: "/app" });
 
 	const { data: providers } = useSuspenseQuery(
-		orpc.organizationProvider.list.queryOptions({
+		orpc.provider.list.queryOptions({
 			input: { organizationId: auth.session.activeOrganizationId },
 		}),
 	);
@@ -36,15 +36,15 @@ const ImageGenerationBlockForm = ({
 		},
 	});
 
-	const providerSlug = useStore(
+	const providerId = useStore(
 		form.store,
 		(state) => state.values.config.provider,
 	);
 
 	const { data: models } = useQuery(
 		orpc.model.list.queryOptions({
-			input: providerSlug
-				? { providerSlug, capabilities: ["image-generation"] }
+			input: providerId
+				? { providerId, capabilities: ["image-generation"] }
 				: skipToken,
 		}),
 	);
@@ -88,8 +88,8 @@ const ImageGenerationBlockForm = ({
 									label="Provider"
 									placeholder="Choose a Provider"
 									options={providers.data.map((provider) => ({
-										value: provider.providerSlug,
-										label: provider.providerSlug,
+										value: provider.id,
+										label: provider.name,
 									}))}
 								/>
 							)}
@@ -102,7 +102,7 @@ const ImageGenerationBlockForm = ({
 									label="Image Model"
 									placeholder="Choose an Image Model"
 									options={models?.data?.map((model) => ({
-										value: model.slug,
+										value: model.id,
 										label: model.name,
 									}))}
 								/>

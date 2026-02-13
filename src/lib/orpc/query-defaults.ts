@@ -404,7 +404,7 @@ export const queryDefaults: CreateRouterUtilsOptions<
 			},
 		},
 	},
-	organizationProvider: {
+	provider: {
 		list: {
 			queryOptions: {
 				placeholderData: keepPreviousData,
@@ -419,7 +419,7 @@ export const queryDefaults: CreateRouterUtilsOptions<
 			mutationOptions: {
 				onSuccess: (_output, _input, _, ctx) => {
 					ctx.client.invalidateQueries({
-						queryKey: orpc.organizationProvider.key(),
+						queryKey: orpc.provider.key(),
 					});
 				},
 			},
@@ -428,7 +428,7 @@ export const queryDefaults: CreateRouterUtilsOptions<
 			mutationOptions: {
 				onSuccess: (_output, _input, _, ctx) => {
 					ctx.client.invalidateQueries({
-						queryKey: orpc.organizationProvider.key(),
+						queryKey: orpc.provider.key(),
 					});
 				},
 			},
@@ -437,7 +437,7 @@ export const queryDefaults: CreateRouterUtilsOptions<
 			mutationOptions: {
 				onSuccess: (_output, _input, _, ctx) => {
 					ctx.client.invalidateQueries({
-						queryKey: orpc.organizationProvider.key(),
+						queryKey: orpc.provider.key(),
 					});
 				},
 			},
@@ -479,18 +479,6 @@ export const queryDefaults: CreateRouterUtilsOptions<
 						queryKey: orpc.organization.key(),
 					});
 				},
-			},
-		},
-	},
-	provider: {
-		list: {
-			queryOptions: {
-				placeholderData: keepPreviousData,
-			},
-		},
-		find: {
-			queryOptions: {
-				placeholderData: keepPreviousData,
 			},
 		},
 	},

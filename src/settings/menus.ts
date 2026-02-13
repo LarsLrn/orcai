@@ -7,6 +7,7 @@ import {
 	Building2Icon,
 	FolderOpenIcon,
 	type LucideIcon,
+	ServerCogIcon,
 	UserIcon,
 	UsersIcon,
 } from "lucide-react";
@@ -42,6 +43,16 @@ export const sidebarMenu: SidebarMenuItem[] = [
 		title: "Users",
 		linkProps: { to: "/app/users" },
 		icon: UsersIcon,
+	},
+	{
+		title: "Providers",
+		linkProps: { to: "/app/providers" },
+		icon: ServerCogIcon,
+	},
+	{
+		title: "Models",
+		linkProps: { to: "/app/models" },
+		icon: BotIcon,
 	},
 	{
 		title: "Organisations",

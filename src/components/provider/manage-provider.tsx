@@ -2,22 +2,18 @@ import { useMutation } from "@tanstack/react-query";
 import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
 import { orpc } from "@/lib/orpc/orpc";
-import type { OrganizationProvider } from "@/lib/orpc/schemas/organization-provider";
-import { OrganizationProviderForm } from "./form/organization-provider-form";
+import type { Provider } from "@/lib/orpc/schemas/provider";
+import { ProviderForm } from "./form/provider-form";
 
-const ManageOrganizationProvider = ({
-	organizationProvider,
-}: {
-	organizationProvider: OrganizationProvider;
-}) => {
+const ManageProvider = ({ provider }: { provider: Provider }) => {
 	const { mutateAsync: deleteProvider } = useMutation(
-		orpc.organizationProvider.delete.mutationOptions(),
+		orpc.provider.delete.mutationOptions(),
 	);
 
-	const handleDeleteProvider = (provider: OrganizationProvider) => {
+	const handleDeleteProvider = (provider: Provider) => {
 		toast.promise(
 			deleteProvider({
-				refs: [{ providerSlug: provider.providerSlug }],
+				refs: [{ id: provider.id }],
 			}),
 			{
 				loading: "Deleting provider...",
@@ -32,14 +28,11 @@ const ManageOrganizationProvider = ({
 
 	return (
 		<div className="mt-4 flex flex-col gap-4">
-			<OrganizationProviderForm
-				action="update"
-				organizationProvider={organizationProvider}
-			/>
+			<ProviderForm action="update" provider={provider} />
 			<div className="flex gap-2">
 				<Button
 					variant="destructive"
-					onClick={() => handleDeleteProvider(organizationProvider)}
+					onClick={() => handleDeleteProvider(provider)}
 				>
 					Delete Provider
 				</Button>
@@ -48,4 +41,4 @@ const ManageOrganizationProvider = ({
 	);
 };
 
-export { ManageOrganizationProvider };
+export { ManageProvider };

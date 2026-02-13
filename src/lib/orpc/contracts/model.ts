@@ -1,6 +1,11 @@
 import { z } from "zod/v4";
-import { capabilitySelectSchema } from "@/lib/orpc/schemas/capability";
-import { modelSelectSchema } from "@/lib/orpc/schemas/model";
+import {
+	modelDeleteSchema,
+	modelInsertSchema,
+	modelSelectSchema,
+	modelUpdateSchema,
+} from "@/lib/orpc/schemas/model";
+import { paginationSchema, statusSchema } from "../schemas/shared";
 import { base } from "./base";
 
 export const listModelsContract = base
@@ -10,38 +15,66 @@ export const listModelsContract = base
 		summary: "List all available models",
 		tags: ["Models"],
 	})
-	.input(
-		modelSelectSchema.pick({ providerSlug: true }).extend({
-			capabilities: z.array(capabilitySelectSchema.shape.capability).optional(),
-		}),
-	)
+	.input(paginationSchema)
 	.output(
 		z.object({
-			data: z.array(
-				modelSelectSchema.extend({
-					capabilities: z.array(capabilitySelectSchema),
-				}),
-			),
+			data: z.array(modelSelectSchema),
+			rowCount: z.number(),
+		}),
+	);
+
+export const createModelContract = base
+	.route({
+		method: "POST",
+		path: "/models",
+		summary: "Create a new model",
+		tags: ["Models"],
+	})
+	.input(modelInsertSchema)
+	.output(
+		z.object({
+			data: modelSelectSchema,
 		}),
 	);
 
 export const findModelContract = base
 	.route({
 		method: "GET",
-		path: "/models/{slug}",
-		summary: "Find a model by its slug",
+		path: "/models/{id}",
+		summary: "Find a model",
 		tags: ["Models"],
 	})
 	.input(
 		modelSelectSchema.pick({
-			slug: true,
-			providerSlug: true,
+			id: true,
 		}),
 	)
 	.output(
 		z.object({
-			data: modelSelectSchema.extend({
-				capabilities: z.array(capabilitySelectSchema),
-			}),
+			data: modelSelectSchema,
 		}),
 	);
+
+export const updateModelContract = base
+	.route({
+		method: "PUT",
+		path: "/models/{id}",
+		summary: "Update a model",
+		tags: ["Models"],
+	})
+	.input(modelUpdateSchema)
+	.output(
+		z.object({
+			data: modelSelectSchema,
+		}),
+	);
+
+export const deleteModelContract = base
+	.route({
+		method: "DELETE",
+		path: "/models",
+		summary: "Delete models",
+		tags: ["Models"],
+	})
+	.input(modelDeleteSchema)
+	.output(statusSchema);

@@ -7,13 +7,7 @@ import { chatBranch } from "./chat-branch";
 import { chatMessage } from "./chat-message";
 import { course, courseMember } from "./course";
 import { courseInvitation } from "./course-invitation";
-import {
-	capability,
-	model,
-	modelCapability,
-	organizationProvider,
-	provider,
-} from "./model";
+import { model, provider } from "./model";
 import { invitation, member, organization } from "./organization";
 import { task } from "./task";
 
@@ -34,11 +28,8 @@ export const dbSchema = {
 	courseInvitation,
 	course,
 	courseMember,
-	provider,
 	model,
-	capability,
-	modelCapability,
-	organizationProvider,
+	provider,
 	organization,
 	member,
 	invitation,

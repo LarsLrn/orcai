@@ -2,11 +2,11 @@ import { useRouter } from "@tanstack/react-router";
 import { useFormSubmission } from "@/hooks/form/use-form-submission";
 import { orpc } from "@/lib/orpc/orpc";
 
-export const useOrganizationProviderFormSubmission = () => {
+export const useProviderFormSubmission = () => {
 	const router = useRouter();
 
 	const create = useFormSubmission({
-		mutationOptions: () => orpc.organizationProvider.create.mutationOptions(),
+		mutationOptions: () => orpc.provider.create.mutationOptions(),
 		messages: {
 			loading: "Creating provider...",
 			success: "Provider created successfully",
@@ -14,16 +14,15 @@ export const useOrganizationProviderFormSubmission = () => {
 		},
 		onSuccess: (result) =>
 			router.navigate({
-				to: "/app/orgs/$orgId/providers/$providerSlug",
+				to: "/app/providers/$providerId",
 				params: {
-					providerSlug: result.data.providerSlug,
-					orgId: result.data.organizationId,
+					providerId: result.data.id,
 				},
 			}),
 	});
 
 	const update = useFormSubmission({
-		mutationOptions: () => orpc.organizationProvider.update.mutationOptions(),
+		mutationOptions: () => orpc.provider.update.mutationOptions(),
 		messages: {
 			loading: "Updating provider...",
 			success: "Provider updated successfully",

@@ -63,7 +63,13 @@ import {
 	updateCourseInvitationContract,
 } from "./course-invitation";
 import { createJobsContract, listJobsContract } from "./job";
-import { findModelContract, listModelsContract } from "./model";
+import {
+	createModelContract,
+	deleteModelContract,
+	findModelContract,
+	listModelsContract,
+	updateModelContract,
+} from "./model";
 import {
 	createOrganizationContract,
 	deleteOrganizationContract,
@@ -87,13 +93,12 @@ import {
 	updateOrganizationMemberContract,
 } from "./organization-member";
 import {
-	createOrganizationProviderContract,
-	deleteOrganizationProviderContract,
-	findOrganizationProviderContract,
-	listOrganizationProvidersContract,
-	updateOrganizationProviderContract,
-} from "./organization-provider";
-import { findProviderContract, listProvidersContract } from "./provider";
+	createProviderContract,
+	deleteProviderContract,
+	findProviderContract,
+	listProvidersContract,
+	updateProviderContract,
+} from "./provider";
 import { createDownloadUrlContract, createUploadUrlsContract } from "./storage";
 import {
 	findUserContract,
@@ -126,12 +131,12 @@ export const contracts = {
 		delete: deleteOrganizationInvitationsContract,
 		respond: respondToOrganizationInvitationContract,
 	},
-	organizationProvider: {
-		list: listOrganizationProvidersContract,
-		create: createOrganizationProviderContract,
-		find: findOrganizationProviderContract,
-		update: updateOrganizationProviderContract,
-		delete: deleteOrganizationProviderContract,
+	provider: {
+		list: listProvidersContract,
+		create: createProviderContract,
+		find: findProviderContract,
+		update: updateProviderContract,
+		delete: deleteProviderContract,
 	},
 	course: {
 		list: listCoursesContract,
@@ -199,13 +204,12 @@ export const contracts = {
 		setActiveOrganization: setActiveOrganizationContract,
 		setTourState: setTourStateContract,
 	},
-	provider: {
-		list: listProvidersContract,
-		find: findProviderContract,
-	},
 	model: {
 		list: listModelsContract,
+		create: createModelContract,
 		find: findModelContract,
+		update: updateModelContract,
+		delete: deleteModelContract,
 	},
 	storage: {
 		createUploadUrls: createUploadUrlsContract,

@@ -1,6 +1,6 @@
 import { createFileRoute, Outlet } from "@tanstack/react-router";
 
-export const Route = createFileRoute("/app/orgs/$orgId/providers")({
+export const Route = createFileRoute("/app/providers")({
 	component: RouteComponent,
 	head: () => ({
 		meta: [

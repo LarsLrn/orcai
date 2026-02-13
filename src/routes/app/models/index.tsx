@@ -1,6 +1,6 @@
 import { useSuspenseQuery } from "@tanstack/react-query";
 import { createFileRoute, Link } from "@tanstack/react-router";
-import { organizationProviderTableColumns } from "@/components/organizations/providers/table/organization-provider-table-columns";
+import { modelTableColumns } from "@/components/model/table/model-table-columns";
 import { buttonVariants } from "@/components/ui/button";
 import { DataTable } from "@/components/ui/data-table/data-table";
 import { DataTableBody } from "@/components/ui/data-table/data-table-body";
@@ -9,7 +9,7 @@ import { DataTableViewOptions } from "@/components/ui/data-table/data-table-view
 import { orpc } from "@/lib/orpc/orpc";
 import { paginationSchema } from "@/lib/orpc/schemas/shared";
 
-export const Route = createFileRoute("/app/orgs/$orgId/providers/")({
+export const Route = createFileRoute("/app/models/")({
 	validateSearch: paginationSchema,
 	loaderDeps: ({ search: { pageIndex, pageSize } }) => ({
 		pageIndex,
@@ -18,11 +18,10 @@ export const Route = createFileRoute("/app/orgs/$orgId/providers/")({
 	loader: async ({
 		context: { queryClient },
 		deps: { pageIndex, pageSize },
-		params: { orgId },
 	}) => {
 		await queryClient.ensureQueryData(
-			orpc.organizationProvider.list.queryOptions({
-				input: { organizationId: orgId, pageIndex, pageSize },
+			orpc.model.list.queryOptions({
+				input: { pageIndex, pageSize },
 			}),
 		);
 	},
@@ -31,10 +30,9 @@ export const Route = createFileRoute("/app/orgs/$orgId/providers/")({
 
 function RouteComponent() {
 	const { pageIndex, pageSize } = Route.useSearch();
-	const { orgId } = Route.useParams();
-	const { data: providers } = useSuspenseQuery(
-		orpc.organizationProvider.list.queryOptions({
-			input: { organizationId: orgId, pageIndex, pageSize },
+	const { data: models } = useSuspenseQuery(
+		orpc.model.list.queryOptions({
+			input: { pageIndex, pageSize },
 		}),
 	);
 
@@ -42,22 +40,21 @@ function RouteComponent() {
 		<div className="flex flex-col gap-14">
 			<div className="flex w-full flex-col gap-8 sm:flex-row sm:items-center sm:justify-between">
 				<h4 className="max-w-xl font-regular text-3xl tracking-tighter md:text-5xl">
-					Providers
+					Models
 				</h4>
 				<div className="flex gap-2">
 					<Link
-						to={"/app/orgs/$orgId/providers/add"}
-						params={{ orgId }}
+						to="/app/models/add"
 						className={buttonVariants({ variant: "default" })}
 					>
-						Add Provider
+						Add Model
 					</Link>
 				</div>
 			</div>
 			<div>
 				<DataTable
-					data={providers.data}
-					columns={organizationProviderTableColumns}
+					data={models.data}
+					columns={modelTableColumns}
 					state={{
 						pagination: {
 							pageIndex,
@@ -65,8 +62,8 @@ function RouteComponent() {
 						},
 					}}
 					options={{
-						rowCount: providers.rowCount,
-						uidAccessor: "providerSlug",
+						rowCount: models.rowCount,
+						uidAccessor: "id",
 						clientPagination: {
 							pageIndex,
 							pageSize,

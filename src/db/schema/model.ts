@@ -1,76 +1,36 @@
 import {
 	boolean,
-	integer,
 	pgTable,
 	text,
 	timestamp,
-	unique,
 	uuid,
 	varchar,
 } from "drizzle-orm/pg-core";
-import { organization } from "./organization";
+import type { ModelCapability } from "@/lib/orpc/schemas/model";
+import type { ProviderCompatibility } from "@/lib/orpc/schemas/provider";
 
-export type Compatibility = "openai" | "anthropic" | "google" | "azure";
+export const model = pgTable("model", {
+	id: uuid("id").primaryKey().defaultRandom(),
+	providerId: uuid("provider_id")
+		.notNull()
+		.references(() => provider.id, { onDelete: "cascade" }),
+	providerModelId: text("provider_model_id").notNull(),
+	name: text("name").notNull(),
+	description: varchar("description", { length: 500 }).notNull(),
+	isDeprecated: boolean("is_deprecated").notNull().default(false),
+	capabilities: text("capability").$type<ModelCapability>().array().notNull(),
+	createdAt: timestamp("created_at").defaultNow(),
+	// TODO: Add updatedAt field and trigger to update it on change
+});
 
 export const provider = pgTable("provider", {
-	slug: text("slug").notNull().unique().primaryKey(),
+	id: uuid("id").primaryKey().defaultRandom(),
 	name: text("name").notNull(),
+	compatibility: text("compatibility").notNull().$type<ProviderCompatibility>(),
 	description: varchar("description", { length: 500 }).notNull(),
-	website: text("website").notNull(),
-	compatibility: text("compatibility").notNull().$type<Compatibility>(),
-	endpoint: text("endpoint"),
-	version: integer("version").notNull().default(1),
+	endpoint: text("endpoint").notNull(),
+	apiKeyEncrypted: text("api_key_encrypted").notNull(),
+	enabled: boolean("enabled").notNull().default(true),
 	createdAt: timestamp("created_at").defaultNow(),
+	updatedAt: timestamp("updated_at").defaultNow(),
 });
-
-export const model = pgTable(
-	"model",
-	{
-		id: uuid("id").primaryKey().defaultRandom(),
-		slug: text("slug").notNull(),
-		providerSlug: text("provider_slug")
-			.notNull()
-			.references(() => provider.slug, { onDelete: "cascade" }),
-		name: text("name").notNull(),
-		description: varchar("description", { length: 500 }).notNull(),
-		isDeprecated: boolean("is_deprecated").notNull().default(false),
-		createdAt: timestamp("created_at").defaultNow(),
-	},
-	(table) => [unique().on(table.slug, table.providerSlug)],
-);
-
-export const capability = pgTable("capability", {
-	capability: text("capability").notNull().unique().primaryKey(),
-	name: text("name").notNull(),
-	description: varchar("description", { length: 500 }).notNull(),
-});
-
-export const modelCapability = pgTable(
-	"model_capability",
-	{
-		modelId: uuid("model_id")
-			.notNull()
-			.references(() => model.id, { onDelete: "cascade" }),
-		capability: text("capability")
-			.notNull()
-			.references(() => capability.capability, { onDelete: "cascade" }),
-	},
-	(table) => [unique().on(table.modelId, table.capability)],
-);
-
-export const organizationProvider = pgTable(
-	"organization_provider",
-	{
-		organizationId: uuid("organization_id")
-			.notNull()
-			.references(() => organization.id, { onDelete: "cascade" }),
-		providerSlug: text("provider_slug")
-			.notNull()
-			.references(() => provider.slug, { onDelete: "cascade" }),
-		apiKeyEncrypted: text("api_key_encrypted").notNull(),
-		enabled: boolean("enabled").notNull().default(true),
-		createdAt: timestamp("created_at").defaultNow(),
-		updatedAt: timestamp("updated_at").defaultNow(),
-	},
-	(table) => [unique().on(table.organizationId, table.providerSlug)],
-);
