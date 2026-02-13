@@ -1,3 +1,4 @@
+import { useMutation } from "@tanstack/react-query";
 import { useNavigate, useSearch } from "@tanstack/react-router";
 import { ChevronDown, GitBranch } from "lucide-react";
 import { Button } from "@/components/ui/button";
@@ -10,7 +11,7 @@ import {
 	DropdownMenuSeparator,
 	DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
-import { client } from "@/lib/orpc/orpc";
+import { orpc } from "@/lib/orpc/orpc";
 import type { Chat } from "@/lib/orpc/schemas/chat";
 import type { ChatBranch } from "@/lib/orpc/schemas/chat-branch";
 
@@ -25,6 +26,10 @@ export function BranchSwitcher({ chat, branches }: BranchSwitcherProps) {
 	const currentBranchId =
 		(search as any).branch ?? chat.activeBranchId ?? branches[0]?.id;
 
+	const { mutateAsync: updateBranch } = useMutation(
+		orpc.chat.update.mutationOptions(),
+	);
+
 	const currentBranch =
 		branches.find((b) => b.id === currentBranchId) ?? branches[0];
 
@@ -36,7 +41,7 @@ export function BranchSwitcher({ chat, branches }: BranchSwitcherProps) {
 		if (branchId === currentBranchId) return;
 
 		// Update the active branch in the database
-		await client.chat.update({
+		await updateBranch({
 			id: chat.id,
 			activeBranchId: branchId,
 		});
