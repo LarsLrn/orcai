@@ -123,6 +123,7 @@ const HomeHero = () => {
 						<ButtonGroup>
 							<Link
 								to="/app/chat/setup"
+								data-slot="button"
 								className={buttonVariants({ variant: "outline" })}
 							>
 								<MessagesSquareIcon className="h-4 w-4" />
@@ -131,6 +132,7 @@ const HomeHero = () => {
 
 							<Link
 								to="/app/bots"
+								data-slot="button"
 								className={buttonVariants({ variant: "outline" })}
 							>
 								<BotIcon className="h-4 w-4" />
@@ -182,12 +184,19 @@ const HeroLatestBotCard = ({
 							Start chat
 						</Button>
 						<ButtonGroupSeparator />
-						<Button variant="outline" size="sm">
-							<Link to="/app/bots/$botId" params={{ botId }}>
-								<ArrowRightIcon className="h-4 w-4" />
-								View bot
-							</Link>
-						</Button>
+						<Link
+							to="/app/bots/$botId"
+							params={{ botId }}
+							data-slot="button"
+							className={buttonVariants({
+								variant: "outline",
+								size: "sm",
+								className: "gap-2",
+							})}
+						>
+							<ArrowRightIcon className="h-4 w-4" />
+							View bot
+						</Link>
 					</ButtonGroup>
 				) : (
 					<Link
@@ -269,11 +278,18 @@ const BotsShowcase = () => {
 									</Button>
 									<ButtonGroupSeparator />
 
-									<Button size="sm" className="flex-1" variant="outline">
-										<Link to="/app/bots/$botId" params={{ botId: bot.id }}>
-											View details
-										</Link>
-									</Button>
+									<Link
+										to="/app/bots/$botId"
+										params={{ botId: bot.id }}
+										data-slot="button"
+										className={buttonVariants({
+											size: "sm",
+											className: "flex-1",
+											variant: "outline",
+										})}
+									>
+										View details
+									</Link>
 								</ButtonGroup>
 							</CardFooter>
 						</BotPreview>
