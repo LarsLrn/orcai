@@ -4,6 +4,7 @@ import type { ColumnDef } from "@tanstack/react-table";
 import { format } from "date-fns";
 import { MoreHorizontal } from "lucide-react";
 import { toast } from "sonner";
+import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Checkbox } from "@/components/ui/checkbox";
 import { DataTableColumnHeader } from "@/components/ui/data-table/data-table-column-header";
@@ -44,6 +45,11 @@ export const modelTableColumns: ColumnDef<Model>[] = [
 		header: ({ column }) => (
 			<DataTableColumnHeader column={column} title="Name" />
 		),
+		cell: ({ row }) => (
+			<Link to="/app/models/$modelId" params={{ modelId: row.original.id }}>
+				{row.original.name}
+			</Link>
+		),
 	},
 	{
 		accessorKey: "providerId",
@@ -54,16 +60,12 @@ export const modelTableColumns: ColumnDef<Model>[] = [
 	{
 		accessorKey: "isDeprecated",
 		header: ({ column }) => (
-			<DataTableColumnHeader column={column} title="Deprecated" />
+			<DataTableColumnHeader column={column} title="Status" />
 		),
 		cell: ({ row }) => (
-			<span
-				className={
-					row.original.isDeprecated ? "text-green-600" : "text-red-600"
-				}
-			>
-				{row.original.isDeprecated ? "Yes" : "No"}
-			</span>
+			<Badge variant={row.original.isDeprecated ? "destructive" : "default"}>
+				{row.original.isDeprecated ? "Deprecated" : "Available"}
+			</Badge>
 		),
 	},
 	{

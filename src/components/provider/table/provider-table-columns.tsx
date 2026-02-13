@@ -4,6 +4,7 @@ import type { ColumnDef } from "@tanstack/react-table";
 import { format } from "date-fns";
 import { MoreHorizontal } from "lucide-react";
 import { toast } from "sonner";
+import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Checkbox } from "@/components/ui/checkbox";
 import { DataTableColumnHeader } from "@/components/ui/data-table/data-table-column-header";
@@ -41,22 +42,28 @@ export const providerTableColumns: ColumnDef<Provider>[] = [
 	},
 	{
 		size: 300,
-		accessorKey: "providerSlug",
+		accessorKey: "name",
 		header: ({ column }) => (
-			<DataTableColumnHeader column={column} title="Provider" />
+			<DataTableColumnHeader column={column} title="Name" />
+		),
+		cell: ({ row }) => (
+			<Link
+				to="/app/providers/$providerId"
+				params={{ providerId: row.original.id }}
+			>
+				{row.original.name}
+			</Link>
 		),
 	},
 	{
 		accessorKey: "enabled",
 		header: ({ column }) => (
-			<DataTableColumnHeader column={column} title="Enabled" />
+			<DataTableColumnHeader column={column} title="Status" />
 		),
 		cell: ({ row }) => (
-			<span
-				className={row.original.enabled ? "text-green-600" : "text-red-600"}
-			>
-				{row.original.enabled ? "Yes" : "No"}
-			</span>
+			<Badge variant={row.original.enabled ? "default" : "destructive"}>
+				{row.original.enabled ? "Active" : "Inactive"}
+			</Badge>
 		),
 	},
 	{
