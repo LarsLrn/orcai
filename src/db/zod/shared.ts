@@ -1,6 +1,6 @@
 import { z } from "zod/v4";
 
-const email = z.string().email({
+const email = z.email({
 	message: "Invalid email address.",
 });
 
