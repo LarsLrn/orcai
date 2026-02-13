@@ -1,0 +1,1 @@
+ALTER TABLE "model" ADD CONSTRAINT "provider_model_id_provider_id_unique" UNIQUE("provider_model_id","provider_id");
