@@ -1,0 +1,17 @@
+# syntax=docker/dockerfile:1.7
+
+ARG BUN_IMAGE=oven/bun:latest
+FROM ${BUN_IMAGE}
+
+WORKDIR /app
+
+# Install only what is needed to run schema deployment.
+RUN export AUTHZED_NODE_VERSION=$(node -pe "require('./package.json').dependencies['@authzed/authzed-node']") && \
+  bun install @authzed/authzed-node@$AUTHZED_NODE_VERSION --force
+
+COPY scripts/deploy-spicedb-schema.ts ./scripts/deploy-spicedb-schema.ts
+COPY src/lib/spice-db/schema.zed ./src/lib/spice-db/schema.zed
+
+USER bun
+
+CMD ["bun", "run", "scripts/deploy-spicedb-schema.ts"]

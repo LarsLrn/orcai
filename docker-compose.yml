@@ -1,7 +1,7 @@
 services:
   # PostgreSQL Database
   postgres:
-    image: pgvector/pgvector:pg16
+    image: pgvector/pgvector:pg17
     container_name: sokratest-postgres
     environment:
       POSTGRES_USER: postgres
@@ -32,7 +32,7 @@ services:
       POSTGRES_PASSWORD: postgres
       POSTGRES_DB: sokratest-v2
     restart: on-failure
-    command: [ "/bin/sh", "-c", "npx drizzle-kit migrate --config=drizzle.config.ts" ]
+    command: [ "/bin/sh", "-c", "./node_modules/.bin/drizzle-kit migrate --config=drizzle.config.ts" ]
 
   # MinIO S3-Compatible Object Storage
   minio:
@@ -66,6 +66,11 @@ services:
     environment:
       QDRANT__SERVICE__HTTP_PORT: 6333
       QDRANT__SERVICE__GRPC_PORT: 6334
+    healthcheck:
+      test: [ "CMD-SHELL", "grep -qE ':[0]*18BD\\s' /proc/net/tcp /proc/net/tcp6 || exit 1" ]
+      interval: 10s
+      timeout: 5s
+      retries: 10
     restart: unless-stopped
 
   # Your Sokratest Application
@@ -74,9 +79,13 @@ services:
       context: .
       dockerfile: ./docker/Dockerfile.sokratest
       target: runtime
+      args:
+        VITE_BASE_URL: ${VITE_BASE_URL:-http://localhost:3000}
+        VITE_UMAMI_SCRIPT_URL: ${VITE_UMAMI_SCRIPT_URL:-}
+        VITE_UMAMI_WEBSITE_ID: ${VITE_UMAMI_WEBSITE_ID:-}
     container_name: sokratest-app
     env_file:
-      - .env.docker
+      - .env
     ports:
       - "3000:3000"
     environment:
@@ -88,7 +97,7 @@ services:
       POSTGRES_SSL: "false"
 
       # S3/MinIO Configuration
-      S3_ENDPOINT: "http://host.docker.internal:9002"
+      S3_ENDPOINT: "http://minio:9000"
       S3_PORT: 9002
       S3_ACCESS_KEY: minioadmin
       S3_SECRET_KEY: minioadmin
@@ -96,10 +105,12 @@ services:
 
       # Qdrant Configuration
       QDRANT_URL: http://qdrant:6333/
+      QDRANT_API_KEY: ${QDRANT_API_KEY:-}
 
       # Application Configuration
-      BETTER_AUTH_URL: ${BETTER_AUTH_URL}
-      VITE_BASE_URL: ${VITE_BASE_URL}
+      BASE_URL: ${BETTER_AUTH_URL:-http://localhost:3000}
+      BETTER_AUTH_URL: ${BETTER_AUTH_URL:-http://localhost:3000}
+      VITE_BASE_URL: ${VITE_BASE_URL:-http://localhost:3000}
 
       # Secrets (from environment)
       BETTER_AUTH_SECRET: ${BETTER_AUTH_SECRET}
@@ -116,7 +127,8 @@ services:
       OPENAI_COMPATIBLE_API_KEY: ${OPENAI_COMPATIBLE_API_KEY}
 
       # Spice DB
-      SPICEDB_ENDPOINT: ${SPICEDB_ENDPOINT}
+      SPICEDB_ENDPOINT: spicedb:50051
+      SPICEDB_TOKEN: ${SPICEDB_GRPC_PRESHARED_KEY:-dev-spicedb-key}
 
       # LLM Observability
       LANGFUSE_SECRET_KEY: ${LANGFUSE_SECRET_KEY}
@@ -139,11 +151,98 @@ services:
         condition: service_healthy
       minio:
         condition: service_healthy
+      minio-setup:
+        condition: service_completed_successfully
       qdrant:
-        condition: service_started
+        condition: service_healthy
       migrations:
         condition: service_completed_successfully
+      spicedb:
+        condition: service_healthy
+      spicedb-migrate:
+        condition: service_completed_successfully
+      spicedb-schema:
+        condition: service_completed_successfully
     restart: unless-stopped
+
+  # Create MinIO buckets once on startup
+  minio-setup:
+    image: minio/mc:latest
+    depends_on:
+      minio:
+        condition: service_healthy
+    entrypoint: >
+      /bin/sh -c "
+      /usr/bin/mc alias set myminio http://minio:9000 minioadmin minioadmin &&
+      /usr/bin/mc mb myminio/documents --ignore-existing &&
+      /usr/bin/mc mb myminio/uploads --ignore-existing &&
+      /usr/bin/mc mb myminio/avatars --ignore-existing &&
+      /usr/bin/mc anonymous set download myminio/avatars &&
+      echo 'MinIO buckets created successfully'
+      "
+    restart: "no"
+
+  spicedb:
+    image: "authzed/spicedb:latest"
+    command: "serve"
+    restart: "always"
+    ports:
+      - "8080:8080"
+      - "9090:9090"
+      - "50051:50051"
+    environment:
+      SPICEDB_GRPC_PRESHARED_KEY: ${SPICEDB_GRPC_PRESHARED_KEY:-dev-spicedb-key}
+      SPICEDB_DATASTORE_ENGINE: postgres
+      SPICEDB_DATASTORE_CONN_URI: postgres://${SPICEDB_POSTGRES_USER:-postgres}:${SPICEDB_POSTGRES_PASSWORD:-postgres}@spicedb-database:5432/spicedb
+    healthcheck:
+      test: [ "CMD", "spicedb", "datastore", "head" ]
+      interval: 10s
+      timeout: 5s
+      retries: 10
+    depends_on:
+      spicedb-migrate:
+        condition: service_completed_successfully
+
+  spicedb-migrate:
+    image: "authzed/spicedb:latest"
+    command: "migrate head"
+    restart: "on-failure"
+    environment:
+      SPICEDB_DATASTORE_ENGINE: postgres
+      SPICEDB_DATASTORE_CONN_URI: postgres://${SPICEDB_POSTGRES_USER:-postgres}:${SPICEDB_POSTGRES_PASSWORD:-postgres}@spicedb-database:5432/spicedb
+    depends_on:
+      spicedb-database:
+        condition: service_healthy
+
+  spicedb-schema:
+    build:
+      context: .
+      dockerfile: ./docker/Dockerfile.spicedb-schema
+    environment:
+      SPICEDB_ENDPOINT: spicedb:50051
+      SPICEDB_TOKEN: ${SPICEDB_GRPC_PRESHARED_KEY:-dev-spicedb-key}
+      SPICEDB_SECURITY: insecure-plaintext
+    command: [ "bun", "run", "scripts/deploy-spicedb-schema.ts" ]
+    depends_on:
+      spicedb:
+        condition: service_healthy
+    restart: on-failure
+
+  spicedb-database:
+    image: "postgres:17"
+    ports:
+      - "5431:5432"
+    volumes:
+      - spicedb_postgres_data:/var/lib/postgresql/data
+    environment:
+      POSTGRES_USER: ${SPICEDB_POSTGRES_USER:-postgres}
+      POSTGRES_PASSWORD: ${SPICEDB_POSTGRES_PASSWORD:-postgres}
+      POSTGRES_DB: spicedb
+    healthcheck:
+      test: [ "CMD-SHELL", "pg_isready -U ${SPICEDB_POSTGRES_USER:-postgres} -d spicedb" ]
+      interval: 10s
+      timeout: 5s
+      retries: 10
 
 volumes:
   postgres_data:
@@ -151,6 +250,8 @@ volumes:
   minio_data:
     driver: local
   qdrant_data:
+    driver: local
+  spicedb_postgres_data:
     driver: local
 
 networks:

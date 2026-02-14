@@ -1,12 +1,12 @@
 {
-	"include": ["**/*.ts", "**/*.tsx"],
+	"include": ["**/*.ts", "**/*.tsx", "./start-server.ts"],
 	"exclude": ["node_modules"],
 	"compilerOptions": {
 		"target": "ES2022",
 		"jsx": "react-jsx",
 		"module": "ESNext",
 		"lib": ["ES2022", "DOM", "DOM.Iterable"],
-		"types": ["vite/client"],
+		"types": ["vite/client", "bun"],
 		"allowJs": true,
 		/* Bundler Options */
 		"moduleResolution": "bundler",
@@ -17,9 +17,11 @@
 		/* Linting Options */
 		"skipLibCheck": true,
 		"strict": true,
+		"noUnusedLocals": true,
 		"noUnusedParameters": true,
 		"noFallthroughCasesInSwitch": true,
 		"forceConsistentCasingInFileNames": true,
+		"noUncheckedSideEffectImports": true,
 		"strictNullChecks": true,
 		"baseUrl": ".",
 		"paths": {
