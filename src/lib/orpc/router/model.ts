@@ -7,7 +7,7 @@ import { DB } from "@/lib/effect/services/drizzle";
 import { runOrpcEffect } from "@/lib/effect/utils/orpc-helpers";
 import { decryptApiKey } from "@/lib/encryption";
 import { authed } from "@/lib/orpc/implementation/authed";
-import type { ModelCapability } from "../schemas/fragments/model-capabilities";
+import type { ModelCapability } from "@/lib/orpc/schemas/fragments/model-capabilities";
 import { findProvider } from "./provider";
 
 export const listModels = authed.model.list.handler(async ({ input }) =>

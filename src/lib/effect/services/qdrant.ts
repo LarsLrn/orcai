@@ -4,7 +4,7 @@ import * as Effect from "effect/Effect";
 import * as Layer from "effect/Layer";
 import { AppConfigService } from "@/lib/effect/services/config";
 import { QdrantError } from "@/lib/effect/utils/errors";
-import { qdrantCollections } from "../../../qdrant/qdrant-constants";
+import { qdrantCollections } from "@/qdrant/qdrant-constants";
 
 export class QdrantService extends Context.Tag("QdrantService")<
 	QdrantService,

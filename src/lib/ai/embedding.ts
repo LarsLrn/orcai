@@ -1,6 +1,6 @@
 import { embed } from "ai";
 import * as Effect from "effect/Effect";
-import { AiError } from "../effect/utils/errors";
+import { AiError } from "@/lib/effect/utils/errors";
 import { getSaiaEmbeddingModel } from "./saia-models";
 
 export const generateEmbedding = (value: string) =>

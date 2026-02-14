@@ -8,6 +8,7 @@ import {
 	AttachmentRemove,
 	Attachments,
 } from "@/components/ai-elements/attachments";
+import { ConversationDownload } from "@/components/ai-elements/conversation";
 import {
 	PromptInput,
 	PromptInputActionAddAttachments,
@@ -30,7 +31,6 @@ import { AppTourButton } from "@/components/next-step/app-tour-button";
 import type { ChatAgentUIMessage } from "@/lib/ai/types/chat-agent-message";
 import { orpc } from "@/lib/orpc/orpc";
 import type { Chat } from "@/lib/orpc/schemas/chat";
-import { ConversationDownload } from "../ai-elements/conversation";
 import { ModelSelectorButton } from "./model-selector";
 
 const ChatInput = ({

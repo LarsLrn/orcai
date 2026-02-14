@@ -1,7 +1,7 @@
 import { generateText } from "ai";
 import * as Effect from "effect/Effect";
 import type { ChatAgentUIMessage } from "@/lib/ai/types/chat-agent-message";
-import { AiError } from "../effect/utils/errors";
+import { AiError } from "@/lib/effect/utils/errors";
 import { getSaiaModel } from "./saia-models";
 
 export const generateChatTitle = (params: { messages: ChatAgentUIMessage[] }) =>

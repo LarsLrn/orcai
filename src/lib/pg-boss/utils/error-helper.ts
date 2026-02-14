@@ -1,5 +1,5 @@
 import { PgBossWorkersError } from "@/lib/effect/utils/errors";
-import type { JobQueue } from "../schema/job-queues";
+import type { JobQueue } from "@/lib/pg-boss/schema/job-queues";
 
 export const toPgBossRunError =
 	(jobId: string, queue: JobQueue) => (cause: unknown) =>

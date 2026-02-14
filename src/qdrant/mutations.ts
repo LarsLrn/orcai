@@ -1,9 +1,9 @@
 import * as Effect from "effect/Effect";
+import { QdrantService } from "@/lib/effect/services/qdrant";
 import { QdrantError } from "@/lib/effect/utils/errors";
 import type { Asset } from "@/lib/orpc/schemas/asset";
 import type { AssetPointPayload } from "@/lib/orpc/schemas/asset-point";
 import type { Block } from "@/lib/orpc/schemas/block";
-import { QdrantService } from "../lib/effect/services/qdrant";
 import { qdrantCollections } from "./qdrant-constants";
 
 interface Point {

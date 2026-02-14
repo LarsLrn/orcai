@@ -5,8 +5,8 @@ import {
 	modelSelectSchema,
 	modelUpdateSchema,
 } from "@/lib/orpc/schemas/model";
-import { providerSelectSchema } from "../schemas/provider";
-import { paginationSchema, statusSchema } from "../schemas/shared";
+import { providerSelectSchema } from "@/lib/orpc/schemas/provider";
+import { paginationSchema, statusSchema } from "@/lib/orpc/schemas/shared";
 import { base } from "./base";
 
 export const listModelsContract = base

@@ -8,6 +8,10 @@ import {
 import { AppConfigService } from "@/lib/effect/services/config";
 import { PgBossService } from "@/lib/effect/services/pg-boss";
 import { S3Service } from "@/lib/effect/services/s3";
+import {
+	PROCESS_ASSET_JOB_NAME,
+	VECTORIZE_ASSET_JOB_NAME,
+} from "@/lib/pg-boss/schema/job-queues";
 import type { ProcessAssetPayload } from "@/lib/pg-boss/schema/process-asset";
 import { toPgBossRunError } from "@/lib/pg-boss/utils/error-helper";
 import { validateImageResolution } from "@/lib/pg-boss/utils/validate-image-resolution";
@@ -18,10 +22,6 @@ import {
 import { getFileTypeFromMime } from "@/lib/s3/upload-helpers";
 import { buckets } from "@/settings/buckets";
 import type { SaiaDoclingData } from "@/types/docling";
-import {
-	PROCESS_ASSET_JOB_NAME,
-	VECTORIZE_ASSET_JOB_NAME,
-} from "../schema/job-queues";
 
 export const processAssetBatchEffect = (jobs: Job<ProcessAssetPayload>[]) =>
 	Effect.forEach(jobs, (job) => processAssetsEffect({ job }), {
