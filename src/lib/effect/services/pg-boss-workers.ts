@@ -5,15 +5,13 @@ import * as Schedule from "effect/Schedule";
 import type { PgBoss } from "pg-boss";
 import type { QdrantService } from "@/lib/effect/services/qdrant";
 import { PgBossWorkersError } from "@/lib/effect/utils/errors";
+import { processAssetBatchEffect } from "@/lib/pg-boss/jobs/process-asset-job";
+import { vectorizeAssetBatchEffect } from "@/lib/pg-boss/jobs/vectorize-asset-job";
 import {
+	type JobQueue,
 	PROCESS_ASSET_JOB_NAME,
-	processAssetBatchEffect,
-} from "@/lib/pg-boss/jobs/process-asset-job";
-import {
 	VECTORIZE_ASSET_JOB_NAME,
-	vectorizeAssetBatchEffect,
-} from "@/lib/pg-boss/jobs/vectorize-asset-job";
-import type { JobQueue } from "@/lib/pg-boss/schema/job";
+} from "@/lib/pg-boss/schema/job-queues";
 import type { ProcessAssetPayload } from "@/lib/pg-boss/schema/process-asset";
 import type { VectorizeAssetPayload } from "@/lib/pg-boss/schema/vectorize-asset";
 import type { AppConfigService } from "./config";

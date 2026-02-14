@@ -7,8 +7,8 @@ import {
 	uuid,
 	varchar,
 } from "drizzle-orm/pg-core";
-import type { ModelCapability } from "@/lib/orpc/schemas/model";
-import type { ProviderCompatibility } from "@/lib/orpc/schemas/provider";
+import type { ModelCapability } from "@/lib/orpc/schemas/fragments/model-capabilities";
+import type { ProviderCompatibility } from "@/lib/orpc/schemas/fragments/provider-compatibility";
 
 export const model = pgTable(
 	"model",

@@ -25,8 +25,6 @@ import {
 	describeTableImagePrompt,
 } from "@/settings/prompts";
 
-export const VECTORIZE_ASSET_JOB_NAME = "vectorize-asset-job";
-
 export const vectorizeAssetBatchEffect = (jobs: Job<VectorizeAssetPayload>[]) =>
 	Effect.forEach(jobs, (job) => vectorizeAssetsEffect({ job }), {
 		discard: true,

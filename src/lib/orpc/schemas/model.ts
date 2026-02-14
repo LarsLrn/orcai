@@ -58,6 +58,4 @@ export const modelDeleteSchema = z.object({
  * ----------------
  */
 
-export type ModelCapability = z.infer<typeof modelCapabilitiesSchema>;
-
 export type Model = z.infer<typeof modelSelectSchema>;

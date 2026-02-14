@@ -1,7 +1,7 @@
 import * as Effect from "effect/Effect";
 import { PgBossService } from "@/lib/effect/services/pg-boss";
 import { PgBossError } from "@/lib/effect/utils/errors";
-import type { JobQueue } from "./schema/job";
+import type { JobQueue } from "./schema/job-queues";
 
 export const getJobStatus = (params: { queueName: JobQueue; jobId: string }) =>
 	Effect.gen(function* () {

@@ -1,9 +1,12 @@
 import z from "zod/v4";
 import { baseBlockSelectSchema } from "@/lib/orpc/schemas/block";
 import { statusSchema } from "@/lib/orpc/schemas/shared";
-import { PROCESS_ASSET_JOB_NAME } from "@/lib/pg-boss/jobs/process-asset-job";
-import { VECTORIZE_ASSET_JOB_NAME } from "@/lib/pg-boss/jobs/vectorize-asset-job";
-import { jobQueues, jobSchema } from "@/lib/pg-boss/schema/job";
+import { jobSchema } from "@/lib/pg-boss/schema/job";
+import {
+	jobQueues,
+	PROCESS_ASSET_JOB_NAME,
+	VECTORIZE_ASSET_JOB_NAME,
+} from "@/lib/pg-boss/schema/job-queues";
 import { base } from "./base";
 
 export const createJobsContract = base

@@ -6,14 +6,7 @@ import {
 import { z } from "zod/v4";
 import { dbSchema } from "@/db/schema";
 import { baseBlockSelectSchema } from "./block";
-
-const taskStatus = z.enum([
-	"queued",
-	"processing",
-	"completed",
-	"failed",
-	"canceled",
-]);
+import { taskStatus } from "./fragments/task-status";
 
 /**
  * ----------------
@@ -63,4 +56,3 @@ export const taskUpdateSchema = createUpdateSchema(dbSchema.task, {
 export type Task = z.infer<typeof taskSelectSchema>;
 export type TaskInsert = z.infer<typeof taskInsertSchema>;
 export type TaskUpdate = z.infer<typeof taskUpdateSchema>;
-export type TaskStatus = z.infer<typeof taskStatus>;

@@ -1,7 +1,6 @@
 import { states } from "pg-boss";
 import { z } from "zod/v4";
-import { PROCESS_ASSET_JOB_NAME } from "@/lib/pg-boss/jobs/process-asset-job";
-import { VECTORIZE_ASSET_JOB_NAME } from "@/lib/pg-boss/jobs/vectorize-asset-job";
+import { PROCESS_ASSET_JOB_NAME, VECTORIZE_ASSET_JOB_NAME } from "./job-queues";
 import {
 	processAssetOutputSchema,
 	processAssetPayloadSchema,
@@ -10,13 +9,6 @@ import {
 	vectorizeAssetOutputSchema,
 	vectorizeAssetPayloadSchema,
 } from "./vectorize-asset";
-
-export const jobQueues = z.enum([
-	PROCESS_ASSET_JOB_NAME,
-	VECTORIZE_ASSET_JOB_NAME,
-]);
-
-export type JobQueue = z.infer<typeof jobQueues>;
 
 const jobState = z.enum([
 	states.created,

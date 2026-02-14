@@ -18,9 +18,10 @@ import {
 import { getFileTypeFromMime } from "@/lib/s3/upload-helpers";
 import { buckets } from "@/settings/buckets";
 import type { SaiaDoclingData } from "@/types/docling";
-import { VECTORIZE_ASSET_JOB_NAME } from "./vectorize-asset-job";
-
-export const PROCESS_ASSET_JOB_NAME = "process-asset-job";
+import {
+	PROCESS_ASSET_JOB_NAME,
+	VECTORIZE_ASSET_JOB_NAME,
+} from "../schema/job-queues";
 
 export const processAssetBatchEffect = (jobs: Job<ProcessAssetPayload>[]) =>
 	Effect.forEach(jobs, (job) => processAssetsEffect({ job }), {

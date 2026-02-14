@@ -30,7 +30,8 @@ import { AnimatedGroup } from "@/components/ui/motion/animated-group";
 import { orpc } from "@/lib/orpc/orpc";
 import type { Asset } from "@/lib/orpc/schemas/asset";
 import type { DatabaseBlock } from "@/lib/orpc/schemas/block";
-import type { Job, JobQueue } from "@/lib/pg-boss/schema/job";
+import type { Job } from "@/lib/pg-boss/schema/job";
+import type { JobQueue } from "@/lib/pg-boss/schema/job-queues";
 
 /** --- Grid --- */
 const AssetGrid = ({ assetIds }: { assetIds: Asset["id"][] }) => {

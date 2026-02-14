@@ -5,17 +5,13 @@ import {
 } from "drizzle-zod";
 import { z } from "zod/v4";
 import { dbSchema } from "@/db/schema";
-import { providerCompatibilities } from "@/lib/ai/providers";
+import { providerCompatibilitySchema } from "./fragments/provider-compatibility";
 
 /**
  * ----------------
  * Select Schema
  * ----------------
  */
-
-const providerCompatibilitySchema = z.enum(
-	providerCompatibilities.map((comp) => comp.value),
-);
 
 export const providerSelectSchema = createSelectSchema(dbSchema.provider, {
 	compatibility: providerCompatibilitySchema,
@@ -70,8 +66,6 @@ export const providerDeleteSchema = z.object({
  * Type Definitions
  * ----------------
  */
-
-export type ProviderCompatibility = z.infer<typeof providerCompatibilitySchema>;
 
 export type Provider = z.infer<typeof providerSelectSchema>;
 export type ProviderInsert = z.infer<typeof providerInsertSchema>;

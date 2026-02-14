@@ -7,7 +7,7 @@ import {
 	timestamp,
 	uuid,
 } from "drizzle-orm/pg-core";
-import type { UserPreferencesType } from "@/lib/orpc/schemas/user";
+import type { UserPreferencesType } from "@/lib/orpc/schemas/fragments/user-preferences";
 
 export const user = pgTable("user", {
 	id: uuid("id").primaryKey().defaultRandom(),

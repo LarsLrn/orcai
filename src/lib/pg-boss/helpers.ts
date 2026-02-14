@@ -1,7 +1,8 @@
 import * as Effect from "effect/Effect";
 import { PgBossService } from "@/lib/effect/services/pg-boss";
 import { PgBossError } from "@/lib/effect/utils/errors";
-import type { Job, JobQueue } from "./schema/job";
+import type { Job } from "./schema/job";
+import type { JobQueue } from "./schema/job-queues";
 
 export const sendJobEffect = <T extends object = object>(params: {
 	jobName: JobQueue;

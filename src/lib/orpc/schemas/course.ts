@@ -1,20 +1,13 @@
 import { createInsertSchema, createSelectSchema } from "drizzle-zod";
 import { z } from "zod/v4";
 import { dbSchema } from "@/db/schema";
+import { configSchema } from "./fragments/course-config";
 
 /**
  * ----------------
  * Select Schema
  * ----------------
  */
-
-const configSchema = z.object({
-	systemPrompt: z.string(),
-	maxReferences: z.number().min(1).max(20),
-	model: z.string(),
-});
-
-export type CourseConfigType = z.infer<typeof configSchema>;
 
 export const courseSelectSchema = createSelectSchema(dbSchema.course).extend({
 	config: configSchema,

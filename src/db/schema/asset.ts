@@ -6,7 +6,7 @@ import {
 	timestamp,
 	uuid,
 } from "drizzle-orm/pg-core";
-import type { AssetMetadataType } from "@/lib/orpc/schemas/asset";
+import type { AssetMetadataType } from "@/lib/orpc/schemas/fragments/asset-metadata";
 import { user } from "./auth";
 
 export const asset = pgTable("asset", {

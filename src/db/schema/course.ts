@@ -7,7 +7,7 @@ import {
 	uuid,
 	varchar,
 } from "drizzle-orm/pg-core";
-import type { CourseConfigType } from "@/lib/orpc/schemas/course";
+import type { CourseConfigType } from "@/lib/orpc/schemas/fragments/course-config";
 import { user } from "./auth";
 import { organization } from "./organization";
 

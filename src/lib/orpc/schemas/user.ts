@@ -5,23 +5,13 @@ import {
 } from "drizzle-zod";
 import { z } from "zod/v4";
 import { dbSchema } from "@/db/schema";
+import { preferencesSchema } from "./fragments/user-preferences";
 
 /**
  * ----------------
  * Select Schema
  * ----------------
  */
-
-const preferencesSchema = z.object({
-	tours: z
-		.object({
-			initialTour: z.enum(["completed", "skipped"]).optional(),
-			chatTour: z.enum(["completed", "skipped"]).optional(),
-		})
-		.optional(),
-});
-
-export type UserPreferencesType = z.infer<typeof preferencesSchema>;
 
 export const userSelectSchema = createSelectSchema(dbSchema.user).extend({
 	preferences: preferencesSchema.optional(),

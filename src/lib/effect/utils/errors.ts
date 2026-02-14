@@ -1,5 +1,5 @@
 import * as Data from "effect/Data";
-import type { JobQueue } from "@/lib/pg-boss/schema/job";
+import type { JobQueue } from "@/lib/pg-boss/schema/job-queues";
 
 export const ErrorTags = {
 	// Resource errors
