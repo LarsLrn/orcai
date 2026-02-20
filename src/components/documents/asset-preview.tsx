@@ -4,7 +4,7 @@ import { CalendarIcon, HardDriveIcon, SparklesIcon } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import type { Asset } from "@/lib/orpc/schemas/asset";
-import { getFileTypeFromMime } from "@/lib/s3/upload-helpers";
+import { getFileTypeFromMime } from "@/lib/s3/utils/file-type-helpers";
 
 /** --- Utility --- */
 const fileTypeClass = (ext: string): string => {

@@ -1,5 +1,6 @@
 import { and, count, desc, eq, getColumns, inArray } from "drizzle-orm";
 import * as Effect from "effect/Effect";
+import { v4 as uuidv4 } from "uuid";
 import { dbSchema } from "@/db/schema";
 import { DB } from "@/lib/effect/services/drizzle";
 import { runOrpcEffect } from "@/lib/effect/utils/orpc-helpers";
@@ -10,11 +11,10 @@ import {
 	checkManyPermissionMiddleware,
 	checkPermissionMiddleware,
 } from "@/lib/orpc/middlewares/permission";
-import {
-	deleteFileFromBucket,
-	deletePrefixRecursively,
-} from "@/lib/s3/file-functions";
-import type { FileType } from "@/lib/s3/schema/file-schema";
+import { buildUploadPrefix } from "@/lib/s3/upload-routes";
+import { sendDeleteObjectCommand } from "@/lib/s3/utils/commands";
+import { deletePrefixRecursively } from "@/lib/s3/utils/file-functions";
+import { getFileTypeFromMime } from "@/lib/s3/utils/file-type-helpers";
 import { createRelation, listAllowedEntities } from "@/lib/spice-db/actions";
 import { deletePointsByIdentifier } from "@/qdrant/mutations";
 import { buckets } from "@/settings/buckets";
@@ -103,16 +103,21 @@ export const createAsset = authed.asset.create.handler(
 		runOrpcEffect(
 			Effect.gen(function* () {
 				const db = yield* DB;
+				const assetId = input.id ?? uuidv4();
+				const prefix = buildUploadPrefix({
+					userId: context.auth.user.id,
+					route: "asset",
+				});
 
 				const [asset] = yield* db
 					.insert(dbSchema.asset)
 					.values({
-						id: input.id, // TODO: This shouldnt come from the client, but needs to match the S3 file ID. Think of a solution to this
+						id: assetId,
 						title: input.title ?? "New Asset",
 						size: input.size,
 						fileType: input.fileType,
 						bucket: buckets.main.name,
-						prefix: "placeholder", // TODO: Make this dynamic
+						prefix,
 						userId: context.auth.user.id,
 					})
 					.returning({ ...getColumns(dbSchema.asset) });
@@ -189,11 +194,11 @@ export const deleteAssets = authed.asset.delete
 				yield* Effect.all(
 					assetsToDelete.map((asset) =>
 						Effect.gen(function* () {
-							yield* deleteFileFromBucket({
+							const extension = getFileTypeFromMime(asset.fileType);
+
+							yield* sendDeleteObjectCommand({
 								bucket: asset.bucket,
-								id: asset.id,
-								prefix: asset.prefix,
-								type: asset.fileType as FileType,
+								key: `${asset.prefix}/${asset.id}.${extension}`,
 							});
 							yield* deletePointsByIdentifier({
 								assetId: asset.id,

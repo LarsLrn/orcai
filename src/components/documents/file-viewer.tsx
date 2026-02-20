@@ -7,7 +7,7 @@ import { LoadingSpinner } from "@/components/ui/loading-spinner";
 import { useIsMobile } from "@/hooks/use-mobile";
 import { orpc } from "@/lib/orpc/orpc";
 import type { Asset } from "@/lib/orpc/schemas/asset";
-import { getFileTypeFromMime } from "@/lib/s3/upload-helpers";
+import { getFileTypeFromMime } from "@/lib/s3/utils/file-type-helpers";
 import { cn } from "@/lib/utils";
 import { AssetActions } from "./asset-actions";
 import { AssetMeta } from "./asset-meta";

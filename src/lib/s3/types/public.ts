@@ -121,7 +121,7 @@ export type UploadHookControl<T extends boolean> = {
 	/**
 	 * Upload files to S3.
 	 *
-	 * Will never throw an error.
+	 * Alias of `uploadAsync`.
 	 */
 	upload: (
 		input: T extends true ? File[] | FileList : File,

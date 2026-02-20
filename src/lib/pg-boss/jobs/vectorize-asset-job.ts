@@ -9,12 +9,12 @@ import { PgBossError } from "@/lib/effect/utils/errors";
 import type { Asset } from "@/lib/orpc/schemas/asset";
 import type { Block } from "@/lib/orpc/schemas/block";
 import type { VectorizeAssetPayload } from "@/lib/pg-boss/schema/vectorize-asset";
+import type { FileType } from "@/lib/s3/schema/file-schema";
+import { sendListObjectsCommand } from "@/lib/s3/utils/commands";
 import {
 	getImageAsBase64,
 	getMarkdownAsString,
-	listAllFilesInPrefix,
-} from "@/lib/s3/file-functions";
-import type { FileType } from "@/lib/s3/schema/file-schema";
+} from "@/lib/s3/utils/file-functions";
 import {
 	deletePointsByIdentifier,
 	upsertPointsToQdrant,
@@ -34,10 +34,18 @@ const vectorizeAssetsEffect = (params: { job: Job<VectorizeAssetPayload> }) =>
 	Effect.gen(function* () {
 		const { prefix, blockId, assetId, mergePages } = params.job.data;
 
-		const files = yield* listAllFilesInPrefix({
+		const { Contents: files } = yield* sendListObjectsCommand({
 			bucket: buckets.processed.name,
 			prefix: `${prefix}/`,
 		});
+
+		if (!files || files.length === 0) {
+			yield* Effect.logWarning(
+				{ prefix },
+				"No files found for asset, skipping vectorization",
+			);
+			return;
+		}
 
 		const images: {
 			description: string;

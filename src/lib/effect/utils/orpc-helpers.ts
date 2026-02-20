@@ -84,6 +84,11 @@ const appErrorToCode: (error: AppError) => ORPCErrorCode =
 	);
 
 type AnyORPCError = ORPCError<ORPCErrorCode, unknown>;
+const toORPCError = (error: AppError): AnyORPCError => {
+	const status = appErrorToCode(error);
+	const message = extractErrorMessage(error);
+	return new ORPCError(status, { data: { message } });
+};
 
 /**
  * Pipeable operator that maps Effect errors to ORPCError.
@@ -107,13 +112,12 @@ const mapToORPCError = <E>() =>
 			return error as AnyORPCError;
 		}
 
-		const status = isAppError(error)
-			? appErrorToCode(error)
-			: "INTERNAL_SERVER_ERROR";
+		if (isAppError(error)) {
+			return toORPCError(error);
+		}
 
 		const message = extractErrorMessage(error);
-
-		return new ORPCError(status, { data: { message } });
+		return new ORPCError("INTERNAL_SERVER_ERROR", { data: { message } });
 	});
 
 export const runOrpcEffect = <A, E, R extends AppRuntimeContext>(

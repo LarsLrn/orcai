@@ -1,3 +1,5 @@
+import { ensureQuotedEtag } from "./utils/utils";
+
 export async function uploadFileToS3(params: {
 	signedUrl: string;
 	file: File;
@@ -60,8 +62,6 @@ export async function uploadMultipartFileToS3(params: {
 	file: File;
 	parts: { signedUrl: string; partNumber: number; size: number }[];
 	partSize: number;
-	uploadId: string;
-	completeSignedUrl: string;
 	partsBatchSize?: number;
 	onProgress?: (progress: number) => void;
 	signal?: AbortSignal;
@@ -91,11 +91,12 @@ export async function uploadMultipartFileToS3(params: {
 				if (xhr.readyState === 4 && xhr.status === 200) {
 					const etag = xhr.getResponseHeader("ETag");
 					if (!etag) {
-						throw new Error("Missing ETag in response.");
+						reject(new Error("Missing ETag in response."));
+						return;
 					}
 
 					uploadedParts.push({
-						etag: etag.replace(/"/g, ""),
+						etag: ensureQuotedEtag(etag),
 						number: part.partNumber,
 					});
 
@@ -128,34 +129,12 @@ export async function uploadMultipartFileToS3(params: {
 		await Promise.all(uploadPromises.slice(i, i + batchSize).map((fn) => fn()));
 	}
 
-	const completeXmlBody = `
-    <CompleteMultipartUpload>
-      ${uploadedParts
-				.sort((a, b) => a.number - b.number)
-				.map(
-					(part) => `<Part>
-        <ETag>${part.etag}</ETag>
-        <PartNumber>${part.number}</PartNumber>
-      </Part>`,
-				)
-				.join("")}
-    </CompleteMultipartUpload>
-  `;
-
-	const completeRes = await fetch(params.completeSignedUrl, {
-		method: "POST",
-		body: completeXmlBody,
-		headers: {
-			"Content-Type": "application/xml",
-		},
-		signal: params.signal,
-	});
-
-	if (!completeRes.ok) {
-		throw new Error("Failed to complete multipart upload.");
-	}
-
-	params.onProgress?.(1);
+	return uploadedParts
+		.sort((a, b) => a.number - b.number)
+		.map((part) => ({
+			etag: part.etag,
+			partNumber: part.number,
+		}));
 }
 
 function createAbortHandler(

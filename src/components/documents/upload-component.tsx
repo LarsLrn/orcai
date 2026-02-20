@@ -46,7 +46,7 @@ const UploadComponent = () => {
 						<field.UploadField
 							label="Files"
 							maxFileCount={100}
-							maxSize={32 * 1024 * 1024}
+							maxSize={64 * 1024 * 1024}
 							multiple
 							accept={{
 								"image/*": [],

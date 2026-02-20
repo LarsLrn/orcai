@@ -104,7 +104,13 @@ import {
 	listProvidersContract,
 	updateProviderContract,
 } from "./provider";
-import { createDownloadUrlContract, createUploadUrlsContract } from "./storage";
+import {
+	abortMultipartUploadContract,
+	completeMultipartUploadContract,
+	createDownloadUrlContract,
+	createUploadUrlsContract,
+	finalizeUploadContract,
+} from "./storage";
 import {
 	findUserContract,
 	listUsersContract,
@@ -224,6 +230,9 @@ export const contracts = {
 	storage: {
 		createUploadUrls: createUploadUrlsContract,
 		createDownloadUrl: createDownloadUrlContract,
+		finalizeUpload: finalizeUploadContract,
+		completeMultipartUpload: completeMultipartUploadContract,
+		abortMultipartUpload: abortMultipartUploadContract,
 	},
 	job: {
 		list: listJobsContract,

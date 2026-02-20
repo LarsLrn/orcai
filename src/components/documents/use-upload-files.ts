@@ -14,10 +14,76 @@ import type {
 } from "@/lib/s3/types/public";
 import { uploadFiles } from "@/lib/s3/upload";
 
+const CLIENT_UPLOAD_ERROR_TYPES = [
+	"unknown",
+	"invalid_request",
+	"no_files",
+	"s3_upload",
+	"file_too_large",
+	"invalid_file_type",
+	"rejected",
+	"too_many_files",
+] as const satisfies ClientUploadError["type"][];
+
+const isClientUploadErrorType = (
+	type: unknown,
+): type is ClientUploadError["type"] =>
+	typeof type === "string" &&
+	CLIENT_UPLOAD_ERROR_TYPES.includes(type as ClientUploadError["type"]);
+
+const toClientUploadError = (error: unknown): ClientUploadError => {
+	if (error instanceof ClientUploadErrorClass) {
+		return {
+			type: error.type,
+			message: error.message,
+		};
+	}
+
+	if (error instanceof Error) {
+		const maybeErrorData = (error as Error & { data?: unknown }).data as
+			| { type?: unknown; message?: unknown }
+			| undefined;
+
+		if (maybeErrorData && isClientUploadErrorType(maybeErrorData.type)) {
+			return {
+				type: maybeErrorData.type,
+				message:
+					typeof maybeErrorData.message === "string"
+						? maybeErrorData.message
+						: error.message,
+			};
+		}
+
+		return {
+			type: "unknown",
+			message: error.message,
+		};
+	}
+
+	return {
+		type: "unknown",
+		message: "Failed to upload files.",
+	};
+};
+
+const toStringMetadata = (metadata?: ServerMetadata) =>
+	metadata
+		? Object.fromEntries(
+				Object.entries(metadata)
+					.filter(([, value]) => typeof value === "string")
+					.map(([key, value]) => [key, String(value)]),
+			)
+		: undefined;
+
+const noFilesError = {
+	type: "no_files",
+	message: "No files to upload.",
+} as const;
+
 export function useUploadFiles({
+	route = "asset",
 	uploadBatchSize,
 	multipartBatchSize,
-	headers,
 	signal,
 	onError,
 	onBeforeUpload,
@@ -34,6 +100,12 @@ export function useUploadFiles({
 
 	const { mutateAsync: getPresignedUrls } = useMutation(
 		orpc.storage.createUploadUrls.mutationOptions(),
+	);
+	const { mutateAsync: completeMultipartUpload } = useMutation(
+		orpc.storage.completeMultipartUpload.mutationOptions(),
+	);
+	const { mutateAsync: abortMultipartUpload } = useMutation(
+		orpc.storage.abortMultipartUpload.mutationOptions(),
 	);
 
 	const [isPending, setIsPending] = useState(false);
@@ -80,7 +152,13 @@ export function useUploadFiles({
 		);
 	}, [uploadsArray]);
 
-	// biome-ignore lint/correctness/useExhaustiveDependencies: <TODO: Check later>
+	const reset = useCallback(() => {
+		setUploads(new Map<string, FileUploadInfo<UploadStatus>>());
+		setServerMetadata({});
+		setIsPending(false);
+		setError(null);
+	}, []);
+
 	const uploadAsync = useCallback(
 		async (
 			files: File[] | FileList,
@@ -93,14 +171,9 @@ export function useUploadFiles({
 			const fileArray = Array.from(files);
 
 			if (fileArray.length === 0) {
-				const error = {
-					type: "no_files",
-					message: "No files to upload.",
-				} as const;
-
-				onError?.(error);
-				setError(error);
-				throw new ClientUploadErrorClass(error);
+				onError?.(noFilesError);
+				setError(noFilesError);
+				throw new ClientUploadErrorClass(noFilesError);
 			}
 
 			try {
@@ -111,14 +184,9 @@ export function useUploadFiles({
 
 					if (Array.isArray(callbackResult)) {
 						if (callbackResult.length === 0) {
-							const error = {
-								type: "no_files",
-								message: "No files to upload.",
-							} as const;
-
-							onError?.(error);
-							setError(error);
-							throw new ClientUploadErrorClass(error);
+							onError?.(noFilesError);
+							setError(noFilesError);
+							throw new ClientUploadErrorClass(noFilesError);
 						}
 
 						filesToUpload = callbackResult;
@@ -126,25 +194,39 @@ export function useUploadFiles({
 				}
 
 				const signedUrls = await getPresignedUrls({
+					route,
 					files: filesToUpload.map((file) => ({
 						name: file.name,
 						size: file.size,
 						type: file.type,
 					})),
+					metadata: toStringMetadata(metadata),
 				});
 
 				const result = await uploadFiles({
+					route,
 					signedUrls: {
-						metadata: { test: "test" }, // Placeholder for metadata
+						metadata: signedUrls.metadata,
 						files: signedUrls.data,
 					},
 					files: filesToUpload,
-					metadata,
 					uploadBatchSize,
 					multipartBatchSize,
-					headers,
 					signal,
 					onUploadBegin,
+					onMultipartComplete: (data) =>
+						completeMultipartUpload({
+							route: data.route,
+							uploadId: data.uploadId,
+							file: data.file,
+							parts: data.parts,
+						}),
+					onMultipartAbort: (data) =>
+						abortMultipartUpload({
+							route: data.route,
+							uploadId: data.uploadId,
+							file: data.file,
+						}),
 					onFileStateChange: ({ file }) => {
 						setUploads((prev) => new Map(prev).set(file.objectKey, file));
 
@@ -175,36 +257,19 @@ export function useUploadFiles({
 				setIsPending(false);
 				await onUploadSettle?.({ files: [], failedFiles: [], metadata: {} });
 
-				if (error instanceof ClientUploadErrorClass) {
-					onError?.(error);
-					setError(error);
-					throw error;
-				}
-				if (error instanceof Error) {
-					const _error = new ClientUploadErrorClass({
-						type: "unknown",
-						message: error.message,
-					});
+				const clientError = toClientUploadError(error);
+				const uploadError = new ClientUploadErrorClass(clientError);
 
-					onError?.(_error);
-					setError(_error);
-					throw _error;
-				}
-				const _error = new ClientUploadErrorClass({
-					type: "unknown",
-					message: "Failed to upload files.",
-				});
-
-				onError?.(_error);
-				setError(_error);
-				throw _error;
+				onError?.(clientError);
+				setError(clientError);
+				throw uploadError;
 			}
 		},
 		[
+			route,
 			getPresignedUrls,
 			uploadBatchSize,
 			multipartBatchSize,
-			headers,
 			signal,
 			onError,
 			onBeforeUpload,
@@ -213,41 +278,16 @@ export function useUploadFiles({
 			onUploadFail,
 			onUploadProgress,
 			onUploadSettle,
+			completeMultipartUpload,
+			abortMultipartUpload,
+			reset,
 		],
 	);
-
-	const upload = useCallback(
-		async (
-			files: File[] | FileList,
-			options: { metadata?: ServerMetadata } = {},
-		) => {
-			try {
-				const result = await uploadAsync(files, options);
-
-				return result;
-			} catch (error) {
-				console.error("Upload failed:", error);
-				return {
-					files: [],
-					failedFiles: [],
-					metadata: {},
-				};
-			}
-		},
-		[uploadAsync],
-	);
-
-	const reset = useCallback(() => {
-		setUploads(new Map<string, FileUploadInfo<UploadStatus>>());
-		setServerMetadata({});
-		setIsPending(false);
-		setError(null);
-	}, []);
 
 	const control = useMemo(
 		() => ({
 			uploadAsync,
-			upload,
+			upload: uploadAsync,
 			reset,
 			progresses: uploadsArray,
 			allSucceeded,
@@ -263,7 +303,6 @@ export function useUploadFiles({
 		}),
 		[
 			uploadAsync,
-			upload,
 			reset,
 			uploadsArray,
 			allSucceeded,

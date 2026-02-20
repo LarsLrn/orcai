@@ -3,23 +3,31 @@ import { useState } from "react";
 import { toast } from "sonner";
 import { useUploadFiles } from "@/components/documents/use-upload-files";
 import { orpc } from "@/lib/orpc/orpc";
+import { ClientUploadErrorClass } from "@/lib/s3/types/error";
 
 export const useUploadSubmission = () => {
 	const [showProgress, setShowProgress] = useState(false);
 
-	const { mutateAsync: createAsset } = useMutation(
-		orpc.asset.create.mutationOptions(),
+	const { mutateAsync: finalizeUpload } = useMutation(
+		orpc.storage.finalizeUpload.mutationOptions(),
 	);
 
-	const { upload, control, reset } = useUploadFiles({
-		onUploadComplete(data) {
-			data.files.forEach((file) => {
-				createAsset({
-					id: file.objectKey,
-					title: file.name,
+	const { uploadAsync, control, reset } = useUploadFiles({
+		route: "asset",
+		async onUploadComplete(data) {
+			if (data.files.length === 0) {
+				return;
+			}
+
+			await finalizeUpload({
+				route: "asset",
+				files: data.files.map((file) => ({
+					objectKey: file.objectKey,
+					objectMetadata: file.objectMetadata,
+					name: file.name,
 					size: file.size,
-					fileType: file.type,
-				});
+					type: file.type,
+				})),
 			});
 		},
 		onBeforeUpload() {
@@ -31,7 +39,18 @@ export const useUploadSubmission = () => {
 		value: { files: File[] },
 		options?: { onSuccess?: () => void },
 	) => {
-		return toast.promise(upload(value.files), {
+		const uploadPromise = uploadAsync(value.files).then((result) => {
+			if (result.files.length === 0 && result.failedFiles.length > 0) {
+				throw new ClientUploadErrorClass({
+					type: "s3_upload",
+					message: "All files failed to upload.",
+				});
+			}
+
+			return result;
+		});
+
+		return toast.promise(uploadPromise, {
 			loading: "Uploading files...",
 			success: (data) => {
 				options?.onSuccess?.();
@@ -42,7 +61,11 @@ export const useUploadSubmission = () => {
 						: undefined,
 				};
 			},
-			error: () => {
+			error: (error) => {
+				if (error instanceof Error) {
+					return error.message;
+				}
+
 				return "Error uploading files.";
 			},
 		});

@@ -1,3 +1,4 @@
+import type { UploadRouteName } from "@/lib/s3/upload-routes";
 import type {
 	ClientUploadError,
 	FileUploadInfo,
@@ -7,46 +8,46 @@ import type {
 export type ObjectMetadata = Record<string, string>;
 export type ServerMetadata = Record<string, unknown>;
 
+type UploadFileBase = {
+	file: {
+		objectKey: string;
+		objectMetadata: ObjectMetadata;
+		name: string;
+		size: number;
+		type: string;
+	};
+};
+
+type SingleUploadFile = UploadFileBase & {
+	mode: "single";
+	signedUrl: string;
+	headers?: Record<string, string>;
+};
+
+type MultipartUploadFile = UploadFileBase & {
+	mode: "multipart";
+	parts: {
+		signedUrl: string;
+		partNumber: number;
+		size: number;
+	}[];
+	partSize: number;
+	uploadId: string;
+};
+
 export type SignedUrlsSuccessResponse = {
 	metadata: ServerMetadata;
-} & (
-	| {
-			multipart: {
-				files: {
-					file: {
-						objectKey: string;
-						objectMetadata: ObjectMetadata;
-						name: string;
-						size: number;
-						type: string;
-					};
-					parts: {
-						signedUrl: string;
-						partNumber: number;
-						size: number;
-					}[];
-					uploadId: string;
-					completeSignedUrl: string;
-					abortSignedUrl: string;
-				}[];
-				partSize: number;
-			};
-	  }
-	| {
-			files: {
-				signedUrl: string;
-				file: {
-					objectKey: string;
-					objectMetadata: ObjectMetadata;
-					name: string;
-					size: number;
-					type: string;
-				};
-			}[];
-	  }
-);
+	files: Array<SingleUploadFile | MultipartUploadFile>;
+};
 
 export type UploadHookProps<T extends boolean> = {
+	/**
+	 * The server-side upload route preset.
+	 *
+	 * @default "asset"
+	 */
+	route?: UploadRouteName;
+
 	/**
 	 * The number of parts that will be uploaded in parallel when uploading a file.
 	 *
@@ -130,11 +131,6 @@ export type UploadHookProps<T extends boolean> = {
 	 * Abort signal to cancel the upload.
 	 */
 	signal?: AbortSignal;
-
-	/**
-	 * Headers to send to your server when requesting the pre-signed URLs.
-	 */
-	headers?: HeadersInit;
 } & (T extends true
 	? {
 			/**

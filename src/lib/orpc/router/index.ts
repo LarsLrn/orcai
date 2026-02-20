@@ -85,7 +85,13 @@ import {
 	updateProvider,
 } from "./provider";
 import { sse } from "./sse";
-import { createDownloadUrl, createUploadUrls } from "./storage";
+import {
+	abortMultipartUpload,
+	completeMultipartUpload,
+	createDownloadUrl,
+	createUploadUrls,
+	finalizeUpload,
+} from "./storage";
 import {
 	findUser,
 	listUsers,
@@ -193,6 +199,9 @@ export const router = {
 	storage: {
 		createUploadUrls: createUploadUrls,
 		createDownloadUrl: createDownloadUrl,
+		finalizeUpload: finalizeUpload,
+		completeMultipartUpload: completeMultipartUpload,
+		abortMultipartUpload: abortMultipartUpload,
 	},
 	model: {
 		list: listModels,

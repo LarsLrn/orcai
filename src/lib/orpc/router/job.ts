@@ -9,7 +9,7 @@ import {
 	sendJobBatchEffect,
 } from "@/lib/pg-boss/helpers";
 import { PROCESS_ASSET_JOB_NAME } from "@/lib/pg-boss/schema/job-queues";
-import { getFileTypeFromMime } from "@/lib/s3/upload-helpers";
+import { getFileTypeFromMime } from "@/lib/s3/utils/file-type-helpers";
 
 export const listJobs = authed.job.list.handler(async ({ input }) =>
 	runOrpcEffect(

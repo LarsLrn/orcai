@@ -1,4 +1,5 @@
 /** biome-ignore-all lint/style/noNonNullAssertion: <Mostly fighting typescript here> */
+import type { UploadRouteName } from "@/lib/s3/upload-routes";
 import { uploadFileToS3, uploadMultipartFileToS3 } from "./s3-upload";
 import { ClientUploadErrorClass } from "./types/error";
 import type {
@@ -14,19 +15,29 @@ import type { FileUploadInfo, UploadStatus } from "./types/public";
  * This will not throw if one of the uploads fails, but will return the files that failed to upload.
  */
 export async function uploadFiles(params: {
+	route: UploadRouteName;
 	signedUrls: SignedUrlsSuccessResponse;
 	files: File[] | FileList;
-	metadata?: ServerMetadata;
 	multipartBatchSize?: number;
 	uploadBatchSize?: number;
 	signal?: AbortSignal;
-	headers?: HeadersInit;
 
 	onUploadBegin?: (data: {
 		files: FileUploadInfo<"pending">[];
 		metadata: ServerMetadata;
 	}) => void;
 	onFileStateChange?: (data: { file: FileUploadInfo<UploadStatus> }) => void;
+	onMultipartComplete?: (data: {
+		route: UploadRouteName;
+		uploadId: string;
+		file: SignedUrlsSuccessResponse["files"][number]["file"];
+		parts: { etag: string; partNumber: number }[];
+	}) => Promise<unknown>;
+	onMultipartAbort?: (data: {
+		route: UploadRouteName;
+		uploadId: string;
+		file: SignedUrlsSuccessResponse["files"][number]["file"];
+	}) => Promise<unknown>;
 }): Promise<DirectUploadResult<true>> {
 	const files = Array.from(params.files);
 
@@ -38,15 +49,8 @@ export async function uploadFiles(params: {
 	}
 
 	try {
-		const signedUrls =
-			"multipart" in params.signedUrls
-				? params.signedUrls.multipart.files
-				: params.signedUrls.files;
+		const signedUrls = params.signedUrls.files;
 		const serverMetadata = params.signedUrls.metadata;
-		const partSize =
-			"multipart" in params.signedUrls
-				? params.signedUrls.multipart.partSize
-				: 0;
 
 		if (!signedUrls || signedUrls.length === 0) {
 			throw new ClientUploadErrorClass({
@@ -56,32 +60,40 @@ export async function uploadFiles(params: {
 			});
 		}
 
+		if (signedUrls.length !== files.length) {
+			throw new ClientUploadErrorClass({
+				type: "unknown",
+				message: "Server returned an unexpected number of upload URLs.",
+			});
+		}
+
+		const uploadsByIndex = signedUrls.map((url, index) => {
+			const file = files[index];
+
+			if (!file) {
+				throw new ClientUploadErrorClass({
+					type: "unknown",
+					message: "Failed to map selected files to upload URLs.",
+				});
+			}
+
+			return { file, url };
+		});
+
 		const uploads = new Map<string, FileUploadInfo<UploadStatus>>(
-			signedUrls.map((url) => [
+			uploadsByIndex.map(({ file, url }) => [
 				url.file.objectKey,
 				{
 					status: "pending",
 					progress: 0,
-					raw: files.find(
-						(file) =>
-							file.name === url.file.name &&
-							file.size === url.file.size &&
-							file.type === url.file.type,
-					)!,
+					raw: file,
 					...url.file,
 				},
 			]),
 		);
 
-		const uploadPromises = files.map((file) => async () => {
-			const url = signedUrls.find(
-				(item) =>
-					item.file.name === file.name &&
-					item.file.size === file.size &&
-					item.file.type === file.type,
-			)!;
-
-			const isMultipart = "parts" in url;
+		const uploadPromises = uploadsByIndex.map(({ file, url }) => async () => {
+			const isMultipart = url.mode === "multipart";
 
 			try {
 				uploads.set(url.file.objectKey, {
@@ -95,12 +107,14 @@ export async function uploadFiles(params: {
 				});
 
 				if (isMultipart) {
-					await uploadMultipartFileToS3({
+					if (!params.onMultipartComplete) {
+						throw new Error("Missing multipart completion handler.");
+					}
+
+					const completedParts = await uploadMultipartFileToS3({
 						file,
 						parts: url.parts,
-						partSize,
-						uploadId: url.uploadId,
-						completeSignedUrl: url.completeSignedUrl,
+						partSize: url.partSize,
 						partsBatchSize: params.multipartBatchSize,
 						signal: params.signal,
 						onProgress: (progress) => {
@@ -115,10 +129,28 @@ export async function uploadFiles(params: {
 							});
 						},
 					});
+
+					await params.onMultipartComplete({
+						route: params.route,
+						uploadId: url.uploadId,
+						file: url.file,
+						parts: completedParts,
+					});
+
+					uploads.set(url.file.objectKey, {
+						...uploads.get(url.file.objectKey)!,
+						status: "complete",
+						progress: 1,
+					});
+
+					params.onFileStateChange?.({
+						file: uploads.get(url.file.objectKey)!,
+					});
 				} else {
 					await uploadFileToS3({
 						file,
 						signedUrl: url.signedUrl,
+						signedHeaders: "headers" in url ? url.headers : undefined,
 						signal: params.signal,
 						onProgress: (progress) => {
 							uploads.set(url.file.objectKey, {
@@ -135,9 +167,13 @@ export async function uploadFiles(params: {
 				}
 			} catch {
 				if (isMultipart) {
-					await fetch(url.abortSignedUrl, {
-						method: "DELETE",
-					}).catch(() => null);
+					await params
+						.onMultipartAbort?.({
+							route: params.route,
+							uploadId: url.uploadId,
+							file: url.file,
+						})
+						.catch(() => null);
 				}
 
 				uploads.set(url.file.objectKey, {
@@ -197,55 +233,4 @@ export async function uploadFiles(params: {
 			message: "Failed to upload files.",
 		});
 	}
-}
-
-/**
- * Upload a single file to S3.
- *
- * This will throw if the upload fails.
- */
-export async function uploadFile(params: {
-	signedUrls: SignedUrlsSuccessResponse;
-	route: string;
-	file: File;
-	metadata?: ServerMetadata;
-	multipartBatchSize?: number;
-	signal?: AbortSignal;
-	headers?: HeadersInit;
-
-	onUploadBegin?: (data: {
-		file: FileUploadInfo<"pending">;
-		metadata: ServerMetadata;
-	}) => void;
-	onFileStateChange?: (data: { file: FileUploadInfo<UploadStatus> }) => void;
-}): Promise<DirectUploadResult<false>> {
-	const { files, metadata } = await uploadFiles({
-		signedUrls: params.signedUrls,
-		files: [params.file],
-		metadata: params.metadata,
-		multipartBatchSize: params.multipartBatchSize,
-		signal: params.signal,
-		headers: params.headers,
-		onUploadBegin: (data) => {
-			params.onUploadBegin?.({
-				file: data.files[0]!,
-				metadata: data.metadata,
-			});
-		},
-		onFileStateChange: params.onFileStateChange,
-	});
-
-	const file = files[0];
-
-	if (!file) {
-		throw new ClientUploadErrorClass({
-			type: "unknown",
-			message: "Failed to upload file.",
-		});
-	}
-
-	return {
-		file,
-		metadata,
-	};
 }

@@ -533,6 +533,17 @@ export const queryDefaults: CreateRouterUtilsOptions<
 				placeholderData: keepPreviousData,
 			},
 		},
+		finalizeUpload: {
+			mutationOptions: {
+				onSuccess: (_output, input, _, ctx) => {
+					if (input.route === "asset") {
+						ctx.client.invalidateQueries({
+							queryKey: orpc.asset.key(),
+						});
+					}
+				},
+			},
+		},
 	},
 	job: {
 		list: {

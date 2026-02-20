@@ -1,4 +1,3 @@
-import { PutObjectCommand } from "@aws-sdk/client-s3";
 import * as Effect from "effect/Effect";
 import type { Job } from "pg-boss";
 import {
@@ -7,7 +6,6 @@ import {
 } from "@/lib/ai/docling-serialize";
 import { AppConfigService } from "@/lib/effect/services/config";
 import { PgBossService } from "@/lib/effect/services/pg-boss";
-import { S3Service } from "@/lib/effect/services/s3";
 import {
 	PROCESS_ASSET_JOB_NAME,
 	VECTORIZE_ASSET_JOB_NAME,
@@ -15,11 +13,10 @@ import {
 import type { ProcessAssetPayload } from "@/lib/pg-boss/schema/process-asset";
 import { toPgBossRunError } from "@/lib/pg-boss/utils/error-helper";
 import { validateImageResolution } from "@/lib/pg-boss/utils/validate-image-resolution";
-import {
-	createPresignedUrlToDownload,
-	deletePrefixRecursively,
-} from "@/lib/s3/file-functions";
-import { getFileTypeFromMime } from "@/lib/s3/upload-helpers";
+import { sendPutObjectCommand } from "@/lib/s3/utils/commands";
+import { deletePrefixRecursively } from "@/lib/s3/utils/file-functions";
+import { getFileTypeFromMime } from "@/lib/s3/utils/file-type-helpers";
+import { getDownloadUrl } from "@/lib/s3/utils/url-helpers";
 import { buckets } from "@/settings/buckets";
 import type { SaiaDoclingData } from "@/types/docling";
 
@@ -35,7 +32,10 @@ const processAssetsEffect = (params: { job: Job<ProcessAssetPayload> }) =>
 
 		const doclingApi = `${config.ai.baseUrl}/documents/convert`;
 
-		const presignedUrl = yield* createPresignedUrlToDownload(assetRef);
+		const presignedUrl = yield* getDownloadUrl({
+			bucket: assetRef.bucket,
+			key: `${assetRef.prefix}/${assetRef.id}.${assetRef.type}`,
+		});
 
 		const fileResponse = yield* Effect.tryPromise({
 			try: () => fetch(presignedUrl),
@@ -169,20 +169,13 @@ const processAssetsEffect = (params: { job: Job<ProcessAssetPayload> }) =>
 
 		yield* Effect.forEach(serializedDocling, (page, index) =>
 			Effect.gen(function* () {
-				const { client } = yield* S3Service;
-
 				const { markdown, images } = page;
 
-				const command = new PutObjectCommand({
-					Bucket: buckets.processed.name,
-					Key: `${assetRef.id}/page-${page.page}.md`,
-					Body: Buffer.from(markdown, "utf-8"),
-					ContentType: "text/markdown",
-				});
-
-				yield* Effect.tryPromise({
-					try: () => client.send(command),
-					catch: toPgBossRunError(params.job.id, PROCESS_ASSET_JOB_NAME),
+				yield* sendPutObjectCommand({
+					bucket: buckets.processed.name,
+					key: `${assetRef.id}/page-${page.page}.md`,
+					body: Buffer.from(markdown, "utf-8"),
+					contentType: "text/markdown",
 				}).pipe(
 					Effect.tapError((err) =>
 						Effect.logError({ err }, "Error uploading processed markdown"),
@@ -228,16 +221,11 @@ const processAssetsEffect = (params: { job: Job<ProcessAssetPayload> }) =>
 							);
 						}
 
-						const command = new PutObjectCommand({
-							Bucket: buckets.processed.name,
-							Key: `${assetRef.id}/${image.label}-${image.index}.${fileType}`,
-							Body: imageBuffer,
-							ContentType: image.mimetype,
-						});
-
-						return yield* Effect.tryPromise({
-							try: () => client.send(command),
-							catch: toPgBossRunError(params.job.id, PROCESS_ASSET_JOB_NAME),
+						return yield* sendPutObjectCommand({
+							bucket: buckets.processed.name,
+							key: `${assetRef.id}/${image.label}-${image.index}.${fileType}`,
+							body: imageBuffer,
+							contentType: image.mimetype,
 						}).pipe(
 							Effect.tapError((err) =>
 								Effect.logError({ err }, "Error uploading processed image"),

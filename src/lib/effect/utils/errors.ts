@@ -130,3 +130,101 @@ export type AppError =
 	| QdrantError
 	| AiError
 	| InternalError;
+
+type S3LikeCause = {
+	name?: string;
+	code?: string;
+	Code?: string;
+	message?: string;
+	$metadata?: { httpStatusCode?: number };
+};
+
+const isS3LikeCause = (cause: unknown): cause is S3LikeCause =>
+	cause !== null && typeof cause === "object";
+
+const getS3StatusCode = (cause: unknown) =>
+	isS3LikeCause(cause) ? cause.$metadata?.httpStatusCode : undefined;
+
+const getS3Code = (cause: unknown) => {
+	if (!isS3LikeCause(cause)) {
+		return undefined;
+	}
+
+	if (typeof cause.Code === "string") {
+		return cause.Code;
+	}
+
+	if (typeof cause.code === "string") {
+		return cause.code;
+	}
+
+	if (typeof cause.name === "string") {
+		return cause.name;
+	}
+
+	return undefined;
+};
+
+const getS3Message = (cause: unknown) =>
+	isS3LikeCause(cause) && typeof cause.message === "string"
+		? cause.message
+		: undefined;
+
+export const mapS3CauseToAppError = (params: {
+	operation: string;
+	cause: unknown;
+	notFoundAs?: "not_found" | "bad_request";
+}): AppError => {
+	const statusCode = getS3StatusCode(params.cause);
+	const code = getS3Code(params.cause);
+	const message =
+		getS3Message(params.cause) ??
+		`Storage request failed at ${params.operation}.`;
+
+	if (
+		statusCode === 401 ||
+		code === "InvalidAccessKeyId" ||
+		code === "SignatureDoesNotMatch"
+	) {
+		return new UnauthorizedError({ reason: message });
+	}
+
+	if (statusCode === 403 || code === "AccessDenied") {
+		return new ForbiddenError({ reason: message });
+	}
+
+	if (
+		statusCode === 404 ||
+		code === "NotFound" ||
+		code === "NoSuchKey" ||
+		code === "NoSuchUpload" ||
+		code === "NoSuchBucket"
+	) {
+		if (params.notFoundAs === "bad_request") {
+			return new BadRequestError({ message });
+		}
+
+		return new NotFoundError({ entity: "storage_resource" });
+	}
+
+	if (
+		statusCode === 409 ||
+		code === "Conflict" ||
+		code === "BucketAlreadyExists" ||
+		code === "BucketAlreadyOwnedByYou"
+	) {
+		return new ConflictError({
+			entity: "storage_resource",
+			cause: params.cause,
+		});
+	}
+
+	if (typeof statusCode === "number" && statusCode >= 400 && statusCode < 500) {
+		return new BadRequestError({ message });
+	}
+
+	return new S3Error({
+		operation: params.operation,
+		cause: params.cause,
+	});
+};

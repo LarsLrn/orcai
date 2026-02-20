@@ -27,8 +27,16 @@ export const base = oc
 			message: "Bad request.",
 			status: 400,
 		},
+		CONFLICT: {
+			message: "Conflict.",
+			status: 409,
+		},
 		NOT_FOUND: {
 			message: "Resource not found.",
 			status: 404,
+		},
+		INTERNAL_SERVER_ERROR: {
+			message: "Internal server error.",
+			status: 500,
 		},
 	});

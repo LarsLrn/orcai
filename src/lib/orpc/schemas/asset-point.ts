@@ -1,4 +1,5 @@
 import { z } from "zod/v4";
+import { fileTypeSchema } from "@/lib/s3/schema/file-schema";
 import { assetSelectSchema } from "./asset";
 import { baseBlockSelectSchema } from "./block";
 
@@ -19,16 +20,6 @@ const baseChunkPayloadSchema = z.object({
 	chunkCount: z.number(),
 	createdAt: z.string(),
 });
-
-export const fileTypeSchema = z.enum([
-	"pdf",
-	"jpeg",
-	"png",
-	"docx",
-	"pptx",
-	"md",
-	"unknown",
-]);
 
 const imagePointPayloadSchema = baseChunkPayloadSchema.extend({
 	source: z.literal("image"),
