@@ -1,10 +1,12 @@
+"use no memo";
+// FIXME: tanstack table is incompatible with the react compiler. Monitor the repo for any updates: https://github.com/TanStack/table/issues/5567
+
 import {
 	ChevronLeft,
 	ChevronRight,
 	ChevronsLeft,
 	ChevronsRight,
 } from "lucide-react";
-
 import { Button } from "@/components/ui/button";
 import {
 	Select,
