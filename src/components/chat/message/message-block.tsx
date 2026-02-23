@@ -9,8 +9,10 @@ import { Shimmer } from "@/components/ai-elements/shimmer";
 import { MessageEditor } from "@/components/chat/message/message-editor";
 import { InView } from "@/components/ui/motion/in-view";
 import type { ChatAgentUIMessage } from "@/lib/ai/types/chat-agent-message";
+import { getChatMessageAttachments } from "@/lib/ai/types/chat-attachment";
 import type { Chat } from "@/lib/orpc/schemas/chat";
 import { cn } from "@/lib/utils";
+import { ChatMessageAttachments } from "./chat-message-attachments";
 import { useMessageEditor } from "./hooks/use-message-editor";
 import { MessageActions } from "./message-actions";
 import { MessagePartRenderer } from "./message-part-renderer";
@@ -35,6 +37,7 @@ export const MessageBlock = ({
 }: MessageBlockProps) => {
 	const { mode, toggleMode, setViewMode } = useMessageEditor();
 	const variant = message.role === "user" ? "sent" : "received";
+	const messageAttachments = getChatMessageAttachments(message);
 
 	// Filter and sort message parts:
 	// keep only the last text part; keep all non-text parts
@@ -98,6 +101,7 @@ export const MessageBlock = ({
 					/>
 				) : (
 					<MessageContent>
+						<ChatMessageAttachments attachments={messageAttachments} />
 						{sortedParts.map((part, i) => (
 							<MessagePartRenderer
 								key={`${part.type}${message.id}${i}`}
