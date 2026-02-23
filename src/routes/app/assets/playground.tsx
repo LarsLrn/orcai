@@ -29,7 +29,10 @@ function RouteComponent() {
 			{search ? (
 				<QdrantPlaygroundResults search={search} />
 			) : (
-				<Placeholder>Search for chunks</Placeholder>
+				<Placeholder
+					title="No Search Results"
+					description="Search for chunks to see results."
+				/>
 			)}
 		</div>
 	);

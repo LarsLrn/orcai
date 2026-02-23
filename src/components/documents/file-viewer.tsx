@@ -14,7 +14,7 @@ import { AssetMeta } from "./asset-meta";
 
 const FileViewer = ({ asset }: { asset: Asset }) => {
 	const isMobile = useIsMobile();
-	const { data, status, error } = useQuery(
+	const { data, status } = useQuery(
 		orpc.storage.createDownloadUrl.queryOptions({
 			input: {
 				id: asset.id,
@@ -35,9 +35,10 @@ const FileViewer = ({ asset }: { asset: Asset }) => {
 
 	if (status === "error") {
 		return (
-			<Placeholder>
-				<p>Error loading asset: {error.message}</p>
-			</Placeholder>
+			<Placeholder
+				title="Error"
+				description="There was an error loading the asset. Please try again later."
+			/>
 		);
 	}
 
@@ -59,9 +60,11 @@ const FileViewer = ({ asset }: { asset: Asset }) => {
 			>
 				<div className="size-full xl:col-span-3">
 					{isMobile ? (
-						<Placeholder Icon={SmartphoneIcon} size={30}>
-							Asset preview is not available on mobile.
-						</Placeholder>
+						<Placeholder
+							title="Mobile Preview Unavailable"
+							description="Asset preview is not available on mobile."
+							Icon={SmartphoneIcon}
+						/>
 					) : (
 						<Viewport fileType={asset.fileType} filePath={data.url} />
 					)}
@@ -125,10 +128,10 @@ const Viewport = ({
 			);
 		default:
 			return (
-				<Placeholder>
-					<p>This file type cannot be displayed in the browser.</p>
-					<p>Please download it instead.</p>
-				</Placeholder>
+				<Placeholder
+					title="Unsupported File Type"
+					description="This file type cannot be displayed in the browser. Please download it instead."
+				/>
 			);
 	}
 };

@@ -1,29 +1,56 @@
 import { CircleHelpIcon, type LucideIcon } from "lucide-react";
-import { Card, CardHeader, CardTitle } from "@/components/ui/card";
+import { Button } from "@/components/ui/button";
+import {
+	Empty,
+	EmptyContent,
+	EmptyDescription,
+	EmptyHeader,
+	EmptyMedia,
+	EmptyTitle,
+} from "@/components/ui/empty";
 import { cn } from "@/lib/utils";
 
 const Placeholder = ({
-	children,
+	title,
+	description,
 	className,
 	Icon = CircleHelpIcon,
-	size = 50,
+	primaryAction,
+	secondaryAction,
 }: {
-	children: React.ReactNode;
+	title: string;
+	description?: string;
 	className?: string;
 	Icon?: LucideIcon;
-	size?: number;
+	primaryAction?: {
+		label: string;
+		onClick: () => void;
+	};
+	secondaryAction?: {
+		label: string;
+		onClick: () => void;
+	};
 }): React.ReactNode => {
 	return (
-		<Card className={cn(className, "flex h-full items-center justify-center")}>
-			<CardHeader className="w-full">
-				<CardTitle className="text-muted-foreground">
-					<div className="flex flex-col items-center gap-4 text-center">
-						<Icon size={size} />
-						{children}
-					</div>
-				</CardTitle>
-			</CardHeader>
-		</Card>
+		<Empty className={cn(className)}>
+			<EmptyHeader>
+				<EmptyMedia variant="icon">
+					<Icon />
+				</EmptyMedia>
+				<EmptyTitle>{title}</EmptyTitle>
+				{description && <EmptyDescription>{description}</EmptyDescription>}
+			</EmptyHeader>
+			<EmptyContent className="flex flex-row justify-center gap-2">
+				{primaryAction && (
+					<Button onClick={primaryAction.onClick}>{primaryAction.label}</Button>
+				)}
+				{secondaryAction && (
+					<Button variant="outline" onClick={secondaryAction.onClick}>
+						{secondaryAction.label}
+					</Button>
+				)}
+			</EmptyContent>
+		</Empty>
 	);
 };
 

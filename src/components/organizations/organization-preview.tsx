@@ -26,11 +26,16 @@ const OrganizationPreview = ({
 	}
 
 	if (status === "error") {
-		return <Placeholder>{error.message}</Placeholder>;
+		return <Placeholder title="Error" description={error.message} />;
 	}
 
 	if (!organization) {
-		return <Placeholder>No such organisation</Placeholder>;
+		return (
+			<Placeholder
+				title="No Such Organisation"
+				description="The requested organisation could not be found."
+			/>
+		);
 	}
 
 	const { name, slug } = organization.data;

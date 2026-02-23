@@ -15,9 +15,10 @@ const CourseInvitationsList = () => {
 
 	if (courseInvitations.data.length === 0) {
 		return (
-			<Placeholder Icon={SearchXIcon} size={30}>
-				You have no course invitations at this time.
-			</Placeholder>
+			<Placeholder
+				title="No Invitations"
+				description="You don't have any course invitations at this time."
+			/>
 		);
 	}
 
@@ -38,9 +39,11 @@ const CourseInvitationsList = () => {
 	) => {
 		if (filteredInvitations.length === 0) {
 			return (
-				<Placeholder Icon={SearchXIcon} size={30}>
-					{emptyMessage}
-				</Placeholder>
+				<Placeholder
+					title="No Invitations"
+					description={emptyMessage}
+					Icon={SearchXIcon}
+				/>
 			);
 		}
 

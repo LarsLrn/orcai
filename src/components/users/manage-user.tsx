@@ -400,7 +400,10 @@ const ManageUser = ({
 							</CollapsibleContent>
 						</Collapsible>
 					) : (
-						<Placeholder>No active sessions</Placeholder>
+						<Placeholder
+							title="No Active Sessions"
+							description="There are no active sessions for this user."
+						/>
 					)}
 				</CardContent>
 			</Card>
