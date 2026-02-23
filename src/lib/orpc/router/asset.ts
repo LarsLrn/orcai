@@ -1,4 +1,4 @@
-import { and, count, desc, eq, getColumns, inArray } from "drizzle-orm";
+import { and, count, desc, eq, getColumns, ilike, inArray } from "drizzle-orm";
 import * as Effect from "effect/Effect";
 import { v4 as uuidv4 } from "uuid";
 import { dbSchema } from "@/db/schema";
@@ -37,8 +37,15 @@ export const listAssets = authed.asset.list.handler(
 				);
 
 				const whereConditions = [inArray(dbSchema.asset.id, allowedIds)];
+
 				if (input.filters?.ids) {
 					whereConditions.push(inArray(dbSchema.asset.id, input.filters.ids));
+				}
+
+				if (input.filters?.search) {
+					whereConditions.push(
+						ilike(dbSchema.asset.title, `%${input.filters.search}%`),
+					);
 				}
 
 				return yield* Effect.all(

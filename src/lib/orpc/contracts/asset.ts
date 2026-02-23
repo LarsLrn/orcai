@@ -26,6 +26,7 @@ export const listAssetsContract = base
 			filters: z
 				.object({
 					ids: z.array(assetSelectSchema.shape.id).optional(),
+					search: z.string().optional(),
 				})
 				.optional(),
 		}),
