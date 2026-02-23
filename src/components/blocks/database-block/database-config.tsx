@@ -25,8 +25,8 @@ import {
 	CollapsibleTrigger,
 } from "@/components/ui/collapsible";
 import { Item, ItemContent, ItemTitle } from "@/components/ui/item";
-import { LoadingSpinner } from "@/components/ui/loading-spinner";
 import { AnimatedGroup } from "@/components/ui/motion/animated-group";
+import { Spinner } from "@/components/ui/spinner";
 import { orpc } from "@/lib/orpc/orpc";
 import type { Asset } from "@/lib/orpc/schemas/asset";
 import type { DatabaseBlock } from "@/lib/orpc/schemas/block";
@@ -42,7 +42,7 @@ const AssetGrid = ({ assetIds }: { assetIds: Asset["id"][] }) => {
 	);
 
 	if (status === "pending") {
-		return <LoadingSpinner />;
+		return <Spinner />;
 	}
 
 	if (status === "error") {

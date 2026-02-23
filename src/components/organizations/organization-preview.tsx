@@ -4,7 +4,7 @@ import { Building2Icon } from "lucide-react";
 import { Placeholder } from "@/components/placeholders/placeholder";
 import { buttonVariants } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { LoadingSpinner } from "@/components/ui/loading-spinner";
+import { Spinner } from "@/components/ui/spinner";
 import { orpc } from "@/lib/orpc/orpc";
 import type { Organization } from "@/lib/orpc/schemas/organization";
 
@@ -22,7 +22,7 @@ const OrganizationPreview = ({
 	);
 
 	if (status === "pending") {
-		return <LoadingSpinner className="h-8 w-8" />;
+		return <Spinner className="size-8" />;
 	}
 
 	if (status === "error") {

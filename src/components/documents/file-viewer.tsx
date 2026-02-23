@@ -3,7 +3,7 @@ import { SmartphoneIcon } from "lucide-react";
 import { useState } from "react";
 import { Placeholder } from "@/components/placeholders/placeholder";
 import { Card } from "@/components/ui/card";
-import { LoadingSpinner } from "@/components/ui/loading-spinner";
+import { Spinner } from "@/components/ui/spinner";
 import { useIsMobile } from "@/hooks/use-mobile";
 import { orpc } from "@/lib/orpc/orpc";
 import type { Asset } from "@/lib/orpc/schemas/asset";
@@ -28,7 +28,7 @@ const FileViewer = ({ asset }: { asset: Asset }) => {
 	if (status === "pending") {
 		return (
 			<div className="flex size-full items-center justify-center">
-				<LoadingSpinner />
+				<Spinner />
 			</div>
 		);
 	}
@@ -95,7 +95,7 @@ const Viewport = ({
 				<>
 					{isLoading && (
 						<div className="flex size-full items-center justify-center">
-							<LoadingSpinner />
+							<Spinner />
 						</div>
 					)}
 					<Card

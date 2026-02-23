@@ -12,8 +12,8 @@ import {
 	CardHeader,
 	CardTitle,
 } from "@/components/ui/card";
-import { LoadingSpinner } from "@/components/ui/loading-spinner";
 import { Skeleton } from "@/components/ui/skeleton";
+import { Spinner } from "@/components/ui/spinner";
 import { orpc } from "@/lib/orpc/orpc";
 import type { CourseInvitation } from "@/lib/orpc/schemas/course-invitations";
 import { CourseInvitationActions } from "./course-invitation-actions";
@@ -32,7 +32,7 @@ const CourseInvitationContent = ({
 	const isPending = invitation.status === "pending";
 
 	if (status === "pending") {
-		return <LoadingSpinner />;
+		return <Spinner />;
 	}
 
 	if (!course?.data) {
