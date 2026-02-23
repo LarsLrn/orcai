@@ -16,6 +16,7 @@ export const ErrorTags = {
 
 	// AI errors
 	AI: "AiError",
+	DOCLING: "DoclingError",
 
 	// Infrastructure errors
 	PG_BOSS: "PgBossError",
@@ -106,6 +107,11 @@ export class QdrantError extends Data.TaggedError(ErrorTags.QDRANT)<{
 }> {}
 
 export class AiError extends Data.TaggedError(ErrorTags.AI)<{
+	readonly operation: string;
+	readonly cause: unknown;
+}> {}
+
+export class DoclingError extends Data.TaggedError(ErrorTags.DOCLING)<{
 	readonly operation: string;
 	readonly cause: unknown;
 }> {}

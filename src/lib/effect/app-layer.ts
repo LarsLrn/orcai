@@ -1,6 +1,7 @@
 import * as Layer from "effect/Layer";
 import { QdrantLive } from "@/lib/effect/services/qdrant";
 import { AppConfigLive } from "./services/config";
+import { DoclingLive } from "./services/docling";
 import { DrizzleLive } from "./services/drizzle";
 import { LoggerLive } from "./services/logger";
 import { PgBossLive } from "./services/pg-boss";
@@ -16,6 +17,7 @@ const BaseInfra = Layer.mergeAll(
 	S3Live,
 	PgBossLive,
 	QdrantLive,
+	DoclingLive,
 ).pipe(Layer.provideMerge(AppConfigLive));
 
 const InfraWithWorkers = Layer.provideMerge(PgBossWorkersLive, BaseInfra);

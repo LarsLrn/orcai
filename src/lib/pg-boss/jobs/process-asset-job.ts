@@ -1,10 +1,7 @@
 import * as Effect from "effect/Effect";
 import type { Job } from "pg-boss";
-import {
-	type SerializedDocument,
-	serializeDoclingDocument,
-} from "@/lib/ai/docling-serialize";
-import { AppConfigService } from "@/lib/effect/services/config";
+import { serializeDoclingPayload } from "@/lib/ai/utils/docling-conversion";
+import { DoclingService } from "@/lib/effect/services/docling";
 import { PgBossService } from "@/lib/effect/services/pg-boss";
 import {
 	PROCESS_ASSET_JOB_NAME,
@@ -18,7 +15,6 @@ import { deletePrefixRecursively } from "@/lib/s3/utils/file-functions";
 import { getFileTypeFromMime } from "@/lib/s3/utils/file-type-helpers";
 import { getDownloadUrl } from "@/lib/s3/utils/url-helpers";
 import { buckets } from "@/settings/buckets";
-import type { SaiaDoclingData } from "@/types/docling";
 
 export const processAssetBatchEffect = (jobs: Job<ProcessAssetPayload>[]) =>
 	Effect.forEach(jobs, (job) => processAssetsEffect({ job }), {
@@ -27,10 +23,8 @@ export const processAssetBatchEffect = (jobs: Job<ProcessAssetPayload>[]) =>
 
 const processAssetsEffect = (params: { job: Job<ProcessAssetPayload> }) =>
 	Effect.gen(function* () {
-		const { config } = yield* AppConfigService;
+		const { convertDocument } = yield* DoclingService;
 		const { assetRef, blockId, mergePages } = params.job.data;
-
-		const doclingApi = `${config.ai.baseUrl}/documents/convert`;
 
 		const presignedUrl = yield* getDownloadUrl({
 			bucket: assetRef.bucket,
@@ -70,78 +64,23 @@ const processAssetsEffect = (params: { job: Job<ProcessAssetPayload> }) =>
 			),
 		);
 
-		const doclingResponse = yield* Effect.tryPromise({
-			try: async (signal) => {
-				const formData = new FormData();
-				const fileBlob = new Blob([fileBuffer]);
-				formData.append("document", fileBlob, `document.${assetRef.id}`);
-
-				const params = new URLSearchParams({
-					response_type: "json",
-					extract_tables_as_images: "false",
-				});
-
-				const response = await fetch(`${doclingApi}?${params}`, {
-					method: "POST",
-					headers: {
-						Authorization: `Bearer ${config.ai.apiKey}`,
-					},
-					body: formData,
-					signal,
-				});
-
-				return response;
-			},
-			catch: toPgBossRunError(params.job.id, PROCESS_ASSET_JOB_NAME),
+		const processedDocument = yield* convertDocument({
+			document: fileBuffer,
+			filename: `document.${assetRef.id}`,
+			extractTablesAsImages: false,
 		}).pipe(
-			Effect.timeoutFail({
-				duration: "15 minutes",
-				onTimeout: () =>
-					toPgBossRunError(
-						params.job.id,
-						PROCESS_ASSET_JOB_NAME,
-					)(new Error("Docling API request timed out after 15 minutes")),
-			}),
-			Effect.flatMap((response) => {
-				if (!response.ok) {
-					return Effect.fail(
-						toPgBossRunError(
-							params.job.id,
-							PROCESS_ASSET_JOB_NAME,
-						)(
-							new Error(
-								`Docling API request failed: ${response.status} ${response.statusText}`,
-							),
-						),
-					);
-				}
-				return Effect.succeed(response);
-			}),
+			Effect.mapError(toPgBossRunError(params.job.id, PROCESS_ASSET_JOB_NAME)),
 			Effect.tapError((err) =>
-				Effect.logError({ err }, "Error in Docling API response"),
+				Effect.logError({ err }, "Error converting document with Docling"),
 			),
 		);
-
-		const processedDocument = yield* Effect.tryPromise({
-			try: async () => {
-				const text = await doclingResponse.text();
-				return JSON.parse(text) as SaiaDoclingData;
-			},
-			catch: toPgBossRunError(params.job.id, PROCESS_ASSET_JOB_NAME),
-		}).pipe(
-			Effect.tapError((err) =>
-				Effect.logError({ err }, "Error parsing Docling API response"),
-			),
-		);
-
-		const json = processedDocument.json_data;
 
 		const serializedDocling = yield* Effect.try({
 			try: () =>
-				serializeDoclingDocument(json, {
+				serializeDoclingPayload(processedDocument, {
 					keepImageRefs: true,
 					mergePages,
-				}) as SerializedDocument[],
+				}),
 			catch: toPgBossRunError(params.job.id, PROCESS_ASSET_JOB_NAME),
 		}).pipe(
 			Effect.tapError((err) =>

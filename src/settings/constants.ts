@@ -8,3 +8,5 @@ export const COOKIES = {
 export const HEADERS = {
 	X_ZED_TOKEN: "X-Zed-Token",
 };
+
+export const DOCLING_DEFAULT_TIMEOUT = 15 * 60 * 1000;

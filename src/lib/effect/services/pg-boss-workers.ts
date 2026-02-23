@@ -3,6 +3,7 @@ import * as Layer from "effect/Layer";
 import * as Runtime from "effect/Runtime";
 import * as Schedule from "effect/Schedule";
 import type { PgBoss } from "pg-boss";
+import type { DoclingService } from "@/lib/effect/services/docling";
 import type { QdrantService } from "@/lib/effect/services/qdrant";
 import { PgBossWorkersError } from "@/lib/effect/utils/errors";
 import { processAssetBatchEffect } from "@/lib/pg-boss/jobs/process-asset-job";
@@ -50,7 +51,11 @@ const registerWorkers = Effect.gen(function* () {
 	// services that their effects may require (PgBossService today,
 	// but potentially DB, SpiceDb, etc. in the future).
 	const rt = yield* Effect.runtime<
-		PgBossService | S3Service | AppConfigService | QdrantService
+		| PgBossService
+		| S3Service
+		| AppConfigService
+		| QdrantService
+		| DoclingService
 	>();
 
 	type WorkerRegistration = {
