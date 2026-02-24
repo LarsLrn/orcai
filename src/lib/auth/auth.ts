@@ -4,6 +4,7 @@ import { drizzleAdapter } from "better-auth/adapters/drizzle";
 import { admin } from "better-auth/plugins";
 import { tanstackStartCookies } from "better-auth/tanstack-start";
 import { Effect } from "effect";
+import * as Redacted from "effect/Redacted";
 import { v4 as uuidv4 } from "uuid";
 import { dbSchema } from "@/db/schema";
 import { authDb } from "@/lib/auth/auth-db";
@@ -15,7 +16,7 @@ const cfg = loadAppConfigSync();
 
 export const auth = betterAuth({
 	baseURL: cfg.auth.url,
-	secret: cfg.auth.secret,
+	secret: Redacted.value(cfg.auth.secret),
 	telemetry: { enabled: false },
 	trustedOrigins: [
 		cfg.auth.url,

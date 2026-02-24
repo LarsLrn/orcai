@@ -3,6 +3,7 @@ import * as Context from "effect/Context";
 import * as Effect from "effect/Effect";
 import * as Layer from "effect/Layer";
 import * as Option from "effect/Option";
+import * as Redacted from "effect/Redacted";
 import { S3Error } from "@/lib/effect/utils/errors";
 import { AppConfigService } from "./config";
 
@@ -23,8 +24,8 @@ export const S3Live = Layer.scoped(
 						region: Option.getOrUndefined(config.s3.region),
 						endpoint: config.s3.endpoint,
 						credentials: {
-							accessKeyId: config.s3.accessKey,
-							secretAccessKey: config.s3.secretKey,
+							accessKeyId: Redacted.value(config.s3.accessKey),
+							secretAccessKey: Redacted.value(config.s3.secretKey),
 						},
 						forcePathStyle: true,
 					}),

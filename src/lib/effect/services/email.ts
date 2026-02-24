@@ -1,6 +1,7 @@
 import * as Context from "effect/Context";
 import * as Effect from "effect/Effect";
 import * as Layer from "effect/Layer";
+import * as Redacted from "effect/Redacted";
 import { createTransport } from "nodemailer";
 import type SMTPTransport from "nodemailer/lib/smtp-transport";
 import { EmailError } from "@/lib/effect/utils/errors";
@@ -34,7 +35,7 @@ export const EmailLive = Layer.scoped(
 				tls: { rejectUnauthorized: config.email.tlsRejectUnauthorized },
 				auth: {
 					user: config.email.username,
-					pass: config.email.password,
+					pass: Redacted.value(config.email.password),
 				},
 			};
 

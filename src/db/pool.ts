@@ -1,4 +1,11 @@
+import * as Redacted from "effect/Redacted";
 import { Pool } from "pg";
-import { pgConnectionString } from "@/settings/db";
+import { makePgConnectionString } from "@/db/pg-connection-string";
+import { loadAppConfigSync } from "@/lib/effect/services/config";
 
-export const pgPool = new Pool({ connectionString: pgConnectionString });
+const cfg = loadAppConfigSync();
+const pgConnectionString = makePgConnectionString(cfg.postgres);
+
+export const pgPool = new Pool({
+	connectionString: Redacted.value(pgConnectionString),
+});

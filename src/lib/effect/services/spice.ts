@@ -2,6 +2,7 @@ import { v1 } from "@authzed/authzed-node";
 import * as Context from "effect/Context";
 import * as Effect from "effect/Effect";
 import * as Layer from "effect/Layer";
+import * as Redacted from "effect/Redacted";
 import { SpiceDbError } from "@/lib/effect/utils/errors";
 import { AppConfigService } from "./config";
 
@@ -18,7 +19,7 @@ export const SpiceDbLive = Layer.scoped(
 		return yield* Effect.tryPromise({
 			try: async () =>
 				v1.NewClient(
-					config.spice.token,
+					Redacted.value(config.spice.token),
 					config.spice.endpoint,
 					v1.ClientSecurity.INSECURE_PLAINTEXT_CREDENTIALS,
 				),

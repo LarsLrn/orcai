@@ -6,7 +6,7 @@ import * as Layer from "effect/Layer";
 const appConfig = Config.all({
 	postgres: Config.all({
 		user: Config.string("POSTGRES_USER"),
-		password: Config.string("POSTGRES_PASSWORD"),
+		password: Config.redacted("POSTGRES_PASSWORD"),
 		host: Config.string("POSTGRES_HOST"),
 		port: Config.withDefault(Config.port("POSTGRES_PORT"), 5432),
 		db: Config.string("POSTGRES_DB"),
@@ -14,30 +14,30 @@ const appConfig = Config.all({
 	s3: Config.all({
 		region: Config.option(Config.string("S3_REGION")),
 		endpoint: Config.string("S3_ENDPOINT"),
-		accessKey: Config.string("S3_ACCESS_KEY"),
-		secretKey: Config.string("S3_SECRET_KEY"),
+		accessKey: Config.redacted("S3_ACCESS_KEY"),
+		secretKey: Config.redacted("S3_SECRET_KEY"),
 	}),
 	spice: Config.all({
 		endpoint: Config.string("SPICEDB_ENDPOINT"),
-		token: Config.string("SPICEDB_TOKEN"),
+		token: Config.redacted("SPICEDB_TOKEN"),
 	}),
 	ai: Config.all({
 		baseUrl: Config.string("OPENAI_COMPATIBLE_BASE_URL"),
-		apiKey: Config.string("OPENAI_COMPATIBLE_API_KEY"),
+		apiKey: Config.redacted("OPENAI_COMPATIBLE_API_KEY"),
 	}),
 	auth: Config.all({
-		secret: Config.string("BETTER_AUTH_SECRET"),
+		secret: Config.redacted("BETTER_AUTH_SECRET"),
 		url: Config.string("BETTER_AUTH_URL"),
 	}),
 	qdrant: Config.all({
 		url: Config.string("QDRANT_URL"),
-		apiKey: Config.string("QDRANT_API_KEY"),
+		apiKey: Config.redacted("QDRANT_API_KEY"),
 	}),
 	email: Config.all({
 		host: Config.string("SMTP_HOST"),
 		port: Config.withDefault(Config.port("SMTP_PORT"), 587),
 		username: Config.string("SMTP_USERNAME"),
-		password: Config.string("SMTP_PASSWORD"),
+		password: Config.redacted("SMTP_PASSWORD"),
 		secure: Config.withDefault(Config.boolean("SMTP_SECURE"), true),
 		tlsRejectUnauthorized: Config.withDefault(
 			Config.boolean("SMTP_TLS_REJECT_UNAUTHORIZED"),
@@ -50,7 +50,7 @@ const appConfig = Config.all({
 		),
 	}),
 	app: Config.all({
-		encryptionKey: Config.string("ENCRYPTION_KEY"),
+		encryptionKey: Config.redacted("ENCRYPTION_KEY"),
 	}),
 });
 

@@ -2,6 +2,7 @@ import { QdrantClient } from "@qdrant/qdrant-js";
 import * as Context from "effect/Context";
 import * as Effect from "effect/Effect";
 import * as Layer from "effect/Layer";
+import * as Redacted from "effect/Redacted";
 import { AppConfigService } from "@/lib/effect/services/config";
 import { QdrantError } from "@/lib/effect/utils/errors";
 import { qdrantCollections } from "@/qdrant/qdrant-constants";
@@ -75,7 +76,7 @@ export const QdrantLive = Layer.effect(
 		const client = new QdrantClient({
 			url: config.qdrant.url,
 			port: null,
-			apiKey: config.qdrant.apiKey,
+			apiKey: Redacted.value(config.qdrant.apiKey),
 		});
 
 		yield* initCollectionIfNeeded(client);

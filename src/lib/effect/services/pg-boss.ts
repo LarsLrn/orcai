@@ -3,8 +3,9 @@ import * as Effect from "effect/Effect";
 import * as Layer from "effect/Layer";
 import * as Redacted from "effect/Redacted";
 import { PgBoss } from "pg-boss";
+import { makePgConnectionString } from "@/db/pg-connection-string";
 import { PgBossError } from "@/lib/effect/utils/errors";
-import { pgUrl } from "@/lib/effect/utils/pg-url";
+import { AppConfigService } from "./config";
 
 export class PgBossService extends Context.Tag("PgBossService")<
 	PgBossService,
@@ -16,7 +17,10 @@ export const PgBossLive = Layer.scoped(
 	Effect.acquireRelease(
 		Effect.gen(function* () {
 			yield* Effect.logInfo("Starting PgBoss service...");
-			const url = yield* pgUrl;
+
+			const { config } = yield* AppConfigService;
+
+			const url = makePgConnectionString(config.postgres);
 
 			const boss = yield* Effect.tryPromise({
 				try: async () => {

@@ -1,5 +1,6 @@
 import { decrypt, encrypt } from "@orpc/server/helpers";
 import * as Effect from "effect/Effect";
+import * as Redacted from "effect/Redacted";
 import { AppConfigService } from "./effect/services/config";
 import { InternalError } from "./effect/utils/errors";
 
@@ -19,7 +20,8 @@ export const encryptApiKey = (apiKey: string) =>
 		const { config } = yield* AppConfigService;
 
 		return yield* Effect.tryPromise({
-			try: () => encrypt(apiKey.trim(), config.app.encryptionKey),
+			try: () =>
+				encrypt(apiKey.trim(), Redacted.value(config.app.encryptionKey)),
 			catch: (cause) =>
 				new InternalError({
 					operation: "encryptApiKey",
@@ -44,7 +46,11 @@ export const decryptApiKey = (encryptedApiKey: string) =>
 		const { config } = yield* AppConfigService;
 
 		return yield* Effect.tryPromise({
-			try: () => decrypt(encryptedApiKey.trim(), config.app.encryptionKey),
+			try: () =>
+				decrypt(
+					encryptedApiKey.trim(),
+					Redacted.value(config.app.encryptionKey),
+				),
 			catch: (cause) =>
 				new InternalError({
 					operation: "decryptApiKey",

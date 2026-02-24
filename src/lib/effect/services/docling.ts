@@ -1,6 +1,7 @@
 import * as Context from "effect/Context";
 import * as Effect from "effect/Effect";
 import * as Layer from "effect/Layer";
+import * as Redacted from "effect/Redacted";
 import { DoclingError } from "@/lib/effect/utils/errors";
 import { DOCLING_DEFAULT_TIMEOUT } from "@/settings/constants";
 import type { SaiaDoclingData } from "@/types/docling";
@@ -104,7 +105,7 @@ export const DoclingLive = Layer.effect(
 			convertDocument: (params: DoclingConvertParams) =>
 				convertDocument({
 					baseUrl: config.ai.baseUrl,
-					apiKey: config.ai.apiKey,
+					apiKey: Redacted.value(config.ai.apiKey),
 					params,
 				}),
 		};
