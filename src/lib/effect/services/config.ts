@@ -2,6 +2,72 @@ import * as Config from "effect/Config";
 import * as Context from "effect/Context";
 import * as Effect from "effect/Effect";
 import * as Layer from "effect/Layer";
+import * as Option from "effect/Option";
+
+const getOrThrow = <A>(name: string, value: Option.Option<A>): A =>
+	Option.match(value, {
+		onNone: () => {
+			throw new Error(`Missing required SMTP configuration: ${name}`);
+		},
+		onSome: (resolved) => resolved,
+	});
+
+const emailConfig = Config.all({
+	host: Config.option(Config.string("SMTP_HOST")),
+	port: Config.withDefault(Config.port("SMTP_PORT"), 587),
+	username: Config.option(Config.string("SMTP_USERNAME")),
+	password: Config.option(Config.redacted("SMTP_PASSWORD")),
+	secure: Config.withDefault(Config.boolean("SMTP_SECURE"), true),
+	tlsRejectUnauthorized: Config.withDefault(
+		Config.boolean("SMTP_TLS_REJECT_UNAUTHORIZED"),
+		true,
+	),
+	from: Config.option(Config.string("SMTP_FROM")),
+	fromName: Config.withDefault(
+		Config.string("SMTP_FROM_NAME"),
+		"Sokratest Team",
+	),
+}).pipe(
+	Config.mapAttempt((raw) => {
+		const hasHost = Option.isSome(raw.host);
+		const hasFrom = Option.isSome(raw.from);
+		const hasUsername = Option.isSome(raw.username);
+		const hasPassword = Option.isSome(raw.password);
+
+		if (!hasHost && !hasFrom && !hasUsername && !hasPassword) {
+			return { mode: "log_only" as const };
+		}
+
+		if (!hasHost || !hasFrom) {
+			throw new Error(
+				"Partial SMTP configuration detected. SMTP_HOST and SMTP_FROM must both be set to enable email sending.",
+			);
+		}
+
+		if (hasUsername !== hasPassword) {
+			throw new Error(
+				"Partial SMTP authentication configuration detected. SMTP_USERNAME and SMTP_PASSWORD must both be set or both be omitted.",
+			);
+		}
+
+		return {
+			mode: "smtp" as const,
+			host: getOrThrow("SMTP_HOST", raw.host),
+			port: raw.port,
+			secure: raw.secure,
+			tlsRejectUnauthorized: raw.tlsRejectUnauthorized,
+			from: getOrThrow("SMTP_FROM", raw.from),
+			fromName: raw.fromName,
+			auth:
+				hasUsername && hasPassword
+					? {
+							username: getOrThrow("SMTP_USERNAME", raw.username),
+							password: getOrThrow("SMTP_PASSWORD", raw.password),
+						}
+					: undefined,
+		};
+	}),
+);
 
 const appConfig = Config.all({
 	postgres: Config.all({
@@ -33,22 +99,7 @@ const appConfig = Config.all({
 		url: Config.string("QDRANT_URL"),
 		apiKey: Config.redacted("QDRANT_API_KEY"),
 	}),
-	email: Config.all({
-		host: Config.string("SMTP_HOST"),
-		port: Config.withDefault(Config.port("SMTP_PORT"), 587),
-		username: Config.string("SMTP_USERNAME"),
-		password: Config.redacted("SMTP_PASSWORD"),
-		secure: Config.withDefault(Config.boolean("SMTP_SECURE"), true),
-		tlsRejectUnauthorized: Config.withDefault(
-			Config.boolean("SMTP_TLS_REJECT_UNAUTHORIZED"),
-			true,
-		),
-		from: Config.string("SMTP_FROM"),
-		fromName: Config.withDefault(
-			Config.string("SMTP_FROM_NAME"),
-			"Sokratest Team",
-		),
-	}),
+	email: emailConfig,
 	app: Config.all({
 		encryptionKey: Config.redacted("ENCRYPTION_KEY"),
 	}),
