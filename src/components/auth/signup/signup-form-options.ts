@@ -1,9 +1,10 @@
 import { formOptions } from "@tanstack/form-core";
 import { signupSchema } from "@/db/zod/signup";
+import type { OrganizationInvitation } from "@/lib/orpc/schemas/organization-invitation";
 
 export const signupFormOptions = (defaults?: {
 	email?: string;
-	invitationId?: string;
+	invitationId?: OrganizationInvitation["id"];
 }) =>
 	formOptions({
 		defaultValues: {

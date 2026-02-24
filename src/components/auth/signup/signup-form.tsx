@@ -1,25 +1,25 @@
 import { Link } from "@tanstack/react-router";
 import { FileTextIcon } from "lucide-react";
 import { buttonVariants } from "@/components/ui/button";
+import { signupSchema } from "@/db/zod/signup";
 import { useAppForm } from "@/hooks/form";
-import type { CourseInvitation } from "@/lib/orpc/schemas/course-invitations";
+import type { OrganizationInvitation } from "@/lib/orpc/schemas/organization-invitation";
 import { signupFormOptions } from "./signup-form-options";
 import { useSignupSubmission } from "./use-signup";
 
 const SignUpForm = ({
-	invitation,
+	invitationId,
 }: {
-	invitation: CourseInvitation | undefined;
+	invitationId: OrganizationInvitation["id"];
 }) => {
 	const submit = useSignupSubmission();
 
 	const form = useAppForm({
 		...signupFormOptions({
-			email: invitation?.email,
-			invitationId: invitation?.id,
+			invitationId,
 		}),
 		onSubmit: ({ value }) => {
-			submit(value);
+			submit(signupSchema.parse(value));
 		},
 	});
 
@@ -45,7 +45,6 @@ const SignUpForm = ({
 						label="Email"
 						placeholder="your@email.com"
 						type="email"
-						disabled={!!invitation}
 					/>
 				)}
 			/>
@@ -56,7 +55,7 @@ const SignUpForm = ({
 					<field.TextField
 						label="Invitation Code"
 						placeholder="Unique invitation code"
-						disabled={!!invitation}
+						disabled
 					/>
 				)}
 			/>

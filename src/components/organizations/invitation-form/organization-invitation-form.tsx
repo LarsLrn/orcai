@@ -21,22 +21,22 @@ import {
 import { Textarea } from "@/components/ui/textarea";
 import { useAppForm } from "@/hooks/form";
 import { orpc } from "@/lib/orpc/orpc";
-import { courseInvitationFormOptions } from "./course-invitation-form-options";
-import { useCourseInvitationFormSubmission } from "./use-course-invitation-submission";
+import { organizationInvitationFormOptions } from "./organization-invitation-form-options";
+import { useOrganizationInvitationFormSubmission } from "./use-organization-invitation-submission";
 
-const CourseInvitationForm = () => {
-	const { create } = useCourseInvitationFormSubmission();
+const OrganizationInvitationForm = () => {
+	const { create } = useOrganizationInvitationFormSubmission();
 
 	const bulkEmailsId = useId();
 
-	const { data: courses } = useSuspenseQuery(
-		orpc.course.list.queryOptions({
+	const { data: organizations } = useSuspenseQuery(
+		orpc.organization.list.queryOptions({
 			input: { pageIndex: 0, pageSize: 100 },
 		}),
 	);
 
 	const form = useAppForm({
-		...courseInvitationFormOptions(),
+		...organizationInvitationFormOptions(),
 		onSubmit: ({ value }) => {
 			create(value);
 		},
@@ -75,19 +75,19 @@ const CourseInvitationForm = () => {
 					<CardDescription>
 						These settings will apply to all users invited in this batch. Note
 						that users will also automatically be added to the organisation
-						corresponding to the course.
+						corresponding to the selected organization.
 					</CardDescription>
 				</CardHeader>
 				<CardContent className="flex flex-col gap-4">
 					<form.AppField
-						name="courseId"
+						name="organizationId"
 						children={(field) => (
 							<field.SelectField
-								label="Course"
-								placeholder="Select course"
-								options={courses.data.map((course) => ({
-									label: course.title,
-									value: course.id,
+								label="Organization"
+								placeholder="Select organization"
+								options={organizations.data.map((organization) => ({
+									label: organization.name,
+									value: organization.id,
 								}))}
 							/>
 						)}
@@ -235,4 +235,4 @@ const CourseInvitationForm = () => {
 	);
 };
 
-export { CourseInvitationForm };
+export { OrganizationInvitationForm };

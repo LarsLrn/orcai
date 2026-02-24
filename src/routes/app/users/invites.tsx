@@ -22,7 +22,7 @@ export const Route = createFileRoute("/app/users/invites")({
 		deps: { pageIndex, pageSize },
 	}) => {
 		return await queryClient.ensureQueryData(
-			orpc.courseInvitation.list.queryOptions({
+			orpc.organizationInvitation.list.queryOptions({
 				input: { pageIndex, pageSize },
 			}),
 		);
@@ -40,7 +40,7 @@ export const Route = createFileRoute("/app/users/invites")({
 function RouteComponent() {
 	const { pageIndex, pageSize } = Route.useSearch();
 	const { data: invitations } = useSuspenseQuery(
-		orpc.courseInvitation.list.queryOptions({
+		orpc.organizationInvitation.list.queryOptions({
 			input: { pageIndex, pageSize },
 		}),
 	);
@@ -49,7 +49,7 @@ function RouteComponent() {
 		<div className="flex flex-col gap-14">
 			<div className="flex w-full flex-col gap-8 sm:flex-row sm:items-center sm:justify-between">
 				<h4 className="max-w-xl font-regular text-3xl tracking-tighter md:text-5xl">
-					Course Invitations
+					Organization Invitations
 				</h4>
 				<div className="flex gap-2">
 					<Link

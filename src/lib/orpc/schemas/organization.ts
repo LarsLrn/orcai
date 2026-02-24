@@ -14,6 +14,9 @@ import { dbSchema } from "@/db/schema";
 
 export const organizationSelectSchema = createSelectSchema(
 	dbSchema.organization,
+	{
+		id: (schema) => schema.brand("organizationId"),
+	},
 );
 
 /**

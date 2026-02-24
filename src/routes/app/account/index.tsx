@@ -1,10 +1,10 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { FileTextIcon } from "lucide-react";
 import { Suspense } from "react";
-import { CourseInvitationsList } from "@/components/account/course-invitations-list";
 import { ExportChats } from "@/components/account/export-chats";
 import { UserStats } from "@/components/app/user-stats";
 import { ChangePasswordForm } from "@/components/auth/change-password/change-password-form";
+import { OrganizationInvitationsList } from "@/components/organizations/invitations/organization-invitations-list";
 import { buttonVariants } from "@/components/ui/button";
 import {
 	Card,
@@ -70,12 +70,14 @@ function RouteComponent() {
 					</Card>
 					<Card>
 						<CardHeader>
-							<CardTitle>Course Invitations</CardTitle>
-							<CardDescription>Manage your course invitations</CardDescription>
+							<CardTitle>Organization Invitations</CardTitle>
+							<CardDescription>
+								Manage invitations to join organizations
+							</CardDescription>
 						</CardHeader>
 						<CardContent>
 							<Suspense fallback={<Skeleton className="h-30 w-full" />}>
-								<CourseInvitationsList />
+								<OrganizationInvitationsList mode="all" />
 							</Suspense>
 						</CardContent>
 					</Card>

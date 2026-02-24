@@ -4,6 +4,7 @@ import { dbSchema } from "@/db/schema";
 import { DB } from "@/lib/effect/services/drizzle";
 import { runOrpcEffect } from "@/lib/effect/utils/orpc-helpers";
 import { authed } from "@/lib/orpc/implementation/authed";
+import { os } from "@/lib/orpc/implementation/os";
 import { requireActiveOrganizationMiddleware } from "@/lib/orpc/middlewares/auth";
 
 export const listOrganizationInvitations =
@@ -64,14 +65,7 @@ export const findOrganizationInvitation = authed.organizationInvitation.find
 				return yield* db.query.invitation
 					.findFirst({
 						where: {
-							AND: [
-								{
-									id: input.id,
-								},
-								{
-									organizationId: input.organizationId,
-								},
-							],
+							id: input.id,
 						},
 					})
 					.pipe(
@@ -86,6 +80,54 @@ export const findOrganizationInvitation = authed.organizationInvitation.find
 						),
 						Effect.map((invitation) => ({ data: invitation })),
 					);
+			}),
+		),
+	);
+
+export const validateOrganizationInvitation =
+	os.organizationInvitation.validate.handler(async ({ input }) =>
+		runOrpcEffect(
+			Effect.gen(function* () {
+				const db = yield* DB;
+				const invitation = yield* db.query.invitation.findFirst({
+					where: {
+						id: input.id,
+					},
+				});
+
+				if (!invitation) {
+					return {
+						data: {
+							isValid: false,
+							reason: "not_found" as const,
+						},
+					};
+				}
+
+				if (invitation.status !== "pending") {
+					return {
+						data: {
+							isValid: false,
+							reason: "consumed" as const,
+						},
+					};
+				}
+
+				if (invitation.expiresAt < new Date()) {
+					return {
+						data: {
+							isValid: false,
+							reason: "expired" as const,
+						},
+					};
+				}
+
+				return {
+					data: {
+						isValid: true,
+						reason: null,
+					},
+				};
 			}),
 		),
 	);
@@ -198,95 +240,143 @@ export const deleteOrganizationInvitations =
 		);
 
 export const respondToOrganisationInvitation =
-	authed.organizationInvitation.respond.handler(async ({ input, errors }) =>
-		runOrpcEffect(
-			Effect.gen(function* () {
-				const db = yield* DB;
+	authed.organizationInvitation.respond.handler(
+		async ({ input, context, errors }) =>
+			runOrpcEffect(
+				Effect.gen(function* () {
+					const db = yield* DB;
 
-				const acceptInvitation = () => {
-					/* const [invitation] = await db
-				.select({ ...getColumns(dbSchema.invitation) })
-				.from(dbSchema.invitation)
-				.where(eq(dbSchema.invitation.id, input.id));
-
-			const [invitationCourse] = await db
-				.select({ organizationId: dbSchema.course.organizationId })
-				.from(dbSchema.course)
-				.where(eq(dbSchema.course.id, invitation.courseId))
-				.limit(1);
-
-			const { headers } = getWebRequest();
-
-			const userOrganizations = await auth.api.listOrganizations({
-				headers,
-			});
-
-			if (
-				userOrganizations.filter(
-					(org) => org.id === invitationCourse.organizationId,
-				).length === 0
-			) {
-				await auth.api.addMember({
-					body: {
-						userId: context.auth.user.id,
-						organizationId: invitationCourse.organizationId,
-						role: "member", // TODO: Make dynamic
-					},
-				});
-			}
-
-			await db
-				.insert(dbSchema.courseMember)
-				.values({
-					courseId: invitation.courseId,
-					userId: context.auth.user.id,
-					role: invitation.role,
-					createdAt: new Date(),
-				})
-				.onConflictDoNothing();
-
-			await db
-				.update(dbSchema.invitation)
-				.set({
-					status: "accepted",
-					updatedAt: new Date(),
-				})
-				.where(eq(dbSchema.invitation.id, input.id));
-
-			await auth.api.setActiveOrganization({
-				body: {
-					organizationId: invitationCourse.organizationId,
-				},
-				headers,
-			}); */
-
-					return { success: true, message: "Invitation accepted successfully" };
-				};
-
-				const rejectInvitation = Effect.gen(function* () {
-					yield* db
-						.update(dbSchema.invitation)
-						.set({
-							status: "rejected",
-							updatedAt: new Date(),
+					const invitation = yield* db.query.invitation
+						.findFirst({
+							where: {
+								id: input.id,
+							},
 						})
-						.where(eq(dbSchema.invitation.id, input.id));
+						.pipe(
+							Effect.flatMap((result) =>
+								Effect.fromNullable(result).pipe(
+									Effect.orElse(() =>
+										Effect.fail(
+											errors.NOT_FOUND({
+												message: "Organization invitation not found",
+											}),
+										),
+									),
+								),
+							),
+						);
 
-					return { success: true, message: "Invitation rejected successfully" };
-				});
-
-				switch (input.response) {
-					case "accept":
-						return acceptInvitation();
-					case "reject":
-						return yield* rejectInvitation;
-					default:
+					if (
+						invitation.email.trim().toLowerCase() !==
+						context.auth.user.email.trim().toLowerCase()
+					) {
 						return yield* Effect.fail(
-							errors.BAD_REQUEST({
-								message: "Invalid response to organization invitation",
+							errors.FORBIDDEN({
+								message: "You are not allowed to respond to this invitation",
+								data: {
+									allowed: false,
+									action: "respond",
+									entityType: "organizationInvitation",
+								},
 							}),
 						);
-				}
-			}),
-		),
+					}
+
+					if (invitation.expiresAt < new Date()) {
+						return yield* Effect.fail(
+							errors.BAD_REQUEST({
+								message: "Invitation has expired",
+							}),
+						);
+					}
+
+					const acceptInvitation = Effect.gen(function* () {
+						if (invitation.status === "rejected") {
+							return yield* Effect.fail(
+								errors.BAD_REQUEST({
+									message: "Rejected invitations cannot be accepted",
+								}),
+							);
+						}
+
+						const existingMember = yield* db.query.member.findFirst({
+							where: {
+								AND: [
+									{ organizationId: invitation.organizationId },
+									{ userId: context.auth.user.id },
+								],
+							},
+						});
+
+						if (!existingMember) {
+							yield* db.insert(dbSchema.member).values({
+								organizationId: invitation.organizationId,
+								userId: context.auth.user.id,
+								role: invitation.role ?? "member",
+								createdAt: new Date(),
+							});
+						}
+
+						if (invitation.status !== "accepted") {
+							yield* db
+								.update(dbSchema.invitation)
+								.set({
+									status: "accepted",
+									updatedAt: new Date(),
+								})
+								.where(eq(dbSchema.invitation.id, input.id));
+						}
+
+						if (!context.auth.session.activeOrganizationId) {
+							yield* db
+								.update(dbSchema.session)
+								.set({
+									activeOrganizationId: invitation.organizationId,
+								})
+								.where(eq(dbSchema.session.id, context.auth.session.id));
+						}
+
+						return {
+							success: true,
+							message: "Invitation accepted successfully",
+						};
+					});
+
+					const rejectInvitation = Effect.gen(function* () {
+						if (invitation.status === "accepted") {
+							return yield* Effect.fail(
+								errors.BAD_REQUEST({
+									message: "Accepted invitations cannot be rejected",
+								}),
+							);
+						}
+
+						yield* db
+							.update(dbSchema.invitation)
+							.set({
+								status: "rejected",
+								updatedAt: new Date(),
+							})
+							.where(eq(dbSchema.invitation.id, input.id));
+
+						return {
+							success: true,
+							message: "Invitation rejected successfully",
+						};
+					});
+
+					switch (input.response) {
+						case "accept":
+							return yield* acceptInvitation;
+						case "reject":
+							return yield* rejectInvitation;
+						default:
+							return yield* Effect.fail(
+								errors.BAD_REQUEST({
+									message: "Invalid response to organization invitation",
+								}),
+							);
+					}
+				}),
+			),
 	);

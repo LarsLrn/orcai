@@ -1,5 +1,7 @@
 import { createFileRoute, Link, redirect } from "@tanstack/react-router";
 import z from "zod/v4";
+import { SignUpForm } from "@/components/auth/signup/signup-form";
+import { Placeholder } from "@/components/placeholders/placeholder";
 import {
 	Card,
 	CardContent,
@@ -9,6 +11,7 @@ import {
 	CardTitle,
 } from "@/components/ui/card";
 import { orpc } from "@/lib/orpc/orpc";
+import { organizationInvitationSelectSchema } from "@/lib/orpc/schemas/organization-invitation";
 
 export const Route = createFileRoute("/_pathlessLayout/register")({
 	component: RouteComponent,
@@ -28,33 +31,39 @@ export const Route = createFileRoute("/_pathlessLayout/register")({
 		}
 
 		if (!deps.inv) {
-			return { query: undefined };
+			return undefined;
 		}
+
+		const validation = await queryClient.ensureQueryData(
+			orpc.organizationInvitation.validate.queryOptions({
+				input: { id: deps.inv },
+			}),
+		);
+
+		return {
+			invitationId: organizationInvitationSelectSchema.shape.id.parse(deps.inv),
+			validation: validation.data,
+		};
 	},
 });
 
-/* const _RegistrationDisabled = ({
-	className,
-	...props
-}: React.ComponentProps<"div">) => {
-	return (
-		<SimplePlaceholder className={className} {...props}>
-			Registration is currently restricted. If you have been invited, please
-			check your invitation link.
-		</SimplePlaceholder>
-	);
-};
-
-const _InvitationExpired = () => {
-	return (
-		<SimplePlaceholder Icon={CalendarXIcon}>
-			Your invitation has expired. Please contact the administrator for a new
-			invitation.
-		</SimplePlaceholder>
-	);
-}; */
-
 function RouteComponent() {
+	const invitation = Route.useLoaderData();
+
+	if (!invitation || !invitation.validation.isValid) {
+		const isExpired = invitation?.validation.reason === "expired";
+		return (
+			<Placeholder
+				title={isExpired ? "Invitation Expired" : "Invitation not found"}
+				description={
+					isExpired
+						? "The invitation you are trying to access has expired."
+						: "The invitation you are trying to access does not exist or has already been consumed."
+				}
+			/>
+		);
+	}
+
 	return (
 		<Card className="max-w-xl">
 			<CardHeader>
@@ -62,18 +71,9 @@ function RouteComponent() {
 				<CardDescription>Create a new account to continue.</CardDescription>
 			</CardHeader>
 			<CardContent>
-				{/* {query ? (
-					<div>
-						{query.expiresAt < new Date() ? (
-							<InvitationExpired />
-						) : (
-							<SignUpForm invitation={query} />
-						)}
-					</div>
-				) : (
-					<RegistrationDisabled />
-				)} */}
-				{/* <SignUpForm invitation={query} /> */}
+				<div>
+					<SignUpForm invitationId={invitation.invitationId} />
+				</div>
 			</CardContent>
 			<CardFooter className="text-muted-foreground text-sm">
 				<Link to={"/login"}>Already have an account?</Link>

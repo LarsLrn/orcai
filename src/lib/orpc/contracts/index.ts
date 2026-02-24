@@ -89,6 +89,7 @@ import {
 	listOrganizationInvitationsContract,
 	respondToOrganizationInvitationContract,
 	updateOrganizationInvitationContract,
+	validateOrganizationInvitationContract,
 } from "./organization-invitation";
 import {
 	createOrganizationMemberContract,
@@ -142,6 +143,7 @@ export const contracts = {
 		list: listOrganizationInvitationsContract,
 		create: createOrganizationInvitationsContract,
 		find: findOrganizationInvitationContract,
+		validate: validateOrganizationInvitationContract,
 		update: updateOrganizationInvitationContract,
 		delete: deleteOrganizationInvitationsContract,
 		respond: respondToOrganizationInvitationContract,

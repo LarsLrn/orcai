@@ -37,17 +37,37 @@ export const createOrganizationInvitationsContract = base
 export const findOrganizationInvitationContract = base
 	.route({
 		method: "GET",
-		path: "/organizations/{organizationId}/invitations/{id}",
+		path: "/invitations/{id}",
 		summary: "Find an organization invitation",
 		tags: ["Organization Invitations"],
 	})
 	.input(
 		organizationInvitationSelectSchema.pick({
 			id: true,
-			organizationId: true,
 		}),
 	)
 	.output(z.object({ data: organizationInvitationSelectSchema }));
+
+export const validateOrganizationInvitationContract = base
+	.route({
+		method: "GET",
+		path: "/invitations/{id}/validate",
+		summary: "Validate an organization invitation",
+		tags: ["Organization Invitations"],
+	})
+	.input(
+		organizationInvitationSelectSchema.pick({
+			id: true,
+		}),
+	)
+	.output(
+		z.object({
+			data: z.object({
+				isValid: z.boolean(),
+				reason: z.enum(["not_found", "consumed", "expired"]).nullable(),
+			}),
+		}),
+	);
 
 export const updateOrganizationInvitationContract = base
 	.route({
@@ -78,7 +98,7 @@ export const deleteOrganizationInvitationsContract = base
 export const respondToOrganizationInvitationContract = base
 	.route({
 		method: "POST",
-		path: "/organizations/{organizationId}/invitations/{id}/respond",
+		path: "/invitations/{id}/respond",
 		summary: "Respond to an organization invitation",
 		tags: ["Organization Invitations"],
 	})

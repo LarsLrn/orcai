@@ -2,39 +2,78 @@ import { useSuspenseQuery } from "@tanstack/react-query";
 import { BadgeCheck, BadgeX, ClipboardList, SearchXIcon } from "lucide-react";
 import { Placeholder } from "@/components/placeholders/placeholder";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { authClient } from "@/lib/auth/auth-client";
 import { orpc } from "@/lib/orpc/orpc";
-import type { CourseInvitation } from "@/lib/orpc/schemas/course-invitations";
-import { CourseInvitationEntry } from "./course-invitation-entry";
+import type { OrganizationInvitation } from "@/lib/orpc/schemas/organization-invitation";
+import { OrganizationInvitationEntry } from "./organization-invitation-entry";
 
-const CourseInvitationsList = () => {
-	const { data: courseInvitations } = useSuspenseQuery(
-		orpc.courseInvitation.list.queryOptions({
+type OrganizationInvitationsListProps = {
+	mode?: "all" | "pending";
+	onAccepted?: () => void | Promise<void>;
+	emptyTitle?: string;
+	emptyDescription?: string;
+};
+
+const toTimestamp = (date: Date | null | undefined) =>
+	date ? date.getTime() : Number.NEGATIVE_INFINITY;
+
+export function OrganizationInvitationsList({
+	mode = "all",
+	onAccepted,
+	emptyTitle = "No Invitations",
+	emptyDescription = "You don't have any organization invitations at this time.",
+}: OrganizationInvitationsListProps) {
+	const { data: session } = authClient.useSession();
+	const currentUserEmail = session?.user?.email.trim().toLowerCase();
+
+	const { data: invitationResponse } = useSuspenseQuery(
+		orpc.organizationInvitation.list.queryOptions({
 			input: { pageIndex: 0, pageSize: 100 },
 		}),
 	);
 
-	if (courseInvitations.data.length === 0) {
+	const ownInvitations = invitationResponse.data
+		.filter((invitation) =>
+			currentUserEmail
+				? invitation.email.trim().toLowerCase() === currentUserEmail
+				: false,
+		)
+		.sort((a, b) => toTimestamp(b.createdAt) - toTimestamp(a.createdAt));
+
+	const pendingInvitations = ownInvitations.filter(
+		(invitation) => invitation.status === "pending",
+	);
+	const acceptedInvitations = ownInvitations.filter(
+		(invitation) => invitation.status === "accepted",
+	);
+	const rejectedInvitations = ownInvitations.filter(
+		(invitation) => invitation.status === "rejected",
+	);
+
+	if (mode === "pending") {
+		if (pendingInvitations.length === 0) {
+			return <Placeholder title={emptyTitle} description={emptyDescription} />;
+		}
+
 		return (
-			<Placeholder
-				title="No Invitations"
-				description="You don't have any course invitations at this time."
-			/>
+			<div className="flex flex-col space-y-4">
+				{pendingInvitations.map((invitation) => (
+					<OrganizationInvitationEntry
+						key={invitation.id}
+						invitation={invitation}
+						onAccepted={onAccepted}
+					/>
+				))}
+			</div>
 		);
 	}
 
-	// Group invitations by status
-	const pendingInvitations = courseInvitations.data.filter(
-		(inv) => inv.status === "pending",
-	);
-	const acceptedInvitations = courseInvitations.data.filter(
-		(inv) => inv.status === "accepted",
-	);
-	const rejectedInvitations = courseInvitations.data.filter(
-		(inv) => inv.status === "rejected",
-	);
+	if (ownInvitations.length === 0) {
+		return <Placeholder title={emptyTitle} description={emptyDescription} />;
+	}
 
 	const renderInvitationList = (
-		filteredInvitations: CourseInvitation[],
+		filteredInvitations: OrganizationInvitation[],
 		emptyMessage: string,
 	) => {
 		if (filteredInvitations.length === 0) {
@@ -50,7 +89,11 @@ const CourseInvitationsList = () => {
 		return (
 			<div className="flex flex-col space-y-4">
 				{filteredInvitations.map((invitation) => (
-					<CourseInvitationEntry key={invitation.id} invitation={invitation} />
+					<OrganizationInvitationEntry
+						key={invitation.id}
+						invitation={invitation}
+						onAccepted={onAccepted}
+					/>
 				))}
 			</div>
 		);
@@ -107,6 +150,4 @@ const CourseInvitationsList = () => {
 			</TabsContent>
 		</Tabs>
 	);
-};
-
-export { CourseInvitationsList };
+}

@@ -1,6 +1,7 @@
 import { createSelectSchema, createUpdateSchema } from "drizzle-zod";
 import { z } from "zod/v4";
 import { dbSchema } from "@/db/schema";
+import { organizationSelectSchema } from "./organization";
 
 /**
  * ----------------
@@ -10,6 +11,10 @@ import { dbSchema } from "@/db/schema";
 
 export const organizationInvitationSelectSchema = createSelectSchema(
 	dbSchema.invitation,
+	{
+		id: (schema) => schema.brand("organizationInvitationId"),
+		organizationId: organizationSelectSchema.shape.id,
+	},
 );
 
 /**
@@ -23,7 +28,7 @@ export const organizationInvitationInsertSchema = z.object({
 		organizationInvitationSelectSchema.shape.organizationId.nonempty(
 			"Please select an organization",
 		),
-	role: organizationInvitationSelectSchema.shape.role,
+	role: z.string().nonempty("Please select a role"), // TODO: Validate against organizationRoles
 	expiresAt: organizationInvitationSelectSchema.shape.expiresAt, // TODO: Set constraints
 	items: z
 		.array(
@@ -70,9 +75,7 @@ export const organizationInvitationUpdateSchema = createUpdateSchema(
 
 export const organizationInvitationDeleteSchema = z.object({
 	organizationId: organizationInvitationSelectSchema.shape.organizationId,
-	refs: z.array(
-		organizationInvitationUpdateSchema.pick({ organizationId: true, id: true }),
-	),
+	refs: z.array(organizationInvitationUpdateSchema.pick({ id: true })),
 });
 
 /**

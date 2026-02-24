@@ -1,4 +1,5 @@
 import { useMutation } from "@tanstack/react-query";
+import { useRouter } from "@tanstack/react-router";
 import type { ColumnDef } from "@tanstack/react-table";
 import { format } from "date-fns";
 import { MoreHorizontal } from "lucide-react";
@@ -15,23 +16,9 @@ import {
 } from "@/components/ui/dropdown-menu";
 import { clientEnv } from "@/lib/env/client";
 import { orpc } from "@/lib/orpc/orpc";
-import type { CourseInvitation } from "@/lib/orpc/schemas/course-invitations";
+import type { OrganizationInvitation } from "@/lib/orpc/schemas/organization-invitation";
 
-const handleCopy = (id: CourseInvitation["id"]) => {
-	// TODO: Replace with actual URL generation logic (useRouter)
-	const url = `${clientEnv.VITE_BASE_URL}/signup?invitationId=${id}`;
-
-	toast.promise(navigator.clipboard.writeText(url), {
-		loading: "Copying invitation link...",
-		success: "Invitation link copied",
-		error: (error) => ({
-			message: "Failed to copy invitation link",
-			description: error.message,
-		}),
-	});
-};
-
-export const invitesTableColumns: ColumnDef<CourseInvitation>[] = [
+export const invitesTableColumns: ColumnDef<OrganizationInvitation>[] = [
 	{
 		id: "select",
 		size: 32,
@@ -89,50 +76,74 @@ export const invitesTableColumns: ColumnDef<CourseInvitation>[] = [
 	{
 		id: "actions",
 		size: 32,
-		cell: ({ row }) => {
-			const invitation = row.original;
-
-			return (
-				<DropdownMenu>
-					<DropdownMenuTrigger
-						render={
-							<Button variant="ghost" className="size-8 p-0">
-								<span className="sr-only">Open menu</span>
-								<MoreHorizontal className="size-4" />
-							</Button>
-						}
-					/>
-					<DropdownMenuContent align="end">
-						<DropdownMenuItem onClick={() => handleCopy(invitation.id)}>
-							Copy Invitation Link
-						</DropdownMenuItem>
-						<DropdownMenuSeparator />
-						<DeleteItem invitationId={invitation.id} />
-					</DropdownMenuContent>
-				</DropdownMenu>
-			);
-		},
+		cell: ({ row }) => <ActionsCell invitation={row.original} />,
 	},
 ];
+
+const ActionsCell = ({
+	invitation,
+}: {
+	invitation: OrganizationInvitation;
+}) => {
+	const router = useRouter();
+
+	const handleCopyLink = (id: OrganizationInvitation["id"]) => {
+		const location = router.buildLocation({
+			to: "/register",
+			search: { inv: id },
+		});
+		const href = location.maskedLocation?.publicHref ?? location.publicHref;
+		const fullUrl = new URL(href, clientEnv.VITE_BASE_URL).toString();
+
+		toast.promise(navigator.clipboard.writeText(fullUrl), {
+			loading: "Copying invitation link...",
+			success: "Invitation link copied",
+			error: (error) => ({
+				message: "Failed to copy invitation link",
+				description: error.message,
+			}),
+		});
+	};
+
+	return (
+		<DropdownMenu>
+			<DropdownMenuTrigger
+				render={
+					<Button variant="ghost" className="size-8 p-0">
+						<span className="sr-only">Open menu</span>
+						<MoreHorizontal className="size-4" />
+					</Button>
+				}
+			/>
+			<DropdownMenuContent align="end">
+				<DropdownMenuItem onClick={() => handleCopyLink(invitation.id)}>
+					Copy Invitation Link
+				</DropdownMenuItem>
+				<DropdownMenuSeparator />
+				<DeleteItem invitationId={invitation.id} />
+			</DropdownMenuContent>
+		</DropdownMenu>
+	);
+};
 
 const DeleteItem = ({
 	invitationId,
 }: {
-	invitationId: CourseInvitation["id"];
+	invitationId: OrganizationInvitation["id"];
 }) => {
 	const { mutateAsync: deleteInvitations } = useMutation(
-		orpc.courseInvitation.delete.mutationOptions(),
+		orpc.organizationInvitation.delete.mutationOptions(),
 	);
 
-	const handleDelete = (id: CourseInvitation["id"]) => {
+	const handleDelete = (id: OrganizationInvitation["id"]) => {
 		toast.promise(
-			// TODO: Replace with actual courseId
-			deleteInvitations({ courseId: "placeholder", refs: [{ id }] }),
+			// TODO: Replace with actual organizationId
+			deleteInvitations({ organizationId: "placeholder", refs: [{ id }] }),
 			{
-				loading: "Deleting course invitation...",
-				success: "Course invitation deleted",
+				loading: "Deleting organization invitation...",
+				success: "Organization invitation deleted",
 				error: (error) => ({
-					message: "Failed to delete course invitation",
+					message: "Failed to delete organization invitation",
 					description: error.message,
 				}),
 			},
@@ -144,7 +155,7 @@ const DeleteItem = ({
 			variant="destructive"
 			onClick={() => handleDelete(invitationId)}
 		>
-			Delete Course
+			Delete Organization Invitation
 		</DropdownMenuItem>
 	);
 };

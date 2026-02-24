@@ -1,9 +1,12 @@
 import { useMutation, useSuspenseQuery } from "@tanstack/react-query";
 import { createFileRoute, redirect, useNavigate } from "@tanstack/react-router";
 import { BuildingIcon } from "lucide-react";
+import { Suspense } from "react";
 import { toast } from "sonner";
+import { OrganizationInvitationsList } from "@/components/organizations/invitations/organization-invitations-list";
 import { OrganizationCard } from "@/components/organizations/organization-card";
 import { Card, CardContent } from "@/components/ui/card";
+import { Skeleton } from "@/components/ui/skeleton";
 import { authClient } from "@/lib/auth/auth-client";
 import { orpc } from "@/lib/orpc/orpc";
 import type { Organization } from "@/lib/orpc/schemas/organization";
@@ -24,6 +27,33 @@ export const Route = createFileRoute("/_pathlessLayout/select-organization")({
 	},
 });
 
+function PendingInvitationsSection({
+	onAccepted,
+}: {
+	onAccepted: () => void | Promise<void>;
+}) {
+	return (
+		<Card>
+			<CardContent>
+				<h2 className="font-semibold text-xl">
+					Pending Organization Invitations
+				</h2>
+				<p className="mt-1 mb-4 text-muted-foreground text-sm">
+					Accept an invitation to automatically join an organization.
+				</p>
+				<Suspense fallback={<Skeleton className="h-28 w-full" />}>
+					<OrganizationInvitationsList
+						mode="pending"
+						onAccepted={onAccepted}
+						emptyTitle="No Pending Invitations"
+						emptyDescription="You currently don't have any pending invitations."
+					/>
+				</Suspense>
+			</CardContent>
+		</Card>
+	);
+}
+
 function RouteComponent() {
 	const { refetch: refetchSession } = authClient.useSession();
 	const navigate = useNavigate();
@@ -42,7 +72,7 @@ function RouteComponent() {
 		toast.promise(setActiveOrganization({ organizationId: organization.id }), {
 			loading: `Switching to ${organization.name}...`,
 			success: async () => {
-				refetchSession();
+				await refetchSession();
 				await navigate({ to: "/app" });
 				return `Welcome to ${organization.name}!`;
 			},
@@ -53,8 +83,13 @@ function RouteComponent() {
 		});
 	};
 
+	const handleInvitationAccepted = async () => {
+		await refetchSession();
+		await navigate({ to: "/app" });
+	};
+
 	return (
-		<div className="w-full max-w-2xl space-y-6">
+		<div className="w-full max-w-3xl space-y-6">
 			<div className="space-y-2 text-center">
 				<h1 className="font-bold text-2xl tracking-tight">
 					Select which organization you want to work with
@@ -64,15 +99,19 @@ function RouteComponent() {
 				</p>
 			</div>
 
-			<div className="grid gap-4 sm:grid-cols-1 md:grid-cols-2">
-				{organizations.data.map((organization) => (
-					<OrganizationCard
-						key={organization.id}
-						organization={organization}
-						onSelect={() => handleOrganizationChange(organization)}
-					/>
-				))}
-			</div>
+			{organizations.data.length > 0 && (
+				<div className="grid gap-4 sm:grid-cols-1 md:grid-cols-2">
+					{organizations.data.map((organization) => (
+						<OrganizationCard
+							key={organization.id}
+							organization={organization}
+							onSelect={() => handleOrganizationChange(organization)}
+						/>
+					))}
+				</div>
+			)}
+
+			<PendingInvitationsSection onAccepted={handleInvitationAccepted} />
 
 			{organizations.data.length === 0 && (
 				<Card className="py-12 text-center">
@@ -81,10 +120,11 @@ function RouteComponent() {
 							<BuildingIcon className="h-8 w-8 text-muted-foreground" />
 						</div>
 						<p className="mb-4 text-lg text-muted-foreground">
-							No organisations found
+							No organizations available yet
 						</p>
 						<p className="text-muted-foreground text-sm">
-							Contact your administrator to get access to an organisation.
+							Accept an invitation above or contact your administrator to get
+							access.
 						</p>
 					</CardContent>
 				</Card>

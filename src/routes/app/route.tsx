@@ -5,6 +5,7 @@ import { AppSidebar } from "@/components/app/sidebar/app-sidebar";
 import { NextStepTours } from "@/components/next-step/next-step-tours";
 import { SidebarInset, SidebarProvider } from "@/components/ui/sidebar";
 import { useUmami } from "@/hooks/use-umami";
+import { organizationSelectSchema } from "@/lib/orpc/schemas/organization";
 
 export const Route = createFileRoute("/app")({
 	beforeLoad: ({ context }) => {
@@ -21,7 +22,9 @@ export const Route = createFileRoute("/app")({
 				...context.auth,
 				session: {
 					...context.auth.session,
-					activeOrganizationId: context.auth.session.activeOrganizationId,
+					activeOrganizationId: organizationSelectSchema.shape.id.parse(
+						context.auth.session.activeOrganizationId,
+					),
 				},
 			},
 		};

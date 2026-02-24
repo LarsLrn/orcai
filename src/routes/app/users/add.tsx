@@ -1,7 +1,7 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { Suspense } from "react";
 import { LoadingPage } from "@/components/app/loading/loading-page";
-import { CourseInvitationForm } from "@/components/courses/invitation-form/course-invitation-form";
+import { OrganizationInvitationForm } from "@/components/organizations/invitation-form/organization-invitation-form";
 
 export const Route = createFileRoute("/app/users/add")({
 	component: RouteComponent,
@@ -17,7 +17,7 @@ export const Route = createFileRoute("/app/users/add")({
 function RouteComponent() {
 	return (
 		<Suspense fallback={<LoadingPage />}>
-			<CourseInvitationForm />
+			<OrganizationInvitationForm />
 		</Suspense>
 	);
 }

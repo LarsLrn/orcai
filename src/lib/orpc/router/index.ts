@@ -68,7 +68,9 @@ import {
 	deleteOrganizationInvitations,
 	findOrganizationInvitation,
 	listOrganizationInvitations,
+	respondToOrganisationInvitation,
 	updateOrganizationInvitation,
+	validateOrganizationInvitation,
 } from "./organization-invitation";
 import {
 	createOrganizationMember,
@@ -123,9 +125,10 @@ export const router = {
 		list: listOrganizationInvitations,
 		create: createOrganizationInvitations,
 		find: findOrganizationInvitation,
+		validate: validateOrganizationInvitation,
 		update: updateOrganizationInvitation,
 		delete: deleteOrganizationInvitations,
-		respond: findOrganizationInvitation,
+		respond: respondToOrganisationInvitation,
 	},
 	provider: {
 		list: listProviders,

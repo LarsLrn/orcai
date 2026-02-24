@@ -1,4 +1,5 @@
 import { z } from "zod/v4";
+import { organizationInvitationSelectSchema } from "@/lib/orpc/schemas/organization-invitation";
 import { userInsertSchema } from "@/lib/orpc/schemas/user";
 import { sharedSchemas } from "./shared";
 
@@ -8,7 +9,7 @@ export const signupSchema = z
 		name: userInsertSchema.shape.name,
 		password: sharedSchemas.password,
 		confirmPassword: sharedSchemas.password,
-		invitationId: z.string(),
+		invitationId: organizationInvitationSelectSchema.shape.id,
 		privacyConsent: z.boolean().refine((val) => val === true, {
 			message: "You must accept the privacy policy",
 		}),
