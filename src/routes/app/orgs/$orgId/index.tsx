@@ -1,5 +1,12 @@
 import { useSuspenseQuery } from "@tanstack/react-query";
 import { createFileRoute, Link, Outlet } from "@tanstack/react-router";
+import {
+	Page,
+	PageAction,
+	PageContent,
+	PageHeader,
+	PageTitle,
+} from "@/components/app/page";
 import { buttonVariants } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { orpc } from "@/lib/orpc/orpc";
@@ -17,12 +24,10 @@ function RouteComponent() {
 	);
 
 	return (
-		<div className="flex flex-col gap-14">
-			<div className="flex w-full flex-col gap-8 sm:flex-row sm:items-center sm:justify-between">
-				<h4 className="max-w-xl font-regular text-3xl tracking-tighter md:text-5xl">
-					{organization.data.name}
-				</h4>
-				<div className="flex gap-2">
+		<Page>
+			<PageHeader>
+				<PageTitle>{organization.data.name}</PageTitle>
+				<PageAction>
 					<Link
 						to="/app/orgs/$orgId/edit"
 						params={{ orgId }}
@@ -30,16 +35,16 @@ function RouteComponent() {
 					>
 						Edit Organization
 					</Link>
-				</div>
-			</div>
-			<div className="flex justify-center">
+				</PageAction>
+			</PageHeader>
+			<PageContent>
 				<Card className="max-w-full lg:w-[60%]">
 					<CardContent className="p-4">
 						{organization.data.id} | {organization.data.slug}
 						<Outlet />
 					</CardContent>
 				</Card>
-			</div>
-		</div>
+			</PageContent>
+		</Page>
 	);
 }

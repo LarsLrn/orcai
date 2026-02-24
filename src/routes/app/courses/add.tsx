@@ -1,4 +1,10 @@
 import { createFileRoute } from "@tanstack/react-router";
+import {
+	Page,
+	PageContent,
+	PageHeader,
+	PageTitle,
+} from "@/components/app/page";
 import { CourseForm } from "@/components/courses/form/course-form";
 
 export const Route = createFileRoute("/app/courses/add")({
@@ -13,5 +19,14 @@ export const Route = createFileRoute("/app/courses/add")({
 });
 
 function RouteComponent() {
-	return <CourseForm action="create" />;
+	return (
+		<Page>
+			<PageHeader>
+				<PageTitle>Add Course</PageTitle>
+			</PageHeader>
+			<PageContent>
+				<CourseForm action="create" />
+			</PageContent>
+		</Page>
+	);
 }

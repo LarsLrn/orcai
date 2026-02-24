@@ -1,5 +1,11 @@
 import { useSuspenseQuery } from "@tanstack/react-query";
 import { createFileRoute } from "@tanstack/react-router";
+import {
+	Page,
+	PageContent,
+	PageHeader,
+	PageTitle,
+} from "@/components/app/page";
 import { ManageModel } from "@/components/model/manage-model";
 import { orpc } from "@/lib/orpc/orpc";
 
@@ -22,5 +28,14 @@ function RouteComponent() {
 		}),
 	);
 
-	return <ManageModel model={model.data} />;
+	return (
+		<Page>
+			<PageHeader>
+				<PageTitle>Edit Model</PageTitle>
+			</PageHeader>
+			<PageContent>
+				<ManageModel model={model.data} />
+			</PageContent>
+		</Page>
+	);
 }

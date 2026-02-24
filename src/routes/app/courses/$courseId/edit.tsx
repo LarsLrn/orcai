@@ -1,5 +1,11 @@
 import { useSuspenseQuery } from "@tanstack/react-query";
 import { createFileRoute } from "@tanstack/react-router";
+import {
+	Page,
+	PageContent,
+	PageHeader,
+	PageTitle,
+} from "@/components/app/page";
 import { CourseForm } from "@/components/courses/form/course-form";
 import { orpc } from "@/lib/orpc/orpc";
 
@@ -15,5 +21,14 @@ function RouteComponent() {
 		}),
 	);
 
-	return <CourseForm action="update" course={course.data} />;
+	return (
+		<Page>
+			<PageHeader>
+				<PageTitle>Edit Course</PageTitle>
+			</PageHeader>
+			<PageContent>
+				<CourseForm action="update" course={course.data} />
+			</PageContent>
+		</Page>
+	);
 }
