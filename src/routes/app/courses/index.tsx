@@ -1,5 +1,12 @@
 import { useSuspenseQuery } from "@tanstack/react-query";
 import { createFileRoute, Link } from "@tanstack/react-router";
+import {
+	Page,
+	PageAction,
+	PageContent,
+	PageHeader,
+	PageTitle,
+} from "@/components/app/page";
 import { columns } from "@/components/courses/table/columns";
 import { CoursesDataTableSelectActions } from "@/components/courses/table/courses-data-table-select-actions";
 import { buttonVariants } from "@/components/ui/button";
@@ -36,22 +43,20 @@ function RouteComponent() {
 	);
 
 	return (
-		<div className="flex flex-col gap-14">
-			<div className="flex w-full flex-col gap-8 sm:flex-row sm:items-center sm:justify-between">
-				<h4 className="max-w-xl font-regular text-3xl tracking-tighter md:text-5xl">
-					Courses
-				</h4>
+		<Page>
+			<PageHeader>
+				<PageTitle>Courses</PageTitle>
 
-				<div className="flex gap-2">
+				<PageAction>
 					<Link
 						to={"/app/courses/add"}
 						className={buttonVariants({ variant: "default" })}
 					>
 						Add Course
 					</Link>
-				</div>
-			</div>
-			<div>
+				</PageAction>
+			</PageHeader>
+			<PageContent>
 				<DataTable
 					data={courses.data}
 					columns={columns}
@@ -77,7 +82,7 @@ function RouteComponent() {
 					<DataTableBody />
 					<DataTablePagination />
 				</DataTable>
-			</div>
-		</div>
+			</PageContent>
+		</Page>
 	);
 }

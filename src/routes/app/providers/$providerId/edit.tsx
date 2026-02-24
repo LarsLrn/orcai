@@ -1,5 +1,11 @@
 import { useSuspenseQuery } from "@tanstack/react-query";
 import { createFileRoute } from "@tanstack/react-router";
+import {
+	Page,
+	PageContent,
+	PageHeader,
+	PageTitle,
+} from "@/components/app/page";
 import { ManageProvider } from "@/components/provider/manage-provider";
 import { orpc } from "@/lib/orpc/orpc";
 
@@ -22,5 +28,14 @@ function RouteComponent() {
 		}),
 	);
 
-	return <ManageProvider provider={provider.data} />;
+	return (
+		<Page>
+			<PageHeader>
+				<PageTitle>Edit Provider</PageTitle>
+			</PageHeader>
+			<PageContent>
+				<ManageProvider provider={provider.data} />
+			</PageContent>
+		</Page>
+	);
 }

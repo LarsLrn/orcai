@@ -6,6 +6,14 @@ import {
 	UserIcon,
 } from "lucide-react";
 import { useState } from "react";
+import {
+	Page,
+	PageContent,
+	PageDescription,
+	PageFooter,
+	PageHeader,
+	PageTitle,
+} from "@/components/app/page";
 import { BotSelect } from "@/components/bot/bot-select";
 import { Button } from "@/components/ui/button";
 import {
@@ -44,15 +52,15 @@ function RouteComponent() {
 	const [dialogOpen, setDialogOpen] = useState(false);
 
 	return (
-		<div className="container mx-auto max-w-4xl px-4 py-8">
-			<div className="mb-8 text-center">
-				<h1 className="mb-2 font-bold text-3xl">Start Your Chat</h1>
-				<p className="text-muted-foreground">
+		<Page>
+			<PageHeader className="text-center">
+				<PageTitle>Start Your Chat</PageTitle>
+				<PageDescription>
 					Choose how you'd like to begin your conversation
-				</p>
-			</div>
+				</PageDescription>
+			</PageHeader>
 
-			<div className="grid gap-6 md:grid-cols-2">
+			<PageContent className="grid gap-6 md:grid-cols-2">
 				{/* Bot Template Option */}
 				<Dialog open={dialogOpen} onOpenChange={setDialogOpen}>
 					<DialogTrigger
@@ -135,16 +143,16 @@ function RouteComponent() {
 						</CardContent>
 					</Card>
 				</Link>
-			</div>
+			</PageContent>
 
-			<Separator className="my-8" />
+			<Separator className="my-2" />
 
-			<div className="text-center text-muted-foreground text-sm">
+			<PageFooter className="text-center text-muted-foreground text-sm">
 				<p>
 					Not sure which option to choose? Bot templates are great for specific
 					tasks, while starting fresh gives you complete control.
 				</p>
-			</div>
-		</div>
+			</PageFooter>
+		</Page>
 	);
 }

@@ -1,5 +1,13 @@
 import { useSuspenseQuery } from "@tanstack/react-query";
 import { createFileRoute, Link } from "@tanstack/react-router";
+import {
+	Page,
+	PageAction,
+	PageContent,
+	PageDescription,
+	PageHeader,
+	PageTitle,
+} from "@/components/app/page";
 import { buttonVariants } from "@/components/ui/button";
 import { DataTable } from "@/components/ui/data-table/data-table";
 import { DataTableBody } from "@/components/ui/data-table/data-table-body";
@@ -46,21 +54,22 @@ function RouteComponent() {
 	);
 
 	return (
-		<div className="flex flex-col gap-14">
-			<div className="flex w-full flex-col gap-8 sm:flex-row sm:items-center sm:justify-between">
-				<h4 className="max-w-xl font-regular text-3xl tracking-tighter md:text-5xl">
-					Organization Invitations
-				</h4>
-				<div className="flex gap-2">
+		<Page>
+			<PageHeader>
+				<PageTitle>Organization Invitations</PageTitle>
+				<PageDescription>
+					Manage your organization's invitations.
+				</PageDescription>
+				<PageAction>
 					<Link
 						to={"/app/users/add"}
 						className={buttonVariants({ variant: "default" })}
 					>
 						Invite Users
 					</Link>
-				</div>
-			</div>
-			<div>
+				</PageAction>
+			</PageHeader>
+			<PageContent>
 				<DataTable
 					data={invitations.data}
 					columns={invitesTableColumns}
@@ -88,7 +97,7 @@ function RouteComponent() {
 					<DataTableBody />
 					<DataTablePagination />
 				</DataTable>
-			</div>
-		</div>
+			</PageContent>
+		</Page>
 	);
 }

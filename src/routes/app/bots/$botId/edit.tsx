@@ -1,5 +1,12 @@
 import { useSuspenseQuery } from "@tanstack/react-query";
 import { createFileRoute } from "@tanstack/react-router";
+import {
+	Page,
+	PageContent,
+	PageDescription,
+	PageHeader,
+	PageTitle,
+} from "@/components/app/page";
 import { BotForm } from "@/components/blocks/form/bot-form";
 import { orpc } from "@/lib/orpc/orpc";
 
@@ -24,16 +31,18 @@ function RouteComponent() {
 	);
 
 	return (
-		<div className="p-6">
-			<div className="mb-6">
-				<h1 className="font-bold text-2xl">Bot Builder</h1>
-				<p className="text-muted-foreground">
+		<Page>
+			<PageHeader>
+				<PageTitle>Bot Builder</PageTitle>
+				<PageDescription>
 					Create and configure your bot by selecting the blocks you want to
 					activate
-				</p>
-			</div>
+				</PageDescription>
+			</PageHeader>
 
-			<BotForm bot={bot.data} blockIds={bot.data.blockIds} action="update" />
-		</div>
+			<PageContent>
+				<BotForm bot={bot.data} blockIds={bot.data.blockIds} action="update" />
+			</PageContent>
+		</Page>
 	);
 }

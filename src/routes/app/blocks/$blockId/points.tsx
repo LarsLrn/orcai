@@ -1,5 +1,11 @@
 import { useSuspenseQuery } from "@tanstack/react-query";
 import { createFileRoute } from "@tanstack/react-router";
+import {
+	Page,
+	PageContent,
+	PageHeader,
+	PageTitle,
+} from "@/components/app/page";
 import { DisplayPoint } from "@/components/documents/chunks/display-point";
 import { orpc } from "@/lib/orpc/orpc";
 import type { QdrantPoint } from "@/types/qdrant";
@@ -31,10 +37,16 @@ function RouteComponent() {
 	);
 
 	return (
-		<div className="grid grid-cols-1 gap-2">
-			{assetPoints.data.map((point) => (
-				<DisplayPoint key={point.id} point={point as QdrantPoint} />
-			))}
-		</div>
+		<Page>
+			<PageHeader>
+				<PageTitle>Points</PageTitle>
+			</PageHeader>
+
+			<PageContent>
+				{assetPoints.data.map((point) => (
+					<DisplayPoint key={point.id} point={point as QdrantPoint} />
+				))}
+			</PageContent>
+		</Page>
 	);
 }

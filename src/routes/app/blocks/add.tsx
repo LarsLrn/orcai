@@ -1,5 +1,11 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { useState } from "react";
+import {
+	Page,
+	PageContent,
+	PageHeader,
+	PageTitle,
+} from "@/components/app/page";
 import { DatabaseBlockForm } from "@/components/blocks/database-block/form/database-block-form";
 import { ImageGenerationBlockForm } from "@/components/blocks/image-generation-block/form/image-generation-block-form";
 import { TemplateBlockForm } from "@/components/blocks/template-block/form/template-block-form";
@@ -29,35 +35,40 @@ function RouteComponent() {
 	const [type, setType] = useState<string | null>();
 
 	return (
-		<div className="space-y-4">
-			<Select
-				value={type ?? undefined}
-				onValueChange={(value) => setType(value)}
-			>
-				<SelectTrigger className="w-50">
-					<SelectValue>
-						{(value) =>
-							BLOCK_TYPES.find((blockType) => blockType.value === value)
-								?.label || "Select block type"
-						}
-					</SelectValue>
-				</SelectTrigger>
-				<SelectContent>
-					<SelectGroup>
-						<SelectLabel>Type</SelectLabel>
-						{BLOCK_TYPES.map((blockType) => (
-							<SelectItem key={blockType.value} value={blockType.value}>
-								{blockType.label}
-							</SelectItem>
-						))}
-					</SelectGroup>
-				</SelectContent>
-			</Select>
-			{type === "template" && <TemplateBlockForm action="create" />}
-			{type === "database" && <DatabaseBlockForm action="create" />}
-			{type === "imageGeneration" && (
-				<ImageGenerationBlockForm action="create" />
-			)}
-		</div>
+		<Page>
+			<PageHeader>
+				<PageTitle>Add Block</PageTitle>
+			</PageHeader>
+			<PageContent>
+				<Select
+					value={type ?? undefined}
+					onValueChange={(value) => setType(value)}
+				>
+					<SelectTrigger className="w-50">
+						<SelectValue>
+							{(value) =>
+								BLOCK_TYPES.find((blockType) => blockType.value === value)
+									?.label || "Select block type"
+							}
+						</SelectValue>
+					</SelectTrigger>
+					<SelectContent>
+						<SelectGroup>
+							<SelectLabel>Type</SelectLabel>
+							{BLOCK_TYPES.map((blockType) => (
+								<SelectItem key={blockType.value} value={blockType.value}>
+									{blockType.label}
+								</SelectItem>
+							))}
+						</SelectGroup>
+					</SelectContent>
+				</Select>
+				{type === "template" && <TemplateBlockForm action="create" />}
+				{type === "database" && <DatabaseBlockForm action="create" />}
+				{type === "imageGeneration" && (
+					<ImageGenerationBlockForm action="create" />
+				)}
+			</PageContent>
+		</Page>
 	);
 }

@@ -12,6 +12,7 @@ import {
 	SparklesIcon,
 } from "lucide-react";
 import { Suspense } from "react";
+import { Page, PageContent } from "@/components/app/page";
 import { UserWelcome } from "@/components/app/user-welcome";
 import { BotPreview } from "@/components/bot/bot-preview";
 import { ChatsPreview } from "@/components/chat/chats-preview";
@@ -71,31 +72,33 @@ export const Route = createFileRoute("/app/")({
 
 function RouteComponent() {
 	return (
-		<div className="space-y-12">
-			<Suspense fallback={<HomeHeroSkeleton />}>
-				<HomeHero />
-			</Suspense>
+		<Page>
+			<PageContent className="space-y-12">
+				<Suspense fallback={<HomeHeroSkeleton />}>
+					<HomeHero />
+				</Suspense>
 
-			<Suspense fallback={<ChatsSectionSkeleton />}>
-				<ChatsPreview />
-			</Suspense>
+				<Suspense fallback={<ChatsSectionSkeleton />}>
+					<ChatsPreview />
+				</Suspense>
 
-			<div className="grid gap-8 xl:grid-cols-[3fr,2fr]">
-				<div className="space-y-8">
-					<Suspense fallback={<BotsShowcaseSkeleton />}>
-						<BotsShowcase />
-					</Suspense>
+				<div className="grid gap-8 xl:grid-cols-[3fr,2fr]">
+					<div className="space-y-8">
+						<Suspense fallback={<BotsShowcaseSkeleton />}>
+							<BotsShowcase />
+						</Suspense>
 
-					<QuickActions />
+						<QuickActions />
+					</div>
+
+					<div className="space-y-8">
+						<Suspense fallback={<ResourceHighlightsSkeleton />}>
+							<ResourceHighlights />
+						</Suspense>
+					</div>
 				</div>
-
-				<div className="space-y-8">
-					<Suspense fallback={<ResourceHighlightsSkeleton />}>
-						<ResourceHighlights />
-					</Suspense>
-				</div>
-			</div>
-		</div>
+			</PageContent>
+		</Page>
 	);
 }
 

@@ -1,5 +1,12 @@
 import { useSuspenseQuery } from "@tanstack/react-query";
 import { createFileRoute, Link } from "@tanstack/react-router";
+import {
+	Page,
+	PageAction,
+	PageContent,
+	PageHeader,
+	PageTitle,
+} from "@/components/app/page";
 import { AssetTableActions } from "@/components/documents/table/asset-table-actions";
 import { columns } from "@/components/documents/table/columns";
 import { buttonVariants } from "@/components/ui/button";
@@ -38,12 +45,10 @@ function RouteComponent() {
 	);
 
 	return (
-		<div className="flex flex-col gap-14">
-			<div className="flex w-full flex-col gap-8 sm:flex-row sm:items-center sm:justify-between">
-				<h4 className="max-w-xl font-regular text-3xl tracking-tighter md:text-5xl">
-					Assets
-				</h4>
-				<div className="flex gap-2">
+		<Page>
+			<PageHeader>
+				<PageTitle>Assets</PageTitle>
+				<PageAction className="flex gap-2">
 					<Link
 						to={"/app/assets/playground"}
 						className={buttonVariants({ variant: "outline" })}
@@ -57,9 +62,9 @@ function RouteComponent() {
 					>
 						Add Asset
 					</Link>
-				</div>
-			</div>
-			<div>
+				</PageAction>
+			</PageHeader>
+			<PageContent>
 				<DataTable
 					data={assets.data}
 					columns={columns}
@@ -86,7 +91,7 @@ function RouteComponent() {
 					<DataTableBody />
 					<DataTablePagination />
 				</DataTable>
-			</div>
-		</div>
+			</PageContent>
+		</Page>
 	);
 }

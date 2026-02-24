@@ -10,6 +10,7 @@ import {
 	SettingsIcon,
 	TagIcon,
 } from "lucide-react";
+import { Page, PageContent, PageHeader } from "@/components/app/page";
 import { DatabaseBlockConfigCard } from "@/components/blocks/database-block/database-config";
 import { TemplateBlockConfigCard } from "@/components/blocks/template-block/template-config";
 import { Badge } from "@/components/ui/badge";
@@ -33,7 +34,6 @@ import {
 	HoverCardContent,
 	HoverCardTrigger,
 } from "@/components/ui/hover-card";
-import { Separator } from "@/components/ui/separator";
 import { orpc } from "@/lib/orpc/orpc";
 
 export const Route = createFileRoute("/app/blocks/$blockId/")({
@@ -60,9 +60,9 @@ function RouteComponent() {
 	} = block.data;
 
 	return (
-		<div className="container mx-auto max-w-4xl space-y-8">
+		<Page>
 			{/* Header Section */}
-			<div className="flex flex-col space-y-6">
+			<PageHeader>
 				<div className="flex items-start justify-between">
 					<div className="space-y-2">
 						<div className="flex items-center gap-3">
@@ -150,62 +150,62 @@ function RouteComponent() {
 						</HoverCard>
 					)}
 				</div>
-			</div>
+			</PageHeader>
 
-			<Separator />
+			<PageContent className="flex flex-col gap-4">
+				{/* Configuration Card */}
+				{type === "template" && <TemplateBlockConfigCard config={config} />}
+				{type === "database" && block.assets && (
+					<DatabaseBlockConfigCard
+						blockId={id}
+						config={config}
+						assetIds={block.assets}
+					/>
+				)}
 
-			{/* Configuration Card */}
-			{type === "template" && <TemplateBlockConfigCard config={config} />}
-			{type === "database" && block.assets && (
-				<DatabaseBlockConfigCard
-					blockId={id}
-					config={config}
-					assetIds={block.assets}
-				/>
-			)}
+				{/* Usage Statistics Card (Placeholder) */}
+				<Card>
+					<CardHeader>
+						<CardTitle>Usage Statistics</CardTitle>
+						<CardDescription>
+							Track how this block is being used across your chats
+						</CardDescription>
+					</CardHeader>
+					<CardContent>
+						<div className="grid grid-cols-1 gap-6 md:grid-cols-3">
+							<div className="space-y-2 text-center">
+								<div className="font-bold text-2xl text-primary">0</div>
+								<p className="text-muted-foreground text-sm">Times Used</p>
+							</div>
+							<div className="space-y-2 text-center">
+								<div className="font-bold text-2xl text-primary">0</div>
+								<p className="text-muted-foreground text-sm">Active Chats</p>
+							</div>
+							<div className="space-y-2 text-center">
+								<div className="font-bold text-2xl text-primary">0</div>
+								<p className="text-muted-foreground text-sm">Forks</p>
+							</div>
+						</div>
+					</CardContent>
+				</Card>
 
-			{/* Usage Statistics Card (Placeholder) */}
-			<Card>
-				<CardHeader>
-					<CardTitle>Usage Statistics</CardTitle>
-					<CardDescription>
-						Track how this block is being used across your chats
-					</CardDescription>
-				</CardHeader>
-				<CardContent>
-					<div className="grid grid-cols-1 gap-6 md:grid-cols-3">
-						<div className="space-y-2 text-center">
-							<div className="font-bold text-2xl text-primary">0</div>
-							<p className="text-muted-foreground text-sm">Times Used</p>
-						</div>
-						<div className="space-y-2 text-center">
-							<div className="font-bold text-2xl text-primary">0</div>
-							<p className="text-muted-foreground text-sm">Active Chats</p>
-						</div>
-						<div className="space-y-2 text-center">
-							<div className="font-bold text-2xl text-primary">0</div>
-							<p className="text-muted-foreground text-sm">Forks</p>
-						</div>
+				{/* Actions */}
+				<div className="flex justify-between">
+					<Link
+						to="/app/blocks"
+						className={buttonVariants({
+							variant: "outline",
+						})}
+					>
+						← Back to Blocks
+					</Link>
+
+					<div className="flex gap-2">
+						<Button variant="outline">Export Block</Button>
+						<Button variant="outline">Share Block</Button>
 					</div>
-				</CardContent>
-			</Card>
-
-			{/* Actions */}
-			<div className="flex justify-between">
-				<Link
-					to="/app/blocks"
-					className={buttonVariants({
-						variant: "outline",
-					})}
-				>
-					← Back to Blocks
-				</Link>
-
-				<div className="flex gap-2">
-					<Button variant="outline">Export Block</Button>
-					<Button variant="outline">Share Block</Button>
 				</div>
-			</div>
-		</div>
+			</PageContent>
+		</Page>
 	);
 }

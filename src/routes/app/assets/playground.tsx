@@ -1,5 +1,11 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { z } from "zod/v4";
+import {
+	Page,
+	PageContent,
+	PageHeader,
+	PageTitle,
+} from "@/components/app/page";
 import { QdrantPlaygroundForm } from "@/components/documents/playground/qdrant-playground-form";
 import QdrantPlaygroundResults from "@/components/documents/playground/qdrant-playground-results";
 import { Placeholder } from "@/components/placeholders/placeholder";
@@ -24,16 +30,21 @@ function RouteComponent() {
 	const { search } = Route.useSearch();
 
 	return (
-		<div className="flex flex-col gap-8">
-			<QdrantPlaygroundForm />
-			{search ? (
-				<QdrantPlaygroundResults search={search} />
-			) : (
-				<Placeholder
-					title="No Search Results"
-					description="Search for chunks to see results."
-				/>
-			)}
-		</div>
+		<Page>
+			<PageHeader>
+				<PageTitle>Playground</PageTitle>
+			</PageHeader>
+			<PageContent>
+				<QdrantPlaygroundForm />
+				{search ? (
+					<QdrantPlaygroundResults search={search} />
+				) : (
+					<Placeholder
+						title="No Search Results"
+						description="Search for chunks to see results."
+					/>
+				)}
+			</PageContent>
+		</Page>
 	);
 }
