@@ -1,7 +1,7 @@
 import { count, eq, getColumns } from "drizzle-orm";
 import * as Effect from "effect/Effect";
 import { dbSchema } from "@/db/schema";
-import { auth } from "@/lib/auth";
+import { auth } from "@/lib/auth/auth";
 import { DB } from "@/lib/effect/services/drizzle";
 import { runOrpcEffect } from "@/lib/effect/utils/orpc-helpers";
 import { authed } from "@/lib/orpc/implementation/authed";

@@ -4,7 +4,7 @@ import { BuildingIcon } from "lucide-react";
 import { toast } from "sonner";
 import { OrganizationCard } from "@/components/organizations/organization-card";
 import { Card, CardContent } from "@/components/ui/card";
-import { authClient } from "@/lib/auth-client";
+import { authClient } from "@/lib/auth/auth-client";
 import { orpc } from "@/lib/orpc/orpc";
 import type { Organization } from "@/lib/orpc/schemas/organization";
 

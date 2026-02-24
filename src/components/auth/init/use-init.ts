@@ -2,7 +2,7 @@ import { useNavigate } from "@tanstack/react-router";
 import type { InitSchemaType } from "@/db/zod/init";
 import { useFormSubmission } from "@/hooks/form/use-form-submission";
 import { useUmami } from "@/hooks/use-umami";
-import { authClient } from "@/lib/auth-client";
+import { authClient } from "@/lib/auth/auth-client";
 import { client } from "@/lib/orpc/orpc";
 
 export const useInitSubmission = () => {

@@ -32,7 +32,7 @@ import {
 	SelectValue,
 } from "@/components/ui/select";
 import { Separator } from "@/components/ui/separator";
-import { authClient } from "@/lib/auth-client";
+import { authClient } from "@/lib/auth/auth-client";
 import type { User } from "@/lib/orpc/schemas/user";
 
 const ManageUser = ({

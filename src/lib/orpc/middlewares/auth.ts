@@ -1,6 +1,6 @@
 import * as Effect from "effect/Effect";
-import { auth as betterAuth } from "@/lib/auth";
-import type { authClient } from "@/lib/auth-client";
+import { auth as betterAuth } from "@/lib/auth/auth";
+import type { authClient } from "@/lib/auth/auth-client";
 import { DB } from "@/lib/effect/services/drizzle";
 import { runOrpcEffect } from "@/lib/effect/utils/orpc-helpers";
 import { os } from "@/lib/orpc/implementation/os";

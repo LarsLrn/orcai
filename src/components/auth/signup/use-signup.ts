@@ -2,7 +2,7 @@ import { useNavigate } from "@tanstack/react-router";
 import type { SignupSchemaType } from "@/db/zod/signup";
 import { useFormSubmission } from "@/hooks/form/use-form-submission";
 import { useUmami } from "@/hooks/use-umami";
-import { authClient } from "@/lib/auth-client";
+import { authClient } from "@/lib/auth/auth-client";
 
 export const useSignupSubmission = () => {
 	const navigate = useNavigate();

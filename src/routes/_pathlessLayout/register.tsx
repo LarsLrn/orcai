@@ -1,8 +1,5 @@
 import { createFileRoute, Link, redirect } from "@tanstack/react-router";
-import { createServerFn } from "@tanstack/react-start";
-import { eq, getColumns } from "drizzle-orm";
 import z from "zod/v4";
-import { SignUpForm } from "@/components/auth/signup/signup-form";
 import {
 	Card,
 	CardContent,
@@ -11,33 +8,7 @@ import {
 	CardHeader,
 	CardTitle,
 } from "@/components/ui/card";
-import { db } from "@/db/drizzle";
-import { dbSchema } from "@/db/schema";
 import { orpc } from "@/lib/orpc/orpc";
-import type { CourseInvitation } from "@/lib/orpc/schemas/course-invitations";
-
-const getCourseInvitationById = createServerFn({
-	method: "GET",
-})
-	.inputValidator(
-		z.object({
-			id: z.uuidv4(),
-		}),
-	)
-	.handler(async (ctx): Promise<{ query: CourseInvitation | undefined }> => {
-		try {
-			const [query] = await db
-				.select({ ...getColumns(dbSchema.courseInvitation) })
-				.from(dbSchema.courseInvitation)
-				.where(eq(dbSchema.courseInvitation.id, ctx.data.id))
-				.limit(1);
-
-			return { query };
-		} catch (error) {
-			console.error("Error parsing UUID:", error);
-			return { query: undefined };
-		}
-	});
 
 export const Route = createFileRoute("/_pathlessLayout/register")({
 	component: RouteComponent,
@@ -59,7 +30,6 @@ export const Route = createFileRoute("/_pathlessLayout/register")({
 		if (!deps.inv) {
 			return { query: undefined };
 		}
-		return getCourseInvitationById({ data: { id: deps.inv } });
 	},
 });
 
@@ -85,8 +55,6 @@ const _InvitationExpired = () => {
 }; */
 
 function RouteComponent() {
-	const { query } = Route.useLoaderData();
-
 	return (
 		<Card className="max-w-xl">
 			<CardHeader>
@@ -105,7 +73,7 @@ function RouteComponent() {
 				) : (
 					<RegistrationDisabled />
 				)} */}
-				<SignUpForm invitation={query} />
+				{/* <SignUpForm invitation={query} /> */}
 			</CardContent>
 			<CardFooter className="text-muted-foreground text-sm">
 				<Link to={"/login"}>Already have an account?</Link>

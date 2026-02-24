@@ -1,5 +1,5 @@
 import { useFormSubmission } from "@/hooks/form/use-form-submission";
-import { authClient } from "@/lib/auth-client";
+import { authClient } from "@/lib/auth/auth-client";
 
 export const useProfileFormSubmission = () => {
 	const { refetch } = authClient.useSession();

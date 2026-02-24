@@ -18,7 +18,7 @@ import type { ReactNode } from "react";
 import { ConfirmDialogProvider } from "@/components/ui/dialog/confirm-dialog";
 import { Toaster } from "@/components/ui/sonner";
 import { TooltipProvider } from "@/components/ui/tooltip";
-import { auth } from "@/lib/auth";
+import { auth } from "@/lib/auth/auth";
 import { clientEnv } from "@/lib/env/client";
 import { seo } from "@/lib/seo";
 import { cn } from "@/lib/utils";

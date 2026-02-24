@@ -6,7 +6,7 @@ import type {
 	ApiTraceWithDetails,
 	ApiUtilsMetaResponse,
 } from "langfuse";
-import { auth } from "@/lib/auth";
+import { auth } from "@/lib/auth/auth";
 import { langfuseServer } from "@/lib/langfuse/langfuse-server";
 import { ExportChatsButton } from "./export-chats-button";
 import { ExportChatsCSVButton } from "./export-chats-csv-button";
