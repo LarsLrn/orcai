@@ -80,6 +80,8 @@ const appErrorToCode: (error: AppError) => ORPCErrorCode =
 		Match.tag("QdrantError", () => "INTERNAL_SERVER_ERROR" as const),
 		Match.tag("AiError", () => "INTERNAL_SERVER_ERROR" as const),
 		Match.tag("InternalError", () => "INTERNAL_SERVER_ERROR" as const),
+		Match.tag("DoclingError", () => "INTERNAL_SERVER_ERROR" as const),
+		Match.tag("EmailError", () => "INTERNAL_SERVER_ERROR" as const),
 		Match.exhaustive,
 	);
 

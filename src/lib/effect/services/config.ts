@@ -33,11 +33,21 @@ const appConfig = Config.all({
 		url: Config.string("QDRANT_URL"),
 		apiKey: Config.string("QDRANT_API_KEY"),
 	}),
-	mail: Config.all({
+	email: Config.all({
 		host: Config.string("SMTP_HOST"),
 		port: Config.withDefault(Config.port("SMTP_PORT"), 587),
 		username: Config.string("SMTP_USERNAME"),
 		password: Config.string("SMTP_PASSWORD"),
+		secure: Config.withDefault(Config.boolean("SMTP_SECURE"), true),
+		tlsRejectUnauthorized: Config.withDefault(
+			Config.boolean("SMTP_TLS_REJECT_UNAUTHORIZED"),
+			true,
+		),
+		from: Config.string("SMTP_FROM"),
+		fromName: Config.withDefault(
+			Config.string("SMTP_FROM_NAME"),
+			"Sokratest Team",
+		),
 	}),
 	app: Config.all({
 		encryptionKey: Config.string("ENCRYPTION_KEY"),

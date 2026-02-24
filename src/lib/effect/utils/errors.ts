@@ -25,6 +25,7 @@ export const ErrorTags = {
 	DATABASE: "DatabaseError",
 	S3: "S3Error",
 	QDRANT: "QdrantError",
+	EMAIL: "EmailError",
 
 	// Catch-all for unexpected errors
 	INTERNAL: "InternalError",
@@ -116,6 +117,11 @@ export class DoclingError extends Data.TaggedError(ErrorTags.DOCLING)<{
 	readonly cause: unknown;
 }> {}
 
+export class EmailError extends Data.TaggedError(ErrorTags.EMAIL)<{
+	readonly operation: string;
+	readonly cause: unknown;
+}> {}
+
 export class InternalError extends Data.TaggedError(ErrorTags.INTERNAL)<{
 	readonly operation: string;
 	readonly cause: unknown;
@@ -135,6 +141,8 @@ export type AppError =
 	| S3Error
 	| QdrantError
 	| AiError
+	| DoclingError
+	| EmailError
 	| InternalError;
 
 type S3LikeCause = {
