@@ -64,6 +64,7 @@ function RouteComponent() {
 				{/* Bot Template Option */}
 				<Dialog open={dialogOpen} onOpenChange={setDialogOpen}>
 					<DialogTrigger
+						nativeButton={false}
 						render={
 							<Card className="group cursor-pointer justify-between transition-shadow hover:shadow-lg">
 								<CardHeader className="text-center">
