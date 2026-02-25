@@ -7,7 +7,7 @@ export interface QdrantPoints {
 }
 
 export interface QdrantPoint {
-	id: string | number;
+	id: string;
 	version: number;
 	score: number;
 	payload: AssetPointPayload;

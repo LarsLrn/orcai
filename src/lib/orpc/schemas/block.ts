@@ -78,6 +78,10 @@ export const databaseBlockSchema = z.object({
 		provider: z.string(),
 		embeddingModel: z.string(),
 		...referencesConfigSchema.shape,
+		scoreThreshold: z.number().min(0).max(1).optional(),
+		retrievalMode: z.enum(["dense", "hybrid"]).optional(),
+		candidateLimit: z.number().int().min(1).max(200).optional(),
+		maxPerAsset: z.number().int().min(1).optional(),
 	}),
 });
 

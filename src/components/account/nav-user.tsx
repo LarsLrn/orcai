@@ -18,7 +18,7 @@ import {
 } from "@/components/ui/sidebar";
 import { useSignOut } from "@/hooks/actions/use-sign-out";
 import { orpc } from "@/lib/orpc/orpc";
-import { getNameInitial } from "@/lib/utils";
+import { getInitial } from "@/lib/utils/text-utils";
 import { UserMenuActions } from "./user-menu-actions";
 
 const NavUser = () => {
@@ -51,7 +51,7 @@ const NavUser = () => {
 										alt={auth.user.name}
 									/>
 									<AvatarFallback className="rounded-lg">
-										{getNameInitial(auth.user.name)}
+										{getInitial(auth.user.name)}
 									</AvatarFallback>
 								</Avatar>
 								<div className="grid flex-1 text-left text-sm leading-tight">
@@ -78,7 +78,7 @@ const NavUser = () => {
 											alt={auth.user.name}
 										/>
 										<AvatarFallback>
-											{getNameInitial(auth.user.name)}
+											{getInitial(auth.user.name)}
 										</AvatarFallback>
 									</Avatar>
 									<div className="grid flex-1 text-left text-sm leading-tight">

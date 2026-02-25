@@ -3,7 +3,7 @@ import { betterAuth } from "better-auth";
 import { drizzleAdapter } from "better-auth/adapters/drizzle";
 import { admin } from "better-auth/plugins";
 import { tanstackStartCookies } from "better-auth/tanstack-start";
-import { Effect } from "effect";
+import * as Effect from "effect/Effect";
 import * as Redacted from "effect/Redacted";
 import { v4 as uuidv4 } from "uuid";
 import { dbSchema } from "@/db/schema";

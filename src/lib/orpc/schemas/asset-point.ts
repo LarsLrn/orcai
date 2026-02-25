@@ -44,7 +44,7 @@ export const assetPointPayloadSchema = z.discriminatedUnion("source", [
  */
 
 export const assetPointSelectSchema = z.object({
-	id: z.union([z.string(), z.number()]),
+	id: z.string(),
 	version: z.number(),
 	score: z.number(),
 	payload: z.discriminatedUnion("source", [

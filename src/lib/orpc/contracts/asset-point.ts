@@ -19,14 +19,37 @@ export const listAssetPointContract = base
 	.input(
 		z.object({
 			filters: z.object({
-				search: z.string().optional(),
-				assetId: assetPointSelectSchema.shape.id.optional(),
+				queries: z.array(z.string()).optional(),
+				pointIds: z.array(assetPointSelectSchema.shape.id).optional(),
+				assetIds: z.array(assetPointSelectSchema.shape.id).optional(),
 				limit: z.number().int().min(1).optional(),
 				blockId: baseBlockSelectSchema.shape.id.optional(),
+				minScore: z.number().min(0).max(1).optional(),
+				retrievalMode: z.enum(["dense", "hybrid"]).optional(),
+				candidateLimit: z.number().int().min(1).max(200).optional(),
+				denseWeight: z.number().min(0).max(1).optional(),
+				lexicalWeight: z.number().min(0).max(1).optional(),
+				maxPerAsset: z.number().int().min(1).optional(),
+				page: z.number().int().min(0).optional(),
+				pageFrom: z.number().int().min(0).optional(),
+				pageTo: z.number().int().min(0).optional(),
+				chunkIndices: z.array(z.number().int().min(0)).optional(),
 			}),
 		}),
 	)
-	.output(z.object({ data: z.array(assetPointSelectSchema) }));
+	.output(
+		z.object({
+			data: z.array(assetPointSelectSchema),
+			metadata: z
+				.object({
+					retrievalMode: z.enum(["dense", "hybrid"]),
+					scoreThreshold: z.number().min(0).max(1),
+					candidateCount: z.number().int().min(0),
+					returnedCount: z.number().int().min(0),
+				})
+				.optional(),
+		}),
+	);
 
 export const createAssetPointContract = base
 	.route({

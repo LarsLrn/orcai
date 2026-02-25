@@ -16,7 +16,7 @@ import {
 } from "@/components/ui/popover";
 import type { SearchKnowledgeBaseToolPart } from "@/lib/ai/types/tools";
 
-const SearchKnowledgeBaseTool = ({
+const SearchKnowledgeBase = ({
 	part,
 }: {
 	part: SearchKnowledgeBaseToolPart;
@@ -82,9 +82,21 @@ const Output = ({
 										{result.id}
 									</Badge>
 								</div>
+								<div className="flex flex-wrap gap-2">
+									<Badge variant="secondary" className="text-[10px]">
+										Score {result?.score?.toFixed(3)}
+									</Badge>
+									<Badge variant="outline" className="text-[10px]">
+										Block {result.source.blockName}
+									</Badge>
+									<Badge variant="outline" className="text-[10px]">
+										Chunk {result.source.chunkIndex + 1}/
+										{result.source.chunkCount}
+									</Badge>
+								</div>
 								<div className="prose prose-sm dark:prose-invert max-w-none">
 									<Markdown className="text-xs leading-relaxed">
-										{result.text}
+										{result.snippet}
 									</Markdown>
 								</div>
 							</div>
@@ -96,4 +108,4 @@ const Output = ({
 	);
 };
 
-export { SearchKnowledgeBaseTool };
+export { SearchKnowledgeBase };
