@@ -99,6 +99,14 @@ const DisplayPoint = ({ point }: { point: QdrantPoint }) => {
 									</span>
 								</div>
 							)}
+							{typeof payload.page === "number" && (
+								<div className="flex items-center justify-between text-muted-foreground text-sm">
+									<span>Page</span>
+									<span className="font-medium text-foreground">
+										{payload.page + 1}
+									</span>
+								</div>
+							)}
 						</HoverCardContent>
 					</HoverCard>
 				</div>

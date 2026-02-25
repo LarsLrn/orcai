@@ -15,6 +15,7 @@ interface MarkdownNodeBase {
 	depth: number;
 	content: string;
 	length: number;
+	page?: number;
 }
 
 interface TextNode extends MarkdownNodeBase {

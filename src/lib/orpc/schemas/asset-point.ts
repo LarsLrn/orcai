@@ -14,6 +14,7 @@ const baseChunkPayloadSchema = z.object({
 	block_id: baseBlockSelectSchema.shape.id,
 	text: z.string(),
 	title: z.string(),
+	page: z.number().int().nonnegative().optional(),
 	depth: z.number(),
 	tokens: z.number(),
 	chunk_index: z.number(),

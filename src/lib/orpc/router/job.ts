@@ -63,7 +63,7 @@ export const createJobs = authed.job.create.handler(async ({ input, errors }) =>
 							type: getFileTypeFromMime(asset.type),
 						},
 						blockId: input.blockId,
-						mergePages: asset.metadata.mergePages ?? true,
+						mergePages: asset.metadata.mergePages ?? false,
 					},
 				})),
 				resourceOptions: {

@@ -1,4 +1,4 @@
-import { RecursiveChunker } from "@chonkiejs/core";
+import { TokenChunker } from "@chonkiejs/core";
 import { embedMany, generateText } from "ai";
 import * as Effect from "effect/Effect";
 import type { Job } from "pg-boss";
@@ -75,9 +75,7 @@ const vectorizeAssetsEffect = (params: { job: Job<VectorizeAssetPayload> }) =>
 						const processedMarkdown = yield* processMarkdownFile({
 							fileContent: text,
 							fileName: name,
-							chunkingStrategy: mergePages
-								? "RecursiveCharacterTextSplitter"
-								: "none",
+							chunkByTokens: mergePages,
 						});
 
 						markdown.push(...processedMarkdown);
@@ -111,6 +109,7 @@ const vectorizeAssetsEffect = (params: { job: Job<VectorizeAssetPayload> }) =>
 			depth: 0,
 			length: image.tokens,
 			title: image.name,
+			page: undefined,
 			type: "image",
 		})) as MarkdownNode[];
 
@@ -127,7 +126,7 @@ const vectorizeAssetsEffect = (params: { job: Job<VectorizeAssetPayload> }) =>
 
 		const qdrantResponse = yield* generateEmbeddings({
 			chunks: mergedChunks,
-			assetId: prefix,
+			assetId,
 			blockId,
 		});
 
@@ -140,20 +139,34 @@ const vectorizeAssetsEffect = (params: { job: Job<VectorizeAssetPayload> }) =>
 		};
 	});
 
+const extractPageFromFileName = (fileName: string) => {
+	const filePage = /page-(\d+)\.md$/i.exec(fileName);
+	if (!filePage?.[1]) return undefined;
+	const value = Number.parseInt(filePage[1], 10);
+	if (Number.isNaN(value)) return undefined;
+
+	return value;
+};
+
 const processMarkdownFile = ({
 	fileContent,
 	fileName,
-	chunkingStrategy,
+	chunkByTokens,
 }: {
 	fileContent: string;
 	fileName: string;
-	chunkingStrategy: "none" | "RecursiveCharacterTextSplitter";
+	chunkByTokens: boolean;
 }) =>
 	Effect.gen(function* () {
-		if (chunkingStrategy === "none") {
+		const page = extractPageFromFileName(fileName);
+		const title =
+			page !== undefined ? `${fileName} (page ${String(page + 1)})` : fileName;
+
+		if (!chunkByTokens) {
 			return [
 				{
-					title: fileName,
+					title,
+					page,
 					depth: 0,
 					content: fileContent,
 					length: fileContent.length,
@@ -163,8 +176,9 @@ const processMarkdownFile = ({
 		}
 
 		const chunker = yield* Effect.promise(() =>
-			RecursiveChunker.create({
-				chunkSize: 2048,
+			TokenChunker.create({
+				chunkSize: 560,
+				chunkOverlap: 96,
 			}),
 		);
 
@@ -179,7 +193,8 @@ const processMarkdownFile = ({
 			Effect.map(
 				(chunks) =>
 					chunks.map((chunk) => ({
-						title: fileName,
+						title,
+						page,
 						depth: 0,
 						content: chunk.text,
 						length: chunk.tokenCount,
@@ -270,6 +285,7 @@ const generateEmbeddings = ({
 				block_id: blockId,
 				text: embedResults.values[index],
 				title: chunk.title,
+				page: chunk.page,
 				depth: chunk.depth,
 				tokens: chunk.length,
 				chunk_index: index,
