@@ -8,7 +8,6 @@ import {
 } from "@/components/app/page";
 import { DisplayPoint } from "@/components/documents/chunks/display-point";
 import { orpc } from "@/lib/orpc/orpc";
-import type { QdrantPoint } from "@/types/qdrant";
 
 export const Route = createFileRoute("/app/blocks/$blockId/points")({
 	loader: async ({ context: { queryClient }, params: { blockId } }) => {
@@ -44,7 +43,7 @@ function RouteComponent() {
 
 			<PageContent>
 				{assetPoints.data.map((point) => (
-					<DisplayPoint key={point.id} point={point as QdrantPoint} />
+					<DisplayPoint key={point.id} point={point} />
 				))}
 			</PageContent>
 		</Page>

@@ -1,7 +1,7 @@
 import { clamp } from "effect/Number";
+import type { AssetPoint } from "@/lib/orpc/schemas/asset-point";
 import { normalizeText, tokenize } from "@/lib/utils/text-utils";
 import { RAG_SETTINGS } from "@/settings/constants";
-import type { QdrantPoints } from "@/types/qdrant";
 
 /**
  * Computes a 0–1 lexical overlap score between a tokenized query and a
@@ -74,7 +74,7 @@ export const rerankHybrid = ({
 	lexicalWeight,
 }: {
 	query: string;
-	points: QdrantPoints["points"];
+	points: AssetPoint[];
 	denseWeight: number;
 	lexicalWeight: number;
 }) => {

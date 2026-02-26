@@ -1,4 +1,4 @@
-import type { QdrantPoints } from "@/types/qdrant";
+import type { AssetPoint } from "@/lib/orpc/schemas/asset-point";
 
 /**
  * Removes duplicate points from an array, keeping the first occurrence of
@@ -6,7 +6,7 @@ import type { QdrantPoints } from "@/types/qdrant";
  * return the same chunk; deduplication must happen before re-ranking so
  * that each chunk is scored only once.
  */
-export const dedupeById = (points: QdrantPoints["points"]) => {
+export const dedupeById = (points: AssetPoint[]) => {
 	const seen = new Set<string>();
 	return points.filter((point) => {
 		const key = String(point.id);
@@ -29,12 +29,12 @@ export const dedupeById = (points: QdrantPoints["points"]) => {
  * @param maxPerAsset - Maximum chunks to admit from any single asset.
  */
 export const applyAssetDiversityCap = (
-	points: QdrantPoints["points"],
+	points: AssetPoint[],
 	maxPerAsset: number,
 ) => {
 	const cap = Math.max(1, maxPerAsset);
 	const perAssetCount = new Map<string, number>();
-	const selected: QdrantPoints["points"] = [];
+	const selected: AssetPoint[] = [];
 
 	for (const point of points) {
 		const assetId = point.payload.asset_id;
@@ -46,30 +46,6 @@ export const applyAssetDiversityCap = (
 
 	return selected;
 };
-
-/**
- * Sanitizes a raw Qdrant point to ensure numeric fields are always valid
- * finite numbers. Qdrant can occasionally return NaN or undefined for
- * `version` and `score` in edge cases; this guard prevents downstream
- * arithmetic from producing nonsensical results.
- *
- * - `version` defaults to 0 if not a finite number.
- * - `score`   defaults to 1 if not a finite number (treated as maximally
- *   relevant to avoid silently discarding the point).
- */
-export const normalizePoint = (
-	point: QdrantPoints["points"][number],
-): QdrantPoints["points"][number] => ({
-	...point,
-	version:
-		typeof point.version === "number" && Number.isFinite(point.version)
-			? point.version
-			: 0,
-	score:
-		typeof point.score === "number" && Number.isFinite(point.score)
-			? point.score
-			: 1,
-});
 
 /**
  * Merges a batch of Qdrant results into a running recall-candidate map,
@@ -88,11 +64,8 @@ export const normalizePoint = (
  * @param points   - New batch of normalized points to merge in.
  */
 export const mergeRecallCandidates = (
-	existing: Map<
-		string,
-		{ point: QdrantPoints["points"][number]; hitCount: number }
-	>,
-	points: QdrantPoints["points"],
+	existing: Map<string, { point: AssetPoint; hitCount: number }>,
+	points: AssetPoint[],
 ) => {
 	for (const point of points) {
 		const key = String(point.id);

@@ -12,9 +12,9 @@ import {
 	HoverCardContent,
 	HoverCardTrigger,
 } from "@/components/ui/hover-card";
-import type { QdrantPoint } from "@/types/qdrant";
+import type { AssetPoint } from "@/lib/orpc/schemas/asset-point";
 
-const DisplayPoint = ({ point }: { point: QdrantPoint }) => {
+const DisplayPoint = ({ point }: { point: AssetPoint }) => {
 	const { id, payload, score } = point;
 	const hasScore = typeof score === "number" && Number.isFinite(score);
 

@@ -1,8 +1,6 @@
-import { call } from "@orpc/server";
 import * as Effect from "effect/Effect";
 import { AiError } from "@/lib/effect/utils/errors";
-import { listAssets } from "@/lib/orpc/router/asset";
-import { findBlock } from "@/lib/orpc/router/block";
+import { client } from "@/lib/orpc/orpc";
 import type { AssetPoint } from "@/lib/orpc/schemas/asset-point";
 import type { DatabaseBlock } from "@/lib/orpc/schemas/block";
 import { normalizeText, tokenize } from "@/lib/utils/text-utils";
@@ -203,7 +201,10 @@ export const loadDocumentCatalog = ({ blocks }: { blocks: DatabaseBlock[] }) =>
 			blocks,
 			(block) =>
 				Effect.tryPromise({
-					try: () => call(findBlock, { id: block.id }),
+					try: () =>
+						client.block.find({
+							id: block.id,
+						}),
 					catch: (cause) =>
 						new AiError({
 							operation: "loadDocumentCatalog.findBlock",
@@ -227,7 +228,7 @@ export const loadDocumentCatalog = ({ blocks }: { blocks: DatabaseBlock[] }) =>
 
 		const assetResponse = yield* Effect.tryPromise({
 			try: () =>
-				call(listAssets, {
+				client.asset.list({
 					pageIndex: 0,
 					pageSize: Math.min(1000, Math.max(uniqueAssetIds.length, 20)),
 					filters: {

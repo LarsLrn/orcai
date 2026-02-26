@@ -1,28 +1,23 @@
 import * as Effect from "effect/Effect";
 import { clamp } from "effect/Number";
 import { generateEmbedding } from "@/lib/ai/embedding";
-import { QdrantService } from "@/lib/effect/services/qdrant";
-import { QdrantError } from "@/lib/effect/utils/errors";
 import { runOrpcEffect } from "@/lib/effect/utils/orpc-helpers";
 import { authed } from "@/lib/orpc/implementation/authed";
-import { qdrantCollections } from "@/qdrant/qdrant-constants";
+import type { AssetPoint } from "@/lib/orpc/schemas/asset-point";
+import { queryAssetPoints } from "@/qdrant/queries";
 import { buildQdrantFilter } from "@/qdrant/utils/build-qdrant-filter";
 import { rerankHybrid } from "@/qdrant/utils/rerank";
 import {
 	applyAssetDiversityCap,
 	dedupeById,
 	mergeRecallCandidates,
-	normalizePoint,
 } from "@/qdrant/utils/result-set";
 import { resolveScoreThreshold } from "@/qdrant/utils/score";
 import { RAG_SETTINGS } from "@/settings/constants";
-import type { QdrantPoints } from "@/types/qdrant";
 
 export const listAssetPoint = authed.assetPoint.list.handler(({ input }) =>
 	runOrpcEffect(
 		Effect.gen(function* () {
-			const { client } = yield* QdrantService;
-
 			const limit = input.filters.limit ?? RAG_SETTINGS.limit;
 			const retrievalMode = input.filters.retrievalMode ?? "dense";
 
@@ -55,30 +50,19 @@ export const listAssetPoint = authed.assetPoint.list.handler(({ input }) =>
 			});
 
 			if (!input.filters.queries || input.filters.queries.length === 0) {
-				return yield* Effect.tryPromise({
-					try: async () =>
-						client.scroll(qdrantCollections.asset.name, {
-							filter: qdrantFilter,
-							limit,
-							with_payload: true,
-							with_vector: false,
-						}),
-					catch: (error) =>
-						new QdrantError({
-							operation: "scroll",
-							cause: error,
-						}),
+				return yield* queryAssetPoints({
+					filter: qdrantFilter,
+					limit,
+					withPayload: true,
+					withVector: false,
 				}).pipe(
-					Effect.map((response) => {
+					Effect.map((points) => {
 						const pointIds = input.filters.pointIds ?? [];
 						const idOrder =
 							pointIds.length > 0
 								? new Map(pointIds.map((id, index) => [String(id), index]))
 								: undefined;
 
-						const points = (response.points as QdrantPoints["points"]).map(
-							normalizePoint,
-						);
 						if (idOrder) {
 							points.sort(
 								(a, b) =>
@@ -135,7 +119,7 @@ export const listAssetPoint = authed.assetPoint.list.handler(({ input }) =>
 
 			const recallCandidates = new Map<
 				string,
-				{ point: QdrantPoints["points"][number]; hitCount: number }
+				{ point: AssetPoint; hitCount: number }
 			>();
 
 			const passState = yield* Effect.reduceWhile(
@@ -149,33 +133,23 @@ export const listAssetPoint = authed.assetPoint.list.handler(({ input }) =>
 					while: (s) => !s.done,
 					body: (s, pass, index) =>
 						Effect.gen(function* () {
-							const responses = yield* Effect.forEach(
+							yield* Effect.forEach(
 								variantEmbeddings,
 								(embedding) =>
-									Effect.tryPromise({
-										try: () =>
-											client.query(qdrantCollections.asset.name, {
-												query: embedding,
-												filter: qdrantFilter,
-												limit: pass.candidateLimit,
-												with_payload: true,
-												with_vector: false,
-												score_threshold: pass.scoreThreshold,
-											}),
-										catch: (error) =>
-											new QdrantError({ operation: "query", cause: error }),
-									}),
+									queryAssetPoints({
+										embedding,
+										filter: qdrantFilter,
+										limit: pass.candidateLimit,
+										withPayload: true,
+										withVector: false,
+										scoreThreshold: pass.scoreThreshold,
+									}).pipe(
+										Effect.map((points) =>
+											mergeRecallCandidates(recallCandidates, points),
+										),
+									),
 								{ concurrency: 4 },
 							);
-
-							for (const response of responses) {
-								mergeRecallCandidates(
-									recallCandidates,
-									(response.points as QdrantPoints["points"]).map(
-										normalizePoint,
-									),
-								);
-							}
 
 							return {
 								done: recallCandidates.size >= recallTarget,

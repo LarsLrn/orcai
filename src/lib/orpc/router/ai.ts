@@ -198,8 +198,6 @@ export const aiChat = authed.ai.chat
 									{ context },
 								);
 							},
-							onError: () =>
-								"Oops, an error occurred while processing your request!",
 							messageMetadata: ({ part }) => {
 								if (part.type === "finish-step") {
 									return {
