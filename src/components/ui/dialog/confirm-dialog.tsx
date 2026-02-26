@@ -2,11 +2,11 @@
  * Not using the NPM package, as it's a bit unnecessary for a single file.
  */
 
-import type React from "react";
-import type { ComponentPropsWithRef, ReactNode } from "react";
-import {
+import React, {
+	type ComponentPropsWithRef,
 	createContext,
 	memo,
+	type ReactNode,
 	useCallback,
 	useContext,
 	useMemo,
@@ -20,6 +20,7 @@ import {
 	AlertDialogDescription,
 	AlertDialogFooter,
 	AlertDialogHeader,
+	AlertDialogMedia,
 	type AlertDialogOverlay,
 	AlertDialogTitle,
 } from "@/components/ui/alert-dialog";
@@ -35,11 +36,6 @@ export type ConfigUpdater = (
 	config: ConfirmOptions | ((prev: ConfirmOptions) => ConfirmOptions),
 ) => void;
 
-export type LegacyCustomActions = (
-	onConfirm: () => void,
-	onCancel: () => void,
-) => ReactNode;
-
 export type EnhancedCustomActions = (props: CustomActionsProps) => ReactNode;
 
 export interface ConfirmOptions {
@@ -49,13 +45,15 @@ export interface ConfirmOptions {
 	confirmText?: string;
 	cancelText?: string;
 	icon?: ReactNode;
-	customActions?: LegacyCustomActions | EnhancedCustomActions;
+	media?: ReactNode;
+	customActions?: EnhancedCustomActions;
 	confirmButton?: ComponentPropsWithRef<typeof AlertDialogAction>;
 	cancelButton?: ComponentPropsWithRef<typeof AlertDialogCancel> | null;
 	alertDialogOverlay?: ComponentPropsWithRef<typeof AlertDialogOverlay>;
 	alertDialogContent?: ComponentPropsWithRef<typeof AlertDialogContent>;
 	alertDialogHeader?: ComponentPropsWithRef<typeof AlertDialogHeader>;
 	alertDialogTitle?: ComponentPropsWithRef<typeof AlertDialogTitle>;
+	alertDialogMedia?: ComponentPropsWithRef<typeof AlertDialogMedia>;
 	alertDialogDescription?: ComponentPropsWithRef<typeof AlertDialogDescription>;
 	alertDialogFooter?: ComponentPropsWithRef<typeof AlertDialogFooter>;
 }
@@ -90,15 +88,10 @@ const baseDefaultOptions: ConfirmOptions = {
 	alertDialogContent: {},
 	alertDialogHeader: {},
 	alertDialogTitle: {},
+	alertDialogMedia: {},
 	alertDialogDescription: {},
 	alertDialogFooter: {},
 };
-
-function isLegacyCustomActions(
-	fn: LegacyCustomActions | EnhancedCustomActions,
-): fn is LegacyCustomActions {
-	return fn.length === 2;
-}
 
 const ConfirmDialogContent: React.FC<{
 	config: ConfirmOptions;
@@ -116,11 +109,13 @@ const ConfirmDialogContent: React.FC<{
 		confirmText,
 		cancelText,
 		icon,
+		media,
 		contentSlot,
 		customActions,
 		alertDialogContent,
 		alertDialogHeader,
 		alertDialogTitle,
+		alertDialogMedia,
 		alertDialogDescription,
 		alertDialogFooter,
 	} = config;
@@ -139,10 +134,6 @@ const ConfirmDialogContent: React.FC<{
 					</AlertDialogAction>
 				</>
 			);
-		}
-
-		if (isLegacyCustomActions(customActions)) {
-			return customActions(onConfirm, onCancel);
 		}
 
 		return customActions({
@@ -169,6 +160,9 @@ const ConfirmDialogContent: React.FC<{
 	return (
 		<AlertDialogContent {...alertDialogContent}>
 			<AlertDialogHeader {...alertDialogHeader}>
+				{media && (
+					<AlertDialogMedia {...alertDialogMedia}>{media}</AlertDialogMedia>
+				)}
 				{renderTitle()}
 				{description && (
 					<AlertDialogDescription {...alertDialogDescription}>
