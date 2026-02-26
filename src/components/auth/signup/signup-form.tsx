@@ -3,23 +3,23 @@ import { FileTextIcon } from "lucide-react";
 import { buttonVariants } from "@/components/ui/button";
 import { signupSchema } from "@/db/zod/signup";
 import { useAppForm } from "@/hooks/form";
+import { useSignup } from "@/hooks/mutations/use-signup";
 import type { OrganizationInvitation } from "@/lib/orpc/schemas/organization-invitation";
 import { signupFormOptions } from "./signup-form-options";
-import { useSignupSubmission } from "./use-signup";
 
 const SignUpForm = ({
 	invitationId,
 }: {
 	invitationId: OrganizationInvitation["id"];
 }) => {
-	const submit = useSignupSubmission();
+	const { signup } = useSignup();
 
 	const form = useAppForm({
 		...signupFormOptions({
 			invitationId,
 		}),
 		onSubmit: ({ value }) => {
-			submit(signupSchema.parse(value));
+			signup.run(signupSchema.parse(value));
 		},
 	});
 

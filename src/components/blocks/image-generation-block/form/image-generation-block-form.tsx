@@ -1,9 +1,9 @@
 import { useStore } from "@tanstack/react-form";
 import { skipToken, useQuery, useSuspenseQuery } from "@tanstack/react-query";
 import { useRouteContext } from "@tanstack/react-router";
-import { useBlockFormSubmission } from "@/components/blocks/use-block-submission";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { useAppForm } from "@/hooks/form";
+import { useBlockMutations } from "@/hooks/mutations/use-block-mutations";
 import { orpc } from "@/lib/orpc/orpc";
 import type { ImageGenerationBlock } from "@/lib/orpc/schemas/block";
 import { imageGenerationBlockFormOptions } from "./image-generation-block-form-options";
@@ -15,7 +15,7 @@ const ImageGenerationBlockForm = ({
 	action: "create" | "update";
 	block?: ImageGenerationBlock;
 }) => {
-	const { create, update } = useBlockFormSubmission();
+	const { createBlock, updateBlock } = useBlockMutations();
 
 	const { auth } = useRouteContext({ from: "/app" });
 
@@ -29,9 +29,9 @@ const ImageGenerationBlockForm = ({
 		...imageGenerationBlockFormOptions(block),
 		onSubmit: ({ value }) => {
 			if (action === "update" && block) {
-				update({ ...value, id: block.id });
+				updateBlock.run({ ...value, id: block.id });
 			} else {
-				create(value);
+				createBlock.run(value);
 			}
 		},
 	});

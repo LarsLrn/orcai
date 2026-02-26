@@ -1,7 +1,7 @@
 import { useMutation } from "@tanstack/react-query";
 import { useNavigate } from "@tanstack/react-router";
 import type { SignupSchemaType } from "@/db/zod/signup";
-import { useFormSubmission } from "@/hooks/form/use-form-submission";
+import { useMutationAction } from "@/hooks/actions/use-mutation-action";
 import { useUmami } from "@/hooks/use-umami";
 import { authClient } from "@/lib/auth/auth-client";
 import { orpc } from "@/lib/orpc/orpc";
@@ -11,14 +11,14 @@ const sleep = (ms: number) =>
 		setTimeout(resolve, ms);
 	});
 
-export const useSignupSubmission = () => {
+export const useSignup = () => {
 	const navigate = useNavigate();
 	const { trackEvent } = useUmami();
 	const { mutateAsync: respondToInvitation } = useMutation(
 		orpc.organizationInvitation.respond.mutationOptions(),
 	);
 
-	return useFormSubmission({
+	const signup = useMutationAction({
 		mutationOptions: () => ({
 			mutationFn: async (values: SignupSchemaType) => {
 				// TODO: Consider adding a check that accounts can only be created if the email and invitation match
@@ -87,4 +87,5 @@ export const useSignupSubmission = () => {
 			navigate({ to: "/", replace: true });
 		},
 	});
+	return { signup };
 };

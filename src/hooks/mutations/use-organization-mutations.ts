@@ -1,11 +1,11 @@
 import { useRouter } from "@tanstack/react-router";
-import { useFormSubmission } from "@/hooks/form/use-form-submission";
+import { useMutationAction } from "@/hooks/actions/use-mutation-action";
 import { orpc } from "@/lib/orpc/orpc";
 
-export const useOrganizationFormSubmission = () => {
+export const useOrganizationMutations = () => {
 	const router = useRouter();
 
-	const create = useFormSubmission({
+	const createOrganization = useMutationAction({
 		mutationOptions: () => orpc.organization.create.mutationOptions(),
 		messages: {
 			loading: "Creating organization...",
@@ -19,7 +19,7 @@ export const useOrganizationFormSubmission = () => {
 			}),
 	});
 
-	const update = useFormSubmission({
+	const updateOrganization = useMutationAction({
 		mutationOptions: () => orpc.organization.update.mutationOptions(),
 		messages: {
 			loading: "Updating organization...",
@@ -29,5 +29,5 @@ export const useOrganizationFormSubmission = () => {
 		onSuccess: () => router.history.back(),
 	});
 
-	return { create, update };
+	return { createOrganization, updateOrganization };
 };

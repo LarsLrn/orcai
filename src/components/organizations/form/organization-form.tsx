@@ -1,7 +1,7 @@
 import { useAppForm } from "@/hooks/form";
+import { useOrganizationMutations } from "@/hooks/mutations/use-organization-mutations";
 import type { Organization } from "@/lib/orpc/schemas/organization";
 import { organizationFormOptions } from "./organization-form-options";
-import { useOrganizationFormSubmission } from "./use-organization-submission";
 
 export const OrganizationForm = ({
 	action,
@@ -10,15 +10,15 @@ export const OrganizationForm = ({
 	action: "create" | "update";
 	organization?: Organization;
 }) => {
-	const { create, update } = useOrganizationFormSubmission();
+	const { createOrganization, updateOrganization } = useOrganizationMutations();
 
 	const form = useAppForm({
 		...organizationFormOptions,
 		onSubmit: ({ value }) => {
 			if (action === "update" && organization) {
-				update({ ...value, id: organization.id });
+				updateOrganization.run({ ...value, id: organization.id });
 			} else {
-				create(value);
+				createOrganization.run(value);
 			}
 		},
 	});

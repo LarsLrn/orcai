@@ -1,14 +1,14 @@
 import { useAppForm } from "@/hooks/form";
+import { useSignin } from "@/hooks/mutations/use-signin";
 import { signinFormOptions } from "./signin-form-options";
-import { useSigninSubmission } from "./use-signin";
 
 const SignInForm = () => {
-	const submit = useSigninSubmission();
+	const { signin } = useSignin();
 
 	const form = useAppForm({
 		...signinFormOptions(),
 		onSubmit: ({ value }) => {
-			submit(value);
+			signin.run(value);
 		},
 	});
 

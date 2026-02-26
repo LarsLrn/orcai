@@ -1,11 +1,11 @@
 import { useRouter } from "@tanstack/react-router";
-import { useFormSubmission } from "@/hooks/form/use-form-submission";
+import { useMutationAction } from "@/hooks/actions/use-mutation-action";
 import { orpc } from "@/lib/orpc/orpc";
 
-export const useProviderFormSubmission = () => {
+export const useProviderMutations = () => {
 	const router = useRouter();
 
-	const create = useFormSubmission({
+	const createProvider = useMutationAction({
 		mutationOptions: () => orpc.provider.create.mutationOptions(),
 		messages: {
 			loading: "Creating provider...",
@@ -21,7 +21,7 @@ export const useProviderFormSubmission = () => {
 			}),
 	});
 
-	const update = useFormSubmission({
+	const updateProvider = useMutationAction({
 		mutationOptions: () => orpc.provider.update.mutationOptions(),
 		messages: {
 			loading: "Updating provider...",
@@ -31,5 +31,5 @@ export const useProviderFormSubmission = () => {
 		onSuccess: () => router.history.back(),
 	});
 
-	return { create, update };
+	return { createProvider, updateProvider };
 };

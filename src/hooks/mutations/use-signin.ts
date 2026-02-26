@@ -1,14 +1,14 @@
 import { useNavigate } from "@tanstack/react-router";
 import type { SigninSchemaType } from "@/db/zod/signin";
-import { useFormSubmission } from "@/hooks/form/use-form-submission";
+import { useMutationAction } from "@/hooks/actions/use-mutation-action";
 import { useUmami } from "@/hooks/use-umami";
 import { authClient } from "@/lib/auth/auth-client";
 
-export const useSigninSubmission = () => {
+export const useSignin = () => {
 	const navigate = useNavigate();
 	const { trackEvent } = useUmami();
 
-	return useFormSubmission({
+	const signin = useMutationAction({
 		mutationOptions: () => ({
 			mutationFn: async (values: SigninSchemaType) => {
 				const result = await authClient.signIn.email({
@@ -33,4 +33,6 @@ export const useSigninSubmission = () => {
 			navigate({ to: "/app" });
 		},
 	});
+
+	return { signin };
 };

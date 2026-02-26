@@ -1,8 +1,8 @@
-import { useFormSubmission } from "@/hooks/form/use-form-submission";
+import { useMutationAction } from "@/hooks/actions/use-mutation-action";
 import { orpc } from "@/lib/orpc/orpc";
 
-export const useChangePasswordSubmission = () => {
-	return useFormSubmission({
+export const useChangePasswordMutation = () => {
+	const changePassword = useMutationAction({
 		mutationOptions: () => orpc.user.updatePassword.mutationOptions(),
 		messages: {
 			loading: "Changing password...",
@@ -10,4 +10,6 @@ export const useChangePasswordSubmission = () => {
 			error: "Failed to change password",
 		},
 	});
+
+	return { changePassword };
 };

@@ -1,11 +1,11 @@
 import { useRouter } from "@tanstack/react-router";
-import { useFormSubmission } from "@/hooks/form/use-form-submission";
+import { useMutationAction } from "@/hooks/actions/use-mutation-action";
 import { orpc } from "@/lib/orpc/orpc";
 
-export const useOrganizationInvitationFormSubmission = () => {
+export const useOrganizationInvitationMutations = () => {
 	const router = useRouter();
 
-	const create = useFormSubmission({
+	const createInvitation = useMutationAction({
 		mutationOptions: orpc.organizationInvitation.create.mutationOptions,
 		messages: {
 			loading: "Creating invitations...",
@@ -18,5 +18,5 @@ export const useOrganizationInvitationFormSubmission = () => {
 			}),
 	});
 
-	return { create };
+	return { createInvitation };
 };

@@ -1,10 +1,10 @@
-import { useFormSubmission } from "@/hooks/form/use-form-submission";
+import { useMutationAction } from "@/hooks/actions/use-mutation-action";
 import { authClient } from "@/lib/auth/auth-client";
 
-export const useProfileFormSubmission = () => {
+export const useProfileMutations = () => {
 	const { refetch } = authClient.useSession();
 
-	const update = useFormSubmission({
+	const updateProfile = useMutationAction({
 		mutationOptions: () => ({
 			mutationFn: async (values: { name: string }) => {
 				await authClient.updateUser({
@@ -20,5 +20,5 @@ export const useProfileFormSubmission = () => {
 		onSuccess: () => refetch(),
 	});
 
-	return { update };
+	return { updateProfile };
 };

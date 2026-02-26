@@ -1,6 +1,6 @@
 import { useAppForm } from "@/hooks/form";
+import { useUploadSubmission } from "@/hooks/mutations/use-upload-submission";
 import { uploadFormOptions } from "./form/upload-form-options";
-import { useUploadSubmission } from "./form/use-upload-submission";
 import { UploadProgress } from "./upload-progress";
 
 const UploadComponent = () => {

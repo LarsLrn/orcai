@@ -1,11 +1,11 @@
 import { useRouter } from "@tanstack/react-router";
-import { useFormSubmission } from "@/hooks/form/use-form-submission";
+import { useMutationAction } from "@/hooks/actions/use-mutation-action";
 import { orpc } from "@/lib/orpc/orpc";
 
-export const useBlockFormSubmission = () => {
+export const useBlockMutations = () => {
 	const router = useRouter();
 
-	const create = useFormSubmission({
+	const createBlock = useMutationAction({
 		mutationOptions: () => orpc.block.create.mutationOptions(),
 		messages: {
 			loading: "Creating block...",
@@ -19,7 +19,7 @@ export const useBlockFormSubmission = () => {
 			}),
 	});
 
-	const update = useFormSubmission({
+	const updateBlock = useMutationAction({
 		mutationOptions: () => orpc.block.update.mutationOptions(),
 		messages: {
 			loading: "Updating block...",
@@ -29,5 +29,5 @@ export const useBlockFormSubmission = () => {
 		onSuccess: () => router.history.back(),
 	});
 
-	return { create, update };
+	return { createBlock, updateBlock };
 };

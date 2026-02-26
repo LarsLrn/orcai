@@ -1,10 +1,10 @@
 import { useQuery } from "@tanstack/react-query";
 import { useAppForm } from "@/hooks/form";
+import { useModelMutations } from "@/hooks/mutations/use-model-mutations";
 import { modelCapabilities } from "@/lib/ai/providers";
 import { orpc } from "@/lib/orpc/orpc";
 import type { Model } from "@/lib/orpc/schemas/model";
 import { modelFormOptions } from "./model-form-options";
-import { useModelFormSubmission } from "./use-model-submission";
 
 const ModelForm = ({
 	action,
@@ -13,7 +13,7 @@ const ModelForm = ({
 	action: "create" | "update";
 	model?: Model;
 }) => {
-	const { create, update } = useModelFormSubmission();
+	const { createModel, updateModel } = useModelMutations();
 
 	const providers = useQuery(
 		orpc.provider.list.queryOptions({
@@ -25,12 +25,12 @@ const ModelForm = ({
 		...modelFormOptions(model),
 		onSubmit: ({ value }) => {
 			if (action === "update" && model) {
-				update({
+				updateModel.run({
 					...value,
 					id: model.id,
 				});
 			} else {
-				create(value);
+				createModel.run(value);
 			}
 		},
 	});

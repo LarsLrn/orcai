@@ -1,16 +1,16 @@
 import { useNavigate } from "@tanstack/react-router";
 import type { InitSchemaType } from "@/db/zod/init";
-import { useFormSubmission } from "@/hooks/form/use-form-submission";
+import { useMutationAction } from "@/hooks/actions/use-mutation-action";
 import { useUmami } from "@/hooks/use-umami";
 import { authClient } from "@/lib/auth/auth-client";
 import { client } from "@/lib/orpc/orpc";
 
-export const useInitSubmission = () => {
+export const useInit = () => {
 	const navigate = useNavigate();
 	const { trackEvent } = useUmami();
 	const { refetch: refetchSession } = authClient.useSession();
 
-	return useFormSubmission({
+	const init = useMutationAction({
 		mutationOptions: () => ({
 			mutationFn: async (values: InitSchemaType) => {
 				const initResult = await client.bootstrap.initialize({
@@ -54,4 +54,6 @@ export const useInitSubmission = () => {
 			navigate({ to: "/app", replace: true });
 		},
 	});
+
+	return { init };
 };

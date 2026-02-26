@@ -2,15 +2,15 @@ import { Link } from "@tanstack/react-router";
 import { FileTextIcon } from "lucide-react";
 import { buttonVariants } from "@/components/ui/button";
 import { useAppForm } from "@/hooks/form";
+import { useInit } from "@/hooks/mutations/use-init";
 import { initFormOptions } from "./init-form-options";
-import { useInitSubmission } from "./use-init";
 
 const InitForm = () => {
-	const submit = useInitSubmission();
+	const { init } = useInit();
 	const form = useAppForm({
 		...initFormOptions(),
 		onSubmit: ({ value }) => {
-			submit(value);
+			init.run(value);
 		},
 	});
 

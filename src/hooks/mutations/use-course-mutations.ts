@@ -1,11 +1,11 @@
 import { useRouter } from "@tanstack/react-router";
-import { useFormSubmission } from "@/hooks/form/use-form-submission";
+import { useMutationAction } from "@/hooks/actions/use-mutation-action";
 import { orpc } from "@/lib/orpc/orpc";
 
-export const useCourseFormSubmission = () => {
+export const useCourseMutations = () => {
 	const router = useRouter();
 
-	const create = useFormSubmission({
+	const createCourse = useMutationAction({
 		mutationOptions: () => orpc.course.create.mutationOptions(),
 		messages: {
 			loading: "Creating course...",
@@ -19,7 +19,7 @@ export const useCourseFormSubmission = () => {
 			}),
 	});
 
-	const update = useFormSubmission({
+	const updateCourse = useMutationAction({
 		mutationOptions: () => orpc.course.update.mutationOptions(),
 		messages: {
 			loading: "Updating course...",
@@ -29,5 +29,5 @@ export const useCourseFormSubmission = () => {
 		onSuccess: () => router.history.back(),
 	});
 
-	return { create, update };
+	return { createCourse, updateCourse };
 };

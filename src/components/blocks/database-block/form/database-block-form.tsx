@@ -3,10 +3,10 @@ import { skipToken, useQuery, useSuspenseQuery } from "@tanstack/react-query";
 import { useRouteContext } from "@tanstack/react-router";
 import { useState } from "react";
 import { StatePagination } from "@/components/blocks/state-pagination";
-import { useBlockFormSubmission } from "@/components/blocks/use-block-submission";
 import { Button } from "@/components/ui/button";
 import { Card, CardAction, CardContent } from "@/components/ui/card";
 import { useAppForm } from "@/hooks/form";
+import { useBlockMutations } from "@/hooks/mutations/use-block-mutations";
 import { orpc } from "@/lib/orpc/orpc";
 import type { Asset } from "@/lib/orpc/schemas/asset";
 import type { DatabaseBlock } from "@/lib/orpc/schemas/block";
@@ -21,7 +21,7 @@ const DatabaseBlockForm = ({
 	block?: DatabaseBlock;
 	assetIds?: Asset["id"][];
 }) => {
-	const { create, update } = useBlockFormSubmission();
+	const { createBlock, updateBlock } = useBlockMutations();
 
 	const { auth } = useRouteContext({ from: "/app" });
 
@@ -43,9 +43,9 @@ const DatabaseBlockForm = ({
 		...databaseBlockFormOptions(block, assetIds),
 		onSubmit: ({ value }) => {
 			if (action === "update" && block) {
-				update({ ...value, id: block.id });
+				updateBlock.run({ ...value, id: block.id });
 			} else {
-				create(value);
+				createBlock.run(value);
 			}
 		},
 	});

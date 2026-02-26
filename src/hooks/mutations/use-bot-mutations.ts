@@ -1,11 +1,11 @@
 import { useRouter } from "@tanstack/react-router";
-import { useFormSubmission } from "@/hooks/form/use-form-submission";
+import { useMutationAction } from "@/hooks/actions/use-mutation-action";
 import { orpc } from "@/lib/orpc/orpc";
 
-export const useBotFormSubmission = () => {
+export const useBotMutations = () => {
 	const router = useRouter();
 
-	const create = useFormSubmission({
+	const createBot = useMutationAction({
 		mutationOptions: () => orpc.bot.create.mutationOptions(),
 		messages: {
 			loading: "Creating bot...",
@@ -19,7 +19,7 @@ export const useBotFormSubmission = () => {
 			}),
 	});
 
-	const update = useFormSubmission({
+	const updateBot = useMutationAction({
 		mutationOptions: () => orpc.bot.update.mutationOptions(),
 		messages: {
 			loading: "Updating bot...",
@@ -29,5 +29,5 @@ export const useBotFormSubmission = () => {
 		onSuccess: () => router.history.back(),
 	});
 
-	return { create, update };
+	return { createBot, updateBot };
 };

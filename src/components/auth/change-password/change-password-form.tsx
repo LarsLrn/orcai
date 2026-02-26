@@ -1,14 +1,14 @@
 import { useAppForm } from "@/hooks/form";
+import { useChangePasswordMutation } from "@/hooks/mutations/use-change-password-mutation";
 import { changePasswordFormOptions } from "./change-password-form-options";
-import { useChangePasswordSubmission } from "./use-change-password";
 
 const ChangePasswordForm = () => {
-	const changePassword = useChangePasswordSubmission();
+	const { changePassword } = useChangePasswordMutation();
 
 	const form = useAppForm({
 		...changePasswordFormOptions(),
 		onSubmit: ({ value, formApi }) => {
-			changePassword(value, { onSuccess: () => formApi.reset() });
+			changePassword.run(value, { onSuccess: () => formApi.reset() });
 		},
 	});
 

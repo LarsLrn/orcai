@@ -1,8 +1,8 @@
 import { useAppForm } from "@/hooks/form";
+import { useProviderMutations } from "@/hooks/mutations/use-provider-mutations";
 import { providerCompatibilities } from "@/lib/ai/providers";
 import type { Provider } from "@/lib/orpc/schemas/provider";
 import { providerFormOptions } from "./provider-form-options";
-import { useProviderFormSubmission } from "./use-provider-submission";
 
 const ProviderForm = ({
 	action,
@@ -11,18 +11,18 @@ const ProviderForm = ({
 	action: "create" | "update";
 	provider?: Provider;
 }) => {
-	const { create, update } = useProviderFormSubmission();
+	const { createProvider, updateProvider } = useProviderMutations();
 
 	const form = useAppForm({
 		...providerFormOptions(provider),
 		onSubmit: ({ value }) => {
 			if (action === "update" && provider) {
-				update({
+				updateProvider.run({
 					...value,
 					id: provider.id,
 				});
 			} else {
-				create(value);
+				createProvider.run(value);
 			}
 		},
 	});
