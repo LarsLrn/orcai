@@ -13,7 +13,7 @@ import {
 	DropdownMenuSeparator,
 	DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
-import { useDeleteAssets } from "@/lib/client-actions/use-delete";
+import { useAssetMutations } from "@/hooks/mutations/use-asset-mutations";
 import type { Asset } from "@/lib/orpc/schemas/asset";
 
 export const columns: ColumnDef<Asset>[] = [
@@ -76,7 +76,7 @@ export const columns: ColumnDef<Asset>[] = [
 ];
 
 const ActionCell = ({ row }: { row: Row<Asset> }) => {
-	const { deleteAssets } = useDeleteAssets();
+	const { deleteAssets } = useAssetMutations();
 	const asset = row.original;
 
 	return (
@@ -99,7 +99,7 @@ const ActionCell = ({ row }: { row: Row<Asset> }) => {
 				<DropdownMenuSeparator />
 				<DropdownMenuItem
 					variant="destructive"
-					onSelect={() => deleteAssets({ refs: [{ id: asset.id }] })}
+					onClick={() => deleteAssets.run({ refs: [{ id: asset.id }] })}
 				>
 					Delete Asset
 				</DropdownMenuItem>

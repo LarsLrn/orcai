@@ -7,11 +7,11 @@ import {
 	DropdownMenuItem,
 	DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
-import { useDeleteAssets } from "@/lib/client-actions/use-delete";
+import { useAssetMutations } from "@/hooks/mutations/use-asset-mutations";
 
 const AssetTableActions = () => {
 	const { table } = useTable();
-	const { deleteAssets } = useDeleteAssets();
+	const { deleteAssets } = useAssetMutations();
 
 	return (
 		<DropdownMenu>
@@ -28,7 +28,7 @@ const AssetTableActions = () => {
 					variant="destructive"
 					disabled={table.getSelectedRowModel().rows.length === 0}
 					onSelect={() =>
-						deleteAssets({
+						deleteAssets.run({
 							refs: table
 								.getSelectedRowModel()
 								.flatRows.map((row) => ({ id: row.id })),

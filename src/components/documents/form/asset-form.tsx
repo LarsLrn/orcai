@@ -1,16 +1,16 @@
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { useAppForm } from "@/hooks/form";
+import { useAssetMutations } from "@/hooks/mutations/use-asset-mutations";
 import type { Asset } from "@/lib/orpc/schemas/asset";
 import { assetFormOptions } from "./asset-form-options";
-import { useAssetFormSubmission } from "./use-asset-submission";
 
 const AssetForm = ({ asset }: { asset: Asset }) => {
-	const { update } = useAssetFormSubmission();
+	const { updateAsset } = useAssetMutations();
 
 	const form = useAppForm({
 		...assetFormOptions(asset),
 		onSubmit: ({ value }) => {
-			update({ ...value, id: asset.id });
+			updateAsset.run({ ...value, id: asset.id });
 		},
 	});
 
