@@ -1,9 +1,7 @@
-import { useMutation } from "@tanstack/react-query";
 import { Link } from "@tanstack/react-router";
 import type { ColumnDef } from "@tanstack/react-table";
 import { format } from "date-fns";
 import { MoreHorizontal } from "lucide-react";
-import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
 import { Checkbox } from "@/components/ui/checkbox";
 import { DataTableColumnHeader } from "@/components/ui/data-table/data-table-column-header";
@@ -14,7 +12,7 @@ import {
 	DropdownMenuSeparator,
 	DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
-import { orpc } from "@/lib/orpc/orpc";
+import { useDeleteOrganizationsMutation } from "@/hooks/mutations/use-organization-mutations";
 import type { Organization } from "@/lib/orpc/schemas/organization";
 
 export const organizationTableColumns: ColumnDef<Organization>[] = [
@@ -101,25 +99,12 @@ const DeleteItem = ({
 }: {
 	organizationId: Organization["id"];
 }) => {
-	const { mutateAsync: deleteOrganizations } = useMutation(
-		orpc.organization.delete.mutationOptions(),
-	);
-
-	const handleDelete = (id: Organization["id"]) => {
-		toast.promise(deleteOrganizations({ refs: [{ id }] }), {
-			loading: "Deleting organization...",
-			success: "Organization deleted",
-			error: (error) => ({
-				message: "Failed to delete organization",
-				description: error.message,
-			}),
-		});
-	};
+	const { mutate: deleteOrganizations } = useDeleteOrganizationsMutation();
 
 	return (
 		<DropdownMenuItem
 			variant="destructive"
-			onClick={() => handleDelete(organizationId)}
+			onClick={() => deleteOrganizations({ refs: [{ id: organizationId }] })}
 		>
 			Delete Organization
 		</DropdownMenuItem>

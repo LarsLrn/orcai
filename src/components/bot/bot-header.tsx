@@ -1,4 +1,3 @@
-import { useMutation } from "@tanstack/react-query";
 import { Link, useNavigate, useParams } from "@tanstack/react-router";
 import {
 	BotIcon,
@@ -9,9 +8,7 @@ import {
 	MoreVerticalIcon,
 	Trash2Icon,
 } from "lucide-react";
-import { toast } from "sonner";
 import { Button, buttonVariants } from "@/components/ui/button";
-import { useConfirm } from "@/components/ui/dialog/confirm-dialog";
 import {
 	DropdownMenu,
 	DropdownMenuContent,
@@ -19,57 +16,25 @@ import {
 	DropdownMenuSeparator,
 	DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
-import { useUmami } from "@/hooks/use-umami";
-import { orpc } from "@/lib/orpc/orpc";
+import { useDeleteBotsMutation } from "@/hooks/mutations/use-bot-mutations";
 import type { Bot } from "@/lib/orpc/schemas/bot";
 
 const BotHeader = ({ bot }: { bot: Bot }) => {
 	const params = useParams({ strict: false });
 	const navigate = useNavigate();
-	const confirm = useConfirm();
-	const { trackEvent } = useUmami();
 
-	const { mutateAsync: deleteChat } = useMutation(
-		orpc.bot.delete.mutationOptions(),
-	);
-
-	const onDelete = async (e: React.MouseEvent<HTMLDivElement>) => {
-		e.stopPropagation();
-
-		const isConfirmed = await confirm({
-			title: "Delete Bot",
-			description: (
-				<>
-					<p>Are you sure you want to delete this bot?</p>
-					<p className="font-bold">This action cannot be undone.</p>
-				</>
-			),
-			confirmText: "Delete",
-			cancelText: "Cancel",
-		});
-
-		if (isConfirmed) {
-			// We need to navigate away from the bot before it's deleted to avoid
-			// refetching the deleted bot. This is not critical, but avoids a backend error.
+	const { mutate: deleteBots } = useDeleteBotsMutation({
+		onMutate: async () => {
+			// Navigate away before deleting to avoid rendering the deleted bot.
 			if (params.botId && params.botId === bot.id) {
-				navigate({ to: "/app/bots" });
+				await navigate({ to: "/app/bots" });
 			}
+		},
+	});
 
-			toast.promise(deleteChat({ refs: [{ id: bot.id }] }), {
-				loading: "Deleting bot...",
-				success: () => {
-					trackEvent("bot-delete", {
-						botId: bot.id,
-					});
-
-					return "Bot deleted";
-				},
-				error: (error) => ({
-					message: "Failed to delete bot",
-					description: error.message,
-				}),
-			});
-		}
+	const onDelete = (e: React.MouseEvent<HTMLDivElement>) => {
+		e.stopPropagation();
+		deleteBots({ refs: [{ id: bot.id }] });
 	};
 
 	return (

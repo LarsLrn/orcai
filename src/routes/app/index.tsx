@@ -46,7 +46,7 @@ import {
 	ItemTitle,
 } from "@/components/ui/item";
 import { Skeleton } from "@/components/ui/skeleton";
-import { useCreateChat } from "@/hooks/actions/use-create-chat";
+import { useCreateChatMutation } from "@/hooks/mutations/use-chat-mutation";
 import { orpc } from "@/lib/orpc/orpc";
 import { cn } from "@/lib/utils";
 
@@ -103,7 +103,7 @@ function RouteComponent() {
 }
 
 const HomeHero = () => {
-	const { createChat } = useCreateChat();
+	const { mutate: createChat } = useCreateChatMutation();
 	const { data: bots } = useSuspenseQuery(
 		orpc.bot.list.queryOptions({ input: HOME_BOT_LIST_PARAMS }),
 	);
@@ -118,7 +118,7 @@ const HomeHero = () => {
 					<div className="flex flex-wrap items-center gap-2">
 						<Button
 							className="gap-2 px-6"
-							onClick={() => createChat(latestBot?.id)}
+							onClick={() => createChat({ botId: latestBot?.id })}
 						>
 							<SparklesIcon className="h-4 w-4" />
 							Start a new chat
@@ -160,7 +160,7 @@ const HeroLatestBotCard = ({
 	botName?: string;
 	botId?: string;
 }) => {
-	const { createChat } = useCreateChat();
+	const { mutate: createChat } = useCreateChatMutation();
 
 	return (
 		<Item className="items-start justify-between bg-card" variant="outline">
@@ -181,7 +181,7 @@ const HeroLatestBotCard = ({
 						<Button
 							size="sm"
 							className="gap-2"
-							onClick={() => createChat(botId)}
+							onClick={() => createChat({ botId })}
 						>
 							<SparklesIcon className="h-4 w-4" />
 							Start chat
@@ -220,7 +220,7 @@ const HeroLatestBotCard = ({
 };
 
 const BotsShowcase = () => {
-	const { createChat } = useCreateChat();
+	const { mutate: createChat } = useCreateChatMutation();
 	const { data: bots } = useSuspenseQuery(
 		orpc.bot.list.queryOptions({ input: HOME_BOT_LIST_PARAMS }),
 	);
@@ -272,7 +272,7 @@ const BotsShowcase = () => {
 							<CardFooter className="gap-2 pt-4">
 								<ButtonGroup className="w-full">
 									<Button
-										onClick={() => createChat(bot.id)}
+										onClick={() => createChat({ botId: bot.id })}
 										size="sm"
 										className="flex-1 gap-2"
 									>

@@ -1,5 +1,4 @@
 import { ReplaceAllIcon } from "lucide-react";
-import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
 import { useTable } from "@/components/ui/data-table/data-table-context";
 import {
@@ -8,27 +7,15 @@ import {
 	DropdownMenuItem,
 	DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
-import { authClient } from "@/lib/auth/auth-client";
+import { useDeleteUsersMutation } from "@/hooks/mutations/use-user-admin-mutations";
 
 const UsersDataTableSelectActions = () => {
 	const { table } = useTable();
+	const { mutate: deleteUsers } = useDeleteUsersMutation();
 
 	const handleDelete = () => {
 		const userIds = table.getSelectedRowModel().flatRows.map((row) => row.id);
-
-		toast.promise(
-			Promise.all(
-				userIds.map((userId) => authClient.admin.removeUser({ userId })),
-			),
-			{
-				loading: "Deleting users...",
-				success: "Users deleted",
-				error: (error) => ({
-					message: "Failed to delete users",
-					description: error.message,
-				}),
-			},
-		);
+		deleteUsers({ userIds });
 	};
 
 	return (

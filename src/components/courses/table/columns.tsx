@@ -1,9 +1,7 @@
-import { useMutation } from "@tanstack/react-query";
 import { Link } from "@tanstack/react-router";
 import type { ColumnDef } from "@tanstack/react-table";
 import { format } from "date-fns";
 import { MoreHorizontal } from "lucide-react";
-import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
 import { Checkbox } from "@/components/ui/checkbox";
 import { DataTableColumnHeader } from "@/components/ui/data-table/data-table-column-header";
@@ -14,7 +12,7 @@ import {
 	DropdownMenuSeparator,
 	DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
-import { orpc } from "@/lib/orpc/orpc";
+import { useDeleteCoursesMutation } from "@/hooks/mutations/use-course-mutations";
 import type { Course } from "@/lib/orpc/schemas/course";
 
 export const columns: ColumnDef<Course>[] = [
@@ -96,25 +94,12 @@ export const columns: ColumnDef<Course>[] = [
 ];
 
 const DeleteItem = ({ courseId }: { courseId: Course["id"] }) => {
-	const { mutateAsync: deleteCourses } = useMutation(
-		orpc.course.delete.mutationOptions(),
-	);
-
-	const handleDelete = (id: string) => {
-		toast.promise(deleteCourses({ refs: [{ id }] }), {
-			loading: "Deleting course...",
-			success: "Course deleted",
-			error: (error) => ({
-				message: "Failed to delete course",
-				description: error.message,
-			}),
-		});
-	};
+	const { mutate: deleteCourses } = useDeleteCoursesMutation();
 
 	return (
 		<DropdownMenuItem
 			variant="destructive"
-			onClick={() => handleDelete(courseId)}
+			onClick={() => deleteCourses({ refs: [{ id: courseId }] })}
 		>
 			Delete Course
 		</DropdownMenuItem>

@@ -20,12 +20,13 @@ import {
 } from "@/components/ui/dialog";
 import { Textarea } from "@/components/ui/textarea";
 import { useAppForm } from "@/hooks/form";
-import { useOrganizationInvitationMutations } from "@/hooks/mutations/use-organization-invitation-mutations";
+import { useCreateOrganizationInvitationMutation } from "@/hooks/mutations/use-organization-invitation-mutations";
 import { orpc } from "@/lib/orpc/orpc";
 import { organizationInvitationFormOptions } from "./organization-invitation-form-options";
 
 const OrganizationInvitationForm = () => {
-	const { createInvitation } = useOrganizationInvitationMutations();
+	const { mutate: createInvitation } =
+		useCreateOrganizationInvitationMutation();
 
 	const bulkEmailsId = useId();
 
@@ -38,7 +39,7 @@ const OrganizationInvitationForm = () => {
 	const form = useAppForm({
 		...organizationInvitationFormOptions(),
 		onSubmit: ({ value }) => {
-			createInvitation.run(value);
+			createInvitation(value);
 		},
 	});
 

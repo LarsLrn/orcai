@@ -1,9 +1,7 @@
-import { useMutation } from "@tanstack/react-query";
 import { Link } from "@tanstack/react-router";
 import type { ColumnDef } from "@tanstack/react-table";
 import { format } from "date-fns";
 import { MoreHorizontal } from "lucide-react";
-import { toast } from "sonner";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Checkbox } from "@/components/ui/checkbox";
@@ -15,7 +13,7 @@ import {
 	DropdownMenuSeparator,
 	DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
-import { orpc } from "@/lib/orpc/orpc";
+import { useDeleteProvidersMutation } from "@/hooks/mutations/use-provider-mutations";
 import type { Provider } from "@/lib/orpc/schemas/provider";
 
 export const providerTableColumns: ColumnDef<Provider>[] = [
@@ -127,30 +125,12 @@ export const providerTableColumns: ColumnDef<Provider>[] = [
 ];
 
 const DeleteItem = ({ provider }: { provider: Provider }) => {
-	const { mutateAsync: deleteProviders } = useMutation(
-		orpc.provider.delete.mutationOptions(),
-	);
-
-	const handleDelete = (provider: Provider) => {
-		toast.promise(
-			deleteProviders({
-				refs: [{ id: provider.id }],
-			}),
-			{
-				loading: "Deleting provider...",
-				success: "Provider deleted",
-				error: (error) => ({
-					message: "Failed to delete provider",
-					description: error.message,
-				}),
-			},
-		);
-	};
+	const { mutate: deleteProviders } = useDeleteProvidersMutation();
 
 	return (
 		<DropdownMenuItem
 			variant="destructive"
-			onClick={() => handleDelete(provider)}
+			onClick={() => deleteProviders({ refs: [{ id: provider.id }] })}
 		>
 			Delete Provider
 		</DropdownMenuItem>

@@ -10,7 +10,7 @@ export const useInit = () => {
 	const { trackEvent } = useUmami();
 	const { refetch: refetchSession } = authClient.useSession();
 
-	const init = useMutationAction({
+	return useMutationAction({
 		mutationOptions: () => ({
 			mutationFn: async (values: InitSchemaType) => {
 				const initResult = await client.bootstrap.initialize({
@@ -42,18 +42,16 @@ export const useInit = () => {
 
 				return initResult;
 			},
+			onSuccess: () => {
+				trackEvent("app-init");
+				refetchSession();
+				navigate({ to: "/app", replace: true });
+			},
 		}),
 		messages: {
 			loading: "Initializing application...",
 			success: "Initialization completed successfully!",
 			error: "Initialization failed",
 		},
-		onSuccess: () => {
-			trackEvent("auth-init");
-			refetchSession();
-			navigate({ to: "/app", replace: true });
-		},
 	});
-
-	return { init };
 };

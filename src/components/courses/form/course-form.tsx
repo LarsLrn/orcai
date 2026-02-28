@@ -1,5 +1,8 @@
 import { useAppForm } from "@/hooks/form";
-import { useCourseMutations } from "@/hooks/mutations/use-course-mutations";
+import {
+	useCreateCourseMutation,
+	useUpdateCourseMutation,
+} from "@/hooks/mutations/use-course-mutations";
 import type { Course } from "@/lib/orpc/schemas/course";
 import { courseFormOptions } from "./course-form-options";
 import { CourseFormAiSettings } from "./sections/course-form-ai-settings";
@@ -12,15 +15,16 @@ const CourseForm = ({
 	action: "create" | "update";
 	course?: Course;
 }) => {
-	const { createCourse, updateCourse } = useCourseMutations();
+	const { mutate: createCourse } = useCreateCourseMutation();
+	const { mutate: updateCourse } = useUpdateCourseMutation();
 
 	const form = useAppForm({
 		...courseFormOptions(course),
 		onSubmit: ({ value }) => {
 			if (action === "update" && course) {
-				updateCourse.run({ ...value, id: course.id });
+				updateCourse({ ...value, id: course.id });
 			} else {
-				createCourse.run(value);
+				createCourse(value);
 			}
 		},
 	});

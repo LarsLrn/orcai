@@ -7,11 +7,11 @@ import {
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Separator } from "@/components/ui/separator";
-import { useCreateChat } from "@/hooks/actions/use-create-chat";
+import { useCreateChatMutation } from "@/hooks/mutations/use-chat-mutation";
 import type { Bot } from "@/lib/orpc/schemas/bot";
 
 const BotQuickActions = ({ bot }: { bot: Bot }) => {
-	const { createChat } = useCreateChat();
+	const { mutate: createChat } = useCreateChatMutation();
 
 	return (
 		<Card>
@@ -21,7 +21,7 @@ const BotQuickActions = ({ bot }: { bot: Bot }) => {
 			<CardContent className="space-y-2">
 				<Button
 					variant="outline"
-					onClick={() => createChat(bot.id)}
+					onClick={() => createChat({ botId: bot.id })}
 					className="w-full justify-start gap-2"
 				>
 					<BotMessageSquareIcon className="size-4" />

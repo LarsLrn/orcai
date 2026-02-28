@@ -8,7 +8,7 @@ export const useSignin = () => {
 	const navigate = useNavigate();
 	const { trackEvent } = useUmami();
 
-	const signin = useMutationAction({
+	return useMutationAction({
 		mutationOptions: () => ({
 			mutationFn: async (values: SigninSchemaType) => {
 				const result = await authClient.signIn.email({
@@ -20,19 +20,15 @@ export const useSignin = () => {
 				}
 				return result;
 			},
+			onSuccess: () => {
+				trackEvent("auth-login");
+				navigate({ to: "/app" });
+			},
 		}),
 		messages: {
 			loading: "Logging in...",
 			success: "Welcome back!",
 			error: "Login failed",
 		},
-		onSuccess: (result) => {
-			trackEvent("auth-login", {
-				email: result.data?.user?.email,
-			});
-			navigate({ to: "/app" });
-		},
 	});
-
-	return { signin };
 };

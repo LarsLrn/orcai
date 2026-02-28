@@ -6,11 +6,11 @@ import { useInit } from "@/hooks/mutations/use-init";
 import { initFormOptions } from "./init-form-options";
 
 const InitForm = () => {
-	const { init } = useInit();
+	const { mutate: init } = useInit();
 	const form = useAppForm({
 		...initFormOptions(),
 		onSubmit: ({ value }) => {
-			init.run(value);
+			init(value);
 		},
 	});
 

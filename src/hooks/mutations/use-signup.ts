@@ -18,7 +18,7 @@ export const useSignup = () => {
 		orpc.organizationInvitation.respond.mutationOptions(),
 	);
 
-	const signup = useMutationAction({
+	return useMutationAction({
 		mutationOptions: () => ({
 			mutationFn: async (values: SignupSchemaType) => {
 				// TODO: Consider adding a check that accounts can only be created if the email and invitation match
@@ -74,18 +74,17 @@ export const useSignup = () => {
 
 				return result;
 			},
+			onSuccess: (result) => {
+				trackEvent("auth-register", {
+					email: result.data?.user?.email,
+				});
+				navigate({ to: "/", replace: true });
+			},
 		}),
 		messages: {
 			loading: "Creating your account...",
 			success: "Account successfully created!",
 			error: "Account creation failed",
 		},
-		onSuccess: (result) => {
-			trackEvent("auth-register", {
-				email: result.data?.user?.email,
-			});
-			navigate({ to: "/", replace: true });
-		},
 	});
-	return { signup };
 };

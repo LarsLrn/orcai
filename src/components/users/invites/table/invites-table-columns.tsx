@@ -1,4 +1,3 @@
-import { useMutation } from "@tanstack/react-query";
 import { useRouter } from "@tanstack/react-router";
 import type { ColumnDef } from "@tanstack/react-table";
 import { format } from "date-fns";
@@ -14,8 +13,8 @@ import {
 	DropdownMenuSeparator,
 	DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
+import { useDeleteOrganizationInvitationsMutation } from "@/hooks/mutations/use-organization-invitation-mutations";
 import { clientEnv } from "@/lib/env/client";
-import { orpc } from "@/lib/orpc/orpc";
 import type { OrganizationInvitation } from "@/lib/orpc/schemas/organization-invitation";
 
 export const invitesTableColumns: ColumnDef<OrganizationInvitation>[] = [
@@ -120,7 +119,10 @@ const ActionsCell = ({
 					Copy Invitation Link
 				</DropdownMenuItem>
 				<DropdownMenuSeparator />
-				<DeleteItem invitationId={invitation.id} />
+				<DeleteItem
+					invitationId={invitation.id}
+					organizationId={invitation.organizationId}
+				/>
 			</DropdownMenuContent>
 		</DropdownMenu>
 	);
@@ -128,26 +130,16 @@ const ActionsCell = ({
 
 const DeleteItem = ({
 	invitationId,
+	organizationId,
 }: {
 	invitationId: OrganizationInvitation["id"];
+	organizationId: OrganizationInvitation["organizationId"];
 }) => {
-	const { mutateAsync: deleteInvitations } = useMutation(
-		orpc.organizationInvitation.delete.mutationOptions(),
-	);
+	const { mutate: deleteInvitations } =
+		useDeleteOrganizationInvitationsMutation();
 
 	const handleDelete = (id: OrganizationInvitation["id"]) => {
-		toast.promise(
-			// TODO: Replace with actual organizationId
-			deleteInvitations({ organizationId: "placeholder", refs: [{ id }] }),
-			{
-				loading: "Deleting organization invitation...",
-				success: "Organization invitation deleted",
-				error: (error) => ({
-					message: "Failed to delete organization invitation",
-					description: error.message,
-				}),
-			},
-		);
+		deleteInvitations({ organizationId, refs: [{ id }] });
 	};
 
 	return (

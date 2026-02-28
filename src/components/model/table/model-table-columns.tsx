@@ -1,9 +1,7 @@
-import { useMutation } from "@tanstack/react-query";
 import { Link } from "@tanstack/react-router";
 import type { ColumnDef } from "@tanstack/react-table";
 import { format } from "date-fns";
 import { MoreHorizontal } from "lucide-react";
-import { toast } from "sonner";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Checkbox } from "@/components/ui/checkbox";
@@ -15,7 +13,7 @@ import {
 	DropdownMenuSeparator,
 	DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
-import { orpc } from "@/lib/orpc/orpc";
+import { useDeleteModelsMutation } from "@/hooks/mutations/use-model-mutations";
 import type { Model } from "@/lib/orpc/schemas/model";
 
 export const modelTableColumns: ColumnDef<Model>[] = [
@@ -120,28 +118,13 @@ export const modelTableColumns: ColumnDef<Model>[] = [
 ];
 
 const DeleteItem = ({ model }: { model: Model }) => {
-	const { mutateAsync: deleteModels } = useMutation(
-		orpc.model.delete.mutationOptions(),
-	);
-
-	const handleDelete = (model: Model) => {
-		toast.promise(
-			deleteModels({
-				refs: [{ id: model.id }],
-			}),
-			{
-				loading: "Deleting model...",
-				success: "Model deleted",
-				error: (error) => ({
-					message: "Failed to delete model",
-					description: error.message,
-				}),
-			},
-		);
-	};
+	const { mutate: deleteModels } = useDeleteModelsMutation();
 
 	return (
-		<DropdownMenuItem variant="destructive" onClick={() => handleDelete(model)}>
+		<DropdownMenuItem
+			variant="destructive"
+			onClick={() => deleteModels({ refs: [{ id: model.id }] })}
+		>
 			Delete Model
 		</DropdownMenuItem>
 	);

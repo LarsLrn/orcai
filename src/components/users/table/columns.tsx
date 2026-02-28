@@ -1,7 +1,6 @@
 import { Link } from "@tanstack/react-router";
 import type { ColumnDef } from "@tanstack/react-table";
 import { MoreHorizontal } from "lucide-react";
-import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
 import { Checkbox } from "@/components/ui/checkbox";
 import { DataTableColumnHeader } from "@/components/ui/data-table/data-table-column-header";
@@ -12,19 +11,8 @@ import {
 	DropdownMenuSeparator,
 	DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
-import { authClient } from "@/lib/auth/auth-client";
+import { useDeleteUsersMutation } from "@/hooks/mutations/use-user-admin-mutations";
 import type { User } from "@/lib/orpc/schemas/user";
-
-const handleDelete = (id: string) => {
-	toast.promise(authClient.admin.removeUser({ userId: id }), {
-		loading: "Deleting user...",
-		success: "User deleted",
-		error: (error) => ({
-			message: "Failed to delete user",
-			description: error.message,
-		}),
-	});
-};
 
 export const columns: ColumnDef<User>[] = [
 	{
@@ -88,15 +76,23 @@ export const columns: ColumnDef<User>[] = [
 							<DropdownMenuItem>Edit User</DropdownMenuItem>
 						</Link>
 						<DropdownMenuSeparator />
-						<DropdownMenuItem
-							variant="destructive"
-							onClick={() => handleDelete(user.id)}
-						>
-							Delete User
-						</DropdownMenuItem>
+						<DeleteItem userId={user.id} />
 					</DropdownMenuContent>
 				</DropdownMenu>
 			);
 		},
 	},
 ];
+
+const DeleteItem = ({ userId }: { userId: string }) => {
+	const { mutate: deleteUsers } = useDeleteUsersMutation();
+
+	return (
+		<DropdownMenuItem
+			variant="destructive"
+			onClick={() => deleteUsers({ userIds: [userId] })}
+		>
+			Delete User
+		</DropdownMenuItem>
+	);
+};

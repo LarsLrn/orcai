@@ -1,7 +1,5 @@
-import { useMutation } from "@tanstack/react-query";
-import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
-import { orpc } from "@/lib/orpc/orpc";
+import { useDeleteOrganizationsMutation } from "@/hooks/mutations/use-organization-mutations";
 import type { Organization } from "@/lib/orpc/schemas/organization";
 import { OrganizationForm } from "./form/organization-form";
 
@@ -10,20 +8,7 @@ const ManageOrganization = ({
 }: {
 	organization: Organization;
 }) => {
-	const { mutateAsync: deleteOrganization } = useMutation(
-		orpc.organization.delete.mutationOptions(),
-	);
-
-	const handleDeleteOrganization = (organizationId: string) => {
-		toast.promise(deleteOrganization({ refs: [{ id: organizationId }] }), {
-			loading: "Deleting organisation...",
-			success: "Organisation deleted",
-			error: (error) => ({
-				message: "Failed to delete organisation",
-				description: error.message,
-			}),
-		});
-	};
+	const { mutate: deleteOrganizations } = useDeleteOrganizationsMutation();
 
 	return (
 		<div className="mt-4 flex flex-col gap-4">
@@ -31,7 +16,9 @@ const ManageOrganization = ({
 			<div className="flex gap-2">
 				<Button
 					variant="destructive"
-					onClick={() => handleDeleteOrganization(organization.id)}
+					onClick={() =>
+						deleteOrganizations({ refs: [{ id: organization.id }] })
+					}
 				>
 					Delete Organisation
 				</Button>

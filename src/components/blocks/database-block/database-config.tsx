@@ -1,4 +1,4 @@
-import { useMutation, useQuery } from "@tanstack/react-query";
+import { useQuery } from "@tanstack/react-query";
 import { Link } from "@tanstack/react-router";
 import {
 	BotIcon,
@@ -8,7 +8,6 @@ import {
 	ZapIcon,
 } from "lucide-react";
 import { useState } from "react";
-import { toast } from "sonner";
 import { AssetPreview } from "@/components/documents/asset-preview";
 import { Badge } from "@/components/ui/badge";
 import { Button, buttonVariants } from "@/components/ui/button";
@@ -27,6 +26,7 @@ import {
 import { Item, ItemContent, ItemTitle } from "@/components/ui/item";
 import { AnimatedGroup } from "@/components/ui/motion/animated-group";
 import { Spinner } from "@/components/ui/spinner";
+import { useCreateJobMutation } from "@/hooks/mutations/use-job-mutations";
 import { orpc } from "@/lib/orpc/orpc";
 import type { Asset } from "@/lib/orpc/schemas/asset";
 import type { DatabaseBlock } from "@/lib/orpc/schemas/block";
@@ -162,25 +162,9 @@ const AssetSection = ({
 	assetIds: Asset["id"][];
 	blockId: DatabaseBlock["id"];
 }) => {
-	const { mutateAsync: createDatabaseBlockVectorStore } = useMutation(
-		orpc.job.create.mutationOptions(),
-	);
+	const { mutate: createJob } = useCreateJobMutation();
 
 	const [isOpen, setIsOpen] = useState(false);
-
-	const handleCreateVectorStore = () => {
-		toast.promise(
-			createDatabaseBlockVectorStore({
-				jobRunner: "process-asset-job",
-				blockId,
-			}),
-			{
-				success: "Vector store created successfully",
-				loading: "Creating vector store...",
-				error: "Failed to create vector store",
-			},
-		);
-	};
 
 	return (
 		<Collapsible
@@ -196,7 +180,12 @@ const AssetSection = ({
 					</span>
 				</div>
 				<div className="flex gap-2">
-					<Button size="sm" onClick={handleCreateVectorStore}>
+					<Button
+						size="sm"
+						onClick={() =>
+							createJob({ jobRunner: "process-asset-job", blockId })
+						}
+					>
 						Create Vector Store
 					</Button>
 					<Link

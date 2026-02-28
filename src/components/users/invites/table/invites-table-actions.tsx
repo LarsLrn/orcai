@@ -1,4 +1,3 @@
-import { useMutation } from "@tanstack/react-query";
 import { ReplaceAllIcon } from "lucide-react";
 import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
@@ -9,33 +8,41 @@ import {
 	DropdownMenuItem,
 	DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
-import { orpc } from "@/lib/orpc/orpc";
+import { useDeleteOrganizationInvitationsMutation } from "@/hooks/mutations/use-organization-invitation-mutations";
+import type { OrganizationInvitation } from "@/lib/orpc/schemas/organization-invitation";
 
 const InvitesTableActions = () => {
 	const { table } = useTable();
-	const { mutateAsync: deleteInvitations } = useMutation(
-		orpc.courseInvitation.delete.mutationOptions(),
-	);
+	const { mutate: deleteInvitations } =
+		useDeleteOrganizationInvitationsMutation();
 
 	const handleDelete = () => {
-		const courseInvitationIds = table
+		const selectedInvitations = table
 			.getSelectedRowModel()
-			.flatRows.map((row) => row.id);
+			.flatRows.map((row) => row.original as OrganizationInvitation);
 
-		toast.promise(
-			deleteInvitations({
-				courseId: "placeholder", // TODO: Replace with actual courseId
-				refs: courseInvitationIds.map((id) => ({ id })),
-			}),
-			{
-				loading: "Deleting course invitations...",
-				success: "Course invitations deleted",
-				error: (error) => ({
-					message: "Failed to delete course invitations",
-					description: error.message,
-				}),
-			},
+		const organizationIds = new Set(
+			selectedInvitations.map((invitation) => invitation.organizationId),
 		);
+
+		if (organizationIds.size > 1) {
+			toast.error("Mixed organizations selected", {
+				description: "Please select invitations from a single organization.",
+			});
+			return;
+		}
+
+		const organizationId = selectedInvitations[0]?.organizationId;
+
+		if (!organizationId) {
+			toast.error("Organization ID is required");
+			return;
+		}
+
+		deleteInvitations({
+			organizationId,
+			refs: selectedInvitations.map((invitation) => ({ id: invitation.id })),
+		});
 	};
 
 	return (

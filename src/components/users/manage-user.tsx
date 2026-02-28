@@ -32,6 +32,7 @@ import {
 	SelectValue,
 } from "@/components/ui/select";
 import { Separator } from "@/components/ui/separator";
+import { useDeleteUsersMutation } from "@/hooks/mutations/use-user-admin-mutations";
 import { authClient } from "@/lib/auth/auth-client";
 import type { User } from "@/lib/orpc/schemas/user";
 
@@ -46,6 +47,7 @@ const ManageUser = ({
 }) => {
 	const [sessions, setSessions] = useState<Session[] | undefined>(undefined);
 	const [isSessionsOpen, setIsSessionsOpen] = useState(false);
+	const { mutate: deleteUsers } = useDeleteUsersMutation();
 
 	// biome-ignore lint/correctness/useExhaustiveDependencies: <FIXME: Check later>
 	useEffect(() => {
@@ -144,14 +146,7 @@ const ManageUser = ({
 	};
 
 	const handleDeleteUser = (userId: string) => {
-		toast.promise(authClient.admin.removeUser({ userId }), {
-			loading: "Deleting user...",
-			success: "User deleted",
-			error: (error) => ({
-				message: "Failed to delete user",
-				description: error.message,
-			}),
-		});
+		deleteUsers({ userIds: [userId] });
 	};
 
 	return (

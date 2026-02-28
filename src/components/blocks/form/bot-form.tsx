@@ -8,7 +8,10 @@ import {
 	CardTitle,
 } from "@/components/ui/card";
 import { useAppForm } from "@/hooks/form";
-import { useBotMutations } from "@/hooks/mutations/use-bot-mutations";
+import {
+	useCreateBotMutation,
+	useUpdateBotMutation,
+} from "@/hooks/mutations/use-bot-mutations";
 import { orpc } from "@/lib/orpc/orpc";
 import type { Block } from "@/lib/orpc/schemas/block";
 import type { Bot } from "@/lib/orpc/schemas/bot";
@@ -21,7 +24,8 @@ interface BotBuilderFormProps {
 }
 
 const BotForm = ({ action, bot, blockIds }: BotBuilderFormProps) => {
-	const { createBot, updateBot } = useBotMutations();
+	const { mutate: createBot } = useCreateBotMutation();
+	const { mutate: updateBot } = useUpdateBotMutation();
 
 	const { data: blocksResponse } = useSuspenseQuery(
 		orpc.block.list.queryOptions({
@@ -48,9 +52,9 @@ const BotForm = ({ action, bot, blockIds }: BotBuilderFormProps) => {
 		...botFormOptions(bot, blockIds),
 		onSubmit: ({ value }) => {
 			if (action === "update" && bot) {
-				updateBot.run({ ...value, id: bot.id });
+				updateBot({ ...value, id: bot.id });
 			} else {
-				createBot.run(value);
+				createBot(value);
 			}
 		},
 	});

@@ -1,8 +1,6 @@
-import { useMutation } from "@tanstack/react-query";
 import type { ApiGetScoresResponseData } from "langfuse";
 import { CheckIcon, StarIcon } from "lucide-react";
-import { useState } from "react";
-import { toast } from "sonner";
+import { useEffect, useState } from "react";
 import { MessageAction as Action } from "@/components/ai-elements/message";
 import {
 	DropdownMenu,
@@ -13,8 +11,7 @@ import {
 	DropdownMenuSeparator,
 	DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
-import { useUmami } from "@/hooks/use-umami";
-import { orpc } from "@/lib/orpc/orpc";
+import { useRateChatMessageMutation } from "@/hooks/mutations/use-chat-message-mutations";
 import type { Chat } from "@/lib/orpc/schemas/chat";
 import type { ChatMessage } from "@/lib/orpc/schemas/chat-message";
 import { cn } from "@/lib/utils";
@@ -33,39 +30,26 @@ const MessageRate = ({
 	const [optimisticScore, setOptimisticScore] = useState<
 		number | undefined | null
 	>(score?.value);
-	const { trackEvent } = useUmami();
-	const { mutateAsync: rateMessage } = useMutation(
-		orpc.chatMessage.rate.mutationOptions(),
-	);
+
+	const { mutate: rateMessage } = useRateChatMessageMutation({
+		onMutate: ({ sentiment }) => {
+			setOptimisticScore(sentiment);
+		},
+		onError: () => {
+			setOptimisticScore(score?.value);
+		},
+	});
+
+	useEffect(() => {
+		setOptimisticScore(score?.value);
+	}, [score?.value]);
 
 	const handleRate = (sentiment: number) => {
-		toast.promise(
-			rateMessage({
-				id: messageId,
-				chatId,
-				sentiment,
-			}),
-			{
-				loading: "Rating...",
-				success: () => {
-					setOptimisticScore(sentiment);
-					trackEvent("message-rate", {
-						messageId,
-						sentiment,
-						chatId,
-					});
-					return "Thank you for your feedback!";
-				},
-				error: (error) => {
-					setOptimisticScore(score?.value);
-
-					return {
-						message: "Failed to rate",
-						description: error.message,
-					};
-				},
-			},
-		);
+		rateMessage({
+			id: messageId,
+			chatId,
+			sentiment,
+		});
 	};
 
 	const ratings = [

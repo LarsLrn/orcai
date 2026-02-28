@@ -1,6 +1,4 @@
-import { useMutation } from "@tanstack/react-query";
 import { ReplaceAllIcon } from "lucide-react";
-import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
 import { useTable } from "@/components/ui/data-table/data-table-context";
 import {
@@ -9,28 +7,18 @@ import {
 	DropdownMenuItem,
 	DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
-import { orpc } from "@/lib/orpc/orpc";
+import { useDeleteCoursesMutation } from "@/hooks/mutations/use-course-mutations";
 
 const CoursesDataTableSelectActions = () => {
 	const { table } = useTable();
-
-	const { mutateAsync: deleteCourses } = useMutation(
-		orpc.course.delete.mutationOptions(),
-	);
+	const { mutate: deleteCourses } = useDeleteCoursesMutation();
 
 	if (!table) return null;
 
 	const handleDelete = () => {
 		const courseIds = table.getSelectedRowModel().flatRows.map((row) => row.id);
 
-		toast.promise(deleteCourses({ refs: courseIds.map((id) => ({ id })) }), {
-			loading: "Deleting courses...",
-			success: "Courses deleted",
-			error: (error) => ({
-				message: "Failed to delete courses",
-				description: error.message,
-			}),
-		});
+		deleteCourses({ refs: courseIds.map((id) => ({ id })) });
 	};
 
 	return (

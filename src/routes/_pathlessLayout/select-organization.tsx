@@ -1,15 +1,14 @@
-import { useMutation, useSuspenseQuery } from "@tanstack/react-query";
+import { useSuspenseQuery } from "@tanstack/react-query";
 import { createFileRoute, redirect, useNavigate } from "@tanstack/react-router";
 import { BuildingIcon } from "lucide-react";
 import { Suspense } from "react";
-import { toast } from "sonner";
 import { OrganizationInvitationsList } from "@/components/organizations/invitations/organization-invitations-list";
 import { OrganizationCard } from "@/components/organizations/organization-card";
 import { Card, CardContent } from "@/components/ui/card";
 import { Skeleton } from "@/components/ui/skeleton";
+import { useSetActiveOrganizationMutation } from "@/hooks/mutations/use-user-mutations";
 import { authClient } from "@/lib/auth/auth-client";
 import { orpc } from "@/lib/orpc/orpc";
-import type { Organization } from "@/lib/orpc/schemas/organization";
 
 export const Route = createFileRoute("/_pathlessLayout/select-organization")({
 	component: RouteComponent,
@@ -63,25 +62,7 @@ function RouteComponent() {
 			input: { pageIndex: 0, pageSize: 100 },
 		}),
 	);
-
-	const { mutateAsync: setActiveOrganization } = useMutation(
-		orpc.user.setActiveOrganization.mutationOptions(),
-	);
-
-	const handleOrganizationChange = (organization: Organization) => {
-		toast.promise(setActiveOrganization({ organizationId: organization.id }), {
-			loading: `Switching to ${organization.name}...`,
-			success: async () => {
-				await refetchSession();
-				await navigate({ to: "/app" });
-				return `Welcome to ${organization.name}!`;
-			},
-			error: (error) => ({
-				message: "Failed to select organization",
-				description: error.message,
-			}),
-		});
-	};
+	const { mutate: setActiveOrganization } = useSetActiveOrganizationMutation();
 
 	const handleInvitationAccepted = async () => {
 		await refetchSession();
@@ -105,7 +86,9 @@ function RouteComponent() {
 						<OrganizationCard
 							key={organization.id}
 							organization={organization}
-							onSelect={() => handleOrganizationChange(organization)}
+							onSelect={() =>
+								setActiveOrganization({ organizationId: organization.id })
+							}
 						/>
 					))}
 				</div>

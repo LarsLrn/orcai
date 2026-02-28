@@ -1,8 +1,11 @@
 import * as OtelTracer from "@effect/opentelemetry/Tracer";
 import { context as otelContext, trace } from "@opentelemetry/api";
 import { ORPCError, type ORPCErrorCode } from "@orpc/client";
+import * as Cause from "effect/Cause";
 import * as Effect from "effect/Effect";
+import * as Exit from "effect/Exit";
 import * as Match from "effect/Match";
+import * as Option from "effect/Option";
 import { type AppRuntimeContext, runtime } from "@/lib/effect/runtime";
 import { type AppError, ErrorTags } from "./errors";
 
@@ -86,57 +89,67 @@ const appErrorToCode: (error: AppError) => ORPCErrorCode =
 	);
 
 type AnyORPCError = ORPCError<ORPCErrorCode, unknown>;
-const toORPCError = (error: AppError): AnyORPCError => {
+const toAppORPCError = (error: AppError): AnyORPCError => {
 	const status = appErrorToCode(error);
 	const message = extractErrorMessage(error);
-	return new ORPCError(status, { data: { message } });
+	return new ORPCError(status, {
+		message,
+		data: { message },
+	});
 };
 
-/**
- * Pipeable operator that maps Effect errors to ORPCError.
- *
- * For errors in the `AppError` union, status codes are derived with
- * exhaustive matching. External errors (e.g. `EffectDrizzleQueryError`)
- * fall back to `INTERNAL_SERVER_ERROR`.
- *
- * @example
- * ```ts
- * await runtime.runPromise(
- *   sendJobBatchEffect(...).pipe(mapToORPCError()),
- * );
- * ```
- */
-const mapToORPCError = <E>() =>
-	Effect.mapError<E, AnyORPCError>((error) => {
-		// Preserve already-shaped ORPC errors (e.g. from ORPC middleware),
-		// so status, message and data are not flattened to INTERNAL_SERVER_ERROR.
-		if (error instanceof ORPCError) {
-			return error as AnyORPCError;
-		}
+const mapUnknownToORPCError = (error: unknown): AnyORPCError => {
+	// Preserve already-shaped ORPC errors (e.g. from ORPC middleware),
+	// so status, message and data are not flattened to INTERNAL_SERVER_ERROR.
+	if (error instanceof ORPCError) {
+		return error as AnyORPCError;
+	}
 
-		if (isAppError(error)) {
-			return toORPCError(error);
-		}
+	if (isAppError(error)) {
+		return toAppORPCError(error);
+	}
 
-		const message = extractErrorMessage(error);
-		return new ORPCError("INTERNAL_SERVER_ERROR", { data: { message } });
+	const message = extractErrorMessage(error);
+	return new ORPCError("INTERNAL_SERVER_ERROR", {
+		message,
+		data: { message },
 	});
+};
 
 export const runOrpcEffect = <A, E, R extends AppRuntimeContext>(
 	effect: Effect.Effect<A, E, R>,
 	options?: { spanName?: string },
-): Promise<A> => {
-	const activeSpan = trace.getSpan(otelContext.active());
+): Promise<A> =>
+	(async () => {
+		const activeSpan = trace.getSpan(otelContext.active());
 
-	const traced =
-		activeSpan === undefined
-			? effect
-			: OtelTracer.withSpanContext(effect, activeSpan.spanContext());
+		const traced =
+			activeSpan === undefined
+				? effect
+				: OtelTracer.withSpanContext(effect, activeSpan.spanContext());
 
-	const named =
-		options?.spanName === undefined
-			? traced
-			: Effect.withSpan(traced, options.spanName);
+		const named =
+			options?.spanName === undefined
+				? traced
+				: Effect.withSpan(traced, options.spanName);
 
-	return runtime.runPromise(named.pipe(mapToORPCError<E>()));
-};
+		const exit = await runtime.runPromiseExit(named);
+
+		if (Exit.isSuccess(exit)) {
+			return exit.value;
+		}
+
+		const failure = Cause.failureOption(exit.cause);
+		if (Option.isSome(failure)) {
+			throw mapUnknownToORPCError(failure.value);
+		}
+
+		const defect = Cause.dieOption(exit.cause);
+		if (Option.isSome(defect)) {
+			throw mapUnknownToORPCError(defect.value);
+		}
+
+		throw new ORPCError("INTERNAL_SERVER_ERROR", {
+			message: "Internal server error",
+		});
+	})();

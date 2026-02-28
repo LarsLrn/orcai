@@ -1,9 +1,7 @@
-import { useMutation } from "@tanstack/react-query";
 import { Link } from "@tanstack/react-router";
 import type { ColumnDef } from "@tanstack/react-table";
 import { format } from "date-fns";
 import { MoreHorizontal } from "lucide-react";
-import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
 import { Checkbox } from "@/components/ui/checkbox";
 import { DataTableColumnHeader } from "@/components/ui/data-table/data-table-column-header";
@@ -14,7 +12,7 @@ import {
 	DropdownMenuSeparator,
 	DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
-import { orpc } from "@/lib/orpc/orpc";
+import { useDeleteBlocksMutation } from "@/hooks/mutations/use-block-mutations";
 import type { Block } from "@/lib/orpc/schemas/block";
 
 export const columns: ColumnDef<Block>[] = [
@@ -93,25 +91,12 @@ export const columns: ColumnDef<Block>[] = [
 ];
 
 const DeleteItem = ({ blockId }: { blockId: Block["id"] }) => {
-	const { mutateAsync: deleteBlocks } = useMutation(
-		orpc.block.delete.mutationOptions(),
-	);
-
-	const handleDelete = (id: string) => {
-		toast.promise(deleteBlocks({ refs: [{ id }] }), {
-			loading: "Deleting block...",
-			success: "Block deleted",
-			error: (error) => ({
-				message: "Failed to delete block",
-				description: error.message,
-			}),
-		});
-	};
+	const { mutate: deleteBlocks } = useDeleteBlocksMutation();
 
 	return (
 		<DropdownMenuItem
 			variant="destructive"
-			onClick={() => handleDelete(blockId)}
+			onClick={() => deleteBlocks({ refs: [{ id: blockId }] })}
 		>
 			Delete Block
 		</DropdownMenuItem>

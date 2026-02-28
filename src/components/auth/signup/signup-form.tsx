@@ -12,14 +12,14 @@ const SignUpForm = ({
 }: {
 	invitationId: OrganizationInvitation["id"];
 }) => {
-	const { signup } = useSignup();
+	const { mutate: signup } = useSignup();
 
 	const form = useAppForm({
 		...signupFormOptions({
 			invitationId,
 		}),
 		onSubmit: ({ value }) => {
-			signup.run(signupSchema.parse(value));
+			signup(signupSchema.parse(value));
 		},
 	});
 

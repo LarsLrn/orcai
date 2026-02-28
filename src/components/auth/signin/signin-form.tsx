@@ -3,12 +3,12 @@ import { useSignin } from "@/hooks/mutations/use-signin";
 import { signinFormOptions } from "./signin-form-options";
 
 const SignInForm = () => {
-	const { signin } = useSignin();
+	const { mutate: signin } = useSignin();
 
 	const form = useAppForm({
 		...signinFormOptions(),
 		onSubmit: ({ value }) => {
-			signin.run(value);
+			signin(value);
 		},
 	});
 

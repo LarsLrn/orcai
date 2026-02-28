@@ -1,15 +1,39 @@
+import type { UseMutationOptions } from "@tanstack/react-query";
 import { useMutationAction } from "@/hooks/actions/use-mutation-action";
 import { authClient } from "@/lib/auth/auth-client";
 
-export const useProfileMutations = () => {
+type UpdateProfileInput = { name: string };
+type UpdateProfileMutationOptions = UseMutationOptions<
+	void,
+	unknown,
+	UpdateProfileInput,
+	unknown
+>;
+
+export const useUpdateProfileMutation = (
+	opts: UpdateProfileMutationOptions = {},
+) => {
 	const { refetch } = authClient.useSession();
 
-	const updateProfile = useMutationAction({
+	return useMutationAction({
 		mutationOptions: () => ({
-			mutationFn: async (values: { name: string }) => {
+			...opts,
+			mutationFn: async (values: UpdateProfileInput) => {
 				await authClient.updateUser({
 					name: values.name,
 				});
+			},
+			onSuccess: async (...args) => {
+				await refetch();
+
+				try {
+					await opts.onSuccess?.(...args);
+				} catch (error) {
+					console.error(
+						"useUpdateProfileMutation onSuccess callback failed:",
+						error,
+					);
+				}
 			},
 		}),
 		messages: {
@@ -17,8 +41,5 @@ export const useProfileMutations = () => {
 			success: "Profile updated successfully!",
 			error: "Failed to update profile",
 		},
-		onSuccess: () => refetch(),
 	});
-
-	return { updateProfile };
 };

@@ -1,6 +1,4 @@
-import { useMutation } from "@tanstack/react-query";
 import { ReplaceAllIcon } from "lucide-react";
-import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
 import { useTable } from "@/components/ui/data-table/data-table-context";
 import {
@@ -9,7 +7,7 @@ import {
 	DropdownMenuItem,
 	DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
-import { orpc } from "@/lib/orpc/orpc";
+import { useDeleteOrganizationMembersMutation } from "@/hooks/mutations/use-organization-member-mutations";
 import type { Organization } from "@/lib/orpc/schemas/organization";
 
 const OrganizationMemberTableActions = ({
@@ -18,31 +16,15 @@ const OrganizationMemberTableActions = ({
 	organizationId: Organization["id"];
 }) => {
 	const { table } = useTable();
-	const { mutateAsync: deleteMember } = useMutation(
-		orpc.organizationMember.delete.mutationOptions(),
-	);
+	const { mutate: deleteMembers } = useDeleteOrganizationMembersMutation();
 
 	const handleDelete = () => {
 		const userIds = table.getSelectedRowModel().flatRows.map((row) => row.id);
 
-		toast.promise(
-			Promise.all(
-				userIds.map((userId) =>
-					deleteMember({
-						organizationId,
-						refs: [{ userId }],
-					}),
-				),
-			),
-			{
-				loading: "Deleting organisation members...",
-				success: "Organisation members deleted",
-				error: (error) => ({
-					message: "Failed to delete organisation members",
-					description: error.message,
-				}),
-			},
-		);
+		deleteMembers({
+			organizationId,
+			refs: userIds.map((userId) => ({ userId })),
+		});
 	};
 
 	return (

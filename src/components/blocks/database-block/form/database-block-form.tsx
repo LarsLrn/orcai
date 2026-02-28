@@ -6,7 +6,10 @@ import { StatePagination } from "@/components/blocks/state-pagination";
 import { Button } from "@/components/ui/button";
 import { Card, CardAction, CardContent } from "@/components/ui/card";
 import { useAppForm } from "@/hooks/form";
-import { useBlockMutations } from "@/hooks/mutations/use-block-mutations";
+import {
+	useCreateBlockMutation,
+	useUpdateBlockMutation,
+} from "@/hooks/mutations/use-block-mutations";
 import { orpc } from "@/lib/orpc/orpc";
 import type { Asset } from "@/lib/orpc/schemas/asset";
 import type { DatabaseBlock } from "@/lib/orpc/schemas/block";
@@ -21,7 +24,8 @@ const DatabaseBlockForm = ({
 	block?: DatabaseBlock;
 	assetIds?: Asset["id"][];
 }) => {
-	const { createBlock, updateBlock } = useBlockMutations();
+	const { mutate: createBlock } = useCreateBlockMutation();
+	const { mutate: updateBlock } = useUpdateBlockMutation();
 
 	const { auth } = useRouteContext({ from: "/app" });
 
@@ -43,9 +47,9 @@ const DatabaseBlockForm = ({
 		...databaseBlockFormOptions(block, assetIds),
 		onSubmit: ({ value }) => {
 			if (action === "update" && block) {
-				updateBlock.run({ ...value, id: block.id });
+				updateBlock({ ...value, id: block.id });
 			} else {
-				createBlock.run(value);
+				createBlock(value);
 			}
 		},
 	});

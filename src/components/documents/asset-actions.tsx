@@ -6,7 +6,7 @@ import {
 	TooltipContent,
 	TooltipTrigger,
 } from "@/components/ui/tooltip";
-import { useAssetMutations } from "@/hooks/mutations/use-asset-mutations";
+import { useDeleteAssetsMutation } from "@/hooks/mutations/use-asset-mutations";
 import type { Asset } from "@/lib/orpc/schemas/asset";
 import { cn } from "@/lib/utils";
 
@@ -19,7 +19,7 @@ const AssetActions = ({
 	filePath: string;
 	className?: string;
 }) => {
-	const { deleteAssets } = useAssetMutations();
+	const { mutate: deleteAssets } = useDeleteAssetsMutation();
 
 	return (
 		<div
@@ -64,9 +64,7 @@ const AssetActions = ({
 							<Button
 								variant="destructive"
 								size="sm"
-								onClick={() =>
-									deleteAssets.run({ refs: [{ id: assetInfo.id }] })
-								}
+								onClick={() => deleteAssets({ refs: [{ id: assetInfo.id }] })}
 								className="flex items-center gap-1"
 							>
 								<Trash2 className="h-4 w-4" />

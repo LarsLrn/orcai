@@ -1,4 +1,3 @@
-import { useMutation } from "@tanstack/react-query";
 import { useRouteContext } from "@tanstack/react-router";
 import type { ColumnDef } from "@tanstack/react-table";
 import { MoreHorizontal } from "lucide-react";
@@ -12,7 +11,7 @@ import {
 	DropdownMenuItem,
 	DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
-import { orpc } from "@/lib/orpc/orpc";
+import { useDeleteOrganizationMembersMutation } from "@/hooks/mutations/use-organization-member-mutations";
 import type { Organization } from "@/lib/orpc/schemas/organization";
 import type { User } from "@/lib/orpc/schemas/user";
 
@@ -85,30 +84,28 @@ export const organizationMemberTableColumns: ColumnDef<User>[] = [
 const DeleteItem = ({ userId }: { userId: User["id"] }) => {
 	const { auth } = useRouteContext({ from: "/app" });
 	const organizationId = auth.session.activeOrganizationId;
-
-	const { mutateAsync: deleteMembers } = useMutation(
-		orpc.organizationMember.delete.mutationOptions(),
-	);
+	const { mutate: deleteMembers } = useDeleteOrganizationMembersMutation();
 
 	const handleDelete = (
 		userId: User["id"],
 		organizationId: Organization["id"],
 	) => {
-		toast.promise(deleteMembers({ organizationId, refs: [{ userId }] }), {
-			loading: "Removing organisation member...",
-			success: "Organisation member removed",
-			error: (error) => ({
-				message: "Failed to remove organisation member",
-				description: error.message,
-			}),
-		});
+		deleteMembers({ organizationId, refs: [{ userId }] });
 	};
 
 	if (!organizationId) {
-		toast.error("Organisation ID is required", {
-			description: "Try switching your active organisation.",
-		});
-		return null;
+		return (
+			<DropdownMenuItem
+				variant="destructive"
+				onClick={() =>
+					toast.error("Organisation ID is required", {
+						description: "Try switching your active organisation.",
+					})
+				}
+			>
+				Remove Member
+			</DropdownMenuItem>
+		);
 	}
 
 	return (
@@ -116,7 +113,7 @@ const DeleteItem = ({ userId }: { userId: User["id"] }) => {
 			variant="destructive"
 			onClick={() => handleDelete(userId, organizationId)}
 		>
-			Delete Organisation
+			Remove Member
 		</DropdownMenuItem>
 	);
 };

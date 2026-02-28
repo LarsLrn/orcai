@@ -3,7 +3,10 @@ import { skipToken, useQuery, useSuspenseQuery } from "@tanstack/react-query";
 import { useRouteContext } from "@tanstack/react-router";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { useAppForm } from "@/hooks/form";
-import { useBlockMutations } from "@/hooks/mutations/use-block-mutations";
+import {
+	useCreateBlockMutation,
+	useUpdateBlockMutation,
+} from "@/hooks/mutations/use-block-mutations";
 import { orpc } from "@/lib/orpc/orpc";
 import type { TemplateBlock } from "@/lib/orpc/schemas/block";
 import { templateBlockFormOptions } from "./template-block-form-options";
@@ -15,7 +18,8 @@ const TemplateBlockForm = ({
 	action: "create" | "update";
 	block?: TemplateBlock;
 }) => {
-	const { createBlock, updateBlock } = useBlockMutations();
+	const { mutate: createBlock } = useCreateBlockMutation();
+	const { mutate: updateBlock } = useUpdateBlockMutation();
 
 	const { auth } = useRouteContext({ from: "/app" });
 
@@ -29,9 +33,9 @@ const TemplateBlockForm = ({
 		...templateBlockFormOptions(block),
 		onSubmit: ({ value }) => {
 			if (action === "update" && block) {
-				updateBlock.run({ ...value, id: block.id });
+				updateBlock({ ...value, id: block.id });
 			} else {
-				createBlock.run(value);
+				createBlock(value);
 			}
 		},
 	});

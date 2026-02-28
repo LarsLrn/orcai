@@ -32,7 +32,7 @@ import {
 	DialogTrigger,
 } from "@/components/ui/dialog";
 import { Separator } from "@/components/ui/separator";
-import { useCreateChat } from "@/hooks/actions/use-create-chat";
+import { useCreateChatMutation } from "@/hooks/mutations/use-chat-mutation";
 import type { Bot } from "@/lib/orpc/schemas/bot";
 
 export const Route = createFileRoute("/app/chat/setup")({
@@ -47,7 +47,7 @@ export const Route = createFileRoute("/app/chat/setup")({
 });
 
 function RouteComponent() {
-	const { createChat } = useCreateChat();
+	const { mutate: createChat } = useCreateChatMutation();
 	const [selectedBot, setSelectedBot] = useState<Bot | null>(null);
 	const [dialogOpen, setDialogOpen] = useState(false);
 
@@ -110,7 +110,7 @@ function RouteComponent() {
 							</Button>
 							<Button
 								disabled={!selectedBot}
-								onClick={() => createChat(selectedBot?.id)}
+								onClick={() => createChat({ botId: selectedBot?.id })}
 							>
 								Start Chat
 							</Button>
