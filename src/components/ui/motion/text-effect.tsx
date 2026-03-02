@@ -275,7 +275,10 @@ export function TextEffect({
 					{per !== "line" ? <span className="sr-only">{children}</span> : null}
 					{segments.map((segment, index) => (
 						<AnimationComponent
-							key={`${per}-${index}-${segment}`}
+							key={`${per}-${
+								// biome-ignore lint/suspicious/noArrayIndexKey: Need stable key and segments might not be unique
+								index
+							}-${segment}`}
 							segment={segment}
 							variants={computedVariants.item}
 							per={per}
