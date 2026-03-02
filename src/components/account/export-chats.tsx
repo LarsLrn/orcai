@@ -8,6 +8,7 @@ import type {
 } from "langfuse";
 import { auth } from "@/lib/auth/auth";
 import { langfuseServer } from "@/lib/langfuse/langfuse-server";
+import { unique } from "@/lib/utils/array-utils";
 import { ExportChatsButton } from "./export-chats-button";
 import { ExportChatsCSVButton } from "./export-chats-csv-button";
 
@@ -146,7 +147,6 @@ const calculateOverviewStats = (traces: FilteredTrace[]) => {
 
 	// Count different tags
 	const allTags = traces.flatMap((trace) => trace.tags || []);
-	const uniqueTags = new Set(allTags);
 
 	return {
 		totalMessages,
@@ -157,7 +157,7 @@ const calculateOverviewStats = (traces: FilteredTrace[]) => {
 		},
 		tracesWithScores,
 		averageLatency: Math.round(averageLatency),
-		uniqueTags: Array.from(uniqueTags),
+		uniqueTags: unique(allTags),
 	};
 };
 
