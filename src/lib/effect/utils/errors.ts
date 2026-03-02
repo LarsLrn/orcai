@@ -7,6 +7,7 @@ export const ErrorTags = {
 	CONFLICT: "ConflictError",
 
 	// Auth errors
+	AUTHZ: "AuthzError",
 	UNAUTHORIZED: "UnauthorizedError",
 	FORBIDDEN: "ForbiddenError",
 
@@ -122,6 +123,15 @@ export class EmailError extends Data.TaggedError(ErrorTags.EMAIL)<{
 	readonly cause: unknown;
 }> {}
 
+export class AuthzError extends Data.TaggedError(ErrorTags.AUTHZ)<{
+	reason:
+		| "outbox_enqueue_failed"
+		| "projection_failed"
+		| "outbox_finalize_failed";
+	eventId?: string;
+	cause: unknown;
+}> {}
+
 export class InternalError extends Data.TaggedError(ErrorTags.INTERNAL)<{
 	readonly operation: string;
 	readonly cause: unknown;
@@ -143,6 +153,7 @@ export type AppError =
 	| AiError
 	| DoclingError
 	| EmailError
+	| AuthzError
 	| InternalError;
 
 type S3LikeCause = {

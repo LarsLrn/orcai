@@ -2,6 +2,8 @@ import { Link } from "@tanstack/react-router";
 import type { ColumnDef } from "@tanstack/react-table";
 import { format } from "date-fns";
 import { MoreHorizontal } from "lucide-react";
+import { useState } from "react";
+import { AccessDialog } from "@/components/access/access-dialog";
 import { Button } from "@/components/ui/button";
 import { Checkbox } from "@/components/ui/checkbox";
 import { DataTableColumnHeader } from "@/components/ui/data-table/data-table-column-header";
@@ -61,34 +63,53 @@ export const columns: ColumnDef<Block>[] = [
 	{
 		id: "actions",
 		size: 32,
-		cell: ({ row }) => {
-			const block = row.original;
-
-			return (
-				<DropdownMenu>
-					<DropdownMenuTrigger
-						render={
-							<Button variant="ghost" className="size-8 p-0">
-								<span className="sr-only">Open menu</span>
-								<MoreHorizontal className="size-4" />
-							</Button>
-						}
-					/>
-					<DropdownMenuContent align="end">
-						<Link to="/app/blocks/$blockId" params={{ blockId: block.id }}>
-							<DropdownMenuItem>View Block</DropdownMenuItem>
-						</Link>
-						<Link to="/app/blocks/$blockId/edit" params={{ blockId: block.id }}>
-							<DropdownMenuItem>Edit Block</DropdownMenuItem>
-						</Link>
-						<DropdownMenuSeparator />
-						<DeleteItem blockId={block.id} />
-					</DropdownMenuContent>
-				</DropdownMenu>
-			);
-		},
+		cell: ({ row }) => <ActionCell block={row.original} />,
 	},
 ];
+
+const ActionCell = ({ block }: { block: Block }) => {
+	const [isAccessOpen, setIsAccessOpen] = useState(false);
+
+	return (
+		<>
+			<DropdownMenu>
+				<DropdownMenuTrigger
+					render={
+						<Button variant="ghost" className="size-8 p-0">
+							<span className="sr-only">Open menu</span>
+							<MoreHorizontal className="size-4" />
+						</Button>
+					}
+				/>
+				<DropdownMenuContent align="end">
+					<Link to="/app/blocks/$blockId" params={{ blockId: block.id }}>
+						<DropdownMenuItem>View Block</DropdownMenuItem>
+					</Link>
+					<Link to="/app/blocks/$blockId/edit" params={{ blockId: block.id }}>
+						<DropdownMenuItem>Edit Block</DropdownMenuItem>
+					</Link>
+					<DropdownMenuItem
+						onSelect={(event) => {
+							event.preventDefault();
+							setIsAccessOpen(true);
+						}}
+					>
+						Manage Access
+					</DropdownMenuItem>
+					<DropdownMenuSeparator />
+					<DeleteItem blockId={block.id} />
+				</DropdownMenuContent>
+			</DropdownMenu>
+
+			<AccessDialog
+				open={isAccessOpen}
+				onOpenChange={setIsAccessOpen}
+				resourceRef={{ type: "block", id: block.id }}
+				resourceName={block.name}
+			/>
+		</>
+	);
+};
 
 const DeleteItem = ({ blockId }: { blockId: Block["id"] }) => {
 	const { mutate: deleteBlocks } = useDeleteBlocksMutation();

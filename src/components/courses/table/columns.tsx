@@ -2,6 +2,8 @@ import { Link } from "@tanstack/react-router";
 import type { ColumnDef } from "@tanstack/react-table";
 import { format } from "date-fns";
 import { MoreHorizontal } from "lucide-react";
+import { useState } from "react";
+import { AccessDialog } from "@/components/access/access-dialog";
 import { Button } from "@/components/ui/button";
 import { Checkbox } from "@/components/ui/checkbox";
 import { DataTableColumnHeader } from "@/components/ui/data-table/data-table-column-header";
@@ -61,37 +63,56 @@ export const columns: ColumnDef<Course>[] = [
 	{
 		id: "actions",
 		size: 32,
-		cell: ({ row }) => {
-			const course = row.original;
-
-			return (
-				<DropdownMenu>
-					<DropdownMenuTrigger
-						render={
-							<Button variant="ghost" className="size-8 p-0">
-								<span className="sr-only">Open menu</span>
-								<MoreHorizontal className="size-4" />
-							</Button>
-						}
-					/>
-					<DropdownMenuContent align="end">
-						<Link to="/app/courses/$courseId" params={{ courseId: course.id }}>
-							<DropdownMenuItem>View Course</DropdownMenuItem>
-						</Link>
-						<Link
-							to="/app/courses/$courseId/edit"
-							params={{ courseId: course.id }}
-						>
-							<DropdownMenuItem>Edit Course</DropdownMenuItem>
-						</Link>
-						<DropdownMenuSeparator />
-						<DeleteItem courseId={course.id} />
-					</DropdownMenuContent>
-				</DropdownMenu>
-			);
-		},
+		cell: ({ row }) => <ActionCell course={row.original} />,
 	},
 ];
+
+const ActionCell = ({ course }: { course: Course }) => {
+	const [isAccessOpen, setIsAccessOpen] = useState(false);
+
+	return (
+		<>
+			<DropdownMenu>
+				<DropdownMenuTrigger
+					render={
+						<Button variant="ghost" className="size-8 p-0">
+							<span className="sr-only">Open menu</span>
+							<MoreHorizontal className="size-4" />
+						</Button>
+					}
+				/>
+				<DropdownMenuContent align="end">
+					<Link to="/app/courses/$courseId" params={{ courseId: course.id }}>
+						<DropdownMenuItem>View Course</DropdownMenuItem>
+					</Link>
+					<Link
+						to="/app/courses/$courseId/edit"
+						params={{ courseId: course.id }}
+					>
+						<DropdownMenuItem>Edit Course</DropdownMenuItem>
+					</Link>
+					<DropdownMenuItem
+						onSelect={(event) => {
+							event.preventDefault();
+							setIsAccessOpen(true);
+						}}
+					>
+						Manage Access
+					</DropdownMenuItem>
+					<DropdownMenuSeparator />
+					<DeleteItem courseId={course.id} />
+				</DropdownMenuContent>
+			</DropdownMenu>
+
+			<AccessDialog
+				open={isAccessOpen}
+				onOpenChange={setIsAccessOpen}
+				resourceRef={{ type: "course", id: course.id }}
+				resourceName={course.title}
+			/>
+		</>
+	);
+};
 
 const DeleteItem = ({ courseId }: { courseId: Course["id"] }) => {
 	const { mutate: deleteCourses } = useDeleteCoursesMutation();

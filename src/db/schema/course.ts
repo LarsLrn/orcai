@@ -1,14 +1,12 @@
 import {
 	json,
 	pgTable,
-	primaryKey,
 	text,
 	timestamp,
 	uuid,
 	varchar,
 } from "drizzle-orm/pg-core";
 import type { CourseConfigType } from "@/lib/orpc/schemas/fragments/course-config";
-import { user } from "./auth";
 import { organization } from "./organization";
 
 export const course = pgTable("course", {
@@ -24,22 +22,3 @@ export const course = pgTable("course", {
 	createdAt: timestamp("created_at").defaultNow(),
 	updatedAt: timestamp("updated_at").defaultNow(),
 });
-
-export const courseMember = pgTable(
-	"course_member",
-	{
-		courseId: uuid("course_id")
-			.notNull()
-			.references(() => course.id, { onDelete: "cascade" }),
-		userId: uuid("user_id")
-			.notNull()
-			.references(() => user.id),
-		role: text("role").notNull(),
-		createdAt: timestamp("created_at").notNull().defaultNow(),
-	},
-	(table) => [
-		primaryKey({
-			columns: [table.courseId, table.userId],
-		}),
-	],
-);

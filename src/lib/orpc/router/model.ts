@@ -7,40 +7,35 @@ import { DB } from "@/lib/effect/services/drizzle";
 import { runOrpcEffect } from "@/lib/effect/utils/orpc-helpers";
 import { decryptApiKey } from "@/lib/encryption";
 import { authed } from "@/lib/orpc/implementation/authed";
+import { requireOrganizationPermission } from "@/lib/orpc/middlewares/org-permission";
 import type { ModelCapability } from "@/lib/orpc/schemas/fragments/model-capabilities";
 import { findProvider } from "./provider";
 
-export const listModels = authed.model.list.handler(async ({ input }) =>
-	runOrpcEffect(
-		Effect.gen(function* () {
-			const db = yield* DB;
+export const listModels = authed.model.list
+	.use(requireOrganizationPermission("read"))
+	.handler(async ({ input }) =>
+		runOrpcEffect(
+			Effect.gen(function* () {
+				const db = yield* DB;
 
-			const [data, [rowCount]] = yield* Effect.all(
-				[
-					db.query.model.findMany({
-						limit: input.pageSize,
-						offset: input.pageIndex * input.pageSize,
-					}),
-					db.select({ count: count() }).from(dbSchema.model),
-				],
-				{ concurrency: "unbounded" },
-			);
+				const [data, [rowCount]] = yield* Effect.all(
+					[
+						db.query.model.findMany({
+							limit: input.pageSize,
+							offset: input.pageIndex * input.pageSize,
+						}),
+						db.select({ count: count() }).from(dbSchema.model),
+					],
+					{ concurrency: "unbounded" },
+				);
 
-			return { data, rowCount: rowCount.count };
-		}),
-	),
-);
+				return { data, rowCount: rowCount.count };
+			}),
+		),
+	);
 
 export const findModel = authed.model.find
-	/* .use(
-    checkPermissionMiddleware,
-    (input) =>
-      ({
-        entityId: input.id,
-        action: "read",
-        entityType: "organization",
-      }) satisfies CheckPermissionInput,
-  ) */
+	.use(requireOrganizationPermission("read"))
 	.handler(async ({ input, errors }) =>
 		runOrpcEffect(
 			Effect.gen(function* () {
@@ -67,23 +62,26 @@ export const findModel = authed.model.find
 		),
 	);
 
-export const createModel = authed.model.create.handler(async ({ input }) =>
-	runOrpcEffect(
-		Effect.gen(function* () {
-			const db = yield* DB;
+export const createModel = authed.model.create
+	.use(requireOrganizationPermission("manage_members"))
+	.handler(async ({ input }) =>
+		runOrpcEffect(
+			Effect.gen(function* () {
+				const db = yield* DB;
 
-			const [model] = yield* db
-				.insert(dbSchema.model)
-				.values(input)
-				.returning();
+				const [model] = yield* db
+					.insert(dbSchema.model)
+					.values(input)
+					.returning();
 
-			return { data: model };
-		}),
-	),
-);
+				return { data: model };
+			}),
+		),
+	);
 
-export const updateModel = authed.model.update.handler(
-	async ({ input, errors }) =>
+export const updateModel = authed.model.update
+	.use(requireOrganizationPermission("manage_members"))
+	.handler(async ({ input, errors }) =>
 		runOrpcEffect(
 			Effect.gen(function* () {
 				const db = yield* DB;
@@ -103,24 +101,26 @@ export const updateModel = authed.model.update.handler(
 				return { data: model };
 			}),
 		),
-);
+	);
 
-export const deleteModel = authed.model.delete.handler(async ({ input }) =>
-	runOrpcEffect(
-		Effect.gen(function* () {
-			const db = yield* DB;
+export const deleteModel = authed.model.delete
+	.use(requireOrganizationPermission("manage_members"))
+	.handler(async ({ input }) =>
+		runOrpcEffect(
+			Effect.gen(function* () {
+				const db = yield* DB;
 
-			yield* db.delete(dbSchema.model).where(
-				inArray(
-					dbSchema.model.id,
-					input.refs.map((ref) => ref.id),
-				),
-			);
+				yield* db.delete(dbSchema.model).where(
+					inArray(
+						dbSchema.model.id,
+						input.refs.map((ref) => ref.id),
+					),
+				);
 
-			return { success: true, message: "Models deleted successfully" };
-		}),
-	),
-);
+				return { success: true, message: "Models deleted successfully" };
+			}),
+		),
+	);
 
 export const discoverModels = authed.model.discover.handler(
 	async ({ input, context, errors }) =>

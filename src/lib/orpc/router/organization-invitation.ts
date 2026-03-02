@@ -1,11 +1,18 @@
 import { and, count, eq, getColumns, inArray, or } from "drizzle-orm";
 import * as Effect from "effect/Effect";
 import { dbSchema } from "@/db/schema";
+import { syncRelationshipTransition } from "@/lib/authz/relationship-transition";
 import { DB } from "@/lib/effect/services/drizzle";
 import { runOrpcEffect } from "@/lib/effect/utils/orpc-helpers";
 import { authed } from "@/lib/orpc/implementation/authed";
 import { os } from "@/lib/orpc/implementation/os";
 import { requireActiveOrganizationMiddleware } from "@/lib/orpc/middlewares/auth";
+import {
+	type CheckManyPermissionInput,
+	type CheckPermissionInput,
+	checkManyPermissionMiddleware,
+	checkPermissionMiddleware,
+} from "@/lib/orpc/middlewares/permission";
 
 export const listOrganizationInvitations =
 	authed.organizationInvitation.list.handler(async ({ input, context }) =>
@@ -47,17 +54,8 @@ export const listOrganizationInvitations =
 		),
 	);
 
-export const findOrganizationInvitation = authed.organizationInvitation.find
-	/* .use(
-		checkPermissionMiddleware,
-		(input) =>
-			({
-				entityId: input.id,
-				action: "read",
-				entityType: "course",
-			}) satisfies CheckPermissionInput,
-	) */
-	.handler(async ({ input, errors }) =>
+export const findOrganizationInvitation =
+	authed.organizationInvitation.find.handler(async ({ input, errors }) =>
 		runOrpcEffect(
 			Effect.gen(function* () {
 				const db = yield* DB;
@@ -135,6 +133,15 @@ export const validateOrganizationInvitation =
 export const createOrganizationInvitations =
 	authed.organizationInvitation.create
 		.use(requireActiveOrganizationMiddleware)
+		.use(
+			checkPermissionMiddleware,
+			(input) =>
+				({
+					entityId: input.organizationId,
+					permission: "invite",
+					entityType: "organization",
+				}) satisfies CheckPermissionInput,
+		)
 		.handler(async ({ input, context }) =>
 			runOrpcEffect(
 				Effect.gen(function* () {
@@ -160,15 +167,15 @@ export const createOrganizationInvitations =
 		);
 
 export const updateOrganizationInvitation = authed.organizationInvitation.update
-	/* .use(
+	.use(
 		checkPermissionMiddleware,
 		(input) =>
 			({
-				entityId: input.id,
-				action: "read",
-				entityType: "organizationInvitation",
+				entityId: input.organizationId,
+				permission: "invite",
+				entityType: "organization",
 			}) satisfies CheckPermissionInput,
-	) */
+	)
 	.handler(async ({ input, errors }) =>
 		runOrpcEffect(
 			Effect.gen(function* () {
@@ -176,7 +183,11 @@ export const updateOrganizationInvitation = authed.organizationInvitation.update
 
 				const [invitation] = yield* db
 					.update(dbSchema.invitation)
-					.set(input)
+					.set({
+						status: input.status,
+						expiresAt: input.expiresAt,
+						updatedAt: new Date(),
+					})
 					.where(
 						and(
 							eq(dbSchema.invitation.id, input.id),
@@ -202,15 +213,15 @@ export const updateOrganizationInvitation = authed.organizationInvitation.update
 
 export const deleteOrganizationInvitations =
 	authed.organizationInvitation.delete
-		/* .use(
-		checkManyPermissionMiddleware,
-		(input) =>
-			({
-				entityIds: input.refs.map((ref) => ref.id),
-				action: "delete",
-				entityType: "organizationInvitation",
-			}) satisfies CheckManyPermissionInput,
-	) */
+		.use(
+			checkManyPermissionMiddleware,
+			(input) =>
+				({
+					entityIds: [input.organizationId],
+					permission: "invite",
+					entityType: "organization",
+				}) satisfies CheckManyPermissionInput,
+		)
 		.handler(async ({ input }) =>
 			runOrpcEffect(
 				Effect.gen(function* () {
@@ -275,7 +286,7 @@ export const respondToOrganisationInvitation =
 								message: "You are not allowed to respond to this invitation",
 								data: {
 									allowed: false,
-									action: "respond",
+									permission: "respond",
 									entityType: "organizationInvitation",
 								},
 							}),
@@ -312,8 +323,16 @@ export const respondToOrganisationInvitation =
 							yield* db.insert(dbSchema.member).values({
 								organizationId: invitation.organizationId,
 								userId: context.auth.user.id,
-								role: invitation.role ?? "member",
+								role: invitation.role ?? "student",
 								createdAt: new Date(),
+							});
+
+							yield* syncRelationshipTransition({
+								resourceType: "organization",
+								resourceId: invitation.organizationId,
+								subjectType: "user",
+								subjectId: context.auth.user.id,
+								newRelation: invitation.role ?? "student",
 							});
 						}
 

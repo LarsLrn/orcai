@@ -1,7 +1,8 @@
 import { v1 } from "@authzed/authzed-node";
+import type { EntityType } from "./types";
 
 export const createResourceReference = (params: {
-	entityType: string;
+	entityType: EntityType;
 	entityId: string;
 }) =>
 	v1.ObjectReference.create({
@@ -9,10 +10,17 @@ export const createResourceReference = (params: {
 		objectId: params.entityId,
 	});
 
-export const createUserReference = (params: { userId: string }) =>
-	createResourceReference({
-		entityType: "user",
-		entityId: params.userId,
+export const createSubjectReference = (params: {
+	entityType: EntityType;
+	entityId: string;
+	optionalRelation?: string;
+}) =>
+	v1.SubjectReference.create({
+		object: createResourceReference({
+			entityType: params.entityType,
+			entityId: params.entityId,
+		}),
+		optionalRelation: params.optionalRelation,
 	});
 
 export const createConsistency = (params: {

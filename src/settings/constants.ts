@@ -65,3 +65,8 @@ export const RETRIEVAL_LIMITS = {
 	maxFullChunkFetches: 8,
 	snippetLengthChars: 360,
 } as const;
+
+export const AUTHZ = {
+	outboxRetryBaseDelayMs: 30_000,
+	outboxProcessingStaleAfterMs: 5 * 60_000,
+};

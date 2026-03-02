@@ -6,7 +6,6 @@ import {
 	MonitorIcon,
 	ShieldAlertIcon,
 	ShieldCheckIcon,
-	ShieldIcon,
 	Trash2Icon,
 	UserCogIcon,
 	UserMinusIcon,
@@ -24,27 +23,11 @@ import {
 	CollapsibleTrigger,
 } from "@/components/ui/collapsible";
 import { ScrollArea } from "@/components/ui/scroll-area";
-import {
-	Select,
-	SelectContent,
-	SelectItem,
-	SelectTrigger,
-	SelectValue,
-} from "@/components/ui/select";
-import { Separator } from "@/components/ui/separator";
 import { useDeleteUsersMutation } from "@/hooks/mutations/use-user-admin-mutations";
 import { authClient } from "@/lib/auth/auth-client";
 import type { User } from "@/lib/orpc/schemas/user";
 
-const ManageUser = ({
-	user,
-	courseRole,
-	organizationRole,
-}: {
-	user: User;
-	courseRole: string;
-	organizationRole: string;
-}) => {
+const ManageUser = ({ user }: { user: User }) => {
 	const [sessions, setSessions] = useState<Session[] | undefined>(undefined);
 	const [isSessionsOpen, setIsSessionsOpen] = useState(false);
 	const { mutate: deleteUsers } = useDeleteUsersMutation();
@@ -117,34 +100,6 @@ const ManageUser = ({
 		);
 	};
 
-	const handleRoleChange = async (_role: "admin" | "member") => {
-		/* toast.promise(
-			updateUserOrganizationRole({ role, ids: [user.id] }),
-			{
-				loading: `Updating user role to ${role}...`,
-				success: `User role updated to ${role}`,
-				error: (error) => ({
-					message: "Failed to update user role",
-					description: error.message,
-				}),
-			},
-		); */
-	};
-
-	const handleCourseRoleChange = async (_role: "instructor" | "student") => {
-		/* toast.promise(
-			updateUserCourseRole({ role, ids: [user.id] }),
-			{
-				loading: "Updating user role...",
-				success: "User role updated",
-				error: (error) => ({
-					message: "Failed to update user role",
-					description: error.message,
-				}),
-			},
-		); */
-	};
-
 	const handleDeleteUser = (userId: string) => {
 		deleteUsers({ userIds: [userId] });
 	};
@@ -197,85 +152,6 @@ const ManageUser = ({
 							<Trash2Icon className="h-4 w-4" />
 							Delete User
 						</Button>
-					</div>
-				</CardContent>
-			</Card>
-
-			{/* Roles Management */}
-			<Card>
-				<CardHeader>
-					<CardTitle className="flex items-center gap-2">
-						<ShieldIcon className="h-5 w-5 text-primary" />
-						Role Management
-					</CardTitle>
-				</CardHeader>
-				<CardContent className="flex flex-col gap-6">
-					<div className="space-y-3">
-						<div className="flex items-center justify-between">
-							<span className="font-medium text-sm">Organization Role</span>
-							<Badge variant="outline" className="capitalize">
-								{organizationRole || "member"}
-							</Badge>
-						</div>
-						<Select
-							onValueChange={(value) =>
-								handleRoleChange(value as "admin" | "member")
-							}
-							defaultValue={organizationRole || "member"}
-						>
-							<SelectTrigger className="w-full">
-								<SelectValue />
-							</SelectTrigger>
-							<SelectContent>
-								<SelectItem value="admin">
-									<div className="flex items-center gap-2">
-										<ShieldCheckIcon className="h-4 w-4 text-primary" />
-										<span>Admin</span>
-									</div>
-								</SelectItem>
-								<SelectItem value="member">
-									<div className="flex items-center gap-2">
-										<UserCogIcon className="h-4 w-4 text-muted-foreground" />
-										<span>Member</span>
-									</div>
-								</SelectItem>
-							</SelectContent>
-						</Select>
-					</div>
-
-					<Separator />
-
-					<div className="space-y-3">
-						<div className="flex items-center justify-between">
-							<span className="font-medium text-sm">Course Role</span>
-							<Badge variant="outline" className="capitalize">
-								{courseRole || "student"}
-							</Badge>
-						</div>
-						<Select
-							onValueChange={(value) =>
-								handleCourseRoleChange(value as "instructor" | "student")
-							}
-							defaultValue={courseRole || "student"}
-						>
-							<SelectTrigger className="w-full">
-								<SelectValue />
-							</SelectTrigger>
-							<SelectContent>
-								<SelectItem value="instructor">
-									<div className="flex items-center gap-2">
-										<ShieldCheckIcon className="h-4 w-4 text-primary" />
-										<span>Instructor</span>
-									</div>
-								</SelectItem>
-								<SelectItem value="student">
-									<div className="flex items-center gap-2">
-										<UserCogIcon className="h-4 w-4 text-muted-foreground" />
-										<span>Student</span>
-									</div>
-								</SelectItem>
-							</SelectContent>
-						</Select>
 					</div>
 				</CardContent>
 			</Card>

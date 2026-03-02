@@ -16,6 +16,7 @@ import {
 } from "@/components/app/page";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { ManageUser } from "@/components/users/manage-user";
+import { UserAccessOverview } from "@/components/users/user-access-overview";
 import { orpc } from "@/lib/orpc/orpc";
 
 export const Route = createFileRoute("/app/users/$userId/edit")({
@@ -121,14 +122,8 @@ function RouteComponent() {
 					</CardContent>
 				</Card>
 
-				{/* TODO: Implement this properly */}
-				<ManageUser
-					user={user.data}
-					/* courseRole={userCourseRole}
-				organizationRole={userOrganizationRole} */
-					courseRole="student"
-					organizationRole="member"
-				/>
+				<UserAccessOverview userId={userId} />
+				<ManageUser user={user.data} />
 			</PageContent>
 		</Page>
 	);

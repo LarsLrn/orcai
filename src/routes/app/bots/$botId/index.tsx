@@ -20,6 +20,11 @@ function RouteComponent() {
 			input: { id: botId },
 		}),
 	);
+	const { data: visibility } = useSuspenseQuery(
+		orpc.resource.getVisibility.queryOptions({
+			input: { resourceType: "bot", resourceId: botId },
+		}),
+	);
 
 	const { data: blocks } = useSuspenseQuery(
 		orpc.block.list.queryOptions({
@@ -30,7 +35,7 @@ function RouteComponent() {
 	return (
 		<Page>
 			<PageHeader>
-				<BotHeader bot={bot.data} />
+				<BotHeader bot={bot.data} visibility={visibility.data.visibility} />
 			</PageHeader>
 
 			<PageContent className="grid gap-6 lg:grid-cols-3">

@@ -1,31 +1,67 @@
 schemaFile: schema.zed
 
 relationships: |-
-  // Create some test users - only alice is org owner now
-  organization:acme#owner@user:alice
-  
-  // Create a course owned by alice with acme as parent org
-  course:math101#parent@organization:acme
-  course:math101#owner@user:alice
-  
-  // Create another course owned by bob
-  course:physics101#parent@organization:acme
-  course:physics101#owner@user:bob
+  organization:org1#owner@user:owner1
+  organization:org1#instructor@user:inst1
+  organization:org1#student@user:student1
+
+  group:group1#organization@organization:org1
+  group:group1#member@user:groupmember1
+  group:allmembers1#organization@organization:org1
+  group:allmembers1#member@organization:org1#owner
+  group:allmembers1#member@organization:org1#instructor
+  group:allmembers1#member@organization:org1#student
+
+  course:course1#organization@organization:org1
+  course:course1#manager@user:inst2
+  course:course1#viewer@user:student2
+  course:course1#viewer@group:group1#member
+  course:course1#viewer@group:allmembers1#member
+  course:course1#public@user:*
+
+  bot:bot1#owner@user:owner1
+  bot:bot1#course@course:course1
+  bot:bot1#manager@user:manager1
+  bot:bot1#editor@user:editor1
+  bot:bot1#viewer@user:viewer1
+  bot:bot1#public@user:*
+
+  block:block1#owner@user:owner1
+  block:block1#bot@bot:bot1
+
+  asset:asset1#owner@user:owner1
+  asset:asset1#block@block:block1
+
+  chat:chat1#owner@user:student1
+  chat:chat1#bot@bot:bot1
 
 assertions:
   assertTrue:
-    - course:math101#read@user:alice     # owner can read
-    - course:math101#create@user:alice   # owner can create
-    - course:math101#update@user:alice   # owner can update
-    - course:math101#delete@user:alice   # owner can delete
-    - course:physics101#read@user:alice  # org owner can read other courses
-    - course:physics101#create@user:alice # org owner can create on other courses
-    - course:physics101#update@user:alice # org owner can update other courses
-    - course:physics101#read@user:bob    # course owner can read
-    - course:physics101#delete@user:bob  # course owner can delete
-    
+    - organization:org1#create_course@user:owner1
+    - organization:org1#create_course@user:inst1
+    - course:course1#manage@user:owner1
+    - course:course1#manage@user:inst2
+    - course:course1#read@user:anyone
+    - course:course1#read@user:groupmember1
+    - course:course1#read@user:student1
+    - course:course1#manage_access@user:inst2
+    - bot:bot1#read@user:student2
+    - bot:bot1#edit@user:inst2
+    - bot:bot1#manage_access@user:manager1
+    - block:block1#read@user:student2
+    - block:block1#edit@user:editor1
+    - asset:asset1#download@user:student2
+    - asset:asset1#fork@user:viewer1
+    - bot:bot1#read@user:anyone
+    - chat:chat1#read@user:student1
+    - group:group1#manage@user:owner1
+
   assertFalse:
-    - course:math101#create@user:bob     # non-owner cannot create
-    - course:math101#update@user:bob     # non-owner cannot update
-    - course:math101#delete@user:bob     # non-owner cannot delete
-    - course:physics101#delete@user:alice # org owner cannot delete others' courses
+    - organization:org1#manage_members@user:inst1
+    - course:course1#manage@user:student2
+    - course:course1#manage_access@user:student2
+    - bot:bot1#manage_access@user:editor1
+    - block:block1#manage_access@user:student2
+    - asset:asset1#edit@user:student2
+    - chat:chat1#read@user:owner1
+    - group:group1#manage@user:inst1

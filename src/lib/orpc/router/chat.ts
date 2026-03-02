@@ -1,6 +1,8 @@
+import { v1 } from "@authzed/authzed-node";
 import { count, eq, inArray } from "drizzle-orm";
 import * as Effect from "effect/Effect";
 import { dbSchema } from "@/db/schema";
+import { AuthzService } from "@/lib/effect/services/authz";
 import { DB } from "@/lib/effect/services/drizzle";
 import { runOrpcEffect } from "@/lib/effect/utils/orpc-helpers";
 import { authed } from "@/lib/orpc/implementation/authed";
@@ -10,16 +12,19 @@ import {
 	checkManyPermissionMiddleware,
 	checkPermissionMiddleware,
 } from "@/lib/orpc/middlewares/permission";
-import { createRelation, listAllowedEntities } from "@/lib/spice-db/actions";
+import {
+	checkEntityPermission,
+	lookupEntitiesByPermission,
+} from "@/lib/spice-db/client";
 
 export const listChats = authed.chat.list.handler(async ({ input, context }) =>
 	runOrpcEffect(
 		Effect.gen(function* () {
 			const db = yield* DB;
 
-			const allowedIds = yield* listAllowedEntities({
+			const allowedIds = yield* lookupEntitiesByPermission({
 				userId: context.auth.user.id,
-				action: "read",
+				permission: "read",
 				entityType: "chat",
 				zedToken: input.zedToken,
 			}).pipe(
@@ -60,7 +65,7 @@ export const findChat = authed.chat.find
 		(input) =>
 			({
 				entityId: input.id,
-				action: "read",
+				permission: "read",
 				entityType: "chat",
 				zedToken: input.zedToken,
 			}) satisfies CheckPermissionInput,
@@ -95,12 +100,38 @@ export const findChat = authed.chat.find
 		),
 	);
 
-// TODO: Add permission check for botId
 export const createChat = authed.chat.create.handler(
-	async ({ input, context }) =>
+	async ({ input, context, errors }) =>
 		runOrpcEffect(
 			Effect.gen(function* () {
 				const db = yield* DB;
+				const authz = yield* AuthzService;
+
+				if (input.botId) {
+					const canUseBot = yield* checkEntityPermission({
+						entityId: input.botId,
+						entityType: "bot",
+						permission: "use",
+						userId: context.auth.user.id,
+						zedToken: context.meta?.zedToken,
+					});
+
+					if (
+						canUseBot.permissionship !==
+						v1.CheckPermissionResponse_Permissionship.HAS_PERMISSION
+					) {
+						return yield* Effect.fail(
+							errors.FORBIDDEN({
+								data: {
+									allowed: false,
+									permission: "use",
+									entityType: "bot",
+									zedToken: context.meta?.zedToken,
+								},
+							}),
+						);
+					}
+				}
 
 				const { chat, mainBranch } = yield* db.transaction((tx) =>
 					Effect.gen(function* () {
@@ -131,11 +162,29 @@ export const createChat = authed.chat.create.handler(
 					}),
 				);
 
-				const relationResult = yield* createRelation({
-					entityId: chat.id,
-					entityType: "chat",
-					userId: context.auth.user.id,
-					relation: "owner",
+				const relationResult = yield* authz.applyRelationshipMutations({
+					mutations: [
+						{
+							resourceType: "chat",
+							resourceId: chat.id,
+							relation: "owner",
+							subjectType: "user",
+							subjectId: context.auth.user.id,
+							operation: "touch",
+						},
+						...(chat.botId
+							? [
+									{
+										resourceType: "chat" as const,
+										resourceId: chat.id,
+										relation: "bot" as const,
+										subjectType: "bot" as const,
+										subjectId: chat.botId,
+										operation: "touch" as const,
+									},
+								]
+							: []),
+					],
 				});
 
 				return {
@@ -152,7 +201,7 @@ export const updateChat = authed.chat.update
 		(input) =>
 			({
 				entityId: input.id,
-				action: "update",
+				permission: "edit",
 				entityType: "chat",
 			}) satisfies CheckPermissionInput,
 	)
@@ -184,7 +233,7 @@ export const deleteChats = authed.chat.delete
 		(input) =>
 			({
 				entityIds: input.refs.map((ref) => ref.id),
-				action: "delete",
+				permission: "delete",
 				entityType: "chat",
 			}) satisfies CheckManyPermissionInput,
 	)

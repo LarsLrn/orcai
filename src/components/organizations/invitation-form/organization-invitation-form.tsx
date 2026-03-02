@@ -22,6 +22,7 @@ import { Textarea } from "@/components/ui/textarea";
 import { useAppForm } from "@/hooks/form";
 import { useCreateOrganizationInvitationMutation } from "@/hooks/mutations/use-organization-invitation-mutations";
 import { orpc } from "@/lib/orpc/orpc";
+import type { OrganizationInvitation } from "@/lib/orpc/schemas/organization-invitation";
 import { organizationInvitationFormOptions } from "./organization-invitation-form-options";
 
 const OrganizationInvitationForm = () => {
@@ -39,7 +40,10 @@ const OrganizationInvitationForm = () => {
 	const form = useAppForm({
 		...organizationInvitationFormOptions(),
 		onSubmit: ({ value }) => {
-			createInvitation(value);
+			createInvitation({
+				...value,
+				role: value.role as OrganizationInvitation["role"],
+			});
 		},
 	});
 

@@ -2,9 +2,11 @@ import { and, count, desc, eq, getColumns, ilike, inArray } from "drizzle-orm";
 import * as Effect from "effect/Effect";
 import { v4 as uuidv4 } from "uuid";
 import { dbSchema } from "@/db/schema";
+import { initializeResourceAuthorization } from "@/lib/authz/resource-lifecycle";
 import { DB } from "@/lib/effect/services/drizzle";
 import { runOrpcEffect } from "@/lib/effect/utils/orpc-helpers";
 import { authed } from "@/lib/orpc/implementation/authed";
+import { requireOrganizationPermission } from "@/lib/orpc/middlewares/org-permission";
 import {
 	type CheckManyPermissionInput,
 	type CheckPermissionInput,
@@ -15,7 +17,7 @@ import { buildUploadPrefix } from "@/lib/s3/upload-routes";
 import { sendDeleteObjectCommand } from "@/lib/s3/utils/commands";
 import { deletePrefixRecursively } from "@/lib/s3/utils/file-functions";
 import { getFileTypeFromMime } from "@/lib/s3/utils/file-type-helpers";
-import { createRelation, listAllowedEntities } from "@/lib/spice-db/actions";
+import { lookupEntitiesByPermission } from "@/lib/spice-db/client";
 import { deletePointsByIdentifier } from "@/qdrant/mutations";
 import { buckets } from "@/settings/buckets";
 
@@ -25,9 +27,9 @@ export const listAssets = authed.asset.list.handler(
 			Effect.gen(function* () {
 				const db = yield* DB;
 
-				const allowedIds = yield* listAllowedEntities({
+				const allowedIds = yield* lookupEntitiesByPermission({
 					userId: context.auth.user.id,
-					action: "read",
+					permission: "read",
 					entityType: "asset",
 					zedToken: input.zedToken,
 				}).pipe(
@@ -79,7 +81,7 @@ export const findAsset = authed.asset.find
 		(input) =>
 			({
 				entityId: input.id,
-				action: "read",
+				permission: "read",
 				entityType: "asset",
 				zedToken: input.zedToken,
 			}) satisfies CheckPermissionInput,
@@ -105,11 +107,13 @@ export const findAsset = authed.asset.find
 		),
 	);
 
-export const createAsset = authed.asset.create.handler(
-	async ({ input, context }) =>
+export const createAsset = authed.asset.create
+	.use(requireOrganizationPermission("create_asset"))
+	.handler(async ({ input, context }) =>
 		runOrpcEffect(
 			Effect.gen(function* () {
 				const db = yield* DB;
+
 				const assetId = input.id ?? uuidv4();
 				const prefix = buildUploadPrefix({
 					userId: context.auth.user.id,
@@ -129,11 +133,11 @@ export const createAsset = authed.asset.create.handler(
 					})
 					.returning({ ...getColumns(dbSchema.asset) });
 
-				const relationResult = yield* createRelation({
-					entityId: asset.id,
-					entityType: "asset",
-					userId: context.auth.user.id,
-					relation: "owner",
+				const relationResult = yield* initializeResourceAuthorization({
+					resourceType: "asset",
+					resourceId: asset.id,
+					organizationId: context.auth.session.activeOrganizationId,
+					ownerUserId: context.auth.user.id,
 				});
 
 				return {
@@ -142,7 +146,7 @@ export const createAsset = authed.asset.create.handler(
 				};
 			}),
 		),
-);
+	);
 
 export const updateAsset = authed.asset.update
 	.use(
@@ -150,7 +154,7 @@ export const updateAsset = authed.asset.update
 		(input) =>
 			({
 				entityId: input.id,
-				action: "update",
+				permission: "edit",
 				entityType: "asset",
 			}) satisfies CheckPermissionInput,
 	)
@@ -179,7 +183,7 @@ export const deleteAssets = authed.asset.delete
 		(input) =>
 			({
 				entityIds: input.refs.map((ref) => ref.id),
-				action: "delete",
+				permission: "delete",
 				entityType: "asset",
 			}) satisfies CheckManyPermissionInput,
 	)
@@ -188,7 +192,6 @@ export const deleteAssets = authed.asset.delete
 			Effect.gen(function* () {
 				const db = yield* DB;
 
-				// Check if there are any IDs to delete
 				if (!context.allowedIds || context.allowedIds.length === 0) {
 					return { success: true, message: "No assets to delete" };
 				}

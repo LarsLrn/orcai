@@ -33,20 +33,25 @@ import {
 	updateChatMessage,
 } from "./chat-message";
 import {
+	attachCourseBot,
 	createCourse,
 	deleteCourses,
+	detachCourseBot,
 	findCourse,
+	listCourseBots,
 	listCourses,
 	updateCourse,
 } from "./course";
 import {
-	createCourseInvitations,
-	deleteCourseInvitations,
-	findCourseInvitation,
-	listCourseInvitations,
-	respondToCourseInvitation,
-	updateCourseInvitation,
-} from "./course-invitation";
+	addGroupMembers,
+	createGroup,
+	deleteGroups,
+	findGroup,
+	listGroupMembers,
+	listGroups,
+	removeGroupMembers,
+	updateGroup,
+} from "./group";
 import { createJobs, listJobs } from "./job";
 import {
 	createModel,
@@ -86,6 +91,14 @@ import {
 	listProviders,
 	updateProvider,
 } from "./provider";
+import {
+	getResourceVisibility,
+	grantResourceAccess,
+	listResourceGrants,
+	listResourcePrincipals,
+	revokeResourceAccess,
+	setResourceVisibility,
+} from "./resource";
 import { sse } from "./sse";
 import {
 	abortMultipartUpload,
@@ -96,7 +109,9 @@ import {
 } from "./storage";
 import {
 	findUser,
+	listUserAccess,
 	listUsers,
+	me,
 	setActiveOrganization,
 	setTourState,
 	updatePassword,
@@ -137,20 +152,33 @@ export const router = {
 		update: updateProvider,
 		delete: deleteProviders,
 	},
+	resource: {
+		listGrants: listResourceGrants,
+		listPrincipals: listResourcePrincipals,
+		grant: grantResourceAccess,
+		revoke: revokeResourceAccess,
+		getVisibility: getResourceVisibility,
+		setVisibility: setResourceVisibility,
+	},
 	course: {
 		list: listCourses,
 		create: createCourse,
 		find: findCourse,
 		update: updateCourse,
 		delete: deleteCourses,
+		listBots: listCourseBots,
+		attachBot: attachCourseBot,
+		detachBot: detachCourseBot,
 	},
-	courseInvitation: {
-		list: listCourseInvitations,
-		create: createCourseInvitations,
-		find: findCourseInvitation,
-		update: updateCourseInvitation,
-		delete: deleteCourseInvitations,
-		respond: respondToCourseInvitation,
+	group: {
+		list: listGroups,
+		create: createGroup,
+		find: findGroup,
+		update: updateGroup,
+		delete: deleteGroups,
+		listMembers: listGroupMembers,
+		addMembers: addGroupMembers,
+		removeMembers: removeGroupMembers,
 	},
 	chat: {
 		list: listChats,
@@ -195,6 +223,8 @@ export const router = {
 	user: {
 		list: listUsers,
 		find: findUser,
+		listAccess: listUserAccess,
+		me,
 		updatePassword: updatePassword,
 		setTourState: setTourState,
 		setActiveOrganization: setActiveOrganization,

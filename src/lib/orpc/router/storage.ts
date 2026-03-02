@@ -2,9 +2,15 @@ import { inArray } from "drizzle-orm";
 import * as Effect from "effect/Effect";
 import { v4 as uuidv4 } from "uuid";
 import { dbSchema } from "@/db/schema";
+import { initializeResourceAuthorization } from "@/lib/authz/resource-lifecycle";
 import { DB } from "@/lib/effect/services/drizzle";
 import { runOrpcEffect } from "@/lib/effect/utils/orpc-helpers";
 import { authed } from "@/lib/orpc/implementation/authed";
+import { requireOrganizationPermission } from "@/lib/orpc/middlewares/org-permission";
+import {
+	type CheckPermissionInput,
+	checkPermissionMiddleware,
+} from "@/lib/orpc/middlewares/permission";
 import {
 	buildUploadPrefix,
 	isMimeAllowed,
@@ -29,7 +35,6 @@ import {
 	normalizeUploadId,
 	validateUploadEnvelope,
 } from "@/lib/s3/utils/utils";
-import { createRelation } from "@/lib/spice-db/actions";
 
 export const createUploadUrls = authed.storage.createUploadUrls.handler(
 	async ({ input, context, errors }) =>
@@ -216,8 +221,17 @@ export const createUploadUrls = authed.storage.createUploadUrls.handler(
 		),
 );
 
-export const createDownloadUrl = authed.storage.createDownloadUrl.handler(
-	async ({ input }) =>
+export const createDownloadUrl = authed.storage.createDownloadUrl
+	.use(
+		checkPermissionMiddleware,
+		(input) =>
+			({
+				entityId: input.id,
+				permission: "download",
+				entityType: "asset",
+			}) satisfies CheckPermissionInput,
+	)
+	.handler(async ({ input }) =>
 		runOrpcEffect(
 			Effect.gen(function* () {
 				const expiry = 60 * 60;
@@ -231,7 +245,7 @@ export const createDownloadUrl = authed.storage.createDownloadUrl.handler(
 				}).pipe(Effect.map((presignedUrl) => ({ url: presignedUrl })));
 			}),
 		),
-);
+	);
 
 export const completeMultipartUpload =
 	authed.storage.completeMultipartUpload.handler(
@@ -312,8 +326,9 @@ export const abortMultipartUpload = authed.storage.abortMultipartUpload.handler(
 		),
 );
 
-export const finalizeUpload = authed.storage.finalizeUpload.handler(
-	async ({ input, context, errors }) =>
+export const finalizeUpload = authed.storage.finalizeUpload
+	.use(requireOrganizationPermission("create_asset"))
+	.handler(async ({ input, context, errors }) =>
 		runOrpcEffect(
 			Effect.gen(function* () {
 				const db = yield* DB;
@@ -388,11 +403,11 @@ export const finalizeUpload = authed.storage.finalizeUpload.handler(
 								userId: context.auth.user.id,
 							});
 
-							yield* createRelation({
-								entityId: validated.id,
-								entityType: "asset",
-								userId: context.auth.user.id,
-								relation: "owner",
+							yield* initializeResourceAuthorization({
+								resourceType: "asset",
+								resourceId: validated.id,
+								organizationId: context.auth.session.activeOrganizationId,
+								ownerUserId: context.auth.user.id,
 							});
 
 							return { id: validated.id, created: true };
@@ -403,4 +418,4 @@ export const finalizeUpload = authed.storage.finalizeUpload.handler(
 				return { data: results };
 			}),
 		),
-);
+	);

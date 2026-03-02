@@ -6,10 +6,14 @@ import {
 	CopyIcon,
 	EditIcon,
 	GitForkIcon,
+	GlobeIcon,
+	KeyRoundIcon,
 	MoreVerticalIcon,
 	SettingsIcon,
 	TagIcon,
 } from "lucide-react";
+import { useState } from "react";
+import { AccessDialog } from "@/components/access/access-dialog";
 import { Page, PageContent, PageHeader } from "@/components/app/page";
 import { DatabaseBlockConfigCard } from "@/components/blocks/database-block/database-config";
 import { TemplateBlockConfigCard } from "@/components/blocks/template-block/template-config";
@@ -42,9 +46,15 @@ export const Route = createFileRoute("/app/blocks/$blockId/")({
 
 function RouteComponent() {
 	const { blockId } = Route.useParams();
+	const [isAccessOpen, setIsAccessOpen] = useState(false);
 	const { data: block } = useSuspenseQuery(
 		orpc.block.find.queryOptions({
 			input: { id: blockId },
+		}),
+	);
+	const { data: visibility } = useSuspenseQuery(
+		orpc.resource.getVisibility.queryOptions({
+			input: { resourceType: "block", resourceId: blockId },
 		}),
 	);
 
@@ -82,6 +92,14 @@ function RouteComponent() {
 						</p>
 					</div>
 					<div className="flex gap-2">
+						<Button
+							variant="outline"
+							onClick={() => setIsAccessOpen(true)}
+							className="gap-2"
+						>
+							<KeyRoundIcon className="h-4 w-4" />
+							Access
+						</Button>
 						<Link
 							to={"/app/blocks/$blockId/edit"}
 							params={{ blockId: id }}
@@ -129,6 +147,12 @@ function RouteComponent() {
 						</Badge>
 					)}
 					<Badge variant="outline">Version {version}</Badge>
+					{visibility.data.visibility === "public" && (
+						<Badge variant="default">
+							<GlobeIcon className="mr-1 h-3 w-3" />
+							Public
+						</Badge>
+					)}
 					{forkedFromId && (
 						<HoverCard>
 							<HoverCardTrigger
@@ -205,6 +229,13 @@ function RouteComponent() {
 						<Button variant="outline">Share Block</Button>
 					</div>
 				</div>
+
+				<AccessDialog
+					open={isAccessOpen}
+					onOpenChange={setIsAccessOpen}
+					resourceRef={{ type: "block", id }}
+					resourceName={name}
+				/>
 			</PageContent>
 		</Page>
 	);

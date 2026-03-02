@@ -1,5 +1,11 @@
-import { pgTable, text, timestamp, uuid } from "drizzle-orm/pg-core";
+import { pgEnum, pgTable, text, timestamp, uuid } from "drizzle-orm/pg-core";
 import { user } from "./auth";
+
+export const organizationRoleEnum = pgEnum("organization_role", [
+	"owner",
+	"instructor",
+	"student",
+]);
 
 export const organization = pgTable("organization", {
 	id: uuid("id").primaryKey().defaultRandom(),
@@ -18,7 +24,7 @@ export const member = pgTable("member", {
 	userId: uuid("user_id")
 		.notNull()
 		.references(() => user.id),
-	role: text("role").notNull(),
+	role: organizationRoleEnum("role").notNull(),
 	createdAt: timestamp("created_at").defaultNow(),
 });
 
@@ -28,8 +34,7 @@ export const invitation = pgTable("invitation", {
 		.notNull()
 		.references(() => organization.id),
 	email: text("email").notNull(),
-	role: text("role"),
-	// TODO: Add course ID
+	role: organizationRoleEnum("role").notNull(),
 	status: text("status").notNull(),
 	expiresAt: timestamp("expires_at").notNull(),
 	inviterId: uuid("inviter_id")

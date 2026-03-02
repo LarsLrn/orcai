@@ -8,6 +8,7 @@ import {
 	FolderOpenIcon,
 	type LucideIcon,
 	ServerCogIcon,
+	UserCogIcon,
 	UserIcon,
 	UsersIcon,
 } from "lucide-react";
@@ -43,6 +44,11 @@ export const sidebarMenu: SidebarMenuItem[] = [
 		title: "Users",
 		linkProps: { to: "/app/users" },
 		icon: UsersIcon,
+	},
+	{
+		title: "Groups",
+		linkProps: { to: "/app/groups" },
+		icon: UserCogIcon,
 	},
 	{
 		title: "Providers",

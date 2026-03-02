@@ -5,9 +5,14 @@ import {
 	CopyIcon,
 	EditIcon,
 	GitForkIcon,
+	GlobeIcon,
+	KeyRoundIcon,
 	MoreVerticalIcon,
 	Trash2Icon,
 } from "lucide-react";
+import { useState } from "react";
+import { AccessDialog } from "@/components/access/access-dialog";
+import { Badge } from "@/components/ui/badge";
 import { Button, buttonVariants } from "@/components/ui/button";
 import {
 	DropdownMenu,
@@ -19,9 +24,16 @@ import {
 import { useDeleteBotsMutation } from "@/hooks/mutations/use-bot-mutations";
 import type { Bot } from "@/lib/orpc/schemas/bot";
 
-const BotHeader = ({ bot }: { bot: Bot }) => {
+const BotHeader = ({
+	bot,
+	visibility,
+}: {
+	bot: Bot;
+	visibility: "private" | "public";
+}) => {
 	const params = useParams({ strict: false });
 	const navigate = useNavigate();
+	const [isAccessOpen, setIsAccessOpen] = useState(false);
 
 	const { mutate: deleteBots } = useDeleteBotsMutation({
 		onMutate: async () => {
@@ -49,6 +61,12 @@ const BotHeader = ({ bot }: { bot: Bot }) => {
 						<p className="text-muted-foreground text-sm">
 							Version {bot.version} • Bot ID: {bot.id.slice(0, 8)}...
 						</p>
+						{visibility === "public" && (
+							<Badge className="mt-1" variant="default">
+								<GlobeIcon className="mr-1 h-3 w-3" />
+								Public
+							</Badge>
+						)}
 					</div>
 				</div>
 				{bot.description && (
@@ -57,6 +75,14 @@ const BotHeader = ({ bot }: { bot: Bot }) => {
 			</div>
 
 			<div className="flex items-center gap-2">
+				<Button
+					variant="outline"
+					className="gap-2"
+					onClick={() => setIsAccessOpen(true)}
+				>
+					<KeyRoundIcon className="size-4" />
+					Access
+				</Button>
 				<Button variant="outline" className="gap-2">
 					<CopyIcon className="size-4" />
 					Clone
@@ -95,6 +121,13 @@ const BotHeader = ({ bot }: { bot: Bot }) => {
 					</DropdownMenuContent>
 				</DropdownMenu>
 			</div>
+
+			<AccessDialog
+				open={isAccessOpen}
+				onOpenChange={setIsAccessOpen}
+				resourceRef={{ type: "bot", id: bot.id }}
+				resourceName={bot.name}
+			/>
 		</div>
 	);
 };

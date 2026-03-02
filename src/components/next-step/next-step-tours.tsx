@@ -74,8 +74,7 @@ const nextStepTours: Tour[] = [
 				title: "Account",
 				content: (
 					<>
-						You can manage your account settings, course invitations and more
-						here.
+						You can manage your account settings, access grants and more here.
 					</>
 				),
 				side: "top",

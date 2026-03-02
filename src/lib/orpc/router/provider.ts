@@ -5,48 +5,42 @@ import { DB } from "@/lib/effect/services/drizzle";
 import { runOrpcEffect } from "@/lib/effect/utils/orpc-helpers";
 import { encryptApiKey } from "@/lib/encryption";
 import { authed } from "@/lib/orpc/implementation/authed";
+import { requireOrganizationPermission } from "@/lib/orpc/middlewares/org-permission";
 
-// TODO: Add permission checks to all organization provider operations
-export const listProviders = authed.provider.list.handler(async ({ input }) =>
-	runOrpcEffect(
-		Effect.gen(function* () {
-			const db = yield* DB;
+export const listProviders = authed.provider.list
+	.use(requireOrganizationPermission("read"))
+	.handler(async ({ input }) =>
+		runOrpcEffect(
+			Effect.gen(function* () {
+				const db = yield* DB;
 
-			const [data, [rowCount]] = yield* Effect.all(
-				[
-					db.query.provider.findMany({
-						/* where: {
+				const [data, [rowCount]] = yield* Effect.all(
+					[
+						db.query.provider.findMany({
+							/* where: {
 								organizationId: context.auth.session.activeOrganizationId,
 							}, */
-						limit: input.pageSize,
-						offset: input.pageIndex * input.pageSize,
-					}),
-					db.select({ count: count() }).from(dbSchema.provider),
-					/* .where(
+							limit: input.pageSize,
+							offset: input.pageIndex * input.pageSize,
+						}),
+						db.select({ count: count() }).from(dbSchema.provider),
+						/* .where(
 								eq(
 									dbSchema.provider.organizationId,
 									context.auth.session.activeOrganizationId,
 								),
 							) */
-				],
-				{ concurrency: "unbounded" },
-			);
+					],
+					{ concurrency: "unbounded" },
+				);
 
-			return { data, rowCount: rowCount.count };
-		}),
-	),
-);
+				return { data, rowCount: rowCount.count };
+			}),
+		),
+	);
 
 export const findProvider = authed.provider.find
-	/* .use(
-    checkPermissionMiddleware,
-    (input) =>
-      ({
-        entityId: input.id,
-        action: "read",
-        entityType: "organization",
-      }) satisfies CheckPermissionInput,
-  ) */
+	.use(requireOrganizationPermission("read"))
 	.handler(async ({ input, errors }) =>
 		runOrpcEffect(
 			Effect.gen(function* () {
@@ -78,8 +72,9 @@ export const findProvider = authed.provider.find
 		),
 	);
 
-export const createProvider = authed.provider.create.handler(
-	async ({ input }) =>
+export const createProvider = authed.provider.create
+	.use(requireOrganizationPermission("manage_members"))
+	.handler(async ({ input }) =>
 		runOrpcEffect(
 			Effect.gen(function* () {
 				const db = yield* DB;
@@ -100,18 +95,10 @@ export const createProvider = authed.provider.create.handler(
 				return { data: provider };
 			}),
 		),
-);
+	);
 
 export const updateProvider = authed.provider.update
-	/* .use(
-    checkPermissionMiddleware,
-    (input) =>
-      ({
-        entityId: input.id,
-        action: "read",
-        entityType: "organization",
-      }) satisfies CheckPermissionInput,
-  ) */
+	.use(requireOrganizationPermission("manage_members"))
 	.handler(async ({ input }) =>
 		runOrpcEffect(
 			Effect.gen(function* () {
@@ -138,15 +125,7 @@ export const updateProvider = authed.provider.update
 	);
 
 export const deleteProviders = authed.provider.delete
-	/* .use(
-		checkManyPermissionMiddleware,
-		(input) =>
-			({
-				entityIds: input.refs.map((ref) => ref.slug),
-				action: "delete",
-				entityType: "organization",
-			}) satisfies CheckManyPermissionInput,
-	) */
+	.use(requireOrganizationPermission("manage_members"))
 	.handler(async ({ input }) =>
 		runOrpcEffect(
 			Effect.gen(function* () {

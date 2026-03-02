@@ -1,26 +1,29 @@
 import { and, count, eq, getColumns, ilike, inArray } from "drizzle-orm";
 import * as Effect from "effect/Effect";
 import { dbSchema } from "@/db/schema";
+import { calculateRelationDelta } from "@/lib/authz/relation-delta";
+import { initializeResourceAuthorization } from "@/lib/authz/resource-lifecycle";
+import { AuthzService } from "@/lib/effect/services/authz";
 import { DB } from "@/lib/effect/services/drizzle";
 import { runOrpcEffect } from "@/lib/effect/utils/orpc-helpers";
 import { authed } from "@/lib/orpc/implementation/authed";
-import { requireActiveOrganizationMiddleware } from "@/lib/orpc/middlewares/auth";
+import { requireOrganizationPermission } from "@/lib/orpc/middlewares/org-permission";
 import {
 	type CheckManyPermissionInput,
 	type CheckPermissionInput,
 	checkManyPermissionMiddleware,
 	checkPermissionMiddleware,
 } from "@/lib/orpc/middlewares/permission";
-import { createRelation, listAllowedEntities } from "@/lib/spice-db/actions";
+import { lookupEntitiesByPermission } from "@/lib/spice-db/client";
 
 export const listBots = authed.bot.list.handler(async ({ input, context }) =>
 	runOrpcEffect(
 		Effect.gen(function* () {
 			const db = yield* DB;
 
-			const allowedIds = yield* listAllowedEntities({
+			const allowedIds = yield* lookupEntitiesByPermission({
 				userId: context.auth.user.id,
-				action: "read",
+				permission: "read",
 				entityType: "bot",
 				zedToken: input.zedToken,
 			}).pipe(
@@ -62,7 +65,7 @@ export const findBot = authed.bot.find
 		(input) =>
 			({
 				entityId: input.id,
-				action: "read",
+				permission: "read",
 				entityType: "bot",
 				zedToken: input.zedToken,
 			}) satisfies CheckPermissionInput,
@@ -83,7 +86,6 @@ export const findBot = authed.bot.find
 					);
 				}
 
-				// Fetch the associated blockIds
 				const blockIds = yield* db
 					.select({ ...getColumns(dbSchema.botBlock) })
 					.from(dbSchema.botBlock)
@@ -95,11 +97,12 @@ export const findBot = authed.bot.find
 	);
 
 export const createBot = authed.bot.create
-	.use(requireActiveOrganizationMiddleware)
+	.use(requireOrganizationPermission("create_bot"))
 	.handler(async ({ input, context }) =>
 		runOrpcEffect(
 			Effect.gen(function* () {
 				const db = yield* DB;
+				const authz = yield* AuthzService;
 
 				const [bot] = yield* db
 					.insert(dbSchema.bot)
@@ -122,16 +125,30 @@ export const createBot = authed.bot.create
 					)
 					.returning({ ...getColumns(dbSchema.botBlock) });
 
-				const relationResult = yield* createRelation({
-					entityId: bot.id,
-					entityType: "bot",
-					userId: context.auth.user.id,
-					relation: "owner",
-				});
+				let zedToken = (yield* initializeResourceAuthorization({
+					resourceType: "bot",
+					resourceId: bot.id,
+					organizationId: context.auth.session.activeOrganizationId,
+					ownerUserId: context.auth.user.id,
+				})).zedToken;
+
+				if (input.blockIds.length > 0) {
+					const relationResult = yield* authz.applyRelationshipMutations({
+						mutations: input.blockIds.map((blockId) => ({
+							resourceType: "block" as const,
+							resourceId: blockId,
+							relation: "bot" as const,
+							subjectType: "bot" as const,
+							subjectId: bot.id,
+							operation: "touch" as const,
+						})),
+					});
+					zedToken = relationResult.zedToken ?? zedToken;
+				}
 
 				return {
 					data: { ...bot, blockIds: botBlocks.map((bb) => bb.blockId) },
-					meta: { zedToken: relationResult.zedToken },
+					meta: { zedToken },
 				};
 			}),
 		),
@@ -143,7 +160,7 @@ export const updateBot = authed.bot.update
 		(input) =>
 			({
 				entityId: input.id,
-				action: "update",
+				permission: "edit",
 				entityType: "bot",
 			}) satisfies CheckPermissionInput,
 	)
@@ -151,6 +168,14 @@ export const updateBot = authed.bot.update
 		runOrpcEffect(
 			Effect.gen(function* () {
 				const db = yield* DB;
+				const authz = yield* AuthzService;
+
+				const previousBlocks = yield* db
+					.select({
+						blockId: dbSchema.botBlock.blockId,
+					})
+					.from(dbSchema.botBlock)
+					.where(eq(dbSchema.botBlock.botId, input.id));
 
 				const [bot] = yield* db
 					.update(dbSchema.bot)
@@ -161,8 +186,6 @@ export const updateBot = authed.bot.update
 					.where(eq(dbSchema.bot.id, input.id))
 					.returning({ ...getColumns(dbSchema.bot) });
 
-				// Remove all existing bot-block relationships
-				// TODO: Handle this more elegantly rather then deleting and recreating
 				yield* db
 					.delete(dbSchema.botBlock)
 					.where(eq(dbSchema.botBlock.botId, bot.id));
@@ -178,6 +201,34 @@ export const updateBot = authed.bot.update
 					)
 					.returning({ ...getColumns(dbSchema.botBlock) });
 
+				const { removedIds, addedIds } = calculateRelationDelta(
+					previousBlocks.map((block) => block.blockId),
+					input.blockIds,
+				);
+
+				if (removedIds.length > 0 || addedIds.length > 0) {
+					yield* authz.applyRelationshipMutations({
+						mutations: [
+							...removedIds.map((blockId) => ({
+								resourceType: "block" as const,
+								resourceId: blockId,
+								relation: "bot" as const,
+								subjectType: "bot" as const,
+								subjectId: bot.id,
+								operation: "delete" as const,
+							})),
+							...addedIds.map((blockId) => ({
+								resourceType: "block" as const,
+								resourceId: blockId,
+								relation: "bot" as const,
+								subjectType: "bot" as const,
+								subjectId: bot.id,
+								operation: "touch" as const,
+							})),
+						],
+					});
+				}
+
 				return {
 					data: { ...bot, blockIds: botBlocks.map((bb) => bb.blockId) },
 				};
@@ -191,7 +242,7 @@ export const deleteBots = authed.bot.delete
 		(input) =>
 			({
 				entityIds: input.refs.map((ref) => ref.id),
-				action: "delete",
+				permission: "delete",
 				entityType: "bot",
 			}) satisfies CheckManyPermissionInput,
 	)
@@ -200,7 +251,6 @@ export const deleteBots = authed.bot.delete
 			Effect.gen(function* () {
 				const db = yield* DB;
 
-				// Check if there are any IDs to delete
 				if (!context.allowedIds || context.allowedIds.length === 0) {
 					return { success: true, message: "No bots to delete" };
 				}

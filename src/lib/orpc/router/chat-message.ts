@@ -21,13 +21,41 @@ import {
 } from "@/lib/orpc/middlewares/permission";
 import type { ChatMessage } from "@/lib/orpc/schemas/chat-message";
 
+interface MessageTreeRow {
+	id: string;
+	chat_id: string;
+	role: ChatMessage["role"];
+	parts: ChatMessage["parts"];
+	attachments: ChatMessage["attachments"];
+	metadata: ChatMessage["metadata"];
+	created_at: Date | string | null;
+	parent_message_id: string | null;
+	depth: number;
+}
+
+interface BranchRow {
+	id: string;
+}
+
+const mapMessageTreeRow = (row: MessageTreeRow): ChatMessage => ({
+	id: row.id as ChatMessage["id"],
+	chatId: row.chat_id,
+	role: row.role,
+	parts: row.parts,
+	attachments: row.attachments,
+	metadata: row.metadata,
+	createdAt: row.created_at ? new Date(row.created_at) : new Date(),
+	parentMessageId: row.parent_message_id as ChatMessage["parentMessageId"],
+	depth: row.depth,
+});
+
 export const listChatMessages = authed.chatMessage.list
 	.use(
 		checkPermissionMiddleware,
 		(input) =>
 			({
 				entityId: input.chatId,
-				action: "read",
+				permission: "read",
 				entityType: "chat",
 				zedToken: input.zedToken,
 			}) satisfies CheckPermissionInput,
@@ -66,19 +94,9 @@ export const listChatMessages = authed.chatMessage.list
 					LIMIT ${input.pageSize} OFFSET ${input.pageIndex * input.pageSize}
 				`);
 
-				let chatMessages = result.map(
-					(row: any): ChatMessage => ({
-						id: row.id,
-						chatId: row.chat_id,
-						role: row.role,
-						parts: row.parts,
-						attachments: row.attachments,
-						metadata: row.metadata,
-						createdAt: row.created_at ? new Date(row.created_at) : new Date(),
-						parentMessageId: row.parent_message_id,
-						depth: row.depth,
-					}),
-				);
+				let chatMessages = (
+					result as unknown as ReadonlyArray<MessageTreeRow>
+				).map(mapMessageTreeRow);
 
 				if (chatMessages.length > 0) {
 					const parentIds = [
@@ -86,8 +104,8 @@ export const listChatMessages = authed.chatMessage.list
 					];
 					const hasRoot = parentIds.includes(null);
 					const validParentIds = parentIds.filter(
-						(id) => id !== null,
-					) as string[];
+						(id): id is string => id !== null,
+					);
 
 					const siblings = yield* db
 						.select({
@@ -184,7 +202,7 @@ export const findChatMessage = authed.chatMessage.find
 		(input) =>
 			({
 				entityId: input.chatId,
-				action: "read",
+				permission: "read",
 				entityType: "chat",
 				zedToken: input.zedToken,
 			}) satisfies CheckPermissionInput,
@@ -222,7 +240,7 @@ export const getBranchIdForMessage = authed.chatMessage.getBranch
 		(input) =>
 			({
 				entityId: input.chatId,
-				action: "read",
+				permission: "read",
 				entityType: "chat",
 			}) satisfies CheckPermissionInput,
 	)
@@ -248,12 +266,11 @@ export const getBranchIdForMessage = authed.chatMessage.getBranch
 					`)
 					.pipe(
 						Effect.map((result) => {
-							if (result.length === 0) {
+							const rows = result as unknown as ReadonlyArray<BranchRow>;
+							if (rows.length === 0) {
 								return null;
 							}
-							// Drizzle execute returns weird type
-							const branchId = (result[0] as any).id as string;
-							return { branchId };
+							return { branchId: rows[0].id };
 						}),
 						Effect.flatMap((branch) =>
 							Effect.fromNullable(branch).pipe(
@@ -277,7 +294,7 @@ export const createChatMessage = authed.chatMessage.create
 		(input) =>
 			({
 				entityId: input.chatId,
-				action: "update",
+				permission: "edit",
 				entityType: "chat",
 			}) satisfies CheckPermissionInput,
 	)
@@ -429,7 +446,7 @@ export const updateChatMessage = authed.chatMessage.update
 		(input) =>
 			({
 				entityId: input.chatId,
-				action: "update",
+				permission: "edit",
 				entityType: "chat",
 			}) satisfies CheckPermissionInput,
 	)
@@ -542,7 +559,7 @@ export const deleteChatMessages = authed.chatMessage.delete
 		(input) =>
 			({
 				entityId: input.chatId,
-				action: "update",
+				permission: "edit",
 				entityType: "chat",
 			}) satisfies CheckPermissionInput,
 	)
@@ -573,7 +590,7 @@ export const rateChatMessage = authed.chatMessage.rate
 		(input) =>
 			({
 				entityId: input.chatId,
-				action: "update",
+				permission: "edit",
 				entityType: "chat",
 			}) satisfies CheckPermissionInput,
 	)

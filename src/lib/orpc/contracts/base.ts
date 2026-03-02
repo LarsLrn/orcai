@@ -12,7 +12,7 @@ export const base = oc
 		FORBIDDEN: {
 			data: z.object({
 				allowed: z.boolean(),
-				action: z.string().optional(),
+				permission: z.string().optional(),
 				entityType: z.string().optional(),
 				zedToken: z.string().optional(),
 			}),

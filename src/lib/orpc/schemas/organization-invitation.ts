@@ -1,4 +1,4 @@
-import { createSelectSchema, createUpdateSchema } from "drizzle-zod";
+import { createSelectSchema } from "drizzle-zod";
 import { z } from "zod/v4";
 import { dbSchema } from "@/db/schema";
 import { organizationSelectSchema } from "./organization";
@@ -28,7 +28,7 @@ export const organizationInvitationInsertSchema = z.object({
 		organizationInvitationSelectSchema.shape.organizationId.nonempty(
 			"Please select an organization",
 		),
-	role: z.string().nonempty("Please select a role"), // TODO: Validate against organizationRoles
+	role: organizationInvitationSelectSchema.shape.role,
 	expiresAt: organizationInvitationSelectSchema.shape.expiresAt, // TODO: Set constraints
 	items: z
 		.array(
@@ -59,13 +59,23 @@ export const organizationInvitationInsertSchema = z.object({
  * ----------------
  */
 
-export const organizationInvitationUpdateSchema = createUpdateSchema(
-	dbSchema.invitation,
-	{
+export const organizationInvitationUpdateSchema = z
+	.object({
 		organizationId: organizationInvitationSelectSchema.shape.organizationId,
 		id: organizationInvitationSelectSchema.shape.id,
-	},
-);
+		status: z.enum(["pending", "accepted", "rejected"]).optional(),
+		expiresAt: organizationInvitationSelectSchema.shape.expiresAt.optional(),
+	})
+	.check((ctx) => {
+		if (ctx.value.status === undefined && ctx.value.expiresAt === undefined) {
+			ctx.issues.push({
+				code: "custom",
+				message: "At least one mutable field must be provided",
+				path: ["root"],
+				input: "",
+			});
+		}
+	});
 
 /**
  * ----------------
@@ -75,7 +85,7 @@ export const organizationInvitationUpdateSchema = createUpdateSchema(
 
 export const organizationInvitationDeleteSchema = z.object({
 	organizationId: organizationInvitationSelectSchema.shape.organizationId,
-	refs: z.array(organizationInvitationUpdateSchema.pick({ id: true })),
+	refs: z.array(z.object({ id: organizationInvitationSelectSchema.shape.id })),
 });
 
 /**

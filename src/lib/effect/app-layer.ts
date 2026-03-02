@@ -1,5 +1,6 @@
 import * as Layer from "effect/Layer";
 import { QdrantLive } from "@/lib/effect/services/qdrant";
+import { AuthzLive } from "./services/authz";
 import { AppConfigLive } from "./services/config";
 import { DoclingLive } from "./services/docling";
 import { DrizzleLive } from "./services/drizzle";
@@ -22,7 +23,8 @@ const BaseInfra = Layer.mergeAll(
 	EmailLive,
 ).pipe(Layer.provideMerge(AppConfigLive));
 
-const InfraWithWorkers = Layer.provideMerge(PgBossWorkersLive, BaseInfra);
+const InfraWithAuthz = Layer.provideMerge(AuthzLive, BaseInfra);
+const InfraWithWorkers = Layer.provideMerge(PgBossWorkersLive, InfraWithAuthz);
 
 // Compose all app-level services in one place.
 export const AppLayer = Layer.mergeAll(

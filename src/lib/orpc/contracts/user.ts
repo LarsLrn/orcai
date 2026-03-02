@@ -6,7 +6,11 @@ import {
 	statusSchema,
 	zedTokenSchema,
 } from "@/lib/orpc/schemas/shared";
-import { userSelectSchema } from "@/lib/orpc/schemas/user";
+import {
+	userAccessEntrySchema,
+	userSelectSchema,
+	userWithOrganizationRoleSelectSchema,
+} from "@/lib/orpc/schemas/user";
 import { base } from "./base";
 
 export const listUsersContract = base
@@ -22,20 +26,59 @@ export const listUsersContract = base
 			...zedTokenSchema.shape,
 		}),
 	)
-	.output(z.object({ data: z.array(userSelectSchema), rowCount: z.number() }));
+	.output(
+		z.object({
+			data: z.array(userWithOrganizationRoleSelectSchema),
+			rowCount: z.number(),
+		}),
+	);
 
 export const findUserContract = base
 	.route({
 		method: "GET",
-		path: "/users/self",
+		path: "/users/{id}",
 		summary: "Find a user",
 		tags: ["Users"],
-		description:
-			"Find a user by their ID. If no ID is provided, the current user's data is returned.",
+		description: "Find a user by their ID.",
 	})
 	.input(
 		z.object({
-			id: userSelectSchema.shape.id.optional(),
+			id: userSelectSchema.shape.id,
+			...zedTokenSchema.shape,
+		}),
+	)
+	.output(z.object({ data: userWithOrganizationRoleSelectSchema }));
+
+export const listUserAccessContract = base
+	.route({
+		method: "GET",
+		path: "/users/{id}/access",
+		summary: "List effective resource access entries for a user",
+		tags: ["Users"],
+	})
+	.input(
+		z.object({
+			id: userSelectSchema.shape.id,
+			...zedTokenSchema.shape,
+		}),
+	)
+	.output(
+		z.object({
+			data: z.array(userAccessEntrySchema),
+			rowCount: z.number(),
+		}),
+	);
+
+export const meContract = base
+	.route({
+		method: "GET",
+		path: "/users/me",
+		summary: "Get current user",
+		tags: ["Users"],
+		description: "Get the current user's data.",
+	})
+	.input(
+		z.object({
 			...zedTokenSchema.shape,
 		}),
 	)

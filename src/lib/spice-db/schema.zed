@@ -2,56 +2,97 @@ definition user {}
 
 definition organization {
 	relation owner: user
-	relation member: user | user:*
-	permission owner_access = owner
-	permission any_access = member
+	relation instructor: user
+	relation student: user
+
+	permission admin = owner
+	permission member = owner + instructor + student
+	permission manage_members = owner
+	permission invite = owner + instructor
+	permission create_course = owner + instructor
+	permission create_bot = owner + instructor
+	permission create_block = owner + instructor
+	permission create_asset = owner + instructor
 	permission read = member
-	permission create = member
-	permission update = member
-	permission delete = member
+}
+
+definition group {
+	relation organization: organization
+	relation member: user | organization#owner | organization#instructor | organization#student
+
+	permission read = organization->read
+	permission manage = organization->manage_members
 }
 
 definition course {
-	relation parent: organization
+	relation organization: organization
+	relation manager: user | group#member
+	relation editor: user | group#member
+	relation viewer: user | group#member
+	relation public: user:*
+
+	permission read = manager + editor + viewer + organization->admin + public
+	permission edit = manager + editor + organization->admin
+	permission manage = manager + organization->admin
+	permission invite = manage
+	permission delete = manager + organization->admin
+	permission manage_access = manager + organization->admin
+}
+
+definition bot {
 	relation owner: user
-	permission read = parent->any_access + owner
-	permission create = parent->owner_access + owner
-	permission update = parent->owner_access + owner
-	permission delete = owner
+	relation manager: user | group#member
+	relation editor: user | group#member
+	relation viewer: user | group#member
+	relation public: user:*
+	relation course: course
+
+	permission read = owner + manager + editor + viewer + course->read + public
+	permission use = read
+	permission fork = read
+	permission edit = owner + manager + editor + course->manage
+	permission delete = owner + manager
+	permission manage_access = owner + manager
+}
+
+definition block {
+	relation owner: user
+	relation manager: user | group#member
+	relation editor: user | group#member
+	relation viewer: user | group#member
+	relation public: user:*
+	relation bot: bot
+
+	permission read = owner + manager + editor + viewer + bot->read + public
+	permission use = read
+	permission fork = read
+	permission edit = owner + manager + editor + bot->edit
+	permission delete = owner + manager
+	permission manage_access = owner + manager
+}
+
+definition asset {
+	relation owner: user
+	relation manager: user | group#member
+	relation editor: user | group#member
+	relation viewer: user | group#member
+	relation public: user:*
+	relation block: block
+
+	permission read = owner + manager + editor + viewer + block->read + public
+	permission download = read
+	permission use = read
+	permission fork = read
+	permission edit = owner + manager + editor + block->edit
+	permission delete = owner + manager
+	permission manage_access = owner + manager
 }
 
 definition chat {
 	relation owner: user
-	relation parent: course
+	relation bot: bot
+
 	permission read = owner
-	permission create = parent->read
-	permission update = owner
+	permission edit = owner
 	permission delete = owner
-}
-
-definition bot {
-	relation parent: course
-	relation owner: user
-	permission read = parent->read + owner
-	permission create = parent->update + owner
-	permission update = parent->update + owner
-	permission delete = parent->update + owner
-}
-
-definition block {
-	relation parent: course
-	relation owner: user
-	permission read = parent->read + owner
-	permission create = parent->update + owner
-	permission update = parent->update + owner
-	permission delete = parent->update + owner
-}
-
-definition asset {
-	relation parent: course
-	relation owner: user
-	permission read = parent->read + owner
-	permission create = parent->update + owner
-	permission update = parent->update + owner
-	permission delete = parent->update + owner
 }

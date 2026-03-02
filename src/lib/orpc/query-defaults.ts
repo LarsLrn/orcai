@@ -70,7 +70,7 @@ export const queryDefaults = {
 			},
 		},
 	},
-	courseInvitation: {
+	course: {
 		list: {
 			queryOptions: {
 				placeholderData: keepPreviousData,
@@ -82,13 +82,18 @@ export const queryDefaults = {
 			},
 		},
 	},
-	course: {
+	group: {
 		list: {
 			queryOptions: {
 				placeholderData: keepPreviousData,
 			},
 		},
 		find: {
+			queryOptions: {
+				placeholderData: keepPreviousData,
+			},
+		},
+		listMembers: {
 			queryOptions: {
 				placeholderData: keepPreviousData,
 			},
@@ -125,6 +130,23 @@ export const queryDefaults = {
 			},
 		},
 		find: {
+			queryOptions: {
+				placeholderData: keepPreviousData,
+			},
+		},
+	},
+	resource: {
+		listGrants: {
+			queryOptions: {
+				placeholderData: keepPreviousData,
+			},
+		},
+		listPrincipals: {
+			queryOptions: {
+				placeholderData: keepPreviousData,
+			},
+		},
+		getVisibility: {
 			queryOptions: {
 				placeholderData: keepPreviousData,
 			},
@@ -204,6 +226,11 @@ export const queryDefaults = {
 			},
 		},
 		find: {
+			queryOptions: {
+				placeholderData: keepPreviousData,
+			},
+		},
+		listAccess: {
 			queryOptions: {
 				placeholderData: keepPreviousData,
 			},

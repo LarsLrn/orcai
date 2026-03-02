@@ -3,6 +3,8 @@ import type { ColumnDef, Row } from "@tanstack/react-table";
 import { convert } from "convert";
 import { format } from "date-fns";
 import { MoreHorizontal } from "lucide-react";
+import { useState } from "react";
+import { AccessDialog } from "@/components/access/access-dialog";
 import { Button } from "@/components/ui/button";
 import { Checkbox } from "@/components/ui/checkbox";
 import { DataTableColumnHeader } from "@/components/ui/data-table/data-table-column-header";
@@ -78,32 +80,50 @@ export const columns: ColumnDef<Asset>[] = [
 const ActionCell = ({ row }: { row: Row<Asset> }) => {
 	const { mutate: deleteAssets } = useDeleteAssetsMutation();
 	const asset = row.original;
+	const [isAccessOpen, setIsAccessOpen] = useState(false);
 
 	return (
-		<DropdownMenu>
-			<DropdownMenuTrigger
-				render={
-					<Button variant="ghost" className="size-8 p-0">
-						<span className="sr-only">Open menu</span>
-						<MoreHorizontal className="size-4" />
-					</Button>
-				}
+		<>
+			<DropdownMenu>
+				<DropdownMenuTrigger
+					render={
+						<Button variant="ghost" className="size-8 p-0">
+							<span className="sr-only">Open menu</span>
+							<MoreHorizontal className="size-4" />
+						</Button>
+					}
+				/>
+				<DropdownMenuContent align="end">
+					<Link to={"/app/assets/$assetId"} params={{ assetId: asset.id }}>
+						<DropdownMenuItem>View Asset</DropdownMenuItem>
+					</Link>
+					<Link to={"/app/assets/$assetId/edit"} params={{ assetId: asset.id }}>
+						<DropdownMenuItem>Edit Asset</DropdownMenuItem>
+					</Link>
+					<DropdownMenuItem
+						onSelect={(event) => {
+							event.preventDefault();
+							setIsAccessOpen(true);
+						}}
+					>
+						Manage Access
+					</DropdownMenuItem>
+					<DropdownMenuSeparator />
+					<DropdownMenuItem
+						variant="destructive"
+						onClick={() => deleteAssets({ refs: [{ id: asset.id }] })}
+					>
+						Delete Asset
+					</DropdownMenuItem>
+				</DropdownMenuContent>
+			</DropdownMenu>
+
+			<AccessDialog
+				open={isAccessOpen}
+				onOpenChange={setIsAccessOpen}
+				resourceRef={{ type: "asset", id: asset.id }}
+				resourceName={asset.title}
 			/>
-			<DropdownMenuContent align="end">
-				<Link to={"/app/assets/$assetId"} params={{ assetId: asset.id }}>
-					<DropdownMenuItem>View Asset</DropdownMenuItem>
-				</Link>
-				<Link to={"/app/assets/$assetId/edit"} params={{ assetId: asset.id }}>
-					<DropdownMenuItem>Edit Asset</DropdownMenuItem>
-				</Link>
-				<DropdownMenuSeparator />
-				<DropdownMenuItem
-					variant="destructive"
-					onClick={() => deleteAssets({ refs: [{ id: asset.id }] })}
-				>
-					Delete Asset
-				</DropdownMenuItem>
-			</DropdownMenuContent>
-		</DropdownMenu>
+		</>
 	);
 };

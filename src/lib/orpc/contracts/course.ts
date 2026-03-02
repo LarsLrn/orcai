@@ -1,7 +1,11 @@
 import { z } from "zod/v4";
+import { botSelectSchema } from "@/lib/orpc/schemas/bot";
 import {
+	courseAttachBotSchema,
 	courseDeleteSchema,
+	courseDetachBotSchema,
 	courseInsertSchema,
+	courseListBotsSchema,
 	courseSelectSchema,
 	courseUpdateSchema,
 } from "@/lib/orpc/schemas/course";
@@ -70,4 +74,34 @@ export const deleteCourseContract = base
 		tags: ["Courses"],
 	})
 	.input(courseDeleteSchema)
+	.output(statusSchema);
+
+export const listCourseBotsContract = base
+	.route({
+		method: "GET",
+		path: "/courses/{courseId}/bots",
+		summary: "List bots linked to a course",
+		tags: ["Courses"],
+	})
+	.input(courseListBotsSchema)
+	.output(z.object({ data: z.array(botSelectSchema), rowCount: z.number() }));
+
+export const attachCourseBotContract = base
+	.route({
+		method: "POST",
+		path: "/courses/{courseId}/bots/{botId}",
+		summary: "Attach a bot to a course",
+		tags: ["Courses"],
+	})
+	.input(courseAttachBotSchema)
+	.output(statusSchema);
+
+export const detachCourseBotContract = base
+	.route({
+		method: "DELETE",
+		path: "/courses/{courseId}/bots/{botId}",
+		summary: "Detach a bot from a course",
+		tags: ["Courses"],
+	})
+	.input(courseDetachBotSchema)
 	.output(statusSchema);

@@ -12,9 +12,9 @@ import {
 	DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import { useDeleteUsersMutation } from "@/hooks/mutations/use-user-admin-mutations";
-import type { User } from "@/lib/orpc/schemas/user";
+import type { UserWithOrganizationRole } from "@/lib/orpc/schemas/user";
 
-export const columns: ColumnDef<User>[] = [
+export const columns: ColumnDef<UserWithOrganizationRole>[] = [
 	{
 		id: "select",
 		size: 32,
@@ -50,9 +50,9 @@ export const columns: ColumnDef<User>[] = [
 		),
 	},
 	{
-		accessorKey: "role",
+		accessorKey: "organizationRole",
 		header: ({ column }) => (
-			<DataTableColumnHeader column={column} title="Role" />
+			<DataTableColumnHeader column={column} title="Organization Role" />
 		),
 	},
 	{

@@ -52,20 +52,25 @@ import {
 	updateChatMessageContract,
 } from "./chat-message";
 import {
+	attachCourseBotContract,
 	createCourseContract,
 	deleteCourseContract,
+	detachCourseBotContract,
 	findCourseContract,
+	listCourseBotsContract,
 	listCoursesContract,
 	updateCourseContract,
 } from "./course";
 import {
-	createCourseInvitationsContract,
-	deleteCourseInvitationsContract,
-	findCourseInvitationContract,
-	listCourseInvitationsContract,
-	respondToCourseInvitationContract,
-	updateCourseInvitationContract,
-} from "./course-invitation";
+	addGroupMembersContract,
+	createGroupContract,
+	deleteGroupContract,
+	findGroupContract,
+	listGroupMembersContract,
+	listGroupsContract,
+	removeGroupMembersContract,
+	updateGroupContract,
+} from "./group";
 import { createJobsContract, listJobsContract } from "./job";
 import {
 	createModelContract,
@@ -106,6 +111,14 @@ import {
 	updateProviderContract,
 } from "./provider";
 import {
+	getResourceVisibilityContract,
+	grantResourceAccessContract,
+	listResourceGrantsContract,
+	listResourcePrincipalsContract,
+	revokeResourceAccessContract,
+	setResourceVisibilityContract,
+} from "./resource";
+import {
 	abortMultipartUploadContract,
 	completeMultipartUploadContract,
 	createDownloadUrlContract,
@@ -114,7 +127,9 @@ import {
 } from "./storage";
 import {
 	findUserContract,
+	listUserAccessContract,
 	listUsersContract,
+	meContract,
 	setActiveOrganizationContract,
 	setTourStateContract,
 	updatePasswordContract,
@@ -155,20 +170,33 @@ export const contracts = {
 		update: updateProviderContract,
 		delete: deleteProviderContract,
 	},
+	resource: {
+		listGrants: listResourceGrantsContract,
+		listPrincipals: listResourcePrincipalsContract,
+		grant: grantResourceAccessContract,
+		revoke: revokeResourceAccessContract,
+		getVisibility: getResourceVisibilityContract,
+		setVisibility: setResourceVisibilityContract,
+	},
 	course: {
 		list: listCoursesContract,
 		find: findCourseContract,
 		create: createCourseContract,
 		update: updateCourseContract,
 		delete: deleteCourseContract,
+		listBots: listCourseBotsContract,
+		attachBot: attachCourseBotContract,
+		detachBot: detachCourseBotContract,
 	},
-	courseInvitation: {
-		list: listCourseInvitationsContract,
-		create: createCourseInvitationsContract,
-		find: findCourseInvitationContract,
-		update: updateCourseInvitationContract,
-		delete: deleteCourseInvitationsContract,
-		respond: respondToCourseInvitationContract,
+	group: {
+		list: listGroupsContract,
+		create: createGroupContract,
+		find: findGroupContract,
+		update: updateGroupContract,
+		delete: deleteGroupContract,
+		listMembers: listGroupMembersContract,
+		addMembers: addGroupMembersContract,
+		removeMembers: removeGroupMembersContract,
 	},
 	chat: {
 		list: listChatsContract,
@@ -217,6 +245,8 @@ export const contracts = {
 	user: {
 		list: listUsersContract,
 		find: findUserContract,
+		listAccess: listUserAccessContract,
+		me: meContract,
 		updatePassword: updatePasswordContract,
 		setActiveOrganization: setActiveOrganizationContract,
 		setTourState: setTourStateContract,
