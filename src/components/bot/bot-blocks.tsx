@@ -37,7 +37,7 @@ const BotBlocks = ({ blocks }: { blocks: Block[] }) => {
 								className="bg-muted/50"
 							>
 								<Link
-									to="/app/blocks/$blockId"
+									to="/app/hub/blocks/$blockId"
 									params={{ blockId: block.id }}
 									className={buttonVariants({
 										variant: "outline",

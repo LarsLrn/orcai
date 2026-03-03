@@ -46,7 +46,7 @@ export const columns: ColumnDef<Block>[] = [
 			<DataTableColumnHeader column={column} title="Name" />
 		),
 		cell: ({ row }) => (
-			<Link to="/app/blocks/$blockId" params={{ blockId: row.original.id }}>
+			<Link to="/app/hub/blocks/$blockId" params={{ blockId: row.original.id }}>
 				{row.original.name}
 			</Link>
 		),
@@ -82,10 +82,13 @@ const ActionCell = ({ block }: { block: Block }) => {
 					}
 				/>
 				<DropdownMenuContent align="end">
-					<Link to="/app/blocks/$blockId" params={{ blockId: block.id }}>
+					<Link to="/app/hub/blocks/$blockId" params={{ blockId: block.id }}>
 						<DropdownMenuItem>View Block</DropdownMenuItem>
 					</Link>
-					<Link to="/app/blocks/$blockId/edit" params={{ blockId: block.id }}>
+					<Link
+						to="/app/hub/blocks/$blockId/edit"
+						params={{ blockId: block.id }}
+					>
 						<DropdownMenuItem>Edit Block</DropdownMenuItem>
 					</Link>
 					<DropdownMenuItem

@@ -13,7 +13,7 @@ export const useCreateModelMutation = (
 		mutationOptions: () =>
 			orpc.model.create.mutationOptions({
 				...opts,
-				onSuccess: async (...args) => {
+				onSuccess: async (result, ...args) => {
 					queryClient.invalidateQueries({
 						queryKey: orpc.model.key(),
 					});
@@ -21,12 +21,12 @@ export const useCreateModelMutation = (
 					await router.navigate({
 						to: "/app/models/$modelId",
 						params: {
-							modelId: args[0].data.id,
+							modelId: result.data.id,
 						},
 					});
 
 					try {
-						await opts.onSuccess?.(...args);
+						await opts.onSuccess?.(result, ...args);
 					} catch (error) {
 						console.error(
 							"useCreateModelMutation onSuccess callback failed:",

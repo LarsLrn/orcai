@@ -78,7 +78,7 @@ const BotDetails = ({ botId }: { botId: string }) => {
 			<BotBlocks blocks={blocks.data} />
 			<BotMetadata bot={bot.data} />
 			<Link
-				to="/app/bots/$botId"
+				to="/app/hub/bots/$botId"
 				params={{ botId: bot.data.id }}
 				className={buttonVariants({ variant: "outline" })}
 			>

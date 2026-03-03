@@ -47,7 +47,7 @@ export const columns: ColumnDef<Asset>[] = [
 			<DataTableColumnHeader column={column} title="Title" />
 		),
 		cell: ({ row }) => (
-			<Link to="/app/assets/$assetId" params={{ assetId: row.original.id }}>
+			<Link to="/app/hub/assets/$assetId" params={{ assetId: row.original.id }}>
 				{row.original.title}
 			</Link>
 		),
@@ -94,10 +94,13 @@ const ActionCell = ({ row }: { row: Row<Asset> }) => {
 					}
 				/>
 				<DropdownMenuContent align="end">
-					<Link to={"/app/assets/$assetId"} params={{ assetId: asset.id }}>
+					<Link to={"/app/hub/assets/$assetId"} params={{ assetId: asset.id }}>
 						<DropdownMenuItem>View Asset</DropdownMenuItem>
 					</Link>
-					<Link to={"/app/assets/$assetId/edit"} params={{ assetId: asset.id }}>
+					<Link
+						to={"/app/hub/assets/$assetId/edit"}
+						params={{ assetId: asset.id }}
+					>
 						<DropdownMenuItem>Edit Asset</DropdownMenuItem>
 					</Link>
 					<DropdownMenuItem

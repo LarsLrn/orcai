@@ -51,7 +51,7 @@ const AssetActions = ({
 			<div className="flex flex-wrap items-center gap-2">
 				<Link
 					className={buttonVariants({ size: "sm", variant: "outline" })}
-					to={"/app/assets/$assetId/edit"}
+					to={"/app/hub/assets/$assetId/edit"}
 					params={{ assetId: assetInfo.id }}
 				>
 					<PencilIcon className="h-4 w-4" />

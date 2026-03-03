@@ -17,28 +17,36 @@ interface SidebarMenuItem {
 	title: string;
 	linkProps: LinkProps;
 	icon: LucideIcon;
+	items?: Omit<SidebarMenuItem, "items">[];
 }
 
-export const sidebarMenu: SidebarMenuItem[] = [
+export const sidebarMenu = [
 	{
-		title: "Courses",
-		linkProps: { to: "/app/courses" },
-		icon: BookMarkedIcon,
-	},
-	{
-		title: "Assets",
-		linkProps: { to: "/app/assets" },
-		icon: FolderOpenIcon,
-	},
-	{
-		title: "Bots",
-		linkProps: { to: "/app/bots" },
-		icon: BotIcon,
-	},
-	{
-		title: "Blocks",
-		linkProps: { to: "/app/blocks" },
+		title: "Hub",
+		linkProps: { to: "/app/hub" },
 		icon: BlocksIcon,
+		items: [
+			{
+				title: "Courses",
+				linkProps: { to: "/app/hub/courses" },
+				icon: BookMarkedIcon,
+			},
+			{
+				title: "Assets",
+				linkProps: { to: "/app/hub/assets" },
+				icon: FolderOpenIcon,
+			},
+			{
+				title: "Bots",
+				linkProps: { to: "/app/hub/bots" },
+				icon: BotIcon,
+			},
+			{
+				title: "Blocks",
+				linkProps: { to: "/app/hub/blocks" },
+				icon: BlocksIcon,
+			},
+		],
 	},
 	{
 		title: "Users",
@@ -65,7 +73,7 @@ export const sidebarMenu: SidebarMenuItem[] = [
 		linkProps: { to: "/app/orgs" },
 		icon: Building2Icon,
 	},
-];
+] satisfies SidebarMenuItem[];
 
 export const sidebarUserMenu: SidebarMenuItem[] = [
 	{

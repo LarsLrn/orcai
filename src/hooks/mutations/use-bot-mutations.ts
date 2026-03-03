@@ -13,18 +13,18 @@ export const useCreateBotMutation = (
 		mutationOptions: () =>
 			orpc.bot.create.mutationOptions({
 				...opts,
-				onSuccess: async (...args) => {
+				onSuccess: async (result, ...args) => {
 					queryClient.invalidateQueries({
 						queryKey: orpc.bot.key(),
 					});
 
 					await router.navigate({
-						to: "/app/bots/$botId",
-						params: { botId: args[0].data.id },
+						to: "/app/hub/bots/$botId",
+						params: { botId: result.data.id },
 					});
 
 					try {
-						await opts.onSuccess?.(...args);
+						await opts.onSuccess?.(result, ...args);
 					} catch (error) {
 						console.error(
 							"useCreateBotMutation onSuccess callback failed:",

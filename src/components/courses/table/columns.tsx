@@ -46,7 +46,10 @@ export const columns: ColumnDef<Course>[] = [
 			<DataTableColumnHeader column={column} title="Title" />
 		),
 		cell: ({ row }) => (
-			<Link to="/app/courses/$courseId" params={{ courseId: row.original.id }}>
+			<Link
+				to="/app/hub/courses/$courseId"
+				params={{ courseId: row.original.id }}
+			>
 				{row.original.title}
 			</Link>
 		),
@@ -82,11 +85,14 @@ const ActionCell = ({ course }: { course: Course }) => {
 					}
 				/>
 				<DropdownMenuContent align="end">
-					<Link to="/app/courses/$courseId" params={{ courseId: course.id }}>
+					<Link
+						to="/app/hub/courses/$courseId"
+						params={{ courseId: course.id }}
+					>
 						<DropdownMenuItem>View Course</DropdownMenuItem>
 					</Link>
 					<Link
-						to="/app/courses/$courseId/edit"
+						to="/app/hub/courses/$courseId/edit"
 						params={{ courseId: course.id }}
 					>
 						<DropdownMenuItem>Edit Course</DropdownMenuItem>

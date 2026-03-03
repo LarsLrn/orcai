@@ -44,7 +44,7 @@ const ResourceLink = ({ access }: { access: UserAccessEntry }) => {
 		case "course":
 			return (
 				<Link
-					to="/app/courses/$courseId"
+					to="/app/hub/courses/$courseId"
 					params={{ courseId: access.resourceId }}
 					className="text-primary hover:underline"
 				>
@@ -54,7 +54,7 @@ const ResourceLink = ({ access }: { access: UserAccessEntry }) => {
 		case "bot":
 			return (
 				<Link
-					to="/app/bots/$botId"
+					to="/app/hub/bots/$botId"
 					params={{ botId: access.resourceId }}
 					className="text-primary hover:underline"
 				>
@@ -64,7 +64,7 @@ const ResourceLink = ({ access }: { access: UserAccessEntry }) => {
 		case "block":
 			return (
 				<Link
-					to="/app/blocks/$blockId"
+					to="/app/hub/blocks/$blockId"
 					params={{ blockId: access.resourceId }}
 					className="text-primary hover:underline"
 				>
@@ -74,7 +74,7 @@ const ResourceLink = ({ access }: { access: UserAccessEntry }) => {
 		case "asset":
 			return (
 				<Link
-					to="/app/assets/$assetId"
+					to="/app/hub/assets/$assetId"
 					params={{ assetId: access.resourceId }}
 					className="text-primary hover:underline"
 				>

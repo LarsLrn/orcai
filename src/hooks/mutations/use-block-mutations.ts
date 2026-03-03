@@ -13,18 +13,18 @@ export const useCreateBlockMutation = (
 		mutationOptions: () => {
 			return orpc.block.create.mutationOptions({
 				...opts,
-				onSuccess: async (...args) => {
+				onSuccess: async (result, ...args) => {
 					queryClient.invalidateQueries({
 						queryKey: orpc.block.key(),
 					});
 
 					await router.navigate({
-						to: "/app/blocks/$blockId",
-						params: { blockId: args[0].data.id },
+						to: "/app/hub/blocks/$blockId",
+						params: { blockId: result.data.id },
 					});
 
 					try {
-						await opts.onSuccess?.(...args);
+						await opts.onSuccess?.(result, ...args);
 					} catch (error) {
 						console.error(
 							"useCreateBlockMutation onSuccess callback failed:",

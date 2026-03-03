@@ -3,7 +3,7 @@ import { qdrantPlaygroundSearchSchema } from "@/db/zod/qdrant";
 import { useAppForm } from "@/hooks/form";
 
 const QdrantPlaygroundForm = () => {
-	const { search } = useSearch({ from: "/app/assets/playground" });
+	const { search } = useSearch({ from: "/app/hub/assets/playground" });
 	const navigate = useNavigate();
 
 	const form = useAppForm({

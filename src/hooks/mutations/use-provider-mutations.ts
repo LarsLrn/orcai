@@ -13,7 +13,7 @@ export const useCreateProviderMutation = (
 		mutationOptions: () =>
 			orpc.provider.create.mutationOptions({
 				...opts,
-				onSuccess: async (...args) => {
+				onSuccess: async (result, ...args) => {
 					queryClient.invalidateQueries({
 						queryKey: orpc.provider.key(),
 					});
@@ -21,12 +21,12 @@ export const useCreateProviderMutation = (
 					await router.navigate({
 						to: "/app/providers/$providerId",
 						params: {
-							providerId: args[0].data.id,
+							providerId: result.data.id,
 						},
 					});
 
 					try {
-						await opts.onSuccess?.(...args);
+						await opts.onSuccess?.(result, ...args);
 					} catch (error) {
 						console.error(
 							"useCreateProviderMutation onSuccess callback failed:",

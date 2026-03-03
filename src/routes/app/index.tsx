@@ -134,7 +134,7 @@ const HomeHero = () => {
 							</Link>
 
 							<Link
-								to="/app/bots"
+								to="/app/hub/bots"
 								data-slot="button"
 								className={buttonVariants({ variant: "outline" })}
 							>
@@ -188,7 +188,7 @@ const HeroLatestBotCard = ({
 						</Button>
 						<ButtonGroupSeparator />
 						<Link
-							to="/app/bots/$botId"
+							to="/app/hub/bots/$botId"
 							params={{ botId }}
 							data-slot="button"
 							className={buttonVariants({
@@ -203,7 +203,7 @@ const HeroLatestBotCard = ({
 					</ButtonGroup>
 				) : (
 					<Link
-						to="/app/bots/add"
+						to="/app/hub/bots/add"
 						className={buttonVariants({
 							variant: "secondary",
 							size: "sm",
@@ -236,7 +236,7 @@ const BotsShowcase = () => {
 				</div>
 
 				<Link
-					to="/app/bots"
+					to="/app/hub/bots"
 					className={buttonVariants({
 						variant: "outline",
 						size: "sm",
@@ -257,7 +257,7 @@ const BotsShowcase = () => {
 					</EmptyHeader>
 					<EmptyContent>
 						<Link
-							to="/app/bots/add"
+							to="/app/hub/bots/add"
 							className={buttonVariants({ variant: "outline", size: "sm" })}
 						>
 							<SparklesIcon className="mr-2 h-4 w-4" />
@@ -282,7 +282,7 @@ const BotsShowcase = () => {
 									<ButtonGroupSeparator />
 
 									<Link
-										to="/app/bots/$botId"
+										to="/app/hub/bots/$botId"
 										params={{ botId: bot.id }}
 										data-slot="button"
 										className={buttonVariants({
@@ -322,35 +322,35 @@ const QuickActions = () => {
 			title: "Manage bots",
 			description: "Review and iterate on your assistants.",
 			icon: BotIcon,
-			linkProps: { to: "/app/bots" },
+			linkProps: { to: "/app/hub/bots" },
 			accent: "text-purple-500",
 		},
 		{
 			title: "Manage blocks",
 			description: "Compose reusable logic components.",
 			icon: BlocksIcon,
-			linkProps: { to: "/app/blocks" },
+			linkProps: { to: "/app/hub/blocks" },
 			accent: "text-green-500",
 		},
 		{
 			title: "Manage assets",
 			description: "Curate knowledge sources for grounding.",
 			icon: FolderOpenIcon,
-			linkProps: { to: "/app/assets" },
+			linkProps: { to: "/app/hub/assets" },
 			accent: "text-orange-500",
 		},
 		{
 			title: "Create bot",
 			description: "Design a new tailored assistant.",
 			icon: SparklesIcon,
-			linkProps: { to: "/app/bots/add" },
+			linkProps: { to: "/app/hub/bots/add" },
 			accent: "text-primary",
 		},
 		{
 			title: "Create block",
 			description: "Add a new building block to your toolkit.",
 			icon: BlocksIcon,
-			linkProps: { to: "/app/blocks/add" },
+			linkProps: { to: "/app/hub/blocks/add" },
 			accent: "text-primary",
 		},
 	];
@@ -410,7 +410,7 @@ const ResourceHighlights = () => {
 			label: "Bots",
 			count: botSummary.rowCount,
 			description: "Custom assistants ready to deploy.",
-			href: "/app/bots",
+			linkProps: { to: "/app/hub/bots" },
 			icon: BotIcon,
 			accentBg: "bg-purple-500/10",
 			accentColor: "text-purple-500",
@@ -419,7 +419,7 @@ const ResourceHighlights = () => {
 			label: "Blocks",
 			count: blockSummary.rowCount,
 			description: "Reusable logic powering your flows.",
-			href: "/app/blocks",
+			linkProps: { to: "/app/hub/blocks" },
 			icon: BlocksIcon,
 			accentBg: "bg-green-500/10",
 			accentColor: "text-green-500",
@@ -428,12 +428,20 @@ const ResourceHighlights = () => {
 			label: "Assets",
 			count: assetSummary.rowCount,
 			description: "Knowledge sources grounding chats.",
-			href: "/app/assets",
+			linkProps: { to: "/app/hub/assets" },
 			icon: FileTextIcon,
 			accentBg: "bg-orange-500/10",
 			accentColor: "text-orange-500",
 		},
-	] as const;
+	] satisfies Array<{
+		label: string;
+		count: number;
+		description: string;
+		linkProps: LinkProps;
+		icon: LucideIcon;
+		accentBg: string;
+		accentColor: string;
+	}>;
 
 	return (
 		<div className="space-y-4 border-border/70">
@@ -449,7 +457,7 @@ const ResourceHighlights = () => {
 						key={resource.label}
 						variant="outline"
 						render={
-							<Link to={resource.href} className="bg-card">
+							<Link {...resource.linkProps} className="bg-card">
 								<ItemMedia variant="icon">
 									<resource.icon
 										className={cn("size-5", resource.accentColor)}

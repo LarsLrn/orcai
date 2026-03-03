@@ -13,18 +13,18 @@ export const useCreateCourseMutation = (
 		mutationOptions: () =>
 			orpc.course.create.mutationOptions({
 				...opts,
-				onSuccess: async (...args) => {
+				onSuccess: async (result, ...args) => {
 					queryClient.invalidateQueries({
 						queryKey: orpc.course.key(),
 					});
 
 					await router.navigate({
-						to: "/app/courses/$courseId",
-						params: { courseId: args[0].data.id },
+						to: "/app/hub/courses/$courseId",
+						params: { courseId: result.data.id },
 					});
 
 					try {
-						await opts.onSuccess?.(...args);
+						await opts.onSuccess?.(result, ...args);
 					} catch (error) {
 						console.error(
 							"useCreateCourseMutation onSuccess callback failed:",

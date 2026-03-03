@@ -189,7 +189,7 @@ const AssetSection = ({
 						Create Vector Store
 					</Button>
 					<Link
-						to="/app/blocks/$blockId/points"
+						to="/app/hub/blocks/$blockId/points"
 						params={{ blockId }}
 						className={buttonVariants({ variant: "outline", size: "sm" })}
 					>

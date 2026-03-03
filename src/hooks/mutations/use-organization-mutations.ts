@@ -13,18 +13,18 @@ export const useCreateOrganizationMutation = (
 		mutationOptions: () =>
 			orpc.organization.create.mutationOptions({
 				...opts,
-				onSuccess: async (...args) => {
+				onSuccess: async (result, ...args) => {
 					queryClient.invalidateQueries({
 						queryKey: orpc.organization.key(),
 					});
 
 					await router.navigate({
 						to: "/app/orgs/$orgId",
-						params: { orgId: args[0].data.id },
+						params: { orgId: result.data.id },
 					});
 
 					try {
-						await opts.onSuccess?.(...args);
+						await opts.onSuccess?.(result, ...args);
 					} catch (error) {
 						console.error(
 							"useCreateOrganizationMutation onSuccess callback failed:",

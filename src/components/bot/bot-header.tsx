@@ -39,7 +39,7 @@ const BotHeader = ({
 		onMutate: async () => {
 			// Navigate away before deleting to avoid rendering the deleted bot.
 			if (params.botId && params.botId === bot.id) {
-				await navigate({ to: "/app/bots" });
+				await navigate({ to: "/app/hub/bots" });
 			}
 		},
 	});
@@ -88,7 +88,7 @@ const BotHeader = ({
 					Clone
 				</Button>
 				<Link
-					to="/app/bots/$botId/edit"
+					to="/app/hub/bots/$botId/edit"
 					params={{ botId: bot.id }}
 					className={buttonVariants({ className: "gap-2" })}
 				>
