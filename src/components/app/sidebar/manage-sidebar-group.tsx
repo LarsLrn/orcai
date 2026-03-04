@@ -30,12 +30,18 @@ const CollapsibleSidebarMenu = ({
 		<Collapsible
 			key={item.title}
 			open={
-				item.linkProps.to === pathname ||
-				item.items?.some((sub) => sub.linkProps.to === pathname)
+				pathname.startsWith(item.linkProps.to) ||
+				(item.items?.some((sub) => pathname.startsWith(sub.linkProps.to)) ??
+					false)
 			}
 			render={
 				<SidebarMenuItem>
 					<SidebarMenuButton
+						isActive={
+							item.items
+								? pathname === item.linkProps.to
+								: pathname.startsWith(item.linkProps.to)
+						}
 						render={
 							<Link {...item.linkProps}>
 								<item.icon />
@@ -59,6 +65,7 @@ const CollapsibleSidebarMenu = ({
 									{item.items?.map((subItem) => (
 										<SidebarMenuSubItem key={subItem.title}>
 											<SidebarMenuSubButton
+												isActive={pathname.startsWith(subItem.linkProps.to)}
 												render={
 													<Link {...subItem.linkProps}>
 														<subItem.icon />
