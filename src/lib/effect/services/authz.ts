@@ -328,7 +328,7 @@ export const AuthzLive = Layer.effect(
 					? Date.now() - oldestPending.createdAt.getTime()
 					: 0;
 
-				yield* Effect.logInfo(
+				yield* Effect.logDebug(
 					`authz.replay.summary processed=${processed} failed=${failed} oldestPendingAgeMs=${oldestPendingAgeMs}`,
 				);
 
