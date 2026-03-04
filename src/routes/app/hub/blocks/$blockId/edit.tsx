@@ -1,14 +1,14 @@
 import { useSuspenseQuery } from "@tanstack/react-query";
 import { createFileRoute } from "@tanstack/react-router";
+import { DatabaseBlockForm } from "@/components/blocks/database-block/form/database-block-form";
+import { ImageGenerationBlockForm } from "@/components/blocks/image-generation-block/form/image-generation-block-form";
+import { TemplateBlockForm } from "@/components/blocks/template-block/form/template-block-form";
 import {
 	Page,
 	PageContent,
 	PageHeader,
 	PageTitle,
-} from "@/components/app/page";
-import { DatabaseBlockForm } from "@/components/blocks/database-block/form/database-block-form";
-import { ImageGenerationBlockForm } from "@/components/blocks/image-generation-block/form/image-generation-block-form";
-import { TemplateBlockForm } from "@/components/blocks/template-block/form/template-block-form";
+} from "@/components/ui/shell/page";
 import { orpc } from "@/lib/orpc/orpc";
 import {
 	isDatabaseBlock,

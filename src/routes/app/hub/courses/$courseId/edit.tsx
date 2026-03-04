@@ -1,12 +1,12 @@
 import { useSuspenseQuery } from "@tanstack/react-query";
 import { createFileRoute } from "@tanstack/react-router";
+import { CourseForm } from "@/components/courses/form/course-form";
 import {
 	Page,
 	PageContent,
 	PageHeader,
 	PageTitle,
-} from "@/components/app/page";
-import { CourseForm } from "@/components/courses/form/course-form";
+} from "@/components/ui/shell/page";
 import { orpc } from "@/lib/orpc/orpc";
 
 export const Route = createFileRoute("/app/hub/courses/$courseId/edit")({

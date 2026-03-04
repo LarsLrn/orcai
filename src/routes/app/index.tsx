@@ -9,13 +9,14 @@ import {
 	type LucideIcon,
 	MessageSquarePlusIcon,
 	MessagesSquareIcon,
+	PlusIcon,
 	SparklesIcon,
 } from "lucide-react";
 import { Suspense } from "react";
-import { Page, PageContent } from "@/components/app/page";
 import { UserWelcome } from "@/components/app/user-welcome";
-import { BotPreview } from "@/components/bot/bot-preview";
-import { ChatsPreview } from "@/components/chat/chats-preview";
+import { BotCard } from "@/components/bot/bot-card";
+import { ChatsList } from "@/components/chat/chats-list";
+import { Placeholder } from "@/components/placeholders/placeholder";
 import { SkeletonsArray } from "@/components/placeholders/skeletons-array";
 import { Badge } from "@/components/ui/badge";
 import { Button, buttonVariants } from "@/components/ui/button";
@@ -23,20 +24,7 @@ import {
 	ButtonGroup,
 	ButtonGroupSeparator,
 } from "@/components/ui/button-group";
-import {
-	Card,
-	CardContent,
-	CardDescription,
-	CardFooter,
-	CardTitle,
-} from "@/components/ui/card";
-import {
-	Empty,
-	EmptyContent,
-	EmptyHeader,
-	EmptyMedia,
-	EmptyTitle,
-} from "@/components/ui/empty";
+import { Card, CardContent } from "@/components/ui/card";
 import {
 	Item,
 	ItemActions,
@@ -45,6 +33,16 @@ import {
 	ItemMedia,
 	ItemTitle,
 } from "@/components/ui/item";
+import { Page, PageContent } from "@/components/ui/shell/page";
+import {
+	Section,
+	SectionAction,
+	SectionContent,
+	SectionDescription,
+	SectionGrid,
+	SectionHeader,
+	SectionTitle,
+} from "@/components/ui/shell/section";
 import { Skeleton } from "@/components/ui/skeleton";
 import { useCreateChatMutation } from "@/hooks/mutations/use-chat-mutation";
 import { orpc } from "@/lib/orpc/orpc";
@@ -78,9 +76,35 @@ function RouteComponent() {
 					<HomeHero />
 				</Suspense>
 
-				<Suspense fallback={<ChatsSectionSkeleton />}>
-					<ChatsPreview />
-				</Suspense>
+				<Section>
+					<SectionHeader>
+						<SectionTitle>Your Recent Conversations</SectionTitle>
+						<SectionDescription>
+							Pick right back up where you left off.
+						</SectionDescription>
+						<SectionAction>
+							<Link
+								to={"/app/chat"}
+								className={buttonVariants({ variant: "outline", size: "sm" })}
+							>
+								Show all
+							</Link>
+							<Link
+								to="/app/chat/setup"
+								className={buttonVariants({
+									size: "icon-sm",
+									variant: "outline",
+								})}
+							>
+								<PlusIcon />
+							</Link>
+						</SectionAction>
+					</SectionHeader>
+
+					<SectionContent>
+						<ChatsList limit={6} />
+					</SectionContent>
+				</Section>
 
 				<div className="grid gap-8 xl:grid-cols-[3fr,2fr]">
 					<div className="space-y-8">
@@ -226,80 +250,65 @@ const BotsShowcase = () => {
 	);
 
 	return (
-		<section className="space-y-4">
-			<div className="flex flex-col gap-2 sm:flex-row sm:items-end sm:justify-between">
-				<div>
-					<CardTitle className="text-xl">Available bots</CardTitle>
-					<CardDescription>
-						Select an assistant and jump straight into a tailored conversation.
-					</CardDescription>
-				</div>
+		<Section>
+			<SectionHeader>
+				<SectionTitle>Available bots</SectionTitle>
+				<SectionDescription>
+					Select an assistant and jump straight into a tailored conversation.
+				</SectionDescription>
+				<SectionAction>
+					<Link
+						to="/app/hub/bots"
+						className={buttonVariants({
+							variant: "outline",
+							size: "sm",
+							className: "w-full sm:w-auto",
+						})}
+					>
+						Manage library
+					</Link>
+				</SectionAction>
+			</SectionHeader>
 
-				<Link
-					to="/app/hub/bots"
-					className={buttonVariants({
-						variant: "outline",
-						size: "sm",
-						className: "w-full sm:w-auto",
-					})}
-				>
-					Manage library
-				</Link>
-			</div>
-
-			{bots.data.length === 0 ? (
-				<Empty className="border border-dashed">
-					<EmptyHeader>
-						<EmptyMedia variant="icon">
-							<BotIcon />
-						</EmptyMedia>
-						<EmptyTitle>No bots yet</EmptyTitle>
-					</EmptyHeader>
-					<EmptyContent>
-						<Link
-							to="/app/hub/bots/add"
-							className={buttonVariants({ variant: "outline", size: "sm" })}
-						>
-							<SparklesIcon className="mr-2 h-4 w-4" />
-							Create a bot
-						</Link>
-					</EmptyContent>
-				</Empty>
-			) : (
-				<div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-3">
-					{bots.data.map((bot) => (
-						<BotPreview key={bot.id} bot={bot}>
-							<CardFooter className="gap-2 pt-4">
-								<ButtonGroup className="w-full">
-									<Button
-										onClick={() => createChat({ botId: bot.id })}
-										size="sm"
-										className="flex-1 gap-2"
-									>
-										<SparklesIcon className="h-4 w-4" />
-										Start chat
-									</Button>
-									<ButtonGroupSeparator />
-
-									<Link
-										to="/app/hub/bots/$botId"
-										params={{ botId: bot.id }}
-										data-slot="button"
-										className={buttonVariants({
-											size: "sm",
-											className: "flex-1",
-											variant: "outline",
-										})}
-									>
-										View details
-									</Link>
-								</ButtonGroup>
-							</CardFooter>
-						</BotPreview>
-					))}
-				</div>
-			)}
-		</section>
+			<SectionContent>
+				{bots.data.length === 0 ? (
+					<Placeholder
+						title="No bots yet"
+						description="Create a bot to see it showcased here."
+						actions={[
+							{
+								key: "create_bot",
+								label: "Create bot",
+								icon: SparklesIcon,
+								variant: "outline",
+								linkProps: {
+									to: "/app/hub/bots/add",
+								},
+							},
+						]}
+					/>
+				) : (
+					<SectionGrid layout="3">
+						{bots.data.map((bot) => (
+							<BotCard
+								key={bot.id}
+								bot={bot}
+								actions={{
+									footer: [
+										{
+											key: "start_chat",
+											label: "Start chat",
+											onClick: () => createChat({ botId: bot.id }),
+											variant: "default",
+										},
+									],
+								}}
+							/>
+						))}
+					</SectionGrid>
+				)}
+			</SectionContent>
+		</Section>
 	);
 };
 
@@ -356,41 +365,43 @@ const QuickActions = () => {
 	];
 
 	return (
-		<div className="space-y-4">
-			<div>
-				<CardTitle className="text-xl">Quick actions</CardTitle>
-				<CardDescription>
+		<Section>
+			<SectionHeader>
+				<SectionTitle>Quick actions</SectionTitle>
+				<SectionDescription>
 					Access key tools to keep momentum across your workspace.
-				</CardDescription>
-			</div>
-			<div className="grid gap-2 md:grid-cols-2 xl:grid-cols-3">
-				{actions.map((action) => (
-					<Item
-						key={action.title}
-						variant="outline"
-						className="bg-card"
-						render={
-							<Link key={action.title} {...action.linkProps}>
-								<ItemMedia
-									variant="icon"
-									className={cn("size-12", action.accent)}
-								>
-									<action.icon className="size-6" />
-								</ItemMedia>
-								<ItemContent>
-									<ItemTitle>{action.title}</ItemTitle>
-									<ItemDescription>{action.description}</ItemDescription>
-								</ItemContent>
-								<ItemActions>
-									Go now
-									<ArrowRightIcon className="size-4" />
-								</ItemActions>
-							</Link>
-						}
-					/>
-				))}
-			</div>
-		</div>
+				</SectionDescription>
+			</SectionHeader>
+			<SectionContent>
+				<SectionGrid layout="3">
+					{actions.map((action) => (
+						<Item
+							key={action.title}
+							variant="outline"
+							className="bg-card"
+							render={
+								<Link key={action.title} {...action.linkProps}>
+									<ItemMedia
+										variant="icon"
+										className={cn("size-12", action.accent)}
+									>
+										<action.icon className="size-6" />
+									</ItemMedia>
+									<ItemContent>
+										<ItemTitle>{action.title}</ItemTitle>
+										<ItemDescription>{action.description}</ItemDescription>
+									</ItemContent>
+									<ItemActions>
+										Go now
+										<ArrowRightIcon className="size-4" />
+									</ItemActions>
+								</Link>
+							}
+						/>
+					))}
+				</SectionGrid>
+			</SectionContent>
+		</Section>
 	);
 };
 
@@ -444,40 +455,43 @@ const ResourceHighlights = () => {
 	}>;
 
 	return (
-		<div className="space-y-4 border-border/70">
-			<div>
-				<CardTitle className="text-xl">Resource highlights</CardTitle>
-				<CardDescription>
+		<Section>
+			<SectionHeader>
+				<SectionTitle>Resource highlights</SectionTitle>
+				<SectionDescription>
 					A quick glance at the building blocks that fuel your workspace.
-				</CardDescription>
-			</div>
-			<div className="grid gap-4 md:grid-cols-3">
-				{resources.map((resource) => (
-					<Item
-						key={resource.label}
-						variant="outline"
-						render={
-							<Link {...resource.linkProps} className="bg-card">
-								<ItemMedia variant="icon">
-									<resource.icon
-										className={cn("size-5", resource.accentColor)}
-									/>
-								</ItemMedia>
-								<ItemContent>
-									<ItemTitle>{resource.label}</ItemTitle>
-									<ItemDescription className="text-xs">
-										{resource.description}
-									</ItemDescription>
-								</ItemContent>
-								<Badge variant="secondary" className="text-xs">
-									{resource.count}
-								</Badge>
-							</Link>
-						}
-					/>
-				))}
-			</div>
-		</div>
+				</SectionDescription>
+			</SectionHeader>
+
+			<SectionContent>
+				<SectionGrid layout="3">
+					{resources.map((resource) => (
+						<Item
+							key={resource.label}
+							variant="outline"
+							render={
+								<Link {...resource.linkProps} className="bg-card">
+									<ItemMedia variant="icon">
+										<resource.icon
+											className={cn("size-5", resource.accentColor)}
+										/>
+									</ItemMedia>
+									<ItemContent>
+										<ItemTitle>{resource.label}</ItemTitle>
+										<ItemDescription className="text-xs">
+											{resource.description}
+										</ItemDescription>
+									</ItemContent>
+									<Badge variant="secondary" className="text-xs">
+										{resource.count}
+									</Badge>
+								</Link>
+							}
+						/>
+					))}
+				</SectionGrid>
+			</SectionContent>
+		</Section>
 	);
 };
 
@@ -518,11 +532,4 @@ const ResourceHighlightsSkeleton = () => (
 			<SkeletonsArray className="h-20 w-full" count={3} />
 		</CardContent>
 	</Card>
-);
-
-const ChatsSectionSkeleton = () => (
-	<section className="space-y-4">
-		<Skeleton className="h-7 w-40" />
-		<Skeleton className="h-80 w-full rounded-2xl" />
-	</section>
 );

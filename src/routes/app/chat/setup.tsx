@@ -6,14 +6,6 @@ import {
 	UserIcon,
 } from "lucide-react";
 import { useState } from "react";
-import {
-	Page,
-	PageContent,
-	PageDescription,
-	PageFooter,
-	PageHeader,
-	PageTitle,
-} from "@/components/app/page";
 import { BotSelect } from "@/components/bot/bot-select";
 import { Button } from "@/components/ui/button";
 import {
@@ -32,6 +24,14 @@ import {
 	DialogTrigger,
 } from "@/components/ui/dialog";
 import { Separator } from "@/components/ui/separator";
+import {
+	Page,
+	PageContent,
+	PageDescription,
+	PageFooter,
+	PageHeader,
+	PageTitle,
+} from "@/components/ui/shell/page";
 import { useCreateChatMutation } from "@/hooks/mutations/use-chat-mutation";
 import type { Bot } from "@/lib/orpc/schemas/bot";
 

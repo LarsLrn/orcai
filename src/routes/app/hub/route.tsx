@@ -9,9 +9,10 @@ import {
 	Page,
 	PageAction,
 	PageContent,
+	PageDescription,
 	PageHeader,
 	PageTitle,
-} from "@/components/app/page";
+} from "@/components/ui/shell/page";
 import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
 
 const HUB_ROUTES = [
@@ -52,6 +53,10 @@ function RouteComponent() {
 		<Page>
 			<PageHeader>
 				<PageTitle>Hub</PageTitle>
+				<PageDescription>
+					Discover and share community resources including bots, blocks, assets,
+					and courses.
+				</PageDescription>
 				<PageAction>
 					<Tabs
 						value={activeTab}

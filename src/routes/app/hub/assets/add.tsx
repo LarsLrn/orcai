@@ -1,11 +1,11 @@
 import { createFileRoute } from "@tanstack/react-router";
+import { UploadComponent } from "@/components/documents/upload-component";
 import {
 	Page,
 	PageDescription,
 	PageHeader,
 	PageTitle,
-} from "@/components/app/page";
-import { UploadComponent } from "@/components/documents/upload-component";
+} from "@/components/ui/shell/page";
 
 export const Route = createFileRoute("/app/hub/assets/add")({
 	component: RouteComponent,

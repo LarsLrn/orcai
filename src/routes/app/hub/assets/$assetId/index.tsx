@@ -3,16 +3,16 @@ import { createFileRoute } from "@tanstack/react-router";
 import { GlobeIcon, KeyRoundIcon } from "lucide-react";
 import { useState } from "react";
 import { AccessDialog } from "@/components/access/access-dialog";
+import { FileViewer } from "@/components/documents/file-viewer";
+import { Badge } from "@/components/ui/badge";
+import { Button } from "@/components/ui/button";
 import {
 	Page,
 	PageAction,
 	PageContent,
 	PageHeader,
 	PageTitle,
-} from "@/components/app/page";
-import { FileViewer } from "@/components/documents/file-viewer";
-import { Badge } from "@/components/ui/badge";
-import { Button } from "@/components/ui/button";
+} from "@/components/ui/shell/page";
 import { orpc } from "@/lib/orpc/orpc";
 
 export const Route = createFileRoute("/app/hub/assets/$assetId/")({

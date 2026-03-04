@@ -1,11 +1,5 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { useState } from "react";
-import {
-	Page,
-	PageContent,
-	PageHeader,
-	PageTitle,
-} from "@/components/app/page";
 import { DatabaseBlockForm } from "@/components/blocks/database-block/form/database-block-form";
 import { ImageGenerationBlockForm } from "@/components/blocks/image-generation-block/form/image-generation-block-form";
 import { TemplateBlockForm } from "@/components/blocks/template-block/form/template-block-form";
@@ -18,6 +12,12 @@ import {
 	SelectTrigger,
 	SelectValue,
 } from "@/components/ui/select";
+import {
+	Page,
+	PageContent,
+	PageHeader,
+	PageTitle,
+} from "@/components/ui/shell/page";
 import { BLOCK_TYPES } from "@/lib/orpc/schemas/block";
 
 export const Route = createFileRoute("/app/hub/blocks/add")({

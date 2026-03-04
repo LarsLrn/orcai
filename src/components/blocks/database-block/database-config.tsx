@@ -8,7 +8,7 @@ import {
 	ZapIcon,
 } from "lucide-react";
 import { useState } from "react";
-import { AssetPreview } from "@/components/documents/asset-preview";
+import { AssetCard } from "@/components/documents/asset-card";
 import { Badge } from "@/components/ui/badge";
 import { Button, buttonVariants } from "@/components/ui/button";
 import {
@@ -74,7 +74,7 @@ const AssetGrid = ({ assetIds }: { assetIds: Asset["id"][] }) => {
 				preset="fade"
 			>
 				{assets.data.map((asset) => (
-					<AssetPreview key={asset.id} asset={asset} />
+					<AssetCard key={asset.id} asset={asset} />
 				))}
 			</AnimatedGroup>
 		</div>

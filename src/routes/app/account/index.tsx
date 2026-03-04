@@ -2,12 +2,6 @@ import { createFileRoute, Link } from "@tanstack/react-router";
 import { FileTextIcon } from "lucide-react";
 import { Suspense } from "react";
 import { ExportChats } from "@/components/account/export-chats";
-import {
-	Page,
-	PageContent,
-	PageHeader,
-	PageTitle,
-} from "@/components/app/page";
 import { UserStats } from "@/components/app/user-stats";
 import { ChangePasswordForm } from "@/components/auth/change-password/change-password-form";
 import { OrganizationInvitationsList } from "@/components/organizations/invitations/organization-invitations-list";
@@ -19,6 +13,12 @@ import {
 	CardHeader,
 	CardTitle,
 } from "@/components/ui/card";
+import {
+	Page,
+	PageContent,
+	PageHeader,
+	PageTitle,
+} from "@/components/ui/shell/page";
 import { Skeleton } from "@/components/ui/skeleton";
 import { ProfileForm } from "@/components/users/profile/form/profile-form";
 

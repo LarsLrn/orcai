@@ -8,13 +8,13 @@ import {
 	MailIcon,
 	UserIcon,
 } from "lucide-react";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import {
 	Page,
 	PageContent,
 	PageHeader,
 	PageTitle,
-} from "@/components/app/page";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+} from "@/components/ui/shell/page";
 import { ManageUser } from "@/components/users/manage-user";
 import { UserAccessOverview } from "@/components/users/user-access-overview";
 import { orpc } from "@/lib/orpc/orpc";

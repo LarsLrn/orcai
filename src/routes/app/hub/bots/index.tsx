@@ -1,6 +1,8 @@
 import { useSuspenseQuery } from "@tanstack/react-query";
 import { createFileRoute, Link } from "@tanstack/react-router";
-import { BotIcon, EditIcon, EyeIcon, PlusIcon } from "lucide-react";
+import { BotIcon, PlusIcon } from "lucide-react";
+import { BotCard } from "@/components/bot/bot-card";
+import { buttonVariants } from "@/components/ui/button";
 import {
 	Page,
 	PageAction,
@@ -8,10 +10,7 @@ import {
 	PageDescription,
 	PageHeader,
 	PageTitle,
-} from "@/components/app/page";
-import { BotPreview } from "@/components/bot/bot-preview";
-import { buttonVariants } from "@/components/ui/button";
-import { CardFooter } from "@/components/ui/card";
+} from "@/components/ui/shell/page";
 import { orpc } from "@/lib/orpc/orpc";
 
 export const Route = createFileRoute("/app/hub/bots/")({
@@ -74,35 +73,7 @@ function RouteComponent() {
 				) : (
 					<div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
 						{bots.data.map((bot) => (
-							<BotPreview key={bot.id} bot={bot}>
-								<CardFooter className="gap-2 pt-4">
-									<Link
-										to="/app/hub/bots/$botId"
-										params={{ botId: bot.id }}
-										className={buttonVariants({
-											variant: "outline",
-											size: "sm",
-											className: "flex-1",
-										})}
-									>
-										<EyeIcon className="mr-2 h-4 w-4" />
-										View
-									</Link>
-
-									<Link
-										to="/app/hub/bots/$botId/edit"
-										params={{ botId: bot.id }}
-										className={buttonVariants({
-											variant: "default",
-											size: "sm",
-											className: "flex-1",
-										})}
-									>
-										<EditIcon className="mr-2 h-4 w-4" />
-										Edit
-									</Link>
-								</CardFooter>
-							</BotPreview>
+							<BotCard key={bot.id} bot={bot} />
 						))}
 					</div>
 				)}

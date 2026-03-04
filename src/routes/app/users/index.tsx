@@ -1,5 +1,10 @@
 import { useSuspenseQuery } from "@tanstack/react-query";
 import { createFileRoute, Link } from "@tanstack/react-router";
+import { buttonVariants } from "@/components/ui/button";
+import { DataTable } from "@/components/ui/data-table/data-table";
+import { DataTableBody } from "@/components/ui/data-table/data-table-body";
+import { DataTablePagination } from "@/components/ui/data-table/data-table-pagination";
+import { DataTableViewOptions } from "@/components/ui/data-table/data-table-view-options";
 import {
 	Page,
 	PageAction,
@@ -7,12 +12,7 @@ import {
 	PageDescription,
 	PageHeader,
 	PageTitle,
-} from "@/components/app/page";
-import { buttonVariants } from "@/components/ui/button";
-import { DataTable } from "@/components/ui/data-table/data-table";
-import { DataTableBody } from "@/components/ui/data-table/data-table-body";
-import { DataTablePagination } from "@/components/ui/data-table/data-table-pagination";
-import { DataTableViewOptions } from "@/components/ui/data-table/data-table-view-options";
+} from "@/components/ui/shell/page";
 import { columns } from "@/components/users/table/columns";
 import { UsersDataTableSelectActions } from "@/components/users/table/users-data-table-select-actions";
 import { orpc } from "@/lib/orpc/orpc";

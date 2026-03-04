@@ -1,11 +1,11 @@
 import { createFileRoute } from "@tanstack/react-router";
+import { OrganizationForm } from "@/components/organizations/form/organization-form";
 import {
 	Page,
 	PageContent,
 	PageHeader,
 	PageTitle,
-} from "@/components/app/page";
-import { OrganizationForm } from "@/components/organizations/form/organization-form";
+} from "@/components/ui/shell/page";
 
 export const Route = createFileRoute("/app/orgs/add")({
 	component: RouteComponent,

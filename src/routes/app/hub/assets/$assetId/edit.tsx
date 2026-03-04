@@ -1,12 +1,12 @@
 import { useSuspenseQuery } from "@tanstack/react-query";
 import { createFileRoute } from "@tanstack/react-router";
+import { AssetForm } from "@/components/documents/form/asset-form";
 import {
 	Page,
 	PageContent,
 	PageHeader,
 	PageTitle,
-} from "@/components/app/page";
-import { AssetForm } from "@/components/documents/form/asset-form";
+} from "@/components/ui/shell/page";
 import { orpc } from "@/lib/orpc/orpc";
 
 export const Route = createFileRoute("/app/hub/assets/$assetId/edit")({

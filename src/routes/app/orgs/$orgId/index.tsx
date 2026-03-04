@@ -1,14 +1,14 @@
 import { useSuspenseQuery } from "@tanstack/react-query";
 import { createFileRoute, Link, Outlet } from "@tanstack/react-router";
+import { buttonVariants } from "@/components/ui/button";
+import { Card, CardContent } from "@/components/ui/card";
 import {
 	Page,
 	PageAction,
 	PageContent,
 	PageHeader,
 	PageTitle,
-} from "@/components/app/page";
-import { buttonVariants } from "@/components/ui/button";
-import { Card, CardContent } from "@/components/ui/card";
+} from "@/components/ui/shell/page";
 import { orpc } from "@/lib/orpc/orpc";
 
 export const Route = createFileRoute("/app/orgs/$orgId/")({

@@ -1,5 +1,11 @@
 import { useSuspenseQuery } from "@tanstack/react-query";
 import { createFileRoute, Link } from "@tanstack/react-router";
+import { buttonVariants } from "@/components/ui/button";
+import { DataTable } from "@/components/ui/data-table/data-table";
+import { DataTableBody } from "@/components/ui/data-table/data-table-body";
+import { DataTableExportButton } from "@/components/ui/data-table/data-table-export-button";
+import { DataTablePagination } from "@/components/ui/data-table/data-table-pagination";
+import { DataTableViewOptions } from "@/components/ui/data-table/data-table-view-options";
 import {
 	Page,
 	PageAction,
@@ -7,13 +13,7 @@ import {
 	PageDescription,
 	PageHeader,
 	PageTitle,
-} from "@/components/app/page";
-import { buttonVariants } from "@/components/ui/button";
-import { DataTable } from "@/components/ui/data-table/data-table";
-import { DataTableBody } from "@/components/ui/data-table/data-table-body";
-import { DataTableExportButton } from "@/components/ui/data-table/data-table-export-button";
-import { DataTablePagination } from "@/components/ui/data-table/data-table-pagination";
-import { DataTableViewOptions } from "@/components/ui/data-table/data-table-view-options";
+} from "@/components/ui/shell/page";
 import { InvitesTableActions } from "@/components/users/invites/table/invites-table-actions";
 import { invitesTableColumns } from "@/components/users/invites/table/invites-table-columns";
 import { orpc } from "@/lib/orpc/orpc";

@@ -1,11 +1,11 @@
 import { useSuspenseQuery } from "@tanstack/react-query";
 import { createFileRoute } from "@tanstack/react-router";
-import { Page, PageContent, PageHeader } from "@/components/app/page";
 import { BotBlocks } from "@/components/bot/bot-blocks";
 import { BotConfiguration } from "@/components/bot/bot-configuration";
 import { BotHeader } from "@/components/bot/bot-header";
 import { BotMetadata } from "@/components/bot/bot-metadata";
 import { BotQuickActions } from "@/components/bot/bot-quick-actions";
+import { Page, PageContent, PageHeader } from "@/components/ui/shell/page";
 import { orpc } from "@/lib/orpc/orpc";
 
 export const Route = createFileRoute("/app/hub/bots/$botId/")({

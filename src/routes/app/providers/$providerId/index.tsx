@@ -12,12 +12,6 @@ import {
 	SparklesIcon,
 	TagIcon,
 } from "lucide-react";
-import {
-	Page,
-	PageContent,
-	PageHeader,
-	PageTitle,
-} from "@/components/app/page";
 import { Badge } from "@/components/ui/badge";
 import { buttonVariants } from "@/components/ui/button";
 import {
@@ -28,6 +22,12 @@ import {
 	CardTitle,
 } from "@/components/ui/card";
 import { Separator } from "@/components/ui/separator";
+import {
+	Page,
+	PageContent,
+	PageHeader,
+	PageTitle,
+} from "@/components/ui/shell/page";
 import { modelCapabilities, providerCompatibilities } from "@/lib/ai/providers";
 import { orpc } from "@/lib/orpc/orpc";
 

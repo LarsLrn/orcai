@@ -1,11 +1,11 @@
 import { createFileRoute } from "@tanstack/react-router";
+import { CourseForm } from "@/components/courses/form/course-form";
 import {
 	Page,
 	PageContent,
 	PageHeader,
 	PageTitle,
-} from "@/components/app/page";
-import { CourseForm } from "@/components/courses/form/course-form";
+} from "@/components/ui/shell/page";
 
 export const Route = createFileRoute("/app/hub/courses/add")({
 	component: RouteComponent,

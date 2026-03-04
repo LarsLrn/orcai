@@ -2,13 +2,6 @@ import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { createFileRoute, useNavigate } from "@tanstack/react-router";
 import { PlusIcon, SearchIcon, Trash2Icon, UsersIcon } from "lucide-react";
 import { useEffect, useMemo, useState } from "react";
-import {
-	Page,
-	PageAction,
-	PageContent,
-	PageHeader,
-	PageTitle,
-} from "@/components/app/page";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import {
@@ -21,6 +14,13 @@ import {
 import { SelectableListItem } from "@/components/ui/composed/selectable-list-item";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import {
+	Page,
+	PageAction,
+	PageContent,
+	PageHeader,
+	PageTitle,
+} from "@/components/ui/shell/page";
 import { Textarea } from "@/components/ui/textarea";
 import { useMutationAction } from "@/hooks/actions/use-mutation-action";
 import { orpc } from "@/lib/orpc/orpc";

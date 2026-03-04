@@ -14,7 +14,6 @@ import {
 } from "lucide-react";
 import { useState } from "react";
 import { AccessDialog } from "@/components/access/access-dialog";
-import { Page, PageContent, PageHeader } from "@/components/app/page";
 import { DatabaseBlockConfigCard } from "@/components/blocks/database-block/database-config";
 import { TemplateBlockConfigCard } from "@/components/blocks/template-block/template-config";
 import { Badge } from "@/components/ui/badge";
@@ -38,6 +37,7 @@ import {
 	HoverCardContent,
 	HoverCardTrigger,
 } from "@/components/ui/hover-card";
+import { Page, PageContent, PageHeader } from "@/components/ui/shell/page";
 import { orpc } from "@/lib/orpc/orpc";
 
 export const Route = createFileRoute("/app/hub/blocks/$blockId/")({

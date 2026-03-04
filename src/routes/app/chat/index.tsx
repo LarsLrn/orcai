@@ -1,13 +1,13 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
+import { ChatsList } from "@/components/chat/chats-list";
+import { buttonVariants } from "@/components/ui/button";
 import {
 	Page,
 	PageAction,
 	PageContent,
 	PageHeader,
 	PageTitle,
-} from "@/components/app/page";
-import { ChatsList } from "@/components/chat/chats-list";
-import { buttonVariants } from "@/components/ui/button";
+} from "@/components/ui/shell/page";
 
 export const Route = createFileRoute("/app/chat/")({
 	component: RouteComponent,

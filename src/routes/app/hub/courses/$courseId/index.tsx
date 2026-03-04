@@ -4,16 +4,16 @@ import { format } from "date-fns";
 import { BotIcon, CalendarIcon, GlobeIcon, KeyRoundIcon } from "lucide-react";
 import { useState } from "react";
 import { AccessDialog } from "@/components/access/access-dialog";
+import { ContentRenderer } from "@/components/editor/content-renderer";
+import { Badge } from "@/components/ui/badge";
+import { Button, buttonVariants } from "@/components/ui/button";
 import {
 	Page,
 	PageAction,
 	PageContent,
 	PageHeader,
 	PageTitle,
-} from "@/components/app/page";
-import { ContentRenderer } from "@/components/editor/content-renderer";
-import { Badge } from "@/components/ui/badge";
-import { Button, buttonVariants } from "@/components/ui/button";
+} from "@/components/ui/shell/page";
 import { orpc } from "@/lib/orpc/orpc";
 
 export const Route = createFileRoute("/app/hub/courses/$courseId/")({

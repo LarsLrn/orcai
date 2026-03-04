@@ -1,8 +1,5 @@
-import { Link } from "@tanstack/react-router";
 import { TagIcon } from "lucide-react";
-import { BlockPreview } from "@/components/blocks/block-preview";
 import { Badge } from "@/components/ui/badge";
-import { buttonVariants } from "@/components/ui/button";
 import {
 	Card,
 	CardContent,
@@ -11,6 +8,7 @@ import {
 	CardTitle,
 } from "@/components/ui/card";
 import type { Block } from "@/lib/orpc/schemas/block";
+import { BlockCard } from "../blocks/block-card";
 
 const BotBlocks = ({ blocks }: { blocks: Block[] }) => {
 	return (
@@ -31,23 +29,18 @@ const BotBlocks = ({ blocks }: { blocks: Block[] }) => {
 				{blocks && blocks.length > 0 ? (
 					<div className="grid gap-3 sm:grid-cols-1">
 						{blocks.map((block) => (
-							<BlockPreview
+							<BlockCard
 								key={block.id}
 								block={block}
-								className="bg-muted/50"
-							>
-								<Link
-									to="/app/hub/blocks/$blockId"
-									params={{ blockId: block.id }}
-									className={buttonVariants({
-										variant: "outline",
-										size: "sm",
-										className: "h-6 px-2",
-									})}
-								>
-									View
-								</Link>
-							</BlockPreview>
+								actions={{
+									primary: {
+										linkProps: {
+											to: "/app/hub/blocks/$blockId",
+											params: { blockId: block.id },
+										},
+									},
+								}}
+							/>
 						))}
 					</div>
 				) : (
