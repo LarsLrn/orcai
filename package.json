@@ -5,6 +5,10 @@
 	"author": "Lars Lorenz",
 	"private": true,
 	"type": "module",
+	"packageManager": "bun@1.3.10",
+	"engines": {
+		"bun": ">=1.3.10"
+	},
 	"scripts": {
 		"dev": "vite dev",
 		"build": "vite build",
