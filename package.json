@@ -23,7 +23,9 @@
 		"db:seed": "tsx scripts/seed.ts",
 		"spice:deploy-schema": "bun run scripts/deploy-spicedb-schema.ts",
 		"machine-translate": "inlang machine translate --project project.inlang",
-		"precommit": "lint-staged"
+		"precommit": "lint-staged",
+		"prepush": "bun run lint",
+		"prepare": "husky"
 	},
 	"lint-staged": {
 		"*.{ts,tsx,js,jsx,cjs,mjs,json,css,md}": [

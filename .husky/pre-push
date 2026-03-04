@@ -1,0 +1,3 @@
+# .husky/pre-push
+#!/usr/bin/env sh
+bun run prepush
