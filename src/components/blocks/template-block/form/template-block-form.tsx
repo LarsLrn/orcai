@@ -48,7 +48,7 @@ const TemplateBlockForm = ({
 	const { data: models } = useQuery(
 		orpc.model.list.queryOptions({
 			input: providerId
-				? { providerId, capabilities: ["text-generation"] }
+				? { filters: { providerId, capabilities: ["text"] } }
 				: skipToken,
 		}),
 	);

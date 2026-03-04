@@ -16,7 +16,17 @@ export const listModelsContract = base
 		summary: "List all available models",
 		tags: ["Models"],
 	})
-	.input(paginationSchema)
+	.input(
+		z.object({
+			filters: z
+				.object({
+					providerId: providerSelectSchema.shape.id.optional(),
+					capabilities: modelSelectSchema.shape.capabilities.optional(),
+				})
+				.optional(),
+			...paginationSchema.shape,
+		}),
+	)
 	.output(
 		z.object({
 			data: z.array(modelSelectSchema),

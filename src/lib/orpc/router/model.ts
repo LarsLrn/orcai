@@ -21,6 +21,10 @@ export const listModels = authed.model.list
 				const [data, [rowCount]] = yield* Effect.all(
 					[
 						db.query.model.findMany({
+							where: {
+								providerId: input.filters?.providerId,
+								capabilities: { arrayOverlaps: input.filters?.capabilities },
+							},
 							limit: input.pageSize,
 							offset: input.pageIndex * input.pageSize,
 						}),
