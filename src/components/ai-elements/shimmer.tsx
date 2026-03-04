@@ -42,18 +42,25 @@ const ShimmerComponent = ({
 
 	const dynamicSpread = useMemo(
 		() => (children?.length ?? 0) * spread,
-		[children, spread],
+		[
+			children,
+			spread,
+		],
 	);
 
 	return (
 		<MotionComponent
-			animate={{ backgroundPosition: "0% center" }}
+			animate={{
+				backgroundPosition: "0% center",
+			}}
 			className={cn(
 				"relative inline-block bg-size-[250%_100%,auto] bg-clip-text text-transparent",
 				"[--bg:linear-gradient(90deg,#0000_calc(50%-var(--spread)),var(--color-background),#0000_calc(50%+var(--spread)))] [background-repeat:no-repeat,padding-box]",
 				className,
 			)}
-			initial={{ backgroundPosition: "100% center" }}
+			initial={{
+				backgroundPosition: "100% center",
+			}}
 			style={
 				{
 					"--spread": `${dynamicSpread}px`,

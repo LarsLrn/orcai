@@ -20,7 +20,9 @@ export const listResourceGrantsContract = base
 		method: "GET",
 		path: "/resources/{resourceType}/{resourceId}/grants",
 		summary: "List direct grants for a resource",
-		tags: ["Resources"],
+		tags: [
+			"Resources",
+		],
 	})
 	.input(resourceListGrantsInputSchema)
 	.output(resourceListGrantsResponseSchema);
@@ -30,7 +32,9 @@ export const listResourcePrincipalsContract = base
 		method: "GET",
 		path: "/resources/{resourceType}/{resourceId}/principals",
 		summary: "List principals that can be directly granted on a resource",
-		tags: ["Resources"],
+		tags: [
+			"Resources",
+		],
 	})
 	.input(resourceListPrincipalsInputSchema)
 	.output(resourceListPrincipalsResponseSchema);
@@ -40,7 +44,9 @@ export const grantResourceAccessContract = base
 		method: "POST",
 		path: "/resources/{resourceType}/{resourceId}/grants",
 		summary: "Grant direct access to a resource",
-		tags: ["Resources"],
+		tags: [
+			"Resources",
+		],
 	})
 	.input(resourceGrantInputSchema)
 	.output(
@@ -54,7 +60,9 @@ export const revokeResourceAccessContract = base
 		method: "DELETE",
 		path: "/resources/{resourceType}/{resourceId}/grants",
 		summary: "Revoke direct access from a resource",
-		tags: ["Resources"],
+		tags: [
+			"Resources",
+		],
 	})
 	.input(resourceRevokeInputSchema)
 	.output(resourceRevokeResponseSchema);
@@ -64,7 +72,9 @@ export const getResourceVisibilityContract = base
 		method: "GET",
 		path: "/resources/{resourceType}/{resourceId}/visibility",
 		summary: "Get resource visibility",
-		tags: ["Resources"],
+		tags: [
+			"Resources",
+		],
 	})
 	.input(resourceGetVisibilityInputSchema)
 	.output(resourceGetVisibilityResponseSchema);
@@ -74,7 +84,9 @@ export const setResourceVisibilityContract = base
 		method: "POST",
 		path: "/resources/{resourceType}/{resourceId}/visibility",
 		summary: "Set resource visibility",
-		tags: ["Resources"],
+		tags: [
+			"Resources",
+		],
 	})
 	.input(resourceSetVisibilityInputSchema)
 	.output(

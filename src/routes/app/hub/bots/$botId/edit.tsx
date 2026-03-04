@@ -26,7 +26,9 @@ function RouteComponent() {
 
 	const { data: bot } = useSuspenseQuery(
 		orpc.bot.find.queryOptions({
-			input: { id: botId },
+			input: {
+				id: botId,
+			},
 		}),
 	);
 

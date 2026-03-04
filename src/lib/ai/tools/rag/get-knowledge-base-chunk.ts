@@ -65,7 +65,10 @@ export const getKnowledgeBaseChunksTool = ({
 						});
 					}
 
-					const targetBlocks = resolveSearchBlocks({ blocks, blockId });
+					const targetBlocks = resolveSearchBlocks({
+						blocks,
+						blockId,
+					});
 					if (targetBlocks.length === 0) {
 						return {
 							result: [] as ChunkResult[],
@@ -134,7 +137,9 @@ export const getKnowledgeBaseChunksTool = ({
 										const response = await client.assetPoint.list({
 											filters: {
 												blockId: candidate.sourceBlockId,
-												assetIds: [candidate.payload.asset_id],
+												assetIds: [
+													candidate.payload.asset_id,
+												],
 												chunkIndices: neighboringChunkIndexes,
 												limit: neighboringChunkIndexes.length,
 											},

@@ -41,7 +41,9 @@ const InvitesTableActions = () => {
 
 		deleteInvitations({
 			organizationId,
-			refs: selectedInvitations.map((invitation) => ({ id: invitation.id })),
+			refs: selectedInvitations.map((invitation) => ({
+				id: invitation.id,
+			})),
 		});
 	};
 

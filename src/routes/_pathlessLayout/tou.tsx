@@ -5,7 +5,9 @@ import { createServerFn } from "@tanstack/react-start";
 import { Markdown } from "@/components/app/markdown";
 import { Card, CardContent } from "@/components/ui/card";
 
-const getMarkdownContent = createServerFn({ method: "GET" }).handler(() => {
+const getMarkdownContent = createServerFn({
+	method: "GET",
+}).handler(() => {
 	const markdownPath = path.join(process.cwd(), "src/md/terms-of-use.md");
 	const markdownContent = fs.readFileSync(markdownPath, "utf8");
 
@@ -16,7 +18,9 @@ export const Route = createFileRoute("/_pathlessLayout/tou")({
 	component: RouteComponent,
 	loader: async () => {
 		const content = await getMarkdownContent();
-		return { content };
+		return {
+			content,
+		};
 	},
 	ssr: "data-only",
 });

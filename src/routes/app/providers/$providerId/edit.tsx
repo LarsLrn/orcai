@@ -24,7 +24,9 @@ function RouteComponent() {
 	const { providerId } = Route.useParams();
 	const { data: provider } = useSuspenseQuery(
 		orpc.provider.find.queryOptions({
-			input: { id: providerId },
+			input: {
+				id: providerId,
+			},
 		}),
 	);
 

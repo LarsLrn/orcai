@@ -72,7 +72,9 @@ export const withSourceBlock = ({
 export const flattenBlockResponses = (
 	blockResponses: Array<{
 		block: DatabaseBlock;
-		response: { data: AssetPoint[] };
+		response: {
+			data: AssetPoint[];
+		};
 	}>,
 ): PointWithBlock[] =>
 	blockResponses.flatMap(({ block, response }) =>
@@ -188,7 +190,10 @@ export const rankDocumentsByQuery = ({
 				? 0.5
 				: 0;
 			const score = exactTokenMatches + phraseBonus + startsWithBonus;
-			return { doc, score };
+			return {
+				doc,
+				score,
+			};
 		})
 		.filter((item) => item.score > 0)
 		.sort((a, b) => b.score - a.score)
@@ -216,7 +221,9 @@ export const loadDocumentCatalog = ({ blocks }: { blocks: DatabaseBlock[] }) =>
 						assetIds: result.assets ?? [],
 					})),
 				),
-			{ concurrency: 4 },
+			{
+				concurrency: 4,
+			},
 		);
 
 		const uniqueAssetIds = Array.from(
@@ -243,7 +250,13 @@ export const loadDocumentCatalog = ({ blocks }: { blocks: DatabaseBlock[] }) =>
 		});
 
 		const assetById = new Map(
-			assetResponse.data.map((asset) => [asset.id, asset] as const),
+			assetResponse.data.map(
+				(asset) =>
+					[
+						asset.id,
+						asset,
+					] as const,
+			),
 		);
 
 		return blockAssetRefs.flatMap(({ block, assetIds }) =>
@@ -297,7 +310,12 @@ export const selectByIds = ({
 	candidates: PointWithBlock[];
 	ids: string[];
 }) => {
-	const idOrder = new Map(ids.map((id, index) => [id, index]));
+	const idOrder = new Map(
+		ids.map((id, index) => [
+			id,
+			index,
+		]),
+	);
 	return candidates
 		.filter((candidate) => idOrder.has(candidate.id))
 		.sort(

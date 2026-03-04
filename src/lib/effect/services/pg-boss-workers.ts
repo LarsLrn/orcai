@@ -111,7 +111,9 @@ const registerWorkers = Effect.gen(function* () {
 					),
 				),
 			),
-		{ discard: true },
+		{
+			discard: true,
+		},
 	);
 });
 
@@ -125,7 +127,10 @@ export const PgBossWorkersLive = Layer.scopedDiscard(
 				createQueue(VECTORIZE_ASSET_JOB_NAME),
 				createQueue(PROCESS_ASSET_JOB_NAME),
 			],
-			{ discard: true, concurrency: "unbounded" },
+			{
+				discard: true,
+				concurrency: "unbounded",
+			},
 		).pipe(
 			Effect.tapError(() =>
 				Effect.logError(

@@ -46,7 +46,9 @@ export const organizationInvitationInsertSchema = z.object({
 				ctx.issues.push({
 					code: "custom",
 					message: "Emails must be unique",
-					path: ["root"],
+					path: [
+						"root",
+					],
 					input: "",
 				});
 			}
@@ -63,7 +65,13 @@ export const organizationInvitationUpdateSchema = z
 	.object({
 		organizationId: organizationInvitationSelectSchema.shape.organizationId,
 		id: organizationInvitationSelectSchema.shape.id,
-		status: z.enum(["pending", "accepted", "rejected"]).optional(),
+		status: z
+			.enum([
+				"pending",
+				"accepted",
+				"rejected",
+			])
+			.optional(),
 		expiresAt: organizationInvitationSelectSchema.shape.expiresAt.optional(),
 	})
 	.check((ctx) => {
@@ -71,7 +79,9 @@ export const organizationInvitationUpdateSchema = z
 			ctx.issues.push({
 				code: "custom",
 				message: "At least one mutable field must be provided",
-				path: ["root"],
+				path: [
+					"root",
+				],
 				input: "",
 			});
 		}
@@ -85,7 +95,11 @@ export const organizationInvitationUpdateSchema = z
 
 export const organizationInvitationDeleteSchema = z.object({
 	organizationId: organizationInvitationSelectSchema.shape.organizationId,
-	refs: z.array(z.object({ id: organizationInvitationSelectSchema.shape.id })),
+	refs: z.array(
+		z.object({
+			id: organizationInvitationSelectSchema.shape.id,
+		}),
+	),
 });
 
 /**

@@ -17,7 +17,13 @@ const ManageOrganization = ({
 				<Button
 					variant="destructive"
 					onClick={() =>
-						deleteOrganizations({ refs: [{ id: organization.id }] })
+						deleteOrganizations({
+							refs: [
+								{
+									id: organization.id,
+								},
+							],
+						})
 					}
 				>
 					Delete Organisation

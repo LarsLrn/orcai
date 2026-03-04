@@ -80,14 +80,20 @@ export const DefaultBubbleMenu = ({ editor }: { editor: Editor }) => {
 		const container = scrollContainerRef.current;
 		if (!container) return;
 
-		container.scrollBy({ left: -100, behavior: "smooth" });
+		container.scrollBy({
+			left: -100,
+			behavior: "smooth",
+		});
 	};
 
 	const handleScrollRight = () => {
 		const container = scrollContainerRef.current;
 		if (!container) return;
 
-		container.scrollBy({ left: 100, behavior: "smooth" });
+		container.scrollBy({
+			left: 100,
+			behavior: "smooth",
+		});
 	};
 
 	if (!editor) {

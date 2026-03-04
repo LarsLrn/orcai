@@ -95,7 +95,9 @@ const toAppORPCError = (error: AppError): AnyORPCError => {
 	const message = extractErrorMessage(error);
 	return new ORPCError(status, {
 		message,
-		data: { message },
+		data: {
+			message,
+		},
 	});
 };
 
@@ -113,13 +115,17 @@ const mapUnknownToORPCError = (error: unknown): AnyORPCError => {
 	const message = extractErrorMessage(error);
 	return new ORPCError("INTERNAL_SERVER_ERROR", {
 		message,
-		data: { message },
+		data: {
+			message,
+		},
 	});
 };
 
 export const runOrpcEffect = <A, E, R extends AppRuntimeContext>(
 	effect: Effect.Effect<A, E, R>,
-	options?: { spanName?: string },
+	options?: {
+		spanName?: string;
+	},
 ): Promise<A> =>
 	(async () => {
 		const activeSpan = trace.getSpan(otelContext.active());

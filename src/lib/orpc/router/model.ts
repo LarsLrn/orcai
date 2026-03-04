@@ -23,17 +23,28 @@ export const listModels = authed.model.list
 						db.query.model.findMany({
 							where: {
 								providerId: input.filters?.providerId,
-								capabilities: { arrayOverlaps: input.filters?.capabilities },
+								capabilities: {
+									arrayOverlaps: input.filters?.capabilities,
+								},
 							},
 							limit: input.pageSize,
 							offset: input.pageIndex * input.pageSize,
 						}),
-						db.select({ count: count() }).from(dbSchema.model),
+						db
+							.select({
+								count: count(),
+							})
+							.from(dbSchema.model),
 					],
-					{ concurrency: "unbounded" },
+					{
+						concurrency: "unbounded",
+					},
 				);
 
-				return { data, rowCount: rowCount.count };
+				return {
+					data,
+					rowCount: rowCount.count,
+				};
 			}),
 		),
 	);
@@ -55,13 +66,19 @@ export const findModel = authed.model.find
 						Effect.flatMap((model) =>
 							Effect.fromNullable(model).pipe(
 								Effect.orElse(() =>
-									Effect.fail(errors.NOT_FOUND({ message: "Model not found" })),
+									Effect.fail(
+										errors.NOT_FOUND({
+											message: "Model not found",
+										}),
+									),
 								),
 							),
 						),
 					);
 
-				return { data: model };
+				return {
+					data: model,
+				};
 			}),
 		),
 	);
@@ -78,7 +95,9 @@ export const createModel = authed.model.create
 					.values(input)
 					.returning();
 
-				return { data: model };
+				return {
+					data: model,
+				};
 			}),
 		),
 	);
@@ -98,11 +117,15 @@ export const updateModel = authed.model.update
 
 				if (!model) {
 					return yield* Effect.fail(
-						errors.NOT_FOUND({ message: "Model not found" }),
+						errors.NOT_FOUND({
+							message: "Model not found",
+						}),
 					);
 				}
 
-				return { data: model };
+				return {
+					data: model,
+				};
 			}),
 		),
 	);
@@ -121,7 +144,10 @@ export const deleteModel = authed.model.delete
 					),
 				);
 
-				return { success: true, message: "Models deleted successfully" };
+				return {
+					success: true,
+					message: "Models deleted successfully",
+				};
 			}),
 		),
 	);
@@ -133,7 +159,16 @@ export const discoverModels = authed.model.discover.handler(
 				const db = yield* DB;
 
 				const { data: provider } = yield* Effect.tryPromise({
-					try: () => call(findProvider, { id: input.providerId }, { context }),
+					try: () =>
+						call(
+							findProvider,
+							{
+								id: input.providerId,
+							},
+							{
+								context,
+							},
+						),
 					catch: (cause) =>
 						errors.BAD_REQUEST({
 							message: "Failed to find provider",
@@ -160,7 +195,9 @@ export const discoverModels = authed.model.discover.handler(
 					providerModelId: model.id,
 					name: model.id,
 					description: `Model ID: ${model.id} | Owned by ${model.owned_by}`,
-					capabilities: ["text"] satisfies ModelCapability[],
+					capabilities: [
+						"text",
+					] satisfies ModelCapability[],
 				}));
 
 				const insertedModels =
@@ -170,7 +207,9 @@ export const discoverModels = authed.model.discover.handler(
 								.insert(dbSchema.model)
 								.values(modelsToInsert)
 								.onConflictDoNothing()
-								.returning({ id: dbSchema.model.id });
+								.returning({
+									id: dbSchema.model.id,
+								});
 
 				const foundCount = modelsToInsert.length;
 				const addedCount = insertedModels.length;

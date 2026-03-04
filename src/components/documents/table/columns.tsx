@@ -47,7 +47,12 @@ export const columns: ColumnDef<Asset>[] = [
 			<DataTableColumnHeader column={column} title="Title" />
 		),
 		cell: ({ row }) => (
-			<Link to="/app/hub/assets/$assetId" params={{ assetId: row.original.id }}>
+			<Link
+				to="/app/hub/assets/$assetId"
+				params={{
+					assetId: row.original.id,
+				}}
+			>
 				{row.original.title}
 			</Link>
 		),
@@ -94,12 +99,19 @@ const ActionCell = ({ row }: { row: Row<Asset> }) => {
 					}
 				/>
 				<DropdownMenuContent align="end">
-					<Link to={"/app/hub/assets/$assetId"} params={{ assetId: asset.id }}>
+					<Link
+						to={"/app/hub/assets/$assetId"}
+						params={{
+							assetId: asset.id,
+						}}
+					>
 						<DropdownMenuItem>View Asset</DropdownMenuItem>
 					</Link>
 					<Link
 						to={"/app/hub/assets/$assetId/edit"}
-						params={{ assetId: asset.id }}
+						params={{
+							assetId: asset.id,
+						}}
 					>
 						<DropdownMenuItem>Edit Asset</DropdownMenuItem>
 					</Link>
@@ -114,7 +126,15 @@ const ActionCell = ({ row }: { row: Row<Asset> }) => {
 					<DropdownMenuSeparator />
 					<DropdownMenuItem
 						variant="destructive"
-						onClick={() => deleteAssets({ refs: [{ id: asset.id }] })}
+						onClick={() =>
+							deleteAssets({
+								refs: [
+									{
+										id: asset.id,
+									},
+								],
+							})
+						}
 					>
 						Delete Asset
 					</DropdownMenuItem>
@@ -124,7 +144,10 @@ const ActionCell = ({ row }: { row: Row<Asset> }) => {
 			<AccessDialog
 				open={isAccessOpen}
 				onOpenChange={setIsAccessOpen}
-				resourceRef={{ type: "asset", id: asset.id }}
+				resourceRef={{
+					type: "asset",
+					id: asset.id,
+				}}
 				resourceName={asset.title}
 			/>
 		</>

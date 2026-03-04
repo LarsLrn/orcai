@@ -5,7 +5,11 @@ export const base = oc
 	.$route({
 		spec: (s) => ({
 			...s,
-			security: [{ test: [] }],
+			security: [
+				{
+					test: [],
+				},
+			],
 		}),
 	})
 	.errors({

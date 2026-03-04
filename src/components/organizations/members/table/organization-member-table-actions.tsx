@@ -23,7 +23,9 @@ const OrganizationMemberTableActions = ({
 
 		deleteMembers({
 			organizationId,
-			refs: userIds.map((userId) => ({ userId })),
+			refs: userIds.map((userId) => ({
+				userId,
+			})),
 		});
 	};
 

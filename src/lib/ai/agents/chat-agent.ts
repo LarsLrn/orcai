@@ -36,10 +36,14 @@ export const chatAgent = new ToolLoopAgent({
 				);
 				const tools =
 					databaseBlocks.length > 0
-						? buildKnowledgeBaseTools({ blocks: databaseBlocks })
+						? buildKnowledgeBaseTools({
+								blocks: databaseBlocks,
+							})
 						: undefined;
 
-				const chatAiSettings = yield* getChatAiSettings({ templateBlock });
+				const chatAiSettings = yield* getChatAiSettings({
+					templateBlock,
+				});
 
 				return {
 					...settings,

@@ -5,7 +5,9 @@ export const Route = createFileRoute("/app/providers/$providerId")({
 	loader: async ({ context: { queryClient }, params: { providerId } }) => {
 		return await queryClient.ensureQueryData(
 			orpc.provider.find.queryOptions({
-				input: { id: providerId },
+				input: {
+					id: providerId,
+				},
 			}),
 		);
 	},

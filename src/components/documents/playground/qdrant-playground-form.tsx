@@ -3,7 +3,9 @@ import { qdrantPlaygroundSearchSchema } from "@/db/zod/qdrant";
 import { useAppForm } from "@/hooks/form";
 
 const QdrantPlaygroundForm = () => {
-	const { search } = useSearch({ from: "/app/hub/assets/playground" });
+	const { search } = useSearch({
+		from: "/app/hub/assets/playground",
+	});
 	const navigate = useNavigate();
 
 	const form = useAppForm({
@@ -14,7 +16,12 @@ const QdrantPlaygroundForm = () => {
 			onChange: qdrantPlaygroundSearchSchema,
 		},
 		onSubmit: async ({ value }) => {
-			await navigate({ to: ".", search: { search: value.search } });
+			await navigate({
+				to: ".",
+				search: {
+					search: value.search,
+				},
+			});
 		},
 	});
 

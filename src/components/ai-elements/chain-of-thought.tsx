@@ -52,8 +52,14 @@ export const ChainOfThought = memo(
 		});
 
 		const chainOfThoughtContext = useMemo(
-			() => ({ isOpen, setIsOpen }),
-			[isOpen, setIsOpen],
+			() => ({
+				isOpen,
+				setIsOpen,
+			}),
+			[
+				isOpen,
+				setIsOpen,
+			],
 		);
 
 		return (

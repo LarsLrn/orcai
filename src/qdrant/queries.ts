@@ -28,7 +28,11 @@ export const queryAssetPoints = (params: {
 					with_vector: params.withVector ?? false,
 					score_threshold: params.scoreThreshold,
 				}),
-			catch: (error) => new QdrantError({ operation: "query", cause: error }),
+			catch: (error) =>
+				new QdrantError({
+					operation: "query",
+					cause: error,
+				}),
 		}).pipe(
 			Effect.flatMap((response) =>
 				Effect.try({

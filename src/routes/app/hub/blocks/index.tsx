@@ -28,7 +28,10 @@ export const Route = createFileRoute("/app/hub/blocks/")({
 	}) => {
 		await queryClient.ensureQueryData(
 			orpc.block.list.queryOptions({
-				input: { pageIndex, pageSize },
+				input: {
+					pageIndex,
+					pageSize,
+				},
 			}),
 		);
 	},
@@ -39,7 +42,10 @@ function RouteComponent() {
 	const { pageIndex, pageSize } = Route.useSearch();
 	const { data: blocks } = useSuspenseQuery(
 		orpc.block.list.queryOptions({
-			input: { pageIndex, pageSize },
+			input: {
+				pageIndex,
+				pageSize,
+			},
 		}),
 	);
 
@@ -51,7 +57,9 @@ function RouteComponent() {
 				<PageAction>
 					<Link
 						to={"/app/hub/blocks/add"}
-						className={buttonVariants({ variant: "default" })}
+						className={buttonVariants({
+							variant: "default",
+						})}
 					>
 						Add Block
 					</Link>

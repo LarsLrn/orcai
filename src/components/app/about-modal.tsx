@@ -58,7 +58,10 @@ const AboutModal = ({ children }: { children: ReactElement }) => {
 							<a
 								href="https://www.hochschule-rhein-waal.de/de/fakultaeten/kommunikation-und-umwelt/forschungsprojekte/sokratest"
 								className={cn(
-									buttonVariants({ variant: "outline", size: "sm" }),
+									buttonVariants({
+										variant: "outline",
+										size: "sm",
+									}),
 								)}
 								target="_blank"
 								rel="noopener"
@@ -68,7 +71,10 @@ const AboutModal = ({ children }: { children: ReactElement }) => {
 							</a>
 							<a
 								href="https://ki-edu-nrw.ruhr-uni-bochum.de/ueber-das-projekt/phase-2/praxis-transferprojekte/aktuelle-praxisprojekte/#sokratest"
-								className={buttonVariants({ variant: "outline", size: "sm" })}
+								className={buttonVariants({
+									variant: "outline",
+									size: "sm",
+								})}
 								target="_blank"
 								rel="noopener"
 							>

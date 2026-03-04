@@ -13,7 +13,10 @@ export const Route = createFileRoute("/app/hub/bots/add")({
 	loader: async ({ context: { queryClient } }) => {
 		await queryClient.ensureQueryData(
 			orpc.block.list.queryOptions({
-				input: { pageIndex: 0, pageSize: 100 },
+				input: {
+					pageIndex: 0,
+					pageSize: 100,
+				},
 			}),
 		);
 	},

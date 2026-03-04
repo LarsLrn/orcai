@@ -24,7 +24,12 @@ import type { TupleMutation } from "@/lib/spice-db/client";
 import type { ResourceType } from "@/lib/spice-db/types";
 import { unique } from "@/lib/utils/array-utils";
 
-type GroupPrincipal = Extract<ResourcePrincipal, { type: "group" }>;
+type GroupPrincipal = Extract<
+	ResourcePrincipal,
+	{
+		type: "group";
+	}
+>;
 
 const roleToRelation = (role: ResourceGrantRole) => role;
 
@@ -61,7 +66,10 @@ export const listResourceGrants = authed.resource.listGrants
 					);
 
 				if (grants.length === 0) {
-					return { data: [], rowCount: 0 };
+					return {
+						data: [],
+						rowCount: 0,
+					};
 				}
 
 				const userIds = unique(
@@ -107,8 +115,18 @@ export const listResourceGrants = authed.resource.listGrants
 								)
 						: [];
 
-				const userById = new Map(users.map((user) => [user.id, user]));
-				const groupById = new Map(groups.map((group) => [group.id, group]));
+				const userById = new Map(
+					users.map((user) => [
+						user.id,
+						user,
+					]),
+				);
+				const groupById = new Map(
+					groups.map((group) => [
+						group.id,
+						group,
+					]),
+				);
 
 				const data: ResourceGrantView[] = [];
 				for (const grant of grants) {
@@ -144,7 +162,10 @@ export const listResourceGrants = authed.resource.listGrants
 					});
 				}
 
-				return { data, rowCount: data.length };
+				return {
+					data,
+					rowCount: data.length,
+				};
 			}),
 		),
 	);
@@ -177,7 +198,10 @@ export const listResourcePrincipals = authed.resource.listPrincipals
 					);
 
 				if (scopes.length === 0) {
-					return { data: [], rowCount: 0 };
+					return {
+						data: [],
+						rowCount: 0,
+					};
 				}
 
 				const orgIds = scopes.map((scope) => scope.organizationId);
@@ -248,7 +272,10 @@ export const listResourcePrincipals = authed.resource.listPrincipals
 					})),
 				].slice(0, input.limit);
 
-				return { data: principals, rowCount: principals.length };
+				return {
+					data: principals,
+					rowCount: principals.length,
+				};
 			}),
 		),
 	);
@@ -287,7 +314,9 @@ export const grantResourceAccess = authed.resource.grant
 
 				if (existingGrant?.role === "manager" && input.role !== "manager") {
 					const [managerCount] = yield* db
-						.select({ count: count() })
+						.select({
+							count: count(),
+						})
 						.from(dbSchema.resourceGrant)
 						.where(
 							and(
@@ -438,7 +467,9 @@ export const grantResourceAccess = authed.resource.grant
 						principal,
 						source,
 					},
-					meta: { zedToken: relation.zedToken },
+					meta: {
+						zedToken: relation.zedToken,
+					},
 				};
 			}),
 		),
@@ -474,7 +505,10 @@ export const revokeResourceAccess = authed.resource.revoke
 					);
 
 				if (activeGrants.length === 0) {
-					return { success: true, message: "No active grant to revoke" };
+					return {
+						success: true,
+						message: "No active grant to revoke",
+					};
 				}
 
 				const revokingManager = activeGrants.some(
@@ -483,7 +517,9 @@ export const revokeResourceAccess = authed.resource.revoke
 
 				if (revokingManager) {
 					const [managerCount] = yield* db
-						.select({ count: count() })
+						.select({
+							count: count(),
+						})
 						.from(dbSchema.resourceGrant)
 						.where(
 							and(
@@ -508,7 +544,9 @@ export const revokeResourceAccess = authed.resource.revoke
 
 				yield* db
 					.update(dbSchema.resourceGrant)
-					.set({ revokedAt: new Date() })
+					.set({
+						revokedAt: new Date(),
+					})
 					.where(
 						and(
 							eq(dbSchema.resourceGrant.resourceType, input.resourceType),
@@ -532,7 +570,10 @@ export const revokeResourceAccess = authed.resource.revoke
 					})),
 				});
 
-				return { success: true, message: "Access revoked successfully" };
+				return {
+					success: true,
+					message: "Access revoked successfully",
+				};
 			}),
 		),
 	);
@@ -636,7 +677,12 @@ export const setResourceVisibility = authed.resource.setVisibility
 					],
 				});
 
-				return { data, meta: { zedToken: relation.zedToken } };
+				return {
+					data,
+					meta: {
+						zedToken: relation.zedToken,
+					},
+				};
 			}),
 		),
 	);

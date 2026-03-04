@@ -25,7 +25,9 @@ import { cn } from "@/lib/utils";
 import { getLocale } from "@/paraglide/runtime";
 import appCss from "@/styles/app.css?url";
 
-const getSession = createServerFn({ method: "GET" }).handler(async () => {
+const getSession = createServerFn({
+	method: "GET",
+}).handler(async () => {
 	const { headers } = getRequest();
 	const sessionData = await auth.api.getSession({
 		headers,
@@ -33,8 +35,12 @@ const getSession = createServerFn({ method: "GET" }).handler(async () => {
 
 	return sessionData
 		? {
-				session: { ...sessionData.session },
-				user: { ...sessionData.user },
+				session: {
+					...sessionData.session,
+				},
+				user: {
+					...sessionData.user,
+				},
 			}
 		: null;
 });
@@ -90,8 +96,16 @@ export const Route = createRootRouteWithContext<{
 				sizes: "180x180",
 				href: "/apple-touch-icon.png",
 			},
-			{ rel: "manifest", href: "/site.webmanifest", color: "#298fa2" },
-			{ rel: "icon", href: "/seo/favicon.ico", sizes: "16x16 32x32" },
+			{
+				rel: "manifest",
+				href: "/site.webmanifest",
+				color: "#298fa2",
+			},
+			{
+				rel: "icon",
+				href: "/seo/favicon.ico",
+				sizes: "16x16 32x32",
+			},
 		],
 		scripts: [
 			{
@@ -112,7 +126,11 @@ function RootComponent() {
 	);
 }
 
-function RootDocument({ children }: Readonly<{ children: ReactNode }>) {
+function RootDocument({
+	children,
+}: Readonly<{
+	children: ReactNode;
+}>) {
 	return (
 		<html lang={getLocale()} suppressHydrationWarning>
 			<head>
@@ -131,13 +149,19 @@ function RootDocument({ children }: Readonly<{ children: ReactNode }>) {
 
 							<Toaster
 								mobilePosition="top-right"
-								mobileOffset={{ top: "60px" }}
+								mobileOffset={{
+									top: "60px",
+								}}
 							/>
 							<TanStackDevtools
 								config={{
 									position: "bottom-right",
 									panelLocation: "bottom",
-									openHotkey: ["Meta", "Shift", "A"],
+									openHotkey: [
+										"Meta",
+										"Shift",
+										"A",
+									],
 								}}
 								plugins={[
 									{

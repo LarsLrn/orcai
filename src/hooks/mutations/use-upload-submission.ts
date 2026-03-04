@@ -36,8 +36,12 @@ export const useUploadSubmission = () => {
 	});
 
 	const submit = (
-		value: { files: File[] },
-		options?: { onSuccess?: () => void },
+		value: {
+			files: File[];
+		},
+		options?: {
+			onSuccess?: () => void;
+		},
 	) => {
 		const uploadPromise = uploadAsync(value.files).then((result) => {
 			if (result.files.length === 0 && result.failedFiles.length > 0) {

@@ -68,7 +68,9 @@ function PaginationPrevious({
 	className,
 	text = "Previous",
 	...props
-}: React.ComponentProps<typeof PaginationLink> & { text?: string }) {
+}: React.ComponentProps<typeof PaginationLink> & {
+	text?: string;
+}) {
 	return (
 		<PaginationLink
 			aria-label="Go to previous page"
@@ -86,7 +88,9 @@ function PaginationNext({
 	className,
 	text = "Next",
 	...props
-}: React.ComponentProps<typeof PaginationLink> & { text?: string }) {
+}: React.ComponentProps<typeof PaginationLink> & {
+	text?: string;
+}) {
 	return (
 		<PaginationLink
 			aria-label="Go to next page"

@@ -35,7 +35,11 @@ export const Snippet = ({
 	children,
 	...props
 }: SnippetProps) => (
-	<SnippetContext.Provider value={{ code }}>
+	<SnippetContext.Provider
+		value={{
+			code,
+		}}
+	>
 		<InputGroup className={cn("font-mono", className)} {...props}>
 			{children}
 		</InputGroup>
@@ -112,7 +116,13 @@ export const SnippetCopyButton = ({
 		} catch (error) {
 			onError?.(error as Error);
 		}
-	}, [code, onCopy, onError, timeout, isCopied]);
+	}, [
+		code,
+		onCopy,
+		onError,
+		timeout,
+		isCopied,
+	]);
 
 	useEffect(
 		() => () => {

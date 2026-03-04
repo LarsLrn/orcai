@@ -49,7 +49,11 @@ export const modelUpdateSchema = createUpdateSchema(dbSchema.model, {
  */
 
 export const modelDeleteSchema = z.object({
-	refs: z.array(modelUpdateSchema.pick({ id: true })),
+	refs: z.array(
+		modelUpdateSchema.pick({
+			id: true,
+		}),
+	),
 });
 
 /**

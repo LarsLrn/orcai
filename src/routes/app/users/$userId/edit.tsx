@@ -34,7 +34,9 @@ function RouteComponent() {
 	const { userId } = Route.useParams();
 	const { data: user } = useSuspenseQuery(
 		orpc.user.find.queryOptions({
-			input: { id: userId },
+			input: {
+				id: userId,
+			},
 		}),
 	);
 

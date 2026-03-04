@@ -137,8 +137,13 @@ const getHighlighter = (
 	}
 
 	const highlighterPromise = createHighlighter({
-		langs: [language],
-		themes: ["github-light", "github-dark"],
+		langs: [
+			language,
+		],
+		themes: [
+			"github-light",
+			"github-dark",
+		],
 	});
 
 	highlighterCache.set(language, highlighterPromise);
@@ -252,12 +257,17 @@ const CodeBlockBody = memo(
 				backgroundColor: tokenized.bg,
 				color: tokenized.fg,
 			}),
-			[tokenized.bg, tokenized.fg],
+			[
+				tokenized.bg,
+				tokenized.fg,
+			],
 		);
 
 		const keyedLines = useMemo(
 			() => addKeysToTokens(tokenized.tokens),
-			[tokenized.tokens],
+			[
+				tokenized.tokens,
+			],
 		);
 
 		return (
@@ -299,7 +309,9 @@ export const CodeBlockContainer = ({
 	language,
 	style,
 	...props
-}: HTMLAttributes<HTMLDivElement> & { language: string }) => (
+}: HTMLAttributes<HTMLDivElement> & {
+	language: string;
+}) => (
 	<div
 		className={cn(
 			"group relative w-full overflow-hidden rounded-md border bg-background text-foreground",
@@ -374,7 +386,12 @@ export const CodeBlockContent = ({
 	showLineNumbers?: boolean;
 }) => {
 	// Memoized raw tokens for immediate display
-	const rawTokens = useMemo(() => createRawTokens(code), [code]);
+	const rawTokens = useMemo(
+		() => createRawTokens(code),
+		[
+			code,
+		],
+	);
 
 	// Try to get cached result synchronously, otherwise use raw tokens
 	const [tokenized, setTokenized] = useState<TokenizedCode>(
@@ -397,7 +414,11 @@ export const CodeBlockContent = ({
 		return () => {
 			cancelled = true;
 		};
-	}, [code, language, rawTokens]);
+	}, [
+		code,
+		language,
+		rawTokens,
+	]);
 
 	return (
 		<div className="relative overflow-auto">
@@ -414,7 +435,14 @@ export const CodeBlock = ({
 	children,
 	...props
 }: CodeBlockProps) => {
-	const contextValue = useMemo(() => ({ code }), [code]);
+	const contextValue = useMemo(
+		() => ({
+			code,
+		}),
+		[
+			code,
+		],
+	);
 
 	return (
 		<CodeBlockContext.Provider value={contextValue}>
@@ -467,7 +495,13 @@ export const CodeBlockCopyButton = ({
 		} catch (error) {
 			onError?.(error as Error);
 		}
-	}, [code, onCopy, onError, timeout, isCopied]);
+	}, [
+		code,
+		onCopy,
+		onError,
+		timeout,
+		isCopied,
+	]);
 
 	useEffect(
 		() => () => {

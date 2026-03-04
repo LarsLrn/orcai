@@ -33,7 +33,11 @@ export type ToolHeaderProps = {
 	title?: string;
 	className?: string;
 } & (
-	| { type: ToolUIPart["type"]; state: ToolUIPart["state"]; toolName?: never }
+	| {
+			type: ToolUIPart["type"];
+			state: ToolUIPart["state"];
+			toolName?: never;
+	  }
 	| {
 			type: DynamicToolUIPart["type"];
 			state: DynamicToolUIPart["state"];

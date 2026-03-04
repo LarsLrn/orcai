@@ -13,7 +13,9 @@ const DataTableExportButton = ({
 	size = "sm",
 	children,
 	...props
-}: { fileName: string } & ComponentProps<"button"> &
+}: {
+	fileName: string;
+} & ComponentProps<"button"> &
 	VariantProps<typeof buttonVariants>) => {
 	const { table } = useTable();
 

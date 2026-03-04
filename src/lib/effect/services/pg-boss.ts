@@ -9,7 +9,9 @@ import { AppConfigService } from "./config";
 
 export class PgBossService extends Context.Tag("PgBossService")<
 	PgBossService,
-	{ readonly boss: PgBoss }
+	{
+		readonly boss: PgBoss;
+	}
 >() {}
 
 export const PgBossLive = Layer.scoped(
@@ -24,7 +26,9 @@ export const PgBossLive = Layer.scoped(
 
 			const boss = yield* Effect.tryPromise({
 				try: async () => {
-					const boss = new PgBoss({ connectionString: Redacted.value(url) });
+					const boss = new PgBoss({
+						connectionString: Redacted.value(url),
+					});
 					await boss.start();
 					return boss;
 				},
@@ -36,12 +40,18 @@ export const PgBossLive = Layer.scoped(
 			});
 
 			yield* Effect.logInfo("PgBoss service started successfully");
-			return { boss };
+			return {
+				boss,
+			};
 		}),
 		({ boss }) =>
 			Effect.gen(function* () {
 				yield* Effect.logInfo("Stopping PgBoss service...");
-				yield* Effect.tryPromise(() => boss.stop({ graceful: true })).pipe(
+				yield* Effect.tryPromise(() =>
+					boss.stop({
+						graceful: true,
+					}),
+				).pipe(
 					Effect.catchAll((error) =>
 						Effect.logError(`Failed to stop PgBoss: ${error}`),
 					),

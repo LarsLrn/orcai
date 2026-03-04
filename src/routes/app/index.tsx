@@ -48,20 +48,32 @@ import { useCreateChatMutation } from "@/hooks/mutations/use-chat-mutation";
 import { orpc } from "@/lib/orpc/orpc";
 import { cn } from "@/lib/utils";
 
-const HOME_BOT_LIST_PARAMS = { pageIndex: 0, pageSize: 6 } as const;
-const RESOURCE_SUMMARY_PARAMS = { pageIndex: 0, pageSize: 1 } as const;
+const HOME_BOT_LIST_PARAMS = {
+	pageIndex: 0,
+	pageSize: 6,
+} as const;
+const RESOURCE_SUMMARY_PARAMS = {
+	pageIndex: 0,
+	pageSize: 1,
+} as const;
 
 export const Route = createFileRoute("/app/")({
 	loader: async ({ context: { queryClient } }) => {
 		await Promise.all([
 			queryClient.ensureQueryData(
-				orpc.bot.list.queryOptions({ input: HOME_BOT_LIST_PARAMS }),
+				orpc.bot.list.queryOptions({
+					input: HOME_BOT_LIST_PARAMS,
+				}),
 			),
 			queryClient.ensureQueryData(
-				orpc.block.list.queryOptions({ input: RESOURCE_SUMMARY_PARAMS }),
+				orpc.block.list.queryOptions({
+					input: RESOURCE_SUMMARY_PARAMS,
+				}),
 			),
 			queryClient.ensureQueryData(
-				orpc.asset.list.queryOptions({ input: RESOURCE_SUMMARY_PARAMS }),
+				orpc.asset.list.queryOptions({
+					input: RESOURCE_SUMMARY_PARAMS,
+				}),
 			),
 		]);
 	},
@@ -85,7 +97,10 @@ function RouteComponent() {
 						<SectionAction>
 							<Link
 								to={"/app/chat"}
-								className={buttonVariants({ variant: "outline", size: "sm" })}
+								className={buttonVariants({
+									variant: "outline",
+									size: "sm",
+								})}
 							>
 								Show all
 							</Link>
@@ -129,7 +144,9 @@ function RouteComponent() {
 const HomeHero = () => {
 	const { mutate: createChat } = useCreateChatMutation();
 	const { data: bots } = useSuspenseQuery(
-		orpc.bot.list.queryOptions({ input: HOME_BOT_LIST_PARAMS }),
+		orpc.bot.list.queryOptions({
+			input: HOME_BOT_LIST_PARAMS,
+		}),
 	);
 	const latestBot = bots.data.at(0);
 
@@ -142,7 +159,11 @@ const HomeHero = () => {
 					<div className="flex flex-wrap items-center gap-2">
 						<Button
 							className="gap-2 px-6"
-							onClick={() => createChat({ botId: latestBot?.id })}
+							onClick={() =>
+								createChat({
+									botId: latestBot?.id,
+								})
+							}
 						>
 							<SparklesIcon className="h-4 w-4" />
 							Start a new chat
@@ -151,7 +172,9 @@ const HomeHero = () => {
 							<Link
 								to="/app/chat/setup"
 								data-slot="button"
-								className={buttonVariants({ variant: "outline" })}
+								className={buttonVariants({
+									variant: "outline",
+								})}
 							>
 								<MessagesSquareIcon className="h-4 w-4" />
 								Advanced setup
@@ -160,7 +183,9 @@ const HomeHero = () => {
 							<Link
 								to="/app/hub/bots"
 								data-slot="button"
-								className={buttonVariants({ variant: "outline" })}
+								className={buttonVariants({
+									variant: "outline",
+								})}
 							>
 								<BotIcon className="h-4 w-4" />
 								Browse bots
@@ -205,7 +230,11 @@ const HeroLatestBotCard = ({
 						<Button
 							size="sm"
 							className="gap-2"
-							onClick={() => createChat({ botId })}
+							onClick={() =>
+								createChat({
+									botId,
+								})
+							}
 						>
 							<SparklesIcon className="h-4 w-4" />
 							Start chat
@@ -213,7 +242,9 @@ const HeroLatestBotCard = ({
 						<ButtonGroupSeparator />
 						<Link
 							to="/app/hub/bots/$botId"
-							params={{ botId }}
+							params={{
+								botId,
+							}}
 							data-slot="button"
 							className={buttonVariants({
 								variant: "outline",
@@ -246,7 +277,9 @@ const HeroLatestBotCard = ({
 const BotsShowcase = () => {
 	const { mutate: createChat } = useCreateChatMutation();
 	const { data: bots } = useSuspenseQuery(
-		orpc.bot.list.queryOptions({ input: HOME_BOT_LIST_PARAMS }),
+		orpc.bot.list.queryOptions({
+			input: HOME_BOT_LIST_PARAMS,
+		}),
 	);
 
 	return (
@@ -298,7 +331,10 @@ const BotsShowcase = () => {
 										{
 											key: "start_chat",
 											label: "Start chat",
-											onClick: () => createChat({ botId: bot.id }),
+											onClick: () =>
+												createChat({
+													botId: bot.id,
+												}),
 											variant: "default",
 										},
 									],
@@ -324,42 +360,54 @@ const QuickActions = () => {
 			title: "New chat",
 			description: "Start a guided conversation from scratch.",
 			icon: MessageSquarePlusIcon,
-			linkProps: { to: "/app/chat/setup" },
+			linkProps: {
+				to: "/app/chat/setup",
+			},
 			accent: "text-primary",
 		},
 		{
 			title: "Manage bots",
 			description: "Review and iterate on your assistants.",
 			icon: BotIcon,
-			linkProps: { to: "/app/hub/bots" },
+			linkProps: {
+				to: "/app/hub/bots",
+			},
 			accent: "text-purple-500",
 		},
 		{
 			title: "Manage blocks",
 			description: "Compose reusable logic components.",
 			icon: BlocksIcon,
-			linkProps: { to: "/app/hub/blocks" },
+			linkProps: {
+				to: "/app/hub/blocks",
+			},
 			accent: "text-green-500",
 		},
 		{
 			title: "Manage assets",
 			description: "Curate knowledge sources for grounding.",
 			icon: FolderOpenIcon,
-			linkProps: { to: "/app/hub/assets" },
+			linkProps: {
+				to: "/app/hub/assets",
+			},
 			accent: "text-orange-500",
 		},
 		{
 			title: "Create bot",
 			description: "Design a new tailored assistant.",
 			icon: SparklesIcon,
-			linkProps: { to: "/app/hub/bots/add" },
+			linkProps: {
+				to: "/app/hub/bots/add",
+			},
 			accent: "text-primary",
 		},
 		{
 			title: "Create block",
 			description: "Add a new building block to your toolkit.",
 			icon: BlocksIcon,
-			linkProps: { to: "/app/hub/blocks/add" },
+			linkProps: {
+				to: "/app/hub/blocks/add",
+			},
 			accent: "text-primary",
 		},
 	];
@@ -407,13 +455,19 @@ const QuickActions = () => {
 
 const ResourceHighlights = () => {
 	const { data: botSummary } = useSuspenseQuery(
-		orpc.bot.list.queryOptions({ input: RESOURCE_SUMMARY_PARAMS }),
+		orpc.bot.list.queryOptions({
+			input: RESOURCE_SUMMARY_PARAMS,
+		}),
 	);
 	const { data: blockSummary } = useSuspenseQuery(
-		orpc.block.list.queryOptions({ input: RESOURCE_SUMMARY_PARAMS }),
+		orpc.block.list.queryOptions({
+			input: RESOURCE_SUMMARY_PARAMS,
+		}),
 	);
 	const { data: assetSummary } = useSuspenseQuery(
-		orpc.asset.list.queryOptions({ input: RESOURCE_SUMMARY_PARAMS }),
+		orpc.asset.list.queryOptions({
+			input: RESOURCE_SUMMARY_PARAMS,
+		}),
 	);
 
 	const resources = [
@@ -421,7 +475,9 @@ const ResourceHighlights = () => {
 			label: "Bots",
 			count: botSummary.rowCount,
 			description: "Custom assistants ready to deploy.",
-			linkProps: { to: "/app/hub/bots" },
+			linkProps: {
+				to: "/app/hub/bots",
+			},
 			icon: BotIcon,
 			accentBg: "bg-purple-500/10",
 			accentColor: "text-purple-500",
@@ -430,7 +486,9 @@ const ResourceHighlights = () => {
 			label: "Blocks",
 			count: blockSummary.rowCount,
 			description: "Reusable logic powering your flows.",
-			linkProps: { to: "/app/hub/blocks" },
+			linkProps: {
+				to: "/app/hub/blocks",
+			},
 			icon: BlocksIcon,
 			accentBg: "bg-green-500/10",
 			accentColor: "text-green-500",
@@ -439,7 +497,9 @@ const ResourceHighlights = () => {
 			label: "Assets",
 			count: assetSummary.rowCount,
 			description: "Knowledge sources grounding chats.",
-			linkProps: { to: "/app/hub/assets" },
+			linkProps: {
+				to: "/app/hub/assets",
+			},
 			icon: FileTextIcon,
 			accentBg: "bg-orange-500/10",
 			accentColor: "text-orange-500",

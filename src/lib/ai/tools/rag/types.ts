@@ -19,9 +19,13 @@ type BaseResult = {
 	source: ResultSource;
 };
 
-export type SearchResult = BaseResult & { snippet: string };
+export type SearchResult = BaseResult & {
+	snippet: string;
+};
 
-export type ChunkResult = BaseResult & { text: string };
+export type ChunkResult = BaseResult & {
+	text: string;
+};
 
 export type PointWithBlock = AssetPoint & {
 	sourceBlockId: DatabaseBlock["id"];

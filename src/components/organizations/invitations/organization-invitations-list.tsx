@@ -28,7 +28,10 @@ export function OrganizationInvitationsList({
 
 	const { data: invitationResponse } = useSuspenseQuery(
 		orpc.organizationInvitation.list.queryOptions({
-			input: { pageIndex: 0, pageSize: 100 },
+			input: {
+				pageIndex: 0,
+				pageSize: 100,
+			},
 		}),
 	);
 

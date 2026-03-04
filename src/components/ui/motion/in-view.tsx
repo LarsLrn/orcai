@@ -20,8 +20,12 @@ export type InViewProps = {
 };
 
 const defaultVariants = {
-	hidden: { opacity: 0 },
-	visible: { opacity: 1 },
+	hidden: {
+		opacity: 0,
+	},
+	visible: {
+		opacity: 1,
+	},
 };
 
 export function InView({

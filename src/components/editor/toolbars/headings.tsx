@@ -16,7 +16,12 @@ import { cn } from "@/lib/utils";
 import { MobileToolbarGroup, MobileToolbarItem } from "./mobile-toolbar-group";
 import { useToolbar } from "./toolbar-provider";
 
-const levels = [1, 2, 3, 4] as const;
+const levels = [
+	1,
+	2,
+	3,
+	4,
+] as const;
 
 export const HeadingsToolbar = ({
 	className,
@@ -25,7 +30,9 @@ export const HeadingsToolbar = ({
 	const { editor } = useToolbar();
 	const isMobile = useMediaQuery("(max-width: 640px)");
 	const activeLevel = levels.find((level) =>
-		editor?.isActive("heading", { level }),
+		editor?.isActive("heading", {
+			level,
+		}),
 	);
 
 	if (isMobile) {
@@ -41,9 +48,17 @@ export const HeadingsToolbar = ({
 					<MobileToolbarItem
 						key={level}
 						onClick={() =>
-							editor?.chain().focus().toggleHeading({ level }).run()
+							editor
+								?.chain()
+								.focus()
+								.toggleHeading({
+									level,
+								})
+								.run()
 						}
-						active={editor?.isActive("heading", { level })}
+						active={editor?.isActive("heading", {
+							level,
+						})}
 					>
 						H{level}
 					</MobileToolbarItem>
@@ -89,11 +104,19 @@ export const HeadingsToolbar = ({
 								<DropdownMenuItem
 									key={level}
 									onClick={() =>
-										editor?.chain().focus().toggleHeading({ level }).run()
+										editor
+											?.chain()
+											.focus()
+											.toggleHeading({
+												level,
+											})
+											.run()
 									}
 									className={cn(
 										"flex items-center gap-2",
-										editor?.isActive("heading", { level }) && "bg-accent",
+										editor?.isActive("heading", {
+											level,
+										}) && "bg-accent",
 									)}
 								>
 									H{level}

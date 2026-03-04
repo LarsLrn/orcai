@@ -22,7 +22,9 @@ interface BranchSwitcherProps {
 
 export function BranchSwitcher({ chat, branches }: BranchSwitcherProps) {
 	const navigate = useNavigate();
-	const search = useSearch({ strict: false });
+	const search = useSearch({
+		strict: false,
+	});
 	const currentBranchId =
 		(search as any).branch ?? chat.activeBranchId ?? branches[0]?.id;
 
@@ -48,7 +50,10 @@ export function BranchSwitcher({ chat, branches }: BranchSwitcherProps) {
 
 		navigate({
 			to: ".",
-			search: (prev) => ({ ...prev, branch: branchId }),
+			search: (prev) => ({
+				...prev,
+				branch: branchId,
+			}),
 		});
 	};
 

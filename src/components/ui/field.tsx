@@ -21,7 +21,9 @@ function FieldLegend({
 	className,
 	variant = "legend",
 	...props
-}: React.ComponentProps<"legend"> & { variant?: "legend" | "label" }) {
+}: React.ComponentProps<"legend"> & {
+	variant?: "legend" | "label";
+}) {
 	return (
 		<legend
 			data-slot="field-legend"
@@ -75,7 +77,12 @@ function Field({
 		<fieldset
 			data-slot="field"
 			data-orientation={orientation}
-			className={cn(fieldVariants({ orientation }), className)}
+			className={cn(
+				fieldVariants({
+					orientation,
+				}),
+				className,
+			)}
 			{...props}
 		/>
 	);
@@ -175,7 +182,12 @@ function FieldError({
 	errors,
 	...props
 }: React.ComponentProps<"div"> & {
-	errors?: Array<{ message?: string } | undefined>;
+	errors?: Array<
+		| {
+				message?: string;
+		  }
+		| undefined
+	>;
 }) {
 	const content = useMemo(() => {
 		if (children) {
@@ -187,7 +199,12 @@ function FieldError({
 		}
 
 		const uniqueErrors = [
-			...new Map(errors.map((error) => [error?.message, error])).values(),
+			...new Map(
+				errors.map((error) => [
+					error?.message,
+					error,
+				]),
+			).values(),
 		];
 
 		if (uniqueErrors?.length === 1) {
@@ -203,7 +220,10 @@ function FieldError({
 				)}
 			</ul>
 		);
-	}, [children, errors]);
+	}, [
+		children,
+		errors,
+	]);
 
 	if (!content) {
 		return null;

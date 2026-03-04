@@ -48,7 +48,9 @@ export const columns: ColumnDef<Course>[] = [
 		cell: ({ row }) => (
 			<Link
 				to="/app/hub/courses/$courseId"
-				params={{ courseId: row.original.id }}
+				params={{
+					courseId: row.original.id,
+				}}
 			>
 				{row.original.title}
 			</Link>
@@ -87,13 +89,17 @@ const ActionCell = ({ course }: { course: Course }) => {
 				<DropdownMenuContent align="end">
 					<Link
 						to="/app/hub/courses/$courseId"
-						params={{ courseId: course.id }}
+						params={{
+							courseId: course.id,
+						}}
 					>
 						<DropdownMenuItem>View Course</DropdownMenuItem>
 					</Link>
 					<Link
 						to="/app/hub/courses/$courseId/edit"
-						params={{ courseId: course.id }}
+						params={{
+							courseId: course.id,
+						}}
 					>
 						<DropdownMenuItem>Edit Course</DropdownMenuItem>
 					</Link>
@@ -113,7 +119,10 @@ const ActionCell = ({ course }: { course: Course }) => {
 			<AccessDialog
 				open={isAccessOpen}
 				onOpenChange={setIsAccessOpen}
-				resourceRef={{ type: "course", id: course.id }}
+				resourceRef={{
+					type: "course",
+					id: course.id,
+				}}
 				resourceName={course.title}
 			/>
 		</>
@@ -126,7 +135,15 @@ const DeleteItem = ({ courseId }: { courseId: Course["id"] }) => {
 	return (
 		<DropdownMenuItem
 			variant="destructive"
-			onClick={() => deleteCourses({ refs: [{ id: courseId }] })}
+			onClick={() =>
+				deleteCourses({
+					refs: [
+						{
+							id: courseId,
+						},
+					],
+				})
+			}
 		>
 			Delete Course
 		</DropdownMenuItem>

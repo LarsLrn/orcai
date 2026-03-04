@@ -20,7 +20,10 @@ export const OrganizationForm = ({
 		...organizationFormOptions,
 		onSubmit: ({ value }) => {
 			if (action === "update" && organization) {
-				updateOrganization({ ...value, id: organization.id });
+				updateOrganization({
+					...value,
+					id: organization.id,
+				});
 			} else {
 				createOrganization(value);
 			}

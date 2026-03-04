@@ -21,11 +21,15 @@ const ImageGenerationBlockForm = ({
 	const { mutate: createBlock } = useCreateBlockMutation();
 	const { mutate: updateBlock } = useUpdateBlockMutation();
 
-	const { auth } = useRouteContext({ from: "/app" });
+	const { auth } = useRouteContext({
+		from: "/app",
+	});
 
 	const { data: providers } = useSuspenseQuery(
 		orpc.provider.list.queryOptions({
-			input: { organizationId: auth.session.activeOrganizationId },
+			input: {
+				organizationId: auth.session.activeOrganizationId,
+			},
 		}),
 	);
 
@@ -33,7 +37,10 @@ const ImageGenerationBlockForm = ({
 		...imageGenerationBlockFormOptions(block),
 		onSubmit: ({ value }) => {
 			if (action === "update" && block) {
-				updateBlock({ ...value, id: block.id });
+				updateBlock({
+					...value,
+					id: block.id,
+				});
 			} else {
 				createBlock(value);
 			}
@@ -48,7 +55,12 @@ const ImageGenerationBlockForm = ({
 	const { data: models } = useQuery(
 		orpc.model.list.queryOptions({
 			input: providerId
-				? { providerId, capabilities: ["image-generation"] }
+				? {
+						providerId,
+						capabilities: [
+							"image-generation",
+						],
+					}
 				: skipToken,
 		}),
 	);

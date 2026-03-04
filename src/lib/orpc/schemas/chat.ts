@@ -40,7 +40,11 @@ export const chatUpdateSchema = createUpdateSchema(dbSchema.chat, {
 	id: chatSelectSchema.shape.id,
 	title: z.string().min(1).max(250).optional(),
 	activeBranchId: z.uuidv4().optional(),
-}).omit({ userId: true, updatedAt: true, createdAt: true });
+}).omit({
+	userId: true,
+	updatedAt: true,
+	createdAt: true,
+});
 
 /**
  * ----------------
@@ -49,7 +53,11 @@ export const chatUpdateSchema = createUpdateSchema(dbSchema.chat, {
  */
 
 export const chatDeleteSchema = z.object({
-	refs: z.array(chatUpdateSchema.pick({ id: true })),
+	refs: z.array(
+		chatUpdateSchema.pick({
+			id: true,
+		}),
+	),
 });
 
 /**

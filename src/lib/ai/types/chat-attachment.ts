@@ -2,7 +2,10 @@ import { z } from "zod/v4";
 import { assetSelectSchema } from "@/lib/orpc/schemas/asset";
 import { bucketSchema } from "@/settings/buckets";
 
-export const chatAttachmentSourceSchema = z.enum(["upload", "library"]);
+export const chatAttachmentSourceSchema = z.enum([
+	"upload",
+	"library",
+]);
 
 export const chatAttachmentSchema = z.object({
 	assetId: assetSelectSchema.shape.id,

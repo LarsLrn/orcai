@@ -49,12 +49,17 @@ function RouteComponent() {
 	const [isAccessOpen, setIsAccessOpen] = useState(false);
 	const { data: block } = useSuspenseQuery(
 		orpc.block.find.queryOptions({
-			input: { id: blockId },
+			input: {
+				id: blockId,
+			},
 		}),
 	);
 	const { data: visibility } = useSuspenseQuery(
 		orpc.resource.getVisibility.queryOptions({
-			input: { resourceType: "block", resourceId: blockId },
+			input: {
+				resourceType: "block",
+				resourceId: blockId,
+			},
 		}),
 	);
 
@@ -102,8 +107,12 @@ function RouteComponent() {
 						</Button>
 						<Link
 							to={"/app/hub/blocks/$blockId/edit"}
-							params={{ blockId: id }}
-							className={buttonVariants({ variant: "default" })}
+							params={{
+								blockId: id,
+							}}
+							className={buttonVariants({
+								variant: "default",
+							})}
 						>
 							<EditIcon className="mr-2 h-4 w-4" />
 							Edit Block
@@ -233,7 +242,10 @@ function RouteComponent() {
 				<AccessDialog
 					open={isAccessOpen}
 					onOpenChange={setIsAccessOpen}
-					resourceRef={{ type: "block", id }}
+					resourceRef={{
+						type: "block",
+						id,
+					}}
 					resourceName={name}
 				/>
 			</PageContent>

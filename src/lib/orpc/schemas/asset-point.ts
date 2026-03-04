@@ -72,11 +72,18 @@ export const assetPointSelectSchema = z.object({
 		.nullable()
 		.optional(),
 	shard_key: z
-		.union([z.string(), z.number(), z.record(z.string(), z.unknown())])
+		.union([
+			z.string(),
+			z.number(),
+			z.record(z.string(), z.unknown()),
+		])
 		.nullable()
 		.optional(),
 	order_value: z
-		.union([z.number(), z.record(z.string(), z.unknown())])
+		.union([
+			z.number(),
+			z.record(z.string(), z.unknown()),
+		])
 		.nullable()
 		.optional(),
 });
@@ -90,7 +97,9 @@ export const assetPointSelectSchema = z.object({
 export const assetPointInsertSchema = z.object({
 	courseId: z.uuidv4(),
 	payload: assetPointPayloadSchema,
-	vector: assetPointSelectSchema.pick({ vector: true }),
+	vector: assetPointSelectSchema.pick({
+		vector: true,
+	}),
 });
 
 /**
@@ -101,7 +110,9 @@ export const assetPointInsertSchema = z.object({
 
 export const assetPointUpdateSchema = assetPointInsertSchema.extend(
 	z.object({
-		id: assetPointSelectSchema.pick({ id: true }),
+		id: assetPointSelectSchema.pick({
+			id: true,
+		}),
 	}).shape,
 );
 
@@ -113,7 +124,11 @@ export const assetPointUpdateSchema = assetPointInsertSchema.extend(
 
 export const assetPointDeleteSchema = z.object({
 	assetId: z.uuidv4(),
-	refs: z.array(assetPointSelectSchema.pick({ id: true })),
+	refs: z.array(
+		assetPointSelectSchema.pick({
+			id: true,
+		}),
+	),
 });
 
 /**

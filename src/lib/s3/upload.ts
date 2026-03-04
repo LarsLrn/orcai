@@ -31,7 +31,10 @@ export async function uploadFiles(params: {
 		route: UploadRouteName;
 		uploadId: string;
 		file: SignedUrlsSuccessResponse["files"][number]["file"];
-		parts: { etag: string; partNumber: number }[];
+		parts: {
+			etag: string;
+			partNumber: number;
+		}[];
 	}) => Promise<unknown>;
 	onMultipartAbort?: (data: {
 		route: UploadRouteName;
@@ -77,7 +80,10 @@ export async function uploadFiles(params: {
 				});
 			}
 
-			return { file, url };
+			return {
+				file,
+				url,
+			};
 		});
 
 		const uploads = new Map<string, FileUploadInfo<UploadStatus>>(

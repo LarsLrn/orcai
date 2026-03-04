@@ -64,7 +64,13 @@ export const applyAssetDiversityCap = (
  * @param points   - New batch of normalized points to merge in.
  */
 export const mergeRecallCandidates = (
-	existing: Map<string, { point: AssetPoint; hitCount: number }>,
+	existing: Map<
+		string,
+		{
+			point: AssetPoint;
+			hitCount: number;
+		}
+	>,
 	points: AssetPoint[],
 ) => {
 	for (const point of points) {

@@ -9,7 +9,9 @@ import { AppConfigService } from "./config";
 
 export class S3Service extends Context.Tag("S3Service")<
 	S3Service,
-	{ readonly client: S3Client }
+	{
+		readonly client: S3Client;
+	}
 >() {}
 
 export const S3Live = Layer.scoped(
@@ -30,7 +32,11 @@ export const S3Live = Layer.scoped(
 						forcePathStyle: true,
 					}),
 				}),
-				catch: (error) => new S3Error({ operation: "start", cause: error }),
+				catch: (error) =>
+					new S3Error({
+						operation: "start",
+						cause: error,
+					}),
 			});
 		}),
 		({ client }) => Effect.sync(() => client.destroy()),

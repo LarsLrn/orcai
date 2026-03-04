@@ -66,9 +66,17 @@ export type MutationActionError<TError> =
 type MessageResolver<TArgs> = string | ((args: TArgs) => string);
 
 type MutationActionMessages<TData, TError, TVariables> = {
-	loading: MessageResolver<{ input: TVariables }>;
-	success: MessageResolver<{ input: TVariables; data: TData }>;
-	error: MessageResolver<{ input: TVariables; error: TError }>;
+	loading: MessageResolver<{
+		input: TVariables;
+	}>;
+	success: MessageResolver<{
+		input: TVariables;
+		data: TData;
+	}>;
+	error: MessageResolver<{
+		input: TVariables;
+		error: TError;
+	}>;
 };
 
 const resolveMessage = <TArgs>(
@@ -186,12 +194,16 @@ export function useMutationAction<
 			const isConfirmed = await confirm(confirmOptions);
 
 			if (!isConfirmed) {
-				return { status: MUTATION_ACTION_CANCELLED } as MutationActionCancelled;
+				return {
+					status: MUTATION_ACTION_CANCELLED,
+				} as MutationActionCancelled;
 			}
 		}
 
 		const toastPromise = toast.promise(mutation.mutateAsync(input), {
-			loading: resolveMessage(config.messages.loading, { input }),
+			loading: resolveMessage(config.messages.loading, {
+				input,
+			}),
 			success: (data) =>
 				resolveMessage(config.messages.success, {
 					input,
@@ -219,7 +231,10 @@ export function useMutationAction<
 		try {
 			const data = (await toastPromise.unwrap()) as TData;
 
-			return { status: "success", data } as MutationActionSuccess<TData>;
+			return {
+				status: "success",
+				data,
+			} as MutationActionSuccess<TData>;
 		} catch (error) {
 			if (isDefinedORPCError(error)) {
 				return {

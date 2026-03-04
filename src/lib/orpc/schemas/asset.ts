@@ -53,7 +53,11 @@ export const assetUpdateSchema = assetInsertSchema
  */
 
 export const assetDeleteSchema = z.object({
-	refs: z.array(assetSelectSchema.pick({ id: true })),
+	refs: z.array(
+		assetSelectSchema.pick({
+			id: true,
+		}),
+	),
 });
 
 /**

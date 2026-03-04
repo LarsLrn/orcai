@@ -46,7 +46,9 @@ export const createUploadUrls = authed.storage.createUploadUrls.handler(
 					return yield* Effect.fail(
 						errors.BAD_REQUEST({
 							message: `Too many files. Max allowed: ${uploadRoute.maxFiles}.`,
-							data: { type: "too_many_files" },
+							data: {
+								type: "too_many_files",
+							},
 						}),
 					);
 				}
@@ -57,7 +59,9 @@ export const createUploadUrls = authed.storage.createUploadUrls.handler(
 							return yield* Effect.fail(
 								errors.BAD_REQUEST({
 									message: `File "${file.name}" exceeds max allowed size.`,
-									data: { type: "file_too_large" },
+									data: {
+										type: "file_too_large",
+									},
 								}),
 							);
 						}
@@ -71,7 +75,9 @@ export const createUploadUrls = authed.storage.createUploadUrls.handler(
 							return yield* Effect.fail(
 								errors.BAD_REQUEST({
 									message: `File type "${file.type}" is not allowed.`,
-									data: { type: "invalid_file_type" },
+									data: {
+										type: "invalid_file_type",
+									},
 								}),
 							);
 						}
@@ -141,7 +147,9 @@ export const createUploadUrls = authed.storage.createUploadUrls.handler(
 								return yield* Effect.fail(
 									errors.BAD_REQUEST({
 										message: `File "${file.name}" has too many multipart chunks.`,
-										data: { type: "file_too_large" },
+										data: {
+											type: "file_too_large",
+										},
 									}),
 								);
 							}
@@ -162,13 +170,20 @@ export const createUploadUrls = authed.storage.createUploadUrls.handler(
 									errors.BAD_REQUEST({
 										message:
 											"Failed to initialize multipart upload. Please retry.",
-										data: { type: "invalid_request" },
+										data: {
+											type: "invalid_request",
+										},
 									}),
 								);
 							}
 
 							const parts = yield* Effect.forEach(
-								Array.from({ length: totalParts }, (_, index) => index + 1),
+								Array.from(
+									{
+										length: totalParts,
+									},
+									(_, index) => index + 1,
+								),
 								(partNumber) =>
 									Effect.gen(function* () {
 										const start = (partNumber - 1) * partSize;
@@ -189,7 +204,9 @@ export const createUploadUrls = authed.storage.createUploadUrls.handler(
 											size,
 										};
 									}),
-								{ concurrency: 10 },
+								{
+									concurrency: 10,
+								},
 							);
 
 							return {
@@ -206,7 +223,9 @@ export const createUploadUrls = authed.storage.createUploadUrls.handler(
 								},
 							};
 						}),
-					{ concurrency: 10 },
+					{
+						concurrency: 10,
+					},
 				);
 
 				return {
@@ -242,7 +261,11 @@ export const createDownloadUrl = authed.storage.createDownloadUrl
 					bucket: input.bucket,
 					key: filePath,
 					expiresIn: expiry,
-				}).pipe(Effect.map((presignedUrl) => ({ url: presignedUrl })));
+				}).pipe(
+					Effect.map((presignedUrl) => ({
+						url: presignedUrl,
+					})),
+				);
 			}),
 		),
 	);
@@ -259,7 +282,9 @@ export const completeMultipartUpload =
 						return yield* Effect.fail(
 							errors.BAD_REQUEST({
 								message: "Multipart upload ID is missing.",
-								data: { type: "invalid_request" },
+								data: {
+									type: "invalid_request",
+								},
 							}),
 						);
 					}
@@ -272,7 +297,9 @@ export const completeMultipartUpload =
 						requireKey: true,
 					});
 
-					const sortedParts = [...input.parts]
+					const sortedParts = [
+						...input.parts,
+					]
 						.sort((a, b) => a.partNumber - b.partNumber)
 						.map((part) => ({
 							ETag: ensureQuotedEtag(part.etag),
@@ -286,7 +313,9 @@ export const completeMultipartUpload =
 						parts: sortedParts,
 					});
 
-					return { ok: true };
+					return {
+						ok: true,
+					};
 				}),
 			),
 	);
@@ -302,7 +331,9 @@ export const abortMultipartUpload = authed.storage.abortMultipartUpload.handler(
 					return yield* Effect.fail(
 						errors.BAD_REQUEST({
 							message: "Multipart upload ID is missing.",
-							data: { type: "invalid_request" },
+							data: {
+								type: "invalid_request",
+							},
 						}),
 					);
 				}
@@ -321,7 +352,9 @@ export const abortMultipartUpload = authed.storage.abortMultipartUpload.handler(
 					uploadId,
 				});
 
-				return { ok: true };
+				return {
+					ok: true,
+				};
 			}),
 		),
 );
@@ -346,7 +379,10 @@ export const finalizeUpload = authed.storage.finalizeUpload
 					: [];
 
 				const existingById = new Map(
-					existingAssets.map((asset) => [asset.id, asset]),
+					existingAssets.map((asset) => [
+						asset.id,
+						asset,
+					]),
 				);
 
 				const results = yield* Effect.forEach(
@@ -372,7 +408,9 @@ export const finalizeUpload = authed.storage.finalizeUpload
 								return yield* Effect.fail(
 									errors.BAD_REQUEST({
 										message: "Uploaded file size mismatch.",
-										data: { type: "invalid_request" },
+										data: {
+											type: "invalid_request",
+										},
 									}),
 								);
 							}
@@ -385,12 +423,17 @@ export const finalizeUpload = authed.storage.finalizeUpload
 										errors.BAD_REQUEST({
 											message:
 												"Asset already exists and belongs to another user.",
-											data: { type: "rejected" },
+											data: {
+												type: "rejected",
+											},
 										}),
 									);
 								}
 
-								return { id: validated.id, created: false };
+								return {
+									id: validated.id,
+									created: false,
+								};
 							}
 
 							yield* db.insert(dbSchema.asset).values({
@@ -410,12 +453,19 @@ export const finalizeUpload = authed.storage.finalizeUpload
 								ownerUserId: context.auth.user.id,
 							});
 
-							return { id: validated.id, created: true };
+							return {
+								id: validated.id,
+								created: true,
+							};
 						}),
-					{ concurrency: 10 },
+					{
+						concurrency: 10,
+					},
 				);
 
-				return { data: results };
+				return {
+					data: results,
+				};
 			}),
 		),
 	);

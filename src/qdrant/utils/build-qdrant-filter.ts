@@ -23,7 +23,9 @@ const toMatchCondition = (
 	value: QdrantMatchValue,
 ): QdrantCondition => ({
 	key,
-	match: { value },
+	match: {
+		value,
+	},
 });
 
 const toHasIdCondition = (ids: QdrantPointId[]): QdrantCondition => ({

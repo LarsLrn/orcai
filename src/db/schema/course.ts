@@ -14,8 +14,12 @@ export const course = pgTable("course", {
 	title: text("title").notNull(),
 	organizationId: uuid("organization_id")
 		.notNull()
-		.references(() => organization.id, { onDelete: "cascade" }),
-	description: varchar("description", { length: 500 }).notNull(),
+		.references(() => organization.id, {
+			onDelete: "cascade",
+		}),
+	description: varchar("description", {
+		length: 500,
+	}).notNull(),
 	contentJson: json("content_json").notNull().default({}),
 	contentHtml: text("content_html").notNull(),
 	config: json("config").notNull().$type<CourseConfigType>(),

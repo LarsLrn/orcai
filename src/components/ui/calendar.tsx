@@ -41,7 +41,9 @@ function Calendar({
 			locale={locale}
 			formatters={{
 				formatMonthDropdown: (date) =>
-					date.toLocaleString(locale?.code, { month: "short" }),
+					date.toLocaleString(locale?.code, {
+						month: "short",
+					}),
 				...formatters,
 			}}
 			classNames={{
@@ -56,12 +58,16 @@ function Calendar({
 					defaultClassNames.nav,
 				),
 				button_previous: cn(
-					buttonVariants({ variant: buttonVariant }),
+					buttonVariants({
+						variant: buttonVariant,
+					}),
 					"size-(--cell-size) select-none p-0 aria-disabled:opacity-50",
 					defaultClassNames.button_previous,
 				),
 				button_next: cn(
-					buttonVariants({ variant: buttonVariant }),
+					buttonVariants({
+						variant: buttonVariant,
+					}),
 					"size-(--cell-size) select-none p-0 aria-disabled:opacity-50",
 					defaultClassNames.button_next,
 				),
@@ -190,13 +196,17 @@ function CalendarDayButton({
 	modifiers,
 	locale,
 	...props
-}: React.ComponentProps<typeof DayButton> & { locale?: Partial<Locale> }) {
+}: React.ComponentProps<typeof DayButton> & {
+	locale?: Partial<Locale>;
+}) {
 	const defaultClassNames = getDefaultClassNames();
 
 	const ref = React.useRef<HTMLButtonElement>(null);
 	React.useEffect(() => {
 		if (modifiers.focused) ref.current?.focus();
-	}, [modifiers.focused]);
+	}, [
+		modifiers.focused,
+	]);
 
 	return (
 		<Button

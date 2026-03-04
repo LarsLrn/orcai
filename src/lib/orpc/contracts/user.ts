@@ -18,7 +18,9 @@ export const listUsersContract = base
 		method: "GET",
 		path: "/users",
 		summary: "List all users",
-		tags: ["Users"],
+		tags: [
+			"Users",
+		],
 	})
 	.input(
 		z.object({
@@ -38,7 +40,9 @@ export const findUserContract = base
 		method: "GET",
 		path: "/users/{id}",
 		summary: "Find a user",
-		tags: ["Users"],
+		tags: [
+			"Users",
+		],
 		description: "Find a user by their ID.",
 	})
 	.input(
@@ -47,14 +51,20 @@ export const findUserContract = base
 			...zedTokenSchema.shape,
 		}),
 	)
-	.output(z.object({ data: userWithOrganizationRoleSelectSchema }));
+	.output(
+		z.object({
+			data: userWithOrganizationRoleSelectSchema,
+		}),
+	);
 
 export const listUserAccessContract = base
 	.route({
 		method: "GET",
 		path: "/users/{id}/access",
 		summary: "List effective resource access entries for a user",
-		tags: ["Users"],
+		tags: [
+			"Users",
+		],
 	})
 	.input(
 		z.object({
@@ -74,7 +84,9 @@ export const meContract = base
 		method: "GET",
 		path: "/users/me",
 		summary: "Get current user",
-		tags: ["Users"],
+		tags: [
+			"Users",
+		],
 		description: "Get the current user's data.",
 	})
 	.input(
@@ -82,14 +94,20 @@ export const meContract = base
 			...zedTokenSchema.shape,
 		}),
 	)
-	.output(z.object({ data: userSelectSchema }));
+	.output(
+		z.object({
+			data: userSelectSchema,
+		}),
+	);
 
 export const updatePasswordContract = base
 	.route({
 		method: "POST",
 		path: "/users/actions/password",
 		summary: "Update user password",
-		tags: ["Users"],
+		tags: [
+			"Users",
+		],
 		description: "Update the password for a user.",
 	})
 	.input(
@@ -105,7 +123,9 @@ export const setActiveOrganizationContract = base
 		method: "POST",
 		path: "/users/actions/set-active-organization",
 		summary: "Set active organization",
-		tags: ["Users"],
+		tags: [
+			"Users",
+		],
 		description: "Set the active organization for a user.",
 	})
 	.input(
@@ -120,14 +140,20 @@ export const setTourStateContract = base
 		method: "POST",
 		path: "/users/actions/set-tour-state",
 		summary: "Set tour state",
-		tags: ["Users"],
+		tags: [
+			"Users",
+		],
 		description: "Set the tour state for a user.",
 	})
 	.input(
 		z.object({
 			// TODO: Actually type this with enum
 			tourId: z.string(),
-			state: z.enum(["skipped", "completed", "pending"]),
+			state: z.enum([
+				"skipped",
+				"completed",
+				"pending",
+			]),
 		}),
 	)
 	.output(statusSchema);

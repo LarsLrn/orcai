@@ -115,7 +115,9 @@ export type UploadHookControl<T extends boolean> = {
 	 */
 	uploadAsync: (
 		input: T extends true ? File[] | FileList : File,
-		options?: { metadata?: ServerMetadata },
+		options?: {
+			metadata?: ServerMetadata;
+		},
 	) => Promise<DirectUploadResult<T>>;
 
 	/**
@@ -125,7 +127,9 @@ export type UploadHookControl<T extends boolean> = {
 	 */
 	upload: (
 		input: T extends true ? File[] | FileList : File,
-		options?: { metadata?: ServerMetadata },
+		options?: {
+			metadata?: ServerMetadata;
+		},
 	) => Promise<DirectUploadResult<T>>;
 } & (T extends true
 	? {

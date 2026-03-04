@@ -5,7 +5,9 @@ export const Route = createFileRoute("/app/models/$modelId")({
 	loader: async ({ context: { queryClient }, params: { modelId } }) => {
 		return await queryClient.ensureQueryData(
 			orpc.model.find.queryOptions({
-				input: { id: modelId },
+				input: {
+					id: modelId,
+				},
 			}),
 		);
 	},

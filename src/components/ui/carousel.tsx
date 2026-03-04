@@ -66,11 +66,15 @@ function Carousel({
 
 	const scrollPrev = React.useCallback(() => {
 		api?.scrollPrev();
-	}, [api]);
+	}, [
+		api,
+	]);
 
 	const scrollNext = React.useCallback(() => {
 		api?.scrollNext();
-	}, [api]);
+	}, [
+		api,
+	]);
 
 	const handleKeyDown = React.useCallback(
 		(event: React.KeyboardEvent<HTMLDivElement>) => {
@@ -82,13 +86,19 @@ function Carousel({
 				scrollNext();
 			}
 		},
-		[scrollPrev, scrollNext],
+		[
+			scrollPrev,
+			scrollNext,
+		],
 	);
 
 	React.useEffect(() => {
 		if (!api || !setApi) return;
 		setApi(api);
-	}, [api, setApi]);
+	}, [
+		api,
+		setApi,
+	]);
 
 	React.useEffect(() => {
 		if (!api) return;
@@ -99,7 +109,10 @@ function Carousel({
 		return () => {
 			api?.off("select", onSelect);
 		};
-	}, [api, onSelect]);
+	}, [
+		api,
+		onSelect,
+	]);
 
 	return (
 		<CarouselContext.Provider

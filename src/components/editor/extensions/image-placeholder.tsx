@@ -53,11 +53,18 @@ export const ImagePlaceholder = Node.create<ImagePlaceholderOptions>({
 	group: "block",
 
 	parseHTML() {
-		return [{ tag: `div[data-type="${this.name}"]` }];
+		return [
+			{
+				tag: `div[data-type="${this.name}"]`,
+			},
+		];
 	},
 
 	renderHTML({ HTMLAttributes }) {
-		return ["div", mergeAttributes(HTMLAttributes)];
+		return [
+			"div",
+			mergeAttributes(HTMLAttributes),
+		];
 	},
 
 	addNodeView() {
@@ -138,7 +145,9 @@ function ImagePlaceholderComponent(props: NodeViewProps) {
 				const dataTransfer = new DataTransfer();
 				dataTransfer.items.add(file);
 				input.files = dataTransfer.files;
-				handleFileChange({ target: input } as any);
+				handleFileChange({
+					target: input,
+				} as any);
 			}
 		}
 	};
@@ -151,7 +160,14 @@ function ImagePlaceholderComponent(props: NodeViewProps) {
 			return;
 		}
 		if (url) {
-			editor.chain().focus().setImage({ src: url, alt: altText }).run();
+			editor
+				.chain()
+				.focus()
+				.setImage({
+					src: url,
+					alt: altText,
+				})
+				.run();
 			setIsExpanded(false);
 			setUrl("");
 			setAltText("");

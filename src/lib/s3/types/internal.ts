@@ -63,7 +63,13 @@ export type UploadHookProps<T extends boolean> = {
 	 * You can also throw an error to reject the file upload.
 	 */
 	onBeforeUpload?: (
-		data: T extends true ? { files: File[] } : { file: File },
+		data: T extends true
+			? {
+					files: File[];
+				}
+			: {
+					file: File;
+				},
 	) =>
 		| void
 		| (T extends true
@@ -82,8 +88,12 @@ export type UploadHookProps<T extends boolean> = {
 			 */
 			metadata: ServerMetadata;
 		} & (T extends true
-			? { files: FileUploadInfo<"pending">[] }
-			: { file: FileUploadInfo<"pending"> }),
+			? {
+					files: FileUploadInfo<"pending">[];
+				}
+			: {
+					file: FileUploadInfo<"pending">;
+				}),
 	) => void;
 
 	/**
@@ -107,7 +117,9 @@ export type UploadHookProps<T extends boolean> = {
 					files: FileUploadInfo<"complete">[];
 					failedFiles: FileUploadInfo<"failed">[];
 				}
-			: { file: FileUploadInfo<"complete"> }),
+			: {
+					file: FileUploadInfo<"complete">;
+				}),
 	) => void | Promise<void>;
 
 	/**
@@ -124,7 +136,9 @@ export type UploadHookProps<T extends boolean> = {
 					files: FileUploadInfo<"complete">[];
 					failedFiles: FileUploadInfo<"failed">[];
 				}
-			: { file: FileUploadInfo<"complete"> }),
+			: {
+					file: FileUploadInfo<"complete">;
+				}),
 	) => void | Promise<void>;
 
 	/**

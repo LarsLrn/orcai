@@ -34,7 +34,9 @@ export const listBlocks = authed.block.list.handler(
 					),
 				);
 
-				const whereConditions = [inArray(dbSchema.block.id, allowedIds)];
+				const whereConditions = [
+					inArray(dbSchema.block.id, allowedIds),
+				];
 				if (input.filters?.botId) {
 					whereConditions.push(
 						eq(dbSchema.botBlock.botId, input.filters.botId),
@@ -44,9 +46,15 @@ export const listBlocks = authed.block.list.handler(
 				return yield* Effect.all(
 					[
 						db
-							.selectDistinctOn([dbSchema.block.id, dbSchema.block.createdAt], {
-								...getColumns(dbSchema.block),
-							})
+							.selectDistinctOn(
+								[
+									dbSchema.block.id,
+									dbSchema.block.createdAt,
+								],
+								{
+									...getColumns(dbSchema.block),
+								},
+							)
 							.from(dbSchema.block)
 							.leftJoin(
 								dbSchema.botBlock,
@@ -67,7 +75,9 @@ export const listBlocks = authed.block.list.handler(
 							)
 							.where(and(...whereConditions)),
 					],
-					{ concurrency: "unbounded" },
+					{
+						concurrency: "unbounded",
+					},
 				).pipe(
 					Effect.map(([data, [countResult]]) => ({
 						data: data as Block[],
@@ -95,27 +105,38 @@ export const findBlock = authed.block.find
 				const db = yield* DB;
 
 				const [block] = yield* db
-					.select({ ...getColumns(dbSchema.block) })
+					.select({
+						...getColumns(dbSchema.block),
+					})
 					.from(dbSchema.block)
 					.where(eq(dbSchema.block.id, input.id))
 					.pipe(Effect.map((rows) => rows as Block[]));
 
 				if (!block) {
 					return yield* Effect.fail(
-						errors.NOT_FOUND({ message: "Block not found" }),
+						errors.NOT_FOUND({
+							message: "Block not found",
+						}),
 					);
 				}
 
 				if (block.type === "database") {
 					const assets = yield* db
-						.select({ assetId: dbSchema.blockAsset.assetId })
+						.select({
+							assetId: dbSchema.blockAsset.assetId,
+						})
 						.from(dbSchema.blockAsset)
 						.where(eq(dbSchema.blockAsset.blockId, input.id));
 
-					return { data: block, assets: assets.map((a) => a.assetId) };
+					return {
+						data: block,
+						assets: assets.map((a) => a.assetId),
+					};
 				}
 
-				return { data: block };
+				return {
+					data: block,
+				};
 			}),
 		),
 	);
@@ -136,7 +157,9 @@ export const createBlock = authed.block.create
 						createdAt: new Date(),
 						updatedAt: new Date(),
 					})
-					.returning({ ...getColumns(dbSchema.block) })
+					.returning({
+						...getColumns(dbSchema.block),
+					})
 					.pipe(Effect.map((rows) => rows as Block[]));
 
 				let zedToken = (yield* initializeResourceAuthorization({
@@ -155,7 +178,9 @@ export const createBlock = authed.block.create
 								assetId,
 							})),
 						)
-						.returning({ assetId: dbSchema.blockAsset.assetId });
+						.returning({
+							assetId: dbSchema.blockAsset.assetId,
+						});
 
 					if (input.assets.length > 0) {
 						const relationResult = yield* authz.applyRelationshipMutations({
@@ -174,13 +199,17 @@ export const createBlock = authed.block.create
 					return {
 						data: block,
 						assets: assets.map((a) => a.assetId),
-						meta: { zedToken },
+						meta: {
+							zedToken,
+						},
 					};
 				}
 
 				return {
 					data: block,
-					meta: { zedToken },
+					meta: {
+						zedToken,
+					},
 				};
 			}),
 		),
@@ -209,12 +238,16 @@ export const updateBlock = authed.block.update
 						updatedAt: new Date(),
 					})
 					.where(eq(dbSchema.block.id, input.id))
-					.returning({ ...getColumns(dbSchema.block) })
+					.returning({
+						...getColumns(dbSchema.block),
+					})
 					.pipe(Effect.map((rows) => rows as Block[]));
 
 				if (input.type === "database" && block.type === "database") {
 					const previousAssets = yield* db
-						.select({ assetId: dbSchema.blockAsset.assetId })
+						.select({
+							assetId: dbSchema.blockAsset.assetId,
+						})
 						.from(dbSchema.blockAsset)
 						.where(eq(dbSchema.blockAsset.blockId, block.id));
 
@@ -230,7 +263,9 @@ export const updateBlock = authed.block.update
 								assetId,
 							})),
 						)
-						.returning({ assetId: dbSchema.blockAsset.assetId });
+						.returning({
+							assetId: dbSchema.blockAsset.assetId,
+						});
 
 					const { removedIds, addedIds } = calculateRelationDelta(
 						previousAssets.map((asset) => asset.assetId),
@@ -260,10 +295,15 @@ export const updateBlock = authed.block.update
 						});
 					}
 
-					return { data: block, assets: assets.map((a) => a.assetId) };
+					return {
+						data: block,
+						assets: assets.map((a) => a.assetId),
+					};
 				}
 
-				return { data: block };
+				return {
+					data: block,
+				};
 			}),
 		),
 	);
@@ -284,14 +324,20 @@ export const deleteBlocks = authed.block.delete
 				const db = yield* DB;
 
 				if (!context.allowedIds || context.allowedIds.length === 0) {
-					return { success: true, message: "No blocks to delete" };
+					return {
+						success: true,
+						message: "No blocks to delete",
+					};
 				}
 
 				yield* db
 					.delete(dbSchema.block)
 					.where(inArray(dbSchema.block.id, context.allowedIds));
 
-				return { success: true, message: "Blocks deleted successfully" };
+				return {
+					success: true,
+					message: "Blocks deleted successfully",
+				};
 			}),
 		),
 	);

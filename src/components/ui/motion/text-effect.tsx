@@ -41,7 +41,9 @@ const defaultStaggerTimes: Record<PerType, number> = {
 };
 
 const defaultContainerVariants: Variants = {
-	hidden: { opacity: 0 },
+	hidden: {
+		opacity: 0,
+	},
 	visible: {
 		opacity: 1,
 		transition: {
@@ -49,60 +51,115 @@ const defaultContainerVariants: Variants = {
 		},
 	},
 	exit: {
-		transition: { staggerChildren: 0.05, staggerDirection: -1 },
+		transition: {
+			staggerChildren: 0.05,
+			staggerDirection: -1,
+		},
 	},
 };
 
 const defaultItemVariants: Variants = {
-	hidden: { opacity: 0 },
+	hidden: {
+		opacity: 0,
+	},
 	visible: {
 		opacity: 1,
 	},
-	exit: { opacity: 0 },
+	exit: {
+		opacity: 0,
+	},
 };
 
 const presetVariants: Record<
 	PresetType,
-	{ container: Variants; item: Variants }
+	{
+		container: Variants;
+		item: Variants;
+	}
 > = {
 	blur: {
 		container: defaultContainerVariants,
 		item: {
-			hidden: { opacity: 0, filter: "blur(12px)" },
-			visible: { opacity: 1, filter: "blur(0px)" },
-			exit: { opacity: 0, filter: "blur(12px)" },
+			hidden: {
+				opacity: 0,
+				filter: "blur(12px)",
+			},
+			visible: {
+				opacity: 1,
+				filter: "blur(0px)",
+			},
+			exit: {
+				opacity: 0,
+				filter: "blur(12px)",
+			},
 		},
 	},
 	"fade-in-blur": {
 		container: defaultContainerVariants,
 		item: {
-			hidden: { opacity: 0, y: 20, filter: "blur(12px)" },
-			visible: { opacity: 1, y: 0, filter: "blur(0px)" },
-			exit: { opacity: 0, y: 20, filter: "blur(12px)" },
+			hidden: {
+				opacity: 0,
+				y: 20,
+				filter: "blur(12px)",
+			},
+			visible: {
+				opacity: 1,
+				y: 0,
+				filter: "blur(0px)",
+			},
+			exit: {
+				opacity: 0,
+				y: 20,
+				filter: "blur(12px)",
+			},
 		},
 	},
 	scale: {
 		container: defaultContainerVariants,
 		item: {
-			hidden: { opacity: 0, scale: 0 },
-			visible: { opacity: 1, scale: 1 },
-			exit: { opacity: 0, scale: 0 },
+			hidden: {
+				opacity: 0,
+				scale: 0,
+			},
+			visible: {
+				opacity: 1,
+				scale: 1,
+			},
+			exit: {
+				opacity: 0,
+				scale: 0,
+			},
 		},
 	},
 	fade: {
 		container: defaultContainerVariants,
 		item: {
-			hidden: { opacity: 0 },
-			visible: { opacity: 1 },
-			exit: { opacity: 0 },
+			hidden: {
+				opacity: 0,
+			},
+			visible: {
+				opacity: 1,
+			},
+			exit: {
+				opacity: 0,
+			},
 		},
 	},
 	slide: {
 		container: defaultContainerVariants,
 		item: {
-			hidden: { opacity: 0, y: 20 },
-			visible: { opacity: 1, y: 0 },
-			exit: { opacity: 0, y: 20 },
+			hidden: {
+				opacity: 0,
+				y: 20,
+			},
+			visible: {
+				opacity: 1,
+				y: 0,
+			},
+			exit: {
+				opacity: 0,
+				y: 20,
+			},
 		},
 	},
 };
@@ -164,14 +221,18 @@ const splitText = (text: string, per: PerType) => {
 
 const hasTransition = (
 	variant?: Variant,
-): variant is TargetAndTransition & { transition?: Transition } => {
+): variant is TargetAndTransition & {
+	transition?: Transition;
+} => {
 	if (!variant) return false;
 	return typeof variant === "object" && "transition" in variant;
 };
 
 const createVariantsWithTransition = (
 	baseVariants: Variants,
-	transition?: Transition & { exit?: Transition },
+	transition?: Transition & {
+		exit?: Transition;
+	},
 ): Variants => {
 	if (!transition) return baseVariants;
 
@@ -224,7 +285,10 @@ export function TextEffect({
 
 	const baseVariants = preset
 		? presetVariants[preset]
-		: { container: defaultContainerVariants, item: defaultItemVariants };
+		: {
+				container: defaultContainerVariants,
+				item: defaultItemVariants,
+			};
 
 	const stagger = defaultStaggerTimes[per] / speedReveal;
 

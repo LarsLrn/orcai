@@ -31,7 +31,9 @@ const BotHeader = ({
 	bot: Bot;
 	visibility: "private" | "public";
 }) => {
-	const params = useParams({ strict: false });
+	const params = useParams({
+		strict: false,
+	});
 	const navigate = useNavigate();
 	const [isAccessOpen, setIsAccessOpen] = useState(false);
 
@@ -39,14 +41,22 @@ const BotHeader = ({
 		onMutate: async () => {
 			// Navigate away before deleting to avoid rendering the deleted bot.
 			if (params.botId && params.botId === bot.id) {
-				await navigate({ to: "/app/hub/bots" });
+				await navigate({
+					to: "/app/hub/bots",
+				});
 			}
 		},
 	});
 
 	const onDelete = (e: React.MouseEvent<HTMLDivElement>) => {
 		e.stopPropagation();
-		deleteBots({ refs: [{ id: bot.id }] });
+		deleteBots({
+			refs: [
+				{
+					id: bot.id,
+				},
+			],
+		});
 	};
 
 	return (
@@ -89,8 +99,12 @@ const BotHeader = ({
 				</Button>
 				<Link
 					to="/app/hub/bots/$botId/edit"
-					params={{ botId: bot.id }}
-					className={buttonVariants({ className: "gap-2" })}
+					params={{
+						botId: bot.id,
+					}}
+					className={buttonVariants({
+						className: "gap-2",
+					})}
 				>
 					<EditIcon className="size-4" />
 					Edit Bot
@@ -125,7 +139,10 @@ const BotHeader = ({
 			<AccessDialog
 				open={isAccessOpen}
 				onOpenChange={setIsAccessOpen}
-				resourceRef={{ type: "bot", id: bot.id }}
+				resourceRef={{
+					type: "bot",
+					id: bot.id,
+				}}
 				resourceName={bot.name}
 			/>
 		</div>

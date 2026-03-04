@@ -23,7 +23,11 @@ export const listProviders = authed.provider.list
 							limit: input.pageSize,
 							offset: input.pageIndex * input.pageSize,
 						}),
-						db.select({ count: count() }).from(dbSchema.provider),
+						db
+							.select({
+								count: count(),
+							})
+							.from(dbSchema.provider),
 						/* .where(
 								eq(
 									dbSchema.provider.organizationId,
@@ -31,10 +35,15 @@ export const listProviders = authed.provider.list
 								),
 							) */
 					],
-					{ concurrency: "unbounded" },
+					{
+						concurrency: "unbounded",
+					},
 				);
 
-				return { data, rowCount: rowCount.count };
+				return {
+					data,
+					rowCount: rowCount.count,
+				};
 			}),
 		),
 	);
@@ -92,7 +101,9 @@ export const createProvider = authed.provider.create
 					})
 					.returning();
 
-				return { data: provider };
+				return {
+					data: provider,
+				};
 			}),
 		),
 	);
@@ -119,7 +130,9 @@ export const updateProvider = authed.provider.update
 					.where(eq(dbSchema.provider.id, input.id))
 					.returning();
 
-				return { data: provider };
+				return {
+					data: provider,
+				};
 			}),
 		),
 	);

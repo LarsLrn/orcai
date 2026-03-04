@@ -37,7 +37,9 @@ export const syncRelationshipTransition = <
 		const authz = yield* AuthzService;
 
 		if (params.oldRelation === params.newRelation) {
-			return { zedToken: undefined as string | undefined };
+			return {
+				zedToken: undefined as string | undefined,
+			};
 		}
 
 		const mutations = [
@@ -70,8 +72,12 @@ export const syncRelationshipTransition = <
 		];
 
 		if (mutations.length === 0) {
-			return { zedToken: undefined as string | undefined };
+			return {
+				zedToken: undefined as string | undefined,
+			};
 		}
 
-		return yield* authz.applyRelationshipMutations({ mutations });
+		return yield* authz.applyRelationshipMutations({
+			mutations,
+		});
 	});

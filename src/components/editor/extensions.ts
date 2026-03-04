@@ -90,7 +90,11 @@ const TiptapHeading = Heading.extend({
 });
 
 const TiptapTextAlign = TextAlign.configure({
-	types: ["heading", "paragraph", "math"],
+	types: [
+		"heading",
+		"paragraph",
+		"math",
+	],
 });
 
 const TiptapTable = Table.extend({
@@ -113,7 +117,10 @@ const TiptapTable = Table.extend({
 						: `minWidth: ${tableMinWidth}`,
 				}),
 				colgroup,
-				["tbody", 0],
+				[
+					"tbody",
+					0,
+				],
 			],
 		];
 
@@ -150,7 +157,9 @@ const TiptapImage = Image.configure({
 
 const DragHandle = GlobalDragHandle.configure({
 	dragHandleWidth: 25,
-	excludedTags: ["table"],
+	excludedTags: [
+		"table",
+	],
 });
 
 const TiptapYoutube = Youtube.configure({

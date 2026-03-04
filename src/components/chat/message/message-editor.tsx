@@ -71,7 +71,10 @@ const MessageEditor = ({
 					}),
 				};
 
-				return [...messages.slice(0, index), updatedMessage];
+				return [
+					...messages.slice(0, index),
+					updatedMessage,
+				];
 			}
 
 			return messages;

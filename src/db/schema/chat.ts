@@ -14,11 +14,17 @@ export const chat = pgTable("chat", {
 	title: varchar("title"),
 	userId: uuid("user_id")
 		.notNull()
-		.references(() => user.id, { onDelete: "cascade" }),
-	botId: uuid("bot_id").references(() => bot.id, { onDelete: "set null" }),
+		.references(() => user.id, {
+			onDelete: "cascade",
+		}),
+	botId: uuid("bot_id").references(() => bot.id, {
+		onDelete: "set null",
+	}),
 	activeBranchId: uuid("active_branch_id").references(
 		(): AnyPgColumn => chatBranch.id,
-		{ onDelete: "set null" },
+		{
+			onDelete: "set null",
+		},
 	),
 	createdAt: timestamp("created_at").notNull().defaultNow(),
 	updatedAt: timestamp("updated_at").notNull().defaultNow(),

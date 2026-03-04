@@ -14,13 +14,19 @@ export const Route = createFileRoute("/_pathlessLayout/select-organization")({
 	component: RouteComponent,
 	beforeLoad: ({ context }) => {
 		if (!context.auth.isAuthenticated) {
-			throw redirect({ to: "/login", statusCode: 302 });
+			throw redirect({
+				to: "/login",
+				statusCode: 302,
+			});
 		}
 	},
 	loader: async ({ context: { queryClient } }) => {
 		await queryClient.ensureQueryData(
 			orpc.organization.list.queryOptions({
-				input: { pageIndex: 0, pageSize: 100 },
+				input: {
+					pageIndex: 0,
+					pageSize: 100,
+				},
 			}),
 		);
 	},
@@ -59,14 +65,19 @@ function RouteComponent() {
 
 	const { data: organizations } = useSuspenseQuery(
 		orpc.organization.list.queryOptions({
-			input: { pageIndex: 0, pageSize: 100 },
+			input: {
+				pageIndex: 0,
+				pageSize: 100,
+			},
 		}),
 	);
 	const { mutate: setActiveOrganization } = useSetActiveOrganizationMutation();
 
 	const handleInvitationAccepted = async () => {
 		await refetchSession();
-		await navigate({ to: "/app" });
+		await navigate({
+			to: "/app",
+		});
 	};
 
 	return (
@@ -87,7 +98,9 @@ function RouteComponent() {
 							key={organization.id}
 							organization={organization}
 							onSelect={() =>
-								setActiveOrganization({ organizationId: organization.id })
+								setActiveOrganization({
+									organizationId: organization.id,
+								})
 							}
 						/>
 					))}

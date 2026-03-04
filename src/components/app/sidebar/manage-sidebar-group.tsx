@@ -24,7 +24,9 @@ const CollapsibleSidebarMenu = ({
 }: {
 	item: (typeof sidebarMenu)[number];
 }) => {
-	const pathname = useRouterState({ select: (s) => s.location.pathname });
+	const pathname = useRouterState({
+		select: (s) => s.location.pathname,
+	});
 
 	return (
 		<Collapsible

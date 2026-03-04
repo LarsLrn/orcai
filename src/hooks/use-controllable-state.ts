@@ -37,10 +37,18 @@ function useControllableState<T>({
 				setUncontrolledProp(nextValue);
 			}
 		},
-		[isControlled, prop, setUncontrolledProp, handleChange],
+		[
+			isControlled,
+			prop,
+			setUncontrolledProp,
+			handleChange,
+		],
 	);
 
-	return [value, setValue] as const;
+	return [
+		value,
+		setValue,
+	] as const;
 }
 
 function useUncontrolledState<T>({
@@ -57,7 +65,10 @@ function useUncontrolledState<T>({
 			handleChange(value as T);
 			prevValueRef.current = value;
 		}
-	}, [value, handleChange]);
+	}, [
+		value,
+		handleChange,
+	]);
 
 	return uncontrolledState;
 }

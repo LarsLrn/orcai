@@ -3,7 +3,10 @@ import { clientEnv } from "@/lib/env/client";
 export function useUmami() {
 	const identifyUser = (
 		uniqueId: string,
-		data: { name: string; email: string },
+		data: {
+			name: string;
+			email: string;
+		},
 	) => {
 		if (!clientEnv.VITE_UMAMI_SCRIPT_URL || !clientEnv.VITE_UMAMI_WEBSITE_ID)
 			return;
@@ -24,5 +27,8 @@ export function useUmami() {
 		}
 	};
 
-	return { trackEvent, identifyUser };
+	return {
+		trackEvent,
+		identifyUser,
+	};
 }

@@ -49,7 +49,9 @@ const CourseCard = ({
 			icon: EyeIcon,
 			linkProps: {
 				to: "/app/hub/courses/$courseId",
-				params: { courseId: course.id },
+				params: {
+					courseId: course.id,
+				},
 			},
 		},
 		{
@@ -59,7 +61,9 @@ const CourseCard = ({
 			variant: "default",
 			linkProps: {
 				to: "/app/hub/courses/$courseId/edit",
-				params: { courseId: course.id },
+				params: {
+					courseId: course.id,
+				},
 			},
 		},
 	];
@@ -69,7 +73,9 @@ const CourseCard = ({
 	const primaryAction = actions?.primary ?? {
 		linkProps: {
 			to: "/app/hub/courses/$courseId",
-			params: { courseId: course.id },
+			params: {
+				courseId: course.id,
+			},
 		},
 	};
 

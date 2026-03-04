@@ -18,7 +18,13 @@ const CheckboxGroup = ({
 	description,
 }: {
 	label: string;
-	options: { value: string; label: string; description?: string }[] | undefined;
+	options:
+		| {
+				value: string;
+				label: string;
+				description?: string;
+		  }[]
+		| undefined;
 	description?: string;
 	placeholder?: string;
 }) => {

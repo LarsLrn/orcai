@@ -76,7 +76,9 @@ export const listChatMessages = authed.chatMessage.list
 							Effect.fromNullable(chat).pipe(
 								Effect.orElse(() =>
 									Effect.fail(
-										errors.NOT_FOUND({ message: "Branch not found" }),
+										errors.NOT_FOUND({
+											message: "Branch not found",
+										}),
 									),
 								),
 							),
@@ -164,13 +166,20 @@ export const listChatMessages = authed.chatMessage.list
 				}
 
 				const [rowCount] = yield* db
-					.select({ count: count() })
+					.select({
+						count: count(),
+					})
 					.from(dbSchema.chatMessage)
 					.where(eq(dbSchema.chatMessage.chatId, input.chatId));
 
 				let scores: ApiGetScoresResponse = {
 					data: [],
-					meta: { page: 0, totalItems: 0, limit: 0, totalPages: 0 },
+					meta: {
+						page: 0,
+						totalItems: 0,
+						limit: 0,
+						totalPages: 0,
+					},
 				};
 
 				if (input.includeScores && chatMessages.length > 0) {
@@ -191,7 +200,11 @@ export const listChatMessages = authed.chatMessage.list
 					});
 				}
 
-				return { data: chatMessages, rowCount: rowCount.count, scores };
+				return {
+					data: chatMessages,
+					rowCount: rowCount.count,
+					scores,
+				};
 			}),
 		),
 	);
@@ -215,7 +228,14 @@ export const findChatMessage = authed.chatMessage.find
 				return yield* db.query.chatMessage
 					.findFirst({
 						where: {
-							AND: [{ id: input.id }, { chatId: input.chatId }],
+							AND: [
+								{
+									id: input.id,
+								},
+								{
+									chatId: input.chatId,
+								},
+							],
 						},
 					})
 					.pipe(
@@ -223,12 +243,16 @@ export const findChatMessage = authed.chatMessage.find
 							Effect.fromNullable(chat).pipe(
 								Effect.orElse(() =>
 									Effect.fail(
-										errors.NOT_FOUND({ message: "Chat message not found" }),
+										errors.NOT_FOUND({
+											message: "Chat message not found",
+										}),
 									),
 								),
 							),
 						),
-						Effect.map((chat) => ({ data: chat })),
+						Effect.map((chat) => ({
+							data: chat,
+						})),
 					);
 			}),
 		),
@@ -270,7 +294,9 @@ export const getBranchIdForMessage = authed.chatMessage.getBranch
 							if (rows.length === 0) {
 								return null;
 							}
-							return { branchId: rows[0].id };
+							return {
+								branchId: rows[0].id,
+							};
 						}),
 						Effect.flatMap((branch) =>
 							Effect.fromNullable(branch).pipe(
@@ -305,7 +331,9 @@ export const createChatMessage = authed.chatMessage.create
 
 				if (!input.branchId) {
 					return yield* Effect.fail(
-						errors.BAD_REQUEST({ message: "branchId is required" }),
+						errors.BAD_REQUEST({
+							message: "branchId is required",
+						}),
 					);
 				}
 
@@ -326,7 +354,9 @@ export const createChatMessage = authed.chatMessage.create
 							Effect.fromNullable(branch).pipe(
 								Effect.orElse(() =>
 									Effect.fail(
-										errors.NOT_FOUND({ message: "Branch not found" }),
+										errors.NOT_FOUND({
+											message: "Branch not found",
+										}),
 									),
 								),
 							),
@@ -390,13 +420,17 @@ export const createChatMessage = authed.chatMessage.create
 						depth,
 						createdAt: new Date(),
 					})
-					.returning({ ...getColumns(dbSchema.chatMessage) });
+					.returning({
+						...getColumns(dbSchema.chatMessage),
+					});
 
 				// 4. Handle Branch Updates
 				if (isForking) {
 					// Create a new branch
 					const [countRes] = yield* db
-						.select({ count: count() })
+						.select({
+							count: count(),
+						})
 						.from(dbSchema.chatBranch)
 						.where(eq(dbSchema.chatBranch.chatId, input.chatId));
 
@@ -418,7 +452,10 @@ export const createChatMessage = authed.chatMessage.create
 						})
 						.where(eq(dbSchema.chat.id, input.chatId));
 
-					return { data: newMessage, branchId: newBranch.id };
+					return {
+						data: newMessage,
+						branchId: newBranch.id,
+					};
 				}
 
 				// Extend the existing branch
@@ -432,10 +469,15 @@ export const createChatMessage = authed.chatMessage.create
 
 				yield* db
 					.update(dbSchema.chat)
-					.set({ updatedAt: new Date() })
+					.set({
+						updatedAt: new Date(),
+					})
 					.where(eq(dbSchema.chat.id, input.chatId));
 
-				return { data: newMessage, branchId: branchIdToUpdate };
+				return {
+					data: newMessage,
+					branchId: branchIdToUpdate,
+				};
 			}),
 		),
 	);
@@ -458,7 +500,14 @@ export const updateChatMessage = authed.chatMessage.update
 				const targetMsg = yield* db.query.chatMessage
 					.findFirst({
 						where: {
-							AND: [{ id: input.id }, { chatId: input.chatId }],
+							AND: [
+								{
+									id: input.id,
+								},
+								{
+									chatId: input.chatId,
+								},
+							],
 						},
 					})
 					.pipe(
@@ -468,7 +517,9 @@ export const updateChatMessage = authed.chatMessage.update
 									Effect.fail(
 										errors.NOT_FOUND({
 											message: "Chat Message not found",
-											data: { id: input.id },
+											data: {
+												id: input.id,
+											},
 										}),
 									),
 								),
@@ -478,7 +529,9 @@ export const updateChatMessage = authed.chatMessage.update
 
 				// 2. Check for children (indicating this message is not a leaf)
 				const [childCount] = yield* db
-					.select({ count: count() })
+					.select({
+						count: count(),
+					})
 					.from(dbSchema.chatMessage)
 					.where(eq(dbSchema.chatMessage.parentMessageId, targetMsg.id));
 
@@ -494,14 +547,21 @@ export const updateChatMessage = authed.chatMessage.update
 							metadata: input.metadata,
 						})
 						.where(eq(dbSchema.chatMessage.id, input.id))
-						.returning({ ...getColumns(dbSchema.chatMessage) });
+						.returning({
+							...getColumns(dbSchema.chatMessage),
+						});
 
 					yield* db
 						.update(dbSchema.chat)
-						.set({ updatedAt: new Date() })
+						.set({
+							updatedAt: new Date(),
+						})
 						.where(eq(dbSchema.chat.id, input.chatId));
 
-					return { data: chatMessage, branchId: input.branchId };
+					return {
+						data: chatMessage,
+						branchId: input.branchId,
+					};
 				}
 
 				// Case B: Non-leaf message - Fork by creating a new message
@@ -522,11 +582,15 @@ export const updateChatMessage = authed.chatMessage.update
 						depth,
 						createdAt: new Date(),
 					})
-					.returning({ ...getColumns(dbSchema.chatMessage) });
+					.returning({
+						...getColumns(dbSchema.chatMessage),
+					});
 
 				// Create new branch
 				const [countRes] = yield* db
-					.select({ count: count() })
+					.select({
+						count: count(),
+					})
 					.from(dbSchema.chatBranch)
 					.where(eq(dbSchema.chatBranch.chatId, input.chatId));
 
@@ -548,7 +612,10 @@ export const updateChatMessage = authed.chatMessage.update
 					})
 					.where(eq(dbSchema.chat.id, input.chatId));
 
-				return { data: newMessage, branchId: newBranch.id };
+				return {
+					data: newMessage,
+					branchId: newBranch.id,
+				};
 			}),
 		),
 	);
@@ -579,7 +646,10 @@ export const deleteChatMessages = authed.chatMessage.delete
 						),
 					);
 
-				return { success: true, message: "Chat messages deleted successfully" };
+				return {
+					success: true,
+					message: "Chat messages deleted successfully",
+				};
 			}),
 		),
 	);

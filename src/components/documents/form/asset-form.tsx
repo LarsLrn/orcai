@@ -10,7 +10,10 @@ const AssetForm = ({ asset }: { asset: Asset }) => {
 	const form = useAppForm({
 		...assetFormOptions(asset),
 		onSubmit: ({ value }) => {
-			updateAsset({ ...value, id: asset.id });
+			updateAsset({
+				...value,
+				id: asset.id,
+			});
 		},
 	});
 
@@ -107,9 +110,18 @@ const AssetForm = ({ asset }: { asset: Asset }) => {
 									placeholder="Select relevance"
 									description="Adjusts whether the asset is used more frequently (scored higher) or less frequently (scored lower) in the AI's responses."
 									options={[
-										{ label: "High", value: "high" },
-										{ label: "Medium", value: "medium" },
-										{ label: "Low", value: "low" },
+										{
+											label: "High",
+											value: "high",
+										},
+										{
+											label: "Medium",
+											value: "medium",
+										},
+										{
+											label: "Low",
+											value: "low",
+										},
 									]}
 								/>
 							)}

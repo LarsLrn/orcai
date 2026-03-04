@@ -23,10 +23,14 @@ export const useCreateChatMutation = (
 
 					await navigate({
 						to: "/app/chat/$chatId",
-						params: { chatId: result.data.id },
+						params: {
+							chatId: result.data.id,
+						},
 					});
 
-					trackEvent("chat-create", { chatId: result.data.id });
+					trackEvent("chat-create", {
+						chatId: result.data.id,
+					});
 
 					try {
 						await opts.onSuccess?.(result, ...args);

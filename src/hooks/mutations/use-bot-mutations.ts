@@ -20,7 +20,9 @@ export const useCreateBotMutation = (
 
 					await router.navigate({
 						to: "/app/hub/bots/$botId",
-						params: { botId: result.data.id },
+						params: {
+							botId: result.data.id,
+						},
 					});
 
 					try {

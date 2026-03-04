@@ -161,7 +161,9 @@ type S3LikeCause = {
 	code?: string;
 	Code?: string;
 	message?: string;
-	$metadata?: { httpStatusCode?: number };
+	$metadata?: {
+		httpStatusCode?: number;
+	};
 };
 
 const isS3LikeCause = (cause: unknown): cause is S3LikeCause =>
@@ -211,11 +213,15 @@ export const mapS3CauseToAppError = (params: {
 		code === "InvalidAccessKeyId" ||
 		code === "SignatureDoesNotMatch"
 	) {
-		return new UnauthorizedError({ reason: message });
+		return new UnauthorizedError({
+			reason: message,
+		});
 	}
 
 	if (statusCode === 403 || code === "AccessDenied") {
-		return new ForbiddenError({ reason: message });
+		return new ForbiddenError({
+			reason: message,
+		});
 	}
 
 	if (
@@ -226,10 +232,14 @@ export const mapS3CauseToAppError = (params: {
 		code === "NoSuchBucket"
 	) {
 		if (params.notFoundAs === "bad_request") {
-			return new BadRequestError({ message });
+			return new BadRequestError({
+				message,
+			});
 		}
 
-		return new NotFoundError({ entity: "storage_resource" });
+		return new NotFoundError({
+			entity: "storage_resource",
+		});
 	}
 
 	if (
@@ -245,7 +255,9 @@ export const mapS3CauseToAppError = (params: {
 	}
 
 	if (typeof statusCode === "number" && statusCode >= 400 && statusCode < 500) {
-		return new BadRequestError({ message });
+		return new BadRequestError({
+			message,
+		});
 	}
 
 	return new S3Error({

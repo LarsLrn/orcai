@@ -26,7 +26,9 @@ export const generateChatTitle = (params: { messages: ChatAgentUIMessage[] }) =>
 			try: () =>
 				generateText({
 					model: getSaiaModel({
-						input: ["text"],
+						input: [
+							"text",
+						],
 						model: "meta-llama-3.1-8b-instruct",
 					}).provider,
 					prompt: `Based on the following conversation, generate a short, descriptive title (maximum 80 characters). The title should capture the main topic or purpose of the conversation. Return ONLY the title text, nothing else
@@ -34,6 +36,14 @@ export const generateChatTitle = (params: { messages: ChatAgentUIMessage[] }) =>
       			Conversation:
       			${conversationContext}`,
 				}),
-			catch: (cause) => new AiError({ operation: "generateChatTitle", cause }),
-		}).pipe(Effect.map((response) => ({ title: response.text })));
+			catch: (cause) =>
+				new AiError({
+					operation: "generateChatTitle",
+					cause,
+				}),
+		}).pipe(
+			Effect.map((response) => ({
+				title: response.text,
+			})),
+		);
 	});

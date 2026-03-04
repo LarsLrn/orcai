@@ -15,7 +15,9 @@ const UsersDataTableSelectActions = () => {
 
 	const handleDelete = () => {
 		const userIds = table.getSelectedRowModel().flatRows.map((row) => row.id);
-		deleteUsers({ userIds });
+		deleteUsers({
+			userIds,
+		});
 	};
 
 	return (

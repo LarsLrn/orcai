@@ -5,7 +5,9 @@ export const Route = createFileRoute("/app/groups/$groupId")({
 	loader: async ({ context: { queryClient }, params: { groupId } }) => {
 		return await queryClient.ensureQueryData(
 			orpc.group.find.queryOptions({
-				input: { id: groupId },
+				input: {
+					id: groupId,
+				},
 			}),
 		);
 	},

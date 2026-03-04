@@ -12,6 +12,9 @@ export const buckets = {
 	},
 };
 
-export const bucketSchema = z.enum([buckets.main.name, buckets.processed.name]);
+export const bucketSchema = z.enum([
+	buckets.main.name,
+	buckets.processed.name,
+]);
 
 export type BucketName = z.infer<typeof bucketSchema>;

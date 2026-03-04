@@ -20,10 +20,17 @@ import { ChatActionsDropdown } from "./chat-actions-dropdown";
 const ChatsList = ({
 	limit,
 	...props
-}: { limit?: number } & ComponentProps<"div">) => {
+}: {
+	limit?: number;
+} & ComponentProps<"div">) => {
 	const pageSize = limit ?? 100;
 	const { data, status } = useQuery(
-		orpc.chat.list.queryOptions({ input: { pageIndex: 0, pageSize } }),
+		orpc.chat.list.queryOptions({
+			input: {
+				pageIndex: 0,
+				pageSize,
+			},
+		}),
 	);
 
 	if (status === "pending") {
@@ -42,7 +49,9 @@ const ChatsList = ({
 				<CardFooter className="flex justify-center">
 					<Link
 						to="/app/chat/setup"
-						className={buttonVariants({ variant: "outline" })}
+						className={buttonVariants({
+							variant: "outline",
+						})}
 					>
 						New Chat
 					</Link>
@@ -63,7 +72,9 @@ const ChatsList = ({
 			{data.data.map((chat) => (
 				<Link
 					to={"/app/chat/$chatId"}
-					params={{ chatId: chat.id }}
+					params={{
+						chatId: chat.id,
+					}}
 					key={chat.id}
 				>
 					<Card className="relative h-full transition-all hover:border-primary/50 hover:shadow-md">

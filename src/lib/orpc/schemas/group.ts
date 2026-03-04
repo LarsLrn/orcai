@@ -26,7 +26,11 @@ export const groupUpdateSchema = createUpdateSchema(dbSchema.group, {
 });
 
 export const groupDeleteSchema = z.object({
-	refs: z.array(groupSelectSchema.pick({ id: true })),
+	refs: z.array(
+		groupSelectSchema.pick({
+			id: true,
+		}),
+	),
 });
 
 export const groupMemberRowSchema = z.object({
@@ -36,7 +40,10 @@ export const groupMemberRowSchema = z.object({
 		email: true,
 		image: true,
 	}),
-	source: z.enum(["explicit", "implicit"]),
+	source: z.enum([
+		"explicit",
+		"implicit",
+	]),
 	addedAt: z.coerce.date().nullable(),
 	addedBy: z.uuidv4().nullable(),
 });
@@ -50,7 +57,9 @@ export const groupListMembersInputSchema = paginationSchema.extend({
 	query: z.string().trim().max(200).optional(),
 });
 
-export const groupFindInputSchema = groupSelectSchema.pick({ id: true });
+export const groupFindInputSchema = groupSelectSchema.pick({
+	id: true,
+});
 
 export const groupAddMembersInputSchema = z.object({
 	groupId: z.uuidv4(),
@@ -64,7 +73,9 @@ export const groupAddMembersInputSchema = z.object({
 				ctx.issues.push({
 					code: "custom",
 					message: "User IDs must be unique",
-					path: ["userIds"],
+					path: [
+						"userIds",
+					],
 					input: "",
 				});
 			}

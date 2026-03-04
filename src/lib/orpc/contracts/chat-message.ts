@@ -19,7 +19,9 @@ export const listChatMessagesContract = base
 		method: "GET",
 		path: "/chats/{chatId}/messages",
 		summary: "List all messages in a chat",
-		tags: ["Chat Messages"],
+		tags: [
+			"Chat Messages",
+		],
 	})
 	.input(
 		z.object({
@@ -52,7 +54,9 @@ export const createChatMessageContract = base
 		method: "POST",
 		path: "/chats/{chatId}/messages",
 		summary: "Create a chat message",
-		tags: ["Chat Messages"],
+		tags: [
+			"Chat Messages",
+		],
 	})
 	.input(
 		chatMessageInsertSchema.extend({
@@ -71,7 +75,9 @@ export const findChatMessageContract = base
 		method: "GET",
 		path: "/chats/{chatId}/messages/{id}",
 		summary: "Find a chat message",
-		tags: ["Chat Messages"],
+		tags: [
+			"Chat Messages",
+		],
 	})
 	.input(
 		z.object({
@@ -80,19 +86,27 @@ export const findChatMessageContract = base
 			...zedTokenSchema.shape,
 		}),
 	)
-	.output(z.object({ data: chatMessageSelectSchema }));
+	.output(
+		z.object({
+			data: chatMessageSelectSchema,
+		}),
+	);
 
 export const updateChatMessageContract = base
 	.route({
 		method: "PUT",
 		path: "/chats/{chatId}/messages/{id}",
 		summary: "Update a chat message",
-		tags: ["Chat Messages"],
+		tags: [
+			"Chat Messages",
+		],
 	})
 	.errors({
 		NOT_FOUND: {
 			message: "Chat not found",
-			data: z.object({ id: chatMessageUpdateSchema.shape.id }),
+			data: z.object({
+				id: chatMessageUpdateSchema.shape.id,
+			}),
 		},
 	})
 	.input(
@@ -112,7 +126,9 @@ export const deleteChatMessageContract = base
 		method: "DELETE",
 		path: "/chats/{chatId}/messages",
 		summary: "Delete a chat message",
-		tags: ["Chat Messages"],
+		tags: [
+			"Chat Messages",
+		],
 	})
 	.input(chatMessageDeleteSchema)
 	.output(statusSchema);
@@ -122,7 +138,9 @@ export const rateChatMessageContract = base
 		method: "POST",
 		path: "/chats/{chatId}/messages/{id}/rate",
 		summary: "Rate a chat message",
-		tags: ["Chat Messages"],
+		tags: [
+			"Chat Messages",
+		],
 	})
 	.input(
 		z.object({
@@ -148,7 +166,9 @@ export const getBranchIdForMessageContract = base
 		method: "GET",
 		path: "/chats/{chatId}/messages/{messageId}/branch",
 		summary: "Get the branch ID for a message",
-		tags: ["Chat Messages"],
+		tags: [
+			"Chat Messages",
+		],
 	})
 	.input(
 		z.object({

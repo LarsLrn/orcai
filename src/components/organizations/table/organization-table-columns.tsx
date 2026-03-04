@@ -76,12 +76,19 @@ export const organizationTableColumns: ColumnDef<Organization>[] = [
 						}
 					/>
 					<DropdownMenuContent align="end">
-						<Link to={"/app/orgs/$orgId"} params={{ orgId: row.original.id }}>
+						<Link
+							to={"/app/orgs/$orgId"}
+							params={{
+								orgId: row.original.id,
+							}}
+						>
 							<DropdownMenuItem>View Organisation</DropdownMenuItem>
 						</Link>
 						<Link
 							to={"/app/orgs/$orgId/edit"}
-							params={{ orgId: row.original.id }}
+							params={{
+								orgId: row.original.id,
+							}}
 						>
 							<DropdownMenuItem>Edit Organisation</DropdownMenuItem>
 						</Link>
@@ -104,7 +111,15 @@ const DeleteItem = ({
 	return (
 		<DropdownMenuItem
 			variant="destructive"
-			onClick={() => deleteOrganizations({ refs: [{ id: organizationId }] })}
+			onClick={() =>
+				deleteOrganizations({
+					refs: [
+						{
+							id: organizationId,
+						},
+					],
+				})
+			}
 		>
 			Delete Organization
 		</DropdownMenuItem>

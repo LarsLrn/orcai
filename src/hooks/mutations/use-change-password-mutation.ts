@@ -6,7 +6,9 @@ export const useChangePasswordMutation = (
 ) => {
 	return useMutationAction({
 		mutationOptions: () =>
-			orpc.user.updatePassword.mutationOptions({ ...opts }),
+			orpc.user.updatePassword.mutationOptions({
+				...opts,
+			}),
 		messages: {
 			loading: "Changing password...",
 			success: "Password changed",

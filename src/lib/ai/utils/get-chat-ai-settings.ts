@@ -27,7 +27,10 @@ export const getChatAiSettings = ({
 						}),
 				}),
 				Effect.tryPromise({
-					try: () => client.model.find({ id: templateBlock.config.model }),
+					try: () =>
+						client.model.find({
+							id: templateBlock.config.model,
+						}),
 					catch: (cause) =>
 						new AiError({
 							operation: "chatAgent.getChatAiSettings.fetch.model",
@@ -35,7 +38,9 @@ export const getChatAiSettings = ({
 						}),
 				}),
 			],
-			{ concurrency: "unbounded" },
+			{
+				concurrency: "unbounded",
+			},
 		);
 
 		const apiKey = yield* decryptApiKey(provider.apiKeyEncrypted);
@@ -51,9 +56,14 @@ export const getChatAiSettings = ({
 			model: providerInstance(modelSettings.providerModelId),
 			middleware: [
 				devToolsMiddleware(),
-				extractReasoningMiddleware({ tagName: "think" }),
+				extractReasoningMiddleware({
+					tagName: "think",
+				}),
 			],
 		});
 
-		return { provider, model };
+		return {
+			provider,
+			model,
+		};
 	});

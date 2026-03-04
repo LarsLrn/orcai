@@ -6,7 +6,9 @@ import { m } from "@/paraglide/messages";
 import { AboutModal } from "./about-modal";
 
 const UserWelcome = () => {
-	const { auth } = useRouteContext({ from: "/app" });
+	const { auth } = useRouteContext({
+		from: "/app",
+	});
 
 	const getTimeBasedGreeting = () => {
 		const hour = new Date().getHours();

@@ -24,7 +24,12 @@ const SelectField = ({
 	disabled = false,
 }: {
 	label: string;
-	options: { value: string; label: string }[] | undefined;
+	options:
+		| {
+				value: string;
+				label: string;
+		  }[]
+		| undefined;
 	description?: string;
 	placeholder?: string;
 	disabled?: boolean;

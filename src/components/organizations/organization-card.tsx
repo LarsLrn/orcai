@@ -19,7 +19,11 @@ const OrganizationCard = ({
 }) => {
 	return (
 		<ResourceCard>
-			<ResourceCardBody action={{ onClick: onSelect }}>
+			<ResourceCardBody
+				action={{
+					onClick: onSelect,
+				}}
+			>
 				<ResourceCardHeader>
 					<ResourceCardTitle>{organization.name}</ResourceCardTitle>
 					{organization.slug ? (

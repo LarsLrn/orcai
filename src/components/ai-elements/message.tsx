@@ -149,20 +149,30 @@ export const MessageBranch = ({
 			setCurrentBranch(newBranch);
 			onBranchChange?.(newBranch);
 		},
-		[onBranchChange],
+		[
+			onBranchChange,
+		],
 	);
 
 	const goToPrevious = useCallback(() => {
 		const newBranch =
 			currentBranch > 0 ? currentBranch - 1 : branches.length - 1;
 		handleBranchChange(newBranch);
-	}, [currentBranch, branches.length, handleBranchChange]);
+	}, [
+		currentBranch,
+		branches.length,
+		handleBranchChange,
+	]);
 
 	const goToNext = useCallback(() => {
 		const newBranch =
 			currentBranch < branches.length - 1 ? currentBranch + 1 : 0;
 		handleBranchChange(newBranch);
-	}, [currentBranch, branches.length, handleBranchChange]);
+	}, [
+		currentBranch,
+		branches.length,
+		handleBranchChange,
+	]);
 
 	const contextValue = useMemo<MessageBranchContextType>(
 		() => ({
@@ -173,7 +183,12 @@ export const MessageBranch = ({
 			setBranches,
 			totalBranches: branches.length,
 		}),
-		[branches, currentBranch, goToNext, goToPrevious],
+		[
+			branches,
+			currentBranch,
+			goToNext,
+			goToPrevious,
+		],
 	);
 
 	return (
@@ -194,8 +209,15 @@ export const MessageBranchContent = ({
 }: MessageBranchContentProps) => {
 	const { currentBranch, setBranches, branches } = useMessageBranch();
 	const childrenArray = useMemo(
-		() => (Array.isArray(children) ? children : [children]),
-		[children],
+		() =>
+			Array.isArray(children)
+				? children
+				: [
+						children,
+					],
+		[
+			children,
+		],
 	);
 
 	// Use useEffect to update branches when they change
@@ -203,7 +225,11 @@ export const MessageBranchContent = ({
 		if (branches.length !== childrenArray.length) {
 			setBranches(childrenArray);
 		}
-	}, [childrenArray, branches, setBranches]);
+	}, [
+		childrenArray,
+		branches,
+		setBranches,
+	]);
 
 	return childrenArray.map((branch, index) => (
 		<div
@@ -313,7 +339,12 @@ export const MessageBranchPage = ({
 
 export type MessageResponseProps = ComponentProps<typeof Streamdown>;
 
-const streamdownPlugins = { cjk, code, math, mermaid };
+const streamdownPlugins = {
+	cjk,
+	code,
+	math,
+	mermaid,
+};
 
 export const MessageResponse = memo(
 	({ className, ...props }: MessageResponseProps) => (

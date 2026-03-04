@@ -14,7 +14,9 @@ export const listOrganizationInvitationsContract = base
 		method: "GET",
 		path: "/organizations/invitations",
 		summary: "List all organization invitations",
-		tags: ["Organization Invitations"],
+		tags: [
+			"Organization Invitations",
+		],
 	})
 	.input(paginationSchema)
 	.output(
@@ -29,31 +31,45 @@ export const createOrganizationInvitationsContract = base
 		method: "POST",
 		path: "/organizations/{organizationId}/invitations",
 		summary: "Create many organization invitations",
-		tags: ["Organization Invitations"],
+		tags: [
+			"Organization Invitations",
+		],
 	})
 	.input(organizationInvitationInsertSchema)
-	.output(z.object({ data: z.array(organizationInvitationSelectSchema) }));
+	.output(
+		z.object({
+			data: z.array(organizationInvitationSelectSchema),
+		}),
+	);
 
 export const findOrganizationInvitationContract = base
 	.route({
 		method: "GET",
 		path: "/invitations/{id}",
 		summary: "Find an organization invitation",
-		tags: ["Organization Invitations"],
+		tags: [
+			"Organization Invitations",
+		],
 	})
 	.input(
 		organizationInvitationSelectSchema.pick({
 			id: true,
 		}),
 	)
-	.output(z.object({ data: organizationInvitationSelectSchema }));
+	.output(
+		z.object({
+			data: organizationInvitationSelectSchema,
+		}),
+	);
 
 export const validateOrganizationInvitationContract = base
 	.route({
 		method: "GET",
 		path: "/invitations/{id}/validate",
 		summary: "Validate an organization invitation",
-		tags: ["Organization Invitations"],
+		tags: [
+			"Organization Invitations",
+		],
 	})
 	.input(
 		organizationInvitationSelectSchema.pick({
@@ -64,7 +80,13 @@ export const validateOrganizationInvitationContract = base
 		z.object({
 			data: z.object({
 				isValid: z.boolean(),
-				reason: z.enum(["not_found", "consumed", "expired"]).nullable(),
+				reason: z
+					.enum([
+						"not_found",
+						"consumed",
+						"expired",
+					])
+					.nullable(),
 			}),
 		}),
 	);
@@ -74,23 +96,33 @@ export const updateOrganizationInvitationContract = base
 		method: "PUT",
 		path: "/organizations/{organizationId}/invitations/{id}",
 		summary: "Update an organization invitation",
-		tags: ["Organization Invitations"],
+		tags: [
+			"Organization Invitations",
+		],
 	})
 	.errors({
 		NOT_FOUND: {
 			message: "Organization invitation not found",
-			data: z.object({ id: organizationInvitationUpdateSchema.shape.id }),
+			data: z.object({
+				id: organizationInvitationUpdateSchema.shape.id,
+			}),
 		},
 	})
 	.input(organizationInvitationUpdateSchema)
-	.output(z.object({ data: organizationInvitationSelectSchema }));
+	.output(
+		z.object({
+			data: organizationInvitationSelectSchema,
+		}),
+	);
 
 export const deleteOrganizationInvitationsContract = base
 	.route({
 		method: "DELETE",
 		path: "/organizations/{organizationId}/invitations",
 		summary: "Delete a organization invitations",
-		tags: ["Organization Invitations"],
+		tags: [
+			"Organization Invitations",
+		],
 	})
 	.input(organizationInvitationDeleteSchema)
 	.output(statusSchema);
@@ -100,12 +132,17 @@ export const respondToOrganizationInvitationContract = base
 		method: "POST",
 		path: "/invitations/{id}/respond",
 		summary: "Respond to an organization invitation",
-		tags: ["Organization Invitations"],
+		tags: [
+			"Organization Invitations",
+		],
 	})
 	.input(
 		z.object({
 			id: organizationInvitationSelectSchema.shape.id,
-			response: z.enum(["accept", "reject"]),
+			response: z.enum([
+				"accept",
+				"reject",
+			]),
 		}),
 	)
 	.output(statusSchema);

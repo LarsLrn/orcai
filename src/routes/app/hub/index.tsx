@@ -17,22 +17,33 @@ import {
 } from "@/components/ui/shell/section";
 import { orpc } from "@/lib/orpc/orpc";
 
-const HUB_OVERVIEW_INPUT = { pageIndex: 0, pageSize: 6 } as const;
+const HUB_OVERVIEW_INPUT = {
+	pageIndex: 0,
+	pageSize: 6,
+} as const;
 
 export const Route = createFileRoute("/app/hub/")({
 	loader: async ({ context: { queryClient } }) => {
 		await Promise.all([
 			queryClient.ensureQueryData(
-				orpc.bot.list.queryOptions({ input: HUB_OVERVIEW_INPUT }),
+				orpc.bot.list.queryOptions({
+					input: HUB_OVERVIEW_INPUT,
+				}),
 			),
 			queryClient.ensureQueryData(
-				orpc.block.list.queryOptions({ input: HUB_OVERVIEW_INPUT }),
+				orpc.block.list.queryOptions({
+					input: HUB_OVERVIEW_INPUT,
+				}),
 			),
 			queryClient.ensureQueryData(
-				orpc.asset.list.queryOptions({ input: HUB_OVERVIEW_INPUT }),
+				orpc.asset.list.queryOptions({
+					input: HUB_OVERVIEW_INPUT,
+				}),
 			),
 			queryClient.ensureQueryData(
-				orpc.course.list.queryOptions({ input: HUB_OVERVIEW_INPUT }),
+				orpc.course.list.queryOptions({
+					input: HUB_OVERVIEW_INPUT,
+				}),
 			),
 		]);
 	},
@@ -41,16 +52,24 @@ export const Route = createFileRoute("/app/hub/")({
 
 function RouteComponent() {
 	const { data: bots } = useSuspenseQuery(
-		orpc.bot.list.queryOptions({ input: HUB_OVERVIEW_INPUT }),
+		orpc.bot.list.queryOptions({
+			input: HUB_OVERVIEW_INPUT,
+		}),
 	);
 	const { data: blocks } = useSuspenseQuery(
-		orpc.block.list.queryOptions({ input: HUB_OVERVIEW_INPUT }),
+		orpc.block.list.queryOptions({
+			input: HUB_OVERVIEW_INPUT,
+		}),
 	);
 	const { data: assets } = useSuspenseQuery(
-		orpc.asset.list.queryOptions({ input: HUB_OVERVIEW_INPUT }),
+		orpc.asset.list.queryOptions({
+			input: HUB_OVERVIEW_INPUT,
+		}),
 	);
 	const { data: courses } = useSuspenseQuery(
-		orpc.course.list.queryOptions({ input: HUB_OVERVIEW_INPUT }),
+		orpc.course.list.queryOptions({
+			input: HUB_OVERVIEW_INPUT,
+		}),
 	);
 
 	return (
@@ -64,7 +83,9 @@ function RouteComponent() {
 					<SectionAction>
 						<Link
 							to="/app/hub/bots"
-							className={buttonVariants({ variant: "outline" })}
+							className={buttonVariants({
+								variant: "outline",
+							})}
 						>
 							View all
 						</Link>
@@ -89,7 +110,9 @@ function RouteComponent() {
 					<SectionAction>
 						<Link
 							to="/app/hub/blocks"
-							className={buttonVariants({ variant: "outline" })}
+							className={buttonVariants({
+								variant: "outline",
+							})}
 						>
 							View all
 						</Link>
@@ -115,7 +138,9 @@ function RouteComponent() {
 					<SectionAction>
 						<Link
 							to="/app/hub/assets"
-							className={buttonVariants({ variant: "outline" })}
+							className={buttonVariants({
+								variant: "outline",
+							})}
 						>
 							View all
 						</Link>
@@ -140,7 +165,9 @@ function RouteComponent() {
 					<SectionAction>
 						<Link
 							to="/app/hub/courses"
-							className={buttonVariants({ variant: "outline" })}
+							className={buttonVariants({
+								variant: "outline",
+							})}
 						>
 							View all
 						</Link>

@@ -72,7 +72,9 @@ export const generateImageTool = ({
 						try: () =>
 							generateText({
 								model: getSaiaModel({
-									input: ["image"],
+									input: [
+										"image",
+									],
 									model: "qwen2.5-vl-72b-instruct",
 								}).provider,
 								// maxTokens: 1024,

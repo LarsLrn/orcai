@@ -192,7 +192,9 @@ const useCustomAdapter = (): NavigationAdapter => {
 
 	return {
 		push: (path: string) => {
-			router.navigate({ to: path });
+			router.navigate({
+				to: path,
+			});
 		},
 		getCurrentPath: () => {
 			return router.basepath;
@@ -216,7 +218,10 @@ export const NextStepTours = ({ children }: { children: ReactNode }) => {
 		},
 		onComplete: (tourName: string | null) => {
 			if (tourName === "initialTour" || tourName === "chatTour") {
-				setTourState({ tourId: tourName, state: "completed" });
+				setTourState({
+					tourId: tourName,
+					state: "completed",
+				});
 				trackEvent("tour-completed", {
 					tour: tourName,
 				});
@@ -224,11 +229,17 @@ export const NextStepTours = ({ children }: { children: ReactNode }) => {
 		},
 		onSkip: (_step: number, tourName: string | null) => {
 			if (tourName === "initialTour" || tourName === "chatTour") {
-				toast.promise(setTourState({ tourId: tourName, state: "skipped" }), {
-					loading: "Skipping tour...",
-					success: "Tour skipped",
-					error: "Failed to skip tour",
-				});
+				toast.promise(
+					setTourState({
+						tourId: tourName,
+						state: "skipped",
+					}),
+					{
+						loading: "Skipping tour...",
+						success: "Tour skipped",
+						error: "Failed to skip tour",
+					},
+				);
 				trackEvent("tour-skipped", {
 					tour: tourName,
 				});

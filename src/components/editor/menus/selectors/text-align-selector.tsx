@@ -48,9 +48,15 @@ export const TextAlignSelector = ({ editor }: { editor: Editor }) => {
 	const editorState = useEditorState<SelectorResult>({
 		editor,
 		selector: (instance) => ({
-			isLeft: instance.editor.isActive({ textAlign: "left" }),
-			isCenter: instance.editor.isActive({ textAlign: "center" }),
-			isRight: instance.editor.isActive({ textAlign: "right" }),
+			isLeft: instance.editor.isActive({
+				textAlign: "left",
+			}),
+			isCenter: instance.editor.isActive({
+				textAlign: "center",
+			}),
+			isRight: instance.editor.isActive({
+				textAlign: "right",
+			}),
 		}),
 	});
 

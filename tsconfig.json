@@ -1,12 +1,25 @@
 {
-	"include": ["**/*.ts", "**/*.tsx", "./start-server.ts"],
-	"exclude": ["node_modules"],
+	"include": [
+		"**/*.ts",
+		"**/*.tsx",
+		"./start-server.ts"
+	],
+	"exclude": [
+		"node_modules"
+	],
 	"compilerOptions": {
 		"target": "ES2022",
 		"jsx": "react-jsx",
 		"module": "ESNext",
-		"lib": ["ES2022", "DOM", "DOM.Iterable"],
-		"types": ["vite/client", "bun"],
+		"lib": [
+			"ES2022",
+			"DOM",
+			"DOM.Iterable"
+		],
+		"types": [
+			"vite/client",
+			"bun"
+		],
 		"allowJs": true,
 		/* Bundler Options */
 		"moduleResolution": "bundler",
@@ -25,7 +38,9 @@
 		"strictNullChecks": true,
 		"baseUrl": ".",
 		"paths": {
-			"@/*": ["./src/*"]
+			"@/*": [
+				"./src/*"
+			]
 		},
 		/* Plugins */
 		"plugins": [

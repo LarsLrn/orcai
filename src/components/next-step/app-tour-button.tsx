@@ -20,11 +20,15 @@ const AppTourButton = ({
 	autoTrigger?: boolean;
 } & ButtonPrimitive.Props &
 	VariantProps<typeof buttonVariants>) => {
-	const { auth } = useRouteContext({ from: "/app" });
+	const { auth } = useRouteContext({
+		from: "/app",
+	});
 	const { startNextStep } = useNextStep();
 	const { data: userPrefs, status } = useQuery(
 		orpc.user.find.queryOptions({
-			input: { id: auth.user.id },
+			input: {
+				id: auth.user.id,
+			},
 		}),
 	);
 
@@ -43,13 +47,23 @@ const AppTourButton = ({
 		if (autoTrigger) {
 			startNextStep(tour);
 		}
-	}, [autoTrigger, isTourCompleted, status]);
+	}, [
+		autoTrigger,
+		isTourCompleted,
+		status,
+	]);
 
 	return (
 		<Button
 			onClick={handleStartTour}
 			data-slot="button"
-			className={cn(buttonVariants({ variant, size, className }))}
+			className={cn(
+				buttonVariants({
+					variant,
+					size,
+					className,
+				}),
+			)}
 			{...props}
 		/>
 	);

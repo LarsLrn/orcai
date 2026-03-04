@@ -56,7 +56,9 @@ export function OrganizationInvitationEntry({
 }: OrganizationInvitationEntryProps) {
 	const { data: organization, status } = useQuery(
 		orpc.organization.find.queryOptions({
-			input: { id: invitation.organizationId },
+			input: {
+				id: invitation.organizationId,
+			},
 		}),
 	);
 

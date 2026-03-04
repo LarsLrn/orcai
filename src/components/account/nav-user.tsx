@@ -25,10 +25,15 @@ const NavUser = () => {
 	const { signOut } = useSignOut();
 	const { data: organisations } = useQuery(
 		orpc.organization.list.queryOptions({
-			input: { pageIndex: 0, pageSize: 6 },
+			input: {
+				pageIndex: 0,
+				pageSize: 6,
+			},
 		}),
 	);
-	const { auth } = useRouteContext({ from: "/app" });
+	const { auth } = useRouteContext({
+		from: "/app",
+	});
 
 	const activeOrganization = organisations?.data.find(
 		(org) => org.id === auth.session.activeOrganizationId,

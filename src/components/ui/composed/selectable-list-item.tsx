@@ -36,7 +36,11 @@ const SelectableListItem = <T extends string>({
 				isSelected && "bg-muted",
 				className,
 			)}
-			onClick={() => onSelect([option.value])}
+			onClick={() =>
+				onSelect([
+					option.value,
+				])
+			}
 			disabled={isLoading}
 		>
 			<div className="flex min-w-0 items-center gap-3">

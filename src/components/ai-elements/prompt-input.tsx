@@ -96,7 +96,9 @@ const convertBlobUrlToDataUrl = async (url: string): Promise<string | null> => {
 // ============================================================================
 
 export interface AttachmentsContext {
-	files: (FileUIPart & { id: string })[];
+	files: (FileUIPart & {
+		id: string;
+	})[];
 	add: (files: File[] | FileList) => void;
 	remove: (id: string) => void;
 	clear: () => void;
@@ -172,14 +174,18 @@ export const PromptInputProvider = ({
 
 	// ----- attachments state (global when wrapped)
 	const [attachmentFiles, setAttachmentFiles] = useState<
-		(FileUIPart & { id: string })[]
+		(FileUIPart & {
+			id: string;
+		})[]
 	>([]);
 	const fileInputRef = useRef<HTMLInputElement | null>(null);
 	// biome-ignore lint/suspicious/noEmptyBlockStatements: fine
 	const openRef = useRef<() => void>(() => {});
 
 	const add = useCallback((files: File[] | FileList) => {
-		const incoming = [...files];
+		const incoming = [
+			...files,
+		];
 		if (incoming.length === 0) {
 			return;
 		}
@@ -222,7 +228,9 @@ export const PromptInputProvider = ({
 
 	useEffect(() => {
 		attachmentsRef.current = attachmentFiles;
-	}, [attachmentFiles]);
+	}, [
+		attachmentFiles,
+	]);
 
 	// Cleanup blob URLs on unmount to prevent memory leaks
 	useEffect(
@@ -249,7 +257,13 @@ export const PromptInputProvider = ({
 			openFileDialog,
 			remove,
 		}),
-		[attachmentFiles, add, remove, clear, openFileDialog],
+		[
+			attachmentFiles,
+			add,
+			remove,
+			clear,
+			openFileDialog,
+		],
 	);
 
 	const __registerFileInput = useCallback(
@@ -270,7 +284,12 @@ export const PromptInputProvider = ({
 				value: textInput,
 			},
 		}),
-		[textInput, clearInput, attachments, __registerFileInput],
+		[
+			textInput,
+			clearInput,
+			attachments,
+			__registerFileInput,
+		],
 	);
 
 	return (
@@ -306,7 +325,9 @@ export const usePromptInputAttachments = () => {
 // ============================================================================
 
 export interface ReferencedSourcesContext {
-	sources: (SourceDocumentUIPart & { id: string })[];
+	sources: (SourceDocumentUIPart & {
+		id: string;
+	})[];
 	add: (sources: SourceDocumentUIPart[] | SourceDocumentUIPart) => void;
 	remove: (id: string) => void;
 	clear: () => void;
@@ -342,7 +363,9 @@ export const PromptInputActionAddAttachments = ({
 			e.preventDefault();
 			attachments.openFileDialog();
 		},
-		[attachments],
+		[
+			attachments,
+		],
 	);
 
 	return (
@@ -404,12 +427,18 @@ export const PromptInput = ({
 	const formRef = useRef<HTMLFormElement | null>(null);
 
 	// ----- Local attachments (only used when no provider)
-	const [items, setItems] = useState<(FileUIPart & { id: string })[]>([]);
+	const [items, setItems] = useState<
+		(FileUIPart & {
+			id: string;
+		})[]
+	>([]);
 	const files = usingProvider ? controller.attachments.files : items;
 
 	// ----- Local referenced sources (always local to PromptInput)
 	const [referencedSources, setReferencedSources] = useState<
-		(SourceDocumentUIPart & { id: string })[]
+		(SourceDocumentUIPart & {
+			id: string;
+		})[]
 	>([]);
 
 	// Keep a ref to files for cleanup on unmount (avoids stale closure)
@@ -417,7 +446,9 @@ export const PromptInput = ({
 
 	useEffect(() => {
 		filesRef.current = files;
-	}, [files]);
+	}, [
+		files,
+	]);
 
 	const openFileDialogLocal = useCallback(() => {
 		inputRef.current?.click();
@@ -443,12 +474,16 @@ export const PromptInput = ({
 				return f.type === pattern;
 			});
 		},
-		[accept],
+		[
+			accept,
+		],
 	);
 
 	const addLocal = useCallback(
 		(fileList: File[] | FileList) => {
-			const incoming = [...fileList];
+			const incoming = [
+				...fileList,
+			];
 			const accepted = incoming.filter((f) => matchesAccept(f));
 			if (incoming.length && accepted.length === 0) {
 				onError?.({
@@ -481,7 +516,9 @@ export const PromptInput = ({
 						message: "Too many files. Some were not added.",
 					});
 				}
-				const next: (FileUIPart & { id: string })[] = [];
+				const next: (FileUIPart & {
+					id: string;
+				})[] = [];
 				for (const file of capped) {
 					next.push({
 						filename: file.name,
@@ -491,10 +528,18 @@ export const PromptInput = ({
 						url: URL.createObjectURL(file),
 					});
 				}
-				return [...prev, ...next];
+				return [
+					...prev,
+					...next,
+				];
 			});
 		},
-		[matchesAccept, maxFiles, maxFileSize, onError],
+		[
+			matchesAccept,
+			maxFiles,
+			maxFileSize,
+			onError,
+		],
 	);
 
 	const removeLocal = useCallback(
@@ -512,7 +557,9 @@ export const PromptInput = ({
 	// Wrapper that validates files before calling provider's add
 	const addWithProviderValidation = useCallback(
 		(fileList: File[] | FileList) => {
-			const incoming = [...fileList];
+			const incoming = [
+				...fileList,
+			];
 			const accepted = incoming.filter((f) => matchesAccept(f));
 			if (incoming.length && accepted.length === 0) {
 				onError?.({
@@ -550,7 +597,14 @@ export const PromptInput = ({
 				controller?.attachments.add(capped);
 			}
 		},
-		[matchesAccept, maxFileSize, maxFiles, onError, files.length, controller],
+		[
+			matchesAccept,
+			maxFileSize,
+			maxFiles,
+			onError,
+			files.length,
+			controller,
+		],
 	);
 
 	const clearAttachments = useCallback(
@@ -565,7 +619,10 @@ export const PromptInput = ({
 						}
 						return [];
 					}),
-		[usingProvider, controller],
+		[
+			usingProvider,
+			controller,
+		],
 	);
 
 	const clearReferencedSources = useCallback(
@@ -582,7 +639,10 @@ export const PromptInput = ({
 	const clear = useCallback(() => {
 		clearAttachments();
 		clearReferencedSources();
-	}, [clearAttachments, clearReferencedSources]);
+	}, [
+		clearAttachments,
+		clearReferencedSources,
+	]);
 
 	// Let provider know about our hidden file input so external menus can call openFileDialog()
 	useEffect(() => {
@@ -590,7 +650,10 @@ export const PromptInput = ({
 			return;
 		}
 		controller.__registerFileInput(inputRef, () => inputRef.current?.click());
-	}, [usingProvider, controller]);
+	}, [
+		usingProvider,
+		controller,
+	]);
 
 	// Note: File input cannot be programmatically set for security reasons
 	// The syncHiddenInput prop is no longer functional
@@ -598,7 +661,10 @@ export const PromptInput = ({
 		if (syncHiddenInput && inputRef.current && files.length === 0) {
 			inputRef.current.value = "";
 		}
-	}, [files, syncHiddenInput]);
+	}, [
+		files,
+		syncHiddenInput,
+	]);
 
 	// Attach drop handlers on nearest form and document (opt-in)
 	useEffect(() => {
@@ -630,7 +696,10 @@ export const PromptInput = ({
 			form.removeEventListener("dragover", onDragOver);
 			form.removeEventListener("drop", onDrop);
 		};
-	}, [add, globalDrop]);
+	}, [
+		add,
+		globalDrop,
+	]);
 
 	useEffect(() => {
 		if (!globalDrop) {
@@ -656,7 +725,10 @@ export const PromptInput = ({
 			document.removeEventListener("dragover", onDragOver);
 			document.removeEventListener("drop", onDrop);
 		};
-	}, [add, globalDrop]);
+	}, [
+		add,
+		globalDrop,
+	]);
 
 	useEffect(
 		() => () => {
@@ -668,7 +740,9 @@ export const PromptInput = ({
 				}
 			}
 		},
-		[usingProvider],
+		[
+			usingProvider,
+		],
 	);
 
 	const handleChange: ChangeEventHandler<HTMLInputElement> = useCallback(
@@ -679,7 +753,9 @@ export const PromptInput = ({
 			// Reset input value to allow selecting files that were previously removed
 			event.currentTarget.value = "";
 		},
-		[add],
+		[
+			add,
+		],
 	);
 
 	const attachmentsCtx = useMemo<AttachmentsContext>(
@@ -687,20 +763,36 @@ export const PromptInput = ({
 			add,
 			clear: clearAttachments,
 			fileInputRef: inputRef,
-			files: files.map((item) => ({ ...item, id: item.id })),
+			files: files.map((item) => ({
+				...item,
+				id: item.id,
+			})),
 			openFileDialog,
 			remove,
 		}),
-		[files, add, remove, clearAttachments, openFileDialog],
+		[
+			files,
+			add,
+			remove,
+			clearAttachments,
+			openFileDialog,
+		],
 	);
 
 	const refsCtx = useMemo<ReferencedSourcesContext>(
 		() => ({
 			add: (incoming: SourceDocumentUIPart[] | SourceDocumentUIPart) => {
-				const array = Array.isArray(incoming) ? incoming : [incoming];
+				const array = Array.isArray(incoming)
+					? incoming
+					: [
+							incoming,
+						];
 				setReferencedSources((prev) => [
 					...prev,
-					...array.map((s) => ({ ...s, id: nanoid() })),
+					...array.map((s) => ({
+						...s,
+						id: nanoid(),
+					})),
 				]);
 			},
 			clear: clearReferencedSources,
@@ -709,7 +801,10 @@ export const PromptInput = ({
 			},
 			sources: referencedSources,
 		}),
-		[referencedSources, clearReferencedSources],
+		[
+			referencedSources,
+			clearReferencedSources,
+		],
 	);
 
 	const handleSubmit: FormEventHandler<HTMLFormElement> = useCallback(
@@ -746,7 +841,13 @@ export const PromptInput = ({
 					}),
 				);
 
-				const result = onSubmit({ files: convertedFiles, text }, event);
+				const result = onSubmit(
+					{
+						files: convertedFiles,
+						text,
+					},
+					event,
+				);
 
 				// Handle both sync and async onSubmit
 				if (result instanceof Promise) {
@@ -770,7 +871,13 @@ export const PromptInput = ({
 				// Don't clear on error - user may want to retry
 			}
 		},
-		[usingProvider, controller, files, onSubmit, clear],
+		[
+			usingProvider,
+			controller,
+			files,
+			onSubmit,
+			clear,
+		],
 	);
 
 	// Render with or without local provider
@@ -879,7 +986,11 @@ export const PromptInputTextarea = ({
 				}
 			}
 		},
-		[onKeyDown, isComposing, attachments],
+		[
+			onKeyDown,
+			isComposing,
+			attachments,
+		],
 	);
 
 	const handlePaste: ClipboardEventHandler<HTMLTextAreaElement> = useCallback(
@@ -906,7 +1017,9 @@ export const PromptInputTextarea = ({
 				attachments.add(files);
 			}
 		},
-		[attachments],
+		[
+			attachments,
+		],
 	);
 
 	const handleCompositionEnd = useCallback(() => setIsComposing(false), []);
@@ -1113,9 +1226,16 @@ export const PromptInputSubmit = ({
 				onStop();
 				return;
 			}
-			onClick?.({ ...e, preventBaseUIHandler: e.preventDefault });
+			onClick?.({
+				...e,
+				preventBaseUIHandler: e.preventDefault,
+			});
 		},
-		[isGenerating, onStop, onClick],
+		[
+			isGenerating,
+			onStop,
+			onClick,
+		],
 	);
 
 	return (

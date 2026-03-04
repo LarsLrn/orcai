@@ -16,7 +16,9 @@ export const signupSchema = z
 	})
 	.refine((data) => data.password === data.confirmPassword, {
 		message: "Passwords must match",
-		path: ["confirmPassword"],
+		path: [
+			"confirmPassword",
+		],
 	});
 
 export type SignupSchemaType = z.infer<typeof signupSchema>;

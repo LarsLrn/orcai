@@ -29,7 +29,10 @@ export const Route = createFileRoute("/app/models/")({
 	}) => {
 		await queryClient.ensureQueryData(
 			orpc.model.list.queryOptions({
-				input: { pageIndex, pageSize },
+				input: {
+					pageIndex,
+					pageSize,
+				},
 			}),
 		);
 	},
@@ -40,7 +43,10 @@ function RouteComponent() {
 	const { pageIndex, pageSize } = Route.useSearch();
 	const { data: models } = useSuspenseQuery(
 		orpc.model.list.queryOptions({
-			input: { pageIndex, pageSize },
+			input: {
+				pageIndex,
+				pageSize,
+			},
 		}),
 	);
 
@@ -51,7 +57,9 @@ function RouteComponent() {
 				<PageAction>
 					<Link
 						to="/app/models/add"
-						className={buttonVariants({ variant: "default" })}
+						className={buttonVariants({
+							variant: "default",
+						})}
 					>
 						Add Model
 					</Link>

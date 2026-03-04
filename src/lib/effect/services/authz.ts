@@ -66,7 +66,13 @@ export class AuthzService extends Context.Tag("AuthzService")<
 		 */
 		readonly applyRelationshipMutations: (params: {
 			mutations: TupleMutation[];
-		}) => Effect.Effect<{ zedToken?: string }, AuthzError, never>;
+		}) => Effect.Effect<
+			{
+				zedToken?: string;
+			},
+			AuthzError,
+			never
+		>;
 		/**
 		 * Replays undelivered outbox events to SpiceDB.
 		 *
@@ -82,7 +88,14 @@ export class AuthzService extends Context.Tag("AuthzService")<
 		 */
 		readonly replayRelationshipOutbox: (params?: {
 			limit?: number;
-		}) => Effect.Effect<{ processed: number; failed: number }, never, never>;
+		}) => Effect.Effect<
+			{
+				processed: number;
+				failed: number;
+			},
+			never,
+			never
+		>;
 	}
 >() {}
 
@@ -97,7 +110,9 @@ export const AuthzLive = Layer.effect(
 		}) =>
 			Effect.gen(function* () {
 				if (params.mutations.length === 0) {
-					return { zedToken: undefined };
+					return {
+						zedToken: undefined,
+					};
 				}
 
 				const now = new Date();
@@ -105,7 +120,9 @@ export const AuthzLive = Layer.effect(
 					.insert(dbSchema.authzOutbox)
 					.values({
 						eventType: "spice.write-relationships",
-						payloadJson: { mutations: params.mutations },
+						payloadJson: {
+							mutations: params.mutations,
+						},
 						status: OUTBOX_PROCESSING,
 						createdAt: now,
 						updatedAt: now,
@@ -179,7 +196,9 @@ export const AuthzLive = Layer.effect(
 						),
 					);
 
-				return { zedToken: projection.zedToken };
+				return {
+					zedToken: projection.zedToken,
+				};
 			}).pipe(
 				Effect.catchAll((error) =>
 					Effect.logError(
@@ -225,7 +244,9 @@ export const AuthzLive = Layer.effect(
 							)
 							.orderBy(asc(dbSchema.authzOutbox.seq))
 							.limit(limit)
-							.for("update", { skipLocked: true });
+							.for("update", {
+								skipLocked: true,
+							});
 
 						if (selected.length === 0) {
 							return [];
@@ -316,7 +337,11 @@ export const AuthzLive = Layer.effect(
 					},
 					where: {
 						status: {
-							in: [OUTBOX_PENDING, OUTBOX_FAILED, OUTBOX_PROCESSING],
+							in: [
+								OUTBOX_PENDING,
+								OUTBOX_FAILED,
+								OUTBOX_PROCESSING,
+							],
 						},
 					},
 					orderBy: {
@@ -332,16 +357,24 @@ export const AuthzLive = Layer.effect(
 					`authz.replay.summary processed=${processed} failed=${failed} oldestPendingAgeMs=${oldestPendingAgeMs}`,
 				);
 
-				return { processed, failed };
+				return {
+					processed,
+					failed,
+				};
 			}).pipe(
-				Effect.catchAll(() => Effect.succeed({ processed: 0, failed: 0 })),
+				Effect.catchAll(() =>
+					Effect.succeed({
+						processed: 0,
+						failed: 0,
+					}),
+				),
 			);
 
 		yield* Effect.forkDaemon(
 			Effect.forever(
-				replayRelationshipOutbox({ limit: 200 }).pipe(
-					Effect.delay("10 seconds"),
-				),
+				replayRelationshipOutbox({
+					limit: 200,
+				}).pipe(Effect.delay("10 seconds")),
 			),
 		);
 

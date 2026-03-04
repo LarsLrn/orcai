@@ -38,7 +38,9 @@ export const deletePrefixRecursively = ({
 						key: object.Key,
 					});
 				}),
-			{ concurrency: 10 },
+			{
+				concurrency: 10,
+			},
 		);
 	});
 
@@ -57,13 +59,21 @@ const getObjectBytes = ({
 
 		const body = yield* Effect.fromNullable(response.Body).pipe(
 			Effect.orElseFail(
-				() => new S3Error({ operation: "getObjectBytes", cause: "empty_body" }),
+				() =>
+					new S3Error({
+						operation: "getObjectBytes",
+						cause: "empty_body",
+					}),
 			),
 		);
 
 		return yield* Effect.tryPromise({
 			try: () => body.transformToByteArray(),
-			catch: (cause) => new S3Error({ operation: "getObjectBytes", cause }),
+			catch: (cause) =>
+				new S3Error({
+					operation: "getObjectBytes",
+					cause,
+				}),
 		});
 	});
 

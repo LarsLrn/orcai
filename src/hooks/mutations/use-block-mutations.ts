@@ -20,7 +20,9 @@ export const useCreateBlockMutation = (
 
 					await router.navigate({
 						to: "/app/hub/blocks/$blockId",
-						params: { blockId: result.data.id },
+						params: {
+							blockId: result.data.id,
+						},
 					});
 
 					try {

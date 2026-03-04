@@ -14,10 +14,10 @@ export const asset = pgTable("asset", {
 	bucket: text("bucket").notNull(),
 	prefix: text("prefix").notNull(),
 	title: text("title").notNull(),
-	metadata: json("metadata")
-		.notNull()
-		.$type<AssetMetadataType>()
-		.default({ showReference: true, relevance: "medium" }),
+	metadata: json("metadata").notNull().$type<AssetMetadataType>().default({
+		showReference: true,
+		relevance: "medium",
+	}),
 	size: integer("size").notNull(),
 	// TODO: Should probably be an enum
 	fileType: text("file_type").notNull(),

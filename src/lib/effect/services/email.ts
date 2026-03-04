@@ -75,7 +75,9 @@ export const EmailLive = Layer.scoped(
 				host: config.email.host,
 				port: config.email.port,
 				secure: config.email.secure,
-				tls: { rejectUnauthorized: config.email.tlsRejectUnauthorized },
+				tls: {
+					rejectUnauthorized: config.email.tlsRejectUnauthorized,
+				},
 			};
 
 			if (config.email.auth) {
@@ -140,7 +142,10 @@ export const EmailLive = Layer.scoped(
 				: Effect.try({
 						try: () => transport.close(),
 						catch: (error) =>
-							new EmailError({ operation: "closeTransport", cause: error }),
+							new EmailError({
+								operation: "closeTransport",
+								cause: error,
+							}),
 					}).pipe(
 						Effect.catchAll((error) =>
 							Effect.logError(`Failed to close SMTP transport: ${error}`),

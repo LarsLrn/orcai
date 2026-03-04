@@ -78,7 +78,10 @@ export const useSignup = () => {
 				trackEvent("auth-register", {
 					email: result.data?.user?.email,
 				});
-				navigate({ to: "/", replace: true });
+				navigate({
+					to: "/",
+					replace: true,
+				});
 			},
 		}),
 		messages: {

@@ -22,7 +22,9 @@ export const useSignin = () => {
 			},
 			onSuccess: () => {
 				trackEvent("auth-login");
-				navigate({ to: "/app" });
+				navigate({
+					to: "/app",
+				});
 			},
 		}),
 		messages: {

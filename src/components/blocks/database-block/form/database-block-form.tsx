@@ -27,11 +27,15 @@ const DatabaseBlockForm = ({
 	const { mutate: createBlock } = useCreateBlockMutation();
 	const { mutate: updateBlock } = useUpdateBlockMutation();
 
-	const { auth } = useRouteContext({ from: "/app" });
+	const { auth } = useRouteContext({
+		from: "/app",
+	});
 
 	const { data: providers } = useSuspenseQuery(
 		orpc.provider.list.queryOptions({
-			input: { organizationId: auth.session.activeOrganizationId },
+			input: {
+				organizationId: auth.session.activeOrganizationId,
+			},
 		}),
 	);
 
@@ -39,7 +43,10 @@ const DatabaseBlockForm = ({
 
 	const { data: assets, status: assetsStatus } = useQuery(
 		orpc.asset.list.queryOptions({
-			input: { pageIndex: page, pageSize: 20 },
+			input: {
+				pageIndex: page,
+				pageSize: 20,
+			},
 		}),
 	);
 
@@ -47,7 +54,10 @@ const DatabaseBlockForm = ({
 		...databaseBlockFormOptions(block, assetIds),
 		onSubmit: ({ value }) => {
 			if (action === "update" && block) {
-				updateBlock({ ...value, id: block.id });
+				updateBlock({
+					...value,
+					id: block.id,
+				});
 			} else {
 				createBlock(value);
 			}
@@ -64,7 +74,12 @@ const DatabaseBlockForm = ({
 	const { data: embeddingModels } = useQuery(
 		orpc.model.list.queryOptions({
 			input: providerId
-				? { providerId, capabilities: ["embedding"] }
+				? {
+						providerId,
+						capabilities: [
+							"embedding",
+						],
+					}
 				: skipToken,
 		}),
 	);

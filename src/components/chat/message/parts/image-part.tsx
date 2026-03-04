@@ -17,7 +17,14 @@ export const ImagePart = ({ url, alt }: ImagePartProps) => {
 				byteNumbers[i] = byteCharacters.charCodeAt(i);
 			}
 			const byteArray = new Uint8Array(byteNumbers);
-			const blob = new Blob([byteArray], { type: "image/png" });
+			const blob = new Blob(
+				[
+					byteArray,
+				],
+				{
+					type: "image/png",
+				},
+			);
 
 			// Create download link
 			const downloadUrl = URL.createObjectURL(blob);

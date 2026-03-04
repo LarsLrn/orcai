@@ -44,7 +44,10 @@ export const sendCompleteMultipartUploadCommand = (params: {
 	bucket: string;
 	key: string;
 	uploadId: string;
-	parts: { ETag: string; PartNumber: number }[];
+	parts: {
+		ETag: string;
+		PartNumber: number;
+	}[];
 }) =>
 	Effect.gen(function* () {
 		const { client } = yield* S3Service;
@@ -119,7 +122,9 @@ export const sendHeadBucketCommand = (params: { bucket: string }) =>
 	Effect.gen(function* () {
 		const { client } = yield* S3Service;
 
-		const command = new HeadBucketCommand({ Bucket: params.bucket });
+		const command = new HeadBucketCommand({
+			Bucket: params.bucket,
+		});
 
 		return yield* Effect.tryPromise({
 			try: () => client.send(command),
@@ -135,7 +140,9 @@ export const sendCreateBucketCommand = (params: { bucket: string }) =>
 	Effect.gen(function* () {
 		const { client } = yield* S3Service;
 
-		const command = new CreateBucketCommand({ Bucket: params.bucket });
+		const command = new CreateBucketCommand({
+			Bucket: params.bucket,
+		});
 
 		return yield* Effect.tryPromise({
 			try: () => client.send(command),

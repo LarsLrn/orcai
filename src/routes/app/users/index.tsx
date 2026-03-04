@@ -30,7 +30,10 @@ export const Route = createFileRoute("/app/users/")({
 	}) => {
 		await queryClient.ensureQueryData(
 			orpc.user.list.queryOptions({
-				input: { pageIndex, pageSize },
+				input: {
+					pageIndex,
+					pageSize,
+				},
 			}),
 		);
 	},
@@ -41,7 +44,10 @@ function RouteComponent() {
 	const { pageIndex, pageSize } = Route.useSearch();
 	const { data: users } = useSuspenseQuery(
 		orpc.user.list.queryOptions({
-			input: { pageIndex, pageSize },
+			input: {
+				pageIndex,
+				pageSize,
+			},
 		}),
 	);
 
@@ -54,13 +60,17 @@ function RouteComponent() {
 				<PageAction>
 					<Link
 						to={"/app/users/invites"}
-						className={buttonVariants({ variant: "outline" })}
+						className={buttonVariants({
+							variant: "outline",
+						})}
 					>
 						View Invitations
 					</Link>
 					<Link
 						to={"/app/users/add"}
-						className={buttonVariants({ variant: "default" })}
+						className={buttonVariants({
+							variant: "default",
+						})}
 					>
 						Invite User
 					</Link>

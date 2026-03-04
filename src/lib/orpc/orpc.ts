@@ -24,7 +24,11 @@ const getORPCClient = createIsomorphicFn()
 			url: `${window.location.origin}/api/rpc`,
 			headers: () => {
 				const token = Cookies.get(COOKIES.ZED_TOKEN.name);
-				return token ? { [HEADERS.X_ZED_TOKEN]: token } : {};
+				return token
+					? {
+							[HEADERS.X_ZED_TOKEN]: token,
+						}
+					: {};
 			},
 			plugins: [
 				new BatchLinkPlugin({

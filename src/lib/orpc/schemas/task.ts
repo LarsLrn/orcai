@@ -31,7 +31,10 @@ export const taskInsertSchema = createInsertSchema(dbSchema.task).omit({
 });
 
 export const databaseBlockTaskInsertSchema = z.object({
-	taskType: z.enum(["extract", "embed"]),
+	taskType: z.enum([
+		"extract",
+		"embed",
+	]),
 	blockId: baseBlockSelectSchema.shape.id,
 });
 

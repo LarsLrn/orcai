@@ -20,7 +20,9 @@ export const listBlocksContract = base
 		method: "GET",
 		path: "/blocks",
 		summary: "List all blocks",
-		tags: ["Blocks"],
+		tags: [
+			"Blocks",
+		],
 	})
 	.input(
 		z.object({
@@ -33,14 +35,21 @@ export const listBlocksContract = base
 				.optional(),
 		}),
 	)
-	.output(z.object({ data: z.array(blockSelectSchema), rowCount: z.number() }));
+	.output(
+		z.object({
+			data: z.array(blockSelectSchema),
+			rowCount: z.number(),
+		}),
+	);
 
 export const createBlockContract = base
 	.route({
 		method: "POST",
 		path: "/blocks",
 		summary: "Create a block",
-		tags: ["Blocks"],
+		tags: [
+			"Blocks",
+		],
 	})
 	.input(blockInsertSchema)
 	.output(
@@ -56,11 +65,15 @@ export const findBlockContract = base
 		method: "GET",
 		path: "/blocks/{id}",
 		summary: "Find a block",
-		tags: ["Blocks"],
+		tags: [
+			"Blocks",
+		],
 	})
 	.input(
 		z.object({
-			...baseBlockSelectSchema.pick({ id: true }).shape,
+			...baseBlockSelectSchema.pick({
+				id: true,
+			}).shape,
 			...zedTokenSchema.shape,
 		}),
 	)
@@ -76,12 +89,16 @@ export const updateBlockContract = base
 		method: "PUT", //TODO:Probably should be PATCH
 		path: "/blocks/{id}",
 		summary: "Update a block",
-		tags: ["Blocks"],
+		tags: [
+			"Blocks",
+		],
 	})
 	.errors({
 		NOT_FOUND: {
 			message: "Block not found",
-			data: z.object({ id: baseBlockSelectSchema.shape.id }),
+			data: z.object({
+				id: baseBlockSelectSchema.shape.id,
+			}),
 		},
 	})
 	.input(blockUpdateSchema)
@@ -97,7 +114,9 @@ export const deleteBlockContract = base
 		method: "DELETE",
 		path: "/blocks",
 		summary: "Delete a block",
-		tags: ["Blocks"],
+		tags: [
+			"Blocks",
+		],
 	})
 	.input(blockDeleteSchema)
 	.output(statusSchema);
@@ -107,7 +126,9 @@ export const addAssetsToBlockContract = base
 		method: "POST",
 		path: "/blocks/{id}/assets",
 		summary: "Add assets to a block",
-		tags: ["Blocks"],
+		tags: [
+			"Blocks",
+		],
 	})
 	.input(
 		z.object({

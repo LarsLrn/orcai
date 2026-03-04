@@ -9,7 +9,9 @@ import { qdrantCollections } from "@/qdrant/qdrant-constants";
 
 export class QdrantService extends Context.Tag("QdrantService")<
 	QdrantService,
-	{ readonly client: QdrantClient }
+	{
+		readonly client: QdrantClient;
+	}
 >() {}
 
 const initCollectionIfNeeded = (qdrant: QdrantClient) =>
@@ -81,6 +83,8 @@ export const QdrantLive = Layer.effect(
 
 		yield* initCollectionIfNeeded(client);
 
-		return { client };
+		return {
+			client,
+		};
 	}),
 );

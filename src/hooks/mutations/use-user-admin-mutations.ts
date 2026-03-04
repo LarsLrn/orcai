@@ -30,7 +30,11 @@ export const useDeleteUsersMutation = (
 			...opts,
 			mutationFn: async ({ userIds }: DeleteUsersInput) => {
 				const results = await Promise.all(
-					userIds.map((userId) => authClient.admin.removeUser({ userId })),
+					userIds.map((userId) =>
+						authClient.admin.removeUser({
+							userId,
+						}),
+					),
 				);
 
 				for (const result of results) {

@@ -20,7 +20,9 @@ const getVisibilityOptions = (resourceRef: ResourceRef) =>
 
 export const useResourceGrants = (
 	resourceRef: ResourceRef,
-	options?: { enabled?: boolean },
+	options?: {
+		enabled?: boolean;
+	},
 ) =>
 	useQuery({
 		...getGrantsOptions(resourceRef),
@@ -50,7 +52,9 @@ export const useShareablePrincipals = (
 
 export const useResourceVisibility = (
 	resourceRef: ResourceRef,
-	options?: { enabled?: boolean },
+	options?: {
+		enabled?: boolean;
+	},
 ) =>
 	useQuery({
 		...getVisibilityOptions(resourceRef),

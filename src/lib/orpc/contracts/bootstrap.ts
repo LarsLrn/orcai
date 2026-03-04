@@ -10,17 +10,25 @@ export const bootstrapStatusContract = base
 		method: "GET",
 		path: "/bootstrap/status",
 		summary: "Get bootstrap status",
-		tags: ["Bootstrap"],
+		tags: [
+			"Bootstrap",
+		],
 	})
 	.input(z.object({}))
-	.output(z.object({ data: bootstrapStatusSchema }));
+	.output(
+		z.object({
+			data: bootstrapStatusSchema,
+		}),
+	);
 
 export const bootstrapInitializeContract = base
 	.route({
 		method: "POST",
 		path: "/bootstrap/initialize",
 		summary: "Initialize application",
-		tags: ["Bootstrap"],
+		tags: [
+			"Bootstrap",
+		],
 	})
 	.input(bootstrapInitializeSchema)
 	.output(

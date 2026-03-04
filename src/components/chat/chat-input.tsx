@@ -63,7 +63,9 @@ const ChatInput = ({
 		removeSelectedAsset,
 		clearAttachments,
 		resolveAttachmentsForSend,
-	} = useChatAttachments({ limit: CHAT_ATTACHMENT_LIMIT });
+	} = useChatAttachments({
+		limit: CHAT_ATTACHMENT_LIMIT,
+	});
 
 	const isGenerating = status === "submitted" || status === "streaming";
 	const submitStatus: ChatStatus = isUploading ? "submitted" : status;
@@ -96,7 +98,12 @@ const ChatInput = ({
 
 			await sendMessage({
 				text: hasText ? trimmedText : "Sent with attachments",
-				metadata: attachments.length > 0 ? { attachments } : undefined,
+				metadata:
+					attachments.length > 0
+						? {
+								attachments,
+							}
+						: undefined,
 			});
 
 			setMessageText("");
@@ -106,7 +113,10 @@ const ChatInput = ({
 				await new Promise((resolve) => setTimeout(resolve, 5000));
 				await queryClient.invalidateQueries({
 					queryKey: orpc.chat.list.key({
-						input: { pageIndex: 0, pageSize: 100 },
+						input: {
+							pageIndex: 0,
+							pageSize: 100,
+						},
 					}),
 				});
 			}

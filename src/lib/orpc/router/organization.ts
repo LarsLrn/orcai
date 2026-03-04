@@ -74,7 +74,10 @@ export const listOrganizations = authed.organization.list.handler(
 				}
 
 				if (visibleIds.length === 0) {
-					return { data: [], rowCount: 0 };
+					return {
+						data: [],
+						rowCount: 0,
+					};
 				}
 
 				return yield* Effect.all([
@@ -91,7 +94,9 @@ export const listOrganizations = authed.organization.list.handler(
 						offset: input.pageIndex * input.pageSize,
 					}),
 					db
-						.select({ count: count() })
+						.select({
+							count: count(),
+						})
 						.from(dbSchema.organization)
 						.where(inArray(dbSchema.organization.id, visibleIds)),
 				]).pipe(
@@ -130,12 +135,16 @@ export const findOrganization = authed.organization.find
 							Effect.fromNullable(organization).pipe(
 								Effect.orElse(() =>
 									Effect.fail(
-										errors.NOT_FOUND({ message: "Organization not found" }),
+										errors.NOT_FOUND({
+											message: "Organization not found",
+										}),
 									),
 								),
 							),
 						),
-						Effect.map((chat) => ({ data: chat })),
+						Effect.map((chat) => ({
+							data: chat,
+						})),
 					);
 			}),
 		),
@@ -155,8 +164,13 @@ export const createOrganization = authed.organization.create
 						Effect.gen(function* () {
 							const [createdOrganization] = yield* tx
 								.insert(dbSchema.organization)
-								.values({ ...input, createdAt: now })
-								.returning({ ...getColumns(dbSchema.organization) });
+								.values({
+									...input,
+									createdAt: now,
+								})
+								.returning({
+									...getColumns(dbSchema.organization),
+								});
 
 							yield* tx.insert(dbSchema.member).values({
 								organizationId: createdOrganization.id,
@@ -179,7 +193,9 @@ export const createOrganization = authed.organization.create
 									updatedAt: now,
 									deletedAt: null,
 								})
-								.returning({ id: dbSchema.group.id });
+								.returning({
+									id: dbSchema.group.id,
+								});
 
 							return {
 								organization: createdOrganization,
@@ -241,7 +257,9 @@ export const createOrganization = authed.organization.create
 					],
 				});
 
-				return { data: newOrganization };
+				return {
+					data: newOrganization,
+				};
 			}),
 		),
 	);
@@ -265,8 +283,14 @@ export const updateOrganization = authed.organization.update
 					.update(dbSchema.organization)
 					.set(input)
 					.where(eq(dbSchema.organization.id, input.id))
-					.returning({ ...getColumns(dbSchema.organization) })
-					.pipe(Effect.map(([query]) => ({ data: query })));
+					.returning({
+						...getColumns(dbSchema.organization),
+					})
+					.pipe(
+						Effect.map(([query]) => ({
+							data: query,
+						})),
+					);
 			}),
 		),
 	);
@@ -290,7 +314,10 @@ export const deleteOrganizations = authed.organization.delete
 					.delete(dbSchema.organization)
 					.where(inArray(dbSchema.organization.id, context.allowedIds));
 
-				return { success: true, message: "Organizations deleted successfully" };
+				return {
+					success: true,
+					message: "Organizations deleted successfully",
+				};
 			}),
 		),
 	);

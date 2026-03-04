@@ -22,7 +22,9 @@ const localFileToUiPart = (file: LocalChatFile) =>
 		filename: file.file.name,
 		mediaType: file.file.type,
 		url: file.previewUrl,
-	}) satisfies FileUIPart & { id: string };
+	}) satisfies FileUIPart & {
+		id: string;
+	};
 
 const assetToUiPart = (asset: Asset) =>
 	({
@@ -32,7 +34,9 @@ const assetToUiPart = (asset: Asset) =>
 		mediaType: asset.fileType,
 		title: asset.title,
 		filename: asset.title,
-	}) satisfies SourceDocumentUIPart & { id: string };
+	}) satisfies SourceDocumentUIPart & {
+		id: string;
+	};
 
 const AttachmentNode = ({
 	key,

@@ -63,25 +63,35 @@ const ManageUser = ({ user }: { user: User }) => {
 	};
 
 	const handleBanUser = (userId: string) => {
-		toast.promise(authClient.admin.banUser({ userId }), {
-			loading: "Banning user...",
-			success: "User banned",
-			error: (error) => ({
-				message: "Failed to ban user",
-				description: error.message,
+		toast.promise(
+			authClient.admin.banUser({
+				userId,
 			}),
-		});
+			{
+				loading: "Banning user...",
+				success: "User banned",
+				error: (error) => ({
+					message: "Failed to ban user",
+					description: error.message,
+				}),
+			},
+		);
 	};
 
 	const handleUnbanUser = (userId: string) => {
-		toast.promise(authClient.admin.unbanUser({ userId }), {
-			loading: "Unbanning user...",
-			success: "User unbanned",
-			error: (error) => ({
-				message: "Failed to unban user",
-				description: error.message,
+		toast.promise(
+			authClient.admin.unbanUser({
+				userId,
 			}),
-		});
+			{
+				loading: "Unbanning user...",
+				success: "User unbanned",
+				error: (error) => ({
+					message: "Failed to unban user",
+					description: error.message,
+				}),
+			},
+		);
 	};
 
 	const handleRevokeSession = (sessionToken: string) => {
@@ -101,7 +111,11 @@ const ManageUser = ({ user }: { user: User }) => {
 	};
 
 	const handleDeleteUser = (userId: string) => {
-		deleteUsers({ userIds: [userId] });
+		deleteUsers({
+			userIds: [
+				userId,
+			],
+		});
 	};
 
 	return (

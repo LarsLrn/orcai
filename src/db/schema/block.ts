@@ -19,7 +19,9 @@ export const block = pgTable("block", {
 	config: json("config").notNull(),
 	userId: uuid("user_id")
 		.notNull()
-		.references(() => user.id, { onDelete: "cascade" }),
+		.references(() => user.id, {
+			onDelete: "cascade",
+		}),
 	forkedFromId: uuid("forked_from_id").references((): AnyPgColumn => block.id, {
 		onDelete: "set null",
 	}),
@@ -33,21 +35,36 @@ export const chatBlock = pgTable(
 	{
 		blockId: uuid("block_id")
 			.notNull()
-			.references(() => block.id, { onDelete: "cascade" }),
+			.references(() => block.id, {
+				onDelete: "cascade",
+			}),
 		chatId: uuid("chat_id")
 			.notNull()
-			.references(() => chat.id, { onDelete: "cascade" }),
+			.references(() => chat.id, {
+				onDelete: "cascade",
+			}),
 		createdAt: timestamp("created_at").notNull().defaultNow(),
 	},
-	(table) => [primaryKey({ columns: [table.blockId, table.chatId] })],
+	(table) => [
+		primaryKey({
+			columns: [
+				table.blockId,
+				table.chatId,
+			],
+		}),
+	],
 );
 
 export const blockAsset = pgTable("block_asset", {
 	blockId: uuid("block_id")
 		.notNull()
-		.references(() => block.id, { onDelete: "cascade" }),
+		.references(() => block.id, {
+			onDelete: "cascade",
+		}),
 	assetId: uuid("asset_id")
 		.notNull()
-		.references(() => asset.id, { onDelete: "cascade" }),
+		.references(() => asset.id, {
+			onDelete: "cascade",
+		}),
 	createdAt: timestamp("created_at").notNull().defaultNow(),
 });

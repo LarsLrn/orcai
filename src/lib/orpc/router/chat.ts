@@ -39,16 +39,22 @@ export const listChats = authed.chat.list.handler(async ({ input, context }) =>
 								in: allowedIds,
 							},
 						},
-						orderBy: { createdAt: "desc" },
+						orderBy: {
+							createdAt: "desc",
+						},
 						limit: input.pageSize,
 						offset: input.pageIndex * input.pageSize,
 					}),
 					db
-						.select({ count: count() })
+						.select({
+							count: count(),
+						})
 						.from(dbSchema.chat)
 						.where(inArray(dbSchema.chat.id, allowedIds)),
 				],
-				{ concurrency: "unbounded" },
+				{
+					concurrency: "unbounded",
+				},
 			).pipe(
 				Effect.map(([data, [countResult]]) => ({
 					data,
@@ -82,7 +88,9 @@ export const findChat = authed.chat.find
 						},
 						with: {
 							branches: {
-								orderBy: { updatedAt: "desc" },
+								orderBy: {
+									updatedAt: "desc",
+								},
 							},
 						},
 					})
@@ -90,11 +98,17 @@ export const findChat = authed.chat.find
 						Effect.flatMap((chat) =>
 							Effect.fromNullable(chat).pipe(
 								Effect.orElse(() =>
-									Effect.fail(errors.NOT_FOUND({ message: "Chat not found" })),
+									Effect.fail(
+										errors.NOT_FOUND({
+											message: "Chat not found",
+										}),
+									),
 								),
 							),
 						),
-						Effect.map((chat) => ({ data: chat })),
+						Effect.map((chat) => ({
+							data: chat,
+						})),
 					);
 			}),
 		),
@@ -155,10 +169,15 @@ export const createChat = authed.chat.create.handler(
 
 						yield* tx
 							.update(dbSchema.chat)
-							.set({ activeBranchId: mainBranch.id })
+							.set({
+								activeBranchId: mainBranch.id,
+							})
 							.where(eq(dbSchema.chat.id, chat.id));
 
-						return { chat, mainBranch };
+						return {
+							chat,
+							mainBranch,
+						};
 					}),
 				);
 
@@ -188,8 +207,13 @@ export const createChat = authed.chat.create.handler(
 				});
 
 				return {
-					data: { ...chat, activeBranchId: mainBranch.id },
-					meta: { zedToken: relationResult.zedToken },
+					data: {
+						...chat,
+						activeBranchId: mainBranch.id,
+					},
+					meta: {
+						zedToken: relationResult.zedToken,
+					},
 				};
 			}),
 		),
@@ -246,7 +270,10 @@ export const deleteChats = authed.chat.delete
 					.delete(dbSchema.chat)
 					.where(inArray(dbSchema.chat.id, context.allowedIds));
 
-				return { success: true, message: "Chats deleted successfully" };
+				return {
+					success: true,
+					message: "Chats deleted successfully",
+				};
 			}),
 		),
 	);

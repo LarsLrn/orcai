@@ -73,7 +73,9 @@ const DiscoverModels = () => {
 		setResult(null);
 
 		try {
-			const discoveredModels = await discoverModels({ providerId });
+			const discoveredModels = await discoverModels({
+				providerId,
+			});
 			const { foundCount, addedCount, alreadyExistedCount } =
 				discoveredModels.data;
 

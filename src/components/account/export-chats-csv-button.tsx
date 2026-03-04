@@ -115,7 +115,10 @@ const ExportChatsCSVButton = ({ traces }: { traces: FilteredTrace[] }) => {
 					systemPrompt = trace.input.system;
 				}
 				if (trace.metadata) {
-					metadata = { ...metadata, ...trace.metadata };
+					metadata = {
+						...metadata,
+						...trace.metadata,
+					};
 				}
 
 				// Store scores by trace ID (scores are associated with the trace's output)
@@ -347,7 +350,14 @@ const ExportChatsCSVButton = ({ traces }: { traces: FilteredTrace[] }) => {
 		try {
 			// Convert traces to CSV
 			const csvData = convertToCSV(traces);
-			const blob = new Blob([csvData], { type: "text/csv;charset=utf-8;" });
+			const blob = new Blob(
+				[
+					csvData,
+				],
+				{
+					type: "text/csv;charset=utf-8;",
+				},
+			);
 
 			// Create a download link
 			const url = URL.createObjectURL(blob);

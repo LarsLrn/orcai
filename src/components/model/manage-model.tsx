@@ -12,7 +12,15 @@ const ManageModel = ({ model }: { model: Model }) => {
 			<div className="flex gap-2">
 				<Button
 					variant="destructive"
-					onClick={() => deleteModels({ refs: [{ id: model.id }] })}
+					onClick={() =>
+						deleteModels({
+							refs: [
+								{
+									id: model.id,
+								},
+							],
+						})
+					}
 				>
 					Delete Model
 				</Button>

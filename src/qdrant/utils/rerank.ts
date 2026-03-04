@@ -99,7 +99,10 @@ export const rerankHybrid = ({
 
 	// Pair each point with its lexical score, sort, and assign lexical ranks.
 	points
-		.map((point, index) => ({ point, score: lexicalScores[index] }))
+		.map((point, index) => ({
+			point,
+			score: lexicalScores[index],
+		}))
 		.sort((a, b) => b.score - a.score)
 		.forEach(({ point }, rank) => {
 			lexicalRanks.set(String(point.id), rank);

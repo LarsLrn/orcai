@@ -58,7 +58,11 @@ export const providerUpdateSchema = createUpdateSchema(dbSchema.provider, {
  */
 
 export const providerDeleteSchema = z.object({
-	refs: z.array(providerUpdateSchema.pick({ id: true })),
+	refs: z.array(
+		providerUpdateSchema.pick({
+			id: true,
+		}),
+	),
 });
 
 /**

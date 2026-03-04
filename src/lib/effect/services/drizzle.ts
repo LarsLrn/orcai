@@ -16,9 +16,17 @@ const PgClientLive = Layer.unwrapEffect(
 			types: {
 				getTypeParser: (typeId, format) => {
 					if (
-						[1184, 1114, 1082, 1186, 1231, 1115, 1185, 1187, 1182].includes(
-							typeId,
-						)
+						[
+							1184,
+							1114,
+							1082,
+							1186,
+							1231,
+							1115,
+							1185,
+							1187,
+							1182,
+						].includes(typeId)
 					) {
 						return (val: any) => val;
 					}
@@ -29,9 +37,9 @@ const PgClientLive = Layer.unwrapEffect(
 	}),
 );
 
-const dbEffect = PgDrizzle.make({ relations }).pipe(
-	Effect.provide(PgDrizzle.DefaultServices),
-);
+const dbEffect = PgDrizzle.make({
+	relations,
+}).pipe(Effect.provide(PgDrizzle.DefaultServices));
 
 export class DB extends Context.Tag("DB")<
 	DB,

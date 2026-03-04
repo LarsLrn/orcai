@@ -60,7 +60,12 @@ export const listAssetPoint = authed.assetPoint.list.handler(({ input }) =>
 						const pointIds = input.filters.pointIds ?? [];
 						const idOrder =
 							pointIds.length > 0
-								? new Map(pointIds.map((id, index) => [String(id), index]))
+								? new Map(
+										pointIds.map((id, index) => [
+											String(id),
+											index,
+										]),
+									)
 								: undefined;
 
 						if (idOrder) {
@@ -114,12 +119,17 @@ export const listAssetPoint = authed.assetPoint.list.handler(({ input }) =>
 					generateEmbedding(query).pipe(
 						Effect.map(({ embedding }) => embedding),
 					),
-				{ concurrency: 4 },
+				{
+					concurrency: 4,
+				},
 			);
 
 			const recallCandidates = new Map<
 				string,
-				{ point: AssetPoint; hitCount: number }
+				{
+					point: AssetPoint;
+					hitCount: number;
+				}
 			>();
 
 			const passState = yield* Effect.reduceWhile(
@@ -148,7 +158,9 @@ export const listAssetPoint = authed.assetPoint.list.handler(({ input }) =>
 											mergeRecallCandidates(recallCandidates, points),
 										),
 									),
-								{ concurrency: 4 },
+								{
+									concurrency: 4,
+								},
 							);
 
 							return {

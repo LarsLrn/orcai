@@ -64,7 +64,9 @@ export function useImageUpload({ onUpload }: UseImageUploadProps = {}) {
 				}
 			}
 		},
-		[onUpload],
+		[
+			onUpload,
+		],
 	);
 
 	const handleRemove = useCallback(() => {
@@ -78,7 +80,9 @@ export function useImageUpload({ onUpload }: UseImageUploadProps = {}) {
 			fileInputRef.current.value = "";
 		}
 		setError(null);
-	}, [previewUrl]);
+	}, [
+		previewUrl,
+	]);
 
 	useEffect(() => {
 		return () => {

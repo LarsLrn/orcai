@@ -29,7 +29,10 @@ export const Route = createFileRoute("/app/hub/assets/")({
 	}) => {
 		await queryClient.ensureQueryData(
 			orpc.asset.list.queryOptions({
-				input: { pageIndex, pageSize },
+				input: {
+					pageIndex,
+					pageSize,
+				},
 			}),
 		);
 	},
@@ -40,7 +43,10 @@ function RouteComponent() {
 	const { pageIndex, pageSize } = Route.useSearch();
 	const { data: assets } = useSuspenseQuery(
 		orpc.asset.list.queryOptions({
-			input: { pageIndex, pageSize },
+			input: {
+				pageIndex,
+				pageSize,
+			},
 		}),
 	);
 
@@ -51,14 +57,18 @@ function RouteComponent() {
 				<PageAction className="flex gap-2">
 					<Link
 						to={"/app/hub/assets/playground"}
-						className={buttonVariants({ variant: "outline" })}
+						className={buttonVariants({
+							variant: "outline",
+						})}
 					>
 						Playground
 					</Link>
 
 					<Link
 						to={"/app/hub/assets/add"}
-						className={buttonVariants({ variant: "default" })}
+						className={buttonVariants({
+							variant: "default",
+						})}
 					>
 						Add Asset
 					</Link>

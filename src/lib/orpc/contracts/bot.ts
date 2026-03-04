@@ -18,7 +18,9 @@ export const listBotsContract = base
 		method: "POST",
 		path: "/bots",
 		summary: "List all bots",
-		tags: ["Bots"],
+		tags: [
+			"Bots",
+		],
 	})
 	.input(
 		z.object({
@@ -27,14 +29,21 @@ export const listBotsContract = base
 			search: z.string().optional(),
 		}),
 	)
-	.output(z.object({ data: z.array(botSelectSchema), rowCount: z.number() }));
+	.output(
+		z.object({
+			data: z.array(botSelectSchema),
+			rowCount: z.number(),
+		}),
+	);
 
 export const createBotContract = base
 	.route({
 		method: "POST",
 		path: "/bots",
 		summary: "Create a bot",
-		tags: ["Bots"],
+		tags: [
+			"Bots",
+		],
 	})
 	.input(botInsertSchema)
 	.output(
@@ -51,11 +60,15 @@ export const findBotContract = base
 		method: "GET",
 		path: "/bots/{id}",
 		summary: "Find a bot",
-		tags: ["Bots"],
+		tags: [
+			"Bots",
+		],
 	})
 	.input(
 		z.object({
-			...botSelectSchema.pick({ id: true }).shape,
+			...botSelectSchema.pick({
+				id: true,
+			}).shape,
 			...zedTokenSchema.shape,
 		}),
 	)
@@ -72,12 +85,16 @@ export const updateBotContract = base
 		method: "PUT", //TODO:Probably should be PATCH
 		path: "/bots/{id}",
 		summary: "Update a bot",
-		tags: ["Bots"],
+		tags: [
+			"Bots",
+		],
 	})
 	.errors({
 		NOT_FOUND: {
 			message: "Bot not found",
-			data: z.object({ id: botUpdateSchema.shape.id }),
+			data: z.object({
+				id: botUpdateSchema.shape.id,
+			}),
 		},
 	})
 	.input(botUpdateSchema)
@@ -94,7 +111,9 @@ export const deleteBotContract = base
 		method: "DELETE",
 		path: "/bots",
 		summary: "Delete a bot",
-		tags: ["Bots"],
+		tags: [
+			"Bots",
+		],
 	})
 	.input(botDeleteSchema)
 	.output(statusSchema);

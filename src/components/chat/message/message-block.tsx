@@ -43,7 +43,9 @@ export const MessageBlock = ({
 	// keep only the last text part; keep all non-text parts
 	// Some models tend to generate text WITH their tool calls, which this filters out
 	const sortedParts = (() => {
-		const parts = [...message.parts];
+		const parts = [
+			...message.parts,
+		];
 
 		let lastTextIndex = -1;
 		for (let i = parts.length - 1; i >= 0; i--) {
@@ -80,11 +82,24 @@ export const MessageBlock = ({
 	return (
 		<InView
 			variants={{
-				hidden: { opacity: 0, y: 100, filter: "blur(4px)" },
-				visible: { opacity: 1, y: 0, filter: "blur(0px)" },
+				hidden: {
+					opacity: 0,
+					y: 100,
+					filter: "blur(4px)",
+				},
+				visible: {
+					opacity: 1,
+					y: 0,
+					filter: "blur(0px)",
+				},
 			}}
-			viewOptions={{ margin: "0px 0px -200px 0px" }}
-			transition={{ duration: 0.3, ease: "easeInOut" }}
+			viewOptions={{
+				margin: "0px 0px -200px 0px",
+			}}
+			transition={{
+				duration: 0.3,
+				ease: "easeInOut",
+			}}
 		>
 			<Message
 				from={message.role}
@@ -120,7 +135,9 @@ export const MessageBlock = ({
 						chatId={chatId}
 						onEdit={variant === "sent" ? toggleMode : undefined}
 						score={score}
-						className={cn({ "w-full justify-end": variant === "sent" })}
+						className={cn({
+							"w-full justify-end": variant === "sent",
+						})}
 					/>
 					{variant === "received" && (
 						<div className="mt-1 flex items-center justify-end gap-2">

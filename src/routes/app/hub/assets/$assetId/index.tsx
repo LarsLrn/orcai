@@ -24,12 +24,17 @@ function RouteComponent() {
 	const [isAccessOpen, setIsAccessOpen] = useState(false);
 	const { data: asset } = useSuspenseQuery(
 		orpc.asset.find.queryOptions({
-			input: { id: assetId },
+			input: {
+				id: assetId,
+			},
 		}),
 	);
 	const { data: visibility } = useSuspenseQuery(
 		orpc.resource.getVisibility.queryOptions({
-			input: { resourceType: "asset", resourceId: assetId },
+			input: {
+				resourceType: "asset",
+				resourceId: assetId,
+			},
 		}),
 	);
 
@@ -58,7 +63,10 @@ function RouteComponent() {
 				<AccessDialog
 					open={isAccessOpen}
 					onOpenChange={setIsAccessOpen}
-					resourceRef={{ type: "asset", id: asset.data.id }}
+					resourceRef={{
+						type: "asset",
+						id: asset.data.id,
+					}}
 					resourceName={asset.data.title}
 				/>
 			</PageContent>

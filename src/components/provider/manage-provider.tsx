@@ -12,7 +12,15 @@ const ManageProvider = ({ provider }: { provider: Provider }) => {
 			<div className="flex gap-2">
 				<Button
 					variant="destructive"
-					onClick={() => deleteProviders({ refs: [{ id: provider.id }] })}
+					onClick={() =>
+						deleteProviders({
+							refs: [
+								{
+									id: provider.id,
+								},
+							],
+						})
+					}
 				>
 					Delete Provider
 				</Button>

@@ -30,14 +30,20 @@ export function getRouter() {
 			queries: {
 				queryKeyHashFn(queryKey) {
 					const [json, meta] = serializer.serialize(queryKey);
-					return JSON.stringify({ json, meta });
+					return JSON.stringify({
+						json,
+						meta,
+					});
 				},
 				staleTime: 60 * 1000, // > 0 to prevent immediate refetching on mount
 			},
 			dehydrate: {
 				serializeData(data) {
 					const [json, meta] = serializer.serialize(data);
-					return { json, meta };
+					return {
+						json,
+						meta,
+					};
 				},
 			},
 			hydrate: {
@@ -59,7 +65,9 @@ export function getRouter() {
 		defaultPreload: "intent",
 		defaultErrorComponent: DefaultErrorBoundary,
 		defaultNotFoundComponent: () => <NotFound />,
-		context: { queryClient },
+		context: {
+			queryClient,
+		},
 	});
 
 	setupRouterSsrQueryIntegration({

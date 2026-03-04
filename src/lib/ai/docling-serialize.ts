@@ -134,13 +134,19 @@ export const serializeDoclingDocument = (
 		serializedDocument.push(content);
 	}
 
-	const mergedDocument: { [page: number]: SerializedDocument } = {};
+	const mergedDocument: {
+		[page: number]: SerializedDocument;
+	} = {};
 
 	for (const item of serializedDocument) {
 		const page = mergePages ? 0 : item.page;
 
 		if (!mergedDocument[page]) {
-			mergedDocument[page] = { markdown: "", page, images: [] };
+			mergedDocument[page] = {
+				markdown: "",
+				page,
+				images: [],
+			};
 		}
 		const updatedMarkdown = mergedDocument[page].markdown + item.markdown;
 
@@ -162,7 +168,11 @@ export const serializeDoclingDocument = (
 				item.label === "chart" ||
 				item.label === "table")
 		) {
-			images.push({ label: item.label, index: item.index, ...test });
+			images.push({
+				label: item.label,
+				index: item.index,
+				...test,
+			});
 		}
 
 		mergedDocument[page] = {
@@ -333,7 +343,9 @@ const extractContent = (
 
 			const formatMarkdownTableRow = (
 				cells: TableCell[] | undefined,
-				options: { headerSeperatorOnly: boolean } = {
+				options: {
+					headerSeperatorOnly: boolean;
+				} = {
 					headerSeperatorOnly: false,
 				},
 			) => {
@@ -344,7 +356,9 @@ const extractContent = (
 
 					if (colSpan > 1) {
 						const emptyCells = Array.from(
-							{ length: colSpan - 1 },
+							{
+								length: colSpan - 1,
+							},
 							() => `| ${options.headerSeperatorOnly && "---"} |`,
 						);
 						return `${cell.text} ${emptyCells.join("")}`;

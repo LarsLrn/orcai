@@ -54,7 +54,10 @@ export const searchKnowledgeBaseTool = ({
 				.optional()
 				.describe("Optional list of asset IDs to scope retrieval."),
 			retrievalMode: z
-				.enum(["dense", "hybrid"])
+				.enum([
+					"dense",
+					"hybrid",
+				])
 				.default("hybrid")
 				.describe("Hybrid is recommended for most factual searches."),
 			minScore: z.number().min(0).max(1).optional(),
@@ -76,7 +79,10 @@ export const searchKnowledgeBaseTool = ({
 						});
 					}
 
-					const targetBlocks = resolveSearchBlocks({ blocks, blockId });
+					const targetBlocks = resolveSearchBlocks({
+						blocks,
+						blockId,
+					});
 
 					if (targetBlocks.length === 0) {
 						return {
@@ -124,7 +130,12 @@ export const searchKnowledgeBaseTool = ({
 							0,
 							Math.min(limit, RETRIEVAL_LIMITS.maxSnippetResultsPerCall),
 						)
-						.map((point) => toSearchResult({ point, queries }));
+						.map((point) =>
+							toSearchResult({
+								point,
+								queries,
+							}),
+						);
 
 					return {
 						result: boundedResults,

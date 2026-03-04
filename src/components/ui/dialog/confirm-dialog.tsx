@@ -219,7 +219,9 @@ export const ConfirmDialogProvider: React.FC<{
 			...baseDefaultOptions,
 			...defaultOptions,
 		}),
-		[defaultOptions],
+		[
+			defaultOptions,
+		],
 	);
 
 	const updateConfig = useCallback(
@@ -231,7 +233,10 @@ export const ConfirmDialogProvider: React.FC<{
 				config:
 					typeof newConfig === "function"
 						? newConfig(prev.config)
-						: { ...prev.config, ...newConfig },
+						: {
+								...prev.config,
+								...newConfig,
+							},
 			}));
 		},
 		[],
@@ -241,7 +246,10 @@ export const ConfirmDialogProvider: React.FC<{
 		(options: ConfirmOptions) => {
 			setDialogState((prev) => ({
 				isOpen: true,
-				config: { ...mergedDefaultOptions, ...options },
+				config: {
+					...mergedDefaultOptions,
+					...options,
+				},
 				resolver: prev.resolver,
 			}));
 			return new Promise<boolean>((resolve) => {
@@ -251,7 +259,9 @@ export const ConfirmDialogProvider: React.FC<{
 				}));
 			});
 		},
-		[mergedDefaultOptions],
+		[
+			mergedDefaultOptions,
+		],
 	);
 
 	const handleConfirm = useCallback(() => {
@@ -286,7 +296,9 @@ export const ConfirmDialogProvider: React.FC<{
 				handleCancel();
 			}
 		},
-		[handleCancel],
+		[
+			handleCancel,
+		],
 	);
 
 	const contextValue = useMemo(
@@ -294,7 +306,10 @@ export const ConfirmDialogProvider: React.FC<{
 			confirm,
 			updateConfig,
 		}),
-		[confirm, updateConfig],
+		[
+			confirm,
+			updateConfig,
+		],
 	);
 
 	return (

@@ -40,7 +40,9 @@ const getFileTypeColor = (fileType: string): string => {
 
 const formatDate = (date: Date | null): string => {
 	if (!date) return "Unknown date";
-	return formatDistanceToNow(date, { addSuffix: true });
+	return formatDistanceToNow(date, {
+		addSuffix: true,
+	});
 };
 
 const getRelevanceBadgeColor = (relevance: string): string => {

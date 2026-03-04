@@ -24,7 +24,12 @@ const FundingNotice = ({ className }: FundingNoticeProps) => {
 					<div className="mt-4 flex justify-center gap-4">
 						<a
 							href="https://www.hochschule-rhein-waal.de/de/fakultaeten/kommunikation-und-umwelt/forschungsprojekte/sokratest"
-							className={cn(buttonVariants({ variant: "outline", size: "sm" }))}
+							className={cn(
+								buttonVariants({
+									variant: "outline",
+									size: "sm",
+								}),
+							)}
 							target="_blank"
 							rel="noopener"
 						>
@@ -32,7 +37,10 @@ const FundingNotice = ({ className }: FundingNoticeProps) => {
 						</a>
 						<a
 							href="https://ki-edu-nrw.ruhr-uni-bochum.de/ueber-das-projekt/phase-2/praxis-transferprojekte/aktuelle-praxisprojekte/#sokratest"
-							className={buttonVariants({ variant: "outline", size: "sm" })}
+							className={buttonVariants({
+								variant: "outline",
+								size: "sm",
+							})}
 							target="_blank"
 							rel="noopener"
 						>
@@ -49,7 +57,10 @@ const FundingNotice = ({ className }: FundingNoticeProps) => {
 								alt="KI.EDU.NRW Logo"
 								width={220}
 								height={100}
-								style={{ objectFit: "contain", height: "auto" }}
+								style={{
+									objectFit: "contain",
+									height: "auto",
+								}}
 								className="w-full max-w-67.5"
 							/>
 							<img
@@ -57,7 +68,10 @@ const FundingNotice = ({ className }: FundingNoticeProps) => {
 								alt="DH.nrw Logo"
 								width={200}
 								height={100}
-								style={{ objectFit: "contain", height: "auto" }}
+								style={{
+									objectFit: "contain",
+									height: "auto",
+								}}
 								className="w-full max-w-62.5"
 							/>
 							<img
@@ -65,7 +79,10 @@ const FundingNotice = ({ className }: FundingNoticeProps) => {
 								alt="MKW NRW Logo"
 								width={240}
 								height={100}
-								style={{ objectFit: "contain", height: "auto" }}
+								style={{
+									objectFit: "contain",
+									height: "auto",
+								}}
 								className="w-full max-w-72.5"
 							/>
 						</div>

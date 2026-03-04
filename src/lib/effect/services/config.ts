@@ -35,7 +35,9 @@ const emailConfig = Config.all({
 		const hasPassword = Option.isSome(raw.password);
 
 		if (!hasHost && !hasFrom && !hasUsername && !hasPassword) {
-			return { mode: "log_only" as const };
+			return {
+				mode: "log_only" as const,
+			};
 		}
 
 		if (!hasHost || !hasFrom) {
@@ -109,12 +111,18 @@ type AppConfig = Config.Config.Success<typeof appConfig>;
 
 export class AppConfigService extends Context.Tag("AppConfigService")<
 	AppConfigService,
-	{ readonly config: AppConfig }
+	{
+		readonly config: AppConfig;
+	}
 >() {}
 
 export const AppConfigLive = Layer.effect(
 	AppConfigService,
-	appConfig.pipe(Effect.map((config) => ({ config }))),
+	appConfig.pipe(
+		Effect.map((config) => ({
+			config,
+		})),
+	),
 );
 
 export const loadAppConfigSync = (): AppConfig => Effect.runSync(appConfig);

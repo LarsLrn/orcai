@@ -13,11 +13,16 @@ export const listOrganizationsContract = base
 		method: "GET",
 		path: "/organizations",
 		summary: "List all organizations",
-		tags: ["Organizations"],
+		tags: [
+			"Organizations",
+		],
 	})
 	.input(paginationSchema)
 	.output(
-		z.object({ data: z.array(organizationSelectSchema), rowCount: z.number() }),
+		z.object({
+			data: z.array(organizationSelectSchema),
+			rowCount: z.number(),
+		}),
 	);
 
 export const createOrganizationContract = base
@@ -25,44 +30,70 @@ export const createOrganizationContract = base
 		method: "POST",
 		path: "/organizations",
 		summary: "Create an organization",
-		tags: ["Organizations"],
+		tags: [
+			"Organizations",
+		],
 	})
 	.input(organizationInsertSchema)
-	.output(z.object({ data: organizationSelectSchema }));
+	.output(
+		z.object({
+			data: organizationSelectSchema,
+		}),
+	);
 
 export const findOrganizationContract = base
 	.route({
 		method: "GET",
 		path: "/organizations/{id}",
 		summary: "Find an organization",
-		tags: ["Organizations"],
+		tags: [
+			"Organizations",
+		],
 	})
 	/* .input(organizationSelectSchema.pick({ id: true })) */
-	.input(organizationSelectSchema.pick({ id: true }))
-	.output(z.object({ data: organizationSelectSchema }));
+	.input(
+		organizationSelectSchema.pick({
+			id: true,
+		}),
+	)
+	.output(
+		z.object({
+			data: organizationSelectSchema,
+		}),
+	);
 
 export const updateOrganizationContract = base
 	.route({
 		method: "PUT",
 		path: "/organizations/{id}",
 		summary: "Update an organization",
-		tags: ["Organizations"],
+		tags: [
+			"Organizations",
+		],
 	})
 	.errors({
 		NOT_FOUND: {
 			message: "Organization not found",
-			data: z.object({ id: organizationUpdateSchema.shape.id }),
+			data: z.object({
+				id: organizationUpdateSchema.shape.id,
+			}),
 		},
 	})
 	.input(organizationUpdateSchema)
-	.output(z.object({ data: organizationSelectSchema }));
+	.output(
+		z.object({
+			data: organizationSelectSchema,
+		}),
+	);
 
 export const deleteOrganizationContract = base
 	.route({
 		method: "DELETE",
 		path: "/organizations",
 		summary: "Delete an organization",
-		tags: ["Organizations"],
+		tags: [
+			"Organizations",
+		],
 	})
 	.input(organizationDeleteSchema)
 	.output(statusSchema);

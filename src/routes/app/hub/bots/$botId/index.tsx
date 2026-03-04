@@ -17,18 +17,27 @@ function RouteComponent() {
 
 	const { data: bot } = useSuspenseQuery(
 		orpc.bot.find.queryOptions({
-			input: { id: botId },
+			input: {
+				id: botId,
+			},
 		}),
 	);
 	const { data: visibility } = useSuspenseQuery(
 		orpc.resource.getVisibility.queryOptions({
-			input: { resourceType: "bot", resourceId: botId },
+			input: {
+				resourceType: "bot",
+				resourceId: botId,
+			},
 		}),
 	);
 
 	const { data: blocks } = useSuspenseQuery(
 		orpc.block.list.queryOptions({
-			input: { filters: { botId } },
+			input: {
+				filters: {
+					botId,
+				},
+			},
 		}),
 	);
 

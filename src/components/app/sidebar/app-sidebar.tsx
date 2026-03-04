@@ -23,7 +23,12 @@ const AppSidebar = () => {
 		<Sidebar id="tour-sidebar" variant="floating">
 			<SidebarHeader>
 				<SidebarLogo />
-				<Link to="/app/chat/setup" className={buttonVariants({ size: "sm" })}>
+				<Link
+					to="/app/chat/setup"
+					className={buttonVariants({
+						size: "sm",
+					})}
+				>
 					New Chat
 				</Link>
 			</SidebarHeader>

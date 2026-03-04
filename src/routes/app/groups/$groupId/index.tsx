@@ -42,7 +42,9 @@ function RouteComponent() {
 
 	const group = useQuery(
 		orpc.group.find.queryOptions({
-			input: { id: groupId },
+			input: {
+				id: groupId,
+			},
 		}),
 	);
 	const members = useQuery(
@@ -69,10 +71,14 @@ function RouteComponent() {
 			setName(group.data.data.name);
 			setDescription(group.data.data.description ?? "");
 		}
-	}, [group.data?.data]);
+	}, [
+		group.data?.data,
+	]);
 
 	const refreshGroupQueries = () => {
-		queryClient.invalidateQueries({ queryKey: orpc.group.key() });
+		queryClient.invalidateQueries({
+			queryKey: orpc.group.key(),
+		});
 	};
 
 	const updateGroup = useMutationAction({
@@ -92,7 +98,9 @@ function RouteComponent() {
 			orpc.group.delete.mutationOptions({
 				onSuccess: async () => {
 					refreshGroupQueries();
-					await navigate({ to: "/app/groups" });
+					await navigate({
+						to: "/app/groups",
+					});
 				},
 			}),
 		messages: {
@@ -143,7 +151,9 @@ function RouteComponent() {
 
 	const memberIds = useMemo(
 		() => new Set(members.data?.data.map((entry) => entry.user.id) ?? []),
-		[members.data?.data],
+		[
+			members.data?.data,
+		],
 	);
 
 	const availableUsers = useMemo(() => {
@@ -157,7 +167,11 @@ function RouteComponent() {
 					user.email.toLowerCase().includes(query)
 				);
 			});
-	}, [users.data?.data, memberIds, userSearch]);
+	}, [
+		users.data?.data,
+		memberIds,
+		userSearch,
+	]);
 
 	if (!group.data?.data) {
 		return (
@@ -227,7 +241,13 @@ function RouteComponent() {
 								<Button
 									variant="outline"
 									onClick={() =>
-										deleteGroup.mutate({ refs: [{ id: groupId }] })
+										deleteGroup.mutate({
+											refs: [
+												{
+													id: groupId,
+												},
+											],
+										})
 									}
 								>
 									<Trash2Icon className="mr-2 h-4 w-4" />
@@ -279,7 +299,10 @@ function RouteComponent() {
 													setSelectedUserIds((current) =>
 														current.includes(id)
 															? current.filter((uid) => uid !== id)
-															: [...current, id],
+															: [
+																	...current,
+																	id,
+																],
 													);
 												}}
 												isSelected={isSelected}
@@ -294,7 +317,10 @@ function RouteComponent() {
 								</div>
 								<Button
 									onClick={() =>
-										addMembers.mutate({ groupId, userIds: selectedUserIds })
+										addMembers.mutate({
+											groupId,
+											userIds: selectedUserIds,
+										})
 									}
 									disabled={
 										selectedUserIds.length === 0 || addMembers.isPending
@@ -339,7 +365,9 @@ function RouteComponent() {
 													onClick={() =>
 														removeMembers.mutate({
 															groupId,
-															userIds: [entry.user.id],
+															userIds: [
+																entry.user.id,
+															],
 														})
 													}
 												>

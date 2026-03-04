@@ -17,7 +17,9 @@ export const listAssetsContract = base
 		method: "POST",
 		path: "/assets",
 		summary: "List all assets",
-		tags: ["Assets"],
+		tags: [
+			"Assets",
+		],
 	})
 	.input(
 		z.object({
@@ -31,18 +33,28 @@ export const listAssetsContract = base
 				.optional(),
 		}),
 	)
-	.output(z.object({ data: z.array(assetSelectSchema), rowCount: z.number() }));
+	.output(
+		z.object({
+			data: z.array(assetSelectSchema),
+			rowCount: z.number(),
+		}),
+	);
 
 export const createAssetContract = base
 	.route({
 		method: "POST",
 		path: "/assets",
 		summary: "Create an asset",
-		tags: ["Assets"],
+		tags: [
+			"Assets",
+		],
 	})
 	.input(assetInsertSchema)
 	.output(
-		z.object({ data: assetSelectSchema, meta: zedTokenSchema.optional() }),
+		z.object({
+			data: assetSelectSchema,
+			meta: zedTokenSchema.optional(),
+		}),
 	);
 
 export const findAssetContract = base
@@ -50,38 +62,56 @@ export const findAssetContract = base
 		method: "GET",
 		path: "/assets/{id}",
 		summary: "Find an asset",
-		tags: ["Assets"],
+		tags: [
+			"Assets",
+		],
 	})
 	.input(
 		z.object({
-			...assetSelectSchema.pick({ id: true }).shape,
+			...assetSelectSchema.pick({
+				id: true,
+			}).shape,
 			...zedTokenSchema.shape,
 		}),
 	)
-	.output(z.object({ data: assetSelectSchema }));
+	.output(
+		z.object({
+			data: assetSelectSchema,
+		}),
+	);
 
 export const updateAssetContract = base
 	.route({
 		method: "PUT",
 		path: "/assets/{id}",
 		summary: "Update an asset",
-		tags: ["Assets"],
+		tags: [
+			"Assets",
+		],
 	})
 	.errors({
 		NOT_FOUND: {
 			message: "Asset not found",
-			data: z.object({ id: assetUpdateSchema.shape.id }),
+			data: z.object({
+				id: assetUpdateSchema.shape.id,
+			}),
 		},
 	})
 	.input(assetUpdateSchema)
-	.output(z.object({ data: assetSelectSchema }));
+	.output(
+		z.object({
+			data: assetSelectSchema,
+		}),
+	);
 
 export const deleteAssetContract = base
 	.route({
 		method: "DELETE",
 		path: "/assets",
 		summary: "Delete an asset",
-		tags: ["Assets"],
+		tags: [
+			"Assets",
+		],
 	})
 	.input(assetDeleteSchema)
 	.output(statusSchema);

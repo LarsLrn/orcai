@@ -27,7 +27,9 @@ export const getSignedUploadUrl = (params: {
 
 		return yield* Effect.tryPromise({
 			try: () =>
-				getSignedUrl(client, command, { expiresIn: params.expiresIn ?? 3600 }),
+				getSignedUrl(client, command, {
+					expiresIn: params.expiresIn ?? 3600,
+				}),
 			catch: (cause) =>
 				mapS3CauseToAppError({
 					operation: "getSignedUploadUrl",

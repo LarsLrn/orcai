@@ -33,7 +33,10 @@ const OrganizationInvitationForm = () => {
 
 	const { data: organizations } = useSuspenseQuery(
 		orpc.organization.list.queryOptions({
-			input: { pageIndex: 0, pageSize: 100 },
+			input: {
+				pageIndex: 0,
+				pageSize: 100,
+			},
 		}),
 	);
 
@@ -57,7 +60,9 @@ const OrganizationInvitationForm = () => {
 
 		form.setFieldValue(
 			"items",
-			emails.map((email) => ({ email })),
+			emails.map((email) => ({
+				email,
+			})),
 		);
 	};
 
@@ -189,7 +194,9 @@ const OrganizationInvitationForm = () => {
 								form.insertFieldValue(
 									"items",
 									form.state.values.items.length + 1,
-									{ email: "" },
+									{
+										email: "",
+									},
 								)
 							}
 						>

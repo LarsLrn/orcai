@@ -80,7 +80,9 @@ interface MultiSelectOption {
 	/** The unique value associated with the option. */
 	value: string;
 	/** Optional icon component to display alongside the option. */
-	icon?: React.ComponentType<{ className?: string }>;
+	icon?: React.ComponentType<{
+		className?: string;
+	}>;
 	/** Whether this option is disabled */
 	disabled?: boolean;
 	/** Custom styling for the option */
@@ -378,8 +380,12 @@ export const MultiSelect = React.forwardRef<MultiSelectRef, MultiSelectProps>(
 		const arraysEqual = React.useCallback(
 			(a: string[], b: string[]): boolean => {
 				if (a.length !== b.length) return false;
-				const sortedA = [...a].sort();
-				const sortedB = [...b].sort();
+				const sortedA = [
+					...a,
+				].sort();
+				const sortedB = [
+					...b,
+				].sort();
 				return sortedA.every((val, index) => val === sortedB[index]);
 			},
 			[],
@@ -390,7 +396,10 @@ export const MultiSelect = React.forwardRef<MultiSelectRef, MultiSelectProps>(
 			setIsPopoverOpen(false);
 			setSearchValue("");
 			onValueChange(defaultValue);
-		}, [defaultValue, onValueChange]);
+		}, [
+			defaultValue,
+			onValueChange,
+		]);
 
 		const buttonRef = React.useRef<HTMLButtonElement>(null);
 
@@ -423,7 +432,11 @@ export const MultiSelect = React.forwardRef<MultiSelectRef, MultiSelectProps>(
 					}
 				},
 			}),
-			[resetToDefault, selectedValues, onValueChange],
+			[
+				resetToDefault,
+				selectedValues,
+				onValueChange,
+			],
 		);
 
 		const [screenSize, setScreenSize] = React.useState<
@@ -461,9 +474,21 @@ export const MultiSelect = React.forwardRef<MultiSelectRef, MultiSelectProps>(
 			}
 			if (responsive === true) {
 				const defaultResponsive = {
-					mobile: { maxCount: 2, hideIcons: false, compactMode: true },
-					tablet: { maxCount: 4, hideIcons: false, compactMode: false },
-					desktop: { maxCount: 6, hideIcons: false, compactMode: false },
+					mobile: {
+						maxCount: 2,
+						hideIcons: false,
+						compactMode: true,
+					},
+					tablet: {
+						maxCount: 4,
+						hideIcons: false,
+						compactMode: false,
+					},
+					desktop: {
+						maxCount: 6,
+						hideIcons: false,
+						compactMode: false,
+					},
 				};
 				const currentSettings = defaultResponsive[screenSize];
 				return {
@@ -550,7 +575,11 @@ export const MultiSelect = React.forwardRef<MultiSelectRef, MultiSelectProps>(
 			});
 
 			return deduplicateOptions ? uniqueOptions : allOptions;
-		}, [options, deduplicateOptions, isGroupedOptions]);
+		}, [
+			options,
+			deduplicateOptions,
+			isGroupedOptions,
+		]);
 
 		const getOptionByValue = React.useCallback(
 			(value: string): MultiSelectOption | undefined => {
@@ -558,7 +587,9 @@ export const MultiSelect = React.forwardRef<MultiSelectRef, MultiSelectProps>(
 
 				return option;
 			},
-			[getAllOptions],
+			[
+				getAllOptions,
+			],
 		);
 
 		const filteredOptions = React.useMemo(() => {
@@ -583,7 +614,12 @@ export const MultiSelect = React.forwardRef<MultiSelectRef, MultiSelectProps>(
 					option.label.toLowerCase().includes(searchValue.toLowerCase()) ||
 					option.value.toLowerCase().includes(searchValue.toLowerCase()),
 			);
-		}, [options, searchValue, searchable, isGroupedOptions]);
+		}, [
+			options,
+			searchValue,
+			searchable,
+			isGroupedOptions,
+		]);
 
 		const handleInputKeyDown = (
 			event: React.KeyboardEvent<HTMLInputElement>,
@@ -591,7 +627,9 @@ export const MultiSelect = React.forwardRef<MultiSelectRef, MultiSelectProps>(
 			if (event.key === "Enter") {
 				setIsPopoverOpen(true);
 			} else if (event.key === "Backspace" && !event.currentTarget.value) {
-				const newSelectedValues = [...selectedValues];
+				const newSelectedValues = [
+					...selectedValues,
+				];
 				newSelectedValues.pop();
 				setSelectedValues(newSelectedValues);
 				onValueChange(newSelectedValues);
@@ -604,7 +642,10 @@ export const MultiSelect = React.forwardRef<MultiSelectRef, MultiSelectProps>(
 			if (option?.disabled) return;
 			const newSelectedValues = selectedValues.includes(optionValue)
 				? selectedValues.filter((value) => value !== optionValue)
-				: [...selectedValues, optionValue];
+				: [
+						...selectedValues,
+						optionValue,
+					];
 			setSelectedValues(newSelectedValues);
 			onValueChange(newSelectedValues);
 			if (closeOnSelect) {
@@ -656,9 +697,16 @@ export const MultiSelect = React.forwardRef<MultiSelectRef, MultiSelectProps>(
 				if (!arraysEqual(selectedValues, defaultValue)) {
 					setSelectedValues(defaultValue);
 				}
-				prevDefaultValueRef.current = [...defaultValue];
+				prevDefaultValueRef.current = [
+					...defaultValue,
+				];
 			}
-		}, [defaultValue, selectedValues, arraysEqual, resetOnDefaultValueChange]);
+		}, [
+			defaultValue,
+			selectedValues,
+			arraysEqual,
+			resetOnDefaultValueChange,
+		]);
 
 		const getWidthConstraints = () => {
 			const defaultMinWidth = screenSize === "mobile" ? "0px" : "200px";
@@ -677,7 +725,9 @@ export const MultiSelect = React.forwardRef<MultiSelectRef, MultiSelectProps>(
 			if (!isPopoverOpen) {
 				setSearchValue("");
 			}
-		}, [isPopoverOpen]);
+		}, [
+			isPopoverOpen,
+		]);
 
 		React.useEffect(() => {
 			const selectedCount = selectedValues.length;
@@ -740,7 +790,13 @@ export const MultiSelect = React.forwardRef<MultiSelectRef, MultiSelectProps>(
 				}
 				prevSearchValue.current = searchValue;
 			}
-		}, [selectedValues, isPopoverOpen, searchValue, announce, getAllOptions]);
+		}, [
+			selectedValues,
+			isPopoverOpen,
+			searchValue,
+			announce,
+			getAllOptions,
+		]);
 
 		return (
 			<>
@@ -842,7 +898,9 @@ export const MultiSelect = React.forwardRef<MultiSelectRef, MultiSelectProps>(
 															key={value}
 															className={cn(
 																getBadgeAnimationClass(),
-																multiSelectVariants({ variant }),
+																multiSelectVariants({
+																	variant,
+																}),
 																customStyle?.gradient &&
 																	"border-transparent text-white",
 																responsiveSettings.compactMode &&
@@ -869,7 +927,9 @@ export const MultiSelect = React.forwardRef<MultiSelectRef, MultiSelectProps>(
 																			customStyle?.iconColor && "text-current",
 																		)}
 																		{...(customStyle?.iconColor && {
-																			style: { color: customStyle.iconColor },
+																			style: {
+																				color: customStyle.iconColor,
+																			},
 																		})}
 																	/>
 																)}
@@ -917,7 +977,9 @@ export const MultiSelect = React.forwardRef<MultiSelectRef, MultiSelectProps>(
 													className={cn(
 														"border-foreground/1 bg-transparent text-foreground hover:bg-transparent",
 														getBadgeAnimationClass(),
-														multiSelectVariants({ variant }),
+														multiSelectVariants({
+															variant,
+														}),
 														responsiveSettings.compactMode &&
 															"px-1.5 py-0.5 text-xs",
 														singleLine && "shrink-0 whitespace-nowrap",

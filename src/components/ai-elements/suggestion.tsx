@@ -35,7 +35,10 @@ export const Suggestion = ({
 }: SuggestionProps) => {
 	const handleClick = useCallback(() => {
 		onClick?.(suggestion);
-	}, [onClick, suggestion]);
+	}, [
+		onClick,
+		suggestion,
+	]);
 
 	return (
 		<Button

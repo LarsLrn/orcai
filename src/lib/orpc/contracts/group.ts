@@ -20,7 +20,9 @@ export const listGroupsContract = base
 		method: "GET",
 		path: "/groups",
 		summary: "List groups in active organization",
-		tags: ["Groups"],
+		tags: [
+			"Groups",
+		],
 	})
 	.input(groupListInputSchema)
 	.output(groupListResponseSchema);
@@ -30,7 +32,9 @@ export const createGroupContract = base
 		method: "POST",
 		path: "/groups",
 		summary: "Create a custom group",
-		tags: ["Groups"],
+		tags: [
+			"Groups",
+		],
 	})
 	.input(groupInsertSchema)
 	.output(groupWriteResponseSchema);
@@ -40,7 +44,9 @@ export const findGroupContract = base
 		method: "GET",
 		path: "/groups/{id}",
 		summary: "Find a group",
-		tags: ["Groups"],
+		tags: [
+			"Groups",
+		],
 	})
 	.input(groupFindInputSchema)
 	.output(groupFindResponseSchema);
@@ -50,7 +56,9 @@ export const updateGroupContract = base
 		method: "PUT",
 		path: "/groups/{id}",
 		summary: "Update a custom group",
-		tags: ["Groups"],
+		tags: [
+			"Groups",
+		],
 	})
 	.input(groupUpdateSchema)
 	.output(groupWriteResponseSchema);
@@ -60,7 +68,9 @@ export const deleteGroupContract = base
 		method: "DELETE",
 		path: "/groups",
 		summary: "Delete groups",
-		tags: ["Groups"],
+		tags: [
+			"Groups",
+		],
 	})
 	.input(groupDeleteSchema)
 	.output(groupMembersMutateResponseSchema);
@@ -70,7 +80,9 @@ export const listGroupMembersContract = base
 		method: "GET",
 		path: "/groups/{groupId}/members",
 		summary: "List group members",
-		tags: ["Groups"],
+		tags: [
+			"Groups",
+		],
 	})
 	.input(groupListMembersInputSchema)
 	.output(groupListMembersResponseSchema);
@@ -80,7 +92,9 @@ export const addGroupMembersContract = base
 		method: "POST",
 		path: "/groups/{groupId}/members",
 		summary: "Add users to a custom group",
-		tags: ["Groups"],
+		tags: [
+			"Groups",
+		],
 	})
 	.input(groupAddMembersInputSchema)
 	.output(groupMembersMutateResponseSchema);
@@ -90,7 +104,9 @@ export const removeGroupMembersContract = base
 		method: "DELETE",
 		path: "/groups/{groupId}/members",
 		summary: "Remove users from a custom group",
-		tags: ["Groups"],
+		tags: [
+			"Groups",
+		],
 	})
 	.input(groupRemoveMembersInputSchema)
 	.output(groupMembersMutateResponseSchema);

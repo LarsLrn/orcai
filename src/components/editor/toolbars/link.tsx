@@ -28,12 +28,21 @@ const LinkToolbar = ({
 
 	const handleConfirm = () => {
 		const url = getUrlFromString(link);
-		url && editor?.chain().focus().setLink({ href: url }).run();
+		url &&
+			editor
+				?.chain()
+				.focus()
+				.setLink({
+					href: url,
+				})
+				.run();
 	};
 
 	useEffect(() => {
 		setLink(editor?.getAttributes("link").href ?? "");
-	}, [editor]);
+	}, [
+		editor,
+	]);
 
 	return (
 		<Popover>
@@ -41,7 +50,15 @@ const LinkToolbar = ({
 				<TooltipTrigger
 					render={
 						<PopoverTrigger
-							disabled={!editor?.can().chain().setLink({ href: "" }).run()}
+							disabled={
+								!editor
+									?.can()
+									.chain()
+									.setLink({
+										href: "",
+									})
+									.run()
+							}
 							render={
 								<Button
 									variant="ghost"

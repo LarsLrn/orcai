@@ -21,7 +21,11 @@ const BotQuickActions = ({ bot }: { bot: Bot }) => {
 			<CardContent className="space-y-2">
 				<Button
 					variant="outline"
-					onClick={() => createChat({ botId: bot.id })}
+					onClick={() =>
+						createChat({
+							botId: bot.id,
+						})
+					}
 					className="w-full justify-start gap-2"
 				>
 					<BotMessageSquareIcon className="size-4" />

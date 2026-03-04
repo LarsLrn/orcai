@@ -31,7 +31,9 @@ function RouteComponent() {
 	const { blockId } = Route.useParams();
 	const { data: block } = useSuspenseQuery(
 		orpc.block.find.queryOptions({
-			input: { id: blockId },
+			input: {
+				id: blockId,
+			},
 		}),
 	);
 

@@ -110,7 +110,11 @@ function RouteComponent() {
 							</Button>
 							<Button
 								disabled={!selectedBot}
-								onClick={() => createChat({ botId: selectedBot?.id })}
+								onClick={() =>
+									createChat({
+										botId: selectedBot?.id,
+									})
+								}
 							>
 								Start Chat
 							</Button>

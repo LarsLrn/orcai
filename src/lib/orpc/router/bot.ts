@@ -30,7 +30,9 @@ export const listBots = authed.bot.list.handler(async ({ input, context }) =>
 				Effect.map((response) => response.map((item) => item.resourceObjectId)),
 			);
 
-			const whereConditions = [inArray(dbSchema.bot.id, allowedIds)];
+			const whereConditions = [
+				inArray(dbSchema.bot.id, allowedIds),
+			];
 			if (input.search) {
 				whereConditions.push(ilike(dbSchema.bot.name, `%${input.search}%`));
 			}
@@ -38,17 +40,23 @@ export const listBots = authed.bot.list.handler(async ({ input, context }) =>
 			return yield* Effect.all(
 				[
 					db
-						.select({ ...getColumns(dbSchema.bot) })
+						.select({
+							...getColumns(dbSchema.bot),
+						})
 						.from(dbSchema.bot)
 						.where(and(...whereConditions))
 						.limit(input.pageSize)
 						.offset(input.pageIndex * input.pageSize),
 					db
-						.select({ count: count() })
+						.select({
+							count: count(),
+						})
 						.from(dbSchema.bot)
 						.where(and(...whereConditions)),
 				],
-				{ concurrency: "unbounded" },
+				{
+					concurrency: "unbounded",
+				},
 			).pipe(
 				Effect.map(([data, [countResult]]) => ({
 					data,
@@ -76,22 +84,33 @@ export const findBot = authed.bot.find
 				const db = yield* DB;
 
 				const [bot] = yield* db
-					.select({ ...getColumns(dbSchema.bot) })
+					.select({
+						...getColumns(dbSchema.bot),
+					})
 					.from(dbSchema.bot)
 					.where(eq(dbSchema.bot.id, input.id));
 
 				if (!bot) {
 					return yield* Effect.fail(
-						errors.NOT_FOUND({ message: "Bot not found" }),
+						errors.NOT_FOUND({
+							message: "Bot not found",
+						}),
 					);
 				}
 
 				const blockIds = yield* db
-					.select({ ...getColumns(dbSchema.botBlock) })
+					.select({
+						...getColumns(dbSchema.botBlock),
+					})
 					.from(dbSchema.botBlock)
 					.where(eq(dbSchema.botBlock.botId, bot.id));
 
-				return { data: { ...bot, blockIds: blockIds.map((b) => b.blockId) } };
+				return {
+					data: {
+						...bot,
+						blockIds: blockIds.map((b) => b.blockId),
+					},
+				};
 			}),
 		),
 	);
@@ -112,7 +131,9 @@ export const createBot = authed.bot.create
 						createdAt: new Date(),
 						updatedAt: new Date(),
 					})
-					.returning({ ...getColumns(dbSchema.bot) });
+					.returning({
+						...getColumns(dbSchema.bot),
+					});
 
 				const botBlocks = yield* db
 					.insert(dbSchema.botBlock)
@@ -123,7 +144,9 @@ export const createBot = authed.bot.create
 							createdAt: new Date(),
 						})),
 					)
-					.returning({ ...getColumns(dbSchema.botBlock) });
+					.returning({
+						...getColumns(dbSchema.botBlock),
+					});
 
 				let zedToken = (yield* initializeResourceAuthorization({
 					resourceType: "bot",
@@ -147,8 +170,13 @@ export const createBot = authed.bot.create
 				}
 
 				return {
-					data: { ...bot, blockIds: botBlocks.map((bb) => bb.blockId) },
-					meta: { zedToken },
+					data: {
+						...bot,
+						blockIds: botBlocks.map((bb) => bb.blockId),
+					},
+					meta: {
+						zedToken,
+					},
 				};
 			}),
 		),
@@ -184,7 +212,9 @@ export const updateBot = authed.bot.update
 						updatedAt: new Date(),
 					})
 					.where(eq(dbSchema.bot.id, input.id))
-					.returning({ ...getColumns(dbSchema.bot) });
+					.returning({
+						...getColumns(dbSchema.bot),
+					});
 
 				yield* db
 					.delete(dbSchema.botBlock)
@@ -199,7 +229,9 @@ export const updateBot = authed.bot.update
 							createdAt: new Date(),
 						})),
 					)
-					.returning({ ...getColumns(dbSchema.botBlock) });
+					.returning({
+						...getColumns(dbSchema.botBlock),
+					});
 
 				const { removedIds, addedIds } = calculateRelationDelta(
 					previousBlocks.map((block) => block.blockId),
@@ -230,7 +262,10 @@ export const updateBot = authed.bot.update
 				}
 
 				return {
-					data: { ...bot, blockIds: botBlocks.map((bb) => bb.blockId) },
+					data: {
+						...bot,
+						blockIds: botBlocks.map((bb) => bb.blockId),
+					},
 				};
 			}),
 		),
@@ -252,14 +287,20 @@ export const deleteBots = authed.bot.delete
 				const db = yield* DB;
 
 				if (!context.allowedIds || context.allowedIds.length === 0) {
-					return { success: true, message: "No bots to delete" };
+					return {
+						success: true,
+						message: "No bots to delete",
+					};
 				}
 
 				yield* db
 					.delete(dbSchema.bot)
 					.where(inArray(dbSchema.bot.id, context.allowedIds));
 
-				return { success: true, message: "Bots deleted successfully" };
+				return {
+					success: true,
+					message: "Bots deleted successfully",
+				};
 			}),
 		),
 	);

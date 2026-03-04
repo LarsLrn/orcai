@@ -45,7 +45,9 @@ const ResourceLink = ({ access }: { access: UserAccessEntry }) => {
 			return (
 				<Link
 					to="/app/hub/courses/$courseId"
-					params={{ courseId: access.resourceId }}
+					params={{
+						courseId: access.resourceId,
+					}}
 					className="text-primary hover:underline"
 				>
 					{access.resourceName ?? "Untitled course"}
@@ -55,7 +57,9 @@ const ResourceLink = ({ access }: { access: UserAccessEntry }) => {
 			return (
 				<Link
 					to="/app/hub/bots/$botId"
-					params={{ botId: access.resourceId }}
+					params={{
+						botId: access.resourceId,
+					}}
 					className="text-primary hover:underline"
 				>
 					{access.resourceName ?? "Untitled bot"}
@@ -65,7 +69,9 @@ const ResourceLink = ({ access }: { access: UserAccessEntry }) => {
 			return (
 				<Link
 					to="/app/hub/blocks/$blockId"
-					params={{ blockId: access.resourceId }}
+					params={{
+						blockId: access.resourceId,
+					}}
 					className="text-primary hover:underline"
 				>
 					{access.resourceName ?? "Untitled block"}
@@ -75,7 +81,9 @@ const ResourceLink = ({ access }: { access: UserAccessEntry }) => {
 			return (
 				<Link
 					to="/app/hub/assets/$assetId"
-					params={{ assetId: access.resourceId }}
+					params={{
+						assetId: access.resourceId,
+					}}
 					className="text-primary hover:underline"
 				>
 					{access.resourceName ?? "Untitled asset"}
@@ -128,7 +136,9 @@ const ResourceTypeLabel = ({
 const UserAccessOverview = ({ userId }: UserAccessOverviewProps) => {
 	const access = useQuery(
 		orpc.user.listAccess.queryOptions({
-			input: { id: userId },
+			input: {
+				id: userId,
+			},
 		}),
 	);
 

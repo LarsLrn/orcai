@@ -14,7 +14,9 @@ export const listAssetPointContract = base
 		method: "POST",
 		path: "/assets/points",
 		summary: "List all asset points",
-		tags: ["Asset Points"],
+		tags: [
+			"Asset Points",
+		],
 	})
 	.input(
 		z.object({
@@ -25,7 +27,12 @@ export const listAssetPointContract = base
 				limit: z.number().int().min(1).optional(),
 				blockId: baseBlockSelectSchema.shape.id.optional(),
 				minScore: z.number().min(0).max(1).optional(),
-				retrievalMode: z.enum(["dense", "hybrid"]).optional(),
+				retrievalMode: z
+					.enum([
+						"dense",
+						"hybrid",
+					])
+					.optional(),
 				candidateLimit: z.number().int().min(1).max(200).optional(),
 				denseWeight: z.number().min(0).max(1).optional(),
 				lexicalWeight: z.number().min(0).max(1).optional(),
@@ -42,7 +49,10 @@ export const listAssetPointContract = base
 			data: z.array(assetPointSelectSchema),
 			metadata: z
 				.object({
-					retrievalMode: z.enum(["dense", "hybrid"]),
+					retrievalMode: z.enum([
+						"dense",
+						"hybrid",
+					]),
 					scoreThreshold: z.number().min(0).max(1),
 					candidateCount: z.number().int().min(0),
 					returnedCount: z.number().int().min(0),
@@ -56,43 +66,69 @@ export const createAssetPointContract = base
 		method: "POST",
 		path: "/assets/{assetId}/points",
 		summary: "Create an asset point",
-		tags: ["Asset Points"],
+		tags: [
+			"Asset Points",
+		],
 	})
 	.input(assetPointInsertSchema)
-	.output(z.object({ data: assetPointSelectSchema }));
+	.output(
+		z.object({
+			data: assetPointSelectSchema,
+		}),
+	);
 
 export const findAssetPointContract = base
 	.route({
 		method: "GET",
 		path: "/assets/{assetId}/points/{id}",
 		summary: "Find an asset point",
-		tags: ["Asset Points"],
+		tags: [
+			"Asset Points",
+		],
 	})
-	.input(assetPointSelectSchema.pick({ id: true }))
-	.output(z.object({ data: assetPointSelectSchema }));
+	.input(
+		assetPointSelectSchema.pick({
+			id: true,
+		}),
+	)
+	.output(
+		z.object({
+			data: assetPointSelectSchema,
+		}),
+	);
 
 export const updateAssetPointContract = base
 	.route({
 		method: "PUT",
 		path: "/assets/{assetId}/points/{id}",
 		summary: "Update an asset point",
-		tags: ["Asset Points"],
+		tags: [
+			"Asset Points",
+		],
 	})
 	.errors({
 		NOT_FOUND: {
 			message: "Asset point not found",
-			data: assetPointSelectSchema.pick({ id: true }),
+			data: assetPointSelectSchema.pick({
+				id: true,
+			}),
 		},
 	})
 	.input(assetPointUpdateSchema)
-	.output(z.object({ data: assetPointSelectSchema }));
+	.output(
+		z.object({
+			data: assetPointSelectSchema,
+		}),
+	);
 
 export const deleteAssetPointContract = base
 	.route({
 		method: "DELETE",
 		path: "/assets/{assetId}/points",
 		summary: "Delete an asset point",
-		tags: ["Asset Points"],
+		tags: [
+			"Asset Points",
+		],
 	})
 	.input(assetPointDeleteSchema)
 	.output(statusSchema);

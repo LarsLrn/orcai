@@ -23,12 +23,18 @@ const FormValidationErrors = ({
 	const formErrorMap = useStore(form.store, (state) => state.errorMap);
 
 	// Collect all field errors
-	const fieldErrors: Array<{ field: string; message: string }> = [];
+	const fieldErrors: Array<{
+		field: string;
+		message: string;
+	}> = [];
 	for (const [fieldName, meta] of Object.entries(fieldMeta)) {
 		if (meta?.errors?.length) {
 			for (const error of meta.errors) {
 				if (typeof error === "string") {
-					fieldErrors.push({ field: fieldName, message: error });
+					fieldErrors.push({
+						field: fieldName,
+						message: error,
+					});
 				} else if (error && typeof error === "object" && "message" in error) {
 					fieldErrors.push({
 						field: fieldName,

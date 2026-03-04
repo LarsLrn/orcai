@@ -8,7 +8,9 @@ const SubmitButton = ({
 	variant,
 	size,
 	...props
-}: { label: string } & React.ComponentProps<"button"> &
+}: {
+	label: string;
+} & React.ComponentProps<"button"> &
 	VariantProps<typeof buttonVariants>) => {
 	const form = useFormContext();
 	return (

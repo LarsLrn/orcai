@@ -19,7 +19,9 @@ function RouteComponent() {
 	const { orgId } = Route.useParams();
 	const { data: organization } = useSuspenseQuery(
 		orpc.organization.find.queryOptions({
-			input: { id: orgId },
+			input: {
+				id: orgId,
+			},
 		}),
 	);
 
@@ -30,8 +32,12 @@ function RouteComponent() {
 				<PageAction>
 					<Link
 						to="/app/orgs/$orgId/edit"
-						params={{ orgId }}
-						className={buttonVariants({ variant: "default" })}
+						params={{
+							orgId,
+						}}
+						className={buttonVariants({
+							variant: "default",
+						})}
 					>
 						Edit Organization
 					</Link>

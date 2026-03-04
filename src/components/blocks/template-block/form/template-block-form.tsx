@@ -21,11 +21,15 @@ const TemplateBlockForm = ({
 	const { mutate: createBlock } = useCreateBlockMutation();
 	const { mutate: updateBlock } = useUpdateBlockMutation();
 
-	const { auth } = useRouteContext({ from: "/app" });
+	const { auth } = useRouteContext({
+		from: "/app",
+	});
 
 	const { data: providers } = useSuspenseQuery(
 		orpc.provider.list.queryOptions({
-			input: { organizationId: auth.session.activeOrganizationId },
+			input: {
+				organizationId: auth.session.activeOrganizationId,
+			},
 		}),
 	);
 
@@ -33,7 +37,10 @@ const TemplateBlockForm = ({
 		...templateBlockFormOptions(block),
 		onSubmit: ({ value }) => {
 			if (action === "update" && block) {
-				updateBlock({ ...value, id: block.id });
+				updateBlock({
+					...value,
+					id: block.id,
+				});
 			} else {
 				createBlock(value);
 			}
@@ -48,7 +55,14 @@ const TemplateBlockForm = ({
 	const { data: models } = useQuery(
 		orpc.model.list.queryOptions({
 			input: providerId
-				? { filters: { providerId, capabilities: ["text"] } }
+				? {
+						filters: {
+							providerId,
+							capabilities: [
+								"text",
+							],
+						},
+					}
 				: skipToken,
 		}),
 	);

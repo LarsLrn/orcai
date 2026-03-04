@@ -39,7 +39,9 @@ const convertDocument = ({
 		return yield* Effect.tryPromise({
 			try: (signal) => {
 				const formData = new FormData();
-				const fileBlob = new Blob([Buffer.from(params.document)]);
+				const fileBlob = new Blob([
+					Buffer.from(params.document),
+				]);
 				formData.append("document", fileBlob, params.filename);
 
 				const searchParams = new URLSearchParams({

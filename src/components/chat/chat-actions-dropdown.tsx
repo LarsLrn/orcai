@@ -21,7 +21,9 @@ const ChatActionsDropdown = ({
 	chatId: string;
 	title: string | null;
 }) => {
-	const params = useParams({ strict: false });
+	const params = useParams({
+		strict: false,
+	});
 	const navigate = useNavigate();
 
 	const { mutate: deleteChats } = useDeleteChatsMutation({
@@ -31,7 +33,9 @@ const ChatActionsDropdown = ({
 
 			// Navigate away before deleting to avoid rendering a deleted chat entry.
 			if (isCurrentChatSelected) {
-				await navigate({ to: "/app/chat" });
+				await navigate({
+					to: "/app/chat",
+				});
 			}
 		},
 	});
@@ -45,7 +49,11 @@ const ChatActionsDropdown = ({
 		e.stopPropagation();
 		setIsDropdownOpen(false);
 		deleteChats({
-			refs: [{ id: chatId }],
+			refs: [
+				{
+					id: chatId,
+				},
+			],
 		});
 	};
 
@@ -73,7 +81,10 @@ const ChatActionsDropdown = ({
 				entityLabel="Chat"
 				isSubmitting={isUpdatingChat}
 				onSubmit={async (nextTitle) => {
-					const result = await updateChat({ id: chatId, title: nextTitle });
+					const result = await updateChat({
+						id: chatId,
+						title: nextTitle,
+					});
 
 					if (result.status === "success") {
 						setIsRenameDialogOpen(false);

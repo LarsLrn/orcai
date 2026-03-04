@@ -18,29 +18,89 @@ import { MobileToolbarGroup, MobileToolbarItem } from "./mobile-toolbar-group";
 import { useToolbar } from "./toolbar-provider";
 
 const TEXT_COLORS = [
-	{ name: "Default", color: "var(--editor-text-default)" },
-	{ name: "Gray", color: "var(--editor-text-gray)" },
-	{ name: "Brown", color: "var(--editor-text-brown)" },
-	{ name: "Orange", color: "var(--editor-text-orange)" },
-	{ name: "Yellow", color: "var(--editor-text-yellow)" },
-	{ name: "Green", color: "var(--editor-text-green)" },
-	{ name: "Blue", color: "var(--editor-text-blue)" },
-	{ name: "Purple", color: "var(--editor-text-purple)" },
-	{ name: "Pink", color: "var(--editor-text-pink)" },
-	{ name: "Red", color: "var(--editor-text-red)" },
+	{
+		name: "Default",
+		color: "var(--editor-text-default)",
+	},
+	{
+		name: "Gray",
+		color: "var(--editor-text-gray)",
+	},
+	{
+		name: "Brown",
+		color: "var(--editor-text-brown)",
+	},
+	{
+		name: "Orange",
+		color: "var(--editor-text-orange)",
+	},
+	{
+		name: "Yellow",
+		color: "var(--editor-text-yellow)",
+	},
+	{
+		name: "Green",
+		color: "var(--editor-text-green)",
+	},
+	{
+		name: "Blue",
+		color: "var(--editor-text-blue)",
+	},
+	{
+		name: "Purple",
+		color: "var(--editor-text-purple)",
+	},
+	{
+		name: "Pink",
+		color: "var(--editor-text-pink)",
+	},
+	{
+		name: "Red",
+		color: "var(--editor-text-red)",
+	},
 ];
 
 const HIGHLIGHT_COLORS = [
-	{ name: "Default", color: "var(--editor-highlight-default)" },
-	{ name: "Gray", color: "var(--editor-highlight-gray)" },
-	{ name: "Brown", color: "var(--editor-highlight-brown)" },
-	{ name: "Orange", color: "var(--editor-highlight-orange)" },
-	{ name: "Yellow", color: "var(--editor-highlight-yellow)" },
-	{ name: "Green", color: "var(--editor-highlight-green)" },
-	{ name: "Blue", color: "var(--editor-highlight-blue)" },
-	{ name: "Purple", color: "var(--editor-highlight-purple)" },
-	{ name: "Pink", color: "var(--editor-highlight-pink)" },
-	{ name: "Red", color: "var(--editor-highlight-red)" },
+	{
+		name: "Default",
+		color: "var(--editor-highlight-default)",
+	},
+	{
+		name: "Gray",
+		color: "var(--editor-highlight-gray)",
+	},
+	{
+		name: "Brown",
+		color: "var(--editor-highlight-brown)",
+	},
+	{
+		name: "Orange",
+		color: "var(--editor-highlight-orange)",
+	},
+	{
+		name: "Yellow",
+		color: "var(--editor-highlight-yellow)",
+	},
+	{
+		name: "Green",
+		color: "var(--editor-highlight-green)",
+	},
+	{
+		name: "Blue",
+		color: "var(--editor-highlight-blue)",
+	},
+	{
+		name: "Purple",
+		color: "var(--editor-highlight-purple)",
+	},
+	{
+		name: "Pink",
+		color: "var(--editor-highlight-pink)",
+	},
+	{
+		name: "Red",
+		color: "var(--editor-highlight-red)",
+	},
 ];
 
 interface ColorHighlightButtonProps {
@@ -66,7 +126,15 @@ const ColorHighlightButton = ({
 		<div className="flex items-center space-x-2">
 			<div
 				className="rounded-sm border px-1 py-px font-medium"
-				style={isHighlight ? { backgroundColor: color } : { color }}
+				style={
+					isHighlight
+						? {
+								backgroundColor: color,
+							}
+						: {
+								color,
+							}
+				}
 			>
 				A
 			</div>
@@ -95,7 +163,15 @@ export const ColorHighlightToolbar = () => {
 		editor
 			?.chain()
 			.focus()
-			.setHighlight(color === currentHighlight ? { color: "" } : { color })
+			.setHighlight(
+				color === currentHighlight
+					? {
+							color: "",
+						}
+					: {
+							color,
+						},
+			)
 			.run();
 	};
 
@@ -114,7 +190,12 @@ export const ColorHighlightToolbar = () => {
 							active={currentColor === color}
 						>
 							<div className="flex items-center gap-2">
-								<div className="rounded-sm border px-2" style={{ color }}>
+								<div
+									className="rounded-sm border px-2"
+									style={{
+										color,
+									}}
+								>
 									A
 								</div>
 								<span>{name}</span>
@@ -133,7 +214,9 @@ export const ColorHighlightToolbar = () => {
 							<div className="flex items-center gap-2">
 								<div
 									className="rounded-sm border px-2"
-									style={{ backgroundColor: color }}
+									style={{
+										backgroundColor: color,
+									}}
 								>
 									A
 								</div>

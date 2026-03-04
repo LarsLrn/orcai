@@ -5,14 +5,18 @@ import { useUpdateProfileMutation } from "@/hooks/mutations/use-profile-mutation
 import type { User } from "@/lib/orpc/schemas/user";
 
 const ProfileForm = () => {
-	const { auth } = useRouteContext({ from: "/app" });
+	const { auth } = useRouteContext({
+		from: "/app",
+	});
 	const { mutate: updateProfile } = useUpdateProfileMutation();
 
 	const form = useAppForm({
 		// TODO: Improve type after refactoring schemas
 		...profileFormOptions(auth.user as Omit<User, "preferences">),
 		onSubmit: ({ value }) => {
-			updateProfile({ name: value.name ?? "" }); // FIXME: Check why name can be undefined
+			updateProfile({
+				name: value.name ?? "",
+			}); // FIXME: Check why name can be undefined
 		},
 	});
 

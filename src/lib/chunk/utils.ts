@@ -44,12 +44,18 @@ export function extractMarkdownImages(markdown: string): {
 		},
 	);
 
-	return { modifiedMarkdown, extractedImages };
+	return {
+		modifiedMarkdown,
+		extractedImages,
+	};
 }
 
 export const extractFileInfoFromReference = (
 	input: string,
-): { id: string; extension: string | null } | null => {
+): {
+	id: string;
+	extension: string | null;
+} | null => {
 	// For markdown image syntax: ![Alt text](image-guid.extension)
 	if (input.includes("![") && input.includes("](")) {
 		// Extract both the ID and extension if present
@@ -58,7 +64,10 @@ export const extractFileInfoFromReference = (
 
 		const id = fullMatch[1];
 		const extension = fullMatch[3] || null;
-		return { id, extension };
+		return {
+			id,
+			extension,
+		};
 	}
 
 	// For file paths: path/to/image-guid.extension
@@ -71,8 +80,14 @@ export const extractFileInfoFromReference = (
 		const dotIndex = lastSegment.lastIndexOf(".");
 		const id = lastSegment.substring(0, dotIndex);
 		const extension = lastSegment.substring(dotIndex + 1);
-		return { id, extension };
+		return {
+			id,
+			extension,
+		};
 	}
 	// No extension present
-	return { id: lastSegment, extension: null };
+	return {
+		id: lastSegment,
+		extension: null,
+	};
 };

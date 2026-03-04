@@ -2,7 +2,9 @@ import type { UseMutationOptions } from "@tanstack/react-query";
 import { useMutationAction } from "@/hooks/actions/use-mutation-action";
 import { authClient } from "@/lib/auth/auth-client";
 
-type UpdateProfileInput = { name: string };
+type UpdateProfileInput = {
+	name: string;
+};
 type UpdateProfileMutationOptions = UseMutationOptions<
 	void,
 	unknown,

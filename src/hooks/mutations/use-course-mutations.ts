@@ -20,7 +20,9 @@ export const useCreateCourseMutation = (
 
 					await router.navigate({
 						to: "/app/hub/courses/$courseId",
-						params: { courseId: result.data.id },
+						params: {
+							courseId: result.data.id,
+						},
 					});
 
 					try {

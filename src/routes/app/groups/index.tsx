@@ -50,7 +50,9 @@ function RouteComponent() {
 		mutationOptions: () =>
 			orpc.group.create.mutationOptions({
 				onSuccess: () => {
-					queryClient.invalidateQueries({ queryKey: orpc.group.key() });
+					queryClient.invalidateQueries({
+						queryKey: orpc.group.key(),
+					});
 					setIsCreateOpen(false);
 					setName("");
 					setDescription("");
@@ -67,7 +69,9 @@ function RouteComponent() {
 		mutationOptions: () =>
 			orpc.group.delete.mutationOptions({
 				onSuccess: () => {
-					queryClient.invalidateQueries({ queryKey: orpc.group.key() });
+					queryClient.invalidateQueries({
+						queryKey: orpc.group.key(),
+					});
 				},
 			}),
 		messages: {
@@ -152,8 +156,13 @@ function RouteComponent() {
 							<div className="flex items-center justify-end gap-2">
 								<Link
 									to="/app/groups/$groupId"
-									params={{ groupId: group.id }}
-									className={buttonVariants({ variant: "outline", size: "sm" })}
+									params={{
+										groupId: group.id,
+									}}
+									className={buttonVariants({
+										variant: "outline",
+										size: "sm",
+									})}
 								>
 									<UsersIcon className="mr-1 h-3.5 w-3.5" />
 									Manage
@@ -163,7 +172,13 @@ function RouteComponent() {
 										variant="outline"
 										size="sm"
 										onClick={() =>
-											deleteGroup.mutate({ refs: [{ id: group.id }] })
+											deleteGroup.mutate({
+												refs: [
+													{
+														id: group.id,
+													},
+												],
+											})
 										}
 									>
 										<Trash2Icon className="h-3.5 w-3.5" />

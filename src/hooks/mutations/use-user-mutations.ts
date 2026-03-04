@@ -16,7 +16,9 @@ export const useSetActiveOrganizationMutation = (
 			orpc.user.setActiveOrganization.mutationOptions({
 				...opts,
 				onSuccess: async (...args) => {
-					await navigate({ to: "/app" });
+					await navigate({
+						to: "/app",
+					});
 					await refetchSession();
 					queryClient.clear();
 

@@ -6,7 +6,9 @@ export const chatBranch = pgTable("chat_branch", {
 	id: uuid("id").primaryKey().notNull().defaultRandom(),
 	chatId: uuid("chat_id")
 		.notNull()
-		.references(() => chat.id, { onDelete: "cascade" }),
+		.references(() => chat.id, {
+			onDelete: "cascade",
+		}),
 	// The Head Pointer: This determines the content of the branch
 	leafMessageId: uuid("leaf_message_id").references(() => chatMessage.id),
 	name: varchar("name").notNull(),

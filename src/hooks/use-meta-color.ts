@@ -13,7 +13,9 @@ export function useMetaColor() {
 		return resolvedTheme !== "dark"
 			? META_THEME_COLORS.light
 			: META_THEME_COLORS.dark;
-	}, [resolvedTheme]);
+	}, [
+		resolvedTheme,
+	]);
 
 	const setMetaColor = useCallback((color: string) => {
 		document

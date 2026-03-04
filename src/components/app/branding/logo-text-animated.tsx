@@ -19,7 +19,10 @@ const AnimatePath = ({
 	return (
 		<g transform={transform}>
 			<motion.path
-				initial={{ pathLength: 0, fill: `rgba(${color},0)` }}
+				initial={{
+					pathLength: 0,
+					fill: `rgba(${color},0)`,
+				}}
 				animate={{
 					pathLength: 1,
 					fill: `rgb(${color})`,
@@ -39,7 +42,9 @@ const AnimatePath = ({
 				d={d}
 				stroke={`rgb(${color})`}
 				strokeWidth={4}
-				style={{ fillRule: "nonzero" }}
+				style={{
+					fillRule: "nonzero",
+				}}
 			/>
 		</g>
 	);

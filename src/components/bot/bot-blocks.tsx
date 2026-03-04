@@ -36,7 +36,9 @@ const BotBlocks = ({ blocks }: { blocks: Block[] }) => {
 									primary: {
 										linkProps: {
 											to: "/app/hub/blocks/$blockId",
-											params: { blockId: block.id },
+											params: {
+												blockId: block.id,
+											},
 										},
 									},
 								}}

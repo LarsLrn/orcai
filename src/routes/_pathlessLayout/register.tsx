@@ -23,11 +23,16 @@ export const Route = createFileRoute("/_pathlessLayout/register")({
 	}),
 	loader: async ({ deps, context: { queryClient } }) => {
 		const status = await queryClient.ensureQueryData(
-			orpc.bootstrap.status.queryOptions({ input: {} }),
+			orpc.bootstrap.status.queryOptions({
+				input: {},
+			}),
 		);
 
 		if (!status.data.initialized) {
-			throw redirect({ to: "/init", statusCode: 302 });
+			throw redirect({
+				to: "/init",
+				statusCode: 302,
+			});
 		}
 
 		if (!deps.inv) {
@@ -36,7 +41,9 @@ export const Route = createFileRoute("/_pathlessLayout/register")({
 
 		const validation = await queryClient.ensureQueryData(
 			orpc.organizationInvitation.validate.queryOptions({
-				input: { id: deps.inv },
+				input: {
+					id: deps.inv,
+				},
 			}),
 		);
 

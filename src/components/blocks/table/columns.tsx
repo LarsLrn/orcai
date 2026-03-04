@@ -46,7 +46,12 @@ export const columns: ColumnDef<Block>[] = [
 			<DataTableColumnHeader column={column} title="Name" />
 		),
 		cell: ({ row }) => (
-			<Link to="/app/hub/blocks/$blockId" params={{ blockId: row.original.id }}>
+			<Link
+				to="/app/hub/blocks/$blockId"
+				params={{
+					blockId: row.original.id,
+				}}
+			>
 				{row.original.name}
 			</Link>
 		),
@@ -82,12 +87,19 @@ const ActionCell = ({ block }: { block: Block }) => {
 					}
 				/>
 				<DropdownMenuContent align="end">
-					<Link to="/app/hub/blocks/$blockId" params={{ blockId: block.id }}>
+					<Link
+						to="/app/hub/blocks/$blockId"
+						params={{
+							blockId: block.id,
+						}}
+					>
 						<DropdownMenuItem>View Block</DropdownMenuItem>
 					</Link>
 					<Link
 						to="/app/hub/blocks/$blockId/edit"
-						params={{ blockId: block.id }}
+						params={{
+							blockId: block.id,
+						}}
 					>
 						<DropdownMenuItem>Edit Block</DropdownMenuItem>
 					</Link>
@@ -107,7 +119,10 @@ const ActionCell = ({ block }: { block: Block }) => {
 			<AccessDialog
 				open={isAccessOpen}
 				onOpenChange={setIsAccessOpen}
-				resourceRef={{ type: "block", id: block.id }}
+				resourceRef={{
+					type: "block",
+					id: block.id,
+				}}
 				resourceName={block.name}
 			/>
 		</>
@@ -120,7 +135,15 @@ const DeleteItem = ({ blockId }: { blockId: Block["id"] }) => {
 	return (
 		<DropdownMenuItem
 			variant="destructive"
-			onClick={() => deleteBlocks({ refs: [{ id: blockId }] })}
+			onClick={() =>
+				deleteBlocks({
+					refs: [
+						{
+							id: blockId,
+						},
+					],
+				})
+			}
 		>
 			Delete Block
 		</DropdownMenuItem>

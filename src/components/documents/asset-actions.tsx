@@ -50,9 +50,14 @@ const AssetActions = ({
 			{/* Processing Actions */}
 			<div className="flex flex-wrap items-center gap-2">
 				<Link
-					className={buttonVariants({ size: "sm", variant: "outline" })}
+					className={buttonVariants({
+						size: "sm",
+						variant: "outline",
+					})}
 					to={"/app/hub/assets/$assetId/edit"}
-					params={{ assetId: assetInfo.id }}
+					params={{
+						assetId: assetInfo.id,
+					}}
 				>
 					<PencilIcon className="h-4 w-4" />
 					<span className="hidden sm:inline">Edit</span>
@@ -64,7 +69,15 @@ const AssetActions = ({
 							<Button
 								variant="destructive"
 								size="sm"
-								onClick={() => deleteAssets({ refs: [{ id: assetInfo.id }] })}
+								onClick={() =>
+									deleteAssets({
+										refs: [
+											{
+												id: assetInfo.id,
+											},
+										],
+									})
+								}
 								className="flex items-center gap-1"
 							>
 								<Trash2 className="h-4 w-4" />

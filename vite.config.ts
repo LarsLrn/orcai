@@ -12,7 +12,11 @@ export default defineConfig({
 		port: 3000,
 	},
 	ssr: {
-		noExternal: ["nextstepjs", "motion", "streamdown"],
+		noExternal: [
+			"nextstepjs",
+			"motion",
+			"streamdown",
+		],
 	},
 	resolve: {
 		// Mock Next.js navigation imports that nextstepjs tries to access
@@ -31,25 +35,40 @@ export default defineConfig({
 			outdir: "./src/paraglide",
 			outputStructure: "message-modules",
 			cookieName: "PARAGLIDE_LOCALE",
-			strategy: ["url", "cookie", "preferredLanguage", "baseLocale"],
+			strategy: [
+				"url",
+				"cookie",
+				"preferredLanguage",
+				"baseLocale",
+			],
 			urlPatterns: [
 				{
 					pattern: "/:path(.*)?",
 					localized: [
-						["en", "/:path(.*)?"],
-						["de", "/de/:path(.*)?"],
+						[
+							"en",
+							"/:path(.*)?",
+						],
+						[
+							"de",
+							"/de/:path(.*)?",
+						],
 					],
 				},
 			],
 		}),
 		tsConfigPaths({
-			projects: ["./tsconfig.json"],
+			projects: [
+				"./tsconfig.json",
+			],
 		}),
 		tailwindcss(),
 		tanstackStart(),
 		viteReact({
 			babel: {
-				plugins: ["babel-plugin-react-compiler"],
+				plugins: [
+					"babel-plugin-react-compiler",
+				],
 			},
 		}),
 	],

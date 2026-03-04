@@ -51,7 +51,11 @@ export const organizationUpdateSchema = createUpdateSchema(
  */
 
 export const organizationDeleteSchema = z.object({
-	refs: z.array(organizationUpdateSchema.pick({ id: true })),
+	refs: z.array(
+		organizationUpdateSchema.pick({
+			id: true,
+		}),
+	),
 });
 
 /**

@@ -40,8 +40,15 @@ const toClientUploadError = (error: unknown): ClientUploadError => {
 	}
 
 	if (error instanceof Error) {
-		const maybeErrorData = (error as Error & { data?: unknown }).data as
-			| { type?: unknown; message?: unknown }
+		const maybeErrorData = (
+			error as Error & {
+				data?: unknown;
+			}
+		).data as
+			| {
+					type?: unknown;
+					message?: unknown;
+			  }
 			| undefined;
 
 		if (maybeErrorData && isClientUploadErrorType(maybeErrorData.type)) {
@@ -71,7 +78,10 @@ const toStringMetadata = (metadata?: ServerMetadata) =>
 		? Object.fromEntries(
 				Object.entries(metadata)
 					.filter(([, value]) => typeof value === "string")
-					.map(([key, value]) => [key, String(value)]),
+					.map(([key, value]) => [
+						key,
+						String(value),
+					]),
 			)
 		: undefined;
 
@@ -111,35 +121,50 @@ export function useUploadFiles({
 	const [isPending, setIsPending] = useState(false);
 	const [error, setError] = useState<ClientUploadError | null>(null);
 
-	const uploadsArray = useMemo(() => Array.from(uploads.values()), [uploads]);
+	const uploadsArray = useMemo(
+		() => Array.from(uploads.values()),
+		[
+			uploads,
+		],
+	);
 	const uploadedFiles = useMemo(
 		() =>
 			uploadsArray.filter(
 				(file) => file.status === "complete",
 			) as FileUploadInfo<"complete">[],
-		[uploadsArray],
+		[
+			uploadsArray,
+		],
 	);
 	const failedFiles = useMemo(
 		() =>
 			uploadsArray.filter(
 				(file) => file.status === "failed",
 			) as FileUploadInfo<"failed">[],
-		[uploadsArray],
+		[
+			uploadsArray,
+		],
 	);
 	const allSucceeded = useMemo(
 		() => uploadsArray.every((file) => file.status === "complete"),
-		[uploadsArray],
+		[
+			uploadsArray,
+		],
 	);
 	const hasFailedFiles = useMemo(
 		() => uploadsArray.some((file) => file.status === "failed"),
-		[uploadsArray],
+		[
+			uploadsArray,
+		],
 	);
 	const isSettled = useMemo(
 		() =>
 			uploadsArray.every(
 				(file) => file.status === "complete" || file.status === "failed",
 			),
-		[uploadsArray],
+		[
+			uploadsArray,
+		],
 	);
 	const averageProgress = useMemo(() => {
 		if (uploadsArray.length === 0) {
@@ -150,7 +175,9 @@ export function useUploadFiles({
 			uploadsArray.reduce((acc, file) => acc + file.progress, 0) /
 			uploadsArray.length
 		);
-	}, [uploadsArray]);
+	}, [
+		uploadsArray,
+	]);
 
 	const reset = useCallback(() => {
 		setUploads(new Map<string, FileUploadInfo<UploadStatus>>());
@@ -162,7 +189,11 @@ export function useUploadFiles({
 	const uploadAsync = useCallback(
 		async (
 			files: File[] | FileList,
-			{ metadata }: { metadata?: ServerMetadata } = {},
+			{
+				metadata,
+			}: {
+				metadata?: ServerMetadata;
+			} = {},
 		) => {
 			reset();
 
@@ -180,7 +211,9 @@ export function useUploadFiles({
 				let filesToUpload = fileArray;
 
 				if (onBeforeUpload) {
-					const callbackResult = await onBeforeUpload({ files: fileArray });
+					const callbackResult = await onBeforeUpload({
+						files: fileArray,
+					});
 
 					if (Array.isArray(callbackResult)) {
 						if (callbackResult.length === 0) {
@@ -231,7 +264,9 @@ export function useUploadFiles({
 						setUploads((prev) => new Map(prev).set(file.objectKey, file));
 
 						if (file.status === "uploading") {
-							onUploadProgress?.({ file: file as FileUploadInfo<"uploading"> });
+							onUploadProgress?.({
+								file: file as FileUploadInfo<"uploading">,
+							});
 						}
 					},
 				});
@@ -255,7 +290,11 @@ export function useUploadFiles({
 				return result;
 			} catch (error) {
 				setIsPending(false);
-				await onUploadSettle?.({ files: [], failedFiles: [], metadata: {} });
+				await onUploadSettle?.({
+					files: [],
+					failedFiles: [],
+					metadata: {},
+				});
 
 				const clientError = toClientUploadError(error);
 				const uploadError = new ClientUploadErrorClass(clientError);

@@ -21,7 +21,10 @@ const ModelForm = ({
 
 	const providers = useQuery(
 		orpc.provider.list.queryOptions({
-			input: { pageIndex: 0, pageSize: 100 },
+			input: {
+				pageIndex: 0,
+				pageSize: 100,
+			},
 		}),
 	);
 

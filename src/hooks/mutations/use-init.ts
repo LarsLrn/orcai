@@ -45,7 +45,10 @@ export const useInit = () => {
 			onSuccess: () => {
 				trackEvent("app-init");
 				refetchSession();
-				navigate({ to: "/app", replace: true });
+				navigate({
+					to: "/app",
+					replace: true,
+				});
 			},
 		}),
 		messages: {

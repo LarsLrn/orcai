@@ -94,14 +94,18 @@ function RouteComponent() {
 					<p className="text-xl">Legal</p>
 					<div className="flex gap-2">
 						<Link
-							className={buttonVariants({ variant: "outline" })}
+							className={buttonVariants({
+								variant: "outline",
+							})}
 							to={"/privacy"}
 							target="_blank"
 						>
 							<FileTextIcon /> Privacy Policy
 						</Link>
 						<Link
-							className={buttonVariants({ variant: "outline" })}
+							className={buttonVariants({
+								variant: "outline",
+							})}
 							to={"/tou"}
 							target="_blank"
 						>

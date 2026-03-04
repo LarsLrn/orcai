@@ -32,7 +32,15 @@ const SimplePlaceholder = ({
 } & VariantProps<typeof variants> &
 	React.ComponentProps<"div">): React.ReactNode => {
 	return (
-		<div {...props} className={cn(variants({ variant, className }))}>
+		<div
+			{...props}
+			className={cn(
+				variants({
+					variant,
+					className,
+				}),
+			)}
+		>
 			<Icon size={iconSize} />
 			<span>{children}</span>
 		</div>

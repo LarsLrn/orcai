@@ -5,7 +5,9 @@ export const Route = createFileRoute("/app/hub/bots/$botId")({
 	loader: async ({ context: { queryClient }, params: { botId } }) => {
 		return await queryClient.ensureQueryData(
 			orpc.bot.find.queryOptions({
-				input: { id: botId },
+				input: {
+					id: botId,
+				},
 			}),
 		);
 	},

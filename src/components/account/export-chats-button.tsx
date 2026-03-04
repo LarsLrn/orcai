@@ -7,7 +7,14 @@ const ExportChatsButton = ({ traces }: { traces: FilteredTrace[] }) => {
 	const handleExport = () => {
 		// Create a JSON blob from the traces
 		const jsonData = JSON.stringify(traces, null, 2);
-		const blob = new Blob([jsonData], { type: "application/json" });
+		const blob = new Blob(
+			[
+				jsonData,
+			],
+			{
+				type: "application/json",
+			},
+		);
 
 		// Create a download link
 		const url = URL.createObjectURL(blob);

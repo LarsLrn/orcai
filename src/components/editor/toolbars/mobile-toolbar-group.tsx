@@ -47,7 +47,9 @@ export const MobileToolbarGroup = ({
 				<div className="flex flex-col p-4">
 					{Children.map(children, (child) =>
 						isValidElement(child)
-							? cloneElement(child, { closeDrawer } as {
+							? cloneElement(child, {
+									closeDrawer,
+								} as {
 									closeDrawer: () => void;
 								})
 							: child,

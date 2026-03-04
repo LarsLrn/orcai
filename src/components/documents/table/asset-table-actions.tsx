@@ -29,9 +29,9 @@ const AssetTableActions = () => {
 					disabled={table.getSelectedRowModel().rows.length === 0}
 					onSelect={() =>
 						deleteAssets({
-							refs: table
-								.getSelectedRowModel()
-								.flatRows.map((row) => ({ id: row.id })),
+							refs: table.getSelectedRowModel().flatRows.map((row) => ({
+								id: row.id,
+							})),
 						})
 					}
 				>

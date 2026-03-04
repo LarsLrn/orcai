@@ -18,9 +18,13 @@ export const createBucketIfNotExists = (bucketName: string) =>
 			});
 		}
 
-		return yield* sendHeadBucketCommand({ bucket: bucketName }).pipe(
+		return yield* sendHeadBucketCommand({
+			bucket: bucketName,
+		}).pipe(
 			Effect.catchTag("NotFoundError", () =>
-				sendCreateBucketCommand({ bucket: bucketName }).pipe(
+				sendCreateBucketCommand({
+					bucket: bucketName,
+				}).pipe(
 					// Another request may have created the bucket in between.
 					Effect.catchTag("ConflictError", () => Effect.void),
 				),
@@ -29,7 +33,10 @@ export const createBucketIfNotExists = (bucketName: string) =>
 	});
 
 export const validateUploadEnvelope = (params: {
-	file: { type: string; objectMetadata: Record<string, string> };
+	file: {
+		type: string;
+		objectMetadata: Record<string, string>;
+	};
 	inputRoute: UploadRouteName;
 	authUserId: string;
 	expectedBucket: string;
@@ -96,7 +103,12 @@ export const validateUploadEnvelope = (params: {
 			});
 		}
 
-		return { id, prefix, bucket, expectedKey };
+		return {
+			id,
+			prefix,
+			bucket,
+			expectedKey,
+		};
 	});
 
 export const normalizeUploadId = (uploadId: string) =>

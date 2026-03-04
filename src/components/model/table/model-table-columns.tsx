@@ -44,7 +44,12 @@ export const modelTableColumns: ColumnDef<Model>[] = [
 			<DataTableColumnHeader column={column} title="Name" />
 		),
 		cell: ({ row }) => (
-			<Link to="/app/models/$modelId" params={{ modelId: row.original.id }}>
+			<Link
+				to="/app/models/$modelId"
+				params={{
+					modelId: row.original.id,
+				}}
+			>
 				{row.original.name}
 			</Link>
 		),
@@ -123,7 +128,15 @@ const DeleteItem = ({ model }: { model: Model }) => {
 	return (
 		<DropdownMenuItem
 			variant="destructive"
-			onClick={() => deleteModels({ refs: [{ id: model.id }] })}
+			onClick={() =>
+				deleteModels({
+					refs: [
+						{
+							id: model.id,
+						},
+					],
+				})
+			}
 		>
 			Delete Model
 		</DropdownMenuItem>

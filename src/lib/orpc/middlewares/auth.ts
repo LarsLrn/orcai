@@ -32,7 +32,10 @@ export const requiredAuthMiddleware = withName(
 					const auth = context.auth
 						? context.auth
 						: yield* Effect.tryPromise({
-								try: () => betterAuth.api.getSession({ headers }),
+								try: () =>
+									betterAuth.api.getSession({
+										headers,
+									}),
 								catch: () =>
 									errors.BAD_REQUEST({
 										message: "Authentication session not found.",
@@ -134,7 +137,9 @@ export const requirePreferencesMiddleware = withName(
 										Effect.fail(
 											errors.NOT_FOUND({
 												message: "User preferences not found",
-												data: { id: context.auth.user.id },
+												data: {
+													id: context.auth.user.id,
+												},
 											}),
 										),
 									),

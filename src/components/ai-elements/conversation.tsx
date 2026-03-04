@@ -76,7 +76,9 @@ export const ConversationScrollButton = ({
 
 	const handleScrollToBottom = useCallback(() => {
 		scrollToBottom();
-	}, [scrollToBottom]);
+	}, [
+		scrollToBottom,
+	]);
 
 	return (
 		!isAtBottom && (
@@ -135,7 +137,14 @@ export const ConversationDownload = ({
 }: ConversationDownloadProps) => {
 	const handleDownload = useCallback(() => {
 		const markdown = messagesToMarkdown(messages, formatMessage);
-		const blob = new Blob([markdown], { type: "text/markdown" });
+		const blob = new Blob(
+			[
+				markdown,
+			],
+			{
+				type: "text/markdown",
+			},
+		);
 		const url = URL.createObjectURL(blob);
 		const link = document.createElement("a");
 		link.href = url;
@@ -144,7 +153,11 @@ export const ConversationDownload = ({
 		link.click();
 		link.remove();
 		URL.revokeObjectURL(url);
-	}, [messages, filename, formatMessage]);
+	}, [
+		messages,
+		filename,
+		formatMessage,
+	]);
 
 	return (
 		<Button

@@ -9,7 +9,9 @@ export const aiChatContract = base
 		method: "POST",
 		path: "/ai",
 		summary: "Chat with AI",
-		tags: ["AI"],
+		tags: [
+			"AI",
+		],
 	})
 	// TODO: Check if this is doable with Zod
 	.input(

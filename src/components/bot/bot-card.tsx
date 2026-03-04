@@ -51,7 +51,9 @@ const BotCard = ({
 			icon: EyeIcon,
 			linkProps: {
 				to: "/app/hub/bots/$botId",
-				params: { botId: bot.id },
+				params: {
+					botId: bot.id,
+				},
 			},
 		},
 		{
@@ -61,7 +63,9 @@ const BotCard = ({
 			variant: "default",
 			linkProps: {
 				to: "/app/hub/bots/$botId/edit",
-				params: { botId: bot.id },
+				params: {
+					botId: bot.id,
+				},
 			},
 		},
 	];
@@ -77,7 +81,9 @@ const BotCard = ({
 	const primaryAction = actions?.primary ?? {
 		linkProps: {
 			to: "/app/hub/bots/$botId",
-			params: { botId: bot.id },
+			params: {
+				botId: bot.id,
+			},
 		},
 	};
 

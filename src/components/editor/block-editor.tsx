@@ -20,7 +20,9 @@ interface BlockEditorProps {
 
 const BlockEditor = ({ content, onCreate, onUpdate }: BlockEditorProps) => {
 	const editor = useEditor({
-		extensions: [...extensions],
+		extensions: [
+			...extensions,
+		],
 		content,
 		immediatelyRender: false,
 		shouldRerenderOnTransaction: false,

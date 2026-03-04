@@ -57,7 +57,9 @@ export const LinkSelector = ({ editor }: { editor: Editor }) => {
 							.chain()
 							.focus()
 							.extendMarkRange("link")
-							.setLink({ href: url })
+							.setLink({
+								href: url,
+							})
 							.run();
 					}}
 				>

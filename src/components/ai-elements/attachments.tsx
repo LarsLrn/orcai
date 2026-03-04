@@ -23,8 +23,12 @@ import { cn } from "@/lib/utils";
 // ============================================================================
 
 export type AttachmentData =
-	| (FileUIPart & { id: string })
-	| (SourceDocumentUIPart & { id: string });
+	| (FileUIPart & {
+			id: string;
+	  })
+	| (SourceDocumentUIPart & {
+			id: string;
+	  });
 
 export type AttachmentMediaCategory =
 	| "image"
@@ -130,7 +134,9 @@ const AttachmentContext = createContext<AttachmentContextValue | null>(null);
 // ============================================================================
 
 export const useAttachmentsContext = () =>
-	useContext(AttachmentsContext) ?? { variant: "grid" as const };
+	useContext(AttachmentsContext) ?? {
+		variant: "grid" as const,
+	};
 
 export const useAttachmentContext = () => {
 	const ctx = useContext(AttachmentContext);
@@ -154,7 +160,14 @@ export const Attachments = ({
 	children,
 	...props
 }: AttachmentsProps) => {
-	const contextValue = useMemo(() => ({ variant }), [variant]);
+	const contextValue = useMemo(
+		() => ({
+			variant,
+		}),
+		[
+			variant,
+		],
+	);
 
 	return (
 		<AttachmentsContext.Provider value={contextValue}>
@@ -193,8 +206,18 @@ export const Attachment = ({
 	const mediaCategory = getMediaCategory(data);
 
 	const contextValue = useMemo<AttachmentContextValue>(
-		() => ({ data, mediaCategory, onRemove, variant }),
-		[data, mediaCategory, onRemove, variant],
+		() => ({
+			data,
+			mediaCategory,
+			onRemove,
+			variant,
+		}),
+		[
+			data,
+			mediaCategory,
+			onRemove,
+			variant,
+		],
 	);
 
 	return (
@@ -326,7 +349,9 @@ export const AttachmentRemove = ({
 			e.stopPropagation();
 			onRemove?.();
 		},
-		[onRemove],
+		[
+			onRemove,
+		],
 	);
 
 	if (!onRemove) {
@@ -349,7 +374,10 @@ export const AttachmentRemove = ({
 					"opacity-0 transition-opacity group-hover:opacity-100",
 					"[&>svg]:size-2.5",
 				],
-				variant === "list" && ["size-8 shrink-0 rounded p-0", "[&>svg]:size-4"],
+				variant === "list" && [
+					"size-8 shrink-0 rounded p-0",
+					"[&>svg]:size-4",
+				],
 				className,
 			)}
 			onClick={handleClick}

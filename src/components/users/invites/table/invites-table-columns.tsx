@@ -89,7 +89,9 @@ const ActionsCell = ({
 	const handleCopyLink = (id: OrganizationInvitation["id"]) => {
 		const location = router.buildLocation({
 			to: "/register",
-			search: { inv: id },
+			search: {
+				inv: id,
+			},
 		});
 		const href = location.maskedLocation?.publicHref ?? location.publicHref;
 		const fullUrl = new URL(href, clientEnv.VITE_BASE_URL).toString();
@@ -139,7 +141,14 @@ const DeleteItem = ({
 		useDeleteOrganizationInvitationsMutation();
 
 	const handleDelete = (id: OrganizationInvitation["id"]) => {
-		deleteInvitations({ organizationId, refs: [{ id }] });
+		deleteInvitations({
+			organizationId,
+			refs: [
+				{
+					id,
+				},
+			],
+		});
 	};
 
 	return (

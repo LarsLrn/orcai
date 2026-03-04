@@ -13,7 +13,9 @@ export const listProvidersContract = base
 		method: "GET",
 		path: "/providers",
 		summary: "List all providers",
-		tags: ["Providers"],
+		tags: [
+			"Providers",
+		],
 	})
 	.input(paginationSchema)
 	.output(
@@ -28,41 +30,61 @@ export const createProviderContract = base
 		method: "POST",
 		path: "/providers",
 		summary: "Create a provider",
-		tags: ["Providers"],
+		tags: [
+			"Providers",
+		],
 	})
 	.input(providerInsertSchema)
-	.output(z.object({ data: providerSelectSchema }));
+	.output(
+		z.object({
+			data: providerSelectSchema,
+		}),
+	);
 
 export const findProviderContract = base
 	.route({
 		method: "GET",
 		path: "/providers/{id}",
 		summary: "Find a provider",
-		tags: ["Providers"],
+		tags: [
+			"Providers",
+		],
 	})
 	.input(
 		providerSelectSchema.pick({
 			id: true,
 		}),
 	)
-	.output(z.object({ data: providerSelectSchema }));
+	.output(
+		z.object({
+			data: providerSelectSchema,
+		}),
+	);
 
 export const updateProviderContract = base
 	.route({
 		method: "PUT",
 		path: "/providers/{id}",
 		summary: "Update a provider",
-		tags: ["Providers"],
+		tags: [
+			"Providers",
+		],
 	})
 	.input(providerUpdateSchema)
-	.output(z.object({ data: providerSelectSchema }));
+	.output(
+		z.object({
+			data: providerSelectSchema,
+		}),
+	);
 
 export const deleteProviderContract = base
 	.route({
 		method: "DELETE",
 		path: "/providers",
 		summary: "Delete providers",
-		tags: ["Providers"],
+		tags: [
+			"Providers",
+		],
 	})
 	.input(providerDeleteSchema)
 	.output(statusSchema);

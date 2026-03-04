@@ -37,7 +37,9 @@ export const listOrganizationInvitations =
 							offset: input.pageIndex * input.pageSize,
 						}),
 						db
-							.select({ count: count() })
+							.select({
+								count: count(),
+							})
 							.from(dbSchema.invitation)
 							.where(
 								or(
@@ -46,10 +48,15 @@ export const listOrganizationInvitations =
 								),
 							),
 					],
-					{ concurrency: "unbounded" },
+					{
+						concurrency: "unbounded",
+					},
 				);
 
-				return { data, rowCount: rowCount.count };
+				return {
+					data,
+					rowCount: rowCount.count,
+				};
 			}),
 		),
 	);
@@ -71,12 +78,16 @@ export const findOrganizationInvitation =
 							Effect.fromNullable(invitation).pipe(
 								Effect.orElse(() =>
 									Effect.fail(
-										errors.NOT_FOUND({ message: "Invitation not found" }),
+										errors.NOT_FOUND({
+											message: "Invitation not found",
+										}),
 									),
 								),
 							),
 						),
-						Effect.map((invitation) => ({ data: invitation })),
+						Effect.map((invitation) => ({
+							data: invitation,
+						})),
 					);
 			}),
 		),
@@ -159,9 +170,13 @@ export const createOrganizationInvitations =
 					const data = yield* db
 						.insert(dbSchema.invitation)
 						.values(invitations)
-						.returning({ ...getColumns(dbSchema.invitation) });
+						.returning({
+							...getColumns(dbSchema.invitation),
+						});
 
-					return { data };
+					return {
+						data,
+					};
 				}),
 			),
 		);
@@ -194,18 +209,24 @@ export const updateOrganizationInvitation = authed.organizationInvitation.update
 							eq(dbSchema.invitation.organizationId, input.organizationId),
 						),
 					)
-					.returning({ ...getColumns(dbSchema.invitation) });
+					.returning({
+						...getColumns(dbSchema.invitation),
+					});
 
 				return yield* Effect.fromNullable(invitation).pipe(
 					Effect.orElse(() =>
 						Effect.fail(
 							errors.NOT_FOUND({
 								message: "Organization invitation not found",
-								data: { id: input.id },
+								data: {
+									id: input.id,
+								},
 							}),
 						),
 					),
-					Effect.map((data) => ({ data })),
+					Effect.map((data) => ({
+						data,
+					})),
 				);
 			}),
 		),
@@ -217,7 +238,9 @@ export const deleteOrganizationInvitations =
 			checkManyPermissionMiddleware,
 			(input) =>
 				({
-					entityIds: [input.organizationId],
+					entityIds: [
+						input.organizationId,
+					],
 					permission: "invite",
 					entityType: "organization",
 				}) satisfies CheckManyPermissionInput,
@@ -313,8 +336,12 @@ export const respondToOrganisationInvitation =
 						const existingMember = yield* db.query.member.findFirst({
 							where: {
 								AND: [
-									{ organizationId: invitation.organizationId },
-									{ userId: context.auth.user.id },
+									{
+										organizationId: invitation.organizationId,
+									},
+									{
+										userId: context.auth.user.id,
+									},
 								],
 							},
 						});

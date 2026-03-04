@@ -50,7 +50,9 @@ const BlockCard = ({
 			icon: EyeIcon,
 			linkProps: {
 				to: "/app/hub/blocks/$blockId",
-				params: { blockId: block.id },
+				params: {
+					blockId: block.id,
+				},
 			},
 		},
 		{
@@ -60,7 +62,9 @@ const BlockCard = ({
 			variant: "default",
 			linkProps: {
 				to: "/app/hub/blocks/$blockId/edit",
-				params: { blockId: block.id },
+				params: {
+					blockId: block.id,
+				},
 			},
 		},
 	];
@@ -80,7 +84,9 @@ const BlockCard = ({
 	const primaryAction = actions?.primary ?? {
 		linkProps: {
 			to: "/app/hub/blocks/$blockId",
-			params: { blockId: block.id },
+			params: {
+				blockId: block.id,
+			},
 		},
 	};
 

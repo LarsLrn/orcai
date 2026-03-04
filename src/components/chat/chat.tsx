@@ -32,7 +32,11 @@ const Chat = ({
 	const queryClient = useQueryClient();
 
 	const { data: chat } = useSuspenseQuery(
-		orpc.chat.find.queryOptions({ input: { id } }),
+		orpc.chat.find.queryOptions({
+			input: {
+				id,
+			},
+		}),
 	);
 
 	const { messages, status, setMessages, regenerate, sendMessage } =
@@ -48,7 +52,9 @@ const Chat = ({
 								botId: chat.data.botId,
 								branchId,
 							},
-							{ signal: options.abortSignal },
+							{
+								signal: options.abortSignal,
+							},
 						),
 					);
 				},
@@ -60,7 +66,11 @@ const Chat = ({
 			onFinish: async () => {
 				// Invalidate chat data to fetch updated activeBranchId and branches
 				await queryClient.invalidateQueries({
-					queryKey: orpc.chat.find.key({ input: { id } }),
+					queryKey: orpc.chat.find.key({
+						input: {
+							id,
+						},
+					}),
 				});
 				await queryClient.invalidateQueries({
 					queryKey: orpc.chatMessage.list.key({

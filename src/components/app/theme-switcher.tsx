@@ -25,7 +25,11 @@ const ThemeSwitcher = ({ className }: { className?: string }) => {
 			newTheme === "dark" ? META_THEME_COLORS.dark : META_THEME_COLORS.light,
 		);
 		setIsDark(newTheme === "dark");
-	}, [resolvedTheme, setTheme, setMetaColor]);
+	}, [
+		resolvedTheme,
+		setTheme,
+		setMetaColor,
+	]);
 
 	if (!mounted) {
 		return <Skeleton className={cn("size-8", className)} />;
@@ -42,10 +46,21 @@ const ThemeSwitcher = ({ className }: { className?: string }) => {
 				{isDark ? (
 					<motion.div
 						key="sun"
-						initial={{ y: -20, opacity: 0 }}
-						animate={{ y: 0, opacity: 1 }}
-						exit={{ y: 20, opacity: 0 }}
-						transition={{ duration: 0.3 }}
+						initial={{
+							y: -20,
+							opacity: 0,
+						}}
+						animate={{
+							y: 0,
+							opacity: 1,
+						}}
+						exit={{
+							y: 20,
+							opacity: 0,
+						}}
+						transition={{
+							duration: 0.3,
+						}}
 					>
 						<SunIcon className="block" />
 						<span className="sr-only">Toggle dark mode</span>
@@ -53,10 +68,21 @@ const ThemeSwitcher = ({ className }: { className?: string }) => {
 				) : (
 					<motion.div
 						key="moon"
-						initial={{ y: -20, opacity: 0 }}
-						animate={{ y: 0, opacity: 1 }}
-						exit={{ y: 20, opacity: 0 }}
-						transition={{ duration: 0.3 }}
+						initial={{
+							y: -20,
+							opacity: 0,
+						}}
+						animate={{
+							y: 0,
+							opacity: 1,
+						}}
+						exit={{
+							y: 20,
+							opacity: 0,
+						}}
+						transition={{
+							duration: 0.3,
+						}}
 					>
 						<MoonIcon className="block" />
 						<span className="sr-only">Toggle light mode</span>

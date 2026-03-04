@@ -92,14 +92,22 @@ export const Reasoning = memo(
 				setDuration(Math.ceil((Date.now() - startTimeRef.current) / MS_IN_S));
 				startTimeRef.current = null;
 			}
-		}, [isStreaming, setDuration]);
+		}, [
+			isStreaming,
+			setDuration,
+		]);
 
 		// Auto-open when streaming starts (unless explicitly closed)
 		useEffect(() => {
 			if (isStreaming && !isOpen && !isExplicitlyClosed) {
 				setIsOpen(true);
 			}
-		}, [isStreaming, isOpen, setIsOpen, isExplicitlyClosed]);
+		}, [
+			isStreaming,
+			isOpen,
+			setIsOpen,
+			isExplicitlyClosed,
+		]);
 
 		// Auto-close when streaming ends (once only, and only if it ever streamed)
 		useEffect(() => {
@@ -116,18 +124,35 @@ export const Reasoning = memo(
 
 				return () => clearTimeout(timer);
 			}
-		}, [isStreaming, isOpen, setIsOpen, hasAutoClosed]);
+		}, [
+			isStreaming,
+			isOpen,
+			setIsOpen,
+			hasAutoClosed,
+		]);
 
 		const handleOpenChange = useCallback(
 			(newOpen: boolean) => {
 				setIsOpen(newOpen);
 			},
-			[setIsOpen],
+			[
+				setIsOpen,
+			],
 		);
 
 		const contextValue = useMemo(
-			() => ({ duration, isOpen, isStreaming, setIsOpen }),
-			[duration, isOpen, isStreaming, setIsOpen],
+			() => ({
+				duration,
+				isOpen,
+				isStreaming,
+				setIsOpen,
+			}),
+			[
+				duration,
+				isOpen,
+				isStreaming,
+				setIsOpen,
+			],
 		);
 
 		return (
@@ -201,7 +226,12 @@ export type ReasoningContentProps = ComponentProps<
 	children: string;
 };
 
-const streamdownPlugins = { cjk, code, math, mermaid };
+const streamdownPlugins = {
+	cjk,
+	code,
+	math,
+	mermaid,
+};
 
 export const ReasoningContent = memo(
 	({ className, children, ...props }: ReasoningContentProps) => (

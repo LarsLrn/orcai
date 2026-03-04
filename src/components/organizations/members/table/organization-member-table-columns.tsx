@@ -82,7 +82,9 @@ export const organizationMemberTableColumns: ColumnDef<User>[] = [
 ];
 
 const DeleteItem = ({ userId }: { userId: User["id"] }) => {
-	const { auth } = useRouteContext({ from: "/app" });
+	const { auth } = useRouteContext({
+		from: "/app",
+	});
 	const organizationId = auth.session.activeOrganizationId;
 	const { mutate: deleteMembers } = useDeleteOrganizationMembersMutation();
 
@@ -90,7 +92,14 @@ const DeleteItem = ({ userId }: { userId: User["id"] }) => {
 		userId: User["id"],
 		organizationId: Organization["id"],
 	) => {
-		deleteMembers({ organizationId, refs: [{ userId }] });
+		deleteMembers({
+			organizationId,
+			refs: [
+				{
+					userId,
+				},
+			],
+		});
 	};
 
 	if (!organizationId) {

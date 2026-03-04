@@ -16,7 +16,9 @@ export const createUploadUrlsContract = base
 		method: "POST",
 		path: "/files/upload",
 		summary: "Create file upload URLs",
-		tags: ["Files"],
+		tags: [
+			"Files",
+		],
 	})
 	.input(createUploadUrlsInputSchema)
 	.output(
@@ -31,7 +33,9 @@ export const createDownloadUrlContract = base
 		method: "POST",
 		path: "/files/download",
 		summary: "Create a file download URL",
-		tags: ["Files"],
+		tags: [
+			"Files",
+		],
 	})
 	.input(
 		assetSelectSchema.pick({
@@ -52,7 +56,9 @@ export const finalizeUploadContract = base
 		method: "POST",
 		path: "/files/finalize",
 		summary: "Finalize uploaded files and persist assets",
-		tags: ["Files"],
+		tags: [
+			"Files",
+		],
 	})
 	.input(finalizeUploadInputSchema)
 	.output(finalizeUploadOutputSchema);
@@ -62,7 +68,9 @@ export const completeMultipartUploadContract = base
 		method: "POST",
 		path: "/files/multipart/complete",
 		summary: "Complete multipart upload on server",
-		tags: ["Files"],
+		tags: [
+			"Files",
+		],
 	})
 	.input(completeMultipartUploadInputSchema)
 	.output(multipartUploadControlOutputSchema);
@@ -72,7 +80,9 @@ export const abortMultipartUploadContract = base
 		method: "POST",
 		path: "/files/multipart/abort",
 		summary: "Abort multipart upload on server",
-		tags: ["Files"],
+		tags: [
+			"Files",
+		],
 	})
 	.input(abortMultipartUploadInputSchema)
 	.output(multipartUploadControlOutputSchema);

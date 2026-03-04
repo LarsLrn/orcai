@@ -31,7 +31,12 @@ function ButtonGroup({
 		<fieldset
 			data-slot="button-group"
 			data-orientation={orientation}
-			className={cn(buttonGroupVariants({ orientation }), className)}
+			className={cn(
+				buttonGroupVariants({
+					orientation,
+				}),
+				className,
+			)}
 			{...props}
 		/>
 	);

@@ -14,7 +14,9 @@ export const listModelsContract = base
 		method: "POST",
 		path: "/models",
 		summary: "List all available models",
-		tags: ["Models"],
+		tags: [
+			"Models",
+		],
 	})
 	.input(
 		z.object({
@@ -39,7 +41,9 @@ export const createModelContract = base
 		method: "POST",
 		path: "/models",
 		summary: "Create a new model",
-		tags: ["Models"],
+		tags: [
+			"Models",
+		],
 	})
 	.input(modelInsertSchema)
 	.output(
@@ -53,7 +57,9 @@ export const findModelContract = base
 		method: "GET",
 		path: "/models/{id}",
 		summary: "Find a model",
-		tags: ["Models"],
+		tags: [
+			"Models",
+		],
 	})
 	.input(
 		modelSelectSchema.pick({
@@ -71,7 +77,9 @@ export const updateModelContract = base
 		method: "PUT",
 		path: "/models/{id}",
 		summary: "Update a model",
-		tags: ["Models"],
+		tags: [
+			"Models",
+		],
 	})
 	.input(modelUpdateSchema)
 	.output(
@@ -85,7 +93,9 @@ export const deleteModelContract = base
 		method: "DELETE",
 		path: "/models",
 		summary: "Delete models",
-		tags: ["Models"],
+		tags: [
+			"Models",
+		],
 	})
 	.input(modelDeleteSchema)
 	.output(statusSchema);
@@ -96,7 +106,9 @@ export const discoverModelsContract = base
 		path: "/models/{providerId}/discover",
 		summary:
 			"Automatically discover and add/update all available models for a given provider",
-		tags: ["Models"],
+		tags: [
+			"Models",
+		],
 	})
 	.input(
 		z.object({

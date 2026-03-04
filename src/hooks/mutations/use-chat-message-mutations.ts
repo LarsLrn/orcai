@@ -16,7 +16,9 @@ export const useRateChatMessageMutation = (
 				onSuccess: async (response, input, ...args) => {
 					queryClient.invalidateQueries({
 						queryKey: orpc.chatMessage.key({
-							input: { chatId: input.chatId },
+							input: {
+								chatId: input.chatId,
+							},
 						}),
 					});
 

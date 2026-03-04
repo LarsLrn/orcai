@@ -23,7 +23,8 @@
 		"indentWidth": 2,
 		"lineEnding": "lf",
 		"lineWidth": 80,
-		"attributePosition": "auto"
+		"attributePosition": "auto",
+		"expand": "always"
 	},
 	"linter": {
 		"enabled": true,
@@ -94,8 +95,16 @@
 					"level": "info",
 					"fix": "safe",
 					"options": {
-						"attributes": ["classList"],
-						"functions": ["clsx", "cva", "cn", "tw", "tw.*"]
+						"attributes": [
+							"classList"
+						],
+						"functions": [
+							"clsx",
+							"cva",
+							"cn",
+							"tw",
+							"tw.*"
+						]
 					}
 				}
 			}

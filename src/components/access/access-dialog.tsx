@@ -70,8 +70,12 @@ const AccessDialog = ({
 	const [selectedRole, setSelectedRole] = useState<ResourceGrantRole>("viewer");
 	const [projectionNotice, setProjectionNotice] = useState<string | null>(null);
 
-	const grants = useResourceGrants(resourceRef, { enabled: open });
-	const visibility = useResourceVisibility(resourceRef, { enabled: open });
+	const grants = useResourceGrants(resourceRef, {
+		enabled: open,
+	});
+	const visibility = useResourceVisibility(resourceRef, {
+		enabled: open,
+	});
 
 	const grantAccess = useGrantResourceAccess(resourceRef);
 	const revokeAccess = useRevokeResourceAccess(resourceRef);
@@ -92,12 +96,16 @@ const AccessDialog = ({
 			setSelectedRole("viewer");
 			setProjectionNotice(null);
 		}
-	}, [open]);
+	}, [
+		open,
+	]);
 
 	const directGrants = useMemo(
 		() =>
 			(grants.data?.data ?? []).filter((grant) => isDirectSource(grant.source)),
-		[grants.data?.data],
+		[
+			grants.data?.data,
+		],
 	);
 
 	const selectedPrincipals = selectedPrincipalIds
@@ -117,7 +125,10 @@ const AccessDialog = ({
 		if (selectedHasAllMembers && selectedRole !== "viewer") {
 			setSelectedRole("viewer");
 		}
-	}, [selectedHasAllMembers, selectedRole]);
+	}, [
+		selectedHasAllMembers,
+		selectedRole,
+	]);
 
 	const handleGrant = async () => {
 		if (selectedPrincipals.length === 0) {
@@ -153,7 +164,13 @@ const AccessDialog = ({
 				return false;
 			}
 
-			const meta = (result.data as { meta?: { zedToken?: string } }).meta;
+			const meta = (
+				result.data as {
+					meta?: {
+						zedToken?: string;
+					};
+				}
+			).meta;
 			return !meta?.zedToken;
 		});
 
@@ -263,7 +280,10 @@ const AccessDialog = ({
 									setSelectedPrincipalIds((current) =>
 										current.includes(principal.id)
 											? current.filter((id) => id !== principal.id)
-											: [...current, principal.id],
+											: [
+													...current,
+													principal.id,
+												],
 									);
 								}}
 								onClearSelection={() => setSelectedPrincipalIds([])}

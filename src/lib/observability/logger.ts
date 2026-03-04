@@ -16,7 +16,9 @@ const getPinoTargets = (): pino.TransportTargetOptions[] => {
 	if (process.env.NODE_ENV === "development") {
 		pinoTargets.push({
 			target: "pino-pretty",
-			options: { colorize: true },
+			options: {
+				colorize: true,
+			},
 			level: process.env.LOG_LEVEL || "info",
 		});
 	}

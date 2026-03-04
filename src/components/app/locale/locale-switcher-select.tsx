@@ -14,7 +14,10 @@ import { type Locale, setLocale } from "@/paraglide/runtime";
 
 type Props = {
 	defaultValue: string;
-	items: Array<{ value: Locale; label: string }>;
+	items: Array<{
+		value: Locale;
+		label: string;
+	}>;
 	label: string;
 };
 

@@ -34,11 +34,15 @@ export const courseInsertSchema = createInsertSchema(dbSchema.course, {
 				typeof val === "object" &&
 				!Array.isArray(val) &&
 				Object.keys(val as object).length > 0,
-			{ message: "Content is required" },
+			{
+				message: "Content is required",
+			},
 		),
 	// TODO: Coerce received string for maxReferences
 	config: configSchema,
-}).omit({ id: true });
+}).omit({
+	id: true,
+});
 
 /**
  * ----------------
@@ -57,7 +61,11 @@ export const courseUpdateSchema = courseInsertSchema.extend({
  */
 
 export const courseDeleteSchema = z.object({
-	refs: z.array(courseUpdateSchema.pick({ id: true })),
+	refs: z.array(
+		courseUpdateSchema.pick({
+			id: true,
+		}),
+	),
 });
 
 export const courseAttachBotSchema = z.object({

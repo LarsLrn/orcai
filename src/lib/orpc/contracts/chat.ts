@@ -18,7 +18,9 @@ export const listChatsContract = base
 		method: "GET",
 		path: "/chats",
 		summary: "List all chats",
-		tags: ["Chats"],
+		tags: [
+			"Chats",
+		],
 	})
 	.input(
 		z.object({
@@ -26,14 +28,21 @@ export const listChatsContract = base
 			...zedTokenSchema.shape,
 		}),
 	)
-	.output(z.object({ data: z.array(chatSelectSchema), rowCount: z.number() }));
+	.output(
+		z.object({
+			data: z.array(chatSelectSchema),
+			rowCount: z.number(),
+		}),
+	);
 
 export const createChatContract = base
 	.route({
 		method: "POST",
 		path: "/chats",
 		summary: "Create a chat",
-		tags: ["Chats"],
+		tags: [
+			"Chats",
+		],
 	})
 	.input(chatInsertSchema)
 	.output(
@@ -48,11 +57,15 @@ export const findChatContract = base
 		method: "GET",
 		path: "/chats/{id}",
 		summary: "Find a chat",
-		tags: ["Chats"],
+		tags: [
+			"Chats",
+		],
 	})
 	.input(
 		z.object({
-			...chatSelectSchema.pick({ id: true }).shape,
+			...chatSelectSchema.pick({
+				id: true,
+			}).shape,
 			...zedTokenSchema.shape,
 		}),
 	)
@@ -69,23 +82,33 @@ export const updateChatContract = base
 		method: "PUT", //TODO:Probably should be PATCH
 		path: "/chats/{id}",
 		summary: "Update a chat",
-		tags: ["Chats"],
+		tags: [
+			"Chats",
+		],
 	})
 	.errors({
 		NOT_FOUND: {
 			message: "Chat not found",
-			data: z.object({ id: chatUpdateSchema.shape.id }),
+			data: z.object({
+				id: chatUpdateSchema.shape.id,
+			}),
 		},
 	})
 	.input(chatUpdateSchema)
-	.output(z.object({ data: chatSelectSchema }));
+	.output(
+		z.object({
+			data: chatSelectSchema,
+		}),
+	);
 
 export const deleteChatContract = base
 	.route({
 		method: "DELETE",
 		path: "/chats",
 		summary: "Delete a chat",
-		tags: ["Chats"],
+		tags: [
+			"Chats",
+		],
 	})
 	.input(chatDeleteSchema)
 	.output(statusSchema);

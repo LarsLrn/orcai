@@ -5,7 +5,14 @@ import { orpc } from "@/lib/orpc/orpc";
 const QdrantPlaygroundResults = ({ search }: { search: string }) => {
 	const { data: points } = useQuery(
 		orpc.assetPoint.list.queryOptions({
-			input: { filters: { queries: [search], limit: 10 } },
+			input: {
+				filters: {
+					queries: [
+						search,
+					],
+					limit: 10,
+				},
+			},
 		}),
 	);
 

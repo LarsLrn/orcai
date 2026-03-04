@@ -142,7 +142,14 @@ export const checkManyPermissionMiddleware = withName(
 					}
 
 					return yield* Effect.promise(() =>
-						Promise.resolve(next({ context: { ...context, allowedIds } })),
+						Promise.resolve(
+							next({
+								context: {
+									...context,
+									allowedIds,
+								},
+							}),
+						),
 					);
 				}),
 			),
@@ -198,9 +205,17 @@ export const assertCanGrantPrincipalMiddleware = withName(
 						},
 						where: {
 							AND: [
-								{ resourceType: input.resourceType },
-								{ resourceId: input.resourceId },
-								{ endedAt: { isNull: true } },
+								{
+									resourceType: input.resourceType,
+								},
+								{
+									resourceId: input.resourceId,
+								},
+								{
+									endedAt: {
+										isNull: true,
+									},
+								},
 							],
 						},
 					});
@@ -228,8 +243,14 @@ export const assertCanGrantPrincipalMiddleware = withName(
 							},
 							where: {
 								AND: [
-									{ organizationId: { in: orgIds } },
-									{ userId: input.principalId },
+									{
+										organizationId: {
+											in: orgIds,
+										},
+									},
+									{
+										userId: input.principalId,
+									},
 								],
 							},
 						});
@@ -256,9 +277,19 @@ export const assertCanGrantPrincipalMiddleware = withName(
 							},
 							where: {
 								AND: [
-									{ id: input.principalId },
-									{ organizationId: { in: orgIds } },
-									{ deletedAt: { isNull: true } },
+									{
+										id: input.principalId,
+									},
+									{
+										organizationId: {
+											in: orgIds,
+										},
+									},
+									{
+										deletedAt: {
+											isNull: true,
+										},
+									},
 								],
 							},
 						});

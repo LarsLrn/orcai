@@ -17,7 +17,10 @@ export const Route = createFileRoute("/app/hub/bots/")({
 	loader: async ({ context: { queryClient } }) => {
 		await queryClient.ensureQueryData(
 			orpc.bot.list.queryOptions({
-				input: { pageIndex: 0, pageSize: 50 },
+				input: {
+					pageIndex: 0,
+					pageSize: 50,
+				},
 			}),
 		);
 	},
@@ -27,7 +30,10 @@ export const Route = createFileRoute("/app/hub/bots/")({
 function RouteComponent() {
 	const { data: bots } = useSuspenseQuery(
 		orpc.bot.list.queryOptions({
-			input: { pageIndex: 0, pageSize: 50 },
+			input: {
+				pageIndex: 0,
+				pageSize: 50,
+			},
 		}),
 	);
 
@@ -42,7 +48,9 @@ function RouteComponent() {
 				<PageAction>
 					<Link
 						to="/app/hub/bots/add"
-						className={buttonVariants({ variant: "default" })}
+						className={buttonVariants({
+							variant: "default",
+						})}
 					>
 						<PlusIcon className="mr-2 h-4 w-4" />
 						Create Bot
@@ -64,7 +72,9 @@ function RouteComponent() {
 						</div>
 						<Link
 							to="/app/hub/bots/add"
-							className={buttonVariants({ variant: "default" })}
+							className={buttonVariants({
+								variant: "default",
+							})}
 						>
 							<PlusIcon className="mr-2 h-4 w-4" />
 							Create Your First Bot

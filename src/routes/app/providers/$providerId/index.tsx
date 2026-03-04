@@ -43,7 +43,10 @@ const compatibilityLabelMap = new Map(
 );
 
 const capabilityLabelMap = new Map(
-	modelCapabilities.map((capability) => [capability.value, capability.label]),
+	modelCapabilities.map((capability) => [
+		capability.value,
+		capability.label,
+	]),
 );
 
 const formatTimestamp = (timestamp?: Date | string | null) => {
@@ -70,13 +73,18 @@ function RouteComponent() {
 	const { providerId } = Route.useParams();
 	const { data: providerResponse } = useSuspenseQuery(
 		orpc.provider.find.queryOptions({
-			input: { id: providerId },
+			input: {
+				id: providerId,
+			},
 		}),
 	);
 
 	const { data: modelsResponse } = useSuspenseQuery(
 		orpc.model.list.queryOptions({
-			input: { pageIndex: 0, pageSize: 500 },
+			input: {
+				pageIndex: 0,
+				pageSize: 500,
+			},
 		}),
 	);
 
@@ -142,15 +150,21 @@ function RouteComponent() {
 							<div className="flex flex-wrap gap-2">
 								<Link
 									to="/app/providers/$providerId/edit"
-									params={{ providerId }}
-									className={buttonVariants({ variant: "default" })}
+									params={{
+										providerId,
+									}}
+									className={buttonVariants({
+										variant: "default",
+									})}
 								>
 									<EditIcon className="mr-2 h-4 w-4" />
 									Edit Provider
 								</Link>
 								<Link
 									to="/app/models/add"
-									className={buttonVariants({ variant: "outline" })}
+									className={buttonVariants({
+										variant: "outline",
+									})}
 								>
 									<PlusIcon className="mr-2 h-4 w-4" />
 									Add Model
@@ -331,7 +345,9 @@ function RouteComponent() {
 											<span>Created {formatTimestamp(model.createdAt)}</span>
 											<Link
 												to="/app/models/$modelId"
-												params={{ modelId: model.id }}
+												params={{
+													modelId: model.id,
+												}}
 												className={buttonVariants({
 													variant: "outline",
 													size: "sm",

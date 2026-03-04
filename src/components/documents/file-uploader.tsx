@@ -130,7 +130,12 @@ const FileUploader = (props: FileUploaderProps) => {
 				}),
 			);
 
-			const updatedFiles = files ? [...files, ...newFiles] : newFiles;
+			const updatedFiles = files
+				? [
+						...files,
+						...newFiles,
+					]
+				: newFiles;
 
 			setFiles(updatedFiles);
 
@@ -159,7 +164,13 @@ const FileUploader = (props: FileUploaderProps) => {
 			}
 		},
 
-		[files, maxFileCount, multiple, onUpload, setFiles],
+		[
+			files,
+			maxFileCount,
+			multiple,
+			onUpload,
+			setFiles,
+		],
 	);
 
 	function onRemove(index: number) {
@@ -304,12 +315,16 @@ function FileCard({ file, progress, onRemove }: FileCardProps) {
 	);
 }
 
-function isFileWithPreview(file: File): file is File & { preview: string } {
+function isFileWithPreview(file: File): file is File & {
+	preview: string;
+} {
 	return "preview" in file && typeof file.preview === "string";
 }
 
 interface FilePreviewProps {
-	file: File & { preview: string };
+	file: File & {
+		preview: string;
+	};
 }
 
 function FilePreview({ file }: FilePreviewProps) {

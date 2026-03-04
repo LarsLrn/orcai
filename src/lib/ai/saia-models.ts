@@ -18,8 +18,12 @@ interface SaiaModel {
 interface SaiaEmbeddingModel {
 	id: string;
 	object: "embedding_model";
-	input: ["text"];
-	output: ["embedding"];
+	input: [
+		"text",
+	];
+	output: [
+		"embedding",
+	];
 	owned_by: string;
 	name: string;
 	status: "ready";
@@ -31,8 +35,12 @@ export const saiaModels: SaiaModel[] = [
 		id: "meta-llama-3.1-8b-instruct",
 		demand: 1,
 		object: "model",
-		input: ["text"],
-		output: ["text"],
+		input: [
+			"text",
+		],
+		output: [
+			"text",
+		],
 		owned_by: "chat-ai",
 		name: "Meta Llama 3.1 8B Instruct",
 		status: "ready",
@@ -42,8 +50,13 @@ export const saiaModels: SaiaModel[] = [
 		id: "gemma-3-27b-it",
 		demand: 0,
 		object: "model",
-		input: ["text", "image"],
-		output: ["text"],
+		input: [
+			"text",
+			"image",
+		],
+		output: [
+			"text",
+		],
 		owned_by: "chat-ai",
 		name: "Gemma 3 27B Instruct",
 		status: "ready",
@@ -53,8 +66,13 @@ export const saiaModels: SaiaModel[] = [
 		id: "qwen3-32b",
 		demand: 0,
 		object: "model",
-		input: ["text"],
-		output: ["text", "thought"],
+		input: [
+			"text",
+		],
+		output: [
+			"text",
+			"thought",
+		],
 		owned_by: "chat-ai",
 		name: "Qwen 3 32B",
 		status: "ready",
@@ -64,8 +82,13 @@ export const saiaModels: SaiaModel[] = [
 		id: "qwen3-235b-a22b",
 		demand: 0,
 		object: "model",
-		input: ["text"],
-		output: ["text", "thought"],
+		input: [
+			"text",
+		],
+		output: [
+			"text",
+			"thought",
+		],
 		owned_by: "chat-ai",
 		name: "Qwen 3 235B A22B",
 		status: "ready",
@@ -75,8 +98,12 @@ export const saiaModels: SaiaModel[] = [
 		id: "llama-3.3-70b-instruct",
 		demand: 1,
 		object: "model",
-		input: ["text"],
-		output: ["text"],
+		input: [
+			"text",
+		],
+		output: [
+			"text",
+		],
 		owned_by: "chat-ai",
 		name: "Meta Llama 3.3 70B Instruct",
 		status: "ready",
@@ -86,8 +113,14 @@ export const saiaModels: SaiaModel[] = [
 		id: "qwen2.5-vl-72b-instruct",
 		demand: 0,
 		object: "model",
-		input: ["text", "image", "video"],
-		output: ["text"],
+		input: [
+			"text",
+			"image",
+			"video",
+		],
+		output: [
+			"text",
+		],
 		owned_by: "chat-ai",
 		name: "Qwen 2.5 VL 72B Instruct",
 		status: "ready",
@@ -97,8 +130,13 @@ export const saiaModels: SaiaModel[] = [
 		id: "qwq-32b",
 		demand: 0,
 		object: "model",
-		input: ["text"],
-		output: ["text", "thought"],
+		input: [
+			"text",
+		],
+		output: [
+			"text",
+			"thought",
+		],
 		owned_by: "chat-ai",
 		name: "Qwen QwQ 32B",
 		status: "ready",
@@ -108,8 +146,13 @@ export const saiaModels: SaiaModel[] = [
 		id: "deepseek-r1",
 		demand: 7,
 		object: "model",
-		input: ["text"],
-		output: ["text", "thought"],
+		input: [
+			"text",
+		],
+		output: [
+			"text",
+			"thought",
+		],
 		owned_by: "chat-ai",
 		name: "DeepSeek R1",
 		status: "ready",
@@ -119,8 +162,13 @@ export const saiaModels: SaiaModel[] = [
 		id: "deepseek-r1-distill-llama-70b",
 		demand: 2,
 		object: "model",
-		input: ["text"],
-		output: ["text", "thought"],
+		input: [
+			"text",
+		],
+		output: [
+			"text",
+			"thought",
+		],
 		owned_by: "chat-ai",
 		name: "DeepSeek R1 Distill Llama 70B",
 		status: "ready",
@@ -130,8 +178,12 @@ export const saiaModels: SaiaModel[] = [
 		id: "mistral-large-instruct",
 		demand: 0,
 		object: "model",
-		input: ["text"],
-		output: ["text"],
+		input: [
+			"text",
+		],
+		output: [
+			"text",
+		],
 		owned_by: "chat-ai",
 		name: "Mistral Large Instruct",
 		status: "ready",
@@ -141,8 +193,12 @@ export const saiaModels: SaiaModel[] = [
 		id: "qwen2.5-coder-32b-instruct",
 		demand: 0,
 		object: "model",
-		input: ["text"],
-		output: ["text"],
+		input: [
+			"text",
+		],
+		output: [
+			"text",
+		],
 		owned_by: "chat-ai",
 		name: "Qwen 2.5 Coder 32B Instruct",
 		status: "ready",
@@ -152,8 +208,13 @@ export const saiaModels: SaiaModel[] = [
 		id: "internvl2.5-8b",
 		demand: 0,
 		object: "model",
-		input: ["text", "image"],
-		output: ["text"],
+		input: [
+			"text",
+			"image",
+		],
+		output: [
+			"text",
+		],
 		owned_by: "chat-ai",
 		name: "InternVL2.5 8B MPO",
 		status: "ready",
@@ -163,8 +224,12 @@ export const saiaModels: SaiaModel[] = [
 		id: "codestral-22b",
 		demand: 0,
 		object: "model",
-		input: ["text"],
-		output: ["text"],
+		input: [
+			"text",
+		],
+		output: [
+			"text",
+		],
 		owned_by: "chat-ai",
 		name: "Codestral 22B",
 		status: "ready",
@@ -174,8 +239,12 @@ export const saiaModels: SaiaModel[] = [
 		id: "llama-3.1-sauerkrautlm-70b-instruct",
 		demand: 0,
 		object: "model",
-		input: ["text"],
-		output: ["text"],
+		input: [
+			"text",
+		],
+		output: [
+			"text",
+		],
 		owned_by: "chat-ai",
 		name: "Llama 3.1 SauerkrautLM 70B Instruct",
 		status: "ready",
@@ -186,15 +255,21 @@ export const saiaModels: SaiaModel[] = [
 export const e5Mistral7bInstruct: SaiaEmbeddingModel = {
 	id: "e5-mistral-7b-instruct",
 	object: "embedding_model",
-	input: ["text"],
-	output: ["embedding"],
+	input: [
+		"text",
+	],
+	output: [
+		"embedding",
+	],
 	owned_by: "chat-ai",
 	name: "E5 Mistral 7B Instruct",
 	status: "ready",
 	created: 1748003919,
 };
 
-const saiaEmbeddingModelIds = [e5Mistral7bInstruct.id] as const;
+const saiaEmbeddingModelIds = [
+	e5Mistral7bInstruct.id,
+] as const;
 type SaiaEmbeddingModelIdsType = "e5-mistral-7b-instruct";
 
 type InputCapability = "text" | "image" | "video";
@@ -213,8 +288,13 @@ const textOnlyModelIds = [
 	"llama-3.1-sauerkrautlm-70b-instruct",
 ] as const;
 
-const textImageModelIds = ["gemma-3-27b-it", "internvl2.5-8b"] as const;
-const multimodalModelIds = ["qwen2.5-vl-72b-instruct"] as const;
+const textImageModelIds = [
+	"gemma-3-27b-it",
+	"internvl2.5-8b",
+] as const;
+const multimodalModelIds = [
+	"qwen2.5-vl-72b-instruct",
+] as const;
 
 type TextOnlyModelIds = (typeof textOnlyModelIds)[number];
 type TextImageModelIds = (typeof textImageModelIds)[number];
@@ -230,34 +310,74 @@ const chatAiProviderFactory = createOpenAI({
 	name: "chatAi",
 });
 
-function getSaiaModel(params: { input: ["text"]; model: ModelsWithText }): {
-	provider: LanguageModel;
-	meta: SaiaModel;
-};
-function getSaiaModel(params: { input: ["image"]; model: ModelsWithImage }): {
-	provider: LanguageModel;
-	meta: SaiaModel;
-};
-function getSaiaModel(params: { input: ["video"]; model: ModelsWithVideo }): {
+function getSaiaModel(params: {
+	input: [
+		"text",
+	];
+	model: ModelsWithText;
+}): {
 	provider: LanguageModel;
 	meta: SaiaModel;
 };
 function getSaiaModel(params: {
-	input: ["text", "image"];
+	input: [
+		"image",
+	];
 	model: ModelsWithImage;
-}): { provider: LanguageModel; meta: SaiaModel };
+}): {
+	provider: LanguageModel;
+	meta: SaiaModel;
+};
 function getSaiaModel(params: {
-	input: ["text", "video"];
+	input: [
+		"video",
+	];
 	model: ModelsWithVideo;
-}): { provider: LanguageModel; meta: SaiaModel };
+}): {
+	provider: LanguageModel;
+	meta: SaiaModel;
+};
 function getSaiaModel(params: {
-	input: ["image", "video"];
+	input: [
+		"text",
+		"image",
+	];
+	model: ModelsWithImage;
+}): {
+	provider: LanguageModel;
+	meta: SaiaModel;
+};
+function getSaiaModel(params: {
+	input: [
+		"text",
+		"video",
+	];
 	model: ModelsWithVideo;
-}): { provider: LanguageModel; meta: SaiaModel };
+}): {
+	provider: LanguageModel;
+	meta: SaiaModel;
+};
 function getSaiaModel(params: {
-	input: ["text", "image", "video"];
+	input: [
+		"image",
+		"video",
+	];
+	model: ModelsWithVideo;
+}): {
+	provider: LanguageModel;
+	meta: SaiaModel;
+};
+function getSaiaModel(params: {
+	input: [
+		"text",
+		"image",
+		"video",
+	];
 	model: MultimodalModelIds;
-}): { provider: LanguageModel; meta: SaiaModel };
+}): {
+	provider: LanguageModel;
+	meta: SaiaModel;
+};
 function getSaiaModel(params: { input: InputCapability[]; model: string }): {
 	provider: LanguageModel;
 	meta: SaiaModel;
@@ -285,20 +405,31 @@ function getSaiaModel(params: { input: InputCapability[]; model: string }): {
 		return {
 			provider: wrapLanguageModel({
 				model: modelProvider,
-				middleware: extractReasoningMiddleware({ tagName: "think" }),
+				middleware: extractReasoningMiddleware({
+					tagName: "think",
+				}),
 			}),
 			meta: foundModel,
 		};
 	}
-	return { provider: modelProvider, meta: foundModel };
+	return {
+		provider: modelProvider,
+		meta: foundModel,
+	};
 }
 
 export function getSaiaEmbeddingModel(params: {
 	model: SaiaEmbeddingModelIdsType;
-}): { provider: EmbeddingModel; meta: SaiaEmbeddingModel } {
+}): {
+	provider: EmbeddingModel;
+	meta: SaiaEmbeddingModel;
+} {
 	if (params.model === e5Mistral7bInstruct.id) {
 		const embeddingProvider = chatAiProviderFactory.embedding(params.model);
-		return { provider: embeddingProvider, meta: e5Mistral7bInstruct };
+		return {
+			provider: embeddingProvider,
+			meta: e5Mistral7bInstruct,
+		};
 	}
 	throw new Error(`Embedding model with id "${params.model}" not found.`);
 }

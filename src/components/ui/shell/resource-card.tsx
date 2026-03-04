@@ -15,8 +15,16 @@ import {
 import { cn } from "@/lib/utils";
 
 type ResourceCardClickAction =
-	| { linkProps: LinkProps; onClick?: never; disabled?: never }
-	| { onClick: () => void; linkProps?: never; disabled?: boolean };
+	| {
+			linkProps: LinkProps;
+			onClick?: never;
+			disabled?: never;
+	  }
+	| {
+			onClick: () => void;
+			linkProps?: never;
+			disabled?: boolean;
+	  };
 
 type ResourceCardPrimaryAction = ResourceCardClickAction;
 

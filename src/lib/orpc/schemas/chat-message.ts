@@ -46,7 +46,9 @@ export const chatMessageUpdateSchema = createUpdateSchema(
 		id: chatMessageSelectSchema.shape.id,
 		chatId: chatMessageSelectSchema.shape.chatId,
 	},
-).omit({ createdAt: true });
+).omit({
+	createdAt: true,
+});
 
 /**
  * ----------------
@@ -56,7 +58,11 @@ export const chatMessageUpdateSchema = createUpdateSchema(
 
 export const chatMessageDeleteSchema = z.object({
 	chatId: chatMessageSelectSchema.shape.chatId,
-	refs: z.array(chatMessageUpdateSchema.pick({ id: true })),
+	refs: z.array(
+		chatMessageUpdateSchema.pick({
+			id: true,
+		}),
+	),
 });
 
 /**

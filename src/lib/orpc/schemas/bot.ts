@@ -41,7 +41,9 @@ export const botInsertSchema = createInsertSchema(dbSchema.bot)
 					typeof val === "object" &&
 					!Array.isArray(val) &&
 					Object.keys(val as object).length > 0,
-				{ message: "Content is required" },
+				{
+					message: "Content is required",
+				},
 			),
 	});
 
@@ -66,7 +68,11 @@ export const botUpdateSchema = createUpdateSchema(dbSchema.bot, {
  */
 
 export const botDeleteSchema = z.object({
-	refs: z.array(botUpdateSchema.pick({ id: true })),
+	refs: z.array(
+		botUpdateSchema.pick({
+			id: true,
+		}),
+	),
 });
 
 /**

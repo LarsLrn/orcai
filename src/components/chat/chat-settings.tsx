@@ -27,7 +27,11 @@ const ChatSettings = ({
 	chatId: Chat["id"];
 }) => {
 	const { data: chat } = useQuery(
-		orpc.chat.find.queryOptions({ input: { id: chatId } }),
+		orpc.chat.find.queryOptions({
+			input: {
+				id: chatId,
+			},
+		}),
 	);
 
 	return (
@@ -63,12 +67,20 @@ const ChatSettings = ({
 
 const BotDetails = ({ botId }: { botId: string }) => {
 	const { data: bot } = useSuspenseQuery(
-		orpc.bot.find.queryOptions({ input: { id: botId } }),
+		orpc.bot.find.queryOptions({
+			input: {
+				id: botId,
+			},
+		}),
 	);
 
 	const { data: blocks } = useSuspenseQuery(
 		orpc.block.list.queryOptions({
-			input: { filters: { botId } },
+			input: {
+				filters: {
+					botId,
+				},
+			},
 		}),
 	);
 
@@ -79,8 +91,12 @@ const BotDetails = ({ botId }: { botId: string }) => {
 			<BotMetadata bot={bot.data} />
 			<Link
 				to="/app/hub/bots/$botId"
-				params={{ botId: bot.data.id }}
-				className={buttonVariants({ variant: "outline" })}
+				params={{
+					botId: bot.data.id,
+				}}
+				className={buttonVariants({
+					variant: "outline",
+				})}
 			>
 				Go to Bot
 			</Link>

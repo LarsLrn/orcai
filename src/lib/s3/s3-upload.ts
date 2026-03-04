@@ -60,14 +60,23 @@ export async function uploadFileToS3(params: {
 
 export async function uploadMultipartFileToS3(params: {
 	file: File;
-	parts: { signedUrl: string; partNumber: number; size: number }[];
+	parts: {
+		signedUrl: string;
+		partNumber: number;
+		size: number;
+	}[];
 	partSize: number;
 	partsBatchSize?: number;
 	onProgress?: (progress: number) => void;
 	signal?: AbortSignal;
 }) {
-	const uploadedParts: { etag: string; number: number }[] = [];
-	const progresses: { [part: number]: number } = {};
+	const uploadedParts: {
+		etag: string;
+		number: number;
+	}[] = [];
+	const progresses: {
+		[part: number]: number;
+	} = {};
 
 	const uploadPromises = params.parts.map((part) => async () => {
 		const xhr = new XMLHttpRequest();

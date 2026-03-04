@@ -37,7 +37,11 @@ import type { JobQueue } from "@/lib/pg-boss/schema/job-queues";
 const AssetGrid = ({ assetIds }: { assetIds: Asset["id"][] }) => {
 	const { data: assets, status } = useQuery(
 		orpc.asset.list.queryOptions({
-			input: { filters: { ids: assetIds } },
+			input: {
+				filters: {
+					ids: assetIds,
+				},
+			},
 		}),
 	);
 
@@ -183,15 +187,23 @@ const AssetSection = ({
 					<Button
 						size="sm"
 						onClick={() =>
-							createJob({ jobRunner: "process-asset-job", blockId })
+							createJob({
+								jobRunner: "process-asset-job",
+								blockId,
+							})
 						}
 					>
 						Create Vector Store
 					</Button>
 					<Link
 						to="/app/hub/blocks/$blockId/points"
-						params={{ blockId }}
-						className={buttonVariants({ variant: "outline", size: "sm" })}
+						params={{
+							blockId,
+						}}
+						className={buttonVariants({
+							variant: "outline",
+							size: "sm",
+						})}
 					>
 						View Vector Points
 					</Link>
@@ -238,7 +250,10 @@ const JobSection = ({
 }) => {
 	const { data: tasks } = useQuery(
 		orpc.job.list.queryOptions({
-			input: { jobQueue, resourceId: blockId },
+			input: {
+				jobQueue,
+				resourceId: blockId,
+			},
 			refetchInterval: (query) => {
 				// Refetch every 5 seconds if there are any queued or processing jobs
 				const data = query.state.data;

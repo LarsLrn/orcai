@@ -72,7 +72,12 @@ export const columns: ColumnDef<UserWithOrganizationRole>[] = [
 						}
 					/>
 					<DropdownMenuContent align="end">
-						<Link to={"/app/users/$userId/edit"} params={{ userId: user.id }}>
+						<Link
+							to={"/app/users/$userId/edit"}
+							params={{
+								userId: user.id,
+							}}
+						>
 							<DropdownMenuItem>Edit User</DropdownMenuItem>
 						</Link>
 						<DropdownMenuSeparator />
@@ -90,7 +95,13 @@ const DeleteItem = ({ userId }: { userId: string }) => {
 	return (
 		<DropdownMenuItem
 			variant="destructive"
-			onClick={() => deleteUsers({ userIds: [userId] })}
+			onClick={() =>
+				deleteUsers({
+					userIds: [
+						userId,
+					],
+				})
+			}
 		>
 			Delete User
 		</DropdownMenuItem>

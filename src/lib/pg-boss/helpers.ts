@@ -6,7 +6,10 @@ import type { JobQueue } from "./schema/job-queues";
 
 export const sendJobEffect = <T extends object = object>(params: {
 	jobName: JobQueue;
-	data: T & { resourceId?: string; resourceType?: string };
+	data: T & {
+		resourceId?: string;
+		resourceType?: string;
+	};
 	options: {
 		resourceId: string;
 		resourceType: "block" | "course" | "chat";
@@ -58,7 +61,10 @@ export const sendJobEffect = <T extends object = object>(params: {
 export const sendJobBatchEffect = <T extends object = object>(params: {
 	jobName: JobQueue;
 	jobs: Array<{
-		data: T & { resourceId?: string; resourceType?: string };
+		data: T & {
+			resourceId?: string;
+			resourceType?: string;
+		};
 		options?: {
 			priority?: number;
 			retryLimit?: number;
@@ -114,7 +120,9 @@ export const getJobsByResourceEffect = (params: {
 		const data = yield* Effect.tryPromise({
 			try: async () =>
 				await boss.findJobs(params.jobQueue, {
-					data: { [dataKey]: params.resourceId },
+					data: {
+						[dataKey]: params.resourceId,
+					},
 				}),
 			catch: (error) =>
 				new PgBossError({

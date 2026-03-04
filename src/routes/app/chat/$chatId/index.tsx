@@ -26,12 +26,16 @@ export const Route = createFileRoute("/app/chat/$chatId/")({
 		};
 	},
 	validateSearch: searchSchema,
-	loaderDeps: ({ search: { branch } }) => ({ branch }),
+	loaderDeps: ({ search: { branch } }) => ({
+		branch,
+	}),
 	loader: async ({ context: { queryClient, chatId }, deps: { branch } }) => {
 		// Fetch the chat to get activeBranchId if branch is not specified
 		const chat = await queryClient.ensureQueryData(
 			orpc.chat.find.queryOptions({
-				input: { id: chatId },
+				input: {
+					id: chatId,
+				},
 			}),
 		);
 
@@ -53,12 +57,23 @@ export const Route = createFileRoute("/app/chat/$chatId/")({
 			}),
 		);
 
-		return { messages, chat, branchId };
+		return {
+			messages,
+			chat,
+			branchId,
+		};
 	},
 	component: RouteComponent,
 	head: ({ loaderData }) => {
 		const chat = loaderData?.chat?.data;
-		if (!chat) return { meta: [{ title: "Chat" }] };
+		if (!chat)
+			return {
+				meta: [
+					{
+						title: "Chat",
+					},
+				],
+			};
 
 		const branchId = loaderData.branchId ?? chat.activeBranchId;
 		const branchName = chat.branches?.find((b) => b.id === branchId)?.name;
@@ -69,7 +84,13 @@ export const Route = createFileRoute("/app/chat/$chatId/")({
 				? `${baseTitle} / ${branchName}`
 				: baseTitle;
 
-		return { meta: [{ title }] };
+		return {
+			meta: [
+				{
+					title,
+				},
+			],
+		};
 	},
 });
 

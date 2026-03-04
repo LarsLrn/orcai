@@ -26,7 +26,12 @@ const StatePagination = ({
 	const getVisiblePages = () => {
 		if (maxPages <= maxVisiblePages) {
 			// Show all pages if total pages is less than or equal to max visible
-			return Array.from({ length: maxPages }, (_, i) => i);
+			return Array.from(
+				{
+					length: maxPages,
+				},
+				(_, i) => i,
+			);
 		}
 
 		const half = Math.floor(maxVisiblePages / 2);
@@ -38,7 +43,12 @@ const StatePagination = ({
 			start = Math.max(0, end - maxVisiblePages + 1);
 		}
 
-		return Array.from({ length: end - start + 1 }, (_, i) => start + i);
+		return Array.from(
+			{
+				length: end - start + 1,
+			},
+			(_, i) => start + i,
+		);
 	};
 
 	const visiblePages = getVisiblePages();

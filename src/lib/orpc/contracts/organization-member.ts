@@ -13,7 +13,9 @@ export const listOrganizationMembersContract = base
 		method: "GET",
 		path: "/organizations/{organizationId}/members",
 		summary: "List all members of an organization",
-		tags: ["Organization Members"],
+		tags: [
+			"Organization Members",
+		],
 	})
 	.input(
 		paginationSchema.extend({
@@ -32,45 +34,75 @@ export const createOrganizationMemberContract = base
 		method: "POST",
 		path: "/organizations/{organizationId}/members",
 		summary: "Create a member for an organization",
-		tags: ["Organization Members"],
+		tags: [
+			"Organization Members",
+		],
 	})
 	.input(organizationMemberInsertSchema)
-	.output(z.object({ data: organizationMemberSelectSchema }));
+	.output(
+		z.object({
+			data: organizationMemberSelectSchema,
+		}),
+	);
 
 export const findOrganizationMemberContract = base
 	.route({
 		method: "GET",
 		path: "/organizations/{organizationId}/members/{userId}",
 		summary: "Find a member of an organization",
-		tags: ["Organization Members"],
+		tags: [
+			"Organization Members",
+		],
 	})
 	.input(
-		organizationMemberSelectSchema.pick({ userId: true, organizationId: true }),
+		organizationMemberSelectSchema.pick({
+			userId: true,
+			organizationId: true,
+		}),
 	)
-	.output(z.object({ data: organizationMemberSelectSchema }));
+	.output(
+		z.object({
+			data: organizationMemberSelectSchema,
+		}),
+	);
 
 export const updateOrganizationMemberContract = base
 	.route({
 		method: "PUT",
 		path: "/organizations/{organizationId}/members/{userId}",
 		summary: "Update a member of an organization",
-		tags: ["Organization Members"],
+		tags: [
+			"Organization Members",
+		],
 	})
 	.errors({
 		NOT_FOUND: {
 			message: "Organization not found",
-			data: z.object({ id: organizationMemberUpdateSchema.shape.id }),
+			data: z.object({
+				id: organizationMemberUpdateSchema.shape.id,
+			}),
 		},
 	})
 	.input(organizationMemberUpdateSchema)
-	.output(z.object({ data: organizationMemberSelectSchema }));
+	.output(
+		z.object({
+			data: organizationMemberSelectSchema,
+		}),
+	);
 
 export const deleteOrganizationMemberContract = base
 	.route({
 		method: "DELETE",
 		path: "/organizations/{organizationId}/members",
 		summary: "Delete a member of an organization",
-		tags: ["Organization Members"],
+		tags: [
+			"Organization Members",
+		],
 	})
 	.input(organizationMemberDeleteSchema)
-	.output(z.object({ success: z.boolean(), message: z.string().optional() }));
+	.output(
+		z.object({
+			success: z.boolean(),
+			message: z.string().optional(),
+		}),
+	);

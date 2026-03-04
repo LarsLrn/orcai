@@ -29,7 +29,10 @@ export const Route = createFileRoute("/app/hub/courses/")({
 	}) => {
 		await queryClient.ensureQueryData(
 			orpc.course.list.queryOptions({
-				input: { pageIndex, pageSize },
+				input: {
+					pageIndex,
+					pageSize,
+				},
 			}),
 		);
 	},
@@ -39,7 +42,12 @@ export const Route = createFileRoute("/app/hub/courses/")({
 function RouteComponent() {
 	const { pageIndex, pageSize } = Route.useSearch();
 	const { data: courses } = useSuspenseQuery(
-		orpc.course.list.queryOptions({ input: { pageIndex, pageSize } }),
+		orpc.course.list.queryOptions({
+			input: {
+				pageIndex,
+				pageSize,
+			},
+		}),
 	);
 
 	return (
@@ -50,7 +58,9 @@ function RouteComponent() {
 				<PageAction>
 					<Link
 						to={"/app/hub/courses/add"}
-						className={buttonVariants({ variant: "default" })}
+						className={buttonVariants({
+							variant: "default",
+						})}
 					>
 						Add Course
 					</Link>

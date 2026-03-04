@@ -21,11 +21,21 @@ export const listCoursesContract = base
 		method: "GET",
 		path: "/courses",
 		summary: "List all courses",
-		tags: ["Courses"],
+		tags: [
+			"Courses",
+		],
 	})
-	.input(z.object({ ...paginationSchema.shape, ...zedTokenSchema.shape }))
+	.input(
+		z.object({
+			...paginationSchema.shape,
+			...zedTokenSchema.shape,
+		}),
+	)
 	.output(
-		z.object({ data: z.array(courseSelectSchema), rowCount: z.number() }),
+		z.object({
+			data: z.array(courseSelectSchema),
+			rowCount: z.number(),
+		}),
 	);
 
 export const createCourseContract = base
@@ -33,11 +43,16 @@ export const createCourseContract = base
 		method: "POST",
 		path: "/courses",
 		summary: "Create a course",
-		tags: ["Courses"],
+		tags: [
+			"Courses",
+		],
 	})
 	.input(courseInsertSchema)
 	.output(
-		z.object({ data: courseSelectSchema, meta: zedTokenSchema.optional() }),
+		z.object({
+			data: courseSelectSchema,
+			meta: zedTokenSchema.optional(),
+		}),
 	);
 
 export const findCourseContract = base
@@ -45,33 +60,54 @@ export const findCourseContract = base
 		method: "GET",
 		path: "/courses/{id}",
 		summary: "Find a course",
-		tags: ["Courses"],
+		tags: [
+			"Courses",
+		],
 	})
-	.input(z.object({ id: courseSelectSchema.shape.id, ...zedTokenSchema.shape }))
-	.output(z.object({ data: courseSelectSchema }));
+	.input(
+		z.object({
+			id: courseSelectSchema.shape.id,
+			...zedTokenSchema.shape,
+		}),
+	)
+	.output(
+		z.object({
+			data: courseSelectSchema,
+		}),
+	);
 
 export const updateCourseContract = base
 	.route({
 		method: "PUT",
 		path: "/courses/{id}",
 		summary: "Update a course",
-		tags: ["Courses"],
+		tags: [
+			"Courses",
+		],
 	})
 	.errors({
 		NOT_FOUND: {
 			message: "Course not found",
-			data: z.object({ id: courseUpdateSchema.shape.id }),
+			data: z.object({
+				id: courseUpdateSchema.shape.id,
+			}),
 		},
 	})
 	.input(courseUpdateSchema)
-	.output(z.object({ data: courseSelectSchema }));
+	.output(
+		z.object({
+			data: courseSelectSchema,
+		}),
+	);
 
 export const deleteCourseContract = base
 	.route({
 		method: "DELETE",
 		path: "/courses",
 		summary: "Delete a course",
-		tags: ["Courses"],
+		tags: [
+			"Courses",
+		],
 	})
 	.input(courseDeleteSchema)
 	.output(statusSchema);
@@ -81,17 +117,26 @@ export const listCourseBotsContract = base
 		method: "GET",
 		path: "/courses/{courseId}/bots",
 		summary: "List bots linked to a course",
-		tags: ["Courses"],
+		tags: [
+			"Courses",
+		],
 	})
 	.input(courseListBotsSchema)
-	.output(z.object({ data: z.array(botSelectSchema), rowCount: z.number() }));
+	.output(
+		z.object({
+			data: z.array(botSelectSchema),
+			rowCount: z.number(),
+		}),
+	);
 
 export const attachCourseBotContract = base
 	.route({
 		method: "POST",
 		path: "/courses/{courseId}/bots/{botId}",
 		summary: "Attach a bot to a course",
-		tags: ["Courses"],
+		tags: [
+			"Courses",
+		],
 	})
 	.input(courseAttachBotSchema)
 	.output(statusSchema);
@@ -101,7 +146,9 @@ export const detachCourseBotContract = base
 		method: "DELETE",
 		path: "/courses/{courseId}/bots/{botId}",
 		summary: "Detach a bot from a course",
-		tags: ["Courses"],
+		tags: [
+			"Courses",
+		],
 	})
 	.input(courseDetachBotSchema)
 	.output(statusSchema);

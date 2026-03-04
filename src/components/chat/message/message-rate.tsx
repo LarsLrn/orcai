@@ -42,7 +42,9 @@ const MessageRate = ({
 
 	useEffect(() => {
 		setOptimisticScore(score?.value);
-	}, [score?.value]);
+	}, [
+		score?.value,
+	]);
 
 	const handleRate = (sentiment: number) => {
 		rateMessage({
@@ -53,10 +55,22 @@ const MessageRate = ({
 	};
 
 	const ratings = [
-		{ label: "Very much", value: 10 },
-		{ label: "A bit", value: 5 },
-		{ label: "Not really", value: -5 },
-		{ label: "Not at all", value: -10 },
+		{
+			label: "Very much",
+			value: 10,
+		},
+		{
+			label: "A bit",
+			value: 5,
+		},
+		{
+			label: "Not really",
+			value: -5,
+		},
+		{
+			label: "Not at all",
+			value: -10,
+		},
 	];
 
 	return (

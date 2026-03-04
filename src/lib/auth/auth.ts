@@ -17,7 +17,9 @@ const cfg = loadAppConfigSync();
 export const auth = betterAuth({
 	baseURL: cfg.auth.url,
 	secret: Redacted.value(cfg.auth.secret),
-	telemetry: { enabled: false },
+	telemetry: {
+		enabled: false,
+	},
 	trustedOrigins: [
 		cfg.auth.url,
 		"http://localhost:3000",
@@ -26,7 +28,11 @@ export const auth = betterAuth({
 		"http://10.0.2.2:3000",
 	],
 	// tanstackStartCookies plugin must be last in the array
-	plugins: [admin(), expo(), tanstackStartCookies()],
+	plugins: [
+		admin(),
+		expo(),
+		tanstackStartCookies(),
+	],
 	database: drizzleAdapter(authDb, {
 		provider: "pg",
 		schema: {

@@ -61,7 +61,9 @@ const handler = new RPCHandler(router, {
 			const span = trace.getActiveSpan();
 
 			request.signal?.addEventListener("abort", () => {
-				span?.addEvent("aborted", { reason: String(request.signal?.reason) });
+				span?.addEvent("aborted", {
+					reason: String(request.signal?.reason),
+				});
 			});
 
 			return next();
@@ -93,10 +95,20 @@ export const Route = createFileRoute("/api/rpc/$")({
 
 				const { response } = await handler.handle(request, {
 					prefix: "/api/rpc",
-					context: { reqHeaders: request.headers, meta: { zedToken } },
+					context: {
+						reqHeaders: request.headers,
+						meta: {
+							zedToken,
+						},
+					},
 				});
 
-				return response ?? new Response("Not Found", { status: 404 });
+				return (
+					response ??
+					new Response("Not Found", {
+						status: 404,
+					})
+				);
 			},
 		},
 	},

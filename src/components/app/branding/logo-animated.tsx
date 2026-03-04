@@ -49,7 +49,13 @@ const AnimatedPath = ({
 				animate={{
 					pathLength: animatePathLength,
 					pathOffset: animateOffset,
-					opacity: [0, 1, 1, 1, 0],
+					opacity: [
+						0,
+						1,
+						1,
+						1,
+						0,
+					],
 				}}
 				transition={{
 					delay: adjustedDelay,
@@ -105,7 +111,20 @@ const AnimatedCircle = ({
 					opacity: 0,
 				}}
 				animate={{
-					opacity: [0, 1, 1, 1, 1, 0.9, 0.8, 0.5, 0.4, 0.3, 0.2, 0],
+					opacity: [
+						0,
+						1,
+						1,
+						1,
+						1,
+						0.9,
+						0.8,
+						0.5,
+						0.4,
+						0.3,
+						0.2,
+						0,
+					],
 				}}
 				transition={{
 					delay: adjustedDelay,
@@ -348,8 +367,29 @@ const LogoAnimated = ({
 									color={currentColors.primary}
 									delay={1.87}
 									duration={1.25}
-									animateOffset={[0, 0, 0, 0, 0, 0, 0, 0, 0.8, 1]}
-									animatePathLength={[0, 1, 1, 1, 1, 1, 1, 1, 1]}
+									animateOffset={[
+										0,
+										0,
+										0,
+										0,
+										0,
+										0,
+										0,
+										0,
+										0.8,
+										1,
+									]}
+									animatePathLength={[
+										0,
+										1,
+										1,
+										1,
+										1,
+										1,
+										1,
+										1,
+										1,
+									]}
 									ease="easeOut"
 									baseRepeatDelay={adjustedRepeatDelay}
 									speedMultiplier={speedMultiplier}
@@ -373,8 +413,30 @@ const LogoAnimated = ({
 									color={currentColors.primary}
 									delay={1.85}
 									duration={1.25}
-									animateOffset={[0, 0, 0, 0, 0, 0, 0, 0, 0.8, 1]}
-									animatePathLength={[0, 1, 1, 1, 1, 1, 1, 1, 1, 1]}
+									animateOffset={[
+										0,
+										0,
+										0,
+										0,
+										0,
+										0,
+										0,
+										0,
+										0.8,
+										1,
+									]}
+									animatePathLength={[
+										0,
+										1,
+										1,
+										1,
+										1,
+										1,
+										1,
+										1,
+										1,
+										1,
+									]}
 									ease="easeOut"
 									baseRepeatDelay={adjustedRepeatDelay}
 									speedMultiplier={speedMultiplier}
@@ -420,8 +482,25 @@ const LogoAnimated = ({
 									color={currentColors.secondary}
 									delay={1.8}
 									duration={0.8}
-									animateOffset={[0, 0, 0, 0, 0.8, 1]}
-									animatePathLength={[0, 1, 1, 1, 1, 1, 1, 1, 1]}
+									animateOffset={[
+										0,
+										0,
+										0,
+										0,
+										0.8,
+										1,
+									]}
+									animatePathLength={[
+										0,
+										1,
+										1,
+										1,
+										1,
+										1,
+										1,
+										1,
+										1,
+									]}
 									ease="easeOut"
 									baseRepeatDelay={adjustedRepeatDelay}
 									speedMultiplier={speedMultiplier}
@@ -456,7 +535,14 @@ const LogoAnimated = ({
 									color={currentColors.secondary}
 									delay={0.3}
 									duration={2.4}
-									animateOffset={[0, 0, 0.1, 0.2, 0.5, 1]}
+									animateOffset={[
+										0,
+										0,
+										0.1,
+										0.2,
+										0.5,
+										1,
+									]}
 									baseRepeatDelay={adjustedRepeatDelay}
 									speedMultiplier={speedMultiplier}
 								/>

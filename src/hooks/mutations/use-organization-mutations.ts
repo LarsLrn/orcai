@@ -20,7 +20,9 @@ export const useCreateOrganizationMutation = (
 
 					await router.navigate({
 						to: "/app/orgs/$orgId",
-						params: { orgId: result.data.id },
+						params: {
+							orgId: result.data.id,
+						},
 					});
 
 					try {

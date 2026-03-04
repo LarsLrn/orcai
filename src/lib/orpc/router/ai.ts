@@ -47,7 +47,9 @@ export const aiChat = authed.ai.chat
 
 				if (!hasMessageShape(userMessage)) {
 					return yield* Effect.fail(
-						errors.BAD_REQUEST({ message: "Missing or invalid user message" }),
+						errors.BAD_REQUEST({
+							message: "Missing or invalid user message",
+						}),
 					);
 				}
 
@@ -80,15 +82,22 @@ export const aiChat = authed.ai.chat
 										attachment,
 										cache: attachmentPartCache,
 									}),
-								{ concurrency: 3 },
+								{
+									concurrency: 3,
+								},
 							);
 
 							return {
 								...message,
-								parts: [...message.parts, ...attachmentParts],
+								parts: [
+									...message.parts,
+									...attachmentParts,
+								],
 							};
 						}),
-					{ concurrency: "unbounded" },
+					{
+						concurrency: "unbounded",
+					},
 				);
 
 				const { branchId: currentBranchId } = yield* Effect.tryPromise({
@@ -105,10 +114,14 @@ export const aiChat = authed.ai.chat
 								branchId: input.branchId,
 								parentMessageId, // Identify where we are attaching this message
 							},
-							{ context },
+							{
+								context,
+							},
 						),
 					catch: () =>
-						errors.BAD_REQUEST({ message: "Failed to create user message" }),
+						errors.BAD_REQUEST({
+							message: "Failed to create user message",
+						}),
 				});
 
 				if (inputMessages.length < 2) {
@@ -126,7 +139,9 @@ export const aiChat = authed.ai.chat
 											id: input.chatId,
 											title,
 										},
-										{ context },
+										{
+											context,
+										},
 									),
 								catch: () =>
 									errors.BAD_REQUEST({
@@ -141,7 +156,9 @@ export const aiChat = authed.ai.chat
 
 				const botId = yield* Effect.fromNullable(input.botId).pipe(
 					Effect.mapError(() =>
-						errors.BAD_REQUEST({ message: "botId is required" }),
+						errors.BAD_REQUEST({
+							message: "botId is required",
+						}),
 					),
 				);
 
@@ -150,12 +167,18 @@ export const aiChat = authed.ai.chat
 						call(
 							listBlocks,
 							{
-								filters: { botId },
+								filters: {
+									botId,
+								},
 							},
-							{ context },
+							{
+								context,
+							},
 						),
 					catch: () =>
-						errors.BAD_REQUEST({ message: "Failed to fetch blocks for bot" }),
+						errors.BAD_REQUEST({
+							message: "Failed to fetch blocks for bot",
+						}),
 				});
 
 				const stream = yield* Effect.tryPromise({
@@ -195,7 +218,9 @@ export const aiChat = authed.ai.chat
 										metadata: responseMessage.metadata ?? {},
 										branchId: currentBranchId,
 									},
-									{ context },
+									{
+										context,
+									},
 								);
 							},
 							messageMetadata: ({ part }) => {

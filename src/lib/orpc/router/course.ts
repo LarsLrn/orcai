@@ -39,17 +39,23 @@ export const listCourses = authed.course.list.handler(
 				return yield* Effect.all(
 					[
 						db
-							.select({ ...getColumns(dbSchema.course) })
+							.select({
+								...getColumns(dbSchema.course),
+							})
 							.from(dbSchema.course)
 							.where(inArray(dbSchema.course.id, allowedIds))
 							.limit(input.pageSize)
 							.offset(input.pageIndex * input.pageSize),
 						db
-							.select({ count: count() })
+							.select({
+								count: count(),
+							})
 							.from(dbSchema.course)
 							.where(inArray(dbSchema.course.id, allowedIds)),
 					],
-					{ concurrency: "unbounded" },
+					{
+						concurrency: "unbounded",
+					},
 				).pipe(
 					Effect.map(([data, [countResult]]) => ({
 						data,
@@ -77,17 +83,23 @@ export const findCourse = authed.course.find
 				const db = yield* DB;
 
 				const [query] = yield* db
-					.select({ ...getColumns(dbSchema.course) })
+					.select({
+						...getColumns(dbSchema.course),
+					})
 					.from(dbSchema.course)
 					.where(eq(dbSchema.course.id, input.id));
 
 				if (!query) {
 					return yield* Effect.fail(
-						errors.NOT_FOUND({ message: "Course not found" }),
+						errors.NOT_FOUND({
+							message: "Course not found",
+						}),
 					);
 				}
 
-				return { data: query };
+				return {
+					data: query,
+				};
 			}),
 		),
 	);
@@ -110,7 +122,9 @@ export const createCourse = authed.course.create
 						organizationId,
 						config: input.config,
 					})
-					.returning({ ...getColumns(dbSchema.course) });
+					.returning({
+						...getColumns(dbSchema.course),
+					});
 
 				const relationResult = yield* initializeResourceAuthorization({
 					resourceType: "course",
@@ -121,7 +135,9 @@ export const createCourse = authed.course.create
 
 				return {
 					data: query,
-					meta: { zedToken: relationResult.zedToken },
+					meta: {
+						zedToken: relationResult.zedToken,
+					},
 				};
 			}),
 		),
@@ -153,9 +169,13 @@ export const updateCourse = authed.course.update
 						updatedAt: new Date(),
 					})
 					.where(eq(dbSchema.course.id, input.id))
-					.returning({ ...getColumns(dbSchema.course) });
+					.returning({
+						...getColumns(dbSchema.course),
+					});
 
-				return { data: query };
+				return {
+					data: query,
+				};
 			}),
 		),
 	);
@@ -177,14 +197,20 @@ export const deleteCourses = authed.course.delete
 
 				// Check if there are any IDs to delete
 				if (!context.allowedIds || context.allowedIds.length === 0) {
-					return { success: true, message: "No courses to delete" };
+					return {
+						success: true,
+						message: "No courses to delete",
+					};
 				}
 
 				yield* db
 					.delete(dbSchema.course)
 					.where(inArray(dbSchema.course.id, context.allowedIds));
 
-				return { success: true, message: "Courses deleted successfully" };
+				return {
+					success: true,
+					message: "Courses deleted successfully",
+				};
 			}),
 		),
 	);
@@ -205,7 +231,9 @@ export const listCourseBots = authed.course.listBots
 				const db = yield* DB;
 
 				const data = yield* db
-					.select({ ...getColumns(dbSchema.bot) })
+					.select({
+						...getColumns(dbSchema.bot),
+					})
 					.from(dbSchema.courseBot)
 					.innerJoin(
 						dbSchema.bot,
@@ -213,7 +241,10 @@ export const listCourseBots = authed.course.listBots
 					)
 					.where(eq(dbSchema.courseBot.courseId, input.courseId));
 
-				return { data, rowCount: data.length };
+				return {
+					data,
+					rowCount: data.length,
+				};
 			}),
 		),
 	);
@@ -270,13 +301,17 @@ export const attachCourseBot = authed.course.attachBot
 				}
 
 				const [courseRow] = yield* db
-					.select({ organizationId: dbSchema.course.organizationId })
+					.select({
+						organizationId: dbSchema.course.organizationId,
+					})
 					.from(dbSchema.course)
 					.where(eq(dbSchema.course.id, input.courseId))
 					.limit(1);
 
 				const botScopes = yield* db
-					.select({ organizationId: dbSchema.resourceScope.organizationId })
+					.select({
+						organizationId: dbSchema.resourceScope.organizationId,
+					})
 					.from(dbSchema.resourceScope)
 					.where(
 						and(

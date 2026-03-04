@@ -20,7 +20,9 @@ import { router } from "@/lib/orpc/router";
 import { COOKIES, HEADERS } from "@/settings/constants";
 
 const openAPIGenerator = new OpenAPIGenerator({
-	schemaConverters: [new ZodToJsonSchemaConverter()],
+	schemaConverters: [
+		new ZodToJsonSchemaConverter(),
+	],
 });
 
 const specFromRouter = await openAPIGenerator.generate(router, {
@@ -28,7 +30,12 @@ const specFromRouter = await openAPIGenerator.generate(router, {
 		title: "SokratesT API Documentation",
 		version: "1.0.0",
 	},
-	security: [{ bearerAuth: [], zedToken: [] }],
+	security: [
+		{
+			bearerAuth: [],
+			zedToken: [],
+		},
+	],
 	components: {
 		securitySchemes: {
 			bearerAuth: {
@@ -92,7 +99,9 @@ const openAPIHandler = new OpenAPIHandler(router, {
 			const span = trace.getActiveSpan();
 
 			request.signal?.addEventListener("abort", () => {
-				span?.addEvent("aborted", { reason: String(request.signal?.reason) });
+				span?.addEvent("aborted", {
+					reason: String(request.signal?.reason),
+				});
 			});
 
 			return next();
@@ -113,10 +122,14 @@ const openAPIHandler = new OpenAPIHandler(router, {
 		 */
 		/* new SimpleCsrfProtectionHandlerPlugin(), */
 		new SmartCoercionPlugin({
-			schemaConverters: [new ZodToJsonSchemaConverter()],
+			schemaConverters: [
+				new ZodToJsonSchemaConverter(),
+			],
 		}),
 		new OpenAPIReferencePlugin({
-			schemaConverters: [new ZodToJsonSchemaConverter()],
+			schemaConverters: [
+				new ZodToJsonSchemaConverter(),
+			],
 			specGenerateOptions: specFromRouter,
 			docsConfig: {
 				authentication: {
@@ -152,10 +165,20 @@ export const Route = createFileRoute("/api/doc/$")({
 
 				const { response } = await openAPIHandler.handle(request, {
 					prefix: "/api/doc",
-					context: { reqHeaders: request.headers, meta: { zedToken } },
+					context: {
+						reqHeaders: request.headers,
+						meta: {
+							zedToken,
+						},
+					},
 				});
 
-				return response ?? new Response("Not Found", { status: 404 });
+				return (
+					response ??
+					new Response("Not Found", {
+						status: 404,
+					})
+				);
 			},
 		},
 	},

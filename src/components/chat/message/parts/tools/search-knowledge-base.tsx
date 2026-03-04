@@ -27,7 +27,9 @@ const SearchKnowledgeBase = ({
 			<ToolContent>
 				<ToolInput input={part.input} />
 				<ToolOutput
-					output={Output({ output: part.output })}
+					output={Output({
+						output: part.output,
+					})}
 					errorText={part.errorText}
 				/>
 			</ToolContent>

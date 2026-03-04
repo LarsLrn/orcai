@@ -54,7 +54,9 @@ export const useChatAttachments = ({ limit = 8 }: { limit?: number } = {}) => {
 
 	const selectedAssetIds = useMemo(
 		() => new Set(selectedAssets.map((asset) => asset.id)),
-		[selectedAssets],
+		[
+			selectedAssets,
+		],
 	);
 
 	const count = localFiles.length + selectedAssets.length;
@@ -62,7 +64,9 @@ export const useChatAttachments = ({ limit = 8 }: { limit?: number } = {}) => {
 
 	useEffect(() => {
 		localFilesRef.current = localFiles;
-	}, [localFiles]);
+	}, [
+		localFiles,
+	]);
 
 	useEffect(
 		() => () => {
@@ -122,7 +126,10 @@ export const useChatAttachments = ({ limit = 8 }: { limit?: number } = {}) => {
 			);
 		}
 
-		setLocalFiles((current) => [...current, ...accepted]);
+		setLocalFiles((current) => [
+			...current,
+			...accepted,
+		]);
 	};
 
 	const handleFileInputChange = (
@@ -145,7 +152,10 @@ export const useChatAttachments = ({ limit = 8 }: { limit?: number } = {}) => {
 			return;
 		}
 
-		setSelectedAssets((current) => [...current, asset]);
+		setSelectedAssets((current) => [
+			...current,
+			asset,
+		]);
 	};
 
 	const removeSelectedAsset = (id: Asset["id"]) => {
@@ -209,11 +219,17 @@ export const useChatAttachments = ({ limit = 8 }: { limit?: number } = {}) => {
 		}
 
 		const libraryAttachments = selectedAssets.map((asset) =>
-			toChatAttachment({ asset, source: "library" }),
+			toChatAttachment({
+				asset,
+				source: "library",
+			}),
 		);
 
 		const attachmentsMap = new Map<string, ChatAttachment>();
-		for (const attachment of [...libraryAttachments, ...uploadedAttachments]) {
+		for (const attachment of [
+			...libraryAttachments,
+			...uploadedAttachments,
+		]) {
 			attachmentsMap.set(attachment.assetId, attachment);
 		}
 

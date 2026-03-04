@@ -31,10 +31,15 @@ export type FilteredTrace = Pick<
 const fetchAllTraces = createServerFn({
 	method: "GET",
 }).handler(
-	async (): Promise<{ meta: ApiUtilsMetaResponse; data: FilteredTrace[] }> => {
+	async (): Promise<{
+		meta: ApiUtilsMetaResponse;
+		data: FilteredTrace[];
+	}> => {
 		const { headers } = getRequest();
 
-		const session = await auth.api.getSession({ headers });
+		const session = await auth.api.getSession({
+			headers,
+		});
 
 		if (!session?.user) {
 			throw new Error("UNAUTHORIZED");
@@ -51,7 +56,9 @@ const fetchAllTraces = createServerFn({
 			page: currentPage,
 		});
 
-		allData = [...firstPageResponse.data];
+		allData = [
+			...firstPageResponse.data,
+		];
 		totalPages = firstPageResponse.meta.totalPages;
 
 		// Fetch remaining pages if any
@@ -62,7 +69,10 @@ const fetchAllTraces = createServerFn({
 				limit: 50,
 				page: currentPage,
 			});
-			allData = [...allData, ...pageResponse.data];
+			allData = [
+				...allData,
+				...pageResponse.data,
+			];
 		}
 
 		// Fetch scores
@@ -166,7 +176,9 @@ const ExportChats = () => {
 
 	const { data: traces } = useQuery({
 		queryFn: () => tracesFn(),
-		queryKey: ["export-chats"],
+		queryKey: [
+			"export-chats",
+		],
 	});
 
 	if (!traces || traces.data.length === 0) {

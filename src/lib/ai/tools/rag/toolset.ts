@@ -9,8 +9,16 @@ export const buildKnowledgeBaseTools = ({
 }: {
 	blocks: DatabaseBlock[];
 }) => ({
-	searchKnowledgeBase: searchKnowledgeBaseTool({ blocks }),
-	listKnowledgeBaseDocuments: listKnowledgeBaseDocumentsTool({ blocks }),
-	getKnowledgeBasePage: getKnowledgeBasePageTool({ blocks }),
-	getKnowledgeBaseChunks: getKnowledgeBaseChunksTool({ blocks }),
+	searchKnowledgeBase: searchKnowledgeBaseTool({
+		blocks,
+	}),
+	listKnowledgeBaseDocuments: listKnowledgeBaseDocumentsTool({
+		blocks,
+	}),
+	getKnowledgeBasePage: getKnowledgeBasePageTool({
+		blocks,
+	}),
+	getKnowledgeBaseChunks: getKnowledgeBaseChunksTool({
+		blocks,
+	}),
 });

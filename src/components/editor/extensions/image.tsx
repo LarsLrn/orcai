@@ -189,7 +189,9 @@ function TiptapImage(props: NodeViewProps) {
 	}
 
 	function handleCaptionBlur() {
-		updateAttributes({ caption });
+		updateAttributes({
+			caption,
+		});
 		setEditingCaption(false);
 	}
 
@@ -222,7 +224,11 @@ function TiptapImage(props: NodeViewProps) {
 			window.removeEventListener("touchmove", handleTouchMove);
 			window.removeEventListener("touchend", handleTouchEnd);
 		};
-	}, [resizing, resizeInitialMouseX, resizeInitialWidth]);
+	}, [
+		resizing,
+		resizeInitialMouseX,
+		resizeInitialWidth,
+	]);
 
 	return (
 		<NodeViewWrapper
@@ -234,7 +240,9 @@ function TiptapImage(props: NodeViewProps) {
 				node.attrs.align === "center" && "left-1/2 -translate-x-1/2",
 				node.attrs.align === "right" && "left-full -translate-x-full",
 			)}
-			style={{ width: node.attrs.width }}
+			style={{
+				width: node.attrs.width,
+			}}
 		>
 			<div
 				className={cn(
@@ -252,16 +260,23 @@ function TiptapImage(props: NodeViewProps) {
 						onLoad={(e) => {
 							const img = e.currentTarget;
 							const aspectRatio = img.naturalWidth / img.naturalHeight;
-							updateAttributes({ aspectRatio });
+							updateAttributes({
+								aspectRatio,
+							});
 						}}
 					/>
 					{editor?.isEditable && (
 						<>
 							<div
 								className="absolute inset-y-0 z-20 flex w-6.25 cursor-col-resize items-center justify-start p-2"
-								style={{ left: 0 }}
+								style={{
+									left: 0,
+								}}
 								onMouseDown={(event) => {
-									handleResizingPosition({ e: event, position: "left" });
+									handleResizingPosition({
+										e: event,
+										position: "left",
+									});
 								}}
 								onTouchStart={(event) => handleTouchStart(event, "left")}
 							>
@@ -269,9 +284,14 @@ function TiptapImage(props: NodeViewProps) {
 							</div>
 							<div
 								className="absolute inset-y-0 z-20 flex w-6.25 cursor-col-resize items-center justify-end p-2"
-								style={{ right: 0 }}
+								style={{
+									right: 0,
+								}}
 								onMouseDown={(event) => {
-									handleResizingPosition({ e: event, position: "right" });
+									handleResizingPosition({
+										e: event,
+										position: "right",
+									});
 								}}
 								onTouchStart={(event) => handleTouchStart(event, "right")}
 							>
@@ -315,7 +335,11 @@ function TiptapImage(props: NodeViewProps) {
 								node.attrs.align === "left" && "bg-accent",
 							)}
 							variant="ghost"
-							onClick={() => updateAttributes({ align: "left" })}
+							onClick={() =>
+								updateAttributes({
+									align: "left",
+								})
+							}
 						>
 							<AlignLeft className="size-4" />
 						</Button>
@@ -326,7 +350,11 @@ function TiptapImage(props: NodeViewProps) {
 								node.attrs.align === "center" && "bg-accent",
 							)}
 							variant="ghost"
-							onClick={() => updateAttributes({ align: "center" })}
+							onClick={() =>
+								updateAttributes({
+									align: "center",
+								})
+							}
 						>
 							<AlignCenter className="size-4" />
 						</Button>
@@ -337,7 +365,11 @@ function TiptapImage(props: NodeViewProps) {
 								node.attrs.align === "right" && "bg-accent",
 							)}
 							variant="ghost"
-							onClick={() => updateAttributes({ align: "right" })}
+							onClick={() =>
+								updateAttributes({
+									align: "right",
+								})
+							}
 						>
 							<AlignRight className="size-4" />
 						</Button>

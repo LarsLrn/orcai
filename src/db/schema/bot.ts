@@ -15,12 +15,16 @@ import { block } from "./block";
 export const bot = pgTable("bot", {
 	id: uuid("id").primaryKey().defaultRandom(),
 	name: text("name").notNull(),
-	description: varchar("description", { length: 500 }).notNull(),
+	description: varchar("description", {
+		length: 500,
+	}).notNull(),
 	contentJson: json("content_json").notNull().default({}),
 	contentHtml: text("content_html").notNull(),
 	userId: uuid("user_id")
 		.notNull()
-		.references(() => user.id, { onDelete: "cascade" }),
+		.references(() => user.id, {
+			onDelete: "cascade",
+		}),
 	forkedFromId: uuid("forked_from_id").references((): AnyPgColumn => bot.id, {
 		onDelete: "set null",
 	}),
@@ -34,11 +38,22 @@ export const botBlock = pgTable(
 	{
 		blockId: uuid("block_id")
 			.notNull()
-			.references(() => block.id, { onDelete: "cascade" }),
+			.references(() => block.id, {
+				onDelete: "cascade",
+			}),
 		botId: uuid("bot_id")
 			.notNull()
-			.references(() => bot.id, { onDelete: "cascade" }),
+			.references(() => bot.id, {
+				onDelete: "cascade",
+			}),
 		createdAt: timestamp("created_at").notNull().defaultNow(),
 	},
-	(table) => [primaryKey({ columns: [table.blockId, table.botId] })],
+	(table) => [
+		primaryKey({
+			columns: [
+				table.blockId,
+				table.botId,
+			],
+		}),
+	],
 );

@@ -30,7 +30,9 @@ export const ImageGenerationTool = ({
 					)}
 				</div>
 				<ToolOutput
-					output={Output({ output: part.output })}
+					output={Output({
+						output: part.output,
+					})}
 					errorText={part.errorText}
 				/>
 			</ToolContent>

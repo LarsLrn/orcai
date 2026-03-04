@@ -16,12 +16,16 @@ export const useSignOut = () => {
 					trackEvent("auth-signout");
 
 					toast.message("Goodbye!");
-					await navigate({ to: "/" });
+					await navigate({
+						to: "/",
+					});
 					queryClient.clear();
 				},
 			},
 		});
 	};
 
-	return { signOut };
+	return {
+		signOut,
+	};
 };

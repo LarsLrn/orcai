@@ -25,12 +25,17 @@ function RouteComponent() {
 	const [isAccessOpen, setIsAccessOpen] = useState(false);
 	const { data: course } = useSuspenseQuery(
 		orpc.course.find.queryOptions({
-			input: { id: courseId },
+			input: {
+				id: courseId,
+			},
 		}),
 	);
 	const { data: visibility } = useSuspenseQuery(
 		orpc.resource.getVisibility.queryOptions({
-			input: { resourceType: "course", resourceId: courseId },
+			input: {
+				resourceType: "course",
+				resourceId: courseId,
+			},
 		}),
 	);
 
@@ -47,14 +52,20 @@ function RouteComponent() {
 					</Button>
 					<Link
 						to={"/app/hub/courses/add"}
-						className={buttonVariants({ variant: "default" })}
+						className={buttonVariants({
+							variant: "default",
+						})}
 					>
 						Add Resources
 					</Link>
 					<Link
 						to={"/app/hub/courses/$courseId/edit"}
-						params={{ courseId: id }}
-						className={buttonVariants({ variant: "default" })}
+						params={{
+							courseId: id,
+						}}
+						className={buttonVariants({
+							variant: "default",
+						})}
 					>
 						Edit Course
 					</Link>
@@ -84,7 +95,10 @@ function RouteComponent() {
 				<AccessDialog
 					open={isAccessOpen}
 					onOpenChange={setIsAccessOpen}
-					resourceRef={{ type: "course", id }}
+					resourceRef={{
+						type: "course",
+						id,
+					}}
 					resourceName={title}
 				/>
 			</PageContent>

@@ -72,14 +72,21 @@ export const listUsers = authed.user.list
 							.limit(input.pageSize)
 							.offset(input.pageIndex * input.pageSize),
 						db
-							.select({ count: count() })
+							.select({
+								count: count(),
+							})
 							.from(dbSchema.member)
 							.where(eq(dbSchema.member.organizationId, organizationId)),
 					],
-					{ concurrency: "unbounded" },
+					{
+						concurrency: "unbounded",
+					},
 				);
 
-				return { data, rowCount: rowCount.count };
+				return {
+					data,
+					rowCount: rowCount.count,
+				};
 			}),
 		),
 	);
@@ -148,7 +155,9 @@ export const findUser = authed.user.find
 								),
 							),
 						),
-						Effect.map((user) => ({ data: user })),
+						Effect.map((user) => ({
+							data: user,
+						})),
 					);
 			}),
 		),
@@ -244,7 +253,9 @@ export const listUserAccess = authed.user.listAccess
 								),
 							),
 						],
-						{ concurrency: "unbounded" },
+						{
+							concurrency: "unbounded",
+						},
 					);
 
 				const allowedResources = [
@@ -254,7 +265,10 @@ export const listUserAccess = authed.user.listAccess
 					...allowedAssets,
 				];
 				if (allowedResources.length === 0) {
-					return { data: [], rowCount: 0 };
+					return {
+						data: [],
+						rowCount: 0,
+					};
 				}
 
 				const allAllowedIds = unique(
@@ -276,7 +290,10 @@ export const listUserAccess = authed.user.listAccess
 					);
 
 				if (scopedResources.length === 0) {
-					return { data: [], rowCount: 0 };
+					return {
+						data: [],
+						rowCount: 0,
+					};
 				}
 
 				const scopedResourceIds = unique(
@@ -340,26 +357,41 @@ export const listUserAccess = authed.user.listAccess
 								getAllowedSet("edit"),
 								getAllowedSet("read"),
 							],
-							{ concurrency: "unbounded" },
+							{
+								concurrency: "unbounded",
+							},
 						);
 
 						return new Map(
 							ids
 								.map((id) => {
 									if (manageableIds.has(id)) {
-										return [id, "manager"] as const;
+										return [
+											id,
+											"manager",
+										] as const;
 									}
 									if (editableIds.has(id)) {
-										return [id, "editor"] as const;
+										return [
+											id,
+											"editor",
+										] as const;
 									}
 									if (readableIds.has(id)) {
-										return [id, "viewer"] as const;
+										return [
+											id,
+											"viewer",
+										] as const;
 									}
 									return null;
 								})
 								.filter(
-									(entry): entry is readonly [string, ResourceGrantRole] =>
-										entry !== null,
+									(
+										entry,
+									): entry is readonly [
+										string,
+										ResourceGrantRole,
+									] => entry !== null,
 								),
 						);
 					});
@@ -372,7 +404,9 @@ export const listUserAccess = authed.user.listAccess
 							roleForAllowedIds("block", blockIds),
 							roleForAllowedIds("asset", assetIds),
 						],
-						{ concurrency: "unbounded" },
+						{
+							concurrency: "unbounded",
+						},
 					);
 
 				const effectiveRoleByResource = new Map<string, ResourceGrantRole>();
@@ -423,13 +457,19 @@ export const listUserAccess = authed.user.listAccess
 								),
 							),
 					],
-					{ concurrency: "unbounded" },
+					{
+						concurrency: "unbounded",
+					},
 				);
 
 				const groupPrincipalIds = Array.from(
 					new Set([
 						...groupMemberships.map((membership) => membership.groupId),
-						...(allMembersGroup ? [allMembersGroup.id] : []),
+						...(allMembersGroup
+							? [
+									allMembersGroup.id,
+								]
+							: []),
 					]),
 				);
 
@@ -523,11 +563,18 @@ export const listUserAccess = authed.user.listAccess
 									.where(inArray(dbSchema.asset.id, assetIds))
 							: Effect.succeed([]),
 					],
-					{ concurrency: "unbounded" },
+					{
+						concurrency: "unbounded",
+					},
 				);
 
 				const names = new Map<string, string>();
-				for (const item of [...courses, ...bots, ...blocks, ...assets]) {
+				for (const item of [
+					...courses,
+					...bots,
+					...blocks,
+					...assets,
+				]) {
 					names.set(item.id, item.name);
 				}
 
@@ -618,7 +665,10 @@ export const listUserAccess = authed.user.listAccess
 					})
 					.sort((a, b) => b.createdAt.getTime() - a.createdAt.getTime());
 
-				return { data, rowCount: data.length };
+				return {
+					data,
+					rowCount: data.length,
+				};
 			}),
 		),
 	);
@@ -638,11 +688,17 @@ export const me = authed.user.me.handler(async ({ context, errors }) =>
 					Effect.flatMap((user) =>
 						Effect.fromNullable(user).pipe(
 							Effect.orElse(() =>
-								Effect.fail(errors.NOT_FOUND({ message: "User not found" })),
+								Effect.fail(
+									errors.NOT_FOUND({
+										message: "User not found",
+									}),
+								),
 							),
 						),
 					),
-					Effect.map((user) => ({ data: user })),
+					Effect.map((user) => ({
+						data: user,
+					})),
 				);
 		}),
 	),
@@ -687,7 +743,9 @@ export const updatePassword = authed.user.updatePassword.handler(
 
 				if (!passwordMatches) {
 					return yield* Effect.fail(
-						errors.UNAUTHORIZED({ message: "Current password is incorrect" }),
+						errors.UNAUTHORIZED({
+							message: "Current password is incorrect",
+						}),
 					);
 				}
 
@@ -699,7 +757,9 @@ export const updatePassword = authed.user.updatePassword.handler(
 					),
 				);
 
-				return { success: true };
+				return {
+					success: true,
+				};
 			}),
 		),
 );
@@ -721,7 +781,9 @@ export const setTourState = authed.user.setTourState
 					},
 				});
 
-				return { success: true };
+				return {
+					success: true,
+				};
 			}),
 		),
 	);
@@ -794,7 +856,9 @@ export const setActiveOrganization = authed.user.setActiveOrganization.handler(
 					})
 					.where(eq(dbSchema.session.id, context.auth.session.id));
 
-				return { success: true };
+				return {
+					success: true,
+				};
 			}),
 		),
 );

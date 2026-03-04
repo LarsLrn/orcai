@@ -45,7 +45,9 @@ export const referencesConfigSchema = z
 			ctx.issues.push({
 				code: "custom",
 				message: "maxReferences cannot be less than minReferences",
-				path: ["maxReferences"],
+				path: [
+					"maxReferences",
+				],
 				input: ctx.value,
 			});
 		}
@@ -57,7 +59,9 @@ export const referencesConfigSchema = z
 				code: "custom",
 				message:
 					"defaultReferences must be between minReferences and maxReferences",
-				path: ["defaultReferences"],
+				path: [
+					"defaultReferences",
+				],
 				input: ctx.value,
 			});
 		}
@@ -79,7 +83,12 @@ export const databaseBlockSchema = z.object({
 		embeddingModel: z.string(),
 		...referencesConfigSchema.shape,
 		scoreThreshold: z.number().min(0).max(1).optional(),
-		retrievalMode: z.enum(["dense", "hybrid"]).optional(),
+		retrievalMode: z
+			.enum([
+				"dense",
+				"hybrid",
+			])
+			.optional(),
 		candidateLimit: z.number().int().min(1).max(200).optional(),
 		maxPerAsset: z.number().int().min(1).optional(),
 	}),
@@ -168,7 +177,11 @@ export const blockUpdateSchema = z.discriminatedUnion("type", [
  */
 
 export const blockDeleteSchema = z.object({
-	refs: z.array(baseBlockSelectSchema.pick({ id: true })),
+	refs: z.array(
+		baseBlockSelectSchema.pick({
+			id: true,
+		}),
+	),
 });
 
 /**
@@ -190,9 +203,24 @@ export type BlockConfigType =
 export type BlockType = "template" | "database" | "imageGeneration";
 
 // Type-safe block variants
-export type TemplateBlock = Extract<Block, { type: "template" }>;
-export type DatabaseBlock = Extract<Block, { type: "database" }>;
-export type ImageGenerationBlock = Extract<Block, { type: "imageGeneration" }>;
+export type TemplateBlock = Extract<
+	Block,
+	{
+		type: "template";
+	}
+>;
+export type DatabaseBlock = Extract<
+	Block,
+	{
+		type: "database";
+	}
+>;
+export type ImageGenerationBlock = Extract<
+	Block,
+	{
+		type: "imageGeneration";
+	}
+>;
 
 /**
  * ----------------

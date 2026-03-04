@@ -32,7 +32,9 @@ export const listGroups = authed.group.list
 							.limit(input.pageSize)
 							.offset(input.pageIndex * input.pageSize),
 						db
-							.select({ count: count() })
+							.select({
+								count: count(),
+							})
 							.from(dbSchema.group)
 							.where(
 								and(
@@ -42,10 +44,15 @@ export const listGroups = authed.group.list
 								),
 							),
 					],
-					{ concurrency: "unbounded" },
+					{
+						concurrency: "unbounded",
+					},
 				);
 
-				return { data, rowCount: rowCount.count };
+				return {
+					data,
+					rowCount: rowCount.count,
+				};
 			}),
 		),
 	);
@@ -72,11 +79,15 @@ export const findGroup = authed.group.find
 
 				if (!group) {
 					return yield* Effect.fail(
-						errors.NOT_FOUND({ message: "Group not found" }),
+						errors.NOT_FOUND({
+							message: "Group not found",
+						}),
 					);
 				}
 
-				return { data: group };
+				return {
+					data: group,
+				};
 			}),
 		),
 	);
@@ -119,7 +130,9 @@ export const createGroup = authed.group.create
 					],
 				});
 
-				return { data: created };
+				return {
+					data: created,
+				};
 			}),
 		),
 	);
@@ -149,7 +162,9 @@ export const updateGroup = authed.group.update
 
 				if (!existing) {
 					return yield* Effect.fail(
-						errors.NOT_FOUND({ message: "Group not found" }),
+						errors.NOT_FOUND({
+							message: "Group not found",
+						}),
 					);
 				}
 
@@ -172,7 +187,9 @@ export const updateGroup = authed.group.update
 					.where(eq(dbSchema.group.id, input.id))
 					.returning();
 
-				return { data: updated };
+				return {
+					data: updated,
+				};
 			}),
 		),
 	);
@@ -189,7 +206,10 @@ export const deleteGroups = authed.group.delete
 
 				const groupIds = input.refs.map((ref) => ref.id);
 				if (groupIds.length === 0) {
-					return { success: true, message: "No groups provided" };
+					return {
+						success: true,
+						message: "No groups provided",
+					};
 				}
 
 				const existingGroups = yield* db
@@ -217,7 +237,10 @@ export const deleteGroups = authed.group.delete
 
 				const existingGroupIds = existingGroups.map((group) => group.id);
 				if (existingGroupIds.length === 0) {
-					return { success: true, message: "No matching groups found" };
+					return {
+						success: true,
+						message: "No matching groups found",
+					};
 				}
 
 				const membersToRemove = yield* db
@@ -252,7 +275,9 @@ export const deleteGroups = authed.group.delete
 
 				yield* db
 					.update(dbSchema.groupMember)
-					.set({ removedAt: now })
+					.set({
+						removedAt: now,
+					})
 					.where(
 						and(
 							inArray(dbSchema.groupMember.groupId, existingGroupIds),
@@ -262,7 +287,9 @@ export const deleteGroups = authed.group.delete
 
 				yield* db
 					.update(dbSchema.resourceGrant)
-					.set({ revokedAt: now })
+					.set({
+						revokedAt: now,
+					})
 					.where(
 						and(
 							eq(dbSchema.resourceGrant.principalType, "group"),
@@ -273,7 +300,10 @@ export const deleteGroups = authed.group.delete
 
 				yield* db
 					.update(dbSchema.group)
-					.set({ deletedAt: now, updatedAt: now })
+					.set({
+						deletedAt: now,
+						updatedAt: now,
+					})
 					.where(inArray(dbSchema.group.id, existingGroupIds));
 
 				yield* authz.applyRelationshipMutations({
@@ -306,7 +336,10 @@ export const deleteGroups = authed.group.delete
 					],
 				});
 
-				return { success: true, message: "Groups deleted successfully" };
+				return {
+					success: true,
+					message: "Groups deleted successfully",
+				};
 			}),
 		),
 	);
@@ -338,7 +371,9 @@ export const listGroupMembers = authed.group.listMembers
 
 				if (!group) {
 					return yield* Effect.fail(
-						errors.NOT_FOUND({ message: "Group not found" }),
+						errors.NOT_FOUND({
+							message: "Group not found",
+						}),
 					);
 				}
 
@@ -377,7 +412,9 @@ export const listGroupMembers = authed.group.listMembers
 								.limit(input.pageSize)
 								.offset(input.pageIndex * input.pageSize),
 							db
-								.select({ count: count() })
+								.select({
+									count: count(),
+								})
 								.from(dbSchema.member)
 								.innerJoin(
 									dbSchema.user,
@@ -395,7 +432,9 @@ export const listGroupMembers = authed.group.listMembers
 									),
 								),
 						],
-						{ concurrency: "unbounded" },
+						{
+							concurrency: "unbounded",
+						},
 					);
 
 					return {
@@ -442,7 +481,9 @@ export const listGroupMembers = authed.group.listMembers
 							.limit(input.pageSize)
 							.offset(input.pageIndex * input.pageSize),
 						db
-							.select({ count: count() })
+							.select({
+								count: count(),
+							})
 							.from(dbSchema.groupMember)
 							.innerJoin(
 								dbSchema.user,
@@ -461,7 +502,9 @@ export const listGroupMembers = authed.group.listMembers
 								),
 							),
 					],
-					{ concurrency: "unbounded" },
+					{
+						concurrency: "unbounded",
+					},
 				);
 
 				return {
@@ -504,7 +547,9 @@ export const addGroupMembers = authed.group.addMembers
 
 				if (!group) {
 					return yield* Effect.fail(
-						errors.NOT_FOUND({ message: "Group not found" }),
+						errors.NOT_FOUND({
+							message: "Group not found",
+						}),
 					);
 				}
 				if (group.kind === "system") {
@@ -517,7 +562,9 @@ export const addGroupMembers = authed.group.addMembers
 				}
 
 				const members = yield* db
-					.select({ userId: dbSchema.member.userId })
+					.select({
+						userId: dbSchema.member.userId,
+					})
 					.from(dbSchema.member)
 					.where(
 						and(
@@ -551,7 +598,10 @@ export const addGroupMembers = authed.group.addMembers
 					);
 
 				const existingByUserId = new Map(
-					existing.map((row) => [row.userId, row]),
+					existing.map((row) => [
+						row.userId,
+						row,
+					]),
 				);
 				const toInsert = input.userIds.filter(
 					(userId) => !existingByUserId.has(userId),
@@ -642,7 +692,9 @@ export const removeGroupMembers = authed.group.removeMembers
 
 				if (!group) {
 					return yield* Effect.fail(
-						errors.NOT_FOUND({ message: "Group not found" }),
+						errors.NOT_FOUND({
+							message: "Group not found",
+						}),
 					);
 				}
 				if (group.kind === "system") {
@@ -668,12 +720,17 @@ export const removeGroupMembers = authed.group.removeMembers
 					);
 
 				if (activeMembers.length === 0) {
-					return { success: true, message: "No active members to remove" };
+					return {
+						success: true,
+						message: "No active members to remove",
+					};
 				}
 
 				yield* db
 					.update(dbSchema.groupMember)
-					.set({ removedAt: now })
+					.set({
+						removedAt: now,
+					})
 					.where(
 						and(
 							eq(dbSchema.groupMember.groupId, input.groupId),

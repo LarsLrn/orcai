@@ -29,30 +29,42 @@ const BotForm = ({ action, bot, blockIds }: BotBuilderFormProps) => {
 
 	const { data: blocksResponse } = useSuspenseQuery(
 		orpc.block.list.queryOptions({
-			input: { pageIndex: 0, pageSize: 50 },
+			input: {
+				pageIndex: 0,
+				pageSize: 50,
+			},
 		}),
 	);
 
 	// TODO: Refactor this after changing the ORPC API to consume/return blocks by type
 	const templateBlocks = useMemo<Block[]>(() => {
 		return blocksResponse.data.filter((block) => block.type === "template");
-	}, [blocksResponse]);
+	}, [
+		blocksResponse,
+	]);
 
 	const databaseBlocks = useMemo<Block[]>(() => {
 		return blocksResponse.data.filter((block) => block.type === "database");
-	}, [blocksResponse]);
+	}, [
+		blocksResponse,
+	]);
 
 	const imageGenerationBlocks = useMemo<Block[]>(() => {
 		return blocksResponse.data.filter(
 			(block) => block.type === "imageGeneration",
 		);
-	}, [blocksResponse]);
+	}, [
+		blocksResponse,
+	]);
 
 	const form = useAppForm({
 		...botFormOptions(bot, blockIds),
 		onSubmit: ({ value }) => {
 			if (action === "update" && bot) {
-				updateBot({ ...value, id: bot.id });
+				updateBot({
+					...value,
+					id: bot.id,
+				});
 			} else {
 				createBot(value);
 			}

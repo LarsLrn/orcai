@@ -34,16 +34,32 @@ export const AlignmentTooolbar = () => {
 		editor?.isActive("image") ?? editor?.isActive("video") ?? false;
 
 	const currentTextAlign = () => {
-		if (editor?.isActive({ textAlign: "left" })) {
+		if (
+			editor?.isActive({
+				textAlign: "left",
+			})
+		) {
 			return "left";
 		}
-		if (editor?.isActive({ textAlign: "center" })) {
+		if (
+			editor?.isActive({
+				textAlign: "center",
+			})
+		) {
 			return "center";
 		}
-		if (editor?.isActive({ textAlign: "right" })) {
+		if (
+			editor?.isActive({
+				textAlign: "right",
+			})
+		) {
 			return "right";
 		}
-		if (editor?.isActive({ textAlign: "justify" })) {
+		if (
+			editor?.isActive({
+				textAlign: "justify",
+			})
+		) {
 			return "justify";
 		}
 

@@ -175,7 +175,9 @@ export const InlineCitationCarouselIndex = ({
 		return () => {
 			api.off("select", handleSelect);
 		};
-	}, [api]);
+	}, [
+		api,
+	]);
 
 	return (
 		<div
@@ -202,7 +204,9 @@ export const InlineCitationCarouselPrev = ({
 		if (api) {
 			api.scrollPrev();
 		}
-	}, [api]);
+	}, [
+		api,
+	]);
 
 	return (
 		<button
@@ -229,7 +233,9 @@ export const InlineCitationCarouselNext = ({
 		if (api) {
 			api.scrollNext();
 		}
-	}, [api]);
+	}, [
+		api,
+	]);
 
 	return (
 		<button

@@ -8,7 +8,9 @@ const UserStats = ({
 }: {
 	showSettingsLink?: boolean;
 }) => {
-	const { auth } = useRouteContext({ from: "/app" });
+	const { auth } = useRouteContext({
+		from: "/app",
+	});
 
 	return (
 		// TODO: Consider centralising ids used by next-step

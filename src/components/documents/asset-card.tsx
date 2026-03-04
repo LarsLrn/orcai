@@ -50,7 +50,9 @@ const AssetCard = ({
 			icon: EyeIcon,
 			linkProps: {
 				to: "/app/hub/assets/$assetId",
-				params: { assetId: asset.id },
+				params: {
+					assetId: asset.id,
+				},
 			},
 		},
 		{
@@ -60,7 +62,9 @@ const AssetCard = ({
 			variant: "default",
 			linkProps: {
 				to: "/app/hub/assets/$assetId/edit",
-				params: { assetId: asset.id },
+				params: {
+					assetId: asset.id,
+				},
 			},
 		},
 	];
@@ -76,7 +80,9 @@ const AssetCard = ({
 	const primaryAction = actions?.primary ?? {
 		linkProps: {
 			to: "/app/hub/assets/$assetId",
-			params: { assetId: asset.id },
+			params: {
+				assetId: asset.id,
+			},
 		},
 	};
 

@@ -37,14 +37,21 @@ export const listOrganizationMembers = authed.organizationMember.list
 							offset: input.pageIndex * input.pageSize,
 						}),
 						db
-							.select({ count: count() })
+							.select({
+								count: count(),
+							})
 							.from(dbSchema.member)
 							.where(eq(dbSchema.member.organizationId, input.organizationId)),
 					],
-					{ concurrency: "unbounded" },
+					{
+						concurrency: "unbounded",
+					},
 				);
 
-				return { data, rowCount: rowCount.count };
+				return {
+					data,
+					rowCount: rowCount.count,
+				};
 			}),
 		),
 	);
@@ -82,12 +89,16 @@ export const findOrganizationMember = authed.organizationMember.find
 							Effect.fromNullable(member).pipe(
 								Effect.orElse(() =>
 									Effect.fail(
-										errors.NOT_FOUND({ message: "Member not found" }),
+										errors.NOT_FOUND({
+											message: "Member not found",
+										}),
 									),
 								),
 							),
 						),
-						Effect.map((member) => ({ data: member })),
+						Effect.map((member) => ({
+							data: member,
+						})),
 					);
 			}),
 		),
@@ -110,8 +121,13 @@ export const createOrganizationMember = authed.organizationMember.create
 
 				const member = yield* db
 					.insert(dbSchema.member)
-					.values({ ...input, createdAt: new Date() })
-					.returning({ ...getColumns(dbSchema.member) })
+					.values({
+						...input,
+						createdAt: new Date(),
+					})
+					.returning({
+						...getColumns(dbSchema.member),
+					})
 					.pipe(Effect.map(([member]) => member));
 
 				yield* syncRelationshipTransition({
@@ -122,7 +138,9 @@ export const createOrganizationMember = authed.organizationMember.create
 					newRelation: input.role,
 				});
 
-				return { data: member };
+				return {
+					data: member,
+				};
 			}),
 		),
 	);
@@ -164,7 +182,9 @@ export const updateOrganizationMember = authed.organizationMember.update
 							eq(dbSchema.member.userId, input.userId),
 						),
 					)
-					.returning({ ...getColumns(dbSchema.member) });
+					.returning({
+						...getColumns(dbSchema.member),
+					});
 
 				if (existing && member && existing.role !== member.role) {
 					yield* syncRelationshipTransition({
@@ -177,7 +197,9 @@ export const updateOrganizationMember = authed.organizationMember.update
 					});
 				}
 
-				return { data: member };
+				return {
+					data: member,
+				};
 			}),
 		),
 	);
@@ -187,7 +209,9 @@ export const deleteOrganizationMembers = authed.organizationMember.delete
 		checkManyPermissionMiddleware,
 		(input) =>
 			({
-				entityIds: [input.organizationId],
+				entityIds: [
+					input.organizationId,
+				],
 				permission: "manage_members",
 				entityType: "organization",
 			}) satisfies CheckManyPermissionInput,
@@ -234,7 +258,9 @@ export const deleteOrganizationMembers = authed.organizationMember.delete
 								subjectId: member.userId,
 								oldRelation: member.role,
 							}),
-						{ concurrency: "unbounded" },
+						{
+							concurrency: "unbounded",
+						},
 					);
 				}
 

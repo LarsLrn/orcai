@@ -16,12 +16,36 @@ import {
 import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
 
 const HUB_ROUTES = [
-	{ value: "all", label: "All", to: "/app/hub" },
-	{ value: "bots", label: "Bots", to: "/app/hub/bots" },
-	{ value: "blocks", label: "Blocks", to: "/app/hub/blocks" },
-	{ value: "assets", label: "Assets", to: "/app/hub/assets" },
-	{ value: "courses", label: "Courses", to: "/app/hub/courses" },
-] satisfies { value: string; label: string; to: LinkProps["to"] }[];
+	{
+		value: "all",
+		label: "All",
+		to: "/app/hub",
+	},
+	{
+		value: "bots",
+		label: "Bots",
+		to: "/app/hub/bots",
+	},
+	{
+		value: "blocks",
+		label: "Blocks",
+		to: "/app/hub/blocks",
+	},
+	{
+		value: "assets",
+		label: "Assets",
+		to: "/app/hub/assets",
+	},
+	{
+		value: "courses",
+		label: "Courses",
+		to: "/app/hub/courses",
+	},
+] satisfies {
+	value: string;
+	label: string;
+	to: LinkProps["to"];
+}[];
 
 type TabValue = (typeof HUB_ROUTES)[number]["value"];
 
@@ -46,7 +70,9 @@ export const Route = createFileRoute("/app/hub")({
 
 function RouteComponent() {
 	const navigate = useNavigate();
-	const pathname = useRouterState({ select: (s) => s.location.pathname });
+	const pathname = useRouterState({
+		select: (s) => s.location.pathname,
+	});
 	const activeTab = getActiveTab(pathname);
 
 	return (
@@ -62,7 +88,10 @@ function RouteComponent() {
 						value={activeTab}
 						onValueChange={(value) => {
 							const route = HUB_ROUTES.find((r) => r.value === value);
-							if (route) navigate({ to: route.to });
+							if (route)
+								navigate({
+									to: route.to,
+								});
 						}}
 					>
 						<TabsList className="shadow-md">

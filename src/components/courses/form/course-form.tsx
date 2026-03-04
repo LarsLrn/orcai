@@ -22,7 +22,10 @@ const CourseForm = ({
 		...courseFormOptions(course),
 		onSubmit: ({ value }) => {
 			if (action === "update" && course) {
-				updateCourse({ ...value, id: course.id });
+				updateCourse({
+					...value,
+					id: course.id,
+				});
 			} else {
 				createCourse(value);
 			}

@@ -21,7 +21,9 @@ const getInitializedState = (db: { select: typeof DB.Service.select }) =>
 		}
 
 		const [organizationCountResult] = yield* db
-			.select({ count: count() })
+			.select({
+				count: count(),
+			})
 			.from(dbSchema.organization);
 
 		const initialized = toCount(organizationCountResult.count) > 0;
@@ -80,7 +82,9 @@ export const initializeBootstrap = os.bootstrap.initialize.handler(
 							}
 
 							const [existingUser] = yield* tx
-								.select({ id: dbSchema.user.id })
+								.select({
+									id: dbSchema.user.id,
+								})
 								.from(dbSchema.user)
 								.where(eq(dbSchema.user.email, email))
 								.limit(1);
@@ -102,7 +106,9 @@ export const initializeBootstrap = os.bootstrap.initialize.handler(
 									createdAt: now,
 									updatedAt: now,
 								})
-								.returning({ id: dbSchema.user.id });
+								.returning({
+									id: dbSchema.user.id,
+								});
 
 							const user = yield* Effect.fromNullable(newUser).pipe(
 								Effect.orElse(() =>
@@ -130,7 +136,9 @@ export const initializeBootstrap = os.bootstrap.initialize.handler(
 									slug: input.organizationSlug.trim().toLowerCase(),
 									createdAt: now,
 								})
-								.returning({ id: dbSchema.organization.id });
+								.returning({
+									id: dbSchema.organization.id,
+								});
 
 							const organization = yield* Effect.fromNullable(
 								newOrganization,
@@ -165,7 +173,9 @@ export const initializeBootstrap = os.bootstrap.initialize.handler(
 									updatedAt: now,
 									deletedAt: null,
 								})
-								.returning({ id: dbSchema.group.id });
+								.returning({
+									id: dbSchema.group.id,
+								});
 
 							return {
 								userId: user.id,
@@ -230,7 +240,12 @@ export const initializeBootstrap = os.bootstrap.initialize.handler(
 
 				initializedCache = true;
 
-				return { data: { userId, organizationId } };
+				return {
+					data: {
+						userId,
+						organizationId,
+					},
+				};
 			}),
 		),
 );

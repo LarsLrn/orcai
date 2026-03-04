@@ -8,7 +8,9 @@ import { AppConfigService } from "./config";
 
 export class SpiceDbService extends Context.Tag("SpiceDbService")<
 	SpiceDbService,
-	{ readonly spice: v1.ZedPromiseClientInterface }
+	{
+		readonly spice: v1.ZedPromiseClientInterface;
+	}
 >() {}
 
 export const SpiceDbLive = Layer.scoped(
@@ -29,7 +31,9 @@ export const SpiceDbLive = Layer.scoped(
 					cause: error,
 				}),
 		}).pipe(
-			Effect.map((spice) => ({ spice: spice.promises })),
+			Effect.map((spice) => ({
+				spice: spice.promises,
+			})),
 			Effect.tap(() => Effect.logInfo("SpiceDb service started successfully")),
 		);
 	}),

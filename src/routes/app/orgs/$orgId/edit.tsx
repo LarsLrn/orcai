@@ -24,7 +24,9 @@ function RouteComponent() {
 	const { orgId } = Route.useParams();
 	const { data: organization } = useSuspenseQuery(
 		orpc.organization.find.queryOptions({
-			input: { id: orgId },
+			input: {
+				id: orgId,
+			},
 		}),
 	);
 

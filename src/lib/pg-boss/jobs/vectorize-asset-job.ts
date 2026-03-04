@@ -26,9 +26,16 @@ import {
 } from "@/settings/prompts";
 
 export const vectorizeAssetBatchEffect = (jobs: Job<VectorizeAssetPayload>[]) =>
-	Effect.forEach(jobs, (job) => vectorizeAssetsEffect({ job }), {
-		discard: true,
-	});
+	Effect.forEach(
+		jobs,
+		(job) =>
+			vectorizeAssetsEffect({
+				job,
+			}),
+		{
+			discard: true,
+		},
+	);
 
 const vectorizeAssetsEffect = (params: { job: Job<VectorizeAssetPayload> }) =>
 	Effect.gen(function* () {
@@ -41,7 +48,9 @@ const vectorizeAssetsEffect = (params: { job: Job<VectorizeAssetPayload> }) =>
 
 		if (!files || files.length === 0) {
 			yield* Effect.logWarning(
-				{ prefix },
+				{
+					prefix,
+				},
 				"No files found for asset, skipping vectorization",
 			);
 			return;
@@ -79,7 +88,13 @@ const vectorizeAssetsEffect = (params: { job: Job<VectorizeAssetPayload> }) =>
 						});
 
 						markdown.push(...processedMarkdown);
-					} else if (["jpeg", "png"].includes(fileExtension) && name) {
+					} else if (
+						[
+							"jpeg",
+							"png",
+						].includes(fileExtension) &&
+						name
+					) {
 						const image = yield* getImageAsBase64({
 							bucket: buckets.processed.name,
 							name,
@@ -96,12 +111,16 @@ const vectorizeAssetsEffect = (params: { job: Job<VectorizeAssetPayload> }) =>
 						}
 					} else {
 						yield* Effect.logWarning(
-							{ fileName: name },
+							{
+								fileName: name,
+							},
 							"Unsupported file type, skipping",
 						);
 					}
 				}),
-			{ concurrency: 2 },
+			{
+				concurrency: 2,
+			},
 		);
 
 		const imageChunks = images.map((image) => ({
@@ -113,7 +132,10 @@ const vectorizeAssetsEffect = (params: { job: Job<VectorizeAssetPayload> }) =>
 			type: "image",
 		})) as MarkdownNode[];
 
-		const mergedChunks = [...markdown, ...imageChunks];
+		const mergedChunks = [
+			...markdown,
+			...imageChunks,
+		];
 
 		yield* Effect.logInfo(
 			{
@@ -135,7 +157,9 @@ const vectorizeAssetsEffect = (params: { job: Job<VectorizeAssetPayload> }) =>
 				assetId,
 				blockId,
 			},
-			results: { qdrant: qdrantResponse },
+			results: {
+				qdrant: qdrantResponse,
+			},
 		};
 	});
 
@@ -218,7 +242,9 @@ const processImageFile = (
 			try: () =>
 				generateText({
 					model: getSaiaModel({
-						input: ["image"],
+						input: [
+							"image",
+						],
 						model: "gemma-3-27b-it",
 					}).provider,
 					maxOutputTokens: 1024,
@@ -266,8 +292,9 @@ const generateEmbeddings = ({
 		const embedResults = yield* Effect.tryPromise({
 			try: async () =>
 				await embedMany({
-					model: getSaiaEmbeddingModel({ model: "e5-mistral-7b-instruct" })
-						.provider,
+					model: getSaiaEmbeddingModel({
+						model: "e5-mistral-7b-instruct",
+					}).provider,
 					values: chunks.map((chunk) => chunk.content),
 				}),
 			catch: (cause) =>
@@ -318,11 +345,18 @@ const generateEmbeddings = ({
 			};
 		});
 
-		yield* deletePointsByIdentifier({ assetId, blockId });
+		yield* deletePointsByIdentifier({
+			assetId,
+			blockId,
+		});
 
 		const qdrantResult = yield* upsertPointsToQdrant({
 			points: metaDataChunks,
 		});
 
-		return { success: true, type: "markdown", qdrant: qdrantResult };
+		return {
+			success: true,
+			type: "markdown",
+			qdrant: qdrantResult,
+		};
 	});

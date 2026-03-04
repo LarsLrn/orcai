@@ -49,21 +49,39 @@ const items: MenuItem[] = [
 		name: "Heading 1",
 		icon: Heading1,
 		onClick: (editor) =>
-			editor.chain().focus().toggleHeading({ level: 1 }).run(),
+			editor
+				.chain()
+				.focus()
+				.toggleHeading({
+					level: 1,
+				})
+				.run(),
 		isActive: (state) => state.isHeading1,
 	},
 	{
 		name: "Heading 2",
 		icon: Heading2,
 		onClick: (editor) =>
-			editor.chain().focus().toggleHeading({ level: 2 }).run(),
+			editor
+				.chain()
+				.focus()
+				.toggleHeading({
+					level: 2,
+				})
+				.run(),
 		isActive: (state) => state.isHeading2,
 	},
 	{
 		name: "Heading 3",
 		icon: Heading3,
 		onClick: (editor) =>
-			editor.chain().focus().toggleHeading({ level: 3 }).run(),
+			editor
+				.chain()
+				.focus()
+				.toggleHeading({
+					level: 3,
+				})
+				.run(),
 		isActive: (state) => state.isHeading3,
 	},
 	// {
@@ -109,9 +127,15 @@ export const NodeSelector = ({ editor }: { editor: Editor }) => {
 		editor,
 		selector: (instance) => ({
 			isParagraph: instance.editor.isActive("paragraph"),
-			isHeading1: instance.editor.isActive("heading", { level: 1 }),
-			isHeading2: instance.editor.isActive("heading", { level: 2 }),
-			isHeading3: instance.editor.isActive("heading", { level: 3 }),
+			isHeading1: instance.editor.isActive("heading", {
+				level: 1,
+			}),
+			isHeading2: instance.editor.isActive("heading", {
+				level: 2,
+			}),
+			isHeading3: instance.editor.isActive("heading", {
+				level: 3,
+			}),
 			isBulletList: instance.editor.isActive("bulletList"),
 			isOrderedList: instance.editor.isActive("orderedList"),
 			isBlockquote: instance.editor.isActive("blockquote"),

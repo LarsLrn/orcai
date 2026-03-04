@@ -14,12 +14,17 @@ export const createJobsContract = base
 		method: "POST",
 		path: "/jobs/create",
 		summary: "Create a database block vector store job",
-		tags: ["Jobs"],
+		tags: [
+			"Jobs",
+		],
 	})
 	.input(
 		z.object({
 			blockId: baseBlockSelectSchema.shape.id,
-			jobRunner: z.enum([PROCESS_ASSET_JOB_NAME, VECTORIZE_ASSET_JOB_NAME]),
+			jobRunner: z.enum([
+				PROCESS_ASSET_JOB_NAME,
+				VECTORIZE_ASSET_JOB_NAME,
+			]),
 		}),
 	)
 	.output(statusSchema);
@@ -29,7 +34,9 @@ export const listJobsContract = base
 		method: "GET",
 		path: "/jobs",
 		summary: "List jobs",
-		tags: ["Jobs"],
+		tags: [
+			"Jobs",
+		],
 	})
 	.input(
 		z.object({
@@ -37,4 +44,9 @@ export const listJobsContract = base
 			resourceId: z.uuidv4(),
 		}),
 	)
-	.output(z.object({ data: z.array(jobSchema), rowCount: z.number() }));
+	.output(
+		z.object({
+			data: z.array(jobSchema),
+			rowCount: z.number(),
+		}),
+	);

@@ -13,7 +13,12 @@ export const Route = createFileRoute("/app/hub/blocks/$blockId/points")({
 	loader: async ({ context: { queryClient }, params: { blockId } }) => {
 		await queryClient.ensureQueryData(
 			orpc.assetPoint.list.queryOptions({
-				input: { filters: { blockId, limit: 1000 } },
+				input: {
+					filters: {
+						blockId,
+						limit: 1000,
+					},
+				},
 			}),
 		);
 	},
@@ -31,7 +36,12 @@ function RouteComponent() {
 	const { blockId } = Route.useParams();
 	const { data: assetPoints } = useSuspenseQuery(
 		orpc.assetPoint.list.queryOptions({
-			input: { filters: { blockId, limit: 1000 } },
+			input: {
+				filters: {
+					blockId,
+					limit: 1000,
+				},
+			},
 		}),
 	);
 

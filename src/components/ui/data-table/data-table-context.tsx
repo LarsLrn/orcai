@@ -4,7 +4,9 @@
 import type { Table } from "@tanstack/react-table";
 import { createContext, useContext } from "react";
 
-const TableContext = createContext<{ table: Table<any> } | null>(null);
+const TableContext = createContext<{
+	table: Table<any>;
+} | null>(null);
 
 export const useTable = () => {
 	const context = useContext(TableContext);
@@ -18,7 +20,13 @@ const TableProvider: React.FC<{
 	children: React.ReactNode;
 	table: Table<any>;
 }> = ({ table, children }) => (
-	<TableContext.Provider value={{ table }}>{children}</TableContext.Provider>
+	<TableContext.Provider
+		value={{
+			table,
+		}}
+	>
+		{children}
+	</TableContext.Provider>
 );
 
 export { TableProvider };

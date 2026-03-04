@@ -31,11 +31,19 @@ export const resourceGrantRoleEnum = pgEnum("resource_grant_role", [
 	"manager",
 ]);
 
-export const principalTypeEnum = pgEnum("principal_type", ["user", "group"]);
+export const principalTypeEnum = pgEnum("principal_type", [
+	"user",
+	"group",
+]);
 
-export const groupKindEnum = pgEnum("group_kind", ["system", "custom"]);
+export const groupKindEnum = pgEnum("group_kind", [
+	"system",
+	"custom",
+]);
 
-export const groupSystemKeyEnum = pgEnum("group_system_key", ["all_members"]);
+export const groupSystemKeyEnum = pgEnum("group_system_key", [
+	"all_members",
+]);
 
 export const resourceVisibilityEnum = pgEnum("resource_visibility_enum", [
 	"private",
@@ -54,10 +62,14 @@ export const courseBot = pgTable(
 	{
 		courseId: uuid("course_id")
 			.notNull()
-			.references(() => course.id, { onDelete: "cascade" }),
+			.references(() => course.id, {
+				onDelete: "cascade",
+			}),
 		botId: uuid("bot_id")
 			.notNull()
-			.references(() => bot.id, { onDelete: "cascade" }),
+			.references(() => bot.id, {
+				onDelete: "cascade",
+			}),
 		createdBy: uuid("created_by")
 			.notNull()
 			.references(() => user.id),
@@ -65,7 +77,10 @@ export const courseBot = pgTable(
 	},
 	(table) => [
 		primaryKey({
-			columns: [table.courseId, table.botId],
+			columns: [
+				table.courseId,
+				table.botId,
+			],
 		}),
 		index("course_bot_course_idx").on(table.courseId),
 		index("course_bot_bot_idx").on(table.botId),
@@ -78,7 +93,9 @@ export const group = pgTable(
 		id: uuid("id").primaryKey().defaultRandom(),
 		organizationId: uuid("organization_id")
 			.notNull()
-			.references(() => organization.id, { onDelete: "cascade" }),
+			.references(() => organization.id, {
+				onDelete: "cascade",
+			}),
 		name: text("name").notNull(),
 		description: text("description"),
 		kind: groupKindEnum("kind").notNull(),
@@ -109,10 +126,14 @@ export const groupMember = pgTable(
 		id: uuid("id").primaryKey().defaultRandom(),
 		groupId: uuid("group_id")
 			.notNull()
-			.references(() => group.id, { onDelete: "cascade" }),
+			.references(() => group.id, {
+				onDelete: "cascade",
+			}),
 		userId: uuid("user_id")
 			.notNull()
-			.references(() => user.id, { onDelete: "cascade" }),
+			.references(() => user.id, {
+				onDelete: "cascade",
+			}),
 		addedBy: uuid("added_by")
 			.notNull()
 			.references(() => user.id),
@@ -197,7 +218,9 @@ export const resourceScope = pgTable(
 		resourceId: uuid("resource_id").notNull(),
 		organizationId: uuid("organization_id")
 			.notNull()
-			.references(() => organization.id, { onDelete: "cascade" }),
+			.references(() => organization.id, {
+				onDelete: "cascade",
+			}),
 		isPrimary: boolean("is_primary").notNull().default(true),
 		assignedAt: timestamp("assigned_at").notNull().defaultNow(),
 		assignedBy: uuid("assigned_by")

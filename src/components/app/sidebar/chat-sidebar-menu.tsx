@@ -15,11 +15,16 @@ import { cn } from "@/lib/utils";
 const ChatSidebarMenu = () => {
 	const { data, status, error } = useQuery(
 		orpc.chat.list.queryOptions({
-			input: { pageIndex: 0, pageSize: 100 },
+			input: {
+				pageIndex: 0,
+				pageSize: 100,
+			},
 		}),
 	);
 
-	const { chatId: activeChatId } = useParams({ strict: false });
+	const { chatId: activeChatId } = useParams({
+		strict: false,
+	});
 
 	if (status === "pending") {
 		return <div>Loading...</div>;
@@ -49,7 +54,12 @@ const ChatSidebarMenu = () => {
 						isActive={chat.id === activeChatId}
 						className="border"
 						render={
-							<Link to={"/app/chat/$chatId"} params={{ chatId: chat.id }}>
+							<Link
+								to={"/app/chat/$chatId"}
+								params={{
+									chatId: chat.id,
+								}}
+							>
 								<span className="truncate">{chat.title}</span>
 							</Link>
 						}

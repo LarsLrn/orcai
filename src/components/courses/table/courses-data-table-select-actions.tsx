@@ -18,7 +18,11 @@ const CoursesDataTableSelectActions = () => {
 	const handleDelete = () => {
 		const courseIds = table.getSelectedRowModel().flatRows.map((row) => row.id);
 
-		deleteCourses({ refs: courseIds.map((id) => ({ id })) });
+		deleteCourses({
+			refs: courseIds.map((id) => ({
+				id,
+			})),
+		});
 	};
 
 	return (

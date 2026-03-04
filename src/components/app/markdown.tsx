@@ -9,8 +9,14 @@ import { CodeBlock } from "@/components/ai-elements/code-block";
 import { cn } from "@/lib/utils";
 
 export const reactMarkdownPlugins = {
-	rehypePlugins: [rehypeKatex],
-	remarkPlugins: [remarkGfm, supersub, remarkMath],
+	rehypePlugins: [
+		rehypeKatex,
+	],
+	remarkPlugins: [
+		remarkGfm,
+		supersub,
+		remarkMath,
+	],
 };
 
 export const components: Options["components"] = {

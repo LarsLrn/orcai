@@ -38,7 +38,9 @@ export const listAssets = authed.asset.list.handler(
 					),
 				);
 
-				const whereConditions = [inArray(dbSchema.asset.id, allowedIds)];
+				const whereConditions = [
+					inArray(dbSchema.asset.id, allowedIds),
+				];
 
 				if (input.filters?.ids) {
 					whereConditions.push(inArray(dbSchema.asset.id, input.filters.ids));
@@ -53,18 +55,24 @@ export const listAssets = authed.asset.list.handler(
 				return yield* Effect.all(
 					[
 						db
-							.select({ ...getColumns(dbSchema.asset) })
+							.select({
+								...getColumns(dbSchema.asset),
+							})
 							.from(dbSchema.asset)
 							.where(and(...whereConditions))
 							.orderBy(desc(dbSchema.asset.createdAt))
 							.limit(input.pageSize)
 							.offset(input.pageIndex * input.pageSize),
 						db
-							.select({ count: count() })
+							.select({
+								count: count(),
+							})
 							.from(dbSchema.asset)
 							.where(and(...whereConditions)),
 					],
-					{ concurrency: "unbounded" },
+					{
+						concurrency: "unbounded",
+					},
 				).pipe(
 					Effect.map(([data, [countResult]]) => ({
 						data,
@@ -92,17 +100,23 @@ export const findAsset = authed.asset.find
 				const db = yield* DB;
 
 				const [query] = yield* db
-					.select({ ...getColumns(dbSchema.asset) })
+					.select({
+						...getColumns(dbSchema.asset),
+					})
 					.from(dbSchema.asset)
 					.where(eq(dbSchema.asset.id, input.id));
 
 				if (!query) {
 					return yield* Effect.fail(
-						errors.NOT_FOUND({ message: "Asset not found" }),
+						errors.NOT_FOUND({
+							message: "Asset not found",
+						}),
 					);
 				}
 
-				return { data: query };
+				return {
+					data: query,
+				};
 			}),
 		),
 	);
@@ -131,7 +145,9 @@ export const createAsset = authed.asset.create
 						prefix,
 						userId: context.auth.user.id,
 					})
-					.returning({ ...getColumns(dbSchema.asset) });
+					.returning({
+						...getColumns(dbSchema.asset),
+					});
 
 				const relationResult = yield* initializeResourceAuthorization({
 					resourceType: "asset",
@@ -142,7 +158,9 @@ export const createAsset = authed.asset.create
 
 				return {
 					data: asset,
-					meta: { zedToken: relationResult.zedToken },
+					meta: {
+						zedToken: relationResult.zedToken,
+					},
 				};
 			}),
 		),
@@ -170,9 +188,13 @@ export const updateAsset = authed.asset.update
 						updatedAt: new Date(),
 					})
 					.where(eq(dbSchema.asset.id, input.id))
-					.returning({ ...getColumns(dbSchema.asset) });
+					.returning({
+						...getColumns(dbSchema.asset),
+					});
 
-				return { data: asset };
+				return {
+					data: asset,
+				};
 			}),
 		),
 	);
@@ -193,7 +215,10 @@ export const deleteAssets = authed.asset.delete
 				const db = yield* DB;
 
 				if (!context.allowedIds || context.allowedIds.length === 0) {
-					return { success: true, message: "No assets to delete" };
+					return {
+						success: true,
+						message: "No assets to delete",
+					};
 				}
 
 				const assetsToDelete = yield* db
@@ -220,14 +245,19 @@ export const deleteAssets = authed.asset.delete
 							});
 						}),
 					),
-					{ concurrency: "unbounded" },
+					{
+						concurrency: "unbounded",
+					},
 				);
 
 				yield* db
 					.delete(dbSchema.asset)
 					.where(inArray(dbSchema.asset.id, context.allowedIds));
 
-				return { success: true, message: "Assets deleted successfully" };
+				return {
+					success: true,
+					message: "Assets deleted successfully",
+				};
 			}),
 		),
 	);

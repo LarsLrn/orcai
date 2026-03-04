@@ -13,11 +13,16 @@ import { orpc } from "@/lib/orpc/orpc";
 export const Route = createFileRoute("/_pathlessLayout/init")({
 	loader: async ({ context: { queryClient } }) => {
 		const status = await queryClient.ensureQueryData(
-			orpc.bootstrap.status.queryOptions({ input: {} }),
+			orpc.bootstrap.status.queryOptions({
+				input: {},
+			}),
 		);
 
 		if (status.data.initialized) {
-			throw redirect({ to: "/login", statusCode: 302 });
+			throw redirect({
+				to: "/login",
+				statusCode: 302,
+			});
 		}
 	},
 	component: RouteComponent,

@@ -35,7 +35,10 @@ export const Route = createFileRoute("/app/models/$modelId/")({
 });
 
 const capabilityLabelMap = new Map(
-	modelCapabilities.map((capability) => [capability.value, capability.label]),
+	modelCapabilities.map((capability) => [
+		capability.value,
+		capability.label,
+	]),
 );
 
 const compatibilityLabelMap = new Map(
@@ -61,7 +64,9 @@ function RouteComponent() {
 	const { modelId } = Route.useParams();
 	const { data: modelResponse } = useSuspenseQuery(
 		orpc.model.find.queryOptions({
-			input: { id: modelId },
+			input: {
+				id: modelId,
+			},
 		}),
 	);
 
@@ -69,7 +74,9 @@ function RouteComponent() {
 
 	const { data: providerResponse } = useSuspenseQuery(
 		orpc.provider.find.queryOptions({
-			input: { id: model.providerId },
+			input: {
+				id: model.providerId,
+			},
 		}),
 	);
 
@@ -127,16 +134,24 @@ function RouteComponent() {
 							<div className="flex flex-wrap gap-2">
 								<Link
 									to="/app/models/$modelId/edit"
-									params={{ modelId }}
-									className={buttonVariants({ variant: "default" })}
+									params={{
+										modelId,
+									}}
+									className={buttonVariants({
+										variant: "default",
+									})}
 								>
 									<EditIcon className="mr-2 h-4 w-4" />
 									Edit Model
 								</Link>
 								<Link
 									to="/app/providers/$providerId"
-									params={{ providerId: provider.id }}
-									className={buttonVariants({ variant: "outline" })}
+									params={{
+										providerId: provider.id,
+									}}
+									className={buttonVariants({
+										variant: "outline",
+									})}
 								>
 									<LinkIcon className="mr-2 h-4 w-4" />
 									View Provider
@@ -280,8 +295,12 @@ function RouteComponent() {
 						<Separator />
 						<Link
 							to="/app/providers/$providerId/edit"
-							params={{ providerId: provider.id }}
-							className={buttonVariants({ variant: "outline" })}
+							params={{
+								providerId: provider.id,
+							}}
+							className={buttonVariants({
+								variant: "outline",
+							})}
 						>
 							<EditIcon className="mr-2 h-4 w-4" />
 							Edit Provider

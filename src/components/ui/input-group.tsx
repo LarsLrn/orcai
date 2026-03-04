@@ -63,7 +63,12 @@ function InputGroupAddon({
 		<fieldset
 			data-slot="input-group-addon"
 			data-align={align}
-			className={cn(inputGroupAddonVariants({ align }), className)}
+			className={cn(
+				inputGroupAddonVariants({
+					align,
+				}),
+				className,
+			)}
 			onClick={handleInteraction}
 			onKeyDown={handleInteraction}
 			{...props}
@@ -103,7 +108,12 @@ function InputGroupButton({
 			type={type}
 			data-size={size}
 			variant={variant}
-			className={cn(inputGroupButtonVariants({ size }), className)}
+			className={cn(
+				inputGroupButtonVariants({
+					size,
+				}),
+				className,
+			)}
 			{...props}
 		/>
 	);

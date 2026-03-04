@@ -10,10 +10,15 @@ export const generateEmbedding = (value: string) =>
 		return yield* Effect.tryPromise({
 			try: () =>
 				embed({
-					model: getSaiaEmbeddingModel({ model: "e5-mistral-7b-instruct" })
-						.provider,
+					model: getSaiaEmbeddingModel({
+						model: "e5-mistral-7b-instruct",
+					}).provider,
 					value: input,
 				}),
-			catch: (cause) => new AiError({ operation: "generateEmbedding", cause }),
+			catch: (cause) =>
+				new AiError({
+					operation: "generateEmbedding",
+					cause,
+				}),
 		});
 	});

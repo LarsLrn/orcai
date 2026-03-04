@@ -47,7 +47,9 @@ export const providerTableColumns: ColumnDef<Provider>[] = [
 		cell: ({ row }) => (
 			<Link
 				to="/app/providers/$providerId"
-				params={{ providerId: row.original.id }}
+				params={{
+					providerId: row.original.id,
+				}}
 			>
 				{row.original.name}
 			</Link>
@@ -130,7 +132,15 @@ const DeleteItem = ({ provider }: { provider: Provider }) => {
 	return (
 		<DropdownMenuItem
 			variant="destructive"
-			onClick={() => deleteProviders({ refs: [{ id: provider.id }] })}
+			onClick={() =>
+				deleteProviders({
+					refs: [
+						{
+							id: provider.id,
+						},
+					],
+				})
+			}
 		>
 			Delete Provider
 		</DropdownMenuItem>

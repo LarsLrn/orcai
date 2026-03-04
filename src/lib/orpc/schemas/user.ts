@@ -84,7 +84,11 @@ export const userUpdateSchema = createUpdateSchema(dbSchema.user);
  */
 
 export const userDeleteSchema = z.object({
-	refs: z.array(userSelectSchema.pick({ id: true })),
+	refs: z.array(
+		userSelectSchema.pick({
+			id: true,
+		}),
+	),
 });
 
 /**

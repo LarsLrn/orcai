@@ -50,7 +50,11 @@ const toRelationshipUpdate = <
 		operation: operationMap[mutation.operation ?? "create"],
 	});
 
-const extractZedToken = (response: { writtenAt?: { token?: string } }) =>
+const extractZedToken = (response: {
+	writtenAt?: {
+		token?: string;
+	};
+}) =>
 	Effect.fromNullable(response.writtenAt?.token).pipe(
 		Effect.mapError(
 			() =>
@@ -68,7 +72,9 @@ export const writeRelationshipMutations = (
 ) =>
 	Effect.gen(function* () {
 		if (mutations.length === 0) {
-			return { zedToken: undefined as string | undefined };
+			return {
+				zedToken: undefined as string | undefined,
+			};
 		}
 
 		const { spice } = yield* SpiceDbService;
@@ -82,11 +88,17 @@ export const writeRelationshipMutations = (
 						),
 					}),
 				),
-			catch: (error) => new SpiceDbError({ operation: "mutate", cause: error }),
+			catch: (error) =>
+				new SpiceDbError({
+					operation: "mutate",
+					cause: error,
+				}),
 		});
 
 		const zedToken = yield* extractZedToken(response);
-		return { zedToken };
+		return {
+			zedToken,
+		};
 	});
 
 export const checkEntityPermission = <Entity extends EntityType>(params: {
@@ -103,7 +115,9 @@ export const checkEntityPermission = <Entity extends EntityType>(params: {
 			entityType: params.entityType,
 			entityId: params.entityId,
 		});
-		const consistency = createConsistency({ zedToken: params.zedToken });
+		const consistency = createConsistency({
+			zedToken: params.zedToken,
+		});
 
 		return yield* Effect.tryPromise({
 			try: () =>
@@ -142,7 +156,9 @@ export const checkManyEntityPermissions = <Entity extends EntityType>(params: {
 				entityId,
 			}),
 		);
-		const consistency = createConsistency({ zedToken: params.zedToken });
+		const consistency = createConsistency({
+			zedToken: params.zedToken,
+		});
 
 		return yield* Effect.tryPromise({
 			try: () =>
@@ -176,7 +192,9 @@ export const lookupEntitiesByPermission = <Entity extends EntityType>(params: {
 	Effect.gen(function* () {
 		const { spice } = yield* SpiceDbService;
 
-		const consistency = createConsistency({ zedToken: params.zedToken });
+		const consistency = createConsistency({
+			zedToken: params.zedToken,
+		});
 
 		return yield* Effect.tryPromise({
 			try: () =>

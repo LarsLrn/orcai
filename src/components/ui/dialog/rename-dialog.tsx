@@ -33,7 +33,10 @@ export const RenameDialog = ({
 		if (open) {
 			setValue(initialValue ?? "");
 		}
-	}, [initialValue, open]);
+	}, [
+		initialValue,
+		open,
+	]);
 
 	const normalizedEntityLabel = entityLabel.toLowerCase();
 	const trimmedValue = value.trim();

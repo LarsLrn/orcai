@@ -244,7 +244,9 @@ function createResponseHandler(
 			if (ifNone && ifNone === asset.etag) {
 				return new Response(null, {
 					status: 304,
-					headers: { ETag: asset.etag },
+					headers: {
+						ETag: asset.etag,
+					},
 				});
 			}
 			headers.ETag = asset.etag;
@@ -258,12 +260,18 @@ function createResponseHandler(
 			headers["Content-Encoding"] = "gzip";
 			headers["Content-Length"] = String(asset.gz.byteLength);
 			const gzCopy = new Uint8Array(asset.gz);
-			return new Response(gzCopy, { status: 200, headers });
+			return new Response(gzCopy, {
+				status: 200,
+				headers,
+			});
 		}
 
 		headers["Content-Length"] = String(asset.raw.byteLength);
 		const rawCopy = new Uint8Array(asset.raw);
-		return new Response(rawCopy, { status: 200, headers });
+		return new Response(rawCopy, {
+			status: 200,
+			headers,
+		});
 	};
 }
 
@@ -313,7 +321,9 @@ async function initializeStaticRoutes(
 
 	try {
 		const glob = createCompositeGlobPattern();
-		for await (const relativePath of glob.scan({ cwd: clientDirectory })) {
+		for await (const relativePath of glob.scan({
+			cwd: clientDirectory,
+		})) {
 			const filepath = path.join(clientDirectory, relativePath);
 			const route = `/${relativePath.split(path.sep).join(path.posix.sep)}`;
 
@@ -351,7 +361,10 @@ async function initializeStaticRoutes(
 					};
 					routes[route] = createResponseHandler(asset);
 
-					loaded.push({ ...metadata, size: bytes.byteLength });
+					loaded.push({
+						...metadata,
+						size: bytes.byteLength,
+					});
 					totalPreloadedBytes += bytes.byteLength;
 				} else {
 					// Serve large or filtered files on-demand
@@ -376,9 +389,10 @@ async function initializeStaticRoutes(
 
 		// Show detailed file overview only when verbose mode is enabled
 		if (VERBOSE && (loaded.length > 0 || skipped.length > 0)) {
-			const allFiles = [...loaded, ...skipped].sort((a, b) =>
-				a.route.localeCompare(b.route),
-			);
+			const allFiles = [
+				...loaded,
+				...skipped,
+			].sort((a, b) => a.route.localeCompare(b.route));
 
 			// Calculate max path length for alignment
 			const maxPathLength = Math.min(
@@ -444,9 +458,10 @@ async function initializeStaticRoutes(
 		// Show detailed verbose info if enabled
 		if (VERBOSE) {
 			if (loaded.length > 0 || skipped.length > 0) {
-				const allFiles = [...loaded, ...skipped].sort((a, b) =>
-					a.route.localeCompare(b.route),
-				);
+				const allFiles = [
+					...loaded,
+					...skipped,
+				].sort((a, b) => a.route.localeCompare(b.route));
 				console.log("\n📊 Detailed file information:");
 				console.log(
 					"Status       │ Path                            │ MIME Type                    │ Reason",
@@ -496,7 +511,11 @@ async function initializeStaticRoutes(
 		);
 	}
 
-	return { routes, loaded, skipped };
+	return {
+		routes,
+		loaded,
+		skipped,
+	};
 }
 
 /**
@@ -506,10 +525,14 @@ async function initializeServer() {
 	log.header("Starting Production Server");
 
 	// Load TanStack Start server handler
-	let handler: { fetch: (request: Request) => Response | Promise<Response> };
+	let handler: {
+		fetch: (request: Request) => Response | Promise<Response>;
+	};
 	try {
 		const serverModule = (await import(SERVER_ENTRY_POINT)) as {
-			default: { fetch: (request: Request) => Response | Promise<Response> };
+			default: {
+				fetch: (request: Request) => Response | Promise<Response>;
+			};
 		};
 		handler = serverModule.default;
 		log.success("TanStack Start application handler initialized");
@@ -535,7 +558,9 @@ async function initializeServer() {
 					return handler.fetch(req);
 				} catch (error) {
 					log.error(`Server handler error: ${String(error)}`);
-					return new Response("Internal Server Error", { status: 500 });
+					return new Response("Internal Server Error", {
+						status: 500,
+					});
 				}
 			},
 		},
@@ -545,7 +570,9 @@ async function initializeServer() {
 			log.error(
 				`Uncaught server error: ${error instanceof Error ? error.message : String(error)}`,
 			);
-			return new Response("Internal Server Error", { status: 500 });
+			return new Response("Internal Server Error", {
+				status: 500,
+			});
 		},
 	});
 

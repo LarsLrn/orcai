@@ -32,7 +32,10 @@ export const TableOptionsMenu = ({ editor }: { editor: Editor }) => {
 			options={{
 				placement: "top-end",
 				inline: true,
-				offset: { mainAxis: 8, crossAxis: 0 },
+				offset: {
+					mainAxis: 8,
+					crossAxis: 0,
+				},
 			}}
 			className={cn("flex w-fit max-w-[90vw] space-x-0.5")}
 			shouldShow={({ editor }) => {
@@ -86,7 +89,12 @@ export const TableOptionsMenu = ({ editor }: { editor: Editor }) => {
 							onClick={() => {
 								editor.chain().focus().deleteColumn().run();
 							}}
-							className={cn([menuItemClass], "text-destructive")}
+							className={cn(
+								[
+									menuItemClass,
+								],
+								"text-destructive",
+							)}
 						>
 							Delete column
 						</button>
@@ -141,7 +149,12 @@ export const TableOptionsMenu = ({ editor }: { editor: Editor }) => {
 							onClick={() => {
 								editor.chain().focus().deleteRow().run();
 							}}
-							className={cn([menuItemClass], "text-destructive")}
+							className={cn(
+								[
+									menuItemClass,
+								],
+								"text-destructive",
+							)}
 						>
 							Delete row
 						</button>
@@ -251,7 +264,12 @@ export const TableOptionsMenu = ({ editor }: { editor: Editor }) => {
 							onClick={() => {
 								editor.chain().focus().deleteTable().run();
 							}}
-							className={cn([menuItemClass], "text-destructive")}
+							className={cn(
+								[
+									menuItemClass,
+								],
+								"text-destructive",
+							)}
 						>
 							Delete table
 						</button>

@@ -12,7 +12,9 @@ import { useIsMobile } from "@/hooks/use-mobile";
 const Toaster = ({
 	mobilePosition = "bottom-right",
 	...props
-}: { mobilePosition?: ToasterProps["position"] } & ToasterProps) => {
+}: {
+	mobilePosition?: ToasterProps["position"];
+} & ToasterProps) => {
 	const { theme = "system" } = useTheme();
 	const isMobile = useIsMobile();
 

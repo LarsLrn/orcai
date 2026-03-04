@@ -17,9 +17,16 @@ import { getDownloadUrl } from "@/lib/s3/utils/url-helpers";
 import { buckets } from "@/settings/buckets";
 
 export const processAssetBatchEffect = (jobs: Job<ProcessAssetPayload>[]) =>
-	Effect.forEach(jobs, (job) => processAssetsEffect({ job }), {
-		discard: true,
-	});
+	Effect.forEach(
+		jobs,
+		(job) =>
+			processAssetsEffect({
+				job,
+			}),
+		{
+			discard: true,
+		},
+	);
 
 const processAssetsEffect = (params: { job: Job<ProcessAssetPayload> }) =>
 	Effect.gen(function* () {
@@ -51,7 +58,12 @@ const processAssetsEffect = (params: { job: Job<ProcessAssetPayload> }) =>
 				return Effect.succeed(response);
 			}),
 			Effect.tapError((err) =>
-				Effect.logError({ err }, "Error fetching file from presigned URL"),
+				Effect.logError(
+					{
+						err,
+					},
+					"Error fetching file from presigned URL",
+				),
 			),
 		);
 
@@ -60,7 +72,12 @@ const processAssetsEffect = (params: { job: Job<ProcessAssetPayload> }) =>
 			catch: toPgBossRunError(params.job.id, PROCESS_ASSET_JOB_NAME),
 		}).pipe(
 			Effect.tapError((err) =>
-				Effect.logError({ err }, "Error reading file buffer"),
+				Effect.logError(
+					{
+						err,
+					},
+					"Error reading file buffer",
+				),
 			),
 		);
 
@@ -71,7 +88,12 @@ const processAssetsEffect = (params: { job: Job<ProcessAssetPayload> }) =>
 		}).pipe(
 			Effect.mapError(toPgBossRunError(params.job.id, PROCESS_ASSET_JOB_NAME)),
 			Effect.tapError((err) =>
-				Effect.logError({ err }, "Error converting document with Docling"),
+				Effect.logError(
+					{
+						err,
+					},
+					"Error converting document with Docling",
+				),
 			),
 		);
 
@@ -84,7 +106,12 @@ const processAssetsEffect = (params: { job: Job<ProcessAssetPayload> }) =>
 			catch: toPgBossRunError(params.job.id, PROCESS_ASSET_JOB_NAME),
 		}).pipe(
 			Effect.tapError((err) =>
-				Effect.logError({ err }, "Error serializing Docling document"),
+				Effect.logError(
+					{
+						err,
+					},
+					"Error serializing Docling document",
+				),
 			),
 		);
 
@@ -95,14 +122,19 @@ const processAssetsEffect = (params: { job: Job<ProcessAssetPayload> }) =>
 
 		if (!serializedDocling || serializedDocling.length === 0) {
 			yield* Effect.logWarning(
-				{ jobId: params.job.id },
+				{
+					jobId: params.job.id,
+				},
 				"No serialized docling content to upload",
 			);
 			return;
 		}
 
 		yield* Effect.logInfo(
-			{ jobId: params.job.id, pageCount: serializedDocling.length },
+			{
+				jobId: params.job.id,
+				pageCount: serializedDocling.length,
+			},
 			"Uploading processed content",
 		);
 
@@ -117,7 +149,12 @@ const processAssetsEffect = (params: { job: Job<ProcessAssetPayload> }) =>
 					contentType: "text/markdown",
 				}).pipe(
 					Effect.tapError((err) =>
-						Effect.logError({ err }, "Error uploading processed markdown"),
+						Effect.logError(
+							{
+								err,
+							},
+							"Error uploading processed markdown",
+						),
 					),
 				);
 
@@ -125,14 +162,22 @@ const processAssetsEffect = (params: { job: Job<ProcessAssetPayload> }) =>
 					Effect.gen(function* () {
 						if (!image) {
 							yield* Effect.logWarning(
-								{ jobId: params.job.id, pageIndex: index, imageIndex },
+								{
+									jobId: params.job.id,
+									pageIndex: index,
+									imageIndex,
+								},
 								"No image data to upload for this image",
 							);
 							return;
 						}
 
 						yield* Effect.logInfo(
-							{ jobId: params.job.id, pageIndex: index, imageIndex },
+							{
+								jobId: params.job.id,
+								pageIndex: index,
+								imageIndex,
+							},
 							"Uploading processed image",
 						);
 
@@ -167,19 +212,32 @@ const processAssetsEffect = (params: { job: Job<ProcessAssetPayload> }) =>
 							contentType: image.mimetype,
 						}).pipe(
 							Effect.tapError((err) =>
-								Effect.logError({ err }, "Error uploading processed image"),
+								Effect.logError(
+									{
+										err,
+									},
+									"Error uploading processed image",
+								),
 							),
 						);
 					}),
 				);
 				yield* Effect.logInfo(
-					{ jobId: params.job.id, pageIndex: index },
+					{
+						jobId: params.job.id,
+						pageIndex: index,
+					},
 					"Completed uploading processed page",
 				);
 			}),
 		).pipe(
 			Effect.tapError((err) =>
-				Effect.logError({ err }, "Error uploading processed content"),
+				Effect.logError(
+					{
+						err,
+					},
+					"Error uploading processed content",
+				),
 			),
 		);
 
@@ -195,12 +253,19 @@ const processAssetsEffect = (params: { job: Job<ProcessAssetPayload> }) =>
 						assetId: assetRef.id,
 						mergePages,
 					},
-					{ startAfter: 5 },
+					{
+						startAfter: 5,
+					},
 				),
 			catch: toPgBossRunError(params.job.id, PROCESS_ASSET_JOB_NAME),
 		}).pipe(
 			Effect.tapError((err) =>
-				Effect.logError({ err }, "Error scheduling vectorization job"),
+				Effect.logError(
+					{
+						err,
+					},
+					"Error scheduling vectorization job",
+				),
 			),
 		);
 

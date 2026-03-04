@@ -95,13 +95,19 @@ function SidebarProvider({
 				expires: SIDEBAR_COOKIE_MAX_AGE / (60 * 60 * 24),
 			});
 		},
-		[setOpenProp, open],
+		[
+			setOpenProp,
+			open,
+		],
 	);
 
 	// Helper to toggle the sidebar.
 	const toggleSidebar = React.useCallback(() => {
 		return isMobile ? setOpenMobile((open) => !open) : setOpen((open) => !open);
-	}, [isMobile, setOpen]);
+	}, [
+		isMobile,
+		setOpen,
+	]);
 
 	// Adds a keyboard shortcut to toggle the sidebar.
 	React.useEffect(() => {
@@ -117,7 +123,9 @@ function SidebarProvider({
 
 		window.addEventListener("keydown", handleKeyDown);
 		return () => window.removeEventListener("keydown", handleKeyDown);
-	}, [toggleSidebar]);
+	}, [
+		toggleSidebar,
+	]);
 
 	// We add a state so that we can do data-state="expanded" or "collapsed".
 	// This makes it easier to style the sidebar with Tailwind classes.
@@ -133,7 +141,14 @@ function SidebarProvider({
 			setOpenMobile,
 			toggleSidebar,
 		}),
-		[state, open, setOpen, isMobile, openMobile, toggleSidebar],
+		[
+			state,
+			open,
+			setOpen,
+			isMobile,
+			openMobile,
+			toggleSidebar,
+		],
 	);
 
 	return (
@@ -530,7 +545,13 @@ function SidebarMenuButton({
 		defaultTagName: "button",
 		props: mergeProps<"button">(
 			{
-				className: cn(sidebarMenuButtonVariants({ variant, size }), className),
+				className: cn(
+					sidebarMenuButtonVariants({
+						variant,
+						size,
+					}),
+					className,
+				),
 				onClick: () => closeSidebar && isMobile && setOpenMobile(false),
 			},
 			props,

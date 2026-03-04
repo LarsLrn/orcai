@@ -32,7 +32,9 @@ export const upsertPointsToQdrant = ({ points }: { points: Point[] }) =>
 				Effect.tryPromise({
 					try: async () =>
 						client.upsert(qdrantCollections.asset.name, {
-							points: [point],
+							points: [
+								point,
+							],
 						}),
 					catch: (cause) =>
 						new QdrantError({
@@ -40,7 +42,9 @@ export const upsertPointsToQdrant = ({ points }: { points: Point[] }) =>
 							cause,
 						}),
 				}),
-			{ concurrency: 10 },
+			{
+				concurrency: 10,
+			},
 		);
 	});
 
@@ -54,8 +58,12 @@ export const deletePointsByIdentifier = ({
 	Effect.gen(function* () {
 		const { client } = yield* QdrantService;
 
-		const filters: Array<{ key: string; match: { value: string | number } }> =
-			[];
+		const filters: Array<{
+			key: string;
+			match: {
+				value: string | number;
+			};
+		}> = [];
 
 		if (assetId !== undefined) {
 			filters.push({
