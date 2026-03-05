@@ -1,0 +1,36 @@
+services:
+  # Local-only host port publishing.
+  # Use with: docker compose -f docker-compose.yaml -f docker-compose.local.yaml up -d
+
+  sokratest:
+    ports:
+      - "3000:3000"
+    environment:
+      # Always use the internal service address for server-side S3 operations.
+      S3_ENDPOINT: http://minio:9000
+      # Public endpoint used in presigned URLs returned to the browser.
+      S3_PUBLIC_ENDPOINT: ${S3_PUBLIC_ENDPOINT:-http://localhost:9000}
+
+  minio:
+    ports:
+      - "${MINIO_API_PORT:-9000}:9000"
+      - "${MINIO_CONSOLE_PORT:-9001}:9001"
+
+  postgres:
+    ports:
+      - "${POSTGRES_PORT:-5432}:5432"
+
+  qdrant:
+    ports:
+      - "${QDRANT_HTTP_PORT:-6333}:6333"
+      - "${QDRANT_GRPC_PORT:-6334}:6334"
+
+  spicedb:
+    ports:
+      - "${SPICEDB_HTTP_PORT:-8080}:8080"
+      - "${SPICEDB_METRICS_PORT:-9090}:9090"
+      - "${SPICEDB_GRPC_PORT:-50051}:50051"
+
+  spicedb-database:
+    ports:
+      - "${SPICEDB_POSTGRES_PORT:-5431}:5432"

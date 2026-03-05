@@ -2,13 +2,10 @@ services:
   # PostgreSQL Database
   postgres:
     image: pgvector/pgvector:pg17
-    container_name: sokratest-postgres
     environment:
       POSTGRES_USER: postgres
-      POSTGRES_PASSWORD: postgres
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-postgres}
       POSTGRES_DB: sokratest-v2
-    ports:
-      - "5432:5432"
     volumes:
       - postgres_data:/var/lib/postgresql/data
     healthcheck:
@@ -29,22 +26,21 @@ services:
     environment:
       POSTGRES_HOST: postgres
       POSTGRES_USER: postgres
-      POSTGRES_PASSWORD: postgres
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-postgres}
       POSTGRES_DB: sokratest-v2
     restart: on-failure
     command: [ "/bin/sh", "-c", "./node_modules/.bin/drizzle-kit migrate --config=drizzle.config.ts" ]
 
   # MinIO S3-Compatible Object Storage
   minio:
-    image: minio/minio:latest
-    container_name: sokratest-minio
+    image: minio/minio:RELEASE.2025-02-28T09-55-16Z
     command: server /data --console-address ":9001"
     environment:
-      MINIO_ROOT_USER: minioadmin
-      MINIO_ROOT_PASSWORD: minioadmin
-    ports:
-      - "9002:9000" # API
-      - "9003:9001" # Console
+      MINIO_ROOT_USER: ${MINIO_ROOT_USER:-minioadmin}
+      MINIO_ROOT_PASSWORD: ${MINIO_ROOT_PASSWORD:-minioadmin}
+    expose:
+      - "9000"
+      - "9001"
     volumes:
       - minio_data:/data
     healthcheck:
@@ -56,11 +52,7 @@ services:
 
   # Qdrant Vector Database
   qdrant:
-    image: qdrant/qdrant:latest
-    container_name: sokratest-qdrant
-    ports:
-      - "6333:6333" # HTTP API
-      - "6334:6334" # gRPC API
+    image: qdrant/qdrant:v1.17
     volumes:
       - qdrant_data:/qdrant/storage
     environment:
@@ -80,72 +72,78 @@ services:
       dockerfile: ./docker/Dockerfile.sokratest
       target: runtime
       args:
-        VITE_BASE_URL: ${VITE_BASE_URL:-http://localhost:3000}
+        VITE_BASE_URL: ${VITE_BASE_URL:?VITE_BASE_URL is required}
         VITE_UMAMI_SCRIPT_URL: ${VITE_UMAMI_SCRIPT_URL:-}
         VITE_UMAMI_WEBSITE_ID: ${VITE_UMAMI_WEBSITE_ID:-}
-    container_name: sokratest-app
-    env_file:
-      - .env
-    ports:
-      - "3000:3000"
+    expose:
+      - "3000"
     environment:
       # Database Configuration
       POSTGRES_USER: postgres
-      POSTGRES_PASSWORD: postgres
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-postgres}
       POSTGRES_DB: sokratest-v2
       POSTGRES_HOST: postgres
       POSTGRES_SSL: "false"
 
       # S3/MinIO Configuration
-      S3_ENDPOINT: "http://minio:9000"
-      S3_PORT: 9002
-      S3_ACCESS_KEY: minioadmin
-      S3_SECRET_KEY: minioadmin
-      S3_USE_SSL: false
+      S3_ENDPOINT: ${S3_ENDPOINT:-http://minio:9000}
+      S3_PUBLIC_ENDPOINT: ${S3_PUBLIC_ENDPOINT:-}
+      S3_REGION: ${S3_REGION:-eu-central-1}
+      S3_ACCESS_KEY: ${MINIO_ROOT_USER:-minioadmin}
+      S3_SECRET_KEY: ${MINIO_ROOT_PASSWORD:-minioadmin}
 
       # Qdrant Configuration
       QDRANT_URL: http://qdrant:6333/
       QDRANT_API_KEY: ${QDRANT_API_KEY:-}
 
       # Application Configuration
-      BASE_URL: ${BETTER_AUTH_URL:-http://localhost:3000}
-      BETTER_AUTH_URL: ${BETTER_AUTH_URL:-http://localhost:3000}
-      VITE_BASE_URL: ${VITE_BASE_URL:-http://localhost:3000}
+      BASE_URL: ${BETTER_AUTH_URL:?BETTER_AUTH_URL is required}
+      BETTER_AUTH_URL: ${BETTER_AUTH_URL:?BETTER_AUTH_URL is required}
+      VITE_BASE_URL: ${VITE_BASE_URL:?VITE_BASE_URL is required}
 
       # Secrets (from environment)
-      BETTER_AUTH_SECRET: ${BETTER_AUTH_SECRET}
-      ENCRYPTION_KEY: ${ENCRYPTION_KEY}
+      BETTER_AUTH_SECRET: ${BETTER_AUTH_SECRET:?BETTER_AUTH_SECRET is required}
+      ENCRYPTION_KEY: ${ENCRYPTION_KEY:?ENCRYPTION_KEY is required}
 
       # Email Configuration
-      SMTP_HOST: ${SMTP_HOST}
-      SMTP_PORT: ${SMTP_PORT}
-      SMTP_USERNAME: ${SMTP_USERNAME}
-      SMTP_PASSWORD: ${SMTP_PASSWORD}
+      SMTP_HOST: ${SMTP_HOST:-}
+      SMTP_PORT: ${SMTP_PORT:-}
+      SMTP_USERNAME: ${SMTP_USERNAME:-}
+      SMTP_PASSWORD: ${SMTP_PASSWORD:-}
+      SMTP_FROM: ${SMTP_FROM:-}
+      SMTP_SECURE: ${SMTP_SECURE:-true}
+      SMTP_TLS_REJECT_UNAUTHORIZED: ${SMTP_TLS_REJECT_UNAUTHORIZED:-true}
 
       # AI Services
-      OPENAI_COMPATIBLE_BASE_URL: ${OPENAI_COMPATIBLE_BASE_URL}
-      OPENAI_COMPATIBLE_API_KEY: ${OPENAI_COMPATIBLE_API_KEY}
+      OPENAI_COMPATIBLE_BASE_URL: ${OPENAI_COMPATIBLE_BASE_URL:?OPENAI_COMPATIBLE_BASE_URL is required}
+      OPENAI_COMPATIBLE_API_KEY: ${OPENAI_COMPATIBLE_API_KEY:?OPENAI_COMPATIBLE_API_KEY is required}
 
       # Spice DB
       SPICEDB_ENDPOINT: spicedb:50051
-      SPICEDB_TOKEN: ${SPICEDB_GRPC_PRESHARED_KEY:-dev-spicedb-key}
+      SPICEDB_TOKEN: ${SPICEDB_GRPC_PRESHARED_KEY:?SPICEDB_GRPC_PRESHARED_KEY is required}
 
       # LLM Observability
-      LANGFUSE_SECRET_KEY: ${LANGFUSE_SECRET_KEY}
-      LANGFUSE_PUBLIC_KEY: ${LANGFUSE_PUBLIC_KEY}
-      LANGFUSE_BASEURL: ${LANGFUSE_BASEURL}
+      LANGFUSE_SECRET_KEY: ${LANGFUSE_SECRET_KEY:?LANGFUSE_SECRET_KEY is required}
+      LANGFUSE_PUBLIC_KEY: ${LANGFUSE_PUBLIC_KEY:?LANGFUSE_PUBLIC_KEY is required}
+      LANGFUSE_BASEURL: ${LANGFUSE_BASEURL:?LANGFUSE_BASEURL is required}
 
       # Analytics
-      VITE_UMAMI_SCRIPT_URL: ${VITE_UMAMI_SCRIPT_URL}
-      VITE_UMAMI_WEBSITE_ID: ${VITE_UMAMI_WEBSITE_ID}
+      VITE_UMAMI_SCRIPT_URL: ${VITE_UMAMI_SCRIPT_URL:-}
+      VITE_UMAMI_WEBSITE_ID: ${VITE_UMAMI_WEBSITE_ID:-}
 
       # Open Telemetry
-      OTEL_TRACES_EXPORTER: ${OTEL_TRACES_EXPORTER}
-      OTEL_EXPORTER_OTLP_PROTOCOL: ${OTEL_EXPORTER_OTLP_PROTOCOL}
-      OTEL_EXPORTER_OTLP_TRACES_ENDPOINT: ${OTEL_EXPORTER_OTLP_TRACES_ENDPOINT}
-      OTEL_NODE_RESOURCE_DETECTORS: ${OTEL_NODE_RESOURCE_DETECTORS}
-      OTEL_SERVICE_NAME: ${OTEL_SERVICE_NAME}
-      OTEL_EXPORTER_OTLP_HEADERS: ${OTEL_EXPORTER_OTLP_HEADERS}
+      OTEL_TRACES_EXPORTER: ${OTEL_TRACES_EXPORTER:-}
+      OTEL_EXPORTER_OTLP_PROTOCOL: ${OTEL_EXPORTER_OTLP_PROTOCOL:-}
+      OTEL_EXPORTER_OTLP_TRACES_ENDPOINT: ${OTEL_EXPORTER_OTLP_TRACES_ENDPOINT:-}
+      OTEL_NODE_RESOURCE_DETECTORS: ${OTEL_NODE_RESOURCE_DETECTORS:-}
+      OTEL_SERVICE_NAME: ${OTEL_SERVICE_NAME:-}
+      OTEL_EXPORTER_OTLP_HEADERS: ${OTEL_EXPORTER_OTLP_HEADERS:-}
+    healthcheck:
+      test: [ "CMD", "bun", "-e", "fetch('http://127.0.0.1:3000').then((r)=>process.exit(r.ok?0:1)).catch(()=>process.exit(1))" ]
+      interval: 30s
+      timeout: 5s
+      retries: 5
+      start_period: 20s
     depends_on:
       postgres:
         condition: service_healthy
@@ -167,33 +165,36 @@ services:
 
   # Create MinIO buckets once on startup
   minio-setup:
-    image: minio/mc:latest
+    image: minio/mc:RELEASE.2025-02-21T16-00-46Z
     depends_on:
       minio:
         condition: service_healthy
     entrypoint: >
       /bin/sh -c "
-      /usr/bin/mc alias set myminio http://minio:9000 minioadmin minioadmin &&
-      /usr/bin/mc mb myminio/documents --ignore-existing &&
-      /usr/bin/mc mb myminio/uploads --ignore-existing &&
-      /usr/bin/mc mb myminio/avatars --ignore-existing &&
-      /usr/bin/mc anonymous set download myminio/avatars &&
+      /usr/bin/mc alias set myminio http://minio:9000 $$MINIO_ROOT_USER $$MINIO_ROOT_PASSWORD &&
+      /usr/bin/mc mb myminio/sokratest --ignore-existing &&
+      /usr/bin/mc mb myminio/processed-files --ignore-existing &&
+      /usr/bin/mc mb myminio/sokratest-dev --ignore-existing &&
+      /usr/bin/mc mb myminio/processed-files-dev --ignore-existing &&
       echo 'MinIO buckets created successfully'
       "
+    environment:
+      MINIO_ROOT_USER: ${MINIO_ROOT_USER:-minioadmin}
+      MINIO_ROOT_PASSWORD: ${MINIO_ROOT_PASSWORD:-minioadmin}
     restart: "no"
 
   spicedb:
-    image: "authzed/spicedb:latest"
+    image: "authzed/spicedb:v1.49.2"
     command: "serve"
     restart: "always"
-    ports:
-      - "8080:8080"
-      - "9090:9090"
-      - "50051:50051"
+    expose:
+      - "8080"
+      - "9090"
+      - "50051"
     environment:
-      SPICEDB_GRPC_PRESHARED_KEY: ${SPICEDB_GRPC_PRESHARED_KEY:-dev-spicedb-key}
+      SPICEDB_GRPC_PRESHARED_KEY: ${SPICEDB_GRPC_PRESHARED_KEY:?SPICEDB_GRPC_PRESHARED_KEY is required}
       SPICEDB_DATASTORE_ENGINE: postgres
-      SPICEDB_DATASTORE_CONN_URI: postgres://${SPICEDB_POSTGRES_USER:-postgres}:${SPICEDB_POSTGRES_PASSWORD:-postgres}@spicedb-database:5432/spicedb
+      SPICEDB_DATASTORE_CONN_URI: postgres://${SPICEDB_POSTGRES_USER:?SPICEDB_POSTGRES_USER is required}:${SPICEDB_POSTGRES_PASSWORD:?SPICEDB_POSTGRES_PASSWORD is required}@spicedb-database:5432/spicedb
     healthcheck:
       test: [ "CMD", "spicedb", "datastore", "head" ]
       interval: 10s
@@ -204,12 +205,12 @@ services:
         condition: service_completed_successfully
 
   spicedb-migrate:
-    image: "authzed/spicedb:latest"
+    image: "authzed/spicedb:v1.49.2"
     command: "migrate head"
     restart: "on-failure"
     environment:
       SPICEDB_DATASTORE_ENGINE: postgres
-      SPICEDB_DATASTORE_CONN_URI: postgres://${SPICEDB_POSTGRES_USER:-postgres}:${SPICEDB_POSTGRES_PASSWORD:-postgres}@spicedb-database:5432/spicedb
+      SPICEDB_DATASTORE_CONN_URI: postgres://${SPICEDB_POSTGRES_USER:?SPICEDB_POSTGRES_USER is required}:${SPICEDB_POSTGRES_PASSWORD:?SPICEDB_POSTGRES_PASSWORD is required}@spicedb-database:5432/spicedb
     depends_on:
       spicedb-database:
         condition: service_healthy
@@ -220,7 +221,7 @@ services:
       dockerfile: ./docker/Dockerfile.spicedb-schema
     environment:
       SPICEDB_ENDPOINT: spicedb:50051
-      SPICEDB_TOKEN: ${SPICEDB_GRPC_PRESHARED_KEY:-dev-spicedb-key}
+      SPICEDB_TOKEN: ${SPICEDB_GRPC_PRESHARED_KEY:?SPICEDB_GRPC_PRESHARED_KEY is required}
       SPICEDB_SECURITY: insecure-plaintext
     command: [ "bun", "run", "scripts/deploy-spicedb-schema.ts" ]
     depends_on:
@@ -230,13 +231,11 @@ services:
 
   spicedb-database:
     image: "postgres:17"
-    ports:
-      - "5431:5432"
     volumes:
       - spicedb_postgres_data:/var/lib/postgresql/data
     environment:
-      POSTGRES_USER: ${SPICEDB_POSTGRES_USER:-postgres}
-      POSTGRES_PASSWORD: ${SPICEDB_POSTGRES_PASSWORD:-postgres}
+      POSTGRES_USER: ${SPICEDB_POSTGRES_USER:?SPICEDB_POSTGRES_USER is required}
+      POSTGRES_PASSWORD: ${SPICEDB_POSTGRES_PASSWORD:?SPICEDB_POSTGRES_PASSWORD is required}
       POSTGRES_DB: spicedb
     healthcheck:
       test: [ "CMD-SHELL", "pg_isready -U ${SPICEDB_POSTGRES_USER:-postgres} -d spicedb" ]
@@ -253,7 +252,3 @@ volumes:
     driver: local
   spicedb_postgres_data:
     driver: local
-
-networks:
-  default:
-    name: sokratest-network
