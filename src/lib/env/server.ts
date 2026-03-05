@@ -11,6 +11,12 @@ export const serverEnv = createEnv({
 		POSTGRES_DB: z.string(),
 		QDRANT_URL: z.string(),
 		QDRANT_API_KEY: z.string(),
+		QDRANT_ENABLE_SPARSE_VECTORS: z
+			.enum([
+				"true",
+				"false",
+			])
+			.default("false"),
 		SPICEDB_ENDPOINT: z.string(),
 		SPICEDB_TOKEN: z.string(),
 		OPENAI_COMPATIBLE_BASE_URL: z.url(),

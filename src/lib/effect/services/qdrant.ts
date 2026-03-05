@@ -11,10 +11,17 @@ export class QdrantService extends Context.Tag("QdrantService")<
 	QdrantService,
 	{
 		readonly client: QdrantClient;
+		readonly sparseVectorsEnabled: boolean;
 	}
 >() {}
 
-const initCollectionIfNeeded = (qdrant: QdrantClient) =>
+const initCollectionIfNeeded = ({
+	qdrant,
+	sparseVectorsEnabled,
+}: {
+	qdrant: QdrantClient;
+	sparseVectorsEnabled: boolean;
+}) =>
 	Effect.gen(function* () {
 		const collections = yield* Effect.tryPromise({
 			try: () => qdrant.getCollections(),
@@ -40,9 +47,13 @@ const initCollectionIfNeeded = (qdrant: QdrantClient) =>
 							distance: "Cosine",
 						},
 					},
-					sparse_vectors: {
-						bm25: {},
-					},
+					...(sparseVectorsEnabled
+						? {
+								sparse_vectors: {
+									bm25: {},
+								},
+							}
+						: {}),
 					hnsw_config: {
 						payload_m: 16,
 						m: 0,
@@ -86,10 +97,14 @@ export const QdrantLive = Layer.effect(
 			apiKey: Redacted.value(config.qdrant.apiKey),
 		});
 
-		yield* initCollectionIfNeeded(client);
+		yield* initCollectionIfNeeded({
+			qdrant: client,
+			sparseVectorsEnabled: config.qdrant.enableSparseVectors,
+		});
 
 		return {
 			client,
+			sparseVectorsEnabled: config.qdrant.enableSparseVectors,
 		};
 	}),
 );

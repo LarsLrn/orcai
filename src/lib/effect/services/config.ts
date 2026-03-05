@@ -143,6 +143,10 @@ const appConfig = Config.all({
 	qdrant: Config.all({
 		url: Config.string("QDRANT_URL"),
 		apiKey: Config.redacted("QDRANT_API_KEY"),
+		enableSparseVectors: Config.withDefault(
+			Config.boolean("QDRANT_ENABLE_SPARSE_VECTORS"),
+			false,
+		),
 	}),
 	email: emailConfig,
 	app: Config.all({
