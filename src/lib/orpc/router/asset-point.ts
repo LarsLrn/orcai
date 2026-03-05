@@ -113,11 +113,14 @@ export const listAssetPoint = authed.assetPoint.list.handler(({ input }) =>
 				},
 			];
 
-			const variantEmbeddings = yield* Effect.forEach(
+			const variantsWithEmbeddings = yield* Effect.forEach(
 				searchQueries,
 				(query) =>
 					generateEmbedding(query).pipe(
-						Effect.map(({ embedding }) => embedding),
+						Effect.map(({ embedding }) => ({
+							query,
+							embedding,
+						})),
 					),
 				{
 					concurrency: 4,
@@ -144,10 +147,11 @@ export const listAssetPoint = authed.assetPoint.list.handler(({ input }) =>
 					body: (s, pass, index) =>
 						Effect.gen(function* () {
 							yield* Effect.forEach(
-								variantEmbeddings,
-								(embedding) =>
+								variantsWithEmbeddings,
+								({ query, embedding }) =>
 									queryAssetPoints({
 										embedding,
+										text: query,
 										filter: qdrantFilter,
 										limit: pass.candidateLimit,
 										withPayload: true,

@@ -35,8 +35,13 @@ const initCollectionIfNeeded = (qdrant: QdrantClient) =>
 			try: async () => {
 				await qdrant.createCollection(qdrantCollections.asset.name, {
 					vectors: {
-						size: 4096,
-						distance: "Cosine",
+						dense: {
+							size: 4096,
+							distance: "Cosine",
+						},
+					},
+					sparse_vectors: {
+						bm25: {},
 					},
 					hnsw_config: {
 						payload_m: 16,

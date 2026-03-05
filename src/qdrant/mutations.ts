@@ -33,7 +33,17 @@ export const upsertPointsToQdrant = ({ points }: { points: Point[] }) =>
 					try: async () =>
 						client.upsert(qdrantCollections.asset.name, {
 							points: [
-								point,
+								{
+									id: point.id,
+									vector: {
+										dense: point.vector,
+										bm25: {
+											text: point.payload.text,
+											model: "qdrant/bm25",
+										},
+									},
+									payload: point.payload,
+								},
 							],
 						}),
 					catch: (cause) =>
