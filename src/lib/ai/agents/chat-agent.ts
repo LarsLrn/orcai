@@ -77,7 +77,7 @@ export const chatAgent = new ToolLoopAgent({
 						},
 					],
 					tools: tools,
-					stopWhen: stepCountIs(4),
+					stopWhen: stepCountIs(10),
 				};
 			}),
 		),
