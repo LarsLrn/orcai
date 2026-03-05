@@ -63,7 +63,16 @@ export default defineConfig({
 			],
 		}),
 		tailwindcss(),
-		tanstackStart(),
+		tanstackStart({
+			importProtection: {
+				behavior: "error",
+				client: {
+					specifiers: [
+						"**/effect/**",
+					],
+				},
+			},
+		}),
 		viteReact({
 			babel: {
 				plugins: [
