@@ -3,6 +3,7 @@ import * as Context from "effect/Context";
 import * as Effect from "effect/Effect";
 import * as Layer from "effect/Layer";
 import * as Option from "effect/Option";
+import * as Redacted from "effect/Redacted";
 
 const getOrThrow = <A>(name: string, value: Option.Option<A>): A =>
 	Option.match(value, {
@@ -12,11 +13,39 @@ const getOrThrow = <A>(name: string, value: Option.Option<A>): A =>
 		onSome: (resolved) => resolved,
 	});
 
+const normalizeOptionalString = (
+	value: Option.Option<string>,
+): Option.Option<string> =>
+	Option.match(value, {
+		onNone: () => Option.none(),
+		onSome: (resolved) => {
+			const trimmed = resolved.trim();
+			return trimmed.length === 0 ? Option.none() : Option.some(trimmed);
+		},
+	});
+
+const parseOptionalPort = (
+	value: Option.Option<string>,
+	defaultPort: number,
+): number =>
+	Option.match(normalizeOptionalString(value), {
+		onNone: () => defaultPort,
+		onSome: (resolved) => {
+			const port = Number(resolved);
+			if (!Number.isInteger(port) || port < 1 || port > 65535) {
+				throw new Error(
+					`Invalid SMTP_PORT value "${resolved}". Expected an integer between 1 and 65535.`,
+				);
+			}
+			return port;
+		},
+	});
+
 const emailConfig = Config.all({
 	host: Config.option(Config.string("SMTP_HOST")),
-	port: Config.withDefault(Config.port("SMTP_PORT"), 587),
+	port: Config.option(Config.string("SMTP_PORT")),
 	username: Config.option(Config.string("SMTP_USERNAME")),
-	password: Config.option(Config.redacted("SMTP_PASSWORD")),
+	password: Config.option(Config.string("SMTP_PASSWORD")),
 	secure: Config.withDefault(Config.boolean("SMTP_SECURE"), true),
 	tlsRejectUnauthorized: Config.withDefault(
 		Config.boolean("SMTP_TLS_REJECT_UNAUTHORIZED"),
@@ -29,10 +58,16 @@ const emailConfig = Config.all({
 	),
 }).pipe(
 	Config.mapAttempt((raw) => {
-		const hasHost = Option.isSome(raw.host);
-		const hasFrom = Option.isSome(raw.from);
-		const hasUsername = Option.isSome(raw.username);
-		const hasPassword = Option.isSome(raw.password);
+		const host = normalizeOptionalString(raw.host);
+		const from = normalizeOptionalString(raw.from);
+		const username = normalizeOptionalString(raw.username);
+		const password = normalizeOptionalString(raw.password);
+		const port = parseOptionalPort(raw.port, 587);
+
+		const hasHost = Option.isSome(host);
+		const hasFrom = Option.isSome(from);
+		const hasUsername = Option.isSome(username);
+		const hasPassword = Option.isSome(password);
 
 		if (!hasHost && !hasFrom && !hasUsername && !hasPassword) {
 			return {
@@ -54,17 +89,17 @@ const emailConfig = Config.all({
 
 		return {
 			mode: "smtp" as const,
-			host: getOrThrow("SMTP_HOST", raw.host),
-			port: raw.port,
+			host: getOrThrow("SMTP_HOST", host),
+			port,
 			secure: raw.secure,
 			tlsRejectUnauthorized: raw.tlsRejectUnauthorized,
-			from: getOrThrow("SMTP_FROM", raw.from),
+			from: getOrThrow("SMTP_FROM", from),
 			fromName: raw.fromName,
 			auth:
 				hasUsername && hasPassword
 					? {
-							username: getOrThrow("SMTP_USERNAME", raw.username),
-							password: getOrThrow("SMTP_PASSWORD", raw.password),
+							username: getOrThrow("SMTP_USERNAME", username),
+							password: Redacted.make(getOrThrow("SMTP_PASSWORD", password)),
 						}
 					: undefined,
 		};
