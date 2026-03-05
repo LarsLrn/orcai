@@ -1,4 +1,4 @@
-import { ensureQuotedEtag } from "./utils/utils";
+import { ensureQuotedEtag } from "./utils/etag";
 
 export async function uploadFileToS3(params: {
 	signedUrl: string;

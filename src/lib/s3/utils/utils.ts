@@ -113,13 +113,3 @@ export const validateUploadEnvelope = (params: {
 
 export const normalizeUploadId = (uploadId: string) =>
 	uploadId.trim().replace(/^"+|"+$/g, "");
-
-export const ensureQuotedEtag = (etag: string) => {
-	const trimmed = etag.trim();
-
-	if (trimmed.startsWith('"') && trimmed.endsWith('"')) {
-		return trimmed;
-	}
-
-	return `"${trimmed.replace(/"/g, "")}"`;
-};

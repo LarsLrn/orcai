@@ -23,6 +23,7 @@ import {
 	sendCreateMultipartUploadCommand,
 	sendHeadObjectCommand,
 } from "@/lib/s3/utils/commands";
+import { ensureQuotedEtag } from "@/lib/s3/utils/etag";
 import { getFileTypeFromMime } from "@/lib/s3/utils/file-type-helpers";
 import {
 	getDownloadUrl,
@@ -31,7 +32,6 @@ import {
 } from "@/lib/s3/utils/url-helpers";
 import {
 	createBucketIfNotExists,
-	ensureQuotedEtag,
 	normalizeUploadId,
 	validateUploadEnvelope,
 } from "@/lib/s3/utils/utils";
