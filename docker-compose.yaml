@@ -95,6 +95,7 @@ services:
       # Qdrant Configuration
       QDRANT_URL: http://qdrant:6333/
       QDRANT_API_KEY: ${QDRANT_API_KEY:-}
+      QDRANT_ENABLE_SPARSE_VECTORS: ${QDRANT_ENABLE_SPARSE_VECTORS:-false}
 
       # Application Configuration
       BASE_URL: ${BETTER_AUTH_URL:?BETTER_AUTH_URL is required}

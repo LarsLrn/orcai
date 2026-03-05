@@ -17,7 +17,7 @@ export const queryAssetPoints = (params: {
 	scoreThreshold?: number;
 }) =>
 	Effect.gen(function* () {
-		const { client } = yield* QdrantService;
+		const { client, sparseVectorsEnabled } = yield* QdrantService;
 		const resolvedLimit = params.limit ?? 10;
 		const withPayload = params.withPayload ?? true;
 		const withVector = params.withVector ?? false;
@@ -26,6 +26,19 @@ export const queryAssetPoints = (params: {
 			try: async () => {
 				// Hybrid retrieval (sparse + dense, fused with RRF)
 				if (params.embedding && params.text) {
+					if (!sparseVectorsEnabled) {
+						const response = await client.query(qdrantCollections.asset.name, {
+							query: params.embedding,
+							using: "dense",
+							filter: params.filter,
+							limit: Math.max(resolvedLimit, 20),
+							with_payload: withPayload,
+							with_vector: withVector,
+							score_threshold: params.scoreThreshold,
+						});
+						return response.points;
+					}
+
 					const response = await client.query(qdrantCollections.asset.name, {
 						prefetch: [
 							{
@@ -70,6 +83,10 @@ export const queryAssetPoints = (params: {
 
 				// Sparse-only retrieval
 				if (params.text) {
+					if (!sparseVectorsEnabled) {
+						return [];
+					}
+
 					const response = await client.query(qdrantCollections.asset.name, {
 						query: {
 							text: params.text,
