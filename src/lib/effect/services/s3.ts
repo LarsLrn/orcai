@@ -11,6 +11,7 @@ export class S3Service extends Context.Tag("S3Service")<
 	S3Service,
 	{
 		readonly client: S3Client;
+		readonly presignClient: S3Client;
 	}
 >() {}
 
@@ -19,19 +20,39 @@ export const S3Live = Layer.scoped(
 	Effect.acquireRelease(
 		Effect.gen(function* () {
 			const { config } = yield* AppConfigService;
+			const sharedClientOptions = {
+				region: config.s3.region,
+				credentials: {
+					accessKeyId: Redacted.value(config.s3.accessKey),
+					secretAccessKey: Redacted.value(config.s3.secretKey),
+				},
+				forcePathStyle: true,
+			} as const;
 
 			return yield* Effect.try({
-				try: () => ({
-					client: new S3Client({
-						region: Option.getOrUndefined(config.s3.region),
+				try: () => {
+					const client = new S3Client({
+						...sharedClientOptions,
 						endpoint: config.s3.endpoint,
-						credentials: {
-							accessKeyId: Redacted.value(config.s3.accessKey),
-							secretAccessKey: Redacted.value(config.s3.secretKey),
-						},
-						forcePathStyle: true,
-					}),
-				}),
+					});
+					const presignEndpoint = Option.getOrElse(
+						config.s3.publicEndpoint,
+						() => config.s3.endpoint,
+					);
+
+					const presignClient =
+						presignEndpoint === config.s3.endpoint
+							? client
+							: new S3Client({
+									...sharedClientOptions,
+									endpoint: presignEndpoint,
+								});
+
+					return {
+						client,
+						presignClient,
+					};
+				},
 				catch: (error) =>
 					new S3Error({
 						operation: "start",
@@ -39,6 +60,12 @@ export const S3Live = Layer.scoped(
 					}),
 			});
 		}),
-		({ client }) => Effect.sync(() => client.destroy()),
+		({ client, presignClient }) =>
+			Effect.sync(() => {
+				client.destroy();
+				if (presignClient !== client) {
+					presignClient.destroy();
+				}
+			}),
 	),
 );

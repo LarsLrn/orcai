@@ -8,6 +8,19 @@ import * as Effect from "effect/Effect";
 import { S3Service } from "@/lib/effect/services/s3";
 import { mapS3CauseToAppError } from "@/lib/effect/utils/errors";
 
+const signWithClient = (params: {
+	sign: () => Promise<string>;
+	operation: string;
+}) =>
+	Effect.tryPromise({
+		try: params.sign,
+		catch: (cause) =>
+			mapS3CauseToAppError({
+				operation: params.operation,
+				cause,
+			}),
+	});
+
 export const getSignedUploadUrl = (params: {
 	bucket: string;
 	key: string;
@@ -16,7 +29,7 @@ export const getSignedUploadUrl = (params: {
 	expiresIn?: number;
 }) =>
 	Effect.gen(function* () {
-		const { client } = yield* S3Service;
+		const { presignClient } = yield* S3Service;
 
 		const command = new PutObjectCommand({
 			Bucket: params.bucket,
@@ -25,16 +38,12 @@ export const getSignedUploadUrl = (params: {
 			ContentLength: params.contentLength,
 		});
 
-		return yield* Effect.tryPromise({
-			try: () =>
-				getSignedUrl(client, command, {
+		return yield* signWithClient({
+			sign: () =>
+				getSignedUrl(presignClient, command, {
 					expiresIn: params.expiresIn ?? 3600,
 				}),
-			catch: (cause) =>
-				mapS3CauseToAppError({
-					operation: "getSignedUploadUrl",
-					cause,
-				}),
+			operation: "getSignedUploadUrl",
 		});
 	});
 
@@ -42,25 +51,24 @@ export const getDownloadUrl = (params: {
 	bucket: string;
 	key: string;
 	expiresIn?: number;
+	endpointMode?: "public" | "internal";
 }) =>
 	Effect.gen(function* () {
-		const { client } = yield* S3Service;
+		const { client, presignClient } = yield* S3Service;
+		const selectedClient =
+			params.endpointMode === "internal" ? client : presignClient;
 
 		const command = new GetObjectCommand({
 			Bucket: params.bucket,
 			Key: params.key,
 		});
 
-		return yield* Effect.tryPromise({
-			try: () =>
-				getSignedUrl(client, command, {
+		return yield* signWithClient({
+			sign: () =>
+				getSignedUrl(selectedClient, command, {
 					expiresIn: params.expiresIn ?? 3600,
 				}),
-			catch: (cause) =>
-				mapS3CauseToAppError({
-					operation: "getDownloadUrl",
-					cause,
-				}),
+			operation: "getDownloadUrl",
 		});
 	});
 
@@ -73,7 +81,7 @@ export const getSignedPartUploadUrl = (params: {
 	expiresIn?: number;
 }) =>
 	Effect.gen(function* () {
-		const { client } = yield* S3Service;
+		const { presignClient } = yield* S3Service;
 
 		const command = new UploadPartCommand({
 			Bucket: params.bucket,
@@ -83,15 +91,11 @@ export const getSignedPartUploadUrl = (params: {
 			ContentLength: params.contentLength,
 		});
 
-		return yield* Effect.tryPromise({
-			try: () =>
-				getSignedUrl(client, command, {
+		return yield* signWithClient({
+			sign: () =>
+				getSignedUrl(presignClient, command, {
 					expiresIn: params.expiresIn ?? 3600,
 				}),
-			catch: (cause) =>
-				mapS3CauseToAppError({
-					operation: "getSignedPartUploadUrl",
-					cause,
-				}),
+			operation: "getSignedPartUploadUrl",
 		});
 	});

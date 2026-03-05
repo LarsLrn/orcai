@@ -106,6 +106,19 @@ const emailConfig = Config.all({
 	}),
 );
 
+const s3Config = Config.all({
+	region: Config.withDefault(Config.string("S3_REGION"), "eu-central-1"),
+	endpoint: Config.string("S3_ENDPOINT"),
+	publicEndpoint: Config.option(Config.string("S3_PUBLIC_ENDPOINT")),
+	accessKey: Config.redacted("S3_ACCESS_KEY"),
+	secretKey: Config.redacted("S3_SECRET_KEY"),
+}).pipe(
+	Config.map((raw) => ({
+		...raw,
+		publicEndpoint: normalizeOptionalString(raw.publicEndpoint),
+	})),
+);
+
 const appConfig = Config.all({
 	postgres: Config.all({
 		user: Config.string("POSTGRES_USER"),
@@ -114,12 +127,7 @@ const appConfig = Config.all({
 		port: Config.withDefault(Config.port("POSTGRES_PORT"), 5432),
 		db: Config.string("POSTGRES_DB"),
 	}),
-	s3: Config.all({
-		region: Config.option(Config.string("S3_REGION")),
-		endpoint: Config.string("S3_ENDPOINT"),
-		accessKey: Config.redacted("S3_ACCESS_KEY"),
-		secretKey: Config.redacted("S3_SECRET_KEY"),
-	}),
+	s3: s3Config,
 	spice: Config.all({
 		endpoint: Config.string("SPICEDB_ENDPOINT"),
 		token: Config.redacted("SPICEDB_TOKEN"),

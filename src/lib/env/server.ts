@@ -19,6 +19,7 @@ export const serverEnv = createEnv({
 		S3_SECRET_KEY: z.string(),
 		S3_REGION: z.string().default("eu-central-1"),
 		S3_ENDPOINT: z.string(),
+		S3_PUBLIC_ENDPOINT: z.string().optional(),
 		LANGFUSE_BASEURL: z.url(),
 		LANGFUSE_PUBLIC_KEY: z.string(),
 		LANGFUSE_SECRET_KEY: z.string(),

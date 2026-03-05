@@ -36,6 +36,7 @@ const processAssetsEffect = (params: { job: Job<ProcessAssetPayload> }) =>
 		const presignedUrl = yield* getDownloadUrl({
 			bucket: assetRef.bucket,
 			key: `${assetRef.prefix}/${assetRef.id}.${assetRef.type}`,
+			endpointMode: "internal",
 		});
 
 		const fileResponse = yield* Effect.tryPromise({
