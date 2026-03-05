@@ -1,4 +1,3 @@
-import { devToolsMiddleware } from "@ai-sdk/devtools";
 import { createOpenAICompatible } from "@ai-sdk/openai-compatible";
 import { extractReasoningMiddleware, wrapLanguageModel } from "ai";
 import * as Effect from "effect/Effect";
@@ -52,14 +51,28 @@ export const getChatAiSettings = ({
 			includeUsage: true,
 		});
 
+		const middlewares = [
+			extractReasoningMiddleware({
+				tagName: "think",
+			}),
+		];
+
+		if (process.env.NODE_ENV !== "production") {
+			const { devToolsMiddleware } = yield* Effect.tryPromise({
+				try: () => import("@ai-sdk/devtools"),
+				catch: (cause) =>
+					new AiError({
+						operation: "chatAgent.getChatAiSettings.load.devtools",
+						cause,
+					}),
+			});
+
+			middlewares.unshift(devToolsMiddleware());
+		}
+
 		const model = wrapLanguageModel({
 			model: providerInstance(modelSettings.providerModelId),
-			middleware: [
-				devToolsMiddleware(),
-				extractReasoningMiddleware({
-					tagName: "think",
-				}),
-			],
+			middleware: middlewares,
 		});
 
 		return {
