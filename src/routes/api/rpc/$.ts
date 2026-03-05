@@ -9,7 +9,6 @@ import {
 	StrictGetMethodPlugin,
 } from "@orpc/server/plugins";
 import { createFileRoute } from "@tanstack/react-router";
-import { v4 as uuidv4 } from "uuid";
 import { z } from "zod/v4";
 import { logger } from "@/lib/observability/logger";
 import { router } from "@/lib/orpc/router";
@@ -54,9 +53,6 @@ const handler = new RPCHandler(router, {
 		}),
 	],
 	interceptors: [
-		onError((error) => {
-			logger.error(error);
-		}),
 		({ request, next }) => {
 			const span = trace.getActiveSpan();
 
@@ -76,7 +72,6 @@ const handler = new RPCHandler(router, {
 		new CompressionPlugin(),
 		new LoggingHandlerPlugin({
 			logger,
-			generateId: () => uuidv4(),
 		}),
 	],
 });

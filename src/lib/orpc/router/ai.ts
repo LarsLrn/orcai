@@ -236,10 +236,9 @@ export const aiChat = authed.ai.chat
 								}
 							},
 						}),
-
-					catch: () =>
-						errors.BAD_REQUEST({
-							message: "Failed to create agent UI stream",
+					catch: (cause) =>
+						new Error("Failed to create agent UI stream", {
+							cause,
 						}),
 				});
 

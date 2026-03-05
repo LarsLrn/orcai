@@ -2,7 +2,7 @@ import * as Effect from "effect/Effect";
 import * as Layer from "effect/Layer";
 import * as Runtime from "effect/Runtime";
 import * as Schedule from "effect/Schedule";
-import type { PgBoss } from "pg-boss";
+import type { Job, PgBoss } from "pg-boss";
 import type { DoclingService } from "@/lib/effect/services/docling";
 import type { QdrantService } from "@/lib/effect/services/qdrant";
 import { PgBossWorkersError } from "@/lib/effect/utils/errors";
@@ -46,22 +46,54 @@ const createQueue = (name: JobQueue) =>
 
 const registerWorkers = Effect.gen(function* () {
 	const { boss } = yield* PgBossService;
-
-	// Capture the full runtime so worker callbacks have access to all
-	// services that their effects may require (PgBossService today,
-	// but potentially DB, SpiceDb, etc. in the future).
-	const rt = yield* Effect.runtime<
+	type WorkerContext =
 		| PgBossService
 		| S3Service
 		| AppConfigService
 		| QdrantService
-		| DoclingService
-	>();
+		| DoclingService;
+
+	// Capture the full runtime so worker callbacks have access to all
+	// services that their effects may require
+	const rt = yield* Effect.runtime<WorkerContext>();
 
 	type WorkerRegistration = {
 		name: JobQueue;
 		register: (boss: PgBoss) => Promise<string>;
 	};
+
+	const runWorkerBatch =
+		<TPayload>(
+			queue: JobQueue,
+			handler: (
+				jobs: Job<TPayload>[],
+			) => Effect.Effect<void, unknown, WorkerContext>,
+		) =>
+		(jobs: Job<TPayload>[]) =>
+			Runtime.runPromise(rt)(
+				handler(jobs).pipe(
+					Effect.mapError((cause) =>
+						cause instanceof PgBossWorkersError
+							? cause
+							: new PgBossWorkersError({
+									queue,
+									step: "run-worker",
+									cause,
+								}),
+					),
+					Effect.tapError((error) =>
+						Effect.logError(
+							{
+								queue,
+								jobIds: jobs.map((job) => job.id),
+								jobCount: jobs.length,
+								err: error,
+							},
+							"pg-boss worker batch failed",
+						),
+					),
+				),
+			);
 
 	const workers: readonly WorkerRegistration[] = [
 		{
@@ -74,7 +106,7 @@ const registerWorkers = Effect.gen(function* () {
 						localConcurrency: 2,
 						pollingIntervalSeconds: 2,
 					},
-					(jobs) => Runtime.runPromise(rt)(processAssetBatchEffect(jobs)),
+					runWorkerBatch(PROCESS_ASSET_JOB_NAME, processAssetBatchEffect),
 				),
 		},
 		{
@@ -87,7 +119,7 @@ const registerWorkers = Effect.gen(function* () {
 						localConcurrency: 2,
 						pollingIntervalSeconds: 2,
 					},
-					(jobs) => Runtime.runPromise(rt)(vectorizeAssetBatchEffect(jobs)),
+					runWorkerBatch(VECTORIZE_ASSET_JOB_NAME, vectorizeAssetBatchEffect),
 				),
 		},
 	];

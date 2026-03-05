@@ -29,6 +29,7 @@ function isAppError(error: unknown): error is AppError {
  * Extracts a human-readable error message from an error.
  */
 function extractErrorMessage(error: unknown): string {
+	if (typeof error === "string" && error.length > 0) return error;
 	if (!error || typeof error !== "object") return "An error occurred";
 
 	const parts: string[] = [];
@@ -57,6 +58,15 @@ function extractErrorMessage(error: unknown): string {
 
 	if ("reason" in error && typeof error.reason === "string") {
 		return parts.length ? `${parts.join(" ")}: ${error.reason}` : error.reason;
+	}
+
+	if ("cause" in error) {
+		const causeMessage = extractErrorMessage(error.cause);
+		if (causeMessage && causeMessage !== "An error occurred") {
+			return parts.length
+				? `${parts.join(" ")}: ${causeMessage}`
+				: causeMessage;
+		}
 	}
 
 	return parts.length ? parts.join(" ") : "An error occurred";
@@ -90,14 +100,13 @@ const appErrorToCode: (error: AppError) => ORPCErrorCode =
 	);
 
 type AnyORPCError = ORPCError<ORPCErrorCode, unknown>;
+
 const toAppORPCError = (error: AppError): AnyORPCError => {
 	const status = appErrorToCode(error);
 	const message = extractErrorMessage(error);
 	return new ORPCError(status, {
 		message,
-		data: {
-			message,
-		},
+		cause: error,
 	});
 };
 
@@ -115,9 +124,7 @@ const mapUnknownToORPCError = (error: unknown): AnyORPCError => {
 	const message = extractErrorMessage(error);
 	return new ORPCError("INTERNAL_SERVER_ERROR", {
 		message,
-		data: {
-			message,
-		},
+		cause: error,
 	});
 };
 
