@@ -1,15 +1,48 @@
 services:
-  # Local-only host port publishing.
+  # Local-only host port publishing and dev-friendly defaults for a runnable app stack.
   # Use with: docker compose -f docker-compose.yaml -f docker-compose.local.yaml up -d
 
   sokratest:
+    build:
+      args:
+        VITE_BASE_URL: http://localhost:3000
+        VITE_UMAMI_SCRIPT_URL: ${VITE_UMAMI_SCRIPT_URL:-}
+        VITE_UMAMI_WEBSITE_ID: ${VITE_UMAMI_WEBSITE_ID:-}
     ports:
-      - "3000:3000"
+      - "${APP_PORT:-3000}:3000"
     environment:
-      # Always use the internal service address for server-side S3 operations.
+      BASE_URL: http://localhost:3000
+      BETTER_AUTH_URL: http://localhost:3000
+      VITE_BASE_URL: http://localhost:3000
+      BETTER_AUTH_SECRET: ${BETTER_AUTH_SECRET:-dev-better-auth-secret-please-change}
+      ENCRYPTION_KEY: ${ENCRYPTION_KEY:-1234567890abcdef1234567890abcdef}
+      OPENAI_COMPATIBLE_BASE_URL: ${OPENAI_COMPATIBLE_BASE_URL:-https://example.com/v1}
+      OPENAI_COMPATIBLE_API_KEY: ${OPENAI_COMPATIBLE_API_KEY:-dev-openai-compatible-key}
+      LANGFUSE_SECRET_KEY: ${LANGFUSE_SECRET_KEY:-dev-langfuse-secret-key}
+      LANGFUSE_PUBLIC_KEY: ${LANGFUSE_PUBLIC_KEY:-dev-langfuse-public-key}
+      LANGFUSE_BASEURL: ${LANGFUSE_BASEURL:-https://example.com}
       S3_ENDPOINT: http://minio:9000
-      # Public endpoint used in presigned URLs returned to the browser.
-      S3_PUBLIC_ENDPOINT: ${S3_PUBLIC_ENDPOINT:-http://localhost:9000}
+      S3_PUBLIC_ENDPOINT: http://localhost:9000
+      S3_REGION: ${S3_REGION:-eu-central-1}
+      S3_ACCESS_KEY: ${MINIO_ROOT_USER:-minioadmin}
+      S3_SECRET_KEY: ${MINIO_ROOT_PASSWORD:-minioadmin}
+      QDRANT_URL: http://qdrant:6333/
+      QDRANT_API_KEY: ${QDRANT_API_KEY:-dev-qdrant-key}
+      QDRANT_ENABLE_SPARSE_VECTORS: ${QDRANT_ENABLE_SPARSE_VECTORS:-false}
+      SPICEDB_ENDPOINT: spicedb:50051
+      SPICEDB_TOKEN: ${SPICEDB_GRPC_PRESHARED_KEY:-dev-spicedb-token}
+      POSTGRES_USER: ${POSTGRES_USER:-postgres}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-postgres}
+      POSTGRES_DB: ${POSTGRES_DB:-sokratest-v2}
+      POSTGRES_HOST: postgres
+      POSTGRES_SSL: "false"
+      SMTP_HOST: ${SMTP_HOST:-}
+      SMTP_PORT: ${SMTP_PORT:-}
+      SMTP_USERNAME: ${SMTP_USERNAME:-}
+      SMTP_PASSWORD: ${SMTP_PASSWORD:-}
+      SMTP_FROM: ${SMTP_FROM:-}
+      SMTP_SECURE: ${SMTP_SECURE:-false}
+      SMTP_TLS_REJECT_UNAUTHORIZED: ${SMTP_TLS_REJECT_UNAUTHORIZED:-false}
 
   minio:
     ports:

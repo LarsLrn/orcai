@@ -1,0 +1,69 @@
+{
+	"name": "Sokratest Dev",
+	"dockerComposeFile": [
+		"../docker-compose.yaml",
+		"docker-compose.dev.yaml"
+	],
+	"service": "workspace",
+	"runServices": [
+		"workspace",
+		"postgres",
+		"migrations",
+		"minio",
+		"minio-setup",
+		"qdrant",
+		"spicedb-database",
+		"spicedb-migrate",
+		"spicedb",
+		"spicedb-schema"
+	],
+	"workspaceFolder": "/workspaces/sokratest-v2",
+	"postCreateCommand": "bun install --frozen-lockfile",
+	"remoteUser": "bun",
+	"forwardPorts": [
+		3000,
+		4206,
+		"qdrant:6333",
+		"minio:9000",
+		"minio:9001",
+		"postgres:5432"
+	],
+	"portsAttributes": {
+		"3000": {
+			"label": "Sokratest App"
+		},
+		"4206": {
+			"label": "Sokratest App Devtools"
+		},
+		"qdrant:6333": {
+			"label": "Qdrant Vector DB"
+		},
+		"minio:9000": {
+			"label": "MinIO S3 API"
+		},
+		"minio:9001": {
+			"label": "MinIO Console"
+		},
+		"postgres:5432": {
+			"label": "PostgreSQL Database"
+		}
+	},
+	"customizations": {
+		"vscode": {
+			"extensions": [
+				"inlang.vs-code-extension",
+				"bradlc.vscode-tailwindcss",
+				"biomejs.biome",
+				"authzed.spicedb-vscode",
+				"ms-azuretools.vscode-docker",
+				"ms-vscode-remote.remote-containers",
+				"usernamehw.errorlens",
+				"oven.bun-vscode",
+				"YoavBls.pretty-ts-errors",
+				"Gruntfuggly.todo-tree",
+				"pflannery.vscode-versionlens"
+			]
+		}
+	},
+	"shutdownAction": "stopCompose"
+}
