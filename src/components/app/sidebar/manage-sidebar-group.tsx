@@ -16,6 +16,7 @@ import {
 	SidebarMenuSub,
 	SidebarMenuSubButton,
 	SidebarMenuSubItem,
+	useSidebar,
 } from "@/components/ui/sidebar";
 import { sidebarMenu } from "@/settings/menus";
 
@@ -24,6 +25,7 @@ const CollapsibleSidebarMenu = ({
 }: {
 	item: (typeof sidebarMenu)[number];
 }) => {
+	const { closeMobileForNavigation } = useSidebar();
 	const pathname = useRouterState({
 		select: (s) => s.location.pathname,
 	});
@@ -45,7 +47,7 @@ const CollapsibleSidebarMenu = ({
 								: pathname.startsWith(item.linkProps.to)
 						}
 						render={
-							<Link {...item.linkProps}>
+							<Link {...item.linkProps} onClick={closeMobileForNavigation}>
 								<item.icon />
 								<span>{item.title}</span>
 							</Link>
@@ -69,7 +71,10 @@ const CollapsibleSidebarMenu = ({
 											<SidebarMenuSubButton
 												isActive={pathname.startsWith(subItem.linkProps.to)}
 												render={
-													<Link {...subItem.linkProps}>
+													<Link
+														{...subItem.linkProps}
+														onClick={closeMobileForNavigation}
+													>
 														<subItem.icon />
 														<span>{subItem.title}</span>
 													</Link>

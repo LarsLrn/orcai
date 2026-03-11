@@ -11,6 +11,7 @@ import {
 	SidebarGroupContent,
 	SidebarGroupLabel,
 	SidebarHeader,
+	useSidebar,
 } from "@/components/ui/sidebar";
 import { Skeleton } from "@/components/ui/skeleton";
 import { ChatSidebarMenu } from "./chat-sidebar-menu";
@@ -18,6 +19,8 @@ import { ManageSidebarGroup } from "./manage-sidebar-group";
 import { SidebarLogo } from "./sidebar-logo";
 
 const AppSidebar = () => {
+	const { isMobile, closeMobileForNavigation } = useSidebar();
+
 	return (
 		// TODO: Consider centralising ids used by next-step
 		<Sidebar id="tour-sidebar" variant="floating">
@@ -28,6 +31,7 @@ const AppSidebar = () => {
 					className={buttonVariants({
 						size: "sm",
 					})}
+					onClick={() => isMobile && closeMobileForNavigation()}
 				>
 					New Chat
 				</Link>

@@ -35,7 +35,9 @@ type SidebarContextProps = {
 	open: boolean;
 	setOpen: (open: boolean) => void;
 	openMobile: boolean;
-	setOpenMobile: (open: boolean) => void;
+	setOpenMobile: React.Dispatch<React.SetStateAction<boolean>>;
+	animateMobileSidebar: boolean;
+	closeMobileForNavigation: () => void;
 	isMobile: boolean;
 	toggleSidebar: () => void;
 };
@@ -65,21 +67,12 @@ function SidebarProvider({
 	onOpenChange?: (open: boolean) => void;
 }) {
 	const isMobile = useIsMobile();
-	const [openMobile, setOpenMobile] = React.useState(false);
+	const [openMobile, _setOpenMobile] = React.useState(false);
+	const [animateMobileSidebar, setAnimateMobileSidebar] = React.useState(true);
 
 	// This is the internal state of the sidebar.
 	// We use openProp and setOpenProp for control from outside the component.
 	const [_open, _setOpen] = React.useState(defaultOpen);
-
-	React.useEffect(() => {
-		const cookieSidebarState = Cookies.get(SIDEBAR_COOKIE_NAME);
-		if (cookieSidebarState === "open") {
-			_setOpen(true);
-		} else if (cookieSidebarState === "closed") {
-			_setOpen(false);
-		}
-	}, []);
-
 	const open = openProp ?? _open;
 	const setOpen = React.useCallback(
 		(value: boolean | ((value: boolean) => boolean)) => {
@@ -101,12 +94,31 @@ function SidebarProvider({
 		],
 	);
 
+	const setOpenMobile = React.useCallback<
+		React.Dispatch<React.SetStateAction<boolean>>
+	>((value) => {
+		setAnimateMobileSidebar(true);
+		_setOpenMobile(value);
+	}, []);
+
+	const closeMobileForNavigation = React.useCallback(() => {
+		if (!isMobile) {
+			return;
+		}
+
+		setAnimateMobileSidebar(false);
+		_setOpenMobile(false);
+	}, [
+		isMobile,
+	]);
+
 	// Helper to toggle the sidebar.
 	const toggleSidebar = React.useCallback(() => {
 		return isMobile ? setOpenMobile((open) => !open) : setOpen((open) => !open);
 	}, [
 		isMobile,
 		setOpen,
+		setOpenMobile,
 	]);
 
 	// Adds a keyboard shortcut to toggle the sidebar.
@@ -139,6 +151,8 @@ function SidebarProvider({
 			isMobile,
 			openMobile,
 			setOpenMobile,
+			animateMobileSidebar,
+			closeMobileForNavigation,
 			toggleSidebar,
 		}),
 		[
@@ -147,7 +161,10 @@ function SidebarProvider({
 			setOpen,
 			isMobile,
 			openMobile,
+			animateMobileSidebar,
+			setOpenMobile,
 			toggleSidebar,
+			closeMobileForNavigation,
 		],
 	);
 
@@ -187,7 +204,8 @@ function Sidebar({
 	variant?: "sidebar" | "floating" | "inset";
 	collapsible?: "offcanvas" | "icon" | "none";
 }) {
-	const { isMobile, state, openMobile, setOpenMobile } = useSidebar();
+	const { isMobile, state, openMobile, setOpenMobile, animateMobileSidebar } =
+		useSidebar();
 
 	if (collapsible === "none") {
 		return (
@@ -208,6 +226,7 @@ function Sidebar({
 		return (
 			<Sheet open={openMobile} onOpenChange={setOpenMobile} {...props}>
 				<SheetContent
+					animated={animateMobileSidebar}
 					dir={dir}
 					data-sidebar="sidebar"
 					data-slot="sidebar"
@@ -530,17 +549,14 @@ function SidebarMenuButton({
 	variant = "default",
 	size = "default",
 	tooltip,
-	closeSidebar = true,
 	className,
 	...props
 }: useRender.ComponentProps<"button"> &
 	React.ComponentProps<"button"> & {
 		isActive?: boolean;
 		tooltip?: string | React.ComponentProps<typeof TooltipContent>;
-		closeSidebar?: boolean;
 	} & VariantProps<typeof sidebarMenuButtonVariants>) {
-	const { isMobile, state, setOpenMobile } = useSidebar();
-
+	const { isMobile, state } = useSidebar();
 	const comp = useRender({
 		defaultTagName: "button",
 		props: mergeProps<"button">(
@@ -552,11 +568,10 @@ function SidebarMenuButton({
 					}),
 					className,
 				),
-				onClick: () => closeSidebar && isMobile && setOpenMobile(false),
 			},
 			props,
 		),
-		render: !tooltip ? render : TooltipTrigger,
+		render: !tooltip ? render : <TooltipTrigger render={render} />,
 		state: {
 			slot: "sidebar-menu-button",
 			sidebar: "menu-button",

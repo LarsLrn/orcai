@@ -8,11 +8,13 @@ import {
 	SidebarMenuAction,
 	SidebarMenuButton,
 	SidebarMenuItem,
+	useSidebar,
 } from "@/components/ui/sidebar";
 import { orpc } from "@/lib/orpc/orpc";
 import { cn } from "@/lib/utils";
 
 const ChatSidebarMenu = () => {
+	const { closeMobileForNavigation } = useSidebar();
 	const { data, status, error } = useQuery(
 		orpc.chat.list.queryOptions({
 			input: {
@@ -59,6 +61,7 @@ const ChatSidebarMenu = () => {
 								params={{
 									chatId: chat.id,
 								}}
+								onClick={closeMobileForNavigation}
 							>
 								<span className="truncate">{chat.title}</span>
 							</Link>

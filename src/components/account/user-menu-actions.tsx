@@ -7,7 +7,7 @@ import { useSidebar } from "@/components/ui/sidebar";
 import { sidebarUserMenu } from "@/settings/menus";
 
 const UserMenuActions = () => {
-	const { setOpenMobile } = useSidebar();
+	const { closeMobileForNavigation } = useSidebar();
 
 	return (
 		<DropdownMenuGroup>
@@ -15,7 +15,7 @@ const UserMenuActions = () => {
 				<DropdownMenuItem
 					key={item.title}
 					render={
-						<Link {...item.linkProps} onClick={() => setOpenMobile(false)}>
+						<Link {...item.linkProps} onClick={closeMobileForNavigation}>
 							<item.icon className="hover:text-foreground" />
 							{item.title}
 						</Link>
