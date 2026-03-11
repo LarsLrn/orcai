@@ -16,6 +16,7 @@ const InitForm = () => {
 
 	return (
 		<form
+			method="post"
 			onSubmit={(e) => {
 				e.preventDefault();
 				form.handleSubmit();

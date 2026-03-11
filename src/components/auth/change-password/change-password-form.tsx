@@ -18,6 +18,7 @@ const ChangePasswordForm = () => {
 
 	return (
 		<form
+			method="post"
 			onSubmit={(e) => {
 				e.preventDefault();
 				form.handleSubmit();
