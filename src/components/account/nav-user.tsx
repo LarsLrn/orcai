@@ -47,7 +47,6 @@ const NavUser = () => {
 						render={
 							<SidebarMenuButton
 								size="lg"
-								closeSidebar={false}
 								className="border bg-background data-[state=open]:bg-sidebar-accent data-[state=open]:text-sidebar-accent-foreground dark:bg-background/50"
 							>
 								<Avatar className="size-8 rounded-lg">

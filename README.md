@@ -93,145 +93,72 @@ git clone [repository-url]
 cd sokratest-v2
 ```
 
-2. Install dependencies:
+### Dev Container Quickstart (Recommended)
+
+This repository includes a devcontainer setup in `.devcontainer/`.
+
+Prerequisites:
+- Docker
+- VS Code with the "Dev Containers" extension
+
+Steps:
+1. Open the repository in VS Code.
+2. Run `Dev Containers: Reopen in Container`.
+3. Wait for first-time setup (`bun install`) and all services to launch.
+4. Start hot-reload development server with `bun run dev`.
+5. Open `http://localhost:3000`.
+
+What this starts automatically:
+- Local infrastructure services: PostgreSQL, MinIO, Qdrant, SpiceDB
+- One-shot initialization services: DB migrations, MinIO bucket setup, SpiceDB migration/schema load
+- A Bun-based workspace container with the source code mounted for interactive development
+
+Notes:
+- The devcontainer keeps internal service addresses fixed to the Compose network, and uses environment variables from your shell or repo `.env` for credentials and external integrations when present. The default credentials are insecure and only fit for local development. Do not deploy via `docker-compose.dev.yaml`!
+- The devcontainer defaults target a local Ollama-compatible API at `http://localhost:11434/v1`. Langfuse remains optional and unset by default. Override these via `.env` if needed.
+
+### Manual Installation (Host Machine)
+
+1. Install dependencies:
 ```bash
 npm install
 ```
 
-3. Set up environment variables (copy `.env.example` to `.env` and configure):
-```bash
-# Authentication & Security
-BETTER_AUTH_SECRET=your_long_random_secret_key
-BETTER_AUTH_URL=http://localhost:3000
-ENCRYPTION_KEY=your_32_character_encryption_key
+2. Set up environment variables (copy `.env.example` to `.env` and configure). See `.env.example` for supported variables.
 
-# Database
-POSTGRES_USER=postgres
-POSTGRES_PASSWORD=postgres
-POSTGRES_DB=sokratest-v2
-POSTGRES_HOST=localhost
-POSTGRES_SSL=false
-
-# Email Configuration
-SMTP_HOST=localhost
-SMTP_PORT=25
-SMTP_USERNAME=user
-SMTP_PASSWORD=pw
-
-# S3-Compatible Object Storage
-S3_ENDPOINT=https://your-storage-endpoint.com/storage/v1/s3
-S3_ACCESS_KEY=your_access_key
-S3_SECRET_KEY=your_secret_key
-S3_USE_SSL=true
-
-# Application Base URL
-VITE_BASE_URL=http://localhost:3000
-
-# AI Services (OpenAI-compatible API)
-OPENAI_COMPATIBLE_BASE_URL=https://your-ai-provider.com/v1
-OPENAI_COMPATIBLE_API_KEY=your_ai_api_key
-
-# LLM Observability (Langfuse)
-LANGFUSE_SECRET_KEY=sk-lf-your-secret-key
-LANGFUSE_PUBLIC_KEY=pk-lf-your-public-key
-LANGFUSE_BASEURL=https://your-langfuse-instance.com
-
-# Vector Database (Qdrant)
-QDRANT_URL=https://your-qdrant-instance.com/
-QDRANT_API_KEY=your_qdrant_api_key
-
-# Analytics (Umami) - VITE_ prefix exposes to client
-VITE_UMAMI_SCRIPT_URL=https://your-umami-instance.com/script.js
-VITE_UMAMI_WEBSITE_ID=your_website_id
-```
-
-4. Initialize the database schema:
+3. Initialize the database schema:
 ```bash
 npm run db:generate
 npm run db:migrate
 ```
 
-5. Seed the database with initial data (optional):
-```bash
-npm run db:seed
-```
-
-6. Start the development server:
+4. Start the development server:
 ```bash
 npm run dev
 ```
 
 The application will be available at `http://localhost:3000`.
 
-### Docker Compose Setup (Recommended for Development)
+### Docker Compose Setup (Local App Stack)
 
-For easier local development, you can use Docker Compose to set up the required services:
-
-```yaml
-# docker-compose.yml
-version: '3.8'
-services:
-  postgres:
-    image: postgres:15
-    environment:
-      POSTGRES_DB: sokratest-v2
-      POSTGRES_USER: postgres
-      POSTGRES_PASSWORD: postgres
-    ports:
-      - "5432:5432"
-    volumes:
-      - postgres_data:/var/lib/postgresql/data
-
-  qdrant:
-    image: qdrant/qdrant:latest
-    ports:
-      - "6333:6333"
-    volumes:
-      - qdrant_data:/qdrant/storage
-
-  minio:
-    image: minio/minio:latest
-    command: server /data --console-address ":9001"
-    environment:
-      MINIO_ROOT_USER: minioadmin
-      MINIO_ROOT_PASSWORD: minioadmin
-    ports:
-      - "9000:9000"
-      - "9001:9001"
-    volumes:
-      - minio_data:/data
-
-  langfuse:
-    image: langfuse/langfuse:latest
-    environment:
-      DATABASE_URL: postgresql://postgres:postgres@postgres:5432/langfuse
-      NEXTAUTH_SECRET: your_secret
-      SALT: your_salt
-    ports:
-      - "3001:3000"
-    depends_on:
-      - postgres
-
-  umami:
-    image: ghcr.io/umami-software/umami:postgresql-latest
-    environment:
-      DATABASE_URL: postgresql://postgres:postgres@postgres:5432/umami
-      HASH_SALT: your_hash_salt
-    ports:
-      - "3002:3000"
-    depends_on:
-      - postgres
-
-volumes:
-  postgres_data:
-  qdrant_data:
-  minio_data:
-```
-
-Start the services with:
+If you want to try the full application locally without setting up a deployment or running the app process yourself, start the local Compose stack with:
 ```bash
-docker-compose up -d
+docker compose -f docker-compose.yaml -f docker-compose.local.yaml up -d
 ```
+
+This starts:
+- the `sokratest` app container on `http://localhost:3000`
+- PostgreSQL on `localhost:5432`
+- MinIO on `localhost:9000` and `localhost:9001`
+- Qdrant on `localhost:6333` and `localhost:6334`
+- SpiceDB on `localhost:50051`
+
+To stop it again:
+```bash
+docker compose -f docker-compose.yaml -f docker-compose.local.yaml down
+```
+
+If you instead want to run the app process directly on your host machine, use the manual installation flow above and run `bun run dev`.
 
 ### Available Scripts
 

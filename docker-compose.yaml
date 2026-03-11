@@ -72,7 +72,7 @@ services:
       dockerfile: ./docker/Dockerfile.sokratest
       target: runtime
       args:
-        VITE_BASE_URL: ${VITE_BASE_URL:?VITE_BASE_URL is required}
+        VITE_BASE_URL: ${VITE_BASE_URL:-}
         VITE_UMAMI_SCRIPT_URL: ${VITE_UMAMI_SCRIPT_URL:-}
         VITE_UMAMI_WEBSITE_ID: ${VITE_UMAMI_WEBSITE_ID:-}
     expose:
@@ -98,13 +98,13 @@ services:
       QDRANT_ENABLE_SPARSE_VECTORS: ${QDRANT_ENABLE_SPARSE_VECTORS:-false}
 
       # Application Configuration
-      BASE_URL: ${BETTER_AUTH_URL:?BETTER_AUTH_URL is required}
-      BETTER_AUTH_URL: ${BETTER_AUTH_URL:?BETTER_AUTH_URL is required}
-      VITE_BASE_URL: ${VITE_BASE_URL:?VITE_BASE_URL is required}
+      BASE_URL: ${BETTER_AUTH_URL:-}
+      BETTER_AUTH_URL: ${BETTER_AUTH_URL:-}
+      VITE_BASE_URL: ${VITE_BASE_URL:-}
 
       # Secrets (from environment)
-      BETTER_AUTH_SECRET: ${BETTER_AUTH_SECRET:?BETTER_AUTH_SECRET is required}
-      ENCRYPTION_KEY: ${ENCRYPTION_KEY:?ENCRYPTION_KEY is required}
+      BETTER_AUTH_SECRET: ${BETTER_AUTH_SECRET:-}
+      ENCRYPTION_KEY: ${ENCRYPTION_KEY:-}
 
       # Email Configuration
       SMTP_HOST: ${SMTP_HOST:-}
@@ -116,17 +116,17 @@ services:
       SMTP_TLS_REJECT_UNAUTHORIZED: ${SMTP_TLS_REJECT_UNAUTHORIZED:-true}
 
       # AI Services
-      OPENAI_COMPATIBLE_BASE_URL: ${OPENAI_COMPATIBLE_BASE_URL:?OPENAI_COMPATIBLE_BASE_URL is required}
-      OPENAI_COMPATIBLE_API_KEY: ${OPENAI_COMPATIBLE_API_KEY:?OPENAI_COMPATIBLE_API_KEY is required}
+      OPENAI_COMPATIBLE_BASE_URL: ${OPENAI_COMPATIBLE_BASE_URL:-}
+      OPENAI_COMPATIBLE_API_KEY: ${OPENAI_COMPATIBLE_API_KEY:-}
 
       # Spice DB
       SPICEDB_ENDPOINT: spicedb:50051
-      SPICEDB_TOKEN: ${SPICEDB_GRPC_PRESHARED_KEY:?SPICEDB_GRPC_PRESHARED_KEY is required}
+      SPICEDB_TOKEN: ${SPICEDB_GRPC_PRESHARED_KEY:-}
 
       # LLM Observability
-      LANGFUSE_SECRET_KEY: ${LANGFUSE_SECRET_KEY:?LANGFUSE_SECRET_KEY is required}
-      LANGFUSE_PUBLIC_KEY: ${LANGFUSE_PUBLIC_KEY:?LANGFUSE_PUBLIC_KEY is required}
-      LANGFUSE_BASEURL: ${LANGFUSE_BASEURL:?LANGFUSE_BASEURL is required}
+      LANGFUSE_SECRET_KEY: ${LANGFUSE_SECRET_KEY:-}
+      LANGFUSE_PUBLIC_KEY: ${LANGFUSE_PUBLIC_KEY:-}
+      LANGFUSE_BASEURL: ${LANGFUSE_BASEURL:-}
 
       # Analytics
       VITE_UMAMI_SCRIPT_URL: ${VITE_UMAMI_SCRIPT_URL:-}
@@ -194,9 +194,9 @@ services:
       - "9090"
       - "50051"
     environment:
-      SPICEDB_GRPC_PRESHARED_KEY: ${SPICEDB_GRPC_PRESHARED_KEY:?SPICEDB_GRPC_PRESHARED_KEY is required}
+      SPICEDB_GRPC_PRESHARED_KEY: ${SPICEDB_GRPC_PRESHARED_KEY:-}
       SPICEDB_DATASTORE_ENGINE: postgres
-      SPICEDB_DATASTORE_CONN_URI: postgres://${SPICEDB_POSTGRES_USER:?SPICEDB_POSTGRES_USER is required}:${SPICEDB_POSTGRES_PASSWORD:?SPICEDB_POSTGRES_PASSWORD is required}@spicedb-database:5432/spicedb
+      SPICEDB_DATASTORE_CONN_URI: postgres://${SPICEDB_POSTGRES_USER:-}:${SPICEDB_POSTGRES_PASSWORD:-}@spicedb-database:5432/spicedb
     healthcheck:
       test: [ "CMD", "spicedb", "datastore", "head" ]
       interval: 10s
@@ -212,7 +212,7 @@ services:
     restart: "on-failure"
     environment:
       SPICEDB_DATASTORE_ENGINE: postgres
-      SPICEDB_DATASTORE_CONN_URI: postgres://${SPICEDB_POSTGRES_USER:?SPICEDB_POSTGRES_USER is required}:${SPICEDB_POSTGRES_PASSWORD:?SPICEDB_POSTGRES_PASSWORD is required}@spicedb-database:5432/spicedb
+      SPICEDB_DATASTORE_CONN_URI: postgres://${SPICEDB_POSTGRES_USER:-}:${SPICEDB_POSTGRES_PASSWORD:-}@spicedb-database:5432/spicedb
     depends_on:
       spicedb-database:
         condition: service_healthy
@@ -223,7 +223,7 @@ services:
       dockerfile: ./docker/Dockerfile.spicedb-schema
     environment:
       SPICEDB_ENDPOINT: spicedb:50051
-      SPICEDB_TOKEN: ${SPICEDB_GRPC_PRESHARED_KEY:?SPICEDB_GRPC_PRESHARED_KEY is required}
+      SPICEDB_TOKEN: ${SPICEDB_GRPC_PRESHARED_KEY:-}
       SPICEDB_SECURITY: insecure-plaintext
     command: [ "bun", "run", "scripts/deploy-spicedb-schema.ts" ]
     depends_on:
@@ -236,8 +236,8 @@ services:
     volumes:
       - spicedb_postgres_data:/var/lib/postgresql/data
     environment:
-      POSTGRES_USER: ${SPICEDB_POSTGRES_USER:?SPICEDB_POSTGRES_USER is required}
-      POSTGRES_PASSWORD: ${SPICEDB_POSTGRES_PASSWORD:?SPICEDB_POSTGRES_PASSWORD is required}
+      POSTGRES_USER: ${SPICEDB_POSTGRES_USER:-}
+      POSTGRES_PASSWORD: ${SPICEDB_POSTGRES_PASSWORD:-}
       POSTGRES_DB: spicedb
     healthcheck:
       test: [ "CMD-SHELL", "pg_isready -U ${SPICEDB_POSTGRES_USER:-postgres} -d spicedb" ]
