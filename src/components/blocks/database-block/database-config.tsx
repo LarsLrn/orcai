@@ -1,13 +1,8 @@
 import { useQuery } from "@tanstack/react-query";
 import { Link } from "@tanstack/react-router";
-import {
-	BotIcon,
-	Move3dIcon,
-	ServerIcon,
-	StarIcon,
-	ZapIcon,
-} from "lucide-react";
+import { BotIcon, Move3dIcon, ServerIcon, StarIcon } from "lucide-react";
 import { useState } from "react";
+import type { DatabaseBlockValue } from "@/components/authoring/database-block-editor";
 import { AssetCard } from "@/components/documents/asset-card";
 import { Badge } from "@/components/ui/badge";
 import { Button, buttonVariants } from "@/components/ui/button";
@@ -25,42 +20,19 @@ import {
 } from "@/components/ui/collapsible";
 import { Item, ItemContent, ItemTitle } from "@/components/ui/item";
 import { AnimatedGroup } from "@/components/ui/motion/animated-group";
-import { Spinner } from "@/components/ui/spinner";
 import { useCreateJobMutation } from "@/hooks/mutations/use-job-mutations";
 import { orpc } from "@/lib/orpc/orpc";
-import type { Asset } from "@/lib/orpc/schemas/asset";
 import type { DatabaseBlock } from "@/lib/orpc/schemas/block";
 import type { Job } from "@/lib/pg-boss/schema/job";
 import type { JobQueue } from "@/lib/pg-boss/schema/job-queues";
 
 /** --- Grid --- */
-const AssetGrid = ({ assetIds }: { assetIds: Asset["id"][] }) => {
-	const { data: assets, status } = useQuery(
-		orpc.asset.list.queryOptions({
-			input: {
-				filters: {
-					ids: assetIds,
-				},
-			},
-		}),
-	);
-
-	if (status === "pending") {
-		return <Spinner />;
-	}
-
-	if (status === "error") {
-		return (
-			<Card>
-				<CardContent className="flex h-28 items-center justify-center gap-2 text-red-600 text-sm">
-					<ZapIcon className="h-4 w-4" />
-					Failed to load assets.
-				</CardContent>
-			</Card>
-		);
-	}
-
-	if (assets.rowCount === 0) {
+const AssetGrid = ({
+	assets,
+}: {
+	assets: DatabaseBlockValue["attachments"];
+}) => {
+	if (assets.length === 0) {
 		return (
 			<Card>
 				<CardContent className="flex h-28 items-center justify-center gap-2 text-muted-foreground text-sm">
@@ -77,8 +49,8 @@ const AssetGrid = ({ assetIds }: { assetIds: Asset["id"][] }) => {
 				className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-2 2xl:grid-cols-3"
 				preset="fade"
 			>
-				{assets.data.map((asset) => (
-					<AssetCard key={asset.id} asset={asset} />
+				{assets.map((entry) => (
+					<AssetCard key={entry.asset.id} asset={entry.asset} />
 				))}
 			</AnimatedGroup>
 		</div>
@@ -89,11 +61,11 @@ const AssetGrid = ({ assetIds }: { assetIds: Asset["id"][] }) => {
 const DatabaseBlockConfigCard = ({
 	blockId,
 	config,
-	assetIds,
+	assets,
 }: {
 	blockId: DatabaseBlock["id"];
 	config: DatabaseBlock["config"];
-	assetIds: Asset["id"][];
+	assets: DatabaseBlockValue["attachments"];
 }) => {
 	return (
 		<div className="flex flex-col gap-4">
@@ -154,16 +126,16 @@ const DatabaseBlockConfigCard = ({
 
 			{/* Assets */}
 
-			<AssetSection assetIds={assetIds} blockId={blockId} />
+			<AssetSection assets={assets} blockId={blockId} />
 		</div>
 	);
 };
 
 const AssetSection = ({
-	assetIds,
+	assets,
 	blockId,
 }: {
-	assetIds: Asset["id"][];
+	assets: DatabaseBlockValue["attachments"];
 	blockId: DatabaseBlock["id"];
 }) => {
 	const { mutate: createJob } = useCreateJobMutation();
@@ -178,7 +150,7 @@ const AssetSection = ({
 		>
 			<div className="flex flex-col justify-between gap-4 px-4 xl:flex-row xl:items-center">
 				<div>
-					<h4 className="font-semibold text-sm">Assets ({assetIds.length})</h4>
+					<h4 className="font-semibold text-sm">Assets ({assets.length})</h4>
 					<span className="text-muted-foreground text-sm">
 						Assets will be used by the AI model for context.
 					</span>
@@ -235,7 +207,7 @@ const AssetSection = ({
 				</Item>
 			</div>
 			<CollapsibleContent>
-				<AssetGrid assetIds={assetIds} />
+				<AssetGrid assets={assets} />
 			</CollapsibleContent>
 		</Collapsible>
 	);

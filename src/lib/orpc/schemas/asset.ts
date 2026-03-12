@@ -2,6 +2,7 @@ import { createInsertSchema, createSelectSchema } from "drizzle-zod";
 import { z } from "zod/v4";
 import { dbSchema } from "@/db/schema";
 import { metadataSchema } from "./fragments/asset-metadata";
+import { finalizedUploadFileSchema } from "./storage";
 
 /**
  * ----------------
@@ -45,6 +46,30 @@ export const assetUpdateSchema = assetInsertSchema
 		size: true,
 		fileType: true,
 	});
+
+export const assetSaveSchema = z
+	.object({
+		id: assetSelectSchema.shape.id.optional(),
+		title: z.string().min(1, "Title is required"),
+		metadata: metadataSchema,
+		upload: finalizedUploadFileSchema.optional(),
+	})
+	.check((ctx) => {
+		if (!ctx.value.id && !ctx.value.upload) {
+			ctx.issues.push({
+				code: "custom",
+				message: "Either an existing asset id or an uploaded file is required.",
+				path: [
+					"upload",
+				],
+				input: ctx.value,
+			});
+		}
+	});
+
+export const assetSaveManySchema = z.object({
+	assets: z.array(assetSaveSchema).min(1),
+});
 
 /**
  * ----------------

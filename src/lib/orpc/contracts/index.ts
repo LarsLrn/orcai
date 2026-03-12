@@ -8,7 +8,8 @@ import {
 	deleteAssetContract,
 	findAssetContract,
 	listAssetsContract,
-	updateAssetContract,
+	saveAssetContract,
+	saveManyAssetsContract,
 } from "./asset";
 import {
 	createAssetPointContract,
@@ -29,11 +30,13 @@ import {
 	bootstrapStatusContract,
 } from "./bootstrap";
 import {
-	createBotContract,
 	deleteBotContract,
 	findBotContract,
+	findBotEditorContract,
 	listBotsContract,
-	updateBotContract,
+	listDraftBotsContract,
+	publishBotContract,
+	saveBotContract,
 } from "./bot";
 import {
 	createChatContract,
@@ -223,16 +226,19 @@ export const contracts = {
 	},
 	bot: {
 		list: listBotsContract,
+		listDrafts: listDraftBotsContract,
 		find: findBotContract,
-		create: createBotContract,
-		update: updateBotContract,
+		findEditor: findBotEditorContract,
+		save: saveBotContract,
+		publish: publishBotContract,
 		delete: deleteBotContract,
 	},
 	asset: {
 		list: listAssetsContract,
 		find: findAssetContract,
+		save: saveAssetContract,
+		saveMany: saveManyAssetsContract,
 		create: createAssetContract,
-		update: updateAssetContract,
 		delete: deleteAssetContract,
 	},
 	assetPoint: {

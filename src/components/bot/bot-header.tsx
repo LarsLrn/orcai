@@ -98,7 +98,7 @@ const BotHeader = ({
 					Clone
 				</Button>
 				<Link
-					to="/app/hub/bots/$botId/edit"
+					to="/app/hub/bots/$botId/setup"
 					params={{
 						botId: bot.id,
 					}}

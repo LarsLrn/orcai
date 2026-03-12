@@ -17,6 +17,7 @@ export const block = pgTable("block", {
 	type: text("type").notNull(),
 	name: text("name").notNull(),
 	config: json("config").notNull(),
+	status: text("status").notNull().default("ready"),
 	userId: uuid("user_id")
 		.notNull()
 		.references(() => user.id, {

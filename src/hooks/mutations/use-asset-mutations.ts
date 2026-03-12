@@ -1,39 +1,67 @@
 import { useQueryClient } from "@tanstack/react-query";
-import { useRouter } from "@tanstack/react-router";
 import { useMutationAction } from "@/hooks/actions/use-mutation-action";
 import { orpc } from "@/lib/orpc/orpc";
 
-export const useUpdateAssetMutation = (
-	opts: ReturnType<typeof orpc.asset.update.mutationOptions> = {},
+export const useSaveAssetMutation = (
+	opts: ReturnType<typeof orpc.asset.save.mutationOptions> = {},
 ) => {
-	const router = useRouter();
 	const queryClient = useQueryClient();
 
 	return useMutationAction({
 		mutationOptions: () =>
-			orpc.asset.update.mutationOptions({
+			orpc.asset.save.mutationOptions({
 				...opts,
 				onSuccess: async (...args) => {
 					queryClient.invalidateQueries({
 						queryKey: orpc.asset.key(),
 					});
 
-					router.history.back();
-
 					try {
 						await opts.onSuccess?.(...args);
 					} catch (error) {
 						console.error(
-							"useUpdateAssetMutation onSuccess callback failed:",
+							"useSaveAssetMutation onSuccess callback failed:",
 							error,
 						);
 					}
 				},
 			}),
 		messages: {
-			loading: "Updating asset...",
-			success: "Asset updated successfully",
-			error: "Failed to update asset",
+			loading: "Saving asset...",
+			success: "Asset saved",
+			error: "Failed to save asset",
+		},
+	});
+};
+
+export const useSaveManyAssetsMutation = (
+	opts: ReturnType<typeof orpc.asset.saveMany.mutationOptions> = {},
+) => {
+	const queryClient = useQueryClient();
+
+	return useMutationAction({
+		mutationOptions: () =>
+			orpc.asset.saveMany.mutationOptions({
+				...opts,
+				onSuccess: async (...args) => {
+					queryClient.invalidateQueries({
+						queryKey: orpc.asset.key(),
+					});
+
+					try {
+						await opts.onSuccess?.(...args);
+					} catch (error) {
+						console.error(
+							"useSaveManyAssetsMutation onSuccess callback failed:",
+							error,
+						);
+					}
+				},
+			}),
+		messages: {
+			loading: "Saving assets...",
+			success: "Assets saved",
+			error: "Failed to save assets",
 		},
 	});
 };

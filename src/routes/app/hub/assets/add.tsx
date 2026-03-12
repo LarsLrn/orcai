@@ -1,7 +1,8 @@
 import { createFileRoute } from "@tanstack/react-router";
-import { UploadComponent } from "@/components/documents/upload-component";
+import { AssetIntakeFlow } from "@/components/documents/shared/asset-intake-flow";
 import {
 	Page,
+	PageContent,
 	PageDescription,
 	PageHeader,
 	PageTitle,
@@ -12,7 +13,7 @@ export const Route = createFileRoute("/app/hub/assets/add")({
 	head: () => ({
 		meta: [
 			{
-				title: "Add",
+				title: "Add Asset",
 			},
 		],
 	}),
@@ -22,13 +23,15 @@ function RouteComponent() {
 	return (
 		<Page>
 			<PageHeader>
-				<PageTitle>Add Asset</PageTitle>
+				<PageTitle>Add Document</PageTitle>
 				<PageDescription>
-					Upload new assets to build database blocks and augment your AI chat
-					capabilities.
+					Upload files, then confirm the metadata that should travel with each
+					document wherever it is reused.
 				</PageDescription>
 			</PageHeader>
-			<UploadComponent />
+			<PageContent>
+				<AssetIntakeFlow submitLabel="Save Documents" />
+			</PageContent>
 		</Page>
 	);
 }

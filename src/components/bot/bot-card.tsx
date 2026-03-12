@@ -62,7 +62,7 @@ const BotCard = ({
 			icon: EditIcon,
 			variant: "default",
 			linkProps: {
-				to: "/app/hub/bots/$botId/edit",
+				to: "/app/hub/bots/$botId/setup",
 				params: {
 					botId: bot.id,
 				},

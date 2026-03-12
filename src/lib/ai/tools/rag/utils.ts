@@ -218,7 +218,7 @@ export const loadDocumentCatalog = ({ blocks }: { blocks: DatabaseBlock[] }) =>
 				}).pipe(
 					Effect.map((result) => ({
 						block,
-						assetIds: result.assets ?? [],
+						assetIds: result.assets?.map((entry) => entry.asset.id) ?? [],
 					})),
 				),
 			{

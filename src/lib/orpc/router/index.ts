@@ -4,7 +4,8 @@ import {
 	deleteAssets,
 	findAsset,
 	listAssets,
-	updateAsset,
+	saveAsset,
+	saveManyAssets,
 } from "./asset";
 import { listAssetPoint } from "./asset-point";
 import {
@@ -15,7 +16,15 @@ import {
 	updateBlock,
 } from "./block";
 import { getBootstrapStatus, initializeBootstrap } from "./bootstrap";
-import { createBot, deleteBots, findBot, listBots, updateBot } from "./bot";
+import {
+	deleteBots,
+	findBot,
+	findBotEditor,
+	listBots,
+	listDraftBots,
+	publishBot,
+	saveBot,
+} from "./bot";
 import {
 	createChat,
 	deleteChats,
@@ -205,16 +214,19 @@ export const router = {
 	},
 	bot: {
 		list: listBots,
-		create: createBot,
+		listDrafts: listDraftBots,
 		find: findBot,
-		update: updateBot,
+		findEditor: findBotEditor,
+		save: saveBot,
+		publish: publishBot,
 		delete: deleteBots,
 	},
 	asset: {
 		list: listAssets,
+		save: saveAsset,
+		saveMany: saveManyAssets,
 		create: createAsset,
 		find: findAsset,
-		update: updateAsset,
 		delete: deleteAssets,
 	},
 	assetPoint: {

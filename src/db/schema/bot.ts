@@ -20,6 +20,7 @@ export const bot = pgTable("bot", {
 	}).notNull(),
 	contentJson: json("content_json").notNull().default({}),
 	contentHtml: text("content_html").notNull(),
+	status: text("status").notNull().default("ready"),
 	userId: uuid("user_id")
 		.notNull()
 		.references(() => user.id, {

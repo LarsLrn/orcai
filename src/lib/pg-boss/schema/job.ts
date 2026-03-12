@@ -10,7 +10,7 @@ import {
 	vectorizeAssetPayloadSchema,
 } from "./vectorize-asset";
 
-const jobState = z.enum([
+export const jobState = z.enum([
 	states.created,
 	states.retry,
 	states.active,

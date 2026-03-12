@@ -55,7 +55,7 @@ export const finalizeUploadContract = base
 	.route({
 		method: "POST",
 		path: "/files/finalize",
-		summary: "Finalize uploaded files and persist assets",
+		summary: "Finalize uploaded files and return validated upload references",
 		tags: [
 			"Files",
 		],

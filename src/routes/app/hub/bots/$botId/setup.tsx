@@ -9,7 +9,7 @@ import {
 	PageTitle,
 } from "@/components/ui/shell/page";
 
-export const Route = createFileRoute("/app/hub/bots/add")({
+export const Route = createFileRoute("/app/hub/bots/$botId/setup")({
 	component: RouteComponent,
 	validateSearch: z.object({
 		step: z.coerce.number().int().min(0).max(4).catch(0).default(0),
@@ -17,27 +17,29 @@ export const Route = createFileRoute("/app/hub/bots/add")({
 	head: () => ({
 		meta: [
 			{
-				title: "Create Bot",
+				title: "Bot Setup",
 			},
 		],
 	}),
 });
 
 function RouteComponent() {
+	const { botId } = Route.useParams();
 	const search = Route.useSearch();
 	const navigate = Route.useNavigate();
 
 	return (
 		<Page>
 			<PageHeader>
-				<PageTitle>Create Bot</PageTitle>
+				<PageTitle>Bot Setup</PageTitle>
 				<PageDescription>
-					Follow the guided setup to define the bot, its AI behavior, its
-					documents, and its access settings.
+					Use the shared authoring flow to update the bot configuration, reuse
+					existing blocks, and publish changes when they are ready.
 				</PageDescription>
 			</PageHeader>
 			<PageContent>
 				<BotEditorShell
+					botId={botId}
 					stepIndex={search.step}
 					onStepChange={(step) =>
 						navigate({

@@ -104,6 +104,7 @@ export const imageGenerationBlockSchema = z.object({
 });
 
 export const baseBlockSelectSchema = createSelectSchema(dbSchema.block);
+export const blockStatusSchema = baseBlockSelectSchema.shape.status;
 
 export const blockSelectSchema = z.discriminatedUnion("type", [
 	baseBlockSelectSchema.extend(templateBlockSchema.shape),
@@ -130,9 +131,7 @@ export const templateBlockInsertSchema = baseBlockInsertSchema.extend(
 
 export const databaseBlockInsertSchema = baseBlockInsertSchema.extend({
 	...databaseBlockSchema.shape,
-	assets: z
-		.array(assetSelectSchema.shape.id)
-		.min(1, "At least one asset is required for database blocks"),
+	assets: z.array(assetSelectSchema.shape.id).default([]),
 });
 
 export const imageGenerationBlockInsertSchema = baseBlockInsertSchema.extend(
@@ -163,9 +162,7 @@ export const blockUpdateSchema = z.discriminatedUnion("type", [
 	baseBlockUpdateSchema.extend(templateBlockSchema.shape),
 	baseBlockUpdateSchema.extend({
 		...databaseBlockSchema.shape,
-		assets: z
-			.array(z.string())
-			.min(1, "At least one asset is required for database blocks"),
+		assets: z.array(z.string()).default([]),
 	}),
 	baseBlockUpdateSchema.extend(imageGenerationBlockSchema.shape),
 ]);
@@ -199,6 +196,7 @@ export type BlockConfigType =
 	| z.infer<typeof templateBlockSchema.shape.config>
 	| z.infer<typeof databaseBlockSchema.shape.config>
 	| z.infer<typeof imageGenerationBlockSchema.shape.config>;
+export type BlockStatus = z.infer<typeof blockStatusSchema>;
 
 export type BlockType = "template" | "database" | "imageGeneration";
 

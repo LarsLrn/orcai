@@ -17,9 +17,56 @@ import { buildUploadPrefix } from "@/lib/s3/upload-routes";
 import { sendDeleteObjectCommand } from "@/lib/s3/utils/commands";
 import { deletePrefixRecursively } from "@/lib/s3/utils/file-functions";
 import { getFileTypeFromMime } from "@/lib/s3/utils/file-type-helpers";
-import { lookupEntitiesByPermission } from "@/lib/spice-db/client";
+import {
+	checkEntityPermission,
+	hasPermission,
+	lookupEntitiesByPermission,
+} from "@/lib/spice-db/client";
 import { deletePointsByIdentifier } from "@/qdrant/mutations";
 import { buckets } from "@/settings/buckets";
+
+const createAssetRecordEffect = (params: {
+	id?: string;
+	title: string;
+	size: number;
+	fileType: string;
+	bucket: string;
+	prefix: string;
+	metadata?: any;
+	userId: string;
+	organizationId: string;
+}) =>
+	Effect.gen(function* () {
+		const db = yield* DB;
+
+		const assetId = params.id ?? uuidv4();
+
+		const [asset] = yield* db
+			.insert(dbSchema.asset)
+			.values({
+				id: assetId,
+				title: params.title,
+				size: params.size,
+				fileType: params.fileType,
+				bucket: params.bucket,
+				prefix: params.prefix,
+				metadata: params.metadata,
+				userId: params.userId,
+			})
+			.returning();
+
+		const relationResult = yield* initializeResourceAuthorization({
+			resourceType: "asset",
+			resourceId: asset.id,
+			organizationId: params.organizationId,
+			ownerUserId: params.userId,
+		});
+
+		return {
+			asset,
+			zedToken: relationResult.zedToken,
+		};
+	});
 
 export const listAssets = authed.asset.list.handler(
 	async ({ input, context }) =>
@@ -126,74 +173,196 @@ export const createAsset = authed.asset.create
 	.handler(async ({ input, context }) =>
 		runOrpcEffect(
 			Effect.gen(function* () {
-				const db = yield* DB;
-
-				const assetId = input.id ?? uuidv4();
 				const prefix = buildUploadPrefix({
 					userId: context.auth.user.id,
 					route: "asset",
 				});
 
-				const [asset] = yield* db
-					.insert(dbSchema.asset)
-					.values({
-						id: assetId,
-						title: input.title ?? "New Asset",
-						size: input.size,
-						fileType: input.fileType,
-						bucket: buckets.main.name,
-						prefix,
-						userId: context.auth.user.id,
-					})
-					.returning({
-						...getColumns(dbSchema.asset),
-					});
-
-				const relationResult = yield* initializeResourceAuthorization({
-					resourceType: "asset",
-					resourceId: asset.id,
+				const { asset, zedToken } = yield* createAssetRecordEffect({
+					id: input.id,
+					title: input.title ?? "New Asset",
+					size: input.size,
+					fileType: input.fileType,
+					bucket: buckets.main.name,
+					prefix,
+					metadata: input.metadata,
+					userId: context.auth.user.id,
 					organizationId: context.auth.session.activeOrganizationId,
-					ownerUserId: context.auth.user.id,
 				});
 
 				return {
 					data: asset,
 					meta: {
-						zedToken: relationResult.zedToken,
+						zedToken,
 					},
 				};
 			}),
 		),
 	);
 
-export const updateAsset = authed.asset.update
-	.use(
-		checkPermissionMiddleware,
-		(input) =>
-			({
-				entityId: input.id,
-				permission: "edit",
-				entityType: "asset",
-			}) satisfies CheckPermissionInput,
-	)
-	.handler(async ({ input }) =>
+export const saveAsset = authed.asset.save.handler(
+	async ({ input, context, errors }) =>
 		runOrpcEffect(
 			Effect.gen(function* () {
 				const db = yield* DB;
 
-				const [asset] = yield* db
-					.update(dbSchema.asset)
-					.set({
-						title: input.title,
-						updatedAt: new Date(),
-					})
-					.where(eq(dbSchema.asset.id, input.id))
-					.returning({
-						...getColumns(dbSchema.asset),
+				if (input.id) {
+					const permission = yield* checkEntityPermission({
+						entityId: input.id,
+						entityType: "asset",
+						permission: "edit",
+						userId: context.auth.user.id,
+						zedToken: undefined,
 					});
+
+					if (!hasPermission(permission)) {
+						return yield* Effect.fail(
+							errors.FORBIDDEN({
+								message: "You do not have permission to edit this asset.",
+								data: {
+									allowed: false,
+								},
+							}),
+						);
+					}
+
+					const [asset] = yield* db
+						.update(dbSchema.asset)
+						.set({
+							title: input.title,
+							metadata: input.metadata,
+							updatedAt: new Date(),
+						})
+						.where(eq(dbSchema.asset.id, input.id))
+						.returning({
+							...getColumns(dbSchema.asset),
+						});
+
+					return {
+						data: asset,
+					};
+				}
+
+				if (!input.upload) {
+					return yield* Effect.fail(
+						errors.BAD_REQUEST({
+							message:
+								"An uploaded file reference is required to create an asset.",
+						}),
+					);
+				}
+
+				const organizationId = context.auth.session.activeOrganizationId;
+
+				if (!organizationId) {
+					return yield* Effect.fail(
+						errors.BAD_REQUEST({
+							message: "An active organization is required to create assets.",
+						}),
+					);
+				}
+
+				const permission = yield* checkEntityPermission({
+					entityId: organizationId,
+					entityType: "organization",
+					permission: "create_asset",
+					userId: context.auth.user.id,
+					zedToken: undefined,
+				});
+
+				if (!hasPermission(permission)) {
+					return yield* Effect.fail(
+						errors.FORBIDDEN({
+							message: "You do not have permission to create assets.",
+							data: {
+								allowed: false,
+							},
+						}),
+					);
+				}
+
+				const { asset, zedToken } = yield* createAssetRecordEffect({
+					id: input.upload.id,
+					title: input.title,
+					size: input.upload.size,
+					fileType: input.upload.type,
+					bucket: input.upload.bucket,
+					prefix: input.upload.prefix,
+					metadata: input.metadata,
+					userId: context.auth.user.id,
+					organizationId,
+				});
 
 				return {
 					data: asset,
+					meta: {
+						zedToken,
+					},
+				};
+			}),
+		),
+);
+
+export const saveManyAssets = authed.asset.saveMany
+	.use(requireOrganizationPermission("create_asset"))
+	.handler(async ({ input, errors, context }) =>
+		runOrpcEffect(
+			Effect.gen(function* () {
+				const results = yield* Effect.forEach(
+					input.assets,
+					(assetInput) =>
+						Effect.gen(function* () {
+							if (assetInput.id) {
+								const db = yield* DB;
+								const [asset] = yield* db
+									.update(dbSchema.asset)
+									.set({
+										title: assetInput.title,
+										metadata: assetInput.metadata,
+										updatedAt: new Date(),
+									})
+									.where(eq(dbSchema.asset.id, assetInput.id))
+									.returning({
+										...getColumns(dbSchema.asset),
+									});
+
+								return {
+									asset,
+									zedToken: undefined,
+								};
+							}
+
+							if (!assetInput.upload) {
+								return yield* Effect.fail(
+									errors.BAD_REQUEST({
+										message:
+											"An uploaded file reference is required to create an asset.",
+									}),
+								);
+							}
+
+							return yield* createAssetRecordEffect({
+								id: assetInput.upload.id,
+								title: assetInput.title,
+								size: assetInput.upload.size,
+								fileType: assetInput.upload.type,
+								bucket: assetInput.upload.bucket,
+								prefix: assetInput.upload.prefix,
+								metadata: assetInput.metadata,
+								userId: context.auth.user.id,
+								organizationId: context.auth.session.activeOrganizationId,
+							});
+						}),
+					{
+						concurrency: 10,
+					},
+				);
+
+				return {
+					data: results.map((result) => result.asset),
+					meta: {
+						zedToken: results.find((result) => result.zedToken)?.zedToken,
+					},
 				};
 			}),
 		),

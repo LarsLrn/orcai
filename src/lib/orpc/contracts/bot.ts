@@ -1,11 +1,12 @@
 import { z } from "zod/v4";
 import { baseBlockSelectSchema } from "@/lib/orpc/schemas/block";
+import { botDeleteSchema, botSelectSchema } from "@/lib/orpc/schemas/bot";
 import {
-	botDeleteSchema,
-	botInsertSchema,
-	botSelectSchema,
-	botUpdateSchema,
-} from "@/lib/orpc/schemas/bot";
+	botEditorFindSchema,
+	botEditorPublishSchema,
+	botEditorSaveSchema,
+	botEditorSelectSchema,
+} from "@/lib/orpc/schemas/bot-editor";
 import {
 	paginationSchema,
 	statusSchema,
@@ -36,25 +37,6 @@ export const listBotsContract = base
 		}),
 	);
 
-export const createBotContract = base
-	.route({
-		method: "POST",
-		path: "/bots",
-		summary: "Create a bot",
-		tags: [
-			"Bots",
-		],
-	})
-	.input(botInsertSchema)
-	.output(
-		z.object({
-			data: botSelectSchema.extend({
-				blockIds: z.array(baseBlockSelectSchema.shape.id),
-			}),
-			meta: zedTokenSchema.optional(),
-		}),
-	);
-
 export const findBotContract = base
 	.route({
 		method: "GET",
@@ -80,29 +62,75 @@ export const findBotContract = base
 		}),
 	);
 
-export const updateBotContract = base
+export const findBotEditorContract = base
 	.route({
-		method: "PUT", //TODO:Probably should be PATCH
-		path: "/bots/{id}",
-		summary: "Update a bot",
+		method: "GET",
+		path: "/bots/{id}/editor",
+		summary: "Find an editable bot authoring graph",
 		tags: [
 			"Bots",
 		],
 	})
-	.errors({
-		NOT_FOUND: {
-			message: "Bot not found",
-			data: z.object({
-				id: botUpdateSchema.shape.id,
-			}),
-		},
-	})
-	.input(botUpdateSchema)
+	.input(botEditorFindSchema)
 	.output(
 		z.object({
-			data: botSelectSchema.extend({
-				blockIds: z.array(baseBlockSelectSchema.shape.id),
-			}),
+			data: botEditorSelectSchema,
+		}),
+	);
+
+export const saveBotContract = base
+	.route({
+		method: "PUT",
+		path: "/bots/save",
+		summary: "Create or update a bot authoring graph",
+		tags: [
+			"Bots",
+		],
+	})
+	.input(botEditorSaveSchema)
+	.output(
+		z.object({
+			data: botEditorSelectSchema,
+			meta: zedTokenSchema.optional(),
+		}),
+	);
+
+export const publishBotContract = base
+	.route({
+		method: "POST",
+		path: "/bots/{id}/publish",
+		summary: "Publish a draft bot",
+		tags: [
+			"Bots",
+		],
+	})
+	.input(botEditorPublishSchema)
+	.output(
+		z.object({
+			data: botEditorSelectSchema,
+		}),
+	);
+
+export const listDraftBotsContract = base
+	.route({
+		method: "POST",
+		path: "/bots/drafts",
+		summary: "List draft bots",
+		tags: [
+			"Bots",
+		],
+	})
+	.input(
+		z.object({
+			...paginationSchema.shape,
+			...zedTokenSchema.shape,
+			search: z.string().optional(),
+		}),
+	)
+	.output(
+		z.object({
+			data: z.array(botSelectSchema),
+			rowCount: z.number(),
 		}),
 	);
 
