@@ -1,4 +1,3 @@
-import { v1 } from "@authzed/authzed-node";
 import { and, count, eq, getColumns, inArray, isNull, or } from "drizzle-orm";
 import * as Effect from "effect/Effect";
 import { dbSchema } from "@/db/schema";
@@ -22,6 +21,7 @@ import { inheritedSourceByResourceType } from "@/lib/orpc/schemas/user";
 import {
 	checkEntityPermission,
 	checkManyEntityPermissions,
+	hasPermission,
 	lookupEntitiesByPermission,
 } from "@/lib/spice-db/client";
 import { unique } from "@/lib/utils/array-utils";
@@ -41,10 +41,7 @@ export const listUsers = authed.user.list
 					zedToken: context.meta?.zedToken,
 				});
 
-				if (
-					permission.permissionship !==
-					v1.CheckPermissionResponse_Permissionship.HAS_PERMISSION
-				) {
+				if (hasPermission(permission) === false) {
 					return yield* Effect.fail(
 						errors.FORBIDDEN({
 							data: {
@@ -108,10 +105,7 @@ export const findUser = authed.user.find
 						zedToken: context.meta?.zedToken,
 					});
 
-					if (
-						permission.permissionship !==
-						v1.CheckPermissionResponse_Permissionship.HAS_PERMISSION
-					) {
+					if (hasPermission(permission) === false) {
 						return yield* Effect.fail(
 							errors.FORBIDDEN({
 								data: {
@@ -180,10 +174,7 @@ export const listUserAccess = authed.user.listAccess
 						zedToken: context.meta?.zedToken,
 					});
 
-					if (
-						permission.permissionship !==
-						v1.CheckPermissionResponse_Permissionship.HAS_PERMISSION
-					) {
+					if (hasPermission(permission) === false) {
 						return yield* Effect.fail(
 							errors.FORBIDDEN({
 								data: {
@@ -336,15 +327,13 @@ export const listUserAccess = authed.user.listAccess
 										new Set(
 											response.pairs
 												.map((pair) => {
-													const hasPermission =
+													const permitted =
 														pair.response.oneofKind === "item" &&
-														pair.response.item.permissionship ===
-															v1.CheckPermissionResponse_Permissionship
-																.HAS_PERMISSION;
+														hasPermission({
+															permissionship: pair.response.item.permissionship,
+														}) === true;
 													const resourceId = pair.request?.resource?.objectId;
-													return hasPermission && resourceId
-														? resourceId
-														: null;
+													return permitted && resourceId ? resourceId : null;
 												})
 												.filter((id): id is string => id !== null),
 										),
@@ -801,11 +790,7 @@ export const setActiveOrganization = authed.user.setActiveOrganization.handler(
 					userId: context.auth.user.id,
 					zedToken: context.meta?.zedToken,
 				}).pipe(
-					Effect.map(
-						(permission) =>
-							permission.permissionship ===
-							v1.CheckPermissionResponse_Permissionship.HAS_PERMISSION,
-					),
+					Effect.map((permission) => hasPermission(permission) === true),
 					Effect.catchAll(() => Effect.succeed(false)),
 				);
 

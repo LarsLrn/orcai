@@ -216,3 +216,9 @@ export const lookupEntitiesByPermission = <Entity extends EntityType>(params: {
 				}),
 		});
 	});
+
+export const hasPermission = (result: {
+	permissionship: v1.CheckPermissionResponse_Permissionship;
+}) =>
+	result.permissionship ===
+	v1.CheckPermissionResponse_Permissionship.HAS_PERMISSION;

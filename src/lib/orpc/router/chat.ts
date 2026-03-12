@@ -1,4 +1,3 @@
-import { v1 } from "@authzed/authzed-node";
 import { count, eq, inArray } from "drizzle-orm";
 import * as Effect from "effect/Effect";
 import { dbSchema } from "@/db/schema";
@@ -14,6 +13,7 @@ import {
 } from "@/lib/orpc/middlewares/permission";
 import {
 	checkEntityPermission,
+	hasPermission,
 	lookupEntitiesByPermission,
 } from "@/lib/spice-db/client";
 
@@ -130,10 +130,7 @@ export const createChat = authed.chat.create.handler(
 						zedToken: context.meta?.zedToken,
 					});
 
-					if (
-						canUseBot.permissionship !==
-						v1.CheckPermissionResponse_Permissionship.HAS_PERMISSION
-					) {
+					if (hasPermission(canUseBot) === false) {
 						return yield* Effect.fail(
 							errors.FORBIDDEN({
 								data: {
