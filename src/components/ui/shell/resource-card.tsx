@@ -60,7 +60,7 @@ const ResourceCardBody = ({
 	const bodyClassName = cn(
 		"block rounded-2xl",
 		isInteractive &&
-			"no-underline outline-none ring-ring/50 transition-all duration-200 hover:bg-muted/20 focus-visible:ring-[3px]",
+			"no-underline outline-none ring-ring/50 transition-all duration-200 focus-visible:ring-[3px]",
 		className,
 	);
 
@@ -270,7 +270,7 @@ const ResourceCardFooter = ({
 }: React.ComponentProps<typeof CardFooter>) => {
 	return (
 		<CardFooter
-			className={cn("flex-wrap gap-2 border-t bg-muted/15", className)}
+			className={cn("flex-wrap gap-2 border-t", className)}
 			{...props}
 		/>
 	);

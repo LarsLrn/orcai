@@ -1,19 +1,23 @@
-import { useSuspenseQuery } from "@tanstack/react-query";
-import { createFileRoute } from "@tanstack/react-router";
-import { GlobeIcon, KeyRoundIcon } from "lucide-react";
+import { useQuery, useSuspenseQuery } from "@tanstack/react-query";
+import { createFileRoute, Link } from "@tanstack/react-router";
+import {
+	DownloadIcon,
+	KeyRoundIcon,
+	PencilIcon,
+	Trash2Icon,
+} from "lucide-react";
 import { useState } from "react";
 import { AccessDialog } from "@/components/access/access-dialog";
 import { FileViewer } from "@/components/documents/file-viewer";
-import { JobStatusPanel } from "@/components/jobs/job-status-panel";
-import { Badge } from "@/components/ui/badge";
-import { Button } from "@/components/ui/button";
+import { Button, buttonVariants } from "@/components/ui/button";
 import {
-	Page,
-	PageAction,
-	PageContent,
-	PageHeader,
-	PageTitle,
-} from "@/components/ui/shell/page";
+	Section,
+	SectionAction,
+	SectionContent,
+	SectionHeader,
+	SectionTitle,
+} from "@/components/ui/shell/section";
+import { useDeleteAssetsMutation } from "@/hooks/mutations/use-asset-mutations";
 import { orpc } from "@/lib/orpc/orpc";
 
 export const Route = createFileRoute("/app/hub/assets/$assetId/")({
@@ -30,42 +34,67 @@ function RouteComponent() {
 			},
 		}),
 	);
-	const { data: visibility } = useSuspenseQuery(
-		orpc.resource.getVisibility.queryOptions({
+
+	const { data: file, status } = useQuery(
+		orpc.storage.createDownloadUrl.queryOptions({
 			input: {
-				resourceType: "asset",
-				resourceId: assetId,
+				id: asset.data.id,
+				prefix: asset.data.prefix,
+				bucket: asset.data.bucket,
+				fileType: asset.data.fileType,
 			},
 		}),
 	);
 
+	const { mutate: deleteAssets } = useDeleteAssetsMutation();
+
 	return (
-		<Page>
-			<PageHeader>
-				<PageTitle>{asset.data.title}</PageTitle>
-				<PageAction>
+		<Section>
+			<SectionHeader>
+				<SectionTitle>{asset.data.title}</SectionTitle>
+				<SectionAction>
 					<Button variant="outline" onClick={() => setIsAccessOpen(true)}>
-						<KeyRoundIcon className="mr-2 h-4 w-4" />
+						<KeyRoundIcon />
 						Access
 					</Button>
-				</PageAction>
-			</PageHeader>
-			<PageContent>
-				<div className="mb-3 flex items-center gap-3">
-					{visibility.data.visibility === "public" && (
-						<Badge variant="default">
-							<GlobeIcon className="mr-1 h-3 w-3" />
-							Public
-						</Badge>
-					)}
-					<JobStatusPanel
-						processingStatus={asset.data.processingStatus}
-						jobQueue="process-asset-job"
-						resourceId={assetId}
-						resourceType="asset"
-						assetId={assetId}
-					/>
-				</div>
+					<Button
+						variant="default"
+						disabled={status !== "success"}
+						onClick={() => window.open(file?.url, "_blank")}
+					>
+						<DownloadIcon />
+						Download
+					</Button>
+					<Link
+						className={buttonVariants({
+							variant: "outline",
+						})}
+						to={"/app/hub/assets/$assetId/edit"}
+						params={{
+							assetId: asset.data.id,
+						}}
+					>
+						<PencilIcon />
+						Edit
+					</Link>
+					<Button
+						variant="destructive"
+						onClick={() =>
+							deleteAssets({
+								refs: [
+									{
+										id: asset.data.id,
+									},
+								],
+							})
+						}
+					>
+						<Trash2Icon />
+						Delete
+					</Button>
+				</SectionAction>
+			</SectionHeader>
+			<SectionContent>
 				<FileViewer asset={asset.data} />
 
 				<AccessDialog
@@ -77,7 +106,7 @@ function RouteComponent() {
 					}}
 					resourceName={asset.data.title}
 				/>
-			</PageContent>
-		</Page>
+			</SectionContent>
+		</Section>
 	);
 }
