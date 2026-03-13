@@ -27,6 +27,7 @@ import type { Asset } from "@/lib/orpc/schemas/asset";
 const AssetCard = ({
 	asset,
 	actions,
+	className,
 }: {
 	asset: Asset;
 	actions?: {
@@ -34,6 +35,7 @@ const AssetCard = ({
 		footer?: ResourceCardActionItem[];
 		primary?: ResourceCardPrimaryAction;
 	};
+	className?: string;
 }) => {
 	const meta: ResourceCardMetaItem[] = [];
 	if (asset.createdAt) {
@@ -109,7 +111,7 @@ const AssetCard = ({
 	};
 
 	return (
-		<ResourceCard>
+		<ResourceCard className={className}>
 			{dropdownActions.length > 0 ? (
 				<ResourceCardMenu>
 					<DropdownMenu>

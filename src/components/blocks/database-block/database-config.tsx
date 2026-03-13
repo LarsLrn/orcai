@@ -182,11 +182,6 @@ const AssetSection = ({
 			</div>
 			<div className="flex gap-2 px-4">
 				<JobListDialog
-					jobQueue="process-asset-job"
-					resourceId={blockId}
-					resourceType="block"
-				/>
-				<JobListDialog
 					jobQueue="vectorize-asset-job"
 					resourceId={blockId}
 					resourceType="block"

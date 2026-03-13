@@ -312,6 +312,13 @@ const DatabaseBlockEditor = ({
 										]),
 									)
 								}
+								onDeselect={(asset) =>
+									onChange({
+										...value,
+										assetIds: value.assetIds.filter((id) => id !== asset.id),
+										assets: value.assets.filter((a) => a.id !== asset.id),
+									})
+								}
 							/>
 							<DialogFooter showCloseButton />
 						</DialogContent>

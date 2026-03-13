@@ -1,17 +1,19 @@
 import { useQuery } from "@tanstack/react-query";
 import { useState } from "react";
 import { AssetCard } from "@/components/documents/asset-card";
-import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { orpc } from "@/lib/orpc/orpc";
 import type { Asset } from "@/lib/orpc/schemas/asset";
+import { cn } from "@/lib/utils";
 
 const AssetLibraryPicker = ({
 	selectedIds,
 	onSelect,
+	onDeselect,
 }: {
 	selectedIds: string[];
 	onSelect: (asset: Asset) => void;
+	onDeselect?: (asset: Asset) => void;
 }) => {
 	const [search, setSearch] = useState("");
 	const assets = useQuery(
@@ -38,16 +40,24 @@ const AssetLibraryPicker = ({
 				{assets.data?.data.map((asset) => {
 					const isSelected = selectedIds.includes(asset.id);
 					return (
-						<div key={asset.id} className="space-y-2 rounded-2xl border p-3">
-							<AssetCard asset={asset} />
-							<Button
-								className="w-full"
-								variant={isSelected ? "secondary" : "outline"}
-								disabled={isSelected}
-								onClick={() => onSelect(asset)}
-							>
-								{isSelected ? "Added" : "Add Document"}
-							</Button>
+						<div key={asset.id}>
+							<AssetCard
+								asset={asset}
+								actions={{
+									primary: {
+										onClick: () =>
+											isSelected && onDeselect
+												? onDeselect(asset)
+												: onSelect(asset),
+									},
+									footer: [],
+								}}
+								className={cn(
+									"",
+									isSelected &&
+										"bg-primary/10 data-[state=active]:bg-primary/20",
+								)}
+							/>
 						</div>
 					);
 				})}

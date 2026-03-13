@@ -174,7 +174,9 @@ const TemplateBlockEditor = ({
 							}
 						>
 							<SelectTrigger className="w-full">
-								<SelectValue placeholder="Choose a provider" />
+								<SelectValue placeholder="Choose a provider">
+									{templateBlock.config.provider}
+								</SelectValue>
 							</SelectTrigger>
 							<SelectContent>
 								{providerItems.map((provider) => (
