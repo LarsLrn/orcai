@@ -51,6 +51,7 @@ const TemplateBlockEditor = ({
 		orpc.provider.list.queryOptions({
 			input: {
 				organizationId: auth.session.activeOrganizationId,
+				pageSize: 50,
 			},
 		}),
 	);
@@ -65,6 +66,7 @@ const TemplateBlockEditor = ({
 								"text",
 							],
 						},
+						pageSize: 50,
 					}
 				: skipToken,
 		}),
