@@ -1,6 +1,7 @@
 import { Badge } from "@/components/ui/badge";
 import { Spinner } from "@/components/ui/spinner";
-import type { ProcessingStatus } from "@/lib/orpc/schemas/asset";
+import type { ProcessingStatus } from "@/lib/orpc/schemas/fragments/processing-status";
+import { cn } from "@/lib/utils";
 
 const statusConfig: Record<
 	ProcessingStatus,
@@ -32,10 +33,16 @@ const statusConfig: Record<
 	},
 };
 
-const JobStatusBadge = ({ status }: { status: ProcessingStatus }) => {
+const JobStatusBadge = ({
+	status,
+	className,
+}: {
+	status: ProcessingStatus;
+	className?: string;
+}) => {
 	const config = statusConfig[status];
 	return (
-		<Badge variant={config.variant}>
+		<Badge variant={config.variant} className={cn(className)}>
 			{config.showSpinner && <Spinner className="mr-1 size-3" />}
 			{config.label}
 		</Badge>

@@ -6,8 +6,16 @@ import {
 	useRetryProcessingMutation,
 	useRetryVectorizationMutation,
 } from "@/hooks/mutations/use-job-mutations";
-import type { ProcessingStatus } from "@/lib/orpc/schemas/asset";
+import type { ProcessingStatus } from "@/lib/orpc/schemas/fragments/processing-status";
 import type { JobQueue } from "@/lib/pg-boss/schema/job-queues";
+import { cn } from "@/lib/utils";
+import {
+	Card,
+	CardContent,
+	CardDescription,
+	CardHeader,
+	CardTitle,
+} from "../ui/card";
 
 type JobStatusPanelProps = {
 	processingStatus: ProcessingStatus;
@@ -20,6 +28,7 @@ type JobStatusPanelProps = {
 	blockId?: string;
 	/** Optional filter for the job list dialog */
 	assetIdFilter?: string;
+	className?: string;
 };
 
 const JobStatusPanel = ({
@@ -30,6 +39,7 @@ const JobStatusPanel = ({
 	assetId,
 	blockId,
 	assetIdFilter,
+	className,
 }: JobStatusPanelProps) => {
 	const { mutate: retryProcessing } = useRetryProcessingMutation();
 	const { mutate: retryVectorization } = useRetryVectorizationMutation();
@@ -50,21 +60,30 @@ const JobStatusPanel = ({
 	};
 
 	return (
-		<div className="flex items-center gap-2">
-			<JobStatusBadge status={processingStatus} />
-			<JobListDialog
-				jobQueue={jobQueue}
-				resourceId={resourceId}
-				resourceType={resourceType}
-				assetIdFilter={assetIdFilter}
-			/>
-			{showRetry && (
-				<Button variant="outline" size="sm" onClick={handleRetry}>
-					<RefreshCwIcon className="mr-1 h-3 w-3" />
-					Retry
-				</Button>
-			)}
-		</div>
+		<Card className={cn(className)}>
+			<CardHeader>
+				<CardTitle>Processing Status</CardTitle>
+				<CardDescription>
+					Assets are processed via background jobs on upload to prepare them for
+					use with AI. You can inspect these jobs in the list below.
+				</CardDescription>
+			</CardHeader>
+			<CardContent className="flex items-center gap-2">
+				<JobStatusBadge status={processingStatus} className="h-8" />
+				<JobListDialog
+					jobQueue={jobQueue}
+					resourceId={resourceId}
+					resourceType={resourceType}
+					assetIdFilter={assetIdFilter}
+				/>
+				{showRetry && (
+					<Button variant="outline" size="sm" onClick={handleRetry}>
+						<RefreshCwIcon className="mr-1 h-3 w-3" />
+						Retry
+					</Button>
+				)}
+			</CardContent>
+		</Card>
 	);
 };
 
