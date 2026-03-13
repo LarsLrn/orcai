@@ -18,7 +18,6 @@ import type {
 	TitleItem,
 	UnorderedList,
 } from "@docling/docling-core";
-import { logger } from "@/lib/observability/logger";
 
 // Define base and specific types for the discriminated union
 interface SectionContentBase {
@@ -111,7 +110,6 @@ export const serializeDoclingDocument = (
 	const refs = doclingDocument.body?.children;
 
 	if (!refs) {
-		logger.error("No references found in the document.");
 		return;
 	}
 

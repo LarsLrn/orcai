@@ -106,8 +106,8 @@ export const DoclingLive = Layer.effect(
 		return {
 			convertDocument: (params: DoclingConvertParams) =>
 				convertDocument({
-					baseUrl: config.ai.baseUrl,
-					apiKey: Redacted.value(config.ai.apiKey),
+					baseUrl: config.ai.doclingUrl,
+					apiKey: Redacted.value(config.ai.doclingApiKey),
 					params,
 				}),
 		};

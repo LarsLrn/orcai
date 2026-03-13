@@ -18,6 +18,8 @@ services:
       ENCRYPTION_KEY: ${ENCRYPTION_KEY:-1234567890abcdef1234567890abcdef}
       OPENAI_COMPATIBLE_BASE_URL: ${OPENAI_COMPATIBLE_BASE_URL:-https://example.com/v1}
       OPENAI_COMPATIBLE_API_KEY: ${OPENAI_COMPATIBLE_API_KEY:-dev-openai-compatible-key}
+      DOCLING_URL: ${DOCLING_URL:-http://localhost:8080}
+      DOCLING_API_KEY: ${DOCLING_API_KEY:-dev-docling-key}
       LANGFUSE_SECRET_KEY: ${LANGFUSE_SECRET_KEY:-dev-langfuse-secret-key}
       LANGFUSE_PUBLIC_KEY: ${LANGFUSE_PUBLIC_KEY:-dev-langfuse-public-key}
       LANGFUSE_BASEURL: ${LANGFUSE_BASEURL:-https://example.com}
