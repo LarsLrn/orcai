@@ -29,7 +29,6 @@ import {
 	CHAT_ATTACHMENT_ACCEPT,
 	CHAT_ATTACHMENT_LIMIT,
 } from "@/settings/constants";
-import { ModelSelectorButton } from "./model-selector";
 
 const ChatInput = ({
 	chatId,
@@ -216,7 +215,7 @@ const ChatInput = ({
 							/>
 						</PromptInputTools>
 
-						<ModelSelectorButton />
+						{/* <ModelSelectorButton /> */}
 						<PromptInputSubmit
 							status={submitStatus}
 							disabled={
