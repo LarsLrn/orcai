@@ -12,6 +12,7 @@ const defaultValues = (
 ): z.input<typeof databaseBlockInsertSchema> => ({
 	name: block?.name || "",
 	type: "database",
+	status: block?.status || "draft",
 	config: {
 		provider: block?.config.provider || "",
 		embeddingModel: block?.config.embeddingModel || "",

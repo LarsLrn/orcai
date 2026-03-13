@@ -10,6 +10,7 @@ const defaultValues = (
 ): z.input<typeof imageGenerationBlockInsertSchema> => ({
 	name: block?.name || "",
 	type: "imageGeneration",
+	status: block?.status || "draft",
 	config: {
 		prompt: block?.config.prompt ?? "",
 		model: block?.config.model ?? "",

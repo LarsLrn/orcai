@@ -1,16 +1,12 @@
 import { z } from "zod/v4";
 import { assetSelectSchema } from "./asset";
-import {
-	blockStatusSchema,
-	databaseBlockSchema,
-	templateBlockSchema,
-} from "./block";
-import { botStatusSchema } from "./bot";
+import { databaseBlockSchema, templateBlockSchema } from "./block";
+import { publicationStatusSchema } from "./fragments/publication-status";
 
 const baseEditorBlockSchema = z.object({
 	id: z.uuidv4().optional(),
 	name: z.string().min(1, "Name is required"),
-	status: blockStatusSchema.optional(),
+	status: publicationStatusSchema,
 });
 
 export const databaseBlockEditorSchema = baseEditorBlockSchema.extend({
@@ -26,7 +22,7 @@ export const botEditorSaveSchema = z.object({
 	description: z.string().min(1, "Bot description is required"),
 	contentJson: z.json().default({}),
 	contentHtml: z.string().default(""),
-	status: botStatusSchema.optional(),
+	status: publicationStatusSchema,
 	templateBlock: baseEditorBlockSchema
 		.extend({
 			type: templateBlockSchema.shape.type.default("template"),
@@ -47,7 +43,7 @@ export const botEditorFindSchema = z.object({
 
 export const botEditorSelectSchema = botEditorSaveSchema.extend({
 	id: z.uuidv4(),
-	status: botStatusSchema,
+	status: publicationStatusSchema,
 	templateBlock: baseEditorBlockSchema
 		.extend({
 			type: templateBlockSchema.shape.type.default("template"),

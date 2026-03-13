@@ -2,6 +2,7 @@ import { createInsertSchema, createSelectSchema } from "drizzle-zod";
 import { z } from "zod/v4";
 import { dbSchema } from "@/db/schema";
 import { metadataSchema } from "./fragments/asset-metadata";
+import { processingStatusSchema } from "./fragments/processing-status";
 import { finalizedUploadFileSchema } from "./storage";
 
 /**
@@ -9,15 +10,6 @@ import { finalizedUploadFileSchema } from "./storage";
  * Select Schema
  * ----------------
  */
-
-export const processingStatusSchema = z.enum([
-	"pending",
-	"active",
-	"completed",
-	"failed",
-]);
-
-export type ProcessingStatus = z.infer<typeof processingStatusSchema>;
 
 export const assetSelectSchema = createSelectSchema(dbSchema.asset).extend({
 	metadata: metadataSchema,

@@ -6,6 +6,7 @@ import {
 import { z } from "zod/v4";
 import { dbSchema } from "@/db/schema";
 import { assetSelectSchema } from "./asset";
+import { publicationStatusSchema } from "./fragments/publication-status";
 
 /**
  * ----------------
@@ -103,8 +104,9 @@ export const imageGenerationBlockSchema = z.object({
 	}),
 });
 
-export const baseBlockSelectSchema = createSelectSchema(dbSchema.block);
-export const blockStatusSchema = baseBlockSelectSchema.shape.status;
+export const baseBlockSelectSchema = createSelectSchema(dbSchema.block, {
+	status: publicationStatusSchema,
+});
 
 export const blockSelectSchema = z.discriminatedUnion("type", [
 	baseBlockSelectSchema.extend(templateBlockSchema.shape),
@@ -118,7 +120,9 @@ export const blockSelectSchema = z.discriminatedUnion("type", [
  * ----------------
  */
 
-const baseBlockInsertSchema = createInsertSchema(dbSchema.block).omit({
+const baseBlockInsertSchema = createInsertSchema(dbSchema.block, {
+	status: publicationStatusSchema,
+}).omit({
 	userId: true,
 	createdAt: true,
 	updatedAt: true,
@@ -152,6 +156,7 @@ export const blockInsertSchema = z.discriminatedUnion("type", [
 
 const baseBlockUpdateSchema = createUpdateSchema(dbSchema.block, {
 	id: z.uuidv4(),
+	status: publicationStatusSchema,
 }).omit({
 	userId: true,
 	createdAt: true,
@@ -196,7 +201,6 @@ export type BlockConfigType =
 	| z.infer<typeof templateBlockSchema.shape.config>
 	| z.infer<typeof databaseBlockSchema.shape.config>
 	| z.infer<typeof imageGenerationBlockSchema.shape.config>;
-export type BlockStatus = z.infer<typeof blockStatusSchema>;
 
 export type BlockType = "template" | "database" | "imageGeneration";
 

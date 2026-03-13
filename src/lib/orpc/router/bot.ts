@@ -8,6 +8,7 @@ import { DB } from "@/lib/effect/services/drizzle";
 import { NotFoundError } from "@/lib/effect/utils/errors";
 import { runOrpcEffect } from "@/lib/effect/utils/orpc-helpers";
 import { authed } from "@/lib/orpc/implementation/authed";
+import { requireActiveOrganizationMiddleware } from "@/lib/orpc/middlewares/auth";
 import {
 	type CheckManyPermissionInput,
 	type CheckPermissionInput,
@@ -19,18 +20,18 @@ import {
 	syncDatabaseBlockAssets,
 } from "@/lib/orpc/router/helpers/database-block";
 import type { Block } from "@/lib/orpc/schemas/block";
+import type { Bot } from "@/lib/orpc/schemas/bot";
 import type { BotEditorSave } from "@/lib/orpc/schemas/bot-editor";
+import type { PublicationStatus } from "@/lib/orpc/schemas/fragments/publication-status";
 import {
 	checkEntityPermission,
 	hasPermission,
 	lookupEntitiesByPermission,
 } from "@/lib/spice-db/client";
-import { requireActiveOrganizationMiddleware } from "../middlewares/auth";
-import type { Bot } from "../schemas/bot";
 
 const listBotsByStatus = (params: {
 	userId: string;
-	status: "draft" | "ready";
+	status: PublicationStatus;
 	pageIndex: number;
 	pageSize: number;
 	search?: string;
@@ -145,7 +146,7 @@ const loadBotEditor = (params: { id: string }) =>
 				description: bot.description,
 				contentJson: bot.contentJson as Bot["contentJson"],
 				contentHtml: bot.contentHtml,
-				status: bot.status as "draft" | "ready",
+				status: bot.status,
 				templateBlock: templateBlock
 					? {
 							...templateBlock,

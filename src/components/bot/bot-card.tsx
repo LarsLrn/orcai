@@ -78,6 +78,14 @@ const BotCard = ({
 			variant: "outline",
 		},
 	];
+
+	if (bot.status === "draft") {
+		badges.push({
+			label: "Draft",
+			variant: "destructive",
+		});
+	}
+
 	const primaryAction = actions?.primary ?? {
 		linkProps: {
 			to: "/app/hub/bots/$botId",

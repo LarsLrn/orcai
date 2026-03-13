@@ -1,6 +1,7 @@
 import { createSelectSchema } from "drizzle-zod";
 import { z } from "zod/v4";
 import { dbSchema } from "@/db/schema";
+import { publicationStatusSchema } from "./fragments/publication-status";
 
 /**
  * ----------------
@@ -8,8 +9,9 @@ import { dbSchema } from "@/db/schema";
  * ----------------
  */
 
-export const botSelectSchema = createSelectSchema(dbSchema.bot);
-export const botStatusSchema = botSelectSchema.shape.status;
+export const botSelectSchema = createSelectSchema(dbSchema.bot, {
+	status: publicationStatusSchema,
+});
 
 /**
  * ----------------

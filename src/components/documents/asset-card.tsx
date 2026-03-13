@@ -77,6 +77,28 @@ const AssetCard = ({
 			variant: "outline",
 		},
 	];
+
+	if (asset.processingStatus === "failed") {
+		badges.push({
+			label: "Failed",
+			variant: "destructive",
+		});
+	}
+
+	if (asset.processingStatus === "active") {
+		badges.push({
+			label: "Active",
+			variant: "default",
+		});
+	}
+
+	if (asset.processingStatus === "pending") {
+		badges.push({
+			label: "Pending",
+			variant: "secondary",
+		});
+	}
+
 	const primaryAction = actions?.primary ?? {
 		linkProps: {
 			to: "/app/hub/assets/$assetId",
