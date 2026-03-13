@@ -22,7 +22,6 @@ const createDefaultAssetMetadata = (): Asset["metadata"] => ({
 	pageRange: "",
 	author: "",
 	chapterTitle: "",
-	mergePages: true,
 });
 
 const AssetMetadataEditor = ({
@@ -180,27 +179,6 @@ const AssetMetadataEditor = ({
 								metadata: {
 									...metadata,
 									showReference: checked,
-								},
-							})
-						}
-					/>
-				</div>
-
-				<div className="flex items-center justify-between gap-3">
-					<div>
-						<div className="font-medium text-sm">Merge Pages</div>
-						<div className="text-muted-foreground text-xs">
-							Use semantic chunking instead of page splits.
-						</div>
-					</div>
-					<Switch
-						checked={metadata.mergePages ?? true}
-						onCheckedChange={(checked) =>
-							onChange({
-								...value,
-								metadata: {
-									...metadata,
-									mergePages: checked,
 								},
 							})
 						}

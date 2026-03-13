@@ -15,7 +15,7 @@ import {
 	checkPermissionMiddleware,
 } from "@/lib/orpc/middlewares/permission";
 import {
-	loadDatabaseBlockAttachments,
+	loadDatabaseBlockAssets,
 	syncDatabaseBlockAssets,
 } from "@/lib/orpc/router/helpers/database-block";
 import type { Block } from "@/lib/orpc/schemas/block";
@@ -119,18 +119,18 @@ const loadBotEditor = (params: { id: string }) =>
 		const templateBlock = blocks.find((block) => block.type === "template");
 		const databaseBlocks = blocks.filter((block) => block.type === "database");
 
-		const databaseBlocksWithAttachments = yield* Effect.forEach(
+		const databaseBlocksWithAssets = yield* Effect.forEach(
 			databaseBlocks,
 			(block) =>
 				Effect.gen(function* () {
-					const attachments = yield* loadDatabaseBlockAttachments({
+					const assets = yield* loadDatabaseBlockAssets({
 						blockId: block.id,
 					});
 
 					return {
 						...block,
-						assetIds: attachments.map((attachment) => attachment.asset.id),
-						attachments,
+						assetIds: assets.map((asset) => asset.id),
+						assets,
 					};
 				}),
 			{
@@ -152,7 +152,7 @@ const loadBotEditor = (params: { id: string }) =>
 							type: "template" as const,
 						}
 					: null,
-				databaseBlocks: databaseBlocksWithAttachments,
+				databaseBlocks: databaseBlocksWithAssets,
 			},
 		};
 	});

@@ -218,7 +218,8 @@ export const loadDocumentCatalog = ({ blocks }: { blocks: DatabaseBlock[] }) =>
 				}).pipe(
 					Effect.map((result) => ({
 						block,
-						assetIds: result.assets?.map((entry) => entry.asset.id) ?? [],
+						assetIds:
+							result.assets?.map((entry: { id: string }) => entry.id) ?? [],
 					})),
 				),
 			{
@@ -269,7 +270,6 @@ export const loadDocumentCatalog = ({ blocks }: { blocks: DatabaseBlock[] }) =>
 						title: asset.title,
 						blockId: block.id,
 						blockName: block.name,
-						mergePages: asset.metadata.mergePages ?? false,
 					} satisfies KnowledgeBaseDocument;
 				})
 				.filter((entry) => entry !== null),

@@ -73,7 +73,7 @@ export const sendJobBatchEffect = <T extends object = object>(params: {
 	}>;
 	resourceOptions: {
 		resourceId: string;
-		resourceType: "block" | "course" | "chat";
+		resourceType: "block" | "course" | "chat" | "asset";
 	};
 }) =>
 	Effect.gen(function* () {

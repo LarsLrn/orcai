@@ -12,7 +12,6 @@ export const metadataSchema = z.object({
 	pageRange: z.string().optional(),
 	author: z.string().optional(),
 	chapterTitle: z.string().optional(),
-	mergePages: z.boolean().optional(),
 });
 
 export type AssetMetadataType = z.infer<typeof metadataSchema>;

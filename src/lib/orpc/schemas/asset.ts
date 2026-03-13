@@ -10,8 +10,18 @@ import { finalizedUploadFileSchema } from "./storage";
  * ----------------
  */
 
+export const processingStatusSchema = z.enum([
+	"pending",
+	"active",
+	"completed",
+	"failed",
+]);
+
+export type ProcessingStatus = z.infer<typeof processingStatusSchema>;
+
 export const assetSelectSchema = createSelectSchema(dbSchema.asset).extend({
 	metadata: metadataSchema,
+	processingStatus: processingStatusSchema,
 });
 
 /**

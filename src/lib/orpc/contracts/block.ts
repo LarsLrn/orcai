@@ -81,7 +81,7 @@ export const findBlockContract = base
 	.output(
 		z.object({
 			data: blockSelectSchema,
-			assets: databaseBlockEditorSchema.shape.attachments.optional(),
+			assets: databaseBlockEditorSchema.shape.assets.optional(),
 		}),
 	);
 

@@ -13,6 +13,8 @@ import {
 	checkManyPermissionMiddleware,
 	checkPermissionMiddleware,
 } from "@/lib/orpc/middlewares/permission";
+import { sendJobBatchEffect } from "@/lib/pg-boss/helpers";
+import { PROCESS_ASSET_JOB_NAME } from "@/lib/pg-boss/schema/job-queues";
 import { buildUploadPrefix } from "@/lib/s3/upload-routes";
 import { sendDeleteObjectCommand } from "@/lib/s3/utils/commands";
 import { deletePrefixRecursively } from "@/lib/s3/utils/file-functions";
@@ -66,6 +68,32 @@ const createAssetRecordEffect = (params: {
 			asset,
 			zedToken: relationResult.zedToken,
 		};
+	});
+
+const dispatchProcessJob = (asset: {
+	id: string;
+	bucket: string;
+	prefix: string;
+	fileType: string;
+}) =>
+	sendJobBatchEffect({
+		jobName: PROCESS_ASSET_JOB_NAME,
+		jobs: [
+			{
+				data: {
+					assetRef: {
+						bucket: asset.bucket,
+						prefix: asset.prefix,
+						id: asset.id,
+						type: getFileTypeFromMime(asset.fileType),
+					},
+				},
+			},
+		],
+		resourceOptions: {
+			resourceId: asset.id,
+			resourceType: "asset",
+		},
 	});
 
 export const listAssets = authed.asset.list.handler(
@@ -293,6 +321,8 @@ export const saveAsset = authed.asset.save.handler(
 					organizationId,
 				});
 
+				yield* dispatchProcessJob(asset);
+
 				return {
 					data: asset,
 					meta: {
@@ -351,7 +381,7 @@ export const saveManyAssets = authed.asset.saveMany
 								metadata: assetInput.metadata,
 								userId: context.auth.user.id,
 								organizationId: context.auth.session.activeOrganizationId,
-							});
+							}).pipe(Effect.tap((result) => dispatchProcessJob(result.asset)));
 						}),
 					{
 						concurrency: 10,

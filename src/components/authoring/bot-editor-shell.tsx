@@ -137,7 +137,7 @@ const getPublishIssues = (editor: EditorState) => {
 const toDatabaseBlockEditorValue = (params: {
 	block: DatabaseBlock;
 	assetIds: string[];
-	attachments: BotEditorSelect["databaseBlocks"][number]["attachments"];
+	assets: BotEditorSelect["databaseBlocks"][number]["assets"];
 }): BotEditorSelect["databaseBlocks"][number] => ({
 	id: params.block.id,
 	name: params.block.name,
@@ -145,7 +145,7 @@ const toDatabaseBlockEditorValue = (params: {
 	status: params.block.status,
 	config: params.block.config,
 	assetIds: params.assetIds,
-	attachments: params.attachments,
+	assets: params.assets,
 });
 
 const toEditorState = (editor: BotEditorSelect): EditorState => ({
@@ -277,8 +277,8 @@ const BotEditorShell = ({
 				...current.databaseBlocks,
 				toDatabaseBlockEditorValue({
 					block: databaseBlock,
-					assetIds: block.assets?.map((entry) => entry.asset.id) ?? [],
-					attachments: block.assets ?? [],
+					assetIds: block.assets?.map((entry) => entry.id) ?? [],
+					assets: block.assets ?? [],
 				}),
 			],
 		}));
@@ -820,12 +820,12 @@ const ReviewSection = ({
 							>
 								<div className="font-medium">{databaseBlock.name}</div>
 								<div className="mt-1 text-muted-foreground text-sm">
-									{databaseBlock.attachments.length} documents attached
+									{databaseBlock.assets.length} documents attached
 								</div>
 								<div className="mt-3 flex flex-wrap gap-2">
-									{databaseBlock.attachments.map((attachment) => (
-										<Badge key={attachment.asset.id} variant="outline">
-											{attachment.asset.title}: {attachment.indexingStatus}
+									{databaseBlock.assets.map((asset) => (
+										<Badge key={asset.id} variant="outline">
+											{asset.title}: {asset.processingStatus}
 										</Badge>
 									))}
 								</div>

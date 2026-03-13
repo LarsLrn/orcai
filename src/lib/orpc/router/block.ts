@@ -13,7 +13,7 @@ import {
 	checkPermissionMiddleware,
 } from "@/lib/orpc/middlewares/permission";
 import {
-	loadDatabaseBlockAttachments,
+	loadDatabaseBlockAssets,
 	syncDatabaseBlockAssets,
 } from "@/lib/orpc/router/helpers/database-block";
 import type { Block } from "@/lib/orpc/schemas/block";
@@ -124,13 +124,13 @@ export const findBlock = authed.block.find
 				}
 
 				if (block.type === "database") {
-					const attachments = yield* loadDatabaseBlockAttachments({
+					const assets = yield* loadDatabaseBlockAssets({
 						blockId: input.id,
 					});
 
 					return {
 						data: block,
-						assets: attachments,
+						assets,
 					};
 				}
 

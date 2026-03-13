@@ -1,0 +1,1 @@
+ALTER TABLE "asset" ADD COLUMN "processing_status" text DEFAULT 'pending' NOT NULL;

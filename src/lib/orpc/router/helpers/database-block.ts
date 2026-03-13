@@ -1,68 +1,18 @@
-import { eq, getColumns, inArray } from "drizzle-orm";
+import { eq, getColumns } from "drizzle-orm";
 import * as Effect from "effect/Effect";
 import { dbSchema } from "@/db/schema";
 import { calculateRelationDelta } from "@/lib/authz/relation-delta";
 import { AuthzService } from "@/lib/effect/services/authz";
 import { DB } from "@/lib/effect/services/drizzle";
-import {
-	getJobsByResourceEffect,
-	sendJobBatchEffect,
-} from "@/lib/pg-boss/helpers";
-import type { Job } from "@/lib/pg-boss/schema/job";
-import {
-	PROCESS_ASSET_JOB_NAME,
-	VECTORIZE_ASSET_JOB_NAME,
-} from "@/lib/pg-boss/schema/job-queues";
-import { getFileTypeFromMime } from "@/lib/s3/utils/file-type-helpers";
+import { sendJobBatchEffect } from "@/lib/pg-boss/helpers";
+import { VECTORIZE_ASSET_JOB_NAME } from "@/lib/pg-boss/schema/job-queues";
 import { deletePointsByIdentifier } from "@/qdrant/mutations";
 
-const getLatestJobForAsset = (
-	jobs: Job[],
-	assetId: string,
-	key: "assetId" | "processAssetId",
-) => {
-	const matching = jobs.filter((job) => {
-		if (job.name === PROCESS_ASSET_JOB_NAME) {
-			return key === "processAssetId" && job.data.assetRef.id === assetId;
-		}
-
-		return key === "assetId" && job.data.assetId === assetId;
-	});
-
-	return matching.sort(
-		(a, b) => b.createdOn.getTime() - a.createdOn.getTime(),
-	)[0];
-};
-
-export const getAttachmentIndexingStatus = (params: {
-	processJobs: Job[];
-	vectorizeJobs: Job[];
-	assetId: string;
-}) => {
-	const processJob = getLatestJobForAsset(
-		params.processJobs,
-		params.assetId,
-		"processAssetId",
-	);
-	const vectorizeJob = getLatestJobForAsset(
-		params.vectorizeJobs,
-		params.assetId,
-		"assetId",
-	);
-
-	/* Since vectorization depends on processing, we consider the attachment to be in the state of the latest job that has not completed yet. */
-	if (processJob.state !== "completed") {
-		return processJob.state;
-	}
-
-	return vectorizeJob.state;
-};
-
-export const loadDatabaseBlockAttachments = (params: { blockId: string }) =>
+export const loadDatabaseBlockAssets = (params: { blockId: string }) =>
 	Effect.gen(function* () {
 		const db = yield* DB;
 
-		const assetRows = yield* db
+		return yield* db
 			.select({
 				...getColumns(dbSchema.asset),
 			})
@@ -72,31 +22,6 @@ export const loadDatabaseBlockAttachments = (params: { blockId: string }) =>
 				eq(dbSchema.asset.id, dbSchema.blockAsset.assetId),
 			)
 			.where(eq(dbSchema.blockAsset.blockId, params.blockId));
-
-		const [processJobs, vectorizeJobs] = yield* Effect.all(
-			[
-				getJobsByResourceEffect({
-					jobQueue: PROCESS_ASSET_JOB_NAME,
-					resourceId: params.blockId,
-				}),
-				getJobsByResourceEffect({
-					jobQueue: VECTORIZE_ASSET_JOB_NAME,
-					resourceId: params.blockId,
-				}),
-			],
-			{
-				concurrency: "unbounded",
-			},
-		);
-
-		return assetRows.map((asset) => ({
-			asset,
-			indexingStatus: getAttachmentIndexingStatus({
-				processJobs,
-				vectorizeJobs,
-				assetId: asset.id,
-			}),
-		}));
 	});
 
 export const syncDatabaseBlockAssets = (params: {
@@ -177,29 +102,13 @@ export const syncDatabaseBlockAssets = (params: {
 		}
 
 		if (addedIds.length > 0) {
-			const assets = yield* db
-				.select({
-					id: dbSchema.asset.id,
-					bucket: dbSchema.asset.bucket,
-					type: dbSchema.asset.fileType,
-					prefix: dbSchema.asset.prefix,
-					metadata: dbSchema.asset.metadata,
-				})
-				.from(dbSchema.asset)
-				.where(inArray(dbSchema.asset.id, addedIds));
-
 			yield* sendJobBatchEffect({
-				jobName: PROCESS_ASSET_JOB_NAME,
-				jobs: assets.map((asset) => ({
+				jobName: VECTORIZE_ASSET_JOB_NAME,
+				jobs: addedIds.map((assetId) => ({
 					data: {
-						assetRef: {
-							bucket: asset.bucket,
-							prefix: asset.prefix,
-							id: asset.id,
-							type: getFileTypeFromMime(asset.type),
-						},
+						prefix: assetId,
+						assetId,
 						blockId: params.blockId,
-						mergePages: asset.metadata.mergePages ?? false,
 					},
 				})),
 				resourceOptions: {

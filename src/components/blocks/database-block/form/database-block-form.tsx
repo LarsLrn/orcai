@@ -20,7 +20,7 @@ const DatabaseBlockForm = ({
 }: {
 	action: "create" | "update";
 	block?: DatabaseBlock;
-	assets?: DatabaseBlockValue["attachments"];
+	assets?: DatabaseBlockValue["assets"];
 }) => {
 	const { mutate: createBlock, isPending: isCreating } =
 		useCreateBlockMutation();
@@ -40,8 +40,8 @@ const DatabaseBlockForm = ({
 						candidateLimit: block.config.candidateLimit ?? 40,
 						maxPerAsset: block.config.maxPerAsset ?? 6,
 					},
-					assetIds: assets?.map((entry) => entry.asset.id) ?? [],
-					attachments: assets ?? [],
+					assetIds: assets?.map((entry) => entry.id) ?? [],
+					assets: assets ?? [],
 				}
 			: createDefaultDatabaseBlock(),
 	);

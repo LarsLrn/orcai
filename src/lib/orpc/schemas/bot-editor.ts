@@ -1,5 +1,4 @@
 import { z } from "zod/v4";
-import { jobState } from "@/lib/pg-boss/schema/job";
 import { assetSelectSchema } from "./asset";
 import {
 	blockStatusSchema,
@@ -18,14 +17,7 @@ export const databaseBlockEditorSchema = baseEditorBlockSchema.extend({
 	type: z.literal("database").default("database"),
 	config: databaseBlockSchema.shape.config,
 	assetIds: z.array(assetSelectSchema.shape.id).default([]),
-	attachments: z
-		.array(
-			z.object({
-				asset: assetSelectSchema,
-				indexingStatus: jobState,
-			}),
-		)
-		.default([]),
+	assets: z.array(assetSelectSchema).default([]),
 });
 
 export const botEditorSaveSchema = z.object({

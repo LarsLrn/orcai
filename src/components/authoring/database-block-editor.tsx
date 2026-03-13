@@ -58,30 +58,25 @@ const createDefaultDatabaseBlock = (): DatabaseBlockValue => ({
 		maxPerAsset: 6,
 	},
 	assetIds: [],
-	attachments: [],
+	assets: [],
 });
 
-const mergeAttachments = (
+const mergeAssets = (
 	current: DatabaseBlockValue,
-	assets: Asset[],
+	newAssets: Asset[],
 ): DatabaseBlockValue => {
-	const knownIds = new Set(
-		current.attachments.map((attachment) => attachment.asset.id),
-	);
-	const newAssets = assets.filter((asset) => !knownIds.has(asset.id));
+	const knownIds = new Set(current.assets.map((asset) => asset.id));
+	const addedAssets = newAssets.filter((asset) => !knownIds.has(asset.id));
 
 	return {
 		...current,
 		assetIds: [
 			...current.assetIds,
-			...newAssets.map((asset) => asset.id),
+			...addedAssets.map((asset) => asset.id),
 		],
-		attachments: [
-			...current.attachments,
-			...newAssets.map((asset) => ({
-				asset,
-				indexingStatus: "created" as const,
-			})),
+		assets: [
+			...current.assets,
+			...addedAssets,
 		],
 	};
 };
@@ -123,7 +118,7 @@ const DatabaseBlockEditor = ({
 		}),
 	);
 
-	const assets = value.attachments.map((attachment) => attachment.asset);
+	const assets = value.assets;
 	const providerOptions = providers.data;
 	const selectedProvider = providerOptions.find(
 		(provider) => provider.id === value.config.provider,
@@ -152,14 +147,6 @@ const DatabaseBlockEditor = ({
 					},
 				]
 			: embeddingOptions;
-	const attachmentsById = Object.fromEntries(
-		value.attachments.map((attachment) => [
-			attachment.asset.id,
-			{
-				indexingStatus: attachment.indexingStatus,
-			},
-		]),
-	);
 
 	return (
 		<Card className="rounded-[28px] border-border/80 bg-background shadow-sm">
@@ -320,7 +307,7 @@ const DatabaseBlockEditor = ({
 								selectedIds={assets.map((asset) => asset.id)}
 								onSelect={(asset) =>
 									onChange(
-										mergeAttachments(value, [
+										mergeAssets(value, [
 											asset,
 										]),
 									)
@@ -342,7 +329,7 @@ const DatabaseBlockEditor = ({
 							<AssetIntakeFlow
 								submitLabel="Save Documents"
 								onAssetsSaved={(savedAssets) => {
-									onChange(mergeAttachments(value, savedAssets));
+									onChange(mergeAssets(value, savedAssets));
 									setIsUploadOpen(false);
 								}}
 							/>
@@ -364,26 +351,18 @@ const DatabaseBlockEditor = ({
 					{assets.length > 0 ? (
 						<SelectedAssetList
 							assets={assets}
-							attachmentsById={attachmentsById}
 							onRemove={(assetId) =>
 								onChange({
 									...value,
 									assetIds: value.assetIds.filter((id) => id !== assetId),
-									attachments: value.attachments.filter(
-										(attachment) => attachment.asset.id !== assetId,
-									),
+									assets: value.assets.filter((asset) => asset.id !== assetId),
 								})
 							}
 							onAssetUpdated={(asset) =>
 								onChange({
 									...value,
-									attachments: value.attachments.map((attachment) =>
-										attachment.asset.id === asset.id
-											? {
-													...attachment,
-													asset,
-												}
-											: attachment,
+									assets: value.assets.map((existing) =>
+										existing.id === asset.id ? asset : existing,
 									),
 								})
 							}

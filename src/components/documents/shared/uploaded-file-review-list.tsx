@@ -30,8 +30,7 @@ const hasMetadataAdded = (draft: AssetMetadataDraft, fileName: string) => {
 		(metadata.externalUrl ?? "") !== (defaults.externalUrl ?? "") ||
 		(metadata.relevance ?? defaults.relevance) !== defaults.relevance ||
 		(metadata.showReference ?? defaults.showReference) !==
-			defaults.showReference ||
-		(metadata.mergePages ?? defaults.mergePages) !== defaults.mergePages
+			defaults.showReference
 	);
 };
 

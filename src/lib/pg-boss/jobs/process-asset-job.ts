@@ -1,12 +1,11 @@
+import { eq } from "drizzle-orm";
 import * as Effect from "effect/Effect";
 import type { Job } from "pg-boss";
+import { dbSchema } from "@/db/schema";
 import { serializeDoclingPayload } from "@/lib/ai/utils/docling-conversion";
 import { DoclingService } from "@/lib/effect/services/docling";
-import { PgBossService } from "@/lib/effect/services/pg-boss";
-import {
-	PROCESS_ASSET_JOB_NAME,
-	VECTORIZE_ASSET_JOB_NAME,
-} from "@/lib/pg-boss/schema/job-queues";
+import { DB } from "@/lib/effect/services/drizzle";
+import { PROCESS_ASSET_JOB_NAME } from "@/lib/pg-boss/schema/job-queues";
 import type { ProcessAssetPayload } from "@/lib/pg-boss/schema/process-asset";
 import { toPgBossRunError } from "@/lib/pg-boss/utils/error-helper";
 import { validateImageResolution } from "@/lib/pg-boss/utils/validate-image-resolution";
@@ -31,7 +30,7 @@ export const processAssetBatchEffect = (jobs: Job<ProcessAssetPayload>[]) =>
 const processAssetsEffect = (params: { job: Job<ProcessAssetPayload> }) =>
 	Effect.gen(function* () {
 		const { convertDocument } = yield* DoclingService;
-		const { assetRef, blockId, mergePages } = params.job.data;
+		const { assetRef } = params.job.data;
 
 		const presignedUrl = yield* getDownloadUrl({
 			bucket: assetRef.bucket,
@@ -102,7 +101,6 @@ const processAssetsEffect = (params: { job: Job<ProcessAssetPayload> }) =>
 			try: () =>
 				serializeDoclingPayload(processedDocument, {
 					keepImageRefs: true,
-					mergePages,
 				}),
 			catch: toPgBossRunError(params.job.id, PROCESS_ASSET_JOB_NAME),
 		}).pipe(
@@ -242,33 +240,32 @@ const processAssetsEffect = (params: { job: Job<ProcessAssetPayload> }) =>
 			),
 		);
 
-		const { boss } = yield* PgBossService;
+		const db = yield* DB;
 
-		yield* Effect.tryPromise({
-			try: () =>
-				boss.send(
-					VECTORIZE_ASSET_JOB_NAME,
-					{
-						prefix: assetRef.id,
-						blockId,
-						assetId: assetRef.id,
-						mergePages,
-					},
-					{
-						startAfter: 5,
-					},
-				),
-			catch: toPgBossRunError(params.job.id, PROCESS_ASSET_JOB_NAME),
-		}).pipe(
-			Effect.tapError((err) =>
-				Effect.logError(
+		yield* db
+			.update(dbSchema.asset)
+			.set({
+				processingStatus: "completed",
+			})
+			.where(eq(dbSchema.asset.id, assetRef.id));
+
+		yield* Effect.logInfo(`Completed job ${params.job.id}`);
+	}).pipe(
+		Effect.tapError((err) =>
+			Effect.gen(function* () {
+				yield* Effect.logError(
 					{
 						err,
 					},
-					"Error scheduling vectorization job",
-				),
-			),
-		);
-
-		yield* Effect.logInfo(`Completed job ${params.job.id}`);
-	});
+					"Process asset job failed",
+				);
+				const db = yield* DB;
+				yield* db
+					.update(dbSchema.asset)
+					.set({
+						processingStatus: "failed",
+					})
+					.where(eq(dbSchema.asset.id, params.job.data.assetRef.id));
+			}),
+		),
+	);

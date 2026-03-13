@@ -21,17 +21,10 @@ const SelectedAssetList = ({
 	assets,
 	onRemove,
 	onAssetUpdated,
-	attachmentsById,
 }: {
 	assets: Asset[];
 	onRemove: (assetId: string) => void;
 	onAssetUpdated?: (asset: Asset) => void;
-	attachmentsById?: Record<
-		string,
-		{
-			indexingStatus: string;
-		}
-	>;
 }) => {
 	const [editingAssetId, setEditingAssetId] = useState<string | null>(null);
 	const [drafts, setDrafts] = useState<
@@ -52,7 +45,6 @@ const SelectedAssetList = ({
 					title: asset.title,
 					metadata: asset.metadata ?? createDefaultAssetMetadata(),
 				};
-				const indexingStatus = attachmentsById?.[asset.id]?.indexingStatus;
 
 				return (
 					<div
@@ -63,8 +55,8 @@ const SelectedAssetList = ({
 							<div className="truncate font-medium text-sm">{asset.title}</div>
 							<div className="mt-1 flex flex-wrap gap-2 text-xs">
 								<Badge variant="secondary">{asset.fileType}</Badge>
-								{indexingStatus ? (
-									<Badge variant="outline">{indexingStatus}</Badge>
+								{asset.processingStatus ? (
+									<Badge variant="outline">{asset.processingStatus}</Badge>
 								) : null}
 							</div>
 						</div>

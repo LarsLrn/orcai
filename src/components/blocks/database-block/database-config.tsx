@@ -27,11 +27,7 @@ import type { Job } from "@/lib/pg-boss/schema/job";
 import type { JobQueue } from "@/lib/pg-boss/schema/job-queues";
 
 /** --- Grid --- */
-const AssetGrid = ({
-	assets,
-}: {
-	assets: DatabaseBlockValue["attachments"];
-}) => {
+const AssetGrid = ({ assets }: { assets: DatabaseBlockValue["assets"] }) => {
 	if (assets.length === 0) {
 		return (
 			<Card>
@@ -50,7 +46,7 @@ const AssetGrid = ({
 				preset="fade"
 			>
 				{assets.map((entry) => (
-					<AssetCard key={entry.asset.id} asset={entry.asset} />
+					<AssetCard key={entry.id} asset={entry} />
 				))}
 			</AnimatedGroup>
 		</div>
@@ -65,7 +61,7 @@ const DatabaseBlockConfigCard = ({
 }: {
 	blockId: DatabaseBlock["id"];
 	config: DatabaseBlock["config"];
-	assets: DatabaseBlockValue["attachments"];
+	assets: DatabaseBlockValue["assets"];
 }) => {
 	return (
 		<div className="flex flex-col gap-4">
@@ -135,7 +131,7 @@ const AssetSection = ({
 	assets,
 	blockId,
 }: {
-	assets: DatabaseBlockValue["attachments"];
+	assets: DatabaseBlockValue["assets"];
 	blockId: DatabaseBlock["id"];
 }) => {
 	const { mutate: createJob } = useCreateJobMutation();
@@ -160,7 +156,7 @@ const AssetSection = ({
 						size="sm"
 						onClick={() =>
 							createJob({
-								jobRunner: "process-asset-job",
+								jobRunner: "vectorize-asset-job",
 								blockId,
 							})
 						}
