@@ -4,7 +4,6 @@ import { z } from "zod/v4";
 import { runtime } from "@/lib/effect/runtime";
 import { AiError } from "@/lib/effect/utils/errors";
 import { client } from "@/lib/orpc/orpc";
-import { assetPointSelectSchema } from "@/lib/orpc/schemas/asset-point";
 import {
 	baseBlockSelectSchema,
 	type DatabaseBlock,
@@ -49,10 +48,6 @@ export const searchKnowledgeBaseTool = ({
 				.describe(
 					"Optional database block id to target a specific knowledge base.",
 				),
-			assetIds: z
-				.array(assetPointSelectSchema.shape.id)
-				.optional()
-				.describe("Optional list of asset IDs to scope retrieval."),
 			retrievalMode: z
 				.enum([
 					"dense",
@@ -62,14 +57,7 @@ export const searchKnowledgeBaseTool = ({
 				.describe("Hybrid is recommended for most factual searches."),
 			minScore: z.number().min(0).max(1).optional(),
 		}),
-		execute: async ({
-			queries,
-			limit,
-			blockId,
-			assetIds,
-			retrievalMode,
-			minScore,
-		}) =>
+		execute: async ({ queries, limit, blockId, retrievalMode, minScore }) =>
 			runtime.runPromise(
 				Effect.gen(function* () {
 					if (blocks.length === 0) {
@@ -100,7 +88,6 @@ export const searchKnowledgeBaseTool = ({
 											queries,
 											limit: Math.max(limit * 6, 24),
 											blockId: block.id,
-											assetIds,
 											retrievalMode:
 												retrievalMode ?? block.config.retrievalMode ?? "hybrid",
 											minScore: minScore ?? block.config.scoreThreshold,
@@ -109,6 +96,7 @@ export const searchKnowledgeBaseTool = ({
 											maxPerAsset: block.config.maxPerAsset ?? 2,
 										},
 									});
+
 									return {
 										block,
 										response,

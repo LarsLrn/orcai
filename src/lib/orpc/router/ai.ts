@@ -8,14 +8,15 @@ import {
 } from "ai";
 import * as Effect from "effect/Effect";
 import { v4 as uuidv4 } from "uuid";
-import { chatAgent } from "@/lib/ai/agents/chat-agent";
+import { createChatAgent } from "@/lib/ai/agents/chat-agent";
 import { generateChatTitle } from "@/lib/ai/generate-chat-title";
 import { getChatMessageAttachments } from "@/lib/ai/types/chat-attachment";
 import { buildAttachmentPromptPartCached } from "@/lib/ai/utils/chat-attachment-parts";
+import { getChatAiSettings } from "@/lib/ai/utils/get-chat-ai-settings";
+import { AiError } from "@/lib/effect/utils/errors";
 import { runOrpcEffect } from "@/lib/effect/utils/orpc-helpers";
 import { authed } from "@/lib/orpc/implementation/authed";
 import { requireActiveOrganizationMiddleware } from "@/lib/orpc/middlewares/auth";
-import { listBlocks } from "./block";
 import { updateChat } from "./chat";
 import { createChatMessage } from "./chat-message";
 
@@ -52,6 +53,18 @@ export const aiChat = authed.ai.chat
 						}),
 					);
 				}
+
+				const botId = yield* Effect.fromNullable(input.botId).pipe(
+					Effect.mapError(() =>
+						errors.BAD_REQUEST({
+							message: "botId is required",
+						}),
+					),
+				);
+
+				const chatAiSettings = yield* getChatAiSettings({
+					botId,
+				});
 
 				const userMessageAttachments = getChatMessageAttachments(userMessage);
 
@@ -126,9 +139,8 @@ export const aiChat = authed.ai.chat
 
 				if (inputMessages.length < 2) {
 					yield* generateChatTitle({
-						messages: inputMessages as Parameters<
-							typeof generateChatTitle
-						>[0]["messages"],
+						messages: inputMessages,
+						model: chatAiSettings.model,
 					}).pipe(
 						Effect.flatMap(({ title }) =>
 							Effect.tryPromise({
@@ -154,42 +166,18 @@ export const aiChat = authed.ai.chat
 
 				const assistantMessageId = uuidv4();
 
-				const botId = yield* Effect.fromNullable(input.botId).pipe(
-					Effect.mapError(() =>
-						errors.BAD_REQUEST({
-							message: "botId is required",
-						}),
-					),
-				);
-
-				const blocks = yield* Effect.tryPromise({
-					try: () =>
-						call(
-							listBlocks,
-							{
-								filters: {
-									botId,
-								},
-							},
-							{
-								context,
-							},
-						),
-					catch: () =>
-						errors.BAD_REQUEST({
-							message: "Failed to fetch blocks for bot",
-						}),
+				const agent = createChatAgent({
+					model: chatAiSettings.model,
+					templateBlock: chatAiSettings.templateBlock,
+					databaseBlocks: chatAiSettings.databaseBlocks,
 				});
 
 				const stream = yield* Effect.tryPromise({
 					try: async () =>
 						createAgentUIStream({
-							agent: chatAgent,
+							agent,
 							uiMessages: messagesWithAttachmentParts,
 							originalMessages: inputMessages,
-							options: {
-								blocks: blocks.data,
-							},
 							generateMessageId: () => assistantMessageId,
 							experimental_transform: smoothStream({
 								delayInMs: 20,
@@ -237,9 +225,12 @@ export const aiChat = authed.ai.chat
 							},
 						}),
 					catch: (cause) =>
-						new Error("Failed to create agent UI stream", {
-							cause,
-						}),
+						Effect.fail(
+							new AiError({
+								operation: "aiChat.handler",
+								cause,
+							}),
+						),
 				});
 
 				return streamToEventIterator(stream);

@@ -1,6 +1,6 @@
 import type { InferAgentUIMessage } from "ai";
 import { z } from "zod/v4";
-import type { chatAgent } from "@/lib/ai/agents/chat-agent";
+import type { createChatAgent } from "@/lib/ai/agents/chat-agent";
 import {
 	type ChatAttachment,
 	chatAttachmentsSchema,
@@ -27,7 +27,10 @@ const metadataSchema = z.object({
 export type ChatAgentMessageMetadata = z.infer<typeof metadataSchema>;
 
 export type ChatAgentUIMessage = Omit<
-	InferAgentUIMessage<typeof chatAgent, ChatAgentMessageMetadata>,
+	InferAgentUIMessage<
+		ReturnType<typeof createChatAgent>,
+		ChatAgentMessageMetadata
+	>,
 	"id"
 > & {
 	id: ChatMessage["id"];
