@@ -24,7 +24,6 @@ import { chatMessage } from "./chat-message";
 import { course } from "./course";
 import { model, provider } from "./model";
 import { invitation, member, organization } from "./organization";
-import { task } from "./task";
 
 export const dbSchema = {
 	user,
@@ -53,7 +52,6 @@ export const dbSchema = {
 	resourceGrant,
 	resourceScope,
 	resourceVisibility,
-	task,
 };
 
 export const enumSchema = {
