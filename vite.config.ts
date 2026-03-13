@@ -74,15 +74,6 @@ export default defineConfig({
 			presets: [
 				reactCompilerPreset(),
 			],
-			plugins: [
-				"@babel/plugin-syntax-jsx",
-				[
-					"@babel/plugin-syntax-typescript",
-					{
-						isTSX: true,
-					},
-				],
-			],
 		}),
 	],
 });
