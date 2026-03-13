@@ -53,7 +53,7 @@ export const checkPermissionMiddleware = withName(
 						({ permissionship }) =>
 							hasPermission({
 								permissionship,
-							}) === false,
+							}),
 						() =>
 							errors.FORBIDDEN({
 								data: {
