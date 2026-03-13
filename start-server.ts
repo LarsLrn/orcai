@@ -331,8 +331,9 @@ async function initializeStaticRoutes(
 				// Get file metadata
 				const file = Bun.file(filepath);
 
-				// Skip if file doesn't exist or is empty
-				if (!(await file.exists()) || file.size === 0) {
+				// Vite can emit valid zero-byte stub modules for split chunks.
+				// They still need to be served, otherwise dynamic imports 404 in production.
+				if (!(await file.exists())) {
 					continue;
 				}
 
