@@ -1,9 +1,7 @@
 import { and, countDistinct, desc, eq, getColumns, inArray } from "drizzle-orm";
 import * as Effect from "effect/Effect";
 import { dbSchema } from "@/db/schema";
-import { calculateRelationDelta } from "@/lib/authz/relation-delta";
 import { initializeResourceAuthorization } from "@/lib/authz/resource-lifecycle";
-import { AuthzService } from "@/lib/effect/services/authz";
 import { DB } from "@/lib/effect/services/drizzle";
 import { runOrpcEffect } from "@/lib/effect/utils/orpc-helpers";
 import { authed } from "@/lib/orpc/implementation/authed";
@@ -14,6 +12,10 @@ import {
 	checkManyPermissionMiddleware,
 	checkPermissionMiddleware,
 } from "@/lib/orpc/middlewares/permission";
+import {
+	loadDatabaseBlockAssets,
+	syncDatabaseBlockAssets,
+} from "@/lib/orpc/router/helpers/database-block";
 import type { Block } from "@/lib/orpc/schemas/block";
 import { lookupEntitiesByPermission } from "@/lib/spice-db/client";
 
@@ -36,6 +38,7 @@ export const listBlocks = authed.block.list.handler(
 
 				const whereConditions = [
 					inArray(dbSchema.block.id, allowedIds),
+					eq(dbSchema.block.status, "ready"),
 				];
 				if (input.filters?.botId) {
 					whereConditions.push(
@@ -121,16 +124,13 @@ export const findBlock = authed.block.find
 				}
 
 				if (block.type === "database") {
-					const assets = yield* db
-						.select({
-							assetId: dbSchema.blockAsset.assetId,
-						})
-						.from(dbSchema.blockAsset)
-						.where(eq(dbSchema.blockAsset.blockId, input.id));
+					const assets = yield* loadDatabaseBlockAssets({
+						blockId: input.id,
+					});
 
 					return {
 						data: block,
-						assets: assets.map((a) => a.assetId),
+						assets,
 					};
 				}
 
@@ -147,7 +147,6 @@ export const createBlock = authed.block.create
 		runOrpcEffect(
 			Effect.gen(function* () {
 				const db = yield* DB;
-				const authz = yield* AuthzService;
 
 				const [block] = yield* db
 					.insert(dbSchema.block)
@@ -162,7 +161,7 @@ export const createBlock = authed.block.create
 					})
 					.pipe(Effect.map((rows) => rows as Block[]));
 
-				let zedToken = (yield* initializeResourceAuthorization({
+				const zedToken = (yield* initializeResourceAuthorization({
 					resourceType: "block",
 					resourceId: block.id,
 					organizationId: context.auth.session.activeOrganizationId,
@@ -170,35 +169,15 @@ export const createBlock = authed.block.create
 				})).zedToken;
 
 				if (input.type === "database") {
-					const assets = yield* db
-						.insert(dbSchema.blockAsset)
-						.values(
-							input.assets.map((assetId) => ({
-								blockId: block.id,
-								assetId,
-							})),
-						)
-						.returning({
-							assetId: dbSchema.blockAsset.assetId,
-						});
-
-					if (input.assets.length > 0) {
-						const relationResult = yield* authz.applyRelationshipMutations({
-							mutations: input.assets.map((assetId) => ({
-								resourceType: "asset" as const,
-								resourceId: assetId,
-								relation: "block" as const,
-								subjectType: "block" as const,
-								subjectId: block.id,
-								operation: "touch" as const,
-							})),
-						});
-						zedToken = relationResult.zedToken ?? zedToken;
-					}
+					const syncResult = yield* syncDatabaseBlockAssets({
+						blockId: block.id,
+						assetIds: input.assets,
+						previousAssetIds: [],
+					});
 
 					return {
 						data: block,
-						assets: assets.map((a) => a.assetId),
+						assets: syncResult.assetIds,
 						meta: {
 							zedToken,
 						},
@@ -229,7 +208,6 @@ export const updateBlock = authed.block.update
 		runOrpcEffect(
 			Effect.gen(function* () {
 				const db = yield* DB;
-				const authz = yield* AuthzService;
 
 				const [block] = yield* db
 					.update(dbSchema.block)
@@ -251,53 +229,15 @@ export const updateBlock = authed.block.update
 						.from(dbSchema.blockAsset)
 						.where(eq(dbSchema.blockAsset.blockId, block.id));
 
-					yield* db
-						.delete(dbSchema.blockAsset)
-						.where(eq(dbSchema.blockAsset.blockId, block.id));
-
-					const assets = yield* db
-						.insert(dbSchema.blockAsset)
-						.values(
-							input.assets.map((assetId) => ({
-								blockId: block.id,
-								assetId,
-							})),
-						)
-						.returning({
-							assetId: dbSchema.blockAsset.assetId,
-						});
-
-					const { removedIds, addedIds } = calculateRelationDelta(
-						previousAssets.map((asset) => asset.assetId),
-						input.assets,
-					);
-
-					if (removedIds.length > 0 || addedIds.length > 0) {
-						yield* authz.applyRelationshipMutations({
-							mutations: [
-								...removedIds.map((assetId) => ({
-									resourceType: "asset" as const,
-									resourceId: assetId,
-									relation: "block" as const,
-									subjectType: "block" as const,
-									subjectId: block.id,
-									operation: "delete" as const,
-								})),
-								...addedIds.map((assetId) => ({
-									resourceType: "asset" as const,
-									resourceId: assetId,
-									relation: "block" as const,
-									subjectType: "block" as const,
-									subjectId: block.id,
-									operation: "touch" as const,
-								})),
-							],
-						});
-					}
+					const syncResult = yield* syncDatabaseBlockAssets({
+						blockId: block.id,
+						assetIds: input.assets,
+						previousAssetIds: previousAssets.map((asset) => asset.assetId),
+					});
 
 					return {
 						data: block,
-						assets: assets.map((a) => a.assetId),
+						assets: syncResult.assetIds,
 					};
 				}
 
@@ -329,6 +269,31 @@ export const deleteBlocks = authed.block.delete
 						message: "No blocks to delete",
 					};
 				}
+
+				const databaseBlocks = yield* db
+					.select({
+						id: dbSchema.block.id,
+					})
+					.from(dbSchema.block)
+					.where(
+						and(
+							inArray(dbSchema.block.id, context.allowedIds),
+							eq(dbSchema.block.type, "database"),
+						),
+					);
+
+				yield* Effect.forEach(
+					databaseBlocks,
+					(block) =>
+						syncDatabaseBlockAssets({
+							blockId: block.id,
+							assetIds: [],
+						}),
+					{
+						concurrency: "unbounded",
+						discard: true,
+					},
+				);
 
 				yield* db
 					.delete(dbSchema.block)

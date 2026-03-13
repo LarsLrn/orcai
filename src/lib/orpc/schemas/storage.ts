@@ -67,13 +67,18 @@ export const finalizeUploadInputSchema = z.object({
 	files: z.array(uploadFileObjectSchema).min(1),
 });
 
+export const finalizedUploadFileSchema = z.object({
+	id: z.uuidv4(),
+	bucket: z.string(),
+	prefix: z.string(),
+	objectKey: z.string(),
+	name: z.string(),
+	size: z.number().int().min(1),
+	type: z.string().min(1),
+});
+
 export const finalizeUploadOutputSchema = z.object({
-	data: z.array(
-		z.object({
-			id: z.string(),
-			created: z.boolean(),
-		}),
-	),
+	data: z.array(finalizedUploadFileSchema),
 });
 
 const multipartCompletedPartSchema = z.object({

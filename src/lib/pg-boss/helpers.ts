@@ -73,7 +73,7 @@ export const sendJobBatchEffect = <T extends object = object>(params: {
 	}>;
 	resourceOptions: {
 		resourceId: string;
-		resourceType: "block" | "course" | "chat";
+		resourceType: "block" | "course" | "chat" | "asset";
 	};
 }) =>
 	Effect.gen(function* () {
@@ -114,14 +114,11 @@ export const getJobsByResourceEffect = (params: {
 	Effect.gen(function* () {
 		const { boss } = yield* PgBossService;
 
-		const dataKey =
-			params.jobQueue === "process-asset-job" ? "resourceId" : "blockId";
-
 		const data = yield* Effect.tryPromise({
 			try: async () =>
 				await boss.findJobs(params.jobQueue, {
 					data: {
-						[dataKey]: params.resourceId,
+						resourceId: params.resourceId,
 					},
 				}),
 			catch: (error) =>

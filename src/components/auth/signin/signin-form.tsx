@@ -14,6 +14,7 @@ const SignInForm = () => {
 
 	return (
 		<form
+			method="post"
 			onSubmit={(e) => {
 				e.preventDefault();
 				form.handleSubmit();

@@ -4,6 +4,7 @@ import * as Runtime from "effect/Runtime";
 import * as Schedule from "effect/Schedule";
 import type { Job, PgBoss } from "pg-boss";
 import type { DoclingService } from "@/lib/effect/services/docling";
+import type { DB } from "@/lib/effect/services/drizzle";
 import type { QdrantService } from "@/lib/effect/services/qdrant";
 import { PgBossWorkersError } from "@/lib/effect/utils/errors";
 import { processAssetBatchEffect } from "@/lib/pg-boss/jobs/process-asset-job";
@@ -51,7 +52,8 @@ const registerWorkers = Effect.gen(function* () {
 		| S3Service
 		| AppConfigService
 		| QdrantService
-		| DoclingService;
+		| DoclingService
+		| DB;
 
 	// Capture the full runtime so worker callbacks have access to all
 	// services that their effects may require

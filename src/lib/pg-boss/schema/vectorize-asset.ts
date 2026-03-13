@@ -6,7 +6,6 @@ export const vectorizeAssetPayloadSchema = z.object({
 	prefix: z.string(),
 	assetId: assetSelectSchema.shape.id,
 	blockId: baseBlockSelectSchema.shape.id,
-	mergePages: z.boolean(),
 });
 
 export type VectorizeAssetPayload = z.infer<typeof vectorizeAssetPayloadSchema>;

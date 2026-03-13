@@ -4,14 +4,36 @@ import * as Effect from "effect/Effect";
 import { AiError } from "@/lib/effect/utils/errors";
 import { decryptApiKey } from "@/lib/encryption";
 import { client } from "@/lib/orpc/orpc";
-import type { TemplateBlock } from "@/lib/orpc/schemas/block";
+import type { DatabaseBlock, TemplateBlock } from "@/lib/orpc/schemas/block";
+import type { Bot } from "@/lib/orpc/schemas/bot";
 
-export const getChatAiSettings = ({
-	templateBlock,
-}: {
-	templateBlock: TemplateBlock;
-}) =>
+export const getChatAiSettings = ({ botId }: { botId: Bot["id"] }) =>
 	Effect.gen(function* () {
+		const blocks = yield* Effect.tryPromise({
+			try: () =>
+				client.block.list({
+					filters: {
+						botId,
+					},
+				}),
+			catch: (cause) =>
+				new AiError({
+					operation: "chatAgent.getChatAiSettings.fetch.blocks",
+					cause,
+				}),
+		});
+
+		const templateBlock = blocks.data.find(
+			(block) => block.type === "template",
+		);
+
+		if (!templateBlock) {
+			return yield* new AiError({
+				operation: "chatAgent.prepareCall",
+				cause: new Error("No template block found for chat agent."),
+			});
+		}
+
 		const [{ data: provider }, { data: modelSettings }] = yield* Effect.all(
 			[
 				Effect.tryPromise({
@@ -78,5 +100,9 @@ export const getChatAiSettings = ({
 		return {
 			provider,
 			model,
+			templateBlock: templateBlock as TemplateBlock,
+			databaseBlocks: blocks.data.filter(
+				(block) => block.type === "database",
+			) as DatabaseBlock[],
 		};
 	});

@@ -8,6 +8,7 @@ import {
 	blockUpdateSchema,
 } from "@/lib/orpc/schemas/block";
 import { botSelectSchema } from "@/lib/orpc/schemas/bot";
+import { databaseBlockEditorSchema } from "@/lib/orpc/schemas/bot-editor";
 import {
 	paginationSchema,
 	statusSchema,
@@ -80,7 +81,7 @@ export const findBlockContract = base
 	.output(
 		z.object({
 			data: blockSelectSchema,
-			assets: z.array(assetSelectSchema.shape.id).optional(),
+			assets: databaseBlockEditorSchema.shape.assets.optional(),
 		}),
 	);
 

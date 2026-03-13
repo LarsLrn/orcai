@@ -80,7 +80,7 @@ import { Route as AppHubBotsBotIdIndexRouteImport } from './routes/app/hub/bots/
 import { Route as AppHubBlocksBlockIdIndexRouteImport } from './routes/app/hub/blocks/$blockId/index'
 import { Route as AppHubAssetsAssetIdIndexRouteImport } from './routes/app/hub/assets/$assetId/index'
 import { Route as AppHubCoursesCourseIdEditRouteImport } from './routes/app/hub/courses/$courseId/edit'
-import { Route as AppHubBotsBotIdEditRouteImport } from './routes/app/hub/bots/$botId/edit'
+import { Route as AppHubBotsBotIdSetupRouteImport } from './routes/app/hub/bots/$botId/setup'
 import { Route as AppHubBlocksBlockIdPointsRouteImport } from './routes/app/hub/blocks/$blockId/points'
 import { Route as AppHubBlocksBlockIdEditRouteImport } from './routes/app/hub/blocks/$blockId/edit'
 import { Route as AppHubAssetsAssetIdEditRouteImport } from './routes/app/hub/assets/$assetId/edit'
@@ -450,9 +450,9 @@ const AppHubCoursesCourseIdEditRoute =
     path: '/edit',
     getParentRoute: () => AppHubCoursesCourseIdRouteRoute,
   } as any)
-const AppHubBotsBotIdEditRoute = AppHubBotsBotIdEditRouteImport.update({
-  id: '/edit',
-  path: '/edit',
+const AppHubBotsBotIdSetupRoute = AppHubBotsBotIdSetupRouteImport.update({
+  id: '/setup',
+  path: '/setup',
   getParentRoute: () => AppHubBotsBotIdRouteRoute,
 } as any)
 const AppHubBlocksBlockIdPointsRoute =
@@ -541,7 +541,7 @@ export interface FileRoutesByFullPath {
   '/app/hub/assets/$assetId/edit': typeof AppHubAssetsAssetIdEditRoute
   '/app/hub/blocks/$blockId/edit': typeof AppHubBlocksBlockIdEditRoute
   '/app/hub/blocks/$blockId/points': typeof AppHubBlocksBlockIdPointsRoute
-  '/app/hub/bots/$botId/edit': typeof AppHubBotsBotIdEditRoute
+  '/app/hub/bots/$botId/setup': typeof AppHubBotsBotIdSetupRoute
   '/app/hub/courses/$courseId/edit': typeof AppHubCoursesCourseIdEditRoute
   '/app/hub/assets/$assetId/': typeof AppHubAssetsAssetIdIndexRoute
   '/app/hub/blocks/$blockId/': typeof AppHubBlocksBlockIdIndexRoute
@@ -596,7 +596,7 @@ export interface FileRoutesByTo {
   '/app/hub/assets/$assetId/edit': typeof AppHubAssetsAssetIdEditRoute
   '/app/hub/blocks/$blockId/edit': typeof AppHubBlocksBlockIdEditRoute
   '/app/hub/blocks/$blockId/points': typeof AppHubBlocksBlockIdPointsRoute
-  '/app/hub/bots/$botId/edit': typeof AppHubBotsBotIdEditRoute
+  '/app/hub/bots/$botId/setup': typeof AppHubBotsBotIdSetupRoute
   '/app/hub/courses/$courseId/edit': typeof AppHubCoursesCourseIdEditRoute
   '/app/hub/assets/$assetId': typeof AppHubAssetsAssetIdIndexRoute
   '/app/hub/blocks/$blockId': typeof AppHubBlocksBlockIdIndexRoute
@@ -674,7 +674,7 @@ export interface FileRoutesById {
   '/app/hub/assets/$assetId/edit': typeof AppHubAssetsAssetIdEditRoute
   '/app/hub/blocks/$blockId/edit': typeof AppHubBlocksBlockIdEditRoute
   '/app/hub/blocks/$blockId/points': typeof AppHubBlocksBlockIdPointsRoute
-  '/app/hub/bots/$botId/edit': typeof AppHubBotsBotIdEditRoute
+  '/app/hub/bots/$botId/setup': typeof AppHubBotsBotIdSetupRoute
   '/app/hub/courses/$courseId/edit': typeof AppHubCoursesCourseIdEditRoute
   '/app/hub/assets/$assetId/': typeof AppHubAssetsAssetIdIndexRoute
   '/app/hub/blocks/$blockId/': typeof AppHubBlocksBlockIdIndexRoute
@@ -752,7 +752,7 @@ export interface FileRouteTypes {
     | '/app/hub/assets/$assetId/edit'
     | '/app/hub/blocks/$blockId/edit'
     | '/app/hub/blocks/$blockId/points'
-    | '/app/hub/bots/$botId/edit'
+    | '/app/hub/bots/$botId/setup'
     | '/app/hub/courses/$courseId/edit'
     | '/app/hub/assets/$assetId/'
     | '/app/hub/blocks/$blockId/'
@@ -807,7 +807,7 @@ export interface FileRouteTypes {
     | '/app/hub/assets/$assetId/edit'
     | '/app/hub/blocks/$blockId/edit'
     | '/app/hub/blocks/$blockId/points'
-    | '/app/hub/bots/$botId/edit'
+    | '/app/hub/bots/$botId/setup'
     | '/app/hub/courses/$courseId/edit'
     | '/app/hub/assets/$assetId'
     | '/app/hub/blocks/$blockId'
@@ -884,7 +884,7 @@ export interface FileRouteTypes {
     | '/app/hub/assets/$assetId/edit'
     | '/app/hub/blocks/$blockId/edit'
     | '/app/hub/blocks/$blockId/points'
-    | '/app/hub/bots/$botId/edit'
+    | '/app/hub/bots/$botId/setup'
     | '/app/hub/courses/$courseId/edit'
     | '/app/hub/assets/$assetId/'
     | '/app/hub/blocks/$blockId/'
@@ -1400,11 +1400,11 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AppHubCoursesCourseIdEditRouteImport
       parentRoute: typeof AppHubCoursesCourseIdRouteRoute
     }
-    '/app/hub/bots/$botId/edit': {
-      id: '/app/hub/bots/$botId/edit'
-      path: '/edit'
-      fullPath: '/app/hub/bots/$botId/edit'
-      preLoaderRoute: typeof AppHubBotsBotIdEditRouteImport
+    '/app/hub/bots/$botId/setup': {
+      id: '/app/hub/bots/$botId/setup'
+      path: '/setup'
+      fullPath: '/app/hub/bots/$botId/setup'
+      preLoaderRoute: typeof AppHubBotsBotIdSetupRouteImport
       parentRoute: typeof AppHubBotsBotIdRouteRoute
     }
     '/app/hub/blocks/$blockId/points': {
@@ -1574,12 +1574,12 @@ const AppHubBlocksRouteRouteWithChildren =
   AppHubBlocksRouteRoute._addFileChildren(AppHubBlocksRouteRouteChildren)
 
 interface AppHubBotsBotIdRouteRouteChildren {
-  AppHubBotsBotIdEditRoute: typeof AppHubBotsBotIdEditRoute
+  AppHubBotsBotIdSetupRoute: typeof AppHubBotsBotIdSetupRoute
   AppHubBotsBotIdIndexRoute: typeof AppHubBotsBotIdIndexRoute
 }
 
 const AppHubBotsBotIdRouteRouteChildren: AppHubBotsBotIdRouteRouteChildren = {
-  AppHubBotsBotIdEditRoute: AppHubBotsBotIdEditRoute,
+  AppHubBotsBotIdSetupRoute: AppHubBotsBotIdSetupRoute,
   AppHubBotsBotIdIndexRoute: AppHubBotsBotIdIndexRoute,
 }
 

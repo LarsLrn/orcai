@@ -131,13 +131,13 @@ const SectionFooter = ({
 
 export {
 	Section,
-	SectionHeader,
-	SectionTitle,
-	SectionDescription,
 	SectionAction,
 	SectionContent,
-	SectionGrid,
+	SectionDescription,
 	SectionFooter,
-	type SectionGridLayout,
+	SectionGrid,
 	type SectionGridGap,
+	type SectionGridLayout,
+	SectionHeader,
+	SectionTitle,
 };

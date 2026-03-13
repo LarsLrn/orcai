@@ -1,4 +1,5 @@
 import { TagIcon } from "lucide-react";
+import { BlockCard } from "@/components/blocks/block-card";
 import { Badge } from "@/components/ui/badge";
 import {
 	Card,
@@ -8,7 +9,6 @@ import {
 	CardTitle,
 } from "@/components/ui/card";
 import type { Block } from "@/lib/orpc/schemas/block";
-import { BlockCard } from "../blocks/block-card";
 
 const BotBlocks = ({ blocks }: { blocks: Block[] }) => {
 	return (

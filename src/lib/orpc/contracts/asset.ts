@@ -2,8 +2,9 @@ import { z } from "zod/v4";
 import {
 	assetDeleteSchema,
 	assetInsertSchema,
+	assetSaveManySchema,
+	assetSaveSchema,
 	assetSelectSchema,
-	assetUpdateSchema,
 } from "@/lib/orpc/schemas/asset";
 import {
 	paginationSchema,
@@ -80,27 +81,37 @@ export const findAssetContract = base
 		}),
 	);
 
-export const updateAssetContract = base
+export const saveAssetContract = base
 	.route({
 		method: "PUT",
-		path: "/assets/{id}",
-		summary: "Update an asset",
+		path: "/assets/save",
+		summary: "Create or update an asset",
 		tags: [
 			"Assets",
 		],
 	})
-	.errors({
-		NOT_FOUND: {
-			message: "Asset not found",
-			data: z.object({
-				id: assetUpdateSchema.shape.id,
-			}),
-		},
-	})
-	.input(assetUpdateSchema)
+	.input(assetSaveSchema)
 	.output(
 		z.object({
 			data: assetSelectSchema,
+			meta: zedTokenSchema.optional(),
+		}),
+	);
+
+export const saveManyAssetsContract = base
+	.route({
+		method: "PUT",
+		path: "/assets/save-many",
+		summary: "Create many assets from uploaded files",
+		tags: [
+			"Assets",
+		],
+	})
+	.input(assetSaveManySchema)
+	.output(
+		z.object({
+			data: z.array(assetSelectSchema),
+			meta: zedTokenSchema.optional(),
 		}),
 	);
 

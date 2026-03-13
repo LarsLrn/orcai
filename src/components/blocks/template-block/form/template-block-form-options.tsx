@@ -10,6 +10,7 @@ const defaultValues = (
 ): z.input<typeof templateBlockInsertSchema> => ({
 	name: block?.name || "",
 	type: "template",
+	status: block?.status || "draft",
 	config: {
 		systemPrompt: block?.config.systemPrompt ?? "",
 		model: block?.config.model ?? "",

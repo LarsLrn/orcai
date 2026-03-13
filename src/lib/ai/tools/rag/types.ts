@@ -37,5 +37,4 @@ export type KnowledgeBaseDocument = {
 	title: string;
 	blockId: DatabaseBlock["id"];
 	blockName: DatabaseBlock["name"];
-	mergePages: boolean;
 };

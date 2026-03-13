@@ -1,6 +1,5 @@
 import { z } from "zod/v4";
 import { assetSelectSchema } from "@/lib/orpc/schemas/asset";
-import { baseBlockSelectSchema } from "@/lib/orpc/schemas/block";
 import { fileTypeSchema } from "@/lib/s3/schema/file-schema";
 import { bucketSchema } from "@/settings/buckets";
 
@@ -11,8 +10,6 @@ export const processAssetPayloadSchema = z.object({
 		id: assetSelectSchema.shape.id,
 		type: fileTypeSchema,
 	}),
-	blockId: baseBlockSelectSchema.shape.id,
-	mergePages: z.boolean(),
 });
 
 export type ProcessAssetPayload = z.infer<typeof processAssetPayloadSchema>;

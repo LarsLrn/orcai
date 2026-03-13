@@ -1,6 +1,7 @@
 import { useQuery } from "@tanstack/react-query";
 import { SmartphoneIcon } from "lucide-react";
 import { useState } from "react";
+import { JobStatusPanel } from "@/components/jobs/job-status-panel";
 import { Placeholder } from "@/components/placeholders/placeholder";
 import { Card } from "@/components/ui/card";
 import { Spinner } from "@/components/ui/spinner";
@@ -9,12 +10,12 @@ import { orpc } from "@/lib/orpc/orpc";
 import type { Asset } from "@/lib/orpc/schemas/asset";
 import { getFileTypeFromMime } from "@/lib/s3/utils/file-type-helpers";
 import { cn } from "@/lib/utils";
-import { AssetActions } from "./asset-actions";
 import { AssetMeta } from "./asset-meta";
 
 const FileViewer = ({ asset }: { asset: Asset }) => {
 	const isMobile = useIsMobile();
-	const { data, status } = useQuery(
+
+	const { data: file, status } = useQuery(
 		orpc.storage.createDownloadUrl.queryOptions({
 			input: {
 				id: asset.id,
@@ -44,14 +45,6 @@ const FileViewer = ({ asset }: { asset: Asset }) => {
 
 	return (
 		<div className="flex h-[calc(100dvh-110px)] flex-col gap-4">
-			<div className="flex items-center justify-between">
-				<h3
-					className="max-w-[80%] truncate font-semibold text-lg"
-					title={asset.title}
-				>
-					{asset.title}
-				</h3>
-			</div>
 			<div
 				className={cn(
 					"flex size-full flex-col gap-4 xl:grid xl:grid-cols-4",
@@ -66,12 +59,21 @@ const FileViewer = ({ asset }: { asset: Asset }) => {
 							Icon={SmartphoneIcon}
 						/>
 					) : (
-						<Viewport fileType={asset.fileType} filePath={data.url} />
+						<Viewport fileType={asset.fileType} filePath={file.url} />
 					)}
 				</div>
 				<div className="col-span-1 flex flex-col gap-4">
 					<AssetMeta asset={asset} />
-					<AssetActions assetInfo={asset} filePath={data.url} />
+					<div className="mb-3 flex items-center gap-3">
+						<JobStatusPanel
+							processingStatus={asset.processingStatus}
+							jobQueue="process-asset-job"
+							resourceId={asset.id}
+							resourceType="asset"
+							assetId={asset.id}
+							className="w-full"
+						/>
+					</div>
 				</div>
 			</div>
 		</div>

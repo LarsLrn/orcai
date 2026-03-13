@@ -434,22 +434,21 @@ export function getSaiaEmbeddingModel(params: {
 	throw new Error(`Embedding model with id "${params.model}" not found.`);
 }
 
-export {
-	getSaiaModel,
-	textOnlyModelIds,
-	textImageModelIds,
-	multimodalModelIds,
-	saiaEmbeddingModelIds,
-};
-
 export type {
 	InputCapability,
-	TextOnlyModelIds,
-	TextImageModelIds,
-	MultimodalModelIds,
-	ModelsWithText,
 	ModelsWithImage,
+	ModelsWithText,
 	ModelsWithVideo,
+	MultimodalModelIds,
 	SaiaEmbeddingModel,
 	SaiaEmbeddingModelIdsType as SaiaEmbeddingModelIds,
+	TextImageModelIds,
+	TextOnlyModelIds,
+};
+export {
+	getSaiaModel,
+	multimodalModelIds,
+	saiaEmbeddingModelIds,
+	textImageModelIds,
+	textOnlyModelIds,
 };

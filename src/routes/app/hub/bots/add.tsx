@@ -1,5 +1,6 @@
 import { createFileRoute } from "@tanstack/react-router";
-import { BotForm } from "@/components/blocks/form/bot-form";
+import z from "zod/v4";
+import { BotEditorShell } from "@/components/authoring/bot-editor-shell";
 import {
 	Page,
 	PageContent,
@@ -7,41 +8,46 @@ import {
 	PageHeader,
 	PageTitle,
 } from "@/components/ui/shell/page";
-import { orpc } from "@/lib/orpc/orpc";
 
 export const Route = createFileRoute("/app/hub/bots/add")({
-	loader: async ({ context: { queryClient } }) => {
-		await queryClient.ensureQueryData(
-			orpc.block.list.queryOptions({
-				input: {
-					pageIndex: 0,
-					pageSize: 100,
-				},
-			}),
-		);
-	},
 	component: RouteComponent,
+	validateSearch: z.object({
+		step: z.coerce.number().int().min(0).max(4).catch(0).default(0),
+	}),
 	head: () => ({
 		meta: [
 			{
-				title: "Add",
+				title: "Create Bot",
 			},
 		],
 	}),
 });
 
 function RouteComponent() {
+	const search = Route.useSearch();
+	const navigate = Route.useNavigate();
+
 	return (
 		<Page>
 			<PageHeader>
-				<PageTitle>Bot Builder</PageTitle>
+				<PageTitle>Create Bot</PageTitle>
 				<PageDescription>
-					Create and configure your bot by selecting the blocks you want to
-					activate
+					Follow the guided setup to define the bot, its AI behavior, its
+					documents, and its access settings.
 				</PageDescription>
 			</PageHeader>
 			<PageContent>
-				<BotForm action="create" />
+				<BotEditorShell
+					stepIndex={search.step}
+					onStepChange={(step) =>
+						navigate({
+							search: {
+								step,
+							},
+							replace: true,
+						})
+					}
+				/>
 			</PageContent>
 		</Page>
 	);

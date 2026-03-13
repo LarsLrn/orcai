@@ -19,6 +19,10 @@ export const asset = pgTable("asset", {
 		relevance: "medium",
 	}),
 	size: integer("size").notNull(),
+	processingStatus: text("processing_status")
+		.notNull()
+		.default("pending")
+		.$type<"pending" | "active" | "completed" | "failed">(),
 	// TODO: Should probably be an enum
 	fileType: text("file_type").notNull(),
 	// TODO: Check what should be done if user deletes account

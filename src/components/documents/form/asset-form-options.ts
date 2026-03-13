@@ -13,7 +13,6 @@ const defaultValues = (asset: Asset): z.input<typeof assetUpdateSchema> => ({
 		pageRange: asset.metadata?.pageRange ?? undefined,
 		author: asset.metadata?.author ?? undefined,
 		chapterTitle: asset.metadata?.chapterTitle ?? undefined,
-		mergePages: asset.metadata?.mergePages ?? true,
 	},
 });
 

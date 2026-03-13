@@ -71,6 +71,20 @@ const TokenSpan = ({ token }: { token: ThemedToken }) => (
 	</span>
 );
 
+// Line number styles using CSS counters
+const LINE_NUMBER_CLASSES = cn(
+	"block",
+	"before:content-[counter(line)]",
+	"before:inline-block",
+	"before:[counter-increment:line]",
+	"before:w-8",
+	"before:mr-4",
+	"before:text-right",
+	"before:text-muted-foreground/50",
+	"before:font-mono",
+	"before:select-none",
+);
+
 // Line rendering component
 const LineSpan = ({
 	keyedLine,
@@ -228,20 +242,6 @@ export const highlightCode = (
 	return null;
 };
 
-// Line number styles using CSS counters
-const LINE_NUMBER_CLASSES = cn(
-	"block",
-	"before:content-[counter(line)]",
-	"before:inline-block",
-	"before:[counter-increment:line]",
-	"before:w-8",
-	"before:mr-4",
-	"before:text-right",
-	"before:text-muted-foreground/50",
-	"before:font-mono",
-	"before:select-none",
-);
-
 const CodeBlockBody = memo(
 	({
 		tokenized,
@@ -393,21 +393,41 @@ export const CodeBlockContent = ({
 		],
 	);
 
-	// Try to get cached result synchronously, otherwise use raw tokens
-	const [tokenized, setTokenized] = useState<TokenizedCode>(
+	// Synchronous cache lookup — avoids setState in effect for cached results
+	const syncTokens = useMemo(
 		() => highlightCode(code, language) ?? rawTokens,
+		[
+			code,
+			language,
+			rawTokens,
+		],
 	);
+
+	// Async highlighting result (populated after shiki loads)
+	const [asyncTokens, setAsyncTokens] = useState<TokenizedCode | null>(null);
+	const asyncKeyRef = useRef({
+		code,
+		language,
+	});
+
+	// Invalidate stale async tokens synchronously during render
+	if (
+		asyncKeyRef.current.code !== code ||
+		asyncKeyRef.current.language !== language
+	) {
+		asyncKeyRef.current = {
+			code,
+			language,
+		};
+		setAsyncTokens(null);
+	}
 
 	useEffect(() => {
 		let cancelled = false;
 
-		// Reset to raw tokens when code changes (shows current code, not stale tokens)
-		setTokenized(highlightCode(code, language) ?? rawTokens);
-
-		// Subscribe to async highlighting result
 		highlightCode(code, language, (result) => {
 			if (!cancelled) {
-				setTokenized(result);
+				setAsyncTokens(result);
 			}
 		});
 
@@ -417,8 +437,9 @@ export const CodeBlockContent = ({
 	}, [
 		code,
 		language,
-		rawTokens,
 	]);
+
+	const tokenized = asyncTokens ?? syncTokens;
 
 	return (
 		<div className="relative overflow-auto">

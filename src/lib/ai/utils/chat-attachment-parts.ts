@@ -80,7 +80,6 @@ const convertDocumentToMarkdown = ({
 		});
 
 		return serializeDoclingPayloadToMarkdown(payload, {
-			mergePages: true,
 			keepImageRefs: false,
 			keepHeader: false,
 			keepFooter: false,

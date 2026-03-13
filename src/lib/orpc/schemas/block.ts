@@ -6,6 +6,7 @@ import {
 import { z } from "zod/v4";
 import { dbSchema } from "@/db/schema";
 import { assetSelectSchema } from "./asset";
+import { publicationStatusSchema } from "./fragments/publication-status";
 
 /**
  * ----------------
@@ -103,7 +104,9 @@ export const imageGenerationBlockSchema = z.object({
 	}),
 });
 
-export const baseBlockSelectSchema = createSelectSchema(dbSchema.block);
+export const baseBlockSelectSchema = createSelectSchema(dbSchema.block, {
+	status: publicationStatusSchema,
+});
 
 export const blockSelectSchema = z.discriminatedUnion("type", [
 	baseBlockSelectSchema.extend(templateBlockSchema.shape),
@@ -117,7 +120,9 @@ export const blockSelectSchema = z.discriminatedUnion("type", [
  * ----------------
  */
 
-const baseBlockInsertSchema = createInsertSchema(dbSchema.block).omit({
+const baseBlockInsertSchema = createInsertSchema(dbSchema.block, {
+	status: publicationStatusSchema,
+}).omit({
 	userId: true,
 	createdAt: true,
 	updatedAt: true,
@@ -130,9 +135,7 @@ export const templateBlockInsertSchema = baseBlockInsertSchema.extend(
 
 export const databaseBlockInsertSchema = baseBlockInsertSchema.extend({
 	...databaseBlockSchema.shape,
-	assets: z
-		.array(assetSelectSchema.shape.id)
-		.min(1, "At least one asset is required for database blocks"),
+	assets: z.array(assetSelectSchema.shape.id).default([]),
 });
 
 export const imageGenerationBlockInsertSchema = baseBlockInsertSchema.extend(
@@ -153,6 +156,7 @@ export const blockInsertSchema = z.discriminatedUnion("type", [
 
 const baseBlockUpdateSchema = createUpdateSchema(dbSchema.block, {
 	id: z.uuidv4(),
+	status: publicationStatusSchema,
 }).omit({
 	userId: true,
 	createdAt: true,
@@ -163,9 +167,7 @@ export const blockUpdateSchema = z.discriminatedUnion("type", [
 	baseBlockUpdateSchema.extend(templateBlockSchema.shape),
 	baseBlockUpdateSchema.extend({
 		...databaseBlockSchema.shape,
-		assets: z
-			.array(z.string())
-			.min(1, "At least one asset is required for database blocks"),
+		assets: z.array(z.string()).default([]),
 	}),
 	baseBlockUpdateSchema.extend(imageGenerationBlockSchema.shape),
 ]);

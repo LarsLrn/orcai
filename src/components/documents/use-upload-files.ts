@@ -146,7 +146,9 @@ export function useUploadFiles({
 		],
 	);
 	const allSucceeded = useMemo(
-		() => uploadsArray.every((file) => file.status === "complete"),
+		() =>
+			uploadsArray.length > 0 &&
+			uploadsArray.every((file) => file.status === "complete"),
 		[
 			uploadsArray,
 		],
@@ -159,6 +161,7 @@ export function useUploadFiles({
 	);
 	const isSettled = useMemo(
 		() =>
+			uploadsArray.length > 0 &&
 			uploadsArray.every(
 				(file) => file.status === "complete" || file.status === "failed",
 			),

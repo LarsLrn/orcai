@@ -62,7 +62,7 @@ const BotCard = ({
 			icon: EditIcon,
 			variant: "default",
 			linkProps: {
-				to: "/app/hub/bots/$botId/edit",
+				to: "/app/hub/bots/$botId/setup",
 				params: {
 					botId: bot.id,
 				},
@@ -78,6 +78,14 @@ const BotCard = ({
 			variant: "outline",
 		},
 	];
+
+	if (bot.status === "draft") {
+		badges.push({
+			label: "Draft",
+			variant: "destructive",
+		});
+	}
+
 	const primaryAction = actions?.primary ?? {
 		linkProps: {
 			to: "/app/hub/bots/$botId",

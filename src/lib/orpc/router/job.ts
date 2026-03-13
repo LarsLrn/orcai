@@ -1,4 +1,4 @@
-import { eq } from "drizzle-orm";
+import { eq, getColumns } from "drizzle-orm";
 import * as Effect from "effect/Effect";
 import { dbSchema } from "@/db/schema";
 import { DB } from "@/lib/effect/services/drizzle";
@@ -12,7 +12,10 @@ import {
 	getJobsByResourceEffect,
 	sendJobBatchEffect,
 } from "@/lib/pg-boss/helpers";
-import { PROCESS_ASSET_JOB_NAME } from "@/lib/pg-boss/schema/job-queues";
+import {
+	PROCESS_ASSET_JOB_NAME,
+	VECTORIZE_ASSET_JOB_NAME,
+} from "@/lib/pg-boss/schema/job-queues";
 import { getFileTypeFromMime } from "@/lib/s3/utils/file-type-helpers";
 
 export const listJobs = authed.job.list
@@ -22,7 +25,7 @@ export const listJobs = authed.job.list
 			({
 				entityId: input.resourceId,
 				permission: "read",
-				entityType: "block",
+				entityType: input.resourceType,
 			}) satisfies CheckPermissionInput,
 	)
 	.handler(async ({ input }) =>
@@ -52,10 +55,10 @@ export const createJobs = authed.job.create
 	.handler(async ({ input, errors }) =>
 		runOrpcEffect(
 			Effect.gen(function* () {
-				if (input.jobRunner !== PROCESS_ASSET_JOB_NAME)
+				if (input.jobRunner !== VECTORIZE_ASSET_JOB_NAME)
 					return yield* Effect.fail(
 						errors.BAD_REQUEST({
-							message: `Only ${PROCESS_ASSET_JOB_NAME} jobRunner is currently supported`,
+							message: `Only ${VECTORIZE_ASSET_JOB_NAME} jobRunner is currently supported`,
 						}),
 					);
 
@@ -64,10 +67,6 @@ export const createJobs = authed.job.create
 				const assets = yield* db
 					.select({
 						id: dbSchema.asset.id,
-						bucket: dbSchema.asset.bucket,
-						type: dbSchema.asset.fileType,
-						prefix: dbSchema.asset.prefix,
-						metadata: dbSchema.asset.metadata,
 					})
 					.from(dbSchema.blockAsset)
 					.where(eq(dbSchema.blockAsset.blockId, input.blockId))
@@ -77,17 +76,12 @@ export const createJobs = authed.job.create
 					);
 
 				yield* sendJobBatchEffect({
-					jobName: PROCESS_ASSET_JOB_NAME,
+					jobName: VECTORIZE_ASSET_JOB_NAME,
 					jobs: assets.map((asset) => ({
 						data: {
-							assetRef: {
-								bucket: asset.bucket,
-								prefix: asset.prefix,
-								id: asset.id,
-								type: getFileTypeFromMime(asset.type),
-							},
+							prefix: asset.id,
+							assetId: asset.id,
 							blockId: input.blockId,
-							mergePages: asset.metadata.mergePages ?? false,
 						},
 					})),
 					resourceOptions: {
@@ -98,7 +92,131 @@ export const createJobs = authed.job.create
 
 				return {
 					success: true,
-					message: `Created ${assets.length} jobs to process assets for block ${input.blockId}`,
+					message: `Created ${assets.length} jobs to vectorize assets for block ${input.blockId}`,
+				};
+			}),
+		),
+	);
+
+export const retryProcessing = authed.job.retryProcessing
+	.use(
+		checkPermissionMiddleware,
+		(input) =>
+			({
+				entityId: input.assetId,
+				permission: "edit",
+				entityType: "asset",
+			}) satisfies CheckPermissionInput,
+	)
+	.handler(async ({ input, errors }) =>
+		runOrpcEffect(
+			Effect.gen(function* () {
+				const db = yield* DB;
+
+				const [asset] = yield* db
+					.select({
+						...getColumns(dbSchema.asset),
+					})
+					.from(dbSchema.asset)
+					.where(eq(dbSchema.asset.id, input.assetId));
+
+				if (!asset) {
+					return yield* Effect.fail(
+						errors.NOT_FOUND({
+							message: "Asset not found",
+						}),
+					);
+				}
+
+				yield* db
+					.update(dbSchema.asset)
+					.set({
+						processingStatus: "pending",
+					})
+					.where(eq(dbSchema.asset.id, input.assetId));
+
+				yield* sendJobBatchEffect({
+					jobName: PROCESS_ASSET_JOB_NAME,
+					jobs: [
+						{
+							data: {
+								assetRef: {
+									bucket: asset.bucket,
+									prefix: asset.prefix,
+									id: asset.id,
+									type: getFileTypeFromMime(asset.fileType),
+								},
+							},
+						},
+					],
+					resourceOptions: {
+						resourceId: asset.id,
+						resourceType: "asset",
+					},
+				});
+
+				return {
+					success: true,
+					message: "Processing job re-dispatched",
+				};
+			}),
+		),
+	);
+
+export const retryVectorization = authed.job.retryVectorization
+	.use(
+		checkPermissionMiddleware,
+		(input) =>
+			({
+				entityId: input.blockId,
+				permission: "edit",
+				entityType: "block",
+			}) satisfies CheckPermissionInput,
+	)
+	.handler(async ({ input, errors }) =>
+		runOrpcEffect(
+			Effect.gen(function* () {
+				const db = yield* DB;
+
+				const [blockAsset] = yield* db
+					.select({
+						assetId: dbSchema.blockAsset.assetId,
+					})
+					.from(dbSchema.blockAsset)
+					.where(eq(dbSchema.blockAsset.blockId, input.blockId))
+					.innerJoin(
+						dbSchema.asset,
+						eq(dbSchema.blockAsset.assetId, input.assetId),
+					);
+
+				if (!blockAsset) {
+					return yield* Effect.fail(
+						errors.NOT_FOUND({
+							message: "Asset not attached to this block",
+						}),
+					);
+				}
+
+				yield* sendJobBatchEffect({
+					jobName: VECTORIZE_ASSET_JOB_NAME,
+					jobs: [
+						{
+							data: {
+								prefix: input.assetId,
+								assetId: input.assetId,
+								blockId: input.blockId,
+							},
+						},
+					],
+					resourceOptions: {
+						resourceId: input.blockId,
+						resourceType: "block",
+					},
+				});
+
+				return {
+					success: true,
+					message: "Vectorization job re-dispatched",
 				};
 			}),
 		),

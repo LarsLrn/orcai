@@ -1,9 +1,8 @@
-import { v1 } from "@authzed/authzed-node";
 import * as Effect from "effect/Effect";
 import type { authClient } from "@/lib/auth/auth-client";
 import { runOrpcEffect } from "@/lib/effect/utils/orpc-helpers";
 import { os } from "@/lib/orpc/implementation/os";
-import { checkEntityPermission } from "@/lib/spice-db/client";
+import { checkEntityPermission, hasPermission } from "@/lib/spice-db/client";
 import type { PermissionFor } from "@/lib/spice-db/types";
 import { withName } from "./utils";
 
@@ -46,10 +45,7 @@ export const requireOrganizationPermission = (
 						zedToken: context.meta?.zedToken,
 					});
 
-					if (
-						permissionCheck.permissionship !==
-						v1.CheckPermissionResponse_Permissionship.HAS_PERMISSION
-					) {
+					if (hasPermission(permissionCheck) === false) {
 						return yield* Effect.fail(
 							errors.FORBIDDEN({
 								data: {

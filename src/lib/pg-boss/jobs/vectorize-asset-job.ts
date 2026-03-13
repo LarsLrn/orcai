@@ -39,7 +39,7 @@ export const vectorizeAssetBatchEffect = (jobs: Job<VectorizeAssetPayload>[]) =>
 
 const vectorizeAssetsEffect = (params: { job: Job<VectorizeAssetPayload> }) =>
 	Effect.gen(function* () {
-		const { prefix, blockId, assetId, mergePages } = params.job.data;
+		const { prefix, blockId, assetId } = params.job.data;
 
 		const { Contents: files } = yield* sendListObjectsCommand({
 			bucket: buckets.processed.name,
@@ -84,7 +84,6 @@ const vectorizeAssetsEffect = (params: { job: Job<VectorizeAssetPayload> }) =>
 						const processedMarkdown = yield* processMarkdownFile({
 							fileContent: text,
 							fileName: name,
-							chunkByTokens: mergePages,
 						});
 
 						markdown.push(...processedMarkdown);
@@ -175,29 +174,14 @@ const extractPageFromFileName = (fileName: string) => {
 const processMarkdownFile = ({
 	fileContent,
 	fileName,
-	chunkByTokens,
 }: {
 	fileContent: string;
 	fileName: string;
-	chunkByTokens: boolean;
 }) =>
 	Effect.gen(function* () {
 		const page = extractPageFromFileName(fileName);
 		const title =
 			page !== undefined ? `${fileName} (page ${String(page + 1)})` : fileName;
-
-		if (!chunkByTokens) {
-			return [
-				{
-					title,
-					page,
-					depth: 0,
-					content: fileContent,
-					length: fileContent.length,
-					type: "text",
-				},
-			] as MarkdownNode[];
-		}
 
 		const chunker = yield* Effect.promise(() =>
 			TokenChunker.create({

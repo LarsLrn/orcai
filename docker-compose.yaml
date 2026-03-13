@@ -119,6 +119,10 @@ services:
       OPENAI_COMPATIBLE_BASE_URL: ${OPENAI_COMPATIBLE_BASE_URL:-}
       OPENAI_COMPATIBLE_API_KEY: ${OPENAI_COMPATIBLE_API_KEY:-}
 
+      # Docling
+      DOCLING_URL: ${DOCLING_URL:-}
+      DOCLING_API_KEY: ${DOCLING_API_KEY:-}
+
       # Spice DB
       SPICEDB_ENDPOINT: spicedb:50051
       SPICEDB_TOKEN: ${SPICEDB_GRPC_PRESHARED_KEY:-}
@@ -172,14 +176,7 @@ services:
       minio:
         condition: service_healthy
     entrypoint: >
-      /bin/sh -c "
-      /usr/bin/mc alias set myminio http://minio:9000 $$MINIO_ROOT_USER $$MINIO_ROOT_PASSWORD &&
-      /usr/bin/mc mb myminio/sokratest --ignore-existing &&
-      /usr/bin/mc mb myminio/processed-files --ignore-existing &&
-      /usr/bin/mc mb myminio/sokratest-dev --ignore-existing &&
-      /usr/bin/mc mb myminio/processed-files-dev --ignore-existing &&
-      echo 'MinIO buckets created successfully'
-      "
+      /bin/sh -c " /usr/bin/mc alias set myminio http://minio:9000 $$MINIO_ROOT_USER $$MINIO_ROOT_PASSWORD && /usr/bin/mc mb myminio/sokratest --ignore-existing && /usr/bin/mc mb myminio/processed-files --ignore-existing && /usr/bin/mc mb myminio/sokratest-dev --ignore-existing && /usr/bin/mc mb myminio/processed-files-dev --ignore-existing && echo 'MinIO buckets created successfully' "
     environment:
       MINIO_ROOT_USER: ${MINIO_ROOT_USER:-minioadmin}
       MINIO_ROOT_PASSWORD: ${MINIO_ROOT_PASSWORD:-minioadmin}

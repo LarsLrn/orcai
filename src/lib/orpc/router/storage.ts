@@ -1,9 +1,5 @@
-import { inArray } from "drizzle-orm";
 import * as Effect from "effect/Effect";
 import { v4 as uuidv4 } from "uuid";
-import { dbSchema } from "@/db/schema";
-import { initializeResourceAuthorization } from "@/lib/authz/resource-lifecycle";
-import { DB } from "@/lib/effect/services/drizzle";
 import { runOrpcEffect } from "@/lib/effect/utils/orpc-helpers";
 import { authed } from "@/lib/orpc/implementation/authed";
 import { requireOrganizationPermission } from "@/lib/orpc/middlewares/org-permission";
@@ -364,26 +360,7 @@ export const finalizeUpload = authed.storage.finalizeUpload
 	.handler(async ({ input, context, errors }) =>
 		runOrpcEffect(
 			Effect.gen(function* () {
-				const db = yield* DB;
 				const uploadRoute = UPLOAD_ROUTES[input.route];
-
-				const allIds = input.files.map((file) => file.objectMetadata.id);
-				const existingAssets = allIds.length
-					? yield* db
-							.select({
-								id: dbSchema.asset.id,
-								userId: dbSchema.asset.userId,
-							})
-							.from(dbSchema.asset)
-							.where(inArray(dbSchema.asset.id, allIds))
-					: [];
-
-				const existingById = new Map(
-					existingAssets.map((asset) => [
-						asset.id,
-						asset,
-					]),
-				);
 
 				const results = yield* Effect.forEach(
 					input.files,
@@ -415,47 +392,14 @@ export const finalizeUpload = authed.storage.finalizeUpload
 								);
 							}
 
-							const existing = existingById.get(validated.id);
-
-							if (existing) {
-								if (existing.userId !== context.auth.user.id) {
-									return yield* Effect.fail(
-										errors.BAD_REQUEST({
-											message:
-												"Asset already exists and belongs to another user.",
-											data: {
-												type: "rejected",
-											},
-										}),
-									);
-								}
-
-								return {
-									id: validated.id,
-									created: false,
-								};
-							}
-
-							yield* db.insert(dbSchema.asset).values({
-								id: validated.id,
-								title: file.name || "New Asset",
-								size: file.size,
-								fileType: file.type,
-								bucket: validated.bucket,
-								prefix: validated.prefix,
-								userId: context.auth.user.id,
-							});
-
-							yield* initializeResourceAuthorization({
-								resourceType: "asset",
-								resourceId: validated.id,
-								organizationId: context.auth.session.activeOrganizationId,
-								ownerUserId: context.auth.user.id,
-							});
-
 							return {
 								id: validated.id,
-								created: true,
+								bucket: validated.bucket,
+								prefix: validated.prefix,
+								objectKey: validated.expectedKey,
+								name: file.name,
+								size: file.size,
+								type: file.type,
 							};
 						}),
 					{

@@ -1,11 +1,11 @@
 import path from "node:path";
 import { paraglideVitePlugin } from "@inlang/paraglide-js";
+import babel from "@rolldown/plugin-babel";
 import tailwindcss from "@tailwindcss/vite";
 import { devtools } from "@tanstack/devtools-vite";
 import { tanstackStart } from "@tanstack/react-start/plugin/vite";
-import viteReact from "@vitejs/plugin-react";
+import react, { reactCompilerPreset } from "@vitejs/plugin-react";
 import { defineConfig } from "vite";
-import tsConfigPaths from "vite-tsconfig-paths";
 
 export default defineConfig({
 	server: {
@@ -19,6 +19,7 @@ export default defineConfig({
 		],
 	},
 	resolve: {
+		tsconfigPaths: true,
 		// Mock Next.js navigation imports that nextstepjs tries to access
 		// FIXME: Check whether this was addressed upstream
 		alias: {
@@ -57,11 +58,6 @@ export default defineConfig({
 				},
 			],
 		}),
-		tsConfigPaths({
-			projects: [
-				"./tsconfig.json",
-			],
-		}),
 		tailwindcss(),
 		tanstackStart({
 			importProtection: {
@@ -73,12 +69,11 @@ export default defineConfig({
 				},
 			},
 		}),
-		viteReact({
-			babel: {
-				plugins: [
-					"babel-plugin-react-compiler",
-				],
-			},
+		react(),
+		babel({
+			presets: [
+				reactCompilerPreset(),
+			],
 		}),
 	],
 });

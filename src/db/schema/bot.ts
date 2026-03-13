@@ -9,6 +9,7 @@ import {
 	uuid,
 	varchar,
 } from "drizzle-orm/pg-core";
+import type { PublicationStatus } from "@/lib/orpc/schemas/fragments/publication-status";
 import { user } from "./auth";
 import { block } from "./block";
 
@@ -20,6 +21,7 @@ export const bot = pgTable("bot", {
 	}).notNull(),
 	contentJson: json("content_json").notNull().default({}),
 	contentHtml: text("content_html").notNull(),
+	status: text("status").$type<PublicationStatus>().notNull().default("ready"),
 	userId: uuid("user_id")
 		.notNull()
 		.references(() => user.id, {

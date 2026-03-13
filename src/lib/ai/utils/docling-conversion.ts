@@ -5,7 +5,6 @@ import {
 import type { SaiaDoclingData } from "@/types/docling";
 
 export type DoclingSerializationOptions = {
-	mergePages?: boolean;
 	keepHeader?: boolean;
 	keepFooter?: boolean;
 	keepImageRefs?: boolean;

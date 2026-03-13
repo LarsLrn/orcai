@@ -1,4 +1,3 @@
-import { v1 } from "@authzed/authzed-node";
 import { and, count, eq, getColumns, inArray, isNull } from "drizzle-orm";
 import * as Effect from "effect/Effect";
 import { dbSchema } from "@/db/schema";
@@ -16,6 +15,7 @@ import {
 } from "@/lib/orpc/middlewares/permission";
 import {
 	checkEntityPermission,
+	hasPermission,
 	lookupEntitiesByPermission,
 } from "@/lib/spice-db/client";
 
@@ -282,10 +282,7 @@ export const attachCourseBot = authed.course.attachBot
 				});
 
 				const canAttach =
-					canManageAccess.permissionship ===
-						v1.CheckPermissionResponse_Permissionship.HAS_PERMISSION ||
-					canEdit.permissionship ===
-						v1.CheckPermissionResponse_Permissionship.HAS_PERMISSION;
+					hasPermission(canManageAccess) || hasPermission(canEdit);
 
 				if (!canAttach) {
 					return yield* Effect.fail(

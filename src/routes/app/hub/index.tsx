@@ -95,7 +95,13 @@ function RouteComponent() {
 				<SectionContent>
 					<SectionGrid layout="3">
 						{bots.data.map((bot) => (
-							<BotCard key={bot.id} bot={bot} />
+							<BotCard
+								key={bot.id}
+								bot={bot}
+								actions={{
+									footer: [],
+								}}
+							/>
 						))}
 					</SectionGrid>
 				</SectionContent>
@@ -122,7 +128,13 @@ function RouteComponent() {
 				<SectionContent>
 					<SectionGrid layout="3">
 						{blocks.data.map((block) => (
-							<BlockCard key={block.id} block={block} />
+							<BlockCard
+								key={block.id}
+								block={block}
+								actions={{
+									footer: [],
+								}}
+							/>
 						))}
 					</SectionGrid>
 				</SectionContent>
@@ -150,7 +162,13 @@ function RouteComponent() {
 				<SectionContent>
 					<SectionGrid layout="3">
 						{assets.data.map((asset) => (
-							<AssetCard key={asset.id} asset={asset} />
+							<AssetCard
+								key={asset.id}
+								asset={asset}
+								actions={{
+									footer: [],
+								}}
+							/>
 						))}
 					</SectionGrid>
 				</SectionContent>
@@ -177,7 +195,13 @@ function RouteComponent() {
 				<SectionContent>
 					<SectionGrid layout="3">
 						{courses.data.map((course) => (
-							<CourseCard key={course.id} course={course} />
+							<CourseCard
+								key={course.id}
+								course={course}
+								actions={{
+									footer: [],
+								}}
+							/>
 						))}
 					</SectionGrid>
 				</SectionContent>

@@ -1,4 +1,3 @@
-import { v1 } from "@authzed/authzed-node";
 import * as Effect from "effect/Effect";
 import type { authClient } from "@/lib/auth/auth-client";
 import { DB } from "@/lib/effect/services/drizzle";
@@ -9,6 +8,7 @@ import { ALL_MEMBERS_GROUP_SYSTEM_KEY } from "@/lib/orpc/schemas/resource";
 import {
 	checkEntityPermission,
 	checkManyEntityPermissions,
+	hasPermission,
 } from "@/lib/spice-db/client";
 import type {
 	EntityType,
@@ -50,9 +50,10 @@ export const checkPermissionMiddleware = withName(
 					zedToken: input.zedToken ?? context.meta?.zedToken,
 				}).pipe(
 					Effect.filterOrFail(
-						(relation) =>
-							relation.permissionship ===
-							v1.CheckPermissionResponse_Permissionship.HAS_PERMISSION,
+						({ permissionship }) =>
+							hasPermission({
+								permissionship,
+							}),
 						() =>
 							errors.FORBIDDEN({
 								data: {
@@ -103,8 +104,9 @@ export const checkManyPermissionMiddleware = withName(
 							.map((pair) => {
 								const allowed =
 									pair.response.oneofKind === "item" &&
-									pair.response.item.permissionship ===
-										v1.CheckPermissionResponse_Permissionship.HAS_PERMISSION;
+									hasPermission({
+										permissionship: pair.response.item.permissionship,
+									}) === true;
 
 								const id = pair.request?.resource?.objectId;
 								return allowed && id && requestedSet.has(id) ? id : undefined;
@@ -182,9 +184,9 @@ export const assertCanGrantPrincipalMiddleware = withName(
 						zedToken,
 					});
 
-					const canManageAccess =
-						relation.permissionship ===
-						v1.CheckPermissionResponse_Permissionship.HAS_PERMISSION;
+					const canManageAccess = hasPermission({
+						permissionship: relation.permissionship,
+					});
 
 					if (!canManageAccess) {
 						return yield* Effect.fail(

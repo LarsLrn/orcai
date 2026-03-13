@@ -4,7 +4,8 @@ import {
 	deleteAssets,
 	findAsset,
 	listAssets,
-	updateAsset,
+	saveAsset,
+	saveManyAssets,
 } from "./asset";
 import { listAssetPoint } from "./asset-point";
 import {
@@ -15,7 +16,15 @@ import {
 	updateBlock,
 } from "./block";
 import { getBootstrapStatus, initializeBootstrap } from "./bootstrap";
-import { createBot, deleteBots, findBot, listBots, updateBot } from "./bot";
+import {
+	deleteBots,
+	findBot,
+	findBotEditor,
+	listBots,
+	listDraftBots,
+	publishBot,
+	saveBot,
+} from "./bot";
 import {
 	createChat,
 	deleteChats,
@@ -52,7 +61,12 @@ import {
 	removeGroupMembers,
 	updateGroup,
 } from "./group";
-import { createJobs, listJobs } from "./job";
+import {
+	createJobs,
+	listJobs,
+	retryProcessing,
+	retryVectorization,
+} from "./job";
 import {
 	createModel,
 	deleteModel,
@@ -205,16 +219,19 @@ export const router = {
 	},
 	bot: {
 		list: listBots,
-		create: createBot,
+		listDrafts: listDraftBots,
 		find: findBot,
-		update: updateBot,
+		findEditor: findBotEditor,
+		save: saveBot,
+		publish: publishBot,
 		delete: deleteBots,
 	},
 	asset: {
 		list: listAssets,
+		save: saveAsset,
+		saveMany: saveManyAssets,
 		create: createAsset,
 		find: findAsset,
-		update: updateAsset,
 		delete: deleteAssets,
 	},
 	assetPoint: {
@@ -247,6 +264,8 @@ export const router = {
 	job: {
 		list: listJobs,
 		create: createJobs,
+		retryProcessing: retryProcessing,
+		retryVectorization: retryVectorization,
 	},
 	ai: {
 		chat: aiChat,

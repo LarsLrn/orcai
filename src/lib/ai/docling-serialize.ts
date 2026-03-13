@@ -18,7 +18,6 @@ import type {
 	TitleItem,
 	UnorderedList,
 } from "@docling/docling-core";
-import { logger } from "@/lib/observability/logger";
 
 // Define base and specific types for the discriminated union
 interface SectionContentBase {
@@ -66,7 +65,6 @@ export type SectionContent =
 	| OtherTypeSectionContent;
 
 interface SerializationOptions {
-	mergePages?: boolean;
 	keepHeader?: boolean;
 	keepFooter?: boolean;
 	keepImageRefs?: boolean;
@@ -91,7 +89,6 @@ export interface SerializedDocument {
  *
  * @param doclingDocument The DoclingDocument to serialize.
  * @param options Serialization options.
- * @param options.mergePages If true, all content will be merged into a single page (page 0). Defaults to false.
  * @param options.keepHeader If true, page headers will be included in the markdown. Defaults to false.
  * @param options.keepFooter If true, page footers will be included in the markdown. Defaults to false.
  * @param options.keepImageRefs If true, image references (self_ref) will be included. Defaults to true.
@@ -102,7 +99,6 @@ export const serializeDoclingDocument = (
 	options: SerializationOptions,
 ): SerializedDocument[] | undefined => {
 	const {
-		mergePages = false,
 		keepFooter = false,
 		keepHeader = false,
 		keepImageRefs = true,
@@ -114,7 +110,6 @@ export const serializeDoclingDocument = (
 	const refs = doclingDocument.body?.children;
 
 	if (!refs) {
-		logger.error("No references found in the document.");
 		return;
 	}
 
@@ -139,7 +134,7 @@ export const serializeDoclingDocument = (
 	} = {};
 
 	for (const item of serializedDocument) {
-		const page = mergePages ? 0 : item.page;
+		const page = item.page;
 
 		if (!mergedDocument[page]) {
 			mergedDocument[page] = {
@@ -198,7 +193,7 @@ export const serializeDoclingDocument = (
  *
  * @param content The Docling item to extract content from.
  * @param doclingDocument The parent DoclingDocument.
- * @param options Options for content extraction (excluding mergePages).
+ * @param options Options for content extraction.
  * @returns A SectionContent object with markdown and page number, or undefined if the content type is not handled or options prevent it.
  */
 const extractContent = (
@@ -216,7 +211,7 @@ const extractContent = (
 		| GroupItem1
 		| TableItem,
 	doclingDocument: DoclingDocument,
-	options: Omit<SerializationOptions, "mergePages">,
+	options: SerializationOptions,
 ): SectionContent | undefined => {
 	switch (content.label) {
 		case "caption": {

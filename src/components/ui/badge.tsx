@@ -38,9 +38,9 @@ function Badge({
 			{
 				className: cn(
 					badgeVariants({
-						className,
 						variant,
 					}),
+					className,
 				),
 			},
 			props,

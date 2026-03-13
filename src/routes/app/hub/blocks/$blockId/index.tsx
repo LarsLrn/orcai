@@ -192,7 +192,7 @@ function RouteComponent() {
 					<DatabaseBlockConfigCard
 						blockId={id}
 						config={config}
-						assetIds={block.assets}
+						assets={block.assets}
 					/>
 				)}
 

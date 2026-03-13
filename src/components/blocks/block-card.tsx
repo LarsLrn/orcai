@@ -81,6 +81,14 @@ const BlockCard = ({
 			variant: "secondary",
 		},
 	];
+
+	if (block.status === "draft") {
+		badges.push({
+			label: "Draft",
+			variant: "destructive",
+		});
+	}
+
 	const primaryAction = actions?.primary ?? {
 		linkProps: {
 			to: "/app/hub/blocks/$blockId",

@@ -3,15 +3,47 @@ import { useRouter } from "@tanstack/react-router";
 import { useMutationAction } from "@/hooks/actions/use-mutation-action";
 import { orpc } from "@/lib/orpc/orpc";
 
-export const useCreateBotMutation = (
-	opts: ReturnType<typeof orpc.bot.create.mutationOptions> = {},
+export const useSaveBotMutation = (
+	opts: ReturnType<typeof orpc.bot.save.mutationOptions> = {},
+) => {
+	const queryClient = useQueryClient();
+
+	return useMutationAction({
+		mutationOptions: () =>
+			orpc.bot.save.mutationOptions({
+				...opts,
+				onSuccess: async (...args) => {
+					queryClient.invalidateQueries({
+						queryKey: orpc.bot.key(),
+					});
+
+					try {
+						await opts.onSuccess?.(...args);
+					} catch (error) {
+						console.error(
+							"useSaveBotMutation onSuccess callback failed:",
+							error,
+						);
+					}
+				},
+			}),
+		messages: {
+			loading: "Saving bot...",
+			success: "Bot saved",
+			error: "Failed to save bot",
+		},
+	});
+};
+
+export const usePublishBotMutation = (
+	opts: ReturnType<typeof orpc.bot.publish.mutationOptions> = {},
 ) => {
 	const router = useRouter();
 	const queryClient = useQueryClient();
 
 	return useMutationAction({
 		mutationOptions: () =>
-			orpc.bot.create.mutationOptions({
+			orpc.bot.publish.mutationOptions({
 				...opts,
 				onSuccess: async (result, ...args) => {
 					queryClient.invalidateQueries({
@@ -29,51 +61,16 @@ export const useCreateBotMutation = (
 						await opts.onSuccess?.(result, ...args);
 					} catch (error) {
 						console.error(
-							"useCreateBotMutation onSuccess callback failed:",
+							"usePublishBotMutation onSuccess callback failed:",
 							error,
 						);
 					}
 				},
 			}),
 		messages: {
-			loading: "Creating bot...",
-			success: "Bot created successfully",
-			error: "Failed to create bot",
-		},
-	});
-};
-
-export const useUpdateBotMutation = (
-	opts: ReturnType<typeof orpc.bot.update.mutationOptions> = {},
-) => {
-	const router = useRouter();
-	const queryClient = useQueryClient();
-
-	return useMutationAction({
-		mutationOptions: () =>
-			orpc.bot.update.mutationOptions({
-				...opts,
-				onSuccess: async (...args) => {
-					queryClient.invalidateQueries({
-						queryKey: orpc.bot.key(),
-					});
-
-					router.history.back();
-
-					try {
-						await opts.onSuccess?.(...args);
-					} catch (error) {
-						console.error(
-							"useUpdateBotMutation onSuccess callback failed:",
-							error,
-						);
-					}
-				},
-			}),
-		messages: {
-			loading: "Updating bot...",
-			success: "Bot updated successfully",
-			error: "Failed to update bot",
+			loading: "Publishing bot...",
+			success: "Bot published",
+			error: "Failed to publish bot",
 		},
 	});
 };
