@@ -74,7 +74,12 @@ import {
 	removeGroupMembersContract,
 	updateGroupContract,
 } from "./group";
-import { createJobsContract, listJobsContract } from "./job";
+import {
+	createJobsContract,
+	listJobsContract,
+	retryProcessingContract,
+	retryVectorizationContract,
+} from "./job";
 import {
 	createModelContract,
 	deleteModelContract,
@@ -275,6 +280,8 @@ export const contracts = {
 	job: {
 		list: listJobsContract,
 		create: createJobsContract,
+		retryProcessing: retryProcessingContract,
+		retryVectorization: retryVectorizationContract,
 	},
 	ai: {
 		chat: aiChatContract,

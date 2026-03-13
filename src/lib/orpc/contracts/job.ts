@@ -1,4 +1,5 @@
 import z from "zod/v4";
+import { assetSelectSchema } from "@/lib/orpc/schemas/asset";
 import { baseBlockSelectSchema } from "@/lib/orpc/schemas/block";
 import { statusSchema } from "@/lib/orpc/schemas/shared";
 import { jobSchema } from "@/lib/pg-boss/schema/job";
@@ -42,6 +43,10 @@ export const listJobsContract = base
 		z.object({
 			jobQueue: jobQueues,
 			resourceId: z.uuidv4(),
+			resourceType: z.enum([
+				"block",
+				"asset",
+			]),
 		}),
 	)
 	.output(
@@ -50,3 +55,36 @@ export const listJobsContract = base
 			rowCount: z.number(),
 		}),
 	);
+
+export const retryProcessingContract = base
+	.route({
+		method: "POST",
+		path: "/jobs/retry-processing",
+		summary: "Retry processing for an asset",
+		tags: [
+			"Jobs",
+		],
+	})
+	.input(
+		z.object({
+			assetId: assetSelectSchema.shape.id,
+		}),
+	)
+	.output(statusSchema);
+
+export const retryVectorizationContract = base
+	.route({
+		method: "POST",
+		path: "/jobs/retry-vectorization",
+		summary: "Retry vectorization for an asset within a block",
+		tags: [
+			"Jobs",
+		],
+	})
+	.input(
+		z.object({
+			blockId: baseBlockSelectSchema.shape.id,
+			assetId: assetSelectSchema.shape.id,
+		}),
+	)
+	.output(statusSchema);

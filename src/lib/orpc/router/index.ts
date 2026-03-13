@@ -61,7 +61,12 @@ import {
 	removeGroupMembers,
 	updateGroup,
 } from "./group";
-import { createJobs, listJobs } from "./job";
+import {
+	createJobs,
+	listJobs,
+	retryProcessing,
+	retryVectorization,
+} from "./job";
 import {
 	createModel,
 	deleteModel,
@@ -259,6 +264,8 @@ export const router = {
 	job: {
 		list: listJobs,
 		create: createJobs,
+		retryProcessing: retryProcessing,
+		retryVectorization: retryVectorization,
 	},
 	ai: {
 		chat: aiChat,

@@ -4,6 +4,7 @@ import { GlobeIcon, KeyRoundIcon } from "lucide-react";
 import { useState } from "react";
 import { AccessDialog } from "@/components/access/access-dialog";
 import { FileViewer } from "@/components/documents/file-viewer";
+import { JobStatusPanel } from "@/components/jobs/job-status-panel";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import {
@@ -50,14 +51,21 @@ function RouteComponent() {
 				</PageAction>
 			</PageHeader>
 			<PageContent>
-				{visibility.data.visibility === "public" && (
-					<div className="mb-3">
+				<div className="mb-3 flex items-center gap-3">
+					{visibility.data.visibility === "public" && (
 						<Badge variant="default">
 							<GlobeIcon className="mr-1 h-3 w-3" />
 							Public
 						</Badge>
-					</div>
-				)}
+					)}
+					<JobStatusPanel
+						processingStatus={asset.data.processingStatus}
+						jobQueue="process-asset-job"
+						resourceId={assetId}
+						resourceType="asset"
+						assetId={assetId}
+					/>
+				</div>
 				<FileViewer asset={asset.data} />
 
 				<AccessDialog

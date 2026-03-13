@@ -1,9 +1,9 @@
-import { useQuery } from "@tanstack/react-query";
 import { Link } from "@tanstack/react-router";
 import { BotIcon, Move3dIcon, ServerIcon, StarIcon } from "lucide-react";
 import { useState } from "react";
 import type { DatabaseBlockValue } from "@/components/authoring/database-block-editor";
 import { AssetCard } from "@/components/documents/asset-card";
+import { JobListDialog } from "@/components/jobs/job-list-dialog";
 import { Badge } from "@/components/ui/badge";
 import { Button, buttonVariants } from "@/components/ui/button";
 import {
@@ -18,13 +18,9 @@ import {
 	CollapsibleContent,
 	CollapsibleTrigger,
 } from "@/components/ui/collapsible";
-import { Item, ItemContent, ItemTitle } from "@/components/ui/item";
 import { AnimatedGroup } from "@/components/ui/motion/animated-group";
 import { useCreateJobMutation } from "@/hooks/mutations/use-job-mutations";
-import { orpc } from "@/lib/orpc/orpc";
 import type { DatabaseBlock } from "@/lib/orpc/schemas/block";
-import type { Job } from "@/lib/pg-boss/schema/job";
-import type { JobQueue } from "@/lib/pg-boss/schema/job-queues";
 
 /** --- Grid --- */
 const AssetGrid = ({ assets }: { assets: DatabaseBlockValue["assets"] }) => {
@@ -184,75 +180,22 @@ const AssetSection = ({
 					/>
 				</div>
 			</div>
-			<div className="flex flex-col gap-4 px-4 xl:flex-row xl:items-start">
-				<Item variant="outline">
-					<ItemContent>
-						<ItemTitle className="font-bold text-xl">
-							Process Asset Jobs
-						</ItemTitle>
-						<JobSection jobQueue="process-asset-job" blockId={blockId} />
-					</ItemContent>
-				</Item>
-				<Item variant="outline">
-					<ItemContent>
-						<ItemTitle className="font-bold text-xl">
-							Vectorise Asset Jobs
-						</ItemTitle>
-						<JobSection jobQueue="vectorize-asset-job" blockId={blockId} />
-					</ItemContent>
-				</Item>
+			<div className="flex gap-2 px-4">
+				<JobListDialog
+					jobQueue="process-asset-job"
+					resourceId={blockId}
+					resourceType="block"
+				/>
+				<JobListDialog
+					jobQueue="vectorize-asset-job"
+					resourceId={blockId}
+					resourceType="block"
+				/>
 			</div>
 			<CollapsibleContent>
 				<AssetGrid assets={assets} />
 			</CollapsibleContent>
 		</Collapsible>
-	);
-};
-
-const JobSection = ({
-	jobQueue,
-	blockId,
-}: {
-	jobQueue: JobQueue;
-	blockId: DatabaseBlock["id"];
-}) => {
-	const { data: tasks } = useQuery(
-		orpc.job.list.queryOptions({
-			input: {
-				jobQueue,
-				resourceId: blockId,
-			},
-			refetchInterval: (query) => {
-				// Refetch every 5 seconds if there are any queued or processing jobs
-				const data = query.state.data;
-				const hasActiveTasks = data?.data.some(
-					(task) => task.state === "created" || task.state === "active",
-				);
-				return hasActiveTasks ? 5000 : false;
-			},
-		}),
-	);
-
-	return (
-		<div>
-			<p>Job Section</p>
-			{tasks?.data?.map((task) => (
-				<JobProgress key={task.id} task={task} />
-			))}
-		</div>
-	);
-};
-
-const JobProgress = ({ task }: { task: Job }) => {
-	return (
-		<div className="mb-2 rounded border p-4">
-			<div className="mb-2 flex flex-col gap-2">
-				<span className="font-medium">
-					Job ID: {task.id} | Name: {task.name}
-				</span>
-				<Badge variant="outline">State: {task.state}</Badge>
-			</div>
-		</div>
 	);
 };
 

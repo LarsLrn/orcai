@@ -38,3 +38,46 @@ export const useCreateJobMutation = (
 		}),
 	});
 };
+
+export const useRetryProcessingMutation = () => {
+	const queryClient = useQueryClient();
+
+	return useMutationAction({
+		mutationOptions: () =>
+			orpc.job.retryProcessing.mutationOptions({
+				onSuccess: () => {
+					queryClient.invalidateQueries({
+						queryKey: orpc.job.key(),
+					});
+					queryClient.invalidateQueries({
+						queryKey: orpc.asset.key(),
+					});
+				},
+			}),
+		messages: {
+			loading: "Retrying processing...",
+			success: "Processing job queued",
+			error: "Failed to retry processing",
+		},
+	});
+};
+
+export const useRetryVectorizationMutation = () => {
+	const queryClient = useQueryClient();
+
+	return useMutationAction({
+		mutationOptions: () =>
+			orpc.job.retryVectorization.mutationOptions({
+				onSuccess: () => {
+					queryClient.invalidateQueries({
+						queryKey: orpc.job.key(),
+					});
+				},
+			}),
+		messages: {
+			loading: "Retrying vectorization...",
+			success: "Vectorization job queued",
+			error: "Failed to retry vectorization",
+		},
+	});
+};
