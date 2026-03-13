@@ -544,11 +544,9 @@ export const findBotEditor = authed.bot.findEditor
 				id: input.id,
 			}).pipe(
 				Effect.mapError(() =>
-					Effect.fail(
-						errors.NOT_FOUND({
-							message: "Bot not found",
-						}),
-					),
+					errors.NOT_FOUND({
+						message: "Bot not found",
+					}),
 				),
 			),
 		),

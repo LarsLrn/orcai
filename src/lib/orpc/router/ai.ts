@@ -225,12 +225,10 @@ export const aiChat = authed.ai.chat
 							},
 						}),
 					catch: (cause) =>
-						Effect.fail(
-							new AiError({
-								operation: "aiChat.handler",
-								cause,
-							}),
-						),
+						new AiError({
+							operation: "aiChat.handler",
+							cause,
+						}),
 				});
 
 				return streamToEventIterator(stream);
