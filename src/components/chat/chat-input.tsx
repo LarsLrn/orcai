@@ -22,7 +22,6 @@ import {
 	InputGroupTextarea,
 } from "@/components/ui/input-group";
 import type { ChatAgentUIMessage } from "@/lib/ai/types/chat-agent-message";
-import { getChatMessageAttachments } from "@/lib/ai/types/chat-attachment";
 import { orpc } from "@/lib/orpc/orpc";
 import type { Chat } from "@/lib/orpc/schemas/chat";
 import {
@@ -198,21 +197,7 @@ const ChatInput = ({
 									/>
 								}
 							/>
-							<ConversationDownload
-								messages={messages.map((message) => ({
-									role: message.role,
-									content: [
-										...message.parts
-											.map((part) =>
-												"text" in part ? part.text : "[file attachment]",
-											)
-											.filter(Boolean),
-										...getChatMessageAttachments(message).map(
-											(attachment) => `[attachment] ${attachment.title}`,
-										),
-									].join("\n"),
-								}))}
-							/>
+							<ConversationDownload messages={messages} />
 						</PromptInputTools>
 
 						{/* <ModelSelectorButton /> */}

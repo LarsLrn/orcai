@@ -70,7 +70,6 @@
 		"@orpc/tanstack-query": "1.13.7",
 		"@orpc/zod": "1.13.7",
 		"@qdrant/qdrant-js": "1.17.0",
-		"@radix-ui/react-use-controllable-state": "1.2.2",
 		"@streamdown/cjk": "1.0.2",
 		"@streamdown/code": "1.1.0",
 		"@streamdown/math": "1.0.2",

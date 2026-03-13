@@ -5,6 +5,7 @@ import {
 	useCallback,
 	useContext,
 	useEffect,
+	useMemo,
 	useRef,
 	useState,
 } from "react";
@@ -34,17 +35,24 @@ export const Snippet = ({
 	className,
 	children,
 	...props
-}: SnippetProps) => (
-	<SnippetContext.Provider
-		value={{
+}: SnippetProps) => {
+	const contextValue = useMemo(
+		() => ({
 			code,
-		}}
-	>
-		<InputGroup className={cn("font-mono", className)} {...props}>
-			{children}
-		</InputGroup>
-	</SnippetContext.Provider>
-);
+		}),
+		[
+			code,
+		],
+	);
+
+	return (
+		<SnippetContext.Provider value={contextValue}>
+			<InputGroup className={cn("font-mono", className)} {...props}>
+				{children}
+			</InputGroup>
+		</SnippetContext.Provider>
+	);
+};
 
 export type SnippetAddonProps = ComponentProps<typeof InputGroupAddon>;
 
