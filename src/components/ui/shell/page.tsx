@@ -84,10 +84,10 @@ const PageFooter = ({ className, ...props }: React.ComponentProps<"div">) => {
 
 export {
 	Page,
-	PageHeader,
-	PageTitle,
-	PageDescription,
 	PageAction,
 	PageContent,
+	PageDescription,
 	PageFooter,
+	PageHeader,
+	PageTitle,
 };

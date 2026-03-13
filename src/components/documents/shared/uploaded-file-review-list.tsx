@@ -125,4 +125,4 @@ const UploadedFileReviewList = ({
 	);
 };
 
-export { UploadedFileReviewList, hasMetadataAdded };
+export { hasMetadataAdded, UploadedFileReviewList };

@@ -190,7 +190,7 @@ const AssetMetadataEditor = ({
 };
 
 export {
+	type AssetMetadataDraft,
 	AssetMetadataEditor,
 	createDefaultAssetMetadata,
-	type AssetMetadataDraft,
 };

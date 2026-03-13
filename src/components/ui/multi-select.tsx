@@ -1269,4 +1269,5 @@ export const MultiSelect = React.forwardRef<MultiSelectRef, MultiSelectProps>(
 );
 
 MultiSelect.displayName = "MultiSelect";
-export type { MultiSelectOption, MultiSelectGroup, MultiSelectProps };
+
+export type { MultiSelectGroup, MultiSelectOption, MultiSelectProps };

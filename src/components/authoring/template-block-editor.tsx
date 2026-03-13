@@ -225,7 +225,7 @@ const TemplateBlockEditor = ({
 };
 
 export {
-	TemplateBlockEditor,
 	createDefaultTemplateBlock,
+	TemplateBlockEditor,
 	type TemplateBlockValue,
 };

@@ -75,5 +75,5 @@ const OptionPicker = <T extends string>({
 	);
 };
 
-export { OptionPicker };
 export type { PickerOption };
+export { OptionPicker };

@@ -510,7 +510,7 @@ const DatabaseBlockEditor = ({
 };
 
 export {
-	DatabaseBlockEditor,
 	createDefaultDatabaseBlock,
+	DatabaseBlockEditor,
 	type DatabaseBlockValue,
 };
