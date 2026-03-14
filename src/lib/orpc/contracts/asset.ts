@@ -16,7 +16,7 @@ import { base } from "./base";
 export const listAssetsContract = base
 	.route({
 		method: "POST",
-		path: "/assets",
+		path: "/assets/list",
 		summary: "List all assets",
 		tags: [
 			"Assets",

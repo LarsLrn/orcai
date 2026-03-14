@@ -12,7 +12,7 @@ import { base } from "./base";
 export const listModelsContract = base
 	.route({
 		method: "POST",
-		path: "/models",
+		path: "/models/list",
 		summary: "List all available models",
 		tags: [
 			"Models",
