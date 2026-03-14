@@ -1,5 +1,16 @@
 import { call } from "@orpc/server";
-import { count, eq, inArray } from "drizzle-orm";
+import {
+	and,
+	arrayOverlaps,
+	asc,
+	count,
+	desc,
+	eq,
+	ilike,
+	inArray,
+	or,
+	sql,
+} from "drizzle-orm";
 import * as Effect from "effect/Effect";
 import OpenAI from "openai";
 import { dbSchema } from "@/db/schema";
@@ -18,23 +29,50 @@ export const listModels = authed.model.list
 			Effect.gen(function* () {
 				const db = yield* DB;
 
+				const searchTerm = input.filters?.search;
+
+				const conditions = [
+					input.filters?.providerId
+						? eq(dbSchema.model.providerId, input.filters.providerId)
+						: undefined,
+					input.filters?.capabilities
+						? arrayOverlaps(
+								dbSchema.model.capabilities,
+								input.filters.capabilities as ModelCapability[],
+							)
+						: undefined,
+					searchTerm
+						? or(
+								sql`word_similarity(${searchTerm}, ${dbSchema.model.name}) > 0.2`,
+								ilike(dbSchema.model.name, `%${searchTerm}%`),
+							)
+						: undefined,
+				].filter((c) => c !== undefined);
+
+				const whereClause =
+					conditions.length > 0 ? and(...conditions) : undefined;
+
 				const [data, [rowCount]] = yield* Effect.all(
 					[
-						db.query.model.findMany({
-							where: {
-								providerId: input.filters?.providerId,
-								capabilities: {
-									arrayOverlaps: input.filters?.capabilities,
-								},
-							},
-							limit: input.pageSize,
-							offset: input.pageIndex * input.pageSize,
-						}),
+						db
+							.select()
+							.from(dbSchema.model)
+							.where(whereClause)
+							.orderBy(
+								searchTerm
+									? desc(
+											sql`word_similarity(${searchTerm}, ${dbSchema.model.name})`,
+										)
+									: asc(dbSchema.model.name),
+							)
+							.limit(input.pageSize)
+							.offset(input.pageIndex * input.pageSize),
 						db
 							.select({
 								count: count(),
 							})
-							.from(dbSchema.model),
+							.from(dbSchema.model)
+							.where(whereClause),
 					],
 					{
 						concurrency: "unbounded",

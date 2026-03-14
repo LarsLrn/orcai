@@ -28,7 +28,7 @@ const supportsOrganizationRelation = (resourceType: ResourceType) =>
  *
  * @param params.visibility      - Defaults to `"private"`.
  * @param params.initialRelation - Overrides the per-type default (`"owner"` for
- *                                 most types, `"manager"` for courses).
+ *                                 most types).
  * @param params.writeManagerGrant - Whether to write a `resourceGrant` row for
  *                                   the creator. Defaults to `true` when
  *                                   `initialRelation` is `"manager"`.

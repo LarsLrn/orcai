@@ -55,16 +55,6 @@ import {
 	updateChatMessageContract,
 } from "./chat-message";
 import {
-	attachCourseBotContract,
-	createCourseContract,
-	deleteCourseContract,
-	detachCourseBotContract,
-	findCourseContract,
-	listCourseBotsContract,
-	listCoursesContract,
-	updateCourseContract,
-} from "./course";
-import {
 	addGroupMembersContract,
 	createGroupContract,
 	deleteGroupContract,
@@ -185,16 +175,6 @@ export const contracts = {
 		revoke: revokeResourceAccessContract,
 		getVisibility: getResourceVisibilityContract,
 		setVisibility: setResourceVisibilityContract,
-	},
-	course: {
-		list: listCoursesContract,
-		find: findCourseContract,
-		create: createCourseContract,
-		update: updateCourseContract,
-		delete: deleteCourseContract,
-		listBots: listCourseBotsContract,
-		attachBot: attachCourseBotContract,
-		detachBot: detachCourseBotContract,
 	},
 	group: {
 		list: listGroupsContract,

@@ -6,7 +6,6 @@ import {
 	json,
 	pgEnum,
 	pgTable,
-	primaryKey,
 	serial,
 	text,
 	timestamp,
@@ -14,8 +13,6 @@ import {
 	uuid,
 } from "drizzle-orm/pg-core";
 import { user } from "./auth";
-import { bot } from "./bot";
-import { course } from "./course";
 import { organization } from "./organization";
 
 export const resourceTypeEnum = pgEnum("resource_type", [
@@ -56,36 +53,6 @@ export const authzOutboxStatusEnum = pgEnum("authz_outbox_status", [
 	"processed",
 	"failed",
 ]);
-
-export const courseBot = pgTable(
-	"course_bot",
-	{
-		courseId: uuid("course_id")
-			.notNull()
-			.references(() => course.id, {
-				onDelete: "cascade",
-			}),
-		botId: uuid("bot_id")
-			.notNull()
-			.references(() => bot.id, {
-				onDelete: "cascade",
-			}),
-		createdBy: uuid("created_by")
-			.notNull()
-			.references(() => user.id),
-		createdAt: timestamp("created_at").notNull().defaultNow(),
-	},
-	(table) => [
-		primaryKey({
-			columns: [
-				table.courseId,
-				table.botId,
-			],
-		}),
-		index("course_bot_course_idx").on(table.courseId),
-		index("course_bot_bot_idx").on(table.botId),
-	],
-);
 
 export const group = pgTable(
 	"group",

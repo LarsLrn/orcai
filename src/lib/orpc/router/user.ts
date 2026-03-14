@@ -188,69 +188,54 @@ export const listUserAccess = authed.user.listAccess
 				}
 
 				const resourceTypes = RESOURCE_TYPES;
-				const [allowedCourses, allowedBots, allowedBlocks, allowedAssets] =
-					yield* Effect.all(
-						[
-							lookupEntitiesByPermission({
-								userId: input.id,
-								permission: "read",
-								entityType: "course",
-								zedToken: context.meta?.zedToken,
-							}).pipe(
-								Effect.map((items) =>
-									items.map((item) => ({
-										resourceType: "course" as const,
-										resourceId: item.resourceObjectId,
-									})),
-								),
+				const [allowedBots, allowedBlocks, allowedAssets] = yield* Effect.all(
+					[
+						lookupEntitiesByPermission({
+							userId: input.id,
+							permission: "read",
+							entityType: "bot",
+							zedToken: context.meta?.zedToken,
+						}).pipe(
+							Effect.map((items) =>
+								items.map((item) => ({
+									resourceType: "bot" as const,
+									resourceId: item.resourceObjectId,
+								})),
 							),
-							lookupEntitiesByPermission({
-								userId: input.id,
-								permission: "read",
-								entityType: "bot",
-								zedToken: context.meta?.zedToken,
-							}).pipe(
-								Effect.map((items) =>
-									items.map((item) => ({
-										resourceType: "bot" as const,
-										resourceId: item.resourceObjectId,
-									})),
-								),
+						),
+						lookupEntitiesByPermission({
+							userId: input.id,
+							permission: "read",
+							entityType: "block",
+							zedToken: context.meta?.zedToken,
+						}).pipe(
+							Effect.map((items) =>
+								items.map((item) => ({
+									resourceType: "block" as const,
+									resourceId: item.resourceObjectId,
+								})),
 							),
-							lookupEntitiesByPermission({
-								userId: input.id,
-								permission: "read",
-								entityType: "block",
-								zedToken: context.meta?.zedToken,
-							}).pipe(
-								Effect.map((items) =>
-									items.map((item) => ({
-										resourceType: "block" as const,
-										resourceId: item.resourceObjectId,
-									})),
-								),
+						),
+						lookupEntitiesByPermission({
+							userId: input.id,
+							permission: "read",
+							entityType: "asset",
+							zedToken: context.meta?.zedToken,
+						}).pipe(
+							Effect.map((items) =>
+								items.map((item) => ({
+									resourceType: "asset" as const,
+									resourceId: item.resourceObjectId,
+								})),
 							),
-							lookupEntitiesByPermission({
-								userId: input.id,
-								permission: "read",
-								entityType: "asset",
-								zedToken: context.meta?.zedToken,
-							}).pipe(
-								Effect.map((items) =>
-									items.map((item) => ({
-										resourceType: "asset" as const,
-										resourceId: item.resourceObjectId,
-									})),
-								),
-							),
-						],
-						{
-							concurrency: "unbounded",
-						},
-					);
+						),
+					],
+					{
+						concurrency: "unbounded",
+					},
+				);
 
 				const allowedResources = [
-					...allowedCourses,
 					...allowedBots,
 					...allowedBlocks,
 					...allowedAssets,
@@ -290,9 +275,6 @@ export const listUserAccess = authed.user.listAccess
 				const scopedResourceIds = unique(
 					scopedResources.map((resource) => resource.resourceId),
 				);
-				const courseIds = scopedResources
-					.filter((resource) => resource.resourceType === "course")
-					.map((resource) => resource.resourceId);
 				const botIds = scopedResources
 					.filter((resource) => resource.resourceType === "bot")
 					.map((resource) => resource.resourceId);
@@ -385,23 +367,18 @@ export const listUserAccess = authed.user.listAccess
 						);
 					});
 
-				const [courseRoles, botRoles, blockRoles, assetRoles] =
-					yield* Effect.all(
-						[
-							roleForAllowedIds("course", courseIds),
-							roleForAllowedIds("bot", botIds),
-							roleForAllowedIds("block", blockIds),
-							roleForAllowedIds("asset", assetIds),
-						],
-						{
-							concurrency: "unbounded",
-						},
-					);
+				const [botRoles, blockRoles, assetRoles] = yield* Effect.all(
+					[
+						roleForAllowedIds("bot", botIds),
+						roleForAllowedIds("block", blockIds),
+						roleForAllowedIds("asset", assetIds),
+					],
+					{
+						concurrency: "unbounded",
+					},
+				);
 
 				const effectiveRoleByResource = new Map<string, ResourceGrantRole>();
-				for (const [id, role] of courseRoles) {
-					effectiveRoleByResource.set(`course:${id}`, role);
-				}
 				for (const [id, role] of botRoles) {
 					effectiveRoleByResource.set(`bot:${id}`, role);
 				}
@@ -513,17 +490,8 @@ export const listUserAccess = authed.user.listAccess
 						),
 					);
 
-				const [courses, bots, blocks, assets] = yield* Effect.all(
+				const [bots, blocks, assets] = yield* Effect.all(
 					[
-						courseIds.length > 0
-							? db
-									.select({
-										id: dbSchema.course.id,
-										name: dbSchema.course.title,
-									})
-									.from(dbSchema.course)
-									.where(inArray(dbSchema.course.id, courseIds))
-							: Effect.succeed([]),
 						botIds.length > 0
 							? db
 									.select({
@@ -559,7 +527,6 @@ export const listUserAccess = authed.user.listAccess
 
 				const names = new Map<string, string>();
 				for (const item of [
-					...courses,
 					...bots,
 					...blocks,
 					...assets,

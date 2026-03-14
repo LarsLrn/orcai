@@ -39,9 +39,11 @@ function RouteComponent() {
 	const groups = useQuery(
 		orpc.group.list.queryOptions({
 			input: {
+				filters: {
+					search,
+				},
 				pageIndex: 0,
 				pageSize: 100,
-				query: search.trim() ? search.trim() : undefined,
 			},
 		}),
 	);

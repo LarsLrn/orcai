@@ -1,6 +1,7 @@
 import { skipToken, useQuery, useSuspenseQuery } from "@tanstack/react-query";
 import { useRouteContext } from "@tanstack/react-router";
 import { SparklesIcon } from "lucide-react";
+import { useEffect, useState } from "react";
 import {
 	Card,
 	CardContent,
@@ -8,15 +9,20 @@ import {
 	CardHeader,
 	CardTitle,
 } from "@/components/ui/card";
+import {
+	DialogSelect,
+	DialogSelectContent,
+	DialogSelectEmpty,
+	DialogSelectFilter,
+	DialogSelectFilters,
+	DialogSelectItem,
+	DialogSelectList,
+	DialogSelectPagination,
+	DialogSelectSearch,
+	DialogSelectTrigger,
+} from "@/components/ui/composed/dialog-select";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import {
-	Select,
-	SelectContent,
-	SelectItem,
-	SelectTrigger,
-	SelectValue,
-} from "@/components/ui/select";
 import { Textarea } from "@/components/ui/textarea";
 import { orpc } from "@/lib/orpc/orpc";
 import type { BotEditorSelect } from "@/lib/orpc/schemas/bot-editor";
@@ -47,6 +53,24 @@ const TemplateBlockEditor = ({
 
 	const templateBlock = value ?? createDefaultTemplateBlock();
 
+	const PAGE_SIZE = 10;
+
+	const [modelDialogOpen, setModelDialogOpen] = useState(false);
+	const [providerFilter, setProviderFilter] = useState(
+		templateBlock.config.provider,
+	);
+
+	// Sync filter when the saved provider loads asynchronously
+	useEffect(() => {
+		if (templateBlock.config.provider) {
+			setProviderFilter(templateBlock.config.provider);
+		}
+	}, [
+		templateBlock.config.provider,
+	]);
+	const [modelSearch, setModelSearch] = useState("");
+	const [modelPage, setModelPage] = useState(0);
+
 	const { data: providers } = useSuspenseQuery(
 		orpc.provider.list.queryOptions({
 			input: {
@@ -56,50 +80,39 @@ const TemplateBlockEditor = ({
 		}),
 	);
 
-	const { data: models } = useQuery(
+	const { data: models, isLoading: modelsLoading } = useQuery(
 		orpc.model.list.queryOptions({
-			input: templateBlock.config.provider
+			input: providerFilter
 				? {
 						filters: {
-							providerId: templateBlock.config.provider,
+							providerId: providerFilter,
 							capabilities: [
 								"text",
 							],
+							search: modelSearch || undefined,
 						},
-						pageSize: 50,
+						pageSize: PAGE_SIZE,
+						pageIndex: modelPage,
 					}
 				: skipToken,
 		}),
 	);
 
-	const providerOptions = providers.data;
-	const selectedProvider = providerOptions.find(
-		(provider) => provider.id === templateBlock.config.provider,
-	);
-	const modelOptions = models?.data ?? [];
-	const selectedModel = modelOptions.find(
-		(model) => model.id === templateBlock.config.model,
-	);
-	const providerItems =
-		templateBlock.config.provider && !selectedProvider
-			? [
-					...providerOptions,
-					{
-						id: templateBlock.config.provider,
-						name: templateBlock.config.provider,
-					},
-				]
-			: providerOptions;
-	const modelItems =
-		templateBlock.config.model && !selectedModel
-			? [
-					...modelOptions,
-					{
+	const { data: selectedModelData } = useQuery(
+		orpc.model.find.queryOptions({
+			input: templateBlock.config.model
+				? {
 						id: templateBlock.config.model,
-						name: templateBlock.config.model,
-					},
-				]
-			: modelOptions;
+					}
+				: skipToken,
+		}),
+	);
+
+	const pageCount = Math.ceil((models?.rowCount ?? 0) / PAGE_SIZE);
+	const providerFilterOptions = providers.data.map((p) => ({
+		value: p.id,
+		label: p.name,
+	}));
 
 	return (
 		<div className="grid gap-5 lg:grid-cols-[1.2fr_0.8fr]">
@@ -155,69 +168,76 @@ const TemplateBlockEditor = ({
 				<CardHeader>
 					<CardTitle>Model Settings</CardTitle>
 					<CardDescription>
-						Choose the provider and text model used for bot responses.
+						Choose the AI model used for bot responses.
 					</CardDescription>
 				</CardHeader>
 				<CardContent className="space-y-4">
-					<div className="space-y-2">
-						<Label htmlFor="template-block-provider">Provider</Label>
-						<Select
-							id="template-block-provider"
-							value={templateBlock.config.provider || undefined}
-							onValueChange={(provider) =>
-								onChange({
-									...templateBlock,
-									config: {
-										...templateBlock.config,
-										provider: provider ?? "",
-										model: "",
-									},
-								})
-							}
+					<DialogSelect
+						value={templateBlock.config.model || null}
+						onValueChange={(model) =>
+							onChange({
+								...templateBlock,
+								config: {
+									...templateBlock.config,
+									model: model ?? "",
+									provider: providerFilter,
+								},
+							})
+						}
+						open={modelDialogOpen}
+						onOpenChange={setModelDialogOpen}
+					>
+						<DialogSelectTrigger
+							className="w-full"
+							placeholder="Choose a model..."
 						>
-							<SelectTrigger className="w-full">
-								<SelectValue placeholder="Choose a provider">
-									{templateBlock.config.provider}
-								</SelectValue>
-							</SelectTrigger>
-							<SelectContent>
-								{providerItems.map((provider) => (
-									<SelectItem key={provider.id} value={provider.id}>
-										{provider.name}
-									</SelectItem>
+							{selectedModelData?.data?.name}
+						</DialogSelectTrigger>
+						<DialogSelectContent title="Choose a text model">
+							<DialogSelectSearch
+								value={modelSearch}
+								onValueChange={(v) => {
+									setModelSearch(v);
+									setModelPage(0);
+								}}
+								placeholder="Search models..."
+							/>
+							<DialogSelectFilters>
+								<DialogSelectFilter
+									value={providerFilter}
+									onValueChange={(p) => {
+										setProviderFilter(p);
+										setModelSearch("");
+										setModelPage(0);
+									}}
+									placeholder="Select a provider"
+									options={providerFilterOptions}
+								/>
+							</DialogSelectFilters>
+							<DialogSelectList loading={modelsLoading}>
+								{(models?.data ?? []).map((model) => (
+									<DialogSelectItem
+										key={model.id}
+										value={model.id}
+										title={model.name}
+										description={model.description || undefined}
+									/>
 								))}
-							</SelectContent>
-						</Select>
-					</div>
-
-					<div className="space-y-2">
-						<Label htmlFor="template-block-model">Text Model</Label>
-						<Select
-							id="template-block-model"
-							value={templateBlock.config.model || undefined}
-							onValueChange={(model) =>
-								onChange({
-									...templateBlock,
-									config: {
-										...templateBlock.config,
-										model: model ?? "",
-									},
-								})
-							}
-							disabled={!templateBlock.config.provider}
-						>
-							<SelectTrigger className="w-full">
-								<SelectValue placeholder="Choose a model" />
-							</SelectTrigger>
-							<SelectContent>
-								{modelItems.map((model) => (
-									<SelectItem key={model.id} value={model.id}>
-										{model.name}
-									</SelectItem>
-								))}
-							</SelectContent>
-						</Select>
-					</div>
+								{!modelsLoading && (models?.data ?? []).length === 0 && (
+									<DialogSelectEmpty>
+										{providerFilter
+											? "No models found."
+											: "Select a provider to view models."}
+									</DialogSelectEmpty>
+								)}
+							</DialogSelectList>
+							<DialogSelectPagination
+								page={modelPage}
+								pageCount={pageCount}
+								onPageChange={setModelPage}
+							/>
+						</DialogSelectContent>
+					</DialogSelect>
 				</CardContent>
 			</Card>
 		</div>

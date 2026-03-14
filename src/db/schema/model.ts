@@ -1,5 +1,7 @@
+import { sql } from "drizzle-orm";
 import {
 	boolean,
+	index,
 	pgTable,
 	text,
 	timestamp,
@@ -34,6 +36,7 @@ export const model = pgTable(
 			table.providerModelId,
 			table.providerId,
 		),
+		index("model_name_trgm_idx").using("gin", sql`${table.name} gin_trgm_ops`),
 	],
 );
 

@@ -41,18 +41,6 @@ const sourceLabel: Record<UserAccessEntry["source"], string> = {
 
 const ResourceLink = ({ access }: { access: UserAccessEntry }) => {
 	switch (access.resourceType) {
-		case "course":
-			return (
-				<Link
-					to="/app/hub/courses/$courseId"
-					params={{
-						courseId: access.resourceId,
-					}}
-					className="text-primary hover:underline"
-				>
-					{access.resourceName ?? "Untitled course"}
-				</Link>
-			);
 		case "bot":
 			return (
 				<Link

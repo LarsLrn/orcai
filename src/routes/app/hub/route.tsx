@@ -36,11 +36,6 @@ const HUB_ROUTES = [
 		label: "Assets",
 		to: "/app/hub/assets",
 	},
-	{
-		value: "courses",
-		label: "Courses",
-		to: "/app/hub/courses",
-	},
 ] satisfies {
 	value: string;
 	label: string;
@@ -80,8 +75,8 @@ function RouteComponent() {
 			<PageHeader>
 				<PageTitle>Hub</PageTitle>
 				<PageDescription>
-					Discover and share community resources including bots, blocks, assets,
-					and courses.
+					Discover and share community resources including bots, blocks, and
+					assets.
 				</PageDescription>
 				<PageAction>
 					<Tabs

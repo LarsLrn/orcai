@@ -3,19 +3,19 @@ import { JobListDialog } from "@/components/jobs/job-list-dialog";
 import { JobStatusBadge } from "@/components/jobs/job-status-badge";
 import { Button } from "@/components/ui/button";
 import {
+	Card,
+	CardContent,
+	CardDescription,
+	CardHeader,
+	CardTitle,
+} from "@/components/ui/card";
+import {
 	useRetryProcessingMutation,
 	useRetryVectorizationMutation,
 } from "@/hooks/mutations/use-job-mutations";
 import type { ProcessingStatus } from "@/lib/orpc/schemas/fragments/processing-status";
 import type { JobQueue } from "@/lib/pg-boss/schema/job-queues";
 import { cn } from "@/lib/utils";
-import {
-	Card,
-	CardContent,
-	CardDescription,
-	CardHeader,
-	CardTitle,
-} from "../ui/card";
 
 type JobStatusPanelProps = {
 	processingStatus: ProcessingStatus;

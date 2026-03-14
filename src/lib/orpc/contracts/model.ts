@@ -24,6 +24,7 @@ export const listModelsContract = base
 				.object({
 					providerId: providerSelectSchema.shape.id.optional(),
 					capabilities: modelSelectSchema.shape.capabilities.optional(),
+					search: z.string().optional(),
 				})
 				.optional(),
 			...paginationSchema.shape,

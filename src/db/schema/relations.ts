@@ -42,10 +42,4 @@ export const relations = defineRelations(dbSchema, (r) => ({
 		messages: r.many.chatMessage(),
 		branches: r.many.chatBranch(),
 	},
-	course: {
-		organization: r.one.organization({
-			from: r.course.organizationId,
-			to: r.organization.id,
-		}),
-	},
 }));

@@ -2,7 +2,6 @@ import { useSuspenseQuery } from "@tanstack/react-query";
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { BlockCard } from "@/components/blocks/block-card";
 import { BotCard } from "@/components/bot/bot-card";
-import { CourseCard } from "@/components/courses/course-card";
 import { AssetCard } from "@/components/documents/asset-card";
 import { buttonVariants } from "@/components/ui/button";
 import { PageContent } from "@/components/ui/shell/page";
@@ -40,11 +39,6 @@ export const Route = createFileRoute("/app/hub/")({
 					input: HUB_OVERVIEW_INPUT,
 				}),
 			),
-			queryClient.ensureQueryData(
-				orpc.course.list.queryOptions({
-					input: HUB_OVERVIEW_INPUT,
-				}),
-			),
 		]);
 	},
 	component: RouteComponent,
@@ -63,11 +57,6 @@ function RouteComponent() {
 	);
 	const { data: assets } = useSuspenseQuery(
 		orpc.asset.list.queryOptions({
-			input: HUB_OVERVIEW_INPUT,
-		}),
-	);
-	const { data: courses } = useSuspenseQuery(
-		orpc.course.list.queryOptions({
 			input: HUB_OVERVIEW_INPUT,
 		}),
 	);
@@ -165,39 +154,6 @@ function RouteComponent() {
 							<AssetCard
 								key={asset.id}
 								asset={asset}
-								actions={{
-									footer: [],
-								}}
-							/>
-						))}
-					</SectionGrid>
-				</SectionContent>
-			</Section>
-
-			<Section>
-				<SectionHeader>
-					<SectionTitle>Courses</SectionTitle>
-					<SectionDescription>
-						Courses grouping your bots for structured learning.
-					</SectionDescription>
-					<SectionAction>
-						<Link
-							to="/app/hub/courses"
-							className={buttonVariants({
-								variant: "outline",
-							})}
-						>
-							View all
-						</Link>
-					</SectionAction>
-				</SectionHeader>
-
-				<SectionContent>
-					<SectionGrid layout="3">
-						{courses.data.map((course) => (
-							<CourseCard
-								key={course.id}
-								course={course}
 								actions={{
 									footer: [],
 								}}

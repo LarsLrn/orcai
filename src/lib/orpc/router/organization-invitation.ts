@@ -250,11 +250,6 @@ export const deleteOrganizationInvitations =
 				Effect.gen(function* () {
 					const db = yield* DB;
 
-					/* // Check if there are any IDs to delete
-		if (!context.allowedIds || context.allowedIds.length === 0) {
-			return { success: true, message: "No courses to delete" };
-		} */
-
 					const ids = input.refs.map((ref) => ref.id);
 					yield* db
 						.delete(dbSchema.invitation)
