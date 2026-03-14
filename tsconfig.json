@@ -1,12 +1,21 @@
 {
 	"include": [
-		"**/*.ts",
-		"**/*.tsx",
-		"./start-server.ts"
+		"src",
+		"scripts/**/*.ts",
+		"start-server.ts"
 	],
 	"exclude": [
-		"node_modules"
+		".tanstack"
 	],
+	"watchOptions": {
+		"excludeDirectories": [
+			"**/node_modules",
+			"**/.git",
+			"**/.devtools",
+			"**/dist",
+			"**/.tanstack"
+		]
+	},
 	"compilerOptions": {
 		"target": "ES2022",
 		"jsx": "react-jsx",
