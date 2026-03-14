@@ -1,6 +1,6 @@
 import { useSuspenseQuery } from "@tanstack/react-query";
 import { createFileRoute } from "@tanstack/react-router";
-import { ManageModel } from "@/components/model/manage-model";
+import { ModelForm } from "@/components/model/form/model-form";
 import {
 	Page,
 	PageContent,
@@ -36,7 +36,7 @@ function RouteComponent() {
 				<PageTitle>Edit Model</PageTitle>
 			</PageHeader>
 			<PageContent>
-				<ManageModel model={model.data} />
+				<ModelForm action="update" model={model.data} />
 			</PageContent>
 		</Page>
 	);
