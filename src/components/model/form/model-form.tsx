@@ -112,7 +112,7 @@ const ModelForm = ({
 			/>
 
 			<form.AppForm>
-				<form.SubmitButton label="Save Provider" />
+				<form.SubmitButton label="Save Model" />
 			</form.AppForm>
 		</form>
 	);
