@@ -727,15 +727,18 @@ export const setTourState = authed.user.setTourState
 			Effect.gen(function* () {
 				const db = yield* DB;
 
-				yield* db.update(dbSchema.user).set({
-					preferences: {
-						...context.preferences,
-						tours: {
-							...context.preferences?.tours,
-							[input.tourId]: input.state,
+				yield* db
+					.update(dbSchema.user)
+					.set({
+						preferences: {
+							...context.preferences,
+							tours: {
+								...context.preferences?.tours,
+								[input.tourId]: input.state,
+							},
 						},
-					},
-				});
+					})
+					.where(eq(dbSchema.user.id, context.auth.user.id));
 
 				return {
 					success: true,
