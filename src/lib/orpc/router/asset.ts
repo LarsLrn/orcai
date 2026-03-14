@@ -343,6 +343,25 @@ export const saveManyAssets = authed.asset.saveMany
 					(assetInput) =>
 						Effect.gen(function* () {
 							if (assetInput.id) {
+								const permission = yield* checkEntityPermission({
+									entityId: assetInput.id,
+									entityType: "asset",
+									permission: "edit",
+									userId: context.auth.user.id,
+									zedToken: context.meta?.zedToken,
+								});
+
+								if (!hasPermission(permission)) {
+									return yield* Effect.fail(
+										errors.FORBIDDEN({
+											message: "You do not have permission to edit this asset.",
+											data: {
+												allowed: false,
+											},
+										}),
+									);
+								}
+
 								const db = yield* DB;
 								const [asset] = yield* db
 									.update(dbSchema.asset)
