@@ -13,7 +13,7 @@ import {
 	groupUpdateSchema,
 	groupWriteResponseSchema,
 } from "@/lib/orpc/schemas/group";
-import { paginationSchema } from "../schemas/shared";
+import { paginationSchema } from "@/lib/orpc/schemas/shared";
 import { base } from "./base";
 
 export const listGroupsContract = base
