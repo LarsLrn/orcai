@@ -2,7 +2,6 @@ import type { LinkProps } from "@tanstack/react-router";
 import {
 	ArrowLeftRightIcon,
 	BlocksIcon,
-	BookMarkedIcon,
 	BotIcon,
 	Building2Icon,
 	FolderOpenIcon,
@@ -28,13 +27,6 @@ export const sidebarMenu = [
 		},
 		icon: BlocksIcon,
 		items: [
-			{
-				title: "Courses",
-				linkProps: {
-					to: "/app/hub/courses",
-				},
-				icon: BookMarkedIcon,
-			},
 			{
 				title: "Assets",
 				linkProps: {

@@ -302,7 +302,7 @@ function RouteComponent() {
 							<div className="rounded-xl border border-border border-dashed p-6 text-center">
 								<p className="font-medium">No models connected yet</p>
 								<p className="mt-1 text-muted-foreground text-sm">
-									Add a model to start using this provider in courses and bots.
+									Add a model to start using this provider in bots.
 								</p>
 							</div>
 						) : (

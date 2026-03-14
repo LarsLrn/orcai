@@ -33,7 +33,8 @@ export const RESOURCES = [
 	{
 		value: "bot",
 		label: "Bot",
-		accessHint: "Access may also be inherited through linked courses.",
+		accessHint:
+			"Providing access to bots will cascade the access level to all child resources (e.g. bots and blocks).",
 	},
 	{
 		value: "block",

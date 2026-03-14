@@ -42,16 +42,6 @@ import {
 	updateChatMessage,
 } from "./chat-message";
 import {
-	attachCourseBot,
-	createCourse,
-	deleteCourses,
-	detachCourseBot,
-	findCourse,
-	listCourseBots,
-	listCourses,
-	updateCourse,
-} from "./course";
-import {
 	addGroupMembers,
 	createGroup,
 	deleteGroups,
@@ -173,16 +163,6 @@ export const router = {
 		revoke: revokeResourceAccess,
 		getVisibility: getResourceVisibility,
 		setVisibility: setResourceVisibility,
-	},
-	course: {
-		list: listCourses,
-		create: createCourse,
-		find: findCourse,
-		update: updateCourse,
-		delete: deleteCourses,
-		listBots: listCourseBots,
-		attachBot: attachCourseBot,
-		detachBot: detachCourseBot,
 	},
 	group: {
 		list: listGroups,

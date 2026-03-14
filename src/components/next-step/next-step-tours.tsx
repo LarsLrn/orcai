@@ -86,20 +86,6 @@ const nextStepTours: Tour[] = [
 			},
 			{
 				icon: null,
-				title: "Switch courses",
-				content: (
-					<>
-						If you have access to multiple courses, you can switch between them
-						in the sidebar.
-					</>
-				),
-				showControls: true,
-				showSkip: true,
-				pointerPadding: 10,
-				pointerRadius: 10,
-			},
-			{
-				icon: null,
 				title: "You are all set!",
 				content: (
 					<>

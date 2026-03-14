@@ -80,18 +80,6 @@ export const queryDefaults = {
 			},
 		},
 	},
-	course: {
-		list: {
-			queryOptions: {
-				placeholderData: keepPreviousData,
-			},
-		},
-		find: {
-			queryOptions: {
-				placeholderData: keepPreviousData,
-			},
-		},
-	},
 	group: {
 		list: {
 			queryOptions: {

@@ -86,7 +86,6 @@ function RouteComponent() {
 				>
 					<div className="flex items-center gap-2">
 						<DataTableViewOptions />
-						{/* <CoursesDataTableSelectActions /> */}
 					</div>
 					<DataTableBody />
 					<DataTablePagination />

@@ -48,7 +48,6 @@ import { Route as AppUsersUserIdRouteRouteImport } from './routes/app/users/$use
 import { Route as AppProvidersProviderIdRouteRouteImport } from './routes/app/providers/$providerId/route'
 import { Route as AppOrgsOrgIdRouteRouteImport } from './routes/app/orgs/$orgId/route'
 import { Route as AppModelsModelIdRouteRouteImport } from './routes/app/models/$modelId/route'
-import { Route as AppHubCoursesRouteRouteImport } from './routes/app/hub/courses/route'
 import { Route as AppHubBotsRouteRouteImport } from './routes/app/hub/bots/route'
 import { Route as AppHubBlocksRouteRouteImport } from './routes/app/hub/blocks/route'
 import { Route as AppHubAssetsRouteRouteImport } from './routes/app/hub/assets/route'
@@ -56,7 +55,6 @@ import { Route as AppGroupsGroupIdRouteRouteImport } from './routes/app/groups/$
 import { Route as AppProvidersProviderIdIndexRouteImport } from './routes/app/providers/$providerId/index'
 import { Route as AppOrgsOrgIdIndexRouteImport } from './routes/app/orgs/$orgId/index'
 import { Route as AppModelsModelIdIndexRouteImport } from './routes/app/models/$modelId/index'
-import { Route as AppHubCoursesIndexRouteImport } from './routes/app/hub/courses/index'
 import { Route as AppHubBotsIndexRouteImport } from './routes/app/hub/bots/index'
 import { Route as AppHubBlocksIndexRouteImport } from './routes/app/hub/blocks/index'
 import { Route as AppHubAssetsIndexRouteImport } from './routes/app/hub/assets/index'
@@ -66,20 +64,16 @@ import { Route as AppUsersUserIdEditRouteImport } from './routes/app/users/$user
 import { Route as AppProvidersProviderIdEditRouteImport } from './routes/app/providers/$providerId/edit'
 import { Route as AppOrgsOrgIdEditRouteImport } from './routes/app/orgs/$orgId/edit'
 import { Route as AppModelsModelIdEditRouteImport } from './routes/app/models/$modelId/edit'
-import { Route as AppHubCoursesAddRouteImport } from './routes/app/hub/courses/add'
 import { Route as AppHubBotsAddRouteImport } from './routes/app/hub/bots/add'
 import { Route as AppHubBlocksAddRouteImport } from './routes/app/hub/blocks/add'
 import { Route as AppHubAssetsPlaygroundRouteImport } from './routes/app/hub/assets/playground'
 import { Route as AppHubAssetsAddRouteImport } from './routes/app/hub/assets/add'
-import { Route as AppHubCoursesCourseIdRouteRouteImport } from './routes/app/hub/courses/$courseId/route'
 import { Route as AppHubBotsBotIdRouteRouteImport } from './routes/app/hub/bots/$botId/route'
 import { Route as AppHubBlocksBlockIdRouteRouteImport } from './routes/app/hub/blocks/$blockId/route'
 import { Route as AppHubAssetsAssetIdRouteRouteImport } from './routes/app/hub/assets/$assetId/route'
-import { Route as AppHubCoursesCourseIdIndexRouteImport } from './routes/app/hub/courses/$courseId/index'
 import { Route as AppHubBotsBotIdIndexRouteImport } from './routes/app/hub/bots/$botId/index'
 import { Route as AppHubBlocksBlockIdIndexRouteImport } from './routes/app/hub/blocks/$blockId/index'
 import { Route as AppHubAssetsAssetIdIndexRouteImport } from './routes/app/hub/assets/$assetId/index'
-import { Route as AppHubCoursesCourseIdEditRouteImport } from './routes/app/hub/courses/$courseId/edit'
 import { Route as AppHubBotsBotIdSetupRouteImport } from './routes/app/hub/bots/$botId/setup'
 import { Route as AppHubBlocksBlockIdPointsRouteImport } from './routes/app/hub/blocks/$blockId/points'
 import { Route as AppHubBlocksBlockIdEditRouteImport } from './routes/app/hub/blocks/$blockId/edit'
@@ -281,11 +275,6 @@ const AppModelsModelIdRouteRoute = AppModelsModelIdRouteRouteImport.update({
   path: '/$modelId',
   getParentRoute: () => AppModelsRouteRoute,
 } as any)
-const AppHubCoursesRouteRoute = AppHubCoursesRouteRouteImport.update({
-  id: '/courses',
-  path: '/courses',
-  getParentRoute: () => AppHubRouteRoute,
-} as any)
 const AppHubBotsRouteRoute = AppHubBotsRouteRouteImport.update({
   id: '/bots',
   path: '/bots',
@@ -321,11 +310,6 @@ const AppModelsModelIdIndexRoute = AppModelsModelIdIndexRouteImport.update({
   id: '/',
   path: '/',
   getParentRoute: () => AppModelsModelIdRouteRoute,
-} as any)
-const AppHubCoursesIndexRoute = AppHubCoursesIndexRouteImport.update({
-  id: '/',
-  path: '/',
-  getParentRoute: () => AppHubCoursesRouteRoute,
 } as any)
 const AppHubBotsIndexRoute = AppHubBotsIndexRouteImport.update({
   id: '/',
@@ -373,11 +357,6 @@ const AppModelsModelIdEditRoute = AppModelsModelIdEditRouteImport.update({
   path: '/edit',
   getParentRoute: () => AppModelsModelIdRouteRoute,
 } as any)
-const AppHubCoursesAddRoute = AppHubCoursesAddRouteImport.update({
-  id: '/add',
-  path: '/add',
-  getParentRoute: () => AppHubCoursesRouteRoute,
-} as any)
 const AppHubBotsAddRoute = AppHubBotsAddRouteImport.update({
   id: '/add',
   path: '/add',
@@ -398,12 +377,6 @@ const AppHubAssetsAddRoute = AppHubAssetsAddRouteImport.update({
   path: '/add',
   getParentRoute: () => AppHubAssetsRouteRoute,
 } as any)
-const AppHubCoursesCourseIdRouteRoute =
-  AppHubCoursesCourseIdRouteRouteImport.update({
-    id: '/$courseId',
-    path: '/$courseId',
-    getParentRoute: () => AppHubCoursesRouteRoute,
-  } as any)
 const AppHubBotsBotIdRouteRoute = AppHubBotsBotIdRouteRouteImport.update({
   id: '/$botId',
   path: '/$botId',
@@ -421,12 +394,6 @@ const AppHubAssetsAssetIdRouteRoute =
     path: '/$assetId',
     getParentRoute: () => AppHubAssetsRouteRoute,
   } as any)
-const AppHubCoursesCourseIdIndexRoute =
-  AppHubCoursesCourseIdIndexRouteImport.update({
-    id: '/',
-    path: '/',
-    getParentRoute: () => AppHubCoursesCourseIdRouteRoute,
-  } as any)
 const AppHubBotsBotIdIndexRoute = AppHubBotsBotIdIndexRouteImport.update({
   id: '/',
   path: '/',
@@ -443,12 +410,6 @@ const AppHubAssetsAssetIdIndexRoute =
     id: '/',
     path: '/',
     getParentRoute: () => AppHubAssetsAssetIdRouteRoute,
-  } as any)
-const AppHubCoursesCourseIdEditRoute =
-  AppHubCoursesCourseIdEditRouteImport.update({
-    id: '/edit',
-    path: '/edit',
-    getParentRoute: () => AppHubCoursesCourseIdRouteRoute,
   } as any)
 const AppHubBotsBotIdSetupRoute = AppHubBotsBotIdSetupRouteImport.update({
   id: '/setup',
@@ -494,7 +455,6 @@ export interface FileRoutesByFullPath {
   '/app/hub/assets': typeof AppHubAssetsRouteRouteWithChildren
   '/app/hub/blocks': typeof AppHubBlocksRouteRouteWithChildren
   '/app/hub/bots': typeof AppHubBotsRouteRouteWithChildren
-  '/app/hub/courses': typeof AppHubCoursesRouteRouteWithChildren
   '/app/models/$modelId': typeof AppModelsModelIdRouteRouteWithChildren
   '/app/orgs/$orgId': typeof AppOrgsOrgIdRouteRouteWithChildren
   '/app/providers/$providerId': typeof AppProvidersProviderIdRouteRouteWithChildren
@@ -519,12 +479,10 @@ export interface FileRoutesByFullPath {
   '/app/hub/assets/$assetId': typeof AppHubAssetsAssetIdRouteRouteWithChildren
   '/app/hub/blocks/$blockId': typeof AppHubBlocksBlockIdRouteRouteWithChildren
   '/app/hub/bots/$botId': typeof AppHubBotsBotIdRouteRouteWithChildren
-  '/app/hub/courses/$courseId': typeof AppHubCoursesCourseIdRouteRouteWithChildren
   '/app/hub/assets/add': typeof AppHubAssetsAddRoute
   '/app/hub/assets/playground': typeof AppHubAssetsPlaygroundRoute
   '/app/hub/blocks/add': typeof AppHubBlocksAddRoute
   '/app/hub/bots/add': typeof AppHubBotsAddRoute
-  '/app/hub/courses/add': typeof AppHubCoursesAddRoute
   '/app/models/$modelId/edit': typeof AppModelsModelIdEditRoute
   '/app/orgs/$orgId/edit': typeof AppOrgsOrgIdEditRoute
   '/app/providers/$providerId/edit': typeof AppProvidersProviderIdEditRoute
@@ -534,7 +492,6 @@ export interface FileRoutesByFullPath {
   '/app/hub/assets/': typeof AppHubAssetsIndexRoute
   '/app/hub/blocks/': typeof AppHubBlocksIndexRoute
   '/app/hub/bots/': typeof AppHubBotsIndexRoute
-  '/app/hub/courses/': typeof AppHubCoursesIndexRoute
   '/app/models/$modelId/': typeof AppModelsModelIdIndexRoute
   '/app/orgs/$orgId/': typeof AppOrgsOrgIdIndexRoute
   '/app/providers/$providerId/': typeof AppProvidersProviderIdIndexRoute
@@ -542,11 +499,9 @@ export interface FileRoutesByFullPath {
   '/app/hub/blocks/$blockId/edit': typeof AppHubBlocksBlockIdEditRoute
   '/app/hub/blocks/$blockId/points': typeof AppHubBlocksBlockIdPointsRoute
   '/app/hub/bots/$botId/setup': typeof AppHubBotsBotIdSetupRoute
-  '/app/hub/courses/$courseId/edit': typeof AppHubCoursesCourseIdEditRoute
   '/app/hub/assets/$assetId/': typeof AppHubAssetsAssetIdIndexRoute
   '/app/hub/blocks/$blockId/': typeof AppHubBlocksBlockIdIndexRoute
   '/app/hub/bots/$botId/': typeof AppHubBotsBotIdIndexRoute
-  '/app/hub/courses/$courseId/': typeof AppHubCoursesCourseIdIndexRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
@@ -579,7 +534,6 @@ export interface FileRoutesByTo {
   '/app/hub/assets/playground': typeof AppHubAssetsPlaygroundRoute
   '/app/hub/blocks/add': typeof AppHubBlocksAddRoute
   '/app/hub/bots/add': typeof AppHubBotsAddRoute
-  '/app/hub/courses/add': typeof AppHubCoursesAddRoute
   '/app/models/$modelId/edit': typeof AppModelsModelIdEditRoute
   '/app/orgs/$orgId/edit': typeof AppOrgsOrgIdEditRoute
   '/app/providers/$providerId/edit': typeof AppProvidersProviderIdEditRoute
@@ -589,7 +543,6 @@ export interface FileRoutesByTo {
   '/app/hub/assets': typeof AppHubAssetsIndexRoute
   '/app/hub/blocks': typeof AppHubBlocksIndexRoute
   '/app/hub/bots': typeof AppHubBotsIndexRoute
-  '/app/hub/courses': typeof AppHubCoursesIndexRoute
   '/app/models/$modelId': typeof AppModelsModelIdIndexRoute
   '/app/orgs/$orgId': typeof AppOrgsOrgIdIndexRoute
   '/app/providers/$providerId': typeof AppProvidersProviderIdIndexRoute
@@ -597,11 +550,9 @@ export interface FileRoutesByTo {
   '/app/hub/blocks/$blockId/edit': typeof AppHubBlocksBlockIdEditRoute
   '/app/hub/blocks/$blockId/points': typeof AppHubBlocksBlockIdPointsRoute
   '/app/hub/bots/$botId/setup': typeof AppHubBotsBotIdSetupRoute
-  '/app/hub/courses/$courseId/edit': typeof AppHubCoursesCourseIdEditRoute
   '/app/hub/assets/$assetId': typeof AppHubAssetsAssetIdIndexRoute
   '/app/hub/blocks/$blockId': typeof AppHubBlocksBlockIdIndexRoute
   '/app/hub/bots/$botId': typeof AppHubBotsBotIdIndexRoute
-  '/app/hub/courses/$courseId': typeof AppHubCoursesCourseIdIndexRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
@@ -627,7 +578,6 @@ export interface FileRoutesById {
   '/app/hub/assets': typeof AppHubAssetsRouteRouteWithChildren
   '/app/hub/blocks': typeof AppHubBlocksRouteRouteWithChildren
   '/app/hub/bots': typeof AppHubBotsRouteRouteWithChildren
-  '/app/hub/courses': typeof AppHubCoursesRouteRouteWithChildren
   '/app/models/$modelId': typeof AppModelsModelIdRouteRouteWithChildren
   '/app/orgs/$orgId': typeof AppOrgsOrgIdRouteRouteWithChildren
   '/app/providers/$providerId': typeof AppProvidersProviderIdRouteRouteWithChildren
@@ -652,12 +602,10 @@ export interface FileRoutesById {
   '/app/hub/assets/$assetId': typeof AppHubAssetsAssetIdRouteRouteWithChildren
   '/app/hub/blocks/$blockId': typeof AppHubBlocksBlockIdRouteRouteWithChildren
   '/app/hub/bots/$botId': typeof AppHubBotsBotIdRouteRouteWithChildren
-  '/app/hub/courses/$courseId': typeof AppHubCoursesCourseIdRouteRouteWithChildren
   '/app/hub/assets/add': typeof AppHubAssetsAddRoute
   '/app/hub/assets/playground': typeof AppHubAssetsPlaygroundRoute
   '/app/hub/blocks/add': typeof AppHubBlocksAddRoute
   '/app/hub/bots/add': typeof AppHubBotsAddRoute
-  '/app/hub/courses/add': typeof AppHubCoursesAddRoute
   '/app/models/$modelId/edit': typeof AppModelsModelIdEditRoute
   '/app/orgs/$orgId/edit': typeof AppOrgsOrgIdEditRoute
   '/app/providers/$providerId/edit': typeof AppProvidersProviderIdEditRoute
@@ -667,7 +615,6 @@ export interface FileRoutesById {
   '/app/hub/assets/': typeof AppHubAssetsIndexRoute
   '/app/hub/blocks/': typeof AppHubBlocksIndexRoute
   '/app/hub/bots/': typeof AppHubBotsIndexRoute
-  '/app/hub/courses/': typeof AppHubCoursesIndexRoute
   '/app/models/$modelId/': typeof AppModelsModelIdIndexRoute
   '/app/orgs/$orgId/': typeof AppOrgsOrgIdIndexRoute
   '/app/providers/$providerId/': typeof AppProvidersProviderIdIndexRoute
@@ -675,11 +622,9 @@ export interface FileRoutesById {
   '/app/hub/blocks/$blockId/edit': typeof AppHubBlocksBlockIdEditRoute
   '/app/hub/blocks/$blockId/points': typeof AppHubBlocksBlockIdPointsRoute
   '/app/hub/bots/$botId/setup': typeof AppHubBotsBotIdSetupRoute
-  '/app/hub/courses/$courseId/edit': typeof AppHubCoursesCourseIdEditRoute
   '/app/hub/assets/$assetId/': typeof AppHubAssetsAssetIdIndexRoute
   '/app/hub/blocks/$blockId/': typeof AppHubBlocksBlockIdIndexRoute
   '/app/hub/bots/$botId/': typeof AppHubBotsBotIdIndexRoute
-  '/app/hub/courses/$courseId/': typeof AppHubCoursesCourseIdIndexRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
@@ -705,7 +650,6 @@ export interface FileRouteTypes {
     | '/app/hub/assets'
     | '/app/hub/blocks'
     | '/app/hub/bots'
-    | '/app/hub/courses'
     | '/app/models/$modelId'
     | '/app/orgs/$orgId'
     | '/app/providers/$providerId'
@@ -730,12 +674,10 @@ export interface FileRouteTypes {
     | '/app/hub/assets/$assetId'
     | '/app/hub/blocks/$blockId'
     | '/app/hub/bots/$botId'
-    | '/app/hub/courses/$courseId'
     | '/app/hub/assets/add'
     | '/app/hub/assets/playground'
     | '/app/hub/blocks/add'
     | '/app/hub/bots/add'
-    | '/app/hub/courses/add'
     | '/app/models/$modelId/edit'
     | '/app/orgs/$orgId/edit'
     | '/app/providers/$providerId/edit'
@@ -745,7 +687,6 @@ export interface FileRouteTypes {
     | '/app/hub/assets/'
     | '/app/hub/blocks/'
     | '/app/hub/bots/'
-    | '/app/hub/courses/'
     | '/app/models/$modelId/'
     | '/app/orgs/$orgId/'
     | '/app/providers/$providerId/'
@@ -753,11 +694,9 @@ export interface FileRouteTypes {
     | '/app/hub/blocks/$blockId/edit'
     | '/app/hub/blocks/$blockId/points'
     | '/app/hub/bots/$botId/setup'
-    | '/app/hub/courses/$courseId/edit'
     | '/app/hub/assets/$assetId/'
     | '/app/hub/blocks/$blockId/'
     | '/app/hub/bots/$botId/'
-    | '/app/hub/courses/$courseId/'
   fileRoutesByTo: FileRoutesByTo
   to:
     | '/'
@@ -790,7 +729,6 @@ export interface FileRouteTypes {
     | '/app/hub/assets/playground'
     | '/app/hub/blocks/add'
     | '/app/hub/bots/add'
-    | '/app/hub/courses/add'
     | '/app/models/$modelId/edit'
     | '/app/orgs/$orgId/edit'
     | '/app/providers/$providerId/edit'
@@ -800,7 +738,6 @@ export interface FileRouteTypes {
     | '/app/hub/assets'
     | '/app/hub/blocks'
     | '/app/hub/bots'
-    | '/app/hub/courses'
     | '/app/models/$modelId'
     | '/app/orgs/$orgId'
     | '/app/providers/$providerId'
@@ -808,11 +745,9 @@ export interface FileRouteTypes {
     | '/app/hub/blocks/$blockId/edit'
     | '/app/hub/blocks/$blockId/points'
     | '/app/hub/bots/$botId/setup'
-    | '/app/hub/courses/$courseId/edit'
     | '/app/hub/assets/$assetId'
     | '/app/hub/blocks/$blockId'
     | '/app/hub/bots/$botId'
-    | '/app/hub/courses/$courseId'
   id:
     | '__root__'
     | '/'
@@ -837,7 +772,6 @@ export interface FileRouteTypes {
     | '/app/hub/assets'
     | '/app/hub/blocks'
     | '/app/hub/bots'
-    | '/app/hub/courses'
     | '/app/models/$modelId'
     | '/app/orgs/$orgId'
     | '/app/providers/$providerId'
@@ -862,12 +796,10 @@ export interface FileRouteTypes {
     | '/app/hub/assets/$assetId'
     | '/app/hub/blocks/$blockId'
     | '/app/hub/bots/$botId'
-    | '/app/hub/courses/$courseId'
     | '/app/hub/assets/add'
     | '/app/hub/assets/playground'
     | '/app/hub/blocks/add'
     | '/app/hub/bots/add'
-    | '/app/hub/courses/add'
     | '/app/models/$modelId/edit'
     | '/app/orgs/$orgId/edit'
     | '/app/providers/$providerId/edit'
@@ -877,7 +809,6 @@ export interface FileRouteTypes {
     | '/app/hub/assets/'
     | '/app/hub/blocks/'
     | '/app/hub/bots/'
-    | '/app/hub/courses/'
     | '/app/models/$modelId/'
     | '/app/orgs/$orgId/'
     | '/app/providers/$providerId/'
@@ -885,11 +816,9 @@ export interface FileRouteTypes {
     | '/app/hub/blocks/$blockId/edit'
     | '/app/hub/blocks/$blockId/points'
     | '/app/hub/bots/$botId/setup'
-    | '/app/hub/courses/$courseId/edit'
     | '/app/hub/assets/$assetId/'
     | '/app/hub/blocks/$blockId/'
     | '/app/hub/bots/$botId/'
-    | '/app/hub/courses/$courseId/'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
@@ -1176,13 +1105,6 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AppModelsModelIdRouteRouteImport
       parentRoute: typeof AppModelsRouteRoute
     }
-    '/app/hub/courses': {
-      id: '/app/hub/courses'
-      path: '/courses'
-      fullPath: '/app/hub/courses'
-      preLoaderRoute: typeof AppHubCoursesRouteRouteImport
-      parentRoute: typeof AppHubRouteRoute
-    }
     '/app/hub/bots': {
       id: '/app/hub/bots'
       path: '/bots'
@@ -1231,13 +1153,6 @@ declare module '@tanstack/react-router' {
       fullPath: '/app/models/$modelId/'
       preLoaderRoute: typeof AppModelsModelIdIndexRouteImport
       parentRoute: typeof AppModelsModelIdRouteRoute
-    }
-    '/app/hub/courses/': {
-      id: '/app/hub/courses/'
-      path: '/'
-      fullPath: '/app/hub/courses/'
-      preLoaderRoute: typeof AppHubCoursesIndexRouteImport
-      parentRoute: typeof AppHubCoursesRouteRoute
     }
     '/app/hub/bots/': {
       id: '/app/hub/bots/'
@@ -1302,13 +1217,6 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AppModelsModelIdEditRouteImport
       parentRoute: typeof AppModelsModelIdRouteRoute
     }
-    '/app/hub/courses/add': {
-      id: '/app/hub/courses/add'
-      path: '/add'
-      fullPath: '/app/hub/courses/add'
-      preLoaderRoute: typeof AppHubCoursesAddRouteImport
-      parentRoute: typeof AppHubCoursesRouteRoute
-    }
     '/app/hub/bots/add': {
       id: '/app/hub/bots/add'
       path: '/add'
@@ -1337,13 +1245,6 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AppHubAssetsAddRouteImport
       parentRoute: typeof AppHubAssetsRouteRoute
     }
-    '/app/hub/courses/$courseId': {
-      id: '/app/hub/courses/$courseId'
-      path: '/$courseId'
-      fullPath: '/app/hub/courses/$courseId'
-      preLoaderRoute: typeof AppHubCoursesCourseIdRouteRouteImport
-      parentRoute: typeof AppHubCoursesRouteRoute
-    }
     '/app/hub/bots/$botId': {
       id: '/app/hub/bots/$botId'
       path: '/$botId'
@@ -1365,13 +1266,6 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AppHubAssetsAssetIdRouteRouteImport
       parentRoute: typeof AppHubAssetsRouteRoute
     }
-    '/app/hub/courses/$courseId/': {
-      id: '/app/hub/courses/$courseId/'
-      path: '/'
-      fullPath: '/app/hub/courses/$courseId/'
-      preLoaderRoute: typeof AppHubCoursesCourseIdIndexRouteImport
-      parentRoute: typeof AppHubCoursesCourseIdRouteRoute
-    }
     '/app/hub/bots/$botId/': {
       id: '/app/hub/bots/$botId/'
       path: '/'
@@ -1392,13 +1286,6 @@ declare module '@tanstack/react-router' {
       fullPath: '/app/hub/assets/$assetId/'
       preLoaderRoute: typeof AppHubAssetsAssetIdIndexRouteImport
       parentRoute: typeof AppHubAssetsAssetIdRouteRoute
-    }
-    '/app/hub/courses/$courseId/edit': {
-      id: '/app/hub/courses/$courseId/edit'
-      path: '/edit'
-      fullPath: '/app/hub/courses/$courseId/edit'
-      preLoaderRoute: typeof AppHubCoursesCourseIdEditRouteImport
-      parentRoute: typeof AppHubCoursesCourseIdRouteRoute
     }
     '/app/hub/bots/$botId/setup': {
       id: '/app/hub/bots/$botId/setup'
@@ -1602,42 +1489,10 @@ const AppHubBotsRouteRouteWithChildren = AppHubBotsRouteRoute._addFileChildren(
   AppHubBotsRouteRouteChildren,
 )
 
-interface AppHubCoursesCourseIdRouteRouteChildren {
-  AppHubCoursesCourseIdEditRoute: typeof AppHubCoursesCourseIdEditRoute
-  AppHubCoursesCourseIdIndexRoute: typeof AppHubCoursesCourseIdIndexRoute
-}
-
-const AppHubCoursesCourseIdRouteRouteChildren: AppHubCoursesCourseIdRouteRouteChildren =
-  {
-    AppHubCoursesCourseIdEditRoute: AppHubCoursesCourseIdEditRoute,
-    AppHubCoursesCourseIdIndexRoute: AppHubCoursesCourseIdIndexRoute,
-  }
-
-const AppHubCoursesCourseIdRouteRouteWithChildren =
-  AppHubCoursesCourseIdRouteRoute._addFileChildren(
-    AppHubCoursesCourseIdRouteRouteChildren,
-  )
-
-interface AppHubCoursesRouteRouteChildren {
-  AppHubCoursesCourseIdRouteRoute: typeof AppHubCoursesCourseIdRouteRouteWithChildren
-  AppHubCoursesAddRoute: typeof AppHubCoursesAddRoute
-  AppHubCoursesIndexRoute: typeof AppHubCoursesIndexRoute
-}
-
-const AppHubCoursesRouteRouteChildren: AppHubCoursesRouteRouteChildren = {
-  AppHubCoursesCourseIdRouteRoute: AppHubCoursesCourseIdRouteRouteWithChildren,
-  AppHubCoursesAddRoute: AppHubCoursesAddRoute,
-  AppHubCoursesIndexRoute: AppHubCoursesIndexRoute,
-}
-
-const AppHubCoursesRouteRouteWithChildren =
-  AppHubCoursesRouteRoute._addFileChildren(AppHubCoursesRouteRouteChildren)
-
 interface AppHubRouteRouteChildren {
   AppHubAssetsRouteRoute: typeof AppHubAssetsRouteRouteWithChildren
   AppHubBlocksRouteRoute: typeof AppHubBlocksRouteRouteWithChildren
   AppHubBotsRouteRoute: typeof AppHubBotsRouteRouteWithChildren
-  AppHubCoursesRouteRoute: typeof AppHubCoursesRouteRouteWithChildren
   AppHubIndexRoute: typeof AppHubIndexRoute
 }
 
@@ -1645,7 +1500,6 @@ const AppHubRouteRouteChildren: AppHubRouteRouteChildren = {
   AppHubAssetsRouteRoute: AppHubAssetsRouteRouteWithChildren,
   AppHubBlocksRouteRoute: AppHubBlocksRouteRouteWithChildren,
   AppHubBotsRouteRoute: AppHubBotsRouteRouteWithChildren,
-  AppHubCoursesRouteRoute: AppHubCoursesRouteRouteWithChildren,
   AppHubIndexRoute: AppHubIndexRoute,
 }
 

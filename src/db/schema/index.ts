@@ -3,7 +3,6 @@ import { account, session, user, verification } from "./auth";
 import {
 	authzOutbox,
 	authzOutboxStatusEnum,
-	courseBot,
 	group,
 	groupKindEnum,
 	groupMember,
@@ -21,7 +20,6 @@ import { bot, botBlock } from "./bot";
 import { chat } from "./chat";
 import { chatBranch } from "./chat-branch";
 import { chatMessage } from "./chat-message";
-import { course } from "./course";
 import { model, provider } from "./model";
 import { invitation, member, organization } from "./organization";
 
@@ -40,8 +38,6 @@ export const dbSchema = {
 	chatBranch,
 	chatMessage,
 	chat,
-	course,
-	courseBot,
 	group,
 	groupMember,
 	model,
