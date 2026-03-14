@@ -1,7 +1,7 @@
 import { skipToken, useQuery, useSuspenseQuery } from "@tanstack/react-query";
 import { useRouteContext } from "@tanstack/react-router";
 import { ChevronDownIcon, DatabaseIcon, PlusIcon } from "lucide-react";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { AssetIntakeFlow } from "@/components/documents/shared/asset-intake-flow";
 import { AssetLibraryPicker } from "@/components/documents/shared/asset-library-picker";
 import { SelectedAssetList } from "@/components/documents/shared/selected-asset-list";
@@ -19,6 +19,18 @@ import {
 	CollapsibleContent,
 	CollapsibleTrigger,
 } from "@/components/ui/collapsible";
+import {
+	DialogSelect,
+	DialogSelectContent,
+	DialogSelectEmpty,
+	DialogSelectFilter,
+	DialogSelectFilters,
+	DialogSelectItem,
+	DialogSelectList,
+	DialogSelectPagination,
+	DialogSelectSearch,
+	DialogSelectTrigger,
+} from "@/components/ui/composed/dialog-select";
 import {
 	Dialog,
 	DialogContent,
@@ -97,56 +109,65 @@ const DatabaseBlockEditor = ({
 	const [isLibraryOpen, setIsLibraryOpen] = useState(false);
 	const [isUploadOpen, setIsUploadOpen] = useState(false);
 
+	const PAGE_SIZE = 10;
+	const [modelDialogOpen, setModelDialogOpen] = useState(false);
+	const [providerFilter, setProviderFilter] = useState(value.config.provider);
+
+	// Sync filter when the saved provider loads asynchronously
+	useEffect(() => {
+		if (value.config.provider) {
+			setProviderFilter(value.config.provider);
+		}
+	}, [
+		value.config.provider,
+	]);
+
+	const [modelSearch, setModelSearch] = useState("");
+	const [modelPage, setModelPage] = useState(0);
+
 	const { data: providers } = useSuspenseQuery(
 		orpc.provider.list.queryOptions({
 			input: {
 				organizationId: auth.session.activeOrganizationId,
+				pageSize: 50,
 			},
 		}),
 	);
 
-	const { data: embeddingModels } = useQuery(
+	const { data: models, isLoading: modelsLoading } = useQuery(
 		orpc.model.list.queryOptions({
-			input: value.config.provider
+			input: providerFilter
 				? {
-						providerId: value.config.provider,
-						capabilities: [
-							"embedding",
-						],
+						filters: {
+							providerId: providerFilter,
+							capabilities: [
+								"embedding",
+							],
+							search: modelSearch || undefined,
+						},
+						pageSize: PAGE_SIZE,
+						pageIndex: modelPage,
+					}
+				: skipToken,
+		}),
+	);
+
+	const { data: selectedModelData } = useQuery(
+		orpc.model.find.queryOptions({
+			input: value.config.embeddingModel
+				? {
+						id: value.config.embeddingModel,
 					}
 				: skipToken,
 		}),
 	);
 
 	const assets = value.assets;
-	const providerOptions = providers.data;
-	const selectedProvider = providerOptions.find(
-		(provider) => provider.id === value.config.provider,
-	);
-	const embeddingOptions = embeddingModels?.data ?? [];
-	const selectedEmbeddingModel = embeddingOptions.find(
-		(model) => model.id === value.config.embeddingModel,
-	);
-	const providerItems =
-		value.config.provider && !selectedProvider
-			? [
-					...providerOptions,
-					{
-						id: value.config.provider,
-						name: value.config.provider,
-					},
-				]
-			: providerOptions;
-	const embeddingItems =
-		value.config.embeddingModel && !selectedEmbeddingModel
-			? [
-					...embeddingOptions,
-					{
-						id: value.config.embeddingModel,
-						name: value.config.embeddingModel,
-					},
-				]
-			: embeddingOptions;
+	const pageCount = Math.ceil((models?.rowCount ?? 0) / PAGE_SIZE);
+	const providerFilterOptions = providers.data.map((p) => ({
+		value: p.id,
+		label: p.name,
+	}));
 
 	return (
 		<Card className="rounded-[28px] border-border/80 bg-background shadow-sm">
@@ -183,64 +204,6 @@ const DatabaseBlockEditor = ({
 					</div>
 
 					<div className="space-y-2">
-						<Label>Provider</Label>
-						<Select
-							value={value.config.provider || undefined}
-							onValueChange={(provider) =>
-								onChange({
-									...value,
-									config: {
-										...value.config,
-										provider: provider ?? "",
-										embeddingModel: "",
-									},
-								})
-							}
-						>
-							<SelectTrigger className="w-full">
-								<SelectValue placeholder="Choose a provider" />
-							</SelectTrigger>
-							<SelectContent>
-								{providerItems.map((provider) => (
-									<SelectItem key={provider.id} value={provider.id}>
-										{provider.name}
-									</SelectItem>
-								))}
-							</SelectContent>
-						</Select>
-					</div>
-				</div>
-
-				<div className="grid gap-4 md:grid-cols-2">
-					<div className="space-y-2">
-						<Label>Embedding Model</Label>
-						<Select
-							value={value.config.embeddingModel || undefined}
-							onValueChange={(embeddingModel) =>
-								onChange({
-									...value,
-									config: {
-										...value.config,
-										embeddingModel: embeddingModel ?? "",
-									},
-								})
-							}
-							disabled={!value.config.provider}
-						>
-							<SelectTrigger className="w-full">
-								<SelectValue placeholder="Choose an embedding model" />
-							</SelectTrigger>
-							<SelectContent>
-								{embeddingItems.map((model) => (
-									<SelectItem key={model.id} value={model.id}>
-										{model.name}
-									</SelectItem>
-								))}
-							</SelectContent>
-						</Select>
-					</div>
-
-					<div className="space-y-2">
 						<Label>Retrieval Mode</Label>
 						<Select
 							value={value.config.retrievalMode ?? "hybrid"}
@@ -263,6 +226,76 @@ const DatabaseBlockEditor = ({
 							</SelectContent>
 						</Select>
 					</div>
+				</div>
+
+				<div className="space-y-2">
+					<Label>Embedding Model</Label>
+					<DialogSelect
+						value={value.config.embeddingModel || null}
+						onValueChange={(embeddingModel) =>
+							onChange({
+								...value,
+								config: {
+									...value.config,
+									embeddingModel: embeddingModel ?? "",
+									provider: providerFilter,
+								},
+							})
+						}
+						open={modelDialogOpen}
+						onOpenChange={setModelDialogOpen}
+					>
+						<DialogSelectTrigger
+							className="w-full"
+							placeholder="Choose an embedding model..."
+						>
+							{selectedModelData?.data?.name}
+						</DialogSelectTrigger>
+						<DialogSelectContent title="Choose an embedding model">
+							<DialogSelectSearch
+								value={modelSearch}
+								onValueChange={(v) => {
+									setModelSearch(v);
+									setModelPage(0);
+								}}
+								placeholder="Search models..."
+							/>
+							<DialogSelectFilters>
+								<DialogSelectFilter
+									value={providerFilter}
+									onValueChange={(p) => {
+										setProviderFilter(p);
+										setModelSearch("");
+										setModelPage(0);
+									}}
+									placeholder="Select a provider"
+									options={providerFilterOptions}
+								/>
+							</DialogSelectFilters>
+							<DialogSelectList loading={modelsLoading}>
+								{(models?.data ?? []).map((model) => (
+									<DialogSelectItem
+										key={model.id}
+										value={model.id}
+										title={model.name}
+										description={model.description || undefined}
+									/>
+								))}
+								{!modelsLoading && (models?.data ?? []).length === 0 && (
+									<DialogSelectEmpty>
+										{providerFilter
+											? "No embedding models found."
+											: "Select a provider to view models."}
+									</DialogSelectEmpty>
+								)}
+							</DialogSelectList>
+							<DialogSelectPagination
+								page={modelPage}
+								pageCount={pageCount}
+								onPageChange={setModelPage}
+							/>
+						</DialogSelectContent>
+					</DialogSelect>
 				</div>
 
 				<div className="rounded-2xl border border-dashed bg-muted/20 p-4">
