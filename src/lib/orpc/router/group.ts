@@ -16,7 +16,9 @@ export const listGroups = authed.group.list
 				const db = yield* DB;
 				const organizationId = context.auth.session.activeOrganizationId;
 
-				const queryLike = input.query ? `%${input.query.trim()}%` : undefined;
+				const queryLike = input.filters?.search
+					? `%${input.filters.search.trim()}%`
+					: undefined;
 				const [data, [rowCount]] = yield* Effect.all(
 					[
 						db

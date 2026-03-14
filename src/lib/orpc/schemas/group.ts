@@ -48,10 +48,6 @@ export const groupMemberRowSchema = z.object({
 	addedBy: z.uuidv4().nullable(),
 });
 
-export const groupListInputSchema = paginationSchema.extend({
-	query: z.string().trim().max(200).optional(),
-});
-
 export const groupListMembersInputSchema = paginationSchema.extend({
 	groupId: z.uuidv4(),
 	query: z.string().trim().max(200).optional(),

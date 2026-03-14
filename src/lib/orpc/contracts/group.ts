@@ -1,10 +1,10 @@
+import { z } from "zod/v4";
 import {
 	groupAddMembersInputSchema,
 	groupDeleteSchema,
 	groupFindInputSchema,
 	groupFindResponseSchema,
 	groupInsertSchema,
-	groupListInputSchema,
 	groupListMembersInputSchema,
 	groupListMembersResponseSchema,
 	groupListResponseSchema,
@@ -13,6 +13,7 @@ import {
 	groupUpdateSchema,
 	groupWriteResponseSchema,
 } from "@/lib/orpc/schemas/group";
+import { paginationSchema } from "../schemas/shared";
 import { base } from "./base";
 
 export const listGroupsContract = base
@@ -24,7 +25,16 @@ export const listGroupsContract = base
 			"Groups",
 		],
 	})
-	.input(groupListInputSchema)
+	.input(
+		z.object({
+			filters: z
+				.object({
+					search: z.string().trim().max(100).optional(),
+				})
+				.optional(),
+			...paginationSchema.shape,
+		}),
+	)
 	.output(groupListResponseSchema);
 
 export const createGroupContract = base
