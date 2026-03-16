@@ -115,7 +115,7 @@ const InitForm = () => {
 					children={(field) => (
 						<field.SwitchField
 							label="Privacy Consent"
-							description="Yes, I have read, understood, and agree to the privacy policy and terms of use of the Sokratesᵗ platform."
+							description="Yes, I have read, understood, and agree to the privacy policy and terms of use of the OrcAI platform."
 						/>
 					)}
 				/>

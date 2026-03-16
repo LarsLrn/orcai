@@ -14,7 +14,7 @@ const nextStepTours: Tour[] = [
 		steps: [
 			{
 				icon: null,
-				title: "Welcome to Sokratesᵗ",
+				title: "Welcome to OrcAI",
 				content: (
 					<>
 						Great to have you here! Let&apos;s take a quick tour through the

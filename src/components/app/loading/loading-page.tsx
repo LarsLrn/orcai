@@ -1,9 +1,9 @@
-import { LogoAnimated } from "@/components/app/branding/logo-animated";
+import { Spinner } from "@/components/ui/spinner";
 
 const LoadingPage = () => {
 	return (
 		<div className="flex h-full w-full items-center justify-center">
-			<LogoAnimated variant="white" />
+			<Spinner className="size-5" />
 		</div>
 	);
 };

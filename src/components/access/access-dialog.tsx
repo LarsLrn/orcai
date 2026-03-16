@@ -30,7 +30,7 @@ const AccessDialog = ({
 				<DialogHeader>
 					<DialogTitle>Manage Access</DialogTitle>
 					<DialogDescription>
-						Configure visibility and direct grants for this{" "}
+						Configure visibility, groups, and direct grants for this{" "}
 						{RESOURCES.find((r) => r.value === resourceRef.type)?.label}
 						{resourceName ? `: ${resourceName}` : ""}.
 					</DialogDescription>
