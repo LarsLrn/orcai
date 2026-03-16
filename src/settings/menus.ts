@@ -10,6 +10,7 @@ import {
 	UserCogIcon,
 	UserIcon,
 	UsersIcon,
+	WalletIcon,
 } from "lucide-react";
 
 interface SidebarMenuItem {
@@ -70,6 +71,13 @@ export const sidebarMenu = [
 			to: "/app/providers",
 		},
 		icon: ServerCogIcon,
+	},
+	{
+		title: "Quotas",
+		linkProps: {
+			to: "/app/quotas",
+		},
+		icon: WalletIcon,
 	},
 	{
 		title: "Models",

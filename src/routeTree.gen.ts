@@ -20,6 +20,7 @@ import { Route as PathlessLayoutPrivacyRouteImport } from './routes/_pathlessLay
 import { Route as PathlessLayoutLoginRouteImport } from './routes/_pathlessLayout/login'
 import { Route as PathlessLayoutInitRouteImport } from './routes/_pathlessLayout/init'
 import { Route as AppUsersRouteRouteImport } from './routes/app/users/route'
+import { Route as AppQuotasRouteRouteImport } from './routes/app/quotas/route'
 import { Route as AppProvidersRouteRouteImport } from './routes/app/providers/route'
 import { Route as AppOrgsRouteRouteImport } from './routes/app/orgs/route'
 import { Route as AppModelsRouteRouteImport } from './routes/app/models/route'
@@ -28,6 +29,7 @@ import { Route as AppGroupsRouteRouteImport } from './routes/app/groups/route'
 import { Route as AppChatRouteRouteImport } from './routes/app/chat/route'
 import { Route as AppAccountRouteRouteImport } from './routes/app/account/route'
 import { Route as AppUsersIndexRouteImport } from './routes/app/users/index'
+import { Route as AppQuotasIndexRouteImport } from './routes/app/quotas/index'
 import { Route as AppProvidersIndexRouteImport } from './routes/app/providers/index'
 import { Route as AppOrgsIndexRouteImport } from './routes/app/orgs/index'
 import { Route as AppModelsIndexRouteImport } from './routes/app/models/index'
@@ -37,6 +39,7 @@ import { Route as AppChatIndexRouteImport } from './routes/app/chat/index'
 import { Route as AppAccountIndexRouteImport } from './routes/app/account/index'
 import { Route as AppUsersInvitesRouteImport } from './routes/app/users/invites'
 import { Route as AppUsersAddRouteImport } from './routes/app/users/add'
+import { Route as AppQuotasAddRouteImport } from './routes/app/quotas/add'
 import { Route as AppProvidersAddRouteImport } from './routes/app/providers/add'
 import { Route as AppOrgsAddRouteImport } from './routes/app/orgs/add'
 import { Route as AppModelsAddRouteImport } from './routes/app/models/add'
@@ -45,6 +48,7 @@ import { Route as ApiRpcSplatRouteImport } from './routes/api/rpc/$'
 import { Route as ApiDocSplatRouteImport } from './routes/api/doc/$'
 import { Route as ApiAuthSplatRouteImport } from './routes/api/auth/$'
 import { Route as AppUsersUserIdRouteRouteImport } from './routes/app/users/$userId/route'
+import { Route as AppQuotasQuotaPoolIdRouteRouteImport } from './routes/app/quotas/$quotaPoolId/route'
 import { Route as AppProvidersProviderIdRouteRouteImport } from './routes/app/providers/$providerId/route'
 import { Route as AppOrgsOrgIdRouteRouteImport } from './routes/app/orgs/$orgId/route'
 import { Route as AppModelsModelIdRouteRouteImport } from './routes/app/models/$modelId/route'
@@ -52,6 +56,7 @@ import { Route as AppHubBotsRouteRouteImport } from './routes/app/hub/bots/route
 import { Route as AppHubBlocksRouteRouteImport } from './routes/app/hub/blocks/route'
 import { Route as AppHubAssetsRouteRouteImport } from './routes/app/hub/assets/route'
 import { Route as AppGroupsGroupIdRouteRouteImport } from './routes/app/groups/$groupId/route'
+import { Route as AppQuotasQuotaPoolIdIndexRouteImport } from './routes/app/quotas/$quotaPoolId/index'
 import { Route as AppProvidersProviderIdIndexRouteImport } from './routes/app/providers/$providerId/index'
 import { Route as AppOrgsOrgIdIndexRouteImport } from './routes/app/orgs/$orgId/index'
 import { Route as AppModelsModelIdIndexRouteImport } from './routes/app/models/$modelId/index'
@@ -61,6 +66,7 @@ import { Route as AppHubAssetsIndexRouteImport } from './routes/app/hub/assets/i
 import { Route as AppGroupsGroupIdIndexRouteImport } from './routes/app/groups/$groupId/index'
 import { Route as AppChatChatIdIndexRouteImport } from './routes/app/chat/$chatId/index'
 import { Route as AppUsersUserIdEditRouteImport } from './routes/app/users/$userId/edit'
+import { Route as AppQuotasQuotaPoolIdEditRouteImport } from './routes/app/quotas/$quotaPoolId/edit'
 import { Route as AppProvidersProviderIdEditRouteImport } from './routes/app/providers/$providerId/edit'
 import { Route as AppOrgsOrgIdEditRouteImport } from './routes/app/orgs/$orgId/edit'
 import { Route as AppModelsModelIdEditRouteImport } from './routes/app/models/$modelId/edit'
@@ -134,6 +140,11 @@ const AppUsersRouteRoute = AppUsersRouteRouteImport.update({
   path: '/users',
   getParentRoute: () => AppRouteRoute,
 } as any)
+const AppQuotasRouteRoute = AppQuotasRouteRouteImport.update({
+  id: '/quotas',
+  path: '/quotas',
+  getParentRoute: () => AppRouteRoute,
+} as any)
 const AppProvidersRouteRoute = AppProvidersRouteRouteImport.update({
   id: '/providers',
   path: '/providers',
@@ -173,6 +184,11 @@ const AppUsersIndexRoute = AppUsersIndexRouteImport.update({
   id: '/',
   path: '/',
   getParentRoute: () => AppUsersRouteRoute,
+} as any)
+const AppQuotasIndexRoute = AppQuotasIndexRouteImport.update({
+  id: '/',
+  path: '/',
+  getParentRoute: () => AppQuotasRouteRoute,
 } as any)
 const AppProvidersIndexRoute = AppProvidersIndexRouteImport.update({
   id: '/',
@@ -219,6 +235,11 @@ const AppUsersAddRoute = AppUsersAddRouteImport.update({
   path: '/add',
   getParentRoute: () => AppUsersRouteRoute,
 } as any)
+const AppQuotasAddRoute = AppQuotasAddRouteImport.update({
+  id: '/add',
+  path: '/add',
+  getParentRoute: () => AppQuotasRouteRoute,
+} as any)
 const AppProvidersAddRoute = AppProvidersAddRouteImport.update({
   id: '/add',
   path: '/add',
@@ -259,6 +280,12 @@ const AppUsersUserIdRouteRoute = AppUsersUserIdRouteRouteImport.update({
   path: '/$userId',
   getParentRoute: () => AppUsersRouteRoute,
 } as any)
+const AppQuotasQuotaPoolIdRouteRoute =
+  AppQuotasQuotaPoolIdRouteRouteImport.update({
+    id: '/$quotaPoolId',
+    path: '/$quotaPoolId',
+    getParentRoute: () => AppQuotasRouteRoute,
+  } as any)
 const AppProvidersProviderIdRouteRoute =
   AppProvidersProviderIdRouteRouteImport.update({
     id: '/$providerId',
@@ -295,6 +322,12 @@ const AppGroupsGroupIdRouteRoute = AppGroupsGroupIdRouteRouteImport.update({
   path: '/$groupId',
   getParentRoute: () => AppGroupsRouteRoute,
 } as any)
+const AppQuotasQuotaPoolIdIndexRoute =
+  AppQuotasQuotaPoolIdIndexRouteImport.update({
+    id: '/',
+    path: '/',
+    getParentRoute: () => AppQuotasQuotaPoolIdRouteRoute,
+  } as any)
 const AppProvidersProviderIdIndexRoute =
   AppProvidersProviderIdIndexRouteImport.update({
     id: '/',
@@ -341,6 +374,12 @@ const AppUsersUserIdEditRoute = AppUsersUserIdEditRouteImport.update({
   path: '/edit',
   getParentRoute: () => AppUsersUserIdRouteRoute,
 } as any)
+const AppQuotasQuotaPoolIdEditRoute =
+  AppQuotasQuotaPoolIdEditRouteImport.update({
+    id: '/edit',
+    path: '/edit',
+    getParentRoute: () => AppQuotasQuotaPoolIdRouteRoute,
+  } as any)
 const AppProvidersProviderIdEditRoute =
   AppProvidersProviderIdEditRouteImport.update({
     id: '/edit',
@@ -443,6 +482,7 @@ export interface FileRoutesByFullPath {
   '/app/models': typeof AppModelsRouteRouteWithChildren
   '/app/orgs': typeof AppOrgsRouteRouteWithChildren
   '/app/providers': typeof AppProvidersRouteRouteWithChildren
+  '/app/quotas': typeof AppQuotasRouteRouteWithChildren
   '/app/users': typeof AppUsersRouteRouteWithChildren
   '/init': typeof PathlessLayoutInitRoute
   '/login': typeof PathlessLayoutLoginRoute
@@ -458,6 +498,7 @@ export interface FileRoutesByFullPath {
   '/app/models/$modelId': typeof AppModelsModelIdRouteRouteWithChildren
   '/app/orgs/$orgId': typeof AppOrgsOrgIdRouteRouteWithChildren
   '/app/providers/$providerId': typeof AppProvidersProviderIdRouteRouteWithChildren
+  '/app/quotas/$quotaPoolId': typeof AppQuotasQuotaPoolIdRouteRouteWithChildren
   '/app/users/$userId': typeof AppUsersUserIdRouteRouteWithChildren
   '/api/auth/$': typeof ApiAuthSplatRoute
   '/api/doc/$': typeof ApiDocSplatRoute
@@ -466,6 +507,7 @@ export interface FileRoutesByFullPath {
   '/app/models/add': typeof AppModelsAddRoute
   '/app/orgs/add': typeof AppOrgsAddRoute
   '/app/providers/add': typeof AppProvidersAddRoute
+  '/app/quotas/add': typeof AppQuotasAddRoute
   '/app/users/add': typeof AppUsersAddRoute
   '/app/users/invites': typeof AppUsersInvitesRoute
   '/app/account/': typeof AppAccountIndexRoute
@@ -475,6 +517,7 @@ export interface FileRoutesByFullPath {
   '/app/models/': typeof AppModelsIndexRoute
   '/app/orgs/': typeof AppOrgsIndexRoute
   '/app/providers/': typeof AppProvidersIndexRoute
+  '/app/quotas/': typeof AppQuotasIndexRoute
   '/app/users/': typeof AppUsersIndexRoute
   '/app/hub/assets/$assetId': typeof AppHubAssetsAssetIdRouteRouteWithChildren
   '/app/hub/blocks/$blockId': typeof AppHubBlocksBlockIdRouteRouteWithChildren
@@ -486,6 +529,7 @@ export interface FileRoutesByFullPath {
   '/app/models/$modelId/edit': typeof AppModelsModelIdEditRoute
   '/app/orgs/$orgId/edit': typeof AppOrgsOrgIdEditRoute
   '/app/providers/$providerId/edit': typeof AppProvidersProviderIdEditRoute
+  '/app/quotas/$quotaPoolId/edit': typeof AppQuotasQuotaPoolIdEditRoute
   '/app/users/$userId/edit': typeof AppUsersUserIdEditRoute
   '/app/chat/$chatId/': typeof AppChatChatIdIndexRoute
   '/app/groups/$groupId/': typeof AppGroupsGroupIdIndexRoute
@@ -495,6 +539,7 @@ export interface FileRoutesByFullPath {
   '/app/models/$modelId/': typeof AppModelsModelIdIndexRoute
   '/app/orgs/$orgId/': typeof AppOrgsOrgIdIndexRoute
   '/app/providers/$providerId/': typeof AppProvidersProviderIdIndexRoute
+  '/app/quotas/$quotaPoolId/': typeof AppQuotasQuotaPoolIdIndexRoute
   '/app/hub/assets/$assetId/edit': typeof AppHubAssetsAssetIdEditRoute
   '/app/hub/blocks/$blockId/edit': typeof AppHubBlocksBlockIdEditRoute
   '/app/hub/blocks/$blockId/points': typeof AppHubBlocksBlockIdPointsRoute
@@ -520,6 +565,7 @@ export interface FileRoutesByTo {
   '/app/models/add': typeof AppModelsAddRoute
   '/app/orgs/add': typeof AppOrgsAddRoute
   '/app/providers/add': typeof AppProvidersAddRoute
+  '/app/quotas/add': typeof AppQuotasAddRoute
   '/app/users/add': typeof AppUsersAddRoute
   '/app/users/invites': typeof AppUsersInvitesRoute
   '/app/account': typeof AppAccountIndexRoute
@@ -529,6 +575,7 @@ export interface FileRoutesByTo {
   '/app/models': typeof AppModelsIndexRoute
   '/app/orgs': typeof AppOrgsIndexRoute
   '/app/providers': typeof AppProvidersIndexRoute
+  '/app/quotas': typeof AppQuotasIndexRoute
   '/app/users': typeof AppUsersIndexRoute
   '/app/hub/assets/add': typeof AppHubAssetsAddRoute
   '/app/hub/assets/playground': typeof AppHubAssetsPlaygroundRoute
@@ -537,6 +584,7 @@ export interface FileRoutesByTo {
   '/app/models/$modelId/edit': typeof AppModelsModelIdEditRoute
   '/app/orgs/$orgId/edit': typeof AppOrgsOrgIdEditRoute
   '/app/providers/$providerId/edit': typeof AppProvidersProviderIdEditRoute
+  '/app/quotas/$quotaPoolId/edit': typeof AppQuotasQuotaPoolIdEditRoute
   '/app/users/$userId/edit': typeof AppUsersUserIdEditRoute
   '/app/chat/$chatId': typeof AppChatChatIdIndexRoute
   '/app/groups/$groupId': typeof AppGroupsGroupIdIndexRoute
@@ -546,6 +594,7 @@ export interface FileRoutesByTo {
   '/app/models/$modelId': typeof AppModelsModelIdIndexRoute
   '/app/orgs/$orgId': typeof AppOrgsOrgIdIndexRoute
   '/app/providers/$providerId': typeof AppProvidersProviderIdIndexRoute
+  '/app/quotas/$quotaPoolId': typeof AppQuotasQuotaPoolIdIndexRoute
   '/app/hub/assets/$assetId/edit': typeof AppHubAssetsAssetIdEditRoute
   '/app/hub/blocks/$blockId/edit': typeof AppHubBlocksBlockIdEditRoute
   '/app/hub/blocks/$blockId/points': typeof AppHubBlocksBlockIdPointsRoute
@@ -566,6 +615,7 @@ export interface FileRoutesById {
   '/app/models': typeof AppModelsRouteRouteWithChildren
   '/app/orgs': typeof AppOrgsRouteRouteWithChildren
   '/app/providers': typeof AppProvidersRouteRouteWithChildren
+  '/app/quotas': typeof AppQuotasRouteRouteWithChildren
   '/app/users': typeof AppUsersRouteRouteWithChildren
   '/_pathlessLayout/init': typeof PathlessLayoutInitRoute
   '/_pathlessLayout/login': typeof PathlessLayoutLoginRoute
@@ -581,6 +631,7 @@ export interface FileRoutesById {
   '/app/models/$modelId': typeof AppModelsModelIdRouteRouteWithChildren
   '/app/orgs/$orgId': typeof AppOrgsOrgIdRouteRouteWithChildren
   '/app/providers/$providerId': typeof AppProvidersProviderIdRouteRouteWithChildren
+  '/app/quotas/$quotaPoolId': typeof AppQuotasQuotaPoolIdRouteRouteWithChildren
   '/app/users/$userId': typeof AppUsersUserIdRouteRouteWithChildren
   '/api/auth/$': typeof ApiAuthSplatRoute
   '/api/doc/$': typeof ApiDocSplatRoute
@@ -589,6 +640,7 @@ export interface FileRoutesById {
   '/app/models/add': typeof AppModelsAddRoute
   '/app/orgs/add': typeof AppOrgsAddRoute
   '/app/providers/add': typeof AppProvidersAddRoute
+  '/app/quotas/add': typeof AppQuotasAddRoute
   '/app/users/add': typeof AppUsersAddRoute
   '/app/users/invites': typeof AppUsersInvitesRoute
   '/app/account/': typeof AppAccountIndexRoute
@@ -598,6 +650,7 @@ export interface FileRoutesById {
   '/app/models/': typeof AppModelsIndexRoute
   '/app/orgs/': typeof AppOrgsIndexRoute
   '/app/providers/': typeof AppProvidersIndexRoute
+  '/app/quotas/': typeof AppQuotasIndexRoute
   '/app/users/': typeof AppUsersIndexRoute
   '/app/hub/assets/$assetId': typeof AppHubAssetsAssetIdRouteRouteWithChildren
   '/app/hub/blocks/$blockId': typeof AppHubBlocksBlockIdRouteRouteWithChildren
@@ -609,6 +662,7 @@ export interface FileRoutesById {
   '/app/models/$modelId/edit': typeof AppModelsModelIdEditRoute
   '/app/orgs/$orgId/edit': typeof AppOrgsOrgIdEditRoute
   '/app/providers/$providerId/edit': typeof AppProvidersProviderIdEditRoute
+  '/app/quotas/$quotaPoolId/edit': typeof AppQuotasQuotaPoolIdEditRoute
   '/app/users/$userId/edit': typeof AppUsersUserIdEditRoute
   '/app/chat/$chatId/': typeof AppChatChatIdIndexRoute
   '/app/groups/$groupId/': typeof AppGroupsGroupIdIndexRoute
@@ -618,6 +672,7 @@ export interface FileRoutesById {
   '/app/models/$modelId/': typeof AppModelsModelIdIndexRoute
   '/app/orgs/$orgId/': typeof AppOrgsOrgIdIndexRoute
   '/app/providers/$providerId/': typeof AppProvidersProviderIdIndexRoute
+  '/app/quotas/$quotaPoolId/': typeof AppQuotasQuotaPoolIdIndexRoute
   '/app/hub/assets/$assetId/edit': typeof AppHubAssetsAssetIdEditRoute
   '/app/hub/blocks/$blockId/edit': typeof AppHubBlocksBlockIdEditRoute
   '/app/hub/blocks/$blockId/points': typeof AppHubBlocksBlockIdPointsRoute
@@ -638,6 +693,7 @@ export interface FileRouteTypes {
     | '/app/models'
     | '/app/orgs'
     | '/app/providers'
+    | '/app/quotas'
     | '/app/users'
     | '/init'
     | '/login'
@@ -653,6 +709,7 @@ export interface FileRouteTypes {
     | '/app/models/$modelId'
     | '/app/orgs/$orgId'
     | '/app/providers/$providerId'
+    | '/app/quotas/$quotaPoolId'
     | '/app/users/$userId'
     | '/api/auth/$'
     | '/api/doc/$'
@@ -661,6 +718,7 @@ export interface FileRouteTypes {
     | '/app/models/add'
     | '/app/orgs/add'
     | '/app/providers/add'
+    | '/app/quotas/add'
     | '/app/users/add'
     | '/app/users/invites'
     | '/app/account/'
@@ -670,6 +728,7 @@ export interface FileRouteTypes {
     | '/app/models/'
     | '/app/orgs/'
     | '/app/providers/'
+    | '/app/quotas/'
     | '/app/users/'
     | '/app/hub/assets/$assetId'
     | '/app/hub/blocks/$blockId'
@@ -681,6 +740,7 @@ export interface FileRouteTypes {
     | '/app/models/$modelId/edit'
     | '/app/orgs/$orgId/edit'
     | '/app/providers/$providerId/edit'
+    | '/app/quotas/$quotaPoolId/edit'
     | '/app/users/$userId/edit'
     | '/app/chat/$chatId/'
     | '/app/groups/$groupId/'
@@ -690,6 +750,7 @@ export interface FileRouteTypes {
     | '/app/models/$modelId/'
     | '/app/orgs/$orgId/'
     | '/app/providers/$providerId/'
+    | '/app/quotas/$quotaPoolId/'
     | '/app/hub/assets/$assetId/edit'
     | '/app/hub/blocks/$blockId/edit'
     | '/app/hub/blocks/$blockId/points'
@@ -715,6 +776,7 @@ export interface FileRouteTypes {
     | '/app/models/add'
     | '/app/orgs/add'
     | '/app/providers/add'
+    | '/app/quotas/add'
     | '/app/users/add'
     | '/app/users/invites'
     | '/app/account'
@@ -724,6 +786,7 @@ export interface FileRouteTypes {
     | '/app/models'
     | '/app/orgs'
     | '/app/providers'
+    | '/app/quotas'
     | '/app/users'
     | '/app/hub/assets/add'
     | '/app/hub/assets/playground'
@@ -732,6 +795,7 @@ export interface FileRouteTypes {
     | '/app/models/$modelId/edit'
     | '/app/orgs/$orgId/edit'
     | '/app/providers/$providerId/edit'
+    | '/app/quotas/$quotaPoolId/edit'
     | '/app/users/$userId/edit'
     | '/app/chat/$chatId'
     | '/app/groups/$groupId'
@@ -741,6 +805,7 @@ export interface FileRouteTypes {
     | '/app/models/$modelId'
     | '/app/orgs/$orgId'
     | '/app/providers/$providerId'
+    | '/app/quotas/$quotaPoolId'
     | '/app/hub/assets/$assetId/edit'
     | '/app/hub/blocks/$blockId/edit'
     | '/app/hub/blocks/$blockId/points'
@@ -760,6 +825,7 @@ export interface FileRouteTypes {
     | '/app/models'
     | '/app/orgs'
     | '/app/providers'
+    | '/app/quotas'
     | '/app/users'
     | '/_pathlessLayout/init'
     | '/_pathlessLayout/login'
@@ -775,6 +841,7 @@ export interface FileRouteTypes {
     | '/app/models/$modelId'
     | '/app/orgs/$orgId'
     | '/app/providers/$providerId'
+    | '/app/quotas/$quotaPoolId'
     | '/app/users/$userId'
     | '/api/auth/$'
     | '/api/doc/$'
@@ -783,6 +850,7 @@ export interface FileRouteTypes {
     | '/app/models/add'
     | '/app/orgs/add'
     | '/app/providers/add'
+    | '/app/quotas/add'
     | '/app/users/add'
     | '/app/users/invites'
     | '/app/account/'
@@ -792,6 +860,7 @@ export interface FileRouteTypes {
     | '/app/models/'
     | '/app/orgs/'
     | '/app/providers/'
+    | '/app/quotas/'
     | '/app/users/'
     | '/app/hub/assets/$assetId'
     | '/app/hub/blocks/$blockId'
@@ -803,6 +872,7 @@ export interface FileRouteTypes {
     | '/app/models/$modelId/edit'
     | '/app/orgs/$orgId/edit'
     | '/app/providers/$providerId/edit'
+    | '/app/quotas/$quotaPoolId/edit'
     | '/app/users/$userId/edit'
     | '/app/chat/$chatId/'
     | '/app/groups/$groupId/'
@@ -812,6 +882,7 @@ export interface FileRouteTypes {
     | '/app/models/$modelId/'
     | '/app/orgs/$orgId/'
     | '/app/providers/$providerId/'
+    | '/app/quotas/$quotaPoolId/'
     | '/app/hub/assets/$assetId/edit'
     | '/app/hub/blocks/$blockId/edit'
     | '/app/hub/blocks/$blockId/points'
@@ -909,6 +980,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AppUsersRouteRouteImport
       parentRoute: typeof AppRouteRoute
     }
+    '/app/quotas': {
+      id: '/app/quotas'
+      path: '/quotas'
+      fullPath: '/app/quotas'
+      preLoaderRoute: typeof AppQuotasRouteRouteImport
+      parentRoute: typeof AppRouteRoute
+    }
     '/app/providers': {
       id: '/app/providers'
       path: '/providers'
@@ -964,6 +1042,13 @@ declare module '@tanstack/react-router' {
       fullPath: '/app/users/'
       preLoaderRoute: typeof AppUsersIndexRouteImport
       parentRoute: typeof AppUsersRouteRoute
+    }
+    '/app/quotas/': {
+      id: '/app/quotas/'
+      path: '/'
+      fullPath: '/app/quotas/'
+      preLoaderRoute: typeof AppQuotasIndexRouteImport
+      parentRoute: typeof AppQuotasRouteRoute
     }
     '/app/providers/': {
       id: '/app/providers/'
@@ -1028,6 +1113,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AppUsersAddRouteImport
       parentRoute: typeof AppUsersRouteRoute
     }
+    '/app/quotas/add': {
+      id: '/app/quotas/add'
+      path: '/add'
+      fullPath: '/app/quotas/add'
+      preLoaderRoute: typeof AppQuotasAddRouteImport
+      parentRoute: typeof AppQuotasRouteRoute
+    }
     '/app/providers/add': {
       id: '/app/providers/add'
       path: '/add'
@@ -1084,6 +1176,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AppUsersUserIdRouteRouteImport
       parentRoute: typeof AppUsersRouteRoute
     }
+    '/app/quotas/$quotaPoolId': {
+      id: '/app/quotas/$quotaPoolId'
+      path: '/$quotaPoolId'
+      fullPath: '/app/quotas/$quotaPoolId'
+      preLoaderRoute: typeof AppQuotasQuotaPoolIdRouteRouteImport
+      parentRoute: typeof AppQuotasRouteRoute
+    }
     '/app/providers/$providerId': {
       id: '/app/providers/$providerId'
       path: '/$providerId'
@@ -1132,6 +1231,13 @@ declare module '@tanstack/react-router' {
       fullPath: '/app/groups/$groupId'
       preLoaderRoute: typeof AppGroupsGroupIdRouteRouteImport
       parentRoute: typeof AppGroupsRouteRoute
+    }
+    '/app/quotas/$quotaPoolId/': {
+      id: '/app/quotas/$quotaPoolId/'
+      path: '/'
+      fullPath: '/app/quotas/$quotaPoolId/'
+      preLoaderRoute: typeof AppQuotasQuotaPoolIdIndexRouteImport
+      parentRoute: typeof AppQuotasQuotaPoolIdRouteRoute
     }
     '/app/providers/$providerId/': {
       id: '/app/providers/$providerId/'
@@ -1195,6 +1301,13 @@ declare module '@tanstack/react-router' {
       fullPath: '/app/users/$userId/edit'
       preLoaderRoute: typeof AppUsersUserIdEditRouteImport
       parentRoute: typeof AppUsersUserIdRouteRoute
+    }
+    '/app/quotas/$quotaPoolId/edit': {
+      id: '/app/quotas/$quotaPoolId/edit'
+      path: '/edit'
+      fullPath: '/app/quotas/$quotaPoolId/edit'
+      preLoaderRoute: typeof AppQuotasQuotaPoolIdEditRouteImport
+      parentRoute: typeof AppQuotasQuotaPoolIdRouteRoute
     }
     '/app/providers/$providerId/edit': {
       id: '/app/providers/$providerId/edit'
@@ -1599,6 +1712,38 @@ const AppProvidersRouteRouteChildren: AppProvidersRouteRouteChildren = {
 const AppProvidersRouteRouteWithChildren =
   AppProvidersRouteRoute._addFileChildren(AppProvidersRouteRouteChildren)
 
+interface AppQuotasQuotaPoolIdRouteRouteChildren {
+  AppQuotasQuotaPoolIdEditRoute: typeof AppQuotasQuotaPoolIdEditRoute
+  AppQuotasQuotaPoolIdIndexRoute: typeof AppQuotasQuotaPoolIdIndexRoute
+}
+
+const AppQuotasQuotaPoolIdRouteRouteChildren: AppQuotasQuotaPoolIdRouteRouteChildren =
+  {
+    AppQuotasQuotaPoolIdEditRoute: AppQuotasQuotaPoolIdEditRoute,
+    AppQuotasQuotaPoolIdIndexRoute: AppQuotasQuotaPoolIdIndexRoute,
+  }
+
+const AppQuotasQuotaPoolIdRouteRouteWithChildren =
+  AppQuotasQuotaPoolIdRouteRoute._addFileChildren(
+    AppQuotasQuotaPoolIdRouteRouteChildren,
+  )
+
+interface AppQuotasRouteRouteChildren {
+  AppQuotasQuotaPoolIdRouteRoute: typeof AppQuotasQuotaPoolIdRouteRouteWithChildren
+  AppQuotasAddRoute: typeof AppQuotasAddRoute
+  AppQuotasIndexRoute: typeof AppQuotasIndexRoute
+}
+
+const AppQuotasRouteRouteChildren: AppQuotasRouteRouteChildren = {
+  AppQuotasQuotaPoolIdRouteRoute: AppQuotasQuotaPoolIdRouteRouteWithChildren,
+  AppQuotasAddRoute: AppQuotasAddRoute,
+  AppQuotasIndexRoute: AppQuotasIndexRoute,
+}
+
+const AppQuotasRouteRouteWithChildren = AppQuotasRouteRoute._addFileChildren(
+  AppQuotasRouteRouteChildren,
+)
+
 interface AppUsersUserIdRouteRouteChildren {
   AppUsersUserIdEditRoute: typeof AppUsersUserIdEditRoute
 }
@@ -1636,6 +1781,7 @@ interface AppRouteRouteChildren {
   AppModelsRouteRoute: typeof AppModelsRouteRouteWithChildren
   AppOrgsRouteRoute: typeof AppOrgsRouteRouteWithChildren
   AppProvidersRouteRoute: typeof AppProvidersRouteRouteWithChildren
+  AppQuotasRouteRoute: typeof AppQuotasRouteRouteWithChildren
   AppUsersRouteRoute: typeof AppUsersRouteRouteWithChildren
   AppIndexRoute: typeof AppIndexRoute
 }
@@ -1648,6 +1794,7 @@ const AppRouteRouteChildren: AppRouteRouteChildren = {
   AppModelsRouteRoute: AppModelsRouteRouteWithChildren,
   AppOrgsRouteRoute: AppOrgsRouteRouteWithChildren,
   AppProvidersRouteRoute: AppProvidersRouteRouteWithChildren,
+  AppQuotasRouteRoute: AppQuotasRouteRouteWithChildren,
   AppUsersRouteRoute: AppUsersRouteRouteWithChildren,
   AppIndexRoute: AppIndexRoute,
 }
