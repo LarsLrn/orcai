@@ -43,3 +43,14 @@ export const modelCapabilities = [
 		label: "Reasoning",
 	},
 ] as const;
+
+export const providerMeteringModes = [
+	{
+		value: "tokens",
+		label: "Tokens",
+	},
+	{
+		value: "requests",
+		label: "Requests",
+	},
+] as const;

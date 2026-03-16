@@ -6,6 +6,8 @@ import {
 	count,
 	desc,
 	eq,
+	exists,
+	getColumns,
 	ilike,
 	inArray,
 	or,
@@ -24,14 +26,28 @@ import { findProvider } from "./provider";
 
 export const listModels = authed.model.list
 	.use(requireOrganizationPermission("read"))
-	.handler(async ({ input }) =>
+	.handler(async ({ input, context }) =>
 		runOrpcEffect(
 			Effect.gen(function* () {
 				const db = yield* DB;
+				const organizationId = context.auth.session.activeOrganizationId;
 
 				const searchTerm = input.filters?.search;
 
 				const conditions = [
+					exists(
+						db
+							.select({
+								id: dbSchema.provider.id,
+							})
+							.from(dbSchema.provider)
+							.where(
+								and(
+									eq(dbSchema.provider.id, dbSchema.model.providerId),
+									eq(dbSchema.provider.organizationId, organizationId),
+								),
+							),
+					),
 					input.filters?.providerId
 						? eq(dbSchema.model.providerId, input.filters.providerId)
 						: undefined,
@@ -89,30 +105,40 @@ export const listModels = authed.model.list
 
 export const findModel = authed.model.find
 	.use(requireOrganizationPermission("read"))
-	.handler(async ({ input, errors }) =>
+	.handler(async ({ input, context, errors }) =>
 		runOrpcEffect(
 			Effect.gen(function* () {
 				const db = yield* DB;
+				const organizationId = context.auth.session.activeOrganizationId;
 
-				const model = yield* db.query.model
-					.findFirst({
-						where: {
-							id: input.id,
-						},
+				const [foundModel] = yield* db
+					.select({
+						...getColumns(dbSchema.model),
 					})
-					.pipe(
-						Effect.flatMap((model) =>
-							Effect.fromNullable(model).pipe(
-								Effect.orElse(() =>
-									Effect.fail(
-										errors.NOT_FOUND({
-											message: "Model not found",
-										}),
-									),
-								),
-							),
+					.from(dbSchema.model)
+					.innerJoin(
+						dbSchema.provider,
+						eq(dbSchema.provider.id, dbSchema.model.providerId),
+					)
+					.where(
+						and(
+							eq(dbSchema.model.id, input.id),
+							eq(dbSchema.provider.organizationId, organizationId),
 						),
+					)
+					.limit(1);
+
+				const model = foundModel as
+					| typeof dbSchema.model.$inferSelect
+					| undefined;
+
+				if (!model) {
+					return yield* Effect.fail(
+						errors.NOT_FOUND({
+							message: "Model not found",
+						}),
 					);
+				}
 
 				return {
 					data: model,
@@ -123,10 +149,32 @@ export const findModel = authed.model.find
 
 export const createModel = authed.model.create
 	.use(requireOrganizationPermission("manage_members"))
-	.handler(async ({ input }) =>
+	.handler(async ({ input, context, errors }) =>
 		runOrpcEffect(
 			Effect.gen(function* () {
 				const db = yield* DB;
+				const organizationId = context.auth.session.activeOrganizationId;
+
+				const [foundProvider] = yield* db
+					.select({
+						id: dbSchema.provider.id,
+					})
+					.from(dbSchema.provider)
+					.where(
+						and(
+							eq(dbSchema.provider.id, input.providerId),
+							eq(dbSchema.provider.organizationId, organizationId),
+						),
+					)
+					.limit(1);
+
+				if (!foundProvider) {
+					return yield* Effect.fail(
+						errors.BAD_REQUEST({
+							message: "Provider not found in active organization",
+						}),
+					);
+				}
 
 				const [model] = yield* db
 					.insert(dbSchema.model)
@@ -142,10 +190,36 @@ export const createModel = authed.model.create
 
 export const updateModel = authed.model.update
 	.use(requireOrganizationPermission("manage_members"))
-	.handler(async ({ input, errors }) =>
+	.handler(async ({ input, context, errors }) =>
 		runOrpcEffect(
 			Effect.gen(function* () {
 				const db = yield* DB;
+				const organizationId = context.auth.session.activeOrganizationId;
+
+				const [existingModel] = yield* db
+					.select({
+						id: dbSchema.model.id,
+					})
+					.from(dbSchema.model)
+					.innerJoin(
+						dbSchema.provider,
+						eq(dbSchema.provider.id, dbSchema.model.providerId),
+					)
+					.where(
+						and(
+							eq(dbSchema.model.id, input.id),
+							eq(dbSchema.provider.organizationId, organizationId),
+						),
+					)
+					.limit(1);
+
+				if (!existingModel) {
+					return yield* Effect.fail(
+						errors.NOT_FOUND({
+							message: "Model not found",
+						}),
+					);
+				}
 
 				const [model] = yield* db
 					.update(dbSchema.model)
@@ -170,15 +244,34 @@ export const updateModel = authed.model.update
 
 export const deleteModel = authed.model.delete
 	.use(requireOrganizationPermission("manage_members"))
-	.handler(async ({ input }) =>
+	.handler(async ({ input, context }) =>
 		runOrpcEffect(
 			Effect.gen(function* () {
 				const db = yield* DB;
+				const organizationId = context.auth.session.activeOrganizationId;
+
+				const providerRows = yield* db
+					.select({
+						id: dbSchema.provider.id,
+					})
+					.from(dbSchema.provider)
+					.where(eq(dbSchema.provider.organizationId, organizationId));
+
+				const providerIds = providerRows.map((row) => row.id);
+				if (providerIds.length === 0) {
+					return {
+						success: true,
+						message: "Models deleted successfully",
+					};
+				}
 
 				yield* db.delete(dbSchema.model).where(
-					inArray(
-						dbSchema.model.id,
-						input.refs.map((ref) => ref.id),
+					and(
+						inArray(
+							dbSchema.model.id,
+							input.refs.map((ref) => ref.id),
+						),
+						inArray(dbSchema.model.providerId, providerIds),
 					),
 				);
 

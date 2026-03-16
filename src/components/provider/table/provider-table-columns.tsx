@@ -67,6 +67,15 @@ export const providerTableColumns: ColumnDef<Provider>[] = [
 		),
 	},
 	{
+		accessorKey: "meteringMode",
+		header: ({ column }) => (
+			<DataTableColumnHeader column={column} title="Metering" />
+		),
+		cell: ({ row }) => (
+			<Badge variant="outline">{row.original.meteringMode}</Badge>
+		),
+	},
+	{
 		accessorKey: "createdAt",
 		header: ({ column }) => (
 			<DataTableColumnHeader column={column} title="Created At" />

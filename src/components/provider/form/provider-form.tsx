@@ -3,7 +3,10 @@ import {
 	useCreateProviderMutation,
 	useUpdateProviderMutation,
 } from "@/hooks/mutations/use-provider-mutations";
-import { providerCompatibilities } from "@/lib/ai/providers";
+import {
+	providerCompatibilities,
+	providerMeteringModes,
+} from "@/lib/ai/providers";
 import type { Provider } from "@/lib/orpc/schemas/provider";
 import { providerFormOptions } from "./provider-form-options";
 
@@ -91,6 +94,20 @@ const ProviderForm = ({
 					<field.SwitchField
 						label="Enabled"
 						description="Enable this provider for use in the organization"
+					/>
+				)}
+			/>
+
+			<form.AppField
+				name="meteringMode"
+				children={(field) => (
+					<field.SelectField
+						label="Metering Mode"
+						description="Defines how quota is enforced for this provider"
+						options={providerMeteringModes.map((mode) => ({
+							value: mode.value,
+							label: mode.label,
+						}))}
 					/>
 				)}
 			/>

@@ -20,8 +20,19 @@ import { bot, botBlock } from "./bot";
 import { chat } from "./chat";
 import { chatBranch } from "./chat-branch";
 import { chatMessage } from "./chat-message";
-import { model, provider } from "./model";
+import { model, provider, providerMeteringModeEnum } from "./model";
 import { invitation, member, organization } from "./organization";
+import {
+	quotaLedger,
+	quotaPeriod,
+	quotaPeriodStatusEnum,
+	quotaPool,
+	quotaPoolAuditLog,
+	quotaPoolGroupAssignment,
+	quotaPoolPeriodTypeEnum,
+	quotaUsageEvent,
+	quotaUsageEventTypeEnum,
+} from "./quota";
 
 export const dbSchema = {
 	user,
@@ -42,6 +53,12 @@ export const dbSchema = {
 	groupMember,
 	model,
 	provider,
+	quotaPool,
+	quotaPoolGroupAssignment,
+	quotaPeriod,
+	quotaLedger,
+	quotaUsageEvent,
+	quotaPoolAuditLog,
 	organization,
 	member,
 	invitation,
@@ -58,4 +75,8 @@ export const enumSchema = {
 	resourceGrantRoleEnum,
 	resourceTypeEnum,
 	resourceVisibilityEnum,
+	providerMeteringModeEnum,
+	quotaPoolPeriodTypeEnum,
+	quotaPeriodStatusEnum,
+	quotaUsageEventTypeEnum,
 };
