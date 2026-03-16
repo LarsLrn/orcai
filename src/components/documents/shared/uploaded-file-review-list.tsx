@@ -101,9 +101,10 @@ const UploadedFileReviewList = ({
 					>
 						<DialogContent className="max-h-[88vh] overflow-auto sm:max-w-3xl">
 							<DialogHeader>
-								<DialogTitle>Document Metadata</DialogTitle>
+								<DialogTitle>Source Metadata</DialogTitle>
 								<DialogDescription>
-									Define how this uploaded file should appear in AI references.
+									Define how this uploaded file should appear in AI citations
+									and references.
 								</DialogDescription>
 							</DialogHeader>
 

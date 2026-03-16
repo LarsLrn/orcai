@@ -33,7 +33,7 @@ const AssetLibraryPicker = ({
 			<Input
 				value={search}
 				onChange={(event) => setSearch(event.target.value)}
-				placeholder="Search existing documents"
+				placeholder="Search the content library"
 			/>
 
 			<div className="grid gap-3 md:grid-cols-2 xl:grid-cols-3">

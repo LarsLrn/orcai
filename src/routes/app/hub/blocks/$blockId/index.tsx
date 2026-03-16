@@ -103,7 +103,7 @@ function RouteComponent() {
 							className="gap-2"
 						>
 							<KeyRoundIcon className="h-4 w-4" />
-							Access
+							Access & Groups
 						</Button>
 						<Link
 							to={"/app/hub/blocks/$blockId/edit"}
@@ -201,7 +201,7 @@ function RouteComponent() {
 					<CardHeader>
 						<CardTitle>Usage Statistics</CardTitle>
 						<CardDescription>
-							Track how this block is being used across your chats
+							Track how this block is being used across your workspace
 						</CardDescription>
 					</CardHeader>
 					<CardContent>

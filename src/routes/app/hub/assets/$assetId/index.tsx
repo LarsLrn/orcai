@@ -55,7 +55,7 @@ function RouteComponent() {
 				<SectionAction>
 					<Button variant="outline" onClick={() => setIsAccessOpen(true)}>
 						<KeyRoundIcon />
-						Access
+						Access & Groups
 					</Button>
 					<Button
 						variant="default"
@@ -75,7 +75,7 @@ function RouteComponent() {
 						}}
 					>
 						<PencilIcon />
-						Edit
+						Edit Content
 					</Link>
 					<Button
 						variant="destructive"

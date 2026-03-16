@@ -174,7 +174,7 @@ const AssetSection = ({
 					<CollapsibleTrigger
 						render={
 							<Button size="sm" variant="outline">
-								{isOpen ? "Hide Assets" : "Show Assets"}
+								{isOpen ? "Hide Content" : "Show Content"}
 							</Button>
 						}
 					/>

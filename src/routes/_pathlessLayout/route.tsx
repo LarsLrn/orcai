@@ -20,9 +20,11 @@ function PathlessLayoutComponent() {
 				<Outlet />
 			</div>
 
-			<div className="my-4 flex w-full justify-around p-2">
-				OrcAI is a fork of{" "}
-				<a href="https://github.com/SokratesT/sokratest">Sokratest</a>.
+			<div className="my-4 flex w-full justify-center p-2">
+				<span>
+					OrcAI is a fork of{" "}
+					<a href="https://github.com/SokratesT/sokratest">SokratesT</a>.
+				</span>
 			</div>
 		</main>
 	);

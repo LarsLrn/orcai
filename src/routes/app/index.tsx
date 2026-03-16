@@ -11,6 +11,7 @@ import {
 	MessagesSquareIcon,
 	PlusIcon,
 	SparklesIcon,
+	UsersIcon,
 } from "lucide-react";
 import { Suspense } from "react";
 import { UserWelcome } from "@/components/app/user-welcome";
@@ -156,18 +157,55 @@ const HomeHero = () => {
 			<CardContent className="relative flex flex-col gap-10 p-10 lg:flex-row lg:items-start lg:justify-between">
 				<div className="space-y-6 text-card-foreground">
 					<UserWelcome />
+					<div className="space-y-3">
+						<p className="font-medium text-muted-foreground text-sm uppercase tracking-[0.2em]">
+							What would you like to do?
+						</p>
+						<div className="grid gap-3 sm:grid-cols-2">
+							<Link
+								to="/app/hub/bots/add"
+								className={buttonVariants({
+									className: "h-auto justify-start gap-2 px-5 py-5 text-left",
+								})}
+							>
+								<SparklesIcon className="h-4 w-4 shrink-0" />
+								<span>Develop a bot</span>
+							</Link>
+							<Link
+								to="/app/groups"
+								className={buttonVariants({
+									variant: "outline",
+									className: "h-auto justify-start gap-2 px-5 py-5 text-left",
+								})}
+							>
+								<UsersIcon className="h-4 w-4 shrink-0" />
+								<span>Grant a group access</span>
+							</Link>
+							<Button
+								variant="outline"
+								className="h-auto justify-start gap-2 px-5 py-5 text-left"
+								onClick={() =>
+									createChat({
+										botId: latestBot?.id,
+									})
+								}
+							>
+								<MessageSquarePlusIcon className="h-4 w-4 shrink-0" />
+								<span>Start a chat</span>
+							</Button>
+							<Link
+								to="/app/hub/assets"
+								className={buttonVariants({
+									variant: "outline",
+									className: "h-auto justify-start gap-2 px-5 py-5 text-left",
+								})}
+							>
+								<FolderOpenIcon className="h-4 w-4 shrink-0" />
+								<span>Curate the content library</span>
+							</Link>
+						</div>
+					</div>
 					<div className="flex flex-wrap items-center gap-2">
-						<Button
-							className="gap-2 px-6"
-							onClick={() =>
-								createChat({
-									botId: latestBot?.id,
-								})
-							}
-						>
-							<SparklesIcon className="h-4 w-4" />
-							Start a new chat
-						</Button>
 						<ButtonGroup>
 							<Link
 								to="/app/chat/setup"
@@ -177,7 +215,7 @@ const HomeHero = () => {
 								})}
 							>
 								<MessagesSquareIcon className="h-4 w-4" />
-								Advanced setup
+								Chat options
 							</Link>
 
 							<Link
@@ -214,14 +252,14 @@ const HeroLatestBotCard = ({
 	return (
 		<Item className="items-start justify-between bg-card" variant="outline">
 			<ItemContent>
-				<p className="font-medium text-primary text-sm">Quick start</p>
+				<p className="font-medium text-primary text-sm">Continue recent work</p>
 				<ItemTitle className="font-bold text-card-foreground text-xl">
 					{botName ?? "No bots yet"}
 				</ItemTitle>
 				<ItemDescription>
 					{botName
-						? "Spin up a conversation with your latest assistant."
-						: "Build a bot to unlock personalised conversations."}
+						? "Open a chat with the latest bot in your workspace."
+						: "Create a bot to make it available for quick access."}
 				</ItemDescription>
 			</ItemContent>
 			<div className="mt-4 flex gap-2 self-end">
@@ -287,7 +325,7 @@ const BotsShowcase = () => {
 			<SectionHeader>
 				<SectionTitle>Available bots</SectionTitle>
 				<SectionDescription>
-					Select an assistant and jump straight into a tailored conversation.
+					Open a configured bot and jump into a focused chat.
 				</SectionDescription>
 				<SectionAction>
 					<Link
@@ -298,7 +336,7 @@ const BotsShowcase = () => {
 							className: "w-full sm:w-auto",
 						})}
 					>
-						Manage library
+						Open library
 					</Link>
 				</SectionAction>
 			</SectionHeader>
@@ -357,8 +395,8 @@ const QuickActions = () => {
 		accent: string;
 	}> = [
 		{
-			title: "New chat",
-			description: "Start a guided conversation from scratch.",
+			title: "Start a chat",
+			description: "Open a new chat with or without a bot.",
 			icon: MessageSquarePlusIcon,
 			linkProps: {
 				to: "/app/chat/setup",
@@ -366,8 +404,27 @@ const QuickActions = () => {
 			accent: "text-primary",
 		},
 		{
-			title: "Manage bots",
-			description: "Review and iterate on your assistants.",
+			title: "Develop a bot",
+			description:
+				"Create a configured AI experience for a course, team, or other use case.",
+			icon: SparklesIcon,
+			linkProps: {
+				to: "/app/hub/bots/add",
+			},
+			accent: "text-primary",
+		},
+		{
+			title: "Grant a group access",
+			description: "Manage cohorts and decide who can use a resource.",
+			icon: UsersIcon,
+			linkProps: {
+				to: "/app/groups",
+			},
+			accent: "text-sky-500",
+		},
+		{
+			title: "Review bots",
+			description: "Open the bot library and iterate on published setups.",
 			icon: BotIcon,
 			linkProps: {
 				to: "/app/hub/bots",
@@ -376,7 +433,7 @@ const QuickActions = () => {
 		},
 		{
 			title: "Manage blocks",
-			description: "Compose reusable logic components.",
+			description: "Review reusable behavior and retrieval building blocks.",
 			icon: BlocksIcon,
 			linkProps: {
 				to: "/app/hub/blocks",
@@ -384,8 +441,9 @@ const QuickActions = () => {
 			accent: "text-green-500",
 		},
 		{
-			title: "Manage assets",
-			description: "Curate knowledge sources for grounding.",
+			title: "Curate content library",
+			description:
+				"Organize reusable source material for retrieval and citations.",
 			icon: FolderOpenIcon,
 			linkProps: {
 				to: "/app/hub/assets",
@@ -393,17 +451,9 @@ const QuickActions = () => {
 			accent: "text-orange-500",
 		},
 		{
-			title: "Create bot",
-			description: "Design a new tailored assistant.",
-			icon: SparklesIcon,
-			linkProps: {
-				to: "/app/hub/bots/add",
-			},
-			accent: "text-primary",
-		},
-		{
-			title: "Create block",
-			description: "Add a new building block to your toolkit.",
+			title: "Create a block",
+			description:
+				"Add reusable behavior, retrieval, or image-generation building blocks.",
 			icon: BlocksIcon,
 			linkProps: {
 				to: "/app/hub/blocks/add",
@@ -415,9 +465,9 @@ const QuickActions = () => {
 	return (
 		<Section>
 			<SectionHeader>
-				<SectionTitle>Quick actions</SectionTitle>
+				<SectionTitle>Task entry points</SectionTitle>
 				<SectionDescription>
-					Access key tools to keep momentum across your workspace.
+					Pick the kind of work you want to do next.
 				</SectionDescription>
 			</SectionHeader>
 			<SectionContent>
@@ -474,7 +524,7 @@ const ResourceHighlights = () => {
 		{
 			label: "Bots",
 			count: botSummary.rowCount,
-			description: "Custom assistants ready to deploy.",
+			description: "Configured AI experiences ready to use.",
 			linkProps: {
 				to: "/app/hub/bots",
 			},
@@ -485,7 +535,7 @@ const ResourceHighlights = () => {
 		{
 			label: "Blocks",
 			count: blockSummary.rowCount,
-			description: "Reusable logic powering your flows.",
+			description: "Reusable behavior and retrieval building blocks.",
 			linkProps: {
 				to: "/app/hub/blocks",
 			},
@@ -494,9 +544,9 @@ const ResourceHighlights = () => {
 			accentColor: "text-green-500",
 		},
 		{
-			label: "Assets",
+			label: "Content",
 			count: assetSummary.rowCount,
-			description: "Knowledge sources grounding chats.",
+			description: "Reusable source material grounding answers.",
 			linkProps: {
 				to: "/app/hub/assets",
 			},
@@ -517,9 +567,9 @@ const ResourceHighlights = () => {
 	return (
 		<Section>
 			<SectionHeader>
-				<SectionTitle>Resource highlights</SectionTitle>
+				<SectionTitle>Workspace snapshot</SectionTitle>
 				<SectionDescription>
-					A quick glance at the building blocks that fuel your workspace.
+					A quick glance at the reusable pieces that support your workspace.
 				</SectionDescription>
 			</SectionHeader>
 

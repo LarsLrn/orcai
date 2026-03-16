@@ -95,7 +95,7 @@ const CollapsibleSidebarMenu = ({
 const ManageSidebarGroup = () => {
 	return (
 		<SidebarGroup className="p-0">
-			<SidebarGroupLabel>Manage</SidebarGroupLabel>
+			<SidebarGroupLabel>Workspace</SidebarGroupLabel>
 			<SidebarGroupContent>
 				<SidebarMenu>
 					{sidebarMenu.map((item) => (

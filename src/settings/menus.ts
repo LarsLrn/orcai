@@ -22,14 +22,14 @@ interface SidebarMenuItem {
 
 export const sidebarMenu = [
 	{
-		title: "Hub",
+		title: "Library",
 		linkProps: {
 			to: "/app/hub",
 		},
 		icon: BlocksIcon,
 		items: [
 			{
-				title: "Assets",
+				title: "Content",
 				linkProps: {
 					to: "/app/hub/assets",
 				},

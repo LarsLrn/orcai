@@ -74,7 +74,7 @@ const ResourceLink = ({ access }: { access: UserAccessEntry }) => {
 					}}
 					className="text-primary hover:underline"
 				>
-					{access.resourceName ?? "Untitled asset"}
+					{access.resourceName ?? "Untitled content item"}
 				</Link>
 			);
 		default:
@@ -113,7 +113,7 @@ const ResourceTypeLabel = ({
 			return (
 				<span className="inline-flex items-center gap-1 text-muted-foreground text-xs">
 					<FileIcon className="h-3 w-3" />
-					Asset
+					Content item
 				</span>
 			);
 		default:

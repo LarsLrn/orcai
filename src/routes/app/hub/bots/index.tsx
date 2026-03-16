@@ -60,9 +60,9 @@ function RouteComponent() {
 	return (
 		<Page>
 			<PageHeader>
-				<PageTitle>AI Bots</PageTitle>
+				<PageTitle>Bots</PageTitle>
 				<PageDescription className="text-muted-foreground">
-					Create and manage your custom AI assistants
+					Create and manage configured AI experiences for your workspace.
 				</PageDescription>
 
 				<PageAction>
@@ -145,7 +145,7 @@ function RouteComponent() {
 						<div className="space-y-2">
 							<h3 className="font-semibold text-lg">No bots yet</h3>
 							<p className="text-muted-foreground">
-								Create your first AI bot to get started
+								Create your first bot to get started
 							</p>
 						</div>
 						<Link
@@ -163,7 +163,7 @@ function RouteComponent() {
 						<h2 className="font-semibold text-lg">No published bots yet</h2>
 						<p className="mt-2 text-muted-foreground text-sm">
 							You already have draft setups in progress. Publish one to make it
-							available in chat and the main bot list.
+							available in chats and the main bots list.
 						</p>
 					</div>
 				) : (
@@ -171,7 +171,7 @@ function RouteComponent() {
 						<div>
 							<h2 className="font-semibold text-xl">Published Bots</h2>
 							<p className="text-muted-foreground text-sm">
-								Bots that are ready to use in chat and sharing flows.
+								Bots that are ready to use in chats and sharing flows.
 							</p>
 						</div>
 						<div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-3">

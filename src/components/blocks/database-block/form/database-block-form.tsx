@@ -75,8 +75,8 @@ const DatabaseBlockForm = ({
 					disabled={isCreating || isUpdating}
 				>
 					{action === "create"
-						? "Save Knowledge Source"
-						: "Update Knowledge Source"}
+						? "Save Content Collection"
+						: "Update Content Collection"}
 				</Button>
 			</div>
 		</div>

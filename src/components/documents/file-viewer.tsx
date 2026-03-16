@@ -38,7 +38,7 @@ const FileViewer = ({ asset }: { asset: Asset }) => {
 		return (
 			<Placeholder
 				title="Error"
-				description="There was an error loading the asset. Please try again later."
+				description="There was an error loading this content item. Please try again later."
 			/>
 		);
 	}
@@ -55,7 +55,7 @@ const FileViewer = ({ asset }: { asset: Asset }) => {
 					{isMobile ? (
 						<Placeholder
 							title="Mobile Preview Unavailable"
-							description="Asset preview is not available on mobile."
+							description="Content preview is not available on mobile."
 							Icon={SmartphoneIcon}
 						/>
 					) : (

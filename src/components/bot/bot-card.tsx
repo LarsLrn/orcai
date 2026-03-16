@@ -58,7 +58,7 @@ const BotCard = ({
 		},
 		{
 			key: "edit",
-			label: "Edit",
+			label: "Edit Bot",
 			icon: EditIcon,
 			variant: "default",
 			linkProps: {

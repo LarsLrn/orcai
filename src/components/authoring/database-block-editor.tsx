@@ -55,7 +55,7 @@ import type { BotEditorSelect } from "@/lib/orpc/schemas/bot-editor";
 type DatabaseBlockValue = BotEditorSelect["databaseBlocks"][number];
 
 const createDefaultDatabaseBlock = (): DatabaseBlockValue => ({
-	name: "Knowledge Source",
+	name: "Content Collection",
 	type: "database",
 	status: "draft",
 	config: {
@@ -175,10 +175,10 @@ const DatabaseBlockEditor = ({
 				<div>
 					<CardTitle className="flex items-center gap-2">
 						<DatabaseIcon className="h-5 w-5" />
-						Knowledge Source
+						Content Collection
 					</CardTitle>
 					<CardDescription>
-						Attach reusable documents and tune how retrieval works for this bot.
+						Attach reusable content and tune how retrieval works for this bot.
 					</CardDescription>
 				</div>
 				{onRemove ? (
@@ -301,10 +301,10 @@ const DatabaseBlockEditor = ({
 				<div className="rounded-2xl border border-dashed bg-muted/20 p-4">
 					<div className="flex flex-wrap items-center justify-between gap-3">
 						<div>
-							<div className="font-medium text-sm">Documents</div>
+							<div className="font-medium text-sm">Content items</div>
 							<div className="text-muted-foreground text-sm">
-								Use existing assets or upload new ones with metadata before
-								attaching them.
+								Use existing content from the library or upload new files with
+								metadata before attaching them.
 							</div>
 						</div>
 						<div className="flex flex-wrap gap-2">
@@ -330,10 +330,10 @@ const DatabaseBlockEditor = ({
 					<Dialog open={isLibraryOpen} onOpenChange={setIsLibraryOpen}>
 						<DialogContent className="max-h-[88vh] overflow-auto sm:max-w-5xl">
 							<DialogHeader>
-								<DialogTitle>Add Existing Documents</DialogTitle>
+								<DialogTitle>Add Existing Content</DialogTitle>
 								<DialogDescription>
-									Select reusable assets from the library and attach them to
-									this knowledge source.
+									Select reusable content items from the library and attach them
+									to this content collection.
 								</DialogDescription>
 							</DialogHeader>
 							<AssetLibraryPicker
@@ -360,14 +360,14 @@ const DatabaseBlockEditor = ({
 					<Dialog open={isUploadOpen} onOpenChange={setIsUploadOpen}>
 						<DialogContent className="max-h-[88vh] overflow-auto sm:max-w-5xl">
 							<DialogHeader>
-								<DialogTitle>Upload New Documents</DialogTitle>
+								<DialogTitle>Upload New Content</DialogTitle>
 								<DialogDescription>
 									Upload files, complete their metadata, and attach them in one
 									focused flow.
 								</DialogDescription>
 							</DialogHeader>
 							<AssetIntakeFlow
-								submitLabel="Save Documents"
+								submitLabel="Save Content"
 								onAssetsSaved={(savedAssets) => {
 									onChange(mergeAssets(value, savedAssets));
 									setIsUploadOpen(false);
@@ -380,9 +380,9 @@ const DatabaseBlockEditor = ({
 				<div className="space-y-3">
 					<div className="flex items-center justify-between gap-3">
 						<div>
-							<div className="font-medium text-sm">Attached Documents</div>
+							<div className="font-medium text-sm">Attached Content</div>
 							<div className="text-muted-foreground text-sm">
-								Each document keeps its reusable asset metadata.
+								Each item keeps its reusable metadata from the content library.
 							</div>
 						</div>
 						<Badge variant="secondary">{assets.length} attached</Badge>
@@ -409,7 +409,7 @@ const DatabaseBlockEditor = ({
 						/>
 					) : (
 						<div className="rounded-xl border border-dashed bg-muted/10 p-6 text-center text-muted-foreground text-sm">
-							No documents attached yet.
+							No content attached yet.
 						</div>
 					)}
 				</div>

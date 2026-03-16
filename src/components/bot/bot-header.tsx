@@ -91,7 +91,7 @@ const BotHeader = ({
 					onClick={() => setIsAccessOpen(true)}
 				>
 					<KeyRoundIcon className="size-4" />
-					Access
+					Access & Groups
 				</Button>
 				<Button variant="outline" className="gap-2">
 					<CopyIcon className="size-4" />

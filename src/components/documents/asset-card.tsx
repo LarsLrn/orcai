@@ -23,6 +23,7 @@ import {
 	ResourceCardTitle,
 } from "@/components/ui/shell/resource-card";
 import type { Asset } from "@/lib/orpc/schemas/asset";
+import { getProcessingStatusLabel } from "@/lib/presentation/processing-status";
 
 const AssetCard = ({
 	asset,
@@ -59,7 +60,7 @@ const AssetCard = ({
 		},
 		{
 			key: "edit",
-			label: "Edit",
+			label: "Edit content",
 			icon: EditIcon,
 			variant: "default",
 			linkProps: {
@@ -82,22 +83,29 @@ const AssetCard = ({
 
 	if (asset.processingStatus === "failed") {
 		badges.push({
-			label: "Failed",
+			label: getProcessingStatusLabel(asset.processingStatus),
 			variant: "destructive",
 		});
 	}
 
 	if (asset.processingStatus === "active") {
 		badges.push({
-			label: "Active",
+			label: getProcessingStatusLabel(asset.processingStatus),
 			variant: "default",
 		});
 	}
 
 	if (asset.processingStatus === "pending") {
 		badges.push({
-			label: "Pending",
+			label: getProcessingStatusLabel(asset.processingStatus),
 			variant: "secondary",
+		});
+	}
+
+	if (asset.processingStatus === "completed") {
+		badges.push({
+			label: getProcessingStatusLabel(asset.processingStatus),
+			variant: "outline",
 		});
 	}
 

@@ -10,6 +10,7 @@ import {
 	Page,
 	PageAction,
 	PageContent,
+	PageDescription,
 	PageHeader,
 	PageTitle,
 } from "@/components/ui/shell/page";
@@ -53,6 +54,9 @@ function RouteComponent() {
 		<Page>
 			<PageHeader>
 				<PageTitle>Blocks</PageTitle>
+				<PageDescription>
+					Manage reusable AI behavior, content collections, and other blocks.
+				</PageDescription>
 
 				<PageAction>
 					<Link

@@ -16,6 +16,7 @@ import {
 } from "@/components/ui/dialog";
 import { useSaveAssetMutation } from "@/hooks/mutations/use-asset-mutations";
 import type { Asset } from "@/lib/orpc/schemas/asset";
+import { getProcessingStatusLabel } from "@/lib/presentation/processing-status";
 
 const SelectedAssetList = ({
 	assets,
@@ -56,7 +57,9 @@ const SelectedAssetList = ({
 							<div className="mt-1 flex flex-wrap gap-2 text-xs">
 								<Badge variant="secondary">{asset.fileType}</Badge>
 								{asset.processingStatus ? (
-									<Badge variant="outline">{asset.processingStatus}</Badge>
+									<Badge variant="outline">
+										{getProcessingStatusLabel(asset.processingStatus)}
+									</Badge>
 								) : null}
 							</div>
 						</div>
@@ -86,9 +89,10 @@ const SelectedAssetList = ({
 						>
 							<DialogContent className="max-h-[88vh] overflow-auto sm:max-w-3xl">
 								<DialogHeader>
-									<DialogTitle>Edit Document Metadata</DialogTitle>
+									<DialogTitle>Edit Source Metadata</DialogTitle>
 									<DialogDescription>
-										Update how this asset should appear when cited by the AI.
+										Update how this content item should appear when cited by the
+										AI.
 									</DialogDescription>
 								</DialogHeader>
 

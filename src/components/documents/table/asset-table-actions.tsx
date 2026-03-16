@@ -35,7 +35,7 @@ const AssetTableActions = () => {
 						})
 					}
 				>
-					Delete Asset
+					Delete Content
 				</DropdownMenuItem>
 			</DropdownMenuContent>
 		</DropdownMenu>

@@ -26,7 +26,7 @@ const AccessDialog = ({
 }: AccessDialogProps) => {
 	return (
 		<Dialog open={open} onOpenChange={onOpenChange}>
-			<DialogContent className="max-h-[92vh] overflow-auto sm:max-w-3xl">
+			<DialogContent className="max-h-[92vh] sm:max-w-5xl">
 				<DialogHeader>
 					<DialogTitle>Manage Access</DialogTitle>
 					<DialogDescription>

@@ -39,7 +39,7 @@ const AssetMetadataEditor = ({
 		<div className="grid gap-4 md:grid-cols-2">
 			{showTitle ? (
 				<div className="space-y-2 md:col-span-2">
-					<div className="font-medium text-sm">Title</div>
+					<div className="font-medium text-sm">Source title</div>
 					<Input
 						value={value.title}
 						onChange={(event) =>
@@ -48,7 +48,7 @@ const AssetMetadataEditor = ({
 								title: event.target.value,
 							})
 						}
-						placeholder="Document title"
+						placeholder="Source title"
 					/>
 				</div>
 			) : null}
@@ -71,7 +71,7 @@ const AssetMetadataEditor = ({
 			</div>
 
 			<div className="space-y-2">
-				<div className="font-medium text-sm">Citation</div>
+				<div className="font-medium text-sm">Citation label</div>
 				<Input
 					value={metadata.citation ?? ""}
 					onChange={(event) =>
@@ -83,7 +83,7 @@ const AssetMetadataEditor = ({
 							},
 						})
 					}
-					placeholder="Citation shown in chat"
+					placeholder="How this source should be cited"
 				/>
 			</div>
 
@@ -166,9 +166,11 @@ const AssetMetadataEditor = ({
 			<div className="space-y-3 rounded-xl border p-3">
 				<div className="flex items-center justify-between gap-3">
 					<div>
-						<div className="font-medium text-sm">Show Reference</div>
+						<div className="font-medium text-sm">
+							Allow citations in answers
+						</div>
 						<div className="text-muted-foreground text-xs">
-							Show this source in chat answers.
+							The AI may make in-text references to this source.
 						</div>
 					</div>
 					<Switch

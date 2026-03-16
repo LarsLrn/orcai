@@ -33,7 +33,7 @@ const HUB_ROUTES = [
 	},
 	{
 		value: "assets",
-		label: "Assets",
+		label: "Content",
 		to: "/app/hub/assets",
 	},
 ] satisfies {
@@ -56,7 +56,7 @@ export const Route = createFileRoute("/app/hub")({
 	head: () => ({
 		meta: [
 			{
-				title: "Hub",
+				title: "Library",
 			},
 		],
 	}),
@@ -73,10 +73,9 @@ function RouteComponent() {
 	return (
 		<Page>
 			<PageHeader>
-				<PageTitle>Hub</PageTitle>
+				<PageTitle>Library</PageTitle>
 				<PageDescription>
-					Discover and share community resources including bots, blocks, and
-					assets.
+					Browse reusable bots, blocks, and content for your workspace.
 				</PageDescription>
 				<PageAction>
 					<Tabs

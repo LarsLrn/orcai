@@ -45,7 +45,7 @@ const nextStepTours: Tour[] = [
 			{
 				icon: null,
 				title: "New Chat",
-				content: <>Start a new chat with your AI Tutor at any time.</>,
+				content: <>Start a new chat at any time.</>,
 				side: "top-right",
 				selector: "#tour-newChat",
 				showControls: true,
@@ -89,10 +89,9 @@ const nextStepTours: Tour[] = [
 				title: "You are all set!",
 				content: (
 					<>
-						Enjoy the AI Tutoring System as your companion on your learning
-						journey — available 24/7. The project team is also looking forward
-						to potential feedback of yours about your experiences in using the
-						system.
+						You are ready to explore the workspace. Build bots, manage content,
+						or continue chats whenever you need them. The project team is also
+						looking forward to your feedback on the experience.
 						<br />
 						<a
 							className="text-accent text-sm"
@@ -134,11 +133,11 @@ const nextStepTours: Tour[] = [
 				title: "References",
 				content: (
 					<>
-						A response usually includes references to course material that the
-						Tutoring System considered particularly relevant. Since these
-						references are automatically retrieved, please note that not all
-						referenced material is necessarily relevant. For technical reasons,
-						these references furthermore do not yet adhere to common citation
+						A response usually includes references to related content that the
+						bot considered particularly relevant. Since these references are
+						automatically retrieved, please note that not all referenced
+						material is necessarily relevant. For technical reasons, these
+						references furthermore do not yet adhere to common citation
 						standards. The system may cite some sources in verbatim without
 						indicating so in the text. In any case, if the system references
 						material, it has definitely also used that material to generate the
@@ -158,8 +157,8 @@ const nextStepTours: Tour[] = [
 				content: (
 					<>
 						Please assess each response you receive by using the buttons below.
-						This will help to improve the Tutoring System, while it will not
-						have a direct impact on your current chat.
+						This will help to improve the bot, while it will not have a direct
+						impact on your current chat.
 					</>
 				),
 				// selector: "#ai-message-rate",

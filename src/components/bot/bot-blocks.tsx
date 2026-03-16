@@ -21,9 +21,7 @@ const BotBlocks = ({ blocks }: { blocks: Block[] }) => {
 						{blocks?.length || 0}
 					</Badge>
 				</CardTitle>
-				<CardDescription>
-					Blocks that make up this bot's functionality
-				</CardDescription>
+				<CardDescription>Blocks that make up this bot</CardDescription>
 			</CardHeader>
 			<CardContent>
 				{blocks && blocks.length > 0 ? (
@@ -50,7 +48,7 @@ const BotBlocks = ({ blocks }: { blocks: Block[] }) => {
 						<TagIcon className="mb-2 size-8 text-muted-foreground" />
 						<p className="text-muted-foreground">No blocks associated</p>
 						<p className="text-muted-foreground text-sm">
-							Add blocks to enhance this bot's capabilities
+							Add blocks to extend this bot
 						</p>
 					</div>
 				)}

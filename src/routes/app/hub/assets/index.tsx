@@ -11,6 +11,7 @@ import {
 	Page,
 	PageAction,
 	PageContent,
+	PageDescription,
 	PageHeader,
 	PageTitle,
 } from "@/components/ui/shell/page";
@@ -53,7 +54,11 @@ function RouteComponent() {
 	return (
 		<Page>
 			<PageHeader>
-				<PageTitle>Assets</PageTitle>
+				<PageTitle>Content Library</PageTitle>
+				<PageDescription>
+					Manage reusable source material for retrieval, grounding, and
+					citations.
+				</PageDescription>
 				<PageAction className="flex gap-2">
 					<Link
 						to={"/app/hub/assets/playground"}
@@ -70,7 +75,7 @@ function RouteComponent() {
 							variant: "default",
 						})}
 					>
-						Add Asset
+						Add Content
 					</Link>
 				</PageAction>
 			</PageHeader>

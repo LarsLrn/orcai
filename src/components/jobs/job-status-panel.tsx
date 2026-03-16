@@ -15,6 +15,7 @@ import {
 } from "@/hooks/mutations/use-job-mutations";
 import type { ProcessingStatus } from "@/lib/orpc/schemas/fragments/processing-status";
 import type { JobQueue } from "@/lib/pg-boss/schema/job-queues";
+import { getProcessingStatusDescription } from "@/lib/presentation/processing-status";
 import { cn } from "@/lib/utils";
 
 type JobStatusPanelProps = {
@@ -62,10 +63,11 @@ const JobStatusPanel = ({
 	return (
 		<Card className={cn(className)}>
 			<CardHeader>
-				<CardTitle>Processing Status</CardTitle>
+				<CardTitle>Preparation Status</CardTitle>
 				<CardDescription>
-					Assets are processed via background jobs on upload to prepare them for
-					use with AI. You can inspect these jobs in the list below.
+					Content is prepared in background jobs after upload so it is ready for
+					search, retrieval, and citations.{" "}
+					{getProcessingStatusDescription(processingStatus)}
 				</CardDescription>
 			</CardHeader>
 			<CardContent className="flex items-center gap-2">

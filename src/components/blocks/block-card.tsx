@@ -24,6 +24,13 @@ import {
 } from "@/components/ui/shell/resource-card";
 import type { Block } from "@/lib/orpc/schemas/block";
 
+const getBlockTypeLabel = (type: Block["type"]) =>
+	type === "template"
+		? "Behavior"
+		: type === "database"
+			? "Content Collection"
+			: "Image Generation";
+
 const BlockCard = ({
 	block,
 	actions,
@@ -77,7 +84,7 @@ const BlockCard = ({
 			variant: "outline",
 		},
 		{
-			label: block.type,
+			label: getBlockTypeLabel(block.type),
 			variant: "secondary",
 		},
 	];

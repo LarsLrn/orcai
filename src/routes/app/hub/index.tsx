@@ -67,7 +67,7 @@ function RouteComponent() {
 				<SectionHeader>
 					<SectionTitle>Bots</SectionTitle>
 					<SectionDescription>
-						AI assistants for your workspace.
+						Configured AI experiences for your workspace.
 					</SectionDescription>
 					<SectionAction>
 						<Link
@@ -100,7 +100,7 @@ function RouteComponent() {
 				<SectionHeader>
 					<SectionTitle>Blocks</SectionTitle>
 					<SectionDescription>
-						Reusable building blocks powering your bots.
+						Reusable behaviors and content collections that power bots.
 					</SectionDescription>
 					<SectionAction>
 						<Link
@@ -131,10 +131,9 @@ function RouteComponent() {
 
 			<Section>
 				<SectionHeader>
-					<SectionTitle>Assets</SectionTitle>
+					<SectionTitle>Content Library</SectionTitle>
 					<SectionDescription>
-						Reusable assets to build RAG (Retrieval-Augmented Generation)
-						systems.
+						Reusable source material for search, retrieval, and citations.
 					</SectionDescription>
 					<SectionAction>
 						<Link

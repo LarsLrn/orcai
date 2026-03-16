@@ -105,7 +105,7 @@ const ActionCell = ({ row }: { row: Row<Asset> }) => {
 							assetId: asset.id,
 						}}
 					>
-						<DropdownMenuItem>View Asset</DropdownMenuItem>
+						<DropdownMenuItem>View Content</DropdownMenuItem>
 					</Link>
 					<Link
 						to={"/app/hub/assets/$assetId/edit"}
@@ -113,7 +113,7 @@ const ActionCell = ({ row }: { row: Row<Asset> }) => {
 							assetId: asset.id,
 						}}
 					>
-						<DropdownMenuItem>Edit Asset</DropdownMenuItem>
+						<DropdownMenuItem>Edit Content</DropdownMenuItem>
 					</Link>
 					<DropdownMenuItem
 						onSelect={(event) => {
@@ -136,7 +136,7 @@ const ActionCell = ({ row }: { row: Row<Asset> }) => {
 							})
 						}
 					>
-						Delete Asset
+						Delete Content
 					</DropdownMenuItem>
 				</DropdownMenuContent>
 			</DropdownMenu>
