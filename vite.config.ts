@@ -48,7 +48,7 @@ export default defineConfig({
 					localized: [
 						[
 							"en",
-							"/:path(.*)?",
+							"/en/:path(.*)?",
 						],
 						[
 							"de",
