@@ -83,7 +83,9 @@ const baseDefaultOptions: ConfirmOptions = {
 	description: "",
 	confirmText: "Confirm",
 	cancelText: "Cancel",
-	confirmButton: {},
+	confirmButton: {
+		variant: "destructive",
+	},
 	cancelButton: {},
 	alertDialogContent: {},
 	alertDialogHeader: {},
