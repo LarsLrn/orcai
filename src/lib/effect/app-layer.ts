@@ -1,5 +1,6 @@
 import * as Layer from "effect/Layer";
 import { QdrantLive } from "@/lib/effect/services/qdrant";
+import { QuotaCounterStoreLive } from "@/lib/quota/counter-store";
 import { AuthzLive } from "./services/authz";
 import { AppConfigLive } from "./services/config";
 import { DoclingLive } from "./services/docling";
@@ -26,6 +27,7 @@ const BaseInfra = Layer.mergeAll(
 ).pipe(Layer.provideMerge(AppConfigLive));
 
 const AppInfra = PgBossWorkersLive.pipe(
+	Layer.provideMerge(QuotaCounterStoreLive),
 	Layer.provideMerge(AuthzLive),
 	Layer.provideMerge(BaseInfra),
 );

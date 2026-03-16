@@ -109,6 +109,14 @@ import {
 	updateProviderContract,
 } from "./provider";
 import {
+	createQuotaPoolContract,
+	deactivateQuotaPoolContract,
+	findQuotaPoolContract,
+	listQuotaPoolsContract,
+	quotaChatBadgeContract,
+	updateQuotaPoolContract,
+} from "./quota";
+import {
 	getResourceVisibilityContract,
 	grantResourceAccessContract,
 	listResourceGrantsContract,
@@ -167,6 +175,14 @@ export const contracts = {
 		find: findProviderContract,
 		update: updateProviderContract,
 		delete: deleteProviderContract,
+	},
+	quota: {
+		list: listQuotaPoolsContract,
+		create: createQuotaPoolContract,
+		find: findQuotaPoolContract,
+		update: updateQuotaPoolContract,
+		deactivate: deactivateQuotaPoolContract,
+		chatBadge: quotaChatBadgeContract,
 	},
 	resource: {
 		listGrants: listResourceGrantsContract,
