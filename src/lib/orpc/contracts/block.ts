@@ -1,6 +1,7 @@
 import { z } from "zod/v4";
 import { assetSelectSchema } from "@/lib/orpc/schemas/asset";
 import {
+	BLOCK_TYPES,
 	baseBlockSelectSchema,
 	blockDeleteSchema,
 	blockInsertSchema,
@@ -32,6 +33,7 @@ export const listBlocksContract = base
 			filters: z
 				.object({
 					botId: botSelectSchema.shape.id.optional(),
+					type: z.enum(BLOCK_TYPES.map((t) => t.value)).optional(),
 				})
 				.optional(),
 		}),
