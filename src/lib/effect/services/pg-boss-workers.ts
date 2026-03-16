@@ -8,14 +8,21 @@ import type { DB } from "@/lib/effect/services/drizzle";
 import type { QdrantService } from "@/lib/effect/services/qdrant";
 import { PgBossWorkersError } from "@/lib/effect/utils/errors";
 import { processAssetBatchEffect } from "@/lib/pg-boss/jobs/process-asset-job";
+import { verifyQuotaDailyBatchEffect } from "@/lib/pg-boss/jobs/quota-daily-verify-job";
+import { rolloverQuotaPeriodBatchEffect } from "@/lib/pg-boss/jobs/quota-period-rollover-job";
+import { reconcileQuotaBatchEffect } from "@/lib/pg-boss/jobs/quota-reconcile-job";
 import { vectorizeAssetBatchEffect } from "@/lib/pg-boss/jobs/vectorize-asset-job";
 import {
 	type JobQueue,
 	PROCESS_ASSET_JOB_NAME,
+	QUOTA_DAILY_VERIFY_JOB_NAME,
+	QUOTA_PERIOD_ROLLOVER_JOB_NAME,
+	QUOTA_RECONCILE_JOB_NAME,
 	VECTORIZE_ASSET_JOB_NAME,
 } from "@/lib/pg-boss/schema/job-queues";
 import type { ProcessAssetPayload } from "@/lib/pg-boss/schema/process-asset";
 import type { VectorizeAssetPayload } from "@/lib/pg-boss/schema/vectorize-asset";
+import type { QuotaCounterStore } from "@/lib/quota/counter-store";
 import type { AppConfigService } from "./config";
 import { PgBossService } from "./pg-boss";
 import type { S3Service } from "./s3";
@@ -53,7 +60,8 @@ const registerWorkers = Effect.gen(function* () {
 		| AppConfigService
 		| QdrantService
 		| DoclingService
-		| DB;
+		| DB
+		| QuotaCounterStore;
 
 	// Capture the full runtime so worker callbacks have access to all
 	// services that their effects may require
@@ -124,6 +132,51 @@ const registerWorkers = Effect.gen(function* () {
 					runWorkerBatch(VECTORIZE_ASSET_JOB_NAME, vectorizeAssetBatchEffect),
 				),
 		},
+		{
+			name: QUOTA_PERIOD_ROLLOVER_JOB_NAME,
+			register: (boss) =>
+				boss.work<unknown>(
+					QUOTA_PERIOD_ROLLOVER_JOB_NAME,
+					{
+						batchSize: 1,
+						localConcurrency: 1,
+						pollingIntervalSeconds: 5,
+					},
+					runWorkerBatch(
+						QUOTA_PERIOD_ROLLOVER_JOB_NAME,
+						rolloverQuotaPeriodBatchEffect,
+					),
+				),
+		},
+		{
+			name: QUOTA_RECONCILE_JOB_NAME,
+			register: (boss) =>
+				boss.work<unknown>(
+					QUOTA_RECONCILE_JOB_NAME,
+					{
+						batchSize: 1,
+						localConcurrency: 1,
+						pollingIntervalSeconds: 5,
+					},
+					runWorkerBatch(QUOTA_RECONCILE_JOB_NAME, reconcileQuotaBatchEffect),
+				),
+		},
+		{
+			name: QUOTA_DAILY_VERIFY_JOB_NAME,
+			register: (boss) =>
+				boss.work<unknown>(
+					QUOTA_DAILY_VERIFY_JOB_NAME,
+					{
+						batchSize: 1,
+						localConcurrency: 1,
+						pollingIntervalSeconds: 30,
+					},
+					runWorkerBatch(
+						QUOTA_DAILY_VERIFY_JOB_NAME,
+						verifyQuotaDailyBatchEffect,
+					),
+				),
+		},
 	];
 
 	yield* Effect.forEach(
@@ -151,6 +204,40 @@ const registerWorkers = Effect.gen(function* () {
 	);
 });
 
+const scheduleQuotaJobs = Effect.gen(function* () {
+	const { boss } = yield* PgBossService;
+
+	yield* Effect.tryPromise({
+		try: () => boss.schedule(QUOTA_PERIOD_ROLLOVER_JOB_NAME, "*/5 * * * *", {}),
+		catch: (cause) =>
+			new PgBossWorkersError({
+				queue: QUOTA_PERIOD_ROLLOVER_JOB_NAME,
+				step: "register-worker",
+				cause,
+			}),
+	}).pipe(Effect.retry(retryPolicy));
+
+	yield* Effect.tryPromise({
+		try: () => boss.schedule(QUOTA_RECONCILE_JOB_NAME, "*/2 * * * *", {}),
+		catch: (cause) =>
+			new PgBossWorkersError({
+				queue: QUOTA_RECONCILE_JOB_NAME,
+				step: "register-worker",
+				cause,
+			}),
+	}).pipe(Effect.retry(retryPolicy));
+
+	yield* Effect.tryPromise({
+		try: () => boss.schedule(QUOTA_DAILY_VERIFY_JOB_NAME, "0 2 * * *", {}),
+		catch: (cause) =>
+			new PgBossWorkersError({
+				queue: QUOTA_DAILY_VERIFY_JOB_NAME,
+				step: "register-worker",
+				cause,
+			}),
+	}).pipe(Effect.retry(retryPolicy));
+});
+
 export const PgBossWorkersLive = Layer.scopedDiscard(
 	Effect.gen(function* () {
 		yield* Effect.logInfo("Starting pg-boss workers...");
@@ -160,6 +247,9 @@ export const PgBossWorkersLive = Layer.scopedDiscard(
 			[
 				createQueue(VECTORIZE_ASSET_JOB_NAME),
 				createQueue(PROCESS_ASSET_JOB_NAME),
+				createQueue(QUOTA_PERIOD_ROLLOVER_JOB_NAME),
+				createQueue(QUOTA_RECONCILE_JOB_NAME),
+				createQueue(QUOTA_DAILY_VERIFY_JOB_NAME),
 			],
 			{
 				discard: true,
@@ -175,6 +265,7 @@ export const PgBossWorkersLive = Layer.scopedDiscard(
 
 		// Register workers after queues are confirmed.
 		yield* registerWorkers;
+		yield* scheduleQuotaJobs;
 
 		yield* Effect.logInfo("pg-boss workers started");
 
