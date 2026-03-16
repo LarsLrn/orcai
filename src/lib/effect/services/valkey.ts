@@ -1,0 +1,46 @@
+import * as Context from "effect/Context";
+import * as Effect from "effect/Effect";
+import * as Layer from "effect/Layer";
+import { createClient } from "redis";
+import { InternalError } from "@/lib/effect/utils/errors";
+import { AppConfigService } from "./config";
+
+export type ValkeyClient = ReturnType<typeof createClient>;
+
+export class ValkeyService extends Context.Tag("ValkeyService")<
+	ValkeyService,
+	{
+		readonly client: ValkeyClient;
+	}
+>() {}
+
+export const ValkeyLive = Layer.scoped(
+	ValkeyService,
+	Effect.acquireRelease(
+		Effect.gen(function* () {
+			const { config } = yield* AppConfigService;
+
+			const client = createClient({
+				url: config.valkey.url,
+			});
+
+			yield* Effect.tryPromise({
+				try: () => client.connect(),
+				catch: (cause) =>
+					new InternalError({
+						operation: "valkey.connect",
+						cause,
+					}),
+			});
+
+			return {
+				client,
+			};
+		}),
+		({ client }) =>
+			Effect.tryPromise({
+				try: () => client.quit(),
+				catch: () => undefined,
+			}).pipe(Effect.orDie),
+	),
+);

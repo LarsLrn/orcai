@@ -11,6 +11,7 @@ import { PgBossWorkersLive } from "./services/pg-boss-workers";
 import { S3Live } from "./services/s3";
 import { SpiceDbLive } from "./services/spice";
 import { TracerLive } from "./services/tracer";
+import { ValkeyLive } from "./services/valkey";
 
 // Provide PgBossLive to PgBossWorkersLive and merge their outputs.
 const BaseInfra = Layer.mergeAll(
@@ -18,17 +19,16 @@ const BaseInfra = Layer.mergeAll(
 	SpiceDbLive,
 	S3Live,
 	PgBossLive,
+	ValkeyLive,
 	QdrantLive,
 	DoclingLive,
 	EmailLive,
 ).pipe(Layer.provideMerge(AppConfigLive));
 
-const InfraWithAuthz = Layer.provideMerge(AuthzLive, BaseInfra);
-const InfraWithWorkers = Layer.provideMerge(PgBossWorkersLive, InfraWithAuthz);
+const AppInfra = PgBossWorkersLive.pipe(
+	Layer.provideMerge(AuthzLive),
+	Layer.provideMerge(BaseInfra),
+);
 
 // Compose all app-level services in one place.
-export const AppLayer = Layer.mergeAll(
-	TracerLive,
-	LoggerLive,
-	InfraWithWorkers,
-);
+export const AppLayer = Layer.mergeAll(TracerLive, LoggerLive, AppInfra);

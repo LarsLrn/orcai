@@ -8,6 +8,7 @@
 	"runServices": [
 		"workspace",
 		"postgres",
+		"valkey",
 		"migrations",
 		"minio",
 		"minio-setup",
@@ -23,6 +24,7 @@
 	"forwardPorts": [
 		3000,
 		4206,
+		"valkey:6379",
 		"qdrant:6333",
 		"minio:9000",
 		"minio:9001",
@@ -34,6 +36,9 @@
 		},
 		"4206": {
 			"label": "Sokratest App Devtools"
+		},
+		"valkey:6379": {
+			"label": "Valkey"
 		},
 		"qdrant:6333": {
 			"label": "Qdrant Vector DB"

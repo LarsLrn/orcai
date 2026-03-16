@@ -45,6 +45,7 @@ services:
       POSTGRES_HOST: postgres
       POSTGRES_PORT: "5432"
       POSTGRES_SSL: "false"
+      VALKEY_URL: redis://valkey:6379
       S3_ENDPOINT: http://minio:9000
       S3_PUBLIC_ENDPOINT: ${S3_PUBLIC_ENDPOINT:-http://localhost:9000}
       S3_REGION: ${S3_REGION:-eu-central-1}
@@ -64,6 +65,8 @@ services:
       SMTP_TLS_REJECT_UNAUTHORIZED: ${SMTP_TLS_REJECT_UNAUTHORIZED:-false}
     depends_on:
       postgres:
+        condition: service_healthy
+      valkey:
         condition: service_healthy
       migrations:
         condition: service_completed_successfully
@@ -110,6 +113,10 @@ services:
       SPICEDB_GRPC_PRESHARED_KEY: ${SPICEDB_GRPC_PRESHARED_KEY:-dev-spicedb-token}
       SPICEDB_DATASTORE_ENGINE: postgres
       SPICEDB_DATASTORE_CONN_URI: postgres://${SPICEDB_POSTGRES_USER:-postgres}:${SPICEDB_POSTGRES_PASSWORD:-postgres}@spicedb-database:5432/spicedb
+
+  valkey:
+    ports:
+      - "127.0.0.1:${VALKEY_PORT:-6379}:6379"
 
   spicedb-schema:
     environment:

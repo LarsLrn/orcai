@@ -9,6 +9,7 @@ export const serverEnv = createEnv({
 		POSTGRES_HOST: z.string(),
 		POSTGRES_PORT: z.string().default("5432"),
 		POSTGRES_DB: z.string(),
+		VALKEY_URL: z.string(),
 		QDRANT_URL: z.string(),
 		QDRANT_API_KEY: z.string(),
 		QDRANT_ENABLE_SPARSE_VECTORS: z
