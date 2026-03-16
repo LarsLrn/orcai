@@ -99,7 +99,7 @@ export const Route = createRootRouteWithContext<{
 			{
 				rel: "manifest",
 				href: "/site.webmanifest",
-				color: "#298fa2",
+				color: "#456789",
 			},
 			{
 				rel: "icon",
