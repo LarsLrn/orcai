@@ -1,4 +1,4 @@
-import { EditIcon, EyeIcon } from "lucide-react";
+import { EditIcon, EyeIcon, FileTextIcon } from "lucide-react";
 import {
 	DropdownMenu,
 	DropdownMenuContent,
@@ -13,8 +13,10 @@ import {
 	ResourceCardBadges,
 	ResourceCardBody,
 	ResourceCardContent,
+	ResourceCardDescription,
 	ResourceCardFooter,
 	ResourceCardHeader,
+	ResourceCardMedia,
 	ResourceCardMenu,
 	ResourceCardMenuTrigger,
 	ResourceCardMeta,
@@ -147,7 +149,13 @@ const AssetCard = ({
 
 			<ResourceCardBody action={primaryAction}>
 				<ResourceCardHeader>
+					<ResourceCardMedia variant="icon">
+						<FileTextIcon className="text-emerald-600 dark:text-emerald-400" />
+					</ResourceCardMedia>
 					<ResourceCardTitle>{asset.title}</ResourceCardTitle>
+					<ResourceCardDescription>
+						{asset.fileType.toUpperCase()}
+					</ResourceCardDescription>
 				</ResourceCardHeader>
 				<ResourceCardContent>
 					<ResourceCardBadges badges={badges} />
