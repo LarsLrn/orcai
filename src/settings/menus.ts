@@ -15,9 +15,9 @@ import {
 
 interface SidebarMenuItem {
 	title: string;
-	linkProps: LinkProps;
+	linkProps?: LinkProps;
 	icon: LucideIcon;
-	items?: Omit<SidebarMenuItem, "items">[];
+	items?: Required<Omit<SidebarMenuItem, "items">>[];
 }
 
 export const sidebarMenu = [
@@ -52,46 +52,52 @@ export const sidebarMenu = [
 		],
 	},
 	{
-		title: "Users",
-		linkProps: {
-			to: "/app/users",
-		},
-		icon: UsersIcon,
-	},
-	{
-		title: "Groups",
-		linkProps: {
-			to: "/app/groups",
-		},
-		icon: UserCogIcon,
-	},
-	{
-		title: "Providers",
-		linkProps: {
-			to: "/app/providers",
-		},
+		title: "Manage",
 		icon: ServerCogIcon,
-	},
-	{
-		title: "Quotas",
-		linkProps: {
-			to: "/app/quotas",
-		},
-		icon: WalletIcon,
-	},
-	{
-		title: "Models",
-		linkProps: {
-			to: "/app/models",
-		},
-		icon: BotIcon,
-	},
-	{
-		title: "Organisations",
-		linkProps: {
-			to: "/app/orgs",
-		},
-		icon: Building2Icon,
+		items: [
+			{
+				title: "Users",
+				linkProps: {
+					to: "/app/users",
+				},
+				icon: UsersIcon,
+			},
+			{
+				title: "Groups",
+				linkProps: {
+					to: "/app/groups",
+				},
+				icon: UserCogIcon,
+			},
+			{
+				title: "Providers",
+				linkProps: {
+					to: "/app/providers",
+				},
+				icon: ServerCogIcon,
+			},
+			{
+				title: "Quotas",
+				linkProps: {
+					to: "/app/quotas",
+				},
+				icon: WalletIcon,
+			},
+			{
+				title: "Models",
+				linkProps: {
+					to: "/app/models",
+				},
+				icon: BotIcon,
+			},
+			{
+				title: "Organisations",
+				linkProps: {
+					to: "/app/orgs",
+				},
+				icon: Building2Icon,
+			},
+		],
 	},
 ] satisfies SidebarMenuItem[];
 
