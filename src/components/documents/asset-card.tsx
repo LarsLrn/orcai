@@ -120,6 +120,13 @@ const AssetCard = ({
 		},
 	};
 
+	let description: string | undefined;
+	if (asset.metadata.chapterTitle) {
+		description = `Chapter: ${asset.metadata.chapterTitle}`;
+	} else if (asset.metadata.author) {
+		description = `Author: ${asset.metadata.author}`;
+	}
+
 	return (
 		<ResourceCard className={className}>
 			{dropdownActions.length > 0 ? (
@@ -153,9 +160,9 @@ const AssetCard = ({
 						<FileTextIcon className="text-emerald-600 dark:text-emerald-400" />
 					</ResourceCardMedia>
 					<ResourceCardTitle>{asset.title}</ResourceCardTitle>
-					<ResourceCardDescription>
-						{asset.fileType.toUpperCase()}
-					</ResourceCardDescription>
+					{description && (
+						<ResourceCardDescription>{description}</ResourceCardDescription>
+					)}
 				</ResourceCardHeader>
 				<ResourceCardContent>
 					<ResourceCardBadges badges={badges} />
