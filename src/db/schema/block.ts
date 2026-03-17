@@ -7,6 +7,7 @@ import {
 	text,
 	timestamp,
 	uuid,
+	varchar,
 } from "drizzle-orm/pg-core";
 import type { PublicationStatus } from "@/lib/orpc/schemas/fragments/publication-status";
 import { asset } from "./asset";
@@ -17,6 +18,11 @@ export const block = pgTable("block", {
 	id: uuid("id").primaryKey().defaultRandom(),
 	type: text("type").notNull(),
 	name: text("name").notNull(),
+	description: varchar("description", {
+		length: 500,
+	}),
+	contentJson: json("content_json"),
+	contentHtml: text("content_html"),
 	config: json("config").notNull(),
 	status: text("status").$type<PublicationStatus>().notNull().default("ready"),
 	userId: uuid("user_id")
