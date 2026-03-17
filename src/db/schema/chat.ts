@@ -1,5 +1,6 @@
 import {
 	type AnyPgColumn,
+	json,
 	pgTable,
 	timestamp,
 	uuid,
@@ -26,6 +27,18 @@ export const chat = pgTable("chat", {
 			onDelete: "set null",
 		},
 	),
+	config: json("config").$type<ChatConfig>().default({}),
 	createdAt: timestamp("created_at").notNull().defaultNow(),
 	updatedAt: timestamp("updated_at").notNull().defaultNow(),
 });
+
+export interface ChatConfig {
+	modelId?: string;
+	providerId?: string;
+	systemPrompt?: string;
+	temperature?: number;
+	maxTokens?: number;
+	topP?: number;
+	frequencyPenalty?: number;
+	presencePenalty?: number;
+}
