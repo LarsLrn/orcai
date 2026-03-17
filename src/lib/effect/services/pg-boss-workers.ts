@@ -52,6 +52,49 @@ const createQueue = (name: JobQueue) =>
 		}).pipe(Effect.retry(retryPolicy));
 	});
 
+const summarizeWorkerError = (error: unknown): Record<string, unknown> => {
+	const stringField = (value: unknown) =>
+		typeof value === "string" ? value : undefined;
+
+	if (error instanceof Error) {
+		const details = error as Error & Record<string, unknown>;
+		const nested = details.cause as Record<string, unknown> | undefined;
+		return Object.fromEntries(
+			Object.entries({
+				name: error.name,
+				message: error.message || undefined,
+				tag: stringField(details._tag),
+				queue: stringField(details.queue),
+				step: stringField(details.step),
+				causeName: nested ? stringField(nested.name) : undefined,
+				causeTag: nested ? stringField(nested._tag) : undefined,
+				causeMessage: nested ? stringField(nested.message) : undefined,
+			}).filter(([, value]) => value !== undefined),
+		);
+	}
+
+	if (error && typeof error === "object") {
+		const details = error as Record<string, unknown>;
+		const nested = details.cause as Record<string, unknown> | undefined;
+		return Object.fromEntries(
+			Object.entries({
+				name: stringField(details.name),
+				message: stringField(details.message),
+				tag: stringField(details._tag),
+				queue: stringField(details.queue),
+				step: stringField(details.step),
+				causeName: nested ? stringField(nested.name) : undefined,
+				causeTag: nested ? stringField(nested._tag) : undefined,
+				causeMessage: nested ? stringField(nested.message) : undefined,
+			}).filter(([, value]) => value !== undefined),
+		);
+	}
+
+	return {
+		message: String(error),
+	};
+};
+
 const registerWorkers = Effect.gen(function* () {
 	const { boss } = yield* PgBossService;
 	type WorkerContext =
@@ -97,7 +140,7 @@ const registerWorkers = Effect.gen(function* () {
 								queue,
 								jobIds: jobs.map((job) => job.id),
 								jobCount: jobs.length,
-								err: error,
+								err: summarizeWorkerError(error),
 							},
 							"pg-boss worker batch failed",
 						),

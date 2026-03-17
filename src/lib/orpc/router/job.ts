@@ -1,4 +1,4 @@
-import { eq, getColumns } from "drizzle-orm";
+import { and, eq, getColumns } from "drizzle-orm";
 import * as Effect from "effect/Effect";
 import { dbSchema } from "@/db/schema";
 import { DB } from "@/lib/effect/services/drizzle";
@@ -67,6 +67,7 @@ export const createJobs = authed.job.create
 				const assets = yield* db
 					.select({
 						id: dbSchema.asset.id,
+						processingStatus: dbSchema.asset.processingStatus,
 					})
 					.from(dbSchema.blockAsset)
 					.where(eq(dbSchema.blockAsset.blockId, input.blockId))
@@ -75,24 +76,36 @@ export const createJobs = authed.job.create
 						eq(dbSchema.blockAsset.assetId, dbSchema.asset.id),
 					);
 
-				yield* sendJobBatchEffect({
-					jobName: VECTORIZE_ASSET_JOB_NAME,
-					jobs: assets.map((asset) => ({
-						data: {
-							prefix: asset.id,
-							assetId: asset.id,
-							blockId: input.blockId,
+				const eligibleAssets = assets.filter(
+					(asset) => asset.processingStatus === "completed",
+				);
+
+				if (eligibleAssets.length > 0) {
+					yield* sendJobBatchEffect({
+						jobName: VECTORIZE_ASSET_JOB_NAME,
+						jobs: eligibleAssets.map((asset) => ({
+							data: {
+								prefix: asset.id,
+								assetId: asset.id,
+								blockId: input.blockId,
+							},
+						})),
+						resourceOptions: {
+							resourceId: input.blockId,
+							resourceType: "block",
 						},
-					})),
-					resourceOptions: {
-						resourceId: input.blockId,
-						resourceType: "block",
-					},
-				});
+					});
+				}
+
+				const skippedAssets = assets.length - eligibleAssets.length;
 
 				return {
 					success: true,
-					message: `Created ${assets.length} jobs to vectorize assets for block ${input.blockId}`,
+					message: `Created ${eligibleAssets.length} jobs to vectorize assets for block ${input.blockId}${
+						skippedAssets > 0
+							? `. Skipped ${skippedAssets} asset(s) that are not processed yet`
+							: ""
+					}`,
 				};
 			}),
 		),
@@ -181,18 +194,33 @@ export const retryVectorization = authed.job.retryVectorization
 				const [blockAsset] = yield* db
 					.select({
 						assetId: dbSchema.blockAsset.assetId,
+						processingStatus: dbSchema.asset.processingStatus,
 					})
 					.from(dbSchema.blockAsset)
-					.where(eq(dbSchema.blockAsset.blockId, input.blockId))
 					.innerJoin(
 						dbSchema.asset,
-						eq(dbSchema.blockAsset.assetId, input.assetId),
+						eq(dbSchema.asset.id, dbSchema.blockAsset.assetId),
+					)
+					.where(
+						and(
+							eq(dbSchema.blockAsset.blockId, input.blockId),
+							eq(dbSchema.blockAsset.assetId, input.assetId),
+						),
 					);
 
 				if (!blockAsset) {
 					return yield* Effect.fail(
 						errors.NOT_FOUND({
 							message: "Asset not attached to this block",
+						}),
+					);
+				}
+
+				if (blockAsset.processingStatus !== "completed") {
+					return yield* Effect.fail(
+						errors.BAD_REQUEST({
+							message:
+								"Vectorization can only be retried after asset processing has completed successfully",
 						}),
 					);
 				}
