@@ -632,22 +632,6 @@ export const publishBot = authed.bot.publish
 				}
 
 				for (const databaseBlock of editor.data.databaseBlocks) {
-					if (!databaseBlock.config.provider) {
-						return yield* Effect.fail(
-							errors.BAD_REQUEST({
-								message: `Select a provider for "${databaseBlock.name}" before publishing.`,
-							}),
-						);
-					}
-
-					if (!databaseBlock.config.embeddingModel) {
-						return yield* Effect.fail(
-							errors.BAD_REQUEST({
-								message: `Select an embedding model for "${databaseBlock.name}" before publishing.`,
-							}),
-						);
-					}
-
 					if (databaseBlock.assetIds.length === 0) {
 						return yield* Effect.fail(
 							errors.BAD_REQUEST({

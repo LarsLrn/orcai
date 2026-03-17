@@ -17,8 +17,6 @@ const defaultValues = (
 	type: "database",
 	status: block?.status || "draft",
 	config: {
-		provider: block?.config.provider || "",
-		embeddingModel: block?.config.embeddingModel || "",
 		maxReferences: block?.config.maxReferences || 10,
 		minReferences: block?.config.minReferences || 1,
 		defaultReferences: block?.config.defaultReferences || 5,

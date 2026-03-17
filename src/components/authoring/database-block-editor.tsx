@@ -49,8 +49,6 @@ const createDefaultDatabaseBlock = (params?: {
 	contentHtml: null,
 	status: "draft",
 	config: {
-		provider: "",
-		embeddingModel: "",
 		minReferences: 1,
 		maxReferences: 8,
 		defaultReferences: 4,

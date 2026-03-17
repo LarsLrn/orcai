@@ -114,12 +114,6 @@ const getPublishIssues = (editor: EditorState) => {
 	}
 
 	for (const databaseBlock of editor.databaseBlocks) {
-		if (!databaseBlock.config.provider) {
-			issues.push(`Choose a provider for "${databaseBlock.name}".`);
-		}
-		if (!databaseBlock.config.embeddingModel) {
-			issues.push(`Choose an embedding model for "${databaseBlock.name}".`);
-		}
 		if (databaseBlock.assetIds.length === 0) {
 			issues.push(
 				`Attach at least one content item to "${databaseBlock.name}".`,
