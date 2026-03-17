@@ -87,7 +87,7 @@ const SelectedAssetList = ({
 							open={editingAssetId === asset.id}
 							onOpenChange={(open) => setEditingAssetId(open ? asset.id : null)}
 						>
-							<DialogContent className="max-h-[88vh] overflow-auto sm:max-w-3xl">
+							<DialogContent className="max-h-[88vh] sm:max-w-3xl">
 								<DialogHeader>
 									<DialogTitle>Edit Source Metadata</DialogTitle>
 									<DialogDescription>
