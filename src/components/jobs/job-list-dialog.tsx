@@ -62,7 +62,7 @@ const JobListDialog = ({
 				Jobs
 			</Button>
 			<Dialog open={open} onOpenChange={setOpen}>
-				<DialogContent className="max-h-[80vh] overflow-auto sm:max-w-lg">
+				<DialogContent className="max-h-[80vh] sm:max-w-lg">
 					<DialogHeader>
 						<DialogTitle>Job History</DialogTitle>
 						<DialogDescription>
