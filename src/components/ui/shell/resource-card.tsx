@@ -97,7 +97,7 @@ const ResourceCardBody = ({
 	const bodyClassName = cn(
 		"block rounded-2xl",
 		isInteractive &&
-			"no-underline outline-none ring-ring/50 transition-all duration-200 focus-visible:ring-[3px]",
+			"space-y-2 no-underline outline-none ring-ring/50 transition-all duration-200 focus-visible:ring-[3px]",
 		className,
 	);
 
