@@ -1,11 +1,16 @@
-import { Link } from "@tanstack/react-router";
-import { BotIcon, Move3dIcon, ServerIcon, StarIcon } from "lucide-react";
+import { useNavigate } from "@tanstack/react-router";
+import {
+	ChevronDownIcon,
+	ExternalLinkIcon,
+	MoreVerticalIcon,
+	Move3dIcon,
+} from "lucide-react";
 import { useState } from "react";
 import type { DatabaseBlockValue } from "@/components/authoring/database-block-editor";
 import { AssetCard } from "@/components/documents/asset-card";
 import { JobListDialog } from "@/components/jobs/job-list-dialog";
 import { Badge } from "@/components/ui/badge";
-import { Button, buttonVariants } from "@/components/ui/button";
+import { Button } from "@/components/ui/button";
 import {
 	Card,
 	CardContent,
@@ -18,36 +23,24 @@ import {
 	CollapsibleContent,
 	CollapsibleTrigger,
 } from "@/components/ui/collapsible";
-import { AnimatedGroup } from "@/components/ui/motion/animated-group";
+import {
+	DropdownMenu,
+	DropdownMenuContent,
+	DropdownMenuItem,
+	DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
+import { Separator } from "@/components/ui/separator";
+import {
+	Section,
+	SectionAction,
+	SectionContent,
+	SectionDescription,
+	SectionGrid,
+	SectionHeader,
+	SectionTitle,
+} from "@/components/ui/shell/section";
 import { useCreateJobMutation } from "@/hooks/mutations/use-job-mutations";
 import type { DatabaseBlock } from "@/lib/orpc/schemas/block";
-
-/** --- Grid --- */
-const AssetGrid = ({ assets }: { assets: DatabaseBlockValue["assets"] }) => {
-	if (assets.length === 0) {
-		return (
-			<Card>
-				<CardContent className="flex h-28 items-center justify-center gap-2 text-muted-foreground text-sm">
-					<StarIcon className="h-4 w-4" />
-					No assets found.
-				</CardContent>
-			</Card>
-		);
-	}
-
-	return (
-		<div>
-			<AnimatedGroup
-				className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-2 2xl:grid-cols-3"
-				preset="fade"
-			>
-				{assets.map((entry) => (
-					<AssetCard key={entry.id} asset={entry} />
-				))}
-			</AnimatedGroup>
-		</div>
-	);
-};
 
 /** --- Main Card --- */
 const DatabaseBlockConfigCard = ({
@@ -59,64 +52,106 @@ const DatabaseBlockConfigCard = ({
 	config: DatabaseBlock["config"];
 	assets: DatabaseBlockValue["assets"];
 }) => {
+	const [isAdvancedOpen, setIsAdvancedOpen] = useState(false);
+
 	return (
 		<div className="flex flex-col gap-4">
 			<Card>
 				<CardHeader>
-					<CardTitle className="flex items-center gap-2 text-lg">
-						<BotIcon className="h-5 w-5" />
-						AI Configuration
-					</CardTitle>
+					<CardTitle>Retrieval Configuration</CardTitle>
 					<CardDescription>
-						Configure the AI provider, embedding model, and reference behavior
-						for this block.
+						This knowledge base is configured to use the following retrieval
+						settings. This controls how the AI searches for relevant information
+						from attached content.
 					</CardDescription>
 				</CardHeader>
 
-				<CardContent className="space-y-6">
-					{/* Provider / Model */}
-					<div className="grid grid-cols-1 gap-6 md:grid-cols-2">
-						<div className="space-y-2">
-							<div className="font-medium text-sm">Provider</div>
-							<div className="flex items-center gap-2">
-								<ServerIcon className="h-4 w-4 text-muted-foreground" />
-								<Badge variant="secondary" className="capitalize">
-									{config.provider}
-								</Badge>
+				<CardContent className="space-y-5">
+					{/* Primary: mode + reference counts */}
+					<div className="flex items-center justify-between">
+						<div className="space-y-1">
+							<div className="text-muted-foreground text-xs uppercase">
+								Retrieval Mode
 							</div>
+							<Badge variant="secondary" className="capitalize">
+								{config.retrievalMode ?? "hybrid"}
+							</Badge>
 						</div>
+					</div>
 
-						<div className="space-y-2">
-							<div className="font-medium text-sm">Embedding Model</div>
-							<div className="flex items-center gap-2">
-								<Move3dIcon className="h-4 w-4 text-muted-foreground" />
-								<Badge variant="default">{config.embeddingModel}</Badge>
+					<Separator />
+
+					<div className="space-y-2">
+						<div className="font-medium text-sm">References</div>
+						<div className="grid grid-cols-3 gap-3">
+							<div className="rounded-lg border bg-muted/30 p-3 text-center">
+								<div className="font-semibold text-xl tabular-nums">
+									{config.minReferences}
+								</div>
+								<div className="mt-1 text-muted-foreground text-xs">
+									Minimum
+								</div>
+							</div>
+							<div className="rounded-lg border bg-muted/30 p-3 text-center">
+								<div className="font-semibold text-xl tabular-nums">
+									{config.defaultReferences}
+								</div>
+								<div className="mt-1 text-muted-foreground text-xs">
+									Default
+								</div>
+							</div>
+							<div className="rounded-lg border bg-muted/30 p-3 text-center">
+								<div className="font-semibold text-xl tabular-nums">
+									{config.maxReferences}
+								</div>
+								<div className="mt-1 text-muted-foreground text-xs">
+									Maximum
+								</div>
 							</div>
 						</div>
 					</div>
 
-					{/* Reference settings */}
-					<div className="space-y-3">
-						<div className="font-medium text-sm">Reference Configuration</div>
-						<div className="flex items-center gap-6">
-							<div className="flex flex-col items-center gap-1">
-								<div className="text-muted-foreground text-xs">Minimum</div>
-								<Badge variant="outline">{config.minReferences}</Badge>
+					<Separator />
+
+					{/* Advanced settings collapsible */}
+					<Collapsible open={isAdvancedOpen} onOpenChange={setIsAdvancedOpen}>
+						<CollapsibleTrigger className="flex w-full items-center justify-between text-sm">
+							<span className="font-medium">Advanced Settings</span>
+							<ChevronDownIcon
+								className={`size-4 text-muted-foreground transition-transform ${isAdvancedOpen ? "rotate-180" : ""}`}
+							/>
+						</CollapsibleTrigger>
+						<CollapsibleContent className="pt-4">
+							<div className="grid grid-cols-3 gap-3">
+								<div className="rounded-lg border bg-muted/30 p-3 text-center">
+									<div className="font-semibold text-xl tabular-nums">
+										{config.scoreThreshold ?? 0.2}
+									</div>
+									<div className="mt-1 text-muted-foreground text-xs">
+										Score Threshold
+									</div>
+								</div>
+								<div className="rounded-lg border bg-muted/30 p-3 text-center">
+									<div className="font-semibold text-xl tabular-nums">
+										{config.candidateLimit ?? 40}
+									</div>
+									<div className="mt-1 text-muted-foreground text-xs">
+										Candidate Limit
+									</div>
+								</div>
+								<div className="rounded-lg border bg-muted/30 p-3 text-center">
+									<div className="font-semibold text-xl tabular-nums">
+										{config.maxPerAsset ?? 6}
+									</div>
+									<div className="mt-1 text-muted-foreground text-xs">
+										Max Per Document
+									</div>
+								</div>
 							</div>
-							<div className="flex flex-col items-center gap-1">
-								<div className="text-muted-foreground text-xs">Default</div>
-								<Badge variant="outline">{config.defaultReferences}</Badge>
-							</div>
-							<div className="flex flex-col items-center gap-1">
-								<div className="text-muted-foreground text-xs">Maximum</div>
-								<Badge variant="outline">{config.maxReferences}</Badge>
-							</div>
-						</div>
-					</div>
+						</CollapsibleContent>
+					</Collapsible>
 				</CardContent>
 			</Card>
-
-			{/* Assets */}
 
 			<AssetSection assets={assets} blockId={blockId} />
 		</div>
@@ -130,67 +165,68 @@ const AssetSection = ({
 	assets: DatabaseBlockValue["assets"];
 	blockId: DatabaseBlock["id"];
 }) => {
+	const navigate = useNavigate();
 	const { mutate: createJob } = useCreateJobMutation();
 
-	const [isOpen, setIsOpen] = useState(false);
-
 	return (
-		<Collapsible
-			open={isOpen}
-			onOpenChange={setIsOpen}
-			className="flex flex-col gap-4"
-		>
-			<div className="flex flex-col justify-between gap-4 px-4 xl:flex-row xl:items-center">
-				<div>
-					<h4 className="font-semibold text-sm">Assets ({assets.length})</h4>
-					<span className="text-muted-foreground text-sm">
-						Assets will be used by the AI model for context.
-					</span>
-				</div>
-				<div className="flex gap-2">
-					<Button
-						size="sm"
-						onClick={() =>
-							createJob({
-								jobRunner: "vectorize-asset-job",
-								blockId,
-							})
-						}
-					>
-						Create Vector Store
-					</Button>
-					<Link
-						to="/app/hub/blocks/$blockId/points"
-						params={{
-							blockId,
-						}}
-						className={buttonVariants({
-							variant: "outline",
-							size: "sm",
-						})}
-					>
-						View Vector Points
-					</Link>
-					<CollapsibleTrigger
-						render={
-							<Button size="sm" variant="outline">
-								{isOpen ? "Hide Content" : "Show Content"}
-							</Button>
-						}
+		<Section>
+			<SectionHeader>
+				<SectionTitle>Content ({assets.length})</SectionTitle>
+				<SectionDescription>
+					This is the content currently attached to this knowledge base.
+				</SectionDescription>
+				<SectionAction>
+					<JobListDialog
+						jobQueue="vectorize-asset-job"
+						resourceId={blockId}
+						resourceType="block"
 					/>
-				</div>
-			</div>
-			<div className="flex gap-2 px-4">
-				<JobListDialog
-					jobQueue="vectorize-asset-job"
-					resourceId={blockId}
-					resourceType="block"
-				/>
-			</div>
-			<CollapsibleContent>
-				<AssetGrid assets={assets} />
-			</CollapsibleContent>
-		</Collapsible>
+					<DropdownMenu>
+						<DropdownMenuTrigger
+							render={
+								<Button variant="ghost" size="icon">
+									<MoreVerticalIcon className="size-4" />
+									<span className="sr-only">More options</span>
+								</Button>
+							}
+						/>
+						<DropdownMenuContent align="end">
+							<DropdownMenuItem
+								onClick={() =>
+									createJob({
+										jobRunner: "vectorize-asset-job",
+										blockId,
+									})
+								}
+							>
+								<Move3dIcon />
+								Create Vector Store
+							</DropdownMenuItem>
+							<DropdownMenuItem
+								onClick={() =>
+									navigate({
+										to: "/app/hub/blocks/$blockId/points",
+										params: {
+											blockId,
+										},
+									})
+								}
+							>
+								<ExternalLinkIcon />
+								View Vector Points
+							</DropdownMenuItem>
+						</DropdownMenuContent>
+					</DropdownMenu>
+				</SectionAction>
+			</SectionHeader>
+			<SectionContent>
+				<SectionGrid>
+					{assets.map((entry) => (
+						<AssetCard key={entry.id} asset={entry} />
+					))}
+				</SectionGrid>
+			</SectionContent>
+		</Section>
 	);
 };
 

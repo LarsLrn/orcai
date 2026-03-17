@@ -11,6 +11,9 @@ const defaultValues = (
 	assetIds?: Asset["id"][],
 ): z.input<typeof databaseBlockInsertSchema> => ({
 	name: block?.name || "",
+	description: block?.description ?? null,
+	contentJson: block?.contentJson ?? null,
+	contentHtml: block?.contentHtml ?? null,
 	type: "database",
 	status: block?.status || "draft",
 	config: {

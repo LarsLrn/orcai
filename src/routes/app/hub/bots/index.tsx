@@ -1,16 +1,18 @@
 import { useSuspenseQuery } from "@tanstack/react-query";
 import { createFileRoute, Link } from "@tanstack/react-router";
-import { BotIcon, EditIcon, PlusIcon, TrashIcon } from "lucide-react";
+import { BotIcon, PlusIcon, TrashIcon } from "lucide-react";
 import { BotCard } from "@/components/bot/bot-card";
+import { Placeholder } from "@/components/placeholders/placeholder";
 import { buttonVariants } from "@/components/ui/button";
 import {
-	Page,
-	PageAction,
-	PageContent,
-	PageDescription,
-	PageHeader,
-	PageTitle,
-} from "@/components/ui/shell/page";
+	Section,
+	SectionAction,
+	SectionContent,
+	SectionDescription,
+	SectionGrid,
+	SectionHeader,
+	SectionTitle,
+} from "@/components/ui/shell/section";
 import { useDeleteBotsMutation } from "@/hooks/mutations/use-bot-mutations";
 import { orpc } from "@/lib/orpc/orpc";
 
@@ -58,36 +60,17 @@ function RouteComponent() {
 	const { mutate: deleteBots } = useDeleteBotsMutation();
 
 	return (
-		<Page>
-			<PageHeader>
-				<PageTitle>Bots</PageTitle>
-				<PageDescription className="text-muted-foreground">
-					Create and manage configured AI experiences for your workspace.
-				</PageDescription>
-
-				<PageAction>
-					<Link
-						to="/app/hub/bots/add"
-						className={buttonVariants({
-							variant: "default",
-						})}
-					>
-						<PlusIcon className="mr-2 h-4 w-4" />
-						Create Bot
-					</Link>
-				</PageAction>
-			</PageHeader>
-
-			<PageContent>
-				{drafts.data.length > 0 ? (
-					<div className="mb-10 space-y-4">
-						<div>
-							<h2 className="font-semibold text-xl">Drafts</h2>
-							<p className="text-muted-foreground text-sm">
-								Resume bot setups that have not been published yet.
-							</p>
-						</div>
-						<div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
+		<div className="space-y-12">
+			{drafts.data.length > 0 && (
+				<Section>
+					<SectionHeader>
+						<SectionTitle>Drafts</SectionTitle>
+						<SectionDescription>
+							Resume bot setups that have not been published yet.
+						</SectionDescription>
+					</SectionHeader>
+					<SectionContent>
+						<SectionGrid layout="3">
 							{drafts.data.map((bot) => (
 								<BotCard
 									key={bot.id}
@@ -101,20 +84,6 @@ function RouteComponent() {
 												},
 											},
 										},
-										footer: [
-											{
-												key: "resume",
-												label: "Resume Setup",
-												icon: EditIcon,
-												variant: "default",
-												linkProps: {
-													to: "/app/hub/bots/$botId/setup",
-													params: {
-														botId: bot.id,
-													},
-												},
-											},
-										],
 										dropdown: [
 											{
 												key: "delete",
@@ -130,58 +99,67 @@ function RouteComponent() {
 													}),
 											},
 										],
+										footer: [],
 									}}
 								/>
 							))}
-						</div>
-					</div>
-				) : null}
+						</SectionGrid>
+					</SectionContent>
+				</Section>
+			)}
 
-				{bots.data.length === 0 && drafts.data.length === 0 ? (
-					<div className="flex min-h-100 flex-col items-center justify-center space-y-4 text-center">
-						<div className="rounded-full bg-muted p-4">
-							<BotIcon className="h-8 w-8 text-muted-foreground" />
-						</div>
-						<div className="space-y-2">
-							<h3 className="font-semibold text-lg">No bots yet</h3>
-							<p className="text-muted-foreground">
-								Create your first bot to get started
-							</p>
-						</div>
+			<Section>
+				<SectionHeader>
+					<SectionTitle>Published Bots</SectionTitle>
+					<SectionDescription>
+						Configured AI experiences ready to use in chats across your
+						workspace.
+					</SectionDescription>
+					<SectionAction>
 						<Link
 							to="/app/hub/bots/add"
 							className={buttonVariants({
-								variant: "default",
+								size: "sm",
 							})}
 						>
-							<PlusIcon className="mr-2 h-4 w-4" />
-							Create Your First Bot
+							<PlusIcon />
+							Create Bot
 						</Link>
-					</div>
-				) : bots.data.length === 0 ? (
-					<div className="rounded-2xl border border-dashed p-8 text-center">
-						<h2 className="font-semibold text-lg">No published bots yet</h2>
-						<p className="mt-2 text-muted-foreground text-sm">
-							You already have draft setups in progress. Publish one to make it
-							available in chats and the main bots list.
-						</p>
-					</div>
-				) : (
-					<div className="space-y-4">
-						<div>
-							<h2 className="font-semibold text-xl">Published Bots</h2>
-							<p className="text-muted-foreground text-sm">
-								Bots that are ready to use in chats and sharing flows.
-							</p>
-						</div>
-						<div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
+					</SectionAction>
+				</SectionHeader>
+				<SectionContent>
+					{bots.data.length === 0 ? (
+						<Placeholder
+							Icon={BotIcon}
+							title="No published bots yet"
+							description="Create and publish a bot to make it available for chats."
+							actions={[
+								{
+									key: "create",
+									label: "Create Bot",
+									icon: PlusIcon,
+									variant: "default",
+									linkProps: {
+										to: "/app/hub/bots/add",
+									},
+								},
+							]}
+						/>
+					) : (
+						<SectionGrid layout="3">
 							{bots.data.map((bot) => (
-								<BotCard key={bot.id} bot={bot} />
+								<BotCard
+									key={bot.id}
+									bot={bot}
+									actions={{
+										footer: [],
+									}}
+								/>
 							))}
-						</div>
-					</div>
-				)}
-			</PageContent>
-		</Page>
+						</SectionGrid>
+					)}
+				</SectionContent>
+			</Section>
+		</div>
 	);
 }

@@ -4,7 +4,6 @@ import { BlockCard } from "@/components/blocks/block-card";
 import { BotCard } from "@/components/bot/bot-card";
 import { AssetCard } from "@/components/documents/asset-card";
 import { buttonVariants } from "@/components/ui/button";
-import { PageContent } from "@/components/ui/shell/page";
 import {
 	Section,
 	SectionAction,
@@ -16,27 +15,51 @@ import {
 } from "@/components/ui/shell/section";
 import { orpc } from "@/lib/orpc/orpc";
 
-const HUB_OVERVIEW_INPUT = {
+const PREVIEW_INPUT = {
 	pageIndex: 0,
 	pageSize: 6,
 } as const;
+const BLOCKS_PREVIEW_INPUT = {
+	pageIndex: 0,
+	pageSize: 3,
+} as const;
+const NO_FOOTER: {
+	footer: [];
+} = {
+	footer: [],
+};
 
 export const Route = createFileRoute("/app/hub/")({
 	loader: async ({ context: { queryClient } }) => {
 		await Promise.all([
 			queryClient.ensureQueryData(
 				orpc.bot.list.queryOptions({
-					input: HUB_OVERVIEW_INPUT,
+					input: PREVIEW_INPUT,
 				}),
 			),
 			queryClient.ensureQueryData(
 				orpc.block.list.queryOptions({
-					input: HUB_OVERVIEW_INPUT,
+					input: {
+						...BLOCKS_PREVIEW_INPUT,
+						filters: {
+							type: "template",
+						},
+					},
+				}),
+			),
+			queryClient.ensureQueryData(
+				orpc.block.list.queryOptions({
+					input: {
+						...BLOCKS_PREVIEW_INPUT,
+						filters: {
+							type: "database",
+						},
+					},
 				}),
 			),
 			queryClient.ensureQueryData(
 				orpc.asset.list.queryOptions({
-					input: HUB_OVERVIEW_INPUT,
+					input: PREVIEW_INPUT,
 				}),
 			),
 		]);
@@ -47,120 +70,152 @@ export const Route = createFileRoute("/app/hub/")({
 function RouteComponent() {
 	const { data: bots } = useSuspenseQuery(
 		orpc.bot.list.queryOptions({
-			input: HUB_OVERVIEW_INPUT,
+			input: PREVIEW_INPUT,
 		}),
 	);
-	const { data: blocks } = useSuspenseQuery(
+	const { data: behaviourBlocks } = useSuspenseQuery(
 		orpc.block.list.queryOptions({
-			input: HUB_OVERVIEW_INPUT,
+			input: {
+				...BLOCKS_PREVIEW_INPUT,
+				filters: {
+					type: "template",
+				},
+			},
+		}),
+	);
+	const { data: knowledgeBlocks } = useSuspenseQuery(
+		orpc.block.list.queryOptions({
+			input: {
+				...BLOCKS_PREVIEW_INPUT,
+				filters: {
+					type: "database",
+				},
+			},
 		}),
 	);
 	const { data: assets } = useSuspenseQuery(
 		orpc.asset.list.queryOptions({
-			input: HUB_OVERVIEW_INPUT,
+			input: PREVIEW_INPUT,
 		}),
 	);
 
 	return (
-		<PageContent className="space-y-10">
-			<Section>
-				<SectionHeader>
-					<SectionTitle>Bots</SectionTitle>
-					<SectionDescription>
-						Configured AI experiences for your workspace.
-					</SectionDescription>
-					<SectionAction>
-						<Link
-							to="/app/hub/bots"
-							className={buttonVariants({
-								variant: "outline",
-							})}
-						>
-							View all
-						</Link>
-					</SectionAction>
-				</SectionHeader>
+		<div className="space-y-14">
+			{bots.data.length > 0 && (
+				<Section>
+					<SectionHeader>
+						<SectionTitle>Bots</SectionTitle>
+						<SectionDescription>
+							Configured AI experiences for your workspace.
+						</SectionDescription>
+						<SectionAction>
+							<Link
+								to="/app/hub/bots"
+								className={buttonVariants({
+									variant: "outline",
+									size: "sm",
+								})}
+							>
+								View all
+							</Link>
+						</SectionAction>
+					</SectionHeader>
+					<SectionContent>
+						<SectionGrid layout="3">
+							{bots.data.map((bot) => (
+								<BotCard key={bot.id} bot={bot} actions={NO_FOOTER} />
+							))}
+						</SectionGrid>
+					</SectionContent>
+				</Section>
+			)}
 
-				<SectionContent>
-					<SectionGrid layout="3">
-						{bots.data.map((bot) => (
-							<BotCard
-								key={bot.id}
-								bot={bot}
-								actions={{
-									footer: [],
-								}}
-							/>
-						))}
-					</SectionGrid>
-				</SectionContent>
-			</Section>
+			{behaviourBlocks.data.length > 0 && (
+				<Section>
+					<SectionHeader>
+						<SectionTitle>Behaviour</SectionTitle>
+						<SectionDescription>
+							System prompt and model definitions that shape bot personalities.
+						</SectionDescription>
+						<SectionAction>
+							<Link
+								to="/app/hub/blocks"
+								className={buttonVariants({
+									variant: "outline",
+									size: "sm",
+								})}
+							>
+								View all blocks
+							</Link>
+						</SectionAction>
+					</SectionHeader>
+					<SectionContent>
+						<SectionGrid layout="3">
+							{behaviourBlocks.data.map((block) => (
+								<BlockCard key={block.id} block={block} actions={NO_FOOTER} />
+							))}
+						</SectionGrid>
+					</SectionContent>
+				</Section>
+			)}
 
-			<Section>
-				<SectionHeader>
-					<SectionTitle>Blocks</SectionTitle>
-					<SectionDescription>
-						Reusable behaviors and content collections that power bots.
-					</SectionDescription>
-					<SectionAction>
-						<Link
-							to="/app/hub/blocks"
-							className={buttonVariants({
-								variant: "outline",
-							})}
-						>
-							View all
-						</Link>
-					</SectionAction>
-				</SectionHeader>
+			{knowledgeBlocks.data.length > 0 && (
+				<Section>
+					<SectionHeader>
+						<SectionTitle>Knowledge</SectionTitle>
+						<SectionDescription>
+							Retrieval databases that ground bot answers in specific content.
+						</SectionDescription>
+						<SectionAction>
+							<Link
+								to="/app/hub/blocks"
+								className={buttonVariants({
+									variant: "outline",
+									size: "sm",
+								})}
+							>
+								View all blocks
+							</Link>
+						</SectionAction>
+					</SectionHeader>
+					<SectionContent>
+						<SectionGrid layout="3">
+							{knowledgeBlocks.data.map((block) => (
+								<BlockCard key={block.id} block={block} actions={NO_FOOTER} />
+							))}
+						</SectionGrid>
+					</SectionContent>
+				</Section>
+			)}
 
-				<SectionContent>
-					<SectionGrid layout="3">
-						{blocks.data.map((block) => (
-							<BlockCard
-								key={block.id}
-								block={block}
-								actions={{
-									footer: [],
-								}}
-							/>
-						))}
-					</SectionGrid>
-				</SectionContent>
-			</Section>
-
-			<Section>
-				<SectionHeader>
-					<SectionTitle>Content Library</SectionTitle>
-					<SectionDescription>
-						Reusable source material for search, retrieval, and citations.
-					</SectionDescription>
-					<SectionAction>
-						<Link
-							to="/app/hub/assets"
-							className={buttonVariants({
-								variant: "outline",
-							})}
-						>
-							View all
-						</Link>
-					</SectionAction>
-				</SectionHeader>
-
-				<SectionContent>
-					<SectionGrid layout="3">
-						{assets.data.map((asset) => (
-							<AssetCard
-								key={asset.id}
-								asset={asset}
-								actions={{
-									footer: [],
-								}}
-							/>
-						))}
-					</SectionGrid>
-				</SectionContent>
-			</Section>
-		</PageContent>
+			{assets.data.length > 0 && (
+				<Section>
+					<SectionHeader>
+						<SectionTitle>Content Library</SectionTitle>
+						<SectionDescription>
+							Reusable source material for search, retrieval, and citations.
+						</SectionDescription>
+						<SectionAction>
+							<Link
+								to="/app/hub/assets"
+								className={buttonVariants({
+									variant: "outline",
+									size: "sm",
+								})}
+							>
+								View all
+							</Link>
+						</SectionAction>
+					</SectionHeader>
+					<SectionContent>
+						<SectionGrid layout="3">
+							{assets.data.map((asset) => (
+								<AssetCard key={asset.id} asset={asset} actions={NO_FOOTER} />
+							))}
+						</SectionGrid>
+					</SectionContent>
+				</Section>
+			)}
+		</div>
 	);
 }

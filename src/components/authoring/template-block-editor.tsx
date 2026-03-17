@@ -29,8 +29,13 @@ import type { BotEditorSelect } from "@/lib/orpc/schemas/bot-editor";
 
 type TemplateBlockValue = NonNullable<BotEditorSelect["templateBlock"]>;
 
-const createDefaultTemplateBlock = (): TemplateBlockValue => ({
-	name: "AI Behavior",
+const createDefaultTemplateBlock = (params?: {
+	botName: string;
+}): TemplateBlockValue => ({
+	name: `AI Behavior${params?.botName ? ` for '${params.botName}'` : ""}`,
+	description: null,
+	contentHtml: null,
+	contentJson: null,
 	type: "template",
 	status: "draft",
 	config: {
@@ -116,7 +121,7 @@ const TemplateBlockEditor = ({
 
 	return (
 		<div className="grid gap-5 lg:grid-cols-[1.2fr_0.8fr]">
-			<Card className="border-border/70 bg-background shadow-sm">
+			<Card>
 				<CardHeader>
 					<CardTitle className="flex items-center gap-2">
 						<SparklesIcon className="h-5 w-5" />
@@ -164,7 +169,7 @@ const TemplateBlockEditor = ({
 				</CardContent>
 			</Card>
 
-			<Card className="h-fit border-border/70 bg-muted/15 shadow-sm">
+			<Card className="h-fit">
 				<CardHeader>
 					<CardTitle>Model Settings</CardTitle>
 					<CardDescription>

@@ -1,7 +1,5 @@
-import { skipToken, useQuery, useSuspenseQuery } from "@tanstack/react-query";
-import { useRouteContext } from "@tanstack/react-router";
 import { ChevronDownIcon, DatabaseIcon, PlusIcon } from "lucide-react";
-import { useEffect, useState } from "react";
+import { useState } from "react";
 import { AssetIntakeFlow } from "@/components/documents/shared/asset-intake-flow";
 import { AssetLibraryPicker } from "@/components/documents/shared/asset-library-picker";
 import { SelectedAssetList } from "@/components/documents/shared/selected-asset-list";
@@ -20,18 +18,6 @@ import {
 	CollapsibleTrigger,
 } from "@/components/ui/collapsible";
 import {
-	DialogSelect,
-	DialogSelectContent,
-	DialogSelectEmpty,
-	DialogSelectFilter,
-	DialogSelectFilters,
-	DialogSelectItem,
-	DialogSelectList,
-	DialogSelectPagination,
-	DialogSelectSearch,
-	DialogSelectTrigger,
-} from "@/components/ui/composed/dialog-select";
-import {
 	Dialog,
 	DialogContent,
 	DialogDescription,
@@ -48,15 +34,19 @@ import {
 	SelectTrigger,
 	SelectValue,
 } from "@/components/ui/select";
-import { orpc } from "@/lib/orpc/orpc";
 import type { Asset } from "@/lib/orpc/schemas/asset";
 import type { BotEditorSelect } from "@/lib/orpc/schemas/bot-editor";
 
 type DatabaseBlockValue = BotEditorSelect["databaseBlocks"][number];
 
-const createDefaultDatabaseBlock = (): DatabaseBlockValue => ({
-	name: "Content Collection",
+const createDefaultDatabaseBlock = (params?: {
+	botName: string;
+}): DatabaseBlockValue => ({
+	name: `Content Collection${params?.botName ? ` for '${params.botName}'` : ""}`,
 	type: "database",
+	description: null,
+	contentJson: null,
+	contentHtml: null,
 	status: "draft",
 	config: {
 		provider: "",
@@ -102,75 +92,14 @@ const DatabaseBlockEditor = ({
 	onChange: (value: DatabaseBlockValue) => void;
 	onRemove?: () => void;
 }) => {
-	const { auth } = useRouteContext({
-		from: "/app",
-	});
 	const [isAdvancedOpen, setIsAdvancedOpen] = useState(false);
 	const [isLibraryOpen, setIsLibraryOpen] = useState(false);
 	const [isUploadOpen, setIsUploadOpen] = useState(false);
 
-	const PAGE_SIZE = 10;
-	const [modelDialogOpen, setModelDialogOpen] = useState(false);
-	const [providerFilter, setProviderFilter] = useState(value.config.provider);
-
-	// Sync filter when the saved provider loads asynchronously
-	useEffect(() => {
-		if (value.config.provider) {
-			setProviderFilter(value.config.provider);
-		}
-	}, [
-		value.config.provider,
-	]);
-
-	const [modelSearch, setModelSearch] = useState("");
-	const [modelPage, setModelPage] = useState(0);
-
-	const { data: providers } = useSuspenseQuery(
-		orpc.provider.list.queryOptions({
-			input: {
-				organizationId: auth.session.activeOrganizationId,
-				pageSize: 50,
-			},
-		}),
-	);
-
-	const { data: models, isLoading: modelsLoading } = useQuery(
-		orpc.model.list.queryOptions({
-			input: providerFilter
-				? {
-						filters: {
-							providerId: providerFilter,
-							capabilities: [
-								"embedding",
-							],
-							search: modelSearch || undefined,
-						},
-						pageSize: PAGE_SIZE,
-						pageIndex: modelPage,
-					}
-				: skipToken,
-		}),
-	);
-
-	const { data: selectedModelData } = useQuery(
-		orpc.model.find.queryOptions({
-			input: value.config.embeddingModel
-				? {
-						id: value.config.embeddingModel,
-					}
-				: skipToken,
-		}),
-	);
-
 	const assets = value.assets;
-	const pageCount = Math.ceil((models?.rowCount ?? 0) / PAGE_SIZE);
-	const providerFilterOptions = providers.data.map((p) => ({
-		value: p.id,
-		label: p.name,
-	}));
 
 	return (
-		<Card className="rounded-[28px] border-border/80 bg-background shadow-sm">
+		<Card>
 			<CardHeader className="flex flex-row items-start justify-between gap-4 space-y-0">
 				<div>
 					<CardTitle className="flex items-center gap-2">
@@ -202,100 +131,6 @@ const DatabaseBlockEditor = ({
 							placeholder="Course handbook"
 						/>
 					</div>
-
-					<div className="space-y-2">
-						<Label>Retrieval Mode</Label>
-						<Select
-							value={value.config.retrievalMode ?? "hybrid"}
-							onValueChange={(retrievalMode) =>
-								onChange({
-									...value,
-									config: {
-										...value.config,
-										retrievalMode: retrievalMode as "dense" | "hybrid",
-									},
-								})
-							}
-						>
-							<SelectTrigger className="w-full">
-								<SelectValue />
-							</SelectTrigger>
-							<SelectContent>
-								<SelectItem value="hybrid">Hybrid</SelectItem>
-								<SelectItem value="dense">Dense</SelectItem>
-							</SelectContent>
-						</Select>
-					</div>
-				</div>
-
-				<div className="space-y-2">
-					<Label>Embedding Model</Label>
-					<DialogSelect
-						value={value.config.embeddingModel || null}
-						onValueChange={(embeddingModel) =>
-							onChange({
-								...value,
-								config: {
-									...value.config,
-									embeddingModel: embeddingModel ?? "",
-									provider: providerFilter,
-								},
-							})
-						}
-						open={modelDialogOpen}
-						onOpenChange={setModelDialogOpen}
-					>
-						<DialogSelectTrigger
-							className="w-full"
-							placeholder="Choose an embedding model..."
-						>
-							{selectedModelData?.data?.name}
-						</DialogSelectTrigger>
-						<DialogSelectContent title="Choose an embedding model">
-							<DialogSelectSearch
-								value={modelSearch}
-								onValueChange={(v) => {
-									setModelSearch(v);
-									setModelPage(0);
-								}}
-								placeholder="Search models..."
-							/>
-							<DialogSelectFilters>
-								<DialogSelectFilter
-									value={providerFilter}
-									onValueChange={(p) => {
-										setProviderFilter(p);
-										setModelSearch("");
-										setModelPage(0);
-									}}
-									placeholder="Select a provider"
-									options={providerFilterOptions}
-								/>
-							</DialogSelectFilters>
-							<DialogSelectList loading={modelsLoading}>
-								{(models?.data ?? []).map((model) => (
-									<DialogSelectItem
-										key={model.id}
-										value={model.id}
-										title={model.name}
-										description={model.description || undefined}
-									/>
-								))}
-								{!modelsLoading && (models?.data ?? []).length === 0 && (
-									<DialogSelectEmpty>
-										{providerFilter
-											? "No embedding models found."
-											: "Select a provider to view models."}
-									</DialogSelectEmpty>
-								)}
-							</DialogSelectList>
-							<DialogSelectPagination
-								page={modelPage}
-								pageCount={pageCount}
-								onPageChange={setModelPage}
-							/>
-						</DialogSelectContent>
-					</DialogSelect>
 				</div>
 
 				<div className="rounded-2xl border border-dashed bg-muted/20 p-4">
@@ -533,6 +368,29 @@ const DatabaseBlockEditor = ({
 										})
 									}
 								/>
+							</div>
+							<div className="space-y-2">
+								<Label>Retrieval Mode</Label>
+								<Select
+									value={value.config.retrievalMode ?? "hybrid"}
+									onValueChange={(retrievalMode) =>
+										onChange({
+											...value,
+											config: {
+												...value.config,
+												retrievalMode: retrievalMode as "dense" | "hybrid",
+											},
+										})
+									}
+								>
+									<SelectTrigger className="w-full">
+										<SelectValue />
+									</SelectTrigger>
+									<SelectContent>
+										<SelectItem value="hybrid">Hybrid</SelectItem>
+										<SelectItem value="dense">Dense</SelectItem>
+									</SelectContent>
+								</Select>
 							</div>
 						</div>
 					</CollapsibleContent>

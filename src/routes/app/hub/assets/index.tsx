@@ -1,20 +1,19 @@
 import { useSuspenseQuery } from "@tanstack/react-query";
 import { createFileRoute, Link } from "@tanstack/react-router";
-import { AssetTableActions } from "@/components/documents/table/asset-table-actions";
-import { columns } from "@/components/documents/table/columns";
+import { FileTextIcon, FlaskConicalIcon, PlusIcon } from "lucide-react";
+import { AssetCard } from "@/components/documents/asset-card";
+import { Placeholder } from "@/components/placeholders/placeholder";
 import { buttonVariants } from "@/components/ui/button";
-import { DataTable } from "@/components/ui/data-table/data-table";
-import { DataTableBody } from "@/components/ui/data-table/data-table-body";
 import { DataTablePagination } from "@/components/ui/data-table/data-table-pagination";
-import { DataTableViewOptions } from "@/components/ui/data-table/data-table-view-options";
 import {
-	Page,
-	PageAction,
-	PageContent,
-	PageDescription,
-	PageHeader,
-	PageTitle,
-} from "@/components/ui/shell/page";
+	Section,
+	SectionAction,
+	SectionContent,
+	SectionDescription,
+	SectionGrid,
+	SectionHeader,
+	SectionTitle,
+} from "@/components/ui/shell/section";
 import { orpc } from "@/lib/orpc/orpc";
 import { paginationSchema } from "@/lib/orpc/schemas/shared";
 
@@ -52,61 +51,69 @@ function RouteComponent() {
 	);
 
 	return (
-		<Page>
-			<PageHeader>
-				<PageTitle>Content Library</PageTitle>
-				<PageDescription>
-					Manage reusable source material for retrieval, grounding, and
-					citations.
-				</PageDescription>
-				<PageAction className="flex gap-2">
+		<Section>
+			<SectionHeader>
+				<SectionTitle>Content Library</SectionTitle>
+				<SectionDescription>
+					Reusable source material for retrieval, grounding, and citations.
+				</SectionDescription>
+				<SectionAction>
 					<Link
-						to={"/app/hub/assets/playground"}
+						to="/app/hub/assets/playground"
 						className={buttonVariants({
 							variant: "outline",
+							size: "sm",
 						})}
 					>
+						<FlaskConicalIcon />
 						Playground
 					</Link>
-
 					<Link
-						to={"/app/hub/assets/add"}
+						to="/app/hub/assets/add"
 						className={buttonVariants({
-							variant: "default",
+							size: "sm",
 						})}
 					>
+						<PlusIcon />
 						Add Content
 					</Link>
-				</PageAction>
-			</PageHeader>
-			<PageContent>
-				<DataTable
-					data={assets.data}
-					columns={columns}
-					state={{
-						pagination: {
-							pageIndex,
-							pageSize,
-						},
-					}}
-					options={{
-						rowCount: assets.rowCount,
-						uidAccessor: "id",
-						clientPagination: {
-							pageIndex,
-							pageSize,
-						},
-					}}
-				>
-					<div className="flex items-center gap-2">
-						<DataTableViewOptions />
-						<AssetTableActions />
-						{/* <SearchInput /> */}
-					</div>
-					<DataTableBody />
-					<DataTablePagination />
-				</DataTable>
-			</PageContent>
-		</Page>
+				</SectionAction>
+			</SectionHeader>
+			<SectionContent>
+				{assets.data.length === 0 ? (
+					<Placeholder
+						Icon={FileTextIcon}
+						title="No content yet"
+						description="Upload documents, URLs, or text snippets to build your knowledge base."
+						actions={[
+							{
+								key: "add",
+								label: "Add Content",
+								icon: PlusIcon,
+								variant: "default",
+								linkProps: {
+									to: "/app/hub/assets/add",
+								},
+							},
+						]}
+					/>
+				) : (
+					<>
+						<SectionGrid layout="3">
+							{assets.data.map((asset) => (
+								<AssetCard
+									key={asset.id}
+									asset={asset}
+									actions={{
+										footer: [],
+									}}
+								/>
+							))}
+						</SectionGrid>
+						{assets.rowCount > pageSize && <DataTablePagination />}
+					</>
+				)}
+			</SectionContent>
+		</Section>
 	);
 }

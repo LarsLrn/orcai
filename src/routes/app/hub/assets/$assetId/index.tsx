@@ -1,15 +1,23 @@
 import { useQuery, useSuspenseQuery } from "@tanstack/react-query";
-import { createFileRoute, Link } from "@tanstack/react-router";
+import { createFileRoute, useNavigate } from "@tanstack/react-router";
 import {
 	DownloadIcon,
+	EditIcon,
 	KeyRoundIcon,
-	PencilIcon,
+	MoreVerticalIcon,
 	Trash2Icon,
 } from "lucide-react";
 import { useState } from "react";
 import { AccessDialog } from "@/components/access/access-dialog";
 import { FileViewer } from "@/components/documents/file-viewer";
-import { Button, buttonVariants } from "@/components/ui/button";
+import { Button } from "@/components/ui/button";
+import {
+	DropdownMenu,
+	DropdownMenuContent,
+	DropdownMenuItem,
+	DropdownMenuSeparator,
+	DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
 import {
 	Section,
 	SectionAction,
@@ -26,6 +34,7 @@ export const Route = createFileRoute("/app/hub/assets/$assetId/")({
 
 function RouteComponent() {
 	const { assetId } = Route.useParams();
+	const navigate = useNavigate();
 	const [isAccessOpen, setIsAccessOpen] = useState(false);
 	const { data: asset } = useSuspenseQuery(
 		orpc.asset.find.queryOptions({
@@ -53,10 +62,6 @@ function RouteComponent() {
 			<SectionHeader>
 				<SectionTitle>{asset.data.title}</SectionTitle>
 				<SectionAction>
-					<Button variant="outline" onClick={() => setIsAccessOpen(true)}>
-						<KeyRoundIcon />
-						Access & Groups
-					</Button>
 					<Button
 						variant="default"
 						disabled={status !== "success"}
@@ -65,33 +70,51 @@ function RouteComponent() {
 						<DownloadIcon />
 						Download
 					</Button>
-					<Link
-						className={buttonVariants({
-							variant: "outline",
-						})}
-						to={"/app/hub/assets/$assetId/edit"}
-						params={{
-							assetId: asset.data.id,
-						}}
-					>
-						<PencilIcon />
-						Edit Content
-					</Link>
-					<Button
-						variant="destructive"
-						onClick={() =>
-							deleteAssets({
-								refs: [
-									{
-										id: asset.data.id,
-									},
-								],
-							})
-						}
-					>
-						<Trash2Icon />
-						Delete
-					</Button>
+					<DropdownMenu>
+						<DropdownMenuTrigger
+							render={
+								<Button variant="ghost" size="icon">
+									<MoreVerticalIcon className="size-4" />
+									<span className="sr-only">More options</span>
+								</Button>
+							}
+						/>
+						<DropdownMenuContent align="end">
+							<DropdownMenuItem onClick={() => setIsAccessOpen(true)}>
+								<KeyRoundIcon className="size-4" />
+								Access & Groups
+							</DropdownMenuItem>
+							<DropdownMenuItem
+								onClick={() =>
+									navigate({
+										to: "/app/hub/assets/$assetId/edit",
+										params: {
+											assetId: asset.data.id,
+										},
+									})
+								}
+							>
+								<EditIcon />
+								Edit Content
+							</DropdownMenuItem>
+							<DropdownMenuSeparator />
+							<DropdownMenuItem
+								variant="destructive"
+								onClick={() =>
+									deleteAssets({
+										refs: [
+											{
+												id: asset.data.id,
+											},
+										],
+									})
+								}
+							>
+								<Trash2Icon />
+								Delete Content
+							</DropdownMenuItem>
+						</DropdownMenuContent>
+					</DropdownMenu>
 				</SectionAction>
 			</SectionHeader>
 			<SectionContent>

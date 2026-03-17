@@ -1,11 +1,18 @@
 import { z } from "zod/v4";
 import { assetSelectSchema } from "./asset";
-import { databaseBlockSchema, templateBlockSchema } from "./block";
+import {
+	baseBlockSelectSchema,
+	databaseBlockSchema,
+	templateBlockSchema,
+} from "./block";
 import { publicationStatusSchema } from "./fragments/publication-status";
 
 const baseEditorBlockSchema = z.object({
 	id: z.uuidv4().optional(),
 	name: z.string().min(1, "Name is required"),
+	description: baseBlockSelectSchema.shape.description,
+	contentJson: baseBlockSelectSchema.shape.contentJson,
+	contentHtml: baseBlockSelectSchema.shape.contentHtml,
 	status: publicationStatusSchema,
 });
 

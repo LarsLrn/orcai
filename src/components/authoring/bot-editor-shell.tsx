@@ -143,6 +143,9 @@ const toDatabaseBlockEditorValue = (params: {
 	assets: BotEditorSelect["databaseBlocks"][number]["assets"];
 }): BotEditorSelect["databaseBlocks"][number] => ({
 	id: params.block.id,
+	description: params.block.description,
+	contentJson: params.block.contentJson,
+	contentHtml: params.block.contentHtml,
 	name: params.block.name,
 	type: "database",
 	status: params.block.status,
@@ -459,6 +462,9 @@ const BotEditorShell = ({
 
 									handleSelectExistingTemplateBlock({
 										id: block.id,
+										description: block.description,
+										contentJson: block.contentJson,
+										contentHtml: block.contentHtml,
 										name: block.name,
 										type: "template",
 										status: block.status,
@@ -634,7 +640,9 @@ const DocumentsSection = ({
 							onChange((current) => ({
 								...current,
 								databaseBlocks: [
-									createDefaultDatabaseBlock(),
+									createDefaultDatabaseBlock({
+										botName: editor.name,
+									}),
 								],
 							}))
 						}
@@ -691,7 +699,9 @@ const DocumentsSection = ({
 							...current,
 							databaseBlocks: [
 								...current.databaseBlocks,
-								createDefaultDatabaseBlock(),
+								createDefaultDatabaseBlock({
+									botName: editor.name,
+								}),
 							],
 						}))
 					}
