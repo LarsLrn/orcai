@@ -148,7 +148,7 @@ const DatabaseBlockEditor = ({
 								size="sm"
 								onClick={() => setIsLibraryOpen((current) => !current)}
 							>
-								<PlusIcon className="mr-2 h-4 w-4" />
+								<PlusIcon />
 								Add Existing
 							</Button>
 							<Button
@@ -156,7 +156,7 @@ const DatabaseBlockEditor = ({
 								size="sm"
 								onClick={() => setIsUploadOpen((current) => !current)}
 							>
-								<PlusIcon className="mr-2 h-4 w-4" />
+								<PlusIcon />
 								Upload New
 							</Button>
 						</div>

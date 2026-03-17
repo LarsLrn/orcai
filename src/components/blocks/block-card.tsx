@@ -156,9 +156,7 @@ const BlockCard = ({
 										}
 									}}
 								>
-									{action.icon ? (
-										<action.icon className="mr-2 h-4 w-4" />
-									) : null}
+									{action.icon ? <action.icon /> : null}
 									{action.label}
 								</DropdownMenuItem>
 							))}

@@ -219,11 +219,11 @@ function ImagePlaceholderComponent(props: NodeViewProps) {
 						>
 							<TabsList className="grid w-full grid-cols-2">
 								<TabsTrigger value="upload">
-									<Upload className="mr-2 h-4 w-4" />
+									<Upload />
 									Upload
 								</TabsTrigger>
 								<TabsTrigger value="url">
-									<Link className="mr-2 h-4 w-4" />
+									<Link />
 									URL
 								</TabsTrigger>
 							</TabsList>

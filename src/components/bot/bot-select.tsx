@@ -97,7 +97,7 @@ const BotSelect = ({ onBotSelect, selectedBot }: BotSelectProps) => {
 				)}
 
 				{status === "success" && (
-					<div className="flex flex-col gap-2">
+					<div className="flex flex-col gap-2 p-1">
 						{bots.data.length === 0 ? (
 							<div className="py-8 text-center text-muted-foreground">
 								{searchQuery
@@ -108,10 +108,10 @@ const BotSelect = ({ onBotSelect, selectedBot }: BotSelectProps) => {
 							bots.data.map((bot: Bot) => (
 								<Card
 									key={bot.id}
-									className={`cursor-pointer border-2 transition-all duration-200 hover:shadow-md ${
+									className={`cursor-pointer border transition-all duration-200 hover:shadow-md ${
 										selectedBot?.id === bot.id
 											? "border-primary bg-primary/5 shadow-sm"
-											: "border-transparent hover:bg-muted/50"
+											: "hover:bg-muted/50"
 									}`}
 									onClick={() => handleBotSelect(bot)}
 								>

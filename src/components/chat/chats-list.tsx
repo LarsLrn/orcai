@@ -102,7 +102,7 @@ const ChatsList = ({
 						</CardHeader>
 						<CardContent className="pt-0">
 							<div className="flex items-center text-muted-foreground text-sm">
-								<MessagesSquareIcon className="mr-2 h-4 w-4" />
+								<MessagesSquareIcon />
 								Continue chat
 							</div>
 						</CardContent>

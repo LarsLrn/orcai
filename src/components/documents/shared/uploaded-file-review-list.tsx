@@ -87,11 +87,7 @@ const UploadedFileReviewList = ({
 						size="sm"
 						onClick={() => setEditingFileId(file.id)}
 					>
-						{hasMetadata ? (
-							<CheckCircle2Icon className="mr-2 h-4 w-4" />
-						) : (
-							<PencilIcon className="mr-2 h-4 w-4" />
-						)}
+						{hasMetadata ? <CheckCircle2Icon /> : <PencilIcon />}
 						{hasMetadata ? "Edit Metadata" : "Add Metadata"}
 					</Button>
 

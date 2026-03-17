@@ -70,7 +70,7 @@ const SelectedAssetList = ({
 								size="sm"
 								onClick={() => setEditingAssetId(asset.id)}
 							>
-								<PencilIcon className="mr-2 h-4 w-4" />
+								<PencilIcon />
 								Metadata
 							</Button>
 							<Button
@@ -78,7 +78,7 @@ const SelectedAssetList = ({
 								size="sm"
 								onClick={() => onRemove(asset.id)}
 							>
-								<XIcon className="mr-2 h-4 w-4" />
+								<XIcon />
 								Remove
 							</Button>
 						</div>

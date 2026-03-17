@@ -92,7 +92,7 @@ function RouteComponent() {
 						}
 					/>
 
-					<DialogContent className="flex max-h-[80vh] max-w-2xl flex-col overflow-hidden">
+					<DialogContent className="flex max-h-[80vh] max-w-2xl flex-col">
 						<DialogHeader>
 							<DialogTitle>Select a Bot</DialogTitle>
 							<DialogDescription>

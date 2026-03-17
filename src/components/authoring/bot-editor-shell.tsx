@@ -73,7 +73,7 @@ const WIZARD_STEPS = [
 	{
 		key: "behavior",
 		title: "AI Behavior",
-		description: "Choose the model and define response rules.",
+		description: "Define the bot's response rules.",
 		icon: SparklesIcon,
 	},
 	{
@@ -383,8 +383,8 @@ const BotEditorShell = ({
 							className={cn(
 								"rounded-[24px] border p-4 text-left transition-all",
 								isActive &&
-									"border-orange-300 bg-background shadow-md ring-1 ring-orange-200/70",
-								isComplete && "border-emerald-300 bg-emerald-50/60 shadow-sm",
+									"bg-primary text-primary-foreground shadow-md ring-2 ring-primary",
+								isComplete && "border-secondary bg-secondary/5 shadow-sm",
 								isLocked &&
 									"cursor-not-allowed border-border/60 border-dashed bg-transparent opacity-55 shadow-none",
 								!isActive && !isComplete && !isLocked && "bg-muted/20",
@@ -399,16 +399,16 @@ const BotEditorShell = ({
 							<div className="mb-3 flex items-center justify-between">
 								<Icon className="h-4 w-4" />
 								<Badge
-									variant={isActive ? "default" : "outline"}
-									className={cn(isLocked && "border-dashed")}
+									variant={isActive ? "outline" : "outline"}
+									className={cn(
+										isLocked && "border-dashed",
+										isActive && "text-primary-foreground",
+									)}
 								>
 									{index + 1}
 								</Badge>
 							</div>
-							<div className="font-medium text-sm">{step.title}</div>
-							<div className="mt-1 text-muted-foreground text-xs">
-								{step.description}
-							</div>
+							<div className="font-medium text-xs">{step.title}</div>
 						</button>
 					);
 				})}
@@ -538,7 +538,7 @@ const BotBasicsSection = ({
 	onChange: Dispatch<SetStateAction<EditorState>>;
 }) => (
 	<div className="space-y-6">
-		<Card className="border-border/70 bg-background shadow-sm">
+		<Card>
 			<CardHeader>
 				<CardTitle>Identity</CardTitle>
 				<CardDescription>
@@ -579,7 +579,7 @@ const BotBasicsSection = ({
 			</CardContent>
 		</Card>
 
-		<Card className="border-border/70 bg-background shadow-sm">
+		<Card>
 			<CardHeader>
 				<CardTitle>Bot Description</CardTitle>
 				<CardDescription>

@@ -247,7 +247,7 @@ export const ColorHighlightToolbar = () => {
 										className={cn("h-8 w-14 p-0 font-normal")}
 									>
 										<span className="text-md">A</span>
-										<ChevronDownIcon className="ml-2 h-4 w-4" />
+										<ChevronDownIcon />
 									</Button>
 								}
 							/>
