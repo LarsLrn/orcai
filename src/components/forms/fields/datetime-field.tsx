@@ -110,7 +110,9 @@ const DatetimeField = ({
 
 	return (
 		<Field data-invalid={isInvalid}>
-			<FieldLabel htmlFor={id}>{label}</FieldLabel>
+			<FieldLabel className="font-bold" htmlFor={id}>
+				{label}
+			</FieldLabel>
 			<Popover>
 				<PopoverTrigger
 					render={

@@ -31,7 +31,9 @@ const TextareaField = ({
 
 	return (
 		<Field data-invalid={isInvalid}>
-			<FieldLabel htmlFor={id}>{label}</FieldLabel>
+			<FieldLabel className="font-bold" htmlFor={id}>
+				{label}
+			</FieldLabel>
 			<Textarea
 				id={id}
 				name={field.name}

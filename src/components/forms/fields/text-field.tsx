@@ -43,7 +43,10 @@ const TextField = ({
 
 	return (
 		<Field data-invalid={isInvalid}>
-			<FieldLabel htmlFor={id}>{label}</FieldLabel>
+			<FieldLabel className="font-bold" htmlFor={id}>
+				{label}
+			</FieldLabel>
+			{description && <FieldDescription>{description}</FieldDescription>}
 			<div className="relative">
 				<Input
 					id={id}
@@ -68,7 +71,6 @@ const TextField = ({
 					</div>
 				)}
 			</div>
-			{description && <FieldDescription>{description}</FieldDescription>}
 			{isInvalid && <FieldError errors={errors} />}
 		</Field>
 	);

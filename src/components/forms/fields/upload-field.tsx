@@ -38,7 +38,9 @@ const UploadField = ({
 
 	return (
 		<Field data-invalid={isInvalid}>
-			<FieldLabel htmlFor={id}>{label}</FieldLabel>
+			<FieldLabel className="font-bold" htmlFor={id}>
+				{label}
+			</FieldLabel>
 			<FileUploader
 				value={field.state.value ?? []}
 				onValueChange={field.handleChange}
