@@ -4,9 +4,8 @@ import { useRouteContext } from "@tanstack/react-router";
 import type { VariantProps } from "class-variance-authority";
 import { useNextStep } from "nextstepjs";
 import { useEffect } from "react";
-import { Button, buttonVariants } from "@/components/ui/button";
+import { Button, type buttonVariants } from "@/components/ui/button";
 import { orpc } from "@/lib/orpc/orpc";
-import { cn } from "@/lib/utils";
 
 const AppTourButton = ({
 	tour,
@@ -57,13 +56,9 @@ const AppTourButton = ({
 		<Button
 			onClick={handleStartTour}
 			data-slot="button"
-			className={cn(
-				buttonVariants({
-					variant,
-					size,
-					className,
-				}),
-			)}
+			variant={variant}
+			size={size}
+			className={className}
 			{...props}
 		/>
 	);
