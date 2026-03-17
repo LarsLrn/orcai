@@ -28,7 +28,6 @@ import {
 	PageTitle,
 } from "@/components/ui/shell/page";
 import { useDeleteBotsMutation } from "@/hooks/mutations/use-bot-mutations";
-import { useCreateChatMutation } from "@/hooks/mutations/use-chat-mutation";
 import { orpc } from "@/lib/orpc/orpc";
 
 export const Route = createFileRoute("/app/hub/bots/$botId/")({
@@ -66,7 +65,6 @@ function RouteComponent() {
 		}),
 	);
 
-	const { mutate: createChat } = useCreateChatMutation();
 	const { mutate: deleteBots } = useDeleteBotsMutation({
 		onMutate: async () => {
 			// Navigate away before deleting to avoid rendering the deleted bot.
@@ -84,8 +82,11 @@ function RouteComponent() {
 				<PageAction>
 					<Button
 						onClick={() =>
-							createChat({
-								botId: bot.data.id,
+							navigate({
+								to: "/app/chat/new",
+								search: {
+									botId: bot.data.id,
+								},
 							})
 						}
 					>

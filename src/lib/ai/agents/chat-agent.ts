@@ -1,15 +1,24 @@
 import { type LanguageModel, Output, stepCountIs, ToolLoopAgent } from "ai";
 import { buildKnowledgeBaseTools } from "@/lib/ai/tools/rag/toolset";
-import type { DatabaseBlock, TemplateBlock } from "@/lib/orpc/schemas/block";
+import type { DatabaseBlock } from "@/lib/orpc/schemas/block";
 
 const chatAgentToolSet = buildKnowledgeBaseTools({
 	blocks: [], // Placeholder, will be set in prepareCall
 });
 
+export interface ChatAgentGenerationParams {
+	temperature?: number;
+	maxTokens?: number;
+	topP?: number;
+	frequencyPenalty?: number;
+	presencePenalty?: number;
+}
+
 export const createChatAgent = (params: {
 	model: LanguageModel;
-	templateBlock: TemplateBlock;
+	systemPrompt: string;
 	databaseBlocks: DatabaseBlock[];
+	generationParams?: ChatAgentGenerationParams;
 }) =>
 	new ToolLoopAgent({
 		model: params.model,
@@ -24,12 +33,15 @@ export const createChatAgent = (params: {
 
 			return {
 				...settings,
+				temperature: params.generationParams?.temperature,
+				maxTokens: params.generationParams?.maxTokens,
+				topP: params.generationParams?.topP,
+				frequencyPenalty: params.generationParams?.frequencyPenalty,
+				presencePenalty: params.generationParams?.presencePenalty,
 				instructions: [
 					{
 						role: "system",
-						content:
-							params.templateBlock.config.systemPrompt ??
-							"You are a helpful assistant.",
+						content: params.systemPrompt,
 					},
 					{
 						role: "system",

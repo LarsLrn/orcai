@@ -631,24 +631,6 @@ export const publishBot = authed.bot.publish
 					);
 				}
 
-				if (!editor.data.templateBlock.config.provider) {
-					return yield* Effect.fail(
-						errors.BAD_REQUEST({
-							message:
-								"Select a provider for the template block before publishing.",
-						}),
-					);
-				}
-
-				if (!editor.data.templateBlock.config.model) {
-					return yield* Effect.fail(
-						errors.BAD_REQUEST({
-							message:
-								"Select a text model for the template block before publishing.",
-						}),
-					);
-				}
-
 				for (const databaseBlock of editor.data.databaseBlocks) {
 					if (!databaseBlock.config.provider) {
 						return yield* Effect.fail(

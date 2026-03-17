@@ -1,10 +1,5 @@
-import { Link } from "@tanstack/react-router";
-import {
-	BotIcon,
-	MessageSquarePlusIcon,
-	MessagesSquareIcon,
-	PlusIcon,
-} from "lucide-react";
+import { Link, useNavigate } from "@tanstack/react-router";
+import { BotIcon, PlusIcon } from "lucide-react";
 import { Suspense } from "react";
 import { UserWelcome } from "@/components/app/user-welcome";
 import {
@@ -12,8 +7,9 @@ import {
 	BotsShowcaseSkeleton,
 } from "@/components/bot/bots-showcase";
 import { ChatsList } from "@/components/chat/chats-list";
-import { Button, buttonVariants } from "@/components/ui/button";
-import { ButtonGroup } from "@/components/ui/button-group";
+import { NewChatInput } from "@/components/chat/new-chat-input";
+import { useChatStarter } from "@/components/chat/use-chat-starter";
+import { buttonVariants } from "@/components/ui/button";
 import {
 	Hero,
 	HeroContent,
@@ -28,55 +24,82 @@ import {
 	SectionHeader,
 	SectionTitle,
 } from "@/components/ui/shell/section";
-import { useCreateChatMutation } from "@/hooks/mutations/use-chat-mutation";
 
-const UserHomeHero = () => {
-	const { mutate: createChat } = useCreateChatMutation();
+const QuickChatSection = () => {
+	const navigate = useNavigate();
+	const {
+		selectedBotId,
+		selectedModelId,
+		selectedProviderId,
+		isCreating,
+		handleModelSelect,
+		handleBotSelect,
+		handleSend,
+	} = useChatStarter({
+		onChatCreated: (chatId, pendingMessage, zedToken) =>
+			navigate({
+				to: "/app/chat/$chatId",
+				params: {
+					chatId,
+				},
+				search: {
+					zedToken,
+				},
+				state: (previous) => ({
+					...previous,
+					pendingMessage,
+				}),
+			}),
+	});
 
 	return (
-		<Hero>
-			<HeroWave />
-			<HeroInner>
-				<HeroContent>
-					<UserWelcome />
-					<div className="flex flex-wrap items-center gap-2">
-						<Button size="lg" className="gap-2" onClick={() => createChat({})}>
-							<MessageSquarePlusIcon className="h-4 w-4" />
-							Start a chat
-						</Button>
-						<ButtonGroup>
-							<Link
-								to="/app/chat/setup"
-								data-slot="button"
-								className={buttonVariants({
-									variant: "outline",
-								})}
-							>
-								<MessagesSquareIcon className="h-4 w-4" />
-								Chat options
-							</Link>
-							<Link
-								to="/app/hub/bots"
-								data-slot="button"
-								className={buttonVariants({
-									variant: "outline",
-								})}
-							>
-								<BotIcon className="h-4 w-4" />
-								Browse bots
-							</Link>
-						</ButtonGroup>
-					</div>
-				</HeroContent>
-			</HeroInner>
-		</Hero>
+		<Section>
+			<SectionHeader>
+				<SectionTitle>Dive right in</SectionTitle>
+				<SectionAction>
+					<Link
+						to="/app/hub/bots"
+						data-slot="button"
+						className={buttonVariants({
+							variant: "outline",
+							size: "sm",
+						})}
+					>
+						<BotIcon />
+						Browse bots
+					</Link>
+				</SectionAction>
+			</SectionHeader>
+			<SectionContent>
+				<div className="flex w-full max-w-3xl flex-col gap-3">
+					<NewChatInput
+						selectedBotId={selectedBotId}
+						selectedModelId={selectedModelId}
+						selectedProviderId={selectedProviderId}
+						onBotSelect={handleBotSelect}
+						onModelSelect={handleModelSelect}
+						onSend={handleSend}
+						isCreating={isCreating}
+					/>
+				</div>
+			</SectionContent>
+		</Section>
 	);
 };
 
 const UserHome = () => {
 	return (
 		<div className="space-y-12">
-			<UserHomeHero />
+			<Hero>
+				<HeroWave />
+				<HeroInner>
+					<HeroContent>
+						<UserWelcome />
+					</HeroContent>
+				</HeroInner>
+			</Hero>
+
+			<QuickChatSection />
 
 			<Section>
 				<SectionHeader>

@@ -1,136 +1,213 @@
-import { CheckIcon } from "lucide-react";
-import { useState } from "react";
+import { useQuery } from "@tanstack/react-query";
+import { useEffect, useMemo, useState } from "react";
 import {
-	ModelSelector,
-	ModelSelectorContent,
-	ModelSelectorEmpty,
-	ModelSelectorGroup,
-	ModelSelectorInput,
-	ModelSelectorItem,
-	ModelSelectorList,
-	ModelSelectorLogo,
-	ModelSelectorLogoGroup,
-	ModelSelectorName,
-	ModelSelectorTrigger,
-} from "@/components/ai-elements/model-selector";
-import { PromptInputButton } from "@/components/ai-elements/prompt-input";
+	DialogSelect,
+	DialogSelectContent,
+	DialogSelectEmpty,
+	DialogSelectFilter,
+	type DialogSelectFilterOption,
+	DialogSelectFilters,
+	DialogSelectItem,
+	DialogSelectList,
+	DialogSelectPagination,
+	DialogSelectSearch,
+	DialogSelectTrigger,
+} from "@/components/ui/composed/dialog-select";
+import { orpc } from "@/lib/orpc/orpc";
+import type { Model } from "@/lib/orpc/schemas/model";
+import type { Provider } from "@/lib/orpc/schemas/provider";
+import { cn } from "@/lib/utils";
 
-const models = [
-	{
-		id: "gpt-4o",
-		name: "GPT-4o",
-		chef: "OpenAI",
-		chefSlug: "openai",
-		providers: [
-			"openai",
-			"azure",
-		],
-	},
-	{
-		id: "gpt-4o-mini",
-		name: "GPT-4o Mini",
-		chef: "OpenAI",
-		chefSlug: "openai",
-		providers: [
-			"openai",
-			"azure",
-		],
-	},
-	{
-		id: "claude-opus-4-20250514",
-		name: "Claude 4 Opus",
-		chef: "Anthropic",
-		chefSlug: "anthropic",
-		providers: [
-			"anthropic",
-			"azure",
-			"google",
-			"amazon-bedrock",
-		],
-	},
-	{
-		id: "claude-sonnet-4-20250514",
-		name: "Claude 4 Sonnet",
-		chef: "Anthropic",
-		chefSlug: "anthropic",
-		providers: [
-			"anthropic",
-			"azure",
-			"google",
-			"amazon-bedrock",
-		],
-	},
-	{
-		id: "gemini-2.0-flash-exp",
-		name: "Gemini 2.0 Flash",
-		chef: "Google",
-		chefSlug: "google",
-		providers: [
-			"google",
-		],
-	},
-];
+const PROVIDER_PLACEHOLDER_VALUE = "__select-provider__";
+const MODEL_PAGE_SIZE = 20;
 
-const ModelSelectorButton = () => {
-	const [model, setModel] = useState<string>(models[0].id);
-	const [modelSelectorOpen, setModelSelectorOpen] = useState(false);
+const ModelSelectorButton = ({
+	selectedModelId,
+	selectedProviderId,
+	onSelect,
+	variant = "compact",
+	className,
+}: {
+	selectedModelId?: string;
+	selectedProviderId?: string;
+	onSelect: (model: Model, provider: Provider) => void;
+	variant?: "compact" | "full";
+	className?: string;
+}) => {
+	const [modelDialogOpen, setModelDialogOpen] = useState(false);
+	const [modelSearch, setModelSearch] = useState("");
+	const [modelPage, setModelPage] = useState(0);
+	const [providerFilter, setProviderFilter] = useState(
+		selectedProviderId ?? PROVIDER_PLACEHOLDER_VALUE,
+	);
 
-	const selectedModelData = models.find((m) => m.id === model);
+	useEffect(() => {
+		if (
+			!modelDialogOpen &&
+			selectedProviderId &&
+			selectedProviderId !== providerFilter
+		) {
+			setProviderFilter(selectedProviderId);
+		}
+	}, [
+		modelDialogOpen,
+		providerFilter,
+		selectedProviderId,
+	]);
+
+	const providerFilterId =
+		providerFilter === PROVIDER_PLACEHOLDER_VALUE ? undefined : providerFilter;
+
+	const { data: providersResult } = useQuery(
+		orpc.provider.list.queryOptions({
+			input: {
+				pageIndex: 0,
+				pageSize: 100,
+			},
+		}),
+	);
+
+	const {
+		data: modelsResult,
+		isLoading: modelsLoading,
+		isFetching: modelsFetching,
+	} = useQuery({
+		...orpc.model.list.queryOptions({
+			input: {
+				pageIndex: modelPage,
+				pageSize: MODEL_PAGE_SIZE,
+				filters: {
+					providerId: providerFilterId,
+					capabilities: [
+						"text",
+					],
+					search: modelSearch || undefined,
+				},
+			},
+		}),
+		enabled: modelDialogOpen && !!providerFilterId,
+	});
+
+	const { data: selectedModelData } = useQuery({
+		...orpc.model.find.queryOptions({
+			input: {
+				id: selectedModelId ?? "",
+			},
+		}),
+		enabled: !!selectedModelId,
+	});
+
+	const providers = providersResult?.data ?? [];
+	const models = providerFilterId ? (modelsResult?.data ?? []) : [];
+	const pageCount = providerFilterId
+		? Math.ceil((modelsResult?.rowCount ?? 0) / MODEL_PAGE_SIZE)
+		: 0;
+
+	const providerMap = useMemo(
+		() =>
+			new Map(
+				providers.map((p) => [
+					p.id,
+					p,
+				]),
+			),
+		[
+			providers,
+		],
+	);
+
+	const providerFilterOptions = useMemo<DialogSelectFilterOption[]>(() => {
+		const providerOptions = providers.map((provider) => ({
+			label: provider.name,
+			value: provider.id,
+		}));
+		return [
+			{
+				label: "Select a provider",
+				value: PROVIDER_PLACEHOLDER_VALUE,
+			},
+			...providerOptions,
+		];
+	}, [
+		providers,
+	]);
+
+	const selectedModel = selectedModelData?.data;
+
+	const triggerLabel = selectedModel?.name ?? "Choose model";
 
 	return (
-		<ModelSelector onOpenChange={setModelSelectorOpen} open={modelSelectorOpen}>
-			<ModelSelectorTrigger
-				render={
-					<PromptInputButton>
-						{selectedModelData?.chefSlug && (
-							<ModelSelectorLogo provider={selectedModelData.chefSlug} />
-						)}
-						{selectedModelData?.name && (
-							<ModelSelectorName>{selectedModelData.name}</ModelSelectorName>
-						)}
-					</PromptInputButton>
-				}
-			/>
-			<ModelSelectorContent>
-				<ModelSelectorInput placeholder="Search models..." />
-				<ModelSelectorList>
-					<ModelSelectorEmpty>No models found.</ModelSelectorEmpty>
-					{[
-						"OpenAI",
-						"Anthropic",
-						"Google",
-					].map((chef) => (
-						<ModelSelectorGroup heading={chef} key={chef}>
-							{models
-								.filter((m) => m.chef === chef)
-								.map((m) => (
-									<ModelSelectorItem
-										key={m.id}
-										onSelect={() => {
-											setModel(m.id);
-											setModelSelectorOpen(false);
-										}}
-										value={m.id}
-									>
-										<ModelSelectorLogo provider={m.chefSlug} />
-										<ModelSelectorName>{m.name}</ModelSelectorName>
-										<ModelSelectorLogoGroup>
-											{m.providers.map((provider) => (
-												<ModelSelectorLogo key={provider} provider={provider} />
-											))}
-										</ModelSelectorLogoGroup>
-										{model === m.id ? (
-											<CheckIcon className="ml-auto size-4" />
-										) : (
-											<div className="ml-auto size-4" />
-										)}
-									</ModelSelectorItem>
-								))}
-						</ModelSelectorGroup>
+		<DialogSelect
+			value={selectedModelId ?? null}
+			onValueChange={(modelId) => {
+				const model = models.find((entry) => entry.id === modelId);
+				if (!model) return;
+				const provider = providerMap.get(model.providerId);
+				if (!provider) return;
+				onSelect(model, provider);
+			}}
+			open={modelDialogOpen}
+			onOpenChange={setModelDialogOpen}
+		>
+			<DialogSelectTrigger
+				className={cn(
+					variant === "compact"
+						? "max-w-60 border-transparent bg-transparent px-2 hover:bg-muted"
+						: "w-full justify-between",
+					className,
+				)}
+				placeholder="Choose model..."
+				size={variant === "compact" ? "sm" : "default"}
+			>
+				<span className="truncate">{triggerLabel}</span>
+			</DialogSelectTrigger>
+			<DialogSelectContent title="Choose a text model">
+				<DialogSelectSearch
+					value={modelSearch}
+					onValueChange={(value) => {
+						setModelSearch(value);
+						setModelPage(0);
+					}}
+					placeholder="Search models..."
+				/>
+				<DialogSelectFilters>
+					<DialogSelectFilter
+						value={providerFilter}
+						onValueChange={(providerId) => {
+							setProviderFilter(providerId);
+							setModelSearch("");
+							setModelPage(0);
+						}}
+						placeholder="Select a provider"
+						options={providerFilterOptions}
+					/>
+				</DialogSelectFilters>
+				<DialogSelectList
+					loading={providerFilterId ? modelsLoading || modelsFetching : false}
+				>
+					{models.map((model) => (
+						<DialogSelectItem
+							key={model.id}
+							value={model.id}
+							title={model.name}
+							description={model.description || undefined}
+						/>
 					))}
-				</ModelSelectorList>
-			</ModelSelectorContent>
-		</ModelSelector>
+					{!modelsLoading && !modelsFetching && models.length === 0 && (
+						<DialogSelectEmpty>
+							{providerFilterId
+								? "No models found."
+								: "Select a provider to view models."}
+						</DialogSelectEmpty>
+					)}
+				</DialogSelectList>
+				<DialogSelectPagination
+					page={modelPage}
+					pageCount={pageCount}
+					onPageChange={setModelPage}
+				/>
+			</DialogSelectContent>
+		</DialogSelect>
 	);
 };
 

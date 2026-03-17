@@ -72,8 +72,6 @@ export const templateBlockSchema = z.object({
 	type: z.literal("template"),
 	config: z.object({
 		systemPrompt: z.string(),
-		model: z.string(),
-		provider: z.string(),
 	}),
 });
 

@@ -17,11 +17,11 @@ import {
 	createDefaultDatabaseBlock,
 	DatabaseBlockEditor,
 } from "@/components/authoring/database-block-editor";
-import { ExistingBlockPickerDialog } from "@/components/authoring/existing-block-picker-dialog";
 import {
 	createDefaultTemplateBlock,
 	TemplateBlockEditor,
 } from "@/components/authoring/template-block-editor";
+import { BlockSelectorDialog } from "@/components/blocks/block-selector-dialog";
 import { BlockEditor } from "@/components/editor/block-editor";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -111,13 +111,6 @@ const getPublishIssues = (editor: EditorState) => {
 
 	if (!editor.templateBlock) {
 		issues.push("Add an AI behavior before launching the bot.");
-	} else {
-		if (!editor.templateBlock.config.provider) {
-			issues.push("Choose a provider for the AI behavior.");
-		}
-		if (!editor.templateBlock.config.model) {
-			issues.push("Choose a text model for the AI behavior.");
-		}
 	}
 
 	for (const databaseBlock of editor.databaseBlocks) {
@@ -444,7 +437,7 @@ const BotEditorShell = ({
 									}))
 								}
 							/>
-							<ExistingBlockPickerDialog
+							<BlockSelectorDialog
 								open={isTemplateBlockLibraryOpen}
 								onOpenChange={setIsTemplateBlockLibraryOpen}
 								type="template"
@@ -471,6 +464,9 @@ const BotEditorShell = ({
 										config: block.config,
 									});
 								}}
+								title="Use Existing AI Behavior"
+								description="Attach a reusable AI behavior block instead of creating a new one."
+								searchPlaceholder="Search AI behavior blocks..."
 							/>
 						</div>
 					) : null}
@@ -496,34 +492,38 @@ const BotEditorShell = ({
 						/>
 					) : null}
 
-					<div className="flex items-center justify-between gap-3 rounded-[24px] border bg-background/80 p-4 shadow-sm backdrop-blur">
-						<Button
-							variant="outline"
-							onClick={handleWizardBack}
-							disabled={activeStepIndex === 0 || isSaving || isPublishing}
-						>
-							<ChevronLeftIcon className="mr-2 h-4 w-4" />
-							Back
-						</Button>
+					<Card>
+						<CardContent className="flex flex-row items-center justify-between gap-3">
+							<Button
+								variant="outline"
+								onClick={handleWizardBack}
+								disabled={activeStepIndex === 0 || isSaving || isPublishing}
+							>
+								<ChevronLeftIcon />
+								Back
+							</Button>
 
-						{activeStepIndex === WIZARD_STEPS.length - 1 ? (
-							<Button
-								onClick={handlePublish}
-								disabled={publishIssues.length > 0 || isSaving || isPublishing}
-							>
-								<RocketIcon className="mr-2 h-4 w-4" />
-								Launch Bot
-							</Button>
-						) : (
-							<Button
-								onClick={handleWizardNext}
-								disabled={isSaving || isPublishing}
-							>
-								Next
-								<ChevronRightIcon className="ml-2 h-4 w-4" />
-							</Button>
-						)}
-					</div>
+							{activeStepIndex === WIZARD_STEPS.length - 1 ? (
+								<Button
+									onClick={handlePublish}
+									disabled={
+										publishIssues.length > 0 || isSaving || isPublishing
+									}
+								>
+									<RocketIcon />
+									Launch Bot
+								</Button>
+							) : (
+								<Button
+									onClick={handleWizardNext}
+									disabled={isSaving || isPublishing}
+								>
+									Next
+									<ChevronRightIcon />
+								</Button>
+							)}
+						</CardContent>
+					</Card>
 				</div>
 			</div>
 		</div>
@@ -711,7 +711,7 @@ const DocumentsSection = ({
 			</div>
 		)}
 
-		<ExistingBlockPickerDialog
+		<BlockSelectorDialog
 			open={isDatabaseBlockLibraryOpen}
 			onOpenChange={onDatabaseBlockLibraryOpenChange}
 			type="database"
@@ -725,6 +725,9 @@ const DocumentsSection = ({
 			onSelect={async (block) => {
 				await onAddExistingDatabaseBlock(block.id);
 			}}
+			title="Use Existing AI Behavior"
+			description="Attach a reusable AI behavior block instead of creating a new one."
+			searchPlaceholder="Search AI behavior blocks..."
 		/>
 	</div>
 );
@@ -803,9 +806,8 @@ const ReviewSection = ({
 						<>
 							<div className="font-medium">{editor.templateBlock.name}</div>
 							<div className="mt-1 text-muted-foreground">
-								Provider:{" "}
-								{editor.templateBlock.config.provider || "Not selected"}. Model:{" "}
-								{editor.templateBlock.config.model || "Not selected"}.
+								System prompt and response behavior are configured on this
+								template block.
 							</div>
 						</>
 					) : (

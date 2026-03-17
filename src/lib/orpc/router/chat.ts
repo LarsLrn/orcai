@@ -152,6 +152,7 @@ export const createChat = authed.chat.create.handler(
 								title: input.title ?? "New Chat",
 								userId: context.auth.user.id,
 								botId: input.botId,
+								config: input.config ?? {},
 							})
 							.returning();
 
@@ -226,10 +227,43 @@ export const updateChat = authed.chat.update
 				entityType: "chat",
 			}) satisfies CheckPermissionInput,
 	)
-	.handler(async ({ input }) =>
+	.handler(async ({ input, errors }) =>
 		runOrpcEffect(
 			Effect.gen(function* () {
 				const db = yield* DB;
+				const existingChat = yield* db.query.chat.findFirst({
+					where: {
+						id: input.id,
+					},
+				});
+
+				const configPatch =
+					input.config === undefined
+						? undefined
+						: Object.fromEntries(
+								Object.entries(input.config).filter(
+									([, value]) => value !== undefined,
+								),
+							);
+
+				const mergedConfig =
+					configPatch === undefined
+						? undefined
+						: (() => {
+								const nextConfig = {
+									...(existingChat?.config ?? {}),
+								} as Record<string, unknown>;
+
+								for (const [key, value] of Object.entries(configPatch)) {
+									if (value === null) {
+										delete nextConfig[key];
+										continue;
+									}
+									nextConfig[key] = value;
+								}
+
+								return nextConfig;
+							})();
 
 				return yield* db
 					.update(dbSchema.chat)
@@ -237,13 +271,30 @@ export const updateChat = authed.chat.update
 						updatedAt: new Date(),
 						title: input.title,
 						activeBranchId: input.activeBranchId,
+						...(mergedConfig !== undefined && {
+							config: mergedConfig,
+						}),
 					})
 					.where(eq(dbSchema.chat.id, input.id))
 					.returning();
 			}).pipe(
-				Effect.map(([updatedChat]) => ({
-					data: updatedChat,
-				})),
+				Effect.flatMap(([updatedChat]) =>
+					Effect.fromNullable(updatedChat).pipe(
+						Effect.orElse(() =>
+							Effect.fail(
+								errors.NOT_FOUND({
+									message: "Chat not found",
+									data: {
+										id: input.id,
+									},
+								}),
+							),
+						),
+						Effect.map((chat) => ({
+							data: chat,
+						})),
+					),
+				),
 			),
 		),
 	);

@@ -1,8 +1,8 @@
 import type { UseChatHelpers } from "@ai-sdk/react";
-import { useQueryClient } from "@tanstack/react-query";
+import { useQuery, useQueryClient } from "@tanstack/react-query";
 import type { ChatStatus } from "ai";
-import { CompassIcon, GlobeIcon } from "lucide-react";
-import { useState } from "react";
+import { CompassIcon } from "lucide-react";
+import { useCallback, useState } from "react";
 import { toast } from "sonner";
 import { ConversationDownload } from "@/components/ai-elements/conversation";
 import {
@@ -15,15 +15,19 @@ import { ChatComposerAttachments } from "@/components/chat/attachments/chat-atta
 import { useChatAttachments } from "@/components/chat/attachments/use-chat-attachments";
 import { ChatAssetPicker } from "@/components/chat/chat-asset-picker";
 import { ChatSettings } from "@/components/chat/chat-settings";
+import { ModelSelectorButton } from "@/components/chat/model-selector";
 import { AppTourButton } from "@/components/next-step/app-tour-button";
 import {
 	InputGroup,
 	InputGroupAddon,
 	InputGroupTextarea,
 } from "@/components/ui/input-group";
+import { useUpdateChatMutation } from "@/hooks/mutations/use-chat-mutation";
 import type { ChatAgentUIMessage } from "@/lib/ai/types/chat-agent-message";
 import { orpc } from "@/lib/orpc/orpc";
 import type { Chat } from "@/lib/orpc/schemas/chat";
+import type { Model } from "@/lib/orpc/schemas/model";
+import type { Provider } from "@/lib/orpc/schemas/provider";
 import {
 	CHAT_ATTACHMENT_ACCEPT,
 	CHAT_ATTACHMENT_LIMIT,
@@ -31,12 +35,14 @@ import {
 
 const ChatInput = ({
 	chatId,
+	zedToken,
 	sendMessage,
 	messages,
 	status,
 	chatLength,
 }: {
 	chatId: Chat["id"];
+	zedToken?: string;
 	sendMessage: UseChatHelpers<ChatAgentUIMessage>["sendMessage"];
 	messages: ChatAgentUIMessage[];
 	status: UseChatHelpers<ChatAgentUIMessage>["status"];
@@ -44,6 +50,35 @@ const ChatInput = ({
 }) => {
 	const queryClient = useQueryClient();
 	const [messageText, setMessageText] = useState("");
+
+	const { data: chat } = useQuery(
+		orpc.chat.find.queryOptions({
+			input: {
+				id: chatId,
+				zedToken,
+			},
+		}),
+	);
+	const { mutate: updateChat } = useUpdateChatMutation();
+	const isModelConfigured = Boolean(
+		chat?.data.config?.modelId && chat?.data.config?.providerId,
+	);
+
+	const handleModelSelect = useCallback(
+		(model: Model, provider: Provider) => {
+			updateChat({
+				id: chatId,
+				config: {
+					modelId: model.id,
+					providerId: provider.id,
+				},
+			});
+		},
+		[
+			chatId,
+			updateChat,
+		],
+	);
 
 	const {
 		fileInputRef,
@@ -81,6 +116,11 @@ const ChatInput = ({
 		}
 
 		if (isGenerating || isUploading) {
+			return;
+		}
+
+		if (!isModelConfigured) {
+			toast.error("Select a model before sending a message.");
 			return;
 		}
 
@@ -147,7 +187,7 @@ const ChatInput = ({
 			/>
 
 			<form onSubmit={handleSubmit}>
-				<InputGroup className="overflow-hidden">
+				<InputGroup className="overflow-hidden bg-card">
 					<ChatComposerAttachments
 						localFiles={localFiles}
 						assets={selectedAssets}
@@ -171,10 +211,6 @@ const ChatInput = ({
 								onUploadFile={openUploadDialog}
 								onSelectFromAssets={() => setAssetPickerOpen(true)}
 							/>
-							<PromptInputButton>
-								<GlobeIcon size={16} />
-								<span>Search</span>
-							</PromptInputButton>
 							<PromptInputButton
 								render={
 									<AppTourButton
@@ -193,6 +229,7 @@ const ChatInput = ({
 								render={
 									<ChatSettings
 										chatId={chatId}
+										zedToken={zedToken}
 										className="text-muted-foreground"
 									/>
 								}
@@ -200,10 +237,15 @@ const ChatInput = ({
 							<ConversationDownload messages={messages} />
 						</PromptInputTools>
 
-						{/* <ModelSelectorButton /> */}
+						<ModelSelectorButton
+							selectedModelId={chat?.data.config?.modelId}
+							selectedProviderId={chat?.data.config?.providerId}
+							onSelect={handleModelSelect}
+						/>
 						<PromptInputSubmit
 							status={submitStatus}
 							disabled={
+								!isModelConfigured ||
 								isGenerating ||
 								isUploading ||
 								!(
@@ -215,6 +257,11 @@ const ChatInput = ({
 						/>
 					</InputGroupAddon>
 				</InputGroup>
+				{!isModelConfigured && (
+					<p className="mt-2 text-muted-foreground text-xs">
+						Select a model to start chatting.
+					</p>
+				)}
 			</form>
 
 			<ChatAssetPicker

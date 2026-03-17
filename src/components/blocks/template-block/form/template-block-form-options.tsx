@@ -16,8 +16,6 @@ const defaultValues = (
 	status: block?.status || "draft",
 	config: {
 		systemPrompt: block?.config.systemPrompt ?? "",
-		model: block?.config.model ?? "",
-		provider: block?.config.provider ?? "",
 	},
 });
 

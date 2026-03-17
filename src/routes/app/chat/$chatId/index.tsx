@@ -1,4 +1,4 @@
-import { createFileRoute } from "@tanstack/react-router";
+import { createFileRoute, useRouterState } from "@tanstack/react-router";
 import { z } from "zod/v4";
 import { Chat } from "@/components/chat/chat";
 import type { ChatAgentUIMessage } from "@/lib/ai/types/chat-agent-message";
@@ -11,6 +11,7 @@ import { chatBranchSelectSchema } from "@/lib/orpc/schemas/chat-branch";
 
 const searchSchema = z.object({
 	branch: chatBranchSelectSchema.shape.id.optional(),
+	zedToken: z.string().optional(),
 });
 
 export const Route = createFileRoute("/app/chat/$chatId/")({
@@ -26,15 +27,20 @@ export const Route = createFileRoute("/app/chat/$chatId/")({
 		};
 	},
 	validateSearch: searchSchema,
-	loaderDeps: ({ search: { branch } }) => ({
+	loaderDeps: ({ search: { branch, zedToken } }) => ({
 		branch,
+		zedToken,
 	}),
-	loader: async ({ context: { queryClient, chatId }, deps: { branch } }) => {
+	loader: async ({
+		context: { queryClient, chatId },
+		deps: { branch, zedToken },
+	}) => {
 		// Fetch the chat to get activeBranchId if branch is not specified
 		const chat = await queryClient.ensureQueryData(
 			orpc.chat.find.queryOptions({
 				input: {
 					id: chatId,
+					zedToken,
 				},
 			}),
 		);
@@ -53,6 +59,7 @@ export const Route = createFileRoute("/app/chat/$chatId/")({
 					includeScores: true,
 					branchId,
 					pageSize: 100,
+					zedToken,
 				},
 			}),
 		);
@@ -97,6 +104,13 @@ export const Route = createFileRoute("/app/chat/$chatId/")({
 function RouteComponent() {
 	const { chatId } = Route.useRouteContext();
 	const loaderData = Route.useLoaderData();
+	const { zedToken } = Route.useSearch();
+	const pendingMessage = useRouterState({
+		select: (state) =>
+			typeof state.location.state.pendingMessage === "string"
+				? state.location.state.pendingMessage
+				: undefined,
+	});
 
 	return (
 		<div className="-mx-2 -mb-6 h-[calc(100dvh-72px)] sm:-mx-2">
@@ -106,6 +120,8 @@ function RouteComponent() {
 				initialMessages={loaderData.messages.data as ChatAgentUIMessage[]}
 				scores={loaderData.messages.scores.data ?? []}
 				branchId={loaderData.branchId}
+				zedToken={zedToken}
+				pendingMessage={pendingMessage}
 			/>
 		</div>
 	);

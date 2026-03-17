@@ -1,4 +1,4 @@
-import { createFileRoute } from "@tanstack/react-router";
+import { createFileRoute, useNavigate } from "@tanstack/react-router";
 import {
 	BotIcon,
 	MessageSquarePlusIcon,
@@ -32,7 +32,6 @@ import {
 	PageHeader,
 	PageTitle,
 } from "@/components/ui/shell/page";
-import { useCreateChatMutation } from "@/hooks/mutations/use-chat-mutation";
 import type { Bot } from "@/lib/orpc/schemas/bot";
 
 export const Route = createFileRoute("/app/chat/setup")({
@@ -47,7 +46,7 @@ export const Route = createFileRoute("/app/chat/setup")({
 });
 
 function RouteComponent() {
-	const { mutate: createChat } = useCreateChatMutation();
+	const navigate = useNavigate();
 	const [selectedBot, setSelectedBot] = useState<Bot | null>(null);
 	const [dialogOpen, setDialogOpen] = useState(false);
 
@@ -110,8 +109,11 @@ function RouteComponent() {
 							<Button
 								disabled={!selectedBot}
 								onClick={() =>
-									createChat({
-										botId: selectedBot?.id,
+									navigate({
+										to: "/app/chat/new",
+										search: {
+											botId: selectedBot?.id,
+										},
 									})
 								}
 							>
@@ -125,7 +127,11 @@ function RouteComponent() {
 					<button
 						type="button"
 						className="contents"
-						onClick={() => createChat({})}
+						onClick={() =>
+							navigate({
+								to: "/app/chat/new",
+							})
+						}
 					>
 						<CardHeader className="text-center">
 							<div className="mx-auto mb-4 flex h-16 w-16 items-center justify-center rounded-full bg-secondary/10 transition-colors group-hover:bg-secondary/20">

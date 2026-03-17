@@ -1,6 +1,5 @@
-import { BotIcon, ServerIcon } from "lucide-react";
+import { BotIcon } from "lucide-react";
 import { Markdown } from "@/components/app/markdown";
-import { Badge } from "@/components/ui/badge";
 import {
 	Card,
 	CardContent,
@@ -20,32 +19,13 @@ const TemplateBlockConfigCard = ({
 			<CardHeader>
 				<CardTitle className="flex items-center gap-2">
 					<BotIcon className="h-5 w-5" />
-					AI Configuration
+					AI Behavior
 				</CardTitle>
 				<CardDescription>
-					Configure the AI model and settings for this block
+					Define system-level instructions for chats that use this block
 				</CardDescription>
 			</CardHeader>
 			<CardContent className="space-y-6">
-				<div className="grid grid-cols-1 gap-6 md:grid-cols-2">
-					<div className="space-y-2">
-						<div className="font-medium text-sm">Provider</div>
-						<div className="flex items-center gap-2">
-							<ServerIcon className="h-4 w-4 text-muted-foreground" />
-							<Badge variant="secondary" className="capitalize">
-								{config.provider}
-							</Badge>
-						</div>
-					</div>
-					<div className="space-y-2">
-						<div className="font-medium text-sm">Model</div>
-						<div className="flex items-center gap-2">
-							<BotIcon className="h-4 w-4 text-muted-foreground" />
-							<Badge variant="default">{config.model}</Badge>
-						</div>
-					</div>
-				</div>
-
 				{config.systemPrompt && (
 					<div className="space-y-2">
 						<div className="font-medium text-sm">System Prompt</div>
@@ -53,6 +33,11 @@ const TemplateBlockConfigCard = ({
 							<Markdown>{config.systemPrompt}</Markdown>
 						</div>
 					</div>
+				)}
+				{!config.systemPrompt && (
+					<p className="text-muted-foreground text-sm">
+						No system prompt configured.
+					</p>
 				)}
 			</CardContent>
 		</Card>

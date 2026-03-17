@@ -8,6 +8,34 @@ import { dbSchema } from "@/db/schema";
 
 /**
  * ----------------
+ * Chat Config Schema
+ * ----------------
+ */
+
+export const chatConfigSchema = z.object({
+	modelId: z.string().optional(),
+	providerId: z.string().optional(),
+	systemPrompt: z.string().optional(),
+	temperature: z.number().min(0).max(2).optional(),
+	maxTokens: z.number().int().min(1).optional(),
+	topP: z.number().min(0).max(1).optional(),
+	frequencyPenalty: z.number().min(-2).max(2).optional(),
+	presencePenalty: z.number().min(-2).max(2).optional(),
+});
+
+export const chatConfigPatchSchema = chatConfigSchema.extend({
+	modelId: z.string().nullable().optional(),
+	providerId: z.string().nullable().optional(),
+	systemPrompt: z.string().nullable().optional(),
+	temperature: z.number().min(0).max(2).nullable().optional(),
+	maxTokens: z.number().int().min(1).nullable().optional(),
+	topP: z.number().min(0).max(1).nullable().optional(),
+	frequencyPenalty: z.number().min(-2).max(2).nullable().optional(),
+	presencePenalty: z.number().min(-2).max(2).nullable().optional(),
+});
+
+/**
+ * ----------------
  * Select Schema
  * ----------------
  */
@@ -15,6 +43,7 @@ import { dbSchema } from "@/db/schema";
 export const chatSelectSchema = createSelectSchema(dbSchema.chat, {
 	id: (schema) => schema.brand("chatId"),
 	activeBranchId: (schema) => schema.brand("chatBranchId"),
+	config: chatConfigSchema.nullable(),
 });
 
 /**
@@ -23,7 +52,9 @@ export const chatSelectSchema = createSelectSchema(dbSchema.chat, {
  * ----------------
  */
 
-export const chatInsertSchema = createInsertSchema(dbSchema.chat).omit({
+export const chatInsertSchema = createInsertSchema(dbSchema.chat, {
+	config: chatConfigSchema.optional(),
+}).omit({
 	userId: true,
 	createdAt: true,
 	updatedAt: true,
@@ -40,6 +71,7 @@ export const chatUpdateSchema = createUpdateSchema(dbSchema.chat, {
 	id: chatSelectSchema.shape.id,
 	title: z.string().min(1).max(250).optional(),
 	activeBranchId: z.uuidv4().optional(),
+	config: chatConfigPatchSchema.optional(),
 }).omit({
 	userId: true,
 	updatedAt: true,
@@ -70,3 +102,5 @@ export type Chat = z.infer<typeof chatSelectSchema>;
 export type ChatInsert = z.infer<typeof chatInsertSchema>;
 export type ChatUpdate = z.infer<typeof chatUpdateSchema>;
 export type ChatDelete = z.infer<typeof chatDeleteSchema>;
+export type ChatConfig = z.infer<typeof chatConfigSchema>;
+export type ChatConfigPatch = z.infer<typeof chatConfigPatchSchema>;
