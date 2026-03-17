@@ -9,6 +9,7 @@ import {
 	CardHeader,
 	CardTitle,
 } from "@/components/ui/card";
+import { InfoDot } from "@/components/ui/composed/info-dot";
 import {
 	useRetryProcessingMutation,
 	useRetryVectorizationMutation,
@@ -63,10 +64,14 @@ const JobStatusPanel = ({
 	return (
 		<Card className={cn(className)}>
 			<CardHeader>
-				<CardTitle>Preparation Status</CardTitle>
+				<CardTitle className="flex items-center gap-1">
+					Preparation Status
+					<InfoDot
+						content="The content is prepared in background jobs after upload so it is
+							ready"
+					/>
+				</CardTitle>
 				<CardDescription>
-					Content is prepared in background jobs after upload so it is ready for
-					search, retrieval, and citations.{" "}
 					{getProcessingStatusDescription(processingStatus)}
 				</CardDescription>
 			</CardHeader>
