@@ -37,7 +37,10 @@ const QdrantPlaygroundForm = () => {
 			<form.AppField
 				name="search"
 				children={(field) => (
-					<field.TextField label="Search" placeholder="Your search query..." />
+					<field.TextField
+						label="Your search query"
+						placeholder="Your search query..."
+					/>
 				)}
 			/>
 
