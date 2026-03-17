@@ -1,6 +1,6 @@
 import { useSuspenseQuery } from "@tanstack/react-query";
 import { createFileRoute } from "@tanstack/react-router";
-import { ManageProvider } from "@/components/provider/manage-provider";
+import { ProviderForm } from "@/components/provider/form/provider-form";
 import {
 	Page,
 	PageContent,
@@ -36,7 +36,7 @@ function RouteComponent() {
 				<PageTitle>Edit Provider</PageTitle>
 			</PageHeader>
 			<PageContent>
-				<ManageProvider provider={provider.data} />
+				<ProviderForm action="update" provider={provider.data} />
 			</PageContent>
 		</Page>
 	);
