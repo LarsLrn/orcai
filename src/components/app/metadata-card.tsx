@@ -28,9 +28,9 @@ const CopyableId = ({ value }: { value: string }) => {
 					<button
 						type="button"
 						onClick={() => copy(value)}
-						className="group flex items-center gap-1.5 font-mono text-muted-foreground text-xs transition-colors hover:text-foreground"
+						className="group flex min-w-0 items-center gap-1.5 font-mono text-muted-foreground text-xs transition-colors hover:text-foreground"
 					>
-						<span className="max-w-80 truncate">{value}</span>
+						<span className="truncate">{value}</span>
 						{copiedValue ? (
 							<CheckIcon className="size-3 shrink-0" />
 						) : (
@@ -60,6 +60,11 @@ const MetadataCard = ({
 	const formatDate = (date: Date | string) => {
 		const dateObj = typeof date === "string" ? new Date(date) : date;
 		return format(dateObj, "PPP 'at' p");
+	};
+
+	const formatDateShort = (date: Date | string) => {
+		const dateObj = typeof date === "string" ? new Date(date) : date;
+		return format(dateObj, "PP");
 	};
 
 	if (!createdAt && !updatedAt && !visibility && !version && !id) {
@@ -116,9 +121,12 @@ const MetadataCard = ({
 								<CalendarIcon className="size-3.5 shrink-0" />
 								<span>Created</span>
 							</div>
-							<span className="text-right text-muted-foreground text-xs">
-								{formatDate(createdAt)}
-							</span>
+							<Tooltip>
+								<TooltipTrigger className="text-right text-muted-foreground text-xs">
+									{formatDateShort(createdAt)}
+								</TooltipTrigger>
+								<TooltipContent>{formatDate(createdAt)}</TooltipContent>
+							</Tooltip>
 						</div>
 					)}
 					{updatedAt && (
@@ -127,9 +135,12 @@ const MetadataCard = ({
 								<ClockIcon className="size-3.5 shrink-0" />
 								<span>Updated</span>
 							</div>
-							<span className="text-right text-muted-foreground text-xs">
-								{formatDate(updatedAt)}
-							</span>
+							<Tooltip>
+								<TooltipTrigger className="text-right text-muted-foreground text-xs">
+									{formatDateShort(updatedAt)}
+								</TooltipTrigger>
+								<TooltipContent>{formatDate(updatedAt)}</TooltipContent>
+							</Tooltip>
 						</div>
 					)}
 				</div>
