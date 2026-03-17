@@ -34,12 +34,20 @@ import {
 } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import {
+	Select,
+	SelectContent,
+	SelectItem,
+	SelectTrigger,
+	SelectValue,
+} from "@/components/ui/select";
 import { Separator } from "@/components/ui/separator";
 import { Textarea } from "@/components/ui/textarea";
 import {
 	useResourceGrants,
 	useResourceVisibility,
 } from "@/hooks/authz/use-resource-access";
+import { useSetBlockStatusMutation } from "@/hooks/mutations/use-block-mutations";
 import {
 	usePublishBotMutation,
 	useSaveBotMutation,
@@ -54,6 +62,7 @@ import type {
 	BotEditorSave,
 	BotEditorSelect,
 } from "@/lib/orpc/schemas/bot-editor";
+import type { PublicationStatus } from "@/lib/orpc/schemas/fragments/publication-status";
 import type { ResourceRef } from "@/lib/orpc/schemas/resource";
 import { getProcessingStatusLabel } from "@/lib/presentation/processing-status";
 import { cn } from "@/lib/utils";
@@ -112,8 +121,18 @@ const getPublishIssues = (editor: EditorState) => {
 	if (!editor.templateBlock) {
 		issues.push("Add an AI behavior before launching the bot.");
 	}
+	if (editor.templateBlock && editor.templateBlock.status !== "ready") {
+		issues.push(
+			'Set the AI behavior block status to "Ready" before launching.',
+		);
+	}
 
 	for (const databaseBlock of editor.databaseBlocks) {
+		if (databaseBlock.status !== "ready") {
+			issues.push(
+				`Set "${databaseBlock.name}" block status to "Ready" before launching.`,
+			);
+		}
 		if (databaseBlock.assetIds.length === 0) {
 			issues.push(
 				`Attach at least one content item to "${databaseBlock.name}".`,
@@ -202,6 +221,8 @@ const BotEditorShell = ({
 	const { mutateAsync: saveBot, isPending: isSaving } = useSaveBotMutation();
 	const { mutateAsync: publishBot, isPending: isPublishing } =
 		usePublishBotMutation();
+	const { mutateAsync: setBlockStatus, isPending: isSettingBlockStatus } =
+		useSetBlockStatusMutation();
 
 	const resourceRef: ResourceRef | null = editor.id
 		? {
@@ -279,10 +300,15 @@ const BotEditorShell = ({
 
 	const handleSave = async ({
 		nextStepOnCreate,
+		status,
 	}: {
 		nextStepOnCreate?: number;
+		status?: PublicationStatus;
 	} = {}) => {
-		const result = await saveBot(editor);
+		const result = await saveBot({
+			...editor,
+			status: status ?? editor.status,
+		});
 		if (result.status !== "success") {
 			return null;
 		}
@@ -328,8 +354,12 @@ const BotEditorShell = ({
 		setStep(Math.max(activeStepIndex - 1, 0));
 	};
 
-	const handlePublish = async () => {
-		const savedEditor = editor.id ? editor : await handleSave();
+	const handleSetReady = async () => {
+		const savedEditor = editor.id
+			? editor
+			: await handleSave({
+					status: "draft",
+				});
 		if (!savedEditor?.id) {
 			return;
 		}
@@ -341,6 +371,89 @@ const BotEditorShell = ({
 		if (result.status === "success") {
 			setEditor(toEditorState(result.data.data));
 		}
+	};
+
+	const handleSetDraft = async () => {
+		const savedEditor = await handleSave({
+			status: "draft",
+		});
+		if (!savedEditor) {
+			return;
+		}
+
+		setEditor(savedEditor);
+	};
+
+	const handleTemplateBlockStatusChange = async (status: PublicationStatus) => {
+		const templateBlock = editor.templateBlock;
+		if (!templateBlock?.id || templateBlock.status === status) {
+			return;
+		}
+
+		const result = await setBlockStatus({
+			id: templateBlock.id,
+			name: templateBlock.name,
+			description: templateBlock.description,
+			contentJson: templateBlock.contentJson,
+			contentHtml: templateBlock.contentHtml,
+			type: "template",
+			status,
+			config: templateBlock.config,
+		});
+
+		if (result.status !== "success") {
+			return;
+		}
+
+		setEditor((current) => ({
+			...current,
+			templateBlock: current.templateBlock
+				? {
+						...current.templateBlock,
+						status,
+					}
+				: null,
+		}));
+	};
+
+	const handleDatabaseBlockStatusChange = async (params: {
+		blockId: string;
+		status: PublicationStatus;
+	}) => {
+		const databaseBlock = editor.databaseBlocks.find(
+			(block) => block.id === params.blockId,
+		);
+		if (!databaseBlock?.id || databaseBlock.status === params.status) {
+			return;
+		}
+
+		const result = await setBlockStatus({
+			id: databaseBlock.id,
+			name: databaseBlock.name,
+			description: databaseBlock.description,
+			contentJson: databaseBlock.contentJson,
+			contentHtml: databaseBlock.contentHtml,
+			type: "database",
+			status: params.status,
+			config: databaseBlock.config,
+			assets: databaseBlock.assetIds,
+		});
+
+		if (result.status !== "success") {
+			return;
+		}
+
+		setEditor((current) => ({
+			...current,
+			databaseBlocks: current.databaseBlocks.map((block) =>
+				block.id === params.blockId
+					? {
+							...block,
+							status: params.status,
+						}
+					: block,
+			),
+		}));
 	};
 
 	if (botId && editorQuery.isPending) {
@@ -483,6 +596,15 @@ const BotEditorShell = ({
 							visibility={visibility.data?.data.visibility}
 							grantCount={grants.data?.data.length ?? 0}
 							issues={publishIssues}
+							onStatusChange={(status) =>
+								setEditor((current) => ({
+									...current,
+									status,
+								}))
+							}
+							onTemplateBlockStatusChange={handleTemplateBlockStatusChange}
+							onDatabaseBlockStatusChange={handleDatabaseBlockStatusChange}
+							isSettingBlockStatus={isSettingBlockStatus}
 						/>
 					) : null}
 
@@ -498,15 +620,24 @@ const BotEditorShell = ({
 							</Button>
 
 							{activeStepIndex === WIZARD_STEPS.length - 1 ? (
-								<Button
-									onClick={handlePublish}
-									disabled={
-										publishIssues.length > 0 || isSaving || isPublishing
-									}
-								>
-									<RocketIcon />
-									Launch Bot
-								</Button>
+								editor.status === "ready" ? (
+									<Button
+										onClick={handleSetReady}
+										disabled={
+											publishIssues.length > 0 || isSaving || isPublishing
+										}
+									>
+										<RocketIcon />
+										Launch Bot
+									</Button>
+								) : (
+									<Button
+										onClick={handleSetDraft}
+										disabled={isSaving || isPublishing}
+									>
+										Save as Draft
+									</Button>
+								)
 							) : (
 								<Button
 									onClick={handleWizardNext}
@@ -719,9 +850,9 @@ const DocumentsSection = ({
 			onSelect={async (block) => {
 				await onAddExistingDatabaseBlock(block.id);
 			}}
-			title="Use Existing AI Behavior"
-			description="Attach a reusable AI behavior block instead of creating a new one."
-			searchPlaceholder="Search AI behavior blocks..."
+			title="Use Existing Content Collection"
+			description="Attach a reusable content collection block instead of creating a new one."
+			searchPlaceholder="Search content collection blocks..."
 		/>
 	</div>
 );
@@ -767,11 +898,22 @@ const ReviewSection = ({
 	visibility,
 	grantCount,
 	issues,
+	onStatusChange,
+	onTemplateBlockStatusChange,
+	onDatabaseBlockStatusChange,
+	isSettingBlockStatus,
 }: {
 	editor: EditorState;
 	visibility?: "private" | "public";
 	grantCount: number;
 	issues: string[];
+	onStatusChange: (status: PublicationStatus) => void;
+	onTemplateBlockStatusChange: (status: PublicationStatus) => void;
+	onDatabaseBlockStatusChange: (params: {
+		blockId: string;
+		status: PublicationStatus;
+	}) => void;
+	isSettingBlockStatus: boolean;
 }) => (
 	<Card className="border-border/70 bg-background shadow-sm">
 		<CardHeader>
@@ -781,6 +923,35 @@ const ReviewSection = ({
 			</CardDescription>
 		</CardHeader>
 		<CardContent className="space-y-6">
+			<div>
+				<div className="font-medium text-sm">Publication Status</div>
+				<div className="mt-2 rounded-xl border p-4">
+					<div className="max-w-sm space-y-2">
+						<Label htmlFor="bot-publication-status">Target status</Label>
+						<Select
+							value={editor.status}
+							onValueChange={(status) =>
+								onStatusChange(status as PublicationStatus)
+							}
+						>
+							<SelectTrigger id="bot-publication-status">
+								<SelectValue placeholder="Select status" />
+							</SelectTrigger>
+							<SelectContent>
+								<SelectItem value="draft">Draft</SelectItem>
+								<SelectItem value="ready">Ready</SelectItem>
+							</SelectContent>
+						</Select>
+						<p className="text-muted-foreground text-xs">
+							Set to Ready to publish with strict checks, or keep as Draft while
+							you iterate.
+						</p>
+					</div>
+				</div>
+			</div>
+
+			<Separator />
+
 			<div>
 				<div className="font-medium text-sm">Bot</div>
 				<div className="mt-2 rounded-xl border p-4">
@@ -802,6 +973,24 @@ const ReviewSection = ({
 							<div className="mt-1 text-muted-foreground">
 								System prompt and response behavior are configured on this
 								template block.
+							</div>
+							<div className="mt-3 max-w-sm space-y-2">
+								<Label htmlFor="review-template-status">Block status</Label>
+								<Select
+									value={editor.templateBlock.status}
+									onValueChange={(status) =>
+										onTemplateBlockStatusChange(status as PublicationStatus)
+									}
+									disabled={!editor.templateBlock.id || isSettingBlockStatus}
+								>
+									<SelectTrigger id="review-template-status">
+										<SelectValue placeholder="Select status" />
+									</SelectTrigger>
+									<SelectContent>
+										<SelectItem value="draft">Draft</SelectItem>
+										<SelectItem value="ready">Ready</SelectItem>
+									</SelectContent>
+								</Select>
 							</div>
 						</>
 					) : (
@@ -830,6 +1019,29 @@ const ReviewSection = ({
 								<div className="font-medium">{databaseBlock.name}</div>
 								<div className="mt-1 text-muted-foreground text-sm">
 									{databaseBlock.assets.length} content items attached
+								</div>
+								<div className="mt-3 max-w-sm space-y-2">
+									<Label htmlFor={`review-database-status-${index}`}>
+										Block status
+									</Label>
+									<Select
+										value={databaseBlock.status}
+										onValueChange={(status) =>
+											onDatabaseBlockStatusChange({
+												blockId: databaseBlock.id ?? "",
+												status: status as PublicationStatus,
+											})
+										}
+										disabled={!databaseBlock.id || isSettingBlockStatus}
+									>
+										<SelectTrigger id={`review-database-status-${index}`}>
+											<SelectValue placeholder="Select status" />
+										</SelectTrigger>
+										<SelectContent>
+											<SelectItem value="draft">Draft</SelectItem>
+											<SelectItem value="ready">Ready</SelectItem>
+										</SelectContent>
+									</Select>
 								</div>
 								<div className="mt-3 flex flex-wrap gap-2">
 									{databaseBlock.assets.map((asset) => (

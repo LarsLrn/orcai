@@ -121,3 +121,38 @@ export const useDeleteBlocksMutation = (
 		},
 	});
 };
+
+export const useSetBlockStatusMutation = (
+	opts: ReturnType<typeof orpc.block.update.mutationOptions> = {},
+) => {
+	const queryClient = useQueryClient();
+
+	return useMutationAction({
+		mutationOptions: () =>
+			orpc.block.update.mutationOptions({
+				...opts,
+				onSuccess: async (...args) => {
+					queryClient.invalidateQueries({
+						queryKey: orpc.block.key(),
+					});
+
+					try {
+						await opts.onSuccess?.(...args);
+					} catch (error) {
+						console.error(
+							"useSetBlockStatusMutation onSuccess callback failed:",
+							error,
+						);
+					}
+				},
+			}),
+		messages: {
+			loading: "Updating block status...",
+			success: ({ input }) =>
+				input.status === "ready"
+					? "Block marked as ready"
+					: "Block moved to draft",
+			error: "Failed to update block status",
+		},
+	});
+};

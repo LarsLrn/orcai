@@ -1,6 +1,6 @@
 import { useSuspenseQuery } from "@tanstack/react-query";
-import { createFileRoute, Link } from "@tanstack/react-router";
-import { BotIcon, PlusIcon, TrashIcon } from "lucide-react";
+import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
+import { BotIcon, EditIcon, PlusIcon, TrashIcon } from "lucide-react";
 import { BotCard } from "@/components/bot/bot-card";
 import { Placeholder } from "@/components/placeholders/placeholder";
 import { buttonVariants } from "@/components/ui/button";
@@ -41,6 +41,7 @@ export const Route = createFileRoute("/app/hub/bots/")({
 });
 
 function RouteComponent() {
+	const navigate = useNavigate();
 	const { data: bots } = useSuspenseQuery(
 		orpc.bot.list.queryOptions({
 			input: {
@@ -61,53 +62,6 @@ function RouteComponent() {
 
 	return (
 		<div className="space-y-12">
-			{drafts.data.length > 0 && (
-				<Section>
-					<SectionHeader>
-						<SectionTitle>Drafts</SectionTitle>
-						<SectionDescription>
-							Resume bot setups that have not been published yet.
-						</SectionDescription>
-					</SectionHeader>
-					<SectionContent>
-						<SectionGrid layout="3">
-							{drafts.data.map((bot) => (
-								<BotCard
-									key={bot.id}
-									bot={bot}
-									actions={{
-										primary: {
-											linkProps: {
-												to: "/app/hub/bots/$botId/setup",
-												params: {
-													botId: bot.id,
-												},
-											},
-										},
-										dropdown: [
-											{
-												key: "delete",
-												label: "Delete Draft",
-												icon: TrashIcon,
-												onClick: () =>
-													deleteBots({
-														refs: [
-															{
-																id: bot.id,
-															},
-														],
-													}),
-											},
-										],
-										footer: [],
-									}}
-								/>
-							))}
-						</SectionGrid>
-					</SectionContent>
-				</Section>
-			)}
-
 			<Section>
 				<SectionHeader>
 					<SectionTitle>Published Bots</SectionTitle>
@@ -160,6 +114,57 @@ function RouteComponent() {
 					)}
 				</SectionContent>
 			</Section>
+
+			{drafts.data.length > 0 && (
+				<Section>
+					<SectionHeader>
+						<SectionTitle>Drafts</SectionTitle>
+						<SectionDescription>
+							Resume bot setups that have not been published yet.
+						</SectionDescription>
+					</SectionHeader>
+					<SectionContent>
+						<SectionGrid layout="3">
+							{drafts.data.map((bot) => (
+								<BotCard
+									key={bot.id}
+									bot={bot}
+									actions={{
+										dropdown: [
+											{
+												key: "edit",
+												label: "Edit Draft",
+												icon: EditIcon,
+												onClick: () =>
+													navigate({
+														to: "/app/hub/bots/$botId/setup",
+														params: {
+															botId: bot.id,
+														},
+													}),
+											},
+											{
+												key: "delete",
+												label: "Delete Draft",
+												icon: TrashIcon,
+												onClick: () =>
+													deleteBots({
+														refs: [
+															{
+																id: bot.id,
+															},
+														],
+													}),
+											},
+										],
+										footer: [],
+									}}
+								/>
+							))}
+						</SectionGrid>
+					</SectionContent>
+				</Section>
+			)}
 		</div>
 	);
 }

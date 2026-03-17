@@ -4,6 +4,7 @@ import {
 	createDefaultTemplateBlock,
 	TemplateBlockEditor,
 } from "@/components/authoring/template-block-editor";
+import { PublicationStatusField } from "@/components/blocks/form/publication-status-field";
 import { BlockEditor } from "@/components/editor/block-editor";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
@@ -56,6 +57,19 @@ const TemplateBlockForm = ({
 
 	return (
 		<div className="space-y-4">
+			<Card>
+				<CardContent>
+					<PublicationStatusField
+						value={value.status}
+						onChange={(status) =>
+							setValue((current) => ({
+								...current,
+								status,
+							}))
+						}
+					/>
+				</CardContent>
+			</Card>
 			<TemplateBlockEditor
 				value={value}
 				onChange={(nextValue) =>

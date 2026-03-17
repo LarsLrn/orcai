@@ -205,9 +205,9 @@ const upsertBotBlock = (params: {
 		id?: string;
 		name: string;
 		config: object;
+		status: "draft" | "ready";
 	};
 	type: "template" | "database";
-	currentStatus: "draft" | "ready";
 	userId: string;
 	organizationId: string;
 }) =>
@@ -220,7 +220,6 @@ const upsertBotBlock = (params: {
 				.set({
 					name: params.block.name,
 					config: params.block.config,
-					status: params.currentStatus,
 					updatedAt: new Date(),
 				})
 				.where(eq(dbSchema.block.id, params.block.id));
@@ -234,7 +233,7 @@ const upsertBotBlock = (params: {
 			name: params.block.name,
 			type: params.type,
 			config: params.block.config,
-			status: params.currentStatus,
+			status: params.block.status,
 			userId: params.userId,
 			organizationId: params.organizationId,
 		});
@@ -327,11 +326,7 @@ const saveBotGraph = (params: {
 		const db = yield* DB;
 		const authz = yield* AuthzService;
 
-		const {
-			botId,
-			zedToken: resolvedZedToken,
-			currentStatus,
-		} = yield* resolveBot(params);
+		const { botId, zedToken: resolvedZedToken } = yield* resolveBot(params);
 		let zedToken = resolvedZedToken;
 
 		const existingBlocks = yield* db
@@ -358,7 +353,6 @@ const saveBotGraph = (params: {
 			const { blockId, zedToken: blockZedToken } = yield* upsertBotBlock({
 				block: params.input.templateBlock,
 				type: "template",
-				currentStatus,
 				userId: params.userId,
 				organizationId: params.organizationId,
 			});
@@ -370,7 +364,6 @@ const saveBotGraph = (params: {
 			const { blockId, zedToken: blockZedToken } = yield* upsertBotBlock({
 				block: databaseBlock,
 				type: "database",
-				currentStatus,
 				userId: params.userId,
 				organizationId: params.organizationId,
 			});
@@ -631,7 +624,24 @@ export const publishBot = authed.bot.publish
 					);
 				}
 
+				if (editor.data.templateBlock.status !== "ready") {
+					return yield* Effect.fail(
+						errors.BAD_REQUEST({
+							message:
+								'Set the AI behavior block to "ready" before publishing this bot.',
+						}),
+					);
+				}
+
 				for (const databaseBlock of editor.data.databaseBlocks) {
+					if (databaseBlock.status !== "ready") {
+						return yield* Effect.fail(
+							errors.BAD_REQUEST({
+								message: `Set "${databaseBlock.name}" to "ready" before publishing this bot.`,
+							}),
+						);
+					}
+
 					if (databaseBlock.assetIds.length === 0) {
 						return yield* Effect.fail(
 							errors.BAD_REQUEST({
@@ -648,36 +658,14 @@ export const publishBot = authed.bot.publish
 						updatedAt: new Date(),
 					})
 					.where(eq(dbSchema.bot.id, input.id));
-
-				const blockIds = [
-					editor.data.templateBlock.id,
-					...editor.data.databaseBlocks.map(
-						(databaseBlock) => databaseBlock.id,
-					),
-				];
-
-				if (blockIds.length > 0) {
-					yield* db
-						.update(dbSchema.block)
-						.set({
-							status: "ready",
-							updatedAt: new Date(),
-						})
-						.where(inArray(dbSchema.block.id, blockIds));
-				}
+				const updatedEditor = yield* loadBotEditor({
+					id: input.id,
+				});
 
 				return {
 					data: {
-						...editor.data,
+						...updatedEditor.data,
 						status: "ready" as const,
-						templateBlock: {
-							...editor.data.templateBlock,
-							status: "ready" as const,
-						},
-						databaseBlocks: editor.data.databaseBlocks.map((b) => ({
-							...b,
-							status: "ready" as const,
-						})),
 					},
 				};
 			}),

@@ -10,6 +10,7 @@ import {
 } from "@/lib/orpc/schemas/block";
 import { botSelectSchema } from "@/lib/orpc/schemas/bot";
 import { databaseBlockEditorSchema } from "@/lib/orpc/schemas/bot-editor";
+import { publicationStatusSchema } from "@/lib/orpc/schemas/fragments/publication-status";
 import {
 	paginationSchema,
 	statusSchema,
@@ -34,6 +35,7 @@ export const listBlocksContract = base
 				.object({
 					botId: botSelectSchema.shape.id.optional(),
 					type: z.enum(BLOCK_TYPES.map((t) => t.value)).optional(),
+					status: publicationStatusSchema.optional(),
 				})
 				.optional(),
 		}),

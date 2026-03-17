@@ -38,7 +38,7 @@ export const listBlocks = authed.block.list.handler(
 
 				const whereConditions = [
 					inArray(dbSchema.block.id, allowedIds),
-					eq(dbSchema.block.status, "ready"),
+					eq(dbSchema.block.status, input.filters?.status ?? "ready"),
 				];
 				if (input.filters?.botId) {
 					whereConditions.push(
@@ -207,10 +207,41 @@ export const updateBlock = authed.block.update
 				entityType: "block",
 			}) satisfies CheckPermissionInput,
 	)
-	.handler(async ({ input }) =>
+	.handler(async ({ input, errors }) =>
 		runOrpcEffect(
 			Effect.gen(function* () {
 				const db = yield* DB;
+
+				if (input.status === "draft") {
+					const linkedReadyBots = yield* db
+						.select({
+							id: dbSchema.bot.id,
+							name: dbSchema.bot.name,
+						})
+						.from(dbSchema.botBlock)
+						.innerJoin(
+							dbSchema.bot,
+							eq(dbSchema.bot.id, dbSchema.botBlock.botId),
+						)
+						.where(
+							and(
+								eq(dbSchema.botBlock.blockId, input.id),
+								eq(dbSchema.bot.status, "ready"),
+							),
+						)
+						.limit(5);
+
+					if (linkedReadyBots.length > 0) {
+						const names = linkedReadyBots
+							.map((bot) => `"${bot.name}"`)
+							.join(", ");
+						return yield* Effect.fail(
+							errors.BAD_REQUEST({
+								message: `Cannot move this block to draft because it is used by ready bot(s): ${names}.`,
+							}),
+						);
+					}
+				}
 
 				const [block] = yield* db
 					.update(dbSchema.block)
