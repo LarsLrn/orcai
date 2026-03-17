@@ -1,7 +1,7 @@
 import { useSuspenseQuery } from "@tanstack/react-query";
 import { createFileRoute, redirect, useNavigate } from "@tanstack/react-router";
 import { BuildingIcon } from "lucide-react";
-import { Suspense } from "react";
+import { Suspense, useEffect, useRef } from "react";
 import { OrganizationInvitationsList } from "@/components/organizations/invitations/organization-invitations-list";
 import { OrganizationCard } from "@/components/organizations/organization-card";
 import { Card, CardContent } from "@/components/ui/card";
@@ -37,23 +37,37 @@ function PendingInvitationsSection({
 }: {
 	onAccepted: () => void | Promise<void>;
 }) {
+	const { data: invitations } = useSuspenseQuery(
+		orpc.organizationInvitation.list.queryOptions({
+			input: {
+				pageIndex: 0,
+				pageSize: 100,
+			},
+		}),
+	);
+
+	const { data: session } = authClient.useSession();
+	const currentUserEmail = session?.user?.email?.trim().toLowerCase();
+
+	const hasPendingInvitations = invitations.data.some(
+		(invitation) =>
+			invitation.status === "pending" &&
+			currentUserEmail &&
+			invitation.email.trim().toLowerCase() === currentUserEmail,
+	);
+
+	if (!hasPendingInvitations) {
+		return null;
+	}
+
 	return (
 		<Card>
 			<CardContent>
-				<h2 className="font-semibold text-xl">
-					Pending Organization Invitations
-				</h2>
+				<h2 className="font-semibold text-xl">Pending invitations</h2>
 				<p className="mt-1 mb-4 text-muted-foreground text-sm">
-					Accept an invitation to automatically join an organization.
+					Accept an invitation to join an organisation.
 				</p>
-				<Suspense fallback={<Skeleton className="h-28 w-full" />}>
-					<OrganizationInvitationsList
-						mode="pending"
-						onAccepted={onAccepted}
-						emptyTitle="No Pending Invitations"
-						emptyDescription="You currently don't have any pending invitations."
-					/>
-				</Suspense>
+				<OrganizationInvitationsList mode="pending" onAccepted={onAccepted} />
 			</CardContent>
 		</Card>
 	);
@@ -72,6 +86,20 @@ function RouteComponent() {
 		}),
 	);
 	const { mutate: setActiveOrganization } = useSetActiveOrganizationMutation();
+	const autoSelectedRef = useRef(false);
+
+	// Auto-select when the user only has one organisation
+	useEffect(() => {
+		if (organizations.data.length === 1 && !autoSelectedRef.current) {
+			autoSelectedRef.current = true;
+			setActiveOrganization({
+				organizationId: organizations.data[0].id,
+			});
+		}
+	}, [
+		organizations.data,
+		setActiveOrganization,
+	]);
 
 	const handleInvitationAccepted = async () => {
 		await refetchSession();
@@ -84,10 +112,10 @@ function RouteComponent() {
 		<div className="w-full max-w-3xl space-y-6">
 			<div className="space-y-2 text-center">
 				<h1 className="font-bold text-2xl tracking-tight">
-					Select which organization you want to work with
+					Select your organisation
 				</h1>
 				<p className="text-lg text-muted-foreground">
-					You can always switch to a different organization later.
+					You can switch to a different organisation at any time.
 				</p>
 			</div>
 
@@ -107,7 +135,9 @@ function RouteComponent() {
 				</div>
 			)}
 
-			<PendingInvitationsSection onAccepted={handleInvitationAccepted} />
+			<Suspense fallback={<Skeleton className="h-28 w-full" />}>
+				<PendingInvitationsSection onAccepted={handleInvitationAccepted} />
+			</Suspense>
 
 			{organizations.data.length === 0 && (
 				<Card className="py-12 text-center">
@@ -116,7 +146,7 @@ function RouteComponent() {
 							<BuildingIcon className="h-8 w-8 text-muted-foreground" />
 						</div>
 						<p className="mb-4 text-lg text-muted-foreground">
-							No organizations available yet
+							No organisations available yet
 						</p>
 						<p className="text-muted-foreground text-sm">
 							Accept an invitation above or contact your administrator to get
