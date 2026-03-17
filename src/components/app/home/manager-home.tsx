@@ -2,7 +2,6 @@ import { useSuspenseQuery } from "@tanstack/react-query";
 import type { LinkProps } from "@tanstack/react-router";
 import { Link } from "@tanstack/react-router";
 import {
-	ArrowRightIcon,
 	BlocksIcon,
 	BotIcon,
 	FileTextIcon,
@@ -16,7 +15,6 @@ import { SkeletonsArray } from "@/components/placeholders/skeletons-array";
 import { Badge } from "@/components/ui/badge";
 import {
 	Item,
-	ItemActions,
 	ItemContent,
 	ItemDescription,
 	ItemMedia,
@@ -43,10 +41,6 @@ const RESOURCE_SUMMARY_PARAMS = {
 	pageIndex: 0,
 	pageSize: 1,
 } as const;
-
-// ----------------------------------------------------------------------------
-// Task entry points
-// ----------------------------------------------------------------------------
 
 const quickActions: Array<{
 	title: string;
@@ -118,10 +112,7 @@ const quickActions: Array<{
 const QuickActionsSection = () => (
 	<Section>
 		<SectionHeader>
-			<SectionTitle>Task entry points</SectionTitle>
-			<SectionDescription>
-				Pick the kind of work you want to do next.
-			</SectionDescription>
+			<SectionTitle>Quick Links</SectionTitle>
 		</SectionHeader>
 		<SectionContent>
 			<SectionGrid layout="3">
@@ -132,20 +123,23 @@ const QuickActionsSection = () => (
 						className="bg-card"
 						render={
 							<Link key={action.title} {...action.linkProps}>
-								<ItemMedia
-									variant="icon"
-									className={cn("size-12", action.accent)}
-								>
-									<action.icon className="size-6" />
-								</ItemMedia>
-								<ItemContent>
-									<ItemTitle>{action.title}</ItemTitle>
-									<ItemDescription>{action.description}</ItemDescription>
-								</ItemContent>
-								<ItemActions>
-									Go now
-									<ArrowRightIcon className="size-4" />
-								</ItemActions>
+								<div className="flex flex-row gap-2">
+									<ItemMedia
+										variant="icon"
+										className={cn(
+											"size-10 rounded-lg bg-muted/50",
+											action.accent,
+										)}
+									>
+										<action.icon className="size-6" />
+									</ItemMedia>
+									<ItemContent>
+										<ItemTitle>{action.title}</ItemTitle>
+										<ItemDescription className="line-clamp-3 text-xs">
+											{action.description}
+										</ItemDescription>
+									</ItemContent>
+								</div>
 							</Link>
 						}
 					/>
