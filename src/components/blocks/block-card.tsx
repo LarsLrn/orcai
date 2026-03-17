@@ -1,4 +1,10 @@
-import { EditIcon, EyeIcon } from "lucide-react";
+import {
+	BrainCircuitIcon,
+	DatabaseIcon,
+	EditIcon,
+	EyeIcon,
+	ImageIcon,
+} from "lucide-react";
 import {
 	DropdownMenu,
 	DropdownMenuContent,
@@ -13,8 +19,10 @@ import {
 	ResourceCardBadges,
 	ResourceCardBody,
 	ResourceCardContent,
+	ResourceCardDescription,
 	ResourceCardFooter,
 	ResourceCardHeader,
+	ResourceCardMedia,
 	ResourceCardMenu,
 	ResourceCardMenuTrigger,
 	ResourceCardMeta,
@@ -23,6 +31,38 @@ import {
 	ResourceCardTitle,
 } from "@/components/ui/shell/resource-card";
 import type { Block } from "@/lib/orpc/schemas/block";
+
+const BLOCK_TYPE_CONFIG = {
+	template: {
+		Icon: BrainCircuitIcon,
+		iconBg: "bg-amber-500/10",
+		iconColor: "text-amber-600 dark:text-amber-400",
+	},
+	database: {
+		Icon: DatabaseIcon,
+		iconBg: "bg-sky-500/10",
+		iconColor: "text-sky-600 dark:text-sky-400",
+	},
+	imageGeneration: {
+		Icon: ImageIcon,
+		iconBg: "bg-violet-500/10",
+		iconColor: "text-violet-600 dark:text-violet-400",
+	},
+} satisfies Record<
+	Block["type"],
+	{
+		Icon: any;
+		iconBg: string;
+		iconColor: string;
+	}
+>;
+
+const getBlockTypeLabel = (type: Block["type"]) =>
+	type === "template"
+		? "Behavior"
+		: type === "database"
+			? "Content Collection"
+			: "Image Generation";
 
 const BlockCard = ({
 	block,
@@ -35,6 +75,8 @@ const BlockCard = ({
 		primary?: ResourceCardPrimaryAction;
 	};
 }) => {
+	const { Icon, iconBg, iconColor } = BLOCK_TYPE_CONFIG[block.type];
+
 	const meta: ResourceCardMetaItem[] = [];
 	if (block.createdAt) {
 		meta.push({
@@ -77,7 +119,7 @@ const BlockCard = ({
 			variant: "outline",
 		},
 		{
-			label: block.type,
+			label: getBlockTypeLabel(block.type),
 			variant: "secondary",
 		},
 	];
@@ -127,7 +169,15 @@ const BlockCard = ({
 
 			<ResourceCardBody action={primaryAction}>
 				<ResourceCardHeader>
+					<ResourceCardMedia variant="icon" className={iconBg}>
+						<Icon className={iconColor} />
+					</ResourceCardMedia>
 					<ResourceCardTitle>{block.name}</ResourceCardTitle>
+					{block.description && (
+						<ResourceCardDescription>
+							{block.description}
+						</ResourceCardDescription>
+					)}
 				</ResourceCardHeader>
 				<ResourceCardContent>
 					<ResourceCardBadges badges={badges} />

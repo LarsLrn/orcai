@@ -28,8 +28,8 @@ const AssetForm = ({ asset }: { asset: Asset }) => {
 				<CardHeader>
 					<CardTitle>{asset.title}</CardTitle>
 					<CardDescription>
-						Edit the reusable metadata shown when this document is cited in AI
-						answers.
+						Edit the reusable metadata shown when this content item is cited in
+						AI answers.
 					</CardDescription>
 				</CardHeader>
 				<CardContent className="space-y-4">
@@ -53,7 +53,7 @@ const AssetForm = ({ asset }: { asset: Asset }) => {
 					}
 					disabled={isPending}
 				>
-					Save Asset
+					Save Content
 				</Button>
 			</div>
 		</div>

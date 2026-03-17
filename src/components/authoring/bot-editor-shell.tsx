@@ -55,6 +55,7 @@ import type {
 	BotEditorSelect,
 } from "@/lib/orpc/schemas/bot-editor";
 import type { ResourceRef } from "@/lib/orpc/schemas/resource";
+import { getProcessingStatusLabel } from "@/lib/presentation/processing-status";
 import { cn } from "@/lib/utils";
 
 type EditorState = Omit<BotEditorSave, "templateBlock" | "databaseBlocks"> & {
@@ -77,8 +78,8 @@ const WIZARD_STEPS = [
 	},
 	{
 		key: "documents",
-		title: "Documents",
-		description: "Attach knowledge sources and documents.",
+		title: "Content",
+		description: "Attach content collections and source material.",
 		icon: BookOpenIcon,
 	},
 	{
@@ -127,7 +128,9 @@ const getPublishIssues = (editor: EditorState) => {
 			issues.push(`Choose an embedding model for "${databaseBlock.name}".`);
 		}
 		if (databaseBlock.assetIds.length === 0) {
-			issues.push(`Attach at least one document to "${databaseBlock.name}".`);
+			issues.push(
+				`Attach at least one content item to "${databaseBlock.name}".`,
+			);
 		}
 	}
 
@@ -140,6 +143,9 @@ const toDatabaseBlockEditorValue = (params: {
 	assets: BotEditorSelect["databaseBlocks"][number]["assets"];
 }): BotEditorSelect["databaseBlocks"][number] => ({
 	id: params.block.id,
+	description: params.block.description,
+	contentJson: params.block.contentJson,
+	contentHtml: params.block.contentHtml,
 	name: params.block.name,
 	type: "database",
 	status: params.block.status,
@@ -456,6 +462,9 @@ const BotEditorShell = ({
 
 									handleSelectExistingTemplateBlock({
 										id: block.id,
+										description: block.description,
+										contentJson: block.contentJson,
+										contentHtml: block.contentHtml,
 										name: block.name,
 										type: "template",
 										status: block.status,
@@ -563,7 +572,7 @@ const BotBasicsSection = ({
 								description: event.target.value,
 							}))
 						}
-						placeholder="Helps students navigate course material and cites approved documents."
+						placeholder="Provides a user group with access to a focused AI workflow and cites approved source material."
 						rows={4}
 					/>
 				</div>
@@ -611,19 +620,19 @@ const DocumentsSection = ({
 }) => (
 	<div className="space-y-4">
 		<div className="space-y-2">
-			<h3 className="font-semibold text-xl">Documents & Knowledge Sources</h3>
+			<h3 className="font-semibold text-xl">Content & Collections</h3>
 			<p className="max-w-3xl text-muted-foreground text-sm">
-				Add reusable document collections the AI can retrieve from when
-				answering questions.
+				Add reusable content collections the AI can retrieve from when answering
+				questions.
 			</p>
 		</div>
 		{editor.databaseBlocks.length === 0 ? (
 			<div className="rounded-[28px] border border-dashed bg-background/70 p-6 shadow-sm">
-				<div className="font-medium">Do you want to add documents?</div>
+				<div className="font-medium">Do you want to add content?</div>
 				<div className="mt-2 text-muted-foreground text-sm">
-					Documents give the AI grounded context and citations. You can add one
-					or more knowledge sources, and each one can include existing or newly
-					uploaded assets.
+					Content gives the AI grounded context and citations. You can add one
+					or more content collections, and each one can include existing or
+					newly uploaded items from the content library.
 				</div>
 				<div className="mt-4 flex flex-wrap gap-2">
 					<Button
@@ -631,18 +640,20 @@ const DocumentsSection = ({
 							onChange((current) => ({
 								...current,
 								databaseBlocks: [
-									createDefaultDatabaseBlock(),
+									createDefaultDatabaseBlock({
+										botName: editor.name,
+									}),
 								],
 							}))
 						}
 					>
-						Create Knowledge Source
+						Create Content Collection
 					</Button>
 					<Button
 						variant="outline"
 						onClick={onOpenExistingDatabaseBlockLibrary}
 					>
-						Use Existing Knowledge Source
+						Use Existing Content Collection
 					</Button>
 				</div>
 			</div>
@@ -653,7 +664,7 @@ const DocumentsSection = ({
 						variant="outline"
 						onClick={onOpenExistingDatabaseBlockLibrary}
 					>
-						Add Existing Knowledge Source
+						Add Existing Content Collection
 					</Button>
 				</div>
 
@@ -688,12 +699,14 @@ const DocumentsSection = ({
 							...current,
 							databaseBlocks: [
 								...current.databaseBlocks,
-								createDefaultDatabaseBlock(),
+								createDefaultDatabaseBlock({
+									botName: editor.name,
+								}),
 							],
 						}))
 					}
 				>
-					Add Another Knowledge Source
+					Add Another Content Collection
 				</Button>
 			</div>
 		)}
@@ -735,8 +748,8 @@ const SharingSection = ({ editor }: { editor: EditorState }) => {
 			<CardHeader>
 				<CardTitle>Sharing & Access</CardTitle>
 				<CardDescription>
-					Reuse the same visibility and grant controls available on the normal
-					bot management screens.
+					Use groups for cohort access whenever possible, then add direct grants
+					only when needed.
 				</CardDescription>
 			</CardHeader>
 			<CardContent>
@@ -767,7 +780,7 @@ const ReviewSection = ({
 		<CardHeader>
 			<CardTitle>Review</CardTitle>
 			<CardDescription>
-				Check the authored bot graph before launching it.
+				Check the authored bot before launching it.
 			</CardDescription>
 		</CardHeader>
 		<CardContent className="space-y-6">
@@ -806,11 +819,11 @@ const ReviewSection = ({
 			<Separator />
 
 			<div>
-				<div className="font-medium text-sm">Knowledge Sources</div>
+				<div className="font-medium text-sm">Content Collections</div>
 				<div className="mt-2 space-y-3">
 					{editor.databaseBlocks.length === 0 ? (
 						<div className="rounded-xl border p-4 text-muted-foreground text-sm">
-							No documents attached.
+							No content attached.
 						</div>
 					) : (
 						editor.databaseBlocks.map((databaseBlock, index) => (
@@ -820,12 +833,13 @@ const ReviewSection = ({
 							>
 								<div className="font-medium">{databaseBlock.name}</div>
 								<div className="mt-1 text-muted-foreground text-sm">
-									{databaseBlock.assets.length} documents attached
+									{databaseBlock.assets.length} content items attached
 								</div>
 								<div className="mt-3 flex flex-wrap gap-2">
 									{databaseBlock.assets.map((asset) => (
 										<Badge key={asset.id} variant="outline">
-											{asset.title}: {asset.processingStatus}
+											{asset.title}:{" "}
+											{getProcessingStatusLabel(asset.processingStatus)}
 										</Badge>
 									))}
 								</div>
@@ -843,6 +857,9 @@ const ReviewSection = ({
 					<div>Visibility: {visibility ?? "private"}</div>
 					<div className="mt-1 text-muted-foreground">
 						Direct grants configured: {grantCount}
+					</div>
+					<div className="mt-1 text-muted-foreground">
+						Use groups to grant access to cohorts, classes, or teams.
 					</div>
 				</div>
 			</div>

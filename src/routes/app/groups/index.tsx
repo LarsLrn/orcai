@@ -1,9 +1,14 @@
-import { useQuery, useQueryClient } from "@tanstack/react-query";
-import { createFileRoute, Link } from "@tanstack/react-router";
-import { PlusIcon, SearchIcon, Trash2Icon, UsersIcon } from "lucide-react";
+import { useQueryClient, useSuspenseQuery } from "@tanstack/react-query";
+import { createFileRoute, useNavigate } from "@tanstack/react-router";
+import { PlusIcon, SearchIcon } from "lucide-react";
 import { useState } from "react";
-import { Badge } from "@/components/ui/badge";
-import { Button, buttonVariants } from "@/components/ui/button";
+import { z } from "zod/v4";
+import { groupTableColumns } from "@/components/groups/table/group-table-columns";
+import { Button } from "@/components/ui/button";
+import { DataTable } from "@/components/ui/data-table/data-table";
+import { DataTableBody } from "@/components/ui/data-table/data-table-body";
+import { DataTablePagination } from "@/components/ui/data-table/data-table-pagination";
+import { DataTableViewOptions } from "@/components/ui/data-table/data-table-view-options";
 import {
 	Dialog,
 	DialogContent,
@@ -24,26 +29,54 @@ import {
 import { Textarea } from "@/components/ui/textarea";
 import { useMutationAction } from "@/hooks/actions/use-mutation-action";
 import { orpc } from "@/lib/orpc/orpc";
+import { paginationSchema } from "@/lib/orpc/schemas/shared";
+
+const searchSchema = paginationSchema.extend({
+	query: z.string().trim().max(100).default(""),
+});
 
 export const Route = createFileRoute("/app/groups/")({
+	validateSearch: searchSchema,
+	loaderDeps: ({ search: { pageIndex, pageSize, query } }) => ({
+		pageIndex,
+		pageSize,
+		query,
+	}),
+	loader: async ({
+		context: { queryClient },
+		deps: { pageIndex, pageSize, query },
+	}) => {
+		await queryClient.ensureQueryData(
+			orpc.group.list.queryOptions({
+				input: {
+					filters: {
+						search: query.trim() ? query.trim() : undefined,
+					},
+					pageIndex,
+					pageSize,
+				},
+			}),
+		);
+	},
 	component: RouteComponent,
 });
 
 function RouteComponent() {
+	const navigate = useNavigate();
 	const queryClient = useQueryClient();
-	const [search, setSearch] = useState("");
+	const { pageIndex, pageSize, query } = Route.useSearch();
 	const [isCreateOpen, setIsCreateOpen] = useState(false);
 	const [name, setName] = useState("");
 	const [description, setDescription] = useState("");
 
-	const groups = useQuery(
+	const { data: groups } = useSuspenseQuery(
 		orpc.group.list.queryOptions({
 			input: {
 				filters: {
-					search,
+					search: query.trim() ? query.trim() : undefined,
 				},
-				pageIndex: 0,
-				pageSize: 100,
+				pageIndex,
+				pageSize,
 			},
 		}),
 	);
@@ -64,28 +97,6 @@ function RouteComponent() {
 			loading: "Creating group...",
 			success: "Group created",
 			error: "Failed to create group",
-		},
-	});
-
-	const deleteGroup = useMutationAction({
-		mutationOptions: () =>
-			orpc.group.delete.mutationOptions({
-				onSuccess: () => {
-					queryClient.invalidateQueries({
-						queryKey: orpc.group.key(),
-					});
-				},
-			}),
-		messages: {
-			loading: "Deleting group...",
-			success: "Group deleted",
-			error: "Failed to delete group",
-		},
-		confirm: {
-			title: "Delete group",
-			description: "This revokes all grants tied to this group.",
-			confirmText: "Delete",
-			cancelText: "Cancel",
 		},
 	});
 
@@ -117,84 +128,47 @@ function RouteComponent() {
 				<div className="relative max-w-sm">
 					<SearchIcon className="pointer-events-none absolute top-1/2 left-3 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
 					<Input
-						value={search}
-						onChange={(event) => setSearch(event.target.value)}
+						value={query}
+						onChange={(event) =>
+							void navigate({
+								to: ".",
+								search: (prev) => ({
+									...prev,
+									pageIndex: 0,
+									query: event.target.value,
+								}),
+								replace: true,
+							})
+						}
 						placeholder="Search groups"
 						className="pl-9"
 					/>
 				</div>
 
-				<div className="rounded-lg border">
-					<div className="grid grid-cols-[1fr_auto_auto] gap-3 border-b px-4 py-2 font-medium text-sm">
-						<div>Name</div>
-						<div>Type</div>
-						<div className="text-right">Actions</div>
+				<DataTable
+					data={groups.data}
+					columns={groupTableColumns}
+					state={{
+						pagination: {
+							pageIndex,
+							pageSize,
+						},
+					}}
+					options={{
+						rowCount: groups.rowCount,
+						uidAccessor: "id",
+						clientPagination: {
+							pageIndex,
+							pageSize,
+						},
+					}}
+				>
+					<div className="flex items-center gap-2">
+						<DataTableViewOptions />
 					</div>
-					{groups.isLoading && (
-						<div className="px-4 py-8 text-center text-muted-foreground text-sm">
-							Loading groups...
-						</div>
-					)}
-					{groups.data?.data.map((group) => (
-						<div
-							key={group.id}
-							className="grid grid-cols-[1fr_auto_auto] items-center gap-3 border-b px-4 py-3 last:border-b-0"
-						>
-							<div className="min-w-0">
-								<p className="truncate font-medium text-sm">{group.name}</p>
-								{group.description && (
-									<p className="truncate text-muted-foreground text-xs">
-										{group.description}
-									</p>
-								)}
-							</div>
-							<div>
-								<Badge
-									variant={group.kind === "system" ? "outline" : "secondary"}
-								>
-									{group.kind === "system" ? "System" : "Custom"}
-								</Badge>
-							</div>
-							<div className="flex items-center justify-end gap-2">
-								<Link
-									to="/app/groups/$groupId"
-									params={{
-										groupId: group.id,
-									}}
-									className={buttonVariants({
-										variant: "outline",
-										size: "sm",
-									})}
-								>
-									<UsersIcon className="mr-1 h-3.5 w-3.5" />
-									Manage
-								</Link>
-								{group.kind === "custom" && (
-									<Button
-										variant="outline"
-										size="sm"
-										onClick={() =>
-											deleteGroup.mutate({
-												refs: [
-													{
-														id: group.id,
-													},
-												],
-											})
-										}
-									>
-										<Trash2Icon className="h-3.5 w-3.5" />
-									</Button>
-								)}
-							</div>
-						</div>
-					))}
-					{groups.data && groups.data.data.length === 0 && (
-						<div className="px-4 py-8 text-center text-muted-foreground text-sm">
-							No groups found.
-						</div>
-					)}
-				</div>
+					<DataTableBody />
+					<DataTablePagination />
+				</DataTable>
 			</PageContent>
 
 			<Dialog open={isCreateOpen} onOpenChange={setIsCreateOpen}>

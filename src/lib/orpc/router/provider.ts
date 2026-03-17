@@ -9,17 +9,18 @@ import { requireOrganizationPermission } from "@/lib/orpc/middlewares/org-permis
 
 export const listProviders = authed.provider.list
 	.use(requireOrganizationPermission("read"))
-	.handler(async ({ input }) =>
+	.handler(async ({ input, context }) =>
 		runOrpcEffect(
 			Effect.gen(function* () {
 				const db = yield* DB;
+				const organizationId = context.auth.session.activeOrganizationId;
 
 				const [data, [rowCount]] = yield* Effect.all(
 					[
 						db.query.provider.findMany({
-							/* where: {
-								organizationId: context.auth.session.activeOrganizationId,
-							}, */
+							where: {
+								organizationId,
+							},
 							limit: input.pageSize,
 							offset: input.pageIndex * input.pageSize,
 						}),
@@ -27,13 +28,8 @@ export const listProviders = authed.provider.list
 							.select({
 								count: count(),
 							})
-							.from(dbSchema.provider),
-						/* .where(
-								eq(
-									dbSchema.provider.organizationId,
-									context.auth.session.activeOrganizationId,
-								),
-							) */
+							.from(dbSchema.provider)
+							.where(eq(dbSchema.provider.organizationId, organizationId)),
 					],
 					{
 						concurrency: "unbounded",
@@ -50,15 +46,23 @@ export const listProviders = authed.provider.list
 
 export const findProvider = authed.provider.find
 	.use(requireOrganizationPermission("read"))
-	.handler(async ({ input, errors }) =>
+	.handler(async ({ input, context, errors }) =>
 		runOrpcEffect(
 			Effect.gen(function* () {
 				const db = yield* DB;
+				const organizationId = context.auth.session.activeOrganizationId;
 
 				return yield* db.query.provider
 					.findFirst({
 						where: {
-							id: input.id,
+							AND: [
+								{
+									id: input.id,
+								},
+								{
+									organizationId,
+								},
+							],
 						},
 					})
 					.pipe(
@@ -83,10 +87,11 @@ export const findProvider = authed.provider.find
 
 export const createProvider = authed.provider.create
 	.use(requireOrganizationPermission("manage_members"))
-	.handler(async ({ input }) =>
+	.handler(async ({ input, context }) =>
 		runOrpcEffect(
 			Effect.gen(function* () {
 				const db = yield* DB;
+				const organizationId = context.auth.session.activeOrganizationId;
 
 				const apiKeyEncrypted = yield* encryptApiKey(input.apiKey);
 
@@ -96,6 +101,7 @@ export const createProvider = authed.provider.create
 					.insert(dbSchema.provider)
 					.values({
 						...inputWithoutApiKey,
+						organizationId,
 						apiKeyEncrypted,
 						createdAt: new Date(),
 					})
@@ -110,10 +116,11 @@ export const createProvider = authed.provider.create
 
 export const updateProvider = authed.provider.update
 	.use(requireOrganizationPermission("manage_members"))
-	.handler(async ({ input }) =>
+	.handler(async ({ input, context, errors }) =>
 		runOrpcEffect(
 			Effect.gen(function* () {
 				const db = yield* DB;
+				const organizationId = context.auth.session.activeOrganizationId;
 
 				const { apiKey, ...inputWithoutApiKey } = input;
 				const updateData =
@@ -127,8 +134,21 @@ export const updateProvider = authed.provider.update
 				const [provider] = yield* db
 					.update(dbSchema.provider)
 					.set(updateData)
-					.where(eq(dbSchema.provider.id, input.id))
+					.where(
+						and(
+							eq(dbSchema.provider.id, input.id),
+							eq(dbSchema.provider.organizationId, organizationId),
+						),
+					)
 					.returning();
+
+				if (!provider) {
+					return yield* Effect.fail(
+						errors.NOT_FOUND({
+							message: "Provider not found",
+						}),
+					);
+				}
 
 				return {
 					data: provider,
@@ -139,13 +159,15 @@ export const updateProvider = authed.provider.update
 
 export const deleteProviders = authed.provider.delete
 	.use(requireOrganizationPermission("manage_members"))
-	.handler(async ({ input }) =>
+	.handler(async ({ input, context }) =>
 		runOrpcEffect(
 			Effect.gen(function* () {
 				const db = yield* DB;
+				const organizationId = context.auth.session.activeOrganizationId;
 
 				yield* db.delete(dbSchema.provider).where(
 					and(
+						eq(dbSchema.provider.organizationId, organizationId),
 						inArray(
 							dbSchema.provider.id,
 							input.refs.map((ref) => ref.id),

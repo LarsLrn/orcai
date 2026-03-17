@@ -26,11 +26,11 @@ const AccessDialog = ({
 }: AccessDialogProps) => {
 	return (
 		<Dialog open={open} onOpenChange={onOpenChange}>
-			<DialogContent className="max-h-[92vh] overflow-auto sm:max-w-3xl">
+			<DialogContent className="max-h-[92vh] sm:max-w-5xl">
 				<DialogHeader>
 					<DialogTitle>Manage Access</DialogTitle>
 					<DialogDescription>
-						Configure visibility and direct grants for this{" "}
+						Configure visibility, groups, and direct grants for this{" "}
 						{RESOURCES.find((r) => r.value === resourceRef.type)?.label}
 						{resourceName ? `: ${resourceName}` : ""}.
 					</DialogDescription>

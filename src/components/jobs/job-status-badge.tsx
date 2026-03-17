@@ -1,6 +1,7 @@
 import { Badge } from "@/components/ui/badge";
 import { Spinner } from "@/components/ui/spinner";
 import type { ProcessingStatus } from "@/lib/orpc/schemas/fragments/processing-status";
+import { getProcessingStatusLabel } from "@/lib/presentation/processing-status";
 import { cn } from "@/lib/utils";
 
 const statusConfig: Record<
@@ -12,22 +13,22 @@ const statusConfig: Record<
 	}
 > = {
 	pending: {
-		label: "Pending",
+		label: getProcessingStatusLabel("pending"),
 		variant: "outline",
 		showSpinner: false,
 	},
 	active: {
-		label: "Processing",
+		label: getProcessingStatusLabel("active"),
 		variant: "secondary",
 		showSpinner: true,
 	},
 	completed: {
-		label: "Completed",
+		label: getProcessingStatusLabel("completed"),
 		variant: "default",
 		showSpinner: false,
 	},
 	failed: {
-		label: "Failed",
+		label: getProcessingStatusLabel("failed"),
 		variant: "destructive",
 		showSpinner: false,
 	},

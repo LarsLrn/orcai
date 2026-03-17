@@ -6,7 +6,6 @@ import { TemplateBlockForm } from "@/components/blocks/template-block/form/templ
 import {
 	Page,
 	PageContent,
-	PageDescription,
 	PageHeader,
 	PageTitle,
 } from "@/components/ui/shell/page";
@@ -22,7 +21,7 @@ export const Route = createFileRoute("/app/hub/blocks/$blockId/edit")({
 	head: () => ({
 		meta: [
 			{
-				title: "Edit Capability",
+				title: "Edit Block",
 			},
 		],
 	}),
@@ -45,13 +44,9 @@ function RouteComponent() {
 					{isTemplateBlock(block.data)
 						? "Edit AI Behavior"
 						: isDatabaseBlock(block.data)
-							? "Edit Knowledge Source"
+							? "Edit Content Collection"
 							: "Edit Image Generation"}
 				</PageTitle>
-				<PageDescription>
-					Update this reusable capability using the same shared editor used in
-					bot authoring.
-				</PageDescription>
 			</PageHeader>
 			<PageContent>
 				{isTemplateBlock(block.data) ? (

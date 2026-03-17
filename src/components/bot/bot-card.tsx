@@ -1,4 +1,4 @@
-import { EditIcon, EyeIcon } from "lucide-react";
+import { BotIcon, EditIcon, EyeIcon } from "lucide-react";
 import {
 	DropdownMenu,
 	DropdownMenuContent,
@@ -16,6 +16,7 @@ import {
 	ResourceCardDescription,
 	ResourceCardFooter,
 	ResourceCardHeader,
+	ResourceCardMedia,
 	ResourceCardMenu,
 	ResourceCardMenuTrigger,
 	ResourceCardMeta,
@@ -58,7 +59,7 @@ const BotCard = ({
 		},
 		{
 			key: "edit",
-			label: "Edit",
+			label: "Edit Bot",
 			icon: EditIcon,
 			variant: "default",
 			linkProps: {
@@ -124,6 +125,9 @@ const BotCard = ({
 
 			<ResourceCardBody action={primaryAction}>
 				<ResourceCardHeader>
+					<ResourceCardMedia variant="icon">
+						<BotIcon />
+					</ResourceCardMedia>
 					<ResourceCardTitle>{bot.name}</ResourceCardTitle>
 					{bot.description ? (
 						<ResourceCardDescription>{bot.description}</ResourceCardDescription>

@@ -45,6 +45,9 @@ export const listBlocks = authed.block.list.handler(
 						eq(dbSchema.botBlock.botId, input.filters.botId),
 					);
 				}
+				if (input.filters?.type) {
+					whereConditions.push(eq(dbSchema.block.type, input.filters.type));
+				}
 
 				return yield* Effect.all(
 					[

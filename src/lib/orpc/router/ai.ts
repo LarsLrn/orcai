@@ -13,15 +13,40 @@ import { generateChatTitle } from "@/lib/ai/generate-chat-title";
 import { getChatMessageAttachments } from "@/lib/ai/types/chat-attachment";
 import { buildAttachmentPromptPartCached } from "@/lib/ai/utils/chat-attachment-parts";
 import { getChatAiSettings } from "@/lib/ai/utils/get-chat-ai-settings";
+import { runtime } from "@/lib/effect/runtime";
 import { AiError } from "@/lib/effect/utils/errors";
 import { runOrpcEffect } from "@/lib/effect/utils/orpc-helpers";
 import { authed } from "@/lib/orpc/implementation/authed";
 import { requireActiveOrganizationMiddleware } from "@/lib/orpc/middlewares/auth";
+import {
+	finalizeAppRequestQuota,
+	releaseAppRequestQuota,
+	reserveForAppRequest,
+} from "@/lib/quota/enforcement";
 import { updateChat } from "./chat";
 import { createChatMessage } from "./chat-message";
 
 const isRecord = (value: unknown): value is Record<string, unknown> =>
 	typeof value === "object" && value !== null;
+
+const getOptionalNumber = (value: unknown): number | undefined =>
+	typeof value === "number" && Number.isFinite(value) ? value : undefined;
+
+const getTokenUsageFromMetadata = (metadata: unknown) => {
+	if (!isRecord(metadata) || !isRecord(metadata.totalUsage)) {
+		return {
+			inputTokens: undefined,
+			outputTokens: undefined,
+			totalTokens: undefined,
+		};
+	}
+
+	return {
+		inputTokens: getOptionalNumber(metadata.totalUsage.inputTokens),
+		outputTokens: getOptionalNumber(metadata.totalUsage.outputTokens),
+		totalTokens: getOptionalNumber(metadata.totalUsage.totalTokens),
+	};
+};
 
 const hasMessageShape = (
 	value: unknown,
@@ -65,6 +90,32 @@ export const aiChat = authed.ai.chat
 				const chatAiSettings = yield* getChatAiSettings({
 					botId,
 				});
+
+				const assistantMessageId = uuidv4();
+
+				const quotaReservation = yield* reserveForAppRequest({
+					orgId: context.auth.session.activeOrganizationId,
+					userId: context.auth.user.id,
+					providerId: chatAiSettings.templateBlock.config.provider,
+					providerModelId: chatAiSettings.templateBlock.config.model,
+					appRequestId: assistantMessageId,
+					messages: inputMessages,
+					isFirstTurn: inputMessages.length < 2,
+				});
+
+				if (!quotaReservation.allowed || !quotaReservation.reservation) {
+					const denialReason = quotaReservation.denialReason ?? "error";
+					return yield* Effect.fail(
+						errors.BAD_REQUEST({
+							message:
+								denialReason === "no_pool"
+									? "No quota pool available for this request."
+									: denialReason === "exhausted"
+										? "Quota exhausted for this provider/model."
+										: "Quota check failed.",
+						}),
+					);
+				}
 
 				const userMessageAttachments = getChatMessageAttachments(userMessage);
 
@@ -135,8 +186,19 @@ export const aiChat = authed.ai.chat
 						errors.BAD_REQUEST({
 							message: "Failed to create user message",
 						}),
-				});
+				}).pipe(
+					Effect.catchAll((error) =>
+						releaseAppRequestQuota({
+							reservation: quotaReservation.reservation,
+							reason: "app_failure",
+						}).pipe(
+							Effect.catchAll(() => Effect.void),
+							Effect.zipRight(Effect.fail(error)),
+						),
+					),
+				);
 
+				let titleRequestCount = 0;
 				if (inputMessages.length < 2) {
 					yield* generateChatTitle({
 						messages: inputMessages,
@@ -161,16 +223,26 @@ export const aiChat = authed.ai.chat
 									}),
 							}),
 						),
+						Effect.catchAll((error) =>
+							releaseAppRequestQuota({
+								reservation: quotaReservation.reservation,
+								reason: "provider_failure",
+							}).pipe(
+								Effect.catchAll(() => Effect.void),
+								Effect.zipRight(Effect.fail(error)),
+							),
+						),
 					);
+					titleRequestCount = 1;
 				}
-
-				const assistantMessageId = uuidv4();
 
 				const agent = createChatAgent({
 					model: chatAiSettings.model,
 					templateBlock: chatAiSettings.templateBlock,
 					databaseBlocks: chatAiSettings.databaseBlocks,
 				});
+
+				let actualProviderRequestCount = titleRequestCount;
 
 				const stream = yield* Effect.tryPromise({
 					try: async () =>
@@ -183,6 +255,9 @@ export const aiChat = authed.ai.chat
 								delayInMs: 20,
 								chunking: "word",
 							}),
+							onStepFinish: () => {
+								actualProviderRequestCount += 1;
+							},
 							/* experimental_telemetry: {
 								isEnabled: true,
 								metadata: {
@@ -194,6 +269,10 @@ export const aiChat = authed.ai.chat
 								},
 							}, */
 							onFinish: async ({ responseMessage }) => {
+								const usage = getTokenUsageFromMetadata(
+									responseMessage.metadata,
+								);
+
 								// Consider adding an Effect adapter to interface with AI SDK callbacks
 								await call(
 									createChatMessage,
@@ -210,6 +289,40 @@ export const aiChat = authed.ai.chat
 										context,
 									},
 								);
+
+								await runtime
+									.runPromise(
+										finalizeAppRequestQuota({
+											reservation: quotaReservation.reservation,
+											actualRequestCount: actualProviderRequestCount,
+											inputTokens: usage.inputTokens,
+											outputTokens: usage.outputTokens,
+											totalTokens: usage.totalTokens,
+										}),
+									)
+									.catch((error) => {
+										console.error(
+											`quota.finalize.failed reservationKey=${quotaReservation.reservation.reservationKey} appRequestId=${quotaReservation.reservation.appRequestId}`,
+											error,
+										);
+									});
+							},
+							onError: (error) => {
+								runtime
+									.runPromise(
+										releaseAppRequestQuota({
+											reservation: quotaReservation.reservation,
+											reason: "provider_failure",
+										}),
+									)
+									.catch((releaseError) => {
+										console.error(
+											`quota.release.failed reservationKey=${quotaReservation.reservation.reservationKey} appRequestId=${quotaReservation.reservation.appRequestId}`,
+											releaseError,
+										);
+									});
+								console.error("AI stream error", error);
+								return "An error occurred while streaming the AI response.";
 							},
 							messageMetadata: ({ part }) => {
 								if (part.type === "finish-step") {
@@ -229,7 +342,17 @@ export const aiChat = authed.ai.chat
 							operation: "aiChat.handler",
 							cause,
 						}),
-				});
+				}).pipe(
+					Effect.catchAll((error) =>
+						releaseAppRequestQuota({
+							reservation: quotaReservation.reservation,
+							reason: "app_failure",
+						}).pipe(
+							Effect.catchAll(() => Effect.void),
+							Effect.zipRight(Effect.fail(error)),
+						),
+					),
+				);
 
 				return streamToEventIterator(stream);
 			}),

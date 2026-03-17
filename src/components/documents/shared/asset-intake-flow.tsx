@@ -27,7 +27,7 @@ type IntakeStep = "upload" | "uploaded" | "review";
 
 const AssetIntakeFlow = ({
 	onAssetsSaved,
-	submitLabel = "Save Documents",
+	submitLabel = "Save Content",
 }: {
 	onAssetsSaved?: (assets: Asset[]) => void;
 	submitLabel?: string;
@@ -49,8 +49,8 @@ const AssetIntakeFlow = ({
 			{step !== "review" ? (
 				<UploadComponent
 					route="asset"
-					title="Upload Documents"
-					description="Select all files for this batch, upload them, then continue to add metadata for each document."
+					title="Upload Content"
+					description="Select files for this batch, upload them, then continue to add metadata for each source item."
 					uploadLabel="Upload Batch"
 					finalizeUpload
 					hidePickerWhenSettled
@@ -96,8 +96,8 @@ const AssetIntakeFlow = ({
 					<CardHeader>
 						<CardTitle>Review Uploaded Files</CardTitle>
 						<CardDescription>
-							Add metadata to each uploaded file before creating the final
-							assets.
+							Add metadata to each uploaded file before saving the final content
+							items.
 						</CardDescription>
 					</CardHeader>
 					<CardContent className="space-y-6">

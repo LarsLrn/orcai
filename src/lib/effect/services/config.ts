@@ -127,6 +127,9 @@ const appConfig = Config.all({
 		port: Config.withDefault(Config.port("POSTGRES_PORT"), 5432),
 		db: Config.string("POSTGRES_DB"),
 	}),
+	valkey: Config.all({
+		url: Config.string("VALKEY_URL"),
+	}),
 	s3: s3Config,
 	spice: Config.all({
 		endpoint: Config.string("SPICEDB_ENDPOINT"),

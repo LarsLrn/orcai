@@ -79,11 +79,11 @@ export const Route = createRootRouteWithContext<{
 			},
 			{
 				name: "apple-mobile-web-app-title",
-				content: "SokratesT",
+				content: "OrcAI",
 			},
 			...seo({
-				title: "SokratesT",
-				description: "Your AI Course Tutor",
+				title: "OrcAI",
+				description: "Orchestration platform for AI applications",
 			}),
 		],
 		links: [
@@ -99,7 +99,7 @@ export const Route = createRootRouteWithContext<{
 			{
 				rel: "manifest",
 				href: "/site.webmanifest",
-				color: "#298fa2",
+				color: "#456789",
 			},
 			{
 				rel: "icon",

@@ -9,12 +9,14 @@ import {
 	CardHeader,
 	CardTitle,
 } from "@/components/ui/card";
+import { InfoDot } from "@/components/ui/composed/info-dot";
 import {
 	useRetryProcessingMutation,
 	useRetryVectorizationMutation,
 } from "@/hooks/mutations/use-job-mutations";
 import type { ProcessingStatus } from "@/lib/orpc/schemas/fragments/processing-status";
 import type { JobQueue } from "@/lib/pg-boss/schema/job-queues";
+import { getProcessingStatusDescription } from "@/lib/presentation/processing-status";
 import { cn } from "@/lib/utils";
 
 type JobStatusPanelProps = {
@@ -62,10 +64,15 @@ const JobStatusPanel = ({
 	return (
 		<Card className={cn(className)}>
 			<CardHeader>
-				<CardTitle>Processing Status</CardTitle>
+				<CardTitle className="flex items-center gap-1">
+					Preparation Status
+					<InfoDot
+						content="The content is prepared in background jobs after upload so it is
+							ready"
+					/>
+				</CardTitle>
 				<CardDescription>
-					Assets are processed via background jobs on upload to prepare them for
-					use with AI. You can inspect these jobs in the list below.
+					{getProcessingStatusDescription(processingStatus)}
 				</CardDescription>
 			</CardHeader>
 			<CardContent className="flex items-center gap-2">

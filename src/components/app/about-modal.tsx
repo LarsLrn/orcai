@@ -17,31 +17,26 @@ const AboutModal = ({ children }: { children: ReactElement }) => {
 			<DialogTrigger render={children} />
 			<DialogContent className="max-h-10/12 max-w-2xl">
 				<DialogHeader>
-					<DialogTitle>
-						What is Sokrates<sup>t</sup>?
-					</DialogTitle>
+					<DialogTitle>What is OrcAI?</DialogTitle>
 				</DialogHeader>
 
 				<ScrollArea className="max-h-75 w-full sm:max-h-125">
 					<div className="flex flex-col gap-4">
 						<p>
-							You are using a prototypical Turoring System based on generative
-							AI, trained specifically on the content and the methodologies of
-							your course module.
+							OrcAI is a prototype platform for building and using AI-supported
+							applications with shared content, reusable components, and
+							configurable access controls.
 						</p>
 						<p>
-							The system applies so-called Retrieval Augemented Generation (RAG
-							in short) and has been additionally tailored to support individual
-							learning journeys in didactically valuable ways by applying the
-							so-called Socratic forms of dialogue that adapt automatically to
-							the learner&apos;s present levels of understanding and their
-							individual learning needs.
+							It supports retrieval-augmented workflows, configurable AI
+							behavior, and reusable content collections that can be adapted to
+							different courses, communities, and organisational use cases.
 						</p>
 						<p>
-							The testing of this prototypical system is part of a research
-							project funded by the state of NRW (KI:edu.nrw), co-ordinated by
-							Profs. Gerber and Pfeiffer (HSRW). The Tutoring System itself has
-							been developed technically by Lars Lorenz (also HSRW).
+							The current prototype is a fork and voluntary continuation of the
+							a KI:edu.nrw applied-project{" "}
+							<a href="https://github.com/SokratesT/sokratest">Sokratest</a>,
+							which was developed at Rhine-Waal University.
 						</p>
 						<p>
 							If you have any questions or feedback, please do not hesitate to

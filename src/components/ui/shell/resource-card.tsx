@@ -1,5 +1,5 @@
 import { Link, type LinkProps } from "@tanstack/react-router";
-import type { VariantProps } from "class-variance-authority";
+import { cva, type VariantProps } from "class-variance-authority";
 import { type LucideIcon, MoreHorizontalIcon } from "lucide-react";
 import type * as React from "react";
 import { Badge, type badgeVariants } from "@/components/ui/badge";
@@ -39,13 +39,50 @@ const ResourceCard = ({
 		<Card
 			size="sm"
 			className={cn(
-				"has-[>[data-slot=resource-card-body] relative h-full gap-2 border-border/70 bg-card/95 shadow-xs transition-all duration-200 has-[>[data-slot=resource-card-body][data-interactive=true]]:hover:border-border has-[>[data-slot=resource-card-body][data-interactive=true]]:hover:shadow-lg",
+				"relative h-full gap-2 border-border/60 bg-card/95 shadow-xs transition-all duration-200 has-[>[data-slot=resource-card-body][data-interactive=true]]:hover:border-border has-[>[data-slot=resource-card-body][data-interactive=true]]:hover:shadow-md",
 				className,
 			)}
 			{...props}
 		/>
 	);
 };
+
+const resourceCardMediaVariants = cva(
+	"flex shrink-0 items-center justify-center [&_svg]:pointer-events-none [&_svg]:shrink-0",
+	{
+		variants: {
+			variant: {
+				default: "bg-transparent",
+				icon: "flex size-8 shrink-0 items-center justify-center rounded-lg bg-muted text-foreground [&_svg:not([class*='size-'])]:size-6",
+			},
+		},
+		defaultVariants: {
+			variant: "default",
+		},
+	},
+);
+
+function ResourceCardMedia({
+	className,
+	variant = "default",
+	...props
+}: React.ComponentProps<"div"> &
+	VariantProps<typeof resourceCardMediaVariants>) {
+	return (
+		<div
+			data-slot="resource-card-icon"
+			data-variant={variant}
+			className={cn(
+				resourceCardMediaVariants({
+					variant,
+					className,
+				}),
+				"row-span-2 self-start",
+			)}
+			{...props}
+		/>
+	);
+}
 
 const ResourceCardBody = ({
 	action,
@@ -60,7 +97,7 @@ const ResourceCardBody = ({
 	const bodyClassName = cn(
 		"block rounded-2xl",
 		isInteractive &&
-			"no-underline outline-none ring-ring/50 transition-all duration-200 focus-visible:ring-[3px]",
+			"space-y-2 no-underline outline-none ring-ring/50 transition-all duration-200 focus-visible:ring-[3px]",
 		className,
 	);
 
@@ -125,7 +162,15 @@ const ResourceCardHeader = ({
 	className,
 	...props
 }: React.ComponentProps<typeof CardHeader>) => {
-	return <CardHeader className={cn("gap-3", className)} {...props} />;
+	return (
+		<CardHeader
+			className={cn(
+				"gap-3 has-[>[data-slot=resource-card-icon]]:grid-cols-[auto_1fr] has-[>[data-slot=resource-card-icon]]:gap-x-3 has-[>[data-slot=resource-card-icon]]:gap-y-1",
+				className,
+			)}
+			{...props}
+		/>
+	);
 };
 
 const ResourceCardTitle = ({
@@ -186,7 +231,7 @@ const ResourceCardDescription = ({
 }: React.ComponentProps<typeof CardDescription>) => {
 	return (
 		<CardDescription
-			className={cn("line-clamp-2 text-sm", className)}
+			className={cn("line-clamp-2 text-muted-foreground text-sm", className)}
 			{...props}
 		/>
 	);
@@ -383,6 +428,7 @@ export {
 	ResourceCardDescription,
 	ResourceCardFooter,
 	ResourceCardHeader,
+	ResourceCardMedia,
 	ResourceCardMenu,
 	ResourceCardMenuTrigger,
 	ResourceCardMeta,

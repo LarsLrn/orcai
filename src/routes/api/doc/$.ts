@@ -26,7 +26,7 @@ const openAPIGenerator = new OpenAPIGenerator({
 
 const specFromRouter = await openAPIGenerator.generate(router, {
 	info: {
-		title: "SokratesT API Documentation",
+		title: "OrcAI API Documentation",
 		version: "1.0.0",
 	},
 	security: [

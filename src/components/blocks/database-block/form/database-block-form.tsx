@@ -1,9 +1,14 @@
+import type { Content } from "@tiptap/react";
 import { useState } from "react";
 import {
 	createDefaultDatabaseBlock,
 	DatabaseBlockEditor,
 } from "@/components/authoring/database-block-editor";
+import { BlockEditor } from "@/components/editor/block-editor";
 import { Button } from "@/components/ui/button";
+import { Card, CardContent } from "@/components/ui/card";
+import { Label } from "@/components/ui/label";
+import { Textarea } from "@/components/ui/textarea";
 import {
 	useCreateBlockMutation,
 	useUpdateBlockMutation,
@@ -31,6 +36,9 @@ const DatabaseBlockForm = ({
 			? {
 					id: block.id,
 					name: block.name,
+					description: block.description,
+					contentJson: block.contentJson,
+					contentHtml: block.contentHtml,
 					type: "database",
 					status: block.status,
 					config: {
@@ -43,12 +51,61 @@ const DatabaseBlockForm = ({
 					assetIds: assets?.map((entry) => entry.id) ?? [],
 					assets: assets ?? [],
 				}
-			: createDefaultDatabaseBlock(),
+			: {
+					...createDefaultDatabaseBlock(),
+				},
 	);
 
 	return (
 		<div className="space-y-4">
-			<DatabaseBlockEditor value={value} onChange={setValue} />
+			<DatabaseBlockEditor
+				value={value}
+				onChange={(nextValue) =>
+					setValue((current) => ({
+						...current,
+						...nextValue,
+					}))
+				}
+			/>
+
+			<Card>
+				<CardContent className="space-y-2">
+					<Label htmlFor="database-block-description">Short Description</Label>
+					<Textarea
+						id="database-block-description"
+						value={value.description ?? ""}
+						onChange={(event) =>
+							setValue((current) => ({
+								...current,
+								description: event.target.value || null,
+							}))
+						}
+						placeholder="Describe what this content collection is used for."
+						rows={4}
+					/>
+				</CardContent>
+
+				<CardContent className="space-y-2">
+					<Label>
+						Optional rich text about this content collection, what it includes,
+						how to use it, or any other relevant information.
+					</Label>
+					<BlockEditor
+						content={
+							value.contentJson ? (value.contentJson as Content) : undefined
+						}
+						onUpdate={(blockEditor) =>
+							setValue((current) => ({
+								...current,
+								contentJson:
+									blockEditor.getJSON() as DatabaseBlock["contentJson"],
+								contentHtml: blockEditor.getHTML(),
+							}))
+						}
+					/>
+				</CardContent>
+			</Card>
+
 			<div className="flex justify-end">
 				<Button
 					onClick={() => {
@@ -56,6 +113,9 @@ const DatabaseBlockForm = ({
 							updateBlock({
 								id: block.id,
 								name: value.name,
+								description: value.description,
+								contentJson: value.contentJson,
+								contentHtml: value.contentHtml,
 								type: "database",
 								status: value.status,
 								config: value.config,
@@ -66,6 +126,9 @@ const DatabaseBlockForm = ({
 
 						createBlock({
 							name: value.name,
+							description: value.description,
+							contentJson: value.contentJson,
+							contentHtml: value.contentHtml,
 							type: "database",
 							status: value.status,
 							config: value.config,
@@ -75,8 +138,8 @@ const DatabaseBlockForm = ({
 					disabled={isCreating || isUpdating}
 				>
 					{action === "create"
-						? "Save Knowledge Source"
-						: "Update Knowledge Source"}
+						? "Save Content Collection"
+						: "Update Content Collection"}
 				</Button>
 			</div>
 		</div>

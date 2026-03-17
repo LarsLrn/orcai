@@ -6,6 +6,7 @@ import { Placeholder } from "@/components/placeholders/placeholder";
 import {
 	Page,
 	PageContent,
+	PageDescription,
 	PageHeader,
 	PageTitle,
 } from "@/components/ui/shell/page";
@@ -33,8 +34,13 @@ function RouteComponent() {
 		<Page>
 			<PageHeader>
 				<PageTitle>Playground</PageTitle>
+				<PageDescription>
+					Experiment with vector search and retrieval-augmented generation
+					(RAG). Type a query and see which chunks of available content are
+					found.
+				</PageDescription>
 			</PageHeader>
-			<PageContent>
+			<PageContent className="space-y-6">
 				<QdrantPlaygroundForm />
 				{search ? (
 					<QdrantPlaygroundResults search={search} />

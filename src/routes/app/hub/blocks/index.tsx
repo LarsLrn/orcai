@@ -1,96 +1,204 @@
 import { useSuspenseQuery } from "@tanstack/react-query";
 import { createFileRoute, Link } from "@tanstack/react-router";
-import { columns } from "@/components/blocks/table/columns";
-import { buttonVariants } from "@/components/ui/button";
-import { DataTable } from "@/components/ui/data-table/data-table";
-import { DataTableBody } from "@/components/ui/data-table/data-table-body";
-import { DataTablePagination } from "@/components/ui/data-table/data-table-pagination";
-import { DataTableViewOptions } from "@/components/ui/data-table/data-table-view-options";
 import {
-	Page,
-	PageAction,
-	PageContent,
-	PageHeader,
-	PageTitle,
-} from "@/components/ui/shell/page";
+	BlocksIcon,
+	BrainCircuitIcon,
+	DatabaseIcon,
+	PlusIcon,
+} from "lucide-react";
+import { BlockCard } from "@/components/blocks/block-card";
+import { Placeholder } from "@/components/placeholders/placeholder";
+import { buttonVariants } from "@/components/ui/button";
+import {
+	Section,
+	SectionAction,
+	SectionContent,
+	SectionDescription,
+	SectionGrid,
+	SectionHeader,
+	SectionTitle,
+} from "@/components/ui/shell/section";
 import { orpc } from "@/lib/orpc/orpc";
-import { paginationSchema } from "@/lib/orpc/schemas/shared";
+
+const PAGE_SIZE = 100;
 
 export const Route = createFileRoute("/app/hub/blocks/")({
-	validateSearch: paginationSchema,
-	loaderDeps: ({ search: { pageIndex, pageSize } }) => ({
-		pageIndex,
-		pageSize,
-	}),
-	loader: async ({
-		context: { queryClient },
-		deps: { pageIndex, pageSize },
-	}) => {
-		await queryClient.ensureQueryData(
-			orpc.block.list.queryOptions({
-				input: {
-					pageIndex,
-					pageSize,
-				},
-			}),
-		);
+	loader: async ({ context: { queryClient } }) => {
+		await Promise.all([
+			queryClient.ensureQueryData(
+				orpc.block.list.queryOptions({
+					input: {
+						pageIndex: 0,
+						pageSize: PAGE_SIZE,
+						filters: {
+							type: "template",
+						},
+					},
+				}),
+			),
+			queryClient.ensureQueryData(
+				orpc.block.list.queryOptions({
+					input: {
+						pageIndex: 0,
+						pageSize: PAGE_SIZE,
+						filters: {
+							type: "imageGeneration",
+						},
+					},
+				}),
+			),
+			queryClient.ensureQueryData(
+				orpc.block.list.queryOptions({
+					input: {
+						pageIndex: 0,
+						pageSize: PAGE_SIZE,
+						filters: {
+							type: "database",
+						},
+					},
+				}),
+			),
+		]);
 	},
 	component: RouteComponent,
 });
 
 function RouteComponent() {
-	const { pageIndex, pageSize } = Route.useSearch();
-	const { data: blocks } = useSuspenseQuery(
+	const { data: templateBlocks } = useSuspenseQuery(
 		orpc.block.list.queryOptions({
 			input: {
-				pageIndex,
-				pageSize,
+				pageIndex: 0,
+				pageSize: PAGE_SIZE,
+				filters: {
+					type: "template",
+				},
+			},
+		}),
+	);
+	const { data: imageGenBlocks } = useSuspenseQuery(
+		orpc.block.list.queryOptions({
+			input: {
+				pageIndex: 0,
+				pageSize: PAGE_SIZE,
+				filters: {
+					type: "imageGeneration",
+				},
+			},
+		}),
+	);
+	const { data: databaseBlocks } = useSuspenseQuery(
+		orpc.block.list.queryOptions({
+			input: {
+				pageIndex: 0,
+				pageSize: PAGE_SIZE,
+				filters: {
+					type: "database",
+				},
 			},
 		}),
 	);
 
-	return (
-		<Page>
-			<PageHeader>
-				<PageTitle>Blocks</PageTitle>
+	const behaviourBlocks = [
+		...templateBlocks.data,
+		...imageGenBlocks.data,
+	];
 
-				<PageAction>
-					<Link
-						to={"/app/hub/blocks/add"}
-						className={buttonVariants({
-							variant: "default",
-						})}
-					>
-						Add Block
-					</Link>
-				</PageAction>
-			</PageHeader>
-			<PageContent>
-				<DataTable
-					data={blocks.data}
-					columns={columns}
-					state={{
-						pagination: {
-							pageIndex,
-							pageSize,
-						},
-					}}
-					options={{
-						rowCount: blocks.rowCount,
-						uidAccessor: "id",
-						clientPagination: {
-							pageIndex,
-							pageSize,
-						},
-					}}
-				>
-					<div className="flex items-center gap-2">
-						<DataTableViewOptions />
-					</div>
-					<DataTableBody />
-					<DataTablePagination />
-				</DataTable>
-			</PageContent>
-		</Page>
+	return (
+		<div className="space-y-12">
+			<Section>
+				<SectionHeader>
+					<SectionTitle>Behaviour</SectionTitle>
+					<SectionDescription>
+						System prompts, model configurations, and image-generation
+						capabilities that shape how bots think and respond.
+					</SectionDescription>
+					<SectionAction>
+						<Link
+							to="/app/hub/blocks/add"
+							className={buttonVariants({
+								size: "sm",
+							})}
+						>
+							<PlusIcon />
+							Add Block
+						</Link>
+					</SectionAction>
+				</SectionHeader>
+				<SectionContent>
+					{behaviourBlocks.length === 0 ? (
+						<Placeholder
+							Icon={BrainCircuitIcon}
+							title="No behaviour blocks yet"
+							description="Create a behaviour block to define how bots think and respond."
+							actions={[
+								{
+									key: "add",
+									label: "Add Block",
+									icon: PlusIcon,
+									variant: "default",
+									linkProps: {
+										to: "/app/hub/blocks/add",
+									},
+								},
+							]}
+						/>
+					) : (
+						<SectionGrid layout="3">
+							{behaviourBlocks.map((block) => (
+								<BlockCard
+									key={block.id}
+									block={block}
+									actions={{
+										footer: [],
+									}}
+								/>
+							))}
+						</SectionGrid>
+					)}
+				</SectionContent>
+			</Section>
+
+			<Section>
+				<SectionHeader>
+					<SectionTitle>Knowledge</SectionTitle>
+					<SectionDescription>
+						Retrieval databases that ground bot answers in specific content
+						collections.
+					</SectionDescription>
+				</SectionHeader>
+				<SectionContent>
+					{databaseBlocks.data.length === 0 ? (
+						<Placeholder
+							Icon={DatabaseIcon}
+							title="No knowledge blocks yet"
+							description="Create a knowledge block to give bots access to your content."
+							actions={[
+								{
+									key: "add",
+									label: "Add Block",
+									icon: BlocksIcon,
+									variant: "default",
+									linkProps: {
+										to: "/app/hub/blocks/add",
+									},
+								},
+							]}
+						/>
+					) : (
+						<SectionGrid layout="3">
+							{databaseBlocks.data.map((block) => (
+								<BlockCard
+									key={block.id}
+									block={block}
+									actions={{
+										footer: [],
+									}}
+								/>
+							))}
+						</SectionGrid>
+					)}
+				</SectionContent>
+			</Section>
+		</div>
 	);
 }

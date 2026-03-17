@@ -1,11 +1,34 @@
 import { useSuspenseQuery } from "@tanstack/react-query";
-import { createFileRoute } from "@tanstack/react-router";
+import { createFileRoute, useNavigate } from "@tanstack/react-router";
+import {
+	EditIcon,
+	KeyRoundIcon,
+	MoreVerticalIcon,
+	Trash2Icon,
+} from "lucide-react";
+import { useState } from "react";
+import { AccessDialog } from "@/components/access/access-dialog";
+import { MetadataCard } from "@/components/app/metadata-card";
 import { BotBlocks } from "@/components/bot/bot-blocks";
-import { BotConfiguration } from "@/components/bot/bot-configuration";
-import { BotHeader } from "@/components/bot/bot-header";
-import { BotMetadata } from "@/components/bot/bot-metadata";
-import { BotQuickActions } from "@/components/bot/bot-quick-actions";
-import { Page, PageContent, PageHeader } from "@/components/ui/shell/page";
+import { ContentRenderer } from "@/components/editor/content-renderer";
+import { Button } from "@/components/ui/button";
+import {
+	DropdownMenu,
+	DropdownMenuContent,
+	DropdownMenuItem,
+	DropdownMenuSeparator,
+	DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
+import {
+	Page,
+	PageAction,
+	PageContent,
+	PageDescription,
+	PageHeader,
+	PageTitle,
+} from "@/components/ui/shell/page";
+import { useDeleteBotsMutation } from "@/hooks/mutations/use-bot-mutations";
+import { useCreateChatMutation } from "@/hooks/mutations/use-chat-mutation";
 import { orpc } from "@/lib/orpc/orpc";
 
 export const Route = createFileRoute("/app/hub/bots/$botId/")({
@@ -14,6 +37,8 @@ export const Route = createFileRoute("/app/hub/bots/$botId/")({
 
 function RouteComponent() {
 	const { botId } = Route.useParams();
+	const navigate = useNavigate();
+	const [isAccessOpen, setIsAccessOpen] = useState(false);
 
 	const { data: bot } = useSuspenseQuery(
 		orpc.bot.find.queryOptions({
@@ -41,23 +66,109 @@ function RouteComponent() {
 		}),
 	);
 
+	const { mutate: createChat } = useCreateChatMutation();
+	const { mutate: deleteBots } = useDeleteBotsMutation({
+		onMutate: async () => {
+			// Navigate away before deleting to avoid rendering the deleted bot.
+			await navigate({
+				to: "/app/hub/bots",
+			});
+		},
+	});
+
 	return (
 		<Page>
 			<PageHeader>
-				<BotHeader bot={bot.data} visibility={visibility.data.visibility} />
+				<PageTitle>{bot.data.name}</PageTitle>
+				<PageDescription>{bot.data.description}</PageDescription>
+				<PageAction>
+					<Button
+						onClick={() =>
+							createChat({
+								botId: bot.data.id,
+							})
+						}
+					>
+						Start chat
+					</Button>
+					<DropdownMenu>
+						<DropdownMenuTrigger
+							render={
+								<Button variant="ghost" size="icon">
+									<MoreVerticalIcon className="size-4" />
+									<span className="sr-only">More options</span>
+								</Button>
+							}
+						/>
+						<DropdownMenuContent align="end">
+							<DropdownMenuItem onClick={() => setIsAccessOpen(true)}>
+								<KeyRoundIcon className="size-4" />
+								Access & Groups
+							</DropdownMenuItem>
+							<DropdownMenuItem
+								onClick={() =>
+									navigate({
+										to: "/app/hub/bots/$botId/setup",
+										params: {
+											botId: bot.data.id,
+										},
+									})
+								}
+							>
+								<EditIcon />
+								Edit Bot
+							</DropdownMenuItem>
+							<DropdownMenuSeparator />
+							<DropdownMenuItem
+								variant="destructive"
+								onClick={() =>
+									deleteBots({
+										refs: [
+											{
+												id: bot.data.id,
+											},
+										],
+									})
+								}
+							>
+								<Trash2Icon />
+								Delete Bot
+							</DropdownMenuItem>
+						</DropdownMenuContent>
+					</DropdownMenu>
+				</PageAction>
 			</PageHeader>
 
 			<PageContent className="grid gap-6 lg:grid-cols-3">
 				<div className="space-y-6 lg:col-span-2">
-					<BotConfiguration bot={bot.data} />
+					<div className="mt-2 rounded-md border bg-muted/30 p-3 text-sm">
+						<div className="prose prose-sm max-w-none">
+							<ContentRenderer html={bot.data.contentHtml} />
+						</div>
+					</div>
 					<BotBlocks blocks={blocks.data} />
 				</div>
 
 				<div className="space-y-6">
-					<BotMetadata bot={bot.data} />
-					<BotQuickActions bot={bot.data} />
+					<MetadataCard
+						createdAt={bot.data.createdAt}
+						updatedAt={bot.data.updatedAt}
+						visibility={visibility.data.visibility}
+						version={bot.data.version}
+						id={bot.data.id}
+					/>
 				</div>
 			</PageContent>
+
+			<AccessDialog
+				open={isAccessOpen}
+				onOpenChange={setIsAccessOpen}
+				resourceRef={{
+					type: "bot",
+					id: bot.data.id,
+				}}
+				resourceName={bot.data.name}
+			/>
 		</Page>
 	);
 }

@@ -33,7 +33,7 @@ function RouteComponent() {
 	return (
 		<Page>
 			<PageHeader>
-				<PageTitle>Edit Asset</PageTitle>
+				<PageTitle>Edit Content Item</PageTitle>
 			</PageHeader>
 			<PageContent>
 				<AssetForm asset={asset.data} />

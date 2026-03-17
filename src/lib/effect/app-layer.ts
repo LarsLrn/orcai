@@ -1,5 +1,6 @@
 import * as Layer from "effect/Layer";
 import { QdrantLive } from "@/lib/effect/services/qdrant";
+import { QuotaCounterStoreLive } from "@/lib/quota/counter-store";
 import { AuthzLive } from "./services/authz";
 import { AppConfigLive } from "./services/config";
 import { DoclingLive } from "./services/docling";
@@ -11,6 +12,7 @@ import { PgBossWorkersLive } from "./services/pg-boss-workers";
 import { S3Live } from "./services/s3";
 import { SpiceDbLive } from "./services/spice";
 import { TracerLive } from "./services/tracer";
+import { ValkeyLive } from "./services/valkey";
 
 // Provide PgBossLive to PgBossWorkersLive and merge their outputs.
 const BaseInfra = Layer.mergeAll(
@@ -18,17 +20,17 @@ const BaseInfra = Layer.mergeAll(
 	SpiceDbLive,
 	S3Live,
 	PgBossLive,
+	ValkeyLive,
 	QdrantLive,
 	DoclingLive,
 	EmailLive,
 ).pipe(Layer.provideMerge(AppConfigLive));
 
-const InfraWithAuthz = Layer.provideMerge(AuthzLive, BaseInfra);
-const InfraWithWorkers = Layer.provideMerge(PgBossWorkersLive, InfraWithAuthz);
+const AppInfra = PgBossWorkersLive.pipe(
+	Layer.provideMerge(QuotaCounterStoreLive),
+	Layer.provideMerge(AuthzLive),
+	Layer.provideMerge(BaseInfra),
+);
 
 // Compose all app-level services in one place.
-export const AppLayer = Layer.mergeAll(
-	TracerLive,
-	LoggerLive,
-	InfraWithWorkers,
-);
+export const AppLayer = Layer.mergeAll(TracerLive, LoggerLive, AppInfra);

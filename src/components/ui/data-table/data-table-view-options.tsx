@@ -1,9 +1,13 @@
+"use no memo";
+// FIXME: tanstack table is incompatible with the react compiler. Monitor the repo for any updates: https://github.com/TanStack/table/issues/5567
+
 import { Settings2Icon } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import {
 	DropdownMenu,
 	DropdownMenuCheckboxItem,
 	DropdownMenuContent,
+	DropdownMenuGroup,
 	DropdownMenuLabel,
 	DropdownMenuSeparator,
 	DropdownMenuTrigger,
@@ -25,26 +29,28 @@ const DataTableViewOptions = () => {
 				}
 			/>
 			<DropdownMenuContent align="end" className="w-37.5">
-				<DropdownMenuLabel>Toggle columns</DropdownMenuLabel>
-				<DropdownMenuSeparator />
-				{table
-					.getAllColumns()
-					.filter(
-						(column) =>
-							typeof column.accessorFn !== "undefined" && column.getCanHide(),
-					)
-					.map((column) => {
-						return (
-							<DropdownMenuCheckboxItem
-								key={column.id}
-								className="capitalize"
-								checked={column.getIsVisible()}
-								onCheckedChange={(value) => column.toggleVisibility(!!value)}
-							>
-								{column.id}
-							</DropdownMenuCheckboxItem>
-						);
-					})}
+				<DropdownMenuGroup>
+					<DropdownMenuLabel>Toggle columns</DropdownMenuLabel>
+					<DropdownMenuSeparator />
+					{table
+						.getAllColumns()
+						.filter(
+							(column) =>
+								typeof column.accessorFn !== "undefined" && column.getCanHide(),
+						)
+						.map((column) => {
+							return (
+								<DropdownMenuCheckboxItem
+									key={column.id}
+									className="capitalize"
+									checked={column.getIsVisible()}
+									onCheckedChange={(value) => column.toggleVisibility(!!value)}
+								>
+									{column.id}
+								</DropdownMenuCheckboxItem>
+							);
+						})}
+				</DropdownMenuGroup>
 			</DropdownMenuContent>
 		</DropdownMenu>
 	);

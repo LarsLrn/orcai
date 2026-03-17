@@ -25,7 +25,7 @@ export const Route = createFileRoute("/app/hub/blocks/add")({
 	head: () => ({
 		meta: [
 			{
-				title: "Add Capability",
+				title: "Add Block",
 			},
 		],
 	}),
@@ -39,10 +39,10 @@ function RouteComponent() {
 	return (
 		<Page>
 			<PageHeader>
-				<PageTitle>Add Capability</PageTitle>
+				<PageTitle>Add Block</PageTitle>
 				<PageDescription>
-					Create reusable AI behavior or knowledge-source blocks with the same
-					editors used in the guided bot setup.
+					Create reusable AI behavior, content collections, or image-generation
+					blocks.
 				</PageDescription>
 			</PageHeader>
 			<PageContent className="space-y-6">
@@ -56,8 +56,8 @@ function RouteComponent() {
 						},
 						{
 							type: "database" as const,
-							title: "Knowledge Source",
-							description: "Attach documents and retrieval settings.",
+							title: "Content Collection",
+							description: "Bundle reusable content with retrieval settings.",
 							icon: BookOpenIcon,
 						},
 						{
@@ -94,14 +94,14 @@ function RouteComponent() {
 							{type === "template"
 								? "AI Behavior"
 								: type === "database"
-									? "Knowledge Source"
+									? "Content Collection"
 									: "Image Generation"}
 						</CardTitle>
 						<CardDescription>
 							{type === "template"
 								? "Configure a reusable AI behavior block."
 								: type === "database"
-									? "Configure a reusable knowledge source block."
+									? "Configure a reusable content collection."
 									: "Configure a reusable image-generation block."}
 						</CardDescription>
 					</CardHeader>

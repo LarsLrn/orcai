@@ -50,7 +50,7 @@ const AccessManagerContent = ({
 }: AccessManagerContentProps) => {
 	const [grantSearch, setGrantSearch] = useState("");
 	const [principalSearch, setPrincipalSearch] = useState("");
-	const [principalType, setPrincipalType] = useState<PrincipalType>("user");
+	const [principalType, setPrincipalType] = useState<PrincipalType>("group");
 	const [selectedPrincipalIds, setSelectedPrincipalIds] = useState<string[]>(
 		[],
 	);
@@ -209,6 +209,15 @@ const AccessManagerContent = ({
 				}
 			/>
 
+			<Alert>
+				<AlertCircleIcon className="h-4 w-4" />
+				<AlertTitle>Groups are usually the right place to start</AlertTitle>
+				<AlertDescription>
+					Use groups for classes, cohorts, or teams whenever possible. Direct
+					grants are best for exceptions and individual collaborators.
+				</AlertDescription>
+			</Alert>
+
 			<div className="rounded-lg border p-4">
 				<div className="flex items-center justify-between gap-3">
 					<div>
@@ -234,11 +243,11 @@ const AccessManagerContent = ({
 					className="mt-3"
 				>
 					<TabsList className="grid w-full grid-cols-2">
-						<TabsTrigger value="user" disabled={isBusy}>
-							People
-						</TabsTrigger>
 						<TabsTrigger value="group" disabled={isBusy}>
 							Groups
+						</TabsTrigger>
+						<TabsTrigger value="user" disabled={isBusy}>
+							People
 						</TabsTrigger>
 					</TabsList>
 				</Tabs>

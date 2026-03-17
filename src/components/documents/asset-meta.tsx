@@ -188,8 +188,8 @@ const AssetMeta = ({ asset }: { asset: Asset }) => {
 						className="font-normal text-xs"
 					>
 						{asset.metadata.showReference
-							? "Reference Shown"
-							: "Reference Hidden"}
+							? "AI may cite this source"
+							: "Keep this source out of citations"}
 					</Badge>
 				</div>
 			</CardContent>

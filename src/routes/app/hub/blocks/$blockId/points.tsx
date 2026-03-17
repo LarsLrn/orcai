@@ -51,7 +51,7 @@ function RouteComponent() {
 				<PageTitle>Points</PageTitle>
 			</PageHeader>
 
-			<PageContent>
+			<PageContent className="grid gap-4">
 				{assetPoints.data.map((point) => (
 					<DisplayPoint key={point.id} point={point} />
 				))}

@@ -1,7 +1,15 @@
 import { useStore } from "@tanstack/react-form";
 import { skipToken, useQuery, useSuspenseQuery } from "@tanstack/react-query";
 import { useRouteContext } from "@tanstack/react-router";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import type { Content } from "@tiptap/react";
+import { BlockEditor } from "@/components/editor/block-editor";
+import {
+	Card,
+	CardContent,
+	CardDescription,
+	CardHeader,
+	CardTitle,
+} from "@/components/ui/card";
 import { useAppForm } from "@/hooks/form";
 import {
 	useCreateBlockMutation,
@@ -51,6 +59,7 @@ const ImageGenerationBlockForm = ({
 		form.store,
 		(state) => state.values.config.provider,
 	);
+	const contentJson = useStore(form.store, (state) => state.values.contentJson);
 
 	const { data: models } = useQuery(
 		orpc.model.list.queryOptions({
@@ -85,6 +94,16 @@ const ImageGenerationBlockForm = ({
 							name="name"
 							children={(field) => (
 								<field.TextField label="Name" placeholder="Block name" />
+							)}
+						/>
+						<form.AppField
+							name="description"
+							children={(field) => (
+								<field.TextareaField
+									label="Short Description"
+									placeholder="Describe the purpose of this image generation block."
+									rows={4}
+								/>
 							)}
 						/>
 					</CardContent>
@@ -138,6 +157,26 @@ const ImageGenerationBlockForm = ({
 					</CardContent>
 				</Card>
 			</div>
+			<Card>
+				<CardHeader>
+					<CardTitle>Block Description</CardTitle>
+					<CardDescription>
+						Optional rich text context for teammates maintaining this block.
+					</CardDescription>
+				</CardHeader>
+				<CardContent>
+					<BlockEditor
+						content={contentJson ? (contentJson as Content) : undefined}
+						onUpdate={(blockEditor) => {
+							form.setFieldValue(
+								"contentJson",
+								blockEditor.getJSON() as ImageGenerationBlock["contentJson"],
+							);
+							form.setFieldValue("contentHtml", blockEditor.getHTML());
+						}}
+					/>
+				</CardContent>
+			</Card>
 			<form.AppForm>
 				<form.SubmitButton label="Save Block" />
 			</form.AppForm>

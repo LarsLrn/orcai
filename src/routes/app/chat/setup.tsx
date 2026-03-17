@@ -1,4 +1,4 @@
-import { createFileRoute, Link } from "@tanstack/react-router";
+import { createFileRoute } from "@tanstack/react-router";
 import {
 	BotIcon,
 	MessageSquarePlusIcon,
@@ -54,9 +54,9 @@ function RouteComponent() {
 	return (
 		<Page>
 			<PageHeader className="text-center">
-				<PageTitle>Start Your Chat</PageTitle>
+				<PageTitle>Start a Chat</PageTitle>
 				<PageDescription>
-					Choose how you'd like to begin your conversation
+					Choose whether to work with a bot or open a free-form conversation.
 				</PageDescription>
 			</PageHeader>
 
@@ -71,21 +71,20 @@ function RouteComponent() {
 									<div className="mx-auto mb-4 flex h-16 w-16 items-center justify-center rounded-full bg-primary/10 transition-colors group-hover:bg-primary/20">
 										<BotIcon className="h-8 w-8 text-primary" />
 									</div>
-									<CardTitle className="text-xl">Use a Bot Template</CardTitle>
+									<CardTitle className="text-xl">Use a Bot</CardTitle>
 									<CardDescription>
-										Start with a pre-configured AI assistant designed for
-										specific tasks
+										Start with a configured bot tailored to a specific use case
 									</CardDescription>
 								</CardHeader>
 								<CardContent>
 									<div className="space-y-2 text-muted-foreground text-sm">
 										<div className="flex items-center gap-2">
 											<SparklesIcon className="h-4 w-4" />
-											<span>Ready-to-use templates</span>
+											<span>Ready-to-use setups</span>
 										</div>
 										<div className="flex items-center gap-2">
 											<UserIcon className="h-4 w-4" />
-											<span>Specialized AI personalities</span>
+											<span>Configured behavior and content access</span>
 										</div>
 									</div>
 								</CardContent>
@@ -95,9 +94,9 @@ function RouteComponent() {
 
 					<DialogContent className="flex max-h-[80vh] max-w-2xl flex-col overflow-hidden">
 						<DialogHeader>
-							<DialogTitle>Select a Bot Template</DialogTitle>
+							<DialogTitle>Select a Bot</DialogTitle>
 							<DialogDescription>
-								Choose from our collection of specialized AI assistants
+								Choose from the bots available in your workspace
 							</DialogDescription>
 						</DialogHeader>
 
@@ -122,40 +121,45 @@ function RouteComponent() {
 					</DialogContent>
 				</Dialog>
 
-				{/* Start Fresh Option */}
-				<Link to="/app/chat">
-					<Card className="group h-full cursor-pointer justify-between transition-shadow hover:shadow-lg">
+				<Card className="group h-full cursor-pointer justify-between transition-shadow hover:shadow-lg">
+					<button
+						type="button"
+						className="contents"
+						onClick={() => createChat({})}
+					>
 						<CardHeader className="text-center">
 							<div className="mx-auto mb-4 flex h-16 w-16 items-center justify-center rounded-full bg-secondary/10 transition-colors group-hover:bg-secondary/20">
 								<MessageSquarePlusIcon className="h-8 w-8 text-primary" />
 							</div>
 							<CardTitle className="text-xl">Start Fresh</CardTitle>
 							<CardDescription>
-								Begin with a blank chat and customize as you go
+								Begin without a preselected bot and decide the direction as you
+								go
 							</CardDescription>
 						</CardHeader>
 						<CardContent>
 							<div className="space-y-2 text-muted-foreground text-sm">
 								<div className="flex items-center gap-2">
 									<MessageSquarePlusIcon className="h-4 w-4" />
-									<span>Complete creative freedom</span>
+									<span>Free-form prompting</span>
 								</div>
 								<div className="flex items-center gap-2">
 									<SparklesIcon className="h-4 w-4" />
-									<span>Build your own experience</span>
+									<span>No bot required</span>
 								</div>
 							</div>
 						</CardContent>
-					</Card>
-				</Link>
+					</button>
+				</Card>
 			</PageContent>
 
 			<Separator className="my-2" />
 
 			<PageFooter className="text-center text-muted-foreground text-sm">
 				<p>
-					Not sure which option to choose? Bot templates are great for specific
-					tasks, while starting fresh gives you complete control.
+					Bots are best when someone else has already configured AI behavior or
+					relevant content for you. Open conversations are best when you want to
+					explore freely.
 				</p>
 			</PageFooter>
 		</Page>

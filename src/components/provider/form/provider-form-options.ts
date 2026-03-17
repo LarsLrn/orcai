@@ -10,6 +10,7 @@ const defaultValues = (
 ): z.input<typeof providerInsertSchema> => ({
 	apiKey: provider?.apiKeyEncrypted ?? "",
 	enabled: provider?.enabled ?? true,
+	meteringMode: provider?.meteringMode ?? "requests",
 	compatibility: provider?.compatibility ?? "openai",
 	endpoint: provider?.endpoint ?? "",
 	name: provider?.name ?? "",

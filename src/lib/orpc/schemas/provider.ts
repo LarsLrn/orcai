@@ -6,6 +6,7 @@ import {
 import { z } from "zod/v4";
 import { dbSchema } from "@/db/schema";
 import { providerCompatibilitySchema } from "./fragments/provider-compatibility";
+import { providerMeteringModeSchema } from "./fragments/provider-metering-mode";
 
 /**
  * ----------------
@@ -15,6 +16,7 @@ import { providerCompatibilitySchema } from "./fragments/provider-compatibility"
 
 export const providerSelectSchema = createSelectSchema(dbSchema.provider, {
 	compatibility: providerCompatibilitySchema,
+	meteringMode: providerMeteringModeSchema,
 });
 
 /**
@@ -25,10 +27,12 @@ export const providerSelectSchema = createSelectSchema(dbSchema.provider, {
 
 export const providerInsertSchema = createInsertSchema(dbSchema.provider, {
 	compatibility: providerSelectSchema.shape.compatibility,
+	meteringMode: providerSelectSchema.shape.meteringMode,
 })
 	.omit({
 		createdAt: true,
 		apiKeyEncrypted: true, // Remove encrypted field from input
+		organizationId: true,
 	})
 	.extend({
 		apiKey: z.string().min(1, "API key is required"), // Add plain text API key input
@@ -43,9 +47,11 @@ export const providerInsertSchema = createInsertSchema(dbSchema.provider, {
 export const providerUpdateSchema = createUpdateSchema(dbSchema.provider, {
 	id: providerSelectSchema.shape.id,
 	compatibility: providerSelectSchema.shape.compatibility,
+	meteringMode: providerSelectSchema.shape.meteringMode,
 })
 	.omit({
 		apiKeyEncrypted: true, // Remove encrypted field from input
+		organizationId: true,
 	})
 	.extend({
 		apiKey: z.string().min(1, "API key is required").optional(), // Add optional plain text API key input for updates

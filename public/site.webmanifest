@@ -1,6 +1,6 @@
 {
-	"name": "SokratesT",
-	"short_name": "SokratesT",
+	"name": "OrcAI",
+	"short_name": "OrcAI",
 	"icons": [
 		{
 			"src": "/seo/web-app-manifest-192x192.png",
@@ -15,7 +15,7 @@
 			"purpose": "maskable"
 		}
 	],
-	"theme_color": "#298fa2",
-	"background_color": "#298fa2",
+	"theme_color": "#456789",
+	"background_color": "#456789",
 	"display": "standalone"
 }

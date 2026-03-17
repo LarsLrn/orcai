@@ -96,6 +96,14 @@ import {
 	updateProvider,
 } from "./provider";
 import {
+	createQuotaPool,
+	deactivateQuotaPool,
+	findQuotaPool,
+	listQuotaPools,
+	quotaChatBadge,
+	updateQuotaPool,
+} from "./quota";
+import {
 	getResourceVisibility,
 	grantResourceAccess,
 	listResourceGrants,
@@ -155,6 +163,14 @@ export const router = {
 		find: findProvider,
 		update: updateProvider,
 		delete: deleteProviders,
+	},
+	quota: {
+		list: listQuotaPools,
+		create: createQuotaPool,
+		find: findQuotaPool,
+		update: updateQuotaPool,
+		deactivate: deactivateQuotaPool,
+		chatBadge: quotaChatBadge,
 	},
 	resource: {
 		listGrants: listResourceGrants,

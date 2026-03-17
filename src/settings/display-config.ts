@@ -34,7 +34,7 @@ export const RESOURCES = [
 		value: "bot",
 		label: "Bot",
 		accessHint:
-			"Providing access to bots will cascade the access level to all child resources (e.g. bots and blocks).",
+			"Use groups when possible to grant cohort access. Access here cascades to linked blocks and content.",
 	},
 	{
 		value: "block",
@@ -43,8 +43,8 @@ export const RESOURCES = [
 	},
 	{
 		value: "asset",
-		label: "Asset",
-		accessHint: "Access may also be inherited from the parent block.",
+		label: "Content item",
+		accessHint: "Access may also be inherited from the parent bot.",
 	},
 ] satisfies {
 	value: ResourceType;

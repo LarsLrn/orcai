@@ -6,6 +6,7 @@ import {
 	FieldDescription,
 	FieldError,
 	FieldLabel,
+	FieldTitle,
 } from "@/components/ui/field";
 import { Switch } from "@/components/ui/switch";
 import { useFieldContext } from "@/hooks/form/context";
@@ -27,20 +28,22 @@ const SwitchField = ({
 	);
 
 	return (
-		<Field orientation="horizontal" data-invalid={isInvalid}>
-			<FieldContent>
-				<FieldLabel htmlFor={id}>{label}</FieldLabel>
-				{description && <FieldDescription>{description}</FieldDescription>}
-				{isInvalid && <FieldError errors={errors} />}
-			</FieldContent>
-			<Switch
-				id={id}
-				name={field.name}
-				checked={field.state.value}
-				onCheckedChange={field.handleChange}
-				aria-invalid={isInvalid}
-			/>
-		</Field>
+		<FieldLabel htmlFor={id}>
+			<Field orientation="horizontal" data-invalid={isInvalid}>
+				<FieldContent>
+					<FieldTitle className="font-bold">{label}</FieldTitle>
+					{description && <FieldDescription>{description}</FieldDescription>}
+					{isInvalid && <FieldError errors={errors} />}
+				</FieldContent>
+				<Switch
+					id={id}
+					name={field.name}
+					checked={field.state.value}
+					onCheckedChange={field.handleChange}
+					aria-invalid={isInvalid}
+				/>
+			</Field>
+		</FieldLabel>
 	);
 };
 

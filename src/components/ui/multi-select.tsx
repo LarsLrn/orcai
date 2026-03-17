@@ -958,7 +958,7 @@ export const MultiSelect = React.forwardRef<MultiSelectRef, MultiSelectProps>(
 																	}
 																}}
 																aria-label={`Remove ${option.label} from selection`}
-																className="-m-0.5 ml-2 h-4 w-4 cursor-pointer rounded-sm p-0.5 hover:bg-white/20 focus:outline-none focus:ring-1 focus:ring-white/50"
+																className="-m-0.5 ml-2 h-4.5 w-4.5 cursor-pointer rounded-sm p-0.5 hover:bg-white/20 focus:outline-none focus:ring-1 focus:ring-white/50"
 															>
 																<XCircle
 																	className={cn(

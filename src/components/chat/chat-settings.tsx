@@ -1,11 +1,9 @@
 import { useQuery, useSuspenseQuery } from "@tanstack/react-query";
-import { Link } from "@tanstack/react-router";
 import { BotIcon } from "lucide-react";
 import { Suspense } from "react";
-import { BotBlocks } from "@/components/bot/bot-blocks";
-import { BotConfiguration } from "@/components/bot/bot-configuration";
-import { BotMetadata } from "@/components/bot/bot-metadata";
-import { Button, buttonVariants } from "@/components/ui/button";
+import { BlockCard } from "@/components/blocks/block-card";
+import { BotCard } from "@/components/bot/bot-card";
+import { Button } from "@/components/ui/button";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import {
 	Sheet,
@@ -86,20 +84,11 @@ const BotDetails = ({ botId }: { botId: string }) => {
 
 	return (
 		<div className="flex w-full flex-col gap-2">
-			<BotConfiguration bot={bot.data} />
-			<BotBlocks blocks={blocks.data} />
-			<BotMetadata bot={bot.data} />
-			<Link
-				to="/app/hub/bots/$botId"
-				params={{
-					botId: bot.data.id,
-				}}
-				className={buttonVariants({
-					variant: "outline",
-				})}
-			>
-				Go to Bot
-			</Link>
+			<BotCard bot={bot.data} />
+
+			{blocks.data.map((block) => (
+				<BlockCard key={block.id} block={block} />
+			))}
 		</div>
 	);
 };

@@ -1,6 +1,10 @@
 import { useChat } from "@ai-sdk/react";
 import { eventIteratorToUnproxiedDataStream } from "@orpc/client";
-import { useQueryClient, useSuspenseQuery } from "@tanstack/react-query";
+import {
+	useQuery,
+	useQueryClient,
+	useSuspenseQuery,
+} from "@tanstack/react-query";
 import type { ApiGetScoresResponseData } from "langfuse";
 import { toast } from "sonner";
 import {
@@ -9,6 +13,7 @@ import {
 	ConversationScrollButton,
 } from "@/components/ai-elements/conversation";
 import { Shimmer } from "@/components/ai-elements/shimmer";
+import { Badge } from "@/components/ui/badge";
 import type { ChatAgentUIMessage } from "@/lib/ai/types/chat-agent-message";
 import { client, orpc } from "@/lib/orpc/orpc";
 import type { Chat as ChatType } from "@/lib/orpc/schemas/chat";
@@ -35,6 +40,14 @@ const Chat = ({
 		orpc.chat.find.queryOptions({
 			input: {
 				id,
+			},
+		}),
+	);
+
+	const quotaBadge = useQuery(
+		orpc.quota.chatBadge.queryOptions({
+			input: {
+				chatId: id,
 			},
 		}),
 	);
@@ -91,7 +104,16 @@ const Chat = ({
 
 	return (
 		<div className="flex size-full min-h-0 min-w-0 flex-col">
-			<div className="absolute top-2 right-4 z-10">
+			<div className="absolute top-2 right-4 z-10 flex items-center gap-2">
+				{quotaBadge.data?.data.poolId && (
+					<Badge variant="outline" className="bg-background/90">
+						{quotaBadge.data.data.poolName}:{" "}
+						{quotaBadge.data.data.remainingAmount}{" "}
+						{quotaBadge.data.data.meteringMode === "requests"
+							? "requests"
+							: "tokens"}
+					</Badge>
+				)}
 				<BranchSwitcher chat={chat.data} branches={chat.data.branches} />
 			</div>
 

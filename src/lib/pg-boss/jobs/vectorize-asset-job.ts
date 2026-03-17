@@ -1,10 +1,10 @@
-import { TokenChunker } from "@chonkiejs/core";
+// import { TokenChunker } from "@chonkiejs/core";
 import { embedMany, generateText } from "ai";
 import * as Effect from "effect/Effect";
 import type { Job } from "pg-boss";
 import { v4 as uuidv4 } from "uuid";
 import { getSaiaEmbeddingModel, getSaiaModel } from "@/lib/ai/saia-models";
-import type { MarkdownNode } from "@/lib/chunk/markdown-chunker";
+import { countTokens, type MarkdownNode } from "@/lib/chunk/markdown-chunker";
 import { PgBossError } from "@/lib/effect/utils/errors";
 import type { Asset } from "@/lib/orpc/schemas/asset";
 import type { Block } from "@/lib/orpc/schemas/block";
@@ -177,40 +177,51 @@ const processMarkdownFile = ({
 }: {
 	fileContent: string;
 	fileName: string;
-}) =>
-	Effect.gen(function* () {
-		const page = extractPageFromFileName(fileName);
-		const title =
-			page !== undefined ? `${fileName} (page ${String(page + 1)})` : fileName;
+}) => {
+	const page = extractPageFromFileName(fileName);
+	const title =
+		page !== undefined ? `${fileName} (page ${String(page + 1)})` : fileName;
 
-		const chunker = yield* Effect.promise(() =>
-			TokenChunker.create({
-				chunkSize: 560,
-				chunkOverlap: 96,
-			}),
-		);
+	/* TODO: Reintroduce a configurable chunking strategy (per-page vs token-based).
+	Token-based chunking kept for quick re-enable:
+	const chunker = yield* Effect.promise(() =>
+	 	TokenChunker.create({
+	 		chunkSize: 560,
+	 		chunkOverlap: 96,
+	 	}),
+	);
+	return yield* Effect.tryPromise({
+	 	try: () => chunker.chunk(fileContent),
+	 	catch: (cause) =>
+	 		new PgBossError({
+	 			operation: "run",
+	 			cause,
+	 		}),
+	}).pipe(
+	 	Effect.map(
+	 		(chunks) =>
+	 			chunks.map((chunk) => ({
+	 				title,
+	 				page,
+	 				depth: 0,
+	 				content: chunk.text,
+	 				length: chunk.tokenCount,
+	 				type: "text",
+	 			})) as MarkdownNode[],
+	 	),
+	); */
 
-		return yield* Effect.tryPromise({
-			try: () => chunker.chunk(fileContent),
-			catch: (cause) =>
-				new PgBossError({
-					operation: "run",
-					cause,
-				}),
-		}).pipe(
-			Effect.map(
-				(chunks) =>
-					chunks.map((chunk) => ({
-						title,
-						page,
-						depth: 0,
-						content: chunk.text,
-						length: chunk.tokenCount,
-						type: "text",
-					})) as MarkdownNode[],
-			),
-		);
-	});
+	return Effect.succeed([
+		{
+			title,
+			page,
+			depth: 0,
+			content: fileContent,
+			length: countTokens(fileContent),
+			type: "text",
+		},
+	] as MarkdownNode[]);
+};
 
 const processImageFile = (
 	base64Image: string,

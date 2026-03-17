@@ -74,12 +74,12 @@ const ExistingBlockPickerDialog = ({
 					<DialogTitle>
 						{type === "template"
 							? "Use Existing AI Behavior"
-							: "Use Existing Knowledge Source"}
+							: "Use Existing Content Collection"}
 					</DialogTitle>
 					<DialogDescription>
 						{type === "template"
 							? "Attach a reusable AI behavior block instead of creating a new one."
-							: "Attach a reusable knowledge source block to this bot."}
+							: "Attach a reusable content collection to this bot."}
 					</DialogDescription>
 				</DialogHeader>
 
@@ -91,7 +91,7 @@ const ExistingBlockPickerDialog = ({
 						placeholder={
 							type === "template"
 								? "Search AI behavior blocks"
-								: "Search knowledge sources"
+								: "Search content collections"
 						}
 						className="pl-9"
 					/>
@@ -110,7 +110,7 @@ const ExistingBlockPickerDialog = ({
 							<EmptyTitle>No matching blocks</EmptyTitle>
 							<EmptyDescription>
 								Adjust the search or create a new{" "}
-								{type === "template" ? "AI behavior" : "knowledge source"}{" "}
+								{type === "template" ? "AI behavior" : "content collection"}{" "}
 								instead.
 							</EmptyDescription>
 						</EmptyHeader>

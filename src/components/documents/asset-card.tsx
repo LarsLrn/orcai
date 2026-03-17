@@ -1,4 +1,4 @@
-import { EditIcon, EyeIcon } from "lucide-react";
+import { EditIcon, EyeIcon, FileTextIcon } from "lucide-react";
 import {
 	DropdownMenu,
 	DropdownMenuContent,
@@ -13,8 +13,10 @@ import {
 	ResourceCardBadges,
 	ResourceCardBody,
 	ResourceCardContent,
+	ResourceCardDescription,
 	ResourceCardFooter,
 	ResourceCardHeader,
+	ResourceCardMedia,
 	ResourceCardMenu,
 	ResourceCardMenuTrigger,
 	ResourceCardMeta,
@@ -23,6 +25,7 @@ import {
 	ResourceCardTitle,
 } from "@/components/ui/shell/resource-card";
 import type { Asset } from "@/lib/orpc/schemas/asset";
+import { getProcessingStatusLabel } from "@/lib/presentation/processing-status";
 
 const AssetCard = ({
 	asset,
@@ -59,7 +62,7 @@ const AssetCard = ({
 		},
 		{
 			key: "edit",
-			label: "Edit",
+			label: "Edit content",
 			icon: EditIcon,
 			variant: "default",
 			linkProps: {
@@ -82,22 +85,29 @@ const AssetCard = ({
 
 	if (asset.processingStatus === "failed") {
 		badges.push({
-			label: "Failed",
+			label: getProcessingStatusLabel(asset.processingStatus),
 			variant: "destructive",
 		});
 	}
 
 	if (asset.processingStatus === "active") {
 		badges.push({
-			label: "Active",
+			label: getProcessingStatusLabel(asset.processingStatus),
 			variant: "default",
 		});
 	}
 
 	if (asset.processingStatus === "pending") {
 		badges.push({
-			label: "Pending",
+			label: getProcessingStatusLabel(asset.processingStatus),
 			variant: "secondary",
+		});
+	}
+
+	if (asset.processingStatus === "completed") {
+		badges.push({
+			label: getProcessingStatusLabel(asset.processingStatus),
+			variant: "outline",
 		});
 	}
 
@@ -109,6 +119,13 @@ const AssetCard = ({
 			},
 		},
 	};
+
+	let description: string | undefined;
+	if (asset.metadata.chapterTitle) {
+		description = `Chapter: ${asset.metadata.chapterTitle}`;
+	} else if (asset.metadata.author) {
+		description = `Author: ${asset.metadata.author}`;
+	}
 
 	return (
 		<ResourceCard className={className}>
@@ -139,7 +156,13 @@ const AssetCard = ({
 
 			<ResourceCardBody action={primaryAction}>
 				<ResourceCardHeader>
+					<ResourceCardMedia variant="icon">
+						<FileTextIcon className="text-emerald-600 dark:text-emerald-400" />
+					</ResourceCardMedia>
 					<ResourceCardTitle>{asset.title}</ResourceCardTitle>
+					{description && (
+						<ResourceCardDescription>{description}</ResourceCardDescription>
+					)}
 				</ResourceCardHeader>
 				<ResourceCardContent>
 					<ResourceCardBadges badges={badges} />
