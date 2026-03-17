@@ -1,5 +1,6 @@
 import { Link, useRouterState } from "@tanstack/react-router";
 import { ChevronRightIcon } from "lucide-react";
+import { useEffect, useState } from "react";
 import {
 	Collapsible,
 	CollapsibleContent,
@@ -26,35 +27,59 @@ const CollapsibleSidebarMenu = ({
 	item: (typeof sidebarMenu)[number];
 }) => {
 	const { closeMobileForNavigation } = useSidebar();
+	const [userExpanded, setUserExpanded] = useState(false);
 	const pathname = useRouterState({
 		select: (s) => s.location.pathname,
 	});
 
+	const hasRoute = !!item.linkProps;
+	const hasChildren = !!item.items?.length;
+
+	const isChildActive =
+		item.items?.some((sub) => pathname.startsWith(sub.linkProps.to)) ?? false;
+	const isRouteActive =
+		isChildActive || (hasRoute && pathname.startsWith(item.linkProps.to));
+
+	// Close the group automatically when the user navigates away from all its routes.
+	useEffect(() => {
+		if (!isRouteActive) {
+			setUserExpanded(false);
+		}
+	}, [
+		isRouteActive,
+	]);
+
 	return (
 		<Collapsible
 			key={item.title}
-			open={
-				pathname.startsWith(item.linkProps.to) ||
-				(item.items?.some((sub) => pathname.startsWith(sub.linkProps.to)) ??
-					false)
-			}
+			open={isRouteActive || userExpanded}
+			onOpenChange={setUserExpanded}
 			render={
 				<SidebarMenuItem>
 					<SidebarMenuButton
-						isActive={
-							item.items
-								? pathname === item.linkProps.to
-								: pathname.startsWith(item.linkProps.to)
+						isActive={hasRoute ? pathname === item.linkProps.to : isChildActive}
+						// When there's no own route, the whole button row toggles the group.
+						onClick={
+							!hasRoute && hasChildren
+								? () => setUserExpanded((v) => !v)
+								: undefined
 						}
 						render={
-							<Link {...item.linkProps} onClick={closeMobileForNavigation}>
-								<item.icon />
-								<span>{item.title}</span>
-							</Link>
+							hasRoute ? (
+								<Link {...item.linkProps} onClick={closeMobileForNavigation}>
+									<item.icon />
+									<span>{item.title}</span>
+								</Link>
+							) : (
+								<div className="flex items-center gap-2">
+									<item.icon />
+									<span>{item.title}</span>
+								</div>
+							)
 						}
 					/>
 
-					{item.items?.length ? (
+					{hasChildren ? (
 						<>
 							<CollapsibleTrigger
 								render={
@@ -66,7 +91,7 @@ const CollapsibleSidebarMenu = ({
 							/>
 							<CollapsibleContent>
 								<SidebarMenuSub>
-									{item.items?.map((subItem) => (
+									{item.items.map((subItem) => (
 										<SidebarMenuSubItem key={subItem.title}>
 											<SidebarMenuSubButton
 												isActive={pathname.startsWith(subItem.linkProps.to)}
