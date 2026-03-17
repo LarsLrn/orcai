@@ -32,6 +32,7 @@ const getORPCClient = createIsomorphicFn()
 			},
 			plugins: [
 				new BatchLinkPlugin({
+					exclude: ({ path }) => path[0] === "ai",
 					groups: [
 						{
 							condition: () => true,

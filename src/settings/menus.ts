@@ -52,7 +52,7 @@ export const sidebarMenu = [
 		],
 	},
 	{
-		title: "Manage",
+		title: "Administration",
 		icon: ServerCogIcon,
 		items: [
 			{
@@ -70,18 +70,18 @@ export const sidebarMenu = [
 				icon: UserCogIcon,
 			},
 			{
-				title: "Providers",
-				linkProps: {
-					to: "/app/providers",
-				},
-				icon: ServerCogIcon,
-			},
-			{
 				title: "Quotas",
 				linkProps: {
 					to: "/app/quotas",
 				},
 				icon: WalletIcon,
+			},
+			{
+				title: "Providers",
+				linkProps: {
+					to: "/app/providers",
+				},
+				icon: ServerCogIcon,
 			},
 			{
 				title: "Models",

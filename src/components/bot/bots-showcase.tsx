@@ -1,5 +1,5 @@
 import { useSuspenseQuery } from "@tanstack/react-query";
-import { Link } from "@tanstack/react-router";
+import { Link, useNavigate } from "@tanstack/react-router";
 import { SparklesIcon } from "lucide-react";
 import { Placeholder } from "@/components/placeholders/placeholder";
 import { SkeletonsArray } from "@/components/placeholders/skeletons-array";
@@ -14,12 +14,11 @@ import {
 	SectionTitle,
 } from "@/components/ui/shell/section";
 import { Skeleton } from "@/components/ui/skeleton";
-import { useCreateChatMutation } from "@/hooks/mutations/use-chat-mutation";
 import { orpc } from "@/lib/orpc/orpc";
 import { BotCard } from "./bot-card";
 
 const BotsShowcase = ({ limit = 6 }: { limit?: number }) => {
-	const { mutate: createChat } = useCreateChatMutation();
+	const navigate = useNavigate();
 	const { data: bots } = useSuspenseQuery(
 		orpc.bot.list.queryOptions({
 			input: {
@@ -79,8 +78,11 @@ const BotsShowcase = ({ limit = 6 }: { limit?: number }) => {
 											key: "start_chat",
 											label: "Start chat",
 											onClick: () =>
-												createChat({
-													botId: bot.id,
+												navigate({
+													to: "/app/chat/new",
+													search: {
+														botId: bot.id,
+													},
 												}),
 											variant: "default",
 										},

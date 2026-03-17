@@ -118,7 +118,7 @@ function RouteComponent() {
 				<PageTitle>Groups</PageTitle>
 				<PageAction>
 					<Button onClick={() => setIsCreateOpen(true)}>
-						<PlusIcon className="mr-2 h-4 w-4" />
+						<PlusIcon />
 						Create Group
 					</Button>
 				</PageAction>

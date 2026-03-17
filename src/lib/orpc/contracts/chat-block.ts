@@ -1,0 +1,54 @@
+import { z } from "zod/v4";
+import { blockSelectSchema } from "@/lib/orpc/schemas/block";
+import {
+	chatBlockDeleteSchema,
+	chatBlockInsertSchema,
+	chatBlockListSchema,
+	chatBlockSelectSchema,
+} from "@/lib/orpc/schemas/chat-block";
+import { statusSchema } from "@/lib/orpc/schemas/shared";
+import { base } from "./base";
+
+export const listChatBlocksContract = base
+	.route({
+		method: "GET",
+		path: "/chats/{chatId}/blocks",
+		summary: "List blocks attached to a chat",
+		tags: [
+			"Chat Blocks",
+		],
+	})
+	.input(chatBlockListSchema)
+	.output(
+		z.object({
+			data: z.array(blockSelectSchema),
+		}),
+	);
+
+export const attachChatBlockContract = base
+	.route({
+		method: "POST",
+		path: "/chats/{chatId}/blocks",
+		summary: "Attach a block to a chat",
+		tags: [
+			"Chat Blocks",
+		],
+	})
+	.input(chatBlockInsertSchema)
+	.output(
+		z.object({
+			data: chatBlockSelectSchema,
+		}),
+	);
+
+export const detachChatBlockContract = base
+	.route({
+		method: "DELETE",
+		path: "/chats/{chatId}/blocks/{blockId}",
+		summary: "Detach a block from a chat",
+		tags: [
+			"Chat Blocks",
+		],
+	})
+	.input(chatBlockDeleteSchema)
+	.output(statusSchema);

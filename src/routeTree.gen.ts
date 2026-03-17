@@ -44,6 +44,7 @@ import { Route as AppProvidersAddRouteImport } from './routes/app/providers/add'
 import { Route as AppOrgsAddRouteImport } from './routes/app/orgs/add'
 import { Route as AppModelsAddRouteImport } from './routes/app/models/add'
 import { Route as AppChatSetupRouteImport } from './routes/app/chat/setup'
+import { Route as AppChatNewRouteImport } from './routes/app/chat/new'
 import { Route as ApiRpcSplatRouteImport } from './routes/api/rpc/$'
 import { Route as ApiDocSplatRouteImport } from './routes/api/doc/$'
 import { Route as ApiAuthSplatRouteImport } from './routes/api/auth/$'
@@ -258,6 +259,11 @@ const AppModelsAddRoute = AppModelsAddRouteImport.update({
 const AppChatSetupRoute = AppChatSetupRouteImport.update({
   id: '/setup',
   path: '/setup',
+  getParentRoute: () => AppChatRouteRoute,
+} as any)
+const AppChatNewRoute = AppChatNewRouteImport.update({
+  id: '/new',
+  path: '/new',
   getParentRoute: () => AppChatRouteRoute,
 } as any)
 const ApiRpcSplatRoute = ApiRpcSplatRouteImport.update({
@@ -503,6 +509,7 @@ export interface FileRoutesByFullPath {
   '/api/auth/$': typeof ApiAuthSplatRoute
   '/api/doc/$': typeof ApiDocSplatRoute
   '/api/rpc/$': typeof ApiRpcSplatRoute
+  '/app/chat/new': typeof AppChatNewRoute
   '/app/chat/setup': typeof AppChatSetupRoute
   '/app/models/add': typeof AppModelsAddRoute
   '/app/orgs/add': typeof AppOrgsAddRoute
@@ -561,6 +568,7 @@ export interface FileRoutesByTo {
   '/api/auth/$': typeof ApiAuthSplatRoute
   '/api/doc/$': typeof ApiDocSplatRoute
   '/api/rpc/$': typeof ApiRpcSplatRoute
+  '/app/chat/new': typeof AppChatNewRoute
   '/app/chat/setup': typeof AppChatSetupRoute
   '/app/models/add': typeof AppModelsAddRoute
   '/app/orgs/add': typeof AppOrgsAddRoute
@@ -636,6 +644,7 @@ export interface FileRoutesById {
   '/api/auth/$': typeof ApiAuthSplatRoute
   '/api/doc/$': typeof ApiDocSplatRoute
   '/api/rpc/$': typeof ApiRpcSplatRoute
+  '/app/chat/new': typeof AppChatNewRoute
   '/app/chat/setup': typeof AppChatSetupRoute
   '/app/models/add': typeof AppModelsAddRoute
   '/app/orgs/add': typeof AppOrgsAddRoute
@@ -714,6 +723,7 @@ export interface FileRouteTypes {
     | '/api/auth/$'
     | '/api/doc/$'
     | '/api/rpc/$'
+    | '/app/chat/new'
     | '/app/chat/setup'
     | '/app/models/add'
     | '/app/orgs/add'
@@ -772,6 +782,7 @@ export interface FileRouteTypes {
     | '/api/auth/$'
     | '/api/doc/$'
     | '/api/rpc/$'
+    | '/app/chat/new'
     | '/app/chat/setup'
     | '/app/models/add'
     | '/app/orgs/add'
@@ -846,6 +857,7 @@ export interface FileRouteTypes {
     | '/api/auth/$'
     | '/api/doc/$'
     | '/api/rpc/$'
+    | '/app/chat/new'
     | '/app/chat/setup'
     | '/app/models/add'
     | '/app/orgs/add'
@@ -1146,6 +1158,13 @@ declare module '@tanstack/react-router' {
       path: '/setup'
       fullPath: '/app/chat/setup'
       preLoaderRoute: typeof AppChatSetupRouteImport
+      parentRoute: typeof AppChatRouteRoute
+    }
+    '/app/chat/new': {
+      id: '/app/chat/new'
+      path: '/new'
+      fullPath: '/app/chat/new'
+      preLoaderRoute: typeof AppChatNewRouteImport
       parentRoute: typeof AppChatRouteRoute
     }
     '/api/rpc/$': {
@@ -1465,12 +1484,14 @@ const AppAccountRouteRouteWithChildren = AppAccountRouteRoute._addFileChildren(
 )
 
 interface AppChatRouteRouteChildren {
+  AppChatNewRoute: typeof AppChatNewRoute
   AppChatSetupRoute: typeof AppChatSetupRoute
   AppChatIndexRoute: typeof AppChatIndexRoute
   AppChatChatIdIndexRoute: typeof AppChatChatIdIndexRoute
 }
 
 const AppChatRouteRouteChildren: AppChatRouteRouteChildren = {
+  AppChatNewRoute: AppChatNewRoute,
   AppChatSetupRoute: AppChatSetupRoute,
   AppChatIndexRoute: AppChatIndexRoute,
   AppChatChatIdIndexRoute: AppChatChatIdIndexRoute,

@@ -132,7 +132,7 @@ export const AlignmentTooolbar = () => {
 										{alignmentOptions[findIndex(currentTextAlign())]?.icon}
 									</span>
 									{alignmentOptions[findIndex(currentTextAlign())]?.name}
-									<ChevronDown className="ml-2 h-4 w-4" />
+									<ChevronDown />
 								</Button>
 							}
 						/>

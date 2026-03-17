@@ -32,6 +32,7 @@ import {
 	listChats,
 	updateChat,
 } from "./chat";
+import { attachChatBlock, detachChatBlock, listChatBlocks } from "./chat-block";
 import {
 	createChatMessage,
 	deleteChatMessages,
@@ -196,6 +197,11 @@ export const router = {
 		find: findChat,
 		update: updateChat,
 		delete: deleteChats,
+	},
+	chatBlock: {
+		list: listChatBlocks,
+		attach: attachChatBlock,
+		detach: detachChatBlock,
 	},
 	chatMessage: {
 		list: listChatMessages,

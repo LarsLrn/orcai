@@ -43,7 +43,8 @@ const ChatsList = ({
 				<CardHeader className="text-center">
 					<CardTitle className="font-semibold text-xl">No chats yet</CardTitle>
 					<CardDescription className="mt-4 flex flex-col items-center gap-4">
-						Let&apos;s begin our conversation by starting a &quot;New Chat&quot;
+						Start your first conversation by selecting a chatbot or jumping
+						straight in.
 					</CardDescription>
 				</CardHeader>
 				<CardFooter className="flex justify-center">
@@ -53,7 +54,7 @@ const ChatsList = ({
 							variant: "outline",
 						})}
 					>
-						New Chat
+						Start a chat
 					</Link>
 				</CardFooter>
 			</Card>
@@ -101,7 +102,7 @@ const ChatsList = ({
 						</CardHeader>
 						<CardContent className="pt-0">
 							<div className="flex items-center text-muted-foreground text-sm">
-								<MessagesSquareIcon className="mr-2 h-4 w-4" />
+								<MessagesSquareIcon />
 								Continue chat
 							</div>
 						</CardContent>

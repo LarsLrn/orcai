@@ -1,45 +1,108 @@
 import { createOpenAICompatible } from "@ai-sdk/openai-compatible";
 import { extractReasoningMiddleware, wrapLanguageModel } from "ai";
 import * as Effect from "effect/Effect";
-import { AiError } from "@/lib/effect/utils/errors";
+import { AiError, BadRequestError } from "@/lib/effect/utils/errors";
 import { decryptApiKey } from "@/lib/encryption";
 import { client } from "@/lib/orpc/orpc";
 import type { DatabaseBlock, TemplateBlock } from "@/lib/orpc/schemas/block";
 import type { Bot } from "@/lib/orpc/schemas/bot";
+import type { ChatConfig } from "@/lib/orpc/schemas/chat";
+import {
+	checkManyEntityPermissions,
+	hasPermission,
+} from "@/lib/spice-db/client";
 
-export const getChatAiSettings = ({ botId }: { botId: Bot["id"] }) =>
+interface ChatAiSettingsInput {
+	providerId: string;
+	modelId: string;
+	botId?: Bot["id"] | null;
+	chatConfig?: ChatConfig | null;
+	userId: string;
+	zedToken?: string;
+}
+
+export const getChatAiSettings = ({
+	providerId,
+	modelId,
+	botId,
+	chatConfig,
+	userId,
+	zedToken,
+}: ChatAiSettingsInput) =>
 	Effect.gen(function* () {
-		const blocks = yield* Effect.tryPromise({
-			try: () =>
-				client.block.list({
-					filters: {
-						botId,
-					},
-				}),
-			catch: (cause) =>
-				new AiError({
-					operation: "chatAgent.getChatAiSettings.fetch.blocks",
-					cause,
-				}),
-		});
+		let templateBlock: TemplateBlock | undefined;
+		let databaseBlocks: DatabaseBlock[] = [];
 
-		const templateBlock = blocks.data.find(
-			(block) => block.type === "template",
-		);
-
-		if (!templateBlock) {
-			return yield* new AiError({
-				operation: "chatAgent.prepareCall",
-				cause: new Error("No template block found for chat agent."),
+		if (botId) {
+			const blocks = yield* Effect.tryPromise({
+				try: () =>
+					client.block.list({
+						filters: {
+							botId,
+						},
+					}),
+				catch: (cause) =>
+					new AiError({
+						operation: "chatAgent.getChatAiSettings.fetch.blocks",
+						cause,
+					}),
 			});
+
+			templateBlock = blocks.data.find(
+				(block): block is TemplateBlock => block.type === "template",
+			);
+
+			if (!templateBlock) {
+				return yield* new AiError({
+					operation: "chatAgent.getChatAiSettings.missingTemplateBlock",
+					cause: new Error("Bot-linked chat has no template block."),
+				});
+			}
+
+			databaseBlocks = blocks.data.filter(
+				(block) => block.type === "database",
+			) as DatabaseBlock[];
+
+			if (databaseBlocks.length > 0) {
+				const usePermissionResult = yield* checkManyEntityPermissions({
+					entityIds: databaseBlocks.map((block) => block.id),
+					entityType: "block",
+					permission: "use",
+					userId,
+					zedToken,
+				});
+
+				const allowedBlockIds = new Set(
+					usePermissionResult.pairs
+						.map((pair) => {
+							const allowed =
+								pair.response.oneofKind === "item" &&
+								hasPermission({
+									permissionship: pair.response.item.permissionship,
+								}) === true;
+							const id = pair.request?.resource?.objectId;
+							return allowed && id ? id : undefined;
+						})
+						.filter((id): id is string => id !== undefined),
+				);
+
+				databaseBlocks = databaseBlocks.filter((block) =>
+					allowedBlockIds.has(block.id),
+				);
+			}
 		}
+
+		const systemPrompt =
+			templateBlock?.config.systemPrompt ??
+			chatConfig?.systemPrompt ??
+			"You are a helpful assistant.";
 
 		const [{ data: provider }, { data: modelSettings }] = yield* Effect.all(
 			[
 				Effect.tryPromise({
 					try: () =>
 						client.provider.find({
-							id: templateBlock.config.provider,
+							id: providerId,
 						}),
 					catch: (cause) =>
 						new AiError({
@@ -50,7 +113,7 @@ export const getChatAiSettings = ({ botId }: { botId: Bot["id"] }) =>
 				Effect.tryPromise({
 					try: () =>
 						client.model.find({
-							id: templateBlock.config.model,
+							id: modelId,
 						}),
 					catch: (cause) =>
 						new AiError({
@@ -64,10 +127,17 @@ export const getChatAiSettings = ({ botId }: { botId: Bot["id"] }) =>
 			},
 		);
 
+		if (modelSettings.providerId !== provider.id) {
+			return yield* new BadRequestError({
+				message:
+					"Selected model does not belong to the selected provider. Please update chat settings.",
+			});
+		}
+
 		const apiKey = yield* decryptApiKey(provider.apiKeyEncrypted);
 
 		const providerInstance = createOpenAICompatible({
-			baseURL: provider.endpoint ?? "", // TODO: Fix?
+			baseURL: provider.endpoint ?? "",
 			apiKey,
 			name: provider.name,
 			includeUsage: true,
@@ -80,16 +150,17 @@ export const getChatAiSettings = ({ botId }: { botId: Bot["id"] }) =>
 		];
 
 		if (process.env.NODE_ENV !== "production") {
-			const { devToolsMiddleware } = yield* Effect.tryPromise({
+			const devToolsModule = yield* Effect.tryPromise({
 				try: () => import("@ai-sdk/devtools"),
-				catch: (cause) =>
-					new AiError({
-						operation: "chatAgent.getChatAiSettings.load.devtools",
-						cause,
-					}),
+				catch: () => null,
 			});
-
-			middlewares.unshift(devToolsMiddleware());
+			if (devToolsModule?.devToolsMiddleware) {
+				middlewares.unshift(devToolsModule.devToolsMiddleware());
+			} else {
+				yield* Effect.logWarning(
+					"@ai-sdk/devtools unavailable, continuing without devtools middleware",
+				);
+			}
 		}
 
 		const model = wrapLanguageModel({
@@ -100,9 +171,14 @@ export const getChatAiSettings = ({ botId }: { botId: Bot["id"] }) =>
 		return {
 			provider,
 			model,
-			templateBlock: templateBlock as TemplateBlock,
-			databaseBlocks: blocks.data.filter(
-				(block) => block.type === "database",
-			) as DatabaseBlock[],
+			systemPrompt,
+			databaseBlocks,
+			generationParams: {
+				temperature: chatConfig?.temperature,
+				maxTokens: chatConfig?.maxTokens,
+				topP: chatConfig?.topP,
+				frequencyPenalty: chatConfig?.frequencyPenalty,
+				presencePenalty: chatConfig?.presencePenalty,
+			},
 		};
 	});

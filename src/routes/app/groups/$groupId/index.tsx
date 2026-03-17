@@ -326,7 +326,7 @@ function RouteComponent() {
 										selectedUserIds.length === 0 || addMembers.isPending
 									}
 								>
-									<PlusIcon className="mr-2 h-4 w-4" />
+									<PlusIcon />
 									Add Selected
 								</Button>
 							</div>

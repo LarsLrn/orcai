@@ -162,7 +162,7 @@ function RouteComponent() {
 			{knowledgeBlocks.data.length > 0 && (
 				<Section>
 					<SectionHeader>
-						<SectionTitle>Knowledge</SectionTitle>
+						<SectionTitle>Repositories</SectionTitle>
 						<SectionDescription>
 							Retrieval databases that ground bot answers in specific content.
 						</SectionDescription>

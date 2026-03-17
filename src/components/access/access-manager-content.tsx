@@ -290,7 +290,7 @@ const AccessManagerContent = ({
 							disabled={selectedPrincipals.length === 0 || isBusy}
 							onClick={handleGrant}
 						>
-							<PlusIcon className="mr-2 h-4 w-4" />
+							<PlusIcon />
 							Add {selectedPrincipals.length > 1 ? "Principals" : "Principal"}
 						</Button>
 					</div>

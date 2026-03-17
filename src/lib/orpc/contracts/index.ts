@@ -46,6 +46,11 @@ import {
 	updateChatContract,
 } from "./chat";
 import {
+	attachChatBlockContract,
+	detachChatBlockContract,
+	listChatBlocksContract,
+} from "./chat-block";
+import {
 	createChatMessageContract,
 	deleteChatMessageContract,
 	findChatMessageContract,
@@ -208,6 +213,11 @@ export const contracts = {
 		create: createChatContract,
 		update: updateChatContract,
 		delete: deleteChatContract,
+	},
+	chatBlock: {
+		list: listChatBlocksContract,
+		attach: attachChatBlockContract,
+		detach: detachChatBlockContract,
 	},
 	chatMessage: {
 		list: listChatMessagesContract,

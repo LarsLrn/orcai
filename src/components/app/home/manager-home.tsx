@@ -2,13 +2,11 @@ import { useSuspenseQuery } from "@tanstack/react-query";
 import type { LinkProps } from "@tanstack/react-router";
 import { Link } from "@tanstack/react-router";
 import {
-	ArrowRightIcon,
 	BlocksIcon,
 	BotIcon,
 	FileTextIcon,
 	FolderOpenIcon,
 	type LucideIcon,
-	MessageSquarePlusIcon,
 	SparklesIcon,
 	UsersIcon,
 } from "lucide-react";
@@ -17,7 +15,6 @@ import { SkeletonsArray } from "@/components/placeholders/skeletons-array";
 import { Badge } from "@/components/ui/badge";
 import {
 	Item,
-	ItemActions,
 	ItemContent,
 	ItemDescription,
 	ItemMedia,
@@ -45,10 +42,6 @@ const RESOURCE_SUMMARY_PARAMS = {
 	pageSize: 1,
 } as const;
 
-// ----------------------------------------------------------------------------
-// Task entry points
-// ----------------------------------------------------------------------------
-
 const quickActions: Array<{
 	title: string;
 	description: string;
@@ -57,16 +50,7 @@ const quickActions: Array<{
 	accent: string;
 }> = [
 	{
-		title: "Start a chat",
-		description: "Open a new chat with or without a bot.",
-		icon: MessageSquarePlusIcon,
-		linkProps: {
-			to: "/app/chat/setup",
-		},
-		accent: "text-primary",
-	},
-	{
-		title: "Develop a bot",
+		title: "Create a new chatbot",
 		description:
 			"Create a configured AI experience for a course, team, or other use case.",
 		icon: SparklesIcon,
@@ -76,16 +60,7 @@ const quickActions: Array<{
 		accent: "text-primary",
 	},
 	{
-		title: "Grant a group access",
-		description: "Manage cohorts and decide who can use a resource.",
-		icon: UsersIcon,
-		linkProps: {
-			to: "/app/groups",
-		},
-		accent: "text-sky-500",
-	},
-	{
-		title: "Review bots",
+		title: "Manage chatbots",
 		description: "Open the bot library and iterate on published setups.",
 		icon: BotIcon,
 		linkProps: {
@@ -94,8 +69,18 @@ const quickActions: Array<{
 		accent: "text-purple-500",
 	},
 	{
-		title: "Manage blocks",
-		description: "Review reusable behavior and retrieval building blocks.",
+		title: "Manage user access",
+		description: "Manage cohorts and decide who can use a resource.",
+		icon: UsersIcon,
+		linkProps: {
+			to: "/app/groups",
+		},
+		accent: "text-sky-500",
+	},
+	{
+		title: "Manage AI behaviour",
+		description:
+			"Review reusable behaviour blocks that shape how bots respond.",
 		icon: BlocksIcon,
 		linkProps: {
 			to: "/app/hub/blocks",
@@ -113,24 +98,21 @@ const quickActions: Array<{
 		accent: "text-orange-500",
 	},
 	{
-		title: "Create a block",
+		title: "Manage repositories",
 		description:
-			"Add reusable behavior, retrieval, or image-generation building blocks.",
+			"Manage retrieval databases that ground bot answers in your content.",
 		icon: BlocksIcon,
 		linkProps: {
-			to: "/app/hub/blocks/add",
+			to: "/app/hub/blocks",
 		},
-		accent: "text-primary",
+		accent: "text-green-500",
 	},
 ];
 
 const QuickActionsSection = () => (
 	<Section>
 		<SectionHeader>
-			<SectionTitle>Task entry points</SectionTitle>
-			<SectionDescription>
-				Pick the kind of work you want to do next.
-			</SectionDescription>
+			<SectionTitle>Quick Links</SectionTitle>
 		</SectionHeader>
 		<SectionContent>
 			<SectionGrid layout="3">
@@ -141,20 +123,23 @@ const QuickActionsSection = () => (
 						className="bg-card"
 						render={
 							<Link key={action.title} {...action.linkProps}>
-								<ItemMedia
-									variant="icon"
-									className={cn("size-12", action.accent)}
-								>
-									<action.icon className="size-6" />
-								</ItemMedia>
-								<ItemContent>
-									<ItemTitle>{action.title}</ItemTitle>
-									<ItemDescription>{action.description}</ItemDescription>
-								</ItemContent>
-								<ItemActions>
-									Go now
-									<ArrowRightIcon className="size-4" />
-								</ItemActions>
+								<div className="flex flex-row gap-2">
+									<ItemMedia
+										variant="icon"
+										className={cn(
+											"size-10 rounded-lg bg-muted/50",
+											action.accent,
+										)}
+									>
+										<action.icon className="size-6" />
+									</ItemMedia>
+									<ItemContent>
+										<ItemTitle>{action.title}</ItemTitle>
+										<ItemDescription className="line-clamp-3 text-xs">
+											{action.description}
+										</ItemDescription>
+									</ItemContent>
+								</div>
 							</Link>
 						}
 					/>

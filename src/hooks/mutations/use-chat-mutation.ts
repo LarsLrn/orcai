@@ -1,54 +1,6 @@
 import { useQueryClient } from "@tanstack/react-query";
-import { useNavigate } from "@tanstack/react-router";
 import { useMutationAction } from "@/hooks/actions/use-mutation-action";
-import { useUmami } from "@/hooks/use-umami";
 import { orpc } from "@/lib/orpc/orpc";
-
-export const useCreateChatMutation = (
-	opts: ReturnType<typeof orpc.chat.create.mutationOptions> = {},
-) => {
-	const navigate = useNavigate();
-	const { trackEvent } = useUmami();
-
-	const queryClient = useQueryClient();
-
-	return useMutationAction({
-		mutationOptions: () =>
-			orpc.chat.create.mutationOptions({
-				...opts,
-				onSuccess: async (result, ...args) => {
-					queryClient.invalidateQueries({
-						queryKey: orpc.chat.key(),
-					});
-
-					await navigate({
-						to: "/app/chat/$chatId",
-						params: {
-							chatId: result.data.id,
-						},
-					});
-
-					trackEvent("chat-create", {
-						chatId: result.data.id,
-					});
-
-					try {
-						await opts.onSuccess?.(result, ...args);
-					} catch (error) {
-						console.error(
-							"useCreateChatMutation onSuccess callback failed:",
-							error,
-						);
-					}
-				},
-			}),
-		messages: {
-			loading: "Creating new chat...",
-			success: "New chat created",
-			error: "Failed to create chat",
-		},
-	});
-};
 
 export const useUpdateChatMutation = (
 	opts: ReturnType<typeof orpc.chat.update.mutationOptions> = {},

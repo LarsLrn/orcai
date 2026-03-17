@@ -141,7 +141,7 @@ function RouteComponent() {
 										variant: "default",
 									})}
 								>
-									<EditIcon className="mr-2 h-4 w-4" />
+									<EditIcon />
 									Edit Model
 								</Link>
 								<Link
@@ -153,7 +153,7 @@ function RouteComponent() {
 										variant: "outline",
 									})}
 								>
-									<LinkIcon className="mr-2 h-4 w-4" />
+									<LinkIcon />
 									View Provider
 								</Link>
 							</div>
@@ -302,7 +302,7 @@ function RouteComponent() {
 								variant: "outline",
 							})}
 						>
-							<EditIcon className="mr-2 h-4 w-4" />
+							<EditIcon />
 							Edit Provider
 						</Link>
 					</CardContent>

@@ -6,6 +6,7 @@ import {
 	useSuspenseQuery,
 } from "@tanstack/react-query";
 import type { ApiGetScoresResponseData } from "langfuse";
+import { useEffect, useRef } from "react";
 import { toast } from "sonner";
 import {
 	Conversation,
@@ -28,18 +29,24 @@ const Chat = ({
 	initialMessages,
 	scores,
 	branchId,
+	zedToken,
+	pendingMessage,
 }: {
 	id: ChatType["id"];
 	initialMessages: ChatAgentUIMessage[];
 	scores: ApiGetScoresResponseData[];
 	branchId?: ChatBranch["id"];
+	zedToken?: string;
+	pendingMessage?: string;
 }) => {
 	const queryClient = useQueryClient();
+	const hasSentPendingMessage = useRef(false);
 
 	const { data: chat } = useSuspenseQuery(
 		orpc.chat.find.queryOptions({
 			input: {
 				id,
+				zedToken,
 			},
 		}),
 	);
@@ -62,8 +69,8 @@ const Chat = ({
 							{
 								chatId: options.chatId as ChatType["id"],
 								messages: options.messages,
-								botId: chat.data.botId,
 								branchId,
+								zedToken,
 							},
 							{
 								signal: options.abortSignal,
@@ -82,6 +89,7 @@ const Chat = ({
 					queryKey: orpc.chat.find.key({
 						input: {
 							id,
+							zedToken,
 						},
 					}),
 				});
@@ -91,6 +99,7 @@ const Chat = ({
 							chatId: id,
 							includeScores: true,
 							branchId,
+							zedToken,
 						},
 					}),
 				});
@@ -101,6 +110,30 @@ const Chat = ({
 				});
 			},
 		});
+
+	useEffect(() => {
+		if (!pendingMessage || hasSentPendingMessage.current) {
+			return;
+		}
+		if (messages.length > 0 || status !== "ready") {
+			return;
+		}
+
+		hasSentPendingMessage.current = true;
+		sendMessage({
+			text: pendingMessage,
+		}).catch((error) => {
+			hasSentPendingMessage.current = false;
+			toast.error("Failed to send message", {
+				description: error instanceof Error ? error.message : "Unknown error",
+			});
+		});
+	}, [
+		messages.length,
+		pendingMessage,
+		sendMessage,
+		status,
+	]);
 
 	return (
 		<div className="flex size-full min-h-0 min-w-0 flex-col">
@@ -148,6 +181,7 @@ const Chat = ({
 			<div className="mx-auto flex w-full flex-col gap-2 px-4 pt-2 pb-6 md:max-w-3xl md:pb-2">
 				<ChatInput
 					chatId={id}
+					zedToken={zedToken}
 					status={status}
 					sendMessage={sendMessage}
 					messages={messages}

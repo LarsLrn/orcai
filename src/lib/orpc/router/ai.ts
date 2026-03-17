@@ -6,6 +6,7 @@ import {
 	smoothStream,
 	type TextUIPart,
 } from "ai";
+import * as Cause from "effect/Cause";
 import * as Effect from "effect/Effect";
 import { v4 as uuidv4 } from "uuid";
 import { createChatAgent } from "@/lib/ai/agents/chat-agent";
@@ -14,16 +15,23 @@ import { getChatMessageAttachments } from "@/lib/ai/types/chat-attachment";
 import { buildAttachmentPromptPartCached } from "@/lib/ai/utils/chat-attachment-parts";
 import { getChatAiSettings } from "@/lib/ai/utils/get-chat-ai-settings";
 import { runtime } from "@/lib/effect/runtime";
+import { DB } from "@/lib/effect/services/drizzle";
 import { AiError } from "@/lib/effect/utils/errors";
 import { runOrpcEffect } from "@/lib/effect/utils/orpc-helpers";
 import { authed } from "@/lib/orpc/implementation/authed";
 import { requireActiveOrganizationMiddleware } from "@/lib/orpc/middlewares/auth";
+import {
+	type CheckPermissionInput,
+	checkPermissionMiddleware,
+} from "@/lib/orpc/middlewares/permission";
+import type { DatabaseBlock, TemplateBlock } from "@/lib/orpc/schemas/block";
 import {
 	finalizeAppRequestQuota,
 	releaseAppRequestQuota,
 	reserveForAppRequest,
 } from "@/lib/quota/enforcement";
 import { updateChat } from "./chat";
+import { listChatBlocks } from "./chat-block";
 import { createChatMessage } from "./chat-message";
 
 const isRecord = (value: unknown): value is Record<string, unknown> =>
@@ -61,11 +69,54 @@ const hasMessageShape = (
 	typeof value.role === "string" &&
 	Array.isArray(value.parts);
 
+const mergeDatabaseBlocks = ({
+	baseBlocks,
+	attachedBlocks,
+}: {
+	baseBlocks: DatabaseBlock[];
+	attachedBlocks: DatabaseBlock[];
+}) => {
+	if (attachedBlocks.length === 0) {
+		return baseBlocks;
+	}
+
+	const merged = [
+		...baseBlocks,
+	];
+	const existingIds = new Set(merged.map((block) => block.id));
+	for (const block of attachedBlocks) {
+		if (existingIds.has(block.id)) {
+			continue;
+		}
+		merged.push(block);
+		existingIds.add(block.id);
+	}
+	return merged;
+};
+
 export const aiChat = authed.ai.chat
 	.use(requireActiveOrganizationMiddleware)
+	.use(
+		checkPermissionMiddleware,
+		(input) =>
+			({
+				entityId: input.chatId,
+				permission: "edit",
+				entityType: "chat",
+				zedToken: input.zedToken,
+			}) satisfies CheckPermissionInput,
+	)
 	.handler(async ({ input, errors, context }) =>
 		runOrpcEffect(
 			Effect.gen(function* () {
+				const resolvedZedToken = input.zedToken ?? context.meta?.zedToken;
+				const requestContext = {
+					...context,
+					meta: {
+						...context.meta,
+						zedToken: resolvedZedToken,
+					},
+				};
 				const inputMessages = Array.isArray(input.messages)
 					? input.messages
 					: [];
@@ -79,16 +130,82 @@ export const aiChat = authed.ai.chat
 					);
 				}
 
-				const botId = yield* Effect.fromNullable(input.botId).pipe(
-					Effect.mapError(() =>
+				// Fetch chat record to get config + botId
+				const db = yield* DB;
+				const chatRecord = yield* db.query.chat
+					.findFirst({
+						where: {
+							id: input.chatId,
+						},
+					})
+					.pipe(
+						Effect.flatMap((chat) =>
+							Effect.fromNullable(chat).pipe(
+								Effect.mapError(() =>
+									errors.BAD_REQUEST({
+										message: "Chat not found",
+									}),
+								),
+							),
+						),
+					);
+
+				const chatConfig = chatRecord.config;
+				const providerId = chatConfig?.providerId;
+				const modelId = chatConfig?.modelId;
+
+				if (!providerId || !modelId) {
+					return yield* Effect.fail(
 						errors.BAD_REQUEST({
-							message: "botId is required",
+							message:
+								"Chat is missing model or provider configuration. Please select a model in chat settings.",
 						}),
-					),
-				);
+					);
+				}
+
+				const chatBlocksResult = yield* Effect.tryPromise({
+					try: async () =>
+						call(
+							listChatBlocks,
+							{
+								chatId: input.chatId,
+								zedToken: resolvedZedToken,
+							},
+							{
+								context: requestContext,
+							},
+						),
+					catch: () =>
+						errors.BAD_REQUEST({
+							message: "Failed to fetch chat blocks",
+						}),
+				});
+				const chatBlocks = chatBlocksResult.data;
 
 				const chatAiSettings = yield* getChatAiSettings({
-					botId,
+					providerId,
+					modelId,
+					botId: chatRecord.botId,
+					chatConfig,
+					userId: context.auth.user.id,
+					zedToken: resolvedZedToken,
+				});
+
+				const attachedDatabaseBlocks = chatBlocks.filter(
+					(block): block is DatabaseBlock => block.type === "database",
+				);
+				const attachedTemplateBlock = chatBlocks.find(
+					(block): block is TemplateBlock => block.type === "template",
+				);
+
+				const systemPrompt = !chatRecord.botId
+					? (attachedTemplateBlock?.config.systemPrompt ??
+						chatAiSettings.systemPrompt)
+					: chatAiSettings.systemPrompt;
+
+				const allDatabaseBlocks = mergeDatabaseBlocks({
+					baseBlocks: chatAiSettings.databaseBlocks,
+					attachedBlocks: attachedDatabaseBlocks,
 				});
 
 				const assistantMessageId = uuidv4();
@@ -96,8 +213,8 @@ export const aiChat = authed.ai.chat
 				const quotaReservation = yield* reserveForAppRequest({
 					orgId: context.auth.session.activeOrganizationId,
 					userId: context.auth.user.id,
-					providerId: chatAiSettings.templateBlock.config.provider,
-					providerModelId: chatAiSettings.templateBlock.config.model,
+					providerId,
+					providerModelId: modelId,
 					appRequestId: assistantMessageId,
 					messages: inputMessages,
 					isFirstTurn: inputMessages.length < 2,
@@ -124,7 +241,6 @@ export const aiChat = authed.ai.chat
 						? inputMessages[inputMessages.length - 2]?.id
 						: undefined;
 
-				// TODO: Currently halts streaming, until attachments are processed. Since PDFs call docling for conversion, this should be done optimistically on upload where possible, storing .md in S3 and reusing that.
 				const attachmentPartCache = new Map<string, FileUIPart | TextUIPart>();
 				const messagesWithAttachmentParts = yield* Effect.forEach(
 					inputMessages,
@@ -176,10 +292,10 @@ export const aiChat = authed.ai.chat
 								attachments: userMessageAttachments,
 								metadata: userMessage.metadata || {},
 								branchId: input.branchId,
-								parentMessageId, // Identify where we are attaching this message
+								parentMessageId,
 							},
 							{
-								context,
+								context: requestContext,
 							},
 						),
 					catch: () =>
@@ -200,7 +316,7 @@ export const aiChat = authed.ai.chat
 
 				let titleRequestCount = 0;
 				if (inputMessages.length < 2) {
-					yield* generateChatTitle({
+					const titleResult = yield* generateChatTitle({
 						messages: inputMessages,
 						model: chatAiSettings.model,
 					}).pipe(
@@ -214,32 +330,39 @@ export const aiChat = authed.ai.chat
 											title,
 										},
 										{
-											context,
+											context: requestContext,
 										},
 									),
 								catch: () =>
 									errors.BAD_REQUEST({
 										message: "Failed to update chat title",
 									}),
-							}),
+							}).pipe(
+								Effect.as({
+									success: true as const,
+								}),
+							),
 						),
 						Effect.catchAll((error) =>
-							releaseAppRequestQuota({
-								reservation: quotaReservation.reservation,
-								reason: "provider_failure",
+							Effect.logWarning({
+								chatId: input.chatId,
+								error,
+								message: "ai.chat title generation failed, continuing",
 							}).pipe(
-								Effect.catchAll(() => Effect.void),
-								Effect.zipRight(Effect.fail(error)),
+								Effect.as({
+									success: false as const,
+								}),
 							),
 						),
 					);
-					titleRequestCount = 1;
+					titleRequestCount = titleResult.success ? 1 : 0;
 				}
 
 				const agent = createChatAgent({
 					model: chatAiSettings.model,
-					templateBlock: chatAiSettings.templateBlock,
-					databaseBlocks: chatAiSettings.databaseBlocks,
+					systemPrompt,
+					databaseBlocks: allDatabaseBlocks,
+					generationParams: chatAiSettings.generationParams,
 				});
 
 				let actualProviderRequestCount = titleRequestCount;
@@ -258,22 +381,11 @@ export const aiChat = authed.ai.chat
 							onStepFinish: () => {
 								actualProviderRequestCount += 1;
 							},
-							/* experimental_telemetry: {
-								isEnabled: true,
-								metadata: {
-									langfuseTraceId: assistantMessageId,
-									sessionId: chatId,
-									courseId: activeCourseId,
-									userId: session.user.id,
-									tags: ["user", "chat"],
-								},
-							}, */
 							onFinish: async ({ responseMessage }) => {
 								const usage = getTokenUsageFromMetadata(
 									responseMessage.metadata,
 								);
 
-								// Consider adding an Effect adapter to interface with AI SDK callbacks
 								await call(
 									createChatMessage,
 									{
@@ -286,7 +398,7 @@ export const aiChat = authed.ai.chat
 										branchId: currentBranchId,
 									},
 									{
-										context,
+										context: requestContext,
 									},
 								);
 
@@ -300,12 +412,23 @@ export const aiChat = authed.ai.chat
 											totalTokens: usage.totalTokens,
 										}),
 									)
-									.catch((error) => {
-										console.error(
-											`quota.finalize.failed reservationKey=${quotaReservation.reservation.reservationKey} appRequestId=${quotaReservation.reservation.appRequestId}`,
-											error,
-										);
-									});
+									.catch((error) =>
+										runtime
+											.runPromise(
+												Effect.logError({
+													appRequestId:
+														quotaReservation.reservation.appRequestId,
+													error:
+														error instanceof Error
+															? error.message
+															: String(error),
+													message: "quota.finalize.failed",
+													reservationKey:
+														quotaReservation.reservation.reservationKey,
+												}),
+											)
+											.catch(() => undefined),
+									);
 							},
 							onError: (error) => {
 								runtime
@@ -315,13 +438,32 @@ export const aiChat = authed.ai.chat
 											reason: "provider_failure",
 										}),
 									)
-									.catch((releaseError) => {
-										console.error(
-											`quota.release.failed reservationKey=${quotaReservation.reservation.reservationKey} appRequestId=${quotaReservation.reservation.appRequestId}`,
-											releaseError,
-										);
-									});
-								console.error("AI stream error", error);
+									.catch((releaseError) =>
+										runtime
+											.runPromise(
+												Effect.logError({
+													appRequestId:
+														quotaReservation.reservation.appRequestId,
+													error:
+														releaseError instanceof Error
+															? releaseError.message
+															: String(releaseError),
+													message: "quota.release.failed",
+													reservationKey:
+														quotaReservation.reservation.reservationKey,
+												}),
+											)
+											.catch(() => undefined),
+									);
+								runtime
+									.runPromise(
+										Effect.logError({
+											error:
+												error instanceof Error ? error.message : String(error),
+											message: "AI stream error",
+										}),
+									)
+									.catch(() => undefined);
 								return "An error occurred while streaming the AI response.";
 							},
 							messageMetadata: ({ part }) => {
@@ -355,6 +497,10 @@ export const aiChat = authed.ai.chat
 				);
 
 				return streamToEventIterator(stream);
-			}),
+			}).pipe(
+				Effect.tapErrorCause((cause) =>
+					Effect.logError(`[ai.chat] handler failed ${Cause.pretty(cause)}`),
+				),
+			),
 		),
 	);

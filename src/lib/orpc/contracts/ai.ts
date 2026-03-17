@@ -1,5 +1,4 @@
 import { type } from "@orpc/server";
-import type { Bot } from "@/lib/orpc/schemas/bot";
 import type { Chat } from "@/lib/orpc/schemas/chat";
 import type { ChatBranch } from "@/lib/orpc/schemas/chat-branch";
 import { base } from "./base";
@@ -20,8 +19,8 @@ export const aiChatContract = base
 			// Typing this properly as ChatAgentUIMessage[] would create a circular type dependency
 			// TODO: Check for a solution to fix circular type dependency
 			messages: any;
-			botId?: Bot["id"] | null | undefined;
 			branchId?: ChatBranch["id"];
+			zedToken?: string;
 		}>(),
 	)
 	// TODO: Improve return type

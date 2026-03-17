@@ -32,6 +32,9 @@ const BlockEditorField = lazy(
 const UploadField = lazy(
 	() => import("@/components/forms/fields/upload-field"),
 );
+const SliderField = lazy(
+	() => import("@/components/forms/fields/slider-field"),
+);
 const FormValidationErrors = lazy(
 	() => import("@/components/forms/fields/form-validation-errors"),
 );
@@ -49,6 +52,7 @@ export const { useAppForm, withForm, withFieldGroup } = createFormHook({
 		PasswordField,
 		BlockEditorField,
 		UploadField,
+		SliderField,
 	},
 	formComponents: {
 		SubmitButton,
