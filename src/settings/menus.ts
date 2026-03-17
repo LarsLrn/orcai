@@ -29,13 +29,6 @@ export const sidebarMenu = [
 		icon: BlocksIcon,
 		items: [
 			{
-				title: "Content",
-				linkProps: {
-					to: "/app/hub/assets",
-				},
-				icon: FolderOpenIcon,
-			},
-			{
 				title: "Bots",
 				linkProps: {
 					to: "/app/hub/bots",
@@ -48,6 +41,13 @@ export const sidebarMenu = [
 					to: "/app/hub/blocks",
 				},
 				icon: BlocksIcon,
+			},
+			{
+				title: "Content",
+				linkProps: {
+					to: "/app/hub/assets",
+				},
+				icon: FolderOpenIcon,
 			},
 		],
 	},
