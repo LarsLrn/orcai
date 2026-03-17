@@ -203,6 +203,7 @@ const QuotaPoolForm = ({
 					children={(field) => (
 						<field.TextField
 							label="Name"
+							description="Visible for users as the pool they are using."
 							placeholder="e.g. OpenAI shared monthly pool"
 						/>
 					)}
@@ -224,14 +225,14 @@ const QuotaPoolForm = ({
 			<form.AppField
 				name="description"
 				children={(field) => (
-					<field.TextField
+					<field.TextareaField
 						label="Description"
 						placeholder="Optional internal notes"
 					/>
 				)}
 			/>
 
-			<div className="grid gap-4 md:grid-cols-4">
+			<div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
 				<form.AppField
 					name="providerModelId"
 					children={(field) => (
