@@ -53,10 +53,11 @@ const DataTable = <TData, TValue>({
 
 			await navigate({
 				to: ".",
-				search: {
+				search: (prev) => ({
+					...prev,
 					pageIndex: newPageInfo.pageIndex,
 					pageSize: newPageInfo.pageSize,
-				},
+				}),
 			});
 		},
 		/* onSortingChange: (updater) => {
