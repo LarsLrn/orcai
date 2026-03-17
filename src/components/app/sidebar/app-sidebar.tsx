@@ -33,7 +33,7 @@ const AppSidebar = () => {
 					})}
 					onClick={() => isMobile && closeMobileForNavigation()}
 				>
-					New Chat
+					Start a chat
 				</Link>
 			</SidebarHeader>
 			<SidebarContent>

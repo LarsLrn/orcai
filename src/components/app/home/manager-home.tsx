@@ -8,7 +8,6 @@ import {
 	FileTextIcon,
 	FolderOpenIcon,
 	type LucideIcon,
-	MessageSquarePlusIcon,
 	SparklesIcon,
 	UsersIcon,
 } from "lucide-react";
@@ -57,16 +56,7 @@ const quickActions: Array<{
 	accent: string;
 }> = [
 	{
-		title: "Start a chat",
-		description: "Open a new chat with or without a bot.",
-		icon: MessageSquarePlusIcon,
-		linkProps: {
-			to: "/app/chat/setup",
-		},
-		accent: "text-primary",
-	},
-	{
-		title: "Develop a bot",
+		title: "Create a new chatbot",
 		description:
 			"Create a configured AI experience for a course, team, or other use case.",
 		icon: SparklesIcon,
@@ -76,16 +66,7 @@ const quickActions: Array<{
 		accent: "text-primary",
 	},
 	{
-		title: "Grant a group access",
-		description: "Manage cohorts and decide who can use a resource.",
-		icon: UsersIcon,
-		linkProps: {
-			to: "/app/groups",
-		},
-		accent: "text-sky-500",
-	},
-	{
-		title: "Review bots",
+		title: "Manage chatbots",
 		description: "Open the bot library and iterate on published setups.",
 		icon: BotIcon,
 		linkProps: {
@@ -94,8 +75,18 @@ const quickActions: Array<{
 		accent: "text-purple-500",
 	},
 	{
-		title: "Manage blocks",
-		description: "Review reusable behavior and retrieval building blocks.",
+		title: "Manage user access",
+		description: "Manage cohorts and decide who can use a resource.",
+		icon: UsersIcon,
+		linkProps: {
+			to: "/app/groups",
+		},
+		accent: "text-sky-500",
+	},
+	{
+		title: "Manage AI behaviour",
+		description:
+			"Review reusable behaviour blocks that shape how bots respond.",
 		icon: BlocksIcon,
 		linkProps: {
 			to: "/app/hub/blocks",
@@ -113,14 +104,14 @@ const quickActions: Array<{
 		accent: "text-orange-500",
 	},
 	{
-		title: "Create a block",
+		title: "Manage repositories",
 		description:
-			"Add reusable behavior, retrieval, or image-generation building blocks.",
+			"Manage retrieval databases that ground bot answers in your content.",
 		icon: BlocksIcon,
 		linkProps: {
-			to: "/app/hub/blocks/add",
+			to: "/app/hub/blocks",
 		},
-		accent: "text-primary",
+		accent: "text-green-500",
 	},
 ];
 

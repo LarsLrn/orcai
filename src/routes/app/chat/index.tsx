@@ -20,7 +20,7 @@ function RouteComponent() {
 				<PageTitle>Chats</PageTitle>
 				<PageAction>
 					<Link to="/app/chat/setup" className={buttonVariants()}>
-						New Chat
+						Start a chat
 					</Link>
 				</PageAction>
 			</PageHeader>

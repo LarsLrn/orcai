@@ -160,7 +160,7 @@ function RouteComponent() {
 
 			<Section>
 				<SectionHeader>
-					<SectionTitle>Knowledge</SectionTitle>
+					<SectionTitle>Repositories</SectionTitle>
 					<SectionDescription>
 						Retrieval databases that ground bot answers in specific content
 						collections.
@@ -170,8 +170,8 @@ function RouteComponent() {
 					{databaseBlocks.data.length === 0 ? (
 						<Placeholder
 							Icon={DatabaseIcon}
-							title="No knowledge blocks yet"
-							description="Create a knowledge block to give bots access to your content."
+							title="No repository blocks yet"
+							description="Create a repository block to give bots access to your content."
 							actions={[
 								{
 									key: "add",

@@ -33,9 +33,9 @@ const BotBlocks = ({ blocks }: { blocks: Block[] }) => {
 			{databaseBlocks.length > 0 && (
 				<Section>
 					<SectionHeader>
-						<SectionTitle>Knowledge</SectionTitle>
+						<SectionTitle>Repositories</SectionTitle>
 						<SectionDescription>
-							This Bot uses knowledge sources to reference curated content.
+							This Bot uses repository blocks to reference curated content.
 						</SectionDescription>
 					</SectionHeader>
 					<SectionGrid layout="3">

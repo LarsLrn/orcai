@@ -32,11 +32,11 @@ const nextStepTours: Tour[] = [
 				title: "Sidebar",
 				content: (
 					<>
-						This is your sidebar. You can reach all important content from here.
+						The sidebar gives you quick access to your chats, workspace, and
+						account settings.
 					</>
 				),
 				side: "right",
-				selector: "#tour-sidebar",
 				showControls: true,
 				showSkip: true,
 				pointerPadding: 10,
@@ -44,10 +44,14 @@ const nextStepTours: Tour[] = [
 			},
 			{
 				icon: null,
-				title: "New Chat",
-				content: <>Start a new chat at any time.</>,
+				title: "Start a chat",
+				content: (
+					<>
+						Use the button at the top of the sidebar to start a chat at any
+						time.
+					</>
+				),
 				side: "top-right",
-				selector: "#tour-newChat",
 				showControls: true,
 				showSkip: true,
 				pointerPadding: 10,
@@ -63,7 +67,6 @@ const nextStepTours: Tour[] = [
 					</>
 				),
 				side: "top-left",
-				selector: "#tour-history",
 				showControls: true,
 				showSkip: true,
 				pointerPadding: 10,
@@ -78,7 +81,6 @@ const nextStepTours: Tour[] = [
 					</>
 				),
 				side: "top",
-				selector: "#tour-account",
 				showControls: true,
 				showSkip: true,
 				pointerPadding: 10,
@@ -144,7 +146,6 @@ const nextStepTours: Tour[] = [
 						response.
 					</>
 				),
-				// selector: "#ai-annotations",
 				side: "bottom",
 				showControls: true,
 				showSkip: true,
@@ -161,7 +162,6 @@ const nextStepTours: Tour[] = [
 						impact on your current chat.
 					</>
 				),
-				// selector: "#ai-message-rate",
 				side: "bottom",
 				showControls: true,
 				showSkip: true,
