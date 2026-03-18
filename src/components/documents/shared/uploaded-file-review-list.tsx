@@ -16,6 +16,7 @@ import {
 	DialogHeader,
 	DialogTitle,
 } from "@/components/ui/dialog";
+import { ScrollArea } from "@/components/ui/scroll-area";
 
 const hasMetadataAdded = (draft: AssetMetadataDraft, fileName: string) => {
 	const defaults = createDefaultAssetMetadata();
@@ -95,7 +96,7 @@ const UploadedFileReviewList = ({
 						open={editingFileId === file.id}
 						onOpenChange={(open) => setEditingFileId(open ? file.id : null)}
 					>
-						<DialogContent className="max-h-[88vh] overflow-auto sm:max-w-3xl">
+						<DialogContent className="max-h-[88vh] sm:max-w-3xl">
 							<DialogHeader>
 								<DialogTitle>Source Metadata</DialogTitle>
 								<DialogDescription>
@@ -104,10 +105,12 @@ const UploadedFileReviewList = ({
 								</DialogDescription>
 							</DialogHeader>
 
-							<AssetMetadataEditor
-								value={draft}
-								onChange={(nextValue) => onDraftChange(file.id, nextValue)}
-							/>
+							<ScrollArea className="max-h-[calc(88vh-14rem)]">
+								<AssetMetadataEditor
+									value={draft}
+									onChange={(nextValue) => onDraftChange(file.id, nextValue)}
+								/>
+							</ScrollArea>
 
 							<DialogFooter>
 								<Button onClick={() => setEditingFileId(null)}>
