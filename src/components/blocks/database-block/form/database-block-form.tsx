@@ -1,23 +1,17 @@
-import type { Content } from "@tiptap/react";
+import { useStore } from "@tanstack/react-form";
 import { useState } from "react";
-import {
-	createDefaultDatabaseBlock,
-	DatabaseBlockEditor,
-} from "@/components/authoring/database-block-editor";
-import { PublicationStatusField } from "@/components/blocks/form/publication-status-field";
-import { BlockEditor } from "@/components/editor/block-editor";
-import { Button } from "@/components/ui/button";
-import { Card, CardContent } from "@/components/ui/card";
-import { Label } from "@/components/ui/label";
-import { Textarea } from "@/components/ui/textarea";
+import { useAppForm } from "@/hooks/form";
 import {
 	useCreateBlockMutation,
 	useUpdateBlockMutation,
 } from "@/hooks/mutations/use-block-mutations";
+import type { Asset } from "@/lib/orpc/schemas/asset";
 import type { DatabaseBlock } from "@/lib/orpc/schemas/block";
-import type { BotEditorSelect } from "@/lib/orpc/schemas/bot-editor";
-
-type DatabaseBlockValue = BotEditorSelect["databaseBlocks"][number];
+import {
+	DatabaseBlockFieldGroup,
+	databaseBlockTopLevelFieldMap,
+} from "./database-block-field-group";
+import { databaseBlockFormOptions } from "./database-block-form-options";
 
 const DatabaseBlockForm = ({
 	action,
@@ -26,137 +20,83 @@ const DatabaseBlockForm = ({
 }: {
 	action: "create" | "update";
 	block?: DatabaseBlock;
-	assets?: DatabaseBlockValue["assets"];
+	assets?: Asset[];
 }) => {
-	const { mutate: createBlock, isPending: isCreating } =
-		useCreateBlockMutation();
-	const { mutate: updateBlock, isPending: isUpdating } =
-		useUpdateBlockMutation();
-	const [value, setValue] = useState<DatabaseBlockValue>(
-		block
-			? {
-					id: block.id,
-					name: block.name,
-					description: block.description,
-					contentJson: block.contentJson,
-					contentHtml: block.contentHtml,
-					type: "database",
-					status: block.status,
-					config: {
-						...block.config,
-						retrievalMode: block.config.retrievalMode ?? "hybrid",
-						scoreThreshold: block.config.scoreThreshold ?? 0.2,
-						candidateLimit: block.config.candidateLimit ?? 40,
-						maxPerAsset: block.config.maxPerAsset ?? 6,
-					},
-					assetIds: assets?.map((entry) => entry.id) ?? [],
-					assets: assets ?? [],
-				}
-			: {
-					...createDefaultDatabaseBlock(),
-				},
-	);
+	const { mutate: createBlock } = useCreateBlockMutation();
+	const { mutate: updateBlock } = useUpdateBlockMutation();
+	const [selectedAssets, setSelectedAssets] = useState<Asset[]>(assets ?? []);
 
+	const form = useAppForm({
+		...databaseBlockFormOptions(
+			block,
+			assets?.map((asset) => asset.id),
+		),
+		onSubmit: ({ value }) => {
+			if (action === "update" && block) {
+				updateBlock({
+					...value,
+					id: block.id,
+				});
+				return;
+			}
+
+			createBlock(value);
+		},
+	});
+	const assetIds = useStore(form.store, (state) => state.values.assets);
 	return (
-		<div className="space-y-4">
-			<Card>
-				<CardContent>
-					<PublicationStatusField
-						value={value.status}
-						onChange={(status) =>
-							setValue((current) => ({
-								...current,
-								status,
-							}))
-						}
+		<form
+			onSubmit={(event) => {
+				event.preventDefault();
+				form.handleSubmit();
+			}}
+			className="space-y-4"
+			noValidate
+		>
+			<form.AppForm>
+				<form.FormValidationErrors />
+			</form.AppForm>
+
+			<form.AppField
+				name="status"
+				children={(field) => (
+					<field.SelectField
+						label="Publication Status"
+						description="Control whether this resource is still in draft or ready to be used in published experiences."
+						options={[
+							{
+								value: "draft",
+								label: "Draft",
+							},
+							{
+								value: "ready",
+								label: "Ready",
+							},
+						]}
 					/>
-				</CardContent>
-			</Card>
-			<DatabaseBlockEditor
-				value={value}
-				onChange={(nextValue) =>
-					setValue((current) => ({
-						...current,
-						...nextValue,
-					}))
-				}
+				)}
 			/>
 
-			<Card>
-				<CardContent className="space-y-2">
-					<Label htmlFor="database-block-description">Short Description</Label>
-					<Textarea
-						id="database-block-description"
-						value={value.description ?? ""}
-						onChange={(event) =>
-							setValue((current) => ({
-								...current,
-								description: event.target.value || null,
-							}))
-						}
-						placeholder="Describe what this content collection is used for."
-						rows={4}
-					/>
-				</CardContent>
+			<DatabaseBlockFieldGroup
+				form={form}
+				fields={databaseBlockTopLevelFieldMap}
+				assetIds={assetIds ?? []}
+				onAssetIdsChange={(ids) => form.setFieldValue("assets", ids)}
+				assets={selectedAssets}
+				onAssetsChange={setSelectedAssets}
+				onRemove={undefined}
+			/>
 
-				<CardContent className="space-y-2">
-					<Label>
-						Optional rich text about this content collection, what it includes,
-						how to use it, or any other relevant information.
-					</Label>
-					<BlockEditor
-						content={
-							value.contentJson ? (value.contentJson as Content) : undefined
-						}
-						onUpdate={(blockEditor) =>
-							setValue((current) => ({
-								...current,
-								contentJson:
-									blockEditor.getJSON() as DatabaseBlock["contentJson"],
-								contentHtml: blockEditor.getHTML(),
-							}))
-						}
-					/>
-				</CardContent>
-			</Card>
-
-			<div className="flex justify-end">
-				<Button
-					onClick={() => {
-						if (action === "update" && block) {
-							updateBlock({
-								id: block.id,
-								name: value.name,
-								description: value.description,
-								contentJson: value.contentJson,
-								contentHtml: value.contentHtml,
-								type: "database",
-								status: value.status,
-								config: value.config,
-								assets: value.assetIds,
-							});
-							return;
-						}
-
-						createBlock({
-							name: value.name,
-							description: value.description,
-							contentJson: value.contentJson,
-							contentHtml: value.contentHtml,
-							type: "database",
-							status: value.status,
-							config: value.config,
-							assets: value.assetIds,
-						});
-					}}
-					disabled={isCreating || isUpdating}
-				>
-					{action === "create"
-						? "Save Content Collection"
-						: "Update Content Collection"}
-				</Button>
-			</div>
-		</div>
+			<form.AppForm>
+				<form.SubmitButton
+					label={
+						action === "create"
+							? "Save Content Collection"
+							: "Update Content Collection"
+					}
+				/>
+			</form.AppForm>
+		</form>
 	);
 };
 

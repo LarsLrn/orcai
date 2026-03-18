@@ -17,7 +17,12 @@ import {
 	syncDatabaseBlockAssets,
 } from "@/lib/orpc/router/helpers/database-block";
 import type { Block } from "@/lib/orpc/schemas/block";
-import { lookupEntitiesByPermission } from "@/lib/spice-db/client";
+import {
+	checkEntityPermission,
+	checkManyEntityPermissions,
+	hasPermission,
+	lookupEntitiesByPermission,
+} from "@/lib/spice-db/client";
 
 export const listBlocks = authed.block.list.handler(
 	async ({ input, context }) =>
@@ -49,7 +54,7 @@ export const listBlocks = authed.block.list.handler(
 					whereConditions.push(eq(dbSchema.block.type, input.filters.type));
 				}
 
-				return yield* Effect.all(
+				const [rawBlocks, [countResult]] = yield* Effect.all(
 					[
 						db
 							.selectDistinctOn(
@@ -84,12 +89,41 @@ export const listBlocks = authed.block.list.handler(
 					{
 						concurrency: "unbounded",
 					},
-				).pipe(
-					Effect.map(([data, [countResult]]) => ({
-						data: data as Block[],
-						rowCount: countResult.count,
-					})),
 				);
+
+				const blocks = rawBlocks as Block[];
+				const editableBlockIds = new Set<string>();
+
+				if (blocks.length > 0) {
+					const permissions = yield* checkManyEntityPermissions({
+						entityIds: blocks.map((block) => block.id),
+						entityType: "block",
+						permission: "edit",
+						userId: context.auth.user.id,
+						zedToken: input.zedToken,
+					});
+
+					for (const pair of permissions.pairs) {
+						const blockId = pair.request?.resource?.objectId;
+						const allowed =
+							pair.response.oneofKind === "item" &&
+							hasPermission({
+								permissionship: pair.response.item.permissionship,
+							});
+
+						if (blockId && allowed) {
+							editableBlockIds.add(blockId);
+						}
+					}
+				}
+
+				return {
+					data: blocks.map((block) => ({
+						...block,
+						canEdit: editableBlockIds.has(block.id),
+					})),
+					rowCount: countResult.count,
+				};
 			}),
 		),
 );
@@ -105,7 +139,7 @@ export const findBlock = authed.block.find
 				zedToken: input.zedToken,
 			}) satisfies CheckPermissionInput,
 	)
-	.handler(async ({ input, errors }) =>
+	.handler(async ({ input, context, errors }) =>
 		runOrpcEffect(
 			Effect.gen(function* () {
 				const db = yield* DB;
@@ -126,19 +160,34 @@ export const findBlock = authed.block.find
 					);
 				}
 
+				const canEditPermission = yield* checkEntityPermission({
+					entityId: input.id,
+					entityType: "block",
+					permission: "edit",
+					userId: context.auth.user.id,
+					zedToken: input.zedToken,
+				});
+				const canEdit = hasPermission(canEditPermission);
+
 				if (block.type === "database") {
 					const assets = yield* loadDatabaseBlockAssets({
 						blockId: input.id,
 					});
 
 					return {
-						data: block,
+						data: {
+							...block,
+							canEdit,
+						},
 						assets,
 					};
 				}
 
 				return {
-					data: block,
+					data: {
+						...block,
+						canEdit,
+					},
 				};
 			}),
 		),

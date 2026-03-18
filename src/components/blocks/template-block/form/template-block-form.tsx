@@ -1,31 +1,14 @@
-import type { Content } from "@tiptap/react";
-import { useState } from "react";
-import {
-	createDefaultTemplateBlock,
-	TemplateBlockEditor,
-} from "@/components/authoring/template-block-editor";
-import { PublicationStatusField } from "@/components/blocks/form/publication-status-field";
-import { BlockEditor } from "@/components/editor/block-editor";
-import { Button } from "@/components/ui/button";
-import { Card, CardContent } from "@/components/ui/card";
-import { Label } from "@/components/ui/label";
-import { Textarea } from "@/components/ui/textarea";
+import { useAppForm } from "@/hooks/form";
 import {
 	useCreateBlockMutation,
 	useUpdateBlockMutation,
 } from "@/hooks/mutations/use-block-mutations";
 import type { TemplateBlock } from "@/lib/orpc/schemas/block";
-
-type TemplateBlockFormValue = {
-	id?: TemplateBlock["id"];
-	name: TemplateBlock["name"];
-	description: TemplateBlock["description"];
-	contentJson: TemplateBlock["contentJson"];
-	contentHtml: TemplateBlock["contentHtml"];
-	type: "template";
-	status: TemplateBlock["status"];
-	config: TemplateBlock["config"];
-};
+import {
+	TemplateBlockFieldGroup,
+	templateBlockTopLevelFieldMap,
+} from "./template-block-field-group";
+import { templateBlockFormOptions } from "./template-block-form-options";
 
 const TemplateBlockForm = ({
 	action,
@@ -34,121 +17,70 @@ const TemplateBlockForm = ({
 	action: "create" | "update";
 	block?: TemplateBlock;
 }) => {
-	const { mutate: createBlock, isPending: isCreating } =
-		useCreateBlockMutation();
-	const { mutate: updateBlock, isPending: isUpdating } =
-		useUpdateBlockMutation();
-	const [value, setValue] = useState<TemplateBlockFormValue>(
-		block
-			? {
+	const { mutate: createBlock } = useCreateBlockMutation();
+	const { mutate: updateBlock } = useUpdateBlockMutation();
+
+	const form = useAppForm({
+		...templateBlockFormOptions(block),
+		onSubmit: ({ value }) => {
+			if (action === "update" && block) {
+				updateBlock({
+					...value,
 					id: block.id,
-					name: block.name,
-					description: block.description,
-					contentJson: block.contentJson,
-					contentHtml: block.contentHtml,
-					type: "template" as const,
-					status: block.status,
-					config: block.config,
-				}
-			: {
-					...createDefaultTemplateBlock(),
-				},
-	);
+				});
+				return;
+			}
+
+			createBlock(value);
+		},
+	});
 
 	return (
-		<div className="space-y-4">
-			<Card>
-				<CardContent>
-					<PublicationStatusField
-						value={value.status}
-						onChange={(status) =>
-							setValue((current) => ({
-								...current,
-								status,
-							}))
-						}
+		<form
+			onSubmit={(event) => {
+				event.preventDefault();
+				form.handleSubmit();
+			}}
+			className="space-y-4"
+			noValidate
+		>
+			<form.AppForm>
+				<form.FormValidationErrors />
+			</form.AppForm>
+
+			<form.AppField
+				name="status"
+				children={(field) => (
+					<field.SelectField
+						label="Publication Status"
+						description="Control whether this resource is still in draft or ready to be used in published experiences."
+						options={[
+							{
+								value: "draft",
+								label: "Draft",
+							},
+							{
+								value: "ready",
+								label: "Ready",
+							},
+						]}
 					/>
-				</CardContent>
-			</Card>
-			<TemplateBlockEditor
-				value={value}
-				onChange={(nextValue) =>
-					setValue((current) => ({
-						...current,
-						...nextValue,
-					}))
-				}
+				)}
 			/>
-			<Card>
-				<CardContent className="space-y-2">
-					<Label htmlFor="template-block-description">Short Description</Label>
-					<Textarea
-						id="template-block-description"
-						value={value.description ?? ""}
-						onChange={(event) =>
-							setValue((current) => ({
-								...current,
-								description: event.target.value || null,
-							}))
-						}
-						placeholder="Define the purpose of this block."
-						rows={4}
-					/>
-				</CardContent>
 
-				<CardContent className="space-y-2">
-					<Label>
-						Optional rich text context describing the modeled AI behaviour in
-						detail.
-					</Label>
-					<BlockEditor
-						content={
-							value.contentJson ? (value.contentJson as Content) : undefined
-						}
-						onUpdate={(blockEditor) =>
-							setValue((current) => ({
-								...current,
-								contentJson:
-									blockEditor.getJSON() as TemplateBlock["contentJson"],
-								contentHtml: blockEditor.getHTML(),
-							}))
-						}
-					/>
-				</CardContent>
-			</Card>
-			<div className="flex justify-end">
-				<Button
-					onClick={() => {
-						if (action === "update" && block) {
-							updateBlock({
-								id: block.id,
-								name: value.name,
-								description: value.description,
-								contentJson: value.contentJson,
-								contentHtml: value.contentHtml,
-								type: "template",
-								status: value.status,
-								config: value.config,
-							});
-							return;
-						}
+			<TemplateBlockFieldGroup
+				form={form}
+				fields={templateBlockTopLevelFieldMap}
+			/>
 
-						createBlock({
-							name: value.name,
-							description: value.description,
-							contentJson: value.contentJson,
-							contentHtml: value.contentHtml,
-							type: "template",
-							status: value.status,
-							config: value.config,
-						});
-					}}
-					disabled={isCreating || isUpdating}
-				>
-					{action === "create" ? "Save AI Behavior" : "Update AI Behavior"}
-				</Button>
-			</div>
-		</div>
+			<form.AppForm>
+				<form.SubmitButton
+					label={
+						action === "create" ? "Save AI Behavior" : "Update AI Behavior"
+					}
+				/>
+			</form.AppForm>
+		</form>
 	);
 };
 

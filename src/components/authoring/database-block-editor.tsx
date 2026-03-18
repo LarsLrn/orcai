@@ -1,4 +1,5 @@
 import { ChevronDownIcon, DatabaseIcon, PlusIcon } from "lucide-react";
+import type { ReactNode } from "react";
 import { useState } from "react";
 import { AssetIntakeFlow } from "@/components/documents/shared/asset-intake-flow";
 import { AssetLibraryPicker } from "@/components/documents/shared/asset-library-picker";
@@ -25,76 +26,76 @@ import {
 	DialogHeader,
 	DialogTitle,
 } from "@/components/ui/dialog";
-import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
-import {
-	Select,
-	SelectContent,
-	SelectItem,
-	SelectTrigger,
-	SelectValue,
-} from "@/components/ui/select";
 import type { Asset } from "@/lib/orpc/schemas/asset";
-import type { BotEditorSelect } from "@/lib/orpc/schemas/bot-editor";
+import type { DatabaseBlock } from "@/lib/orpc/schemas/block";
 
-type DatabaseBlockValue = BotEditorSelect["databaseBlocks"][number];
-
-const createDefaultDatabaseBlock = (params?: {
-	botName: string;
-}): DatabaseBlockValue => ({
+const createDefaultDatabaseBlock = (params?: { botName: string }) => ({
 	name: `Content Collection${params?.botName ? ` for '${params.botName}'` : ""}`,
-	type: "database",
-	description: null,
+	type: "database" as const,
+	description: "",
 	contentJson: null,
-	contentHtml: null,
-	status: "draft",
+	contentHtml: "",
+	status: "draft" as DatabaseBlock["status"],
 	config: {
 		minReferences: 1,
 		maxReferences: 8,
 		defaultReferences: 4,
-		retrievalMode: "hybrid",
+		retrievalMode: "hybrid" as const,
 		scoreThreshold: 0.2,
 		candidateLimit: 40,
 		maxPerAsset: 6,
 	},
 	assetIds: [],
 	assets: [],
+	canEdit: true,
 });
 
-const mergeAssets = (
-	current: DatabaseBlockValue,
-	newAssets: Asset[],
-): DatabaseBlockValue => {
-	const knownIds = new Set(current.assets.map((asset) => asset.id));
-	const addedAssets = newAssets.filter((asset) => !knownIds.has(asset.id));
+const mergeAssets = (currentAssets: Asset[], incomingAssets: Asset[]) => {
+	const knownIds = new Set(currentAssets.map((asset) => asset.id));
+	const addedAssets = incomingAssets.filter((asset) => !knownIds.has(asset.id));
 
-	return {
-		...current,
-		assetIds: [
-			...current.assetIds,
-			...addedAssets.map((asset) => asset.id),
-		],
-		assets: [
-			...current.assets,
-			...addedAssets,
-		],
-	};
+	return [
+		...currentAssets,
+		...addedAssets,
+	];
 };
 
 const DatabaseBlockEditor = ({
-	value,
-	onChange,
+	nameField,
+	descriptionField,
+	contentField,
+	minReferencesField,
+	defaultReferencesField,
+	maxReferencesField,
+	candidateLimitField,
+	maxPerAssetField,
+	scoreThresholdField,
+	retrievalModeField,
+	assetIds,
+	onAssetIdsChange,
+	assets,
+	onAssetsChange,
 	onRemove,
 }: {
-	value: DatabaseBlockValue;
-	onChange: (value: DatabaseBlockValue) => void;
+	nameField: ReactNode;
+	descriptionField: ReactNode;
+	contentField: ReactNode;
+	minReferencesField: ReactNode;
+	defaultReferencesField: ReactNode;
+	maxReferencesField: ReactNode;
+	candidateLimitField: ReactNode;
+	maxPerAssetField: ReactNode;
+	scoreThresholdField: ReactNode;
+	retrievalModeField: ReactNode;
+	assetIds: string[];
+	onAssetIdsChange: (ids: string[]) => void;
+	assets: Asset[];
+	onAssetsChange: (assets: Asset[]) => void;
 	onRemove?: () => void;
 }) => {
 	const [isAdvancedOpen, setIsAdvancedOpen] = useState(false);
 	const [isLibraryOpen, setIsLibraryOpen] = useState(false);
 	const [isUploadOpen, setIsUploadOpen] = useState(false);
-
-	const assets = value.assets;
 
 	return (
 		<Card>
@@ -115,21 +116,10 @@ const DatabaseBlockEditor = ({
 				) : null}
 			</CardHeader>
 			<CardContent className="space-y-6">
-				<div className="grid gap-4 md:grid-cols-2">
-					<div className="space-y-2">
-						<Label>Name</Label>
-						<Input
-							value={value.name}
-							onChange={(event) =>
-								onChange({
-									...value,
-									name: event.target.value,
-								})
-							}
-							placeholder="Course handbook"
-						/>
-					</div>
-				</div>
+				<div className="grid gap-4 md:grid-cols-2">{nameField}</div>
+
+				{descriptionField}
+				{contentField}
 
 				<div className="rounded-2xl border border-dashed bg-muted/20 p-4">
 					<div className="flex flex-wrap items-center justify-between gap-3">
@@ -161,7 +151,7 @@ const DatabaseBlockEditor = ({
 					</div>
 
 					<Dialog open={isLibraryOpen} onOpenChange={setIsLibraryOpen}>
-						<DialogContent className="max-h-[88vh] overflow-auto sm:max-w-5xl">
+						<DialogContent className="max-h-[88vh] sm:max-w-5xl">
 							<DialogHeader>
 								<DialogTitle>Add Existing Content</DialogTitle>
 								<DialogDescription>
@@ -170,21 +160,27 @@ const DatabaseBlockEditor = ({
 								</DialogDescription>
 							</DialogHeader>
 							<AssetLibraryPicker
-								selectedIds={assets.map((asset) => asset.id)}
-								onSelect={(asset) =>
-									onChange(
-										mergeAssets(value, [
+								selectedIds={assetIds}
+								scrollAreaClassName="max-h-[calc(88vh-14rem)]"
+								onSelect={(asset) => {
+									if (assetIds.includes(asset.id)) {
+										return;
+									}
+
+									onAssetIdsChange([
+										...assetIds,
+										asset.id,
+									]);
+									onAssetsChange(
+										mergeAssets(assets, [
 											asset,
 										]),
-									)
-								}
-								onDeselect={(asset) =>
-									onChange({
-										...value,
-										assetIds: value.assetIds.filter((id) => id !== asset.id),
-										assets: value.assets.filter((a) => a.id !== asset.id),
-									})
-								}
+									);
+								}}
+								onDeselect={(asset) => {
+									onAssetIdsChange(assetIds.filter((id) => id !== asset.id));
+									onAssetsChange(assets.filter((a) => a.id !== asset.id));
+								}}
 							/>
 							<DialogFooter showCloseButton />
 						</DialogContent>
@@ -202,7 +198,9 @@ const DatabaseBlockEditor = ({
 							<AssetIntakeFlow
 								submitLabel="Save Content"
 								onAssetsSaved={(savedAssets) => {
-									onChange(mergeAssets(value, savedAssets));
+									const nextAssets = mergeAssets(assets, savedAssets);
+									onAssetsChange(nextAssets);
+									onAssetIdsChange(nextAssets.map((asset) => asset.id));
 									setIsUploadOpen(false);
 								}}
 							/>
@@ -224,20 +222,16 @@ const DatabaseBlockEditor = ({
 					{assets.length > 0 ? (
 						<SelectedAssetList
 							assets={assets}
-							onRemove={(assetId) =>
-								onChange({
-									...value,
-									assetIds: value.assetIds.filter((id) => id !== assetId),
-									assets: value.assets.filter((asset) => asset.id !== assetId),
-								})
-							}
+							onRemove={(assetId) => {
+								onAssetIdsChange(assetIds.filter((id) => id !== assetId));
+								onAssetsChange(assets.filter((asset) => asset.id !== assetId));
+							}}
 							onAssetUpdated={(asset) =>
-								onChange({
-									...value,
-									assets: value.assets.map((existing) =>
+								onAssetsChange(
+									assets.map((existing) =>
 										existing.id === asset.id ? asset : existing,
 									),
-								})
+								)
 							}
 						/>
 					) : (
@@ -265,131 +259,16 @@ const DatabaseBlockEditor = ({
 					</CollapsibleTrigger>
 					<CollapsibleContent className="pt-4">
 						<div className="grid gap-4 md:grid-cols-3">
-							<div className="space-y-2">
-								<Label>Minimum References</Label>
-								<Input
-									type="number"
-									value={value.config.minReferences}
-									onChange={(event) =>
-										onChange({
-											...value,
-											config: {
-												...value.config,
-												minReferences: Number(event.target.value) || 1,
-											},
-										})
-									}
-								/>
-							</div>
-							<div className="space-y-2">
-								<Label>Default References</Label>
-								<Input
-									type="number"
-									value={value.config.defaultReferences}
-									onChange={(event) =>
-										onChange({
-											...value,
-											config: {
-												...value.config,
-												defaultReferences: Number(event.target.value) || 1,
-											},
-										})
-									}
-								/>
-							</div>
-							<div className="space-y-2">
-								<Label>Maximum References</Label>
-								<Input
-									type="number"
-									value={value.config.maxReferences}
-									onChange={(event) =>
-										onChange({
-											...value,
-											config: {
-												...value.config,
-												maxReferences: Number(event.target.value) || 1,
-											},
-										})
-									}
-								/>
-							</div>
+							{minReferencesField}
+							{defaultReferencesField}
+							{maxReferencesField}
 						</div>
 
 						<div className="mt-4 grid gap-4 md:grid-cols-3">
-							<div className="space-y-2">
-								<Label>Candidate Limit</Label>
-								<Input
-									type="number"
-									value={value.config.candidateLimit ?? 40}
-									onChange={(event) =>
-										onChange({
-											...value,
-											config: {
-												...value.config,
-												candidateLimit: Number(event.target.value) || 1,
-											},
-										})
-									}
-								/>
-							</div>
-							<div className="space-y-2">
-								<Label>Max Per Document</Label>
-								<Input
-									type="number"
-									value={value.config.maxPerAsset ?? 6}
-									onChange={(event) =>
-										onChange({
-											...value,
-											config: {
-												...value.config,
-												maxPerAsset: Number(event.target.value) || 1,
-											},
-										})
-									}
-								/>
-							</div>
-							<div className="space-y-2">
-								<Label>Score Threshold</Label>
-								<Input
-									type="number"
-									min="0"
-									max="1"
-									step="0.01"
-									value={value.config.scoreThreshold ?? 0.2}
-									onChange={(event) =>
-										onChange({
-											...value,
-											config: {
-												...value.config,
-												scoreThreshold: Number(event.target.value) || 0,
-											},
-										})
-									}
-								/>
-							</div>
-							<div className="space-y-2">
-								<Label>Retrieval Mode</Label>
-								<Select
-									value={value.config.retrievalMode ?? "hybrid"}
-									onValueChange={(retrievalMode) =>
-										onChange({
-											...value,
-											config: {
-												...value.config,
-												retrievalMode: retrievalMode as "dense" | "hybrid",
-											},
-										})
-									}
-								>
-									<SelectTrigger className="w-full">
-										<SelectValue />
-									</SelectTrigger>
-									<SelectContent>
-										<SelectItem value="hybrid">Hybrid</SelectItem>
-										<SelectItem value="dense">Dense</SelectItem>
-									</SelectContent>
-								</Select>
-							</div>
+							{candidateLimitField}
+							{maxPerAssetField}
+							{scoreThresholdField}
+							{retrievalModeField}
 						</div>
 					</CollapsibleContent>
 				</Collapsible>
@@ -398,8 +277,4 @@ const DatabaseBlockEditor = ({
 	);
 };
 
-export {
-	createDefaultDatabaseBlock,
-	DatabaseBlockEditor,
-	type DatabaseBlockValue,
-};
+export { createDefaultDatabaseBlock, DatabaseBlockEditor };

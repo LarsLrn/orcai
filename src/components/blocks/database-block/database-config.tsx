@@ -6,7 +6,6 @@ import {
 	Move3dIcon,
 } from "lucide-react";
 import { useState } from "react";
-import type { DatabaseBlockValue } from "@/components/authoring/database-block-editor";
 import { AssetCard } from "@/components/documents/asset-card";
 import { JobListDialog } from "@/components/jobs/job-list-dialog";
 import { Badge } from "@/components/ui/badge";
@@ -40,6 +39,7 @@ import {
 	SectionTitle,
 } from "@/components/ui/shell/section";
 import { useCreateJobMutation } from "@/hooks/mutations/use-job-mutations";
+import type { Asset } from "@/lib/orpc/schemas/asset";
 import type { DatabaseBlock } from "@/lib/orpc/schemas/block";
 
 /** --- Main Card --- */
@@ -50,7 +50,7 @@ const DatabaseBlockConfigCard = ({
 }: {
 	blockId: DatabaseBlock["id"];
 	config: DatabaseBlock["config"];
-	assets: DatabaseBlockValue["assets"];
+	assets: Asset[];
 }) => {
 	const [isAdvancedOpen, setIsAdvancedOpen] = useState(false);
 
@@ -162,7 +162,7 @@ const AssetSection = ({
 	assets,
 	blockId,
 }: {
-	assets: DatabaseBlockValue["assets"];
+	assets: Asset[];
 	blockId: DatabaseBlock["id"];
 }) => {
 	const navigate = useNavigate();

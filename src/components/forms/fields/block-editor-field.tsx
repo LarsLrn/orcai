@@ -17,6 +17,14 @@ type BlockEditorFieldProps = {
 	htmlFieldName?: string;
 };
 
+const resolveSiblingFieldName = (fieldName: string, siblingField: string) => {
+	if (siblingField.includes(".") || siblingField.includes("[")) {
+		return siblingField;
+	}
+
+	return fieldName.replace(/[^.[\]]+$/u, siblingField);
+};
+
 const BlockEditorField = ({
 	label,
 	description,
@@ -41,8 +49,12 @@ const BlockEditorField = ({
 				onUpdate={(editor) => {
 					field.handleChange(editor.getJSON() as Content);
 					if (htmlFieldName) {
+						const htmlTargetFieldName = resolveSiblingFieldName(
+							String(field.name),
+							htmlFieldName,
+						);
 						field.form.setFieldValue(
-							htmlFieldName as never,
+							htmlTargetFieldName as never,
 							editor.getHTML() as never,
 						);
 					}

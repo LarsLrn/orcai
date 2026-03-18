@@ -1,6 +1,7 @@
 import { useQuery } from "@tanstack/react-query";
 import { BookOpenIcon, SparklesIcon } from "lucide-react";
 import { useEffect, useMemo, useState } from "react";
+import { Badge } from "@/components/ui/badge";
 import {
 	DialogSelect,
 	DialogSelectContent,
@@ -53,6 +54,7 @@ const BlockSelectorDialog = ({
 	type,
 	selectedIds = [],
 	disabledIds = [],
+	includeDrafts = false,
 	onSelect,
 	title,
 	description,
@@ -65,6 +67,7 @@ const BlockSelectorDialog = ({
 	type: SupportedBlockType;
 	selectedIds?: string[];
 	disabledIds?: string[];
+	includeDrafts?: boolean;
 	onSelect: (block: Block) => void | Promise<void>;
 	title?: string;
 	description?: string;
@@ -84,20 +87,60 @@ const BlockSelectorDialog = ({
 		open,
 	]);
 
-	const blocksQuery = useQuery(
+	const readyBlocksQuery = useQuery(
 		orpc.block.list.queryOptions({
 			input: {
 				pageIndex: 0,
 				pageSize: 200,
 				filters: {
 					type,
+					status: "ready",
 				},
 			},
 			enabled: open,
 		}),
 	);
 
-	const blocks = blocksQuery.data?.data ?? [];
+	const draftBlocksQuery = useQuery(
+		orpc.block.list.queryOptions({
+			input: {
+				pageIndex: 0,
+				pageSize: 200,
+				filters: {
+					type,
+					status: "draft",
+				},
+			},
+			enabled: open && includeDrafts,
+		}),
+	);
+
+	const readyBlocks = readyBlocksQuery.data?.data ?? [];
+	const draftBlocks = includeDrafts ? (draftBlocksQuery.data?.data ?? []) : [];
+	const blocks = useMemo(() => {
+		if (!includeDrafts) {
+			return readyBlocks;
+		}
+
+		const seen = new Set<string>();
+		const merged: Block[] = [];
+
+		for (const block of [
+			...readyBlocks,
+			...draftBlocks,
+		]) {
+			if (!seen.has(block.id)) {
+				seen.add(block.id);
+				merged.push(block);
+			}
+		}
+
+		return merged;
+	}, [
+		draftBlocks,
+		includeDrafts,
+		readyBlocks,
+	]);
 
 	const filteredBlocks = useMemo(() => {
 		const query = search.trim().toLowerCase();
@@ -168,7 +211,12 @@ const BlockSelectorDialog = ({
 					placeholder={searchPlaceholder ?? copy.searchPlaceholder}
 				/>
 				<DialogSelectList
-					loading={blocksQuery.isLoading || blocksQuery.isFetching}
+					loading={
+						readyBlocksQuery.isLoading ||
+						readyBlocksQuery.isFetching ||
+						(includeDrafts &&
+							(draftBlocksQuery.isLoading || draftBlocksQuery.isFetching))
+					}
 				>
 					{pagedBlocks.map((block) => {
 						const isSelected = selectedSet.has(block.id);
@@ -183,15 +231,29 @@ const BlockSelectorDialog = ({
 								icon={<Icon className="size-4" />}
 								disabled={isDisabled}
 								trailing={
-									isSelected ? (
-										<span className="text-muted-foreground text-xs">Added</span>
-									) : undefined
+									<div className="flex items-center gap-2">
+										{block.status === "draft" ? (
+											<Badge
+												variant="destructive"
+												className="h-5 px-1.5 text-[10px]"
+											>
+												Draft
+											</Badge>
+										) : null}
+										{isSelected ? (
+											<span className="text-muted-foreground text-xs">
+												Added
+											</span>
+										) : null}
+									</div>
 								}
 							/>
 						);
 					})}
-					{!blocksQuery.isLoading &&
-						!blocksQuery.isFetching &&
+					{!readyBlocksQuery.isLoading &&
+						!readyBlocksQuery.isFetching &&
+						(!includeDrafts ||
+							(!draftBlocksQuery.isLoading && !draftBlocksQuery.isFetching)) &&
 						pagedBlocks.length === 0 && (
 							<DialogSelectEmpty>{emptyText ?? copy.empty}</DialogSelectEmpty>
 						)}

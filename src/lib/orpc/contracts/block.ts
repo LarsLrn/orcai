@@ -18,6 +18,13 @@ import {
 } from "@/lib/orpc/schemas/shared";
 import { base } from "./base";
 
+const blockWithPermissionsSchema = z.intersection(
+	blockSelectSchema,
+	z.object({
+		canEdit: z.boolean().optional(),
+	}),
+);
+
 export const listBlocksContract = base
 	.route({
 		method: "GET",
@@ -42,7 +49,7 @@ export const listBlocksContract = base
 	)
 	.output(
 		z.object({
-			data: z.array(blockSelectSchema),
+			data: z.array(blockWithPermissionsSchema),
 			rowCount: z.number(),
 		}),
 	);
@@ -84,7 +91,7 @@ export const findBlockContract = base
 	)
 	.output(
 		z.object({
-			data: blockSelectSchema,
+			data: blockWithPermissionsSchema,
 			assets: databaseBlockEditorSchema.shape.assets.optional(),
 		}),
 	);

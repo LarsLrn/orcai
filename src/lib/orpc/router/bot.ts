@@ -15,16 +15,14 @@ import {
 	checkManyPermissionMiddleware,
 	checkPermissionMiddleware,
 } from "@/lib/orpc/middlewares/permission";
-import {
-	loadDatabaseBlockAssets,
-	syncDatabaseBlockAssets,
-} from "@/lib/orpc/router/helpers/database-block";
+import { loadDatabaseBlockAssets } from "@/lib/orpc/router/helpers/database-block";
 import type { Block } from "@/lib/orpc/schemas/block";
 import type { Bot } from "@/lib/orpc/schemas/bot";
 import type { BotEditorSave } from "@/lib/orpc/schemas/bot-editor";
 import type { PublicationStatus } from "@/lib/orpc/schemas/fragments/publication-status";
 import {
 	checkEntityPermission,
+	checkManyEntityPermissions,
 	hasPermission,
 	lookupEntitiesByPermission,
 } from "@/lib/spice-db/client";
@@ -87,7 +85,11 @@ const listBotsByStatus = (params: {
 		);
 	});
 
-const loadBotEditor = (params: { id: string }) =>
+const loadBotEditor = (params: {
+	id: string;
+	userId: string;
+	zedToken?: string;
+}) =>
 	Effect.gen(function* () {
 		const db = yield* DB;
 
@@ -119,6 +121,30 @@ const loadBotEditor = (params: { id: string }) =>
 
 		const templateBlock = blocks.find((block) => block.type === "template");
 		const databaseBlocks = blocks.filter((block) => block.type === "database");
+		const editableBlockIds = new Set<string>();
+
+		if (blocks.length > 0) {
+			const relation = yield* checkManyEntityPermissions({
+				entityIds: blocks.map((block) => block.id),
+				entityType: "block",
+				permission: "edit",
+				userId: params.userId,
+				zedToken: params.zedToken,
+			});
+
+			for (const pair of relation.pairs) {
+				const blockId = pair.request?.resource?.objectId;
+				const allowed =
+					pair.response.oneofKind === "item" &&
+					hasPermission({
+						permissionship: pair.response.item.permissionship,
+					});
+
+				if (blockId && allowed) {
+					editableBlockIds.add(blockId);
+				}
+			}
+		}
 
 		const databaseBlocksWithAssets = yield* Effect.forEach(
 			databaseBlocks,
@@ -130,6 +156,7 @@ const loadBotEditor = (params: { id: string }) =>
 
 					return {
 						...block,
+						canEdit: editableBlockIds.has(block.id),
 						assetIds: assets.map((asset) => asset.id),
 						assets,
 					};
@@ -151,6 +178,7 @@ const loadBotEditor = (params: { id: string }) =>
 					? {
 							...templateBlock,
 							type: "template" as const,
+							canEdit: editableBlockIds.has(templateBlock.id),
 						}
 					: null,
 				databaseBlocks: databaseBlocksWithAssets,
@@ -158,90 +186,114 @@ const loadBotEditor = (params: { id: string }) =>
 		};
 	});
 
-// Creates a new block and initializes its authorization relationships.
-const createBlock = (params: {
-	name: string;
-	type: "template" | "database";
-	config: object;
-	status: "draft" | "ready";
+const resolveLinkedBlocksForSave = (params: {
+	input: BotEditorSave;
 	userId: string;
-	organizationId: string;
+	zedToken?: string;
+	errors: any;
 }) =>
 	Effect.gen(function* () {
 		const db = yield* DB;
+		const templateBlockId = params.input.templateBlockId;
+		const databaseBlockIds = Array.from(new Set(params.input.databaseBlockIds));
+		const nextBlockIds = [
+			...(templateBlockId
+				? [
+						templateBlockId,
+					]
+				: []),
+			...databaseBlockIds,
+		];
 
-		const [block] = yield* db
-			.insert(dbSchema.block)
-			.values({
-				name: params.name,
-				type: params.type,
-				config: params.config,
-				status: params.status,
-				userId: params.userId,
-				createdAt: new Date(),
-				updatedAt: new Date(),
-			})
-			.returning({
-				...getColumns(dbSchema.block),
-			})
-			.pipe(Effect.map((rows) => rows as Block[]));
-
-		const relationResult = yield* initializeResourceAuthorization({
-			resourceType: "block",
-			resourceId: block.id,
-			organizationId: params.organizationId,
-			ownerUserId: params.userId,
-		});
-
-		return {
-			block,
-			zedToken: relationResult.zedToken,
-		};
-	});
-
-// Updates an existing block or creates a new one, returning its resolved ID.
-const upsertBotBlock = (params: {
-	block: {
-		id?: string;
-		name: string;
-		config: object;
-		status: "draft" | "ready";
-	};
-	type: "template" | "database";
-	userId: string;
-	organizationId: string;
-}) =>
-	Effect.gen(function* () {
-		const db = yield* DB;
-
-		if (params.block.id) {
-			yield* db
-				.update(dbSchema.block)
-				.set({
-					name: params.block.name,
-					config: params.block.config,
-					updatedAt: new Date(),
-				})
-				.where(eq(dbSchema.block.id, params.block.id));
-			return {
-				blockId: params.block.id,
-				zedToken: undefined as string | undefined,
-			};
+		if (nextBlockIds.length === 0) {
+			return [];
 		}
 
-		const { block, zedToken } = yield* createBlock({
-			name: params.block.name,
-			type: params.type,
-			config: params.block.config,
-			status: params.block.status,
+		const linkedBlocks = yield* db
+			.select({
+				...getColumns(dbSchema.block),
+			})
+			.from(dbSchema.block)
+			.where(inArray(dbSchema.block.id, nextBlockIds))
+			.pipe(Effect.map((rows) => rows as Block[]));
+
+		if (linkedBlocks.length !== nextBlockIds.length) {
+			return yield* Effect.fail(
+				params.errors.BAD_REQUEST({
+					message: "One or more linked blocks could not be found.",
+				}),
+			);
+		}
+
+		const blockById = new Map(
+			linkedBlocks.map((block) => [
+				block.id,
+				block,
+			]),
+		);
+
+		if (
+			templateBlockId &&
+			blockById.get(templateBlockId)?.type !== "template"
+		) {
+			return yield* Effect.fail(
+				params.errors.BAD_REQUEST({
+					message: "Linked AI behavior block must be a template block.",
+				}),
+			);
+		}
+
+		for (const databaseBlockId of databaseBlockIds) {
+			if (blockById.get(databaseBlockId)?.type !== "database") {
+				return yield* Effect.fail(
+					params.errors.BAD_REQUEST({
+						message:
+							"Linked content collection block must be a database block.",
+					}),
+				);
+			}
+		}
+
+		const linkPermissions = yield* checkManyEntityPermissions({
+			entityIds: nextBlockIds,
+			entityType: "block",
+			permission: "read",
 			userId: params.userId,
-			organizationId: params.organizationId,
+			zedToken: params.zedToken,
 		});
 
-		return {
-			blockId: block.id,
-			zedToken,
-		};
+		const readableIds = new Set<string>();
+
+		for (const pair of linkPermissions.pairs) {
+			const blockId = pair.request?.resource?.objectId;
+			const allowed =
+				pair.response.oneofKind === "item" &&
+				hasPermission({
+					permissionship: pair.response.item.permissionship,
+				});
+
+			if (blockId && allowed) {
+				readableIds.add(blockId);
+			}
+		}
+
+		const unreadableIds = nextBlockIds.filter(
+			(blockId) => !readableIds.has(blockId),
+		);
+
+		if (unreadableIds.length > 0) {
+			return yield* Effect.fail(
+				params.errors.FORBIDDEN({
+					message:
+						"You do not have access to link one or more selected blocks.",
+					data: {
+						allowed: false,
+					},
+				}),
+			);
+		}
+
+		return nextBlockIds;
 	});
 
 // Resolves the bot record: updates if it exists, inserts if new.
@@ -321,13 +373,15 @@ const saveBotGraph = (params: {
 	input: BotEditorSave;
 	userId: string;
 	organizationId: string;
+	zedToken?: string;
+	errors: any;
 }) =>
 	Effect.gen(function* () {
 		const db = yield* DB;
 		const authz = yield* AuthzService;
 
 		const { botId, zedToken: resolvedZedToken } = yield* resolveBot(params);
-		let zedToken = resolvedZedToken;
+		const zedToken = resolvedZedToken;
 
 		const existingBlocks = yield* db
 			.select({
@@ -341,41 +395,12 @@ const saveBotGraph = (params: {
 			.where(eq(dbSchema.botBlock.botId, botId))
 			.pipe(Effect.map((rows) => rows as Block[]));
 
-		const existingById = new Map(
-			existingBlocks.map((block) => [
-				block.id,
-				block,
-			]),
-		);
-		const nextBlockIds: string[] = [];
-
-		if (params.input.templateBlock) {
-			const { blockId, zedToken: blockZedToken } = yield* upsertBotBlock({
-				block: params.input.templateBlock,
-				type: "template",
-				userId: params.userId,
-				organizationId: params.organizationId,
-			});
-			zedToken ??= blockZedToken;
-			nextBlockIds.push(blockId);
-		}
-
-		for (const databaseBlock of params.input.databaseBlocks) {
-			const { blockId, zedToken: blockZedToken } = yield* upsertBotBlock({
-				block: databaseBlock,
-				type: "database",
-				userId: params.userId,
-				organizationId: params.organizationId,
-			});
-			zedToken ??= blockZedToken;
-
-			yield* syncDatabaseBlockAssets({
-				blockId,
-				assetIds: databaseBlock.assetIds,
-			});
-
-			nextBlockIds.push(blockId);
-		}
+		const nextBlockIds = yield* resolveLinkedBlocksForSave({
+			input: params.input,
+			userId: params.userId,
+			zedToken: params.zedToken,
+			errors: params.errors,
+		});
 
 		const previousBlockIds = existingBlocks.map((block) => block.id);
 		const { removedIds, addedIds } = calculateRelationDelta(
@@ -420,18 +445,10 @@ const saveBotGraph = (params: {
 			});
 		}
 
-		const removableDraftIds = removedIds.filter(
-			(blockId) => existingById.get(blockId)?.status === "draft",
-		);
-
-		if (removableDraftIds.length > 0) {
-			yield* db
-				.delete(dbSchema.block)
-				.where(inArray(dbSchema.block.id, removableDraftIds));
-		}
-
 		const editor = yield* loadBotEditor({
 			id: botId,
+			userId: params.userId,
+			zedToken: zedToken ?? params.zedToken,
 		});
 
 		return {
@@ -531,10 +548,12 @@ export const findBotEditor = authed.bot.findEditor
 				entityType: "bot",
 			}) satisfies CheckPermissionInput,
 	)
-	.handler(async ({ input, errors }) =>
+	.handler(async ({ input, context, errors }) =>
 		runOrpcEffect(
 			loadBotEditor({
 				id: input.id,
+				userId: context.auth.user.id,
+				zedToken: input.zedToken ?? context.meta?.zedToken,
 			}).pipe(
 				Effect.mapError(() =>
 					errors.NOT_FOUND({
@@ -550,13 +569,15 @@ export const saveBot = authed.bot.save
 	.handler(async ({ input, context, errors }) =>
 		runOrpcEffect(
 			Effect.gen(function* () {
+				const resolvedZedToken = input.zedToken ?? context.meta?.zedToken;
+
 				if (input.id) {
 					const permission = yield* checkEntityPermission({
 						entityId: input.id,
 						entityType: "bot",
 						permission: "edit",
 						userId: context.auth.user.id,
-						zedToken: undefined,
+						zedToken: resolvedZedToken,
 					});
 					if (!hasPermission(permission)) {
 						return yield* Effect.fail(
@@ -574,7 +595,7 @@ export const saveBot = authed.bot.save
 						entityType: "organization",
 						permission: "create_bot",
 						userId: context.auth.user.id,
-						zedToken: undefined,
+						zedToken: resolvedZedToken,
 					});
 					if (!hasPermission(permission)) {
 						return yield* Effect.fail(
@@ -592,6 +613,8 @@ export const saveBot = authed.bot.save
 					input,
 					userId: context.auth.user.id,
 					organizationId: context.auth.session.activeOrganizationId,
+					zedToken: resolvedZedToken,
+					errors,
 				});
 			}),
 		),
@@ -607,12 +630,13 @@ export const publishBot = authed.bot.publish
 				entityType: "bot",
 			}) satisfies CheckPermissionInput,
 	)
-	.handler(async ({ input, errors }) =>
+	.handler(async ({ input, context, errors }) =>
 		runOrpcEffect(
 			Effect.gen(function* () {
 				const db = yield* DB;
 				const editor = yield* loadBotEditor({
 					id: input.id,
+					userId: context.auth.user.id,
 				});
 
 				if (!editor.data.templateBlock) {
@@ -660,6 +684,7 @@ export const publishBot = authed.bot.publish
 					.where(eq(dbSchema.bot.id, input.id));
 				const updatedEditor = yield* loadBotEditor({
 					id: input.id,
+					userId: context.auth.user.id,
 				});
 
 				return {

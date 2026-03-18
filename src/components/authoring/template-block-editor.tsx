@@ -1,4 +1,5 @@
 import { SparklesIcon } from "lucide-react";
+import type { ReactNode } from "react";
 import {
 	Card,
 	CardContent,
@@ -6,36 +7,31 @@ import {
 	CardHeader,
 	CardTitle,
 } from "@/components/ui/card";
-import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
-import { Textarea } from "@/components/ui/textarea";
-import type { BotEditorSelect } from "@/lib/orpc/schemas/bot-editor";
+import type { TemplateBlock } from "@/lib/orpc/schemas/block";
 
-type TemplateBlockValue = NonNullable<BotEditorSelect["templateBlock"]>;
-
-const createDefaultTemplateBlock = (params?: {
-	botName: string;
-}): TemplateBlockValue => ({
+const createDefaultTemplateBlock = (params?: { botName: string }) => ({
 	name: `AI Behavior${params?.botName ? ` for '${params.botName}'` : ""}`,
-	description: null,
-	contentHtml: null,
+	description: "",
+	contentHtml: "",
 	contentJson: null,
-	type: "template",
-	status: "draft",
+	type: "template" as const,
+	status: "draft" as TemplateBlock["status"],
 	config: {
 		systemPrompt: "",
 	},
 });
 
 const TemplateBlockEditor = ({
-	value,
-	onChange,
+	nameField,
+	systemPromptField,
+	descriptionField,
+	contentField,
 }: {
-	value?: TemplateBlockValue | null;
-	onChange: (value: TemplateBlockValue) => void;
+	nameField: ReactNode;
+	systemPromptField: ReactNode;
+	descriptionField: ReactNode;
+	contentField: ReactNode;
 }) => {
-	const templateBlock = value ?? createDefaultTemplateBlock();
-
 	return (
 		<div className="grid gap-5">
 			<Card>
@@ -50,47 +46,14 @@ const TemplateBlockEditor = ({
 					</CardDescription>
 				</CardHeader>
 				<CardContent className="space-y-4">
-					<div className="space-y-2">
-						<Label htmlFor="template-block-name">Name</Label>
-						<Input
-							id="template-block-name"
-							value={templateBlock.name}
-							onChange={(event) =>
-								onChange({
-									...templateBlock,
-									name: event.target.value,
-								})
-							}
-							placeholder="AI Behavior"
-						/>
-					</div>
-
-					<div className="space-y-2">
-						<Label htmlFor="template-block-prompt">System Prompt</Label>
-						<Textarea
-							id="template-block-prompt"
-							value={templateBlock.config.systemPrompt}
-							onChange={(event) =>
-								onChange({
-									...templateBlock,
-									config: {
-										...templateBlock.config,
-										systemPrompt: event.target.value,
-									},
-								})
-							}
-							placeholder="Explain the bot's role, response style, and constraints."
-							rows={12}
-						/>
-					</div>
+					{nameField}
+					{systemPromptField}
+					{descriptionField}
+					{contentField}
 				</CardContent>
 			</Card>
 		</div>
 	);
 };
 
-export {
-	createDefaultTemplateBlock,
-	TemplateBlockEditor,
-	type TemplateBlockValue,
-};
+export { createDefaultTemplateBlock, TemplateBlockEditor };
