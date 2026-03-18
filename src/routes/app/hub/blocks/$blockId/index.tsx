@@ -1,6 +1,11 @@
 import { useSuspenseQuery } from "@tanstack/react-query";
 import { createFileRoute, useNavigate } from "@tanstack/react-router";
-import { KeyRoundIcon, MoreVerticalIcon, Trash2Icon } from "lucide-react";
+import {
+	EditIcon,
+	KeyRoundIcon,
+	MoreVerticalIcon,
+	Trash2Icon,
+} from "lucide-react";
 import { useState } from "react";
 import { AccessDialog } from "@/components/access/access-dialog";
 import { MetadataCard } from "@/components/app/metadata-card";
@@ -31,8 +36,8 @@ export const Route = createFileRoute("/app/hub/blocks/$blockId/")({
 });
 
 const TYPE_LABELS: Record<string, string> = {
-	template: "Template",
-	database: "Database",
+	template: "AI Behaviour",
+	database: "Content Collection",
 	imageGeneration: "Image Generation",
 };
 
@@ -70,7 +75,7 @@ function RouteComponent() {
 			<PageHeader>
 				<PageTitle>{block.data.name}</PageTitle>
 				<PageDescription>
-					{TYPE_LABELS[block.data.type] ?? block.data.type} Block
+					{TYPE_LABELS[block.data.type] ?? block.data.type}
 				</PageDescription>
 				{block.data.status === "draft" ? (
 					<div>
@@ -78,18 +83,6 @@ function RouteComponent() {
 					</div>
 				) : null}
 				<PageAction>
-					<Button
-						onClick={() =>
-							navigate({
-								to: "/app/hub/blocks/$blockId/edit",
-								params: {
-									blockId: block.data.id,
-								},
-							})
-						}
-					>
-						Edit Block
-					</Button>
 					<DropdownMenu>
 						<DropdownMenuTrigger
 							render={
@@ -103,6 +96,19 @@ function RouteComponent() {
 							<DropdownMenuItem onClick={() => setIsAccessOpen(true)}>
 								<KeyRoundIcon className="size-4" />
 								Access & Groups
+							</DropdownMenuItem>
+							<DropdownMenuItem
+								onClick={() =>
+									navigate({
+										to: "/app/hub/blocks/$blockId/edit",
+										params: {
+											blockId: block.data.id,
+										},
+									})
+								}
+							>
+								<EditIcon />
+								Edit Block
 							</DropdownMenuItem>
 							<DropdownMenuSeparator />
 							<DropdownMenuItem
@@ -128,12 +134,18 @@ function RouteComponent() {
 			<PageContent className="grid gap-6 lg:grid-cols-3">
 				<div className="space-y-6 lg:col-span-2">
 					{block.data.type === "template" && (
-						<TemplateBlockConfigCard config={block.data.config} />
+						<TemplateBlockConfigCard
+							config={block.data.config}
+							description={block.data.description}
+							contentHtml={block.data.contentHtml}
+						/>
 					)}
 					{block.data.type === "database" && block.assets && (
 						<DatabaseBlockConfigCard
 							blockId={block.data.id}
 							config={block.data.config}
+							description={block.data.description}
+							contentHtml={block.data.contentHtml}
 							assets={block.assets}
 						/>
 					)}

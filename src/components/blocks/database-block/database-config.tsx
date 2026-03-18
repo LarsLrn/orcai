@@ -7,16 +7,11 @@ import {
 } from "lucide-react";
 import { useState } from "react";
 import { AssetCard } from "@/components/documents/asset-card";
+import { ContentRenderer } from "@/components/editor/content-renderer";
 import { JobListDialog } from "@/components/jobs/job-list-dialog";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import {
-	Card,
-	CardContent,
-	CardDescription,
-	CardHeader,
-	CardTitle,
-} from "@/components/ui/card";
+import { Card, CardContent } from "@/components/ui/card";
 import {
 	Collapsible,
 	CollapsibleContent,
@@ -46,10 +41,14 @@ import type { DatabaseBlock } from "@/lib/orpc/schemas/block";
 const DatabaseBlockConfigCard = ({
 	blockId,
 	config,
+	description,
+	contentHtml,
 	assets,
 }: {
 	blockId: DatabaseBlock["id"];
 	config: DatabaseBlock["config"];
+	description: DatabaseBlock["description"];
+	contentHtml: DatabaseBlock["contentHtml"];
 	assets: Asset[];
 }) => {
 	const [isAdvancedOpen, setIsAdvancedOpen] = useState(false);
@@ -57,16 +56,27 @@ const DatabaseBlockConfigCard = ({
 	return (
 		<div className="flex flex-col gap-4">
 			<Card>
-				<CardHeader>
-					<CardTitle>Retrieval Configuration</CardTitle>
-					<CardDescription>
-						This knowledge base is configured to use the following retrieval
-						settings. This controls how the AI searches for relevant information
-						from attached content.
-					</CardDescription>
-				</CardHeader>
+				<CardContent className="space-y-6">
+					{description && (
+						<div className="space-y-2">
+							<p className="text-muted-foreground text-sm">{description}</p>
+							<Separator className="my-4" />
+						</div>
+					)}
 
-				<CardContent className="space-y-5">
+					{contentHtml && (
+						<div className="prose prose-sm max-w-none">
+							<ContentRenderer html={contentHtml} />
+						</div>
+					)}
+
+					<div className="space-y-1">
+						<div className="font-medium text-sm">Retrieval Configuration</div>
+						<p className="text-muted-foreground text-sm">
+							These settings control how the AI searches attached content.
+						</p>
+					</div>
+
 					{/* Primary: mode + reference counts */}
 					<div className="flex items-center justify-between">
 						<div className="space-y-1">
