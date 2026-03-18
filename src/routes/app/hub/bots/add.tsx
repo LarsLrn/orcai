@@ -32,7 +32,7 @@ function RouteComponent() {
 			<PageHeader>
 				<PageTitle>Create Bot</PageTitle>
 				<PageDescription>
-					Follow the guided setup to define the bot, its AI behavior, its
+					Follow the guided setup to define the bot, its AI behaviour, its
 					content collections, and its access settings.
 				</PageDescription>
 			</PageHeader>

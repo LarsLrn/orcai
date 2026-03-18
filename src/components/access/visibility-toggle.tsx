@@ -23,7 +23,7 @@ const VisibilityToggle = ({
 					<p className="font-medium text-sm">Visibility</p>
 					<p className="text-muted-foreground text-xs">
 						Public resources are visible to authenticated users across
-						organizations.
+						organisations.
 					</p>
 				</div>
 				<div className="flex items-center gap-2">

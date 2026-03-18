@@ -39,7 +39,7 @@ function RouteComponent() {
 							variant: "default",
 						})}
 					>
-						Edit Organization
+						Edit Organisation
 					</Link>
 				</PageAction>
 			</PageHeader>

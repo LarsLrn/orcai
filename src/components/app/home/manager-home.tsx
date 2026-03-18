@@ -173,7 +173,7 @@ const resourceHighlights: Array<{
 	},
 	{
 		label: "Blocks",
-		description: "Reusable behavior and retrieval building blocks.",
+		description: "Reusable behaviour and retrieval building blocks.",
 		linkProps: {
 			to: "/app/hub/blocks",
 		},

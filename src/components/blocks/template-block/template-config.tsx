@@ -19,7 +19,7 @@ const TemplateBlockConfigCard = ({
 			<CardHeader>
 				<CardTitle className="flex items-center gap-2">
 					<BotIcon className="h-5 w-5" />
-					AI Behavior
+					AI Behaviour
 				</CardTitle>
 				<CardDescription>
 					Define system-level instructions for chats that use this block

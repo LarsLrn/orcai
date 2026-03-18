@@ -76,7 +76,7 @@ export function OrganizationInvitationEntry({
 					<div className="flex items-center gap-2">
 						<Building2Icon className="h-4 w-4 text-primary" />
 						<CardTitle className="text-lg">
-							{organization?.data.name ?? "Organization"}
+							{organization?.data.name ?? "Organisation"}
 						</CardTitle>
 					</div>
 					<Badge variant={toBadgeVariant(invitation.status, isExpired)}>

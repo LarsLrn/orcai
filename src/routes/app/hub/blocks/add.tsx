@@ -41,7 +41,7 @@ function RouteComponent() {
 			<PageHeader>
 				<PageTitle>Add Block</PageTitle>
 				<PageDescription>
-					Create reusable AI behavior, content collections, or image-generation
+					Create reusable AI behaviour, content collections, or image-generation
 					blocks.
 				</PageDescription>
 			</PageHeader>
@@ -50,7 +50,7 @@ function RouteComponent() {
 					{[
 						{
 							type: "template" as const,
-							title: "AI Behavior",
+							title: "AI Behaviour",
 							description: "Define how the assistant should respond.",
 							icon: SparklesIcon,
 						},
@@ -63,7 +63,7 @@ function RouteComponent() {
 						{
 							type: "imageGeneration" as const,
 							title: "Image Generation",
-							description: "Configure image-generation behavior.",
+							description: "Configure image-generation behaviour.",
 							icon: ImageIcon,
 						},
 					].map((option) => {
@@ -92,14 +92,14 @@ function RouteComponent() {
 					<CardHeader>
 						<CardTitle>
 							{type === "template"
-								? "AI Behavior"
+								? "AI Behaviour"
 								: type === "database"
 									? "Content Collection"
 									: "Image Generation"}
 						</CardTitle>
 						<CardDescription>
 							{type === "template"
-								? "Configure a reusable AI behavior block."
+								? "Configure a reusable AI behaviour block."
 								: type === "database"
 									? "Configure a reusable content collection."
 									: "Configure a reusable image-generation block."}

@@ -27,9 +27,9 @@ export const useDeleteOrganizationMembersMutation = (
 				},
 			}),
 		messages: {
-			loading: "Deleting organization members...",
-			success: "Organization members deleted",
-			error: "Failed to delete organization members",
+			loading: "Deleting organisation members...",
+			success: "Organisation members deleted",
+			error: "Failed to delete organisation members",
 		},
 		confirm: (input) => {
 			const count = input.refs.length;
@@ -37,7 +37,7 @@ export const useDeleteOrganizationMembersMutation = (
 
 			return {
 				title: `Remove Member${plural}`,
-				description: `Are you sure you want to remove ${count} organization member${plural}?`,
+				description: `Are you sure you want to remove ${count} organisation member${plural}?`,
 				confirmText: "Remove",
 				cancelText: "Cancel",
 			};

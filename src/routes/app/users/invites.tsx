@@ -62,9 +62,9 @@ function RouteComponent() {
 	return (
 		<Page>
 			<PageHeader>
-				<PageTitle>Organization Invitations</PageTitle>
+				<PageTitle>Organisation Invitations</PageTitle>
 				<PageDescription>
-					Manage your organization's invitations.
+					Manage your organisation's invitations.
 				</PageDescription>
 				<PageAction>
 					<Link

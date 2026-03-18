@@ -85,7 +85,7 @@ const OrganizationInvitationForm = () => {
 					<CardDescription>
 						These settings will apply to all users invited in this batch. Note
 						that users will also automatically be added to the organisation
-						corresponding to the selected organization.
+						corresponding to the selected organisation.
 					</CardDescription>
 				</CardHeader>
 				<CardContent className="flex flex-col gap-4">
@@ -93,8 +93,8 @@ const OrganizationInvitationForm = () => {
 						name="organizationId"
 						children={(field) => (
 							<field.SelectField
-								label="Organization"
-								placeholder="Select organization"
+								label="Organisation"
+								placeholder="Select organisation"
 								options={organizations.data.map((organization) => ({
 									label: organization.name,
 									value: organization.id,

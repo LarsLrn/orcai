@@ -146,7 +146,7 @@ export const initializeBootstrap = os.bootstrap.initialize.handler(
 								Effect.orElse(() =>
 									Effect.fail(
 										errors.BAD_REQUEST({
-											message: "Failed to create bootstrap organization.",
+											message: "Failed to create bootstrap organisation.",
 										}),
 									),
 								),
@@ -165,7 +165,7 @@ export const initializeBootstrap = os.bootstrap.initialize.handler(
 									organizationId: organization.id,
 									name: "All Members",
 									description:
-										"System group containing all organization members",
+										"System group containing all organisation members",
 									kind: "system",
 									systemKey: ALL_MEMBERS_GROUP_SYSTEM_KEY,
 									createdBy: user.id,

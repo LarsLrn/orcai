@@ -47,8 +47,8 @@ const PrincipalPicker = ({
 
 	const searchPlaceholder =
 		principalType === "user"
-			? "Search organization members..."
-			: "Search organization groups...";
+			? "Search organisation members..."
+			: "Search organisation groups...";
 
 	return (
 		<div className="space-y-2">

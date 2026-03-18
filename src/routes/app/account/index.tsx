@@ -77,9 +77,9 @@ function RouteComponent() {
 						</Card>
 						<Card>
 							<CardHeader>
-								<CardTitle>Organization Invitations</CardTitle>
+								<CardTitle>Organisation Invitations</CardTitle>
 								<CardDescription>
-									Manage invitations to join organizations
+									Manage invitations to join organisations
 								</CardDescription>
 							</CardHeader>
 							<CardContent>

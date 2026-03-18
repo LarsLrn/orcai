@@ -37,7 +37,7 @@ const OrganizationCard = ({
 					<ResourceCardBadges
 						badges={[
 							{
-								label: "Organization",
+								label: "Organisation",
 								variant: "secondary",
 								icon: BuildingIcon,
 							},

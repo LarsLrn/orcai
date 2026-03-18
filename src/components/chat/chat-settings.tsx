@@ -394,7 +394,7 @@ const ChatBlocksEditor = ({
 						disabled={!!attachedTemplateBlock || attachMutation.isPending}
 					>
 						<PlusIcon className="mr-2 size-4" />
-						Add Behavior
+						Add Behaviour
 					</Button>
 					<Button
 						type="button"
@@ -408,8 +408,8 @@ const ChatBlocksEditor = ({
 				</div>
 				<p className="text-muted-foreground text-sm">
 					{attachedTemplateBlock
-						? `Only one behavior block can be attached. Remove "${attachedTemplateBlock.name}" to attach another behavior.`
-						: "Behavior blocks define system behavior. Content collections provide retrieval context."}
+						? `Only one behaviour block can be attached. Remove "${attachedTemplateBlock.name}" to attach another behaviour.`
+						: "Behaviour blocks define system behaviour. Content collections provide retrieval context."}
 				</p>
 			</div>
 
@@ -448,8 +448,8 @@ const ChatBlocksEditor = ({
 				onSelect={async (block) => {
 					await attachMutation.mutateAsync(block.id);
 				}}
-				title="Add Behavior"
-				description="Attach one reusable AI behavior block to this chat."
+				title="Add Behaviour"
+				description="Attach one reusable AI behaviour block to this chat."
 			/>
 			<BlockSelectorDialog
 				open={isDatabasePickerOpen}

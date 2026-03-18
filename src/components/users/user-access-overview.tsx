@@ -159,7 +159,7 @@ const UserAccessOverview = ({ userId }: UserAccessOverviewProps) => {
 					))
 				) : (
 					<p className="text-muted-foreground text-sm">
-						No effective resource access entries in this organization.
+						No effective resource access entries in this organisation.
 					</p>
 				)}
 			</CardContent>

@@ -76,7 +76,7 @@ const WIZARD_STEPS = [
 	},
 	{
 		key: "behavior",
-		title: "AI Behavior",
+		title: "AI Behaviour",
 		description: "Define the bot's response rules.",
 		icon: SparklesIcon,
 	},
@@ -104,11 +104,11 @@ const getPublishIssues = (editor: BotEditorFormValues) => {
 	const issues: string[] = [];
 
 	if (!editor.templateBlock) {
-		issues.push("Add an AI behavior before launching the bot.");
+		issues.push("Add an AI behaviour before launching the bot.");
 	}
 	if (editor.templateBlock && editor.templateBlock.status !== "ready") {
 		issues.push(
-			'Set the AI behavior block status to "Ready" before launching.',
+			'Set the AI behaviour block status to "Ready" before launching.',
 		);
 	}
 
@@ -679,7 +679,7 @@ const BotEditorShell = ({
 										variant="outline"
 										onClick={() => setIsTemplateBlockLibraryOpen(true)}
 									>
-										Use Existing AI Behavior
+										Use Existing AI Behaviour
 									</Button>
 								</div>
 							) : null}
@@ -693,7 +693,7 @@ const BotEditorShell = ({
 												children={(field) => (
 													<field.TextField
 														label="Name"
-														placeholder="AI Behavior"
+														placeholder="AI Behaviour"
 													/>
 												)}
 											/>
@@ -742,10 +742,10 @@ const BotEditorShell = ({
 									<CardContent className="flex flex-wrap items-center justify-between gap-3 p-6">
 										<div>
 											<div className="font-medium">
-												No AI behavior linked yet
+												No AI behaviour linked yet
 											</div>
 											<div className="text-muted-foreground text-sm">
-												Create a new behavior or attach one from the library.
+												Create a new behaviour or attach one from the library.
 											</div>
 										</div>
 										<div className="flex flex-wrap gap-2">
@@ -757,13 +757,13 @@ const BotEditorShell = ({
 													)
 												}
 											>
-												Create AI Behavior
+												Create AI Behaviour
 											</Button>
 											<Button
 												variant="outline"
 												onClick={() => setIsTemplateBlockLibraryOpen(true)}
 											>
-												Use Existing AI Behavior
+												Use Existing AI Behaviour
 											</Button>
 										</div>
 									</CardContent>
@@ -785,9 +785,9 @@ const BotEditorShell = ({
 								onSelect={(block) =>
 									handleSelectExistingTemplateBlock(block.id)
 								}
-								title="Use Existing AI Behavior"
-								description="Attach a reusable AI behavior block instead of creating a new one."
-								searchPlaceholder="Search AI behavior blocks..."
+								title="Use Existing AI Behaviour"
+								description="Attach a reusable AI behaviour block instead of creating a new one."
+								searchPlaceholder="Search AI behaviour blocks..."
 							/>
 						</div>
 					) : null}
@@ -1097,13 +1097,13 @@ const ReviewSection = ({
 			<Separator />
 
 			<div>
-				<div className="font-medium text-sm">AI Behavior</div>
+				<div className="font-medium text-sm">AI Behaviour</div>
 				<div className="mt-2 rounded-xl border p-4 text-sm">
 					{editor.templateBlock ? (
 						<>
 							<div className="font-medium">{editor.templateBlock.name}</div>
 							<div className="mt-1 text-muted-foreground">
-								System prompt and response behavior are configured on this
+								System prompt and response behaviour are configured on this
 								template block.
 							</div>
 							<div className="mt-3 max-w-sm space-y-2">
@@ -1136,7 +1136,7 @@ const ReviewSection = ({
 						</>
 					) : (
 						<div className="text-muted-foreground">
-							No AI behavior configured yet.
+							No AI behaviour configured yet.
 						</div>
 					)}
 				</div>
@@ -1247,9 +1247,10 @@ const ReadOnlyTemplateCard = ({
 	return (
 		<Card>
 			<CardHeader>
-				<CardTitle>AI Behavior</CardTitle>
+				<CardTitle>AI Behaviour</CardTitle>
 				<CardDescription>
-					This block is linked as read-only in this setup flow.
+					This behaviour block is linked as read-only in this setup flow since
+					you do not have permission to edit it directly.
 				</CardDescription>
 			</CardHeader>
 			<CardContent className="space-y-3">

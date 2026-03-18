@@ -21,7 +21,7 @@ export function OrganizationInvitationsList({
 	mode = "all",
 	onAccepted,
 	emptyTitle = "No Invitations",
-	emptyDescription = "You don't have any organization invitations at this time.",
+	emptyDescription = "You don't have any organisation invitations at this time.",
 }: OrganizationInvitationsListProps) {
 	const { data: session } = authClient.useSession();
 	const currentUserEmail = session?.user?.email.trim().toLowerCase();

@@ -238,7 +238,7 @@ const resolveLinkedBlocksForSave = (params: {
 		) {
 			return yield* Effect.fail(
 				params.errors.BAD_REQUEST({
-					message: "Linked AI behavior block must be a template block.",
+					message: "Linked AI behaviour block must be a template block.",
 				}),
 			);
 		}
@@ -652,7 +652,7 @@ export const publishBot = authed.bot.publish
 					return yield* Effect.fail(
 						errors.BAD_REQUEST({
 							message:
-								'Set the AI behavior block to "ready" before publishing this bot.',
+								'Set the AI behaviour block to "ready" before publishing this bot.',
 						}),
 					);
 				}

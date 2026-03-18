@@ -68,7 +68,7 @@ export const useSignup = () => {
 					});
 				} catch {
 					throw new Error(
-						"Account created, but joining the organization failed. Sign in and accept the invitation from the organization selector.",
+						"Account created, but joining the organisation failed. Sign in and accept the invitation from the organisation selector.",
 					);
 				}
 

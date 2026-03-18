@@ -33,9 +33,9 @@ export const useSetActiveOrganizationMutation = (
 				},
 			}),
 		messages: {
-			loading: "Setting active organization...",
-			success: "Active organization set",
-			error: "Failed to set active organization",
+			loading: "Setting active organisation...",
+			success: "Active organisation set",
+			error: "Failed to set active organisation",
 		},
 	});
 };
