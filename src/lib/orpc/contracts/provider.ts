@@ -17,7 +17,16 @@ export const listProvidersContract = base
 			"Providers",
 		],
 	})
-	.input(paginationSchema)
+	.input(
+		z.object({
+			filters: z
+				.object({
+					enabled: providerSelectSchema.shape.enabled.optional(),
+				})
+				.optional(),
+			...paginationSchema.shape,
+		}),
+	)
 	.output(
 		z.object({
 			data: z.array(providerSelectSchema),

@@ -9,7 +9,7 @@ import * as Effect from "effect/Effect";
 import { z } from "zod/v4";
 import { getSaiaModel } from "@/lib/ai/saia-models";
 import { runtime } from "@/lib/effect/runtime";
-import { AiError } from "@/lib/effect/utils/errors";
+import { AiError, BadRequestError } from "@/lib/effect/utils/errors";
 import { decryptApiKey } from "@/lib/encryption";
 import { client } from "@/lib/orpc/orpc";
 import type { ImageGenerationBlock } from "@/lib/orpc/schemas/block";
@@ -34,24 +34,62 @@ export const generateImageTool = ({
 		execute: async ({ prompt }) =>
 			runtime.runPromise(
 				Effect.gen(function* () {
-					const provider = yield* Effect.tryPromise({
-						try: () =>
-							client.provider.find({
-								id: block.config.provider,
+					const [{ data: provider }, { data: model }] = yield* Effect.all(
+						[
+							Effect.tryPromise({
+								try: () =>
+									client.provider.find({
+										id: block.config.provider,
+									}),
+								catch: (cause) =>
+									new AiError({
+										operation: "generateImageTool.fetch.provider",
+										cause,
+									}),
 							}),
-						catch: (cause) =>
-							new AiError({
-								operation: "generateImageTool.fetch.provider",
-								cause,
+							Effect.tryPromise({
+								try: () =>
+									client.model.find({
+										id: block.config.model,
+									}),
+								catch: (cause) =>
+									new AiError({
+										operation: "generateImageTool.fetch.model",
+										cause,
+									}),
 							}),
-					});
+						],
+						{
+							concurrency: "unbounded",
+						},
+					);
 
-					const apiKey = yield* decryptApiKey(provider.data.apiKeyEncrypted);
+					if (model.providerId !== provider.id) {
+						return yield* new BadRequestError({
+							message: "Selected model does not belong to selected provider.",
+						});
+					}
+
+					if (!provider.enabled) {
+						return yield* new BadRequestError({
+							message:
+								"Selected provider is disabled. Please choose an active provider.",
+						});
+					}
+
+					if (model.isDeprecated) {
+						return yield* new BadRequestError({
+							message:
+								"Selected model is deprecated. Please choose a non-deprecated model.",
+						});
+					}
+
+					const apiKey = yield* decryptApiKey(provider.apiKeyEncrypted);
 
 					const providerInstance = createOpenAICompatible({
-						baseURL: provider.data.endpoint ?? "", // TODO: Fix?
+						baseURL: provider.endpoint ?? "", // TODO: Fix?
 						apiKey,
-						name: provider.data.name,
+						name: provider.name,
 						includeUsage: true,
 					});
 

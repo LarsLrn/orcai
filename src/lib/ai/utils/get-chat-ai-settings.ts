@@ -134,6 +134,20 @@ export const getChatAiSettings = ({
 			});
 		}
 
+		if (!provider.enabled) {
+			return yield* new BadRequestError({
+				message:
+					"Selected provider is disabled. Please choose an active provider.",
+			});
+		}
+
+		if (modelSettings.isDeprecated) {
+			return yield* new BadRequestError({
+				message:
+					"Selected model is deprecated. Please choose a non-deprecated model.",
+			});
+		}
+
 		const apiKey = yield* decryptApiKey(provider.apiKeyEncrypted);
 
 		const providerInstance = createOpenAICompatible({
