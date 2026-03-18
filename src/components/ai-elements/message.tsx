@@ -15,6 +15,7 @@ import {
 	useState,
 } from "react";
 import { Streamdown } from "streamdown";
+import { CiteComponent } from "@/components/ai-elements/cite";
 import { Button } from "@/components/ui/button";
 import { ButtonGroup, ButtonGroupText } from "@/components/ui/button-group";
 import {
@@ -346,13 +347,32 @@ const streamdownPlugins = {
 	mermaid,
 };
 
+const streamdownComponents = {
+	cite: CiteComponent,
+};
+
+const streamdownAllowedTags = {
+	cite: [
+		"assetid",
+		"title",
+		"page",
+	],
+};
+
+const streamdownLiteralTagContent = [
+	"cite",
+];
+
 export const MessageResponse = memo(
 	({ className, ...props }: MessageResponseProps) => (
 		<Streamdown
+			allowedTags={streamdownAllowedTags}
 			className={cn(
 				"size-full [&>*:first-child]:mt-0 [&>*:last-child]:mb-0",
 				className,
 			)}
+			components={streamdownComponents}
+			literalTagContent={streamdownLiteralTagContent}
 			plugins={streamdownPlugins}
 			{...props}
 		/>

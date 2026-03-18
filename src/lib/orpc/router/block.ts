@@ -17,7 +17,12 @@ import {
 	syncDatabaseBlockAssets,
 } from "@/lib/orpc/router/helpers/database-block";
 import type { Block } from "@/lib/orpc/schemas/block";
-import { lookupEntitiesByPermission } from "@/lib/spice-db/client";
+import {
+	checkEntityPermission,
+	checkManyEntityPermissions,
+	hasPermission,
+	lookupEntitiesByPermission,
+} from "@/lib/spice-db/client";
 
 export const listBlocks = authed.block.list.handler(
 	async ({ input, context }) =>
@@ -38,7 +43,7 @@ export const listBlocks = authed.block.list.handler(
 
 				const whereConditions = [
 					inArray(dbSchema.block.id, allowedIds),
-					eq(dbSchema.block.status, "ready"),
+					eq(dbSchema.block.status, input.filters?.status ?? "ready"),
 				];
 				if (input.filters?.botId) {
 					whereConditions.push(
@@ -49,7 +54,7 @@ export const listBlocks = authed.block.list.handler(
 					whereConditions.push(eq(dbSchema.block.type, input.filters.type));
 				}
 
-				return yield* Effect.all(
+				const [rawBlocks, [countResult]] = yield* Effect.all(
 					[
 						db
 							.selectDistinctOn(
@@ -84,12 +89,41 @@ export const listBlocks = authed.block.list.handler(
 					{
 						concurrency: "unbounded",
 					},
-				).pipe(
-					Effect.map(([data, [countResult]]) => ({
-						data: data as Block[],
-						rowCount: countResult.count,
-					})),
 				);
+
+				const blocks = rawBlocks as Block[];
+				const editableBlockIds = new Set<string>();
+
+				if (blocks.length > 0) {
+					const permissions = yield* checkManyEntityPermissions({
+						entityIds: blocks.map((block) => block.id),
+						entityType: "block",
+						permission: "edit",
+						userId: context.auth.user.id,
+						zedToken: input.zedToken,
+					});
+
+					for (const pair of permissions.pairs) {
+						const blockId = pair.request?.resource?.objectId;
+						const allowed =
+							pair.response.oneofKind === "item" &&
+							hasPermission({
+								permissionship: pair.response.item.permissionship,
+							});
+
+						if (blockId && allowed) {
+							editableBlockIds.add(blockId);
+						}
+					}
+				}
+
+				return {
+					data: blocks.map((block) => ({
+						...block,
+						canEdit: editableBlockIds.has(block.id),
+					})),
+					rowCount: countResult.count,
+				};
 			}),
 		),
 );
@@ -105,7 +139,7 @@ export const findBlock = authed.block.find
 				zedToken: input.zedToken,
 			}) satisfies CheckPermissionInput,
 	)
-	.handler(async ({ input, errors }) =>
+	.handler(async ({ input, context, errors }) =>
 		runOrpcEffect(
 			Effect.gen(function* () {
 				const db = yield* DB;
@@ -126,19 +160,34 @@ export const findBlock = authed.block.find
 					);
 				}
 
+				const canEditPermission = yield* checkEntityPermission({
+					entityId: input.id,
+					entityType: "block",
+					permission: "edit",
+					userId: context.auth.user.id,
+					zedToken: input.zedToken,
+				});
+				const canEdit = hasPermission(canEditPermission);
+
 				if (block.type === "database") {
 					const assets = yield* loadDatabaseBlockAssets({
 						blockId: input.id,
 					});
 
 					return {
-						data: block,
+						data: {
+							...block,
+							canEdit,
+						},
 						assets,
 					};
 				}
 
 				return {
-					data: block,
+					data: {
+						...block,
+						canEdit,
+					},
 				};
 			}),
 		),
@@ -207,10 +256,41 @@ export const updateBlock = authed.block.update
 				entityType: "block",
 			}) satisfies CheckPermissionInput,
 	)
-	.handler(async ({ input }) =>
+	.handler(async ({ input, errors }) =>
 		runOrpcEffect(
 			Effect.gen(function* () {
 				const db = yield* DB;
+
+				if (input.status === "draft") {
+					const linkedReadyBots = yield* db
+						.select({
+							id: dbSchema.bot.id,
+							name: dbSchema.bot.name,
+						})
+						.from(dbSchema.botBlock)
+						.innerJoin(
+							dbSchema.bot,
+							eq(dbSchema.bot.id, dbSchema.botBlock.botId),
+						)
+						.where(
+							and(
+								eq(dbSchema.botBlock.blockId, input.id),
+								eq(dbSchema.bot.status, "ready"),
+							),
+						)
+						.limit(5);
+
+					if (linkedReadyBots.length > 0) {
+						const names = linkedReadyBots
+							.map((bot) => `"${bot.name}"`)
+							.join(", ");
+						return yield* Effect.fail(
+							errors.BAD_REQUEST({
+								message: `Cannot move this block to draft because it is used by ready bot(s): ${names}.`,
+							}),
+						);
+					}
+				}
 
 				const [block] = yield* db
 					.update(dbSchema.block)

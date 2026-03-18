@@ -136,15 +136,18 @@ const toSnippet = ({
 	return `${headText}${bridge}${tailText}`;
 };
 
-const toSource = (point: PointWithBlock): ResultSource => ({
-	blockId: point.sourceBlockId,
-	blockName: point.sourceBlockName,
-	assetId: point.payload.asset_id,
-	page: point.payload.page,
-	chunkIndex: point.payload.chunk_index,
-	chunkCount: point.payload.chunkCount,
-	createdAt: point.payload.createdAt,
-});
+const toSource = (point: PointWithBlock): ResultSource => {
+	return {
+		blockId: point.sourceBlockId,
+		blockName: point.sourceBlockName,
+		assetId: point.payload.asset_id,
+		assetTitle: point.payload.title,
+		page: point.payload.page,
+		chunkIndex: point.payload.chunk_index,
+		chunkCount: point.payload.chunkCount,
+		createdAt: point.payload.createdAt,
+	};
+};
 
 export const toSearchResult = ({
 	point,
@@ -265,9 +268,13 @@ export const loadDocumentCatalog = ({ blocks }: { blocks: DatabaseBlock[] }) =>
 				.map((assetId) => {
 					const asset = assetById.get(assetId);
 					if (!asset) return null;
+					const metadata = asset.metadata as {
+						citation?: string;
+					} | null;
 					return {
 						assetId,
 						title: asset.title,
+						citation: metadata?.citation ?? undefined,
 						blockId: block.id,
 						blockName: block.name,
 					} satisfies KnowledgeBaseDocument;

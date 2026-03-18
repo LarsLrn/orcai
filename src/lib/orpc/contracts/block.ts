@@ -10,12 +10,20 @@ import {
 } from "@/lib/orpc/schemas/block";
 import { botSelectSchema } from "@/lib/orpc/schemas/bot";
 import { databaseBlockEditorSchema } from "@/lib/orpc/schemas/bot-editor";
+import { publicationStatusSchema } from "@/lib/orpc/schemas/fragments/publication-status";
 import {
 	paginationSchema,
 	statusSchema,
 	zedTokenSchema,
 } from "@/lib/orpc/schemas/shared";
 import { base } from "./base";
+
+const blockWithPermissionsSchema = z.intersection(
+	blockSelectSchema,
+	z.object({
+		canEdit: z.boolean().optional(),
+	}),
+);
 
 export const listBlocksContract = base
 	.route({
@@ -34,13 +42,14 @@ export const listBlocksContract = base
 				.object({
 					botId: botSelectSchema.shape.id.optional(),
 					type: z.enum(BLOCK_TYPES.map((t) => t.value)).optional(),
+					status: publicationStatusSchema.optional(),
 				})
 				.optional(),
 		}),
 	)
 	.output(
 		z.object({
-			data: z.array(blockSelectSchema),
+			data: z.array(blockWithPermissionsSchema),
 			rowCount: z.number(),
 		}),
 	);
@@ -82,7 +91,7 @@ export const findBlockContract = base
 	)
 	.output(
 		z.object({
-			data: blockSelectSchema,
+			data: blockWithPermissionsSchema,
 			assets: databaseBlockEditorSchema.shape.assets.optional(),
 		}),
 	);

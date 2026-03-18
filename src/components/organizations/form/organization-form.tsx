@@ -18,6 +18,12 @@ export const OrganizationForm = ({
 
 	const form = useAppForm({
 		...organizationFormOptions,
+		defaultValues: organization
+			? {
+					name: organization.name,
+					slug: organization.slug,
+				}
+			: organizationFormOptions.defaultValues,
 		onSubmit: ({ value }) => {
 			if (action === "update" && organization) {
 				updateOrganization({

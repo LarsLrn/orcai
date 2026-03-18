@@ -2,6 +2,7 @@ import { useStore } from "@tanstack/react-form";
 import { skipToken, useQuery, useSuspenseQuery } from "@tanstack/react-query";
 import { useRouteContext } from "@tanstack/react-router";
 import type { Content } from "@tiptap/react";
+import { PublicationStatusField } from "@/components/blocks/form/publication-status-field";
 import { BlockEditor } from "@/components/editor/block-editor";
 import {
 	Card,
@@ -60,6 +61,7 @@ const ImageGenerationBlockForm = ({
 		(state) => state.values.config.provider,
 	);
 	const contentJson = useStore(form.store, (state) => state.values.contentJson);
+	const status = useStore(form.store, (state) => state.values.status);
 
 	const { data: models } = useQuery(
 		orpc.model.list.queryOptions({
@@ -105,6 +107,12 @@ const ImageGenerationBlockForm = ({
 									rows={4}
 								/>
 							)}
+						/>
+						<PublicationStatusField
+							value={status}
+							onChange={(nextStatus) =>
+								form.setFieldValue("status", nextStatus)
+							}
 						/>
 					</CardContent>
 				</Card>

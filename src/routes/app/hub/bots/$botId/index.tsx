@@ -11,6 +11,7 @@ import { AccessDialog } from "@/components/access/access-dialog";
 import { MetadataCard } from "@/components/app/metadata-card";
 import { BotBlocks } from "@/components/bot/bot-blocks";
 import { ContentRenderer } from "@/components/editor/content-renderer";
+import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import {
 	DropdownMenu,
@@ -60,10 +61,34 @@ function RouteComponent() {
 			input: {
 				filters: {
 					botId,
+					status: "ready",
 				},
 			},
 		}),
 	);
+	const { data: draftBlocks } = useSuspenseQuery(
+		orpc.block.list.queryOptions({
+			input: {
+				filters: {
+					botId,
+					status: "draft",
+				},
+			},
+		}),
+	);
+
+	const botBlocks =
+		bot.data.status === "draft"
+			? [
+					...blocks.data,
+					...draftBlocks.data.filter(
+						(draftBlock) =>
+							!blocks.data.some(
+								(readyBlock) => readyBlock.id === draftBlock.id,
+							),
+					),
+				]
+			: blocks.data;
 
 	const { mutate: deleteBots } = useDeleteBotsMutation({
 		onMutate: async () => {
@@ -79,6 +104,11 @@ function RouteComponent() {
 			<PageHeader>
 				<PageTitle>{bot.data.name}</PageTitle>
 				<PageDescription>{bot.data.description}</PageDescription>
+				{bot.data.status === "draft" ? (
+					<div>
+						<Badge variant="destructive">Draft</Badge>
+					</div>
+				) : null}
 				<PageAction>
 					<Button
 						onClick={() =>
@@ -147,7 +177,7 @@ function RouteComponent() {
 							<ContentRenderer html={bot.data.contentHtml} />
 						</div>
 					</div>
-					<BotBlocks blocks={blocks.data} />
+					<BotBlocks blocks={botBlocks} />
 				</div>
 
 				<div className="space-y-6">

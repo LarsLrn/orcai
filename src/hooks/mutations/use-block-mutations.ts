@@ -121,3 +121,102 @@ export const useDeleteBlocksMutation = (
 		},
 	});
 };
+
+export const useSetBlockStatusMutation = (
+	opts: ReturnType<typeof orpc.block.update.mutationOptions> = {},
+) => {
+	const queryClient = useQueryClient();
+
+	return useMutationAction({
+		mutationOptions: () =>
+			orpc.block.update.mutationOptions({
+				...opts,
+				onSuccess: async (...args) => {
+					queryClient.invalidateQueries({
+						queryKey: orpc.block.key(),
+					});
+
+					try {
+						await opts.onSuccess?.(...args);
+					} catch (error) {
+						console.error(
+							"useSetBlockStatusMutation onSuccess callback failed:",
+							error,
+						);
+					}
+				},
+			}),
+		messages: {
+			loading: "Updating block status...",
+			success: ({ input }) =>
+				input.status === "ready"
+					? "Block marked as ready"
+					: "Block moved to draft",
+			error: "Failed to update block status",
+		},
+	});
+};
+
+export const useCreateBlockInlineMutation = (
+	opts: ReturnType<typeof orpc.block.create.mutationOptions> = {},
+) => {
+	const queryClient = useQueryClient();
+
+	return useMutationAction({
+		mutationOptions: () =>
+			orpc.block.create.mutationOptions({
+				...opts,
+				onSuccess: async (...args) => {
+					queryClient.invalidateQueries({
+						queryKey: orpc.block.key(),
+					});
+
+					try {
+						await opts.onSuccess?.(...args);
+					} catch (error) {
+						console.error(
+							"useCreateBlockInlineMutation onSuccess callback failed:",
+							error,
+						);
+					}
+				},
+			}),
+		messages: {
+			loading: "Creating block...",
+			success: "Block created",
+			error: "Failed to create block",
+		},
+	});
+};
+
+export const useUpdateBlockInlineMutation = (
+	opts: ReturnType<typeof orpc.block.update.mutationOptions> = {},
+) => {
+	const queryClient = useQueryClient();
+
+	return useMutationAction({
+		mutationOptions: () =>
+			orpc.block.update.mutationOptions({
+				...opts,
+				onSuccess: async (...args) => {
+					queryClient.invalidateQueries({
+						queryKey: orpc.block.key(),
+					});
+
+					try {
+						await opts.onSuccess?.(...args);
+					} catch (error) {
+						console.error(
+							"useUpdateBlockInlineMutation onSuccess callback failed:",
+							error,
+						);
+					}
+				},
+			}),
+		messages: {
+			loading: "Updating block...",
+			success: "Block updated",
+			error: "Failed to update block",
+		},
+	});
+};

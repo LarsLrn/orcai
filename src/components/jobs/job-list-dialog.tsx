@@ -11,6 +11,7 @@ import {
 	DialogHeader,
 	DialogTitle,
 } from "@/components/ui/dialog";
+import { ScrollArea } from "@/components/ui/scroll-area";
 import { Spinner } from "@/components/ui/spinner";
 import { orpc } from "@/lib/orpc/orpc";
 import type { JobQueue } from "@/lib/pg-boss/schema/job-queues";
@@ -74,11 +75,13 @@ const JobListDialog = ({
 							<Spinner className="size-6" />
 						</div>
 					) : jobs && jobs.length > 0 ? (
-						<div className="flex flex-col gap-2">
-							{jobs.map((job) => (
-								<JobListItem key={job.id} job={job} />
-							))}
-						</div>
+						<ScrollArea className="max-h-[55vh]">
+							<div className="flex flex-col gap-2">
+								{jobs.map((job) => (
+									<JobListItem key={job.id} job={job} />
+								))}
+							</div>
+						</ScrollArea>
 					) : (
 						<p className="py-8 text-center text-muted-foreground text-sm">
 							No jobs found.

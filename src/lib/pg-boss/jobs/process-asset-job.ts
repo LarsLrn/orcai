@@ -5,7 +5,11 @@ import { dbSchema } from "@/db/schema";
 import { serializeDoclingPayload } from "@/lib/ai/utils/docling-conversion";
 import { DoclingService } from "@/lib/effect/services/docling";
 import { DB } from "@/lib/effect/services/drizzle";
-import { PROCESS_ASSET_JOB_NAME } from "@/lib/pg-boss/schema/job-queues";
+import { sendJobBatchEffect } from "@/lib/pg-boss/helpers";
+import {
+	PROCESS_ASSET_JOB_NAME,
+	VECTORIZE_ASSET_JOB_NAME,
+} from "@/lib/pg-boss/schema/job-queues";
 import type { ProcessAssetPayload } from "@/lib/pg-boss/schema/process-asset";
 import { toPgBossRunError } from "@/lib/pg-boss/utils/error-helper";
 import { validateImageResolution } from "@/lib/pg-boss/utils/validate-image-resolution";
@@ -248,6 +252,52 @@ const processAssetsEffect = (params: { job: Job<ProcessAssetPayload> }) =>
 				processingStatus: "completed",
 			})
 			.where(eq(dbSchema.asset.id, assetRef.id));
+
+		const attachedBlocks = yield* db
+			.select({
+				blockId: dbSchema.blockAsset.blockId,
+			})
+			.from(dbSchema.blockAsset)
+			.where(eq(dbSchema.blockAsset.assetId, assetRef.id));
+
+		if (attachedBlocks.length > 0) {
+			yield* Effect.forEach(
+				attachedBlocks,
+				({ blockId }) =>
+					sendJobBatchEffect({
+						jobName: VECTORIZE_ASSET_JOB_NAME,
+						jobs: [
+							{
+								data: {
+									prefix: assetRef.id,
+									assetId: assetRef.id,
+									blockId,
+								},
+							},
+						],
+						resourceOptions: {
+							resourceId: blockId,
+							resourceType: "block",
+						},
+					}),
+				{
+					concurrency: "unbounded",
+					discard: true,
+				},
+			).pipe(
+				Effect.tapError((err) =>
+					Effect.logError(
+						{
+							err,
+							jobId: params.job.id,
+							assetId: assetRef.id,
+						},
+						"Failed to dispatch follow-up vectorization jobs",
+					),
+				),
+				Effect.catchAll(() => Effect.void),
+			);
+		}
 
 		yield* Effect.logInfo(`Completed job ${params.job.id}`);
 	}).pipe(

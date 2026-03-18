@@ -1,4 +1,4 @@
-import { eq, getColumns } from "drizzle-orm";
+import { and, eq, getColumns, inArray } from "drizzle-orm";
 import * as Effect from "effect/Effect";
 import { dbSchema } from "@/db/schema";
 import { calculateRelationDelta } from "@/lib/authz/relation-delta";
@@ -102,9 +102,31 @@ export const syncDatabaseBlockAssets = (params: {
 		}
 
 		if (addedIds.length > 0) {
+			const completedAddedAssets = yield* db
+				.select({
+					id: dbSchema.asset.id,
+				})
+				.from(dbSchema.asset)
+				.where(
+					and(
+						inArray(dbSchema.asset.id, addedIds),
+						eq(dbSchema.asset.processingStatus, "completed"),
+					),
+				);
+
+			const completedAssetIds = completedAddedAssets.map((asset) => asset.id);
+
+			if (completedAssetIds.length === 0) {
+				return {
+					assetIds: params.assetIds,
+					addedIds,
+					removedIds,
+				};
+			}
+
 			yield* sendJobBatchEffect({
 				jobName: VECTORIZE_ASSET_JOB_NAME,
-				jobs: addedIds.map((assetId) => ({
+				jobs: completedAssetIds.map((assetId) => ({
 					data: {
 						prefix: assetId,
 						assetId,

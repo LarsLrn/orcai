@@ -53,10 +53,12 @@ export const InlineCitationCard = (props: InlineCitationCardProps) => (
 
 export type InlineCitationCardTriggerProps = ComponentProps<typeof Badge> & {
 	sources: string[];
+	label?: string;
 };
 
 export const InlineCitationCardTrigger = ({
 	sources,
+	label,
 	className,
 	...props
 }: InlineCitationCardTriggerProps) => (
@@ -69,9 +71,11 @@ export const InlineCitationCardTrigger = ({
 			/>
 		}
 	>
-		{sources[0] ? (
+		{label ? (
+			label
+		) : sources[0] ? (
 			<>
-				{new URL(sources[0]).hostname}{" "}
+				{tryHostname(sources[0])}{" "}
 				{sources.length > 1 && `+${sources.length - 1}`}
 			</>
 		) : (
@@ -79,6 +83,14 @@ export const InlineCitationCardTrigger = ({
 		)}
 	</HoverCardTrigger>
 );
+
+const tryHostname = (url: string) => {
+	try {
+		return new URL(url).hostname;
+	} catch {
+		return url;
+	}
+};
 
 export type InlineCitationCardBodyProps = ComponentProps<"div">;
 

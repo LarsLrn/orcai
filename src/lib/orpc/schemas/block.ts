@@ -78,8 +78,6 @@ export const templateBlockSchema = z.object({
 export const databaseBlockSchema = z.object({
 	type: z.literal("database"),
 	config: z.object({
-		provider: z.string(),
-		embeddingModel: z.string(),
 		...referencesConfigSchema.shape,
 		scoreThreshold: z.number().min(0).max(1).optional(),
 		retrievalMode: z

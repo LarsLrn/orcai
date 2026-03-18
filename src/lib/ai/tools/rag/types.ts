@@ -6,6 +6,8 @@ export type ResultSource = {
 	blockId: DatabaseBlock["id"];
 	blockName: DatabaseBlock["name"];
 	assetId: Asset["id"];
+	assetTitle: string;
+	assetCitation?: string;
 	page?: number;
 	chunkIndex: number;
 	chunkCount: number;
@@ -35,6 +37,7 @@ export type PointWithBlock = AssetPoint & {
 export type KnowledgeBaseDocument = {
 	assetId: string;
 	title: string;
+	citation?: string;
 	blockId: DatabaseBlock["id"];
 	blockName: DatabaseBlock["name"];
 };

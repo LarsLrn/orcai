@@ -1,10 +1,12 @@
 import { useSuspenseQuery } from "@tanstack/react-query";
-import { createFileRoute, Link } from "@tanstack/react-router";
+import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
 import {
 	BlocksIcon,
 	BrainCircuitIcon,
 	DatabaseIcon,
+	EditIcon,
 	PlusIcon,
+	TrashIcon,
 } from "lucide-react";
 import { BlockCard } from "@/components/blocks/block-card";
 import { Placeholder } from "@/components/placeholders/placeholder";
@@ -18,6 +20,7 @@ import {
 	SectionHeader,
 	SectionTitle,
 } from "@/components/ui/shell/section";
+import { useDeleteBlocksMutation } from "@/hooks/mutations/use-block-mutations";
 import { orpc } from "@/lib/orpc/orpc";
 
 const PAGE_SIZE = 100;
@@ -25,6 +28,17 @@ const PAGE_SIZE = 100;
 export const Route = createFileRoute("/app/hub/blocks/")({
 	loader: async ({ context: { queryClient } }) => {
 		await Promise.all([
+			queryClient.ensureQueryData(
+				orpc.block.list.queryOptions({
+					input: {
+						pageIndex: 0,
+						pageSize: PAGE_SIZE,
+						filters: {
+							status: "draft",
+						},
+					},
+				}),
+			),
 			queryClient.ensureQueryData(
 				orpc.block.list.queryOptions({
 					input: {
@@ -64,6 +78,18 @@ export const Route = createFileRoute("/app/hub/blocks/")({
 });
 
 function RouteComponent() {
+	const navigate = useNavigate();
+	const { data: draftBlocks } = useSuspenseQuery(
+		orpc.block.list.queryOptions({
+			input: {
+				pageIndex: 0,
+				pageSize: PAGE_SIZE,
+				filters: {
+					status: "draft",
+				},
+			},
+		}),
+	);
 	const { data: templateBlocks } = useSuspenseQuery(
 		orpc.block.list.queryOptions({
 			input: {
@@ -97,6 +123,7 @@ function RouteComponent() {
 			},
 		}),
 	);
+	const { mutate: deleteBlocks } = useDeleteBlocksMutation();
 
 	const behaviourBlocks = [
 		...templateBlocks.data,
@@ -199,6 +226,58 @@ function RouteComponent() {
 					)}
 				</SectionContent>
 			</Section>
+
+			{draftBlocks.data.length > 0 ? (
+				<Section>
+					<SectionHeader>
+						<SectionTitle>Drafts</SectionTitle>
+						<SectionDescription>
+							Work-in-progress blocks that are not yet ready for published bot
+							experiences.
+						</SectionDescription>
+					</SectionHeader>
+					<SectionContent>
+						<SectionGrid layout="3">
+							{draftBlocks.data.map((block) => (
+								<BlockCard
+									key={block.id}
+									block={block}
+									actions={{
+										dropdown: [
+											{
+												key: "edit",
+												label: "Edit Draft",
+												icon: EditIcon,
+												onClick: () =>
+													navigate({
+														to: "/app/hub/blocks/$blockId/edit",
+														params: {
+															blockId: block.id,
+														},
+													}),
+											},
+											{
+												key: "delete",
+												label: "Delete Draft",
+												icon: TrashIcon,
+												onClick: () =>
+													deleteBlocks({
+														refs: [
+															{
+																id: block.id,
+															},
+														],
+													}),
+											},
+										],
+										footer: [],
+									}}
+								/>
+							))}
+						</SectionGrid>
+					</SectionContent>
+				</Section>
+			) : null}
 		</div>
 	);
 }

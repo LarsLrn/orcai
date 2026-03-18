@@ -1,6 +1,6 @@
-import { skipToken, useQuery, useQueryClient } from "@tanstack/react-query";
+import { useStore } from "@tanstack/react-form";
+import { useQueryClient } from "@tanstack/react-query";
 import { useNavigate } from "@tanstack/react-router";
-import type { Content } from "@tiptap/react";
 import {
 	BookOpenIcon,
 	CheckCircle2Icon,
@@ -11,18 +11,21 @@ import {
 	RocketIcon,
 	SparklesIcon,
 } from "lucide-react";
-import { type Dispatch, type SetStateAction, useEffect, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import { AccessManagerContent } from "@/components/access/access-manager-content";
 import {
-	createDefaultDatabaseBlock,
-	DatabaseBlockEditor,
-} from "@/components/authoring/database-block-editor";
-import {
-	createDefaultTemplateBlock,
-	TemplateBlockEditor,
-} from "@/components/authoring/template-block-editor";
+	type BotEditorFormValues,
+	botEditorFormOptions,
+	createDefaultBuilderDatabaseBlock,
+	createDefaultBuilderTemplateBlock,
+	toBotEditorFormValues,
+} from "@/components/authoring/bot-editor-form-options";
+import { TemplateBlockEditor } from "@/components/authoring/template-block-editor";
 import { BlockSelectorDialog } from "@/components/blocks/block-selector-dialog";
-import { BlockEditor } from "@/components/editor/block-editor";
+import {
+	createDatabaseBlockBuilderFieldMap,
+	DatabaseBlockFieldGroup,
+} from "@/components/blocks/database-block/form/database-block-field-group";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import {
@@ -32,36 +35,37 @@ import {
 	CardHeader,
 	CardTitle,
 } from "@/components/ui/card";
-import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import {
+	Select,
+	SelectContent,
+	SelectItem,
+	SelectTrigger,
+	SelectValue,
+} from "@/components/ui/select";
 import { Separator } from "@/components/ui/separator";
-import { Textarea } from "@/components/ui/textarea";
 import {
 	useResourceGrants,
 	useResourceVisibility,
 } from "@/hooks/authz/use-resource-access";
+import { useAppForm } from "@/hooks/form";
+import {
+	useCreateBlockInlineMutation,
+	useSetBlockStatusMutation,
+	useUpdateBlockInlineMutation,
+} from "@/hooks/mutations/use-block-mutations";
 import {
 	usePublishBotMutation,
 	useSaveBotMutation,
 } from "@/hooks/mutations/use-bot-mutations";
 import { orpc } from "@/lib/orpc/orpc";
-import {
-	type DatabaseBlock,
-	isDatabaseBlock,
-	isTemplateBlock,
-} from "@/lib/orpc/schemas/block";
 import type {
 	BotEditorSave,
 	BotEditorSelect,
 } from "@/lib/orpc/schemas/bot-editor";
-import type { ResourceRef } from "@/lib/orpc/schemas/resource";
+import type { PublicationStatus } from "@/lib/orpc/schemas/fragments/publication-status";
 import { getProcessingStatusLabel } from "@/lib/presentation/processing-status";
 import { cn } from "@/lib/utils";
-
-type EditorState = Omit<BotEditorSave, "templateBlock" | "databaseBlocks"> & {
-	templateBlock: BotEditorSelect["templateBlock"];
-	databaseBlocks: BotEditorSelect["databaseBlocks"];
-};
 
 const WIZARD_STEPS = [
 	{
@@ -96,29 +100,23 @@ const WIZARD_STEPS = [
 	},
 ] as const;
 
-const createDefaultEditorState = (): EditorState => ({
-	name: "",
-	description: "",
-	contentJson: {},
-	contentHtml: "",
-	status: "draft",
-	templateBlock: createDefaultTemplateBlock(),
-	databaseBlocks: [],
-});
-
-const getPublishIssues = (editor: EditorState) => {
+const getPublishIssues = (editor: BotEditorFormValues) => {
 	const issues: string[] = [];
 
 	if (!editor.templateBlock) {
 		issues.push("Add an AI behavior before launching the bot.");
 	}
+	if (editor.templateBlock && editor.templateBlock.status !== "ready") {
+		issues.push(
+			'Set the AI behavior block status to "Ready" before launching.',
+		);
+	}
 
 	for (const databaseBlock of editor.databaseBlocks) {
-		if (!databaseBlock.config.provider) {
-			issues.push(`Choose a provider for "${databaseBlock.name}".`);
-		}
-		if (!databaseBlock.config.embeddingModel) {
-			issues.push(`Choose an embedding model for "${databaseBlock.name}".`);
+		if (databaseBlock.status !== "ready") {
+			issues.push(
+				`Set "${databaseBlock.name}" block status to "Ready" before launching.`,
+			);
 		}
 		if (databaseBlock.assetIds.length === 0) {
 			issues.push(
@@ -130,72 +128,63 @@ const getPublishIssues = (editor: EditorState) => {
 	return issues;
 };
 
-const toDatabaseBlockEditorValue = (params: {
-	block: DatabaseBlock;
-	assetIds: string[];
-	assets: BotEditorSelect["databaseBlocks"][number]["assets"];
-}): BotEditorSelect["databaseBlocks"][number] => ({
-	id: params.block.id,
-	description: params.block.description,
-	contentJson: params.block.contentJson,
-	contentHtml: params.block.contentHtml,
-	name: params.block.name,
-	type: "database",
-	status: params.block.status,
-	config: params.block.config,
-	assetIds: params.assetIds,
-	assets: params.assets,
+const toTemplateBlockInput = (
+	block: NonNullable<BotEditorFormValues["templateBlock"]>,
+) => ({
+	name: block.name,
+	description: block.description.trim() ? block.description : null,
+	contentJson: block.contentJson ?? null,
+	contentHtml: block.contentHtml ? block.contentHtml : null,
+	type: "template" as const,
+	status: block.status,
+	config: block.config,
 });
 
-const toEditorState = (editor: BotEditorSelect): EditorState => ({
-	id: editor.id,
-	name: editor.name,
-	description: editor.description,
-	contentJson: editor.contentJson,
-	contentHtml: editor.contentHtml,
-	status: editor.status,
-	templateBlock: editor.templateBlock,
-	databaseBlocks: editor.databaseBlocks,
+const toDatabaseBlockInput = (
+	block: BotEditorFormValues["databaseBlocks"][number],
+) => ({
+	name: block.name,
+	description: block.description.trim() ? block.description : null,
+	contentJson: block.contentJson ?? null,
+	contentHtml: block.contentHtml ? block.contentHtml : null,
+	type: "database" as const,
+	status: block.status,
+	config: block.config,
+	assets: block.assetIds ?? [],
 });
 
 const BotEditorShell = ({
-	botId,
+	editorData,
 	stepIndex,
 	onStepChange,
 }: {
-	botId?: string;
+	editorData?: BotEditorSelect;
 	stepIndex?: number;
 	onStepChange?: (step: number) => void;
 }) => {
 	const navigate = useNavigate();
 	const queryClient = useQueryClient();
 	const [internalStepIndex, setInternalStepIndex] = useState(0);
-	const [editor, setEditor] = useState<EditorState>(createDefaultEditorState());
 	const [isTemplateBlockLibraryOpen, setIsTemplateBlockLibraryOpen] =
 		useState(false);
 	const [isDatabaseBlockLibraryOpen, setIsDatabaseBlockLibraryOpen] =
 		useState(false);
 	const activeStepIndex = stepIndex ?? internalStepIndex;
-	const publishIssues = getPublishIssues(editor);
-
-	const editorQuery = useQuery(
-		orpc.bot.findEditor.queryOptions({
-			input: botId
-				? {
-						id: botId,
-					}
-				: skipToken,
-			enabled: !!botId,
-		}),
+	const zedTokenRef = useRef<string | undefined>(undefined);
+	const form = useAppForm({
+		...botEditorFormOptions(editorData),
+		onSubmit: () => undefined,
+	});
+	const editor = useStore(
+		form.store,
+		(state) => state.values,
+	) as BotEditorFormValues;
+	const publishIssues = useMemo(
+		() => getPublishIssues(editor),
+		[
+			editor,
+		],
 	);
-
-	useEffect(() => {
-		if (editorQuery.data?.data) {
-			setEditor(toEditorState(editorQuery.data.data));
-		}
-	}, [
-		editorQuery.data?.data,
-	]);
 
 	useEffect(() => {
 		if (typeof stepIndex === "number") {
@@ -208,32 +197,38 @@ const BotEditorShell = ({
 	const { mutateAsync: saveBot, isPending: isSaving } = useSaveBotMutation();
 	const { mutateAsync: publishBot, isPending: isPublishing } =
 		usePublishBotMutation();
-
-	const resourceRef: ResourceRef | null = editor.id
-		? {
-				type: "bot",
-				id: editor.id,
-			}
-		: null;
+	const { mutateAsync: createBlock, isPending: isCreatingBlock } =
+		useCreateBlockInlineMutation();
+	const { mutateAsync: updateBlock, isPending: isUpdatingBlock } =
+		useUpdateBlockInlineMutation();
+	const { mutateAsync: setBlockStatus, isPending: isSettingBlockStatus } =
+		useSetBlockStatusMutation();
 
 	const visibility = useResourceVisibility(
-		resourceRef ?? {
+		{
 			type: "bot",
-			id: "",
+			id: editor.id ?? "",
 		},
 		{
-			enabled: !!resourceRef,
+			enabled: !!editor.id,
 		},
 	);
 	const grants = useResourceGrants(
-		resourceRef ?? {
+		{
 			type: "bot",
-			id: "",
+			id: editor.id ?? "",
 		},
 		{
-			enabled: !!resourceRef,
+			enabled: !!editor.id,
 		},
 	);
+
+	const isWorking =
+		isSaving ||
+		isPublishing ||
+		isCreatingBlock ||
+		isUpdatingBlock ||
+		isSettingBlockStatus;
 
 	const setStep = (nextStep: number) => {
 		onStepChange?.(nextStep);
@@ -242,17 +237,31 @@ const BotEditorShell = ({
 		}
 	};
 
-	const handleSelectExistingTemplateBlock = (
-		block: BotEditorSelect["templateBlock"],
-	) => {
-		if (!block) {
+	const handleSelectExistingTemplateBlock = async (blockId: string) => {
+		const block = await queryClient.fetchQuery(
+			orpc.block.find.queryOptions({
+				input: {
+					id: blockId,
+				},
+			}),
+		);
+
+		if (block.data.type !== "template") {
 			return;
 		}
 
-		setEditor((current) => ({
-			...current,
-			templateBlock: block,
-		}));
+		const templateBlock: NonNullable<BotEditorFormValues["templateBlock"]> = {
+			id: block.data.id,
+			canEdit: block.data.canEdit ?? false,
+			name: block.data.name,
+			description: block.data.description ?? "",
+			contentJson: block.data.contentJson,
+			contentHtml: block.data.contentHtml ?? "",
+			type: "template",
+			status: block.data.status,
+			config: block.data.config,
+		};
+		form.setFieldValue("templateBlock", templateBlock);
 	};
 
 	const handleAddExistingDatabaseBlock = async (blockId: string) => {
@@ -264,39 +273,145 @@ const BotEditorShell = ({
 			}),
 		);
 
-		if (!isDatabaseBlock(block.data)) {
+		if (block.data.type !== "database") {
 			return;
 		}
 
-		const databaseBlock = block.data as DatabaseBlock;
+		const alreadyLinked = editor.databaseBlocks.some(
+			(databaseBlock) => databaseBlock.id === block.data.id,
+		);
+		if (alreadyLinked) {
+			return;
+		}
 
-		setEditor((current) => ({
-			...current,
-			databaseBlocks: [
-				...current.databaseBlocks,
-				toDatabaseBlockEditorValue({
-					block: databaseBlock,
-					assetIds: block.assets?.map((entry) => entry.id) ?? [],
-					assets: block.assets ?? [],
-				}),
-			],
-		}));
+		const linkedBlock: BotEditorFormValues["databaseBlocks"][number] = {
+			id: block.data.id,
+			canEdit: block.data.canEdit ?? false,
+			name: block.data.name,
+			type: "database",
+			description: block.data.description ?? "",
+			contentJson: block.data.contentJson,
+			contentHtml: block.data.contentHtml ?? "",
+			status: block.data.status,
+			config: block.data.config,
+			assetIds: block.assets?.map((asset) => asset.id) ?? [],
+			assets: block.assets ?? [],
+		};
+
+		form.setFieldValue("databaseBlocks", [
+			...editor.databaseBlocks,
+			linkedBlock,
+		]);
+	};
+
+	const persistLinkedBlocks = async () => {
+		let nextTemplateBlock = editor.templateBlock;
+		const nextDatabaseBlocks: BotEditorFormValues["databaseBlocks"] = [];
+
+		if (editor.templateBlock) {
+			if (editor.templateBlock.id) {
+				if (editor.templateBlock.canEdit) {
+					const result = await updateBlock({
+						id: editor.templateBlock.id,
+						...toTemplateBlockInput(editor.templateBlock),
+					});
+					if (result.status !== "success") {
+						return null;
+					}
+				}
+			} else {
+				const result = await createBlock(
+					toTemplateBlockInput(editor.templateBlock),
+				);
+				if (result.status !== "success") {
+					return null;
+				}
+				zedTokenRef.current = result.data.meta?.zedToken ?? zedTokenRef.current;
+				nextTemplateBlock = {
+					...editor.templateBlock,
+					id: result.data.data.id,
+					canEdit: true,
+				};
+			}
+		}
+
+		for (const databaseBlock of editor.databaseBlocks) {
+			let nextBlock = databaseBlock;
+			if (databaseBlock.id) {
+				if (databaseBlock.canEdit) {
+					const result = await updateBlock({
+						id: databaseBlock.id,
+						...toDatabaseBlockInput(databaseBlock),
+					});
+					if (result.status !== "success") {
+						return null;
+					}
+				}
+			} else {
+				const result = await createBlock(toDatabaseBlockInput(databaseBlock));
+				if (result.status !== "success") {
+					return null;
+				}
+				zedTokenRef.current = result.data.meta?.zedToken ?? zedTokenRef.current;
+				nextBlock = {
+					...databaseBlock,
+					id: result.data.data.id,
+					canEdit: true,
+				};
+			}
+
+			nextDatabaseBlocks.push(nextBlock);
+		}
+
+		form.setFieldValue("templateBlock", nextTemplateBlock);
+		form.setFieldValue("databaseBlocks", nextDatabaseBlocks);
+
+		return {
+			templateBlockId: nextTemplateBlock?.id ?? null,
+			databaseBlockIds: nextDatabaseBlocks.flatMap((databaseBlock) =>
+				databaseBlock.id
+					? [
+							databaseBlock.id,
+						]
+					: [],
+			),
+		};
 	};
 
 	const handleSave = async ({
 		nextStepOnCreate,
+		status,
 	}: {
 		nextStepOnCreate?: number;
+		status?: PublicationStatus;
 	} = {}) => {
-		const result = await saveBot(editor);
-		if (result.status !== "success") {
+		const linkedBlocks = await persistLinkedBlocks();
+		if (!linkedBlocks) {
 			return null;
 		}
 
-		const nextEditor = toEditorState(result.data.data);
-		setEditor(nextEditor);
+		const payload: BotEditorSave = {
+			zedToken: zedTokenRef.current,
+			id: editor.id,
+			name: editor.name,
+			description: editor.description,
+			contentJson: editor.contentJson as BotEditorSave["contentJson"],
+			contentHtml: editor.contentHtml,
+			status: status ?? editor.status,
+			templateBlockId: linkedBlocks.templateBlockId,
+			databaseBlockIds: linkedBlocks.databaseBlockIds,
+		};
 
-		if (!botId && nextEditor.id) {
+		const result = await saveBot(payload);
+		if (result.status !== "success") {
+			return null;
+		}
+		zedTokenRef.current = result.data.meta?.zedToken ?? zedTokenRef.current;
+
+		const nextEditor = toBotEditorFormValues(result.data.data);
+		form.reset(nextEditor);
+
+		if (!editorData?.id && nextEditor.id) {
 			await navigate({
 				to: "/app/hub/bots/$botId/setup",
 				params: {
@@ -304,6 +419,7 @@ const BotEditorShell = ({
 				},
 				search: {
 					step: nextStepOnCreate ?? 0,
+					zedToken: zedTokenRef.current,
 				},
 				replace: true,
 			});
@@ -321,7 +437,7 @@ const BotEditorShell = ({
 			return;
 		}
 
-		if (savedEditor.id === botId) {
+		if (editorData?.id && savedEditor.id === editorData.id) {
 			setStep(nextStep);
 		}
 	};
@@ -334,30 +450,114 @@ const BotEditorShell = ({
 		setStep(Math.max(activeStepIndex - 1, 0));
 	};
 
-	const handlePublish = async () => {
-		const savedEditor = editor.id ? editor : await handleSave();
+	const handleSetReady = async () => {
+		const savedEditor = editor.id
+			? editor
+			: await handleSave({
+					status: "draft",
+				});
 		if (!savedEditor?.id) {
 			return;
 		}
 
-		const result = await publishBot({
+		await publishBot({
 			id: savedEditor.id,
 		});
-
-		if (result.status === "success") {
-			setEditor(toEditorState(result.data.data));
-		}
 	};
 
-	if (botId && editorQuery.isPending) {
-		return (
-			<Card>
-				<CardContent className="p-6 text-muted-foreground">
-					Loading bot editor...
-				</CardContent>
-			</Card>
+	const handleSetDraft = async () => {
+		await handleSave({
+			status: "draft",
+		});
+	};
+
+	const handleTemplateBlockStatusChange = async (status: PublicationStatus) => {
+		const templateBlock = editor.templateBlock;
+		if (!templateBlock || templateBlock.status === status) {
+			return;
+		}
+
+		if (!templateBlock.id) {
+			form.setFieldValue("templateBlock", {
+				...templateBlock,
+				status,
+			});
+			return;
+		}
+
+		if (!templateBlock.canEdit) {
+			return;
+		}
+
+		const result = await setBlockStatus({
+			id: templateBlock.id,
+			...toTemplateBlockInput({
+				...templateBlock,
+				status,
+			}),
+		});
+		if (result.status !== "success") {
+			return;
+		}
+
+		form.setFieldValue("templateBlock", {
+			...templateBlock,
+			status,
+		});
+	};
+
+	const handleDatabaseBlockStatusChange = async (params: {
+		blockId?: string;
+		blockIndex: number;
+		status: PublicationStatus;
+	}) => {
+		const databaseBlock = editor.databaseBlocks[params.blockIndex];
+		if (!databaseBlock || databaseBlock.status === params.status) {
+			return;
+		}
+
+		if (!databaseBlock.id) {
+			form.setFieldValue(
+				"databaseBlocks",
+				editor.databaseBlocks.map((block, index) =>
+					index === params.blockIndex
+						? {
+								...block,
+								status: params.status,
+							}
+						: block,
+				),
+			);
+			return;
+		}
+
+		if (!databaseBlock.canEdit) {
+			return;
+		}
+
+		const result = await setBlockStatus({
+			id: databaseBlock.id,
+			...toDatabaseBlockInput({
+				...databaseBlock,
+				status: params.status,
+			}),
+		});
+		if (result.status !== "success") {
+			return;
+		}
+
+		form.setFieldValue(
+			"databaseBlocks",
+			editor.databaseBlocks.map((block) =>
+				block.id === params.blockId
+					? {
+							...block,
+							status: params.status,
+						}
+					: block,
+			),
 		);
-	}
+	};
 
 	const currentStep = WIZARD_STEPS[activeStepIndex];
 
@@ -392,7 +592,7 @@ const BotEditorShell = ({
 							<div className="mb-3 flex items-center justify-between">
 								<Icon className="h-4 w-4" />
 								<Badge
-									variant={isActive ? "outline" : "outline"}
+									variant="outline"
 									className={cn(
 										isLocked && "border-dashed",
 										isActive && "text-primary-foreground",
@@ -414,33 +614,167 @@ const BotEditorShell = ({
 						{currentStep.description}
 					</p>
 				</div>
+
 				<div className="space-y-6">
 					{activeStepIndex === 0 ? (
-						<BotBasicsSection editor={editor} onChange={setEditor} />
+						<div className="space-y-6">
+							<Card>
+								<CardHeader>
+									<CardTitle>Identity</CardTitle>
+									<CardDescription>
+										These details help people understand what the bot is for.
+									</CardDescription>
+								</CardHeader>
+								<CardContent className="space-y-4">
+									<form.AppField
+										name="name"
+										children={(field) => (
+											<field.TextField
+												label="Bot Name"
+												placeholder="Intro to Sociology Tutor"
+											/>
+										)}
+									/>
+									<form.AppField
+										name="description"
+										children={(field) => (
+											<field.TextareaField
+												label="Short Description"
+												placeholder="Provides a user group with access to a focused AI workflow and cites approved source material."
+												rows={4}
+											/>
+										)}
+									/>
+								</CardContent>
+							</Card>
+
+							<Card>
+								<CardHeader>
+									<CardTitle>Bot Description</CardTitle>
+									<CardDescription>
+										A richer overview for teammates who configure and maintain
+										the bot.
+									</CardDescription>
+								</CardHeader>
+								<CardContent>
+									<form.AppField
+										name="contentJson"
+										children={(field) => (
+											<field.BlockEditorField
+												label="Bot Description"
+												htmlFieldName="contentHtml"
+											/>
+										)}
+									/>
+								</CardContent>
+							</Card>
+						</div>
 					) : null}
+
 					{activeStepIndex === 1 ? (
 						<div className="space-y-4">
-							<div className="flex flex-wrap justify-end gap-2">
-								<Button
-									variant="outline"
-									onClick={() => setIsTemplateBlockLibraryOpen(true)}
-								>
-									Use Existing AI Behavior
-								</Button>
-							</div>
-							<TemplateBlockEditor
-								value={editor.templateBlock}
-								onChange={(templateBlock) =>
-									setEditor((current) => ({
-										...current,
-										templateBlock,
-									}))
-								}
-							/>
+							{editor.templateBlock ? (
+								<div className="flex flex-wrap justify-end gap-2">
+									<Button
+										variant="outline"
+										onClick={() => setIsTemplateBlockLibraryOpen(true)}
+									>
+										Use Existing AI Behavior
+									</Button>
+								</div>
+							) : null}
+
+							{editor.templateBlock ? (
+								editor.templateBlock.canEdit || !editor.templateBlock.id ? (
+									<TemplateBlockEditor
+										nameField={
+											<form.AppField
+												name="templateBlock.name"
+												children={(field) => (
+													<field.TextField
+														label="Name"
+														placeholder="AI Behavior"
+													/>
+												)}
+											/>
+										}
+										systemPromptField={
+											<form.AppField
+												name="templateBlock.config.systemPrompt"
+												children={(field) => (
+													<field.TextareaField
+														label="System Prompt"
+														placeholder="Explain the bot's role, response style, and constraints."
+														rows={12}
+													/>
+												)}
+											/>
+										}
+										descriptionField={
+											<form.AppField
+												name="templateBlock.description"
+												children={(field) => (
+													<field.TextareaField
+														label="Short Description"
+														placeholder="Define the purpose of this block."
+														rows={4}
+													/>
+												)}
+											/>
+										}
+										contentField={
+											<form.AppField
+												name="templateBlock.contentJson"
+												children={(field) => (
+													<field.BlockEditorField
+														label="Detailed Description"
+														htmlFieldName="templateBlock.contentHtml"
+													/>
+												)}
+											/>
+										}
+									/>
+								) : (
+									<ReadOnlyTemplateCard block={editor.templateBlock} />
+								)
+							) : (
+								<Card>
+									<CardContent className="flex flex-wrap items-center justify-between gap-3 p-6">
+										<div>
+											<div className="font-medium">
+												No AI behavior linked yet
+											</div>
+											<div className="text-muted-foreground text-sm">
+												Create a new behavior or attach one from the library.
+											</div>
+										</div>
+										<div className="flex flex-wrap gap-2">
+											<Button
+												onClick={() =>
+													form.setFieldValue(
+														"templateBlock",
+														createDefaultBuilderTemplateBlock(),
+													)
+												}
+											>
+												Create AI Behavior
+											</Button>
+											<Button
+												variant="outline"
+												onClick={() => setIsTemplateBlockLibraryOpen(true)}
+											>
+												Use Existing AI Behavior
+											</Button>
+										</div>
+									</CardContent>
+								</Card>
+							)}
+
 							<BlockSelectorDialog
 								open={isTemplateBlockLibraryOpen}
 								onOpenChange={setIsTemplateBlockLibraryOpen}
 								type="template"
+								includeDrafts
 								selectedIds={
 									editor.templateBlock?.id
 										? [
@@ -448,47 +782,164 @@ const BotEditorShell = ({
 											]
 										: []
 								}
-								onSelect={(block) => {
-									if (!isTemplateBlock(block)) {
-										return;
-									}
-
-									handleSelectExistingTemplateBlock({
-										id: block.id,
-										description: block.description,
-										contentJson: block.contentJson,
-										contentHtml: block.contentHtml,
-										name: block.name,
-										type: "template",
-										status: block.status,
-										config: block.config,
-									});
-								}}
+								onSelect={(block) =>
+									handleSelectExistingTemplateBlock(block.id)
+								}
 								title="Use Existing AI Behavior"
 								description="Attach a reusable AI behavior block instead of creating a new one."
 								searchPlaceholder="Search AI behavior blocks..."
 							/>
 						</div>
 					) : null}
+
 					{activeStepIndex === 2 ? (
-						<DocumentsSection
-							editor={editor}
-							onChange={setEditor}
-							onAddExistingDatabaseBlock={handleAddExistingDatabaseBlock}
-							onOpenExistingDatabaseBlockLibrary={() =>
-								setIsDatabaseBlockLibraryOpen(true)
-							}
-							isDatabaseBlockLibraryOpen={isDatabaseBlockLibraryOpen}
-							onDatabaseBlockLibraryOpenChange={setIsDatabaseBlockLibraryOpen}
-						/>
+						<div className="space-y-4">
+							<div className="space-y-2">
+								<h3 className="font-semibold text-xl">Content & Collections</h3>
+								<p className="max-w-3xl text-muted-foreground text-sm">
+									Add reusable content collections the AI can retrieve from when
+									answering questions.
+								</p>
+							</div>
+
+							{editor.databaseBlocks.length === 0 ? (
+								<div className="rounded-[28px] border border-dashed bg-background/70 p-6 shadow-sm">
+									<div className="font-medium">Do you want to add content?</div>
+									<div className="mt-2 text-muted-foreground text-sm">
+										Content gives the AI grounded context and citations. You can
+										add one or more content collections, and each one can
+										include existing or newly uploaded items from the content
+										library.
+									</div>
+									<div className="mt-4 flex flex-wrap gap-2">
+										<Button
+											onClick={() =>
+												form.setFieldValue("databaseBlocks", [
+													...editor.databaseBlocks,
+													createDefaultBuilderDatabaseBlock({
+														botName: editor.name,
+													}),
+												])
+											}
+										>
+											Create Content Collection
+										</Button>
+										<Button
+											variant="outline"
+											onClick={() => setIsDatabaseBlockLibraryOpen(true)}
+										>
+											Use Existing Content Collection
+										</Button>
+									</div>
+								</div>
+							) : (
+								<div className="space-y-4">
+									<div className="flex flex-wrap justify-end gap-2">
+										<Button
+											variant="outline"
+											onClick={() => setIsDatabaseBlockLibraryOpen(true)}
+										>
+											Add Existing Content Collection
+										</Button>
+									</div>
+
+									{editor.databaseBlocks.map((databaseBlock, index) =>
+										databaseBlock.canEdit || !databaseBlock.id ? (
+											<DatabaseBlockFieldGroup
+												key={databaseBlock.id ?? `database-block-${index}`}
+												form={form}
+												fields={createDatabaseBlockBuilderFieldMap(index)}
+												assetIds={databaseBlock.assetIds}
+												onAssetIdsChange={(ids) => {
+													form.setFieldValue(
+														`databaseBlocks[${index}].assetIds`,
+														ids,
+													);
+												}}
+												assets={databaseBlock.assets}
+												onAssetsChange={(assets) => {
+													form.setFieldValue(
+														`databaseBlocks[${index}].assets`,
+														assets,
+													);
+												}}
+												onRemove={() =>
+													form.setFieldValue(
+														"databaseBlocks",
+														editor.databaseBlocks.filter(
+															(_, existingIndex) => existingIndex !== index,
+														),
+													)
+												}
+											/>
+										) : (
+											<ReadOnlyDatabaseCard
+												key={databaseBlock.id}
+												block={databaseBlock}
+												onDetach={() =>
+													form.setFieldValue(
+														"databaseBlocks",
+														editor.databaseBlocks.filter(
+															(_, existingIndex) => existingIndex !== index,
+														),
+													)
+												}
+											/>
+										),
+									)}
+
+									<Button
+										variant="outline"
+										onClick={() =>
+											form.setFieldValue("databaseBlocks", [
+												...editor.databaseBlocks,
+												createDefaultBuilderDatabaseBlock({
+													botName: editor.name,
+												}),
+											])
+										}
+									>
+										Add Another Content Collection
+									</Button>
+								</div>
+							)}
+
+							<BlockSelectorDialog
+								open={isDatabaseBlockLibraryOpen}
+								onOpenChange={setIsDatabaseBlockLibraryOpen}
+								type="database"
+								includeDrafts
+								selectedIds={editor.databaseBlocks.flatMap((databaseBlock) =>
+									databaseBlock.id
+										? [
+												databaseBlock.id,
+											]
+										: [],
+								)}
+								onSelect={async (block) => {
+									await handleAddExistingDatabaseBlock(block.id);
+								}}
+								title="Use Existing Content Collection"
+								description="Attach a reusable content collection block instead of creating a new one."
+								searchPlaceholder="Search content collection blocks..."
+							/>
+						</div>
 					) : null}
-					{activeStepIndex === 3 ? <SharingSection editor={editor} /> : null}
+
+					{activeStepIndex === 3 ? (
+						<SharingSection editorId={editor.id} editorName={editor.name} />
+					) : null}
+
 					{activeStepIndex === 4 ? (
 						<ReviewSection
 							editor={editor}
 							visibility={visibility.data?.data.visibility}
 							grantCount={grants.data?.data.length ?? 0}
 							issues={publishIssues}
+							onStatusChange={(status) => form.setFieldValue("status", status)}
+							onTemplateBlockStatusChange={handleTemplateBlockStatusChange}
+							onDatabaseBlockStatusChange={handleDatabaseBlockStatusChange}
+							isSettingBlockStatus={isSettingBlockStatus}
 						/>
 					) : null}
 
@@ -497,27 +948,28 @@ const BotEditorShell = ({
 							<Button
 								variant="outline"
 								onClick={handleWizardBack}
-								disabled={activeStepIndex === 0 || isSaving || isPublishing}
+								disabled={activeStepIndex === 0 || isWorking}
 							>
 								<ChevronLeftIcon />
 								Back
 							</Button>
 
 							{activeStepIndex === WIZARD_STEPS.length - 1 ? (
-								<Button
-									onClick={handlePublish}
-									disabled={
-										publishIssues.length > 0 || isSaving || isPublishing
-									}
-								>
-									<RocketIcon />
-									Launch Bot
-								</Button>
+								editor.status === "ready" ? (
+									<Button
+										onClick={handleSetReady}
+										disabled={publishIssues.length > 0 || isWorking}
+									>
+										<RocketIcon />
+										Launch Bot
+									</Button>
+								) : (
+									<Button onClick={handleSetDraft} disabled={isWorking}>
+										Save as Draft
+									</Button>
+								)
 							) : (
-								<Button
-									onClick={handleWizardNext}
-									disabled={isSaving || isPublishing}
-								>
+								<Button onClick={handleWizardNext} disabled={isWorking}>
 									Next
 									<ChevronRightIcon />
 								</Button>
@@ -530,210 +982,14 @@ const BotEditorShell = ({
 	);
 };
 
-const BotBasicsSection = ({
-	editor,
-	onChange,
+const SharingSection = ({
+	editorId,
+	editorName,
 }: {
-	editor: EditorState;
-	onChange: Dispatch<SetStateAction<EditorState>>;
-}) => (
-	<div className="space-y-6">
-		<Card>
-			<CardHeader>
-				<CardTitle>Identity</CardTitle>
-				<CardDescription>
-					These details help people understand what the bot is for.
-				</CardDescription>
-			</CardHeader>
-			<CardContent className="space-y-4">
-				<div className="space-y-2">
-					<Label htmlFor="bot-name">Bot Name</Label>
-					<Input
-						id="bot-name"
-						value={editor.name}
-						onChange={(event) =>
-							onChange((current) => ({
-								...current,
-								name: event.target.value,
-							}))
-						}
-						placeholder="Intro to Sociology Tutor"
-					/>
-				</div>
-
-				<div className="space-y-2">
-					<Label htmlFor="bot-description">Short Description</Label>
-					<Textarea
-						id="bot-description"
-						value={editor.description}
-						onChange={(event) =>
-							onChange((current) => ({
-								...current,
-								description: event.target.value,
-							}))
-						}
-						placeholder="Provides a user group with access to a focused AI workflow and cites approved source material."
-						rows={4}
-					/>
-				</div>
-			</CardContent>
-		</Card>
-
-		<Card>
-			<CardHeader>
-				<CardTitle>Bot Description</CardTitle>
-				<CardDescription>
-					A richer overview for teammates who configure and maintain the bot.
-				</CardDescription>
-			</CardHeader>
-			<CardContent>
-				<BlockEditor
-					content={editor.contentJson as Content}
-					onUpdate={(blockEditor) =>
-						onChange((current) => ({
-							...current,
-							contentJson:
-								blockEditor.getJSON() as BotEditorSave["contentJson"],
-							contentHtml: blockEditor.getHTML(),
-						}))
-					}
-				/>
-			</CardContent>
-		</Card>
-	</div>
-);
-
-const DocumentsSection = ({
-	editor,
-	onChange,
-	onAddExistingDatabaseBlock,
-	onOpenExistingDatabaseBlockLibrary,
-	isDatabaseBlockLibraryOpen,
-	onDatabaseBlockLibraryOpenChange,
-}: {
-	editor: EditorState;
-	onChange: Dispatch<SetStateAction<EditorState>>;
-	onAddExistingDatabaseBlock: (blockId: string) => Promise<void>;
-	onOpenExistingDatabaseBlockLibrary: () => void;
-	isDatabaseBlockLibraryOpen: boolean;
-	onDatabaseBlockLibraryOpenChange: (open: boolean) => void;
-}) => (
-	<div className="space-y-4">
-		<div className="space-y-2">
-			<h3 className="font-semibold text-xl">Content & Collections</h3>
-			<p className="max-w-3xl text-muted-foreground text-sm">
-				Add reusable content collections the AI can retrieve from when answering
-				questions.
-			</p>
-		</div>
-		{editor.databaseBlocks.length === 0 ? (
-			<div className="rounded-[28px] border border-dashed bg-background/70 p-6 shadow-sm">
-				<div className="font-medium">Do you want to add content?</div>
-				<div className="mt-2 text-muted-foreground text-sm">
-					Content gives the AI grounded context and citations. You can add one
-					or more content collections, and each one can include existing or
-					newly uploaded items from the content library.
-				</div>
-				<div className="mt-4 flex flex-wrap gap-2">
-					<Button
-						onClick={() =>
-							onChange((current) => ({
-								...current,
-								databaseBlocks: [
-									createDefaultDatabaseBlock({
-										botName: editor.name,
-									}),
-								],
-							}))
-						}
-					>
-						Create Content Collection
-					</Button>
-					<Button
-						variant="outline"
-						onClick={onOpenExistingDatabaseBlockLibrary}
-					>
-						Use Existing Content Collection
-					</Button>
-				</div>
-			</div>
-		) : (
-			<div className="space-y-4">
-				<div className="flex flex-wrap justify-end gap-2">
-					<Button
-						variant="outline"
-						onClick={onOpenExistingDatabaseBlockLibrary}
-					>
-						Add Existing Content Collection
-					</Button>
-				</div>
-
-				{editor.databaseBlocks.map((databaseBlock, index) => (
-					<DatabaseBlockEditor
-						key={databaseBlock.id ?? `database-block-${index}`}
-						value={databaseBlock}
-						onChange={(nextValue) =>
-							onChange((current) => ({
-								...current,
-								databaseBlocks: current.databaseBlocks.map(
-									(existing, existingIndex) =>
-										existingIndex === index ? nextValue : existing,
-								),
-							}))
-						}
-						onRemove={() =>
-							onChange((current) => ({
-								...current,
-								databaseBlocks: current.databaseBlocks.filter(
-									(_, existingIndex) => existingIndex !== index,
-								),
-							}))
-						}
-					/>
-				))}
-
-				<Button
-					variant="outline"
-					onClick={() =>
-						onChange((current) => ({
-							...current,
-							databaseBlocks: [
-								...current.databaseBlocks,
-								createDefaultDatabaseBlock({
-									botName: editor.name,
-								}),
-							],
-						}))
-					}
-				>
-					Add Another Content Collection
-				</Button>
-			</div>
-		)}
-
-		<BlockSelectorDialog
-			open={isDatabaseBlockLibraryOpen}
-			onOpenChange={onDatabaseBlockLibraryOpenChange}
-			type="database"
-			selectedIds={editor.databaseBlocks.flatMap((databaseBlock) =>
-				databaseBlock.id
-					? [
-							databaseBlock.id,
-						]
-					: [],
-			)}
-			onSelect={async (block) => {
-				await onAddExistingDatabaseBlock(block.id);
-			}}
-			title="Use Existing AI Behavior"
-			description="Attach a reusable AI behavior block instead of creating a new one."
-			searchPlaceholder="Search AI behavior blocks..."
-		/>
-	</div>
-);
-
-const SharingSection = ({ editor }: { editor: EditorState }) => {
-	if (!editor.id) {
+	editorId?: string;
+	editorName: string;
+}) => {
+	if (!editorId) {
 		return (
 			<Card>
 				<CardHeader>
@@ -759,9 +1015,9 @@ const SharingSection = ({ editor }: { editor: EditorState }) => {
 				<AccessManagerContent
 					resourceRef={{
 						type: "bot",
-						id: editor.id,
+						id: editorId,
 					}}
-					resourceName={editor.name}
+					resourceName={editorName}
 				/>
 			</CardContent>
 		</Card>
@@ -773,11 +1029,23 @@ const ReviewSection = ({
 	visibility,
 	grantCount,
 	issues,
+	onStatusChange,
+	onTemplateBlockStatusChange,
+	onDatabaseBlockStatusChange,
+	isSettingBlockStatus,
 }: {
-	editor: EditorState;
+	editor: BotEditorFormValues;
 	visibility?: "private" | "public";
 	grantCount: number;
 	issues: string[];
+	onStatusChange: (status: PublicationStatus) => void;
+	onTemplateBlockStatusChange: (status: PublicationStatus) => void;
+	onDatabaseBlockStatusChange: (params: {
+		blockId?: string;
+		blockIndex: number;
+		status: PublicationStatus;
+	}) => void;
+	isSettingBlockStatus: boolean;
 }) => (
 	<Card className="border-border/70 bg-background shadow-sm">
 		<CardHeader>
@@ -787,6 +1055,35 @@ const ReviewSection = ({
 			</CardDescription>
 		</CardHeader>
 		<CardContent className="space-y-6">
+			<div>
+				<div className="font-medium text-sm">Publication Status</div>
+				<div className="mt-2 rounded-xl border p-4">
+					<div className="max-w-sm space-y-2">
+						<Label htmlFor="bot-publication-status">Target status</Label>
+						<Select
+							value={editor.status}
+							onValueChange={(status) =>
+								onStatusChange(status as PublicationStatus)
+							}
+						>
+							<SelectTrigger id="bot-publication-status">
+								<SelectValue placeholder="Select status" />
+							</SelectTrigger>
+							<SelectContent>
+								<SelectItem value="draft">Draft</SelectItem>
+								<SelectItem value="ready">Ready</SelectItem>
+							</SelectContent>
+						</Select>
+						<p className="text-muted-foreground text-xs">
+							Set to Ready to publish with strict checks, or keep as Draft while
+							you iterate.
+						</p>
+					</div>
+				</div>
+			</div>
+
+			<Separator />
+
 			<div>
 				<div className="font-medium text-sm">Bot</div>
 				<div className="mt-2 rounded-xl border p-4">
@@ -809,6 +1106,33 @@ const ReviewSection = ({
 								System prompt and response behavior are configured on this
 								template block.
 							</div>
+							<div className="mt-3 max-w-sm space-y-2">
+								<Label htmlFor="review-template-status">Block status</Label>
+								<Select
+									value={editor.templateBlock.status}
+									onValueChange={(status) =>
+										onTemplateBlockStatusChange(status as PublicationStatus)
+									}
+									disabled={
+										(editor.templateBlock.id &&
+											!editor.templateBlock.canEdit) ||
+										isSettingBlockStatus
+									}
+								>
+									<SelectTrigger id="review-template-status">
+										<SelectValue />
+									</SelectTrigger>
+									<SelectContent>
+										<SelectItem value="draft">Draft</SelectItem>
+										<SelectItem value="ready">Ready</SelectItem>
+									</SelectContent>
+								</Select>
+								{editor.templateBlock.id && !editor.templateBlock.canEdit ? (
+									<p className="text-muted-foreground text-xs">
+										You can use this shared block but cannot change its status.
+									</p>
+								) : null}
+							</div>
 						</>
 					) : (
 						<div className="text-muted-foreground">
@@ -825,25 +1149,51 @@ const ReviewSection = ({
 				<div className="mt-2 space-y-3">
 					{editor.databaseBlocks.length === 0 ? (
 						<div className="rounded-xl border p-4 text-muted-foreground text-sm">
-							No content attached.
+							No content collections added.
 						</div>
 					) : (
 						editor.databaseBlocks.map((databaseBlock, index) => (
 							<div
-								key={databaseBlock.id ?? `review-database-block-${index}`}
+								key={databaseBlock.id ?? `review-db-${index}`}
 								className="rounded-xl border p-4"
 							>
 								<div className="font-medium">{databaseBlock.name}</div>
 								<div className="mt-1 text-muted-foreground text-sm">
-									{databaseBlock.assets.length} content items attached
+									{databaseBlock.assetIds.length} content item
+									{databaseBlock.assetIds.length === 1 ? "" : "s"} attached
 								</div>
-								<div className="mt-3 flex flex-wrap gap-2">
-									{databaseBlock.assets.map((asset) => (
-										<Badge key={asset.id} variant="outline">
-											{asset.title}:{" "}
-											{getProcessingStatusLabel(asset.processingStatus)}
-										</Badge>
-									))}
+								<div className="mt-3 max-w-sm space-y-2">
+									<Label htmlFor={`review-db-status-${index}`}>
+										Block status
+									</Label>
+									<Select
+										value={databaseBlock.status}
+										onValueChange={(status) => {
+											onDatabaseBlockStatusChange({
+												blockId: databaseBlock.id,
+												blockIndex: index,
+												status: status as PublicationStatus,
+											});
+										}}
+										disabled={
+											(databaseBlock.id && !databaseBlock.canEdit) ||
+											isSettingBlockStatus
+										}
+									>
+										<SelectTrigger id={`review-db-status-${index}`}>
+											<SelectValue />
+										</SelectTrigger>
+										<SelectContent>
+											<SelectItem value="draft">Draft</SelectItem>
+											<SelectItem value="ready">Ready</SelectItem>
+										</SelectContent>
+									</Select>
+									{databaseBlock.id && !databaseBlock.canEdit ? (
+										<p className="text-muted-foreground text-xs">
+											You can use this shared block but cannot change its
+											status.
+										</p>
+									) : null}
 								</div>
 							</div>
 						))
@@ -853,36 +1203,146 @@ const ReviewSection = ({
 
 			<Separator />
 
-			<div>
-				<div className="font-medium text-sm">Sharing</div>
-				<div className="mt-2 rounded-xl border p-4 text-sm">
-					<div>Visibility: {visibility ?? "private"}</div>
-					<div className="mt-1 text-muted-foreground">
-						Direct grants configured: {grantCount}
+			<div className="grid gap-4 md:grid-cols-2">
+				<div className="rounded-xl border p-4">
+					<div className="font-medium text-sm">Visibility</div>
+					<div className="mt-1 text-muted-foreground text-sm">
+						{visibility === "public"
+							? "Public to authenticated users"
+							: "Private access only"}
 					</div>
-					<div className="mt-1 text-muted-foreground">
-						Use groups to grant access to cohorts, classes, or teams.
+				</div>
+				<div className="rounded-xl border p-4">
+					<div className="font-medium text-sm">Direct Grants</div>
+					<div className="mt-1 text-muted-foreground text-sm">
+						{grantCount} principal{grantCount === 1 ? "" : "s"} with direct
+						access
 					</div>
 				</div>
 			</div>
 
 			{issues.length > 0 ? (
-				<>
-					<Separator />
-					<div>
-						<div className="font-medium text-sm">Fix Before Launch</div>
-						<div className="mt-2 rounded-xl border border-amber-300 bg-amber-50/60 p-4 text-sm">
-							<ul className="space-y-2">
-								{issues.map((issue) => (
-									<li key={issue}>{issue}</li>
-								))}
-							</ul>
-						</div>
+				<div className="rounded-xl border border-destructive/30 bg-destructive/5 p-4">
+					<div className="font-medium text-destructive text-sm">
+						Resolve before launch
 					</div>
-				</>
+					<ul className="mt-2 list-disc space-y-1 pl-5 text-sm">
+						{issues.map((issue) => (
+							<li key={issue}>{issue}</li>
+						))}
+					</ul>
+				</div>
 			) : null}
 		</CardContent>
 	</Card>
 );
+
+const ReadOnlyTemplateCard = ({
+	block,
+}: {
+	block: NonNullable<BotEditorFormValues["templateBlock"]>;
+}) => {
+	const navigate = useNavigate();
+
+	return (
+		<Card>
+			<CardHeader>
+				<CardTitle>AI Behavior</CardTitle>
+				<CardDescription>
+					This block is linked as read-only in this setup flow.
+				</CardDescription>
+			</CardHeader>
+			<CardContent className="space-y-3">
+				<div className="font-medium">{block.name}</div>
+				{block.description ? (
+					<div className="text-muted-foreground text-sm">
+						{block.description}
+					</div>
+				) : null}
+				{block.id ? (
+					<Button
+						variant="outline"
+						onClick={() =>
+							block.id
+								? navigate({
+										to: "/app/hub/blocks/$blockId",
+										params: {
+											blockId: block.id,
+										},
+									})
+								: undefined
+						}
+					>
+						Open Block
+					</Button>
+				) : null}
+			</CardContent>
+		</Card>
+	);
+};
+
+const ReadOnlyDatabaseCard = ({
+	block,
+	onDetach,
+}: {
+	block: BotEditorFormValues["databaseBlocks"][number];
+	onDetach: () => void;
+}) => {
+	const navigate = useNavigate();
+
+	return (
+		<Card>
+			<CardHeader className="flex flex-row items-start justify-between gap-4 space-y-0">
+				<div>
+					<CardTitle className="text-base">{block.name}</CardTitle>
+					<CardDescription>
+						This content collection is linked as read-only in this setup flow.
+					</CardDescription>
+				</div>
+				<Button variant="outline" size="sm" onClick={onDetach}>
+					Detach
+				</Button>
+			</CardHeader>
+			<CardContent className="space-y-3">
+				<div className="text-muted-foreground text-sm">
+					{block.assetIds.length} item{block.assetIds.length === 1 ? "" : "s"}{" "}
+					attached
+				</div>
+				{block.assets.length > 0 ? (
+					<ul className="space-y-2 rounded-lg border bg-muted/20 p-3 text-sm">
+						{block.assets.map((asset) => (
+							<li
+								key={asset.id}
+								className="flex items-center justify-between gap-2"
+							>
+								<span className="truncate">{asset.title}</span>
+								<Badge variant="secondary">
+									{getProcessingStatusLabel(asset.processingStatus)}
+								</Badge>
+							</li>
+						))}
+					</ul>
+				) : null}
+				{block.id ? (
+					<Button
+						variant="outline"
+						onClick={() =>
+							block.id
+								? navigate({
+										to: "/app/hub/blocks/$blockId",
+										params: {
+											blockId: block.id,
+										},
+									})
+								: undefined
+						}
+					>
+						Open Block
+					</Button>
+				) : null}
+			</CardContent>
+		</Card>
+	);
+};
 
 export { BotEditorShell };

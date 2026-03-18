@@ -6,6 +6,7 @@ import { AccessDialog } from "@/components/access/access-dialog";
 import { MetadataCard } from "@/components/app/metadata-card";
 import { DatabaseBlockConfigCard } from "@/components/blocks/database-block/database-config";
 import { TemplateBlockConfigCard } from "@/components/blocks/template-block/template-config";
+import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import {
 	DropdownMenu,
@@ -71,6 +72,11 @@ function RouteComponent() {
 				<PageDescription>
 					{TYPE_LABELS[block.data.type] ?? block.data.type} Block
 				</PageDescription>
+				{block.data.status === "draft" ? (
+					<div>
+						<Badge variant="destructive">Draft</Badge>
+					</div>
+				) : null}
 				<PageAction>
 					<Button
 						onClick={() =>
