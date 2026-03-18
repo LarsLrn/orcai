@@ -108,7 +108,7 @@ function RouteComponent() {
 			<PageHeader>
 				<PageTitle>{provider.name}</PageTitle>
 			</PageHeader>
-			<PageContent>
+			<PageContent className="flex flex-col gap-4">
 				<Card className="relative overflow-hidden border-border/60 bg-linear-to-br from-card via-card to-muted/30">
 					<div className="pointer-events-none absolute -top-20 -right-20 h-52 w-52 rounded-full bg-primary/10 blur-3xl" />
 					<div className="pointer-events-none absolute -bottom-24 -left-8 h-48 w-48 rounded-full bg-primary/5 blur-3xl" />
