@@ -92,16 +92,16 @@ const Chat = ({
 							zedToken,
 						},
 					}),
+					refetchType: "active",
 				});
 				await queryClient.invalidateQueries({
-					queryKey: orpc.chatMessage.list.key({
+					queryKey: orpc.chatMessage.key({
 						input: {
 							chatId: id,
-							includeScores: true,
-							branchId,
 							zedToken,
 						},
 					}),
+					refetchType: "active",
 				});
 			},
 			onError: (error) => {
