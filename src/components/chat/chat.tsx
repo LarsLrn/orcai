@@ -86,12 +86,7 @@ const Chat = ({
 			onFinish: async () => {
 				// Invalidate chat data to fetch updated activeBranchId and branches
 				await queryClient.invalidateQueries({
-					queryKey: orpc.chat.find.key({
-						input: {
-							id,
-							zedToken,
-						},
-					}),
+					queryKey: orpc.chat.key(),
 					refetchType: "active",
 				});
 				await queryClient.invalidateQueries({
