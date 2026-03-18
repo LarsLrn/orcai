@@ -8,7 +8,6 @@ import {
 	Section,
 	SectionAction,
 	SectionContent,
-	SectionDescription,
 	SectionGrid,
 	SectionHeader,
 	SectionTitle,
@@ -105,9 +104,6 @@ function RouteComponent() {
 				<Section>
 					<SectionHeader>
 						<SectionTitle>Bots</SectionTitle>
-						<SectionDescription>
-							Configured AI experiences for your workspace.
-						</SectionDescription>
 						<SectionAction>
 							<Link
 								to="/app/hub/bots"
@@ -134,18 +130,15 @@ function RouteComponent() {
 				<Section>
 					<SectionHeader>
 						<SectionTitle>Behaviour</SectionTitle>
-						<SectionDescription>
-							System prompt and model definitions that shape bot personalities.
-						</SectionDescription>
 						<SectionAction>
 							<Link
-								to="/app/hub/blocks"
+								to="/app/hub/behaviour"
 								className={buttonVariants({
 									variant: "outline",
 									size: "sm",
 								})}
 							>
-								View all blocks
+								View all
 							</Link>
 						</SectionAction>
 					</SectionHeader>
@@ -163,18 +156,15 @@ function RouteComponent() {
 				<Section>
 					<SectionHeader>
 						<SectionTitle>Repositories</SectionTitle>
-						<SectionDescription>
-							Retrieval databases that ground bot answers in specific content.
-						</SectionDescription>
 						<SectionAction>
 							<Link
-								to="/app/hub/blocks"
+								to="/app/hub/repositories"
 								className={buttonVariants({
 									variant: "outline",
 									size: "sm",
 								})}
 							>
-								View all blocks
+								View all
 							</Link>
 						</SectionAction>
 					</SectionHeader>
@@ -192,9 +182,6 @@ function RouteComponent() {
 				<Section>
 					<SectionHeader>
 						<SectionTitle>Content Library</SectionTitle>
-						<SectionDescription>
-							Reusable source material for search, retrieval, and citations.
-						</SectionDescription>
 						<SectionAction>
 							<Link
 								to="/app/hub/assets"

@@ -25,9 +25,14 @@ const HUB_ROUTES = [
 		to: "/app/hub/bots",
 	},
 	{
-		value: "blocks",
-		label: "Blocks",
-		to: "/app/hub/blocks",
+		value: "behaviour",
+		label: "Behaviour",
+		to: "/app/hub/behaviour",
+	},
+	{
+		value: "repositories",
+		label: "Repositories",
+		to: "/app/hub/repositories",
 	},
 	{
 		value: "assets",

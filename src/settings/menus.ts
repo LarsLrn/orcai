@@ -3,7 +3,9 @@ import {
 	ArrowLeftRightIcon,
 	BlocksIcon,
 	BotIcon,
+	BrainCircuitIcon,
 	Building2Icon,
+	DatabaseIcon,
 	FolderOpenIcon,
 	type LucideIcon,
 	ServerCogIcon,
@@ -36,11 +38,18 @@ export const sidebarMenu = [
 				icon: BotIcon,
 			},
 			{
-				title: "Blocks",
+				title: "Behaviour",
 				linkProps: {
-					to: "/app/hub/blocks",
+					to: "/app/hub/behaviour",
 				},
-				icon: BlocksIcon,
+				icon: BrainCircuitIcon,
+			},
+			{
+				title: "Repositories",
+				linkProps: {
+					to: "/app/hub/repositories",
+				},
+				icon: DatabaseIcon,
 			},
 			{
 				title: "Content",

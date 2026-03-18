@@ -4,6 +4,7 @@ import { Link } from "@tanstack/react-router";
 import {
 	BlocksIcon,
 	BotIcon,
+	DatabaseIcon,
 	FileTextIcon,
 	FolderOpenIcon,
 	type LucideIcon,
@@ -20,11 +21,7 @@ import {
 	ItemMedia,
 	ItemTitle,
 } from "@/components/ui/item";
-import {
-	PageDescription,
-	PageHeader,
-	PageTitle,
-} from "@/components/ui/shell/page";
+import { PageHeader, PageTitle } from "@/components/ui/shell/page";
 import {
 	Section,
 	SectionContent,
@@ -61,7 +58,7 @@ const quickActions: Array<{
 	},
 	{
 		title: "Manage chatbots",
-		description: "Open the bot library and iterate on published setups.",
+		description: "Open the bot library and iterate on ready-to-use setups.",
 		icon: BotIcon,
 		linkProps: {
 			to: "/app/hub/bots",
@@ -83,14 +80,14 @@ const quickActions: Array<{
 			"Review reusable behaviour blocks that shape how bots respond.",
 		icon: BlocksIcon,
 		linkProps: {
-			to: "/app/hub/blocks",
+			to: "/app/hub/behaviour",
 		},
 		accent: "text-green-500",
 	},
 	{
 		title: "Curate content library",
 		description:
-			"Organize reusable source material for retrieval and citations.",
+			"Organise reusable source material for retrieval and citations.",
 		icon: FolderOpenIcon,
 		linkProps: {
 			to: "/app/hub/assets",
@@ -101,11 +98,11 @@ const quickActions: Array<{
 		title: "Manage repositories",
 		description:
 			"Manage retrieval databases that ground bot answers in your content.",
-		icon: BlocksIcon,
+		icon: DatabaseIcon,
 		linkProps: {
-			to: "/app/hub/blocks",
+			to: "/app/hub/repositories",
 		},
-		accent: "text-green-500",
+		accent: "text-sky-500",
 	},
 ];
 
@@ -115,7 +112,7 @@ const QuickActionsSection = () => (
 			<SectionTitle>Quick Links</SectionTitle>
 		</SectionHeader>
 		<SectionContent>
-			<SectionGrid layout="3">
+			<SectionGrid layout="2">
 				{quickActions.map((action) => (
 					<Item
 						key={action.title}
@@ -155,7 +152,6 @@ const QuickActionsSection = () => (
 
 const resourceHighlights: Array<{
 	label: string;
-	description: string;
 	linkProps: LinkProps;
 	icon: LucideIcon;
 	accentBg: string;
@@ -163,7 +159,6 @@ const resourceHighlights: Array<{
 }> = [
 	{
 		label: "Bots",
-		description: "Configured AI experiences ready to use.",
 		linkProps: {
 			to: "/app/hub/bots",
 		},
@@ -172,18 +167,25 @@ const resourceHighlights: Array<{
 		accentColor: "text-purple-500",
 	},
 	{
-		label: "Blocks",
-		description: "Reusable behaviour and retrieval building blocks.",
+		label: "Behaviours",
 		linkProps: {
-			to: "/app/hub/blocks",
+			to: "/app/hub/behaviour",
 		},
 		icon: BlocksIcon,
 		accentBg: "bg-green-500/10",
 		accentColor: "text-green-500",
 	},
 	{
+		label: "Repositories",
+		linkProps: {
+			to: "/app/hub/repositories",
+		},
+		icon: DatabaseIcon,
+		accentBg: "bg-sky-500/10",
+		accentColor: "text-sky-500",
+	},
+	{
 		label: "Content",
-		description: "Reusable source material grounding answers.",
 		linkProps: {
 			to: "/app/hub/assets",
 		},
@@ -199,9 +201,34 @@ const ResourceHighlights = () => {
 			input: RESOURCE_SUMMARY_PARAMS,
 		}),
 	);
-	const { data: blockSummary } = useSuspenseQuery(
+	const { data: templateSummary } = useSuspenseQuery(
 		orpc.block.list.queryOptions({
-			input: RESOURCE_SUMMARY_PARAMS,
+			input: {
+				...RESOURCE_SUMMARY_PARAMS,
+				filters: {
+					type: "template",
+				},
+			},
+		}),
+	);
+	const { data: imageGenerationSummary } = useSuspenseQuery(
+		orpc.block.list.queryOptions({
+			input: {
+				...RESOURCE_SUMMARY_PARAMS,
+				filters: {
+					type: "imageGeneration",
+				},
+			},
+		}),
+	);
+	const { data: repositorySummary } = useSuspenseQuery(
+		orpc.block.list.queryOptions({
+			input: {
+				...RESOURCE_SUMMARY_PARAMS,
+				filters: {
+					type: "database",
+				},
+			},
 		}),
 	);
 	const { data: assetSummary } = useSuspenseQuery(
@@ -212,20 +239,21 @@ const ResourceHighlights = () => {
 
 	const counts = [
 		botSummary.rowCount,
-		blockSummary.rowCount,
+		templateSummary.rowCount + imageGenerationSummary.rowCount,
+		repositorySummary.rowCount,
 		assetSummary.rowCount,
 	];
 
 	return (
 		<Section>
 			<SectionHeader>
-				<SectionTitle>Workspace snapshot</SectionTitle>
 				<SectionDescription>
 					A quick glance at the reusable pieces that support your workspace.
 				</SectionDescription>
+				<SectionTitle>Your Workspace Snapshot</SectionTitle>
 			</SectionHeader>
 			<SectionContent>
-				<SectionGrid layout="3">
+				<SectionGrid layout="4">
 					{resourceHighlights.map((resource, index) => (
 						<Item
 							key={resource.label}
@@ -239,9 +267,6 @@ const ResourceHighlights = () => {
 									</ItemMedia>
 									<ItemContent>
 										<ItemTitle>{resource.label}</ItemTitle>
-										<ItemDescription className="text-xs">
-											{resource.description}
-										</ItemDescription>
 									</ItemContent>
 									<Badge variant="secondary" className="text-xs">
 										{counts[index]}
@@ -262,8 +287,8 @@ const ResourceHighlightsSkeleton = () => (
 			<Skeleton className="h-7 w-40" />
 			<Skeleton className="h-4 w-64" />
 		</div>
-		<div className="grid gap-4 sm:grid-cols-3">
-			<SkeletonsArray className="h-20 w-full" count={3} />
+		<div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
+			<SkeletonsArray className="h-20 w-full" count={4} />
 		</div>
 	</section>
 );
@@ -276,10 +301,7 @@ const ManagerHome = () => {
 	return (
 		<div className="space-y-12">
 			<PageHeader>
-				<PageTitle>Workspace</PageTitle>
-				<PageDescription>
-					Manage bots, blocks, content, groups, and other platform resources.
-				</PageDescription>
+				<PageTitle>Your Workspace</PageTitle>
 			</PageHeader>
 
 			<QuickActionsSection />
