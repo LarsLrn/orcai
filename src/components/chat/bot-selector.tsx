@@ -96,7 +96,7 @@ const BotSelectorButton = ({
 					<DialogSelectItem
 						value={NO_BOT_VALUE}
 						title="No bot (free-form chat)"
-						description="Start without a bot and configure behavior in chat settings."
+						description="Start without a bot and configure behaviour in chat settings."
 						icon={<MessageSquareIcon className="size-4" />}
 					/>
 					{bots.map((bot) => (

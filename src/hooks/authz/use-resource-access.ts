@@ -143,7 +143,7 @@ export const useSetResourceVisibility = (resourceRef: ResourceRef) => {
 				: {
 						title: "Publish resource",
 						description:
-							"This resource will be readable by authenticated users across organizations.",
+							"This resource will be readable by authenticated users across organisations.",
 						confirmText: "Publish",
 						cancelText: "Cancel",
 					},

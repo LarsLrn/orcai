@@ -176,7 +176,7 @@ function RouteComponent() {
 					<DialogHeader>
 						<DialogTitle>Create Group</DialogTitle>
 						<DialogDescription>
-							Create a custom organization group for access management.
+							Create a custom organisation group for access management.
 						</DialogDescription>
 					</DialogHeader>
 

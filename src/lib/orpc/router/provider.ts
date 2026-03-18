@@ -14,13 +14,32 @@ export const listProviders = authed.provider.list
 			Effect.gen(function* () {
 				const db = yield* DB;
 				const organizationId = context.auth.session.activeOrganizationId;
+				const countConditions = [
+					eq(dbSchema.provider.organizationId, organizationId),
+					input.filters?.enabled !== undefined
+						? eq(dbSchema.provider.enabled, input.filters.enabled)
+						: undefined,
+				].filter((condition) => condition !== undefined);
+				const providerWhere = {
+					AND: [
+						{
+							organizationId,
+						},
+						input.filters?.enabled !== undefined
+							? {
+									enabled: input.filters.enabled,
+								}
+							: undefined,
+					].filter((condition) => condition !== undefined),
+				};
+
+				const countWhereClause =
+					countConditions.length > 0 ? and(...countConditions) : undefined;
 
 				const [data, [rowCount]] = yield* Effect.all(
 					[
 						db.query.provider.findMany({
-							where: {
-								organizationId,
-							},
+							where: providerWhere,
 							limit: input.pageSize,
 							offset: input.pageIndex * input.pageSize,
 						}),
@@ -29,7 +48,7 @@ export const listProviders = authed.provider.list
 								count: count(),
 							})
 							.from(dbSchema.provider)
-							.where(eq(dbSchema.provider.organizationId, organizationId)),
+							.where(countWhereClause),
 					],
 					{
 						concurrency: "unbounded",

@@ -33,7 +33,7 @@ function RouteComponent() {
 	return (
 		<Page>
 			<PageHeader>
-				<PageTitle>Edit Organization</PageTitle>
+				<PageTitle>Edit Organisation</PageTitle>
 			</PageHeader>
 			<PageContent>
 				<ManageOrganization organization={organization.data} />

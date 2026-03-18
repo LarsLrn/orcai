@@ -184,7 +184,7 @@ const AccessManagerContent = ({
 					<GlobeIcon className="h-4 w-4" />
 					<AlertTitle>This resource is public</AlertTitle>
 					<AlertDescription>
-						Visible to authenticated users across all organizations.
+						Visible to authenticated users across all organisations.
 					</AlertDescription>
 				</Alert>
 			)}
@@ -223,7 +223,7 @@ const AccessManagerContent = ({
 					<div>
 						<p className="font-medium text-sm">Add direct grants</p>
 						<p className="text-muted-foreground text-xs">
-							Grant direct access to principals in the same organization scope.
+							Grant direct access to principals in the same organisation scope.
 						</p>
 					</div>
 					{isBusy && (

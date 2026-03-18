@@ -1,7 +1,8 @@
+import { useQueryClient } from "@tanstack/react-query";
 import Cookies from "js-cookie";
 import { useCallback, useEffect, useState } from "react";
 import { toast } from "sonner";
-import { client } from "@/lib/orpc/orpc";
+import { client, orpc } from "@/lib/orpc/orpc";
 import type { Bot } from "@/lib/orpc/schemas/bot";
 import type { ChatConfig } from "@/lib/orpc/schemas/chat";
 import type { Model } from "@/lib/orpc/schemas/model";
@@ -19,6 +20,7 @@ const useChatStarter = ({
 		zedToken?: string,
 	) => void | Promise<void>;
 }) => {
+	const queryClient = useQueryClient();
 	const [selectedModel, setSelectedModel] = useState<Model | null>(null);
 	const [selectedProvider, setSelectedProvider] = useState<Provider | null>(
 		null,
@@ -69,6 +71,11 @@ const useChatStarter = ({
 					});
 				}
 
+				void queryClient.invalidateQueries({
+					queryKey: orpc.chat.key(),
+					refetchType: "all",
+				});
+
 				await Promise.resolve(onChatCreated(chatId, text, zedToken));
 			} catch (error) {
 				toast.error("Failed to create chat", {
@@ -82,6 +89,7 @@ const useChatStarter = ({
 			selectedProvider,
 			selectedBotId,
 			isCreating,
+			queryClient,
 			onChatCreated,
 		],
 	);

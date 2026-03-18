@@ -36,9 +36,9 @@ export const useCreateOrganizationMutation = (
 				},
 			}),
 		messages: {
-			loading: "Creating organization...",
-			success: "Organization created successfully",
-			error: "Failed to create organization",
+			loading: "Creating organisation...",
+			success: "Organisation created successfully",
+			error: "Failed to create organisation",
 		},
 	});
 };
@@ -71,9 +71,9 @@ export const useUpdateOrganizationMutation = (
 				},
 			}),
 		messages: {
-			loading: "Updating organization...",
-			success: "Organization updated successfully",
-			error: "Failed to update organization",
+			loading: "Updating organisation...",
+			success: "Organisation updated successfully",
+			error: "Failed to update organisation",
 		},
 	});
 };
@@ -103,17 +103,17 @@ export const useDeleteOrganizationsMutation = (
 				},
 			}),
 		messages: {
-			loading: "Deleting organizations...",
-			success: "Organizations deleted",
-			error: "Failed to delete organizations",
+			loading: "Deleting organisations...",
+			success: "Organisations deleted",
+			error: "Failed to delete organisations",
 		},
 		confirm: (input) => {
 			const count = input.refs.length;
 			const plural = count === 1 ? "" : "s";
 
 			return {
-				title: `Delete Organization${plural}`,
-				description: `Are you sure you want to delete ${count} organization${plural}? This action cannot be undone.`,
+				title: `Delete Organisation${plural}`,
+				description: `Are you sure you want to delete ${count} organisation${plural}? This action cannot be undone.`,
 				confirmText: "Delete",
 				cancelText: "Cancel",
 			};

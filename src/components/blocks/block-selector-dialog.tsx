@@ -29,10 +29,10 @@ const copyByType: Record<
 	}
 > = {
 	template: {
-		title: "Choose an AI Behavior",
-		description: "Select a reusable behavior block to guide responses.",
-		searchPlaceholder: "Search AI behaviors...",
-		empty: "No AI behavior blocks found.",
+		title: "Choose an AI Behaviour",
+		description: "Select a reusable behaviour block to guide responses.",
+		searchPlaceholder: "Search AI behaviours...",
+		empty: "No AI behaviour blocks found.",
 	},
 	database: {
 		title: "Choose a Content Collection",

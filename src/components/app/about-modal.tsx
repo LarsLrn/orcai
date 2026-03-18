@@ -29,7 +29,7 @@ const AboutModal = ({ children }: { children: ReactElement }) => {
 						</p>
 						<p>
 							It supports retrieval-augmented workflows, configurable AI
-							behavior, and reusable content collections that can be adapted to
+							behaviour, and reusable content collections that can be adapted to
 							different courses, communities, and organisational use cases.
 						</p>
 						<p>

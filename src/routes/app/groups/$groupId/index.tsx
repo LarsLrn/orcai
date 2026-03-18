@@ -263,7 +263,7 @@ function RouteComponent() {
 						<CardTitle>Members</CardTitle>
 						<CardDescription>
 							{isSystemGroup
-								? "All organization members are included implicitly."
+								? "All organisation members are included implicitly."
 								: "Manage explicit group membership."}
 						</CardDescription>
 					</CardHeader>

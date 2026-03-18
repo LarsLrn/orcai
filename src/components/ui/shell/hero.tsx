@@ -54,7 +54,10 @@ const HeroContent = ({ className, ...props }: React.ComponentProps<"div">) => {
 	return (
 		<div
 			data-slot="hero-content"
-			className={cn("flex flex-col gap-6 text-card-foreground", className)}
+			className={cn(
+				"flex w-full flex-col gap-6 text-card-foreground",
+				className,
+			)}
 			{...props}
 		/>
 	);

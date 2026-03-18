@@ -59,7 +59,7 @@ const BLOCK_TYPE_CONFIG = {
 
 const getBlockTypeLabel = (type: Block["type"]) =>
 	type === "template"
-		? "Behavior"
+		? "Behaviour"
 		: type === "database"
 			? "Content Collection"
 			: "Image Generation";

@@ -44,8 +44,8 @@ const Header = () => {
 				className="my-auto mr-2 data-[orientation=vertical]:h-7"
 			/>
 			<div className="flex w-full items-center justify-between gap-2">
-				<Breadcrumb>
-					<BreadcrumbList className="gap-0">
+				<Breadcrumb className="min-w-0 flex-1">
+					<BreadcrumbList className="min-w-0 flex-nowrap gap-0 overflow-hidden">
 						<BreadcrumbItem>
 							<Link
 								to="/app"
@@ -77,7 +77,13 @@ const Header = () => {
 												<DropdownMenuGroup>
 													{breadcrumbItems.slice(0, -1).map((item) => (
 														<DropdownMenuItem key={item.href}>
-															<Link to={item.href}>{item.label}</Link>
+															<Link
+																to={item.href}
+																title={item.label}
+																className="block max-w-72 truncate"
+															>
+																{item.label}
+															</Link>
 														</DropdownMenuItem>
 													))}
 												</DropdownMenuGroup>
@@ -90,15 +96,19 @@ const Header = () => {
 									<Link
 										to={breadcrumbItems[breadcrumbItems.length - 1].href}
 										aria-current="page"
+										title={breadcrumbItems[breadcrumbItems.length - 1].label}
 										className={cn(
 											buttonVariants({
 												variant: "subtle",
 												size: "sm",
-												className: "h-7",
+												className:
+													"h-7 min-w-0 max-w-[calc(100vw-12rem)] shrink overflow-hidden",
 											}),
 										)}
 									>
-										{breadcrumbItems[breadcrumbItems.length - 1].label}
+										<span className="truncate">
+											{breadcrumbItems[breadcrumbItems.length - 1].label}
+										</span>
 									</Link>
 								</BreadcrumbItem>
 							</>
@@ -107,21 +117,27 @@ const Header = () => {
 						{breadcrumbItems.map((item, index) => (
 							<Fragment key={item.href}>
 								<BreadcrumbSeparator className="hidden md:block" />
-								<BreadcrumbItem className="hidden md:inline-flex">
+								<BreadcrumbItem className="hidden min-w-0 md:inline-flex">
 									<Link
 										to={item.href}
 										aria-current={
 											index === breadcrumbItems.length - 1 ? "page" : undefined
 										}
+										title={item.label}
 										className={cn(
 											buttonVariants({
 												variant: "subtle",
 												size: "sm",
-												className: "h-7",
+												className: cn(
+													"h-7 min-w-0 shrink overflow-hidden",
+													index === breadcrumbItems.length - 1
+														? "max-w-72 lg:max-w-96"
+														: "max-w-40 lg:max-w-56",
+												),
 											}),
 										)}
 									>
-										{item.label}
+										<span className="truncate">{item.label}</span>
 									</Link>
 								</BreadcrumbItem>
 							</Fragment>

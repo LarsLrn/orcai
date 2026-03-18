@@ -10,7 +10,7 @@ import {
 import type { TemplateBlock } from "@/lib/orpc/schemas/block";
 
 const createDefaultTemplateBlock = (params?: { botName: string }) => ({
-	name: `AI Behavior${params?.botName ? ` for '${params.botName}'` : ""}`,
+	name: `AI Behaviour${params?.botName ? ` for '${params.botName}'` : ""}`,
 	description: "",
 	contentHtml: "",
 	contentJson: null,
@@ -38,7 +38,7 @@ const TemplateBlockEditor = ({
 				<CardHeader>
 					<CardTitle className="flex items-center gap-2">
 						<SparklesIcon className="h-5 w-5" />
-						AI Behavior
+						AI Behaviour
 					</CardTitle>
 					<CardDescription>
 						Define how the bot should respond, what tone it should use, and what

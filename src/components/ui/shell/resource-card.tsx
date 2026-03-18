@@ -295,10 +295,7 @@ const ResourceCardMeta = ({
 	return (
 		<dl className={cn("grid gap-2 text-xs", className)}>
 			{meta.map((entry) => (
-				<div
-					key={entry.label}
-					className="grid grid-cols-[minmax(0,1fr)_auto] items-center gap-3"
-				>
+				<div key={entry.label} className="flex items-center gap-2">
 					<dt className="truncate text-muted-foreground">{entry.label}</dt>
 					<dd className="truncate font-medium text-foreground/90">
 						{entry.value}

@@ -41,20 +41,6 @@ const ModelSelectorButton = ({
 		selectedProviderId ?? PROVIDER_PLACEHOLDER_VALUE,
 	);
 
-	useEffect(() => {
-		if (
-			!modelDialogOpen &&
-			selectedProviderId &&
-			selectedProviderId !== providerFilter
-		) {
-			setProviderFilter(selectedProviderId);
-		}
-	}, [
-		modelDialogOpen,
-		providerFilter,
-		selectedProviderId,
-	]);
-
 	const providerFilterId =
 		providerFilter === PROVIDER_PLACEHOLDER_VALUE ? undefined : providerFilter;
 
@@ -63,6 +49,9 @@ const ModelSelectorButton = ({
 			input: {
 				pageIndex: 0,
 				pageSize: 100,
+				filters: {
+					enabled: true,
+				},
 			},
 		}),
 	);
@@ -98,6 +87,47 @@ const ModelSelectorButton = ({
 	});
 
 	const providers = providersResult?.data ?? [];
+
+	useEffect(() => {
+		if (
+			!modelDialogOpen &&
+			selectedProviderId &&
+			providers.some((provider) => provider.id === selectedProviderId) &&
+			selectedProviderId !== providerFilter
+		) {
+			setProviderFilter(selectedProviderId);
+		}
+	}, [
+		modelDialogOpen,
+		providerFilter,
+		providers,
+		selectedProviderId,
+	]);
+
+	useEffect(() => {
+		if (providers.length === 0) {
+			if (providerFilter !== PROVIDER_PLACEHOLDER_VALUE) {
+				setProviderFilter(PROVIDER_PLACEHOLDER_VALUE);
+				setModelSearch("");
+				setModelPage(0);
+			}
+			return;
+		}
+
+		const providerExists = providers.some(
+			(provider) => provider.id === providerFilter,
+		);
+
+		if (!providerExists) {
+			setProviderFilter(providers[0].id);
+			setModelSearch("");
+			setModelPage(0);
+		}
+	}, [
+		providerFilter,
+		providers,
+	]);
+
 	const models = providerFilterId ? (modelsResult?.data ?? []) : [];
 	const pageCount = providerFilterId
 		? Math.ceil((modelsResult?.rowCount ?? 0) / MODEL_PAGE_SIZE)
@@ -116,21 +146,16 @@ const ModelSelectorButton = ({
 		],
 	);
 
-	const providerFilterOptions = useMemo<DialogSelectFilterOption[]>(() => {
-		const providerOptions = providers.map((provider) => ({
-			label: provider.name,
-			value: provider.id,
-		}));
-		return [
-			{
-				label: "Select a provider",
-				value: PROVIDER_PLACEHOLDER_VALUE,
-			},
-			...providerOptions,
-		];
-	}, [
-		providers,
-	]);
+	const providerFilterOptions = useMemo<DialogSelectFilterOption[]>(
+		() =>
+			providers.map((provider) => ({
+				label: provider.name,
+				value: provider.id,
+			})),
+		[
+			providers,
+		],
+	);
 
 	const selectedModel = selectedModelData?.data;
 
@@ -197,7 +222,7 @@ const ModelSelectorButton = ({
 						<DialogSelectEmpty>
 							{providerFilterId
 								? "No models found."
-								: "Select a provider to view models."}
+								: "No active providers available."}
 						</DialogSelectEmpty>
 					)}
 				</DialogSelectList>

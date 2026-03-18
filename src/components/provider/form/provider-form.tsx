@@ -112,7 +112,7 @@ const ProviderForm = ({
 					children={(field) => (
 						<field.SwitchField
 							label="Enabled"
-							description="Enable this provider for use in the organization"
+							description="Enable this provider for use in the organisation"
 						/>
 					)}
 				/>

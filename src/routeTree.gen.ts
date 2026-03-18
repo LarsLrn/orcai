@@ -43,6 +43,8 @@ import { Route as AppQuotasAddRouteImport } from './routes/app/quotas/add'
 import { Route as AppProvidersAddRouteImport } from './routes/app/providers/add'
 import { Route as AppOrgsAddRouteImport } from './routes/app/orgs/add'
 import { Route as AppModelsAddRouteImport } from './routes/app/models/add'
+import { Route as AppHubRepositoriesRouteImport } from './routes/app/hub/repositories'
+import { Route as AppHubBehaviourRouteImport } from './routes/app/hub/behaviour'
 import { Route as AppChatSetupRouteImport } from './routes/app/chat/setup'
 import { Route as AppChatNewRouteImport } from './routes/app/chat/new'
 import { Route as ApiRpcSplatRouteImport } from './routes/api/rpc/$'
@@ -255,6 +257,16 @@ const AppModelsAddRoute = AppModelsAddRouteImport.update({
   id: '/add',
   path: '/add',
   getParentRoute: () => AppModelsRouteRoute,
+} as any)
+const AppHubRepositoriesRoute = AppHubRepositoriesRouteImport.update({
+  id: '/repositories',
+  path: '/repositories',
+  getParentRoute: () => AppHubRouteRoute,
+} as any)
+const AppHubBehaviourRoute = AppHubBehaviourRouteImport.update({
+  id: '/behaviour',
+  path: '/behaviour',
+  getParentRoute: () => AppHubRouteRoute,
 } as any)
 const AppChatSetupRoute = AppChatSetupRouteImport.update({
   id: '/setup',
@@ -511,6 +523,8 @@ export interface FileRoutesByFullPath {
   '/api/rpc/$': typeof ApiRpcSplatRoute
   '/app/chat/new': typeof AppChatNewRoute
   '/app/chat/setup': typeof AppChatSetupRoute
+  '/app/hub/behaviour': typeof AppHubBehaviourRoute
+  '/app/hub/repositories': typeof AppHubRepositoriesRoute
   '/app/models/add': typeof AppModelsAddRoute
   '/app/orgs/add': typeof AppOrgsAddRoute
   '/app/providers/add': typeof AppProvidersAddRoute
@@ -570,6 +584,8 @@ export interface FileRoutesByTo {
   '/api/rpc/$': typeof ApiRpcSplatRoute
   '/app/chat/new': typeof AppChatNewRoute
   '/app/chat/setup': typeof AppChatSetupRoute
+  '/app/hub/behaviour': typeof AppHubBehaviourRoute
+  '/app/hub/repositories': typeof AppHubRepositoriesRoute
   '/app/models/add': typeof AppModelsAddRoute
   '/app/orgs/add': typeof AppOrgsAddRoute
   '/app/providers/add': typeof AppProvidersAddRoute
@@ -646,6 +662,8 @@ export interface FileRoutesById {
   '/api/rpc/$': typeof ApiRpcSplatRoute
   '/app/chat/new': typeof AppChatNewRoute
   '/app/chat/setup': typeof AppChatSetupRoute
+  '/app/hub/behaviour': typeof AppHubBehaviourRoute
+  '/app/hub/repositories': typeof AppHubRepositoriesRoute
   '/app/models/add': typeof AppModelsAddRoute
   '/app/orgs/add': typeof AppOrgsAddRoute
   '/app/providers/add': typeof AppProvidersAddRoute
@@ -725,6 +743,8 @@ export interface FileRouteTypes {
     | '/api/rpc/$'
     | '/app/chat/new'
     | '/app/chat/setup'
+    | '/app/hub/behaviour'
+    | '/app/hub/repositories'
     | '/app/models/add'
     | '/app/orgs/add'
     | '/app/providers/add'
@@ -784,6 +804,8 @@ export interface FileRouteTypes {
     | '/api/rpc/$'
     | '/app/chat/new'
     | '/app/chat/setup'
+    | '/app/hub/behaviour'
+    | '/app/hub/repositories'
     | '/app/models/add'
     | '/app/orgs/add'
     | '/app/providers/add'
@@ -859,6 +881,8 @@ export interface FileRouteTypes {
     | '/api/rpc/$'
     | '/app/chat/new'
     | '/app/chat/setup'
+    | '/app/hub/behaviour'
+    | '/app/hub/repositories'
     | '/app/models/add'
     | '/app/orgs/add'
     | '/app/providers/add'
@@ -1152,6 +1176,20 @@ declare module '@tanstack/react-router' {
       fullPath: '/app/models/add'
       preLoaderRoute: typeof AppModelsAddRouteImport
       parentRoute: typeof AppModelsRouteRoute
+    }
+    '/app/hub/repositories': {
+      id: '/app/hub/repositories'
+      path: '/repositories'
+      fullPath: '/app/hub/repositories'
+      preLoaderRoute: typeof AppHubRepositoriesRouteImport
+      parentRoute: typeof AppHubRouteRoute
+    }
+    '/app/hub/behaviour': {
+      id: '/app/hub/behaviour'
+      path: '/behaviour'
+      fullPath: '/app/hub/behaviour'
+      preLoaderRoute: typeof AppHubBehaviourRouteImport
+      parentRoute: typeof AppHubRouteRoute
     }
     '/app/chat/setup': {
       id: '/app/chat/setup'
@@ -1627,6 +1665,8 @@ interface AppHubRouteRouteChildren {
   AppHubAssetsRouteRoute: typeof AppHubAssetsRouteRouteWithChildren
   AppHubBlocksRouteRoute: typeof AppHubBlocksRouteRouteWithChildren
   AppHubBotsRouteRoute: typeof AppHubBotsRouteRouteWithChildren
+  AppHubBehaviourRoute: typeof AppHubBehaviourRoute
+  AppHubRepositoriesRoute: typeof AppHubRepositoriesRoute
   AppHubIndexRoute: typeof AppHubIndexRoute
 }
 
@@ -1634,6 +1674,8 @@ const AppHubRouteRouteChildren: AppHubRouteRouteChildren = {
   AppHubAssetsRouteRoute: AppHubAssetsRouteRouteWithChildren,
   AppHubBlocksRouteRoute: AppHubBlocksRouteRouteWithChildren,
   AppHubBotsRouteRoute: AppHubBotsRouteRouteWithChildren,
+  AppHubBehaviourRoute: AppHubBehaviourRoute,
+  AppHubRepositoriesRoute: AppHubRepositoriesRoute,
   AppHubIndexRoute: AppHubIndexRoute,
 }
 

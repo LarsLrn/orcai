@@ -42,7 +42,7 @@ function RouteComponent() {
 			<PageHeader>
 				<PageTitle>
 					{isTemplateBlock(block.data)
-						? "Edit AI Behavior"
+						? "Edit AI Behaviour"
 						: isDatabaseBlock(block.data)
 							? "Edit Content Collection"
 							: "Edit Image Generation"}

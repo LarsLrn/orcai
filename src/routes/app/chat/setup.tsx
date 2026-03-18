@@ -83,7 +83,7 @@ function RouteComponent() {
 										</div>
 										<div className="flex items-center gap-2">
 											<UserIcon className="h-4 w-4" />
-											<span>Configured behavior and content access</span>
+											<span>Configured behaviour and content access</span>
 										</div>
 									</div>
 								</CardContent>
@@ -163,7 +163,7 @@ function RouteComponent() {
 
 			<PageFooter className="text-center text-muted-foreground text-sm">
 				<p>
-					Bots are best when someone else has already configured AI behavior or
+					Bots are best when someone else has already configured AI behaviour or
 					relevant content for you. Open conversations are best when you want to
 					explore freely.
 				</p>

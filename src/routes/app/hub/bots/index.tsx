@@ -64,7 +64,7 @@ function RouteComponent() {
 		<div className="space-y-12">
 			<Section>
 				<SectionHeader>
-					<SectionTitle>Published Bots</SectionTitle>
+					<SectionTitle>Published</SectionTitle>
 					<SectionDescription>
 						Configured AI experiences ready to use in chats across your
 						workspace.
@@ -118,7 +118,7 @@ function RouteComponent() {
 			{drafts.data.length > 0 && (
 				<Section>
 					<SectionHeader>
-						<SectionTitle>Drafts</SectionTitle>
+						<SectionTitle>Your Drafts</SectionTitle>
 						<SectionDescription>
 							Resume bot setups that have not been published yet.
 						</SectionDescription>

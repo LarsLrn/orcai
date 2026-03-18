@@ -55,7 +55,7 @@ const QuickChatSection = () => {
 	return (
 		<Section>
 			<SectionHeader>
-				<SectionTitle>Dive right in</SectionTitle>
+				<SectionTitle>Start chatting with AI</SectionTitle>
 				<SectionAction>
 					<Link
 						to="/app/hub/bots"
@@ -103,7 +103,7 @@ const UserHome = () => {
 
 			<Section>
 				<SectionHeader>
-					<SectionTitle>Your Recent Conversations</SectionTitle>
+					<SectionTitle>Your Recent AI Conversations</SectionTitle>
 					<SectionDescription>
 						Pick right back up where you left off.
 					</SectionDescription>

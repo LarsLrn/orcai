@@ -34,7 +34,7 @@ const TemplateBlockFieldGroup = withFieldGroup({
 					<group.AppField
 						name="name"
 						children={(field) => (
-							<field.TextField label="Name" placeholder="AI Behavior" />
+							<field.TextField label="Name" placeholder="AI Behaviour" />
 						)}
 					/>
 				}

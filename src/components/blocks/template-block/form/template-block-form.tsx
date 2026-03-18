@@ -76,7 +76,7 @@ const TemplateBlockForm = ({
 			<form.AppForm>
 				<form.SubmitButton
 					label={
-						action === "create" ? "Save AI Behavior" : "Update AI Behavior"
+						action === "create" ? "Save AI Behaviour" : "Update AI Behaviour"
 					}
 				/>
 			</form.AppForm>

@@ -31,7 +31,7 @@ const BotsShowcase = ({ limit = 6 }: { limit?: number }) => {
 	return (
 		<Section>
 			<SectionHeader>
-				<SectionTitle>Available bots</SectionTitle>
+				<SectionTitle>Available Chatbots</SectionTitle>
 				<SectionDescription>
 					Open a configured bot and jump into a focused chat.
 				</SectionDescription>
