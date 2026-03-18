@@ -70,7 +70,7 @@ export const getKnowledgeBasePageTool = ({
 						blocks: targetBlocks,
 					});
 
-					let matchedDocuments = documents;
+					let matchedDocuments: KnowledgeBaseDocument[] = documents;
 					if (assetId) {
 						matchedDocuments = matchedDocuments.filter(
 							(document) => document.assetId === assetId,
