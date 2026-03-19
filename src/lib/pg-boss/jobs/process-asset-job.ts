@@ -19,6 +19,30 @@ import { getFileTypeFromMime } from "@/lib/s3/utils/file-type-helpers";
 import { getDownloadUrl } from "@/lib/s3/utils/url-helpers";
 import { buckets } from "@/settings/buckets";
 
+const SIMPLE_TEXT_FILE_TYPES = new Set<ProcessAssetPayload["assetRef"]["type"]>(
+	[
+		"txt",
+		"md",
+		"csv",
+	],
+);
+
+const normalizeContentType = (contentType: string | null) =>
+	contentType?.split(";")[0]?.trim().toLowerCase() ?? "";
+
+const shouldSkipDoclingForAsset = (params: {
+	fileType: ProcessAssetPayload["assetRef"]["type"];
+	contentType: string | null;
+}) => {
+	const normalizedContentType = normalizeContentType(params.contentType);
+
+	if (normalizedContentType.startsWith("text/")) {
+		return true;
+	}
+
+	return SIMPLE_TEXT_FILE_TYPES.has(params.fileType);
+};
+
 export const processAssetBatchEffect = (jobs: Job<ProcessAssetPayload>[]) =>
 	Effect.forEach(
 		jobs,
@@ -85,164 +109,205 @@ const processAssetsEffect = (params: { job: Job<ProcessAssetPayload> }) =>
 			),
 		);
 
-		const processedDocument = yield* convertDocument({
-			document: fileBuffer,
-			filename: `document.${assetRef.id}`,
-			extractTablesAsImages: false,
-		}).pipe(
-			Effect.mapError(toPgBossRunError(params.job.id, PROCESS_ASSET_JOB_NAME)),
-			Effect.tapError((err) =>
-				Effect.logError(
-					{
-						err,
-					},
-					"Error converting document with Docling",
-				),
-			),
-		);
-
-		const serializedDocling = yield* Effect.try({
-			try: () =>
-				serializeDoclingPayload(processedDocument, {
-					keepImageRefs: true,
-				}),
-			catch: toPgBossRunError(params.job.id, PROCESS_ASSET_JOB_NAME),
-		}).pipe(
-			Effect.tapError((err) =>
-				Effect.logError(
-					{
-						err,
-					},
-					"Error serializing Docling document",
-				),
-			),
-		);
-
-		yield* deletePrefixRecursively({
-			bucket: buckets.processed.name,
-			prefix: `${assetRef.id}/`,
+		const shouldSkipDocling = shouldSkipDoclingForAsset({
+			fileType: assetRef.type,
+			contentType: fileResponse.headers.get("content-type"),
 		});
 
-		if (!serializedDocling || serializedDocling.length === 0) {
-			yield* Effect.logWarning(
+		if (shouldSkipDocling) {
+			const markdown = fileBuffer.toString("utf-8").replace(/^\uFEFF/, "");
+
+			yield* deletePrefixRecursively({
+				bucket: buckets.processed.name,
+				prefix: `${assetRef.id}/`,
+			});
+
+			yield* sendPutObjectCommand({
+				bucket: buckets.processed.name,
+				key: `${assetRef.id}/page-0.md`,
+				body: Buffer.from(markdown, "utf-8"),
+				contentType: "text/markdown",
+			}).pipe(
+				Effect.tapError((err) =>
+					Effect.logError(
+						{
+							err,
+						},
+						"Error uploading processed markdown",
+					),
+				),
+			);
+
+			yield* Effect.logInfo(
 				{
 					jobId: params.job.id,
+					assetId: assetRef.id,
+					fileType: assetRef.type,
 				},
-				"No serialized docling content to upload",
+				"Skipped Docling and stored text asset as markdown",
 			);
-			return;
-		}
-
-		yield* Effect.logInfo(
-			{
-				jobId: params.job.id,
-				pageCount: serializedDocling.length,
-			},
-			"Uploading processed content",
-		);
-
-		yield* Effect.forEach(serializedDocling, (page, index) =>
-			Effect.gen(function* () {
-				const { markdown, images } = page;
-
-				yield* sendPutObjectCommand({
-					bucket: buckets.processed.name,
-					key: `${assetRef.id}/page-${page.page}.md`,
-					body: Buffer.from(markdown, "utf-8"),
-					contentType: "text/markdown",
-				}).pipe(
-					Effect.tapError((err) =>
-						Effect.logError(
-							{
-								err,
-							},
-							"Error uploading processed markdown",
-						),
+		} else {
+			const processedDocument = yield* convertDocument({
+				document: fileBuffer,
+				filename: `document.${assetRef.id}`,
+				extractTablesAsImages: false,
+			}).pipe(
+				Effect.mapError(
+					toPgBossRunError(params.job.id, PROCESS_ASSET_JOB_NAME),
+				),
+				Effect.tapError((err) =>
+					Effect.logError(
+						{
+							err,
+						},
+						"Error converting document with Docling",
 					),
-				);
+				),
+			);
 
-				yield* Effect.forEach(images, (image, imageIndex) =>
-					Effect.gen(function* () {
-						if (!image) {
-							yield* Effect.logWarning(
-								{
-									jobId: params.job.id,
-									pageIndex: index,
-									imageIndex,
-								},
-								"No image data to upload for this image",
-							);
-							return;
-						}
-
-						yield* Effect.logInfo(
-							{
-								jobId: params.job.id,
-								pageIndex: index,
-								imageIndex,
-							},
-							"Uploading processed image",
-						);
-
-						const imageData = image.uri.includes("base64,")
-							? image.uri.split("base64,")[1]
-							: image.uri;
-
-						const imageBuffer = Buffer.from(imageData, "base64");
-						const fileType = getFileTypeFromMime(image.mimetype);
-						const validationResult = validateImageResolution(
-							image.size,
-							2, // TODO: Use the actual upscale factor
-						);
-
-						if (!validationResult.isValid) {
-							return yield* Effect.logWarning(
-								{
-									jobId: params.job.id,
-									pageIndex: index,
-									imageIndex,
-									width: image.size.width,
-									height: image.size.height,
-								},
-								"Skipping image upload due to resolution/validation",
-							);
-						}
-
-						return yield* sendPutObjectCommand({
-							bucket: buckets.processed.name,
-							key: `${assetRef.id}/${image.label}-${image.index}.${fileType}`,
-							body: imageBuffer,
-							contentType: image.mimetype,
-						}).pipe(
-							Effect.tapError((err) =>
-								Effect.logError(
-									{
-										err,
-									},
-									"Error uploading processed image",
-								),
-							),
-						);
+			const serializedDocling = yield* Effect.try({
+				try: () =>
+					serializeDoclingPayload(processedDocument, {
+						keepImageRefs: true,
 					}),
-				);
-				yield* Effect.logInfo(
+				catch: toPgBossRunError(params.job.id, PROCESS_ASSET_JOB_NAME),
+			}).pipe(
+				Effect.tapError((err) =>
+					Effect.logError(
+						{
+							err,
+						},
+						"Error serializing Docling document",
+					),
+				),
+			);
+
+			yield* deletePrefixRecursively({
+				bucket: buckets.processed.name,
+				prefix: `${assetRef.id}/`,
+			});
+
+			if (!serializedDocling || serializedDocling.length === 0) {
+				yield* Effect.logWarning(
 					{
 						jobId: params.job.id,
-						pageIndex: index,
 					},
-					"Completed uploading processed page",
+					"No serialized docling content to upload",
 				);
-			}),
-		).pipe(
-			Effect.tapError((err) =>
-				Effect.logError(
-					{
-						err,
-					},
-					"Error uploading processed content",
+				return;
+			}
+
+			yield* Effect.logInfo(
+				{
+					jobId: params.job.id,
+					pageCount: serializedDocling.length,
+				},
+				"Uploading processed content",
+			);
+
+			yield* Effect.forEach(serializedDocling, (page, index) =>
+				Effect.gen(function* () {
+					const { markdown, images } = page;
+
+					yield* sendPutObjectCommand({
+						bucket: buckets.processed.name,
+						key: `${assetRef.id}/page-${page.page}.md`,
+						body: Buffer.from(markdown, "utf-8"),
+						contentType: "text/markdown",
+					}).pipe(
+						Effect.tapError((err) =>
+							Effect.logError(
+								{
+									err,
+								},
+								"Error uploading processed markdown",
+							),
+						),
+					);
+
+					yield* Effect.forEach(images, (image, imageIndex) =>
+						Effect.gen(function* () {
+							if (!image) {
+								yield* Effect.logWarning(
+									{
+										jobId: params.job.id,
+										pageIndex: index,
+										imageIndex,
+									},
+									"No image data to upload for this image",
+								);
+								return;
+							}
+
+							yield* Effect.logInfo(
+								{
+									jobId: params.job.id,
+									pageIndex: index,
+									imageIndex,
+								},
+								"Uploading processed image",
+							);
+
+							const imageData = image.uri.includes("base64,")
+								? image.uri.split("base64,")[1]
+								: image.uri;
+
+							const imageBuffer = Buffer.from(imageData, "base64");
+							const fileType = getFileTypeFromMime(image.mimetype);
+							const validationResult = validateImageResolution(
+								image.size,
+								2, // TODO: Use the actual upscale factor
+							);
+
+							if (!validationResult.isValid) {
+								return yield* Effect.logWarning(
+									{
+										jobId: params.job.id,
+										pageIndex: index,
+										imageIndex,
+										width: image.size.width,
+										height: image.size.height,
+									},
+									"Skipping image upload due to resolution/validation",
+								);
+							}
+
+							return yield* sendPutObjectCommand({
+								bucket: buckets.processed.name,
+								key: `${assetRef.id}/${image.label}-${image.index}.${fileType}`,
+								body: imageBuffer,
+								contentType: image.mimetype,
+							}).pipe(
+								Effect.tapError((err) =>
+									Effect.logError(
+										{
+											err,
+										},
+										"Error uploading processed image",
+									),
+								),
+							);
+						}),
+					);
+					yield* Effect.logInfo(
+						{
+							jobId: params.job.id,
+							pageIndex: index,
+						},
+						"Completed uploading processed page",
+					);
+				}),
+			).pipe(
+				Effect.tapError((err) =>
+					Effect.logError(
+						{
+							err,
+						},
+						"Error uploading processed content",
+					),
 				),
-			),
-		);
+			);
+		}
 
 		const db = yield* DB;
 
