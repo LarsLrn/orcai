@@ -74,7 +74,7 @@ export const MessageBlock = ({
 	) {
 		return (
 			<div className="wrap-break-word sticky m-0 w-full max-w-full whitespace-pre-wrap rounded-none bg-transparent p-4 text-foreground">
-				<Shimmer>Gathering information...</Shimmer>
+				<Shimmer>Waiting for model...</Shimmer>
 			</div>
 		);
 	}
