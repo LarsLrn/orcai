@@ -22,8 +22,7 @@
 		"module": "ESNext",
 		"lib": [
 			"ES2022",
-			"DOM",
-			"DOM.Iterable"
+			"DOM"
 		],
 		"types": [
 			"vite/client",
@@ -45,7 +44,6 @@
 		"forceConsistentCasingInFileNames": true,
 		"noUncheckedSideEffectImports": true,
 		"strictNullChecks": true,
-		"baseUrl": ".",
 		"paths": {
 			"@/*": [
 				"./src/*"
