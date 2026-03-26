@@ -77,9 +77,10 @@ export const updateOrganizationMemberContract = base
 	})
 	.errors({
 		NOT_FOUND: {
-			message: "Organization not found",
+			message: "Member not found",
 			data: z.object({
-				id: organizationMemberUpdateSchema.shape.id,
+				organizationId: organizationMemberUpdateSchema.shape.organizationId,
+				userId: organizationMemberUpdateSchema.shape.userId,
 			}),
 		},
 	})

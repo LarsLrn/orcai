@@ -155,7 +155,7 @@ export const updateOrganizationMember = authed.organizationMember.update
 				entityType: "organization",
 			}) satisfies CheckPermissionInput,
 	)
-	.handler(async ({ input }) =>
+	.handler(async ({ input, errors }) =>
 		runOrpcEffect(
 			Effect.gen(function* () {
 				const db = yield* DB;
@@ -186,7 +186,19 @@ export const updateOrganizationMember = authed.organizationMember.update
 						...getColumns(dbSchema.member),
 					});
 
-				if (existing && member && existing.role !== member.role) {
+				if (!member) {
+					return yield* Effect.fail(
+						errors.NOT_FOUND({
+							message: "Member not found",
+							data: {
+								organizationId: input.organizationId,
+								userId: input.userId,
+							},
+						}),
+					);
+				}
+
+				if (existing && existing.role !== member.role) {
 					yield* syncRelationshipTransition({
 						resourceType: "organization",
 						resourceId: input.organizationId,
