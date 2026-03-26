@@ -39,7 +39,7 @@ export const serverEnv = createEnv({
 		OTEL_EXPORTER_OTLP_PROTOCOL: z.string().default("http/protobuf"),
 		OTEL_EXPORTER_OTLP_TRACES_ENDPOINT: z.string().optional(),
 		OTEL_NODE_RESOURCE_DETECTORS: z.string().default("env,host,os"),
-		OTEL_SERVICE_NAME: z.string().default("sokratest-v2"),
+		OTEL_SERVICE_NAME: z.string().default("orcai"),
 		OTEL_EXPORTER_OTLP_HEADERS: z.string().optional(),
 	},
 

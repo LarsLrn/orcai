@@ -1,224 +1,249 @@
-# Sokrates<sup>t</sup> - AI-Assisted Educational Platform
+<p align="center">
+  <picture>
+    <source media="(prefers-color-scheme: dark)" srcset="src/static/branding/text_white.svg">
+    <source media="(prefers-color-scheme: light)" srcset="src/static/branding/text_black.svg">
+    <img src="src/static/branding/text_black.svg" alt="OrcAI" width="320">
+  </picture>
+</p>
 
-Sokrates<sup>t</sup> is a research-oriented educational platform developed by Rhine-Waal University that facilitates AI-assisted Socratic dialogue for educational purposes. The platform enables students to engage in interactive conversations with an AI tutor that uses course materials uploaded by instructors to provide contextually relevant learning support.
+# OrcAI
 
-## About the Project
+> [!WARNING]
+> OrcAI is still in active development and is not yet ready for production use.
 
-Sokrates<sup>t</sup> is designed to enhance the learning experience through AI-powered conversations that help students explore and understand their course material. The platform implements a Retrieval-Augmented Generation (RAG) approach, where course documents are processed and stored in a vector database to inform AI responses with relevant educational content.
+OrcAI is the current product name of the AI-assisted educational platform in this repository. The codebase, package name, Docker service names, storage buckets, and some contact addresses still use legacy `sokratest` identifiers for compatibility. This will eventually change.
 
-### Key Features
+## Overview
 
-- **AI-Powered Tutoring**: Interactive chat interface with an AI tutor trained on course-specific materials
-- **Document Processing**: Automatic processing of course documents (PDFs, Word docs, PowerPoint presentations, images) with text and image extraction
-- **Retrieval-Augmented Generation**: AI responses are enhanced with relevant course material through semantic search
-- **Multi-language Support**: Internationalization support with German and English locales
-- **User Management**: Course-based access control with instructor invitations
-- **Rich Text Editor**: TipTap-based editor for enhanced content creation
-- **Real-time Analytics**: Self-hosted Umami analytics for usage insights
-- **Responsive Design**: Modern UI with dark/light mode support
+OrcAI is a research-oriented platform developed at Rhine-Waal University for AI-supported learning workflows. Instructors upload course material, the platform processes and indexes it, and students interact with an AI tutor that can ground responses in those materials via retrieval-augmented generation (RAG).
 
-## Technology Stack
+## Core Capabilities
 
-### Frontend
-- **React 19** - Modern React with concurrent features
-- **TanStack Start** - Full-stack React framework with file-based routing
-- **TanStack Router** - Type-safe routing
-- **TanStack Query** - Server state management
-- **Tailwind CSS** - Utility-first CSS framework
-- **Radix UI** - Accessible component primitives
-- **TipTap** - Rich text editor
-- **Motion** - Animation library
+- AI-assisted chat grounded in course content
+- Document ingestion and processing for PDFs, Office files, and images
+- Semantic retrieval with Qdrant-backed vector search
+- Course and invitation-based access control
+- Background job processing for ingestion workflows
+- S3-compatible object storage for uploaded and processed assets
+- Optional observability with Langfuse, Umami, and OpenTelemetry
+- German and English localisation support
+
+## Stack
+
+### Application
+- React 19
+- TanStack Start
+- TanStack Router / Query / Form
+- Tailwind CSS 4
+- Base UI (shadcn)
+- TipTap
 
 ### Backend
-- **TanStack Start** - Server-side rendering and API routes
-- **oRPC** - Type-safe RPC framework
-- **Better Auth** - Authentication system
-- **Drizzle ORM** - Type-safe SQL ORM
-- **PostgreSQL** - Primary database
-- **Qdrant** - Vector database for semantic search
+- Bun
+- oRPC
+- Better Auth
+- Drizzle ORM
+- PostgreSQL
+- Valkey
+- SpiceDB
+- Qdrant
+- pg-boss
 
-### AI & Processing
-- **AI SDK** - AI model integration
-- **Langchain** - Document processing and text splitting
-- **Langfuse** - LLM observability and analytics
-- **GWDG** - AI model hosting (German infrastructure)
+### AI and Processing
+- AI SDK
+- OpenAI-compatible model endpoint
+- Docling document processing service
+- PgBoss workers
 
-### Infrastructure
-- **pg-boss** - Background job processing
-- **S3-compatible Storage** - Object storage (MinIO, Supabase Storage, AWS S3)
-- **Umami** - Privacy-focused analytics
+## Development Workflows
 
-### Development Tools
-- **TypeScript** - Type safety
-- **Vite** - Build tool and dev server
-- **Biome** - Formatting and linting
-- **Drizzle Kit** - Database migrations
-- **Husky** - Git hooks
+### Devcontainer (recommended)
 
-## Getting Started
-
-### Prerequisites
-
-- Node.js 18+ 
-- PostgreSQL database
-- Qdrant vector database
-- S3-compatible storage (MinIO, Supabase Storage, AWS S3, etc.)
-- SMTP server (for email notifications)
-
-### Required Services Setup
-
-Before running the application, you'll need to set up the following services:
-
-#### Database Services
-1. **PostgreSQL**: Main application database
-2. **Qdrant**: Vector database for semantic search and embeddings
-
-#### Storage & Infrastructure
-3. **S3-compatible Storage**: Object storage for uploaded documents and assets (MinIO, Supabase Storage, AWS S3)
-4. **Langfuse**: LLM observability and analytics (self-hosted or cloud)
-5. **Umami**: Privacy-focused web analytics (self-hosted)
-
-#### AI Services
-6. **OpenAI-compatible API**: For LLM inference (GWDG Academic Cloud or similar)
-7. **Docling API**: Document processing service
-
-#### Email Service
-8. **SMTP Server**: For sending invitations and notifications
-
-### Installation
-
-1. Clone the repository:
-```bash
-git clone [repository-url]
-cd sokratest-v2
-```
-
-### Dev Container Quickstart (Recommended)
-
-This repository includes a devcontainer setup in `.devcontainer/`.
+The repository ships with a VS Code devcontainer based on `.devcontainer/devcontainer.json` and `.devcontainer/docker-compose.dev.yaml`.
 
 Prerequisites:
 - Docker
-- VS Code with the "Dev Containers" extension
+- VS Code with the Dev Containers extension
 
 Steps:
 1. Open the repository in VS Code.
 2. Run `Dev Containers: Reopen in Container`.
-3. Wait for first-time setup (`bun install`) and all services to launch.
-4. Start hot-reload development server with `bun run dev`.
-5. Open `http://localhost:3000`.
+3. Wait for `bun install --frozen-lockfile` to finish.
+4. Start the app with `bun run dev`.
+5. Open [http://localhost:3000](http://localhost:3000).
 
-What this starts automatically:
-- Local infrastructure services: PostgreSQL, MinIO, Qdrant, SpiceDB
-- One-shot initialization services: DB migrations, MinIO bucket setup, SpiceDB migration/schema load
-- A Bun-based workspace container with the source code mounted for interactive development
+What starts automatically:
+- PostgreSQL
+- Valkey
+- MinIO
+- Qdrant
+- SpiceDB
+- Database migrations
+- MinIO bucket bootstrap
+- SpiceDB schema migration
+- A Bun workspace container with the repository mounted
 
 Notes:
-- The devcontainer keeps internal service addresses fixed to the Compose network, and uses environment variables from your shell or repo `.env` for credentials and external integrations when present. The default credentials are insecure and only fit for local development. Do not deploy via `docker-compose.dev.yaml`!
-- The devcontainer defaults target a local Ollama-compatible API at `http://localhost:11434/v1`. Langfuse remains optional and unset by default. Override these via `.env` if needed.
+- The devcontainer fixes internal service addresses on the Compose network.
+- It defaults to an Ollama-compatible endpoint at `http://localhost:11434/v1` for `OPENAI_COMPATIBLE_BASE_URL`.
+- `DOCLING_URL` defaults to `http://localhost:8080`, but no Docling container is included in this repo. You must provide that service separately if you want document processing to work.
+- Email delivery stays in log-only mode unless `SMTP_HOST` and `SMTP_FROM` are both configured.
+- `docker-compose.local.yaml` and `.devcontainer/docker-compose.dev.yaml` are development-only overrides and are not deployment manifests.
 
-### Manual Installation (Host Machine)
+### Local Docker Compose app stack
 
-1. Install dependencies:
+If you want a runnable local stack outside the devcontainer, use:
+
 ```bash
-npm install
-```
-
-2. Set up environment variables (copy `.env.example` to `.env` and configure). See `.env.example` for supported variables.
-
-3. Initialize the database schema:
-```bash
-npm run db:generate
-npm run db:migrate
-```
-
-4. Start the development server:
-```bash
-npm run dev
-```
-
-The application will be available at `http://localhost:3000`.
-
-### Docker Compose Setup (Local App Stack)
-
-If you want to try the full application locally without setting up a deployment or running the app process yourself, start the local Compose stack with:
-```bash
-docker compose -f docker-compose.yaml -f docker-compose.local.yaml up -d
+docker compose -f docker-compose.yaml -f docker-compose.local.yaml up -d --build
 ```
 
 This starts:
-- the `sokratest` app container on `http://localhost:3000`
+- the main app container on `localhost:3000`
 - PostgreSQL on `localhost:5432`
-- MinIO on `localhost:9000` and `localhost:9001`
-- Qdrant on `localhost:6333` and `localhost:6334`
-- SpiceDB on `localhost:50051`
+- Valkey on `localhost:6379`
+- MinIO API on `localhost:9000`
+- MinIO Console on `localhost:9001`
+- Qdrant HTTP on `localhost:6333`
+- Qdrant gRPC on `localhost:6334`
+- SpiceDB gRPC on `localhost:50051`
 
-To stop it again:
+Stop it with:
+
 ```bash
 docker compose -f docker-compose.yaml -f docker-compose.local.yaml down
 ```
 
-If you instead want to run the app process directly on your host machine, use the manual installation flow above and run `bun run dev`.
+Notes:
+- The local override injects development defaults for required application variables.
+- For actual chat completions and document ingestion, you still need reachable `OPENAI_COMPATIBLE_*` and `DOCLING_*` endpoints.
+- MinIO buckets and the SpiceDB schema are initialized automatically by one-shot services.
 
-### Available Scripts
+### Manual host setup
 
-- `npm run dev` - Start development server
-- `npm run build` - Build for production
-- `npm run db:generate` - Generate database migrations
-- `npm run db:migrate` - Run database migrations
-- `npm run db:studio` - Open Drizzle Studio
-- `npm run db:seed` - Seed the database
-- `npm run format` - Format code with Biome
+Use this when you want to run the Bun app directly on your machine.
 
-## Architecture
+Prerequisites:
+- Bun `>=1.3.10`
+- PostgreSQL
+- Valkey
+- Qdrant
+- SpiceDB
+- S3-compatible object storage
+- An OpenAI-compatible inference endpoint
+- A Docling service
+- Optional SMTP server
 
-### Data Flow
-1. **Document Upload**: Instructors upload course materials
-2. **Processing Pipeline**: Documents are processed through pg-boss jobs for text/image extraction
-3. **Vectorization**: Content is converted to embeddings and stored in Qdrant
-4. **Chat Interface**: Students interact with AI tutor
-5. **RAG Retrieval**: Relevant course material is retrieved based on chat context
-6. **AI Response**: Enhanced responses are generated using retrieved content
+Steps:
 
-### Security & Privacy
-- All data processing occurs within German infrastructure (GDPR compliant)
-- Authentication via university email addresses
-- Role-based access control with built-in authorization system
-- Secure password hashing with Better Auth
-- No third-party AI services - self-hosted models only
+```bash
+cp .env.example .env
+bun install --frozen-lockfile
+```
+
+Edit `.env`, then run:
+
+```bash
+bun run db:migrate
+bun run spice:migrate
+bun run dev
+```
+
+The app will be available at [http://localhost:3000](http://localhost:3000).
+
+Use `bun run build && bun run start` to run the production server locally.
+
+## Configuration
+
+The authoritative runtime config is loaded from [src/lib/effect/services/config.ts](/src/lib/effect/services/config.ts).
+
+### Required core variables
+
+- `BASE_URL`: Public base URL for the app. Keep this aligned with `BETTER_AUTH_URL`.
+- `BETTER_AUTH_URL`: Public auth callback base URL.
+- `VITE_BASE_URL`: Public frontend base URL used in client-side links.
+- `BETTER_AUTH_SECRET`: Better Auth signing secret.
+- `ENCRYPTION_KEY`: 32 to 64 character application encryption key.
+
+### Required infrastructure variables
+
+- `POSTGRES_USER`
+- `POSTGRES_PASSWORD`
+- `POSTGRES_HOST`
+- `POSTGRES_PORT`
+- `POSTGRES_DB`
+- `VALKEY_URL`
+- `S3_ENDPOINT`
+- `S3_ACCESS_KEY`
+- `S3_SECRET_KEY`
+- `QDRANT_URL`
+- `QDRANT_API_KEY`
+- `SPICEDB_ENDPOINT`
+- `SPICEDB_TOKEN`
+
+### Required AI variables
+
+- `OPENAI_COMPATIBLE_BASE_URL`
+- `OPENAI_COMPATIBLE_API_KEY`
+- `DOCLING_URL`
+- `DOCLING_API_KEY`
+
+### Optional variables
+
+- `S3_REGION`: Defaults to `eu-central-1`.
+- `S3_PUBLIC_ENDPOINT`: Optional public endpoint for presigned URLs.
+- `QDRANT_ENABLE_SPARSE_VECTORS`: Defaults to `false`. Enable only on a fresh or reindexed collection.
+- `SMTP_*`: Optional. If you enable SMTP delivery, `SMTP_HOST` and `SMTP_FROM` must both be set. `SMTP_USERNAME` and `SMTP_PASSWORD` must either both be set or both be omitted.
+- `LANGFUSE_*`: Optional Langfuse tracing and observability.
+- `VITE_UMAMI_*`: Optional Umami analytics injection.
+- `OTEL_*`: Optional OpenTelemetry export configuration.
+
+See [.env.example](.env.example) for a current baseline.
+
+## Common Commands
+
+- `bun run dev`: start the development server
+- `bun run build`: build the app
+- `bun run start`: run the production server from `dist`
+- `bun run lint`: run Biome and TypeScript checks
+- `bun run db:migrate`: apply SQL migrations
+- `bun run db:generate`: generate a new Drizzle migration
+- `bun run db:studio`: open Drizzle Studio
+- `bun run db:seed`: seed the database
+- `bun run spice:migrate`: apply the SpiceDB schema
+- `bun run spice:migrate:status`: inspect SpiceDB schema migration status
+
+## Architecture Summary
+
+1. Instructors upload course material.
+2. Background jobs process files and extract content.
+3. Processed content is stored in S3-compatible buckets and indexed in Qdrant.
+4. Students interact with the OrcAI chat interface.
+5. Relevant course context is retrieved and sent to the configured model endpoint.
+6. Responses and optional observability signals are returned through the app.
 
 ## Research Context
 
-Sokrates<sup>t</sup> is currently in a research and testing phase, restricted to invited participants at Rhine-Waal University. The platform is designed to:
+OrcAI remains part of the Sokratesᵗ research initiative at Rhine-Waal University and is currently restricted to invited participants.
 
-- Study the effectiveness of AI-assisted Socratic dialogue in education
-- Analyze usage patterns and learning outcomes
-- Develop best practices for AI integration in educational settings
-- Maintain strict privacy and data protection standards
+Important constraints:
+- This is still an experimental platform.
+- Regular backups are not guaranteed during testing.
+- Chat quality depends on the configured model endpoint and indexed course material.
 
-**Important Note**: This is an experimental platform. Regular backups are not guaranteed during the testing phase, and data loss may occur due to system updates or technical issues.
+## Contact
 
-## Contributing
-
-This is a research project currently in closed access. For questions or collaboration inquiries, please contact the project team at [sokratest@hochschule-rhein-waal.de](mailto:sokratest@hochschule-rhein-waal.de).
-
-## License
-
-This project is part of an ongoing research initiative at Rhine-Waal University. Please refer to the Terms of Use and Privacy Policy for usage guidelines and restrictions.
-
----
+For collaboration or project questions, contact [sokratest@hochschule-rhein-waal.de](mailto:sokratest@hochschule-rhein-waal.de).
 
 ## Funding Notice
 
-Sokrates<sup>t</sup> is an Applied Project of KI:edu.nrw and currently in closed access at Rhine-Waal University.
+OrcAI continues the work of the Sokratesᵗ project at Rhine-Waal University.
 
-**Project Links:**
-- [About Sokrates<sup>t</sup>](https://www.hochschule-rhein-waal.de/de/fakultaeten/kommunikation-und-umwelt/forschungsprojekte/sokratest)
+Project links:
+- [About Sokratesᵗ](https://www.hochschule-rhein-waal.de/de/fakultaeten/kommunikation-und-umwelt/forschungsprojekte/sokratest)
 - [About KI:edu.nrw](https://ki-edu-nrw.ruhr-uni-bochum.de/ueber-das-projekt/phase-2/praxis-transferprojekte/aktuelle-praxisprojekte/#sokratest)
 
-**Supported by:**
-- KI:edu.nrw (Artificial Intelligence in Education Initiative North Rhine-Westphalia)
-- DH.nrw (Digitalization and Education in Higher Education North Rhine-Westphalia)
-- MKW NRW (Ministry of Culture and Science of North Rhine-Westphalia)
-
-This project is funded as part of the KI:edu.nrw initiative, which promotes the integration of artificial intelligence in education across North Rhine-Westphalia's higher education institutions.
+Supported by:
+- KI:edu.nrw
+- DH.nrw
+- MKW NRW

@@ -52,10 +52,7 @@ const emailConfig = Config.all({
 		true,
 	),
 	from: Config.option(Config.string("SMTP_FROM")),
-	fromName: Config.withDefault(
-		Config.string("SMTP_FROM_NAME"),
-		"Sokratest Team",
-	),
+	fromName: Config.withDefault(Config.string("SMTP_FROM_NAME"), "OrcAI Team"),
 }).pipe(
 	Config.mapAttempt((raw) => {
 		const host = normalizeOptionalString(raw.host);

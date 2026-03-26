@@ -78,7 +78,7 @@ services:
       retries: 10
     restart: unless-stopped
 
-  # Your Sokratest Application
+  # OrcAI application (legacy service name retained)
   sokratest:
     build:
       context: .
