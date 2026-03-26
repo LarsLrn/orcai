@@ -19,9 +19,6 @@ const DisplayPointImage = ({
 		orpc.storage.createDownloadUrl.queryOptions({
 			input: {
 				id: imageRef.reference,
-				prefix: imageRef.prefix,
-				bucket: imageRef.bucket,
-				fileType: imageRef.type,
 			},
 		}),
 	);

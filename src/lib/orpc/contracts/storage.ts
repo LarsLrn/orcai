@@ -40,9 +40,6 @@ export const createDownloadUrlContract = base
 	.input(
 		assetSelectSchema.pick({
 			id: true,
-			prefix: true,
-			bucket: true,
-			fileType: true,
 		}),
 	)
 	.output(

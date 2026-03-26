@@ -1,5 +1,6 @@
 import * as Effect from "effect/Effect";
 import { v4 as uuidv4 } from "uuid";
+import { DB } from "@/lib/effect/services/drizzle";
 import { runOrpcEffect } from "@/lib/effect/utils/orpc-helpers";
 import { authed } from "@/lib/orpc/implementation/authed";
 import { requireOrganizationPermission } from "@/lib/orpc/middlewares/org-permission";
@@ -246,15 +247,40 @@ export const createDownloadUrl = authed.storage.createDownloadUrl
 				entityType: "asset",
 			}) satisfies CheckPermissionInput,
 	)
-	.handler(async ({ input }) =>
+	.handler(async ({ input, errors }) =>
 		runOrpcEffect(
 			Effect.gen(function* () {
+				const db = yield* DB;
 				const expiry = 60 * 60;
-				const extension = getFileTypeFromMime(input.fileType);
-				const filePath = `${input.prefix}/${input.id}.${extension}`;
+				const asset = yield* db.query.asset
+					.findFirst({
+						where: {
+							id: input.id,
+						},
+						columns: {
+							bucket: true,
+							prefix: true,
+							fileType: true,
+						},
+					})
+					.pipe(
+						Effect.flatMap((row) =>
+							Effect.fromNullable(row).pipe(
+								Effect.orElse(() =>
+									Effect.fail(
+										errors.NOT_FOUND({
+											message: "Asset not found",
+										}),
+									),
+								),
+							),
+						),
+					);
+				const extension = getFileTypeFromMime(asset.fileType);
+				const filePath = `${asset.prefix}/${input.id}.${extension}`;
 
 				return yield* getDownloadUrl({
-					bucket: input.bucket,
+					bucket: asset.bucket,
 					key: filePath,
 					expiresIn: expiry,
 				}).pipe(
