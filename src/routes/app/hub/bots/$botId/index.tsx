@@ -174,7 +174,7 @@ function RouteComponent() {
 				<div className="space-y-6 lg:col-span-2">
 					<div className="mt-2 rounded-md border bg-muted/30 p-3 text-sm">
 						<div className="prose prose-sm max-w-none">
-							<ContentRenderer html={bot.data.contentHtml} />
+							<ContentRenderer content={bot.data.contentJson} />
 						</div>
 					</div>
 					<BotBlocks blocks={botBlocks} />

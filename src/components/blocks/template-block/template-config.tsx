@@ -14,11 +14,11 @@ import type { TemplateBlock } from "@/lib/orpc/schemas/block";
 const TemplateBlockConfigCard = ({
 	config,
 	description,
-	contentHtml,
+	contentJson,
 }: {
 	config: TemplateBlock["config"];
 	description: TemplateBlock["description"];
-	contentHtml: TemplateBlock["contentHtml"];
+	contentJson: TemplateBlock["contentJson"];
 }) => {
 	const [isSystemPromptOpen, setIsSystemPromptOpen] = useState(false);
 
@@ -32,10 +32,10 @@ const TemplateBlockConfigCard = ({
 					</div>
 				)}
 
-				{contentHtml && (
+				{contentJson && (
 					<div className="space-y-2">
 						<div className="prose prose-sm max-w-none">
-							<ContentRenderer html={contentHtml} />
+							<ContentRenderer content={contentJson} />
 						</div>
 					</div>
 				)}
