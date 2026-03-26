@@ -16,7 +16,6 @@ import { user } from "./auth";
 import { organization } from "./organization";
 
 export const resourceTypeEnum = pgEnum("resource_type", [
-	"course",
 	"bot",
 	"block",
 	"asset",

@@ -12,7 +12,7 @@ export const sendJobEffect = <T extends object = object>(params: {
 	};
 	options: {
 		resourceId: string;
-		resourceType: "block" | "course" | "chat";
+		resourceType: "block" | "chat";
 		priority?: number;
 		retryLimit?: number;
 		retryDelay?: number;
@@ -73,7 +73,7 @@ export const sendJobBatchEffect = <T extends object = object>(params: {
 	}>;
 	resourceOptions: {
 		resourceId: string;
-		resourceType: "block" | "course" | "chat" | "asset";
+		resourceType: "block" | "chat" | "asset";
 	};
 }) =>
 	Effect.gen(function* () {

@@ -25,12 +25,6 @@ export const ROLES = [
 
 export const RESOURCES = [
 	{
-		value: "course",
-		label: "Course",
-		accessHint:
-			"Access here controls course visibility/editing and inherited access to linked bots.",
-	},
-	{
 		value: "bot",
 		label: "Bot",
 		accessHint:

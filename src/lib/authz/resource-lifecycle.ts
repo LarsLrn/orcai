@@ -6,13 +6,8 @@ import type { ResourceType } from "@/lib/spice-db/types";
 
 type ResourceVisibility =
 	typeof dbSchema.resourceVisibility.$inferSelect.visibility;
+
 type InitialRelation = "owner" | "manager";
-
-const defaultInitialRelation = (resourceType: ResourceType): InitialRelation =>
-	resourceType === "course" ? "manager" : "owner";
-
-const supportsOrganizationRelation = (resourceType: ResourceType) =>
-	resourceType === "course";
 
 /**
  * Bootstraps the authorization state for a newly created resource.
@@ -20,9 +15,8 @@ const supportsOrganizationRelation = (resourceType: ResourceType) =>
  * Writes three categories of data:
  * 1. **DB records** — `resourceScope` (org ownership), `resourceVisibility`,
  *    and optionally a `resourceGrant` row for the creator.
- * 2. **SpiceDB tuples** — creator relation (`owner` or `manager`), an
- *    `organization` relation for resource types that support it (currently
- *    only `course`), and a `public@user:*` wildcard when visibility is public.
+ * 2. **SpiceDB tuples** — creator relation (`owner` or `manager`), and a
+ *    `public@user:*` wildcard when visibility is public.
  *
  * Must be called once, immediately after the resource row is inserted.
  *
@@ -48,8 +42,7 @@ export const initializeResourceAuthorization = (params: {
 		const now = new Date();
 
 		const visibility = params.visibility ?? "private";
-		const initialRelation =
-			params.initialRelation ?? defaultInitialRelation(params.resourceType);
+		const initialRelation = params.initialRelation ?? "owner";
 		const writeManagerGrant =
 			params.writeManagerGrant ?? initialRelation === "manager";
 
@@ -85,18 +78,6 @@ export const initializeResourceAuthorization = (params: {
 		}
 
 		const mutations = [
-			...(supportsOrganizationRelation(params.resourceType)
-				? [
-						{
-							resourceType: params.resourceType,
-							resourceId: params.resourceId,
-							relation: "organization" as const,
-							subjectType: "organization" as const,
-							subjectId: params.organizationId,
-							operation: "touch" as const,
-						},
-					]
-				: []),
 			{
 				resourceType: params.resourceType,
 				resourceId: params.resourceId,

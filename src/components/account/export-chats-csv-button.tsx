@@ -27,7 +27,6 @@ interface CSVRow {
 	user_id: string;
 	tags: string;
 	latency: string;
-	metadata_course_id: string;
 	metadata_ai_prompt_format: string;
 	system_prompt: string;
 	message_sequence: string;
@@ -213,7 +212,6 @@ const ExportChatsCSVButton = ({ traces }: { traces: FilteredTrace[] }) => {
 				session_id: sanitizeForCSV(sessionId),
 				user_id: sanitizeForCSV(latestTrace.userId),
 				tags: sanitizeForCSV((latestTrace.tags || []).join(";")),
-				metadata_course_id: sanitizeForCSV(conversation.metadata?.courseId),
 				metadata_ai_prompt_format: sanitizeForCSV(
 					conversation.metadata?.["ai.prompt.format"],
 				),

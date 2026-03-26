@@ -1,12 +1,6 @@
 import { useQuery } from "@tanstack/react-query";
 import { Link } from "@tanstack/react-router";
-import {
-	FileIcon,
-	LayersIcon,
-	LinkIcon,
-	ShieldIcon,
-	SquareStackIcon,
-} from "lucide-react";
+import { FileIcon, LinkIcon, ShieldIcon, SquareStackIcon } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { orpc } from "@/lib/orpc/orpc";
@@ -33,7 +27,6 @@ const sourceLabel: Record<UserAccessEntry["source"], string> = {
 	[USER_ACCESS_SOURCE.DIRECT_GROUP]: "Group",
 	[USER_ACCESS_SOURCE.DIRECT_GROUP_ALL_MEMBERS]: "All members",
 	[USER_ACCESS_SOURCE.INHERITED_ORGANIZATION]: "Inherited org",
-	[USER_ACCESS_SOURCE.INHERITED_COURSE]: "Inherited course",
 	[USER_ACCESS_SOURCE.INHERITED_BOT]: "Inherited bot",
 	[USER_ACCESS_SOURCE.INHERITED_BLOCK]: "Inherited block",
 	[USER_ACCESS_SOURCE.PUBLIC]: "Public",
@@ -88,13 +81,6 @@ const ResourceTypeLabel = ({
 	type: UserAccessEntry["resourceType"];
 }) => {
 	switch (type) {
-		case "course":
-			return (
-				<span className="inline-flex items-center gap-1 text-muted-foreground text-xs">
-					<LayersIcon className="h-3 w-3" />
-					Course
-				</span>
-			);
 		case "bot":
 			return (
 				<span className="inline-flex items-center gap-1 text-muted-foreground text-xs">

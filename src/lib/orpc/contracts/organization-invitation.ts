@@ -8,7 +8,7 @@ import {
 import { paginationSchema, statusSchema } from "@/lib/orpc/schemas/shared";
 import { base } from "./base";
 
-// TODO: Refactor. There should be endpoints for a) getting all invitations within a course, b) getting all invitations for a user
+// TODO: Refactor. There should be endpoints for getting all invitations for a user
 export const listOrganizationInvitationsContract = base
 	.route({
 		method: "GET",
