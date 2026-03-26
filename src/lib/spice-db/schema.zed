@@ -9,7 +9,6 @@ definition organization {
 	permission member = owner + instructor + student
 	permission manage_members = owner
 	permission invite = owner + instructor
-	permission create_course = owner + instructor
 	permission create_bot = owner + instructor
 	permission create_block = owner + instructor
 	permission create_asset = owner + instructor
@@ -24,33 +23,17 @@ definition group {
 	permission manage = organization->manage_members
 }
 
-definition course {
-	relation organization: organization
-	relation manager: user | group#member
-	relation editor: user | group#member
-	relation viewer: user | group#member
-	relation public: user:*
-
-	permission read = manager + editor + viewer + organization->admin + public
-	permission edit = manager + editor + organization->admin
-	permission manage = manager + organization->admin
-	permission invite = manage
-	permission delete = manager + organization->admin
-	permission manage_access = manager + organization->admin
-}
-
 definition bot {
 	relation owner: user
 	relation manager: user | group#member
 	relation editor: user | group#member
 	relation viewer: user | group#member
 	relation public: user:*
-	relation course: course
 
-	permission read = owner + manager + editor + viewer + course->read + public
+	permission read = owner + manager + editor + viewer + public
 	permission use = read
 	permission fork = read
-	permission edit = owner + manager + editor + course->manage
+	permission edit = owner + manager + editor
 	permission delete = owner + manager
 	permission manage_access = owner + manager
 }
