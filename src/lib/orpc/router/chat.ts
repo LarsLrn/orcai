@@ -16,6 +16,7 @@ import {
 	hasPermission,
 	lookupEntitiesByPermission,
 } from "@/lib/spice-db/client";
+import { DEFAULT_CHAT_TITLE } from "@/lib/ai/generate-chat-title";
 
 export const listChats = authed.chat.list.handler(async ({ input, context }) =>
 	runOrpcEffect(
@@ -149,7 +150,7 @@ export const createChat = authed.chat.create.handler(
 						const [chat] = yield* tx
 							.insert(dbSchema.chat)
 							.values({
-								title: input.title ?? "New Chat",
+								title: input.title ?? DEFAULT_CHAT_TITLE,
 								userId: context.auth.user.id,
 								botId: input.botId,
 								config: input.config ?? {},

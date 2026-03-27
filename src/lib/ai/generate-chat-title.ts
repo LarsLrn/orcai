@@ -1,46 +1,47 @@
-import { generateText, type LanguageModel } from "ai";
-import * as Effect from "effect/Effect";
-import type { ChatAgentUIMessage } from "@/lib/ai/types/chat-agent-message";
-import { AiError } from "@/lib/effect/utils/errors";
+const MAX_CHAT_TITLE_LENGTH = 80;
 
-export const generateChatTitle = (params: {
-	messages: ChatAgentUIMessage[];
-	model: LanguageModel;
-}) =>
-	Effect.gen(function* () {
-		const { messages, model } = params;
+export const DEFAULT_CHAT_TITLE = "New Chat";
 
-		// Extract only user and assistant messages for context
-		const conversationContext = messages
-			.filter((msg) => msg.role === "user" || msg.role === "assistant")
-			.slice(0, 6) // Use first 6 messages for title generation
-			.map((msg) => {
-				// Extract text from message parts
-				const textContent = msg.parts
-					.filter((part) => part.type === "text")
-					.map((part) => ("text" in part ? part.text : ""))
-					.join(" ");
-				return `${msg.role}: ${textContent}`;
-			})
-			.join("\n");
+const isTextPart = (
+	part: unknown,
+): part is {
+	type: "text";
+	text: string;
+} =>
+	typeof part === "object" &&
+	part !== null &&
+	"type" in part &&
+	part.type === "text" &&
+	"text" in part &&
+	typeof part.text === "string";
 
-		return yield* Effect.tryPromise({
-			try: () =>
-				generateText({
-					model,
-					prompt: `Based on the following conversation, generate a short, descriptive title (maximum 80 characters). The title should capture the main topic or purpose of the conversation. Return ONLY the title text, nothing else
-      
-      			Conversation:
-      			${conversationContext}`,
-				}),
-			catch: (cause) =>
-				new AiError({
-					operation: "generateChatTitle",
-					cause,
-				}),
-		}).pipe(
-			Effect.map((response) => ({
-				title: response.text,
-			})),
-		);
-	});
+export const shouldGenerateChatTitle = (title: string | null | undefined) =>
+	title == null || title.trim() === "" || title.trim() === DEFAULT_CHAT_TITLE;
+
+export const getChatTitleSourceText = (message: { parts: unknown[] }) => {
+	const text = message.parts
+		.filter(isTextPart)
+		.map((part) => part.text)
+		.join(" ")
+		.replaceAll(/\s+/g, " ")
+		.trim();
+
+	return text.length > 0 ? text : null;
+};
+
+export const buildChatTitlePrompt = (userMessageText: string) =>
+	`Based on the following user request, generate a short, descriptive title (maximum ${MAX_CHAT_TITLE_LENGTH} characters). The title should capture the main topic or goal of the request. Return ONLY the title text, nothing else.
+
+User request:
+${userMessageText}`;
+
+export const sanitizeGeneratedChatTitle = (title: string) => {
+	const sanitized = title
+		.trim()
+		.replaceAll(/^["'`]+|["'`]+$/g, "")
+		.replaceAll(/\s+/g, " ")
+		.trim()
+		.slice(0, MAX_CHAT_TITLE_LENGTH);
+
+	return sanitized.length > 0 ? sanitized : null;
+};

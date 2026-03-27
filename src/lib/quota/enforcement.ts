@@ -16,6 +16,8 @@ interface ReserveQuotaInput {
 	providerId: string;
 	providerModelId?: string | null;
 	appRequestId: string;
+	maxExpectedOutputTokens?: number;
+	maxExpectedProviderRequests?: number;
 	messages: unknown[];
 	isFirstTurn: boolean;
 }
@@ -59,6 +61,8 @@ export const reserveForAppRequest = (input: ReserveQuotaInput) =>
 		const reservationAmount = estimateQuotaReservationAmount({
 			meteringMode: winning.meteringMode,
 			isFirstTurn: input.isFirstTurn,
+			maxExpectedOutputTokens: input.maxExpectedOutputTokens,
+			maxExpectedProviderRequests: input.maxExpectedProviderRequests,
 			messages: input.messages,
 		});
 

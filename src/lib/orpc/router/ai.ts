@@ -10,7 +10,7 @@ import * as Cause from "effect/Cause";
 import * as Effect from "effect/Effect";
 import { v4 as uuidv4 } from "uuid";
 import { createChatAgent } from "@/lib/ai/agents/chat-agent";
-import { generateChatTitle } from "@/lib/ai/generate-chat-title";
+import { forkChatTitleGenerationIfNeeded } from "@/lib/ai/effects/fork-chat-title-generation";
 import { getChatMessageAttachments } from "@/lib/ai/types/chat-attachment";
 import { buildAttachmentPromptPartCached } from "@/lib/ai/utils/chat-attachment-parts";
 import { getChatAiSettings } from "@/lib/ai/utils/get-chat-ai-settings";
@@ -30,7 +30,6 @@ import {
 	releaseAppRequestQuota,
 	reserveForAppRequest,
 } from "@/lib/quota/enforcement";
-import { updateChat } from "./chat";
 import { listChatBlocks } from "./chat-block";
 import { createChatMessage } from "./chat-message";
 
@@ -280,83 +279,55 @@ export const aiChat = authed.ai.chat
 					},
 				);
 
-				const { branchId: currentBranchId } = yield* Effect.tryPromise({
-					try: async () =>
-						call(
-							createChatMessage,
-							{
-								id: uuidv4(),
-								chatId: input.chatId,
-								role: "user",
-								parts: userMessage.parts,
-								attachments: userMessageAttachments,
-								metadata: userMessage.metadata || {},
-								branchId: input.branchId,
-								parentMessageId,
-							},
-							{
-								context: requestContext,
-							},
-						),
-					catch: () =>
-						errors.BAD_REQUEST({
-							message: "Failed to create user message",
-						}),
-				}).pipe(
-					Effect.catchAll((error) =>
-						releaseAppRequestQuota({
-							reservation: quotaReservation.reservation,
-							reason: "app_failure",
-						}).pipe(
-							Effect.catchAll(() => Effect.void),
-							Effect.zipRight(Effect.fail(error)),
-						),
-					),
-				);
-
-				let titleRequestCount = 0;
-				if (inputMessages.length < 2) {
-					const titleResult = yield* generateChatTitle({
-						messages: inputMessages,
-						model: chatAiSettings.model,
-					}).pipe(
-						Effect.flatMap(({ title }) =>
-							Effect.tryPromise({
-								try: async () =>
-									call(
-										updateChat,
-										{
-											id: input.chatId,
-											title,
-										},
-										{
-											context: requestContext,
-										},
-									),
-								catch: () =>
-									errors.BAD_REQUEST({
-										message: "Failed to update chat title",
-									}),
-							}).pipe(
-								Effect.as({
-									success: true as const,
-								}),
+				const { data: persistedUserMessage, branchId: currentBranchId } =
+					yield* Effect.tryPromise({
+						try: async () =>
+							call(
+								createChatMessage,
+								{
+									id: uuidv4(),
+									chatId: input.chatId,
+									role: "user",
+									parts: userMessage.parts,
+									attachments: userMessageAttachments,
+									metadata: userMessage.metadata || {},
+									branchId: input.branchId,
+									parentMessageId,
+								},
+								{
+									context: requestContext,
+								},
 							),
-						),
+						catch: (cause) =>
+							errors.BAD_REQUEST({
+								message: `Failed to create user message: ${cause}`,
+							}),
+					}).pipe(
 						Effect.catchAll((error) =>
-							Effect.logWarning({
-								chatId: input.chatId,
-								error,
-								message: "ai.chat title generation failed, continuing",
+							releaseAppRequestQuota({
+								reservation: quotaReservation.reservation,
+								reason: "app_failure",
 							}).pipe(
-								Effect.as({
-									success: false as const,
-								}),
+								Effect.catchAll(() => Effect.void),
+								Effect.zipRight(Effect.fail(error)),
 							),
 						),
 					);
-					titleRequestCount = titleResult.success ? 1 : 0;
-				}
+
+				yield* forkChatTitleGenerationIfNeeded({
+					chatId: input.chatId,
+					currentTitle: chatRecord.title,
+					model: chatAiSettings.model,
+					orgId: context.auth.session.activeOrganizationId,
+					providerId,
+					providerModelId: modelId,
+					userId: context.auth.user.id,
+					userMessage: {
+						id: persistedUserMessage.id,
+						role: persistedUserMessage.role,
+						parts: persistedUserMessage.parts,
+					},
+				});
 
 				const agent = createChatAgent({
 					model: chatAiSettings.model,
@@ -365,7 +336,7 @@ export const aiChat = authed.ai.chat
 					generationParams: chatAiSettings.generationParams,
 				});
 
-				let actualProviderRequestCount = titleRequestCount;
+				let actualProviderRequestCount = 0;
 
 				const stream = yield* Effect.tryPromise({
 					try: async () =>
