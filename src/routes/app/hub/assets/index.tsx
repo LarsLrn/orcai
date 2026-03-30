@@ -4,7 +4,6 @@ import { FileTextIcon, FlaskConicalIcon, PlusIcon } from "lucide-react";
 import { AssetCard } from "@/components/documents/asset-card";
 import { Placeholder } from "@/components/placeholders/placeholder";
 import { buttonVariants } from "@/components/ui/button";
-import { DataTablePagination } from "@/components/ui/data-table/data-table-pagination";
 import {
 	Section,
 	SectionAction,
@@ -98,20 +97,17 @@ function RouteComponent() {
 						]}
 					/>
 				) : (
-					<>
-						<SectionGrid layout="3">
-							{assets.data.map((asset) => (
-								<AssetCard
-									key={asset.id}
-									asset={asset}
-									actions={{
-										footer: [],
-									}}
-								/>
-							))}
-						</SectionGrid>
-						{assets.rowCount > pageSize && <DataTablePagination />}
-					</>
+					<SectionGrid layout="3">
+						{assets.data.map((asset) => (
+							<AssetCard
+								key={asset.id}
+								asset={asset}
+								actions={{
+									footer: [],
+								}}
+							/>
+						))}
+					</SectionGrid>
 				)}
 			</SectionContent>
 		</Section>

@@ -33,7 +33,6 @@ export type OrganizationPermission =
 export type PermissionByEntity = {
 	organization: OrganizationPermission;
 	group: "read" | "manage";
-	course: "read" | "edit" | "manage" | "invite" | "delete" | "manage_access";
 	bot: "read" | "use" | "fork" | "edit" | "delete" | "manage_access";
 	block: "read" | "use" | "fork" | "edit" | "delete" | "manage_access";
 	asset:
@@ -54,13 +53,12 @@ export type Permission = PermissionByEntity[EntityType];
 /**
  * Relationship labels in Spice can represent either:
  * - access role assignments (e.g. manager/editor/viewer), or
- * - graph edges between entities (e.g. course, bot, block, organization).
+ * - graph edges between entities (e.g. bot, block, organization).
  */
 export type RelationshipByEntity = {
 	organization: "owner" | "instructor" | "student";
 	group: "organization" | "member";
-	course: "organization" | "manager" | "editor" | "viewer" | "public";
-	bot: "owner" | "manager" | "editor" | "viewer" | "public" | "course";
+	bot: "owner" | "manager" | "editor" | "viewer" | "public";
 	block: "owner" | "manager" | "editor" | "viewer" | "public" | "bot";
 	asset: "owner" | "manager" | "editor" | "viewer" | "public" | "block";
 	chat: "owner" | "bot";

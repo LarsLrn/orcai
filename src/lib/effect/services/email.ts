@@ -44,7 +44,7 @@ const logOnlyService = {
 
 			yield* Effect.logInfo({
 				operation: "email.log-only",
-				from: params.from ?? "log-only@sokratest.local",
+				from: params.from ?? "log-only@orcai.local",
 				to: params.to,
 				subject: params.subject,
 				text: params.text,

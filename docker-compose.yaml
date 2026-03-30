@@ -78,7 +78,7 @@ services:
       retries: 10
     restart: unless-stopped
 
-  # Your Sokratest Application
+  # OrcAI application (legacy service name retained)
   sokratest:
     build:
       context: .
@@ -238,7 +238,7 @@ services:
       SPICEDB_ENDPOINT: spicedb:50051
       SPICEDB_TOKEN: ${SPICEDB_GRPC_PRESHARED_KEY:-dev-spicedb-token}
       SPICEDB_SECURITY: insecure-plaintext
-    command: [ "bun", "run", "scripts/deploy-spicedb-schema.ts" ]
+    command: [ "bun", "run", "scripts/migrate-spicedb-schema.ts", "up" ]
     depends_on:
       spicedb:
         condition: service_healthy

@@ -12,15 +12,7 @@ relationships: |-
   group:allmembers1#member@organization:org1#instructor
   group:allmembers1#member@organization:org1#student
 
-  course:course1#organization@organization:org1
-  course:course1#manager@user:inst2
-  course:course1#viewer@user:student2
-  course:course1#viewer@group:group1#member
-  course:course1#viewer@group:allmembers1#member
-  course:course1#public@user:*
-
   bot:bot1#owner@user:owner1
-  bot:bot1#course@course:course1
   bot:bot1#manager@user:manager1
   bot:bot1#editor@user:editor1
   bot:bot1#viewer@user:viewer1
@@ -37,16 +29,8 @@ relationships: |-
 
 assertions:
   assertTrue:
-    - organization:org1#create_course@user:owner1
-    - organization:org1#create_course@user:inst1
-    - course:course1#manage@user:owner1
-    - course:course1#manage@user:inst2
-    - course:course1#read@user:anyone
-    - course:course1#read@user:groupmember1
-    - course:course1#read@user:student1
-    - course:course1#manage_access@user:inst2
     - bot:bot1#read@user:student2
-    - bot:bot1#edit@user:inst2
+    - bot:bot1#edit@user:editor1
     - bot:bot1#manage_access@user:manager1
     - block:block1#read@user:student2
     - block:block1#edit@user:editor1
@@ -58,8 +42,7 @@ assertions:
 
   assertFalse:
     - organization:org1#manage_members@user:inst1
-    - course:course1#manage@user:student2
-    - course:course1#manage_access@user:student2
+    - bot:bot1#edit@user:inst2
     - bot:bot1#manage_access@user:editor1
     - block:block1#manage_access@user:student2
     - asset:asset1#edit@user:student2

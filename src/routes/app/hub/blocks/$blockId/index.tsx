@@ -140,7 +140,7 @@ function RouteComponent() {
 						<TemplateBlockConfigCard
 							config={block.data.config}
 							description={block.data.description}
-							contentHtml={block.data.contentHtml}
+							contentJson={block.data.contentJson}
 						/>
 					)}
 					{block.data.type === "database" && block.assets && (
@@ -148,7 +148,7 @@ function RouteComponent() {
 							blockId={block.data.id}
 							config={block.data.config}
 							description={block.data.description}
-							contentHtml={block.data.contentHtml}
+							contentJson={block.data.contentJson}
 							assets={block.assets}
 						/>
 					)}

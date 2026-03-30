@@ -19,9 +19,6 @@ const FileViewer = ({ asset }: { asset: Asset }) => {
 		orpc.storage.createDownloadUrl.queryOptions({
 			input: {
 				id: asset.id,
-				prefix: asset.prefix,
-				bucket: asset.bucket,
-				fileType: asset.fileType,
 			},
 		}),
 	);

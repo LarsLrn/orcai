@@ -1,5 +1,5 @@
 {
-	"name": "Sokratest Dev",
+	"name": "OrcAI Dev",
 	"dockerComposeFile": [
 		"../docker-compose.yaml",
 		"docker-compose.dev.yaml"
@@ -32,10 +32,10 @@
 	],
 	"portsAttributes": {
 		"3000": {
-			"label": "Sokratest App"
+			"label": "OrcAI App"
 		},
 		"4206": {
-			"label": "Sokratest App Devtools"
+			"label": "OrcAI App Devtools"
 		},
 		"valkey:6379": {
 			"label": "Valkey"

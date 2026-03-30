@@ -18,7 +18,6 @@ const sourceLabel: Record<ResourceGrant["source"], string> = {
 	[RESOURCE_GRANT_SOURCE.DIRECT_USER]: "Direct user",
 	[RESOURCE_GRANT_SOURCE.DIRECT_GROUP]: "Direct group",
 	[RESOURCE_GRANT_SOURCE.DIRECT_GROUP_ALL_MEMBERS]: "All Members",
-	[RESOURCE_GRANT_SOURCE.INHERITED_COURSE]: "Inherited from course",
 	[RESOURCE_GRANT_SOURCE.INHERITED_BOT]: "Inherited from bot",
 	[RESOURCE_GRANT_SOURCE.INHERITED_BLOCK]: "Inherited from block",
 	[RESOURCE_GRANT_SOURCE.PUBLIC]: "Public",

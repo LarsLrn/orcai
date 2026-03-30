@@ -95,7 +95,6 @@ export const assetPointSelectSchema = z.object({
  */
 
 export const assetPointInsertSchema = z.object({
-	courseId: z.uuidv4(),
 	payload: assetPointPayloadSchema,
 	vector: assetPointSelectSchema.pick({
 		vector: true,

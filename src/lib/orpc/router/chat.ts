@@ -1,6 +1,7 @@
 import { count, eq, inArray } from "drizzle-orm";
 import * as Effect from "effect/Effect";
 import { dbSchema } from "@/db/schema";
+import { DEFAULT_CHAT_TITLE } from "@/lib/ai/generate-chat-title";
 import { AuthzService } from "@/lib/effect/services/authz";
 import { DB } from "@/lib/effect/services/drizzle";
 import { runOrpcEffect } from "@/lib/effect/utils/orpc-helpers";
@@ -149,7 +150,7 @@ export const createChat = authed.chat.create.handler(
 						const [chat] = yield* tx
 							.insert(dbSchema.chat)
 							.values({
-								title: input.title ?? "New Chat",
+								title: input.title ?? DEFAULT_CHAT_TITLE,
 								userId: context.auth.user.id,
 								botId: input.botId,
 								config: input.config ?? {},

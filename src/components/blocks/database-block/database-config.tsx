@@ -42,13 +42,13 @@ const DatabaseBlockConfigCard = ({
 	blockId,
 	config,
 	description,
-	contentHtml,
+	contentJson,
 	assets,
 }: {
 	blockId: DatabaseBlock["id"];
 	config: DatabaseBlock["config"];
 	description: DatabaseBlock["description"];
-	contentHtml: DatabaseBlock["contentHtml"];
+	contentJson: DatabaseBlock["contentJson"];
 	assets: Asset[];
 }) => {
 	const [isAdvancedOpen, setIsAdvancedOpen] = useState(false);
@@ -64,9 +64,9 @@ const DatabaseBlockConfigCard = ({
 						</div>
 					)}
 
-					{contentHtml && (
+					{contentJson && (
 						<div className="prose prose-sm max-w-none">
-							<ContentRenderer html={contentHtml} />
+							<ContentRenderer content={contentJson} />
 						</div>
 					)}
 
