@@ -1,6 +1,7 @@
 import { count, eq, inArray } from "drizzle-orm";
 import * as Effect from "effect/Effect";
 import { dbSchema } from "@/db/schema";
+import { DEFAULT_CHAT_TITLE } from "@/lib/ai/generate-chat-title";
 import { AuthzService } from "@/lib/effect/services/authz";
 import { DB } from "@/lib/effect/services/drizzle";
 import { runOrpcEffect } from "@/lib/effect/utils/orpc-helpers";
@@ -16,7 +17,6 @@ import {
 	hasPermission,
 	lookupEntitiesByPermission,
 } from "@/lib/spice-db/client";
-import { DEFAULT_CHAT_TITLE } from "@/lib/ai/generate-chat-title";
 
 export const listChats = authed.chat.list.handler(async ({ input, context }) =>
 	runOrpcEffect(
