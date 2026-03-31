@@ -1,0 +1,13 @@
+{
+	"name": "@orcai/valkey",
+	"version": "0.1.0",
+	"private": true,
+	"type": "module",
+	"exports": {
+		".": "./src/index.ts"
+	},
+	"dependencies": {
+		"effect": "catalog:",
+		"redis": "5.11.0"
+	}
+}

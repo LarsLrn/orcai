@@ -1,5 +1,5 @@
 # dependencies
-/node_modules
+node_modules/
 /.pnp
 .pnp.js
 .yarn/install-state.gz
@@ -12,9 +12,15 @@
 .output
 .nitro
 /dist
+/apps/*/dist
+/packages/*/dist
+/apps/*/.tanstack
+/packages/*/.tanstack
 
 # production
 /build
+/apps/*/build
+/packages/*/build
 
 # misc
 .DS_Store
@@ -33,7 +39,18 @@ yarn-error.log*
 # typescript
 *.tsbuildinfo
 next-env.d.ts
+/apps/*/*.tsbuildinfo
+/packages/*/*.tsbuildinfo
 
 # Paraglide
 /src/paraglide
+/apps/*/src/paraglide
 .devtools
+
+# workspace caches and generated output
+/apps/*/coverage
+/packages/*/coverage
+/apps/*/.turbo
+/packages/*/.turbo
+/apps/*/.cache
+/packages/*/.cache

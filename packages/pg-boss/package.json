@@ -1,0 +1,16 @@
+{
+	"name": "@orcai/pg-boss",
+	"version": "0.1.0",
+	"private": true,
+	"type": "module",
+	"exports": {
+		".": "./src/index.ts"
+	},
+	"dependencies": {
+		"@orcai/db": "workspace:*",
+		"@orcai/schema": "workspace:*",
+		"effect": "catalog:",
+		"pg-boss": "catalog:",
+		"zod": "catalog:"
+	}
+}

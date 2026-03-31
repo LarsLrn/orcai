@@ -1,0 +1,116 @@
+import { QdrantClient } from "@qdrant/qdrant-js";
+import * as Context from "effect/Context";
+import * as Effect from "effect/Effect";
+import * as Layer from "effect/Layer";
+import * as Redacted from "effect/Redacted";
+import { qdrantCollections } from "./collections";
+import { QdrantConfigLive, QdrantConfigService } from "./config";
+import { QdrantError } from "./errors";
+
+export class QdrantService extends Context.Tag("QdrantService")<
+	QdrantService,
+	{
+		readonly client: QdrantClient;
+		readonly sparseVectorsEnabled: boolean;
+	}
+>() {}
+
+const initCollectionIfNeeded = ({
+	qdrant,
+	sparseVectorsEnabled,
+}: {
+	qdrant: QdrantClient;
+	sparseVectorsEnabled: boolean;
+}) =>
+	Effect.gen(function* () {
+		const collections = yield* Effect.tryPromise({
+			try: () => qdrant.getCollections(),
+			catch: (cause) =>
+				new QdrantError({
+					operation: "getCollections",
+					cause,
+				}),
+		});
+
+		const exists = collections.collections.some(
+			(collection) => collection.name === qdrantCollections.asset.name,
+		);
+
+		if (exists) {
+			return;
+		}
+
+		yield* Effect.tryPromise({
+			try: async () => {
+				await qdrant.createCollection(qdrantCollections.asset.name, {
+					vectors: {
+						dense: {
+							size: qdrantCollections.asset.dimensions,
+							distance: "Cosine",
+						},
+					},
+					...(sparseVectorsEnabled
+						? {
+								sparse_vectors: {
+									bm25: {},
+								},
+							}
+						: {}),
+					hnsw_config: {
+						payload_m: 16,
+						m: 0,
+					},
+					optimizers_config: {
+						default_segment_number: 2,
+					},
+				});
+
+				await qdrant.createPayloadIndex(qdrantCollections.asset.name, {
+					field_name: qdrantCollections.asset.index.blockId,
+					field_schema: {
+						type: "uuid",
+						is_tenant: true,
+					},
+				});
+
+				await qdrant.createPayloadIndex(qdrantCollections.asset.name, {
+					field_name: qdrantCollections.asset.index.chunkIndex,
+					field_schema: {
+						type: "integer",
+					},
+				});
+			},
+			catch: (cause) =>
+				new QdrantError({
+					operation: "createCollection",
+					cause,
+				}),
+		});
+	});
+
+export const QdrantServiceLive = Layer.effect(
+	QdrantService,
+	Effect.gen(function* () {
+		const { config } = yield* QdrantConfigService;
+
+		const client = new QdrantClient({
+			url: config.qdrant.url,
+			port: null,
+			apiKey: Redacted.value(config.qdrant.apiKey),
+		});
+
+		yield* initCollectionIfNeeded({
+			qdrant: client,
+			sparseVectorsEnabled: config.qdrant.enableSparseVectors,
+		});
+
+		return {
+			client,
+			sparseVectorsEnabled: config.qdrant.enableSparseVectors,
+		};
+	}),
+);
+
+export const QdrantLive = QdrantServiceLive.pipe(
+	Layer.provide(QdrantConfigLive),
+);

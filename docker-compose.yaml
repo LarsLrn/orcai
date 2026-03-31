@@ -42,7 +42,6 @@ services:
       POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-postgres}
       POSTGRES_DB: sokratest-v2
     restart: on-failure
-    command: [ "/bin/sh", "-c", "./node_modules/.bin/drizzle-kit migrate --config=drizzle.config.ts" ]
 
   # MinIO S3-Compatible Object Storage
   minio:
@@ -185,6 +184,44 @@ services:
         condition: service_completed_successfully
     restart: unless-stopped
 
+  # Background workers
+  workers:
+    build:
+      context: .
+      dockerfile: ./docker/Dockerfile.workers
+    environment:
+      POSTGRES_USER: ${POSTGRES_USER:-postgres}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-postgres}
+      POSTGRES_DB: ${POSTGRES_DB:-sokratest-v2}
+      POSTGRES_HOST: postgres
+      VALKEY_URL: redis://valkey:6379
+      S3_ENDPOINT: ${S3_ENDPOINT:-http://minio:9000}
+      S3_PUBLIC_ENDPOINT: ${S3_PUBLIC_ENDPOINT:-}
+      S3_REGION: ${S3_REGION:-eu-central-1}
+      S3_ACCESS_KEY: ${MINIO_ROOT_USER:-minioadmin}
+      S3_SECRET_KEY: ${MINIO_ROOT_PASSWORD:-minioadmin}
+      QDRANT_URL: http://qdrant:6333/
+      QDRANT_API_KEY: ${QDRANT_API_KEY:-}
+      QDRANT_ENABLE_SPARSE_VECTORS: ${QDRANT_ENABLE_SPARSE_VECTORS:-false}
+      OPENAI_COMPATIBLE_BASE_URL: ${OPENAI_COMPATIBLE_BASE_URL:-}
+      OPENAI_COMPATIBLE_API_KEY: ${OPENAI_COMPATIBLE_API_KEY:-}
+      DOCLING_URL: ${DOCLING_URL:-}
+      DOCLING_API_KEY: ${DOCLING_API_KEY:-}
+    depends_on:
+      postgres:
+        condition: service_healthy
+      minio:
+        condition: service_healthy
+      minio-setup:
+        condition: service_completed_successfully
+      qdrant:
+        condition: service_healthy
+      migrations:
+        condition: service_completed_successfully
+      valkey:
+        condition: service_healthy
+    restart: unless-stopped
+
   # Create MinIO buckets once on startup
   minio-setup:
     image: minio/mc:RELEASE.2025-02-21T16-00-46Z
@@ -238,7 +275,6 @@ services:
       SPICEDB_ENDPOINT: spicedb:50051
       SPICEDB_TOKEN: ${SPICEDB_GRPC_PRESHARED_KEY:-dev-spicedb-token}
       SPICEDB_SECURITY: insecure-plaintext
-    command: [ "bun", "run", "scripts/migrate-spicedb-schema.ts", "up" ]
     depends_on:
       spicedb:
         condition: service_healthy

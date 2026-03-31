@@ -1,55 +1,98 @@
 {
-	"entry": [
-		"src/routes/**/*.{ts,tsx}",
-		"src/router.tsx",
-		"src/client.tsx",
-		"src/server.ts"
-	],
-	"project": [
-		"src/**"
-	],
-	"ignore": [
-		"src/paraglide/**"
-	],
-	"biome": {
-		"config": [
-			"biome.json",
-			"biome.jsonc"
-		]
-	},
-	"commitlint": {
-		"config": [
-			"package.json",
-			"package.yaml",
-			".commitlintrc",
-			".config/commitlintrc",
-			".commitlintrc.{json,yaml,yml,js,ts,cjs,mjs,cts}",
-			"commitlint.config.{js,ts,cjs,mjs,cts}",
-			".config/commitlintrc.{json,yaml,yml,js,ts,cjs,mjs,cts}"
-		]
-	},
-	"vite": {
-		"config": [
-			"vite.config.{js,mjs,ts,cjs,mts,cts}"
-		]
-	},
-	"drizzle": {
-		"config": [
-			"drizzle.config.{ts,js,json}"
-		]
-	},
-	"tailwind": {
-		"entry": [
-			"tailwind.config.{js,cjs,mjs,ts}"
-		]
-	},
-	"postcss": {
-		"config": [
-			"package.json",
-			"postcss.config.json",
-			".postcssrc",
-			".postcssrc.{json,ts,js,cjs,mjs,mts,cts,yaml,yml}",
-			"postcss.config.{ts,js,cjs,mjs,mts,cts}"
-		]
+	"workspaces": {
+		".": {
+			"ignoreDependencies": [
+				"@effect/language-service"
+			],
+			"biome": {
+				"config": [
+					"biome.json",
+					"biome.jsonc"
+				]
+			},
+			"commitlint": {
+				"config": [
+					"package.json",
+					"package.yaml",
+					".commitlintrc",
+					".config/commitlintrc",
+					".commitlintrc.{json,yaml,yml,js,ts,cjs,mjs,cts}",
+					"commitlint.config.{js,ts,cjs,mjs,cts}",
+					".config/commitlintrc.{json,yaml,yml,js,ts,cjs,mjs,cts}"
+				]
+			}
+		},
+		"apps/app": {
+			"entry": [
+				"src/routes/**/*.{ts,tsx}",
+				"src/router.tsx",
+				"src/client.tsx",
+				"src/server.ts",
+				"start-server.ts"
+			],
+			"project": [
+				"src/**/*.{ts,tsx}"
+			],
+			"ignore": [
+				"src/paraglide/**"
+			],
+			"ignoreDependencies": [
+				"@effect/language-service",
+				"@fontsource-variable/raleway",
+				"@tailwindcss/typography",
+				"postcss",
+				"tailwindcss",
+				"tw-animate-css",
+				"shadcn"
+			],
+			"vite": {
+				"config": [
+					"vite.config.{js,mjs,ts,cjs,mts,cts}"
+				]
+			}
+		},
+		"apps/workers": {
+			"entry": [
+				"src/start-workers.ts"
+			],
+			"project": [
+				"src/**/*.ts"
+			]
+		},
+		"packages/db": {
+			"entry": [
+				"src/index.ts",
+				"src/config.ts",
+				"src/pg-connection-string.ts",
+				"src/schema/index.ts",
+				"src/schema/relations.ts",
+				"src/service.ts"
+			],
+			"project": [
+				"src/**/*.ts"
+			],
+			"drizzle": {
+				"config": [
+					"drizzle.config.{ts,js,json}"
+				]
+			}
+		},
+		"packages/spice-db": {
+			"entry": [
+				"src/index.ts",
+				"src/cli.ts"
+			],
+			"project": [
+				"src/**/*.ts"
+			]
+		},
+		"packages/*": {
+			"entry": [
+				"src/index.ts"
+			],
+			"project": [
+				"src/**/*.ts"
+			]
+		}
 	}
 }

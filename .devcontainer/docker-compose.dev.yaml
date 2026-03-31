@@ -31,6 +31,17 @@ x-dev-spicedb-env: &dev_spicedb_env
   SPICEDB_POSTGRES_PASSWORD: ${SPICEDB_POSTGRES_PASSWORD:-postgres}
 
 services:
+  deps:
+    build:
+      context: .
+      dockerfile: .devcontainer/Dockerfile.workspace
+    working_dir: /workspaces/sokratest-v2
+    command: [ "bun", "install", "--frozen-lockfile" ]
+    volumes:
+      - .:/workspaces/sokratest-v2:cached
+    user: bun
+    restart: "no"
+
   workspace:
     build:
       context: .
@@ -64,6 +75,8 @@ services:
       SMTP_SECURE: ${SMTP_SECURE:-false}
       SMTP_TLS_REJECT_UNAUTHORIZED: ${SMTP_TLS_REJECT_UNAUTHORIZED:-false}
     depends_on:
+      deps:
+        condition: service_completed_successfully
       postgres:
         condition: service_healthy
       valkey:
@@ -80,6 +93,46 @@ services:
         condition: service_healthy
       spicedb-schema:
         condition: service_completed_successfully
+
+  workers:
+    build:
+      context: .
+      dockerfile: .devcontainer/Dockerfile.workspace
+    working_dir: /workspaces/sokratest-v2
+    command: [ "/bin/sh", "-c", "bun run workers:dev" ]
+    volumes:
+      - .:/workspaces/sokratest-v2:cached
+    environment:
+      <<: [ *dev_app_env, *dev_db_env, *dev_minio_env ]
+      NODE_ENV: development
+      POSTGRES_HOST: postgres
+      POSTGRES_PORT: "5432"
+      POSTGRES_SSL: "false"
+      VALKEY_URL: redis://valkey:6379
+      S3_ENDPOINT: http://minio:9000
+      S3_PUBLIC_ENDPOINT: ${S3_PUBLIC_ENDPOINT:-http://localhost:9000}
+      S3_REGION: ${S3_REGION:-eu-central-1}
+      S3_ACCESS_KEY: ${MINIO_ROOT_USER:-minioadmin}
+      S3_SECRET_KEY: ${MINIO_ROOT_PASSWORD:-minioadmin}
+      QDRANT_URL: http://qdrant:6333/
+      QDRANT_API_KEY: ${QDRANT_API_KEY:-dev-qdrant-key}
+      QDRANT_ENABLE_SPARSE_VECTORS: ${QDRANT_ENABLE_SPARSE_VECTORS:-false}
+    user: bun
+    depends_on:
+      deps:
+        condition: service_completed_successfully
+      postgres:
+        condition: service_healthy
+      valkey:
+        condition: service_healthy
+      migrations:
+        condition: service_completed_successfully
+      minio:
+        condition: service_healthy
+      minio-setup:
+        condition: service_completed_successfully
+      qdrant:
+        condition: service_healthy
 
   postgres:
     environment:

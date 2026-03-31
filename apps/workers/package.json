@@ -1,0 +1,26 @@
+{
+	"name": "@orcai/workers",
+	"version": "0.1.0",
+	"private": true,
+	"type": "module",
+	"scripts": {
+		"dev": "bun --watch src/start-workers.ts",
+		"start": "bun run src/start-workers.ts"
+	},
+	"dependencies": {
+		"@orcai/ai": "workspace:*",
+		"@orcai/core": "workspace:*",
+		"@orcai/db": "workspace:*",
+		"@orcai/pg-boss": "workspace:*",
+		"@orcai/qdrant": "workspace:*",
+		"@orcai/quota": "workspace:*",
+		"@orcai/s3": "workspace:*",
+		"@orcai/schema": "workspace:*",
+		"@orcai/valkey": "workspace:*",
+		"ai": "catalog:",
+		"drizzle-orm": "catalog:",
+		"effect": "catalog:",
+		"pg-boss": "catalog:",
+		"uuid": "catalog:"
+	}
+}

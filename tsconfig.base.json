@@ -1,0 +1,42 @@
+{
+	"watchOptions": {
+		"excludeDirectories": [
+			"**/node_modules",
+			"**/.git",
+			"**/.devtools",
+			"**/dist",
+			"**/.tanstack"
+		]
+	},
+	"compilerOptions": {
+		"target": "ES2022",
+		"jsx": "react-jsx",
+		"module": "ESNext",
+		"lib": [
+			"ES2022"
+		],
+		"types": [
+			"bun"
+		],
+		"allowJs": true,
+		"verbatimModuleSyntax": true,
+		"moduleResolution": "bundler",
+		"noEmit": true,
+		"esModuleInterop": true,
+		"isolatedModules": true,
+		"resolveJsonModule": true,
+		"skipLibCheck": true,
+		"strict": true,
+		"noUnusedLocals": true,
+		"noUnusedParameters": true,
+		"noFallthroughCasesInSwitch": true,
+		"forceConsistentCasingInFileNames": true,
+		"noUncheckedSideEffectImports": true,
+		"strictNullChecks": true,
+		"plugins": [
+			{
+				"name": "@effect/language-service"
+			}
+		]
+	}
+}

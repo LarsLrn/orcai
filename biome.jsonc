@@ -9,10 +9,10 @@
 		"ignoreUnknown": false,
 		"includes": [
 			"**",
-			"!src/routeTree.gen.ts",
+			"!apps/app/src/routeTree.gen.ts",
 			"!**/public",
 			"!**/migrations",
-			"!src/paraglide",
+			"!apps/app/src/paraglide",
 			"!**/.tanstack"
 		]
 	},
@@ -54,11 +54,12 @@
 						"patterns": [
 							{
 								"group": [
-									"@/db/schema/*",
-									"@/db/schema/**",
-									"!@/db/schema/relations"
+									"@orcai/db/*",
+									"@orcai/db/**",
+									"!@orcai/db/relations",
+									"!@orcai/db/schema"
 								],
-								"message": "Import tables via '@/db/schema' only."
+								"message": "Import DB modules via '@orcai/db', '@orcai/db/schema', or '@orcai/db/relations' only."
 							}
 						]
 					}

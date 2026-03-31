@@ -1,59 +1,41 @@
 {
-	"include": [
-		"src",
-		"scripts/**/*.ts",
-		"start-server.ts"
-	],
-	"exclude": [
-		".tanstack"
-	],
-	"watchOptions": {
-		"excludeDirectories": [
-			"**/node_modules",
-			"**/.git",
-			"**/.devtools",
-			"**/dist",
-			"**/.tanstack"
-		]
-	},
-	"compilerOptions": {
-		"target": "ES2022",
-		"jsx": "react-jsx",
-		"module": "ESNext",
-		"lib": [
-			"ES2022",
-			"DOM"
-		],
-		"types": [
-			"vite/client",
-			"bun"
-		],
-		"allowJs": true,
-		/* Bundler Options */
-		"moduleResolution": "bundler",
-		"noEmit": true,
-		"esModuleInterop": true,
-		"isolatedModules": true,
-		"resolveJsonModule": true,
-		/* Linting Options */
-		"skipLibCheck": true,
-		"strict": true,
-		"noUnusedLocals": true,
-		"noUnusedParameters": true,
-		"noFallthroughCasesInSwitch": true,
-		"forceConsistentCasingInFileNames": true,
-		"noUncheckedSideEffectImports": true,
-		"strictNullChecks": true,
-		"paths": {
-			"@/*": [
-				"./src/*"
-			]
+	"files": [],
+	"references": [
+		{
+			"path": "./apps/app"
 		},
-		/* Plugins */
-		"plugins": [
-			{
-				"name": "@effect/language-service"
-			}
-		]
-	}
+		{
+			"path": "./apps/workers"
+		},
+		{
+			"path": "./packages/ai"
+		},
+		{
+			"path": "./packages/core"
+		},
+		{
+			"path": "./packages/spice-db"
+		},
+		{
+			"path": "./packages/db"
+		},
+		{
+			"path": "./packages/schema"
+		},
+		{
+			"path": "./packages/qdrant"
+		},
+		{
+			"path": "./packages/s3"
+		},
+		{
+			"path": "./packages/pg-boss"
+		},
+		{
+			"path": "./packages/valkey"
+		},
+		{
+			"path": "./packages/quota"
+		}
+	]
 }

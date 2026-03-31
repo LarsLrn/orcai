@@ -1,0 +1,16 @@
+{
+	"name": "@orcai/quota",
+	"version": "0.1.0",
+	"private": true,
+	"type": "module",
+	"exports": {
+		".": "./src/index.ts"
+	},
+	"dependencies": {
+		"@orcai/db": "workspace:*",
+		"@orcai/valkey": "workspace:*",
+		"drizzle-orm": "catalog:",
+		"effect": "catalog:",
+		"uuid": "catalog:"
+	}
+}

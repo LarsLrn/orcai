@@ -12,6 +12,8 @@
 	"files.associations": {
 		"*.css": "tailwindcss"
 	},
+	"npm.packageManager": "bun",
+	"npm.scriptRunner": "bun",
 	"tailwindCSS.lint.suggestCanonicalClasses": "warning",
 	"tailwindCSS.codeActions": true,
 	"github.copilot.chat.commitMessageGeneration.instructions": [
