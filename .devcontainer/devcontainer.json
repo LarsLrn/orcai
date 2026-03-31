@@ -6,7 +6,9 @@
 	],
 	"service": "workspace",
 	"runServices": [
+		"deps",
 		"workspace",
+		"workers",
 		"postgres",
 		"valkey",
 		"migrations",
@@ -19,7 +21,6 @@
 		"spicedb-schema"
 	],
 	"workspaceFolder": "/workspaces/sokratest-v2",
-	"postCreateCommand": "bun install --frozen-lockfile",
 	"remoteUser": "bun",
 	"forwardPorts": [
 		3000,

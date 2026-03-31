@@ -12,6 +12,18 @@ FROM ${BUN_IMAGE} AS prod-deps
 WORKDIR /app
 
 COPY package.json bun.lock bunfig.toml ./
+COPY apps/app/package.json ./apps/app/package.json
+COPY apps/workers/package.json ./apps/workers/package.json
+COPY packages/ai/package.json ./packages/ai/package.json
+COPY packages/core/package.json ./packages/core/package.json
+COPY packages/db/package.json ./packages/db/package.json
+COPY packages/pg-boss/package.json ./packages/pg-boss/package.json
+COPY packages/qdrant/package.json ./packages/qdrant/package.json
+COPY packages/quota/package.json ./packages/quota/package.json
+COPY packages/s3/package.json ./packages/s3/package.json
+COPY packages/schema/package.json ./packages/schema/package.json
+COPY packages/spice-db/package.json ./packages/spice-db/package.json
+COPY packages/valkey/package.json ./packages/valkey/package.json
 RUN bun install --frozen-lockfile --production --ignore-scripts
 
 # -------------------------
@@ -27,12 +39,26 @@ ARG VITE_UMAMI_WEBSITE_ID=
 
 # Copy package files for dependency installation
 COPY package.json bun.lock bunfig.toml ./
+COPY apps/app/package.json ./apps/app/package.json
+COPY apps/workers/package.json ./apps/workers/package.json
+COPY packages/ai/package.json ./packages/ai/package.json
+COPY packages/core/package.json ./packages/core/package.json
+COPY packages/db/package.json ./packages/db/package.json
+COPY packages/pg-boss/package.json ./packages/pg-boss/package.json
+COPY packages/qdrant/package.json ./packages/qdrant/package.json
+COPY packages/quota/package.json ./packages/quota/package.json
+COPY packages/s3/package.json ./packages/s3/package.json
+COPY packages/schema/package.json ./packages/schema/package.json
+COPY packages/spice-db/package.json ./packages/spice-db/package.json
+COPY packages/valkey/package.json ./packages/valkey/package.json
 
 # Install all dependencies
 RUN bun install --frozen-lockfile --ignore-scripts
 
 # Copy source code and build
 COPY . .
+
+WORKDIR /app/apps/app
 
 ENV NODE_ENV=production
 ENV VITE_BASE_URL=${VITE_BASE_URL}
@@ -45,17 +71,23 @@ RUN bun run build
 # Runtime stage
 # -------------------------
 FROM ${BUN_IMAGE} AS runtime
-WORKDIR /app
+WORKDIR /app/apps/app
 
 # Set production environment
 ENV NODE_ENV=production
 ENV PORT=3000
 
 # bun user already exists in the base image
-COPY --from=prod-deps --chown=bun:bun /app/node_modules ./node_modules
-COPY --from=builder --chown=bun:bun /app/dist ./dist
-COPY --from=builder --chown=bun:bun /app/package.json ./package.json
-COPY --from=builder --chown=bun:bun /app/start-server.ts ./start-server.ts
+COPY --from=builder --chown=bun:bun /app/package.json /app/package.json
+COPY --from=builder --chown=bun:bun /app/bun.lock /app/bun.lock
+COPY --from=builder --chown=bun:bun /app/bunfig.toml /app/bunfig.toml
+COPY --from=prod-deps --chown=bun:bun /app/node_modules /app/node_modules
+COPY --from=prod-deps --chown=bun:bun /app/apps /app/apps
+COPY --from=prod-deps --chown=bun:bun /app/packages /app/packages
+COPY --from=builder --chown=bun:bun /app/apps/app/dist ./dist
+COPY --from=builder --chown=bun:bun /app/apps/app/package.json ./package.json
+COPY --from=builder --chown=bun:bun /app/apps/app/start-server.ts ./start-server.ts
+COPY --from=builder --chown=bun:bun /app/packages /app/packages
 
 # Switch to non-root user
 USER bun

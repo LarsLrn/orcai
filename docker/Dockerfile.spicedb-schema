@@ -5,17 +5,13 @@ FROM ${BUN_IMAGE}
 
 WORKDIR /app
 
-COPY package.json ./
+COPY package.json bun.lock ./
+COPY packages/spice-db ./packages/spice-db
 
-# Install only what is needed to run SpiceDB migrations.
-RUN export AUTHZED_NODE_VERSION=$(node -pe "require('./package.json').dependencies['@authzed/authzed-node']") && \
-  rm package.json && \
-  bun install @authzed/authzed-node@$AUTHZED_NODE_VERSION --force
+WORKDIR /app/packages/spice-db
 
-COPY scripts/migrate-spicedb-schema.ts ./scripts/migrate-spicedb-schema.ts
-COPY scripts/spice-converge ./scripts/spice-converge
-COPY src/lib/spice-db/schema.zed ./src/lib/spice-db/schema.zed
+RUN bun install
 
 USER bun
 
-CMD ["bun", "run", "scripts/migrate-spicedb-schema.ts", "up"]
+CMD ["bun", "run", "up"]

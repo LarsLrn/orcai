@@ -1,0 +1,25 @@
+{
+	"extends": "../../tsconfig.base.json",
+	"include": [
+		"src",
+		"start-server.ts"
+	],
+	"exclude": [
+		".tanstack"
+	],
+	"compilerOptions": {
+		"types": [
+			"bun",
+			"vite/client"
+		],
+		"lib": [
+			"ES2022",
+			"DOM"
+		],
+		"paths": {
+			"@/*": [
+				"./src/*"
+			]
+		}
+	}
+}

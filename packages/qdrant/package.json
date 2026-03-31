@@ -1,0 +1,16 @@
+{
+	"name": "@orcai/qdrant",
+	"version": "0.1.0",
+	"private": true,
+	"type": "module",
+	"exports": {
+		".": "./src/index.ts"
+	},
+	"dependencies": {
+		"@orcai/core": "workspace:*",
+		"@orcai/schema": "workspace:*",
+		"@qdrant/qdrant-js": "catalog:",
+		"effect": "catalog:",
+		"zod": "catalog:"
+	}
+}

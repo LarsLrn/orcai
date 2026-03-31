@@ -1,8 +1,8 @@
 <p align="center">
   <picture>
-    <source media="(prefers-color-scheme: dark)" srcset="src/static/branding/text_white.svg">
-    <source media="(prefers-color-scheme: light)" srcset="src/static/branding/text_black.svg">
-    <img src="src/static/branding/text_black.svg" alt="OrcAI" width="320">
+    <source media="(prefers-color-scheme: dark)" srcset="apps/app/src/static/branding/text_white.svg">
+    <source media="(prefers-color-scheme: light)" srcset="apps/app/src/static/branding/text_black.svg">
+    <img src="apps/app/src/static/branding/text_black.svg" alt="OrcAI" width="320">
   </picture>
 </p>
 
@@ -78,6 +78,8 @@ What starts automatically:
 - MinIO
 - Qdrant
 - SpiceDB
+- Background workers
+- Workspace dependency install
 - Database migrations
 - MinIO bucket bootstrap
 - SpiceDB schema migration
@@ -85,6 +87,7 @@ What starts automatically:
 
 Notes:
 - The devcontainer fixes internal service addresses on the Compose network.
+- A one-shot `deps` service runs `bun install --frozen-lockfile` before the `workspace` and `workers` containers start.
 - It defaults to an Ollama-compatible endpoint at `http://localhost:11434/v1` for `OPENAI_COMPATIBLE_BASE_URL`.
 - `DOCLING_URL` defaults to `http://localhost:8080`, but no Docling container is included in this repo. You must provide that service separately if you want document processing to work.
 - Email delivery stays in log-only mode unless `SMTP_HOST` and `SMTP_FROM` are both configured.
@@ -100,6 +103,7 @@ docker compose -f docker-compose.yaml -f docker-compose.local.yaml up -d --build
 
 This starts:
 - the main app container on `localhost:3000`
+- a dedicated workers container for scheduled and background jobs
 - PostgreSQL on `localhost:5432`
 - Valkey on `localhost:6379`
 - MinIO API on `localhost:9000`
@@ -121,7 +125,7 @@ Notes:
 
 ### Manual host setup
 
-Use this when you want to run the Bun app directly on your machine.
+Use this when you want to run the Bun app directly on your machine instead of through Compose.
 
 Prerequisites:
 - Bun `>=1.3.10`
@@ -144,18 +148,19 @@ bun install --frozen-lockfile
 Edit `.env`, then run:
 
 ```bash
-bun run db:migrate
-bun run spice:migrate
+bun run --filter @orcai/db migrate
+bun run --filter @orcai/spice-db up
 bun run dev
+bun run workers:dev
 ```
 
 The app will be available at [http://localhost:3000](http://localhost:3000).
 
-Use `bun run build && bun run start` to run the production server locally.
+Use `bun run build && bun run start` for the app and `bun run workers:start` for the workers.
 
 ## Configuration
 
-The authoritative runtime config is loaded from [src/lib/effect/services/config.ts](/src/lib/effect/services/config.ts).
+The authoritative runtime config is loaded from [config.ts](apps/app/src/lib/effect/services/config.ts).
 
 ### Required core variables
 
@@ -205,13 +210,14 @@ See [.env.example](.env.example) for a current baseline.
 - `bun run dev`: start the development server
 - `bun run build`: build the app
 - `bun run start`: run the production server from `dist`
+- `bun run workers:dev`: start worker process directly on the host
+- `bun run workers:start`: run worker process in production mode
 - `bun run lint`: run Biome and TypeScript checks
-- `bun run db:migrate`: apply SQL migrations
-- `bun run db:generate`: generate a new Drizzle migration
-- `bun run db:studio`: open Drizzle Studio
-- `bun run db:seed`: seed the database
-- `bun run spice:migrate`: apply the SpiceDB schema
-- `bun run spice:migrate:status`: inspect SpiceDB schema migration status
+- `bun run --filter @orcai/db migrate`: apply SQL migrations
+- `bun run --filter @orcai/db generate`: generate a new Drizzle migration
+- `bun run --filter @orcai/db studio`: open Drizzle Studio
+- `bun run --filter @orcai/spice-db up`: apply the SpiceDB schema
+- `bun run --filter @orcai/spice-db status`: inspect SpiceDB schema migration status
 
 ## Architecture Summary
 

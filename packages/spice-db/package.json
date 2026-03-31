@@ -1,0 +1,21 @@
+{
+	"name": "@orcai/spice-db",
+	"version": "0.1.0",
+	"private": true,
+	"type": "module",
+	"exports": {
+		".": "./src/index.ts"
+	},
+	"bin": {
+		"orcai-spicedb": "./src/cli.ts"
+	},
+	"scripts": {
+		"dry-run": "bun run src/cli.ts dry-run",
+		"status": "bun run src/cli.ts status",
+		"up": "bun run src/cli.ts up"
+	},
+	"dependencies": {
+		"@authzed/authzed-node": "catalog:",
+		"effect": "catalog:"
+	}
+}

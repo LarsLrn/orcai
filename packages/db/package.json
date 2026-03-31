@@ -1,0 +1,35 @@
+{
+	"name": "@orcai/db",
+	"version": "0.1.0",
+	"private": true,
+	"type": "module",
+	"exports": {
+		".": "./src/index.ts",
+		"./config": "./src/config.ts",
+		"./pg-connection-string": "./src/pg-connection-string.ts",
+		"./relations": "./src/schema/relations.ts",
+		"./schema": "./src/schema/index.ts",
+		"./service": "./src/service.ts"
+	},
+	"scripts": {
+		"check": "drizzle-kit check --config drizzle.config.ts",
+		"generate": "drizzle-kit generate --config drizzle.config.ts",
+		"migrate": "drizzle-kit migrate --config drizzle.config.ts",
+		"pull": "drizzle-kit pull --config drizzle.config.ts",
+		"push": "drizzle-kit push --config drizzle.config.ts",
+		"studio": "drizzle-kit studio --config drizzle.config.ts",
+		"up": "drizzle-kit up --config drizzle.config.ts"
+	},
+	"dependencies": {
+		"@effect/sql-pg": "catalog:",
+		"@orcai/schema": "workspace:*",
+		"drizzle-orm": "catalog:",
+		"effect": "catalog:",
+		"pg": "catalog:"
+	},
+	"devDependencies": {
+		"@types/node": "catalog:",
+		"@types/pg": "catalog:",
+		"drizzle-kit": "catalog:"
+	}
+}

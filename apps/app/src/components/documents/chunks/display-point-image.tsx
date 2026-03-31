@@ -1,0 +1,42 @@
+import type { BucketName, FileType } from "@orcai/schema";
+import { useQuery } from "@tanstack/react-query";
+import { Skeleton } from "@/components/ui/skeleton";
+import { orpc } from "@/lib/orpc/orpc";
+import { cn } from "@/lib/utils";
+
+const DisplayPointImage = ({
+	imageRef,
+}: {
+	imageRef: {
+		reference: string;
+		type: FileType;
+		bucket: BucketName;
+		prefix: string;
+	};
+}) => {
+	const { data, status } = useQuery(
+		orpc.storage.createDownloadUrl.queryOptions({
+			input: {
+				id: imageRef.reference,
+			},
+		}),
+	);
+
+	return (
+		<div className="max-h-25 w-full">
+			{status === "pending" && data && <Skeleton className="h-25 w-full" />}
+			{status === "success" && (
+				<img
+					src={data.url}
+					alt="test"
+					width={100}
+					height={100}
+					className={cn("w-auto object-contain")}
+					loading="lazy"
+				/>
+			)}
+		</div>
+	);
+};
+
+export { DisplayPointImage };
