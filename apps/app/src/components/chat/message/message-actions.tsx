@@ -16,14 +16,12 @@ export const MessageActions = ({
 	variant,
 	chatId,
 	onEdit,
-	score,
 	className,
 }: {
 	message: ChatAgentUIMessage;
 	variant: "sent" | "received";
 	chatId: Chat["id"];
 	onEdit?: () => void;
-	score?: any;
 } & MessageActionsProps) => {
 	const [, copy] = useCopyToClipboard();
 
@@ -60,7 +58,7 @@ export const MessageActions = ({
 			<Action label="Copy" tooltip="Copy response" onClick={handleCopy}>
 				<CopyIcon className="size-3" />
 			</Action>
-			<MessageRate chatId={chatId} messageId={message.id} score={score} />
+			<MessageRate chatId={chatId} messageId={message.id} />
 		</Actions>
 	);
 };

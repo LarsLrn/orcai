@@ -1,4 +1,3 @@
-import type { ApiGetScoresResponseData } from "langfuse";
 import { CheckIcon, StarIcon } from "lucide-react";
 import { useEffect, useState } from "react";
 import { MessageAction as Action } from "@/components/ai-elements/message";
@@ -19,31 +18,28 @@ import { cn } from "@/lib/utils";
 const MessageRate = ({
 	messageId,
 	chatId,
-	score,
 	className,
 }: {
 	messageId: ChatMessage["id"];
 	chatId: Chat["id"];
-	score?: ApiGetScoresResponseData;
 	className?: string;
 }) => {
-	const [optimisticScore, setOptimisticScore] = useState<
-		number | undefined | null
-	>(score?.value);
+	// TODO: fetch initial score and set it here, leftover from removing Langfuse and needs proper implementation
+	const [score, setScore] = useState<number | undefined | null>(undefined);
 
 	const { mutate: rateMessage } = useRateChatMessageMutation({
 		onMutate: ({ sentiment }) => {
-			setOptimisticScore(sentiment);
+			setScore(sentiment);
 		},
 		onError: () => {
-			setOptimisticScore(score?.value);
+			setScore(score);
 		},
 	});
 
 	useEffect(() => {
-		setOptimisticScore(score?.value);
+		setScore(score);
 	}, [
-		score?.value,
+		score,
 	]);
 
 	const handleRate = (sentiment: number) => {
@@ -82,12 +78,12 @@ const MessageRate = ({
 						tooltip="Rate how helpful this response was for your learning"
 						className={cn(
 							className,
-							optimisticScore &&
+							score &&
 								"bg-primary/10 text-primary hover:bg-primary/20 hover:text-primary",
 						)}
 					>
 						<StarIcon
-							fill={optimisticScore ? "currentColor" : "none"}
+							fill={score ? "currentColor" : "none"}
 							className="size-3"
 						/>
 					</Action>
@@ -106,14 +102,11 @@ const MessageRate = ({
 							onClick={() => handleRate(rating.value)}
 							className={cn(
 								"cursor-pointer",
-								optimisticScore === rating.value &&
-									"bg-primary/10 text-primary",
+								score === rating.value && "bg-primary/10 text-primary",
 							)}
 						>
 							<span className="flex items-center gap-2">
-								{optimisticScore === rating.value && (
-									<CheckIcon className="size-3" />
-								)}
+								{score === rating.value && <CheckIcon className="size-3" />}
 								{rating.label}
 							</span>
 						</DropdownMenuItem>

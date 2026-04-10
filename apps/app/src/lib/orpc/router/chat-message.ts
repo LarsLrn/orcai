@@ -10,9 +10,7 @@ import {
 	sql,
 } from "drizzle-orm";
 import * as Effect from "effect/Effect";
-import type { ApiGetScoresResponse } from "langfuse";
 import { runOrpcEffect } from "@/lib/effect/utils/orpc-helpers";
-import { langfuseServer } from "@/lib/langfuse/langfuse-server";
 import { authed } from "@/lib/orpc/implementation/authed";
 import {
 	type CheckPermissionInput,
@@ -171,38 +169,18 @@ export const listChatMessages = authed.chatMessage.list
 					.from(dbSchema.chatMessage)
 					.where(eq(dbSchema.chatMessage.chatId, input.chatId));
 
-				let scores: ApiGetScoresResponse = {
-					data: [],
-					meta: {
-						page: 0,
-						totalItems: 0,
-						limit: 0,
-						totalPages: 0,
-					},
-				};
-
-				if (input.includeScores && chatMessages.length > 0) {
-					scores = yield* Effect.tryPromise({
-						try: () =>
-							langfuseServer.api.scoreV2Get({
-								scoreIds: chatMessages
-									.map((message) =>
-										message.role !== "user" ? message.id : undefined,
-									)
-									.filter(Boolean)
-									.join(","),
-							}),
-						catch: () =>
-							errors.BAD_REQUEST({
-								message: "Error fetching scores from Langfuse",
-							}),
-					});
-				}
-
 				return {
 					data: chatMessages,
 					rowCount: rowCount.count,
-					scores,
+					scores: {
+						data: [],
+						meta: {
+							page: 1,
+							totalItems: 0,
+							limit: 0,
+							totalPages: 0,
+						},
+					}, // Placeholder for scores, to be implemented when rating is added
 				};
 			}),
 		),
@@ -667,15 +645,11 @@ export const rateChatMessage = authed.chatMessage.rate
 		runOrpcEffect(
 			Effect.try({
 				try: () =>
-					langfuseServer.score({
-						id: input.id,
-						traceId: input.id,
-						name: "rate_helpfulness",
-						value: input.sentiment,
-						environment:
-							process.env.NODE_ENV === "production"
-								? "production"
-								: "development",
+					// TODO: Implement actual rating logic, currently just a placeholder
+					Effect.succeed({
+						success: true,
+						message: "Message rated successfully",
+						data: input,
 					}),
 				catch: () =>
 					errors.BAD_REQUEST({

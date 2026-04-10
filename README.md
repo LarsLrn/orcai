@@ -25,7 +25,7 @@ OrcAI is a research-oriented platform developed at Rhine-Waal University for AI-
 - Course and invitation-based access control
 - Background job processing for ingestion workflows
 - S3-compatible object storage for uploaded and processed assets
-- Optional observability with Langfuse, Umami, and OpenTelemetry
+- Optional observability with Umami and OpenTelemetry
 - German and English localisation support
 
 ## Stack
@@ -199,7 +199,6 @@ The authoritative runtime config is loaded from [config.ts](apps/app/src/lib/eff
 - `S3_PUBLIC_ENDPOINT`: Optional public endpoint for presigned URLs.
 - `QDRANT_ENABLE_SPARSE_VECTORS`: Defaults to `false`. Enable only on a fresh or reindexed collection.
 - `SMTP_*`: Optional. If you enable SMTP delivery, `SMTP_HOST` and `SMTP_FROM` must both be set. `SMTP_USERNAME` and `SMTP_PASSWORD` must either both be set or both be omitted.
-- `LANGFUSE_*`: Optional Langfuse tracing and observability.
 - `VITE_UMAMI_*`: Optional Umami analytics injection.
 - `OTEL_EXPORTER_OTLP_ENDPOINT`, `OTEL_EXPORTER_OTLP_HEADERS`: Optional OpenTelemetry export configuration.
 

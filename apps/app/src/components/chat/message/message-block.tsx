@@ -1,5 +1,4 @@
 import type { UseChatHelpers } from "@ai-sdk/react";
-import type { ApiGetScoresResponseData } from "langfuse";
 import {
 	Message,
 	MessageContent,
@@ -24,7 +23,6 @@ interface MessageBlockProps {
 	setMessages: UseChatHelpers<ChatAgentUIMessage>["setMessages"];
 	regenerate: () => Promise<void>;
 	status: UseChatHelpers<ChatAgentUIMessage>["status"];
-	score?: ApiGetScoresResponseData;
 }
 
 export const MessageBlock = ({
@@ -33,7 +31,6 @@ export const MessageBlock = ({
 	setMessages,
 	regenerate,
 	status,
-	score,
 }: MessageBlockProps) => {
 	const { mode, toggleMode, setViewMode } = useMessageEditor();
 	const variant = message.role === "user" ? "sent" : "received";
@@ -134,7 +131,6 @@ export const MessageBlock = ({
 						variant={variant}
 						chatId={chatId}
 						onEdit={variant === "sent" ? toggleMode : undefined}
-						score={score}
 						className={cn({
 							"w-full justify-end": variant === "sent",
 						})}

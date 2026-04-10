@@ -120,7 +120,6 @@ function RouteComponent() {
 				key={`${chatId}-${loaderData.branchId ?? "new"}`}
 				id={chatId}
 				initialMessages={loaderData.messages.data as ChatAgentUIMessage[]}
-				scores={loaderData.messages.scores.data ?? []}
 				branchId={loaderData.branchId}
 				zedToken={zedToken}
 				pendingMessage={pendingMessage}
