@@ -32,6 +32,9 @@
 			"path": "./packages/pg-boss"
 		},
 		{
+			"path": "./packages/process"
+		},
+		{
 			"path": "./packages/valkey"
 		},
 		{

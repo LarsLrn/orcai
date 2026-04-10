@@ -18,6 +18,7 @@ COPY packages/ai/package.json ./packages/ai/package.json
 COPY packages/core/package.json ./packages/core/package.json
 COPY packages/db/package.json ./packages/db/package.json
 COPY packages/pg-boss/package.json ./packages/pg-boss/package.json
+COPY packages/process/package.json ./packages/process/package.json
 COPY packages/qdrant/package.json ./packages/qdrant/package.json
 COPY packages/quota/package.json ./packages/quota/package.json
 COPY packages/s3/package.json ./packages/s3/package.json
@@ -45,6 +46,7 @@ COPY packages/ai/package.json ./packages/ai/package.json
 COPY packages/core/package.json ./packages/core/package.json
 COPY packages/db/package.json ./packages/db/package.json
 COPY packages/pg-boss/package.json ./packages/pg-boss/package.json
+COPY packages/process/package.json ./packages/process/package.json
 COPY packages/qdrant/package.json ./packages/qdrant/package.json
 COPY packages/quota/package.json ./packages/quota/package.json
 COPY packages/s3/package.json ./packages/s3/package.json
