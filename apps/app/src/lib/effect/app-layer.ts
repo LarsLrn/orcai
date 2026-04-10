@@ -10,8 +10,7 @@ import * as Layer from "effect/Layer";
 import { AuthzLive } from "./services/authz";
 import { AppConfigLive } from "./services/config";
 import { EmailLive } from "./services/email";
-import { LoggerLive } from "./services/logger";
-import { TracerLive } from "./services/tracer";
+import { ObservabilityLive } from "./services/observability";
 
 const BaseInfra = Layer.mergeAll(
 	DrizzleLive,
@@ -29,4 +28,4 @@ const AppInfra = Layer.mergeAll(AuthzLive, QuotaCounterStoreLive).pipe(
 );
 
 // Compose all app-level services in one place.
-export const AppLayer = Layer.mergeAll(TracerLive, LoggerLive, AppInfra);
+export const AppLayer = Layer.mergeAll(ObservabilityLive, AppInfra);

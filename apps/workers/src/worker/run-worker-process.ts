@@ -1,3 +1,4 @@
+import { logErrorCause } from "@orcai/observability";
 import { PgBossService, PgBossWorkersError } from "@orcai/pg-boss";
 import type { JobQueue } from "@orcai/schema";
 import * as Effect from "effect/Effect";
@@ -34,30 +35,6 @@ const createQueue = (name: JobQueue) =>
 		yield* Effect.logInfo(`Queue ${name} ready`);
 	});
 
-const summarizeWorkerError = (error: unknown): Record<string, unknown> => {
-	const stringField = (value: unknown) =>
-		typeof value === "string" ? value : undefined;
-
-	if (error instanceof Error) {
-		const details = error as Error & Record<string, unknown>;
-		const nested = details.cause as Record<string, unknown> | undefined;
-		return Object.fromEntries(
-			Object.entries({
-				name: error.name,
-				message: error.message || undefined,
-				tag: stringField(details._tag),
-				causeName: nested ? stringField(nested.name) : undefined,
-				causeTag: nested ? stringField(nested._tag) : undefined,
-				causeMessage: nested ? stringField(nested.message) : undefined,
-			}).filter(([, value]) => value !== undefined),
-		);
-	}
-
-	return {
-		message: String(error),
-	};
-};
-
 const registerWorkers = <TContext>(
 	definitions: readonly WorkerDefinition<TContext | PgBossService, unknown>[],
 ) =>
@@ -75,15 +52,13 @@ const registerWorkers = <TContext>(
 			(jobs: Job<unknown>[]) =>
 				Runtime.runPromise(rt)(
 					handler(jobs).pipe(
-						Effect.tapError((error) =>
-							Effect.logError(
-								{
+						Effect.tapErrorCause((cause) =>
+							logErrorCause("Worker batch failed", cause).pipe(
+								Effect.annotateLogs({
 									queue,
 									jobIds: jobs.map((job) => job.id),
 									jobCount: jobs.length,
-									err: summarizeWorkerError(error),
-								},
-								"worker batch failed",
+								}),
 							),
 						),
 					),

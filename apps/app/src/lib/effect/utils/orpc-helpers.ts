@@ -1,5 +1,6 @@
 import * as OtelTracer from "@effect/opentelemetry/Tracer";
 import { context as otelContext, trace } from "@opentelemetry/api";
+import { logErrorCause } from "@orcai/observability";
 import { ORPCError, type ORPCErrorCode } from "@orpc/client";
 import * as Cause from "effect/Cause";
 import * as Effect from "effect/Effect";
@@ -146,7 +147,13 @@ export const runOrpcEffect = <A, E, R extends AppRuntimeContext>(
 				? traced
 				: Effect.withSpan(traced, options.spanName);
 
-		const exit = await runtime.runPromiseExit(named);
+		const logged = named.pipe(
+			Effect.tapErrorCause((cause) =>
+				logErrorCause("ORPC effect failed", cause),
+			),
+		);
+
+		const exit = await runtime.runPromiseExit(logged);
 
 		if (Exit.isSuccess(exit)) {
 			return exit.value;

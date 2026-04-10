@@ -6,6 +6,7 @@ import { QuotaCounterStoreLive } from "@orcai/quota";
 import { S3Live } from "@orcai/s3/server";
 import { ValkeyLive } from "@orcai/valkey";
 import * as Layer from "effect/Layer";
+import { ObservabilityLive } from "./observability";
 
 const BaseWorkerLayer = Layer.mergeAll(
 	DrizzleLive,
@@ -17,6 +18,7 @@ const BaseWorkerLayer = Layer.mergeAll(
 ).pipe(Layer.provideMerge(AiConfigLive));
 
 export const BackgroundWorkerLayer = Layer.mergeAll(
+	ObservabilityLive,
 	BaseWorkerLayer,
 	QuotaCounterStoreLive.pipe(Layer.provideMerge(BaseWorkerLayer)),
 );

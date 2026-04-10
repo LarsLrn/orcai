@@ -201,7 +201,7 @@ The authoritative runtime config is loaded from [config.ts](apps/app/src/lib/eff
 - `SMTP_*`: Optional. If you enable SMTP delivery, `SMTP_HOST` and `SMTP_FROM` must both be set. `SMTP_USERNAME` and `SMTP_PASSWORD` must either both be set or both be omitted.
 - `LANGFUSE_*`: Optional Langfuse tracing and observability.
 - `VITE_UMAMI_*`: Optional Umami analytics injection.
-- `OTEL_*`: Optional OpenTelemetry export configuration.
+- `OTEL_EXPORTER_OTLP_ENDPOINT`, `OTEL_EXPORTER_OTLP_HEADERS`: Optional OpenTelemetry export configuration.
 
 See [.env.example](.env.example) for a current baseline.
 

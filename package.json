@@ -8,6 +8,7 @@
 		],
 		"catalog": {
 			"@authzed/authzed-node": "1.6.1",
+			"@effect/opentelemetry": "0.63.0",
 			"@effect/sql-pg": "0.52.1",
 			"@qdrant/qdrant-js": "1.17.0",
 			"@types/node": "25.6.0",

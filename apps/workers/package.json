@@ -11,6 +11,7 @@
 		"@orcai/ai": "workspace:*",
 		"@orcai/core": "workspace:*",
 		"@orcai/db": "workspace:*",
+		"@orcai/observability": "workspace:*",
 		"@orcai/pg-boss": "workspace:*",
 		"@orcai/qdrant": "workspace:*",
 		"@orcai/quota": "workspace:*",
