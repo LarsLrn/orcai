@@ -19,7 +19,6 @@
 		"@orcai/s3": "workspace:*",
 		"@orcai/schema": "workspace:*",
 		"@orcai/valkey": "workspace:*",
-		"ai": "catalog:",
 		"drizzle-orm": "catalog:",
 		"effect": "catalog:",
 		"pg-boss": "catalog:",
