@@ -115,18 +115,56 @@ export const ToolContent = ({ className, ...props }: ToolContentProps) => (
 
 export type ToolInputProps = ComponentProps<"div"> & {
 	input: ToolPart["input"];
+	rawInput?: unknown;
+	errorText?: ToolPart["errorText"];
 };
 
-export const ToolInput = ({ className, input, ...props }: ToolInputProps) => (
-	<div className={cn("space-y-2 overflow-hidden", className)} {...props}>
-		<h4 className="font-medium text-muted-foreground text-xs uppercase tracking-wide">
-			Parameters
-		</h4>
-		<div className="rounded-md bg-muted/50">
-			<CodeBlock code={JSON.stringify(input, null, 2)} language="json" />
+export const ToolInput = ({
+	className,
+	input,
+	rawInput,
+	errorText,
+	...props
+}: ToolInputProps) => {
+	const displayedInput = input ?? rawInput;
+	const isRawInput = input == null && rawInput !== undefined;
+
+	if (displayedInput === undefined) {
+		return (
+			<div className={cn("space-y-2 overflow-hidden", className)} {...props}>
+				<h4 className="font-medium text-muted-foreground text-xs uppercase tracking-wide">
+					Parameters
+				</h4>
+				<div className="rounded-md bg-muted/50 p-3 text-muted-foreground text-xs">
+					{errorText
+						? "The tool call did not produce a valid parameter object."
+						: "No parameters available."}
+				</div>
+			</div>
+		);
+	}
+
+	return (
+		<div className={cn("space-y-2 overflow-hidden", className)} {...props}>
+			<div className="space-y-1">
+				<h4 className="font-medium text-muted-foreground text-xs uppercase tracking-wide">
+					{isRawInput ? "Raw Parameters" : "Parameters"}
+				</h4>
+				{isRawInput && (
+					<p className="text-muted-foreground text-xs">
+						Showing the original tool arguments because validation failed.
+					</p>
+				)}
+			</div>
+			<div className="rounded-md bg-muted/50">
+				<CodeBlock
+					code={JSON.stringify(displayedInput, null, 2)}
+					language="json"
+				/>
+			</div>
 		</div>
-	</div>
-);
+	);
+};
 
 export type ToolOutputProps = ComponentProps<"div"> & {
 	output: ToolPart["output"];

@@ -24,7 +24,11 @@ const GetKnowledgeBaseChunks = ({
 				title="RAG Chunk Retrieval"
 			/>
 			<ToolContent>
-				<ToolInput input={part.input} />
+				<ToolInput
+					input={part.input}
+					rawInput={"rawInput" in part ? part.rawInput : undefined}
+					errorText={part.errorText}
+				/>
 				<ToolOutput
 					output={Output({
 						output: part.output,
