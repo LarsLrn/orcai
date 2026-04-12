@@ -16,7 +16,8 @@ export { S3Error } from "./errors";
 export {
 	deletePrefixRecursively,
 	getImageAsBase64,
-	getMarkdownAsString,
+	getObjectAsJson,
+	getObjectAsString,
 } from "./object-helpers";
 export { S3Live, S3Service, S3ServiceLive } from "./service";
 export {

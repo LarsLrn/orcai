@@ -1,4 +1,3 @@
-import type { DoclingService } from "@orcai/ai";
 import type { DB } from "@orcai/db";
 import type { PgBossService } from "@orcai/pg-boss";
 import type { QdrantService } from "@orcai/qdrant";
@@ -14,12 +13,7 @@ import { processAssetBatchEffect } from "@/asset/jobs/process-asset-job";
 import { vectorizeAssetBatchEffect } from "@/asset/jobs/vectorize-asset-job";
 import type { WorkerDefinition } from "@/worker/types";
 
-export type AssetWorkerContext =
-	| DB
-	| DoclingService
-	| S3Service
-	| QdrantService
-	| PgBossService;
+export type AssetWorkerContext = DB | S3Service | QdrantService | PgBossService;
 
 const assetWorker = <TPayload>(
 	definition: WorkerDefinition<AssetWorkerContext, TPayload>,

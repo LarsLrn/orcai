@@ -163,6 +163,7 @@
         "@orcai/db": "workspace:*",
         "@orcai/observability": "workspace:*",
         "@orcai/pg-boss": "workspace:*",
+        "@orcai/process": "workspace:*",
         "@orcai/qdrant": "workspace:*",
         "@orcai/quota": "workspace:*",
         "@orcai/s3": "workspace:*",
@@ -180,7 +181,6 @@
       "version": "0.1.0",
       "dependencies": {
         "@ai-sdk/openai": "3.0.52",
-        "@docling/docling-core": "0.0.7",
         "@orcai/schema": "workspace:*",
         "ai": "catalog:",
         "effect": "catalog:",
@@ -236,7 +236,7 @@
       "name": "@orcai/process",
       "version": "0.1.0",
       "dependencies": {
-        "@kreuzberg/node": "4.8.2",
+        "@kreuzberg/node": "4.8.3",
         "@orcai/s3": "workspace:*",
         "@orcai/schema": "workspace:*",
         "effect": "catalog:",
@@ -616,8 +616,6 @@
 
     "@date-fns/tz": ["@date-fns/tz@1.4.1", "", {}, "sha512-P5LUNhtbj6YfI3iJjw5EL9eUAG6OitD0W3fWQcpQjDRc/QIsL0tRNuO1PcDvPccWL1fSTXXdE1ds+l95DV/OFA=="],
 
-    "@docling/docling-core": ["@docling/docling-core@0.0.7", "", {}, "sha512-5gobonNYuhX1SW7lBpldtRFsTGIGdpLC5tAQnvUAGWJdzmbS5D5nrUWF4GebbKP1f9P3AmK65Bqeu5bb36zP2A=="],
-
     "@dotenvx/dotenvx": ["@dotenvx/dotenvx@1.61.0", "", { "dependencies": { "commander": "^11.1.0", "dotenv": "^17.2.1", "eciesjs": "^0.4.10", "execa": "^5.1.1", "fdir": "^6.2.0", "ignore": "^5.3.0", "object-treeify": "1.1.33", "picomatch": "^4.0.2", "which": "^4.0.0", "yocto-spinner": "^1.1.0" }, "bin": { "dotenvx": "src/cli/dotenvx.js" } }, "sha512-utL3cpZoFzflyqUkjYbxYujI6STBTmO5LFn4bbin/NZnRWN6wQ7eErhr3/Vpa5h/jicPFC6kTa42r940mQftJQ=="],
 
     "@drizzle-team/brocli": ["@drizzle-team/brocli@0.11.0", "", {}, "sha512-hD3pekGiPg0WPCCGAZmusBBJsDqGUR66Y452YgQsZOnkdQ7ViEPKuyP4huUGEZQefp8g34RRodXYmJ2TbCH+tg=="],
@@ -748,15 +746,15 @@
 
     "@js-temporal/polyfill": ["@js-temporal/polyfill@0.5.1", "", { "dependencies": { "jsbi": "^4.3.0" } }, "sha512-hloP58zRVCRSpgDxmqCWJNlizAlUgJFqG2ypq79DCvyv9tHjRYMDOcPFjzfl/A1/YxDvRCZz8wvZvmapQnKwFQ=="],
 
-    "@kreuzberg/node": ["@kreuzberg/node@4.8.2", "", { "dependencies": { "@emnapi/runtime": "1.9.2", "which": "^6.0.1" }, "optionalDependencies": { "@kreuzberg/node-darwin-arm64": "4.8.2", "@kreuzberg/node-linux-arm64-gnu": "4.8.2", "@kreuzberg/node-linux-x64-gnu": "4.8.2", "@kreuzberg/node-win32-x64-msvc": "4.8.2" }, "bin": { "kreuzberg": "dist/cli.js" } }, "sha512-XA3Cy9PX+MAzJiIiNkRl90XoC/0iiaqQUV9R0z+NR7whyrod75bJT0Sjj/tzDWOpt2Sgbz/JszFvl6bGBxhNpA=="],
+    "@kreuzberg/node": ["@kreuzberg/node@4.8.3", "", { "dependencies": { "@emnapi/runtime": "1.9.2", "which": "^6.0.1" }, "optionalDependencies": { "@kreuzberg/node-darwin-arm64": "4.8.3", "@kreuzberg/node-linux-arm64-gnu": "4.8.3", "@kreuzberg/node-linux-x64-gnu": "4.8.3", "@kreuzberg/node-win32-x64-msvc": "4.8.3" }, "bin": { "kreuzberg": "dist/cli.js" } }, "sha512-IbgxCaF3Pw0tgonir1+QFIgaQIni7rmCKewfZ24w78phZN4bfKVw8wqDTZVndjNrOYQEr+3KzyJ2bhpAhxgHkA=="],
 
-    "@kreuzberg/node-darwin-arm64": ["@kreuzberg/node-darwin-arm64@4.8.2", "", { "os": "darwin", "cpu": "arm64" }, "sha512-VL/B6ADFnjpl9Jks1WCLHfCj0pFCS6w5bJ++otXqnCPeF7pDFYcGoDAKmCJ+AvpvZASbvLZzaMdzAo0M+d2DOQ=="],
+    "@kreuzberg/node-darwin-arm64": ["@kreuzberg/node-darwin-arm64@4.8.3", "", { "os": "darwin", "cpu": "arm64" }, "sha512-FkwCirQa29igH09Ck1VjGkxaJ34KDACZwc6Bu2VBGZCz2ljVcPNGdbwi86oAW/9GgbDJT/vGzekslHQVvoyNbA=="],
 
-    "@kreuzberg/node-linux-arm64-gnu": ["@kreuzberg/node-linux-arm64-gnu@4.8.2", "", { "os": "linux", "cpu": "arm64" }, "sha512-nhIxR8TptPVYBTzuE3SMbhR+k2lt3iNrYGTwsH99KjyVVvregRG2zXAzxRCbcieRQnCuxDAbwj18MqeWmw6Y2Q=="],
+    "@kreuzberg/node-linux-arm64-gnu": ["@kreuzberg/node-linux-arm64-gnu@4.8.3", "", { "os": "linux", "cpu": "arm64" }, "sha512-sri6kiTo4WgkYlKd9xMaJltvHBdBbvQ50ZGpg260lWcPggS5DuzdzzzapKb88a9Ep42EyteghTrdf1oCbjuxNA=="],
 
-    "@kreuzberg/node-linux-x64-gnu": ["@kreuzberg/node-linux-x64-gnu@4.8.2", "", { "os": "linux", "cpu": "x64" }, "sha512-ekw8c0BpLENLpTUjgMiFokNDLOZnrigRmDHyCXUyT6c54OFWE7R9VXTqIRQmM+q07GXY+m7ZTpLY6f7blB6qpw=="],
+    "@kreuzberg/node-linux-x64-gnu": ["@kreuzberg/node-linux-x64-gnu@4.8.3", "", { "os": "linux", "cpu": "x64" }, "sha512-lrJfKAWQgAP7TR2qCpQ2IvVOdIS0A+HcLe+9n+ApYRfgMOz4tDm4zmuctC6nI//JiKoTHll7rtI+yuXMtoEJ1Q=="],
 
-    "@kreuzberg/node-win32-x64-msvc": ["@kreuzberg/node-win32-x64-msvc@4.8.2", "", { "os": "win32", "cpu": "x64" }, "sha512-dEaIqI8h2tPOAfu9cG9Od0f6PonA0UsVj5iv1sfxMhxUnU3YvpunjYPdmrAvap3GdCKZUAKbLEv8LSyuMHtJ7w=="],
+    "@kreuzberg/node-win32-x64-msvc": ["@kreuzberg/node-win32-x64-msvc@4.8.3", "", { "os": "win32", "cpu": "x64" }, "sha512-obon6iGhIWLGLFwX3zBbXgMeHHkNylW6Btgvid1rQhZUf/VCAAYCe6EW5vZgBAjJwNe0AnHpm+60549pM9T/CA=="],
 
     "@lix-js/sdk": ["@lix-js/sdk@0.4.9", "", { "dependencies": { "@lix-js/server-protocol-schema": "0.1.1", "dedent": "1.5.1", "human-id": "^4.1.1", "js-sha256": "^0.11.0", "kysely": "^0.28.12", "sqlite-wasm-kysely": "0.3.0", "uuid": "^10.0.0" } }, "sha512-30mDkXpx704359oRrJI42bjfCspCiaMItngVBbPkiTGypS7xX4jYbHWQkXI8XuJ7VDB69D0MsVU6xfrBAIrM4A=="],
 

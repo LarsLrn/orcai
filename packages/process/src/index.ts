@@ -1,9 +1,23 @@
+export type {
+	StoredExtractionArtifact,
+	StoredExtractionImage,
+} from "./artifact";
+export {
+	buildProcessedAssetPrefix,
+	buildStoredExtractionImageKey,
+	buildStoredExtractionKey,
+	createStoredExtractionArtifact,
+	deserializeStoredExtractionArtifact,
+	STORED_EXTRACTION_FILE_NAME,
+	serializeStoredExtractionArtifact,
+} from "./artifact";
 export { ProcessError } from "./errors";
-export { extract } from "./extract";
-export { readSource, withSourceFile } from "./source";
+export type { ExtractionProfile } from "./extract";
+export { extract, getExtractionProfileConfig } from "./extract";
 export type {
 	MaterializedProcessFile,
 	ProcessBytesSource,
 	ProcessS3Source,
 	ProcessSource,
-} from "./types";
+} from "./source";
+export { readSource, withSourceFile } from "./source";

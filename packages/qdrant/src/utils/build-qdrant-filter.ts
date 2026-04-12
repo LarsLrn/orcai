@@ -32,6 +32,52 @@ const toHasIdCondition = (ids: QdrantPointId[]): QdrantCondition => ({
 	has_id: ids,
 });
 
+const hasPageRange = (params: BuildQdrantFilterParams) =>
+	params.pageFrom !== undefined || params.pageTo !== undefined;
+
+const appendPageConditions = (
+	must: QdrantCondition[],
+	params: BuildQdrantFilterParams,
+) => {
+	if (params.page !== undefined) {
+		must.push({
+			key: "chunkPageStart",
+			range: {
+				lte: params.page,
+			},
+		});
+		must.push({
+			key: "chunkPageEnd",
+			range: {
+				gte: params.page,
+			},
+		});
+		return;
+	}
+
+	if (!hasPageRange(params)) {
+		return;
+	}
+
+	if (params.pageTo !== undefined) {
+		must.push({
+			key: "chunkPageStart",
+			range: {
+				lte: params.pageTo,
+			},
+		});
+	}
+
+	if (params.pageFrom !== undefined) {
+		must.push({
+			key: "chunkPageEnd",
+			range: {
+				gte: params.pageFrom,
+			},
+		});
+	}
+};
+
 export const buildQdrantFilter = (
 	params: BuildQdrantFilterParams,
 ): QdrantFilter | undefined => {
@@ -58,19 +104,7 @@ export const buildQdrantFilter = (
 		must.push(toMatchCondition("block_id", params.blockId));
 	}
 
-	const hasPageRange =
-		params.pageFrom !== undefined || params.pageTo !== undefined;
-	if (params.page !== undefined) {
-		must.push(toMatchCondition("page", params.page));
-	} else if (hasPageRange) {
-		must.push({
-			key: "page",
-			range: {
-				gte: params.pageFrom,
-				lte: params.pageTo,
-			},
-		});
-	}
+	appendPageConditions(must, params);
 
 	if (chunkIndices.length === 1) {
 		must.push(toMatchCondition("chunk_index", chunkIndices[0]));

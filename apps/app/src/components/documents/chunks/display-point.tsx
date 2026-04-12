@@ -13,10 +13,16 @@ import {
 	HoverCardContent,
 	HoverCardTrigger,
 } from "@/components/ui/hover-card";
+import { formatPageRange } from "@/lib/ai/tools/rag/format-page-range";
 
 const DisplayPoint = ({ point }: { point: AssetPoint }) => {
 	const { id, payload, score } = point;
 	const hasScore = typeof score === "number" && Number.isFinite(score);
+	const pageRange = formatPageRange({
+		chunkPageStart: payload.chunkPageStart,
+		chunkPageEnd: payload.chunkPageEnd,
+		documentTotalPages: payload.documentTotalPages,
+	});
 
 	return (
 		<Card className="h-full">
@@ -99,11 +105,11 @@ const DisplayPoint = ({ point }: { point: AssetPoint }) => {
 									</span>
 								</div>
 							)}
-							{typeof payload.page === "number" && (
+							{pageRange && (
 								<div className="flex items-center justify-between text-muted-foreground text-sm">
-									<span>Page</span>
+									<span>Pages</span>
 									<span className="font-medium text-foreground">
-										{payload.page + 1}
+										{pageRange}
 									</span>
 								</div>
 							)}

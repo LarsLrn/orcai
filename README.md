@@ -52,7 +52,7 @@ OrcAI is a research-oriented platform developed at Rhine-Waal University for AI-
 ### AI and Processing
 - AI SDK
 - OpenAI-compatible model endpoint
-- Docling document processing service
+- Kreuzberg document processing
 - PgBoss workers
 
 ## Development Workflows
@@ -89,7 +89,8 @@ Notes:
 - The devcontainer fixes internal service addresses on the Compose network.
 - A one-shot `deps` service runs `bun install --frozen-lockfile` before the `workspace` and `workers` containers start.
 - It defaults to an Ollama-compatible endpoint at `http://localhost:11434/v1` for `OPENAI_COMPATIBLE_BASE_URL`.
-- `DOCLING_URL` defaults to `http://localhost:8080`, but no Docling container is included in this repo. You must provide that service separately if you want document processing to work.
+- OCR-backed asset processing runs in the worker process and requires Tesseract plus the `eng` and `deu` language packs when you run workers outside Docker.
+- OCR language defaults to `eng` on host setups. Set `KREUZBERG_OCR_LANGUAGE=eng+deu` only where both Tesseract packs are installed.
 - Email delivery stays in log-only mode unless `SMTP_HOST` and `SMTP_FROM` are both configured.
 - `docker-compose.local.yaml` and `.devcontainer/docker-compose.dev.yaml` are development-only overrides and are not deployment manifests.
 
@@ -120,7 +121,7 @@ docker compose -f docker-compose.yaml -f docker-compose.local.yaml down
 
 Notes:
 - The local override injects development defaults for required application variables.
-- For actual chat completions and document ingestion, you still need reachable `OPENAI_COMPATIBLE_*` and `DOCLING_*` endpoints.
+- For embeddings and image processing, you still need a configured `OPENAI_COMPATIBLE_*` endpoint.
 - MinIO buckets and the SpiceDB schema are initialized automatically by one-shot services.
 
 ### Manual host setup
@@ -135,7 +136,7 @@ Prerequisites:
 - SpiceDB
 - S3-compatible object storage
 - An OpenAI-compatible inference endpoint
-- A Docling service
+- Tesseract with `eng` and `deu` language packs if workers run on the host
 - Optional SMTP server
 
 Steps:
@@ -190,11 +191,10 @@ The authoritative runtime config is loaded from [config.ts](apps/app/src/lib/eff
 
 - `OPENAI_COMPATIBLE_BASE_URL`
 - `OPENAI_COMPATIBLE_API_KEY`
-- `DOCLING_URL`
-- `DOCLING_API_KEY`
 
 ### Optional variables
 
+- `KREUZBERG_OCR_LANGUAGE`: OCR languages for background asset processing. Defaults to `eng`; use `eng+deu` only where both Tesseract packs are available.
 - `S3_REGION`: Defaults to `eu-central-1`.
 - `S3_PUBLIC_ENDPOINT`: Optional public endpoint for presigned URLs.
 - `QDRANT_ENABLE_SPARSE_VECTORS`: Defaults to `false`. Enable only on a fresh or reindexed collection.

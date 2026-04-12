@@ -14,6 +14,7 @@ import {
 	PopoverContent,
 	PopoverTrigger,
 } from "@/components/ui/popover";
+import { formatPageRange } from "@/lib/ai/tools/rag/format-page-range";
 import type { SearchKnowledgeBaseToolPart } from "@/lib/ai/types/tools";
 
 const SearchKnowledgeBase = ({
@@ -53,58 +54,71 @@ const Output = ({
 				{output.result.length !== 1 ? "s" : ""}
 			</p>
 			<div className="flex flex-wrap gap-2">
-				{output.result.map((result, index) => (
-					<Popover key={result.id}>
-						<PopoverTrigger
-							render={
-								<Button
-									variant="outline"
-									size="sm"
-									className="group/popover-trigger w-full"
-								>
-									<FileTextIcon className="size-3 text-muted-foreground group-hover/popover-trigger:text-accent-foreground" />
-									<span className="font-medium text-xs">
-										Reference {index + 1}
-									</span>
-								</Button>
-							}
-						/>
-						<PopoverContent
-							className="max-h-80 w-96 overflow-y-auto p-4"
-							align="start"
-							side="top"
-						>
-							<div className="space-y-3">
-								<div className="flex items-center gap-2 border-b pb-2">
-									<FileTextIcon className="size-4 text-primary" />
-									<h4 className="font-semibold text-sm">
-										Reference {index + 1}
-									</h4>
-									<Badge variant="outline" className="ml-auto text-[10px]">
-										{result.id}
-									</Badge>
+				{output.result.map((result, index) => {
+					const pageRange = formatPageRange({
+						chunkPageStart: result.source.chunkPageStart,
+						chunkPageEnd: result.source.chunkPageEnd,
+						documentTotalPages: result.source.documentTotalPages,
+					});
+
+					return (
+						<Popover key={result.id}>
+							<PopoverTrigger
+								render={
+									<Button
+										variant="outline"
+										size="sm"
+										className="group/popover-trigger w-full"
+									>
+										<FileTextIcon className="size-3 text-muted-foreground group-hover/popover-trigger:text-accent-foreground" />
+										<span className="font-medium text-xs">
+											Reference {index + 1}
+										</span>
+									</Button>
+								}
+							/>
+							<PopoverContent
+								className="max-h-80 w-96 overflow-y-auto p-4"
+								align="start"
+								side="top"
+							>
+								<div className="space-y-3">
+									<div className="flex items-center gap-2 border-b pb-2">
+										<FileTextIcon className="size-4 text-primary" />
+										<h4 className="font-semibold text-sm">
+											Reference {index + 1}
+										</h4>
+										<Badge variant="outline" className="ml-auto text-[10px]">
+											{result.id}
+										</Badge>
+									</div>
+									<div className="flex flex-wrap gap-2">
+										<Badge variant="secondary" className="text-[10px]">
+											Score {result?.score?.toFixed(3)}
+										</Badge>
+										<Badge variant="outline" className="text-[10px]">
+											Block {result.source.blockName}
+										</Badge>
+										<Badge variant="outline" className="text-[10px]">
+											Chunk {result.source.chunkIndex + 1}/
+											{result.source.chunkCount}
+										</Badge>
+										{pageRange && (
+											<Badge variant="outline" className="text-[10px]">
+												p. {pageRange}
+											</Badge>
+										)}
+									</div>
+									<div className="prose prose-sm dark:prose-invert max-w-none">
+										<Markdown className="text-xs leading-relaxed">
+											{result.snippet}
+										</Markdown>
+									</div>
 								</div>
-								<div className="flex flex-wrap gap-2">
-									<Badge variant="secondary" className="text-[10px]">
-										Score {result?.score?.toFixed(3)}
-									</Badge>
-									<Badge variant="outline" className="text-[10px]">
-										Block {result.source.blockName}
-									</Badge>
-									<Badge variant="outline" className="text-[10px]">
-										Chunk {result.source.chunkIndex + 1}/
-										{result.source.chunkCount}
-									</Badge>
-								</div>
-								<div className="prose prose-sm dark:prose-invert max-w-none">
-									<Markdown className="text-xs leading-relaxed">
-										{result.snippet}
-									</Markdown>
-								</div>
-							</div>
-						</PopoverContent>
-					</Popover>
-				))}
+							</PopoverContent>
+						</Popover>
+					);
+				})}
 			</div>
 		</div>
 	);

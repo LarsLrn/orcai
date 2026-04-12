@@ -28,6 +28,13 @@ WORKDIR /app/apps/workers
 
 ENV NODE_ENV=production
 
+RUN apt-get update && \
+	apt-get install -y --no-install-recommends \
+		tesseract-ocr \
+		tesseract-ocr-eng \
+		tesseract-ocr-deu && \
+	rm -rf /var/lib/apt/lists/*
+
 COPY --chown=bun:bun package.json /app/package.json
 COPY --chown=bun:bun bun.lock /app/bun.lock
 COPY --chown=bun:bun bunfig.toml /app/bunfig.toml

@@ -8,6 +8,7 @@ import {
 } from "@/components/ai-elements/tool";
 import { Markdown } from "@/components/app/markdown";
 import { Badge } from "@/components/ui/badge";
+import { formatPageRange } from "@/lib/ai/tools/rag/format-page-range";
 import type { GetKnowledgeBasePageToolPart } from "@/lib/ai/types/tools";
 
 const GetKnowledgeBasePage = ({
@@ -61,28 +62,36 @@ const Output = ({
 				)}
 			</div>
 			<div className="space-y-3">
-				{output.result.map((result, index) => (
-					<div key={result.id} className="space-y-2 rounded-md border p-3">
-						<div className="flex flex-wrap items-center gap-2">
-							<FileTextIcon className="size-3 text-muted-foreground" />
-							<span className="font-medium text-xs">Chunk {index + 1}</span>
-							{result.source.page != null && (
-								<Badge variant="secondary" className="text-[10px]">
-									p.{result.source.page + 1}
+				{output.result.map((result, index) => {
+					const pageRange = formatPageRange({
+						chunkPageStart: result.source.chunkPageStart,
+						chunkPageEnd: result.source.chunkPageEnd,
+						documentTotalPages: result.source.documentTotalPages,
+					});
+
+					return (
+						<div key={result.id} className="space-y-2 rounded-md border p-3">
+							<div className="flex flex-wrap items-center gap-2">
+								<FileTextIcon className="size-3 text-muted-foreground" />
+								<span className="font-medium text-xs">Chunk {index + 1}</span>
+								{pageRange && (
+									<Badge variant="secondary" className="text-[10px]">
+										p. {pageRange}
+									</Badge>
+								)}
+								<Badge variant="outline" className="text-[10px]">
+									{result.id}
 								</Badge>
-							)}
-							<Badge variant="outline" className="text-[10px]">
-								{result.id}
-							</Badge>
-							<Badge variant="outline" className="text-[10px]">
-								{result.source.blockName}
-							</Badge>
+								<Badge variant="outline" className="text-[10px]">
+									{result.source.blockName}
+								</Badge>
+							</div>
+							<Markdown className="text-xs leading-relaxed">
+								{result.text}
+							</Markdown>
 						</div>
-						<Markdown className="text-xs leading-relaxed">
-							{result.text}
-						</Markdown>
-					</div>
-				))}
+					);
+				})}
 			</div>
 		</div>
 	);

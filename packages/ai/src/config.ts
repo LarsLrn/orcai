@@ -6,8 +6,6 @@ import * as Layer from "effect/Layer";
 const aiConfig = Config.all({
 	baseUrl: Config.string("OPENAI_COMPATIBLE_BASE_URL"),
 	apiKey: Config.redacted("OPENAI_COMPATIBLE_API_KEY"),
-	doclingUrl: Config.string("DOCLING_URL"),
-	doclingApiKey: Config.redacted("DOCLING_API_KEY"),
 });
 
 export type AiConfig = Config.Config.Success<typeof aiConfig>;

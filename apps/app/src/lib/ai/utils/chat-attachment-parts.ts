@@ -1,6 +1,11 @@
-import { extract } from "@orcai/process";
+import { buckets } from "@orcai/core";
+import {
+	buildStoredExtractionKey,
+	extract,
+	type StoredExtractionArtifact,
+} from "@orcai/process";
 import { getFileTypeFromMime } from "@orcai/s3";
-import { getDownloadUrl } from "@orcai/s3/server";
+import { getDownloadUrl, getObjectAsJson } from "@orcai/s3/server";
 import type { FileUIPart, TextUIPart } from "ai";
 import * as Effect from "effect/Effect";
 import type { ChatAttachment } from "@/lib/ai/types/chat-attachment";
@@ -47,15 +52,27 @@ const buildFileAttachmentPart = (attachment: ChatAttachment) =>
 
 const buildTextAttachmentPart = (attachment: ChatAttachment) =>
 	Effect.gen(function* () {
-		const result = yield* extract({
-			kind: "s3",
-			bucket: attachment.bucket,
-			key: getObjectKey(attachment),
-			mimeType: attachment.fileType,
-			filename: attachment.title,
-		});
+		const storedExtraction = yield* getObjectAsJson<StoredExtractionArtifact>({
+			bucket: buckets.processed.name,
+			name: buildStoredExtractionKey(attachment.assetId),
+		}).pipe(Effect.option);
 
-		const content = result.content.trim();
+		const content =
+			storedExtraction._tag === "Some"
+				? storedExtraction.value.content.trim()
+				: (yield* extract(
+						{
+							kind: "s3",
+							bucket: attachment.bucket,
+							key: getObjectKey(attachment),
+							mimeType: attachment.fileType,
+							filename: attachment.title,
+						},
+						{
+							profile: "chat-light",
+						},
+					)).content.trim();
+
 		if (content.length === 0) {
 			return fallbackAttachmentPart(attachment);
 		}

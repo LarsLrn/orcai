@@ -8,6 +8,8 @@ export const qdrantCollections = {
 		index: {
 			blockId: "block_id",
 			chunkIndex: "chunk_index",
+			chunkPageStart: "chunkPageStart",
+			chunkPageEnd: "chunkPageEnd",
 		},
 	},
 };

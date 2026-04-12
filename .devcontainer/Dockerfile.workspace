@@ -8,4 +8,7 @@ RUN apt-get update \
 	curl \
 	less \
 	procps \
+	tesseract-ocr \
+	tesseract-ocr-eng \
+	tesseract-ocr-deu \
 	&& rm -rf /var/lib/apt/lists/*

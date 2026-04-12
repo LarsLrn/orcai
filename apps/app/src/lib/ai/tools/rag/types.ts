@@ -8,7 +8,9 @@ export type ResultSource = {
 	assetId: Asset["id"];
 	assetTitle: string;
 	assetCitation?: string;
-	page?: number;
+	documentTotalPages?: number;
+	chunkPageStart?: number;
+	chunkPageEnd?: number;
 	chunkIndex: number;
 	chunkCount: number;
 	createdAt: string;

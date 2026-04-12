@@ -15,6 +15,45 @@ export class QdrantService extends Context.Tag("QdrantService")<
 	}
 >() {}
 
+const ensurePayloadIndex = ({
+	qdrant,
+	fieldName,
+	fieldSchema,
+}: {
+	qdrant: QdrantClient;
+	fieldName: string;
+	fieldSchema: {
+		type: "uuid" | "integer";
+		is_tenant?: boolean;
+	};
+}) =>
+	Effect.tryPromise({
+		try: () =>
+			qdrant.createPayloadIndex(qdrantCollections.asset.name, {
+				field_name: fieldName,
+				field_schema: fieldSchema,
+			}),
+		catch: (cause) =>
+			new QdrantError({
+				operation: "createCollection",
+				cause,
+			}),
+	}).pipe(
+		Effect.catchAll((error) => {
+			const message =
+				error.cause instanceof Error
+					? error.cause.message.toLowerCase()
+					: String(error.cause).toLowerCase();
+
+			if (message.includes("already exists")) {
+				return Effect.void;
+			}
+
+			return Effect.fail(error);
+		}),
+		Effect.asVoid,
+	);
+
 const initCollectionIfNeeded = ({
 	qdrant,
 	sparseVectorsEnabled,
@@ -37,6 +76,7 @@ const initCollectionIfNeeded = ({
 		);
 
 		if (exists) {
+			yield* ensurePayloadIndexes(qdrant);
 			return;
 		}
 
@@ -64,21 +104,6 @@ const initCollectionIfNeeded = ({
 						default_segment_number: 2,
 					},
 				});
-
-				await qdrant.createPayloadIndex(qdrantCollections.asset.name, {
-					field_name: qdrantCollections.asset.index.blockId,
-					field_schema: {
-						type: "uuid",
-						is_tenant: true,
-					},
-				});
-
-				await qdrant.createPayloadIndex(qdrantCollections.asset.name, {
-					field_name: qdrantCollections.asset.index.chunkIndex,
-					field_schema: {
-						type: "integer",
-					},
-				});
 			},
 			catch: (cause) =>
 				new QdrantError({
@@ -86,7 +111,47 @@ const initCollectionIfNeeded = ({
 					cause,
 				}),
 		});
+
+		yield* ensurePayloadIndexes(qdrant);
 	});
+
+const ensurePayloadIndexes = (qdrant: QdrantClient) =>
+	Effect.all(
+		[
+			ensurePayloadIndex({
+				qdrant,
+				fieldName: qdrantCollections.asset.index.blockId,
+				fieldSchema: {
+					type: "uuid",
+					is_tenant: true,
+				},
+			}),
+			ensurePayloadIndex({
+				qdrant,
+				fieldName: qdrantCollections.asset.index.chunkIndex,
+				fieldSchema: {
+					type: "integer",
+				},
+			}),
+			ensurePayloadIndex({
+				qdrant,
+				fieldName: qdrantCollections.asset.index.chunkPageStart,
+				fieldSchema: {
+					type: "integer",
+				},
+			}),
+			ensurePayloadIndex({
+				qdrant,
+				fieldName: qdrantCollections.asset.index.chunkPageEnd,
+				fieldSchema: {
+					type: "integer",
+				},
+			}),
+		],
+		{
+			discard: true,
+		},
+	);
 
 export const QdrantServiceLive = Layer.effect(
 	QdrantService,

@@ -96,9 +96,11 @@ export const getKnowledgeBasePageTool = ({
 					}
 
 					const normalizedRequestedPage = Math.max(1, page);
-					const zeroBasedPage = normalizedRequestedPage - 1;
-					const pageFrom = Math.max(0, zeroBasedPage - includeAdjacentPages);
-					const pageTo = zeroBasedPage + includeAdjacentPages;
+					const pageFrom = Math.max(
+						1,
+						normalizedRequestedPage - includeAdjacentPages,
+					);
+					const pageTo = normalizedRequestedPage + includeAdjacentPages;
 					const queryLimit = Math.max(limit * 4, 40);
 
 					const blockResponses = yield* Effect.tryPromise({
@@ -139,8 +141,8 @@ export const getKnowledgeBasePageTool = ({
 						matchedDocuments: matchedDocuments.slice(0, 20),
 						stats: {
 							page: normalizedRequestedPage,
-							pageFrom: pageFrom + 1,
-							pageTo: pageTo + 1,
+							pageFrom,
+							pageTo,
 							returnedCount: Math.min(limit, points.length),
 						},
 					};

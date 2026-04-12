@@ -142,7 +142,9 @@ const toSource = (point: PointWithBlock): ResultSource => {
 		blockName: point.sourceBlockName,
 		assetId: point.payload.asset_id,
 		assetTitle: point.payload.title,
-		page: point.payload.page,
+		documentTotalPages: point.payload.documentTotalPages,
+		chunkPageStart: point.payload.chunkPageStart,
+		chunkPageEnd: point.payload.chunkPageEnd,
 		chunkIndex: point.payload.chunk_index,
 		chunkCount: point.payload.chunkCount,
 		createdAt: point.payload.createdAt,
@@ -296,12 +298,12 @@ export const compareByPageAssetChunk = (
 	b: PointWithBlock,
 ) => {
 	const pageA =
-		typeof a.payload.page === "number"
-			? a.payload.page
+		typeof a.payload.chunkPageStart === "number"
+			? a.payload.chunkPageStart
 			: Number.MAX_SAFE_INTEGER;
 	const pageB =
-		typeof b.payload.page === "number"
-			? b.payload.page
+		typeof b.payload.chunkPageStart === "number"
+			? b.payload.chunkPageStart
 			: Number.MAX_SAFE_INTEGER;
 	if (pageA !== pageB) return pageA - pageB;
 	if (a.payload.asset_id !== b.payload.asset_id) {

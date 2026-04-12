@@ -1,4 +1,3 @@
-import { AiConfigLive, DoclingLive } from "@orcai/ai";
 import { DrizzleLive } from "@orcai/db";
 import { PgBossLive } from "@orcai/pg-boss";
 import { QdrantLive } from "@orcai/qdrant";
@@ -19,9 +18,8 @@ const BaseInfra = Layer.mergeAll(
 	PgBossLive,
 	ValkeyLive,
 	QdrantLive,
-	DoclingLive,
 	EmailLive,
-).pipe(Layer.provideMerge(AiConfigLive), Layer.provideMerge(AppConfigLive));
+).pipe(Layer.provideMerge(AppConfigLive));
 
 const AppInfra = Layer.mergeAll(AuthzLive, QuotaCounterStoreLive).pipe(
 	Layer.provideMerge(BaseInfra),

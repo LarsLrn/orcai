@@ -150,7 +150,11 @@ export const getKnowledgeBaseChunksTool = ({
 											sourceBlockName: candidate.sourceBlockName,
 											points: response.data,
 										})
-											.filter((point) => point.id !== candidate.id)
+											.filter(
+												(point) =>
+													point.id !== candidate.id &&
+													point.payload.source === candidate.payload.source,
+											)
 											.sort((a, b) => {
 												const distanceA = Math.abs(
 													a.payload.chunk_index - candidate.payload.chunk_index,
