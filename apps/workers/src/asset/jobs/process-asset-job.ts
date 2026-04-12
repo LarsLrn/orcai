@@ -1,10 +1,6 @@
 import { buckets } from "@orcai/core";
-import { DB, type DB as DBService, dbSchema } from "@orcai/db";
-import {
-	type PgBossService,
-	sendJobBatchEffect,
-	toPgBossRunError,
-} from "@orcai/pg-boss";
+import { DB, dbSchema } from "@orcai/db";
+import { sendJobBatchEffect, toPgBossRunError } from "@orcai/pg-boss";
 import {
 	buildStoredExtractionImageKey,
 	buildStoredExtractionKey,
@@ -15,7 +11,6 @@ import {
 import { getMimeTypeFromFileType } from "@orcai/s3";
 import {
 	deletePrefixRecursively,
-	type S3Service,
 	sendPutObjectCommand,
 } from "@orcai/s3/server";
 import {
@@ -26,7 +21,7 @@ import {
 import { eq } from "drizzle-orm";
 import * as Effect from "effect/Effect";
 import type { Job } from "pg-boss";
-import { validateImageResolution } from "../utils/validate-image-resolution";
+import { validateImageResolution } from "@/asset/utils/validate-image-resolution";
 
 const getAssetObjectKey = (assetRef: ProcessAssetPayload["assetRef"]) =>
 	`${assetRef.prefix}/${assetRef.id}.${assetRef.type}`;
@@ -53,9 +48,7 @@ const getImageContentType = (format: string) => {
 	return `image/${normalizedFormat}`;
 };
 
-export const processAssetBatchEffect = (
-	jobs: Job<ProcessAssetPayload>[],
-): Effect.Effect<void, unknown, DBService | S3Service | PgBossService> =>
+export const processAssetBatchEffect = (jobs: Job<ProcessAssetPayload>[]) =>
 	Effect.forEach(
 		jobs,
 		(job) =>

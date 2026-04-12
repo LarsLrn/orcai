@@ -13,7 +13,7 @@
 			"@qdrant/qdrant-js": "1.17.0",
 			"@types/node": "25.6.0",
 			"@types/pg": "8.20.0",
-			"ai": "6.0.156",
+			"ai": "6.0.158",
 			"drizzle-kit": "beta",
 			"drizzle-orm": "beta",
 			"drizzle-zod": "beta",

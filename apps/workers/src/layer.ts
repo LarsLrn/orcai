@@ -1,3 +1,4 @@
+import { AiConfigLive } from "@orcai/ai";
 import { DrizzleLive } from "@orcai/db";
 import { PgBossLive } from "@orcai/pg-boss";
 import { QdrantLive } from "@orcai/qdrant";
@@ -13,6 +14,7 @@ const BaseWorkerLayer = Layer.mergeAll(
 	ValkeyLive,
 	S3Live,
 	QdrantLive,
+	AiConfigLive,
 );
 
 export const BackgroundWorkerLayer = Layer.mergeAll(

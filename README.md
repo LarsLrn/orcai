@@ -122,6 +122,7 @@ docker compose -f docker-compose.yaml -f docker-compose.local.yaml down
 Notes:
 - The local override injects development defaults for required application variables.
 - For embeddings and image processing, you still need a configured `OPENAI_COMPATIBLE_*` endpoint.
+- `EMBEDDING_MODEL` and `EMBEDDING_DIMENSIONS` must match across the app, workers, and Qdrant collection. Changing them on an existing deployment is not supported right now.
 - MinIO buckets and the SpiceDB schema are initialized automatically by one-shot services.
 
 ### Manual host setup
@@ -191,6 +192,9 @@ The authoritative runtime config is loaded from [config.ts](apps/app/src/lib/eff
 
 - `OPENAI_COMPATIBLE_BASE_URL`
 - `OPENAI_COMPATIBLE_API_KEY`
+- `EMBEDDING_MODEL`: Embedding model exposed by your configured OpenAI-compatible endpoint.
+- `EMBEDDING_DIMENSIONS`: Positive integer output size of `EMBEDDING_MODEL` and Qdrant dense vector size.
+- `GENERAL_MODEL`: General-purpose text/image-capable model used by the worker image-description step.
 
 ### Optional variables
 
@@ -201,6 +205,9 @@ The authoritative runtime config is loaded from [config.ts](apps/app/src/lib/eff
 - `SMTP_*`: Optional. If you enable SMTP delivery, `SMTP_HOST` and `SMTP_FROM` must both be set. `SMTP_USERNAME` and `SMTP_PASSWORD` must either both be set or both be omitted.
 - `VITE_UMAMI_*`: Optional Umami analytics injection.
 - `OTEL_EXPORTER_OTLP_ENDPOINT`, `OTEL_EXPORTER_OTLP_HEADERS`: Optional OpenTelemetry export configuration.
+
+Embedding note:
+- Changing `EMBEDDING_MODEL` or `EMBEDDING_DIMENSIONS` after assets have already been indexed is not supported right now. Recreate the Qdrant collection and reprocess assets instead of mixing old and new embeddings.
 
 See [.env.example](.env.example) for a current baseline.
 

@@ -1,39 +1,28 @@
-import { countTokens, getSaiaEmbeddingModel, getSaiaModel } from "@orcai/ai";
+import {
+	countTokens,
+	generateManyEmbeddings,
+	generateTextEffect,
+} from "@orcai/ai";
 import {
 	buckets,
 	describeImagePrompt,
 	describeTableImagePrompt,
 } from "@orcai/core";
-import { DB, type DB as DBService, dbSchema } from "@orcai/db";
-import { PgBossError, type PgBossService } from "@orcai/pg-boss";
+import { DB, dbSchema } from "@orcai/db";
+import { PgBossError } from "@orcai/pg-boss";
 import {
 	buildStoredExtractionKey,
 	type StoredExtractionArtifact,
 } from "@orcai/process";
-import {
-	deletePointsByIdentifier,
-	type QdrantService,
-	upsertPointsToQdrant,
-} from "@orcai/qdrant";
-import {
-	getImageAsBase64,
-	getObjectAsJson,
-	type S3Service,
-} from "@orcai/s3/server";
+import { deletePointsByIdentifier, upsertPointsToQdrant } from "@orcai/qdrant";
+import { getImageAsBase64, getObjectAsJson } from "@orcai/s3/server";
 import type { FileType, VectorizeAssetPayload } from "@orcai/schema";
-import { embedMany, generateText } from "ai";
 import { and, eq } from "drizzle-orm";
 import * as Effect from "effect/Effect";
 import type { Job } from "pg-boss";
 import { v4 as uuidv4 } from "uuid";
 
-export const vectorizeAssetBatchEffect = (
-	jobs: Job<VectorizeAssetPayload>[],
-): Effect.Effect<
-	void,
-	unknown,
-	DBService | S3Service | QdrantService | PgBossService
-> =>
+export const vectorizeAssetBatchEffect = (jobs: Job<VectorizeAssetPayload>[]) =>
 	Effect.forEach(
 		jobs,
 		(job) =>
@@ -352,41 +341,21 @@ const processImageFile = (params: {
 	Effect.gen(function* () {
 		const imageBytes = Buffer.from(params.base64Image, "base64");
 
-		return yield* Effect.tryPromise({
-			try: () =>
-				generateText({
-					model: getSaiaModel({
-						input: [
-							"image",
-						],
-						model: "gemma-3-27b-it",
-					}).provider,
-					maxOutputTokens: 1024,
-					system: params.systemPrompt,
-					messages: [
+		return yield* generateTextEffect({
+			maxOutputTokens: 1024,
+			system: params.systemPrompt,
+			messages: [
+				{
+					role: "user",
+					content: [
 						{
-							role: "user",
-							content: [
-								{
-									type: "image",
-									image: imageBytes,
-									mediaType: params.contentType,
-								},
-							],
+							type: "image",
+							image: imageBytes,
+							mediaType: params.contentType,
 						},
 					],
-				}),
-			catch: (cause) =>
-				new PgBossError({
-					operation: "run",
-					cause: {
-						stage: "image-description-generation",
-						fileName: params.fileReference,
-						fileType: params.fileType,
-						decodedBytes: params.decodedBytes,
-						error: summarizeErrorCause(cause),
-					},
-				}),
+				},
+			],
 		}).pipe(
 			Effect.map((result) => ({
 				content: result.text,
@@ -608,7 +577,7 @@ const vectorizeAssetsEffect = (params: { job: Job<VectorizeAssetPayload> }) =>
 			return;
 		}
 
-		const qdrantResponse = yield* generateEmbeddings({
+		const qdrantResponse = yield* embedChunks({
 			chunks: mergedChunks,
 			assetId,
 			assetTitle: asset.title,
@@ -626,7 +595,7 @@ const vectorizeAssetsEffect = (params: { job: Job<VectorizeAssetPayload> }) =>
 		};
 	});
 
-const generateEmbeddings = ({
+const embedChunks = ({
 	chunks,
 	assetId,
 	assetTitle,
@@ -638,15 +607,8 @@ const generateEmbeddings = ({
 	blockId: string;
 }) =>
 	Effect.gen(function* () {
-		const embedResults = yield* Effect.tryPromise({
-			try: async () =>
-				await embedMany({
-					model: getSaiaEmbeddingModel({
-						model: "e5-mistral-7b-instruct",
-					}).provider,
-					values: chunks.map((chunk) => chunk.embeddingContent),
-				}),
-			catch: toSanitizedPgBossRunError,
+		const embedResults = yield* generateManyEmbeddings({
+			values: chunks.map((chunk) => chunk.embeddingContent),
 		});
 
 		const metaDataChunks = chunks.map((chunk, index) => {
