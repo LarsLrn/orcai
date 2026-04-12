@@ -4,7 +4,7 @@
 		{
 			"label": "lint-all",
 			"type": "shell",
-			"command": "bun biome check . ; bunx tsc --noEmit",
+			"command": "bun run lint",
 			"group": {
 				"kind": "build",
 				"isDefault": true
