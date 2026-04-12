@@ -1,6 +1,11 @@
 import { useSuspenseQuery } from "@tanstack/react-query";
 import { createFileRoute, Link } from "@tanstack/react-router";
-import { FileTextIcon, FlaskConicalIcon, PlusIcon } from "lucide-react";
+import {
+	FileTextIcon,
+	FlaskConicalIcon,
+	PlusIcon,
+	RefreshCwIcon,
+} from "lucide-react";
 import { AssetCard } from "@/components/documents/asset-card";
 import { Placeholder } from "@/components/placeholders/placeholder";
 import { buttonVariants } from "@/components/ui/button";
@@ -13,6 +18,7 @@ import {
 	SectionHeader,
 	SectionTitle,
 } from "@/components/ui/shell/section";
+import { useReprocessAssetMutation } from "@/hooks/mutations/use-job-mutations";
 import { orpc } from "@/lib/orpc/orpc";
 import { paginationSchema } from "@/lib/orpc/schemas/shared";
 
@@ -40,6 +46,7 @@ export const Route = createFileRoute("/app/hub/assets/")({
 
 function RouteComponent() {
 	const { pageIndex, pageSize } = Route.useSearch();
+	const { mutate: reprocessAsset } = useReprocessAssetMutation();
 	const { data: assets } = useSuspenseQuery(
 		orpc.asset.list.queryOptions({
 			input: {
@@ -103,6 +110,21 @@ function RouteComponent() {
 								key={asset.id}
 								asset={asset}
 								actions={{
+									dropdown:
+										asset.processingStatus === "pending" ||
+										asset.processingStatus === "active"
+											? []
+											: [
+													{
+														key: "reprocess",
+														label: "Reprocess",
+														icon: RefreshCwIcon,
+														onClick: () =>
+															reprocessAsset({
+																assetId: asset.id,
+															}),
+													},
+												],
 									footer: [],
 								}}
 							/>
