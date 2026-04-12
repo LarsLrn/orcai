@@ -27,23 +27,28 @@ export const getKnowledgeBaseChunksTool = ({
 }) =>
 	tool({
 		description:
-			"Fetch full chunk texts for selected chunk IDs from prior search results. Use only for the few chunks needed to ground the final answer.",
+			"Read the full text of selected chunk IDs from prior search results. Use this after searchKnowledgeBase when you need exact evidence for the final answer.",
 		inputSchema: z.object({
 			ids: z
 				.array(z.string())
 				.min(1)
 				.max(20)
-				.describe("Chunk IDs selected from searchKnowledgeBase results."),
+				.describe(
+					"Chunk IDs from searchKnowledgeBase.results[].id. Prefer only the few IDs you actually need.",
+				),
 			limit: z.coerce
 				.number()
 				.int()
 				.min(1)
 				.max(RETRIEVAL_LIMITS.maxFullChunkFetches)
-				.default(3),
+				.optional()
+				.describe(
+					"Optional cap on returned chunks after adjacent chunks are added. Default is enough to cover the requested IDs and any included neighbors.",
+				),
 			blockId: baseBlockSelectSchema.shape.id
 				.optional()
 				.describe(
-					"Optional block ID if chunk IDs are from one known database.",
+					"Optional block ID when all chunk IDs come from one known block.",
 				),
 			includeAdjacent: z.coerce
 				.number()
@@ -52,7 +57,7 @@ export const getKnowledgeBaseChunksTool = ({
 				.max(2)
 				.default(0)
 				.describe(
-					"Include previous/next chunks around each requested chunk for additional local context.",
+					"Include previous and next chunks around each requested chunk for local context.",
 				),
 		}),
 		execute: async ({ ids, limit, blockId, includeAdjacent }) =>
@@ -69,10 +74,20 @@ export const getKnowledgeBaseChunksTool = ({
 						blocks,
 						blockId,
 					});
+					const uniqueIds = Array.from(new Set(ids));
+					const resolvedLimit = Math.min(
+						RETRIEVAL_LIMITS.maxFullChunkFetches,
+						limit ??
+							Math.max(
+								uniqueIds.length,
+								uniqueIds.length * (includeAdjacent * 2 + 1),
+							),
+					);
 					if (targetBlocks.length === 0) {
 						return {
-							result: [] as ChunkResult[],
+							chunks: [] as ChunkResult[],
 							noNewEvidence: true,
+							nextAction: "refineSearch" as const,
 						};
 					}
 
@@ -82,9 +97,9 @@ export const getKnowledgeBaseChunksTool = ({
 								targetBlocks.map(async (block) => {
 									const response = await client.assetPoint.list({
 										filters: {
-											pointIds: ids,
+											pointIds: uniqueIds,
 											blockId: block.id,
-											limit: ids.length,
+											limit: uniqueIds.length,
 										},
 									});
 									return {
@@ -106,7 +121,7 @@ export const getKnowledgeBaseChunksTool = ({
 
 					const orderedCandidates = selectByIds({
 						candidates,
-						ids,
+						ids: uniqueIds,
 					});
 
 					const adjacentByCandidateKey = new Map<string, PointWithBlock[]>();
@@ -136,7 +151,7 @@ export const getKnowledgeBaseChunksTool = ({
 
 										const response = await client.assetPoint.list({
 											filters: {
-												blockId: candidate.sourceBlockId,
+												blockId: candidate.sourceBlock.id,
 												assetIds: [
 													candidate.payload.asset_id,
 												],
@@ -146,8 +161,8 @@ export const getKnowledgeBaseChunksTool = ({
 										});
 
 										const points = withSourceBlock({
-											sourceBlockId: candidate.sourceBlockId,
-											sourceBlockName: candidate.sourceBlockName,
+											sourceBlockId: candidate.sourceBlock.id,
+											sourceBlockName: candidate.sourceBlock.name,
 											points: response.data,
 										})
 											.filter(
@@ -210,7 +225,7 @@ export const getKnowledgeBaseChunksTool = ({
 					const results: ChunkResult[] = [];
 
 					for (const candidate of candidateQueue) {
-						if (results.length >= limit) {
+						if (results.length >= resolvedLimit) {
 							break;
 						}
 
@@ -218,14 +233,24 @@ export const getKnowledgeBaseChunksTool = ({
 					}
 
 					const returnedIds = new Set(results.map((result) => result.id));
-					const missingIds = ids.filter((id) => !returnedIds.has(id));
+					const missingIds = uniqueIds.filter((id) => !returnedIds.has(id));
 					const stopReason = missingIds.length > 0 ? "missing_ids" : "complete";
 
 					return {
-						result: results,
+						chunks: results,
 						noNewEvidence: results.length === 0,
+						nextAction:
+							results.length > 0
+								? ("answerFromChunks" as const)
+								: ("refineSearch" as const),
 						missingIds,
 						stopReason,
+						stats: {
+							requestedChunkCount: uniqueIds.length,
+							returnedChunkCount: results.length,
+							includeAdjacent,
+							truncated: candidateQueue.length > results.length,
+						},
 					};
 				}),
 			),

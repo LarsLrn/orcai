@@ -43,22 +43,22 @@ const Output = ({
 }: {
 	output: SearchKnowledgeBaseToolPart["output"];
 }) => {
-	if (!output?.result || output.result.length === 0) {
+	if (!output?.results || output.results.length === 0) {
 		return null;
 	}
 
 	return (
 		<div className="space-y-3 p-4">
 			<p className="text-muted-foreground text-sm">
-				Found {output.result.length} reference
-				{output.result.length !== 1 ? "s" : ""}
+				Found {output.results.length} reference
+				{output.results.length !== 1 ? "s" : ""}
 			</p>
 			<div className="flex flex-wrap gap-2">
-				{output.result.map((result, index) => {
+				{output.results.map((result, index) => {
 					const pageRange = formatPageRange({
-						chunkPageStart: result.source.chunkPageStart,
-						chunkPageEnd: result.source.chunkPageEnd,
-						documentTotalPages: result.source.documentTotalPages,
+						chunkPageStart: result.source.chunk.pageStart,
+						chunkPageEnd: result.source.chunk.pageEnd,
+						documentTotalPages: result.source.document.totalPages,
 					});
 
 					return (
@@ -97,11 +97,11 @@ const Output = ({
 											Score {result?.score?.toFixed(3)}
 										</Badge>
 										<Badge variant="outline" className="text-[10px]">
-											Block {result.source.blockName}
+											Block {result.source.block.name}
 										</Badge>
 										<Badge variant="outline" className="text-[10px]">
-											Chunk {result.source.chunkIndex + 1}/
-											{result.source.chunkCount}
+											Chunk {result.source.chunk.index + 1}/
+											{result.source.chunk.count}
 										</Badge>
 										{pageRange && (
 											<Badge variant="outline" className="text-[10px]">

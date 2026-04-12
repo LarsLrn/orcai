@@ -39,27 +39,30 @@ const Output = ({
 }: {
 	output: ListKnowledgeBaseDocumentsToolPart["output"];
 }) => {
-	if (!output?.result || output.result.length === 0) {
+	if (!output?.documents || output.documents.length === 0) {
 		return null;
 	}
 
 	return (
 		<div className="space-y-3 p-4">
 			<p className="text-muted-foreground text-sm">
-				Found {output.result.length} document
-				{output.result.length !== 1 ? "s" : ""}
+				Found {output.documents.length} document
+				{output.documents.length !== 1 ? "s" : ""}
 				{output.stats ? ` (${output.stats.totalDocuments} total)` : ""}
 			</p>
 			<div className="space-y-2">
-				{output.result.map((doc) => (
+				{output.documents.map((doc) => (
 					<div
-						key={doc.assetId}
+						key={`${doc.block.id}:${doc.assetId}`}
 						className="flex flex-wrap items-center gap-2 rounded-md border px-3 py-2"
 					>
 						<BookOpenIcon className="size-3 shrink-0 text-muted-foreground" />
 						<span className="font-medium text-xs">{doc.title}</span>
+						<Badge variant="secondary" className="text-[10px]">
+							{doc.assetId}
+						</Badge>
 						<Badge variant="outline" className="ml-auto text-[10px]">
-							{doc.blockName}
+							{doc.block.name}
 						</Badge>
 					</div>
 				))}

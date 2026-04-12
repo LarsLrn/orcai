@@ -20,16 +20,22 @@ export const listKnowledgeBaseDocumentsTool = ({
 }) =>
 	tool({
 		description:
-			"List available knowledge base documents (assets) and their IDs for scoped or page-specific lookup.",
+			"List knowledge base documents and their asset IDs. Use this before page-specific retrieval or when the user mentions a document title and you need to identify the right asset.",
 		inputSchema: z.object({
 			query: z
 				.string()
 				.optional()
-				.describe("Optional title query to narrow documents."),
+				.describe("Optional document-title query to narrow the list."),
 			blockId: baseBlockSelectSchema.shape.id
 				.optional()
-				.describe("Optional database block scope."),
-			limit: z.coerce.number().int().min(1).max(100).default(30),
+				.describe("Optional block ID to scope the document list."),
+			limit: z.coerce
+				.number()
+				.int()
+				.min(1)
+				.max(100)
+				.default(30)
+				.describe("Maximum number of documents to return."),
 		}),
 		execute: async ({ query, blockId, limit }) =>
 			runtime.runPromise(
@@ -40,7 +46,8 @@ export const listKnowledgeBaseDocumentsTool = ({
 					});
 					if (targetBlocks.length === 0) {
 						return {
-							result: [] as KnowledgeBaseDocument[],
+							documents: [] as KnowledgeBaseDocument[],
+							nextAction: "searchKnowledgeBase" as const,
 						};
 					}
 
@@ -56,10 +63,12 @@ export const listKnowledgeBaseDocumentsTool = ({
 						: documents.slice().sort((a, b) => a.title.localeCompare(b.title));
 
 					return {
-						result: ranked.slice(0, limit),
+						documents: ranked.slice(0, limit),
+						nextAction: "getKnowledgeBasePageOrSearch" as const,
 						stats: {
 							totalDocuments: documents.length,
 							returnedCount: Math.min(limit, ranked.length),
+							queryApplied: Boolean(query?.trim()),
 						},
 					};
 				}),

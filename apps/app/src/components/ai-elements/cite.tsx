@@ -98,21 +98,30 @@ const CiteCardContent = ({ assetId }: { assetId: string }) => {
 
 export const CiteComponent = ({
 	assetid,
+	assetId,
+	asset_id,
 	title,
 	page,
+	pageNumber,
+	page_number,
 	children,
 }: {
 	assetid?: string;
+	assetId?: string;
+	asset_id?: string;
 	title?: string;
 	page?: string;
+	pageNumber?: string;
+	page_number?: string;
 	children?: ReactNode;
 }) => {
 	const [hasOpened, setHasOpened] = useState(false);
-	const pageNumber = parsePageNumber(page);
+	const resolvedAssetId = assetid ?? assetId ?? asset_id;
+	const resolvedPage = parsePageNumber(page ?? pageNumber ?? page_number);
 	const triggerLabel =
-		pageNumber == null
+		resolvedPage == null
 			? (title ?? "Source")
-			: `${title ?? "Source"} (p. ${pageNumber})`;
+			: `${title ?? "Source"} (p. ${resolvedPage})`;
 
 	return (
 		<InlineCitation>
@@ -126,8 +135,8 @@ export const CiteComponent = ({
 			>
 				<InlineCitationCardTrigger label={triggerLabel} sources={[]} />
 				<InlineCitationCardBody>
-					{assetid && hasOpened ? (
-						<CiteCardContent assetId={assetid} />
+					{resolvedAssetId && hasOpened ? (
+						<CiteCardContent assetId={resolvedAssetId} />
 					) : (
 						<div className="p-3 text-muted-foreground text-sm">
 							{triggerLabel}

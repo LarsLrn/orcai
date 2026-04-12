@@ -41,7 +41,7 @@ const Output = ({
 }: {
 	output: GetKnowledgeBasePageToolPart["output"];
 }) => {
-	if (!output?.result || output.result.length === 0) {
+	if (!output?.chunks || output.chunks.length === 0) {
 		return null;
 	}
 
@@ -49,8 +49,8 @@ const Output = ({
 		<div className="space-y-3 p-4">
 			<div className="flex flex-wrap items-center gap-2">
 				<p className="text-muted-foreground text-sm">
-					Fetched {output.result.length} chunk
-					{output.result.length !== 1 ? "s" : ""}
+					Fetched {output.chunks.length} chunk
+					{output.chunks.length !== 1 ? "s" : ""}
 				</p>
 				{output.stats && (
 					<Badge variant="secondary" className="text-[10px]">
@@ -62,11 +62,11 @@ const Output = ({
 				)}
 			</div>
 			<div className="space-y-3">
-				{output.result.map((result, index) => {
+				{output.chunks.map((result, index) => {
 					const pageRange = formatPageRange({
-						chunkPageStart: result.source.chunkPageStart,
-						chunkPageEnd: result.source.chunkPageEnd,
-						documentTotalPages: result.source.documentTotalPages,
+						chunkPageStart: result.source.chunk.pageStart,
+						chunkPageEnd: result.source.chunk.pageEnd,
+						documentTotalPages: result.source.document.totalPages,
 					});
 
 					return (
@@ -83,7 +83,7 @@ const Output = ({
 									{result.id}
 								</Badge>
 								<Badge variant="outline" className="text-[10px]">
-									{result.source.blockName}
+									{result.source.block.name}
 								</Badge>
 							</div>
 							<Markdown className="text-xs leading-relaxed">
