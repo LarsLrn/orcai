@@ -41,6 +41,11 @@ const normalizeQueries = ({
 		),
 	).slice(0, 5);
 
+const DEFAULT_SEARCH_RESULT_LIMIT = Math.min(
+	6,
+	RETRIEVAL_LIMITS.maxSnippetResultsPerCall,
+);
+
 export const searchKnowledgeBaseTool = ({
 	blocks,
 }: {
@@ -87,40 +92,11 @@ export const searchKnowledgeBaseTool = ({
 				.describe(
 					"Optional document asset IDs to scope retrieval after using listKnowledgeBaseDocuments.",
 				),
-			limit: z.coerce
-				.number()
-				.int()
-				.min(1)
-				.max(RETRIEVAL_LIMITS.maxSnippetResultsPerCall)
-				.default(6)
-				.describe("Maximum number of snippet results to return."),
 			blockId: baseBlockSelectSchema.shape.id
 				.optional()
 				.describe("Optional block ID to search only one knowledge base block."),
-			retrievalMode: z
-				.enum([
-					"dense",
-					"hybrid",
-				])
-				.default("hybrid")
-				.describe("Hybrid is recommended for most factual searches."),
-			minScore: z
-				.number()
-				.min(0)
-				.max(1)
-				.optional()
-				.describe("Optional minimum relevance score threshold."),
 		}),
-		execute: async ({
-			query,
-			queryVariants,
-			queries,
-			assetIds,
-			limit,
-			blockId,
-			retrievalMode,
-			minScore,
-		}) =>
+		execute: async ({ query, queryVariants, queries, assetIds, blockId }) =>
 			runtime.runPromise(
 				Effect.gen(function* () {
 					if (blocks.length === 0) {
@@ -146,6 +122,7 @@ export const searchKnowledgeBaseTool = ({
 						blocks,
 						blockId,
 					});
+					const limit = DEFAULT_SEARCH_RESULT_LIMIT;
 
 					if (targetBlocks.length === 0) {
 						return {
@@ -165,9 +142,8 @@ export const searchKnowledgeBaseTool = ({
 											limit: Math.max(limit * 6, 24),
 											blockId: block.id,
 											assetIds,
-											retrievalMode:
-												retrievalMode ?? block.config.retrievalMode ?? "hybrid",
-											minScore: minScore ?? block.config.scoreThreshold,
+											retrievalMode: block.config.retrievalMode ?? "hybrid",
+											minScore: block.config.scoreThreshold,
 											candidateLimit:
 												block.config.candidateLimit ?? Math.max(limit * 8, 32),
 											maxPerAsset: block.config.maxPerAsset ?? 2,
@@ -214,7 +190,6 @@ export const searchKnowledgeBaseTool = ({
 							returnedCount: boundedResults.length,
 							searchedBlockCount: targetBlocks.length,
 							assetScopeCount: assetIds?.length ?? 0,
-							retrievalMode,
 						},
 					};
 				}),

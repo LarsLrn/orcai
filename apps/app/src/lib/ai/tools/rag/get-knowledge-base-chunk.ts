@@ -31,8 +31,8 @@ export const getKnowledgeBaseChunksTool = ({
 		inputSchema: z.object({
 			ids: z
 				.array(z.string())
-				.min(1)
 				.max(20)
+				.default([])
 				.describe(
 					"Chunk IDs from searchKnowledgeBase.results[].id. Prefer only the few IDs you actually need.",
 				),
@@ -83,6 +83,21 @@ export const getKnowledgeBaseChunksTool = ({
 								uniqueIds.length * (includeAdjacent * 2 + 1),
 							),
 					);
+					if (uniqueIds.length === 0) {
+						return {
+							chunks: [] as ChunkResult[],
+							noNewEvidence: true,
+							nextAction: "searchKnowledgeBase" as const,
+							missingIds: [] as string[],
+							stopReason: "missing_ids" as const,
+							stats: {
+								requestedChunkCount: 0,
+								returnedChunkCount: 0,
+								includeAdjacent,
+								truncated: false,
+							},
+						};
+					}
 					if (targetBlocks.length === 0) {
 						return {
 							chunks: [] as ChunkResult[],
