@@ -5,7 +5,6 @@ import {
 	useQueryClient,
 	useSuspenseQuery,
 } from "@tanstack/react-query";
-import type { ApiGetScoresResponseData } from "langfuse";
 import { useEffect, useRef } from "react";
 import { toast } from "sonner";
 import {
@@ -27,14 +26,12 @@ import { MessageBlock } from "./message/message-block";
 const Chat = ({
 	id,
 	initialMessages,
-	scores,
 	branchId,
 	zedToken,
 	pendingMessage,
 }: {
 	id: ChatType["id"];
 	initialMessages: ChatAgentUIMessage[];
-	scores: ApiGetScoresResponseData[];
 	branchId?: ChatBranch["id"];
 	zedToken?: string;
 	pendingMessage?: string;
@@ -155,7 +152,6 @@ const Chat = ({
 							setMessages={setMessages}
 							regenerate={regenerate}
 							status={status}
-							score={scores.find((s) => s.id === m.id)}
 						/>
 					))}
 					{messages.length === 0 && <ChatPlaceholder />}

@@ -5,6 +5,7 @@ import {
 	EditIcon,
 	KeyRoundIcon,
 	MoreVerticalIcon,
+	RefreshCwIcon,
 	Trash2Icon,
 } from "lucide-react";
 import { useState } from "react";
@@ -26,6 +27,7 @@ import {
 	SectionTitle,
 } from "@/components/ui/shell/section";
 import { useDeleteAssetsMutation } from "@/hooks/mutations/use-asset-mutations";
+import { useReprocessAssetMutation } from "@/hooks/mutations/use-job-mutations";
 import { orpc } from "@/lib/orpc/orpc";
 
 export const Route = createFileRoute("/app/hub/assets/$assetId/")({
@@ -36,6 +38,7 @@ function RouteComponent() {
 	const { assetId } = Route.useParams();
 	const navigate = useNavigate();
 	const [isAccessOpen, setIsAccessOpen] = useState(false);
+	const { mutate: reprocessAsset } = useReprocessAssetMutation();
 	const { data: asset } = useSuspenseQuery(
 		orpc.asset.find.queryOptions({
 			input: {
@@ -103,6 +106,19 @@ function RouteComponent() {
 								<EditIcon />
 								Edit Content
 							</DropdownMenuItem>
+							{asset.data.processingStatus !== "pending" &&
+								asset.data.processingStatus !== "active" && (
+									<DropdownMenuItem
+										onClick={() =>
+											reprocessAsset({
+												assetId: asset.data.id,
+											})
+										}
+									>
+										<RefreshCwIcon className="size-4" />
+										Reprocess
+									</DropdownMenuItem>
+								)}
 							<DropdownMenuSeparator />
 							<DropdownMenuItem
 								variant="destructive"

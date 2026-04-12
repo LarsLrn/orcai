@@ -7,9 +7,7 @@
 		".": "./src/index.ts"
 	},
 	"dependencies": {
-		"@ai-sdk/openai": "3.0.49",
-		"@docling/docling-core": "0.0.7",
-		"@orcai/schema": "workspace:*",
+		"@ai-sdk/openai": "3.0.52",
 		"ai": "catalog:",
 		"effect": "catalog:",
 		"llama-tokenizer-js": "1.2.2"

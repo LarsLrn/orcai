@@ -1,10 +1,10 @@
-import { assetPointSelectSchema } from "@orcai/schema";
 import { tool } from "ai";
 import * as Effect from "effect/Effect";
 import z from "zod/v4";
 import { runtime } from "@/lib/effect/runtime";
 import { AiError } from "@/lib/effect/utils/errors";
 import { client } from "@/lib/orpc/orpc";
+import { assetSelectSchema } from "@/lib/orpc/schemas/asset";
 import {
 	baseBlockSelectSchema,
 	type DatabaseBlock,
@@ -27,7 +27,7 @@ export const getKnowledgeBasePageTool = ({
 }) =>
 	tool({
 		description:
-			"Retrieve chunks from a specific page (or nearby pages) in selected knowledge base documents.",
+			"Read full chunk text from a specific document page or nearby pages. Use this for explicit page requests after you know the document or have narrowed it down by title.",
 		inputSchema: z.object({
 			page: z.coerce
 				.number()
@@ -35,20 +35,41 @@ export const getKnowledgeBasePageTool = ({
 				.min(1)
 				.describe("1-based page number to retrieve."),
 			blockId: baseBlockSelectSchema.shape.id.optional(),
-			assetId: assetPointSelectSchema.shape.id
+			assetId: assetSelectSchema.shape.id
 				.optional()
-				.describe("Optional specific document asset id."),
+				.describe("Optional specific document asset ID."),
+			documentTitleQuery: z
+				.string()
+				.optional()
+				.describe(
+					"Optional document-title query when assetId is not known yet.",
+				),
 			documentQuery: z
 				.string()
 				.optional()
-				.describe("Optional document title query to match one or more assets."),
-			includeAdjacentPages: z.coerce.number().int().min(0).max(2).default(0),
-			limit: z.coerce.number().int().min(1).max(30).default(12),
+				.describe(
+					"Legacy alias for documentTitleQuery. Prefer documentTitleQuery for new calls.",
+				),
+			includeAdjacentPages: z.coerce
+				.number()
+				.int()
+				.min(0)
+				.max(2)
+				.default(0)
+				.describe("Include nearby pages around the requested page."),
+			limit: z.coerce
+				.number()
+				.int()
+				.min(1)
+				.max(30)
+				.default(12)
+				.describe("Maximum number of returned chunks."),
 		}),
 		execute: async ({
 			page,
 			blockId,
 			assetId,
+			documentTitleQuery,
 			documentQuery,
 			includeAdjacentPages,
 			limit,
@@ -61,10 +82,14 @@ export const getKnowledgeBasePageTool = ({
 					});
 					if (targetBlocks.length === 0) {
 						return {
-							result: [] as ChunkResult[],
+							chunks: [] as ChunkResult[],
 							matchedDocuments: [] as KnowledgeBaseDocument[],
+							nextAction: "listKnowledgeBaseDocuments" as const,
 						};
 					}
+
+					const normalizedDocumentQuery =
+						documentTitleQuery?.trim() || documentQuery?.trim() || undefined;
 
 					const documents = yield* loadDocumentCatalog({
 						blocks: targetBlocks,
@@ -77,28 +102,32 @@ export const getKnowledgeBasePageTool = ({
 						);
 					}
 
-					if (documentQuery) {
+					if (normalizedDocumentQuery) {
 						matchedDocuments = rankDocumentsByQuery({
 							documents: matchedDocuments,
-							query: documentQuery,
+							query: normalizedDocumentQuery,
 						});
 					}
 
+					const documentsToSearch = matchedDocuments.slice(0, 5);
 					const matchedAssetIds = Array.from(
-						new Set(matchedDocuments.map((document) => document.assetId)),
+						new Set(documentsToSearch.map((document) => document.assetId)),
 					);
 
 					if (matchedAssetIds.length === 0) {
 						return {
-							result: [] as ChunkResult[],
+							chunks: [] as ChunkResult[],
 							matchedDocuments: [] as KnowledgeBaseDocument[],
+							nextAction: "listKnowledgeBaseDocuments" as const,
 						};
 					}
 
 					const normalizedRequestedPage = Math.max(1, page);
-					const zeroBasedPage = normalizedRequestedPage - 1;
-					const pageFrom = Math.max(0, zeroBasedPage - includeAdjacentPages);
-					const pageTo = zeroBasedPage + includeAdjacentPages;
+					const pageFrom = Math.max(
+						1,
+						normalizedRequestedPage - includeAdjacentPages,
+					);
+					const pageTo = normalizedRequestedPage + includeAdjacentPages;
 					const queryLimit = Math.max(limit * 4, 40);
 
 					const blockResponses = yield* Effect.tryPromise({
@@ -135,13 +164,21 @@ export const getKnowledgeBasePageTool = ({
 						.slice(0, limit);
 
 					return {
-						result: points.map(toChunkResult),
+						chunks: points.map(toChunkResult),
 						matchedDocuments: matchedDocuments.slice(0, 20),
+						nextAction:
+							points.length > 0
+								? ("answerFromChunks" as const)
+								: matchedDocuments.length > 1 && !assetId
+									? ("listKnowledgeBaseDocuments" as const)
+									: ("searchKnowledgeBase" as const),
 						stats: {
-							page: normalizedRequestedPage,
-							pageFrom: pageFrom + 1,
-							pageTo: pageTo + 1,
-							returnedCount: Math.min(limit, points.length),
+							requestedPage: normalizedRequestedPage,
+							pageFrom,
+							pageTo,
+							matchedDocumentCount: matchedDocuments.length,
+							searchedDocumentCount: documentsToSearch.length,
+							returnedChunkCount: Math.min(limit, points.length),
 						},
 					};
 				}),

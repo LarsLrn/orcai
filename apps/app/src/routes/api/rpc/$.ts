@@ -1,5 +1,4 @@
 import { trace } from "@opentelemetry/api";
-import { LoggingHandlerPlugin } from "@orpc/experimental-pino";
 import { ORPCError, onError, ValidationError } from "@orpc/server";
 import { CompressionPlugin, RPCHandler } from "@orpc/server/fetch";
 import { getCookie } from "@orpc/server/helpers";
@@ -10,7 +9,6 @@ import {
 } from "@orpc/server/plugins";
 import { createFileRoute } from "@tanstack/react-router";
 import { z } from "zod/v4";
-import { logger } from "@/lib/observability/logger";
 import { router } from "@/lib/orpc/router";
 import { COOKIES, HEADERS } from "@/settings/constants";
 
@@ -70,9 +68,6 @@ const handler = new RPCHandler(router, {
 		new BatchHandlerPlugin(),
 		new StrictGetMethodPlugin(),
 		new CompressionPlugin(),
-		new LoggingHandlerPlugin({
-			logger,
-		}),
 	],
 });
 

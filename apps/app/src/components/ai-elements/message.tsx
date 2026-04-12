@@ -354,8 +354,12 @@ const streamdownComponents = {
 const streamdownAllowedTags = {
 	cite: [
 		"assetid",
+		"assetId",
+		"asset_id",
 		"title",
 		"page",
+		"pageNumber",
+		"page_number",
 	],
 };
 

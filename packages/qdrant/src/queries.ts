@@ -2,7 +2,6 @@ import { assetPointSelectSchema } from "@orcai/schema";
 import type { Schemas } from "@qdrant/qdrant-js";
 import * as Effect from "effect/Effect";
 import z from "zod/v4";
-import { qdrantCollections } from "./collections";
 import { QdrantError } from "./errors";
 import { QdrantService } from "./service";
 
@@ -16,7 +15,7 @@ export const queryAssetPoints = (params: {
 	scoreThreshold?: number;
 }) =>
 	Effect.gen(function* () {
-		const { client, sparseVectorsEnabled } = yield* QdrantService;
+		const { client, sparseVectorsEnabled, collections } = yield* QdrantService;
 		const resolvedLimit = params.limit ?? 10;
 		const withPayload = params.withPayload ?? true;
 		const withVector = params.withVector ?? false;
@@ -26,7 +25,7 @@ export const queryAssetPoints = (params: {
 				// Hybrid retrieval (sparse + dense, fused with RRF)
 				if (params.embedding && params.text) {
 					if (!sparseVectorsEnabled) {
-						const response = await client.query(qdrantCollections.asset.name, {
+						const response = await client.query(collections.asset.name, {
 							query: params.embedding,
 							using: "dense",
 							filter: params.filter,
@@ -38,7 +37,7 @@ export const queryAssetPoints = (params: {
 						return response.points;
 					}
 
-					const response = await client.query(qdrantCollections.asset.name, {
+					const response = await client.query(collections.asset.name, {
 						prefetch: [
 							{
 								query: {
@@ -68,7 +67,7 @@ export const queryAssetPoints = (params: {
 
 				// Dense-only retrieval
 				if (params.embedding) {
-					const response = await client.query(qdrantCollections.asset.name, {
+					const response = await client.query(collections.asset.name, {
 						query: params.embedding,
 						using: "dense",
 						filter: params.filter,
@@ -86,7 +85,7 @@ export const queryAssetPoints = (params: {
 						return [];
 					}
 
-					const response = await client.query(qdrantCollections.asset.name, {
+					const response = await client.query(collections.asset.name, {
 						query: {
 							text: params.text,
 							model: "qdrant/bm25",
@@ -102,7 +101,7 @@ export const queryAssetPoints = (params: {
 				}
 
 				// Metadata-only retrieval (filters / pointIds / chunk ranges)
-				const response = await client.scroll(qdrantCollections.asset.name, {
+				const response = await client.scroll(collections.asset.name, {
 					filter: params.filter,
 					limit: resolvedLimit,
 					with_payload: withPayload,

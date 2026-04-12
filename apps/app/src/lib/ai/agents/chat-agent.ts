@@ -1,5 +1,6 @@
 import { type LanguageModel, Output, stepCountIs, ToolLoopAgent } from "ai";
 import { buildChatAgentSystemPrompt } from "@/lib/ai/agents/chat-agent-system-prompt";
+import { repairKnowledgeBaseToolCall } from "@/lib/ai/agents/repair-tool-call";
 import { buildKnowledgeBaseTools } from "@/lib/ai/tools/rag/toolset";
 import type { DatabaseBlock } from "@/lib/orpc/schemas/block";
 
@@ -24,6 +25,7 @@ export const createChatAgent = (params: {
 	new ToolLoopAgent({
 		model: params.model,
 		tools: chatAgentToolSet,
+		experimental_repairToolCall: repairKnowledgeBaseToolCall,
 		prepareCall: ({ options, ...settings }) => {
 			const hasKnowledgeBaseBlocks = params.databaseBlocks.length > 0;
 			const tools = hasKnowledgeBaseBlocks

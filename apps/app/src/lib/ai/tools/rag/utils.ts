@@ -65,8 +65,10 @@ export const withSourceBlock = ({
 }): PointWithBlock[] =>
 	points.map((point) => ({
 		...point,
-		sourceBlockId,
-		sourceBlockName,
+		sourceBlock: {
+			id: sourceBlockId,
+			name: sourceBlockName,
+		},
 	}));
 
 export const flattenBlockResponses = (
@@ -136,15 +138,52 @@ const toSnippet = ({
 	return `${headText}${bridge}${tailText}`;
 };
 
+const escapeHtmlAttribute = (value: string) =>
+	value.replaceAll("&", "&amp;").replaceAll('"', "&quot;");
+
+const buildCitationRef = (point: PointWithBlock) => {
+	const page =
+		point.payload.chunkPageStart === point.payload.chunkPageEnd
+			? point.payload.chunkPageStart
+			: undefined;
+	const assetId = point.payload.asset_id;
+	const title = point.payload.title;
+	const attributes = [
+		`assetid="${escapeHtmlAttribute(assetId)}"`,
+		`title="${escapeHtmlAttribute(title)}"`,
+		...(typeof page === "number"
+			? [
+					`page="${String(page)}"`,
+				]
+			: []),
+	].join(" ");
+	const openTag = `<cite ${attributes}>`;
+
+	return {
+		assetId,
+		title,
+		page,
+		openTag,
+		closeTag: "</cite>" as const,
+		example: `${openTag}quoted text${"</cite>"}`,
+	};
+};
+
 const toSource = (point: PointWithBlock): ResultSource => {
 	return {
-		blockId: point.sourceBlockId,
-		blockName: point.sourceBlockName,
-		assetId: point.payload.asset_id,
-		assetTitle: point.payload.title,
-		page: point.payload.page,
-		chunkIndex: point.payload.chunk_index,
-		chunkCount: point.payload.chunkCount,
+		block: point.sourceBlock,
+		document: {
+			assetId: point.payload.asset_id,
+			title: point.payload.title,
+			totalPages: point.payload.documentTotalPages,
+		},
+		chunk: {
+			index: point.payload.chunk_index,
+			count: point.payload.chunkCount,
+			pageStart: point.payload.chunkPageStart,
+			pageEnd: point.payload.chunkPageEnd,
+		},
+		citation: buildCitationRef(point),
 		createdAt: point.payload.createdAt,
 	};
 };
@@ -275,8 +314,10 @@ export const loadDocumentCatalog = ({ blocks }: { blocks: DatabaseBlock[] }) =>
 						assetId,
 						title: asset.title,
 						citation: metadata?.citation ?? undefined,
-						blockId: block.id,
-						blockName: block.name,
+						block: {
+							id: block.id,
+							name: block.name,
+						},
 					} satisfies KnowledgeBaseDocument;
 				})
 				.filter((entry) => entry !== null),
@@ -296,12 +337,12 @@ export const compareByPageAssetChunk = (
 	b: PointWithBlock,
 ) => {
 	const pageA =
-		typeof a.payload.page === "number"
-			? a.payload.page
+		typeof a.payload.chunkPageStart === "number"
+			? a.payload.chunkPageStart
 			: Number.MAX_SAFE_INTEGER;
 	const pageB =
-		typeof b.payload.page === "number"
-			? b.payload.page
+		typeof b.payload.chunkPageStart === "number"
+			? b.payload.chunkPageStart
 			: Number.MAX_SAFE_INTEGER;
 	if (pageA !== pageB) return pageA - pageB;
 	if (a.payload.asset_id !== b.payload.asset_id) {

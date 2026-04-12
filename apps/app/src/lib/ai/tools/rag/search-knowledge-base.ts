@@ -4,6 +4,7 @@ import { z } from "zod/v4";
 import { runtime } from "@/lib/effect/runtime";
 import { AiError } from "@/lib/effect/utils/errors";
 import { client } from "@/lib/orpc/orpc";
+import { assetSelectSchema } from "@/lib/orpc/schemas/asset";
 import {
 	baseBlockSelectSchema,
 	type DatabaseBlock,
@@ -17,6 +18,34 @@ import {
 	toSearchResult,
 } from "./utils";
 
+const normalizeQueries = ({
+	query,
+	queryVariants,
+	queries,
+}: {
+	query?: string;
+	queryVariants?: string[];
+	queries?: string[];
+}) =>
+	Array.from(
+		new Set(
+			[
+				query,
+				...(queryVariants ?? []),
+				...(queries ?? []),
+			]
+				.map((value) => value?.trim())
+				.filter((value): value is string =>
+					Boolean(value && value.length >= 2),
+				),
+		),
+	).slice(0, 5);
+
+const DEFAULT_SEARCH_RESULT_LIMIT = Math.min(
+	6,
+	RETRIEVAL_LIMITS.maxSnippetResultsPerCall,
+);
+
 export const searchKnowledgeBaseTool = ({
 	blocks,
 }: {
@@ -24,40 +53,50 @@ export const searchKnowledgeBaseTool = ({
 }) =>
 	tool({
 		description:
-			"Search the knowledge base for relevant chunks. Use concise, entity-rich queries. Prefer at most two search calls before fetching final chunks and answering.",
+			"Search the knowledge base by topic, entity, quote, or claim and return short relevance snippets. Use this to shortlist evidence, then call getKnowledgeBaseChunks to read the full chunk text before giving a factual answer.",
 		inputSchema: z.object({
+			query: z
+				.string()
+				.min(2)
+				.optional()
+				.describe(
+					"Primary search query. Prefer one focused query over a long rewritten paragraph.",
+				),
+			queryVariants: z
+				.array(
+					z
+						.string()
+						.min(2)
+						.describe("Short alternate wording of the same search intent."),
+				)
+				.max(4)
+				.optional()
+				.describe(
+					"Optional short alternate phrasings. Use only when one query may miss synonyms or aliases.",
+				),
 			queries: z
 				.array(
 					z
 						.string()
 						.min(2)
 						.describe(
-							"Concise query with key entities. Avoid overly long rewritten paragraphs.",
+							"Legacy alias for query variants. Prefer query and queryVariants for new calls.",
 						),
 				)
 				.max(5)
-				.describe("Multiple query variants to increase recall."),
-			limit: z.coerce
-				.number()
-				.int()
-				.min(1)
-				.max(RETRIEVAL_LIMITS.maxSnippetResultsPerCall)
-				.default(6),
-			blockId: baseBlockSelectSchema.shape.id
+				.optional(),
+			assetIds: z
+				.array(assetSelectSchema.shape.id)
+				.max(20)
 				.optional()
 				.describe(
-					"Optional database block id to target a specific knowledge base.",
+					"Optional document asset IDs to scope retrieval after using listKnowledgeBaseDocuments.",
 				),
-			retrievalMode: z
-				.enum([
-					"dense",
-					"hybrid",
-				])
-				.default("hybrid")
-				.describe("Hybrid is recommended for most factual searches."),
-			minScore: z.number().min(0).max(1).optional(),
+			blockId: baseBlockSelectSchema.shape.id
+				.optional()
+				.describe("Optional block ID to search only one knowledge base block."),
 		}),
-		execute: async ({ queries, limit, blockId, retrievalMode, minScore }) =>
+		execute: async ({ query, queryVariants, queries, assetIds, blockId }) =>
 			runtime.runPromise(
 				Effect.gen(function* () {
 					if (blocks.length === 0) {
@@ -67,15 +106,29 @@ export const searchKnowledgeBaseTool = ({
 						});
 					}
 
+					const normalizedQueries = normalizeQueries({
+						query,
+						queryVariants,
+						queries,
+					});
+					if (normalizedQueries.length === 0) {
+						return yield* new AiError({
+							operation: "searchKnowledgeBaseTool",
+							cause: new Error("Provide query or queryVariants."),
+						});
+					}
+
 					const targetBlocks = resolveSearchBlocks({
 						blocks,
 						blockId,
 					});
+					const limit = DEFAULT_SEARCH_RESULT_LIMIT;
 
 					if (targetBlocks.length === 0) {
 						return {
-							result: [] as SearchResult[],
+							results: [] as SearchResult[],
 							noNewEvidence: true,
+							nextAction: "refineSearchOrListDocuments" as const,
 						};
 					}
 
@@ -85,12 +138,12 @@ export const searchKnowledgeBaseTool = ({
 								targetBlocks.map(async (block) => {
 									const response = await client.assetPoint.list({
 										filters: {
-											queries,
+											queries: normalizedQueries,
 											limit: Math.max(limit * 6, 24),
 											blockId: block.id,
-											retrievalMode:
-												retrievalMode ?? block.config.retrievalMode ?? "hybrid",
-											minScore: minScore ?? block.config.scoreThreshold,
+											assetIds,
+											retrievalMode: block.config.retrievalMode ?? "hybrid",
+											minScore: block.config.scoreThreshold,
 											candidateLimit:
 												block.config.candidateLimit ?? Math.max(limit * 8, 32),
 											maxPerAsset: block.config.maxPerAsset ?? 2,
@@ -121,13 +174,23 @@ export const searchKnowledgeBaseTool = ({
 						.map((point) =>
 							toSearchResult({
 								point,
-								queries,
+								queries: normalizedQueries,
 							}),
 						);
 
 					return {
-						result: boundedResults,
+						results: boundedResults,
 						noNewEvidence: boundedResults.length === 0,
+						nextAction:
+							boundedResults.length > 0
+								? ("getKnowledgeBaseChunks" as const)
+								: ("refineSearchOrListDocuments" as const),
+						stats: {
+							queryCount: normalizedQueries.length,
+							returnedCount: boundedResults.length,
+							searchedBlockCount: targetBlocks.length,
+							assetScopeCount: assetIds?.length ?? 0,
+						},
 					};
 				}),
 			),

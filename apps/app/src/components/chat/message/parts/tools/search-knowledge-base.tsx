@@ -14,6 +14,7 @@ import {
 	PopoverContent,
 	PopoverTrigger,
 } from "@/components/ui/popover";
+import { formatPageRange } from "@/lib/ai/tools/rag/format-page-range";
 import type { SearchKnowledgeBaseToolPart } from "@/lib/ai/types/tools";
 
 const SearchKnowledgeBase = ({
@@ -25,7 +26,11 @@ const SearchKnowledgeBase = ({
 		<Tool defaultOpen={false}>
 			<ToolHeader type={part.type} state={part.state} title="RAG Search" />
 			<ToolContent>
-				<ToolInput input={part.input} />
+				<ToolInput
+					input={part.input}
+					rawInput={"rawInput" in part ? part.rawInput : undefined}
+					errorText={part.errorText}
+				/>
 				<ToolOutput
 					output={Output({
 						output: part.output,
@@ -42,69 +47,82 @@ const Output = ({
 }: {
 	output: SearchKnowledgeBaseToolPart["output"];
 }) => {
-	if (!output?.result || output.result.length === 0) {
+	if (!output?.results || output.results.length === 0) {
 		return null;
 	}
 
 	return (
 		<div className="space-y-3 p-4">
 			<p className="text-muted-foreground text-sm">
-				Found {output.result.length} reference
-				{output.result.length !== 1 ? "s" : ""}
+				Found {output.results.length} reference
+				{output.results.length !== 1 ? "s" : ""}
 			</p>
 			<div className="flex flex-wrap gap-2">
-				{output.result.map((result, index) => (
-					<Popover key={result.id}>
-						<PopoverTrigger
-							render={
-								<Button
-									variant="outline"
-									size="sm"
-									className="group/popover-trigger w-full"
-								>
-									<FileTextIcon className="size-3 text-muted-foreground group-hover/popover-trigger:text-accent-foreground" />
-									<span className="font-medium text-xs">
-										Reference {index + 1}
-									</span>
-								</Button>
-							}
-						/>
-						<PopoverContent
-							className="max-h-80 w-96 overflow-y-auto p-4"
-							align="start"
-							side="top"
-						>
-							<div className="space-y-3">
-								<div className="flex items-center gap-2 border-b pb-2">
-									<FileTextIcon className="size-4 text-primary" />
-									<h4 className="font-semibold text-sm">
-										Reference {index + 1}
-									</h4>
-									<Badge variant="outline" className="ml-auto text-[10px]">
-										{result.id}
-									</Badge>
+				{output.results.map((result, index) => {
+					const pageRange = formatPageRange({
+						chunkPageStart: result.source.chunk.pageStart,
+						chunkPageEnd: result.source.chunk.pageEnd,
+						documentTotalPages: result.source.document.totalPages,
+					});
+
+					return (
+						<Popover key={result.id}>
+							<PopoverTrigger
+								render={
+									<Button
+										variant="outline"
+										size="sm"
+										className="group/popover-trigger w-full"
+									>
+										<FileTextIcon className="size-3 text-muted-foreground group-hover/popover-trigger:text-accent-foreground" />
+										<span className="font-medium text-xs">
+											Reference {index + 1}
+										</span>
+									</Button>
+								}
+							/>
+							<PopoverContent
+								className="max-h-80 w-96 overflow-y-auto p-4"
+								align="start"
+								side="top"
+							>
+								<div className="space-y-3">
+									<div className="flex items-center gap-2 border-b pb-2">
+										<FileTextIcon className="size-4 text-primary" />
+										<h4 className="font-semibold text-sm">
+											Reference {index + 1}
+										</h4>
+										<Badge variant="outline" className="ml-auto text-[10px]">
+											{result.id}
+										</Badge>
+									</div>
+									<div className="flex flex-wrap gap-2">
+										<Badge variant="secondary" className="text-[10px]">
+											Score {result?.score?.toFixed(3)}
+										</Badge>
+										<Badge variant="outline" className="text-[10px]">
+											Block {result.source.block.name}
+										</Badge>
+										<Badge variant="outline" className="text-[10px]">
+											Chunk {result.source.chunk.index + 1}/
+											{result.source.chunk.count}
+										</Badge>
+										{pageRange && (
+											<Badge variant="outline" className="text-[10px]">
+												p. {pageRange}
+											</Badge>
+										)}
+									</div>
+									<div className="prose prose-sm dark:prose-invert max-w-none">
+										<Markdown className="text-xs leading-relaxed">
+											{result.snippet}
+										</Markdown>
+									</div>
 								</div>
-								<div className="flex flex-wrap gap-2">
-									<Badge variant="secondary" className="text-[10px]">
-										Score {result?.score?.toFixed(3)}
-									</Badge>
-									<Badge variant="outline" className="text-[10px]">
-										Block {result.source.blockName}
-									</Badge>
-									<Badge variant="outline" className="text-[10px]">
-										Chunk {result.source.chunkIndex + 1}/
-										{result.source.chunkCount}
-									</Badge>
-								</div>
-								<div className="prose prose-sm dark:prose-invert max-w-none">
-									<Markdown className="text-xs leading-relaxed">
-										{result.snippet}
-									</Markdown>
-								</div>
-							</div>
-						</PopoverContent>
-					</Popover>
-				))}
+							</PopoverContent>
+						</Popover>
+					);
+				})}
 			</div>
 		</div>
 	);

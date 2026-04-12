@@ -1,92 +1,37 @@
-import { DoclingService, serializeDoclingPayloadToMarkdown } from "@orcai/ai";
-import { getFileTypeFromMime } from "@orcai/s3";
+import { buckets } from "@orcai/core";
 import {
-	getDownloadUrl,
-	S3Error,
-	sendGetObjectCommand,
-} from "@orcai/s3/server";
+	buildStoredExtractionKey,
+	extract,
+	type StoredExtractionArtifact,
+} from "@orcai/process";
+import { getFileTypeFromMime } from "@orcai/s3";
+import { getDownloadUrl, getObjectAsJson } from "@orcai/s3/server";
 import type { FileUIPart, TextUIPart } from "ai";
 import * as Effect from "effect/Effect";
 import type { ChatAttachment } from "@/lib/ai/types/chat-attachment";
-import {
-	CHAT_ATTACHMENT_DOCUMENT_MIME_TYPES,
-	CHAT_ATTACHMENT_MAX_ATTACHMENT_TEXT_LENGTH,
-} from "@/settings/constants";
+import { CHAT_ATTACHMENT_MAX_ATTACHMENT_TEXT_LENGTH } from "@/settings/constants";
 
 const getObjectKey = (attachment: ChatAttachment) => {
 	const extension = getFileTypeFromMime(attachment.fileType);
 	return `${attachment.prefix}/${attachment.assetId}.${extension}`;
 };
 
-const getObjectBytes = (attachment: ChatAttachment) =>
-	Effect.gen(function* () {
-		const key = getObjectKey(attachment);
-		const object = yield* sendGetObjectCommand({
-			bucket: attachment.bucket,
-			key,
-		});
-
-		const body = yield* Effect.fromNullable(object.Body).pipe(
-			Effect.orElseFail(
-				() =>
-					new S3Error({
-						operation: "chatAttachmentParts.getObjectBytes",
-						cause: "empty_body",
-					}),
-			),
-		);
-
-		return yield* Effect.tryPromise({
-			try: () => body.transformToByteArray(),
-			catch: (cause) =>
-				new S3Error({
-					operation: "chatAttachmentParts.getObjectBytes",
-					cause,
-				}),
-		});
-	});
-
 const truncateText = (
 	text: string,
 	limit = CHAT_ATTACHMENT_MAX_ATTACHMENT_TEXT_LENGTH,
 ) => (text.length <= limit ? text : `${text.slice(0, limit)}\n\n[Truncated]`);
 
-const formatAttachmentTextPart = (attachment: ChatAttachment, text: string) =>
-	({
-		type: "text",
-		text: [
-			`Attachment: ${attachment.title}`,
-			`Type: ${attachment.fileType}`,
-			"",
-			truncateText(text.trim()),
-		]
-			.filter(Boolean)
-			.join("\n"),
-	}) satisfies TextUIPart;
-
-const convertDocumentToMarkdown = ({
-	attachment,
-	buffer,
-}: {
-	attachment: ChatAttachment;
-	buffer: Uint8Array;
+const formatDocumentAttachmentText = (params: {
+	title: string;
+	fileType: string;
+	content: string;
 }) =>
-	Effect.gen(function* () {
-		const { convertDocument } = yield* DoclingService;
-		const payload = yield* convertDocument({
-			document: buffer,
-			filename: attachment.title,
-			timeout: 2 * 60 * 1000,
-			extractTablesAsImages: false,
-		});
-
-		return serializeDoclingPayloadToMarkdown(payload, {
-			keepImageRefs: false,
-			keepHeader: false,
-			keepFooter: false,
-			keepMarkdownTables: true,
-		});
-	});
+	[
+		`Attached document: ${params.title}`,
+		`Media type: ${params.fileType}`,
+		"Extracted content:",
+		truncateText(params.content),
+	].join("\n\n");
 
 const buildFileAttachmentPart = (attachment: ChatAttachment) =>
 	Effect.gen(function* () {
@@ -107,24 +52,38 @@ const buildFileAttachmentPart = (attachment: ChatAttachment) =>
 
 const buildTextAttachmentPart = (attachment: ChatAttachment) =>
 	Effect.gen(function* () {
-		const bytes = yield* getObjectBytes(attachment);
+		const storedExtraction = yield* getObjectAsJson<StoredExtractionArtifact>({
+			bucket: buckets.processed.name,
+			name: buildStoredExtractionKey(attachment.assetId),
+		}).pipe(Effect.option);
 
-		if (attachment.fileType.startsWith("text/")) {
-			const text = Buffer.from(bytes).toString("utf-8");
-			return formatAttachmentTextPart(attachment, text);
-		}
+		const content =
+			storedExtraction._tag === "Some"
+				? storedExtraction.value.content.trim()
+				: (yield* extract(
+						{
+							kind: "s3",
+							bucket: attachment.bucket,
+							key: getObjectKey(attachment),
+							mimeType: attachment.fileType,
+							filename: attachment.title,
+						},
+						{
+							profile: "chat-light",
+						},
+					)).content.trim();
 
-		if (CHAT_ATTACHMENT_DOCUMENT_MIME_TYPES.has(attachment.fileType)) {
-			const markdown = yield* convertDocumentToMarkdown({
-				attachment,
-				buffer: bytes,
-			});
-			return formatAttachmentTextPart(attachment, markdown);
+		if (content.length === 0) {
+			return fallbackAttachmentPart(attachment);
 		}
 
 		return {
 			type: "text",
-			text: `Attachment "${attachment.title}" (${attachment.fileType}) is available but could not be converted to text.`,
+			text: formatDocumentAttachmentText({
+				title: attachment.title,
+				fileType: attachment.fileType,
+				content,
+			}),
 		} satisfies TextUIPart;
 	});
 

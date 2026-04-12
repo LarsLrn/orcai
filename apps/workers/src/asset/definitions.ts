@@ -1,4 +1,4 @@
-import type { DoclingService } from "@orcai/ai";
+import type { AiConfigService } from "@orcai/ai";
 import type { DB } from "@orcai/db";
 import type { PgBossService } from "@orcai/pg-boss";
 import type { QdrantService } from "@orcai/qdrant";
@@ -16,10 +16,10 @@ import type { WorkerDefinition } from "@/worker/types";
 
 export type AssetWorkerContext =
 	| DB
-	| DoclingService
 	| S3Service
 	| QdrantService
-	| PgBossService;
+	| PgBossService
+	| AiConfigService;
 
 const assetWorker = <TPayload>(
 	definition: WorkerDefinition<AssetWorkerContext, TPayload>,

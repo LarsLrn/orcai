@@ -1,7 +1,6 @@
 import { z } from "zod/v4";
 
 export const vectorizeAssetPayloadSchema = z.object({
-	prefix: z.string(),
 	assetId: z.uuidv4(),
 	blockId: z.uuidv4(),
 });

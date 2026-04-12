@@ -47,7 +47,11 @@ export const ToolCallPart = ({
 					state={part.state}
 				/>
 				<ToolContent>
-					<ToolInput input={part.input} />
+					<ToolInput
+						input={part.input}
+						rawInput={"rawInput" in part ? part.rawInput : undefined}
+						errorText={part.errorText}
+					/>
 					<ToolOutput
 						output={JSON.stringify(part.output)}
 						errorText={part.errorText}

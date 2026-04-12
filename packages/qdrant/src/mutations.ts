@@ -1,6 +1,5 @@
 import type { AssetPointPayload } from "@orcai/schema";
 import * as Effect from "effect/Effect";
-import { qdrantCollections } from "./collections";
 import { QdrantError } from "./errors";
 import { QdrantService } from "./service";
 
@@ -12,7 +11,7 @@ interface Point {
 
 export const upsertPointsToQdrant = ({ points }: { points: Point[] }) =>
 	Effect.gen(function* () {
-		const { client, sparseVectorsEnabled } = yield* QdrantService;
+		const { client, sparseVectorsEnabled, collections } = yield* QdrantService;
 
 		const mappedPoints = points.map((point) => ({
 			id: point.id,
@@ -22,14 +21,14 @@ export const upsertPointsToQdrant = ({ points }: { points: Point[] }) =>
 
 		// TODO: Uploading chunks one by one is not optimal, but batching was flaking out
 		// Specifically this:
-		// qdrant.upsert(qdrantCollections.chunks.name, { points });
+		// qdrant.upsert(collections.asset.name, { points });
 
 		yield* Effect.forEach(
 			mappedPoints,
 			(point) =>
 				Effect.tryPromise({
 					try: async () =>
-						client.upsert(qdrantCollections.asset.name, {
+						client.upsert(collections.asset.name, {
 							points: [
 								{
 									id: point.id,
@@ -68,7 +67,7 @@ export const deletePointsByIdentifier = ({
 	blockId: AssetPointPayload["block_id"] | undefined;
 }) =>
 	Effect.gen(function* () {
-		const { client } = yield* QdrantService;
+		const { client, collections } = yield* QdrantService;
 
 		const filters: Array<{
 			key: string;
@@ -97,7 +96,7 @@ export const deletePointsByIdentifier = ({
 
 		return yield* Effect.tryPromise({
 			try: async () =>
-				client.delete(qdrantCollections.asset.name, {
+				client.delete(collections.asset.name, {
 					filter: {
 						must: filters,
 					},

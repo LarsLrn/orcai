@@ -44,7 +44,7 @@ interface KeyedLine {
 }
 
 const addKeysToTokens = (lines: ThemedToken[][]): KeyedLine[] =>
-	lines.map((line, lineIdx) => ({
+	lines?.map((line, lineIdx) => ({
 		key: `line-${lineIdx}`,
 		tokens: line.map((token, tokenIdx) => ({
 			key: `line-${lineIdx}-${tokenIdx}`,
@@ -137,9 +137,9 @@ const tokensCache = new Map<string, TokenizedCode>();
 const subscribers = new Map<string, Set<(result: TokenizedCode) => void>>();
 
 const getTokensCacheKey = (code: string, language: BundledLanguage) => {
-	const start = code.slice(0, 100);
-	const end = code.length > 100 ? code.slice(-100) : "";
-	return `${language}:${code.length}:${start}:${end}`;
+	const start = code?.slice(0, 100);
+	const end = code?.length > 100 ? code.slice(-100) : "";
+	return `${language}:${code?.length}:${start}:${end}`;
 };
 
 const getHighlighter = (
@@ -168,7 +168,7 @@ const getHighlighter = (
 const createRawTokens = (code: string): TokenizedCode => ({
 	bg: "transparent",
 	fg: "inherit",
-	tokens: code.split("\n").map((line) =>
+	tokens: code?.split("\n")?.map((line) =>
 		line === ""
 			? []
 			: [
@@ -285,7 +285,7 @@ const CodeBlockBody = memo(
 							"[counter-increment:line_0] [counter-reset:line]",
 					)}
 				>
-					{keyedLines.map((keyedLine) => (
+					{keyedLines?.map((keyedLine) => (
 						<LineSpan
 							key={keyedLine.key}
 							keyedLine={keyedLine}

@@ -116,7 +116,9 @@ export const listAssetPoint = authed.assetPoint.list.handler(({ input }) =>
 			const variantsWithEmbeddings = yield* Effect.forEach(
 				searchQueries,
 				(query) =>
-					generateEmbedding(query).pipe(
+					generateEmbedding({
+						value: query,
+					}).pipe(
 						Effect.map(({ embedding }) => ({
 							query,
 							embedding,

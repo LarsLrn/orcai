@@ -6,8 +6,12 @@ import * as Layer from "effect/Layer";
 const aiConfig = Config.all({
 	baseUrl: Config.string("OPENAI_COMPATIBLE_BASE_URL"),
 	apiKey: Config.redacted("OPENAI_COMPATIBLE_API_KEY"),
-	doclingUrl: Config.string("DOCLING_URL"),
-	doclingApiKey: Config.redacted("DOCLING_API_KEY"),
+	embedding: Config.all({
+		model: Config.string("EMBEDDING_MODEL"),
+	}),
+	general: Config.all({
+		model: Config.string("GENERAL_MODEL"),
+	}),
 });
 
 export type AiConfig = Config.Config.Success<typeof aiConfig>;
@@ -27,5 +31,3 @@ export const AiConfigLive = Layer.effect(
 		})),
 	),
 );
-
-export const loadAiConfigSync = (): AiConfig => Effect.runSync(aiConfig);

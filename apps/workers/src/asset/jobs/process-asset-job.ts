@@ -1,11 +1,16 @@
-import { DoclingService, serializeDoclingPayload } from "@orcai/ai";
 import { buckets } from "@orcai/core";
 import { DB, dbSchema } from "@orcai/db";
 import { sendJobBatchEffect, toPgBossRunError } from "@orcai/pg-boss";
-import { getFileTypeFromMime } from "@orcai/s3";
+import {
+	buildStoredExtractionImageKey,
+	buildStoredExtractionKey,
+	createStoredExtractionArtifact,
+	extract,
+	serializeStoredExtractionArtifact,
+} from "@orcai/process";
+import { getMimeTypeFromFileType } from "@orcai/s3";
 import {
 	deletePrefixRecursively,
-	getDownloadUrl,
 	sendPutObjectCommand,
 } from "@orcai/s3/server";
 import {
@@ -16,30 +21,31 @@ import {
 import { eq } from "drizzle-orm";
 import * as Effect from "effect/Effect";
 import type { Job } from "pg-boss";
-import { validateImageResolution } from "../utils/validate-image-resolution";
+import { validateImageResolution } from "@/asset/utils/validate-image-resolution";
 
-const SIMPLE_TEXT_FILE_TYPES = new Set<ProcessAssetPayload["assetRef"]["type"]>(
-	[
-		"txt",
-		"md",
-		"csv",
-	],
-);
+const getAssetObjectKey = (assetRef: ProcessAssetPayload["assetRef"]) =>
+	`${assetRef.prefix}/${assetRef.id}.${assetRef.type}`;
 
-const normalizeContentType = (contentType: string | null) =>
-	contentType?.split(";")[0]?.trim().toLowerCase() ?? "";
+const getImageContentType = (format: string) => {
+	const normalizedFormat = format.toLowerCase();
 
-const shouldSkipDoclingForAsset = (params: {
-	fileType: ProcessAssetPayload["assetRef"]["type"];
-	contentType: string | null;
-}) => {
-	const normalizedContentType = normalizeContentType(params.contentType);
-
-	if (normalizedContentType.startsWith("text/")) {
-		return true;
+	if (normalizedFormat === "jpg" || normalizedFormat === "jpeg") {
+		return "image/jpeg";
 	}
 
-	return SIMPLE_TEXT_FILE_TYPES.has(params.fileType);
+	if (normalizedFormat === "png") {
+		return "image/png";
+	}
+
+	if (normalizedFormat === "gif") {
+		return "image/gif";
+	}
+
+	if (normalizedFormat === "webp") {
+		return "image/webp";
+	}
+
+	return `image/${normalizedFormat}`;
 };
 
 export const processAssetBatchEffect = (jobs: Job<ProcessAssetPayload>[]) =>
@@ -56,257 +62,144 @@ export const processAssetBatchEffect = (jobs: Job<ProcessAssetPayload>[]) =>
 
 const processAssetsEffect = (params: { job: Job<ProcessAssetPayload> }) =>
 	Effect.gen(function* () {
-		const { convertDocument } = yield* DoclingService;
 		const { assetRef } = params.job.data;
+		const db = yield* DB;
 
-		const presignedUrl = yield* getDownloadUrl({
-			bucket: assetRef.bucket,
-			key: `${assetRef.prefix}/${assetRef.id}.${assetRef.type}`,
-			endpointMode: "internal",
+		yield* db
+			.update(dbSchema.asset)
+			.set({
+				processingStatus: "active",
+			})
+			.where(eq(dbSchema.asset.id, assetRef.id));
+
+		yield* deletePrefixRecursively({
+			bucket: buckets.processed.name,
+			prefix: `${assetRef.id}/`,
 		});
 
-		const fileResponse = yield* Effect.tryPromise({
-			try: () => fetch(presignedUrl),
-			catch: toPgBossRunError(params.job.id, PROCESS_ASSET_JOB_NAME),
-		}).pipe(
-			Effect.flatMap((response) => {
-				if (!response.ok) {
-					return Effect.fail(
-						toPgBossRunError(
-							params.job.id,
-							PROCESS_ASSET_JOB_NAME,
-						)(
-							new Error(
-								`Failed to fetch file from presigned URL: ${response.status} ${response.statusText}`,
-							),
-						),
-					);
-				}
-				return Effect.succeed(response);
-			}),
+		const result = yield* extract(
+			{
+				kind: "s3",
+				bucket: assetRef.bucket,
+				key: getAssetObjectKey(assetRef),
+				mimeType: getMimeTypeFromFileType(assetRef.type),
+				filename: `${assetRef.id}.${assetRef.type}`,
+			},
+			{
+				profile: "asset-heavy",
+			},
+		).pipe(
+			Effect.mapError(toPgBossRunError(params.job.id, PROCESS_ASSET_JOB_NAME)),
 			Effect.tapError((err) =>
 				Effect.logError(
 					{
 						err,
-					},
-					"Error fetching file from presigned URL",
-				),
-			),
-		);
-
-		const fileBuffer = yield* Effect.tryPromise({
-			try: () => fileResponse.arrayBuffer().then(Buffer.from),
-			catch: toPgBossRunError(params.job.id, PROCESS_ASSET_JOB_NAME),
-		}).pipe(
-			Effect.tapError((err) =>
-				Effect.logError(
-					{
-						err,
-					},
-					"Error reading file buffer",
-				),
-			),
-		);
-
-		const shouldSkipDocling = shouldSkipDoclingForAsset({
-			fileType: assetRef.type,
-			contentType: fileResponse.headers.get("content-type"),
-		});
-
-		if (shouldSkipDocling) {
-			const markdown = fileBuffer.toString("utf-8").replace(/^\uFEFF/, "");
-
-			yield* deletePrefixRecursively({
-				bucket: buckets.processed.name,
-				prefix: `${assetRef.id}/`,
-			});
-
-			yield* sendPutObjectCommand({
-				bucket: buckets.processed.name,
-				key: `${assetRef.id}/page-0.md`,
-				body: Buffer.from(markdown, "utf-8"),
-				contentType: "text/markdown",
-			}).pipe(
-				Effect.tapError((err) =>
-					Effect.logError(
-						{
-							err,
-						},
-						"Error uploading processed markdown",
-					),
-				),
-			);
-
-			yield* Effect.logInfo(
-				{
-					jobId: params.job.id,
-					assetId: assetRef.id,
-					fileType: assetRef.type,
-				},
-				"Skipped Docling and stored text asset as markdown",
-			);
-		} else {
-			const processedDocument = yield* convertDocument({
-				document: fileBuffer,
-				filename: `document.${assetRef.id}`,
-				extractTablesAsImages: false,
-			}).pipe(
-				Effect.mapError(
-					toPgBossRunError(params.job.id, PROCESS_ASSET_JOB_NAME),
-				),
-				Effect.tapError((err) =>
-					Effect.logError(
-						{
-							err,
-						},
-						"Error converting document with Docling",
-					),
-				),
-			);
-
-			const serializedDocling = yield* Effect.try({
-				try: () =>
-					serializeDoclingPayload(processedDocument, {
-						keepImageRefs: true,
-					}),
-				catch: toPgBossRunError(params.job.id, PROCESS_ASSET_JOB_NAME),
-			}).pipe(
-				Effect.tapError((err) =>
-					Effect.logError(
-						{
-							err,
-						},
-						"Error serializing Docling document",
-					),
-				),
-			);
-
-			yield* deletePrefixRecursively({
-				bucket: buckets.processed.name,
-				prefix: `${assetRef.id}/`,
-			});
-
-			if (!serializedDocling || serializedDocling.length === 0) {
-				yield* Effect.logWarning(
-					{
 						jobId: params.job.id,
+						assetId: assetRef.id,
+						fileType: assetRef.type,
+						mimeType: getMimeTypeFromFileType(assetRef.type),
 					},
-					"No serialized docling content to upload",
-				);
-				return;
-			}
+					"Error extracting asset with Kreuzberg",
+				),
+			),
+		);
 
-			yield* Effect.logInfo(
-				{
-					jobId: params.job.id,
-					pageCount: serializedDocling.length,
-				},
-				"Uploading processed content",
-			);
+		const storedImagePaths = new Map<number, string>();
 
-			yield* Effect.forEach(serializedDocling, (page, index) =>
+		yield* Effect.forEach(
+			result.images ?? [],
+			(image) =>
 				Effect.gen(function* () {
-					const { markdown, images } = page;
+					const validationResult = validateImageResolution(
+						{
+							width: image.width ?? undefined,
+							height: image.height ?? undefined,
+						},
+						2,
+					);
+
+					if (!validationResult.isValid) {
+						return yield* Effect.logWarning(
+							{
+								jobId: params.job.id,
+								assetId: assetRef.id,
+								imageIndex: image.imageIndex,
+								width: image.width,
+								height: image.height,
+							},
+							"Skipping extracted image due to resolution/validation",
+						);
+					}
+
+					const key = buildStoredExtractionImageKey({
+						assetId: assetRef.id,
+						imageIndex: image.imageIndex,
+						format: image.format,
+					});
 
 					yield* sendPutObjectCommand({
 						bucket: buckets.processed.name,
-						key: `${assetRef.id}/page-${page.page}.md`,
-						body: Buffer.from(markdown, "utf-8"),
-						contentType: "text/markdown",
+						key,
+						body: Buffer.from(image.data),
+						contentType: getImageContentType(image.format),
 					}).pipe(
+						Effect.mapError(
+							toPgBossRunError(params.job.id, PROCESS_ASSET_JOB_NAME),
+						),
 						Effect.tapError((err) =>
 							Effect.logError(
 								{
 									err,
+									jobId: params.job.id,
+									assetId: assetRef.id,
+									imageIndex: image.imageIndex,
 								},
-								"Error uploading processed markdown",
+								"Error uploading extracted image",
 							),
 						),
 					);
 
-					yield* Effect.forEach(images, (image, imageIndex) =>
-						Effect.gen(function* () {
-							if (!image) {
-								yield* Effect.logWarning(
-									{
-										jobId: params.job.id,
-										pageIndex: index,
-										imageIndex,
-									},
-									"No image data to upload for this image",
-								);
-								return;
-							}
-
-							yield* Effect.logInfo(
-								{
-									jobId: params.job.id,
-									pageIndex: index,
-									imageIndex,
-								},
-								"Uploading processed image",
-							);
-
-							const imageData = image.uri.includes("base64,")
-								? image.uri.split("base64,")[1]
-								: image.uri;
-
-							const imageBuffer = Buffer.from(imageData, "base64");
-							const fileType = getFileTypeFromMime(image.mimetype);
-							const validationResult = validateImageResolution(image.size, 2);
-
-							if (!validationResult.isValid) {
-								return yield* Effect.logWarning(
-									{
-										jobId: params.job.id,
-										pageIndex: index,
-										imageIndex,
-										width: image.size.width,
-										height: image.size.height,
-									},
-									"Skipping image upload due to resolution/validation",
-								);
-							}
-
-							return yield* sendPutObjectCommand({
-								bucket: buckets.processed.name,
-								key: `${assetRef.id}/${image.label}-${image.index}.${fileType}`,
-								body: imageBuffer,
-								contentType: image.mimetype,
-							}).pipe(
-								Effect.tapError((err) =>
-									Effect.logError(
-										{
-											err,
-										},
-										"Error uploading processed image",
-									),
-								),
-							);
-						}),
-					);
-
-					yield* Effect.logInfo(
-						{
-							jobId: params.job.id,
-							pageIndex: index,
-						},
-						"Completed uploading processed page",
-					);
+					storedImagePaths.set(image.imageIndex, key);
 				}),
-			).pipe(
-				Effect.tapError((err) =>
-					Effect.logError(
-						{
-							err,
-						},
-						"Error uploading processed content",
-					),
-				),
-			);
-		}
+			{
+				concurrency: 4,
+				discard: true,
+			},
+		);
 
-		const db = yield* DB;
+		const artifact = createStoredExtractionArtifact({
+			result,
+			transformImage: (image) => {
+				const sourcePath = storedImagePaths.get(image.imageIndex);
+				if (!sourcePath) {
+					return undefined;
+				}
+
+				return {
+					...image,
+					sourcePath,
+				};
+			},
+		});
+
+		yield* sendPutObjectCommand({
+			bucket: buckets.processed.name,
+			key: buildStoredExtractionKey(assetRef.id),
+			body: Buffer.from(serializeStoredExtractionArtifact(artifact), "utf-8"),
+			contentType: "application/json",
+		}).pipe(
+			Effect.mapError(toPgBossRunError(params.job.id, PROCESS_ASSET_JOB_NAME)),
+			Effect.tapError((err) =>
+				Effect.logError(
+					{
+						err,
+						jobId: params.job.id,
+						assetId: assetRef.id,
+					},
+					"Error uploading extraction artifact",
+				),
+			),
+		);
 
 		yield* db
 			.update(dbSchema.asset)
@@ -331,7 +224,6 @@ const processAssetsEffect = (params: { job: Job<ProcessAssetPayload> }) =>
 						jobs: [
 							{
 								data: {
-									prefix: assetRef.id,
 									assetId: assetRef.id,
 									blockId,
 								},
@@ -361,7 +253,15 @@ const processAssetsEffect = (params: { job: Job<ProcessAssetPayload> }) =>
 			);
 		}
 
-		yield* Effect.logInfo(`Completed job ${params.job.id}`);
+		yield* Effect.logInfo(
+			{
+				jobId: params.job.id,
+				assetId: assetRef.id,
+				chunkCount: artifact.chunks.length,
+				imageCount: artifact.images.length,
+			},
+			"Completed asset processing with Kreuzberg",
+		);
 	}).pipe(
 		Effect.tapError((err) =>
 			Effect.gen(function* () {

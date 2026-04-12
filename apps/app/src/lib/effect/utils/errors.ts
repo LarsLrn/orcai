@@ -19,7 +19,6 @@ export const ErrorTags = {
 
 	// AI errors
 	AI: "AiError",
-	DOCLING: "DoclingError",
 
 	// Infrastructure errors
 	PG_BOSS: "PgBossError",
@@ -95,11 +94,6 @@ export class AiError extends Data.TaggedError(ErrorTags.AI)<{
 	readonly cause: unknown;
 }> {}
 
-export class DoclingError extends Data.TaggedError(ErrorTags.DOCLING)<{
-	readonly operation: string;
-	readonly cause: unknown;
-}> {}
-
 export class EmailError extends Data.TaggedError(ErrorTags.EMAIL)<{
 	readonly operation: string;
 	readonly cause: unknown;
@@ -132,7 +126,6 @@ export type AppError =
 	| S3Error
 	| QdrantError
 	| AiError
-	| DoclingError
 	| EmailError
 	| AuthzError
 	| InternalError;

@@ -2,15 +2,39 @@ import type { AssetPoint } from "@orcai/schema";
 import type { Asset } from "@/lib/orpc/schemas/asset";
 import type { DatabaseBlock } from "@/lib/orpc/schemas/block";
 
-export type ResultSource = {
-	blockId: DatabaseBlock["id"];
-	blockName: DatabaseBlock["name"];
+export type KnowledgeBaseBlockRef = {
+	id: DatabaseBlock["id"];
+	name: DatabaseBlock["name"];
+};
+
+export type KnowledgeBaseDocumentRef = {
 	assetId: Asset["id"];
-	assetTitle: string;
-	assetCitation?: string;
+	title: string;
+	citation?: string;
+	totalPages?: number;
+};
+
+export type KnowledgeBaseChunkRef = {
+	index: number;
+	count: number;
+	pageStart?: number;
+	pageEnd?: number;
+};
+
+export type KnowledgeBaseCitationRef = {
+	assetId: Asset["id"];
+	title: string;
 	page?: number;
-	chunkIndex: number;
-	chunkCount: number;
+	openTag: string;
+	closeTag: "</cite>";
+	example: string;
+};
+
+export type ResultSource = {
+	block: KnowledgeBaseBlockRef;
+	document: KnowledgeBaseDocumentRef;
+	chunk: KnowledgeBaseChunkRef;
+	citation: KnowledgeBaseCitationRef;
 	createdAt: string;
 };
 
@@ -30,14 +54,13 @@ export type ChunkResult = BaseResult & {
 };
 
 export type PointWithBlock = AssetPoint & {
-	sourceBlockId: DatabaseBlock["id"];
-	sourceBlockName: DatabaseBlock["name"];
+	sourceBlock: KnowledgeBaseBlockRef;
 };
 
 export type KnowledgeBaseDocument = {
 	assetId: string;
 	title: string;
 	citation?: string;
-	blockId: DatabaseBlock["id"];
-	blockName: DatabaseBlock["name"];
+	documentTotalPages?: number;
+	block: KnowledgeBaseBlockRef;
 };

@@ -25,7 +25,7 @@ OrcAI is a research-oriented platform developed at Rhine-Waal University for AI-
 - Course and invitation-based access control
 - Background job processing for ingestion workflows
 - S3-compatible object storage for uploaded and processed assets
-- Optional observability with Langfuse, Umami, and OpenTelemetry
+- Optional observability with Umami and OpenTelemetry
 - German and English localisation support
 
 ## Stack
@@ -52,7 +52,7 @@ OrcAI is a research-oriented platform developed at Rhine-Waal University for AI-
 ### AI and Processing
 - AI SDK
 - OpenAI-compatible model endpoint
-- Docling document processing service
+- Kreuzberg document processing
 - PgBoss workers
 
 ## Development Workflows
@@ -89,7 +89,8 @@ Notes:
 - The devcontainer fixes internal service addresses on the Compose network.
 - A one-shot `deps` service runs `bun install --frozen-lockfile` before the `workspace` and `workers` containers start.
 - It defaults to an Ollama-compatible endpoint at `http://localhost:11434/v1` for `OPENAI_COMPATIBLE_BASE_URL`.
-- `DOCLING_URL` defaults to `http://localhost:8080`, but no Docling container is included in this repo. You must provide that service separately if you want document processing to work.
+- OCR-backed asset processing runs in the worker process and requires Tesseract plus the `eng` and `deu` language packs when you run workers outside Docker.
+- OCR language defaults to `eng` on host setups. Set `KREUZBERG_OCR_LANGUAGE=eng+deu` only where both Tesseract packs are installed.
 - Email delivery stays in log-only mode unless `SMTP_HOST` and `SMTP_FROM` are both configured.
 - `docker-compose.local.yaml` and `.devcontainer/docker-compose.dev.yaml` are development-only overrides and are not deployment manifests.
 
@@ -120,7 +121,8 @@ docker compose -f docker-compose.yaml -f docker-compose.local.yaml down
 
 Notes:
 - The local override injects development defaults for required application variables.
-- For actual chat completions and document ingestion, you still need reachable `OPENAI_COMPATIBLE_*` and `DOCLING_*` endpoints.
+- For embeddings and image processing, you still need a configured `OPENAI_COMPATIBLE_*` endpoint.
+- `EMBEDDING_MODEL` and `EMBEDDING_DIMENSIONS` must match across the app, workers, and Qdrant collection. Changing them on an existing deployment is not supported right now.
 - MinIO buckets and the SpiceDB schema are initialized automatically by one-shot services.
 
 ### Manual host setup
@@ -135,7 +137,7 @@ Prerequisites:
 - SpiceDB
 - S3-compatible object storage
 - An OpenAI-compatible inference endpoint
-- A Docling service
+- Tesseract with `eng` and `deu` language packs if workers run on the host
 - Optional SMTP server
 
 Steps:
@@ -190,18 +192,22 @@ The authoritative runtime config is loaded from [config.ts](apps/app/src/lib/eff
 
 - `OPENAI_COMPATIBLE_BASE_URL`
 - `OPENAI_COMPATIBLE_API_KEY`
-- `DOCLING_URL`
-- `DOCLING_API_KEY`
+- `EMBEDDING_MODEL`: Embedding model exposed by your configured OpenAI-compatible endpoint.
+- `EMBEDDING_DIMENSIONS`: Positive integer output size of `EMBEDDING_MODEL` and Qdrant dense vector size.
+- `GENERAL_MODEL`: General-purpose text/image-capable model used by the worker image-description step.
 
 ### Optional variables
 
+- `KREUZBERG_OCR_LANGUAGE`: OCR languages for background asset processing. Defaults to `eng`; use `eng+deu` only where both Tesseract packs are available.
 - `S3_REGION`: Defaults to `eu-central-1`.
 - `S3_PUBLIC_ENDPOINT`: Optional public endpoint for presigned URLs.
 - `QDRANT_ENABLE_SPARSE_VECTORS`: Defaults to `false`. Enable only on a fresh or reindexed collection.
 - `SMTP_*`: Optional. If you enable SMTP delivery, `SMTP_HOST` and `SMTP_FROM` must both be set. `SMTP_USERNAME` and `SMTP_PASSWORD` must either both be set or both be omitted.
-- `LANGFUSE_*`: Optional Langfuse tracing and observability.
 - `VITE_UMAMI_*`: Optional Umami analytics injection.
-- `OTEL_*`: Optional OpenTelemetry export configuration.
+- `OTEL_EXPORTER_OTLP_ENDPOINT`, `OTEL_EXPORTER_OTLP_HEADERS`: Optional OpenTelemetry export configuration.
+
+Embedding note:
+- Changing `EMBEDDING_MODEL` or `EMBEDDING_DIMENSIONS` after assets have already been indexed is not supported right now. Recreate the Qdrant collection and reprocess assets instead of mixing old and new embeddings.
 
 See [.env.example](.env.example) for a current baseline.
 

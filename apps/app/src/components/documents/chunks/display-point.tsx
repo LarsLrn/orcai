@@ -13,10 +13,20 @@ import {
 	HoverCardContent,
 	HoverCardTrigger,
 } from "@/components/ui/hover-card";
+import { formatPageRange } from "@/lib/ai/tools/rag/format-page-range";
+import { cn } from "@/lib/utils";
+import { DisplayPointImage } from "./display-point-image";
 
 const DisplayPoint = ({ point }: { point: AssetPoint }) => {
 	const { id, payload, score } = point;
 	const hasScore = typeof score === "number" && Number.isFinite(score);
+	const imageObjectKey =
+		payload.source === "image" ? payload.file_reference : undefined;
+	const pageRange = formatPageRange({
+		chunkPageStart: payload.chunkPageStart,
+		chunkPageEnd: payload.chunkPageEnd,
+		documentTotalPages: payload.documentTotalPages,
+	});
 
 	return (
 		<Card className="h-full">
@@ -99,11 +109,11 @@ const DisplayPoint = ({ point }: { point: AssetPoint }) => {
 									</span>
 								</div>
 							)}
-							{typeof payload.page === "number" && (
+							{pageRange && (
 								<div className="flex items-center justify-between text-muted-foreground text-sm">
-									<span>Page</span>
+									<span>Pages</span>
 									<span className="font-medium text-foreground">
-										{payload.page + 1}
+										{pageRange}
 									</span>
 								</div>
 							)}
@@ -112,10 +122,21 @@ const DisplayPoint = ({ point }: { point: AssetPoint }) => {
 				</div>
 			</CardHeader>
 			<CardContent className="pt-0">
-				<div className="rounded-lg bg-background/60 p-4">
+				<div
+					className={cn(
+						"rounded-lg bg-background/60 p-4",
+						imageObjectKey && "grid gap-4 xl:grid-cols-[minmax(0,1fr)_320px]",
+					)}
+				>
 					<Markdown className="prose prose-sm dark:prose-invert max-w-none">
 						{payload.text ?? ""}
 					</Markdown>
+					{imageObjectKey && (
+						<DisplayPointImage
+							assetId={payload.asset_id}
+							objectKey={imageObjectKey}
+						/>
+					)}
 				</div>
 			</CardContent>
 		</Card>

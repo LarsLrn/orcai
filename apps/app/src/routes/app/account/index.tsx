@@ -1,7 +1,6 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { FileTextIcon } from "lucide-react";
 import { Suspense } from "react";
-import { ExportChats } from "@/components/account/export-chats";
 import { UserStats } from "@/components/app/user-stats";
 import { ChangePasswordForm } from "@/components/auth/change-password/change-password-form";
 import { OrganizationInvitationsList } from "@/components/organizations/invitations/organization-invitations-list";
@@ -55,11 +54,6 @@ function RouteComponent() {
 									and chats.
 								</CardDescription>
 							</CardHeader>
-							<CardContent>
-								<Suspense fallback={<Skeleton className="h-30 w-full" />}>
-									<ExportChats />
-								</Suspense>
-							</CardContent>
 						</Card>
 					</div>
 

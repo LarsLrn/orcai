@@ -8,6 +8,7 @@ import {
 } from "@/components/ai-elements/tool";
 import { Markdown } from "@/components/app/markdown";
 import { Badge } from "@/components/ui/badge";
+import { formatPageRange } from "@/lib/ai/tools/rag/format-page-range";
 import type { GetKnowledgeBasePageToolPart } from "@/lib/ai/types/tools";
 
 const GetKnowledgeBasePage = ({
@@ -23,7 +24,11 @@ const GetKnowledgeBasePage = ({
 				title="RAG Page Retrieval"
 			/>
 			<ToolContent>
-				<ToolInput input={part.input} />
+				<ToolInput
+					input={part.input}
+					rawInput={"rawInput" in part ? part.rawInput : undefined}
+					errorText={part.errorText}
+				/>
 				<ToolOutput
 					output={Output({
 						output: part.output,
@@ -40,7 +45,7 @@ const Output = ({
 }: {
 	output: GetKnowledgeBasePageToolPart["output"];
 }) => {
-	if (!output?.result || output.result.length === 0) {
+	if (!output?.chunks || output.chunks.length === 0) {
 		return null;
 	}
 
@@ -48,8 +53,8 @@ const Output = ({
 		<div className="space-y-3 p-4">
 			<div className="flex flex-wrap items-center gap-2">
 				<p className="text-muted-foreground text-sm">
-					Fetched {output.result.length} chunk
-					{output.result.length !== 1 ? "s" : ""}
+					Fetched {output.chunks.length} chunk
+					{output.chunks.length !== 1 ? "s" : ""}
 				</p>
 				{output.stats && (
 					<Badge variant="secondary" className="text-[10px]">
@@ -61,28 +66,36 @@ const Output = ({
 				)}
 			</div>
 			<div className="space-y-3">
-				{output.result.map((result, index) => (
-					<div key={result.id} className="space-y-2 rounded-md border p-3">
-						<div className="flex flex-wrap items-center gap-2">
-							<FileTextIcon className="size-3 text-muted-foreground" />
-							<span className="font-medium text-xs">Chunk {index + 1}</span>
-							{result.source.page != null && (
-								<Badge variant="secondary" className="text-[10px]">
-									p.{result.source.page + 1}
+				{output.chunks.map((result, index) => {
+					const pageRange = formatPageRange({
+						chunkPageStart: result.source.chunk.pageStart,
+						chunkPageEnd: result.source.chunk.pageEnd,
+						documentTotalPages: result.source.document.totalPages,
+					});
+
+					return (
+						<div key={result.id} className="space-y-2 rounded-md border p-3">
+							<div className="flex flex-wrap items-center gap-2">
+								<FileTextIcon className="size-3 text-muted-foreground" />
+								<span className="font-medium text-xs">Chunk {index + 1}</span>
+								{pageRange && (
+									<Badge variant="secondary" className="text-[10px]">
+										p. {pageRange}
+									</Badge>
+								)}
+								<Badge variant="outline" className="text-[10px]">
+									{result.id}
 								</Badge>
-							)}
-							<Badge variant="outline" className="text-[10px]">
-								{result.id}
-							</Badge>
-							<Badge variant="outline" className="text-[10px]">
-								{result.source.blockName}
-							</Badge>
+								<Badge variant="outline" className="text-[10px]">
+									{result.source.block.name}
+								</Badge>
+							</div>
+							<Markdown className="text-xs leading-relaxed">
+								{result.text}
+							</Markdown>
 						</div>
-						<Markdown className="text-xs leading-relaxed">
-							{result.text}
-						</Markdown>
-					</div>
-				))}
+					);
+				})}
 			</div>
 		</div>
 	);

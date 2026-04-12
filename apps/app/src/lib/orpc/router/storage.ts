@@ -1,3 +1,4 @@
+import { buckets } from "@orcai/core";
 import { DB } from "@orcai/db";
 import {
 	buildUploadPrefix,
@@ -319,11 +320,33 @@ export const createDownloadUrl = authed.storage.createDownloadUrl
 							),
 						),
 					);
-				const extension = getFileTypeFromMime(asset.fileType);
-				const filePath = `${asset.prefix}/${input.id}.${extension}`;
+				const filePath = (() => {
+					if (!input.objectKey) {
+						const extension = getFileTypeFromMime(asset.fileType);
+						return `${asset.prefix}/${input.id}.${extension}`;
+					}
+
+					const processedAssetPrefix = `${input.id}/`;
+					if (!input.objectKey.startsWith(processedAssetPrefix)) {
+						return undefined;
+					}
+
+					return input.objectKey;
+				})();
+
+				if (!filePath) {
+					return yield* Effect.fail(
+						errors.BAD_REQUEST({
+							message: "Object key must belong to the requested asset.",
+							data: {
+								type: "invalid_request",
+							},
+						}),
+					);
+				}
 
 				return yield* getDownloadUrl({
-					bucket: asset.bucket,
+					bucket: input.objectKey ? buckets.processed.name : asset.bucket,
 					key: filePath,
 					expiresIn: expiry,
 				}).pipe(

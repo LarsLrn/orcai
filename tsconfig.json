@@ -32,6 +32,12 @@
 			"path": "./packages/pg-boss"
 		},
 		{
+			"path": "./packages/process"
+		},
+		{
+			"path": "./packages/observability"
+		},
+		{
 			"path": "./packages/valkey"
 		},
 		{

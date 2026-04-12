@@ -1,4 +1,4 @@
-import { AiConfigLive, DoclingLive } from "@orcai/ai";
+import { AiConfigLive } from "@orcai/ai";
 import { DrizzleLive } from "@orcai/db";
 import { PgBossLive } from "@orcai/pg-boss";
 import { QdrantLive } from "@orcai/qdrant";
@@ -10,8 +10,7 @@ import * as Layer from "effect/Layer";
 import { AuthzLive } from "./services/authz";
 import { AppConfigLive } from "./services/config";
 import { EmailLive } from "./services/email";
-import { LoggerLive } from "./services/logger";
-import { TracerLive } from "./services/tracer";
+import { ObservabilityLive } from "./services/observability";
 
 const BaseInfra = Layer.mergeAll(
 	DrizzleLive,
@@ -20,13 +19,13 @@ const BaseInfra = Layer.mergeAll(
 	PgBossLive,
 	ValkeyLive,
 	QdrantLive,
-	DoclingLive,
 	EmailLive,
-).pipe(Layer.provideMerge(AiConfigLive), Layer.provideMerge(AppConfigLive));
+	AiConfigLive,
+).pipe(Layer.provideMerge(AppConfigLive));
 
 const AppInfra = Layer.mergeAll(AuthzLive, QuotaCounterStoreLive).pipe(
 	Layer.provideMerge(BaseInfra),
 );
 
 // Compose all app-level services in one place.
-export const AppLayer = Layer.mergeAll(TracerLive, LoggerLive, AppInfra);
+export const AppLayer = Layer.mergeAll(ObservabilityLive, AppInfra);

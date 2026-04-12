@@ -1,0 +1,15 @@
+{
+	"name": "@orcai/process",
+	"version": "0.1.0",
+	"private": true,
+	"type": "module",
+	"exports": {
+		".": "./src/index.ts"
+	},
+	"dependencies": {
+		"@kreuzberg/node": "4.8.3",
+		"@orcai/s3": "workspace:*",
+		"@orcai/schema": "workspace:*",
+		"effect": "catalog:"
+	}
+}

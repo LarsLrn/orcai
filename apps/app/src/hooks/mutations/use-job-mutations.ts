@@ -62,6 +62,35 @@ export const useRetryProcessingMutation = () => {
 	});
 };
 
+export const useReprocessAssetMutation = () => {
+	const queryClient = useQueryClient();
+
+	return useMutationAction({
+		mutationOptions: () =>
+			orpc.job.retryProcessing.mutationOptions({
+				onSuccess: () => {
+					queryClient.invalidateQueries({
+						queryKey: orpc.job.key(),
+					});
+					queryClient.invalidateQueries({
+						queryKey: orpc.asset.key(),
+					});
+				},
+			}),
+		messages: {
+			loading: "Reprocessing content...",
+			success: "Reprocessing job queued",
+			error: "Failed to reprocess content",
+		},
+		confirm: {
+			title: "Reprocess Content",
+			description:
+				"This will rerun document processing and refresh vector data for any attached knowledge bases.",
+			confirmText: "Yes, reprocess it",
+		},
+	});
+};
+
 export const useRetryVectorizationMutation = () => {
 	const queryClient = useQueryClient();
 
