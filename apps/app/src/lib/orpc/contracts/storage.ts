@@ -38,9 +38,13 @@ export const createDownloadUrlContract = base
 		],
 	})
 	.input(
-		assetSelectSchema.pick({
-			id: true,
-		}),
+		assetSelectSchema
+			.pick({
+				id: true,
+			})
+			.extend({
+				objectKey: z.string().min(1).optional(),
+			}),
 	)
 	.output(
 		z.object({
