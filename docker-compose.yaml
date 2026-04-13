@@ -1,7 +1,7 @@
 services:
   # PostgreSQL Database
   postgres:
-    image: pgvector/pgvector:pg17
+    image: pgvector/pgvector:0.8.2-pg17
     environment:
       POSTGRES_USER: postgres
       POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-postgres}
@@ -17,7 +17,7 @@ services:
 
   # Valkey cache
   valkey:
-    image: valkey/valkey:7.2-alpine
+    image: valkey/valkey:9-alpine
     command: [ "valkey-server", "--appendonly", "yes" ]
     volumes:
       - valkey_data:/data
@@ -64,7 +64,7 @@ services:
 
   # Qdrant Vector Database
   qdrant:
-    image: qdrant/qdrant:v1.17
+    image: qdrant/qdrant:v1.17.1
     volumes:
       - qdrant_data:/qdrant/storage
     environment:
@@ -229,7 +229,7 @@ services:
     restart: "no"
 
   spicedb:
-    image: "authzed/spicedb:v1.49.2"
+    image: "authzed/spicedb:v1.51.0"
     command: "serve"
     restart: "always"
     expose:
@@ -250,7 +250,7 @@ services:
         condition: service_completed_successfully
 
   spicedb-migrate:
-    image: "authzed/spicedb:v1.49.2"
+    image: "authzed/spicedb:v1.51.0"
     command: "migrate head"
     restart: "on-failure"
     environment:
@@ -274,7 +274,7 @@ services:
     restart: on-failure
 
   spicedb-database:
-    image: "postgres:17"
+    image: "postgres:17.9"
     volumes:
       - spicedb_postgres_data:/var/lib/postgresql/data
     environment:
