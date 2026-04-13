@@ -11,7 +11,7 @@ interface Point {
 
 export const upsertPointsToQdrant = ({ points }: { points: Point[] }) =>
 	Effect.gen(function* () {
-		const { client, sparseVectorsEnabled, collections } = yield* QdrantService;
+		const { client, collections, bm25Config } = yield* QdrantService;
 
 		const mappedPoints = points.map((point) => ({
 			id: point.id,
@@ -32,17 +32,18 @@ export const upsertPointsToQdrant = ({ points }: { points: Point[] }) =>
 							points: [
 								{
 									id: point.id,
-									vector: sparseVectorsEnabled
-										? {
-												dense: point.vector,
-												bm25: {
-													text: point.payload.text,
-													model: "qdrant/bm25",
-												},
-											}
-										: {
-												dense: point.vector,
+									vector: {
+										dense: point.vector,
+										bm25: {
+											text: point.payload.lexical_text ?? point.payload.text,
+											model: "qdrant/bm25",
+											options: {
+												language: bm25Config.language,
+												tokenizer: bm25Config.tokenizer,
+												ascii_folding: bm25Config.asciiFolding,
 											},
+										},
+									},
 									payload: point.payload,
 								},
 							],

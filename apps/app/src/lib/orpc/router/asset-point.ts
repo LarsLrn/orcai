@@ -55,6 +55,7 @@ export const listAssetPoint = authed.assetPoint.list.handler(({ input }) =>
 					limit,
 					withPayload: true,
 					withVector: false,
+					retrievalMode,
 				}).pipe(
 					Effect.map((points) => {
 						const pointIds = input.filters.pointIds ?? [];
@@ -79,7 +80,7 @@ export const listAssetPoint = authed.assetPoint.list.handler(({ input }) =>
 						return {
 							data: points,
 							metadata: {
-								retrievalMode: "dense" as const,
+								retrievalMode,
 								scoreThreshold: 0,
 								candidateCount: points.length,
 								returnedCount: points.length,
@@ -113,21 +114,27 @@ export const listAssetPoint = authed.assetPoint.list.handler(({ input }) =>
 				},
 			];
 
-			const variantsWithEmbeddings = yield* Effect.forEach(
-				searchQueries,
-				(query) =>
-					generateEmbedding({
-						value: query,
-					}).pipe(
-						Effect.map(({ embedding }) => ({
+			const variants =
+				retrievalMode === "sparse"
+					? searchQueries.map((query) => ({
 							query,
-							embedding,
-						})),
-					),
-				{
-					concurrency: 4,
-				},
-			);
+							embedding: undefined,
+						}))
+					: yield* Effect.forEach(
+							searchQueries,
+							(query) =>
+								generateEmbedding({
+									value: query,
+								}).pipe(
+									Effect.map(({ embedding }) => ({
+										query,
+										embedding,
+									})),
+								),
+							{
+								concurrency: 4,
+							},
+						);
 
 			const recallCandidates = new Map<
 				string,
@@ -149,7 +156,7 @@ export const listAssetPoint = authed.assetPoint.list.handler(({ input }) =>
 					body: (s, pass, index) =>
 						Effect.gen(function* () {
 							yield* Effect.forEach(
-								variantsWithEmbeddings,
+								variants,
 								({ query, embedding }) =>
 									queryAssetPoints({
 										embedding,
@@ -159,6 +166,7 @@ export const listAssetPoint = authed.assetPoint.list.handler(({ input }) =>
 										withPayload: true,
 										withVector: false,
 										scoreThreshold: pass.scoreThreshold,
+										retrievalMode,
 									}).pipe(
 										Effect.map((points) =>
 											mergeRecallCandidates(recallCandidates, points),

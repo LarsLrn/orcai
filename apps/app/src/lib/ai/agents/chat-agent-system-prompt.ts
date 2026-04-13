@@ -30,6 +30,22 @@ const buildKnowledgeBaseGuidance = () =>
 		'- <cite assetid="d4e5f6" title="Miller, 2023">Sustainability requires systemic change</cite>',
 	].join("\n");
 
+const buildFormattingGuidance = () =>
+	[
+		"Message formatting and styling:",
+		"- You can use standard Markdown plus GitHub Flavored Markdown features: headings, emphasis, lists, blockquotes, tables, task lists, and strikethrough.",
+		"- For code, use fenced code blocks with a language identifier when possible (for syntax highlighting).",
+		"- For Mermaid diagrams, use a fenced mermaid block exactly like: ```mermaid ... ```.",
+		"- Mermaid diagrams should include light styling by default: define a small set of classDef styles, apply classes to key node types, and keep visual hierarchy clear.",
+		"- Prefer restrained design in Mermaid: 2-4 coordinated colors, strong contrast for labels, and avoid excessive gradients, decorations, or too many distinct styles.",
+		"- Use layout intentionally in Mermaid (for example, direction, subgraph grouping, and concise labels) to improve readability before adding extra styling.",
+		'- Mermaid labels with special characters (especially |) should be quoted inside nodes, for example: A["Receive Determinant |Σ|"].',
+		"- For math, use $$ delimiters for every expression. The $...$ inline form is not enabled.",
+		"- Multiline math should be written as a block with opening $$ on its own line and closing $$ on its own line.",
+		"- Prefer valid, closed Markdown structures (for example, close code fences and tables cleanly) for best streaming render quality.",
+		"- Raw HTML may be sanitized. Only use custom HTML tags when explicitly required by instructions (for example, citation tags).",
+	].join("\n");
+
 export const buildChatAgentSystemPrompt = ({
 	systemPrompt,
 	hasKnowledgeBaseBlocks,
@@ -44,6 +60,8 @@ export const buildChatAgentSystemPrompt = ({
 	if (hasKnowledgeBaseBlocks) {
 		sections.push(buildKnowledgeBaseGuidance());
 	}
+
+	sections.push(buildFormattingGuidance());
 
 	return sections.filter((section) => section.length > 0).join("\n\n");
 };

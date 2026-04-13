@@ -3,6 +3,7 @@ import {
 	assetPointInsertSchema,
 	assetPointSelectSchema,
 	assetPointUpdateSchema,
+	retrievalModeSchema,
 } from "@orcai/schema";
 import { z } from "zod/v4";
 import { baseBlockSelectSchema } from "@/lib/orpc/schemas/block";
@@ -27,12 +28,7 @@ export const listAssetPointContract = base
 				limit: z.number().int().min(1).optional(),
 				blockId: baseBlockSelectSchema.shape.id.optional(),
 				minScore: z.number().min(0).max(1).optional(),
-				retrievalMode: z
-					.enum([
-						"dense",
-						"hybrid",
-					])
-					.optional(),
+				retrievalMode: retrievalModeSchema.optional(),
 				candidateLimit: z.number().int().min(1).max(200).optional(),
 				denseWeight: z.number().min(0).max(1).optional(),
 				lexicalWeight: z.number().min(0).max(1).optional(),
@@ -49,10 +45,7 @@ export const listAssetPointContract = base
 			data: z.array(assetPointSelectSchema),
 			metadata: z
 				.object({
-					retrievalMode: z.enum([
-						"dense",
-						"hybrid",
-					]),
+					retrievalMode: retrievalModeSchema,
 					scoreThreshold: z.number().min(0).max(1),
 					candidateCount: z.number().int().min(0),
 					returnedCount: z.number().int().min(0),

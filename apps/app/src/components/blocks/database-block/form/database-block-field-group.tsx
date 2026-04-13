@@ -1,3 +1,4 @@
+import type { RetrievalMode } from "@orcai/schema";
 import { DatabaseBlockEditor } from "@/components/authoring/database-block-editor";
 import { withFieldGroup } from "@/hooks/form";
 import type { Asset } from "@/lib/orpc/schemas/asset";
@@ -13,7 +14,7 @@ const databaseBlockGroupDefaultValues = {
 	candidateLimit: 40 as number | undefined,
 	maxPerAsset: 6 as number | undefined,
 	scoreThreshold: 0.2 as number | undefined,
-	retrievalMode: "hybrid" as "dense" | "hybrid" | undefined,
+	retrievalMode: "hybrid" as RetrievalMode | undefined,
 };
 
 const databaseBlockTopLevelFieldMap = {
@@ -167,6 +168,10 @@ const DatabaseBlockFieldGroup = withFieldGroup({
 									{
 										value: "dense",
 										label: "Dense",
+									},
+									{
+										value: "sparse",
+										label: "Sparse",
 									},
 								]}
 							/>

@@ -1,3 +1,4 @@
+import { retrievalModeSchema } from "@orcai/schema";
 import { formOptions } from "@tanstack/react-form";
 import { z } from "zod/v4";
 import type { Asset } from "@/lib/orpc/schemas/asset";
@@ -11,10 +12,7 @@ const databaseBlockFormSchema = databaseBlockInsertSchema.extend({
 	contentHtml: z.string(),
 	config: databaseBlockInsertSchema.shape.config.extend({
 		scoreThreshold: z.number().min(0).max(1),
-		retrievalMode: z.enum([
-			"dense",
-			"hybrid",
-		]),
+		retrievalMode: retrievalModeSchema,
 		candidateLimit: z.number().int().min(1).max(200),
 		maxPerAsset: z.number().int().min(1),
 	}),

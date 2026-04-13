@@ -17,14 +17,16 @@ const embeddingDimensionsConfig = Config.string("EMBEDDING_DIMENSIONS").pipe(
 	}),
 );
 
+export const defaultBm25Config = {
+	language: "none",
+	tokenizer: "multilingual",
+	asciiFolding: true,
+} as const;
+
 const qdrantConfig = Config.all({
 	qdrant: Config.all({
 		url: Config.string("QDRANT_URL"),
 		apiKey: Config.redacted("QDRANT_API_KEY"),
-		enableSparseVectors: Config.withDefault(
-			Config.boolean("QDRANT_ENABLE_SPARSE_VECTORS"),
-			false,
-		),
 	}),
 	embedding: Config.all({
 		dimensions: embeddingDimensionsConfig,
