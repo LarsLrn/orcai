@@ -2,6 +2,7 @@ import { createOpenAICompatible } from "@ai-sdk/openai-compatible";
 import { checkManyEntityPermissions, hasPermission } from "@orcai/spice-db";
 import { extractReasoningMiddleware, wrapLanguageModel } from "ai";
 import * as Effect from "effect/Effect";
+import { resolveChatGenerationParams } from "@/lib/ai/utils/chat-generation-defaults";
 import { AiError, BadRequestError } from "@/lib/effect/utils/errors";
 import { decryptApiKey } from "@/lib/encryption";
 import { client } from "@/lib/orpc/orpc";
@@ -179,17 +180,13 @@ export const getChatAiSettings = ({
 			middleware: middlewares,
 		});
 
+		const generationParams = resolveChatGenerationParams(chatConfig);
+
 		return {
 			provider,
 			model,
 			systemPrompt,
 			databaseBlocks,
-			generationParams: {
-				temperature: chatConfig?.temperature,
-				maxTokens: chatConfig?.maxTokens,
-				topP: chatConfig?.topP,
-				frequencyPenalty: chatConfig?.frequencyPenalty,
-				presencePenalty: chatConfig?.presencePenalty,
-			},
+			generationParams,
 		};
 	});

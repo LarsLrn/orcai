@@ -33,6 +33,7 @@ import { Separator } from "@/components/ui/separator";
 import { Skeleton } from "@/components/ui/skeleton";
 import { useAppForm } from "@/hooks/form";
 import { useUpdateChatMutation } from "@/hooks/mutations/use-chat-mutation";
+import { DEFAULT_CHAT_GENERATION_PARAMS } from "@/lib/ai/utils/chat-generation-defaults";
 import { client, orpc } from "@/lib/orpc/orpc";
 import type { Chat, ChatConfig } from "@/lib/orpc/schemas/chat";
 import type { Model } from "@/lib/orpc/schemas/model";
@@ -225,7 +226,7 @@ const ChatConfigEditor = ({
 							children={(field) => (
 								<field.SliderField
 									label="Temperature"
-									defaultValue={1}
+									defaultValue={DEFAULT_CHAT_GENERATION_PARAMS.temperature}
 									min={0}
 									max={2}
 									step={0.1}
@@ -239,7 +240,7 @@ const ChatConfigEditor = ({
 							children={(field) => (
 								<field.SliderField
 									label="Top P"
-									defaultValue={1}
+									defaultValue={DEFAULT_CHAT_GENERATION_PARAMS.topP}
 									min={0}
 									max={1}
 									step={0.05}
@@ -265,7 +266,7 @@ const ChatConfigEditor = ({
 							children={(field) => (
 								<field.SliderField
 									label="Frequency Penalty"
-									defaultValue={0}
+									defaultValue={DEFAULT_CHAT_GENERATION_PARAMS.frequencyPenalty}
 									min={-2}
 									max={2}
 									step={0.1}
@@ -279,7 +280,7 @@ const ChatConfigEditor = ({
 							children={(field) => (
 								<field.SliderField
 									label="Presence Penalty"
-									defaultValue={0}
+									defaultValue={DEFAULT_CHAT_GENERATION_PARAMS.presencePenalty}
 									min={-2}
 									max={2}
 									step={0.1}
