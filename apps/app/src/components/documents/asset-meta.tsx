@@ -96,7 +96,7 @@ const AssetMeta = ({ asset }: { asset: Asset }) => {
 						<HardDrive className="h-4 w-4 text-muted-foreground" />
 						<span className="text-muted-foreground">Size:</span>
 						<span className="font-medium">
-							{convert(asset.size, "bytes").to("best").toString()}
+							{convert(asset.size, "bytes").to("best").toString(2)}
 						</span>
 					</div>
 
