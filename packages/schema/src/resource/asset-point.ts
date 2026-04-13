@@ -11,6 +11,7 @@ const baseChunkPayloadSchema = z.object({
 	asset_id: z.uuidv4(),
 	block_id: z.uuidv4(),
 	text: z.string(),
+	lexical_text: z.string().optional(),
 	title: z.string(),
 	documentTotalPages: z.number().int().positive().optional(),
 	chunkPageStart: z.number().int().positive().optional(),

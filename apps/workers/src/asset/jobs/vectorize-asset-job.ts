@@ -40,6 +40,7 @@ type VectorPointSource = "text" | "image";
 
 type VectorizableChunk = {
 	content: string;
+	lexicalContent: string;
 	embeddingContent: string;
 	tokens: number;
 	documentTotalPages?: number;
@@ -314,6 +315,7 @@ const buildTextChunks = ({
 
 		return {
 			content: chunk.content,
+			lexicalContent: embeddingContent,
 			embeddingContent,
 			tokens: chunk.metadata.tokenCount ?? countTokens(embeddingContent),
 			documentTotalPages,
@@ -359,6 +361,7 @@ const processImageFile = (params: {
 		}).pipe(
 			Effect.map((result) => ({
 				content: result.text,
+				lexicalContent: result.text,
 				embeddingContent: result.text,
 				tokens: result.usage.totalTokens ?? countTokens(result.text),
 				documentTotalPages: undefined,
@@ -616,6 +619,10 @@ const embedChunks = ({
 				asset_id: assetId,
 				block_id: blockId,
 				text: chunk.content,
+				lexical_text:
+					chunk.lexicalContent !== chunk.content
+						? chunk.lexicalContent
+						: undefined,
 				title: assetTitle,
 				documentTotalPages: chunk.documentTotalPages,
 				chunkPageStart: chunk.chunkPageStart,

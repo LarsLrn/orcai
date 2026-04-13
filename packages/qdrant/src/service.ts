@@ -4,15 +4,19 @@ import * as Effect from "effect/Effect";
 import * as Layer from "effect/Layer";
 import * as Redacted from "effect/Redacted";
 import { type QdrantCollections, qdrantCollections } from "./collections";
-import { QdrantConfigLive, QdrantConfigService } from "./config";
+import {
+	defaultBm25Config,
+	QdrantConfigLive,
+	QdrantConfigService,
+} from "./config";
 import { QdrantError } from "./errors";
 
 export class QdrantService extends Context.Tag("QdrantService")<
 	QdrantService,
 	{
 		readonly client: QdrantClient;
-		readonly sparseVectorsEnabled: boolean;
 		readonly collections: QdrantCollections;
+		readonly bm25Config: typeof defaultBm25Config;
 	}
 >() {}
 
@@ -116,11 +120,9 @@ const ensurePayloadIndex = ({
 
 const initCollectionIfNeeded = ({
 	qdrant,
-	sparseVectorsEnabled,
 	collections,
 }: {
 	qdrant: QdrantClient;
-	sparseVectorsEnabled: boolean;
 	collections: QdrantCollections;
 }) =>
 	Effect.gen(function* () {
@@ -155,16 +157,15 @@ const initCollectionIfNeeded = ({
 							distance: "Cosine",
 						},
 					},
-					...(sparseVectorsEnabled
-						? {
-								sparse_vectors: {
-									bm25: {},
-								},
-							}
-						: {}),
+					sparse_vectors: {
+						bm25: {
+							modifier: "idf",
+						},
+					},
 					hnsw_config: {
 						payload_m: 16,
-						m: 0,
+						m: 16,
+						ef_construct: 128,
 					},
 					optimizers_config: {
 						default_segment_number: 2,
@@ -187,6 +188,14 @@ const ensurePayloadIndexes = (
 ) =>
 	Effect.all(
 		[
+			ensurePayloadIndex({
+				qdrant,
+				collections,
+				fieldName: collections.asset.index.assetId,
+				fieldSchema: {
+					type: "uuid",
+				},
+			}),
 			ensurePayloadIndex({
 				qdrant,
 				collections,
@@ -240,14 +249,13 @@ export const QdrantServiceLive = Layer.effect(
 
 		yield* initCollectionIfNeeded({
 			qdrant: client,
-			sparseVectorsEnabled: config.qdrant.enableSparseVectors,
 			collections,
 		});
 
 		return {
 			client,
-			sparseVectorsEnabled: config.qdrant.enableSparseVectors,
 			collections,
+			bm25Config: defaultBm25Config,
 		};
 	}),
 );

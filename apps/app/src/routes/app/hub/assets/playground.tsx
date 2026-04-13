@@ -1,3 +1,4 @@
+import { retrievalModeSchema } from "@orcai/schema";
 import { createFileRoute } from "@tanstack/react-router";
 import { z } from "zod/v4";
 import { QdrantPlaygroundForm } from "@/components/documents/playground/qdrant-playground-form";
@@ -13,6 +14,7 @@ import {
 
 const searchParams = z.object({
 	search: z.coerce.string().default(""),
+	retrievalMode: retrievalModeSchema.optional(),
 });
 
 export const Route = createFileRoute("/app/hub/assets/playground")({
@@ -28,7 +30,7 @@ export const Route = createFileRoute("/app/hub/assets/playground")({
 });
 
 function RouteComponent() {
-	const { search } = Route.useSearch();
+	const { search, retrievalMode } = Route.useSearch();
 
 	return (
 		<Page>
@@ -43,7 +45,10 @@ function RouteComponent() {
 			<PageContent className="space-y-6">
 				<QdrantPlaygroundForm />
 				{search ? (
-					<QdrantPlaygroundResults search={search} />
+					<QdrantPlaygroundResults
+						search={search}
+						retrievalMode={retrievalMode}
+					/>
 				) : (
 					<Placeholder
 						title="No Search Results"

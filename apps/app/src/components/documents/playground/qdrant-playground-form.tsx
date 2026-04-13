@@ -3,7 +3,7 @@ import { useNavigate, useSearch } from "@tanstack/react-router";
 import { useAppForm } from "@/hooks/form";
 
 const QdrantPlaygroundForm = () => {
-	const { search } = useSearch({
+	const { search, retrievalMode } = useSearch({
 		from: "/app/hub/assets/playground",
 	});
 	const navigate = useNavigate();
@@ -11,6 +11,7 @@ const QdrantPlaygroundForm = () => {
 	const form = useAppForm({
 		defaultValues: {
 			search: search ?? undefined,
+			retrievalMode: retrievalMode ?? ("hybrid" as const),
 		},
 		validators: {
 			onChange: qdrantPlaygroundSearchSchema,
@@ -20,6 +21,7 @@ const QdrantPlaygroundForm = () => {
 				to: ".",
 				search: {
 					search: value.search,
+					retrievalMode: value.retrievalMode,
 				},
 			});
 		},
@@ -40,6 +42,29 @@ const QdrantPlaygroundForm = () => {
 					<field.TextField
 						label="Your search query"
 						placeholder="Your search query..."
+					/>
+				)}
+			/>
+
+			<form.AppField
+				name="retrievalMode"
+				children={(field) => (
+					<field.SelectField
+						label="Retrieval Mode"
+						options={[
+							{
+								label: "Hybrid",
+								value: "hybrid",
+							},
+							{
+								label: "Dense",
+								value: "dense",
+							},
+							{
+								label: "Sparse",
+								value: "sparse",
+							},
+						]}
 					/>
 				)}
 			/>

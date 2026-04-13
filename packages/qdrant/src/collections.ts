@@ -6,6 +6,7 @@ export interface QdrantCollections {
 		readonly name: string;
 		readonly dimensions: number;
 		readonly index: {
+			readonly assetId: "asset_id";
 			readonly blockId: "block_id";
 			readonly chunkIndex: "chunk_index";
 			readonly chunkPageStart: "chunkPageStart";
@@ -22,6 +23,7 @@ export const qdrantCollections = Effect.gen(function* () {
 			name: `orcai-chunks-${config.embedding.dimensions}`,
 			dimensions: config.embedding.dimensions,
 			index: {
+				assetId: "asset_id",
 				blockId: "block_id",
 				chunkIndex: "chunk_index",
 				chunkPageStart: "chunkPageStart",

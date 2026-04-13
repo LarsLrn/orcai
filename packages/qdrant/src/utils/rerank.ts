@@ -81,7 +81,10 @@ export const rerankHybrid = ({
 
 	// Compute lexical scores for all points up-front; reused several times.
 	const lexicalScores = points.map((point) =>
-		lexicalScore(queryTokens, point.payload.text ?? ""),
+		lexicalScore(
+			queryTokens,
+			point.payload.lexical_text ?? point.payload.text ?? "",
+		),
 	);
 
 	// Build rank maps for both orderings. rank=0 is the best result.

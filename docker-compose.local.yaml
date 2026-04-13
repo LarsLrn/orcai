@@ -28,7 +28,6 @@ services:
       S3_SECRET_KEY: ${MINIO_ROOT_PASSWORD:-minioadmin}
       QDRANT_URL: http://qdrant:6333/
       QDRANT_API_KEY: ${QDRANT_API_KEY:-dev-qdrant-key}
-      QDRANT_ENABLE_SPARSE_VECTORS: ${QDRANT_ENABLE_SPARSE_VECTORS:-false}
       SPICEDB_ENDPOINT: spicedb:50051
       SPICEDB_TOKEN: ${SPICEDB_GRPC_PRESHARED_KEY:-dev-spicedb-token}
       POSTGRES_USER: ${POSTGRES_USER:-postgres}
@@ -64,7 +63,6 @@ services:
       S3_SECRET_KEY: ${MINIO_ROOT_PASSWORD:-minioadmin}
       QDRANT_URL: http://qdrant:6333/
       QDRANT_API_KEY: ${QDRANT_API_KEY:-dev-qdrant-key}
-      QDRANT_ENABLE_SPARSE_VECTORS: ${QDRANT_ENABLE_SPARSE_VECTORS:-false}
 
   minio:
     ports:

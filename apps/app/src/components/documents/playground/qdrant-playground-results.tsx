@@ -1,8 +1,15 @@
+import type { RetrievalMode } from "@orcai/schema";
 import { useQuery } from "@tanstack/react-query";
 import { DisplayPoint } from "@/components/documents/chunks/display-point";
 import { orpc } from "@/lib/orpc/orpc";
 
-const QdrantPlaygroundResults = ({ search }: { search: string }) => {
+const QdrantPlaygroundResults = ({
+	search,
+	retrievalMode,
+}: {
+	search: string;
+	retrievalMode?: RetrievalMode;
+}) => {
 	const { data: points } = useQuery(
 		orpc.assetPoint.list.queryOptions({
 			input: {
@@ -11,6 +18,7 @@ const QdrantPlaygroundResults = ({ search }: { search: string }) => {
 						search,
 					],
 					limit: 10,
+					retrievalMode,
 				},
 			},
 		}),
