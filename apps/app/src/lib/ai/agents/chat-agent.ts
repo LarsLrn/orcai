@@ -1,4 +1,5 @@
 import { type LanguageModel, Output, stepCountIs, ToolLoopAgent } from "ai";
+import { applyToolHistoryPruning } from "@/lib/ai/agents/chat-agent-history-pruning";
 import { buildChatAgentSystemPrompt } from "@/lib/ai/agents/chat-agent-system-prompt";
 import { repairKnowledgeBaseToolCall } from "@/lib/ai/agents/repair-tool-call";
 import { buildKnowledgeBaseTools } from "@/lib/ai/tools/rag/toolset";
@@ -27,6 +28,7 @@ export const createChatAgent = (params: {
 		tools: chatAgentToolSet,
 		experimental_repairToolCall: repairKnowledgeBaseToolCall,
 		prepareCall: ({ options, ...settings }) => {
+			const preparedSettings = applyToolHistoryPruning(settings);
 			const hasKnowledgeBaseBlocks = params.databaseBlocks.length > 0;
 			const tools = hasKnowledgeBaseBlocks
 				? buildKnowledgeBaseTools({
@@ -39,7 +41,7 @@ export const createChatAgent = (params: {
 			});
 
 			return {
-				...settings,
+				...preparedSettings,
 				temperature: params.generationParams?.temperature,
 				maxTokens: params.generationParams?.maxTokens,
 				topP: params.generationParams?.topP,
