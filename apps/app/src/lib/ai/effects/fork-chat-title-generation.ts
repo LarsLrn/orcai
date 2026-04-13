@@ -11,7 +11,6 @@ import { and, eq, isNull, or } from "drizzle-orm";
 import * as Effect from "effect/Effect";
 import { generateTextWithQuota } from "./generate-text-with-quota";
 
-const TITLE_GENERATION_MAX_OUTPUT_TOKENS = 64;
 const TITLE_GENERATION_TIMEOUT_MS = 15_000;
 
 interface TitleMessage {
@@ -53,7 +52,6 @@ const generateAndPersistChatTitle = (params: {
 				params.userMessageText,
 			),
 			isFirstTurn: true,
-			maxOutputTokens: TITLE_GENERATION_MAX_OUTPUT_TOKENS,
 			timeoutMs: TITLE_GENERATION_TIMEOUT_MS,
 		});
 

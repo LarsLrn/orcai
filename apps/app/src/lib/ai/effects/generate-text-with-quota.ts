@@ -21,7 +21,7 @@ export interface GenerateTextWithQuotaInput {
 	isFirstTurn: boolean;
 	system?: string;
 	prompt?: string;
-	maxOutputTokens: number;
+	maxOutputTokens?: number;
 	temperature?: number;
 	topP?: number;
 	frequencyPenalty?: number;

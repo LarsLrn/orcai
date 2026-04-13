@@ -234,14 +234,17 @@ const ChatInput = ({
 									/>
 								}
 							/>
-							<ConversationDownload messages={messages} />
+							<PromptInputButton
+								render={<ConversationDownload messages={messages} />}
+							/>
+
+							<ModelSelectorButton
+								selectedModelId={chat?.data.config?.modelId}
+								selectedProviderId={chat?.data.config?.providerId}
+								onSelect={handleModelSelect}
+							/>
 						</PromptInputTools>
 
-						<ModelSelectorButton
-							selectedModelId={chat?.data.config?.modelId}
-							selectedProviderId={chat?.data.config?.providerId}
-							onSelect={handleModelSelect}
-						/>
 						<PromptInputSubmit
 							status={submitStatus}
 							disabled={

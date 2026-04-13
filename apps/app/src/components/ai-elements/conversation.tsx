@@ -163,14 +163,11 @@ export const ConversationDownload = ({
 
 	return (
 		<Button
-			className={cn(
-				"absolute top-4 right-4 rounded-full dark:bg-background dark:hover:bg-muted",
-				className,
-			)}
+			className={cn(className)}
 			onClick={handleDownload}
+			variant="ghost"
 			size="icon"
 			type="button"
-			variant="outline"
 			{...props}
 		>
 			{children ?? <DownloadIcon className="size-4" />}
