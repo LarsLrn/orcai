@@ -188,8 +188,10 @@ const AssetSection = ({
 				<SectionAction>
 					<JobListDialog
 						jobQueue="vectorize-asset-job"
-						resourceId={blockId}
-						resourceType="block"
+						resource={{
+							resourceId: blockId,
+							resourceType: "block",
+						}}
 					/>
 					<DropdownMenu>
 						<DropdownMenuTrigger

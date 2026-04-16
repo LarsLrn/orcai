@@ -1,7 +1,9 @@
 import { DB, dbSchema } from "@orcai/db";
+import { assetIdSchema, blockIdSchema, botIdSchema } from "@orcai/schema";
 import {
 	checkEntityPermission,
 	checkManyEntityPermissions,
+	type EntityIdFor,
 	hasPermission,
 	lookupEntitiesByPermission,
 } from "@orcai/spice-db";
@@ -274,19 +276,33 @@ export const listUserAccess = authed.user.listAccess
 				const scopedResourceIds = unique(
 					scopedResources.map((resource) => resource.resourceId),
 				);
-				const botIds = scopedResources
-					.filter((resource) => resource.resourceType === "bot")
-					.map((resource) => resource.resourceId);
-				const blockIds = scopedResources
-					.filter((resource) => resource.resourceType === "block")
-					.map((resource) => resource.resourceId);
-				const assetIds = scopedResources
-					.filter((resource) => resource.resourceType === "asset")
-					.map((resource) => resource.resourceId);
+				const botIds = botIdSchema
+					.array()
+					.parse(
+						scopedResources
+							.filter((resource) => resource.resourceType === "bot")
+							.map((resource) => resource.resourceId),
+					);
+				const blockIds = blockIdSchema
+					.array()
+					.parse(
+						scopedResources
+							.filter((resource) => resource.resourceType === "block")
+							.map((resource) => resource.resourceId),
+					);
+				const assetIds = assetIdSchema
+					.array()
+					.parse(
+						scopedResources
+							.filter((resource) => resource.resourceType === "asset")
+							.map((resource) => resource.resourceId),
+					);
 
-				const roleForAllowedIds = (
-					entityType: (typeof RESOURCE_TYPES)[number],
-					ids: string[],
+				const roleForAllowedIds = <
+					Entity extends (typeof RESOURCE_TYPES)[number],
+				>(
+					entityType: Entity,
+					ids: EntityIdFor<Entity>[],
 				) =>
 					Effect.gen(function* () {
 						if (ids.length === 0) {
@@ -332,38 +348,37 @@ export const listUserAccess = authed.user.listAccess
 							},
 						);
 
-						return new Map(
-							ids
-								.map((id) => {
-									if (manageableIds.has(id)) {
-										return [
-											id,
-											"manager",
-										] as const;
-									}
-									if (editableIds.has(id)) {
-										return [
-											id,
-											"editor",
-										] as const;
-									}
-									if (readableIds.has(id)) {
-										return [
-											id,
-											"viewer",
-										] as const;
-									}
-									return null;
-								})
-								.filter(
-									(
-										entry,
-									): entry is readonly [
-										string,
-										ResourceGrantRole,
-									] => entry !== null,
-								),
-						);
+						const entries: Array<
+							readonly [
+								EntityIdFor<Entity>,
+								ResourceGrantRole,
+							]
+						> = [];
+
+						for (const id of ids) {
+							if (manageableIds.has(id)) {
+								entries.push([
+									id,
+									"manager",
+								]);
+								continue;
+							}
+							if (editableIds.has(id)) {
+								entries.push([
+									id,
+									"editor",
+								]);
+								continue;
+							}
+							if (readableIds.has(id)) {
+								entries.push([
+									id,
+									"viewer",
+								]);
+							}
+						}
+
+						return new Map(entries);
 					});
 
 				const [botRoles, blockRoles, assetRoles] = yield* Effect.all(
@@ -636,7 +651,9 @@ export const me = authed.user.me.handler(async ({ context, errors }) =>
 			return yield* db.query.user
 				.findFirst({
 					where: {
-						id: context.auth.user.id,
+						id: {
+							eq: context.auth.user.id,
+						},
 					},
 				})
 				.pipe(
@@ -670,7 +687,9 @@ export const updatePassword = authed.user.updatePassword.handler(
 				const passwordMatches = yield* db.query.account
 					.findFirst({
 						where: {
-							userId: context.auth.user.id,
+							userId: {
+								eq: context.auth.user.id,
+							},
 							providerId: "credential",
 						},
 					})

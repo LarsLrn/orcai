@@ -12,10 +12,7 @@ import {
 import * as Effect from "effect/Effect";
 import { runOrpcEffect } from "@/lib/effect/utils/orpc-helpers";
 import { authed } from "@/lib/orpc/implementation/authed";
-import {
-	type CheckPermissionInput,
-	checkPermissionMiddleware,
-} from "@/lib/orpc/middlewares/permission";
+import { requireEntityPermission } from "@/lib/orpc/middlewares/permission";
 import type { ChatMessage } from "@/lib/orpc/schemas/chat-message";
 
 interface MessageTreeRow {
@@ -36,7 +33,7 @@ interface BranchRow {
 
 const mapMessageTreeRow = (row: MessageTreeRow): ChatMessage => ({
 	id: row.id as ChatMessage["id"],
-	chatId: row.chat_id,
+	chatId: row.chat_id as ChatMessage["chatId"],
 	role: row.role,
 	parts: row.parts,
 	attachments: row.attachments,
@@ -48,14 +45,10 @@ const mapMessageTreeRow = (row: MessageTreeRow): ChatMessage => ({
 
 export const listChatMessages = authed.chatMessage.list
 	.use(
-		checkPermissionMiddleware,
-		(input) =>
-			({
-				entityId: input.chatId,
-				permission: "read",
-				entityType: "chat",
-				zedToken: input.zedToken,
-			}) satisfies CheckPermissionInput,
+		...requireEntityPermission("chat", "read", {
+			entityId: "chatId",
+			zedToken: "zedToken",
+		}),
 	)
 	.handler(async ({ input, errors }) =>
 		runOrpcEffect(
@@ -65,7 +58,9 @@ export const listChatMessages = authed.chatMessage.list
 				const branch = yield* db.query.chatBranch
 					.findFirst({
 						where: {
-							id: input.branchId,
+							id: {
+								eq: input.branchId,
+							},
 						},
 					})
 					.pipe(
@@ -103,7 +98,8 @@ export const listChatMessages = authed.chatMessage.list
 					];
 					const hasRoot = parentIds.includes(null);
 					const validParentIds = parentIds.filter(
-						(id): id is string => id !== null,
+						(id): id is NonNullable<ChatMessage["parentMessageId"]> =>
+							id !== null,
 					);
 
 					const siblings = yield* db
@@ -130,7 +126,10 @@ export const listChatMessages = authed.chatMessage.list
 							),
 						);
 
-					const siblingsByParent = new Map<string | null, typeof siblings>();
+					const siblingsByParent = new Map<
+						ChatMessage["id"] | null,
+						typeof siblings
+					>();
 					for (const s of siblings) {
 						const p = s.parentMessageId;
 						if (!siblingsByParent.has(p)) siblingsByParent.set(p, []);
@@ -188,14 +187,10 @@ export const listChatMessages = authed.chatMessage.list
 
 export const findChatMessage = authed.chatMessage.find
 	.use(
-		checkPermissionMiddleware,
-		(input) =>
-			({
-				entityId: input.chatId,
-				permission: "read",
-				entityType: "chat",
-				zedToken: input.zedToken,
-			}) satisfies CheckPermissionInput,
+		...requireEntityPermission("chat", "read", {
+			entityId: "chatId",
+			zedToken: "zedToken",
+		}),
 	)
 	.handler(async ({ input, errors }) =>
 		runOrpcEffect(
@@ -207,10 +202,14 @@ export const findChatMessage = authed.chatMessage.find
 						where: {
 							AND: [
 								{
-									id: input.id,
+									id: {
+										eq: input.id,
+									},
 								},
 								{
-									chatId: input.chatId,
+									chatId: {
+										eq: input.chatId,
+									},
 								},
 							],
 						},
@@ -237,13 +236,9 @@ export const findChatMessage = authed.chatMessage.find
 
 export const getBranchIdForMessage = authed.chatMessage.getBranch
 	.use(
-		checkPermissionMiddleware,
-		(input) =>
-			({
-				entityId: input.chatId,
-				permission: "read",
-				entityType: "chat",
-			}) satisfies CheckPermissionInput,
+		...requireEntityPermission("chat", "read", {
+			entityId: "chatId",
+		}),
 	)
 	.handler(async ({ input, errors }) =>
 		runOrpcEffect(
@@ -293,13 +288,9 @@ export const getBranchIdForMessage = authed.chatMessage.getBranch
 
 export const createChatMessage = authed.chatMessage.create
 	.use(
-		checkPermissionMiddleware,
-		(input) =>
-			({
-				entityId: input.chatId,
-				permission: "edit",
-				entityType: "chat",
-			}) satisfies CheckPermissionInput,
+		...requireEntityPermission("chat", "edit", {
+			entityId: "chatId",
+		}),
 	)
 	.handler(async ({ input, errors }) =>
 		runOrpcEffect(
@@ -323,7 +314,9 @@ export const createChatMessage = authed.chatMessage.create
 				const branch = yield* db.query.chatBranch
 					.findFirst({
 						where: {
-							id: branchIdToUpdate,
+							id: {
+								eq: branchIdToUpdate,
+							},
 						},
 					})
 					.pipe(
@@ -351,7 +344,9 @@ export const createChatMessage = authed.chatMessage.create
 				if (parentMessageId) {
 					const parent = yield* db.query.chatMessage.findFirst({
 						where: {
-							id: parentMessageId,
+							id: {
+								eq: parentMessageId,
+							},
 						},
 					});
 
@@ -461,13 +456,9 @@ export const createChatMessage = authed.chatMessage.create
 
 export const updateChatMessage = authed.chatMessage.update
 	.use(
-		checkPermissionMiddleware,
-		(input) =>
-			({
-				entityId: input.chatId,
-				permission: "edit",
-				entityType: "chat",
-			}) satisfies CheckPermissionInput,
+		...requireEntityPermission("chat", "edit", {
+			entityId: "chatId",
+		}),
 	)
 	.handler(async ({ input, errors }) =>
 		runOrpcEffect(
@@ -479,10 +470,14 @@ export const updateChatMessage = authed.chatMessage.update
 						where: {
 							AND: [
 								{
-									id: input.id,
+									id: {
+										eq: input.id,
+									},
 								},
 								{
-									chatId: input.chatId,
+									chatId: {
+										eq: input.chatId,
+									},
 								},
 							],
 						},
@@ -599,13 +594,9 @@ export const updateChatMessage = authed.chatMessage.update
 
 export const deleteChatMessages = authed.chatMessage.delete
 	.use(
-		checkPermissionMiddleware,
-		(input) =>
-			({
-				entityId: input.chatId,
-				permission: "edit",
-				entityType: "chat",
-			}) satisfies CheckPermissionInput,
+		...requireEntityPermission("chat", "edit", {
+			entityId: "chatId",
+		}),
 	)
 	.handler(async ({ input }) =>
 		runOrpcEffect(
@@ -633,13 +624,9 @@ export const deleteChatMessages = authed.chatMessage.delete
 
 export const rateChatMessage = authed.chatMessage.rate
 	.use(
-		checkPermissionMiddleware,
-		(input) =>
-			({
-				entityId: input.chatId,
-				permission: "edit",
-				entityType: "chat",
-			}) satisfies CheckPermissionInput,
+		...requireEntityPermission("chat", "edit", {
+			entityId: "chatId",
+		}),
 	)
 	.handler(({ input, errors }) =>
 		runOrpcEffect(

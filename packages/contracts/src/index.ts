@@ -1,0 +1,16 @@
+import type {
+	ContractRouterClient,
+	InferContractRouterInputs,
+	InferContractRouterOutputs,
+} from "@orpc/contract";
+import { modelContracts } from "./model";
+
+export const contracts = {
+	model: modelContracts,
+};
+
+export type ContractInputs = InferContractRouterInputs<typeof contracts>;
+export type ContractOutputs = InferContractRouterOutputs<typeof contracts>;
+export type ContractClient = ContractRouterClient<typeof contracts>;
+
+export { modelContracts };

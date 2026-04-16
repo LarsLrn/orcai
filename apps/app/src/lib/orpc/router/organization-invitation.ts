@@ -7,10 +7,9 @@ import { authed } from "@/lib/orpc/implementation/authed";
 import { os } from "@/lib/orpc/implementation/os";
 import { requireActiveOrganizationMiddleware } from "@/lib/orpc/middlewares/auth";
 import {
-	type CheckManyPermissionInput,
-	type CheckPermissionInput,
+	type CheckManyPermissionInputFor,
 	checkManyPermissionMiddleware,
-	checkPermissionMiddleware,
+	requireEntityPermission,
 } from "@/lib/orpc/middlewares/permission";
 
 export const listOrganizationInvitations =
@@ -28,7 +27,9 @@ export const listOrganizationInvitations =
 										email: context.auth.user.email,
 									},
 									{
-										inviterId: context.auth.user.id,
+										inviterId: {
+											eq: context.auth.user.id,
+										},
 									},
 								],
 							},
@@ -69,7 +70,9 @@ export const findOrganizationInvitation =
 				return yield* db.query.invitation
 					.findFirst({
 						where: {
-							id: input.id,
+							id: {
+								eq: input.id,
+							},
 						},
 					})
 					.pipe(
@@ -99,7 +102,9 @@ export const validateOrganizationInvitation =
 				const db = yield* DB;
 				const invitation = yield* db.query.invitation.findFirst({
 					where: {
-						id: input.id,
+						id: {
+							eq: input.id,
+						},
 					},
 				});
 
@@ -144,13 +149,9 @@ export const createOrganizationInvitations =
 	authed.organizationInvitation.create
 		.use(requireActiveOrganizationMiddleware)
 		.use(
-			checkPermissionMiddleware,
-			(input) =>
-				({
-					entityId: input.organizationId,
-					permission: "invite",
-					entityType: "organization",
-				}) satisfies CheckPermissionInput,
+			...requireEntityPermission("organization", "invite", {
+				entityId: "organizationId",
+			}),
 		)
 		.handler(async ({ input, context }) =>
 			runOrpcEffect(
@@ -182,13 +183,9 @@ export const createOrganizationInvitations =
 
 export const updateOrganizationInvitation = authed.organizationInvitation.update
 	.use(
-		checkPermissionMiddleware,
-		(input) =>
-			({
-				entityId: input.organizationId,
-				permission: "invite",
-				entityType: "organization",
-			}) satisfies CheckPermissionInput,
+		...requireEntityPermission("organization", "invite", {
+			entityId: "organizationId",
+		}),
 	)
 	.handler(async ({ input, errors }) =>
 		runOrpcEffect(
@@ -234,15 +231,13 @@ export const updateOrganizationInvitation = authed.organizationInvitation.update
 export const deleteOrganizationInvitations =
 	authed.organizationInvitation.delete
 		.use(
-			checkManyPermissionMiddleware,
-			(input) =>
-				({
-					entityIds: [
-						input.organizationId,
-					],
-					permission: "invite",
-					entityType: "organization",
-				}) satisfies CheckManyPermissionInput,
+			checkManyPermissionMiddleware("organization"),
+			(input): CheckManyPermissionInputFor<"organization"> => ({
+				entityIds: [
+					input.organizationId,
+				],
+				permission: "invite",
+			}),
 		)
 		.handler(async ({ input }) =>
 			runOrpcEffect(
@@ -277,7 +272,9 @@ export const respondToOrganisationInvitation =
 					const invitation = yield* db.query.invitation
 						.findFirst({
 							where: {
-								id: input.id,
+								id: {
+									eq: input.id,
+								},
 							},
 						})
 						.pipe(
@@ -331,10 +328,14 @@ export const respondToOrganisationInvitation =
 							where: {
 								AND: [
 									{
-										organizationId: invitation.organizationId,
+										organizationId: {
+											eq: invitation.organizationId,
+										},
 									},
 									{
-										userId: context.auth.user.id,
+										userId: {
+											eq: context.auth.user.id,
+										},
 									},
 								],
 							},

@@ -1,8 +1,10 @@
 import { dbSchema } from "@orcai/db/schema";
 import {
+	assetIdSchema,
 	bucketSchema,
 	metadataSchema,
 	processingStatusSchema,
+	userIdSchema,
 } from "@orcai/schema";
 import { createInsertSchema, createSelectSchema } from "drizzle-zod";
 import { z } from "zod/v4";
@@ -14,7 +16,10 @@ import { finalizedUploadFileSchema } from "./storage";
  * ----------------
  */
 
-export const assetSelectSchema = createSelectSchema(dbSchema.asset).extend({
+export const assetSelectSchema = createSelectSchema(dbSchema.asset, {
+	id: assetIdSchema,
+	userId: userIdSchema,
+}).extend({
 	metadata: metadataSchema,
 	processingStatus: processingStatusSchema,
 	bucket: bucketSchema,
@@ -26,7 +31,9 @@ export const assetSelectSchema = createSelectSchema(dbSchema.asset).extend({
  * ----------------
  */
 
-export const assetInsertSchema = createInsertSchema(dbSchema.asset)
+export const assetInsertSchema = createInsertSchema(dbSchema.asset, {
+	id: assetIdSchema,
+})
 	.omit({
 		createdAt: true,
 		updatedAt: true,

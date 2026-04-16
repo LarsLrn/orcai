@@ -1,3 +1,9 @@
+import type {
+	MemberId,
+	OrganizationId,
+	OrganizationInvitationId,
+	UserId,
+} from "@orcai/core";
 import { pgEnum, pgTable, text, timestamp, uuid } from "drizzle-orm/pg-core";
 import { user } from "./auth";
 
@@ -8,7 +14,7 @@ export const organizationRoleEnum = pgEnum("organization_role", [
 ]);
 
 export const organization = pgTable("organization", {
-	id: uuid("id").primaryKey().defaultRandom(),
+	id: uuid("id").$type<OrganizationId>().primaryKey().defaultRandom(),
 	name: text("name").notNull(),
 	slug: text("slug").unique().notNull(),
 	logo: text("logo"),
@@ -17,11 +23,13 @@ export const organization = pgTable("organization", {
 });
 
 export const member = pgTable("member", {
-	id: uuid("id").primaryKey().defaultRandom(),
+	id: uuid("id").$type<MemberId>().primaryKey().defaultRandom(),
 	organizationId: uuid("organization_id")
+		.$type<OrganizationId>()
 		.notNull()
 		.references(() => organization.id),
 	userId: uuid("user_id")
+		.$type<UserId>()
 		.notNull()
 		.references(() => user.id),
 	role: organizationRoleEnum("role").notNull(),
@@ -29,8 +37,9 @@ export const member = pgTable("member", {
 });
 
 export const invitation = pgTable("invitation", {
-	id: uuid("id").primaryKey().defaultRandom(),
+	id: uuid("id").$type<OrganizationInvitationId>().primaryKey().defaultRandom(),
 	organizationId: uuid("organization_id")
+		.$type<OrganizationId>()
 		.notNull()
 		.references(() => organization.id),
 	email: text("email").notNull(),
@@ -38,6 +47,7 @@ export const invitation = pgTable("invitation", {
 	status: text("status").notNull(),
 	expiresAt: timestamp("expires_at").notNull(),
 	inviterId: uuid("inviter_id")
+		.$type<UserId>()
 		.notNull()
 		.references(() => user.id),
 	createdAt: timestamp("created_at").defaultNow(),

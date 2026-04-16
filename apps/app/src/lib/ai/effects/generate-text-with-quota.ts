@@ -1,4 +1,5 @@
 import { AiError, BadRequestError } from "@orcai/ai";
+import type { OrganizationId, ProviderId, UserId } from "@orcai/core";
 import {
 	finalizeAppRequestQuota,
 	releaseAppRequestQuota,
@@ -11,9 +12,9 @@ import * as Exit from "effect/Exit";
 export interface GenerateTextWithQuotaInput {
 	operation: string;
 	appRequestId: string;
-	orgId: string;
-	userId: string;
-	providerId: string;
+	organizationId: OrganizationId;
+	userId: UserId;
+	providerId: ProviderId;
 	providerModelId: string | null;
 	model: LanguageModel;
 	messages?: ModelMessage[];
@@ -41,7 +42,7 @@ export const generateTextWithQuota = (input: GenerateTextWithQuotaInput) =>
 		}
 
 		const reservation = yield* reserveForAppRequest({
-			orgId: input.orgId,
+			organizationId: input.organizationId,
 			userId: input.userId,
 			providerId: input.providerId,
 			providerModelId: input.providerModelId,

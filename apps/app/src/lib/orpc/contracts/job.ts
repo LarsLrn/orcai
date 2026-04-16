@@ -1,5 +1,6 @@
 import { jobSchema } from "@orcai/pg-boss";
 import {
+	assetIdSchema,
 	jobQueues,
 	PROCESS_ASSET_JOB_NAME,
 	VECTORIZE_ASSET_JOB_NAME,
@@ -9,6 +10,17 @@ import { assetSelectSchema } from "@/lib/orpc/schemas/asset";
 import { baseBlockSelectSchema } from "@/lib/orpc/schemas/block";
 import { statusSchema } from "@/lib/orpc/schemas/shared";
 import { base } from "./base";
+
+const jobResourceIdentitySchema = z.discriminatedUnion("resourceType", [
+	z.object({
+		resourceType: z.literal("block"),
+		resourceId: baseBlockSelectSchema.shape.id,
+	}),
+	z.object({
+		resourceType: z.literal("asset"),
+		resourceId: assetIdSchema,
+	}),
+]);
 
 export const createJobsContract = base
 	.route({
@@ -40,14 +52,11 @@ export const listJobsContract = base
 		],
 	})
 	.input(
-		z.object({
-			jobQueue: jobQueues,
-			resourceId: z.uuidv4(),
-			resourceType: z.enum([
-				"block",
-				"asset",
-			]),
-		}),
+		jobResourceIdentitySchema.and(
+			z.object({
+				jobQueue: jobQueues,
+			}),
+		),
 	)
 	.output(
 		z.object({

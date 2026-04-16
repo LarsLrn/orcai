@@ -1,4 +1,5 @@
 import { modelCapabilities } from "@orcai/core";
+import type { Model } from "@orcai/schema";
 import { useQuery } from "@tanstack/react-query";
 import { useAppForm } from "@/hooks/form";
 import {
@@ -6,7 +7,6 @@ import {
 	useUpdateModelMutation,
 } from "@/hooks/mutations/use-model-mutations";
 import { orpc } from "@/lib/orpc/orpc";
-import type { Model } from "@/lib/orpc/schemas/model";
 import { modelFormOptions } from "./model-form-options";
 
 const ModelForm = ({
@@ -82,6 +82,16 @@ const ModelForm = ({
 					<field.TextField
 						label="Provider Model ID"
 						placeholder="Enter the provider model ID"
+					/>
+				)}
+			/>
+
+			<form.AppField
+				name="description"
+				children={(field) => (
+					<field.TextareaField
+						label="Description"
+						placeholder="Describe this model"
 					/>
 				)}
 			/>

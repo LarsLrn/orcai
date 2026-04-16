@@ -1,3 +1,4 @@
+import { organizationIdSchema } from "@orcai/schema";
 import { z } from "zod/v4";
 import {
 	organizationMemberDeleteSchema,
@@ -19,7 +20,7 @@ export const listOrganizationMembersContract = base
 	})
 	.input(
 		paginationSchema.extend({
-			organizationId: z.uuidv4(),
+			organizationId: organizationIdSchema,
 		}),
 	)
 	.output(

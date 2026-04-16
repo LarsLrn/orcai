@@ -1,6 +1,8 @@
+import type { AssetId, BlockId } from "@orcai/core";
 import type { JobQueue, ProcessingStatus } from "@orcai/schema";
 import { RefreshCwIcon } from "lucide-react";
 import { JobListDialog } from "@/components/jobs/job-list-dialog";
+import type { JobResource } from "@/components/jobs/job-resource";
 import { JobStatusBadge } from "@/components/jobs/job-status-badge";
 import { Button } from "@/components/ui/button";
 import {
@@ -21,12 +23,11 @@ import { cn } from "@/lib/utils";
 type JobStatusPanelProps = {
 	processingStatus: ProcessingStatus;
 	jobQueue: JobQueue;
-	resourceId: string;
-	resourceType: "block" | "asset";
+	resource: JobResource;
 	/** For retry — required when resourceType is "asset" */
-	assetId?: string;
+	assetId?: AssetId;
 	/** For retry — required when resourceType is "block" */
-	blockId?: string;
+	blockId?: BlockId;
 	/** Optional filter for the job list dialog */
 	assetIdFilter?: string;
 	className?: string;
@@ -35,8 +36,7 @@ type JobStatusPanelProps = {
 const JobStatusPanel = ({
 	processingStatus,
 	jobQueue,
-	resourceId,
-	resourceType,
+	resource,
 	assetId,
 	blockId,
 	assetIdFilter,
@@ -48,11 +48,11 @@ const JobStatusPanel = ({
 	const showRetry = processingStatus === "failed";
 
 	const handleRetry = () => {
-		if (resourceType === "asset" && assetId) {
+		if (resource.resourceType === "asset" && assetId) {
 			retryProcessing({
 				assetId,
 			});
-		} else if (resourceType === "block" && blockId && assetId) {
+		} else if (resource.resourceType === "block" && blockId && assetId) {
 			retryVectorization({
 				blockId,
 				assetId,
@@ -78,8 +78,7 @@ const JobStatusPanel = ({
 				<JobStatusBadge status={processingStatus} className="h-8" />
 				<JobListDialog
 					jobQueue={jobQueue}
-					resourceId={resourceId}
-					resourceType={resourceType}
+					resource={resource}
 					assetIdFilter={assetIdFilter}
 				/>
 				{showRetry && (

@@ -1,4 +1,5 @@
 import { dbSchema } from "@orcai/db/schema";
+import { chatIdSchema, chatMessageIdSchema } from "@orcai/schema";
 import {
 	createInsertSchema,
 	createSelectSchema,
@@ -15,7 +16,9 @@ import { z } from "zod/v4";
 export const chatMessageSelectSchema = createSelectSchema(
 	dbSchema.chatMessage,
 	{
-		id: (schema) => schema.brand("chatMessageId"),
+		id: chatMessageIdSchema,
+		chatId: chatIdSchema,
+		parentMessageId: chatMessageIdSchema.nullable(),
 	},
 );
 
@@ -28,7 +31,9 @@ export const chatMessageSelectSchema = createSelectSchema(
 export const chatMessageInsertSchema = createInsertSchema(
 	dbSchema.chatMessage,
 	{
-		id: (schema) => schema.brand("chatMessageId"),
+		id: chatMessageIdSchema,
+		chatId: chatIdSchema,
+		parentMessageId: chatMessageIdSchema.nullable().optional(),
 	},
 ).omit({
 	createdAt: true,
@@ -44,7 +49,7 @@ export const chatMessageUpdateSchema = createUpdateSchema(
 	dbSchema.chatMessage,
 	{
 		id: chatMessageSelectSchema.shape.id,
-		chatId: chatMessageSelectSchema.shape.chatId,
+		chatId: chatIdSchema,
 	},
 ).omit({
 	createdAt: true,

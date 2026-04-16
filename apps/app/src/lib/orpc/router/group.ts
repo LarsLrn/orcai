@@ -1,11 +1,26 @@
 import { DB, dbSchema } from "@orcai/db";
+import { assetIdSchema, blockIdSchema, botIdSchema } from "@orcai/schema";
 import { and, count, eq, ilike, inArray, isNull, or } from "drizzle-orm";
 import * as Effect from "effect/Effect";
 import { AuthzService } from "@/lib/effect/services/authz";
 import { runOrpcEffect } from "@/lib/effect/utils/orpc-helpers";
 import { authed } from "@/lib/orpc/implementation/authed";
-import { requireOrganizationPermission } from "@/lib/orpc/middlewares/org-permission";
+import { requireOrganizationPermission } from "@/lib/orpc/middlewares/permission";
 import { ALL_MEMBERS_GROUP_SYSTEM_KEY } from "@/lib/orpc/schemas/resource";
+
+const parseScopedResourceId = (resource: {
+	resourceType: "asset" | "block" | "bot";
+	resourceId: string;
+}) => {
+	switch (resource.resourceType) {
+		case "asset":
+			return assetIdSchema.parse(resource.resourceId);
+		case "block":
+			return blockIdSchema.parse(resource.resourceId);
+		case "bot":
+			return botIdSchema.parse(resource.resourceId);
+	}
+};
 
 export const listGroups = authed.group.list
 	.use(requireOrganizationPermission("manage_members"))
@@ -327,7 +342,7 @@ export const deleteGroups = authed.group.delete
 						})),
 						...activeGrants.map((grant) => ({
 							resourceType: grant.resourceType,
-							resourceId: grant.resourceId,
+							resourceId: parseScopedResourceId(grant),
 							relation: grant.role,
 							subjectType: "group" as const,
 							subjectId: grant.principalId,

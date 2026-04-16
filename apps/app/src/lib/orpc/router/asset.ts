@@ -1,4 +1,9 @@
-import { buckets } from "@orcai/core";
+import {
+	type AssetId,
+	buckets,
+	type OrganizationId,
+	type UserId,
+} from "@orcai/core";
 import { DB, dbSchema } from "@orcai/db";
 import { sendJobBatchEffect } from "@orcai/pg-boss";
 import { deletePointsByIdentifier } from "@orcai/qdrant";
@@ -8,7 +13,7 @@ import {
 	sendDeleteObjectCommand,
 } from "@orcai/s3/server";
 import type { BucketName } from "@orcai/schema";
-import { PROCESS_ASSET_JOB_NAME } from "@orcai/schema";
+import { assetIdSchema, PROCESS_ASSET_JOB_NAME } from "@orcai/schema";
 import {
 	checkEntityPermission,
 	hasPermission,
@@ -20,29 +25,28 @@ import { v4 as uuidv4 } from "uuid";
 import { initializeResourceAuthorization } from "@/lib/authz/resource-lifecycle";
 import { runOrpcEffect } from "@/lib/effect/utils/orpc-helpers";
 import { authed } from "@/lib/orpc/implementation/authed";
-import { requireOrganizationPermission } from "@/lib/orpc/middlewares/org-permission";
 import {
-	type CheckManyPermissionInput,
-	type CheckPermissionInput,
+	type CheckManyPermissionInputFor,
 	checkManyPermissionMiddleware,
-	checkPermissionMiddleware,
+	requireEntityPermission,
+	requireOrganizationPermission,
 } from "@/lib/orpc/middlewares/permission";
 
 const createAssetRecordEffect = (params: {
-	id?: string;
+	id?: AssetId;
 	title: string;
 	size: number;
 	fileType: string;
 	bucket: BucketName;
 	prefix: string;
 	metadata?: any;
-	userId: string;
-	organizationId: string;
+	userId: UserId;
+	organizationId: OrganizationId;
 }) =>
 	Effect.gen(function* () {
 		const db = yield* DB;
 
-		const assetId = params.id ?? uuidv4();
+		const assetId = assetIdSchema.parse(params.id ?? uuidv4());
 
 		const [asset] = yield* db
 			.insert(dbSchema.asset)
@@ -161,14 +165,10 @@ export const listAssets = authed.asset.list.handler(
 
 export const findAsset = authed.asset.find
 	.use(
-		checkPermissionMiddleware,
-		(input) =>
-			({
-				entityId: input.id,
-				permission: "read",
-				entityType: "asset",
-				zedToken: input.zedToken,
-			}) satisfies CheckPermissionInput,
+		...requireEntityPermission("asset", "read", {
+			entityId: "id",
+			zedToken: "zedToken",
+		}),
 	)
 	.handler(async ({ input, errors }) =>
 		runOrpcEffect(
@@ -420,13 +420,11 @@ export const saveManyAssets = authed.asset.saveMany
 
 export const deleteAssets = authed.asset.delete
 	.use(
-		checkManyPermissionMiddleware,
-		(input) =>
-			({
-				entityIds: input.refs.map((ref) => ref.id),
-				permission: "delete",
-				entityType: "asset",
-			}) satisfies CheckManyPermissionInput,
+		checkManyPermissionMiddleware("asset"),
+		(input): CheckManyPermissionInputFor<"asset"> => ({
+			entityIds: input.refs.map((ref) => ref.id),
+			permission: "delete",
+		}),
 	)
 	.handler(async ({ context }) =>
 		runOrpcEffect(

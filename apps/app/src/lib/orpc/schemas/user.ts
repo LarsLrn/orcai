@@ -1,5 +1,5 @@
 import { dbSchema } from "@orcai/db/schema";
-import { preferencesSchema } from "@orcai/schema";
+import { preferencesSchema, userIdSchema } from "@orcai/schema";
 import {
 	createInsertSchema,
 	createSelectSchema,
@@ -8,11 +8,11 @@ import {
 import { z } from "zod/v4";
 import { organizationMemberSelectSchema } from "./organization-member";
 import {
+	createResourceScopedSchema,
 	RESOURCE_GRANT_SOURCE,
 	type ResourceType,
 	resourceGrantRoleSchema,
 	resourceGrantSourceSchema,
-	resourceTypeSchema,
 } from "./resource";
 
 /**
@@ -21,7 +21,9 @@ import {
  * ----------------
  */
 
-export const userSelectSchema = createSelectSchema(dbSchema.user).extend({
+export const userSelectSchema = createSelectSchema(dbSchema.user, {
+	id: userIdSchema,
+}).extend({
 	preferences: preferencesSchema.optional(),
 });
 
@@ -49,9 +51,7 @@ const userAccessSourceSchema = z.union([
 	z.literal(USER_ACCESS_SOURCE.INHERITED_ORGANIZATION),
 ]);
 
-export const userAccessEntrySchema = z.object({
-	resourceType: resourceTypeSchema,
-	resourceId: z.uuidv4(),
+export const userAccessEntrySchema = createResourceScopedSchema({
 	role: resourceGrantRoleSchema,
 	source: userAccessSourceSchema,
 	resourceName: z.string().nullable(),

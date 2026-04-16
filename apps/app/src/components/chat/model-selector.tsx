@@ -1,3 +1,4 @@
+import type { Model } from "@orcai/schema";
 import { useQuery } from "@tanstack/react-query";
 import { useEffect, useMemo, useState } from "react";
 import {
@@ -14,7 +15,6 @@ import {
 	DialogSelectTrigger,
 } from "@/components/ui/composed/dialog-select";
 import { orpc } from "@/lib/orpc/orpc";
-import type { Model } from "@/lib/orpc/schemas/model";
 import type { Provider } from "@/lib/orpc/schemas/provider";
 import { cn } from "@/lib/utils";
 

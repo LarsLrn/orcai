@@ -1,4 +1,5 @@
 import { z } from "zod/v4";
+import { assetIdSchema } from "../asset";
 import { bucketSchema } from "../zod/buckets";
 import { fileTypeSchema } from "../zod/file";
 
@@ -6,7 +7,7 @@ export const processAssetPayloadSchema = z.object({
 	assetRef: z.object({
 		bucket: bucketSchema,
 		prefix: z.string(),
-		id: z.uuidv4(),
+		id: assetIdSchema,
 		type: fileTypeSchema,
 	}),
 });

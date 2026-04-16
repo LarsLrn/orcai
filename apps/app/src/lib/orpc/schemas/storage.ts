@@ -1,5 +1,5 @@
 import { UPLOAD_ROUTES } from "@orcai/s3";
-import { bucketSchema } from "@orcai/schema";
+import { assetIdSchema, bucketSchema } from "@orcai/schema";
 import { z } from "zod/v4";
 
 /**
@@ -69,7 +69,7 @@ export const finalizeUploadInputSchema = z.object({
 });
 
 export const finalizedUploadFileSchema = z.object({
-	id: z.uuidv4(),
+	id: assetIdSchema,
 	bucket: bucketSchema,
 	prefix: z.string(),
 	objectKey: z.string(),

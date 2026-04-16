@@ -1,5 +1,9 @@
 import { dbSchema } from "@orcai/db/schema";
-import { publicationStatusSchema } from "@orcai/schema";
+import {
+	botIdSchema,
+	publicationStatusSchema,
+	userIdSchema,
+} from "@orcai/schema";
 import { createSelectSchema } from "drizzle-zod";
 import { z } from "zod/v4";
 
@@ -10,7 +14,9 @@ import { z } from "zod/v4";
  */
 
 export const botSelectSchema = createSelectSchema(dbSchema.bot, {
+	id: botIdSchema,
 	status: publicationStatusSchema,
+	userId: userIdSchema,
 });
 
 /**

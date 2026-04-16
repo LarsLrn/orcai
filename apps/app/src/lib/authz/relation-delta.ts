@@ -18,10 +18,13 @@ export interface RelationDelta {
  * @param currentIds - IDs representing the current (before) state.
  * @param nextIds    - IDs representing the desired (after) state.
  */
-export const calculateRelationDelta = (
-	currentIds: readonly string[],
-	nextIds: readonly string[],
-): RelationDelta => {
+export const calculateRelationDelta = <TId extends string>(
+	currentIds: readonly TId[],
+	nextIds: readonly TId[],
+): {
+	addedIds: TId[];
+	removedIds: TId[];
+} => {
 	const currentUnique = unique(currentIds);
 	const nextUnique = unique(nextIds);
 

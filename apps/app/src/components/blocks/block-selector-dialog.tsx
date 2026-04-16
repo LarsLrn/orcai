@@ -1,3 +1,4 @@
+import type { BlockId } from "@orcai/core";
 import { useQuery } from "@tanstack/react-query";
 import { BookOpenIcon, SparklesIcon } from "lucide-react";
 import { useEffect, useMemo, useState } from "react";
@@ -65,8 +66,8 @@ const BlockSelectorDialog = ({
 	open: boolean;
 	onOpenChange: (open: boolean) => void;
 	type: SupportedBlockType;
-	selectedIds?: string[];
-	disabledIds?: string[];
+	selectedIds?: Block["id"][];
+	disabledIds?: Block["id"][];
 	includeDrafts?: boolean;
 	onSelect: (block: Block) => void | Promise<void>;
 	title?: string;
@@ -183,7 +184,7 @@ const BlockSelectorDialog = ({
 		<DialogSelect
 			value={null}
 			onValueChange={(blockId) => {
-				const block = blockById.get(blockId ?? "");
+				const block = blockById.get((blockId as BlockId) ?? "");
 				if (!block) {
 					return;
 				}

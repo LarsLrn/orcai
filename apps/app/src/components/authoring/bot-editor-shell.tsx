@@ -203,25 +203,19 @@ const BotEditorShell = ({
 		useUpdateBlockInlineMutation();
 	const { mutateAsync: setBlockStatus, isPending: isSettingBlockStatus } =
 		useSetBlockStatusMutation();
+	const botResourceRef = editor.id
+		? {
+				type: "bot" as const,
+				id: editor.id,
+			}
+		: undefined;
 
-	const visibility = useResourceVisibility(
-		{
-			type: "bot",
-			id: editor.id ?? "",
-		},
-		{
-			enabled: !!editor.id,
-		},
-	);
-	const grants = useResourceGrants(
-		{
-			type: "bot",
-			id: editor.id ?? "",
-		},
-		{
-			enabled: !!editor.id,
-		},
-	);
+	const visibility = useResourceVisibility(botResourceRef, {
+		enabled: !!editor.id,
+	});
+	const grants = useResourceGrants(botResourceRef, {
+		enabled: !!editor.id,
+	});
 
 	const isWorking =
 		isSaving ||
@@ -986,7 +980,7 @@ const SharingSection = ({
 	editorId,
 	editorName,
 }: {
-	editorId?: string;
+	editorId?: BotEditorFormValues["id"];
 	editorName: string;
 }) => {
 	if (!editorId) {

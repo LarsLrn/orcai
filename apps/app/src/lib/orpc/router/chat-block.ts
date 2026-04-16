@@ -8,22 +8,15 @@ import { and, eq } from "drizzle-orm";
 import * as Effect from "effect/Effect";
 import { runOrpcEffect } from "@/lib/effect/utils/orpc-helpers";
 import { authed } from "@/lib/orpc/implementation/authed";
-import {
-	type CheckPermissionInput,
-	checkPermissionMiddleware,
-} from "@/lib/orpc/middlewares/permission";
+import { requireEntityPermission } from "@/lib/orpc/middlewares/permission";
 import type { Block } from "@/lib/orpc/schemas/block";
 
 export const listChatBlocks = authed.chatBlock.list
 	.use(
-		checkPermissionMiddleware,
-		(input) =>
-			({
-				entityId: input.chatId,
-				permission: "read",
-				entityType: "chat",
-				zedToken: input.zedToken,
-			}) satisfies CheckPermissionInput,
+		...requireEntityPermission("chat", "read", {
+			entityId: "chatId",
+			zedToken: "zedToken",
+		}),
 	)
 	.handler(async ({ input, context }) =>
 		runOrpcEffect(
@@ -33,7 +26,9 @@ export const listChatBlocks = authed.chatBlock.list
 
 				const chatBlocks = yield* db.query.chatBlock.findMany({
 					where: {
-						chatId: input.chatId,
+						chatId: {
+							eq: input.chatId,
+						},
 					},
 				});
 
@@ -91,14 +86,10 @@ export const listChatBlocks = authed.chatBlock.list
 
 export const attachChatBlock = authed.chatBlock.attach
 	.use(
-		checkPermissionMiddleware,
-		(input) =>
-			({
-				entityId: input.chatId,
-				permission: "edit",
-				entityType: "chat",
-				zedToken: input.zedToken,
-			}) satisfies CheckPermissionInput,
+		...requireEntityPermission("chat", "edit", {
+			entityId: "chatId",
+			zedToken: "zedToken",
+		}),
 	)
 	.handler(async ({ input, context, errors }) =>
 		runOrpcEffect(
@@ -107,7 +98,9 @@ export const attachChatBlock = authed.chatBlock.attach
 				const resolvedZedToken = input.zedToken ?? context.meta?.zedToken;
 				const chat = yield* db.query.chat.findFirst({
 					where: {
-						id: input.chatId,
+						id: {
+							eq: input.chatId,
+						},
 					},
 				});
 
@@ -152,7 +145,9 @@ export const attachChatBlock = authed.chatBlock.attach
 				const block = yield* db.query.block
 					.findFirst({
 						where: {
-							id: input.blockId,
+							id: {
+								eq: input.blockId,
+							},
 						},
 					})
 					.pipe(
@@ -222,14 +217,10 @@ export const attachChatBlock = authed.chatBlock.attach
 
 export const detachChatBlock = authed.chatBlock.detach
 	.use(
-		checkPermissionMiddleware,
-		(input) =>
-			({
-				entityId: input.chatId,
-				permission: "edit",
-				entityType: "chat",
-				zedToken: input.zedToken,
-			}) satisfies CheckPermissionInput,
+		...requireEntityPermission("chat", "edit", {
+			entityId: "chatId",
+			zedToken: "zedToken",
+		}),
 	)
 	.handler(async ({ input, errors }) =>
 		runOrpcEffect(
@@ -237,7 +228,9 @@ export const detachChatBlock = authed.chatBlock.detach
 				const db = yield* DB;
 				const chat = yield* db.query.chat.findFirst({
 					where: {
-						id: input.chatId,
+						id: {
+							eq: input.chatId,
+						},
 					},
 				});
 

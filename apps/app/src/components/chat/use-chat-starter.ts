@@ -1,3 +1,4 @@
+import type { Model } from "@orcai/schema";
 import { useQueryClient } from "@tanstack/react-query";
 import Cookies from "js-cookie";
 import { useCallback, useEffect, useState } from "react";
@@ -6,7 +7,6 @@ import { DEFAULT_CHAT_GENERATION_PARAMS } from "@/lib/ai/utils/chat-generation-d
 import { client, orpc } from "@/lib/orpc/orpc";
 import type { Bot } from "@/lib/orpc/schemas/bot";
 import type { ChatConfig } from "@/lib/orpc/schemas/chat";
-import type { Model } from "@/lib/orpc/schemas/model";
 import type { Provider } from "@/lib/orpc/schemas/provider";
 import { COOKIES } from "@/settings/constants";
 

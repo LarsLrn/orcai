@@ -25,10 +25,7 @@ import { AiError } from "@/lib/effect/utils/errors";
 import { runOrpcEffect } from "@/lib/effect/utils/orpc-helpers";
 import { authed } from "@/lib/orpc/implementation/authed";
 import { requireActiveOrganizationMiddleware } from "@/lib/orpc/middlewares/auth";
-import {
-	type CheckPermissionInput,
-	checkPermissionMiddleware,
-} from "@/lib/orpc/middlewares/permission";
+import { requireEntityPermission } from "@/lib/orpc/middlewares/permission";
 import type { DatabaseBlock, TemplateBlock } from "@/lib/orpc/schemas/block";
 import { listChatBlocks } from "./chat-block";
 import { createChatMessage } from "./chat-message";
@@ -96,14 +93,10 @@ const mergeDatabaseBlocks = ({
 export const aiChat = authed.ai.chat
 	.use(requireActiveOrganizationMiddleware)
 	.use(
-		checkPermissionMiddleware,
-		(input) =>
-			({
-				entityId: input.chatId,
-				permission: "edit",
-				entityType: "chat",
-				zedToken: input.zedToken,
-			}) satisfies CheckPermissionInput,
+		...requireEntityPermission("chat", "edit", {
+			entityId: "chatId",
+			zedToken: "zedToken",
+		}),
 	)
 	.handler(async ({ input, errors, context }) =>
 		runOrpcEffect(
@@ -134,7 +127,9 @@ export const aiChat = authed.ai.chat
 				const chatRecord = yield* db.query.chat
 					.findFirst({
 						where: {
-							id: input.chatId,
+							id: {
+								eq: input.chatId,
+							},
 						},
 					})
 					.pipe(
@@ -210,7 +205,7 @@ export const aiChat = authed.ai.chat
 				const assistantMessageId = uuidv4();
 
 				const quotaReservation = yield* reserveForAppRequest({
-					orgId: context.auth.session.activeOrganizationId,
+					organizationId: context.auth.session.activeOrganizationId,
 					userId: context.auth.user.id,
 					providerId,
 					providerModelId: modelId,
@@ -238,11 +233,21 @@ export const aiChat = authed.ai.chat
 
 				const reservation = quotaReservation.reservation;
 				const userMessageAttachments = getChatMessageAttachments(userMessage);
+				const branchId = input.branchId ?? chatRecord.activeBranchId;
+
+				if (!branchId) {
+					return yield* Effect.fail(
+						errors.BAD_REQUEST({
+							message:
+								"Chat has no active branch. Refresh the page and try again.",
+						}),
+					);
+				}
 
 				const parentMessageId =
 					inputMessages.length > 1
 						? inputMessages[inputMessages.length - 2]?.id
-						: undefined;
+						: null;
 
 				const attachmentPartCache = new Map<string, FileUIPart | TextUIPart>();
 				const messagesWithAttachmentParts = yield* Effect.forEach(
@@ -295,7 +300,7 @@ export const aiChat = authed.ai.chat
 									parts: userMessage.parts,
 									attachments: userMessageAttachments,
 									metadata: userMessage.metadata || {},
-									branchId: input.branchId,
+									branchId,
 									parentMessageId,
 								},
 								{
@@ -322,7 +327,7 @@ export const aiChat = authed.ai.chat
 					chatId: input.chatId,
 					currentTitle: chatRecord.title,
 					model: chatAiSettings.model,
-					orgId: context.auth.session.activeOrganizationId,
+					organizationId: context.auth.session.activeOrganizationId,
 					providerId,
 					providerModelId: modelId,
 					userId: context.auth.user.id,
@@ -371,6 +376,7 @@ export const aiChat = authed.ai.chat
 										attachments: [],
 										metadata: responseMessage.metadata ?? {},
 										branchId: currentBranchId,
+										parentMessageId: null,
 									},
 									{
 										context: requestContext,

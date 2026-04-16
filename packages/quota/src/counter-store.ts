@@ -1,3 +1,9 @@
+import type {
+	OrganizationId,
+	QuotaPeriodId,
+	QuotaPoolId,
+	UserId,
+} from "@orcai/core";
 import { type ValkeyClient, ValkeyService } from "@orcai/valkey";
 import * as Context from "effect/Context";
 import * as Effect from "effect/Effect";
@@ -7,20 +13,20 @@ import { QuotaCounterStoreError } from "./errors";
 type ReservationStatus = "pending" | "reserved" | "finalized" | "released";
 
 interface ReservationRecord {
-	poolId: string;
-	periodId: string;
+	poolId: QuotaPoolId;
+	periodId: QuotaPeriodId;
 	reservedAmount: number;
 	status: ReservationStatus;
 	meteringMode: "tokens" | "requests";
-	userId: string;
-	orgId: string;
+	userId: UserId;
+	organizationId: OrganizationId;
 	createdAt: string;
 	actualAmount?: number;
 }
 
 const DAYS_30_SECONDS = 30 * 24 * 60 * 60;
 
-const makeCounterKeys = (poolId: string, periodId: string) => ({
+const makeCounterKeys = (poolId: QuotaPoolId, periodId: QuotaPeriodId) => ({
 	remaining: `quota:${poolId}:${periodId}:remaining`,
 	reserved: `quota:${poolId}:${periodId}:reserved`,
 	consumed: `quota:${poolId}:${periodId}:consumed`,
@@ -89,8 +95,8 @@ const parseReservationRecord = (
 
 const setInitialCounterState = async (params: {
 	client: ValkeyClient;
-	poolId: string;
-	periodId: string;
+	poolId: QuotaPoolId;
+	periodId: QuotaPeriodId;
 	remaining: number;
 	reserved: number;
 	consumed: number;
@@ -114,8 +120,8 @@ const setInitialCounterState = async (params: {
 
 const reserveCountersAtomically = async (params: {
 	client: ValkeyClient;
-	poolId: string;
-	periodId: string;
+	poolId: QuotaPoolId;
+	periodId: QuotaPeriodId;
 	amount: number;
 }) => {
 	const keys = makeCounterKeys(params.poolId, params.periodId);
@@ -149,8 +155,8 @@ export class QuotaCounterStore extends Context.Tag("QuotaCounterStore")<
 	QuotaCounterStore,
 	{
 		readonly reserve: (input: {
-			poolId: string;
-			periodId: string;
+			poolId: QuotaPoolId;
+			periodId: QuotaPeriodId;
 			reservationKey: string;
 			amount: number;
 			initialState: {
@@ -159,8 +165,8 @@ export class QuotaCounterStore extends Context.Tag("QuotaCounterStore")<
 				consumed: number;
 			};
 			meteringMode: "tokens" | "requests";
-			userId: string;
-			orgId: string;
+			userId: UserId;
+			organizationId: OrganizationId;
 		}) => Effect.Effect<
 			{
 				allowed: boolean;
@@ -170,19 +176,19 @@ export class QuotaCounterStore extends Context.Tag("QuotaCounterStore")<
 			never
 		>;
 		readonly finalize: (input: {
-			poolId: string;
-			periodId: string;
+			poolId: QuotaPoolId;
+			periodId: QuotaPeriodId;
 			reservationKey: string;
 			actualAmount: number;
 		}) => Effect.Effect<void, QuotaCounterStoreError, never>;
 		readonly release: (input: {
-			poolId: string;
-			periodId: string;
+			poolId: QuotaPoolId;
+			periodId: QuotaPeriodId;
 			reservationKey: string;
 		}) => Effect.Effect<void, QuotaCounterStoreError, never>;
 		readonly getState: (input: {
-			poolId: string;
-			periodId: string;
+			poolId: QuotaPoolId;
+			periodId: QuotaPeriodId;
 		}) => Effect.Effect<
 			{
 				reserved: number;
@@ -193,8 +199,8 @@ export class QuotaCounterStore extends Context.Tag("QuotaCounterStore")<
 			never
 		>;
 		readonly overwriteState: (input: {
-			poolId: string;
-			periodId: string;
+			poolId: QuotaPoolId;
+			periodId: QuotaPeriodId;
 			reserved: number;
 			consumed: number;
 			remaining: number;
@@ -208,8 +214,8 @@ export const QuotaCounterStoreLive = Layer.effect(
 		const { client } = yield* ValkeyService;
 
 		const reserve = (input: {
-			poolId: string;
-			periodId: string;
+			poolId: QuotaPoolId;
+			periodId: QuotaPeriodId;
 			reservationKey: string;
 			amount: number;
 			initialState: {
@@ -218,8 +224,8 @@ export const QuotaCounterStoreLive = Layer.effect(
 				consumed: number;
 			};
 			meteringMode: "tokens" | "requests";
-			userId: string;
-			orgId: string;
+			userId: UserId;
+			organizationId: OrganizationId;
 		}) =>
 			Effect.tryPromise({
 				try: async () => {
@@ -262,7 +268,7 @@ export const QuotaCounterStoreLive = Layer.effect(
 						status: "pending",
 						meteringMode: input.meteringMode,
 						userId: input.userId,
-						orgId: input.orgId,
+						organizationId: input.organizationId,
 						createdAt: new Date().toISOString(),
 					};
 
@@ -328,8 +334,8 @@ export const QuotaCounterStoreLive = Layer.effect(
 			});
 
 		const finalize = (input: {
-			poolId: string;
-			periodId: string;
+			poolId: QuotaPoolId;
+			periodId: QuotaPeriodId;
 			reservationKey: string;
 			actualAmount: number;
 		}) =>
@@ -405,8 +411,8 @@ export const QuotaCounterStoreLive = Layer.effect(
 			});
 
 		const release = (input: {
-			poolId: string;
-			periodId: string;
+			poolId: QuotaPoolId;
+			periodId: QuotaPeriodId;
 			reservationKey: string;
 		}) =>
 			Effect.tryPromise({
@@ -461,7 +467,10 @@ export const QuotaCounterStoreLive = Layer.effect(
 					}),
 			});
 
-		const getState = (input: { poolId: string; periodId: string }) =>
+		const getState = (input: {
+			poolId: QuotaPoolId;
+			periodId: QuotaPeriodId;
+		}) =>
 			Effect.tryPromise({
 				try: async () => {
 					const keys = makeCounterKeys(input.poolId, input.periodId);
@@ -485,8 +494,8 @@ export const QuotaCounterStoreLive = Layer.effect(
 			});
 
 		const overwriteState = (input: {
-			poolId: string;
-			periodId: string;
+			poolId: QuotaPoolId;
+			periodId: QuotaPeriodId;
 			reserved: number;
 			consumed: number;
 			remaining: number;

@@ -24,10 +24,9 @@ import * as Effect from "effect/Effect";
 import { v4 as uuidv4 } from "uuid";
 import { runOrpcEffect } from "@/lib/effect/utils/orpc-helpers";
 import { authed } from "@/lib/orpc/implementation/authed";
-import { requireOrganizationPermission } from "@/lib/orpc/middlewares/org-permission";
 import {
-	type CheckPermissionInput,
-	checkPermissionMiddleware,
+	requireEntityPermission,
+	requireOrganizationPermission,
 } from "@/lib/orpc/middlewares/permission";
 
 type S3LikeCause = {
@@ -283,13 +282,9 @@ export const createUploadUrls = authed.storage.createUploadUrls.handler(
 
 export const createDownloadUrl = authed.storage.createDownloadUrl
 	.use(
-		checkPermissionMiddleware,
-		(input) =>
-			({
-				entityId: input.id,
-				permission: "download",
-				entityType: "asset",
-			}) satisfies CheckPermissionInput,
+		...requireEntityPermission("asset", "download", {
+			entityId: "id",
+		}),
 	)
 	.handler(async ({ input, errors }) =>
 		runOrpcEffect(
@@ -299,7 +294,9 @@ export const createDownloadUrl = authed.storage.createDownloadUrl
 				const asset = yield* db.query.asset
 					.findFirst({
 						where: {
-							id: input.id,
+							id: {
+								eq: input.id,
+							},
 						},
 						columns: {
 							bucket: true,

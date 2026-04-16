@@ -1,4 +1,4 @@
-import { normalizeText, tokenize } from "@orcai/core";
+import { type AssetId, normalizeText, tokenize } from "@orcai/core";
 import type { AssetPoint } from "@orcai/schema";
 import * as Effect from "effect/Effect";
 import { AiError } from "@/lib/effect/utils/errors";
@@ -261,7 +261,7 @@ export const loadDocumentCatalog = ({ blocks }: { blocks: DatabaseBlock[] }) =>
 					Effect.map((result) => ({
 						block,
 						assetIds:
-							result.assets?.map((entry: { id: string }) => entry.id) ?? [],
+							result.assets?.map((entry: { id: AssetId }) => entry.id) ?? [],
 					})),
 				),
 			{

@@ -65,8 +65,10 @@ const FileViewer = ({ asset }: { asset: Asset }) => {
 						<JobStatusPanel
 							processingStatus={asset.processingStatus}
 							jobQueue="process-asset-job"
-							resourceId={asset.id}
-							resourceType="asset"
+							resource={{
+								resourceId: asset.id,
+								resourceType: "asset",
+							}}
 							assetId={asset.id}
 							className="w-full"
 						/>

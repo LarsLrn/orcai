@@ -65,7 +65,11 @@ const BotSelectorButton = ({
 		<DialogSelect
 			value={selectedBotId ?? NO_BOT_VALUE}
 			onValueChange={(value) =>
-				onSelectBot(value === NO_BOT_VALUE ? undefined : (value ?? undefined))
+				onSelectBot(
+					value === NO_BOT_VALUE
+						? undefined
+						: ((value as Bot["id"]) ?? undefined),
+				)
 			}
 			open={dialogOpen}
 			onOpenChange={setDialogOpen}

@@ -1,13 +1,15 @@
+import type { BlockId } from "@orcai/core";
 import type { PublicationStatus } from "@orcai/schema";
 import { formOptions } from "@tanstack/react-form";
 import { createDefaultDatabaseBlock } from "@/components/authoring/database-block-editor";
 import { createDefaultTemplateBlock } from "@/components/authoring/template-block-editor";
 import type { Asset } from "@/lib/orpc/schemas/asset";
 import type { DatabaseBlock, TemplateBlock } from "@/lib/orpc/schemas/block";
+import type { Bot } from "@/lib/orpc/schemas/bot";
 import type { BotEditorSelect } from "@/lib/orpc/schemas/bot-editor";
 
 type BotEditorTemplateBlock = {
-	id?: string;
+	id?: BlockId;
 	canEdit: boolean;
 	name: string;
 	description: string;
@@ -19,7 +21,7 @@ type BotEditorTemplateBlock = {
 };
 
 type BotEditorDatabaseBlock = {
-	id?: string;
+	id?: BlockId;
 	canEdit: boolean;
 	name: string;
 	description: string;
@@ -33,7 +35,7 @@ type BotEditorDatabaseBlock = {
 };
 
 export type BotEditorFormValues = {
-	id?: string;
+	id?: Bot["id"];
 	name: string;
 	description: string;
 	contentJson: unknown;

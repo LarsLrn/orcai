@@ -1,5 +1,12 @@
 import { DB, dbSchema } from "@orcai/db";
-import type { ResourceType, TupleMutation } from "@orcai/spice-db";
+import {
+	assetIdSchema,
+	blockIdSchema,
+	botIdSchema,
+	groupIdSchema,
+	userIdSchema,
+} from "@orcai/schema";
+import type { TupleMutation } from "@orcai/spice-db";
 import { and, count, desc, eq, ilike, inArray, isNull, or } from "drizzle-orm";
 import * as Effect from "effect/Effect";
 import { AuthzService } from "@/lib/effect/services/authz";
@@ -8,8 +15,7 @@ import { authed } from "@/lib/orpc/implementation/authed";
 import {
 	type AssertCanGrantPrincipalInput,
 	assertCanGrantPrincipalMiddleware,
-	type CheckPermissionInput,
-	checkPermissionMiddleware,
+	requireResourcePermission,
 } from "@/lib/orpc/middlewares/permission";
 import type {
 	ResourceGrantRole,
@@ -20,7 +26,6 @@ import {
 	ALL_MEMBERS_GROUP_SYSTEM_KEY,
 	RESOURCE_GRANT_SOURCE,
 } from "@/lib/orpc/schemas/resource";
-import { unique } from "@/lib/utils/array-utils";
 
 type GroupPrincipal = Extract<
 	ResourcePrincipal,
@@ -38,16 +43,31 @@ const grantSourceForGroup = (
 		? RESOURCE_GRANT_SOURCE.DIRECT_GROUP_ALL_MEMBERS
 		: RESOURCE_GRANT_SOURCE.DIRECT_GROUP;
 
+const parseResourceIdentity = (resource: {
+	resourceType: ResourceGrantView["resourceType"];
+	resourceId: string;
+}) => {
+	switch (resource.resourceType) {
+		case "asset":
+			return {
+				resourceType: "asset" as const,
+				resourceId: assetIdSchema.parse(resource.resourceId),
+			};
+		case "block":
+			return {
+				resourceType: "block" as const,
+				resourceId: blockIdSchema.parse(resource.resourceId),
+			};
+		case "bot":
+			return {
+				resourceType: "bot" as const,
+				resourceId: botIdSchema.parse(resource.resourceId),
+			};
+	}
+};
+
 export const listResourceGrants = authed.resource.listGrants
-	.use(
-		checkPermissionMiddleware,
-		(input) =>
-			({
-				entityId: input.resourceId,
-				entityType: input.resourceType,
-				permission: "manage_access",
-			}) satisfies CheckPermissionInput,
-	)
+	.use(...requireResourcePermission("manage_access"))
 	.handler(async ({ input }) =>
 		runOrpcEffect(
 			Effect.gen(function* () {
@@ -70,16 +90,20 @@ export const listResourceGrants = authed.resource.listGrants
 					};
 				}
 
-				const userIds = unique(
-					grants
-						.filter((grant) => grant.principalType === "user")
-						.map((grant) => grant.principalId),
-				);
-				const groupIds = unique(
-					grants
-						.filter((grant) => grant.principalType === "group")
-						.map((grant) => grant.principalId),
-				);
+				const userIds = userIdSchema
+					.array()
+					.parse(
+						grants
+							.filter((grant) => grant.principalType === "user")
+							.map((grant) => grant.principalId),
+					);
+				const groupIds = groupIdSchema
+					.array()
+					.parse(
+						grants
+							.filter((grant) => grant.principalType === "group")
+							.map((grant) => grant.principalId),
+					);
 
 				const users =
 					userIds.length > 0
@@ -128,14 +152,18 @@ export const listResourceGrants = authed.resource.listGrants
 
 				const data: ResourceGrantView[] = [];
 				for (const grant of grants) {
+					const resourceIdentity = parseResourceIdentity(grant);
+
 					if (grant.principalType === "user") {
-						const principal = userById.get(grant.principalId);
+						const principalId = userIdSchema.parse(grant.principalId);
+						const principal = userById.get(principalId);
 						if (!principal) {
 							continue;
 						}
 
 						data.push({
 							...grant,
+							...resourceIdentity,
 							principal: {
 								type: "user",
 								...principal,
@@ -145,13 +173,15 @@ export const listResourceGrants = authed.resource.listGrants
 						continue;
 					}
 
-					const principal = groupById.get(grant.principalId);
+					const principalId = groupIdSchema.parse(grant.principalId);
+					const principal = groupById.get(principalId);
 					if (!principal) {
 						continue;
 					}
 
 					data.push({
 						...grant,
+						...resourceIdentity,
 						principal: {
 							type: "group",
 							...principal,
@@ -169,15 +199,7 @@ export const listResourceGrants = authed.resource.listGrants
 	);
 
 export const listResourcePrincipals = authed.resource.listPrincipals
-	.use(
-		checkPermissionMiddleware,
-		(input) =>
-			({
-				entityId: input.resourceId,
-				entityType: input.resourceType,
-				permission: "manage_access",
-			}) satisfies CheckPermissionInput,
-	)
+	.use(...requireResourcePermission("manage_access"))
 	.handler(async ({ input }) =>
 		runOrpcEffect(
 			Effect.gen(function* () {
@@ -281,14 +303,7 @@ export const listResourcePrincipals = authed.resource.listPrincipals
 export const grantResourceAccess = authed.resource.grant
 	.use(
 		assertCanGrantPrincipalMiddleware,
-		(input) =>
-			({
-				resourceType: input.resourceType,
-				resourceId: input.resourceId,
-				principalType: input.principalType,
-				principalId: input.principalId,
-				role: input.role,
-			}) satisfies AssertCanGrantPrincipalInput,
+		(input) => input satisfies AssertCanGrantPrincipalInput,
 	)
 	.handler(async ({ input, context, errors }) =>
 		runOrpcEffect(
@@ -429,7 +444,7 @@ export const grantResourceAccess = authed.resource.grant
 					existingGrant.resourceType === input.resourceType
 				) {
 					mutations.push({
-						resourceType: input.resourceType as ResourceType,
+						resourceType: input.resourceType,
 						resourceId: input.resourceId,
 						relation: roleToRelation(existingGrant.role),
 						subjectType: input.principalType,
@@ -441,7 +456,7 @@ export const grantResourceAccess = authed.resource.grant
 				}
 
 				mutations.push({
-					resourceType: input.resourceType as ResourceType,
+					resourceType: input.resourceType,
 					resourceId: input.resourceId,
 					relation: roleToRelation(input.role),
 					subjectType: input.principalType,
@@ -474,15 +489,7 @@ export const grantResourceAccess = authed.resource.grant
 	);
 
 export const revokeResourceAccess = authed.resource.revoke
-	.use(
-		checkPermissionMiddleware,
-		(input) =>
-			({
-				entityId: input.resourceId,
-				entityType: input.resourceType,
-				permission: "manage_access",
-			}) satisfies CheckPermissionInput,
-	)
+	.use(...requireResourcePermission("manage_access"))
 	.handler(async ({ input, errors }) =>
 		runOrpcEffect(
 			Effect.gen(function* () {
@@ -577,15 +584,7 @@ export const revokeResourceAccess = authed.resource.revoke
 	);
 
 export const getResourceVisibility = authed.resource.getVisibility
-	.use(
-		checkPermissionMiddleware,
-		(input) =>
-			({
-				entityId: input.resourceId,
-				entityType: input.resourceType,
-				permission: "read",
-			}) satisfies CheckPermissionInput,
-	)
+	.use(...requireResourcePermission("read"))
 	.handler(async ({ input }) =>
 		runOrpcEffect(
 			Effect.gen(function* () {
@@ -614,15 +613,7 @@ export const getResourceVisibility = authed.resource.getVisibility
 	);
 
 export const setResourceVisibility = authed.resource.setVisibility
-	.use(
-		checkPermissionMiddleware,
-		(input) =>
-			({
-				entityId: input.resourceId,
-				entityType: input.resourceType,
-				permission: "manage_access",
-			}) satisfies CheckPermissionInput,
-	)
+	.use(...requireResourcePermission("manage_access"))
 	.handler(async ({ input, context }) =>
 		runOrpcEffect(
 			Effect.gen(function* () {

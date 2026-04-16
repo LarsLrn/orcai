@@ -5,21 +5,16 @@ import { syncRelationshipTransition } from "@/lib/authz/relationship-transition"
 import { runOrpcEffect } from "@/lib/effect/utils/orpc-helpers";
 import { authed } from "@/lib/orpc/implementation/authed";
 import {
-	type CheckManyPermissionInput,
-	type CheckPermissionInput,
+	type CheckManyPermissionInputFor,
 	checkManyPermissionMiddleware,
-	checkPermissionMiddleware,
+	requireEntityPermission,
 } from "@/lib/orpc/middlewares/permission";
 
 export const listOrganizationMembers = authed.organizationMember.list
 	.use(
-		checkPermissionMiddleware,
-		(input) =>
-			({
-				entityId: input.organizationId,
-				permission: "read",
-				entityType: "organization",
-			}) satisfies CheckPermissionInput,
+		...requireEntityPermission("organization", "read", {
+			entityId: "organizationId",
+		}),
 	)
 	.handler(async ({ input }) =>
 		runOrpcEffect(
@@ -30,7 +25,9 @@ export const listOrganizationMembers = authed.organizationMember.list
 					[
 						db.query.member.findMany({
 							where: {
-								organizationId: input.organizationId,
+								organizationId: {
+									eq: input.organizationId,
+								},
 							},
 							limit: input.pageSize,
 							offset: input.pageIndex * input.pageSize,
@@ -57,13 +54,9 @@ export const listOrganizationMembers = authed.organizationMember.list
 
 export const findOrganizationMember = authed.organizationMember.find
 	.use(
-		checkPermissionMiddleware,
-		(input) =>
-			({
-				entityId: input.organizationId,
-				permission: "read",
-				entityType: "organization",
-			}) satisfies CheckPermissionInput,
+		...requireEntityPermission("organization", "read", {
+			entityId: "organizationId",
+		}),
 	)
 	.handler(async ({ input, errors }) =>
 		runOrpcEffect(
@@ -75,10 +68,14 @@ export const findOrganizationMember = authed.organizationMember.find
 						where: {
 							AND: [
 								{
-									userId: input.userId,
+									userId: {
+										eq: input.userId,
+									},
 								},
 								{
-									organizationId: input.organizationId,
+									organizationId: {
+										eq: input.organizationId,
+									},
 								},
 							],
 						},
@@ -105,13 +102,9 @@ export const findOrganizationMember = authed.organizationMember.find
 
 export const createOrganizationMember = authed.organizationMember.create
 	.use(
-		checkPermissionMiddleware,
-		(input) =>
-			({
-				entityId: input.organizationId,
-				permission: "manage_members",
-				entityType: "organization",
-			}) satisfies CheckPermissionInput,
+		...requireEntityPermission("organization", "manage_members", {
+			entityId: "organizationId",
+		}),
 	)
 	.handler(async ({ input }) =>
 		runOrpcEffect(
@@ -146,13 +139,9 @@ export const createOrganizationMember = authed.organizationMember.create
 
 export const updateOrganizationMember = authed.organizationMember.update
 	.use(
-		checkPermissionMiddleware,
-		(input) =>
-			({
-				entityId: input.organizationId,
-				permission: "manage_members",
-				entityType: "organization",
-			}) satisfies CheckPermissionInput,
+		...requireEntityPermission("organization", "manage_members", {
+			entityId: "organizationId",
+		}),
 	)
 	.handler(async ({ input, errors }) =>
 		runOrpcEffect(
@@ -217,15 +206,13 @@ export const updateOrganizationMember = authed.organizationMember.update
 
 export const deleteOrganizationMembers = authed.organizationMember.delete
 	.use(
-		checkManyPermissionMiddleware,
-		(input) =>
-			({
-				entityIds: [
-					input.organizationId,
-				],
-				permission: "manage_members",
-				entityType: "organization",
-			}) satisfies CheckManyPermissionInput,
+		checkManyPermissionMiddleware("organization"),
+		(input): CheckManyPermissionInputFor<"organization"> => ({
+			entityIds: [
+				input.organizationId,
+			],
+			permission: "manage_members",
+		}),
 	)
 	.handler(async ({ input }) =>
 		runOrpcEffect(

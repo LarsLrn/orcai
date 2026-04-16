@@ -1,6 +1,8 @@
 import { dbSchema } from "@orcai/db/schema";
 import {
+	organizationIdSchema,
 	providerCompatibilitySchema,
+	providerIdSchema,
 	providerMeteringModeSchema,
 } from "@orcai/schema";
 import {
@@ -17,8 +19,10 @@ import { z } from "zod/v4";
  */
 
 export const providerSelectSchema = createSelectSchema(dbSchema.provider, {
+	id: providerIdSchema,
 	compatibility: providerCompatibilitySchema,
 	meteringMode: providerMeteringModeSchema,
+	organizationId: organizationIdSchema,
 });
 
 /**
@@ -28,6 +32,7 @@ export const providerSelectSchema = createSelectSchema(dbSchema.provider, {
  */
 
 export const providerInsertSchema = createInsertSchema(dbSchema.provider, {
+	id: providerSelectSchema.shape.id.optional(),
 	compatibility: providerSelectSchema.shape.compatibility,
 	meteringMode: providerSelectSchema.shape.meteringMode,
 })

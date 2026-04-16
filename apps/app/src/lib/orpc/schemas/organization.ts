@@ -1,4 +1,5 @@
 import { dbSchema } from "@orcai/db/schema";
+import { organizationIdSchema } from "@orcai/schema";
 import {
 	createInsertSchema,
 	createSelectSchema,
@@ -15,7 +16,7 @@ import { z } from "zod/v4";
 export const organizationSelectSchema = createSelectSchema(
 	dbSchema.organization,
 	{
-		id: (schema) => schema.brand("organizationId"),
+		id: organizationIdSchema,
 	},
 );
 
@@ -27,6 +28,9 @@ export const organizationSelectSchema = createSelectSchema(
 
 export const organizationInsertSchema = createInsertSchema(
 	dbSchema.organization,
+	{
+		id: organizationIdSchema.optional(),
+	},
 ).omit({
 	createdAt: true,
 });
@@ -40,7 +44,7 @@ export const organizationInsertSchema = createInsertSchema(
 export const organizationUpdateSchema = createUpdateSchema(
 	dbSchema.organization,
 	{
-		id: z.uuidv4(),
+		id: organizationIdSchema,
 	},
 );
 

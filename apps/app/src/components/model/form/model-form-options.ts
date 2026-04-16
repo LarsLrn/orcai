@@ -1,8 +1,10 @@
+import { createModelInputSchema, type Model } from "@orcai/schema";
 import { formOptions } from "@tanstack/react-form";
 import type { z } from "zod/v4";
-import { type Model, modelInsertSchema } from "@/lib/orpc/schemas/model";
 
-const defaultValues = (model?: Model): z.input<typeof modelInsertSchema> => ({
+const defaultValues = (
+	model?: Model,
+): z.input<typeof createModelInputSchema> => ({
 	providerId: model?.providerId ?? "",
 	providerModelId: model?.providerModelId ?? "",
 	capabilities: model?.capabilities ?? [],
@@ -15,6 +17,6 @@ export const modelFormOptions = (model?: Model) =>
 	formOptions({
 		defaultValues: defaultValues(model),
 		validators: {
-			onChange: modelInsertSchema,
+			onChange: createModelInputSchema,
 		},
 	});

@@ -1,5 +1,11 @@
 import { dbSchema } from "@orcai/db/schema";
 import {
+	groupIdSchema,
+	groupMemberIdSchema,
+	organizationIdSchema,
+	userIdSchema,
+} from "@orcai/schema";
+import {
 	createInsertSchema,
 	createSelectSchema,
 	createUpdateSchema,
@@ -8,9 +14,21 @@ import { z } from "zod/v4";
 import { paginationSchema, statusSchema } from "./shared";
 import { userSelectSchema } from "./user";
 
-export const groupSelectSchema = createSelectSchema(dbSchema.group);
+export const groupSelectSchema = createSelectSchema(dbSchema.group, {
+	id: groupIdSchema,
+	organizationId: organizationIdSchema,
+	createdBy: userIdSchema,
+});
 
-export const groupMemberSelectSchema = createSelectSchema(dbSchema.groupMember);
+export const groupMemberSelectSchema = createSelectSchema(
+	dbSchema.groupMember,
+	{
+		id: groupMemberIdSchema,
+		groupId: groupIdSchema,
+		userId: userIdSchema,
+		addedBy: userIdSchema,
+	},
+);
 
 export const groupInsertSchema = createInsertSchema(dbSchema.group).pick({
 	name: true,
@@ -18,7 +36,7 @@ export const groupInsertSchema = createInsertSchema(dbSchema.group).pick({
 });
 
 export const groupUpdateSchema = createUpdateSchema(dbSchema.group, {
-	id: z.uuidv4(),
+	id: groupIdSchema,
 }).pick({
 	id: true,
 	name: true,
@@ -45,11 +63,11 @@ export const groupMemberRowSchema = z.object({
 		"implicit",
 	]),
 	addedAt: z.coerce.date().nullable(),
-	addedBy: z.uuidv4().nullable(),
+	addedBy: userIdSchema.nullable(),
 });
 
 export const groupListMembersInputSchema = paginationSchema.extend({
-	groupId: z.uuidv4(),
+	groupId: groupIdSchema,
 	query: z.string().trim().max(200).optional(),
 });
 
@@ -58,9 +76,9 @@ export const groupFindInputSchema = groupSelectSchema.pick({
 });
 
 export const groupAddMembersInputSchema = z.object({
-	groupId: z.uuidv4(),
+	groupId: groupIdSchema,
 	userIds: z
-		.array(z.uuidv4())
+		.array(userIdSchema)
 		.min(1)
 		.max(500)
 		.check((ctx) => {
@@ -79,8 +97,8 @@ export const groupAddMembersInputSchema = z.object({
 });
 
 export const groupRemoveMembersInputSchema = z.object({
-	groupId: z.uuidv4(),
-	userIds: z.array(z.uuidv4()).min(1).max(500),
+	groupId: groupIdSchema,
+	userIds: z.array(userIdSchema).min(1).max(500),
 });
 
 export const groupListResponseSchema = z.object({

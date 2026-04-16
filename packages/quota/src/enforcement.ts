@@ -1,3 +1,10 @@
+import type {
+	OrganizationId,
+	ProviderId,
+	QuotaPeriodId,
+	QuotaPoolId,
+	UserId,
+} from "@orcai/core";
 import type { DB, dbSchema } from "@orcai/db";
 import * as Effect from "effect/Effect";
 import { v4 as uuidv4 } from "uuid";
@@ -11,9 +18,9 @@ import {
 import { resolveQuotaPool } from "./resolver";
 
 interface ReserveQuotaInput {
-	orgId: string;
-	userId: string;
-	providerId: string;
+	organizationId: OrganizationId;
+	userId: UserId;
+	providerId: ProviderId;
 	providerModelId?: string | null;
 	appRequestId: string;
 	maxExpectedOutputTokens?: number;
@@ -25,9 +32,9 @@ interface ReserveQuotaInput {
 export interface ReservedQuotaContext {
 	reservationKey: string;
 	appRequestId: string;
-	poolId: string;
-	periodId: string;
-	providerId: string;
+	poolId: QuotaPoolId;
+	periodId: QuotaPeriodId;
+	providerId: ProviderId;
 	providerModelId: string | null;
 	meteringMode: (typeof dbSchema.provider.$inferSelect)["meteringMode"];
 	reservedAmount: number;
@@ -48,7 +55,7 @@ export const reserveForAppRequest: (
 ) =>
 	Effect.gen(function* () {
 		const resolution = yield* resolveQuotaPool({
-			orgId: input.orgId,
+			organizationId: input.organizationId,
 			userId: input.userId,
 			providerId: input.providerId,
 			providerModelId: input.providerModelId,
@@ -85,7 +92,7 @@ export const reserveForAppRequest: (
 			},
 			meteringMode: winning.meteringMode,
 			userId: input.userId,
-			orgId: input.orgId,
+			organizationId: input.organizationId,
 		});
 
 		if (!counterReservation.allowed) {
@@ -96,7 +103,7 @@ export const reserveForAppRequest: (
 		}
 
 		const durableReservation = yield* reserveQuotaLedger({
-			organizationId: input.orgId,
+			organizationId: input.organizationId,
 			quotaPoolId: winning.pool.id,
 			quotaPeriodId: winning.period.id,
 			providerId: winning.pool.providerId,

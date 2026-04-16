@@ -1,4 +1,6 @@
 import { z } from "zod/v4";
+import { assetIdSchema } from "../asset";
+import { blockIdSchema } from "../block";
 import { fileTypeSchema } from "../zod/file";
 
 /**
@@ -8,8 +10,8 @@ import { fileTypeSchema } from "../zod/file";
  */
 
 const baseChunkPayloadSchema = z.object({
-	asset_id: z.uuidv4(),
-	block_id: z.uuidv4(),
+	asset_id: assetIdSchema,
+	block_id: blockIdSchema,
 	text: z.string(),
 	lexical_text: z.string().optional(),
 	title: z.string(),
@@ -123,7 +125,7 @@ export const assetPointUpdateSchema = assetPointInsertSchema.extend(
  */
 
 export const assetPointDeleteSchema = z.object({
-	assetId: z.uuidv4(),
+	assetId: assetIdSchema,
 	refs: z.array(
 		assetPointSelectSchema.pick({
 			id: true,

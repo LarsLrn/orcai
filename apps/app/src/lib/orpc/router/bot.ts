@@ -1,3 +1,4 @@
+import type { OrganizationId, UserId } from "@orcai/core";
 import { DB, dbSchema } from "@orcai/db";
 import type { PublicationStatus } from "@orcai/schema";
 import {
@@ -13,13 +14,13 @@ import { initializeResourceAuthorization } from "@/lib/authz/resource-lifecycle"
 import { AuthzService } from "@/lib/effect/services/authz";
 import { NotFoundError } from "@/lib/effect/utils/errors";
 import { runOrpcEffect } from "@/lib/effect/utils/orpc-helpers";
+import type { OrpcErrors } from "@/lib/orpc/contracts";
 import { authed } from "@/lib/orpc/implementation/authed";
 import { requireActiveOrganizationMiddleware } from "@/lib/orpc/middlewares/auth";
 import {
-	type CheckManyPermissionInput,
-	type CheckPermissionInput,
+	type CheckManyPermissionInputFor,
 	checkManyPermissionMiddleware,
-	checkPermissionMiddleware,
+	requireEntityPermission,
 } from "@/lib/orpc/middlewares/permission";
 import { loadDatabaseBlockAssets } from "@/lib/orpc/router/helpers/database-block";
 import type { Block } from "@/lib/orpc/schemas/block";
@@ -27,7 +28,7 @@ import type { Bot } from "@/lib/orpc/schemas/bot";
 import type { BotEditorSave } from "@/lib/orpc/schemas/bot-editor";
 
 const listBotsByStatus = (params: {
-	userId: string;
+	userId: UserId;
 	status: PublicationStatus;
 	pageIndex: number;
 	pageSize: number;
@@ -85,8 +86,8 @@ const listBotsByStatus = (params: {
 	});
 
 const loadBotEditor = (params: {
-	id: string;
-	userId: string;
+	id: Bot["id"];
+	userId: UserId;
 	zedToken?: string;
 }) =>
 	Effect.gen(function* () {
@@ -187,9 +188,9 @@ const loadBotEditor = (params: {
 
 const resolveLinkedBlocksForSave = (params: {
 	input: BotEditorSave;
-	userId: string;
+	userId: UserId;
 	zedToken?: string;
-	errors: any;
+	errors: OrpcErrors;
 }) =>
 	Effect.gen(function* () {
 		const db = yield* DB;
@@ -298,8 +299,8 @@ const resolveLinkedBlocksForSave = (params: {
 // Resolves the bot record: updates if it exists, inserts if new.
 const resolveBot = (params: {
 	input: BotEditorSave;
-	userId: string;
-	organizationId: string;
+	userId: UserId;
+	organizationId: OrganizationId;
 }) =>
 	Effect.gen(function* () {
 		const db = yield* DB;
@@ -370,10 +371,10 @@ const resolveBot = (params: {
 
 const saveBotGraph = (params: {
 	input: BotEditorSave;
-	userId: string;
-	organizationId: string;
+	userId: UserId;
+	organizationId: OrganizationId;
 	zedToken?: string;
-	errors: any;
+	errors: OrpcErrors;
 }) =>
 	Effect.gen(function* () {
 		const db = yield* DB;
@@ -491,14 +492,10 @@ export const listDraftBots = authed.bot.listDrafts.handler(
 
 export const findBot = authed.bot.find
 	.use(
-		checkPermissionMiddleware,
-		(input) =>
-			({
-				entityId: input.id,
-				permission: "read",
-				entityType: "bot",
-				zedToken: input.zedToken,
-			}) satisfies CheckPermissionInput,
+		...requireEntityPermission("bot", "read", {
+			entityId: "id",
+			zedToken: "zedToken",
+		}),
 	)
 	.handler(async ({ input, errors }) =>
 		runOrpcEffect(
@@ -539,13 +536,9 @@ export const findBot = authed.bot.find
 
 export const findBotEditor = authed.bot.findEditor
 	.use(
-		checkPermissionMiddleware,
-		(input) =>
-			({
-				entityId: input.id,
-				permission: "edit",
-				entityType: "bot",
-			}) satisfies CheckPermissionInput,
+		...requireEntityPermission("bot", "edit", {
+			entityId: "id",
+		}),
 	)
 	.handler(async ({ input, context, errors }) =>
 		runOrpcEffect(
@@ -621,13 +614,9 @@ export const saveBot = authed.bot.save
 
 export const publishBot = authed.bot.publish
 	.use(
-		checkPermissionMiddleware,
-		(input) =>
-			({
-				entityId: input.id,
-				permission: "edit",
-				entityType: "bot",
-			}) satisfies CheckPermissionInput,
+		...requireEntityPermission("bot", "edit", {
+			entityId: "id",
+		}),
 	)
 	.handler(async ({ input, context, errors }) =>
 		runOrpcEffect(
@@ -698,13 +687,11 @@ export const publishBot = authed.bot.publish
 
 export const deleteBots = authed.bot.delete
 	.use(
-		checkManyPermissionMiddleware,
-		(input) =>
-			({
-				entityIds: input.refs.map((ref) => ref.id),
-				permission: "delete",
-				entityType: "bot",
-			}) satisfies CheckManyPermissionInput,
+		checkManyPermissionMiddleware("bot"),
+		(input): CheckManyPermissionInputFor<"bot"> => ({
+			entityIds: input.refs.map((ref) => ref.id),
+			permission: "delete",
+		}),
 	)
 	.handler(async ({ context }) =>
 		runOrpcEffect(

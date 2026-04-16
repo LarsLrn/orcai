@@ -1,24 +1,25 @@
 import { v1 } from "@authzed/authzed-node";
+import type { EntityIdFor, SubjectIdFor } from "./types/entity-id";
 import type { EntityType } from "./types/entity-type";
 
-export const createResourceReference = (params: {
-	entityType: EntityType;
-	entityId: string;
+export const createResourceReference = <Entity extends EntityType>(params: {
+	entityType: Entity;
+	entityId: EntityIdFor<Entity>;
 }) =>
 	v1.ObjectReference.create({
 		objectType: params.entityType,
 		objectId: params.entityId,
 	});
 
-export const createSubjectReference = (params: {
-	entityType: EntityType;
-	entityId: string;
+export const createSubjectReference = <Entity extends EntityType>(params: {
+	entityType: Entity;
+	entityId: SubjectIdFor<Entity>;
 	optionalRelation?: string;
 }) =>
 	v1.SubjectReference.create({
-		object: createResourceReference({
-			entityType: params.entityType,
-			entityId: params.entityId,
+		object: v1.ObjectReference.create({
+			objectType: params.entityType,
+			objectId: params.entityId,
 		}),
 		optionalRelation: params.optionalRelation,
 	});

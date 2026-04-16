@@ -1,3 +1,9 @@
+import type {
+	GroupId,
+	GroupMemberId,
+	OrganizationId,
+	UserId,
+} from "@orcai/core";
 import { sql } from "drizzle-orm";
 import {
 	boolean,
@@ -56,8 +62,9 @@ export const authzOutboxStatusEnum = pgEnum("authz_outbox_status", [
 export const group = pgTable(
 	"group",
 	{
-		id: uuid("id").primaryKey().defaultRandom(),
+		id: uuid("id").$type<GroupId>().primaryKey().defaultRandom(),
 		organizationId: uuid("organization_id")
+			.$type<OrganizationId>()
 			.notNull()
 			.references(() => organization.id, {
 				onDelete: "cascade",
@@ -67,6 +74,7 @@ export const group = pgTable(
 		kind: groupKindEnum("kind").notNull(),
 		systemKey: groupSystemKeyEnum("system_key"),
 		createdBy: uuid("created_by")
+			.$type<UserId>()
 			.notNull()
 			.references(() => user.id),
 		createdAt: timestamp("created_at").notNull().defaultNow(),
@@ -89,18 +97,21 @@ export const group = pgTable(
 export const groupMember = pgTable(
 	"group_member",
 	{
-		id: uuid("id").primaryKey().defaultRandom(),
+		id: uuid("id").$type<GroupMemberId>().primaryKey().defaultRandom(),
 		groupId: uuid("group_id")
+			.$type<GroupId>()
 			.notNull()
 			.references(() => group.id, {
 				onDelete: "cascade",
 			}),
 		userId: uuid("user_id")
+			.$type<UserId>()
 			.notNull()
 			.references(() => user.id, {
 				onDelete: "cascade",
 			}),
 		addedBy: uuid("added_by")
+			.$type<UserId>()
 			.notNull()
 			.references(() => user.id),
 		createdAt: timestamp("created_at").notNull().defaultNow(),
@@ -122,9 +133,10 @@ export const resourceGrant = pgTable(
 		resourceType: resourceTypeEnum("resource_type").notNull(),
 		resourceId: uuid("resource_id").notNull(),
 		principalType: principalTypeEnum("principal_type").notNull(),
-		principalId: uuid("principal_id").notNull(),
+		principalId: uuid("principal_id").$type<UserId | GroupId>().notNull(),
 		role: resourceGrantRoleEnum("role").notNull(),
 		grantedBy: uuid("granted_by")
+			.$type<UserId>()
 			.notNull()
 			.references(() => user.id),
 		createdAt: timestamp("created_at").notNull().defaultNow(),
@@ -160,6 +172,7 @@ export const resourceVisibility = pgTable(
 			.notNull()
 			.default("private"),
 		updatedBy: uuid("updated_by")
+			.$type<UserId>()
 			.notNull()
 			.references(() => user.id),
 		updatedAt: timestamp("updated_at").notNull().defaultNow(),
@@ -183,6 +196,7 @@ export const resourceScope = pgTable(
 		resourceType: resourceTypeEnum("resource_type").notNull(),
 		resourceId: uuid("resource_id").notNull(),
 		organizationId: uuid("organization_id")
+			.$type<OrganizationId>()
 			.notNull()
 			.references(() => organization.id, {
 				onDelete: "cascade",
@@ -190,6 +204,7 @@ export const resourceScope = pgTable(
 		isPrimary: boolean("is_primary").notNull().default(true),
 		assignedAt: timestamp("assigned_at").notNull().defaultNow(),
 		assignedBy: uuid("assigned_by")
+			.$type<UserId>()
 			.notNull()
 			.references(() => user.id),
 		endedAt: timestamp("ended_at"),

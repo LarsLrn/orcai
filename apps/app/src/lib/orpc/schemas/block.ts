@@ -1,5 +1,11 @@
 import { dbSchema } from "@orcai/db/schema";
-import { publicationStatusSchema, retrievalModeSchema } from "@orcai/schema";
+import {
+	assetIdSchema,
+	blockIdSchema,
+	publicationStatusSchema,
+	retrievalModeSchema,
+	userIdSchema,
+} from "@orcai/schema";
 import {
 	createInsertSchema,
 	createSelectSchema,
@@ -96,7 +102,10 @@ export const imageGenerationBlockSchema = z.object({
 });
 
 export const baseBlockSelectSchema = createSelectSchema(dbSchema.block, {
+	id: blockIdSchema,
+	forkedFromId: blockIdSchema.nullable(),
 	status: publicationStatusSchema,
+	userId: userIdSchema,
 });
 
 export const blockSelectSchema = z.discriminatedUnion("type", [
@@ -113,6 +122,7 @@ export const blockSelectSchema = z.discriminatedUnion("type", [
 
 const baseBlockInsertSchema = createInsertSchema(dbSchema.block, {
 	status: publicationStatusSchema,
+	forkedFromId: blockIdSchema.optional(),
 }).omit({
 	userId: true,
 	createdAt: true,
@@ -146,8 +156,9 @@ export const blockInsertSchema = z.discriminatedUnion("type", [
  */
 
 const baseBlockUpdateSchema = createUpdateSchema(dbSchema.block, {
-	id: z.uuidv4(),
+	id: blockIdSchema,
 	status: publicationStatusSchema,
+	forkedFromId: blockIdSchema.optional(),
 }).omit({
 	userId: true,
 	createdAt: true,
@@ -158,7 +169,7 @@ export const blockUpdateSchema = z.discriminatedUnion("type", [
 	baseBlockUpdateSchema.extend(templateBlockSchema.shape),
 	baseBlockUpdateSchema.extend({
 		...databaseBlockSchema.shape,
-		assets: z.array(z.string()).default([]),
+		assets: z.array(assetIdSchema).default([]),
 	}),
 	baseBlockUpdateSchema.extend(imageGenerationBlockSchema.shape),
 ]);

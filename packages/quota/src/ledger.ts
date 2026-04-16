@@ -1,3 +1,11 @@
+import type {
+	GroupId,
+	OrganizationId,
+	ProviderId,
+	QuotaPeriodId,
+	QuotaPoolId,
+	UserId,
+} from "@orcai/core";
 import { DB, dbSchema } from "@orcai/db";
 import { and, eq, sql } from "drizzle-orm";
 import * as Effect from "effect/Effect";
@@ -30,18 +38,18 @@ type LedgerTransitionResult = {
 } | null;
 
 export const createQuotaPoolWithInitialPeriod: (params: {
-	organizationId: string;
+	organizationId: OrganizationId;
 	name: string;
 	description?: string | null;
-	providerId: string;
+	providerId: ProviderId;
 	providerModelId?: string | null;
 	periodType: (typeof dbSchema.quotaPool.$inferInsert)["periodType"];
 	budgetAmount: number;
 	priority: number;
 	isDefault: boolean;
 	isActive?: boolean;
-	createdByUserId: string;
-	assignedGroupIds: string[];
+	createdByUserId: UserId;
+	assignedGroupIds: GroupId[];
 }) => Effect.Effect<CreateQuotaPoolWithInitialPeriodResult, unknown, DB> = (
 	params,
 ) =>
@@ -136,10 +144,10 @@ export const createQuotaPoolWithInitialPeriod: (params: {
 	});
 
 export const updateQuotaPoolBudget: (params: {
-	poolId: string;
-	organizationId: string;
+	poolId: QuotaPoolId;
+	organizationId: OrganizationId;
 	newBudgetAmount: number;
-	actorUserId: string;
+	actorUserId: UserId;
 	skipAuditLog?: boolean;
 }) => Effect.Effect<UpdateQuotaPoolBudgetResult, unknown, DB> = (params) =>
 	Effect.gen(function* () {
@@ -167,7 +175,9 @@ export const updateQuotaPoolBudget: (params: {
 					where: {
 						AND: [
 							{
-								quotaPoolId: pool.id,
+								quotaPoolId: {
+									eq: params.poolId,
+								},
 							},
 							{
 								status: "open",
@@ -209,7 +219,9 @@ export const updateQuotaPoolBudget: (params: {
 							where: {
 								AND: [
 									{
-										quotaPoolId: pool.id,
+										quotaPoolId: {
+											eq: pool.id,
+										},
 									},
 									{
 										status: "open",
@@ -310,12 +322,12 @@ export const updateQuotaPoolBudget: (params: {
 	});
 
 export const reserveQuotaLedger: (params: {
-	organizationId: string;
-	quotaPoolId: string;
-	quotaPeriodId: string;
-	providerId: string;
+	organizationId: OrganizationId;
+	quotaPoolId: QuotaPoolId;
+	quotaPeriodId: QuotaPeriodId;
+	providerId: ProviderId;
 	providerModelId?: string | null;
-	userId: string;
+	userId: UserId;
 	appRequestId: string;
 	reservationKey: string;
 	meteringMode: (typeof dbSchema.provider.$inferSelect)["meteringMode"];

@@ -1,9 +1,10 @@
+import { botIdSchema } from "@orcai/schema";
 import { createFileRoute, useNavigate } from "@tanstack/react-router";
 import { z } from "zod/v4";
 import { NewChat } from "@/components/chat/new-chat";
 
 const searchSchema = z.object({
-	botId: z.string().uuid().optional(),
+	botId: botIdSchema.optional(),
 });
 
 export const Route = createFileRoute("/app/chat/new")({

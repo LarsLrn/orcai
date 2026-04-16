@@ -10,20 +10,12 @@ import * as Effect from "effect/Effect";
 import { runOrpcEffect } from "@/lib/effect/utils/orpc-helpers";
 import { authed } from "@/lib/orpc/implementation/authed";
 import {
-	type CheckPermissionInput,
-	checkPermissionMiddleware,
+	requireEntityPermission,
+	requireResourcePermission,
 } from "@/lib/orpc/middlewares/permission";
 
 export const listJobs = authed.job.list
-	.use(
-		checkPermissionMiddleware,
-		(input) =>
-			({
-				entityId: input.resourceId,
-				permission: "read",
-				entityType: input.resourceType,
-			}) satisfies CheckPermissionInput,
-	)
+	.use(...requireResourcePermission("read"))
 	.handler(async ({ input }) =>
 		runOrpcEffect(
 			getJobsByResourceEffect({
@@ -40,13 +32,9 @@ export const listJobs = authed.job.list
 
 export const createJobs = authed.job.create
 	.use(
-		checkPermissionMiddleware,
-		(input) =>
-			({
-				entityId: input.blockId,
-				permission: "edit",
-				entityType: "block",
-			}) satisfies CheckPermissionInput,
+		...requireEntityPermission("block", "edit", {
+			entityId: "blockId",
+		}),
 	)
 	.handler(async ({ input, errors }) =>
 		runOrpcEffect(
@@ -109,13 +97,9 @@ export const createJobs = authed.job.create
 
 export const retryProcessing = authed.job.retryProcessing
 	.use(
-		checkPermissionMiddleware,
-		(input) =>
-			({
-				entityId: input.assetId,
-				permission: "edit",
-				entityType: "asset",
-			}) satisfies CheckPermissionInput,
+		...requireEntityPermission("asset", "edit", {
+			entityId: "assetId",
+		}),
 	)
 	.handler(async ({ input, errors }) =>
 		runOrpcEffect(
@@ -174,13 +158,9 @@ export const retryProcessing = authed.job.retryProcessing
 
 export const retryVectorization = authed.job.retryVectorization
 	.use(
-		checkPermissionMiddleware,
-		(input) =>
-			({
-				entityId: input.blockId,
-				permission: "edit",
-				entityType: "block",
-			}) satisfies CheckPermissionInput,
+		...requireEntityPermission("block", "edit", {
+			entityId: "blockId",
+		}),
 	)
 	.handler(async ({ input, errors }) =>
 		runOrpcEffect(

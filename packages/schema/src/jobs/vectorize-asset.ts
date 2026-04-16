@@ -1,8 +1,10 @@
 import { z } from "zod/v4";
+import { assetIdSchema } from "../asset";
+import { blockIdSchema } from "../block";
 
 export const vectorizeAssetPayloadSchema = z.object({
-	assetId: z.uuidv4(),
-	blockId: z.uuidv4(),
+	assetId: assetIdSchema,
+	blockId: blockIdSchema,
 });
 
 export type VectorizeAssetPayload = z.infer<typeof vectorizeAssetPayloadSchema>;

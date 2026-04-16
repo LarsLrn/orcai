@@ -47,10 +47,14 @@ export const verifyQuotaDailyBatchEffect = (jobs: Job<unknown>[]) =>
 								where: {
 									AND: [
 										{
-											quotaPoolId: row.poolId,
+											quotaPoolId: {
+												eq: row.poolId,
+											},
 										},
 										{
-											quotaPeriodId: row.periodId,
+											quotaPeriodId: {
+												eq: row.periodId,
+											},
 										},
 									],
 								},
