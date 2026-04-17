@@ -247,6 +247,8 @@ services:
       timeout: 5s
       retries: 10
     depends_on:
+      spicedb-database:
+        condition: service_healthy
       spicedb-migrate:
         condition: service_completed_successfully
 
