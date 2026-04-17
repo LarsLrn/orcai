@@ -1,3 +1,4 @@
+import type { Model } from "@orcai/schema";
 import { useState } from "react";
 import {
 	PromptInputSubmit,
@@ -11,7 +12,6 @@ import {
 	InputGroupTextarea,
 } from "@/components/ui/input-group";
 import type { Bot } from "@/lib/orpc/schemas/bot";
-import type { Model } from "@/lib/orpc/schemas/model";
 import type { Provider } from "@/lib/orpc/schemas/provider";
 
 const NewChatInput = ({

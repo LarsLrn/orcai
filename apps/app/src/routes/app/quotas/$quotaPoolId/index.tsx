@@ -1,3 +1,4 @@
+import type { GroupId } from "@orcai/core";
 import { useQuery, useSuspenseQuery } from "@tanstack/react-query";
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { useEffect, useMemo } from "react";
@@ -210,7 +211,7 @@ function RouteComponent() {
 					<div className="mb-3 font-medium">Eligible Groups</div>
 					<div className="space-y-2">
 						{data.data.assignments.map((assignment) => {
-							const group = groupById.get(assignment.groupId);
+							const group = groupById.get(assignment.groupId as GroupId);
 							const displayName = group
 								? group.kind === "system"
 									? `${group.name} (system)`

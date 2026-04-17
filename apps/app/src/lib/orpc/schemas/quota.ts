@@ -1,8 +1,13 @@
 import { dbSchema } from "@orcai/db/schema";
-import { providerMeteringModeSchema } from "@orcai/schema";
+import {
+	chatIdSchema,
+	groupIdSchema,
+	modelIdSchema,
+	providerMeteringModeSchema,
+	quotaPoolIdSchema,
+} from "@orcai/schema";
 import { createSelectSchema } from "drizzle-zod";
 import { z } from "zod/v4";
-import { modelSelectSchema } from "./model";
 import { providerSelectSchema } from "./provider";
 import { paginationSchema } from "./shared";
 
@@ -30,34 +35,34 @@ export const quotaPoolCreateInputSchema = z.object({
 	name: z.string().trim().min(1).max(120),
 	description: z.string().trim().max(1000).nullable().optional(),
 	providerId: providerSelectSchema.shape.id,
-	providerModelId: modelSelectSchema.shape.id.nullable().optional(),
+	providerModelId: modelIdSchema.nullable().optional(),
 	periodType: quotaPoolSelectSchema.shape.periodType,
 	budgetAmount: z.coerce.number().int().positive(),
 	priority: z.coerce.number().int().default(0),
 	isDefault: z.boolean().default(false),
 	isActive: z.boolean().default(true),
-	groupIds: z.array(z.uuidv4()).min(1).max(500),
+	groupIds: z.array(groupIdSchema).min(1).max(500),
 });
 
 export const quotaPoolUpdateInputSchema = z.object({
-	id: z.uuidv4(),
+	id: quotaPoolIdSchema,
 	name: z.string().trim().min(1).max(120).optional(),
 	description: z.string().trim().max(1000).nullable().optional(),
-	providerModelId: modelSelectSchema.shape.id.nullable().optional(),
+	providerModelId: modelIdSchema.nullable().optional(),
 	periodType: quotaPoolSelectSchema.shape.periodType.optional(),
 	budgetAmount: z.coerce.number().int().positive().optional(),
 	priority: z.coerce.number().int().optional(),
 	isDefault: z.boolean().optional(),
 	isActive: z.boolean().optional(),
-	groupIds: z.array(z.uuidv4()).min(1).max(500).optional(),
+	groupIds: z.array(groupIdSchema).min(1).max(500).optional(),
 });
 
 export const quotaPoolDeactivateInputSchema = z.object({
-	id: z.uuidv4(),
+	id: quotaPoolIdSchema,
 });
 
 export const quotaPoolFindInputSchema = z.object({
-	id: z.uuidv4(),
+	id: quotaPoolIdSchema,
 });
 
 export const quotaPoolListRowSchema = quotaPoolSelectSchema.extend({
@@ -124,12 +129,12 @@ export const quotaPoolWriteResponseSchema = z.object({
 });
 
 export const quotaChatBadgeInputSchema = z.object({
-	chatId: z.uuidv4(),
+	chatId: chatIdSchema,
 });
 
 export const quotaChatBadgeResponseSchema = z.object({
 	data: z.object({
-		poolId: z.uuidv4().nullable(),
+		poolId: quotaPoolIdSchema.nullable(),
 		poolName: z.string().nullable(),
 		meteringMode: providerMeteringModeSchema.nullable(),
 		remainingAmount: z.number().nullable(),

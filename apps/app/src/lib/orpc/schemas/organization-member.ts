@@ -1,5 +1,10 @@
 import { dbSchema } from "@orcai/db/schema";
 import {
+	memberIdSchema,
+	organizationIdSchema,
+	userIdSchema,
+} from "@orcai/schema";
+import {
 	createInsertSchema,
 	createSelectSchema,
 	createUpdateSchema,
@@ -14,6 +19,11 @@ import { z } from "zod/v4";
 
 export const organizationMemberSelectSchema = createSelectSchema(
 	dbSchema.member,
+	{
+		id: memberIdSchema,
+		organizationId: organizationIdSchema,
+		userId: userIdSchema,
+	},
 );
 
 /**
@@ -24,6 +34,11 @@ export const organizationMemberSelectSchema = createSelectSchema(
 
 export const organizationMemberInsertSchema = createInsertSchema(
 	dbSchema.member,
+	{
+		id: memberIdSchema.optional(),
+		organizationId: organizationIdSchema,
+		userId: userIdSchema,
+	},
 ).omit({
 	createdAt: true,
 });
@@ -37,8 +52,9 @@ export const organizationMemberInsertSchema = createInsertSchema(
 export const organizationMemberUpdateSchema = createUpdateSchema(
 	dbSchema.member,
 	{
-		organizationId: z.uuidv4(),
-		userId: z.uuidv4(),
+		id: memberIdSchema,
+		organizationId: organizationIdSchema,
+		userId: userIdSchema,
 	},
 );
 

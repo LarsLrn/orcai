@@ -1,3 +1,4 @@
+import { organizationIdSchema, userIdSchema } from "@orcai/schema";
 import { z } from "zod/v4";
 import {
 	bootstrapInitializeSchema,
@@ -34,8 +35,8 @@ export const bootstrapInitializeContract = base
 	.output(
 		z.object({
 			data: z.object({
-				userId: z.uuidv4(),
-				organizationId: z.uuidv4(),
+				userId: userIdSchema,
+				organizationId: organizationIdSchema,
 			}),
 		}),
 	);

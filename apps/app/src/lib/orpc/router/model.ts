@@ -20,7 +20,12 @@ import OpenAI from "openai";
 import { runOrpcEffect } from "@/lib/effect/utils/orpc-helpers";
 import { decryptApiKey } from "@/lib/encryption";
 import { authed } from "@/lib/orpc/implementation/authed";
-import { requireOrganizationPermission } from "@/lib/orpc/middlewares/org-permission";
+import { requireOrganizationPermission } from "@/lib/orpc/middlewares/permission";
+import {
+	mapCreateModelInputToModelInsertValues,
+	mapUpdateModelInputToModelUpdateValues,
+	toModelDto,
+} from "./mappers/model";
 import { findProvider } from "./provider";
 
 export const listModels = authed.model.list
@@ -95,7 +100,7 @@ export const listModels = authed.model.list
 				);
 
 				return {
-					data,
+					data: data.map(toModelDto),
 					rowCount: rowCount.count,
 				};
 			}),
@@ -140,7 +145,7 @@ export const findModel = authed.model.find
 				}
 
 				return {
-					data: model,
+					data: toModelDto(model),
 				};
 			}),
 		),
@@ -177,11 +182,11 @@ export const createModel = authed.model.create
 
 				const [model] = yield* db
 					.insert(dbSchema.model)
-					.values(input)
+					.values(mapCreateModelInputToModelInsertValues(input))
 					.returning();
 
 				return {
-					data: model,
+					data: toModelDto(model),
 				};
 			}),
 		),
@@ -222,7 +227,7 @@ export const updateModel = authed.model.update
 
 				const [model] = yield* db
 					.update(dbSchema.model)
-					.set(input)
+					.set(mapUpdateModelInputToModelUpdateValues(input))
 					.where(eq(dbSchema.model.id, input.id))
 					.returning();
 
@@ -235,7 +240,7 @@ export const updateModel = authed.model.update
 				}
 
 				return {
-					data: model,
+					data: toModelDto(model),
 				};
 			}),
 		),
@@ -282,8 +287,9 @@ export const deleteModel = authed.model.delete
 		),
 	);
 
-export const discoverModels = authed.model.discover.handler(
-	async ({ input, context, errors }) =>
+export const discoverModels = authed.model.discover
+	.use(requireOrganizationPermission("manage_members"))
+	.handler(async ({ input, context, errors }) =>
 		runOrpcEffect(
 			Effect.gen(function* () {
 				const db = yield* DB;
@@ -354,4 +360,4 @@ export const discoverModels = authed.model.discover.handler(
 				};
 			}),
 		),
-);
+	);

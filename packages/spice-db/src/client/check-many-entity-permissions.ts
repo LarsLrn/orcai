@@ -1,7 +1,9 @@
 import { v1 } from "@authzed/authzed-node";
+import type { UserId } from "@orcai/core";
 import * as Effect from "effect/Effect";
 import { SpiceDbError } from "../errors";
 import { SpiceDbService } from "../service";
+import type { EntityIdFor } from "../types/entity-id";
 import type { EntityType } from "../types/entity-type";
 import type { PermissionFor } from "../types/permissions";
 import {
@@ -11,10 +13,10 @@ import {
 } from "../utils";
 
 export const checkManyEntityPermissions = <Entity extends EntityType>(params: {
-	entityIds: string[];
+	entityIds: readonly EntityIdFor<Entity>[];
 	entityType: Entity;
 	permission: PermissionFor<Entity>;
-	userId: string;
+	userId: UserId;
 	zedToken?: v1.ZedToken["token"] | null | undefined;
 }) =>
 	Effect.gen(function* () {

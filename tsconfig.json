@@ -11,6 +11,9 @@
 			"path": "./packages/ai"
 		},
 		{
+			"path": "./packages/contracts"
+		},
+		{
 			"path": "./packages/core"
 		},
 		{

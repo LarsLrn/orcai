@@ -1,5 +1,6 @@
+import type { OrganizationId, UserId } from "@orcai/core";
 import { DB, dbSchema } from "@orcai/db";
-import type { ResourceType } from "@orcai/spice-db";
+import type { EntityIdFor, ResourceType, TupleMutation } from "@orcai/spice-db";
 import * as Effect from "effect/Effect";
 import { AuthzService } from "@/lib/effect/services/authz";
 
@@ -28,9 +29,9 @@ type InitialRelation = "owner" | "manager";
  */
 export const initializeResourceAuthorization = (params: {
 	resourceType: ResourceType;
-	resourceId: string;
-	organizationId: string;
-	ownerUserId: string;
+	resourceId: EntityIdFor<ResourceType>;
+	organizationId: OrganizationId;
+	ownerUserId: UserId;
 	visibility?: ResourceVisibility;
 	initialRelation?: InitialRelation;
 	writeManagerGrant?: boolean;
@@ -76,7 +77,7 @@ export const initializeResourceAuthorization = (params: {
 			});
 		}
 
-		const mutations = [
+		const mutations: TupleMutation[] = [
 			{
 				resourceType: params.resourceType,
 				resourceId: params.resourceId,
@@ -92,7 +93,7 @@ export const initializeResourceAuthorization = (params: {
 							resourceId: params.resourceId,
 							relation: "public" as const,
 							subjectType: "user" as const,
-							subjectId: "*",
+							subjectId: "*" as const,
 							operation: "touch" as const,
 						},
 					]

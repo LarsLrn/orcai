@@ -1,7 +1,10 @@
 import { dbSchema } from "@orcai/db/schema";
+import {
+	organizationIdSchema,
+	organizationInvitationIdSchema,
+} from "@orcai/schema";
 import { createSelectSchema } from "drizzle-zod";
 import { z } from "zod/v4";
-import { organizationSelectSchema } from "./organization";
 
 /**
  * ----------------
@@ -12,8 +15,8 @@ import { organizationSelectSchema } from "./organization";
 export const organizationInvitationSelectSchema = createSelectSchema(
 	dbSchema.invitation,
 	{
-		id: (schema) => schema.brand("organizationInvitationId"),
-		organizationId: organizationSelectSchema.shape.id,
+		id: organizationInvitationIdSchema,
+		organizationId: organizationIdSchema,
 	},
 );
 
@@ -24,10 +27,10 @@ export const organizationInvitationSelectSchema = createSelectSchema(
  */
 
 export const organizationInvitationInsertSchema = z.object({
-	organizationId:
-		organizationInvitationSelectSchema.shape.organizationId.nonempty(
-			"Please select an organization",
-		),
+	organizationId: z
+		.string()
+		.min(1, "Please select an organization")
+		.pipe(organizationIdSchema),
 	role: organizationInvitationSelectSchema.shape.role,
 	expiresAt: organizationInvitationSelectSchema.shape.expiresAt, // TODO: Set constraints
 	items: z

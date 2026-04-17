@@ -1,12 +1,27 @@
-import { useQuery, useQueryClient } from "@tanstack/react-query";
+import { skipToken, useQuery, useQueryClient } from "@tanstack/react-query";
 import { useMutationAction } from "@/hooks/actions/use-mutation-action";
 import { orpc } from "@/lib/orpc/orpc";
 import type { PrincipalType, ResourceRef } from "@/lib/orpc/schemas/resource";
 
-const getResourceInput = (resourceRef: ResourceRef) => ({
-	resourceType: resourceRef.type,
-	resourceId: resourceRef.id,
-});
+const getResourceInput = (resourceRef: ResourceRef) => {
+	switch (resourceRef.type) {
+		case "asset":
+			return {
+				resourceType: "asset" as const,
+				resourceId: resourceRef.id,
+			};
+		case "block":
+			return {
+				resourceType: "block" as const,
+				resourceId: resourceRef.id,
+			};
+		case "bot":
+			return {
+				resourceType: "bot" as const,
+				resourceId: resourceRef.id,
+			};
+	}
+};
 
 const getGrantsOptions = (resourceRef: ResourceRef) =>
 	orpc.resource.listGrants.queryOptions({
@@ -19,15 +34,17 @@ const getVisibilityOptions = (resourceRef: ResourceRef) =>
 	});
 
 export const useResourceGrants = (
-	resourceRef: ResourceRef,
+	resourceRef: ResourceRef | undefined,
 	options?: {
 		enabled?: boolean;
 	},
 ) =>
-	useQuery({
-		...getGrantsOptions(resourceRef),
-		enabled: options?.enabled ?? true,
-	});
+	useQuery(
+		orpc.resource.listGrants.queryOptions({
+			input: resourceRef ? getResourceInput(resourceRef) : skipToken,
+			enabled: (options?.enabled ?? true) && !!resourceRef,
+		}),
+	);
 
 export const useShareablePrincipals = (
 	resourceRef: ResourceRef,
@@ -51,15 +68,17 @@ export const useShareablePrincipals = (
 	);
 
 export const useResourceVisibility = (
-	resourceRef: ResourceRef,
+	resourceRef: ResourceRef | undefined,
 	options?: {
 		enabled?: boolean;
 	},
 ) =>
-	useQuery({
-		...getVisibilityOptions(resourceRef),
-		enabled: options?.enabled ?? true,
-	});
+	useQuery(
+		orpc.resource.getVisibility.queryOptions({
+			input: resourceRef ? getResourceInput(resourceRef) : skipToken,
+			enabled: (options?.enabled ?? true) && !!resourceRef,
+		}),
+	);
 
 export const useGrantResourceAccess = (resourceRef: ResourceRef) => {
 	const queryClient = useQueryClient();

@@ -1,7 +1,10 @@
+import { contracts as sharedContracts } from "@orcai/contracts";
 import type {
+	InferContractRouterErrorMap,
 	InferContractRouterInputs,
 	InferContractRouterOutputs,
 } from "@orpc/contract";
+import type { ORPCErrorConstructorMap } from "@orpc/server";
 import { aiChatContract } from "./ai";
 import {
 	createAssetContract,
@@ -75,14 +78,6 @@ import {
 	retryProcessingContract,
 	retryVectorizationContract,
 } from "./job";
-import {
-	createModelContract,
-	deleteModelContract,
-	discoverModelsContract,
-	findModelContract,
-	listModelsContract,
-	updateModelContract,
-} from "./model";
 import {
 	createOrganizationContract,
 	deleteOrganizationContract,
@@ -268,14 +263,7 @@ export const contracts = {
 		setActiveOrganization: setActiveOrganizationContract,
 		setTourState: setTourStateContract,
 	},
-	model: {
-		list: listModelsContract,
-		create: createModelContract,
-		find: findModelContract,
-		update: updateModelContract,
-		delete: deleteModelContract,
-		discover: discoverModelsContract,
-	},
+	model: sharedContracts.model,
 	storage: {
 		createUploadUrls: createUploadUrlsContract,
 		createDownloadUrl: createDownloadUrlContract,
@@ -296,3 +284,7 @@ export const contracts = {
 
 export type OrpcInputs = InferContractRouterInputs<typeof contracts>;
 export type OrpcOutputs = InferContractRouterOutputs<typeof contracts>;
+
+export type OrpcErrors = ORPCErrorConstructorMap<
+	InferContractRouterErrorMap<typeof contracts>
+>;

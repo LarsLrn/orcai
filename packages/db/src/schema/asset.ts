@@ -1,3 +1,4 @@
+import type { AssetId, UserId } from "@orcai/core";
 import type { AssetMetadataType, BucketName } from "@orcai/schema";
 import {
 	integer,
@@ -10,7 +11,7 @@ import {
 import { user } from "./auth";
 
 export const asset = pgTable("asset", {
-	id: uuid("id").primaryKey().defaultRandom(),
+	id: uuid("id").$type<AssetId>().primaryKey().defaultRandom(),
 	bucket: text("bucket").$type<BucketName>().notNull(),
 	prefix: text("prefix").notNull(),
 	title: text("title").notNull(),
@@ -27,6 +28,7 @@ export const asset = pgTable("asset", {
 	fileType: text("file_type").notNull(),
 	// TODO: Check what should be done if user deletes account
 	userId: uuid("user_id")
+		.$type<UserId>()
 		.notNull()
 		.references(() => user.id),
 	updatedAt: timestamp("updated_at").defaultNow(),

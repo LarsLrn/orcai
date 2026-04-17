@@ -1,5 +1,13 @@
 import { dbSchema } from "@orcai/db/schema";
 import {
+	botIdSchema,
+	chatBranchIdSchema,
+	chatIdSchema,
+	modelIdSchema,
+	providerIdSchema,
+	userIdSchema,
+} from "@orcai/schema";
+import {
 	createInsertSchema,
 	createSelectSchema,
 	createUpdateSchema,
@@ -13,8 +21,8 @@ import { z } from "zod/v4";
  */
 
 export const chatConfigSchema = z.object({
-	modelId: z.string().optional(),
-	providerId: z.string().optional(),
+	modelId: modelIdSchema.optional(),
+	providerId: providerIdSchema.optional(),
 	systemPrompt: z.string().optional(),
 	temperature: z.number().min(0).max(2).optional(),
 	maxTokens: z.number().int().min(1).optional(),
@@ -24,8 +32,8 @@ export const chatConfigSchema = z.object({
 });
 
 export const chatConfigPatchSchema = chatConfigSchema.extend({
-	modelId: z.string().nullable().optional(),
-	providerId: z.string().nullable().optional(),
+	modelId: modelIdSchema.nullable().optional(),
+	providerId: providerIdSchema.nullable().optional(),
 	systemPrompt: z.string().nullable().optional(),
 	temperature: z.number().min(0).max(2).nullable().optional(),
 	maxTokens: z.number().int().min(1).nullable().optional(),
@@ -41,9 +49,11 @@ export const chatConfigPatchSchema = chatConfigSchema.extend({
  */
 
 export const chatSelectSchema = createSelectSchema(dbSchema.chat, {
-	id: (schema) => schema.brand("chatId"),
-	activeBranchId: (schema) => schema.brand("chatBranchId"),
+	activeBranchId: chatBranchIdSchema.nullable(),
 	config: chatConfigSchema.nullable(),
+	id: chatIdSchema,
+	botId: botIdSchema.nullable(),
+	userId: userIdSchema,
 });
 
 /**
@@ -53,6 +63,7 @@ export const chatSelectSchema = createSelectSchema(dbSchema.chat, {
  */
 
 export const chatInsertSchema = createInsertSchema(dbSchema.chat, {
+	botId: botIdSchema.optional(),
 	config: chatConfigSchema.optional(),
 }).omit({
 	userId: true,
@@ -68,9 +79,9 @@ export const chatInsertSchema = createInsertSchema(dbSchema.chat, {
  */
 
 export const chatUpdateSchema = createUpdateSchema(dbSchema.chat, {
-	id: chatSelectSchema.shape.id,
+	id: chatIdSchema,
 	title: z.string().min(1).max(250).optional(),
-	activeBranchId: z.uuidv4().optional(),
+	activeBranchId: chatBranchIdSchema.optional(),
 	config: chatConfigPatchSchema.optional(),
 }).omit({
 	userId: true,

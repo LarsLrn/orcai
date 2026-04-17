@@ -1,3 +1,4 @@
+import type { OrganizationId, ProviderId, UserId } from "@orcai/core";
 import { DB, dbSchema } from "@orcai/db";
 import { and, asc, desc, eq, isNotNull, isNull, or } from "drizzle-orm";
 import * as Effect from "effect/Effect";
@@ -21,9 +22,9 @@ interface CandidateRow {
 }
 
 export const resolveQuotaPool: (params: {
-	orgId: string;
-	userId: string;
-	providerId: string;
+	organizationId: OrganizationId;
+	userId: UserId;
+	providerId: ProviderId;
 	providerModelId?: string | null;
 }) => Effect.Effect<QuotaResolutionResult, unknown, DB> = (params) =>
 	Effect.gen(function* () {
@@ -46,7 +47,7 @@ export const resolveQuotaPool: (params: {
 				dbSchema.provider,
 				and(
 					eq(dbSchema.provider.id, dbSchema.quotaPool.providerId),
-					eq(dbSchema.provider.organizationId, params.orgId),
+					eq(dbSchema.provider.organizationId, params.organizationId),
 					eq(dbSchema.provider.enabled, true),
 				),
 			)
@@ -64,7 +65,7 @@ export const resolveQuotaPool: (params: {
 				dbSchema.group,
 				and(
 					eq(dbSchema.group.id, dbSchema.quotaPoolGroupAssignment.groupId),
-					eq(dbSchema.group.organizationId, params.orgId),
+					eq(dbSchema.group.organizationId, params.organizationId),
 					isNull(dbSchema.group.deletedAt),
 				),
 			)
@@ -78,7 +79,7 @@ export const resolveQuotaPool: (params: {
 			)
 			.where(
 				and(
-					eq(dbSchema.quotaPool.organizationId, params.orgId),
+					eq(dbSchema.quotaPool.organizationId, params.organizationId),
 					eq(dbSchema.quotaPool.providerId, params.providerId),
 					eq(dbSchema.quotaPool.isActive, true),
 					modelScopeCondition,

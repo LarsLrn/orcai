@@ -3,6 +3,7 @@ import { useQuery } from "@tanstack/react-query";
 import { ListIcon } from "lucide-react";
 import { useState } from "react";
 import { JobListItem } from "@/components/jobs/job-list-item";
+import type { JobResource } from "@/components/jobs/job-resource";
 import { Button } from "@/components/ui/button";
 import {
 	Dialog,
@@ -18,27 +19,33 @@ import { orpc } from "@/lib/orpc/orpc";
 
 type JobListDialogProps = {
 	jobQueue: JobQueue;
-	resourceId: string;
-	resourceType: "block" | "asset";
 	/** Optional filter to show only jobs for a specific asset within a block */
 	assetIdFilter?: string;
+	resource: JobResource;
 };
 
 const JobListDialog = ({
 	jobQueue,
-	resourceId,
-	resourceType,
+	resource,
 	assetIdFilter,
 }: JobListDialogProps) => {
 	const [open, setOpen] = useState(false);
+	const jobListInput =
+		resource.resourceType === "block"
+			? {
+					jobQueue,
+					resourceId: resource.resourceId,
+					resourceType: "block" as const,
+				}
+			: {
+					jobQueue,
+					resourceId: resource.resourceId,
+					resourceType: "asset" as const,
+				};
 
 	const { data, isLoading } = useQuery({
 		...orpc.job.list.queryOptions({
-			input: {
-				jobQueue,
-				resourceId,
-				resourceType,
-			},
+			input: jobListInput,
 		}),
 		enabled: open,
 		refetchInterval: (query) => {

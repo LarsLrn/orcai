@@ -22,6 +22,7 @@
 	},
 	"dependencies": {
 		"@effect/sql-pg": "catalog:",
+		"@orcai/core": "workspace:*",
 		"@orcai/schema": "workspace:*",
 		"drizzle-orm": "catalog:",
 		"effect": "catalog:",

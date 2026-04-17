@@ -1,3 +1,4 @@
+import type { EntityIdFor, SubjectIdFor } from "./entity-id";
 import type { EntityType } from "./entity-type";
 import type { RelationshipFor } from "./relationships";
 
@@ -6,10 +7,10 @@ export type TupleMutation<
 	Subject extends EntityType = EntityType,
 > = {
 	resourceType: Resource;
-	resourceId: string;
+	resourceId: EntityIdFor<Resource>;
 	relation: RelationshipFor<Resource>;
 	subjectType: Subject;
-	subjectId: string;
+	subjectId: SubjectIdFor<Subject>;
 	subjectRelation?: RelationshipFor<Subject>;
 	operation?: "create" | "delete" | "touch";
 };

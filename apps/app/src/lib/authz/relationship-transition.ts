@@ -1,4 +1,9 @@
-import type { EntityType, RelationshipFor } from "@orcai/spice-db";
+import type {
+	EntityIdFor,
+	EntityType,
+	RelationshipFor,
+	SubjectIdFor,
+} from "@orcai/spice-db";
 import * as Effect from "effect/Effect";
 import { AuthzService } from "@/lib/effect/services/authz";
 
@@ -26,9 +31,9 @@ export const syncRelationshipTransition = <
 	Subject extends EntityType,
 >(params: {
 	resourceType: Resource;
-	resourceId: string;
+	resourceId: EntityIdFor<Resource>;
 	subjectType: Subject;
-	subjectId: string;
+	subjectId: SubjectIdFor<Subject>;
 	oldRelation?: RelationshipFor<Resource> | null;
 	newRelation?: RelationshipFor<Resource> | null;
 	subjectRelation?: RelationshipFor<Subject>;

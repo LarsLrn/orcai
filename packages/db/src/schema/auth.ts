@@ -1,3 +1,4 @@
+import type { OrganizationId, UserId } from "@orcai/core";
 import type { UserPreferencesType } from "@orcai/schema";
 import type { InferSelectModel } from "drizzle-orm";
 import {
@@ -10,7 +11,7 @@ import {
 } from "drizzle-orm/pg-core";
 
 export const user = pgTable("user", {
-	id: uuid("id").primaryKey().defaultRandom(),
+	id: uuid("id").$type<UserId>().primaryKey().defaultRandom(),
 	name: text("name").notNull(),
 	email: text("email").notNull().unique(),
 	emailVerified: boolean("email_verified").notNull(),
@@ -36,10 +37,11 @@ export const session = pgTable("session", {
 	ipAddress: text("ip_address"),
 	userAgent: text("user_agent"),
 	userId: uuid("user_id")
+		.$type<UserId>()
 		.notNull()
 		.references(() => user.id),
 	impersonatedBy: text("impersonated_by"),
-	activeOrganizationId: uuid("active_organization_id"),
+	activeOrganizationId: uuid("active_organization_id").$type<OrganizationId>(),
 });
 
 export type Session = InferSelectModel<typeof session>;
@@ -49,6 +51,7 @@ export const account = pgTable("account", {
 	accountId: text("account_id").notNull(),
 	providerId: text("provider_id").notNull(),
 	userId: uuid("user_id")
+		.$type<UserId>()
 		.notNull()
 		.references(() => user.id),
 	accessToken: text("access_token"),

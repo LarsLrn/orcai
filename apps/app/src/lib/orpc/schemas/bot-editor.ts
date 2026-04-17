@@ -1,4 +1,8 @@
-import { publicationStatusSchema } from "@orcai/schema";
+import {
+	blockIdSchema,
+	botIdSchema,
+	publicationStatusSchema,
+} from "@orcai/schema";
 import { z } from "zod/v4";
 import { assetSelectSchema } from "./asset";
 import {
@@ -9,7 +13,7 @@ import {
 import { zedTokenSchema } from "./shared";
 
 const baseEditorBlockSchema = z.object({
-	id: z.uuidv4(),
+	id: blockIdSchema,
 	canEdit: z.boolean(),
 	name: z.string().min(1, "Name is required"),
 	description: baseBlockSelectSchema.shape.description,
@@ -27,27 +31,27 @@ export const databaseBlockEditorSchema = baseEditorBlockSchema.extend({
 
 export const botEditorSaveSchema = z.object({
 	...zedTokenSchema.shape,
-	id: z.uuidv4().optional(),
+	id: botIdSchema.optional(),
 	name: z.string().min(1, "Bot name is required"),
 	description: z.string().min(1, "Bot description is required"),
 	contentJson: z.json().default({}),
 	contentHtml: z.string().default(""),
 	status: publicationStatusSchema,
-	templateBlockId: z.uuidv4().nullable().default(null),
-	databaseBlockIds: z.array(z.uuidv4()).default([]),
+	templateBlockId: blockIdSchema.nullable().default(null),
+	databaseBlockIds: z.array(blockIdSchema).default([]),
 });
 
 export const botEditorPublishSchema = z.object({
-	id: z.uuidv4(),
+	id: botIdSchema,
 });
 
 export const botEditorFindSchema = z.object({
-	id: z.uuidv4(),
+	id: botIdSchema,
 	...zedTokenSchema.shape,
 });
 
 export const botEditorSelectSchema = z.object({
-	id: z.uuidv4(),
+	id: botIdSchema,
 	name: z.string().min(1, "Bot name is required"),
 	description: z.string().min(1, "Bot description is required"),
 	contentJson: z.json().default({}),

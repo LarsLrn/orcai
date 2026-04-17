@@ -7,10 +7,9 @@ import { runOrpcEffect } from "@/lib/effect/utils/orpc-helpers";
 import { authed } from "@/lib/orpc/implementation/authed";
 import { requireActiveOrganizationMiddleware } from "@/lib/orpc/middlewares/auth";
 import {
-	type CheckManyPermissionInput,
-	type CheckPermissionInput,
+	type CheckManyPermissionInputFor,
 	checkManyPermissionMiddleware,
-	checkPermissionMiddleware,
+	requireEntityPermission,
 } from "@/lib/orpc/middlewares/permission";
 import { ALL_MEMBERS_GROUP_SYSTEM_KEY } from "@/lib/orpc/schemas/resource";
 import { unique } from "@/lib/utils/array-utils";
@@ -110,13 +109,9 @@ export const listOrganizations = authed.organization.list.handler(
 
 export const findOrganization = authed.organization.find
 	.use(
-		checkPermissionMiddleware,
-		(input) =>
-			({
-				entityId: input.id,
-				permission: "read",
-				entityType: "organization",
-			}) satisfies CheckPermissionInput,
+		...requireEntityPermission("organization", "read", {
+			entityId: "id",
+		}),
 	)
 	.handler(async ({ input, errors }) =>
 		runOrpcEffect(
@@ -126,7 +121,9 @@ export const findOrganization = authed.organization.find
 				return yield* db.query.organization
 					.findFirst({
 						where: {
-							id: input.id,
+							id: {
+								eq: input.id,
+							},
 						},
 					})
 					.pipe(
@@ -141,8 +138,8 @@ export const findOrganization = authed.organization.find
 								),
 							),
 						),
-						Effect.map((chat) => ({
-							data: chat,
+						Effect.map((organization) => ({
+							data: organization,
 						})),
 					);
 			}),
@@ -265,13 +262,9 @@ export const createOrganization = authed.organization.create
 
 export const updateOrganization = authed.organization.update
 	.use(
-		checkPermissionMiddleware,
-		(input) =>
-			({
-				entityId: input.id,
-				permission: "manage_members",
-				entityType: "organization",
-			}) satisfies CheckPermissionInput,
+		...requireEntityPermission("organization", "manage_members", {
+			entityId: "id",
+		}),
 	)
 	.handler(async ({ input }) =>
 		runOrpcEffect(
@@ -296,13 +289,11 @@ export const updateOrganization = authed.organization.update
 
 export const deleteOrganizations = authed.organization.delete
 	.use(
-		checkManyPermissionMiddleware,
-		(input) =>
-			({
-				entityIds: input.refs.map((ref) => ref.id),
-				permission: "manage_members",
-				entityType: "organization",
-			}) satisfies CheckManyPermissionInput,
+		checkManyPermissionMiddleware("organization"),
+		(input): CheckManyPermissionInputFor<"organization"> => ({
+			entityIds: input.refs.map((ref) => ref.id),
+			permission: "manage_members",
+		}),
 	)
 	.handler(async ({ context }) =>
 		runOrpcEffect(

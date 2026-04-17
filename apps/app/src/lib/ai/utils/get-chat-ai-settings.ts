@@ -1,4 +1,5 @@
 import { createOpenAICompatible } from "@ai-sdk/openai-compatible";
+import type { ModelId, ProviderId, UserId } from "@orcai/core";
 import { checkManyEntityPermissions, hasPermission } from "@orcai/spice-db";
 import { extractReasoningMiddleware, wrapLanguageModel } from "ai";
 import * as Effect from "effect/Effect";
@@ -11,11 +12,11 @@ import type { Bot } from "@/lib/orpc/schemas/bot";
 import type { ChatConfig } from "@/lib/orpc/schemas/chat";
 
 interface ChatAiSettingsInput {
-	providerId: string;
-	modelId: string;
+	providerId: ProviderId;
+	modelId: ModelId;
 	botId?: Bot["id"] | null;
 	chatConfig?: ChatConfig | null;
-	userId: string;
+	userId: UserId;
 	zedToken?: string;
 }
 

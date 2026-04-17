@@ -4,7 +4,7 @@ import * as Effect from "effect/Effect";
 import { runOrpcEffect } from "@/lib/effect/utils/orpc-helpers";
 import { encryptApiKey } from "@/lib/encryption";
 import { authed } from "@/lib/orpc/implementation/authed";
-import { requireOrganizationPermission } from "@/lib/orpc/middlewares/org-permission";
+import { requireOrganizationPermission } from "@/lib/orpc/middlewares/permission";
 
 export const listProviders = authed.provider.list
 	.use(requireOrganizationPermission("read"))
@@ -22,7 +22,9 @@ export const listProviders = authed.provider.list
 				const providerWhere = {
 					AND: [
 						{
-							organizationId,
+							organizationId: {
+								eq: organizationId,
+							},
 						},
 						input.filters?.enabled !== undefined
 							? {
@@ -70,35 +72,29 @@ export const findProvider = authed.provider.find
 				const db = yield* DB;
 				const organizationId = context.auth.session.activeOrganizationId;
 
-				return yield* db.query.provider
-					.findFirst({
-						where: {
-							AND: [
-								{
-									id: input.id,
-								},
-								{
-									organizationId,
-								},
-							],
-						},
-					})
-					.pipe(
-						Effect.flatMap((provider) =>
-							Effect.fromNullable(provider).pipe(
-								Effect.orElse(() =>
-									Effect.fail(
-										errors.NOT_FOUND({
-											message: "Provider not found",
-										}),
-									),
-								),
-							),
+				const [provider] = yield* db
+					.select()
+					.from(dbSchema.provider)
+					.where(
+						and(
+							eq(dbSchema.provider.id, input.id),
+							eq(dbSchema.provider.organizationId, organizationId),
 						),
-						Effect.map((provider) => ({
-							data: provider,
-						})),
-					);
+					)
+					.limit(1);
+
+				return yield* Effect.fromNullable(provider).pipe(
+					Effect.orElse(() =>
+						Effect.fail(
+							errors.NOT_FOUND({
+								message: "Provider not found",
+							}),
+						),
+					),
+					Effect.map((provider) => ({
+						data: provider,
+					})),
+				);
 			}),
 		),
 	);

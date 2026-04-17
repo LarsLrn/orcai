@@ -25,6 +25,7 @@
 		"@opentelemetry/api": "1.9.1",
 		"@orcai/ai": "workspace:*",
 		"@orcai/core": "workspace:*",
+		"@orcai/contracts": "workspace:*",
 		"@orcai/db": "workspace:*",
 		"@orcai/observability": "workspace:*",
 		"@orcai/pg-boss": "workspace:*",

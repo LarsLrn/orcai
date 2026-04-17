@@ -15,6 +15,7 @@
 		"up": "bun run src/cli.ts up"
 	},
 	"dependencies": {
+		"@orcai/core": "workspace:*",
 		"@authzed/authzed-node": "catalog:",
 		"effect": "catalog:"
 	}

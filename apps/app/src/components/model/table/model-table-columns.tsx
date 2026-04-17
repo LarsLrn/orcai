@@ -1,3 +1,4 @@
+import type { Model } from "@orcai/schema";
 import { Link } from "@tanstack/react-router";
 import type { ColumnDef } from "@tanstack/react-table";
 import { format } from "date-fns";
@@ -14,7 +15,6 @@ import {
 	DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import { useDeleteModelsMutation } from "@/hooks/mutations/use-model-mutations";
-import type { Model } from "@/lib/orpc/schemas/model";
 
 export const modelTableColumns: ColumnDef<Model>[] = [
 	{

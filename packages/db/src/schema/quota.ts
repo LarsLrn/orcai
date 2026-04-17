@@ -1,3 +1,15 @@
+import type {
+	GroupId,
+	OrganizationId,
+	ProviderId,
+	QuotaLedgerId,
+	QuotaPeriodId,
+	QuotaPoolAuditLogId,
+	QuotaPoolGroupAssignmentId,
+	QuotaPoolId,
+	QuotaUsageEventId,
+	UserId,
+} from "@orcai/core";
 import { sql } from "drizzle-orm";
 import {
 	bigint,
@@ -38,8 +50,9 @@ export const quotaUsageEventTypeEnum = pgEnum("quota_usage_event_type", [
 export const quotaPool = pgTable(
 	"quota_pool",
 	{
-		id: uuid("id").primaryKey().defaultRandom(),
+		id: uuid("id").$type<QuotaPoolId>().primaryKey().defaultRandom(),
 		organizationId: uuid("organization_id")
+			.$type<OrganizationId>()
 			.notNull()
 			.references(() => organization.id, {
 				onDelete: "cascade",
@@ -47,6 +60,7 @@ export const quotaPool = pgTable(
 		name: text("name").notNull(),
 		description: text("description"),
 		providerId: uuid("provider_id")
+			.$type<ProviderId>()
 			.notNull()
 			.references(() => provider.id, {
 				onDelete: "cascade",
@@ -62,6 +76,7 @@ export const quotaPool = pgTable(
 		isDefault: boolean("is_default").notNull().default(false),
 		isActive: boolean("is_active").notNull().default(true),
 		createdByUserId: uuid("created_by_user_id")
+			.$type<UserId>()
 			.notNull()
 			.references(() => user.id),
 		createdAt: timestamp("created_at").notNull().defaultNow(),
@@ -87,19 +102,25 @@ export const quotaPool = pgTable(
 export const quotaPoolGroupAssignment = pgTable(
 	"quota_pool_group_assignment",
 	{
-		id: uuid("id").primaryKey().defaultRandom(),
+		id: uuid("id")
+			.$type<QuotaPoolGroupAssignmentId>()
+			.primaryKey()
+			.defaultRandom(),
 		quotaPoolId: uuid("quota_pool_id")
+			.$type<QuotaPoolId>()
 			.notNull()
 			.references(() => quotaPool.id, {
 				onDelete: "cascade",
 			}),
 		groupId: uuid("group_id")
+			.$type<GroupId>()
 			.notNull()
 			.references(() => group.id, {
 				onDelete: "cascade",
 			}),
 		isActive: boolean("is_active").notNull().default(true),
 		createdByUserId: uuid("created_by_user_id")
+			.$type<UserId>()
 			.notNull()
 			.references(() => user.id),
 		createdAt: timestamp("created_at").notNull().defaultNow(),
@@ -117,8 +138,9 @@ export const quotaPoolGroupAssignment = pgTable(
 export const quotaPeriod = pgTable(
 	"quota_period",
 	{
-		id: uuid("id").primaryKey().defaultRandom(),
+		id: uuid("id").$type<QuotaPeriodId>().primaryKey().defaultRandom(),
 		quotaPoolId: uuid("quota_pool_id")
+			.$type<QuotaPoolId>()
 			.notNull()
 			.references(() => quotaPool.id, {
 				onDelete: "cascade",
@@ -140,13 +162,15 @@ export const quotaPeriod = pgTable(
 export const quotaLedger = pgTable(
 	"quota_ledger",
 	{
-		id: uuid("id").primaryKey().defaultRandom(),
+		id: uuid("id").$type<QuotaLedgerId>().primaryKey().defaultRandom(),
 		quotaPoolId: uuid("quota_pool_id")
+			.$type<QuotaPoolId>()
 			.notNull()
 			.references(() => quotaPool.id, {
 				onDelete: "cascade",
 			}),
 		quotaPeriodId: uuid("quota_period_id")
+			.$type<QuotaPeriodId>()
 			.notNull()
 			.references(() => quotaPeriod.id, {
 				onDelete: "cascade",
@@ -186,23 +210,27 @@ export const quotaLedger = pgTable(
 export const quotaUsageEvent = pgTable(
 	"quota_usage_event",
 	{
-		id: uuid("id").primaryKey().defaultRandom(),
+		id: uuid("id").$type<QuotaUsageEventId>().primaryKey().defaultRandom(),
 		organizationId: uuid("organization_id")
+			.$type<OrganizationId>()
 			.notNull()
 			.references(() => organization.id, {
 				onDelete: "cascade",
 			}),
 		quotaPoolId: uuid("quota_pool_id")
+			.$type<QuotaPoolId>()
 			.notNull()
 			.references(() => quotaPool.id, {
 				onDelete: "cascade",
 			}),
 		quotaPeriodId: uuid("quota_period_id")
+			.$type<QuotaPeriodId>()
 			.notNull()
 			.references(() => quotaPeriod.id, {
 				onDelete: "cascade",
 			}),
 		providerId: uuid("provider_id")
+			.$type<ProviderId>()
 			.notNull()
 			.references(() => provider.id, {
 				onDelete: "cascade",
@@ -211,6 +239,7 @@ export const quotaUsageEvent = pgTable(
 			onDelete: "set null",
 		}),
 		userId: uuid("user_id")
+			.$type<UserId>()
 			.notNull()
 			.references(() => user.id),
 		appRequestId: text("app_request_id").notNull(),
@@ -262,18 +291,21 @@ export const quotaUsageEvent = pgTable(
 export const quotaPoolAuditLog = pgTable(
 	"quota_pool_audit_log",
 	{
-		id: uuid("id").primaryKey().defaultRandom(),
+		id: uuid("id").$type<QuotaPoolAuditLogId>().primaryKey().defaultRandom(),
 		organizationId: uuid("organization_id")
+			.$type<OrganizationId>()
 			.notNull()
 			.references(() => organization.id, {
 				onDelete: "cascade",
 			}),
 		quotaPoolId: uuid("quota_pool_id")
+			.$type<QuotaPoolId>()
 			.notNull()
 			.references(() => quotaPool.id, {
 				onDelete: "cascade",
 			}),
 		actorUserId: uuid("actor_user_id")
+			.$type<UserId>()
 			.notNull()
 			.references(() => user.id),
 		actionType: text("action_type").notNull(),

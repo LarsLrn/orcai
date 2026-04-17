@@ -1,3 +1,4 @@
+import type { ModelId, OrganizationId, ProviderId } from "@orcai/core";
 import type { ModelCapability, ProviderCompatibility } from "@orcai/schema";
 import { sql } from "drizzle-orm";
 import {
@@ -21,8 +22,9 @@ export const providerMeteringModeEnum = pgEnum("provider_metering_mode", [
 export const model = pgTable(
 	"model",
 	{
-		id: uuid("id").primaryKey().defaultRandom(),
+		id: uuid("id").$type<ModelId>().primaryKey().defaultRandom(),
 		providerId: uuid("provider_id")
+			.$type<ProviderId>()
 			.notNull()
 			.references(() => provider.id, {
 				onDelete: "cascade",
@@ -49,8 +51,9 @@ export const model = pgTable(
 export const provider = pgTable(
 	"provider",
 	{
-		id: uuid("id").primaryKey().defaultRandom(),
+		id: uuid("id").$type<ProviderId>().primaryKey().defaultRandom(),
 		organizationId: uuid("organization_id")
+			.$type<OrganizationId>()
 			.notNull()
 			.references(() => organization.id, {
 				onDelete: "cascade",

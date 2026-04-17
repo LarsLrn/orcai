@@ -4,6 +4,8 @@ import {
 	generateTextEffect,
 } from "@orcai/ai";
 import {
+	type AssetId,
+	type BlockId,
 	buckets,
 	describeImagePrompt,
 	describeTableImagePrompt,
@@ -162,7 +164,10 @@ const toSanitizedPgBossRunError = (cause: unknown) =>
 		cause: summarizeErrorCause(cause),
 	});
 
-const isAssetAttachedToBlock = (params: { assetId: string; blockId: string }) =>
+const isAssetAttachedToBlock = (params: {
+	assetId: AssetId;
+	blockId: BlockId;
+}) =>
 	Effect.gen(function* () {
 		const db = yield* DB;
 		const [link] = yield* db
@@ -385,8 +390,8 @@ const buildImageChunks = ({
 }: {
 	extraction: StoredExtractionArtifact;
 	jobId: string;
-	assetId: string;
-	blockId: string;
+	assetId: AssetId;
+	blockId: BlockId;
 }) => {
 	const textChunkCount = extraction.chunks.length;
 	const totalChunkCount = textChunkCount + extraction.images.length;
@@ -605,9 +610,9 @@ const embedChunks = ({
 	blockId,
 }: {
 	chunks: VectorizableChunk[];
-	assetId: string;
+	assetId: AssetId;
 	assetTitle: string;
-	blockId: string;
+	blockId: BlockId;
 }) =>
 	Effect.gen(function* () {
 		const embedResults = yield* generateManyEmbeddings({

@@ -1,3 +1,11 @@
+import type {
+	GroupId,
+	ModelId,
+	OrganizationId,
+	ProviderId,
+	QuotaPoolId,
+	UserId,
+} from "@orcai/core";
 import { DB, dbSchema } from "@orcai/db";
 import { and, eq, inArray, isNull } from "drizzle-orm";
 import * as Effect from "effect/Effect";
@@ -10,33 +18,33 @@ import {
 type QuotaPool = typeof dbSchema.quotaPool.$inferSelect;
 
 type CreateQuotaPoolParams = {
-	organizationId: string;
+	organizationId: OrganizationId;
 	name: string;
 	description?: string | null;
-	providerId: string;
-	providerModelId?: string | null;
+	providerId: ProviderId;
+	providerModelId?: ModelId | null;
 	periodType: (typeof dbSchema.quotaPool.$inferInsert)["periodType"];
 	budgetAmount: number;
 	priority: number;
 	isDefault: boolean;
 	isActive?: boolean;
-	createdByUserId: string;
-	groupIds: string[];
+	createdByUserId: UserId;
+	groupIds: GroupId[];
 };
 
 type UpdateQuotaPoolParams = {
-	organizationId: string;
-	actorUserId: string;
-	id: string;
+	organizationId: OrganizationId;
+	actorUserId: UserId;
+	id: QuotaPoolId;
 	name?: string;
 	description?: string | null;
-	providerModelId?: string | null;
+	providerModelId?: ModelId | null;
 	periodType?: (typeof dbSchema.quotaPool.$inferInsert)["periodType"];
 	budgetAmount?: number;
 	priority?: number;
 	isDefault?: boolean;
 	isActive?: boolean;
-	groupIds?: string[];
+	groupIds?: GroupId[];
 };
 
 type ResultCode =
@@ -56,8 +64,8 @@ export type WriteQuotaPoolResult =
 	  };
 
 const selectOrganizationProvider = (params: {
-	organizationId: string;
-	providerId: string;
+	organizationId: OrganizationId;
+	providerId: ProviderId;
 }) =>
 	Effect.gen(function* () {
 		const db = yield* DB;
@@ -80,8 +88,8 @@ const selectOrganizationProvider = (params: {
 	});
 
 const validateProviderModel = (params: {
-	providerId: string;
-	providerModelId?: string | null;
+	providerId: ProviderId;
+	providerModelId?: ModelId | null;
 }) =>
 	Effect.gen(function* () {
 		if (!params.providerModelId) {
@@ -102,8 +110,8 @@ const validateProviderModel = (params: {
 	});
 
 const validateGroupAssignments = (params: {
-	organizationId: string;
-	groupIds: string[];
+	organizationId: OrganizationId;
+	groupIds: GroupId[];
 }) =>
 	Effect.gen(function* () {
 		const db = yield* DB;
@@ -358,7 +366,9 @@ export const updateQuotaPool: (
 					where: {
 						AND: [
 							{
-								quotaPoolId: params.id,
+								quotaPoolId: {
+									eq: params.id,
+								},
 							},
 							{
 								isActive: true,
@@ -395,10 +405,14 @@ export const updateQuotaPool: (
 					where: {
 						AND: [
 							{
-								quotaPoolId: params.id,
+								quotaPoolId: {
+									eq: params.id,
+								},
 							},
 							{
-								groupId,
+								groupId: {
+									eq: groupId,
+								},
 							},
 						],
 					},
@@ -451,9 +465,9 @@ export const updateQuotaPool: (
 	});
 
 export const deactivateQuotaPool: (params: {
-	organizationId: string;
-	actorUserId: string;
-	id: string;
+	organizationId: OrganizationId;
+	actorUserId: UserId;
+	id: QuotaPoolId;
 }) => Effect.Effect<WriteQuotaPoolResult, unknown, DB> = (params) =>
 	Effect.gen(function* () {
 		const db = yield* DB;

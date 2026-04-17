@@ -11,10 +11,9 @@ import { AuthzService } from "@/lib/effect/services/authz";
 import { runOrpcEffect } from "@/lib/effect/utils/orpc-helpers";
 import { authed } from "@/lib/orpc/implementation/authed";
 import {
-	type CheckManyPermissionInput,
-	type CheckPermissionInput,
+	type CheckManyPermissionInputFor,
 	checkManyPermissionMiddleware,
-	checkPermissionMiddleware,
+	requireEntityPermission,
 } from "@/lib/orpc/middlewares/permission";
 
 export const listChats = authed.chat.list.handler(async ({ input, context }) =>
@@ -67,14 +66,10 @@ export const listChats = authed.chat.list.handler(async ({ input, context }) =>
 
 export const findChat = authed.chat.find
 	.use(
-		checkPermissionMiddleware,
-		(input) =>
-			({
-				entityId: input.id,
-				permission: "read",
-				entityType: "chat",
-				zedToken: input.zedToken,
-			}) satisfies CheckPermissionInput,
+		...requireEntityPermission("chat", "read", {
+			entityId: "id",
+			zedToken: "zedToken",
+		}),
 	)
 	.handler(async ({ input, errors }) =>
 		runOrpcEffect(
@@ -84,7 +79,9 @@ export const findChat = authed.chat.find
 				return yield* db.query.chat
 					.findFirst({
 						where: {
-							id: input.id,
+							id: {
+								eq: input.id,
+							},
 						},
 						with: {
 							branches: {
@@ -219,13 +216,9 @@ export const createChat = authed.chat.create.handler(
 
 export const updateChat = authed.chat.update
 	.use(
-		checkPermissionMiddleware,
-		(input) =>
-			({
-				entityId: input.id,
-				permission: "edit",
-				entityType: "chat",
-			}) satisfies CheckPermissionInput,
+		...requireEntityPermission("chat", "edit", {
+			entityId: "id",
+		}),
 	)
 	.handler(async ({ input, errors }) =>
 		runOrpcEffect(
@@ -233,7 +226,9 @@ export const updateChat = authed.chat.update
 				const db = yield* DB;
 				const existingChat = yield* db.query.chat.findFirst({
 					where: {
-						id: input.id,
+						id: {
+							eq: input.id,
+						},
 					},
 				});
 
@@ -301,13 +296,11 @@ export const updateChat = authed.chat.update
 
 export const deleteChats = authed.chat.delete
 	.use(
-		checkManyPermissionMiddleware,
-		(input) =>
-			({
-				entityIds: input.refs.map((ref) => ref.id),
-				permission: "delete",
-				entityType: "chat",
-			}) satisfies CheckManyPermissionInput,
+		checkManyPermissionMiddleware("chat"),
+		(input): CheckManyPermissionInputFor<"chat"> => ({
+			entityIds: input.refs.map((ref) => ref.id),
+			permission: "delete",
+		}),
 	)
 	.handler(async ({ context }) =>
 		runOrpcEffect(

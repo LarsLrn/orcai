@@ -1,3 +1,4 @@
+import type { ProviderId, QuotaPoolId } from "@orcai/core";
 import { DB, dbSchema } from "@orcai/db";
 import {
 	createQuotaPool as createQuotaPoolCommand,
@@ -9,13 +10,12 @@ import { and, count, desc, eq, ilike } from "drizzle-orm";
 import * as Effect from "effect/Effect";
 import { runOrpcEffect } from "@/lib/effect/utils/orpc-helpers";
 import { authed } from "@/lib/orpc/implementation/authed";
-import { requireOrganizationPermission } from "@/lib/orpc/middlewares/org-permission";
 import {
-	type CheckPermissionInput,
-	checkPermissionMiddleware,
+	requireEntityPermission,
+	requireOrganizationPermission,
 } from "@/lib/orpc/middlewares/permission";
 
-const getCurrentPeriodAndLedger = (params: { quotaPoolId: string }) =>
+const getCurrentPeriodAndLedger = (params: { quotaPoolId: QuotaPoolId }) =>
 	Effect.gen(function* () {
 		const db = yield* DB;
 
@@ -23,7 +23,9 @@ const getCurrentPeriodAndLedger = (params: { quotaPoolId: string }) =>
 			where: {
 				AND: [
 					{
-						quotaPoolId: params.quotaPoolId,
+						quotaPoolId: {
+							eq: params.quotaPoolId,
+						},
 					},
 					{
 						status: "open",
@@ -46,10 +48,14 @@ const getCurrentPeriodAndLedger = (params: { quotaPoolId: string }) =>
 			where: {
 				AND: [
 					{
-						quotaPoolId: params.quotaPoolId,
+						quotaPoolId: {
+							eq: params.quotaPoolId,
+						},
 					},
 					{
-						quotaPeriodId: period.id,
+						quotaPeriodId: {
+							eq: period.id,
+						},
 					},
 				],
 			},
@@ -188,7 +194,9 @@ export const findQuotaPool = authed.quota.find
 							where: {
 								AND: [
 									{
-										quotaPoolId: row.pool.id,
+										quotaPoolId: {
+											eq: row.pool.id,
+										},
 									},
 									{
 										isActive: true,
@@ -201,7 +209,9 @@ export const findQuotaPool = authed.quota.find
 						}),
 						db.query.quotaUsageEvent.findMany({
 							where: {
-								quotaPoolId: row.pool.id,
+								quotaPoolId: {
+									eq: row.pool.id,
+								},
 							},
 							orderBy: {
 								occurredAt: "desc",
@@ -334,13 +344,9 @@ export const deactivateQuotaPool = authed.quota.deactivate
 // Currently any user with chat-read access can see pool budget details.
 export const quotaChatBadge = authed.quota.chatBadge
 	.use(
-		checkPermissionMiddleware,
-		(input) =>
-			({
-				entityId: input.chatId,
-				permission: "read",
-				entityType: "chat",
-			}) satisfies CheckPermissionInput,
+		...requireEntityPermission("chat", "read", {
+			entityId: "chatId",
+		}),
 	)
 	.handler(async ({ input, context }) =>
 		runOrpcEffect(
@@ -363,7 +369,9 @@ export const quotaChatBadge = authed.quota.chatBadge
 
 				const chat = yield* db.query.chat.findFirst({
 					where: {
-						id: input.chatId,
+						id: {
+							eq: input.chatId,
+						},
 					},
 					columns: {
 						botId: true,
@@ -402,7 +410,7 @@ export const quotaChatBadge = authed.quota.chatBadge
 					.limit(1);
 
 				const templateConfig = (templateBlockRow?.config ?? {}) as {
-					provider?: string;
+					provider?: ProviderId;
 					model?: string;
 				};
 
@@ -421,7 +429,7 @@ export const quotaChatBadge = authed.quota.chatBadge
 				}
 
 				const resolved = yield* resolveQuotaPool({
-					orgId: organizationId,
+					organizationId: organizationId,
 					userId: context.auth.user.id,
 					providerId: templateConfig.provider,
 					providerModelId: templateConfig.model,

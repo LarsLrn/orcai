@@ -10,12 +10,11 @@ import * as Effect from "effect/Effect";
 import { initializeResourceAuthorization } from "@/lib/authz/resource-lifecycle";
 import { runOrpcEffect } from "@/lib/effect/utils/orpc-helpers";
 import { authed } from "@/lib/orpc/implementation/authed";
-import { requireOrganizationPermission } from "@/lib/orpc/middlewares/org-permission";
 import {
-	type CheckManyPermissionInput,
-	type CheckPermissionInput,
+	type CheckManyPermissionInputFor,
 	checkManyPermissionMiddleware,
-	checkPermissionMiddleware,
+	requireEntityPermission,
+	requireOrganizationPermission,
 } from "@/lib/orpc/middlewares/permission";
 import {
 	loadDatabaseBlockAssets,
@@ -129,14 +128,10 @@ export const listBlocks = authed.block.list.handler(
 
 export const findBlock = authed.block.find
 	.use(
-		checkPermissionMiddleware,
-		(input) =>
-			({
-				entityId: input.id,
-				permission: "read",
-				entityType: "block",
-				zedToken: input.zedToken,
-			}) satisfies CheckPermissionInput,
+		...requireEntityPermission("block", "read", {
+			entityId: "id",
+			zedToken: "zedToken",
+		}),
 	)
 	.handler(async ({ input, context, errors }) =>
 		runOrpcEffect(
@@ -247,13 +242,9 @@ export const createBlock = authed.block.create
 
 export const updateBlock = authed.block.update
 	.use(
-		checkPermissionMiddleware,
-		(input) =>
-			({
-				entityId: input.id,
-				permission: "edit",
-				entityType: "block",
-			}) satisfies CheckPermissionInput,
+		...requireEntityPermission("block", "edit", {
+			entityId: "id",
+		}),
 	)
 	.handler(async ({ input, errors }) =>
 		runOrpcEffect(
@@ -332,13 +323,11 @@ export const updateBlock = authed.block.update
 
 export const deleteBlocks = authed.block.delete
 	.use(
-		checkManyPermissionMiddleware,
-		(input) =>
-			({
-				entityIds: input.refs.map((ref) => ref.id),
-				permission: "delete",
-				entityType: "block",
-			}) satisfies CheckManyPermissionInput,
+		checkManyPermissionMiddleware("block"),
+		(input): CheckManyPermissionInputFor<"block"> => ({
+			entityIds: input.refs.map((ref) => ref.id),
+			permission: "delete",
+		}),
 	)
 	.handler(async ({ context }) =>
 		runOrpcEffect(

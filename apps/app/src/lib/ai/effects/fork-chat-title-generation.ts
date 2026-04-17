@@ -5,6 +5,7 @@ import {
 	sanitizeGeneratedChatTitle,
 	shouldGenerateChatTitle,
 } from "@orcai/ai";
+import type { ChatId, OrganizationId, ProviderId, UserId } from "@orcai/core";
 import { DB, dbSchema } from "@orcai/db";
 import type { LanguageModel, ModelMessage } from "ai";
 import { and, eq, isNull, or } from "drizzle-orm";
@@ -29,12 +30,12 @@ const buildTitleReservationMessages = (
 ];
 
 const generateAndPersistChatTitle = (params: {
-	chatId: string;
+	chatId: ChatId;
 	model: LanguageModel;
-	orgId: string;
-	providerId: string;
-	providerModelId: string;
-	userId: string;
+	organizationId: OrganizationId;
+	providerId: ProviderId;
+	providerModelId: string | null;
+	userId: UserId;
 	userMessageId: string;
 	userMessageText: string;
 }) =>
@@ -42,7 +43,7 @@ const generateAndPersistChatTitle = (params: {
 		const { text } = yield* generateTextWithQuota({
 			operation: "ai.chat.generateTitle",
 			appRequestId: `title:${params.chatId}:${params.userMessageId}`,
-			orgId: params.orgId,
+			organizationId: params.organizationId,
 			userId: params.userId,
 			providerId: params.providerId,
 			providerModelId: params.providerModelId,
@@ -80,13 +81,13 @@ const generateAndPersistChatTitle = (params: {
 	});
 
 export const forkChatTitleGenerationIfNeeded = (params: {
-	chatId: string;
+	chatId: ChatId;
 	currentTitle: string | null;
 	model: LanguageModel;
-	orgId: string;
-	providerId: string;
-	providerModelId: string;
-	userId: string;
+	organizationId: OrganizationId;
+	providerId: ProviderId;
+	providerModelId: string | null;
+	userId: UserId;
 	userMessage: TitleMessage;
 }) =>
 	Effect.gen(function* () {
@@ -111,7 +112,7 @@ export const forkChatTitleGenerationIfNeeded = (params: {
 			generateAndPersistChatTitle({
 				chatId: params.chatId,
 				model: params.model,
-				orgId: params.orgId,
+				organizationId: params.organizationId,
 				providerId: params.providerId,
 				providerModelId: params.providerModelId,
 				userId: params.userId,

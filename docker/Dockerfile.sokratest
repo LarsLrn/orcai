@@ -15,6 +15,7 @@ COPY package.json bun.lock bunfig.toml ./
 COPY apps/app/package.json ./apps/app/package.json
 COPY apps/workers/package.json ./apps/workers/package.json
 COPY packages/ai/package.json ./packages/ai/package.json
+COPY packages/contracts/package.json ./packages/contracts/package.json
 COPY packages/core/package.json ./packages/core/package.json
 COPY packages/db/package.json ./packages/db/package.json
 COPY packages/observability/package.json ./packages/observability/package.json
@@ -44,6 +45,7 @@ COPY package.json bun.lock bunfig.toml ./
 COPY apps/app/package.json ./apps/app/package.json
 COPY apps/workers/package.json ./apps/workers/package.json
 COPY packages/ai/package.json ./packages/ai/package.json
+COPY packages/contracts/package.json ./packages/contracts/package.json
 COPY packages/core/package.json ./packages/core/package.json
 COPY packages/db/package.json ./packages/db/package.json
 COPY packages/observability/package.json ./packages/observability/package.json

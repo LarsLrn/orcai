@@ -1,4 +1,11 @@
 import { dbSchema, enumSchema } from "@orcai/db/schema";
+import {
+	assetIdSchema,
+	blockIdSchema,
+	botIdSchema,
+	groupIdSchema,
+	userIdSchema,
+} from "@orcai/schema";
 import { createSelectSchema } from "drizzle-zod";
 import { z } from "zod/v4";
 import { statusSchema } from "./shared";
@@ -21,49 +28,109 @@ export const RESOURCE_TYPES = enumSchema.resourceTypeEnum.enumValues;
 export const ALL_MEMBERS_GROUP_SYSTEM_KEY =
 	enumSchema.groupSystemKeyEnum.enumValues[0];
 
-export const resourceRefSchema = z.object({
-	type: resourceTypeSchema,
-	id: z.uuidv4(),
+const assetResourceIdentitySchema = z.object({
+	resourceType: z.literal("asset"),
+	resourceId: assetIdSchema,
 });
 
-export const resourceGrantInputSchema = z.object({
-	resourceType: resourceTypeSchema,
-	resourceId: z.uuidv4(),
-	principalType: principalTypeSchema,
-	principalId: z.uuidv4(),
+const blockResourceIdentitySchema = z.object({
+	resourceType: z.literal("block"),
+	resourceId: blockIdSchema,
+});
+
+const botResourceIdentitySchema = z.object({
+	resourceType: z.literal("bot"),
+	resourceId: botIdSchema,
+});
+
+const resourceIdentityVariants = [
+	assetResourceIdentitySchema,
+	blockResourceIdentitySchema,
+	botResourceIdentitySchema,
+] as const;
+
+export const createResourceScopedSchema = <TShape extends z.ZodRawShape>(
+	shape: TShape,
+) =>
+	z.discriminatedUnion("resourceType", [
+		assetResourceIdentitySchema.extend(shape),
+		blockResourceIdentitySchema.extend(shape),
+		botResourceIdentitySchema.extend(shape),
+	]);
+
+const assetResourceRefSchema = z.object({
+	type: z.literal("asset"),
+	id: assetIdSchema,
+});
+
+const blockResourceRefSchema = z.object({
+	type: z.literal("block"),
+	id: blockIdSchema,
+});
+
+const botResourceRefSchema = z.object({
+	type: z.literal("bot"),
+	id: botIdSchema,
+});
+
+const resourceRefVariants = [
+	assetResourceRefSchema,
+	blockResourceRefSchema,
+	botResourceRefSchema,
+] as const;
+
+export const resourceIdentitySchema = z.discriminatedUnion(
+	"resourceType",
+	resourceIdentityVariants,
+);
+
+export const resourceRefSchema = z.discriminatedUnion(
+	"type",
+	resourceRefVariants,
+);
+
+const resourcePrincipalIdentitySchema = z.discriminatedUnion("principalType", [
+	z.object({
+		principalType: z.literal("user"),
+		principalId: userIdSchema,
+	}),
+	z.object({
+		principalType: z.literal("group"),
+		principalId: groupIdSchema,
+	}),
+]);
+
+const resourceGrantRoleFieldsSchema = z.object({
 	role: resourceGrantRoleSchema,
 });
 
-export const resourceRevokeInputSchema = z.object({
-	resourceType: resourceTypeSchema,
-	resourceId: z.uuidv4(),
-	principalType: principalTypeSchema,
-	principalId: z.uuidv4(),
-});
+export const resourceGrantInputSchema = z.intersection(
+	resourceIdentitySchema,
+	z.intersection(
+		resourcePrincipalIdentitySchema,
+		resourceGrantRoleFieldsSchema,
+	),
+);
 
-export const resourceListGrantsInputSchema = z.object({
-	resourceType: resourceTypeSchema,
-	resourceId: z.uuidv4(),
-});
+export const resourceRevokeInputSchema = z.intersection(
+	resourceIdentitySchema,
+	resourcePrincipalIdentitySchema,
+);
 
-export const resourceListPrincipalsInputSchema = z.object({
-	resourceType: resourceTypeSchema,
-	resourceId: z.uuidv4(),
+export const resourceListGrantsInputSchema = resourceIdentitySchema;
+
+export const resourceListPrincipalsInputSchema = createResourceScopedSchema({
 	principalType: principalTypeSchema.optional(),
 	query: z.string().trim().max(200).optional(),
 	limit: z.number().int().positive().max(100).default(25),
 });
 
-export const resourceSetVisibilityInputSchema = z.object({
-	resourceType: resourceTypeSchema,
-	resourceId: z.uuidv4(),
+export const resourceSetVisibilityInputSchema = createResourceScopedSchema({
 	visibility: resourceVisibilitySchema,
 });
 
-export const resourceGrantSelectSchema = resourceGrantDbSchema.pick({
+const resourceGrantFieldsSchema = resourceGrantDbSchema.pick({
 	id: true,
-	resourceType: true,
-	resourceId: true,
 	principalType: true,
 	principalId: true,
 	role: true,
@@ -71,6 +138,10 @@ export const resourceGrantSelectSchema = resourceGrantDbSchema.pick({
 	createdAt: true,
 	revokedAt: true,
 });
+
+export const resourceGrantSelectSchema = createResourceScopedSchema(
+	resourceGrantFieldsSchema.shape,
+);
 
 const userPrincipalSchema = userDbSchema
 	.pick({
@@ -119,18 +190,24 @@ export const resourceGrantSourceSchema = z.enum([
 	RESOURCE_GRANT_SOURCE.PUBLIC,
 ]);
 
-export const resourceGrantWithSourceSelectSchema =
-	resourceGrantSelectSchema.extend({
-		principal: resourcePrincipalSchema,
-		source: resourceGrantSourceSchema,
-	});
+export const resourceGrantWithSourceSelectSchema = createResourceScopedSchema({
+	...resourceGrantFieldsSchema.shape,
+	principal: resourcePrincipalSchema,
+	source: resourceGrantSourceSchema,
+});
 
-export const resourceVisibilitySelectSchema = resourceVisibilityDbSchema.pick({
-	resourceType: true,
-	resourceId: true,
+const resourceVisibilityFieldsSchema = resourceVisibilityDbSchema.pick({
 	visibility: true,
 	updatedBy: true,
 	updatedAt: true,
+});
+
+export const resourceVisibilitySelectSchema = createResourceScopedSchema(
+	resourceVisibilityFieldsSchema.shape,
+);
+
+const resourceVisibilityDataSchema = createResourceScopedSchema({
+	visibility: resourceVisibilitySchema,
 });
 
 export const resourceGrantResponseSchema = z.object({
@@ -153,17 +230,10 @@ export const resourceSetVisibilityResponseSchema = z.object({
 
 export const resourceRevokeResponseSchema = statusSchema;
 
-export const resourceGetVisibilityInputSchema = z.object({
-	resourceType: resourceTypeSchema,
-	resourceId: z.uuidv4(),
-});
+export const resourceGetVisibilityInputSchema = resourceIdentitySchema;
 
 export const resourceGetVisibilityResponseSchema = z.object({
-	data: resourceVisibilitySelectSchema.pick({
-		resourceType: true,
-		resourceId: true,
-		visibility: true,
-	}),
+	data: resourceVisibilityDataSchema,
 });
 
 export type ResourceType = z.infer<typeof resourceTypeSchema>;

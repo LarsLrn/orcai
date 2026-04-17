@@ -1,3 +1,4 @@
+import type { QuotaPeriodId, QuotaPoolId } from "@orcai/core";
 import { DB, dbSchema } from "@orcai/db";
 import { and, eq, lte } from "drizzle-orm";
 import * as Effect from "effect/Effect";
@@ -8,8 +9,8 @@ type QuotaPeriodState = {
 };
 
 type ExpiredOpenQuotaPeriod = {
-	poolId: string;
-	periodId: string;
+	poolId: QuotaPoolId;
+	periodId: QuotaPeriodId;
 	periodType: (typeof dbSchema.quotaPool.$inferSelect)["periodType"];
 	budgetAmount: number;
 };
@@ -55,7 +56,7 @@ export const getUtcPeriodBounds = (params: {
 };
 
 export const ensureOpenQuotaPeriod: (params: {
-	quotaPoolId: string;
+	quotaPoolId: QuotaPoolId;
 	periodType: (typeof dbSchema.quotaPool.$inferSelect)["periodType"];
 	budgetAmount: number;
 	now?: Date;
@@ -70,7 +71,9 @@ export const ensureOpenQuotaPeriod: (params: {
 					where: {
 						AND: [
 							{
-								quotaPoolId: params.quotaPoolId,
+								quotaPoolId: {
+									eq: params.quotaPoolId,
+								},
 							},
 							{
 								status: "open",
@@ -84,10 +87,14 @@ export const ensureOpenQuotaPeriod: (params: {
 						where: {
 							AND: [
 								{
-									quotaPoolId: params.quotaPoolId,
+									quotaPoolId: {
+										eq: params.quotaPoolId,
+									},
 								},
 								{
-									quotaPeriodId: currentOpenPeriod.id,
+									quotaPeriodId: {
+										eq: currentOpenPeriod.id,
+									},
 								},
 							],
 						},
@@ -129,10 +136,14 @@ export const ensureOpenQuotaPeriod: (params: {
 						where: {
 							AND: [
 								{
-									quotaPoolId: params.quotaPoolId,
+									quotaPoolId: {
+										eq: params.quotaPoolId,
+									},
 								},
 								{
-									quotaPeriodId: currentOpenPeriod.id,
+									quotaPeriodId: {
+										eq: currentOpenPeriod.id,
+									},
 								},
 							],
 						},
