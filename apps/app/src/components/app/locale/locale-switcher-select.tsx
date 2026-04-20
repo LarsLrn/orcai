@@ -41,7 +41,7 @@ const LocaleSwitcherSelect = ({ defaultValue, items, label }: Props) => {
 							isPending && "pointer-events-none opacity-60",
 						)}
 						size="icon"
-						variant="subtle"
+						variant="ghost"
 					>
 						<LanguagesIcon className="h-6 w-6" />
 					</Button>

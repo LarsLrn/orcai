@@ -38,7 +38,7 @@
 			],
 			"ignoreDependencies": [
 				"@effect/language-service",
-				"@fontsource-variable/raleway",
+				"@fontsource-variable/geist",
 				"@tailwindcss/typography",
 				"postcss",
 				"tailwindcss",

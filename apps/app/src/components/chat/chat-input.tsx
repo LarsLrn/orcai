@@ -187,7 +187,7 @@ const ChatInput = ({
 			/>
 
 			<form onSubmit={handleSubmit}>
-				<InputGroup className="overflow-hidden bg-card">
+				<InputGroup className="overflow-hidden border-border bg-card">
 					<ChatComposerAttachments
 						localFiles={localFiles}
 						assets={selectedAssets}

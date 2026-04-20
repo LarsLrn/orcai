@@ -51,7 +51,7 @@ const NewChatInput = ({
 
 	return (
 		<form onSubmit={handleSubmit}>
-			<InputGroup className="overflow-hidden bg-card">
+			<InputGroup className="overflow-hidden border-border bg-card">
 				<InputGroupTextarea
 					name="message"
 					placeholder="What would you like to know?"

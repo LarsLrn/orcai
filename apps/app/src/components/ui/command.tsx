@@ -66,7 +66,7 @@ function CommandInput({
 }: React.ComponentProps<typeof CommandPrimitive.Input>) {
 	return (
 		<div data-slot="command-input-wrapper" className="p-1 pb-0">
-			<InputGroup className="h-9 bg-input/30">
+			<InputGroup className="h-9 bg-input/50">
 				<CommandPrimitive.Input
 					data-slot="command-input"
 					className={cn(
@@ -120,7 +120,7 @@ function CommandGroup({
 		<CommandPrimitive.Group
 			data-slot="command-group"
 			className={cn(
-				"overflow-hidden p-1 text-foreground **:[[cmdk-group-heading]]:px-3 **:[[cmdk-group-heading]]:py-2 **:[[cmdk-group-heading]]:font-medium **:[[cmdk-group-heading]]:text-muted-foreground **:[[cmdk-group-heading]]:text-xs",
+				"overflow-hidden p-1.5 text-foreground **:[[cmdk-group-heading]]:px-3 **:[[cmdk-group-heading]]:py-2 **:[[cmdk-group-heading]]:font-medium **:[[cmdk-group-heading]]:text-muted-foreground **:[[cmdk-group-heading]]:text-xs",
 				className,
 			)}
 			{...props}
@@ -135,7 +135,7 @@ function CommandSeparator({
 	return (
 		<CommandPrimitive.Separator
 			data-slot="command-separator"
-			className={cn("my-1 h-px bg-border/50", className)}
+			className={cn("my-1.5 h-px bg-border/50", className)}
 			{...props}
 		/>
 	);
@@ -150,7 +150,7 @@ function CommandItem({
 		<CommandPrimitive.Item
 			data-slot="command-item"
 			className={cn(
-				"group/command-item relative flex cursor-default select-none items-center gap-2 in-data-[slot=dialog-content]:rounded-2xl rounded-lg px-3 py-2 text-sm outline-hidden data-[disabled=true]:pointer-events-none data-selected:bg-muted data-selected:text-foreground data-[disabled=true]:opacity-50 [&_svg:not([class*='size-'])]:size-4 [&_svg]:pointer-events-none [&_svg]:shrink-0 data-selected:*:[svg]:text-foreground",
+				"group/command-item relative flex cursor-default select-none items-center gap-2 in-data-[slot=dialog-content]:rounded-3xl rounded-2xl px-3 py-2 font-medium text-sm outline-hidden data-[disabled=true]:pointer-events-none data-selected:bg-muted data-selected:text-foreground data-[disabled=true]:opacity-50 [&_svg:not([class*='size-'])]:size-4 [&_svg]:pointer-events-none [&_svg]:shrink-0 data-selected:*:[svg]:text-foreground",
 				className,
 			)}
 			{...props}
