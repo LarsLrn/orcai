@@ -66,8 +66,8 @@ const BlockSelectorDialog = ({
 	open: boolean;
 	onOpenChange: (open: boolean) => void;
 	type: SupportedBlockType;
-	selectedIds?: Block["id"][];
-	disabledIds?: Block["id"][];
+	selectedIds?: BlockId[];
+	disabledIds?: BlockId[];
 	includeDrafts?: boolean;
 	onSelect: (block: Block) => void | Promise<void>;
 	title?: string;

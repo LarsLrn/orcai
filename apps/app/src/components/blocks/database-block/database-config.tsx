@@ -1,3 +1,4 @@
+import type { BlockId } from "@orcai/core";
 import { useNavigate } from "@tanstack/react-router";
 import {
 	ChevronDownIcon,
@@ -45,7 +46,7 @@ const DatabaseBlockConfigCard = ({
 	contentJson,
 	assets,
 }: {
-	blockId: DatabaseBlock["id"];
+	blockId: BlockId;
 	config: DatabaseBlock["config"];
 	description: DatabaseBlock["description"];
 	contentJson: DatabaseBlock["contentJson"];
@@ -173,7 +174,7 @@ const AssetSection = ({
 	blockId,
 }: {
 	assets: Asset[];
-	blockId: DatabaseBlock["id"];
+	blockId: BlockId;
 }) => {
 	const navigate = useNavigate();
 	const { mutate: createJob } = useCreateJobMutation();

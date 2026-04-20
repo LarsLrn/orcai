@@ -1,3 +1,4 @@
+import type { AssetId } from "@orcai/core";
 import { useQuery } from "@tanstack/react-query";
 import convert from "convert";
 import { SearchIcon } from "lucide-react";
@@ -31,9 +32,9 @@ export const ChatAssetPicker = ({
 }: {
 	open: boolean;
 	onOpenChange: (open: boolean) => void;
-	selectedAssetIds: Set<Asset["id"]>;
+	selectedAssetIds: Set<AssetId>;
 	onAddAsset: (asset: Asset) => void;
-	onRemoveAsset: (assetId: Asset["id"]) => void;
+	onRemoveAsset: (assetId: AssetId) => void;
 }) => {
 	const [search, setSearch] = useState("");
 	const [debouncedSearch] = useDebounceValue(search, 500);

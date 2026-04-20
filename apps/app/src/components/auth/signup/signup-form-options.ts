@@ -1,10 +1,10 @@
+import type { OrganizationInvitationId } from "@orcai/core";
 import { signupSchema } from "@orcai/schema";
 import { formOptions } from "@tanstack/form-core";
-import type { OrganizationInvitation } from "@/lib/orpc/schemas/organization-invitation";
 
 export const signupFormOptions = (defaults?: {
 	email?: string;
-	invitationId?: OrganizationInvitation["id"];
+	invitationId?: OrganizationInvitationId;
 }) =>
 	formOptions({
 		defaultValues: {

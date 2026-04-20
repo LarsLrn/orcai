@@ -1,4 +1,4 @@
-import type { OrganizationId, UserId } from "@orcai/core";
+import type { BotId, OrganizationId, UserId } from "@orcai/core";
 import { DB, dbSchema } from "@orcai/db";
 import type { PublicationStatus } from "@orcai/schema";
 import {
@@ -86,7 +86,7 @@ const listBotsByStatus = (params: {
 	});
 
 const loadBotEditor = (params: {
-	id: Bot["id"];
+	id: BotId;
 	userId: UserId;
 	zedToken?: string;
 }) =>

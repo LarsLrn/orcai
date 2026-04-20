@@ -1,3 +1,4 @@
+import type { ChatId, ChatMessageId } from "@orcai/core";
 import { DB, dbSchema } from "@orcai/db";
 import {
 	and,
@@ -32,14 +33,14 @@ interface BranchRow {
 }
 
 const mapMessageTreeRow = (row: MessageTreeRow): ChatMessage => ({
-	id: row.id as ChatMessage["id"],
-	chatId: row.chat_id as ChatMessage["chatId"],
+	id: row.id as ChatMessageId,
+	chatId: row.chat_id as ChatId,
 	role: row.role,
 	parts: row.parts,
 	attachments: row.attachments,
 	metadata: row.metadata,
 	createdAt: row.created_at ? new Date(row.created_at) : new Date(),
-	parentMessageId: row.parent_message_id as ChatMessage["parentMessageId"],
+	parentMessageId: row.parent_message_id as ChatMessageId,
 	depth: row.depth,
 });
 
@@ -127,7 +128,7 @@ export const listChatMessages = authed.chatMessage.list
 						);
 
 					const siblingsByParent = new Map<
-						ChatMessage["id"] | null,
+						ChatMessageId | null,
 						typeof siblings
 					>();
 					for (const s of siblings) {

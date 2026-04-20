@@ -1,3 +1,4 @@
+import type { ChatId } from "@orcai/core";
 import type { Model } from "@orcai/schema";
 import { useStore } from "@tanstack/react-form";
 import {
@@ -36,7 +37,7 @@ import { useAppForm } from "@/hooks/form";
 import { useUpdateChatMutation } from "@/hooks/mutations/use-chat-mutation";
 import { DEFAULT_CHAT_GENERATION_PARAMS } from "@/lib/ai/utils/chat-generation-defaults";
 import { client, orpc } from "@/lib/orpc/orpc";
-import type { Chat, ChatConfig } from "@/lib/orpc/schemas/chat";
+import type { ChatConfig } from "@/lib/orpc/schemas/chat";
 import type { Provider } from "@/lib/orpc/schemas/provider";
 
 const ChatSettings = ({
@@ -45,7 +46,7 @@ const ChatSettings = ({
 	zedToken,
 }: {
 	className?: string;
-	chatId: Chat["id"];
+	chatId: ChatId;
 	zedToken?: string;
 }) => {
 	const [open, setOpen] = useState(false);
@@ -122,7 +123,7 @@ const ChatConfigEditor = ({
 	config,
 	isBotLinked,
 }: {
-	chatId: Chat["id"];
+	chatId: ChatId;
 	config: ChatConfig;
 	isBotLinked: boolean;
 }) => {
@@ -309,7 +310,7 @@ const ChatBlocksEditor = ({
 	chatId,
 	zedToken,
 }: {
-	chatId: Chat["id"];
+	chatId: ChatId;
 	zedToken?: string;
 }) => {
 	const [isTemplatePickerOpen, setIsTemplatePickerOpen] = useState(false);

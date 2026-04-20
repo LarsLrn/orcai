@@ -1,3 +1,4 @@
+import type { BotId } from "@orcai/core";
 import { useQuery } from "@tanstack/react-query";
 import { BotIcon, MessageSquareIcon } from "lucide-react";
 import { useState } from "react";
@@ -12,7 +13,6 @@ import {
 	DialogSelectTrigger,
 } from "@/components/ui/composed/dialog-select";
 import { orpc } from "@/lib/orpc/orpc";
-import type { Bot } from "@/lib/orpc/schemas/bot";
 import { cn } from "@/lib/utils";
 
 const BOT_PAGE_SIZE = 20;
@@ -24,8 +24,8 @@ const BotSelectorButton = ({
 	variant = "full",
 	className,
 }: {
-	selectedBotId?: Bot["id"];
-	onSelectBot: (botId?: Bot["id"]) => void;
+	selectedBotId?: BotId;
+	onSelectBot: (botId?: BotId) => void;
 	variant?: "compact" | "full";
 	className?: string;
 }) => {
@@ -66,9 +66,7 @@ const BotSelectorButton = ({
 			value={selectedBotId ?? NO_BOT_VALUE}
 			onValueChange={(value) =>
 				onSelectBot(
-					value === NO_BOT_VALUE
-						? undefined
-						: ((value as Bot["id"]) ?? undefined),
+					value === NO_BOT_VALUE ? undefined : ((value as BotId) ?? undefined),
 				)
 			}
 			open={dialogOpen}

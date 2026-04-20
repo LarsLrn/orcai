@@ -1,16 +1,16 @@
+import type { OrganizationInvitationId } from "@orcai/core";
 import { signupSchema } from "@orcai/schema";
 import { Link } from "@tanstack/react-router";
 import { FileTextIcon } from "lucide-react";
 import { buttonVariants } from "@/components/ui/button";
 import { useAppForm } from "@/hooks/form";
 import { useSignup } from "@/hooks/mutations/use-signup";
-import type { OrganizationInvitation } from "@/lib/orpc/schemas/organization-invitation";
 import { signupFormOptions } from "./signup-form-options";
 
 const SignUpForm = ({
 	invitationId,
 }: {
-	invitationId: OrganizationInvitation["id"];
+	invitationId: OrganizationInvitationId;
 }) => {
 	const { mutate: signup } = useSignup();
 

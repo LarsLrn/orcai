@@ -1,3 +1,4 @@
+import { groupIdSchema } from "@orcai/schema";
 import { formOptions } from "@tanstack/react-form";
 import { z } from "zod/v4";
 import type { quotaPoolFindResponseSchema } from "@/lib/orpc/schemas/quota";
@@ -25,7 +26,7 @@ export const quotaPoolFormSchema = z.object({
 	priority: z.number().int(),
 	isDefault: z.boolean(),
 	isActive: z.boolean(),
-	groupIds: z.array(z.string()).min(1),
+	groupIds: z.array(groupIdSchema).min(1),
 });
 
 const defaultValues = (pool?: QuotaPoolDetail) => ({
@@ -39,7 +40,8 @@ const defaultValues = (pool?: QuotaPoolDetail) => ({
 	priority: pool?.priority ?? 0,
 	isDefault: pool?.isDefault ?? false,
 	isActive: pool?.isActive ?? true,
-	groupIds: pool?.assignments.map((assignment) => assignment.groupId) ?? [],
+	groupIds:
+		pool?.assignments.map((assignment) => String(assignment.groupId)) ?? [],
 });
 
 export const quotaPoolFormOptions = (pool?: QuotaPoolDetail) =>

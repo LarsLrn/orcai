@@ -1,3 +1,4 @@
+import type { GroupId } from "@orcai/core";
 import { useQueryClient } from "@tanstack/react-query";
 import { Link } from "@tanstack/react-router";
 import type { ColumnDef } from "@tanstack/react-table";
@@ -94,7 +95,7 @@ const ActionCell = ({ group }: { group: Group }) => {
 	);
 };
 
-const DeleteGroupItem = ({ groupId }: { groupId: Group["id"] }) => {
+const DeleteGroupItem = ({ groupId }: { groupId: GroupId }) => {
 	const queryClient = useQueryClient();
 	const deleteGroup = useMutationAction({
 		mutationOptions: () =>

@@ -1,4 +1,5 @@
 import type { UseChatHelpers } from "@ai-sdk/react";
+import type { ChatId } from "@orcai/core";
 import {
 	Message,
 	MessageContent,
@@ -9,7 +10,6 @@ import { MessageEditor } from "@/components/chat/message/message-editor";
 import { InView } from "@/components/ui/motion/in-view";
 import type { ChatAgentUIMessage } from "@/lib/ai/types/chat-agent-message";
 import { getChatMessageAttachments } from "@/lib/ai/types/chat-attachment";
-import type { Chat } from "@/lib/orpc/schemas/chat";
 import { cn } from "@/lib/utils";
 import { ChatMessageAttachments } from "./chat-message-attachments";
 import { useMessageEditor } from "./hooks/use-message-editor";
@@ -19,7 +19,7 @@ import { MessageUsage } from "./metadata/message-usage";
 
 interface MessageBlockProps {
 	message: ChatAgentUIMessage;
-	chatId: Chat["id"];
+	chatId: ChatId;
 	setMessages: UseChatHelpers<ChatAgentUIMessage>["setMessages"];
 	regenerate: () => Promise<void>;
 	status: UseChatHelpers<ChatAgentUIMessage>["status"];

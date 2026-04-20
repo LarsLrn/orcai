@@ -1,4 +1,9 @@
-import { type AssetId, normalizeText, tokenize } from "@orcai/core";
+import {
+	type AssetId,
+	type BlockId,
+	normalizeText,
+	tokenize,
+} from "@orcai/core";
 import type { AssetPoint } from "@orcai/schema";
 import * as Effect from "effect/Effect";
 import { AiError } from "@/lib/effect/utils/errors";
@@ -59,7 +64,7 @@ export const withSourceBlock = ({
 	sourceBlockName,
 	points,
 }: {
-	sourceBlockId: DatabaseBlock["id"];
+	sourceBlockId: BlockId;
 	sourceBlockName: DatabaseBlock["name"];
 	points: AssetPoint[];
 }): PointWithBlock[] =>

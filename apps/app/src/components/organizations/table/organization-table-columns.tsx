@@ -1,3 +1,4 @@
+import type { OrganizationId } from "@orcai/core";
 import { Link } from "@tanstack/react-router";
 import type { ColumnDef } from "@tanstack/react-table";
 import { format } from "date-fns";
@@ -101,11 +102,7 @@ export const organizationTableColumns: ColumnDef<Organization>[] = [
 	},
 ];
 
-const DeleteItem = ({
-	organizationId,
-}: {
-	organizationId: Organization["id"];
-}) => {
+const DeleteItem = ({ organizationId }: { organizationId: OrganizationId }) => {
 	const { mutate: deleteOrganizations } = useDeleteOrganizationsMutation();
 
 	return (

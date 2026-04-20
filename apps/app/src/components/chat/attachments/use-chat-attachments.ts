@@ -1,3 +1,4 @@
+import type { AssetId } from "@orcai/core";
 import { useMutation } from "@tanstack/react-query";
 import { nanoid } from "nanoid";
 import { useEffect, useMemo, useRef, useState } from "react";
@@ -158,7 +159,7 @@ export const useChatAttachments = ({ limit = 8 }: { limit?: number } = {}) => {
 		]);
 	};
 
-	const removeSelectedAsset = (id: Asset["id"]) => {
+	const removeSelectedAsset = (id: AssetId) => {
 		setSelectedAssets((current) => current.filter((asset) => asset.id !== id));
 	};
 
@@ -201,7 +202,7 @@ export const useChatAttachments = ({ limit = 8 }: { limit?: number } = {}) => {
 				}
 
 				uploadedAttachments.push({
-					assetId: objectMetadata.id as Asset["id"],
+					assetId: objectMetadata.id as AssetId,
 					title: file.name,
 					fileType: file.type,
 					size: file.size,

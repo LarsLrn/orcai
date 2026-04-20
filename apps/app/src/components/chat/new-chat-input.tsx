@@ -1,3 +1,4 @@
+import type { BotId, ModelId, ProviderId } from "@orcai/core";
 import type { Model } from "@orcai/schema";
 import { useState } from "react";
 import {
@@ -11,7 +12,6 @@ import {
 	InputGroupAddon,
 	InputGroupTextarea,
 } from "@/components/ui/input-group";
-import type { Bot } from "@/lib/orpc/schemas/bot";
 import type { Provider } from "@/lib/orpc/schemas/provider";
 
 const NewChatInput = ({
@@ -23,10 +23,10 @@ const NewChatInput = ({
 	onSend,
 	isCreating,
 }: {
-	selectedBotId?: Bot["id"];
-	selectedModelId?: string;
-	selectedProviderId?: string;
-	onBotSelect?: (botId?: Bot["id"]) => void;
+	selectedBotId?: BotId;
+	selectedModelId?: ModelId;
+	selectedProviderId?: ProviderId;
+	onBotSelect?: (botId?: BotId) => void;
 	onModelSelect: (model: Model, provider: Provider) => void;
 	onSend: (text: string) => void;
 	isCreating: boolean;

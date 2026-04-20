@@ -3,7 +3,9 @@ import {
 	chatIdSchema,
 	groupIdSchema,
 	modelIdSchema,
+	organizationIdSchema,
 	providerMeteringModeSchema,
+	quotaPeriodIdSchema,
 	quotaPoolIdSchema,
 } from "@orcai/schema";
 import { createSelectSchema } from "drizzle-zod";
@@ -11,11 +13,22 @@ import { z } from "zod/v4";
 import { providerSelectSchema } from "./provider";
 import { paginationSchema } from "./shared";
 
-export const quotaPoolSelectSchema = createSelectSchema(dbSchema.quotaPool);
+export const quotaPoolSelectSchema = createSelectSchema(dbSchema.quotaPool, {
+	id: quotaPoolIdSchema,
+	organizationId: organizationIdSchema,
+});
 export const quotaPoolGroupAssignmentSelectSchema = createSelectSchema(
 	dbSchema.quotaPoolGroupAssignment,
+	{
+		groupId: groupIdSchema,
+	},
 );
-export const quotaPeriodSelectSchema = createSelectSchema(dbSchema.quotaPeriod);
+export const quotaPeriodSelectSchema = createSelectSchema(
+	dbSchema.quotaPeriod,
+	{
+		id: quotaPeriodIdSchema,
+	},
+);
 export const quotaLedgerSelectSchema = createSelectSchema(dbSchema.quotaLedger);
 export const quotaUsageEventSelectSchema = createSelectSchema(
 	dbSchema.quotaUsageEvent,

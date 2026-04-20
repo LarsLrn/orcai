@@ -1,4 +1,5 @@
 import { useChat } from "@ai-sdk/react";
+import type { ChatBranchId, ChatId } from "@orcai/core";
 import { eventIteratorToUnproxiedDataStream } from "@orpc/client";
 import {
 	useQuery,
@@ -16,8 +17,6 @@ import { Shimmer } from "@/components/ai-elements/shimmer";
 import { Badge } from "@/components/ui/badge";
 import type { ChatAgentUIMessage } from "@/lib/ai/types/chat-agent-message";
 import { client, orpc } from "@/lib/orpc/orpc";
-import type { Chat as ChatType } from "@/lib/orpc/schemas/chat";
-import type { ChatBranch } from "@/lib/orpc/schemas/chat-branch";
 import { BranchSwitcher } from "./branch-switcher";
 import { ChatInput } from "./chat-input";
 import { ChatPlaceholder } from "./chat-placeholder";
@@ -30,9 +29,9 @@ const Chat = ({
 	zedToken,
 	pendingMessage,
 }: {
-	id: ChatType["id"];
+	id: ChatId;
 	initialMessages: ChatAgentUIMessage[];
-	branchId?: ChatBranch["id"];
+	branchId?: ChatBranchId;
 	zedToken?: string;
 	pendingMessage?: string;
 }) => {
@@ -64,7 +63,7 @@ const Chat = ({
 					return eventIteratorToUnproxiedDataStream(
 						await client.ai.chat(
 							{
-								chatId: options.chatId as ChatType["id"],
+								chatId: options.chatId as ChatId,
 								messages: options.messages,
 								branchId,
 								zedToken,

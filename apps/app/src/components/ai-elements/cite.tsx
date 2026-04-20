@@ -1,5 +1,6 @@
+import type { AssetId } from "@orcai/core";
 import type { AssetMetadataType } from "@orcai/schema";
-import { sourceTypeLabels } from "@orcai/schema";
+import { assetIdSchema, sourceTypeLabels } from "@orcai/schema";
 import { useQuery } from "@tanstack/react-query";
 import { Link } from "@tanstack/react-router";
 import { ExternalLinkIcon } from "lucide-react";
@@ -16,7 +17,7 @@ import { Badge } from "@/components/ui/badge";
 import { Spinner } from "@/components/ui/spinner";
 import { orpc } from "@/lib/orpc/orpc";
 
-const CiteCardContent = ({ assetId }: { assetId: string }) => {
+const CiteCardContent = ({ assetId }: { assetId: AssetId }) => {
 	const { data, isLoading, isError } = useQuery(
 		orpc.asset.find.queryOptions({
 			input: {
@@ -116,7 +117,11 @@ export const CiteComponent = ({
 	children?: ReactNode;
 }) => {
 	const [hasOpened, setHasOpened] = useState(false);
-	const resolvedAssetId = assetid ?? assetId ?? asset_id;
+	const resolvedAssetId = (() => {
+		const raw = assetid ?? assetId ?? asset_id;
+		const result = assetIdSchema.safeParse(raw);
+		return result.success ? result.data : undefined;
+	})();
 	const resolvedPage = parsePageNumber(page ?? pageNumber ?? page_number);
 	const triggerLabel =
 		resolvedPage == null
