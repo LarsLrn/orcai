@@ -12,6 +12,10 @@ import {
 import { orpc } from "@/lib/orpc/orpc";
 
 export const Route = createFileRoute("/app/hub/bots/$botId/setup")({
+	validateSearch: z.object({
+		step: z.coerce.number().int().min(0).max(4).catch(0).default(0),
+		zedToken: z.string().optional(),
+	}),
 	loaderDeps: ({ search: { zedToken } }) => ({
 		zedToken,
 	}),
@@ -26,10 +30,6 @@ export const Route = createFileRoute("/app/hub/bots/$botId/setup")({
 		);
 	},
 	component: RouteComponent,
-	validateSearch: z.object({
-		step: z.coerce.number().int().min(0).max(4).catch(0).default(0),
-		zedToken: z.string().optional(),
-	}),
 	head: () => ({
 		meta: [
 			{

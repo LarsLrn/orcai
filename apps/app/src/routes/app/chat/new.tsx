@@ -8,6 +8,8 @@ const searchSchema = z.object({
 });
 
 export const Route = createFileRoute("/app/chat/new")({
+	validateSearch: searchSchema,
+	component: RouteComponent,
 	head: () => ({
 		meta: [
 			{
@@ -15,8 +17,6 @@ export const Route = createFileRoute("/app/chat/new")({
 			},
 		],
 	}),
-	validateSearch: searchSchema,
-	component: RouteComponent,
 });
 
 function RouteComponent() {

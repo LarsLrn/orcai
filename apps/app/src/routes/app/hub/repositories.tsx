@@ -25,13 +25,6 @@ import { orpc } from "@/lib/orpc/orpc";
 const PAGE_SIZE = 100;
 
 export const Route = createFileRoute("/app/hub/repositories")({
-	head: () => ({
-		meta: [
-			{
-				title: "Repositories",
-			},
-		],
-	}),
 	loader: async ({ context: { queryClient } }) => {
 		await Promise.all([
 			queryClient.ensureQueryData(
@@ -61,6 +54,13 @@ export const Route = createFileRoute("/app/hub/repositories")({
 		]);
 	},
 	component: RouteComponent,
+	head: () => ({
+		meta: [
+			{
+				title: "Repositories",
+			},
+		],
+	}),
 });
 
 function RouteComponent() {
