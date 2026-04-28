@@ -7,7 +7,7 @@
 		".": "./src/index.ts"
 	},
 	"dependencies": {
-		"@kreuzberg/node": "4.9.2",
+		"@kreuzberg/node": "4.9.5",
 		"@orcai/s3": "workspace:*",
 		"@orcai/schema": "workspace:*",
 		"effect": "catalog:"
