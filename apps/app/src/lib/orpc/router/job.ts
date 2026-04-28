@@ -1,5 +1,5 @@
 import { DB, dbSchema } from "@orcai/db";
-import { getJobsByResourceEffect, sendJobBatchEffect } from "@orcai/pg-boss";
+import { getJobsByResource, sendJobBatch } from "@orcai/pg-boss";
 import { getFileTypeFromMime } from "@orcai/s3";
 import {
 	PROCESS_ASSET_JOB_NAME,
@@ -18,7 +18,7 @@ export const listJobs = authed.job.list
 	.use(...requireResourcePermission("read"))
 	.handler(async ({ input }) =>
 		runOrpcEffect(
-			getJobsByResourceEffect({
+			getJobsByResource({
 				jobQueue: input.jobQueue,
 				resourceId: input.resourceId,
 			}).pipe(
@@ -65,7 +65,7 @@ export const createJobs = authed.job.create
 				);
 
 				if (eligibleAssets.length > 0) {
-					yield* sendJobBatchEffect({
+					yield* sendJobBatch({
 						jobName: VECTORIZE_ASSET_JOB_NAME,
 						jobs: eligibleAssets.map((asset) => ({
 							data: {
@@ -128,7 +128,7 @@ export const retryProcessing = authed.job.retryProcessing
 					})
 					.where(eq(dbSchema.asset.id, input.assetId));
 
-				yield* sendJobBatchEffect({
+				yield* sendJobBatch({
 					jobName: PROCESS_ASSET_JOB_NAME,
 					jobs: [
 						{
@@ -201,7 +201,7 @@ export const retryVectorization = authed.job.retryVectorization
 					);
 				}
 
-				yield* sendJobBatchEffect({
+				yield* sendJobBatch({
 					jobName: VECTORIZE_ASSET_JOB_NAME,
 					jobs: [
 						{

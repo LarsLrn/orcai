@@ -1,6 +1,6 @@
-import { jobSchema } from "@orcai/pg-boss";
 import {
 	assetIdSchema,
+	jobHistoryEntrySchema,
 	jobQueues,
 	PROCESS_ASSET_JOB_NAME,
 	VECTORIZE_ASSET_JOB_NAME,
@@ -60,7 +60,7 @@ export const listJobsContract = base
 	)
 	.output(
 		z.object({
-			data: z.array(jobSchema),
+			data: z.array(jobHistoryEntrySchema),
 			rowCount: z.number(),
 		}),
 	);

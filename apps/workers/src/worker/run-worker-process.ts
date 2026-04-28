@@ -1,4 +1,5 @@
 import { logErrorCause } from "@orcai/observability";
+import type { Job } from "@orcai/pg-boss";
 import { PgBossService, PgBossWorkersError } from "@orcai/pg-boss";
 import type { JobQueue } from "@orcai/schema";
 import * as Effect from "effect/Effect";
@@ -6,7 +7,6 @@ import type * as Layer from "effect/Layer";
 import * as ManagedRuntime from "effect/ManagedRuntime";
 import * as Runtime from "effect/Runtime";
 import * as Schedule from "effect/Schedule";
-import type { Job } from "pg-boss";
 import type { WorkerDefinition } from "@/worker/types";
 
 const retryPolicy = Schedule.exponential("1 second").pipe(

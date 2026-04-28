@@ -21,7 +21,6 @@
 		"@orcai/valkey": "workspace:*",
 		"drizzle-orm": "catalog:",
 		"effect": "catalog:",
-		"pg-boss": "catalog:",
 		"uuid": "catalog:"
 	}
 }

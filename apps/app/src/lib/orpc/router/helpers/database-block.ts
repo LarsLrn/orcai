@@ -1,6 +1,6 @@
 import type { AssetId, BlockId } from "@orcai/core";
 import { DB, dbSchema } from "@orcai/db";
-import { sendJobBatchEffect } from "@orcai/pg-boss";
+import { sendJobBatch } from "@orcai/pg-boss";
 import { deletePointsByIdentifier } from "@orcai/qdrant";
 import { assetIdSchema, VECTORIZE_ASSET_JOB_NAME } from "@orcai/schema";
 import { and, eq, getColumns, inArray } from "drizzle-orm";
@@ -124,7 +124,7 @@ export const syncDatabaseBlockAssets = (params: {
 				};
 			}
 
-			yield* sendJobBatchEffect({
+			yield* sendJobBatch({
 				jobName: VECTORIZE_ASSET_JOB_NAME,
 				jobs: completedAssetIds.map((assetId) => ({
 					data: {

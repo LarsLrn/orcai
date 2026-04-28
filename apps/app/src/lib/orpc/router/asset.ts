@@ -5,7 +5,7 @@ import {
 	type UserId,
 } from "@orcai/core";
 import { DB, dbSchema } from "@orcai/db";
-import { sendJobBatchEffect } from "@orcai/pg-boss";
+import { sendJobBatch } from "@orcai/pg-boss";
 import { deletePointsByIdentifier } from "@orcai/qdrant";
 import { buildUploadPrefix, getFileTypeFromMime } from "@orcai/s3";
 import {
@@ -32,7 +32,7 @@ import {
 	requireOrganizationPermission,
 } from "@/lib/orpc/middlewares/permission";
 
-const createAssetRecordEffect = (params: {
+const createAssetRecord = (params: {
 	id?: AssetId;
 	title: string;
 	size: number;
@@ -81,7 +81,7 @@ const dispatchProcessJob = (asset: {
 	prefix: string;
 	fileType: string;
 }) =>
-	sendJobBatchEffect({
+	sendJobBatch({
 		jobName: PROCESS_ASSET_JOB_NAME,
 		jobs: [
 			{
@@ -207,7 +207,7 @@ export const createAsset = authed.asset.create
 					route: "asset",
 				});
 
-				const { asset, zedToken } = yield* createAssetRecordEffect({
+				const { asset, zedToken } = yield* createAssetRecord({
 					id: input.id,
 					title: input.title ?? "New Asset",
 					size: input.size,
@@ -310,7 +310,7 @@ export const saveAsset = authed.asset.save.handler(
 					);
 				}
 
-				const { asset, zedToken } = yield* createAssetRecordEffect({
+				const { asset, zedToken } = yield* createAssetRecord({
 					id: input.upload.id,
 					title: input.title,
 					size: input.upload.size,
@@ -391,7 +391,7 @@ export const saveManyAssets = authed.asset.saveMany
 								);
 							}
 
-							return yield* createAssetRecordEffect({
+							return yield* createAssetRecord({
 								id: assetInput.upload.id,
 								title: assetInput.title,
 								size: assetInput.upload.size,
