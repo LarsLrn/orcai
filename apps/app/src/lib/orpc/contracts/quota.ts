@@ -1,3 +1,4 @@
+import { base } from "@orcai/contracts";
 import {
 	quotaChatBadgeInputSchema,
 	quotaChatBadgeResponseSchema,
@@ -10,7 +11,6 @@ import {
 	quotaPoolUpdateInputSchema,
 	quotaPoolWriteResponseSchema,
 } from "@/lib/orpc/schemas/quota";
-import { base } from "./base";
 
 export const listQuotaPoolsContract = base
 	.route({

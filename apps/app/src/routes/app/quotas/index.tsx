@@ -1,3 +1,4 @@
+import { paginationInputSchema } from "@orcai/schema";
 import { useSuspenseQuery } from "@tanstack/react-query";
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { quotaPoolTableColumns } from "@/components/quota/table/quota-pool-table-columns";
@@ -14,10 +15,9 @@ import {
 	PageTitle,
 } from "@/components/ui/shell/page";
 import { orpc } from "@/lib/orpc/orpc";
-import { paginationSchema } from "@/lib/orpc/schemas/shared";
 
 export const Route = createFileRoute("/app/quotas/")({
-	validateSearch: paginationSchema,
+	validateSearch: paginationInputSchema,
 	loaderDeps: ({ search: { pageIndex, pageSize } }) => ({
 		pageIndex,
 		pageSize,

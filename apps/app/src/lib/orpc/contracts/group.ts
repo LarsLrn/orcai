@@ -1,3 +1,5 @@
+import { base } from "@orcai/contracts";
+import { paginationInputSchema } from "@orcai/schema";
 import { z } from "zod/v4";
 import {
 	groupAddMembersInputSchema,
@@ -13,8 +15,6 @@ import {
 	groupUpdateSchema,
 	groupWriteResponseSchema,
 } from "@/lib/orpc/schemas/group";
-import { paginationSchema } from "@/lib/orpc/schemas/shared";
-import { base } from "./base";
 
 export const listGroupsContract = base
 	.route({
@@ -32,7 +32,7 @@ export const listGroupsContract = base
 					search: z.string().trim().max(100).optional(),
 				})
 				.optional(),
-			...paginationSchema.shape,
+			...paginationInputSchema.shape,
 		}),
 	)
 	.output(groupListResponseSchema);

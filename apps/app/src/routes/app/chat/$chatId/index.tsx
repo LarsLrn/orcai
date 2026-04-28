@@ -1,11 +1,10 @@
-import { chatIdSchema } from "@orcai/schema";
+import { chatIdSchema, zedTokenSchema } from "@orcai/schema";
 import { createFileRoute, useRouterState } from "@tanstack/react-router";
 import { z } from "zod/v4";
 import { Chat } from "@/components/chat/chat";
 import type { ChatAgentUIMessage } from "@/lib/ai/types/chat-agent-message";
 import { orpc } from "@/lib/orpc/orpc";
 import { chatBranchSelectSchema } from "@/lib/orpc/schemas/chat-branch";
-import { zedTokenSchema } from "@/lib/orpc/schemas/shared";
 
 const searchSchema = z.object({
 	branch: chatBranchSelectSchema.shape.id.optional(),

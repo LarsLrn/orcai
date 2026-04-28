@@ -13,4 +13,5 @@ export type ContractInputs = InferContractRouterInputs<typeof contracts>;
 export type ContractOutputs = InferContractRouterOutputs<typeof contracts>;
 export type ContractClient = ContractRouterClient<typeof contracts>;
 
+export { base } from "./base";
 export { modelContracts };

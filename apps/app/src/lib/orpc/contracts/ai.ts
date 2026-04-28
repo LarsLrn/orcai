@@ -1,6 +1,6 @@
+import { base } from "@orcai/contracts";
 import type { ChatBranchId, ChatId } from "@orcai/core";
 import { type } from "@orpc/server";
-import { base } from "./base";
 
 export const aiChatContract = base
 	.route({

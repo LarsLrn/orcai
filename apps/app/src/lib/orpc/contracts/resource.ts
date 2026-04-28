@@ -1,3 +1,5 @@
+import { base } from "@orcai/contracts";
+import { zedTokenSchema } from "@orcai/schema";
 import {
 	resourceGetVisibilityInputSchema,
 	resourceGetVisibilityResponseSchema,
@@ -12,8 +14,6 @@ import {
 	resourceSetVisibilityInputSchema,
 	resourceSetVisibilityResponseSchema,
 } from "@/lib/orpc/schemas/resource";
-import { zedTokenSchema } from "@/lib/orpc/schemas/shared";
-import { base } from "./base";
 
 export const listResourceGrantsContract = base
 	.route({

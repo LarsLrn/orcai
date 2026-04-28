@@ -1,3 +1,9 @@
+import { base } from "@orcai/contracts";
+import {
+	paginationInputSchema,
+	statusResponseSchema,
+	zedTokenSchema,
+} from "@orcai/schema";
 import { z } from "zod/v4";
 import { chatSelectSchema } from "@/lib/orpc/schemas/chat";
 import { chatBranchSelectSchema } from "@/lib/orpc/schemas/chat-branch";
@@ -7,12 +13,6 @@ import {
 	chatMessageSelectSchema,
 	chatMessageUpdateSchema,
 } from "@/lib/orpc/schemas/chat-message";
-import {
-	paginationSchema,
-	statusSchema,
-	zedTokenSchema,
-} from "@/lib/orpc/schemas/shared";
-import { base } from "./base";
 
 export const listChatMessagesContract = base
 	.route({
@@ -25,7 +25,7 @@ export const listChatMessagesContract = base
 	})
 	.input(
 		z.object({
-			...paginationSchema.shape,
+			...paginationInputSchema.shape,
 			...zedTokenSchema.shape,
 			chatId: chatMessageSelectSchema.shape.chatId,
 			includeScores: z.boolean().default(false),
@@ -131,7 +131,7 @@ export const deleteChatMessageContract = base
 		],
 	})
 	.input(chatMessageDeleteSchema)
-	.output(statusSchema);
+	.output(statusResponseSchema);
 
 export const rateChatMessageContract = base
 	.route({

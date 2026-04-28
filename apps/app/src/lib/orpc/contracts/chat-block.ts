@@ -1,3 +1,5 @@
+import { base } from "@orcai/contracts";
+import { statusResponseSchema } from "@orcai/schema";
 import { z } from "zod/v4";
 import { blockSelectSchema } from "@/lib/orpc/schemas/block";
 import {
@@ -6,8 +8,6 @@ import {
 	chatBlockListSchema,
 	chatBlockSelectSchema,
 } from "@/lib/orpc/schemas/chat-block";
-import { statusSchema } from "@/lib/orpc/schemas/shared";
-import { base } from "./base";
 
 export const listChatBlocksContract = base
 	.route({
@@ -51,4 +51,4 @@ export const detachChatBlockContract = base
 		],
 	})
 	.input(chatBlockDeleteSchema)
-	.output(statusSchema);
+	.output(statusResponseSchema);

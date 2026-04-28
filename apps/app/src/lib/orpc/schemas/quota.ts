@@ -4,6 +4,7 @@ import {
 	groupIdSchema,
 	modelIdSchema,
 	organizationIdSchema,
+	paginationInputSchema,
 	providerMeteringModeSchema,
 	quotaPeriodIdSchema,
 	quotaPoolIdSchema,
@@ -11,7 +12,6 @@ import {
 import { createSelectSchema } from "drizzle-zod";
 import { z } from "zod/v4";
 import { providerSelectSchema } from "./provider";
-import { paginationSchema } from "./shared";
 
 export const quotaPoolSelectSchema = createSelectSchema(dbSchema.quotaPool, {
 	id: quotaPoolIdSchema,
@@ -34,7 +34,7 @@ export const quotaUsageEventSelectSchema = createSelectSchema(
 	dbSchema.quotaUsageEvent,
 );
 
-export const quotaPoolListInputSchema = paginationSchema.extend({
+export const quotaPoolListInputSchema = paginationInputSchema.extend({
 	filters: z
 		.object({
 			providerId: providerSelectSchema.shape.id.optional(),

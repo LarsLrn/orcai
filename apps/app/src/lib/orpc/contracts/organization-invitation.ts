@@ -1,3 +1,5 @@
+import { base } from "@orcai/contracts";
+import { paginationInputSchema, statusResponseSchema } from "@orcai/schema";
 import { z } from "zod/v4";
 import {
 	organizationInvitationDeleteSchema,
@@ -5,8 +7,6 @@ import {
 	organizationInvitationSelectSchema,
 	organizationInvitationUpdateSchema,
 } from "@/lib/orpc/schemas/organization-invitation";
-import { paginationSchema, statusSchema } from "@/lib/orpc/schemas/shared";
-import { base } from "./base";
 
 // TODO: Refactor. There should be endpoints for getting all invitations for a user
 export const listOrganizationInvitationsContract = base
@@ -18,7 +18,7 @@ export const listOrganizationInvitationsContract = base
 			"Organization Invitations",
 		],
 	})
-	.input(paginationSchema)
+	.input(paginationInputSchema)
 	.output(
 		z.object({
 			data: z.array(organizationInvitationSelectSchema),
@@ -125,7 +125,7 @@ export const deleteOrganizationInvitationsContract = base
 		],
 	})
 	.input(organizationInvitationDeleteSchema)
-	.output(statusSchema);
+	.output(statusResponseSchema);
 
 export const respondToOrganizationInvitationContract = base
 	.route({
@@ -145,4 +145,4 @@ export const respondToOrganizationInvitationContract = base
 			]),
 		}),
 	)
-	.output(statusSchema);
+	.output(statusResponseSchema);

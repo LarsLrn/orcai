@@ -1,17 +1,17 @@
-import { sharedSchemas } from "@orcai/schema";
+import { base } from "@orcai/contracts";
+import {
+	paginationInputSchema,
+	sharedSchemas,
+	statusResponseSchema,
+	zedTokenSchema,
+} from "@orcai/schema";
 import { z } from "zod/v4";
 import { organizationSelectSchema } from "@/lib/orpc/schemas/organization";
-import {
-	paginationSchema,
-	statusSchema,
-	zedTokenSchema,
-} from "@/lib/orpc/schemas/shared";
 import {
 	userAccessEntrySchema,
 	userSelectSchema,
 	userWithOrganizationRoleSelectSchema,
 } from "@/lib/orpc/schemas/user";
-import { base } from "./base";
 
 export const listUsersContract = base
 	.route({
@@ -24,7 +24,7 @@ export const listUsersContract = base
 	})
 	.input(
 		z.object({
-			...paginationSchema.shape,
+			...paginationInputSchema.shape,
 			...zedTokenSchema.shape,
 		}),
 	)
@@ -116,7 +116,7 @@ export const updatePasswordContract = base
 			password: sharedSchemas.password,
 		}),
 	)
-	.output(statusSchema);
+	.output(statusResponseSchema);
 
 export const setActiveOrganizationContract = base
 	.route({
@@ -133,7 +133,7 @@ export const setActiveOrganizationContract = base
 			organizationId: organizationSelectSchema.shape.id,
 		}),
 	)
-	.output(statusSchema);
+	.output(statusResponseSchema);
 
 export const setTourStateContract = base
 	.$route({
@@ -156,4 +156,4 @@ export const setTourStateContract = base
 			]),
 		}),
 	)
-	.output(statusSchema);
+	.output(statusResponseSchema);

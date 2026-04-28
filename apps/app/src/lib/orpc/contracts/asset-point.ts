@@ -1,14 +1,14 @@
+import { base } from "@orcai/contracts";
 import {
 	assetPointDeleteSchema,
 	assetPointInsertSchema,
 	assetPointSelectSchema,
 	assetPointUpdateSchema,
 	retrievalModeSchema,
+	statusResponseSchema,
 } from "@orcai/schema";
 import { z } from "zod/v4";
 import { baseBlockSelectSchema } from "@/lib/orpc/schemas/block";
-import { statusSchema } from "@/lib/orpc/schemas/shared";
-import { base } from "./base";
 
 export const listAssetPointContract = base
 	.route({
@@ -124,4 +124,4 @@ export const deleteAssetPointContract = base
 		],
 	})
 	.input(assetPointDeleteSchema)
-	.output(statusSchema);
+	.output(statusResponseSchema);

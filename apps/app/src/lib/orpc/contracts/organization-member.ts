@@ -1,4 +1,5 @@
-import { organizationIdSchema } from "@orcai/schema";
+import { base } from "@orcai/contracts";
+import { organizationIdSchema, paginationInputSchema } from "@orcai/schema";
 import { z } from "zod/v4";
 import {
 	organizationMemberDeleteSchema,
@@ -6,8 +7,6 @@ import {
 	organizationMemberSelectSchema,
 	organizationMemberUpdateSchema,
 } from "@/lib/orpc/schemas/organization-member";
-import { paginationSchema } from "@/lib/orpc/schemas/shared";
-import { base } from "./base";
 
 export const listOrganizationMembersContract = base
 	.route({
@@ -19,7 +18,7 @@ export const listOrganizationMembersContract = base
 		],
 	})
 	.input(
-		paginationSchema.extend({
+		paginationInputSchema.extend({
 			organizationId: organizationIdSchema,
 		}),
 	)

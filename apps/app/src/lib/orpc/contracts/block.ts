@@ -1,4 +1,10 @@
-import { publicationStatusSchema } from "@orcai/schema";
+import { base } from "@orcai/contracts";
+import {
+	paginationInputSchema,
+	publicationStatusSchema,
+	statusResponseSchema,
+	zedTokenSchema,
+} from "@orcai/schema";
 import { z } from "zod/v4";
 import { assetSelectSchema } from "@/lib/orpc/schemas/asset";
 import {
@@ -11,12 +17,6 @@ import {
 } from "@/lib/orpc/schemas/block";
 import { botSelectSchema } from "@/lib/orpc/schemas/bot";
 import { databaseBlockEditorSchema } from "@/lib/orpc/schemas/bot-editor";
-import {
-	paginationSchema,
-	statusSchema,
-	zedTokenSchema,
-} from "@/lib/orpc/schemas/shared";
-import { base } from "./base";
 
 const blockWithPermissionsSchema = z.intersection(
 	blockSelectSchema,
@@ -36,7 +36,7 @@ export const listBlocksContract = base
 	})
 	.input(
 		z.object({
-			...paginationSchema.shape,
+			...paginationInputSchema.shape,
 			...zedTokenSchema.shape,
 			filters: z
 				.object({
@@ -131,7 +131,7 @@ export const deleteBlockContract = base
 		],
 	})
 	.input(blockDeleteSchema)
-	.output(statusSchema);
+	.output(statusResponseSchema);
 
 export const addAssetsToBlockContract = base
 	.route({
@@ -148,4 +148,4 @@ export const addAssetsToBlockContract = base
 			assets: z.array(z.uuidv4()),
 		}),
 	)
-	.output(statusSchema);
+	.output(statusResponseSchema);

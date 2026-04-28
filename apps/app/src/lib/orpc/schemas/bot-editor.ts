@@ -2,6 +2,7 @@ import {
 	blockIdSchema,
 	botIdSchema,
 	publicationStatusSchema,
+	zedTokenSchema,
 } from "@orcai/schema";
 import { z } from "zod/v4";
 import { assetSelectSchema } from "./asset";
@@ -10,7 +11,6 @@ import {
 	databaseBlockSchema,
 	templateBlockSchema,
 } from "./block";
-import { zedTokenSchema } from "./shared";
 
 const baseEditorBlockSchema = z.object({
 	id: blockIdSchema,

@@ -1,3 +1,4 @@
+import { zedTokenSchema } from "@orcai/schema";
 import { oc } from "@orpc/contract";
 import { z } from "zod/v4";
 
@@ -18,7 +19,7 @@ export const base = oc
 				allowed: z.boolean(),
 				permission: z.string().optional(),
 				entityType: z.string().optional(),
-				zedToken: z.string().optional(),
+				...zedTokenSchema.shape,
 			}),
 			message: "Forbidden access.",
 			status: 403,

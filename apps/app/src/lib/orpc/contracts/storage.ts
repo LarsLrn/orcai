@@ -1,3 +1,4 @@
+import { base } from "@orcai/contracts";
 import { z } from "zod/v4";
 import { assetSelectSchema } from "@/lib/orpc/schemas/asset";
 import {
@@ -9,7 +10,6 @@ import {
 	multipartUploadControlOutputSchema,
 	storageSelectSchema,
 } from "@/lib/orpc/schemas/storage";
-import { base } from "./base";
 
 export const createUploadUrlsContract = base
 	.route({

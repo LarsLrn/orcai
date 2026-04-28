@@ -1,15 +1,15 @@
+import { base } from "@orcai/contracts";
 import {
 	assetIdSchema,
 	jobHistoryEntrySchema,
 	jobQueues,
 	PROCESS_ASSET_JOB_NAME,
+	statusResponseSchema,
 	VECTORIZE_ASSET_JOB_NAME,
 } from "@orcai/schema";
 import z from "zod/v4";
 import { assetSelectSchema } from "@/lib/orpc/schemas/asset";
 import { baseBlockSelectSchema } from "@/lib/orpc/schemas/block";
-import { statusSchema } from "@/lib/orpc/schemas/shared";
-import { base } from "./base";
 
 const jobResourceIdentitySchema = z.discriminatedUnion("resourceType", [
 	z.object({
@@ -40,7 +40,7 @@ export const createJobsContract = base
 			]),
 		}),
 	)
-	.output(statusSchema);
+	.output(statusResponseSchema);
 
 export const listJobsContract = base
 	.route({
@@ -79,7 +79,7 @@ export const retryProcessingContract = base
 			assetId: assetSelectSchema.shape.id,
 		}),
 	)
-	.output(statusSchema);
+	.output(statusResponseSchema);
 
 export const retryVectorizationContract = base
 	.route({
@@ -96,4 +96,4 @@ export const retryVectorizationContract = base
 			assetId: assetSelectSchema.shape.id,
 		}),
 	)
-	.output(statusSchema);
+	.output(statusResponseSchema);

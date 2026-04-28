@@ -4,11 +4,11 @@ import {
 	blockIdSchema,
 	botIdSchema,
 	groupIdSchema,
+	statusResponseSchema,
 	userIdSchema,
 } from "@orcai/schema";
 import { createSelectSchema } from "drizzle-zod";
 import { z } from "zod/v4";
-import { statusSchema } from "./shared";
 
 const resourceGrantDbSchema = createSelectSchema(dbSchema.resourceGrant);
 const resourceVisibilityDbSchema = createSelectSchema(
@@ -228,7 +228,7 @@ export const resourceSetVisibilityResponseSchema = z.object({
 	data: resourceVisibilitySelectSchema,
 });
 
-export const resourceRevokeResponseSchema = statusSchema;
+export const resourceRevokeResponseSchema = statusResponseSchema;
 
 export const resourceGetVisibilityInputSchema = resourceIdentitySchema;
 

@@ -3,6 +3,8 @@ import {
 	groupIdSchema,
 	groupMemberIdSchema,
 	organizationIdSchema,
+	paginationInputSchema,
+	statusResponseSchema,
 	userIdSchema,
 } from "@orcai/schema";
 import {
@@ -11,7 +13,6 @@ import {
 	createUpdateSchema,
 } from "drizzle-zod";
 import { z } from "zod/v4";
-import { paginationSchema, statusSchema } from "./shared";
 import { userSelectSchema } from "./user";
 
 export const groupSelectSchema = createSelectSchema(dbSchema.group, {
@@ -66,7 +67,7 @@ export const groupMemberRowSchema = z.object({
 	addedBy: userIdSchema.nullable(),
 });
 
-export const groupListMembersInputSchema = paginationSchema.extend({
+export const groupListMembersInputSchema = paginationInputSchema.extend({
 	groupId: groupIdSchema,
 	query: z.string().trim().max(200).optional(),
 });
@@ -119,7 +120,7 @@ export const groupListMembersResponseSchema = z.object({
 	rowCount: z.number(),
 });
 
-export const groupMembersMutateResponseSchema = statusSchema;
+export const groupMembersMutateResponseSchema = statusResponseSchema;
 
 export type Group = z.infer<typeof groupSelectSchema>;
 export type GroupInsert = z.infer<typeof groupInsertSchema>;

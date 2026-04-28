@@ -1,3 +1,9 @@
+import { base } from "@orcai/contracts";
+import {
+	paginationInputSchema,
+	statusResponseSchema,
+	zedTokenSchema,
+} from "@orcai/schema";
 import { z } from "zod/v4";
 import { baseBlockSelectSchema } from "@/lib/orpc/schemas/block";
 import { botDeleteSchema, botSelectSchema } from "@/lib/orpc/schemas/bot";
@@ -7,12 +13,6 @@ import {
 	botEditorSaveSchema,
 	botEditorSelectSchema,
 } from "@/lib/orpc/schemas/bot-editor";
-import {
-	paginationSchema,
-	statusSchema,
-	zedTokenSchema,
-} from "@/lib/orpc/schemas/shared";
-import { base } from "./base";
 
 export const listBotsContract = base
 	.route({
@@ -25,7 +25,7 @@ export const listBotsContract = base
 	})
 	.input(
 		z.object({
-			...paginationSchema.shape,
+			...paginationInputSchema.shape,
 			...zedTokenSchema.shape,
 			search: z.string().optional(),
 		}),
@@ -122,7 +122,7 @@ export const listDraftBotsContract = base
 	})
 	.input(
 		z.object({
-			...paginationSchema.shape,
+			...paginationInputSchema.shape,
 			...zedTokenSchema.shape,
 			search: z.string().optional(),
 		}),
@@ -144,4 +144,4 @@ export const deleteBotContract = base
 		],
 	})
 	.input(botDeleteSchema)
-	.output(statusSchema);
+	.output(statusResponseSchema);

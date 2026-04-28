@@ -1,3 +1,5 @@
+import { base } from "@orcai/contracts";
+import { paginationInputSchema, statusResponseSchema } from "@orcai/schema";
 import { z } from "zod/v4";
 import {
 	providerDeleteSchema,
@@ -5,8 +7,6 @@ import {
 	providerSelectSchema,
 	providerUpdateSchema,
 } from "@/lib/orpc/schemas/provider";
-import { paginationSchema, statusSchema } from "@/lib/orpc/schemas/shared";
-import { base } from "./base";
 
 export const listProvidersContract = base
 	.route({
@@ -24,7 +24,7 @@ export const listProvidersContract = base
 					enabled: providerSelectSchema.shape.enabled.optional(),
 				})
 				.optional(),
-			...paginationSchema.shape,
+			...paginationInputSchema.shape,
 		}),
 	)
 	.output(
@@ -96,4 +96,4 @@ export const deleteProviderContract = base
 		],
 	})
 	.input(providerDeleteSchema)
-	.output(statusSchema);
+	.output(statusResponseSchema);

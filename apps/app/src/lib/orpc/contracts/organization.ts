@@ -1,3 +1,5 @@
+import { base } from "@orcai/contracts";
+import { paginationInputSchema, statusResponseSchema } from "@orcai/schema";
 import { z } from "zod/v4";
 import {
 	organizationDeleteSchema,
@@ -5,8 +7,6 @@ import {
 	organizationSelectSchema,
 	organizationUpdateSchema,
 } from "@/lib/orpc/schemas/organization";
-import { paginationSchema, statusSchema } from "@/lib/orpc/schemas/shared";
-import { base } from "./base";
 
 export const listOrganizationsContract = base
 	.route({
@@ -17,7 +17,7 @@ export const listOrganizationsContract = base
 			"Organizations",
 		],
 	})
-	.input(paginationSchema)
+	.input(paginationInputSchema)
 	.output(
 		z.object({
 			data: z.array(organizationSelectSchema),
@@ -96,4 +96,4 @@ export const deleteOrganizationContract = base
 		],
 	})
 	.input(organizationDeleteSchema)
-	.output(statusSchema);
+	.output(statusResponseSchema);

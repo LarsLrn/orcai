@@ -1,3 +1,9 @@
+import { base } from "@orcai/contracts";
+import {
+	paginationInputSchema,
+	statusResponseSchema,
+	zedTokenSchema,
+} from "@orcai/schema";
 import { z } from "zod/v4";
 import {
 	assetDeleteSchema,
@@ -6,12 +12,6 @@ import {
 	assetSaveSchema,
 	assetSelectSchema,
 } from "@/lib/orpc/schemas/asset";
-import {
-	paginationSchema,
-	statusSchema,
-	zedTokenSchema,
-} from "@/lib/orpc/schemas/shared";
-import { base } from "./base";
 
 export const listAssetsContract = base
 	.route({
@@ -24,7 +24,7 @@ export const listAssetsContract = base
 	})
 	.input(
 		z.object({
-			...paginationSchema.shape,
+			...paginationInputSchema.shape,
 			...zedTokenSchema.shape,
 			filters: z
 				.object({
@@ -125,4 +125,4 @@ export const deleteAssetContract = base
 		],
 	})
 	.input(assetDeleteSchema)
-	.output(statusSchema);
+	.output(statusResponseSchema);

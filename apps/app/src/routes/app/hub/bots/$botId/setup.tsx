@@ -1,3 +1,4 @@
+import { zedTokenSchema } from "@orcai/schema";
 import { useSuspenseQuery } from "@tanstack/react-query";
 import { createFileRoute } from "@tanstack/react-router";
 import z from "zod/v4";
@@ -14,7 +15,7 @@ import { orpc } from "@/lib/orpc/orpc";
 export const Route = createFileRoute("/app/hub/bots/$botId/setup")({
 	validateSearch: z.object({
 		step: z.coerce.number().int().min(0).max(4).catch(0).default(0),
-		zedToken: z.string().optional(),
+		...zedTokenSchema.shape,
 	}),
 	loaderDeps: ({ search: { zedToken } }) => ({
 		zedToken,
