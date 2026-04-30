@@ -1,5 +1,5 @@
 import type { RetrievalMode } from "@orcai/schema";
-import { assetPointSelectSchema } from "@orcai/schema";
+import { assetPointSchema } from "@orcai/schema";
 import type { Schemas } from "@qdrant/qdrant-js";
 import * as Effect from "effect/Effect";
 import z from "zod/v4";
@@ -152,7 +152,7 @@ export const queryAssetPoints = (params: {
 			Effect.flatMap((response) =>
 				Effect.try({
 					try: () =>
-						z.array(assetPointSelectSchema).parse(
+						z.array(assetPointSchema).parse(
 							response.map((point) => ({
 								...point,
 								version:

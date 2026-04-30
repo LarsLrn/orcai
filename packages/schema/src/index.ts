@@ -1,4 +1,5 @@
 export * from "./asset";
+export * from "./asset-point";
 export * from "./block";
 export * from "./bot";
 export * from "./chat";
@@ -12,7 +13,6 @@ export * from "./organization";
 export * from "./organization-invitation";
 export * from "./provider";
 export * from "./quota";
-export * from "./resource";
 export * from "./shared";
 export * from "./user";
 export * from "./zod";

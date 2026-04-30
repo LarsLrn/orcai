@@ -7,13 +7,6 @@ import type {
 import type { ORPCErrorConstructorMap } from "@orpc/server";
 import { aiChatContract } from "./ai";
 import {
-	createAssetPointContract,
-	deleteAssetPointContract,
-	findAssetPointContract,
-	listAssetPointContract,
-	updateAssetPointContract,
-} from "./asset-point";
-import {
 	createBlockContract,
 	deleteBlockContract,
 	findBlockContract,
@@ -226,13 +219,7 @@ export const contracts = {
 		delete: deleteBotContract,
 	},
 	asset: sharedContracts.asset,
-	assetPoint: {
-		list: listAssetPointContract,
-		find: findAssetPointContract,
-		create: createAssetPointContract,
-		update: updateAssetPointContract,
-		delete: deleteAssetPointContract,
-	},
+	assetPoint: sharedContracts.assetPoint,
 	user: {
 		list: listUsersContract,
 		find: findUserContract,

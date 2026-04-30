@@ -3,12 +3,6 @@ import { assetIdSchema } from "../asset";
 import { blockIdSchema } from "../block";
 import { fileTypeSchema } from "../zod/file";
 
-/**
- * ----------------
- * Base Schemas
- * ----------------
- */
-
 const baseChunkPayloadSchema = z.object({
 	asset_id: assetIdSchema,
 	block_id: blockIdSchema,
@@ -40,13 +34,7 @@ export const assetPointPayloadSchema = z.discriminatedUnion("source", [
 	textPointPayloadSchema,
 ]);
 
-/**
- * ----------------
- * Select Schema
- * ----------------
- */
-
-export const assetPointSelectSchema = z.object({
+export const assetPointSchema = z.object({
 	id: z.string(),
 	version: z.number(),
 	score: z.number(),
@@ -91,57 +79,5 @@ export const assetPointSelectSchema = z.object({
 		.optional(),
 });
 
-/**
- * ----------------
- * Insert Schema
- * ----------------
- */
-
-export const assetPointInsertSchema = z.object({
-	payload: assetPointPayloadSchema,
-	vector: assetPointSelectSchema.pick({
-		vector: true,
-	}),
-});
-
-/**
- * ----------------
- * Update Schema
- * ----------------
- */
-
-export const assetPointUpdateSchema = assetPointInsertSchema.extend(
-	z.object({
-		id: assetPointSelectSchema.pick({
-			id: true,
-		}),
-	}).shape,
-);
-
-/**
- * ----------------
- * Delete Schema
- * ----------------
- */
-
-export const assetPointDeleteSchema = z.object({
-	assetId: assetIdSchema,
-	refs: z.array(
-		assetPointSelectSchema.pick({
-			id: true,
-		}),
-	),
-});
-
-/**
- * ----------------
- * Type Definitions
- * ----------------
- */
-
-export type AssetPoint = z.infer<typeof assetPointSelectSchema>;
-export type AssetPointInsert = z.infer<typeof assetPointInsertSchema>;
-export type AssetPointUpdate = z.infer<typeof assetPointUpdateSchema>;
-export type AssetPointDelete = z.infer<typeof assetPointDeleteSchema>;
-
+export type AssetPoint = z.infer<typeof assetPointSchema>;
 export type AssetPointPayload = z.infer<typeof assetPointPayloadSchema>;
