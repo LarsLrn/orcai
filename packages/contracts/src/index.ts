@@ -4,10 +4,12 @@ import type {
 	InferContractRouterOutputs,
 } from "@orpc/contract";
 import { assetContracts } from "./asset";
+import { jobContracts } from "./job";
 import { modelContracts } from "./model";
 
 export const contracts = {
 	asset: assetContracts,
+	job: jobContracts,
 	model: modelContracts,
 };
 

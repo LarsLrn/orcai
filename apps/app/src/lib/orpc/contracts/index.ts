@@ -65,12 +65,6 @@ import {
 	updateGroupContract,
 } from "./group";
 import {
-	createJobsContract,
-	listJobsContract,
-	retryProcessingContract,
-	retryVectorizationContract,
-} from "./job";
-import {
 	createOrganizationContract,
 	deleteOrganizationContract,
 	findOrganizationContract,
@@ -256,12 +250,7 @@ export const contracts = {
 		completeMultipartUpload: completeMultipartUploadContract,
 		abortMultipartUpload: abortMultipartUploadContract,
 	},
-	job: {
-		list: listJobsContract,
-		create: createJobsContract,
-		retryProcessing: retryProcessingContract,
-		retryVectorization: retryVectorizationContract,
-	},
+	job: sharedContracts.job,
 	ai: {
 		chat: aiChatContract,
 	},
