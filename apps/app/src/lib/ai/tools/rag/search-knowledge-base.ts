@@ -1,10 +1,10 @@
+import { assetIdSchema } from "@orcai/schema";
 import { tool } from "ai";
 import * as Effect from "effect/Effect";
 import { z } from "zod/v4";
 import { runtime } from "@/lib/effect/runtime";
 import { AiError } from "@/lib/effect/utils/errors";
 import { client } from "@/lib/orpc/orpc";
-import { assetSelectSchema } from "@/lib/orpc/schemas/asset";
 import {
 	baseBlockSelectSchema,
 	type DatabaseBlock,
@@ -86,7 +86,7 @@ export const searchKnowledgeBaseTool = ({
 				.max(5)
 				.optional(),
 			assetIds: z
-				.array(assetSelectSchema.shape.id)
+				.array(assetIdSchema)
 				.max(20)
 				.optional()
 				.describe(

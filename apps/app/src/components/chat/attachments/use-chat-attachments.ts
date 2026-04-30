@@ -1,4 +1,5 @@
 import type { AssetId } from "@orcai/core";
+import type { Asset } from "@orcai/schema";
 import { useMutation } from "@tanstack/react-query";
 import { nanoid } from "nanoid";
 import { useEffect, useMemo, useRef, useState } from "react";
@@ -6,7 +7,6 @@ import { toast } from "sonner";
 import { useUploadFiles } from "@/components/documents/use-upload-files";
 import type { ChatAttachment } from "@/lib/ai/types/chat-attachment";
 import { orpc } from "@/lib/orpc/orpc";
-import type { Asset } from "@/lib/orpc/schemas/asset";
 
 export type LocalChatFile = {
 	id: string;

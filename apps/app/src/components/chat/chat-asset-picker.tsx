@@ -1,4 +1,5 @@
 import type { AssetId } from "@orcai/core";
+import type { Asset } from "@orcai/schema";
 import { useQuery } from "@tanstack/react-query";
 import convert from "convert";
 import { SearchIcon } from "lucide-react";
@@ -19,7 +20,6 @@ import { Input } from "@/components/ui/input";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { Spinner } from "@/components/ui/spinner";
 import { orpc } from "@/lib/orpc/orpc";
-import type { Asset } from "@/lib/orpc/schemas/asset";
 
 const PAGE_SIZE = 20;
 

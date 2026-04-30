@@ -1,6 +1,6 @@
 import { base } from "@orcai/contracts";
+import { assetIdSchema } from "@orcai/schema";
 import { z } from "zod/v4";
-import { assetSelectSchema } from "@/lib/orpc/schemas/asset";
 import {
 	abortMultipartUploadInputSchema,
 	completeMultipartUploadInputSchema,
@@ -38,13 +38,10 @@ export const createDownloadUrlContract = base
 		],
 	})
 	.input(
-		assetSelectSchema
-			.pick({
-				id: true,
-			})
-			.extend({
-				objectKey: z.string().min(1).optional(),
-			}),
+		z.object({
+			id: assetIdSchema,
+			objectKey: z.string().min(1).optional(),
+		}),
 	)
 	.output(
 		z.object({

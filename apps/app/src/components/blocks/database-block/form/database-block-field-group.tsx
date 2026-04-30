@@ -1,7 +1,6 @@
-import type { RetrievalMode } from "@orcai/schema";
+import type { Asset, RetrievalMode } from "@orcai/schema";
 import { DatabaseBlockEditor } from "@/components/authoring/database-block-editor";
 import { withFieldGroup } from "@/hooks/form";
-import type { Asset } from "@/lib/orpc/schemas/asset";
 
 const databaseBlockGroupDefaultValues = {
 	name: "",

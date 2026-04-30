@@ -1,3 +1,4 @@
+import type { FinalizedUploadFile } from "@orcai/schema";
 import { CheckCircle2Icon, PencilIcon } from "lucide-react";
 import { useMemo, useState } from "react";
 import {
@@ -5,7 +6,6 @@ import {
 	AssetMetadataEditor,
 	createDefaultAssetMetadata,
 } from "@/components/documents/shared/asset-metadata-editor";
-import type { UploadedFile } from "@/components/documents/upload-component";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import {
@@ -40,7 +40,7 @@ const UploadedFileReviewList = ({
 	drafts,
 	onDraftChange,
 }: {
-	files: UploadedFile[];
+	files: FinalizedUploadFile[];
 	drafts: Record<string, AssetMetadataDraft>;
 	onDraftChange: (fileId: string, draft: AssetMetadataDraft) => void;
 }) => {

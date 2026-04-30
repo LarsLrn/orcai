@@ -1,4 +1,9 @@
-import { type SourceType, sourceTypeLabels, sourceTypes } from "@orcai/schema";
+import {
+	type Asset,
+	type SourceType,
+	sourceTypeLabels,
+	sourceTypes,
+} from "@orcai/schema";
 import { Input } from "@/components/ui/input";
 import {
 	Select,
@@ -8,7 +13,6 @@ import {
 	SelectValue,
 } from "@/components/ui/select";
 import { Switch } from "@/components/ui/switch";
-import type { Asset } from "@/lib/orpc/schemas/asset";
 
 type AssetMetadataDraft = {
 	title: string;

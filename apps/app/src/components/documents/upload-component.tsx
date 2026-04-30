@@ -1,4 +1,5 @@
 import type { DirectUploadResult } from "@orcai/s3/client";
+import type { FinalizedUploadFile } from "@orcai/schema";
 import { useMutation } from "@tanstack/react-query";
 import { useMemo, useState } from "react";
 import type { DropzoneProps } from "react-dropzone";
@@ -16,12 +17,8 @@ import {
 	CardTitle,
 } from "@/components/ui/card";
 import { orpc } from "@/lib/orpc/orpc";
-import type {
-	finalizedUploadFileSchema,
-	uploadRouteSchema,
-} from "@/lib/orpc/schemas/storage";
+import type { uploadRouteSchema } from "@/lib/orpc/schemas/storage";
 
-type UploadedFile = z.infer<typeof finalizedUploadFileSchema>;
 type UploadRoute = z.infer<typeof uploadRouteSchema>;
 type UploadResult = DirectUploadResult<true>;
 
@@ -45,7 +42,7 @@ type UploadComponentProps = {
 	onReset?: () => void;
 	onUploaded?: (result: {
 		uploadResult: UploadResult;
-		finalizedFiles: UploadedFile[];
+		finalizedFiles: FinalizedUploadFile[];
 	}) => void | Promise<void>;
 };
 
@@ -208,9 +205,4 @@ const UploadComponent = ({
 	);
 };
 
-export {
-	UploadComponent,
-	type UploadComponentProps,
-	type UploadedFile,
-	type UploadResult,
-};
+export { UploadComponent, type UploadComponentProps, type UploadResult };

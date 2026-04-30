@@ -1,3 +1,4 @@
+import type { Asset, FinalizedUploadFile } from "@orcai/schema";
 import { useState } from "react";
 import { toast } from "sonner";
 import {
@@ -8,10 +9,7 @@ import {
 	hasMetadataAdded,
 	UploadedFileReviewList,
 } from "@/components/documents/shared/uploaded-file-review-list";
-import {
-	UploadComponent,
-	type UploadedFile,
-} from "@/components/documents/upload-component";
+import { UploadComponent } from "@/components/documents/upload-component";
 import { Button } from "@/components/ui/button";
 import {
 	Card,
@@ -21,7 +19,6 @@ import {
 	CardTitle,
 } from "@/components/ui/card";
 import { useSaveManyAssetsMutation } from "@/hooks/mutations/use-asset-mutations";
-import type { Asset } from "@/lib/orpc/schemas/asset";
 
 type IntakeStep = "upload" | "uploaded" | "review";
 
@@ -33,7 +30,7 @@ const AssetIntakeFlow = ({
 	submitLabel?: string;
 }) => {
 	const [step, setStep] = useState<IntakeStep>("upload");
-	const [uploadedFiles, setUploadedFiles] = useState<UploadedFile[]>([]);
+	const [uploadedFiles, setUploadedFiles] = useState<FinalizedUploadFile[]>([]);
 	const [drafts, setDrafts] = useState<Record<string, AssetMetadataDraft>>({});
 	const { mutate: saveManyAssets, isPending } = useSaveManyAssetsMutation({
 		onSuccess: (result) => {

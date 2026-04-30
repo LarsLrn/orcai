@@ -1,4 +1,5 @@
 import { getFileTypeFromMime } from "@orcai/s3";
+import type { Asset } from "@orcai/schema";
 import { useQuery } from "@tanstack/react-query";
 import { SmartphoneIcon } from "lucide-react";
 import { useState } from "react";
@@ -8,7 +9,6 @@ import { Card } from "@/components/ui/card";
 import { Spinner } from "@/components/ui/spinner";
 import { useIsMobile } from "@/hooks/use-mobile";
 import { orpc } from "@/lib/orpc/orpc";
-import type { Asset } from "@/lib/orpc/schemas/asset";
 import { cn } from "@/lib/utils";
 import { AssetMeta } from "./asset-meta";
 

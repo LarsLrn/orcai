@@ -12,7 +12,6 @@ import {
 	createUpdateSchema,
 } from "drizzle-zod";
 import { z } from "zod/v4";
-import { assetSelectSchema } from "./asset";
 
 /**
  * ----------------
@@ -136,7 +135,7 @@ export const templateBlockInsertSchema = baseBlockInsertSchema.extend(
 
 export const databaseBlockInsertSchema = baseBlockInsertSchema.extend({
 	...databaseBlockSchema.shape,
-	assets: z.array(assetSelectSchema.shape.id).default([]),
+	assets: z.array(assetIdSchema).default([]),
 });
 
 export const imageGenerationBlockInsertSchema = baseBlockInsertSchema.extend(

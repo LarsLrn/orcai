@@ -1,3 +1,4 @@
+import type { Asset } from "@orcai/schema";
 import { convert } from "convert";
 import { formatDistanceToNow } from "date-fns";
 import {
@@ -18,7 +19,6 @@ import {
 	TooltipContent,
 	TooltipTrigger,
 } from "@/components/ui/tooltip";
-import type { Asset } from "@/lib/orpc/schemas/asset";
 
 const getFileTypeColor = (fileType: string): string => {
 	const typeMap: Record<string, string> = {

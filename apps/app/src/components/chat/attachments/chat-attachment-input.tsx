@@ -1,4 +1,5 @@
 import type { AssetId } from "@orcai/core";
+import type { Asset } from "@orcai/schema";
 import type { FileUIPart, SourceDocumentUIPart } from "ai";
 import convert from "convert";
 import {
@@ -13,7 +14,6 @@ import {
 	Attachments,
 } from "@/components/ai-elements/attachments";
 import { InputGroupAddon } from "@/components/ui/input-group";
-import type { Asset } from "@/lib/orpc/schemas/asset";
 import type { LocalChatFile } from "./use-chat-attachments";
 
 const localFileToUiPart = (file: LocalChatFile) =>

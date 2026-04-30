@@ -3,6 +3,7 @@ import { z } from "zod/v4";
 import { modelCapabilitiesSchema } from "../fragments/model-capabilities";
 import { providerIdSchema } from "../provider";
 import { createUuidIdSchema } from "../shared";
+import { searchFilterSchema } from "../shared/filters";
 
 export const modelCapabilitySchema = modelCapabilitiesSchema;
 export const modelIdSchema = createUuidIdSchema<ModelId>();
@@ -26,7 +27,7 @@ export const modelSchema = modelFieldsSchema.extend({
 export const modelFiltersSchema = z.object({
 	providerId: providerIdSchema.optional(),
 	capabilities: z.array(modelCapabilitySchema).optional(),
-	search: z.string().optional(),
+	...searchFilterSchema.shape,
 });
 
 export type Model = z.infer<typeof modelSchema>;

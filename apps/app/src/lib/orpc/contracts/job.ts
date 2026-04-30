@@ -8,7 +8,6 @@ import {
 	VECTORIZE_ASSET_JOB_NAME,
 } from "@orcai/schema";
 import z from "zod/v4";
-import { assetSelectSchema } from "@/lib/orpc/schemas/asset";
 import { baseBlockSelectSchema } from "@/lib/orpc/schemas/block";
 
 const jobResourceIdentitySchema = z.discriminatedUnion("resourceType", [
@@ -76,7 +75,7 @@ export const retryProcessingContract = base
 	})
 	.input(
 		z.object({
-			assetId: assetSelectSchema.shape.id,
+			assetId: assetIdSchema,
 		}),
 	)
 	.output(statusResponseSchema);
@@ -93,7 +92,7 @@ export const retryVectorizationContract = base
 	.input(
 		z.object({
 			blockId: baseBlockSelectSchema.shape.id,
-			assetId: assetSelectSchema.shape.id,
+			assetId: assetIdSchema,
 		}),
 	)
 	.output(statusResponseSchema);

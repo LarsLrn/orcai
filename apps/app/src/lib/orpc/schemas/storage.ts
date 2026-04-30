@@ -1,5 +1,5 @@
 import { UPLOAD_ROUTES } from "@orcai/s3";
-import { assetIdSchema, bucketSchema } from "@orcai/schema";
+import { finalizedUploadFileSchema } from "@orcai/schema";
 import { z } from "zod/v4";
 
 /**
@@ -66,16 +66,6 @@ export const createUploadUrlsInputSchema = z.object({
 export const finalizeUploadInputSchema = z.object({
 	route: uploadRouteSchema.default("asset"),
 	files: z.array(uploadFileObjectSchema).min(1),
-});
-
-export const finalizedUploadFileSchema = z.object({
-	id: assetIdSchema,
-	bucket: bucketSchema,
-	prefix: z.string(),
-	objectKey: z.string(),
-	name: z.string(),
-	size: z.number().int().min(1),
-	type: z.string().min(1),
 });
 
 export const finalizeUploadOutputSchema = z.object({
