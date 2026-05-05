@@ -7,11 +7,13 @@
 		".": "./src/index.ts"
 	},
 	"dependencies": {
+		"@effect/sql-pg": "catalog:",
 		"@orcai/core": "workspace:*",
 		"@orcai/db": "workspace:*",
 		"@orcai/valkey": "workspace:*",
 		"drizzle-orm": "catalog:",
 		"effect": "catalog:",
+		"pg": "catalog:",
 		"uuid": "catalog:"
 	}
 }

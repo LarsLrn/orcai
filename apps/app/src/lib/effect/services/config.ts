@@ -4,6 +4,8 @@ import * as Effect from "effect/Effect";
 import * as Layer from "effect/Layer";
 import * as Option from "effect/Option";
 import * as Redacted from "effect/Redacted";
+import * as Schema from "effect/Schema";
+import * as SchemaIssue from "effect/SchemaIssue";
 
 const getOrThrow = <A>(name: string, value: Option.Option<A>): A =>
 	Option.match(value, {
@@ -24,22 +26,36 @@ const normalizeOptionalString = (
 		},
 	});
 
-const parseOptionalPort = (
-	value: Option.Option<string>,
-	defaultPort: number,
-): number =>
-	Option.match(normalizeOptionalString(value), {
-		onNone: () => defaultPort,
-		onSome: (resolved) => {
-			const port = Number(resolved);
-			if (!Number.isInteger(port) || port < 1 || port > 65535) {
-				throw new Error(
-					`Invalid SMTP_PORT value "${resolved}". Expected an integer between 1 and 65535.`,
-				);
-			}
-			return port;
-		},
-	});
+const failConfig = (message: string, actual: unknown) =>
+	Effect.fail(
+		new Config.ConfigError(
+			new Schema.SchemaError(
+				new SchemaIssue.InvalidValue(Option.some(actual), {
+					message,
+				}),
+			),
+		),
+	);
+
+type EmailConfig =
+	| {
+			readonly mode: "log_only";
+	  }
+	| {
+			readonly mode: "smtp";
+			readonly host: string;
+			readonly port: number;
+			readonly secure: boolean;
+			readonly tlsRejectUnauthorized: boolean;
+			readonly from: string;
+			readonly fromName: string;
+			readonly auth:
+				| {
+						readonly username: string;
+						readonly password: Redacted.Redacted<string>;
+				  }
+				| undefined;
+	  };
 
 const emailConfig = Config.all({
 	host: Config.option(Config.string("SMTP_HOST")),
@@ -54,12 +70,15 @@ const emailConfig = Config.all({
 	from: Config.option(Config.string("SMTP_FROM")),
 	fromName: Config.withDefault(Config.string("SMTP_FROM_NAME"), "OrcAI Team"),
 }).pipe(
-	Config.mapAttempt((raw) => {
+	Config.mapOrFail((raw): Effect.Effect<EmailConfig, Config.ConfigError> => {
 		const host = normalizeOptionalString(raw.host);
 		const from = normalizeOptionalString(raw.from);
 		const username = normalizeOptionalString(raw.username);
 		const password = normalizeOptionalString(raw.password);
-		const port = parseOptionalPort(raw.port, 587);
+		const port = Option.match(normalizeOptionalString(raw.port), {
+			onNone: () => 587,
+			onSome: (resolved) => Number(resolved),
+		});
 
 		const hasHost = Option.isSome(host);
 		const hasFrom = Option.isSome(from);
@@ -67,24 +86,33 @@ const emailConfig = Config.all({
 		const hasPassword = Option.isSome(password);
 
 		if (!hasHost && !hasFrom && !hasUsername && !hasPassword) {
-			return {
+			return Effect.succeed({
 				mode: "log_only" as const,
-			};
+			});
+		}
+
+		if (!Number.isInteger(port) || port < 1 || port > 65535) {
+			return failConfig(
+				"Invalid SMTP_PORT value. Expected an integer between 1 and 65535.",
+				raw.port,
+			);
 		}
 
 		if (!hasHost || !hasFrom) {
-			throw new Error(
+			return failConfig(
 				"Partial SMTP configuration detected. SMTP_HOST and SMTP_FROM must both be set to enable email sending.",
+				raw,
 			);
 		}
 
 		if (hasUsername !== hasPassword) {
-			throw new Error(
+			return failConfig(
 				"Partial SMTP authentication configuration detected. SMTP_USERNAME and SMTP_PASSWORD must both be set or both be omitted.",
+				raw,
 			);
 		}
 
-		return {
+		return Effect.succeed({
 			mode: "smtp" as const,
 			host: getOrThrow("SMTP_HOST", host),
 			port,
@@ -99,7 +127,7 @@ const emailConfig = Config.all({
 							password: Redacted.make(getOrThrow("SMTP_PASSWORD", password)),
 						}
 					: undefined,
-		};
+		});
 	}),
 );
 
@@ -114,22 +142,29 @@ const appConfig = Config.all({
 	}),
 });
 
-type AppConfig = Config.Config.Success<typeof appConfig>;
+type AppConfig = Config.Success<typeof appConfig>;
 
-export class AppConfigService extends Context.Tag("AppConfigService")<
+export class AppConfigService extends Context.Service<
 	AppConfigService,
 	{
 		readonly config: AppConfig;
 	}
->() {}
+>()("AppConfigService") {}
 
 export const AppConfigLive = Layer.effect(
 	AppConfigService,
-	appConfig.pipe(
-		Effect.map((config) => ({
+	Effect.gen(function* () {
+		const config = yield* appConfig;
+
+		return {
 			config,
-		})),
-	),
+		};
+	}),
 );
 
-export const loadAppConfigSync = (): AppConfig => Effect.runSync(appConfig);
+export const loadAppConfigSync = (): AppConfig =>
+	Effect.runSync(
+		Effect.gen(function* () {
+			return yield* appConfig;
+		}),
+	);

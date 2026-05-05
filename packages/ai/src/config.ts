@@ -14,20 +14,22 @@ const aiConfig = Config.all({
 	}),
 });
 
-export type AiConfig = Config.Config.Success<typeof aiConfig>;
+export type AiConfig = Config.Success<typeof aiConfig>;
 
-export class AiConfigService extends Context.Tag("AiConfigService")<
+export class AiConfigService extends Context.Service<
 	AiConfigService,
 	{
 		readonly config: AiConfig;
 	}
->() {}
+>()("AiConfigService") {}
 
 export const AiConfigLive = Layer.effect(
 	AiConfigService,
-	aiConfig.pipe(
-		Effect.map((config) => ({
+	Effect.gen(function* () {
+		const config = yield* aiConfig;
+
+		return {
 			config,
-		})),
-	),
+		};
+	}),
 );

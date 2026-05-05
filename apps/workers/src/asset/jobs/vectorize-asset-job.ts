@@ -436,7 +436,7 @@ const buildImageChunks = ({
 					chunkIndex: textChunkCount + imageIndex,
 					chunkCount: totalChunkCount,
 				}).pipe(
-					Effect.catchAll((err) =>
+					Effect.catch((err) =>
 						Effect.logError(
 							{
 								jobId,

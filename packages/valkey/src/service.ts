@@ -7,14 +7,14 @@ import { ValkeyError } from "./errors";
 
 export type ValkeyClient = ReturnType<typeof createClient>;
 
-export class ValkeyService extends Context.Tag("ValkeyService")<
+export class ValkeyService extends Context.Service<
 	ValkeyService,
 	{
 		readonly client: ValkeyClient;
 	}
->() {}
+>()("ValkeyService") {}
 
-export const ValkeyServiceLive = Layer.scoped(
+export const ValkeyServiceLive = Layer.effect(
 	ValkeyService,
 	Effect.acquireRelease(
 		Effect.gen(function* () {

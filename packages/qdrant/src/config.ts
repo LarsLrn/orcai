@@ -2,19 +2,15 @@ import * as Config from "effect/Config";
 import * as Context from "effect/Context";
 import * as Effect from "effect/Effect";
 import * as Layer from "effect/Layer";
+import * as Schema from "effect/Schema";
 
-const embeddingDimensionsConfig = Config.string("EMBEDDING_DIMENSIONS").pipe(
-	Config.mapAttempt((value) => {
-		const dimensions = Number.parseInt(value, 10);
-
-		if (!Number.isInteger(dimensions) || dimensions <= 0) {
-			throw new Error(
-				`Invalid EMBEDDING_DIMENSIONS value "${value}". Expected a positive integer.`,
-			);
-		}
-
-		return dimensions;
-	}),
+const embeddingDimensionsConfig = Config.schema(
+	Schema.Int.check(
+		Schema.isGreaterThan(0, {
+			message: "Expected a positive integer",
+		}),
+	),
+	"EMBEDDING_DIMENSIONS",
 );
 
 export const defaultBm25Config = {
@@ -33,20 +29,22 @@ const qdrantConfig = Config.all({
 	}),
 });
 
-export type QdrantConfig = Config.Config.Success<typeof qdrantConfig>;
+export type QdrantConfig = Config.Success<typeof qdrantConfig>;
 
-export class QdrantConfigService extends Context.Tag("QdrantConfigService")<
+export class QdrantConfigService extends Context.Service<
 	QdrantConfigService,
 	{
 		readonly config: QdrantConfig;
 	}
->() {}
+>()("QdrantConfigService") {}
 
 export const QdrantConfigLive = Layer.effect(
 	QdrantConfigService,
-	qdrantConfig.pipe(
-		Effect.map((config) => ({
+	Effect.gen(function* () {
+		const config = yield* qdrantConfig;
+
+		return {
 			config,
-		})),
-	),
+		};
+	}),
 );

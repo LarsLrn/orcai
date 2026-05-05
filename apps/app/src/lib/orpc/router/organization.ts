@@ -38,7 +38,7 @@ export const listOrganizations = authed.organization.list.handler(
 					Effect.map((response) =>
 						response.map((item) => item.resourceObjectId),
 					),
-					Effect.catchAll(() => Effect.succeed([])),
+					Effect.catch(() => Effect.succeed([])),
 				);
 
 				const allowedSet = new Set(allowedIds);
@@ -63,7 +63,7 @@ export const listOrganizations = authed.organization.list.handler(
 							})),
 						})
 						.pipe(
-							Effect.catchAll((error) =>
+							Effect.catch((error) =>
 								Effect.logWarning(
 									`organization.membership_repair_failed userId=${context.auth.user.id} cause=${String(error)}`,
 								),
@@ -128,13 +128,11 @@ export const findOrganization = authed.organization.find
 					})
 					.pipe(
 						Effect.flatMap((organization) =>
-							Effect.fromNullable(organization).pipe(
-								Effect.orElse(() =>
-									Effect.fail(
-										errors.NOT_FOUND({
-											message: "Organization not found",
-										}),
-									),
+							Effect.fromNullishOr(organization).pipe(
+								Effect.mapError(() =>
+									errors.NOT_FOUND({
+										message: "Organization not found",
+									}),
 								),
 							),
 						),

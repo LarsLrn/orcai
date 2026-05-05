@@ -249,7 +249,7 @@ const processAssets = (params: { job: Job<ProcessAssetPayload> }) =>
 						"Failed to dispatch follow-up vectorization jobs",
 					),
 				),
-				Effect.catchAll(() => Effect.void),
+				Effect.catch(() => Effect.void),
 			);
 		}
 

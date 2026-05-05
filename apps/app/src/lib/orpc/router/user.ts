@@ -139,14 +139,11 @@ export const findUser = authed.user.find
 					.pipe(
 						Effect.map(([user]) => user),
 						Effect.flatMap((userWithMembership) =>
-							Effect.fromNullable(userWithMembership).pipe(
-								Effect.orElse(() =>
-									Effect.fail(
-										errors.NOT_FOUND({
-											message:
-												"User is not a member of the active organization",
-										}),
-									),
+							Effect.fromNullishOr(userWithMembership).pipe(
+								Effect.mapError(() =>
+									errors.NOT_FOUND({
+										message: "User is not a member of the active organization",
+									}),
 								),
 							),
 						),
@@ -658,13 +655,11 @@ export const me = authed.user.me.handler(async ({ context, errors }) =>
 				})
 				.pipe(
 					Effect.flatMap((user) =>
-						Effect.fromNullable(user).pipe(
-							Effect.orElse(() =>
-								Effect.fail(
-									errors.NOT_FOUND({
-										message: "User not found",
-									}),
-								),
+						Effect.fromNullishOr(user).pipe(
+							Effect.mapError(() =>
+								errors.NOT_FOUND({
+									message: "User not found",
+								}),
 							),
 						),
 					),
@@ -695,13 +690,11 @@ export const updatePassword = authed.user.updatePassword.handler(
 					})
 					.pipe(
 						Effect.flatMap((account) =>
-							Effect.fromNullable(account?.password).pipe(
-								Effect.orElse(() =>
-									Effect.fail(
-										errors.NOT_FOUND({
-											message: "No password found for the user",
-										}),
-									),
+							Effect.fromNullishOr(account?.password).pipe(
+								Effect.mapError(() =>
+									errors.NOT_FOUND({
+										message: "No password found for the user",
+									}),
 								),
 							),
 						),
@@ -779,7 +772,7 @@ export const setActiveOrganization = authed.user.setActiveOrganization.handler(
 					zedToken: context.meta?.zedToken,
 				}).pipe(
 					Effect.map((permission) => hasPermission(permission) === true),
-					Effect.catchAll(() => Effect.succeed(false)),
+					Effect.catch(() => Effect.succeed(false)),
 				);
 
 				if (!hasSpiceAccess) {

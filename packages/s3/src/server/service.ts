@@ -7,15 +7,15 @@ import * as Redacted from "effect/Redacted";
 import { S3ConfigLive, S3ConfigService } from "./config";
 import { S3Error } from "./errors";
 
-export class S3Service extends Context.Tag("S3Service")<
+export class S3Service extends Context.Service<
 	S3Service,
 	{
 		readonly client: S3Client;
 		readonly presignClient: S3Client;
 	}
->() {}
+>()("S3Service") {}
 
-export const S3ServiceLive = Layer.scoped(
+export const S3ServiceLive = Layer.effect(
 	S3Service,
 	Effect.acquireRelease(
 		Effect.gen(function* () {

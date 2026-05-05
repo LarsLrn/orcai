@@ -14,21 +14,23 @@ import { isOtelEnabled } from "./config";
 
 const PrettyLoggerLive =
 	process.env.NODE_ENV === "development"
-		? Logger.replace(Logger.defaultLogger, Logger.prettyLoggerDefault)
+		? Logger.layer([
+				Logger.consolePretty(),
+			])
 		: Layer.empty;
 
 export const makeObservabilityLayer = (config: {
 	serviceName: string;
 	serviceVersion: string;
 	additionalInstrumentations?: Instrumentation[];
-}): Layer.Layer<Resource.Resource> => {
+}) => {
 	const ResourceLive = Resource.layer({
 		serviceName: config.serviceName,
 		serviceVersion: config.serviceVersion,
 	});
 
 	if (!isOtelEnabled()) {
-		return Layer.provideMerge(PrettyLoggerLive, ResourceLive);
+		return Layer.mergeAll(ResourceLive, PrettyLoggerLive);
 	}
 
 	const NodeSdkLive = NodeSdk.layer(() => ({
@@ -40,7 +42,7 @@ export const makeObservabilityLayer = (config: {
 		logRecordProcessor: new BatchLogRecordProcessor(new OTLPLogExporter()),
 	}));
 
-	const AutoInstrumentationLive = Layer.scopedDiscard(
+	const AutoInstrumentationLive = Layer.effectDiscard(
 		Effect.acquireRelease(
 			Effect.sync(() =>
 				registerInstrumentations({

@@ -18,8 +18,8 @@ const readS3Object = (source: ProcessS3Source) =>
 			key: source.key,
 		});
 
-		const body = yield* Effect.fromNullable(response.Body).pipe(
-			Effect.orElseFail(
+		const body = yield* Effect.fromNullishOr(response.Body).pipe(
+			Effect.mapError(
 				() =>
 					new ProcessError({
 						operation: "readS3Object.emptyBody",

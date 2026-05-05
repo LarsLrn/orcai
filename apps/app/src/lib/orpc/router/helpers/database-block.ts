@@ -33,17 +33,15 @@ export const syncDatabaseBlockAssets = (params: {
 		const db = yield* DB;
 		const authz = yield* AuthzService;
 
-		const previousAssetIds = yield* Effect.orElse(
-			Effect.fromNullable(params.previousAssetIds),
-			() =>
-				db
-					.select({
-						assetId: dbSchema.blockAsset.assetId,
-					})
-					.from(dbSchema.blockAsset)
-					.where(eq(dbSchema.blockAsset.blockId, params.blockId))
-					.pipe(Effect.map((assets) => assets.map((a) => a.assetId))),
-		);
+		const previousAssetIds =
+			params.previousAssetIds ??
+			(yield* db
+				.select({
+					assetId: dbSchema.blockAsset.assetId,
+				})
+				.from(dbSchema.blockAsset)
+				.where(eq(dbSchema.blockAsset.blockId, params.blockId))
+				.pipe(Effect.map((assets) => assets.map((a) => a.assetId))));
 
 		yield* db
 			.delete(dbSchema.blockAsset)

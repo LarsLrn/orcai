@@ -109,13 +109,11 @@ export const initializeBootstrap = os.bootstrap.initialize.handler(
 									id: dbSchema.user.id,
 								});
 
-							const user = yield* Effect.fromNullable(newUser).pipe(
-								Effect.orElse(() =>
-									Effect.fail(
-										errors.BAD_REQUEST({
-											message: "Failed to create bootstrap user.",
-										}),
-									),
+							const user = yield* Effect.fromNullishOr(newUser).pipe(
+								Effect.mapError(() =>
+									errors.BAD_REQUEST({
+										message: "Failed to create bootstrap user.",
+									}),
 								),
 							);
 
@@ -139,15 +137,13 @@ export const initializeBootstrap = os.bootstrap.initialize.handler(
 									id: dbSchema.organization.id,
 								});
 
-							const organization = yield* Effect.fromNullable(
+							const organization = yield* Effect.fromNullishOr(
 								newOrganization,
 							).pipe(
-								Effect.orElse(() =>
-									Effect.fail(
-										errors.BAD_REQUEST({
-											message: "Failed to create bootstrap organisation.",
-										}),
-									),
+								Effect.mapError(() =>
+									errors.BAD_REQUEST({
+										message: "Failed to create bootstrap organisation.",
+									}),
 								),
 							);
 

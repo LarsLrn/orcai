@@ -10,12 +10,12 @@ import {
 } from "./config";
 import { SpiceDbError } from "./errors";
 
-export class SpiceDbService extends Context.Tag("SpiceDbService")<
+export class SpiceDbService extends Context.Service<
 	SpiceDbService,
 	{
 		readonly spice: v1.ZedPromiseClientInterface;
 	}
->() {}
+>()("SpiceDbService") {}
 
 const securityModeMap: Record<SpiceDbSecurityMode, v1.ClientSecurity> = {
 	secure: v1.ClientSecurity.SECURE,
@@ -23,7 +23,7 @@ const securityModeMap: Record<SpiceDbSecurityMode, v1.ClientSecurity> = {
 	"insecure-plaintext": v1.ClientSecurity.INSECURE_PLAINTEXT_CREDENTIALS,
 };
 
-export const SpiceDbServiceLive = Layer.scoped(
+export const SpiceDbServiceLive = Layer.effect(
 	SpiceDbService,
 	Effect.gen(function* () {
 		const { config } = yield* SpiceDbConfigService;

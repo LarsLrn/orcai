@@ -10,18 +10,18 @@ import * as Redacted from "effect/Redacted";
 import { PgBoss } from "pg-boss";
 import { PgBossError } from "./errors";
 
-export class PgBossService extends Context.Tag("PgBossService")<
+export class PgBossService extends Context.Service<
 	PgBossService,
 	{
 		readonly boss: PgBoss;
 	}
->() {}
+>()("PgBossService") {}
 
 export const PgBossServiceLive: Layer.Layer<
 	PgBossService,
 	PgBossError,
 	DbConfigService
-> = Layer.scoped(
+> = Layer.effect(
 	PgBossService,
 	Effect.acquireRelease(
 		Effect.gen(function* () {
@@ -59,7 +59,7 @@ export const PgBossServiceLive: Layer.Layer<
 						graceful: true,
 					}),
 				).pipe(
-					Effect.catchAll((error) =>
+					Effect.catch((error) =>
 						Effect.logError(`Failed to stop PgBoss: ${error}`),
 					),
 				);

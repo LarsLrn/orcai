@@ -8,6 +8,7 @@
 		"start": "bun run src/start-workers.ts"
 	},
 	"dependencies": {
+		"@effect/sql-pg": "catalog:",
 		"@orcai/ai": "workspace:*",
 		"@orcai/core": "workspace:*",
 		"@orcai/db": "workspace:*",
@@ -21,6 +22,7 @@
 		"@orcai/valkey": "workspace:*",
 		"drizzle-orm": "catalog:",
 		"effect": "catalog:",
+		"pg": "catalog:",
 		"uuid": "catalog:"
 	}
 }

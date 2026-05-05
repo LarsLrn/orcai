@@ -93,13 +93,11 @@ export const findChat = authed.chat.find
 					})
 					.pipe(
 						Effect.flatMap((chat) =>
-							Effect.fromNullable(chat).pipe(
-								Effect.orElse(() =>
-									Effect.fail(
-										errors.NOT_FOUND({
-											message: "Chat not found",
-										}),
-									),
+							Effect.fromNullishOr(chat).pipe(
+								Effect.mapError(() =>
+									errors.NOT_FOUND({
+										message: "Chat not found",
+									}),
 								),
 							),
 						),
@@ -274,16 +272,14 @@ export const updateChat = authed.chat.update
 					.returning();
 			}).pipe(
 				Effect.flatMap(([updatedChat]) =>
-					Effect.fromNullable(updatedChat).pipe(
-						Effect.orElse(() =>
-							Effect.fail(
-								errors.NOT_FOUND({
-									message: "Chat not found",
-									data: {
-										id: input.id,
-									},
-								}),
-							),
+					Effect.fromNullishOr(updatedChat).pipe(
+						Effect.mapError(() =>
+							errors.NOT_FOUND({
+								message: "Chat not found",
+								data: {
+									id: input.id,
+								},
+							}),
 						),
 						Effect.map((chat) => ({
 							data: chat,

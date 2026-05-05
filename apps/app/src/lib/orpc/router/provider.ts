@@ -83,13 +83,11 @@ export const findProvider = authed.provider.find
 					)
 					.limit(1);
 
-				return yield* Effect.fromNullable(provider).pipe(
-					Effect.orElse(() =>
-						Effect.fail(
-							errors.NOT_FOUND({
-								message: "Provider not found",
-							}),
-						),
+				return yield* Effect.fromNullishOr(provider).pipe(
+					Effect.mapError(() =>
+						errors.NOT_FOUND({
+							message: "Provider not found",
+						}),
 					),
 					Effect.map((provider) => ({
 						data: provider,

@@ -66,13 +66,11 @@ export const listChatMessages = authed.chatMessage.list
 					})
 					.pipe(
 						Effect.flatMap((chat) =>
-							Effect.fromNullable(chat).pipe(
-								Effect.orElse(() =>
-									Effect.fail(
-										errors.NOT_FOUND({
-											message: "Branch not found",
-										}),
-									),
+							Effect.fromNullishOr(chat).pipe(
+								Effect.mapError(() =>
+									errors.NOT_FOUND({
+										message: "Branch not found",
+									}),
 								),
 							),
 						),
@@ -217,13 +215,11 @@ export const findChatMessage = authed.chatMessage.find
 					})
 					.pipe(
 						Effect.flatMap((chat) =>
-							Effect.fromNullable(chat).pipe(
-								Effect.orElse(() =>
-									Effect.fail(
-										errors.NOT_FOUND({
-											message: "Chat message not found",
-										}),
-									),
+							Effect.fromNullishOr(chat).pipe(
+								Effect.mapError(() =>
+									errors.NOT_FOUND({
+										message: "Chat message not found",
+									}),
 								),
 							),
 						),
@@ -272,13 +268,11 @@ export const getBranchIdForMessage = authed.chatMessage.getBranch
 							};
 						}),
 						Effect.flatMap((branch) =>
-							Effect.fromNullable(branch).pipe(
-								Effect.orElse(() =>
-									Effect.fail(
-										errors.NOT_FOUND({
-											message: "No branch found context for this message",
-										}),
-									),
+							Effect.fromNullishOr(branch).pipe(
+								Effect.mapError(() =>
+									errors.NOT_FOUND({
+										message: "No branch found context for this message",
+									}),
 								),
 							),
 						),
@@ -322,13 +316,11 @@ export const createChatMessage = authed.chatMessage.create
 					})
 					.pipe(
 						Effect.flatMap((branch) =>
-							Effect.fromNullable(branch).pipe(
-								Effect.orElse(() =>
-									Effect.fail(
-										errors.NOT_FOUND({
-											message: "Branch not found",
-										}),
-									),
+							Effect.fromNullishOr(branch).pipe(
+								Effect.mapError(() =>
+									errors.NOT_FOUND({
+										message: "Branch not found",
+									}),
 								),
 							),
 						),
@@ -485,16 +477,14 @@ export const updateChatMessage = authed.chatMessage.update
 					})
 					.pipe(
 						Effect.flatMap((msg) =>
-							Effect.fromNullable(msg).pipe(
-								Effect.orElse(() =>
-									Effect.fail(
-										errors.NOT_FOUND({
-											message: "Chat Message not found",
-											data: {
-												id: input.id,
-											},
-										}),
-									),
+							Effect.fromNullishOr(msg).pipe(
+								Effect.mapError(() =>
+									errors.NOT_FOUND({
+										message: "Chat Message not found",
+										data: {
+											id: input.id,
+										},
+									}),
 								),
 							),
 						),

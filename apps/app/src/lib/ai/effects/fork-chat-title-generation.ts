@@ -108,7 +108,7 @@ export const forkChatTitleGenerationIfNeeded = (params: {
 			return;
 		}
 
-		yield* Effect.forkDaemon(
+		yield* Effect.forkDetach(
 			generateAndPersistChatTitle({
 				chatId: params.chatId,
 				model: params.model,
@@ -118,6 +118,6 @@ export const forkChatTitleGenerationIfNeeded = (params: {
 				userId: params.userId,
 				userMessageId: params.userMessage.id,
 				userMessageText,
-			}).pipe(Effect.catchAll(() => Effect.void)),
+			}).pipe(Effect.catch(() => Effect.void)),
 		);
 	});

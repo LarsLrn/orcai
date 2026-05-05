@@ -28,20 +28,22 @@ const s3Config = Config.all({
 	})),
 );
 
-export type S3Config = Config.Config.Success<typeof s3Config>;
+export type S3Config = Config.Success<typeof s3Config>;
 
-export class S3ConfigService extends Context.Tag("S3ConfigService")<
+export class S3ConfigService extends Context.Service<
 	S3ConfigService,
 	{
 		readonly config: S3Config;
 	}
->() {}
+>()("S3ConfigService") {}
 
 export const S3ConfigLive = Layer.effect(
 	S3ConfigService,
-	s3Config.pipe(
-		Effect.map((config) => ({
+	Effect.gen(function* () {
+		const config = yield* s3Config;
+
+		return {
 			config,
-		})),
-	),
+		};
+	}),
 );

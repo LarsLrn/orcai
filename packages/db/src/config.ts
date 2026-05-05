@@ -13,22 +13,29 @@ const dbConfig = Config.all({
 	}),
 });
 
-type DbConfig = Config.Config.Success<typeof dbConfig>;
+type DbConfig = Config.Success<typeof dbConfig>;
 
-export class DbConfigService extends Context.Tag("DbConfigService")<
+export class DbConfigService extends Context.Service<
 	DbConfigService,
 	{
 		readonly config: DbConfig;
 	}
->() {}
+>()("DbConfigService") {}
 
 export const DbConfigLive = Layer.effect(
 	DbConfigService,
-	dbConfig.pipe(
-		Effect.map((config) => ({
+	Effect.gen(function* () {
+		const config = yield* dbConfig;
+
+		return {
 			config,
-		})),
-	),
+		};
+	}),
 );
 
-export const loadDbConfigSync = (): DbConfig => Effect.runSync(dbConfig);
+export const loadDbConfigSync = (): DbConfig =>
+	Effect.runSync(
+		Effect.gen(function* () {
+			return yield* dbConfig;
+		}),
+	);

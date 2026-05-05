@@ -134,7 +134,7 @@ export const aiChat = authed.ai.chat
 					})
 					.pipe(
 						Effect.flatMap((chat) =>
-							Effect.fromNullable(chat).pipe(
+							Effect.fromNullishOr(chat).pipe(
 								Effect.mapError(() =>
 									errors.BAD_REQUEST({
 										message: "Chat not found",
@@ -312,13 +312,13 @@ export const aiChat = authed.ai.chat
 								message: `Failed to create user message: ${cause}`,
 							}),
 					}).pipe(
-						Effect.catchAll((error) =>
+						Effect.catch((error) =>
 							releaseAppRequestQuota({
 								reservation,
 								reason: "app_failure",
 							}).pipe(
-								Effect.catchAll(() => Effect.void),
-								Effect.zipRight(Effect.fail(error)),
+								Effect.catch(() => Effect.void),
+								Effect.andThen(Effect.fail(error)),
 							),
 						),
 					);
@@ -462,20 +462,20 @@ export const aiChat = authed.ai.chat
 							cause,
 						}),
 				}).pipe(
-					Effect.catchAll((error) =>
+					Effect.catch((error) =>
 						releaseAppRequestQuota({
 							reservation,
 							reason: "app_failure",
 						}).pipe(
-							Effect.catchAll(() => Effect.void),
-							Effect.zipRight(Effect.fail(error)),
+							Effect.catch(() => Effect.void),
+							Effect.andThen(Effect.fail(error)),
 						),
 					),
 				);
 
 				return streamToEventIterator(stream);
 			}).pipe(
-				Effect.tapErrorCause((cause) =>
+				Effect.tapCause((cause) =>
 					Effect.logError(`[ai.chat] handler failed ${Cause.pretty(cause)}`),
 				),
 			),
