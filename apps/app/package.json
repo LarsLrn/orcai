@@ -96,7 +96,6 @@
 		"convert": "7.0.0",
 		"date-fns": "4.1.0",
 		"drizzle-orm": "catalog:",
-		"drizzle-zod": "catalog:",
 		"effect": "catalog:",
 		"embla-carousel-react": "8.6.0",
 		"js-cookie": "3.0.5",

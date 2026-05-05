@@ -4,7 +4,7 @@ import {
 	createInsertSchema,
 	createSelectSchema,
 	createUpdateSchema,
-} from "drizzle-zod";
+} from "drizzle-orm/zod";
 import { z } from "zod/v4";
 import { organizationMemberSelectSchema } from "./organization-member";
 import {
