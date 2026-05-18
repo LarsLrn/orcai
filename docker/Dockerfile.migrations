@@ -2,13 +2,13 @@ FROM oven/bun:1.3.13-slim
 
 WORKDIR /app
 
-COPY package.json bun.lock ./
+COPY package.json bun.lock bunfig.toml ./
 COPY packages/core ./packages/core
 COPY packages/schema ./packages/schema
 COPY packages/db ./packages/db
 
 WORKDIR /app/packages/db
 
-RUN bun install
+RUN bun install --frozen-lockfile --ignore-scripts
 
 CMD ["bun", "run", "migrate"]

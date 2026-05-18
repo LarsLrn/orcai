@@ -5,13 +5,13 @@ FROM ${BUN_IMAGE}
 
 WORKDIR /app
 
-COPY package.json bun.lock ./
+COPY package.json bun.lock bunfig.toml ./
 COPY packages/spice-db ./packages/spice-db
 COPY packages/core ./packages/core
 
 WORKDIR /app/packages/spice-db
 
-RUN bun install
+RUN bun install --frozen-lockfile --ignore-scripts
 
 USER bun
 
