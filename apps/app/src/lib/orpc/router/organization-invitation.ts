@@ -160,7 +160,7 @@ export const createOrganizationInvitations =
 						email: item.email,
 						organizationId: input.organizationId,
 						role: input.role,
-						status: "pending",
+						status: "pending" as const,
 						expiresAt: input.expiresAt,
 						inviterId: context.auth.user.id,
 					}));

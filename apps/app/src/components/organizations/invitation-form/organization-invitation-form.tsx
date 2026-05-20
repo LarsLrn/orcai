@@ -1,3 +1,4 @@
+import type { OrganizationInvitation } from "@orcai/schema";
 import { useSuspenseQuery } from "@tanstack/react-query";
 import { CircleMinusIcon } from "lucide-react";
 import { useId } from "react";
@@ -22,7 +23,6 @@ import { Textarea } from "@/components/ui/textarea";
 import { useAppForm } from "@/hooks/form";
 import { useCreateOrganizationInvitationMutation } from "@/hooks/mutations/use-organization-invitation-mutations";
 import { orpc } from "@/lib/orpc/orpc";
-import type { OrganizationInvitation } from "@/lib/orpc/schemas/organization-invitation";
 import { organizationInvitationFormOptions } from "./organization-invitation-form-options";
 
 const OrganizationInvitationForm = () => {

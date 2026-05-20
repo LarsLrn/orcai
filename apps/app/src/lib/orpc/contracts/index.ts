@@ -51,15 +51,6 @@ import {
 	updateGroupContract,
 } from "./group";
 import {
-	createOrganizationInvitationsContract,
-	deleteOrganizationInvitationsContract,
-	findOrganizationInvitationContract,
-	listOrganizationInvitationsContract,
-	respondToOrganizationInvitationContract,
-	updateOrganizationInvitationContract,
-	validateOrganizationInvitationContract,
-} from "./organization-invitation";
-import {
 	getResourceVisibilityContract,
 	grantResourceAccessContract,
 	listResourceGrantsContract,
@@ -91,15 +82,7 @@ export const contracts = {
 	},
 	organization: sharedContracts.organization,
 	organizationMember: sharedContracts.organizationMember,
-	organizationInvitation: {
-		list: listOrganizationInvitationsContract,
-		create: createOrganizationInvitationsContract,
-		find: findOrganizationInvitationContract,
-		validate: validateOrganizationInvitationContract,
-		update: updateOrganizationInvitationContract,
-		delete: deleteOrganizationInvitationsContract,
-		respond: respondToOrganizationInvitationContract,
-	},
+	organizationInvitation: sharedContracts.organizationInvitation,
 	provider: sharedContracts.provider,
 	quota: sharedContracts.quota,
 	resource: {

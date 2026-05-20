@@ -1,5 +1,5 @@
+import { createOrganizationInvitationsInputSchema } from "@orcai/schema";
 import { formOptions } from "@tanstack/form-core";
-import { organizationInvitationInsertSchema } from "@/lib/orpc/schemas/organization-invitation";
 
 const defaultValues = () => ({
 	organizationId: "",
@@ -16,6 +16,6 @@ export const organizationInvitationFormOptions = () =>
 	formOptions({
 		defaultValues: defaultValues(),
 		validators: {
-			onChange: organizationInvitationInsertSchema,
+			onChange: createOrganizationInvitationsInputSchema,
 		},
 	});

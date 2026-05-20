@@ -1,4 +1,5 @@
 import type { OrganizationInvitationId } from "@orcai/core";
+import type { OrganizationInvitation } from "@orcai/schema";
 import { useRouter } from "@tanstack/react-router";
 import type { ColumnDef } from "@tanstack/react-table";
 import { format } from "date-fns";
@@ -16,7 +17,6 @@ import {
 } from "@/components/ui/dropdown-menu";
 import { useDeleteOrganizationInvitationsMutation } from "@/hooks/mutations/use-organization-invitation-mutations";
 import { clientEnv } from "@/lib/env/client";
-import type { OrganizationInvitation } from "@/lib/orpc/schemas/organization-invitation";
 
 export const invitesTableColumns: ColumnDef<OrganizationInvitation>[] = [
 	{

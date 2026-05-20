@@ -10,7 +10,6 @@ import {
 	updateOrganizationMemberInputSchema,
 	updateOrganizationMemberResponseSchema,
 } from "@orcai/schema";
-import { z } from "zod/v4";
 import { base } from "./base";
 
 export const organizationMemberContracts = {
@@ -55,16 +54,6 @@ export const organizationMemberContracts = {
 			tags: [
 				"Organization Members",
 			],
-		})
-		.errors({
-			NOT_FOUND: {
-				message: "Member not found",
-				data: z.object({
-					organizationId:
-						updateOrganizationMemberInputSchema.shape.organizationId,
-					userId: updateOrganizationMemberInputSchema.shape.userId,
-				}),
-			},
 		})
 		.input(updateOrganizationMemberInputSchema)
 		.output(updateOrganizationMemberResponseSchema),
