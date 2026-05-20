@@ -1,11 +1,11 @@
 import { z } from "zod/v4";
-import { providerMeteringModeSchema } from "../fragments";
-import { providerSchema } from "../provider";
+import { providerMeteringModeSchema } from "../fragments/provider-metering-mode";
+import { providerSchema } from "../provider/schema";
+import { quotaPoolIdSchema } from "./ref";
 import {
 	quotaLedgerSchema,
 	quotaPeriodSchema,
 	quotaPoolGroupAssignmentSchema,
-	quotaPoolIdSchema,
 	quotaPoolSchema,
 	quotaUsageEventSchema,
 } from "./schema";

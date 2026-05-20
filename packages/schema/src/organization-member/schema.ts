@@ -1,7 +1,7 @@
 import { z } from "zod/v4";
-import { organizationRoleSchema } from "../fragments";
-import { memberIdSchema, organizationIdSchema } from "../organization";
-import { userIdSchema } from "../user";
+import { organizationRoleSchema } from "../fragments/organization-role";
+import { memberIdSchema, organizationIdSchema } from "../organization/ref";
+import { userIdSchema } from "../user/ref";
 
 export const organizationMemberFieldsSchema = z.object({
 	organizationId: organizationIdSchema,

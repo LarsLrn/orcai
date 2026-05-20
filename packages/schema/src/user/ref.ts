@@ -1,5 +1,4 @@
 import type { UserId } from "@orcai/core";
-import { createUuidIdSchema } from "../shared";
+import { createUuidIdSchema } from "../shared/id-schema";
 
-// Stub entrypoint for the user resource migration.
 export const userIdSchema = createUuidIdSchema<UserId>();

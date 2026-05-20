@@ -1,5 +1,5 @@
 import { z } from "zod/v4";
-import { chatBranchSchema } from "../chat-branch";
+import { chatBranchSchema } from "../chat-branch/schema";
 import {
 	createDataResponseSchema,
 	createDeleteResponseSchema,

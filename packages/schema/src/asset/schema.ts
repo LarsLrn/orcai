@@ -1,12 +1,9 @@
-import type { AssetId } from "@orcai/core";
 import { z } from "zod/v4";
 import { metadataSchema } from "../fragments/asset-metadata";
 import { processingStatusSchema } from "../fragments/processing-status";
-import { createUuidIdSchema } from "../shared";
-import { userIdSchema } from "../user";
+import { userIdSchema } from "../user/ref";
 import { bucketSchema } from "../zod/buckets";
-
-export const assetIdSchema = createUuidIdSchema<AssetId>();
+import { assetIdSchema } from "./ref";
 
 export const assetFieldsSchema = z.object({
 	title: z.string().min(1, "Title is required"),

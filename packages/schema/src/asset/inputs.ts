@@ -2,10 +2,10 @@ import { z } from "zod/v4";
 import { processingStatusSchema } from "../fragments/processing-status";
 import { paginationInputSchema, zedTokenSchema } from "../shared";
 import { bucketSchema } from "../zod/buckets";
+import { assetIdSchema } from "./ref";
 import {
 	assetFieldsSchema,
 	assetFiltersSchema,
-	assetIdSchema,
 	assetMutableFieldsSchema,
 	finalizedUploadFileSchema,
 } from "./schema";

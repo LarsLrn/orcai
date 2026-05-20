@@ -1,6 +1,6 @@
 import { z } from "zod/v4";
-import { groupMemberSourceSchema } from "../fragments";
-import { userIdSchema } from "../user";
+import { groupMemberSourceSchema } from "../fragments/group-member-source";
+import { userIdSchema } from "../user/ref";
 
 export const groupMemberUserSchema = z.object({
 	id: userIdSchema,

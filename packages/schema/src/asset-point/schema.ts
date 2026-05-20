@@ -1,7 +1,7 @@
 import { z } from "zod/v4";
-import { assetIdSchema } from "../asset";
-import { blockIdSchema } from "../block";
-import { retrievalModeSchema } from "../fragments";
+import { assetIdSchema } from "../asset/ref";
+import { blockIdSchema } from "../block/ref";
+import { retrievalModeSchema } from "../fragments/retrieval-mode";
 import { fileTypeSchema } from "../zod/file";
 
 const baseChunkPayloadSchema = z.object({

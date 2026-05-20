@@ -1,5 +1,5 @@
 import { z } from "zod/v4";
-import { assetIdSchema } from "../asset";
+import { assetIdSchema } from "../asset/ref";
 import { bucketSchema } from "../zod/buckets";
 import { fileTypeSchema } from "../zod/file";
 

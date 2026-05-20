@@ -1,13 +1,8 @@
-import type { ProviderId } from "@orcai/core";
 import { z } from "zod/v4";
-import {
-	providerCompatibilitySchema,
-	providerMeteringModeSchema,
-} from "../fragments";
-import { organizationIdSchema } from "../organization";
-import { createUuidIdSchema } from "../shared";
-
-export const providerIdSchema = createUuidIdSchema<ProviderId>();
+import { providerCompatibilitySchema } from "../fragments/provider-compatibility";
+import { providerMeteringModeSchema } from "../fragments/provider-metering-mode";
+import { organizationIdSchema } from "../organization/ref";
+import { providerIdSchema } from "./ref";
 
 export const providerFieldsSchema = z.object({
 	name: z.string().min(1, "Name is required"),

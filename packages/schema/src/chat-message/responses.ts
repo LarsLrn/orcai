@@ -1,13 +1,14 @@
 import { z } from "zod/v4";
-import { chatIdSchema } from "../chat/schema";
-import { chatBranchIdSchema } from "../chat-branch";
+import { chatIdSchema } from "../chat/ref";
+import { chatBranchIdSchema } from "../chat-branch/ref";
 import {
 	createDataResponseSchema,
 	createDeleteResponseSchema,
 	createListResponseSchema,
 	statusResponseSchema,
 } from "../shared";
-import { chatMessageIdSchema, chatMessageSchema } from "./schema";
+import { chatMessageIdSchema } from "./ref";
+import { chatMessageSchema } from "./schema";
 
 export const chatMessageScoresSchema = createDataResponseSchema(
 	z.array(z.unknown()),

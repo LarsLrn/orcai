@@ -1,15 +1,9 @@
-import type { OrganizationInvitationId } from "@orcai/core";
 import { z } from "zod/v4";
-import {
-	organizationInvitationStatusSchema,
-	organizationRoleSchema,
-} from "../fragments";
-import { organizationIdSchema } from "../organization";
-import { createUuidIdSchema } from "../shared";
-import { userIdSchema } from "../user";
-
-export const organizationInvitationIdSchema =
-	createUuidIdSchema<OrganizationInvitationId>();
+import { organizationInvitationStatusSchema } from "../fragments/organization-invitation-status";
+import { organizationRoleSchema } from "../fragments/organization-role";
+import { organizationIdSchema } from "../organization/ref";
+import { userIdSchema } from "../user/ref";
+import { organizationInvitationIdSchema } from "./ref";
 
 export const organizationInvitationFieldsSchema = z.object({
 	organizationId: organizationIdSchema,

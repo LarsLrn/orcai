@@ -1,5 +1,4 @@
 import type { BlockId } from "@orcai/core";
-import { createUuidIdSchema } from "../shared";
+import { createUuidIdSchema } from "../shared/id-schema";
 
-// Stub entrypoint for the block resource migration.
 export const blockIdSchema = createUuidIdSchema<BlockId>();

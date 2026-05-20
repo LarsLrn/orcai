@@ -1,10 +1,7 @@
-import type { ChatBranchId } from "@orcai/core";
 import { z } from "zod/v4";
-import { chatIdSchema } from "../chat/schema";
-import { chatMessageIdSchema } from "../chat-message";
-import { createUuidIdSchema } from "../shared";
-
-export const chatBranchIdSchema = createUuidIdSchema<ChatBranchId>();
+import { chatIdSchema } from "../chat/ref";
+import { chatMessageIdSchema } from "../chat-message/ref";
+import { chatBranchIdSchema } from "./ref";
 
 export const chatBranchSchema = z.object({
 	id: chatBranchIdSchema,

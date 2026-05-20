@@ -1,12 +1,9 @@
-import type { GroupId, GroupMemberId } from "@orcai/core";
 import { z } from "zod/v4";
-import { groupKindSchema, groupSystemKeySchema } from "../fragments";
-import { organizationIdSchema } from "../organization";
-import { createUuidIdSchema } from "../shared";
-import { userIdSchema } from "../user";
-
-export const groupIdSchema = createUuidIdSchema<GroupId>();
-export const groupMemberIdSchema = createUuidIdSchema<GroupMemberId>();
+import { groupKindSchema } from "../fragments/group-kind";
+import { groupSystemKeySchema } from "../fragments/group-system-key";
+import { organizationIdSchema } from "../organization/ref";
+import { userIdSchema } from "../user/ref";
+import { groupIdSchema, groupMemberIdSchema } from "./ref";
 
 export const groupFieldsSchema = z.object({
 	name: z.string().trim().min(1),

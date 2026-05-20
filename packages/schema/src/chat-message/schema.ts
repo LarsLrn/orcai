@@ -1,9 +1,6 @@
-import type { ChatMessageId } from "@orcai/core";
 import { z } from "zod/v4";
-import { chatIdSchema } from "../chat";
-import { createUuidIdSchema } from "../shared";
-
-export const chatMessageIdSchema = createUuidIdSchema<ChatMessageId>();
+import { chatIdSchema } from "../chat/ref";
+import { chatMessageIdSchema } from "./ref";
 
 export const chatMessagePartsSchema = z.array(z.unknown());
 export const chatMessageAttachmentsSchema = z.array(z.unknown());

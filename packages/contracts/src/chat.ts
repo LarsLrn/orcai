@@ -1,4 +1,3 @@
-import { base } from "@orcai/contracts";
 import {
 	createChatInputSchema,
 	createChatResponseSchema,
@@ -11,6 +10,7 @@ import {
 	updateChatInputSchema,
 	updateChatResponseSchema,
 } from "@orcai/schema";
+import { base } from "./base";
 
 export const chatContracts = {
 	list: base

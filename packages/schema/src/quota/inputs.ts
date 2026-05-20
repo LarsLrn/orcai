@@ -1,11 +1,11 @@
 import { z } from "zod/v4";
-import { chatIdSchema } from "../chat";
-import { groupIdSchema } from "../group";
+import { chatIdSchema } from "../chat/ref";
+import { groupIdSchema } from "../group/ref";
 import { paginationInputSchema } from "../shared";
+import { quotaPoolIdSchema } from "./ref";
 import {
 	quotaPoolFieldsSchema,
 	quotaPoolFiltersSchema,
-	quotaPoolIdSchema,
 	quotaPoolMutableFieldsSchema,
 } from "./schema";
 

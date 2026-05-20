@@ -1,6 +1,6 @@
 import { z } from "zod/v4";
-import { assetIdSchema } from "../asset";
-import { blockIdSchema } from "../block";
+import { assetIdSchema } from "../asset/ref";
+import { blockIdSchema } from "../block/ref";
 import {
 	jobQueues,
 	PROCESS_ASSET_JOB_NAME,

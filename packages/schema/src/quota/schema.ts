@@ -1,33 +1,20 @@
-import type {
-	QuotaLedgerId,
-	QuotaPeriodId,
-	QuotaPoolAuditLogId,
-	QuotaPoolGroupAssignmentId,
-	QuotaPoolId,
-	QuotaUsageEventId,
-} from "@orcai/core";
 import { z } from "zod/v4";
+import { providerMeteringModeSchema } from "../fragments/provider-metering-mode";
+import { quotaPeriodStatusSchema } from "../fragments/quota-period-status";
+import { quotaPoolPeriodTypeSchema } from "../fragments/quota-period-type";
+import { quotaUsageEventTypeSchema } from "../fragments/quota-usage-event-type";
+import { groupIdSchema } from "../group/ref";
+import { modelIdSchema } from "../model/ref";
+import { organizationIdSchema } from "../organization/ref";
+import { providerIdSchema } from "../provider/ref";
+import { userIdSchema } from "../user/ref";
 import {
-	providerMeteringModeSchema,
-	quotaPeriodStatusSchema,
-	quotaPoolPeriodTypeSchema,
-	quotaUsageEventTypeSchema,
-} from "../fragments";
-import { groupIdSchema } from "../group";
-import { modelIdSchema } from "../model";
-import { organizationIdSchema } from "../organization";
-import { providerIdSchema } from "../provider";
-import { createUuidIdSchema } from "../shared";
-import { userIdSchema } from "../user";
-
-export const quotaPoolIdSchema = createUuidIdSchema<QuotaPoolId>();
-export const quotaPoolGroupAssignmentIdSchema =
-	createUuidIdSchema<QuotaPoolGroupAssignmentId>();
-export const quotaPeriodIdSchema = createUuidIdSchema<QuotaPeriodId>();
-export const quotaLedgerIdSchema = createUuidIdSchema<QuotaLedgerId>();
-export const quotaUsageEventIdSchema = createUuidIdSchema<QuotaUsageEventId>();
-export const quotaPoolAuditLogIdSchema =
-	createUuidIdSchema<QuotaPoolAuditLogId>();
+	quotaLedgerIdSchema,
+	quotaPeriodIdSchema,
+	quotaPoolGroupAssignmentIdSchema,
+	quotaPoolIdSchema,
+	quotaUsageEventIdSchema,
+} from "./ref";
 
 export const quotaPoolFieldsSchema = z.object({
 	name: z.string().trim().min(1).max(120),

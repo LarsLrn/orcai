@@ -1,9 +1,9 @@
 import { z } from "zod/v4";
 import { paginationInputSchema, zedTokenSchema } from "../shared";
+import { providerIdSchema } from "./ref";
 import {
 	providerFieldsSchema,
 	providerFiltersSchema,
-	providerIdSchema,
 	providerMutableFieldsSchema,
 	providerSchema,
 } from "./schema";

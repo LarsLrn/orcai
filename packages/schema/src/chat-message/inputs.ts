@@ -1,9 +1,9 @@
 import { z } from "zod/v4";
-import { chatBranchIdSchema } from "../chat-branch";
+import { chatBranchIdSchema } from "../chat-branch/ref";
 import { paginationInputSchema, zedTokenSchema } from "../shared";
+import { chatMessageIdSchema } from "./ref";
 import {
 	chatMessageFieldsSchema,
-	chatMessageIdSchema,
 	chatMessageMutableFieldsSchema,
 	chatMessageSchema,
 } from "./schema";

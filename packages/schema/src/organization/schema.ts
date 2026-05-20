@@ -1,9 +1,5 @@
-import type { MemberId, OrganizationId } from "@orcai/core";
 import { z } from "zod/v4";
-import { createUuidIdSchema } from "../shared";
-
-export const organizationIdSchema = createUuidIdSchema<OrganizationId>();
-export const memberIdSchema = createUuidIdSchema<MemberId>();
+import { organizationIdSchema } from "./ref";
 
 export const organizationFieldsSchema = z.object({
 	name: z.string().min(1, "Name is required"),

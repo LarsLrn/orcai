@@ -1,7 +1,8 @@
 import { z } from "zod/v4";
-import { chatConfigPatchSchema } from "../fragments";
+import { chatConfigPatchSchema } from "../fragments/chat-config";
 import { paginationInputSchema, zedTokenSchema } from "../shared";
-import { chatIdSchema, chatMutableFieldsSchema } from "./schema";
+import { chatIdSchema } from "./ref";
+import { chatMutableFieldsSchema } from "./schema";
 
 export const listChatsInputSchema = z.object({
 	...paginationInputSchema.shape,

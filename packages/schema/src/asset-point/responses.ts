@@ -1,5 +1,5 @@
 import { z } from "zod/v4";
-import { retrievalModeSchema } from "../fragments";
+import { retrievalModeSchema } from "../fragments/retrieval-mode";
 import {
 	createDataResponseSchema,
 	createDeleteResponseSchema,

@@ -1,8 +1,8 @@
 import { z } from "zod/v4";
 import { paginationInputSchema } from "../shared";
+import { organizationIdSchema } from "./ref";
 import {
 	organizationFieldsSchema,
-	organizationIdSchema,
 	organizationMutableFieldsSchema,
 	organizationSchema,
 } from "./schema";

@@ -1,5 +1,5 @@
 import { z } from "zod/v4";
-import { organizationInvitationValidationReasonSchema } from "../fragments";
+import { organizationInvitationValidationReasonSchema } from "../fragments/organization-invitation-validation-reason";
 import {
 	createDataResponseSchema,
 	createDeleteResponseSchema,
