@@ -27,13 +27,6 @@ import {
 	saveBotContract,
 } from "./bot";
 import {
-	createChatContract,
-	deleteChatContract,
-	findChatContract,
-	listChatsContract,
-	updateChatContract,
-} from "./chat";
-import {
 	attachChatBlockContract,
 	detachChatBlockContract,
 	listChatBlocksContract,
@@ -80,13 +73,6 @@ import {
 	listOrganizationMembersContract,
 	updateOrganizationMemberContract,
 } from "./organization-member";
-import {
-	createProviderContract,
-	deleteProviderContract,
-	findProviderContract,
-	listProvidersContract,
-	updateProviderContract,
-} from "./provider";
 import {
 	createQuotaPoolContract,
 	deactivateQuotaPoolContract,
@@ -148,13 +134,7 @@ export const contracts = {
 		delete: deleteOrganizationInvitationsContract,
 		respond: respondToOrganizationInvitationContract,
 	},
-	provider: {
-		list: listProvidersContract,
-		create: createProviderContract,
-		find: findProviderContract,
-		update: updateProviderContract,
-		delete: deleteProviderContract,
-	},
+	provider: sharedContracts.provider,
 	quota: {
 		list: listQuotaPoolsContract,
 		create: createQuotaPoolContract,
@@ -181,13 +161,7 @@ export const contracts = {
 		addMembers: addGroupMembersContract,
 		removeMembers: removeGroupMembersContract,
 	},
-	chat: {
-		list: listChatsContract,
-		find: findChatContract,
-		create: createChatContract,
-		update: updateChatContract,
-		delete: deleteChatContract,
-	},
+	chat: sharedContracts.chat,
 	chatBlock: {
 		list: listChatBlocksContract,
 		attach: attachChatBlockContract,

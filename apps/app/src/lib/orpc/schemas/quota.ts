@@ -5,13 +5,14 @@ import {
 	modelIdSchema,
 	organizationIdSchema,
 	paginationInputSchema,
+	providerIdSchema,
 	providerMeteringModeSchema,
+	providerSchema,
 	quotaPeriodIdSchema,
 	quotaPoolIdSchema,
 } from "@orcai/schema";
 import { createSelectSchema } from "drizzle-orm/zod";
 import { z } from "zod/v4";
-import { providerSelectSchema } from "./provider";
 
 export const quotaPoolSelectSchema = createSelectSchema(dbSchema.quotaPool, {
 	id: quotaPoolIdSchema,
@@ -37,7 +38,7 @@ export const quotaUsageEventSelectSchema = createSelectSchema(
 export const quotaPoolListInputSchema = paginationInputSchema.extend({
 	filters: z
 		.object({
-			providerId: providerSelectSchema.shape.id.optional(),
+			providerId: providerIdSchema.optional(),
 			search: z.string().trim().max(120).optional(),
 			isActive: z.boolean().optional(),
 		})
@@ -47,7 +48,7 @@ export const quotaPoolListInputSchema = paginationInputSchema.extend({
 export const quotaPoolCreateInputSchema = z.object({
 	name: z.string().trim().min(1).max(120),
 	description: z.string().trim().max(1000).nullable().optional(),
-	providerId: providerSelectSchema.shape.id,
+	providerId: providerIdSchema,
 	providerModelId: modelIdSchema.nullable().optional(),
 	periodType: quotaPoolSelectSchema.shape.periodType,
 	budgetAmount: z.coerce.number().int().positive(),
@@ -79,7 +80,7 @@ export const quotaPoolFindInputSchema = z.object({
 });
 
 export const quotaPoolListRowSchema = quotaPoolSelectSchema.extend({
-	provider: providerSelectSchema.pick({
+	provider: providerSchema.pick({
 		id: true,
 		name: true,
 		compatibility: true,

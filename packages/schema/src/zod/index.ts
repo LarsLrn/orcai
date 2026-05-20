@@ -3,7 +3,6 @@ export * from "./change-password";
 export * from "./file";
 export * from "./init";
 export * from "./qdrant";
-export * from "./retrieval";
 export * from "./shared";
 export * from "./signin";
 export * from "./signup";

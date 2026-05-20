@@ -5,7 +5,6 @@ import { providerIdSchema } from "../provider";
 import { createUuidIdSchema } from "../shared";
 import { searchFilterSchema } from "../shared/filters";
 
-export const modelCapabilitySchema = modelCapabilitiesSchema;
 export const modelIdSchema = createUuidIdSchema<ModelId>();
 
 export const modelFieldsSchema = z.object({
@@ -13,7 +12,7 @@ export const modelFieldsSchema = z.object({
 	name: z.string(),
 	description: z.string().max(500),
 	isDeprecated: z.boolean(),
-	capabilities: z.array(modelCapabilitySchema),
+	capabilities: z.array(modelCapabilitiesSchema),
 });
 
 export const modelMutableFieldsSchema = modelFieldsSchema.partial();
@@ -26,7 +25,7 @@ export const modelSchema = modelFieldsSchema.extend({
 
 export const modelFiltersSchema = z.object({
 	providerId: providerIdSchema.optional(),
-	capabilities: z.array(modelCapabilitySchema).optional(),
+	capabilities: z.array(modelCapabilitiesSchema).optional(),
 	...searchFilterSchema.shape,
 });
 

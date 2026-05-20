@@ -1,10 +1,10 @@
 import { providerCompatibilities, providerMeteringModes } from "@orcai/core";
+import type { Provider } from "@orcai/schema";
 import { useAppForm } from "@/hooks/form";
 import {
 	useCreateProviderMutation,
 	useUpdateProviderMutation,
 } from "@/hooks/mutations/use-provider-mutations";
-import type { Provider } from "@/lib/orpc/schemas/provider";
 import { providerFormOptions } from "./provider-form-options";
 
 const ProviderForm = ({

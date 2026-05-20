@@ -1,6 +1,6 @@
 import type { UseChatHelpers } from "@ai-sdk/react";
 import type { ChatId } from "@orcai/core";
-import type { Model } from "@orcai/schema";
+import type { Model, Provider } from "@orcai/schema";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import type { ChatStatus } from "ai";
 import { CompassIcon } from "lucide-react";
@@ -27,7 +27,6 @@ import {
 import { useUpdateChatMutation } from "@/hooks/mutations/use-chat-mutation";
 import type { ChatAgentUIMessage } from "@/lib/ai/types/chat-agent-message";
 import { orpc } from "@/lib/orpc/orpc";
-import type { Provider } from "@/lib/orpc/schemas/provider";
 import {
 	CHAT_ATTACHMENT_ACCEPT,
 	CHAT_ATTACHMENT_LIMIT,

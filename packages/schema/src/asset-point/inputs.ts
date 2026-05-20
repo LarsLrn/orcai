@@ -1,27 +1,13 @@
 import { z } from "zod/v4";
 import { assetIdSchema } from "../asset";
-import { blockIdSchema } from "../block";
-import { retrievalModeSchema } from "../zod/retrieval";
-import { assetPointPayloadSchema, assetPointSchema } from "./schema";
+import {
+	assetPointPayloadSchema,
+	assetPointSchema,
+	assetPointsFiltersSchema,
+} from "./schema";
 
 export const listAssetPointsInputSchema = z.object({
-	filters: z.object({
-		queries: z.array(z.string()).optional(),
-		pointIds: z.array(assetPointSchema.shape.id).optional(),
-		assetIds: z.array(assetPointSchema.shape.id).optional(),
-		limit: z.number().int().min(1).optional(),
-		blockId: blockIdSchema.optional(),
-		minScore: z.number().min(0).max(1).optional(),
-		retrievalMode: retrievalModeSchema.optional(),
-		candidateLimit: z.number().int().min(1).max(200).optional(),
-		denseWeight: z.number().min(0).max(1).optional(),
-		lexicalWeight: z.number().min(0).max(1).optional(),
-		maxPerAsset: z.number().int().min(1).optional(),
-		page: z.number().int().min(1).optional(),
-		pageFrom: z.number().int().min(1).optional(),
-		pageTo: z.number().int().min(1).optional(),
-		chunkIndices: z.array(z.number().int().min(0)).optional(),
-	}),
+	filters: assetPointsFiltersSchema,
 });
 
 export const findAssetPointInputSchema = assetPointSchema.pick({

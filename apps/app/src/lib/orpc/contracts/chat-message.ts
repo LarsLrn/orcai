@@ -1,11 +1,11 @@
 import { base } from "@orcai/contracts";
 import {
+	chatIdSchema,
 	paginationInputSchema,
 	statusResponseSchema,
 	zedTokenSchema,
 } from "@orcai/schema";
 import { z } from "zod/v4";
-import { chatSelectSchema } from "@/lib/orpc/schemas/chat";
 import { chatBranchSelectSchema } from "@/lib/orpc/schemas/chat-branch";
 import {
 	chatMessageDeleteSchema,
@@ -173,7 +173,7 @@ export const getBranchIdForMessageContract = base
 	.input(
 		z.object({
 			messageId: chatMessageSelectSchema.shape.id,
-			chatId: chatSelectSchema.shape.id,
+			chatId: chatIdSchema,
 		}),
 	)
 	.output(

@@ -1,14 +1,11 @@
+import { type Provider, providerFieldsSchema } from "@orcai/schema";
 import { formOptions } from "@tanstack/react-form";
 import type { z } from "zod/v4";
-import {
-	type Provider,
-	providerInsertSchema,
-} from "@/lib/orpc/schemas/provider";
 
 const defaultValues = (
 	provider?: Provider,
-): z.input<typeof providerInsertSchema> => ({
-	apiKey: provider?.apiKeyEncrypted ?? "",
+): z.input<typeof providerFieldsSchema> => ({
+	apiKey: "",
 	enabled: provider?.enabled ?? true,
 	meteringMode: provider?.meteringMode ?? "requests",
 	compatibility: provider?.compatibility ?? "openai",
@@ -21,6 +18,6 @@ export const providerFormOptions = (provider?: Provider) =>
 	formOptions({
 		defaultValues: defaultValues(provider),
 		validators: {
-			onChange: providerInsertSchema,
+			onChange: providerFieldsSchema,
 		},
 	});

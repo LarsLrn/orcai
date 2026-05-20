@@ -1,5 +1,5 @@
 import type { ChatId } from "@orcai/core";
-import type { Model } from "@orcai/schema";
+import type { ChatConfig, Model, Provider } from "@orcai/schema";
 import { useStore } from "@tanstack/react-form";
 import {
 	useMutation,
@@ -37,8 +37,6 @@ import { useAppForm } from "@/hooks/form";
 import { useUpdateChatMutation } from "@/hooks/mutations/use-chat-mutation";
 import { DEFAULT_CHAT_GENERATION_PARAMS } from "@/lib/ai/utils/chat-generation-defaults";
 import { client, orpc } from "@/lib/orpc/orpc";
-import type { ChatConfig } from "@/lib/orpc/schemas/chat";
-import type { Provider } from "@/lib/orpc/schemas/provider";
 
 const ChatSettings = ({
 	className,

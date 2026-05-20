@@ -1,3 +1,4 @@
+import type { Provider } from "@orcai/schema";
 import { Link } from "@tanstack/react-router";
 import type { ColumnDef } from "@tanstack/react-table";
 import { format } from "date-fns";
@@ -14,7 +15,6 @@ import {
 	DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import { useDeleteProvidersMutation } from "@/hooks/mutations/use-provider-mutations";
-import type { Provider } from "@/lib/orpc/schemas/provider";
 
 export const providerTableColumns: ColumnDef<Provider>[] = [
 	{

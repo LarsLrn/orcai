@@ -1,5 +1,18 @@
 import type { ChatBranchId } from "@orcai/core";
+import { z } from "zod";
+import { chatIdSchema } from "../chat/schema";
+import { chatMessageIdSchema } from "../chat-message";
 import { createUuidIdSchema } from "../shared";
 
-// Stub entrypoint for the chat-branch resource migration.
 export const chatBranchIdSchema = createUuidIdSchema<ChatBranchId>();
+
+export const chatBranchSchema = z.object({
+	id: chatBranchIdSchema,
+	chatId: chatIdSchema,
+	leafMessageId: chatMessageIdSchema.nullable(),
+	name: z.string(),
+	createdAt: z.coerce.date().nullable(),
+	updatedAt: z.coerce.date().nullable(),
+});
+
+export type ChatBranch = z.infer<typeof chatBranchSchema>;
