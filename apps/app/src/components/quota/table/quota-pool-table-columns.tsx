@@ -1,3 +1,4 @@
+import type { quotaPoolListRowSchema } from "@orcai/schema";
 import { Link } from "@tanstack/react-router";
 import type { ColumnDef } from "@tanstack/react-table";
 import { MoreHorizontal } from "lucide-react";
@@ -14,7 +15,6 @@ import {
 	DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import { useDeactivateQuotaPoolMutation } from "@/hooks/mutations/use-quota-mutations";
-import type { quotaPoolListRowSchema } from "@/lib/orpc/schemas/quota";
 
 type QuotaPoolListRow = z.infer<typeof quotaPoolListRowSchema>;
 

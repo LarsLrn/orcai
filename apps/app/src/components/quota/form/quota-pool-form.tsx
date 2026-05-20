@@ -1,3 +1,4 @@
+import type { QuotaPoolDetail } from "@orcai/schema";
 import { useStore } from "@tanstack/react-form";
 import { useQuery } from "@tanstack/react-query";
 import { AlertCircleIcon } from "lucide-react";
@@ -11,7 +12,6 @@ import {
 import { orpc } from "@/lib/orpc/orpc";
 import {
 	PROVIDER_WIDE_MODEL_VALUE,
-	type QuotaPoolDetail,
 	quotaPoolFormOptions,
 } from "./quota-pool-form-options";
 

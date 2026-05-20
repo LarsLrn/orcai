@@ -67,14 +67,6 @@ import {
 	updateOrganizationMemberContract,
 } from "./organization-member";
 import {
-	createQuotaPoolContract,
-	deactivateQuotaPoolContract,
-	findQuotaPoolContract,
-	listQuotaPoolsContract,
-	quotaChatBadgeContract,
-	updateQuotaPoolContract,
-} from "./quota";
-import {
 	getResourceVisibilityContract,
 	grantResourceAccessContract,
 	listResourceGrantsContract,
@@ -122,14 +114,7 @@ export const contracts = {
 		respond: respondToOrganizationInvitationContract,
 	},
 	provider: sharedContracts.provider,
-	quota: {
-		list: listQuotaPoolsContract,
-		create: createQuotaPoolContract,
-		find: findQuotaPoolContract,
-		update: updateQuotaPoolContract,
-		deactivate: deactivateQuotaPoolContract,
-		chatBadge: quotaChatBadgeContract,
-	},
+	quota: sharedContracts.quota,
 	resource: {
 		listGrants: listResourceGrantsContract,
 		listPrincipals: listResourcePrincipalsContract,

@@ -1,5 +1,5 @@
 import type { ChatBranchId } from "@orcai/core";
-import { z } from "zod";
+import { z } from "zod/v4";
 import { chatIdSchema } from "../chat/schema";
 import { chatMessageIdSchema } from "../chat-message";
 import { createUuidIdSchema } from "../shared";

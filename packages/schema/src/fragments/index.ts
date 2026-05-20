@@ -5,5 +5,8 @@ export * from "./processing-status";
 export * from "./provider-compatibility";
 export * from "./provider-metering-mode";
 export * from "./publication-status";
+export * from "./quota-period-status";
+export * from "./quota-period-type";
+export * from "./quota-usage-event-type";
 export * from "./retrieval-mode";
 export * from "./user-preferences";
