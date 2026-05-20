@@ -1,4 +1,4 @@
-import { z } from "zod/v4";
+import { createDataResponseSchema, createListResponseSchema } from "../shared";
 import { quotaPoolSchema } from "./schema";
 import {
 	quotaChatBadgeSchema,
@@ -6,19 +6,16 @@ import {
 	quotaPoolListRowSchema,
 } from "./views";
 
-export const quotaPoolListResponseSchema = z.object({
-	data: z.array(quotaPoolListRowSchema),
-	rowCount: z.number(),
-});
+export const quotaPoolListResponseSchema = createListResponseSchema(
+	quotaPoolListRowSchema,
+);
 
-export const quotaPoolFindResponseSchema = z.object({
-	data: quotaPoolDetailSchema,
-});
+export const quotaPoolFindResponseSchema = createDataResponseSchema(
+	quotaPoolDetailSchema,
+);
 
-export const quotaPoolWriteResponseSchema = z.object({
-	data: quotaPoolSchema,
-});
+export const quotaPoolWriteResponseSchema =
+	createDataResponseSchema(quotaPoolSchema);
 
-export const quotaChatBadgeResponseSchema = z.object({
-	data: quotaChatBadgeSchema,
-});
+export const quotaChatBadgeResponseSchema =
+	createDataResponseSchema(quotaChatBadgeSchema);

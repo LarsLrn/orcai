@@ -1,13 +1,17 @@
 import { z } from "zod/v4";
+import { chatIdSchema } from "../chat/schema";
 import { chatBranchIdSchema } from "../chat-branch";
 import {
 	createDataResponseSchema,
 	createDeleteResponseSchema,
+	createListResponseSchema,
+	statusResponseSchema,
 } from "../shared";
-import { chatMessageSchema } from "./schema";
+import { chatMessageIdSchema, chatMessageSchema } from "./schema";
 
-export const chatMessageScoresSchema = z.object({
-	data: z.array(z.unknown()),
+export const chatMessageScoresSchema = createDataResponseSchema(
+	z.array(z.unknown()),
+).extend({
 	meta: z.object({
 		page: z.number(),
 		totalItems: z.number(),
@@ -16,35 +20,37 @@ export const chatMessageScoresSchema = z.object({
 	}),
 });
 
-export const listChatMessagesResponseSchema = z.object({
-	data: z.array(chatMessageSchema),
-	rowCount: z.number(),
+export const listChatMessagesResponseSchema = createListResponseSchema(
+	chatMessageSchema,
+).extend({
 	scores: chatMessageScoresSchema,
 });
 
-export const createChatMessageResponseSchema = z.object({
-	data: chatMessageSchema,
+export const createChatMessageResponseSchema = createDataResponseSchema(
+	chatMessageSchema,
+).extend({
 	branchId: chatBranchIdSchema.optional(),
 });
 
 export const findChatMessageResponseSchema =
 	createDataResponseSchema(chatMessageSchema);
 
-export const updateChatMessageResponseSchema = z.object({
-	data: chatMessageSchema,
+export const updateChatMessageResponseSchema = createDataResponseSchema(
+	chatMessageSchema,
+).extend({
 	branchId: chatBranchIdSchema.optional(),
 });
 
 export const deleteChatMessagesResponseSchema = createDeleteResponseSchema();
 
-export const rateChatMessageResponseSchema = z.object({
-	success: z.boolean(),
-	message: z.string().optional(),
-	data: z.object({
-		id: chatMessageSchema.shape.id,
-		chatId: chatMessageSchema.shape.chatId,
+export const rateChatMessageResponseSchema = createDataResponseSchema(
+	z.object({
+		id: chatMessageIdSchema,
+		chatId: chatIdSchema,
 		sentiment: z.number().min(1).max(5),
 	}),
+).extend({
+	...statusResponseSchema.shape,
 });
 
 export const getBranchIdForMessageResponseSchema = z.object({

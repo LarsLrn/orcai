@@ -1,4 +1,5 @@
 import type { GroupId } from "@orcai/core";
+import type { Group } from "@orcai/schema";
 import { useQueryClient } from "@tanstack/react-query";
 import { Link } from "@tanstack/react-router";
 import type { ColumnDef } from "@tanstack/react-table";
@@ -15,7 +16,6 @@ import {
 } from "@/components/ui/dropdown-menu";
 import { useMutationAction } from "@/hooks/actions/use-mutation-action";
 import { orpc } from "@/lib/orpc/orpc";
-import type { Group } from "@/lib/orpc/schemas/group";
 
 export const groupTableColumns: ColumnDef<Group>[] = [
 	{

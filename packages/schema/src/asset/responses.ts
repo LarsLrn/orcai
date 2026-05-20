@@ -11,18 +11,21 @@ export const listAssetsResponseSchema = createListResponseSchema(assetSchema);
 
 export const findAssetResponseSchema = createDataResponseSchema(assetSchema);
 
-export const createAssetResponseSchema = z.object({
-	data: assetSchema,
+export const createAssetResponseSchema = createDataResponseSchema(
+	assetSchema,
+).extend({
 	meta: zedTokenSchema.optional(),
 });
 
-export const saveAssetResponseSchema = z.object({
-	data: assetSchema,
+export const saveAssetResponseSchema = createDataResponseSchema(
+	assetSchema,
+).extend({
 	meta: zedTokenSchema.optional(),
 });
 
-export const saveManyAssetsResponseSchema = z.object({
-	data: z.array(assetSchema),
+export const saveManyAssetsResponseSchema = createDataResponseSchema(
+	z.array(assetSchema),
+).extend({
 	meta: zedTokenSchema.optional(),
 });
 

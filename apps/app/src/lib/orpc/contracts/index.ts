@@ -32,16 +32,6 @@ import {
 	listChatBlocksContract,
 } from "./chat-block";
 import {
-	addGroupMembersContract,
-	createGroupContract,
-	deleteGroupContract,
-	findGroupContract,
-	listGroupMembersContract,
-	listGroupsContract,
-	removeGroupMembersContract,
-	updateGroupContract,
-} from "./group";
-import {
 	getResourceVisibilityContract,
 	grantResourceAccessContract,
 	listResourceGrantsContract,
@@ -84,16 +74,7 @@ export const contracts = {
 		getVisibility: getResourceVisibilityContract,
 		setVisibility: setResourceVisibilityContract,
 	},
-	group: {
-		list: listGroupsContract,
-		create: createGroupContract,
-		find: findGroupContract,
-		update: updateGroupContract,
-		delete: deleteGroupContract,
-		listMembers: listGroupMembersContract,
-		addMembers: addGroupMembersContract,
-		removeMembers: removeGroupMembersContract,
-	},
+	group: sharedContracts.group,
 	chat: sharedContracts.chat,
 	chatBlock: {
 		list: listChatBlocksContract,

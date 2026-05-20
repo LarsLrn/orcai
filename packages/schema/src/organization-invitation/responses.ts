@@ -4,6 +4,7 @@ import {
 	createDataResponseSchema,
 	createDeleteResponseSchema,
 	createListResponseSchema,
+	statusResponseSchema,
 } from "../shared";
 import { organizationInvitationSchema } from "./schema";
 
@@ -31,4 +32,4 @@ export const deleteOrganizationInvitationsResponseSchema =
 	createDeleteResponseSchema();
 
 export const respondToOrganizationInvitationResponseSchema =
-	createDeleteResponseSchema();
+	statusResponseSchema;

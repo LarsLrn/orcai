@@ -4,17 +4,23 @@ import {
 	blockIdSchema,
 	botIdSchema,
 	groupIdSchema,
+	groupSchema,
 	statusResponseSchema,
 	userIdSchema,
 } from "@orcai/schema";
 import { createSelectSchema } from "drizzle-orm/zod";
 import { z } from "zod/v4";
 
+export {
+	ALL_MEMBERS_GROUP_SYSTEM_KEY,
+	groupKindSchema,
+	groupSystemKeySchema,
+} from "@orcai/schema";
+
 const resourceGrantDbSchema = createSelectSchema(dbSchema.resourceGrant);
 const resourceVisibilityDbSchema = createSelectSchema(
 	dbSchema.resourceVisibility,
 );
-const groupDbSchema = createSelectSchema(dbSchema.group);
 const userDbSchema = createSelectSchema(dbSchema.user);
 
 export const resourceTypeSchema = resourceGrantDbSchema.shape.resourceType;
@@ -22,11 +28,7 @@ export const resourceGrantRoleSchema = resourceGrantDbSchema.shape.role;
 export const principalTypeSchema = resourceGrantDbSchema.shape.principalType;
 export const resourceVisibilitySchema =
 	resourceVisibilityDbSchema.shape.visibility;
-export const groupKindSchema = groupDbSchema.shape.kind;
-export const groupSystemKeySchema = groupDbSchema.shape.systemKey;
 export const RESOURCE_TYPES = enumSchema.resourceTypeEnum.enumValues;
-export const ALL_MEMBERS_GROUP_SYSTEM_KEY =
-	enumSchema.groupSystemKeyEnum.enumValues[0];
 
 const assetResourceIdentitySchema = z.object({
 	resourceType: z.literal("asset"),
@@ -154,7 +156,7 @@ const userPrincipalSchema = userDbSchema
 		type: z.literal("user"),
 	});
 
-const groupPrincipalSchema = groupDbSchema
+const groupPrincipalSchema = groupSchema
 	.pick({
 		id: true,
 		name: true,
