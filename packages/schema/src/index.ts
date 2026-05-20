@@ -11,6 +11,7 @@ export * from "./jobs";
 export * from "./model";
 export * from "./organization";
 export * from "./organization-invitation";
+export * from "./organization-member";
 export * from "./provider";
 export * from "./quota";
 export * from "./shared";

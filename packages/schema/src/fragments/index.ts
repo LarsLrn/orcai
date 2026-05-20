@@ -1,6 +1,7 @@
 export * from "./asset-metadata";
 export * from "./chat-config";
 export * from "./model-capabilities";
+export * from "./organization-role";
 export * from "./processing-status";
 export * from "./provider-compatibility";
 export * from "./provider-metering-mode";

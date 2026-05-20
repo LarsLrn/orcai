@@ -60,13 +60,6 @@ import {
 	validateOrganizationInvitationContract,
 } from "./organization-invitation";
 import {
-	createOrganizationMemberContract,
-	deleteOrganizationMemberContract,
-	findOrganizationMemberContract,
-	listOrganizationMembersContract,
-	updateOrganizationMemberContract,
-} from "./organization-member";
-import {
 	getResourceVisibilityContract,
 	grantResourceAccessContract,
 	listResourceGrantsContract,
@@ -97,13 +90,7 @@ export const contracts = {
 		initialize: bootstrapInitializeContract,
 	},
 	organization: sharedContracts.organization,
-	organizationMember: {
-		list: listOrganizationMembersContract,
-		find: findOrganizationMemberContract,
-		create: createOrganizationMemberContract,
-		update: updateOrganizationMemberContract,
-		delete: deleteOrganizationMemberContract,
-	},
+	organizationMember: sharedContracts.organizationMember,
 	organizationInvitation: {
 		list: listOrganizationInvitationsContract,
 		create: createOrganizationInvitationsContract,

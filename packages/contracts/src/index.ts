@@ -9,6 +9,7 @@ import { chatContracts } from "./chat";
 import { jobContracts } from "./job";
 import { modelContracts } from "./model";
 import { organizationContracts } from "./organization";
+import { organizationMemberContracts } from "./organization-member";
 import { providerContracts } from "./provider";
 import { quotaContracts } from "./quota";
 
@@ -19,6 +20,7 @@ export const contracts = {
 	job: jobContracts,
 	model: modelContracts,
 	organization: organizationContracts,
+	organizationMember: organizationMemberContracts,
 	provider: providerContracts,
 	quota: quotaContracts,
 };
@@ -35,6 +37,7 @@ export {
 	jobContracts,
 	modelContracts,
 	organizationContracts,
+	organizationMemberContracts,
 	providerContracts,
 	quotaContracts,
 };
