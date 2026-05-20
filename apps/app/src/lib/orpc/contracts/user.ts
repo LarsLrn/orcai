@@ -1,12 +1,12 @@
 import { base } from "@orcai/contracts";
 import {
+	organizationIdSchema,
 	paginationInputSchema,
 	sharedSchemas,
 	statusResponseSchema,
 	zedTokenSchema,
 } from "@orcai/schema";
 import { z } from "zod/v4";
-import { organizationSelectSchema } from "@/lib/orpc/schemas/organization";
 import {
 	userAccessEntrySchema,
 	userSelectSchema,
@@ -130,7 +130,7 @@ export const setActiveOrganizationContract = base
 	})
 	.input(
 		z.object({
-			organizationId: organizationSelectSchema.shape.id,
+			organizationId: organizationIdSchema,
 		}),
 	)
 	.output(statusResponseSchema);

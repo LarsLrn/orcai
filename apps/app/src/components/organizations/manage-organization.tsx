@@ -1,6 +1,6 @@
+import type { Organization } from "@orcai/schema";
 import { Button } from "@/components/ui/button";
 import { useDeleteOrganizationsMutation } from "@/hooks/mutations/use-organization-mutations";
-import type { Organization } from "@/lib/orpc/schemas/organization";
 import { OrganizationForm } from "./form/organization-form";
 
 const ManageOrganization = ({

@@ -51,13 +51,6 @@ import {
 	updateGroupContract,
 } from "./group";
 import {
-	createOrganizationContract,
-	deleteOrganizationContract,
-	findOrganizationContract,
-	listOrganizationsContract,
-	updateOrganizationContract,
-} from "./organization";
-import {
 	createOrganizationInvitationsContract,
 	deleteOrganizationInvitationsContract,
 	findOrganizationInvitationContract,
@@ -111,13 +104,7 @@ export const contracts = {
 		status: bootstrapStatusContract,
 		initialize: bootstrapInitializeContract,
 	},
-	organization: {
-		list: listOrganizationsContract,
-		find: findOrganizationContract,
-		create: createOrganizationContract,
-		update: updateOrganizationContract,
-		delete: deleteOrganizationContract,
-	},
+	organization: sharedContracts.organization,
 	organizationMember: {
 		list: listOrganizationMembersContract,
 		find: findOrganizationMemberContract,

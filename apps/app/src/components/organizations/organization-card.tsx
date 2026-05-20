@@ -1,3 +1,4 @@
+import type { Organization } from "@orcai/schema";
 import { BuildingIcon } from "lucide-react";
 import {
 	ResourceCard,
@@ -8,7 +9,6 @@ import {
 	ResourceCardHeader,
 	ResourceCardTitle,
 } from "@/components/ui/shell/resource-card";
-import type { Organization } from "@/lib/orpc/schemas/organization";
 
 const OrganizationCard = ({
 	organization,

@@ -1,4 +1,5 @@
 import type { OrganizationId } from "@orcai/core";
+import type { Organization } from "@orcai/schema";
 import { Link } from "@tanstack/react-router";
 import type { ColumnDef } from "@tanstack/react-table";
 import { format } from "date-fns";
@@ -14,7 +15,6 @@ import {
 	DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import { useDeleteOrganizationsMutation } from "@/hooks/mutations/use-organization-mutations";
-import type { Organization } from "@/lib/orpc/schemas/organization";
 
 export const organizationTableColumns: ColumnDef<Organization>[] = [
 	{

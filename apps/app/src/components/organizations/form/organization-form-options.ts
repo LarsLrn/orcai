@@ -1,12 +1,17 @@
+import { organizationFieldsSchema } from "@orcai/schema";
 import { formOptions } from "@tanstack/react-form";
-import { organizationInsertSchema } from "@/lib/orpc/schemas/organization";
+import type { z } from "better-auth";
+
+const defaultValues = (): z.input<typeof organizationFieldsSchema> => ({
+	name: "",
+	slug: "",
+	logo: null,
+	metadata: null,
+});
 
 export const organizationFormOptions = formOptions({
-	defaultValues: {
-		name: "",
-		slug: "",
-	},
+	defaultValues: defaultValues(),
 	validators: {
-		onChange: organizationInsertSchema,
+		onChange: organizationFieldsSchema,
 	},
 });
