@@ -1,9 +1,9 @@
-import type { Job } from "@orcai/pg-boss";
+import type { JobHistoryEntry } from "@orcai/schema";
 import { Badge } from "@/components/ui/badge";
 import { Spinner } from "@/components/ui/spinner";
 
 const stateVariant: Record<
-	Job["state"],
+	JobHistoryEntry["state"],
 	"default" | "secondary" | "destructive" | "outline"
 > = {
 	created: "outline",
@@ -14,11 +14,11 @@ const stateVariant: Record<
 	failed: "destructive",
 };
 
-const showSpinner = (state: Job["state"]) => {
+const showSpinner = (state: JobHistoryEntry["state"]) => {
 	return state === "created" || state === "active" || state === "retry";
 };
 
-const JobListItem = ({ job }: { job: Job }) => {
+const JobListItem = ({ job }: { job: JobHistoryEntry }) => {
 	return (
 		<div className="flex items-center justify-between gap-4 rounded-md border p-3">
 			<div className="flex flex-col gap-1 text-sm">

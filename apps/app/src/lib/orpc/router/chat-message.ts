@@ -1,4 +1,6 @@
+import type { ChatId, ChatMessageId } from "@orcai/core";
 import { DB, dbSchema } from "@orcai/db";
+import type { ChatMessage } from "@orcai/schema";
 import {
 	and,
 	count,
@@ -13,7 +15,6 @@ import * as Effect from "effect/Effect";
 import { runOrpcEffect } from "@/lib/effect/utils/orpc-helpers";
 import { authed } from "@/lib/orpc/implementation/authed";
 import { requireEntityPermission } from "@/lib/orpc/middlewares/permission";
-import type { ChatMessage } from "@/lib/orpc/schemas/chat-message";
 
 interface MessageTreeRow {
 	id: string;
@@ -32,14 +33,14 @@ interface BranchRow {
 }
 
 const mapMessageTreeRow = (row: MessageTreeRow): ChatMessage => ({
-	id: row.id as ChatMessage["id"],
-	chatId: row.chat_id as ChatMessage["chatId"],
+	id: row.id as ChatMessageId,
+	chatId: row.chat_id as ChatId,
 	role: row.role,
 	parts: row.parts,
 	attachments: row.attachments,
 	metadata: row.metadata,
 	createdAt: row.created_at ? new Date(row.created_at) : new Date(),
-	parentMessageId: row.parent_message_id as ChatMessage["parentMessageId"],
+	parentMessageId: row.parent_message_id as ChatMessageId,
 	depth: row.depth,
 });
 
@@ -65,13 +66,11 @@ export const listChatMessages = authed.chatMessage.list
 					})
 					.pipe(
 						Effect.flatMap((chat) =>
-							Effect.fromNullable(chat).pipe(
-								Effect.orElse(() =>
-									Effect.fail(
-										errors.NOT_FOUND({
-											message: "Branch not found",
-										}),
-									),
+							Effect.fromNullishOr(chat).pipe(
+								Effect.mapError(() =>
+									errors.NOT_FOUND({
+										message: "Branch not found",
+									}),
 								),
 							),
 						),
@@ -127,7 +126,7 @@ export const listChatMessages = authed.chatMessage.list
 						);
 
 					const siblingsByParent = new Map<
-						ChatMessage["id"] | null,
+						ChatMessageId | null,
 						typeof siblings
 					>();
 					for (const s of siblings) {
@@ -216,13 +215,11 @@ export const findChatMessage = authed.chatMessage.find
 					})
 					.pipe(
 						Effect.flatMap((chat) =>
-							Effect.fromNullable(chat).pipe(
-								Effect.orElse(() =>
-									Effect.fail(
-										errors.NOT_FOUND({
-											message: "Chat message not found",
-										}),
-									),
+							Effect.fromNullishOr(chat).pipe(
+								Effect.mapError(() =>
+									errors.NOT_FOUND({
+										message: "Chat message not found",
+									}),
 								),
 							),
 						),
@@ -271,13 +268,11 @@ export const getBranchIdForMessage = authed.chatMessage.getBranch
 							};
 						}),
 						Effect.flatMap((branch) =>
-							Effect.fromNullable(branch).pipe(
-								Effect.orElse(() =>
-									Effect.fail(
-										errors.NOT_FOUND({
-											message: "No branch found context for this message",
-										}),
-									),
+							Effect.fromNullishOr(branch).pipe(
+								Effect.mapError(() =>
+									errors.NOT_FOUND({
+										message: "No branch found context for this message",
+									}),
 								),
 							),
 						),
@@ -321,13 +316,11 @@ export const createChatMessage = authed.chatMessage.create
 					})
 					.pipe(
 						Effect.flatMap((branch) =>
-							Effect.fromNullable(branch).pipe(
-								Effect.orElse(() =>
-									Effect.fail(
-										errors.NOT_FOUND({
-											message: "Branch not found",
-										}),
-									),
+							Effect.fromNullishOr(branch).pipe(
+								Effect.mapError(() =>
+									errors.NOT_FOUND({
+										message: "Branch not found",
+									}),
 								),
 							),
 						),
@@ -484,16 +477,14 @@ export const updateChatMessage = authed.chatMessage.update
 					})
 					.pipe(
 						Effect.flatMap((msg) =>
-							Effect.fromNullable(msg).pipe(
-								Effect.orElse(() =>
-									Effect.fail(
-										errors.NOT_FOUND({
-											message: "Chat Message not found",
-											data: {
-												id: input.id,
-											},
-										}),
-									),
+							Effect.fromNullishOr(msg).pipe(
+								Effect.mapError(() =>
+									errors.NOT_FOUND({
+										message: "Chat Message not found",
+										data: {
+											id: input.id,
+										},
+									}),
 								),
 							),
 						),

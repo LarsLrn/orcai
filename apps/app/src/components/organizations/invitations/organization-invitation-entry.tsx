@@ -1,3 +1,4 @@
+import type { OrganizationInvitation } from "@orcai/schema";
 import { useQuery } from "@tanstack/react-query";
 import { format } from "date-fns";
 import { Building2Icon, CalendarIcon, Clock4Icon } from "lucide-react";
@@ -13,7 +14,6 @@ import {
 } from "@/components/ui/card";
 import { Spinner } from "@/components/ui/spinner";
 import { orpc } from "@/lib/orpc/orpc";
-import type { OrganizationInvitation } from "@/lib/orpc/schemas/organization-invitation";
 import { OrganizationInvitationActions } from "./organization-invitation-actions";
 
 type OrganizationInvitationEntryProps = {

@@ -1,5 +1,5 @@
 import { z } from "zod/v4";
-import { retrievalModeSchema } from "./retrieval";
+import { retrievalModeSchema } from "../fragments/retrieval-mode";
 
 export const qdrantPlaygroundSearchSchema = z.object({
 	search: z.string(),

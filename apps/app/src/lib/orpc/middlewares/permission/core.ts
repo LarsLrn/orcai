@@ -1,5 +1,5 @@
 import { checkEntityPermission, hasPermission } from "@orcai/spice-db";
-import { Effect } from "effect";
+import * as Effect from "effect/Effect";
 import { os } from "@/lib/orpc/implementation/os";
 import type { AuthContext } from "@/lib/orpc/middlewares/auth";
 import type {

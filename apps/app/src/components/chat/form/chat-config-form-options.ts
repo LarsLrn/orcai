@@ -1,7 +1,7 @@
+import { type ChatConfig, chatConfigSchema } from "@orcai/schema";
 import { formOptions } from "@tanstack/react-form";
 import type { z } from "zod/v4";
 import { resolveChatGenerationParams } from "@/lib/ai/utils/chat-generation-defaults";
-import { type ChatConfig, chatConfigSchema } from "@/lib/orpc/schemas/chat";
 
 const defaultValues = (
 	config: ChatConfig,

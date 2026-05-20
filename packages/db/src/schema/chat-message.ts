@@ -1,4 +1,9 @@
 import type { ChatId, ChatMessageId } from "@orcai/core";
+import type {
+	ChatMessageAttachments,
+	ChatMessageMetadata,
+	ChatMessageParts,
+} from "@orcai/schema";
 import {
 	type AnyPgColumn,
 	integer,
@@ -19,9 +24,9 @@ export const chatMessage = pgTable("chat_message", {
 			onDelete: "cascade",
 		}),
 	role: varchar("role").notNull(),
-	parts: json("parts").notNull(),
-	attachments: json("attachments").notNull(),
-	metadata: json("metadata").notNull(),
+	parts: json("parts").$type<ChatMessageParts>().notNull(),
+	attachments: json("attachments").$type<ChatMessageAttachments>().notNull(),
+	metadata: json("metadata").$type<ChatMessageMetadata>().notNull(),
 	createdAt: timestamp("created_at").defaultNow().notNull(),
 	// The DAG Pointer - enables branching conversations
 	parentMessageId: uuid("parent_message_id")

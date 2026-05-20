@@ -1,3 +1,4 @@
+import { organizationInvitationIdSchema } from "@orcai/schema";
 import { createFileRoute, Link, redirect } from "@tanstack/react-router";
 import z from "zod/v4";
 import { SignUpForm } from "@/components/auth/signup/signup-form";
@@ -11,7 +12,6 @@ import {
 	CardTitle,
 } from "@/components/ui/card";
 import { orpc } from "@/lib/orpc/orpc";
-import { organizationInvitationSelectSchema } from "@/lib/orpc/schemas/organization-invitation";
 
 export const Route = createFileRoute("/_pathlessLayout/register")({
 	component: RouteComponent,
@@ -48,7 +48,7 @@ export const Route = createFileRoute("/_pathlessLayout/register")({
 		);
 
 		return {
-			invitationId: organizationInvitationSelectSchema.shape.id.parse(deps.inv),
+			invitationId: organizationInvitationIdSchema.parse(deps.inv),
 			validation: validation.data,
 		};
 	},

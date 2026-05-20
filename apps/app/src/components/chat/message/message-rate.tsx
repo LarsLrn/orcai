@@ -1,3 +1,4 @@
+import type { ChatId, ChatMessageId } from "@orcai/core";
 import { CheckIcon, StarIcon } from "lucide-react";
 import { useEffect, useState } from "react";
 import { MessageAction as Action } from "@/components/ai-elements/message";
@@ -11,8 +12,6 @@ import {
 	DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import { useRateChatMessageMutation } from "@/hooks/mutations/use-chat-message-mutations";
-import type { Chat } from "@/lib/orpc/schemas/chat";
-import type { ChatMessage } from "@/lib/orpc/schemas/chat-message";
 import { cn } from "@/lib/utils";
 
 const MessageRate = ({
@@ -20,8 +19,8 @@ const MessageRate = ({
 	chatId,
 	className,
 }: {
-	messageId: ChatMessage["id"];
-	chatId: Chat["id"];
+	messageId: ChatMessageId;
+	chatId: ChatId;
 	className?: string;
 }) => {
 	// TODO: fetch initial score and set it here, leftover from removing Langfuse and needs proper implementation

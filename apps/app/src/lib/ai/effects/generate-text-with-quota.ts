@@ -97,16 +97,17 @@ export const generateTextWithQuota = (input: GenerateTextWithQuotaInput) =>
 			input.timeoutMs === undefined
 				? providerCallBase
 				: providerCallBase.pipe(
-						Effect.timeoutFail({
-							duration: input.timeoutMs,
-							onTimeout: () =>
+						Effect.timeout(input.timeoutMs),
+						Effect.catchTag("TimeoutError", () =>
+							Effect.fail(
 								new AiError({
 									operation: input.operation,
 									cause: new Error(
 										`Text generation timed out after ${input.timeoutMs}ms`,
 									),
 								}),
-						}),
+							),
+						),
 					);
 
 		const providerExit = yield* Effect.exit(providerCall);
@@ -115,7 +116,7 @@ export const generateTextWithQuota = (input: GenerateTextWithQuotaInput) =>
 			yield* releaseAppRequestQuota({
 				reservation: reservation.reservation,
 				reason: "provider_failure",
-			}).pipe(Effect.catchAll(() => Effect.void));
+			}).pipe(Effect.catch(() => Effect.void));
 
 			return yield* Effect.failCause(providerExit.cause);
 		}

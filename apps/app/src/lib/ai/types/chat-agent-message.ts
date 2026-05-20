@@ -1,3 +1,4 @@
+import type { ChatMessageId } from "@orcai/core";
 import type { InferAgentUIMessage } from "ai";
 import { z } from "zod/v4";
 import type { createChatAgent } from "@/lib/ai/agents/chat-agent";
@@ -5,7 +6,6 @@ import {
 	type ChatAttachment,
 	chatAttachmentsSchema,
 } from "@/lib/ai/types/chat-attachment";
-import type { ChatMessage } from "@/lib/orpc/schemas/chat-message";
 
 const metadataSchema = z.object({
 	model: z.string().optional(),
@@ -33,6 +33,6 @@ export type ChatAgentUIMessage = Omit<
 	>,
 	"id"
 > & {
-	id: ChatMessage["id"];
+	id: ChatMessageId;
 	attachments?: ChatAttachment[];
 };

@@ -1,7 +1,7 @@
+import type { AssetId } from "@orcai/core";
 import { retrievalModeSchema } from "@orcai/schema";
 import { formOptions } from "@tanstack/react-form";
 import { z } from "zod/v4";
-import type { Asset } from "@/lib/orpc/schemas/asset";
 import {
 	type DatabaseBlock,
 	databaseBlockInsertSchema,
@@ -20,7 +20,7 @@ const databaseBlockFormSchema = databaseBlockInsertSchema.extend({
 
 const defaultValues = (
 	block?: DatabaseBlock,
-	assetIds?: Asset["id"][],
+	assetIds?: AssetId[],
 ): z.input<typeof databaseBlockFormSchema> => ({
 	name: block?.name || "",
 	description: block?.description ?? "",
@@ -42,7 +42,7 @@ const defaultValues = (
 
 export const databaseBlockFormOptions = (
 	block?: DatabaseBlock,
-	assetIds?: Asset["id"][],
+	assetIds?: AssetId[],
 ) =>
 	formOptions({
 		defaultValues: defaultValues(block, assetIds),

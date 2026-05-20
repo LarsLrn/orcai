@@ -1,3 +1,4 @@
+import type { Chat, ChatBranch } from "@orcai/schema";
 import { useMutation } from "@tanstack/react-query";
 import { useNavigate, useSearch } from "@tanstack/react-router";
 import { ChevronDown, GitBranch } from "lucide-react";
@@ -12,8 +13,6 @@ import {
 	DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import { orpc } from "@/lib/orpc/orpc";
-import type { Chat } from "@/lib/orpc/schemas/chat";
-import type { ChatBranch } from "@/lib/orpc/schemas/chat-branch";
 
 interface BranchSwitcherProps {
 	chat: Chat;

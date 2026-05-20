@@ -1,11 +1,9 @@
-import type { BlockId } from "@orcai/core";
-import type { PublicationStatus } from "@orcai/schema";
+import type { BlockId, BotId } from "@orcai/core";
+import type { Asset, PublicationStatus } from "@orcai/schema";
 import { formOptions } from "@tanstack/react-form";
 import { createDefaultDatabaseBlock } from "@/components/authoring/database-block-editor";
 import { createDefaultTemplateBlock } from "@/components/authoring/template-block-editor";
-import type { Asset } from "@/lib/orpc/schemas/asset";
 import type { DatabaseBlock, TemplateBlock } from "@/lib/orpc/schemas/block";
-import type { Bot } from "@/lib/orpc/schemas/bot";
 import type { BotEditorSelect } from "@/lib/orpc/schemas/bot-editor";
 
 type BotEditorTemplateBlock = {
@@ -35,7 +33,7 @@ type BotEditorDatabaseBlock = {
 };
 
 export type BotEditorFormValues = {
-	id?: Bot["id"];
+	id?: BotId;
 	name: string;
 	description: string;
 	contentJson: unknown;

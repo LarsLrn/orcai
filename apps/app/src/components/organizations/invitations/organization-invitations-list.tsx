@@ -1,10 +1,10 @@
+import type { OrganizationInvitation } from "@orcai/schema";
 import { useSuspenseQuery } from "@tanstack/react-query";
 import { BadgeCheck, BadgeX, ClipboardList, SearchXIcon } from "lucide-react";
 import { Placeholder } from "@/components/placeholders/placeholder";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { authClient } from "@/lib/auth/auth-client";
 import { orpc } from "@/lib/orpc/orpc";
-import type { OrganizationInvitation } from "@/lib/orpc/schemas/organization-invitation";
 import { OrganizationInvitationEntry } from "./organization-invitation-entry";
 
 type OrganizationInvitationsListProps = {

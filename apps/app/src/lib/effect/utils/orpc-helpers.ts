@@ -7,6 +7,7 @@ import * as Effect from "effect/Effect";
 import * as Exit from "effect/Exit";
 import * as Match from "effect/Match";
 import * as Option from "effect/Option";
+import * as Result from "effect/Result";
 import { type AppRuntimeContext, runtime } from "@/lib/effect/runtime";
 import { type AppError, ErrorTags } from "./errors";
 
@@ -147,9 +148,7 @@ export const runOrpcEffect = <A, E, R extends AppRuntimeContext>(
 				: Effect.withSpan(traced, options.spanName);
 
 		const logged = named.pipe(
-			Effect.tapErrorCause((cause) =>
-				logErrorCause("ORPC effect failed", cause),
-			),
+			Effect.tapCause((cause) => logErrorCause("ORPC effect failed", cause)),
 		);
 
 		const exit = await runtime.runPromiseExit(logged);
@@ -158,14 +157,14 @@ export const runOrpcEffect = <A, E, R extends AppRuntimeContext>(
 			return exit.value;
 		}
 
-		const failure = Cause.failureOption(exit.cause);
+		const failure = Cause.findErrorOption(exit.cause);
 		if (Option.isSome(failure)) {
 			throw mapUnknownToORPCError(failure.value);
 		}
 
-		const defect = Cause.dieOption(exit.cause);
-		if (Option.isSome(defect)) {
-			throw mapUnknownToORPCError(defect.value);
+		const defect = Cause.findDefect(exit.cause);
+		if (Result.isSuccess(defect)) {
+			throw mapUnknownToORPCError(defect.success);
 		}
 
 		throw new ORPCError("INTERNAL_SERVER_ERROR", {

@@ -1,12 +1,15 @@
 import { dbSchema } from "@orcai/db/schema";
-import { preferencesSchema, userIdSchema } from "@orcai/schema";
+import {
+	organizationRoleSchema,
+	preferencesSchema,
+	userIdSchema,
+} from "@orcai/schema";
 import {
 	createInsertSchema,
 	createSelectSchema,
 	createUpdateSchema,
-} from "drizzle-zod";
+} from "drizzle-orm/zod";
 import { z } from "zod/v4";
-import { organizationMemberSelectSchema } from "./organization-member";
 import {
 	createResourceScopedSchema,
 	RESOURCE_GRANT_SOURCE,
@@ -28,7 +31,7 @@ export const userSelectSchema = createSelectSchema(dbSchema.user, {
 });
 
 export const userWithOrganizationRoleSelectSchema = userSelectSchema.extend({
-	organizationRole: organizationMemberSelectSchema.shape.role,
+	organizationRole: organizationRoleSchema,
 });
 
 export const USER_ACCESS_SOURCE = {

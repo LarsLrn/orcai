@@ -1,6 +1,6 @@
 import { z } from "zod/v4";
-import { assetIdSchema } from "../asset";
-import { blockIdSchema } from "../block";
+import { assetIdSchema } from "../asset/ref";
+import { blockIdSchema } from "../block/ref";
 
 export const vectorizeAssetPayloadSchema = z.object({
 	assetId: assetIdSchema,

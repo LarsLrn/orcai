@@ -1,3 +1,4 @@
+import { paginationInputSchema } from "@orcai/schema";
 import { useSuspenseQuery } from "@tanstack/react-query";
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { buttonVariants } from "@/components/ui/button";
@@ -16,10 +17,9 @@ import {
 import { columns } from "@/components/users/table/columns";
 import { UsersDataTableSelectActions } from "@/components/users/table/users-data-table-select-actions";
 import { orpc } from "@/lib/orpc/orpc";
-import { paginationSchema } from "@/lib/orpc/schemas/shared";
 
 export const Route = createFileRoute("/app/users/")({
-	validateSearch: paginationSchema,
+	validateSearch: paginationInputSchema,
 	loaderDeps: ({ search: { pageIndex, pageSize } }) => ({
 		pageIndex,
 		pageSize,

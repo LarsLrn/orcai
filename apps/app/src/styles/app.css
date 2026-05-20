@@ -1,7 +1,7 @@
 @import "tailwindcss" source("../");
 @import "tw-animate-css";
 @import "shadcn/tailwind.css";
-@import "@fontsource-variable/raleway";
+@import "@fontsource-variable/geist";
 
 @source "../../node_modules/streamdown/dist/*.js";
 
@@ -67,7 +67,7 @@
 	--secondary: oklch(0.7 0.01 249.3);
 	--secondary-foreground: oklch(0.23 0.01 249.3);
 	--muted: oklch(0.28 0.01 249.3);
-	--muted-foreground: oklch(0.6 0.01 249.3);
+	--muted-foreground: oklch(0.7 0.01 249.3);
 	--accent: oklch(0.28 0.01 237.3);
 	--accent-foreground: oklch(0.85 0.01 249.3);
 	--destructive: oklch(63.68% 0.208 25.33);
@@ -102,7 +102,7 @@
 }
 
 @theme inline {
-	--font-sans: "Raleway", sans-serif;
+	--font-sans: "Geist Variable", sans-serif;
 	--color-sidebar-ring: var(--sidebar-ring);
 	--color-sidebar-border: var(--sidebar-border);
 	--color-sidebar-accent-foreground: var(--sidebar-accent-foreground);
@@ -159,6 +159,7 @@
 				350% 50%;
 		}
 	}
+	--font-heading: var(--font-sans);
 }
 
 @layer base {

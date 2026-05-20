@@ -1,4 +1,5 @@
-import type { Model } from "@orcai/schema";
+import type { BotId, ModelId, ProviderId } from "@orcai/core";
+import type { Model, Provider } from "@orcai/schema";
 import { useState } from "react";
 import {
 	PromptInputSubmit,
@@ -11,8 +12,6 @@ import {
 	InputGroupAddon,
 	InputGroupTextarea,
 } from "@/components/ui/input-group";
-import type { Bot } from "@/lib/orpc/schemas/bot";
-import type { Provider } from "@/lib/orpc/schemas/provider";
 
 const NewChatInput = ({
 	selectedBotId,
@@ -23,10 +22,10 @@ const NewChatInput = ({
 	onSend,
 	isCreating,
 }: {
-	selectedBotId?: Bot["id"];
-	selectedModelId?: string;
-	selectedProviderId?: string;
-	onBotSelect?: (botId?: Bot["id"]) => void;
+	selectedBotId?: BotId;
+	selectedModelId?: ModelId;
+	selectedProviderId?: ProviderId;
+	onBotSelect?: (botId?: BotId) => void;
 	onModelSelect: (model: Model, provider: Provider) => void;
 	onSend: (text: string) => void;
 	isCreating: boolean;
@@ -51,7 +50,7 @@ const NewChatInput = ({
 
 	return (
 		<form onSubmit={handleSubmit}>
-			<InputGroup className="overflow-hidden bg-card">
+			<InputGroup className="overflow-hidden border-border bg-card">
 				<InputGroupTextarea
 					name="message"
 					placeholder="What would you like to know?"

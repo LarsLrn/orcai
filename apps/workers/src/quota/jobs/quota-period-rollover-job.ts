@@ -1,10 +1,10 @@
+import type { Job } from "@orcai/pg-boss";
 import {
 	ensureOpenQuotaPeriod,
 	listExpiredOpenQuotaPeriods,
 	QuotaCounterStore,
 } from "@orcai/quota";
 import * as Effect from "effect/Effect";
-import type { Job } from "pg-boss";
 
 export const rolloverQuotaPeriodBatchEffect = (jobs: Job<unknown>[]) =>
 	Effect.forEach(

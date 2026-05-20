@@ -1,9 +1,9 @@
+import type { Organization } from "@orcai/schema";
 import { useAppForm } from "@/hooks/form";
 import {
 	useCreateOrganizationMutation,
 	useUpdateOrganizationMutation,
 } from "@/hooks/mutations/use-organization-mutations";
-import type { Organization } from "@/lib/orpc/schemas/organization";
 import { organizationFormOptions } from "./organization-form-options";
 
 export const OrganizationForm = ({

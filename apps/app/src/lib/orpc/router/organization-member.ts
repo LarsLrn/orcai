@@ -82,13 +82,11 @@ export const findOrganizationMember = authed.organizationMember.find
 					})
 					.pipe(
 						Effect.flatMap((member) =>
-							Effect.fromNullable(member).pipe(
-								Effect.orElse(() =>
-									Effect.fail(
-										errors.NOT_FOUND({
-											message: "Member not found",
-										}),
-									),
+							Effect.fromNullishOr(member).pipe(
+								Effect.mapError(() =>
+									errors.NOT_FOUND({
+										message: "Member not found",
+									}),
 								),
 							),
 						),

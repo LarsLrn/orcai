@@ -144,47 +144,39 @@ export const listAssetPoint = authed.assetPoint.list.handler(({ input }) =>
 				}
 			>();
 
-			const passState = yield* Effect.reduceWhile(
-				recallPasses,
-				{
-					done: false,
-					usedFallbackPass: false,
-					appliedScoreThreshold: scoreThreshold,
-				},
-				{
-					while: (s) => !s.done,
-					body: (s, pass, index) =>
-						Effect.gen(function* () {
-							yield* Effect.forEach(
-								variants,
-								({ query, embedding }) =>
-									queryAssetPoints({
-										embedding,
-										text: query,
-										filter: qdrantFilter,
-										limit: pass.candidateLimit,
-										withPayload: true,
-										withVector: false,
-										scoreThreshold: pass.scoreThreshold,
-										retrievalMode,
-									}).pipe(
-										Effect.map((points) =>
-											mergeRecallCandidates(recallCandidates, points),
-										),
-									),
-								{
-									concurrency: 4,
-								},
-							);
+			let usedFallbackPass = false;
+			let appliedScoreThreshold = scoreThreshold;
 
-							return {
-								done: recallCandidates.size >= recallTarget,
-								usedFallbackPass: s.usedFallbackPass || index > 0,
-								appliedScoreThreshold: pass.scoreThreshold,
-							};
-						}),
-				},
-			);
+			for (const [index, pass] of recallPasses.entries()) {
+				yield* Effect.forEach(
+					variants,
+					({ query, embedding }) =>
+						queryAssetPoints({
+							embedding,
+							text: query,
+							filter: qdrantFilter,
+							limit: pass.candidateLimit,
+							withPayload: true,
+							withVector: false,
+							scoreThreshold: pass.scoreThreshold,
+							retrievalMode,
+						}).pipe(
+							Effect.map((points) =>
+								mergeRecallCandidates(recallCandidates, points),
+							),
+						),
+					{
+						concurrency: 4,
+					},
+				);
+
+				usedFallbackPass ||= index > 0;
+				appliedScoreThreshold = pass.scoreThreshold;
+
+				if (recallCandidates.size >= recallTarget) {
+					break;
+				}
+			}
 
 			const basePoints = dedupeById(
 				Array.from(recallCandidates.values()).map(({ point, hitCount }) => ({
@@ -208,14 +200,14 @@ export const listAssetPoint = authed.assetPoint.list.handler(({ input }) =>
 
 			const selectedPoints = applyAssetDiversityCap(
 				rankedPoints,
-				passState.usedFallbackPass ? Math.max(maxPerAsset, 4) : maxPerAsset,
+				usedFallbackPass ? Math.max(maxPerAsset, 4) : maxPerAsset,
 			).slice(0, limit);
 
 			return {
 				data: selectedPoints,
 				metadata: {
 					retrievalMode,
-					scoreThreshold: passState.appliedScoreThreshold,
+					scoreThreshold: appliedScoreThreshold,
 					candidateCount: basePoints.length,
 					returnedCount: selectedPoints.length,
 				},

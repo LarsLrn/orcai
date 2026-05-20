@@ -2,8 +2,10 @@ import * as Config from "effect/Config";
 import * as Context from "effect/Context";
 import * as Effect from "effect/Effect";
 import * as Layer from "effect/Layer";
-import * as ParseResult from "effect/ParseResult";
+import * as Option from "effect/Option";
 import * as Schema from "effect/Schema";
+import * as SchemaGetter from "effect/SchemaGetter";
+import * as SchemaIssue from "effect/SchemaIssue";
 
 const spiceDbSecurityModes = [
 	"secure",
@@ -13,30 +15,21 @@ const spiceDbSecurityModes = [
 
 export type SpiceDbSecurityMode = (typeof spiceDbSecurityModes)[number];
 
-const SpiceDbSecurityModeLiteralSchema = Schema.Literal(
-	...spiceDbSecurityModes,
-);
+const SpiceDbSecurityModeLiteralSchema = Schema.Literals(spiceDbSecurityModes);
 
-const SpiceDbSecurityModeSchema = Schema.transformOrFail(
-	Schema.String,
-	SpiceDbSecurityModeLiteralSchema,
-	{
-		strict: true,
-		decode: (value, _options, ast) => {
+const SpiceDbSecurityModeSchema = Schema.String.pipe(
+	Schema.decodeTo(SpiceDbSecurityModeLiteralSchema, {
+		decode: SchemaGetter.transformOrFail((value: string) => {
 			const normalized = value.trim().toLowerCase();
 
-			return spiceDbSecurityModes.includes(normalized as SpiceDbSecurityMode)
-				? ParseResult.succeed(normalized as SpiceDbSecurityMode)
-				: ParseResult.fail(
-						new ParseResult.Type(
-							ast,
-							value,
-							`Expected one of: ${spiceDbSecurityModes.join(", ")}`,
-						),
-					);
-		},
-		encode: (value) => ParseResult.succeed(value),
-	},
+			if (spiceDbSecurityModes.includes(normalized as SpiceDbSecurityMode)) {
+				return Effect.succeed(normalized as SpiceDbSecurityMode);
+			}
+
+			return Effect.fail(new SchemaIssue.InvalidValue(Option.some(value)));
+		}),
+		encode: SchemaGetter.transform((value: SpiceDbSecurityMode) => value),
+	}),
 );
 
 const spiceConfig = Config.all({
@@ -44,26 +37,28 @@ const spiceConfig = Config.all({
 		endpoint: Config.string("SPICEDB_ENDPOINT"),
 		token: Config.redacted("SPICEDB_TOKEN"),
 		security: Config.withDefault(
-			Schema.Config("SPICEDB_SECURITY", SpiceDbSecurityModeSchema),
+			Config.schema(SpiceDbSecurityModeSchema, "SPICEDB_SECURITY"),
 			"insecure-plaintext",
 		),
 	}),
 });
 
-type SpiceDbConfig = Config.Config.Success<typeof spiceConfig>;
+type SpiceDbConfig = Config.Success<typeof spiceConfig>;
 
-export class SpiceDbConfigService extends Context.Tag("SpiceDbConfigService")<
+export class SpiceDbConfigService extends Context.Service<
 	SpiceDbConfigService,
 	{
 		readonly config: SpiceDbConfig;
 	}
->() {}
+>()("SpiceDbConfigService") {}
 
 export const SpiceDbConfigLive = Layer.effect(
 	SpiceDbConfigService,
-	spiceConfig.pipe(
-		Effect.map((config) => ({
+	Effect.gen(function* () {
+		const config = yield* spiceConfig;
+
+		return {
 			config,
-		})),
-	),
+		};
+	}),
 );

@@ -39,7 +39,7 @@ const extractZedToken = (response: {
 		token?: string;
 	};
 }) =>
-	Effect.fromNullable(response.writtenAt?.token).pipe(
+	Effect.fromNullishOr(response.writtenAt?.token).pipe(
 		Effect.mapError(
 			() =>
 				new SpiceDbError({

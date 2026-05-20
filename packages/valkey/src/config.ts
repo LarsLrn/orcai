@@ -9,20 +9,22 @@ const valkeyConfig = Config.all({
 	}),
 });
 
-export type ValkeyConfig = Config.Config.Success<typeof valkeyConfig>;
+export type ValkeyConfig = Config.Success<typeof valkeyConfig>;
 
-export class ValkeyConfigService extends Context.Tag("ValkeyConfigService")<
+export class ValkeyConfigService extends Context.Service<
 	ValkeyConfigService,
 	{
 		readonly config: ValkeyConfig;
 	}
->() {}
+>()("ValkeyConfigService") {}
 
 export const ValkeyConfigLive = Layer.effect(
 	ValkeyConfigService,
-	valkeyConfig.pipe(
-		Effect.map((config) => ({
+	Effect.gen(function* () {
+		const config = yield* valkeyConfig;
+
+		return {
 			config,
-		})),
-	),
+		};
+	}),
 );

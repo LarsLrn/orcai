@@ -1,6 +1,7 @@
 import { buckets } from "@orcai/core";
 import { DB, dbSchema } from "@orcai/db";
-import { sendJobBatchEffect, toPgBossRunError } from "@orcai/pg-boss";
+import type { Job } from "@orcai/pg-boss";
+import { sendJobBatch, toPgBossRunError } from "@orcai/pg-boss";
 import {
 	buildStoredExtractionImageKey,
 	buildStoredExtractionKey,
@@ -20,7 +21,6 @@ import {
 } from "@orcai/schema";
 import { eq } from "drizzle-orm";
 import * as Effect from "effect/Effect";
-import type { Job } from "pg-boss";
 import { validateImageResolution } from "@/asset/utils/validate-image-resolution";
 
 const getAssetObjectKey = (assetRef: ProcessAssetPayload["assetRef"]) =>
@@ -48,11 +48,11 @@ const getImageContentType = (format: string) => {
 	return `image/${normalizedFormat}`;
 };
 
-export const processAssetBatchEffect = (jobs: Job<ProcessAssetPayload>[]) =>
+export const processAssetBatch = (jobs: Job<ProcessAssetPayload>[]) =>
 	Effect.forEach(
 		jobs,
 		(job) =>
-			processAssetsEffect({
+			processAssets({
 				job,
 			}),
 		{
@@ -60,7 +60,7 @@ export const processAssetBatchEffect = (jobs: Job<ProcessAssetPayload>[]) =>
 		},
 	);
 
-const processAssetsEffect = (params: { job: Job<ProcessAssetPayload> }) =>
+const processAssets = (params: { job: Job<ProcessAssetPayload> }) =>
 	Effect.gen(function* () {
 		const { assetRef } = params.job.data;
 		const db = yield* DB;
@@ -219,7 +219,7 @@ const processAssetsEffect = (params: { job: Job<ProcessAssetPayload> }) =>
 			yield* Effect.forEach(
 				attachedBlocks,
 				({ blockId }) =>
-					sendJobBatchEffect({
+					sendJobBatch({
 						jobName: VECTORIZE_ASSET_JOB_NAME,
 						jobs: [
 							{
@@ -249,7 +249,7 @@ const processAssetsEffect = (params: { job: Job<ProcessAssetPayload> }) =>
 						"Failed to dispatch follow-up vectorization jobs",
 					),
 				),
-				Effect.catchAll(() => Effect.void),
+				Effect.catch(() => Effect.void),
 			);
 		}
 

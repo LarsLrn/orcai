@@ -152,13 +152,11 @@ export const attachChatBlock = authed.chatBlock.attach
 					})
 					.pipe(
 						Effect.flatMap((block) =>
-							Effect.fromNullable(block).pipe(
-								Effect.orElse(() =>
-									Effect.fail(
-										errors.BAD_REQUEST({
-											message: "Block not found",
-										}),
-									),
+							Effect.fromNullishOr(block).pipe(
+								Effect.mapError(() =>
+									errors.BAD_REQUEST({
+										message: "Block not found",
+									}),
 								),
 							),
 						),

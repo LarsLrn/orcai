@@ -1,6 +1,6 @@
 import type { AssetId, BlockId } from "@orcai/core";
 import { DB, dbSchema } from "@orcai/db";
-import { sendJobBatchEffect } from "@orcai/pg-boss";
+import { sendJobBatch } from "@orcai/pg-boss";
 import { deletePointsByIdentifier } from "@orcai/qdrant";
 import { assetIdSchema, VECTORIZE_ASSET_JOB_NAME } from "@orcai/schema";
 import { and, eq, getColumns, inArray } from "drizzle-orm";
@@ -33,17 +33,15 @@ export const syncDatabaseBlockAssets = (params: {
 		const db = yield* DB;
 		const authz = yield* AuthzService;
 
-		const previousAssetIds = yield* Effect.orElse(
-			Effect.fromNullable(params.previousAssetIds),
-			() =>
-				db
-					.select({
-						assetId: dbSchema.blockAsset.assetId,
-					})
-					.from(dbSchema.blockAsset)
-					.where(eq(dbSchema.blockAsset.blockId, params.blockId))
-					.pipe(Effect.map((assets) => assets.map((a) => a.assetId))),
-		);
+		const previousAssetIds =
+			params.previousAssetIds ??
+			(yield* db
+				.select({
+					assetId: dbSchema.blockAsset.assetId,
+				})
+				.from(dbSchema.blockAsset)
+				.where(eq(dbSchema.blockAsset.blockId, params.blockId))
+				.pipe(Effect.map((assets) => assets.map((a) => a.assetId))));
 
 		yield* db
 			.delete(dbSchema.blockAsset)
@@ -124,7 +122,7 @@ export const syncDatabaseBlockAssets = (params: {
 				};
 			}
 
-			yield* sendJobBatchEffect({
+			yield* sendJobBatch({
 				jobName: VECTORIZE_ASSET_JOB_NAME,
 				jobs: completedAssetIds.map((assetId) => ({
 					data: {

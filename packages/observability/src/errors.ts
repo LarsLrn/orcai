@@ -1,6 +1,7 @@
 import * as Cause from "effect/Cause";
 import * as Effect from "effect/Effect";
 import * as Option from "effect/Option";
+import * as Result from "effect/Result";
 
 const extractErrorTag = (error: unknown): string => {
 	if (
@@ -27,11 +28,21 @@ const extractErrorMessage = (error: unknown): string => {
 	return String(error ?? "unknown");
 };
 
+const extractCauseType = (cause: Cause.Cause<unknown>): string => {
+	if (cause.reasons.length === 0) {
+		return "Empty";
+	}
+
+	return Array.from(new Set(cause.reasons.map((reason) => reason._tag))).join(
+		"+",
+	);
+};
+
 /**
  * Logs an Effect `Cause` with structured OTel-friendly annotations.
  *
  * Emitted attributes:
- * - `error.type`    – the `Cause` variant (`Fail`, `Die`, `Interrupt`, …)
+ * - `error.type`    – the `Cause` reason type(s) (`Fail`, `Die`, `Interrupt`, …)
  * - `error.tag`     – the `_tag` of the inner error value, if present
  * - `error.message` – a short human-readable message
  * - `error.cause`   – full `Cause.pretty` output for debugging
@@ -40,17 +51,17 @@ export const logErrorCause = (
 	message: string,
 	cause: Cause.Cause<unknown>,
 ): Effect.Effect<void> => {
-	const failure = Cause.failureOption(cause);
-	const defect = Cause.dieOption(cause);
+	const failure = Cause.findErrorOption(cause);
+	const defect = Cause.findDefect(cause);
 	const error = Option.isSome(failure)
 		? failure.value
-		: Option.isSome(defect)
-			? defect.value
+		: Result.isSuccess(defect)
+			? defect.success
 			: undefined;
 
 	return Effect.logError(message).pipe(
 		Effect.annotateLogs({
-			"error.type": cause._tag,
+			"error.type": extractCauseType(cause),
 			"error.tag": extractErrorTag(error),
 			"error.message": extractErrorMessage(error),
 			"error.cause": Cause.pretty(cause),

@@ -113,7 +113,6 @@ function DialogSelect({
 				onOpenChange?.(false);
 			}
 		},
-		// eslint-disable-next-line react-hooks/exhaustive-deps
 		[
 			multiple,
 			rest.values,

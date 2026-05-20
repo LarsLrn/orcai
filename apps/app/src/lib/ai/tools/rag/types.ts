@@ -1,14 +1,14 @@
+import type { AssetId, BlockId } from "@orcai/core";
 import type { AssetPoint } from "@orcai/schema";
-import type { Asset } from "@/lib/orpc/schemas/asset";
 import type { DatabaseBlock } from "@/lib/orpc/schemas/block";
 
 export type KnowledgeBaseBlockRef = {
-	id: DatabaseBlock["id"];
+	id: BlockId;
 	name: DatabaseBlock["name"];
 };
 
 export type KnowledgeBaseDocumentRef = {
-	assetId: Asset["id"];
+	assetId: AssetId;
 	title: string;
 	citation?: string;
 	totalPages?: number;
@@ -22,7 +22,7 @@ export type KnowledgeBaseChunkRef = {
 };
 
 export type KnowledgeBaseCitationRef = {
-	assetId: Asset["id"];
+	assetId: AssetId;
 	title: string;
 	page?: number;
 	openTag: string;

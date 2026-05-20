@@ -24,7 +24,7 @@ export const PgClientServiceLive: Layer.Layer<
 	PgClient.PgClient,
 	unknown,
 	DbConfigService
-> = Layer.unwrapEffect(
+> = Layer.unwrap(
 	Effect.gen(function* () {
 		const { config } = yield* DbConfigService;
 		const url = makePgConnectionString(config.postgres);
@@ -51,10 +51,9 @@ const dbEffect = PgDrizzle.make({
 	relations,
 }).pipe(Effect.provide(PgDrizzle.DefaultServices));
 
-export class DB extends Context.Tag("DB")<
-	DB,
-	Effect.Effect.Success<typeof dbEffect>
->() {}
+export class DB extends Context.Service<DB, Effect.Success<typeof dbEffect>>()(
+	"DB",
+) {}
 
 export const DBLive = Layer.effect(DB, dbEffect);
 

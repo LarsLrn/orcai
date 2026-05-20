@@ -4,6 +4,7 @@ import type {
 	OrganizationInvitationId,
 	UserId,
 } from "@orcai/core";
+import type { OrganizationInvitationStatus } from "@orcai/schema";
 import { pgEnum, pgTable, text, timestamp, uuid } from "drizzle-orm/pg-core";
 import { user } from "./auth";
 
@@ -44,7 +45,7 @@ export const invitation = pgTable("invitation", {
 		.references(() => organization.id),
 	email: text("email").notNull(),
 	role: organizationRoleEnum("role").notNull(),
-	status: text("status").notNull(),
+	status: text("status").notNull().$type<OrganizationInvitationStatus>(),
 	expiresAt: timestamp("expires_at").notNull(),
 	inviterId: uuid("inviter_id")
 		.$type<UserId>()

@@ -1,10 +1,10 @@
+import type { Asset } from "@orcai/schema";
 import { useQuery } from "@tanstack/react-query";
 import { useState } from "react";
 import { AssetCard } from "@/components/documents/asset-card";
 import { Input } from "@/components/ui/input";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { orpc } from "@/lib/orpc/orpc";
-import type { Asset } from "@/lib/orpc/schemas/asset";
 import { cn } from "@/lib/utils";
 
 const AssetLibraryPicker = ({

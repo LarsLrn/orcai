@@ -77,13 +77,11 @@ export const findOrganizationInvitation =
 					})
 					.pipe(
 						Effect.flatMap((invitation) =>
-							Effect.fromNullable(invitation).pipe(
-								Effect.orElse(() =>
-									Effect.fail(
-										errors.NOT_FOUND({
-											message: "Invitation not found",
-										}),
-									),
+							Effect.fromNullishOr(invitation).pipe(
+								Effect.mapError(() =>
+									errors.NOT_FOUND({
+										message: "Invitation not found",
+									}),
 								),
 							),
 						),
@@ -162,7 +160,7 @@ export const createOrganizationInvitations =
 						email: item.email,
 						organizationId: input.organizationId,
 						role: input.role,
-						status: "pending",
+						status: "pending" as const,
 						expiresAt: input.expiresAt,
 						inviterId: context.auth.user.id,
 					}));
@@ -209,16 +207,14 @@ export const updateOrganizationInvitation = authed.organizationInvitation.update
 						...getColumns(dbSchema.invitation),
 					});
 
-				return yield* Effect.fromNullable(invitation).pipe(
-					Effect.orElse(() =>
-						Effect.fail(
-							errors.NOT_FOUND({
-								message: "Organization invitation not found",
-								data: {
-									id: input.id,
-								},
-							}),
-						),
+				return yield* Effect.fromNullishOr(invitation).pipe(
+					Effect.mapError(() =>
+						errors.NOT_FOUND({
+							message: "Organization invitation not found",
+							data: {
+								id: input.id,
+							},
+						}),
 					),
 					Effect.map((data) => ({
 						data,
@@ -279,13 +275,11 @@ export const respondToOrganisationInvitation =
 						})
 						.pipe(
 							Effect.flatMap((result) =>
-								Effect.fromNullable(result).pipe(
-									Effect.orElse(() =>
-										Effect.fail(
-											errors.NOT_FOUND({
-												message: "Organization invitation not found",
-											}),
-										),
+								Effect.fromNullishOr(result).pipe(
+									Effect.mapError(() =>
+										errors.NOT_FOUND({
+											message: "Organization invitation not found",
+										}),
 									),
 								),
 							),

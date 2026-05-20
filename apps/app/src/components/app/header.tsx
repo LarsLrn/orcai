@@ -38,7 +38,7 @@ const Header = () => {
 
 	return (
 		<header className="sticky top-2 z-10 mx-2 flex h-12 shrink-0 items-center gap-2 rounded-lg border bg-sidebar px-4 text-muted-foreground shadow-sm">
-			<SidebarTrigger className="-ml-1" variant="subtle" />
+			<SidebarTrigger className="-ml-1" variant="ghost" />
 			<Separator
 				orientation="vertical"
 				className="my-auto mr-2 data-[orientation=vertical]:h-7"
@@ -51,7 +51,7 @@ const Header = () => {
 								to="/app"
 								className={cn(
 									buttonVariants({
-										variant: "subtle",
+										variant: "ghost",
 										size: "icon",
 										className: "size-7",
 									}),
@@ -68,7 +68,7 @@ const Header = () => {
 										<DropdownMenu>
 											<DropdownMenuTrigger
 												render={
-													<Button variant="subtle" size="icon-sm">
+													<Button variant="ghost" size="icon-sm">
 														<EllipsisIcon />
 													</Button>
 												}
@@ -99,7 +99,7 @@ const Header = () => {
 										title={breadcrumbItems[breadcrumbItems.length - 1].label}
 										className={cn(
 											buttonVariants({
-												variant: "subtle",
+												variant: "ghost",
 												size: "sm",
 												className:
 													"h-7 min-w-0 max-w-[calc(100vw-12rem)] shrink overflow-hidden",
@@ -126,7 +126,7 @@ const Header = () => {
 										title={item.label}
 										className={cn(
 											buttonVariants({
-												variant: "subtle",
+												variant: "ghost",
 												size: "sm",
 												className: cn(
 													"h-7 min-w-0 shrink overflow-hidden",

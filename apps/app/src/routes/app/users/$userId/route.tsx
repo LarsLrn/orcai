@@ -1,8 +1,14 @@
+import { userIdSchema } from "@orcai/schema";
 import { createFileRoute, Outlet } from "@tanstack/react-router";
 import { LoadingPage } from "@/components/app/loading/loading-page";
 import { orpc } from "@/lib/orpc/orpc";
 
 export const Route = createFileRoute("/app/users/$userId")({
+	params: {
+		parse: (params) => ({
+			userId: userIdSchema.parse(params.userId),
+		}),
+	},
 	loader: async ({ context: { queryClient }, params: { userId } }) => {
 		return await queryClient.ensureQueryData(
 			orpc.user.find.queryOptions({

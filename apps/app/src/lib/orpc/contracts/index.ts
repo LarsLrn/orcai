@@ -7,21 +7,6 @@ import type {
 import type { ORPCErrorConstructorMap } from "@orpc/server";
 import { aiChatContract } from "./ai";
 import {
-	createAssetContract,
-	deleteAssetContract,
-	findAssetContract,
-	listAssetsContract,
-	saveAssetContract,
-	saveManyAssetsContract,
-} from "./asset";
-import {
-	createAssetPointContract,
-	deleteAssetPointContract,
-	findAssetPointContract,
-	listAssetPointContract,
-	updateAssetPointContract,
-} from "./asset-point";
-import {
 	createBlockContract,
 	deleteBlockContract,
 	findBlockContract,
@@ -42,80 +27,10 @@ import {
 	saveBotContract,
 } from "./bot";
 import {
-	createChatContract,
-	deleteChatContract,
-	findChatContract,
-	listChatsContract,
-	updateChatContract,
-} from "./chat";
-import {
 	attachChatBlockContract,
 	detachChatBlockContract,
 	listChatBlocksContract,
 } from "./chat-block";
-import {
-	createChatMessageContract,
-	deleteChatMessageContract,
-	findChatMessageContract,
-	getBranchIdForMessageContract,
-	listChatMessagesContract,
-	rateChatMessageContract,
-	updateChatMessageContract,
-} from "./chat-message";
-import {
-	addGroupMembersContract,
-	createGroupContract,
-	deleteGroupContract,
-	findGroupContract,
-	listGroupMembersContract,
-	listGroupsContract,
-	removeGroupMembersContract,
-	updateGroupContract,
-} from "./group";
-import {
-	createJobsContract,
-	listJobsContract,
-	retryProcessingContract,
-	retryVectorizationContract,
-} from "./job";
-import {
-	createOrganizationContract,
-	deleteOrganizationContract,
-	findOrganizationContract,
-	listOrganizationsContract,
-	updateOrganizationContract,
-} from "./organization";
-import {
-	createOrganizationInvitationsContract,
-	deleteOrganizationInvitationsContract,
-	findOrganizationInvitationContract,
-	listOrganizationInvitationsContract,
-	respondToOrganizationInvitationContract,
-	updateOrganizationInvitationContract,
-	validateOrganizationInvitationContract,
-} from "./organization-invitation";
-import {
-	createOrganizationMemberContract,
-	deleteOrganizationMemberContract,
-	findOrganizationMemberContract,
-	listOrganizationMembersContract,
-	updateOrganizationMemberContract,
-} from "./organization-member";
-import {
-	createProviderContract,
-	deleteProviderContract,
-	findProviderContract,
-	listProvidersContract,
-	updateProviderContract,
-} from "./provider";
-import {
-	createQuotaPoolContract,
-	deactivateQuotaPoolContract,
-	findQuotaPoolContract,
-	listQuotaPoolsContract,
-	quotaChatBadgeContract,
-	updateQuotaPoolContract,
-} from "./quota";
 import {
 	getResourceVisibilityContract,
 	grantResourceAccessContract,
@@ -146,44 +61,11 @@ export const contracts = {
 		status: bootstrapStatusContract,
 		initialize: bootstrapInitializeContract,
 	},
-	organization: {
-		list: listOrganizationsContract,
-		find: findOrganizationContract,
-		create: createOrganizationContract,
-		update: updateOrganizationContract,
-		delete: deleteOrganizationContract,
-	},
-	organizationMember: {
-		list: listOrganizationMembersContract,
-		find: findOrganizationMemberContract,
-		create: createOrganizationMemberContract,
-		update: updateOrganizationMemberContract,
-		delete: deleteOrganizationMemberContract,
-	},
-	organizationInvitation: {
-		list: listOrganizationInvitationsContract,
-		create: createOrganizationInvitationsContract,
-		find: findOrganizationInvitationContract,
-		validate: validateOrganizationInvitationContract,
-		update: updateOrganizationInvitationContract,
-		delete: deleteOrganizationInvitationsContract,
-		respond: respondToOrganizationInvitationContract,
-	},
-	provider: {
-		list: listProvidersContract,
-		create: createProviderContract,
-		find: findProviderContract,
-		update: updateProviderContract,
-		delete: deleteProviderContract,
-	},
-	quota: {
-		list: listQuotaPoolsContract,
-		create: createQuotaPoolContract,
-		find: findQuotaPoolContract,
-		update: updateQuotaPoolContract,
-		deactivate: deactivateQuotaPoolContract,
-		chatBadge: quotaChatBadgeContract,
-	},
+	organization: sharedContracts.organization,
+	organizationMember: sharedContracts.organizationMember,
+	organizationInvitation: sharedContracts.organizationInvitation,
+	provider: sharedContracts.provider,
+	quota: sharedContracts.quota,
 	resource: {
 		listGrants: listResourceGrantsContract,
 		listPrincipals: listResourcePrincipalsContract,
@@ -192,37 +74,14 @@ export const contracts = {
 		getVisibility: getResourceVisibilityContract,
 		setVisibility: setResourceVisibilityContract,
 	},
-	group: {
-		list: listGroupsContract,
-		create: createGroupContract,
-		find: findGroupContract,
-		update: updateGroupContract,
-		delete: deleteGroupContract,
-		listMembers: listGroupMembersContract,
-		addMembers: addGroupMembersContract,
-		removeMembers: removeGroupMembersContract,
-	},
-	chat: {
-		list: listChatsContract,
-		find: findChatContract,
-		create: createChatContract,
-		update: updateChatContract,
-		delete: deleteChatContract,
-	},
+	group: sharedContracts.group,
+	chat: sharedContracts.chat,
 	chatBlock: {
 		list: listChatBlocksContract,
 		attach: attachChatBlockContract,
 		detach: detachChatBlockContract,
 	},
-	chatMessage: {
-		list: listChatMessagesContract,
-		find: findChatMessageContract,
-		create: createChatMessageContract,
-		update: updateChatMessageContract,
-		delete: deleteChatMessageContract,
-		rate: rateChatMessageContract,
-		getBranch: getBranchIdForMessageContract,
-	},
+	chatMessage: sharedContracts.chatMessage,
 	block: {
 		list: listBlocksContract,
 		find: findBlockContract,
@@ -239,21 +98,8 @@ export const contracts = {
 		publish: publishBotContract,
 		delete: deleteBotContract,
 	},
-	asset: {
-		list: listAssetsContract,
-		find: findAssetContract,
-		save: saveAssetContract,
-		saveMany: saveManyAssetsContract,
-		create: createAssetContract,
-		delete: deleteAssetContract,
-	},
-	assetPoint: {
-		list: listAssetPointContract,
-		find: findAssetPointContract,
-		create: createAssetPointContract,
-		update: updateAssetPointContract,
-		delete: deleteAssetPointContract,
-	},
+	asset: sharedContracts.asset,
+	assetPoint: sharedContracts.assetPoint,
 	user: {
 		list: listUsersContract,
 		find: findUserContract,
@@ -271,12 +117,7 @@ export const contracts = {
 		completeMultipartUpload: completeMultipartUploadContract,
 		abortMultipartUpload: abortMultipartUploadContract,
 	},
-	job: {
-		list: listJobsContract,
-		create: createJobsContract,
-		retryProcessing: retryProcessingContract,
-		retryVectorization: retryVectorizationContract,
-	},
+	job: sharedContracts.job,
 	ai: {
 		chat: aiChatContract,
 	},

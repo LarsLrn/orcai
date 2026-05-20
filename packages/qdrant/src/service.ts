@@ -11,14 +11,14 @@ import {
 } from "./config";
 import { QdrantError } from "./errors";
 
-export class QdrantService extends Context.Tag("QdrantService")<
+export class QdrantService extends Context.Service<
 	QdrantService,
 	{
 		readonly client: QdrantClient;
 		readonly collections: QdrantCollections;
 		readonly bm25Config: typeof defaultBm25Config;
 	}
->() {}
+>()("QdrantService") {}
 
 const getCollectionDenseVectorSize = (vectors: unknown): number | undefined => {
 	if (!vectors || typeof vectors !== "object") {
@@ -103,7 +103,7 @@ const ensurePayloadIndex = ({
 				cause,
 			}),
 	}).pipe(
-		Effect.catchAll((error) => {
+		Effect.catch((error) => {
 			const message =
 				error.cause instanceof Error
 					? error.cause.message.toLowerCase()

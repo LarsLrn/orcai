@@ -306,13 +306,11 @@ export const createDownloadUrl = authed.storage.createDownloadUrl
 					})
 					.pipe(
 						Effect.flatMap((row) =>
-							Effect.fromNullable(row).pipe(
-								Effect.orElse(() =>
-									Effect.fail(
-										errors.NOT_FOUND({
-											message: "Asset not found",
-										}),
-									),
+							Effect.fromNullishOr(row).pipe(
+								Effect.mapError(() =>
+									errors.NOT_FOUND({
+										message: "Asset not found",
+									}),
 								),
 							),
 						),

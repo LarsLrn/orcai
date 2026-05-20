@@ -1,8 +1,7 @@
 import { dbSchema } from "@orcai/db/schema";
-import { blockIdSchema, chatIdSchema } from "@orcai/schema";
-import { createSelectSchema } from "drizzle-zod";
+import { blockIdSchema, chatIdSchema, zedTokenSchema } from "@orcai/schema";
+import { createSelectSchema } from "drizzle-orm/zod";
 import { z } from "zod/v4";
-import { zedTokenSchema } from "./shared";
 
 export const chatBlockSelectSchema = createSelectSchema(dbSchema.chatBlock, {
 	chatId: chatIdSchema,

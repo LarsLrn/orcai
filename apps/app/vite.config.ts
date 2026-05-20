@@ -42,6 +42,12 @@ export default defineConfig({
 				"preferredLanguage",
 				"baseLocale",
 			],
+			routeStrategies: [
+				{
+					match: "/api/:path(.*)?",
+					exclude: true,
+				},
+			],
 			urlPatterns: [
 				{
 					pattern: "/:path(.*)?",

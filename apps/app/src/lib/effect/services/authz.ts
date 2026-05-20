@@ -49,7 +49,7 @@ const [OUTBOX_PENDING, OUTBOX_PROCESSING, OUTBOX_PROCESSED, OUTBOX_FAILED] =
  *
  * SpiceDbService remains the low-level Spice client used by this service.
  */
-export class AuthzService extends Context.Tag("AuthzService")<
+export class AuthzService extends Context.Service<
 	AuthzService,
 	{
 		/**
@@ -96,7 +96,7 @@ export class AuthzService extends Context.Tag("AuthzService")<
 			never
 		>;
 	}
->() {}
+>()("AuthzService") {}
 
 export const AuthzLive = Layer.effect(
 	AuthzService,
@@ -143,7 +143,7 @@ export const AuthzLive = Layer.effect(
 					params.mutations,
 				).pipe(
 					Effect.provideService(SpiceDbService, spiceDb),
-					Effect.catchAll((cause) =>
+					Effect.catch((cause) =>
 						db
 							.update(dbSchema.authzOutbox)
 							.set({
@@ -156,13 +156,13 @@ export const AuthzLive = Layer.effect(
 							})
 							.where(eq(dbSchema.authzOutbox.id, event.id))
 							.pipe(
-								Effect.catchAll(() => Effect.void),
-								Effect.zipRight(
+								Effect.catch(() => Effect.void),
+								Effect.andThen(
 									Effect.logError(
 										`authz.projection_failed eventId=${event.id} cause=${String(cause)}`,
 									),
 								),
-								Effect.zipRight(
+								Effect.andThen(
 									Effect.fail(
 										new AuthzError({
 											reason: "projection_failed",
@@ -199,10 +199,10 @@ export const AuthzLive = Layer.effect(
 					zedToken: projection.zedToken,
 				};
 			}).pipe(
-				Effect.catchAll((error) =>
+				Effect.catch((error) =>
 					Effect.logError(
 						`authz.outbox_enqueue_failed reason=${error.reason} eventId=${error.eventId ?? "n/a"} cause=${String(error.cause)}`,
-					).pipe(Effect.zipRight(Effect.fail(error))),
+					).pipe(Effect.andThen(Effect.fail(error))),
 				),
 			);
 
@@ -297,7 +297,7 @@ export const AuthzLive = Layer.effect(
 					const projected = yield* writeRelationshipMutations(mutations).pipe(
 						Effect.provideService(SpiceDbService, spiceDb),
 						Effect.as(true),
-						Effect.catchAll((cause) =>
+						Effect.catch((cause) =>
 							Effect.logWarning(
 								`authz.replay.projection_failed eventId=${event.id} cause=${String(cause)}`,
 							).pipe(Effect.as(false)),
@@ -361,7 +361,7 @@ export const AuthzLive = Layer.effect(
 					failed,
 				};
 			}).pipe(
-				Effect.catchAll(() =>
+				Effect.catch(() =>
 					Effect.succeed({
 						processed: 0,
 						failed: 0,
@@ -369,7 +369,7 @@ export const AuthzLive = Layer.effect(
 				),
 			);
 
-		yield* Effect.forkDaemon(
+		yield* Effect.forkDetach(
 			Effect.forever(
 				replayRelationshipOutbox({
 					limit: 200,

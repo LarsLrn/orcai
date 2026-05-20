@@ -1,24 +1,23 @@
 import { Button as ButtonPrimitive } from "@base-ui/react/button";
 import { cva, type VariantProps } from "class-variance-authority";
+
 import { cn } from "@/lib/utils";
 
 const buttonVariants = cva(
-	"group/button inline-flex shrink-0 select-none items-center justify-center whitespace-nowrap rounded-4xl border bg-clip-padding font-medium text-foreground text-sm outline-none transition-all focus-visible:border-ring focus-visible:ring-[3px] focus-visible:ring-ring/50 disabled:pointer-events-none disabled:opacity-50 aria-invalid:border-destructive aria-invalid:ring-[3px] aria-invalid:ring-destructive/20 dark:aria-invalid:border-destructive/50 dark:aria-invalid:ring-destructive/40 [&_svg:not([class*='size-'])]:size-4 [&_svg]:pointer-events-none [&_svg]:shrink-0",
+	"group/button inline-flex shrink-0 select-none items-center justify-center whitespace-nowrap rounded-4xl border bg-clip-padding font-medium text-foreground text-sm outline-none transition-all focus-visible:border-ring focus-visible:ring-3 focus-visible:ring-ring/30 active:not-aria-[haspopup]:translate-y-px disabled:pointer-events-none disabled:opacity-50 aria-invalid:border-destructive aria-invalid:ring-3 aria-invalid:ring-destructive/20 dark:aria-invalid:border-destructive/50 dark:aria-invalid:ring-destructive/40 [&_svg:not([class*='size-'])]:size-4 [&_svg]:pointer-events-none [&_svg]:shrink-0",
 	{
 		variants: {
 			variant: {
 				default:
 					"border-transparent bg-primary text-primary-foreground hover:bg-primary/80",
 				outline:
-					"border-border bg-input/30 hover:bg-input/50 hover:text-foreground aria-expanded:bg-muted aria-expanded:text-foreground",
+					"border-border bg-background hover:bg-muted hover:text-foreground aria-expanded:bg-muted aria-expanded:text-foreground dark:bg-transparent dark:hover:bg-input/30",
 				secondary:
 					"border-transparent bg-secondary text-secondary-foreground hover:bg-secondary/80 aria-expanded:bg-secondary aria-expanded:text-secondary-foreground",
 				ghost:
 					"border-transparent hover:bg-muted hover:text-foreground aria-expanded:bg-muted aria-expanded:text-foreground dark:hover:bg-muted/50",
 				destructive:
 					"bg-destructive/10 text-destructive hover:bg-destructive/20 focus-visible:border-destructive/40 focus-visible:ring-destructive/20 dark:bg-destructive/20 dark:focus-visible:ring-destructive/40 dark:hover:bg-destructive/30",
-				subtle:
-					"border-transparent hover:bg-card hover:text-card-foreground dark:hover:bg-card",
 				link: "border-transparent text-primary underline-offset-4 hover:underline",
 			},
 			size: {
@@ -49,6 +48,7 @@ function Button({
 	return (
 		<ButtonPrimitive
 			data-slot="button"
+			data-variant={variant}
 			className={cn(
 				buttonVariants({
 					variant,

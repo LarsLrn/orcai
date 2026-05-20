@@ -1,3 +1,4 @@
+import type { BotId, ChatId } from "@orcai/core";
 import {
 	Conversation,
 	ConversationContent,
@@ -6,15 +7,14 @@ import {
 import { ChatPlaceholder } from "@/components/chat/chat-placeholder";
 import { NewChatInput } from "@/components/chat/new-chat-input";
 import { useChatStarter } from "@/components/chat/use-chat-starter";
-import type { Bot } from "@/lib/orpc/schemas/bot";
 
 const NewChat = ({
 	botId,
 	onChatCreated,
 }: {
-	botId?: Bot["id"];
+	botId?: BotId;
 	onChatCreated: (
-		chatId: string,
+		chatId: ChatId,
 		pendingMessage: string,
 		zedToken?: string,
 	) => void;

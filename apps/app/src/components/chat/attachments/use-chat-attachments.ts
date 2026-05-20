@@ -1,3 +1,5 @@
+import type { AssetId } from "@orcai/core";
+import type { Asset } from "@orcai/schema";
 import { useMutation } from "@tanstack/react-query";
 import { nanoid } from "nanoid";
 import { useEffect, useMemo, useRef, useState } from "react";
@@ -5,7 +7,6 @@ import { toast } from "sonner";
 import { useUploadFiles } from "@/components/documents/use-upload-files";
 import type { ChatAttachment } from "@/lib/ai/types/chat-attachment";
 import { orpc } from "@/lib/orpc/orpc";
-import type { Asset } from "@/lib/orpc/schemas/asset";
 
 export type LocalChatFile = {
 	id: string;
@@ -158,7 +159,7 @@ export const useChatAttachments = ({ limit = 8 }: { limit?: number } = {}) => {
 		]);
 	};
 
-	const removeSelectedAsset = (id: Asset["id"]) => {
+	const removeSelectedAsset = (id: AssetId) => {
 		setSelectedAssets((current) => current.filter((asset) => asset.id !== id));
 	};
 
@@ -201,7 +202,7 @@ export const useChatAttachments = ({ limit = 8 }: { limit?: number } = {}) => {
 				}
 
 				uploadedAttachments.push({
-					assetId: objectMetadata.id as Asset["id"],
+					assetId: objectMetadata.id as AssetId,
 					title: file.name,
 					fileType: file.type,
 					size: file.size,

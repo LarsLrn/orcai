@@ -10,8 +10,8 @@ import {
 	VECTORIZE_ASSET_JOB_NAME,
 	type VectorizeAssetPayload,
 } from "@orcai/schema";
-import { processAssetBatchEffect } from "@/asset/jobs/process-asset-job";
-import { vectorizeAssetBatchEffect } from "@/asset/jobs/vectorize-asset-job";
+import { processAssetBatch } from "@/asset/jobs/process-asset-job";
+import { vectorizeAssetBatch } from "@/asset/jobs/vectorize-asset-job";
 import type { WorkerDefinition } from "@/worker/types";
 
 export type AssetWorkerContext =
@@ -33,7 +33,7 @@ export const assetWorkerDefinitions = [
 			localConcurrency: 2,
 			pollingIntervalSeconds: 2,
 		},
-		handler: processAssetBatchEffect,
+		handler: processAssetBatch,
 	}),
 	assetWorker<VectorizeAssetPayload>({
 		name: VECTORIZE_ASSET_JOB_NAME as JobQueue,
@@ -42,6 +42,6 @@ export const assetWorkerDefinitions = [
 			localConcurrency: 2,
 			pollingIntervalSeconds: 2,
 		},
-		handler: vectorizeAssetBatchEffect,
+		handler: vectorizeAssetBatch,
 	}),
 ] as const;

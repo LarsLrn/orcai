@@ -39,7 +39,7 @@ services:
       context: .
       dockerfile: .devcontainer/Dockerfile.workspace
     working_dir: /workspaces/sokratest-v2
-    command: [ "bun", "install", "--frozen-lockfile" ]
+    command: [ "bun", "install", "--frozen-lockfile", "--ignore-scripts" ]
     volumes:
       - .:/workspaces/sokratest-v2:cached
     user: bun

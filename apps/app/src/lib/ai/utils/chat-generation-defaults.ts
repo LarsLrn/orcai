@@ -1,4 +1,4 @@
-import type { ChatConfig } from "@/lib/orpc/schemas/chat";
+import type { ChatConfig } from "@orcai/schema";
 
 export const DEFAULT_CHAT_GENERATION_PARAMS = {
 	temperature: 0.7,

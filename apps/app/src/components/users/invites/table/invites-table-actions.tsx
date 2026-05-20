@@ -1,3 +1,4 @@
+import type { OrganizationInvitation } from "@orcai/schema";
 import { ReplaceAllIcon } from "lucide-react";
 import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
@@ -9,7 +10,6 @@ import {
 	DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import { useDeleteOrganizationInvitationsMutation } from "@/hooks/mutations/use-organization-invitation-mutations";
-import type { OrganizationInvitation } from "@/lib/orpc/schemas/organization-invitation";
 
 const InvitesTableActions = () => {
 	const { table } = useTable();

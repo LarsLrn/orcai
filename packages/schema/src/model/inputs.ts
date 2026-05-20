@@ -1,10 +1,10 @@
 import { z } from "zod/v4";
-import { providerIdSchema } from "../provider";
+import { providerIdSchema } from "../provider/ref";
 import { paginationInputSchema } from "../shared";
+import { modelIdSchema } from "./ref";
 import {
 	modelFieldsSchema,
 	modelFiltersSchema,
-	modelIdSchema,
 	modelMutableFieldsSchema,
 } from "./schema";
 

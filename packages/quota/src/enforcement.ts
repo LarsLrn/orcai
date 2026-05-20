@@ -117,7 +117,7 @@ export const reserveForAppRequest: (
 				orderedCandidatePoolIds: resolution.orderedCandidatePoolIds,
 			},
 		}).pipe(
-			Effect.catchAll((error) =>
+			Effect.catch((error) =>
 				counterStore
 					.release({
 						poolId: winning.pool.id,
@@ -125,8 +125,8 @@ export const reserveForAppRequest: (
 						reservationKey,
 					})
 					.pipe(
-						Effect.catchAll(() => Effect.void),
-						Effect.zipRight(Effect.fail(error)),
+						Effect.catch(() => Effect.void),
+						Effect.andThen(Effect.fail(error)),
 					),
 			),
 		);
@@ -206,7 +206,7 @@ export const finalizeAppRequestQuota: (input: {
 				actualAmount,
 			})
 			.pipe(
-				Effect.catchAll((error) =>
+				Effect.catch((error) =>
 					Effect.logWarning(
 						`quota.finalize.counter_reconcile_required reservationKey=${input.reservation.reservationKey} cause=${String(error)}`,
 					),
@@ -238,7 +238,7 @@ export const releaseAppRequestQuota: (input: {
 				reservationKey: input.reservation.reservationKey,
 			})
 			.pipe(
-				Effect.catchAll((error) =>
+				Effect.catch((error) =>
 					Effect.logWarning(
 						`quota.release.counter_reconcile_required reservationKey=${input.reservation.reservationKey} cause=${String(error)}`,
 					),

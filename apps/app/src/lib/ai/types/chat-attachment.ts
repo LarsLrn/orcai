@@ -1,6 +1,5 @@
-import { bucketSchema } from "@orcai/schema";
+import { assetIdSchema, bucketSchema } from "@orcai/schema";
 import { z } from "zod/v4";
-import { assetSelectSchema } from "@/lib/orpc/schemas/asset";
 
 export const chatAttachmentSourceSchema = z.enum([
 	"upload",
@@ -8,7 +7,7 @@ export const chatAttachmentSourceSchema = z.enum([
 ]);
 
 export const chatAttachmentSchema = z.object({
-	assetId: assetSelectSchema.shape.id,
+	assetId: assetIdSchema,
 	title: z.string().min(1),
 	fileType: z.string().min(1),
 	size: z.number().int().nonnegative(),

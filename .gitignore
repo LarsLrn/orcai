@@ -38,13 +38,12 @@ yarn-error.log*
 
 # typescript
 *.tsbuildinfo
-next-env.d.ts
-/apps/*/*.tsbuildinfo
-/packages/*/*.tsbuildinfo
 
 # Paraglide
 /src/paraglide
 /apps/*/src/paraglide
+
+# devtools
 .devtools
 
 # workspace caches and generated output

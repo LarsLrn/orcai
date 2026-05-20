@@ -21,6 +21,16 @@ npm-debug.log*
 yarn-debug.log*
 yarn-error.log*
 
+# typescript
+*.tsbuildinfo
+
+# Paraglide
+/src/paraglide
+/apps/*/src/paraglide
+
+# devtools
+.devtools
+
 # Env
 .env*
 !.env.example

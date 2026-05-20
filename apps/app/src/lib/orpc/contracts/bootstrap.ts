@@ -1,10 +1,10 @@
+import { base } from "@orcai/contracts";
 import { organizationIdSchema, userIdSchema } from "@orcai/schema";
 import { z } from "zod/v4";
 import {
 	bootstrapInitializeSchema,
 	bootstrapStatusSchema,
 } from "@/lib/orpc/schemas/bootstrap";
-import { base } from "./base";
 
 export const bootstrapStatusContract = base
 	.route({

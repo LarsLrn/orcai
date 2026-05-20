@@ -1,3 +1,4 @@
+import { paginationInputSchema } from "@orcai/schema";
 import { useQueryClient, useSuspenseQuery } from "@tanstack/react-query";
 import { createFileRoute, useNavigate } from "@tanstack/react-router";
 import { PlusIcon, SearchIcon } from "lucide-react";
@@ -29,9 +30,8 @@ import {
 import { Textarea } from "@/components/ui/textarea";
 import { useMutationAction } from "@/hooks/actions/use-mutation-action";
 import { orpc } from "@/lib/orpc/orpc";
-import { paginationSchema } from "@/lib/orpc/schemas/shared";
 
-const searchSchema = paginationSchema.extend({
+const searchSchema = paginationInputSchema.extend({
 	query: z.string().trim().max(100).default(""),
 });
 

@@ -11,6 +11,7 @@ import {
 	describeTableImagePrompt,
 } from "@orcai/core";
 import { DB, dbSchema } from "@orcai/db";
+import type { Job } from "@orcai/pg-boss";
 import { PgBossError } from "@orcai/pg-boss";
 import {
 	buildStoredExtractionKey,
@@ -21,14 +22,13 @@ import { getImageAsBase64, getObjectAsJson } from "@orcai/s3/server";
 import type { FileType, VectorizeAssetPayload } from "@orcai/schema";
 import { and, eq } from "drizzle-orm";
 import * as Effect from "effect/Effect";
-import type { Job } from "pg-boss";
 import { v4 as uuidv4 } from "uuid";
 
-export const vectorizeAssetBatchEffect = (jobs: Job<VectorizeAssetPayload>[]) =>
+export const vectorizeAssetBatch = (jobs: Job<VectorizeAssetPayload>[]) =>
 	Effect.forEach(
 		jobs,
 		(job) =>
-			vectorizeAssetsEffect({
+			vectorizeAssets({
 				job,
 			}),
 		{
@@ -436,7 +436,7 @@ const buildImageChunks = ({
 					chunkIndex: textChunkCount + imageIndex,
 					chunkCount: totalChunkCount,
 				}).pipe(
-					Effect.catchAll((err) =>
+					Effect.catch((err) =>
 						Effect.logError(
 							{
 								jobId,
@@ -470,7 +470,7 @@ const buildImageChunks = ({
 	);
 };
 
-const vectorizeAssetsEffect = (params: { job: Job<VectorizeAssetPayload> }) =>
+const vectorizeAssets = (params: { job: Job<VectorizeAssetPayload> }) =>
 	Effect.gen(function* () {
 		const { blockId, assetId } = params.job.data;
 		const db = yield* DB;

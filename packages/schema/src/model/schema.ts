@@ -1,18 +1,15 @@
-import type { ModelId } from "@orcai/core";
 import { z } from "zod/v4";
 import { modelCapabilitiesSchema } from "../fragments/model-capabilities";
-import { providerIdSchema } from "../provider";
-import { createUuidIdSchema } from "../shared";
-
-export const modelCapabilitySchema = modelCapabilitiesSchema;
-export const modelIdSchema = createUuidIdSchema<ModelId>();
+import { providerIdSchema } from "../provider/ref";
+import { searchFilterSchema } from "../shared/filters";
+import { modelIdSchema } from "./ref";
 
 export const modelFieldsSchema = z.object({
 	providerModelId: z.string(),
 	name: z.string(),
 	description: z.string().max(500),
 	isDeprecated: z.boolean(),
-	capabilities: z.array(modelCapabilitySchema),
+	capabilities: z.array(modelCapabilitiesSchema),
 });
 
 export const modelMutableFieldsSchema = modelFieldsSchema.partial();
@@ -25,8 +22,8 @@ export const modelSchema = modelFieldsSchema.extend({
 
 export const modelFiltersSchema = z.object({
 	providerId: providerIdSchema.optional(),
-	capabilities: z.array(modelCapabilitySchema).optional(),
-	search: z.string().optional(),
+	capabilities: z.array(modelCapabilitiesSchema).optional(),
+	...searchFilterSchema.shape,
 });
 
 export type Model = z.infer<typeof modelSchema>;

@@ -97,13 +97,13 @@ const buildAttachmentPromptPart = (attachment: ChatAttachment) => {
 	if (attachment.fileType.startsWith("image/")) {
 		return buildFileAttachmentPart(attachment).pipe(
 			Effect.map((part): FileUIPart | TextUIPart => part),
-			Effect.catchAll(() => Effect.succeed(fallbackAttachmentPart(attachment))),
+			Effect.catch(() => Effect.succeed(fallbackAttachmentPart(attachment))),
 		);
 	}
 
 	return buildTextAttachmentPart(attachment).pipe(
 		Effect.map((part): FileUIPart | TextUIPart => part),
-		Effect.catchAll(() => Effect.succeed(fallbackAttachmentPart(attachment))),
+		Effect.catch(() => Effect.succeed(fallbackAttachmentPart(attachment))),
 	);
 };
 

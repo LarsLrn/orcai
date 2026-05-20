@@ -15,12 +15,12 @@ export type SendEmailParams = Readonly<{
 	from?: string;
 }>;
 
-export class EmailService extends Context.Tag("EmailService")<
+export class EmailService extends Context.Service<
 	EmailService,
 	{
 		readonly send: (params: SendEmailParams) => Effect.Effect<void, EmailError>;
 	}
->() {}
+>()("EmailService") {}
 
 const validatePayload = (params: SendEmailParams) => {
 	if (!params.text && !params.html) {
@@ -53,7 +53,7 @@ const logOnlyService = {
 		}),
 } as const;
 
-export const EmailLive = Layer.scoped(
+export const EmailLive = Layer.effect(
 	EmailService,
 	Effect.acquireRelease(
 		Effect.gen(function* () {
@@ -147,7 +147,7 @@ export const EmailLive = Layer.scoped(
 								cause: error,
 							}),
 					}).pipe(
-						Effect.catchAll((error) =>
+						Effect.catch((error) =>
 							Effect.logError(`Failed to close SMTP transport: ${error}`),
 						),
 					),

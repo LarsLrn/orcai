@@ -1,3 +1,5 @@
+import type { OrganizationInvitationId } from "@orcai/core";
+import type { OrganizationInvitation } from "@orcai/schema";
 import { useRouter } from "@tanstack/react-router";
 import type { ColumnDef } from "@tanstack/react-table";
 import { format } from "date-fns";
@@ -15,7 +17,6 @@ import {
 } from "@/components/ui/dropdown-menu";
 import { useDeleteOrganizationInvitationsMutation } from "@/hooks/mutations/use-organization-invitation-mutations";
 import { clientEnv } from "@/lib/env/client";
-import type { OrganizationInvitation } from "@/lib/orpc/schemas/organization-invitation";
 
 export const invitesTableColumns: ColumnDef<OrganizationInvitation>[] = [
 	{
@@ -86,7 +87,7 @@ const ActionsCell = ({
 }) => {
 	const router = useRouter();
 
-	const handleCopyLink = (id: OrganizationInvitation["id"]) => {
+	const handleCopyLink = (id: OrganizationInvitationId) => {
 		const location = router.buildLocation({
 			to: "/register",
 			search: {
@@ -134,13 +135,13 @@ const DeleteItem = ({
 	invitationId,
 	organizationId,
 }: {
-	invitationId: OrganizationInvitation["id"];
+	invitationId: OrganizationInvitationId;
 	organizationId: OrganizationInvitation["organizationId"];
 }) => {
 	const { mutate: deleteInvitations } =
 		useDeleteOrganizationInvitationsMutation();
 
-	const handleDelete = (id: OrganizationInvitation["id"]) => {
+	const handleDelete = (id: OrganizationInvitationId) => {
 		deleteInvitations({
 			organizationId,
 			refs: [

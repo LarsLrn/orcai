@@ -130,20 +130,14 @@ export const requirePreferencesMiddleware = withName(
 					})
 					.pipe(
 						Effect.flatMap((prefs) =>
-							Effect.fromNullable(prefs).pipe(
-								Effect.orElse(() =>
-									Effect.fail(
-										errors.NOT_FOUND({
-											message: "User preferences not found",
-											data: {
-												id: context.auth.user.id,
-												organizationId:
-													context.auth.session.activeOrganizationId ??
-													context.auth.user.id,
-												userId: context.auth.user.id,
-											},
-										}),
-									),
+							Effect.fromNullishOr(prefs).pipe(
+								Effect.mapError(() =>
+									errors.NOT_FOUND({
+										message: "User preferences not found",
+										data: {
+											id: context.auth.user.id,
+										},
+									}),
 								),
 							),
 						),

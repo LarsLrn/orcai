@@ -1,3 +1,4 @@
+import type { Asset } from "@orcai/schema";
 import { useState } from "react";
 import {
 	AssetMetadataEditor,
@@ -13,7 +14,6 @@ import {
 	CardTitle,
 } from "@/components/ui/card";
 import { useSaveAssetMutation } from "@/hooks/mutations/use-asset-mutations";
-import type { Asset } from "@/lib/orpc/schemas/asset";
 
 const AssetForm = ({ asset }: { asset: Asset }) => {
 	const { mutate: saveAsset, isPending } = useSaveAssetMutation();

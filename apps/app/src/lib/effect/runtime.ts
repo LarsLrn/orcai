@@ -4,12 +4,12 @@ import * as ManagedRuntime from "effect/ManagedRuntime";
 import { AppLayer } from "./app-layer";
 
 export type AppRuntime = ManagedRuntime.ManagedRuntime<
-	Layer.Layer.Success<typeof AppLayer>,
-	Layer.Layer.Error<typeof AppLayer>
+	Layer.Success<typeof AppLayer>,
+	Layer.Error<typeof AppLayer>
 >;
 
 export type AppRuntimeContext =
-	ManagedRuntime.ManagedRuntime.Context<AppRuntime>;
+	ManagedRuntime.ManagedRuntime.Services<AppRuntime>;
 
 // Ensure singleton runtime across hot module reloads in development
 declare global {

@@ -1,6 +1,6 @@
+import type { OrganizationInvitation } from "@orcai/schema";
 import { Button } from "@/components/ui/button";
 import { useRespondOrganizationInvitationMutation } from "@/hooks/mutations/use-organization-invitation-mutations";
-import type { OrganizationInvitation } from "@/lib/orpc/schemas/organization-invitation";
 
 type OrganizationInvitationActionsProps = {
 	invitation: OrganizationInvitation;

@@ -1,3 +1,4 @@
+import { paginationInputSchema } from "@orcai/schema";
 import { useSuspenseQuery } from "@tanstack/react-query";
 import { createFileRoute, Link } from "@tanstack/react-router";
 import {
@@ -20,10 +21,9 @@ import {
 } from "@/components/ui/shell/section";
 import { useReprocessAssetMutation } from "@/hooks/mutations/use-job-mutations";
 import { orpc } from "@/lib/orpc/orpc";
-import { paginationSchema } from "@/lib/orpc/schemas/shared";
 
 export const Route = createFileRoute("/app/hub/assets/")({
-	validateSearch: paginationSchema,
+	validateSearch: paginationInputSchema,
 	loaderDeps: ({ search: { pageIndex, pageSize } }) => ({
 		pageIndex,
 		pageSize,

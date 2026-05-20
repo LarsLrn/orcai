@@ -64,7 +64,7 @@ services:
 
   # Qdrant Vector Database
   qdrant:
-    image: qdrant/qdrant:v1.17.1
+    image: qdrant/qdrant:v1.18.0
     volumes:
       - qdrant_data:/qdrant/storage
     environment:
@@ -277,7 +277,7 @@ services:
     restart: on-failure
 
   spicedb-database:
-    image: "postgres:17.9"
+    image: "postgres:17.10"
     volumes:
       - spicedb_postgres_data:/var/lib/postgresql/data
     environment:

@@ -1,3 +1,5 @@
+import type { AssetId } from "@orcai/core";
+import type { Asset } from "@orcai/schema";
 import type { FileUIPart, SourceDocumentUIPart } from "ai";
 import convert from "convert";
 import {
@@ -12,7 +14,6 @@ import {
 	Attachments,
 } from "@/components/ai-elements/attachments";
 import { InputGroupAddon } from "@/components/ui/input-group";
-import type { Asset } from "@/lib/orpc/schemas/asset";
 import type { LocalChatFile } from "./use-chat-attachments";
 
 const localFileToUiPart = (file: LocalChatFile) =>
@@ -92,7 +93,7 @@ export const ChatComposerAttachments = ({
 	localFiles: LocalChatFile[];
 	assets: Asset[];
 	onRemoveLocalFile: (id: string) => void;
-	onRemoveAsset: (id: Asset["id"]) => void;
+	onRemoveAsset: (id: AssetId) => void;
 }) => {
 	if (localFiles.length === 0 && assets.length === 0) {
 		return null;

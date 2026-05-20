@@ -1,5 +1,5 @@
 import { Slider as SliderPrimitive } from "@base-ui/react/slider";
-import * as React from "react";
+
 import { cn } from "@/lib/utils";
 
 function Slider({
@@ -10,23 +10,14 @@ function Slider({
 	max = 100,
 	...props
 }: SliderPrimitive.Root.Props) {
-	const _values = React.useMemo(
-		() =>
-			Array.isArray(value)
-				? value
-				: Array.isArray(defaultValue)
-					? defaultValue
-					: [
-							min,
-							max,
-						],
-		[
-			value,
-			defaultValue,
-			min,
-			max,
-		],
-	);
+	const _values = Array.isArray(value)
+		? value
+		: Array.isArray(defaultValue)
+			? defaultValue
+			: [
+					min,
+					max,
+				];
 
 	return (
 		<SliderPrimitive.Root
@@ -42,7 +33,7 @@ function Slider({
 			<SliderPrimitive.Control className="relative flex w-full touch-none select-none items-center data-vertical:h-full data-vertical:min-h-40 data-vertical:w-auto data-vertical:flex-col data-disabled:opacity-50">
 				<SliderPrimitive.Track
 					data-slot="slider-track"
-					className="relative grow select-none overflow-hidden rounded-4xl bg-muted data-horizontal:h-3 data-vertical:h-full data-horizontal:w-full data-vertical:w-3"
+					className="relative grow select-none overflow-hidden rounded-full bg-input/90 data-horizontal:h-2 data-vertical:h-full data-horizontal:w-full data-vertical:w-2"
 				>
 					<SliderPrimitive.Indicator
 						data-slot="slider-range"
@@ -58,7 +49,7 @@ function Slider({
 							data-slot="slider-thumb"
 							// biome-ignore lint/suspicious/noArrayIndexKey: Fine for simple slider
 							key={index}
-							className="block size-4 shrink-0 select-none rounded-4xl border border-primary bg-white shadow-sm ring-ring/50 transition-colors hover:ring-4 focus-visible:outline-hidden focus-visible:ring-4 disabled:pointer-events-none disabled:opacity-50"
+							className="block h-4 w-6 shrink-0 select-none rounded-full bg-white not-dark:bg-clip-padding shadow-md ring-1 ring-black/10 transition-[color,box-shadow,background-color] hover:ring-4 hover:ring-ring/30 focus-visible:outline-hidden focus-visible:ring-4 focus-visible:ring-ring/30 disabled:pointer-events-none disabled:opacity-50 data-vertical:h-6 data-vertical:w-4"
 						/>
 					),
 				)}

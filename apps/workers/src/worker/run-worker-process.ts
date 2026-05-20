@@ -1,16 +1,15 @@
 import { logErrorCause } from "@orcai/observability";
+import type { Job } from "@orcai/pg-boss";
 import { PgBossService, PgBossWorkersError } from "@orcai/pg-boss";
 import type { JobQueue } from "@orcai/schema";
 import * as Effect from "effect/Effect";
 import type * as Layer from "effect/Layer";
 import * as ManagedRuntime from "effect/ManagedRuntime";
-import * as Runtime from "effect/Runtime";
 import * as Schedule from "effect/Schedule";
-import type { Job } from "pg-boss";
 import type { WorkerDefinition } from "@/worker/types";
 
 const retryPolicy = Schedule.exponential("1 second").pipe(
-	Schedule.intersect(Schedule.recurs(9)),
+	Schedule.both(Schedule.recurs(9)),
 	Schedule.jittered,
 );
 
@@ -40,7 +39,7 @@ const registerWorkers = <TContext>(
 ) =>
 	Effect.gen(function* () {
 		const { boss } = yield* PgBossService;
-		const rt = yield* Effect.runtime<TContext | PgBossService>();
+		const services = yield* Effect.context<TContext | PgBossService>();
 
 		const runWorkerBatch =
 			(
@@ -50,9 +49,9 @@ const registerWorkers = <TContext>(
 				) => Effect.Effect<void, unknown, TContext | PgBossService>,
 			) =>
 			(jobs: Job<unknown>[]) =>
-				Runtime.runPromise(rt)(
+				Effect.runPromiseWith(services)(
 					handler(jobs).pipe(
-						Effect.tapErrorCause((cause) =>
+						Effect.tapCause((cause) =>
 							logErrorCause("Worker batch failed", cause).pipe(
 								Effect.annotateLogs({
 									queue,

@@ -57,8 +57,8 @@ const getObjectBytes = ({
 			key: name,
 		});
 
-		const body = yield* Effect.fromNullable(response.Body).pipe(
-			Effect.orElseFail(
+		const body = yield* Effect.fromNullishOr(response.Body).pipe(
+			Effect.mapError(
 				() =>
 					new S3Error({
 						operation: "getObjectBytes",

@@ -1,3 +1,4 @@
+import type { Asset } from "@orcai/schema";
 import { PencilIcon, XIcon } from "lucide-react";
 import { useState } from "react";
 import {
@@ -15,7 +16,6 @@ import {
 	DialogTitle,
 } from "@/components/ui/dialog";
 import { useSaveAssetMutation } from "@/hooks/mutations/use-asset-mutations";
-import type { Asset } from "@/lib/orpc/schemas/asset";
 import { getProcessingStatusLabel } from "@/lib/presentation/processing-status";
 
 const SelectedAssetList = ({

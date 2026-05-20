@@ -151,7 +151,7 @@ const reserveCountersAtomically = async (params: {
 	};
 };
 
-export class QuotaCounterStore extends Context.Tag("QuotaCounterStore")<
+export class QuotaCounterStore extends Context.Service<
 	QuotaCounterStore,
 	{
 		readonly reserve: (input: {
@@ -206,7 +206,7 @@ export class QuotaCounterStore extends Context.Tag("QuotaCounterStore")<
 			remaining: number;
 		}) => Effect.Effect<void, QuotaCounterStoreError, never>;
 	}
->() {}
+>()("QuotaCounterStore") {}
 
 export const QuotaCounterStoreLive = Layer.effect(
 	QuotaCounterStore,

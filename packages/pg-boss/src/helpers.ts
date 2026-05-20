@@ -1,10 +1,9 @@
-import type { JobQueue } from "@orcai/schema";
+import { type JobQueue, jobHistoryEntrySchema } from "@orcai/schema";
 import * as Effect from "effect/Effect";
 import { PgBossError } from "./errors";
-import type { Job } from "./schema/job";
 import { PgBossService } from "./service";
 
-export const sendJobEffect = <T extends object = object>(params: {
+export const sendJob = <T extends object = object>(params: {
 	jobName: JobQueue;
 	data: T & {
 		resourceId?: string;
@@ -58,7 +57,7 @@ export const sendJobEffect = <T extends object = object>(params: {
 /**
  * Send multiple jobs in batch.
  */
-export const sendJobBatchEffect = <T extends object = object>(params: {
+export const sendJobBatch = <T extends object = object>(params: {
 	jobName: JobQueue;
 	jobs: Array<{
 		data: T & {
@@ -107,7 +106,7 @@ export const sendJobBatchEffect = <T extends object = object>(params: {
 /**
  * Get all pg-boss jobs for a specific resource.
  */
-export const getJobsByResourceEffect = (params: {
+export const getJobsByResource = (params: {
 	jobQueue: JobQueue;
 	resourceId: string;
 }) =>
@@ -129,5 +128,13 @@ export const getJobsByResourceEffect = (params: {
 				}),
 		});
 
-		return data as Job[];
+		return yield* Effect.try({
+			try: () => jobHistoryEntrySchema.array().parse(data),
+			catch: (error) =>
+				new PgBossError({
+					operation: "query",
+					queue: params.jobQueue,
+					cause: error,
+				}),
+		});
 	});

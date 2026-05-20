@@ -152,7 +152,7 @@ const DatetimeField = ({
 									return false;
 								}}
 								captionLayout="dropdown"
-								initialFocus
+								autoFocus
 							/>
 						</div>
 						{showTimePicker && (

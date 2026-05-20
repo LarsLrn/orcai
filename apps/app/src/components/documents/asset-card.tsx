@@ -1,3 +1,4 @@
+import type { Asset } from "@orcai/schema";
 import { EditIcon, EyeIcon, FileTextIcon } from "lucide-react";
 import {
 	DropdownMenu,
@@ -24,7 +25,6 @@ import {
 	type ResourceCardPrimaryAction,
 	ResourceCardTitle,
 } from "@/components/ui/shell/resource-card";
-import type { Asset } from "@/lib/orpc/schemas/asset";
 import { getProcessingStatusLabel } from "@/lib/presentation/processing-status";
 
 const AssetCard = ({

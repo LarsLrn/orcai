@@ -93,13 +93,11 @@ export const findChat = authed.chat.find
 					})
 					.pipe(
 						Effect.flatMap((chat) =>
-							Effect.fromNullable(chat).pipe(
-								Effect.orElse(() =>
-									Effect.fail(
-										errors.NOT_FOUND({
-											message: "Chat not found",
-										}),
-									),
+							Effect.fromNullishOr(chat).pipe(
+								Effect.mapError(() =>
+									errors.NOT_FOUND({
+										message: "Chat not found",
+									}),
 								),
 							),
 						),
@@ -233,8 +231,8 @@ export const updateChat = authed.chat.update
 				});
 
 				const configPatch =
-					input.config === undefined
-						? undefined
+					input.config == null
+						? input.config
 						: Object.fromEntries(
 								Object.entries(input.config).filter(
 									([, value]) => value !== undefined,
@@ -244,21 +242,23 @@ export const updateChat = authed.chat.update
 				const mergedConfig =
 					configPatch === undefined
 						? undefined
-						: (() => {
-								const nextConfig = {
-									...(existingChat?.config ?? {}),
-								} as Record<string, unknown>;
+						: configPatch === null
+							? null
+							: (() => {
+									const nextConfig = {
+										...(existingChat?.config ?? {}),
+									} as Record<string, unknown>;
 
-								for (const [key, value] of Object.entries(configPatch)) {
-									if (value === null) {
-										delete nextConfig[key];
-										continue;
+									for (const [key, value] of Object.entries(configPatch)) {
+										if (value === null) {
+											delete nextConfig[key];
+											continue;
+										}
+										nextConfig[key] = value;
 									}
-									nextConfig[key] = value;
-								}
 
-								return nextConfig;
-							})();
+									return nextConfig;
+								})();
 
 				return yield* db
 					.update(dbSchema.chat)
@@ -274,16 +274,14 @@ export const updateChat = authed.chat.update
 					.returning();
 			}).pipe(
 				Effect.flatMap(([updatedChat]) =>
-					Effect.fromNullable(updatedChat).pipe(
-						Effect.orElse(() =>
-							Effect.fail(
-								errors.NOT_FOUND({
-									message: "Chat not found",
-									data: {
-										id: input.id,
-									},
-								}),
-							),
+					Effect.fromNullishOr(updatedChat).pipe(
+						Effect.mapError(() =>
+							errors.NOT_FOUND({
+								message: "Chat not found",
+								data: {
+									id: input.id,
+								},
+							}),
 						),
 						Effect.map((chat) => ({
 							data: chat,
