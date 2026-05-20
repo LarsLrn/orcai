@@ -136,10 +136,6 @@ export const requirePreferencesMiddleware = withName(
 										message: "User preferences not found",
 										data: {
 											id: context.auth.user.id,
-											organizationId:
-												context.auth.session.activeOrganizationId ??
-												context.auth.user.id,
-											userId: context.auth.user.id,
 										},
 									}),
 								),

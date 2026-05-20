@@ -299,7 +299,10 @@ export const aiChat = authed.ai.chat
 									role: "user",
 									parts: userMessage.parts,
 									attachments: userMessageAttachments,
-									metadata: userMessage.metadata || {},
+									metadata: (userMessage.metadata ?? {}) as Record<
+										string,
+										unknown
+									>,
 									branchId,
 									parentMessageId,
 								},
@@ -374,7 +377,10 @@ export const aiChat = authed.ai.chat
 										role: responseMessage.role,
 										parts: responseMessage.parts,
 										attachments: [],
-										metadata: responseMessage.metadata ?? {},
+										metadata: (responseMessage.metadata ?? {}) as Record<
+											string,
+											unknown
+										>,
 										branchId: currentBranchId,
 										parentMessageId: null,
 									},

@@ -15,4 +15,27 @@ export const chatBranchSchema = z.object({
 	updatedAt: z.coerce.date().nullable(),
 });
 
+export const chatBranchFieldsSchema = chatBranchSchema.omit({
+	id: true,
+	createdAt: true,
+	updatedAt: true,
+});
+
+export const chatBranchMutableFieldsSchema = chatBranchFieldsSchema.partial();
+
+export const chatBranchCreateInputSchema = chatBranchFieldsSchema;
+
+export const chatBranchUpdateInputSchema = chatBranchMutableFieldsSchema.extend(
+	{
+		id: chatBranchIdSchema,
+	},
+);
+
+export const chatBranchDeleteInputSchema = z.object({
+	id: chatBranchIdSchema,
+});
+
 export type ChatBranch = z.infer<typeof chatBranchSchema>;
+export type CreateChatBranchInput = z.infer<typeof chatBranchCreateInputSchema>;
+export type UpdateChatBranchInput = z.infer<typeof chatBranchUpdateInputSchema>;
+export type DeleteChatBranchInput = z.infer<typeof chatBranchDeleteInputSchema>;

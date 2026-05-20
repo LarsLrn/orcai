@@ -1,15 +1,22 @@
-import { chatIdSchema, zedTokenSchema } from "@orcai/schema";
+import {
+	chatBranchIdSchema,
+	chatIdSchema,
+	zedTokenSchema,
+} from "@orcai/schema";
 import { createFileRoute, useRouterState } from "@tanstack/react-router";
 import { z } from "zod/v4";
 import { Chat } from "@/components/chat/chat";
 import type { ChatAgentUIMessage } from "@/lib/ai/types/chat-agent-message";
 import { orpc } from "@/lib/orpc/orpc";
-import { chatBranchSelectSchema } from "@/lib/orpc/schemas/chat-branch";
 
 const searchSchema = z.object({
-	branch: chatBranchSelectSchema.shape.id.optional(),
+	branch: chatBranchIdSchema.optional(),
 	...zedTokenSchema.shape,
 });
+
+// Unfortunately required for now to restore types after route validation, since UI Messages are dynamically inferred based on available tools, metadata and more, which makes it impossible to statically define the shape in the @orcai/schema package.
+const toChatAgentMessages = (messages: unknown[]): ChatAgentUIMessage[] =>
+	messages as ChatAgentUIMessage[];
 
 export const Route = createFileRoute("/app/chat/$chatId/")({
 	validateSearch: searchSchema,
@@ -99,6 +106,7 @@ function RouteComponent() {
 	const { chatId } = Route.useParams();
 	const loaderData = Route.useLoaderData();
 	const { zedToken } = Route.useSearch();
+	const initialMessages = toChatAgentMessages(loaderData.messages.data);
 	const pendingMessage = useRouterState({
 		select: (state) =>
 			typeof state.location.state.pendingMessage === "string"
@@ -111,7 +119,7 @@ function RouteComponent() {
 			<Chat
 				key={`${chatId}-${loaderData.branchId ?? "new"}`}
 				id={chatId}
-				initialMessages={loaderData.messages.data as ChatAgentUIMessage[]}
+				initialMessages={initialMessages}
 				branchId={loaderData.branchId}
 				zedToken={zedToken}
 				pendingMessage={pendingMessage}

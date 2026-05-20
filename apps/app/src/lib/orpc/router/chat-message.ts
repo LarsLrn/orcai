@@ -1,5 +1,6 @@
 import type { ChatId, ChatMessageId } from "@orcai/core";
 import { DB, dbSchema } from "@orcai/db";
+import type { ChatMessage } from "@orcai/schema";
 import {
 	and,
 	count,
@@ -14,7 +15,6 @@ import * as Effect from "effect/Effect";
 import { runOrpcEffect } from "@/lib/effect/utils/orpc-helpers";
 import { authed } from "@/lib/orpc/implementation/authed";
 import { requireEntityPermission } from "@/lib/orpc/middlewares/permission";
-import type { ChatMessage } from "@/lib/orpc/schemas/chat-message";
 
 interface MessageTreeRow {
 	id: string;

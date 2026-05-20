@@ -6,6 +6,7 @@ import type {
 import { assetContracts } from "./asset";
 import { assetPointContracts } from "./asset-point";
 import { chatContracts } from "./chat";
+import { chatMessageContracts } from "./chat-message";
 import { jobContracts } from "./job";
 import { modelContracts } from "./model";
 import { organizationContracts } from "./organization";
@@ -18,6 +19,7 @@ export const contracts = {
 	asset: assetContracts,
 	assetPoint: assetPointContracts,
 	chat: chatContracts,
+	chatMessage: chatMessageContracts,
 	job: jobContracts,
 	model: modelContracts,
 	organization: organizationContracts,
@@ -36,6 +38,7 @@ export {
 	assetContracts,
 	assetPointContracts,
 	chatContracts,
+	chatMessageContracts,
 	jobContracts,
 	modelContracts,
 	organizationContracts,

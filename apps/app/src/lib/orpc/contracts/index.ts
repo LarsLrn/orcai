@@ -32,15 +32,6 @@ import {
 	listChatBlocksContract,
 } from "./chat-block";
 import {
-	createChatMessageContract,
-	deleteChatMessageContract,
-	findChatMessageContract,
-	getBranchIdForMessageContract,
-	listChatMessagesContract,
-	rateChatMessageContract,
-	updateChatMessageContract,
-} from "./chat-message";
-import {
 	addGroupMembersContract,
 	createGroupContract,
 	deleteGroupContract,
@@ -109,15 +100,7 @@ export const contracts = {
 		attach: attachChatBlockContract,
 		detach: detachChatBlockContract,
 	},
-	chatMessage: {
-		list: listChatMessagesContract,
-		find: findChatMessageContract,
-		create: createChatMessageContract,
-		update: updateChatMessageContract,
-		delete: deleteChatMessageContract,
-		rate: rateChatMessageContract,
-		getBranch: getBranchIdForMessageContract,
-	},
+	chatMessage: sharedContracts.chatMessage,
 	block: {
 		list: listBlocksContract,
 		find: findBlockContract,
