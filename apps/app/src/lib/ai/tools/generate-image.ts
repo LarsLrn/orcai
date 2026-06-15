@@ -1,5 +1,6 @@
 import { createOpenAICompatible } from "@ai-sdk/openai-compatible";
 import { generateTextEffect } from "@orcai/ai";
+import type { ImageGenerationBlock } from "@orcai/schema";
 import { generateImage, tool, type UIMessageStreamWriter } from "ai";
 import * as Effect from "effect/Effect";
 import { z } from "zod/v4";
@@ -7,7 +8,6 @@ import { runtime } from "@/lib/effect/runtime";
 import { AiError, BadRequestError } from "@/lib/effect/utils/errors";
 import { decryptApiKey } from "@/lib/encryption";
 import { client } from "@/lib/orpc/orpc";
-import type { ImageGenerationBlock } from "@/lib/orpc/schemas/block";
 
 export const generateImageTool = ({
 	writer,

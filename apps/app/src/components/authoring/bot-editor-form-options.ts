@@ -1,9 +1,13 @@
 import type { BlockId, BotId } from "@orcai/core";
-import type { Asset, PublicationStatus } from "@orcai/schema";
+import type {
+	Asset,
+	DatabaseBlock,
+	PublicationStatus,
+	TemplateBlock,
+} from "@orcai/schema";
 import { formOptions } from "@tanstack/react-form";
 import { createDefaultDatabaseBlock } from "@/components/authoring/database-block-editor";
 import { createDefaultTemplateBlock } from "@/components/authoring/template-block-editor";
-import type { DatabaseBlock, TemplateBlock } from "@/lib/orpc/schemas/block";
 import type { BotEditorSelect } from "@/lib/orpc/schemas/bot-editor";
 
 type BotEditorTemplateBlock = {

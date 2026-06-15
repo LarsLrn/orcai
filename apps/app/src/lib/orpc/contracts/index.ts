@@ -7,13 +7,6 @@ import type {
 import type { ORPCErrorConstructorMap } from "@orpc/server";
 import { aiChatContract } from "./ai";
 import {
-	createBlockContract,
-	deleteBlockContract,
-	findBlockContract,
-	listBlocksContract,
-	updateBlockContract,
-} from "./block";
-import {
 	bootstrapInitializeContract,
 	bootstrapStatusContract,
 } from "./bootstrap";
@@ -58,13 +51,7 @@ export const contracts = {
 		detach: detachChatBlockContract,
 	},
 	chatMessage: sharedContracts.chatMessage,
-	block: {
-		list: listBlocksContract,
-		find: findBlockContract,
-		create: createBlockContract,
-		update: updateBlockContract,
-		delete: deleteBlockContract,
-	},
+	block: sharedContracts.block,
 	bot: {
 		list: listBotsContract,
 		listDrafts: listDraftBotsContract,

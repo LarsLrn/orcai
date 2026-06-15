@@ -1,9 +1,9 @@
+import type { TemplateBlock } from "@orcai/schema";
 import { useAppForm } from "@/hooks/form";
 import {
 	useCreateBlockMutation,
 	useUpdateBlockMutation,
 } from "@/hooks/mutations/use-block-mutations";
-import type { TemplateBlock } from "@/lib/orpc/schemas/block";
 import {
 	TemplateBlockFieldGroup,
 	templateBlockTopLevelFieldMap,

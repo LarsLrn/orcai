@@ -1,11 +1,11 @@
+import {
+	createTemplateBlockInputSchema,
+	type TemplateBlock,
+} from "@orcai/schema";
 import { formOptions } from "@tanstack/react-form";
 import { z } from "zod/v4";
-import {
-	type TemplateBlock,
-	templateBlockInsertSchema,
-} from "@/lib/orpc/schemas/block";
 
-const templateBlockFormSchema = templateBlockInsertSchema.extend({
+const templateBlockFormSchema = createTemplateBlockInputSchema.extend({
 	description: z.string(),
 	contentHtml: z.string(),
 });

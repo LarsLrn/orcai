@@ -1,4 +1,4 @@
-import type { Asset } from "@orcai/schema";
+import type { Asset, DatabaseBlock } from "@orcai/schema";
 import { ChevronDownIcon, DatabaseIcon, PlusIcon } from "lucide-react";
 import type { ReactNode } from "react";
 import { useState } from "react";
@@ -27,7 +27,6 @@ import {
 	DialogHeader,
 	DialogTitle,
 } from "@/components/ui/dialog";
-import type { DatabaseBlock } from "@/lib/orpc/schemas/block";
 
 const createDefaultDatabaseBlock = (params?: { botName: string }) => ({
 	name: `Content Collection${params?.botName ? ` for '${params.botName}'` : ""}`,

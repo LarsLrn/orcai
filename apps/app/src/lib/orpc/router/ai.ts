@@ -4,6 +4,7 @@ import {
 	releaseAppRequestQuota,
 	reserveForAppRequest,
 } from "@orcai/quota";
+import type { DatabaseBlock, TemplateBlock } from "@orcai/schema";
 import { streamToEventIterator } from "@orpc/client";
 import { call } from "@orpc/server";
 import {
@@ -26,7 +27,6 @@ import { runOrpcEffect } from "@/lib/effect/utils/orpc-helpers";
 import { authed } from "@/lib/orpc/implementation/authed";
 import { requireActiveOrganizationMiddleware } from "@/lib/orpc/middlewares/auth";
 import { requireEntityPermission } from "@/lib/orpc/middlewares/permission";
-import type { DatabaseBlock, TemplateBlock } from "@/lib/orpc/schemas/block";
 import { listChatBlocks } from "./chat-block";
 import { createChatMessage } from "./chat-message";
 

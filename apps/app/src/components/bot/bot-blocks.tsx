@@ -1,3 +1,4 @@
+import type { Block } from "@orcai/schema";
 import { BlockCard } from "@/components/blocks/block-card";
 import {
 	Section,
@@ -6,7 +7,6 @@ import {
 	SectionHeader,
 	SectionTitle,
 } from "@/components/ui/shell/section";
-import type { Block } from "@/lib/orpc/schemas/block";
 
 const BotBlocks = ({ blocks }: { blocks: Block[] }) => {
 	const templateBlock = blocks.find((b) => b.type === "template");

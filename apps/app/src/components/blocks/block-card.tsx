@@ -1,3 +1,4 @@
+import type { Block } from "@orcai/schema";
 import {
 	BrainCircuitIcon,
 	DatabaseIcon,
@@ -30,7 +31,6 @@ import {
 	type ResourceCardPrimaryAction,
 	ResourceCardTitle,
 } from "@/components/ui/shell/resource-card";
-import type { Block } from "@/lib/orpc/schemas/block";
 
 const BLOCK_TYPE_CONFIG = {
 	template: {

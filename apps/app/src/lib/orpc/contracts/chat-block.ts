@@ -1,7 +1,6 @@
 import { base } from "@orcai/contracts";
-import { statusResponseSchema } from "@orcai/schema";
+import { blockSchema, statusResponseSchema } from "@orcai/schema";
 import { z } from "zod/v4";
-import { blockSelectSchema } from "@/lib/orpc/schemas/block";
 import {
 	chatBlockDeleteSchema,
 	chatBlockInsertSchema,
@@ -21,7 +20,7 @@ export const listChatBlocksContract = base
 	.input(chatBlockListSchema)
 	.output(
 		z.object({
-			data: z.array(blockSelectSchema),
+			data: z.array(blockSchema),
 		}),
 	);
 

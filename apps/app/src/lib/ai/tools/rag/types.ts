@@ -1,6 +1,5 @@
 import type { AssetId, BlockId } from "@orcai/core";
-import type { AssetPoint } from "@orcai/schema";
-import type { DatabaseBlock } from "@/lib/orpc/schemas/block";
+import type { AssetPoint, DatabaseBlock } from "@orcai/schema";
 
 export type KnowledgeBaseBlockRef = {
 	id: BlockId;

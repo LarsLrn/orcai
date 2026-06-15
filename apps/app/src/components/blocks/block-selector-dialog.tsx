@@ -1,4 +1,5 @@
 import type { BlockId } from "@orcai/core";
+import type { Block } from "@orcai/schema";
 import { useQuery } from "@tanstack/react-query";
 import { BookOpenIcon, SparklesIcon } from "lucide-react";
 import { useEffect, useMemo, useState } from "react";
@@ -13,7 +14,6 @@ import {
 	DialogSelectSearch,
 } from "@/components/ui/composed/dialog-select";
 import { orpc } from "@/lib/orpc/orpc";
-import type { Block } from "@/lib/orpc/schemas/block";
 import { cn } from "@/lib/utils";
 
 const BLOCK_PAGE_SIZE = 12;

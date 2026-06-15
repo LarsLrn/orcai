@@ -1,11 +1,11 @@
 import { base } from "@orcai/contracts";
 import {
+	blockIdSchema,
 	paginationInputSchema,
 	statusResponseSchema,
 	zedTokenSchema,
 } from "@orcai/schema";
 import { z } from "zod/v4";
-import { baseBlockSelectSchema } from "@/lib/orpc/schemas/block";
 import { botDeleteSchema, botSelectSchema } from "@/lib/orpc/schemas/bot";
 import {
 	botEditorFindSchema,
@@ -57,7 +57,7 @@ export const findBotContract = base
 	.output(
 		z.object({
 			data: botSelectSchema.extend({
-				blockIds: z.array(baseBlockSelectSchema.shape.id),
+				blockIds: z.array(blockIdSchema),
 			}),
 		}),
 	);

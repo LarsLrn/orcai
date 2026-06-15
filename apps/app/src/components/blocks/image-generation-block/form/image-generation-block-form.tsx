@@ -1,3 +1,4 @@
+import type { ImageGenerationBlock } from "@orcai/schema";
 import { useStore } from "@tanstack/react-form";
 import { skipToken, useQuery, useSuspenseQuery } from "@tanstack/react-query";
 import { useRouteContext } from "@tanstack/react-router";
@@ -17,7 +18,6 @@ import {
 	useUpdateBlockMutation,
 } from "@/hooks/mutations/use-block-mutations";
 import { orpc } from "@/lib/orpc/orpc";
-import type { ImageGenerationBlock } from "@/lib/orpc/schemas/block";
 import { imageGenerationBlockFormOptions } from "./image-generation-block-form-options";
 
 const ImageGenerationBlockForm = ({

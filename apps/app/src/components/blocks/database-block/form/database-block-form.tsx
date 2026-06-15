@@ -1,4 +1,4 @@
-import type { Asset } from "@orcai/schema";
+import type { Asset, DatabaseBlock } from "@orcai/schema";
 import { useStore } from "@tanstack/react-form";
 import { useState } from "react";
 import { useAppForm } from "@/hooks/form";
@@ -6,7 +6,6 @@ import {
 	useCreateBlockMutation,
 	useUpdateBlockMutation,
 } from "@/hooks/mutations/use-block-mutations";
-import type { DatabaseBlock } from "@/lib/orpc/schemas/block";
 import {
 	DatabaseBlockFieldGroup,
 	databaseBlockTopLevelFieldMap,

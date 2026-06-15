@@ -1,9 +1,9 @@
+import type { DatabaseBlock } from "@orcai/schema";
 import { type LanguageModel, Output, stepCountIs, ToolLoopAgent } from "ai";
 import { applyToolHistoryPruning } from "@/lib/ai/agents/chat-agent-history-pruning";
 import { buildChatAgentSystemPrompt } from "@/lib/ai/agents/chat-agent-system-prompt";
 import { repairKnowledgeBaseToolCall } from "@/lib/ai/agents/repair-tool-call";
 import { buildKnowledgeBaseTools } from "@/lib/ai/tools/rag/toolset";
-import type { DatabaseBlock } from "@/lib/orpc/schemas/block";
 
 const chatAgentToolSet = buildKnowledgeBaseTools({
 	blocks: [], // Placeholder, will be set in prepareCall

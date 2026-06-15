@@ -1,6 +1,6 @@
 import type { BotId, OrganizationId, UserId } from "@orcai/core";
 import { DB, dbSchema } from "@orcai/db";
-import type { PublicationStatus } from "@orcai/schema";
+import type { Block, PublicationStatus } from "@orcai/schema";
 import {
 	checkEntityPermission,
 	checkManyEntityPermissions,
@@ -23,7 +23,6 @@ import {
 	requireEntityPermission,
 } from "@/lib/orpc/middlewares/permission";
 import { loadDatabaseBlockAssets } from "@/lib/orpc/router/helpers/database-block";
-import type { Block } from "@/lib/orpc/schemas/block";
 import type { Bot } from "@/lib/orpc/schemas/bot";
 import type { BotEditorSave } from "@/lib/orpc/schemas/bot-editor";
 

@@ -1,24 +1,22 @@
 import {
 	assetSchema,
+	blockFieldsSchema,
 	blockIdSchema,
 	botIdSchema,
+	databaseBlockSchema,
 	publicationStatusSchema,
+	templateBlockSchema,
 	zedTokenSchema,
 } from "@orcai/schema";
 import { z } from "zod/v4";
-import {
-	baseBlockSelectSchema,
-	databaseBlockSchema,
-	templateBlockSchema,
-} from "./block";
 
 const baseEditorBlockSchema = z.object({
 	id: blockIdSchema,
 	canEdit: z.boolean(),
 	name: z.string().min(1, "Name is required"),
-	description: baseBlockSelectSchema.shape.description,
-	contentJson: baseBlockSelectSchema.shape.contentJson,
-	contentHtml: baseBlockSelectSchema.shape.contentHtml,
+	description: blockFieldsSchema.shape.description,
+	contentJson: blockFieldsSchema.shape.contentJson,
+	contentHtml: blockFieldsSchema.shape.contentHtml,
 	status: publicationStatusSchema,
 });
 

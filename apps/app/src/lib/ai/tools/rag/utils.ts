@@ -4,11 +4,10 @@ import {
 	normalizeText,
 	tokenize,
 } from "@orcai/core";
-import type { AssetPoint } from "@orcai/schema";
+import type { AssetPoint, DatabaseBlock } from "@orcai/schema";
 import * as Effect from "effect/Effect";
 import { AiError } from "@/lib/effect/utils/errors";
 import { client } from "@/lib/orpc/orpc";
-import type { DatabaseBlock } from "@/lib/orpc/schemas/block";
 import { RETRIEVAL_LIMITS } from "@/settings/constants";
 import type {
 	ChunkResult,

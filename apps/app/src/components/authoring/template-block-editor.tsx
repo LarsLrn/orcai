@@ -1,3 +1,4 @@
+import type { TemplateBlock } from "@orcai/schema";
 import { SparklesIcon } from "lucide-react";
 import type { ReactNode } from "react";
 import {
@@ -7,7 +8,6 @@ import {
 	CardHeader,
 	CardTitle,
 } from "@/components/ui/card";
-import type { TemplateBlock } from "@/lib/orpc/schemas/block";
 
 const createDefaultTemplateBlock = (params?: { botName: string }) => ({
 	name: `AI Behaviour${params?.botName ? ` for '${params.botName}'` : ""}`,

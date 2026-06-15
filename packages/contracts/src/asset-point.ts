@@ -55,12 +55,6 @@ export const assetPointContracts = {
 				"Asset Points",
 			],
 		})
-		.errors({
-			NOT_FOUND: {
-				message: "Asset point not found",
-				data: findAssetPointInputSchema,
-			},
-		})
 		.input(updateAssetPointInputSchema)
 		.output(updateAssetPointResponseSchema),
 	delete: base

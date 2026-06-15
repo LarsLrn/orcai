@@ -1,4 +1,5 @@
 import { DB, dbSchema } from "@orcai/db";
+import type { Block } from "@orcai/schema";
 import {
 	checkEntityPermission,
 	checkManyEntityPermissions,
@@ -20,7 +21,6 @@ import {
 	loadDatabaseBlockAssets,
 	syncDatabaseBlockAssets,
 } from "@/lib/orpc/router/helpers/database-block";
-import type { Block } from "@/lib/orpc/schemas/block";
 
 export const listBlocks = authed.block.list.handler(
 	async ({ input, context }) =>

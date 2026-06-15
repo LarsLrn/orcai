@@ -5,6 +5,7 @@ import type {
 } from "@orpc/contract";
 import { assetContracts } from "./asset";
 import { assetPointContracts } from "./asset-point";
+import { blockContracts } from "./block";
 import { chatContracts } from "./chat";
 import { chatMessageContracts } from "./chat-message";
 import { groupContracts } from "./group";
@@ -21,6 +22,7 @@ import { userContracts } from "./user";
 export const contracts = {
 	asset: assetContracts,
 	assetPoint: assetPointContracts,
+	block: blockContracts,
 	chat: chatContracts,
 	chatMessage: chatMessageContracts,
 	group: groupContracts,
@@ -43,6 +45,7 @@ export { base } from "./base";
 export {
 	assetContracts,
 	assetPointContracts,
+	blockContracts,
 	chatContracts,
 	chatMessageContracts,
 	groupContracts,

@@ -1,4 +1,5 @@
 import { DB, dbSchema } from "@orcai/db";
+import type { Block } from "@orcai/schema";
 import {
 	checkEntityPermission,
 	checkManyEntityPermissions,
@@ -9,7 +10,6 @@ import * as Effect from "effect/Effect";
 import { runOrpcEffect } from "@/lib/effect/utils/orpc-helpers";
 import { authed } from "@/lib/orpc/implementation/authed";
 import { requireEntityPermission } from "@/lib/orpc/middlewares/permission";
-import type { Block } from "@/lib/orpc/schemas/block";
 
 export const listChatBlocks = authed.chatBlock.list
 	.use(

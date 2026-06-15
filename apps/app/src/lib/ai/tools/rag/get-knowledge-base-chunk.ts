@@ -1,13 +1,10 @@
+import { blockIdSchema, type DatabaseBlock } from "@orcai/schema";
 import { tool } from "ai";
 import * as Effect from "effect/Effect";
 import { z } from "zod/v4";
 import { runtime } from "@/lib/effect/runtime";
 import { AiError } from "@/lib/effect/utils/errors";
 import { client } from "@/lib/orpc/orpc";
-import {
-	baseBlockSelectSchema,
-	type DatabaseBlock,
-} from "@/lib/orpc/schemas/block";
 import { RETRIEVAL_LIMITS } from "@/settings/constants";
 import type { ChunkResult, PointWithBlock } from "./types";
 import {
@@ -45,7 +42,7 @@ export const getKnowledgeBaseChunksTool = ({
 				.describe(
 					"Optional cap on returned chunks after adjacent chunks are added. Default is enough to cover the requested IDs and any included neighbors.",
 				),
-			blockId: baseBlockSelectSchema.shape.id
+			blockId: blockIdSchema
 				.optional()
 				.describe(
 					"Optional block ID when all chunk IDs come from one known block.",
