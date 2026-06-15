@@ -19,6 +19,7 @@ import { organizationMemberContracts } from "./organization-member";
 import { providerContracts } from "./provider";
 import { quotaContracts } from "./quota";
 import { resourceContracts } from "./resource";
+import { storageContracts } from "./storage";
 import { userContracts } from "./user";
 
 export const contracts = {
@@ -38,6 +39,7 @@ export const contracts = {
 	provider: providerContracts,
 	quota: quotaContracts,
 	resource: resourceContracts,
+	storage: storageContracts,
 	user: userContracts,
 };
 
@@ -63,5 +65,6 @@ export {
 	providerContracts,
 	quotaContracts,
 	resourceContracts,
+	storageContracts,
 	userContracts,
 };

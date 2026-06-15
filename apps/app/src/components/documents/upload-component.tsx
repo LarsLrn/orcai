@@ -1,10 +1,9 @@
 import type { DirectUploadResult } from "@orcai/s3/client";
-import type { FinalizedUploadFile } from "@orcai/schema";
+import type { FinalizedUploadFile, StorageUploadRoute } from "@orcai/schema";
 import { useMutation } from "@tanstack/react-query";
 import { useMemo, useState } from "react";
 import type { DropzoneProps } from "react-dropzone";
 import { toast } from "sonner";
-import type { z } from "zod/v4";
 import { FileUploader } from "@/components/documents/file-uploader";
 import { UploadProgress } from "@/components/documents/upload-progress";
 import { useUploadFiles } from "@/components/documents/use-upload-files";
@@ -17,13 +16,11 @@ import {
 	CardTitle,
 } from "@/components/ui/card";
 import { orpc } from "@/lib/orpc/orpc";
-import type { uploadRouteSchema } from "@/lib/orpc/schemas/storage";
 
-type UploadRoute = z.infer<typeof uploadRouteSchema>;
 type UploadResult = DirectUploadResult<true>;
 
 type UploadComponentProps = {
-	route: UploadRoute;
+	route: StorageUploadRoute;
 	title?: string;
 	description?: string;
 	uploadLabel?: string;

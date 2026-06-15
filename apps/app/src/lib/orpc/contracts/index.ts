@@ -10,13 +10,6 @@ import {
 	bootstrapInitializeContract,
 	bootstrapStatusContract,
 } from "./bootstrap";
-import {
-	abortMultipartUploadContract,
-	completeMultipartUploadContract,
-	createDownloadUrlContract,
-	createUploadUrlsContract,
-	finalizeUploadContract,
-} from "./storage";
 
 export const contracts = {
 	bootstrap: {
@@ -39,13 +32,7 @@ export const contracts = {
 	assetPoint: sharedContracts.assetPoint,
 	user: sharedContracts.user,
 	model: sharedContracts.model,
-	storage: {
-		createUploadUrls: createUploadUrlsContract,
-		createDownloadUrl: createDownloadUrlContract,
-		finalizeUpload: finalizeUploadContract,
-		completeMultipartUpload: completeMultipartUploadContract,
-		abortMultipartUpload: abortMultipartUploadContract,
-	},
+	storage: sharedContracts.storage,
 	job: sharedContracts.job,
 	ai: {
 		chat: aiChatContract,

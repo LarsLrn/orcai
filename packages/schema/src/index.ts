@@ -17,5 +17,6 @@ export * from "./provider";
 export * from "./quota";
 export * from "./resource";
 export * from "./shared";
+export * from "./storage";
 export * from "./user";
 export * from "./zod";
