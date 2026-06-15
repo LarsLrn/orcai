@@ -1,6 +1,11 @@
 import type { BotId, OrganizationId, UserId } from "@orcai/core";
 import { DB, dbSchema } from "@orcai/db";
-import type { Block, PublicationStatus } from "@orcai/schema";
+import type {
+	Block,
+	Bot,
+	PublicationStatus,
+	SaveBotInput,
+} from "@orcai/schema";
 import {
 	checkEntityPermission,
 	checkManyEntityPermissions,
@@ -23,8 +28,6 @@ import {
 	requireEntityPermission,
 } from "@/lib/orpc/middlewares/permission";
 import { loadDatabaseBlockAssets } from "@/lib/orpc/router/helpers/database-block";
-import type { Bot } from "@/lib/orpc/schemas/bot";
-import type { BotEditorSave } from "@/lib/orpc/schemas/bot-editor";
 
 const listBotsByStatus = (params: {
 	userId: UserId;
@@ -78,7 +81,10 @@ const listBotsByStatus = (params: {
 			},
 		).pipe(
 			Effect.map(([data, [countResult]]) => ({
-				data,
+				data: data.map((bot) => ({
+					...bot,
+					contentJson: bot.contentJson as Bot["contentJson"],
+				})),
 				rowCount: countResult.count,
 			})),
 		);
@@ -186,7 +192,7 @@ const loadBotEditor = (params: {
 	});
 
 const resolveLinkedBlocksForSave = (params: {
-	input: BotEditorSave;
+	input: SaveBotInput;
 	userId: UserId;
 	zedToken?: string;
 	errors: OrpcErrors;
@@ -297,7 +303,7 @@ const resolveLinkedBlocksForSave = (params: {
 
 // Resolves the bot record: updates if it exists, inserts if new.
 const resolveBot = (params: {
-	input: BotEditorSave;
+	input: SaveBotInput;
 	userId: UserId;
 	organizationId: OrganizationId;
 }) =>
@@ -369,7 +375,7 @@ const resolveBot = (params: {
 	});
 
 const saveBotGraph = (params: {
-	input: BotEditorSave;
+	input: SaveBotInput;
 	userId: UserId;
 	organizationId: OrganizationId;
 	zedToken?: string;
@@ -526,6 +532,7 @@ export const findBot = authed.bot.find
 				return {
 					data: {
 						...bot,
+						contentJson: bot.contentJson as Bot["contentJson"],
 						blockIds: blockIds.map((b) => b.blockId),
 					},
 				};

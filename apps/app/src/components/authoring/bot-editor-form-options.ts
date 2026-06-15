@@ -1,6 +1,7 @@
 import type { BlockId, BotId } from "@orcai/core";
 import type {
 	Asset,
+	BotEditor,
 	DatabaseBlock,
 	PublicationStatus,
 	TemplateBlock,
@@ -8,7 +9,6 @@ import type {
 import { formOptions } from "@tanstack/react-form";
 import { createDefaultDatabaseBlock } from "@/components/authoring/database-block-editor";
 import { createDefaultTemplateBlock } from "@/components/authoring/template-block-editor";
-import type { BotEditorSelect } from "@/lib/orpc/schemas/bot-editor";
 
 type BotEditorTemplateBlock = {
 	id?: BlockId;
@@ -47,9 +47,7 @@ export type BotEditorFormValues = {
 	databaseBlocks: BotEditorDatabaseBlock[];
 };
 
-const toBotEditorFormValues = (
-	editor?: BotEditorSelect,
-): BotEditorFormValues => ({
+const toBotEditorFormValues = (editor?: BotEditor): BotEditorFormValues => ({
 	id: editor?.id,
 	name: editor?.name ?? "",
 	description: editor?.description ?? "",
@@ -76,7 +74,7 @@ const toBotEditorFormValues = (
 		})) ?? [],
 });
 
-export const botEditorFormOptions = (editor?: BotEditorSelect) =>
+export const botEditorFormOptions = (editor?: BotEditor) =>
 	formOptions({
 		defaultValues: toBotEditorFormValues(editor),
 	});

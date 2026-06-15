@@ -1,3 +1,4 @@
+import type { Bot } from "@orcai/schema";
 import { BotIcon, EditIcon, EyeIcon } from "lucide-react";
 import {
 	DropdownMenu,
@@ -24,7 +25,6 @@ import {
 	type ResourceCardPrimaryAction,
 	ResourceCardTitle,
 } from "@/components/ui/shell/resource-card";
-import type { Bot } from "@/lib/orpc/schemas/bot";
 
 const BotCard = ({
 	bot,

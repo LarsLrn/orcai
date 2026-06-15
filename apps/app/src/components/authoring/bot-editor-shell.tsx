@@ -1,4 +1,4 @@
-import type { PublicationStatus } from "@orcai/schema";
+import type { BotEditor, PublicationStatus, SaveBotInput } from "@orcai/schema";
 import { useStore } from "@tanstack/react-form";
 import { useQueryClient } from "@tanstack/react-query";
 import { useNavigate } from "@tanstack/react-router";
@@ -60,10 +60,6 @@ import {
 	useSaveBotMutation,
 } from "@/hooks/mutations/use-bot-mutations";
 import { orpc } from "@/lib/orpc/orpc";
-import type {
-	BotEditorSave,
-	BotEditorSelect,
-} from "@/lib/orpc/schemas/bot-editor";
 import { getProcessingStatusLabel } from "@/lib/presentation/processing-status";
 import { cn } from "@/lib/utils";
 
@@ -158,7 +154,7 @@ const BotEditorShell = ({
 	stepIndex,
 	onStepChange,
 }: {
-	editorData?: BotEditorSelect;
+	editorData?: BotEditor;
 	stepIndex?: number;
 	onStepChange?: (step: number) => void;
 }) => {
@@ -384,12 +380,12 @@ const BotEditorShell = ({
 			return null;
 		}
 
-		const payload: BotEditorSave = {
+		const payload: SaveBotInput = {
 			zedToken: zedTokenRef.current,
 			id: editor.id,
 			name: editor.name,
 			description: editor.description,
-			contentJson: editor.contentJson as BotEditorSave["contentJson"],
+			contentJson: editor.contentJson as SaveBotInput["contentJson"],
 			contentHtml: editor.contentHtml,
 			status: status ?? editor.status,
 			templateBlockId: linkedBlocks.templateBlockId,

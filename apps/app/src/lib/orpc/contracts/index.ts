@@ -11,15 +11,6 @@ import {
 	bootstrapStatusContract,
 } from "./bootstrap";
 import {
-	deleteBotContract,
-	findBotContract,
-	findBotEditorContract,
-	listBotsContract,
-	listDraftBotsContract,
-	publishBotContract,
-	saveBotContract,
-} from "./bot";
-import {
 	attachChatBlockContract,
 	detachChatBlockContract,
 	listChatBlocksContract,
@@ -52,15 +43,7 @@ export const contracts = {
 	},
 	chatMessage: sharedContracts.chatMessage,
 	block: sharedContracts.block,
-	bot: {
-		list: listBotsContract,
-		listDrafts: listDraftBotsContract,
-		find: findBotContract,
-		findEditor: findBotEditorContract,
-		save: saveBotContract,
-		publish: publishBotContract,
-		delete: deleteBotContract,
-	},
+	bot: sharedContracts.bot,
 	asset: sharedContracts.asset,
 	assetPoint: sharedContracts.assetPoint,
 	user: sharedContracts.user,
