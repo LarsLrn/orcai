@@ -5,7 +5,6 @@ import type {
 	InferContractRouterOutputs,
 } from "@orpc/contract";
 import type { ORPCErrorConstructorMap } from "@orpc/server";
-import { aiChatContract } from "./ai";
 
 export const contracts = {
 	bootstrap: sharedContracts.bootstrap,
@@ -27,9 +26,7 @@ export const contracts = {
 	model: sharedContracts.model,
 	storage: sharedContracts.storage,
 	job: sharedContracts.job,
-	ai: {
-		chat: aiChatContract,
-	},
+	ai: sharedContracts.ai,
 };
 
 export type OrpcInputs = InferContractRouterInputs<typeof contracts>;

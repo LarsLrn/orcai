@@ -3,6 +3,7 @@ import type {
 	InferContractRouterInputs,
 	InferContractRouterOutputs,
 } from "@orpc/contract";
+import { aiContracts } from "./ai";
 import { assetContracts } from "./asset";
 import { assetPointContracts } from "./asset-point";
 import { blockContracts } from "./block";
@@ -24,6 +25,7 @@ import { storageContracts } from "./storage";
 import { userContracts } from "./user";
 
 export const contracts = {
+	ai: aiContracts,
 	asset: assetContracts,
 	assetPoint: assetPointContracts,
 	block: blockContracts,
@@ -51,6 +53,7 @@ export type ContractClient = ContractRouterClient<typeof contracts>;
 
 export { base } from "./base";
 export {
+	aiContracts,
 	assetContracts,
 	assetPointContracts,
 	blockContracts,

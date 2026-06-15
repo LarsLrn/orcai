@@ -18,6 +18,7 @@ import * as Effect from "effect/Effect";
 import { v4 as uuidv4 } from "uuid";
 import { createChatAgent } from "@/lib/ai/agents/chat-agent";
 import { forkChatTitleGenerationIfNeeded } from "@/lib/ai/effects/fork-chat-title-generation";
+import type { ChatAgentUIMessage } from "@/lib/ai/types/chat-agent-message";
 import { getChatMessageAttachments } from "@/lib/ai/types/chat-attachment";
 import { buildAttachmentPromptPartCached } from "@/lib/ai/utils/chat-attachment-parts";
 import { getChatAiSettings } from "@/lib/ai/utils/get-chat-ai-settings";
@@ -109,9 +110,7 @@ export const aiChat = authed.ai.chat
 						zedToken: resolvedZedToken,
 					},
 				};
-				const inputMessages = Array.isArray(input.messages)
-					? input.messages
-					: [];
+				const inputMessages = input.messages as ChatAgentUIMessage[];
 				const userMessage = inputMessages[inputMessages.length - 1];
 
 				if (!hasMessageShape(userMessage)) {
