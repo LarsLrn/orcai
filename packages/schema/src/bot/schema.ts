@@ -6,7 +6,7 @@ import {
 	databaseBlockSchema,
 	templateBlockSchema,
 } from "../block/schema";
-import { publicationStatusSchema } from "../fragments/publication-status";
+import { publicationStatusSchema } from "../shared/primitives/publication-status";
 import { userIdSchema } from "../user/ref";
 import { botIdSchema } from "./ref";
 

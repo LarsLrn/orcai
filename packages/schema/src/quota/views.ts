@@ -1,5 +1,5 @@
 import { z } from "zod/v4";
-import { providerMeteringModeSchema } from "../fragments/provider-metering-mode";
+import { providerMeteringModeSchema } from "../provider/parts/metering-mode";
 import { providerSchema } from "../provider/schema";
 import { quotaPoolIdSchema } from "./ref";
 import {

@@ -1,8 +1,8 @@
 import { z } from "zod/v4";
-import { metadataSchema } from "../fragments/asset-metadata";
-import { processingStatusSchema } from "../fragments/processing-status";
+import { bucketSchema } from "../storage/parts/buckets";
 import { userIdSchema } from "../user/ref";
-import { bucketSchema } from "../zod/buckets";
+import { metadataSchema } from "./parts/metadata";
+import { processingStatusSchema } from "./parts/processing-status";
 import { assetIdSchema } from "./ref";
 
 export const assetFieldsSchema = z.object({

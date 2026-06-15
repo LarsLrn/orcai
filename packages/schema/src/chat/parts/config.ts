@@ -1,6 +1,6 @@
 import { z } from "zod/v4";
-import { modelIdSchema } from "../model/ref";
-import { providerIdSchema } from "../provider/ref";
+import { modelIdSchema } from "../../model/ref";
+import { providerIdSchema } from "../../provider/ref";
 
 export const chatConfigSchema = z.object({
 	modelId: modelIdSchema.optional(),

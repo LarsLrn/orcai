@@ -1,7 +1,7 @@
 import { z } from "zod/v4";
 import { organizationIdSchema } from "../organization/ref";
 import { paginationInputSchema, zedTokenSchema } from "../shared";
-import { sharedSchemas } from "../zod/shared";
+import { sharedSchemas } from "../shared/forms/shared";
 import { userIdSchema } from "./ref";
 
 export const listUsersInputSchema = paginationInputSchema.extend(

@@ -1,13 +1,13 @@
 import { z } from "zod/v4";
-import { providerMeteringModeSchema } from "../fragments/provider-metering-mode";
-import { quotaPeriodStatusSchema } from "../fragments/quota-period-status";
-import { quotaPoolPeriodTypeSchema } from "../fragments/quota-period-type";
-import { quotaUsageEventTypeSchema } from "../fragments/quota-usage-event-type";
 import { groupIdSchema } from "../group/ref";
 import { modelIdSchema } from "../model/ref";
 import { organizationIdSchema } from "../organization/ref";
+import { providerMeteringModeSchema } from "../provider/parts/metering-mode";
 import { providerIdSchema } from "../provider/ref";
 import { userIdSchema } from "../user/ref";
+import { quotaPeriodStatusSchema } from "./parts/period-status";
+import { quotaPoolPeriodTypeSchema } from "./parts/period-type";
+import { quotaUsageEventTypeSchema } from "./parts/usage-event-type";
 import {
 	quotaLedgerIdSchema,
 	quotaPeriodIdSchema,

@@ -1,6 +1,6 @@
 import { z } from "zod/v4";
-import { publicationStatusSchema } from "../fragments/publication-status";
-import { retrievalModeSchema } from "../fragments/retrieval-mode";
+import { publicationStatusSchema } from "../shared/primitives/publication-status";
+import { retrievalModeSchema } from "../shared/primitives/retrieval-mode";
 import { userIdSchema } from "../user/ref";
 import { blockIdSchema } from "./ref";
 

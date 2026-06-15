@@ -1,5 +1,5 @@
 import { z } from "zod/v4";
-import { organizationRoleSchema } from "../fragments/organization-role";
+import { organizationRoleSchema } from "../organization/parts/role";
 import { memberIdSchema, organizationIdSchema } from "../organization/ref";
 import { userIdSchema } from "../user/ref";
 

@@ -1,7 +1,7 @@
 import { z } from "zod/v4";
-import { organizationInvitationResponseActionSchema } from "../fragments/organization-invitation-response-action";
 import { organizationIdSchema } from "../organization/ref";
 import { paginationInputSchema } from "../shared";
+import { organizationInvitationResponseActionSchema } from "./parts/response-action";
 import { organizationInvitationIdSchema } from "./ref";
 import {
 	organizationInvitationMutableFieldsSchema,

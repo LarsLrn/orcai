@@ -1,6 +1,5 @@
 import { z } from "zod/v4";
-import { organizationRoleSchema } from "../fragments/organization-role";
-import { preferencesSchema } from "../fragments/user-preferences";
+import { organizationRoleSchema } from "../organization/parts/role";
 import {
 	createResourceScopedSchema,
 	RESOURCE_GRANT_SOURCE,
@@ -8,6 +7,7 @@ import {
 	resourceGrantRoleSchema,
 	resourceGrantSourceSchema,
 } from "../resource/schema";
+import { preferencesSchema } from "./parts/preferences";
 import { userIdSchema } from "./ref";
 
 export const userFieldsSchema = z.object({

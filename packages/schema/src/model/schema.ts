@@ -1,7 +1,7 @@
 import { z } from "zod/v4";
-import { modelCapabilitiesSchema } from "../fragments/model-capabilities";
 import { providerIdSchema } from "../provider/ref";
 import { searchFilterSchema } from "../shared/filters";
+import { modelCapabilitiesSchema } from "./parts/capabilities";
 import { modelIdSchema } from "./ref";
 
 export const modelFieldsSchema = z.object({

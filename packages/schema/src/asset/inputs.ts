@@ -1,7 +1,7 @@
 import { z } from "zod/v4";
-import { processingStatusSchema } from "../fragments/processing-status";
 import { paginationInputSchema, zedTokenSchema } from "../shared";
-import { bucketSchema } from "../zod/buckets";
+import { bucketSchema } from "../storage/parts/buckets";
+import { processingStatusSchema } from "./parts/processing-status";
 import { assetIdSchema } from "./ref";
 import {
 	assetFieldsSchema,

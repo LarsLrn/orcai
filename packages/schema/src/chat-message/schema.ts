@@ -1,7 +1,7 @@
 import { z } from "zod/v4";
 import { chatIdSchema } from "../chat/ref";
-import { chatMessageAttachmentSchema } from "../zod/chat-message-attachment";
-import { chatMessageMetadataSchema } from "../zod/chat-message-metadata";
+import { chatMessageAttachmentSchema } from "./parts/attachment";
+import { chatMessageMetadataSchema } from "./parts/metadata";
 import { chatMessageIdSchema } from "./ref";
 
 export const chatMessagePartsSchema = z.array(z.unknown());

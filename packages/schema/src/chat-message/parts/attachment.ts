@@ -1,6 +1,6 @@
 import { z } from "zod/v4";
-import { assetIdSchema } from "../asset/ref";
-import { bucketSchema } from "./buckets";
+import { assetIdSchema } from "../../asset/ref";
+import { bucketSchema } from "../../storage/parts/buckets";
 
 const attachmentSourceSchema = z.enum([
 	"upload",

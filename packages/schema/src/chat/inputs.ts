@@ -1,6 +1,6 @@
 import { z } from "zod/v4";
-import { chatConfigPatchSchema } from "../fragments/chat-config";
 import { paginationInputSchema, zedTokenSchema } from "../shared";
+import { chatConfigPatchSchema } from "./parts/config";
 import { chatIdSchema } from "./ref";
 import { chatMutableFieldsSchema } from "./schema";
 

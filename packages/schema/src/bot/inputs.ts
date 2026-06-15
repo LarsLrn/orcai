@@ -1,7 +1,7 @@
 import { z } from "zod/v4";
 import { blockIdSchema } from "../block/ref";
-import { publicationStatusSchema } from "../fragments/publication-status";
 import { paginationInputSchema, zedTokenSchema } from "../shared";
+import { publicationStatusSchema } from "../shared/primitives/publication-status";
 import { botIdSchema } from "./ref";
 import { botContentJsonSchema, botFieldsSchema } from "./schema";
 

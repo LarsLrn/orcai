@@ -1,5 +1,5 @@
 import { z } from "zod/v4";
-import { chatMessageAttachmentSchema } from "./chat-message-attachment";
+import { chatMessageAttachmentSchema } from "./attachment";
 
 export const chatMessageMetadataSchema = z.object({
 	model: z.string().optional(),
