@@ -8,6 +8,6 @@
 	},
 	"dependencies": {
 		"effect": "catalog:",
-		"redis": "5.12.1"
+		"redis": "6.0.0"
 	}
 }
