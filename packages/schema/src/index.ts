@@ -3,6 +3,7 @@ export * from "./asset-point";
 export * from "./block";
 export * from "./bot";
 export * from "./chat";
+export * from "./chat-block";
 export * from "./chat-branch";
 export * from "./chat-message";
 export * from "./fragments";

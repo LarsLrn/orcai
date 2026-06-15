@@ -11,11 +11,6 @@ import {
 	bootstrapStatusContract,
 } from "./bootstrap";
 import {
-	attachChatBlockContract,
-	detachChatBlockContract,
-	listChatBlocksContract,
-} from "./chat-block";
-import {
 	abortMultipartUploadContract,
 	completeMultipartUploadContract,
 	createDownloadUrlContract,
@@ -36,11 +31,7 @@ export const contracts = {
 	resource: sharedContracts.resource,
 	group: sharedContracts.group,
 	chat: sharedContracts.chat,
-	chatBlock: {
-		list: listChatBlocksContract,
-		attach: attachChatBlockContract,
-		detach: detachChatBlockContract,
-	},
+	chatBlock: sharedContracts.chatBlock,
 	chatMessage: sharedContracts.chatMessage,
 	block: sharedContracts.block,
 	bot: sharedContracts.bot,
