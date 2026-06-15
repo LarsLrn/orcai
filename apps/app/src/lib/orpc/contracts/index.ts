@@ -6,16 +6,9 @@ import type {
 } from "@orpc/contract";
 import type { ORPCErrorConstructorMap } from "@orpc/server";
 import { aiChatContract } from "./ai";
-import {
-	bootstrapInitializeContract,
-	bootstrapStatusContract,
-} from "./bootstrap";
 
 export const contracts = {
-	bootstrap: {
-		status: bootstrapStatusContract,
-		initialize: bootstrapInitializeContract,
-	},
+	bootstrap: sharedContracts.bootstrap,
 	organization: sharedContracts.organization,
 	organizationMember: sharedContracts.organizationMember,
 	organizationInvitation: sharedContracts.organizationInvitation,

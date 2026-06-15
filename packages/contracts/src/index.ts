@@ -6,6 +6,7 @@ import type {
 import { assetContracts } from "./asset";
 import { assetPointContracts } from "./asset-point";
 import { blockContracts } from "./block";
+import { bootstrapContracts } from "./bootstrap";
 import { botContracts } from "./bot";
 import { chatContracts } from "./chat";
 import { chatBlockContracts } from "./chat-block";
@@ -27,6 +28,7 @@ export const contracts = {
 	assetPoint: assetPointContracts,
 	block: blockContracts,
 	bot: botContracts,
+	bootstrap: bootstrapContracts,
 	chat: chatContracts,
 	chatBlock: chatBlockContracts,
 	chatMessage: chatMessageContracts,
@@ -52,6 +54,7 @@ export {
 	assetContracts,
 	assetPointContracts,
 	blockContracts,
+	bootstrapContracts,
 	botContracts,
 	chatBlockContracts,
 	chatContracts,
