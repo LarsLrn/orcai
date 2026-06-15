@@ -1,6 +1,6 @@
 import { z } from "zod/v4";
-import { createOrganizationInputSchema } from "../organization";
-import { sharedSchemas } from "../zod";
+import { createOrganizationInputSchema } from "../organization/inputs";
+import { sharedSchemas } from "../zod/shared";
 
 export const bootstrapStatusInputSchema = z.object({});
 

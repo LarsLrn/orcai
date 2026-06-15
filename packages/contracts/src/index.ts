@@ -1,5 +1,6 @@
 import type {
 	ContractRouterClient,
+	InferContractRouterErrorMap,
 	InferContractRouterInputs,
 	InferContractRouterOutputs,
 } from "@orpc/contract";
@@ -49,6 +50,7 @@ export const contracts = {
 
 export type ContractInputs = InferContractRouterInputs<typeof contracts>;
 export type ContractOutputs = InferContractRouterOutputs<typeof contracts>;
+export type ContractErrors = InferContractRouterErrorMap<typeof contracts>;
 export type ContractClient = ContractRouterClient<typeof contracts>;
 
 export { base } from "./base";

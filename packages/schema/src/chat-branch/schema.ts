@@ -20,7 +20,11 @@ export const chatBranchFieldsSchema = chatBranchSchema.omit({
 
 export const chatBranchMutableFieldsSchema = chatBranchFieldsSchema.partial();
 
-export const chatBranchCreateInputSchema = chatBranchFieldsSchema;
+export const chatBranchCreateInputSchema = z.object({
+	chatId: chatIdSchema,
+	leafMessageId: chatMessageIdSchema.nullable(),
+	name: z.string(),
+});
 
 export const chatBranchUpdateInputSchema = chatBranchMutableFieldsSchema.extend(
 	{

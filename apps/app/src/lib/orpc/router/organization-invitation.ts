@@ -252,13 +252,13 @@ export const deleteOrganizationInvitations =
 
 					return {
 						success: true,
-						message: "Organisation invitations deleted successfully",
+						message: "Organization invitations deleted successfully",
 					};
 				}),
 			),
 		);
 
-export const respondToOrganisationInvitation =
+export const respondToOrganizationInvitation =
 	authed.organizationInvitation.respond.handler(
 		async ({ input, context, errors }) =>
 			runOrpcEffect(

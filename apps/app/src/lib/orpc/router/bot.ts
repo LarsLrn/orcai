@@ -1,3 +1,4 @@
+import type { ContractErrors } from "@orcai/contracts";
 import type { BotId, OrganizationId, UserId } from "@orcai/core";
 import { DB, dbSchema } from "@orcai/db";
 import type {
@@ -12,6 +13,7 @@ import {
 	hasPermission,
 	lookupEntitiesByPermission,
 } from "@orcai/spice-db";
+import type { ORPCErrorConstructorMap } from "@orpc/server";
 import { and, count, eq, getColumns, ilike, inArray } from "drizzle-orm";
 import * as Effect from "effect/Effect";
 import { calculateRelationDelta } from "@/lib/authz/relation-delta";
@@ -19,7 +21,6 @@ import { initializeResourceAuthorization } from "@/lib/authz/resource-lifecycle"
 import { AuthzService } from "@/lib/effect/services/authz";
 import { NotFoundError } from "@/lib/effect/utils/errors";
 import { runOrpcEffect } from "@/lib/effect/utils/orpc-helpers";
-import type { OrpcErrors } from "@/lib/orpc/contracts";
 import { authed } from "@/lib/orpc/implementation/authed";
 import { requireActiveOrganizationMiddleware } from "@/lib/orpc/middlewares/auth";
 import {
@@ -195,7 +196,7 @@ const resolveLinkedBlocksForSave = (params: {
 	input: SaveBotInput;
 	userId: UserId;
 	zedToken?: string;
-	errors: OrpcErrors;
+	errors: ORPCErrorConstructorMap<ContractErrors>;
 }) =>
 	Effect.gen(function* () {
 		const db = yield* DB;
@@ -379,7 +380,7 @@ const saveBotGraph = (params: {
 	userId: UserId;
 	organizationId: OrganizationId;
 	zedToken?: string;
-	errors: OrpcErrors;
+	errors: ORPCErrorConstructorMap<ContractErrors>;
 }) =>
 	Effect.gen(function* () {
 		const db = yield* DB;

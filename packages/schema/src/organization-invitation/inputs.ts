@@ -48,7 +48,9 @@ export const findOrganizationInvitationInputSchema =
 	});
 
 export const validateOrganizationInvitationInputSchema =
-	findOrganizationInvitationInputSchema;
+	organizationInvitationSchema.pick({
+		id: true,
+	});
 
 export const updateOrganizationInvitationInputSchema =
 	organizationInvitationMutableFieldsSchema

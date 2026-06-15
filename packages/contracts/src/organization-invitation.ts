@@ -76,7 +76,7 @@ export const organizationInvitationContracts = {
 		.route({
 			method: "DELETE",
 			path: "/organizations/{organizationId}/invitations",
-			summary: "Delete a organization invitations",
+			summary: "Delete organization invitations",
 			tags: [
 				"Organization Invitations",
 			],

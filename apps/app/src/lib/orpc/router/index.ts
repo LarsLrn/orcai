@@ -78,7 +78,7 @@ import {
 	deleteOrganizationInvitations,
 	findOrganizationInvitation,
 	listOrganizationInvitations,
-	respondToOrganisationInvitation,
+	respondToOrganizationInvitation,
 	updateOrganizationInvitation,
 	validateOrganizationInvitation,
 } from "./organization-invitation";
@@ -112,7 +112,6 @@ import {
 	revokeResourceAccess,
 	setResourceVisibility,
 } from "./resource";
-import { sse } from "./sse";
 import {
 	abortMultipartUpload,
 	completeMultipartUpload,
@@ -156,7 +155,7 @@ export const router = {
 		validate: validateOrganizationInvitation,
 		update: updateOrganizationInvitation,
 		delete: deleteOrganizationInvitations,
-		respond: respondToOrganisationInvitation,
+		respond: respondToOrganizationInvitation,
 	},
 	provider: {
 		list: listProviders,
@@ -272,5 +271,4 @@ export const router = {
 	ai: {
 		chat: aiChat,
 	},
-	sse,
 };

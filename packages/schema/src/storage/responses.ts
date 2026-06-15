@@ -1,5 +1,5 @@
 import { z } from "zod/v4";
-import { finalizedUploadFileSchema } from "../asset";
+import { finalizedUploadFileSchema } from "../asset/schema";
 import { storageUploadTargetSchema } from "./schema";
 
 export const createUploadUrlsResponseSchema = z.object({

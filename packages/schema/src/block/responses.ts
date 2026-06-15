@@ -1,6 +1,6 @@
 import { z } from "zod/v4";
-import { assetSchema } from "../asset";
 import { assetIdSchema } from "../asset/ref";
+import { assetSchema } from "../asset/schema";
 import {
 	createDataResponseSchema,
 	createListResponseSchema,

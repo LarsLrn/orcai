@@ -1,7 +1,7 @@
 import { z } from "zod/v4";
-import { organizationIdSchema } from "../organization";
+import { organizationIdSchema } from "../organization/ref";
 import { createDataResponseSchema } from "../shared";
-import { userIdSchema } from "../user";
+import { userIdSchema } from "../user/ref";
 import { bootstrapStatusSchema } from "./schema";
 
 export const bootstrapStatusResponseSchema = createDataResponseSchema(

@@ -1,5 +1,5 @@
 import { z } from "zod/v4";
-import { blockSchema } from "../block";
+import { blockSchema } from "../block/schema";
 import { createDataResponseSchema, statusResponseSchema } from "../shared";
 import { chatBlockSchema } from "./schema";
 

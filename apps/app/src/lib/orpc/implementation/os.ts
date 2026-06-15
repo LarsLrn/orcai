@@ -1,6 +1,6 @@
+import { contracts } from "@orcai/contracts";
 import { implement } from "@orpc/server";
 import type { RequestHeadersPluginContext } from "@orpc/server/plugins";
-import { contracts } from "@/lib/orpc/contracts";
 
 interface ORPCContext extends RequestHeadersPluginContext {
 	meta?: {

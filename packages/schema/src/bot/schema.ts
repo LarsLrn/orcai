@@ -1,11 +1,11 @@
 import { z } from "zod/v4";
-import { assetSchema } from "../asset";
+import { assetSchema } from "../asset/schema";
+import { blockIdSchema } from "../block/ref";
 import {
 	blockFieldsSchema,
 	databaseBlockSchema,
 	templateBlockSchema,
-} from "../block";
-import { blockIdSchema } from "../block/ref";
+} from "../block/schema";
 import { publicationStatusSchema } from "../fragments/publication-status";
 import { userIdSchema } from "../user/ref";
 import { botIdSchema } from "./ref";

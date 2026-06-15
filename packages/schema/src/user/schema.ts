@@ -7,7 +7,7 @@ import {
 	type ResourceType,
 	resourceGrantRoleSchema,
 	resourceGrantSourceSchema,
-} from "../resource";
+} from "../resource/schema";
 import { userIdSchema } from "./ref";
 
 export const userFieldsSchema = z.object({

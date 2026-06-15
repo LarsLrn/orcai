@@ -1,6 +1,6 @@
 import { z } from "zod/v4";
 import { chatIdSchema } from "../chat/ref";
-import { chatBranchIdSchema } from "../chat-branch";
+import { chatBranchIdSchema } from "../chat-branch/ref";
 import { zedTokenSchema } from "../shared";
 import { aiChatMessageSchema } from "./schema";
 

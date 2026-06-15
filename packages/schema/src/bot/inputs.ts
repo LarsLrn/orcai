@@ -36,7 +36,10 @@ export const publishBotInputSchema = z.object({
 	id: botIdSchema,
 });
 
-export const listDraftBotsInputSchema = listBotsInputSchema;
+export const listDraftBotsInputSchema = paginationInputSchema.extend({
+	...zedTokenSchema.shape,
+	search: z.string().optional(),
+});
 
 export const deleteBotsInputSchema = z.object({
 	refs: z.array(
