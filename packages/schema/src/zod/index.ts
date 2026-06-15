@@ -1,5 +1,7 @@
 export * from "./buckets";
 export * from "./change-password";
+export * from "./chat-message-attachment";
+export * from "./chat-message-metadata";
 export * from "./file";
 export * from "./init";
 export * from "./qdrant";

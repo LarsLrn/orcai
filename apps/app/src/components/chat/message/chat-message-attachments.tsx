@@ -1,15 +1,15 @@
+import type { ChatMessageAttachment } from "@orcai/schema";
 import {
 	Attachment,
 	AttachmentInfo,
 	AttachmentPreview,
 	Attachments,
 } from "@/components/ai-elements/attachments";
-import type { ChatAttachment } from "@/lib/ai/types/chat-attachment";
 
 export const ChatMessageAttachments = ({
 	attachments,
 }: {
-	attachments: ChatAttachment[];
+	attachments: ChatMessageAttachment[];
 }) => {
 	if (attachments.length === 0) {
 		return null;

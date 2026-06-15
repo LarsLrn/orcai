@@ -1,6 +1,6 @@
 import type { ChatId, ChatMessageId } from "@orcai/core";
 import type {
-	ChatMessageAttachments,
+	ChatMessageAttachment,
 	ChatMessageMetadata,
 	ChatMessageParts,
 } from "@orcai/schema";
@@ -25,7 +25,7 @@ export const chatMessage = pgTable("chat_message", {
 		}),
 	role: varchar("role").notNull(),
 	parts: json("parts").$type<ChatMessageParts>().notNull(),
-	attachments: json("attachments").$type<ChatMessageAttachments>().notNull(),
+	attachments: json("attachments").$type<ChatMessageAttachment[]>().notNull(),
 	metadata: json("metadata").$type<ChatMessageMetadata>().notNull(),
 	createdAt: timestamp("created_at").defaultNow().notNull(),
 	// The DAG Pointer - enables branching conversations

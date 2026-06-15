@@ -20,6 +20,7 @@ export const createChatMessageInputSchema = chatMessageFieldsSchema
 	.extend({
 		id: chatMessageIdSchema.optional(),
 		parentMessageId: chatMessageIdSchema.nullable().optional(),
+		attachments: chatMessageFieldsSchema.shape.attachments.optional(),
 		branchId: chatBranchIdSchema.optional(),
 	})
 	.omit({

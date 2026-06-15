@@ -377,14 +377,24 @@ export const createChatMessage = authed.chatMessage.create
 				}
 
 				// 3. Insert Message
+				const messageValues: typeof dbSchema.chatMessage.$inferInsert = {
+					chatId: input.chatId,
+					role: input.role,
+					parts: input.parts,
+					attachments: input.attachments ?? [],
+					metadata: input.metadata,
+					parentMessageId: parentMessageId ?? null,
+					depth,
+					createdAt: new Date(),
+				};
+
+				if (input.id) {
+					messageValues.id = input.id;
+				}
+
 				const [newMessage] = yield* db
 					.insert(dbSchema.chatMessage)
-					.values({
-						...input,
-						parentMessageId,
-						depth,
-						createdAt: new Date(),
-					})
+					.values(messageValues)
 					.returning({
 						...getColumns(dbSchema.chatMessage),
 					});

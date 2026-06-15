@@ -1,16 +1,16 @@
 import { z } from "zod/v4";
 import { chatIdSchema } from "../chat/ref";
+import { chatMessageAttachmentSchema } from "../zod/chat-message-attachment";
+import { chatMessageMetadataSchema } from "../zod/chat-message-metadata";
 import { chatMessageIdSchema } from "./ref";
 
 export const chatMessagePartsSchema = z.array(z.unknown());
-export const chatMessageAttachmentsSchema = z.array(z.unknown());
-export const chatMessageMetadataSchema = z.record(z.string(), z.unknown());
 
 export const chatMessageFieldsSchema = z.object({
 	chatId: chatIdSchema,
 	role: z.string(),
 	parts: chatMessagePartsSchema,
-	attachments: chatMessageAttachmentsSchema,
+	attachments: z.array(chatMessageAttachmentSchema),
 	metadata: chatMessageMetadataSchema,
 	parentMessageId: chatMessageIdSchema.nullable().optional(),
 	depth: z.number().int().default(0),
@@ -32,8 +32,4 @@ export const chatMessageSchema = chatMessageFieldsSchema.extend({
 });
 
 export type ChatMessageParts = z.infer<typeof chatMessagePartsSchema>;
-export type ChatMessageAttachments = z.infer<
-	typeof chatMessageAttachmentsSchema
->;
-export type ChatMessageMetadata = z.infer<typeof chatMessageMetadataSchema>;
 export type ChatMessage = z.infer<typeof chatMessageSchema>;
