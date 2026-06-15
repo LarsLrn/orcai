@@ -1,7 +1,12 @@
 import { dbSchema } from "@orcai/db/schema";
 import {
+	createResourceScopedSchema,
 	organizationRoleSchema,
 	preferencesSchema,
+	RESOURCE_GRANT_SOURCE,
+	type ResourceType,
+	resourceGrantRoleSchema,
+	resourceGrantSourceSchema,
 	userIdSchema,
 } from "@orcai/schema";
 import {
@@ -10,13 +15,6 @@ import {
 	createUpdateSchema,
 } from "drizzle-orm/zod";
 import { z } from "zod/v4";
-import {
-	createResourceScopedSchema,
-	RESOURCE_GRANT_SOURCE,
-	type ResourceType,
-	resourceGrantRoleSchema,
-	resourceGrantSourceSchema,
-} from "./resource";
 
 /**
  * ----------------

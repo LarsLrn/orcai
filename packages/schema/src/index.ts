@@ -14,6 +14,7 @@ export * from "./organization-invitation";
 export * from "./organization-member";
 export * from "./provider";
 export * from "./quota";
+export * from "./resource";
 export * from "./shared";
 export * from "./user";
 export * from "./zod";

@@ -1,9 +1,16 @@
 import { DB, dbSchema } from "@orcai/db";
+import type {
+	ResourceGrantRole,
+	ResourceGrant as ResourceGrantView,
+	ResourcePrincipal,
+} from "@orcai/schema";
 import {
+	ALL_MEMBERS_GROUP_SYSTEM_KEY,
 	assetIdSchema,
 	blockIdSchema,
 	botIdSchema,
 	groupIdSchema,
+	RESOURCE_GRANT_SOURCE,
 	userIdSchema,
 } from "@orcai/schema";
 import type { TupleMutation } from "@orcai/spice-db";
@@ -17,15 +24,6 @@ import {
 	assertCanGrantPrincipalMiddleware,
 	requireResourcePermission,
 } from "@/lib/orpc/middlewares/permission";
-import type {
-	ResourceGrantRole,
-	ResourceGrant as ResourceGrantView,
-	ResourcePrincipal,
-} from "@/lib/orpc/schemas/resource";
-import {
-	ALL_MEMBERS_GROUP_SYSTEM_KEY,
-	RESOURCE_GRANT_SOURCE,
-} from "@/lib/orpc/schemas/resource";
 
 type GroupPrincipal = Extract<
 	ResourcePrincipal,

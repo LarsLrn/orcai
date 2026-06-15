@@ -1,11 +1,11 @@
 import { DB, dbSchema } from "@orcai/db";
+import { ALL_MEMBERS_GROUP_SYSTEM_KEY } from "@orcai/schema";
 import { count, eq, sql } from "drizzle-orm";
 import * as Effect from "effect/Effect";
 import { auth } from "@/lib/auth/auth";
 import { AuthzService } from "@/lib/effect/services/authz";
 import { runOrpcEffect } from "@/lib/effect/utils/orpc-helpers";
 import { os } from "@/lib/orpc/implementation/os";
-import { ALL_MEMBERS_GROUP_SYSTEM_KEY } from "@/lib/orpc/schemas/resource";
 
 const toCount = (value: number | string | bigint | null | undefined) =>
 	Number(value ?? 0);

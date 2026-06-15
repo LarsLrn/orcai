@@ -1,12 +1,16 @@
 import { DB, dbSchema } from "@orcai/db";
-import { assetIdSchema, blockIdSchema, botIdSchema } from "@orcai/schema";
+import {
+	ALL_MEMBERS_GROUP_SYSTEM_KEY,
+	assetIdSchema,
+	blockIdSchema,
+	botIdSchema,
+} from "@orcai/schema";
 import { and, count, eq, ilike, inArray, isNull, or } from "drizzle-orm";
 import * as Effect from "effect/Effect";
 import { AuthzService } from "@/lib/effect/services/authz";
 import { runOrpcEffect } from "@/lib/effect/utils/orpc-helpers";
 import { authed } from "@/lib/orpc/implementation/authed";
 import { requireOrganizationPermission } from "@/lib/orpc/middlewares/permission";
-import { ALL_MEMBERS_GROUP_SYSTEM_KEY } from "@/lib/orpc/schemas/resource";
 
 const parseScopedResourceId = (resource: {
 	resourceType: "asset" | "block" | "bot";

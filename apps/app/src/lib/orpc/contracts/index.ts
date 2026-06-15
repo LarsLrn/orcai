@@ -32,14 +32,6 @@ import {
 	listChatBlocksContract,
 } from "./chat-block";
 import {
-	getResourceVisibilityContract,
-	grantResourceAccessContract,
-	listResourceGrantsContract,
-	listResourcePrincipalsContract,
-	revokeResourceAccessContract,
-	setResourceVisibilityContract,
-} from "./resource";
-import {
 	abortMultipartUploadContract,
 	completeMultipartUploadContract,
 	createDownloadUrlContract,
@@ -66,14 +58,7 @@ export const contracts = {
 	organizationInvitation: sharedContracts.organizationInvitation,
 	provider: sharedContracts.provider,
 	quota: sharedContracts.quota,
-	resource: {
-		listGrants: listResourceGrantsContract,
-		listPrincipals: listResourcePrincipalsContract,
-		grant: grantResourceAccessContract,
-		revoke: revokeResourceAccessContract,
-		getVisibility: getResourceVisibilityContract,
-		setVisibility: setResourceVisibilityContract,
-	},
+	resource: sharedContracts.resource,
 	group: sharedContracts.group,
 	chat: sharedContracts.chat,
 	chatBlock: {

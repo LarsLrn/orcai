@@ -1,15 +1,15 @@
+import type {
+	PrincipalType,
+	ResourcePrincipal,
+	ResourceRef,
+} from "@orcai/schema";
+import { ALL_MEMBERS_GROUP_SYSTEM_KEY } from "@orcai/schema";
 import { SearchIcon, UserIcon, UsersIcon } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { SelectableListItem } from "@/components/ui/composed/selectable-list-item";
 import { Input } from "@/components/ui/input";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { useShareablePrincipals } from "@/hooks/authz/use-resource-access";
-import type {
-	PrincipalType,
-	ResourcePrincipal,
-	ResourceRef,
-} from "@/lib/orpc/schemas/resource";
-import { ALL_MEMBERS_GROUP_SYSTEM_KEY } from "@/lib/orpc/schemas/resource";
 
 type PrincipalPickerProps = {
 	resourceRef: ResourceRef;

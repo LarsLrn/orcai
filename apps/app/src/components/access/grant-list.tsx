@@ -1,9 +1,6 @@
+import type { ResourceGrant, ResourceGrantRole } from "@orcai/schema";
 import { UsersIcon } from "lucide-react";
 import { Input } from "@/components/ui/input";
-import type {
-	ResourceGrant,
-	ResourceGrantRole,
-} from "@/lib/orpc/schemas/resource";
 import { GrantEditorRow } from "./grant-editor-row";
 
 type GrantListProps = {

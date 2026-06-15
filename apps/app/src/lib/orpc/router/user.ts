@@ -1,5 +1,14 @@
 import { DB, dbSchema } from "@orcai/db";
-import { assetIdSchema, blockIdSchema, botIdSchema } from "@orcai/schema";
+import {
+	ALL_MEMBERS_GROUP_SYSTEM_KEY,
+	assetIdSchema,
+	blockIdSchema,
+	botIdSchema,
+	RESOURCE_GRANT_SOURCE,
+	RESOURCE_TYPES,
+	type ResourceGrantRole,
+	type ResourceGrantSource,
+} from "@orcai/schema";
 import {
 	checkEntityPermission,
 	checkManyEntityPermissions,
@@ -17,13 +26,6 @@ import {
 	requireActiveOrganizationMiddleware,
 	requirePreferencesMiddleware,
 } from "@/lib/orpc/middlewares/auth";
-import {
-	ALL_MEMBERS_GROUP_SYSTEM_KEY,
-	RESOURCE_GRANT_SOURCE,
-	RESOURCE_TYPES,
-	type ResourceGrantRole,
-	type ResourceGrantSource,
-} from "@/lib/orpc/schemas/resource";
 import { inheritedSourceByResourceType } from "@/lib/orpc/schemas/user";
 import { unique } from "@/lib/utils/array-utils";
 

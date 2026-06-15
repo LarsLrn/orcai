@@ -1,4 +1,5 @@
 import { DB, dbSchema } from "@orcai/db";
+import { ALL_MEMBERS_GROUP_SYSTEM_KEY } from "@orcai/schema";
 import { lookupEntitiesByPermission } from "@orcai/spice-db";
 import { count, eq, getColumns, inArray } from "drizzle-orm";
 import * as Effect from "effect/Effect";
@@ -11,7 +12,6 @@ import {
 	checkManyPermissionMiddleware,
 	requireEntityPermission,
 } from "@/lib/orpc/middlewares/permission";
-import { ALL_MEMBERS_GROUP_SYSTEM_KEY } from "@/lib/orpc/schemas/resource";
 import { unique } from "@/lib/utils/array-utils";
 
 export const listOrganizations = authed.organization.list.handler(

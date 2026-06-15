@@ -1,7 +1,7 @@
+import type { ResourceVisibility } from "@orcai/schema";
 import { GlobeIcon, LockIcon } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { Switch } from "@/components/ui/switch";
-import type { ResourceVisibility } from "@/lib/orpc/schemas/resource";
 
 type VisibilityToggleProps = {
 	visibility: ResourceVisibility;

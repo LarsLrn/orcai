@@ -1,3 +1,14 @@
+import type {
+	PrincipalType,
+	ResourceGrantRole,
+	ResourceGrantSource,
+	ResourcePrincipal,
+	ResourceRef,
+} from "@orcai/schema";
+import {
+	ALL_MEMBERS_GROUP_SYSTEM_KEY,
+	RESOURCE_GRANT_SOURCE,
+} from "@orcai/schema";
 import {
 	AlertCircleIcon,
 	GlobeIcon,
@@ -19,17 +30,6 @@ import {
 	useRevokeResourceAccess,
 	useSetResourceVisibility,
 } from "@/hooks/authz/use-resource-access";
-import type {
-	PrincipalType,
-	ResourceGrantRole,
-	ResourceGrantSource,
-	ResourcePrincipal,
-	ResourceRef,
-} from "@/lib/orpc/schemas/resource";
-import {
-	ALL_MEMBERS_GROUP_SYSTEM_KEY,
-	RESOURCE_GRANT_SOURCE,
-} from "@/lib/orpc/schemas/resource";
 import { RESOURCES, ROLES } from "@/settings/display-config";
 
 const isDirectSource = (source: ResourceGrantSource) =>
@@ -139,7 +139,9 @@ const AccessManagerContent = ({
 
 		const successfulPrincipalIds = results
 			.map((result, index) =>
-				result.status === "success" ? selectedPrincipals[index]?.id : undefined,
+				result.status === "success"
+					? String(selectedPrincipals[index]?.id)
+					: undefined,
 			)
 			.filter((value): value is string => value !== undefined);
 

@@ -1,7 +1,7 @@
+import type { PrincipalType, ResourceRef } from "@orcai/schema";
 import { skipToken, useQuery, useQueryClient } from "@tanstack/react-query";
 import { useMutationAction } from "@/hooks/actions/use-mutation-action";
 import { orpc } from "@/lib/orpc/orpc";
-import type { PrincipalType, ResourceRef } from "@/lib/orpc/schemas/resource";
 
 const getResourceInput = (resourceRef: ResourceRef) => {
 	switch (resourceRef.type) {
