@@ -38,15 +38,6 @@ import {
 	createUploadUrlsContract,
 	finalizeUploadContract,
 } from "./storage";
-import {
-	findUserContract,
-	listUserAccessContract,
-	listUsersContract,
-	meContract,
-	setActiveOrganizationContract,
-	setTourStateContract,
-	updatePasswordContract,
-} from "./user";
 
 export const contracts = {
 	bootstrap: {
@@ -85,15 +76,7 @@ export const contracts = {
 	},
 	asset: sharedContracts.asset,
 	assetPoint: sharedContracts.assetPoint,
-	user: {
-		list: listUsersContract,
-		find: findUserContract,
-		listAccess: listUserAccessContract,
-		me: meContract,
-		updatePassword: updatePasswordContract,
-		setActiveOrganization: setActiveOrganizationContract,
-		setTourState: setTourStateContract,
-	},
+	user: sharedContracts.user,
 	model: sharedContracts.model,
 	storage: {
 		createUploadUrls: createUploadUrlsContract,

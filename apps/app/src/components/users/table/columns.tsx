@@ -1,3 +1,4 @@
+import type { UserWithOrganizationRole } from "@orcai/schema";
 import { Link } from "@tanstack/react-router";
 import type { ColumnDef } from "@tanstack/react-table";
 import { MoreHorizontal } from "lucide-react";
@@ -12,7 +13,6 @@ import {
 	DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import { useDeleteUsersMutation } from "@/hooks/mutations/use-user-admin-mutations";
-import type { UserWithOrganizationRole } from "@/lib/orpc/schemas/user";
 
 export const columns: ColumnDef<UserWithOrganizationRole>[] = [
 	{

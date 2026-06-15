@@ -4,6 +4,7 @@ import {
 	assetIdSchema,
 	blockIdSchema,
 	botIdSchema,
+	inheritedSourceByResourceType,
 	RESOURCE_GRANT_SOURCE,
 	RESOURCE_TYPES,
 	type ResourceGrantRole,
@@ -26,7 +27,6 @@ import {
 	requireActiveOrganizationMiddleware,
 	requirePreferencesMiddleware,
 } from "@/lib/orpc/middlewares/auth";
-import { inheritedSourceByResourceType } from "@/lib/orpc/schemas/user";
 import { unique } from "@/lib/utils/array-utils";
 
 export const listUsers = authed.user.list

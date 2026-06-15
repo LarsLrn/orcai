@@ -1,3 +1,4 @@
+import type { User } from "@orcai/schema";
 import {
 	ShieldAlertIcon,
 	ShieldCheckIcon,
@@ -11,7 +12,6 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { useDeleteUsersMutation } from "@/hooks/mutations/use-user-admin-mutations";
 import { authClient } from "@/lib/auth/auth-client";
-import type { User } from "@/lib/orpc/schemas/user";
 
 const ManageUser = ({ user }: { user: User }) => {
 	const { mutate: deleteUsers } = useDeleteUsersMutation();

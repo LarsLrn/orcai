@@ -16,6 +16,7 @@ import { organizationMemberContracts } from "./organization-member";
 import { providerContracts } from "./provider";
 import { quotaContracts } from "./quota";
 import { resourceContracts } from "./resource";
+import { userContracts } from "./user";
 
 export const contracts = {
 	asset: assetContracts,
@@ -31,6 +32,7 @@ export const contracts = {
 	provider: providerContracts,
 	quota: quotaContracts,
 	resource: resourceContracts,
+	user: userContracts,
 };
 
 export type ContractInputs = InferContractRouterInputs<typeof contracts>;
@@ -52,4 +54,5 @@ export {
 	providerContracts,
 	quotaContracts,
 	resourceContracts,
+	userContracts,
 };
