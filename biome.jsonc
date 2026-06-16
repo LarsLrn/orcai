@@ -9,7 +9,7 @@
 		"ignoreUnknown": false,
 		"includes": [
 			"**",
-			"!apps/app/src/routeTree.gen.ts",
+			"!**/routeTree.gen.ts",
 			"!**/public",
 			"!**/migrations",
 			"!apps/app/src/paraglide",

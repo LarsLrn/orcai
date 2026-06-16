@@ -162,7 +162,8 @@
       },
     },
     "apps/web": {
-      "name": "web",
+      "name": "@orcai/web",
+      "version": "0.1.0",
       "dependencies": {
         "@tailwindcss/vite": "catalog:",
         "@tanstack/react-router": "catalog:",
@@ -991,6 +992,8 @@
     "@orcai/spice-db": ["@orcai/spice-db@workspace:packages/spice-db"],
 
     "@orcai/valkey": ["@orcai/valkey@workspace:packages/valkey"],
+
+    "@orcai/web": ["@orcai/web@workspace:apps/web"],
 
     "@orcai/workers": ["@orcai/workers@workspace:apps/workers"],
 
@@ -3183,8 +3186,6 @@
     "w3c-keyname": ["w3c-keyname@2.2.8", "", {}, "sha512-dpojBhNsCNN7T82Tm7k26A6G9ML3NkhDsnw9n/eoxSRlVBB4CEtIQ/KTCLI2Fwf3ataSXRhYFkQi3SlnFwPvPQ=="],
 
     "walk-up-path": ["walk-up-path@4.0.0", "", {}, "sha512-3hu+tD8YzSLGuFYtPRb48vdhKMi0KQV5sn+uWr8+7dMEq/2G/dtLrdDinkLjqq5TIbIBjYJ4Ax/n3YiaW7QM8A=="],
-
-    "web": ["web@workspace:apps/web"],
 
     "web-namespaces": ["web-namespaces@2.0.1", "", {}, "sha512-bKr1DkiNa2krS7qxNtdrtHAmzuYGFQLiQ13TsorsdT6ULTkPLKuu5+GsFpDlg6JFjUTwX2DyhMPG2be8uPrqsQ=="],
 

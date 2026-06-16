@@ -13,6 +13,7 @@ WORKDIR /app
 
 COPY package.json bun.lock bunfig.toml ./
 COPY apps/app/package.json ./apps/app/package.json
+COPY apps/web/package.json ./apps/web/package.json
 COPY apps/workers/package.json ./apps/workers/package.json
 COPY packages/ai/package.json ./packages/ai/package.json
 COPY packages/contracts/package.json ./packages/contracts/package.json

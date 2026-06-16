@@ -6,6 +6,7 @@ FROM ${BUN_IMAGE} AS prod-deps
 WORKDIR /app
 
 COPY package.json bun.lock bunfig.toml ./
+COPY apps/web/package.json ./apps/web/package.json
 COPY apps/app/package.json ./apps/app/package.json
 COPY apps/workers/package.json ./apps/workers/package.json
 COPY packages/ai/package.json ./packages/ai/package.json
