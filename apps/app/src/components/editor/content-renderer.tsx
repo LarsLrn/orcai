@@ -48,7 +48,6 @@ const ContentRenderer = ({ content }: { content?: unknown }) => {
 		<article
 			ref={setElement}
 			className="tiptap prose dark:prose-invert max-w-full focus:outline-none"
-			// biome-ignore lint/security/noDangerouslySetInnerHtml: <Required for rendering HTML content>
 			dangerouslySetInnerHTML={{
 				__html: html,
 			}}

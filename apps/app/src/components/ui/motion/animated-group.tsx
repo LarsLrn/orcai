@@ -192,7 +192,6 @@ function AnimatedGroup({
 			className={className}
 		>
 			{React.Children.map(children, (child, index) => (
-				// biome-ignore lint/suspicious/noArrayIndexKey: <Okay here>
 				<MotionChild key={index} variants={itemVariants}>
 					{child}
 				</MotionChild>

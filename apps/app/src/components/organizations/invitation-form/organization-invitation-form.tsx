@@ -157,7 +157,6 @@ const OrganizationInvitationForm = () => {
 									{field.state.value.map((_, index) => {
 										return (
 											<div
-												// biome-ignore lint/suspicious/noArrayIndexKey: <ignore>
 												key={index}
 												className="flex flex-row items-end gap-2"
 											>

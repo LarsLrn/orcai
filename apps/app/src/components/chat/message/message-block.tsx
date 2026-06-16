@@ -116,10 +116,7 @@ export const MessageBlock = ({
 						<ChatMessageAttachments attachments={messageAttachments} />
 						{sortedParts.map((part, i) => (
 							<MessagePartRenderer
-								key={`${part.type}${message.id}${
-									// biome-ignore lint/suspicious/noArrayIndexKey: Need stable key and parts don't have ids
-									i
-								}`}
+								key={`${part.type}${message.id}${i}`}
 								part={part}
 							/>
 						))}

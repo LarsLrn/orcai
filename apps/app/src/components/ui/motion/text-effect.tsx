@@ -187,7 +187,6 @@ const AnimationComponent: React.FC<{
 			<motion.span className="inline-block whitespace-pre">
 				{segment.split("").map((char, charIndex) => (
 					<motion.span
-						// biome-ignore lint/suspicious/noArrayIndexKey: <Okay here>
 						key={`char-${charIndex}`}
 						aria-hidden="true"
 						variants={variants}
@@ -339,10 +338,7 @@ export function TextEffect({
 					{per !== "line" ? <span className="sr-only">{children}</span> : null}
 					{segments.map((segment, index) => (
 						<AnimationComponent
-							key={`${per}-${
-								// biome-ignore lint/suspicious/noArrayIndexKey: Need stable key and segments might not be unique
-								index
-							}-${segment}`}
+							key={`${per}-${index}-${segment}`}
 							segment={segment}
 							variants={computedVariants.item}
 							per={per}

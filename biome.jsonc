@@ -13,7 +13,8 @@
 			"!**/public",
 			"!**/migrations",
 			"!apps/app/src/paraglide",
-			"!**/.tanstack"
+			"!**/.tanstack",
+			"!**/*.svg"
 		]
 	},
 	"formatter": {
@@ -29,7 +30,7 @@
 	"linter": {
 		"enabled": true,
 		"rules": {
-			"recommended": true,
+			"preset": "recommended",
 			"style": {
 				"useFragmentSyntax": "warn", // Not in recommended ruleset, turning on manually
 				"noYodaExpression": "warn", // Not in recommended ruleset, turning on manually
@@ -76,6 +77,7 @@
 				"useAwait": "warn" // Typically async functions without await don't need it
 			},
 			"correctness": {
+				"useExhaustiveDependencies": "error",
 				"useValidForDirection": "error",
 				"noUndeclaredVariables": "error",
 				"noUnusedVariables": "warn",
