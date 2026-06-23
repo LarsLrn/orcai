@@ -1,18 +1,21 @@
 import { zedTokenSchema } from "@orcai/schema";
 import { oc } from "@orpc/contract";
+import { openapi } from "@orpc/openapi";
 import { z } from "zod/v4";
 
 export const base = oc
-	.$route({
-		spec: (s) => ({
-			...s,
-			security: [
-				{
-					test: [],
-				},
-			],
+	.meta(
+		openapi({
+			spec: (s) => ({
+				...s,
+				security: [
+					{
+						test: [],
+					},
+				],
+			}),
 		}),
-	})
+	)
 	.errors({
 		FORBIDDEN: {
 			data: z.object({

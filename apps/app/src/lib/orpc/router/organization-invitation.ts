@@ -147,7 +147,7 @@ export const createOrganizationInvitations =
 	authed.organizationInvitation.create
 		.use(requireActiveOrganizationMiddleware)
 		.use(
-			...requireEntityPermission("organization", "invite", {
+			requireEntityPermission("organization", "invite", {
 				entityId: "organizationId",
 			}),
 		)
@@ -181,7 +181,7 @@ export const createOrganizationInvitations =
 
 export const updateOrganizationInvitation = authed.organizationInvitation.update
 	.use(
-		...requireEntityPermission("organization", "invite", {
+		requireEntityPermission("organization", "invite", {
 			entityId: "organizationId",
 		}),
 	)
@@ -227,13 +227,14 @@ export const updateOrganizationInvitation = authed.organizationInvitation.update
 export const deleteOrganizationInvitations =
 	authed.organizationInvitation.delete
 		.use(
-			checkManyPermissionMiddleware("organization"),
-			(input): CheckManyPermissionInputFor<"organization"> => ({
-				entityIds: [
-					input.organizationId,
-				],
-				permission: "invite",
-			}),
+			checkManyPermissionMiddleware("organization").adaptInput(
+				(input): CheckManyPermissionInputFor<"organization"> => ({
+					entityIds: [
+						input.organizationId,
+					],
+					permission: "invite",
+				}),
+			),
 		)
 		.handler(async ({ input }) =>
 			runOrpcEffect(

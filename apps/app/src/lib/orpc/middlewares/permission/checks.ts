@@ -102,7 +102,6 @@ export const checkManyPermissionMiddleware = <Entity extends EntityType>(
 							Promise.resolve(
 								next({
 									context: {
-										...context,
 										allowedIds,
 									},
 								}),

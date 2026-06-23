@@ -109,7 +109,7 @@ export const listOrganizations = authed.organization.list.handler(
 
 export const findOrganization = authed.organization.find
 	.use(
-		...requireEntityPermission("organization", "read", {
+		requireEntityPermission("organization", "read", {
 			entityId: "id",
 		}),
 	)
@@ -260,7 +260,7 @@ export const createOrganization = authed.organization.create
 
 export const updateOrganization = authed.organization.update
 	.use(
-		...requireEntityPermission("organization", "manage_members", {
+		requireEntityPermission("organization", "manage_members", {
 			entityId: "id",
 		}),
 	)
@@ -287,11 +287,12 @@ export const updateOrganization = authed.organization.update
 
 export const deleteOrganizations = authed.organization.delete
 	.use(
-		checkManyPermissionMiddleware("organization"),
-		(input): CheckManyPermissionInputFor<"organization"> => ({
-			entityIds: input.refs.map((ref) => ref.id),
-			permission: "manage_members",
-		}),
+		checkManyPermissionMiddleware("organization").adaptInput(
+			(input): CheckManyPermissionInputFor<"organization"> => ({
+				entityIds: input.refs.map((ref) => ref.id),
+				permission: "manage_members",
+			}),
+		),
 	)
 	.handler(async ({ context }) =>
 		runOrpcEffect(

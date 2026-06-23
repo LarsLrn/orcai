@@ -94,7 +94,7 @@ const mergeDatabaseBlocks = ({
 export const aiChat = authed.ai.chat
 	.use(requireActiveOrganizationMiddleware)
 	.use(
-		...requireEntityPermission("chat", "edit", {
+		requireEntityPermission("chat", "edit", {
 			entityId: "chatId",
 			zedToken: "zedToken",
 		}),

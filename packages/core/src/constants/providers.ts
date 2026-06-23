@@ -31,12 +31,20 @@ export const modelCapabilities = [
 		label: "Image",
 	},
 	{
+		value: "image-generation",
+		label: "Image Generation",
+	},
+	{
 		value: "video",
 		label: "Video",
 	},
 	{
 		value: "audio",
 		label: "Audio",
+	},
+	{
+		value: "audio-generation",
+		label: "Audio Generation",
 	},
 	{
 		value: "reasoning",

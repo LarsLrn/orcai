@@ -498,7 +498,7 @@ export const listDraftBots = authed.bot.listDrafts.handler(
 
 export const findBot = authed.bot.find
 	.use(
-		...requireEntityPermission("bot", "read", {
+		requireEntityPermission("bot", "read", {
 			entityId: "id",
 			zedToken: "zedToken",
 		}),
@@ -543,7 +543,7 @@ export const findBot = authed.bot.find
 
 export const findBotEditor = authed.bot.findEditor
 	.use(
-		...requireEntityPermission("bot", "edit", {
+		requireEntityPermission("bot", "edit", {
 			entityId: "id",
 		}),
 	)
@@ -621,7 +621,7 @@ export const saveBot = authed.bot.save
 
 export const publishBot = authed.bot.publish
 	.use(
-		...requireEntityPermission("bot", "edit", {
+		requireEntityPermission("bot", "edit", {
 			entityId: "id",
 		}),
 	)
@@ -694,11 +694,12 @@ export const publishBot = authed.bot.publish
 
 export const deleteBots = authed.bot.delete
 	.use(
-		checkManyPermissionMiddleware("bot"),
-		(input): CheckManyPermissionInputFor<"bot"> => ({
-			entityIds: input.refs.map((ref) => ref.id),
-			permission: "delete",
-		}),
+		checkManyPermissionMiddleware("bot").adaptInput(
+			(input): CheckManyPermissionInputFor<"bot"> => ({
+				entityIds: input.refs.map((ref) => ref.id),
+				permission: "delete",
+			}),
+		),
 	)
 	.handler(async ({ context }) =>
 		runOrpcEffect(

@@ -51,9 +51,6 @@ function RouteComponent() {
 		orpc.storage.createDownloadUrl.queryOptions({
 			input: {
 				id: asset.data.id,
-				prefix: asset.data.prefix,
-				bucket: asset.data.bucket,
-				fileType: asset.data.fileType,
 			},
 		}),
 	);

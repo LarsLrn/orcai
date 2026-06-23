@@ -46,7 +46,7 @@ const mapMessageTreeRow = (row: MessageTreeRow): ChatMessage => ({
 
 export const listChatMessages = authed.chatMessage.list
 	.use(
-		...requireEntityPermission("chat", "read", {
+		requireEntityPermission("chat", "read", {
 			entityId: "chatId",
 			zedToken: "zedToken",
 		}),
@@ -186,7 +186,7 @@ export const listChatMessages = authed.chatMessage.list
 
 export const findChatMessage = authed.chatMessage.find
 	.use(
-		...requireEntityPermission("chat", "read", {
+		requireEntityPermission("chat", "read", {
 			entityId: "chatId",
 			zedToken: "zedToken",
 		}),
@@ -233,7 +233,7 @@ export const findChatMessage = authed.chatMessage.find
 
 export const getBranchIdForMessage = authed.chatMessage.getBranch
 	.use(
-		...requireEntityPermission("chat", "read", {
+		requireEntityPermission("chat", "read", {
 			entityId: "chatId",
 		}),
 	)
@@ -283,7 +283,7 @@ export const getBranchIdForMessage = authed.chatMessage.getBranch
 
 export const createChatMessage = authed.chatMessage.create
 	.use(
-		...requireEntityPermission("chat", "edit", {
+		requireEntityPermission("chat", "edit", {
 			entityId: "chatId",
 		}),
 	)
@@ -459,7 +459,7 @@ export const createChatMessage = authed.chatMessage.create
 
 export const updateChatMessage = authed.chatMessage.update
 	.use(
-		...requireEntityPermission("chat", "edit", {
+		requireEntityPermission("chat", "edit", {
 			entityId: "chatId",
 		}),
 	)
@@ -595,7 +595,7 @@ export const updateChatMessage = authed.chatMessage.update
 
 export const deleteChatMessages = authed.chatMessage.delete
 	.use(
-		...requireEntityPermission("chat", "edit", {
+		requireEntityPermission("chat", "edit", {
 			entityId: "chatId",
 		}),
 	)
@@ -625,7 +625,7 @@ export const deleteChatMessages = authed.chatMessage.delete
 
 export const rateChatMessage = authed.chatMessage.rate
 	.use(
-		...requireEntityPermission("chat", "edit", {
+		requireEntityPermission("chat", "edit", {
 			entityId: "chatId",
 		}),
 	)

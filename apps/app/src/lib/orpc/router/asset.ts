@@ -165,7 +165,7 @@ export const listAssets = authed.asset.list.handler(
 
 export const findAsset = authed.asset.find
 	.use(
-		...requireEntityPermission("asset", "read", {
+		requireEntityPermission("asset", "read", {
 			entityId: "id",
 			zedToken: "zedToken",
 		}),
@@ -420,11 +420,12 @@ export const saveManyAssets = authed.asset.saveMany
 
 export const deleteAssets = authed.asset.delete
 	.use(
-		checkManyPermissionMiddleware("asset"),
-		(input): CheckManyPermissionInputFor<"asset"> => ({
-			entityIds: input.refs.map((ref) => ref.id),
-			permission: "delete",
-		}),
+		checkManyPermissionMiddleware("asset").adaptInput(
+			(input): CheckManyPermissionInputFor<"asset"> => ({
+				entityIds: input.refs.map((ref) => ref.id),
+				permission: "delete",
+			}),
+		),
 	)
 	.handler(async ({ context }) =>
 		runOrpcEffect(

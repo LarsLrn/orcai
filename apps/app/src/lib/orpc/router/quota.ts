@@ -344,7 +344,7 @@ export const deactivateQuotaPool = authed.quota.deactivate
 // Currently any user with chat-read access can see pool budget details.
 export const quotaChatBadge = authed.quota.chatBadge
 	.use(
-		...requireEntityPermission("chat", "read", {
+		requireEntityPermission("chat", "read", {
 			entityId: "chatId",
 		}),
 	)

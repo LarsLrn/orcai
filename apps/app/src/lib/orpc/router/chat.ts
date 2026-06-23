@@ -66,7 +66,7 @@ export const listChats = authed.chat.list.handler(async ({ input, context }) =>
 
 export const findChat = authed.chat.find
 	.use(
-		...requireEntityPermission("chat", "read", {
+		requireEntityPermission("chat", "read", {
 			entityId: "id",
 			zedToken: "zedToken",
 		}),
@@ -214,7 +214,7 @@ export const createChat = authed.chat.create.handler(
 
 export const updateChat = authed.chat.update
 	.use(
-		...requireEntityPermission("chat", "edit", {
+		requireEntityPermission("chat", "edit", {
 			entityId: "id",
 		}),
 	)
@@ -294,11 +294,12 @@ export const updateChat = authed.chat.update
 
 export const deleteChats = authed.chat.delete
 	.use(
-		checkManyPermissionMiddleware("chat"),
-		(input): CheckManyPermissionInputFor<"chat"> => ({
-			entityIds: input.refs.map((ref) => ref.id),
-			permission: "delete",
-		}),
+		checkManyPermissionMiddleware("chat").adaptInput(
+			(input): CheckManyPermissionInputFor<"chat"> => ({
+				entityIds: input.refs.map((ref) => ref.id),
+				permission: "delete",
+			}),
+		),
 	)
 	.handler(async ({ context }) =>
 		runOrpcEffect(

@@ -282,7 +282,7 @@ export const createUploadUrls = authed.storage.createUploadUrls.handler(
 
 export const createDownloadUrl = authed.storage.createDownloadUrl
 	.use(
-		...requireEntityPermission("asset", "download", {
+		requireEntityPermission("asset", "download", {
 			entityId: "id",
 		}),
 	)

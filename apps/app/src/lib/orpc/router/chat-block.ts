@@ -13,7 +13,7 @@ import { requireEntityPermission } from "@/lib/orpc/middlewares/permission";
 
 export const listChatBlocks = authed.chatBlock.list
 	.use(
-		...requireEntityPermission("chat", "read", {
+		requireEntityPermission("chat", "read", {
 			entityId: "chatId",
 			zedToken: "zedToken",
 		}),
@@ -86,7 +86,7 @@ export const listChatBlocks = authed.chatBlock.list
 
 export const attachChatBlock = authed.chatBlock.attach
 	.use(
-		...requireEntityPermission("chat", "edit", {
+		requireEntityPermission("chat", "edit", {
 			entityId: "chatId",
 			zedToken: "zedToken",
 		}),
@@ -215,7 +215,7 @@ export const attachChatBlock = authed.chatBlock.attach
 
 export const detachChatBlock = authed.chatBlock.detach
 	.use(
-		...requireEntityPermission("chat", "edit", {
+		requireEntityPermission("chat", "edit", {
 			entityId: "chatId",
 			zedToken: "zedToken",
 		}),

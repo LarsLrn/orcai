@@ -1,8 +1,8 @@
 import type {
-	ContractRouterClient,
-	InferContractRouterErrorMap,
-	InferContractRouterInputs,
-	InferContractRouterOutputs,
+	InferRouterContractErrorMap,
+	InferRouterContractInputs,
+	InferRouterContractOutputs,
+	RouterContractClient,
 } from "@orpc/contract";
 import { aiContracts } from "./ai";
 import { assetContracts } from "./asset";
@@ -48,10 +48,10 @@ export const contracts = {
 	user: userContracts,
 };
 
-export type ContractInputs = InferContractRouterInputs<typeof contracts>;
-export type ContractOutputs = InferContractRouterOutputs<typeof contracts>;
-export type ContractErrors = InferContractRouterErrorMap<typeof contracts>;
-export type ContractClient = ContractRouterClient<typeof contracts>;
+export type ContractInputs = InferRouterContractInputs<typeof contracts>;
+export type ContractOutputs = InferRouterContractOutputs<typeof contracts>;
+export type ContractErrors = InferRouterContractErrorMap<typeof contracts>;
+export type ContractClient = RouterContractClient<typeof contracts>;
 
 export { base } from "./base";
 export {

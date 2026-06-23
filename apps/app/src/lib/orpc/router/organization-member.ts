@@ -12,7 +12,7 @@ import {
 
 export const listOrganizationMembers = authed.organizationMember.list
 	.use(
-		...requireEntityPermission("organization", "read", {
+		requireEntityPermission("organization", "read", {
 			entityId: "organizationId",
 		}),
 	)
@@ -54,7 +54,7 @@ export const listOrganizationMembers = authed.organizationMember.list
 
 export const findOrganizationMember = authed.organizationMember.find
 	.use(
-		...requireEntityPermission("organization", "read", {
+		requireEntityPermission("organization", "read", {
 			entityId: "organizationId",
 		}),
 	)
@@ -100,7 +100,7 @@ export const findOrganizationMember = authed.organizationMember.find
 
 export const createOrganizationMember = authed.organizationMember.create
 	.use(
-		...requireEntityPermission("organization", "manage_members", {
+		requireEntityPermission("organization", "manage_members", {
 			entityId: "organizationId",
 		}),
 	)
@@ -137,7 +137,7 @@ export const createOrganizationMember = authed.organizationMember.create
 
 export const updateOrganizationMember = authed.organizationMember.update
 	.use(
-		...requireEntityPermission("organization", "manage_members", {
+		requireEntityPermission("organization", "manage_members", {
 			entityId: "organizationId",
 		}),
 	)
@@ -204,13 +204,14 @@ export const updateOrganizationMember = authed.organizationMember.update
 
 export const deleteOrganizationMembers = authed.organizationMember.delete
 	.use(
-		checkManyPermissionMiddleware("organization"),
-		(input): CheckManyPermissionInputFor<"organization"> => ({
-			entityIds: [
-				input.organizationId,
-			],
-			permission: "manage_members",
-		}),
+		checkManyPermissionMiddleware("organization").adaptInput(
+			(input): CheckManyPermissionInputFor<"organization"> => ({
+				entityIds: [
+					input.organizationId,
+				],
+				permission: "manage_members",
+			}),
+		),
 	)
 	.handler(async ({ input }) =>
 		runOrpcEffect(

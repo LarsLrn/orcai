@@ -1,6 +1,6 @@
 import { createORPCClient } from "@orpc/client";
 import { RPCLink } from "@orpc/client/fetch";
-import { BatchLinkPlugin, DedupeRequestsPlugin } from "@orpc/client/plugins";
+import { BatchLinkPlugin, DedupeLinkPlugin } from "@orpc/client/plugins";
 import type { RouterClient } from "@orpc/server";
 import { createRouterClient } from "@orpc/server";
 import { createTanstackQueryUtils } from "@orpc/tanstack-query";
@@ -21,7 +21,7 @@ const getORPCClient = createIsomorphicFn()
 	)
 	.client((): RouterClient<typeof router> => {
 		const link = new RPCLink({
-			url: `${window.location.origin}/api/rpc`,
+			url: "/api/rpc",
 			headers: () => {
 				const token = Cookies.get(COOKIES.ZED_TOKEN.name);
 				return token
@@ -32,7 +32,7 @@ const getORPCClient = createIsomorphicFn()
 			},
 			plugins: [
 				new BatchLinkPlugin({
-					exclude: ({ path }) => path[0] === "ai",
+					filter: ({ path }) => path[0] !== "ai",
 					groups: [
 						{
 							condition: () => true,
@@ -40,7 +40,7 @@ const getORPCClient = createIsomorphicFn()
 						},
 					],
 				}),
-				new DedupeRequestsPlugin({
+				new DedupeLinkPlugin({
 					filter: ({ request }) => request.method === "GET", // Filters requests to dedupe
 					groups: [
 						{
@@ -64,7 +64,7 @@ const getORPCClient = createIsomorphicFn()
 export const client: RouterClient<typeof router> = getORPCClient();
 
 export const orpc = createTanstackQueryUtils(client, {
-	experimental_defaults: {
+	scoped: {
 		...queryDefaults,
 	},
 });

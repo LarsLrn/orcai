@@ -56,7 +56,6 @@ export const requiredAuthMiddleware = withName(
 
 					return next({
 						context: {
-							...context,
 							auth: {
 								isAuthenticated: true as const,
 								session: {

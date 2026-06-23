@@ -1,4 +1,4 @@
-import type { CreateRouterUtilsOptions } from "@orpc/tanstack-query";
+import type { RouterUtilsScoped } from "@orpc/tanstack-query";
 import { keepPreviousData } from "@tanstack/react-query";
 import { type client, orpc } from "./orpc";
 
@@ -244,4 +244,4 @@ export const queryDefaults = {
 			},
 		},
 	},
-} satisfies CreateRouterUtilsOptions<typeof client>["experimental_defaults"];
+} satisfies RouterUtilsScoped<typeof client>;

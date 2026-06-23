@@ -128,7 +128,7 @@ export const listBlocks = authed.block.list.handler(
 
 export const findBlock = authed.block.find
 	.use(
-		...requireEntityPermission("block", "read", {
+		requireEntityPermission("block", "read", {
 			entityId: "id",
 			zedToken: "zedToken",
 		}),
@@ -242,7 +242,7 @@ export const createBlock = authed.block.create
 
 export const updateBlock = authed.block.update
 	.use(
-		...requireEntityPermission("block", "edit", {
+		requireEntityPermission("block", "edit", {
 			entityId: "id",
 		}),
 	)
@@ -323,11 +323,12 @@ export const updateBlock = authed.block.update
 
 export const deleteBlocks = authed.block.delete
 	.use(
-		checkManyPermissionMiddleware("block"),
-		(input): CheckManyPermissionInputFor<"block"> => ({
-			entityIds: input.refs.map((ref) => ref.id),
-			permission: "delete",
-		}),
+		checkManyPermissionMiddleware("block").adaptInput(
+			(input): CheckManyPermissionInputFor<"block"> => ({
+				entityIds: input.refs.map((ref) => ref.id),
+				permission: "delete",
+			}),
+		),
 	)
 	.handler(async ({ context }) =>
 		runOrpcEffect(

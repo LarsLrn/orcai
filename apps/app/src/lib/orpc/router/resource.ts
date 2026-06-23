@@ -20,7 +20,6 @@ import { AuthzService } from "@/lib/effect/services/authz";
 import { runOrpcEffect } from "@/lib/effect/utils/orpc-helpers";
 import { authed } from "@/lib/orpc/implementation/authed";
 import {
-	type AssertCanGrantPrincipalInput,
 	assertCanGrantPrincipalMiddleware,
 	requireResourcePermission,
 } from "@/lib/orpc/middlewares/permission";
@@ -65,7 +64,7 @@ const parseResourceIdentity = (resource: {
 };
 
 export const listResourceGrants = authed.resource.listGrants
-	.use(...requireResourcePermission("manage_access"))
+	.use(requireResourcePermission("manage_access"))
 	.handler(async ({ input }) =>
 		runOrpcEffect(
 			Effect.gen(function* () {
@@ -197,7 +196,7 @@ export const listResourceGrants = authed.resource.listGrants
 	);
 
 export const listResourcePrincipals = authed.resource.listPrincipals
-	.use(...requireResourcePermission("manage_access"))
+	.use(requireResourcePermission("manage_access"))
 	.handler(async ({ input }) =>
 		runOrpcEffect(
 			Effect.gen(function* () {
@@ -299,10 +298,7 @@ export const listResourcePrincipals = authed.resource.listPrincipals
 	);
 
 export const grantResourceAccess = authed.resource.grant
-	.use(
-		assertCanGrantPrincipalMiddleware,
-		(input) => input satisfies AssertCanGrantPrincipalInput,
-	)
+	.use(assertCanGrantPrincipalMiddleware)
 	.handler(async ({ input, context, errors }) =>
 		runOrpcEffect(
 			Effect.gen(function* () {
@@ -487,7 +483,7 @@ export const grantResourceAccess = authed.resource.grant
 	);
 
 export const revokeResourceAccess = authed.resource.revoke
-	.use(...requireResourcePermission("manage_access"))
+	.use(requireResourcePermission("manage_access"))
 	.handler(async ({ input, errors }) =>
 		runOrpcEffect(
 			Effect.gen(function* () {
@@ -582,7 +578,7 @@ export const revokeResourceAccess = authed.resource.revoke
 	);
 
 export const getResourceVisibility = authed.resource.getVisibility
-	.use(...requireResourcePermission("read"))
+	.use(requireResourcePermission("read"))
 	.handler(async ({ input }) =>
 		runOrpcEffect(
 			Effect.gen(function* () {
@@ -611,7 +607,7 @@ export const getResourceVisibility = authed.resource.getVisibility
 	);
 
 export const setResourceVisibility = authed.resource.setVisibility
-	.use(...requireResourcePermission("manage_access"))
+	.use(requireResourcePermission("manage_access"))
 	.handler(async ({ input, context }) =>
 		runOrpcEffect(
 			Effect.gen(function* () {

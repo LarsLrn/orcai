@@ -10,7 +10,7 @@ import {
 	type ResourcePermissionSourceWithToken,
 	type SharedResourcePermission,
 } from "./resource";
-import type { CheckPermissionInputFor } from "./types";
+import type { CheckPermissionInput } from "./types";
 
 type EntityPermissionSource<
 	Entity extends EntityType,
@@ -41,33 +41,31 @@ export const requireEntityPermission = <
 	if (keys.zedToken) {
 		const zedTokenKey = keys.zedToken;
 
-		return [
-			checkPermissionMiddleware,
+		return checkPermissionMiddleware.adaptInput(
 			(
 				input: EntityPermissionSourceWithToken<
 					Entity,
 					IdKey,
 					Exclude<ZedTokenKey, undefined>
 				>,
-			): CheckPermissionInputFor<Entity> => ({
+			): CheckPermissionInput =>
+				({
+					entityType,
+					entityId: input[keys.entityId] as EntityIdFor<Entity>,
+					permission,
+					zedToken: input[zedTokenKey],
+				}) as CheckPermissionInput,
+		);
+	}
+
+	return checkPermissionMiddleware.adaptInput(
+		(input: EntityPermissionSource<Entity, IdKey>): CheckPermissionInput =>
+			({
 				entityType,
 				entityId: input[keys.entityId] as EntityIdFor<Entity>,
 				permission,
-				zedToken: input[zedTokenKey],
-			}),
-		] as const;
-	}
-
-	return [
-		checkPermissionMiddleware,
-		(
-			input: EntityPermissionSource<Entity, IdKey>,
-		): CheckPermissionInputFor<Entity> => ({
-			entityType,
-			entityId: input[keys.entityId] as EntityIdFor<Entity>,
-			permission,
-		}),
-	] as const;
+			}) as CheckPermissionInput,
+	);
 };
 
 export const requireResourcePermission = <
@@ -82,21 +80,19 @@ export const requireResourcePermission = <
 	if (keys?.zedToken) {
 		const zedTokenKey = keys.zedToken;
 
-		return [
-			checkPermissionMiddleware,
+		return checkPermissionMiddleware.adaptInput(
 			(
 				input: ResourcePermissionSourceWithToken<
 					Exclude<ZedTokenKey, undefined>
 				>,
 			) => createResourcePermissionInput(input, permission, input[zedTokenKey]),
-		] as const;
+		);
 	}
 
-	return [
-		checkPermissionMiddleware,
+	return checkPermissionMiddleware.adaptInput(
 		(input: ResourcePermissionSource) =>
 			createResourcePermissionInput(input, permission),
-	] as const;
+	);
 };
 
 type OrganizationPermission = PermissionFor<"organization">;

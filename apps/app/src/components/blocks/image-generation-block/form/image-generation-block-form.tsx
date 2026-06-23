@@ -1,7 +1,6 @@
 import type { ImageGenerationBlock } from "@orcai/schema";
 import { useStore } from "@tanstack/react-form";
 import { skipToken, useQuery, useSuspenseQuery } from "@tanstack/react-query";
-import { useRouteContext } from "@tanstack/react-router";
 import type { Content } from "@tiptap/react";
 import { PublicationStatusField } from "@/components/blocks/form/publication-status-field";
 import { BlockEditor } from "@/components/editor/block-editor";
@@ -30,15 +29,9 @@ const ImageGenerationBlockForm = ({
 	const { mutate: createBlock } = useCreateBlockMutation();
 	const { mutate: updateBlock } = useUpdateBlockMutation();
 
-	const { auth } = useRouteContext({
-		from: "/app",
-	});
-
 	const { data: providers } = useSuspenseQuery(
 		orpc.provider.list.queryOptions({
-			input: {
-				organizationId: auth.session.activeOrganizationId,
-			},
+			input: {},
 		}),
 	);
 
@@ -67,10 +60,12 @@ const ImageGenerationBlockForm = ({
 		orpc.model.list.queryOptions({
 			input: providerId
 				? {
-						providerId,
-						capabilities: [
-							"image-generation",
-						],
+						filters: {
+							providerId,
+							capabilities: [
+								"image-generation",
+							],
+						},
 					}
 				: skipToken,
 		}),
