@@ -1,7 +1,7 @@
 import type { BotEditor, PublicationStatus, SaveBotInput } from "@orcai/schema";
-import { useStore } from "@tanstack/react-form";
 import { useQueryClient } from "@tanstack/react-query";
 import { useNavigate } from "@tanstack/react-router";
+import { useSelector } from "@tanstack/react-store";
 import {
 	BookOpenIcon,
 	CheckCircle2Icon,
@@ -171,7 +171,7 @@ const BotEditorShell = ({
 		...botEditorFormOptions(editorData),
 		onSubmit: () => undefined,
 	});
-	const editor = useStore(
+	const editor = useSelector(
 		form.store,
 		(state) => state.values,
 	) as BotEditorFormValues;

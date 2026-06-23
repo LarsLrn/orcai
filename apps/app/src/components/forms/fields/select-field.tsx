@@ -1,4 +1,4 @@
-import { useStore } from "@tanstack/react-form";
+import { useSelector } from "@tanstack/react-store";
 import { useId } from "react";
 import {
 	Field,
@@ -37,8 +37,8 @@ const SelectField = ({
 	const field = useFieldContext<string>();
 	const id = useId();
 
-	const errors = useStore(field.store, (state) => state.meta.errors);
-	const isInvalid = useStore(
+	const errors = useSelector(field.store, (state) => state.meta.errors);
+	const isInvalid = useSelector(
 		field.store,
 		(state) => state.meta.isTouched && !state.meta.isValid,
 	);

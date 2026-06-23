@@ -63,6 +63,7 @@
 		"@tanstack/react-router-ssr-query": "1.167.1",
 		"@tanstack/react-start": "catalog:",
 		"@tanstack/react-table": "8.21.3",
+		"@tanstack/react-store": "0.11.0",
 		"@tiptap/core": "3.26.1",
 		"@tiptap/extension-character-count": "3.26.1",
 		"@tiptap/extension-color": "3.26.1",

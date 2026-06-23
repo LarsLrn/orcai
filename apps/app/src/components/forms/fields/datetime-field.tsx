@@ -1,4 +1,4 @@
-import { useStore } from "@tanstack/react-form";
+import { useSelector } from "@tanstack/react-store";
 import { format } from "date-fns";
 import { CalendarIcon, XIcon } from "lucide-react";
 import { useId } from "react";
@@ -42,8 +42,8 @@ const DatetimeField = ({
 	const field = useFieldContext<Date | null>();
 	const id = useId();
 
-	const errors = useStore(field.store, (state) => state.meta.errors);
-	const isInvalid = useStore(
+	const errors = useSelector(field.store, (state) => state.meta.errors);
+	const isInvalid = useSelector(
 		field.store,
 		(state) => state.meta.isTouched && !state.meta.isValid,
 	);

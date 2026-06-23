@@ -1,6 +1,6 @@
 import type { QuotaPoolDetail } from "@orcai/schema";
-import { useStore } from "@tanstack/react-form";
 import { useQuery } from "@tanstack/react-query";
+import { useSelector } from "@tanstack/react-store";
 import { AlertCircleIcon } from "lucide-react";
 import { useEffect, useMemo } from "react";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
@@ -95,15 +95,15 @@ const QuotaPoolForm = ({
 			(group) => group.kind === "system" && group.systemKey === "all_members",
 		)?.id ?? "";
 
-	const selectedProviderId = useStore(
+	const selectedProviderId = useSelector(
 		form.store,
 		(state) => state.values.providerId,
 	);
-	const selectedProviderModelId = useStore(
+	const selectedProviderModelId = useSelector(
 		form.store,
 		(state) => state.values.providerModelId,
 	);
-	const selectedGroupIds = useStore(
+	const selectedGroupIds = useSelector(
 		form.store,
 		(state) => state.values.groupIds,
 	);

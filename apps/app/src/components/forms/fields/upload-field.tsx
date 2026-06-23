@@ -1,4 +1,4 @@
-import { useStore } from "@tanstack/react-form";
+import { useSelector } from "@tanstack/react-store";
 import { useId } from "react";
 import type { DropzoneProps } from "react-dropzone";
 import { FileUploader } from "@/components/documents/file-uploader";
@@ -30,8 +30,8 @@ const UploadField = ({
 	const field = useFieldContext<File[]>();
 	const id = useId();
 
-	const errors = useStore(field.store, (state) => state.meta.errors);
-	const isInvalid = useStore(
+	const errors = useSelector(field.store, (state) => state.meta.errors);
+	const isInvalid = useSelector(
 		field.store,
 		(state) => state.meta.isTouched && !state.meta.isValid,
 	);

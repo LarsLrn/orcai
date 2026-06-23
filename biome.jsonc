@@ -74,7 +74,8 @@
 				"noEmptyBlockStatements": "error",
 				"noFallthroughSwitchClause": "error",
 				"noVar": "error",
-				"useAwait": "warn" // Typically async functions without await don't need it
+				"useAwait": "warn", // Typically async functions without await don't need it
+				"noDeprecatedImports": "error"
 			},
 			"correctness": {
 				"useExhaustiveDependencies": "error",

@@ -1,6 +1,6 @@
 import type { ImageGenerationBlock } from "@orcai/schema";
-import { useStore } from "@tanstack/react-form";
 import { skipToken, useQuery, useSuspenseQuery } from "@tanstack/react-query";
+import { useSelector } from "@tanstack/react-store";
 import type { Content } from "@tiptap/react";
 import { PublicationStatusField } from "@/components/blocks/form/publication-status-field";
 import { BlockEditor } from "@/components/editor/block-editor";
@@ -49,12 +49,15 @@ const ImageGenerationBlockForm = ({
 		},
 	});
 
-	const providerId = useStore(
+	const providerId = useSelector(
 		form.store,
 		(state) => state.values.config.provider,
 	);
-	const contentJson = useStore(form.store, (state) => state.values.contentJson);
-	const status = useStore(form.store, (state) => state.values.status);
+	const contentJson = useSelector(
+		form.store,
+		(state) => state.values.contentJson,
+	);
+	const status = useSelector(form.store, (state) => state.values.status);
 
 	const { data: models } = useQuery(
 		orpc.model.list.queryOptions({

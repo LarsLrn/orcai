@@ -9,7 +9,7 @@ import {
 	ReactNodeViewRenderer,
 } from "@tiptap/react";
 import { Image, Link, Loader2, Upload, X } from "lucide-react";
-import { type FormEvent, useId, useState } from "react";
+import { type MouseEvent, useId, useState } from "react";
 import { useImageUpload } from "@/components/editor/hooks/use-image-upload";
 import {
 	isValidUrl,
@@ -152,7 +152,7 @@ function ImagePlaceholderComponent(props: NodeViewProps) {
 		}
 	};
 
-	const handleInsertEmbed = (e: FormEvent) => {
+	const handleInsertEmbed = (e: MouseEvent<HTMLButtonElement>) => {
 		e.preventDefault();
 		const valid = isValidUrl(url);
 		if (!valid) {

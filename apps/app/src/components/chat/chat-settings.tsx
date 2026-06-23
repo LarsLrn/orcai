@@ -1,12 +1,12 @@
 import type { ChatId } from "@orcai/core";
 import type { ChatConfig, Model, Provider } from "@orcai/schema";
-import { useStore } from "@tanstack/react-form";
 import {
 	useMutation,
 	useQuery,
 	useQueryClient,
 	useSuspenseQuery,
 } from "@tanstack/react-query";
+import { useSelector } from "@tanstack/react-store";
 import { ChevronDownIcon, PlusIcon, SettingsIcon, XIcon } from "lucide-react";
 import { Suspense, useState } from "react";
 import { toast } from "sonner";
@@ -149,12 +149,15 @@ const ChatConfigEditor = ({
 			});
 		},
 	});
-	const selectedModelId = useStore(form.store, (state) => state.values.modelId);
-	const selectedProviderId = useStore(
+	const selectedModelId = useSelector(
+		form.store,
+		(state) => state.values.modelId,
+	);
+	const selectedProviderId = useSelector(
 		form.store,
 		(state) => state.values.providerId,
 	);
-	const isSubmitting = useStore(form.store, (state) => state.isSubmitting);
+	const isSubmitting = useSelector(form.store, (state) => state.isSubmitting);
 
 	return (
 		<form
