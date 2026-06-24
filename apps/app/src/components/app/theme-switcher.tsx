@@ -1,7 +1,7 @@
 import { MoonIcon, SunIcon } from "lucide-react";
 import { AnimatePresence, motion } from "motion/react";
-import { useTheme } from "next-themes";
 import { useCallback, useEffect, useState } from "react";
+import { useTheme } from "@/components/app/theme-provider";
 import { Button } from "@/components/ui/button";
 import { Skeleton } from "@/components/ui/skeleton";
 import { META_THEME_COLORS, useMetaColor } from "@/hooks/use-meta-color";
@@ -10,23 +10,23 @@ import { cn } from "@/lib/utils";
 const ThemeSwitcher = ({ className }: { className?: string }) => {
 	const [mounted, setMounted] = useState(false);
 
-	const { setTheme, resolvedTheme } = useTheme();
+	const { setTheme, theme } = useTheme();
 	const { setMetaColor } = useMetaColor();
-	const [isDark, setIsDark] = useState(resolvedTheme === "dark");
+	const [isDark, setIsDark] = useState(theme === "dark");
 
 	useEffect(() => {
 		setMounted(true);
 	}, []);
 
 	const toggleTheme = useCallback(() => {
-		const newTheme = resolvedTheme === "dark" ? "light" : "dark";
+		const newTheme = theme === "dark" ? "light" : "dark";
 		setTheme(newTheme);
 		setMetaColor(
 			newTheme === "dark" ? META_THEME_COLORS.dark : META_THEME_COLORS.light,
 		);
 		setIsDark(newTheme === "dark");
 	}, [
-		resolvedTheme,
+		theme,
 		setTheme,
 		setMetaColor,
 	]);

@@ -13,9 +13,9 @@ import {
 import { TanStackRouterDevtoolsPanel } from "@tanstack/react-router-devtools";
 import { createServerFn } from "@tanstack/react-start";
 import { getRequest } from "@tanstack/react-start/server";
-import { ThemeProvider } from "next-themes";
 import type { ReactNode } from "react";
 import { LoadingPage } from "@/components/app/loading/loading-page";
+import { ThemeProvider } from "@/components/app/theme-provider";
 import { ConfirmDialogProvider } from "@/components/ui/dialog/confirm-dialog";
 import { Toaster } from "@/components/ui/sonner";
 import { TooltipProvider } from "@/components/ui/tooltip";
@@ -144,12 +144,7 @@ function RootDocument({
 				)}
 			>
 				<ConfirmDialogProvider>
-					<ThemeProvider
-						attribute="class"
-						defaultTheme="system"
-						enableSystem
-						disableTransitionOnChange
-					>
+					<ThemeProvider defaultTheme="system" storageKey="theme">
 						<TooltipProvider>
 							{children}
 
