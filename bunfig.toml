@@ -1,3 +1,4 @@
 [install]
 exact = true
 minimumReleaseAge = 259200 # 3 days
+minimumReleaseAgeExcludes = ["@orpc/client","@orpc/contract","@orpc/json-schema","@orpc/openapi","@orpc/opentelemetry","@orpc/server","@orpc/tanstack-query","@orpc/zod","@orpc/interop","@orpc/shared","@standardserver/shared","@standardserver/core","@standardserver/fetch","@standardserver/peer","@standardserver/node","@orpc/experimental-effect","effect"]

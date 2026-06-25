@@ -12,6 +12,7 @@ import {
 import { ZodToJsonSchemaConverter } from "@orpc/zod";
 import { createFileRoute } from "@tanstack/react-router";
 import { z } from "zod/v4";
+import { createORPCContext } from "@/lib/orpc/implementation/context";
 import { router } from "@/lib/orpc/router";
 import { COOKIES, HEADERS } from "@/settings/constants";
 
@@ -134,12 +135,10 @@ export const Route = createFileRoute("/api/doc/$")({
 
 				const { response } = await openAPIHandler.handle(request, {
 					prefix: "/api/doc",
-					context: {
+					context: await createORPCContext({
 						reqHeaders: request.headers,
-						meta: {
-							zedToken,
-						},
-					},
+						zedToken,
+					}),
 				});
 
 				return (

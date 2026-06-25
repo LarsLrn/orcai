@@ -20,7 +20,6 @@ import { calculateRelationDelta } from "@/lib/authz/relation-delta";
 import { initializeResourceAuthorization } from "@/lib/authz/resource-lifecycle";
 import { AuthzService } from "@/lib/effect/services/authz";
 import { NotFoundError } from "@/lib/effect/utils/errors";
-import { runOrpcEffect } from "@/lib/effect/utils/orpc-helpers";
 import { authed } from "@/lib/orpc/implementation/authed";
 import { requireActiveOrganizationMiddleware } from "@/lib/orpc/middlewares/auth";
 import {
@@ -467,34 +466,32 @@ const saveBotGraph = (params: {
 		};
 	});
 
-export const listBots = authed.bot.list.handler(async ({ input, context }) =>
-	runOrpcEffect(
-		listBotsByStatus({
-			userId: context.auth.user.id,
-			status: "ready",
-			pageIndex: input.pageIndex,
-			pageSize: input.pageSize,
-			search: input.search,
-			zedToken: input.zedToken,
-			permission: "read",
-		}),
-	),
-);
+export const listBots = authed.bot.list.effect(function* ({ input, context }) {
+	return yield* listBotsByStatus({
+		userId: context.auth.user.id,
+		status: "ready",
+		pageIndex: input.pageIndex,
+		pageSize: input.pageSize,
+		search: input.search,
+		zedToken: input.zedToken,
+		permission: "read",
+	});
+});
 
-export const listDraftBots = authed.bot.listDrafts.handler(
-	async ({ input, context }) =>
-		runOrpcEffect(
-			listBotsByStatus({
-				userId: context.auth.user.id,
-				status: "draft",
-				pageIndex: input.pageIndex,
-				pageSize: input.pageSize,
-				search: input.search,
-				zedToken: input.zedToken,
-				permission: "edit",
-			}),
-		),
-);
+export const listDraftBots = authed.bot.listDrafts.effect(function* ({
+	input,
+	context,
+}) {
+	return yield* listBotsByStatus({
+		userId: context.auth.user.id,
+		status: "draft",
+		pageIndex: input.pageIndex,
+		pageSize: input.pageSize,
+		search: input.search,
+		zedToken: input.zedToken,
+		permission: "edit",
+	});
+});
 
 export const findBot = authed.bot.find
 	.use(
@@ -503,43 +500,39 @@ export const findBot = authed.bot.find
 			zedToken: "zedToken",
 		}),
 	)
-	.handler(async ({ input, errors }) =>
-		runOrpcEffect(
-			Effect.gen(function* () {
-				const db = yield* DB;
+	.effect(function* ({ input, errors }) {
+		const db = yield* DB;
 
-				const [bot] = yield* db
-					.select({
-						...getColumns(dbSchema.bot),
-					})
-					.from(dbSchema.bot)
-					.where(eq(dbSchema.bot.id, input.id));
+		const [bot] = yield* db
+			.select({
+				...getColumns(dbSchema.bot),
+			})
+			.from(dbSchema.bot)
+			.where(eq(dbSchema.bot.id, input.id));
 
-				if (!bot) {
-					return yield* Effect.fail(
-						errors.NOT_FOUND({
-							message: "Bot not found",
-						}),
-					);
-				}
+		if (!bot) {
+			return yield* Effect.fail(
+				errors.NOT_FOUND({
+					message: "Bot not found",
+				}),
+			);
+		}
 
-				const blockIds = yield* db
-					.select({
-						...getColumns(dbSchema.botBlock),
-					})
-					.from(dbSchema.botBlock)
-					.where(eq(dbSchema.botBlock.botId, bot.id));
+		const blockIds = yield* db
+			.select({
+				...getColumns(dbSchema.botBlock),
+			})
+			.from(dbSchema.botBlock)
+			.where(eq(dbSchema.botBlock.botId, bot.id));
 
-				return {
-					data: {
-						...bot,
-						contentJson: bot.contentJson as Bot["contentJson"],
-						blockIds: blockIds.map((b) => b.blockId),
-					},
-				};
-			}),
-		),
-	);
+		return {
+			data: {
+				...bot,
+				contentJson: bot.contentJson as Bot["contentJson"],
+				blockIds: blockIds.map((b) => b.blockId),
+			},
+		};
+	});
 
 export const findBotEditor = authed.bot.findEditor
 	.use(
@@ -547,77 +540,71 @@ export const findBotEditor = authed.bot.findEditor
 			entityId: "id",
 		}),
 	)
-	.handler(async ({ input, context, errors }) =>
-		runOrpcEffect(
-			loadBotEditor({
-				id: input.id,
-				userId: context.auth.user.id,
-				zedToken: input.zedToken ?? context.meta?.zedToken,
-			}).pipe(
-				Effect.mapError(() =>
-					errors.NOT_FOUND({
-						message: "Bot not found",
-					}),
-				),
+	.effect(function* ({ input, context, errors }) {
+		return yield* loadBotEditor({
+			id: input.id,
+			userId: context.auth.user.id,
+			zedToken: input.zedToken ?? context.meta?.zedToken,
+		}).pipe(
+			Effect.mapError(() =>
+				errors.NOT_FOUND({
+					message: "Bot not found",
+				}),
 			),
-		),
-	);
+		);
+	});
 
 export const saveBot = authed.bot.save
 	.use(requireActiveOrganizationMiddleware)
-	.handler(async ({ input, context, errors }) =>
-		runOrpcEffect(
-			Effect.gen(function* () {
-				const resolvedZedToken = input.zedToken ?? context.meta?.zedToken;
+	.effect(function* ({ input, context, errors }) {
+		const resolvedZedToken = input.zedToken ?? context.meta?.zedToken;
 
-				if (input.id) {
-					const permission = yield* checkEntityPermission({
-						entityId: input.id,
-						entityType: "bot",
-						permission: "edit",
-						userId: context.auth.user.id,
-						zedToken: resolvedZedToken,
-					});
-					if (!hasPermission(permission)) {
-						return yield* Effect.fail(
-							errors.FORBIDDEN({
-								message: "You do not have permission to edit this bot.",
-								data: {
-									allowed: false,
-								},
-							}),
-						);
-					}
-				} else {
-					const permission = yield* checkEntityPermission({
-						entityId: context.auth.session.activeOrganizationId,
-						entityType: "organization",
-						permission: "create_bot",
-						userId: context.auth.user.id,
-						zedToken: resolvedZedToken,
-					});
-					if (!hasPermission(permission)) {
-						return yield* Effect.fail(
-							errors.FORBIDDEN({
-								message: "You do not have permission to create bots.",
-								data: {
-									allowed: false,
-								},
-							}),
-						);
-					}
-				}
+		if (input.id) {
+			const permission = yield* checkEntityPermission({
+				entityId: input.id,
+				entityType: "bot",
+				permission: "edit",
+				userId: context.auth.user.id,
+				zedToken: resolvedZedToken,
+			});
+			if (!hasPermission(permission)) {
+				return yield* Effect.fail(
+					errors.FORBIDDEN({
+						message: "You do not have permission to edit this bot.",
+						data: {
+							allowed: false,
+						},
+					}),
+				);
+			}
+		} else {
+			const permission = yield* checkEntityPermission({
+				entityId: context.auth.session.activeOrganizationId,
+				entityType: "organization",
+				permission: "create_bot",
+				userId: context.auth.user.id,
+				zedToken: resolvedZedToken,
+			});
+			if (!hasPermission(permission)) {
+				return yield* Effect.fail(
+					errors.FORBIDDEN({
+						message: "You do not have permission to create bots.",
+						data: {
+							allowed: false,
+						},
+					}),
+				);
+			}
+		}
 
-				return yield* saveBotGraph({
-					input,
-					userId: context.auth.user.id,
-					organizationId: context.auth.session.activeOrganizationId,
-					zedToken: resolvedZedToken,
-					errors,
-				});
-			}),
-		),
-	);
+		return yield* saveBotGraph({
+			input,
+			userId: context.auth.user.id,
+			organizationId: context.auth.session.activeOrganizationId,
+			zedToken: resolvedZedToken,
+			errors,
+		});
+	});
 
 export const publishBot = authed.bot.publish
 	.use(
@@ -625,72 +612,67 @@ export const publishBot = authed.bot.publish
 			entityId: "id",
 		}),
 	)
-	.handler(async ({ input, context, errors }) =>
-		runOrpcEffect(
-			Effect.gen(function* () {
-				const db = yield* DB;
-				const editor = yield* loadBotEditor({
-					id: input.id,
-					userId: context.auth.user.id,
-				});
+	.effect(function* ({ input, context, errors }) {
+		const db = yield* DB;
+		const editor = yield* loadBotEditor({
+			id: input.id,
+			userId: context.auth.user.id,
+		});
 
-				if (!editor.data.templateBlock) {
-					return yield* Effect.fail(
-						errors.BAD_REQUEST({
-							message:
-								"Bots need a template block before they can be published.",
-						}),
-					);
-				}
+		if (!editor.data.templateBlock) {
+			return yield* Effect.fail(
+				errors.BAD_REQUEST({
+					message: "Bots need a template block before they can be published.",
+				}),
+			);
+		}
 
-				if (editor.data.templateBlock.status !== "ready") {
-					return yield* Effect.fail(
-						errors.BAD_REQUEST({
-							message:
-								'Set the AI behaviour block to "ready" before publishing this bot.',
-						}),
-					);
-				}
+		if (editor.data.templateBlock.status !== "ready") {
+			return yield* Effect.fail(
+				errors.BAD_REQUEST({
+					message:
+						'Set the AI behaviour block to "ready" before publishing this bot.',
+				}),
+			);
+		}
 
-				for (const databaseBlock of editor.data.databaseBlocks) {
-					if (databaseBlock.status !== "ready") {
-						return yield* Effect.fail(
-							errors.BAD_REQUEST({
-								message: `Set "${databaseBlock.name}" to "ready" before publishing this bot.`,
-							}),
-						);
-					}
+		for (const databaseBlock of editor.data.databaseBlocks) {
+			if (databaseBlock.status !== "ready") {
+				return yield* Effect.fail(
+					errors.BAD_REQUEST({
+						message: `Set "${databaseBlock.name}" to "ready" before publishing this bot.`,
+					}),
+				);
+			}
 
-					if (databaseBlock.assetIds.length === 0) {
-						return yield* Effect.fail(
-							errors.BAD_REQUEST({
-								message: `Attach at least one document to "${databaseBlock.name}" before publishing.`,
-							}),
-						);
-					}
-				}
+			if (databaseBlock.assetIds.length === 0) {
+				return yield* Effect.fail(
+					errors.BAD_REQUEST({
+						message: `Attach at least one document to "${databaseBlock.name}" before publishing.`,
+					}),
+				);
+			}
+		}
 
-				yield* db
-					.update(dbSchema.bot)
-					.set({
-						status: "ready",
-						updatedAt: new Date(),
-					})
-					.where(eq(dbSchema.bot.id, input.id));
-				const updatedEditor = yield* loadBotEditor({
-					id: input.id,
-					userId: context.auth.user.id,
-				});
+		yield* db
+			.update(dbSchema.bot)
+			.set({
+				status: "ready",
+				updatedAt: new Date(),
+			})
+			.where(eq(dbSchema.bot.id, input.id));
+		const updatedEditor = yield* loadBotEditor({
+			id: input.id,
+			userId: context.auth.user.id,
+		});
 
-				return {
-					data: {
-						...updatedEditor.data,
-						status: "ready" as const,
-					},
-				};
-			}),
-		),
-	);
+		return {
+			data: {
+				...updatedEditor.data,
+				status: "ready" as const,
+			},
+		};
+	});
 
 export const deleteBots = authed.bot.delete
 	.use(
@@ -701,26 +683,22 @@ export const deleteBots = authed.bot.delete
 			}),
 		),
 	)
-	.handler(async ({ context }) =>
-		runOrpcEffect(
-			Effect.gen(function* () {
-				const db = yield* DB;
+	.effect(function* ({ context }) {
+		const db = yield* DB;
 
-				if (!context.allowedIds || context.allowedIds.length === 0) {
-					return {
-						success: true,
-						message: "No bots to delete",
-					};
-				}
+		if (!context.allowedIds || context.allowedIds.length === 0) {
+			return {
+				success: true,
+				message: "No bots to delete",
+			};
+		}
 
-				yield* db
-					.delete(dbSchema.bot)
-					.where(inArray(dbSchema.bot.id, context.allowedIds));
+		yield* db
+			.delete(dbSchema.bot)
+			.where(inArray(dbSchema.bot.id, context.allowedIds));
 
-				return {
-					success: true,
-					message: "Bots deleted successfully",
-				};
-			}),
-		),
-	);
+		return {
+			success: true,
+			message: "Bots deleted successfully",
+		};
+	});

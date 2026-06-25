@@ -8,6 +8,7 @@ import {
 } from "@orpc/server/plugins";
 import { createFileRoute } from "@tanstack/react-router";
 import { z } from "zod/v4";
+import { createORPCContext } from "@/lib/orpc/implementation/context";
 import { router } from "@/lib/orpc/router";
 import { COOKIES, HEADERS } from "@/settings/constants";
 
@@ -81,12 +82,10 @@ export const Route = createFileRoute("/api/rpc/$")({
 
 				const { response } = await handler.handle(request, {
 					prefix: "/api/rpc",
-					context: {
+					context: await createORPCContext({
 						reqHeaders: request.headers,
-						meta: {
-							zedToken,
-						},
-					},
+						zedToken,
+					}),
 				});
 
 				return (
