@@ -1,5 +1,6 @@
 import * as NodeSdk from "@effect/opentelemetry/NodeSdk";
 import * as Resource from "@effect/opentelemetry/Resource";
+import * as OtelTracer from "@effect/opentelemetry/Tracer";
 import { getNodeAutoInstrumentations } from "@opentelemetry/auto-instrumentations-node";
 import { OTLPLogExporter } from "@opentelemetry/exporter-logs-otlp-http";
 import { OTLPTraceExporter } from "@opentelemetry/exporter-trace-otlp-http";
@@ -19,6 +20,10 @@ const PrettyLoggerLive =
 			])
 		: Layer.empty;
 
+type RegisterableTracerProvider = {
+	register(): void;
+};
+
 export const makeObservabilityLayer = (config: {
 	serviceName: string;
 	serviceVersion: string;
@@ -33,28 +38,56 @@ export const makeObservabilityLayer = (config: {
 		return Layer.mergeAll(ResourceLive, PrettyLoggerLive);
 	}
 
-	const NodeSdkLive = NodeSdk.layer(() => ({
+	const LogLive = NodeSdk.layer(() => ({
 		resource: {
 			serviceName: config.serviceName,
 			serviceVersion: config.serviceVersion,
 		},
-		spanProcessor: new BatchSpanProcessor(new OTLPTraceExporter()),
 		logRecordProcessor: new BatchLogRecordProcessor(new OTLPLogExporter()),
 	}));
 
+	const TracerProviderLive = NodeSdk.layerTracerProvider(
+		new BatchSpanProcessor(new OTLPTraceExporter()),
+	);
+
+	const RegisterGlobalTracerProviderLive = Layer.effectDiscard(
+		Effect.gen(function* () {
+			const tracerProvider = yield* OtelTracer.OtelTracerProvider;
+
+			// Effect's Node tracer provider is local to the layer until registered.
+			// ORPC reads the global OpenTelemetry API, so it needs the same provider there.
+			yield* Effect.sync(() =>
+				(tracerProvider as unknown as RegisterableTracerProvider).register(),
+			);
+		}),
+	);
+
 	const AutoInstrumentationLive = Layer.effectDiscard(
 		Effect.acquireRelease(
-			Effect.sync(() =>
-				registerInstrumentations({
-					instrumentations: [
-						getNodeAutoInstrumentations(),
-						...(config.additionalInstrumentations ?? []),
-					],
-				}),
-			),
+			Effect.gen(function* () {
+				const tracerProvider = yield* OtelTracer.OtelTracerProvider;
+
+				return yield* Effect.sync(() =>
+					registerInstrumentations({
+						tracerProvider,
+						instrumentations: [
+							getNodeAutoInstrumentations(),
+							...(config.additionalInstrumentations ?? []),
+						],
+					}),
+				);
+			}),
 			(unregister) => Effect.sync(unregister),
 		),
 	);
 
-	return Layer.mergeAll(NodeSdkLive, AutoInstrumentationLive);
+	const TracerLive = Layer.mergeAll(
+		OtelTracer.layer,
+		RegisterGlobalTracerProviderLive,
+		AutoInstrumentationLive,
+	).pipe(Layer.provide(TracerProviderLive));
+
+	return Layer.mergeAll(LogLive, TracerLive).pipe(
+		Layer.provideMerge(ResourceLive),
+	);
 };

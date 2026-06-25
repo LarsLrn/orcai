@@ -1,6 +1,6 @@
-import { Effect } from "effect";
+import * as OtelTracer from "@effect/opentelemetry/Tracer";
+import { context as otelContext, trace } from "@opentelemetry/api";
 import { runtime } from "@/lib/effect/runtime";
-import { ObservabilityLive } from "@/lib/effect/services/observability";
 import type { ORPCContext } from "./os";
 
 export async function createORPCContext(params: {
@@ -13,6 +13,12 @@ export async function createORPCContext(params: {
 			zedToken: params.zedToken,
 		},
 		"effect/context": await runtime.context(),
-		"effect/wrap": (effect) => effect.pipe(Effect.provide(ObservabilityLive)),
+		"effect/wrap": (effect) => {
+			const activeSpan = trace.getSpan(otelContext.active());
+
+			return activeSpan
+				? OtelTracer.withSpanContext(effect, activeSpan.spanContext())
+				: effect;
+		},
 	};
 }
