@@ -3,7 +3,7 @@ import { organizationIdSchema, userIdSchema } from "@orcai/schema";
 import * as Effect from "effect/Effect";
 import { auth as betterAuth } from "@/lib/auth/auth";
 import type { authClient } from "@/lib/auth/auth-client";
-import { runOrpcEffect } from "@/lib/effect/utils/orpc-helpers";
+import { runMiddlewareEffect } from "@/lib/effect/utils/orpc-helpers";
 import { os } from "@/lib/orpc/implementation/os";
 import { withName } from "@/lib/orpc/middlewares/utils";
 import type { AuthContext } from ".";
@@ -18,60 +18,66 @@ export const requiredAuthMiddleware = withName(
 				user?: typeof authClient.$Infer.Session.user;
 			};
 		}>()
-		.middleware(async ({ context, errors, next }) =>
-			runOrpcEffect(
+		.middleware(async (opts) =>
+			runMiddlewareEffect(
+				opts,
 				Effect.gen(function* () {
-					const headers = context.reqHeaders;
+					const headers = opts.context.reqHeaders;
 
 					if (!headers) {
 						return yield* Effect.fail(
-							errors.BAD_REQUEST({
+							opts.errors.BAD_REQUEST({
 								message: "Request headers are required for authentication.",
 							}),
 						);
 					}
 
-					const auth = context.auth
-						? context.auth
+					const auth = opts.context.auth
+						? opts.context.auth
 						: yield* Effect.tryPromise({
 								try: () =>
 									betterAuth.api.getSession({
 										headers,
 									}),
 								catch: () =>
-									errors.BAD_REQUEST({
+									opts.errors.BAD_REQUEST({
 										message: "Authentication session not found.",
 									}),
 							});
 
 					if (!auth?.session || !auth?.user) {
 						return yield* Effect.fail(
-							errors.UNAUTHORIZED({
+							opts.errors.UNAUTHORIZED({
 								message: "You must be logged in to access this resource.",
 							}),
 						);
 					}
 
-					const activeOrganizationId = auth.session.activeOrganizationId;
+					const { session, user } = auth;
+					const activeOrganizationId = session.activeOrganizationId;
 
-					return next({
-						context: {
-							auth: {
-								isAuthenticated: true as const,
-								session: {
-									...auth.session,
-									activeOrganizationId:
-										activeOrganizationId == null
-											? undefined
-											: organizationIdSchema.parse(activeOrganizationId),
-								},
-								user: {
-									...auth.user,
-									id: userIdSchema.parse(auth.user.id),
-								},
-							},
-						} satisfies AuthContext,
-					});
+					return yield* Effect.promise(() =>
+						Promise.resolve(
+							opts.next({
+								context: {
+									auth: {
+										isAuthenticated: true as const,
+										session: {
+											...session,
+											activeOrganizationId:
+												activeOrganizationId == null
+													? undefined
+													: organizationIdSchema.parse(activeOrganizationId),
+										},
+										user: {
+											...user,
+											id: userIdSchema.parse(user.id),
+										},
+									},
+								} satisfies AuthContext,
+							}),
+						),
+					);
 				}),
 			),
 		),
@@ -79,31 +85,37 @@ export const requiredAuthMiddleware = withName(
 );
 
 export const requireActiveOrganizationMiddleware = withName(
-	os.$context<AuthContext>().middleware(({ context, errors, next }) =>
-		runOrpcEffect(
+	os.$context<AuthContext>().middleware((opts) =>
+		runMiddlewareEffect(
+			opts,
 			Effect.gen(function* () {
-				const activeOrganizationId = context.auth.session.activeOrganizationId;
+				const activeOrganizationId =
+					opts.context.auth.session.activeOrganizationId;
 
 				if (!activeOrganizationId) {
 					return yield* Effect.fail(
-						errors.BAD_REQUEST({
+						opts.errors.BAD_REQUEST({
 							message:
 								"An active organization must be selected to access this resource.",
 						}),
 					);
 				}
 
-				return next({
-					context: {
-						auth: {
-							...context.auth,
-							session: {
-								...context.auth.session,
-								activeOrganizationId,
+				return yield* Effect.promise(() =>
+					Promise.resolve(
+						opts.next({
+							context: {
+								auth: {
+									...opts.context.auth,
+									session: {
+										...opts.context.auth.session,
+										activeOrganizationId,
+									},
+								},
 							},
-						},
-					},
-				});
+						}),
+					),
+				);
 			}),
 		),
 	),
@@ -111,8 +123,9 @@ export const requireActiveOrganizationMiddleware = withName(
 );
 
 export const requirePreferencesMiddleware = withName(
-	os.$context<AuthContext>().middleware(async ({ context, errors, next }) =>
-		runOrpcEffect(
+	os.$context<AuthContext>().middleware((opts) =>
+		runMiddlewareEffect(
+			opts,
 			Effect.gen(function* () {
 				const db = yield* DB;
 
@@ -120,7 +133,7 @@ export const requirePreferencesMiddleware = withName(
 					.findFirst({
 						where: {
 							id: {
-								eq: context.auth.user.id,
+								eq: opts.context.auth.user.id,
 							},
 						},
 						columns: {
@@ -131,10 +144,10 @@ export const requirePreferencesMiddleware = withName(
 						Effect.flatMap((prefs) =>
 							Effect.fromNullishOr(prefs).pipe(
 								Effect.mapError(() =>
-									errors.NOT_FOUND({
+									opts.errors.NOT_FOUND({
 										message: "User preferences not found",
 										data: {
-											id: context.auth.user.id,
+											id: opts.context.auth.user.id,
 										},
 									}),
 								),
@@ -142,11 +155,15 @@ export const requirePreferencesMiddleware = withName(
 						),
 					);
 
-				return next({
-					context: {
-						preferences: userPrefs.preferences,
-					},
-				});
+				return yield* Effect.promise(() =>
+					Promise.resolve(
+						opts.next({
+							context: {
+								preferences: userPrefs.preferences,
+							},
+						}),
+					),
+				);
 			}),
 		),
 	),

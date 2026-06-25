@@ -2,6 +2,8 @@ import * as OtelTracer from "@effect/opentelemetry/Tracer";
 import { context as otelContext, trace } from "@opentelemetry/api";
 import { logErrorCause } from "@orcai/observability";
 import { ORPCError, type ORPCErrorCode } from "@orpc/client";
+import { runPromise, type WithEffectContext } from "@orpc/experimental-effect";
+import type { AnyProcedure } from "@orpc/server";
 import * as Cause from "effect/Cause";
 import * as Effect from "effect/Effect";
 import * as Exit from "effect/Exit";
@@ -171,3 +173,26 @@ export const runOrpcEffect = <A, E, R extends AppRuntimeContext>(
 			message: "Internal server error",
 		});
 	})();
+
+export function runMiddlewareEffect<A, E, R>(
+	opts: {
+		context: object;
+		path: string[];
+		procedure: AnyProcedure;
+		signal?: AbortSignal;
+	},
+	effect: Effect.Effect<A, E, R>,
+): Promise<A> {
+	const effectContext = (opts.context as WithEffectContext<R>)[
+		"effect/context"
+	];
+	const effectWrap = (opts.context as WithEffectContext<never>)["effect/wrap"];
+	const provided = effect.pipe(Effect.provide(effectContext));
+
+	const wrapped =
+		typeof effectWrap === "function" ? effectWrap(provided, opts) : provided;
+
+	return runPromise(wrapped, {
+		signal: opts.signal,
+	});
+}

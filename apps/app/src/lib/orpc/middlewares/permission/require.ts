@@ -1,6 +1,6 @@
 import type { EntityIdFor, EntityType, PermissionFor } from "@orcai/spice-db";
 import * as Effect from "effect/Effect";
-import { runOrpcEffect } from "@/lib/effect/utils/orpc-helpers";
+import { runMiddlewareEffect } from "@/lib/effect/utils/orpc-helpers";
 import { withName } from "@/lib/orpc/middlewares/utils";
 import { checkPermissionMiddleware } from "./checks";
 import { ensurePermission, permissionBase } from "./core";
@@ -101,14 +101,15 @@ export const requireOrganizationPermission = (
 	permission: OrganizationPermission,
 ) =>
 	withName(
-		permissionBase.middleware(({ context, errors, next }) =>
-			runOrpcEffect(
+		permissionBase.middleware((opts) =>
+			runMiddlewareEffect(
+				opts,
 				Effect.gen(function* () {
-					const organizationId = context.auth.session.activeOrganizationId;
+					const { activeOrganizationId } = opts.context.auth.session;
 
-					if (!organizationId) {
+					if (!activeOrganizationId) {
 						return yield* Effect.fail(
-							errors.BAD_REQUEST({
+							opts.errors.BAD_REQUEST({
 								message:
 									"An active organization must be selected to access this resource.",
 							}),
@@ -116,22 +117,22 @@ export const requireOrganizationPermission = (
 					}
 
 					yield* ensurePermission({
-						context,
-						errors,
+						context: opts.context,
+						errors: opts.errors,
 						input: {
 							entityType: "organization",
-							entityId: organizationId,
+							entityId: activeOrganizationId,
 							permission,
 						},
 					});
 
-					return next({
+					return opts.next({
 						context: {
 							auth: {
-								...context.auth,
+								...opts.context.auth,
 								session: {
-									...context.auth.session,
-									activeOrganizationId: organizationId,
+									...opts.context.auth.session,
+									activeOrganizationId,
 								},
 							},
 						},

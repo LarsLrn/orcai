@@ -1,7 +1,7 @@
 import type { EntityIdFor, EntityType } from "@orcai/spice-db";
 import { checkManyEntityPermissions, hasPermission } from "@orcai/spice-db";
 import * as Effect from "effect/Effect";
-import { runOrpcEffect } from "@/lib/effect/utils/orpc-helpers";
+import { runMiddlewareEffect } from "@/lib/effect/utils/orpc-helpers";
 import { withName } from "@/lib/orpc/middlewares/utils";
 import { unique } from "@/lib/utils/array-utils";
 import {
@@ -20,17 +20,19 @@ const normalizeEntityIds = <Entity extends EntityType>(
 ) => unique(entityIds);
 
 export const checkPermissionMiddleware = withName(
-	permissionBase.middleware(
-		({ context, next, errors }, input: CheckPermissionInput) =>
-			runOrpcEffect(
-				ensurePermission({
-					context,
-					errors,
-					input,
-				}).pipe(
-					Effect.flatMap(() => Effect.promise(() => Promise.resolve(next()))),
+	permissionBase.middleware((opts, input: CheckPermissionInput) =>
+		runMiddlewareEffect(
+			opts,
+			ensurePermission({
+				context: opts.context,
+				errors: opts.errors,
+				input,
+			}).pipe(
+				Effect.flatMap(() =>
+					Effect.promise(() => Promise.resolve(opts.next())),
 				),
 			),
+		),
 	),
 	"checkPermission",
 );
@@ -40,10 +42,11 @@ export const checkManyPermissionMiddleware = <Entity extends EntityType>(
 ) =>
 	withName(
 		permissionBase.middleware(
-			({ context, next, errors }, input: CheckManyPermissionInputFor<Entity>) =>
-				runOrpcEffect(
+			(opts, input: CheckManyPermissionInputFor<Entity>) =>
+				runMiddlewareEffect(
+					opts,
 					Effect.gen(function* () {
-						const zedToken = getZedToken(context, input);
+						const zedToken = getZedToken(opts.context, input);
 						const requestedIds = normalizeEntityIds(input.entityIds);
 						const requestedSet = new Set<string>(requestedIds);
 
@@ -51,7 +54,7 @@ export const checkManyPermissionMiddleware = <Entity extends EntityType>(
 							entityIds: requestedIds,
 							entityType,
 							permission: input.permission,
-							userId: context.auth.user.id,
+							userId: opts.context.auth.user.id,
 							zedToken,
 						});
 
@@ -76,7 +79,7 @@ export const checkManyPermissionMiddleware = <Entity extends EntityType>(
 
 						if (allowedIds.length !== requestedIds.length) {
 							return yield* Effect.fail(
-								forbiddenPermissionError(errors, {
+								forbiddenPermissionError(opts.errors, {
 									entityType,
 									permission: input.permission,
 									zedToken,
@@ -86,7 +89,7 @@ export const checkManyPermissionMiddleware = <Entity extends EntityType>(
 
 						if (allowedIds.length === 0) {
 							return yield* Effect.fail(
-								errors.BAD_REQUEST({
+								opts.errors.BAD_REQUEST({
 									message: "No valid entity IDs provided",
 									data: {
 										allowed: false,
@@ -100,7 +103,7 @@ export const checkManyPermissionMiddleware = <Entity extends EntityType>(
 
 						return yield* Effect.promise(() =>
 							Promise.resolve(
-								next({
+								opts.next({
 									context: {
 										allowedIds,
 									},
