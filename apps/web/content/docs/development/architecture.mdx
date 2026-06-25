@@ -1,0 +1,76 @@
+---
+title: Architecture
+description: How the OrcAI app, workers, storage, authorization, retrieval, and AI services fit together.
+---
+
+OrcAI is split into a main app, worker process, and infrastructure services.
+
+## At A Glance
+
+<Mermaid
+	chart={`
+flowchart LR
+	User["User"] --> App["App"]
+	App --> DB["PostgreSQL"]
+	App --> Auth["SpiceDB"]
+	App --> Jobs["pg-boss jobs"]
+	App --> Store["S3-compatible storage"]
+	Jobs --> Workers["Workers"]
+	Workers --> Store
+	Workers --> AI["OpenAI-compatible endpoint"]
+	Workers --> Qdrant["Qdrant"]
+	App --> Qdrant
+	App --> AI
+`}
+/>
+
+## Runtime Components
+
+- React 19 and TanStack Start power the user interface and server runtime.
+- TanStack Router, Query, and Form are used for client routing and data workflows.
+- oRPC defines typed backend contracts.
+- Better Auth handles authentication.
+- Drizzle ORM manages PostgreSQL access and migrations.
+- pg-boss coordinates background jobs.
+- Qdrant stores vector indexes.
+- SpiceDB handles authorization relationships and permission checks.
+- S3-compatible storage stores uploaded and processed files.
+- Kreuzberg and Tesseract handle document extraction and OCR.
+- The AI SDK talks to an OpenAI-compatible model endpoint.
+
+## Content Processing Flow
+
+1. A user uploads material through the app.
+2. The app stores files in S3-compatible object storage.
+3. The app creates background jobs.
+4. Workers extract content from the uploaded material.
+5. Workers create processed artifacts and metadata.
+6. Workers generate embeddings using the configured model endpoint.
+7. Workers write vector data to Qdrant.
+8. Chat tools query Qdrant and retrieve relevant content for model calls.
+
+## Authorization Flow
+
+The app stores domain records in PostgreSQL and uses SpiceDB for relationship-based authorization. Permission middleware checks whether a user can access or mutate a resource before executing protected operations.
+
+<Callout title="TODO" type="idea">
+	Document the concrete resource types, relations, and permissions from the SpiceDB schema.
+</Callout>
+
+## AI Flow
+
+Chat generation uses configured providers and models. Retrieval tools can search knowledge-base content, list documents, and fetch pages or chunks before the assistant response is generated.
+
+Image-related processing can use `GENERAL_MODEL` to describe images during asset processing.
+
+<Callout title="TODO" type="idea">
+	Document provider/model configuration from the admin UI once the expected operator workflow is confirmed.
+</Callout>
+
+## Observability
+
+The repository includes optional Umami analytics and OpenTelemetry export configuration.
+
+<Callout title="TODO" type="idea">
+	Document recommended dashboards, spans, metrics, and log fields.
+</Callout>

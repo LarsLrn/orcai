@@ -1,0 +1,120 @@
+---
+title: Workspace Setup For Admins
+description: Streamlined checklist for preparing a workspace before end users start chatting.
+---
+
+Use this page as a practical runbook for preparing a new OrcAI workspace.
+
+## Outcome
+
+After completing this checklist, users should be able to:
+
+- Sign in and join the correct organisation
+- Start chats with an approved model
+- Use published bots with ready content collections
+- Operate within defined quota and access boundaries
+
+## 1. Confirm Access And Organisation Context
+
+- Sign in with an admin account.
+- Ensure your active organisation is correct.
+- Verify you can see Administration in the sidebar.
+
+<Callout title="Missing Administration?" type="warn">
+	If Administration is missing, your account likely does not have the required capabilities.
+</Callout>
+
+## 2. Add Or Validate A Provider
+
+Go to Administration > Providers.
+
+- Add provider entries for the inference backends your workspace should use.
+- Validate connectivity and credentials according to your deployment setup.
+
+<Callout title="TODO" type="idea">
+	Add provider-by-provider field reference once provider forms are fully documented.
+</Callout>
+
+## 3. Add A Specific Model
+
+Go to Administration > Models.
+
+- Click Add Model.
+- Select the provider you want the model to use.
+- Register the exact model identifier required by that provider.
+- Save, then confirm the model appears in the list.
+
+Recommended validation:
+
+- Open a new chat.
+- Select the newly added model.
+- Send a simple test prompt and confirm a successful response.
+
+## 4. Configure Quota Pools
+
+Go to Administration > Quotas.
+
+- Create quota pools aligned with your cost and usage policy.
+- Assign pools according to your organisation policy.
+
+In chat, users can see remaining pool amounts when quota badge data is available.
+
+<Callout title="TODO" type="idea">
+	Add quota assignment examples for class, team, and pilot environments.
+</Callout>
+
+## 5. Prepare Content And Retrieval
+
+Go to Library > Content.
+
+- Add representative source material.
+- Confirm processing completes successfully.
+
+Then go to Library > Repositories:
+
+- Create or edit repository blocks.
+- Attach ready content items.
+- Keep repository block status as Ready for production use.
+
+Use the repository playground to sanity-check retrieval quality.
+
+## 6. Prepare Bots
+
+Go to Library > Bots.
+
+- Create/edit bots with the guided setup.
+- Attach one ready behaviour block.
+- Attach ready repository blocks with content.
+- Configure sharing so the intended user groups can use the bot.
+- Publish the bot.
+
+## 7. Set Up Users, Groups, And Invitations
+
+Go to Administration > Users and Administration > Groups.
+
+- Create or verify groups.
+- Invite users.
+- Place users in the right groups.
+- Validate that access to bots/content matches expectations.
+
+## 8. Final Smoke Test
+
+Run this short test from a non-admin user account:
+
+1. Accept invitation and select organisation.
+2. Start a chat using a published bot.
+3. Confirm model selection works.
+4. Confirm retrieval-backed answers use expected content.
+5. Confirm permissions block access to resources outside the user scope.
+
+## Self-Hosting Note: Custom Embedding And Image Processing Models
+
+Custom embedding model and image-processing model definitions are supported only in self-hosted deployments.
+
+For managed/shared deployments, treat these as platform-level settings controlled by the hosting operator.
+
+If you self-host and change embedding model or dimensions on an existing indexed dataset, you must recreate the vector collection and reprocess content.
+
+<Callout title="TODO" type="idea">
+	Add explicit configuration variable mapping for embedding and image-processing model configuration once central config docs are finalised.
+</Callout>

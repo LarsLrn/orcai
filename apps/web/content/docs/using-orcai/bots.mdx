@@ -1,0 +1,105 @@
+---
+title: Bots and Behaviour
+description: Build reusable AI experiences with bots, behaviour blocks, and content collections.
+---
+
+Bots are reusable AI configurations that can be selected at chat start. They are authored in the Library area and combine behaviour, retrieval context, and sharing settings.
+
+## Library Sections
+
+The Library route includes four major sections:
+
+- Bots
+- Behaviour
+- Repositories
+- Content
+
+## Core Concepts
+
+- Bots: named AI setups users can select when starting a chat.
+- Blocks: reusable building blocks used by bots and chats.
+- Behaviour blocks: template or image-generation blocks used to define response style/logic.
+- Repository blocks: database blocks that package content and retrieval settings.
+- Content items: uploaded assets that can be attached to repository blocks and chats.
+
+## Bot Lifecycle
+
+Bots have draft and published states:
+
+- Published bots appear as ready-to-use options for chat setup.
+- Draft bots appear in Your Drafts and can be edited or deleted (depending on capabilities).
+
+## Creating Or Editing A Bot
+
+The bot editor is a guided wizard with five steps:
+
+### Bot Basics [step]
+
+Name the bot and define the high-level metadata users will see.
+
+### AI Behaviour [step]
+
+Choose or create the behaviour block that controls the bot's response style and instructions.
+
+### Content [step]
+
+Attach ready repository blocks that provide retrieval context.
+
+### Sharing And Access [step]
+
+Configure visibility, groups, and direct grants for the intended audience.
+
+### Review And Launch [step]
+
+Review validation results and publish when the bot is ready.
+
+The editor supports:
+
+- Creating new blocks inline
+- Linking existing blocks from block libraries
+- Persisting linked blocks while progressing
+- Publishing when validation rules pass
+
+## Publish Readiness Rules
+
+From current editor behaviour, launching requires:
+
+- A template behaviour block exists
+- Template behaviour block status is Ready
+- Every linked database block status is Ready
+- Every linked database block has at least one attached asset
+
+## Block Types
+
+The block creation flow currently supports three types:
+
+- Template block (AI Behaviour)
+- Database block (Content Collection / Repository)
+- Image Generation block
+
+Each block can have:
+
+- Draft or Ready status
+- Metadata and versioning
+- Visibility and grants
+- Capability-based actions (edit, delete, manage access)
+
+## Repository Playground
+
+Ready database blocks expose a playground where users can test retrieval queries directly against that repository.
+
+This is useful for:
+
+- Validating chunk quality
+- Verifying retrieval mode behaviour
+- Debugging missing or low-quality results before attaching to bots
+
+## Sharing And Access
+
+Bots and blocks expose access dialogs for visibility, groups, and direct grants.
+
+The same patterns are reused across assets, blocks, and bots.
+
+<Callout title="TODO" type="idea">
+	Document the exact share permission matrix for bot use vs bot edit, confirm whether image-generation blocks can be attached to bot runtime today, and add an end-to-end bot creation example.
+</Callout>

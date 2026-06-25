@@ -1,0 +1,13 @@
+{
+	"title": "Using OrcAI",
+	"pages": [
+		"index",
+		"account",
+		"chat",
+		"content-library",
+		"bots",
+		"access-control",
+		"workspace-setup",
+		"administration"
+	]
+}

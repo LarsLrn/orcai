@@ -161,11 +161,20 @@ Use `bun run build && bun run start` for the app and `bun run workers:start` for
 
 ## Configuration
 
-The authoritative runtime config is loaded from [config.ts](apps/app/src/lib/effect/services/config.ts).
+Runtime configuration is loaded across app and package config modules:
 
-### Required core variables
+- [apps/app/src/lib/effect/services/config.ts](apps/app/src/lib/effect/services/config.ts)
+- [packages/ai/src/config.ts](packages/ai/src/config.ts)
+- [packages/db/src/config.ts](packages/db/src/config.ts)
+- [packages/notifications/src/config.ts](packages/notifications/src/config.ts)
+- [packages/qdrant/src/config.ts](packages/qdrant/src/config.ts)
+- [packages/s3/src/server/config.ts](packages/s3/src/server/config.ts)
+- [packages/spice-db/src/config.ts](packages/spice-db/src/config.ts)
+- [packages/valkey/src/config.ts](packages/valkey/src/config.ts)
 
-- `BASE_URL`: Public base URL for the app. Keep this aligned with `BETTER_AUTH_URL`.
+### Core URL and auth variables
+
+- `BASE_URL`: Compatibility fallback used by some auth tooling. Keep this aligned with `BETTER_AUTH_URL` when set.
 - `BETTER_AUTH_URL`: Public auth callback base URL.
 - `VITE_BASE_URL`: Public frontend base URL used in client-side links.
 - `BETTER_AUTH_SECRET`: Better Auth signing secret.
@@ -187,6 +196,10 @@ The authoritative runtime config is loaded from [config.ts](apps/app/src/lib/eff
 - `SPICEDB_ENDPOINT`
 - `SPICEDB_TOKEN`
 
+SpiceDB optional:
+
+- `SPICEDB_SECURITY`: Transport mode for SpiceDB client. Valid values: `secure`, `insecure-localhost`, `insecure-plaintext` (default).
+
 ### Required AI variables
 
 - `OPENAI_COMPATIBLE_BASE_URL`
@@ -195,12 +208,16 @@ The authoritative runtime config is loaded from [config.ts](apps/app/src/lib/eff
 - `EMBEDDING_DIMENSIONS`: Positive integer output size of `EMBEDDING_MODEL` and Qdrant dense vector size.
 - `GENERAL_MODEL`: General-purpose text/image-capable model used by the worker image-description step.
 
+Model-scope note:
+
+- Custom embedding and image-processing model definitions are supported only in self-hosted deployments.
+
 ### Optional variables
 
 - `KREUZBERG_OCR_LANGUAGE`: OCR languages for background asset processing. Defaults to `eng`; use `eng+deu` only where both Tesseract packs are available.
 - `S3_REGION`: Defaults to `eu-central-1`.
 - `S3_PUBLIC_ENDPOINT`: Optional public endpoint for presigned URLs.
-- `SMTP_*`: Optional. If you enable SMTP delivery, `SMTP_HOST` and `SMTP_FROM` must both be set. `SMTP_USERNAME` and `SMTP_PASSWORD` must either both be set or both be omitted.
+- `SMTP_*`: Optional. If you enable SMTP delivery, `SMTP_HOST` and `SMTP_FROM` must both be set. `SMTP_USERNAME` and `SMTP_PASSWORD` must either both be set or both be omitted. If `SMTP_SECURE` is unset, it is derived from port (`true` for 465, otherwise `false`).
 - `VITE_UMAMI_*`: Optional Umami analytics injection.
 - `OTEL_EXPORTER_OTLP_ENDPOINT`, `OTEL_EXPORTER_OTLP_HEADERS`: Optional OpenTelemetry export configuration.
 
@@ -222,6 +239,38 @@ See [.env.example](.env.example) for a current baseline.
 - `bun run --filter @orcai/db studio`: open Drizzle Studio
 - `bun run --filter @orcai/spice-db up`: apply the SpiceDB schema
 - `bun run --filter @orcai/spice-db status`: inspect SpiceDB schema migration status
+
+## Contributing
+
+Contributions to the main repository should follow this workflow:
+
+1. Create a branch from the latest `main`.
+2. Implement your change with focused scope.
+3. Run local checks.
+4. Commit with Conventional Commit format.
+5. Open a pull request with validation notes.
+
+Recommended validation before opening a PR:
+
+```bash
+bun run lint
+bun run prepush
+```
+
+Additional useful checks:
+
+```bash
+bun run test
+bun run --filter @orcai/web types:check
+```
+
+Repository hooks and rules:
+
+- `pre-commit` runs `lint-staged`.
+- `commit-msg` runs commitlint with `@commitlint/config-conventional`.
+- `pre-push` runs `bun run prepush`.
+
+For contributor docs on branch naming, PR content, and documentation expectations, see [Development docs: Contributing To The Main Repo](apps/web/content/docs/development/contributing.mdx).
 
 ## Architecture Summary
 

@@ -1,0 +1,53 @@
+---
+title: Using OrcAI
+description: End-to-end guide for using the OrcAI application as a learner, contributor, or workspace manager.
+---
+
+This section documents the actual UX flows currently implemented in the main OrcAI app.
+
+## Who This Is For
+
+- People who chat with OrcAI using bots or direct model selection.
+- People who curate reusable content and bot configurations.
+- Workspace admins who manage users, groups, models, providers, and quotas.
+
+## Reading Path
+
+If you are new to OrcAI, follow this order:
+
+<Cards>
+	<Card href="/docs/using-orcai/chat" title="Chat">
+		Start conversations, choose bots and models, attach sources, and tune per-chat behaviour.
+	</Card>
+	<Card href="/docs/using-orcai/content-library" title="Content library">
+		Upload material, track processing, reprocess assets, and prepare sources for retrieval.
+	</Card>
+	<Card href="/docs/using-orcai/bots" title="Bots and behaviour">
+		Build reusable chat experiences with behaviour blocks and content collections.
+	</Card>
+	<Card href="/docs/using-orcai/workspace-setup" title="Workspace setup">
+		Prepare a workspace before inviting end users.
+	</Card>
+</Cards>
+
+## App Structure At A Glance
+
+- The app requires authentication and an active organisation context.
+- The sidebar is capability-aware: each management section appears only if your organisation permissions allow it.
+- Chat is the primary workflow.
+- Library is where reusable resources are managed:
+	- Bots
+	- Behaviour blocks
+	- Repositories (database blocks)
+	- Content items (assets)
+- Administration is for tenant/workspace operations (users, groups, quotas, providers, models, organisations).
+
+## Important Notes
+
+- The app supports draft and published states for bots and blocks.
+- Resource-level sharing exists for assets, blocks, and bots via access dialogs.
+- Some UI terms currently use British spelling (for example, Organisation, Behaviour).
+
+<Callout title="TODO" type="idea">
+	Add screenshots for each major flow after the UI is considered stable.
+</Callout>
