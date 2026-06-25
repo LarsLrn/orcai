@@ -1,12 +1,9 @@
 import { checkEntityPermission, hasPermission } from "@orcai/spice-db";
 import * as Effect from "effect/Effect";
+import * as AppErrors from "@/lib/effect/utils/errors";
 import { os } from "@/lib/orpc/implementation/os";
 import type { AuthContext } from "@/lib/orpc/middlewares/auth";
-import type {
-	CheckPermissionInput,
-	PermissionContext,
-	PermissionErrors,
-} from "./types";
+import type { CheckPermissionInput, PermissionContext } from "./types";
 
 export const permissionBase = os.$context<
 	AuthContext & {
@@ -23,15 +20,12 @@ export const getZedToken = (
 	},
 ) => input.zedToken ?? context.meta?.zedToken;
 
-export const forbiddenPermissionError = (
-	errors: PermissionErrors,
-	params: {
-		entityType: CheckPermissionInput["entityType"];
-		permission: string;
-		zedToken?: string;
-	},
-) =>
-	errors.FORBIDDEN({
+export const forbiddenPermissionError = (params: {
+	entityType: CheckPermissionInput["entityType"];
+	permission: string;
+	zedToken?: string;
+}) =>
+	new AppErrors.ForbiddenError({
 		data: {
 			allowed: false,
 			entityType: params.entityType,
@@ -42,7 +36,6 @@ export const forbiddenPermissionError = (
 
 export const ensurePermission = (params: {
 	context: PermissionContext;
-	errors: PermissionErrors;
 	input: CheckPermissionInput;
 }) => {
 	const zedToken = getZedToken(params.context, params.input);
@@ -60,7 +53,7 @@ export const ensurePermission = (params: {
 					permissionship,
 				}),
 			() =>
-				forbiddenPermissionError(params.errors, {
+				forbiddenPermissionError({
 					entityType: params.input.entityType,
 					permission: params.input.permission,
 					zedToken,

@@ -1,3 +1,4 @@
+import { AiError } from "@orcai/ai";
 import { DB } from "@orcai/db";
 import {
 	finalizeAppRequestQuota,
@@ -23,7 +24,7 @@ import { getChatMessageAttachments } from "@/lib/ai/types/chat-attachment";
 import { buildAttachmentPromptPartCached } from "@/lib/ai/utils/chat-attachment-parts";
 import { getChatAiSettings } from "@/lib/ai/utils/get-chat-ai-settings";
 import { runtime } from "@/lib/effect/runtime";
-import { AiError } from "@/lib/effect/utils/errors";
+import * as AppErrors from "@/lib/effect/utils/errors";
 import { authed } from "@/lib/orpc/implementation/authed";
 import { requireActiveOrganizationMiddleware } from "@/lib/orpc/middlewares/auth";
 import { requireEntityPermission } from "@/lib/orpc/middlewares/permission";
@@ -98,7 +99,7 @@ export const aiChat = authed.ai.chat
 			zedToken: "zedToken",
 		}),
 	)
-	.effect(function* ({ input, errors, context }) {
+	.effect(function* ({ input, context }) {
 		return yield* Effect.gen(function* () {
 			const resolvedZedToken = input.zedToken ?? context.meta?.zedToken;
 			const requestContext = {
@@ -113,7 +114,7 @@ export const aiChat = authed.ai.chat
 
 			if (!hasMessageShape(userMessage)) {
 				return yield* Effect.fail(
-					errors.BAD_REQUEST({
+					new AppErrors.BadRequestError({
 						message: "Missing or invalid user message",
 					}),
 				);
@@ -132,10 +133,11 @@ export const aiChat = authed.ai.chat
 				.pipe(
 					Effect.flatMap((chat) =>
 						Effect.fromNullishOr(chat).pipe(
-							Effect.mapError(() =>
-								errors.BAD_REQUEST({
-									message: "Chat not found",
-								}),
+							Effect.mapError(
+								() =>
+									new AppErrors.BadRequestError({
+										message: "Chat not found",
+									}),
 							),
 						),
 					),
@@ -147,7 +149,7 @@ export const aiChat = authed.ai.chat
 
 			if (!providerId || !modelId) {
 				return yield* Effect.fail(
-					errors.BAD_REQUEST({
+					new AppErrors.BadRequestError({
 						message:
 							"Chat is missing model or provider configuration. Please select a model in chat settings.",
 					}),
@@ -167,7 +169,7 @@ export const aiChat = authed.ai.chat
 						},
 					),
 				catch: () =>
-					errors.BAD_REQUEST({
+					new AppErrors.BadRequestError({
 						message: "Failed to fetch chat blocks",
 					}),
 			});
@@ -217,7 +219,7 @@ export const aiChat = authed.ai.chat
 			) {
 				const denialReason = quotaReservation.denialReason ?? "error";
 				return yield* Effect.fail(
-					errors.BAD_REQUEST({
+					new AppErrors.BadRequestError({
 						message:
 							denialReason === "no_pool"
 								? "No quota pool available for this request."
@@ -234,7 +236,7 @@ export const aiChat = authed.ai.chat
 
 			if (!branchId) {
 				return yield* Effect.fail(
-					errors.BAD_REQUEST({
+					new AppErrors.BadRequestError({
 						message:
 							"Chat has no active branch. Refresh the page and try again.",
 					}),
@@ -308,7 +310,7 @@ export const aiChat = authed.ai.chat
 							},
 						),
 					catch: (cause) =>
-						errors.BAD_REQUEST({
+						new AppErrors.BadRequestError({
 							message: `Failed to create user message: ${cause}`,
 						}),
 				}).pipe(

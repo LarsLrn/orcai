@@ -4,6 +4,7 @@ import { lookupEntitiesByPermission } from "@orcai/spice-db";
 import { count, eq, getColumns, inArray } from "drizzle-orm";
 import * as Effect from "effect/Effect";
 import { AuthzService } from "@/lib/effect/services/authz";
+import * as AppErrors from "@/lib/effect/utils/errors";
 import { authed } from "@/lib/orpc/implementation/authed";
 import { requireActiveOrganizationMiddleware } from "@/lib/orpc/middlewares/auth";
 import {
@@ -108,7 +109,7 @@ export const findOrganization = authed.organization.find
 			entityId: "id",
 		}),
 	)
-	.effect(function* ({ input, errors }) {
+	.effect(function* ({ input }) {
 		const db = yield* DB;
 
 		return yield* db.query.organization
@@ -122,10 +123,11 @@ export const findOrganization = authed.organization.find
 			.pipe(
 				Effect.flatMap((organization) =>
 					Effect.fromNullishOr(organization).pipe(
-						Effect.mapError(() =>
-							errors.NOT_FOUND({
-								message: "Organization not found",
-							}),
+						Effect.mapError(
+							() =>
+								new AppErrors.NotFoundError({
+									message: "Organization not found",
+								}),
 						),
 					),
 				),

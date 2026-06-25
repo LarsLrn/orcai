@@ -21,6 +21,7 @@ import { and, count, eq, getColumns, inArray, isNull, or } from "drizzle-orm";
 import * as Effect from "effect/Effect";
 import { auth } from "@/lib/auth/auth";
 import { AuthzService } from "@/lib/effect/services/authz";
+import * as AppErrors from "@/lib/effect/utils/errors";
 import { authed } from "@/lib/orpc/implementation/authed";
 import {
 	requireActiveOrganizationMiddleware,
@@ -30,7 +31,7 @@ import { unique } from "@/lib/utils/array-utils";
 
 export const listUsers = authed.user.list
 	.use(requireActiveOrganizationMiddleware)
-	.effect(function* ({ input, context, errors }) {
+	.effect(function* ({ input, context }) {
 		const db = yield* DB;
 		const organizationId = context.auth.session.activeOrganizationId;
 		const permission = yield* checkEntityPermission({
@@ -43,7 +44,7 @@ export const listUsers = authed.user.list
 
 		if (hasPermission(permission) === false) {
 			return yield* Effect.fail(
-				errors.FORBIDDEN({
+				new AppErrors.ForbiddenError({
 					data: {
 						allowed: false,
 						permission: "manage_members",
@@ -88,7 +89,7 @@ export const listUsers = authed.user.list
 
 export const findUser = authed.user.find
 	.use(requireActiveOrganizationMiddleware)
-	.effect(function* ({ input, errors, context }) {
+	.effect(function* ({ input, context }) {
 		const db = yield* DB;
 		const organizationId = context.auth.session.activeOrganizationId;
 
@@ -103,7 +104,7 @@ export const findUser = authed.user.find
 
 			if (hasPermission(permission) === false) {
 				return yield* Effect.fail(
-					errors.FORBIDDEN({
+					new AppErrors.ForbiddenError({
 						data: {
 							allowed: false,
 							permission: "manage_members",
@@ -132,10 +133,11 @@ export const findUser = authed.user.find
 				Effect.map(([user]) => user),
 				Effect.flatMap((userWithMembership) =>
 					Effect.fromNullishOr(userWithMembership).pipe(
-						Effect.mapError(() =>
-							errors.NOT_FOUND({
-								message: "User is not a member of the active organization",
-							}),
+						Effect.mapError(
+							() =>
+								new AppErrors.NotFoundError({
+									message: "User is not a member of the active organization",
+								}),
 						),
 					),
 				),
@@ -147,7 +149,7 @@ export const findUser = authed.user.find
 
 export const listUserAccess = authed.user.listAccess
 	.use(requireActiveOrganizationMiddleware)
-	.effect(function* ({ input, errors, context }) {
+	.effect(function* ({ input, context }) {
 		const db = yield* DB;
 		const organizationId = context.auth.session.activeOrganizationId;
 
@@ -162,7 +164,7 @@ export const listUserAccess = authed.user.listAccess
 
 			if (hasPermission(permission) === false) {
 				return yield* Effect.fail(
-					errors.FORBIDDEN({
+					new AppErrors.ForbiddenError({
 						data: {
 							allowed: false,
 							permission: "manage_members",
@@ -616,7 +618,7 @@ export const listUserAccess = authed.user.listAccess
 		};
 	});
 
-export const me = authed.user.me.effect(function* ({ context, errors }) {
+export const me = authed.user.me.effect(function* ({ context }) {
 	const db = yield* DB;
 
 	return yield* db.query.user
@@ -630,10 +632,11 @@ export const me = authed.user.me.effect(function* ({ context, errors }) {
 		.pipe(
 			Effect.flatMap((user) =>
 				Effect.fromNullishOr(user).pipe(
-					Effect.mapError(() =>
-						errors.NOT_FOUND({
-							message: "User not found",
-						}),
+					Effect.mapError(
+						() =>
+							new AppErrors.NotFoundError({
+								message: "User not found",
+							}),
 					),
 				),
 			),
@@ -646,7 +649,6 @@ export const me = authed.user.me.effect(function* ({ context, errors }) {
 export const updatePassword = authed.user.updatePassword.effect(function* ({
 	input,
 	context,
-	errors,
 }) {
 	const db = yield* DB;
 
@@ -664,10 +666,11 @@ export const updatePassword = authed.user.updatePassword.effect(function* ({
 		.pipe(
 			Effect.flatMap((account) =>
 				Effect.fromNullishOr(account?.password).pipe(
-					Effect.mapError(() =>
-						errors.NOT_FOUND({
-							message: "No password found for the user",
-						}),
+					Effect.mapError(
+						() =>
+							new AppErrors.NotFoundError({
+								message: "No password found for the user",
+							}),
 					),
 				),
 			),
@@ -683,7 +686,7 @@ export const updatePassword = authed.user.updatePassword.effect(function* ({
 
 	if (!passwordMatches) {
 		return yield* Effect.fail(
-			errors.UNAUTHORIZED({
+			new AppErrors.UnauthorizedError({
 				message: "Current password is incorrect",
 			}),
 		);
@@ -726,7 +729,7 @@ export const setTourState = authed.user.setTourState
 	});
 
 export const setActiveOrganization = authed.user.setActiveOrganization.effect(
-	function* ({ input, context, errors }) {
+	function* ({ input, context }) {
 		const db = yield* DB;
 		const authz = yield* AuthzService;
 		const hasSpiceAccess = yield* checkEntityPermission({
@@ -769,7 +772,7 @@ export const setActiveOrganization = authed.user.setActiveOrganization.effect(
 				});
 			} else {
 				return yield* Effect.fail(
-					errors.FORBIDDEN({
+					new AppErrors.ForbiddenError({
 						data: {
 							allowed: false,
 							permission: "read",

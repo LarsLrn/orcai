@@ -1,3 +1,4 @@
+import { AiError } from "@orcai/ai";
 import {
 	assetIdSchema,
 	blockIdSchema,
@@ -7,7 +8,6 @@ import { tool } from "ai";
 import * as Effect from "effect/Effect";
 import z from "zod/v4";
 import { runtime } from "@/lib/effect/runtime";
-import { AiError } from "@/lib/effect/utils/errors";
 import { client } from "@/lib/orpc/orpc";
 import type { ChunkResult, KnowledgeBaseDocument } from "./types";
 import {

@@ -7,6 +7,7 @@ import {
 } from "@orcai/spice-db";
 import { and, eq } from "drizzle-orm";
 import * as Effect from "effect/Effect";
+import * as AppErrors from "@/lib/effect/utils/errors";
 import { authed } from "@/lib/orpc/implementation/authed";
 import { requireEntityPermission } from "@/lib/orpc/middlewares/permission";
 
@@ -84,7 +85,7 @@ export const attachChatBlock = authed.chatBlock.attach
 			zedToken: "zedToken",
 		}),
 	)
-	.effect(function* ({ input, context, errors }) {
+	.effect(function* ({ input, context }) {
 		const db = yield* DB;
 		const resolvedZedToken = input.zedToken ?? context.meta?.zedToken;
 		const chat = yield* db.query.chat.findFirst({
@@ -97,7 +98,7 @@ export const attachChatBlock = authed.chatBlock.attach
 
 		if (!chat) {
 			return yield* Effect.fail(
-				errors.BAD_REQUEST({
+				new AppErrors.BadRequestError({
 					message: "Chat not found",
 				}),
 			);
@@ -105,7 +106,7 @@ export const attachChatBlock = authed.chatBlock.attach
 
 		if (chat.botId) {
 			return yield* Effect.fail(
-				errors.BAD_REQUEST({
+				new AppErrors.BadRequestError({
 					message: "Cannot attach blocks directly to chats linked to a bot.",
 				}),
 			);
@@ -121,7 +122,7 @@ export const attachChatBlock = authed.chatBlock.attach
 
 		if (hasPermission(canUseBlock) === false) {
 			return yield* Effect.fail(
-				errors.FORBIDDEN({
+				new AppErrors.ForbiddenError({
 					data: {
 						allowed: false,
 						permission: "use",
@@ -143,10 +144,11 @@ export const attachChatBlock = authed.chatBlock.attach
 			.pipe(
 				Effect.flatMap((block) =>
 					Effect.fromNullishOr(block).pipe(
-						Effect.mapError(() =>
-							errors.BAD_REQUEST({
-								message: "Block not found",
-							}),
+						Effect.mapError(
+							() =>
+								new AppErrors.BadRequestError({
+									message: "Block not found",
+								}),
 						),
 					),
 				),
@@ -175,7 +177,7 @@ export const attachChatBlock = authed.chatBlock.attach
 
 			if (hasOtherTemplate) {
 				return yield* Effect.fail(
-					errors.BAD_REQUEST({
+					new AppErrors.BadRequestError({
 						message:
 							"This chat already has a template block attached. Remove it before attaching another one.",
 					}),
@@ -208,7 +210,7 @@ export const detachChatBlock = authed.chatBlock.detach
 			zedToken: "zedToken",
 		}),
 	)
-	.effect(function* ({ input, errors }) {
+	.effect(function* ({ input }) {
 		const db = yield* DB;
 		const chat = yield* db.query.chat.findFirst({
 			where: {
@@ -220,7 +222,7 @@ export const detachChatBlock = authed.chatBlock.detach
 
 		if (!chat) {
 			return yield* Effect.fail(
-				errors.BAD_REQUEST({
+				new AppErrors.BadRequestError({
 					message: "Chat not found",
 				}),
 			);
@@ -228,7 +230,7 @@ export const detachChatBlock = authed.chatBlock.detach
 
 		if (chat.botId) {
 			return yield* Effect.fail(
-				errors.BAD_REQUEST({
+				new AppErrors.BadRequestError({
 					message: "Cannot detach blocks directly from chats linked to a bot.",
 				}),
 			);

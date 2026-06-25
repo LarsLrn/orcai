@@ -2,6 +2,7 @@ import { DB, dbSchema } from "@orcai/db";
 import { and, count, eq, getColumns, inArray } from "drizzle-orm";
 import * as Effect from "effect/Effect";
 import { syncRelationshipTransition } from "@/lib/authz/relationship-transition";
+import * as AppErrors from "@/lib/effect/utils/errors";
 import { authed } from "@/lib/orpc/implementation/authed";
 import {
 	type CheckManyPermissionInputFor,
@@ -53,7 +54,7 @@ export const findOrganizationMember = authed.organizationMember.find
 			entityId: "organizationId",
 		}),
 	)
-	.effect(function* ({ input, errors }) {
+	.effect(function* ({ input }) {
 		const db = yield* DB;
 
 		return yield* db.query.member
@@ -76,10 +77,11 @@ export const findOrganizationMember = authed.organizationMember.find
 			.pipe(
 				Effect.flatMap((member) =>
 					Effect.fromNullishOr(member).pipe(
-						Effect.mapError(() =>
-							errors.NOT_FOUND({
-								message: "Member not found",
-							}),
+						Effect.mapError(
+							() =>
+								new AppErrors.NotFoundError({
+									message: "Member not found",
+								}),
 						),
 					),
 				),
@@ -128,7 +130,7 @@ export const updateOrganizationMember = authed.organizationMember.update
 			entityId: "organizationId",
 		}),
 	)
-	.effect(function* ({ input, errors }) {
+	.effect(function* ({ input }) {
 		const db = yield* DB;
 
 		const [existing] = yield* db
@@ -159,7 +161,7 @@ export const updateOrganizationMember = authed.organizationMember.update
 
 		if (!member) {
 			return yield* Effect.fail(
-				errors.NOT_FOUND({
+				new AppErrors.NotFoundError({
 					message: "Member not found",
 					data: {
 						organizationId: input.organizationId,

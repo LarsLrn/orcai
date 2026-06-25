@@ -7,6 +7,7 @@ import {
 } from "@orcai/schema";
 import { and, eq, getColumns } from "drizzle-orm";
 import * as Effect from "effect/Effect";
+import * as AppErrors from "@/lib/effect/utils/errors";
 import { authed } from "@/lib/orpc/implementation/authed";
 import {
 	requireEntityPermission,
@@ -33,10 +34,10 @@ export const createJobs = authed.job.create
 			entityId: "blockId",
 		}),
 	)
-	.effect(function* ({ input, errors }) {
+	.effect(function* ({ input }) {
 		if (input.jobRunner !== VECTORIZE_ASSET_JOB_NAME)
 			return yield* Effect.fail(
-				errors.BAD_REQUEST({
+				new AppErrors.BadRequestError({
 					message: `Only ${VECTORIZE_ASSET_JOB_NAME} jobRunner is currently supported`,
 				}),
 			);
@@ -94,7 +95,7 @@ export const retryProcessing = authed.job.retryProcessing
 			entityId: "assetId",
 		}),
 	)
-	.effect(function* ({ input, errors }) {
+	.effect(function* ({ input }) {
 		const db = yield* DB;
 
 		const [asset] = yield* db
@@ -106,7 +107,7 @@ export const retryProcessing = authed.job.retryProcessing
 
 		if (!asset) {
 			return yield* Effect.fail(
-				errors.NOT_FOUND({
+				new AppErrors.NotFoundError({
 					message: "Asset not found",
 				}),
 			);
@@ -151,7 +152,7 @@ export const retryVectorization = authed.job.retryVectorization
 			entityId: "blockId",
 		}),
 	)
-	.effect(function* ({ input, errors }) {
+	.effect(function* ({ input }) {
 		const db = yield* DB;
 
 		const [blockAsset] = yield* db
@@ -173,7 +174,7 @@ export const retryVectorization = authed.job.retryVectorization
 
 		if (!blockAsset) {
 			return yield* Effect.fail(
-				errors.NOT_FOUND({
+				new AppErrors.NotFoundError({
 					message: "Asset not attached to this block",
 				}),
 			);
@@ -181,7 +182,7 @@ export const retryVectorization = authed.job.retryVectorization
 
 		if (blockAsset.processingStatus !== "completed") {
 			return yield* Effect.fail(
-				errors.BAD_REQUEST({
+				new AppErrors.BadRequestError({
 					message:
 						"Vectorization can only be retried after asset processing has completed successfully",
 				}),

@@ -4,6 +4,7 @@ import type { ResourceGrantRole } from "@orcai/schema";
 import { ALL_MEMBERS_GROUP_SYSTEM_KEY } from "@orcai/schema";
 import type { EntityIdFor, ResourceType } from "@orcai/spice-db";
 import * as Effect from "effect/Effect";
+import * as AppErrors from "@/lib/effect/utils/errors";
 import { runMiddlewareEffect } from "@/lib/effect/utils/orpc-helpers";
 import { withName } from "@/lib/orpc/middlewares/utils";
 import { ensurePermission, getZedToken, permissionBase } from "./core";
@@ -39,7 +40,6 @@ export const assertCanGrantPrincipalMiddleware = withName(
 
 				yield* ensurePermission({
 					context: opts.context,
-					errors: opts.errors,
 					input: createResourcePermissionInput(
 						input,
 						"manage_access",
@@ -70,7 +70,7 @@ export const assertCanGrantPrincipalMiddleware = withName(
 
 				if (resourceScopes.length === 0) {
 					return yield* Effect.fail(
-						opts.errors.BAD_REQUEST({
+						new AppErrors.BadRequestError({
 							message:
 								"[RESOURCE_SCOPE_REQUIRED] Resource has no active organization scope and cannot be shared",
 							data: {
@@ -109,7 +109,7 @@ export const assertCanGrantPrincipalMiddleware = withName(
 
 					if (!membership) {
 						return yield* Effect.fail(
-							opts.errors.BAD_REQUEST({
+							new AppErrors.BadRequestError({
 								message:
 									"[CROSS_ORG_PRINCIPAL_FORBIDDEN] User principal must belong to the resource organization scope",
 								data: {
@@ -150,7 +150,7 @@ export const assertCanGrantPrincipalMiddleware = withName(
 
 					if (!group) {
 						return yield* Effect.fail(
-							opts.errors.BAD_REQUEST({
+							new AppErrors.BadRequestError({
 								message:
 									"[CROSS_ORG_PRINCIPAL_FORBIDDEN] Group principal must belong to the resource organization scope",
 								data: {
@@ -166,7 +166,7 @@ export const assertCanGrantPrincipalMiddleware = withName(
 						input.role !== "viewer"
 					) {
 						return yield* Effect.fail(
-							opts.errors.BAD_REQUEST({
+							new AppErrors.BadRequestError({
 								message:
 									"[ALL_MEMBERS_VIEWER_ONLY] All Members group can only receive viewer grants",
 								data: {

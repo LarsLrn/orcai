@@ -17,6 +17,7 @@ import type { TupleMutation } from "@orcai/spice-db";
 import { and, count, desc, eq, ilike, inArray, isNull, or } from "drizzle-orm";
 import * as Effect from "effect/Effect";
 import { AuthzService } from "@/lib/effect/services/authz";
+import * as AppErrors from "@/lib/effect/utils/errors";
 import { authed } from "@/lib/orpc/implementation/authed";
 import {
 	assertCanGrantPrincipalMiddleware,
@@ -288,7 +289,7 @@ export const listResourcePrincipals = authed.resource.listPrincipals
 
 export const grantResourceAccess = authed.resource.grant
 	.use(assertCanGrantPrincipalMiddleware)
-	.effect(function* ({ input, context, errors }) {
+	.effect(function* ({ input, context }) {
 		const db = yield* DB;
 		const authz = yield* AuthzService;
 
@@ -323,7 +324,7 @@ export const grantResourceAccess = authed.resource.grant
 
 			if (Number(managerCount.count) <= 1) {
 				return yield* Effect.fail(
-					errors.BAD_REQUEST({
+					new AppErrors.BadRequestError({
 						message: "At least one manager must remain on this resource",
 						data: {
 							code: "LAST_MANAGER_REQUIRED",
@@ -409,7 +410,7 @@ export const grantResourceAccess = authed.resource.grant
 
 		if (!principal) {
 			return yield* Effect.fail(
-				errors.NOT_FOUND({
+				new AppErrors.NotFoundError({
 					message:
 						input.principalType === "user"
 							? "User principal not found"
@@ -467,7 +468,7 @@ export const grantResourceAccess = authed.resource.grant
 
 export const revokeResourceAccess = authed.resource.revoke
 	.use(requireResourcePermission("manage_access"))
-	.effect(function* ({ input, errors }) {
+	.effect(function* ({ input }) {
 		const db = yield* DB;
 		const authz = yield* AuthzService;
 
@@ -512,7 +513,7 @@ export const revokeResourceAccess = authed.resource.revoke
 
 			if (Number(managerCount.count) <= 1) {
 				return yield* Effect.fail(
-					errors.BAD_REQUEST({
+					new AppErrors.BadRequestError({
 						message: "At least one manager must remain on this resource",
 						data: {
 							code: "LAST_MANAGER_REQUIRED",

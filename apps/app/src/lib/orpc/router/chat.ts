@@ -8,6 +8,7 @@ import {
 import { count, eq, inArray } from "drizzle-orm";
 import * as Effect from "effect/Effect";
 import { AuthzService } from "@/lib/effect/services/authz";
+import * as AppErrors from "@/lib/effect/utils/errors";
 import { authed } from "@/lib/orpc/implementation/authed";
 import {
 	type CheckManyPermissionInputFor,
@@ -69,7 +70,7 @@ export const findChat = authed.chat.find
 			zedToken: "zedToken",
 		}),
 	)
-	.effect(function* ({ input, errors }) {
+	.effect(function* ({ input }) {
 		const db = yield* DB;
 
 		return yield* db.query.chat
@@ -90,10 +91,11 @@ export const findChat = authed.chat.find
 			.pipe(
 				Effect.flatMap((chat) =>
 					Effect.fromNullishOr(chat).pipe(
-						Effect.mapError(() =>
-							errors.NOT_FOUND({
-								message: "Chat not found",
-							}),
+						Effect.mapError(
+							() =>
+								new AppErrors.NotFoundError({
+									message: "Chat not found",
+								}),
 						),
 					),
 				),
@@ -106,7 +108,6 @@ export const findChat = authed.chat.find
 export const createChat = authed.chat.create.effect(function* ({
 	input,
 	context,
-	errors,
 }) {
 	const db = yield* DB;
 	const authz = yield* AuthzService;
@@ -122,7 +123,7 @@ export const createChat = authed.chat.create.effect(function* ({
 
 		if (hasPermission(canUseBot) === false) {
 			return yield* Effect.fail(
-				errors.FORBIDDEN({
+				new AppErrors.ForbiddenError({
 					data: {
 						allowed: false,
 						permission: "use",
@@ -211,7 +212,7 @@ export const updateChat = authed.chat.update
 			entityId: "id",
 		}),
 	)
-	.effect(function* ({ input, errors }) {
+	.effect(function* ({ input }) {
 		const db = yield* DB;
 		const existingChat = yield* db.query.chat.findFirst({
 			where: {
@@ -265,13 +266,14 @@ export const updateChat = authed.chat.update
 			.returning();
 
 		const chat = yield* Effect.fromNullishOr(updatedChat).pipe(
-			Effect.mapError(() =>
-				errors.NOT_FOUND({
-					message: "Chat not found",
-					data: {
-						id: input.id,
-					},
-				}),
+			Effect.mapError(
+				() =>
+					new AppErrors.NotFoundError({
+						message: "Chat not found",
+						data: {
+							id: input.id,
+						},
+					}),
 			),
 		);
 

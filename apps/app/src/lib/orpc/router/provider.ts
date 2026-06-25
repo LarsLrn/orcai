@@ -1,6 +1,7 @@
 import { DB, dbSchema } from "@orcai/db";
 import { and, count, eq, inArray } from "drizzle-orm";
 import * as Effect from "effect/Effect";
+import * as AppErrors from "@/lib/effect/utils/errors";
 import { encryptApiKey } from "@/lib/encryption";
 import { authed } from "@/lib/orpc/implementation/authed";
 import { requireOrganizationPermission } from "@/lib/orpc/middlewares/permission";
@@ -61,7 +62,7 @@ export const listProviders = authed.provider.list
 
 export const findProvider = authed.provider.find
 	.use(requireOrganizationPermission("read"))
-	.effect(function* ({ input, context, errors }) {
+	.effect(function* ({ input, context }) {
 		const db = yield* DB;
 		const organizationId = context.auth.session.activeOrganizationId;
 
@@ -77,10 +78,11 @@ export const findProvider = authed.provider.find
 			.limit(1);
 
 		return yield* Effect.fromNullishOr(provider).pipe(
-			Effect.mapError(() =>
-				errors.NOT_FOUND({
-					message: "Provider not found",
-				}),
+			Effect.mapError(
+				() =>
+					new AppErrors.NotFoundError({
+						message: "Provider not found",
+					}),
 			),
 			Effect.map((provider) => ({
 				data: provider,
@@ -115,7 +117,7 @@ export const createProvider = authed.provider.create
 
 export const updateProvider = authed.provider.update
 	.use(requireOrganizationPermission("manage_members"))
-	.effect(function* ({ input, context, errors }) {
+	.effect(function* ({ input, context }) {
 		const db = yield* DB;
 		const organizationId = context.auth.session.activeOrganizationId;
 
@@ -141,7 +143,7 @@ export const updateProvider = authed.provider.update
 
 		if (!provider) {
 			return yield* Effect.fail(
-				errors.NOT_FOUND({
+				new AppErrors.NotFoundError({
 					message: "Provider not found",
 				}),
 			);

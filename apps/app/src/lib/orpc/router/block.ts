@@ -9,6 +9,7 @@ import {
 import { and, countDistinct, desc, eq, getColumns, inArray } from "drizzle-orm";
 import * as Effect from "effect/Effect";
 import { initializeResourceAuthorization } from "@/lib/authz/resource-lifecycle";
+import * as AppErrors from "@/lib/effect/utils/errors";
 import { authed } from "@/lib/orpc/implementation/authed";
 import {
 	type CheckManyPermissionInputFor,
@@ -126,7 +127,7 @@ export const findBlock = authed.block.find
 			zedToken: "zedToken",
 		}),
 	)
-	.effect(function* ({ input, context, errors }) {
+	.effect(function* ({ input, context }) {
 		const db = yield* DB;
 
 		const [block] = yield* db
@@ -139,7 +140,7 @@ export const findBlock = authed.block.find
 
 		if (!block) {
 			return yield* Effect.fail(
-				errors.NOT_FOUND({
+				new AppErrors.NotFoundError({
 					message: "Block not found",
 				}),
 			);
@@ -231,7 +232,7 @@ export const updateBlock = authed.block.update
 			entityId: "id",
 		}),
 	)
-	.effect(function* ({ input, errors }) {
+	.effect(function* ({ input }) {
 		const db = yield* DB;
 
 		if (input.status === "draft") {
@@ -253,7 +254,7 @@ export const updateBlock = authed.block.update
 			if (linkedReadyBots.length > 0) {
 				const names = linkedReadyBots.map((bot) => `"${bot.name}"`).join(", ");
 				return yield* Effect.fail(
-					errors.BAD_REQUEST({
+					new AppErrors.BadRequestError({
 						message: `Cannot move this block to draft because it is used by ready bot(s): ${names}.`,
 					}),
 				);

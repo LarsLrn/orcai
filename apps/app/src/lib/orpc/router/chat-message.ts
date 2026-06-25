@@ -12,6 +12,7 @@ import {
 	sql,
 } from "drizzle-orm";
 import * as Effect from "effect/Effect";
+import * as AppErrors from "@/lib/effect/utils/errors";
 import { authed } from "@/lib/orpc/implementation/authed";
 import { requireEntityPermission } from "@/lib/orpc/middlewares/permission";
 
@@ -50,7 +51,7 @@ export const listChatMessages = authed.chatMessage.list
 			zedToken: "zedToken",
 		}),
 	)
-	.effect(function* ({ input, errors }) {
+	.effect(function* ({ input }) {
 		const db = yield* DB;
 
 		const branch = yield* db.query.chatBranch
@@ -64,10 +65,11 @@ export const listChatMessages = authed.chatMessage.list
 			.pipe(
 				Effect.flatMap((chat) =>
 					Effect.fromNullishOr(chat).pipe(
-						Effect.mapError(() =>
-							errors.NOT_FOUND({
-								message: "Branch not found",
-							}),
+						Effect.mapError(
+							() =>
+								new AppErrors.NotFoundError({
+									message: "Branch not found",
+								}),
 						),
 					),
 				),
@@ -179,7 +181,7 @@ export const findChatMessage = authed.chatMessage.find
 			zedToken: "zedToken",
 		}),
 	)
-	.effect(function* ({ input, errors }) {
+	.effect(function* ({ input }) {
 		const db = yield* DB;
 
 		return yield* db.query.chatMessage
@@ -202,10 +204,11 @@ export const findChatMessage = authed.chatMessage.find
 			.pipe(
 				Effect.flatMap((chat) =>
 					Effect.fromNullishOr(chat).pipe(
-						Effect.mapError(() =>
-							errors.NOT_FOUND({
-								message: "Chat message not found",
-							}),
+						Effect.mapError(
+							() =>
+								new AppErrors.NotFoundError({
+									message: "Chat message not found",
+								}),
 						),
 					),
 				),
@@ -221,7 +224,7 @@ export const getBranchIdForMessage = authed.chatMessage.getBranch
 			entityId: "chatId",
 		}),
 	)
-	.effect(function* ({ input, errors }) {
+	.effect(function* ({ input }) {
 		const db = yield* DB;
 
 		return yield* db
@@ -251,10 +254,11 @@ export const getBranchIdForMessage = authed.chatMessage.getBranch
 				}),
 				Effect.flatMap((branch) =>
 					Effect.fromNullishOr(branch).pipe(
-						Effect.mapError(() =>
-							errors.NOT_FOUND({
-								message: "No branch found context for this message",
-							}),
+						Effect.mapError(
+							() =>
+								new AppErrors.NotFoundError({
+									message: "No branch found context for this message",
+								}),
 						),
 					),
 				),
@@ -267,12 +271,12 @@ export const createChatMessage = authed.chatMessage.create
 			entityId: "chatId",
 		}),
 	)
-	.effect(function* ({ input, errors }) {
+	.effect(function* ({ input }) {
 		const db = yield* DB;
 
 		if (!input.branchId) {
 			return yield* Effect.fail(
-				errors.BAD_REQUEST({
+				new AppErrors.BadRequestError({
 					message: "branchId is required",
 				}),
 			);
@@ -295,10 +299,11 @@ export const createChatMessage = authed.chatMessage.create
 			.pipe(
 				Effect.flatMap((branch) =>
 					Effect.fromNullishOr(branch).pipe(
-						Effect.mapError(() =>
-							errors.NOT_FOUND({
-								message: "Branch not found",
-							}),
+						Effect.mapError(
+							() =>
+								new AppErrors.NotFoundError({
+									message: "Branch not found",
+								}),
 						),
 					),
 				),
@@ -437,7 +442,7 @@ export const updateChatMessage = authed.chatMessage.update
 			entityId: "chatId",
 		}),
 	)
-	.effect(function* ({ input, errors }) {
+	.effect(function* ({ input }) {
 		const db = yield* DB;
 
 		const targetMsg = yield* db.query.chatMessage
@@ -460,13 +465,14 @@ export const updateChatMessage = authed.chatMessage.update
 			.pipe(
 				Effect.flatMap((msg) =>
 					Effect.fromNullishOr(msg).pipe(
-						Effect.mapError(() =>
-							errors.NOT_FOUND({
-								message: "Chat Message not found",
-								data: {
-									id: input.id,
-								},
-							}),
+						Effect.mapError(
+							() =>
+								new AppErrors.NotFoundError({
+									message: "Chat Message not found",
+									data: {
+										id: input.id,
+									},
+								}),
 						),
 					),
 				),
@@ -595,7 +601,7 @@ export const rateChatMessage = authed.chatMessage.rate
 			entityId: "chatId",
 		}),
 	)
-	.effect(function* ({ input, errors }) {
+	.effect(function* ({ input }) {
 		return yield* Effect.try({
 			try: () =>
 				// TODO: Implement actual rating logic, currently just a placeholder
@@ -605,7 +611,7 @@ export const rateChatMessage = authed.chatMessage.rate
 					data: input,
 				}),
 			catch: () =>
-				errors.BAD_REQUEST({
+				new AppErrors.BadRequestError({
 					message: "Error rating message",
 				}),
 		}).pipe(

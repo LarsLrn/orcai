@@ -1,7 +1,14 @@
+import type { AiError } from "@orcai/ai";
+import type { PgBossError } from "@orcai/pg-boss";
+import type { ProcessError } from "@orcai/process";
 import type { QdrantError } from "@orcai/qdrant";
+import type { QuotaCounterStoreError } from "@orcai/quota";
 import type { S3Error } from "@orcai/s3/server";
-import type { JobQueue } from "@orcai/schema";
+import type { SpiceDbError } from "@orcai/spice-db";
+import type { ValkeyError } from "@orcai/valkey";
+import type { EffectDrizzleQueryError } from "drizzle-orm/effect-core/errors";
 import * as Data from "effect/Data";
+import type { SqlError } from "effect/unstable/sql/SqlError";
 
 export const ErrorTags = {
 	// Resource errors
@@ -23,75 +30,64 @@ export const ErrorTags = {
 	// Infrastructure errors
 	PG_BOSS: "PgBossError",
 	SPICE_DB: "SpiceDbError",
-	DATABASE: "DatabaseError",
 	S3: "S3Error",
 	QDRANT: "QdrantError",
+	QUOTA_COUNTER_STORE: "QuotaCounterStoreError",
+	VALKEY: "ValkeyError",
+	PROCESS: "ProcessError",
+	DRIZZLE_QUERY: "EffectDrizzleQueryError",
+	SQL: "SqlError",
 	EMAIL: "EmailError",
 
 	// Catch-all for unexpected errors
 	INTERNAL: "InternalError",
 } as const;
 
-export class SpiceDbError extends Data.TaggedError(ErrorTags.SPICE_DB)<{
-	readonly operation: "start" | "query" | "mutate";
-	readonly cause: unknown;
-}> {}
-
-export class PgBossError extends Data.TaggedError(ErrorTags.PG_BOSS)<{
-	readonly operation:
-		| "start"
-		| "stop"
-		| "run"
-		| "query"
-		| "send"
-		| "cancel"
-		| "pause"
-		| "resume";
-	readonly queue?: JobQueue;
-	readonly jobId?: string;
-	readonly cause: unknown;
-}> {}
-
 // Resource / auth / validation errors
 // Define concrete classes so `AppError` union is exhaustive at the type level.
 
 export class NotFoundError extends Data.TaggedError(ErrorTags.NOT_FOUND)<{
-	readonly entity: string;
+	readonly entity?: string;
 	readonly id?: string;
+	readonly message?: string;
+	readonly data?: unknown;
+	readonly cause?: unknown;
 }> {}
 
 export class ConflictError extends Data.TaggedError(ErrorTags.CONFLICT)<{
-	readonly entity: string;
+	readonly entity?: string;
+	readonly message?: string;
+	readonly data?: unknown;
 	readonly cause?: unknown;
 }> {}
 
 export class UnauthorizedError extends Data.TaggedError(
 	ErrorTags.UNAUTHORIZED,
 )<{
+	readonly message?: string;
 	readonly reason?: string;
+	readonly data?: unknown;
+	readonly cause?: unknown;
 }> {}
 
 export class ForbiddenError extends Data.TaggedError(ErrorTags.FORBIDDEN)<{
+	readonly message?: string;
 	readonly reason?: string;
+	readonly data?: unknown;
+	readonly cause?: unknown;
 }> {}
 
 export class ValidationError extends Data.TaggedError(ErrorTags.VALIDATION)<{
 	readonly message: string;
 	readonly fields?: Record<string, string>;
+	readonly data?: unknown;
+	readonly cause?: unknown;
 }> {}
 
 export class BadRequestError extends Data.TaggedError(ErrorTags.BAD_REQUEST)<{
 	readonly message: string;
-}> {}
-
-export class DatabaseError extends Data.TaggedError(ErrorTags.DATABASE)<{
-	readonly operation: string;
-	readonly cause: unknown;
-}> {}
-
-export class AiError extends Data.TaggedError(ErrorTags.AI)<{
-	readonly operation: string;
-	readonly cause: unknown;
+	readonly data?: unknown;
+	readonly cause?: unknown;
 }> {}
 
 export class EmailError extends Data.TaggedError(ErrorTags.EMAIL)<{
@@ -122,9 +118,13 @@ export type AppError =
 	| ForbiddenError
 	| ValidationError
 	| BadRequestError
-	| DatabaseError
 	| S3Error
 	| QdrantError
+	| QuotaCounterStoreError
+	| ValkeyError
+	| ProcessError
+	| EffectDrizzleQueryError
+	| SqlError
 	| AiError
 	| EmailError
 	| AuthzError

@@ -1,6 +1,7 @@
 import type { EntityIdFor, EntityType } from "@orcai/spice-db";
 import { checkManyEntityPermissions, hasPermission } from "@orcai/spice-db";
 import * as Effect from "effect/Effect";
+import * as AppErrors from "@/lib/effect/utils/errors";
 import { runMiddlewareEffect } from "@/lib/effect/utils/orpc-helpers";
 import { withName } from "@/lib/orpc/middlewares/utils";
 import { unique } from "@/lib/utils/array-utils";
@@ -25,7 +26,6 @@ export const checkPermissionMiddleware = withName(
 			opts,
 			ensurePermission({
 				context: opts.context,
-				errors: opts.errors,
 				input,
 			}).pipe(
 				Effect.flatMap(() =>
@@ -79,7 +79,7 @@ export const checkManyPermissionMiddleware = <Entity extends EntityType>(
 
 						if (allowedIds.length !== requestedIds.length) {
 							return yield* Effect.fail(
-								forbiddenPermissionError(opts.errors, {
+								forbiddenPermissionError({
 									entityType,
 									permission: input.permission,
 									zedToken,
@@ -89,7 +89,7 @@ export const checkManyPermissionMiddleware = <Entity extends EntityType>(
 
 						if (allowedIds.length === 0) {
 							return yield* Effect.fail(
-								opts.errors.BAD_REQUEST({
+								new AppErrors.BadRequestError({
 									message: "No valid entity IDs provided",
 									data: {
 										allowed: false,

@@ -1,4 +1,3 @@
-import type { ContractErrors } from "@orcai/contracts";
 import type { BotId, OrganizationId, UserId } from "@orcai/core";
 import { DB, dbSchema } from "@orcai/db";
 import type {
@@ -13,12 +12,12 @@ import {
 	hasPermission,
 	lookupEntitiesByPermission,
 } from "@orcai/spice-db";
-import type { ORPCErrorConstructorMap } from "@orpc/server";
 import { and, count, eq, getColumns, ilike, inArray } from "drizzle-orm";
 import * as Effect from "effect/Effect";
 import { calculateRelationDelta } from "@/lib/authz/relation-delta";
 import { initializeResourceAuthorization } from "@/lib/authz/resource-lifecycle";
 import { AuthzService } from "@/lib/effect/services/authz";
+import * as AppErrors from "@/lib/effect/utils/errors";
 import { NotFoundError } from "@/lib/effect/utils/errors";
 import { authed } from "@/lib/orpc/implementation/authed";
 import { requireActiveOrganizationMiddleware } from "@/lib/orpc/middlewares/auth";
@@ -195,7 +194,6 @@ const resolveLinkedBlocksForSave = (params: {
 	input: SaveBotInput;
 	userId: UserId;
 	zedToken?: string;
-	errors: ORPCErrorConstructorMap<ContractErrors>;
 }) =>
 	Effect.gen(function* () {
 		const db = yield* DB;
@@ -224,7 +222,7 @@ const resolveLinkedBlocksForSave = (params: {
 
 		if (linkedBlocks.length !== nextBlockIds.length) {
 			return yield* Effect.fail(
-				params.errors.BAD_REQUEST({
+				new AppErrors.BadRequestError({
 					message: "One or more linked blocks could not be found.",
 				}),
 			);
@@ -242,7 +240,7 @@ const resolveLinkedBlocksForSave = (params: {
 			blockById.get(templateBlockId)?.type !== "template"
 		) {
 			return yield* Effect.fail(
-				params.errors.BAD_REQUEST({
+				new AppErrors.BadRequestError({
 					message: "Linked AI behaviour block must be a template block.",
 				}),
 			);
@@ -251,7 +249,7 @@ const resolveLinkedBlocksForSave = (params: {
 		for (const databaseBlockId of databaseBlockIds) {
 			if (blockById.get(databaseBlockId)?.type !== "database") {
 				return yield* Effect.fail(
-					params.errors.BAD_REQUEST({
+					new AppErrors.BadRequestError({
 						message:
 							"Linked content collection block must be a database block.",
 					}),
@@ -288,7 +286,7 @@ const resolveLinkedBlocksForSave = (params: {
 
 		if (unreadableIds.length > 0) {
 			return yield* Effect.fail(
-				params.errors.FORBIDDEN({
+				new AppErrors.ForbiddenError({
 					message:
 						"You do not have access to link one or more selected blocks.",
 					data: {
@@ -379,7 +377,6 @@ const saveBotGraph = (params: {
 	userId: UserId;
 	organizationId: OrganizationId;
 	zedToken?: string;
-	errors: ORPCErrorConstructorMap<ContractErrors>;
 }) =>
 	Effect.gen(function* () {
 		const db = yield* DB;
@@ -404,7 +401,6 @@ const saveBotGraph = (params: {
 			input: params.input,
 			userId: params.userId,
 			zedToken: params.zedToken,
-			errors: params.errors,
 		});
 
 		const previousBlockIds = existingBlocks.map((block) => block.id);
@@ -500,7 +496,7 @@ export const findBot = authed.bot.find
 			zedToken: "zedToken",
 		}),
 	)
-	.effect(function* ({ input, errors }) {
+	.effect(function* ({ input }) {
 		const db = yield* DB;
 
 		const [bot] = yield* db
@@ -512,7 +508,7 @@ export const findBot = authed.bot.find
 
 		if (!bot) {
 			return yield* Effect.fail(
-				errors.NOT_FOUND({
+				new AppErrors.NotFoundError({
 					message: "Bot not found",
 				}),
 			);
@@ -540,23 +536,24 @@ export const findBotEditor = authed.bot.findEditor
 			entityId: "id",
 		}),
 	)
-	.effect(function* ({ input, context, errors }) {
+	.effect(function* ({ input, context }) {
 		return yield* loadBotEditor({
 			id: input.id,
 			userId: context.auth.user.id,
 			zedToken: input.zedToken ?? context.meta?.zedToken,
 		}).pipe(
-			Effect.mapError(() =>
-				errors.NOT_FOUND({
-					message: "Bot not found",
-				}),
+			Effect.mapError(
+				() =>
+					new AppErrors.NotFoundError({
+						message: "Bot not found",
+					}),
 			),
 		);
 	});
 
 export const saveBot = authed.bot.save
 	.use(requireActiveOrganizationMiddleware)
-	.effect(function* ({ input, context, errors }) {
+	.effect(function* ({ input, context }) {
 		const resolvedZedToken = input.zedToken ?? context.meta?.zedToken;
 
 		if (input.id) {
@@ -569,7 +566,7 @@ export const saveBot = authed.bot.save
 			});
 			if (!hasPermission(permission)) {
 				return yield* Effect.fail(
-					errors.FORBIDDEN({
+					new AppErrors.ForbiddenError({
 						message: "You do not have permission to edit this bot.",
 						data: {
 							allowed: false,
@@ -587,7 +584,7 @@ export const saveBot = authed.bot.save
 			});
 			if (!hasPermission(permission)) {
 				return yield* Effect.fail(
-					errors.FORBIDDEN({
+					new AppErrors.ForbiddenError({
 						message: "You do not have permission to create bots.",
 						data: {
 							allowed: false,
@@ -602,7 +599,6 @@ export const saveBot = authed.bot.save
 			userId: context.auth.user.id,
 			organizationId: context.auth.session.activeOrganizationId,
 			zedToken: resolvedZedToken,
-			errors,
 		});
 	});
 
@@ -612,7 +608,7 @@ export const publishBot = authed.bot.publish
 			entityId: "id",
 		}),
 	)
-	.effect(function* ({ input, context, errors }) {
+	.effect(function* ({ input, context }) {
 		const db = yield* DB;
 		const editor = yield* loadBotEditor({
 			id: input.id,
@@ -621,7 +617,7 @@ export const publishBot = authed.bot.publish
 
 		if (!editor.data.templateBlock) {
 			return yield* Effect.fail(
-				errors.BAD_REQUEST({
+				new AppErrors.BadRequestError({
 					message: "Bots need a template block before they can be published.",
 				}),
 			);
@@ -629,7 +625,7 @@ export const publishBot = authed.bot.publish
 
 		if (editor.data.templateBlock.status !== "ready") {
 			return yield* Effect.fail(
-				errors.BAD_REQUEST({
+				new AppErrors.BadRequestError({
 					message:
 						'Set the AI behaviour block to "ready" before publishing this bot.',
 				}),
@@ -639,7 +635,7 @@ export const publishBot = authed.bot.publish
 		for (const databaseBlock of editor.data.databaseBlocks) {
 			if (databaseBlock.status !== "ready") {
 				return yield* Effect.fail(
-					errors.BAD_REQUEST({
+					new AppErrors.BadRequestError({
 						message: `Set "${databaseBlock.name}" to "ready" before publishing this bot.`,
 					}),
 				);
@@ -647,7 +643,7 @@ export const publishBot = authed.bot.publish
 
 			if (databaseBlock.assetIds.length === 0) {
 				return yield* Effect.fail(
-					errors.BAD_REQUEST({
+					new AppErrors.BadRequestError({
 						message: `Attach at least one document to "${databaseBlock.name}" before publishing.`,
 					}),
 				);

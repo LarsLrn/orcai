@@ -23,6 +23,7 @@ import { and, count, desc, eq, getColumns, ilike, inArray } from "drizzle-orm";
 import * as Effect from "effect/Effect";
 import { v4 as uuidv4 } from "uuid";
 import { initializeResourceAuthorization } from "@/lib/authz/resource-lifecycle";
+import * as AppErrors from "@/lib/effect/utils/errors";
 import { authed } from "@/lib/orpc/implementation/authed";
 import {
 	type CheckManyPermissionInputFor,
@@ -165,7 +166,7 @@ export const findAsset = authed.asset.find
 			zedToken: "zedToken",
 		}),
 	)
-	.effect(function* ({ input, errors }) {
+	.effect(function* ({ input }) {
 		const db = yield* DB;
 
 		const [query] = yield* db
@@ -177,7 +178,7 @@ export const findAsset = authed.asset.find
 
 		if (!query) {
 			return yield* Effect.fail(
-				errors.NOT_FOUND({
+				new AppErrors.NotFoundError({
 					message: "Asset not found",
 				}),
 			);
@@ -219,7 +220,6 @@ export const createAsset = authed.asset.create
 export const saveAsset = authed.asset.save.effect(function* ({
 	input,
 	context,
-	errors,
 }) {
 	const db = yield* DB;
 
@@ -234,7 +234,7 @@ export const saveAsset = authed.asset.save.effect(function* ({
 
 		if (!hasPermission(permission)) {
 			return yield* Effect.fail(
-				errors.FORBIDDEN({
+				new AppErrors.ForbiddenError({
 					message: "You do not have permission to edit this asset.",
 					data: {
 						allowed: false,
@@ -262,7 +262,7 @@ export const saveAsset = authed.asset.save.effect(function* ({
 
 	if (!input.upload) {
 		return yield* Effect.fail(
-			errors.BAD_REQUEST({
+			new AppErrors.BadRequestError({
 				message: "An uploaded file reference is required to create an asset.",
 			}),
 		);
@@ -272,7 +272,7 @@ export const saveAsset = authed.asset.save.effect(function* ({
 
 	if (!organizationId) {
 		return yield* Effect.fail(
-			errors.BAD_REQUEST({
+			new AppErrors.BadRequestError({
 				message: "An active organization is required to create assets.",
 			}),
 		);
@@ -288,7 +288,7 @@ export const saveAsset = authed.asset.save.effect(function* ({
 
 	if (!hasPermission(permission)) {
 		return yield* Effect.fail(
-			errors.FORBIDDEN({
+			new AppErrors.ForbiddenError({
 				message: "You do not have permission to create assets.",
 				data: {
 					allowed: false,
@@ -321,7 +321,7 @@ export const saveAsset = authed.asset.save.effect(function* ({
 
 export const saveManyAssets = authed.asset.saveMany
 	.use(requireOrganizationPermission("create_asset"))
-	.effect(function* ({ input, errors, context }) {
+	.effect(function* ({ input, context }) {
 		const results = yield* Effect.forEach(
 			input.assets,
 			(assetInput) =>
@@ -337,7 +337,7 @@ export const saveManyAssets = authed.asset.saveMany
 
 						if (!hasPermission(permission)) {
 							return yield* Effect.fail(
-								errors.FORBIDDEN({
+								new AppErrors.ForbiddenError({
 									message: "You do not have permission to edit this asset.",
 									data: {
 										allowed: false,
@@ -367,7 +367,7 @@ export const saveManyAssets = authed.asset.saveMany
 
 					if (!assetInput.upload) {
 						return yield* Effect.fail(
-							errors.BAD_REQUEST({
+							new AppErrors.BadRequestError({
 								message:
 									"An uploaded file reference is required to create an asset.",
 							}),

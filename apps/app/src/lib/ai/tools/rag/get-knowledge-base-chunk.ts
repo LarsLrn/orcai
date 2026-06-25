@@ -1,9 +1,9 @@
+import { AiError } from "@orcai/ai";
 import { blockIdSchema, type DatabaseBlock } from "@orcai/schema";
 import { tool } from "ai";
 import * as Effect from "effect/Effect";
 import { z } from "zod/v4";
 import { runtime } from "@/lib/effect/runtime";
-import { AiError } from "@/lib/effect/utils/errors";
 import { client } from "@/lib/orpc/orpc";
 import { RETRIEVAL_LIMITS } from "@/settings/constants";
 import type { ChunkResult, PointWithBlock } from "./types";

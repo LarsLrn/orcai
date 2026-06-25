@@ -8,6 +8,7 @@ import {
 } from "@orcai/quota";
 import { and, count, desc, eq, ilike } from "drizzle-orm";
 import * as Effect from "effect/Effect";
+import * as AppErrors from "@/lib/effect/utils/errors";
 import { authed } from "@/lib/orpc/implementation/authed";
 import {
 	requireEntityPermission,
@@ -147,7 +148,7 @@ export const listQuotaPools = authed.quota.list
 
 export const findQuotaPool = authed.quota.find
 	.use(requireOrganizationPermission("read"))
-	.effect(function* ({ input, context, errors }) {
+	.effect(function* ({ input, context }) {
 		const db = yield* DB;
 		const organizationId = context.auth.session.activeOrganizationId;
 
@@ -171,7 +172,7 @@ export const findQuotaPool = authed.quota.find
 
 		if (!row) {
 			return yield* Effect.fail(
-				errors.NOT_FOUND({
+				new AppErrors.NotFoundError({
 					message: "Quota pool not found",
 				}),
 			);
@@ -230,7 +231,7 @@ export const findQuotaPool = authed.quota.find
 
 export const createQuotaPool = authed.quota.create
 	.use(requireOrganizationPermission("manage_members"))
-	.effect(function* ({ input, context, errors }) {
+	.effect(function* ({ input, context }) {
 		const organizationId = context.auth.session.activeOrganizationId;
 		const created = yield* createQuotaPoolCommand({
 			organizationId,
@@ -249,7 +250,7 @@ export const createQuotaPool = authed.quota.create
 
 		if (created.status !== "ok") {
 			return yield* Effect.fail(
-				errors.BAD_REQUEST({
+				new AppErrors.BadRequestError({
 					message:
 						created.status === "provider_not_found"
 							? "Provider not found in active organization"
@@ -267,7 +268,7 @@ export const createQuotaPool = authed.quota.create
 
 export const updateQuotaPool = authed.quota.update
 	.use(requireOrganizationPermission("manage_members"))
-	.effect(function* ({ input, context, errors }) {
+	.effect(function* ({ input, context }) {
 		const organizationId = context.auth.session.activeOrganizationId;
 		const updated = yield* updateQuotaPoolCommand({
 			organizationId,
@@ -278,10 +279,10 @@ export const updateQuotaPool = authed.quota.update
 		if (updated.status !== "ok") {
 			return yield* Effect.fail(
 				updated.status === "pool_not_found"
-					? errors.NOT_FOUND({
+					? new AppErrors.NotFoundError({
 							message: "Quota pool not found",
 						})
-					: errors.BAD_REQUEST({
+					: new AppErrors.BadRequestError({
 							message:
 								updated.status === "model_invalid"
 									? "Model does not belong to pool provider"
@@ -297,7 +298,7 @@ export const updateQuotaPool = authed.quota.update
 
 export const deactivateQuotaPool = authed.quota.deactivate
 	.use(requireOrganizationPermission("manage_members"))
-	.effect(function* ({ input, context, errors }) {
+	.effect(function* ({ input, context }) {
 		const organizationId = context.auth.session.activeOrganizationId;
 		const deactivated = yield* deactivateQuotaPoolCommand({
 			organizationId,
@@ -307,7 +308,7 @@ export const deactivateQuotaPool = authed.quota.deactivate
 
 		if (deactivated.status !== "ok") {
 			return yield* Effect.fail(
-				errors.NOT_FOUND({
+				new AppErrors.NotFoundError({
 					message: "Quota pool not found",
 				}),
 			);

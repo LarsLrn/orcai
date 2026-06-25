@@ -4,6 +4,7 @@ import { count, eq, sql } from "drizzle-orm";
 import * as Effect from "effect/Effect";
 import { auth } from "@/lib/auth/auth";
 import { AuthzService } from "@/lib/effect/services/authz";
+import * as AppErrors from "@/lib/effect/utils/errors";
 import { os } from "@/lib/orpc/implementation/os";
 
 const toCount = (value: number | string | bigint | null | undefined) =>
@@ -46,7 +47,6 @@ export const getBootstrapStatus = os.bootstrap.status.effect(function* () {
 
 export const initializeBootstrap = os.bootstrap.initialize.effect(function* ({
 	input,
-	errors,
 }) {
 	const db = yield* DB;
 	const authz = yield* AuthzService;
@@ -69,7 +69,7 @@ export const initializeBootstrap = os.bootstrap.initialize.effect(function* ({
 
 				if (initialized) {
 					return yield* Effect.fail(
-						errors.BAD_REQUEST({
+						new AppErrors.BadRequestError({
 							message: "Application is already initialized.",
 						}),
 					);
@@ -85,7 +85,7 @@ export const initializeBootstrap = os.bootstrap.initialize.effect(function* ({
 
 				if (existingUser) {
 					return yield* Effect.fail(
-						errors.BAD_REQUEST({
+						new AppErrors.BadRequestError({
 							message: "A user with this email already exists.",
 						}),
 					);
@@ -105,10 +105,11 @@ export const initializeBootstrap = os.bootstrap.initialize.effect(function* ({
 					});
 
 				const user = yield* Effect.fromNullishOr(newUser).pipe(
-					Effect.mapError(() =>
-						errors.BAD_REQUEST({
-							message: "Failed to create bootstrap user.",
-						}),
+					Effect.mapError(
+						() =>
+							new AppErrors.BadRequestError({
+								message: "Failed to create bootstrap user.",
+							}),
 					),
 				);
 
@@ -133,10 +134,11 @@ export const initializeBootstrap = os.bootstrap.initialize.effect(function* ({
 					});
 
 				const organization = yield* Effect.fromNullishOr(newOrganization).pipe(
-					Effect.mapError(() =>
-						errors.BAD_REQUEST({
-							message: "Failed to create bootstrap organisation.",
-						}),
+					Effect.mapError(
+						() =>
+							new AppErrors.BadRequestError({
+								message: "Failed to create bootstrap organisation.",
+							}),
 					),
 				);
 

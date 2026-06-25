@@ -1,5 +1,6 @@
 import type { EntityIdFor, EntityType, PermissionFor } from "@orcai/spice-db";
 import * as Effect from "effect/Effect";
+import * as AppErrors from "@/lib/effect/utils/errors";
 import { runMiddlewareEffect } from "@/lib/effect/utils/orpc-helpers";
 import { withName } from "@/lib/orpc/middlewares/utils";
 import { checkPermissionMiddleware } from "./checks";
@@ -109,7 +110,7 @@ export const requireOrganizationPermission = (
 
 					if (!activeOrganizationId) {
 						return yield* Effect.fail(
-							opts.errors.BAD_REQUEST({
+							new AppErrors.BadRequestError({
 								message:
 									"An active organization must be selected to access this resource.",
 							}),
@@ -118,7 +119,6 @@ export const requireOrganizationPermission = (
 
 					yield* ensurePermission({
 						context: opts.context,
-						errors: opts.errors,
 						input: {
 							entityType: "organization",
 							entityId: activeOrganizationId,

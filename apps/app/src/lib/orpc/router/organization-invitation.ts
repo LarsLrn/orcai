@@ -2,6 +2,7 @@ import { DB, dbSchema } from "@orcai/db";
 import { and, count, eq, getColumns, inArray, or } from "drizzle-orm";
 import * as Effect from "effect/Effect";
 import { syncRelationshipTransition } from "@/lib/authz/relationship-transition";
+import * as AppErrors from "@/lib/effect/utils/errors";
 import { authed } from "@/lib/orpc/implementation/authed";
 import { os } from "@/lib/orpc/implementation/os";
 import { requireActiveOrganizationMiddleware } from "@/lib/orpc/middlewares/auth";
@@ -57,7 +58,7 @@ export const listOrganizationInvitations =
 	});
 
 export const findOrganizationInvitation =
-	authed.organizationInvitation.find.effect(function* ({ input, errors }) {
+	authed.organizationInvitation.find.effect(function* ({ input }) {
 		const db = yield* DB;
 
 		return yield* db.query.invitation
@@ -71,10 +72,11 @@ export const findOrganizationInvitation =
 			.pipe(
 				Effect.flatMap((invitation) =>
 					Effect.fromNullishOr(invitation).pipe(
-						Effect.mapError(() =>
-							errors.NOT_FOUND({
-								message: "Invitation not found",
-							}),
+						Effect.mapError(
+							() =>
+								new AppErrors.NotFoundError({
+									message: "Invitation not found",
+								}),
 						),
 					),
 				),
@@ -168,7 +170,7 @@ export const updateOrganizationInvitation = authed.organizationInvitation.update
 			entityId: "organizationId",
 		}),
 	)
-	.effect(function* ({ input, errors }) {
+	.effect(function* ({ input }) {
 		const db = yield* DB;
 
 		const [invitation] = yield* db
@@ -189,13 +191,14 @@ export const updateOrganizationInvitation = authed.organizationInvitation.update
 			});
 
 		return yield* Effect.fromNullishOr(invitation).pipe(
-			Effect.mapError(() =>
-				errors.NOT_FOUND({
-					message: "Organization invitation not found",
-					data: {
-						id: input.id,
-					},
-				}),
+			Effect.mapError(
+				() =>
+					new AppErrors.NotFoundError({
+						message: "Organization invitation not found",
+						data: {
+							id: input.id,
+						},
+					}),
 			),
 			Effect.map((data) => ({
 				data,
@@ -235,11 +238,7 @@ export const deleteOrganizationInvitations =
 		});
 
 export const respondToOrganizationInvitation =
-	authed.organizationInvitation.respond.effect(function* ({
-		input,
-		context,
-		errors,
-	}) {
+	authed.organizationInvitation.respond.effect(function* ({ input, context }) {
 		const db = yield* DB;
 
 		const invitation = yield* db.query.invitation
@@ -253,10 +252,11 @@ export const respondToOrganizationInvitation =
 			.pipe(
 				Effect.flatMap((result) =>
 					Effect.fromNullishOr(result).pipe(
-						Effect.mapError(() =>
-							errors.NOT_FOUND({
-								message: "Organization invitation not found",
-							}),
+						Effect.mapError(
+							() =>
+								new AppErrors.NotFoundError({
+									message: "Organization invitation not found",
+								}),
 						),
 					),
 				),
@@ -267,7 +267,7 @@ export const respondToOrganizationInvitation =
 			context.auth.user.email.trim().toLowerCase()
 		) {
 			return yield* Effect.fail(
-				errors.FORBIDDEN({
+				new AppErrors.ForbiddenError({
 					message: "You are not allowed to respond to this invitation",
 					data: {
 						allowed: false,
@@ -280,7 +280,7 @@ export const respondToOrganizationInvitation =
 
 		if (invitation.expiresAt < new Date()) {
 			return yield* Effect.fail(
-				errors.BAD_REQUEST({
+				new AppErrors.BadRequestError({
 					message: "Invitation has expired",
 				}),
 			);
@@ -289,7 +289,7 @@ export const respondToOrganizationInvitation =
 		const acceptInvitation = Effect.gen(function* () {
 			if (invitation.status === "rejected") {
 				return yield* Effect.fail(
-					errors.BAD_REQUEST({
+					new AppErrors.BadRequestError({
 						message: "Rejected invitations cannot be accepted",
 					}),
 				);
@@ -357,7 +357,7 @@ export const respondToOrganizationInvitation =
 		const rejectInvitation = Effect.gen(function* () {
 			if (invitation.status === "accepted") {
 				return yield* Effect.fail(
-					errors.BAD_REQUEST({
+					new AppErrors.BadRequestError({
 						message: "Accepted invitations cannot be rejected",
 					}),
 				);
@@ -384,7 +384,7 @@ export const respondToOrganizationInvitation =
 				return yield* rejectInvitation;
 			default:
 				return yield* Effect.fail(
-					errors.BAD_REQUEST({
+					new AppErrors.BadRequestError({
 						message: "Invalid response to organization invitation",
 					}),
 				);

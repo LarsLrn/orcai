@@ -22,6 +22,7 @@ import {
 } from "@orcai/s3/server";
 import * as Effect from "effect/Effect";
 import { v4 as uuidv4 } from "uuid";
+import * as AppErrors from "@/lib/effect/utils/errors";
 import { authed } from "@/lib/orpc/implementation/authed";
 import {
 	requireEntityPermission,
@@ -76,12 +77,12 @@ const isS3NotFound = (cause: unknown) => {
 };
 
 export const createUploadUrls = authed.storage.createUploadUrls.effect(
-	function* ({ input, context, errors }) {
+	function* ({ input, context }) {
 		const uploadRoute = UPLOAD_ROUTES[input.route];
 
 		if (input.files.length > uploadRoute.maxFiles) {
 			return yield* Effect.fail(
-				errors.BAD_REQUEST({
+				new AppErrors.BadRequestError({
 					message: `Too many files. Max allowed: ${uploadRoute.maxFiles}.`,
 					data: {
 						type: "too_many_files",
@@ -94,7 +95,7 @@ export const createUploadUrls = authed.storage.createUploadUrls.effect(
 			Effect.gen(function* () {
 				if (file.size > uploadRoute.maxFileSize) {
 					return yield* Effect.fail(
-						errors.BAD_REQUEST({
+						new AppErrors.BadRequestError({
 							message: `File "${file.name}" exceeds max allowed size.`,
 							data: {
 								type: "file_too_large",
@@ -110,7 +111,7 @@ export const createUploadUrls = authed.storage.createUploadUrls.effect(
 					})
 				) {
 					return yield* Effect.fail(
-						errors.BAD_REQUEST({
+						new AppErrors.BadRequestError({
 							message: `File type "${file.type}" is not allowed.`,
 							data: {
 								type: "invalid_file_type",
@@ -182,7 +183,7 @@ export const createUploadUrls = authed.storage.createUploadUrls.effect(
 
 					if (totalParts > 10_000) {
 						return yield* Effect.fail(
-							errors.BAD_REQUEST({
+							new AppErrors.BadRequestError({
 								message: `File "${file.name}" has too many multipart chunks.`,
 								data: {
 									type: "file_too_large",
@@ -204,7 +205,7 @@ export const createUploadUrls = authed.storage.createUploadUrls.effect(
 
 					if (!uploadId) {
 						return yield* Effect.fail(
-							errors.BAD_REQUEST({
+							new AppErrors.BadRequestError({
 								message: "Failed to initialize multipart upload. Please retry.",
 								data: {
 									type: "invalid_request",
@@ -281,7 +282,7 @@ export const createDownloadUrl = authed.storage.createDownloadUrl
 			entityId: "id",
 		}),
 	)
-	.effect(function* ({ input, errors }) {
+	.effect(function* ({ input }) {
 		const db = yield* DB;
 		const expiry = 60 * 60;
 		const asset = yield* db.query.asset
@@ -300,10 +301,11 @@ export const createDownloadUrl = authed.storage.createDownloadUrl
 			.pipe(
 				Effect.flatMap((row) =>
 					Effect.fromNullishOr(row).pipe(
-						Effect.mapError(() =>
-							errors.NOT_FOUND({
-								message: "Asset not found",
-							}),
+						Effect.mapError(
+							() =>
+								new AppErrors.NotFoundError({
+									message: "Asset not found",
+								}),
 						),
 					),
 				),
@@ -324,7 +326,7 @@ export const createDownloadUrl = authed.storage.createDownloadUrl
 
 		if (!filePath) {
 			return yield* Effect.fail(
-				errors.BAD_REQUEST({
+				new AppErrors.BadRequestError({
 					message: "Object key must belong to the requested asset.",
 					data: {
 						type: "invalid_request",
@@ -345,17 +347,13 @@ export const createDownloadUrl = authed.storage.createDownloadUrl
 	});
 
 export const completeMultipartUpload =
-	authed.storage.completeMultipartUpload.effect(function* ({
-		input,
-		context,
-		errors,
-	}) {
+	authed.storage.completeMultipartUpload.effect(function* ({ input, context }) {
 		const uploadRoute = UPLOAD_ROUTES[input.route];
 		const uploadId = normalizeUploadId(input.uploadId);
 
 		if (!uploadId) {
 			return yield* Effect.fail(
-				errors.BAD_REQUEST({
+				new AppErrors.BadRequestError({
 					message: "Multipart upload ID is missing.",
 					data: {
 						type: "invalid_request",
@@ -371,13 +369,14 @@ export const completeMultipartUpload =
 			expectedBucket: uploadRoute.bucket,
 			requireKey: true,
 		}).pipe(
-			Effect.mapError(() =>
-				errors.BAD_REQUEST({
-					message: "Invalid upload metadata.",
-					data: {
-						type: "invalid_request",
-					},
-				}),
+			Effect.mapError(
+				() =>
+					new AppErrors.BadRequestError({
+						message: "Invalid upload metadata.",
+						data: {
+							type: "invalid_request",
+						},
+					}),
 			),
 		);
 
@@ -403,13 +402,13 @@ export const completeMultipartUpload =
 	});
 
 export const abortMultipartUpload = authed.storage.abortMultipartUpload.effect(
-	function* ({ input, context, errors }) {
+	function* ({ input, context }) {
 		const uploadRoute = UPLOAD_ROUTES[input.route];
 		const uploadId = normalizeUploadId(input.uploadId);
 
 		if (!uploadId) {
 			return yield* Effect.fail(
-				errors.BAD_REQUEST({
+				new AppErrors.BadRequestError({
 					message: "Multipart upload ID is missing.",
 					data: {
 						type: "invalid_request",
@@ -425,13 +424,14 @@ export const abortMultipartUpload = authed.storage.abortMultipartUpload.effect(
 			expectedBucket: uploadRoute.bucket,
 			requireKey: true,
 		}).pipe(
-			Effect.mapError(() =>
-				errors.BAD_REQUEST({
-					message: "Invalid upload metadata.",
-					data: {
-						type: "invalid_request",
-					},
-				}),
+			Effect.mapError(
+				() =>
+					new AppErrors.BadRequestError({
+						message: "Invalid upload metadata.",
+						data: {
+							type: "invalid_request",
+						},
+					}),
 			),
 		);
 
@@ -449,7 +449,7 @@ export const abortMultipartUpload = authed.storage.abortMultipartUpload.effect(
 
 export const finalizeUpload = authed.storage.finalizeUpload
 	.use(requireOrganizationPermission("create_asset"))
-	.effect(function* ({ input, context, errors }) {
+	.effect(function* ({ input, context }) {
 		const uploadRoute = UPLOAD_ROUTES[input.route];
 
 		const results = yield* Effect.forEach(
@@ -462,13 +462,14 @@ export const finalizeUpload = authed.storage.finalizeUpload
 						authUserId: context.auth.user.id,
 						expectedBucket: uploadRoute.bucket,
 					}).pipe(
-						Effect.mapError(() =>
-							errors.BAD_REQUEST({
-								message: "Invalid upload metadata.",
-								data: {
-									type: "invalid_request",
-								},
-							}),
+						Effect.mapError(
+							() =>
+								new AppErrors.BadRequestError({
+									message: "Invalid upload metadata.",
+									data: {
+										type: "invalid_request",
+									},
+								}),
 						),
 					);
 
@@ -478,7 +479,7 @@ export const finalizeUpload = authed.storage.finalizeUpload
 					}).pipe(
 						Effect.mapError((error) =>
 							isS3NotFound(error.cause)
-								? errors.BAD_REQUEST({
+								? new AppErrors.BadRequestError({
 										message: "Uploaded file not found in storage.",
 										data: {
 											type: "invalid_request",
@@ -493,7 +494,7 @@ export const finalizeUpload = authed.storage.finalizeUpload
 						headObject.ContentLength !== file.size
 					) {
 						return yield* Effect.fail(
-							errors.BAD_REQUEST({
+							new AppErrors.BadRequestError({
 								message: "Uploaded file size mismatch.",
 								data: {
 									type: "invalid_request",

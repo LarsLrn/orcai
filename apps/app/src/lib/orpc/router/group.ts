@@ -8,6 +8,7 @@ import {
 import { and, count, eq, ilike, inArray, isNull, or } from "drizzle-orm";
 import * as Effect from "effect/Effect";
 import { AuthzService } from "@/lib/effect/services/authz";
+import * as AppErrors from "@/lib/effect/utils/errors";
 import { authed } from "@/lib/orpc/implementation/authed";
 import { requireOrganizationPermission } from "@/lib/orpc/middlewares/permission";
 
@@ -74,7 +75,7 @@ export const listGroups = authed.group.list
 
 export const findGroup = authed.group.find
 	.use(requireOrganizationPermission("manage_members"))
-	.effect(function* ({ input, context, errors }) {
+	.effect(function* ({ input, context }) {
 		const db = yield* DB;
 		const organizationId = context.auth.session.activeOrganizationId;
 
@@ -92,7 +93,7 @@ export const findGroup = authed.group.find
 
 		if (!group) {
 			return yield* Effect.fail(
-				errors.NOT_FOUND({
+				new AppErrors.NotFoundError({
 					message: "Group not found",
 				}),
 			);
@@ -146,7 +147,7 @@ export const createGroup = authed.group.create
 
 export const updateGroup = authed.group.update
 	.use(requireOrganizationPermission("manage_members"))
-	.effect(function* ({ input, context, errors }) {
+	.effect(function* ({ input, context }) {
 		const db = yield* DB;
 		const organizationId = context.auth.session.activeOrganizationId;
 
@@ -167,7 +168,7 @@ export const updateGroup = authed.group.update
 
 		if (!existing) {
 			return yield* Effect.fail(
-				errors.NOT_FOUND({
+				new AppErrors.NotFoundError({
 					message: "Group not found",
 				}),
 			);
@@ -175,7 +176,7 @@ export const updateGroup = authed.group.update
 
 		if (existing.kind === "system") {
 			return yield* Effect.fail(
-				errors.BAD_REQUEST({
+				new AppErrors.BadRequestError({
 					message: "[SYSTEM_GROUP_IMMUTABLE] System groups cannot be modified",
 				}),
 			);
@@ -198,7 +199,7 @@ export const updateGroup = authed.group.update
 
 export const deleteGroups = authed.group.delete
 	.use(requireOrganizationPermission("manage_members"))
-	.effect(function* ({ input, context, errors }) {
+	.effect(function* ({ input, context }) {
 		const db = yield* DB;
 		const authz = yield* AuthzService;
 		const organizationId = context.auth.session.activeOrganizationId;
@@ -228,7 +229,7 @@ export const deleteGroups = authed.group.delete
 
 		if (existingGroups.some((group) => group.kind === "system")) {
 			return yield* Effect.fail(
-				errors.BAD_REQUEST({
+				new AppErrors.BadRequestError({
 					message: "[SYSTEM_GROUP_IMMUTABLE] System groups cannot be deleted",
 				}),
 			);
@@ -343,7 +344,7 @@ export const deleteGroups = authed.group.delete
 
 export const listGroupMembers = authed.group.listMembers
 	.use(requireOrganizationPermission("manage_members"))
-	.effect(function* ({ input, context, errors }) {
+	.effect(function* ({ input, context }) {
 		const db = yield* DB;
 		const organizationId = context.auth.session.activeOrganizationId;
 
@@ -366,7 +367,7 @@ export const listGroupMembers = authed.group.listMembers
 
 		if (!group) {
 			return yield* Effect.fail(
-				errors.NOT_FOUND({
+				new AppErrors.NotFoundError({
 					message: "Group not found",
 				}),
 			);
@@ -515,7 +516,7 @@ export const listGroupMembers = authed.group.listMembers
 
 export const addGroupMembers = authed.group.addMembers
 	.use(requireOrganizationPermission("manage_members"))
-	.effect(function* ({ input, context, errors }) {
+	.effect(function* ({ input, context }) {
 		const db = yield* DB;
 		const authz = yield* AuthzService;
 		const organizationId = context.auth.session.activeOrganizationId;
@@ -538,14 +539,14 @@ export const addGroupMembers = authed.group.addMembers
 
 		if (!group) {
 			return yield* Effect.fail(
-				errors.NOT_FOUND({
+				new AppErrors.NotFoundError({
 					message: "Group not found",
 				}),
 			);
 		}
 		if (group.kind === "system") {
 			return yield* Effect.fail(
-				errors.BAD_REQUEST({
+				new AppErrors.BadRequestError({
 					message: "[SYSTEM_GROUP_IMMUTABLE] System groups cannot be modified",
 				}),
 			);
@@ -566,7 +567,7 @@ export const addGroupMembers = authed.group.addMembers
 		const validUserIds = new Set(members.map((item) => item.userId));
 		if (validUserIds.size !== new Set(input.userIds).size) {
 			return yield* Effect.fail(
-				errors.BAD_REQUEST({
+				new AppErrors.BadRequestError({
 					message:
 						"[CROSS_ORG_PRINCIPAL_FORBIDDEN] Group members must belong to the same organization",
 				}),
@@ -654,7 +655,7 @@ export const addGroupMembers = authed.group.addMembers
 
 export const removeGroupMembers = authed.group.removeMembers
 	.use(requireOrganizationPermission("manage_members"))
-	.effect(function* ({ input, context, errors }) {
+	.effect(function* ({ input, context }) {
 		const db = yield* DB;
 		const authz = yield* AuthzService;
 
@@ -678,14 +679,14 @@ export const removeGroupMembers = authed.group.removeMembers
 
 		if (!group) {
 			return yield* Effect.fail(
-				errors.NOT_FOUND({
+				new AppErrors.NotFoundError({
 					message: "Group not found",
 				}),
 			);
 		}
 		if (group.kind === "system") {
 			return yield* Effect.fail(
-				errors.BAD_REQUEST({
+				new AppErrors.BadRequestError({
 					message: "[SYSTEM_GROUP_IMMUTABLE] System groups cannot be modified",
 				}),
 			);

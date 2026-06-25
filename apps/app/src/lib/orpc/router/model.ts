@@ -17,6 +17,7 @@ import {
 } from "drizzle-orm";
 import * as Effect from "effect/Effect";
 import OpenAI from "openai";
+import * as AppErrors from "@/lib/effect/utils/errors";
 import { decryptApiKey } from "@/lib/encryption";
 import { authed } from "@/lib/orpc/implementation/authed";
 import { requireOrganizationPermission } from "@/lib/orpc/middlewares/permission";
@@ -103,7 +104,7 @@ export const listModels = authed.model.list
 
 export const findModel = authed.model.find
 	.use(requireOrganizationPermission("read"))
-	.effect(function* ({ input, context, errors }) {
+	.effect(function* ({ input, context }) {
 		const db = yield* DB;
 		const organizationId = context.auth.session.activeOrganizationId;
 
@@ -128,7 +129,7 @@ export const findModel = authed.model.find
 
 		if (!model) {
 			return yield* Effect.fail(
-				errors.NOT_FOUND({
+				new AppErrors.NotFoundError({
 					message: "Model not found",
 				}),
 			);
@@ -141,7 +142,7 @@ export const findModel = authed.model.find
 
 export const createModel = authed.model.create
 	.use(requireOrganizationPermission("manage_members"))
-	.effect(function* ({ input, context, errors }) {
+	.effect(function* ({ input, context }) {
 		const db = yield* DB;
 		const organizationId = context.auth.session.activeOrganizationId;
 
@@ -160,7 +161,7 @@ export const createModel = authed.model.create
 
 		if (!foundProvider) {
 			return yield* Effect.fail(
-				errors.BAD_REQUEST({
+				new AppErrors.BadRequestError({
 					message: "Provider not found in active organization",
 				}),
 			);
@@ -178,7 +179,7 @@ export const createModel = authed.model.create
 
 export const updateModel = authed.model.update
 	.use(requireOrganizationPermission("manage_members"))
-	.effect(function* ({ input, context, errors }) {
+	.effect(function* ({ input, context }) {
 		const db = yield* DB;
 		const organizationId = context.auth.session.activeOrganizationId;
 
@@ -201,7 +202,7 @@ export const updateModel = authed.model.update
 
 		if (!existingModel) {
 			return yield* Effect.fail(
-				errors.NOT_FOUND({
+				new AppErrors.NotFoundError({
 					message: "Model not found",
 				}),
 			);
@@ -215,7 +216,7 @@ export const updateModel = authed.model.update
 
 		if (!model) {
 			return yield* Effect.fail(
-				errors.NOT_FOUND({
+				new AppErrors.NotFoundError({
 					message: "Model not found",
 				}),
 			);
@@ -265,7 +266,7 @@ export const deleteModel = authed.model.delete
 
 export const discoverModels = authed.model.discover
 	.use(requireOrganizationPermission("manage_members"))
-	.effect(function* ({ input, context, errors }) {
+	.effect(function* ({ input, context }) {
 		const db = yield* DB;
 
 		const { data: provider } = yield* Effect.tryPromise({
@@ -280,7 +281,7 @@ export const discoverModels = authed.model.discover
 					},
 				),
 			catch: (cause) =>
-				errors.BAD_REQUEST({
+				new AppErrors.BadRequestError({
 					message: "Failed to find provider",
 					cause,
 				}),
@@ -294,7 +295,7 @@ export const discoverModels = authed.model.discover
 		const res = yield* Effect.tryPromise({
 			try: () => openAiClient.models.list(),
 			catch: (cause) =>
-				errors.BAD_REQUEST({
+				new AppErrors.BadRequestError({
 					message: "Failed to fetch models from provider",
 					cause,
 				}),
