@@ -12,6 +12,14 @@ import {
 	PageHeader,
 	PageTitle,
 } from "@/components/ui/shell/page";
+import {
+	Table,
+	TableBody,
+	TableCell,
+	TableHead,
+	TableHeader,
+	TableRow,
+} from "@/components/ui/table";
 import { useAppForm } from "@/hooks/form";
 import {
 	useDeactivateQuotaPoolMutation,
@@ -245,29 +253,48 @@ function RouteComponent() {
 
 				<div className="rounded-lg border p-4">
 					<div className="mb-3 font-medium">Recent Usage Events</div>
-					<div className="space-y-2">
-						{data.data.recentEvents.map((event) => (
-							<div
-								key={event.id}
-								className="grid grid-cols-[140px_1fr_120px_120px] items-center gap-3 rounded border px-3 py-2 text-sm"
-							>
-								<div className="uppercase">{event.eventType}</div>
-								<div className="truncate text-muted-foreground">
-									{event.appRequestId}
-								</div>
-								<div className="text-right">
-									{event.reservedAmount?.toLocaleString()}
-								</div>
-								<div className="text-right">
-									{event.actualAmount?.toLocaleString()}
-								</div>
-							</div>
-						))}
-						{data.data.recentEvents.length === 0 && (
-							<div className="text-muted-foreground text-sm">
-								No usage events yet.
-							</div>
-						)}
+					<div className="rounded-md border">
+						<Table>
+							<TableHeader>
+								<TableRow>
+									<TableHead>Event type</TableHead>
+									<TableHead>Request ID</TableHead>
+									<TableHead className="text-right">Reserved amount</TableHead>
+									<TableHead className="text-right">Actual amount</TableHead>
+								</TableRow>
+							</TableHeader>
+							<TableBody>
+								{data.data.recentEvents.map((event) => (
+									<TableRow key={event.id}>
+										<TableCell className="uppercase">
+											{event.eventType}
+										</TableCell>
+										<TableCell
+											className="max-w-48 truncate text-muted-foreground"
+											title={event.appRequestId}
+										>
+											{event.appRequestId}
+										</TableCell>
+										<TableCell className="text-right tabular-nums">
+											{event.reservedAmount?.toLocaleString()}
+										</TableCell>
+										<TableCell className="text-right tabular-nums">
+											{event.actualAmount?.toLocaleString()}
+										</TableCell>
+									</TableRow>
+								))}
+								{data.data.recentEvents.length === 0 && (
+									<TableRow>
+										<TableCell
+											colSpan={4}
+											className="h-24 text-center text-muted-foreground"
+										>
+											No usage events yet.
+										</TableCell>
+									</TableRow>
+								)}
+							</TableBody>
+						</Table>
 					</div>
 				</div>
 			</PageContent>
