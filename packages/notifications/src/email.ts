@@ -39,8 +39,12 @@ export const EmailLive = Layer.effect(
 					send: (params: SendEmailParams) =>
 						Effect.logInfo({
 							operation: "email.log-only",
-							toDomain: params.to.split("@").at(-1),
+							warning:
+								"SENSITIVE LOG-ONLY EMAIL CONTENT: may contain authentication or invitation links",
+							to: params.to,
 							subject: params.subject,
+							text: params.text,
+							html: params.html,
 						}).pipe(Effect.as({})),
 				};
 			}

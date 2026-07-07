@@ -2,9 +2,12 @@ import { describe, expect, test } from "bun:test";
 import { emailActionSchema, resetPasswordSchema } from "@orcai/schema";
 import * as ConfigProvider from "effect/ConfigProvider";
 import * as Effect from "effect/Effect";
+import * as Logger from "effect/Logger";
 import {
 	EmailConfigLive,
 	EmailConfigService,
+	EmailLive,
+	EmailService,
 	emailNotificationSchema,
 	notificationOutboxValues,
 	renderEmail,
@@ -79,6 +82,42 @@ describe("notification schemas and templates", () => {
 		});
 		expect(service.config).toEqual({
 			mode: "log_only",
+		});
+	});
+
+	test("logs complete sensitive email content in log-only mode", async () => {
+		const entries: unknown[] = [];
+		const logger = Logger.make(({ message }) => entries.push(...message));
+		const email = {
+			to: "user@example.com",
+			subject: "Reset your password",
+			text: "Reset at https://example.com/reset?token=secret",
+			html: '<a href="https://example.com/reset?token=secret">Reset</a>',
+		};
+
+		await Effect.runPromise(
+			Effect.gen(function* () {
+				const service = yield* EmailService;
+				yield* service.send(email);
+			}).pipe(
+				Effect.provide(EmailLive),
+				Effect.provide(EmailConfigLive),
+				Effect.provideService(
+					ConfigProvider.ConfigProvider,
+					ConfigProvider.fromUnknown({
+						SMTP_HOST: "",
+						SMTP_FROM: "",
+					}),
+				),
+				Effect.withLogger(logger),
+			),
+		);
+
+		expect(entries).toContainEqual({
+			operation: "email.log-only",
+			warning:
+				"SENSITIVE LOG-ONLY EMAIL CONTENT: may contain authentication or invitation links",
+			...email,
 		});
 	});
 
