@@ -43,7 +43,9 @@ export const makeObservabilityLayer = (config: {
 			serviceName: config.serviceName,
 			serviceVersion: config.serviceVersion,
 		},
-		logRecordProcessor: new BatchLogRecordProcessor(new OTLPLogExporter()),
+		logRecordProcessor: new BatchLogRecordProcessor({
+			exporter: new OTLPLogExporter(),
+		}),
 	}));
 
 	const TracerProviderLive = NodeSdk.layerTracerProvider(

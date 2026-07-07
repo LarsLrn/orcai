@@ -8,12 +8,12 @@
 	},
 	"dependencies": {
 		"@effect/opentelemetry": "catalog:",
-		"@opentelemetry/auto-instrumentations-node": "0.77.0",
-		"@opentelemetry/exporter-logs-otlp-http": "0.219.0",
-		"@opentelemetry/exporter-trace-otlp-http": "0.219.0",
-		"@opentelemetry/instrumentation": "0.219.0",
-		"@opentelemetry/sdk-logs": "0.219.0",
-		"@opentelemetry/sdk-trace-base": "2.8.0",
+		"@opentelemetry/auto-instrumentations-node": "0.78.0",
+		"@opentelemetry/exporter-logs-otlp-http": "0.220.0",
+		"@opentelemetry/exporter-trace-otlp-http": "0.220.0",
+		"@opentelemetry/instrumentation": "0.220.0",
+		"@opentelemetry/sdk-logs": "0.220.0",
+		"@opentelemetry/sdk-trace-base": "2.9.0",
 		"effect": "catalog:"
 	}
 }
