@@ -32,6 +32,33 @@ interface BranchRow {
 	id: string;
 }
 
+const getExecuteRows = <TRow>(result: unknown): ReadonlyArray<TRow> => {
+	if (Array.isArray(result)) {
+		return result as ReadonlyArray<TRow>;
+	}
+
+	if (
+		result &&
+		typeof result === "object" &&
+		"rows" in result &&
+		Array.isArray(
+			(
+				result as {
+					rows?: unknown;
+				}
+			).rows,
+		)
+	) {
+		return (
+			result as {
+				rows: ReadonlyArray<TRow>;
+			}
+		).rows;
+	}
+
+	throw new TypeError("Unexpected SQL execute result shape");
+};
+
 const mapMessageTreeRow = (row: MessageTreeRow): ChatMessage => ({
 	id: row.id as ChatMessageId,
 	chatId: row.chat_id as ChatId,
@@ -86,9 +113,8 @@ export const listChatMessages = authed.chatMessage.list
 					LIMIT ${input.pageSize} OFFSET ${input.pageIndex * input.pageSize}
 				`);
 
-		let chatMessages = (result as unknown as ReadonlyArray<MessageTreeRow>).map(
-			mapMessageTreeRow,
-		);
+		let chatMessages =
+			getExecuteRows<MessageTreeRow>(result).map(mapMessageTreeRow);
 
 		if (chatMessages.length > 0) {
 			const parentIds = [
@@ -244,7 +270,7 @@ export const getBranchIdForMessage = authed.chatMessage.getBranch
 					`)
 			.pipe(
 				Effect.map((result) => {
-					const rows = result as unknown as ReadonlyArray<BranchRow>;
+					const rows = getExecuteRows<BranchRow>(result);
 					if (rows.length === 0) {
 						return null;
 					}
@@ -351,7 +377,14 @@ export const createChatMessage = authed.chatMessage.create
 								)
 								SELECT EXISTS(SELECT 1 FROM ancestors WHERE id = ${parentMessageId}) as is_ancestor
 							`)
-					.pipe(Effect.map((res: any) => res.rows[0]?.is_ancestor ?? false));
+					.pipe(
+						Effect.map((result) => {
+							const rows = getExecuteRows<{
+								is_ancestor: boolean;
+							}>(result);
+							return rows[0]?.is_ancestor ?? false;
+						}),
+					);
 
 				isForking = isAncestor;
 			}
