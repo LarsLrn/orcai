@@ -134,9 +134,9 @@ export const getKnowledgeBasePageTool = ({
 						try: () =>
 							Promise.all(
 								targetBlocks.map(async (block) => {
-									const response = await client.assetPoint.list({
+									const response = await client.assetPoint.searchRepository({
+										repositoryId: block.id,
 										filters: {
-											blockId: block.id,
 											assetIds: matchedAssetIds,
 											pageFrom,
 											pageTo,

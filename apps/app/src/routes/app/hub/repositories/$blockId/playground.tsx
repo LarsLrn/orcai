@@ -1,5 +1,6 @@
 import { retrievalModeSchema } from "@orcai/schema";
-import { createFileRoute } from "@tanstack/react-router";
+import { useSuspenseQuery } from "@tanstack/react-query";
+import { createFileRoute, notFound } from "@tanstack/react-router";
 import { z } from "zod/v4";
 import { QdrantPlaygroundForm } from "@/components/documents/playground/qdrant-playground-form";
 import QdrantPlaygroundResults from "@/components/documents/playground/qdrant-playground-results";
@@ -11,41 +12,66 @@ import {
 	PageHeader,
 	PageTitle,
 } from "@/components/ui/shell/page";
+import { orpc } from "@/lib/orpc/orpc";
 
 const searchParams = z.object({
 	search: z.coerce.string().default(""),
 	retrievalMode: retrievalModeSchema.optional(),
 });
 
-export const Route = createFileRoute("/app/hub/assets/playground")({
+export const Route = createFileRoute(
+	"/app/hub/repositories/$blockId/playground",
+)({
 	validateSearch: searchParams,
+	loader: async ({ context: { queryClient }, params: { blockId } }) => {
+		const repository = await queryClient.ensureQueryData(
+			orpc.block.find.queryOptions({
+				input: {
+					id: blockId,
+				},
+			}),
+		);
+		if (
+			repository.data.type !== "database" ||
+			repository.data.status !== "ready"
+		) {
+			throw notFound();
+		}
+	},
 	component: RouteComponent,
 	head: () => ({
 		meta: [
 			{
-				title: "Playground",
+				title: "Repository Playground",
 			},
 		],
 	}),
 });
 
 function RouteComponent() {
+	const { blockId } = Route.useParams();
 	const { search, retrievalMode } = Route.useSearch();
+	const { data: repository } = useSuspenseQuery(
+		orpc.block.find.queryOptions({
+			input: {
+				id: blockId,
+			},
+		}),
+	);
 
 	return (
 		<Page>
 			<PageHeader>
-				<PageTitle>Playground</PageTitle>
+				<PageTitle>{repository.data.name} Playground</PageTitle>
 				<PageDescription>
-					Experiment with vector search and retrieval-augmented generation
-					(RAG). Type a query and see which chunks of available content are
-					found.
+					Experiment with retrieval against this published repository.
 				</PageDescription>
 			</PageHeader>
 			<PageContent className="space-y-6">
 				<QdrantPlaygroundForm />
 				{search ? (
 					<QdrantPlaygroundResults
+						repositoryId={blockId}
 						search={search}
 						retrievalMode={retrievalMode}
 					/>

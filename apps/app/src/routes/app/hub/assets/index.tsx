@@ -1,12 +1,7 @@
 import { paginationInputSchema } from "@orcai/schema";
 import { useSuspenseQuery } from "@tanstack/react-query";
 import { createFileRoute, Link } from "@tanstack/react-router";
-import {
-	FileTextIcon,
-	FlaskConicalIcon,
-	PlusIcon,
-	RefreshCwIcon,
-} from "lucide-react";
+import { FileTextIcon, PlusIcon, RefreshCwIcon } from "lucide-react";
 import { AssetCard } from "@/components/documents/asset-card";
 import { Placeholder } from "@/components/placeholders/placeholder";
 import { buttonVariants } from "@/components/ui/button";
@@ -64,16 +59,6 @@ function RouteComponent() {
 					Reusable source material for retrieval, grounding, and citations.
 				</SectionDescription>
 				<SectionAction>
-					<Link
-						to="/app/hub/assets/playground"
-						className={buttonVariants({
-							variant: "outline",
-							size: "sm",
-						})}
-					>
-						<FlaskConicalIcon />
-						Playground
-					</Link>
 					<Link
 						to="/app/hub/assets/add"
 						className={buttonVariants({

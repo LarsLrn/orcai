@@ -7,6 +7,7 @@ import {
 	findAssetPointResponseSchema,
 	listAssetPointsInputSchema,
 	listAssetPointsResponseSchema,
+	searchRepositoryAssetPointsInputSchema,
 	updateAssetPointInputSchema,
 	updateAssetPointResponseSchema,
 } from "@orcai/schema";
@@ -18,14 +19,27 @@ export const assetPointContracts = {
 		.meta(
 			openapi({
 				method: "POST",
-				path: "/assets/points",
-				summary: "List all asset points",
+				path: "/assets/{assetId}/points",
+				summary: "List asset points",
 				tags: [
 					"Asset Points",
 				],
 			}),
 		)
 		.input(listAssetPointsInputSchema)
+		.output(listAssetPointsResponseSchema),
+	searchRepository: base
+		.meta(
+			openapi({
+				method: "POST",
+				path: "/repositories/{repositoryId}/points/search",
+				summary: "Search repository asset points",
+				tags: [
+					"Asset Points",
+				],
+			}),
+		)
+		.input(searchRepositoryAssetPointsInputSchema)
 		.output(listAssetPointsResponseSchema),
 	create: base
 		.meta(

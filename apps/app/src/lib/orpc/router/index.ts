@@ -7,7 +7,7 @@ import {
 	saveAsset,
 	saveManyAssets,
 } from "./asset";
-import { listAssetPoint } from "./asset-point";
+import { listAssetPoint, searchRepositoryAssetPoint } from "./asset-point";
 import {
 	createBlock,
 	deleteBlocks,
@@ -237,6 +237,7 @@ export const router = {
 	},
 	assetPoint: {
 		list: listAssetPoint,
+		searchRepository: searchRepositoryAssetPoint,
 	},
 	user: {
 		list: listUsers,

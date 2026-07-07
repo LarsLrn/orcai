@@ -4,6 +4,7 @@ import {
 	BlocksIcon,
 	DatabaseIcon,
 	EditIcon,
+	FlaskConicalIcon,
 	PlusIcon,
 	TrashIcon,
 } from "lucide-react";
@@ -24,7 +25,7 @@ import { orpc } from "@/lib/orpc/orpc";
 
 const PAGE_SIZE = 100;
 
-export const Route = createFileRoute("/app/hub/repositories")({
+export const Route = createFileRoute("/app/hub/repositories/")({
 	loader: async ({ context: { queryClient } }) => {
 		await Promise.all([
 			queryClient.ensureQueryData(
@@ -150,7 +151,19 @@ function RouteComponent() {
 									key={block.id}
 									block={block}
 									actions={{
-										footer: [],
+										footer: [
+											{
+												key: "playground",
+												label: "Playground",
+												icon: FlaskConicalIcon,
+												linkProps: {
+													to: "/app/hub/repositories/$blockId/playground",
+													params: {
+														blockId: block.id,
+													},
+												},
+											},
+										],
 									}}
 								/>
 							))}

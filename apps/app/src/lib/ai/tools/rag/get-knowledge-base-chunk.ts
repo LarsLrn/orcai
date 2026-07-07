@@ -107,10 +107,10 @@ export const getKnowledgeBaseChunksTool = ({
 						try: () =>
 							Promise.all(
 								targetBlocks.map(async (block) => {
-									const response = await client.assetPoint.list({
+									const response = await client.assetPoint.searchRepository({
+										repositoryId: block.id,
 										filters: {
 											pointIds: uniqueIds,
-											blockId: block.id,
 											limit: uniqueIds.length,
 										},
 									});
@@ -161,9 +161,9 @@ export const getKnowledgeBaseChunksTool = ({
 											};
 										}
 
-										const response = await client.assetPoint.list({
+										const response = await client.assetPoint.searchRepository({
+											repositoryId: candidate.sourceBlock.id,
 											filters: {
-												blockId: candidate.sourceBlock.id,
 												assetIds: [
 													candidate.payload.asset_id,
 												],

@@ -136,11 +136,11 @@ export const searchKnowledgeBaseTool = ({
 						try: () =>
 							Promise.all(
 								targetBlocks.map(async (block) => {
-									const response = await client.assetPoint.list({
+									const response = await client.assetPoint.searchRepository({
+										repositoryId: block.id,
 										filters: {
 											queries: normalizedQueries,
 											limit: Math.max(limit * 6, 24),
-											blockId: block.id,
 											assetIds,
 											retrievalMode: block.config.retrievalMode ?? "hybrid",
 											minScore: block.config.scoreThreshold,

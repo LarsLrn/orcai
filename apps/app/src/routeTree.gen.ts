@@ -46,7 +46,6 @@ import { Route as AppQuotasAddRouteImport } from './routes/app/quotas/add'
 import { Route as AppProvidersAddRouteImport } from './routes/app/providers/add'
 import { Route as AppOrgsAddRouteImport } from './routes/app/orgs/add'
 import { Route as AppModelsAddRouteImport } from './routes/app/models/add'
-import { Route as AppHubRepositoriesRouteImport } from './routes/app/hub/repositories'
 import { Route as AppHubBehaviourRouteImport } from './routes/app/hub/behaviour'
 import { Route as AppChatSetupRouteImport } from './routes/app/chat/setup'
 import { Route as AppChatNewRouteImport } from './routes/app/chat/new'
@@ -66,6 +65,7 @@ import { Route as AppQuotasQuotaPoolIdIndexRouteImport } from './routes/app/quot
 import { Route as AppProvidersProviderIdIndexRouteImport } from './routes/app/providers/$providerId/index'
 import { Route as AppOrgsOrgIdIndexRouteImport } from './routes/app/orgs/$orgId/index'
 import { Route as AppModelsModelIdIndexRouteImport } from './routes/app/models/$modelId/index'
+import { Route as AppHubRepositoriesIndexRouteImport } from './routes/app/hub/repositories/index'
 import { Route as AppHubBotsIndexRouteImport } from './routes/app/hub/bots/index'
 import { Route as AppHubBlocksIndexRouteImport } from './routes/app/hub/blocks/index'
 import { Route as AppHubAssetsIndexRouteImport } from './routes/app/hub/assets/index'
@@ -78,7 +78,6 @@ import { Route as AppOrgsOrgIdEditRouteImport } from './routes/app/orgs/$orgId/e
 import { Route as AppModelsModelIdEditRouteImport } from './routes/app/models/$modelId/edit'
 import { Route as AppHubBotsAddRouteImport } from './routes/app/hub/bots/add'
 import { Route as AppHubBlocksAddRouteImport } from './routes/app/hub/blocks/add'
-import { Route as AppHubAssetsPlaygroundRouteImport } from './routes/app/hub/assets/playground'
 import { Route as AppHubAssetsAddRouteImport } from './routes/app/hub/assets/add'
 import { Route as AppHubBotsBotIdRouteRouteImport } from './routes/app/hub/bots/$botId/route'
 import { Route as AppHubBlocksBlockIdRouteRouteImport } from './routes/app/hub/blocks/$blockId/route'
@@ -86,6 +85,7 @@ import { Route as AppHubAssetsAssetIdRouteRouteImport } from './routes/app/hub/a
 import { Route as AppHubBotsBotIdIndexRouteImport } from './routes/app/hub/bots/$botId/index'
 import { Route as AppHubBlocksBlockIdIndexRouteImport } from './routes/app/hub/blocks/$blockId/index'
 import { Route as AppHubAssetsAssetIdIndexRouteImport } from './routes/app/hub/assets/$assetId/index'
+import { Route as AppHubRepositoriesBlockIdPlaygroundRouteImport } from './routes/app/hub/repositories/$blockId/playground'
 import { Route as AppHubBotsBotIdSetupRouteImport } from './routes/app/hub/bots/$botId/setup'
 import { Route as AppHubBlocksBlockIdPointsRouteImport } from './routes/app/hub/blocks/$blockId/points'
 import { Route as AppHubBlocksBlockIdEditRouteImport } from './routes/app/hub/blocks/$blockId/edit'
@@ -279,11 +279,6 @@ const AppModelsAddRoute = AppModelsAddRouteImport.update({
   path: '/add',
   getParentRoute: () => AppModelsRouteRoute,
 } as any)
-const AppHubRepositoriesRoute = AppHubRepositoriesRouteImport.update({
-  id: '/repositories',
-  path: '/repositories',
-  getParentRoute: () => AppHubRouteRoute,
-} as any)
 const AppHubBehaviourRoute = AppHubBehaviourRouteImport.update({
   id: '/behaviour',
   path: '/behaviour',
@@ -383,6 +378,11 @@ const AppModelsModelIdIndexRoute = AppModelsModelIdIndexRouteImport.update({
   path: '/',
   getParentRoute: () => AppModelsModelIdRouteRoute,
 } as any)
+const AppHubRepositoriesIndexRoute = AppHubRepositoriesIndexRouteImport.update({
+  id: '/repositories/',
+  path: '/repositories/',
+  getParentRoute: () => AppHubRouteRoute,
+} as any)
 const AppHubBotsIndexRoute = AppHubBotsIndexRouteImport.update({
   id: '/',
   path: '/',
@@ -445,11 +445,6 @@ const AppHubBlocksAddRoute = AppHubBlocksAddRouteImport.update({
   path: '/add',
   getParentRoute: () => AppHubBlocksRouteRoute,
 } as any)
-const AppHubAssetsPlaygroundRoute = AppHubAssetsPlaygroundRouteImport.update({
-  id: '/playground',
-  path: '/playground',
-  getParentRoute: () => AppHubAssetsRouteRoute,
-} as any)
 const AppHubAssetsAddRoute = AppHubAssetsAddRouteImport.update({
   id: '/add',
   path: '/add',
@@ -488,6 +483,12 @@ const AppHubAssetsAssetIdIndexRoute =
     id: '/',
     path: '/',
     getParentRoute: () => AppHubAssetsAssetIdRouteRoute,
+  } as any)
+const AppHubRepositoriesBlockIdPlaygroundRoute =
+  AppHubRepositoriesBlockIdPlaygroundRouteImport.update({
+    id: '/repositories/$blockId/playground',
+    path: '/repositories/$blockId/playground',
+    getParentRoute: () => AppHubRouteRoute,
   } as any)
 const AppHubBotsBotIdSetupRoute = AppHubBotsBotIdSetupRouteImport.update({
   id: '/setup',
@@ -548,7 +549,6 @@ export interface FileRoutesByFullPath {
   '/app/chat/new': typeof AppChatNewRoute
   '/app/chat/setup': typeof AppChatSetupRoute
   '/app/hub/behaviour': typeof AppHubBehaviourRoute
-  '/app/hub/repositories': typeof AppHubRepositoriesRoute
   '/app/models/add': typeof AppModelsAddRoute
   '/app/orgs/add': typeof AppOrgsAddRoute
   '/app/providers/add': typeof AppProvidersAddRoute
@@ -568,7 +568,6 @@ export interface FileRoutesByFullPath {
   '/app/hub/blocks/$blockId': typeof AppHubBlocksBlockIdRouteRouteWithChildren
   '/app/hub/bots/$botId': typeof AppHubBotsBotIdRouteRouteWithChildren
   '/app/hub/assets/add': typeof AppHubAssetsAddRoute
-  '/app/hub/assets/playground': typeof AppHubAssetsPlaygroundRoute
   '/app/hub/blocks/add': typeof AppHubBlocksAddRoute
   '/app/hub/bots/add': typeof AppHubBotsAddRoute
   '/app/models/$modelId/edit': typeof AppModelsModelIdEditRoute
@@ -581,6 +580,7 @@ export interface FileRoutesByFullPath {
   '/app/hub/assets/': typeof AppHubAssetsIndexRoute
   '/app/hub/blocks/': typeof AppHubBlocksIndexRoute
   '/app/hub/bots/': typeof AppHubBotsIndexRoute
+  '/app/hub/repositories/': typeof AppHubRepositoriesIndexRoute
   '/app/models/$modelId/': typeof AppModelsModelIdIndexRoute
   '/app/orgs/$orgId/': typeof AppOrgsOrgIdIndexRoute
   '/app/providers/$providerId/': typeof AppProvidersProviderIdIndexRoute
@@ -589,6 +589,7 @@ export interface FileRoutesByFullPath {
   '/app/hub/blocks/$blockId/edit': typeof AppHubBlocksBlockIdEditRoute
   '/app/hub/blocks/$blockId/points': typeof AppHubBlocksBlockIdPointsRoute
   '/app/hub/bots/$botId/setup': typeof AppHubBotsBotIdSetupRoute
+  '/app/hub/repositories/$blockId/playground': typeof AppHubRepositoriesBlockIdPlaygroundRoute
   '/app/hub/assets/$assetId/': typeof AppHubAssetsAssetIdIndexRoute
   '/app/hub/blocks/$blockId/': typeof AppHubBlocksBlockIdIndexRoute
   '/app/hub/bots/$botId/': typeof AppHubBotsBotIdIndexRoute
@@ -612,7 +613,6 @@ export interface FileRoutesByTo {
   '/app/chat/new': typeof AppChatNewRoute
   '/app/chat/setup': typeof AppChatSetupRoute
   '/app/hub/behaviour': typeof AppHubBehaviourRoute
-  '/app/hub/repositories': typeof AppHubRepositoriesRoute
   '/app/models/add': typeof AppModelsAddRoute
   '/app/orgs/add': typeof AppOrgsAddRoute
   '/app/providers/add': typeof AppProvidersAddRoute
@@ -629,7 +629,6 @@ export interface FileRoutesByTo {
   '/app/quotas': typeof AppQuotasIndexRoute
   '/app/users': typeof AppUsersIndexRoute
   '/app/hub/assets/add': typeof AppHubAssetsAddRoute
-  '/app/hub/assets/playground': typeof AppHubAssetsPlaygroundRoute
   '/app/hub/blocks/add': typeof AppHubBlocksAddRoute
   '/app/hub/bots/add': typeof AppHubBotsAddRoute
   '/app/models/$modelId/edit': typeof AppModelsModelIdEditRoute
@@ -642,6 +641,7 @@ export interface FileRoutesByTo {
   '/app/hub/assets': typeof AppHubAssetsIndexRoute
   '/app/hub/blocks': typeof AppHubBlocksIndexRoute
   '/app/hub/bots': typeof AppHubBotsIndexRoute
+  '/app/hub/repositories': typeof AppHubRepositoriesIndexRoute
   '/app/models/$modelId': typeof AppModelsModelIdIndexRoute
   '/app/orgs/$orgId': typeof AppOrgsOrgIdIndexRoute
   '/app/providers/$providerId': typeof AppProvidersProviderIdIndexRoute
@@ -650,6 +650,7 @@ export interface FileRoutesByTo {
   '/app/hub/blocks/$blockId/edit': typeof AppHubBlocksBlockIdEditRoute
   '/app/hub/blocks/$blockId/points': typeof AppHubBlocksBlockIdPointsRoute
   '/app/hub/bots/$botId/setup': typeof AppHubBotsBotIdSetupRoute
+  '/app/hub/repositories/$blockId/playground': typeof AppHubRepositoriesBlockIdPlaygroundRoute
   '/app/hub/assets/$assetId': typeof AppHubAssetsAssetIdIndexRoute
   '/app/hub/blocks/$blockId': typeof AppHubBlocksBlockIdIndexRoute
   '/app/hub/bots/$botId': typeof AppHubBotsBotIdIndexRoute
@@ -693,7 +694,6 @@ export interface FileRoutesById {
   '/app/chat/new': typeof AppChatNewRoute
   '/app/chat/setup': typeof AppChatSetupRoute
   '/app/hub/behaviour': typeof AppHubBehaviourRoute
-  '/app/hub/repositories': typeof AppHubRepositoriesRoute
   '/app/models/add': typeof AppModelsAddRoute
   '/app/orgs/add': typeof AppOrgsAddRoute
   '/app/providers/add': typeof AppProvidersAddRoute
@@ -713,7 +713,6 @@ export interface FileRoutesById {
   '/app/hub/blocks/$blockId': typeof AppHubBlocksBlockIdRouteRouteWithChildren
   '/app/hub/bots/$botId': typeof AppHubBotsBotIdRouteRouteWithChildren
   '/app/hub/assets/add': typeof AppHubAssetsAddRoute
-  '/app/hub/assets/playground': typeof AppHubAssetsPlaygroundRoute
   '/app/hub/blocks/add': typeof AppHubBlocksAddRoute
   '/app/hub/bots/add': typeof AppHubBotsAddRoute
   '/app/models/$modelId/edit': typeof AppModelsModelIdEditRoute
@@ -726,6 +725,7 @@ export interface FileRoutesById {
   '/app/hub/assets/': typeof AppHubAssetsIndexRoute
   '/app/hub/blocks/': typeof AppHubBlocksIndexRoute
   '/app/hub/bots/': typeof AppHubBotsIndexRoute
+  '/app/hub/repositories/': typeof AppHubRepositoriesIndexRoute
   '/app/models/$modelId/': typeof AppModelsModelIdIndexRoute
   '/app/orgs/$orgId/': typeof AppOrgsOrgIdIndexRoute
   '/app/providers/$providerId/': typeof AppProvidersProviderIdIndexRoute
@@ -734,6 +734,7 @@ export interface FileRoutesById {
   '/app/hub/blocks/$blockId/edit': typeof AppHubBlocksBlockIdEditRoute
   '/app/hub/blocks/$blockId/points': typeof AppHubBlocksBlockIdPointsRoute
   '/app/hub/bots/$botId/setup': typeof AppHubBotsBotIdSetupRoute
+  '/app/hub/repositories/$blockId/playground': typeof AppHubRepositoriesBlockIdPlaygroundRoute
   '/app/hub/assets/$assetId/': typeof AppHubAssetsAssetIdIndexRoute
   '/app/hub/blocks/$blockId/': typeof AppHubBlocksBlockIdIndexRoute
   '/app/hub/bots/$botId/': typeof AppHubBotsBotIdIndexRoute
@@ -777,7 +778,6 @@ export interface FileRouteTypes {
     | '/app/chat/new'
     | '/app/chat/setup'
     | '/app/hub/behaviour'
-    | '/app/hub/repositories'
     | '/app/models/add'
     | '/app/orgs/add'
     | '/app/providers/add'
@@ -797,7 +797,6 @@ export interface FileRouteTypes {
     | '/app/hub/blocks/$blockId'
     | '/app/hub/bots/$botId'
     | '/app/hub/assets/add'
-    | '/app/hub/assets/playground'
     | '/app/hub/blocks/add'
     | '/app/hub/bots/add'
     | '/app/models/$modelId/edit'
@@ -810,6 +809,7 @@ export interface FileRouteTypes {
     | '/app/hub/assets/'
     | '/app/hub/blocks/'
     | '/app/hub/bots/'
+    | '/app/hub/repositories/'
     | '/app/models/$modelId/'
     | '/app/orgs/$orgId/'
     | '/app/providers/$providerId/'
@@ -818,6 +818,7 @@ export interface FileRouteTypes {
     | '/app/hub/blocks/$blockId/edit'
     | '/app/hub/blocks/$blockId/points'
     | '/app/hub/bots/$botId/setup'
+    | '/app/hub/repositories/$blockId/playground'
     | '/app/hub/assets/$assetId/'
     | '/app/hub/blocks/$blockId/'
     | '/app/hub/bots/$botId/'
@@ -841,7 +842,6 @@ export interface FileRouteTypes {
     | '/app/chat/new'
     | '/app/chat/setup'
     | '/app/hub/behaviour'
-    | '/app/hub/repositories'
     | '/app/models/add'
     | '/app/orgs/add'
     | '/app/providers/add'
@@ -858,7 +858,6 @@ export interface FileRouteTypes {
     | '/app/quotas'
     | '/app/users'
     | '/app/hub/assets/add'
-    | '/app/hub/assets/playground'
     | '/app/hub/blocks/add'
     | '/app/hub/bots/add'
     | '/app/models/$modelId/edit'
@@ -871,6 +870,7 @@ export interface FileRouteTypes {
     | '/app/hub/assets'
     | '/app/hub/blocks'
     | '/app/hub/bots'
+    | '/app/hub/repositories'
     | '/app/models/$modelId'
     | '/app/orgs/$orgId'
     | '/app/providers/$providerId'
@@ -879,6 +879,7 @@ export interface FileRouteTypes {
     | '/app/hub/blocks/$blockId/edit'
     | '/app/hub/blocks/$blockId/points'
     | '/app/hub/bots/$botId/setup'
+    | '/app/hub/repositories/$blockId/playground'
     | '/app/hub/assets/$assetId'
     | '/app/hub/blocks/$blockId'
     | '/app/hub/bots/$botId'
@@ -921,7 +922,6 @@ export interface FileRouteTypes {
     | '/app/chat/new'
     | '/app/chat/setup'
     | '/app/hub/behaviour'
-    | '/app/hub/repositories'
     | '/app/models/add'
     | '/app/orgs/add'
     | '/app/providers/add'
@@ -941,7 +941,6 @@ export interface FileRouteTypes {
     | '/app/hub/blocks/$blockId'
     | '/app/hub/bots/$botId'
     | '/app/hub/assets/add'
-    | '/app/hub/assets/playground'
     | '/app/hub/blocks/add'
     | '/app/hub/bots/add'
     | '/app/models/$modelId/edit'
@@ -954,6 +953,7 @@ export interface FileRouteTypes {
     | '/app/hub/assets/'
     | '/app/hub/blocks/'
     | '/app/hub/bots/'
+    | '/app/hub/repositories/'
     | '/app/models/$modelId/'
     | '/app/orgs/$orgId/'
     | '/app/providers/$providerId/'
@@ -962,6 +962,7 @@ export interface FileRouteTypes {
     | '/app/hub/blocks/$blockId/edit'
     | '/app/hub/blocks/$blockId/points'
     | '/app/hub/bots/$botId/setup'
+    | '/app/hub/repositories/$blockId/playground'
     | '/app/hub/assets/$assetId/'
     | '/app/hub/blocks/$blockId/'
     | '/app/hub/bots/$botId/'
@@ -1237,13 +1238,6 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AppModelsAddRouteImport
       parentRoute: typeof AppModelsRouteRoute
     }
-    '/app/hub/repositories': {
-      id: '/app/hub/repositories'
-      path: '/repositories'
-      fullPath: '/app/hub/repositories'
-      preLoaderRoute: typeof AppHubRepositoriesRouteImport
-      parentRoute: typeof AppHubRouteRoute
-    }
     '/app/hub/behaviour': {
       id: '/app/hub/behaviour'
       path: '/behaviour'
@@ -1377,6 +1371,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AppModelsModelIdIndexRouteImport
       parentRoute: typeof AppModelsModelIdRouteRoute
     }
+    '/app/hub/repositories/': {
+      id: '/app/hub/repositories/'
+      path: '/repositories'
+      fullPath: '/app/hub/repositories/'
+      preLoaderRoute: typeof AppHubRepositoriesIndexRouteImport
+      parentRoute: typeof AppHubRouteRoute
+    }
     '/app/hub/bots/': {
       id: '/app/hub/bots/'
       path: '/'
@@ -1461,13 +1462,6 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AppHubBlocksAddRouteImport
       parentRoute: typeof AppHubBlocksRouteRoute
     }
-    '/app/hub/assets/playground': {
-      id: '/app/hub/assets/playground'
-      path: '/playground'
-      fullPath: '/app/hub/assets/playground'
-      preLoaderRoute: typeof AppHubAssetsPlaygroundRouteImport
-      parentRoute: typeof AppHubAssetsRouteRoute
-    }
     '/app/hub/assets/add': {
       id: '/app/hub/assets/add'
       path: '/add'
@@ -1516,6 +1510,13 @@ declare module '@tanstack/react-router' {
       fullPath: '/app/hub/assets/$assetId/'
       preLoaderRoute: typeof AppHubAssetsAssetIdIndexRouteImport
       parentRoute: typeof AppHubAssetsAssetIdRouteRoute
+    }
+    '/app/hub/repositories/$blockId/playground': {
+      id: '/app/hub/repositories/$blockId/playground'
+      path: '/repositories/$blockId/playground'
+      fullPath: '/app/hub/repositories/$blockId/playground'
+      preLoaderRoute: typeof AppHubRepositoriesBlockIdPlaygroundRouteImport
+      parentRoute: typeof AppHubRouteRoute
     }
     '/app/hub/bots/$botId/setup': {
       id: '/app/hub/bots/$botId/setup'
@@ -1651,14 +1652,12 @@ const AppHubAssetsAssetIdRouteRouteWithChildren =
 interface AppHubAssetsRouteRouteChildren {
   AppHubAssetsAssetIdRouteRoute: typeof AppHubAssetsAssetIdRouteRouteWithChildren
   AppHubAssetsAddRoute: typeof AppHubAssetsAddRoute
-  AppHubAssetsPlaygroundRoute: typeof AppHubAssetsPlaygroundRoute
   AppHubAssetsIndexRoute: typeof AppHubAssetsIndexRoute
 }
 
 const AppHubAssetsRouteRouteChildren: AppHubAssetsRouteRouteChildren = {
   AppHubAssetsAssetIdRouteRoute: AppHubAssetsAssetIdRouteRouteWithChildren,
   AppHubAssetsAddRoute: AppHubAssetsAddRoute,
-  AppHubAssetsPlaygroundRoute: AppHubAssetsPlaygroundRoute,
   AppHubAssetsIndexRoute: AppHubAssetsIndexRoute,
 }
 
@@ -1732,8 +1731,9 @@ interface AppHubRouteRouteChildren {
   AppHubBlocksRouteRoute: typeof AppHubBlocksRouteRouteWithChildren
   AppHubBotsRouteRoute: typeof AppHubBotsRouteRouteWithChildren
   AppHubBehaviourRoute: typeof AppHubBehaviourRoute
-  AppHubRepositoriesRoute: typeof AppHubRepositoriesRoute
   AppHubIndexRoute: typeof AppHubIndexRoute
+  AppHubRepositoriesIndexRoute: typeof AppHubRepositoriesIndexRoute
+  AppHubRepositoriesBlockIdPlaygroundRoute: typeof AppHubRepositoriesBlockIdPlaygroundRoute
 }
 
 const AppHubRouteRouteChildren: AppHubRouteRouteChildren = {
@@ -1741,8 +1741,10 @@ const AppHubRouteRouteChildren: AppHubRouteRouteChildren = {
   AppHubBlocksRouteRoute: AppHubBlocksRouteRouteWithChildren,
   AppHubBotsRouteRoute: AppHubBotsRouteRouteWithChildren,
   AppHubBehaviourRoute: AppHubBehaviourRoute,
-  AppHubRepositoriesRoute: AppHubRepositoriesRoute,
   AppHubIndexRoute: AppHubIndexRoute,
+  AppHubRepositoriesIndexRoute: AppHubRepositoriesIndexRoute,
+  AppHubRepositoriesBlockIdPlaygroundRoute:
+    AppHubRepositoriesBlockIdPlaygroundRoute,
 }
 
 const AppHubRouteRouteWithChildren = AppHubRouteRoute._addFileChildren(

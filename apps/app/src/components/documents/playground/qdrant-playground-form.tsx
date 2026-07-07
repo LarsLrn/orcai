@@ -4,7 +4,7 @@ import { useAppForm } from "@/hooks/form";
 
 const QdrantPlaygroundForm = () => {
 	const { search, retrievalMode } = useSearch({
-		from: "/app/hub/assets/playground",
+		from: "/app/hub/repositories/$blockId/playground",
 	});
 	const navigate = useNavigate();
 
