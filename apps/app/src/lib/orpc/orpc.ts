@@ -15,9 +15,12 @@ import { router } from "./router";
 const getORPCClient = createIsomorphicFn()
 	.server(() =>
 		createRouterClient(router, {
-			context: createORPCContext({
-				reqHeaders: getRequestHeaders(),
-			}),
+			// Resolve request headers lazily so this shared client can be created
+			// at module scope without requiring an active request event.
+			context: () =>
+				createORPCContext({
+					reqHeaders: getRequestHeaders(),
+				}),
 		}),
 	)
 	.client((): RouterClient<typeof router> => {
