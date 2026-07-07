@@ -360,10 +360,10 @@ export const aiChat = authed.ai.chat
 							delayInMs: 20,
 							chunking: "word",
 						}),
-						onStepFinish: () => {
+						onStepEnd: () => {
 							actualProviderRequestCount += 1;
 						},
-						onFinish: async ({ responseMessage }) => {
+						onEnd: async ({ responseMessage }) => {
 							const usage = getTokenUsageFromMetadata(responseMessage.metadata);
 
 							await call(

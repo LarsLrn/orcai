@@ -102,14 +102,15 @@ export const generateImageTool = ({
 					});
 
 					const description = yield* generateTextEffect({
-						system: `You are passed an AI generated image. Write a highly detailed description of the image and what it shows. Include a description of all elements, their position, color, and composition. Output ONLY the description, nothing else. Do not start your response with "This image shows..." or something like that. Simply start with the description.`,
+						instructions: `You are passed an AI generated image. Write a highly detailed description of the image and what it shows. Include a description of all elements, their position, color, and composition. Output ONLY the description, nothing else. Do not start your response with "This image shows..." or something like that. Simply start with the description.`,
 						messages: [
 							{
 								role: "user",
 								content: [
 									{
-										type: "image",
-										image: `data:image/png;base64,${image.base64}`,
+										type: "file",
+										data: `data:image/png;base64,${image.base64}`,
+										mediaType: "image",
 									},
 								],
 							},

@@ -5,10 +5,21 @@ export const chatMessageMetadataSchema = z.object({
 	model: z.string().optional(),
 	totalUsage: z
 		.object({
-			cachedInputTokens: z.number().optional(),
 			inputTokens: z.number().optional(),
+			inputTokenDetails: z
+				.object({
+					noCacheTokens: z.number().optional(),
+					cacheReadTokens: z.number().optional(),
+					cacheWriteTokens: z.number().optional(),
+				})
+				.optional(),
 			outputTokens: z.number().optional(),
-			reasoningTokens: z.number().optional(),
+			outputTokenDetails: z
+				.object({
+					textTokens: z.number().optional(),
+					reasoningTokens: z.number().optional(),
+				})
+				.optional(),
 			totalTokens: z.number().optional(),
 		})
 		.optional(),
