@@ -1,8 +1,8 @@
 import { createOrganizationInvitationsInputSchema } from "@orcai/schema";
 import { formOptions } from "@tanstack/form-core";
 
-const defaultValues = () => ({
-	organizationId: "",
+const defaultValues = (organizationId?: string) => ({
+	organizationId: organizationId ?? "",
 	role: "student",
 	expiresAt: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000), // Default to 7 days from now
 	items: [
@@ -12,9 +12,9 @@ const defaultValues = () => ({
 	],
 });
 
-export const organizationInvitationFormOptions = () =>
+export const organizationInvitationFormOptions = (organizationId?: string) =>
 	formOptions({
-		defaultValues: defaultValues(),
+		defaultValues: defaultValues(organizationId),
 		validators: {
 			onChange: createOrganizationInvitationsInputSchema,
 		},

@@ -1,5 +1,6 @@
 import type { OrganizationInvitation } from "@orcai/schema";
 import { useSuspenseQuery } from "@tanstack/react-query";
+import { useRouteContext } from "@tanstack/react-router";
 import { CircleMinusIcon } from "lucide-react";
 import { useId } from "react";
 import { Button } from "@/components/ui/button";
@@ -26,6 +27,9 @@ import { orpc } from "@/lib/orpc/orpc";
 import { organizationInvitationFormOptions } from "./organization-invitation-form-options";
 
 const OrganizationInvitationForm = () => {
+	const { auth } = useRouteContext({
+		from: "/app",
+	});
 	const { mutate: createInvitation } =
 		useCreateOrganizationInvitationMutation();
 
@@ -39,9 +43,14 @@ const OrganizationInvitationForm = () => {
 			},
 		}),
 	);
+	const initialOrganizationId = organizations.data.some(
+		(organization) => organization.id === auth.session.activeOrganizationId,
+	)
+		? auth.session.activeOrganizationId
+		: undefined;
 
 	const form = useAppForm({
-		...organizationInvitationFormOptions(),
+		...organizationInvitationFormOptions(initialOrganizationId),
 		onSubmit: ({ value }) => {
 			createInvitation({
 				...value,
@@ -134,10 +143,6 @@ const OrganizationInvitationForm = () => {
 							/>
 						)}
 					/>
-
-					<form.AppForm>
-						<form.SubmitButton label="Create Invitations" />
-					</form.AppForm>
 				</CardContent>
 			</Card>
 
@@ -171,6 +176,7 @@ const OrganizationInvitationForm = () => {
 												/>
 												{field.state.value.length > 1 && (
 													<Button
+														type="button"
 														size="icon"
 														variant="destructive"
 														onClick={() => field.removeValue(index)}
@@ -242,6 +248,12 @@ const OrganizationInvitationForm = () => {
 					</div>
 				</CardContent>
 			</Card>
+
+			<div className="flex justify-end border-t pt-4">
+				<form.AppForm>
+					<form.SubmitButton label="Create Invitations" />
+				</form.AppForm>
+			</div>
 		</form>
 	);
 };
