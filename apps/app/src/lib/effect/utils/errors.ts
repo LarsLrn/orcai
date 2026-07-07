@@ -37,7 +37,6 @@ export const ErrorTags = {
 	PROCESS: "ProcessError",
 	DRIZZLE_QUERY: "EffectDrizzleQueryError",
 	SQL: "SqlError",
-	EMAIL: "EmailError",
 
 	// Catch-all for unexpected errors
 	INTERNAL: "InternalError",
@@ -90,11 +89,6 @@ export class BadRequestError extends Data.TaggedError(ErrorTags.BAD_REQUEST)<{
 	readonly cause?: unknown;
 }> {}
 
-export class EmailError extends Data.TaggedError(ErrorTags.EMAIL)<{
-	readonly operation: string;
-	readonly cause: unknown;
-}> {}
-
 export class AuthzError extends Data.TaggedError(ErrorTags.AUTHZ)<{
 	reason:
 		| "outbox_enqueue_failed"
@@ -126,6 +120,5 @@ export type AppError =
 	| EffectDrizzleQueryError
 	| SqlError
 	| AiError
-	| EmailError
 	| AuthzError
 	| InternalError;

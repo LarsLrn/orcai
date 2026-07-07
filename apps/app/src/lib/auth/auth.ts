@@ -1,16 +1,16 @@
+import { createHash } from "node:crypto";
 import { expo } from "@better-auth/expo";
 import { dbSchema } from "@orcai/db";
+import { enqueueNotification } from "@orcai/notifications";
 import { betterAuth } from "better-auth";
 import { drizzleAdapter } from "better-auth/adapters/drizzle";
 import { admin } from "better-auth/plugins";
 import { tanstackStartCookies } from "better-auth/tanstack-start";
-import * as Effect from "effect/Effect";
 import * as Redacted from "effect/Redacted";
 import { v4 as uuidv4 } from "uuid";
 import { authDb } from "@/lib/auth/auth-db";
 import { runtime } from "@/lib/effect/runtime";
 import { loadAppConfigSync } from "@/lib/effect/services/config";
-import { EmailService } from "@/lib/effect/services/email";
 
 const cfg = loadAppConfigSync();
 
@@ -44,32 +44,37 @@ export const auth = betterAuth({
 	}),
 	emailAndPassword: {
 		enabled: true,
-		sendResetPassword: async ({ user, url }, _request) => {
+		requireEmailVerification: true,
+		revokeSessionsOnPasswordReset: true,
+		sendResetPassword: async ({ user, url, token }, _request) => {
 			await runtime.runPromise(
-				Effect.gen(function* () {
-					const { send } = yield* EmailService;
-
-					yield* send({
-						to: user.email,
-						subject: "Reset your password",
-						text: `Click the link to reset your password: ${url}`,
-					});
-				}),
+				enqueueNotification(
+					{
+						type: "auth.reset-password",
+						recipient: user.email,
+						recipientName: user.name,
+						resetUrl: url,
+					},
+					`auth.reset-password:${createHash("sha256").update(token).digest("hex")}`,
+				),
 			);
 		},
 	},
 	emailVerification: {
-		sendVerificationEmail: async ({ user, url }) => {
+		sendOnSignUp: true,
+		sendOnSignIn: true,
+		autoSignInAfterVerification: true,
+		sendVerificationEmail: async ({ user, url, token }) => {
 			await runtime.runPromise(
-				Effect.gen(function* () {
-					const { send } = yield* EmailService;
-
-					yield* send({
-						to: user.email,
-						subject: "Verify your email address",
-						text: `Click the link to verify your email: ${url}`,
-					});
-				}),
+				enqueueNotification(
+					{
+						type: "auth.verify-email",
+						recipient: user.email,
+						recipientName: user.name,
+						verificationUrl: url,
+					},
+					`auth.verify-email:${createHash("sha256").update(token).digest("hex")}`,
+				),
 			);
 		},
 	},

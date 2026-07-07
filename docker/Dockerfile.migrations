@@ -9,6 +9,8 @@ COPY apps/workers/package.json ./apps/workers/package.json
 COPY packages/ai/package.json ./packages/ai/package.json
 COPY packages/contracts/package.json ./packages/contracts/package.json
 COPY packages/core ./packages/core
+COPY packages/db ./packages/db
+COPY packages/notifications/package.json ./packages/notifications/package.json
 COPY packages/observability/package.json ./packages/observability/package.json
 COPY packages/pg-boss/package.json ./packages/pg-boss/package.json
 COPY packages/process/package.json ./packages/process/package.json
@@ -18,7 +20,6 @@ COPY packages/s3/package.json ./packages/s3/package.json
 COPY packages/schema ./packages/schema
 COPY packages/spice-db/package.json ./packages/spice-db/package.json
 COPY packages/valkey/package.json ./packages/valkey/package.json
-COPY packages/db ./packages/db
 
 WORKDIR /app/packages/db
 

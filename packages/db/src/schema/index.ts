@@ -21,6 +21,10 @@ import { chat } from "./chat";
 import { chatBranch } from "./chat-branch";
 import { chatMessage } from "./chat-message";
 import { model, provider, providerMeteringModeEnum } from "./model";
+import {
+	notificationOutbox,
+	notificationOutboxStatusEnum,
+} from "./notification";
 import { invitation, member, organization } from "./organization";
 import {
 	quotaLedger,
@@ -53,6 +57,7 @@ export const dbSchema = {
 	groupMember,
 	model,
 	provider,
+	notificationOutbox,
 	quotaPool,
 	quotaPoolGroupAssignment,
 	quotaPeriod,
@@ -76,6 +81,7 @@ export const enumSchema = {
 	resourceTypeEnum,
 	resourceVisibilityEnum,
 	providerMeteringModeEnum,
+	notificationOutboxStatusEnum,
 	quotaPoolPeriodTypeEnum,
 	quotaPeriodStatusEnum,
 	quotaUsageEventTypeEnum,

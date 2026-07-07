@@ -22,6 +22,7 @@ export const validateOrganizationInvitationResponseSchema =
 		z.object({
 			isValid: z.boolean(),
 			reason: organizationInvitationValidationReasonSchema.nullable(),
+			email: z.email().nullable(),
 		}),
 	);
 

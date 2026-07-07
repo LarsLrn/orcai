@@ -1,7 +1,12 @@
 import { DB, dbSchema } from "@orcai/db";
+import {
+	notificationOutboxValues,
+	wakeNotificationWorker,
+} from "@orcai/notifications";
 import { and, count, eq, getColumns, inArray, or } from "drizzle-orm";
 import * as Effect from "effect/Effect";
 import { syncRelationshipTransition } from "@/lib/authz/relationship-transition";
+import { AppConfigService } from "@/lib/effect/services/config";
 import * as AppErrors from "@/lib/effect/utils/errors";
 import { authed } from "@/lib/orpc/implementation/authed";
 import { os } from "@/lib/orpc/implementation/os";
@@ -102,6 +107,7 @@ export const validateOrganizationInvitation =
 				data: {
 					isValid: false,
 					reason: "not_found" as const,
+					email: null,
 				},
 			};
 		}
@@ -111,6 +117,7 @@ export const validateOrganizationInvitation =
 				data: {
 					isValid: false,
 					reason: "consumed" as const,
+					email: null,
 				},
 			};
 		}
@@ -120,6 +127,7 @@ export const validateOrganizationInvitation =
 				data: {
 					isValid: false,
 					reason: "expired" as const,
+					email: null,
 				},
 			};
 		}
@@ -128,6 +136,7 @@ export const validateOrganizationInvitation =
 			data: {
 				isValid: true,
 				reason: null,
+				email: invitation.email,
 			},
 		};
 	});
@@ -142,6 +151,21 @@ export const createOrganizationInvitations =
 		)
 		.effect(function* ({ input, context }) {
 			const db = yield* DB;
+			const { config } = yield* AppConfigService;
+			const organization = yield* db.query.organization.findFirst({
+				where: {
+					id: {
+						eq: input.organizationId,
+					},
+				},
+			});
+			if (!organization) {
+				return yield* Effect.fail(
+					new AppErrors.NotFoundError({
+						message: "Organization not found",
+					}),
+				);
+			}
 
 			const invitations = input.items.map((item) => ({
 				email: item.email,
@@ -152,12 +176,41 @@ export const createOrganizationInvitations =
 				inviterId: context.auth.user.id,
 			}));
 
-			const data = yield* db
-				.insert(dbSchema.invitation)
-				.values(invitations)
-				.returning({
-					...getColumns(dbSchema.invitation),
-				});
+			const data = yield* db.transaction((tx) =>
+				Effect.gen(function* () {
+					const created = yield* tx
+						.insert(dbSchema.invitation)
+						.values(invitations)
+						.returning({
+							...getColumns(dbSchema.invitation),
+						});
+					yield* tx.insert(dbSchema.notificationOutbox).values(
+						created.map((invitation) =>
+							notificationOutboxValues(
+								{
+									type: "organization.invited",
+									recipient: invitation.email,
+									recipientName: invitation.email.split("@")[0] || "there",
+									invitationId: invitation.id,
+									organizationName: organization.name,
+									inviterName:
+										context.auth.user.name || context.auth.user.email,
+									role: invitation.role,
+									expiresAt: invitation.expiresAt,
+									registrationUrl: `${config.auth.url}/register?inv=${invitation.id}`,
+								},
+								`organization.invited:${invitation.id}`,
+							),
+						),
+					);
+					return created;
+				}),
+			);
+			yield* wakeNotificationWorker.pipe(
+				Effect.catch((cause) =>
+					Effect.logWarning(`notification.wake.failed cause=${String(cause)}`),
+				),
+			);
 
 			return {
 				data,

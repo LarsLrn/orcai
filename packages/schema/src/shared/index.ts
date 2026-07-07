@@ -1,3 +1,4 @@
+export * from "./forms/auth-email";
 export * from "./forms/change-password";
 export * from "./forms/init";
 export * from "./forms/qdrant-playground";

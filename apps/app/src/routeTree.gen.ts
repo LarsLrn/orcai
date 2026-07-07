@@ -13,12 +13,15 @@ import { Route as AppRouteRouteImport } from './routes/app/route'
 import { Route as PathlessLayoutRouteRouteImport } from './routes/_pathlessLayout/route'
 import { Route as IndexRouteImport } from './routes/index'
 import { Route as AppIndexRouteImport } from './routes/app/index'
+import { Route as PathlessLayoutVerifyEmailRouteImport } from './routes/_pathlessLayout/verify-email'
 import { Route as PathlessLayoutTouRouteImport } from './routes/_pathlessLayout/tou'
 import { Route as PathlessLayoutSelectOrganizationRouteImport } from './routes/_pathlessLayout/select-organization'
+import { Route as PathlessLayoutResetPasswordRouteImport } from './routes/_pathlessLayout/reset-password'
 import { Route as PathlessLayoutRegisterRouteImport } from './routes/_pathlessLayout/register'
 import { Route as PathlessLayoutPrivacyRouteImport } from './routes/_pathlessLayout/privacy'
 import { Route as PathlessLayoutLoginRouteImport } from './routes/_pathlessLayout/login'
 import { Route as PathlessLayoutInitRouteImport } from './routes/_pathlessLayout/init'
+import { Route as PathlessLayoutForgotPasswordRouteImport } from './routes/_pathlessLayout/forgot-password'
 import { Route as AppUsersRouteRouteImport } from './routes/app/users/route'
 import { Route as AppQuotasRouteRouteImport } from './routes/app/quotas/route'
 import { Route as AppProvidersRouteRouteImport } from './routes/app/providers/route'
@@ -107,6 +110,12 @@ const AppIndexRoute = AppIndexRouteImport.update({
   path: '/',
   getParentRoute: () => AppRouteRoute,
 } as any)
+const PathlessLayoutVerifyEmailRoute =
+  PathlessLayoutVerifyEmailRouteImport.update({
+    id: '/verify-email',
+    path: '/verify-email',
+    getParentRoute: () => PathlessLayoutRouteRoute,
+  } as any)
 const PathlessLayoutTouRoute = PathlessLayoutTouRouteImport.update({
   id: '/tou',
   path: '/tou',
@@ -116,6 +125,12 @@ const PathlessLayoutSelectOrganizationRoute =
   PathlessLayoutSelectOrganizationRouteImport.update({
     id: '/select-organization',
     path: '/select-organization',
+    getParentRoute: () => PathlessLayoutRouteRoute,
+  } as any)
+const PathlessLayoutResetPasswordRoute =
+  PathlessLayoutResetPasswordRouteImport.update({
+    id: '/reset-password',
+    path: '/reset-password',
     getParentRoute: () => PathlessLayoutRouteRoute,
   } as any)
 const PathlessLayoutRegisterRoute = PathlessLayoutRegisterRouteImport.update({
@@ -138,6 +153,12 @@ const PathlessLayoutInitRoute = PathlessLayoutInitRouteImport.update({
   path: '/init',
   getParentRoute: () => PathlessLayoutRouteRoute,
 } as any)
+const PathlessLayoutForgotPasswordRoute =
+  PathlessLayoutForgotPasswordRouteImport.update({
+    id: '/forgot-password',
+    path: '/forgot-password',
+    getParentRoute: () => PathlessLayoutRouteRoute,
+  } as any)
 const AppUsersRouteRoute = AppUsersRouteRouteImport.update({
   id: '/users',
   path: '/users',
@@ -502,12 +523,15 @@ export interface FileRoutesByFullPath {
   '/app/providers': typeof AppProvidersRouteRouteWithChildren
   '/app/quotas': typeof AppQuotasRouteRouteWithChildren
   '/app/users': typeof AppUsersRouteRouteWithChildren
+  '/forgot-password': typeof PathlessLayoutForgotPasswordRoute
   '/init': typeof PathlessLayoutInitRoute
   '/login': typeof PathlessLayoutLoginRoute
   '/privacy': typeof PathlessLayoutPrivacyRoute
   '/register': typeof PathlessLayoutRegisterRoute
+  '/reset-password': typeof PathlessLayoutResetPasswordRoute
   '/select-organization': typeof PathlessLayoutSelectOrganizationRoute
   '/tou': typeof PathlessLayoutTouRoute
+  '/verify-email': typeof PathlessLayoutVerifyEmailRoute
   '/app/': typeof AppIndexRoute
   '/app/groups/$groupId': typeof AppGroupsGroupIdRouteRouteWithChildren
   '/app/hub/assets': typeof AppHubAssetsRouteRouteWithChildren
@@ -571,12 +595,15 @@ export interface FileRoutesByFullPath {
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
+  '/forgot-password': typeof PathlessLayoutForgotPasswordRoute
   '/init': typeof PathlessLayoutInitRoute
   '/login': typeof PathlessLayoutLoginRoute
   '/privacy': typeof PathlessLayoutPrivacyRoute
   '/register': typeof PathlessLayoutRegisterRoute
+  '/reset-password': typeof PathlessLayoutResetPasswordRoute
   '/select-organization': typeof PathlessLayoutSelectOrganizationRoute
   '/tou': typeof PathlessLayoutTouRoute
+  '/verify-email': typeof PathlessLayoutVerifyEmailRoute
   '/app': typeof AppIndexRoute
   '/app/users/$userId': typeof AppUsersUserIdRouteRouteWithChildren
   '/api/auth/$': typeof ApiAuthSplatRoute
@@ -641,12 +668,15 @@ export interface FileRoutesById {
   '/app/providers': typeof AppProvidersRouteRouteWithChildren
   '/app/quotas': typeof AppQuotasRouteRouteWithChildren
   '/app/users': typeof AppUsersRouteRouteWithChildren
+  '/_pathlessLayout/forgot-password': typeof PathlessLayoutForgotPasswordRoute
   '/_pathlessLayout/init': typeof PathlessLayoutInitRoute
   '/_pathlessLayout/login': typeof PathlessLayoutLoginRoute
   '/_pathlessLayout/privacy': typeof PathlessLayoutPrivacyRoute
   '/_pathlessLayout/register': typeof PathlessLayoutRegisterRoute
+  '/_pathlessLayout/reset-password': typeof PathlessLayoutResetPasswordRoute
   '/_pathlessLayout/select-organization': typeof PathlessLayoutSelectOrganizationRoute
   '/_pathlessLayout/tou': typeof PathlessLayoutTouRoute
+  '/_pathlessLayout/verify-email': typeof PathlessLayoutVerifyEmailRoute
   '/app/': typeof AppIndexRoute
   '/app/groups/$groupId': typeof AppGroupsGroupIdRouteRouteWithChildren
   '/app/hub/assets': typeof AppHubAssetsRouteRouteWithChildren
@@ -722,12 +752,15 @@ export interface FileRouteTypes {
     | '/app/providers'
     | '/app/quotas'
     | '/app/users'
+    | '/forgot-password'
     | '/init'
     | '/login'
     | '/privacy'
     | '/register'
+    | '/reset-password'
     | '/select-organization'
     | '/tou'
+    | '/verify-email'
     | '/app/'
     | '/app/groups/$groupId'
     | '/app/hub/assets'
@@ -791,12 +824,15 @@ export interface FileRouteTypes {
   fileRoutesByTo: FileRoutesByTo
   to:
     | '/'
+    | '/forgot-password'
     | '/init'
     | '/login'
     | '/privacy'
     | '/register'
+    | '/reset-password'
     | '/select-organization'
     | '/tou'
+    | '/verify-email'
     | '/app'
     | '/app/users/$userId'
     | '/api/auth/$'
@@ -860,12 +896,15 @@ export interface FileRouteTypes {
     | '/app/providers'
     | '/app/quotas'
     | '/app/users'
+    | '/_pathlessLayout/forgot-password'
     | '/_pathlessLayout/init'
     | '/_pathlessLayout/login'
     | '/_pathlessLayout/privacy'
     | '/_pathlessLayout/register'
+    | '/_pathlessLayout/reset-password'
     | '/_pathlessLayout/select-organization'
     | '/_pathlessLayout/tou'
+    | '/_pathlessLayout/verify-email'
     | '/app/'
     | '/app/groups/$groupId'
     | '/app/hub/assets'
@@ -967,6 +1006,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AppIndexRouteImport
       parentRoute: typeof AppRouteRoute
     }
+    '/_pathlessLayout/verify-email': {
+      id: '/_pathlessLayout/verify-email'
+      path: '/verify-email'
+      fullPath: '/verify-email'
+      preLoaderRoute: typeof PathlessLayoutVerifyEmailRouteImport
+      parentRoute: typeof PathlessLayoutRouteRoute
+    }
     '/_pathlessLayout/tou': {
       id: '/_pathlessLayout/tou'
       path: '/tou'
@@ -979,6 +1025,13 @@ declare module '@tanstack/react-router' {
       path: '/select-organization'
       fullPath: '/select-organization'
       preLoaderRoute: typeof PathlessLayoutSelectOrganizationRouteImport
+      parentRoute: typeof PathlessLayoutRouteRoute
+    }
+    '/_pathlessLayout/reset-password': {
+      id: '/_pathlessLayout/reset-password'
+      path: '/reset-password'
+      fullPath: '/reset-password'
+      preLoaderRoute: typeof PathlessLayoutResetPasswordRouteImport
       parentRoute: typeof PathlessLayoutRouteRoute
     }
     '/_pathlessLayout/register': {
@@ -1007,6 +1060,13 @@ declare module '@tanstack/react-router' {
       path: '/init'
       fullPath: '/init'
       preLoaderRoute: typeof PathlessLayoutInitRouteImport
+      parentRoute: typeof PathlessLayoutRouteRoute
+    }
+    '/_pathlessLayout/forgot-password': {
+      id: '/_pathlessLayout/forgot-password'
+      path: '/forgot-password'
+      fullPath: '/forgot-password'
+      preLoaderRoute: typeof PathlessLayoutForgotPasswordRouteImport
       parentRoute: typeof PathlessLayoutRouteRoute
     }
     '/app/users': {
@@ -1489,21 +1549,27 @@ declare module '@tanstack/react-router' {
 }
 
 interface PathlessLayoutRouteRouteChildren {
+  PathlessLayoutForgotPasswordRoute: typeof PathlessLayoutForgotPasswordRoute
   PathlessLayoutInitRoute: typeof PathlessLayoutInitRoute
   PathlessLayoutLoginRoute: typeof PathlessLayoutLoginRoute
   PathlessLayoutPrivacyRoute: typeof PathlessLayoutPrivacyRoute
   PathlessLayoutRegisterRoute: typeof PathlessLayoutRegisterRoute
+  PathlessLayoutResetPasswordRoute: typeof PathlessLayoutResetPasswordRoute
   PathlessLayoutSelectOrganizationRoute: typeof PathlessLayoutSelectOrganizationRoute
   PathlessLayoutTouRoute: typeof PathlessLayoutTouRoute
+  PathlessLayoutVerifyEmailRoute: typeof PathlessLayoutVerifyEmailRoute
 }
 
 const PathlessLayoutRouteRouteChildren: PathlessLayoutRouteRouteChildren = {
+  PathlessLayoutForgotPasswordRoute: PathlessLayoutForgotPasswordRoute,
   PathlessLayoutInitRoute: PathlessLayoutInitRoute,
   PathlessLayoutLoginRoute: PathlessLayoutLoginRoute,
   PathlessLayoutPrivacyRoute: PathlessLayoutPrivacyRoute,
   PathlessLayoutRegisterRoute: PathlessLayoutRegisterRoute,
+  PathlessLayoutResetPasswordRoute: PathlessLayoutResetPasswordRoute,
   PathlessLayoutSelectOrganizationRoute: PathlessLayoutSelectOrganizationRoute,
   PathlessLayoutTouRoute: PathlessLayoutTouRoute,
+  PathlessLayoutVerifyEmailRoute: PathlessLayoutVerifyEmailRoute,
 }
 
 const PathlessLayoutRouteRouteWithChildren =

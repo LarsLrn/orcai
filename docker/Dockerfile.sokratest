@@ -19,6 +19,7 @@ COPY packages/ai/package.json ./packages/ai/package.json
 COPY packages/contracts/package.json ./packages/contracts/package.json
 COPY packages/core/package.json ./packages/core/package.json
 COPY packages/db/package.json ./packages/db/package.json
+COPY packages/notifications/package.json ./packages/notifications/package.json
 COPY packages/observability/package.json ./packages/observability/package.json
 COPY packages/pg-boss/package.json ./packages/pg-boss/package.json
 COPY packages/process/package.json ./packages/process/package.json
@@ -44,11 +45,13 @@ ARG VITE_UMAMI_WEBSITE_ID=
 # Copy package files for dependency installation
 COPY package.json bun.lock bunfig.toml ./
 COPY apps/app/package.json ./apps/app/package.json
+COPY apps/web/package.json ./apps/web/package.json
 COPY apps/workers/package.json ./apps/workers/package.json
 COPY packages/ai/package.json ./packages/ai/package.json
 COPY packages/contracts/package.json ./packages/contracts/package.json
 COPY packages/core/package.json ./packages/core/package.json
 COPY packages/db/package.json ./packages/db/package.json
+COPY packages/notifications/package.json ./packages/notifications/package.json
 COPY packages/observability/package.json ./packages/observability/package.json
 COPY packages/pg-boss/package.json ./packages/pg-boss/package.json
 COPY packages/process/package.json ./packages/process/package.json

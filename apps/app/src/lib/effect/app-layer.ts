@@ -9,7 +9,6 @@ import { ValkeyLive } from "@orcai/valkey";
 import * as Layer from "effect/Layer";
 import { AuthzLive } from "./services/authz";
 import { AppConfigLive } from "./services/config";
-import { EmailLive } from "./services/email";
 import { ObservabilityLive } from "./services/observability";
 
 const BaseInfra = Layer.mergeAll(
@@ -19,7 +18,6 @@ const BaseInfra = Layer.mergeAll(
 	PgBossLive,
 	ValkeyLive,
 	QdrantLive,
-	EmailLive,
 	AiConfigLive,
 ).pipe(Layer.provideMerge(AppConfigLive));
 

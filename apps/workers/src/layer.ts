@@ -1,5 +1,6 @@
 import { AiConfigLive } from "@orcai/ai";
 import { DrizzleLive } from "@orcai/db";
+import { EmailConfigLive, EmailLive } from "@orcai/notifications";
 import { PgBossLive } from "@orcai/pg-boss";
 import { QdrantLive } from "@orcai/qdrant";
 import { QuotaCounterStoreLive } from "@orcai/quota";
@@ -15,6 +16,7 @@ const BaseWorkerLayer = Layer.mergeAll(
 	S3Live,
 	QdrantLive,
 	AiConfigLive,
+	EmailLive.pipe(Layer.provide(EmailConfigLive)),
 );
 
 export const BackgroundWorkerLayer = Layer.mergeAll(
