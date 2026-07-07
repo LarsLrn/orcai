@@ -3,12 +3,16 @@ import type { ChatId } from "@orcai/core";
 import type { Model, Provider } from "@orcai/schema";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import type { ChatStatus } from "ai";
-import { CompassIcon } from "lucide-react";
+import {
+	CompassIcon,
+	DownloadIcon,
+	EllipsisIcon,
+	SettingsIcon,
+} from "lucide-react";
 import { useCallback, useState } from "react";
 import { toast } from "sonner";
 import { ConversationDownload } from "@/components/ai-elements/conversation";
 import {
-	PromptInputButton,
 	PromptInputSubmit,
 	PromptInputTools,
 } from "@/components/ai-elements/prompt-input";
@@ -19,6 +23,13 @@ import { ChatAssetPicker } from "@/components/chat/chat-asset-picker";
 import { ChatSettings } from "@/components/chat/chat-settings";
 import { ModelSelectorButton } from "@/components/chat/model-selector";
 import { AppTourButton } from "@/components/next-step/app-tour-button";
+import { Button } from "@/components/ui/button";
+import {
+	DropdownMenu,
+	DropdownMenuContent,
+	DropdownMenuItem,
+	DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
 import {
 	InputGroup,
 	InputGroupAddon,
@@ -36,6 +47,7 @@ const ChatInput = ({
 	chatId,
 	zedToken,
 	sendMessage,
+	stop,
 	messages,
 	status,
 	chatLength,
@@ -43,12 +55,14 @@ const ChatInput = ({
 	chatId: ChatId;
 	zedToken?: string;
 	sendMessage: UseChatHelpers<ChatAgentUIMessage>["sendMessage"];
+	stop: UseChatHelpers<ChatAgentUIMessage>["stop"];
 	messages: ChatAgentUIMessage[];
 	status: UseChatHelpers<ChatAgentUIMessage>["status"];
 	chatLength: number;
 }) => {
 	const queryClient = useQueryClient();
 	const [messageText, setMessageText] = useState("");
+	const [settingsOpen, setSettingsOpen] = useState(false);
 
 	const { data: chat } = useQuery(
 		orpc.chat.find.queryOptions({
@@ -62,7 +76,6 @@ const ChatInput = ({
 	const isModelConfigured = Boolean(
 		chat?.data.config?.modelId && chat?.data.config?.providerId,
 	);
-
 	const handleModelSelect = useCallback(
 		(model: Model, provider: Provider) => {
 			updateChat({
@@ -123,6 +136,8 @@ const ChatInput = ({
 			return;
 		}
 
+		setMessageText("");
+
 		try {
 			const attachments = await resolveAttachmentsForSend();
 
@@ -133,7 +148,7 @@ const ChatInput = ({
 				return;
 			}
 
-			await sendMessage({
+			const sendPromise = sendMessage({
 				text: hasText ? trimmedText : "Sent with attachments",
 				metadata:
 					attachments.length > 0
@@ -143,8 +158,8 @@ const ChatInput = ({
 						: undefined,
 			});
 
-			setMessageText("");
 			clearAttachments();
+			await sendPromise;
 
 			if (chatLength < 2) {
 				await new Promise((resolve) => setTimeout(resolve, 5000));
@@ -158,6 +173,9 @@ const ChatInput = ({
 				});
 			}
 		} catch (error) {
+			if (hasText) {
+				setMessageText((current) => current || trimmedText);
+			}
 			toast.error("Failed to send message with attachments.", {
 				description:
 					error instanceof Error ? error.message : "Unknown upload error.",
@@ -203,58 +221,69 @@ const ChatInput = ({
 						onKeyDown={handleTextareaKeyDown}
 					/>
 
-					<InputGroupAddon align="block-end" className="justify-between gap-1">
-						<PromptInputTools>
+					<InputGroupAddon
+						align="block-end"
+						className="min-w-0 justify-between gap-1"
+					>
+						<PromptInputTools className="min-w-0 overflow-hidden">
 							<ChatAttachmentActionMenu
 								disabled={!canAttachMore}
 								onUploadFile={openUploadDialog}
 								onSelectFromAssets={() => setAssetPickerOpen(true)}
 							/>
-							<PromptInputButton
-								render={
-									<AppTourButton
-										tour="chatTour"
-										type="button"
-										variant="ghost"
-										size="icon"
-										autoTrigger={true}
-									>
-										<CompassIcon className="size-4" />
-										<span className="sr-only">Start tour</span>
-									</AppTourButton>
-								}
-							/>
-							<PromptInputButton
-								render={
-									<ChatSettings
-										chatId={chatId}
-										zedToken={zedToken}
-										className="text-muted-foreground"
-									/>
-								}
-							/>
-							<PromptInputButton
-								render={<ConversationDownload messages={messages} />}
-							/>
-
 							<ModelSelectorButton
 								selectedModelId={chat?.data.config?.modelId}
 								selectedProviderId={chat?.data.config?.providerId}
 								onSelect={handleModelSelect}
+								className="min-w-0 max-w-32 sm:max-w-60"
 							/>
+							<DropdownMenu>
+								<DropdownMenuTrigger
+									render={
+										<Button type="button" variant="ghost" size="icon-sm" />
+									}
+								>
+									<EllipsisIcon />
+									<span className="sr-only">More chat actions</span>
+								</DropdownMenuTrigger>
+								<DropdownMenuContent align="start" className="w-56">
+									<AppTourButton
+										tour="chatTour"
+										type="button"
+										variant="ghost"
+										autoTrigger={true}
+										render={<DropdownMenuItem />}
+										className="w-full justify-start"
+									>
+										<CompassIcon className="size-4" /> Start tour
+									</AppTourButton>
+									<DropdownMenuItem onClick={() => setSettingsOpen(true)}>
+										<SettingsIcon /> Chat settings
+									</DropdownMenuItem>
+									<ConversationDownload
+										messages={messages}
+										render={<DropdownMenuItem />}
+										variant="ghost"
+										className="w-full justify-start"
+									>
+										<DownloadIcon className="size-4" /> Download conversation
+									</ConversationDownload>
+								</DropdownMenuContent>
+							</DropdownMenu>
 						</PromptInputTools>
 
 						<PromptInputSubmit
 							status={submitStatus}
+							onStop={stop}
 							disabled={
-								!isModelConfigured ||
-								isGenerating ||
 								isUploading ||
-								!(
-									messageText.trim().length > 0 ||
-									localFiles.length > 0 ||
-									selectedAssets.length > 0
-								)
+								(!isGenerating &&
+									(!isModelConfigured ||
+										!(
+											messageText.trim().length > 0 ||
+											localFiles.length > 0 ||
+											selectedAssets.length > 0
+										)))
 							}
 						/>
 					</InputGroupAddon>
@@ -272,6 +301,12 @@ const ChatInput = ({
 				selectedAssetIds={selectedAssetIds}
 				onAddAsset={addAsset}
 				onRemoveAsset={removeSelectedAsset}
+			/>
+			<ChatSettings
+				chatId={chatId}
+				zedToken={zedToken}
+				open={settingsOpen}
+				onOpenChange={setSettingsOpen}
 			/>
 		</>
 	);

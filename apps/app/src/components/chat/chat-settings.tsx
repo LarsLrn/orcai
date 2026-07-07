@@ -7,7 +7,7 @@ import {
 	useSuspenseQuery,
 } from "@tanstack/react-query";
 import { useSelector } from "@tanstack/react-store";
-import { ChevronDownIcon, PlusIcon, SettingsIcon, XIcon } from "lucide-react";
+import { ChevronDownIcon, PlusIcon, XIcon } from "lucide-react";
 import { Suspense, useState } from "react";
 import { toast } from "sonner";
 import { BlockCard } from "@/components/blocks/block-card";
@@ -27,7 +27,6 @@ import {
 	DialogDescription,
 	DialogHeader,
 	DialogTitle,
-	DialogTrigger,
 } from "@/components/ui/dialog";
 import { Label } from "@/components/ui/label";
 import { ScrollArea } from "@/components/ui/scroll-area";
@@ -39,16 +38,16 @@ import { DEFAULT_CHAT_GENERATION_PARAMS } from "@/lib/ai/utils/chat-generation-d
 import { client, orpc } from "@/lib/orpc/orpc";
 
 const ChatSettings = ({
-	className,
 	chatId,
 	zedToken,
+	open,
+	onOpenChange,
 }: {
-	className?: string;
 	chatId: ChatId;
 	zedToken?: string;
+	open: boolean;
+	onOpenChange: (open: boolean) => void;
 }) => {
-	const [open, setOpen] = useState(false);
-
 	const { data: chat } = useQuery(
 		orpc.chat.find.queryOptions({
 			input: {
@@ -62,14 +61,7 @@ const ChatSettings = ({
 	const isBotLinked = !!chat?.data.botId;
 
 	return (
-		<Dialog open={open} onOpenChange={setOpen}>
-			<DialogTrigger
-				render={
-					<Button variant="ghost" size="icon" className={className}>
-						<SettingsIcon />
-					</Button>
-				}
-			/>
+		<Dialog open={open} onOpenChange={onOpenChange}>
 			<DialogContent className="flex h-[90vh] max-h-[90vh] flex-col sm:max-w-4xl">
 				<DialogHeader>
 					<DialogTitle>Chat Settings</DialogTitle>
