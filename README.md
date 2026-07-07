@@ -104,6 +104,7 @@ docker compose -f docker-compose.yaml -f docker-compose.local.yaml up -d --build
 
 This starts:
 - the main app container on `localhost:3000`
+- the docs/web container on `localhost:3001`
 - a dedicated workers container for scheduled and background jobs
 - PostgreSQL on `localhost:5432`
 - Valkey on `localhost:6379`

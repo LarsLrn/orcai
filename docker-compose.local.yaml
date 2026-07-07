@@ -43,6 +43,10 @@ services:
       SMTP_SECURE: ${SMTP_SECURE:-false}
       SMTP_TLS_REJECT_UNAUTHORIZED: ${SMTP_TLS_REJECT_UNAUTHORIZED:-false}
 
+  web:
+    ports:
+      - "${WEB_PORT:-3001}:3001"
+
   workers:
     environment:
       POSTGRES_USER: ${POSTGRES_USER:-postgres}
