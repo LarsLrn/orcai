@@ -15,10 +15,10 @@ import {
 	CarouselItem,
 } from "@/components/ui/carousel";
 import {
-	HoverCard,
-	HoverCardContent,
-	HoverCardTrigger,
-} from "@/components/ui/hover-card";
+	Popover,
+	PopoverContent,
+	PopoverTrigger,
+} from "@/components/ui/popover";
 import { cn } from "@/lib/utils";
 
 export type InlineCitationProps = ComponentProps<"span">;
@@ -45,10 +45,10 @@ export const InlineCitationText = ({
 	/>
 );
 
-export type InlineCitationCardProps = ComponentProps<typeof HoverCard>;
+export type InlineCitationCardProps = ComponentProps<typeof Popover>;
 
 export const InlineCitationCard = (props: InlineCitationCardProps) => (
-	<HoverCard {...props} />
+	<Popover {...props} />
 );
 
 export type InlineCitationCardTriggerProps = ComponentProps<typeof Badge> & {
@@ -62,26 +62,33 @@ export const InlineCitationCardTrigger = ({
 	className,
 	...props
 }: InlineCitationCardTriggerProps) => (
-	<HoverCardTrigger
+	<PopoverTrigger
 		render={
 			<Badge
-				className={cn("ml-1 rounded-full", className)}
+				className={cn(
+					"ml-1 inline-flex min-w-0 max-w-48 rounded-full align-middle",
+					className,
+				)}
 				variant="secondary"
+				title={label ?? sources[0] ?? "unknown"}
 				{...props}
+				render={<button type="button" />}
 			/>
 		}
 	>
-		{label ? (
-			label
-		) : sources[0] ? (
-			<>
-				{tryHostname(sources[0])}{" "}
-				{sources.length > 1 && `+${sources.length - 1}`}
-			</>
-		) : (
-			"unknown"
-		)}
-	</HoverCardTrigger>
+		<span className="truncate">
+			{label ? (
+				label
+			) : sources[0] ? (
+				<>
+					{tryHostname(sources[0])}{" "}
+					{sources.length > 1 && `+${sources.length - 1}`}
+				</>
+			) : (
+				"unknown"
+			)}
+		</span>
+	</PopoverTrigger>
 );
 
 const tryHostname = (url: string) => {
@@ -92,13 +99,19 @@ const tryHostname = (url: string) => {
 	}
 };
 
-export type InlineCitationCardBodyProps = ComponentProps<"div">;
+export type InlineCitationCardBodyProps = ComponentProps<typeof PopoverContent>;
 
 export const InlineCitationCardBody = ({
 	className,
 	...props
 }: InlineCitationCardBodyProps) => (
-	<HoverCardContent className={cn("relative w-80 p-0", className)} {...props} />
+	<PopoverContent
+		className={cn(
+			"relative max-h-[calc(100vh-2rem)] w-[min(20rem,calc(100vw-2rem))] min-w-0 overflow-auto p-0",
+			className,
+		)}
+		{...props}
+	/>
 );
 
 const CarouselApiContext = createContext<CarouselApi | undefined>(undefined);
@@ -139,7 +152,7 @@ export const InlineCitationCarouselItem = ({
 	...props
 }: InlineCitationCarouselItemProps) => (
 	<CarouselItem
-		className={cn("w-full space-y-2 p-4 pl-8", className)}
+		className={cn("w-full min-w-0 space-y-2 p-4 pl-8", className)}
 		{...props}
 	/>
 );
@@ -152,7 +165,7 @@ export const InlineCitationCarouselHeader = ({
 }: InlineCitationCarouselHeaderProps) => (
 	<div
 		className={cn(
-			"flex items-center justify-between gap-2 rounded-t-md bg-secondary p-2",
+			"flex min-w-0 items-center justify-between gap-2 rounded-t-md bg-secondary p-2",
 			className,
 		)}
 		{...props}
@@ -282,12 +295,19 @@ export const InlineCitationSource = ({
 	children,
 	...props
 }: InlineCitationSourceProps) => (
-	<div className={cn("space-y-1", className)} {...props}>
+	<div className={cn("min-w-0 space-y-1", className)} {...props}>
 		{title && (
-			<h4 className="truncate font-medium text-sm leading-tight">{title}</h4>
+			<h4 className="truncate font-medium text-sm leading-tight" title={title}>
+				{title}
+			</h4>
 		)}
 		{url && (
-			<p className="truncate break-all text-muted-foreground text-xs">{url}</p>
+			<p
+				className="text-muted-foreground text-xs [overflow-wrap:anywhere]"
+				title={url}
+			>
+				{url}
+			</p>
 		)}
 		{description && (
 			<p className="line-clamp-3 text-muted-foreground text-sm leading-relaxed">
@@ -307,7 +327,7 @@ export const InlineCitationQuote = ({
 }: InlineCitationQuoteProps) => (
 	<blockquote
 		className={cn(
-			"border-muted border-l-2 pl-3 text-muted-foreground text-sm italic",
+			"min-w-0 break-words border-muted border-l-2 pl-3 text-muted-foreground text-sm italic [overflow-wrap:anywhere]",
 			className,
 		)}
 		{...props}

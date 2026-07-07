@@ -43,10 +43,15 @@ const MessageUsage = ({ message }: { message: ChatAgentUIMessage }) => {
 			}}
 			modelId={message.metadata?.model}
 		>
-			<ContextTrigger size="sm">
-				<span className="flex h-8 items-center gap-1 font-medium text-muted-foreground">
-					<BotIcon className="size-4" />
-					<span>{message.metadata?.model ?? "Unknown Model"}</span>
+			<ContextTrigger size="sm" className="min-w-0 max-w-full">
+				<span className="flex h-8 min-w-0 items-center gap-1 font-medium text-muted-foreground">
+					<BotIcon className="size-4 shrink-0" />
+					<span
+						className="max-w-28 truncate sm:max-w-48"
+						title={message.metadata?.model ?? "Unknown Model"}
+					>
+						{message.metadata?.model ?? "Unknown Model"}
+					</span>
 				</span>
 			</ContextTrigger>
 			<ContextContent>

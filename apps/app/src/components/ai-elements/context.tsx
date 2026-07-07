@@ -2,10 +2,10 @@ import type { LanguageModelUsage } from "ai";
 import { type ComponentProps, createContext, useContext } from "react";
 import { Button } from "@/components/ui/button";
 import {
-	HoverCard,
-	HoverCardContent,
-	HoverCardTrigger,
-} from "@/components/ui/hover-card";
+	Popover,
+	PopoverContent,
+	PopoverTrigger,
+} from "@/components/ui/popover";
 import { Progress } from "@/components/ui/progress";
 import { Separator } from "@/components/ui/separator";
 import { cn } from "@/lib/utils";
@@ -37,7 +37,7 @@ const useContextValue = () => {
 	return context;
 };
 
-export type ContextProps = ComponentProps<typeof HoverCard> & ContextSchema;
+export type ContextProps = ComponentProps<typeof Popover> & ContextSchema;
 
 export const Context = ({
 	usedTokens,
@@ -54,7 +54,7 @@ export const Context = ({
 			modelId,
 		}}
 	>
-		<HoverCard {...props} />
+		<Popover {...props} />
 	</ContextContext.Provider>
 );
 
@@ -117,38 +117,41 @@ export const ContextTrigger = ({ children, ...props }: ContextTriggerProps) => {
 	}).format(usedPercent);
 
 	return (
-		<HoverCardTrigger
+		<PopoverTrigger
 			render={
-				<div className="flex">
-					<Button type="button" variant="ghost" {...props}>
-						{children && (
-							<>
-								{children}
-								<Separator
-									orientation="vertical"
-									className="mx-2 my-auto h-4"
-								/>
-							</>
-						)}
-						<span className="font-medium text-muted-foreground">
-							{renderedPercent}
-						</span>
-						<ContextIcon />
-					</Button>
-				</div>
+				<Button
+					type="button"
+					variant="ghost"
+					className="min-w-0 max-w-full"
+					{...props}
+				/>
 			}
-		/>
+		>
+			{children && (
+				<>
+					{children}
+					<Separator orientation="vertical" className="mx-2 my-auto h-4" />
+				</>
+			)}
+			<span className="shrink-0 font-medium text-muted-foreground">
+				{renderedPercent}
+			</span>
+			<ContextIcon />
+		</PopoverTrigger>
 	);
 };
 
-export type ContextContentProps = ComponentProps<typeof HoverCardContent>;
+export type ContextContentProps = ComponentProps<typeof PopoverContent>;
 
 export const ContextContent = ({
 	className,
 	...props
 }: ContextContentProps) => (
-	<HoverCardContent
-		className={cn("min-w-60 divide-y overflow-hidden p-0", className)}
+	<PopoverContent
+		className={cn(
+			"max-h-[calc(100vh-2rem)] w-[min(20rem,calc(100vw-2rem))] min-w-0 divide-y overflow-auto p-0",
+			className,
+		)}
 		{...props}
 	/>
 );
