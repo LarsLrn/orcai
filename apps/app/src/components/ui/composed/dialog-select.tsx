@@ -175,7 +175,7 @@ function DialogSelectTrigger({
 			data-size={size}
 			{...props}
 		>
-			<span className="flex flex-1 items-center gap-1.5 truncate text-left">
+			<span className="flex min-w-0 flex-1 items-center gap-1.5 truncate text-left">
 				{hasValue ? children : placeholder}
 			</span>
 			<ChevronDownIcon className="size-4 text-muted-foreground" />

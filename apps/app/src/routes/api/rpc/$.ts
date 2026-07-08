@@ -1,14 +1,14 @@
 import { trace } from "@opentelemetry/api";
 import { ORPCError, onError, ValidationError } from "@orpc/server";
-import { CompressionPlugin, RPCHandler } from "@orpc/server/fetch";
+import { BodyCompressionHandlerPlugin, RPCHandler } from "@orpc/server/fetch";
 import { getCookie } from "@orpc/server/helpers";
 import {
 	BatchHandlerPlugin,
-	RequestHeadersPlugin,
-	StrictGetMethodPlugin,
+	RequestHeadersHandlerPlugin,
 } from "@orpc/server/plugins";
 import { createFileRoute } from "@tanstack/react-router";
 import { z } from "zod/v4";
+import { createORPCContext } from "@/lib/orpc/implementation/context";
 import { router } from "@/lib/orpc/router";
 import { COOKIES, HEADERS } from "@/settings/constants";
 
@@ -25,7 +25,6 @@ const handler = new RPCHandler(router, {
 				);
 
 				throw new ORPCError("INPUT_VALIDATION_FAILED", {
-					status: 422,
 					message: z.prettifyError(zodError),
 					data: z.flattenError(zodError),
 					cause: error.cause,
@@ -42,7 +41,6 @@ const handler = new RPCHandler(router, {
 				);
 
 				throw new ORPCError("OUTPUT_VALIDATION_FAILED", {
-					status: 422,
 					message: z.prettifyError(zodError),
 					data: z.flattenError(zodError),
 					cause: error.cause,
@@ -64,10 +62,9 @@ const handler = new RPCHandler(router, {
 		},
 	],
 	plugins: [
-		new RequestHeadersPlugin(),
+		new RequestHeadersHandlerPlugin(),
 		new BatchHandlerPlugin(),
-		new StrictGetMethodPlugin(),
-		new CompressionPlugin(),
+		new BodyCompressionHandlerPlugin(),
 	],
 });
 
@@ -85,12 +82,10 @@ export const Route = createFileRoute("/api/rpc/$")({
 
 				const { response } = await handler.handle(request, {
 					prefix: "/api/rpc",
-					context: {
+					context: await createORPCContext({
 						reqHeaders: request.headers,
-						meta: {
-							zedToken,
-						},
-					},
+						zedToken,
+					}),
 				});
 
 				return (

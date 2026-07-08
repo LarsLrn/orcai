@@ -2,7 +2,7 @@ services:
   # Local-only host port publishing and dev-friendly defaults for a runnable app stack.
   # Use with: docker compose -f docker-compose.yaml -f docker-compose.local.yaml up -d
 
-  sokratest:
+  app:
     build:
       args:
         VITE_BASE_URL: http://localhost:3000
@@ -32,7 +32,7 @@ services:
       SPICEDB_TOKEN: ${SPICEDB_GRPC_PRESHARED_KEY:-dev-spicedb-token}
       POSTGRES_USER: ${POSTGRES_USER:-postgres}
       POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-postgres}
-      POSTGRES_DB: ${POSTGRES_DB:-sokratest-v2}
+      POSTGRES_DB: ${POSTGRES_DB:-app}
       POSTGRES_HOST: postgres
       POSTGRES_SSL: "false"
       SMTP_HOST: ${SMTP_HOST:-}
@@ -43,11 +43,15 @@ services:
       SMTP_SECURE: ${SMTP_SECURE:-false}
       SMTP_TLS_REJECT_UNAUTHORIZED: ${SMTP_TLS_REJECT_UNAUTHORIZED:-false}
 
+  web:
+    ports:
+      - "${WEB_PORT:-3001}:3001"
+
   workers:
     environment:
       POSTGRES_USER: ${POSTGRES_USER:-postgres}
       POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-postgres}
-      POSTGRES_DB: ${POSTGRES_DB:-sokratest-v2}
+      POSTGRES_DB: ${POSTGRES_DB:-app}
       POSTGRES_HOST: postgres
       VALKEY_URL: redis://valkey:6379
       KREUZBERG_OCR_LANGUAGE: ${KREUZBERG_OCR_LANGUAGE:-eng+deu}

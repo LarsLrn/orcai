@@ -15,6 +15,31 @@ export const hasDefinition = (schema: string, definitionName: string) => {
 	return pattern.test(schema);
 };
 
+export const definitionHasRelation = (
+	schema: string,
+	definitionName: string,
+	relationName: string,
+) => {
+	const escapedDefinition = definitionName.replace(
+		/[.*+?^${}()|[\]\\]/g,
+		"\\$&",
+	);
+	const escapedRelation = relationName.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
+	const definitionPattern = new RegExp(
+		String.raw`\bdefinition\s+${escapedDefinition}\s*\{([\s\S]*?)^\}`,
+		"m",
+	);
+	const body = definitionPattern.exec(schema)?.[1];
+	if (body === undefined) {
+		return false;
+	}
+
+	const relationPattern = new RegExp(
+		String.raw`\brelation\s+${escapedRelation}\s*:`,
+	);
+	return relationPattern.test(body);
+};
+
 const parseDeletedCount = (value: string): number => {
 	const parsed = Number.parseInt(value, 10);
 	if (Number.isNaN(parsed)) {
@@ -22,6 +47,62 @@ const parseDeletedCount = (value: string): number => {
 	}
 	return parsed;
 };
+
+const readRelationships = (params: {
+	relationshipFilter: RelationshipFilterInput;
+	limit: number;
+}) =>
+	Effect.gen(function* () {
+		const { spice } = yield* SpiceDbService;
+
+		const responses = yield* Effect.tryPromise({
+			try: () =>
+				spice.readRelationships(
+					v1.ReadRelationshipsRequest.create({
+						relationshipFilter: params.relationshipFilter,
+						optionalLimit: params.limit,
+					}),
+				),
+			catch: (error) =>
+				new SpiceDbError({
+					operation: "query",
+					cause: error,
+				}),
+		});
+
+		return responses.flatMap((response) =>
+			response.relationship
+				? [
+						response.relationship,
+					]
+				: [],
+		);
+	});
+
+const writeRelationshipUpdates = (updates: readonly v1.RelationshipUpdate[]) =>
+	Effect.gen(function* () {
+		if (updates.length === 0) {
+			return;
+		}
+
+		const { spice } = yield* SpiceDbService;
+
+		yield* Effect.tryPromise({
+			try: () =>
+				spice.writeRelationships(
+					v1.WriteRelationshipsRequest.create({
+						updates: [
+							...updates,
+						],
+					}),
+				),
+			catch: (error) =>
+				new SpiceDbError({
+					operation: "mutate",
+					cause: error,
+				}),
+		});
+	});
 
 export const defaultSpiceDbSchemaPath = fileURLToPath(
 	new URL("../schema/schema.zed", import.meta.url),
@@ -166,4 +247,69 @@ export const deleteRelationshipsInBatches = (params: {
 		}
 
 		return deletedCount;
+	});
+
+export const rewriteRelationshipsInBatches = (params: {
+	relationshipFilter: RelationshipFilterInput;
+	mapRelationship: (
+		relationship: v1.Relationship,
+	) => v1.Relationship | null | undefined;
+	batchSize?: number;
+}) =>
+	Effect.gen(function* () {
+		const requestedBatchSize = params.batchSize ?? 1_000;
+		if (requestedBatchSize < 1) {
+			return yield* Effect.fail(
+				new SpiceDbError({
+					operation: "converge",
+					cause: new Error("rewriteRelationships batchSize must be at least 1"),
+				}),
+			);
+		}
+
+		let rewrittenCount = 0;
+		while (true) {
+			const relationships = yield* readRelationships({
+				relationshipFilter: params.relationshipFilter,
+				limit: requestedBatchSize,
+			});
+
+			const updates = relationships.flatMap((relationship) => {
+				const mapped = params.mapRelationship(relationship);
+				if (!mapped) {
+					return [];
+				}
+
+				return [
+					v1.RelationshipUpdate.create({
+						relationship,
+						operation: v1.RelationshipUpdate_Operation.DELETE,
+					}),
+					v1.RelationshipUpdate.create({
+						relationship: mapped,
+						operation: v1.RelationshipUpdate_Operation.TOUCH,
+					}),
+				];
+			});
+
+			if (relationships.length > 0 && updates.length === 0) {
+				return yield* Effect.fail(
+					new SpiceDbError({
+						operation: "converge",
+						cause: new Error(
+							"rewriteRelationships made no progress for a non-empty batch",
+						),
+					}),
+				);
+			}
+
+			yield* writeRelationshipUpdates(updates);
+			rewrittenCount += updates.length / 2;
+
+			if (relationships.length < requestedBatchSize) {
+				break;
+			}
+		}
+
+		return rewrittenCount;
 	});

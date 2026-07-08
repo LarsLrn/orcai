@@ -6,12 +6,12 @@ import {
 } from "@orcai/process";
 import { getFileTypeFromMime } from "@orcai/s3";
 import { getDownloadUrl, getObjectAsJson } from "@orcai/s3/server";
+import type { ChatMessageAttachment } from "@orcai/schema";
 import type { FileUIPart, TextUIPart } from "ai";
 import * as Effect from "effect/Effect";
-import type { ChatAttachment } from "@/lib/ai/types/chat-attachment";
 import { CHAT_ATTACHMENT_MAX_ATTACHMENT_TEXT_LENGTH } from "@/settings/constants";
 
-const getObjectKey = (attachment: ChatAttachment) => {
+const getObjectKey = (attachment: ChatMessageAttachment) => {
 	const extension = getFileTypeFromMime(attachment.fileType);
 	return `${attachment.prefix}/${attachment.assetId}.${extension}`;
 };
@@ -33,7 +33,7 @@ const formatDocumentAttachmentText = (params: {
 		truncateText(params.content),
 	].join("\n\n");
 
-const buildFileAttachmentPart = (attachment: ChatAttachment) =>
+const buildFileAttachmentPart = (attachment: ChatMessageAttachment) =>
 	Effect.gen(function* () {
 		const key = getObjectKey(attachment);
 		const signedUrl = yield* getDownloadUrl({
@@ -50,7 +50,7 @@ const buildFileAttachmentPart = (attachment: ChatAttachment) =>
 		} satisfies FileUIPart;
 	});
 
-const buildTextAttachmentPart = (attachment: ChatAttachment) =>
+const buildTextAttachmentPart = (attachment: ChatMessageAttachment) =>
 	Effect.gen(function* () {
 		const storedExtraction = yield* getObjectAsJson<StoredExtractionArtifact>({
 			bucket: buckets.processed.name,
@@ -87,13 +87,13 @@ const buildTextAttachmentPart = (attachment: ChatAttachment) =>
 		} satisfies TextUIPart;
 	});
 
-const fallbackAttachmentPart = (attachment: ChatAttachment) =>
+const fallbackAttachmentPart = (attachment: ChatMessageAttachment) =>
 	({
 		type: "text",
 		text: `Attachment "${attachment.title}" could not be loaded.`,
 	}) satisfies TextUIPart;
 
-const buildAttachmentPromptPart = (attachment: ChatAttachment) => {
+const buildAttachmentPromptPart = (attachment: ChatMessageAttachment) => {
 	if (attachment.fileType.startsWith("image/")) {
 		return buildFileAttachmentPart(attachment).pipe(
 			Effect.map((part): FileUIPart | TextUIPart => part),
@@ -108,7 +108,7 @@ const buildAttachmentPromptPart = (attachment: ChatAttachment) => {
 };
 
 export const buildAttachmentPromptPartCached = (params: {
-	attachment: ChatAttachment;
+	attachment: ChatMessageAttachment;
 	cache: Map<string, FileUIPart | TextUIPart>;
 }) =>
 	Effect.gen(function* () {

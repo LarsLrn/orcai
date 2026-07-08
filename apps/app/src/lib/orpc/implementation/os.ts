@@ -1,8 +1,14 @@
-import { implement } from "@orpc/server";
-import type { RequestHeadersPluginContext } from "@orpc/server/plugins";
-import { contracts } from "@/lib/orpc/contracts";
+import "@orpc/experimental-effect/extensions/effect";
 
-interface ORPCContext extends RequestHeadersPluginContext {
+import { contracts } from "@orcai/contracts";
+import type { WithEffectContext } from "@orpc/experimental-effect";
+import { implement } from "@orpc/server";
+import type { RequestHeadersHandlerPluginContext } from "@orpc/server/plugins";
+import type { AppRuntimeContext } from "@/lib/effect/runtime";
+
+export interface ORPCContext
+	extends RequestHeadersHandlerPluginContext,
+		WithEffectContext<AppRuntimeContext> {
 	meta?: {
 		zedToken?: string;
 	};

@@ -1,45 +1,50 @@
-import { ReplaceAllIcon } from "lucide-react";
-import { Button } from "@/components/ui/button";
+import type { UserWithOrganizationRole } from "@orcai/schema";
+import { useRouteContext } from "@tanstack/react-router";
+import { DataTableBulkActions } from "@/components/ui/data-table/data-table-bulk-actions";
 import { useTable } from "@/components/ui/data-table/data-table-context";
-import {
-	DropdownMenu,
-	DropdownMenuContent,
-	DropdownMenuItem,
-	DropdownMenuTrigger,
-} from "@/components/ui/dropdown-menu";
+import { useOrganizationCapabilities } from "@/hooks/authz/use-capabilities";
 import { useDeleteUsersMutation } from "@/hooks/mutations/use-user-admin-mutations";
 
 const UsersDataTableSelectActions = () => {
+	const { auth } = useRouteContext({
+		from: "/app",
+	});
 	const { table } = useTable();
-	const { mutate: deleteUsers } = useDeleteUsersMutation();
-
-	const handleDelete = () => {
-		const userIds = table.getSelectedRowModel().flatRows.map((row) => row.id);
-		deleteUsers({
-			userIds,
-		});
-	};
+	const { data: capabilities } = useOrganizationCapabilities([
+		"manage_organization",
+	]);
+	const deleteUsers = useDeleteUsersMutation({
+		onSuccess: () => {
+			table.resetRowSelection();
+		},
+	});
+	const canManageOrganization =
+		capabilities?.data.capabilities.manage_organization === true;
+	const selectedRows = table.getSelectedRowModel().rows;
+	const hasProtectedSelection = selectedRows.some(
+		(row) =>
+			row.original.id === auth.user.id ||
+			(row.original.organizationRole === "admin" && !canManageOrganization),
+	);
 
 	return (
-		<DropdownMenu>
-			<DropdownMenuTrigger
-				render={
-					<Button variant="outline" size="sm" className="h-8">
-						<ReplaceAllIcon />
-						Actions
-					</Button>
-				}
-			/>
-			<DropdownMenuContent align="end" className="w-50">
-				<DropdownMenuItem
-					variant="destructive"
-					onClick={handleDelete}
-					disabled={table.getSelectedRowModel().rows.length === 0}
-				>
-					Delete selected
-				</DropdownMenuItem>
-			</DropdownMenuContent>
-		</DropdownMenu>
+		<DataTableBulkActions<UserWithOrganizationRole>
+			isPending={deleteUsers.isPending}
+			actions={
+				hasProtectedSelection
+					? []
+					: [
+							{
+								label: "Delete selected",
+								variant: "destructive",
+								onSelect: ({ selectedRows }) =>
+									deleteUsers.mutate({
+										userIds: selectedRows.map((row) => row.original.id),
+									}),
+							},
+						]
+			}
+		/>
 	);
 };
 

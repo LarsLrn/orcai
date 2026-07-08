@@ -8,12 +8,20 @@ import {
 	PageHeader,
 	PageTitle,
 } from "@/components/ui/shell/page";
+import { ensureOrganizationCapability } from "@/lib/authz/route-guards";
 
 export const Route = createFileRoute("/app/hub/bots/add")({
-	component: RouteComponent,
 	validateSearch: z.object({
 		step: z.coerce.number().int().min(0).max(4).catch(0).default(0),
 	}),
+	loader: async ({ context: { queryClient } }) => {
+		await ensureOrganizationCapability({
+			queryClient,
+			permission: "create_bot",
+			redirectTo: "/app/hub/bots",
+		});
+	},
+	component: RouteComponent,
 	head: () => ({
 		meta: [
 			{

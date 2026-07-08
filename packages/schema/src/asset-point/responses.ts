@@ -1,9 +1,9 @@
 import { z } from "zod/v4";
-import { retrievalModeSchema } from "../fragments/retrieval-mode";
 import {
 	createDataResponseSchema,
 	createDeleteResponseSchema,
 } from "../shared";
+import { retrievalModeSchema } from "../shared/primitives/retrieval-mode";
 import { assetPointSchema } from "./schema";
 
 export const listAssetPointsResponseSchema = z.object({

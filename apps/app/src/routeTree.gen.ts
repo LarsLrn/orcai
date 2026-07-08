@@ -13,12 +13,15 @@ import { Route as AppRouteRouteImport } from './routes/app/route'
 import { Route as PathlessLayoutRouteRouteImport } from './routes/_pathlessLayout/route'
 import { Route as IndexRouteImport } from './routes/index'
 import { Route as AppIndexRouteImport } from './routes/app/index'
+import { Route as PathlessLayoutVerifyEmailRouteImport } from './routes/_pathlessLayout/verify-email'
 import { Route as PathlessLayoutTouRouteImport } from './routes/_pathlessLayout/tou'
 import { Route as PathlessLayoutSelectOrganizationRouteImport } from './routes/_pathlessLayout/select-organization'
+import { Route as PathlessLayoutResetPasswordRouteImport } from './routes/_pathlessLayout/reset-password'
 import { Route as PathlessLayoutRegisterRouteImport } from './routes/_pathlessLayout/register'
 import { Route as PathlessLayoutPrivacyRouteImport } from './routes/_pathlessLayout/privacy'
 import { Route as PathlessLayoutLoginRouteImport } from './routes/_pathlessLayout/login'
 import { Route as PathlessLayoutInitRouteImport } from './routes/_pathlessLayout/init'
+import { Route as PathlessLayoutForgotPasswordRouteImport } from './routes/_pathlessLayout/forgot-password'
 import { Route as AppUsersRouteRouteImport } from './routes/app/users/route'
 import { Route as AppQuotasRouteRouteImport } from './routes/app/quotas/route'
 import { Route as AppProvidersRouteRouteImport } from './routes/app/providers/route'
@@ -43,7 +46,6 @@ import { Route as AppQuotasAddRouteImport } from './routes/app/quotas/add'
 import { Route as AppProvidersAddRouteImport } from './routes/app/providers/add'
 import { Route as AppOrgsAddRouteImport } from './routes/app/orgs/add'
 import { Route as AppModelsAddRouteImport } from './routes/app/models/add'
-import { Route as AppHubRepositoriesRouteImport } from './routes/app/hub/repositories'
 import { Route as AppHubBehaviourRouteImport } from './routes/app/hub/behaviour'
 import { Route as AppChatSetupRouteImport } from './routes/app/chat/setup'
 import { Route as AppChatNewRouteImport } from './routes/app/chat/new'
@@ -63,6 +65,7 @@ import { Route as AppQuotasQuotaPoolIdIndexRouteImport } from './routes/app/quot
 import { Route as AppProvidersProviderIdIndexRouteImport } from './routes/app/providers/$providerId/index'
 import { Route as AppOrgsOrgIdIndexRouteImport } from './routes/app/orgs/$orgId/index'
 import { Route as AppModelsModelIdIndexRouteImport } from './routes/app/models/$modelId/index'
+import { Route as AppHubRepositoriesIndexRouteImport } from './routes/app/hub/repositories/index'
 import { Route as AppHubBotsIndexRouteImport } from './routes/app/hub/bots/index'
 import { Route as AppHubBlocksIndexRouteImport } from './routes/app/hub/blocks/index'
 import { Route as AppHubAssetsIndexRouteImport } from './routes/app/hub/assets/index'
@@ -75,7 +78,6 @@ import { Route as AppOrgsOrgIdEditRouteImport } from './routes/app/orgs/$orgId/e
 import { Route as AppModelsModelIdEditRouteImport } from './routes/app/models/$modelId/edit'
 import { Route as AppHubBotsAddRouteImport } from './routes/app/hub/bots/add'
 import { Route as AppHubBlocksAddRouteImport } from './routes/app/hub/blocks/add'
-import { Route as AppHubAssetsPlaygroundRouteImport } from './routes/app/hub/assets/playground'
 import { Route as AppHubAssetsAddRouteImport } from './routes/app/hub/assets/add'
 import { Route as AppHubBotsBotIdRouteRouteImport } from './routes/app/hub/bots/$botId/route'
 import { Route as AppHubBlocksBlockIdRouteRouteImport } from './routes/app/hub/blocks/$blockId/route'
@@ -83,6 +85,7 @@ import { Route as AppHubAssetsAssetIdRouteRouteImport } from './routes/app/hub/a
 import { Route as AppHubBotsBotIdIndexRouteImport } from './routes/app/hub/bots/$botId/index'
 import { Route as AppHubBlocksBlockIdIndexRouteImport } from './routes/app/hub/blocks/$blockId/index'
 import { Route as AppHubAssetsAssetIdIndexRouteImport } from './routes/app/hub/assets/$assetId/index'
+import { Route as AppHubRepositoriesBlockIdPlaygroundRouteImport } from './routes/app/hub/repositories/$blockId/playground'
 import { Route as AppHubBotsBotIdSetupRouteImport } from './routes/app/hub/bots/$botId/setup'
 import { Route as AppHubBlocksBlockIdPointsRouteImport } from './routes/app/hub/blocks/$blockId/points'
 import { Route as AppHubBlocksBlockIdEditRouteImport } from './routes/app/hub/blocks/$blockId/edit'
@@ -107,6 +110,12 @@ const AppIndexRoute = AppIndexRouteImport.update({
   path: '/',
   getParentRoute: () => AppRouteRoute,
 } as any)
+const PathlessLayoutVerifyEmailRoute =
+  PathlessLayoutVerifyEmailRouteImport.update({
+    id: '/verify-email',
+    path: '/verify-email',
+    getParentRoute: () => PathlessLayoutRouteRoute,
+  } as any)
 const PathlessLayoutTouRoute = PathlessLayoutTouRouteImport.update({
   id: '/tou',
   path: '/tou',
@@ -116,6 +125,12 @@ const PathlessLayoutSelectOrganizationRoute =
   PathlessLayoutSelectOrganizationRouteImport.update({
     id: '/select-organization',
     path: '/select-organization',
+    getParentRoute: () => PathlessLayoutRouteRoute,
+  } as any)
+const PathlessLayoutResetPasswordRoute =
+  PathlessLayoutResetPasswordRouteImport.update({
+    id: '/reset-password',
+    path: '/reset-password',
     getParentRoute: () => PathlessLayoutRouteRoute,
   } as any)
 const PathlessLayoutRegisterRoute = PathlessLayoutRegisterRouteImport.update({
@@ -138,6 +153,12 @@ const PathlessLayoutInitRoute = PathlessLayoutInitRouteImport.update({
   path: '/init',
   getParentRoute: () => PathlessLayoutRouteRoute,
 } as any)
+const PathlessLayoutForgotPasswordRoute =
+  PathlessLayoutForgotPasswordRouteImport.update({
+    id: '/forgot-password',
+    path: '/forgot-password',
+    getParentRoute: () => PathlessLayoutRouteRoute,
+  } as any)
 const AppUsersRouteRoute = AppUsersRouteRouteImport.update({
   id: '/users',
   path: '/users',
@@ -258,11 +279,6 @@ const AppModelsAddRoute = AppModelsAddRouteImport.update({
   path: '/add',
   getParentRoute: () => AppModelsRouteRoute,
 } as any)
-const AppHubRepositoriesRoute = AppHubRepositoriesRouteImport.update({
-  id: '/repositories',
-  path: '/repositories',
-  getParentRoute: () => AppHubRouteRoute,
-} as any)
 const AppHubBehaviourRoute = AppHubBehaviourRouteImport.update({
   id: '/behaviour',
   path: '/behaviour',
@@ -362,6 +378,11 @@ const AppModelsModelIdIndexRoute = AppModelsModelIdIndexRouteImport.update({
   path: '/',
   getParentRoute: () => AppModelsModelIdRouteRoute,
 } as any)
+const AppHubRepositoriesIndexRoute = AppHubRepositoriesIndexRouteImport.update({
+  id: '/repositories/',
+  path: '/repositories/',
+  getParentRoute: () => AppHubRouteRoute,
+} as any)
 const AppHubBotsIndexRoute = AppHubBotsIndexRouteImport.update({
   id: '/',
   path: '/',
@@ -424,11 +445,6 @@ const AppHubBlocksAddRoute = AppHubBlocksAddRouteImport.update({
   path: '/add',
   getParentRoute: () => AppHubBlocksRouteRoute,
 } as any)
-const AppHubAssetsPlaygroundRoute = AppHubAssetsPlaygroundRouteImport.update({
-  id: '/playground',
-  path: '/playground',
-  getParentRoute: () => AppHubAssetsRouteRoute,
-} as any)
 const AppHubAssetsAddRoute = AppHubAssetsAddRouteImport.update({
   id: '/add',
   path: '/add',
@@ -468,6 +484,12 @@ const AppHubAssetsAssetIdIndexRoute =
     path: '/',
     getParentRoute: () => AppHubAssetsAssetIdRouteRoute,
   } as any)
+const AppHubRepositoriesBlockIdPlaygroundRoute =
+  AppHubRepositoriesBlockIdPlaygroundRouteImport.update({
+    id: '/repositories/$blockId/playground',
+    path: '/repositories/$blockId/playground',
+    getParentRoute: () => AppHubRouteRoute,
+  } as any)
 const AppHubBotsBotIdSetupRoute = AppHubBotsBotIdSetupRouteImport.update({
   id: '/setup',
   path: '/setup',
@@ -502,12 +524,15 @@ export interface FileRoutesByFullPath {
   '/app/providers': typeof AppProvidersRouteRouteWithChildren
   '/app/quotas': typeof AppQuotasRouteRouteWithChildren
   '/app/users': typeof AppUsersRouteRouteWithChildren
+  '/forgot-password': typeof PathlessLayoutForgotPasswordRoute
   '/init': typeof PathlessLayoutInitRoute
   '/login': typeof PathlessLayoutLoginRoute
   '/privacy': typeof PathlessLayoutPrivacyRoute
   '/register': typeof PathlessLayoutRegisterRoute
+  '/reset-password': typeof PathlessLayoutResetPasswordRoute
   '/select-organization': typeof PathlessLayoutSelectOrganizationRoute
   '/tou': typeof PathlessLayoutTouRoute
+  '/verify-email': typeof PathlessLayoutVerifyEmailRoute
   '/app/': typeof AppIndexRoute
   '/app/groups/$groupId': typeof AppGroupsGroupIdRouteRouteWithChildren
   '/app/hub/assets': typeof AppHubAssetsRouteRouteWithChildren
@@ -524,7 +549,6 @@ export interface FileRoutesByFullPath {
   '/app/chat/new': typeof AppChatNewRoute
   '/app/chat/setup': typeof AppChatSetupRoute
   '/app/hub/behaviour': typeof AppHubBehaviourRoute
-  '/app/hub/repositories': typeof AppHubRepositoriesRoute
   '/app/models/add': typeof AppModelsAddRoute
   '/app/orgs/add': typeof AppOrgsAddRoute
   '/app/providers/add': typeof AppProvidersAddRoute
@@ -544,7 +568,6 @@ export interface FileRoutesByFullPath {
   '/app/hub/blocks/$blockId': typeof AppHubBlocksBlockIdRouteRouteWithChildren
   '/app/hub/bots/$botId': typeof AppHubBotsBotIdRouteRouteWithChildren
   '/app/hub/assets/add': typeof AppHubAssetsAddRoute
-  '/app/hub/assets/playground': typeof AppHubAssetsPlaygroundRoute
   '/app/hub/blocks/add': typeof AppHubBlocksAddRoute
   '/app/hub/bots/add': typeof AppHubBotsAddRoute
   '/app/models/$modelId/edit': typeof AppModelsModelIdEditRoute
@@ -557,6 +580,7 @@ export interface FileRoutesByFullPath {
   '/app/hub/assets/': typeof AppHubAssetsIndexRoute
   '/app/hub/blocks/': typeof AppHubBlocksIndexRoute
   '/app/hub/bots/': typeof AppHubBotsIndexRoute
+  '/app/hub/repositories/': typeof AppHubRepositoriesIndexRoute
   '/app/models/$modelId/': typeof AppModelsModelIdIndexRoute
   '/app/orgs/$orgId/': typeof AppOrgsOrgIdIndexRoute
   '/app/providers/$providerId/': typeof AppProvidersProviderIdIndexRoute
@@ -565,18 +589,22 @@ export interface FileRoutesByFullPath {
   '/app/hub/blocks/$blockId/edit': typeof AppHubBlocksBlockIdEditRoute
   '/app/hub/blocks/$blockId/points': typeof AppHubBlocksBlockIdPointsRoute
   '/app/hub/bots/$botId/setup': typeof AppHubBotsBotIdSetupRoute
+  '/app/hub/repositories/$blockId/playground': typeof AppHubRepositoriesBlockIdPlaygroundRoute
   '/app/hub/assets/$assetId/': typeof AppHubAssetsAssetIdIndexRoute
   '/app/hub/blocks/$blockId/': typeof AppHubBlocksBlockIdIndexRoute
   '/app/hub/bots/$botId/': typeof AppHubBotsBotIdIndexRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
+  '/forgot-password': typeof PathlessLayoutForgotPasswordRoute
   '/init': typeof PathlessLayoutInitRoute
   '/login': typeof PathlessLayoutLoginRoute
   '/privacy': typeof PathlessLayoutPrivacyRoute
   '/register': typeof PathlessLayoutRegisterRoute
+  '/reset-password': typeof PathlessLayoutResetPasswordRoute
   '/select-organization': typeof PathlessLayoutSelectOrganizationRoute
   '/tou': typeof PathlessLayoutTouRoute
+  '/verify-email': typeof PathlessLayoutVerifyEmailRoute
   '/app': typeof AppIndexRoute
   '/app/users/$userId': typeof AppUsersUserIdRouteRouteWithChildren
   '/api/auth/$': typeof ApiAuthSplatRoute
@@ -585,7 +613,6 @@ export interface FileRoutesByTo {
   '/app/chat/new': typeof AppChatNewRoute
   '/app/chat/setup': typeof AppChatSetupRoute
   '/app/hub/behaviour': typeof AppHubBehaviourRoute
-  '/app/hub/repositories': typeof AppHubRepositoriesRoute
   '/app/models/add': typeof AppModelsAddRoute
   '/app/orgs/add': typeof AppOrgsAddRoute
   '/app/providers/add': typeof AppProvidersAddRoute
@@ -602,7 +629,6 @@ export interface FileRoutesByTo {
   '/app/quotas': typeof AppQuotasIndexRoute
   '/app/users': typeof AppUsersIndexRoute
   '/app/hub/assets/add': typeof AppHubAssetsAddRoute
-  '/app/hub/assets/playground': typeof AppHubAssetsPlaygroundRoute
   '/app/hub/blocks/add': typeof AppHubBlocksAddRoute
   '/app/hub/bots/add': typeof AppHubBotsAddRoute
   '/app/models/$modelId/edit': typeof AppModelsModelIdEditRoute
@@ -615,6 +641,7 @@ export interface FileRoutesByTo {
   '/app/hub/assets': typeof AppHubAssetsIndexRoute
   '/app/hub/blocks': typeof AppHubBlocksIndexRoute
   '/app/hub/bots': typeof AppHubBotsIndexRoute
+  '/app/hub/repositories': typeof AppHubRepositoriesIndexRoute
   '/app/models/$modelId': typeof AppModelsModelIdIndexRoute
   '/app/orgs/$orgId': typeof AppOrgsOrgIdIndexRoute
   '/app/providers/$providerId': typeof AppProvidersProviderIdIndexRoute
@@ -623,6 +650,7 @@ export interface FileRoutesByTo {
   '/app/hub/blocks/$blockId/edit': typeof AppHubBlocksBlockIdEditRoute
   '/app/hub/blocks/$blockId/points': typeof AppHubBlocksBlockIdPointsRoute
   '/app/hub/bots/$botId/setup': typeof AppHubBotsBotIdSetupRoute
+  '/app/hub/repositories/$blockId/playground': typeof AppHubRepositoriesBlockIdPlaygroundRoute
   '/app/hub/assets/$assetId': typeof AppHubAssetsAssetIdIndexRoute
   '/app/hub/blocks/$blockId': typeof AppHubBlocksBlockIdIndexRoute
   '/app/hub/bots/$botId': typeof AppHubBotsBotIdIndexRoute
@@ -641,12 +669,15 @@ export interface FileRoutesById {
   '/app/providers': typeof AppProvidersRouteRouteWithChildren
   '/app/quotas': typeof AppQuotasRouteRouteWithChildren
   '/app/users': typeof AppUsersRouteRouteWithChildren
+  '/_pathlessLayout/forgot-password': typeof PathlessLayoutForgotPasswordRoute
   '/_pathlessLayout/init': typeof PathlessLayoutInitRoute
   '/_pathlessLayout/login': typeof PathlessLayoutLoginRoute
   '/_pathlessLayout/privacy': typeof PathlessLayoutPrivacyRoute
   '/_pathlessLayout/register': typeof PathlessLayoutRegisterRoute
+  '/_pathlessLayout/reset-password': typeof PathlessLayoutResetPasswordRoute
   '/_pathlessLayout/select-organization': typeof PathlessLayoutSelectOrganizationRoute
   '/_pathlessLayout/tou': typeof PathlessLayoutTouRoute
+  '/_pathlessLayout/verify-email': typeof PathlessLayoutVerifyEmailRoute
   '/app/': typeof AppIndexRoute
   '/app/groups/$groupId': typeof AppGroupsGroupIdRouteRouteWithChildren
   '/app/hub/assets': typeof AppHubAssetsRouteRouteWithChildren
@@ -663,7 +694,6 @@ export interface FileRoutesById {
   '/app/chat/new': typeof AppChatNewRoute
   '/app/chat/setup': typeof AppChatSetupRoute
   '/app/hub/behaviour': typeof AppHubBehaviourRoute
-  '/app/hub/repositories': typeof AppHubRepositoriesRoute
   '/app/models/add': typeof AppModelsAddRoute
   '/app/orgs/add': typeof AppOrgsAddRoute
   '/app/providers/add': typeof AppProvidersAddRoute
@@ -683,7 +713,6 @@ export interface FileRoutesById {
   '/app/hub/blocks/$blockId': typeof AppHubBlocksBlockIdRouteRouteWithChildren
   '/app/hub/bots/$botId': typeof AppHubBotsBotIdRouteRouteWithChildren
   '/app/hub/assets/add': typeof AppHubAssetsAddRoute
-  '/app/hub/assets/playground': typeof AppHubAssetsPlaygroundRoute
   '/app/hub/blocks/add': typeof AppHubBlocksAddRoute
   '/app/hub/bots/add': typeof AppHubBotsAddRoute
   '/app/models/$modelId/edit': typeof AppModelsModelIdEditRoute
@@ -696,6 +725,7 @@ export interface FileRoutesById {
   '/app/hub/assets/': typeof AppHubAssetsIndexRoute
   '/app/hub/blocks/': typeof AppHubBlocksIndexRoute
   '/app/hub/bots/': typeof AppHubBotsIndexRoute
+  '/app/hub/repositories/': typeof AppHubRepositoriesIndexRoute
   '/app/models/$modelId/': typeof AppModelsModelIdIndexRoute
   '/app/orgs/$orgId/': typeof AppOrgsOrgIdIndexRoute
   '/app/providers/$providerId/': typeof AppProvidersProviderIdIndexRoute
@@ -704,6 +734,7 @@ export interface FileRoutesById {
   '/app/hub/blocks/$blockId/edit': typeof AppHubBlocksBlockIdEditRoute
   '/app/hub/blocks/$blockId/points': typeof AppHubBlocksBlockIdPointsRoute
   '/app/hub/bots/$botId/setup': typeof AppHubBotsBotIdSetupRoute
+  '/app/hub/repositories/$blockId/playground': typeof AppHubRepositoriesBlockIdPlaygroundRoute
   '/app/hub/assets/$assetId/': typeof AppHubAssetsAssetIdIndexRoute
   '/app/hub/blocks/$blockId/': typeof AppHubBlocksBlockIdIndexRoute
   '/app/hub/bots/$botId/': typeof AppHubBotsBotIdIndexRoute
@@ -722,12 +753,15 @@ export interface FileRouteTypes {
     | '/app/providers'
     | '/app/quotas'
     | '/app/users'
+    | '/forgot-password'
     | '/init'
     | '/login'
     | '/privacy'
     | '/register'
+    | '/reset-password'
     | '/select-organization'
     | '/tou'
+    | '/verify-email'
     | '/app/'
     | '/app/groups/$groupId'
     | '/app/hub/assets'
@@ -744,7 +778,6 @@ export interface FileRouteTypes {
     | '/app/chat/new'
     | '/app/chat/setup'
     | '/app/hub/behaviour'
-    | '/app/hub/repositories'
     | '/app/models/add'
     | '/app/orgs/add'
     | '/app/providers/add'
@@ -764,7 +797,6 @@ export interface FileRouteTypes {
     | '/app/hub/blocks/$blockId'
     | '/app/hub/bots/$botId'
     | '/app/hub/assets/add'
-    | '/app/hub/assets/playground'
     | '/app/hub/blocks/add'
     | '/app/hub/bots/add'
     | '/app/models/$modelId/edit'
@@ -777,6 +809,7 @@ export interface FileRouteTypes {
     | '/app/hub/assets/'
     | '/app/hub/blocks/'
     | '/app/hub/bots/'
+    | '/app/hub/repositories/'
     | '/app/models/$modelId/'
     | '/app/orgs/$orgId/'
     | '/app/providers/$providerId/'
@@ -785,18 +818,22 @@ export interface FileRouteTypes {
     | '/app/hub/blocks/$blockId/edit'
     | '/app/hub/blocks/$blockId/points'
     | '/app/hub/bots/$botId/setup'
+    | '/app/hub/repositories/$blockId/playground'
     | '/app/hub/assets/$assetId/'
     | '/app/hub/blocks/$blockId/'
     | '/app/hub/bots/$botId/'
   fileRoutesByTo: FileRoutesByTo
   to:
     | '/'
+    | '/forgot-password'
     | '/init'
     | '/login'
     | '/privacy'
     | '/register'
+    | '/reset-password'
     | '/select-organization'
     | '/tou'
+    | '/verify-email'
     | '/app'
     | '/app/users/$userId'
     | '/api/auth/$'
@@ -805,7 +842,6 @@ export interface FileRouteTypes {
     | '/app/chat/new'
     | '/app/chat/setup'
     | '/app/hub/behaviour'
-    | '/app/hub/repositories'
     | '/app/models/add'
     | '/app/orgs/add'
     | '/app/providers/add'
@@ -822,7 +858,6 @@ export interface FileRouteTypes {
     | '/app/quotas'
     | '/app/users'
     | '/app/hub/assets/add'
-    | '/app/hub/assets/playground'
     | '/app/hub/blocks/add'
     | '/app/hub/bots/add'
     | '/app/models/$modelId/edit'
@@ -835,6 +870,7 @@ export interface FileRouteTypes {
     | '/app/hub/assets'
     | '/app/hub/blocks'
     | '/app/hub/bots'
+    | '/app/hub/repositories'
     | '/app/models/$modelId'
     | '/app/orgs/$orgId'
     | '/app/providers/$providerId'
@@ -843,6 +879,7 @@ export interface FileRouteTypes {
     | '/app/hub/blocks/$blockId/edit'
     | '/app/hub/blocks/$blockId/points'
     | '/app/hub/bots/$botId/setup'
+    | '/app/hub/repositories/$blockId/playground'
     | '/app/hub/assets/$assetId'
     | '/app/hub/blocks/$blockId'
     | '/app/hub/bots/$botId'
@@ -860,12 +897,15 @@ export interface FileRouteTypes {
     | '/app/providers'
     | '/app/quotas'
     | '/app/users'
+    | '/_pathlessLayout/forgot-password'
     | '/_pathlessLayout/init'
     | '/_pathlessLayout/login'
     | '/_pathlessLayout/privacy'
     | '/_pathlessLayout/register'
+    | '/_pathlessLayout/reset-password'
     | '/_pathlessLayout/select-organization'
     | '/_pathlessLayout/tou'
+    | '/_pathlessLayout/verify-email'
     | '/app/'
     | '/app/groups/$groupId'
     | '/app/hub/assets'
@@ -882,7 +922,6 @@ export interface FileRouteTypes {
     | '/app/chat/new'
     | '/app/chat/setup'
     | '/app/hub/behaviour'
-    | '/app/hub/repositories'
     | '/app/models/add'
     | '/app/orgs/add'
     | '/app/providers/add'
@@ -902,7 +941,6 @@ export interface FileRouteTypes {
     | '/app/hub/blocks/$blockId'
     | '/app/hub/bots/$botId'
     | '/app/hub/assets/add'
-    | '/app/hub/assets/playground'
     | '/app/hub/blocks/add'
     | '/app/hub/bots/add'
     | '/app/models/$modelId/edit'
@@ -915,6 +953,7 @@ export interface FileRouteTypes {
     | '/app/hub/assets/'
     | '/app/hub/blocks/'
     | '/app/hub/bots/'
+    | '/app/hub/repositories/'
     | '/app/models/$modelId/'
     | '/app/orgs/$orgId/'
     | '/app/providers/$providerId/'
@@ -923,6 +962,7 @@ export interface FileRouteTypes {
     | '/app/hub/blocks/$blockId/edit'
     | '/app/hub/blocks/$blockId/points'
     | '/app/hub/bots/$botId/setup'
+    | '/app/hub/repositories/$blockId/playground'
     | '/app/hub/assets/$assetId/'
     | '/app/hub/blocks/$blockId/'
     | '/app/hub/bots/$botId/'
@@ -967,6 +1007,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AppIndexRouteImport
       parentRoute: typeof AppRouteRoute
     }
+    '/_pathlessLayout/verify-email': {
+      id: '/_pathlessLayout/verify-email'
+      path: '/verify-email'
+      fullPath: '/verify-email'
+      preLoaderRoute: typeof PathlessLayoutVerifyEmailRouteImport
+      parentRoute: typeof PathlessLayoutRouteRoute
+    }
     '/_pathlessLayout/tou': {
       id: '/_pathlessLayout/tou'
       path: '/tou'
@@ -979,6 +1026,13 @@ declare module '@tanstack/react-router' {
       path: '/select-organization'
       fullPath: '/select-organization'
       preLoaderRoute: typeof PathlessLayoutSelectOrganizationRouteImport
+      parentRoute: typeof PathlessLayoutRouteRoute
+    }
+    '/_pathlessLayout/reset-password': {
+      id: '/_pathlessLayout/reset-password'
+      path: '/reset-password'
+      fullPath: '/reset-password'
+      preLoaderRoute: typeof PathlessLayoutResetPasswordRouteImport
       parentRoute: typeof PathlessLayoutRouteRoute
     }
     '/_pathlessLayout/register': {
@@ -1007,6 +1061,13 @@ declare module '@tanstack/react-router' {
       path: '/init'
       fullPath: '/init'
       preLoaderRoute: typeof PathlessLayoutInitRouteImport
+      parentRoute: typeof PathlessLayoutRouteRoute
+    }
+    '/_pathlessLayout/forgot-password': {
+      id: '/_pathlessLayout/forgot-password'
+      path: '/forgot-password'
+      fullPath: '/forgot-password'
+      preLoaderRoute: typeof PathlessLayoutForgotPasswordRouteImport
       parentRoute: typeof PathlessLayoutRouteRoute
     }
     '/app/users': {
@@ -1177,13 +1238,6 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AppModelsAddRouteImport
       parentRoute: typeof AppModelsRouteRoute
     }
-    '/app/hub/repositories': {
-      id: '/app/hub/repositories'
-      path: '/repositories'
-      fullPath: '/app/hub/repositories'
-      preLoaderRoute: typeof AppHubRepositoriesRouteImport
-      parentRoute: typeof AppHubRouteRoute
-    }
     '/app/hub/behaviour': {
       id: '/app/hub/behaviour'
       path: '/behaviour'
@@ -1317,6 +1371,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AppModelsModelIdIndexRouteImport
       parentRoute: typeof AppModelsModelIdRouteRoute
     }
+    '/app/hub/repositories/': {
+      id: '/app/hub/repositories/'
+      path: '/repositories'
+      fullPath: '/app/hub/repositories/'
+      preLoaderRoute: typeof AppHubRepositoriesIndexRouteImport
+      parentRoute: typeof AppHubRouteRoute
+    }
     '/app/hub/bots/': {
       id: '/app/hub/bots/'
       path: '/'
@@ -1401,13 +1462,6 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AppHubBlocksAddRouteImport
       parentRoute: typeof AppHubBlocksRouteRoute
     }
-    '/app/hub/assets/playground': {
-      id: '/app/hub/assets/playground'
-      path: '/playground'
-      fullPath: '/app/hub/assets/playground'
-      preLoaderRoute: typeof AppHubAssetsPlaygroundRouteImport
-      parentRoute: typeof AppHubAssetsRouteRoute
-    }
     '/app/hub/assets/add': {
       id: '/app/hub/assets/add'
       path: '/add'
@@ -1457,6 +1511,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AppHubAssetsAssetIdIndexRouteImport
       parentRoute: typeof AppHubAssetsAssetIdRouteRoute
     }
+    '/app/hub/repositories/$blockId/playground': {
+      id: '/app/hub/repositories/$blockId/playground'
+      path: '/repositories/$blockId/playground'
+      fullPath: '/app/hub/repositories/$blockId/playground'
+      preLoaderRoute: typeof AppHubRepositoriesBlockIdPlaygroundRouteImport
+      parentRoute: typeof AppHubRouteRoute
+    }
     '/app/hub/bots/$botId/setup': {
       id: '/app/hub/bots/$botId/setup'
       path: '/setup'
@@ -1489,21 +1550,27 @@ declare module '@tanstack/react-router' {
 }
 
 interface PathlessLayoutRouteRouteChildren {
+  PathlessLayoutForgotPasswordRoute: typeof PathlessLayoutForgotPasswordRoute
   PathlessLayoutInitRoute: typeof PathlessLayoutInitRoute
   PathlessLayoutLoginRoute: typeof PathlessLayoutLoginRoute
   PathlessLayoutPrivacyRoute: typeof PathlessLayoutPrivacyRoute
   PathlessLayoutRegisterRoute: typeof PathlessLayoutRegisterRoute
+  PathlessLayoutResetPasswordRoute: typeof PathlessLayoutResetPasswordRoute
   PathlessLayoutSelectOrganizationRoute: typeof PathlessLayoutSelectOrganizationRoute
   PathlessLayoutTouRoute: typeof PathlessLayoutTouRoute
+  PathlessLayoutVerifyEmailRoute: typeof PathlessLayoutVerifyEmailRoute
 }
 
 const PathlessLayoutRouteRouteChildren: PathlessLayoutRouteRouteChildren = {
+  PathlessLayoutForgotPasswordRoute: PathlessLayoutForgotPasswordRoute,
   PathlessLayoutInitRoute: PathlessLayoutInitRoute,
   PathlessLayoutLoginRoute: PathlessLayoutLoginRoute,
   PathlessLayoutPrivacyRoute: PathlessLayoutPrivacyRoute,
   PathlessLayoutRegisterRoute: PathlessLayoutRegisterRoute,
+  PathlessLayoutResetPasswordRoute: PathlessLayoutResetPasswordRoute,
   PathlessLayoutSelectOrganizationRoute: PathlessLayoutSelectOrganizationRoute,
   PathlessLayoutTouRoute: PathlessLayoutTouRoute,
+  PathlessLayoutVerifyEmailRoute: PathlessLayoutVerifyEmailRoute,
 }
 
 const PathlessLayoutRouteRouteWithChildren =
@@ -1585,14 +1652,12 @@ const AppHubAssetsAssetIdRouteRouteWithChildren =
 interface AppHubAssetsRouteRouteChildren {
   AppHubAssetsAssetIdRouteRoute: typeof AppHubAssetsAssetIdRouteRouteWithChildren
   AppHubAssetsAddRoute: typeof AppHubAssetsAddRoute
-  AppHubAssetsPlaygroundRoute: typeof AppHubAssetsPlaygroundRoute
   AppHubAssetsIndexRoute: typeof AppHubAssetsIndexRoute
 }
 
 const AppHubAssetsRouteRouteChildren: AppHubAssetsRouteRouteChildren = {
   AppHubAssetsAssetIdRouteRoute: AppHubAssetsAssetIdRouteRouteWithChildren,
   AppHubAssetsAddRoute: AppHubAssetsAddRoute,
-  AppHubAssetsPlaygroundRoute: AppHubAssetsPlaygroundRoute,
   AppHubAssetsIndexRoute: AppHubAssetsIndexRoute,
 }
 
@@ -1666,8 +1731,9 @@ interface AppHubRouteRouteChildren {
   AppHubBlocksRouteRoute: typeof AppHubBlocksRouteRouteWithChildren
   AppHubBotsRouteRoute: typeof AppHubBotsRouteRouteWithChildren
   AppHubBehaviourRoute: typeof AppHubBehaviourRoute
-  AppHubRepositoriesRoute: typeof AppHubRepositoriesRoute
   AppHubIndexRoute: typeof AppHubIndexRoute
+  AppHubRepositoriesIndexRoute: typeof AppHubRepositoriesIndexRoute
+  AppHubRepositoriesBlockIdPlaygroundRoute: typeof AppHubRepositoriesBlockIdPlaygroundRoute
 }
 
 const AppHubRouteRouteChildren: AppHubRouteRouteChildren = {
@@ -1675,8 +1741,10 @@ const AppHubRouteRouteChildren: AppHubRouteRouteChildren = {
   AppHubBlocksRouteRoute: AppHubBlocksRouteRouteWithChildren,
   AppHubBotsRouteRoute: AppHubBotsRouteRouteWithChildren,
   AppHubBehaviourRoute: AppHubBehaviourRoute,
-  AppHubRepositoriesRoute: AppHubRepositoriesRoute,
   AppHubIndexRoute: AppHubIndexRoute,
+  AppHubRepositoriesIndexRoute: AppHubRepositoriesIndexRoute,
+  AppHubRepositoriesBlockIdPlaygroundRoute:
+    AppHubRepositoriesBlockIdPlaygroundRoute,
 }
 
 const AppHubRouteRouteWithChildren = AppHubRouteRoute._addFileChildren(

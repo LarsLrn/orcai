@@ -1,4 +1,4 @@
-name: sokratest-v2_devcontainer
+name: orcai_devcontainer
 
 x-dev-app-env: &dev_app_env
   BASE_URL: http://localhost:3000
@@ -19,7 +19,7 @@ x-dev-app-env: &dev_app_env
 x-dev-db-env: &dev_db_env
   POSTGRES_USER: ${POSTGRES_USER:-postgres}
   POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-postgres}
-  POSTGRES_DB: ${POSTGRES_DB:-sokratest-v2}
+  POSTGRES_DB: ${POSTGRES_DB:-app}
 
 x-dev-minio-env: &dev_minio_env
   MINIO_ROOT_USER: ${MINIO_ROOT_USER:-minioadmin}
@@ -38,10 +38,10 @@ services:
     build:
       context: .
       dockerfile: .devcontainer/Dockerfile.workspace
-    working_dir: /workspaces/sokratest-v2
+    working_dir: /workspaces/orcai
     command: [ "bun", "install", "--frozen-lockfile", "--ignore-scripts" ]
     volumes:
-      - .:/workspaces/sokratest-v2:cached
+      - .:/workspaces/orcai:cached
     user: bun
     restart: "no"
 
@@ -49,10 +49,10 @@ services:
     build:
       context: .
       dockerfile: .devcontainer/Dockerfile.workspace
-    working_dir: /workspaces/sokratest-v2
+    working_dir: /workspaces/orcai
     command: [ "/bin/sh", "-c", "while sleep 1000; do :; done" ]
     volumes:
-      - .:/workspaces/sokratest-v2:cached
+      - .:/workspaces/orcai:cached
     environment:
       <<: [ *dev_app_env, *dev_db_env, *dev_minio_env, *dev_spicedb_env, *dev_qdrant_env ]
       NODE_ENV: development
@@ -99,10 +99,10 @@ services:
     build:
       context: .
       dockerfile: .devcontainer/Dockerfile.workspace
-    working_dir: /workspaces/sokratest-v2
+    working_dir: /workspaces/orcai
     command: [ "/bin/sh", "-c", "bun run workers:dev" ]
     volumes:
-      - .:/workspaces/sokratest-v2:cached
+      - .:/workspaces/orcai:cached
     environment:
       <<: [ *dev_app_env, *dev_db_env, *dev_minio_env, *dev_qdrant_env ]
       NODE_ENV: development

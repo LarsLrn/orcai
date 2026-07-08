@@ -350,14 +350,14 @@ const processImageFile = (params: {
 
 		return yield* generateTextEffect({
 			maxOutputTokens: 1024,
-			system: params.systemPrompt,
+			instructions: params.systemPrompt,
 			messages: [
 				{
 					role: "user",
 					content: [
 						{
-							type: "image",
-							image: imageBytes,
+							type: "file",
+							data: imageBytes,
 							mediaType: params.contentType,
 						},
 					],

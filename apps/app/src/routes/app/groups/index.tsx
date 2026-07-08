@@ -1,9 +1,10 @@
-import { paginationInputSchema } from "@orcai/schema";
+import { listGroupsInputSchema } from "@orcai/schema";
 import { useQueryClient, useSuspenseQuery } from "@tanstack/react-query";
 import { createFileRoute, useNavigate } from "@tanstack/react-router";
 import { PlusIcon, SearchIcon } from "lucide-react";
 import { useState } from "react";
 import { z } from "zod/v4";
+import { GroupTableActions } from "@/components/groups/table/group-table-actions";
 import { groupTableColumns } from "@/components/groups/table/group-table-columns";
 import { Button } from "@/components/ui/button";
 import { DataTable } from "@/components/ui/data-table/data-table";
@@ -31,20 +32,21 @@ import { Textarea } from "@/components/ui/textarea";
 import { useMutationAction } from "@/hooks/actions/use-mutation-action";
 import { orpc } from "@/lib/orpc/orpc";
 
-const searchSchema = paginationInputSchema.extend({
+const searchSchema = listGroupsInputSchema.extend({
 	query: z.string().trim().max(100).default(""),
 });
 
 export const Route = createFileRoute("/app/groups/")({
 	validateSearch: searchSchema,
-	loaderDeps: ({ search: { pageIndex, pageSize, query } }) => ({
+	loaderDeps: ({ search: { pageIndex, pageSize, query, sort } }) => ({
 		pageIndex,
 		pageSize,
 		query,
+		sort,
 	}),
 	loader: async ({
 		context: { queryClient },
-		deps: { pageIndex, pageSize, query },
+		deps: { pageIndex, pageSize, query, sort },
 	}) => {
 		await queryClient.ensureQueryData(
 			orpc.group.list.queryOptions({
@@ -54,6 +56,7 @@ export const Route = createFileRoute("/app/groups/")({
 					},
 					pageIndex,
 					pageSize,
+					sort,
 				},
 			}),
 		);
@@ -64,7 +67,7 @@ export const Route = createFileRoute("/app/groups/")({
 function RouteComponent() {
 	const navigate = useNavigate();
 	const queryClient = useQueryClient();
-	const { pageIndex, pageSize, query } = Route.useSearch();
+	const { pageIndex, pageSize, query, sort } = Route.useSearch();
 	const [isCreateOpen, setIsCreateOpen] = useState(false);
 	const [name, setName] = useState("");
 	const [description, setDescription] = useState("");
@@ -77,6 +80,7 @@ function RouteComponent() {
 				},
 				pageIndex,
 				pageSize,
+				sort,
 			},
 		}),
 	);
@@ -153,10 +157,12 @@ function RouteComponent() {
 							pageIndex,
 							pageSize,
 						},
+						sorting: sort,
 					}}
 					options={{
 						rowCount: groups.rowCount,
 						uidAccessor: "id",
+						enableRowSelection: (row) => row.original.kind === "custom",
 						clientPagination: {
 							pageIndex,
 							pageSize,
@@ -165,6 +171,7 @@ function RouteComponent() {
 				>
 					<div className="flex items-center gap-2">
 						<DataTableViewOptions />
+						<GroupTableActions />
 					</div>
 					<DataTableBody />
 					<DataTablePagination />

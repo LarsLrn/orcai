@@ -38,8 +38,9 @@ function RouteComponent() {
 			<CardContent>
 				<SignInForm />
 			</CardContent>
-			<CardFooter className="text-muted-foreground text-sm">
+			<CardFooter className="flex justify-between text-muted-foreground text-sm">
 				<Link to={"/register"}>Create a new account?</Link>
+				<Link to={"/forgot-password"}>Forgot password?</Link>
 			</CardFooter>
 		</Card>
 	);

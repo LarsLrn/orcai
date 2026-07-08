@@ -1,4 +1,4 @@
-import { useStore } from "@tanstack/react-form";
+import { useSelector } from "@tanstack/react-store";
 import {
 	Field,
 	FieldContent,
@@ -30,8 +30,8 @@ const CheckboxGroup = ({
 }) => {
 	const field = useFieldContext<string>();
 
-	const errors = useStore(field.store, (state) => state.meta.errors);
-	const isInvalid = useStore(
+	const errors = useSelector(field.store, (state) => state.meta.errors);
+	const isInvalid = useSelector(
 		field.store,
 		(state) => state.meta.isTouched && !state.meta.isValid,
 	);

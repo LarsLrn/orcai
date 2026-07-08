@@ -6,7 +6,7 @@ import type { EntityType } from "./entity-type";
  * - graph edges between entities (e.g. bot, block, organization).
  */
 export type RelationshipByEntity = {
-	organization: "owner" | "instructor" | "student";
+	organization: "admin" | "manager" | "member" | "viewer";
 	group: "organization" | "member";
 	bot: "owner" | "manager" | "editor" | "viewer" | "public";
 	block: "owner" | "manager" | "editor" | "viewer" | "public" | "bot";

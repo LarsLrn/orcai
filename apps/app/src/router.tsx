@@ -1,23 +1,23 @@
-import { StandardRPCJsonSerializer } from "@orpc/client/standard";
+import type { ContractOutputs } from "@orcai/contracts";
+import { RPCJsonSerializer } from "@orpc/client";
 import { MutationCache, QueryClient } from "@tanstack/react-query";
 import { createRouter } from "@tanstack/react-router";
 import { setupRouterSsrQueryIntegration } from "@tanstack/react-router-ssr-query";
 import Cookies from "js-cookie";
 import { DefaultErrorBoundary } from "./components/boundaries/default-error";
 import { NotFound } from "./components/boundaries/not-found";
-import type { OrpcOutputs } from "./lib/orpc/contracts";
 import { deLocalizeUrl, localizeUrl } from "./paraglide/runtime";
 import { routeTree } from "./routeTree.gen";
 import { COOKIES } from "./settings/constants";
 
 export function getRouter() {
-	const serializer = new StandardRPCJsonSerializer();
+	const serializer = new RPCJsonSerializer();
 
 	const queryClient = new QueryClient({
 		mutationCache: new MutationCache({
 			onSuccess: (data) => {
 				// Provides just a tiny bit of type safety, assuming all procedures follow the same meta structure (which they should)
-				const d = data as OrpcOutputs["chat"]["create"];
+				const d = data as ContractOutputs["chat"]["create"];
 				// Global listener: If ANY mutation returns a zedToken, save it.
 				if (d.meta?.zedToken) {
 					Cookies.set(COOKIES.ZED_TOKEN.name, d.meta.zedToken, {
@@ -29,26 +29,20 @@ export function getRouter() {
 		defaultOptions: {
 			queries: {
 				queryKeyHashFn(queryKey) {
-					const [json, meta] = serializer.serialize(queryKey);
-					return JSON.stringify({
-						json,
-						meta,
-					});
+					const serialized = serializer.serialize(queryKey);
+					return JSON.stringify(serialized);
 				},
 				staleTime: 60 * 1000, // > 0 to prevent immediate refetching on mount
 			},
 			dehydrate: {
 				serializeData(data) {
-					const [json, meta] = serializer.serialize(data);
-					return {
-						json,
-						meta,
-					};
+					const serialized = serializer.serialize(data);
+					return serialized;
 				},
 			},
 			hydrate: {
 				deserializeData(data) {
-					return serializer.deserialize(data.json, data.meta);
+					return serializer.deserialize(data);
 				},
 			},
 		},

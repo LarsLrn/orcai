@@ -1,5 +1,6 @@
 import { z } from "zod/v4";
 import { paginationInputSchema } from "../shared";
+import { createUniqueRefsInputSchema } from "../shared/ref-list";
 import { userIdSchema } from "../user/ref";
 import {
 	organizationMemberFieldsSchema,
@@ -27,11 +28,11 @@ export const updateOrganizationMemberInputSchema =
 
 export const deleteOrganizationMembersInputSchema = z.object({
 	organizationId: organizationMemberSchema.shape.organizationId,
-	refs: z.array(
-		z.object({
-			userId: userIdSchema,
-		}),
-	),
+	refs: createUniqueRefsInputSchema({
+		key: "userId",
+		value: userIdSchema,
+		entityName: "member",
+	}),
 });
 
 export type ListOrganizationMembersInput = z.infer<

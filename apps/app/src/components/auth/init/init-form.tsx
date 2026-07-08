@@ -44,7 +44,7 @@ const InitForm = () => {
 			<form.AppField
 				name="name"
 				children={(field) => (
-					<field.TextField label="Owner Name" placeholder="Your Name" />
+					<field.TextField label="Admin Name" placeholder="Your Name" />
 				)}
 			/>
 
@@ -52,7 +52,7 @@ const InitForm = () => {
 				name="email"
 				children={(field) => (
 					<field.TextField
-						label="Owner Email"
+						label="Admin Email"
 						placeholder="your@email.com"
 						type="email"
 					/>

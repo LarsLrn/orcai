@@ -1,7 +1,9 @@
-import type { OrganizationInvitation } from "@orcai/schema";
+import type { OrganizationInvitation, OrganizationRole } from "@orcai/schema";
 import { useSuspenseQuery } from "@tanstack/react-query";
+import { useRouteContext } from "@tanstack/react-router";
 import { CircleMinusIcon } from "lucide-react";
 import { useId } from "react";
+import { OrganizationRolePicker } from "@/components/organizations/organization-role-picker";
 import { Button } from "@/components/ui/button";
 import {
 	Card,
@@ -19,15 +21,24 @@ import {
 	DialogTitle,
 	DialogTrigger,
 } from "@/components/ui/dialog";
+import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
+import { useOrganizationCapabilities } from "@/hooks/authz/use-capabilities";
 import { useAppForm } from "@/hooks/form";
 import { useCreateOrganizationInvitationMutation } from "@/hooks/mutations/use-organization-invitation-mutations";
+import { getAssignableOrganizationRoles } from "@/lib/authz/organization-role-metadata";
 import { orpc } from "@/lib/orpc/orpc";
 import { organizationInvitationFormOptions } from "./organization-invitation-form-options";
 
 const OrganizationInvitationForm = () => {
+	const { auth } = useRouteContext({
+		from: "/app",
+	});
 	const { mutate: createInvitation } =
 		useCreateOrganizationInvitationMutation();
+	const { data: capabilities } = useOrganizationCapabilities([
+		"manage_organization",
+	]);
 
 	const bulkEmailsId = useId();
 
@@ -39,9 +50,18 @@ const OrganizationInvitationForm = () => {
 			},
 		}),
 	);
+	const initialOrganizationId = organizations.data.some(
+		(organization) => organization.id === auth.session.activeOrganizationId,
+	)
+		? auth.session.activeOrganizationId
+		: undefined;
+	const assignableRoles = getAssignableOrganizationRoles({
+		canManageOrganization:
+			capabilities?.data.capabilities.manage_organization === true,
+	});
 
 	const form = useAppForm({
-		...organizationInvitationFormOptions(),
+		...organizationInvitationFormOptions(initialOrganizationId),
 		onSubmit: ({ value }) => {
 			createInvitation({
 				...value,
@@ -106,21 +126,16 @@ const OrganizationInvitationForm = () => {
 					<form.AppField
 						name="role"
 						children={(field) => (
-							<field.SelectField
-								label="Role"
-								placeholder="Select role"
-								// TODO: Replace with global roles defined in spiceDb
-								options={[
-									{
-										label: "Instructor",
-										value: "instructor",
-									},
-									{
-										label: "Student",
-										value: "student",
-									},
-								]}
-							/>
+							<div className="space-y-2">
+								<Label>Role</Label>
+								<OrganizationRolePicker
+									value={field.state.value as OrganizationRole}
+									onValueChange={(role) => field.handleChange(role)}
+									variant="full"
+									title="Select invitation role"
+									roles={assignableRoles}
+								/>
+							</div>
 						)}
 					/>
 
@@ -134,10 +149,6 @@ const OrganizationInvitationForm = () => {
 							/>
 						)}
 					/>
-
-					<form.AppForm>
-						<form.SubmitButton label="Create Invitations" />
-					</form.AppForm>
 				</CardContent>
 			</Card>
 
@@ -157,7 +168,6 @@ const OrganizationInvitationForm = () => {
 									{field.state.value.map((_, index) => {
 										return (
 											<div
-												// biome-ignore lint/suspicious/noArrayIndexKey: <ignore>
 												key={index}
 												className="flex flex-row items-end gap-2"
 											>
@@ -172,6 +182,7 @@ const OrganizationInvitationForm = () => {
 												/>
 												{field.state.value.length > 1 && (
 													<Button
+														type="button"
 														size="icon"
 														variant="destructive"
 														onClick={() => field.removeValue(index)}
@@ -243,6 +254,12 @@ const OrganizationInvitationForm = () => {
 					</div>
 				</CardContent>
 			</Card>
+
+			<div className="flex justify-end border-t pt-4">
+				<form.AppForm>
+					<form.SubmitButton label="Create Invitations" />
+				</form.AppForm>
+			</div>
 		</form>
 	);
 };

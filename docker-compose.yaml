@@ -5,7 +5,7 @@ services:
     environment:
       POSTGRES_USER: postgres
       POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-postgres}
-      POSTGRES_DB: sokratest-v2
+      POSTGRES_DB: app
     volumes:
       - postgres_data:/var/lib/postgresql/data
     healthcheck:
@@ -40,7 +40,7 @@ services:
       POSTGRES_HOST: postgres
       POSTGRES_USER: postgres
       POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-postgres}
-      POSTGRES_DB: sokratest-v2
+      POSTGRES_DB: app
     restart: on-failure
 
   # MinIO S3-Compatible Object Storage
@@ -81,10 +81,10 @@ services:
     restart: unless-stopped
 
   # OrcAI application (legacy service name retained)
-  sokratest:
+  app:
     build:
       context: .
-      dockerfile: ./docker/Dockerfile.sokratest
+      dockerfile: ./docker/Dockerfile.app
       target: runtime
       args:
         VITE_BASE_URL: ${VITE_BASE_URL:-}
@@ -96,7 +96,7 @@ services:
       # Database Configuration
       POSTGRES_USER: postgres
       POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-postgres}
-      POSTGRES_DB: sokratest-v2
+      POSTGRES_DB: app
       POSTGRES_HOST: postgres
       POSTGRES_SSL: "false"
       VALKEY_URL: redis://valkey:6379
@@ -120,15 +120,6 @@ services:
       # Secrets (from environment)
       BETTER_AUTH_SECRET: ${BETTER_AUTH_SECRET:-}
       ENCRYPTION_KEY: ${ENCRYPTION_KEY:-}
-
-      # Email Configuration
-      SMTP_HOST: ${SMTP_HOST:-}
-      SMTP_PORT: ${SMTP_PORT:-}
-      SMTP_USERNAME: ${SMTP_USERNAME:-}
-      SMTP_PASSWORD: ${SMTP_PASSWORD:-}
-      SMTP_FROM: ${SMTP_FROM:-}
-      SMTP_SECURE: ${SMTP_SECURE:-true}
-      SMTP_TLS_REJECT_UNAUTHORIZED: ${SMTP_TLS_REJECT_UNAUTHORIZED:-true}
 
       # AI Services
       OPENAI_COMPATIBLE_BASE_URL: ${OPENAI_COMPATIBLE_BASE_URL:-}
@@ -175,6 +166,22 @@ services:
         condition: service_completed_successfully
     restart: unless-stopped
 
+  # OrcAI documentation website
+  web:
+    build:
+      context: .
+      dockerfile: ./docker/Dockerfile.web
+      target: runtime
+    expose:
+      - "3001"
+    healthcheck:
+      test: [ "CMD", "bun", "-e", "fetch('http://127.0.0.1:3001').then((r)=>process.exit(r.ok?0:1)).catch(()=>process.exit(1))" ]
+      interval: 30s
+      timeout: 5s
+      retries: 5
+      start_period: 20s
+    restart: unless-stopped
+
   # Background workers
   workers:
     build:
@@ -183,7 +190,7 @@ services:
     environment:
       POSTGRES_USER: ${POSTGRES_USER:-postgres}
       POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-postgres}
-      POSTGRES_DB: ${POSTGRES_DB:-sokratest-v2}
+      POSTGRES_DB: ${POSTGRES_DB:-app}
       POSTGRES_HOST: postgres
       VALKEY_URL: redis://valkey:6379
       S3_ENDPOINT: ${S3_ENDPOINT:-http://minio:9000}
@@ -193,6 +200,14 @@ services:
       S3_SECRET_KEY: ${MINIO_ROOT_PASSWORD:-minioadmin}
       QDRANT_URL: http://qdrant:6333/
       QDRANT_API_KEY: ${QDRANT_API_KEY:-}
+      SMTP_HOST: ${SMTP_HOST:-}
+      SMTP_PORT: ${SMTP_PORT:-587}
+      SMTP_USERNAME: ${SMTP_USERNAME:-}
+      SMTP_PASSWORD: ${SMTP_PASSWORD:-}
+      SMTP_FROM: ${SMTP_FROM:-}
+      SMTP_FROM_NAME: ${SMTP_FROM_NAME:-OrcAI Team}
+      SMTP_SECURE: ${SMTP_SECURE:-false}
+      SMTP_TLS_REJECT_UNAUTHORIZED: ${SMTP_TLS_REJECT_UNAUTHORIZED:-true}
       KREUZBERG_OCR_LANGUAGE: ${KREUZBERG_OCR_LANGUAGE:-eng+deu}
       OPENAI_COMPATIBLE_BASE_URL: ${OPENAI_COMPATIBLE_BASE_URL:-}
       OPENAI_COMPATIBLE_API_KEY: ${OPENAI_COMPATIBLE_API_KEY:-}
@@ -223,7 +238,7 @@ services:
       minio:
         condition: service_healthy
     entrypoint: >
-      /bin/sh -c " /usr/bin/mc alias set myminio http://minio:9000 $$MINIO_ROOT_USER $$MINIO_ROOT_PASSWORD && /usr/bin/mc mb myminio/sokratest --ignore-existing && /usr/bin/mc mb myminio/processed-files --ignore-existing && /usr/bin/mc mb myminio/sokratest-dev --ignore-existing && /usr/bin/mc mb myminio/processed-files-dev --ignore-existing && echo 'MinIO buckets created successfully' "
+      /bin/sh -c " /usr/bin/mc alias set myminio http://minio:9000 $$MINIO_ROOT_USER $$MINIO_ROOT_PASSWORD && /usr/bin/mc mb myminio/uploads --ignore-existing && /usr/bin/mc mb myminio/processed-files --ignore-existing && echo 'MinIO buckets created successfully' "
     environment:
       MINIO_ROOT_USER: ${MINIO_ROOT_USER:-minioadmin}
       MINIO_ROOT_PASSWORD: ${MINIO_ROOT_PASSWORD:-minioadmin}

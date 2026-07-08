@@ -1,11 +1,8 @@
+import { blockIdSchema, type DatabaseBlock } from "@orcai/schema";
 import { tool } from "ai";
 import * as Effect from "effect/Effect";
 import z from "zod/v4";
 import { runtime } from "@/lib/effect/runtime";
-import {
-	baseBlockSelectSchema,
-	type DatabaseBlock,
-} from "@/lib/orpc/schemas/block";
 import type { KnowledgeBaseDocument } from "./types";
 import {
 	loadDocumentCatalog,
@@ -26,7 +23,7 @@ export const listKnowledgeBaseDocumentsTool = ({
 				.string()
 				.optional()
 				.describe("Optional document-title query to narrow the list."),
-			blockId: baseBlockSelectSchema.shape.id
+			blockId: blockIdSchema
 				.optional()
 				.describe("Optional block ID to scope the document list."),
 			limit: z.coerce

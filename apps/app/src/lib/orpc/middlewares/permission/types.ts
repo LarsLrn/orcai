@@ -23,18 +23,3 @@ export type PermissionContext = AuthContext & {
 		zedToken?: string;
 	};
 };
-
-export type PermissionErrors = {
-	FORBIDDEN: (payload: {
-		data: {
-			allowed: false;
-			entityType: string;
-			permission: string;
-			zedToken?: string;
-		};
-	}) => unknown;
-	BAD_REQUEST: (payload: {
-		message: string;
-		data?: Record<string, unknown>;
-	}) => unknown;
-};

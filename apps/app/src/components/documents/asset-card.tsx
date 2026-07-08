@@ -1,4 +1,4 @@
-import type { Asset } from "@orcai/schema";
+import type { Asset, AssetWithCapabilities } from "@orcai/schema";
 import { EditIcon, EyeIcon, FileTextIcon } from "lucide-react";
 import {
 	DropdownMenu,
@@ -25,6 +25,7 @@ import {
 	type ResourceCardPrimaryAction,
 	ResourceCardTitle,
 } from "@/components/ui/shell/resource-card";
+import { hasCapability } from "@/lib/authz/capabilities";
 import { getProcessingStatusLabel } from "@/lib/presentation/processing-status";
 
 const AssetCard = ({
@@ -32,7 +33,11 @@ const AssetCard = ({
 	actions,
 	className,
 }: {
-	asset: Asset;
+	asset:
+		| AssetWithCapabilities
+		| (Asset & {
+				capabilities?: Record<string, boolean>;
+		  });
 	actions?: {
 		dropdown?: ResourceCardActionItem[];
 		footer?: ResourceCardActionItem[];
@@ -60,18 +65,22 @@ const AssetCard = ({
 				},
 			},
 		},
-		{
-			key: "edit",
-			label: "Edit content",
-			icon: EditIcon,
-			variant: "default",
-			linkProps: {
-				to: "/app/hub/assets/$assetId/edit",
-				params: {
-					assetId: asset.id,
-				},
-			},
-		},
+		...(hasCapability(asset.capabilities, "edit")
+			? [
+					{
+						key: "edit",
+						label: "Edit content",
+						icon: EditIcon,
+						variant: "default",
+						linkProps: {
+							to: "/app/hub/assets/$assetId/edit",
+							params: {
+								assetId: asset.id,
+							},
+						},
+					} satisfies ResourceCardActionItem,
+				]
+			: []),
 	];
 
 	const dropdownActions: ResourceCardActionItem[] = actions?.dropdown ?? [];

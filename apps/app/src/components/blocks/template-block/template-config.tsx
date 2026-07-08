@@ -1,3 +1,4 @@
+import type { TemplateBlock } from "@orcai/schema";
 import { ChevronDownIcon } from "lucide-react";
 import { useState } from "react";
 import { Markdown } from "@/components/app/markdown";
@@ -9,7 +10,6 @@ import {
 	CollapsibleTrigger,
 } from "@/components/ui/collapsible";
 import { Separator } from "@/components/ui/separator";
-import type { TemplateBlock } from "@/lib/orpc/schemas/block";
 
 const TemplateBlockConfigCard = ({
 	config,

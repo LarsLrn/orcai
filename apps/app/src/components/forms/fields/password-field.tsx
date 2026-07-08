@@ -1,4 +1,4 @@
-import { useStore } from "@tanstack/react-form";
+import { useSelector } from "@tanstack/react-store";
 import { EyeIcon, EyeOffIcon } from "lucide-react";
 import { useId, useState } from "react";
 import { PasswordStrengthIndicator } from "@/components/forms/utility/password-strength-indicator";
@@ -31,8 +31,8 @@ const PasswordField = ({
 	const id = useId();
 	const [isPasswordVisible, setIsPasswordVisible] = useState(false);
 
-	const errors = useStore(field.store, (state) => state.meta.errors);
-	const isInvalid = useStore(
+	const errors = useSelector(field.store, (state) => state.meta.errors);
+	const isInvalid = useSelector(
 		field.store,
 		(state) => state.meta.isTouched && !state.meta.isValid,
 	);

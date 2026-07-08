@@ -5,7 +5,7 @@ import {
 	jobQueues,
 	PROCESS_ASSET_JOB_NAME,
 	VECTORIZE_ASSET_JOB_NAME,
-} from "./job-queues";
+} from "./parts/job-queues";
 
 export const jobResourceIdentitySchema = z.discriminatedUnion("resourceType", [
 	z.object({

@@ -1,16 +1,16 @@
 import type { AssetId } from "@orcai/core";
-import { retrievalModeSchema } from "@orcai/schema";
+import {
+	createDatabaseBlockInputSchema,
+	type DatabaseBlock,
+	retrievalModeSchema,
+} from "@orcai/schema";
 import { formOptions } from "@tanstack/react-form";
 import { z } from "zod/v4";
-import {
-	type DatabaseBlock,
-	databaseBlockInsertSchema,
-} from "@/lib/orpc/schemas/block";
 
-const databaseBlockFormSchema = databaseBlockInsertSchema.extend({
+const databaseBlockFormSchema = createDatabaseBlockInputSchema.extend({
 	description: z.string(),
 	contentHtml: z.string(),
-	config: databaseBlockInsertSchema.shape.config.extend({
+	config: createDatabaseBlockInputSchema.shape.config.extend({
 		scoreThreshold: z.number().min(0).max(1),
 		retrievalMode: retrievalModeSchema,
 		candidateLimit: z.number().int().min(1).max(200),

@@ -5,6 +5,9 @@
 			"path": "./apps/app"
 		},
 		{
+			"path": "./apps/web"
+		},
+		{
 			"path": "./apps/workers"
 		},
 		{
@@ -45,6 +48,9 @@
 		},
 		{
 			"path": "./packages/quota"
+		},
+		{
+			"path": "./packages/notifications"
 		}
 	]
 }

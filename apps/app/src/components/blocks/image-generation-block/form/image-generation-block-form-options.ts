@@ -1,13 +1,13 @@
+import {
+	createImageGenerationBlockInputSchema,
+	type ImageGenerationBlock,
+} from "@orcai/schema";
 import { formOptions } from "@tanstack/react-form";
 import type { z } from "zod/v4";
-import {
-	type ImageGenerationBlock,
-	imageGenerationBlockInsertSchema,
-} from "@/lib/orpc/schemas/block";
 
 const defaultValues = (
 	block?: ImageGenerationBlock,
-): z.input<typeof imageGenerationBlockInsertSchema> => ({
+): z.input<typeof createImageGenerationBlockInputSchema> => ({
 	name: block?.name || "",
 	description: block?.description ?? null,
 	contentJson: block?.contentJson ?? null,
@@ -25,6 +25,6 @@ export const imageGenerationBlockFormOptions = (block?: ImageGenerationBlock) =>
 	formOptions({
 		defaultValues: defaultValues(block),
 		validators: {
-			onChange: imageGenerationBlockInsertSchema,
+			onChange: createImageGenerationBlockInputSchema,
 		},
 	});

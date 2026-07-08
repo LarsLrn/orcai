@@ -1,0 +1,29 @@
+{
+	"extends": "../../tsconfig.base.json",
+	"include": [
+		"**/*.ts",
+		"**/*.tsx"
+	],
+	"exclude": [
+		".tanstack"
+	],
+	"compilerOptions": {
+		"types": [
+			"bun",
+			"vite/client"
+		],
+		"lib": [
+			"DOM",
+			"DOM.Iterable",
+			"ES2022"
+		],
+		"paths": {
+			"@/*": [
+				"./src/*"
+			],
+			"collections/*": [
+				"./.source/*"
+			]
+		}
+	}
+}

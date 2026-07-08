@@ -1,11 +1,11 @@
 import * as Context from "effect/Context";
 import * as Effect from "effect/Effect";
 import * as Layer from "effect/Layer";
-import { createClient } from "redis";
+import { createClient, type RedisClientType } from "redis";
 import { ValkeyConfigLive, ValkeyConfigService } from "./config";
 import { ValkeyError } from "./errors";
 
-export type ValkeyClient = ReturnType<typeof createClient>;
+export type ValkeyClient = RedisClientType;
 
 export class ValkeyService extends Context.Service<
 	ValkeyService,

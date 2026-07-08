@@ -2,6 +2,7 @@ import type { organizationIdSchema, userIdSchema } from "@orcai/schema";
 import type { authClient } from "@/lib/auth/auth-client";
 
 export interface AuthContext {
+	reqHeaders: Headers;
 	auth: {
 		isAuthenticated: true;
 		session: Omit<

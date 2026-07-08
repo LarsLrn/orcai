@@ -1,0 +1,29 @@
+{
+	"name": "@orcai/notifications",
+	"version": "0.1.0",
+	"private": true,
+	"type": "module",
+	"exports": {
+		".": "./src/index.ts"
+	},
+	"scripts": {
+		"test": "bun test"
+	},
+	"dependencies": {
+		"@orcai/db": "workspace:*",
+		"@orcai/pg-boss": "workspace:*",
+		"@orcai/schema": "workspace:*",
+		"@react-email/components": "1.0.6",
+		"@react-email/render": "2.0.4",
+		"drizzle-orm": "catalog:",
+		"effect": "catalog:",
+		"nodemailer": "9.0.3",
+		"react": "catalog:",
+		"zod": "catalog:"
+	},
+	"devDependencies": {
+		"@types/node": "catalog:",
+		"@types/nodemailer": "8.0.1",
+		"@types/react": "catalog:"
+	}
+}

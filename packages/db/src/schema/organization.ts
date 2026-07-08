@@ -9,9 +9,10 @@ import { pgEnum, pgTable, text, timestamp, uuid } from "drizzle-orm/pg-core";
 import { user } from "./auth";
 
 export const organizationRoleEnum = pgEnum("organization_role", [
-	"owner",
-	"instructor",
-	"student",
+	"admin",
+	"manager",
+	"member",
+	"viewer",
 ]);
 
 export const organization = pgTable("organization", {

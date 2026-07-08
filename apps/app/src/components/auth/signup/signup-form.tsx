@@ -9,14 +9,17 @@ import { signupFormOptions } from "./signup-form-options";
 
 const SignUpForm = ({
 	invitationId,
+	email,
 }: {
 	invitationId: OrganizationInvitationId;
+	email: string;
 }) => {
 	const { mutate: signup } = useSignup();
 
 	const form = useAppForm({
 		...signupFormOptions({
 			invitationId,
+			email,
 		}),
 		onSubmit: ({ value }) => {
 			signup(signupSchema.parse(value));
@@ -46,6 +49,7 @@ const SignUpForm = ({
 						label="Email"
 						placeholder="your@email.com"
 						type="email"
+						disabled
 					/>
 				)}
 			/>

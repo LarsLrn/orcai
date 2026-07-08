@@ -1,8 +1,8 @@
 import { z } from "zod/v4";
-import { organizationInvitationStatusSchema } from "../fragments/organization-invitation-status";
-import { organizationRoleSchema } from "../fragments/organization-role";
+import { organizationRoleSchema } from "../organization/parts/role";
 import { organizationIdSchema } from "../organization/ref";
 import { userIdSchema } from "../user/ref";
+import { organizationInvitationStatusSchema } from "./parts/status";
 import { organizationInvitationIdSchema } from "./ref";
 
 export const organizationInvitationFieldsSchema = z.object({

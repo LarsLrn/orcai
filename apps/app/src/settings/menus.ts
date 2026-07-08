@@ -1,3 +1,4 @@
+import type { OrganizationCapability } from "@orcai/schema";
 import type { LinkProps } from "@tanstack/react-router";
 import {
 	ArrowLeftRightIcon,
@@ -19,10 +20,11 @@ interface SidebarMenuItem {
 	title: string;
 	linkProps?: LinkProps;
 	icon: LucideIcon;
+	requires?: OrganizationCapability;
 	items?: Required<Omit<SidebarMenuItem, "items">>[];
 }
 
-export const sidebarMenu = [
+export const sidebarMenu: SidebarMenuItem[] = [
 	{
 		title: "Library",
 		linkProps: {
@@ -32,6 +34,7 @@ export const sidebarMenu = [
 		items: [
 			{
 				title: "Bots",
+				requires: "read",
 				linkProps: {
 					to: "/app/hub/bots",
 				},
@@ -39,6 +42,7 @@ export const sidebarMenu = [
 			},
 			{
 				title: "Behaviour",
+				requires: "read",
 				linkProps: {
 					to: "/app/hub/behaviour",
 				},
@@ -46,6 +50,7 @@ export const sidebarMenu = [
 			},
 			{
 				title: "Repositories",
+				requires: "read",
 				linkProps: {
 					to: "/app/hub/repositories",
 				},
@@ -53,6 +58,7 @@ export const sidebarMenu = [
 			},
 			{
 				title: "Content",
+				requires: "read",
 				linkProps: {
 					to: "/app/hub/assets",
 				},
@@ -66,6 +72,7 @@ export const sidebarMenu = [
 		items: [
 			{
 				title: "Users",
+				requires: "manage_members",
 				linkProps: {
 					to: "/app/users",
 				},
@@ -73,6 +80,7 @@ export const sidebarMenu = [
 			},
 			{
 				title: "Groups",
+				requires: "manage_groups",
 				linkProps: {
 					to: "/app/groups",
 				},
@@ -80,6 +88,7 @@ export const sidebarMenu = [
 			},
 			{
 				title: "Quotas",
+				requires: "manage_quotas",
 				linkProps: {
 					to: "/app/quotas",
 				},
@@ -87,6 +96,7 @@ export const sidebarMenu = [
 			},
 			{
 				title: "Providers",
+				requires: "manage_providers",
 				linkProps: {
 					to: "/app/providers",
 				},
@@ -94,6 +104,7 @@ export const sidebarMenu = [
 			},
 			{
 				title: "Models",
+				requires: "manage_models",
 				linkProps: {
 					to: "/app/models",
 				},
@@ -101,6 +112,7 @@ export const sidebarMenu = [
 			},
 			{
 				title: "Organisations",
+				requires: "manage_organization",
 				linkProps: {
 					to: "/app/orgs",
 				},
@@ -108,7 +120,7 @@ export const sidebarMenu = [
 			},
 		],
 	},
-] satisfies SidebarMenuItem[];
+];
 
 export const sidebarUserMenu: SidebarMenuItem[] = [
 	{

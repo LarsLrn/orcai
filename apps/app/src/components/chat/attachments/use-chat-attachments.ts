@@ -1,11 +1,10 @@
 import type { AssetId } from "@orcai/core";
-import type { Asset } from "@orcai/schema";
+import type { Asset, ChatMessageAttachment } from "@orcai/schema";
 import { useMutation } from "@tanstack/react-query";
 import { nanoid } from "nanoid";
 import { useEffect, useMemo, useRef, useState } from "react";
 import { toast } from "sonner";
 import { useUploadFiles } from "@/components/documents/use-upload-files";
-import type { ChatAttachment } from "@/lib/ai/types/chat-attachment";
 import { orpc } from "@/lib/orpc/orpc";
 
 export type LocalChatFile = {
@@ -22,8 +21,8 @@ const toChatAttachment = ({
 		Asset,
 		"id" | "title" | "fileType" | "size" | "bucket" | "prefix"
 	>;
-	source: ChatAttachment["source"];
-}): ChatAttachment => ({
+	source: ChatMessageAttachment["source"];
+}): ChatMessageAttachment => ({
 	assetId: asset.id,
 	title: asset.title,
 	fileType: asset.fileType,
@@ -170,8 +169,10 @@ export const useChatAttachments = ({ limit = 8 }: { limit?: number } = {}) => {
 		resetUploadState();
 	};
 
-	const resolveAttachmentsForSend = async (): Promise<ChatAttachment[]> => {
-		const uploadedAttachments: ChatAttachment[] = [];
+	const resolveAttachmentsForSend = async (): Promise<
+		ChatMessageAttachment[]
+	> => {
+		const uploadedAttachments: ChatMessageAttachment[] = [];
 
 		if (localFiles.length > 0) {
 			const uploadResult = await uploadAsync(
@@ -226,7 +227,7 @@ export const useChatAttachments = ({ limit = 8 }: { limit?: number } = {}) => {
 			}),
 		);
 
-		const attachmentsMap = new Map<string, ChatAttachment>();
+		const attachmentsMap = new Map<string, ChatMessageAttachment>();
 		for (const attachment of [
 			...libraryAttachments,
 			...uploadedAttachments,

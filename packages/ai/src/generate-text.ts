@@ -1,5 +1,5 @@
 import { createOpenAI } from "@ai-sdk/openai";
-import { type CallSettings, generateText, type Prompt } from "ai";
+import { generateText, type LanguageModelCallOptions, type Prompt } from "ai";
 import * as Effect from "effect/Effect";
 import * as Redacted from "effect/Redacted";
 import { AiConfigService } from "./config";
@@ -22,7 +22,7 @@ const getProvider = Effect.gen(function* () {
 	});
 });
 
-export const generateTextEffect = (params: CallSettings & Prompt) =>
+export const generateTextEffect = (params: LanguageModelCallOptions & Prompt) =>
 	Effect.gen(function* () {
 		const { config } = yield* AiConfigService;
 		const provider = yield* getProvider;

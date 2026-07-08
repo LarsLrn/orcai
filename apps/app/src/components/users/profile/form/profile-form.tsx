@@ -1,8 +1,8 @@
+import type { User } from "@orcai/schema";
 import { useRouteContext } from "@tanstack/react-router";
 import { profileFormOptions } from "@/components/users/profile/form/profile-form-options";
 import { useAppForm } from "@/hooks/form";
 import { useUpdateProfileMutation } from "@/hooks/mutations/use-profile-mutations";
-import type { User } from "@/lib/orpc/schemas/user";
 
 const ProfileForm = () => {
 	const { auth } = useRouteContext({

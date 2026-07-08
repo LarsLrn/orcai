@@ -5,6 +5,7 @@ import {
 	normalizeSchema,
 	readCurrentSchema as readCurrentSpiceSchema,
 	readTargetSchema,
+	rewriteRelationshipsInBatches,
 	writeSchema,
 } from "./lib";
 import { operations } from "./operations";
@@ -29,9 +30,27 @@ const createContext = (): SpiceConvergeContext => {
 
 	return {
 		readCurrentSchema,
+		writeSchema: (schema) =>
+			writeSchema(schema).pipe(
+				Effect.tap(() =>
+					Effect.sync(() => {
+						schemaCache = schema;
+					}),
+				),
+			),
 		deleteRelationshipsInBatches: ({ relationshipFilter, batchSize }) =>
 			deleteRelationshipsInBatches({
 				relationshipFilter,
+				batchSize,
+			}),
+		rewriteRelationshipsInBatches: ({
+			relationshipFilter,
+			mapRelationship,
+			batchSize,
+		}) =>
+			rewriteRelationshipsInBatches({
+				relationshipFilter,
+				mapRelationship,
 				batchSize,
 			}),
 		log: (message) => Effect.logInfo(message),
@@ -117,6 +136,6 @@ export const runConvergeUp = (params: SpiceConvergeRunOptions = {}) =>
 		}
 
 		yield* Effect.logInfo(`Applying target schema from ${targetSchemaPath}`);
-		yield* writeSchema(targetSchema);
+		yield* context.writeSchema(targetSchema);
 		yield* Effect.logInfo("SpiceDB schema deployed successfully");
 	});

@@ -10,6 +10,7 @@ import {
 	PageHeader,
 	PageTitle,
 } from "@/components/ui/shell/page";
+import { ensureEntityCapability } from "@/lib/authz/route-guards";
 import { orpc } from "@/lib/orpc/orpc";
 
 export const Route = createFileRoute("/app/hub/bots/$botId/setup")({
@@ -21,6 +22,13 @@ export const Route = createFileRoute("/app/hub/bots/$botId/setup")({
 		zedToken,
 	}),
 	loader: async ({ context: { queryClient }, params: { botId }, deps }) => {
+		await ensureEntityCapability({
+			queryClient,
+			entityType: "bot",
+			entityId: botId,
+			permission: "edit",
+			redirectTo: "/app/hub/bots",
+		});
 		await queryClient.ensureQueryData(
 			orpc.bot.findEditor.queryOptions({
 				input: {

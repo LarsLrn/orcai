@@ -5,7 +5,6 @@ import { MoreHorizontal } from "lucide-react";
 import type { z } from "zod/v4";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import { Checkbox } from "@/components/ui/checkbox";
 import { DataTableColumnHeader } from "@/components/ui/data-table/data-table-column-header";
 import {
 	DropdownMenu,
@@ -43,28 +42,8 @@ const formatPeriodType = (value: QuotaPoolListRow["periodType"]) => {
 
 export const quotaPoolTableColumns: ColumnDef<QuotaPoolListRow>[] = [
 	{
-		id: "select",
-		size: 32,
-		header: ({ table }) => (
-			<Checkbox
-				checked={table.getIsAllPageRowsSelected()}
-				indeterminate={table.getIsSomePageRowsSelected()}
-				onCheckedChange={(value) => table.toggleAllPageRowsSelected(!!value)}
-				aria-label="Select all"
-			/>
-		),
-		cell: ({ row }) => (
-			<Checkbox
-				checked={row.getIsSelected()}
-				onCheckedChange={(value) => row.toggleSelected(!!value)}
-				aria-label="Select row"
-			/>
-		),
-		enableSorting: false,
-		enableHiding: false,
-	},
-	{
 		id: "name",
+		accessorKey: "name",
 		size: 320,
 		header: ({ column }) => (
 			<DataTableColumnHeader column={column} title="Pool" />
@@ -95,6 +74,7 @@ export const quotaPoolTableColumns: ColumnDef<QuotaPoolListRow>[] = [
 	},
 	{
 		id: "budget",
+		enableSorting: false,
 		header: ({ column }) => (
 			<DataTableColumnHeader column={column} title="Budget" />
 		),
@@ -106,6 +86,7 @@ export const quotaPoolTableColumns: ColumnDef<QuotaPoolListRow>[] = [
 	},
 	{
 		id: "consumed",
+		enableSorting: false,
 		header: ({ column }) => (
 			<DataTableColumnHeader column={column} title="Consumed" />
 		),
@@ -117,6 +98,7 @@ export const quotaPoolTableColumns: ColumnDef<QuotaPoolListRow>[] = [
 	},
 	{
 		id: "remaining",
+		enableSorting: false,
 		header: ({ column }) => (
 			<DataTableColumnHeader column={column} title="Remaining" />
 		),
@@ -128,6 +110,7 @@ export const quotaPoolTableColumns: ColumnDef<QuotaPoolListRow>[] = [
 	},
 	{
 		id: "status",
+		enableSorting: false,
 		header: ({ column }) => (
 			<DataTableColumnHeader column={column} title="Status" />
 		),
@@ -145,6 +128,8 @@ export const quotaPoolTableColumns: ColumnDef<QuotaPoolListRow>[] = [
 	{
 		id: "actions",
 		size: 32,
+		enableSorting: false,
+		enableHiding: false,
 		cell: ({ row }) => (
 			<DropdownMenu>
 				<DropdownMenuTrigger

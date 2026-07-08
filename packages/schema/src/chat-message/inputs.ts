@@ -1,6 +1,7 @@
 import { z } from "zod/v4";
 import { chatBranchIdSchema } from "../chat-branch/ref";
 import { paginationInputSchema, zedTokenSchema } from "../shared";
+import { createUniqueRefsInputSchema } from "../shared/ref-list";
 import { chatMessageIdSchema } from "./ref";
 import {
 	chatMessageFieldsSchema,
@@ -20,6 +21,7 @@ export const createChatMessageInputSchema = chatMessageFieldsSchema
 	.extend({
 		id: chatMessageIdSchema.optional(),
 		parentMessageId: chatMessageIdSchema.nullable().optional(),
+		attachments: chatMessageFieldsSchema.shape.attachments.optional(),
 		branchId: chatBranchIdSchema.optional(),
 	})
 	.omit({
@@ -41,11 +43,11 @@ export const updateChatMessageInputSchema =
 
 export const deleteChatMessagesInputSchema = z.object({
 	chatId: chatMessageSchema.shape.chatId,
-	refs: z.array(
-		z.object({
-			id: chatMessageIdSchema,
-		}),
-	),
+	refs: createUniqueRefsInputSchema({
+		key: "id",
+		value: chatMessageIdSchema,
+		entityName: "message",
+	}),
 });
 
 export const rateChatMessageInputSchema = z.object({

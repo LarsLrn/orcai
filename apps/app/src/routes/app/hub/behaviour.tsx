@@ -13,7 +13,9 @@ import {
 	SectionHeader,
 	SectionTitle,
 } from "@/components/ui/shell/section";
+import { useOrganizationCapabilities } from "@/hooks/authz/use-capabilities";
 import { useDeleteBlocksMutation } from "@/hooks/mutations/use-block-mutations";
+import { hasCapability } from "@/lib/authz/capabilities";
 import { orpc } from "@/lib/orpc/orpc";
 
 const PAGE_SIZE = 100;
@@ -84,6 +86,13 @@ export const Route = createFileRoute("/app/hub/behaviour")({
 function RouteComponent() {
 	const navigate = useNavigate();
 	const { mutate: deleteBlocks } = useDeleteBlocksMutation();
+	const { data: organizationCapabilities } = useOrganizationCapabilities([
+		"create_block",
+	]);
+	const canCreateBlock = hasCapability(
+		organizationCapabilities?.data.capabilities,
+		"create_block",
+	);
 
 	const { data: templateReadyBlocks } = useSuspenseQuery(
 		orpc.block.list.queryOptions({
@@ -158,17 +167,19 @@ function RouteComponent() {
 					<SectionDescription>
 						Behaviour blocks currently available for bot usage.
 					</SectionDescription>
-					<SectionAction>
-						<Link
-							to="/app/hub/blocks/add"
-							className={buttonVariants({
-								size: "sm",
-							})}
-						>
-							<PlusIcon />
-							Add Behaviour
-						</Link>
-					</SectionAction>
+					{canCreateBlock ? (
+						<SectionAction>
+							<Link
+								to="/app/hub/blocks/add"
+								className={buttonVariants({
+									size: "sm",
+								})}
+							>
+								<PlusIcon />
+								Add Behaviour
+							</Link>
+						</SectionAction>
+					) : null}
 				</SectionHeader>
 				<SectionContent>
 					{publishedBehaviourBlocks.length === 0 ? (
@@ -176,17 +187,21 @@ function RouteComponent() {
 							Icon={BrainCircuitIcon}
 							title="No published behaviour yet"
 							description="Create and publish a behaviour block to make it available for bots."
-							actions={[
-								{
-									key: "add",
-									label: "Add Behaviour",
-									icon: PlusIcon,
-									variant: "default",
-									linkProps: {
-										to: "/app/hub/blocks/add",
-									},
-								},
-							]}
+							actions={
+								canCreateBlock
+									? [
+											{
+												key: "add",
+												label: "Add Behaviour",
+												icon: PlusIcon,
+												variant: "default",
+												linkProps: {
+													to: "/app/hub/blocks/add",
+												},
+											},
+										]
+									: []
+							}
 						/>
 					) : (
 						<SectionGrid layout="3">
@@ -220,31 +235,39 @@ function RouteComponent() {
 									block={block}
 									actions={{
 										dropdown: [
-											{
-												key: "edit",
-												label: "Edit Draft",
-												icon: EditIcon,
-												onClick: () =>
-													navigate({
-														to: "/app/hub/blocks/$blockId/edit",
-														params: {
-															blockId: block.id,
+											...(hasCapability(block.capabilities, "edit")
+												? [
+														{
+															key: "edit",
+															label: "Edit Draft",
+															icon: EditIcon,
+															onClick: () =>
+																navigate({
+																	to: "/app/hub/blocks/$blockId/edit",
+																	params: {
+																		blockId: block.id,
+																	},
+																}),
 														},
-													}),
-											},
-											{
-												key: "delete",
-												label: "Delete Draft",
-												icon: TrashIcon,
-												onClick: () =>
-													deleteBlocks({
-														refs: [
-															{
-																id: block.id,
-															},
-														],
-													}),
-											},
+													]
+												: []),
+											...(hasCapability(block.capabilities, "delete")
+												? [
+														{
+															key: "delete",
+															label: "Delete Draft",
+															icon: TrashIcon,
+															onClick: () =>
+																deleteBlocks({
+																	refs: [
+																		{
+																			id: block.id,
+																		},
+																	],
+																}),
+														},
+													]
+												: []),
 										],
 										footer: [],
 									}}

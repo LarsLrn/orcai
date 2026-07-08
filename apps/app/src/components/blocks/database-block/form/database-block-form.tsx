@@ -1,12 +1,11 @@
-import type { Asset } from "@orcai/schema";
-import { useStore } from "@tanstack/react-form";
+import type { Asset, DatabaseBlock } from "@orcai/schema";
+import { useSelector } from "@tanstack/react-store";
 import { useState } from "react";
 import { useAppForm } from "@/hooks/form";
 import {
 	useCreateBlockMutation,
 	useUpdateBlockMutation,
 } from "@/hooks/mutations/use-block-mutations";
-import type { DatabaseBlock } from "@/lib/orpc/schemas/block";
 import {
 	DatabaseBlockFieldGroup,
 	databaseBlockTopLevelFieldMap,
@@ -43,7 +42,7 @@ const DatabaseBlockForm = ({
 			createBlock(value);
 		},
 	});
-	const assetIds = useStore(form.store, (state) => state.values.assets);
+	const assetIds = useSelector(form.store, (state) => state.values.assets);
 	return (
 		<form
 			onSubmit={(event) => {

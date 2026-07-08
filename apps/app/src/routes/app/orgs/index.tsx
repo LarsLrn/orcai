@@ -1,6 +1,7 @@
-import { paginationInputSchema } from "@orcai/schema";
+import { listOrganizationsInputSchema } from "@orcai/schema";
 import { useSuspenseQuery } from "@tanstack/react-query";
 import { createFileRoute, Link } from "@tanstack/react-router";
+import { OrganizationTableActions } from "@/components/organizations/table/organization-table-actions";
 import { organizationTableColumns } from "@/components/organizations/table/organization-table-columns";
 import { buttonVariants } from "@/components/ui/button";
 import { DataTable } from "@/components/ui/data-table/data-table";
@@ -17,20 +18,22 @@ import {
 import { orpc } from "@/lib/orpc/orpc";
 
 export const Route = createFileRoute("/app/orgs/")({
-	validateSearch: paginationInputSchema,
-	loaderDeps: ({ search: { pageIndex, pageSize } }) => ({
+	validateSearch: listOrganizationsInputSchema,
+	loaderDeps: ({ search: { pageIndex, pageSize, sort } }) => ({
 		pageIndex,
 		pageSize,
+		sort,
 	}),
 	loader: async ({
 		context: { queryClient },
-		deps: { pageIndex, pageSize },
+		deps: { pageIndex, pageSize, sort },
 	}) => {
 		return await queryClient.ensureQueryData(
 			orpc.organization.list.queryOptions({
 				input: {
 					pageIndex,
 					pageSize,
+					sort,
 				},
 			}),
 		);
@@ -39,12 +42,13 @@ export const Route = createFileRoute("/app/orgs/")({
 });
 
 function RouteComponent() {
-	const { pageIndex, pageSize } = Route.useSearch();
+	const { pageIndex, pageSize, sort } = Route.useSearch();
 	const { data: organizations } = useSuspenseQuery(
 		orpc.organization.list.queryOptions({
 			input: {
 				pageIndex,
 				pageSize,
+				sort,
 			},
 		}),
 	);
@@ -73,6 +77,7 @@ function RouteComponent() {
 							pageIndex,
 							pageSize,
 						},
+						sorting: sort,
 					}}
 					options={{
 						rowCount: organizations.rowCount,
@@ -85,6 +90,7 @@ function RouteComponent() {
 				>
 					<div className="flex items-center gap-2">
 						<DataTableViewOptions />
+						<OrganizationTableActions />
 						{/* <SearchInput /> */}
 					</div>
 					<DataTableBody />

@@ -1,14 +1,28 @@
 import { z } from "zod/v4";
-import { organizationInvitationResponseActionSchema } from "../fragments/organization-invitation-response-action";
 import { organizationIdSchema } from "../organization/ref";
 import { paginationInputSchema } from "../shared";
+import { createUniqueRefsInputSchema } from "../shared/ref-list";
+import { createSortingInputSchema } from "../shared/sorting";
+import { organizationInvitationResponseActionSchema } from "./parts/response-action";
 import { organizationInvitationIdSchema } from "./ref";
 import {
 	organizationInvitationMutableFieldsSchema,
 	organizationInvitationSchema,
 } from "./schema";
 
-export const listOrganizationInvitationsInputSchema = paginationInputSchema;
+export const organizationInvitationSortKeySchema = z.enum([
+	"email",
+	"id",
+	"expiresAt",
+	"status",
+	"role",
+	"createdAt",
+]);
+
+export const listOrganizationInvitationsInputSchema =
+	paginationInputSchema.extend({
+		...createSortingInputSchema(organizationInvitationSortKeySchema).shape,
+	});
 
 export const createOrganizationInvitationsInputSchema = z.object({
 	organizationId: z
@@ -48,7 +62,9 @@ export const findOrganizationInvitationInputSchema =
 	});
 
 export const validateOrganizationInvitationInputSchema =
-	findOrganizationInvitationInputSchema;
+	organizationInvitationSchema.pick({
+		id: true,
+	});
 
 export const updateOrganizationInvitationInputSchema =
 	organizationInvitationMutableFieldsSchema
@@ -72,11 +88,11 @@ export const updateOrganizationInvitationInputSchema =
 
 export const deleteOrganizationInvitationsInputSchema = z.object({
 	organizationId: organizationInvitationSchema.shape.organizationId,
-	refs: z.array(
-		z.object({
-			id: organizationInvitationIdSchema,
-		}),
-	),
+	refs: createUniqueRefsInputSchema({
+		key: "id",
+		value: organizationInvitationIdSchema,
+		entityName: "invitation",
+	}),
 });
 
 export const respondToOrganizationInvitationInputSchema = z.object({
@@ -86,6 +102,9 @@ export const respondToOrganizationInvitationInputSchema = z.object({
 
 export type ListOrganizationInvitationsInput = z.infer<
 	typeof listOrganizationInvitationsInputSchema
+>;
+export type OrganizationInvitationSortKey = z.infer<
+	typeof organizationInvitationSortKeySchema
 >;
 export type CreateOrganizationInvitationsInput = z.infer<
 	typeof createOrganizationInvitationsInputSchema

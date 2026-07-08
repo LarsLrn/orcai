@@ -1,4 +1,4 @@
-import type { DatabaseBlock } from "@/lib/orpc/schemas/block";
+import type { DatabaseBlock } from "@orcai/schema";
 import { getKnowledgeBaseChunksTool } from "./get-knowledge-base-chunk";
 import { getKnowledgeBasePageTool } from "./get-knowledge-base-page";
 import { listKnowledgeBaseDocumentsTool } from "./list-knowledge-base-documents";

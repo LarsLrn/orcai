@@ -1,5 +1,7 @@
 import { z } from "zod/v4";
 import { assetIdSchema } from "../asset/ref";
+import { blockIdSchema } from "../block/ref";
+import { createUniqueRefsInputSchema } from "../shared/ref-list";
 import {
 	assetPointPayloadSchema,
 	assetPointSchema,
@@ -7,7 +9,18 @@ import {
 } from "./schema";
 
 export const listAssetPointsInputSchema = z.object({
-	filters: assetPointsFiltersSchema,
+	assetId: assetIdSchema,
+	filters: assetPointsFiltersSchema.omit({
+		assetIds: true,
+		blockId: true,
+	}),
+});
+
+export const searchRepositoryAssetPointsInputSchema = z.object({
+	repositoryId: blockIdSchema,
+	filters: assetPointsFiltersSchema.omit({
+		blockId: true,
+	}),
 });
 
 export const findAssetPointInputSchema = assetPointSchema.pick({
@@ -27,15 +40,18 @@ export const updateAssetPointInputSchema = createAssetPointInputSchema.extend({
 
 export const deleteAssetPointInputSchema = z.object({
 	assetId: assetIdSchema,
-	refs: z.array(
-		assetPointSchema.pick({
-			id: true,
-		}),
-	),
+	refs: createUniqueRefsInputSchema({
+		key: "id",
+		value: assetPointSchema.shape.id,
+		entityName: "asset point",
+	}),
 });
 
 export type CreateAssetPointInput = z.infer<typeof createAssetPointInputSchema>;
 export type DeleteAssetPointInput = z.infer<typeof deleteAssetPointInputSchema>;
 export type FindAssetPointInput = z.infer<typeof findAssetPointInputSchema>;
 export type ListAssetPointsInput = z.infer<typeof listAssetPointsInputSchema>;
+export type SearchRepositoryAssetPointsInput = z.infer<
+	typeof searchRepositoryAssetPointsInputSchema
+>;
 export type UpdateAssetPointInput = z.infer<typeof updateAssetPointInputSchema>;

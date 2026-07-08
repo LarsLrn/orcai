@@ -1,3 +1,4 @@
+import type { Bot } from "@orcai/schema";
 import { createFileRoute, useNavigate } from "@tanstack/react-router";
 import {
 	BotIcon,
@@ -32,7 +33,6 @@ import {
 	PageHeader,
 	PageTitle,
 } from "@/components/ui/shell/page";
-import type { Bot } from "@/lib/orpc/schemas/bot";
 
 export const Route = createFileRoute("/app/chat/setup")({
 	head: () => ({

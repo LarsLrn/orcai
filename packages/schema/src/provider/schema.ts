@@ -1,7 +1,7 @@
 import { z } from "zod/v4";
-import { providerCompatibilitySchema } from "../fragments/provider-compatibility";
-import { providerMeteringModeSchema } from "../fragments/provider-metering-mode";
 import { organizationIdSchema } from "../organization/ref";
+import { providerCompatibilitySchema } from "./parts/compatibility";
+import { providerMeteringModeSchema } from "./parts/metering-mode";
 import { providerIdSchema } from "./ref";
 
 export const providerFieldsSchema = z.object({

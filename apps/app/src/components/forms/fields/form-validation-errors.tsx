@@ -1,5 +1,5 @@
 import type { AnyFieldMeta } from "@tanstack/react-form";
-import { useStore } from "@tanstack/react-form";
+import { useSelector } from "@tanstack/react-store";
 import { AlertTriangle } from "lucide-react";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { useFormContext } from "@/hooks/form/context";
@@ -16,11 +16,11 @@ const FormValidationErrors = ({
 	className?: string;
 }) => {
 	const form = useFormContext();
-	const fieldMeta = useStore(form.store, (state) => state.fieldMeta) as Record<
-		string,
-		AnyFieldMeta | undefined
-	>;
-	const formErrorMap = useStore(form.store, (state) => state.errorMap);
+	const fieldMeta = useSelector(
+		form.store,
+		(state) => state.fieldMeta,
+	) as Record<string, AnyFieldMeta | undefined>;
+	const formErrorMap = useSelector(form.store, (state) => state.errorMap);
 
 	// Collect all field errors
 	const fieldErrors: Array<{

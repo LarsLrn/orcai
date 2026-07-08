@@ -6,8 +6,8 @@ import { format } from "date-fns";
 import { MoreHorizontal } from "lucide-react";
 import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
-import { Checkbox } from "@/components/ui/checkbox";
 import { DataTableColumnHeader } from "@/components/ui/data-table/data-table-column-header";
+import { createDataTableSelectColumn } from "@/components/ui/data-table/data-table-select-column";
 import {
 	DropdownMenu,
 	DropdownMenuContent,
@@ -19,27 +19,7 @@ import { useDeleteOrganizationInvitationsMutation } from "@/hooks/mutations/use-
 import { clientEnv } from "@/lib/env/client";
 
 export const invitesTableColumns: ColumnDef<OrganizationInvitation>[] = [
-	{
-		id: "select",
-		size: 32,
-		header: ({ table }) => (
-			<Checkbox
-				checked={table.getIsAllPageRowsSelected()}
-				indeterminate={table.getIsSomePageRowsSelected()}
-				onCheckedChange={(value) => table.toggleAllPageRowsSelected(!!value)}
-				aria-label="Select all"
-			/>
-		),
-		cell: ({ row }) => (
-			<Checkbox
-				checked={row.getIsSelected()}
-				onCheckedChange={(value) => row.toggleSelected(!!value)}
-				aria-label="Select row"
-			/>
-		),
-		enableSorting: false,
-		enableHiding: false,
-	},
+	createDataTableSelectColumn<OrganizationInvitation>(),
 	{
 		accessorKey: "email",
 		header: ({ column }) => (
@@ -76,6 +56,8 @@ export const invitesTableColumns: ColumnDef<OrganizationInvitation>[] = [
 	{
 		id: "actions",
 		size: 32,
+		enableSorting: false,
+		enableHiding: false,
 		cell: ({ row }) => <ActionsCell invitation={row.original} />,
 	},
 ];

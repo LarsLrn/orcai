@@ -37,6 +37,7 @@ const NewChatInput = ({
 		const trimmed = messageText.trim();
 		if (!trimmed || isCreating) return;
 		onSend(trimmed);
+		setMessageText("");
 	};
 
 	const handleTextareaKeyDown = (

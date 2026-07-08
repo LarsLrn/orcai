@@ -1,14 +1,20 @@
 import type { BlockId, BotId } from "@orcai/core";
-import type { Asset, PublicationStatus } from "@orcai/schema";
+import type {
+	Asset,
+	BotEditor,
+	DatabaseBlock,
+	EntityCapabilities,
+	PublicationStatus,
+	TemplateBlock,
+} from "@orcai/schema";
 import { formOptions } from "@tanstack/react-form";
 import { createDefaultDatabaseBlock } from "@/components/authoring/database-block-editor";
 import { createDefaultTemplateBlock } from "@/components/authoring/template-block-editor";
-import type { DatabaseBlock, TemplateBlock } from "@/lib/orpc/schemas/block";
-import type { BotEditorSelect } from "@/lib/orpc/schemas/bot-editor";
+import { emptyCapabilities } from "@/lib/authz/capabilities";
 
 type BotEditorTemplateBlock = {
 	id?: BlockId;
-	canEdit: boolean;
+	capabilities: EntityCapabilities<"block">;
 	name: string;
 	description: string;
 	contentJson: unknown;
@@ -20,7 +26,7 @@ type BotEditorTemplateBlock = {
 
 type BotEditorDatabaseBlock = {
 	id?: BlockId;
-	canEdit: boolean;
+	capabilities: EntityCapabilities<"block">;
 	name: string;
 	description: string;
 	contentJson: unknown;
@@ -39,26 +45,32 @@ export type BotEditorFormValues = {
 	contentJson: unknown;
 	contentHtml: string;
 	status: PublicationStatus;
+	capabilities: EntityCapabilities<"bot">;
 	templateBlock: BotEditorTemplateBlock | null;
 	databaseBlocks: BotEditorDatabaseBlock[];
 };
 
-const toBotEditorFormValues = (
-	editor?: BotEditorSelect,
-): BotEditorFormValues => ({
+const toBotEditorFormValues = (editor?: BotEditor): BotEditorFormValues => ({
 	id: editor?.id,
 	name: editor?.name ?? "",
 	description: editor?.description ?? "",
 	contentJson: editor?.contentJson ?? {},
 	contentHtml: editor?.contentHtml ?? "",
 	status: editor?.status ?? "draft",
+	capabilities: editor?.capabilities ?? {
+		...emptyCapabilities("bot"),
+		read: true,
+		use: true,
+		edit: true,
+		delete: true,
+		manage_access: true,
+	},
 	templateBlock: editor?.templateBlock
 		? {
 				...editor.templateBlock,
 				description: editor.templateBlock.description ?? "",
 				contentJson: editor.templateBlock.contentJson ?? null,
 				contentHtml: editor.templateBlock.contentHtml ?? "",
-				canEdit: editor.templateBlock.canEdit ?? true,
 			}
 		: null,
 	databaseBlocks:
@@ -68,11 +80,10 @@ const toBotEditorFormValues = (
 			contentJson: databaseBlock.contentJson ?? null,
 			contentHtml: databaseBlock.contentHtml ?? "",
 			assetIds: databaseBlock.assetIds ?? [],
-			canEdit: databaseBlock.canEdit ?? true,
 		})) ?? [],
 });
 
-export const botEditorFormOptions = (editor?: BotEditorSelect) =>
+export const botEditorFormOptions = (editor?: BotEditor) =>
 	formOptions({
 		defaultValues: toBotEditorFormValues(editor),
 	});
@@ -90,7 +101,12 @@ export const createDefaultBuilderDatabaseBlock = (params?: {
 		contentJson: block.contentJson ?? null,
 		contentHtml: block.contentHtml ?? "",
 		assetIds: block.assetIds ?? [],
-		canEdit: true,
+		capabilities: {
+			...emptyCapabilities("block"),
+			edit: true,
+			read: true,
+			use: true,
+		},
 	};
 };
 
@@ -104,6 +120,11 @@ export const createDefaultBuilderTemplateBlock = (): NonNullable<
 		description: block.description ?? "",
 		contentJson: block.contentJson ?? null,
 		contentHtml: block.contentHtml ?? "",
-		canEdit: true,
+		capabilities: {
+			...emptyCapabilities("block"),
+			edit: true,
+			read: true,
+			use: true,
+		},
 	};
 };

@@ -37,13 +37,13 @@ const Header = () => {
 	}[];
 
 	return (
-		<header className="sticky top-2 z-10 mx-2 flex h-12 shrink-0 items-center gap-2 rounded-lg border bg-sidebar px-4 text-muted-foreground shadow-sm">
-			<SidebarTrigger className="-ml-1" variant="ghost" />
+		<header className="sticky top-2 z-10 mx-2 flex h-12 min-w-0 shrink-0 items-center gap-2 rounded-lg border bg-sidebar px-4 text-muted-foreground shadow-sm">
+			<SidebarTrigger className="-ml-1 shrink-0" variant="ghost" />
 			<Separator
 				orientation="vertical"
 				className="my-auto mr-2 data-[orientation=vertical]:h-7"
 			/>
-			<div className="flex w-full items-center justify-between gap-2">
+			<div className="flex min-w-0 flex-1 items-center justify-between gap-2">
 				<Breadcrumb className="min-w-0 flex-1">
 					<BreadcrumbList className="min-w-0 flex-nowrap gap-0 overflow-hidden">
 						<BreadcrumbItem>
@@ -102,7 +102,7 @@ const Header = () => {
 												variant: "ghost",
 												size: "sm",
 												className:
-													"h-7 min-w-0 max-w-[calc(100vw-12rem)] shrink overflow-hidden",
+													"h-7 min-w-0 max-w-full shrink overflow-hidden",
 											}),
 										)}
 									>
@@ -144,7 +144,7 @@ const Header = () => {
 						))}
 					</BreadcrumbList>
 				</Breadcrumb>
-				<div className="flex gap-2">
+				<div className="flex shrink-0 gap-2">
 					<ThemeSwitcher className="size-8 px-0" />
 					<LocaleSwitcher />
 				</div>

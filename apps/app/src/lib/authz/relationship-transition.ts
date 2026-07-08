@@ -10,7 +10,7 @@ import { AuthzService } from "@/lib/effect/services/authz";
 /**
  * Syncs a SpiceDB relationship when the relation name changes for a fixed
  * resource–subject pair (e.g. a user's role on an organization changes from
- * `student` to `admin`).
+ * `viewer` to `admin`).
  *
  * Because SpiceDB stores each relation as a discrete tuple, a role change
  * requires deleting the old tuple and touching the new one. This function

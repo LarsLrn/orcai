@@ -55,7 +55,7 @@ const Chat = ({
 		}),
 	);
 
-	const { messages, status, setMessages, regenerate, sendMessage } =
+	const { messages, status, setMessages, regenerate, sendMessage, stop } =
 		useChat<ChatAgentUIMessage>({
 			id,
 			transport: {
@@ -174,6 +174,7 @@ const Chat = ({
 					zedToken={zedToken}
 					status={status}
 					sendMessage={sendMessage}
+					stop={stop}
 					messages={messages}
 					chatLength={messages.length}
 				/>

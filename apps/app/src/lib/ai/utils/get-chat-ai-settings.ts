@@ -1,14 +1,14 @@
 import { createOpenAICompatible } from "@ai-sdk/openai-compatible";
+import { AiError } from "@orcai/ai";
 import type { BotId, ModelId, ProviderId, UserId } from "@orcai/core";
-import type { ChatConfig } from "@orcai/schema";
+import type { ChatConfig, DatabaseBlock, TemplateBlock } from "@orcai/schema";
 import { checkManyEntityPermissions, hasPermission } from "@orcai/spice-db";
 import { extractReasoningMiddleware, wrapLanguageModel } from "ai";
 import * as Effect from "effect/Effect";
 import { resolveChatGenerationParams } from "@/lib/ai/utils/chat-generation-defaults";
-import { AiError, BadRequestError } from "@/lib/effect/utils/errors";
+import { BadRequestError } from "@/lib/effect/utils/errors";
 import { decryptApiKey } from "@/lib/encryption";
 import { client } from "@/lib/orpc/orpc";
-import type { DatabaseBlock, TemplateBlock } from "@/lib/orpc/schemas/block";
 
 interface ChatAiSettingsInput {
 	providerId: ProviderId;
@@ -46,9 +46,13 @@ export const getChatAiSettings = ({
 					}),
 			});
 
-			templateBlock = blocks.data.find(
-				(block): block is TemplateBlock => block.type === "template",
+			const foundTemplateBlock = blocks.data.find(
+				(block) => block.type === "template",
 			);
+			templateBlock =
+				foundTemplateBlock?.type === "template"
+					? foundTemplateBlock
+					: undefined;
 
 			if (!templateBlock) {
 				return yield* new AiError({

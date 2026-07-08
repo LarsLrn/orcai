@@ -19,6 +19,8 @@ import {
 	SidebarMenuSubItem,
 	useSidebar,
 } from "@/components/ui/sidebar";
+import { useOrganizationCapabilities } from "@/hooks/authz/use-capabilities";
+import { hasCapability } from "@/lib/authz/capabilities";
 import { sidebarMenu } from "@/settings/menus";
 
 const CollapsibleSidebarMenu = ({
@@ -36,9 +38,14 @@ const CollapsibleSidebarMenu = ({
 	const hasChildren = !!item.items?.length;
 
 	const isChildActive =
-		item.items?.some((sub) => pathname.startsWith(sub.linkProps.to)) ?? false;
+		item.items?.some(
+			(sub) => !!sub.linkProps?.to && pathname.startsWith(sub.linkProps.to),
+		) ?? false;
 	const isRouteActive =
-		isChildActive || (hasRoute && pathname.startsWith(item.linkProps.to));
+		isChildActive ||
+		(hasRoute &&
+			!!item.linkProps?.to &&
+			pathname.startsWith(item.linkProps.to));
 
 	// Close the group automatically when the user navigates away from all its routes.
 	useEffect(() => {
@@ -57,7 +64,11 @@ const CollapsibleSidebarMenu = ({
 			render={
 				<SidebarMenuItem>
 					<SidebarMenuButton
-						isActive={hasRoute ? pathname === item.linkProps.to : isChildActive}
+						isActive={
+							hasRoute && item.linkProps?.to
+								? pathname === item.linkProps.to
+								: isChildActive
+						}
 						// When there's no own route, the whole button row toggles the group.
 						onClick={
 							!hasRoute && hasChildren
@@ -91,10 +102,13 @@ const CollapsibleSidebarMenu = ({
 							/>
 							<CollapsibleContent>
 								<SidebarMenuSub>
-									{item.items.map((subItem) => (
+									{(item.items ?? []).map((subItem) => (
 										<SidebarMenuSubItem key={subItem.title}>
 											<SidebarMenuSubButton
-												isActive={pathname.startsWith(subItem.linkProps.to)}
+												isActive={
+													!!subItem.linkProps?.to &&
+													pathname.startsWith(subItem.linkProps.to)
+												}
 												render={
 													<Link
 														{...subItem.linkProps}
@@ -118,12 +132,49 @@ const CollapsibleSidebarMenu = ({
 };
 
 const ManageSidebarGroup = () => {
+	const { data } = useOrganizationCapabilities();
+	const capabilities = data?.data.capabilities;
+	const visibleMenu = sidebarMenu
+		.map((item) => {
+			const items = item.items?.filter(
+				(subItem) =>
+					!subItem.requires || hasCapability(capabilities, subItem.requires),
+			);
+			const canShowItem =
+				!item.requires || hasCapability(capabilities, item.requires);
+
+			if (item.items && !items?.length) {
+				return item.linkProps && canShowItem
+					? {
+							...item,
+							items: undefined,
+						}
+					: undefined;
+			}
+
+			if (!canShowItem) {
+				return undefined;
+			}
+
+			return items
+				? {
+						...item,
+						items,
+					}
+				: item;
+		})
+		.filter((item): item is (typeof sidebarMenu)[number] => !!item);
+
+	if (visibleMenu.length === 0) {
+		return null;
+	}
+
 	return (
 		<SidebarGroup className="p-0">
 			<SidebarGroupLabel>Your Workspace</SidebarGroupLabel>
 			<SidebarGroupContent>
 				<SidebarMenu>
-					{sidebarMenu.map((item) => (
+					{visibleMenu.map((item) => (
 						<CollapsibleSidebarMenu key={item.title} item={item} />
 					))}
 				</SidebarMenu>

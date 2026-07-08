@@ -1,3 +1,4 @@
+import type { ResourceRef } from "@orcai/schema";
 import { AccessManagerContent } from "@/components/access/access-manager-content";
 import { Button } from "@/components/ui/button";
 import {
@@ -8,7 +9,6 @@ import {
 	DialogHeader,
 	DialogTitle,
 } from "@/components/ui/dialog";
-import type { ResourceRef } from "@/lib/orpc/schemas/resource";
 import { RESOURCES } from "@/settings/display-config";
 
 type AccessDialogProps = {

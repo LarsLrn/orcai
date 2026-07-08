@@ -1,14 +1,14 @@
-import { assetIdSchema } from "@orcai/schema";
+import { AiError } from "@orcai/ai";
+import {
+	assetIdSchema,
+	blockIdSchema,
+	type DatabaseBlock,
+} from "@orcai/schema";
 import { tool } from "ai";
 import * as Effect from "effect/Effect";
 import z from "zod/v4";
 import { runtime } from "@/lib/effect/runtime";
-import { AiError } from "@/lib/effect/utils/errors";
 import { client } from "@/lib/orpc/orpc";
-import {
-	baseBlockSelectSchema,
-	type DatabaseBlock,
-} from "@/lib/orpc/schemas/block";
 import type { ChunkResult, KnowledgeBaseDocument } from "./types";
 import {
 	compareByPageAssetChunk,
@@ -34,7 +34,7 @@ export const getKnowledgeBasePageTool = ({
 				.int()
 				.min(1)
 				.describe("1-based page number to retrieve."),
-			blockId: baseBlockSelectSchema.shape.id.optional(),
+			blockId: blockIdSchema.optional(),
 			assetId: assetIdSchema
 				.optional()
 				.describe("Optional specific document asset ID."),
@@ -134,9 +134,9 @@ export const getKnowledgeBasePageTool = ({
 						try: () =>
 							Promise.all(
 								targetBlocks.map(async (block) => {
-									const response = await client.assetPoint.list({
+									const response = await client.assetPoint.searchRepository({
+										repositoryId: block.id,
 										filters: {
-											blockId: block.id,
 											assetIds: matchedAssetIds,
 											pageFrom,
 											pageTo,

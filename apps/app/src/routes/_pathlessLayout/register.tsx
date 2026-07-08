@@ -49,6 +49,7 @@ export const Route = createFileRoute("/_pathlessLayout/register")({
 
 		return {
 			invitationId: organizationInvitationIdSchema.parse(deps.inv),
+			email: validation.data.email,
 			validation: validation.data,
 		};
 	},
@@ -79,7 +80,10 @@ function RouteComponent() {
 			</CardHeader>
 			<CardContent>
 				<div>
-					<SignUpForm invitationId={invitation.invitationId} />
+					<SignUpForm
+						invitationId={invitation.invitationId}
+						email={invitation.email ?? ""}
+					/>
 				</div>
 			</CardContent>
 			<CardFooter className="text-muted-foreground text-sm">

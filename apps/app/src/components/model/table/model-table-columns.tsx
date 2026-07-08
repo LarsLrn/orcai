@@ -1,12 +1,12 @@
-import type { Model } from "@orcai/schema";
+import type { ModelListRow } from "@orcai/schema";
 import { Link } from "@tanstack/react-router";
 import type { ColumnDef } from "@tanstack/react-table";
 import { format } from "date-fns";
 import { MoreHorizontal } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import { Checkbox } from "@/components/ui/checkbox";
 import { DataTableColumnHeader } from "@/components/ui/data-table/data-table-column-header";
+import { createDataTableSelectColumn } from "@/components/ui/data-table/data-table-select-column";
 import {
 	DropdownMenu,
 	DropdownMenuContent,
@@ -16,28 +16,8 @@ import {
 } from "@/components/ui/dropdown-menu";
 import { useDeleteModelsMutation } from "@/hooks/mutations/use-model-mutations";
 
-export const modelTableColumns: ColumnDef<Model>[] = [
-	{
-		id: "select",
-		size: 32,
-		header: ({ table }) => (
-			<Checkbox
-				checked={table.getIsAllPageRowsSelected()}
-				indeterminate={table.getIsSomePageRowsSelected()}
-				onCheckedChange={(value) => table.toggleAllPageRowsSelected(!!value)}
-				aria-label="Select all"
-			/>
-		),
-		cell: ({ row }) => (
-			<Checkbox
-				checked={row.getIsSelected()}
-				onCheckedChange={(value) => row.toggleSelected(!!value)}
-				aria-label="Select row"
-			/>
-		),
-		enableSorting: false,
-		enableHiding: false,
-	},
+export const modelTableColumns: ColumnDef<ModelListRow>[] = [
+	createDataTableSelectColumn<ModelListRow>(),
 	{
 		accessorKey: "name",
 		header: ({ column }) => (
@@ -55,9 +35,21 @@ export const modelTableColumns: ColumnDef<Model>[] = [
 		),
 	},
 	{
-		accessorKey: "providerId",
+		accessorKey: "providerName",
+		accessorFn: (row) => row.provider.name,
 		header: ({ column }) => (
 			<DataTableColumnHeader column={column} title="Provider" />
+		),
+		cell: ({ row }) => (
+			<Link
+				to="/app/providers/$providerId"
+				params={{
+					providerId: row.original.provider.id,
+				}}
+				className="hover:underline"
+			>
+				{row.original.provider.name}
+			</Link>
 		),
 	},
 	{
@@ -83,6 +75,8 @@ export const modelTableColumns: ColumnDef<Model>[] = [
 	{
 		id: "actions",
 		size: 32,
+		enableSorting: false,
+		enableHiding: false,
 		cell: ({ row }) => {
 			const model = row.original;
 
@@ -122,7 +116,7 @@ export const modelTableColumns: ColumnDef<Model>[] = [
 	},
 ];
 
-const DeleteItem = ({ model }: { model: Model }) => {
+const DeleteItem = ({ model }: { model: ModelListRow }) => {
 	const { mutate: deleteModels } = useDeleteModelsMutation();
 
 	return (

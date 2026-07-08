@@ -29,6 +29,7 @@ import {
 	PageTitle,
 } from "@/components/ui/shell/page";
 import { useDeleteBlocksMutation } from "@/hooks/mutations/use-block-mutations";
+import { hasCapability } from "@/lib/authz/capabilities";
 import { orpc } from "@/lib/orpc/orpc";
 
 export const Route = createFileRoute("/app/hub/blocks/$blockId/")({
@@ -72,6 +73,13 @@ function RouteComponent() {
 			});
 		},
 	});
+	const canEdit = hasCapability(block.data.capabilities, "edit");
+	const canDelete = hasCapability(block.data.capabilities, "delete");
+	const canManageAccess = hasCapability(
+		block.data.capabilities,
+		"manage_access",
+	);
+	const hasMenuActions = canManageAccess || canEdit || canDelete;
 
 	return (
 		<Page>
@@ -86,51 +94,59 @@ function RouteComponent() {
 					</div>
 				) : null}
 				<PageAction>
-					<DropdownMenu>
-						<DropdownMenuTrigger
-							render={
-								<Button variant="ghost" size="icon">
-									<MoreVerticalIcon className="size-4" />
-									<span className="sr-only">More options</span>
-								</Button>
-							}
-						/>
-						<DropdownMenuContent align="end">
-							<DropdownMenuItem onClick={() => setIsAccessOpen(true)}>
-								<KeyRoundIcon className="size-4" />
-								Access & Groups
-							</DropdownMenuItem>
-							<DropdownMenuItem
-								onClick={() =>
-									navigate({
-										to: "/app/hub/blocks/$blockId/edit",
-										params: {
-											blockId: block.data.id,
-										},
-									})
+					{hasMenuActions ? (
+						<DropdownMenu>
+							<DropdownMenuTrigger
+								render={
+									<Button variant="ghost" size="icon">
+										<MoreVerticalIcon className="size-4" />
+										<span className="sr-only">More options</span>
+									</Button>
 								}
-							>
-								<EditIcon />
-								Edit Block
-							</DropdownMenuItem>
-							<DropdownMenuSeparator />
-							<DropdownMenuItem
-								variant="destructive"
-								onClick={() =>
-									deleteBlocks({
-										refs: [
-											{
-												id: block.data.id,
-											},
-										],
-									})
-								}
-							>
-								<Trash2Icon />
-								Delete Block
-							</DropdownMenuItem>
-						</DropdownMenuContent>
-					</DropdownMenu>
+							/>
+							<DropdownMenuContent align="end">
+								{canManageAccess ? (
+									<DropdownMenuItem onClick={() => setIsAccessOpen(true)}>
+										<KeyRoundIcon className="size-4" />
+										Access & Groups
+									</DropdownMenuItem>
+								) : null}
+								{canEdit ? (
+									<DropdownMenuItem
+										onClick={() =>
+											navigate({
+												to: "/app/hub/blocks/$blockId/edit",
+												params: {
+													blockId: block.data.id,
+												},
+											})
+										}
+									>
+										<EditIcon />
+										Edit Block
+									</DropdownMenuItem>
+								) : null}
+								{canDelete ? <DropdownMenuSeparator /> : null}
+								{canDelete ? (
+									<DropdownMenuItem
+										variant="destructive"
+										onClick={() =>
+											deleteBlocks({
+												refs: [
+													{
+														id: block.data.id,
+													},
+												],
+											})
+										}
+									>
+										<Trash2Icon />
+										Delete Block
+									</DropdownMenuItem>
+								) : null}
+							</DropdownMenuContent>
+						</DropdownMenu>
+					) : null}
 				</PageAction>
 			</PageHeader>
 
@@ -165,15 +181,17 @@ function RouteComponent() {
 				</div>
 			</PageContent>
 
-			<AccessDialog
-				open={isAccessOpen}
-				onOpenChange={setIsAccessOpen}
-				resourceRef={{
-					type: "block",
-					id: block.data.id,
-				}}
-				resourceName={block.data.name}
-			/>
+			{canManageAccess ? (
+				<AccessDialog
+					open={isAccessOpen}
+					onOpenChange={setIsAccessOpen}
+					resourceRef={{
+						type: "block",
+						id: block.data.id,
+					}}
+					resourceName={block.data.name}
+				/>
+			) : null}
 		</Page>
 	);
 }

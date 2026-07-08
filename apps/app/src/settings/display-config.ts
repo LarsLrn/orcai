@@ -1,5 +1,5 @@
+import type { ResourceGrantRole } from "@orcai/schema";
 import type { ResourceType } from "@orcai/spice-db";
-import type { ResourceGrantRole } from "@/lib/orpc/schemas/resource";
 
 export const ROLES = [
 	{

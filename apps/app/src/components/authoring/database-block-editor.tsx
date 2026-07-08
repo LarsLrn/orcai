@@ -1,4 +1,4 @@
-import type { Asset } from "@orcai/schema";
+import type { Asset, DatabaseBlock } from "@orcai/schema";
 import { ChevronDownIcon, DatabaseIcon, PlusIcon } from "lucide-react";
 import type { ReactNode } from "react";
 import { useState } from "react";
@@ -27,7 +27,7 @@ import {
 	DialogHeader,
 	DialogTitle,
 } from "@/components/ui/dialog";
-import type { DatabaseBlock } from "@/lib/orpc/schemas/block";
+import { emptyCapabilities } from "@/lib/authz/capabilities";
 
 const createDefaultDatabaseBlock = (params?: { botName: string }) => ({
 	name: `Content Collection${params?.botName ? ` for '${params.botName}'` : ""}`,
@@ -47,7 +47,12 @@ const createDefaultDatabaseBlock = (params?: { botName: string }) => ({
 	},
 	assetIds: [],
 	assets: [],
-	canEdit: true,
+	capabilities: {
+		...emptyCapabilities("block"),
+		edit: true,
+		read: true,
+		use: true,
+	},
 });
 
 const mergeAssets = (currentAssets: Asset[], incomingAssets: Asset[]) => {

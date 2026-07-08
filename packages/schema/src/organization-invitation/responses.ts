@@ -1,11 +1,11 @@
 import { z } from "zod/v4";
-import { organizationInvitationValidationReasonSchema } from "../fragments/organization-invitation-validation-reason";
 import {
 	createDataResponseSchema,
 	createDeleteResponseSchema,
 	createListResponseSchema,
 	statusResponseSchema,
 } from "../shared";
+import { organizationInvitationValidationReasonSchema } from "./parts/validation-reason";
 import { organizationInvitationSchema } from "./schema";
 
 export const listOrganizationInvitationsResponseSchema =
@@ -22,6 +22,7 @@ export const validateOrganizationInvitationResponseSchema =
 		z.object({
 			isValid: z.boolean(),
 			reason: organizationInvitationValidationReasonSchema.nullable(),
+			email: z.email().nullable(),
 		}),
 	);
 

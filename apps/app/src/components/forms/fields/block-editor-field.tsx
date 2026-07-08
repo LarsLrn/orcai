@@ -1,4 +1,4 @@
-import { useStore } from "@tanstack/react-form";
+import { useSelector } from "@tanstack/react-store";
 import type { Content } from "@tiptap/core";
 import { useId } from "react";
 import { BlockEditor } from "@/components/editor";
@@ -33,8 +33,8 @@ const BlockEditorField = ({
 	const field = useFieldContext<Content>();
 	const id = useId();
 
-	const errors = useStore(field.store, (state) => state.meta.errors);
-	const isInvalid = useStore(
+	const errors = useSelector(field.store, (state) => state.meta.errors);
+	const isInvalid = useSelector(
 		field.store,
 		(state) => state.meta.isTouched && !state.meta.isValid,
 	);

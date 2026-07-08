@@ -1,5 +1,5 @@
 import { makeObservabilityLayer } from "@orcai/observability";
-import { ORPCInstrumentation } from "@orpc/otel";
+import { ORPCInstrumentation } from "@orpc/opentelemetry";
 
 export const ObservabilityLive = makeObservabilityLayer({
 	serviceName: "orcai-app",

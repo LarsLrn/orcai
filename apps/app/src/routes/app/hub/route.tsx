@@ -7,6 +7,13 @@ import {
 } from "@tanstack/react-router";
 import { LoadingPage } from "@/components/app/loading/loading-page";
 import {
+	Select,
+	SelectContent,
+	SelectItem,
+	SelectTrigger,
+	SelectValue,
+} from "@/components/ui/select";
+import {
 	Hero,
 	HeroContent,
 	HeroInner,
@@ -74,6 +81,14 @@ function RouteComponent() {
 		select: (s) => s.location.pathname,
 	});
 	const activeTab = getActiveTab(pathname);
+	const navigateToRoute = (value: string | null) => {
+		if (!value) return;
+		const route = HUB_ROUTES.find((candidate) => candidate.value === value);
+		if (route)
+			navigate({
+				to: route.to,
+			});
+	};
 
 	return (
 		<div className="flex flex-col gap-8">
@@ -84,15 +99,29 @@ function RouteComponent() {
 						<h1 className="font-bold text-4xl text-card-foreground tracking-tight">
 							Library
 						</h1>
-						<Tabs
+						<Select
 							value={activeTab}
-							onValueChange={(value) => {
-								const route = HUB_ROUTES.find((r) => r.value === value);
-								if (route)
-									navigate({
-										to: route.to,
-									});
-							}}
+							onValueChange={navigateToRoute}
+							items={HUB_ROUTES}
+						>
+							<SelectTrigger
+								className="w-full md:hidden"
+								aria-label="Library section"
+							>
+								<SelectValue />
+							</SelectTrigger>
+							<SelectContent>
+								{HUB_ROUTES.map((route) => (
+									<SelectItem key={route.value} value={route.value}>
+										{route.label}
+									</SelectItem>
+								))}
+							</SelectContent>
+						</Select>
+						<Tabs
+							className="hidden md:flex"
+							value={activeTab}
+							onValueChange={navigateToRoute}
 						>
 							<TabsList>
 								{HUB_ROUTES.map((route) => (

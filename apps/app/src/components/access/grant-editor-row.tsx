@@ -1,17 +1,14 @@
 import { getInitial } from "@orcai/core";
+import type { ResourceGrant, ResourceGrantRole } from "@orcai/schema";
+import {
+	ALL_MEMBERS_GROUP_SYSTEM_KEY,
+	RESOURCE_GRANT_SOURCE,
+} from "@orcai/schema";
 import { Trash2Icon, UsersIcon } from "lucide-react";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { OptionPicker } from "@/components/ui/composed/option-picker";
-import type {
-	ResourceGrant,
-	ResourceGrantRole,
-} from "@/lib/orpc/schemas/resource";
-import {
-	ALL_MEMBERS_GROUP_SYSTEM_KEY,
-	RESOURCE_GRANT_SOURCE,
-} from "@/lib/orpc/schemas/resource";
 import { ROLES } from "@/settings/display-config";
 
 const sourceLabel: Record<ResourceGrant["source"], string> = {

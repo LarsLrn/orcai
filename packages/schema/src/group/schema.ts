@@ -1,8 +1,8 @@
 import { z } from "zod/v4";
-import { groupKindSchema } from "../fragments/group-kind";
-import { groupSystemKeySchema } from "../fragments/group-system-key";
 import { organizationIdSchema } from "../organization/ref";
 import { userIdSchema } from "../user/ref";
+import { groupKindSchema } from "./parts/kind";
+import { groupSystemKeySchema } from "./parts/system-key";
 import { groupIdSchema, groupMemberIdSchema } from "./ref";
 
 export const groupFieldsSchema = z.object({

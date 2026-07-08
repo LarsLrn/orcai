@@ -1,13 +1,10 @@
+import { AiError } from "@orcai/ai";
+import { blockIdSchema, type DatabaseBlock } from "@orcai/schema";
 import { tool } from "ai";
 import * as Effect from "effect/Effect";
 import { z } from "zod/v4";
 import { runtime } from "@/lib/effect/runtime";
-import { AiError } from "@/lib/effect/utils/errors";
 import { client } from "@/lib/orpc/orpc";
-import {
-	baseBlockSelectSchema,
-	type DatabaseBlock,
-} from "@/lib/orpc/schemas/block";
 import { RETRIEVAL_LIMITS } from "@/settings/constants";
 import type { ChunkResult, PointWithBlock } from "./types";
 import {
@@ -45,7 +42,7 @@ export const getKnowledgeBaseChunksTool = ({
 				.describe(
 					"Optional cap on returned chunks after adjacent chunks are added. Default is enough to cover the requested IDs and any included neighbors.",
 				),
-			blockId: baseBlockSelectSchema.shape.id
+			blockId: blockIdSchema
 				.optional()
 				.describe(
 					"Optional block ID when all chunk IDs come from one known block.",
@@ -110,10 +107,10 @@ export const getKnowledgeBaseChunksTool = ({
 						try: () =>
 							Promise.all(
 								targetBlocks.map(async (block) => {
-									const response = await client.assetPoint.list({
+									const response = await client.assetPoint.searchRepository({
+										repositoryId: block.id,
 										filters: {
 											pointIds: uniqueIds,
-											blockId: block.id,
 											limit: uniqueIds.length,
 										},
 									});
@@ -164,9 +161,9 @@ export const getKnowledgeBaseChunksTool = ({
 											};
 										}
 
-										const response = await client.assetPoint.list({
+										const response = await client.assetPoint.searchRepository({
+											repositoryId: candidate.sourceBlock.id,
 											filters: {
-												blockId: candidate.sourceBlock.id,
 												assetIds: [
 													candidate.payload.asset_id,
 												],

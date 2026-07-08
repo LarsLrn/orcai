@@ -1,5 +1,7 @@
 import { z } from "zod/v4";
 import { paginationInputSchema } from "../shared";
+import { createUniqueRefsInputSchema } from "../shared/ref-list";
+import { createSortingInputSchema } from "../shared/sorting";
 import { userIdSchema } from "../user/ref";
 import { groupIdSchema } from "./ref";
 import {
@@ -26,8 +28,16 @@ const groupUserIdsSchema = z
 		}
 	});
 
+export const groupSortKeySchema = z.enum([
+	"name",
+	"kind",
+	"createdAt",
+	"updatedAt",
+]);
+
 export const listGroupsInputSchema = paginationInputSchema.extend({
 	filters: groupFiltersSchema.optional(),
+	...createSortingInputSchema(groupSortKeySchema).shape,
 });
 
 export const createGroupInputSchema = groupFieldsSchema;
@@ -37,11 +47,11 @@ export const updateGroupInputSchema = groupMutableFieldsSchema.extend({
 });
 
 export const deleteGroupsInputSchema = z.object({
-	refs: z.array(
-		z.object({
-			id: groupIdSchema,
-		}),
-	),
+	refs: createUniqueRefsInputSchema({
+		key: "id",
+		value: groupIdSchema,
+		entityName: "group",
+	}),
 });
 
 export const findGroupInputSchema = z.object({
@@ -64,6 +74,7 @@ export const removeGroupMembersInputSchema = z.object({
 });
 
 export type ListGroupsInput = z.infer<typeof listGroupsInputSchema>;
+export type GroupSortKey = z.infer<typeof groupSortKeySchema>;
 export type CreateGroupInput = z.infer<typeof createGroupInputSchema>;
 export type UpdateGroupInput = z.infer<typeof updateGroupInputSchema>;
 export type DeleteGroupsInput = z.infer<typeof deleteGroupsInputSchema>;

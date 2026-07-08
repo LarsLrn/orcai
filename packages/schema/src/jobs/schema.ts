@@ -5,15 +5,15 @@ import {
 	QUOTA_PERIOD_ROLLOVER_JOB_NAME,
 	QUOTA_RECONCILE_JOB_NAME,
 	VECTORIZE_ASSET_JOB_NAME,
-} from "./job-queues";
+} from "./parts/job-queues";
 import {
 	processAssetOutputSchema,
 	processAssetPayloadSchema,
-} from "./process-asset";
+} from "./parts/process-asset";
 import {
 	vectorizeAssetOutputSchema,
 	vectorizeAssetPayloadSchema,
-} from "./vectorize-asset";
+} from "./parts/vectorize-asset";
 
 export const jobStateSchema = z.enum([
 	"created",

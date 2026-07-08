@@ -1,4 +1,4 @@
-import { paginationInputSchema } from "@orcai/schema";
+import { listUsersInputSchema } from "@orcai/schema";
 import { useSuspenseQuery } from "@tanstack/react-query";
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { buttonVariants } from "@/components/ui/button";
@@ -19,20 +19,22 @@ import { UsersDataTableSelectActions } from "@/components/users/table/users-data
 import { orpc } from "@/lib/orpc/orpc";
 
 export const Route = createFileRoute("/app/users/")({
-	validateSearch: paginationInputSchema,
-	loaderDeps: ({ search: { pageIndex, pageSize } }) => ({
+	validateSearch: listUsersInputSchema,
+	loaderDeps: ({ search: { pageIndex, pageSize, sort } }) => ({
 		pageIndex,
 		pageSize,
+		sort,
 	}),
 	loader: async ({
 		context: { queryClient },
-		deps: { pageIndex, pageSize },
+		deps: { pageIndex, pageSize, sort },
 	}) => {
 		await queryClient.ensureQueryData(
 			orpc.user.list.queryOptions({
 				input: {
 					pageIndex,
 					pageSize,
+					sort,
 				},
 			}),
 		);
@@ -41,12 +43,13 @@ export const Route = createFileRoute("/app/users/")({
 });
 
 function RouteComponent() {
-	const { pageIndex, pageSize } = Route.useSearch();
+	const { pageIndex, pageSize, sort } = Route.useSearch();
 	const { data: users } = useSuspenseQuery(
 		orpc.user.list.queryOptions({
 			input: {
 				pageIndex,
 				pageSize,
+				sort,
 			},
 		}),
 	);
@@ -85,6 +88,7 @@ function RouteComponent() {
 							pageIndex,
 							pageSize,
 						},
+						sorting: sort,
 					}}
 					options={{
 						rowCount: users.rowCount,

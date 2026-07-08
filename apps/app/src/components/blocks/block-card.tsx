@@ -1,3 +1,4 @@
+import type { Block, BlockWithCapabilities } from "@orcai/schema";
 import {
 	BrainCircuitIcon,
 	DatabaseIcon,
@@ -30,7 +31,7 @@ import {
 	type ResourceCardPrimaryAction,
 	ResourceCardTitle,
 } from "@/components/ui/shell/resource-card";
-import type { Block } from "@/lib/orpc/schemas/block";
+import { hasCapability } from "@/lib/authz/capabilities";
 
 const BLOCK_TYPE_CONFIG = {
 	template: {
@@ -68,7 +69,11 @@ const BlockCard = ({
 	block,
 	actions,
 }: {
-	block: Block;
+	block:
+		| BlockWithCapabilities
+		| (Block & {
+				capabilities?: Record<string, boolean>;
+		  });
 	actions?: {
 		dropdown?: ResourceCardActionItem[];
 		footer?: ResourceCardActionItem[];
@@ -97,18 +102,22 @@ const BlockCard = ({
 				},
 			},
 		},
-		{
-			key: "edit",
-			label: "Edit",
-			icon: EditIcon,
-			variant: "default",
-			linkProps: {
-				to: "/app/hub/blocks/$blockId/edit",
-				params: {
-					blockId: block.id,
-				},
-			},
-		},
+		...(hasCapability(block.capabilities, "edit")
+			? [
+					{
+						key: "edit",
+						label: "Edit",
+						icon: EditIcon,
+						variant: "default",
+						linkProps: {
+							to: "/app/hub/blocks/$blockId/edit",
+							params: {
+								blockId: block.id,
+							},
+						},
+					} satisfies ResourceCardActionItem,
+				]
+			: []),
 	];
 
 	const dropdownActions: ResourceCardActionItem[] = actions?.dropdown ?? [];

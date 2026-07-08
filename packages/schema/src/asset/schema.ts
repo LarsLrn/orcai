@@ -1,8 +1,9 @@
 import { z } from "zod/v4";
-import { metadataSchema } from "../fragments/asset-metadata";
-import { processingStatusSchema } from "../fragments/processing-status";
+import { entityCapabilitiesSchema } from "../authorization";
+import { bucketSchema } from "../storage/parts/buckets";
 import { userIdSchema } from "../user/ref";
-import { bucketSchema } from "../zod/buckets";
+import { metadataSchema } from "./parts/metadata";
+import { processingStatusSchema } from "./parts/processing-status";
 import { assetIdSchema } from "./ref";
 
 export const assetFieldsSchema = z.object({
@@ -22,6 +23,10 @@ export const assetSchema = assetFieldsSchema.extend({
 	userId: userIdSchema,
 	createdAt: z.coerce.date().nullable(),
 	updatedAt: z.coerce.date().nullable(),
+});
+
+export const assetWithCapabilitiesSchema = assetSchema.extend({
+	capabilities: entityCapabilitiesSchema,
 });
 
 export const assetFiltersSchema = z.object({
@@ -44,4 +49,5 @@ export const finalizedUploadFileSchema = z.object({
 });
 
 export type Asset = z.infer<typeof assetSchema>;
+export type AssetWithCapabilities = z.infer<typeof assetWithCapabilitiesSchema>;
 export type FinalizedUploadFile = z.infer<typeof finalizedUploadFileSchema>;

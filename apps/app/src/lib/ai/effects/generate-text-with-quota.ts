@@ -67,7 +67,7 @@ export const generateTextWithQuota = (input: GenerateTextWithQuotaInput) =>
 
 		const baseInput = {
 			model: input.model,
-			system: input.system,
+			instructions: input.system,
 			maxOutputTokens: input.maxOutputTokens,
 			temperature: input.temperature,
 			topP: input.topP,

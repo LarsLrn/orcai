@@ -2,9 +2,6 @@ import type { ExtractionConfig } from "@kreuzberg/node";
 import type { ExpandedExtractionConfig } from "../kreuzberg-expanded-types";
 import type { ExtractionProfile } from "./types";
 
-const DEFAULT_OCR_LANGUAGE =
-	process.env.KREUZBERG_OCR_LANGUAGE?.trim() || "eng";
-
 const baseConfig = {
 	useCache: true,
 	enableQualityProcessing: true,
@@ -25,7 +22,7 @@ export const getExtractionProfileConfig = (
 				...baseConfig,
 				ocr: {
 					backend: "tesseract",
-					language: DEFAULT_OCR_LANGUAGE,
+					language: process.env.KREUZBERG_OCR_LANGUAGE?.trim() || "eng",
 				},
 				images: {
 					extractImages: true,

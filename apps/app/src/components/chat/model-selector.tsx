@@ -214,7 +214,11 @@ const ModelSelectorButton = ({
 							key={model.id}
 							value={model.id}
 							title={model.name}
-							description={model.description || undefined}
+							description={
+								model.description
+									? `${model.provider.name} • ${model.description}`
+									: model.provider.name
+							}
 						/>
 					))}
 					{!modelsLoading && !modelsFetching && models.length === 0 && (

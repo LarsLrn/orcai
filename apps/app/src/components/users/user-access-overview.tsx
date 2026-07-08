@@ -1,13 +1,10 @@
+import { USER_ACCESS_SOURCE, type UserAccessEntry } from "@orcai/schema";
 import { useQuery } from "@tanstack/react-query";
 import { Link } from "@tanstack/react-router";
 import { FileIcon, LinkIcon, ShieldIcon, SquareStackIcon } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { orpc } from "@/lib/orpc/orpc";
-import {
-	USER_ACCESS_SOURCE,
-	type UserAccessEntry,
-} from "@/lib/orpc/schemas/user";
 
 type UserAccessOverviewProps = {
 	userId: string;

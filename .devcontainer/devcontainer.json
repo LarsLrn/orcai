@@ -20,7 +20,7 @@
 		"spicedb",
 		"spicedb-schema"
 	],
-	"workspaceFolder": "/workspaces/sokratest-v2",
+	"workspaceFolder": "/workspaces/orcai",
 	"remoteUser": "bun",
 	"forwardPorts": [
 		3000,
@@ -66,7 +66,7 @@
 				"usernamehw.errorlens",
 				"oven.bun-vscode",
 				"YoavBls.pretty-ts-errors",
-				"Gruntfuggly.todo-tree",
+				"FanaticPythoner.better-todo-tree",
 				"pflannery.vscode-versionlens",
 				"typescriptteam.native-preview"
 			],

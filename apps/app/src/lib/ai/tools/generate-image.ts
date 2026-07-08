@@ -1,13 +1,13 @@
 import { createOpenAICompatible } from "@ai-sdk/openai-compatible";
-import { generateTextEffect } from "@orcai/ai";
+import { AiError, generateTextEffect } from "@orcai/ai";
+import type { ImageGenerationBlock } from "@orcai/schema";
 import { generateImage, tool, type UIMessageStreamWriter } from "ai";
 import * as Effect from "effect/Effect";
 import { z } from "zod/v4";
 import { runtime } from "@/lib/effect/runtime";
-import { AiError, BadRequestError } from "@/lib/effect/utils/errors";
+import { BadRequestError } from "@/lib/effect/utils/errors";
 import { decryptApiKey } from "@/lib/encryption";
 import { client } from "@/lib/orpc/orpc";
-import type { ImageGenerationBlock } from "@/lib/orpc/schemas/block";
 
 export const generateImageTool = ({
 	writer,
@@ -102,14 +102,15 @@ export const generateImageTool = ({
 					});
 
 					const description = yield* generateTextEffect({
-						system: `You are passed an AI generated image. Write a highly detailed description of the image and what it shows. Include a description of all elements, their position, color, and composition. Output ONLY the description, nothing else. Do not start your response with "This image shows..." or something like that. Simply start with the description.`,
+						instructions: `You are passed an AI generated image. Write a highly detailed description of the image and what it shows. Include a description of all elements, their position, color, and composition. Output ONLY the description, nothing else. Do not start your response with "This image shows..." or something like that. Simply start with the description.`,
 						messages: [
 							{
 								role: "user",
 								content: [
 									{
-										type: "image",
-										image: `data:image/png;base64,${image.base64}`,
+										type: "file",
+										data: `data:image/png;base64,${image.base64}`,
+										mediaType: "image",
 									},
 								],
 							},

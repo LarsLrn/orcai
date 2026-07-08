@@ -47,7 +47,6 @@ function Slider({
 					(_, index) => (
 						<SliderPrimitive.Thumb
 							data-slot="slider-thumb"
-							// biome-ignore lint/suspicious/noArrayIndexKey: Fine for simple slider
 							key={index}
 							className="block h-4 w-6 shrink-0 select-none rounded-full bg-white not-dark:bg-clip-padding shadow-md ring-1 ring-black/10 transition-[color,box-shadow,background-color] hover:ring-4 hover:ring-ring/30 focus-visible:outline-hidden focus-visible:ring-4 focus-visible:ring-ring/30 disabled:pointer-events-none disabled:opacity-50 data-vertical:h-6 data-vertical:w-4"
 						/>

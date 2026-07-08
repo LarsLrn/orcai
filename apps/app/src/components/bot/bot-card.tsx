@@ -1,3 +1,4 @@
+import type { BotWithCapabilities } from "@orcai/schema";
 import { BotIcon, EditIcon, EyeIcon } from "lucide-react";
 import {
 	DropdownMenu,
@@ -24,13 +25,13 @@ import {
 	type ResourceCardPrimaryAction,
 	ResourceCardTitle,
 } from "@/components/ui/shell/resource-card";
-import type { Bot } from "@/lib/orpc/schemas/bot";
+import { hasCapability } from "@/lib/authz/capabilities";
 
 const BotCard = ({
 	bot,
 	actions,
 }: {
-	bot: Bot;
+	bot: BotWithCapabilities;
 	actions?: {
 		dropdown?: ResourceCardActionItem[];
 		footer?: ResourceCardActionItem[];
@@ -57,18 +58,22 @@ const BotCard = ({
 				},
 			},
 		},
-		{
-			key: "edit",
-			label: "Edit Bot",
-			icon: EditIcon,
-			variant: "default",
-			linkProps: {
-				to: "/app/hub/bots/$botId/setup",
-				params: {
-					botId: bot.id,
-				},
-			},
-		},
+		...(hasCapability(bot.capabilities, "edit")
+			? [
+					{
+						key: "edit",
+						label: "Edit Bot",
+						icon: EditIcon,
+						variant: "default",
+						linkProps: {
+							to: "/app/hub/bots/$botId/setup",
+							params: {
+								botId: bot.id,
+							},
+						},
+					} satisfies ResourceCardActionItem,
+				]
+			: []),
 	];
 
 	const dropdownActions: ResourceCardActionItem[] = actions?.dropdown ?? [];

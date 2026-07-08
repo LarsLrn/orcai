@@ -1,3 +1,4 @@
+import type { Bot } from "@orcai/schema";
 import { useQuery } from "@tanstack/react-query";
 import { BotIcon, SearchIcon } from "lucide-react";
 import { useDebounceValue } from "usehooks-ts";
@@ -11,7 +12,6 @@ import {
 import { Input } from "@/components/ui/input";
 import { Skeleton } from "@/components/ui/skeleton";
 import { orpc } from "@/lib/orpc/orpc";
-import type { Bot } from "@/lib/orpc/schemas/bot";
 
 interface BotSelectProps {
 	onBotSelect: (bot: Bot | null) => void;
@@ -76,7 +76,6 @@ const BotSelect = ({ onBotSelect, selectedBot }: BotSelectProps) => {
 						{[
 							...Array(3),
 						].map((_, i) => (
-							// biome-ignore lint/suspicious/noArrayIndexKey: <Fine for placeholder>
 							<Card key={i}>
 								<CardHeader className="pb-3">
 									<div className="flex items-start justify-between">

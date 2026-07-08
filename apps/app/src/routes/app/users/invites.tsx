@@ -1,4 +1,4 @@
-import { paginationInputSchema } from "@orcai/schema";
+import { listOrganizationInvitationsInputSchema } from "@orcai/schema";
 import { useSuspenseQuery } from "@tanstack/react-query";
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { buttonVariants } from "@/components/ui/button";
@@ -20,20 +20,22 @@ import { invitesTableColumns } from "@/components/users/invites/table/invites-ta
 import { orpc } from "@/lib/orpc/orpc";
 
 export const Route = createFileRoute("/app/users/invites")({
-	validateSearch: paginationInputSchema,
-	loaderDeps: ({ search: { pageIndex, pageSize } }) => ({
+	validateSearch: listOrganizationInvitationsInputSchema,
+	loaderDeps: ({ search: { pageIndex, pageSize, sort } }) => ({
 		pageIndex,
 		pageSize,
+		sort,
 	}),
 	loader: async ({
 		context: { queryClient },
-		deps: { pageIndex, pageSize },
+		deps: { pageIndex, pageSize, sort },
 	}) => {
 		return await queryClient.ensureQueryData(
 			orpc.organizationInvitation.list.queryOptions({
 				input: {
 					pageIndex,
 					pageSize,
+					sort,
 				},
 			}),
 		);
@@ -49,12 +51,13 @@ export const Route = createFileRoute("/app/users/invites")({
 });
 
 function RouteComponent() {
-	const { pageIndex, pageSize } = Route.useSearch();
+	const { pageIndex, pageSize, sort } = Route.useSearch();
 	const { data: invitations } = useSuspenseQuery(
 		orpc.organizationInvitation.list.queryOptions({
 			input: {
 				pageIndex,
 				pageSize,
+				sort,
 			},
 		}),
 	);
@@ -86,6 +89,7 @@ function RouteComponent() {
 							pageIndex,
 							pageSize,
 						},
+						sorting: sort,
 					}}
 					options={{
 						rowCount: invitations.rowCount,

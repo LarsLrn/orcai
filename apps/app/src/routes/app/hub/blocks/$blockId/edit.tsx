@@ -1,3 +1,8 @@
+import {
+	isDatabaseBlock,
+	isImageGenerationBlock,
+	isTemplateBlock,
+} from "@orcai/schema";
 import { useSuspenseQuery } from "@tanstack/react-query";
 import { createFileRoute } from "@tanstack/react-router";
 import { DatabaseBlockForm } from "@/components/blocks/database-block/form/database-block-form";
@@ -9,14 +14,19 @@ import {
 	PageHeader,
 	PageTitle,
 } from "@/components/ui/shell/page";
+import { ensureEntityCapability } from "@/lib/authz/route-guards";
 import { orpc } from "@/lib/orpc/orpc";
-import {
-	isDatabaseBlock,
-	isImageGenerationBlock,
-	isTemplateBlock,
-} from "@/lib/orpc/schemas/block";
 
 export const Route = createFileRoute("/app/hub/blocks/$blockId/edit")({
+	loader: async ({ context: { queryClient }, params: { blockId } }) => {
+		await ensureEntityCapability({
+			queryClient,
+			entityType: "block",
+			entityId: blockId,
+			permission: "edit",
+			redirectTo: "/app/hub/behaviour",
+		});
+	},
 	component: RouteComponent,
 	head: () => ({
 		meta: [

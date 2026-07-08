@@ -7,7 +7,12 @@ import {
 	saveAsset,
 	saveManyAssets,
 } from "./asset";
-import { listAssetPoint } from "./asset-point";
+import { listAssetPoint, searchRepositoryAssetPoint } from "./asset-point";
+import {
+	checkAuthorization,
+	checkManyAuthorization,
+	organizationCapabilities,
+} from "./authorization";
 import {
 	createBlock,
 	deleteBlocks,
@@ -78,7 +83,7 @@ import {
 	deleteOrganizationInvitations,
 	findOrganizationInvitation,
 	listOrganizationInvitations,
-	respondToOrganisationInvitation,
+	respondToOrganizationInvitation,
 	updateOrganizationInvitation,
 	validateOrganizationInvitation,
 } from "./organization-invitation";
@@ -112,7 +117,6 @@ import {
 	revokeResourceAccess,
 	setResourceVisibility,
 } from "./resource";
-import { sse } from "./sse";
 import {
 	abortMultipartUpload,
 	completeMultipartUpload,
@@ -121,6 +125,7 @@ import {
 	finalizeUpload,
 } from "./storage";
 import {
+	deleteUsers,
 	findUser,
 	listUserAccess,
 	listUsers,
@@ -156,7 +161,7 @@ export const router = {
 		validate: validateOrganizationInvitation,
 		update: updateOrganizationInvitation,
 		delete: deleteOrganizationInvitations,
-		respond: respondToOrganisationInvitation,
+		respond: respondToOrganizationInvitation,
 	},
 	provider: {
 		list: listProviders,
@@ -238,11 +243,18 @@ export const router = {
 	},
 	assetPoint: {
 		list: listAssetPoint,
+		searchRepository: searchRepositoryAssetPoint,
+	},
+	authorization: {
+		check: checkAuthorization,
+		checkMany: checkManyAuthorization,
+		organizationCapabilities,
 	},
 	user: {
 		list: listUsers,
 		find: findUser,
 		listAccess: listUserAccess,
+		delete: deleteUsers,
 		me,
 		updatePassword: updatePassword,
 		setTourState: setTourState,
@@ -272,5 +284,4 @@ export const router = {
 	ai: {
 		chat: aiChat,
 	},
-	sse,
 };

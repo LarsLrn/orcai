@@ -21,11 +21,16 @@ const DataTablePagination = () => {
 	const { table } = useTable();
 	if (!table) return null;
 
+	const hasSelectionColumn = table
+		.getAllLeafColumns()
+		.some((column) => column.id === "select");
+
 	return (
 		<div className="flex flex-col items-center justify-between px-2 sm:flex-row">
 			<div className="flex-1 text-muted-foreground text-sm">
-				{table.getFilteredSelectedRowModel().rows.length} of{" "}
-				{table.getFilteredRowModel().rows.length} row(s) selected.
+				{hasSelectionColumn
+					? `${table.getFilteredSelectedRowModel().rows.length} of ${table.getFilteredRowModel().rows.length} row(s) selected on this page.`
+					: null}
 			</div>
 			<div className="flex items-center space-x-6 lg:space-x-8">
 				<div className="flex items-center space-x-2">

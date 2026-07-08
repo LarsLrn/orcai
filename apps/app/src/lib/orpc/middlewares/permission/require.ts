@@ -1,6 +1,7 @@
 import type { EntityIdFor, EntityType, PermissionFor } from "@orcai/spice-db";
 import * as Effect from "effect/Effect";
-import { runOrpcEffect } from "@/lib/effect/utils/orpc-helpers";
+import * as AppErrors from "@/lib/effect/utils/errors";
+import { runMiddlewareEffect } from "@/lib/effect/utils/orpc-helpers";
 import { withName } from "@/lib/orpc/middlewares/utils";
 import { checkPermissionMiddleware } from "./checks";
 import { ensurePermission, permissionBase } from "./core";
@@ -10,7 +11,7 @@ import {
 	type ResourcePermissionSourceWithToken,
 	type SharedResourcePermission,
 } from "./resource";
-import type { CheckPermissionInputFor } from "./types";
+import type { CheckPermissionInput } from "./types";
 
 type EntityPermissionSource<
 	Entity extends EntityType,
@@ -41,33 +42,31 @@ export const requireEntityPermission = <
 	if (keys.zedToken) {
 		const zedTokenKey = keys.zedToken;
 
-		return [
-			checkPermissionMiddleware,
+		return checkPermissionMiddleware.adaptInput(
 			(
 				input: EntityPermissionSourceWithToken<
 					Entity,
 					IdKey,
 					Exclude<ZedTokenKey, undefined>
 				>,
-			): CheckPermissionInputFor<Entity> => ({
+			): CheckPermissionInput =>
+				({
+					entityType,
+					entityId: input[keys.entityId] as EntityIdFor<Entity>,
+					permission,
+					zedToken: input[zedTokenKey],
+				}) as CheckPermissionInput,
+		);
+	}
+
+	return checkPermissionMiddleware.adaptInput(
+		(input: EntityPermissionSource<Entity, IdKey>): CheckPermissionInput =>
+			({
 				entityType,
 				entityId: input[keys.entityId] as EntityIdFor<Entity>,
 				permission,
-				zedToken: input[zedTokenKey],
-			}),
-		] as const;
-	}
-
-	return [
-		checkPermissionMiddleware,
-		(
-			input: EntityPermissionSource<Entity, IdKey>,
-		): CheckPermissionInputFor<Entity> => ({
-			entityType,
-			entityId: input[keys.entityId] as EntityIdFor<Entity>,
-			permission,
-		}),
-	] as const;
+			}) as CheckPermissionInput,
+	);
 };
 
 export const requireResourcePermission = <
@@ -82,21 +81,19 @@ export const requireResourcePermission = <
 	if (keys?.zedToken) {
 		const zedTokenKey = keys.zedToken;
 
-		return [
-			checkPermissionMiddleware,
+		return checkPermissionMiddleware.adaptInput(
 			(
 				input: ResourcePermissionSourceWithToken<
 					Exclude<ZedTokenKey, undefined>
 				>,
 			) => createResourcePermissionInput(input, permission, input[zedTokenKey]),
-		] as const;
+		);
 	}
 
-	return [
-		checkPermissionMiddleware,
+	return checkPermissionMiddleware.adaptInput(
 		(input: ResourcePermissionSource) =>
 			createResourcePermissionInput(input, permission),
-	] as const;
+	);
 };
 
 type OrganizationPermission = PermissionFor<"organization">;
@@ -105,14 +102,15 @@ export const requireOrganizationPermission = (
 	permission: OrganizationPermission,
 ) =>
 	withName(
-		permissionBase.middleware(({ context, errors, next }) =>
-			runOrpcEffect(
+		permissionBase.middleware((opts) =>
+			runMiddlewareEffect(
+				opts,
 				Effect.gen(function* () {
-					const organizationId = context.auth.session.activeOrganizationId;
+					const { activeOrganizationId } = opts.context.auth.session;
 
-					if (!organizationId) {
+					if (!activeOrganizationId) {
 						return yield* Effect.fail(
-							errors.BAD_REQUEST({
+							new AppErrors.BadRequestError({
 								message:
 									"An active organization must be selected to access this resource.",
 							}),
@@ -120,22 +118,21 @@ export const requireOrganizationPermission = (
 					}
 
 					yield* ensurePermission({
-						context,
-						errors,
+						context: opts.context,
 						input: {
 							entityType: "organization",
-							entityId: organizationId,
+							entityId: activeOrganizationId,
 							permission,
 						},
 					});
 
-					return next({
+					return opts.next({
 						context: {
 							auth: {
-								...context.auth,
+								...opts.context.auth,
 								session: {
-									...context.auth.session,
-									activeOrganizationId: organizationId,
+									...opts.context.auth.session,
+									activeOrganizationId,
 								},
 							},
 						},

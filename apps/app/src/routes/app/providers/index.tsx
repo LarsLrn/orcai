@@ -1,6 +1,7 @@
-import { paginationInputSchema } from "@orcai/schema";
+import { listProvidersInputSchema } from "@orcai/schema";
 import { useSuspenseQuery } from "@tanstack/react-query";
 import { createFileRoute, Link } from "@tanstack/react-router";
+import { ProviderTableActions } from "@/components/provider/table/provider-table-actions";
 import { providerTableColumns } from "@/components/provider/table/provider-table-columns";
 import { buttonVariants } from "@/components/ui/button";
 import { DataTable } from "@/components/ui/data-table/data-table";
@@ -17,20 +18,22 @@ import {
 import { orpc } from "@/lib/orpc/orpc";
 
 export const Route = createFileRoute("/app/providers/")({
-	validateSearch: paginationInputSchema,
-	loaderDeps: ({ search: { pageIndex, pageSize } }) => ({
+	validateSearch: listProvidersInputSchema,
+	loaderDeps: ({ search: { pageIndex, pageSize, sort } }) => ({
 		pageIndex,
 		pageSize,
+		sort,
 	}),
 	loader: async ({
 		context: { queryClient },
-		deps: { pageIndex, pageSize },
+		deps: { pageIndex, pageSize, sort },
 	}) => {
 		await queryClient.ensureQueryData(
 			orpc.provider.list.queryOptions({
 				input: {
 					pageIndex,
 					pageSize,
+					sort,
 				},
 			}),
 		);
@@ -39,12 +42,13 @@ export const Route = createFileRoute("/app/providers/")({
 });
 
 function RouteComponent() {
-	const { pageIndex, pageSize } = Route.useSearch();
+	const { pageIndex, pageSize, sort } = Route.useSearch();
 	const { data: providers } = useSuspenseQuery(
 		orpc.provider.list.queryOptions({
 			input: {
 				pageIndex,
 				pageSize,
+				sort,
 			},
 		}),
 	);
@@ -73,6 +77,7 @@ function RouteComponent() {
 							pageIndex,
 							pageSize,
 						},
+						sorting: sort,
 					}}
 					options={{
 						rowCount: providers.rowCount,
@@ -85,6 +90,7 @@ function RouteComponent() {
 				>
 					<div className="flex items-center gap-2">
 						<DataTableViewOptions />
+						<ProviderTableActions />
 						{/* <SearchInput /> */}
 					</div>
 					<DataTableBody />
