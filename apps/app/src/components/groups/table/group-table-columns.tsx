@@ -7,6 +7,7 @@ import { MoreHorizontal } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { DataTableColumnHeader } from "@/components/ui/data-table/data-table-column-header";
+import { createDataTableSelectColumn } from "@/components/ui/data-table/data-table-select-column";
 import {
 	DropdownMenu,
 	DropdownMenuContent,
@@ -18,6 +19,7 @@ import { useMutationAction } from "@/hooks/actions/use-mutation-action";
 import { orpc } from "@/lib/orpc/orpc";
 
 export const groupTableColumns: ColumnDef<Group>[] = [
+	createDataTableSelectColumn<Group>(),
 	{
 		size: 440,
 		accessorKey: "name",

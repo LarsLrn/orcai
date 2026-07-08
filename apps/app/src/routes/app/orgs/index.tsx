@@ -1,6 +1,7 @@
 import { listOrganizationsInputSchema } from "@orcai/schema";
 import { useSuspenseQuery } from "@tanstack/react-query";
 import { createFileRoute, Link } from "@tanstack/react-router";
+import { OrganizationTableActions } from "@/components/organizations/table/organization-table-actions";
 import { organizationTableColumns } from "@/components/organizations/table/organization-table-columns";
 import { buttonVariants } from "@/components/ui/button";
 import { DataTable } from "@/components/ui/data-table/data-table";
@@ -89,6 +90,7 @@ function RouteComponent() {
 				>
 					<div className="flex items-center gap-2">
 						<DataTableViewOptions />
+						<OrganizationTableActions />
 						{/* <SearchInput /> */}
 					</div>
 					<DataTableBody />

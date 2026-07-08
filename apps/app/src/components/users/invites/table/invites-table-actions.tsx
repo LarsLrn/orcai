@@ -1,26 +1,18 @@
 import type { OrganizationInvitation } from "@orcai/schema";
-import { ReplaceAllIcon } from "lucide-react";
 import { toast } from "sonner";
-import { Button } from "@/components/ui/button";
+import { DataTableBulkActions } from "@/components/ui/data-table/data-table-bulk-actions";
 import { useTable } from "@/components/ui/data-table/data-table-context";
-import {
-	DropdownMenu,
-	DropdownMenuContent,
-	DropdownMenuItem,
-	DropdownMenuTrigger,
-} from "@/components/ui/dropdown-menu";
 import { useDeleteOrganizationInvitationsMutation } from "@/hooks/mutations/use-organization-invitation-mutations";
 
 const InvitesTableActions = () => {
 	const { table } = useTable();
-	const { mutate: deleteInvitations } =
-		useDeleteOrganizationInvitationsMutation();
+	const deleteInvitations = useDeleteOrganizationInvitationsMutation({
+		onSuccess: () => {
+			table.resetRowSelection();
+		},
+	});
 
-	const handleDelete = () => {
-		const selectedInvitations = table
-			.getSelectedRowModel()
-			.flatRows.map((row) => row.original as OrganizationInvitation);
-
+	const handleDelete = (selectedInvitations: OrganizationInvitation[]) => {
 		const organizationIds = new Set(
 			selectedInvitations.map((invitation) => invitation.organizationId),
 		);
@@ -39,7 +31,7 @@ const InvitesTableActions = () => {
 			return;
 		}
 
-		deleteInvitations({
+		deleteInvitations.mutate({
 			organizationId,
 			refs: selectedInvitations.map((invitation) => ({
 				id: invitation.id,
@@ -48,25 +40,17 @@ const InvitesTableActions = () => {
 	};
 
 	return (
-		<DropdownMenu>
-			<DropdownMenuTrigger
-				render={
-					<Button variant="outline" size="sm" className="h-8">
-						<ReplaceAllIcon />
-						Actions
-					</Button>
-				}
-			/>
-			<DropdownMenuContent align="end" className="w-50">
-				<DropdownMenuItem
-					variant="destructive"
-					onClick={handleDelete}
-					disabled={table.getSelectedRowModel().rows.length === 0}
-				>
-					Delete selected
-				</DropdownMenuItem>
-			</DropdownMenuContent>
-		</DropdownMenu>
+		<DataTableBulkActions<OrganizationInvitation>
+			isPending={deleteInvitations.isPending}
+			actions={[
+				{
+					label: "Delete selected",
+					variant: "destructive",
+					onSelect: ({ selectedRows }) =>
+						handleDelete(selectedRows.map((row) => row.original)),
+				},
+			]}
+		/>
 	);
 };
 

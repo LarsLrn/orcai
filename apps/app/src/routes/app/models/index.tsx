@@ -2,6 +2,7 @@ import { listModelsInputSchema } from "@orcai/schema";
 import { useSuspenseQuery } from "@tanstack/react-query";
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { DiscoverModels } from "@/components/model/discover-models";
+import { ModelTableActions } from "@/components/model/table/model-table-actions";
 import { modelTableColumns } from "@/components/model/table/model-table-columns";
 import { buttonVariants } from "@/components/ui/button";
 import { DataTable } from "@/components/ui/data-table/data-table";
@@ -91,6 +92,7 @@ function RouteComponent() {
 				>
 					<div className="flex items-center gap-2">
 						<DataTableViewOptions />
+						<ModelTableActions />
 						{/* <SearchInput /> */}
 					</div>
 					<DataTableBody />

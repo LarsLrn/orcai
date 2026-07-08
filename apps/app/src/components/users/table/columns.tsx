@@ -3,8 +3,8 @@ import { Link } from "@tanstack/react-router";
 import type { ColumnDef } from "@tanstack/react-table";
 import { MoreHorizontal } from "lucide-react";
 import { Button } from "@/components/ui/button";
-import { Checkbox } from "@/components/ui/checkbox";
 import { DataTableColumnHeader } from "@/components/ui/data-table/data-table-column-header";
+import { createDataTableSelectColumn } from "@/components/ui/data-table/data-table-select-column";
 import {
 	DropdownMenu,
 	DropdownMenuContent,
@@ -15,27 +15,7 @@ import {
 import { useDeleteUsersMutation } from "@/hooks/mutations/use-user-admin-mutations";
 
 export const columns: ColumnDef<UserWithOrganizationRole>[] = [
-	{
-		id: "select",
-		size: 32,
-		header: ({ table }) => (
-			<Checkbox
-				checked={table.getIsAllPageRowsSelected()}
-				indeterminate={table.getIsSomePageRowsSelected()}
-				onCheckedChange={(value) => table.toggleAllPageRowsSelected(!!value)}
-				aria-label="Select all"
-			/>
-		),
-		cell: ({ row }) => (
-			<Checkbox
-				checked={row.getIsSelected()}
-				onCheckedChange={(value) => row.toggleSelected(!!value)}
-				aria-label="Select row"
-			/>
-		),
-		enableSorting: false,
-		enableHiding: false,
-	},
+	createDataTableSelectColumn<UserWithOrganizationRole>(),
 	{
 		size: 500,
 		accessorKey: "name",

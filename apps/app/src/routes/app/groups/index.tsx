@@ -4,6 +4,7 @@ import { createFileRoute, useNavigate } from "@tanstack/react-router";
 import { PlusIcon, SearchIcon } from "lucide-react";
 import { useState } from "react";
 import { z } from "zod/v4";
+import { GroupTableActions } from "@/components/groups/table/group-table-actions";
 import { groupTableColumns } from "@/components/groups/table/group-table-columns";
 import { Button } from "@/components/ui/button";
 import { DataTable } from "@/components/ui/data-table/data-table";
@@ -161,6 +162,7 @@ function RouteComponent() {
 					options={{
 						rowCount: groups.rowCount,
 						uidAccessor: "id",
+						enableRowSelection: (row) => row.original.kind === "custom",
 						clientPagination: {
 							pageIndex,
 							pageSize,
@@ -169,6 +171,7 @@ function RouteComponent() {
 				>
 					<div className="flex items-center gap-2">
 						<DataTableViewOptions />
+						<GroupTableActions />
 					</div>
 					<DataTableBody />
 					<DataTablePagination />

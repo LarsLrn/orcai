@@ -5,7 +5,6 @@ import { MoreHorizontal } from "lucide-react";
 import type { z } from "zod/v4";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import { Checkbox } from "@/components/ui/checkbox";
 import { DataTableColumnHeader } from "@/components/ui/data-table/data-table-column-header";
 import {
 	DropdownMenu,
@@ -42,27 +41,6 @@ const formatPeriodType = (value: QuotaPoolListRow["periodType"]) => {
 };
 
 export const quotaPoolTableColumns: ColumnDef<QuotaPoolListRow>[] = [
-	{
-		id: "select",
-		size: 32,
-		header: ({ table }) => (
-			<Checkbox
-				checked={table.getIsAllPageRowsSelected()}
-				indeterminate={table.getIsSomePageRowsSelected()}
-				onCheckedChange={(value) => table.toggleAllPageRowsSelected(!!value)}
-				aria-label="Select all"
-			/>
-		),
-		cell: ({ row }) => (
-			<Checkbox
-				checked={row.getIsSelected()}
-				onCheckedChange={(value) => row.toggleSelected(!!value)}
-				aria-label="Select row"
-			/>
-		),
-		enableSorting: false,
-		enableHiding: false,
-	},
 	{
 		id: "name",
 		accessorKey: "name",

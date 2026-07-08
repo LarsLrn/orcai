@@ -29,13 +29,23 @@ export const useDeleteUsersMutation = (
 		mutationOptions: () => ({
 			...opts,
 			mutationFn: async ({ userIds }: DeleteUsersInput) => {
-				const results = await Promise.all(
-					userIds.map((userId) =>
-						authClient.admin.removeUser({
+				const uniqueUserIds = new Set(userIds);
+				if (userIds.length === 0) {
+					throw new Error("Please select at least one user");
+				}
+
+				if (uniqueUserIds.size !== userIds.length) {
+					throw new Error("Selected users must be unique");
+				}
+
+				const results = [];
+				for (const userId of userIds) {
+					results.push(
+						await authClient.admin.removeUser({
 							userId,
 						}),
-					),
-				);
+					);
+				}
 
 				for (const result of results) {
 					if (result.error) {

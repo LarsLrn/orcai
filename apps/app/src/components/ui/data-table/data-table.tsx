@@ -4,6 +4,7 @@ import {
 	getCoreRowModel,
 	getSortedRowModel,
 	type PaginationState,
+	type Row,
 	type TableState,
 	useReactTable,
 } from "@tanstack/react-table";
@@ -22,6 +23,7 @@ interface DataTableOptions<TData> {
 	uidAccessor: keyof TData;
 	clientPagination?: PaginationState;
 	clientSetPagination?: Dispatch<SetStateAction<PaginationState>>;
+	enableRowSelection?: boolean | ((row: Row<TData>) => boolean);
 }
 
 const DataTable = <TData, TValue>({
@@ -46,10 +48,12 @@ const DataTable = <TData, TValue>({
 		manualSorting: true,
 		manualFiltering: true,
 		rowCount: rowCount,
+		enableRowSelection: options.enableRowSelection,
 		onPaginationChange: async (updater) => {
 			if (typeof updater !== "function") return;
 
 			const newPageInfo = updater(table.getState().pagination);
+			table.resetRowSelection();
 
 			await navigate({
 				to: ".",
@@ -64,6 +68,7 @@ const DataTable = <TData, TValue>({
 			const currentSorting = table.getState().sorting;
 			const newSorting =
 				typeof updater === "function" ? updater(currentSorting) : updater;
+			table.resetRowSelection();
 
 			await navigate({
 				to: ".",
