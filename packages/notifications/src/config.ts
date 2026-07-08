@@ -30,7 +30,7 @@ const config = Config.all({
 	port: Config.option(Config.string("SMTP_PORT")),
 	username: Config.option(Config.string("SMTP_USERNAME")),
 	password: Config.option(Config.string("SMTP_PASSWORD")),
-	secure: Config.withDefault(Config.boolean("SMTP_SECURE"), true),
+	secure: Config.option(Config.boolean("SMTP_SECURE")),
 	tlsRejectUnauthorized: Config.withDefault(
 		Config.boolean("SMTP_TLS_REJECT_UNAUTHORIZED"),
 		true,
@@ -84,11 +84,12 @@ const config = Config.all({
 		if (!Number.isInteger(port) || port < 1 || port > 65535) {
 			return invalid("SMTP_PORT must be between 1 and 65535", raw.port);
 		}
+		const secure = Option.getOrElse(raw.secure, () => port === 465);
 		return Effect.succeed({
 			mode: "smtp" as const,
 			host: host.value,
 			port,
-			secure: raw.secure,
+			secure,
 			tlsRejectUnauthorized: raw.tlsRejectUnauthorized,
 			from: from.value,
 			fromName: raw.fromName,
