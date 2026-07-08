@@ -65,6 +65,7 @@ export const quotaPoolTableColumns: ColumnDef<QuotaPoolListRow>[] = [
 	},
 	{
 		id: "name",
+		accessorKey: "name",
 		size: 320,
 		header: ({ column }) => (
 			<DataTableColumnHeader column={column} title="Pool" />
@@ -95,6 +96,7 @@ export const quotaPoolTableColumns: ColumnDef<QuotaPoolListRow>[] = [
 	},
 	{
 		id: "budget",
+		enableSorting: false,
 		header: ({ column }) => (
 			<DataTableColumnHeader column={column} title="Budget" />
 		),
@@ -106,6 +108,7 @@ export const quotaPoolTableColumns: ColumnDef<QuotaPoolListRow>[] = [
 	},
 	{
 		id: "consumed",
+		enableSorting: false,
 		header: ({ column }) => (
 			<DataTableColumnHeader column={column} title="Consumed" />
 		),
@@ -117,6 +120,7 @@ export const quotaPoolTableColumns: ColumnDef<QuotaPoolListRow>[] = [
 	},
 	{
 		id: "remaining",
+		enableSorting: false,
 		header: ({ column }) => (
 			<DataTableColumnHeader column={column} title="Remaining" />
 		),
@@ -128,6 +132,7 @@ export const quotaPoolTableColumns: ColumnDef<QuotaPoolListRow>[] = [
 	},
 	{
 		id: "status",
+		enableSorting: false,
 		header: ({ column }) => (
 			<DataTableColumnHeader column={column} title="Status" />
 		),
@@ -145,6 +150,8 @@ export const quotaPoolTableColumns: ColumnDef<QuotaPoolListRow>[] = [
 	{
 		id: "actions",
 		size: 32,
+		enableSorting: false,
+		enableHiding: false,
 		cell: ({ row }) => (
 			<DropdownMenu>
 				<DropdownMenuTrigger

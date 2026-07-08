@@ -58,6 +58,8 @@ export const columns: ColumnDef<UserWithOrganizationRole>[] = [
 	{
 		id: "actions",
 		size: 32,
+		enableSorting: false,
+		enableHiding: false,
 		cell: ({ row }) => {
 			const user = row.original;
 

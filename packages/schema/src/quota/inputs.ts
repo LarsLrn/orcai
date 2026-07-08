@@ -2,6 +2,7 @@ import { z } from "zod/v4";
 import { chatIdSchema } from "../chat/ref";
 import { groupIdSchema } from "../group/ref";
 import { paginationInputSchema } from "../shared";
+import { createSortingInputSchema } from "../shared/sorting";
 import { quotaPoolIdSchema } from "./ref";
 import {
 	quotaPoolFieldsSchema,
@@ -9,8 +10,19 @@ import {
 	quotaPoolMutableFieldsSchema,
 } from "./schema";
 
+export const quotaPoolSortKeySchema = z.enum([
+	"name",
+	"periodType",
+	"isActive",
+	"isDefault",
+	"priority",
+	"createdAt",
+	"updatedAt",
+]);
+
 export const quotaPoolListInputSchema = paginationInputSchema.extend({
 	filters: quotaPoolFiltersSchema.optional(),
+	...createSortingInputSchema(quotaPoolSortKeySchema).shape,
 });
 
 export const quotaPoolCreateInputSchema = quotaPoolFieldsSchema.extend({
@@ -35,6 +47,7 @@ export const quotaChatBadgeInputSchema = z.object({
 });
 
 export type QuotaPoolListInput = z.infer<typeof quotaPoolListInputSchema>;
+export type QuotaPoolSortKey = z.infer<typeof quotaPoolSortKeySchema>;
 export type QuotaPoolCreateInput = z.infer<typeof quotaPoolCreateInputSchema>;
 export type QuotaPoolUpdateInput = z.infer<typeof quotaPoolUpdateInputSchema>;
 export type QuotaPoolDeactivateInput = z.infer<

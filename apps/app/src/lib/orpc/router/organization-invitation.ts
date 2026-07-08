@@ -3,7 +3,8 @@ import {
 	notificationOutboxValues,
 	wakeNotificationWorker,
 } from "@orcai/notifications";
-import { and, count, eq, getColumns, inArray, or } from "drizzle-orm";
+import type { OrganizationInvitationSortKey } from "@orcai/schema";
+import { and, count, desc, eq, getColumns, inArray, or } from "drizzle-orm";
 import * as Effect from "effect/Effect";
 import { syncRelationshipTransition } from "@/lib/authz/relationship-transition";
 import { AppConfigService } from "@/lib/effect/services/config";
@@ -16,40 +17,51 @@ import {
 	checkManyPermissionMiddleware,
 	requireEntityPermission,
 } from "@/lib/orpc/middlewares/permission";
+import { buildOrderBy, type SortExpression } from "./helpers/sorting";
 
 export const listOrganizationInvitations =
 	authed.organizationInvitation.list.effect(function* ({ input, context }) {
 		const db = yield* DB;
 
+		const whereClause = or(
+			eq(dbSchema.invitation.email, context.auth.user.email),
+			eq(dbSchema.invitation.inviterId, context.auth.user.id),
+		);
+
+		const orderBy = yield* buildOrderBy({
+			sort: input.sort,
+			allowlist: {
+				email: dbSchema.invitation.email,
+				id: dbSchema.invitation.id,
+				expiresAt: dbSchema.invitation.expiresAt,
+				status: dbSchema.invitation.status,
+				role: dbSchema.invitation.role,
+				createdAt: dbSchema.invitation.createdAt,
+			} satisfies Record<OrganizationInvitationSortKey, SortExpression>,
+			defaultOrder: [
+				desc(dbSchema.invitation.createdAt),
+			],
+			tieBreaker: {
+				id: "id",
+				expression: dbSchema.invitation.id,
+			},
+		});
+
 		const [data, [rowCount]] = yield* Effect.all(
 			[
-				db.query.invitation.findMany({
-					where: {
-						OR: [
-							{
-								email: context.auth.user.email,
-							},
-							{
-								inviterId: {
-									eq: context.auth.user.id,
-								},
-							},
-						],
-					},
-					limit: input.pageSize,
-					offset: input.pageIndex * input.pageSize,
-				}),
+				db
+					.select()
+					.from(dbSchema.invitation)
+					.where(whereClause)
+					.orderBy(...orderBy)
+					.limit(input.pageSize)
+					.offset(input.pageIndex * input.pageSize),
 				db
 					.select({
 						count: count(),
 					})
 					.from(dbSchema.invitation)
-					.where(
-						or(
-							eq(dbSchema.invitation.email, context.auth.user.email),
-							eq(dbSchema.invitation.inviterId, context.auth.user.id),
-						),
-					),
+					.where(whereClause),
 			],
 			{
 				concurrency: "unbounded",

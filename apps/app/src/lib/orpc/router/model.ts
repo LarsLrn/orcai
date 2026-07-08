@@ -1,10 +1,9 @@
 import { DB, dbSchema } from "@orcai/db";
-import type { ModelCapability } from "@orcai/schema";
+import type { ModelCapability, ModelSortKey } from "@orcai/schema";
 import { call } from "@orpc/server";
 import {
 	and,
 	arrayOverlaps,
-	asc,
 	count,
 	desc,
 	eq,
@@ -21,6 +20,7 @@ import * as AppErrors from "@/lib/effect/utils/errors";
 import { decryptApiKey } from "@/lib/encryption";
 import { authed } from "@/lib/orpc/implementation/authed";
 import { requireOrganizationPermission } from "@/lib/orpc/middlewares/permission";
+import { buildOrderBy, type SortExpression } from "./helpers/sorting";
 import {
 	mapCreateModelInputToModelInsertValues,
 	mapUpdateModelInputToModelUpdateValues,
@@ -69,19 +69,30 @@ export const listModels = authed.model.list
 
 		const whereClause = conditions.length > 0 ? and(...conditions) : undefined;
 
+		const orderBy = yield* buildOrderBy({
+			sort: input.sort,
+			allowlist: {
+				name: dbSchema.model.name,
+				providerId: dbSchema.model.providerId,
+				isDeprecated: dbSchema.model.isDeprecated,
+				createdAt: dbSchema.model.createdAt,
+			} satisfies Record<ModelSortKey, SortExpression>,
+			defaultOrder: [
+				desc(dbSchema.model.createdAt),
+			],
+			tieBreaker: {
+				id: "id",
+				expression: dbSchema.model.id,
+			},
+		});
+
 		const [data, [rowCount]] = yield* Effect.all(
 			[
 				db
 					.select()
 					.from(dbSchema.model)
 					.where(whereClause)
-					.orderBy(
-						searchTerm
-							? desc(
-									sql`word_similarity(${searchTerm}, ${dbSchema.model.name})`,
-								)
-							: asc(dbSchema.model.name),
-					)
+					.orderBy(...orderBy)
 					.limit(input.pageSize)
 					.offset(input.pageIndex * input.pageSize),
 				db

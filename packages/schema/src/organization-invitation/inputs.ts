@@ -1,6 +1,7 @@
 import { z } from "zod/v4";
 import { organizationIdSchema } from "../organization/ref";
 import { paginationInputSchema } from "../shared";
+import { createSortingInputSchema } from "../shared/sorting";
 import { organizationInvitationResponseActionSchema } from "./parts/response-action";
 import { organizationInvitationIdSchema } from "./ref";
 import {
@@ -8,7 +9,19 @@ import {
 	organizationInvitationSchema,
 } from "./schema";
 
-export const listOrganizationInvitationsInputSchema = paginationInputSchema;
+export const organizationInvitationSortKeySchema = z.enum([
+	"email",
+	"id",
+	"expiresAt",
+	"status",
+	"role",
+	"createdAt",
+]);
+
+export const listOrganizationInvitationsInputSchema =
+	paginationInputSchema.extend({
+		...createSortingInputSchema(organizationInvitationSortKeySchema).shape,
+	});
 
 export const createOrganizationInvitationsInputSchema = z.object({
 	organizationId: z
@@ -88,6 +101,9 @@ export const respondToOrganizationInvitationInputSchema = z.object({
 
 export type ListOrganizationInvitationsInput = z.infer<
 	typeof listOrganizationInvitationsInputSchema
+>;
+export type OrganizationInvitationSortKey = z.infer<
+	typeof organizationInvitationSortKeySchema
 >;
 export type CreateOrganizationInvitationsInput = z.infer<
 	typeof createOrganizationInvitationsInputSchema

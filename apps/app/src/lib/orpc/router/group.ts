@@ -4,13 +4,15 @@ import {
 	assetIdSchema,
 	blockIdSchema,
 	botIdSchema,
+	type GroupSortKey,
 } from "@orcai/schema";
-import { and, count, eq, ilike, inArray, isNull, or } from "drizzle-orm";
+import { and, count, desc, eq, ilike, inArray, isNull, or } from "drizzle-orm";
 import * as Effect from "effect/Effect";
 import { AuthzService } from "@/lib/effect/services/authz";
 import * as AppErrors from "@/lib/effect/utils/errors";
 import { authed } from "@/lib/orpc/implementation/authed";
 import { requireOrganizationPermission } from "@/lib/orpc/middlewares/permission";
+import { buildOrderBy, type SortExpression } from "./helpers/sorting";
 
 const parseScopedResourceId = (resource: {
 	resourceType: "asset" | "block" | "bot";
@@ -35,18 +37,37 @@ export const listGroups = authed.group.list
 		const queryLike = input.filters?.search
 			? `%${input.filters.search.trim()}%`
 			: undefined;
+
+		const whereClause = and(
+			eq(dbSchema.group.organizationId, organizationId),
+			isNull(dbSchema.group.deletedAt),
+			queryLike ? ilike(dbSchema.group.name, queryLike) : undefined,
+		);
+
+		const orderBy = yield* buildOrderBy({
+			sort: input.sort,
+			allowlist: {
+				name: dbSchema.group.name,
+				kind: dbSchema.group.kind,
+				createdAt: dbSchema.group.createdAt,
+				updatedAt: dbSchema.group.updatedAt,
+			} satisfies Record<GroupSortKey, SortExpression>,
+			defaultOrder: [
+				desc(dbSchema.group.createdAt),
+			],
+			tieBreaker: {
+				id: "id",
+				expression: dbSchema.group.id,
+			},
+		});
+
 		const [data, [rowCount]] = yield* Effect.all(
 			[
 				db
 					.select()
 					.from(dbSchema.group)
-					.where(
-						and(
-							eq(dbSchema.group.organizationId, organizationId),
-							isNull(dbSchema.group.deletedAt),
-							queryLike ? ilike(dbSchema.group.name, queryLike) : undefined,
-						),
-					)
+					.where(whereClause)
+					.orderBy(...orderBy)
 					.limit(input.pageSize)
 					.offset(input.pageIndex * input.pageSize),
 				db
@@ -54,13 +75,7 @@ export const listGroups = authed.group.list
 						count: count(),
 					})
 					.from(dbSchema.group)
-					.where(
-						and(
-							eq(dbSchema.group.organizationId, organizationId),
-							isNull(dbSchema.group.deletedAt),
-							queryLike ? ilike(dbSchema.group.name, queryLike) : undefined,
-						),
-					),
+					.where(whereClause),
 			],
 			{
 				concurrency: "unbounded",

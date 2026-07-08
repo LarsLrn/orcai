@@ -1,47 +1,56 @@
 import { DB, dbSchema } from "@orcai/db";
-import { and, count, eq, inArray } from "drizzle-orm";
+import type { ProviderSortKey } from "@orcai/schema";
+import { and, count, desc, eq, inArray } from "drizzle-orm";
 import * as Effect from "effect/Effect";
 import * as AppErrors from "@/lib/effect/utils/errors";
 import { encryptApiKey } from "@/lib/encryption";
 import { authed } from "@/lib/orpc/implementation/authed";
 import { requireOrganizationPermission } from "@/lib/orpc/middlewares/permission";
+import { buildOrderBy, type SortExpression } from "./helpers/sorting";
 
 export const listProviders = authed.provider.list
 	.use(requireOrganizationPermission("read"))
 	.effect(function* ({ input, context }) {
 		const db = yield* DB;
 		const organizationId = context.auth.session.activeOrganizationId;
+
 		const countConditions = [
 			eq(dbSchema.provider.organizationId, organizationId),
 			input.filters?.enabled !== undefined
 				? eq(dbSchema.provider.enabled, input.filters.enabled)
 				: undefined,
 		].filter((condition) => condition !== undefined);
-		const providerWhere = {
-			AND: [
-				{
-					organizationId: {
-						eq: organizationId,
-					},
-				},
-				input.filters?.enabled !== undefined
-					? {
-							enabled: input.filters.enabled,
-						}
-					: undefined,
-			].filter((condition) => condition !== undefined),
-		};
 
 		const countWhereClause =
 			countConditions.length > 0 ? and(...countConditions) : undefined;
 
+		const orderBy = yield* buildOrderBy({
+			sort: input.sort,
+			allowlist: {
+				name: dbSchema.provider.name,
+				enabled: dbSchema.provider.enabled,
+				meteringMode: dbSchema.provider.meteringMode,
+				createdAt: dbSchema.provider.createdAt,
+				updatedAt: dbSchema.provider.updatedAt,
+			} satisfies Record<ProviderSortKey, SortExpression>,
+			defaultOrder: [
+				desc(dbSchema.provider.createdAt),
+			],
+			tieBreaker: {
+				id: "id",
+				expression: dbSchema.provider.id,
+			},
+		});
+
 		const [data, [rowCount]] = yield* Effect.all(
 			[
-				db.query.provider.findMany({
-					where: providerWhere,
-					limit: input.pageSize,
-					offset: input.pageIndex * input.pageSize,
-				}),
+				db
+					.select()
+					.from(dbSchema.provider)
+					.where(countWhereClause)
+					.orderBy(...orderBy)
+					.limit(input.pageSize)
+					.offset(input.pageIndex * input.pageSize),
 				db
 					.select({
 						count: count(),

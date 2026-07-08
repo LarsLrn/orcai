@@ -63,6 +63,8 @@ export const organizationTableColumns: ColumnDef<Organization>[] = [
 	{
 		id: "actions",
 		size: 32,
+		enableSorting: false,
+		enableHiding: false,
 		cell: ({ row }) => {
 			const organization = row.original;
 

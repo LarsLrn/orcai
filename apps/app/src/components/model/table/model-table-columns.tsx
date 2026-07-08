@@ -83,6 +83,8 @@ export const modelTableColumns: ColumnDef<Model>[] = [
 	{
 		id: "actions",
 		size: 32,
+		enableSorting: false,
+		enableHiding: false,
 		cell: ({ row }) => {
 			const model = row.original;
 

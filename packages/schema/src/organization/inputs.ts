@@ -1,5 +1,6 @@
 import { z } from "zod/v4";
 import { paginationInputSchema } from "../shared";
+import { createSortingInputSchema } from "../shared/sorting";
 import { organizationIdSchema } from "./ref";
 import {
 	organizationFieldsSchema,
@@ -7,7 +8,15 @@ import {
 	organizationSchema,
 } from "./schema";
 
-export const listOrganizationsInputSchema = paginationInputSchema;
+export const organizationSortKeySchema = z.enum([
+	"name",
+	"slug",
+	"createdAt",
+]);
+
+export const listOrganizationsInputSchema = paginationInputSchema.extend({
+	...createSortingInputSchema(organizationSortKeySchema).shape,
+});
 
 export const findOrganizationInputSchema = organizationSchema.pick({
 	id: true,
@@ -31,6 +40,7 @@ export const deleteOrganizationsInputSchema = z.object({
 export type ListOrganizationsInput = z.infer<
 	typeof listOrganizationsInputSchema
 >;
+export type OrganizationSortKey = z.infer<typeof organizationSortKeySchema>;
 export type FindOrganizationInput = z.infer<typeof findOrganizationInputSchema>;
 export type CreateOrganizationInput = z.infer<
 	typeof createOrganizationInputSchema

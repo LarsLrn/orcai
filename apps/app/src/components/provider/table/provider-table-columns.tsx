@@ -96,6 +96,8 @@ export const providerTableColumns: ColumnDef<Provider>[] = [
 	{
 		id: "actions",
 		size: 32,
+		enableSorting: false,
+		enableHiding: false,
 		cell: ({ row }) => {
 			const provider = row.original;
 

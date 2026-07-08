@@ -76,6 +76,8 @@ export const invitesTableColumns: ColumnDef<OrganizationInvitation>[] = [
 	{
 		id: "actions",
 		size: 32,
+		enableSorting: false,
+		enableHiding: false,
 		cell: ({ row }) => <ActionsCell invitation={row.original} />,
 	},
 ];

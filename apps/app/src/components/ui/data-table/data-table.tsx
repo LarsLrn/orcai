@@ -60,12 +60,20 @@ const DataTable = <TData, TValue>({
 				}),
 			});
 		},
-		/* onSortingChange: (updater) => {
-			// A bit awkward, but this satisfies typescript
-			if (typeof updater === "function") {
-				setSorting({ sort: updater(sorting.sort ?? []) });
-			}
-		}, */
+		onSortingChange: async (updater) => {
+			const currentSorting = table.getState().sorting;
+			const newSorting =
+				typeof updater === "function" ? updater(currentSorting) : updater;
+
+			await navigate({
+				to: ".",
+				search: (prev) => ({
+					...prev,
+					pageIndex: 0,
+					sort: newSorting as typeof prev.sort,
+				}),
+			});
+		},
 		getSortedRowModel: getSortedRowModel(),
 		state,
 		getRowId: (row) => String(row[uidAccessor]),

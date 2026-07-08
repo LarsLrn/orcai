@@ -1,5 +1,6 @@
 import { z } from "zod/v4";
 import { paginationInputSchema, zedTokenSchema } from "../shared";
+import { createSortingInputSchema } from "../shared/sorting";
 import { providerIdSchema } from "./ref";
 import {
 	providerFieldsSchema,
@@ -8,9 +9,18 @@ import {
 	providerSchema,
 } from "./schema";
 
+export const providerSortKeySchema = z.enum([
+	"name",
+	"enabled",
+	"meteringMode",
+	"createdAt",
+	"updatedAt",
+]);
+
 export const listProvidersInputSchema = z.object({
 	...paginationInputSchema.shape,
 	...zedTokenSchema.shape,
+	...createSortingInputSchema(providerSortKeySchema).shape,
 	filters: providerFiltersSchema.optional(),
 });
 
@@ -33,6 +43,7 @@ export const deleteProviderInputSchema = z.object({
 });
 
 export type ListProvidersInput = z.infer<typeof listProvidersInputSchema>;
+export type ProviderSortKey = z.infer<typeof providerSortKeySchema>;
 export type FindProviderInput = z.infer<typeof findProviderInputSchema>;
 export type CreateProviderInput = z.infer<typeof createProviderInputSchema>;
 export type UpdateProviderInput = z.infer<typeof updateProviderInputSchema>;

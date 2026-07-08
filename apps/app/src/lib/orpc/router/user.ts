@@ -9,6 +9,7 @@ import {
 	RESOURCE_TYPES,
 	type ResourceGrantRole,
 	type ResourceGrantSource,
+	type UserSortKey,
 } from "@orcai/schema";
 import {
 	checkEntityPermission,
@@ -17,7 +18,16 @@ import {
 	hasPermission,
 	lookupEntitiesByPermission,
 } from "@orcai/spice-db";
-import { and, count, eq, getColumns, inArray, isNull, or } from "drizzle-orm";
+import {
+	and,
+	count,
+	desc,
+	eq,
+	getColumns,
+	inArray,
+	isNull,
+	or,
+} from "drizzle-orm";
 import * as Effect from "effect/Effect";
 import { auth } from "@/lib/auth/auth";
 import { AuthzService } from "@/lib/effect/services/authz";
@@ -28,6 +38,7 @@ import {
 	requirePreferencesMiddleware,
 } from "@/lib/orpc/middlewares/auth";
 import { unique } from "@/lib/utils/array-utils";
+import { buildOrderBy, type SortExpression } from "./helpers/sorting";
 
 export const listUsers = authed.user.list
 	.use(requireActiveOrganizationMiddleware)
@@ -54,6 +65,23 @@ export const listUsers = authed.user.list
 			);
 		}
 
+		const orderBy = yield* buildOrderBy({
+			sort: input.sort,
+			allowlist: {
+				name: dbSchema.user.name,
+				email: dbSchema.user.email,
+				organizationRole: dbSchema.member.role,
+				createdAt: dbSchema.user.createdAt,
+			} satisfies Record<UserSortKey, SortExpression>,
+			defaultOrder: [
+				desc(dbSchema.user.createdAt),
+			],
+			tieBreaker: {
+				id: "id",
+				expression: dbSchema.user.id,
+			},
+		});
+
 		const [data, [rowCount]] = yield* Effect.all(
 			[
 				db
@@ -67,6 +95,7 @@ export const listUsers = authed.user.list
 						eq(dbSchema.user.id, dbSchema.member.userId),
 					)
 					.where(eq(dbSchema.member.organizationId, organizationId))
+					.orderBy(...orderBy)
 					.limit(input.pageSize)
 					.offset(input.pageIndex * input.pageSize),
 				db

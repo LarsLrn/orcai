@@ -1,7 +1,10 @@
 import { DB, dbSchema } from "@orcai/db";
-import { ALL_MEMBERS_GROUP_SYSTEM_KEY } from "@orcai/schema";
+import {
+	ALL_MEMBERS_GROUP_SYSTEM_KEY,
+	type OrganizationSortKey,
+} from "@orcai/schema";
 import { lookupEntitiesByPermission } from "@orcai/spice-db";
-import { count, eq, getColumns, inArray } from "drizzle-orm";
+import { count, desc, eq, getColumns, inArray } from "drizzle-orm";
 import * as Effect from "effect/Effect";
 import { AuthzService } from "@/lib/effect/services/authz";
 import * as AppErrors from "@/lib/effect/utils/errors";
@@ -13,6 +16,7 @@ import {
 	requireEntityPermission,
 } from "@/lib/orpc/middlewares/permission";
 import { unique } from "@/lib/utils/array-utils";
+import { buildOrderBy, type SortExpression } from "./helpers/sorting";
 
 export const listOrganizations = authed.organization.list.effect(function* ({
 	input,
@@ -76,19 +80,30 @@ export const listOrganizations = authed.organization.list.effect(function* ({
 		};
 	}
 
+	const orderBy = yield* buildOrderBy({
+		sort: input.sort,
+		allowlist: {
+			name: dbSchema.organization.name,
+			slug: dbSchema.organization.slug,
+			createdAt: dbSchema.organization.createdAt,
+		} satisfies Record<OrganizationSortKey, SortExpression>,
+		defaultOrder: [
+			desc(dbSchema.organization.createdAt),
+		],
+		tieBreaker: {
+			id: "id",
+			expression: dbSchema.organization.id,
+		},
+	});
+
 	return yield* Effect.all([
-		db.query.organization.findMany({
-			where: {
-				id: {
-					in: visibleIds,
-				},
-			},
-			orderBy: {
-				createdAt: "desc",
-			},
-			limit: input.pageSize,
-			offset: input.pageIndex * input.pageSize,
-		}),
+		db
+			.select()
+			.from(dbSchema.organization)
+			.where(inArray(dbSchema.organization.id, visibleIds))
+			.orderBy(...orderBy)
+			.limit(input.pageSize)
+			.offset(input.pageIndex * input.pageSize),
 		db
 			.select({
 				count: count(),

@@ -1,4 +1,4 @@
-import { paginationInputSchema } from "@orcai/schema";
+import { listModelsInputSchema } from "@orcai/schema";
 import { useSuspenseQuery } from "@tanstack/react-query";
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { DiscoverModels } from "@/components/model/discover-models";
@@ -18,20 +18,22 @@ import {
 import { orpc } from "@/lib/orpc/orpc";
 
 export const Route = createFileRoute("/app/models/")({
-	validateSearch: paginationInputSchema,
-	loaderDeps: ({ search: { pageIndex, pageSize } }) => ({
+	validateSearch: listModelsInputSchema,
+	loaderDeps: ({ search: { pageIndex, pageSize, sort } }) => ({
 		pageIndex,
 		pageSize,
+		sort,
 	}),
 	loader: async ({
 		context: { queryClient },
-		deps: { pageIndex, pageSize },
+		deps: { pageIndex, pageSize, sort },
 	}) => {
 		await queryClient.ensureQueryData(
 			orpc.model.list.queryOptions({
 				input: {
 					pageIndex,
 					pageSize,
+					sort,
 				},
 			}),
 		);
@@ -40,12 +42,13 @@ export const Route = createFileRoute("/app/models/")({
 });
 
 function RouteComponent() {
-	const { pageIndex, pageSize } = Route.useSearch();
+	const { pageIndex, pageSize, sort } = Route.useSearch();
 	const { data: models } = useSuspenseQuery(
 		orpc.model.list.queryOptions({
 			input: {
 				pageIndex,
 				pageSize,
+				sort,
 			},
 		}),
 	);
@@ -75,6 +78,7 @@ function RouteComponent() {
 							pageIndex,
 							pageSize,
 						},
+						sorting: sort,
 					}}
 					options={{
 						rowCount: models.rowCount,

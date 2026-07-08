@@ -1,6 +1,7 @@
 import { z } from "zod/v4";
 import { providerIdSchema } from "../provider/ref";
 import { paginationInputSchema } from "../shared";
+import { createSortingInputSchema } from "../shared/sorting";
 import { modelIdSchema } from "./ref";
 import {
 	modelFieldsSchema,
@@ -8,8 +9,16 @@ import {
 	modelMutableFieldsSchema,
 } from "./schema";
 
+export const modelSortKeySchema = z.enum([
+	"name",
+	"providerId",
+	"isDeprecated",
+	"createdAt",
+]);
+
 export const listModelsInputSchema = paginationInputSchema.extend({
 	filters: modelFiltersSchema.optional(),
+	...createSortingInputSchema(modelSortKeySchema).shape,
 });
 
 export const findModelInputSchema = z.object({
@@ -38,6 +47,7 @@ export const discoverModelsInputSchema = z.object({
 });
 
 export type ListModelsInput = z.infer<typeof listModelsInputSchema>;
+export type ModelSortKey = z.infer<typeof modelSortKeySchema>;
 export type FindModelInput = z.infer<typeof findModelInputSchema>;
 export type CreateModelInput = z.infer<typeof createModelInputSchema>;
 export type UpdateModelInput = z.infer<typeof updateModelInputSchema>;

@@ -6,6 +6,7 @@ import {
 	resolveQuotaPool,
 	updateQuotaPool as updateQuotaPoolCommand,
 } from "@orcai/quota";
+import type { QuotaPoolSortKey } from "@orcai/schema";
 import { and, count, desc, eq, ilike } from "drizzle-orm";
 import * as Effect from "effect/Effect";
 import * as AppErrors from "@/lib/effect/utils/errors";
@@ -14,6 +15,7 @@ import {
 	requireEntityPermission,
 	requireOrganizationPermission,
 } from "@/lib/orpc/middlewares/permission";
+import { buildOrderBy, type SortExpression } from "./helpers/sorting";
 
 const getCurrentPeriodAndLedger = (params: { quotaPoolId: QuotaPoolId }) =>
 	Effect.gen(function* () {
@@ -88,6 +90,26 @@ export const listQuotaPools = authed.quota.list
 
 		const whereClause = conditions.length > 0 ? and(...conditions) : undefined;
 
+		const orderBy = yield* buildOrderBy({
+			sort: input.sort,
+			allowlist: {
+				name: dbSchema.quotaPool.name,
+				periodType: dbSchema.quotaPool.periodType,
+				isActive: dbSchema.quotaPool.isActive,
+				isDefault: dbSchema.quotaPool.isDefault,
+				priority: dbSchema.quotaPool.priority,
+				createdAt: dbSchema.quotaPool.createdAt,
+				updatedAt: dbSchema.quotaPool.updatedAt,
+			} satisfies Record<QuotaPoolSortKey, SortExpression>,
+			defaultOrder: [
+				desc(dbSchema.quotaPool.createdAt),
+			],
+			tieBreaker: {
+				id: "id",
+				expression: dbSchema.quotaPool.id,
+			},
+		});
+
 		const [rows, [rowCount]] = yield* Effect.all(
 			[
 				db
@@ -101,11 +123,7 @@ export const listQuotaPools = authed.quota.list
 						eq(dbSchema.provider.id, dbSchema.quotaPool.providerId),
 					)
 					.where(whereClause)
-					.orderBy(
-						desc(dbSchema.quotaPool.isActive),
-						desc(dbSchema.quotaPool.priority),
-						dbSchema.quotaPool.createdAt,
-					)
+					.orderBy(...orderBy)
 					.limit(input.pageSize)
 					.offset(input.pageIndex * input.pageSize),
 				db
