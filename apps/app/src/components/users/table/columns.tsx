@@ -32,6 +32,14 @@ export const columns: ColumnDef<UserWithOrganizationRole>[] = [
 		),
 	},
 	{
+		accessorKey: "emailVerified",
+		header: ({ column }) => (
+			<DataTableColumnHeader column={column} title="Email Verified" />
+		),
+		cell: ({ row }) =>
+			row.original.emailVerified ? "Verified" : "Not verified",
+	},
+	{
 		accessorKey: "organizationRole",
 		header: ({ column }) => (
 			<DataTableColumnHeader column={column} title="Organization Role" />

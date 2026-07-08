@@ -4,7 +4,7 @@ import { format } from "date-fns";
 import {
 	BadgeIcon,
 	CalendarIcon,
-	ClockIcon,
+	MailCheckIcon,
 	MailIcon,
 	UserIcon,
 } from "lucide-react";
@@ -88,18 +88,15 @@ function RouteComponent() {
 								</div>
 							</div>
 
-							{typeof user.data.emailVerified === "string" && (
-								<div className="flex items-center gap-2">
-									<ClockIcon className="h-4 w-4 text-primary" />
-									<div className="space-y-0.5">
-										<p className="font-medium text-sm">Email Verification</p>
-										<p className="text-muted-foreground text-sm">
-											Verified on{" "}
-											{format(user.data.emailVerified, "MMM d, yyyy")}
-										</p>
-									</div>
+							<div className="flex items-center gap-2">
+								<MailCheckIcon className="h-4 w-4 text-primary" />
+								<div className="space-y-0.5">
+									<p className="font-medium text-sm">Email Verification</p>
+									<p className="text-muted-foreground text-sm">
+										{user.data.emailVerified ? "Verified" : "Not verified"}
+									</p>
 								</div>
-							)}
+							</div>
 
 							<div className="flex items-center gap-2">
 								<CalendarIcon className="h-4 w-4 text-primary" />
