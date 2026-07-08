@@ -1,6 +1,23 @@
 import { organizationRoleSchema } from "@orcai/schema";
 import { z } from "zod/v4";
 
+const emailActionUrlSchema = z
+	.string()
+	.url()
+	.refine(
+		(value) => {
+			try {
+				const url = new URL(value);
+				return url.protocol === "http:" || url.protocol === "https:";
+			} catch {
+				return false;
+			}
+		},
+		{
+			message: "URL must use http or https scheme",
+		},
+	);
+
 const base = z.object({
 	recipient: z.email(),
 	recipientName: z.string().optional(),
@@ -13,17 +30,17 @@ const organizationInvitedSchema = base.extend({
 	inviterName: z.string().min(1),
 	role: organizationRoleSchema,
 	expiresAt: z.coerce.date(),
-	registrationUrl: z.url(),
+	registrationUrl: emailActionUrlSchema,
 });
 
 const verifyEmailSchema = base.extend({
 	type: z.literal("auth.verify-email"),
-	verificationUrl: z.url(),
+	verificationUrl: emailActionUrlSchema,
 });
 
 const resetPasswordSchema = base.extend({
 	type: z.literal("auth.reset-password"),
-	resetUrl: z.url(),
+	resetUrl: emailActionUrlSchema,
 });
 
 export const emailNotificationSchema = z.discriminatedUnion("type", [
