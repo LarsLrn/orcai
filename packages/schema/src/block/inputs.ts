@@ -3,6 +3,7 @@ import { assetIdSchema } from "../asset/ref";
 import { botIdSchema } from "../bot/ref";
 import { paginationInputSchema, zedTokenSchema } from "../shared";
 import { publicationStatusSchema } from "../shared/primitives/publication-status";
+import { createUniqueRefsInputSchema } from "../shared/ref-list";
 import { blockIdSchema } from "./ref";
 import {
 	blockFieldsSchema,
@@ -79,11 +80,11 @@ export const findBlockInputSchema = z.object({
 });
 
 export const deleteBlocksInputSchema = z.object({
-	refs: z.array(
-		z.object({
-			id: blockIdSchema,
-		}),
-	),
+	refs: createUniqueRefsInputSchema({
+		key: "id",
+		value: blockIdSchema,
+		entityName: "block",
+	}),
 });
 
 export type ListBlocksInput = z.infer<typeof listBlocksInputSchema>;

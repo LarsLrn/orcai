@@ -1,5 +1,6 @@
 import { z } from "zod/v4";
 import { paginationInputSchema, zedTokenSchema } from "../shared";
+import { createUniqueRefsInputSchema } from "../shared/ref-list";
 import { chatConfigPatchSchema } from "./parts/config";
 import { chatIdSchema } from "./ref";
 import { chatMutableFieldsSchema } from "./schema";
@@ -22,11 +23,11 @@ export const updateChatInputSchema = chatMutableFieldsSchema.extend({
 });
 
 export const deleteChatInputSchema = z.object({
-	refs: z.array(
-		z.object({
-			id: chatIdSchema,
-		}),
-	),
+	refs: createUniqueRefsInputSchema({
+		key: "id",
+		value: chatIdSchema,
+		entityName: "chat",
+	}),
 });
 
 export type ListChatsInput = z.infer<typeof listChatsInputSchema>;

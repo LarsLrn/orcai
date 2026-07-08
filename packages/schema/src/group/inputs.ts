@@ -1,5 +1,6 @@
 import { z } from "zod/v4";
 import { paginationInputSchema } from "../shared";
+import { createUniqueRefsInputSchema } from "../shared/ref-list";
 import { createSortingInputSchema } from "../shared/sorting";
 import { userIdSchema } from "../user/ref";
 import { groupIdSchema } from "./ref";
@@ -46,11 +47,11 @@ export const updateGroupInputSchema = groupMutableFieldsSchema.extend({
 });
 
 export const deleteGroupsInputSchema = z.object({
-	refs: z.array(
-		z.object({
-			id: groupIdSchema,
-		}),
-	),
+	refs: createUniqueRefsInputSchema({
+		key: "id",
+		value: groupIdSchema,
+		entityName: "group",
+	}),
 });
 
 export const findGroupInputSchema = z.object({

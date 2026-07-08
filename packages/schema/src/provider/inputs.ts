@@ -1,5 +1,6 @@
 import { z } from "zod/v4";
 import { paginationInputSchema, zedTokenSchema } from "../shared";
+import { createUniqueRefsInputSchema } from "../shared/ref-list";
 import { createSortingInputSchema } from "../shared/sorting";
 import { providerIdSchema } from "./ref";
 import {
@@ -35,11 +36,11 @@ export const updateProviderInputSchema = providerMutableFieldsSchema.extend({
 });
 
 export const deleteProviderInputSchema = z.object({
-	refs: z.array(
-		z.object({
-			id: providerIdSchema,
-		}),
-	),
+	refs: createUniqueRefsInputSchema({
+		key: "id",
+		value: providerIdSchema,
+		entityName: "provider",
+	}),
 });
 
 export type ListProvidersInput = z.infer<typeof listProvidersInputSchema>;

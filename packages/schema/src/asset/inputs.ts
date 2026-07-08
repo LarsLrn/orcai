@@ -1,5 +1,6 @@
 import { z } from "zod/v4";
 import { paginationInputSchema, zedTokenSchema } from "../shared";
+import { createUniqueRefsInputSchema } from "../shared/ref-list";
 import { bucketSchema } from "../storage/parts/buckets";
 import { processingStatusSchema } from "./parts/processing-status";
 import { assetIdSchema } from "./ref";
@@ -60,11 +61,11 @@ export const saveManyAssetsInputSchema = z.object({
 });
 
 export const deleteAssetsInputSchema = z.object({
-	refs: z.array(
-		z.object({
-			id: assetIdSchema,
-		}),
-	),
+	refs: createUniqueRefsInputSchema({
+		key: "id",
+		value: assetIdSchema,
+		entityName: "asset",
+	}),
 });
 
 export type ListAssetsInput = z.infer<typeof listAssetsInputSchema>;

@@ -1,5 +1,6 @@
 import { z } from "zod/v4";
 import { paginationInputSchema } from "../shared";
+import { createUniqueRefsInputSchema } from "../shared/ref-list";
 import { createSortingInputSchema } from "../shared/sorting";
 import { organizationIdSchema } from "./ref";
 import {
@@ -30,11 +31,11 @@ export const updateOrganizationInputSchema =
 	});
 
 export const deleteOrganizationsInputSchema = z.object({
-	refs: z.array(
-		z.object({
-			id: organizationIdSchema,
-		}),
-	),
+	refs: createUniqueRefsInputSchema({
+		key: "id",
+		value: organizationIdSchema,
+		entityName: "organisation",
+	}),
 });
 
 export type ListOrganizationsInput = z.infer<

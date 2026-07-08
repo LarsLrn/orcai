@@ -1,6 +1,7 @@
 import { z } from "zod/v4";
 import { assetIdSchema } from "../asset/ref";
 import { blockIdSchema } from "../block/ref";
+import { createUniqueRefsInputSchema } from "../shared/ref-list";
 import {
 	assetPointPayloadSchema,
 	assetPointSchema,
@@ -39,11 +40,11 @@ export const updateAssetPointInputSchema = createAssetPointInputSchema.extend({
 
 export const deleteAssetPointInputSchema = z.object({
 	assetId: assetIdSchema,
-	refs: z.array(
-		assetPointSchema.pick({
-			id: true,
-		}),
-	),
+	refs: createUniqueRefsInputSchema({
+		key: "id",
+		value: assetPointSchema.shape.id,
+		entityName: "asset point",
+	}),
 });
 
 export type CreateAssetPointInput = z.infer<typeof createAssetPointInputSchema>;

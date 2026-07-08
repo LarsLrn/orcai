@@ -1,6 +1,7 @@
 import { z } from "zod/v4";
 import { organizationIdSchema } from "../organization/ref";
 import { paginationInputSchema } from "../shared";
+import { createUniqueRefsInputSchema } from "../shared/ref-list";
 import { createSortingInputSchema } from "../shared/sorting";
 import { organizationInvitationResponseActionSchema } from "./parts/response-action";
 import { organizationInvitationIdSchema } from "./ref";
@@ -87,11 +88,11 @@ export const updateOrganizationInvitationInputSchema =
 
 export const deleteOrganizationInvitationsInputSchema = z.object({
 	organizationId: organizationInvitationSchema.shape.organizationId,
-	refs: z.array(
-		z.object({
-			id: organizationInvitationIdSchema,
-		}),
-	),
+	refs: createUniqueRefsInputSchema({
+		key: "id",
+		value: organizationInvitationIdSchema,
+		entityName: "invitation",
+	}),
 });
 
 export const respondToOrganizationInvitationInputSchema = z.object({

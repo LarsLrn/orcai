@@ -1,6 +1,7 @@
 import { z } from "zod/v4";
 import { providerIdSchema } from "../provider/ref";
 import { paginationInputSchema } from "../shared";
+import { createUniqueRefsInputSchema } from "../shared/ref-list";
 import { createSortingInputSchema } from "../shared/sorting";
 import { modelIdSchema } from "./ref";
 import {
@@ -35,11 +36,11 @@ export const updateModelInputSchema = modelMutableFieldsSchema.extend({
 });
 
 export const deleteModelsInputSchema = z.object({
-	refs: z.array(
-		z.object({
-			id: modelIdSchema,
-		}),
-	),
+	refs: createUniqueRefsInputSchema({
+		key: "id",
+		value: modelIdSchema,
+		entityName: "model",
+	}),
 });
 
 export const discoverModelsInputSchema = z.object({

@@ -2,6 +2,7 @@ import { z } from "zod/v4";
 import { blockIdSchema } from "../block/ref";
 import { paginationInputSchema, zedTokenSchema } from "../shared";
 import { publicationStatusSchema } from "../shared/primitives/publication-status";
+import { createUniqueRefsInputSchema } from "../shared/ref-list";
 import { botIdSchema } from "./ref";
 import { botContentJsonSchema, botFieldsSchema } from "./schema";
 
@@ -42,11 +43,11 @@ export const listDraftBotsInputSchema = paginationInputSchema.extend({
 });
 
 export const deleteBotsInputSchema = z.object({
-	refs: z.array(
-		z.object({
-			id: botIdSchema,
-		}),
-	),
+	refs: createUniqueRefsInputSchema({
+		key: "id",
+		value: botIdSchema,
+		entityName: "bot",
+	}),
 });
 
 export type ListBotsInput = z.infer<typeof listBotsInputSchema>;
