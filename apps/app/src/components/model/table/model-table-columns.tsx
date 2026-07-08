@@ -1,4 +1,4 @@
-import type { Model } from "@orcai/schema";
+import type { ModelListRow } from "@orcai/schema";
 import { Link } from "@tanstack/react-router";
 import type { ColumnDef } from "@tanstack/react-table";
 import { format } from "date-fns";
@@ -16,8 +16,8 @@ import {
 } from "@/components/ui/dropdown-menu";
 import { useDeleteModelsMutation } from "@/hooks/mutations/use-model-mutations";
 
-export const modelTableColumns: ColumnDef<Model>[] = [
-	createDataTableSelectColumn<Model>(),
+export const modelTableColumns: ColumnDef<ModelListRow>[] = [
+	createDataTableSelectColumn<ModelListRow>(),
 	{
 		accessorKey: "name",
 		header: ({ column }) => (
@@ -35,9 +35,21 @@ export const modelTableColumns: ColumnDef<Model>[] = [
 		),
 	},
 	{
-		accessorKey: "providerId",
+		accessorKey: "providerName",
+		accessorFn: (row) => row.provider.name,
 		header: ({ column }) => (
 			<DataTableColumnHeader column={column} title="Provider" />
+		),
+		cell: ({ row }) => (
+			<Link
+				to="/app/providers/$providerId"
+				params={{
+					providerId: row.original.provider.id,
+				}}
+				className="hover:underline"
+			>
+				{row.original.provider.name}
+			</Link>
 		),
 	},
 	{
@@ -104,7 +116,7 @@ export const modelTableColumns: ColumnDef<Model>[] = [
 	},
 ];
 
-const DeleteItem = ({ model }: { model: Model }) => {
+const DeleteItem = ({ model }: { model: ModelListRow }) => {
 	const { mutate: deleteModels } = useDeleteModelsMutation();
 
 	return (

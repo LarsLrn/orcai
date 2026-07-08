@@ -1,3 +1,4 @@
+import type { ModelListRow } from "@orcai/schema";
 import { listModelsInputSchema } from "@orcai/schema";
 import { useSuspenseQuery } from "@tanstack/react-query";
 import { createFileRoute, Link } from "@tanstack/react-router";
@@ -71,7 +72,7 @@ function RouteComponent() {
 				</PageAction>
 			</PageHeader>
 			<PageContent>
-				<DataTable
+				<DataTable<ModelListRow, unknown>
 					data={models.data}
 					columns={modelTableColumns}
 					state={{

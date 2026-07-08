@@ -7,7 +7,6 @@ import {
 	count,
 	desc,
 	eq,
-	exists,
 	getColumns,
 	ilike,
 	inArray,
@@ -25,6 +24,7 @@ import {
 	mapCreateModelInputToModelInsertValues,
 	mapUpdateModelInputToModelUpdateValues,
 	toModelDto,
+	toModelListRowDto,
 } from "./mappers/model";
 import { findProvider } from "./provider";
 
@@ -37,19 +37,7 @@ export const listModels = authed.model.list
 		const searchTerm = input.filters?.search;
 
 		const conditions = [
-			exists(
-				db
-					.select({
-						id: dbSchema.provider.id,
-					})
-					.from(dbSchema.provider)
-					.where(
-						and(
-							eq(dbSchema.provider.id, dbSchema.model.providerId),
-							eq(dbSchema.provider.organizationId, organizationId),
-						),
-					),
-			),
+			eq(dbSchema.provider.organizationId, organizationId),
 			input.filters?.providerId
 				? eq(dbSchema.model.providerId, input.filters.providerId)
 				: undefined,
@@ -62,7 +50,9 @@ export const listModels = authed.model.list
 			searchTerm
 				? or(
 						sql`word_similarity(${searchTerm}, ${dbSchema.model.name}) > 0.2`,
+						sql`word_similarity(${searchTerm}, ${dbSchema.provider.name}) > 0.2`,
 						ilike(dbSchema.model.name, `%${searchTerm}%`),
+						ilike(dbSchema.provider.name, `%${searchTerm}%`),
 					)
 				: undefined,
 		].filter((c) => c !== undefined);
@@ -73,7 +63,7 @@ export const listModels = authed.model.list
 			sort: input.sort,
 			allowlist: {
 				name: dbSchema.model.name,
-				providerId: dbSchema.model.providerId,
+				providerName: dbSchema.provider.name,
 				isDeprecated: dbSchema.model.isDeprecated,
 				createdAt: dbSchema.model.createdAt,
 			} satisfies Record<ModelSortKey, SortExpression>,
@@ -86,11 +76,21 @@ export const listModels = authed.model.list
 			},
 		});
 
+		const modelColumns = getColumns(dbSchema.model);
+		const providerColumns = getColumns(dbSchema.provider);
+
 		const [data, [rowCount]] = yield* Effect.all(
 			[
 				db
-					.select()
+					.select({
+						...modelColumns,
+						providerName: providerColumns.name,
+					})
 					.from(dbSchema.model)
+					.innerJoin(
+						dbSchema.provider,
+						eq(dbSchema.provider.id, dbSchema.model.providerId),
+					)
 					.where(whereClause)
 					.orderBy(...orderBy)
 					.limit(input.pageSize)
@@ -100,6 +100,10 @@ export const listModels = authed.model.list
 						count: count(),
 					})
 					.from(dbSchema.model)
+					.innerJoin(
+						dbSchema.provider,
+						eq(dbSchema.provider.id, dbSchema.model.providerId),
+					)
 					.where(whereClause),
 			],
 			{
@@ -108,7 +112,12 @@ export const listModels = authed.model.list
 		);
 
 		return {
-			data: data.map(toModelDto),
+			data: data.map((row) =>
+				toModelListRowDto(row, {
+					id: row.providerId,
+					name: row.providerName,
+				}),
+			),
 			rowCount: rowCount.count,
 		};
 	});

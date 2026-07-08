@@ -1,5 +1,10 @@
 import type { dbSchema } from "@orcai/db/schema";
-import type { CreateModelInput, Model, UpdateModelInput } from "@orcai/schema";
+import type {
+	CreateModelInput,
+	Model,
+	ModelListRow,
+	UpdateModelInput,
+} from "@orcai/schema";
 
 type ModelRow = typeof dbSchema.model.$inferSelect;
 type ModelInsertValues = typeof dbSchema.model.$inferInsert;
@@ -14,6 +19,16 @@ export function toModelDto(row: ModelRow): Model {
 		isDeprecated: row.isDeprecated,
 		capabilities: row.capabilities,
 		createdAt: row.createdAt ?? null,
+	};
+}
+
+export function toModelListRowDto(
+	row: ModelRow,
+	provider: Pick<ModelListRow["provider"], "id" | "name">,
+): ModelListRow {
+	return {
+		...toModelDto(row),
+		provider,
 	};
 }
 

@@ -12,7 +12,7 @@ import {
 
 export const modelSortKeySchema = z.enum([
 	"name",
-	"providerId",
+	"providerName",
 	"isDeprecated",
 	"createdAt",
 ]);
