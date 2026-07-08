@@ -1,26 +1,30 @@
 definition user {}
 
 definition organization {
-	relation owner: user
-	relation instructor: user
-	relation student: user
+	relation admin: user
+	relation manager: user
+	relation member: user
+	relation viewer: user
 
-	permission admin = owner
-	permission member = owner + instructor + student
-	permission manage_members = owner
-	permission invite = owner + instructor
-	permission create_bot = owner + instructor
-	permission create_block = owner + instructor
-	permission create_asset = owner + instructor
-	permission read = member
+	permission read = admin + manager + member + viewer
+	permission manage_organization = admin
+	permission manage_members = admin + manager
+	permission manage_groups = admin + manager
+	permission invite_members = admin + manager
+	permission create_bot = admin + manager + member
+	permission create_block = admin + manager + member
+	permission create_asset = admin + manager + member
+	permission manage_providers = admin
+	permission manage_models = admin
+	permission manage_quotas = admin
 }
 
 definition group {
 	relation organization: organization
-	relation member: user | organization#owner | organization#instructor | organization#student
+	relation member: user | organization#admin | organization#manager | organization#member | organization#viewer
 
 	permission read = organization->read
-	permission manage = organization->manage_members
+	permission manage = organization->manage_groups
 }
 
 definition bot {

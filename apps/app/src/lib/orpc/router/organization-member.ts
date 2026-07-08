@@ -1,5 +1,5 @@
 import { DB, dbSchema } from "@orcai/db";
-import { and, count, eq, getColumns, inArray } from "drizzle-orm";
+import { and, count, eq, getColumns, inArray, sql } from "drizzle-orm";
 import * as Effect from "effect/Effect";
 import { syncRelationshipTransition } from "@/lib/authz/relationship-transition";
 import * as AppErrors from "@/lib/effect/utils/errors";
@@ -9,6 +9,12 @@ import {
 	checkManyPermissionMiddleware,
 	requireEntityPermission,
 } from "@/lib/orpc/middlewares/permission";
+import {
+	assertAdminRemainsAfterRemoving,
+	assertCanManageOrganizationAdmins,
+	countRemovedAdmins,
+	organizationRoleRequiresAdminControl,
+} from "./helpers/organization-role-policy";
 
 export const listOrganizationMembers = authed.organizationMember.list
 	.use(
@@ -97,8 +103,15 @@ export const createOrganizationMember = authed.organizationMember.create
 			entityId: "organizationId",
 		}),
 	)
-	.effect(function* ({ input }) {
+	.effect(function* ({ input, context }) {
 		const db = yield* DB;
+
+		if (organizationRoleRequiresAdminControl(input.role)) {
+			yield* assertCanManageOrganizationAdmins({
+				organizationId: input.organizationId,
+				userId: context.auth.user.id,
+			});
+		}
 
 		const member = yield* db
 			.insert(dbSchema.member)
@@ -130,34 +143,101 @@ export const updateOrganizationMember = authed.organizationMember.update
 			entityId: "organizationId",
 		}),
 	)
-	.effect(function* ({ input }) {
+	.effect(function* ({ input, context }) {
 		const db = yield* DB;
 
-		const [existing] = yield* db
-			.select({
-				role: dbSchema.member.role,
-			})
-			.from(dbSchema.member)
-			.where(
-				and(
-					eq(dbSchema.member.organizationId, input.organizationId),
-					eq(dbSchema.member.userId, input.userId),
-				),
-			)
-			.limit(1);
+		const { existing, member } = yield* db.transaction((tx) =>
+			Effect.gen(function* () {
+				yield* tx.execute(sql`LOCK TABLE "member" IN SHARE ROW EXCLUSIVE MODE`);
 
-		const [member] = yield* db
-			.update(dbSchema.member)
-			.set(input)
-			.where(
-				and(
-					eq(dbSchema.member.organizationId, input.organizationId),
-					eq(dbSchema.member.userId, input.userId),
-				),
-			)
-			.returning({
-				...getColumns(dbSchema.member),
-			});
+				const [existing] = yield* tx
+					.select({
+						role: dbSchema.member.role,
+					})
+					.from(dbSchema.member)
+					.where(
+						and(
+							eq(dbSchema.member.organizationId, input.organizationId),
+							eq(dbSchema.member.userId, input.userId),
+						),
+					)
+					.limit(1);
+
+				if (!existing) {
+					return yield* Effect.fail(
+						new AppErrors.NotFoundError({
+							message: "Member not found",
+							data: {
+								organizationId: input.organizationId,
+								userId: input.userId,
+							},
+						}),
+					);
+				}
+
+				if (
+					organizationRoleRequiresAdminControl(existing.role) ||
+					organizationRoleRequiresAdminControl(input.role)
+				) {
+					yield* assertCanManageOrganizationAdmins({
+						organizationId: input.organizationId,
+						userId: context.auth.user.id,
+					});
+				}
+
+				if (
+					organizationRoleRequiresAdminControl(existing.role) &&
+					input.role &&
+					!organizationRoleRequiresAdminControl(input.role)
+				) {
+					const [adminCountResult] = yield* tx
+						.select({
+							count: count(),
+						})
+						.from(dbSchema.member)
+						.where(
+							and(
+								eq(dbSchema.member.organizationId, input.organizationId),
+								eq(dbSchema.member.role, "admin"),
+							),
+						);
+					yield* assertAdminRemainsAfterRemoving({
+						adminCount: Number(adminCountResult?.count ?? 0),
+						removedAdminCount: 1,
+					});
+				}
+
+				const [member] = yield* tx
+					.update(dbSchema.member)
+					.set(input)
+					.where(
+						and(
+							eq(dbSchema.member.organizationId, input.organizationId),
+							eq(dbSchema.member.userId, input.userId),
+						),
+					)
+					.returning({
+						...getColumns(dbSchema.member),
+					});
+
+				if (!member) {
+					return yield* Effect.fail(
+						new AppErrors.NotFoundError({
+							message: "Member not found",
+							data: {
+								organizationId: input.organizationId,
+								userId: input.userId,
+							},
+						}),
+					);
+				}
+
+				return {
+					existing,
+					member,
+				};
+			}),
+		);
 
 		if (!member) {
 			return yield* Effect.fail(
@@ -198,33 +278,64 @@ export const deleteOrganizationMembers = authed.organizationMember.delete
 			}),
 		),
 	)
-	.effect(function* ({ input }) {
+	.effect(function* ({ input, context }) {
 		const db = yield* DB;
 
-		const existingMembers = yield* db
-			.select({
-				userId: dbSchema.member.userId,
-				role: dbSchema.member.role,
-			})
-			.from(dbSchema.member)
-			.where(
-				and(
-					eq(dbSchema.member.organizationId, input.organizationId),
-					inArray(
-						dbSchema.member.userId,
-						input.refs.map((ref) => ref.userId),
-					),
-				),
-			);
+		const existingMembers = yield* db.transaction((tx) =>
+			Effect.gen(function* () {
+				yield* tx.execute(sql`LOCK TABLE "member" IN SHARE ROW EXCLUSIVE MODE`);
 
-		yield* db.delete(dbSchema.member).where(
-			and(
-				eq(dbSchema.member.organizationId, input.organizationId),
-				inArray(
-					dbSchema.member.userId,
-					input.refs.map((ref) => ref.userId),
-				),
-			),
+				const userIds = input.refs.map((ref) => ref.userId);
+				const existingMembers = yield* tx
+					.select({
+						userId: dbSchema.member.userId,
+						role: dbSchema.member.role,
+					})
+					.from(dbSchema.member)
+					.where(
+						and(
+							eq(dbSchema.member.organizationId, input.organizationId),
+							inArray(dbSchema.member.userId, userIds),
+						),
+					);
+
+				const removedAdminCount = countRemovedAdmins({
+					members: existingMembers,
+				});
+				if (removedAdminCount > 0) {
+					yield* assertCanManageOrganizationAdmins({
+						organizationId: input.organizationId,
+						userId: context.auth.user.id,
+					});
+
+					const [adminCountResult] = yield* tx
+						.select({
+							count: count(),
+						})
+						.from(dbSchema.member)
+						.where(
+							and(
+								eq(dbSchema.member.organizationId, input.organizationId),
+								eq(dbSchema.member.role, "admin"),
+							),
+						);
+					yield* assertAdminRemainsAfterRemoving({
+						adminCount: Number(adminCountResult?.count ?? 0),
+						removedAdminCount,
+					});
+				}
+
+				yield* tx
+					.delete(dbSchema.member)
+					.where(
+						and(
+							eq(dbSchema.member.organizationId, input.organizationId),
+							inArray(dbSchema.member.userId, userIds),
+						),
+					);
+
+				return existingMembers;
+			}),
 		);
 
 		if (existingMembers.length > 0) {

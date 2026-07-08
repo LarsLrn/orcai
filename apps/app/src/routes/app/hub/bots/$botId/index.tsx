@@ -29,6 +29,7 @@ import {
 	PageTitle,
 } from "@/components/ui/shell/page";
 import { useDeleteBotsMutation } from "@/hooks/mutations/use-bot-mutations";
+import { hasCapability } from "@/lib/authz/capabilities";
 import { orpc } from "@/lib/orpc/orpc";
 
 export const Route = createFileRoute("/app/hub/bots/$botId/")({
@@ -98,6 +99,11 @@ function RouteComponent() {
 			});
 		},
 	});
+	const canUse = hasCapability(bot.data.capabilities, "use");
+	const canEdit = hasCapability(bot.data.capabilities, "edit");
+	const canDelete = hasCapability(bot.data.capabilities, "delete");
+	const canManageAccess = hasCapability(bot.data.capabilities, "manage_access");
+	const hasMenuActions = canManageAccess || canEdit || canDelete;
 
 	return (
 		<Page>
@@ -110,63 +116,73 @@ function RouteComponent() {
 					</div>
 				) : null}
 				<PageAction>
-					<Button
-						onClick={() =>
-							navigate({
-								to: "/app/chat/new",
-								search: {
-									botId: bot.data.id,
-								},
-							})
-						}
-					>
-						Start chat
-					</Button>
-					<DropdownMenu>
-						<DropdownMenuTrigger
-							render={
-								<Button variant="ghost" size="icon">
-									<MoreVerticalIcon className="size-4" />
-									<span className="sr-only">More options</span>
-								</Button>
+					{canUse ? (
+						<Button
+							onClick={() =>
+								navigate({
+									to: "/app/chat/new",
+									search: {
+										botId: bot.data.id,
+									},
+								})
 							}
-						/>
-						<DropdownMenuContent align="end">
-							<DropdownMenuItem onClick={() => setIsAccessOpen(true)}>
-								<KeyRoundIcon className="size-4" />
-								Access & Groups
-							</DropdownMenuItem>
-							<DropdownMenuItem
-								onClick={() =>
-									navigate({
-										to: "/app/hub/bots/$botId/setup",
-										params: {
-											botId: bot.data.id,
-										},
-									})
+						>
+							Start chat
+						</Button>
+					) : null}
+					{hasMenuActions ? (
+						<DropdownMenu>
+							<DropdownMenuTrigger
+								render={
+									<Button variant="ghost" size="icon">
+										<MoreVerticalIcon className="size-4" />
+										<span className="sr-only">More options</span>
+									</Button>
 								}
-							>
-								<EditIcon />
-								Edit Bot
-							</DropdownMenuItem>
-							<DropdownMenuSeparator />
-							<DropdownMenuItem
-								variant="destructive"
-								onClick={() =>
-									deleteBots({
-										refs: [
-											{
-												id: bot.data.id,
-											},
-										],
-									})
-								}
-							>
-								<Trash2Icon />
-								Delete Bot
-							</DropdownMenuItem>
-						</DropdownMenuContent>
-					</DropdownMenu>
+							/>
+							<DropdownMenuContent align="end">
+								{canManageAccess ? (
+									<DropdownMenuItem onClick={() => setIsAccessOpen(true)}>
+										<KeyRoundIcon className="size-4" />
+										Access & Groups
+									</DropdownMenuItem>
+								) : null}
+								{canEdit ? (
+									<DropdownMenuItem
+										onClick={() =>
+											navigate({
+												to: "/app/hub/bots/$botId/setup",
+												params: {
+													botId: bot.data.id,
+												},
+											})
+										}
+									>
+										<EditIcon />
+										Edit Bot
+									</DropdownMenuItem>
+								) : null}
+								{canDelete ? <DropdownMenuSeparator /> : null}
+								{canDelete ? (
+									<DropdownMenuItem
+										variant="destructive"
+										onClick={() =>
+											deleteBots({
+												refs: [
+													{
+														id: bot.data.id,
+													},
+												],
+											})
+										}
+									>
+										<Trash2Icon />
+										Delete Bot
+									</DropdownMenuItem>
+								) : null}
+							</DropdownMenuContent>
+						</DropdownMenu>
+					) : null}
 				</PageAction>
 			</PageHeader>
 
@@ -191,15 +207,17 @@ function RouteComponent() {
 				</div>
 			</PageContent>
 
-			<AccessDialog
-				open={isAccessOpen}
-				onOpenChange={setIsAccessOpen}
-				resourceRef={{
-					type: "bot",
-					id: bot.data.id,
-				}}
-				resourceName={bot.data.name}
-			/>
+			{canManageAccess ? (
+				<AccessDialog
+					open={isAccessOpen}
+					onOpenChange={setIsAccessOpen}
+					resourceRef={{
+						type: "bot",
+						id: bot.data.id,
+					}}
+					resourceName={bot.data.name}
+				/>
+			) : null}
 		</Page>
 	);
 }

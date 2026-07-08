@@ -1,5 +1,6 @@
 import { z } from "zod/v4";
 import { assetSchema } from "../asset/schema";
+import { entityCapabilitiesSchema } from "../authorization";
 import { blockIdSchema } from "../block/ref";
 import {
 	blockFieldsSchema,
@@ -34,13 +35,18 @@ export const botSchema = botFieldsSchema.extend({
 	updatedAt: z.coerce.date().nullable(),
 });
 
+export const botWithCapabilitiesSchema = botSchema.extend({
+	capabilities: entityCapabilitiesSchema,
+});
+
 export const botWithBlocksSchema = botSchema.extend({
 	blockIds: z.array(blockIdSchema),
+	capabilities: entityCapabilitiesSchema,
 });
 
 const botEditorBlockSchema = z.object({
 	id: blockIdSchema,
-	canEdit: z.boolean(),
+	capabilities: entityCapabilitiesSchema,
 	name: z.string().min(1, "Name is required"),
 	description: blockFieldsSchema.shape.description,
 	contentJson: blockFieldsSchema.shape.contentJson,
@@ -71,8 +77,10 @@ export const botEditorSchema = z.object({
 	status: publicationStatusSchema,
 	templateBlock: botEditorTemplateBlockSchema,
 	databaseBlocks: z.array(botEditorDatabaseBlockSchema),
+	capabilities: entityCapabilitiesSchema,
 });
 
 export type Bot = z.infer<typeof botSchema>;
+export type BotWithCapabilities = z.infer<typeof botWithCapabilitiesSchema>;
 export type BotWithBlocks = z.infer<typeof botWithBlocksSchema>;
 export type BotEditor = z.infer<typeof botEditorSchema>;

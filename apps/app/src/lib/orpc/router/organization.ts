@@ -175,7 +175,7 @@ export const createOrganization = authed.organization.create
 					yield* tx.insert(dbSchema.member).values({
 						organizationId: createdOrganization.id,
 						userId: context.auth.user.id,
-						role: "owner",
+						role: "admin",
 						createdAt: now,
 					});
 
@@ -208,7 +208,7 @@ export const createOrganization = authed.organization.create
 				{
 					resourceType: "organization",
 					resourceId: newOrganization.id,
-					relation: "owner",
+					relation: "admin",
 					subjectType: "user",
 					subjectId: context.auth.user.id,
 					operation: "touch",
@@ -232,7 +232,7 @@ export const createOrganization = authed.organization.create
 					relation: "member",
 					subjectType: "organization",
 					subjectId: newOrganization.id,
-					subjectRelation: "owner",
+					subjectRelation: "admin",
 					operation: "touch",
 				},
 				{
@@ -241,7 +241,7 @@ export const createOrganization = authed.organization.create
 					relation: "member",
 					subjectType: "organization",
 					subjectId: newOrganization.id,
-					subjectRelation: "instructor",
+					subjectRelation: "manager",
 					operation: "touch",
 				},
 				{
@@ -250,7 +250,16 @@ export const createOrganization = authed.organization.create
 					relation: "member",
 					subjectType: "organization",
 					subjectId: newOrganization.id,
-					subjectRelation: "student",
+					subjectRelation: "member",
+					operation: "touch",
+				},
+				{
+					resourceType: "group",
+					resourceId: allMembersGroupId,
+					relation: "member",
+					subjectType: "organization",
+					subjectId: newOrganization.id,
+					subjectRelation: "viewer",
 					operation: "touch",
 				},
 			],
@@ -263,7 +272,7 @@ export const createOrganization = authed.organization.create
 
 export const updateOrganization = authed.organization.update
 	.use(
-		requireEntityPermission("organization", "manage_members", {
+		requireEntityPermission("organization", "manage_organization", {
 			entityId: "id",
 		}),
 	)
@@ -289,7 +298,7 @@ export const deleteOrganizations = authed.organization.delete
 		checkManyPermissionMiddleware("organization").adaptInput(
 			(input): CheckManyPermissionInputFor<"organization"> => ({
 				entityIds: input.refs.map((ref) => ref.id),
-				permission: "manage_members",
+				permission: "manage_organization",
 			}),
 		),
 	)

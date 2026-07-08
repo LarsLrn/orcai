@@ -14,6 +14,7 @@ import {
 } from "@orcai/spice-db";
 import { and, count, eq, getColumns, ilike, inArray } from "drizzle-orm";
 import * as Effect from "effect/Effect";
+import { emptyCapabilities } from "@/lib/authz/capabilities";
 import { calculateRelationDelta } from "@/lib/authz/relation-delta";
 import { initializeResourceAuthorization } from "@/lib/authz/resource-lifecycle";
 import { AuthzService } from "@/lib/effect/services/authz";
@@ -26,6 +27,10 @@ import {
 	checkManyPermissionMiddleware,
 	requireEntityPermission,
 } from "@/lib/orpc/middlewares/permission";
+import {
+	getEntityCapabilities,
+	getManyEntityCapabilities,
+} from "@/lib/orpc/router/helpers/capabilities";
 import { loadDatabaseBlockAssets } from "@/lib/orpc/router/helpers/database-block";
 
 const listBotsByStatus = (params: {
@@ -79,13 +84,26 @@ const listBotsByStatus = (params: {
 				concurrency: "unbounded",
 			},
 		).pipe(
-			Effect.map(([data, [countResult]]) => ({
-				data: data.map((bot) => ({
-					...bot,
-					contentJson: bot.contentJson as Bot["contentJson"],
-				})),
-				rowCount: countResult.count,
-			})),
+			Effect.flatMap(([data, [countResult]]) =>
+				Effect.gen(function* () {
+					const capabilities = yield* getManyEntityCapabilities({
+						entityType: "bot",
+						entityIds: data.map((bot) => bot.id),
+						userId: params.userId,
+						zedToken: params.zedToken,
+					});
+
+					return {
+						data: data.map((bot) => ({
+							...bot,
+							contentJson: bot.contentJson as Bot["contentJson"],
+							capabilities:
+								capabilities.get(bot.id) ?? emptyCapabilities("bot"),
+						})),
+						rowCount: countResult.count,
+					};
+				}),
+			),
 		);
 	});
 
@@ -125,30 +143,18 @@ const loadBotEditor = (params: {
 
 		const templateBlock = blocks.find((block) => block.type === "template");
 		const databaseBlocks = blocks.filter((block) => block.type === "database");
-		const editableBlockIds = new Set<string>();
-
-		if (blocks.length > 0) {
-			const relation = yield* checkManyEntityPermissions({
-				entityIds: blocks.map((block) => block.id),
-				entityType: "block",
-				permission: "edit",
-				userId: params.userId,
-				zedToken: params.zedToken,
-			});
-
-			for (const pair of relation.pairs) {
-				const blockId = pair.request?.resource?.objectId;
-				const allowed =
-					pair.response.oneofKind === "item" &&
-					hasPermission({
-						permissionship: pair.response.item.permissionship,
-					});
-
-				if (blockId && allowed) {
-					editableBlockIds.add(blockId);
-				}
-			}
-		}
+		const blockCapabilities = yield* getManyEntityCapabilities({
+			entityType: "block",
+			entityIds: blocks.map((block) => block.id),
+			userId: params.userId,
+			zedToken: params.zedToken,
+		});
+		const botCapabilities = yield* getEntityCapabilities({
+			entityType: "bot",
+			entityId: params.id,
+			userId: params.userId,
+			zedToken: params.zedToken,
+		});
 
 		const databaseBlocksWithAssets = yield* Effect.forEach(
 			databaseBlocks,
@@ -160,7 +166,8 @@ const loadBotEditor = (params: {
 
 					return {
 						...block,
-						canEdit: editableBlockIds.has(block.id),
+						capabilities:
+							blockCapabilities.get(block.id) ?? emptyCapabilities("block"),
 						assetIds: assets.map((asset) => asset.id),
 						assets,
 					};
@@ -182,10 +189,13 @@ const loadBotEditor = (params: {
 					? {
 							...templateBlock,
 							type: "template" as const,
-							canEdit: editableBlockIds.has(templateBlock.id),
+							capabilities:
+								blockCapabilities.get(templateBlock.id) ??
+								emptyCapabilities("block"),
 						}
 					: null,
 				databaseBlocks: databaseBlocksWithAssets,
+				capabilities: botCapabilities,
 			},
 		};
 	});
@@ -496,7 +506,7 @@ export const findBot = authed.bot.find
 			zedToken: "zedToken",
 		}),
 	)
-	.effect(function* ({ input }) {
+	.effect(function* ({ input, context }) {
 		const db = yield* DB;
 
 		const [bot] = yield* db
@@ -520,12 +530,19 @@ export const findBot = authed.bot.find
 			})
 			.from(dbSchema.botBlock)
 			.where(eq(dbSchema.botBlock.botId, bot.id));
+		const capabilities = yield* getEntityCapabilities({
+			entityType: "bot",
+			entityId: bot.id,
+			userId: context.auth.user.id,
+			zedToken: input.zedToken,
+		});
 
 		return {
 			data: {
 				...bot,
 				contentJson: bot.contentJson as Bot["contentJson"],
 				blockIds: blockIds.map((b) => b.blockId),
+				capabilities,
 			},
 		};
 	});

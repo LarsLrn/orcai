@@ -29,7 +29,7 @@ const parseScopedResourceId = (resource: {
 };
 
 export const listGroups = authed.group.list
-	.use(requireOrganizationPermission("manage_members"))
+	.use(requireOrganizationPermission("manage_groups"))
 	.effect(function* ({ input, context }) {
 		const db = yield* DB;
 		const organizationId = context.auth.session.activeOrganizationId;
@@ -89,7 +89,7 @@ export const listGroups = authed.group.list
 	});
 
 export const findGroup = authed.group.find
-	.use(requireOrganizationPermission("manage_members"))
+	.use(requireOrganizationPermission("manage_groups"))
 	.effect(function* ({ input, context }) {
 		const db = yield* DB;
 		const organizationId = context.auth.session.activeOrganizationId;
@@ -120,7 +120,7 @@ export const findGroup = authed.group.find
 	});
 
 export const createGroup = authed.group.create
-	.use(requireOrganizationPermission("manage_members"))
+	.use(requireOrganizationPermission("manage_groups"))
 	.effect(function* ({ input, context }) {
 		const db = yield* DB;
 		const authz = yield* AuthzService;
@@ -161,7 +161,7 @@ export const createGroup = authed.group.create
 	});
 
 export const updateGroup = authed.group.update
-	.use(requireOrganizationPermission("manage_members"))
+	.use(requireOrganizationPermission("manage_groups"))
 	.effect(function* ({ input, context }) {
 		const db = yield* DB;
 		const organizationId = context.auth.session.activeOrganizationId;
@@ -213,7 +213,7 @@ export const updateGroup = authed.group.update
 	});
 
 export const deleteGroups = authed.group.delete
-	.use(requireOrganizationPermission("manage_members"))
+	.use(requireOrganizationPermission("manage_groups"))
 	.effect(function* ({ input, context }) {
 		const db = yield* DB;
 		const authz = yield* AuthzService;
@@ -354,7 +354,7 @@ export const deleteGroups = authed.group.delete
 	});
 
 export const listGroupMembers = authed.group.listMembers
-	.use(requireOrganizationPermission("manage_members"))
+	.use(requireOrganizationPermission("manage_groups"))
 	.effect(function* ({ input, context }) {
 		const db = yield* DB;
 		const organizationId = context.auth.session.activeOrganizationId;
@@ -526,7 +526,7 @@ export const listGroupMembers = authed.group.listMembers
 	});
 
 export const addGroupMembers = authed.group.addMembers
-	.use(requireOrganizationPermission("manage_members"))
+	.use(requireOrganizationPermission("manage_groups"))
 	.effect(function* ({ input, context }) {
 		const db = yield* DB;
 		const authz = yield* AuthzService;
@@ -665,7 +665,7 @@ export const addGroupMembers = authed.group.addMembers
 	});
 
 export const removeGroupMembers = authed.group.removeMembers
-	.use(requireOrganizationPermission("manage_members"))
+	.use(requireOrganizationPermission("manage_groups"))
 	.effect(function* ({ input, context }) {
 		const db = yield* DB;
 		const authz = yield* AuthzService;

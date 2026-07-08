@@ -11,8 +11,18 @@ export type RelationshipFilterInput = Pick<
 
 export type SpiceConvergeContext = {
 	readCurrentSchema: () => Effect.Effect<string, SpiceDbError, SpiceDbService>;
+	writeSchema: (
+		schema: string,
+	) => Effect.Effect<void, SpiceDbError, SpiceDbService>;
 	deleteRelationshipsInBatches: (params: {
 		relationshipFilter: RelationshipFilterInput;
+		batchSize?: number;
+	}) => Effect.Effect<number, SpiceDbError, SpiceDbService>;
+	rewriteRelationshipsInBatches: (params: {
+		relationshipFilter: RelationshipFilterInput;
+		mapRelationship: (
+			relationship: v1.Relationship,
+		) => v1.Relationship | null | undefined;
 		batchSize?: number;
 	}) => Effect.Effect<number, SpiceDbError, SpiceDbService>;
 	log: (message: string) => Effect.Effect<void, never, never>;

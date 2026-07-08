@@ -13,7 +13,9 @@ import {
 	SectionHeader,
 	SectionTitle,
 } from "@/components/ui/shell/section";
+import { useOrganizationCapabilities } from "@/hooks/authz/use-capabilities";
 import { useDeleteBotsMutation } from "@/hooks/mutations/use-bot-mutations";
+import { hasCapability } from "@/lib/authz/capabilities";
 import { orpc } from "@/lib/orpc/orpc";
 
 export const Route = createFileRoute("/app/hub/bots/")({
@@ -59,6 +61,13 @@ function RouteComponent() {
 		}),
 	);
 	const { mutate: deleteBots } = useDeleteBotsMutation();
+	const { data: organizationCapabilities } = useOrganizationCapabilities([
+		"create_bot",
+	]);
+	const canCreateBot = hasCapability(
+		organizationCapabilities?.data.capabilities,
+		"create_bot",
+	);
 
 	return (
 		<div className="space-y-12">
@@ -69,17 +78,19 @@ function RouteComponent() {
 						Configured AI experiences ready to use in chats across your
 						workspace.
 					</SectionDescription>
-					<SectionAction>
-						<Link
-							to="/app/hub/bots/add"
-							className={buttonVariants({
-								size: "sm",
-							})}
-						>
-							<PlusIcon />
-							Create Bot
-						</Link>
-					</SectionAction>
+					{canCreateBot ? (
+						<SectionAction>
+							<Link
+								to="/app/hub/bots/add"
+								className={buttonVariants({
+									size: "sm",
+								})}
+							>
+								<PlusIcon />
+								Create Bot
+							</Link>
+						</SectionAction>
+					) : null}
 				</SectionHeader>
 				<SectionContent>
 					{bots.data.length === 0 ? (
@@ -87,17 +98,21 @@ function RouteComponent() {
 							Icon={BotIcon}
 							title="No published bots yet"
 							description="Create and publish a bot to make it available for chats."
-							actions={[
-								{
-									key: "create",
-									label: "Create Bot",
-									icon: PlusIcon,
-									variant: "default",
-									linkProps: {
-										to: "/app/hub/bots/add",
-									},
-								},
-							]}
+							actions={
+								canCreateBot
+									? [
+											{
+												key: "create",
+												label: "Create Bot",
+												icon: PlusIcon,
+												variant: "default",
+												linkProps: {
+													to: "/app/hub/bots/add",
+												},
+											},
+										]
+									: []
+							}
 						/>
 					) : (
 						<SectionGrid layout="3">
@@ -131,31 +146,39 @@ function RouteComponent() {
 									bot={bot}
 									actions={{
 										dropdown: [
-											{
-												key: "edit",
-												label: "Edit Draft",
-												icon: EditIcon,
-												onClick: () =>
-													navigate({
-														to: "/app/hub/bots/$botId/setup",
-														params: {
-															botId: bot.id,
+											...(hasCapability(bot.capabilities, "edit")
+												? [
+														{
+															key: "edit",
+															label: "Edit Draft",
+															icon: EditIcon,
+															onClick: () =>
+																navigate({
+																	to: "/app/hub/bots/$botId/setup",
+																	params: {
+																		botId: bot.id,
+																	},
+																}),
 														},
-													}),
-											},
-											{
-												key: "delete",
-												label: "Delete Draft",
-												icon: TrashIcon,
-												onClick: () =>
-													deleteBots({
-														refs: [
-															{
-																id: bot.id,
-															},
-														],
-													}),
-											},
+													]
+												: []),
+											...(hasCapability(bot.capabilities, "delete")
+												? [
+														{
+															key: "delete",
+															label: "Delete Draft",
+															icon: TrashIcon,
+															onClick: () =>
+																deleteBots({
+																	refs: [
+																		{
+																			id: bot.id,
+																		},
+																	],
+																}),
+														},
+													]
+												: []),
 										],
 										footer: [],
 									}}

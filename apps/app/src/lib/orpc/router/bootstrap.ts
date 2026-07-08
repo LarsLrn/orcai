@@ -145,7 +145,7 @@ export const initializeBootstrap = os.bootstrap.initialize.effect(function* ({
 				yield* tx.insert(dbSchema.member).values({
 					organizationId: organization.id,
 					userId: user.id,
-					role: "owner",
+					role: "admin",
 					createdAt: now,
 				});
 
@@ -179,7 +179,7 @@ export const initializeBootstrap = os.bootstrap.initialize.effect(function* ({
 			{
 				resourceType: "organization",
 				resourceId: organizationId,
-				relation: "owner",
+				relation: "admin",
 				subjectType: "user",
 				subjectId: userId,
 				operation: "touch",
@@ -203,7 +203,7 @@ export const initializeBootstrap = os.bootstrap.initialize.effect(function* ({
 				relation: "member",
 				subjectType: "organization",
 				subjectId: organizationId,
-				subjectRelation: "owner",
+				subjectRelation: "admin",
 				operation: "touch",
 			},
 			{
@@ -212,7 +212,7 @@ export const initializeBootstrap = os.bootstrap.initialize.effect(function* ({
 				relation: "member",
 				subjectType: "organization",
 				subjectId: organizationId,
-				subjectRelation: "instructor",
+				subjectRelation: "manager",
 				operation: "touch",
 			},
 			{
@@ -221,7 +221,16 @@ export const initializeBootstrap = os.bootstrap.initialize.effect(function* ({
 				relation: "member",
 				subjectType: "organization",
 				subjectId: organizationId,
-				subjectRelation: "student",
+				subjectRelation: "member",
+				operation: "touch",
+			},
+			{
+				resourceType: "group",
+				resourceId: allMembersGroupId,
+				relation: "member",
+				subjectType: "organization",
+				subjectId: organizationId,
+				subjectRelation: "viewer",
 				operation: "touch",
 			},
 		],

@@ -100,7 +100,7 @@ export const findProvider = authed.provider.find
 	});
 
 export const createProvider = authed.provider.create
-	.use(requireOrganizationPermission("manage_members"))
+	.use(requireOrganizationPermission("manage_providers"))
 	.effect(function* ({ input, context }) {
 		const db = yield* DB;
 		const organizationId = context.auth.session.activeOrganizationId;
@@ -125,7 +125,7 @@ export const createProvider = authed.provider.create
 	});
 
 export const updateProvider = authed.provider.update
-	.use(requireOrganizationPermission("manage_members"))
+	.use(requireOrganizationPermission("manage_providers"))
 	.effect(function* ({ input, context }) {
 		const db = yield* DB;
 		const organizationId = context.auth.session.activeOrganizationId;
@@ -164,7 +164,7 @@ export const updateProvider = authed.provider.update
 	});
 
 export const deleteProviders = authed.provider.delete
-	.use(requireOrganizationPermission("manage_members"))
+	.use(requireOrganizationPermission("manage_providers"))
 	.effect(function* ({ input, context }) {
 		const db = yield* DB;
 		const organizationId = context.auth.session.activeOrganizationId;

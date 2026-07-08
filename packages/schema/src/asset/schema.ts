@@ -1,4 +1,5 @@
 import { z } from "zod/v4";
+import { entityCapabilitiesSchema } from "../authorization";
 import { bucketSchema } from "../storage/parts/buckets";
 import { userIdSchema } from "../user/ref";
 import { metadataSchema } from "./parts/metadata";
@@ -24,6 +25,10 @@ export const assetSchema = assetFieldsSchema.extend({
 	updatedAt: z.coerce.date().nullable(),
 });
 
+export const assetWithCapabilitiesSchema = assetSchema.extend({
+	capabilities: entityCapabilitiesSchema,
+});
+
 export const assetFiltersSchema = z.object({
 	ids: z.array(assetIdSchema).optional(),
 	search: z.string().optional(),
@@ -44,4 +49,5 @@ export const finalizedUploadFileSchema = z.object({
 });
 
 export type Asset = z.infer<typeof assetSchema>;
+export type AssetWithCapabilities = z.infer<typeof assetWithCapabilitiesSchema>;
 export type FinalizedUploadFile = z.infer<typeof finalizedUploadFileSchema>;

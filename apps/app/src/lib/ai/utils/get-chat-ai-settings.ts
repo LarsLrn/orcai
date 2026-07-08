@@ -46,9 +46,13 @@ export const getChatAiSettings = ({
 					}),
 			});
 
-			templateBlock = blocks.data.find(
-				(block): block is TemplateBlock => block.type === "template",
+			const foundTemplateBlock = blocks.data.find(
+				(block) => block.type === "template",
 			);
+			templateBlock =
+				foundTemplateBlock?.type === "template"
+					? foundTemplateBlock
+					: undefined;
 
 			if (!templateBlock) {
 				return yield* new AiError({

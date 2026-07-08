@@ -28,6 +28,7 @@ import {
 } from "@/components/ui/shell/section";
 import { useDeleteAssetsMutation } from "@/hooks/mutations/use-asset-mutations";
 import { useReprocessAssetMutation } from "@/hooks/mutations/use-job-mutations";
+import { hasCapability } from "@/lib/authz/capabilities";
 import { orpc } from "@/lib/orpc/orpc";
 
 export const Route = createFileRoute("/app/hub/assets/$assetId/")({
@@ -62,92 +63,113 @@ function RouteComponent() {
 			});
 		},
 	});
+	const canDownload = hasCapability(asset.data.capabilities, "download");
+	const canEdit = hasCapability(asset.data.capabilities, "edit");
+	const canDelete = hasCapability(asset.data.capabilities, "delete");
+	const canManageAccess = hasCapability(
+		asset.data.capabilities,
+		"manage_access",
+	);
+	const hasMenuActions = canManageAccess || canEdit || canDelete;
 
 	return (
 		<Section>
 			<SectionHeader>
 				<SectionTitle>{asset.data.title}</SectionTitle>
 				<SectionAction>
-					<Button
-						variant="default"
-						disabled={status !== "success"}
-						onClick={() => window.open(file?.url, "_blank")}
-					>
-						<DownloadIcon />
-						Download
-					</Button>
-					<DropdownMenu>
-						<DropdownMenuTrigger
-							render={
-								<Button variant="ghost" size="icon">
-									<MoreVerticalIcon className="size-4" />
-									<span className="sr-only">More options</span>
-								</Button>
-							}
-						/>
-						<DropdownMenuContent align="end">
-							<DropdownMenuItem onClick={() => setIsAccessOpen(true)}>
-								<KeyRoundIcon className="size-4" />
-								Access & Groups
-							</DropdownMenuItem>
-							<DropdownMenuItem
-								onClick={() =>
-									navigate({
-										to: "/app/hub/assets/$assetId/edit",
-										params: {
-											assetId: asset.data.id,
-										},
-									})
+					{canDownload ? (
+						<Button
+							variant="default"
+							disabled={status !== "success"}
+							onClick={() => window.open(file?.url, "_blank")}
+						>
+							<DownloadIcon />
+							Download
+						</Button>
+					) : null}
+					{hasMenuActions ? (
+						<DropdownMenu>
+							<DropdownMenuTrigger
+								render={
+									<Button variant="ghost" size="icon">
+										<MoreVerticalIcon className="size-4" />
+										<span className="sr-only">More options</span>
+									</Button>
 								}
-							>
-								<EditIcon />
-								Edit Content
-							</DropdownMenuItem>
-							{asset.data.processingStatus !== "pending" &&
-								asset.data.processingStatus !== "active" && (
+							/>
+							<DropdownMenuContent align="end">
+								{canManageAccess ? (
+									<DropdownMenuItem onClick={() => setIsAccessOpen(true)}>
+										<KeyRoundIcon className="size-4" />
+										Access & Groups
+									</DropdownMenuItem>
+								) : null}
+								{canEdit ? (
 									<DropdownMenuItem
 										onClick={() =>
-											reprocessAsset({
-												assetId: asset.data.id,
+											navigate({
+												to: "/app/hub/assets/$assetId/edit",
+												params: {
+													assetId: asset.data.id,
+												},
 											})
 										}
 									>
-										<RefreshCwIcon className="size-4" />
-										Reprocess
+										<EditIcon />
+										Edit Content
 									</DropdownMenuItem>
-								)}
-							<DropdownMenuSeparator />
-							<DropdownMenuItem
-								variant="destructive"
-								onClick={() =>
-									deleteAssets({
-										refs: [
-											{
-												id: asset.data.id,
-											},
-										],
-									})
-								}
-							>
-								<Trash2Icon />
-								Delete Content
-							</DropdownMenuItem>
-						</DropdownMenuContent>
-					</DropdownMenu>
+								) : null}
+								{canEdit &&
+									asset.data.processingStatus !== "pending" &&
+									asset.data.processingStatus !== "active" && (
+										<DropdownMenuItem
+											onClick={() =>
+												reprocessAsset({
+													assetId: asset.data.id,
+												})
+											}
+										>
+											<RefreshCwIcon className="size-4" />
+											Reprocess
+										</DropdownMenuItem>
+									)}
+								{canDelete ? <DropdownMenuSeparator /> : null}
+								{canDelete ? (
+									<DropdownMenuItem
+										variant="destructive"
+										onClick={() =>
+											deleteAssets({
+												refs: [
+													{
+														id: asset.data.id,
+													},
+												],
+											})
+										}
+									>
+										<Trash2Icon />
+										Delete Content
+									</DropdownMenuItem>
+								) : null}
+							</DropdownMenuContent>
+						</DropdownMenu>
+					) : null}
 				</SectionAction>
 			</SectionHeader>
 			<SectionContent>
 				<FileViewer asset={asset.data} />
 
-				<AccessDialog
-					open={isAccessOpen}
-					onOpenChange={setIsAccessOpen}
-					resourceRef={{
-						type: "asset",
-						id: asset.data.id,
-					}}
-					resourceName={asset.data.title}
-				/>
+				{canManageAccess ? (
+					<AccessDialog
+						open={isAccessOpen}
+						onOpenChange={setIsAccessOpen}
+						resourceRef={{
+							type: "asset",
+							id: asset.data.id,
+						}}
+						resourceName={asset.data.title}
+					/>
+				) : null}
 			</SectionContent>
 		</Section>
 	);

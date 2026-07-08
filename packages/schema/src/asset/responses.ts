@@ -5,11 +5,15 @@ import {
 	createListResponseSchema,
 	zedTokenSchema,
 } from "../shared";
-import { assetSchema } from "./schema";
+import { assetSchema, assetWithCapabilitiesSchema } from "./schema";
 
-export const listAssetsResponseSchema = createListResponseSchema(assetSchema);
+export const listAssetsResponseSchema = createListResponseSchema(
+	assetWithCapabilitiesSchema,
+);
 
-export const findAssetResponseSchema = createDataResponseSchema(assetSchema);
+export const findAssetResponseSchema = createDataResponseSchema(
+	assetWithCapabilitiesSchema,
+);
 
 export const createAssetResponseSchema = createDataResponseSchema(
 	assetSchema,

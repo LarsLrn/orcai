@@ -1,4 +1,5 @@
 import { z } from "zod/v4";
+import { entityCapabilitiesSchema } from "../authorization";
 import { publicationStatusSchema } from "../shared/primitives/publication-status";
 import { retrievalModeSchema } from "../shared/primitives/retrieval-mode";
 import { userIdSchema } from "../user/ref";
@@ -117,14 +118,15 @@ export const blockSchema = z.discriminatedUnion("type", [
 	blockBaseSchema.extend(imageGenerationBlockSchema.shape),
 ]);
 
-export const blockWithPermissionsSchema = z.intersection(
+export const blockWithCapabilitiesSchema = z.intersection(
 	blockSchema,
 	z.object({
-		canEdit: z.boolean().optional(),
+		capabilities: entityCapabilitiesSchema,
 	}),
 );
 
 export type Block = z.infer<typeof blockSchema>;
+export type BlockWithCapabilities = z.infer<typeof blockWithCapabilitiesSchema>;
 
 export type BlockConfigType =
 	| z.infer<typeof templateBlockSchema.shape.config>

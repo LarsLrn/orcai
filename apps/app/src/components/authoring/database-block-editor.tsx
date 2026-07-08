@@ -27,6 +27,7 @@ import {
 	DialogHeader,
 	DialogTitle,
 } from "@/components/ui/dialog";
+import { emptyCapabilities } from "@/lib/authz/capabilities";
 
 const createDefaultDatabaseBlock = (params?: { botName: string }) => ({
 	name: `Content Collection${params?.botName ? ` for '${params.botName}'` : ""}`,
@@ -46,7 +47,12 @@ const createDefaultDatabaseBlock = (params?: { botName: string }) => ({
 	},
 	assetIds: [],
 	assets: [],
-	canEdit: true,
+	capabilities: {
+		...emptyCapabilities("block"),
+		edit: true,
+		read: true,
+		use: true,
+	},
 });
 
 const mergeAssets = (currentAssets: Asset[], incomingAssets: Asset[]) => {

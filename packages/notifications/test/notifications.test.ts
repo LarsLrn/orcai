@@ -21,7 +21,7 @@ const notifications = [
 		invitationId: "6ba7b810-9dad-41d1-80b4-00c04fd430c8",
 		organizationName: "Research & Teaching",
 		inviterName: "Ada",
-		role: "student" as const,
+		role: "member" as const,
 		expiresAt: new Date("2026-08-01T00:00:00.000Z"),
 		registrationUrl:
 			"https://example.com/register?inv=6ba7b810-9dad-41d1-80b4-00c04fd430c8",

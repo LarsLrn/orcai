@@ -27,6 +27,10 @@ export const listUserAccessInputSchema = z.object({
 	...zedTokenSchema.shape,
 });
 
+export const deleteUsersInputSchema = z.object({
+	userIds: userIdSchema.array().min(1),
+});
+
 export const meInputSchema = z.object({
 	...zedTokenSchema.shape,
 });
@@ -53,6 +57,7 @@ export type ListUsersInput = z.infer<typeof listUsersInputSchema>;
 export type UserSortKey = z.infer<typeof userSortKeySchema>;
 export type FindUserInput = z.infer<typeof findUserInputSchema>;
 export type ListUserAccessInput = z.infer<typeof listUserAccessInputSchema>;
+export type DeleteUsersInput = z.infer<typeof deleteUsersInputSchema>;
 export type MeInput = z.infer<typeof meInputSchema>;
 export type UpdatePasswordInput = z.infer<typeof updatePasswordInputSchema>;
 export type SetActiveOrganizationInput = z.infer<

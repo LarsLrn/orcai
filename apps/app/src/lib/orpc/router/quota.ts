@@ -248,7 +248,7 @@ export const findQuotaPool = authed.quota.find
 	});
 
 export const createQuotaPool = authed.quota.create
-	.use(requireOrganizationPermission("manage_members"))
+	.use(requireOrganizationPermission("manage_quotas"))
 	.effect(function* ({ input, context }) {
 		const organizationId = context.auth.session.activeOrganizationId;
 		const created = yield* createQuotaPoolCommand({
@@ -285,7 +285,7 @@ export const createQuotaPool = authed.quota.create
 	});
 
 export const updateQuotaPool = authed.quota.update
-	.use(requireOrganizationPermission("manage_members"))
+	.use(requireOrganizationPermission("manage_quotas"))
 	.effect(function* ({ input, context }) {
 		const organizationId = context.auth.session.activeOrganizationId;
 		const updated = yield* updateQuotaPoolCommand({
@@ -315,7 +315,7 @@ export const updateQuotaPool = authed.quota.update
 	});
 
 export const deactivateQuotaPool = authed.quota.deactivate
-	.use(requireOrganizationPermission("manage_members"))
+	.use(requireOrganizationPermission("manage_quotas"))
 	.effect(function* ({ input, context }) {
 		const organizationId = context.auth.session.activeOrganizationId;
 		const deactivated = yield* deactivateQuotaPoolCommand({

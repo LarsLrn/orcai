@@ -14,7 +14,9 @@ import {
 	SectionHeader,
 	SectionTitle,
 } from "@/components/ui/shell/section";
+import { useOrganizationCapabilities } from "@/hooks/authz/use-capabilities";
 import { useReprocessAssetMutation } from "@/hooks/mutations/use-job-mutations";
+import { hasCapability } from "@/lib/authz/capabilities";
 import { orpc } from "@/lib/orpc/orpc";
 
 export const Route = createFileRoute("/app/hub/assets/")({
@@ -42,6 +44,13 @@ export const Route = createFileRoute("/app/hub/assets/")({
 function RouteComponent() {
 	const { pageIndex, pageSize } = Route.useSearch();
 	const { mutate: reprocessAsset } = useReprocessAssetMutation();
+	const { data: organizationCapabilities } = useOrganizationCapabilities([
+		"create_asset",
+	]);
+	const canCreateAsset = hasCapability(
+		organizationCapabilities?.data.capabilities,
+		"create_asset",
+	);
 	const { data: assets } = useSuspenseQuery(
 		orpc.asset.list.queryOptions({
 			input: {
@@ -58,17 +67,19 @@ function RouteComponent() {
 				<SectionDescription>
 					Reusable source material for retrieval, grounding, and citations.
 				</SectionDescription>
-				<SectionAction>
-					<Link
-						to="/app/hub/assets/add"
-						className={buttonVariants({
-							size: "sm",
-						})}
-					>
-						<PlusIcon />
-						Add Content
-					</Link>
-				</SectionAction>
+				{canCreateAsset ? (
+					<SectionAction>
+						<Link
+							to="/app/hub/assets/add"
+							className={buttonVariants({
+								size: "sm",
+							})}
+						>
+							<PlusIcon />
+							Add Content
+						</Link>
+					</SectionAction>
+				) : null}
 			</SectionHeader>
 			<SectionContent>
 				{assets.data.length === 0 ? (
@@ -76,17 +87,21 @@ function RouteComponent() {
 						Icon={FileTextIcon}
 						title="No content yet"
 						description="Upload documents, URLs, or text snippets to build your knowledge base."
-						actions={[
-							{
-								key: "add",
-								label: "Add Content",
-								icon: PlusIcon,
-								variant: "default",
-								linkProps: {
-									to: "/app/hub/assets/add",
-								},
-							},
-						]}
+						actions={
+							canCreateAsset
+								? [
+										{
+											key: "add",
+											label: "Add Content",
+											icon: PlusIcon,
+											variant: "default",
+											linkProps: {
+												to: "/app/hub/assets/add",
+											},
+										},
+									]
+								: []
+						}
 					/>
 				) : (
 					<SectionGrid layout="3">
@@ -97,7 +112,8 @@ function RouteComponent() {
 								actions={{
 									dropdown:
 										asset.processingStatus === "pending" ||
-										asset.processingStatus === "active"
+										asset.processingStatus === "active" ||
+										!hasCapability(asset.capabilities, "edit")
 											? []
 											: [
 													{

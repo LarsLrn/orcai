@@ -23,15 +23,16 @@ export const requiredAuthMiddleware = withName(
 			runMiddlewareEffect(
 				opts,
 				Effect.gen(function* () {
-					const headers = opts.context.reqHeaders;
-
-					if (!headers) {
-						return yield* Effect.fail(
-							new AppErrors.BadRequestError({
-								message: "Request headers are required for authentication.",
-							}),
-						);
-					}
+					const headers = yield* Effect.fromNullishOr(
+						opts.context.reqHeaders,
+					).pipe(
+						Effect.mapError(
+							() =>
+								new AppErrors.BadRequestError({
+									message: "Request headers are required for authentication.",
+								}),
+						),
+					);
 
 					const auth = opts.context.auth
 						? opts.context.auth
@@ -61,6 +62,7 @@ export const requiredAuthMiddleware = withName(
 						Promise.resolve(
 							opts.next({
 								context: {
+									reqHeaders: headers,
 									auth: {
 										isAuthenticated: true as const,
 										session: {
@@ -106,6 +108,7 @@ export const requireActiveOrganizationMiddleware = withName(
 					Promise.resolve(
 						opts.next({
 							context: {
+								reqHeaders: opts.context.reqHeaders,
 								auth: {
 									...opts.context.auth,
 									session: {

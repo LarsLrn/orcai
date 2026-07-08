@@ -34,7 +34,7 @@ function RouteComponent() {
 			<CardHeader>
 				<CardTitle>Initialize Instance</CardTitle>
 				<CardDescription>
-					Set up the first organisation and owner account for this deployment.
+					Set up the first organisation and admin account for this deployment.
 				</CardDescription>
 			</CardHeader>
 			<CardContent>

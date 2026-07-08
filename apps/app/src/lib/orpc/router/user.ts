@@ -27,9 +27,11 @@ import {
 	inArray,
 	isNull,
 	or,
+	sql,
 } from "drizzle-orm";
 import * as Effect from "effect/Effect";
 import { auth } from "@/lib/auth/auth";
+import { syncRelationshipTransition } from "@/lib/authz/relationship-transition";
 import { AuthzService } from "@/lib/effect/services/authz";
 import * as AppErrors from "@/lib/effect/utils/errors";
 import { authed } from "@/lib/orpc/implementation/authed";
@@ -38,6 +40,11 @@ import {
 	requirePreferencesMiddleware,
 } from "@/lib/orpc/middlewares/auth";
 import { unique } from "@/lib/utils/array-utils";
+import {
+	assertAdminRemainsAfterRemoving,
+	assertCanManageOrganizationAdmins,
+	countRemovedAdmins,
+} from "./helpers/organization-role-policy";
 import { buildOrderBy, type SortExpression } from "./helpers/sorting";
 
 export const listUsers = authed.user.list
@@ -644,6 +651,137 @@ export const listUserAccess = authed.user.listAccess
 		return {
 			data,
 			rowCount: data.length,
+		};
+	});
+
+export const deleteUsers = authed.user.delete
+	.use(requireActiveOrganizationMiddleware)
+	.effect(function* ({ input, context }) {
+		const db = yield* DB;
+		const organizationId = context.auth.session.activeOrganizationId;
+		const userIds = Array.from(new Set(input.userIds));
+
+		if (userIds.length !== input.userIds.length) {
+			return yield* Effect.fail(
+				new AppErrors.BadRequestError({
+					message: "Selected users must be unique",
+				}),
+			);
+		}
+
+		const permission = yield* checkEntityPermission({
+			entityId: organizationId,
+			entityType: "organization",
+			permission: "manage_members",
+			userId: context.auth.user.id,
+			zedToken: context.meta?.zedToken,
+		});
+
+		if (hasPermission(permission) === false) {
+			return yield* Effect.fail(
+				new AppErrors.ForbiddenError({
+					data: {
+						allowed: false,
+						permission: "manage_members",
+						entityType: "organization",
+					},
+				}),
+			);
+		}
+
+		const existingMembers = yield* db.transaction((tx) =>
+			Effect.gen(function* () {
+				yield* tx.execute(sql`LOCK TABLE "member" IN SHARE ROW EXCLUSIVE MODE`);
+
+				const members = yield* tx
+					.select({
+						userId: dbSchema.member.userId,
+						role: dbSchema.member.role,
+					})
+					.from(dbSchema.member)
+					.where(
+						and(
+							eq(dbSchema.member.organizationId, organizationId),
+							inArray(dbSchema.member.userId, userIds),
+						),
+					);
+
+				if (members.length !== userIds.length) {
+					return yield* Effect.fail(
+						new AppErrors.NotFoundError({
+							message:
+								"One or more selected users are not members of the active organization.",
+						}),
+					);
+				}
+
+				const removedAdminCount = countRemovedAdmins({
+					members,
+				});
+				if (removedAdminCount > 0) {
+					yield* assertCanManageOrganizationAdmins({
+						organizationId,
+						userId: context.auth.user.id,
+					});
+
+					const [adminCountResult] = yield* tx
+						.select({
+							count: count(),
+						})
+						.from(dbSchema.member)
+						.where(
+							and(
+								eq(dbSchema.member.organizationId, organizationId),
+								eq(dbSchema.member.role, "admin"),
+							),
+						);
+					yield* assertAdminRemainsAfterRemoving({
+						adminCount: Number(adminCountResult?.count ?? 0),
+						removedAdminCount,
+					});
+				}
+
+				return members;
+			}),
+		);
+
+		const headers = context.reqHeaders;
+		if (!headers) {
+			return yield* Effect.fail(
+				new AppErrors.BadRequestError({
+					message: "Request headers are required for user deletion.",
+				}),
+			);
+		}
+
+		for (const member of existingMembers) {
+			yield* Effect.tryPromise({
+				try: () =>
+					auth.api.removeUser({
+						body: {
+							userId: member.userId,
+						},
+						headers,
+					}),
+				catch: (error) =>
+					new AppErrors.BadRequestError({
+						message:
+							error instanceof Error ? error.message : "Failed to delete user.",
+					}),
+			});
+
+			yield* syncRelationshipTransition({
+				resourceType: "organization",
+				resourceId: organizationId,
+				subjectType: "user",
+				subjectId: member.userId,
+				oldRelation: member.role,
+			});
+		}
+
+		return {
+			success: true,
+			deletedCount: existingMembers.length,
 		};
 	});
 

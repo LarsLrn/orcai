@@ -1,3 +1,4 @@
+import { z } from "zod/v4";
 import {
 	createDataResponseSchema,
 	createListResponseSchema,
@@ -20,6 +21,10 @@ export const findUserResponseSchema = createDataResponseSchema(
 export const listUserAccessResponseSchema = createListResponseSchema(
 	userAccessEntrySchema,
 );
+
+export const deleteUsersResponseSchema = statusResponseSchema.extend({
+	deletedCount: z.number(),
+});
 
 export const meResponseSchema = createDataResponseSchema(userSchema);
 

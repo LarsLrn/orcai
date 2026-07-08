@@ -18,9 +18,17 @@ import {
 	PageHeader,
 	PageTitle,
 } from "@/components/ui/shell/page";
+import { ensureOrganizationCapability } from "@/lib/authz/route-guards";
 import { cn } from "@/lib/utils";
 
 export const Route = createFileRoute("/app/hub/blocks/add")({
+	loader: async ({ context: { queryClient } }) => {
+		await ensureOrganizationCapability({
+			queryClient,
+			permission: "create_block",
+			redirectTo: "/app/hub/behaviour",
+		});
+	},
 	component: RouteComponent,
 	head: () => ({
 		meta: [

@@ -22,6 +22,7 @@ import {
 import { and, count, desc, eq, getColumns, ilike, inArray } from "drizzle-orm";
 import * as Effect from "effect/Effect";
 import { v4 as uuidv4 } from "uuid";
+import { emptyCapabilities } from "@/lib/authz/capabilities";
 import { initializeResourceAuthorization } from "@/lib/authz/resource-lifecycle";
 import * as AppErrors from "@/lib/effect/utils/errors";
 import { authed } from "@/lib/orpc/implementation/authed";
@@ -31,6 +32,10 @@ import {
 	requireEntityPermission,
 	requireOrganizationPermission,
 } from "@/lib/orpc/middlewares/permission";
+import {
+	getEntityCapabilities,
+	getManyEntityCapabilities,
+} from "@/lib/orpc/router/helpers/capabilities";
 
 const createAssetRecord = (params: {
 	id?: AssetId;
@@ -152,10 +157,25 @@ export const listAssets = authed.asset.list.effect(function* ({
 			concurrency: "unbounded",
 		},
 	).pipe(
-		Effect.map(([data, [countResult]]) => ({
-			data,
-			rowCount: countResult.count,
-		})),
+		Effect.flatMap(([data, [countResult]]) =>
+			Effect.gen(function* () {
+				const capabilities = yield* getManyEntityCapabilities({
+					entityType: "asset",
+					entityIds: data.map((asset) => asset.id),
+					userId: context.auth.user.id,
+					zedToken: input.zedToken,
+				});
+
+				return {
+					data: data.map((asset) => ({
+						...asset,
+						capabilities:
+							capabilities.get(asset.id) ?? emptyCapabilities("asset"),
+					})),
+					rowCount: countResult.count,
+				};
+			}),
+		),
 	);
 });
 
@@ -166,7 +186,7 @@ export const findAsset = authed.asset.find
 			zedToken: "zedToken",
 		}),
 	)
-	.effect(function* ({ input }) {
+	.effect(function* ({ input, context }) {
 		const db = yield* DB;
 
 		const [query] = yield* db
@@ -185,7 +205,15 @@ export const findAsset = authed.asset.find
 		}
 
 		return {
-			data: query,
+			data: {
+				...query,
+				capabilities: yield* getEntityCapabilities({
+					entityType: "asset",
+					entityId: query.id,
+					userId: context.auth.user.id,
+					zedToken: input.zedToken,
+				}),
+			},
 		};
 	});
 

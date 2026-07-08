@@ -161,7 +161,7 @@ export const findModel = authed.model.find
 	});
 
 export const createModel = authed.model.create
-	.use(requireOrganizationPermission("manage_members"))
+	.use(requireOrganizationPermission("manage_models"))
 	.effect(function* ({ input, context }) {
 		const db = yield* DB;
 		const organizationId = context.auth.session.activeOrganizationId;
@@ -198,7 +198,7 @@ export const createModel = authed.model.create
 	});
 
 export const updateModel = authed.model.update
-	.use(requireOrganizationPermission("manage_members"))
+	.use(requireOrganizationPermission("manage_models"))
 	.effect(function* ({ input, context }) {
 		const db = yield* DB;
 		const organizationId = context.auth.session.activeOrganizationId;
@@ -248,7 +248,7 @@ export const updateModel = authed.model.update
 	});
 
 export const deleteModel = authed.model.delete
-	.use(requireOrganizationPermission("manage_members"))
+	.use(requireOrganizationPermission("manage_models"))
 	.effect(function* ({ input, context }) {
 		const db = yield* DB;
 		const organizationId = context.auth.session.activeOrganizationId;
@@ -306,7 +306,7 @@ export const deleteModel = authed.model.delete
 	});
 
 export const discoverModels = authed.model.discover
-	.use(requireOrganizationPermission("manage_members"))
+	.use(requireOrganizationPermission("manage_models"))
 	.effect(function* ({ input, context }) {
 		const db = yield* DB;
 

@@ -14,9 +14,19 @@ import {
 	PageHeader,
 	PageTitle,
 } from "@/components/ui/shell/page";
+import { ensureEntityCapability } from "@/lib/authz/route-guards";
 import { orpc } from "@/lib/orpc/orpc";
 
 export const Route = createFileRoute("/app/hub/blocks/$blockId/edit")({
+	loader: async ({ context: { queryClient }, params: { blockId } }) => {
+		await ensureEntityCapability({
+			queryClient,
+			entityType: "block",
+			entityId: blockId,
+			permission: "edit",
+			redirectTo: "/app/hub/behaviour",
+		});
+	},
 	component: RouteComponent,
 	head: () => ({
 		meta: [

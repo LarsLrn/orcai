@@ -7,8 +7,16 @@ import {
 	PageHeader,
 	PageTitle,
 } from "@/components/ui/shell/page";
+import { ensureOrganizationCapability } from "@/lib/authz/route-guards";
 
 export const Route = createFileRoute("/app/hub/assets/add")({
+	loader: async ({ context: { queryClient } }) => {
+		await ensureOrganizationCapability({
+			queryClient,
+			permission: "create_asset",
+			redirectTo: "/app/hub/assets",
+		});
+	},
 	component: RouteComponent,
 	head: () => ({
 		meta: [

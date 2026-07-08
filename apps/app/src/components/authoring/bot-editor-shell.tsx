@@ -59,6 +59,7 @@ import {
 	usePublishBotMutation,
 	useSaveBotMutation,
 } from "@/hooks/mutations/use-bot-mutations";
+import { emptyCapabilities, hasCapability } from "@/lib/authz/capabilities";
 import { orpc } from "@/lib/orpc/orpc";
 import { getProcessingStatusLabel } from "@/lib/presentation/processing-status";
 import { cn } from "@/lib/utils";
@@ -95,6 +96,17 @@ const WIZARD_STEPS = [
 		icon: CheckCircle2Icon,
 	},
 ] as const;
+
+const canEditBlock = (block: {
+	capabilities?: Partial<Record<"edit", boolean>>;
+}) => hasCapability(block.capabilities, "edit");
+
+const editableBlockCapabilities = () => ({
+	...emptyCapabilities("block"),
+	read: true,
+	use: true,
+	edit: true,
+});
 
 const getPublishIssues = (editor: BotEditorFormValues) => {
 	const issues: string[] = [];
@@ -242,7 +254,7 @@ const BotEditorShell = ({
 
 		const templateBlock: NonNullable<BotEditorFormValues["templateBlock"]> = {
 			id: block.data.id,
-			canEdit: block.data.canEdit ?? false,
+			capabilities: block.data.capabilities,
 			name: block.data.name,
 			description: block.data.description ?? "",
 			contentJson: block.data.contentJson,
@@ -276,7 +288,7 @@ const BotEditorShell = ({
 
 		const linkedBlock: BotEditorFormValues["databaseBlocks"][number] = {
 			id: block.data.id,
-			canEdit: block.data.canEdit ?? false,
+			capabilities: block.data.capabilities,
 			name: block.data.name,
 			type: "database",
 			description: block.data.description ?? "",
@@ -300,7 +312,7 @@ const BotEditorShell = ({
 
 		if (editor.templateBlock) {
 			if (editor.templateBlock.id) {
-				if (editor.templateBlock.canEdit) {
+				if (canEditBlock(editor.templateBlock)) {
 					const result = await updateBlock({
 						id: editor.templateBlock.id,
 						...toTemplateBlockInput(editor.templateBlock),
@@ -320,7 +332,7 @@ const BotEditorShell = ({
 				nextTemplateBlock = {
 					...editor.templateBlock,
 					id: result.data.data.id,
-					canEdit: true,
+					capabilities: editableBlockCapabilities(),
 				};
 			}
 		}
@@ -328,7 +340,7 @@ const BotEditorShell = ({
 		for (const databaseBlock of editor.databaseBlocks) {
 			let nextBlock = databaseBlock;
 			if (databaseBlock.id) {
-				if (databaseBlock.canEdit) {
+				if (canEditBlock(databaseBlock)) {
 					const result = await updateBlock({
 						id: databaseBlock.id,
 						...toDatabaseBlockInput(databaseBlock),
@@ -346,7 +358,7 @@ const BotEditorShell = ({
 				nextBlock = {
 					...databaseBlock,
 					id: result.data.data.id,
-					canEdit: true,
+					capabilities: editableBlockCapabilities(),
 				};
 			}
 
@@ -475,7 +487,7 @@ const BotEditorShell = ({
 			return;
 		}
 
-		if (!templateBlock.canEdit) {
+		if (!canEditBlock(templateBlock)) {
 			return;
 		}
 
@@ -521,7 +533,7 @@ const BotEditorShell = ({
 			return;
 		}
 
-		if (!databaseBlock.canEdit) {
+		if (!canEditBlock(databaseBlock)) {
 			return;
 		}
 
@@ -675,7 +687,8 @@ const BotEditorShell = ({
 							) : null}
 
 							{editor.templateBlock ? (
-								editor.templateBlock.canEdit || !editor.templateBlock.id ? (
+								canEditBlock(editor.templateBlock) ||
+								!editor.templateBlock.id ? (
 									<TemplateBlockEditor
 										nameField={
 											<form.AppField
@@ -834,7 +847,7 @@ const BotEditorShell = ({
 									</div>
 
 									{editor.databaseBlocks.map((databaseBlock, index) =>
-										databaseBlock.canEdit || !databaseBlock.id ? (
+										canEditBlock(databaseBlock) || !databaseBlock.id ? (
 											<DatabaseBlockFieldGroup
 												key={databaseBlock.id ?? `database-block-${index}`}
 												form={form}
@@ -916,9 +929,7 @@ const BotEditorShell = ({
 						</div>
 					) : null}
 
-					{activeStepIndex === 3 ? (
-						<SharingSection editorId={editor.id} editorName={editor.name} />
-					) : null}
+					{activeStepIndex === 3 ? <SharingSection editor={editor} /> : null}
 
 					{activeStepIndex === 4 ? (
 						<ReviewSection
@@ -972,14 +983,8 @@ const BotEditorShell = ({
 	);
 };
 
-const SharingSection = ({
-	editorId,
-	editorName,
-}: {
-	editorId?: BotEditorFormValues["id"];
-	editorName: string;
-}) => {
-	if (!editorId) {
+const SharingSection = ({ editor }: { editor: BotEditorFormValues }) => {
+	if (!editor.id) {
 		return (
 			<Card>
 				<CardHeader>
@@ -990,6 +995,10 @@ const SharingSection = ({
 				</CardHeader>
 			</Card>
 		);
+	}
+
+	if (!hasCapability(editor.capabilities, "manage_access")) {
+		return null;
 	}
 
 	return (
@@ -1005,9 +1014,9 @@ const SharingSection = ({
 				<AccessManagerContent
 					resourceRef={{
 						type: "bot",
-						id: editorId,
+						id: editor.id,
 					}}
-					resourceName={editorName}
+					resourceName={editor.name}
 				/>
 			</CardContent>
 		</Card>
@@ -1105,7 +1114,7 @@ const ReviewSection = ({
 									}
 									disabled={
 										(editor.templateBlock.id &&
-											!editor.templateBlock.canEdit) ||
+											!canEditBlock(editor.templateBlock)) ||
 										isSettingBlockStatus
 									}
 								>
@@ -1117,7 +1126,8 @@ const ReviewSection = ({
 										<SelectItem value="ready">Ready</SelectItem>
 									</SelectContent>
 								</Select>
-								{editor.templateBlock.id && !editor.templateBlock.canEdit ? (
+								{editor.templateBlock.id &&
+								!canEditBlock(editor.templateBlock) ? (
 									<p className="text-muted-foreground text-xs">
 										You can use this shared block but cannot change its status.
 									</p>
@@ -1166,7 +1176,7 @@ const ReviewSection = ({
 											});
 										}}
 										disabled={
-											(databaseBlock.id && !databaseBlock.canEdit) ||
+											(databaseBlock.id && !canEditBlock(databaseBlock)) ||
 											isSettingBlockStatus
 										}
 									>
@@ -1178,7 +1188,7 @@ const ReviewSection = ({
 											<SelectItem value="ready">Ready</SelectItem>
 										</SelectContent>
 									</Select>
-									{databaseBlock.id && !databaseBlock.canEdit ? (
+									{databaseBlock.id && !canEditBlock(databaseBlock) ? (
 										<p className="text-muted-foreground text-xs">
 											You can use this shared block but cannot change its
 											status.

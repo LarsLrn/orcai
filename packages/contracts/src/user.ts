@@ -1,4 +1,6 @@
 import {
+	deleteUsersInputSchema,
+	deleteUsersResponseSchema,
 	findUserInputSchema,
 	findUserResponseSchema,
 	listUserAccessInputSchema,
@@ -58,6 +60,19 @@ export const userContracts = {
 		)
 		.input(listUserAccessInputSchema)
 		.output(listUserAccessResponseSchema),
+	delete: base
+		.meta(
+			openapi({
+				method: "DELETE",
+				path: "/users",
+				summary: "Delete users",
+				tags: [
+					"Users",
+				],
+			}),
+		)
+		.input(deleteUsersInputSchema)
+		.output(deleteUsersResponseSchema),
 	me: base
 		.meta(
 			openapi({

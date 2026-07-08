@@ -9,6 +9,11 @@ import {
 } from "./asset";
 import { listAssetPoint, searchRepositoryAssetPoint } from "./asset-point";
 import {
+	checkAuthorization,
+	checkManyAuthorization,
+	organizationCapabilities,
+} from "./authorization";
+import {
 	createBlock,
 	deleteBlocks,
 	findBlock,
@@ -120,6 +125,7 @@ import {
 	finalizeUpload,
 } from "./storage";
 import {
+	deleteUsers,
 	findUser,
 	listUserAccess,
 	listUsers,
@@ -239,10 +245,16 @@ export const router = {
 		list: listAssetPoint,
 		searchRepository: searchRepositoryAssetPoint,
 	},
+	authorization: {
+		check: checkAuthorization,
+		checkMany: checkManyAuthorization,
+		organizationCapabilities,
+	},
 	user: {
 		list: listUsers,
 		find: findUser,
 		listAccess: listUserAccess,
+		delete: deleteUsers,
 		me,
 		updatePassword: updatePassword,
 		setTourState: setTourState,

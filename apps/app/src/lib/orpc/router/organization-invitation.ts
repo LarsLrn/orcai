@@ -17,6 +17,10 @@ import {
 	checkManyPermissionMiddleware,
 	requireEntityPermission,
 } from "@/lib/orpc/middlewares/permission";
+import {
+	assertCanManageOrganizationAdmins,
+	organizationRoleRequiresAdminControl,
+} from "./helpers/organization-role-policy";
 import { buildOrderBy, type SortExpression } from "./helpers/sorting";
 
 export const listOrganizationInvitations =
@@ -157,7 +161,7 @@ export const createOrganizationInvitations =
 	authed.organizationInvitation.create
 		.use(requireActiveOrganizationMiddleware)
 		.use(
-			requireEntityPermission("organization", "invite", {
+			requireEntityPermission("organization", "invite_members", {
 				entityId: "organizationId",
 			}),
 		)
@@ -177,6 +181,13 @@ export const createOrganizationInvitations =
 						message: "Organization not found",
 					}),
 				);
+			}
+
+			if (organizationRoleRequiresAdminControl(input.role)) {
+				yield* assertCanManageOrganizationAdmins({
+					organizationId: input.organizationId,
+					userId: context.auth.user.id,
+				});
 			}
 
 			const invitations = input.items.map((item) => ({
@@ -231,7 +242,7 @@ export const createOrganizationInvitations =
 
 export const updateOrganizationInvitation = authed.organizationInvitation.update
 	.use(
-		requireEntityPermission("organization", "invite", {
+		requireEntityPermission("organization", "invite_members", {
 			entityId: "organizationId",
 		}),
 	)
@@ -279,7 +290,7 @@ export const deleteOrganizationInvitations =
 					entityIds: [
 						input.organizationId,
 					],
-					permission: "invite",
+					permission: "invite_members",
 				}),
 			),
 		)
@@ -401,7 +412,7 @@ export const respondToOrganizationInvitation =
 				yield* db.insert(dbSchema.member).values({
 					organizationId: invitation.organizationId,
 					userId: context.auth.user.id,
-					role: invitation.role ?? "student",
+					role: invitation.role ?? "member",
 					createdAt: new Date(),
 				});
 
@@ -410,7 +421,7 @@ export const respondToOrganizationInvitation =
 					resourceId: invitation.organizationId,
 					subjectType: "user",
 					subjectId: context.auth.user.id,
-					newRelation: invitation.role ?? "student",
+					newRelation: invitation.role ?? "member",
 				});
 			}
 

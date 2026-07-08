@@ -4,9 +4,15 @@ import {
 	createListResponseSchema,
 	zedTokenSchema,
 } from "../shared";
-import { botEditorSchema, botSchema, botWithBlocksSchema } from "./schema";
+import {
+	botEditorSchema,
+	botWithBlocksSchema,
+	botWithCapabilitiesSchema,
+} from "./schema";
 
-export const listBotsResponseSchema = createListResponseSchema(botSchema);
+export const listBotsResponseSchema = createListResponseSchema(
+	botWithCapabilitiesSchema,
+);
 
 export const findBotResponseSchema =
 	createDataResponseSchema(botWithBlocksSchema);
@@ -23,6 +29,8 @@ export const saveBotResponseSchema = createDataResponseSchema(
 export const publishBotResponseSchema =
 	createDataResponseSchema(botEditorSchema);
 
-export const listDraftBotsResponseSchema = createListResponseSchema(botSchema);
+export const listDraftBotsResponseSchema = createListResponseSchema(
+	botWithCapabilitiesSchema,
+);
 
 export const deleteBotsResponseSchema = createDeleteResponseSchema();

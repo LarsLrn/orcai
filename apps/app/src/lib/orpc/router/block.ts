@@ -1,13 +1,9 @@
 import { DB, dbSchema } from "@orcai/db";
 import type { Block } from "@orcai/schema";
-import {
-	checkEntityPermission,
-	checkManyEntityPermissions,
-	hasPermission,
-	lookupEntitiesByPermission,
-} from "@orcai/spice-db";
+import { lookupEntitiesByPermission } from "@orcai/spice-db";
 import { and, countDistinct, desc, eq, getColumns, inArray } from "drizzle-orm";
 import * as Effect from "effect/Effect";
+import { emptyCapabilities } from "@/lib/authz/capabilities";
 import { initializeResourceAuthorization } from "@/lib/authz/resource-lifecycle";
 import * as AppErrors from "@/lib/effect/utils/errors";
 import { authed } from "@/lib/orpc/implementation/authed";
@@ -17,6 +13,10 @@ import {
 	requireEntityPermission,
 	requireOrganizationPermission,
 } from "@/lib/orpc/middlewares/permission";
+import {
+	getEntityCapabilities,
+	getManyEntityCapabilities,
+} from "@/lib/orpc/router/helpers/capabilities";
 import {
 	loadDatabaseBlockAssets,
 	syncDatabaseBlockAssets,
@@ -86,35 +86,17 @@ export const listBlocks = authed.block.list.effect(function* ({
 	);
 
 	const blocks = rawBlocks as Block[];
-	const editableBlockIds = new Set<string>();
-
-	if (blocks.length > 0) {
-		const permissions = yield* checkManyEntityPermissions({
-			entityIds: blocks.map((block) => block.id),
-			entityType: "block",
-			permission: "edit",
-			userId: context.auth.user.id,
-			zedToken: input.zedToken,
-		});
-
-		for (const pair of permissions.pairs) {
-			const blockId = pair.request?.resource?.objectId;
-			const allowed =
-				pair.response.oneofKind === "item" &&
-				hasPermission({
-					permissionship: pair.response.item.permissionship,
-				});
-
-			if (blockId && allowed) {
-				editableBlockIds.add(blockId);
-			}
-		}
-	}
+	const capabilities = yield* getManyEntityCapabilities({
+		entityType: "block",
+		entityIds: blocks.map((block) => block.id),
+		userId: context.auth.user.id,
+		zedToken: input.zedToken,
+	});
 
 	return {
 		data: blocks.map((block) => ({
 			...block,
-			canEdit: editableBlockIds.has(block.id),
+			capabilities: capabilities.get(block.id) ?? emptyCapabilities("block"),
 		})),
 		rowCount: countResult.count,
 	};
@@ -146,14 +128,12 @@ export const findBlock = authed.block.find
 			);
 		}
 
-		const canEditPermission = yield* checkEntityPermission({
-			entityId: input.id,
+		const capabilities = yield* getEntityCapabilities({
 			entityType: "block",
-			permission: "edit",
+			entityId: input.id,
 			userId: context.auth.user.id,
 			zedToken: input.zedToken,
 		});
-		const canEdit = hasPermission(canEditPermission);
 
 		if (block.type === "database") {
 			const assets = yield* loadDatabaseBlockAssets({
@@ -163,7 +143,7 @@ export const findBlock = authed.block.find
 			return {
 				data: {
 					...block,
-					canEdit,
+					capabilities,
 				},
 				assets,
 			};
@@ -172,7 +152,7 @@ export const findBlock = authed.block.find
 		return {
 			data: {
 				...block,
-				canEdit,
+				capabilities,
 			},
 		};
 	});

@@ -1,78 +1,31 @@
-import type { UseMutationOptions } from "@tanstack/react-query";
 import { useQueryClient } from "@tanstack/react-query";
 import { useMutationAction } from "@/hooks/actions/use-mutation-action";
-import { authClient } from "@/lib/auth/auth-client";
 import { orpc } from "@/lib/orpc/orpc";
 
-type DeleteUsersInput = {
-	userIds: string[];
-};
-
-type DeleteUsersResult = {
-	success: true;
-	deletedCount: number;
-};
-
-type DeleteUsersMutationOptions = UseMutationOptions<
-	DeleteUsersResult,
-	Error,
-	DeleteUsersInput,
-	unknown
->;
-
 export const useDeleteUsersMutation = (
-	opts: DeleteUsersMutationOptions = {},
+	opts: ReturnType<typeof orpc.user.delete.mutationOptions> = {},
 ) => {
 	const queryClient = useQueryClient();
 
 	return useMutationAction({
-		mutationOptions: () => ({
-			...opts,
-			mutationFn: async ({ userIds }: DeleteUsersInput) => {
-				const uniqueUserIds = new Set(userIds);
-				if (userIds.length === 0) {
-					throw new Error("Please select at least one user");
-				}
+		mutationOptions: () =>
+			orpc.user.delete.mutationOptions({
+				...opts,
+				onSuccess: async (...args) => {
+					queryClient.invalidateQueries({
+						queryKey: orpc.user.key(),
+					});
 
-				if (uniqueUserIds.size !== userIds.length) {
-					throw new Error("Selected users must be unique");
-				}
-
-				const results = [];
-				for (const userId of userIds) {
-					results.push(
-						await authClient.admin.removeUser({
-							userId,
-						}),
-					);
-				}
-
-				for (const result of results) {
-					if (result.error) {
-						throw new Error(result.error.message);
+					try {
+						await opts.onSuccess?.(...args);
+					} catch (error) {
+						console.error(
+							"useDeleteUsersMutation onSuccess callback failed:",
+							error,
+						);
 					}
-				}
-
-				return {
-					success: true,
-					deletedCount: userIds.length,
-				} as const;
-			},
-			onSuccess: async (...args) => {
-				queryClient.invalidateQueries({
-					queryKey: orpc.user.key(),
-				});
-
-				try {
-					await opts.onSuccess?.(...args);
-				} catch (error) {
-					console.error(
-						"useDeleteUsersMutation onSuccess callback failed:",
-						error,
-					);
-				}
-			},
-		}),
+				},
+			}),
 		messages: {
 			loading: "Deleting users...",
 			success: "Users deleted",
