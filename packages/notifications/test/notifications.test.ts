@@ -87,7 +87,9 @@ describe("notification schemas and templates", () => {
 
 	test("logs complete sensitive email content in log-only mode", async () => {
 		const entries: unknown[] = [];
-		const logger = Logger.make(({ message }) => entries.push(...message));
+		const logger = Logger.make(({ message }) =>
+			entries.push(...(message as unknown[])),
+		);
 		const email = {
 			to: "user@example.com",
 			subject: "Reset your password",
@@ -169,6 +171,10 @@ describe("notification schemas and templates", () => {
 					: "verificationUrl" in notification
 						? notification.verificationUrl
 						: notification.resetUrl;
+
+			if (!actionUrl) {
+				throw new Error("Missing action URL");
+			}
 			expect(rendered.html).toContain(actionUrl.replaceAll("&", "&amp;"));
 			expect(rendered.html).not.toContain("<Invitee>");
 		});

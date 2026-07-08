@@ -45,6 +45,7 @@
 		"knip": "knip",
 		"lint": "biome check . && tsgo --build --noEmit tsconfig.json",
 		"lint-full": "biome check . && tsgo --build --noEmit tsconfig.json && bun run eslint .",
+		"test": "bun test --recursive packages/**/test/*.test.ts packages/**/test/**/*.test.ts",
 		"machine-translate": "bun run --filter @orcai/app machine-translate",
 		"precommit": "lint-staged",
 		"prepare": "husky",
