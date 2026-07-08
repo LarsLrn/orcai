@@ -1,5 +1,6 @@
 import { v1 } from "@authzed/authzed-node";
 import * as Effect from "effect/Effect";
+import { definitionHasRelation } from "../lib";
 import type { SpiceConvergeOperation } from "../types";
 
 const roleRelationMap = {
@@ -149,14 +150,14 @@ export const rewriteOrganizationRoleTuplesOperation: SpiceConvergeOperation = {
 		function* (context) {
 			const currentSchema = yield* context.readCurrentSchema();
 			return oldRelations.some((relation) =>
-				currentSchema.includes(`relation ${relation}: user`),
+				definitionHasRelation(currentSchema, "organization", relation),
 			);
 		},
 	),
 	run: Effect.fn("rewriteOrganizationRoleTuplesOperation.run")(
 		function* (context) {
 			const currentSchema = yield* context.readCurrentSchema();
-			if (!currentSchema.includes("relation admin: user")) {
+			if (!definitionHasRelation(currentSchema, "organization", "admin")) {
 				yield* context.log(
 					"Applying temporary organization role compatibility schema...",
 				);

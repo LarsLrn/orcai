@@ -15,6 +15,31 @@ export const hasDefinition = (schema: string, definitionName: string) => {
 	return pattern.test(schema);
 };
 
+export const definitionHasRelation = (
+	schema: string,
+	definitionName: string,
+	relationName: string,
+) => {
+	const escapedDefinition = definitionName.replace(
+		/[.*+?^${}()|[\]\\]/g,
+		"\\$&",
+	);
+	const escapedRelation = relationName.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
+	const definitionPattern = new RegExp(
+		String.raw`\bdefinition\s+${escapedDefinition}\s*\{([\s\S]*?)^\}`,
+		"m",
+	);
+	const body = definitionPattern.exec(schema)?.[1];
+	if (body === undefined) {
+		return false;
+	}
+
+	const relationPattern = new RegExp(
+		String.raw`\brelation\s+${escapedRelation}\s*:`,
+	);
+	return relationPattern.test(body);
+};
+
 const parseDeletedCount = (value: string): number => {
 	const parsed = Number.parseInt(value, 10);
 	if (Number.isNaN(parsed)) {
