@@ -23,9 +23,6 @@ export const auth = betterAuth({
 	trustedOrigins: [
 		cfg.auth.url,
 		"http://localhost:3000",
-		"http://host.docker.internal:3000",
-		"sokratest://",
-		"http://10.0.2.2:3000",
 	],
 	// tanstackStartCookies plugin must be last in the array
 	plugins: [

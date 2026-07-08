@@ -1,6 +1,6 @@
 export const buckets = {
 	main: {
-		name: "sokratest",
+		name: "uploads",
 	},
 	processed: {
 		name: "processed-files",

@@ -11,8 +11,6 @@
 > [!WARNING]
 > OrcAI is still in active development and is not yet ready for production use.
 
-OrcAI is the current product name of the AI-assisted educational platform in this repository. The codebase, package name, Docker service names, storage buckets, and some contact addresses still use legacy `sokratest` identifiers for compatibility. This will eventually change.
-
 ## Overview
 
 OrcAI is a research-oriented platform developed at Rhine-Waal University for AI-supported learning workflows. Instructors upload course material, the platform processes and indexes it, and students interact with an AI tutor that can ground responses in those materials via retrieval-augmented generation (RAG).

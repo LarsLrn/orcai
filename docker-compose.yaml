@@ -5,7 +5,7 @@ services:
     environment:
       POSTGRES_USER: postgres
       POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-postgres}
-      POSTGRES_DB: sokratest-v2
+      POSTGRES_DB: app
     volumes:
       - postgres_data:/var/lib/postgresql/data
     healthcheck:
@@ -40,7 +40,7 @@ services:
       POSTGRES_HOST: postgres
       POSTGRES_USER: postgres
       POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-postgres}
-      POSTGRES_DB: sokratest-v2
+      POSTGRES_DB: app
     restart: on-failure
 
   # MinIO S3-Compatible Object Storage
@@ -81,10 +81,10 @@ services:
     restart: unless-stopped
 
   # OrcAI application (legacy service name retained)
-  sokratest:
+  app:
     build:
       context: .
-      dockerfile: ./docker/Dockerfile.sokratest
+      dockerfile: ./docker/Dockerfile.app
       target: runtime
       args:
         VITE_BASE_URL: ${VITE_BASE_URL:-}
@@ -96,7 +96,7 @@ services:
       # Database Configuration
       POSTGRES_USER: postgres
       POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-postgres}
-      POSTGRES_DB: sokratest-v2
+      POSTGRES_DB: app
       POSTGRES_HOST: postgres
       POSTGRES_SSL: "false"
       VALKEY_URL: redis://valkey:6379
@@ -190,7 +190,7 @@ services:
     environment:
       POSTGRES_USER: ${POSTGRES_USER:-postgres}
       POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-postgres}
-      POSTGRES_DB: ${POSTGRES_DB:-sokratest-v2}
+      POSTGRES_DB: ${POSTGRES_DB:-app}
       POSTGRES_HOST: postgres
       VALKEY_URL: redis://valkey:6379
       S3_ENDPOINT: ${S3_ENDPOINT:-http://minio:9000}
@@ -238,7 +238,7 @@ services:
       minio:
         condition: service_healthy
     entrypoint: >
-      /bin/sh -c " /usr/bin/mc alias set myminio http://minio:9000 $$MINIO_ROOT_USER $$MINIO_ROOT_PASSWORD && /usr/bin/mc mb myminio/sokratest --ignore-existing && /usr/bin/mc mb myminio/processed-files --ignore-existing && /usr/bin/mc mb myminio/sokratest-dev --ignore-existing && /usr/bin/mc mb myminio/processed-files-dev --ignore-existing && echo 'MinIO buckets created successfully' "
+      /bin/sh -c " /usr/bin/mc alias set myminio http://minio:9000 $$MINIO_ROOT_USER $$MINIO_ROOT_PASSWORD && /usr/bin/mc mb myminio/uploads --ignore-existing && /usr/bin/mc mb myminio/processed-files --ignore-existing && echo 'MinIO buckets created successfully' "
     environment:
       MINIO_ROOT_USER: ${MINIO_ROOT_USER:-minioadmin}
       MINIO_ROOT_PASSWORD: ${MINIO_ROOT_PASSWORD:-minioadmin}

@@ -20,7 +20,7 @@
 		"spicedb",
 		"spicedb-schema"
 	],
-	"workspaceFolder": "/workspaces/sokratest-v2",
+	"workspaceFolder": "/workspaces/orcai",
 	"remoteUser": "bun",
 	"forwardPorts": [
 		3000,
