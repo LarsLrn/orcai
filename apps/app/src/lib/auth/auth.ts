@@ -41,7 +41,7 @@ export const auth = betterAuth({
 	}),
 	emailAndPassword: {
 		enabled: true,
-		requireEmailVerification: true,
+		requireEmailVerification: false,
 		revokeSessionsOnPasswordReset: true,
 		sendResetPassword: async ({ user, url, token }, _request) => {
 			await runtime.runPromise(
@@ -59,7 +59,7 @@ export const auth = betterAuth({
 	},
 	emailVerification: {
 		sendOnSignUp: true,
-		sendOnSignIn: true,
+		sendOnSignIn: false,
 		autoSignInAfterVerification: true,
 		sendVerificationEmail: async ({ user, url, token }) => {
 			await runtime.runPromise(
