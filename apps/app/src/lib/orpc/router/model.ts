@@ -243,6 +243,7 @@ export const deleteModel = authed.model.delete
 	.effect(function* ({ input, context }) {
 		const db = yield* DB;
 		const organizationId = context.auth.session.activeOrganizationId;
+		const modelIds = input.refs.map((ref) => ref.id);
 
 		const providerRows = yield* db
 			.select({
@@ -253,21 +254,41 @@ export const deleteModel = authed.model.delete
 
 		const providerIds = providerRows.map((row) => row.id);
 		if (providerIds.length === 0) {
-			return {
-				success: true,
-				message: "Models deleted successfully",
-			};
+			return yield* Effect.fail(
+				new AppErrors.NotFoundError({
+					message: "One or more models were not found",
+				}),
+			);
 		}
 
-		yield* db.delete(dbSchema.model).where(
-			and(
-				inArray(
-					dbSchema.model.id,
-					input.refs.map((ref) => ref.id),
+		const existingModels = yield* db
+			.select({
+				id: dbSchema.model.id,
+			})
+			.from(dbSchema.model)
+			.where(
+				and(
+					inArray(dbSchema.model.id, modelIds),
+					inArray(dbSchema.model.providerId, providerIds),
 				),
-				inArray(dbSchema.model.providerId, providerIds),
-			),
-		);
+			);
+
+		if (existingModels.length !== modelIds.length) {
+			return yield* Effect.fail(
+				new AppErrors.NotFoundError({
+					message: "One or more models were not found",
+				}),
+			);
+		}
+
+		yield* db
+			.delete(dbSchema.model)
+			.where(
+				and(
+					inArray(dbSchema.model.id, modelIds),
+					inArray(dbSchema.model.providerId, providerIds),
+				),
+			);
 
 		return {
 			success: true,

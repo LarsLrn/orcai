@@ -221,12 +221,6 @@ export const deleteGroups = authed.group.delete
 		const now = new Date();
 
 		const groupIds = input.refs.map((ref) => ref.id);
-		if (groupIds.length === 0) {
-			return {
-				success: true,
-				message: "No groups provided",
-			};
-		}
 
 		const existingGroups = yield* db
 			.select({
@@ -242,6 +236,14 @@ export const deleteGroups = authed.group.delete
 				),
 			);
 
+		if (existingGroups.length !== groupIds.length) {
+			return yield* Effect.fail(
+				new AppErrors.NotFoundError({
+					message: "One or more groups were not found",
+				}),
+			);
+		}
+
 		if (existingGroups.some((group) => group.kind === "system")) {
 			return yield* Effect.fail(
 				new AppErrors.BadRequestError({
@@ -251,12 +253,6 @@ export const deleteGroups = authed.group.delete
 		}
 
 		const existingGroupIds = existingGroups.map((group) => group.id);
-		if (existingGroupIds.length === 0) {
-			return {
-				success: true,
-				message: "No matching groups found",
-			};
-		}
 
 		const membersToRemove = yield* db
 			.select({

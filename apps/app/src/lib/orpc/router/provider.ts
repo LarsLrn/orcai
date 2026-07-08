@@ -168,16 +168,36 @@ export const deleteProviders = authed.provider.delete
 	.effect(function* ({ input, context }) {
 		const db = yield* DB;
 		const organizationId = context.auth.session.activeOrganizationId;
+		const providerIds = input.refs.map((ref) => ref.id);
 
-		yield* db.delete(dbSchema.provider).where(
-			and(
-				eq(dbSchema.provider.organizationId, organizationId),
-				inArray(
-					dbSchema.provider.id,
-					input.refs.map((ref) => ref.id),
+		const existingProviders = yield* db
+			.select({
+				id: dbSchema.provider.id,
+			})
+			.from(dbSchema.provider)
+			.where(
+				and(
+					eq(dbSchema.provider.organizationId, organizationId),
+					inArray(dbSchema.provider.id, providerIds),
 				),
-			),
-		);
+			);
+
+		if (existingProviders.length !== providerIds.length) {
+			return yield* Effect.fail(
+				new AppErrors.NotFoundError({
+					message: "One or more providers were not found",
+				}),
+			);
+		}
+
+		yield* db
+			.delete(dbSchema.provider)
+			.where(
+				and(
+					eq(dbSchema.provider.organizationId, organizationId),
+					inArray(dbSchema.provider.id, providerIds),
+				),
+			);
 
 		return {
 			success: true,

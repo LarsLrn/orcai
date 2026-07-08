@@ -296,6 +296,21 @@ export const deleteOrganizations = authed.organization.delete
 	.effect(function* ({ context }) {
 		const db = yield* DB;
 
+		const existingOrganizations = yield* db
+			.select({
+				id: dbSchema.organization.id,
+			})
+			.from(dbSchema.organization)
+			.where(inArray(dbSchema.organization.id, context.allowedIds));
+
+		if (existingOrganizations.length !== context.allowedIds.length) {
+			return yield* Effect.fail(
+				new AppErrors.NotFoundError({
+					message: "One or more organizations were not found",
+				}),
+			);
+		}
+
 		yield* db
 			.delete(dbSchema.organization)
 			.where(inArray(dbSchema.organization.id, context.allowedIds));

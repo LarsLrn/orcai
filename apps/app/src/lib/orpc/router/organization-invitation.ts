@@ -287,6 +287,26 @@ export const deleteOrganizationInvitations =
 			const db = yield* DB;
 
 			const ids = input.refs.map((ref) => ref.id);
+			const existingInvitations = yield* db
+				.select({
+					id: dbSchema.invitation.id,
+				})
+				.from(dbSchema.invitation)
+				.where(
+					and(
+						eq(dbSchema.invitation.organizationId, input.organizationId),
+						inArray(dbSchema.invitation.id, ids),
+					),
+				);
+
+			if (existingInvitations.length !== ids.length) {
+				return yield* Effect.fail(
+					new AppErrors.NotFoundError({
+						message: "One or more organization invitations were not found",
+					}),
+				);
+			}
+
 			yield* db
 				.delete(dbSchema.invitation)
 				.where(
