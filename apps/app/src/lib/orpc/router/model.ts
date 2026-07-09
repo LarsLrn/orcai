@@ -3,7 +3,7 @@ import type { ModelCapability, ModelSortKey } from "@orcai/schema";
 import { call } from "@orpc/server";
 import {
 	and,
-	arrayOverlaps,
+	arrayContains,
 	count,
 	desc,
 	eq,
@@ -42,7 +42,7 @@ export const listModels = authed.model.list
 				? eq(dbSchema.model.providerId, input.filters.providerId)
 				: undefined,
 			input.filters?.capabilities
-				? arrayOverlaps(
+				? arrayContains(
 						dbSchema.model.capabilities,
 						input.filters.capabilities as ModelCapability[],
 					)
@@ -349,6 +349,7 @@ export const discoverModels = authed.model.discover
 			description: `Model ID: ${model.id} | Owned by ${model.owned_by}`,
 			capabilities: [
 				"text",
+				"tool-calling",
 			] satisfies ModelCapability[],
 		}));
 

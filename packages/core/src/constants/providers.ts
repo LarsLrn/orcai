@@ -50,6 +50,10 @@ export const modelCapabilities = [
 		value: "reasoning",
 		label: "Reasoning",
 	},
+	{
+		value: "tool-calling",
+		label: "Tool Calling",
+	},
 ] as const;
 
 export const providerMeteringModes = [
