@@ -4,6 +4,7 @@ x-dev-app-env: &dev_app_env
   BASE_URL: http://localhost:3000
   BETTER_AUTH_URL: http://localhost:3000
   VITE_BASE_URL: http://localhost:3000
+  VITE_WEB_URL: http://localhost:3001
   BETTER_AUTH_SECRET: ${BETTER_AUTH_SECRET:-dev-better-auth-secret}
   ENCRYPTION_KEY: ${ENCRYPTION_KEY:-1234567890abcdef1234567890abcdef}
   OPENAI_COMPATIBLE_BASE_URL: ${OPENAI_COMPATIBLE_BASE_URL:-http://localhost:11434/v1}

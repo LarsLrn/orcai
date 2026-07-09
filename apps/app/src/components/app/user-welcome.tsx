@@ -1,9 +1,10 @@
 import { useRouteContext } from "@tanstack/react-router";
-import { CompassIcon } from "lucide-react";
+import { CompassIcon, ExternalLinkIcon } from "lucide-react";
 import { AppTourButton } from "@/components/next-step/app-tour-button";
-import { Button } from "@/components/ui/button";
+import { buttonVariants } from "@/components/ui/button";
+import { clientEnv } from "@/lib/env/client";
+import { cn } from "@/lib/utils";
 import { m } from "@/paraglide/messages";
-import { AboutModal } from "./about-modal";
 
 const UserWelcome = () => {
 	const { auth } = useRouteContext({
@@ -33,11 +34,22 @@ const UserWelcome = () => {
 					>
 						<CompassIcon className="text-foreground" />
 					</AppTourButton>
-					<AboutModal>
-						<Button size="sm" variant="outline">
-							{m.fluffy_short_halibut_enchant()}
-						</Button>
-					</AboutModal>
+					{clientEnv.VITE_WEB_URL && (
+						<a
+							href={clientEnv.VITE_WEB_URL}
+							target="_blank"
+							rel="noopener noreferrer"
+							className={cn(
+								buttonVariants({
+									variant: "outline",
+									size: "sm",
+								}),
+							)}
+						>
+							About OrcAI
+							<ExternalLinkIcon className="size-3.5" />
+						</a>
+					)}
 				</div>
 			</div>
 			<p className="text-muted-foreground">{m.only_pink_meerkat_relish()}</p>
