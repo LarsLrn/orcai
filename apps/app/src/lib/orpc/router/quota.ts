@@ -370,8 +370,50 @@ export const quotaChatBadge = authed.quota.chatBadge
 			},
 			columns: {
 				botId: true,
+				config: true,
 			},
 		});
+
+		const chatConfig = (chat?.config ?? {}) as {
+			providerId?: ProviderId;
+			modelId?: string;
+		};
+
+		if (chatConfig.providerId && chatConfig.modelId) {
+			const resolved = yield* resolveQuotaPool({
+				organizationId,
+				userId: context.auth.user.id,
+				providerId: chatConfig.providerId,
+				providerModelId: chatConfig.modelId,
+			});
+
+			const winning = resolved.winningPool;
+			if (!winning) {
+				return {
+					data: {
+						poolId: null,
+						poolName: null,
+						meteringMode: null,
+						remainingAmount: null,
+						consumedAmount: null,
+						reservedAmount: null,
+						periodEndsAt: null,
+					},
+				};
+			}
+
+			return {
+				data: {
+					poolId: winning.pool.id,
+					poolName: winning.pool.name,
+					meteringMode: winning.meteringMode,
+					remainingAmount: winning.ledger.remainingAmount,
+					consumedAmount: winning.ledger.consumedAmount,
+					reservedAmount: winning.ledger.reservedAmount,
+					periodEndsAt: winning.period.endsAt,
+				},
+			};
+		}
 
 		if (!chat?.botId) {
 			return {

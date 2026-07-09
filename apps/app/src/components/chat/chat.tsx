@@ -1,11 +1,7 @@
 import { useChat } from "@ai-sdk/react";
 import type { ChatBranchId, ChatId } from "@orcai/core";
 import { eventIteratorToUnproxiedDataStream } from "@orpc/client";
-import {
-	useQuery,
-	useQueryClient,
-	useSuspenseQuery,
-} from "@tanstack/react-query";
+import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { useEffect, useRef } from "react";
 import { toast } from "sonner";
 import {
@@ -17,7 +13,6 @@ import { Shimmer } from "@/components/ai-elements/shimmer";
 import { Badge } from "@/components/ui/badge";
 import type { ChatAgentUIMessage } from "@/lib/ai/types/chat-agent-message";
 import { client, orpc } from "@/lib/orpc/orpc";
-import { BranchSwitcher } from "./branch-switcher";
 import { ChatInput } from "./chat-input";
 import { ChatPlaceholder } from "./chat-placeholder";
 import { MessageBlock } from "./message/message-block";
@@ -38,22 +33,13 @@ const Chat = ({
 	const queryClient = useQueryClient();
 	const hasSentPendingMessage = useRef(false);
 
-	const { data: chat } = useSuspenseQuery(
-		orpc.chat.find.queryOptions({
-			input: {
-				id,
-				zedToken,
-			},
-		}),
-	);
+	const quotaBadgeQueryOptions = orpc.quota.chatBadge.queryOptions({
+		input: {
+			chatId: id,
+		},
+	});
 
-	const quotaBadge = useQuery(
-		orpc.quota.chatBadge.queryOptions({
-			input: {
-				chatId: id,
-			},
-		}),
-	);
+	const quotaBadge = useQuery(quotaBadgeQueryOptions);
 
 	const { messages, status, setMessages, regenerate, sendMessage, stop } =
 		useChat<ChatAgentUIMessage>({
@@ -94,6 +80,10 @@ const Chat = ({
 					}),
 					refetchType: "active",
 				});
+				await queryClient.invalidateQueries({
+					queryKey: quotaBadgeQueryOptions.queryKey,
+					refetchType: "active",
+				});
 			},
 			onError: (error) => {
 				toast.error("An error occurred, please try again!", {
@@ -128,7 +118,7 @@ const Chat = ({
 
 	return (
 		<div className="flex size-full min-h-0 min-w-0 flex-col">
-			<div className="absolute top-2 right-4 z-10 flex items-center gap-2">
+			<div className="absolute top-4 right-2 z-10 flex items-center gap-2">
 				{quotaBadge.data?.data.poolId && (
 					<Badge variant="outline" className="bg-background/90">
 						{quotaBadge.data.data.poolName}:{" "}
@@ -138,7 +128,6 @@ const Chat = ({
 							: "tokens"}
 					</Badge>
 				)}
-				<BranchSwitcher chat={chat.data} branches={chat.data.branches} />
 			</div>
 
 			<Conversation className="flex w-full" initial="instant">
