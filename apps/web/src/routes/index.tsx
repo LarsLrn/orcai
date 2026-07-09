@@ -77,7 +77,7 @@ function Home() {
 										<ArrowRightIcon className="size-4" />
 									</a>
 									<a
-										href="https://github.com/SokratesT/orcai"
+										href="https://github.com/LarsLrn/orcai"
 										className="inline-flex items-center gap-2 rounded-lg border border-[#c7d0cd] px-5 py-3 font-medium dark:border-[#2e3b38]"
 									>
 										<Code2Icon className="size-4" />
