@@ -29,6 +29,7 @@ export const modelTableColumns: ColumnDef<ModelListRow>[] = [
 				params={{
 					modelId: row.original.id,
 				}}
+				className="font-medium hover:underline"
 			>
 				{row.original.name}
 			</Link>
@@ -46,7 +47,7 @@ export const modelTableColumns: ColumnDef<ModelListRow>[] = [
 				params={{
 					providerId: row.original.provider.id,
 				}}
-				className="hover:underline"
+				className="font-medium hover:underline"
 			>
 				{row.original.provider.name}
 			</Link>

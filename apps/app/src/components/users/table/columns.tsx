@@ -24,6 +24,17 @@ export const columns: ColumnDef<UserWithOrganizationRole>[] = [
 		header: ({ column }) => (
 			<DataTableColumnHeader column={column} title="Name" />
 		),
+		cell: ({ row }) => (
+			<Link
+				to="/app/users/$userId/edit"
+				params={{
+					userId: row.original.id,
+				}}
+				className="font-medium hover:underline"
+			>
+				{row.original.name}
+			</Link>
+		),
 	},
 	{
 		accessorKey: "email",

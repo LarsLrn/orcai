@@ -26,6 +26,7 @@ import {
 	ResourceCardTitle,
 } from "@/components/ui/shell/resource-card";
 import { hasCapability } from "@/lib/authz/capabilities";
+import { getFileTypeLabel } from "@/lib/presentation/file-type";
 import { getProcessingStatusLabel } from "@/lib/presentation/processing-status";
 
 const AssetCard = ({
@@ -87,7 +88,7 @@ const AssetCard = ({
 
 	const badges: ResourceCardBadgeItem[] = [
 		{
-			label: asset.fileType,
+			label: getFileTypeLabel(asset.fileType),
 			variant: "outline",
 		},
 	];

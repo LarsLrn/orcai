@@ -17,6 +17,7 @@ import {
 	DialogTitle,
 } from "@/components/ui/dialog";
 import { ScrollArea } from "@/components/ui/scroll-area";
+import { getFileTypeLabel } from "@/lib/presentation/file-type";
 
 const hasMetadataAdded = (draft: AssetMetadataDraft, fileName: string) => {
 	const defaults = createDefaultAssetMetadata();
@@ -76,7 +77,9 @@ const UploadedFileReviewList = ({
 					<div className="min-w-0 flex-1">
 						<div className="truncate font-medium text-sm">{draft.title}</div>
 						<div className="mt-1 flex flex-wrap gap-2 text-xs">
-							<Badge variant="secondary">{file.type || "file"}</Badge>
+							<Badge variant="secondary">
+								{file.type ? getFileTypeLabel(file.type) : "FILE"}
+							</Badge>
 							<Badge variant={hasMetadata ? "default" : "outline"}>
 								{hasMetadata ? "Metadata added" : "Needs metadata"}
 							</Badge>

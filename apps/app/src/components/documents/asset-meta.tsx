@@ -19,8 +19,10 @@ import {
 	TooltipContent,
 	TooltipTrigger,
 } from "@/components/ui/tooltip";
+import { getFileTypeLabel } from "@/lib/presentation/file-type";
 
 const getFileTypeColor = (fileType: string): string => {
+	const label = getFileTypeLabel(fileType).toLowerCase();
 	const typeMap: Record<string, string> = {
 		pdf: "bg-red-100 text-red-800",
 		doc: "bg-blue-100 text-blue-800",
@@ -35,7 +37,7 @@ const getFileTypeColor = (fileType: string): string => {
 		png: "bg-purple-100 text-purple-800",
 	};
 
-	return typeMap[fileType.toLowerCase()] || "bg-zinc-100 text-zinc-800";
+	return typeMap[label] || "bg-zinc-100 text-zinc-800";
 };
 
 const formatDate = (date: Date | null): string => {
@@ -57,6 +59,7 @@ const getRelevanceBadgeColor = (relevance: string): string => {
 
 const AssetMeta = ({ asset }: { asset: Asset }) => {
 	const fileTypeColor = getFileTypeColor(asset.fileType);
+	const fileTypeLabel = getFileTypeLabel(asset.fileType);
 	const relevanceBadgeColor = getRelevanceBadgeColor(asset.metadata.relevance);
 
 	return (
@@ -70,7 +73,7 @@ const AssetMeta = ({ asset }: { asset: Asset }) => {
 								<Badge
 									className={`${fileTypeColor} font-medium text-xs uppercase`}
 								>
-									{asset.fileType}
+									{fileTypeLabel}
 								</Badge>
 							}
 						/>
