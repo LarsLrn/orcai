@@ -35,11 +35,6 @@ const MultiSelectField = ({
 		(state) => state.meta.isTouched && !state.meta.isValid,
 	);
 
-	console.log(
-		"State value:",
-		field.state.value.filter((val) => options.some((opt) => opt.value === val)),
-	);
-
 	return (
 		<Field orientation="responsive" data-invalid={isInvalid}>
 			<FieldContent>
