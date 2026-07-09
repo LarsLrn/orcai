@@ -1,9 +1,11 @@
 import type { ExtractedImage, ExtractionResult } from "@kreuzberg/node";
+import type { BucketName } from "@orcai/schema";
 
 export type StoredExtractionImage = Omit<
 	ExtractedImage,
 	"data" | "ocrResult"
 > & {
+	sourceBucket?: BucketName;
 	sourcePath?: string;
 };
 

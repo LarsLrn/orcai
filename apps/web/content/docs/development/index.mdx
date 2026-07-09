@@ -1,0 +1,36 @@
+---
+title: Development
+description: Repository development workflows and implementation notes.
+---
+
+The OrcAI repository is a Bun workspace with applications under `apps/*` and shared packages under `packages/*`.
+
+## Main Applications
+
+- `apps/app`: main OrcAI application.
+- `apps/workers`: background worker process.
+- `apps/web`: website and documentation service.
+
+## Recommended Workflow
+
+The repository includes a VS Code devcontainer. It starts supporting services, installs workspace dependencies, applies migrations, initializes MinIO buckets, applies the SpiceDB schema, and runs a workspace container.
+
+For a host or local Docker workflow, use the commands in [Commands](/docs/development/commands) and the self-hosting pages.
+
+## Developer Pages
+
+<Cards>
+	<Card href="/docs/development/commands" title="Commands">
+		Common Bun workspace commands for apps, workers, checks, database migrations, and docs.
+	</Card>
+	<Card href="/docs/development/architecture" title="Architecture">
+		How app, workers, storage, authorization, retrieval, and AI services fit together.
+	</Card>
+	<Card href="/docs/development/contributing" title="Contributing">
+		Branching, commit format, local validation, pull request expectations, and docs conventions.
+	</Card>
+</Cards>
+
+<Callout title="TODO" type="idea">
+	Document how generated route trees, MDX collections, and testing conventions should be updated once those workflows are stable.
+</Callout>

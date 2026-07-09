@@ -1,10 +1,10 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
-import { FileTextIcon } from "lucide-react";
+import { FileTextIcon, MailCheckIcon, MailWarningIcon } from "lucide-react";
 import { Suspense } from "react";
 import { UserStats } from "@/components/app/user-stats";
 import { ChangePasswordForm } from "@/components/auth/change-password/change-password-form";
 import { OrganizationInvitationsList } from "@/components/organizations/invitations/organization-invitations-list";
-import { buttonVariants } from "@/components/ui/button";
+import { Button, buttonVariants } from "@/components/ui/button";
 import {
 	Card,
 	CardContent,
@@ -20,12 +20,16 @@ import {
 } from "@/components/ui/shell/page";
 import { Skeleton } from "@/components/ui/skeleton";
 import { ProfileForm } from "@/components/users/profile/form/profile-form";
+import { useResendVerificationEmail } from "@/hooks/mutations/use-resend-verification-email";
 
 export const Route = createFileRoute("/app/account/")({
 	component: RouteComponent,
 });
 
 function RouteComponent() {
+	const { auth } = Route.useRouteContext();
+	const { mutate: resendVerificationEmail } = useResendVerificationEmail();
+
 	return (
 		<Page>
 			<PageHeader>
@@ -40,20 +44,40 @@ function RouteComponent() {
 						</Suspense>
 						<Card>
 							<CardHeader>
+								<CardTitle>Email Verification</CardTitle>
+								<CardDescription className="flex items-center gap-2">
+									{auth.user.emailVerified ? (
+										<MailCheckIcon className="h-4 w-4 text-green-600" />
+									) : (
+										<MailWarningIcon className="h-4 w-4 text-amber-600" />
+									)}
+									{auth.user.emailVerified
+										? "Your email address is verified."
+										: "Your email address is not verified."}
+								</CardDescription>
+							</CardHeader>
+							{!auth.user.emailVerified ? (
+								<CardContent>
+									<Button
+										variant="outline"
+										onClick={() =>
+											resendVerificationEmail({
+												email: auth.user.email,
+											})
+										}
+									>
+										Send Verification Email
+									</Button>
+								</CardContent>
+							) : null}
+						</Card>
+						<Card>
+							<CardHeader>
 								<CardTitle>Change Password</CardTitle>
 							</CardHeader>
 							<CardContent className="flex flex-col gap-4">
 								<ChangePasswordForm />
 							</CardContent>
-						</Card>
-						<Card>
-							<CardHeader>
-								<CardTitle>Chat Usage</CardTitle>
-								<CardDescription>
-									Your chat usage statistics. This may include deleted messages
-									and chats.
-								</CardDescription>
-							</CardHeader>
 						</Card>
 					</div>
 

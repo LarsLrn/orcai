@@ -1,13 +1,21 @@
 import { z } from "zod/v4";
 import { paginationInputSchema, zedTokenSchema } from "../shared";
 import { createUniqueRefsInputSchema } from "../shared/ref-list";
+import { createSortingInputSchema } from "../shared/sorting";
 import { chatConfigPatchSchema } from "./parts/config";
 import { chatIdSchema } from "./ref";
-import { chatMutableFieldsSchema } from "./schema";
+import { chatFiltersSchema, chatMutableFieldsSchema } from "./schema";
 
-export const listChatsInputSchema = z.object({
-	...paginationInputSchema.shape,
+export const chatSortKeySchema = z.enum([
+	"title",
+	"botName",
+	"updatedAt",
+]);
+
+export const listChatsInputSchema = paginationInputSchema.extend({
 	...zedTokenSchema.shape,
+	...createSortingInputSchema(chatSortKeySchema).shape,
+	filters: chatFiltersSchema.optional(),
 });
 
 export const findChatInputSchema = z.object({
@@ -31,6 +39,7 @@ export const deleteChatInputSchema = z.object({
 });
 
 export type ListChatsInput = z.infer<typeof listChatsInputSchema>;
+export type ChatSortKey = z.infer<typeof chatSortKeySchema>;
 export type FindChatInput = z.infer<typeof findChatInputSchema>;
 export type CreateChatInput = z.infer<typeof createChatInputSchema>;
 export type UpdateChatInput = z.infer<typeof updateChatInputSchema>;

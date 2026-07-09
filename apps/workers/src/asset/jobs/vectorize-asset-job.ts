@@ -415,7 +415,7 @@ const buildImageChunks = ({
 				}
 
 				const base64Image = yield* getImageAsBase64({
-					bucket: buckets.processed.name,
+					bucket: image.sourceBucket ?? buckets.processed.name,
 					name: image.sourcePath,
 				});
 

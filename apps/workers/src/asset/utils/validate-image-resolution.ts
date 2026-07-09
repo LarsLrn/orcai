@@ -11,9 +11,9 @@ interface Size {
 export function validateImageResolution(size: Size, upscaleFactor = 1) {
 	// Define minimum resolution requirements
 	// TODO: Refine values and improve image validation logic
-	const MIN_IMAGE_WIDTH = 300 * upscaleFactor; // pixels
-	const MIN_IMAGE_HEIGHT = 300 * upscaleFactor; // pixels
-	const MIN_SINGLE_DIMENSION = 300 * upscaleFactor; // pixels
+	const MIN_IMAGE_WIDTH = 100 * upscaleFactor; // pixels
+	const MIN_IMAGE_HEIGHT = 100 * upscaleFactor; // pixels
+	const MIN_SINGLE_DIMENSION = 200 * upscaleFactor; // pixels
 
 	const width = size.width || 0;
 	const height = size.height || 0;

@@ -1,0 +1,114 @@
+---
+title: Configuration
+description: Required and optional environment variables for OrcAI.
+---
+
+Runtime configuration is loaded across app and package config modules. `.env.example` is the current baseline for self-hosted environments.
+
+<Callout title="Self-hosting scope" type="info">
+	Custom embedding and image-processing model definitions are supported only in self-hosted deployments. For managed/shared deployments, these are platform-level settings controlled by the hosting operator.
+</Callout>
+
+Primary config modules:
+
+- `packages/ai/src/config.ts`
+- `packages/db/src/config.ts`
+- `packages/notifications/src/config.ts`
+- `packages/qdrant/src/config.ts`
+- `packages/s3/src/server/config.ts`
+- `packages/spice-db/src/config.ts`
+- `packages/valkey/src/config.ts`
+- `apps/app/src/lib/effect/services/config.ts`
+
+## Public URLs
+
+| Variable | Required | Notes |
+| --- | --- | --- |
+| `BASE_URL` | Recommended | Compatibility fallback used by some auth tooling. Keep aligned with `BETTER_AUTH_URL` when set. |
+| `BETTER_AUTH_URL` | Yes | Public auth callback base URL. Keep aligned with `BASE_URL`. |
+| `VITE_BASE_URL` | Yes | Public frontend base URL used in client-side links. |
+
+## Authentication And Encryption
+
+| Variable | Required | Notes |
+| --- | --- | --- |
+| `BETTER_AUTH_SECRET` | Yes | Better Auth signing secret. |
+| `ENCRYPTION_KEY` | Yes | 32 to 64 character application encryption key. |
+
+## Database And Cache
+
+| Variable | Required | Notes |
+| --- | --- | --- |
+| `POSTGRES_USER` | Yes | PostgreSQL user. |
+| `POSTGRES_PASSWORD` | Yes | PostgreSQL password. |
+| `POSTGRES_HOST` | Yes | PostgreSQL host. |
+| `POSTGRES_PORT` | Yes | PostgreSQL port. |
+| `POSTGRES_DB` | Yes | PostgreSQL database name. |
+| `VALKEY_URL` | Yes | Valkey connection URL. |
+
+## Object Storage
+
+| Variable | Required | Notes |
+| --- | --- | --- |
+| `S3_ENDPOINT` | Yes | Internal S3-compatible endpoint. |
+| `S3_PUBLIC_ENDPOINT` | No | Public endpoint used for presigned URLs. |
+| `S3_REGION` | No | Defaults to `eu-central-1`. |
+| `S3_ACCESS_KEY` | Yes | S3 access key. |
+| `S3_SECRET_KEY` | Yes | S3 secret key. |
+
+## AI And Retrieval
+
+| Variable | Required | Notes |
+| --- | --- | --- |
+| `OPENAI_COMPATIBLE_BASE_URL` | Yes | Base URL for an OpenAI-compatible API. |
+| `OPENAI_COMPATIBLE_API_KEY` | Yes | API key for the model endpoint. |
+| `EMBEDDING_MODEL` | Yes | Embedding model exposed by the endpoint. |
+| `EMBEDDING_DIMENSIONS` | Yes | Positive integer vector size for the embedding model and Qdrant collection. |
+| `GENERAL_MODEL` | Yes | General-purpose model used by worker image-description steps. |
+| `KREUZBERG_OCR_LANGUAGE` | No | OCR languages for asset processing. Defaults to `eng` in host-oriented code and `eng+deu` in Compose examples. |
+
+<Callout title="Do not mix embeddings" type="warn">
+	Changing `EMBEDDING_MODEL` or `EMBEDDING_DIMENSIONS` after assets have already been indexed is not supported. Recreate the Qdrant collection and reprocess assets instead of mixing embeddings.
+</Callout>
+
+## Qdrant
+
+| Variable | Required | Notes |
+| --- | --- | --- |
+| `QDRANT_URL` | Yes | Qdrant HTTP endpoint. |
+| `QDRANT_API_KEY` | Yes | Qdrant API key. Local development may use a placeholder. |
+
+## SpiceDB
+
+| Variable | Required | Notes |
+| --- | --- | --- |
+| `SPICEDB_ENDPOINT` | Yes | SpiceDB gRPC endpoint. |
+| `SPICEDB_TOKEN` | Yes | Token used by the app. |
+| `SPICEDB_SECURITY` | No | Transport mode for SpiceDB client. Defaults to `insecure-plaintext`. Valid values: `secure`, `insecure-localhost`, `insecure-plaintext`. |
+| `SPICEDB_GRPC_PRESHARED_KEY` | Compose | Used by the Compose-managed SpiceDB service. |
+| `SPICEDB_POSTGRES_USER` | Compose | User for the Compose-managed SpiceDB database. |
+| `SPICEDB_POSTGRES_PASSWORD` | Compose | Password for the Compose-managed SpiceDB database. |
+
+## Email
+
+Email delivery stays in log-only mode unless SMTP is configured.
+
+| Variable | Required | Notes |
+| --- | --- | --- |
+| `SMTP_HOST` | No | Must be set with `SMTP_FROM` to enable SMTP. |
+| `SMTP_PORT` | No | Defaults to `587` when SMTP mode is enabled and no port is set. |
+| `SMTP_USERNAME` | No | Must be paired with `SMTP_PASSWORD` if used. |
+| `SMTP_PASSWORD` | No | Must be paired with `SMTP_USERNAME` if used. |
+| `SMTP_SECURE` | No | If unset, derived from port (`true` for 465, otherwise `false`). |
+| `SMTP_TLS_REJECT_UNAUTHORIZED` | No | Defaults to `true`. |
+| `SMTP_FROM` | No | Must be set with `SMTP_HOST` to enable SMTP. |
+| `SMTP_FROM_NAME` | No | Defaults to `OrcAI Team`. |
+
+## Observability
+
+| Variable | Required | Notes |
+| --- | --- | --- |
+| `VITE_UMAMI_SCRIPT_URL` | No | Enables Umami analytics injection when paired with website ID. |
+| `VITE_UMAMI_WEBSITE_ID` | No | Umami website ID. |
+| `OTEL_EXPORTER_OTLP_ENDPOINT` | No | OpenTelemetry export endpoint. |
+| `OTEL_EXPORTER_OTLP_HEADERS` | No | OpenTelemetry export headers. |

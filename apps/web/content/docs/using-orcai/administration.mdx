@@ -1,0 +1,88 @@
+---
+title: Workspace Administration
+description: Manage members, groups, quotas, providers, models, and organisations.
+---
+
+The Administration area is capability-gated and appears under Your Workspace in the sidebar.
+
+Only sections allowed by your organisation capabilities are shown.
+
+For a practical setup sequence, use [Workspace Setup For Admins](/docs/using-orcai/workspace-setup).
+
+## Sections
+
+Current administration sections in the app:
+
+- Users
+- Groups
+- Quotas
+- Providers
+- Models
+- Organisations
+
+## Users
+
+Users is a paginated data table with sorting and table actions.
+
+Primary actions:
+
+- Invite User
+- View Invitations
+
+Invitation management has its own table page with export and actions.
+
+## Groups
+
+Groups supports:
+
+- Search
+- Create custom groups
+- Edit and delete custom groups
+- Member management with explicit/implicit labels
+
+System groups are immutable.
+
+## Quotas
+
+Quotas are managed through Quota Pools.
+
+The list page supports table operations and pool creation.
+
+In chat, users may see remaining quota badges by pool name and metering mode.
+
+<Callout title="TODO" type="idea">
+	Document the full quota model including reset periods, rollover, and assignment hierarchy.
+</Callout>
+
+## Providers
+
+Providers represent model backends/endpoints available to OrcAI.
+
+The providers page supports listing, creation, and table actions.
+
+## Models
+
+Models are managed separately from providers and can be filtered by provider.
+
+Current models page features:
+
+- Search by model/provider text
+- Provider filter
+- Add Model
+- Discover Models
+
+## Organisations
+
+Organisations can be listed and created from the Organisations page.
+
+Organisation switching for users happens in the select-organisation flow and user menu action.
+
+## Operational Guidance
+
+- Configure providers and models before onboarding large user groups.
+- Keep quotas aligned with model pricing and expected usage.
+- Use groups and grants to avoid manually maintaining per-user permissions.
+
+<Callout title="TODO" type="idea">
+	Add recommended default capability profiles for small teams, classrooms, and enterprise pilots.
+</Callout>

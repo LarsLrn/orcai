@@ -1,0 +1,63 @@
+---
+title: Services
+description: Runtime services used by OrcAI.
+---
+
+OrcAI is a multi-service application. The app and workers are separate processes that share the same backing services.
+
+## Service Map
+
+| Service | Role | Required for |
+| --- | --- | --- |
+| App | UI, authentication, API routes, workflows | All user-facing use |
+| Workers | Background jobs and scheduled maintenance | Content processing and quotas |
+| PostgreSQL | Relational application data | Core persistence |
+| Valkey | Cache and coordination | Runtime support |
+| MinIO/S3 | Uploaded and processed files | Content library |
+| Qdrant | Vector indexes | Retrieval |
+| SpiceDB | Authorization relationships | Access control |
+| AI endpoint | Embeddings and chat model calls | Chat and ingestion |
+
+## App
+
+The main app is a Bun/TanStack Start application. It serves the user interface, authentication, oRPC API routes, and application workflows.
+
+In Docker Compose, the service name is `app`.
+
+## Web (Docs)
+
+The repository Compose stack also includes a `web` service for the documentation website.
+
+## Workers
+
+Workers run background jobs for asset processing, vectorization, quota reconciliation, quota verification, and quota period rollover. Workers must be running for uploaded content to become searchable.
+
+## PostgreSQL
+
+PostgreSQL stores application data. The Compose stack uses the `pgvector/pgvector:0.8.2-pg17` image, although retrieval vectors are stored in Qdrant.
+
+## Valkey
+
+Valkey is used as a cache and supporting infrastructure service.
+
+## MinIO Or S3-Compatible Storage
+
+Uploaded files and processed artifacts are stored in S3-compatible object storage. Compose uses MinIO and initializes required buckets with a one-shot setup service.
+
+## Qdrant
+
+Qdrant stores vector indexes for retrieval. The embedding dimensions in Qdrant must match `EMBEDDING_DIMENSIONS`.
+
+## SpiceDB
+
+SpiceDB backs authorization checks. The repository includes schema files under `packages/spice-db/src/schema` and commands to apply or inspect the schema.
+
+## AI Endpoint
+
+OrcAI uses an OpenAI-compatible model endpoint for embeddings and model calls. The configured endpoint must expose the embedding model and general-purpose model selected in environment variables.
+
+Custom embedding and image-processing model definitions are only supported in self-hosted deployments.
+
+## Document Processing
+
+Kreuzberg handles document extraction. OCR requires Tesseract in the worker environment.

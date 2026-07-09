@@ -5,6 +5,10 @@ import { buttonVariants } from "@/components/ui/button";
 import { DataTable } from "@/components/ui/data-table/data-table";
 import { DataTableBody } from "@/components/ui/data-table/data-table-body";
 import { DataTablePagination } from "@/components/ui/data-table/data-table-pagination";
+import {
+	DataTableToolbar,
+	DataTableToolbarActions,
+} from "@/components/ui/data-table/data-table-toolbar";
 import { DataTableViewOptions } from "@/components/ui/data-table/data-table-view-options";
 import {
 	Page,
@@ -99,11 +103,12 @@ function RouteComponent() {
 						},
 					}}
 				>
-					<div className="flex items-center gap-2">
-						<DataTableViewOptions />
-						<UsersDataTableSelectActions />
-						{/* <SearchInput /> */}
-					</div>
+					<DataTableToolbar>
+						<DataTableToolbarActions>
+							<DataTableViewOptions />
+							<UsersDataTableSelectActions />
+						</DataTableToolbarActions>
+					</DataTableToolbar>
 					<DataTableBody />
 					<DataTablePagination />
 				</DataTable>

@@ -24,12 +24,31 @@ export const columns: ColumnDef<UserWithOrganizationRole>[] = [
 		header: ({ column }) => (
 			<DataTableColumnHeader column={column} title="Name" />
 		),
+		cell: ({ row }) => (
+			<Link
+				to="/app/users/$userId/edit"
+				params={{
+					userId: row.original.id,
+				}}
+				className="font-medium hover:underline"
+			>
+				{row.original.name}
+			</Link>
+		),
 	},
 	{
 		accessorKey: "email",
 		header: ({ column }) => (
 			<DataTableColumnHeader column={column} title="Email" />
 		),
+	},
+	{
+		accessorKey: "emailVerified",
+		header: ({ column }) => (
+			<DataTableColumnHeader column={column} title="Email Verified" />
+		),
+		cell: ({ row }) =>
+			row.original.emailVerified ? "Verified" : "Not verified",
 	},
 	{
 		accessorKey: "organizationRole",

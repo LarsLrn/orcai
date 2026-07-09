@@ -1,0 +1,9 @@
+{
+	"title": "Development",
+	"pages": [
+		"index",
+		"commands",
+		"architecture",
+		"contributing"
+	]
+}

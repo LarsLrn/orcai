@@ -1,0 +1,66 @@
+---
+title: Commands
+description: Common Bun workspace commands.
+---
+
+Run these commands from the repository root unless noted otherwise.
+
+<Callout title="Tip" type="info">
+	Use the filtered `@orcai/web` commands when you only need to validate documentation changes.
+</Callout>
+
+## Application
+
+| Command | Purpose |
+| --- | --- |
+| `bun run dev` | Start the main app development server. |
+| `bun run build` | Build the main app. |
+| `bun run start` | Run the built main app. |
+| `bun run workers:dev` | Start workers in development mode. |
+| `bun run workers:start` | Start workers in production mode. |
+
+## Quality Checks
+
+| Command | Purpose |
+| --- | --- |
+| `bun run lint` | Run Biome and TypeScript checks. |
+| `bun run lint-full` | Run Biome, TypeScript checks, and ESLint. |
+| `bun run knip` | Run unused dependency/export analysis. |
+| `bun run prepush` | Run the full pre-push check. |
+
+## Database And Authorization
+
+| Command | Purpose |
+| --- | --- |
+| `bun run --filter @orcai/db migrate` | Apply SQL migrations. |
+| `bun run --filter @orcai/db generate` | Generate a new Drizzle migration. |
+| `bun run --filter @orcai/db studio` | Open Drizzle Studio. |
+| `bun run --filter @orcai/spice-db up` | Apply the SpiceDB schema. |
+| `bun run --filter @orcai/spice-db status` | Inspect SpiceDB schema migration status. |
+
+## Documentation Web Service
+
+Run the docs service directly with:
+
+```bash title="Repository root"
+bun run --filter @orcai/web dev
+```
+
+Check MDX generation and TypeScript types with:
+
+```bash title="Repository root"
+bun run --filter @orcai/web types:check
+```
+
+Build the docs service with:
+
+```bash title="Repository root"
+bun run --filter @orcai/web build
+```
+
+## Maintenance
+
+| Command | Purpose |
+| --- | --- |
+| `bun run clean` | Remove dependencies, build outputs, generated TanStack artifacts, devtools folders, and TypeScript build info. |
+| `bun run machine-translate` | Run the app machine-translation workflow. |

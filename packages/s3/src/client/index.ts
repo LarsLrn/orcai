@@ -1,3 +1,4 @@
+export { ASSET_UPLOAD_ACCEPT } from "../shared/upload-policy";
 export { ClientUploadErrorClass } from "./error";
 export type {
 	SignedUrlsSuccessResponse,

@@ -1,0 +1,87 @@
+---
+title: Content Library
+description: Upload, manage, process, and share reusable source material.
+---
+
+The Content Library (Library > Content) is where OrcAI stores reusable source material used for retrieval, grounding, and citations.
+
+## What You Can Do
+
+- Add content items
+- View content item details
+- Edit metadata
+- Reprocess content
+- Manage access and groups
+- Download original files (if permitted)
+- Delete content (if permitted)
+
+## End-To-End Flow
+
+1. Upload material to OrcAI.
+2. Confirm metadata in the intake flow.
+3. Store source in S3-compatible object storage.
+4. Process content through background jobs.
+5. Index retrieval-ready chunks.
+6. Attach items to repository blocks.
+7. Use repository blocks in bots or directly in chats.
+
+## Add Content UX
+
+The Add Content page uses a multi-step intake flow and emphasizes that metadata follows the content item wherever it is reused.
+
+Placeholder text in the UI indicates intended source types include:
+
+- Documents/files
+- URLs
+- Text snippets
+
+<Callout title="TODO" type="idea">
+	Confirm which of URL and snippet ingestion are fully active in production paths, not just planned by copy.
+</Callout>
+
+## Processing Status And Reprocessing
+
+Content cards expose processing status, and reprocess actions are only available when status is not pending/active and the user has edit capability.
+
+Operationally:
+
+- Reprocess is useful after parser/config changes.
+- Reprocess can be triggered from list cards and detail pages.
+
+<Callout title="TODO" type="idea">
+	Add a full status legend once all status transitions are documented centrally.
+</Callout>
+
+## Permissions And Access
+
+Content details and actions are capability-based:
+
+- download
+- edit
+- delete
+- manage_access
+
+Access management opens a shared Access dialog for visibility, groups, and direct grants.
+
+## Relationship To Retrieval
+
+Content items are not retrieved directly by default in bot workflows. They are typically connected through database blocks (repositories), then attached to bots or chats.
+
+## Platform Dependencies
+
+At system level, content workflows rely on:
+
+- S3-compatible storage
+- Worker processing pipeline
+- Embedding generation
+- Qdrant indexing
+
+The embedding model and vector dimensions must stay compatible with existing collections.
+
+<Callout title="Embedding compatibility" type="warn">
+	Changing `EMBEDDING_MODEL` or `EMBEDDING_DIMENSIONS` after assets have already been indexed is not supported right now. Recreate the Qdrant collection and reprocess assets instead.
+</Callout>
+
+<Callout title="TODO" type="idea">
+	Document file size limits, per-type parsing limits, OCR behaviour for image-heavy PDFs in mixed-language files, and troubleshooting for failed ingestion or stuck processing states.
+</Callout>

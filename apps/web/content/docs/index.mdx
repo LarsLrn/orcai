@@ -1,31 +1,37 @@
 ---
-title: Hello World
-description: Your favourite docs framework.
-icon: Rocket
+title: OrcAI Documentation
+description: Learn how to use OrcAI and run it in your own environment.
 ---
 
-Hey there! Fumadocs is the docs framework that also works on Tanstack Start!
+OrcAI is an AI-assisted educational platform for learning workflows grounded in course material. Instructors upload content, OrcAI processes and indexes it, and students use chat-based AI assistance that can retrieve relevant context from those materials.
 
-## Heading
+<Callout title="Early draft" type="warn">
+	OrcAI is still in active development and is not yet ready for production use. Some TODOs are intentionally left visible while product details settle.
+</Callout>
 
-Hello World!
+## Start Here
 
 <Cards>
-  <Card title="Learn more about Tanstack Start" href="https://tanstack.com/start" />
-  <Card title="Learn more about Fumadocs" href="https://fumadocs.dev" />
+	<Card href="/docs/getting-started/overview" title="Platform overview">
+		Understand what OrcAI does, who it is for, and how retrieval-backed chat fits together.
+	</Card>
+	<Card href="/docs/using-orcai" title="Using OrcAI">
+		Follow user-facing workflows for chat, content management, bots, access, and account settings.
+	</Card>
+	<Card href="/docs/self-hosting" title="Self hosting">
+		Run OrcAI with Docker Compose or manually managed infrastructure.
+	</Card>
+	<Card href="/docs/development" title="Development">
+		Work with the repository, commands, architecture notes, and contribution flow.
+	</Card>
 </Cards>
 
-### CodeBlock
+## Main Capabilities
 
-```ts
-console.log('Hello World');
-```
-
-#### Table
-
-| Head                            | Description                         |
-| ------------------------------- | ----------------------------------- |
-| `hello`                         | Hello World                         |
-| very **important**              | Hey                                 |
-| _Surprisingly_                  | Fumadocs                            |
-| very long text that looks weird | hello world hello world hello world |
+- AI-assisted chat grounded in uploaded course content
+- Document ingestion for PDFs, Office files, and images
+- Background processing and indexing workflows
+- Qdrant-backed vector search for retrieval-augmented generation
+- S3-compatible storage for uploaded and processed assets
+- Organization, group, invitation, and resource access management
+- Configurable providers, models, quotas, observability, and email delivery

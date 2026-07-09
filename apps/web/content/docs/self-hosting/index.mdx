@@ -1,0 +1,65 @@
+---
+title: Self Hosting
+description: Run OrcAI with Docker Compose or a manually managed service stack.
+---
+
+OrcAI can be run as a local Docker Compose stack or as manually managed Bun app and worker processes connected to external services.
+
+For most self-hosting experiments, start with [Docker Compose quickstart](/docs/self-hosting/quickstart-compose). Use [manual setup](/docs/self-hosting/manual-setup) when you need to manage PostgreSQL, Valkey, Qdrant, SpiceDB, S3-compatible storage, and workers yourself.
+
+<Callout title="Not production hardened" type="warn">
+	These pages document what the repository can run today. They are not yet a complete production operations guide.
+</Callout>
+
+## Choose A Path
+
+<Cards>
+	<Card href="/docs/self-hosting/quickstart-compose" title="Docker Compose quickstart">
+		Start the app, workers, databases, object storage, authorization, and vector search locally.
+	</Card>
+	<Card href="/docs/self-hosting/manual-setup" title="Manual setup">
+		Run the Bun app and workers directly against services you manage yourself.
+	</Card>
+	<Card href="/docs/self-hosting/configuration" title="Configuration">
+		Map the required environment variables for auth, storage, AI, retrieval, and services.
+	</Card>
+	<Card href="/docs/self-hosting/operations" title="Operations">
+		Use the current maintenance notes for migrations, workers, retrieval, and troubleshooting.
+	</Card>
+</Cards>
+
+## Required Infrastructure
+
+- PostgreSQL
+- Valkey
+- S3-compatible object storage
+- Qdrant
+- SpiceDB
+- An OpenAI-compatible inference endpoint
+- Background workers
+
+## Model Configuration Scope
+
+Custom embedding and image-processing model definitions are supported only when you self-host OrcAI.
+
+In managed/shared deployments, treat these as platform-level settings controlled by the hosting operator.
+
+## Important Caveats
+
+- OrcAI is not production-ready yet.
+- `docker-compose.local.yaml` is a development-oriented override, not a production deployment manifest.
+- AI model, embedding model, and embedding dimensions must be configured before useful content ingestion can work.
+- Changing embedding settings on an existing deployment requires recreating the Qdrant collection and reprocessing assets.
+
+## Source Files
+
+- `.env.example`
+- `docker-compose.yaml`
+- `docker-compose.local.yaml`
+- `packages/ai/src/config.ts`
+- `packages/db/src/config.ts`
+- `packages/notifications/src/config.ts`
+- `packages/qdrant/src/config.ts`
+- `packages/s3/src/server/config.ts`
+- `packages/spice-db/src/config.ts`
+- `packages/valkey/src/config.ts`

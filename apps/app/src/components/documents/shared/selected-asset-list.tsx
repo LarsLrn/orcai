@@ -16,6 +16,7 @@ import {
 	DialogTitle,
 } from "@/components/ui/dialog";
 import { useSaveAssetMutation } from "@/hooks/mutations/use-asset-mutations";
+import { getFileTypeLabel } from "@/lib/presentation/file-type";
 import { getProcessingStatusLabel } from "@/lib/presentation/processing-status";
 
 const SelectedAssetList = ({
@@ -55,7 +56,9 @@ const SelectedAssetList = ({
 						<div className="min-w-0 flex-1">
 							<div className="truncate font-medium text-sm">{asset.title}</div>
 							<div className="mt-1 flex flex-wrap gap-2 text-xs">
-								<Badge variant="secondary">{asset.fileType}</Badge>
+								<Badge variant="secondary">
+									{getFileTypeLabel(asset.fileType)}
+								</Badge>
 								{asset.processingStatus ? (
 									<Badge variant="outline">
 										{getProcessingStatusLabel(asset.processingStatus)}

@@ -1,0 +1,10 @@
+{
+	"title": "OrcAI",
+	"pages": [
+		"index",
+		"getting-started",
+		"using-orcai",
+		"self-hosting",
+		"development"
+	]
+}

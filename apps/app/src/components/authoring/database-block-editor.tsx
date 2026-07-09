@@ -192,7 +192,7 @@ const DatabaseBlockEditor = ({
 					</Dialog>
 
 					<Dialog open={isUploadOpen} onOpenChange={setIsUploadOpen}>
-						<DialogContent className="max-h-[88vh] overflow-auto sm:max-w-5xl">
+						<DialogContent className="max-h-[88vh] sm:max-w-5xl">
 							<DialogHeader>
 								<DialogTitle>Upload New Content</DialogTitle>
 								<DialogDescription>

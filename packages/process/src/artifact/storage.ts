@@ -1,4 +1,5 @@
 import type { ExtractedImage, ExtractionResult } from "@kreuzberg/node";
+import type { BucketName } from "@orcai/schema";
 import type { StoredExtractionArtifact, StoredExtractionImage } from "./types";
 
 export const STORED_EXTRACTION_FILE_NAME = "extraction.json";
@@ -20,7 +21,9 @@ export const createStoredExtractionArtifact = (params: {
 }): StoredExtractionArtifact => {
 	const images = (params.result.images ?? [])
 		.map(stripInlineImageFields)
-		.map((image, index) => params.transformImage?.(image, index) ?? image)
+		.map((image, index) =>
+			params.transformImage ? params.transformImage(image, index) : image,
+		)
 		.filter((image): image is StoredExtractionImage => image !== undefined);
 
 	return {
@@ -36,6 +39,39 @@ export const createStoredExtractionArtifact = (params: {
 		images,
 	};
 };
+
+export const createImageOnlyStoredExtractionArtifact = (params: {
+	mimeType: string;
+	format: string;
+	sourceBucket: BucketName;
+	sourcePath: string;
+}): StoredExtractionArtifact =>
+	({
+		content: "",
+		mimeType: params.mimeType,
+		metadata: {
+			formatType: "image",
+		},
+		tables: [],
+		detectedLanguages: [],
+		chunks: [],
+		document: null,
+		qualityScore: undefined,
+		processingWarnings: [],
+		images: [
+			{
+				format: params.format,
+				imageIndex: 0,
+				pageNumber: 1,
+				width: null,
+				height: null,
+				isMask: false,
+				description: null,
+				sourceBucket: params.sourceBucket,
+				sourcePath: params.sourcePath,
+			},
+		],
+	}) as StoredExtractionArtifact;
 
 export const serializeStoredExtractionArtifact = (
 	artifact: StoredExtractionArtifact,

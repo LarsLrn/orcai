@@ -1,0 +1,119 @@
+---
+title: Chat
+description: Start conversations, select bots and models, and manage per-chat behaviour.
+---
+
+Chat is the core end-user workflow in OrcAI. You can start chats from scratch, start from a bot, attach sources, switch branches, and tune per-chat settings.
+
+## Entry Points
+
+- Sidebar action: Start a chat
+- Chat index page: Start a chat
+- Direct path: `/app/chat/setup`
+
+The setup page offers two options:
+
+- Use a bot: open a selector dialog and choose from available bots.
+- Start fresh: no preselected bot.
+
+Both paths go to the new chat composer where you send the first prompt.
+
+## Starting A New Chat
+
+### Choose A Starting Point [step]
+
+Use a published bot when you want a predefined behaviour and knowledge setup. Start fresh when you want to choose the model and sources directly.
+
+### Configure The First Message [step]
+
+Before sending the first message, you can configure:
+
+- Bot (optional)
+- Model and provider (required)
+
+### Send And Continue [step]
+
+When you send the first message, OrcAI creates the chat and opens the conversation view.
+
+## Chat List
+
+The chat list supports:
+
+- Search by text
+- Filter by bot
+- Sorting and pagination
+- Table actions (bulk actions depend on capabilities)
+
+## In-Conversation Features
+
+In an active chat, OrcAI supports:
+
+- Streaming model responses
+- Message actions (for example regenerate and edit, depending on message type)
+- Usage metadata on assistant messages
+- Download conversation
+- Chat tour trigger
+
+## Branching
+
+If a chat has multiple branches, a branch switcher appears at the top-right of the conversation.
+
+- Switching branch updates both active branch state and URL query.
+- Branch names are reflected in the page title when not the default Main branch.
+
+## Attachments In Chat
+
+Chat supports two attachment sources:
+
+- Local uploads during composition
+- Existing content from the content library
+
+Current hard limits and accepted formats in the app settings:
+
+- Max attachments per message: 8
+- Accepted patterns: image/*, application/pdf, text/*, DOCX, PPTX
+
+The send button allows either:
+
+- Text only
+- Attachments only
+- Text plus attachments
+
+## Chat Settings
+
+Each chat has a settings dialog where you can configure:
+
+- Model/provider
+- System prompt (only for chats not locked to a bot)
+- Advanced generation settings
+	- temperature
+	- top-p
+	- max tokens
+	- frequency penalty
+	- presence penalty
+
+For bot-linked chats:
+
+- System prompt is locked to the bot template block
+- Attached blocks are managed by the bot, not directly in chat settings
+
+For non-bot chats:
+
+- You can attach one behaviour block and multiple content collection blocks directly to the chat
+
+## Quota Badge
+
+When quota data is available, the chat header shows remaining amount for the assigned pool.
+
+The badge can represent either:
+
+- Requests
+- Tokens
+
+## Retrieval And Citations
+
+Responses can include tool-driven retrieval output and source-aware rendering (for example citations and knowledge lookups) through message part renderers.
+
+<Callout title="TODO" type="idea">
+	Document exact citation interaction patterns in the UI with screenshots, confirm branch creation UX, and document retention/deletion behaviour for chats and messages.
+</Callout>

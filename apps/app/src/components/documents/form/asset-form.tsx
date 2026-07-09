@@ -14,6 +14,7 @@ import {
 	CardTitle,
 } from "@/components/ui/card";
 import { useSaveAssetMutation } from "@/hooks/mutations/use-asset-mutations";
+import { getFileTypeLabel } from "@/lib/presentation/file-type";
 
 const AssetForm = ({ asset }: { asset: Asset }) => {
 	const { mutate: saveAsset, isPending } = useSaveAssetMutation();
@@ -34,7 +35,9 @@ const AssetForm = ({ asset }: { asset: Asset }) => {
 				</CardHeader>
 				<CardContent className="space-y-4">
 					<div className="flex flex-wrap gap-2">
-						<Badge variant="secondary">{asset.fileType}</Badge>
+						<Badge variant="secondary">
+							{getFileTypeLabel(asset.fileType)}
+						</Badge>
 						<Badge variant="outline">{asset.size} bytes</Badge>
 					</div>
 

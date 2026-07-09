@@ -14,6 +14,7 @@ import {
 	Attachments,
 } from "@/components/ai-elements/attachments";
 import { InputGroupAddon } from "@/components/ui/input-group";
+import { getFileTypeLabel } from "@/lib/presentation/file-type";
 import type { LocalChatFile } from "./use-chat-attachments";
 
 const localFileToUiPart = (file: LocalChatFile) =>
@@ -75,7 +76,8 @@ const AttachmentNode = ({
 						<h4 className="font-semibold text-sm leading-none">{title}</h4>
 
 						<p className="font-mono text-muted-foreground text-xs">
-							{fileType} · {convert(size, "B").to("best").toString(2)}
+							{getFileTypeLabel(fileType)} ·{" "}
+							{convert(size, "B").to("best").toString(2)}
 						</p>
 					</div>
 				</div>

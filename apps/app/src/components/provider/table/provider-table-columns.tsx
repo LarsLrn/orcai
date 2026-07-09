@@ -30,6 +30,7 @@ export const providerTableColumns: ColumnDef<Provider>[] = [
 				params={{
 					providerId: row.original.id,
 				}}
+				className="font-medium hover:underline"
 			>
 				{row.original.name}
 			</Link>

@@ -1,0 +1,102 @@
+---
+title: Docker Compose Quickstart
+description: Start a local OrcAI stack with the repository Compose files.
+---
+
+Use the Compose quickstart when you want a runnable local stack outside the devcontainer.
+
+## Prerequisites
+
+- Docker with Docker Compose.
+- A configured OpenAI-compatible endpoint for embeddings and model calls.
+- A local `.env` file based on `.env.example`.
+- Values for `EMBEDDING_MODEL`, `EMBEDDING_DIMENSIONS`, and `GENERAL_MODEL`.
+- Secrets for auth/encryption (`BETTER_AUTH_SECRET`, `ENCRYPTION_KEY`) for anything beyond throwaway local testing.
+
+## Start The Stack
+
+### Create The Environment File [step]
+
+If you do not have a local `.env` yet, create one from the example:
+
+```bash title="Repository root"
+cp .env.example .env
+```
+
+Edit `.env` before starting the stack. At minimum, set the AI variables below.
+
+### Run Compose [step]
+
+From the repository root:
+
+```bash title="Repository root"
+docker compose -f docker-compose.yaml -f docker-compose.local.yaml up -d --build
+```
+
+The app is published on:
+
+```text
+http://localhost:3000
+```
+
+## Services And Ports
+
+The local override publishes:
+
+| Service | Default port | Purpose |
+| --- | ---: | --- |
+| OrcAI app | `3000` | Main web application |
+| PostgreSQL | `5432` | Application database |
+| Valkey | `6379` | Cache and coordination |
+| MinIO API | `9000` | S3-compatible object storage |
+| MinIO Console | `9001` | MinIO administration UI |
+| Qdrant HTTP | `6333` | Vector database HTTP API |
+| Qdrant gRPC | `6334` | Vector database gRPC API |
+| SpiceDB gRPC | `50051` | Authorization service |
+| SpiceDB HTTP | `8080` | SpiceDB HTTP API |
+| SpiceDB metrics | `9090` | SpiceDB metrics |
+| SpiceDB PostgreSQL | `5431` | SpiceDB backing database |
+
+Most ports can be overridden with environment variables such as `APP_PORT`, `POSTGRES_PORT`, `MINIO_API_PORT`, and `QDRANT_HTTP_PORT`.
+
+## Required AI Variables
+
+The local override provides development placeholders for some secrets, but these AI variables must be meaningful for ingestion and chat to work:
+
+```bash title=".env"
+OPENAI_COMPATIBLE_BASE_URL="https://your-ai-provider.example/v1"
+OPENAI_COMPATIBLE_API_KEY="replace-with-openai-compatible-api-key"
+EMBEDDING_MODEL="baai/bge-m3"
+EMBEDDING_DIMENSIONS=1024
+GENERAL_MODEL="google/gemma-4-26b-a4b-it"
+```
+
+<Callout title="Keep embeddings stable" type="warn">
+	Keep `EMBEDDING_MODEL` and `EMBEDDING_DIMENSIONS` stable after indexing data. Changing them requires recreating the Qdrant collection and reprocessing assets.
+</Callout>
+
+## Stop The Stack
+
+```bash title="Repository root"
+docker compose -f docker-compose.yaml -f docker-compose.local.yaml down
+```
+
+Add `-v` only if you intentionally want to remove local volumes and lose stored database, object storage, Qdrant, and SpiceDB data.
+
+## Production-Like Notes
+
+- The local override injects development defaults for several values; treat those as non-production.
+- Keep `EMBEDDING_MODEL` and `EMBEDDING_DIMENSIONS` stable after indexing data.
+- Custom embedding and image-processing model definitions are only supported in self-hosted deployments.
+
+## What Compose Initializes
+
+The Compose stack includes one-shot services for:
+
+- Application database migrations.
+- MinIO bucket bootstrap.
+- SpiceDB schema migration.
+
+<Callout title="TODO" type="idea">
+	Add a first-login/admin-bootstrap flow once the production initialization process is finalized, plus an example `.env` for a realistic self-hosted deployment.
+</Callout>

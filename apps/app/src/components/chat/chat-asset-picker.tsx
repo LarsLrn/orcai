@@ -20,6 +20,7 @@ import { Input } from "@/components/ui/input";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { Spinner } from "@/components/ui/spinner";
 import { orpc } from "@/lib/orpc/orpc";
+import { getFileTypeLabel } from "@/lib/presentation/file-type";
 
 const PAGE_SIZE = 20;
 
@@ -93,7 +94,7 @@ export const ChatAssetPicker = ({
 										{asset.title}
 									</div>
 									<div className="truncate text-muted-foreground text-xs">
-										{asset.fileType} ·{" "}
+										{getFileTypeLabel(asset.fileType)} ·{" "}
 										{convert(asset.size, "B").to("best").toString(2)}
 									</div>
 								</div>

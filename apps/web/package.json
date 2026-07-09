@@ -7,7 +7,7 @@
 	"sideEffects": false,
 	"type": "module",
 	"scripts": {
-		"build": "vite build",
+		"build": "NODE_ENV=production vite build",
 		"dev": "vite dev  --host 127.0.0.1",
 		"postinstall": "fumadocs-mdx",
 		"start": "vite preview",
@@ -19,6 +19,7 @@
 		"@tanstack/react-router-devtools": "catalog:",
 		"@tanstack/react-start": "catalog:",
 		"@vitejs/plugin-react": "catalog:",
+		"beautiful-mermaid": "1.1.3",
 		"fumadocs-core": "16.10.7",
 		"fumadocs-mdx": "15.0.13",
 		"fumadocs-ui": "16.10.7",

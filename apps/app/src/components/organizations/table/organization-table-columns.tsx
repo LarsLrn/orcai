@@ -24,6 +24,17 @@ export const organizationTableColumns: ColumnDef<Organization>[] = [
 		header: ({ column }) => (
 			<DataTableColumnHeader column={column} title="Name" />
 		),
+		cell: ({ row }) => (
+			<Link
+				to="/app/orgs/$orgId"
+				params={{
+					orgId: row.original.id,
+				}}
+				className="font-medium hover:underline"
+			>
+				{row.original.name}
+			</Link>
+		),
 	},
 	{
 		accessorKey: "slug",

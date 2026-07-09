@@ -1,0 +1,87 @@
+---
+title: Access Control
+description: Organisations, groups, invitations, capabilities, and resource-level sharing.
+---
+
+OrcAI uses organisation-scoped access control with capability-gated UI and resource-level grants. Authorization is enforced by backend checks and shared capability hooks in the app.
+
+## Access Model Overview
+
+- You sign in as a user account.
+- You operate inside one active organisation at a time.
+- Sidebar sections and actions are visible only when capability checks pass.
+- Many resources (assets, blocks, bots) support direct sharing and group-based grants.
+
+## Active Organisation
+
+After login, users without an active organisation are redirected to organisation selection.
+
+The selection page supports:
+
+- Choosing from available organisations
+- Auto-select when only one exists
+- Accepting pending invitations to gain access
+
+## Invitations
+
+Invitations are used to add users into organisations.
+
+Current flows in app:
+
+- Invite users from administration users pages
+- View invitations list with table actions
+- Register via invitation-aware sign-up flow
+- See and respond to organisation invitations from account and selection pages
+
+Invitation links are validated for existence and expiry during registration.
+
+## Groups
+
+Groups are used for access assignment and resource sharing.
+
+Current behaviour:
+
+- Create custom groups
+- Edit custom group name and description
+- Delete custom groups
+- Add/remove explicit members
+- View implicit vs explicit membership labels
+
+System groups are immutable in the group detail view.
+
+## Resource Sharing
+
+Access dialogs are available on several resource types and allow:
+
+- Visibility management
+- Group grants
+- Direct grants
+
+The same access manager pattern is reused for:
+
+- Content items
+- Blocks
+- Bots
+
+## Capability-Gated Workspace Sections
+
+The sidebar workspace menu currently gates sections by capabilities such as:
+
+- manage_members
+- manage_groups
+- manage_quotas
+- manage_providers
+- manage_models
+- manage_organization
+
+General read capability is used for major Library sections.
+
+## Practical Guidance
+
+- Use groups for scalable access management.
+- Use direct grants for exceptional one-off access.
+- Keep high-impact capabilities (provider/model/quota management) limited to admins.
+
+<Callout title="TODO" type="idea">
+	Document default system groups, publish a complete permission matrix per resource action, and add examples for resolving "why can this user not see this bot/content".
+</Callout>

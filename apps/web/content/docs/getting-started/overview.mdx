@@ -1,0 +1,47 @@
+---
+title: Platform Overview
+description: What OrcAI is, who it is for, and how the platform fits together.
+---
+
+OrcAI is a research-oriented AI-assisted educational platform. It was originally based on the [SokratesT project](https://github.com/SokratesT/sokratest), but has since evolved far beyond it. OrcAI supports learning workflows where managers (e.g. instructors) curate material and users (e.g. students) interact with an AI tutor that can ground answers in that material. However, one of the goals of moving on from Sokrates<sup>t</sup> was also to leave the rigid teacher-stundent relation behind. That means OrcAI is also useful beyond this traditional context and can be used by individuals or groups to build specialised knowledge bases for their specific domain needs.
+
+<Callout title="Documentation status" type="info">
+	The project is still in active development. Treat the current documentation as an implementation-oriented headstart rather than a complete product manual.
+</Callout>
+
+## What OrcAI Does
+
+OrcAI combines content ingestion, semantic search, and chat:
+
+1. Managers upload course material.
+2. Background workers process files and extract usable text or image descriptions.
+3. Processed content is stored in S3-compatible object storage.
+4. Extracted content is indexed in Qdrant for retrieval.
+5. Users chat with the platform.
+6. Relevant context is retrieved and sent to the configured AI model endpoint.
+
+## Core Areas
+
+- Chat: user-facing AI conversations, optionally started from configured bots.
+- Content library: uploaded files and processed assets used as knowledge sources.
+- Bots and blocks: reusable AI behavior and knowledge configurations.
+- Access control: organizations, users, groups, invitations, and resource sharing.
+- Administration: providers, models, quotas, jobs, and platform configuration.
+
+## Suggested Reading
+
+<Cards>
+	<Card href="/docs/using-orcai/chat" title="Start with chat">
+		Learn the primary end-user workflow: starting chats, choosing bots, and attaching sources.
+	</Card>
+	<Card href="/docs/using-orcai/workspace-setup" title="Set up a workspace">
+		Use the admin checklist to prepare providers, models, quotas, content, bots, and users.
+	</Card>
+	<Card href="/docs/self-hosting/quickstart-compose" title="Run it locally">
+		Start a local Compose stack and see which services OrcAI needs.
+	</Card>
+</Cards>
+
+## Getting Access
+
+Access to the managed service of OrcAI is currently only available via direct invites from users already on the platform. If you want to create your own organisation (isolated workspace) to invite users yourself, contact us at [sokratest@hochschule-rhein-waal.de](mailto:sokratest@hochschule-rhein-waal.de)

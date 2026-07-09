@@ -1,4 +1,4 @@
-import type { DirectUploadResult } from "@orcai/s3/client";
+import { ASSET_UPLOAD_ACCEPT, type DirectUploadResult } from "@orcai/s3/client";
 import type { FinalizedUploadFile, StorageUploadRoute } from "@orcai/schema";
 import { useMutation } from "@tanstack/react-query";
 import { useMemo, useState } from "react";
@@ -58,11 +58,7 @@ const UploadComponent = ({
 	description = "Select files, upload them, and review progress inline.",
 	uploadLabel = "Upload Files",
 	accept = {
-		"image/*": [],
-		"video/*": [],
-		"audio/*": [],
-		"application/pdf": [],
-		"text/*": [],
+		...ASSET_UPLOAD_ACCEPT,
 	},
 	maxSize = 64 * 1024 * 1024,
 	maxFileCount = 100,

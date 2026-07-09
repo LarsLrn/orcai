@@ -5,6 +5,7 @@ import { sendJobBatch, toPgBossRunError } from "@orcai/pg-boss";
 import {
 	buildStoredExtractionImageKey,
 	buildStoredExtractionKey,
+	createImageOnlyStoredExtractionArtifact,
 	createStoredExtractionArtifact,
 	extract,
 	serializeStoredExtractionArtifact,
@@ -48,6 +49,29 @@ const getImageContentType = (format: string) => {
 	return `image/${normalizedFormat}`;
 };
 
+const IMAGE_FILE_TYPES = new Set([
+	"jpeg",
+	"jpg",
+	"png",
+	"gif",
+	"webp",
+]);
+
+const isImageFileType = (fileType: string) => IMAGE_FILE_TYPES.has(fileType);
+
+const getRequiredMimeType = (params: {
+	fileType: ProcessAssetPayload["assetRef"]["type"];
+	jobId: string;
+}) =>
+	Effect.fromNullishOr(getMimeTypeFromFileType(params.fileType)).pipe(
+		Effect.mapError(() =>
+			toPgBossRunError(
+				params.jobId,
+				PROCESS_ASSET_JOB_NAME,
+			)(new Error(`Unsupported asset file type: ${params.fileType}`)),
+		),
+	);
+
 export const processAssetBatch = (jobs: Job<ProcessAssetPayload>[]) =>
 	Effect.forEach(
 		jobs,
@@ -59,6 +83,96 @@ export const processAssetBatch = (jobs: Job<ProcessAssetPayload>[]) =>
 			discard: true,
 		},
 	);
+
+const createDocumentArtifact = (params: {
+	result: Parameters<typeof createStoredExtractionArtifact>[0]["result"];
+	jobId: string;
+	assetId: string;
+}) =>
+	Effect.gen(function* () {
+		const storedImagePaths = new Map<number, string>();
+
+		yield* Effect.forEach(
+			params.result.images ?? [],
+			(image) =>
+				Effect.gen(function* () {
+					const width =
+						typeof image.width === "number" ? image.width : undefined;
+					const height =
+						typeof image.height === "number" ? image.height : undefined;
+					const hasDimensions = width !== undefined && height !== undefined;
+
+					if (hasDimensions) {
+						const validationResult = validateImageResolution({
+							width,
+							height,
+						});
+
+						if (!validationResult.isValid) {
+							return yield* Effect.logWarning(
+								{
+									jobId: params.jobId,
+									assetId: params.assetId,
+									imageIndex: image.imageIndex,
+									width,
+									height,
+								},
+								"Skipping extracted image due to resolution/validation",
+							);
+						}
+					}
+
+					const key = buildStoredExtractionImageKey({
+						assetId: params.assetId,
+						imageIndex: image.imageIndex,
+						format: image.format,
+					});
+
+					yield* sendPutObjectCommand({
+						bucket: buckets.processed.name,
+						key,
+						body: Buffer.from(image.data),
+						contentType: getImageContentType(image.format),
+					}).pipe(
+						Effect.mapError(
+							toPgBossRunError(params.jobId, PROCESS_ASSET_JOB_NAME),
+						),
+						Effect.tapError((err) =>
+							Effect.logError(
+								{
+									err,
+									jobId: params.jobId,
+									assetId: params.assetId,
+									imageIndex: image.imageIndex,
+								},
+								"Error uploading extracted image",
+							),
+						),
+					);
+
+					storedImagePaths.set(image.imageIndex, key);
+				}),
+			{
+				concurrency: 4,
+				discard: true,
+			},
+		);
+
+		return createStoredExtractionArtifact({
+			result: params.result,
+			transformImage: (image) => {
+				const sourcePath = storedImagePaths.get(image.imageIndex);
+				if (!sourcePath) {
+					return undefined;
+				}
+
+				return {
+					...image,
+					sourcePath,
+				};
+			},
+		});
+	});
 
 const processAssets = (params: { job: Job<ProcessAssetPayload> }) =>
 	Effect.gen(function* () {
@@ -77,110 +191,53 @@ const processAssets = (params: { job: Job<ProcessAssetPayload> }) =>
 			prefix: `${assetRef.id}/`,
 		});
 
-		const result = yield* extract(
-			{
-				kind: "s3",
-				bucket: assetRef.bucket,
-				key: getAssetObjectKey(assetRef),
-				mimeType: getMimeTypeFromFileType(assetRef.type),
-				filename: `${assetRef.id}.${assetRef.type}`,
-			},
-			{
-				profile: "asset-heavy",
-			},
-		).pipe(
-			Effect.mapError(toPgBossRunError(params.job.id, PROCESS_ASSET_JOB_NAME)),
-			Effect.tapError((err) =>
-				Effect.logError(
+		const mimeType = yield* getRequiredMimeType({
+			fileType: assetRef.type,
+			jobId: params.job.id,
+		});
+		const objectKey = getAssetObjectKey(assetRef);
+		const artifact = isImageFileType(assetRef.type)
+			? createImageOnlyStoredExtractionArtifact({
+					mimeType,
+					format: assetRef.type,
+					sourceBucket: assetRef.bucket,
+					sourcePath: objectKey,
+				})
+			: yield* extract(
 					{
-						err,
-						jobId: params.job.id,
-						assetId: assetRef.id,
-						fileType: assetRef.type,
-						mimeType: getMimeTypeFromFileType(assetRef.type),
+						kind: "s3",
+						bucket: assetRef.bucket,
+						key: objectKey,
+						mimeType,
+						filename: `${assetRef.id}.${assetRef.type}`,
 					},
-					"Error extracting asset with Kreuzberg",
-				),
-			),
-		);
-
-		const storedImagePaths = new Map<number, string>();
-
-		yield* Effect.forEach(
-			result.images ?? [],
-			(image) =>
-				Effect.gen(function* () {
-					const validationResult = validateImageResolution(
-						{
-							width: image.width ?? undefined,
-							height: image.height ?? undefined,
-						},
-						2,
-					);
-
-					if (!validationResult.isValid) {
-						return yield* Effect.logWarning(
+					{
+						profile: "asset-heavy",
+					},
+				).pipe(
+					Effect.mapError(
+						toPgBossRunError(params.job.id, PROCESS_ASSET_JOB_NAME),
+					),
+					Effect.tapError((err) =>
+						Effect.logError(
 							{
+								err,
 								jobId: params.job.id,
 								assetId: assetRef.id,
-								imageIndex: image.imageIndex,
-								width: image.width,
-								height: image.height,
+								fileType: assetRef.type,
+								mimeType,
 							},
-							"Skipping extracted image due to resolution/validation",
-						);
-					}
-
-					const key = buildStoredExtractionImageKey({
-						assetId: assetRef.id,
-						imageIndex: image.imageIndex,
-						format: image.format,
-					});
-
-					yield* sendPutObjectCommand({
-						bucket: buckets.processed.name,
-						key,
-						body: Buffer.from(image.data),
-						contentType: getImageContentType(image.format),
-					}).pipe(
-						Effect.mapError(
-							toPgBossRunError(params.job.id, PROCESS_ASSET_JOB_NAME),
+							"Error extracting asset with Kreuzberg",
 						),
-						Effect.tapError((err) =>
-							Effect.logError(
-								{
-									err,
-									jobId: params.job.id,
-									assetId: assetRef.id,
-									imageIndex: image.imageIndex,
-								},
-								"Error uploading extracted image",
-							),
-						),
-					);
-
-					storedImagePaths.set(image.imageIndex, key);
-				}),
-			{
-				concurrency: 4,
-				discard: true,
-			},
-		);
-
-		const artifact = createStoredExtractionArtifact({
-			result,
-			transformImage: (image) => {
-				const sourcePath = storedImagePaths.get(image.imageIndex);
-				if (!sourcePath) {
-					return undefined;
-				}
-
-				return {
-					...image,
-					sourcePath,
-				};
-			},
-		});
+					),
+					Effect.flatMap((result) =>
+						createDocumentArtifact({
+							result,
+							jobId: params.job.id,
+							assetId: assetRef.id,
+						}),
+					),
+				);
 
 		yield* sendPutObjectCommand({
 			bucket: buckets.processed.name,
@@ -260,7 +317,7 @@ const processAssets = (params: { job: Job<ProcessAssetPayload> }) =>
 				chunkCount: artifact.chunks.length,
 				imageCount: artifact.images.length,
 			},
-			"Completed asset processing with Kreuzberg",
+			"Completed asset processing",
 		);
 	}).pipe(
 		Effect.tapError((err) =>

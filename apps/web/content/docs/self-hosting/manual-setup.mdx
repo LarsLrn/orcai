@@ -1,0 +1,94 @@
+---
+title: Manual Setup
+description: Run the Bun app and workers directly against managed services.
+---
+
+Use manual setup when you want to run OrcAI directly on a host instead of using the full Compose stack.
+
+## Prerequisites
+
+- Bun `>=1.3.10`
+- PostgreSQL
+- Valkey
+- Qdrant
+- SpiceDB
+- S3-compatible object storage
+- OpenAI-compatible inference endpoint
+- Tesseract with `eng` and `deu` language packs if workers run on the host
+- Optional SMTP server
+
+## Install Dependencies
+
+```bash title="Repository root"
+cp .env.example .env
+bun install --frozen-lockfile
+```
+
+Edit `.env` before starting the app. See [Configuration](/docs/self-hosting/configuration) for required variables.
+
+## Initialize Data Stores
+
+Run database migrations:
+
+```bash title="Repository root"
+bun run --filter @orcai/db migrate
+```
+
+Apply the SpiceDB schema:
+
+```bash title="Repository root"
+bun run --filter @orcai/spice-db up
+```
+
+## Start Development Processes
+
+Start the app:
+
+```bash title="Terminal 1"
+bun run dev
+```
+
+Start background workers in a separate terminal:
+
+```bash title="Terminal 2"
+bun run workers:dev
+```
+
+The app is available at:
+
+```text
+http://localhost:3000
+```
+
+On a fresh database, complete initial instance setup at:
+
+```text
+http://localhost:3000/init
+```
+
+## Production Commands
+
+Build and start the app:
+
+```bash title="App process"
+bun run build
+bun run start
+```
+
+Start workers:
+
+```bash title="Worker process"
+bun run workers:start
+```
+
+## Host OCR Notes
+
+OCR-backed asset processing runs in the worker process. When workers run outside Docker, install Tesseract and the configured language packs. Use `KREUZBERG_OCR_LANGUAGE=eng+deu` only where both packs are installed.
+
+## Model Customisation Scope
+
+Custom embedding and image-processing model definitions are supported only when you self-host OrcAI.
+
+<Callout title="TODO" type="idea">
+	Add OS-specific installation commands for Tesseract and language packs.
+</Callout>
