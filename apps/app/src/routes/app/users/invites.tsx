@@ -6,6 +6,10 @@ import { DataTable } from "@/components/ui/data-table/data-table";
 import { DataTableBody } from "@/components/ui/data-table/data-table-body";
 import { DataTableExportButton } from "@/components/ui/data-table/data-table-export-button";
 import { DataTablePagination } from "@/components/ui/data-table/data-table-pagination";
+import {
+	DataTableToolbar,
+	DataTableToolbarActions,
+} from "@/components/ui/data-table/data-table-toolbar";
 import { DataTableViewOptions } from "@/components/ui/data-table/data-table-view-options";
 import {
 	Page,
@@ -100,12 +104,13 @@ function RouteComponent() {
 						},
 					}}
 				>
-					<div className="flex items-center gap-2">
-						<DataTableViewOptions />
-						<InvitesTableActions />
-						<DataTableExportButton fileName="invitations" />
-						{/* <SearchInput placeholder="Search by email..." /> */}
-					</div>
+					<DataTableToolbar>
+						<DataTableToolbarActions>
+							<DataTableViewOptions />
+							<InvitesTableActions />
+							<DataTableExportButton fileName="invitations" />
+						</DataTableToolbarActions>
+					</DataTableToolbar>
 					<DataTableBody />
 					<DataTablePagination />
 				</DataTable>

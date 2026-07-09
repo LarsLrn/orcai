@@ -1,7 +1,7 @@
 import { listGroupsInputSchema } from "@orcai/schema";
 import { useQueryClient, useSuspenseQuery } from "@tanstack/react-query";
 import { createFileRoute, useNavigate } from "@tanstack/react-router";
-import { PlusIcon, SearchIcon } from "lucide-react";
+import { PlusIcon } from "lucide-react";
 import { useState } from "react";
 import { z } from "zod/v4";
 import { GroupTableActions } from "@/components/groups/table/group-table-actions";
@@ -10,6 +10,11 @@ import { Button } from "@/components/ui/button";
 import { DataTable } from "@/components/ui/data-table/data-table";
 import { DataTableBody } from "@/components/ui/data-table/data-table-body";
 import { DataTablePagination } from "@/components/ui/data-table/data-table-pagination";
+import { DataTableSearch } from "@/components/ui/data-table/data-table-search";
+import {
+	DataTableToolbar,
+	DataTableToolbarActions,
+} from "@/components/ui/data-table/data-table-toolbar";
 import { DataTableViewOptions } from "@/components/ui/data-table/data-table-view-options";
 import {
 	Dialog,
@@ -128,27 +133,7 @@ function RouteComponent() {
 				</PageAction>
 			</PageHeader>
 
-			<PageContent className="space-y-4">
-				<div className="relative max-w-sm">
-					<SearchIcon className="pointer-events-none absolute top-1/2 left-3 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
-					<Input
-						value={query}
-						onChange={(event) =>
-							void navigate({
-								to: ".",
-								search: (prev) => ({
-									...prev,
-									pageIndex: 0,
-									query: event.target.value,
-								}),
-								replace: true,
-							})
-						}
-						placeholder="Search groups"
-						className="pl-9"
-					/>
-				</div>
-
+			<PageContent>
 				<DataTable
 					data={groups.data}
 					columns={groupTableColumns}
@@ -169,10 +154,27 @@ function RouteComponent() {
 						},
 					}}
 				>
-					<div className="flex items-center gap-2">
-						<DataTableViewOptions />
-						<GroupTableActions />
-					</div>
+					<DataTableToolbar>
+						<DataTableSearch
+							value={query}
+							placeholder="Search groups..."
+							onChange={(value) =>
+								void navigate({
+									to: ".",
+									search: (prev) => ({
+										...prev,
+										pageIndex: 0,
+										query: value,
+									}),
+									replace: true,
+								})
+							}
+						/>
+						<DataTableToolbarActions>
+							<DataTableViewOptions />
+							<GroupTableActions />
+						</DataTableToolbarActions>
+					</DataTableToolbar>
 					<DataTableBody />
 					<DataTablePagination />
 				</DataTable>
