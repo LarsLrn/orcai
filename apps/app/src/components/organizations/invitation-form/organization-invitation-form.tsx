@@ -255,7 +255,7 @@ const OrganizationInvitationForm = () => {
 				</CardContent>
 			</Card>
 
-			<div className="flex justify-end border-t pt-4">
+			<div className="flex justify-end pt-4">
 				<form.AppForm>
 					<form.SubmitButton label="Create Invitations" />
 				</form.AppForm>

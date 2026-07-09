@@ -1,4 +1,4 @@
-import { createFileRoute } from "@tanstack/react-router";
+import { createFileRoute, Link } from "@tanstack/react-router";
 import { HomeLayout } from "fumadocs-ui/layouts/home";
 import {
 	ArrowRightIcon,
@@ -33,9 +33,9 @@ function Home() {
 				<section className="mx-auto max-w-7xl px-4 py-6 sm:px-8">
 					<div className="rounded-lg border border-[#c7d0cd] bg-[#f8faf9] p-4 dark:border-[#1e2b28] dark:bg-[#0d1513]">
 						<div className="flex flex-wrap items-center justify-between gap-3 border-[#dce2df] border-b px-2 pb-4 text-sm dark:border-[#1e2b28]">
-							<a href="/docs" className="text-[#53615e] dark:text-[#b8c4c0]">
+							<Link to="/docs/$" className="text-[#53615e] dark:text-[#b8c4c0]">
 								OrcAI documentation
-							</a>
+							</Link>
 							<div className="flex flex-wrap gap-2">
 								<span className="rounded-full bg-[#d9f99d] px-3 py-1 font-medium text-[#263400]">
 									Open source

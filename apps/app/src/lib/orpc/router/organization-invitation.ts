@@ -27,10 +27,17 @@ export const listOrganizationInvitations =
 	authed.organizationInvitation.list.effect(function* ({ input, context }) {
 		const db = yield* DB;
 
-		const whereClause = or(
+		const baseScopeClause = or(
 			eq(dbSchema.invitation.email, context.auth.user.email),
 			eq(dbSchema.invitation.inviterId, context.auth.user.id),
 		);
+
+		const whereClause = input.organizationId
+			? and(
+					baseScopeClause,
+					eq(dbSchema.invitation.organizationId, input.organizationId),
+				)
+			: baseScopeClause;
 
 		const orderBy = yield* buildOrderBy({
 			sort: input.sort,

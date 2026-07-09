@@ -1,5 +1,5 @@
 import { AiError } from "@orcai/ai";
-import { DB } from "@orcai/db";
+import { DB, dbSchema } from "@orcai/db";
 import {
 	finalizeAppRequestQuota,
 	releaseAppRequestQuota,
@@ -14,6 +14,7 @@ import {
 	smoothStream,
 	type TextUIPart,
 } from "ai";
+import { and, eq } from "drizzle-orm";
 import * as Cause from "effect/Cause";
 import * as Effect from "effect/Effect";
 import { v4 as uuidv4 } from "uuid";
@@ -152,6 +153,36 @@ export const aiChat = authed.ai.chat
 					new AppErrors.BadRequestError({
 						message:
 							"Chat is missing model or provider configuration. Please select a model in chat settings.",
+					}),
+				);
+			}
+
+			const [chatModel] = yield* db
+				.select({
+					capabilities: dbSchema.model.capabilities,
+				})
+				.from(dbSchema.model)
+				.innerJoin(
+					dbSchema.provider,
+					eq(dbSchema.provider.id, dbSchema.model.providerId),
+				)
+				.where(
+					and(
+						eq(dbSchema.model.id, modelId),
+						eq(dbSchema.provider.id, providerId),
+						eq(
+							dbSchema.provider.organizationId,
+							context.auth.session.activeOrganizationId,
+						),
+					),
+				)
+				.limit(1);
+
+			if (!chatModel?.capabilities.includes("tool-calling")) {
+				return yield* Effect.fail(
+					new AppErrors.BadRequestError({
+						message:
+							"Selected model does not support tool calling. Please choose a chat-capable model.",
 					}),
 				);
 			}

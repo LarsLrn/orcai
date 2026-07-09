@@ -1,9 +1,9 @@
 export const providerCompatibilities = [
 	{
 		value: "openai",
-		label: "OpenAI",
+		label: "OpenAI (compatible)",
 	},
-	{
+	/* {
 		value: "azure",
 		label: "Azure OpenAI",
 	},
@@ -14,7 +14,7 @@ export const providerCompatibilities = [
 	{
 		value: "google",
 		label: "Google Gemini",
-	},
+	}, */
 ] as const;
 
 export const modelCapabilities = [
@@ -49,6 +49,10 @@ export const modelCapabilities = [
 	{
 		value: "reasoning",
 		label: "Reasoning",
+	},
+	{
+		value: "tool-calling",
+		label: "Tool Calling",
 	},
 ] as const;
 

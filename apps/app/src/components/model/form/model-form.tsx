@@ -102,7 +102,7 @@ const ModelForm = ({
 					<field.MultiSelectField
 						label="Capabilities"
 						placeholder="text, embeddings, etc."
-						description="Select the capabilities for this model"
+						description="Select the capabilities for this model. Note that models for chat require at least the 'text' and 'tool-calling' capabilities."
 						options={modelCapabilities.map((capability) => ({
 							value: capability.value,
 							label: capability.label,

@@ -68,6 +68,7 @@ const ModelSelectorButton = ({
 					providerId: providerFilterId,
 					capabilities: [
 						"text",
+						"tool-calling",
 					],
 					search: modelSearch || undefined,
 				},
@@ -185,7 +186,7 @@ const ModelSelectorButton = ({
 			>
 				<span className="truncate">{triggerLabel}</span>
 			</DialogSelectTrigger>
-			<DialogSelectContent title="Choose a text model">
+			<DialogSelectContent title="Choose a chat model">
 				<DialogSelectSearch
 					value={modelSearch}
 					onValueChange={(value) => {

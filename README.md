@@ -177,6 +177,7 @@ Runtime configuration is loaded across app and package config modules:
 - `BASE_URL`: Compatibility fallback used by some auth tooling. Keep this aligned with `BETTER_AUTH_URL` when set.
 - `BETTER_AUTH_URL`: Public auth callback base URL.
 - `VITE_BASE_URL`: Public frontend base URL used in client-side links.
+- `VITE_WEB_URL`: Public docs site base URL used by the app dashboard (optional).
 - `BETTER_AUTH_SECRET`: Better Auth signing secret.
 - `ENCRYPTION_KEY`: 32 to 64 character application encryption key.
 

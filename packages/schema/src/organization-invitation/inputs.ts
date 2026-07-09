@@ -21,6 +21,7 @@ export const organizationInvitationSortKeySchema = z.enum([
 
 export const listOrganizationInvitationsInputSchema =
 	paginationInputSchema.extend({
+		organizationId: organizationIdSchema.optional(),
 		...createSortingInputSchema(organizationInvitationSortKeySchema).shape,
 	});
 
