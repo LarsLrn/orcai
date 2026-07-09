@@ -62,7 +62,7 @@ function RouteComponent() {
 		<Page>
 			<PageHeader>
 				<PageTitle>Users</PageTitle>
-				<PageDescription>Showing all users.</PageDescription>
+				<PageDescription>Manage your organisation's users.</PageDescription>
 
 				<PageAction>
 					<Link

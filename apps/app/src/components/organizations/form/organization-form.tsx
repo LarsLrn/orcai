@@ -59,9 +59,12 @@ export const OrganizationForm = ({
 					<field.TextField label="Slug" placeholder="your-organisation" />
 				)}
 			/>
-			<form.AppForm>
-				<form.SubmitButton label="Save Organisation" />
-			</form.AppForm>
+
+			<div className="flex justify-end pt-4">
+				<form.AppForm>
+					<form.SubmitButton label="Save Organisation" />
+				</form.AppForm>
+			</div>
 		</form>
 	);
 };
