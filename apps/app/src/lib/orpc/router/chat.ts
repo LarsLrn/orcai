@@ -1,11 +1,12 @@
 import { DEFAULT_CHAT_TITLE } from "@orcai/ai";
 import { DB, dbSchema } from "@orcai/db";
+import type { ChatSortKey } from "@orcai/schema";
 import {
 	checkEntityPermission,
 	hasPermission,
 	lookupEntitiesByPermission,
 } from "@orcai/spice-db";
-import { count, eq, inArray } from "drizzle-orm";
+import { and, count, desc, eq, getColumns, ilike, inArray } from "drizzle-orm";
 import * as Effect from "effect/Effect";
 import { AuthzService } from "@/lib/effect/services/authz";
 import * as AppErrors from "@/lib/effect/utils/errors";
@@ -15,6 +16,7 @@ import {
 	checkManyPermissionMiddleware,
 	requireEntityPermission,
 } from "@/lib/orpc/middlewares/permission";
+import { buildOrderBy, type SortExpression } from "./helpers/sorting";
 
 export const listChats = authed.chat.list.effect(function* ({
 	input,
@@ -30,27 +32,52 @@ export const listChats = authed.chat.list.effect(function* ({
 	}).pipe(
 		Effect.map((response) => response.map((item) => item.resourceObjectId)),
 	);
+	const conditions = [
+		inArray(dbSchema.chat.id, allowedIds),
+		input.filters?.botId
+			? eq(dbSchema.chat.botId, input.filters.botId)
+			: undefined,
+		input.filters?.search
+			? ilike(dbSchema.chat.title, `%${input.filters.search}%`)
+			: undefined,
+	].filter((condition) => condition !== undefined);
+	const whereClause = and(...conditions);
+	const orderBy = yield* buildOrderBy({
+		sort: input.sort,
+		allowlist: {
+			title: dbSchema.chat.title,
+			botName: dbSchema.bot.name,
+			updatedAt: dbSchema.chat.updatedAt,
+		} satisfies Record<ChatSortKey, SortExpression>,
+		defaultOrder: [
+			desc(dbSchema.chat.updatedAt),
+		],
+		tieBreaker: {
+			id: "id",
+			expression: dbSchema.chat.id,
+		},
+	});
 
 	return yield* Effect.all(
 		[
-			db.query.chat.findMany({
-				where: {
-					id: {
-						in: allowedIds,
-					},
-				},
-				orderBy: {
-					createdAt: "desc",
-				},
-				limit: input.pageSize,
-				offset: input.pageIndex * input.pageSize,
-			}),
+			db
+				.select({
+					...getColumns(dbSchema.chat),
+					botName: dbSchema.bot.name,
+				})
+				.from(dbSchema.chat)
+				.leftJoin(dbSchema.bot, eq(dbSchema.chat.botId, dbSchema.bot.id))
+				.where(whereClause)
+				.orderBy(...orderBy)
+				.limit(input.pageSize)
+				.offset(input.pageIndex * input.pageSize),
 			db
 				.select({
 					count: count(),
 				})
 				.from(dbSchema.chat)
-				.where(inArray(dbSchema.chat.id, allowedIds)),
+				.leftJoin(dbSchema.bot, eq(dbSchema.chat.botId, dbSchema.bot.id))
+				.where(whereClause),
 		],
 		{
 			concurrency: "unbounded",

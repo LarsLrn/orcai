@@ -6,9 +6,10 @@ import {
 	createListResponseSchema,
 	zedTokenSchema,
 } from "../shared";
-import { chatSchema } from "./schema";
+import { chatListRowSchema, chatSchema } from "./schema";
 
-export const listChatsResponseSchema = createListResponseSchema(chatSchema);
+export const listChatsResponseSchema =
+	createListResponseSchema(chatListRowSchema);
 
 export const findChatResponseSchema = createDataResponseSchema(
 	chatSchema.extend({
