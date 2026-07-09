@@ -38,7 +38,12 @@ const AppSidebar = () => {
 			</SidebarHeader>
 			<SidebarContent>
 				<SidebarGroup>
-					<SidebarGroupLabel>Chats</SidebarGroupLabel>
+					<SidebarGroupLabel className="flex justify-between">
+						<span>Chats</span>
+						<Link to="/app/chat" className="hover:underline">
+							show all
+						</Link>
+					</SidebarGroupLabel>
 					<SidebarGroupContent>
 						<Suspense
 							fallback={<SkeletonsArray className="mt-2 max-h-8" count={6} />}
