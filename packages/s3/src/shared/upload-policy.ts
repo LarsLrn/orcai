@@ -1,5 +1,120 @@
 import { buckets } from "@orcai/core";
-import type { BucketName } from "@orcai/schema";
+import type { BucketName, FileType } from "@orcai/schema";
+
+type UploadFileTypeDefinition = {
+	fileType: Exclude<FileType, "unknown">;
+	mimeType: string;
+	aliases?: readonly string[];
+};
+
+const PROCESSABLE_ASSET_FILE_TYPES: readonly UploadFileTypeDefinition[] = [
+	{
+		fileType: "jpeg",
+		mimeType: "image/jpeg",
+		aliases: [
+			"image/jpg",
+		],
+	},
+	{
+		fileType: "jpg",
+		mimeType: "image/jpeg",
+	},
+	{
+		fileType: "png",
+		mimeType: "image/png",
+	},
+	{
+		fileType: "gif",
+		mimeType: "image/gif",
+	},
+	{
+		fileType: "webp",
+		mimeType: "image/webp",
+	},
+	{
+		fileType: "pdf",
+		mimeType: "application/pdf",
+	},
+	{
+		fileType: "txt",
+		mimeType: "text/plain",
+	},
+	{
+		fileType: "csv",
+		mimeType: "text/csv",
+	},
+	{
+		fileType: "md",
+		mimeType: "text/markdown",
+	},
+	{
+		fileType: "doc",
+		mimeType: "application/msword",
+		aliases: [
+			"application/x-msword",
+		],
+	},
+	{
+		fileType: "docx",
+		mimeType:
+			"application/vnd.openxmlformats-officedocument.wordprocessingml.document",
+	},
+	{
+		fileType: "xls",
+		mimeType: "application/vnd.ms-excel",
+		aliases: [
+			"application/msexcel",
+			"application/x-msexcel",
+			"application/x-ms-excel",
+		],
+	},
+	{
+		fileType: "xlsx",
+		mimeType:
+			"application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
+	},
+	{
+		fileType: "ppt",
+		mimeType: "application/vnd.ms-powerpoint",
+		aliases: [
+			"application/mspowerpoint",
+			"application/powerpoint",
+			"application/x-mspowerpoint",
+		],
+	},
+	{
+		fileType: "pptx",
+		mimeType:
+			"application/vnd.openxmlformats-officedocument.presentationml.presentation",
+	},
+];
+
+export const ASSET_UPLOAD_MIME_TYPES = [
+	...new Set(
+		PROCESSABLE_ASSET_FILE_TYPES.flatMap((definition) => [
+			definition.mimeType,
+			...(definition.aliases ?? []),
+		]),
+	),
+] as readonly string[];
+
+export const ASSET_UPLOAD_ACCEPT = PROCESSABLE_ASSET_FILE_TYPES.reduce(
+	(accept, definition) => {
+		const extension = `.${definition.fileType}`;
+		for (const mimeType of [
+			definition.mimeType,
+			...(definition.aliases ?? []),
+		]) {
+			accept[mimeType] = [
+				...(accept[mimeType] ?? []),
+				extension,
+			];
+		}
+
+		return accept;
+	},
+	{} as Record<string, string[]>,
+);
 
 export const UPLOAD_ROUTES = {
 	asset: {
@@ -13,15 +128,7 @@ export const UPLOAD_ROUTES = {
 			partSize: 10 * 1024 * 1024,
 			partSignedUrlExpiresIn: 60 * 30,
 		},
-		allowedMimePatterns: [
-			"image/*",
-			"video/*",
-			"audio/*",
-			"application/pdf",
-			"text/*",
-			"application/vnd.openxmlformats-officedocument.wordprocessingml.document",
-			"application/vnd.openxmlformats-officedocument.presentationml.presentation",
-		],
+		allowedMimePatterns: ASSET_UPLOAD_MIME_TYPES,
 	},
 	chatAttachment: {
 		bucket: buckets.main.name,

@@ -1,11 +1,12 @@
 {
 	"extends": "../../tsconfig.base.json",
 	"include": [
-		"src/**/*.ts"
+		"src/**/*.ts",
+		"test/**/*.ts"
 	],
 	"compilerOptions": {
 		"composite": true,
-		"rootDir": "./src",
+		"rootDir": ".",
 		"lib": [
 			"ES2022",
 			"DOM"
