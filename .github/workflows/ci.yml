@@ -31,3 +31,5 @@ jobs:
 
       - name: Validate repository
         run: bun run ci
+        env:
+          NODE_OPTIONS: --max-old-space-size=4096
