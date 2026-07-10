@@ -37,7 +37,7 @@
 		"@orcai/schema": "workspace:*",
 		"@orcai/spice-db": "workspace:*",
 		"@orcai/valkey": "workspace:*",
-		"@orpc/client": "2.0.0-beta.15",
+		"@orpc/client": "2.0.0-beta.16",
 		"@orpc/experimental-effect": "2.0.0-beta.15",
 		"@orpc/json-schema": "2.0.0-beta.15",
 		"@orpc/openapi": "catalog:",
