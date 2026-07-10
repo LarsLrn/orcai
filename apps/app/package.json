@@ -43,7 +43,7 @@
 		"@orpc/openapi": "catalog:",
 		"@orpc/opentelemetry": "2.0.0-beta.15",
 		"@orpc/server": "2.0.0-beta.15",
-		"@orpc/tanstack-query": "2.0.0-beta.15",
+		"@orpc/tanstack-query": "2.0.0-beta.16",
 		"@orpc/zod": "2.0.0-beta.15",
 		"@streamdown/cjk": "1.0.3",
 		"@streamdown/code": "1.1.1",
