@@ -15,8 +15,7 @@ import {
 	SparklesIcon,
 	UsersIcon,
 } from "lucide-react";
-
-export const contactEmail = "sokratest@hochschule-rhein-waal.de";
+import { siteConfig } from "@/lib/site-config";
 
 export const pillars: Array<{
 	title: string;
@@ -162,7 +161,7 @@ export const useCases = [
 
 export const primaryCta = {
 	label: "Contact the OrcAI team",
-	href: `mailto:${contactEmail}`,
+	href: `mailto:${siteConfig.contactEmail}`,
 	icon: MailIcon,
 } as const;
 

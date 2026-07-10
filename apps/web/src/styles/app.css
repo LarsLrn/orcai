@@ -2,6 +2,48 @@
 @import "fumadocs-ui/css/neutral.css";
 @import "fumadocs-ui/css/preset.css";
 
+@theme inline {
+	--color-landing-canvas: var(--landing-canvas);
+	--color-landing-surface: var(--landing-surface);
+	--color-landing-surface-raised: var(--landing-surface-raised);
+	--color-landing-surface-inverse: var(--landing-surface-inverse);
+	--color-landing-border: var(--landing-border);
+	--color-landing-border-subtle: var(--landing-border-subtle);
+	--color-landing-foreground: var(--landing-foreground);
+	--color-landing-muted: var(--landing-muted);
+	--color-landing-accent: var(--landing-accent);
+	--color-landing-accent-foreground: var(--landing-accent-foreground);
+	--color-landing-accent-muted: var(--landing-accent-muted);
+}
+
+.landing-page {
+	--landing-canvas: #eef1f0;
+	--landing-surface: #f8faf9;
+	--landing-surface-raised: #ffffff;
+	--landing-surface-inverse: #101615;
+	--landing-border: #c7d0cd;
+	--landing-border-subtle: #dce2df;
+	--landing-foreground: #101615;
+	--landing-muted: #53615e;
+	--landing-accent: #d9f99d;
+	--landing-accent-foreground: #263400;
+	--landing-accent-muted: #4f6f2a;
+}
+
+.dark .landing-page {
+	--landing-canvas: #080d0c;
+	--landing-surface: #0d1513;
+	--landing-surface-raised: #101917;
+	--landing-surface-inverse: #111d1a;
+	--landing-border: #1e2b28;
+	--landing-border-subtle: #2e3b38;
+	--landing-foreground: #f3f7f5;
+	--landing-muted: #b8c4c0;
+	--landing-accent: #d9f99d;
+	--landing-accent-foreground: #172000;
+	--landing-accent-muted: #d9f99d;
+}
+
 html {
 	scrollbar-gutter: stable;
 }
