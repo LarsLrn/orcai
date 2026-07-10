@@ -254,8 +254,7 @@ Contributions to the main repository should follow this workflow:
 Recommended validation before opening a PR:
 
 ```bash
-bun run lint
-bun run prepush
+bun run ci
 ```
 
 Additional useful checks:
@@ -272,6 +271,8 @@ Repository hooks and rules:
 - `pre-push` runs `bun run prepush`.
 
 For contributor docs on branch naming, PR content, and documentation expectations, see [Development docs: Contributing To The Main Repo](apps/web/content/docs/development/contributing.mdx).
+
+Security issues should be reported privately according to [SECURITY.md](SECURITY.md). General contribution guidance is also available in [CONTRIBUTING.md](CONTRIBUTING.md).
 
 ## License
 
