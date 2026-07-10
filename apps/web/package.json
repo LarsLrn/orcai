@@ -16,7 +16,6 @@
 	"dependencies": {
 		"@tailwindcss/vite": "catalog:",
 		"@tanstack/react-router": "catalog:",
-		"@tanstack/react-router-devtools": "catalog:",
 		"@tanstack/react-start": "catalog:",
 		"@vitejs/plugin-react": "catalog:",
 		"beautiful-mermaid": "1.1.3",
