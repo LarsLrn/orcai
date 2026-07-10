@@ -14,7 +14,7 @@ import {
 import { Suspense } from "react";
 import { useMDXComponents } from "@/components/mdx";
 import { baseOptions } from "@/lib/layout.shared";
-import { gitConfig } from "@/lib/shared";
+import { siteConfig } from "@/lib/site-config";
 import { slugsToMarkdownPath, source } from "@/lib/source";
 
 export const Route = createFileRoute("/docs/$")({
@@ -64,7 +64,7 @@ const clientLoader = browserCollections.docs.createClientLoader({
 					<MarkdownCopyButton markdownUrl={markdownUrl} />
 					<ViewOptionsPopover
 						markdownUrl={markdownUrl}
-						githubUrl={`https://github.com/${gitConfig.user}/${gitConfig.repo}/blob/${gitConfig.branch}/content/docs/${path}`}
+						githubUrl={`${siteConfig.repository.url}/blob/${siteConfig.repository.branch}/content/docs/${path}`}
 					/>
 				</div>
 				<DocsBody>

@@ -13,7 +13,7 @@
 
 ## Overview
 
-OrcAI is a research-oriented platform developed at Rhine-Waal University for AI-supported learning workflows. Instructors upload course material, the platform processes and indexes it, and students interact with an AI tutor that can ground responses in those materials via retrieval-augmented generation (RAG).
+OrcAI is a self-hostable platform for building governed AI assistants around curated knowledge. Individuals, specialist teams, educators, and research groups can upload source material, process and index it, compose reusable assistants, control access, and ground responses through retrieval-augmented generation (RAG).
 
 ## Core Capabilities
 
@@ -67,7 +67,7 @@ Steps:
 1. Open the repository in VS Code.
 2. Run `Dev Containers: Reopen in Container`.
 3. Wait for `bun install --frozen-lockfile` to finish.
-4. Start the app with `bun run dev`.
+4. Start the app, documentation site, and workers with `bun run dev:all`.
 5. Open [http://localhost:3000](http://localhost:3000).
 
 What starts automatically:
@@ -76,7 +76,6 @@ What starts automatically:
 - MinIO
 - Qdrant
 - SpiceDB
-- Background workers
 - Workspace dependency install
 - Database migrations
 - MinIO bucket bootstrap
@@ -85,11 +84,13 @@ What starts automatically:
 
 Notes:
 - The devcontainer fixes internal service addresses on the Compose network.
-- A one-shot `deps` service runs `bun install --frozen-lockfile` before the `workspace` and `workers` containers start.
+- A one-shot `deps` service runs `bun install --frozen-lockfile` before the workspace container starts.
+- Application services are started manually in the workspace, so changing them does not require rebuilding or restarting the devcontainer.
 - It defaults to an Ollama-compatible endpoint at `http://localhost:11434/v1` for `OPENAI_COMPATIBLE_BASE_URL`.
 - OCR-backed asset processing runs in the worker process and requires Tesseract plus the `eng` and `deu` language packs when you run workers outside Docker.
 - OCR language defaults to `eng` on host setups. Set `KREUZBERG_OCR_LANGUAGE=eng+deu` only where both Tesseract packs are installed.
 - Email delivery stays in log-only mode unless `SMTP_HOST` and `SMTP_FROM` are both configured.
+- Log-only email mode writes complete messages, including authentication and invitation links, to application logs for local testing. Configure SMTP in production and treat log-only output as sensitive.
 - `docker-compose.local.yaml` and `.devcontainer/docker-compose.dev.yaml` are development-only overrides and are not deployment manifests.
 
 ### Local Docker Compose app stack
@@ -230,11 +231,14 @@ See [.env.example](.env.example) for a current baseline.
 ## Common Commands
 
 - `bun run dev`: start the development server
-- `bun run build`: build the app
+- `bun run build`: build the app and documentation site
+- `bun run build:app`: build only the main app
+- `bun run build:web`: build only the documentation site
 - `bun run start`: run the production server from `dist`
 - `bun run workers:dev`: start worker process directly on the host
 - `bun run workers:start`: run worker process in production mode
 - `bun run lint`: run Biome and TypeScript checks
+- `bun run ci`: run the same lint, test, docs type-check, and build suite used by GitHub Actions
 - `bun run --filter @orcai/db migrate`: apply SQL migrations
 - `bun run --filter @orcai/db generate`: generate a new Drizzle migration
 - `bun run --filter @orcai/db studio`: open Drizzle Studio
@@ -254,8 +258,7 @@ Contributions to the main repository should follow this workflow:
 Recommended validation before opening a PR:
 
 ```bash
-bun run lint
-bun run prepush
+bun run ci
 ```
 
 Additional useful checks:
@@ -272,6 +275,12 @@ Repository hooks and rules:
 - `pre-push` runs `bun run prepush`.
 
 For contributor docs on branch naming, PR content, and documentation expectations, see [Development docs: Contributing To The Main Repo](apps/web/content/docs/development/contributing.mdx).
+
+Security issues should be reported privately according to [SECURITY.md](SECURITY.md). General contribution guidance is also available in [CONTRIBUTING.md](CONTRIBUTING.md).
+
+## License
+
+OrcAI is free software licensed under the [GNU Affero General Public License, version 3 only](LICENSE) (`AGPL-3.0-only`). If you modify OrcAI and make the modified version available to users over a network, you must offer those users access to the corresponding source code under the same license.
 
 ## Architecture Summary
 

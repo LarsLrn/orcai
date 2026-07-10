@@ -4,6 +4,7 @@ import { BodyCompressionHandlerPlugin, RPCHandler } from "@orpc/server/fetch";
 import { getCookie } from "@orpc/server/helpers";
 import {
 	BatchHandlerPlugin,
+	CSRFGuardHandlerPlugin,
 	RequestHeadersHandlerPlugin,
 } from "@orpc/server/plugins";
 import { createFileRoute } from "@tanstack/react-router";
@@ -65,6 +66,7 @@ const handler = new RPCHandler(router, {
 		new RequestHeadersHandlerPlugin(),
 		new BatchHandlerPlugin(),
 		new BodyCompressionHandlerPlugin(),
+		new CSRFGuardHandlerPlugin(),
 	],
 });
 

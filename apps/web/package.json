@@ -7,7 +7,7 @@
 	"sideEffects": false,
 	"type": "module",
 	"scripts": {
-		"build": "NODE_ENV=production vite build",
+		"build": "NODE_ENV=production bun --bun vite build && test -f .output/public/index.html",
 		"dev": "vite dev  --host 127.0.0.1",
 		"postinstall": "fumadocs-mdx",
 		"start": "vite preview",
@@ -16,7 +16,6 @@
 	"dependencies": {
 		"@tailwindcss/vite": "catalog:",
 		"@tanstack/react-router": "catalog:",
-		"@tanstack/react-router-devtools": "catalog:",
 		"@tanstack/react-start": "catalog:",
 		"@vitejs/plugin-react": "catalog:",
 		"beautiful-mermaid": "1.1.3",

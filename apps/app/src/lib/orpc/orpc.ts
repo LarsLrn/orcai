@@ -53,12 +53,6 @@ const getORPCClient = createIsomorphicFn()
 						},
 					],
 				}),
-				/**
-				 * TODO: Uncomment this when CSRF protection is needed
-				 * Adds CSRF protection to the link:
-				 * https://orpc.unnoq.com/docs/plugins/simple-csrf-protection
-				 */
-				/* new SimpleCsrfProtectionLinkPlugin(), */
 			],
 		});
 

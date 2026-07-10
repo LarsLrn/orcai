@@ -1,111 +1,104 @@
-## Terms of Use for the OrcAI Educational Platform
+# Terms of Use for OrcAI
 
-**Effective Date:** 17 April 2025
+**Effective date:** 10 July 2026
 
-### 1. Introduction and Your Agreement
+## 1. About these terms
 
-Welcome to OrcAI (the "Platform"). This educational platform is provided by Rhine-Waal University, located at Friedrich-Heinrich-Allee 25, 47475 Kamp-Lintfort, Germany ("Rhine-Waal University", "We", "Us", "Our"). These Terms of Use ("Terms") explain the rules for using OrcAI.
+These terms govern your use of this OrcAI instance. OrcAI is self-hostable software for creating and using AI assistants with curated knowledge.
 
-OrcAI is part of an ongoing research project and is currently offered free of charge to eligible students during its testing phase.
+The person or organisation that operates this instance (the **Operator**) provides the service and is responsible for identifying itself, defining who may use the service, and adapting these terms to its deployment and applicable law.
 
-**Your Agreement:** By creating an account and checking the box to accept these Terms during registration, or by using the OrcAI platform, you confirm that you have read, understood, and agree to follow these Terms. You also agree to our **OrcAI Privacy Policy**, which explains how we handle your data and is a part of this agreement. If you do not agree with these Terms or the Privacy Policy, you should not use the Platform.
+> **Information for operators:** Before making an instance available to users, identify the Operator and provide its contact details, eligibility rules, governing law, service-specific restrictions, and any mandatory local terms. This default document is a technical starting point and is not legal advice.
 
-### 2. Who Can Use OrcAI (Eligibility)
+By creating an account, accepting these terms in the application, or continuing to use the service, you agree to these terms and the privacy policy presented by the Operator. If you do not agree, do not use the service.
 
-*   **University Courses:** OrcAI is currently available only to students enrolled in specific courses at Rhine-Waal University who have been invited by their instructor. Use is meant for activities related to these courses.
-*   **Registration:** You must sign up using your official Rhine-Waal University email address. Other email addresses cannot be used.
-*   **Age:** You must be at least 18 years old to use OrcAI. By agreeing to these Terms, you confirm you are 18 or older.
-*   **Your Account:** Keep your password safe and confidential. You are responsible for all activities that happen under your account. If you suspect someone else has used your account, tell your course instructor immediately.
+## 2. Accounts and access
 
-### 3. What OrcAI Offers
+Access may require an invitation or account issued or approved by the Operator. You agree to:
 
-OrcAI allows you to chat with an Artificial Intelligence (AI) to help you learn. The AI uses materials uploaded by your instructor (like documents and presentations) to try and give relevant answers. Using OrcAI should help you learn and also helps us research and improve educational AI tools.
+- provide accurate account information;
+- keep your credentials confidential;
+- use only accounts and organisations you are authorised to access;
+- promptly report suspected unauthorised access; and
+- comply with eligibility and acceptable-use rules communicated by the Operator.
 
-### 4. Important Disclaimer: AI Can Make Mistakes (Hallucinations)
+You are responsible for activity performed through your account to the extent permitted by applicable law. Accounts may not be transferred or shared unless the Operator expressly permits it.
 
-*   **Be Aware:** The AI in OrcAI, like many AI systems, can sometimes provide information that is incorrect, incomplete, misleading, or entirely made up. These errors are sometimes called "hallucinations."
-*   **Educational Tool Only:** The AI chat is meant for exploring ideas and stimulating discussion, **not** as a source of guaranteed factual information or expert advice.
-*   **Verify Information:** **Do not rely solely on the AI's answers** for assignments, exams, or important decisions. Always double-check information from the AI against your official course materials, reliable academic sources, or by asking your instructor.
-*   **No Liability for Errors:** Rhine-Waal University is not responsible for any inaccuracies in the AI's responses. You are responsible for how you use the information provided by the AI. Using incorrect information from the AI in your academic work will not be excused based on these Terms.
+## 3. What OrcAI provides
 
-### 5. How You Should Use OrcAI (Permitted Use)
+OrcAI can process uploaded materials, index content for retrieval, and provide AI-assisted conversations. Available features, models, knowledge sources, quotas, and service levels depend on the Operator's configuration.
 
-Please use OrcAI only for its intended educational purposes:
+The service may change, become unavailable, or contain incomplete or experimental features. The Operator may establish additional rules for particular organisations, workspaces, or content.
 
-*   Chat with the AI to explore and understand your course material.
-*   Provide feedback through the platform to help us improve it.
-*   Use the platform responsibly and in line with Rhine-Waal University's academic rules.
+## 4. AI output and important decisions
 
-### 6. What You Cannot Do on OrcAI (Prohibited Conduct)
+AI-generated content may be inaccurate, incomplete, biased, outdated, misleading, or fabricated. Retrieval and citations do not guarantee that an answer correctly represents its sources.
 
-To keep OrcAI safe and functional, you agree **not** to do any of the following:
+You must evaluate output for your intended use and verify important information using reliable sources. Do not rely on OrcAI as a substitute for qualified professional advice or as the sole basis for legal, medical, financial, safety-critical, academic, employment, or similarly consequential decisions.
 
-*   Use the platform for anything illegal, fraudulent, or harmful.
-*   Try to hack, disable, or interfere with the platform's security or the AI's safety features (like trying to "jailbreak" the AI).
-*   Upload viruses or other harmful software.
-*   Post or input anything that is abusive, harassing, offensive, hateful, or discriminatory.
-*   Use the platform to violate copyrights or other intellectual property rights (don't paste large amounts of copyrighted text unless provided by your instructor or allowed).
-*   Share your account or let someone else use it.
-*   Pretend to be someone else.
-*   Use automated tools (like bots or scrapers) to access or overload the platform.
-*   Use the platform for any commercial purpose.
-*   Do anything that could disrupt or harm the platform, its servers, or other users.
+## 5. Acceptable use
 
-Breaking these rules could lead to your access being suspended or terminated.
+You must not use the service to:
 
-### 7. Ownership and Content Rights
+- violate applicable law or the rights of another person;
+- access accounts, organisations, content, or systems without authorisation;
+- introduce malware or attempt to disrupt, overload, probe, or bypass security controls;
+- disclose credentials, secrets, or personal data without authorisation;
+- upload or generate content you do not have the right to use;
+- impersonate another person or misrepresent the origin of content;
+- harass, exploit, or cause unlawful harm to others; or
+- use automated access in a way that unreasonably burdens the service or violates rules published by the Operator.
 
-*   **The Platform:** Rhine-Waal University owns the OrcAI platform itself (the software, design, etc.). These Terms give you permission to use it, but not ownership.
-*   **Course Materials:** Materials uploaded by your instructor belong to them or their respective owners. Use them according to course rules.
-*   **Your Questions (Input):** You own the questions you type into the chat. However, you give us permission to use your questions to operate and improve OrcAI and for our research (your data will be anonymised if used in publications, as stated in the Privacy Policy).
-*   **AI Answers (Output):** The text generated by the AI is for your educational use related to your studies. You don't own the AI's answers. You can use them for personal study, but remember the accuracy disclaimer (Section 4). Don't share large amounts of AI answers publicly without checking the information.
-*   **Your Feedback:** If you give us feedback about OrcAI, thank you! We can use your feedback freely to improve the platform or for research, without paying you or giving you credit. In turn, you can use OrcAI completely free of charge - win-win!
+The Operator may publish additional acceptable-use requirements appropriate to its users and jurisdiction.
 
-### 8. Service Limitations and Disclaimers ("As Is")
+## 6. Your content
 
-OrcAI is a work in progress, especially during this testing phase. We provide it **"as is"** and **"as available"**.
+You retain whatever rights you hold in prompts, files, metadata, feedback, and other content you submit. You are responsible for ensuring that you have the rights and permissions necessary to submit and process that content.
 
-*   **No Guarantees:** We don't promise that OrcAI will always meet your needs, be available without interruption, or be completely free of errors or bugs.
-*   **Accuracy Not Guaranteed:** We do not guarantee that any information or AI output from the platform will be accurate or reliable (please remember Section 4).
-*   **Data Loss Risk:** Because this is a testing phase, regular backups are not guaranteed. There's a possibility your chat history or other data could be lost. While we are working hard on mitigating this and minimising "resetting" the system, we are not liable for any data loss.
+You permit the Operator and its configured service providers to host, copy, transform, index, transmit, and otherwise process your content only as needed to operate, secure, administer, and improve the service as described in the applicable privacy policy and deployment-specific notices.
 
-### 9. Our Responsibility is Limited (Limitation of Liability)
+Content made available to an organisation or group may be accessible to other authorised members according to the configured permissions. Removing content may not immediately remove derived representations, logs, or backup copies.
 
-To the maximum extent permitted by German law, Rhine-Waal University or the OrcAI project team (including its staff and partners) will not be legally responsible for any indirect damages or losses (like loss of data, profit, or goodwill) resulting from your use or inability to use OrcAI. This includes damages caused by:
+## 7. Software and third-party services
 
-*   Your use of (or inability to use) the platform.
-*   Content or conduct of others on the platform.
-*   Your reliance on any information or AI output from the platform (remember Section 4).
-*   Someone accessing your account without permission.
-*   Any other issues related to the platform.
+The OrcAI software is distributed under the GNU Affero General Public License, version 3 only (`AGPL-3.0-only`). These service terms do not replace or restrict rights granted under that software licence.
 
-This limitation applies regardless of the legal basis of the claim (contract, negligence, etc.), even if we were warned such damages might occur. Our liability for direct damages will also be limited as far as German law allows. (Note: This does not limit liability for harm caused intentionally or through gross negligence, as required by German law).
+Models, uploaded materials, generated output, and third-party services may be subject to separate licences and terms. The Operator is responsible for choosing and disclosing its service providers; you are responsible for complying with restrictions that lawfully apply to your use.
 
-### 10. Ending Your Access (Termination)
+## 8. Privacy
 
-*   **By Us:** We can suspend or stop your access to OrcAI at any time, for reasons such as:
-    *   You violate these Terms or the Privacy Policy.
-    *   Your course ends, or you leave the university.
-    *   The OrcAI project ends.
-    *   Your account is inactive for a long time.
-    *   Your actions risk the platform's security or harm others.
-*   **By You:** You can ask to stop using OrcAI and delete your account by contacting your course instructor. They will inform the project team. (There isn't a feature for this in the platform yet).
-*   **What Happens:** If your access ends, you won't be able to use OrcAI anymore. Your data will be handled as described in our Privacy Policy. Some sections of these Terms (like 4, 7, 8, 9, 11, 12) will still apply even after termination.
+The privacy policy presented with this instance describes how the Operator may process personal data. Because OrcAI is self-hostable, hosting locations, AI providers, analytics, email delivery, retention, and international transfers vary between deployments.
 
-### 11. Governing Law and Disputes
+Do not assume that the open-source maintainers operate this instance or receive its data. Direct deployment-specific privacy questions to the Operator.
 
-These Terms are governed by the laws of Germany. Any legal disputes related to these Terms will be handled by the competent courts in or responsible for Kamp-Lintfort or Kleve, Germany.
+## 9. Availability and changes
 
-### 12. Changes to These Terms
+Unless the Operator expressly promises otherwise, the service is provided on an **as available** basis. Maintenance, configuration changes, provider failures, security incidents, or experimental features may interrupt or alter the service. Data may be lost, so retain independent copies of important content.
 
-We may update these Terms sometimes. If we make important changes, we will notify you on the platform (like with a pop-up when you log in) before the changes take effect. The notice will explain the changes. To continue using OrcAI after the changes, you will need to agree to the new Terms. If you don't agree, you should stop using the platform and ask to have your account deleted (see Section 10).
+The Operator may change, suspend, limit, or discontinue features and may apply storage, usage, model, or rate limits.
 
-### 13. How to Contact Us
+## 10. Suspension and termination
 
-*   **For help using OrcAI or account issues:** Contact your **course instructor** first.
-*   **For general questions about the project or these Terms:** Email the project team at [sokratest@hochschule-rhein-waal.de](mailto:sokratest@hochschule-rhein-waal.de).
-*   **For privacy questions:** See the contact details in the OrcAI Privacy Policy.
+The Operator may restrict or terminate access when reasonably necessary to protect users or systems, comply with law, enforce these terms, respond to non-payment where applicable, or manage the service. Where appropriate, the Operator should provide notice and an opportunity to address the issue.
 
-### 14. Final Points
+You may stop using the service at any time and may ask the Operator about account deletion or data export. Deletion and retention are governed by the privacy policy, available application features, and applicable law.
 
-These Terms and the Privacy Policy are the complete agreement between you and Rhine-Waal University about using OrcAI. If any part of these Terms is found to be invalid, the rest still applies. If we don't enforce a right under these Terms immediately, it doesn't mean we waive that right for the future.
+## 11. Disclaimers and liability
+
+To the maximum extent permitted by applicable law, the service and AI-generated output are provided without implied warranties of accuracy, fitness for a particular purpose, uninterrupted availability, or non-infringement.
+
+Any exclusions or limitations of liability depend on the Operator, the applicable jurisdiction, and whether you use the service as a consumer. Nothing in these terms excludes or limits liability that cannot lawfully be excluded or limited. The Operator should add provisions appropriate to its deployment rather than relying on this generic section where local law requires more detail.
+
+## 12. Governing terms and disputes
+
+The Operator should identify the law and dispute process applicable to this service. Mandatory consumer, employment, education, public-sector, or data-protection rights continue to apply regardless of this section.
+
+Before starting formal proceedings, you and the Operator should try to resolve concerns through the Operator's published support or contact channel, unless immediate action is necessary or applicable law provides otherwise.
+
+## 13. Changes to these terms
+
+The Operator may update these terms when the service or legal requirements change. The effective date above should be updated when changes are published. If required by law or promised by the Operator, users should receive advance notice or be asked to accept materially revised terms.
+
+## 14. Contact
+
+Questions about accounts, content, privacy, suspension, or these terms should be directed to the Operator using the contact information supplied with this instance. The open-source maintainers cannot administer independently operated deployments.

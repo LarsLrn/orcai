@@ -18,7 +18,12 @@ export const Route = createRootRoute({
 				content: "width=device-width, initial-scale=1",
 			},
 			{
-				title: "Fumadocs on TanStack Start",
+				title: "OrcAI — Governed, grounded AI assistants",
+			},
+			{
+				name: "description",
+				content:
+					"Documentation and self-hosting guides for OrcAI, a platform for governed AI assistants grounded in curated knowledge.",
 			},
 		],
 		links: [

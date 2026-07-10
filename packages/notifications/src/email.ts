@@ -67,14 +67,26 @@ export const EmailLive = Layer.effect(
 					: undefined,
 			};
 			const transport = createTransport(options);
-			yield* Effect.tryPromise({
-				try: () => transport.verify(),
-				catch: (cause) =>
-					new EmailError({
-						operation: "verifyTransport",
-						cause,
-					}),
-			});
+			yield* Effect.forkScoped(
+				Effect.tryPromise({
+					try: () => transport.verify(),
+					catch: (cause) =>
+						new EmailError({
+							operation: "verifyTransport",
+							cause,
+						}),
+				}).pipe(
+					Effect.tapError((error) =>
+						Effect.logError({
+							operation: "email.smtp-verification.failed",
+							host: config.host,
+							port: config.port,
+							cause: String(error.cause),
+						}),
+					),
+					Effect.ignore,
+				),
+			);
 			const defaultFrom = `${config.fromName} <${config.from}>`;
 			return {
 				transport,

@@ -18,7 +18,16 @@ import {
 	workflow,
 } from "@/components/landing/content";
 import { ConsoleVisual } from "@/components/landing/product-visuals";
+import {
+	ActionLink,
+	BodyCopy,
+	Eyebrow,
+	LandingSection,
+	SectionHeading,
+	Surface,
+} from "@/components/landing/ui";
 import { baseOptions } from "@/lib/layout.shared";
+import { siteConfig } from "@/lib/site-config";
 
 export const Route = createFileRoute("/")({
 	component: Home,
@@ -29,241 +38,205 @@ function Home() {
 
 	return (
 		<HomeLayout {...baseOptions()}>
-			<main className="bg-[#eef1f0] text-[#101615] dark:bg-[#080d0c] dark:text-[#f3f7f5]">
-				<section className="mx-auto max-w-7xl px-4 py-6 sm:px-8">
-					<div className="rounded-lg border border-[#c7d0cd] bg-[#f8faf9] p-4 dark:border-[#1e2b28] dark:bg-[#0d1513]">
-						<div className="flex flex-wrap items-center justify-between gap-3 border-[#dce2df] border-b px-2 pb-4 text-sm dark:border-[#1e2b28]">
-							<Link to="/docs/$" className="text-[#53615e] dark:text-[#b8c4c0]">
+			<main className="landing-page bg-landing-canvas text-landing-foreground">
+				<LandingSection className="py-6">
+					<Surface className="bg-landing-surface p-4">
+						<div className="flex flex-wrap items-center justify-between gap-3 border-landing-border-subtle border-b px-2 pb-4 text-sm">
+							<Link
+								to="/docs/$"
+								className="text-landing-muted transition-colors hover:text-landing-foreground"
+							>
 								OrcAI documentation
 							</Link>
 							<div className="flex flex-wrap gap-2">
-								<span className="rounded-full bg-[#d9f99d] px-3 py-1 font-medium text-[#263400]">
+								<a
+									href={siteConfig.repository.url}
+									className="rounded-full bg-landing-accent px-3 py-1 font-medium text-landing-accent-foreground transition-opacity hover:opacity-80 focus-visible:outline-2 focus-visible:outline-landing-accent-muted focus-visible:outline-offset-2"
+								>
 									Open source
-								</span>
-								<span className="rounded-full border border-[#c7d0cd] px-3 py-1 dark:border-[#2e3b38]">
+								</a>
+								<Link
+									to="/docs/$"
+									params={{
+										_splat: "self-hosting",
+									}}
+									className="rounded-full border border-landing-border px-3 py-1 transition-colors hover:bg-landing-surface-raised focus-visible:outline-2 focus-visible:outline-landing-accent-muted focus-visible:outline-offset-2"
+								>
 									Self-hostable
-								</span>
+								</Link>
 							</div>
 						</div>
 
-						<div className="grid gap-8 px-1 py-10 lg:grid-cols-[0.92fr_1.08fr] lg:items-center lg:px-6 lg:py-16">
+						<div className="grid gap-10 px-1 py-10 lg:grid-cols-[0.92fr_1.08fr] lg:items-center lg:px-6 lg:py-16">
 							<div>
-								<p className="mb-4 font-mono text-[#4f6f2a] text-sm uppercase dark:text-[#d9f99d]">
-									Configure. Ground. Govern.
-								</p>
+								<Eyebrow className="mb-4">Configure. Ground. Govern.</Eyebrow>
 								<h1 className="max-w-4xl text-balance font-semibold text-5xl leading-none sm:text-7xl">
 									Knowledge assistants you can operate on your own terms.
 								</h1>
-								<p className="mt-6 max-w-2xl text-[#53615e] text-lg leading-8 dark:text-[#b8c4c0]">
+								<BodyCopy className="mt-6 max-w-2xl text-lg leading-8">
 									OrcAI helps individuals, specialist teams, educators, and
 									research groups build AI assistants around curated knowledge
 									bases. Upload material, shape assistant behaviour, control
 									access, and run the stack without depending on external SaaS
 									services beyond an inference provider.
-								</p>
+								</BodyCopy>
 								<div className="mt-8 flex flex-wrap gap-3">
-									<a
-										href={primaryCta.href}
-										className="inline-flex items-center gap-2 rounded-lg bg-[#101615] px-5 py-3 font-medium text-white dark:bg-[#d9f99d] dark:text-[#172000]"
-									>
+									<ActionLink href={primaryCta.href} variant="primary">
 										<PrimaryIcon className="size-4" />
 										{primaryCta.label}
-									</a>
-									<a
-										href={secondaryCta.href}
-										className="inline-flex items-center gap-2 rounded-lg border border-[#c7d0cd] px-5 py-3 font-medium dark:border-[#2e3b38]"
-									>
+									</ActionLink>
+									<ActionLink href={secondaryCta.href}>
 										{secondaryCta.label}
 										<ArrowRightIcon className="size-4" />
-									</a>
-									<a
-										href="https://github.com/LarsLrn/orcai"
-										className="inline-flex items-center gap-2 rounded-lg border border-[#c7d0cd] px-5 py-3 font-medium dark:border-[#2e3b38]"
-									>
-										<Code2Icon className="size-4" />
-										GitHub
-									</a>
+									</ActionLink>
+									<ActionLink href={siteConfig.repository.url}>
+										<Code2Icon className="size-4" /> GitHub
+									</ActionLink>
 								</div>
 							</div>
 							<ConsoleVisual />
 						</div>
-					</div>
-				</section>
+					</Surface>
+				</LandingSection>
 
-				<section className="mx-auto max-w-7xl px-4 py-10 sm:px-8">
-					<div className="grid gap-4 md:grid-cols-3">
+				<LandingSection>
+					<div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
 						{pillars.map((pillar) => (
-							<div
-								key={pillar.title}
-								className="rounded-lg bg-[#101615] p-6 text-white dark:bg-[#111d1a]"
-							>
-								<pillar.icon className="mb-10 size-7 text-[#d9f99d]" />
+							<Surface key={pillar.title} className="p-6">
+								<pillar.icon className="mb-10 size-7 text-landing-accent-muted" />
 								<h2 className="text-2xl">{pillar.title}</h2>
-								<p className="mt-3 text-[#c4cfcb] leading-7">
-									{pillar.description}
-								</p>
-							</div>
+								<BodyCopy className="mt-3">{pillar.description}</BodyCopy>
+							</Surface>
 						))}
 					</div>
-				</section>
+				</LandingSection>
 
-				<section className="mx-auto grid max-w-7xl gap-6 px-4 py-10 sm:px-8 lg:grid-cols-[0.8fr_1.2fr]">
-					<div className="rounded-lg border border-[#c7d0cd] bg-white p-6 dark:border-[#1e2b28] dark:bg-[#0d1513]">
-						<p className="font-mono text-[#4f6f2a] text-sm uppercase dark:text-[#d9f99d]">
-							Working model
-						</p>
-						<h2 className="mt-4 text-3xl">
+				<LandingSection className="grid gap-6 lg:grid-cols-[0.8fr_1.2fr]">
+					<Surface className="p-6">
+						<SectionHeading eyebrow="Working model">
 							From source material to governed assistant.
-						</h2>
-						<p className="mt-4 text-[#53615e] leading-7 dark:text-[#b8c4c0]">
+						</SectionHeading>
+						<BodyCopy className="mt-4">
 							Generic chat tools make people improvise context, policy, and
 							quality checks. OrcAI turns those concerns into explicit workspace
 							resources: content, repository blocks, behaviour blocks, bots,
 							access settings, providers, and quotas.
-						</p>
-					</div>
-					<div className="rounded-lg border border-[#c7d0cd] bg-white p-3 dark:border-[#1e2b28] dark:bg-[#0d1513]">
+						</BodyCopy>
+					</Surface>
+					<Surface className="divide-y divide-landing-border-subtle p-3">
 						{workflow.map((item, index) => (
 							<div
 								key={item}
-								className="grid gap-4 rounded-lg p-4 sm:grid-cols-[2.5rem_1fr]"
+								className="grid gap-4 p-4 sm:grid-cols-[2.5rem_1fr] sm:items-center"
 							>
-								<div className="flex size-9 items-center justify-center rounded-full bg-[#d9f99d] font-mono text-[#263400] text-sm">
+								<div className="flex size-9 items-center justify-center rounded-full bg-landing-accent font-mono text-landing-accent-foreground text-sm">
 									{index + 1}
 								</div>
 								<p className="text-lg">{item}</p>
 							</div>
 						))}
-					</div>
-				</section>
+					</Surface>
+				</LandingSection>
 
-				<section className="mx-auto max-w-7xl px-4 py-10 sm:px-8">
-					<div className="grid gap-6 lg:grid-cols-[1fr_1fr]">
-						<div>
-							<p className="font-mono text-[#4f6f2a] text-sm uppercase dark:text-[#d9f99d]">
-								Governance
-							</p>
-							<h2 className="mt-4 max-w-2xl text-3xl">
-								Control is part of the application, not an afterthought.
-							</h2>
-						</div>
-						<p className="text-[#53615e] leading-7 dark:text-[#b8c4c0]">
+				<LandingSection>
+					<div className="grid gap-6 lg:grid-cols-2 lg:items-end">
+						<SectionHeading eyebrow="Governance" className="max-w-2xl">
+							Control is part of the application, not an afterthought.
+						</SectionHeading>
+						<BodyCopy>
 							OrcAI is built for settings where the knowledge base, access
 							model, model configuration, and operating environment matter. The
 							stack is open source and can be hosted with infrastructure you
 							control.
-						</p>
+						</BodyCopy>
 					</div>
 					<div className="mt-6 grid gap-4 md:grid-cols-3">
 						{governance.map((item) => (
-							<div
-								key={item.title}
-								className="rounded-lg border border-[#c7d0cd] bg-white p-6 dark:border-[#1e2b28] dark:bg-[#0d1513]"
-							>
-								<item.icon className="mb-10 size-6 text-[#4f6f2a] dark:text-[#d9f99d]" />
+							<Surface key={item.title} className="p-6">
+								<item.icon className="mb-10 size-6 text-landing-accent-muted" />
 								<h3 className="font-semibold text-xl">{item.title}</h3>
-								<p className="mt-3 text-[#53615e] leading-7 dark:text-[#b8c4c0]">
-									{item.description}
-								</p>
-							</div>
+								<BodyCopy className="mt-3">{item.description}</BodyCopy>
+							</Surface>
 						))}
 					</div>
-				</section>
+				</LandingSection>
 
-				<section className="mx-auto grid max-w-7xl gap-6 px-4 py-10 sm:px-8 lg:grid-cols-[1.05fr_0.95fr]">
-					<div className="rounded-lg border border-[#c7d0cd] bg-[#f8faf9] p-6 dark:border-[#1e2b28] dark:bg-[#0d1513]">
-						<p className="font-mono text-[#4f6f2a] text-sm uppercase dark:text-[#d9f99d]">
-							Self-hosting
-						</p>
-						<h2 className="mt-4 text-3xl">A full stack you can inspect.</h2>
-						<p className="mt-4 text-[#53615e] leading-7 dark:text-[#b8c4c0]">
+				<LandingSection className="grid gap-6 lg:grid-cols-[1.05fr_0.95fr]">
+					<Surface className="bg-landing-surface p-6">
+						<SectionHeading eyebrow="Self-hosting">
+							A full stack you can inspect.
+						</SectionHeading>
+						<BodyCopy className="mt-4">
 							The application runs with its own app process, background workers,
 							relational data, cache, object storage, vector search, and
 							authorization service. The required external boundary is an
 							OpenAI-compatible inference endpoint for embeddings and model
 							calls.
-						</p>
-						<a
+						</BodyCopy>
+						<ActionLink
 							href="/docs/self-hosting"
-							className="mt-6 inline-flex items-center gap-2 rounded-lg bg-[#101615] px-4 py-2 font-medium text-white dark:bg-[#d9f99d] dark:text-[#172000]"
+							variant="primary"
+							className="mt-6 px-4 py-2"
 						>
-							Self-hosting docs
-							<ArrowRightIcon className="size-4" />
-						</a>
-					</div>
+							Self-hosting docs <ArrowRightIcon className="size-4" />
+						</ActionLink>
+					</Surface>
 					<div className="grid gap-3 sm:grid-cols-2">
 						{stack.map((item) => (
-							<div
-								key={item}
-								className="flex items-center gap-3 rounded-lg border border-[#c7d0cd] bg-white p-4 dark:border-[#1e2b28] dark:bg-[#0d1513]"
-							>
-								<CheckCircle2Icon className="size-5 shrink-0 text-[#4f6f2a] dark:text-[#d9f99d]" />
+							<Surface key={item} className="flex items-center gap-3 p-4">
+								<CheckCircle2Icon className="size-5 shrink-0 text-landing-accent-muted" />
 								<span>{item}</span>
-							</div>
+							</Surface>
 						))}
 					</div>
-				</section>
+				</LandingSection>
 
-				<section className="mx-auto max-w-7xl px-4 py-10 sm:px-8">
+				<LandingSection>
 					<div className="grid gap-4 md:grid-cols-2 xl:grid-cols-3">
 						{audiences.map((audience) => (
-							<div
-								key={audience.label}
-								className="rounded-lg border border-[#c7d0cd] bg-white p-6 dark:border-[#1e2b28] dark:bg-[#0d1513]"
-							>
-								<audience.icon className="mb-10 size-6 text-[#4f6f2a] dark:text-[#d9f99d]" />
+							<Surface key={audience.label} className="p-6">
+								<audience.icon className="mb-10 size-6 text-landing-accent-muted" />
 								<h3 className="font-semibold">{audience.label}</h3>
-								<p className="mt-3 text-[#53615e] leading-7 dark:text-[#b8c4c0]">
-									{audience.value}
-								</p>
-							</div>
+								<BodyCopy className="mt-3">{audience.value}</BodyCopy>
+							</Surface>
 						))}
 					</div>
-				</section>
+				</LandingSection>
 
-				<section className="mx-auto max-w-7xl px-4 py-10 sm:px-8">
-					<div className="rounded-lg border border-[#c7d0cd] bg-white p-6 dark:border-[#1e2b28] dark:bg-[#0d1513]">
-						<div className="grid gap-6 lg:grid-cols-[0.8fr_1.2fr]">
-							<div>
-								<p className="font-mono text-[#4f6f2a] text-sm uppercase dark:text-[#d9f99d]">
-									Use cases
-								</p>
-								<h2 className="mt-4 text-3xl">
-									Useful wherever knowledge needs context and boundaries.
-								</h2>
-							</div>
-							<div className="grid gap-3">
+				<LandingSection>
+					<Surface className="p-6">
+						<div className="grid gap-8 lg:grid-cols-[0.8fr_1.2fr]">
+							<SectionHeading eyebrow="Use cases">
+								Useful wherever knowledge needs context and boundaries.
+							</SectionHeading>
+							<div className="grid gap-4">
 								{useCases.map((useCase) => (
 									<div key={useCase} className="flex items-start gap-3">
-										<CircleDotIcon className="mt-1 size-4 shrink-0 text-[#4f6f2a] dark:text-[#d9f99d]" />
-										<p className="text-[#53615e] leading-7 dark:text-[#b8c4c0]">
-											{useCase}
-										</p>
+										<CircleDotIcon className="mt-1 size-4 shrink-0 text-landing-accent-muted" />
+										<BodyCopy>{useCase}</BodyCopy>
 									</div>
 								))}
 							</div>
 						</div>
-					</div>
-				</section>
+					</Surface>
+				</LandingSection>
 
-				<section className="mx-auto max-w-7xl px-4 pt-6 pb-20 sm:px-8">
-					<div className="rounded-lg border border-[#c7d0cd] bg-[#f8faf9] p-6 dark:border-[#1e2b28] dark:bg-[#0d1513]">
-						<h2 className="text-3xl">Context and constraints</h2>
+				<LandingSection className="pt-6 pb-20">
+					<Surface className="bg-landing-surface p-6">
+						<SectionHeading>Context and constraints</SectionHeading>
 						<div className="mt-6 grid gap-3 md:grid-cols-2">
 							{constraints.map((constraint) => (
 								<div
 									key={constraint}
-									className="flex items-start gap-3 rounded-lg bg-white p-4 dark:bg-[#101917]"
+									className="flex items-start gap-3 rounded-lg bg-landing-surface-raised p-4"
 								>
-									<CircleDotIcon className="mt-1 size-4 shrink-0 text-[#4f6f2a] dark:text-[#d9f99d]" />
-									<span className="text-[#53615e] leading-7 dark:text-[#b8c4c0]">
-										{constraint}
-									</span>
+									<CircleDotIcon className="mt-1 size-4 shrink-0 text-landing-accent-muted" />
+									<BodyCopy>{constraint}</BodyCopy>
 								</div>
 							))}
 						</div>
-					</div>
-				</section>
+					</Surface>
+				</LandingSection>
 			</main>
 		</HomeLayout>
 	);

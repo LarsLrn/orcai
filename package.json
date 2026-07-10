@@ -1,6 +1,7 @@
 {
 	"name": "orcai-workspace",
 	"private": true,
+	"license": "AGPL-3.0-only",
 	"workspaces": {
 		"packages": [
 			"apps/*",
@@ -23,7 +24,7 @@
 			"@types/react": "^19.2.17",
 			"@types/react-dom": "^19.2.3",
 			"@vitejs/plugin-react": "6.0.3",
-			"ai": "7.0.15",
+			"ai": "7.0.16",
 			"drizzle-kit": "1.0.0-rc.4",
 			"drizzle-orm": "1.0.0-rc.4",
 			"effect": "4.0.0-beta.90",
@@ -40,9 +41,13 @@
 	},
 	"scripts": {
 		"biome:check:unsafe": "biome check . --write --unsafe",
-		"build": "bun run --filter @orcai/app build",
+		"build": "bun run build:app && bun run build:web",
+		"build:app": "bun run --filter @orcai/app build",
+		"build:web": "bun run --filter @orcai/web build",
+		"ci": "bun run --filter @orcai/app paraglide:compile && bun run lint-full && bun run test && bun run --filter @orcai/web types:check && bun run build",
 		"clean": "rm -rf node_modules apps/*/node_modules packages/*/node_modules dist apps/*/dist packages/*/dist .tanstack apps/*/.tanstack .devtools apps/*/.devtools **/tsconfig.tsbuildinfo",
 		"dev": "bun run --filter @orcai/app dev",
+		"dev:all": "bun run --parallel --filter '@orcai/*' dev",
 		"knip": "knip",
 		"lint": "biome check . && tsgo --build --noEmit tsconfig.json",
 		"lint-full": "biome check . && tsgo --build --noEmit tsconfig.json && bun run eslint .",
@@ -72,10 +77,10 @@
 		"eslint": "10.6.0",
 		"eslint-plugin-drizzle": "1.0.0-rc.4",
 		"husky": "9.1.7",
-		"knip": "6.24.0",
+		"knip": "6.25.0",
 		"lint-staged": "17.0.8",
 		"typescript": "6.0.3",
-		"typescript-eslint": "8.62.1"
+		"typescript-eslint": "8.63.0"
 	},
 	"packageManager": "bun@1.3.14",
 	"engines": {
