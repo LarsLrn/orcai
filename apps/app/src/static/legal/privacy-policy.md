@@ -1,138 +1,97 @@
-## Privacy Policy for the OrcAI Educational Platform
+# Privacy Policy for OrcAI
 
-**Effective Date:** 17 April 2025
+**Effective date:** 10 July 2026
 
-### 1. Introduction and Scope
+## 1. About this policy
 
-This Privacy Policy details the data processing practices of the OrcAI Project Team at Rhine-Waal University ("Project Team", "We", "Us", "Our") in relation to the provision and use of the OrcAI educational platform ("OrcAI" or the "Platform"). OrcAI is a research-oriented platform developed by the Project Team, designed to facilitate Artificial Intelligence (AI)-assisted Socratic dialogue for educational purposes within designated courses. This policy applies to all registered users ("User", "You", "Your") participating in the current testing phase of the Platform. Use of the Platform is currently restricted to invited participants and is provided completely free of charge.
+OrcAI is self-hostable software for creating and using AI assistants with curated knowledge. This policy explains how personal data may be processed when you use this OrcAI instance.
 
-### 2. Data Controller
+The person or organisation that operates this instance (the **Operator**) determines why and how personal data is processed and is responsible for providing accurate contact, legal-basis, retention, hosting, and service-provider information for this deployment.
 
-The entity legally responsible for the processing of personal data under this policy (the "Controller") is:
+> **Information for operators:** Before making an instance available to users, identify the Operator and its contact details here. Also document the legal bases, retention periods, service providers, international transfers, and supervisory authority that apply to your deployment. This default policy is a technical starting point and is not legal advice.
 
-Rhine-Waal University
-Friedrich-Heinrich-Allee 25
-47475 Kamp-Lintfort
-Germany
+## 2. Operator and contact
 
-Email for privacy-related inquiries: [sokratest@hochschule-rhein-waal.de](mailto:sokratest@hochschule-rhein-waal.de)
+The Operator of this OrcAI instance is the controller, or equivalent responsible party, for personal data processed through the instance. Contact details should be available from the organisation or person that invited you, supplied your account, or provided access to this service.
 
-### 3. Data Protection Officer (DPO)
+If the Operator has appointed a data protection officer or privacy contact, their details should be supplied alongside this policy or through the Operator's usual contact channels.
 
-The Data Protection Officer (DPO) designated for Rhine-Waal University can be contacted via:
+## 3. Data OrcAI may process
 
-Rhine-Waal University
-Marie-Curie-Straße 1
-47533 Kleve
-Germany
+Depending on how this instance is configured and used, OrcAI may process:
 
-Email: [datenschutz@hochschule-rhein-waal.de](mailto:datenschutz@hochschule-rhein-waal.de)
+- **Account data:** name, email address, account identifiers, organisation membership, roles, invitations, and authentication records. Passwords are stored as password hashes rather than in plain text.
+- **Workspace and access data:** organisations, groups, permissions, resource ownership, and other information used to control access.
+- **Conversation data:** prompts, assistant responses, feedback, model settings, citations, and related message metadata.
+- **Uploaded content:** files, text, images, metadata, extracted content, generated representations, and vector embeddings supplied or created for knowledge retrieval.
+- **Configuration data:** assistant, model, provider, quota, and content-library settings entered by authorised users.
+- **Technical data:** timestamps, request and error information, job status, security events, and limited device, browser, network, or usage data present in server logs or optional analytics and observability systems.
+- **Communications:** verification, password-reset, invitation, support, and other messages associated with the service.
 
-Inquiries regarding general data protection directed to the DPO should clearly reference the OrcAI platform.
+Do not submit personal or confidential information that the Operator has not authorised you to process through OrcAI.
 
+## 4. Why data is processed
 
-### 4. Platform Functionality and Purpose of Data Processing
+The Operator may process this data to:
 
-OrcAI enables registered student users to engage in interactive dialogues with an AI. To facilitate contextually relevant interactions, designated course instructors may upload course-related documents (including, but not limited to, PDF files, Microsoft Word documents, PowerPoint presentations, and image files) to the Platform. These documents undergo an internal processing workflow involving text and image extraction, generation of semantic representations (embeddings), and storage within a vector database. This processed information is utilised via a Retrieval-Augmented Generation (RAG) process to inform and enhance the AI's responses within the dialogue.
+- create and secure accounts and sessions;
+- provide organisations, groups, permissions, and collaboration features;
+- store, process, index, retrieve, and present uploaded content;
+- generate and retain AI-assisted conversations;
+- send account, security, and invitation messages;
+- apply quotas and administer the service;
+- prevent abuse, investigate incidents, and maintain reliability;
+- diagnose errors, monitor performance, and improve the deployment; and
+- meet legal, regulatory, contractual, or organisational obligations.
 
-### 5. Personal Data Processed
+The applicable legal bases depend on the Operator, its jurisdiction, its relationship with you, and the purpose of the deployment. They may include performance of a contract, consent, legitimate interests, compliance with legal obligations, or performance of a public-interest task. The Operator must identify the bases that actually apply.
 
-In the course of operating OrcAI, We collect and process the following categories of personal data:
+## 5. AI processing
 
-*   **User Identification and Authentication Data:** University-issued email address provided during the invitation/registration process; a unique system-generated User ID assigned to each account; User-chosen passwords, which are stored solely in a securely hashed format (irreversible encryption). No alternative login methods are currently supported.
-*   **User Interaction Data:** Records of the chat dialogues conducted between the User and the AI; any feedback voluntarily submitted by the User through the Platform's interface regarding the AI's performance or the User experience.
-*   **Technical Usage Data (Web Analytics):** Standard web server log information and analytics data, collected via a self-hosted instance of the Umami analytics tool. This includes the User's device information, browser type and version, operating system, specific pages visited within the OrcAI platform, timestamps of access, and referring URLs (if applicable). Your IP Address will be used to infer your location (country, region and city), but will not be stored.
+Prompts, retrieved knowledge, uploaded content, and conversation context may be sent to AI or embedding services configured by the Operator. AI output may be inaccurate and may reproduce information contained in the submitted context.
 
-**Exclusion of Sensitive Data:** We explicitly do not collect or process sensitive personal data (as defined under Article 9 GDPR), such as racial or ethnic origin, political opinions, religious beliefs, health data, or data concerning a natural person's sex life or sexual orientation. Furthermore, We do not collect academic grades or formal performance evaluations through the OrcAI platform. The processing is limited to the data types listed above, primarily the university-issued email address and user-generated chat history.
+OrcAI supports configurable OpenAI-compatible services. These services may be self-hosted or operated by third parties and may process data in different locations under their own terms. Ask the Operator which services are configured before submitting sensitive information.
 
-### 6. Legal Basis for Processing (GDPR) and Purposes of Data Processing
+## 6. Storage, retrieval, and other services
 
-The processing of Your personal data is conducted based on the following legal ground as defined in the General Data Protection Regulation (GDPR):
+An OrcAI deployment can use services including PostgreSQL, S3-compatible object storage, Qdrant, SpiceDB, Valkey, email delivery, analytics, and observability providers. These may run on the Operator's own infrastructure or be supplied by third parties.
 
-*   **Consent (Art. 6(1)(a) GDPR):** Your explicit consent, signified by Your acceptance of this Privacy Policy upon account creation/first login, is the primary legal basis for processing Your personal data to provide You with access to and use of the OrcAI Platform's core functionalities.
-*   In the context of providing this Platform for educational and research purposes in our capacity as a public university, we process those personal data described in Section 5 of this Privacy Policy with regard to technical requirements and the research context. In accordance, the purposes of processing Your data are:
-    *   Providing, maintaining, and ensuring the technical functionality and security of the Platform during its research and development phase.
-    *   Analysing usage patterns and user feedback to improve the Platform's features, usability, and educational effectiveness.
-    *   Conducting internal research related to AI in education and the efficacy of the OrcAI approach (data used for research publications or external reporting will be aggregated or fully anonymised).
-    *   Enabling essential features, such as persisting chat history to allow Users access across multiple devices associated with their account.
-    *   Troubleshooting technical issues and providing support.
+The recipients, processors, hosting locations, security measures, and contractual safeguards therefore depend on this deployment. The Operator must disclose the services it uses where required.
 
-### 7. Data Storage, Security Measures, and International Transfers
+## 7. International transfers
 
-#### 7.1. Location of Storage and Processing:
-All personal data collected and processed for OrcAI is stored and processed exclusively within the Federal Republic of Germany.
-*   **Primary Platform Hosting:** The core OrcAI application, databases (PostgreSQL), vector database (Qdrant), object storage (Minio), and web analytics (Umami) are operated on a Virtual Private Server (VPS) hosted by IONOS SE, with servers located physically within Germany.
-*   **AI Model Processing:** The AI models underpinning the dialogue functionality are provided and hosted exclusively by Gesellschaft für wissenschaftliche Datenverarbeitung mbH Göttingen (GWDG), Burckhardtweg 4, 37077 Göttingen, Germany ("GWDG"). All AI-related processing occurs solely within GWDG's own infrastructure in Göttingen, Germany. Based on information provided by GWDG (refer to their privacy policy linked below), they do not persistently store user prompts or AI responses sent to their service for the operation of OrcAI and utilise open source self-hosted models, not commercial third-party AI services (e.g., OpenAI, Anthropic, Google).
+OrcAI does not require data to be hosted in a particular country. Data may be processed wherever the Operator and its configured providers operate. If personal data is transferred across national borders, the Operator is responsible for identifying the transfer and applying any required safeguards.
 
-#### 7.2. Data Security:
-We implement appropriate technical and organisational measures designed to protect Your personal data against accidental or unlawful destruction, loss, alteration, unauthorised disclosure, or access. These measures include the use of Transport Layer Security (TLS/SSL) for data encryption during transmission between Your browser and Our servers, and between Our servers and GWDG. Data such as passwords are stored using secure hashing algorithms. We strive to follow industry best practices for the technologies employed (React, PostgreSQL, etc.).
+## 8. Retention and deletion
 
-#### 7.3. International Data Transfers:
-No personal data related to Your use of OrcAI is transferred to, stored in, or processed by entities located outside the Federal Republic of Germany, and therefore remains within the jurisdiction of the GDPR.
+Data is retained until it is deleted through available application features, removed by an authorised administrator, or deleted under the Operator's retention schedule. Different records may have different retention periods. Copies may remain temporarily in backups, logs, or disaster-recovery systems.
 
-#### 7.4. Data Backup and Integrity during Testing Phase:
-**Please be advised that OrcAI is currently in an active research and testing phase.** During this phase, while We strive to maintain data integrity, **regular, comprehensive backups of user data (including chat history) are not guaranteed.** Operational requirements, system updates, or unforeseen technical issues **may potentially lead to data loss.** The Project Team accepts no liability for any loss of data incurred during this testing phase. This condition is accepted by the User upon consenting to this policy, acknowledging the experimental nature of the Platform.
+The Operator should publish concrete retention periods or the criteria used to determine them. Removing an account or workspace may not remove data that the Operator must retain for security, legal, or audit purposes.
 
-### 8. Data Retention Period
+## 9. Cookies and similar technologies
 
-Personal data associated with Your OrcAI account (including user ID, email, chat history, feedback) will be retained, at a minimum, until the planned conclusion of the current OrcAI research project phase, anticipated for **October 31, 2025**.
+OrcAI uses essential browser storage and cookies to provide authentication, session security, and interface preferences. An Operator may additionally enable analytics or observability tools. Any optional tracking, its purpose, and available choices should be disclosed by the Operator.
 
-Data may be retained beyond this date in an **aggregated or fully anonymised format** (whereby it is no longer possible to identify You as an individual) for the purposes of long-term research analysis, statistical reporting, or continued development efforts of the OrcAI Platform.
+## 10. Security
 
-You retain the right to request the deletion of Your identifiable personal data prior to this date (see Section 11: Your Rights Under GDPR). Upon such a request, or after the data is no longer needed for the primary operational or defined research purposes in an identifiable form, Your directly identifiable data (email, unique ID, associated chats linked directly to the ID) will be securely deleted from operational systems. However, please note that usage data already incorporated into anonymised statistical analyses or backups existing at the time of deletion request might persist in that anonymised state.
+OrcAI includes access controls and supports encrypted connections to configured services, but no system can guarantee absolute security. Security also depends on how the Operator configures, updates, exposes, monitors, and backs up the deployment.
 
-### 9. Third-Party Services / Sub-processors
+Keep your credentials confidential and report suspected unauthorised access to the Operator promptly.
 
-We utilise the following third-party entities in the provision of OrcAI:
+## 11. Your choices and rights
 
-*   **Gesellschaft für wissenschaftliche Datenverarbeitung mbH Göttingen (GWDG):**
-    *   Address: Burckhardtweg 4, 37077 Göttingen, Germany
-    *   Role: Sub-processor providing the AI model hosting and inference services.
-    *   Website: [gwdg.de](https://www.gwdg.de)
-    *   Contact: [support@gwdg.de](mailto:support@gwdg.de) / +49 551 39-30000
-    *   [Relevant Privacy Policy](https://datenschutz.gwdg.de/services/chatai)
-*   **IONOS SE:**
-	*   Address: Elgendorfer Str. 57, 56410 Montabaur, Germany
-    *   Role: Hosting provider for the primary VPS, databases, and associated self-hosted tools, with infrastructure located in Germany.
-	*   Website: [ionos.de](https://www.ionos.de/impressum)
+Depending on applicable law, you may have rights to request access to, correction of, deletion of, restriction of, or portability of your personal data; to object to certain processing; to withdraw consent; and to complain to a competent supervisory authority. Withdrawing consent does not affect processing that occurred before withdrawal.
 
-Other tools mentioned (PostgreSQL, Qdrant, Minio, Umami, React) are operated within Our self-hosted environment on the IONOS infrastructure and do not involve sharing personal data with the software vendors themselves as external third parties in the context of data processing for OrcAI users.
+Direct requests to the Operator. The Operator may need to verify your identity and may retain information where permitted or required by law. Some account information and conversations may also be available through the application interface.
 
-### 10. Cookies and Tracking Technologies
+## 12. Children and eligibility
 
-OrcAI utilises cookies for specific, limited purposes:
+The Operator decides who may use its deployment and must apply any age restrictions or parental-consent requirements imposed by applicable law. If you believe a child has used this instance contrary to those requirements, contact the Operator.
 
-*   **Authentication Cookies (JWT):** Essential cookies used to securely manage User login sessions and verify identity after login.
-*   **Preference Cookies:** Used to store User interface preferences (e.g., enabling 'dark mode').
+## 13. Changes
 
-**We do not use third-party cookies.** We do not engage in cross-site tracking, behavioural advertising, or employ cookies from external advertising networks or social media platforms.
+The Operator may update this policy when the deployment, providers, purposes, or legal requirements change. The effective date above should be updated when material changes are published. Where required, the Operator should notify users or obtain renewed consent.
 
-### 11. Your Rights Under GDPR
+## 14. Open-source project
 
-As a data subject located within the European Union/European Economic Area, You possess the following rights under the GDPR regarding Your personal data processed by Us in the context of OrcAI:
-
-*   **Right of Access (Art. 15 GDPR):** To request confirmation of whether We process Your personal data and, if so, to access that data and supplementary information. Basic account information and chat history are accessible via Your account interface.
-*   **Right to Rectification (Art. 16 GDPR):** To request the correction of inaccurate personal data We hold about You.
-*   **Right to Erasure ('Right to be Forgotten') (Art. 17 GDPR):** To request the deletion of Your personal data under specific conditions (e.g., data no longer necessary, withdrawal of consent). Exercising this right will result in the deletion of Your OrcAI account and loss of access.
-*   **Right to Restriction of Processing (Art. 18 GDPR):** To request the limitation of how We process Your personal data under certain circumstances.
-*   **Right to Data Portability (Art. 20 GDPR):** To receive Your personal data (which You provided to Us based on consent) in a structured, commonly used, machine-readable format, and potentially transmit it to another controller.
-*   **Right to Object (Art. 21 GDPR):** To object to the processing of Your personal data based on Our legitimate interests (Art. 6(1)(f) GDPR) on grounds relating to Your particular situation.
-*   **Right to Withdraw Consent (Art. 7(3) GDPR):** To withdraw Your previously given consent for processing at any time. This withdrawal will not affect the lawfulness of processing based on consent before its withdrawal. Withdrawal necessitates the deletion of Your account.
-*   **Right to Lodge a Complaint (Art. 77 GDPR):** To lodge a complaint with a competent data protection supervisory authority (e.g., the LDI NRW for North Rhine-Westphalia, or the authority in Your EU Member State of residence/work).
-
-**Exercising Your Rights:** Due to the closed, research-oriented nature of the current OrcAI deployment where access is managed via instructors, please direct requests concerning access (beyond what the interface provides), data extraction (portability), rectification, erasure, restriction, or withdrawal of consent **initially to Your respective course instructor.** The instructor acts as the primary point of contact and liaison for managing user participation and related data requests during this phase. If You encounter difficulties or have general privacy concerns, You may also contact the designated privacy email (Section 2) or the DPO (Section 3).
-
-### 12. Age Restriction
-
-Use of the OrcAI platform is strictly limited to individuals who are eighteen (18) years of age or older. By accepting this Privacy Policy and creating an account, You represent and warrant that You meet this minimum age requirement. We do not knowingly collect data from individuals under 18.
-
-### 13. Changes to this Privacy Policy
-
-We reserve the right to modify this Privacy Policy at any time, particularly as the Platform evolves or if legal requirements change. Should significant changes be made, We will provide notice to You through a clear notification presented upon Your next login to the Platform. This notification will summarise the key changes. Your continued use of OrcAI following such notification will require Your explicit acceptance of the revised Privacy Policy. Should You not agree to the updated terms, You will be provided with the option to decline and request the deletion of Your account. The "Effective Date" at the beginning of this document indicates the date of the last revision. We do not anticipate major changes during the initial testing phase.
-
-### 14. Contact Information
-
-For inquiries regarding this Privacy Policy or data processing related to OrcAI, please:
-1.  Contact Your respective course instructor (for user-specific requests like deletion).
-2.  Contact the designated privacy email: [sokratest@hochschule-rhein-waal.de](mailto:sokratest@hochschule-rhein-waal.de)
-3.  Contact the Data Protection Officer for Rhine-Waal University (regarding general data protection questions; see Section 3 for details).
+OrcAI is open-source software. The software's maintainers do not automatically operate this instance, receive its data, or act as its controller merely because the Operator uses OrcAI. Privacy questions about this deployment should be directed to its Operator.
