@@ -67,7 +67,7 @@ Steps:
 1. Open the repository in VS Code.
 2. Run `Dev Containers: Reopen in Container`.
 3. Wait for `bun install --frozen-lockfile` to finish.
-4. Start the app with `bun run dev`.
+4. Start the app, documentation site, and workers with `bun run dev:all`.
 5. Open [http://localhost:3000](http://localhost:3000).
 
 What starts automatically:
@@ -76,7 +76,6 @@ What starts automatically:
 - MinIO
 - Qdrant
 - SpiceDB
-- Background workers
 - Workspace dependency install
 - Database migrations
 - MinIO bucket bootstrap
@@ -85,7 +84,8 @@ What starts automatically:
 
 Notes:
 - The devcontainer fixes internal service addresses on the Compose network.
-- A one-shot `deps` service runs `bun install --frozen-lockfile` before the `workspace` and `workers` containers start.
+- A one-shot `deps` service runs `bun install --frozen-lockfile` before the workspace container starts.
+- Application services are started manually in the workspace, so changing them does not require rebuilding or restarting the devcontainer.
 - It defaults to an Ollama-compatible endpoint at `http://localhost:11434/v1` for `OPENAI_COMPATIBLE_BASE_URL`.
 - OCR-backed asset processing runs in the worker process and requires Tesseract plus the `eng` and `deu` language packs when you run workers outside Docker.
 - OCR language defaults to `eng` on host setups. Set `KREUZBERG_OCR_LANGUAGE=eng+deu` only where both Tesseract packs are installed.

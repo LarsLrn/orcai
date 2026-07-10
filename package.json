@@ -47,6 +47,7 @@
 		"ci": "bun run lint-full && bun run test && bun run --filter @orcai/web types:check && bun run build",
 		"clean": "rm -rf node_modules apps/*/node_modules packages/*/node_modules dist apps/*/dist packages/*/dist .tanstack apps/*/.tanstack .devtools apps/*/.devtools **/tsconfig.tsbuildinfo",
 		"dev": "bun run --filter @orcai/app dev",
+		"dev:all": "bun run --parallel --filter '@orcai/*' dev",
 		"knip": "knip",
 		"lint": "biome check . && tsgo --build --noEmit tsconfig.json",
 		"lint-full": "biome check . && tsgo --build --noEmit tsconfig.json && bun run eslint .",
