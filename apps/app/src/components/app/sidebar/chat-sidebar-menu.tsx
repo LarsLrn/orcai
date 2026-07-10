@@ -10,6 +10,7 @@ import {
 	SidebarMenuItem,
 	useSidebar,
 } from "@/components/ui/sidebar";
+import { Spinner } from "@/components/ui/spinner";
 import { orpc } from "@/lib/orpc/orpc";
 import { cn } from "@/lib/utils";
 
@@ -19,7 +20,7 @@ const ChatSidebarMenu = () => {
 		orpc.chat.list.queryOptions({
 			input: {
 				pageIndex: 0,
-				pageSize: 100,
+				pageSize: 40,
 			},
 		}),
 	);
@@ -29,7 +30,7 @@ const ChatSidebarMenu = () => {
 	});
 
 	if (status === "pending") {
-		return <div>Loading...</div>;
+		return <Spinner className="mx-auto my-4" />;
 	}
 
 	if (status === "error") {

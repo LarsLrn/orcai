@@ -13,6 +13,7 @@ import {
 	CardTitle,
 } from "@/components/ui/card";
 import { AnimatedGroup } from "@/components/ui/motion/animated-group";
+import { Spinner } from "@/components/ui/spinner";
 import { orpc } from "@/lib/orpc/orpc";
 import { cn } from "@/lib/utils";
 import { ChatActionsDropdown } from "./chat-actions-dropdown";
@@ -34,7 +35,7 @@ const ChatsList = ({
 	);
 
 	if (status === "pending") {
-		return <div>Loading...</div>;
+		return <Spinner className="mx-auto my-4" />;
 	}
 
 	if (!data?.data || data.data.length === 0) {
