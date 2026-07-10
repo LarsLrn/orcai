@@ -3,7 +3,7 @@ title: Platform Overview
 description: What OrcAI is, who it is for, and how the platform fits together.
 ---
 
-OrcAI is a research-oriented AI-assisted educational platform. It was originally based on the [SokratesT project](https://github.com/SokratesT/sokratest), but has since evolved far beyond it. OrcAI supports learning workflows where managers (e.g. instructors) curate material and users (e.g. students) interact with an AI tutor that can ground answers in that material. However, one of the goals of moving on from Sokrates<sup>t</sup> was also to leave the rigid teacher-stundent relation behind. That means OrcAI is also useful beyond this traditional context and can be used by individuals or groups to build specialised knowledge bases for their specific domain needs.
+OrcAI is a self-hostable platform for governed, retrieval-backed AI assistants. It originated in the [SokratesT project](https://github.com/SokratesT/sokratest) and still supports learning workflows where instructors curate material and students interact with a grounded AI tutor. OrcAI has since moved beyond a fixed instructor–student model: individuals and groups can build specialised knowledge bases and assistants for their own domains.
 
 <Callout title="Documentation status" type="info">
 	The project is still in active development. Treat the current documentation as an implementation-oriented headstart rather than a complete product manual.
@@ -13,7 +13,7 @@ OrcAI is a research-oriented AI-assisted educational platform. It was originally
 
 OrcAI combines content ingestion, semantic search, and chat:
 
-1. Managers upload course material.
+1. Workspace members upload source material.
 2. Background workers process files and extract usable text or image descriptions.
 3. Processed content is stored in S3-compatible object storage.
 4. Extracted content is indexed in Qdrant for retrieval.

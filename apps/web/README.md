@@ -1,14 +1,13 @@
-# web
+# OrcAI documentation site
 
-This is a Tanstack Start application generated with
-[Create Fumadocs](https://github.com/fuma-nama/fumadocs).
+This TanStack Start and Fumadocs application serves the OrcAI landing page and documentation in `content/docs`.
 
-Run development server:
+From the repository root:
 
 ```bash
-npm run dev
-# or
-pnpm dev
-# or
-yarn dev
+bun run --filter @orcai/web dev
+bun run --filter @orcai/web types:check
+bun run build:web
 ```
+
+The development server listens on <http://localhost:3001> by default. See the root [README](../../README.md) for workspace setup and contribution guidance.

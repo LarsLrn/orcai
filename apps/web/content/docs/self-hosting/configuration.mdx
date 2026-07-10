@@ -5,6 +5,8 @@ description: Required and optional environment variables for OrcAI.
 
 Runtime configuration is loaded across app and package config modules. `.env.example` is the current baseline for self-hosted environments.
 
+When SMTP is not configured, emails are not delivered. The local-testing fallback logs complete rendered messages, including password-reset, verification, and invitation links. Do not use log-only mode in production, and treat any captured output as credential-bearing sensitive data.
+
 <Callout title="Self-hosting scope" type="info">
 	Custom embedding and image-processing model definitions are supported only in self-hosted deployments. For managed/shared deployments, these are platform-level settings controlled by the hosting operator.
 </Callout>

@@ -13,7 +13,7 @@
 
 ## Overview
 
-OrcAI is a research-oriented platform developed at Rhine-Waal University for AI-supported learning workflows. Instructors upload course material, the platform processes and indexes it, and students interact with an AI tutor that can ground responses in those materials via retrieval-augmented generation (RAG).
+OrcAI is a self-hostable platform for building governed AI assistants around curated knowledge. Individuals, specialist teams, educators, and research groups can upload source material, process and index it, compose reusable assistants, control access, and ground responses through retrieval-augmented generation (RAG).
 
 ## Core Capabilities
 
@@ -90,6 +90,7 @@ Notes:
 - OCR-backed asset processing runs in the worker process and requires Tesseract plus the `eng` and `deu` language packs when you run workers outside Docker.
 - OCR language defaults to `eng` on host setups. Set `KREUZBERG_OCR_LANGUAGE=eng+deu` only where both Tesseract packs are installed.
 - Email delivery stays in log-only mode unless `SMTP_HOST` and `SMTP_FROM` are both configured.
+- Log-only email mode writes complete messages, including authentication and invitation links, to application logs for local testing. Configure SMTP in production and treat log-only output as sensitive.
 - `docker-compose.local.yaml` and `.devcontainer/docker-compose.dev.yaml` are development-only overrides and are not deployment manifests.
 
 ### Local Docker Compose app stack
@@ -230,11 +231,14 @@ See [.env.example](.env.example) for a current baseline.
 ## Common Commands
 
 - `bun run dev`: start the development server
-- `bun run build`: build the app
+- `bun run build`: build the app and documentation site
+- `bun run build:app`: build only the main app
+- `bun run build:web`: build only the documentation site
 - `bun run start`: run the production server from `dist`
 - `bun run workers:dev`: start worker process directly on the host
 - `bun run workers:start`: run worker process in production mode
 - `bun run lint`: run Biome and TypeScript checks
+- `bun run ci`: run the same lint, test, docs type-check, and build suite used by GitHub Actions
 - `bun run --filter @orcai/db migrate`: apply SQL migrations
 - `bun run --filter @orcai/db generate`: generate a new Drizzle migration
 - `bun run --filter @orcai/db studio`: open Drizzle Studio
