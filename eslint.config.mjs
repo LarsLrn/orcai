@@ -33,6 +33,8 @@ export default defineConfig([
 			parserOptions: {
 				projectService: {
 					allowDefaultProject: [
+						"apps/app/compile-paraglide.ts",
+						"apps/app/paraglide.config.ts",
 						"apps/app/vite.config.ts",
 						"packages/db/drizzle.config.ts",
 					],

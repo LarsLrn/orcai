@@ -10,6 +10,7 @@
 		"build": "vite build",
 		"dev": "vite dev --host 127.0.0.1",
 		"machine-translate": "inlang machine translate --project project.inlang",
+		"paraglide:compile": "bun run compile-paraglide.ts",
 		"start": "bun run start-server.ts"
 	},
 	"dependencies": {

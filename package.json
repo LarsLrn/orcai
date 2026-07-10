@@ -44,7 +44,7 @@
 		"build": "bun run build:app && bun run build:web",
 		"build:app": "bun run --filter @orcai/app build",
 		"build:web": "bun run --filter @orcai/web build",
-		"ci": "bun run lint-full && bun run test && bun run --filter @orcai/web types:check && bun run build",
+		"ci": "bun run --filter @orcai/app paraglide:compile && bun run lint-full && bun run test && bun run --filter @orcai/web types:check && bun run build",
 		"clean": "rm -rf node_modules apps/*/node_modules packages/*/node_modules dist apps/*/dist packages/*/dist .tanstack apps/*/.tanstack .devtools apps/*/.devtools **/tsconfig.tsbuildinfo",
 		"dev": "bun run --filter @orcai/app dev",
 		"dev:all": "bun run --parallel --filter '@orcai/*' dev",
