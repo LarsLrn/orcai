@@ -273,6 +273,10 @@ Repository hooks and rules:
 
 For contributor docs on branch naming, PR content, and documentation expectations, see [Development docs: Contributing To The Main Repo](apps/web/content/docs/development/contributing.mdx).
 
+## License
+
+OrcAI is free software licensed under the [GNU Affero General Public License, version 3 only](LICENSE) (`AGPL-3.0-only`). If you modify OrcAI and make the modified version available to users over a network, you must offer those users access to the corresponding source code under the same license.
+
 ## Architecture Summary
 
 1. Instructors upload course material.
