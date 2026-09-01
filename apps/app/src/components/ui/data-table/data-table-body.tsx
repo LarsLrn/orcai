@@ -1,7 +1,3 @@
-"use no memo";
-// FIXME: tanstack table is incompatible with the react compiler. Monitor the repo for any updates: https://github.com/TanStack/table/issues/5567
-
-import { flexRender } from "@tanstack/react-table";
 import {
 	Table,
 	TableBody,
@@ -14,7 +10,7 @@ import { useTable } from "./data-table-context";
 
 const DataTableBody = () => {
 	const { table } = useTable();
-	if (!table) return null;
+	const rows = table.getRowModel().rows;
 
 	return (
 		<div className="rounded-md border bg-card">
@@ -22,24 +18,19 @@ const DataTableBody = () => {
 				<TableHeader>
 					{table.getHeaderGroups().map((headerGroup) => (
 						<TableRow key={headerGroup.id}>
-							{headerGroup.headers.map((header) => {
-								return (
-									<TableHead key={header.id}>
-										{header.isPlaceholder
-											? null
-											: flexRender(
-													header.column.columnDef.header,
-													header.getContext(),
-												)}
-									</TableHead>
-								);
-							})}
+							{headerGroup.headers.map((header) => (
+								<TableHead key={header.id}>
+									{header.isPlaceholder ? null : (
+										<table.FlexRender header={header} />
+									)}
+								</TableHead>
+							))}
 						</TableRow>
 					))}
 				</TableHeader>
 				<TableBody>
-					{table.getRowModel().rows?.length ? (
-						table.getRowModel().rows.map((row) => (
+					{rows.length ? (
+						rows.map((row) => (
 							<TableRow
 								key={row.id}
 								data-state={row.getIsSelected() && "selected"}
@@ -51,7 +42,7 @@ const DataTableBody = () => {
 											width: cell.column.getSize(),
 										}}
 									>
-										{flexRender(cell.column.columnDef.cell, cell.getContext())}
+										<table.FlexRender cell={cell} />
 									</TableCell>
 								))}
 							</TableRow>

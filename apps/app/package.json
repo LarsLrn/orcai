@@ -11,7 +11,8 @@
 		"dev": "vite dev --host 127.0.0.1",
 		"machine-translate": "inlang machine translate --project project.inlang",
 		"paraglide:compile": "bun run compile-paraglide.ts",
-		"start": "bun run start-server.ts"
+		"start": "bun run start-server.ts",
+		"test": "bun test"
 	},
 	"dependencies": {
 		"@ai-sdk/devtools": "1.0.13",
@@ -65,7 +66,7 @@
 		"@tanstack/react-router-ssr-query": "1.167.2",
 		"@tanstack/react-start": "catalog:",
 		"@tanstack/react-store": "0.11.1",
-		"@tanstack/react-table": "8.21.3",
+		"@tanstack/react-table": "catalog:",
 		"@tiptap/core": "3.30.5",
 		"@tiptap/extension-character-count": "3.30.5",
 		"@tiptap/extension-color": "3.30.5",
@@ -125,7 +126,6 @@
 		"streamdown": "2.6.0",
 		"tailwind-merge": "catalog:",
 		"tailwindcss": "catalog:",
-		"tanstack-table-export-to-csv": "1.0.5",
 		"tiptap-extension-global-drag-handle": "0.1.18",
 		"use-stick-to-bottom": "1.1.6",
 		"usehooks-ts": "3.1.1",
@@ -136,9 +136,12 @@
 	},
 	"devDependencies": {
 		"@babel/core": "8.0.1",
+		"@happy-dom/global-registrator": "20.12.0",
 		"@inlang/cli": "3.3.3",
 		"@rolldown/plugin-babel": "0.2.3",
 		"@tanstack/devtools-vite": "0.8.5",
+		"@testing-library/dom": "10.4.1",
+		"@testing-library/react": "16.3.3",
 		"@types/babel__core": "7.20.5",
 		"@types/node": "catalog:",
 		"@types/pg": "catalog:",

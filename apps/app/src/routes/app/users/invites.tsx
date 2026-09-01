@@ -101,10 +101,6 @@ function RouteComponent() {
 					options={{
 						rowCount: invitations.rowCount,
 						uidAccessor: "id",
-						clientPagination: {
-							pageIndex,
-							pageSize,
-						},
 					}}
 				>
 					<DataTableToolbar>

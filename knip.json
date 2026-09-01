@@ -28,7 +28,8 @@
 				"src/router.tsx",
 				"src/client.tsx",
 				"src/server.ts",
-				"start-server.ts"
+				"start-server.ts",
+				"src/**/*.test.{ts,tsx}"
 			],
 			"project": [
 				"src/**/*.{ts,tsx}"

@@ -1,9 +1,10 @@
 import type { UserWithOrganizationRole } from "@orcai/schema";
 import { Link, useRouteContext } from "@tanstack/react-router";
-import type { ColumnDef } from "@tanstack/react-table";
+import { createColumnHelper } from "@tanstack/react-table";
 import { MoreHorizontal } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { DataTableColumnHeader } from "@/components/ui/data-table/data-table-column-header";
+import type { DataTableFeatures } from "@/components/ui/data-table/data-table-features";
 import { createDataTableSelectColumn } from "@/components/ui/data-table/data-table-select-column";
 import {
 	DropdownMenu,
@@ -16,11 +17,15 @@ import { useOrganizationCapabilities } from "@/hooks/authz/use-capabilities";
 import { useDeleteUsersMutation } from "@/hooks/mutations/use-user-admin-mutations";
 import { organizationRoleLabels } from "@/lib/authz/organization-role-metadata";
 
-export const columns: ColumnDef<UserWithOrganizationRole>[] = [
+const columnHelper = createColumnHelper<
+	DataTableFeatures,
+	UserWithOrganizationRole
+>();
+
+export const columns = columnHelper.columns([
 	createDataTableSelectColumn<UserWithOrganizationRole>(),
-	{
+	columnHelper.accessor("name", {
 		size: 500,
-		accessorKey: "name",
 		header: ({ column }) => (
 			<DataTableColumnHeader column={column} title="Name" />
 		),
@@ -35,29 +40,26 @@ export const columns: ColumnDef<UserWithOrganizationRole>[] = [
 				{row.original.name}
 			</Link>
 		),
-	},
-	{
-		accessorKey: "email",
+	}),
+	columnHelper.accessor("email", {
 		header: ({ column }) => (
 			<DataTableColumnHeader column={column} title="Email" />
 		),
-	},
-	{
-		accessorKey: "emailVerified",
+	}),
+	columnHelper.accessor("emailVerified", {
 		header: ({ column }) => (
 			<DataTableColumnHeader column={column} title="Email Verified" />
 		),
 		cell: ({ row }) =>
 			row.original.emailVerified ? "Verified" : "Not verified",
-	},
-	{
-		accessorKey: "organizationRole",
+	}),
+	columnHelper.accessor("organizationRole", {
 		header: ({ column }) => (
 			<DataTableColumnHeader column={column} title="Organization Role" />
 		),
 		cell: ({ row }) => organizationRoleLabels[row.original.organizationRole],
-	},
-	{
+	}),
+	columnHelper.display({
 		id: "actions",
 		size: 32,
 		enableSorting: false,
@@ -67,8 +69,8 @@ export const columns: ColumnDef<UserWithOrganizationRole>[] = [
 
 			return <UserActions user={user} />;
 		},
-	},
-];
+	}),
+]);
 
 const UserActions = ({ user }: { user: UserWithOrganizationRole }) => {
 	const { auth } = useRouteContext({

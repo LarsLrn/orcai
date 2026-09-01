@@ -1,4 +1,4 @@
-import type { Row, Table } from "@tanstack/react-table";
+import type { ReactTable, Row, RowData } from "@tanstack/react-table";
 import { ReplaceAllIcon } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import {
@@ -8,13 +8,14 @@ import {
 	DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import { useTable } from "./data-table-context";
+import type { DataTableFeatures } from "./data-table-features";
 
-type DataTableBulkActionContext<TData> = {
-	selectedRows: Row<TData>[];
-	table: Table<TData>;
+type DataTableBulkActionContext<TData extends RowData> = {
+	selectedRows: Row<DataTableFeatures, TData>[];
+	table: ReactTable<DataTableFeatures, TData>;
 };
 
-type DataTableBulkAction<TData> = {
+type DataTableBulkAction<TData extends RowData> = {
 	label: string;
 	variant?: "default" | "destructive";
 	disabled?:
@@ -23,12 +24,12 @@ type DataTableBulkAction<TData> = {
 	onSelect: (context: DataTableBulkActionContext<TData>) => void;
 };
 
-type DataTableBulkActionsProps<TData> = {
+type DataTableBulkActionsProps<TData extends RowData> = {
 	actions: DataTableBulkAction<TData>[];
 	isPending?: boolean;
 };
 
-const resolveDisabled = <TData,>(
+const resolveDisabled = <TData extends RowData>(
 	action: DataTableBulkAction<TData>,
 	context: DataTableBulkActionContext<TData>,
 ) => {
@@ -39,16 +40,16 @@ const resolveDisabled = <TData,>(
 	return action.disabled ?? false;
 };
 
-const DataTableBulkActions = <TData,>({
+const DataTableBulkActions = <TData extends RowData>({
 	actions,
 	isPending,
 }: DataTableBulkActionsProps<TData>) => {
-	const { table } = useTable();
-	const selectedRows = table.getSelectedRowModel().rows as Row<TData>[];
+	const { table } = useTable<TData>();
+	const selectedRows = table.getSelectedRowModel().rows;
 	const selectedCount = selectedRows.length;
-	const context = {
+	const context: DataTableBulkActionContext<TData> = {
 		selectedRows,
-		table: table as Table<TData>,
+		table,
 	};
 	const hasSelection = selectedCount > 0;
 

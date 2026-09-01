@@ -148,10 +148,6 @@ function RouteComponent() {
 						rowCount: groups.rowCount,
 						uidAccessor: "id",
 						enableRowSelection: (row) => row.original.kind === "custom",
-						clientPagination: {
-							pageIndex,
-							pageSize,
-						},
 					}}
 				>
 					<DataTableToolbar>
