@@ -2,7 +2,6 @@ import * as Config from "effect/Config";
 import * as Context from "effect/Context";
 import * as Effect from "effect/Effect";
 import * as Layer from "effect/Layer";
-import * as Option from "effect/Option";
 import * as Schema from "effect/Schema";
 import * as SchemaGetter from "effect/SchemaGetter";
 import * as SchemaIssue from "effect/SchemaIssue";
@@ -26,7 +25,11 @@ const SpiceDbSecurityModeSchema = Schema.String.pipe(
 				return Effect.succeed(normalized as SpiceDbSecurityMode);
 			}
 
-			return Effect.fail(new SchemaIssue.InvalidValue(Option.some(value)));
+			return Effect.fail(
+				new SchemaIssue.InvalidValue({
+					expected: spiceDbSecurityModes.join(" | "),
+				}),
+			);
 		}),
 		encode: SchemaGetter.transform((value: SpiceDbSecurityMode) => value),
 	}),

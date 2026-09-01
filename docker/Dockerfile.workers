@@ -1,6 +1,6 @@
 # syntax=docker/dockerfile:1.7
 
-ARG BUN_IMAGE=oven/bun:1.3.14-slim
+ARG BUN_IMAGE=oven/bun:1.4.0-slim
 
 FROM ${BUN_IMAGE} AS prod-deps
 WORKDIR /app

@@ -1,11 +1,12 @@
 import { trace } from "@opentelemetry/api";
 import { ORPCError, onError, ValidationError } from "@orpc/server";
-import { BodyCompressionHandlerPlugin, RPCHandler } from "@orpc/server/fetch";
+import { RPCHandler } from "@orpc/server/fetch";
 import { getCookie } from "@orpc/server/helpers";
 import {
 	BatchHandlerPlugin,
-	CSRFGuardHandlerPlugin,
+	GetMethodCsrfProtectionHandlerPlugin,
 	RequestHeadersHandlerPlugin,
+	ResponseCompressionHandlerPlugin,
 } from "@orpc/server/plugins";
 import { createFileRoute } from "@tanstack/react-router";
 import { z } from "zod/v4";
@@ -65,8 +66,8 @@ const handler = new RPCHandler(router, {
 	plugins: [
 		new RequestHeadersHandlerPlugin(),
 		new BatchHandlerPlugin(),
-		new BodyCompressionHandlerPlugin(),
-		new CSRFGuardHandlerPlugin(),
+		new ResponseCompressionHandlerPlugin(),
+		new GetMethodCsrfProtectionHandlerPlugin(),
 	],
 });
 

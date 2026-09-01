@@ -3,7 +3,7 @@
 # Optimized multi-stage build for TanStack Start (React) + Vite
 # Produces a minimal runtime image that runs the Node server
 
-ARG BUN_IMAGE=oven/bun:1.3.14-slim
+ARG BUN_IMAGE=oven/bun:1.4.0-slim
 
 # -------------------------
 # Production dependencies stage
