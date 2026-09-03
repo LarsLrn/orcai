@@ -1,30 +1,32 @@
-"use no memo";
-// FIXME: tanstack table is incompatible with the react compiler. Monitor the repo for any updates: https://github.com/TanStack/table/issues/5567
-
-import type { Table } from "@tanstack/react-table";
+import type { ReactTable, RowData } from "@tanstack/react-table";
 import { createContext, useContext } from "react";
+import type { DataTableFeatures } from "./data-table-features";
 
-const TableContext = createContext<{
-	table: Table<any>;
-} | null>(null);
+type DataTableInstance<TData extends RowData> = ReactTable<
+	DataTableFeatures,
+	TData
+>;
 
-export const useTable = () => {
-	const context = useContext(TableContext);
-	if (!context) {
+const TableContext = createContext<DataTableInstance<RowData> | null>(null);
+
+export const useTable = <TData extends RowData = RowData>() => {
+	const table = useContext(TableContext);
+	if (!table) {
 		throw new Error("useTable must be used within a TableProvider");
 	}
-	return context;
+	return {
+		table: table as unknown as DataTableInstance<TData>,
+	};
 };
 
-const TableProvider: React.FC<{
+const TableProvider = <TData extends RowData>({
+	table,
+	children,
+}: {
 	children: React.ReactNode;
-	table: Table<any>;
-}> = ({ table, children }) => (
-	<TableContext.Provider
-		value={{
-			table,
-		}}
-	>
+	table: DataTableInstance<TData>;
+}) => (
+	<TableContext.Provider value={table as unknown as DataTableInstance<RowData>}>
 		{children}
 	</TableContext.Provider>
 );

@@ -1,6 +1,6 @@
 import * as NodeSdk from "@effect/opentelemetry/NodeSdk";
+import * as OtelTracer from "@effect/opentelemetry/OtelTracer";
 import * as Resource from "@effect/opentelemetry/Resource";
-import * as OtelTracer from "@effect/opentelemetry/Tracer";
 import { getNodeAutoInstrumentations } from "@opentelemetry/auto-instrumentations-node";
 import { OTLPLogExporter } from "@opentelemetry/exporter-logs-otlp-http";
 import { OTLPTraceExporter } from "@opentelemetry/exporter-trace-otlp-http";

@@ -9,149 +9,101 @@
 // Additionally, you should also exclude this file from your linter and/or formatter to prevent it from being checked or modified.
 
 import { Route as rootRouteImport } from './routes/__root'
-import { Route as AppRouteRouteImport } from './routes/app/route'
-import { Route as PathlessLayoutRouteRouteImport } from './routes/_pathlessLayout/route'
 import { Route as IndexRouteImport } from './routes/index'
-import { Route as AppIndexRouteImport } from './routes/app/index'
-import { Route as PathlessLayoutVerifyEmailRouteImport } from './routes/_pathlessLayout/verify-email'
-import { Route as PathlessLayoutTouRouteImport } from './routes/_pathlessLayout/tou'
-import { Route as PathlessLayoutSelectOrganizationRouteImport } from './routes/_pathlessLayout/select-organization'
-import { Route as PathlessLayoutResetPasswordRouteImport } from './routes/_pathlessLayout/reset-password'
-import { Route as PathlessLayoutRegisterRouteImport } from './routes/_pathlessLayout/register'
-import { Route as PathlessLayoutPrivacyRouteImport } from './routes/_pathlessLayout/privacy'
-import { Route as PathlessLayoutLoginRouteImport } from './routes/_pathlessLayout/login'
-import { Route as PathlessLayoutInitRouteImport } from './routes/_pathlessLayout/init'
+import { Route as PathlessLayoutRouteRouteImport } from './routes/_pathlessLayout/route'
+import { Route as AppRouteRouteImport } from './routes/app/route'
 import { Route as PathlessLayoutForgotPasswordRouteImport } from './routes/_pathlessLayout/forgot-password'
-import { Route as AppUsersRouteRouteImport } from './routes/app/users/route'
-import { Route as AppQuotasRouteRouteImport } from './routes/app/quotas/route'
-import { Route as AppProvidersRouteRouteImport } from './routes/app/providers/route'
-import { Route as AppOrgsRouteRouteImport } from './routes/app/orgs/route'
-import { Route as AppModelsRouteRouteImport } from './routes/app/models/route'
-import { Route as AppHubRouteRouteImport } from './routes/app/hub/route'
-import { Route as AppGroupsRouteRouteImport } from './routes/app/groups/route'
-import { Route as AppChatRouteRouteImport } from './routes/app/chat/route'
+import { Route as PathlessLayoutInitRouteImport } from './routes/_pathlessLayout/init'
+import { Route as PathlessLayoutLoginRouteImport } from './routes/_pathlessLayout/login'
+import { Route as PathlessLayoutPrivacyRouteImport } from './routes/_pathlessLayout/privacy'
+import { Route as PathlessLayoutRegisterRouteImport } from './routes/_pathlessLayout/register'
+import { Route as PathlessLayoutResetPasswordRouteImport } from './routes/_pathlessLayout/reset-password'
+import { Route as PathlessLayoutSelectOrganizationRouteImport } from './routes/_pathlessLayout/select-organization'
+import { Route as PathlessLayoutTouRouteImport } from './routes/_pathlessLayout/tou'
+import { Route as PathlessLayoutVerifyEmailRouteImport } from './routes/_pathlessLayout/verify-email'
+import { Route as AppIndexRouteImport } from './routes/app/index'
 import { Route as AppAccountRouteRouteImport } from './routes/app/account/route'
-import { Route as AppUsersIndexRouteImport } from './routes/app/users/index'
-import { Route as AppQuotasIndexRouteImport } from './routes/app/quotas/index'
-import { Route as AppProvidersIndexRouteImport } from './routes/app/providers/index'
-import { Route as AppOrgsIndexRouteImport } from './routes/app/orgs/index'
-import { Route as AppModelsIndexRouteImport } from './routes/app/models/index'
-import { Route as AppHubIndexRouteImport } from './routes/app/hub/index'
-import { Route as AppGroupsIndexRouteImport } from './routes/app/groups/index'
-import { Route as AppChatIndexRouteImport } from './routes/app/chat/index'
-import { Route as AppAccountIndexRouteImport } from './routes/app/account/index'
-import { Route as AppUsersInvitesRouteImport } from './routes/app/users/invites'
-import { Route as AppUsersAddRouteImport } from './routes/app/users/add'
-import { Route as AppQuotasAddRouteImport } from './routes/app/quotas/add'
-import { Route as AppProvidersAddRouteImport } from './routes/app/providers/add'
-import { Route as AppOrgsAddRouteImport } from './routes/app/orgs/add'
-import { Route as AppModelsAddRouteImport } from './routes/app/models/add'
-import { Route as AppHubBehaviourRouteImport } from './routes/app/hub/behaviour'
-import { Route as AppChatSetupRouteImport } from './routes/app/chat/setup'
-import { Route as AppChatNewRouteImport } from './routes/app/chat/new'
-import { Route as ApiRpcSplatRouteImport } from './routes/api/rpc/$'
-import { Route as ApiDocSplatRouteImport } from './routes/api/doc/$'
+import { Route as AppChatRouteRouteImport } from './routes/app/chat/route'
+import { Route as AppGroupsRouteRouteImport } from './routes/app/groups/route'
+import { Route as AppHubRouteRouteImport } from './routes/app/hub/route'
+import { Route as AppModelsRouteRouteImport } from './routes/app/models/route'
+import { Route as AppOrgsRouteRouteImport } from './routes/app/orgs/route'
+import { Route as AppProvidersRouteRouteImport } from './routes/app/providers/route'
+import { Route as AppQuotasRouteRouteImport } from './routes/app/quotas/route'
+import { Route as AppUsersRouteRouteImport } from './routes/app/users/route'
 import { Route as ApiAuthSplatRouteImport } from './routes/api/auth/$'
-import { Route as AppUsersUserIdRouteRouteImport } from './routes/app/users/$userId/route'
-import { Route as AppQuotasQuotaPoolIdRouteRouteImport } from './routes/app/quotas/$quotaPoolId/route'
-import { Route as AppProvidersProviderIdRouteRouteImport } from './routes/app/providers/$providerId/route'
-import { Route as AppOrgsOrgIdRouteRouteImport } from './routes/app/orgs/$orgId/route'
-import { Route as AppModelsModelIdRouteRouteImport } from './routes/app/models/$modelId/route'
-import { Route as AppHubBotsRouteRouteImport } from './routes/app/hub/bots/route'
-import { Route as AppHubBlocksRouteRouteImport } from './routes/app/hub/blocks/route'
-import { Route as AppHubAssetsRouteRouteImport } from './routes/app/hub/assets/route'
+import { Route as ApiDocSplatRouteImport } from './routes/api/doc/$'
+import { Route as ApiRpcSplatRouteImport } from './routes/api/rpc/$'
+import { Route as AppAccountIndexRouteImport } from './routes/app/account/index'
+import { Route as AppChatIndexRouteImport } from './routes/app/chat/index'
+import { Route as AppChatNewRouteImport } from './routes/app/chat/new'
+import { Route as AppChatSetupRouteImport } from './routes/app/chat/setup'
+import { Route as AppGroupsIndexRouteImport } from './routes/app/groups/index'
 import { Route as AppGroupsGroupIdRouteRouteImport } from './routes/app/groups/$groupId/route'
-import { Route as AppQuotasQuotaPoolIdIndexRouteImport } from './routes/app/quotas/$quotaPoolId/index'
-import { Route as AppProvidersProviderIdIndexRouteImport } from './routes/app/providers/$providerId/index'
-import { Route as AppOrgsOrgIdIndexRouteImport } from './routes/app/orgs/$orgId/index'
-import { Route as AppModelsModelIdIndexRouteImport } from './routes/app/models/$modelId/index'
-import { Route as AppHubRepositoriesIndexRouteImport } from './routes/app/hub/repositories/index'
-import { Route as AppHubBotsIndexRouteImport } from './routes/app/hub/bots/index'
-import { Route as AppHubBlocksIndexRouteImport } from './routes/app/hub/blocks/index'
-import { Route as AppHubAssetsIndexRouteImport } from './routes/app/hub/assets/index'
-import { Route as AppGroupsGroupIdIndexRouteImport } from './routes/app/groups/$groupId/index'
+import { Route as AppHubIndexRouteImport } from './routes/app/hub/index'
+import { Route as AppHubAssetsRouteRouteImport } from './routes/app/hub/assets/route'
+import { Route as AppHubBehaviourRouteImport } from './routes/app/hub/behaviour'
+import { Route as AppHubBlocksRouteRouteImport } from './routes/app/hub/blocks/route'
+import { Route as AppHubBotsRouteRouteImport } from './routes/app/hub/bots/route'
+import { Route as AppModelsIndexRouteImport } from './routes/app/models/index'
+import { Route as AppModelsModelIdRouteRouteImport } from './routes/app/models/$modelId/route'
+import { Route as AppModelsAddRouteImport } from './routes/app/models/add'
+import { Route as AppOrgsIndexRouteImport } from './routes/app/orgs/index'
+import { Route as AppOrgsOrgIdRouteRouteImport } from './routes/app/orgs/$orgId/route'
+import { Route as AppOrgsAddRouteImport } from './routes/app/orgs/add'
+import { Route as AppProvidersIndexRouteImport } from './routes/app/providers/index'
+import { Route as AppProvidersProviderIdRouteRouteImport } from './routes/app/providers/$providerId/route'
+import { Route as AppProvidersAddRouteImport } from './routes/app/providers/add'
+import { Route as AppQuotasIndexRouteImport } from './routes/app/quotas/index'
+import { Route as AppQuotasQuotaPoolIdRouteRouteImport } from './routes/app/quotas/$quotaPoolId/route'
+import { Route as AppQuotasAddRouteImport } from './routes/app/quotas/add'
+import { Route as AppUsersIndexRouteImport } from './routes/app/users/index'
+import { Route as AppUsersUserIdRouteRouteImport } from './routes/app/users/$userId/route'
+import { Route as AppUsersAddRouteImport } from './routes/app/users/add'
+import { Route as AppUsersInvitesRouteImport } from './routes/app/users/invites'
 import { Route as AppChatChatIdIndexRouteImport } from './routes/app/chat/$chatId/index'
-import { Route as AppUsersUserIdEditRouteImport } from './routes/app/users/$userId/edit'
-import { Route as AppQuotasQuotaPoolIdEditRouteImport } from './routes/app/quotas/$quotaPoolId/edit'
-import { Route as AppProvidersProviderIdEditRouteImport } from './routes/app/providers/$providerId/edit'
-import { Route as AppOrgsOrgIdEditRouteImport } from './routes/app/orgs/$orgId/edit'
-import { Route as AppModelsModelIdEditRouteImport } from './routes/app/models/$modelId/edit'
-import { Route as AppHubBotsAddRouteImport } from './routes/app/hub/bots/add'
-import { Route as AppHubBlocksAddRouteImport } from './routes/app/hub/blocks/add'
-import { Route as AppHubAssetsAddRouteImport } from './routes/app/hub/assets/add'
-import { Route as AppHubBotsBotIdRouteRouteImport } from './routes/app/hub/bots/$botId/route'
-import { Route as AppHubBlocksBlockIdRouteRouteImport } from './routes/app/hub/blocks/$blockId/route'
+import { Route as AppGroupsGroupIdIndexRouteImport } from './routes/app/groups/$groupId/index'
+import { Route as AppHubAssetsIndexRouteImport } from './routes/app/hub/assets/index'
 import { Route as AppHubAssetsAssetIdRouteRouteImport } from './routes/app/hub/assets/$assetId/route'
-import { Route as AppHubBotsBotIdIndexRouteImport } from './routes/app/hub/bots/$botId/index'
-import { Route as AppHubBlocksBlockIdIndexRouteImport } from './routes/app/hub/blocks/$blockId/index'
+import { Route as AppHubAssetsAddRouteImport } from './routes/app/hub/assets/add'
+import { Route as AppHubBlocksIndexRouteImport } from './routes/app/hub/blocks/index'
+import { Route as AppHubBlocksBlockIdRouteRouteImport } from './routes/app/hub/blocks/$blockId/route'
+import { Route as AppHubBlocksAddRouteImport } from './routes/app/hub/blocks/add'
+import { Route as AppHubBotsIndexRouteImport } from './routes/app/hub/bots/index'
+import { Route as AppHubBotsBotIdRouteRouteImport } from './routes/app/hub/bots/$botId/route'
+import { Route as AppHubBotsAddRouteImport } from './routes/app/hub/bots/add'
+import { Route as AppHubRepositoriesIndexRouteImport } from './routes/app/hub/repositories/index'
+import { Route as AppModelsModelIdIndexRouteImport } from './routes/app/models/$modelId/index'
+import { Route as AppModelsModelIdEditRouteImport } from './routes/app/models/$modelId/edit'
+import { Route as AppOrgsOrgIdIndexRouteImport } from './routes/app/orgs/$orgId/index'
+import { Route as AppOrgsOrgIdEditRouteImport } from './routes/app/orgs/$orgId/edit'
+import { Route as AppProvidersProviderIdIndexRouteImport } from './routes/app/providers/$providerId/index'
+import { Route as AppProvidersProviderIdEditRouteImport } from './routes/app/providers/$providerId/edit'
+import { Route as AppQuotasQuotaPoolIdIndexRouteImport } from './routes/app/quotas/$quotaPoolId/index'
+import { Route as AppQuotasQuotaPoolIdEditRouteImport } from './routes/app/quotas/$quotaPoolId/edit'
+import { Route as AppUsersUserIdEditRouteImport } from './routes/app/users/$userId/edit'
 import { Route as AppHubAssetsAssetIdIndexRouteImport } from './routes/app/hub/assets/$assetId/index'
-import { Route as AppHubRepositoriesBlockIdPlaygroundRouteImport } from './routes/app/hub/repositories/$blockId/playground'
-import { Route as AppHubBotsBotIdSetupRouteImport } from './routes/app/hub/bots/$botId/setup'
-import { Route as AppHubBlocksBlockIdPointsRouteImport } from './routes/app/hub/blocks/$blockId/points'
-import { Route as AppHubBlocksBlockIdEditRouteImport } from './routes/app/hub/blocks/$blockId/edit'
 import { Route as AppHubAssetsAssetIdEditRouteImport } from './routes/app/hub/assets/$assetId/edit'
+import { Route as AppHubBlocksBlockIdIndexRouteImport } from './routes/app/hub/blocks/$blockId/index'
+import { Route as AppHubBlocksBlockIdEditRouteImport } from './routes/app/hub/blocks/$blockId/edit'
+import { Route as AppHubBlocksBlockIdPointsRouteImport } from './routes/app/hub/blocks/$blockId/points'
+import { Route as AppHubBotsBotIdIndexRouteImport } from './routes/app/hub/bots/$botId/index'
+import { Route as AppHubBotsBotIdSetupRouteImport } from './routes/app/hub/bots/$botId/setup'
+import { Route as AppHubRepositoriesBlockIdPlaygroundRouteImport } from './routes/app/hub/repositories/$blockId/playground'
 
-const AppRouteRoute = AppRouteRouteImport.update({
-  id: '/app',
-  path: '/app',
+const IndexRoute = IndexRouteImport.update({
+  id: '/',
+  path: '/',
   getParentRoute: () => rootRouteImport,
 } as any)
 const PathlessLayoutRouteRoute = PathlessLayoutRouteRouteImport.update({
   id: '/_pathlessLayout',
   getParentRoute: () => rootRouteImport,
 } as any)
-const IndexRoute = IndexRouteImport.update({
-  id: '/',
-  path: '/',
+const AppRouteRoute = AppRouteRouteImport.update({
+  id: '/app',
+  path: '/app',
   getParentRoute: () => rootRouteImport,
-} as any)
-const AppIndexRoute = AppIndexRouteImport.update({
-  id: '/',
-  path: '/',
-  getParentRoute: () => AppRouteRoute,
-} as any)
-const PathlessLayoutVerifyEmailRoute =
-  PathlessLayoutVerifyEmailRouteImport.update({
-    id: '/verify-email',
-    path: '/verify-email',
-    getParentRoute: () => PathlessLayoutRouteRoute,
-  } as any)
-const PathlessLayoutTouRoute = PathlessLayoutTouRouteImport.update({
-  id: '/tou',
-  path: '/tou',
-  getParentRoute: () => PathlessLayoutRouteRoute,
-} as any)
-const PathlessLayoutSelectOrganizationRoute =
-  PathlessLayoutSelectOrganizationRouteImport.update({
-    id: '/select-organization',
-    path: '/select-organization',
-    getParentRoute: () => PathlessLayoutRouteRoute,
-  } as any)
-const PathlessLayoutResetPasswordRoute =
-  PathlessLayoutResetPasswordRouteImport.update({
-    id: '/reset-password',
-    path: '/reset-password',
-    getParentRoute: () => PathlessLayoutRouteRoute,
-  } as any)
-const PathlessLayoutRegisterRoute = PathlessLayoutRegisterRouteImport.update({
-  id: '/register',
-  path: '/register',
-  getParentRoute: () => PathlessLayoutRouteRoute,
-} as any)
-const PathlessLayoutPrivacyRoute = PathlessLayoutPrivacyRouteImport.update({
-  id: '/privacy',
-  path: '/privacy',
-  getParentRoute: () => PathlessLayoutRouteRoute,
-} as any)
-const PathlessLayoutLoginRoute = PathlessLayoutLoginRouteImport.update({
-  id: '/login',
-  path: '/login',
-  getParentRoute: () => PathlessLayoutRouteRoute,
-} as any)
-const PathlessLayoutInitRoute = PathlessLayoutInitRouteImport.update({
-  id: '/init',
-  path: '/init',
-  getParentRoute: () => PathlessLayoutRouteRoute,
 } as any)
 const PathlessLayoutForgotPasswordRoute =
   PathlessLayoutForgotPasswordRouteImport.update({
@@ -159,44 +111,52 @@ const PathlessLayoutForgotPasswordRoute =
     path: '/forgot-password',
     getParentRoute: () => PathlessLayoutRouteRoute,
   } as any)
-const AppUsersRouteRoute = AppUsersRouteRouteImport.update({
-  id: '/users',
-  path: '/users',
-  getParentRoute: () => AppRouteRoute,
+const PathlessLayoutInitRoute = PathlessLayoutInitRouteImport.update({
+  id: '/init',
+  path: '/init',
+  getParentRoute: () => PathlessLayoutRouteRoute,
 } as any)
-const AppQuotasRouteRoute = AppQuotasRouteRouteImport.update({
-  id: '/quotas',
-  path: '/quotas',
-  getParentRoute: () => AppRouteRoute,
+const PathlessLayoutLoginRoute = PathlessLayoutLoginRouteImport.update({
+  id: '/login',
+  path: '/login',
+  getParentRoute: () => PathlessLayoutRouteRoute,
 } as any)
-const AppProvidersRouteRoute = AppProvidersRouteRouteImport.update({
-  id: '/providers',
-  path: '/providers',
-  getParentRoute: () => AppRouteRoute,
+const PathlessLayoutPrivacyRoute = PathlessLayoutPrivacyRouteImport.update({
+  id: '/privacy',
+  path: '/privacy',
+  getParentRoute: () => PathlessLayoutRouteRoute,
 } as any)
-const AppOrgsRouteRoute = AppOrgsRouteRouteImport.update({
-  id: '/orgs',
-  path: '/orgs',
-  getParentRoute: () => AppRouteRoute,
+const PathlessLayoutRegisterRoute = PathlessLayoutRegisterRouteImport.update({
+  id: '/register',
+  path: '/register',
+  getParentRoute: () => PathlessLayoutRouteRoute,
 } as any)
-const AppModelsRouteRoute = AppModelsRouteRouteImport.update({
-  id: '/models',
-  path: '/models',
-  getParentRoute: () => AppRouteRoute,
+const PathlessLayoutResetPasswordRoute =
+  PathlessLayoutResetPasswordRouteImport.update({
+    id: '/reset-password',
+    path: '/reset-password',
+    getParentRoute: () => PathlessLayoutRouteRoute,
+  } as any)
+const PathlessLayoutSelectOrganizationRoute =
+  PathlessLayoutSelectOrganizationRouteImport.update({
+    id: '/select-organization',
+    path: '/select-organization',
+    getParentRoute: () => PathlessLayoutRouteRoute,
+  } as any)
+const PathlessLayoutTouRoute = PathlessLayoutTouRouteImport.update({
+  id: '/tou',
+  path: '/tou',
+  getParentRoute: () => PathlessLayoutRouteRoute,
 } as any)
-const AppHubRouteRoute = AppHubRouteRouteImport.update({
-  id: '/hub',
-  path: '/hub',
-  getParentRoute: () => AppRouteRoute,
-} as any)
-const AppGroupsRouteRoute = AppGroupsRouteRouteImport.update({
-  id: '/groups',
-  path: '/groups',
-  getParentRoute: () => AppRouteRoute,
-} as any)
-const AppChatRouteRoute = AppChatRouteRouteImport.update({
-  id: '/chat',
-  path: '/chat',
+const PathlessLayoutVerifyEmailRoute =
+  PathlessLayoutVerifyEmailRouteImport.update({
+    id: '/verify-email',
+    path: '/verify-email',
+    getParentRoute: () => PathlessLayoutRouteRoute,
+  } as any)
+const AppIndexRoute = AppIndexRouteImport.update({
+  id: '/',
+  path: '/',
   getParentRoute: () => AppRouteRoute,
 } as any)
 const AppAccountRouteRoute = AppAccountRouteRouteImport.update({
@@ -204,99 +164,49 @@ const AppAccountRouteRoute = AppAccountRouteRouteImport.update({
   path: '/account',
   getParentRoute: () => AppRouteRoute,
 } as any)
-const AppUsersIndexRoute = AppUsersIndexRouteImport.update({
-  id: '/',
-  path: '/',
-  getParentRoute: () => AppUsersRouteRoute,
+const AppChatRouteRoute = AppChatRouteRouteImport.update({
+  id: '/chat',
+  path: '/chat',
+  getParentRoute: () => AppRouteRoute,
 } as any)
-const AppQuotasIndexRoute = AppQuotasIndexRouteImport.update({
-  id: '/',
-  path: '/',
-  getParentRoute: () => AppQuotasRouteRoute,
+const AppGroupsRouteRoute = AppGroupsRouteRouteImport.update({
+  id: '/groups',
+  path: '/groups',
+  getParentRoute: () => AppRouteRoute,
 } as any)
-const AppProvidersIndexRoute = AppProvidersIndexRouteImport.update({
-  id: '/',
-  path: '/',
-  getParentRoute: () => AppProvidersRouteRoute,
+const AppHubRouteRoute = AppHubRouteRouteImport.update({
+  id: '/hub',
+  path: '/hub',
+  getParentRoute: () => AppRouteRoute,
 } as any)
-const AppOrgsIndexRoute = AppOrgsIndexRouteImport.update({
-  id: '/',
-  path: '/',
-  getParentRoute: () => AppOrgsRouteRoute,
+const AppModelsRouteRoute = AppModelsRouteRouteImport.update({
+  id: '/models',
+  path: '/models',
+  getParentRoute: () => AppRouteRoute,
 } as any)
-const AppModelsIndexRoute = AppModelsIndexRouteImport.update({
-  id: '/',
-  path: '/',
-  getParentRoute: () => AppModelsRouteRoute,
+const AppOrgsRouteRoute = AppOrgsRouteRouteImport.update({
+  id: '/orgs',
+  path: '/orgs',
+  getParentRoute: () => AppRouteRoute,
 } as any)
-const AppHubIndexRoute = AppHubIndexRouteImport.update({
-  id: '/',
-  path: '/',
-  getParentRoute: () => AppHubRouteRoute,
+const AppProvidersRouteRoute = AppProvidersRouteRouteImport.update({
+  id: '/providers',
+  path: '/providers',
+  getParentRoute: () => AppRouteRoute,
 } as any)
-const AppGroupsIndexRoute = AppGroupsIndexRouteImport.update({
-  id: '/',
-  path: '/',
-  getParentRoute: () => AppGroupsRouteRoute,
+const AppQuotasRouteRoute = AppQuotasRouteRouteImport.update({
+  id: '/quotas',
+  path: '/quotas',
+  getParentRoute: () => AppRouteRoute,
 } as any)
-const AppChatIndexRoute = AppChatIndexRouteImport.update({
-  id: '/',
-  path: '/',
-  getParentRoute: () => AppChatRouteRoute,
+const AppUsersRouteRoute = AppUsersRouteRouteImport.update({
+  id: '/users',
+  path: '/users',
+  getParentRoute: () => AppRouteRoute,
 } as any)
-const AppAccountIndexRoute = AppAccountIndexRouteImport.update({
-  id: '/',
-  path: '/',
-  getParentRoute: () => AppAccountRouteRoute,
-} as any)
-const AppUsersInvitesRoute = AppUsersInvitesRouteImport.update({
-  id: '/invites',
-  path: '/invites',
-  getParentRoute: () => AppUsersRouteRoute,
-} as any)
-const AppUsersAddRoute = AppUsersAddRouteImport.update({
-  id: '/add',
-  path: '/add',
-  getParentRoute: () => AppUsersRouteRoute,
-} as any)
-const AppQuotasAddRoute = AppQuotasAddRouteImport.update({
-  id: '/add',
-  path: '/add',
-  getParentRoute: () => AppQuotasRouteRoute,
-} as any)
-const AppProvidersAddRoute = AppProvidersAddRouteImport.update({
-  id: '/add',
-  path: '/add',
-  getParentRoute: () => AppProvidersRouteRoute,
-} as any)
-const AppOrgsAddRoute = AppOrgsAddRouteImport.update({
-  id: '/add',
-  path: '/add',
-  getParentRoute: () => AppOrgsRouteRoute,
-} as any)
-const AppModelsAddRoute = AppModelsAddRouteImport.update({
-  id: '/add',
-  path: '/add',
-  getParentRoute: () => AppModelsRouteRoute,
-} as any)
-const AppHubBehaviourRoute = AppHubBehaviourRouteImport.update({
-  id: '/behaviour',
-  path: '/behaviour',
-  getParentRoute: () => AppHubRouteRoute,
-} as any)
-const AppChatSetupRoute = AppChatSetupRouteImport.update({
-  id: '/setup',
-  path: '/setup',
-  getParentRoute: () => AppChatRouteRoute,
-} as any)
-const AppChatNewRoute = AppChatNewRouteImport.update({
-  id: '/new',
-  path: '/new',
-  getParentRoute: () => AppChatRouteRoute,
-} as any)
-const ApiRpcSplatRoute = ApiRpcSplatRouteImport.update({
-  id: '/api/rpc/$',
-  path: '/api/rpc/$',
+const ApiAuthSplatRoute = ApiAuthSplatRouteImport.update({
+  id: '/api/auth/$',
+  path: '/api/auth/$',
   getParentRoute: () => rootRouteImport,
 } as any)
 const ApiDocSplatRoute = ApiDocSplatRouteImport.update({
@@ -304,46 +214,44 @@ const ApiDocSplatRoute = ApiDocSplatRouteImport.update({
   path: '/api/doc/$',
   getParentRoute: () => rootRouteImport,
 } as any)
-const ApiAuthSplatRoute = ApiAuthSplatRouteImport.update({
-  id: '/api/auth/$',
-  path: '/api/auth/$',
+const ApiRpcSplatRoute = ApiRpcSplatRouteImport.update({
+  id: '/api/rpc/$',
+  path: '/api/rpc/$',
   getParentRoute: () => rootRouteImport,
 } as any)
-const AppUsersUserIdRouteRoute = AppUsersUserIdRouteRouteImport.update({
-  id: '/$userId',
-  path: '/$userId',
-  getParentRoute: () => AppUsersRouteRoute,
+const AppAccountIndexRoute = AppAccountIndexRouteImport.update({
+  id: '/',
+  path: '/',
+  getParentRoute: () => AppAccountRouteRoute,
 } as any)
-const AppQuotasQuotaPoolIdRouteRoute =
-  AppQuotasQuotaPoolIdRouteRouteImport.update({
-    id: '/$quotaPoolId',
-    path: '/$quotaPoolId',
-    getParentRoute: () => AppQuotasRouteRoute,
-  } as any)
-const AppProvidersProviderIdRouteRoute =
-  AppProvidersProviderIdRouteRouteImport.update({
-    id: '/$providerId',
-    path: '/$providerId',
-    getParentRoute: () => AppProvidersRouteRoute,
-  } as any)
-const AppOrgsOrgIdRouteRoute = AppOrgsOrgIdRouteRouteImport.update({
-  id: '/$orgId',
-  path: '/$orgId',
-  getParentRoute: () => AppOrgsRouteRoute,
+const AppChatIndexRoute = AppChatIndexRouteImport.update({
+  id: '/',
+  path: '/',
+  getParentRoute: () => AppChatRouteRoute,
 } as any)
-const AppModelsModelIdRouteRoute = AppModelsModelIdRouteRouteImport.update({
-  id: '/$modelId',
-  path: '/$modelId',
-  getParentRoute: () => AppModelsRouteRoute,
+const AppChatNewRoute = AppChatNewRouteImport.update({
+  id: '/new',
+  path: '/new',
+  getParentRoute: () => AppChatRouteRoute,
 } as any)
-const AppHubBotsRouteRoute = AppHubBotsRouteRouteImport.update({
-  id: '/bots',
-  path: '/bots',
-  getParentRoute: () => AppHubRouteRoute,
+const AppChatSetupRoute = AppChatSetupRouteImport.update({
+  id: '/setup',
+  path: '/setup',
+  getParentRoute: () => AppChatRouteRoute,
 } as any)
-const AppHubBlocksRouteRoute = AppHubBlocksRouteRouteImport.update({
-  id: '/blocks',
-  path: '/blocks',
+const AppGroupsIndexRoute = AppGroupsIndexRouteImport.update({
+  id: '/',
+  path: '/',
+  getParentRoute: () => AppGroupsRouteRoute,
+} as any)
+const AppGroupsGroupIdRouteRoute = AppGroupsGroupIdRouteRouteImport.update({
+  id: '/$groupId',
+  path: '/$groupId',
+  getParentRoute: () => AppGroupsRouteRoute,
+} as any)
+const AppHubIndexRoute = AppHubIndexRouteImport.update({
+  id: '/',
+  path: '/',
   getParentRoute: () => AppHubRouteRoute,
 } as any)
 const AppHubAssetsRouteRoute = AppHubAssetsRouteRouteImport.update({
@@ -351,109 +259,133 @@ const AppHubAssetsRouteRoute = AppHubAssetsRouteRouteImport.update({
   path: '/assets',
   getParentRoute: () => AppHubRouteRoute,
 } as any)
-const AppGroupsGroupIdRouteRoute = AppGroupsGroupIdRouteRouteImport.update({
-  id: '/$groupId',
-  path: '/$groupId',
-  getParentRoute: () => AppGroupsRouteRoute,
-} as any)
-const AppQuotasQuotaPoolIdIndexRoute =
-  AppQuotasQuotaPoolIdIndexRouteImport.update({
-    id: '/',
-    path: '/',
-    getParentRoute: () => AppQuotasQuotaPoolIdRouteRoute,
-  } as any)
-const AppProvidersProviderIdIndexRoute =
-  AppProvidersProviderIdIndexRouteImport.update({
-    id: '/',
-    path: '/',
-    getParentRoute: () => AppProvidersProviderIdRouteRoute,
-  } as any)
-const AppOrgsOrgIdIndexRoute = AppOrgsOrgIdIndexRouteImport.update({
-  id: '/',
-  path: '/',
-  getParentRoute: () => AppOrgsOrgIdRouteRoute,
-} as any)
-const AppModelsModelIdIndexRoute = AppModelsModelIdIndexRouteImport.update({
-  id: '/',
-  path: '/',
-  getParentRoute: () => AppModelsModelIdRouteRoute,
-} as any)
-const AppHubRepositoriesIndexRoute = AppHubRepositoriesIndexRouteImport.update({
-  id: '/repositories/',
-  path: '/repositories/',
+const AppHubBehaviourRoute = AppHubBehaviourRouteImport.update({
+  id: '/behaviour',
+  path: '/behaviour',
   getParentRoute: () => AppHubRouteRoute,
 } as any)
-const AppHubBotsIndexRoute = AppHubBotsIndexRouteImport.update({
-  id: '/',
-  path: '/',
-  getParentRoute: () => AppHubBotsRouteRoute,
+const AppHubBlocksRouteRoute = AppHubBlocksRouteRouteImport.update({
+  id: '/blocks',
+  path: '/blocks',
+  getParentRoute: () => AppHubRouteRoute,
 } as any)
-const AppHubBlocksIndexRoute = AppHubBlocksIndexRouteImport.update({
-  id: '/',
-  path: '/',
-  getParentRoute: () => AppHubBlocksRouteRoute,
+const AppHubBotsRouteRoute = AppHubBotsRouteRouteImport.update({
+  id: '/bots',
+  path: '/bots',
+  getParentRoute: () => AppHubRouteRoute,
 } as any)
-const AppHubAssetsIndexRoute = AppHubAssetsIndexRouteImport.update({
+const AppModelsIndexRoute = AppModelsIndexRouteImport.update({
   id: '/',
   path: '/',
-  getParentRoute: () => AppHubAssetsRouteRoute,
+  getParentRoute: () => AppModelsRouteRoute,
 } as any)
-const AppGroupsGroupIdIndexRoute = AppGroupsGroupIdIndexRouteImport.update({
+const AppModelsModelIdRouteRoute = AppModelsModelIdRouteRouteImport.update({
+  id: '/$modelId',
+  path: '/$modelId',
+  getParentRoute: () => AppModelsRouteRoute,
+} as any)
+const AppModelsAddRoute = AppModelsAddRouteImport.update({
+  id: '/add',
+  path: '/add',
+  getParentRoute: () => AppModelsRouteRoute,
+} as any)
+const AppOrgsIndexRoute = AppOrgsIndexRouteImport.update({
   id: '/',
   path: '/',
-  getParentRoute: () => AppGroupsGroupIdRouteRoute,
+  getParentRoute: () => AppOrgsRouteRoute,
+} as any)
+const AppOrgsOrgIdRouteRoute = AppOrgsOrgIdRouteRouteImport.update({
+  id: '/$orgId',
+  path: '/$orgId',
+  getParentRoute: () => AppOrgsRouteRoute,
+} as any)
+const AppOrgsAddRoute = AppOrgsAddRouteImport.update({
+  id: '/add',
+  path: '/add',
+  getParentRoute: () => AppOrgsRouteRoute,
+} as any)
+const AppProvidersIndexRoute = AppProvidersIndexRouteImport.update({
+  id: '/',
+  path: '/',
+  getParentRoute: () => AppProvidersRouteRoute,
+} as any)
+const AppProvidersProviderIdRouteRoute =
+  AppProvidersProviderIdRouteRouteImport.update({
+    id: '/$providerId',
+    path: '/$providerId',
+    getParentRoute: () => AppProvidersRouteRoute,
+  } as any)
+const AppProvidersAddRoute = AppProvidersAddRouteImport.update({
+  id: '/add',
+  path: '/add',
+  getParentRoute: () => AppProvidersRouteRoute,
+} as any)
+const AppQuotasIndexRoute = AppQuotasIndexRouteImport.update({
+  id: '/',
+  path: '/',
+  getParentRoute: () => AppQuotasRouteRoute,
+} as any)
+const AppQuotasQuotaPoolIdRouteRoute =
+  AppQuotasQuotaPoolIdRouteRouteImport.update({
+    id: '/$quotaPoolId',
+    path: '/$quotaPoolId',
+    getParentRoute: () => AppQuotasRouteRoute,
+  } as any)
+const AppQuotasAddRoute = AppQuotasAddRouteImport.update({
+  id: '/add',
+  path: '/add',
+  getParentRoute: () => AppQuotasRouteRoute,
+} as any)
+const AppUsersIndexRoute = AppUsersIndexRouteImport.update({
+  id: '/',
+  path: '/',
+  getParentRoute: () => AppUsersRouteRoute,
+} as any)
+const AppUsersUserIdRouteRoute = AppUsersUserIdRouteRouteImport.update({
+  id: '/$userId',
+  path: '/$userId',
+  getParentRoute: () => AppUsersRouteRoute,
+} as any)
+const AppUsersAddRoute = AppUsersAddRouteImport.update({
+  id: '/add',
+  path: '/add',
+  getParentRoute: () => AppUsersRouteRoute,
+} as any)
+const AppUsersInvitesRoute = AppUsersInvitesRouteImport.update({
+  id: '/invites',
+  path: '/invites',
+  getParentRoute: () => AppUsersRouteRoute,
 } as any)
 const AppChatChatIdIndexRoute = AppChatChatIdIndexRouteImport.update({
   id: '/$chatId/',
   path: '/$chatId/',
   getParentRoute: () => AppChatRouteRoute,
 } as any)
-const AppUsersUserIdEditRoute = AppUsersUserIdEditRouteImport.update({
-  id: '/edit',
-  path: '/edit',
-  getParentRoute: () => AppUsersUserIdRouteRoute,
+const AppGroupsGroupIdIndexRoute = AppGroupsGroupIdIndexRouteImport.update({
+  id: '/',
+  path: '/',
+  getParentRoute: () => AppGroupsGroupIdRouteRoute,
 } as any)
-const AppQuotasQuotaPoolIdEditRoute =
-  AppQuotasQuotaPoolIdEditRouteImport.update({
-    id: '/edit',
-    path: '/edit',
-    getParentRoute: () => AppQuotasQuotaPoolIdRouteRoute,
+const AppHubAssetsIndexRoute = AppHubAssetsIndexRouteImport.update({
+  id: '/',
+  path: '/',
+  getParentRoute: () => AppHubAssetsRouteRoute,
+} as any)
+const AppHubAssetsAssetIdRouteRoute =
+  AppHubAssetsAssetIdRouteRouteImport.update({
+    id: '/$assetId',
+    path: '/$assetId',
+    getParentRoute: () => AppHubAssetsRouteRoute,
   } as any)
-const AppProvidersProviderIdEditRoute =
-  AppProvidersProviderIdEditRouteImport.update({
-    id: '/edit',
-    path: '/edit',
-    getParentRoute: () => AppProvidersProviderIdRouteRoute,
-  } as any)
-const AppOrgsOrgIdEditRoute = AppOrgsOrgIdEditRouteImport.update({
-  id: '/edit',
-  path: '/edit',
-  getParentRoute: () => AppOrgsOrgIdRouteRoute,
-} as any)
-const AppModelsModelIdEditRoute = AppModelsModelIdEditRouteImport.update({
-  id: '/edit',
-  path: '/edit',
-  getParentRoute: () => AppModelsModelIdRouteRoute,
-} as any)
-const AppHubBotsAddRoute = AppHubBotsAddRouteImport.update({
-  id: '/add',
-  path: '/add',
-  getParentRoute: () => AppHubBotsRouteRoute,
-} as any)
-const AppHubBlocksAddRoute = AppHubBlocksAddRouteImport.update({
-  id: '/add',
-  path: '/add',
-  getParentRoute: () => AppHubBlocksRouteRoute,
-} as any)
 const AppHubAssetsAddRoute = AppHubAssetsAddRouteImport.update({
   id: '/add',
   path: '/add',
   getParentRoute: () => AppHubAssetsRouteRoute,
 } as any)
-const AppHubBotsBotIdRouteRoute = AppHubBotsBotIdRouteRouteImport.update({
-  id: '/$botId',
-  path: '/$botId',
-  getParentRoute: () => AppHubBotsRouteRoute,
+const AppHubBlocksIndexRoute = AppHubBlocksIndexRouteImport.update({
+  id: '/',
+  path: '/',
+  getParentRoute: () => AppHubBlocksRouteRoute,
 } as any)
 const AppHubBlocksBlockIdRouteRoute =
   AppHubBlocksBlockIdRouteRouteImport.update({
@@ -461,16 +393,90 @@ const AppHubBlocksBlockIdRouteRoute =
     path: '/$blockId',
     getParentRoute: () => AppHubBlocksRouteRoute,
   } as any)
-const AppHubAssetsAssetIdRouteRoute =
-  AppHubAssetsAssetIdRouteRouteImport.update({
-    id: '/$assetId',
-    path: '/$assetId',
-    getParentRoute: () => AppHubAssetsRouteRoute,
-  } as any)
-const AppHubBotsBotIdIndexRoute = AppHubBotsBotIdIndexRouteImport.update({
+const AppHubBlocksAddRoute = AppHubBlocksAddRouteImport.update({
+  id: '/add',
+  path: '/add',
+  getParentRoute: () => AppHubBlocksRouteRoute,
+} as any)
+const AppHubBotsIndexRoute = AppHubBotsIndexRouteImport.update({
   id: '/',
   path: '/',
-  getParentRoute: () => AppHubBotsBotIdRouteRoute,
+  getParentRoute: () => AppHubBotsRouteRoute,
+} as any)
+const AppHubBotsBotIdRouteRoute = AppHubBotsBotIdRouteRouteImport.update({
+  id: '/$botId',
+  path: '/$botId',
+  getParentRoute: () => AppHubBotsRouteRoute,
+} as any)
+const AppHubBotsAddRoute = AppHubBotsAddRouteImport.update({
+  id: '/add',
+  path: '/add',
+  getParentRoute: () => AppHubBotsRouteRoute,
+} as any)
+const AppHubRepositoriesIndexRoute = AppHubRepositoriesIndexRouteImport.update({
+  id: '/repositories/',
+  path: '/repositories/',
+  getParentRoute: () => AppHubRouteRoute,
+} as any)
+const AppModelsModelIdIndexRoute = AppModelsModelIdIndexRouteImport.update({
+  id: '/',
+  path: '/',
+  getParentRoute: () => AppModelsModelIdRouteRoute,
+} as any)
+const AppModelsModelIdEditRoute = AppModelsModelIdEditRouteImport.update({
+  id: '/edit',
+  path: '/edit',
+  getParentRoute: () => AppModelsModelIdRouteRoute,
+} as any)
+const AppOrgsOrgIdIndexRoute = AppOrgsOrgIdIndexRouteImport.update({
+  id: '/',
+  path: '/',
+  getParentRoute: () => AppOrgsOrgIdRouteRoute,
+} as any)
+const AppOrgsOrgIdEditRoute = AppOrgsOrgIdEditRouteImport.update({
+  id: '/edit',
+  path: '/edit',
+  getParentRoute: () => AppOrgsOrgIdRouteRoute,
+} as any)
+const AppProvidersProviderIdIndexRoute =
+  AppProvidersProviderIdIndexRouteImport.update({
+    id: '/',
+    path: '/',
+    getParentRoute: () => AppProvidersProviderIdRouteRoute,
+  } as any)
+const AppProvidersProviderIdEditRoute =
+  AppProvidersProviderIdEditRouteImport.update({
+    id: '/edit',
+    path: '/edit',
+    getParentRoute: () => AppProvidersProviderIdRouteRoute,
+  } as any)
+const AppQuotasQuotaPoolIdIndexRoute =
+  AppQuotasQuotaPoolIdIndexRouteImport.update({
+    id: '/',
+    path: '/',
+    getParentRoute: () => AppQuotasQuotaPoolIdRouteRoute,
+  } as any)
+const AppQuotasQuotaPoolIdEditRoute =
+  AppQuotasQuotaPoolIdEditRouteImport.update({
+    id: '/edit',
+    path: '/edit',
+    getParentRoute: () => AppQuotasQuotaPoolIdRouteRoute,
+  } as any)
+const AppUsersUserIdEditRoute = AppUsersUserIdEditRouteImport.update({
+  id: '/edit',
+  path: '/edit',
+  getParentRoute: () => AppUsersUserIdRouteRoute,
+} as any)
+const AppHubAssetsAssetIdIndexRoute =
+  AppHubAssetsAssetIdIndexRouteImport.update({
+    id: '/',
+    path: '/',
+    getParentRoute: () => AppHubAssetsAssetIdRouteRoute,
+  } as any)
+const AppHubAssetsAssetIdEditRoute = AppHubAssetsAssetIdEditRouteImport.update({
+  id: '/edit',
+  path: '/edit',
+  getParentRoute: () => AppHubAssetsAssetIdRouteRoute,
 } as any)
 const AppHubBlocksBlockIdIndexRoute =
   AppHubBlocksBlockIdIndexRouteImport.update({
@@ -478,22 +484,10 @@ const AppHubBlocksBlockIdIndexRoute =
     path: '/',
     getParentRoute: () => AppHubBlocksBlockIdRouteRoute,
   } as any)
-const AppHubAssetsAssetIdIndexRoute =
-  AppHubAssetsAssetIdIndexRouteImport.update({
-    id: '/',
-    path: '/',
-    getParentRoute: () => AppHubAssetsAssetIdRouteRoute,
-  } as any)
-const AppHubRepositoriesBlockIdPlaygroundRoute =
-  AppHubRepositoriesBlockIdPlaygroundRouteImport.update({
-    id: '/repositories/$blockId/playground',
-    path: '/repositories/$blockId/playground',
-    getParentRoute: () => AppHubRouteRoute,
-  } as any)
-const AppHubBotsBotIdSetupRoute = AppHubBotsBotIdSetupRouteImport.update({
-  id: '/setup',
-  path: '/setup',
-  getParentRoute: () => AppHubBotsBotIdRouteRoute,
+const AppHubBlocksBlockIdEditRoute = AppHubBlocksBlockIdEditRouteImport.update({
+  id: '/edit',
+  path: '/edit',
+  getParentRoute: () => AppHubBlocksBlockIdRouteRoute,
 } as any)
 const AppHubBlocksBlockIdPointsRoute =
   AppHubBlocksBlockIdPointsRouteImport.update({
@@ -501,16 +495,22 @@ const AppHubBlocksBlockIdPointsRoute =
     path: '/points',
     getParentRoute: () => AppHubBlocksBlockIdRouteRoute,
   } as any)
-const AppHubBlocksBlockIdEditRoute = AppHubBlocksBlockIdEditRouteImport.update({
-  id: '/edit',
-  path: '/edit',
-  getParentRoute: () => AppHubBlocksBlockIdRouteRoute,
+const AppHubBotsBotIdIndexRoute = AppHubBotsBotIdIndexRouteImport.update({
+  id: '/',
+  path: '/',
+  getParentRoute: () => AppHubBotsBotIdRouteRoute,
 } as any)
-const AppHubAssetsAssetIdEditRoute = AppHubAssetsAssetIdEditRouteImport.update({
-  id: '/edit',
-  path: '/edit',
-  getParentRoute: () => AppHubAssetsAssetIdRouteRoute,
+const AppHubBotsBotIdSetupRoute = AppHubBotsBotIdSetupRouteImport.update({
+  id: '/setup',
+  path: '/setup',
+  getParentRoute: () => AppHubBotsBotIdRouteRoute,
 } as any)
+const AppHubRepositoriesBlockIdPlaygroundRoute =
+  AppHubRepositoriesBlockIdPlaygroundRouteImport.update({
+    id: '/repositories/$blockId/playground',
+    path: '/repositories/$blockId/playground',
+    getParentRoute: () => AppHubRouteRoute,
+  } as any)
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
@@ -979,11 +979,11 @@ export interface RootRouteChildren {
 
 declare module '@tanstack/react-router' {
   interface FileRoutesByPath {
-    '/app': {
-      id: '/app'
-      path: '/app'
-      fullPath: '/app'
-      preLoaderRoute: typeof AppRouteRouteImport
+    '/': {
+      id: '/'
+      path: '/'
+      fullPath: '/'
+      preLoaderRoute: typeof IndexRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/_pathlessLayout': {
@@ -993,67 +993,18 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof PathlessLayoutRouteRouteImport
       parentRoute: typeof rootRouteImport
     }
-    '/': {
-      id: '/'
-      path: '/'
-      fullPath: '/'
-      preLoaderRoute: typeof IndexRouteImport
+    '/app': {
+      id: '/app'
+      path: '/app'
+      fullPath: '/app'
+      preLoaderRoute: typeof AppRouteRouteImport
       parentRoute: typeof rootRouteImport
     }
-    '/app/': {
-      id: '/app/'
-      path: '/'
-      fullPath: '/app/'
-      preLoaderRoute: typeof AppIndexRouteImport
-      parentRoute: typeof AppRouteRoute
-    }
-    '/_pathlessLayout/verify-email': {
-      id: '/_pathlessLayout/verify-email'
-      path: '/verify-email'
-      fullPath: '/verify-email'
-      preLoaderRoute: typeof PathlessLayoutVerifyEmailRouteImport
-      parentRoute: typeof PathlessLayoutRouteRoute
-    }
-    '/_pathlessLayout/tou': {
-      id: '/_pathlessLayout/tou'
-      path: '/tou'
-      fullPath: '/tou'
-      preLoaderRoute: typeof PathlessLayoutTouRouteImport
-      parentRoute: typeof PathlessLayoutRouteRoute
-    }
-    '/_pathlessLayout/select-organization': {
-      id: '/_pathlessLayout/select-organization'
-      path: '/select-organization'
-      fullPath: '/select-organization'
-      preLoaderRoute: typeof PathlessLayoutSelectOrganizationRouteImport
-      parentRoute: typeof PathlessLayoutRouteRoute
-    }
-    '/_pathlessLayout/reset-password': {
-      id: '/_pathlessLayout/reset-password'
-      path: '/reset-password'
-      fullPath: '/reset-password'
-      preLoaderRoute: typeof PathlessLayoutResetPasswordRouteImport
-      parentRoute: typeof PathlessLayoutRouteRoute
-    }
-    '/_pathlessLayout/register': {
-      id: '/_pathlessLayout/register'
-      path: '/register'
-      fullPath: '/register'
-      preLoaderRoute: typeof PathlessLayoutRegisterRouteImport
-      parentRoute: typeof PathlessLayoutRouteRoute
-    }
-    '/_pathlessLayout/privacy': {
-      id: '/_pathlessLayout/privacy'
-      path: '/privacy'
-      fullPath: '/privacy'
-      preLoaderRoute: typeof PathlessLayoutPrivacyRouteImport
-      parentRoute: typeof PathlessLayoutRouteRoute
-    }
-    '/_pathlessLayout/login': {
-      id: '/_pathlessLayout/login'
-      path: '/login'
-      fullPath: '/login'
-      preLoaderRoute: typeof PathlessLayoutLoginRouteImport
+    '/_pathlessLayout/forgot-password': {
+      id: '/_pathlessLayout/forgot-password'
+      path: '/forgot-password'
+      fullPath: '/forgot-password'
+      preLoaderRoute: typeof PathlessLayoutForgotPasswordRouteImport
       parentRoute: typeof PathlessLayoutRouteRoute
     }
     '/_pathlessLayout/init': {
@@ -1063,67 +1014,60 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof PathlessLayoutInitRouteImport
       parentRoute: typeof PathlessLayoutRouteRoute
     }
-    '/_pathlessLayout/forgot-password': {
-      id: '/_pathlessLayout/forgot-password'
-      path: '/forgot-password'
-      fullPath: '/forgot-password'
-      preLoaderRoute: typeof PathlessLayoutForgotPasswordRouteImport
+    '/_pathlessLayout/login': {
+      id: '/_pathlessLayout/login'
+      path: '/login'
+      fullPath: '/login'
+      preLoaderRoute: typeof PathlessLayoutLoginRouteImport
       parentRoute: typeof PathlessLayoutRouteRoute
     }
-    '/app/users': {
-      id: '/app/users'
-      path: '/users'
-      fullPath: '/app/users'
-      preLoaderRoute: typeof AppUsersRouteRouteImport
-      parentRoute: typeof AppRouteRoute
+    '/_pathlessLayout/privacy': {
+      id: '/_pathlessLayout/privacy'
+      path: '/privacy'
+      fullPath: '/privacy'
+      preLoaderRoute: typeof PathlessLayoutPrivacyRouteImport
+      parentRoute: typeof PathlessLayoutRouteRoute
     }
-    '/app/quotas': {
-      id: '/app/quotas'
-      path: '/quotas'
-      fullPath: '/app/quotas'
-      preLoaderRoute: typeof AppQuotasRouteRouteImport
-      parentRoute: typeof AppRouteRoute
+    '/_pathlessLayout/register': {
+      id: '/_pathlessLayout/register'
+      path: '/register'
+      fullPath: '/register'
+      preLoaderRoute: typeof PathlessLayoutRegisterRouteImport
+      parentRoute: typeof PathlessLayoutRouteRoute
     }
-    '/app/providers': {
-      id: '/app/providers'
-      path: '/providers'
-      fullPath: '/app/providers'
-      preLoaderRoute: typeof AppProvidersRouteRouteImport
-      parentRoute: typeof AppRouteRoute
+    '/_pathlessLayout/reset-password': {
+      id: '/_pathlessLayout/reset-password'
+      path: '/reset-password'
+      fullPath: '/reset-password'
+      preLoaderRoute: typeof PathlessLayoutResetPasswordRouteImport
+      parentRoute: typeof PathlessLayoutRouteRoute
     }
-    '/app/orgs': {
-      id: '/app/orgs'
-      path: '/orgs'
-      fullPath: '/app/orgs'
-      preLoaderRoute: typeof AppOrgsRouteRouteImport
-      parentRoute: typeof AppRouteRoute
+    '/_pathlessLayout/select-organization': {
+      id: '/_pathlessLayout/select-organization'
+      path: '/select-organization'
+      fullPath: '/select-organization'
+      preLoaderRoute: typeof PathlessLayoutSelectOrganizationRouteImport
+      parentRoute: typeof PathlessLayoutRouteRoute
     }
-    '/app/models': {
-      id: '/app/models'
-      path: '/models'
-      fullPath: '/app/models'
-      preLoaderRoute: typeof AppModelsRouteRouteImport
-      parentRoute: typeof AppRouteRoute
+    '/_pathlessLayout/tou': {
+      id: '/_pathlessLayout/tou'
+      path: '/tou'
+      fullPath: '/tou'
+      preLoaderRoute: typeof PathlessLayoutTouRouteImport
+      parentRoute: typeof PathlessLayoutRouteRoute
     }
-    '/app/hub': {
-      id: '/app/hub'
-      path: '/hub'
-      fullPath: '/app/hub'
-      preLoaderRoute: typeof AppHubRouteRouteImport
-      parentRoute: typeof AppRouteRoute
+    '/_pathlessLayout/verify-email': {
+      id: '/_pathlessLayout/verify-email'
+      path: '/verify-email'
+      fullPath: '/verify-email'
+      preLoaderRoute: typeof PathlessLayoutVerifyEmailRouteImport
+      parentRoute: typeof PathlessLayoutRouteRoute
     }
-    '/app/groups': {
-      id: '/app/groups'
-      path: '/groups'
-      fullPath: '/app/groups'
-      preLoaderRoute: typeof AppGroupsRouteRouteImport
-      parentRoute: typeof AppRouteRoute
-    }
-    '/app/chat': {
-      id: '/app/chat'
-      path: '/chat'
-      fullPath: '/app/chat'
-      preLoaderRoute: typeof AppChatRouteRouteImport
+    '/app/': {
+      id: '/app/'
+      path: '/'
+      fullPath: '/app/'
+      preLoaderRoute: typeof AppIndexRouteImport
       parentRoute: typeof AppRouteRoute
     }
     '/app/account': {
@@ -1133,137 +1077,67 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AppAccountRouteRouteImport
       parentRoute: typeof AppRouteRoute
     }
-    '/app/users/': {
-      id: '/app/users/'
-      path: '/'
-      fullPath: '/app/users/'
-      preLoaderRoute: typeof AppUsersIndexRouteImport
-      parentRoute: typeof AppUsersRouteRoute
+    '/app/chat': {
+      id: '/app/chat'
+      path: '/chat'
+      fullPath: '/app/chat'
+      preLoaderRoute: typeof AppChatRouteRouteImport
+      parentRoute: typeof AppRouteRoute
     }
-    '/app/quotas/': {
-      id: '/app/quotas/'
-      path: '/'
-      fullPath: '/app/quotas/'
-      preLoaderRoute: typeof AppQuotasIndexRouteImport
-      parentRoute: typeof AppQuotasRouteRoute
+    '/app/groups': {
+      id: '/app/groups'
+      path: '/groups'
+      fullPath: '/app/groups'
+      preLoaderRoute: typeof AppGroupsRouteRouteImport
+      parentRoute: typeof AppRouteRoute
     }
-    '/app/providers/': {
-      id: '/app/providers/'
-      path: '/'
-      fullPath: '/app/providers/'
-      preLoaderRoute: typeof AppProvidersIndexRouteImport
-      parentRoute: typeof AppProvidersRouteRoute
+    '/app/hub': {
+      id: '/app/hub'
+      path: '/hub'
+      fullPath: '/app/hub'
+      preLoaderRoute: typeof AppHubRouteRouteImport
+      parentRoute: typeof AppRouteRoute
     }
-    '/app/orgs/': {
-      id: '/app/orgs/'
-      path: '/'
-      fullPath: '/app/orgs/'
-      preLoaderRoute: typeof AppOrgsIndexRouteImport
-      parentRoute: typeof AppOrgsRouteRoute
+    '/app/models': {
+      id: '/app/models'
+      path: '/models'
+      fullPath: '/app/models'
+      preLoaderRoute: typeof AppModelsRouteRouteImport
+      parentRoute: typeof AppRouteRoute
     }
-    '/app/models/': {
-      id: '/app/models/'
-      path: '/'
-      fullPath: '/app/models/'
-      preLoaderRoute: typeof AppModelsIndexRouteImport
-      parentRoute: typeof AppModelsRouteRoute
+    '/app/orgs': {
+      id: '/app/orgs'
+      path: '/orgs'
+      fullPath: '/app/orgs'
+      preLoaderRoute: typeof AppOrgsRouteRouteImport
+      parentRoute: typeof AppRouteRoute
     }
-    '/app/hub/': {
-      id: '/app/hub/'
-      path: '/'
-      fullPath: '/app/hub/'
-      preLoaderRoute: typeof AppHubIndexRouteImport
-      parentRoute: typeof AppHubRouteRoute
+    '/app/providers': {
+      id: '/app/providers'
+      path: '/providers'
+      fullPath: '/app/providers'
+      preLoaderRoute: typeof AppProvidersRouteRouteImport
+      parentRoute: typeof AppRouteRoute
     }
-    '/app/groups/': {
-      id: '/app/groups/'
-      path: '/'
-      fullPath: '/app/groups/'
-      preLoaderRoute: typeof AppGroupsIndexRouteImport
-      parentRoute: typeof AppGroupsRouteRoute
+    '/app/quotas': {
+      id: '/app/quotas'
+      path: '/quotas'
+      fullPath: '/app/quotas'
+      preLoaderRoute: typeof AppQuotasRouteRouteImport
+      parentRoute: typeof AppRouteRoute
     }
-    '/app/chat/': {
-      id: '/app/chat/'
-      path: '/'
-      fullPath: '/app/chat/'
-      preLoaderRoute: typeof AppChatIndexRouteImport
-      parentRoute: typeof AppChatRouteRoute
+    '/app/users': {
+      id: '/app/users'
+      path: '/users'
+      fullPath: '/app/users'
+      preLoaderRoute: typeof AppUsersRouteRouteImport
+      parentRoute: typeof AppRouteRoute
     }
-    '/app/account/': {
-      id: '/app/account/'
-      path: '/'
-      fullPath: '/app/account/'
-      preLoaderRoute: typeof AppAccountIndexRouteImport
-      parentRoute: typeof AppAccountRouteRoute
-    }
-    '/app/users/invites': {
-      id: '/app/users/invites'
-      path: '/invites'
-      fullPath: '/app/users/invites'
-      preLoaderRoute: typeof AppUsersInvitesRouteImport
-      parentRoute: typeof AppUsersRouteRoute
-    }
-    '/app/users/add': {
-      id: '/app/users/add'
-      path: '/add'
-      fullPath: '/app/users/add'
-      preLoaderRoute: typeof AppUsersAddRouteImport
-      parentRoute: typeof AppUsersRouteRoute
-    }
-    '/app/quotas/add': {
-      id: '/app/quotas/add'
-      path: '/add'
-      fullPath: '/app/quotas/add'
-      preLoaderRoute: typeof AppQuotasAddRouteImport
-      parentRoute: typeof AppQuotasRouteRoute
-    }
-    '/app/providers/add': {
-      id: '/app/providers/add'
-      path: '/add'
-      fullPath: '/app/providers/add'
-      preLoaderRoute: typeof AppProvidersAddRouteImport
-      parentRoute: typeof AppProvidersRouteRoute
-    }
-    '/app/orgs/add': {
-      id: '/app/orgs/add'
-      path: '/add'
-      fullPath: '/app/orgs/add'
-      preLoaderRoute: typeof AppOrgsAddRouteImport
-      parentRoute: typeof AppOrgsRouteRoute
-    }
-    '/app/models/add': {
-      id: '/app/models/add'
-      path: '/add'
-      fullPath: '/app/models/add'
-      preLoaderRoute: typeof AppModelsAddRouteImport
-      parentRoute: typeof AppModelsRouteRoute
-    }
-    '/app/hub/behaviour': {
-      id: '/app/hub/behaviour'
-      path: '/behaviour'
-      fullPath: '/app/hub/behaviour'
-      preLoaderRoute: typeof AppHubBehaviourRouteImport
-      parentRoute: typeof AppHubRouteRoute
-    }
-    '/app/chat/setup': {
-      id: '/app/chat/setup'
-      path: '/setup'
-      fullPath: '/app/chat/setup'
-      preLoaderRoute: typeof AppChatSetupRouteImport
-      parentRoute: typeof AppChatRouteRoute
-    }
-    '/app/chat/new': {
-      id: '/app/chat/new'
-      path: '/new'
-      fullPath: '/app/chat/new'
-      preLoaderRoute: typeof AppChatNewRouteImport
-      parentRoute: typeof AppChatRouteRoute
-    }
-    '/api/rpc/$': {
-      id: '/api/rpc/$'
-      path: '/api/rpc/$'
-      fullPath: '/api/rpc/$'
-      preLoaderRoute: typeof ApiRpcSplatRouteImport
+    '/api/auth/$': {
+      id: '/api/auth/$'
+      path: '/api/auth/$'
+      fullPath: '/api/auth/$'
+      preLoaderRoute: typeof ApiAuthSplatRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/api/doc/$': {
@@ -1273,60 +1147,60 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof ApiDocSplatRouteImport
       parentRoute: typeof rootRouteImport
     }
-    '/api/auth/$': {
-      id: '/api/auth/$'
-      path: '/api/auth/$'
-      fullPath: '/api/auth/$'
-      preLoaderRoute: typeof ApiAuthSplatRouteImport
+    '/api/rpc/$': {
+      id: '/api/rpc/$'
+      path: '/api/rpc/$'
+      fullPath: '/api/rpc/$'
+      preLoaderRoute: typeof ApiRpcSplatRouteImport
       parentRoute: typeof rootRouteImport
     }
-    '/app/users/$userId': {
-      id: '/app/users/$userId'
-      path: '/$userId'
-      fullPath: '/app/users/$userId'
-      preLoaderRoute: typeof AppUsersUserIdRouteRouteImport
-      parentRoute: typeof AppUsersRouteRoute
+    '/app/account/': {
+      id: '/app/account/'
+      path: '/'
+      fullPath: '/app/account/'
+      preLoaderRoute: typeof AppAccountIndexRouteImport
+      parentRoute: typeof AppAccountRouteRoute
     }
-    '/app/quotas/$quotaPoolId': {
-      id: '/app/quotas/$quotaPoolId'
-      path: '/$quotaPoolId'
-      fullPath: '/app/quotas/$quotaPoolId'
-      preLoaderRoute: typeof AppQuotasQuotaPoolIdRouteRouteImport
-      parentRoute: typeof AppQuotasRouteRoute
+    '/app/chat/': {
+      id: '/app/chat/'
+      path: '/'
+      fullPath: '/app/chat/'
+      preLoaderRoute: typeof AppChatIndexRouteImport
+      parentRoute: typeof AppChatRouteRoute
     }
-    '/app/providers/$providerId': {
-      id: '/app/providers/$providerId'
-      path: '/$providerId'
-      fullPath: '/app/providers/$providerId'
-      preLoaderRoute: typeof AppProvidersProviderIdRouteRouteImport
-      parentRoute: typeof AppProvidersRouteRoute
+    '/app/chat/new': {
+      id: '/app/chat/new'
+      path: '/new'
+      fullPath: '/app/chat/new'
+      preLoaderRoute: typeof AppChatNewRouteImport
+      parentRoute: typeof AppChatRouteRoute
     }
-    '/app/orgs/$orgId': {
-      id: '/app/orgs/$orgId'
-      path: '/$orgId'
-      fullPath: '/app/orgs/$orgId'
-      preLoaderRoute: typeof AppOrgsOrgIdRouteRouteImport
-      parentRoute: typeof AppOrgsRouteRoute
+    '/app/chat/setup': {
+      id: '/app/chat/setup'
+      path: '/setup'
+      fullPath: '/app/chat/setup'
+      preLoaderRoute: typeof AppChatSetupRouteImport
+      parentRoute: typeof AppChatRouteRoute
     }
-    '/app/models/$modelId': {
-      id: '/app/models/$modelId'
-      path: '/$modelId'
-      fullPath: '/app/models/$modelId'
-      preLoaderRoute: typeof AppModelsModelIdRouteRouteImport
-      parentRoute: typeof AppModelsRouteRoute
+    '/app/groups/': {
+      id: '/app/groups/'
+      path: '/'
+      fullPath: '/app/groups/'
+      preLoaderRoute: typeof AppGroupsIndexRouteImport
+      parentRoute: typeof AppGroupsRouteRoute
     }
-    '/app/hub/bots': {
-      id: '/app/hub/bots'
-      path: '/bots'
-      fullPath: '/app/hub/bots'
-      preLoaderRoute: typeof AppHubBotsRouteRouteImport
-      parentRoute: typeof AppHubRouteRoute
+    '/app/groups/$groupId': {
+      id: '/app/groups/$groupId'
+      path: '/$groupId'
+      fullPath: '/app/groups/$groupId'
+      preLoaderRoute: typeof AppGroupsGroupIdRouteRouteImport
+      parentRoute: typeof AppGroupsRouteRoute
     }
-    '/app/hub/blocks': {
-      id: '/app/hub/blocks'
-      path: '/blocks'
-      fullPath: '/app/hub/blocks'
-      preLoaderRoute: typeof AppHubBlocksRouteRouteImport
+    '/app/hub/': {
+      id: '/app/hub/'
+      path: '/'
+      fullPath: '/app/hub/'
+      preLoaderRoute: typeof AppHubIndexRouteImport
       parentRoute: typeof AppHubRouteRoute
     }
     '/app/hub/assets': {
@@ -1336,75 +1210,138 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AppHubAssetsRouteRouteImport
       parentRoute: typeof AppHubRouteRoute
     }
-    '/app/groups/$groupId': {
-      id: '/app/groups/$groupId'
-      path: '/$groupId'
-      fullPath: '/app/groups/$groupId'
-      preLoaderRoute: typeof AppGroupsGroupIdRouteRouteImport
-      parentRoute: typeof AppGroupsRouteRoute
-    }
-    '/app/quotas/$quotaPoolId/': {
-      id: '/app/quotas/$quotaPoolId/'
-      path: '/'
-      fullPath: '/app/quotas/$quotaPoolId/'
-      preLoaderRoute: typeof AppQuotasQuotaPoolIdIndexRouteImport
-      parentRoute: typeof AppQuotasQuotaPoolIdRouteRoute
-    }
-    '/app/providers/$providerId/': {
-      id: '/app/providers/$providerId/'
-      path: '/'
-      fullPath: '/app/providers/$providerId/'
-      preLoaderRoute: typeof AppProvidersProviderIdIndexRouteImport
-      parentRoute: typeof AppProvidersProviderIdRouteRoute
-    }
-    '/app/orgs/$orgId/': {
-      id: '/app/orgs/$orgId/'
-      path: '/'
-      fullPath: '/app/orgs/$orgId/'
-      preLoaderRoute: typeof AppOrgsOrgIdIndexRouteImport
-      parentRoute: typeof AppOrgsOrgIdRouteRoute
-    }
-    '/app/models/$modelId/': {
-      id: '/app/models/$modelId/'
-      path: '/'
-      fullPath: '/app/models/$modelId/'
-      preLoaderRoute: typeof AppModelsModelIdIndexRouteImport
-      parentRoute: typeof AppModelsModelIdRouteRoute
-    }
-    '/app/hub/repositories/': {
-      id: '/app/hub/repositories/'
-      path: '/repositories'
-      fullPath: '/app/hub/repositories/'
-      preLoaderRoute: typeof AppHubRepositoriesIndexRouteImport
+    '/app/hub/behaviour': {
+      id: '/app/hub/behaviour'
+      path: '/behaviour'
+      fullPath: '/app/hub/behaviour'
+      preLoaderRoute: typeof AppHubBehaviourRouteImport
       parentRoute: typeof AppHubRouteRoute
     }
-    '/app/hub/bots/': {
-      id: '/app/hub/bots/'
-      path: '/'
-      fullPath: '/app/hub/bots/'
-      preLoaderRoute: typeof AppHubBotsIndexRouteImport
-      parentRoute: typeof AppHubBotsRouteRoute
+    '/app/hub/blocks': {
+      id: '/app/hub/blocks'
+      path: '/blocks'
+      fullPath: '/app/hub/blocks'
+      preLoaderRoute: typeof AppHubBlocksRouteRouteImport
+      parentRoute: typeof AppHubRouteRoute
     }
-    '/app/hub/blocks/': {
-      id: '/app/hub/blocks/'
-      path: '/'
-      fullPath: '/app/hub/blocks/'
-      preLoaderRoute: typeof AppHubBlocksIndexRouteImport
-      parentRoute: typeof AppHubBlocksRouteRoute
+    '/app/hub/bots': {
+      id: '/app/hub/bots'
+      path: '/bots'
+      fullPath: '/app/hub/bots'
+      preLoaderRoute: typeof AppHubBotsRouteRouteImport
+      parentRoute: typeof AppHubRouteRoute
     }
-    '/app/hub/assets/': {
-      id: '/app/hub/assets/'
+    '/app/models/': {
+      id: '/app/models/'
       path: '/'
-      fullPath: '/app/hub/assets/'
-      preLoaderRoute: typeof AppHubAssetsIndexRouteImport
-      parentRoute: typeof AppHubAssetsRouteRoute
+      fullPath: '/app/models/'
+      preLoaderRoute: typeof AppModelsIndexRouteImport
+      parentRoute: typeof AppModelsRouteRoute
     }
-    '/app/groups/$groupId/': {
-      id: '/app/groups/$groupId/'
+    '/app/models/$modelId': {
+      id: '/app/models/$modelId'
+      path: '/$modelId'
+      fullPath: '/app/models/$modelId'
+      preLoaderRoute: typeof AppModelsModelIdRouteRouteImport
+      parentRoute: typeof AppModelsRouteRoute
+    }
+    '/app/models/add': {
+      id: '/app/models/add'
+      path: '/add'
+      fullPath: '/app/models/add'
+      preLoaderRoute: typeof AppModelsAddRouteImport
+      parentRoute: typeof AppModelsRouteRoute
+    }
+    '/app/orgs/': {
+      id: '/app/orgs/'
       path: '/'
-      fullPath: '/app/groups/$groupId/'
-      preLoaderRoute: typeof AppGroupsGroupIdIndexRouteImport
-      parentRoute: typeof AppGroupsGroupIdRouteRoute
+      fullPath: '/app/orgs/'
+      preLoaderRoute: typeof AppOrgsIndexRouteImport
+      parentRoute: typeof AppOrgsRouteRoute
+    }
+    '/app/orgs/$orgId': {
+      id: '/app/orgs/$orgId'
+      path: '/$orgId'
+      fullPath: '/app/orgs/$orgId'
+      preLoaderRoute: typeof AppOrgsOrgIdRouteRouteImport
+      parentRoute: typeof AppOrgsRouteRoute
+    }
+    '/app/orgs/add': {
+      id: '/app/orgs/add'
+      path: '/add'
+      fullPath: '/app/orgs/add'
+      preLoaderRoute: typeof AppOrgsAddRouteImport
+      parentRoute: typeof AppOrgsRouteRoute
+    }
+    '/app/providers/': {
+      id: '/app/providers/'
+      path: '/'
+      fullPath: '/app/providers/'
+      preLoaderRoute: typeof AppProvidersIndexRouteImport
+      parentRoute: typeof AppProvidersRouteRoute
+    }
+    '/app/providers/$providerId': {
+      id: '/app/providers/$providerId'
+      path: '/$providerId'
+      fullPath: '/app/providers/$providerId'
+      preLoaderRoute: typeof AppProvidersProviderIdRouteRouteImport
+      parentRoute: typeof AppProvidersRouteRoute
+    }
+    '/app/providers/add': {
+      id: '/app/providers/add'
+      path: '/add'
+      fullPath: '/app/providers/add'
+      preLoaderRoute: typeof AppProvidersAddRouteImport
+      parentRoute: typeof AppProvidersRouteRoute
+    }
+    '/app/quotas/': {
+      id: '/app/quotas/'
+      path: '/'
+      fullPath: '/app/quotas/'
+      preLoaderRoute: typeof AppQuotasIndexRouteImport
+      parentRoute: typeof AppQuotasRouteRoute
+    }
+    '/app/quotas/$quotaPoolId': {
+      id: '/app/quotas/$quotaPoolId'
+      path: '/$quotaPoolId'
+      fullPath: '/app/quotas/$quotaPoolId'
+      preLoaderRoute: typeof AppQuotasQuotaPoolIdRouteRouteImport
+      parentRoute: typeof AppQuotasRouteRoute
+    }
+    '/app/quotas/add': {
+      id: '/app/quotas/add'
+      path: '/add'
+      fullPath: '/app/quotas/add'
+      preLoaderRoute: typeof AppQuotasAddRouteImport
+      parentRoute: typeof AppQuotasRouteRoute
+    }
+    '/app/users/': {
+      id: '/app/users/'
+      path: '/'
+      fullPath: '/app/users/'
+      preLoaderRoute: typeof AppUsersIndexRouteImport
+      parentRoute: typeof AppUsersRouteRoute
+    }
+    '/app/users/$userId': {
+      id: '/app/users/$userId'
+      path: '/$userId'
+      fullPath: '/app/users/$userId'
+      preLoaderRoute: typeof AppUsersUserIdRouteRouteImport
+      parentRoute: typeof AppUsersRouteRoute
+    }
+    '/app/users/add': {
+      id: '/app/users/add'
+      path: '/add'
+      fullPath: '/app/users/add'
+      preLoaderRoute: typeof AppUsersAddRouteImport
+      parentRoute: typeof AppUsersRouteRoute
+    }
+    '/app/users/invites': {
+      id: '/app/users/invites'
+      path: '/invites'
+      fullPath: '/app/users/invites'
+      preLoaderRoute: typeof AppUsersInvitesRouteImport
+      parentRoute: typeof AppUsersRouteRoute
     }
     '/app/chat/$chatId/': {
       id: '/app/chat/$chatId/'
@@ -1413,75 +1350,19 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AppChatChatIdIndexRouteImport
       parentRoute: typeof AppChatRouteRoute
     }
-    '/app/users/$userId/edit': {
-      id: '/app/users/$userId/edit'
-      path: '/edit'
-      fullPath: '/app/users/$userId/edit'
-      preLoaderRoute: typeof AppUsersUserIdEditRouteImport
-      parentRoute: typeof AppUsersUserIdRouteRoute
+    '/app/groups/$groupId/': {
+      id: '/app/groups/$groupId/'
+      path: '/'
+      fullPath: '/app/groups/$groupId/'
+      preLoaderRoute: typeof AppGroupsGroupIdIndexRouteImport
+      parentRoute: typeof AppGroupsGroupIdRouteRoute
     }
-    '/app/quotas/$quotaPoolId/edit': {
-      id: '/app/quotas/$quotaPoolId/edit'
-      path: '/edit'
-      fullPath: '/app/quotas/$quotaPoolId/edit'
-      preLoaderRoute: typeof AppQuotasQuotaPoolIdEditRouteImport
-      parentRoute: typeof AppQuotasQuotaPoolIdRouteRoute
-    }
-    '/app/providers/$providerId/edit': {
-      id: '/app/providers/$providerId/edit'
-      path: '/edit'
-      fullPath: '/app/providers/$providerId/edit'
-      preLoaderRoute: typeof AppProvidersProviderIdEditRouteImport
-      parentRoute: typeof AppProvidersProviderIdRouteRoute
-    }
-    '/app/orgs/$orgId/edit': {
-      id: '/app/orgs/$orgId/edit'
-      path: '/edit'
-      fullPath: '/app/orgs/$orgId/edit'
-      preLoaderRoute: typeof AppOrgsOrgIdEditRouteImport
-      parentRoute: typeof AppOrgsOrgIdRouteRoute
-    }
-    '/app/models/$modelId/edit': {
-      id: '/app/models/$modelId/edit'
-      path: '/edit'
-      fullPath: '/app/models/$modelId/edit'
-      preLoaderRoute: typeof AppModelsModelIdEditRouteImport
-      parentRoute: typeof AppModelsModelIdRouteRoute
-    }
-    '/app/hub/bots/add': {
-      id: '/app/hub/bots/add'
-      path: '/add'
-      fullPath: '/app/hub/bots/add'
-      preLoaderRoute: typeof AppHubBotsAddRouteImport
-      parentRoute: typeof AppHubBotsRouteRoute
-    }
-    '/app/hub/blocks/add': {
-      id: '/app/hub/blocks/add'
-      path: '/add'
-      fullPath: '/app/hub/blocks/add'
-      preLoaderRoute: typeof AppHubBlocksAddRouteImport
-      parentRoute: typeof AppHubBlocksRouteRoute
-    }
-    '/app/hub/assets/add': {
-      id: '/app/hub/assets/add'
-      path: '/add'
-      fullPath: '/app/hub/assets/add'
-      preLoaderRoute: typeof AppHubAssetsAddRouteImport
+    '/app/hub/assets/': {
+      id: '/app/hub/assets/'
+      path: '/'
+      fullPath: '/app/hub/assets/'
+      preLoaderRoute: typeof AppHubAssetsIndexRouteImport
       parentRoute: typeof AppHubAssetsRouteRoute
-    }
-    '/app/hub/bots/$botId': {
-      id: '/app/hub/bots/$botId'
-      path: '/$botId'
-      fullPath: '/app/hub/bots/$botId'
-      preLoaderRoute: typeof AppHubBotsBotIdRouteRouteImport
-      parentRoute: typeof AppHubBotsRouteRoute
-    }
-    '/app/hub/blocks/$blockId': {
-      id: '/app/hub/blocks/$blockId'
-      path: '/$blockId'
-      fullPath: '/app/hub/blocks/$blockId'
-      preLoaderRoute: typeof AppHubBlocksBlockIdRouteRouteImport
-      parentRoute: typeof AppHubBlocksRouteRoute
     }
     '/app/hub/assets/$assetId': {
       id: '/app/hub/assets/$assetId'
@@ -1490,19 +1371,124 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AppHubAssetsAssetIdRouteRouteImport
       parentRoute: typeof AppHubAssetsRouteRoute
     }
-    '/app/hub/bots/$botId/': {
-      id: '/app/hub/bots/$botId/'
-      path: '/'
-      fullPath: '/app/hub/bots/$botId/'
-      preLoaderRoute: typeof AppHubBotsBotIdIndexRouteImport
-      parentRoute: typeof AppHubBotsBotIdRouteRoute
+    '/app/hub/assets/add': {
+      id: '/app/hub/assets/add'
+      path: '/add'
+      fullPath: '/app/hub/assets/add'
+      preLoaderRoute: typeof AppHubAssetsAddRouteImport
+      parentRoute: typeof AppHubAssetsRouteRoute
     }
-    '/app/hub/blocks/$blockId/': {
-      id: '/app/hub/blocks/$blockId/'
+    '/app/hub/blocks/': {
+      id: '/app/hub/blocks/'
       path: '/'
-      fullPath: '/app/hub/blocks/$blockId/'
-      preLoaderRoute: typeof AppHubBlocksBlockIdIndexRouteImport
-      parentRoute: typeof AppHubBlocksBlockIdRouteRoute
+      fullPath: '/app/hub/blocks/'
+      preLoaderRoute: typeof AppHubBlocksIndexRouteImport
+      parentRoute: typeof AppHubBlocksRouteRoute
+    }
+    '/app/hub/blocks/$blockId': {
+      id: '/app/hub/blocks/$blockId'
+      path: '/$blockId'
+      fullPath: '/app/hub/blocks/$blockId'
+      preLoaderRoute: typeof AppHubBlocksBlockIdRouteRouteImport
+      parentRoute: typeof AppHubBlocksRouteRoute
+    }
+    '/app/hub/blocks/add': {
+      id: '/app/hub/blocks/add'
+      path: '/add'
+      fullPath: '/app/hub/blocks/add'
+      preLoaderRoute: typeof AppHubBlocksAddRouteImport
+      parentRoute: typeof AppHubBlocksRouteRoute
+    }
+    '/app/hub/bots/': {
+      id: '/app/hub/bots/'
+      path: '/'
+      fullPath: '/app/hub/bots/'
+      preLoaderRoute: typeof AppHubBotsIndexRouteImport
+      parentRoute: typeof AppHubBotsRouteRoute
+    }
+    '/app/hub/bots/$botId': {
+      id: '/app/hub/bots/$botId'
+      path: '/$botId'
+      fullPath: '/app/hub/bots/$botId'
+      preLoaderRoute: typeof AppHubBotsBotIdRouteRouteImport
+      parentRoute: typeof AppHubBotsRouteRoute
+    }
+    '/app/hub/bots/add': {
+      id: '/app/hub/bots/add'
+      path: '/add'
+      fullPath: '/app/hub/bots/add'
+      preLoaderRoute: typeof AppHubBotsAddRouteImport
+      parentRoute: typeof AppHubBotsRouteRoute
+    }
+    '/app/hub/repositories/': {
+      id: '/app/hub/repositories/'
+      path: '/repositories'
+      fullPath: '/app/hub/repositories/'
+      preLoaderRoute: typeof AppHubRepositoriesIndexRouteImport
+      parentRoute: typeof AppHubRouteRoute
+    }
+    '/app/models/$modelId/': {
+      id: '/app/models/$modelId/'
+      path: '/'
+      fullPath: '/app/models/$modelId/'
+      preLoaderRoute: typeof AppModelsModelIdIndexRouteImport
+      parentRoute: typeof AppModelsModelIdRouteRoute
+    }
+    '/app/models/$modelId/edit': {
+      id: '/app/models/$modelId/edit'
+      path: '/edit'
+      fullPath: '/app/models/$modelId/edit'
+      preLoaderRoute: typeof AppModelsModelIdEditRouteImport
+      parentRoute: typeof AppModelsModelIdRouteRoute
+    }
+    '/app/orgs/$orgId/': {
+      id: '/app/orgs/$orgId/'
+      path: '/'
+      fullPath: '/app/orgs/$orgId/'
+      preLoaderRoute: typeof AppOrgsOrgIdIndexRouteImport
+      parentRoute: typeof AppOrgsOrgIdRouteRoute
+    }
+    '/app/orgs/$orgId/edit': {
+      id: '/app/orgs/$orgId/edit'
+      path: '/edit'
+      fullPath: '/app/orgs/$orgId/edit'
+      preLoaderRoute: typeof AppOrgsOrgIdEditRouteImport
+      parentRoute: typeof AppOrgsOrgIdRouteRoute
+    }
+    '/app/providers/$providerId/': {
+      id: '/app/providers/$providerId/'
+      path: '/'
+      fullPath: '/app/providers/$providerId/'
+      preLoaderRoute: typeof AppProvidersProviderIdIndexRouteImport
+      parentRoute: typeof AppProvidersProviderIdRouteRoute
+    }
+    '/app/providers/$providerId/edit': {
+      id: '/app/providers/$providerId/edit'
+      path: '/edit'
+      fullPath: '/app/providers/$providerId/edit'
+      preLoaderRoute: typeof AppProvidersProviderIdEditRouteImport
+      parentRoute: typeof AppProvidersProviderIdRouteRoute
+    }
+    '/app/quotas/$quotaPoolId/': {
+      id: '/app/quotas/$quotaPoolId/'
+      path: '/'
+      fullPath: '/app/quotas/$quotaPoolId/'
+      preLoaderRoute: typeof AppQuotasQuotaPoolIdIndexRouteImport
+      parentRoute: typeof AppQuotasQuotaPoolIdRouteRoute
+    }
+    '/app/quotas/$quotaPoolId/edit': {
+      id: '/app/quotas/$quotaPoolId/edit'
+      path: '/edit'
+      fullPath: '/app/quotas/$quotaPoolId/edit'
+      preLoaderRoute: typeof AppQuotasQuotaPoolIdEditRouteImport
+      parentRoute: typeof AppQuotasQuotaPoolIdRouteRoute
+    }
+    '/app/users/$userId/edit': {
+      id: '/app/users/$userId/edit'
+      path: '/edit'
+      fullPath: '/app/users/$userId/edit'
+      preLoaderRoute: typeof AppUsersUserIdEditRouteImport
+      parentRoute: typeof AppUsersUserIdRouteRoute
     }
     '/app/hub/assets/$assetId/': {
       id: '/app/hub/assets/$assetId/'
@@ -1511,25 +1497,18 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AppHubAssetsAssetIdIndexRouteImport
       parentRoute: typeof AppHubAssetsAssetIdRouteRoute
     }
-    '/app/hub/repositories/$blockId/playground': {
-      id: '/app/hub/repositories/$blockId/playground'
-      path: '/repositories/$blockId/playground'
-      fullPath: '/app/hub/repositories/$blockId/playground'
-      preLoaderRoute: typeof AppHubRepositoriesBlockIdPlaygroundRouteImport
-      parentRoute: typeof AppHubRouteRoute
+    '/app/hub/assets/$assetId/edit': {
+      id: '/app/hub/assets/$assetId/edit'
+      path: '/edit'
+      fullPath: '/app/hub/assets/$assetId/edit'
+      preLoaderRoute: typeof AppHubAssetsAssetIdEditRouteImport
+      parentRoute: typeof AppHubAssetsAssetIdRouteRoute
     }
-    '/app/hub/bots/$botId/setup': {
-      id: '/app/hub/bots/$botId/setup'
-      path: '/setup'
-      fullPath: '/app/hub/bots/$botId/setup'
-      preLoaderRoute: typeof AppHubBotsBotIdSetupRouteImport
-      parentRoute: typeof AppHubBotsBotIdRouteRoute
-    }
-    '/app/hub/blocks/$blockId/points': {
-      id: '/app/hub/blocks/$blockId/points'
-      path: '/points'
-      fullPath: '/app/hub/blocks/$blockId/points'
-      preLoaderRoute: typeof AppHubBlocksBlockIdPointsRouteImport
+    '/app/hub/blocks/$blockId/': {
+      id: '/app/hub/blocks/$blockId/'
+      path: '/'
+      fullPath: '/app/hub/blocks/$blockId/'
+      preLoaderRoute: typeof AppHubBlocksBlockIdIndexRouteImport
       parentRoute: typeof AppHubBlocksBlockIdRouteRoute
     }
     '/app/hub/blocks/$blockId/edit': {
@@ -1539,12 +1518,33 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AppHubBlocksBlockIdEditRouteImport
       parentRoute: typeof AppHubBlocksBlockIdRouteRoute
     }
-    '/app/hub/assets/$assetId/edit': {
-      id: '/app/hub/assets/$assetId/edit'
-      path: '/edit'
-      fullPath: '/app/hub/assets/$assetId/edit'
-      preLoaderRoute: typeof AppHubAssetsAssetIdEditRouteImport
-      parentRoute: typeof AppHubAssetsAssetIdRouteRoute
+    '/app/hub/blocks/$blockId/points': {
+      id: '/app/hub/blocks/$blockId/points'
+      path: '/points'
+      fullPath: '/app/hub/blocks/$blockId/points'
+      preLoaderRoute: typeof AppHubBlocksBlockIdPointsRouteImport
+      parentRoute: typeof AppHubBlocksBlockIdRouteRoute
+    }
+    '/app/hub/bots/$botId/': {
+      id: '/app/hub/bots/$botId/'
+      path: '/'
+      fullPath: '/app/hub/bots/$botId/'
+      preLoaderRoute: typeof AppHubBotsBotIdIndexRouteImport
+      parentRoute: typeof AppHubBotsBotIdRouteRoute
+    }
+    '/app/hub/bots/$botId/setup': {
+      id: '/app/hub/bots/$botId/setup'
+      path: '/setup'
+      fullPath: '/app/hub/bots/$botId/setup'
+      preLoaderRoute: typeof AppHubBotsBotIdSetupRouteImport
+      parentRoute: typeof AppHubBotsBotIdRouteRoute
+    }
+    '/app/hub/repositories/$blockId/playground': {
+      id: '/app/hub/repositories/$blockId/playground'
+      path: '/repositories/$blockId/playground'
+      fullPath: '/app/hub/repositories/$blockId/playground'
+      preLoaderRoute: typeof AppHubRepositoriesBlockIdPlaygroundRouteImport
+      parentRoute: typeof AppHubRouteRoute
     }
   }
 }

@@ -9,7 +9,7 @@ const UsersDataTableSelectActions = () => {
 	const { auth } = useRouteContext({
 		from: "/app",
 	});
-	const { table } = useTable();
+	const { table } = useTable<UserWithOrganizationRole>();
 	const { data: capabilities } = useOrganizationCapabilities([
 		"manage_organization",
 	]);

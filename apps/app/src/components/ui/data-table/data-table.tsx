@@ -1,85 +1,74 @@
 import { useNavigate } from "@tanstack/react-router";
 import {
-	type ColumnDef,
-	getCoreRowModel,
-	getSortedRowModel,
-	type PaginationState,
+	functionalUpdate,
 	type Row,
+	type RowData,
 	type TableState,
-	useReactTable,
+	useTable,
 } from "@tanstack/react-table";
-import type { Dispatch, SetStateAction } from "react";
 import { cn } from "@/lib/utils";
 import { TableProvider } from "./data-table-context";
+import {
+	type DataTableColumnDef,
+	type DataTableFeatures,
+	dataTableFeatures,
+} from "./data-table-features";
+import { withPagination, withSorting } from "./data-table-search-params";
 
-interface DataTableProps<TData, TValue> {
-	columns: ColumnDef<TData, TValue>[];
+interface DataTableProps<TData extends RowData> {
+	columns: DataTableColumnDef<TData>[];
 	data: TData[];
-	state: Partial<TableState>;
+	state: Partial<TableState<DataTableFeatures>>;
 }
 
-interface DataTableOptions<TData> {
+interface DataTableOptions<TData extends RowData> {
 	rowCount: number;
 	uidAccessor: keyof TData;
-	clientPagination?: PaginationState;
-	clientSetPagination?: Dispatch<SetStateAction<PaginationState>>;
-	enableRowSelection?: boolean | ((row: Row<TData>) => boolean);
+	enableRowSelection?:
+		| boolean
+		| ((row: Row<DataTableFeatures, TData>) => boolean);
 }
 
-const DataTable = <TData, TValue>({
+const DataTable = <TData extends RowData>({
 	children,
 	columns,
 	data,
 	options,
 	state,
 	...divProps
-}: DataTableProps<TData, TValue> & {
+}: DataTableProps<TData> & {
 	options: DataTableOptions<TData>;
 	children: React.ReactNode;
 } & React.HTMLAttributes<HTMLDivElement>) => {
 	const navigate = useNavigate();
 	const { rowCount, uidAccessor } = options;
 
-	const table = useReactTable({
+	const table = useTable({
+		features: dataTableFeatures,
 		data,
 		columns,
-		getCoreRowModel: getCoreRowModel(),
 		manualPagination: true,
 		manualSorting: true,
-		manualFiltering: true,
-		rowCount: rowCount,
+		rowCount,
 		enableRowSelection: options.enableRowSelection,
-		onPaginationChange: async (updater) => {
-			if (typeof updater !== "function") return;
-
-			const newPageInfo = updater(table.getState().pagination);
+		onPaginationChange: (updater) => {
+			const pagination = functionalUpdate(updater, table.state.pagination);
 			table.resetRowSelection();
 
-			await navigate({
+			void navigate({
 				to: ".",
-				search: (prev) => ({
-					...prev,
-					pageIndex: newPageInfo.pageIndex,
-					pageSize: newPageInfo.pageSize,
-				}),
+				search: (prev) => withPagination(prev, pagination),
 			});
 		},
-		onSortingChange: async (updater) => {
-			const currentSorting = table.getState().sorting;
-			const newSorting =
-				typeof updater === "function" ? updater(currentSorting) : updater;
+		onSortingChange: (updater) => {
+			const sorting = functionalUpdate(updater, table.state.sorting);
 			table.resetRowSelection();
 
-			await navigate({
+			void navigate({
 				to: ".",
-				search: (prev) => ({
-					...prev,
-					pageIndex: 0,
-					sort: newSorting as typeof prev.sort,
-				}),
+				search: (prev) => withSorting(prev, sorting as typeof prev.sort),
 			});
 		},
-		getSortedRowModel: getSortedRowModel(),
 		state,
 		getRowId: (row) => String(row[uidAccessor]),
 	});

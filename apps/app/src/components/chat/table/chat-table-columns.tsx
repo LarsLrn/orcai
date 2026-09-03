@@ -1,17 +1,19 @@
 import type { ChatListRow } from "@orcai/schema";
 import { Link } from "@tanstack/react-router";
-import type { ColumnDef } from "@tanstack/react-table";
+import { createColumnHelper } from "@tanstack/react-table";
 import { format } from "date-fns";
 import { MoreHorizontalIcon } from "lucide-react";
 import { ChatActionsDropdown } from "@/components/chat/chat-actions-dropdown";
 import { Button } from "@/components/ui/button";
 import { DataTableColumnHeader } from "@/components/ui/data-table/data-table-column-header";
+import type { DataTableFeatures } from "@/components/ui/data-table/data-table-features";
 import { createDataTableSelectColumn } from "@/components/ui/data-table/data-table-select-column";
 
-export const chatTableColumns: ColumnDef<ChatListRow>[] = [
+const columnHelper = createColumnHelper<DataTableFeatures, ChatListRow>();
+
+export const chatTableColumns = columnHelper.columns([
 	createDataTableSelectColumn<ChatListRow>(),
-	{
-		accessorKey: "title",
+	columnHelper.accessor("title", {
 		header: ({ column }) => (
 			<DataTableColumnHeader column={column} title="Name" />
 		),
@@ -26,16 +28,14 @@ export const chatTableColumns: ColumnDef<ChatListRow>[] = [
 				{row.original.title || "Untitled chat"}
 			</Link>
 		),
-	},
-	{
-		accessorKey: "botName",
+	}),
+	columnHelper.accessor("botName", {
 		header: ({ column }) => (
 			<DataTableColumnHeader column={column} title="Attached Bot" />
 		),
 		cell: ({ row }) => row.original.botName ?? "—",
-	},
-	{
-		accessorKey: "updatedAt",
+	}),
+	columnHelper.accessor("updatedAt", {
 		header: ({ column }) => (
 			<DataTableColumnHeader column={column} title="Date" />
 		),
@@ -43,8 +43,8 @@ export const chatTableColumns: ColumnDef<ChatListRow>[] = [
 			row.original.updatedAt
 				? format(row.original.updatedAt, "MMM dd, yyyy HH:mm")
 				: "—",
-	},
-	{
+	}),
+	columnHelper.display({
 		id: "actions",
 		size: 32,
 		enableSorting: false,
@@ -57,5 +57,5 @@ export const chatTableColumns: ColumnDef<ChatListRow>[] = [
 				</Button>
 			</ChatActionsDropdown>
 		),
-	},
-];
+	}),
+]);

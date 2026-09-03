@@ -62,27 +62,24 @@ const config = Config.all({
 			onNone: () => 587,
 			onSome: Number,
 		});
-		const invalid = (message: string, actual: unknown) =>
+		const invalid = (message: string) =>
 			Effect.fail(
 				new Config.ConfigError(
 					new Schema.SchemaError(
-						new SchemaIssue.InvalidValue(Option.some(actual), {
+						new SchemaIssue.InvalidValue({
 							message,
 						}),
 					),
 				),
 			);
 		if (Option.isNone(host) || Option.isNone(from)) {
-			return invalid("SMTP_HOST and SMTP_FROM must both be configured", raw);
+			return invalid("SMTP_HOST and SMTP_FROM must both be configured");
 		}
 		if (Option.isSome(username) !== Option.isSome(password)) {
-			return invalid(
-				"SMTP_USERNAME and SMTP_PASSWORD must both be configured",
-				raw,
-			);
+			return invalid("SMTP_USERNAME and SMTP_PASSWORD must both be configured");
 		}
 		if (!Number.isInteger(port) || port < 1 || port > 65535) {
-			return invalid("SMTP_PORT must be between 1 and 65535", raw.port);
+			return invalid("SMTP_PORT must be between 1 and 65535");
 		}
 		const secure = Option.getOrElse(raw.secure, () => port === 465);
 		return Effect.succeed({

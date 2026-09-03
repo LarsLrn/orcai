@@ -8,10 +8,10 @@ import * as ManagedRuntime from "effect/ManagedRuntime";
 import * as Schedule from "effect/Schedule";
 import type { WorkerDefinition } from "@/worker/types";
 
-const retryPolicy = Schedule.exponential("1 second").pipe(
-	Schedule.both(Schedule.recurs(9)),
-	Schedule.jittered,
-);
+const retryPolicy = Schedule.max([
+	Schedule.exponential("1 second"),
+	Schedule.recurs(9),
+]).pipe(Schedule.jittered);
 
 const createQueue = (name: JobQueue) =>
 	Effect.gen(function* () {

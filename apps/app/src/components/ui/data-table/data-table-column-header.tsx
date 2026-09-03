@@ -1,4 +1,5 @@
-import type { Column } from "@tanstack/react-table";
+import { useSelector } from "@tanstack/react-store";
+import type { Column, RowData } from "@tanstack/react-table";
 import { ArrowDown, ArrowUp, ChevronsUpDown, EyeOff } from "lucide-react";
 
 import { Button } from "@/components/ui/button";
@@ -10,18 +11,24 @@ import {
 	DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import { cn } from "@/lib/utils";
+import type { DataTableFeatures } from "./data-table-features";
 
-interface DataTableColumnHeaderProps<TData, TValue>
+interface DataTableColumnHeaderProps<TData extends RowData, TValue>
 	extends React.HTMLAttributes<HTMLDivElement> {
-	column: Column<TData, TValue>;
+	column: Column<DataTableFeatures, TData, TValue>;
 	title: string;
 }
 
-const DataTableColumnHeader = <TData, TValue>({
+const DataTableColumnHeader = <TData extends RowData, TValue>({
 	column,
 	title,
 	className,
 }: DataTableColumnHeaderProps<TData, TValue>) => {
+	// Column objects stay stable; subscribe to the value the compiler must track.
+	const sorting = useSelector(column.table.atoms.sorting, (state) =>
+		state.find((sort) => sort.id === column.id),
+	);
+
 	if (!column.getCanSort()) {
 		return <div className={cn(className)}>{title}</div>;
 	}
@@ -37,9 +44,9 @@ const DataTableColumnHeader = <TData, TValue>({
 							className="-ml-3 h-8 w-full justify-start focus-visible:ring-transparent data-[state=open]:bg-accent"
 						>
 							<span>{title}</span>
-							{column.getIsSorted() === "desc" ? (
+							{sorting?.desc === true ? (
 								<ArrowDown />
-							) : column.getIsSorted() === "asc" ? (
+							) : sorting?.desc === false ? (
 								<ArrowUp />
 							) : (
 								<ChevronsUpDown />

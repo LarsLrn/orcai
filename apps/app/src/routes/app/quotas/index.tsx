@@ -85,10 +85,6 @@ function RouteComponent() {
 					options={{
 						rowCount: pools.rowCount,
 						uidAccessor: "id",
-						clientPagination: {
-							pageIndex,
-							pageSize,
-						},
 					}}
 				>
 					<DataTableToolbar>

@@ -1,11 +1,12 @@
 import type { Provider } from "@orcai/schema";
 import { Link } from "@tanstack/react-router";
-import type { ColumnDef } from "@tanstack/react-table";
+import { createColumnHelper } from "@tanstack/react-table";
 import { format } from "date-fns";
 import { MoreHorizontal } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { DataTableColumnHeader } from "@/components/ui/data-table/data-table-column-header";
+import type { DataTableFeatures } from "@/components/ui/data-table/data-table-features";
 import { createDataTableSelectColumn } from "@/components/ui/data-table/data-table-select-column";
 import {
 	DropdownMenu,
@@ -16,11 +17,12 @@ import {
 } from "@/components/ui/dropdown-menu";
 import { useDeleteProvidersMutation } from "@/hooks/mutations/use-provider-mutations";
 
-export const providerTableColumns: ColumnDef<Provider>[] = [
+const columnHelper = createColumnHelper<DataTableFeatures, Provider>();
+
+export const providerTableColumns = columnHelper.columns([
 	createDataTableSelectColumn<Provider>(),
-	{
+	columnHelper.accessor("name", {
 		size: 300,
-		accessorKey: "name",
 		header: ({ column }) => (
 			<DataTableColumnHeader column={column} title="Name" />
 		),
@@ -35,9 +37,8 @@ export const providerTableColumns: ColumnDef<Provider>[] = [
 				{row.original.name}
 			</Link>
 		),
-	},
-	{
-		accessorKey: "enabled",
+	}),
+	columnHelper.accessor("enabled", {
 		header: ({ column }) => (
 			<DataTableColumnHeader column={column} title="Status" />
 		),
@@ -46,35 +47,32 @@ export const providerTableColumns: ColumnDef<Provider>[] = [
 				{row.original.enabled ? "Active" : "Inactive"}
 			</Badge>
 		),
-	},
-	{
-		accessorKey: "meteringMode",
+	}),
+	columnHelper.accessor("meteringMode", {
 		header: ({ column }) => (
 			<DataTableColumnHeader column={column} title="Metering" />
 		),
 		cell: ({ row }) => (
 			<Badge variant="outline">{row.original.meteringMode}</Badge>
 		),
-	},
-	{
-		accessorKey: "createdAt",
+	}),
+	columnHelper.accessor("createdAt", {
 		header: ({ column }) => (
 			<DataTableColumnHeader column={column} title="Created At" />
 		),
 		cell: ({ row }) => (
 			<span>{format(row.original.createdAt || "", "MMM dd, yyyy HH:mm")}</span>
 		),
-	},
-	{
-		accessorKey: "updatedAt",
+	}),
+	columnHelper.accessor("updatedAt", {
 		header: ({ column }) => (
 			<DataTableColumnHeader column={column} title="Updated At" />
 		),
 		cell: ({ row }) => (
 			<span>{format(row.original.updatedAt || "", "MMM dd, yyyy HH:mm")}</span>
 		),
-	},
-	{
+	}),
+	columnHelper.display({
 		id: "actions",
 		size: 32,
 		enableSorting: false,
@@ -115,8 +113,8 @@ export const providerTableColumns: ColumnDef<Provider>[] = [
 				</DropdownMenu>
 			);
 		},
-	},
-];
+	}),
+]);
 
 const DeleteItem = ({ provider }: { provider: Provider }) => {
 	const { mutate: deleteProviders } = useDeleteProvidersMutation();

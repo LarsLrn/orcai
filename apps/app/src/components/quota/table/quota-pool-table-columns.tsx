@@ -1,11 +1,12 @@
 import type { quotaPoolListRowSchema } from "@orcai/schema";
 import { Link } from "@tanstack/react-router";
-import type { ColumnDef } from "@tanstack/react-table";
+import { createColumnHelper } from "@tanstack/react-table";
 import { MoreHorizontal } from "lucide-react";
 import type { z } from "zod/v4";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { DataTableColumnHeader } from "@/components/ui/data-table/data-table-column-header";
+import type { DataTableFeatures } from "@/components/ui/data-table/data-table-features";
 import {
 	DropdownMenu,
 	DropdownMenuContent,
@@ -40,10 +41,10 @@ const formatPeriodType = (value: QuotaPoolListRow["periodType"]) => {
 	}
 };
 
-export const quotaPoolTableColumns: ColumnDef<QuotaPoolListRow>[] = [
-	{
-		id: "name",
-		accessorKey: "name",
+const columnHelper = createColumnHelper<DataTableFeatures, QuotaPoolListRow>();
+
+export const quotaPoolTableColumns = columnHelper.columns([
+	columnHelper.accessor("name", {
 		size: 320,
 		header: ({ column }) => (
 			<DataTableColumnHeader column={column} title="Pool" />
@@ -64,15 +65,14 @@ export const quotaPoolTableColumns: ColumnDef<QuotaPoolListRow>[] = [
 				</div>
 			</div>
 		),
-	},
-	{
-		accessorKey: "periodType",
+	}),
+	columnHelper.accessor("periodType", {
 		header: ({ column }) => (
 			<DataTableColumnHeader column={column} title="Period" />
 		),
 		cell: ({ row }) => formatPeriodType(row.original.periodType),
-	},
-	{
+	}),
+	columnHelper.display({
 		id: "budget",
 		enableSorting: false,
 		header: ({ column }) => (
@@ -83,8 +83,8 @@ export const quotaPoolTableColumns: ColumnDef<QuotaPoolListRow>[] = [
 				{formatAmount(row.original.currentLedger?.budgetAmount)}
 			</div>
 		),
-	},
-	{
+	}),
+	columnHelper.display({
 		id: "consumed",
 		enableSorting: false,
 		header: ({ column }) => (
@@ -95,8 +95,8 @@ export const quotaPoolTableColumns: ColumnDef<QuotaPoolListRow>[] = [
 				{formatAmount(row.original.currentLedger?.consumedAmount)}
 			</div>
 		),
-	},
-	{
+	}),
+	columnHelper.display({
 		id: "remaining",
 		enableSorting: false,
 		header: ({ column }) => (
@@ -107,8 +107,8 @@ export const quotaPoolTableColumns: ColumnDef<QuotaPoolListRow>[] = [
 				{formatAmount(row.original.currentLedger?.remainingAmount)}
 			</div>
 		),
-	},
-	{
+	}),
+	columnHelper.display({
 		id: "status",
 		enableSorting: false,
 		header: ({ column }) => (
@@ -124,8 +124,8 @@ export const quotaPoolTableColumns: ColumnDef<QuotaPoolListRow>[] = [
 				) : null}
 			</div>
 		),
-	},
-	{
+	}),
+	columnHelper.display({
 		id: "actions",
 		size: 32,
 		enableSorting: false,
@@ -162,8 +162,8 @@ export const quotaPoolTableColumns: ColumnDef<QuotaPoolListRow>[] = [
 				</DropdownMenuContent>
 			</DropdownMenu>
 		),
-	},
-];
+	}),
+]);
 
 const DeactivateItem = ({ pool }: { pool: QuotaPoolListRow }) => {
 	const deactivatePool = useDeactivateQuotaPoolMutation();

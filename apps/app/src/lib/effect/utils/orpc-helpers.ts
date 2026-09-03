@@ -1,4 +1,4 @@
-import * as OtelTracer from "@effect/opentelemetry/Tracer";
+import * as OtelTracer from "@effect/opentelemetry/OtelTracer";
 import { context as otelContext, trace } from "@opentelemetry/api";
 import { logErrorCause } from "@orcai/observability";
 import { runPromise, type WithEffectContext } from "@orpc/experimental-effect";

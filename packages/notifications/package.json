@@ -14,10 +14,10 @@
 		"@orcai/pg-boss": "workspace:*",
 		"@orcai/schema": "workspace:*",
 		"@react-email/components": "1.0.12",
-		"@react-email/render": "2.0.10",
+		"@react-email/render": "2.1.0",
 		"drizzle-orm": "catalog:",
 		"effect": "catalog:",
-		"nodemailer": "9.0.3",
+		"nodemailer": "9.0.6",
 		"react": "catalog:",
 		"zod": "catalog:"
 	},

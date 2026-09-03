@@ -1,6 +1,3 @@
-"use no memo";
-// FIXME: tanstack table is incompatible with the react compiler. Monitor the repo for any updates: https://github.com/TanStack/table/issues/5567
-
 import { Settings2Icon } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import {
@@ -16,7 +13,6 @@ import { useTable } from "./data-table-context";
 
 const DataTableViewOptions = () => {
 	const { table } = useTable();
-	if (!table) return null;
 
 	return (
 		<DropdownMenu>

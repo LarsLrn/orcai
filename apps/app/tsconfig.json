@@ -2,7 +2,8 @@
 	"extends": "../../tsconfig.base.json",
 	"include": [
 		"src",
-		"start-server.ts"
+		"start-server.ts",
+		"test-setup.ts"
 	],
 	"exclude": [
 		".tanstack"

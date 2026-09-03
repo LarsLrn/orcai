@@ -1,6 +1,3 @@
-"use no memo";
-// FIXME: tanstack table is incompatible with the react compiler. Monitor the repo for any updates: https://github.com/TanStack/table/issues/5567
-
 import {
 	ChevronLeft,
 	ChevronRight,
@@ -19,7 +16,6 @@ import { useTable } from "./data-table-context";
 
 const DataTablePagination = () => {
 	const { table } = useTable();
-	if (!table) return null;
 
 	const hasSelectionColumn = table
 		.getAllLeafColumns()
@@ -29,21 +25,21 @@ const DataTablePagination = () => {
 		<div className="flex flex-col items-center justify-between px-2 sm:flex-row">
 			<div className="flex-1 text-muted-foreground text-sm">
 				{hasSelectionColumn
-					? `${table.getFilteredSelectedRowModel().rows.length} of ${table.getFilteredRowModel().rows.length} row(s) selected on this page.`
+					? `${table.getFilteredSelectedRowModel().rows.length} of ${table.getRowModel().rows.length} row(s) selected on this page.`
 					: null}
 			</div>
 			<div className="flex items-center space-x-6 lg:space-x-8">
 				<div className="flex items-center space-x-2">
 					<p className="font-medium text-sm">Rows per page</p>
 					<Select
-						value={`${table.getState().pagination.pageSize}`}
+						value={`${table.state.pagination.pageSize}`}
 						onValueChange={(value) => {
 							table.setPageSize(Number(value));
 						}}
 					>
 						<SelectTrigger className="h-8 w-20">
 							<SelectValue>
-								{table.getState().pagination.pageSize.toString()}
+								{table.state.pagination.pageSize.toString()}
 							</SelectValue>
 						</SelectTrigger>
 						<SelectContent side="top">
@@ -62,8 +58,7 @@ const DataTablePagination = () => {
 					</Select>
 				</div>
 				<div className="flex w-25 items-center justify-center font-medium text-sm">
-					Page {table.getState().pagination.pageIndex + 1} of{" "}
-					{table.getPageCount()}
+					Page {table.state.pagination.pageIndex + 1} of {table.getPageCount()}
 				</div>
 				<div className="flex items-center space-x-2">
 					<Button

@@ -1,4 +1,3 @@
-import type { ModelListRow } from "@orcai/schema";
 import { listModelsInputSchema, providerIdSchema } from "@orcai/schema";
 import { useSuspenseQuery } from "@tanstack/react-query";
 import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
@@ -119,7 +118,7 @@ function RouteComponent() {
 				</PageAction>
 			</PageHeader>
 			<PageContent>
-				<DataTable<ModelListRow, unknown>
+				<DataTable
 					data={models.data}
 					columns={modelTableColumns}
 					state={{
@@ -132,10 +131,6 @@ function RouteComponent() {
 					options={{
 						rowCount: models.rowCount,
 						uidAccessor: "id",
-						clientPagination: {
-							pageIndex,
-							pageSize,
-						},
 					}}
 				>
 					<DataTableToolbar>

@@ -1,7 +1,22 @@
-import { describe, expect, test } from "bun:test";
+import { afterEach, beforeEach, describe, expect, test } from "bun:test";
 import { getExtractionProfileConfig } from "../../src/extract/profiles";
 
 describe("getExtractionProfileConfig", () => {
+	let originalOcrLanguage: string | undefined;
+
+	beforeEach(() => {
+		originalOcrLanguage = process.env.KREUZBERG_OCR_LANGUAGE;
+		delete process.env.KREUZBERG_OCR_LANGUAGE;
+	});
+
+	afterEach(() => {
+		if (originalOcrLanguage === undefined) {
+			delete process.env.KREUZBERG_OCR_LANGUAGE;
+		} else {
+			process.env.KREUZBERG_OCR_LANGUAGE = originalOcrLanguage;
+		}
+	});
+
 	test("defaults to asset-heavy profile", () => {
 		const config = getExtractionProfileConfig();
 
@@ -57,7 +72,6 @@ describe("getExtractionProfileConfig", () => {
 	});
 
 	test("respects the KREUZBERG_OCR_LANGUAGE environment variable", () => {
-		const original = process.env.KREUZBERG_OCR_LANGUAGE;
 		process.env.KREUZBERG_OCR_LANGUAGE = "deu";
 
 		const config = getExtractionProfileConfig("asset-heavy");
@@ -66,7 +80,5 @@ describe("getExtractionProfileConfig", () => {
 			backend: "tesseract",
 			language: "deu",
 		});
-
-		process.env.KREUZBERG_OCR_LANGUAGE = original;
 	});
 });

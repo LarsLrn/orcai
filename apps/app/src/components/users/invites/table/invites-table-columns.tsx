@@ -1,12 +1,13 @@
 import type { OrganizationInvitationId } from "@orcai/core";
 import type { OrganizationInvitation } from "@orcai/schema";
 import { useRouter } from "@tanstack/react-router";
-import type { ColumnDef } from "@tanstack/react-table";
+import { createColumnHelper } from "@tanstack/react-table";
 import { format } from "date-fns";
 import { MoreHorizontal } from "lucide-react";
 import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
 import { DataTableColumnHeader } from "@/components/ui/data-table/data-table-column-header";
+import type { DataTableFeatures } from "@/components/ui/data-table/data-table-features";
 import { createDataTableSelectColumn } from "@/components/ui/data-table/data-table-select-column";
 import {
 	DropdownMenu,
@@ -18,49 +19,64 @@ import {
 import { useDeleteOrganizationInvitationsMutation } from "@/hooks/mutations/use-organization-invitation-mutations";
 import { clientEnv } from "@/lib/env/client";
 
-export const invitesTableColumns: ColumnDef<OrganizationInvitation>[] = [
+const columnHelper = createColumnHelper<
+	DataTableFeatures,
+	OrganizationInvitation
+>();
+
+export const invitesTableColumns = columnHelper.columns([
 	createDataTableSelectColumn<OrganizationInvitation>(),
-	{
-		accessorKey: "email",
+	columnHelper.accessor("email", {
 		header: ({ column }) => (
 			<DataTableColumnHeader column={column} title="Name" />
 		),
-	},
-	{
-		accessorKey: "id",
+		meta: {
+			exportLabel: "Email",
+		},
+	}),
+	columnHelper.accessor("id", {
 		header: ({ column }) => (
 			<DataTableColumnHeader column={column} title="Invitation ID" />
 		),
-	},
-	{
-		accessorKey: "expiresAt",
+		meta: {
+			exportLabel: "Invitation ID",
+		},
+	}),
+	columnHelper.accessor("expiresAt", {
 		header: ({ column }) => (
 			<DataTableColumnHeader column={column} title="Expires At" />
 		),
 		cell: ({ row }) => (
 			<span>{format(row.original.expiresAt || "", "MMM dd, yyyy HH:mm")}</span>
 		),
-	},
-	{
-		accessorKey: "status",
+		meta: {
+			exportLabel: "Expires At",
+		},
+	}),
+	columnHelper.accessor("status", {
 		header: ({ column }) => (
 			<DataTableColumnHeader column={column} title="Status" />
 		),
-	},
-	{
-		accessorKey: "role",
+		meta: {
+			exportLabel: "Status",
+		},
+	}),
+	columnHelper.accessor("role", {
 		header: ({ column }) => (
 			<DataTableColumnHeader column={column} title="Role" />
 		),
-	},
-	{
+		meta: {
+			exportLabel: "Role",
+		},
+	}),
+	columnHelper.display({
 		id: "actions",
 		size: 32,
 		enableSorting: false,
 		enableHiding: false,
 		cell: ({ row }) => <ActionsCell invitation={row.original} />,
-	},
-];
+	}),
+]);
 
 const ActionsCell = ({
 	invitation,

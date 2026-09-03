@@ -1,11 +1,12 @@
 import type { ModelListRow } from "@orcai/schema";
 import { Link } from "@tanstack/react-router";
-import type { ColumnDef } from "@tanstack/react-table";
+import { createColumnHelper } from "@tanstack/react-table";
 import { format } from "date-fns";
 import { MoreHorizontal } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { DataTableColumnHeader } from "@/components/ui/data-table/data-table-column-header";
+import type { DataTableFeatures } from "@/components/ui/data-table/data-table-features";
 import { createDataTableSelectColumn } from "@/components/ui/data-table/data-table-select-column";
 import {
 	DropdownMenu,
@@ -16,10 +17,11 @@ import {
 } from "@/components/ui/dropdown-menu";
 import { useDeleteModelsMutation } from "@/hooks/mutations/use-model-mutations";
 
-export const modelTableColumns: ColumnDef<ModelListRow>[] = [
+const columnHelper = createColumnHelper<DataTableFeatures, ModelListRow>();
+
+export const modelTableColumns = columnHelper.columns([
 	createDataTableSelectColumn<ModelListRow>(),
-	{
-		accessorKey: "name",
+	columnHelper.accessor("name", {
 		header: ({ column }) => (
 			<DataTableColumnHeader column={column} title="Name" />
 		),
@@ -34,10 +36,9 @@ export const modelTableColumns: ColumnDef<ModelListRow>[] = [
 				{row.original.name}
 			</Link>
 		),
-	},
-	{
-		accessorKey: "providerName",
-		accessorFn: (row) => row.provider.name,
+	}),
+	columnHelper.accessor((row) => row.provider.name, {
+		id: "providerName",
 		header: ({ column }) => (
 			<DataTableColumnHeader column={column} title="Provider" />
 		),
@@ -52,9 +53,8 @@ export const modelTableColumns: ColumnDef<ModelListRow>[] = [
 				{row.original.provider.name}
 			</Link>
 		),
-	},
-	{
-		accessorKey: "isDeprecated",
+	}),
+	columnHelper.accessor("isDeprecated", {
 		header: ({ column }) => (
 			<DataTableColumnHeader column={column} title="Status" />
 		),
@@ -63,17 +63,16 @@ export const modelTableColumns: ColumnDef<ModelListRow>[] = [
 				{row.original.isDeprecated ? "Deprecated" : "Available"}
 			</Badge>
 		),
-	},
-	{
-		accessorKey: "createdAt",
+	}),
+	columnHelper.accessor("createdAt", {
 		header: ({ column }) => (
 			<DataTableColumnHeader column={column} title="Created At" />
 		),
 		cell: ({ row }) => (
 			<span>{format(row.original.createdAt || "", "MMM dd, yyyy HH:mm")}</span>
 		),
-	},
-	{
+	}),
+	columnHelper.display({
 		id: "actions",
 		size: 32,
 		enableSorting: false,
@@ -114,8 +113,8 @@ export const modelTableColumns: ColumnDef<ModelListRow>[] = [
 				</DropdownMenu>
 			);
 		},
-	},
-];
+	}),
+]);
 
 const DeleteItem = ({ model }: { model: ModelListRow }) => {
 	const { mutate: deleteModels } = useDeleteModelsMutation();

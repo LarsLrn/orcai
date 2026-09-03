@@ -2,11 +2,12 @@ import type { GroupId } from "@orcai/core";
 import type { Group } from "@orcai/schema";
 import { useQueryClient } from "@tanstack/react-query";
 import { Link } from "@tanstack/react-router";
-import type { ColumnDef } from "@tanstack/react-table";
+import { createColumnHelper } from "@tanstack/react-table";
 import { MoreHorizontal } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { DataTableColumnHeader } from "@/components/ui/data-table/data-table-column-header";
+import type { DataTableFeatures } from "@/components/ui/data-table/data-table-features";
 import { createDataTableSelectColumn } from "@/components/ui/data-table/data-table-select-column";
 import {
 	DropdownMenu,
@@ -18,11 +19,12 @@ import {
 import { useMutationAction } from "@/hooks/actions/use-mutation-action";
 import { orpc } from "@/lib/orpc/orpc";
 
-export const groupTableColumns: ColumnDef<Group>[] = [
+const columnHelper = createColumnHelper<DataTableFeatures, Group>();
+
+export const groupTableColumns = columnHelper.columns([
 	createDataTableSelectColumn<Group>(),
-	{
+	columnHelper.accessor("name", {
 		size: 440,
-		accessorKey: "name",
 		header: ({ column }) => (
 			<DataTableColumnHeader column={column} title="Name" />
 		),
@@ -44,10 +46,9 @@ export const groupTableColumns: ColumnDef<Group>[] = [
 				)}
 			</div>
 		),
-	},
-	{
+	}),
+	columnHelper.accessor("kind", {
 		size: 160,
-		accessorKey: "kind",
 		header: ({ column }) => (
 			<DataTableColumnHeader column={column} title="Type" />
 		),
@@ -56,15 +57,15 @@ export const groupTableColumns: ColumnDef<Group>[] = [
 				{row.original.kind === "system" ? "System" : "Custom"}
 			</Badge>
 		),
-	},
-	{
+	}),
+	columnHelper.display({
 		id: "actions",
 		size: 32,
 		enableSorting: false,
 		enableHiding: false,
 		cell: ({ row }) => <ActionCell group={row.original} />,
-	},
-];
+	}),
+]);
 
 const ActionCell = ({ group }: { group: Group }) => {
 	return (
