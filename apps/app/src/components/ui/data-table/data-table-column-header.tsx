@@ -1,3 +1,4 @@
+import { useSelector } from "@tanstack/react-store";
 import type { Column, RowData } from "@tanstack/react-table";
 import { ArrowDown, ArrowUp, ChevronsUpDown, EyeOff } from "lucide-react";
 
@@ -23,6 +24,11 @@ const DataTableColumnHeader = <TData extends RowData, TValue>({
 	title,
 	className,
 }: DataTableColumnHeaderProps<TData, TValue>) => {
+	// Column objects stay stable; subscribe to the value the compiler must track.
+	const sorting = useSelector(column.table.atoms.sorting, (state) =>
+		state.find((sort) => sort.id === column.id),
+	);
+
 	if (!column.getCanSort()) {
 		return <div className={cn(className)}>{title}</div>;
 	}
@@ -38,9 +44,9 @@ const DataTableColumnHeader = <TData extends RowData, TValue>({
 							className="-ml-3 h-8 w-full justify-start focus-visible:ring-transparent data-[state=open]:bg-accent"
 						>
 							<span>{title}</span>
-							{column.getIsSorted() === "desc" ? (
+							{sorting?.desc === true ? (
 								<ArrowDown />
-							) : column.getIsSorted() === "asc" ? (
+							) : sorting?.desc === false ? (
 								<ArrowUp />
 							) : (
 								<ChevronsUpDown />
