@@ -12,7 +12,7 @@
 		"machine-translate": "inlang machine translate --project project.inlang",
 		"paraglide:compile": "bun run compile-paraglide.ts",
 		"start": "bun run start-server.ts",
-		"test": "bun test"
+		"test": "NODE_ENV=test bun test"
 	},
 	"dependencies": {
 		"@ai-sdk/devtools": "1.0.13",
