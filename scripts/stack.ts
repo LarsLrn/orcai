@@ -940,6 +940,7 @@ async function runE2e(options: Options, env: Env): Promise<number> {
 	return await run(
 		[
 			"bunx",
+			"--no-install",
 			"playwright",
 			"test",
 			...options.args,

@@ -20,6 +20,7 @@ export default defineConfig({
 	testDir: "./tests",
 	fullyParallel: true,
 	forbidOnly: isCI,
+	failOnFlakyTests: isCI,
 	retries: isCI ? 1 : 0,
 	workers: isCI ? 2 : undefined,
 	timeout: 30_000,

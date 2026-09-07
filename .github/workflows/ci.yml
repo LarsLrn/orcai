@@ -50,7 +50,8 @@ jobs:
         run: bun install --frozen-lockfile
 
       - name: Install Chromium
-        run: bunx playwright install --with-deps chromium
+        working-directory: apps/e2e
+        run: bunx --no-install playwright install --with-deps chromium
 
       - name: Start stack
         run: bun run stack up

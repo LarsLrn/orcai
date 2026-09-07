@@ -11,7 +11,7 @@ The end-to-end suite proves that the application works against real infrastructu
 - Workspace package `apps/e2e` (`@orcai/e2e`).
 - Browser locale `en`. Locators use roles and accessible English names; test ids only where no accessible name exists.
 - Traces and screenshots are kept on failure. Test timeout 30 seconds.
-- Locally: Playwright's default worker count, no retries. On CI: two workers, one retry.
+- Locally: Playwright's default worker count, no retries. On CI: two workers and one retry; flaky retries fail CI.
 
 ## Workflow
 
@@ -71,7 +71,7 @@ foundation files shared by every area; coordinate before changing them.
 
 ## Continuous Integration
 
-GitHub Actions runs the suite as a separate blocking `e2e` job, in parallel with the `validate` job. The job installs dependencies, installs Chromium, starts the stack with `bun run stack up`, and runs `bun run stack e2e`. On failure it uploads the Playwright report and test results as an artifact with a seven day retention.
+GitHub Actions runs the suite as a separate blocking `e2e` job, in parallel with `validate`. It installs Chromium with the pinned `apps/e2e` Playwright, starts the stack, runs `bun run stack e2e`, and uploads failure artifacts for seven days.
 
 Worker-local inference settings reset before and after every test, including
 failed tests; other workers keep their own scenarios. Well-known-admin browser
