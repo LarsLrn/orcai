@@ -23,6 +23,7 @@ import {
 	isNull,
 	ne,
 	notExists,
+	or,
 	sql,
 } from "drizzle-orm";
 import * as Effect from "effect/Effect";
@@ -177,6 +178,15 @@ export const listAllOrganizations = authed.organization.listAll
 			},
 		});
 
+		const search = input.filters?.search?.trim();
+		const searchLike = search ? literalSearch(search) : undefined;
+		const whereClause = searchLike
+			? or(
+					ilike(dbSchema.organization.name, searchLike),
+					ilike(dbSchema.organization.slug, searchLike),
+				)
+			: undefined;
+
 		return yield* Effect.all([
 			db
 				.select({
@@ -188,6 +198,7 @@ export const listAllOrganizations = authed.organization.listAll
 					dbSchema.member,
 					eq(dbSchema.member.organizationId, dbSchema.organization.id),
 				)
+				.where(whereClause)
 				.groupBy(dbSchema.organization.id)
 				.orderBy(...orderBy)
 				.limit(input.pageSize)
@@ -196,7 +207,8 @@ export const listAllOrganizations = authed.organization.listAll
 				.select({
 					count: count(),
 				})
-				.from(dbSchema.organization),
+				.from(dbSchema.organization)
+				.where(whereClause),
 		]).pipe(
 			Effect.map(([organizations, [countResult]]) => ({
 				data: organizations.map((organization) => ({

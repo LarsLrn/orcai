@@ -1,14 +1,16 @@
 import { listAllOrganizationsInputSchema } from "@orcai/schema";
 import { useSuspenseQuery } from "@tanstack/react-query";
-import { createFileRoute } from "@tanstack/react-router";
+import { createFileRoute, useNavigate } from "@tanstack/react-router";
 import { PlusIcon } from "lucide-react";
 import { useState } from "react";
+import { z } from "zod/v4";
 import { OrganizationForm } from "@/components/organizations/form/organization-form";
 import { instanceOrganizationTableColumns } from "@/components/organizations/table/instance-organization-table-columns";
 import { Button } from "@/components/ui/button";
 import { DataTable } from "@/components/ui/data-table/data-table";
 import { DataTableBody } from "@/components/ui/data-table/data-table-body";
 import { DataTablePagination } from "@/components/ui/data-table/data-table-pagination";
+import { DataTableSearch } from "@/components/ui/data-table/data-table-search";
 import {
 	DataTableToolbar,
 	DataTableToolbarActions,
@@ -31,24 +33,41 @@ import {
 } from "@/components/ui/shell/page";
 import { orpc } from "@/lib/orpc/orpc";
 
+const searchSchema = listAllOrganizationsInputSchema.extend({
+	query: z.string().trim().max(100).default(""),
+});
+
+const listInput = ({
+	pageIndex,
+	pageSize,
+	query,
+	sort,
+}: {
+	pageIndex: number;
+	pageSize: number;
+	query: string;
+	sort: z.infer<typeof listAllOrganizationsInputSchema>["sort"];
+}) => ({
+	filters: {
+		search: query.trim() ? query.trim() : undefined,
+	},
+	pageIndex,
+	pageSize,
+	sort,
+});
+
 export const Route = createFileRoute("/instance/organizations/")({
-	validateSearch: listAllOrganizationsInputSchema,
-	loaderDeps: ({ search: { pageIndex, pageSize, sort } }) => ({
+	validateSearch: searchSchema,
+	loaderDeps: ({ search: { pageIndex, pageSize, query, sort } }) => ({
 		pageIndex,
 		pageSize,
+		query,
 		sort,
 	}),
-	loader: async ({
-		context: { queryClient },
-		deps: { pageIndex, pageSize, sort },
-	}) => {
+	loader: async ({ context: { queryClient }, deps }) => {
 		await queryClient.query(
 			orpc.organization.listAll.queryOptions({
-				input: {
-					pageIndex,
-					pageSize,
-					sort,
-				},
+				input: listInput(deps),
 				staleTime: "static",
 			}),
 		);
@@ -64,15 +83,17 @@ export const Route = createFileRoute("/instance/organizations/")({
 });
 
 function RouteComponent() {
-	const { pageIndex, pageSize, sort } = Route.useSearch();
+	const { pageIndex, pageSize, query, sort } = Route.useSearch();
+	const navigate = useNavigate();
 	const [isCreateOpen, setIsCreateOpen] = useState(false);
 	const { data: organizations } = useSuspenseQuery(
 		orpc.organization.listAll.queryOptions({
-			input: {
+			input: listInput({
 				pageIndex,
 				pageSize,
+				query,
 				sort,
-			},
+			}),
 		}),
 	);
 
@@ -105,6 +126,21 @@ function RouteComponent() {
 					}}
 				>
 					<DataTableToolbar>
+						<DataTableSearch
+							value={query}
+							placeholder="Search organisations..."
+							onChange={(value) =>
+								void navigate({
+									to: ".",
+									search: (prev) => ({
+										...prev,
+										pageIndex: 0,
+										query: value,
+									}),
+									replace: true,
+								})
+							}
+						/>
 						<DataTableToolbarActions>
 							<DataTableViewOptions />
 						</DataTableToolbarActions>

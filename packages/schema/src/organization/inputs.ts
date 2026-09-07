@@ -1,5 +1,6 @@
 import { z } from "zod/v4";
 import { paginationInputSchema } from "../shared";
+import { searchFilterSchema } from "../shared/filters";
 import { createUniqueRefsInputSchema } from "../shared/ref-list";
 import { createSortingInputSchema } from "../shared/sorting";
 import { organizationIdSchema } from "./ref";
@@ -29,6 +30,7 @@ export const instanceOrganizationSortKeySchema = z.enum([
 ]);
 
 export const listAllOrganizationsInputSchema = paginationInputSchema.extend({
+	filters: searchFilterSchema.optional(),
 	...createSortingInputSchema(instanceOrganizationSortKeySchema).shape,
 });
 

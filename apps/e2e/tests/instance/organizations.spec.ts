@@ -81,6 +81,27 @@ test("instance: the organisations page creates an organisation", async ({
 	expect(match?.memberCount).toBe(1);
 });
 
+test("instance: the search narrows the organisations page", async ({
+	orgs,
+	pageAsWellKnownAdmin,
+}) => {
+	const wanted = await orgs.create("E2E Instance Search");
+	const other = await orgs.create("E2E Instance Hidden");
+
+	const page = await pageAsWellKnownAdmin();
+	await openInstanceOrganisations(page);
+
+	const rowFor = (slug: string) =>
+		page.getByRole("row").filter({
+			hasText: slug,
+		});
+
+	await page.getByPlaceholder("Search organisations...").fill(wanted.slug);
+
+	await expect(rowFor(wanted.slug)).toBeVisible();
+	await expect(rowFor(other.slug)).toHaveCount(0);
+});
+
 test("instance: the organisation form refuses an empty name and an empty slug", async ({
 	pageAsWellKnownAdmin,
 }) => {
