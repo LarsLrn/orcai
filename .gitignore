@@ -6,6 +6,8 @@ node_modules/
 
 # testing
 /coverage
+/apps/e2e/test-results
+/apps/e2e/playwright-report
 
 # TanStack Start / Vite
 .tanstack

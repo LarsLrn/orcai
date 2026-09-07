@@ -34,7 +34,7 @@ export const Route = createFileRoute("/app/users/invites")({
 		context: { auth, queryClient },
 		deps: { pageIndex, pageSize, sort },
 	}) => {
-		return await queryClient.ensureQueryData(
+		return await queryClient.query(
 			orpc.organizationInvitation.list.queryOptions({
 				input: {
 					organizationId: auth.session.activeOrganizationId,
@@ -42,6 +42,7 @@ export const Route = createFileRoute("/app/users/invites")({
 					pageSize,
 					sort,
 				},
+				staleTime: "static",
 			}),
 		);
 	},

@@ -59,8 +59,8 @@ const ModelSelectorButton = ({
 		data: modelsResult,
 		isLoading: modelsLoading,
 		isFetching: modelsFetching,
-	} = useQuery({
-		...orpc.model.list.queryOptions({
+	} = useQuery(
+		orpc.model.list.queryOptions({
 			input: {
 				pageIndex: modelPage,
 				pageSize: MODEL_PAGE_SIZE,
@@ -73,18 +73,18 @@ const ModelSelectorButton = ({
 					search: modelSearch || undefined,
 				},
 			},
+			enabled: modelDialogOpen && !!providerFilterId,
 		}),
-		enabled: modelDialogOpen && !!providerFilterId,
-	});
+	);
 
-	const { data: selectedModelData } = useQuery({
-		...orpc.model.find.queryOptions({
+	const { data: selectedModelData } = useQuery(
+		orpc.model.find.queryOptions({
 			input: {
 				id: selectedModelId ?? "",
 			},
+			enabled: !!selectedModelId,
 		}),
-		enabled: !!selectedModelId,
-	});
+	);
 
 	const providers = providersResult?.data ?? [];
 

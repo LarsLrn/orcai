@@ -31,4 +31,5 @@ export const RETRIEVAL_LIMITS = {
 export const AUTHZ = {
 	outboxRetryBaseDelayMs: 30_000,
 	outboxProcessingStaleAfterMs: 5 * 60_000,
+	outboxMaxAttempts: 20,
 };

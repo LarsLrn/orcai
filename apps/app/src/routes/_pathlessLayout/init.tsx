@@ -12,9 +12,10 @@ import { orpc } from "@/lib/orpc/orpc";
 
 export const Route = createFileRoute("/_pathlessLayout/init")({
 	loader: async ({ context: { queryClient } }) => {
-		const status = await queryClient.ensureQueryData(
+		const status = await queryClient.query(
 			orpc.bootstrap.status.queryOptions({
 				input: {},
+				staleTime: "static",
 			}),
 		);
 

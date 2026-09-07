@@ -1,9 +1,8 @@
+import { ORGANIZATION_ADMIN_ROLE } from "@orcai/core";
 import { listOrganizationsInputSchema } from "@orcai/schema";
 import { useSuspenseQuery } from "@tanstack/react-query";
-import { createFileRoute, Link } from "@tanstack/react-router";
-import { OrganizationTableActions } from "@/components/organizations/table/organization-table-actions";
+import { createFileRoute } from "@tanstack/react-router";
 import { organizationTableColumns } from "@/components/organizations/table/organization-table-columns";
-import { buttonVariants } from "@/components/ui/button";
 import { DataTable } from "@/components/ui/data-table/data-table";
 import { DataTableBody } from "@/components/ui/data-table/data-table-body";
 import { DataTablePagination } from "@/components/ui/data-table/data-table-pagination";
@@ -14,8 +13,8 @@ import {
 import { DataTableViewOptions } from "@/components/ui/data-table/data-table-view-options";
 import {
 	Page,
-	PageAction,
 	PageContent,
+	PageDescription,
 	PageHeader,
 	PageTitle,
 } from "@/components/ui/shell/page";
@@ -32,13 +31,17 @@ export const Route = createFileRoute("/app/orgs/")({
 		context: { queryClient },
 		deps: { pageIndex, pageSize, sort },
 	}) => {
-		return await queryClient.ensureQueryData(
+		return await queryClient.query(
 			orpc.organization.list.queryOptions({
 				input: {
+					filters: {
+						role: ORGANIZATION_ADMIN_ROLE,
+					},
 					pageIndex,
 					pageSize,
 					sort,
 				},
+				staleTime: "static",
 			}),
 		);
 	},
@@ -50,6 +53,9 @@ function RouteComponent() {
 	const { data: organizations } = useSuspenseQuery(
 		orpc.organization.list.queryOptions({
 			input: {
+				filters: {
+					role: ORGANIZATION_ADMIN_ROLE,
+				},
 				pageIndex,
 				pageSize,
 				sort,
@@ -61,16 +67,7 @@ function RouteComponent() {
 		<Page>
 			<PageHeader>
 				<PageTitle>Organisations</PageTitle>
-				<PageAction>
-					<Link
-						to={"/app/orgs/add"}
-						className={buttonVariants({
-							variant: "default",
-						})}
-					>
-						Add Organisation
-					</Link>
-				</PageAction>
+				<PageDescription>The organisations you administer.</PageDescription>
 			</PageHeader>
 			<PageContent>
 				<DataTable
@@ -91,7 +88,6 @@ function RouteComponent() {
 					<DataTableToolbar>
 						<DataTableToolbarActions>
 							<DataTableViewOptions />
-							<OrganizationTableActions />
 						</DataTableToolbarActions>
 					</DataTableToolbar>
 					<DataTableBody />

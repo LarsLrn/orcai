@@ -6,10 +6,13 @@ import {
 	statusResponseSchema,
 } from "../shared";
 import { organizationInvitationValidationReasonSchema } from "./parts/validation-reason";
-import { organizationInvitationSchema } from "./schema";
+import {
+	organizationInvitationListItemSchema,
+	organizationInvitationSchema,
+} from "./schema";
 
 export const listOrganizationInvitationsResponseSchema =
-	createListResponseSchema(organizationInvitationSchema);
+	createListResponseSchema(organizationInvitationListItemSchema);
 
 export const createOrganizationInvitationsResponseSchema =
 	createDataResponseSchema(z.array(organizationInvitationSchema));
@@ -23,6 +26,9 @@ export const validateOrganizationInvitationResponseSchema =
 			isValid: z.boolean(),
 			reason: organizationInvitationValidationReasonSchema.nullable(),
 			email: z.email().nullable(),
+			/** The inviting organisation, so the register page can name it. */
+			organizationName: z.string().nullable(),
+			organizationSlug: z.string().nullable(),
 		}),
 	);
 

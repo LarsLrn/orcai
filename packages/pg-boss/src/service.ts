@@ -36,6 +36,11 @@ export const PgBossServiceLive: Layer.Layer<
 					const boss = new PgBoss({
 						connectionString: Redacted.value(url),
 					});
+					// pg-boss re-emits pool errors on itself; without a listener a
+					// terminated idle connection ends the process.
+					boss.on("error", (error) => {
+						console.warn(`[pg-boss] ${error.message}`);
+					});
 					await boss.start();
 					return boss;
 				},

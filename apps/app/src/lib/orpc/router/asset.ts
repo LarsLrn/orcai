@@ -36,6 +36,7 @@ import {
 	getEntityCapabilities,
 	getManyEntityCapabilities,
 } from "@/lib/orpc/router/helpers/capabilities";
+import { literalSearch } from "./helpers/literal-search";
 
 const createAssetRecord = (params: {
 	id?: AssetId;
@@ -131,7 +132,7 @@ export const listAssets = authed.asset.list.effect(function* ({
 
 	if (input.filters?.search) {
 		whereConditions.push(
-			ilike(dbSchema.asset.title, `%${input.filters.search}%`),
+			ilike(dbSchema.asset.title, literalSearch(input.filters.search)),
 		);
 	}
 

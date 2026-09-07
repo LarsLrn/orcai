@@ -16,6 +16,7 @@ import {
 	checkManyPermissionMiddleware,
 	requireEntityPermission,
 } from "@/lib/orpc/middlewares/permission";
+import { literalSearch } from "./helpers/literal-search";
 import { buildOrderBy, type SortExpression } from "./helpers/sorting";
 
 export const listChats = authed.chat.list.effect(function* ({
@@ -38,7 +39,7 @@ export const listChats = authed.chat.list.effect(function* ({
 			? eq(dbSchema.chat.botId, input.filters.botId)
 			: undefined,
 		input.filters?.search
-			? ilike(dbSchema.chat.title, `%${input.filters.search}%`)
+			? ilike(dbSchema.chat.title, literalSearch(input.filters.search))
 			: undefined,
 	].filter((condition) => condition !== undefined);
 	const whereClause = and(...conditions);

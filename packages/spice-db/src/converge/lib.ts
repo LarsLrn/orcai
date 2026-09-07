@@ -6,8 +6,13 @@ import { SpiceDbError } from "../errors";
 import { SpiceDbService } from "../service";
 import type { RelationshipFilterInput } from "./types";
 
+/** SpiceDB re-serialises a schema without blank lines or a trailing newline, so compare ignoring both. */
 export const normalizeSchema = (schema: string) =>
-	schema.trim().replace(/\r\n/g, "\n");
+	schema
+		.split(/\r?\n/)
+		.map((line) => line.trim())
+		.filter((line) => line.length > 0)
+		.join("\n");
 
 export const hasDefinition = (schema: string, definitionName: string) => {
 	const escaped = definitionName.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");

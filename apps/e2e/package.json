@@ -1,0 +1,21 @@
+{
+	"name": "@orcai/e2e",
+	"version": "0.1.0",
+	"private": true,
+	"type": "module",
+	"scripts": {
+		"test": "playwright test",
+		"test:ui": "playwright test --ui",
+		"report": "playwright show-report"
+	},
+	"devDependencies": {
+		"@orcai/contracts": "workspace:*",
+		"@orcai/core": "workspace:*",
+		"@orcai/schema": "workspace:*",
+		"@orpc/client": "2.0.0-beta.32",
+		"@playwright/test": "1.62.1",
+		"@types/node": "catalog:",
+		"@types/pg": "catalog:",
+		"pg": "catalog:"
+	}
+}

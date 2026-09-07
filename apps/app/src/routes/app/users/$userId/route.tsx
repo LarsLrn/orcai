@@ -10,11 +10,12 @@ export const Route = createFileRoute("/app/users/$userId")({
 		}),
 	},
 	loader: async ({ context: { queryClient }, params: { userId } }) => {
-		return await queryClient.ensureQueryData(
+		return await queryClient.query(
 			orpc.user.find.queryOptions({
 				input: {
 					id: userId,
 				},
+				staleTime: "static",
 			}),
 		);
 	},

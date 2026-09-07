@@ -85,6 +85,24 @@ export type AuthzCapabilityEntityType =
 	(typeof AUTHZ_CAPABILITY_ENTITY_TYPES)[number];
 export type OrganizationRole = (typeof ORGANIZATION_ROLES)[number];
 
+/** The organisation role that may manage other admins and cannot be removed last. */
+export const ORGANIZATION_ADMIN_ROLE =
+	"admin" as const satisfies OrganizationRole;
+
+/** Every accepted `user.role` value. */
+export const INSTANCE_ROLES = [
+	"admin",
+	"user",
+] as const;
+
+export type InstanceRole = (typeof INSTANCE_ROLES)[number];
+
+/** The `user.role` value that marks an instance administrator. It grants nothing inside an organisation. */
+export const INSTANCE_ADMIN_ROLE = "admin" as const satisfies InstanceRole;
+
+/** The `user.role` value every other account carries. */
+export const INSTANCE_DEFAULT_ROLE = "user" as const satisfies InstanceRole;
+
 export type PermissionByEntity = {
 	[Entity in AuthzEntityType]: (typeof AUTHZ_PERMISSIONS_BY_ENTITY)[Entity][number];
 };

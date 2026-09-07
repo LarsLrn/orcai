@@ -1,4 +1,5 @@
 import {
+	ORGANIZATION_ADMIN_ROLE,
 	ORGANIZATION_ROLE_PERMISSIONS,
 	ORGANIZATION_ROLES,
 	type OrganizationRole,
@@ -34,5 +35,5 @@ export const getAssignableOrganizationRoles = (params: {
 	canManageOrganization: boolean;
 }) =>
 	ORGANIZATION_ROLES.filter(
-		(role) => params.canManageOrganization || role !== "admin",
+		(role) => params.canManageOrganization || role !== ORGANIZATION_ADMIN_ROLE,
 	);

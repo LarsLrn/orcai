@@ -2,8 +2,11 @@
 	"extends": "../../tsconfig.base.json",
 	"include": [
 		"src",
+		"compile-paraglide.ts",
+		"paraglide.config.ts",
 		"start-server.ts",
-		"test-setup.ts"
+		"test-setup.ts",
+		"vite.config.ts"
 	],
 	"exclude": [
 		".tanstack"

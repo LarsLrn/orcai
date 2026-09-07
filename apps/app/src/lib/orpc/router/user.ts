@@ -1,9 +1,11 @@
+import { ORGANIZATION_ADMIN_ROLE } from "@orcai/core";
 import { DB, dbSchema } from "@orcai/db";
 import {
 	ALL_MEMBERS_GROUP_SYSTEM_KEY,
 	assetIdSchema,
 	blockIdSchema,
 	botIdSchema,
+	type InstanceUserSortKey,
 	inheritedSourceByResourceType,
 	RESOURCE_GRANT_SOURCE,
 	RESOURCE_TYPES,
@@ -24,28 +26,64 @@ import {
 	desc,
 	eq,
 	getColumns,
+	ilike,
 	inArray,
 	isNull,
+	ne,
 	or,
 	sql,
 } from "drizzle-orm";
+import { EffectDrizzleQueryError } from "drizzle-orm/effect-core";
+import * as Cause from "effect/Cause";
 import * as Effect from "effect/Effect";
+import { SqlError } from "effect/unstable/sql/SqlError";
 import { auth } from "@/lib/auth/auth";
-import { syncRelationshipTransition } from "@/lib/authz/relationship-transition";
-import { AuthzService } from "@/lib/effect/services/authz";
+import { detachAccountAccess } from "@/lib/authz/membership-detach";
+import {
+	AuthzService,
+	enqueueRelationshipMutations,
+} from "@/lib/effect/services/authz";
 import * as AppErrors from "@/lib/effect/utils/errors";
 import { authed } from "@/lib/orpc/implementation/authed";
 import {
 	requireActiveOrganizationMiddleware,
+	requireInstanceAdminMiddleware,
 	requirePreferencesMiddleware,
 } from "@/lib/orpc/middlewares/auth";
 import { unique } from "@/lib/utils/array-utils";
+import { literalSearch } from "./helpers/literal-search";
 import {
 	assertAdminRemainsAfterRemoving,
-	assertCanManageOrganizationAdmins,
 	countRemovedAdmins,
 } from "./helpers/organization-role-policy";
 import { buildOrderBy, type SortExpression } from "./helpers/sorting";
+
+/** Better Auth reads the caller's session from the request headers. */
+const requireRequestHeaders = (headers: Headers | undefined) =>
+	Effect.fromNullishOr(headers).pipe(
+		Effect.mapError(
+			() =>
+				new AppErrors.BadRequestError({
+					message: "Request headers are required for this action.",
+				}),
+		),
+	);
+
+/** Match database constraint violations through nested Effect SQL causes */
+const isConstraintViolation = (error: unknown) => {
+	if (
+		!(error instanceof EffectDrizzleQueryError) ||
+		!Cause.isCause(error.cause)
+	) {
+		return false;
+	}
+
+	const failure = Cause.squash(error.cause);
+
+	return (
+		failure instanceof SqlError && failure.reason._tag === "ConstraintError"
+	);
+};
 
 export const listUsers = authed.user.list
 	.use(requireActiveOrganizationMiddleware)
@@ -71,6 +109,18 @@ export const listUsers = authed.user.list
 				}),
 			);
 		}
+
+		const search = input.filters?.search?.trim();
+		const searchLike = search ? literalSearch(search) : undefined;
+		const whereClause = and(
+			eq(dbSchema.member.organizationId, organizationId),
+			searchLike
+				? or(
+						ilike(dbSchema.user.name, searchLike),
+						ilike(dbSchema.user.email, searchLike),
+					)
+				: undefined,
+		);
 
 		const orderBy = yield* buildOrderBy({
 			sort: input.sort,
@@ -101,7 +151,7 @@ export const listUsers = authed.user.list
 						dbSchema.user,
 						eq(dbSchema.user.id, dbSchema.member.userId),
 					)
-					.where(eq(dbSchema.member.organizationId, organizationId))
+					.where(whereClause)
 					.orderBy(...orderBy)
 					.limit(input.pageSize)
 					.offset(input.pageIndex * input.pageSize),
@@ -110,7 +160,11 @@ export const listUsers = authed.user.list
 						count: count(),
 					})
 					.from(dbSchema.member)
-					.where(eq(dbSchema.member.organizationId, organizationId)),
+					.innerJoin(
+						dbSchema.user,
+						eq(dbSchema.user.id, dbSchema.member.userId),
+					)
+					.where(whereClause),
 			],
 			{
 				concurrency: "unbounded",
@@ -120,6 +174,157 @@ export const listUsers = authed.user.list
 		return {
 			data,
 			rowCount: rowCount.count,
+		};
+	});
+
+export const listAllUsers = authed.user.listAll
+	.use(requireInstanceAdminMiddleware)
+	.effect(function* ({ input }) {
+		const db = yield* DB;
+		const search = input.filters?.search?.trim();
+		const searchLike = search ? literalSearch(search) : undefined;
+		const whereClause = searchLike
+			? or(
+					ilike(dbSchema.user.name, searchLike),
+					ilike(dbSchema.user.email, searchLike),
+				)
+			: undefined;
+
+		const orderBy = yield* buildOrderBy({
+			sort: input.sort,
+			allowlist: {
+				name: dbSchema.user.name,
+				email: dbSchema.user.email,
+				createdAt: dbSchema.user.createdAt,
+			} satisfies Record<InstanceUserSortKey, SortExpression>,
+			defaultOrder: [
+				desc(dbSchema.user.createdAt),
+			],
+			tieBreaker: {
+				id: "id",
+				expression: dbSchema.user.id,
+			},
+		});
+
+		const [users, [rowCount]] = yield* Effect.all(
+			[
+				db
+					.select({
+						...getColumns(dbSchema.user),
+					})
+					.from(dbSchema.user)
+					.where(whereClause)
+					.orderBy(...orderBy)
+					.limit(input.pageSize)
+					.offset(input.pageIndex * input.pageSize),
+				db
+					.select({
+						count: count(),
+					})
+					.from(dbSchema.user)
+					.where(whereClause),
+			],
+			{
+				concurrency: "unbounded",
+			},
+		);
+
+		const userIds = users.map((user) => user.id);
+		const memberships =
+			userIds.length === 0
+				? []
+				: yield* db
+						.select({
+							userId: dbSchema.member.userId,
+							organizationId: dbSchema.member.organizationId,
+							organizationName: dbSchema.organization.name,
+							organizationSlug: dbSchema.organization.slug,
+							role: dbSchema.member.role,
+						})
+						.from(dbSchema.member)
+						.innerJoin(
+							dbSchema.organization,
+							eq(dbSchema.organization.id, dbSchema.member.organizationId),
+						)
+						.where(inArray(dbSchema.member.userId, userIds));
+
+		const membershipsByUser = new Map<
+			(typeof memberships)[number]["userId"],
+			Array<Omit<(typeof memberships)[number], "userId">>
+		>();
+		for (const { userId, ...membership } of memberships) {
+			const bucket = membershipsByUser.get(userId) ?? [];
+			bucket.push(membership);
+			membershipsByUser.set(userId, bucket);
+		}
+
+		return {
+			data: users.map((user) => ({
+				...user,
+				memberships: membershipsByUser.get(user.id) ?? [],
+			})),
+			rowCount: rowCount.count,
+		};
+	});
+
+export const banUser = authed.user.ban
+	.use(requireInstanceAdminMiddleware)
+	.effect(function* ({ input, context }) {
+		if (input.userId === context.auth.user.id) {
+			return yield* Effect.fail(
+				new AppErrors.BadRequestError({
+					message: "You cannot ban your own account.",
+				}),
+			);
+		}
+
+		const headers = yield* requireRequestHeaders(context.reqHeaders);
+
+		yield* Effect.tryPromise({
+			try: () =>
+				auth.api.banUser({
+					body: {
+						userId: input.userId,
+						banReason: input.reason,
+					},
+					headers,
+				}),
+			catch: (error) =>
+				new AppErrors.BadRequestError({
+					message:
+						error instanceof Error ? error.message : "Failed to ban the user.",
+				}),
+		});
+
+		return {
+			success: true,
+		};
+	});
+
+export const unbanUser = authed.user.unban
+	.use(requireInstanceAdminMiddleware)
+	.effect(function* ({ input, context }) {
+		const headers = yield* requireRequestHeaders(context.reqHeaders);
+
+		yield* Effect.tryPromise({
+			try: () =>
+				auth.api.unbanUser({
+					body: {
+						userId: input.userId,
+					},
+					headers,
+				}),
+			catch: (error) =>
+				new AppErrors.BadRequestError({
+					message:
+						error instanceof Error
+							? error.message
+							: "Failed to unban the user.",
+				}),
+		});
+
+		return {
+			success: true,
 		};
 	});
 
@@ -655,10 +860,11 @@ export const listUserAccess = authed.user.listAccess
 	});
 
 export const deleteUsers = authed.user.delete
-	.use(requireActiveOrganizationMiddleware)
+	.use(requireInstanceAdminMiddleware)
 	.effect(function* ({ input, context }) {
 		const db = yield* DB;
-		const organizationId = context.auth.session.activeOrganizationId;
+		const authz = yield* AuthzService;
+		const now = new Date();
 		const userIds = Array.from(new Set(input.userIds));
 
 		if (userIds.length !== input.userIds.length) {
@@ -669,60 +875,59 @@ export const deleteUsers = authed.user.delete
 			);
 		}
 
-		const permission = yield* checkEntityPermission({
-			entityId: organizationId,
-			entityType: "organization",
-			permission: "manage_members",
-			userId: context.auth.user.id,
-			zedToken: context.meta?.zedToken,
-		});
-
-		if (hasPermission(permission) === false) {
+		if (userIds.includes(context.auth.user.id)) {
 			return yield* Effect.fail(
-				new AppErrors.ForbiddenError({
-					data: {
-						allowed: false,
-						permission: "manage_members",
-						entityType: "organization",
-					},
+				new AppErrors.BadRequestError({
+					message: "You cannot delete your own account.",
 				}),
 			);
 		}
 
-		const existingMembers = yield* db.transaction((tx) =>
+		const eventId = yield* db.transaction((tx) =>
 			Effect.gen(function* () {
 				yield* tx.execute(sql`LOCK TABLE "member" IN SHARE ROW EXCLUSIVE MODE`);
 
-				const members = yield* tx
+				const existingUsers = yield* tx
 					.select({
-						userId: dbSchema.member.userId,
-						role: dbSchema.member.role,
+						id: dbSchema.user.id,
 					})
-					.from(dbSchema.member)
-					.where(
-						and(
-							eq(dbSchema.member.organizationId, organizationId),
-							inArray(dbSchema.member.userId, userIds),
-						),
-					);
+					.from(dbSchema.user)
+					.where(inArray(dbSchema.user.id, userIds));
 
-				if (members.length !== userIds.length) {
+				if (existingUsers.length !== userIds.length) {
 					return yield* Effect.fail(
 						new AppErrors.NotFoundError({
-							message:
-								"One or more selected users are not members of the active organization.",
+							message: "One or more selected users do not exist.",
 						}),
 					);
 				}
 
-				const removedAdminCount = countRemovedAdmins({
-					members,
-				});
-				if (removedAdminCount > 0) {
-					yield* assertCanManageOrganizationAdmins({
-						organizationId,
-						userId: context.auth.user.id,
+				const memberships = yield* tx
+					.select({
+						organizationId: dbSchema.member.organizationId,
+						userId: dbSchema.member.userId,
+						role: dbSchema.member.role,
+					})
+					.from(dbSchema.member)
+					.where(inArray(dbSchema.member.userId, userIds));
+
+				const byOrganization = new Map<
+					(typeof memberships)[number]["organizationId"],
+					typeof memberships
+				>();
+				for (const membership of memberships) {
+					const bucket = byOrganization.get(membership.organizationId) ?? [];
+					bucket.push(membership);
+					byOrganization.set(membership.organizationId, bucket);
+				}
+
+				for (const [organizationId, members] of byOrganization) {
+					const removedAdminCount = countRemovedAdmins({
+						members,
 					});
+					if (removedAdminCount === 0) {
+						continue;
+					}
 
 					const [adminCountResult] = yield* tx
 						.select({
@@ -732,7 +937,7 @@ export const deleteUsers = authed.user.delete
 						.where(
 							and(
 								eq(dbSchema.member.organizationId, organizationId),
-								eq(dbSchema.member.role, "admin"),
+								eq(dbSchema.member.role, ORGANIZATION_ADMIN_ROLE),
 							),
 						);
 					yield* assertAdminRemainsAfterRemoving({
@@ -741,47 +946,69 @@ export const deleteUsers = authed.user.delete
 					});
 				}
 
-				return members;
+				if (memberships.length > 0) {
+					yield* tx
+						.delete(dbSchema.member)
+						.where(inArray(dbSchema.member.userId, userIds));
+				}
+
+				const detached = yield* detachAccountAccess({
+					tx,
+					userIds,
+					now,
+				});
+
+				yield* tx
+					.delete(dbSchema.session)
+					.where(inArray(dbSchema.session.userId, userIds));
+
+				yield* tx
+					.delete(dbSchema.account)
+					.where(inArray(dbSchema.account.userId, userIds));
+
+				yield* tx
+					.delete(dbSchema.user)
+					.where(inArray(dbSchema.user.id, userIds))
+					.pipe(
+						Effect.catchIf(isConstraintViolation, (cause) =>
+							Effect.fail(
+								new AppErrors.ConflictError({
+									message:
+										"This account still owns groups, resources, grants or invitations, so it cannot be deleted yet. Hand that content over first.",
+									cause,
+								}),
+							),
+						),
+					);
+
+				return yield* enqueueRelationshipMutations({
+					tx,
+					mutations: [
+						...memberships.map((membership) => ({
+							resourceType: "organization" as const,
+							resourceId: membership.organizationId,
+							relation: membership.role,
+							subjectType: "user" as const,
+							subjectId: membership.userId,
+							operation: "delete" as const,
+						})),
+						...detached,
+					],
+				});
 			}),
 		);
 
-		const headers = context.reqHeaders;
-		if (!headers) {
-			return yield* Effect.fail(
-				new AppErrors.BadRequestError({
-					message: "Request headers are required for user deletion.",
-				}),
+		yield* authz
+			.deliverRelationshipEvent(eventId)
+			.pipe(
+				Effect.catch((cause) =>
+					Effect.logError(`authz.delivery_failed cause=${String(cause)}`),
+				),
 			);
-		}
-
-		for (const member of existingMembers) {
-			yield* Effect.tryPromise({
-				try: () =>
-					auth.api.removeUser({
-						body: {
-							userId: member.userId,
-						},
-						headers,
-					}),
-				catch: (error) =>
-					new AppErrors.BadRequestError({
-						message:
-							error instanceof Error ? error.message : "Failed to delete user.",
-					}),
-			});
-
-			yield* syncRelationshipTransition({
-				resourceType: "organization",
-				resourceId: organizationId,
-				subjectType: "user",
-				subjectId: member.userId,
-				oldRelation: member.role,
-			});
-		}
 
 		return {
 			success: true,
-			deletedCount: existingMembers.length,
+			deletedCount: userIds.length,
 		};
 	});
 
@@ -867,6 +1094,16 @@ export const updatePassword = authed.user.updatePassword.effect(function* ({
 		),
 	);
 
+	// Other sessions are revoked; the one making the change stays signed in.
+	yield* db
+		.delete(dbSchema.session)
+		.where(
+			and(
+				eq(dbSchema.session.userId, context.auth.user.id),
+				ne(dbSchema.session.id, context.auth.session.id),
+			),
+		);
+
 	return {
 		success: true,
 	};
@@ -899,6 +1136,31 @@ export const setActiveOrganization = authed.user.setActiveOrganization.effect(
 	function* ({ input, context }) {
 		const db = yield* DB;
 		const authz = yield* AuthzService;
+		const [membership] = yield* db
+			.select({
+				role: dbSchema.member.role,
+			})
+			.from(dbSchema.member)
+			.where(
+				and(
+					eq(dbSchema.member.organizationId, input.organizationId),
+					eq(dbSchema.member.userId, context.auth.user.id),
+				),
+			)
+			.limit(1);
+
+		if (!membership) {
+			return yield* Effect.fail(
+				new AppErrors.ForbiddenError({
+					data: {
+						allowed: false,
+						permission: "read",
+						entityType: "organization",
+					},
+				}),
+			);
+		}
+
 		const hasSpiceAccess = yield* checkEntityPermission({
 			entityId: input.organizationId,
 			entityType: "organization",
@@ -911,43 +1173,18 @@ export const setActiveOrganization = authed.user.setActiveOrganization.effect(
 		);
 
 		if (!hasSpiceAccess) {
-			const [membership] = yield* db
-				.select({
-					role: dbSchema.member.role,
-				})
-				.from(dbSchema.member)
-				.where(
-					and(
-						eq(dbSchema.member.organizationId, input.organizationId),
-						eq(dbSchema.member.userId, context.auth.user.id),
-					),
-				)
-				.limit(1);
-
-			if (membership) {
-				yield* authz.applyRelationshipMutations({
-					mutations: [
-						{
-							resourceType: "organization",
-							resourceId: input.organizationId,
-							relation: membership.role,
-							subjectType: "user",
-							subjectId: context.auth.user.id,
-							operation: "touch",
-						},
-					],
-				});
-			} else {
-				return yield* Effect.fail(
-					new AppErrors.ForbiddenError({
-						data: {
-							allowed: false,
-							permission: "read",
-							entityType: "organization",
-						},
-					}),
-				);
-			}
+			yield* authz.applyRelationshipMutations({
+				mutations: [
+					{
+						resourceType: "organization",
+						resourceId: input.organizationId,
+						relation: membership.role,
+						subjectType: "user",
+						subjectId: context.auth.user.id,
+						operation: "touch",
+					},
+				],
+			});
 		}
 
 		yield* db

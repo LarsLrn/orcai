@@ -9,10 +9,6 @@ export const listOrganizationMembersResponseSchema = createListResponseSchema(
 	organizationMemberSchema,
 );
 
-export const createOrganizationMemberResponseSchema = createDataResponseSchema(
-	organizationMemberSchema,
-);
-
 export const findOrganizationMemberResponseSchema = createDataResponseSchema(
 	organizationMemberSchema,
 );

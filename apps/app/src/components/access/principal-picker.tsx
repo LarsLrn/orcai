@@ -1,3 +1,4 @@
+import { getInitial } from "@orcai/core";
 import type {
 	PrincipalType,
 	ResourcePrincipal,
@@ -5,6 +6,7 @@ import type {
 } from "@orcai/schema";
 import { ALL_MEMBERS_GROUP_SYSTEM_KEY } from "@orcai/schema";
 import { SearchIcon, UserIcon, UsersIcon } from "lucide-react";
+import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Button } from "@/components/ui/button";
 import { SelectableListItem } from "@/components/ui/composed/selectable-list-item";
 import { Input } from "@/components/ui/input";
@@ -108,6 +110,19 @@ const PrincipalPicker = ({
 									}
 								}}
 								Icon={isUser ? UserIcon : UsersIcon}
+								leading={
+									isUser ? (
+										<Avatar className="size-8">
+											<AvatarImage
+												src={principal.image ?? undefined}
+												alt={principal.name}
+											/>
+											<AvatarFallback>
+												{getInitial(principal.name)}
+											</AvatarFallback>
+										</Avatar>
+									) : undefined
+								}
 								isSelected={isSelected}
 								isLoading={principals.isLoading}
 							/>

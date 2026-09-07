@@ -1,6 +1,6 @@
 import { useSuspenseQuery } from "@tanstack/react-query";
 import { createFileRoute } from "@tanstack/react-router";
-import { ManageOrganization } from "@/components/organizations/manage-organization";
+import { OrganizationForm } from "@/components/organizations/form/organization-form";
 import {
 	Page,
 	PageContent,
@@ -36,7 +36,7 @@ function RouteComponent() {
 				<PageTitle>Edit Organisation</PageTitle>
 			</PageHeader>
 			<PageContent>
-				<ManageOrganization organization={organization.data} />
+				<OrganizationForm action="update" organization={organization.data} />
 			</PageContent>
 		</Page>
 	);

@@ -19,10 +19,7 @@ export const useCreateOrganizationMutation = (
 					});
 
 					await router.navigate({
-						to: "/app/orgs/$orgId",
-						params: {
-							orgId: result.data.id,
-						},
+						to: "/instance/organizations",
 					});
 
 					try {
@@ -78,6 +75,7 @@ export const useUpdateOrganizationMutation = (
 	});
 };
 
+/** Deletes organisations. Confirmation is `DeleteOrganizationDialog`, not the generic prompt. */
 export const useDeleteOrganizationsMutation = (
 	opts: ReturnType<typeof orpc.organization.delete.mutationOptions> = {},
 ) => {
@@ -103,20 +101,9 @@ export const useDeleteOrganizationsMutation = (
 				},
 			}),
 		messages: {
-			loading: "Deleting organisations...",
-			success: "Organisations deleted",
-			error: "Failed to delete organisations",
-		},
-		confirm: (input) => {
-			const count = input.refs.length;
-			const plural = count === 1 ? "" : "s";
-
-			return {
-				title: `Delete Organisation${plural}`,
-				description: `Are you sure you want to delete ${count} organisation${plural}? This action cannot be undone.`,
-				confirmText: "Delete",
-				cancelText: "Cancel",
-			};
+			loading: "Deleting organisation...",
+			success: "Organisation deleted",
+			error: "Failed to delete organisation",
 		},
 	});
 };

@@ -1,45 +1,40 @@
 import { DB, dbSchema } from "@orcai/db";
-import {
-	ALL_MEMBERS_GROUP_SYSTEM_KEY,
-	assetIdSchema,
-	blockIdSchema,
-	botIdSchema,
-	type GroupSortKey,
-} from "@orcai/schema";
+import { ALL_MEMBERS_GROUP_SYSTEM_KEY, type GroupSortKey } from "@orcai/schema";
 import { and, count, desc, eq, ilike, inArray, isNull, or } from "drizzle-orm";
 import * as Effect from "effect/Effect";
+import {
+	hasManageGroups,
+	visibleGroupScope,
+} from "@/lib/authz/group-visibility";
 import { AuthzService } from "@/lib/effect/services/authz";
 import * as AppErrors from "@/lib/effect/utils/errors";
 import { authed } from "@/lib/orpc/implementation/authed";
+import { requireActiveOrganizationMiddleware } from "@/lib/orpc/middlewares/auth";
 import { requireOrganizationPermission } from "@/lib/orpc/middlewares/permission";
+import { literalSearch } from "./helpers/literal-search";
+import { parseScopedResourceId } from "./helpers/scoped-resource-id";
 import { buildOrderBy, type SortExpression } from "./helpers/sorting";
 
-const parseScopedResourceId = (resource: {
-	resourceType: "asset" | "block" | "bot";
-	resourceId: string;
-}) => {
-	switch (resource.resourceType) {
-		case "asset":
-			return assetIdSchema.parse(resource.resourceId);
-		case "block":
-			return blockIdSchema.parse(resource.resourceId);
-		case "bot":
-			return botIdSchema.parse(resource.resourceId);
-	}
-};
-
 export const listGroups = authed.group.list
-	.use(requireOrganizationPermission("manage_groups"))
+	.use(requireActiveOrganizationMiddleware)
 	.effect(function* ({ input, context }) {
 		const db = yield* DB;
 		const organizationId = context.auth.session.activeOrganizationId;
 
+		const scope = yield* visibleGroupScope({
+			organizationIds: [
+				organizationId,
+			],
+			userId: context.auth.user.id,
+			zedToken: context.meta?.zedToken,
+		});
+
 		const queryLike = input.filters?.search
-			? `%${input.filters.search.trim()}%`
+			? literalSearch(input.filters.search.trim())
 			: undefined;
 
 		const whereClause = and(
-			eq(dbSchema.group.organizationId, organizationId),
+			scope,
 			isNull(dbSchema.group.deletedAt),
 			queryLike ? ilike(dbSchema.group.name, queryLike) : undefined,
 		);
@@ -89,10 +84,18 @@ export const listGroups = authed.group.list
 	});
 
 export const findGroup = authed.group.find
-	.use(requireOrganizationPermission("manage_groups"))
+	.use(requireActiveOrganizationMiddleware)
 	.effect(function* ({ input, context }) {
 		const db = yield* DB;
 		const organizationId = context.auth.session.activeOrganizationId;
+
+		const scope = yield* visibleGroupScope({
+			organizationIds: [
+				organizationId,
+			],
+			userId: context.auth.user.id,
+			zedToken: context.meta?.zedToken,
+		});
 
 		const [group] = yield* db
 			.select()
@@ -100,7 +103,7 @@ export const findGroup = authed.group.find
 			.where(
 				and(
 					eq(dbSchema.group.id, input.id),
-					eq(dbSchema.group.organizationId, organizationId),
+					scope,
 					isNull(dbSchema.group.deletedAt),
 				),
 			)
@@ -354,10 +357,18 @@ export const deleteGroups = authed.group.delete
 	});
 
 export const listGroupMembers = authed.group.listMembers
-	.use(requireOrganizationPermission("manage_groups"))
+	.use(requireActiveOrganizationMiddleware)
 	.effect(function* ({ input, context }) {
 		const db = yield* DB;
 		const organizationId = context.auth.session.activeOrganizationId;
+
+		const scope = yield* visibleGroupScope({
+			organizationIds: [
+				organizationId,
+			],
+			userId: context.auth.user.id,
+			zedToken: context.meta?.zedToken,
+		});
 
 		const [group] = yield* db
 			.select({
@@ -370,7 +381,7 @@ export const listGroupMembers = authed.group.listMembers
 			.where(
 				and(
 					eq(dbSchema.group.id, input.groupId),
-					eq(dbSchema.group.organizationId, organizationId),
+					scope,
 					isNull(dbSchema.group.deletedAt),
 				),
 			)
@@ -384,7 +395,14 @@ export const listGroupMembers = authed.group.listMembers
 			);
 		}
 
-		const queryLike = input.query ? `%${input.query.trim()}%` : undefined;
+		const canSeeEmail = yield* hasManageGroups({
+			organizationId,
+			userId: context.auth.user.id,
+			zedToken: context.meta?.zedToken,
+		});
+		const queryLike = input.query
+			? literalSearch(input.query.trim())
+			: undefined;
 		if (
 			group.kind === "system" &&
 			group.systemKey === ALL_MEMBERS_GROUP_SYSTEM_KEY
@@ -396,7 +414,11 @@ export const listGroupMembers = authed.group.listMembers
 							user: {
 								id: dbSchema.user.id,
 								name: dbSchema.user.name,
-								email: dbSchema.user.email,
+								...(canSeeEmail
+									? {
+											email: dbSchema.user.email,
+										}
+									: {}),
 								image: dbSchema.user.image,
 							},
 						})
@@ -411,7 +433,9 @@ export const listGroupMembers = authed.group.listMembers
 								queryLike
 									? or(
 											ilike(dbSchema.user.name, queryLike),
-											ilike(dbSchema.user.email, queryLike),
+											canSeeEmail
+												? ilike(dbSchema.user.email, queryLike)
+												: undefined,
 										)
 									: undefined,
 							),
@@ -433,7 +457,9 @@ export const listGroupMembers = authed.group.listMembers
 								queryLike
 									? or(
 											ilike(dbSchema.user.name, queryLike),
-											ilike(dbSchema.user.email, queryLike),
+											canSeeEmail
+												? ilike(dbSchema.user.email, queryLike)
+												: undefined,
 										)
 									: undefined,
 							),
@@ -462,7 +488,11 @@ export const listGroupMembers = authed.group.listMembers
 						user: {
 							id: dbSchema.user.id,
 							name: dbSchema.user.name,
-							email: dbSchema.user.email,
+							...(canSeeEmail
+								? {
+										email: dbSchema.user.email,
+									}
+								: {}),
 							image: dbSchema.user.image,
 						},
 						addedAt: dbSchema.groupMember.createdAt,
@@ -480,7 +510,9 @@ export const listGroupMembers = authed.group.listMembers
 							queryLike
 								? or(
 										ilike(dbSchema.user.name, queryLike),
-										ilike(dbSchema.user.email, queryLike),
+										canSeeEmail
+											? ilike(dbSchema.user.email, queryLike)
+											: undefined,
 									)
 								: undefined,
 						),
@@ -503,7 +535,9 @@ export const listGroupMembers = authed.group.listMembers
 							queryLike
 								? or(
 										ilike(dbSchema.user.name, queryLike),
-										ilike(dbSchema.user.email, queryLike),
+										canSeeEmail
+											? ilike(dbSchema.user.email, queryLike)
+											: undefined,
 									)
 								: undefined,
 						),

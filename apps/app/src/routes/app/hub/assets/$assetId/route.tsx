@@ -10,11 +10,12 @@ export const Route = createFileRoute("/app/hub/assets/$assetId")({
 		}),
 	},
 	loader: async ({ context: { queryClient }, params: { assetId } }) => {
-		return await queryClient.ensureQueryData(
+		return await queryClient.query(
 			orpc.asset.find.queryOptions({
 				input: {
 					id: assetId,
 				},
+				staleTime: "static",
 			}),
 		);
 	},

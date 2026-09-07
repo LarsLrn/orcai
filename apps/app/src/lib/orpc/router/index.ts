@@ -75,6 +75,8 @@ import {
 	createOrganization,
 	deleteOrganizations,
 	findOrganization,
+	getOrganizationDeletionImpact,
+	listAllOrganizations,
 	listOrganizations,
 	updateOrganization,
 } from "./organization";
@@ -88,7 +90,6 @@ import {
 	validateOrganizationInvitation,
 } from "./organization-invitation";
 import {
-	createOrganizationMember,
 	deleteOrganizationMembers,
 	findOrganizationMember,
 	listOrganizationMembers,
@@ -125,13 +126,16 @@ import {
 	finalizeUpload,
 } from "./storage";
 import {
+	banUser,
 	deleteUsers,
 	findUser,
+	listAllUsers,
 	listUserAccess,
 	listUsers,
 	me,
 	setActiveOrganization,
 	setTourState,
+	unbanUser,
 	updatePassword,
 } from "./user";
 
@@ -142,14 +146,15 @@ export const router = {
 	},
 	organization: {
 		list: listOrganizations,
+		listAll: listAllOrganizations,
 		create: createOrganization,
 		find: findOrganization,
 		update: updateOrganization,
 		delete: deleteOrganizations,
+		deletionImpact: getOrganizationDeletionImpact,
 	},
 	organizationMember: {
 		list: listOrganizationMembers,
-		create: createOrganizationMember,
 		find: findOrganizationMember,
 		update: updateOrganizationMember,
 		delete: deleteOrganizationMembers,
@@ -252,9 +257,12 @@ export const router = {
 	},
 	user: {
 		list: listUsers,
+		listAll: listAllUsers,
 		find: findUser,
 		listAccess: listUserAccess,
 		delete: deleteUsers,
+		ban: banUser,
+		unban: unbanUser,
 		me,
 		updatePassword: updatePassword,
 		setTourState: setTourState,

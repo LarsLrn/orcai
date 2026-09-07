@@ -58,12 +58,18 @@ bun run test
 bun run --filter @orcai/web types:check
 ```
 
+If your change touches user-facing flows, run the end-to-end suite as well. It needs the stack running and resets the stack's data, see [End-To-End Tests](/docs/development/testing).
+
+```bash title="Repository root"
+bun run stack e2e
+```
+
 ## Git Hooks In This Repo
 
 - `pre-commit`: runs `lint-staged` formatting.
 - `commit-msg`: runs commitlint validation.
 - `pre-push`: runs `bun run prepush`.
-- GitHub Actions runs `bun run ci` for pushes to `main` and for pull requests.
+- GitHub Actions runs `bun run ci` and the end-to-end suite as two blocking jobs for pushes to `main` and for pull requests.
 
 ## Pull Request Expectations
 

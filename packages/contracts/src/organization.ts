@@ -5,8 +5,12 @@ import {
 	deleteOrganizationsResponseSchema,
 	findOrganizationInputSchema,
 	findOrganizationResponseSchema,
+	listAllOrganizationsInputSchema,
+	listAllOrganizationsResponseSchema,
 	listOrganizationsInputSchema,
 	listOrganizationsResponseSchema,
+	organizationDeletionImpactInputSchema,
+	organizationDeletionImpactResponseSchema,
 	updateOrganizationInputSchema,
 	updateOrganizationResponseSchema,
 } from "@orcai/schema";
@@ -27,6 +31,19 @@ export const organizationContracts = {
 		)
 		.input(listOrganizationsInputSchema)
 		.output(listOrganizationsResponseSchema),
+	listAll: base
+		.meta(
+			openapi({
+				method: "GET",
+				path: "/instance/organizations",
+				summary: "List every organization of the instance",
+				tags: [
+					"Organizations",
+				],
+			}),
+		)
+		.input(listAllOrganizationsInputSchema)
+		.output(listAllOrganizationsResponseSchema),
 	create: base
 		.meta(
 			openapi({
@@ -79,4 +96,17 @@ export const organizationContracts = {
 		)
 		.input(deleteOrganizationsInputSchema)
 		.output(deleteOrganizationsResponseSchema),
+	deletionImpact: base
+		.meta(
+			openapi({
+				method: "GET",
+				path: "/organizations/{id}/deletion-impact",
+				summary: "Preview what deleting an organization takes with it",
+				tags: [
+					"Organizations",
+				],
+			}),
+		)
+		.input(organizationDeletionImpactInputSchema)
+		.output(organizationDeletionImpactResponseSchema),
 };

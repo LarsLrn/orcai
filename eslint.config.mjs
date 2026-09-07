@@ -31,14 +31,7 @@ export default defineConfig([
 		languageOptions: {
 			parser: tseslint.parser,
 			parserOptions: {
-				projectService: {
-					allowDefaultProject: [
-						"apps/app/compile-paraglide.ts",
-						"apps/app/paraglide.config.ts",
-						"apps/app/vite.config.ts",
-						"packages/db/drizzle.config.ts",
-					],
-				},
+				projectService: true,
 				tsconfigRootDir: import.meta.dirname,
 			},
 		},

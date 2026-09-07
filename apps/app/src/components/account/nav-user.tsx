@@ -1,6 +1,5 @@
 import { getInitial } from "@orcai/core";
-import { useQuery } from "@tanstack/react-query";
-import { useRouteContext } from "@tanstack/react-router";
+import { skipToken, useQuery } from "@tanstack/react-query";
 import { ChevronsUpDown, LogOut } from "lucide-react";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import {
@@ -18,25 +17,21 @@ import {
 	SidebarMenuItem,
 } from "@/components/ui/sidebar";
 import { useSignOut } from "@/hooks/actions/use-sign-out";
+import { useAuthenticatedRouteContext } from "@/hooks/authz/use-authenticated-route-context";
 import { orpc } from "@/lib/orpc/orpc";
 import { UserMenuActions } from "./user-menu-actions";
 
 const NavUser = () => {
 	const { signOut } = useSignOut();
-	const { data: organisations } = useQuery(
-		orpc.organization.list.queryOptions({
-			input: {
-				pageIndex: 0,
-				pageSize: 6,
-			},
+	const { auth } = useAuthenticatedRouteContext();
+	const { data: activeOrganization } = useQuery(
+		orpc.organization.find.queryOptions({
+			input: auth.session.activeOrganizationId
+				? {
+						id: auth.session.activeOrganizationId,
+					}
+				: skipToken,
 		}),
-	);
-	const { auth } = useRouteContext({
-		from: "/app",
-	});
-
-	const activeOrganization = organisations?.data.find(
-		(org) => org.id === auth.session.activeOrganizationId,
 	);
 
 	return (
@@ -64,7 +59,7 @@ const NavUser = () => {
 									</span>
 									{activeOrganization && (
 										<span className="truncate text-xs">
-											{activeOrganization.name}
+											{activeOrganization.data.name}
 										</span>
 									)}
 								</div>

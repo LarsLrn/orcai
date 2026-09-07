@@ -15,6 +15,7 @@ import {
 	requireEntityPermission,
 	requireOrganizationPermission,
 } from "@/lib/orpc/middlewares/permission";
+import { literalSearch } from "./helpers/literal-search";
 import { buildOrderBy, type SortExpression } from "./helpers/sorting";
 
 const getCurrentPeriodAndLedger = (params: { quotaPoolId: QuotaPoolId }) =>
@@ -84,7 +85,7 @@ export const listQuotaPools = authed.quota.list
 				? eq(dbSchema.quotaPool.isActive, input.filters.isActive)
 				: undefined,
 			input.filters?.search
-				? ilike(dbSchema.quotaPool.name, `%${input.filters.search}%`)
+				? ilike(dbSchema.quotaPool.name, literalSearch(input.filters.search))
 				: undefined,
 		].filter((condition) => condition !== undefined);
 

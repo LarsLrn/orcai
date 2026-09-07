@@ -20,7 +20,10 @@
 					"commitlint.config.{js,ts,cjs,mjs,cts}",
 					".config/commitlintrc.{json,yaml,yml,js,ts,cjs,mjs,cts}"
 				]
-			}
+			},
+			"entry": [
+				"scripts/*.ts"
+			]
 		},
 		"apps/app": {
 			"entry": [
@@ -51,6 +54,17 @@
 					"vite.config.{js,mjs,ts,cjs,mts,cts}"
 				]
 			}
+		},
+		"apps/e2e": {
+			"playwright": false,
+			"entry": [
+				"playwright.config.ts",
+				"tests/**/*.ts",
+				"fixtures/**/*.ts"
+			],
+			"project": [
+				"**/*.ts"
+			]
 		},
 		"apps/workers": {
 			"entry": [

@@ -20,14 +20,24 @@ Current administration sections in the app:
 - Models
 - Organisations
 
+Instance-wide actions live in the separate Instance management area,
+described below. They are not part of the active organisation's Administration
+navigation.
+
 ## Users
 
-Users is a paginated data table with sorting and table actions.
+Users is a paginated data table with search over name and email, sorting, and
+table actions. It is scoped to the active organisation and acts on
+memberships: the row menu and the bulk action remove a user from the
+organisation, and the user page changes the organisation role or removes the
+membership. The account itself survives and can be invited back. Banning an
+account and deleting it live under Manage instance > Users.
 
 Primary actions:
 
 - Invite User
 - View Invitations
+- Remove from organisation
 
 Invitation management has its own table page with export and actions.
 
@@ -75,9 +85,64 @@ Current models page features:
 	Note that for a model to appear in chat it requires at least the 'text' and 'tool-calling' capabilities.
 </Callout>
 
+## Instance management
+
+Instance management is a separate application area under `/instance`, with
+its own sidebar and two pages. Instance administrators can open it from the
+shared user menu or the organisation picker, including when they have no
+organisation memberships. `/instance` opens the Organisations page.
+
+**Organisations** lists every organisation of the instance with its member
+count, creates one, and deletes one with the impact dialog described below. The
+creator becomes the first administrator of what it created.
+
+**Users** lists every account of the instance, searchable over name and email,
+with the organisations each account belongs to and its role in them. From here
+an account is banned, unbanned, or deleted. None of the three applies to your
+own account.
+
+The active organisation remains selected while the administrator is in this
+area, but it does not scope or otherwise affect either page. The **Back to
+app** action returns to `/app`, where the usual active-membership checks
+apply.
+
+## The instance administrator
+
+Most administration is scoped to one organisation. A few actions concern the
+whole instance and belong to the instance administrator, an account marked with
+the instance role in the database. The first account created when an instance is
+initialised is an instance administrator.
+
+Only an instance administrator may:
+
+- create an organisation,
+- delete an organisation,
+- ban and unban an account,
+- delete an account,
+- list every organisation and every user of the instance.
+
+The instance role grants nothing inside an organisation. An instance
+administrator still needs a membership to enter an organisation or manage its
+members, and an organisation administrator manages memberships only.
+
 ## Organisations
 
-Organisations can be listed and created from the Organisations page.
+The Organisations page under Administration lists the organisations you
+administer and opens their settings. Creating and deleting an organisation are
+instance actions and live under Manage instance > Organisations.
+
+Deletion is thorough. The dialog first shows an impact preview counting the
+memberships, pending invitations and groups that go with the organisation, plus
+the resources whose only scope is this organisation, and it enables Delete only
+once the organisation's slug is typed back. The delete then removes the
+memberships, invitations and groups along with the organisation's authorisation
+relationships, and any session that had the organisation active loses it and
+lands back on the organisation selection page. Resources scoped only to the
+deleted organisation stay behind without one for now.
+
+Removing a user from an organisation clears the active organisation of that
+user's open sessions in the same way, and entering the app rechecks that the
+membership still exists.
 
 Organisation switching for users happens in the select-organisation flow and user menu action.
 
@@ -90,3 +155,7 @@ Organisation switching for users happens in the select-organisation flow and use
 <Callout title="TODO" type="idea">
 	Add recommended default capability profiles for small teams, classrooms, and enterprise pilots.
 </Callout>
+
+Members and viewers can discover colleagues by name and avatar in All Members
+and select sharing recipients by user ID. Email fields and email search require
+permission to manage groups.

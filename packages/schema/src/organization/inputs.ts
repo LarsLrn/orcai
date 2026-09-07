@@ -5,6 +5,7 @@ import { createSortingInputSchema } from "../shared/sorting";
 import { organizationIdSchema } from "./ref";
 import {
 	organizationFieldsSchema,
+	organizationFiltersSchema,
 	organizationMutableFieldsSchema,
 	organizationSchema,
 } from "./schema";
@@ -16,10 +17,26 @@ export const organizationSortKeySchema = z.enum([
 ]);
 
 export const listOrganizationsInputSchema = paginationInputSchema.extend({
+	filters: organizationFiltersSchema.optional(),
 	...createSortingInputSchema(organizationSortKeySchema).shape,
 });
 
+export const instanceOrganizationSortKeySchema = z.enum([
+	"name",
+	"slug",
+	"createdAt",
+	"memberCount",
+]);
+
+export const listAllOrganizationsInputSchema = paginationInputSchema.extend({
+	...createSortingInputSchema(instanceOrganizationSortKeySchema).shape,
+});
+
 export const findOrganizationInputSchema = organizationSchema.pick({
+	id: true,
+});
+
+export const organizationDeletionImpactInputSchema = organizationSchema.pick({
 	id: true,
 });
 
@@ -42,7 +59,16 @@ export type ListOrganizationsInput = z.infer<
 	typeof listOrganizationsInputSchema
 >;
 export type OrganizationSortKey = z.infer<typeof organizationSortKeySchema>;
+export type ListAllOrganizationsInput = z.infer<
+	typeof listAllOrganizationsInputSchema
+>;
+export type InstanceOrganizationSortKey = z.infer<
+	typeof instanceOrganizationSortKeySchema
+>;
 export type FindOrganizationInput = z.infer<typeof findOrganizationInputSchema>;
+export type OrganizationDeletionImpactInput = z.infer<
+	typeof organizationDeletionImpactInputSchema
+>;
 export type CreateOrganizationInput = z.infer<
 	typeof createOrganizationInputSchema
 >;

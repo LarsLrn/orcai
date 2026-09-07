@@ -10,11 +10,12 @@ export const Route = createFileRoute("/app/groups/$groupId")({
 		}),
 	},
 	loader: async ({ context: { queryClient }, params: { groupId } }) => {
-		return await queryClient.ensureQueryData(
+		return await queryClient.query(
 			orpc.group.find.queryOptions({
 				input: {
 					id: groupId,
 				},
+				staleTime: "static",
 			}),
 		);
 	},

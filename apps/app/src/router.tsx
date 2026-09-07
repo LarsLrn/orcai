@@ -17,9 +17,11 @@ export function getRouter() {
 		mutationCache: new MutationCache({
 			onSuccess: (data) => {
 				// Provides just a tiny bit of type safety, assuming all procedures follow the same meta structure (which they should)
-				const d = data as ContractOutputs["chat"]["create"];
+				// Not every mutation goes through a contract: `authClient` calls
+				// resolve with nothing, so the result itself can be undefined.
+				const d = data as ContractOutputs["chat"]["create"] | undefined;
 				// Global listener: If ANY mutation returns a zedToken, save it.
-				if (d.meta?.zedToken) {
+				if (d?.meta?.zedToken) {
 					Cookies.set(COOKIES.ZED_TOKEN.name, d.meta.zedToken, {
 						expires: COOKIES.ZED_TOKEN.expires,
 					});

@@ -9,6 +9,22 @@ This page collects operational notes that are clear from the repository. It is n
 	This page intentionally favours known-safe checks over speculative production advice.
 </Callout>
 
+## Registration
+
+Registration is invitation only, enforced by the sign-up endpoint itself: it
+requires the ID of a pending, unexpired invitation matching the address. There is no
+open sign-up to disable, and no setting turns one on.
+
+- The first account of an instance comes from the init flow at `/<locale>/init`,
+  which writes the user directly and is therefore not affected by the rule.
+- Every later account is created from an invitation link an organisation
+  administrator sends. Signing up accepts that invitation and writes its
+  membership. Other invitations remain pending for explicit acceptance.
+  Membership, invitation status, and permission intent commit atomically;
+  permission delivery retries from the outbox after commit.
+- Existing accounts are unaffected. Sign-in, password reset, and invitations to
+  further organisations keep working as before.
+
 ## Migrations
 
 Apply application database migrations with:

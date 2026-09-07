@@ -9,42 +9,80 @@ Run these commands from the repository root unless noted otherwise.
 	Use the filtered `@orcai/web` commands when you only need to validate documentation changes.
 </Callout>
 
+## Development Stack
+
+Each checkout owns an isolated Docker Compose project with per-worktree ports stored in a gitignored `.env`.
+
+| Command | Purpose |
+| --- | --- |
+| `bun run stack up` | Start infrastructure, write `.env`, apply migrations and the SpiceDB schema. |
+| `bun run stack status` | Show container state and probe every service. |
+| `bun run stack reset` | Empty every store of the stack, leaving containers and `.env` in place. |
+| `bun run stack e2e` | Reset the stack, then run the end-to-end suite. |
+| `bun run stack dev` | Start the app development server with the stack environment. |
+| `bun run stack dev --all` | Start the app, workers, and documentation site together. |
+| `bun run stack workers` | Start workers with the stack environment. |
+| `bun run stack web` | Start the documentation site with the stack environment. |
+| `bun run stack migrate` | Reapply migrations and the SpiceDB schema. |
+| `bun run stack exec -- <command>` | Run any command with `.env` loaded. |
+| `bun run stack logs [service]` | Follow infrastructure logs. |
+| `bun run stack env --reset` | Regenerate `.env` with new ports and secrets. |
+| `bun run stack down --volumes` | Stop the stack and delete its data. |
+
 ## Application
 
 | Command | Purpose |
 | --- | --- |
-| `bun run dev:all` | Start the app, documentation site, and workers in development mode. |
-| `bun run dev` | Start the main app development server. |
+| `bun run dev:all` | Alias for `bun run stack dev --all`. |
+| `bun run dev` | Alias for `bun run stack dev`. |
 | `bun run build` | Build the main app. |
 | `bun run start` | Run the built main app. |
-| `bun run workers:dev` | Start workers in development mode. |
+| `bun run workers:dev` | Alias for `bun run stack workers`. |
 | `bun run workers:start` | Start workers in production mode. |
 
 ## Quality Checks
 
 | Command | Purpose |
 | --- | --- |
+| `bun run verify` | Run Biome, TypeScript checks, and unit tests. |
+| `bun run e2e` | Alias for `bun run stack e2e`. |
 | `bun run lint` | Run Biome and TypeScript checks. |
 | `bun run lint-full` | Run Biome, TypeScript checks, and ESLint. |
 | `bun run knip` | Run unused dependency/export analysis. |
 | `bun run prepush` | Run the full pre-push check. |
 
-## Database And Authorization
+`lint:eslint`, which `lint-full` runs, enumerates the workspaces
+(`apps/app`, `apps/web`, then `apps/e2e`, `apps/workers`, `packages`) because
+each carries its own ESLint project settings.
+
+## End-To-End Tests
+
+Everything after `--` is passed to Playwright. See [End-To-End Tests](/docs/development/testing) for the full workflow.
 
 | Command | Purpose |
 | --- | --- |
-| `bun run --filter @orcai/db migrate` | Apply SQL migrations. |
-| `bun run --filter @orcai/db generate` | Generate a new Drizzle migration. |
-| `bun run --filter @orcai/db studio` | Open Drizzle Studio. |
-| `bun run --filter @orcai/spice-db up` | Apply the SpiceDB schema. |
-| `bun run --filter @orcai/spice-db status` | Inspect SpiceDB schema migration status. |
+| `bun run stack e2e` | Reset the stack, then run the whole suite. |
+| `bun run stack e2e -- --grep auth` | Run one spec area. |
+| `bun run stack e2e -- --ui` | Open Playwright UI mode. |
+| `bun run stack e2e --no-reset -- --grep smoke` | Reuse existing data for fast iteration. |
+
+## Database And Authorization
+
+Package scripts do not see the root `.env` on their own, so wrap them in `bun run stack exec --`.
+
+| Command | Purpose |
+| --- | --- |
+| `bun run stack migrate` | Apply SQL migrations and the SpiceDB schema. |
+| `bun run stack exec -- bun run --filter @orcai/db generate` | Generate a new Drizzle migration. |
+| `bun run stack exec -- bun run --filter @orcai/db studio` | Open Drizzle Studio. |
+| `bun run stack exec -- bun run --filter @orcai/spice-db status` | Inspect SpiceDB schema migration status. |
 
 ## Documentation Web Service
 
 Run the docs service directly with:
 
 ```bash title="Repository root"
-bun run --filter @orcai/web dev
+bun run stack web
 ```
 
 Check MDX generation and TypeScript types with:

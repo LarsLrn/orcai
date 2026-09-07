@@ -20,6 +20,7 @@ const SwitchField = ({
 }) => {
 	const field = useFieldContext<boolean>();
 	const id = useId();
+	const titleId = `${id}-title`;
 
 	const errors = useSelector(field.store, (state) => state.meta.errors);
 	const isInvalid = useSelector(
@@ -31,7 +32,9 @@ const SwitchField = ({
 		<FieldLabel htmlFor={id}>
 			<Field orientation="horizontal" data-invalid={isInvalid}>
 				<FieldContent>
-					<FieldTitle className="font-bold">{label}</FieldTitle>
+					<FieldTitle id={titleId} className="font-bold">
+						{label}
+					</FieldTitle>
 					{description && <FieldDescription>{description}</FieldDescription>}
 					{isInvalid && <FieldError errors={errors} />}
 				</FieldContent>
@@ -41,6 +44,7 @@ const SwitchField = ({
 					checked={field.state.value}
 					onCheckedChange={field.handleChange}
 					aria-invalid={isInvalid}
+					aria-labelledby={titleId}
 				/>
 			</Field>
 		</FieldLabel>

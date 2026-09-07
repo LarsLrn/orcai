@@ -372,6 +372,7 @@ function RouteComponent() {
 													}
 												>
 													<Trash2Icon className="h-3.5 w-3.5" />
+													<span className="sr-only">Remove member</span>
 												</Button>
 											)}
 										</div>

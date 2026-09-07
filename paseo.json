@@ -1,0 +1,27 @@
+{
+	"worktree": {
+		"setup": [
+			"bun install --frozen-lockfile",
+			"bun run stack up"
+		],
+		"teardown": [
+			"bun run stack down --volumes"
+		]
+	},
+	"scripts": {
+		"app": {
+			"type": "service",
+			"command": "bun run stack dev"
+		},
+		"web": {
+			"type": "service",
+			"command": "bun run stack web"
+		},
+		"workers": {
+			"command": "bun run stack workers"
+		},
+		"verify": {
+			"command": "bun run verify"
+		}
+	}
+}

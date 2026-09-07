@@ -8,9 +8,13 @@ import { defineConfig } from "vite";
 export default defineConfig({
 	preview: {
 		host: "127.0.0.1",
+		// Prerendering must not require the docs site's port 3001.
+		strictPort: false,
 	},
 	server: {
-		port: 3001,
+		port: Number(process.env.PORT ?? 3001),
+		strictPort: true,
+		allowedHosts: true,
 	},
 	plugins: [
 		mdx(),

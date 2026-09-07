@@ -7,7 +7,7 @@ import { extractReasoningMiddleware, wrapLanguageModel } from "ai";
 import * as Effect from "effect/Effect";
 import { resolveChatGenerationParams } from "@/lib/ai/utils/chat-generation-defaults";
 import { BadRequestError } from "@/lib/effect/utils/errors";
-import { decryptApiKey } from "@/lib/encryption";
+import { providerApiKey } from "@/lib/encryption";
 import { client } from "@/lib/orpc/orpc";
 
 interface ChatAiSettingsInput {
@@ -150,7 +150,7 @@ export const getChatAiSettings = ({
 			});
 		}
 
-		const apiKey = yield* decryptApiKey(provider.apiKeyEncrypted);
+		const apiKey = yield* providerApiKey(provider.id);
 
 		const providerInstance = createOpenAICompatible({
 			baseURL: provider.endpoint ?? "",

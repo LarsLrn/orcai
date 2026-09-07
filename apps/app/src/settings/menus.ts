@@ -21,7 +21,8 @@ interface SidebarMenuItem {
 	linkProps?: LinkProps;
 	icon: LucideIcon;
 	requires?: OrganizationCapability;
-	items?: Required<Omit<SidebarMenuItem, "items">>[];
+	items?: (Required<Pick<SidebarMenuItem, "title" | "linkProps" | "icon">> &
+		Pick<SidebarMenuItem, "requires">)[];
 }
 
 export const sidebarMenu: SidebarMenuItem[] = [
@@ -138,3 +139,11 @@ export const sidebarUserMenu: SidebarMenuItem[] = [
 		icon: ArrowLeftRightIcon,
 	},
 ];
+
+export const instanceAdministrationUserMenuItem: SidebarMenuItem = {
+	title: "Manage instance",
+	linkProps: {
+		to: "/instance",
+	},
+	icon: ServerCogIcon,
+};

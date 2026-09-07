@@ -31,12 +31,13 @@ const NO_FOOTER: {
 export const Route = createFileRoute("/app/hub/")({
 	loader: async ({ context: { queryClient } }) => {
 		await Promise.all([
-			queryClient.ensureQueryData(
+			queryClient.query(
 				orpc.bot.list.queryOptions({
 					input: PREVIEW_INPUT,
+					staleTime: "static",
 				}),
 			),
-			queryClient.ensureQueryData(
+			queryClient.query(
 				orpc.block.list.queryOptions({
 					input: {
 						...BLOCKS_PREVIEW_INPUT,
@@ -44,9 +45,10 @@ export const Route = createFileRoute("/app/hub/")({
 							type: "template",
 						},
 					},
+					staleTime: "static",
 				}),
 			),
-			queryClient.ensureQueryData(
+			queryClient.query(
 				orpc.block.list.queryOptions({
 					input: {
 						...BLOCKS_PREVIEW_INPUT,
@@ -54,11 +56,13 @@ export const Route = createFileRoute("/app/hub/")({
 							type: "database",
 						},
 					},
+					staleTime: "static",
 				}),
 			),
-			queryClient.ensureQueryData(
+			queryClient.query(
 				orpc.asset.list.queryOptions({
 					input: PREVIEW_INPUT,
+					staleTime: "static",
 				}),
 			),
 		]);

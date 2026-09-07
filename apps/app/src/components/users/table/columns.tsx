@@ -1,3 +1,4 @@
+import { ORGANIZATION_ADMIN_ROLE } from "@orcai/core";
 import type { UserWithOrganizationRole } from "@orcai/schema";
 import { Link, useRouteContext } from "@tanstack/react-router";
 import { createColumnHelper } from "@tanstack/react-table";
@@ -14,7 +15,7 @@ import {
 	DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import { useOrganizationCapabilities } from "@/hooks/authz/use-capabilities";
-import { useDeleteUsersMutation } from "@/hooks/mutations/use-user-admin-mutations";
+import { useDeleteOrganizationMembersMutation } from "@/hooks/mutations/use-organization-member-mutations";
 import { organizationRoleLabels } from "@/lib/authz/organization-role-metadata";
 
 const columnHelper = createColumnHelper<
@@ -81,9 +82,10 @@ const UserActions = ({ user }: { user: UserWithOrganizationRole }) => {
 	]);
 	const canManageOrganization =
 		capabilities?.data.capabilities.manage_organization === true;
-	const canDeleteUser =
+	const canRemoveUser =
 		user.id !== auth.user.id &&
-		(user.organizationRole !== "admin" || canManageOrganization);
+		(user.organizationRole !== ORGANIZATION_ADMIN_ROLE ||
+			canManageOrganization);
 
 	return (
 		<DropdownMenu>
@@ -104,10 +106,10 @@ const UserActions = ({ user }: { user: UserWithOrganizationRole }) => {
 				>
 					<DropdownMenuItem>Edit User</DropdownMenuItem>
 				</Link>
-				{canDeleteUser ? (
+				{canRemoveUser ? (
 					<>
 						<DropdownMenuSeparator />
-						<DeleteItem userId={user.id} />
+						<RemoveItem userId={user.id} />
 					</>
 				) : null}
 			</DropdownMenuContent>
@@ -115,21 +117,32 @@ const UserActions = ({ user }: { user: UserWithOrganizationRole }) => {
 	);
 };
 
-const DeleteItem = ({ userId }: { userId: UserWithOrganizationRole["id"] }) => {
-	const { mutate: deleteUsers } = useDeleteUsersMutation();
+const RemoveItem = ({ userId }: { userId: UserWithOrganizationRole["id"] }) => {
+	const { auth } = useRouteContext({
+		from: "/app",
+	});
+	const { mutate: removeMembers } = useDeleteOrganizationMembersMutation();
+	const organizationId = auth.session.activeOrganizationId;
+
+	if (!organizationId) {
+		return null;
+	}
 
 	return (
 		<DropdownMenuItem
 			variant="destructive"
 			onClick={() =>
-				deleteUsers({
-					userIds: [
-						userId,
+				removeMembers({
+					organizationId,
+					refs: [
+						{
+							userId,
+						},
 					],
 				})
 			}
 		>
-			Delete User
+			Remove from organisation
 		</DropdownMenuItem>
 	);
 };

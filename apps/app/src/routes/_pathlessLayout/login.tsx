@@ -12,9 +12,10 @@ import { orpc } from "@/lib/orpc/orpc";
 
 export const Route = createFileRoute("/_pathlessLayout/login")({
 	loader: async ({ context: { queryClient } }) => {
-		const status = await queryClient.ensureQueryData(
+		const status = await queryClient.query(
 			orpc.bootstrap.status.queryOptions({
 				input: {},
+				staleTime: "static",
 			}),
 		);
 
@@ -38,8 +39,7 @@ function RouteComponent() {
 			<CardContent>
 				<SignInForm />
 			</CardContent>
-			<CardFooter className="flex justify-between text-muted-foreground text-sm">
-				<Link to={"/register"}>Create a new account?</Link>
+			<CardFooter className="flex justify-end text-muted-foreground text-sm">
 				<Link to={"/forgot-password"}>Forgot password?</Link>
 			</CardFooter>
 		</Card>

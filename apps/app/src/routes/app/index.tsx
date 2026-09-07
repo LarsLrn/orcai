@@ -20,19 +20,22 @@ const SUMMARY_PARAMS = {
 export const Route = createFileRoute("/app/")({
 	loader: async ({ context: { queryClient } }) => {
 		await Promise.all([
-			queryClient.ensureQueryData(
+			queryClient.query(
 				orpc.bot.list.queryOptions({
 					input: PREFETCH_PARAMS,
+					staleTime: "static",
 				}),
 			),
-			queryClient.ensureQueryData(
+			queryClient.query(
 				orpc.block.list.queryOptions({
 					input: SUMMARY_PARAMS,
+					staleTime: "static",
 				}),
 			),
-			queryClient.ensureQueryData(
+			queryClient.query(
 				orpc.asset.list.queryOptions({
 					input: SUMMARY_PARAMS,
+					staleTime: "static",
 				}),
 			),
 		]);

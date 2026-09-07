@@ -1,0 +1,39 @@
+# Development infrastructure override used by `bun run stack`.
+#
+# Publishes only the backing services on loopback, using ports chosen per
+# worktree and stored in `.env`. Application containers are never built here;
+# the app, workers, and docs run on the host with `bun run stack dev`.
+#
+# Use with:
+#   docker compose -p <stack> -f docker-compose.yaml -f docker-compose.infra.yaml up -d --wait \
+#     postgres valkey minio minio-setup qdrant spicedb-database spicedb-migrate spicedb
+
+services:
+  postgres:
+    ports:
+      - "127.0.0.1:${POSTGRES_PORT:?}:5432"
+
+  valkey:
+    ports:
+      - "127.0.0.1:${VALKEY_PORT:?}:6379"
+
+  minio:
+    ports:
+      - "127.0.0.1:${MINIO_API_PORT:?}:9000"
+      - "127.0.0.1:${MINIO_CONSOLE_PORT:?}:9001"
+
+  qdrant:
+    environment:
+      QDRANT__SERVICE__API_KEY: ${QDRANT_API_KEY:?}
+    ports:
+      - "127.0.0.1:${QDRANT_HTTP_PORT:?}:6333"
+      - "127.0.0.1:${QDRANT_GRPC_PORT:?}:6334"
+
+  spicedb:
+    ports:
+      - "127.0.0.1:${SPICEDB_GRPC_PORT:?}:50051"
+      - "127.0.0.1:${SPICEDB_HTTP_PORT:?}:8080"
+
+  spicedb-database:
+    ports:
+      - "127.0.0.1:${SPICEDB_POSTGRES_PORT:?}:5432"

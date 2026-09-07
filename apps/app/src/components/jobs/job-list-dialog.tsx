@@ -43,19 +43,19 @@ const JobListDialog = ({
 					resourceType: "asset" as const,
 				};
 
-	const { data, isLoading } = useQuery({
-		...orpc.job.list.queryOptions({
+	const { data, isLoading } = useQuery(
+		orpc.job.list.queryOptions({
 			input: jobListInput,
+			enabled: open,
+			refetchInterval: (query) => {
+				const jobs = query.state.data?.data;
+				const hasActive = jobs?.some(
+					(j) => j.state === "created" || j.state === "active",
+				);
+				return hasActive ? 5000 : false;
+			},
 		}),
-		enabled: open,
-		refetchInterval: (query) => {
-			const jobs = query.state.data?.data;
-			const hasActive = jobs?.some(
-				(j) => j.state === "created" || j.state === "active",
-			);
-			return hasActive ? 5000 : false;
-		},
-	});
+	);
 
 	const jobs = assetIdFilter
 		? data?.data.filter(

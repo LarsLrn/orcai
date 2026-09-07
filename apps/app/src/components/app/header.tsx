@@ -21,7 +21,7 @@ import { SidebarTrigger } from "@/components/ui/sidebar";
 import { cn } from "@/lib/utils";
 import { LocaleSwitcher } from "./locale/locale-switcher";
 
-const Header = () => {
+const Header = ({ homeTo = "/app" }: { homeTo?: "/app" | "/instance" }) => {
 	const matches = useMatches();
 
 	const breadcrumbItems = matches
@@ -30,7 +30,7 @@ const Header = () => {
 			href: pathname,
 			label: meta?.find((m) => m?.title)?.title,
 		}))
-		.filter((i) => i.href !== "/" && i.href !== "/app")
+		.filter((i) => i.href !== "/" && i.href !== homeTo)
 		.filter((i) => i.label !== undefined) as {
 		href: string;
 		label: string;
@@ -48,7 +48,7 @@ const Header = () => {
 					<BreadcrumbList className="min-w-0 flex-nowrap gap-0 overflow-hidden">
 						<BreadcrumbItem>
 							<Link
-								to="/app"
+								to={homeTo}
 								className={cn(
 									buttonVariants({
 										variant: "ghost",

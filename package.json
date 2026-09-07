@@ -47,26 +47,31 @@
 		"build:web": "bun run --filter @orcai/web build",
 		"ci": "bun run --filter @orcai/app paraglide:compile && bun run lint-full && bun run test && bun run --filter @orcai/web types:check && bun run build",
 		"clean": "rm -rf node_modules apps/*/node_modules packages/*/node_modules dist apps/*/dist packages/*/dist .tanstack apps/*/.tanstack .devtools apps/*/.devtools **/tsconfig.tsbuildinfo",
-		"dev": "bun run --filter @orcai/app dev",
-		"dev:all": "bun run --parallel --filter '@orcai/*' dev",
+		"dev": "bun run stack dev",
+		"dev:all": "bun run stack dev --all",
+		"e2e": "bun run stack e2e",
 		"knip": "knip",
 		"lint": "biome check . && tsgo --build --noEmit tsconfig.json",
-		"lint-full": "biome check . && tsgo --build --noEmit tsconfig.json && bun run eslint .",
+		"lint-full": "biome check . && tsgo --build --noEmit tsconfig.json && bun run lint:eslint",
+		"lint:eslint": "eslint apps/app && eslint apps/web && eslint apps/e2e apps/workers packages",
 		"machine-translate": "bun run --filter @orcai/app machine-translate",
 		"precommit": "lint-staged",
 		"prepare": "husky",
 		"prepush": "bun run lint-full",
+		"stack": "bun run scripts/stack.ts",
 		"start": "bun run --filter @orcai/app start",
-		"test": "bun test --recursive packages/**/test/*.test.ts packages/**/test/**/*.test.ts && bun run --filter @orcai/app test",
-		"workers:dev": "bun run --filter @orcai/workers dev",
+		"test": "bun test --recursive packages/**/test/*.test.ts packages/**/test/**/*.test.ts scripts/*.test.ts && bun run --filter @orcai/app test",
+		"verify": "bun run lint && bun run test",
+		"workers:dev": "bun run stack workers",
 		"workers:start": "bun run --filter @orcai/workers start"
 	},
 	"lint-staged": {
-		"*.{ts,tsx,js,jsx,cjs,mjs,json,css,md}": [
+		"*.{ts,tsx,js,jsx,cjs,mjs,json,css}": [
 			"biome format --write"
 		]
 	},
 	"devDependencies": {
+		"@authzed/authzed-node": "catalog:",
 		"@biomejs/biome": "2.5.11",
 		"@commitlint/cli": "21.2.2",
 		"@commitlint/config-conventional": "21.2.2",

@@ -31,13 +31,14 @@ export const Route = createFileRoute("/app/quotas/")({
 		context: { queryClient },
 		deps: { pageIndex, pageSize, sort },
 	}) => {
-		await queryClient.ensureQueryData(
+		await queryClient.query(
 			orpc.quota.list.queryOptions({
 				input: {
 					pageIndex,
 					pageSize,
 					sort,
 				},
+				staleTime: "static",
 			}),
 		);
 	},

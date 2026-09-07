@@ -1,11 +1,26 @@
-import type { OrganizationInvitation } from "@orcai/schema";
+import type { OrganizationInvitationStatus } from "@orcai/schema";
 import { useSuspenseQuery } from "@tanstack/react-query";
-import { BadgeCheck, BadgeX, ClipboardList, SearchXIcon } from "lucide-react";
+import { BadgeCheck, BadgeX, ClipboardList } from "lucide-react";
+import { startTransition, useEffect, useState } from "react";
 import { Placeholder } from "@/components/placeholders/placeholder";
+import { Button } from "@/components/ui/button";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { authClient } from "@/lib/auth/auth-client";
 import { orpc } from "@/lib/orpc/orpc";
 import { OrganizationInvitationEntry } from "./organization-invitation-entry";
+
+const PAGE_SIZE = 12;
+
+export const invitationsPageInput = (params?: {
+	pageIndex?: number;
+	status?: OrganizationInvitationStatus;
+}) => ({
+	filters: {
+		recipient: "me" as const,
+		status: params?.status,
+	},
+	pageIndex: params?.pageIndex ?? 0,
+	pageSize: PAGE_SIZE,
+});
 
 type OrganizationInvitationsListProps = {
 	mode?: "all" | "pending";
@@ -14,8 +29,97 @@ type OrganizationInvitationsListProps = {
 	emptyDescription?: string;
 };
 
-const toTimestamp = (date: Date | null | undefined) =>
-	date ? date.getTime() : Number.NEGATIVE_INFINITY;
+const invitationTabs = [
+	{
+		status: "pending",
+		label: "Pending",
+		Icon: ClipboardList,
+	},
+	{
+		status: "accepted",
+		label: "Accepted",
+		Icon: BadgeCheck,
+	},
+	{
+		status: "rejected",
+		label: "Rejected",
+		Icon: BadgeX,
+	},
+] as const;
+
+function InvitationPage({
+	status,
+	onAccepted,
+	emptyTitle,
+	emptyDescription,
+}: Pick<OrganizationInvitationsListProps, "onAccepted"> & {
+	emptyTitle: string;
+	emptyDescription: string;
+	status: OrganizationInvitationStatus;
+}) {
+	const [pageIndex, setPageIndex] = useState(0);
+	const { data: response } = useSuspenseQuery(
+		orpc.organizationInvitation.list.queryOptions({
+			input: invitationsPageInput({
+				pageIndex,
+				status,
+			}),
+		}),
+	);
+	const pageCount = Math.max(1, Math.ceil(response.rowCount / PAGE_SIZE));
+	useEffect(() => {
+		if (pageIndex >= pageCount) {
+			startTransition(() => setPageIndex(pageCount - 1));
+		}
+	}, [
+		pageIndex,
+		pageCount,
+	]);
+
+	return (
+		<div className="flex flex-col space-y-4">
+			{response.data.length === 0 ? (
+				<Placeholder title={emptyTitle} description={emptyDescription} />
+			) : (
+				response.data.map((invitation) => (
+					<OrganizationInvitationEntry
+						key={invitation.id}
+						invitation={invitation}
+						onAccepted={onAccepted}
+					/>
+				))
+			)}
+			{(pageCount > 1 || pageIndex > 0) && (
+				<nav
+					aria-label="Invitation pagination"
+					className="flex items-center justify-center gap-4"
+				>
+					<Button
+						variant="outline"
+						disabled={pageIndex === 0}
+						onClick={() =>
+							startTransition(() => setPageIndex((index) => index - 1))
+						}
+					>
+						Previous
+					</Button>
+					<span className="text-muted-foreground text-sm">
+						Page {Math.min(pageIndex + 1, pageCount)} of {pageCount}
+					</span>
+					<Button
+						variant="outline"
+						disabled={pageIndex >= pageCount - 1}
+						onClick={() =>
+							startTransition(() => setPageIndex((index) => index + 1))
+						}
+					>
+						Next
+					</Button>
+				</nav>
+			)}
+		</div>
+	);
+}
 
 export function OrganizationInvitationsList({
 	mode = "all",
@@ -23,134 +127,39 @@ export function OrganizationInvitationsList({
 	emptyTitle = "No Invitations",
 	emptyDescription = "You don't have any organisation invitations at this time.",
 }: OrganizationInvitationsListProps) {
-	const { data: session } = authClient.useSession();
-	const currentUserEmail = session?.user?.email.trim().toLowerCase();
-
-	const { data: invitationResponse } = useSuspenseQuery(
-		orpc.organizationInvitation.list.queryOptions({
-			input: {
-				pageIndex: 0,
-				pageSize: 100,
-			},
-		}),
-	);
-
-	const ownInvitations = invitationResponse.data
-		.filter((invitation) =>
-			currentUserEmail
-				? invitation.email.trim().toLowerCase() === currentUserEmail
-				: false,
-		)
-		.sort((a, b) => toTimestamp(b.createdAt) - toTimestamp(a.createdAt));
-
-	const pendingInvitations = ownInvitations.filter(
-		(invitation) => invitation.status === "pending",
-	);
-	const acceptedInvitations = ownInvitations.filter(
-		(invitation) => invitation.status === "accepted",
-	);
-	const rejectedInvitations = ownInvitations.filter(
-		(invitation) => invitation.status === "rejected",
-	);
-
-	if (mode === "pending") {
-		if (pendingInvitations.length === 0) {
-			return <Placeholder title={emptyTitle} description={emptyDescription} />;
-		}
-
+	if (mode === "pending")
 		return (
-			<div className="flex flex-col space-y-4">
-				{pendingInvitations.map((invitation) => (
-					<OrganizationInvitationEntry
-						key={invitation.id}
-						invitation={invitation}
-						onAccepted={onAccepted}
-					/>
-				))}
-			</div>
+			<InvitationPage
+				status="pending"
+				onAccepted={onAccepted}
+				emptyTitle={emptyTitle}
+				emptyDescription={emptyDescription}
+			/>
 		);
-	}
-
-	if (ownInvitations.length === 0) {
-		return <Placeholder title={emptyTitle} description={emptyDescription} />;
-	}
-
-	const renderInvitationList = (
-		filteredInvitations: OrganizationInvitation[],
-		emptyMessage: string,
-	) => {
-		if (filteredInvitations.length === 0) {
-			return (
-				<Placeholder
-					title="No Invitations"
-					description={emptyMessage}
-					Icon={SearchXIcon}
-				/>
-			);
-		}
-
-		return (
-			<div className="flex flex-col space-y-4">
-				{filteredInvitations.map((invitation) => (
-					<OrganizationInvitationEntry
-						key={invitation.id}
-						invitation={invitation}
-						onAccepted={onAccepted}
-					/>
-				))}
-			</div>
-		);
-	};
-
 	return (
 		<Tabs defaultValue="pending" className="w-full">
 			<TabsList className="mb-6 grid w-full grid-cols-3">
-				<TabsTrigger value="pending" className="flex items-center gap-2">
-					<ClipboardList className="h-4 w-4" />
-					<span className="hidden sm:inline">Pending</span>
-					{pendingInvitations.length > 0 && (
-						<span className="ml-1 rounded-full bg-primary/10 px-2 py-0.5 font-medium text-primary text-xs">
-							{pendingInvitations.length}
-						</span>
-					)}
-				</TabsTrigger>
-				<TabsTrigger value="accepted" className="flex items-center gap-2">
-					<BadgeCheck className="h-4 w-4" />
-					<span className="hidden sm:inline">Accepted</span>
-					{acceptedInvitations.length > 0 && (
-						<span className="ml-1 rounded-full bg-primary/10 px-2 py-0.5 font-medium text-primary text-xs">
-							{acceptedInvitations.length}
-						</span>
-					)}
-				</TabsTrigger>
-				<TabsTrigger value="rejected" className="flex items-center gap-2">
-					<BadgeX className="h-4 w-4" />
-					<span className="hidden sm:inline">Rejected</span>
-					{rejectedInvitations.length > 0 && (
-						<span className="ml-1 rounded-full bg-primary/10 px-2 py-0.5 font-medium text-primary text-xs">
-							{rejectedInvitations.length}
-						</span>
-					)}
-				</TabsTrigger>
+				{invitationTabs.map(({ status, label, Icon }) => (
+					<TabsTrigger
+						key={status}
+						value={status}
+						className="flex items-center gap-2"
+					>
+						<Icon className="h-4 w-4" />
+						<span>{label}</span>
+					</TabsTrigger>
+				))}
 			</TabsList>
-			<TabsContent value="pending" className="space-y-4 px-1">
-				{renderInvitationList(
-					pendingInvitations,
-					"You don't have any pending invitations.",
-				)}
-			</TabsContent>
-			<TabsContent value="accepted" className="space-y-4 px-1">
-				{renderInvitationList(
-					acceptedInvitations,
-					"You don't have any accepted invitations.",
-				)}
-			</TabsContent>
-			<TabsContent value="rejected" className="space-y-4 px-1">
-				{renderInvitationList(
-					rejectedInvitations,
-					"You don't have any rejected invitations.",
-				)}
-			</TabsContent>
+			{invitationTabs.map(({ status }) => (
+				<TabsContent key={status} value={status} className="space-y-4 px-1">
+					<InvitationPage
+						status={status}
+						onAccepted={onAccepted}
+						emptyTitle={emptyTitle}
+						emptyDescription={`You don't have any ${status} invitations.`}
+					/>
+				</TabsContent>
+			))}
 		</Tabs>
 	);
 }

@@ -6,6 +6,7 @@ import { createSortingInputSchema } from "../shared/sorting";
 import { organizationInvitationResponseActionSchema } from "./parts/response-action";
 import { organizationInvitationIdSchema } from "./ref";
 import {
+	organizationInvitationFiltersSchema,
 	organizationInvitationMutableFieldsSchema,
 	organizationInvitationSchema,
 } from "./schema";
@@ -22,6 +23,7 @@ export const organizationInvitationSortKeySchema = z.enum([
 export const listOrganizationInvitationsInputSchema =
 	paginationInputSchema.extend({
 		organizationId: organizationIdSchema.optional(),
+		filters: organizationInvitationFiltersSchema.optional(),
 		...createSortingInputSchema(organizationInvitationSortKeySchema).shape,
 	});
 

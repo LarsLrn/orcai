@@ -10,11 +10,12 @@ export const Route = createFileRoute("/app/hub/blocks/$blockId")({
 		}),
 	},
 	loader: async ({ context: { queryClient }, params: { blockId } }) => {
-		return await queryClient.ensureQueryData(
+		return await queryClient.query(
 			orpc.block.find.queryOptions({
 				input: {
 					id: blockId,
 				},
+				staleTime: "static",
 			}),
 		);
 	},

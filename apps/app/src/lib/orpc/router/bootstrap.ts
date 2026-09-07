@@ -1,3 +1,8 @@
+import {
+	INSTANCE_ADMIN_ROLE,
+	normalizeEmail,
+	ORGANIZATION_ADMIN_ROLE,
+} from "@orcai/core";
 import { DB, dbSchema } from "@orcai/db";
 import { ALL_MEMBERS_GROUP_SYSTEM_KEY } from "@orcai/schema";
 import { count, eq, sql } from "drizzle-orm";
@@ -14,18 +19,34 @@ let initializedCache: true | undefined;
 
 const getInitializedState = (db: { select: typeof DB.Service.select }) =>
 	Effect.gen(function* () {
-		// Initialization is monotonic: once true, it never becomes false again.
 		if (initializedCache) {
 			return true;
 		}
 
-		const [organizationCountResult] = yield* db
-			.select({
-				count: count(),
-			})
-			.from(dbSchema.organization);
+		// Users count as well: deleting the last organisation must not reopen bootstrap.
+		const [userCountResult, organizationCountResult] = yield* Effect.all(
+			[
+				db
+					.select({
+						count: count(),
+					})
+					.from(dbSchema.user)
+					.pipe(Effect.map(([result]) => result)),
+				db
+					.select({
+						count: count(),
+					})
+					.from(dbSchema.organization)
+					.pipe(Effect.map(([result]) => result)),
+			],
+			{
+				concurrency: "unbounded",
+			},
+		);
 
-		const initialized = toCount(organizationCountResult.count) > 0;
+		const initialized =
+			toCount(userCountResult.count) > 0 ||
+			toCount(organizationCountResult.count) > 0;
 
 		if (initialized) {
 			initializedCache = true;
@@ -51,7 +72,7 @@ export const initializeBootstrap = os.bootstrap.initialize.effect(function* ({
 	const db = yield* DB;
 	const authz = yield* AuthzService;
 	const authContext = yield* Effect.promise(() => auth.$context);
-	const email = input.email.trim().toLowerCase();
+	const email = normalizeEmail(input.email);
 	const now = new Date();
 	const passwordHash = yield* Effect.promise(() =>
 		authContext.password.hash(input.password),
@@ -97,6 +118,7 @@ export const initializeBootstrap = os.bootstrap.initialize.effect(function* ({
 						email,
 						name: input.name,
 						emailVerified: false,
+						role: INSTANCE_ADMIN_ROLE,
 						createdAt: now,
 						updatedAt: now,
 					})
@@ -146,7 +168,7 @@ export const initializeBootstrap = os.bootstrap.initialize.effect(function* ({
 				yield* tx.insert(dbSchema.member).values({
 					organizationId: organization.id,
 					userId: user.id,
-					role: "admin",
+					role: ORGANIZATION_ADMIN_ROLE,
 					createdAt: now,
 				});
 

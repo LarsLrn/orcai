@@ -4,6 +4,10 @@ import type { ResourceGrantRole } from "@orcai/schema";
 import { ALL_MEMBERS_GROUP_SYSTEM_KEY } from "@orcai/schema";
 import type { EntityIdFor, ResourceType } from "@orcai/spice-db";
 import * as Effect from "effect/Effect";
+import {
+	hasManageGroups,
+	isActiveGroupMember,
+} from "@/lib/authz/group-visibility";
 import * as AppErrors from "@/lib/effect/utils/errors";
 import { runMiddlewareEffect } from "@/lib/effect/utils/orpc-helpers";
 import { withName } from "@/lib/orpc/middlewares/utils";
@@ -160,11 +164,11 @@ export const assertCanGrantPrincipalMiddleware = withName(
 						);
 					}
 
-					if (
+					const isAllMembers =
 						group.kind === "system" &&
-						group.systemKey === ALL_MEMBERS_GROUP_SYSTEM_KEY &&
-						input.role !== "viewer"
-					) {
+						group.systemKey === ALL_MEMBERS_GROUP_SYSTEM_KEY;
+
+					if (isAllMembers && input.role !== "viewer") {
 						return yield* Effect.fail(
 							new AppErrors.BadRequestError({
 								message:
@@ -174,6 +178,36 @@ export const assertCanGrantPrincipalMiddleware = withName(
 								},
 							}),
 						);
+					}
+
+					// Members grant only to All Members and to their own groups.
+					if (!isAllMembers) {
+						const manages = yield* hasManageGroups({
+							organizationId: group.organizationId,
+							userId: opts.context.auth.user.id,
+							zedToken,
+						});
+
+						if (!manages) {
+							const belongs = yield* isActiveGroupMember({
+								groupId: input.principalId,
+								userId: opts.context.auth.user.id,
+							});
+
+							if (!belongs) {
+								return yield* Effect.fail(
+									new AppErrors.ForbiddenError({
+										message: "You can only share with groups you belong to.",
+										data: {
+											allowed: false,
+											code: "GROUP_PRINCIPAL_FORBIDDEN",
+											entityType: "group",
+											permission: "read",
+										},
+									}),
+								);
+							}
+						}
 					}
 				}
 

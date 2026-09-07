@@ -24,11 +24,12 @@ export const Route = createFileRoute(
 )({
 	validateSearch: searchParams,
 	loader: async ({ context: { queryClient }, params: { blockId } }) => {
-		const repository = await queryClient.ensureQueryData(
+		const repository = await queryClient.query(
 			orpc.block.find.queryOptions({
 				input: {
 					id: blockId,
 				},
+				staleTime: "static",
 			}),
 		);
 		if (

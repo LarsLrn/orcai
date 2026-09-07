@@ -16,9 +16,10 @@ import {
 import * as Effect from "effect/Effect";
 import OpenAI from "openai";
 import * as AppErrors from "@/lib/effect/utils/errors";
-import { decryptApiKey } from "@/lib/encryption";
+import { providerApiKey } from "@/lib/encryption";
 import { authed } from "@/lib/orpc/implementation/authed";
 import { requireOrganizationPermission } from "@/lib/orpc/middlewares/permission";
+import { literalSearch } from "./helpers/literal-search";
 import { buildOrderBy, type SortExpression } from "./helpers/sorting";
 import {
 	mapCreateModelInputToModelInsertValues,
@@ -51,8 +52,8 @@ export const listModels = authed.model.list
 				? or(
 						sql`word_similarity(${searchTerm}, ${dbSchema.model.name}) > 0.2`,
 						sql`word_similarity(${searchTerm}, ${dbSchema.provider.name}) > 0.2`,
-						ilike(dbSchema.model.name, `%${searchTerm}%`),
-						ilike(dbSchema.provider.name, `%${searchTerm}%`),
+						ilike(dbSchema.model.name, literalSearch(searchTerm)),
+						ilike(dbSchema.provider.name, literalSearch(searchTerm)),
 					)
 				: undefined,
 		].filter((c) => c !== undefined);
@@ -329,7 +330,7 @@ export const discoverModels = authed.model.discover
 		});
 
 		const openAiClient = new OpenAI({
-			apiKey: yield* decryptApiKey(provider.apiKeyEncrypted),
+			apiKey: yield* providerApiKey(provider.id),
 			baseURL: provider.endpoint,
 		});
 

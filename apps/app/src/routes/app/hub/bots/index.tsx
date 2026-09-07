@@ -21,20 +21,22 @@ import { orpc } from "@/lib/orpc/orpc";
 export const Route = createFileRoute("/app/hub/bots/")({
 	loader: async ({ context: { queryClient } }) => {
 		await Promise.all([
-			queryClient.ensureQueryData(
+			queryClient.query(
 				orpc.bot.list.queryOptions({
 					input: {
 						pageIndex: 0,
 						pageSize: 50,
 					},
+					staleTime: "static",
 				}),
 			),
-			queryClient.ensureQueryData(
+			queryClient.query(
 				orpc.bot.listDrafts.queryOptions({
 					input: {
 						pageIndex: 0,
 						pageSize: 50,
 					},
+					staleTime: "static",
 				}),
 			),
 		]);

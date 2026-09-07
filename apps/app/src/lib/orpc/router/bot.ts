@@ -32,6 +32,7 @@ import {
 	getManyEntityCapabilities,
 } from "@/lib/orpc/router/helpers/capabilities";
 import { loadDatabaseBlockAssets } from "@/lib/orpc/router/helpers/database-block";
+import { literalSearch } from "./helpers/literal-search";
 
 const listBotsByStatus = (params: {
 	userId: UserId;
@@ -60,7 +61,9 @@ const listBotsByStatus = (params: {
 		];
 
 		if (params.search) {
-			whereConditions.push(ilike(dbSchema.bot.name, `%${params.search}%`));
+			whereConditions.push(
+				ilike(dbSchema.bot.name, literalSearch(params.search)),
+			);
 		}
 
 		return yield* Effect.all(

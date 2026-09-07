@@ -11,7 +11,7 @@ import { orpc } from "@/lib/orpc/orpc";
 
 export const Route = createFileRoute("/app/hub/blocks/$blockId/points")({
 	loader: async ({ context: { queryClient }, params: { blockId } }) => {
-		await queryClient.ensureQueryData(
+		await queryClient.query(
 			orpc.assetPoint.searchRepository.queryOptions({
 				input: {
 					repositoryId: blockId,
@@ -19,6 +19,7 @@ export const Route = createFileRoute("/app/hub/blocks/$blockId/points")({
 						limit: 1000,
 					},
 				},
+				staleTime: "static",
 			}),
 		);
 	},

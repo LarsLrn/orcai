@@ -16,6 +16,10 @@ import {
 import type { TupleMutation } from "@orcai/spice-db";
 import { and, count, desc, eq, ilike, inArray, isNull, or } from "drizzle-orm";
 import * as Effect from "effect/Effect";
+import {
+	hasManageGroups,
+	visibleGroupScope,
+} from "@/lib/authz/group-visibility";
 import { AuthzService } from "@/lib/effect/services/authz";
 import * as AppErrors from "@/lib/effect/utils/errors";
 import { authed } from "@/lib/orpc/implementation/authed";
@@ -23,6 +27,7 @@ import {
 	assertCanGrantPrincipalMiddleware,
 	requireResourcePermission,
 } from "@/lib/orpc/middlewares/permission";
+import { literalSearch } from "./helpers/literal-search";
 
 type GroupPrincipal = Extract<
 	ResourcePrincipal,
@@ -65,8 +70,30 @@ const parseResourceIdentity = (resource: {
 
 export const listResourceGrants = authed.resource.listGrants
 	.use(requireResourcePermission("manage_access"))
-	.effect(function* ({ input }) {
+	.effect(function* ({ input, context }) {
 		const db = yield* DB;
+		const scopes = yield* db
+			.select({
+				organizationId: dbSchema.resourceScope.organizationId,
+			})
+			.from(dbSchema.resourceScope)
+			.where(
+				and(
+					eq(dbSchema.resourceScope.resourceType, input.resourceType),
+					eq(dbSchema.resourceScope.resourceId, input.resourceId),
+					isNull(dbSchema.resourceScope.endedAt),
+				),
+			);
+		const permissions = yield* Effect.all(
+			scopes.map(({ organizationId }) =>
+				hasManageGroups({
+					organizationId,
+					userId: context.auth.user.id,
+					zedToken: context.meta?.zedToken,
+				}),
+			),
+		);
+		const canSeeEmail = permissions.length > 0 && permissions.every(Boolean);
 		const grants = yield* db
 			.select()
 			.from(dbSchema.resourceGrant)
@@ -106,7 +133,11 @@ export const listResourceGrants = authed.resource.listGrants
 						.select({
 							id: dbSchema.user.id,
 							name: dbSchema.user.name,
-							email: dbSchema.user.email,
+							...(canSeeEmail
+								? {
+										email: dbSchema.user.email,
+									}
+								: {}),
 							image: dbSchema.user.image,
 						})
 						.from(dbSchema.user)
@@ -193,7 +224,7 @@ export const listResourceGrants = authed.resource.listGrants
 
 export const listResourcePrincipals = authed.resource.listPrincipals
 	.use(requireResourcePermission("manage_access"))
-	.effect(function* ({ input }) {
+	.effect(function* ({ input, context }) {
 		const db = yield* DB;
 		const scopes = yield* db
 			.select({
@@ -216,8 +247,20 @@ export const listResourcePrincipals = authed.resource.listPrincipals
 		}
 
 		const orgIds = scopes.map((scope) => scope.organizationId);
+		const emailPermissions = yield* Effect.all(
+			orgIds.map((organizationId) =>
+				hasManageGroups({
+					organizationId,
+					userId: context.auth.user.id,
+					zedToken: context.meta?.zedToken,
+				}),
+			),
+		);
+		const canSeeEmail =
+			emailPermissions.length > 0 && emailPermissions.every(Boolean);
 		const query = input.query?.trim();
-		const searchLike = query ? `%${query}%` : undefined;
+		const searchLike = query ? literalSearch(query) : undefined;
+		const wantsGroups = !input.principalType || input.principalType === "group";
 
 		const users =
 			!input.principalType || input.principalType === "user"
@@ -225,7 +268,11 @@ export const listResourcePrincipals = authed.resource.listPrincipals
 						.selectDistinct({
 							id: dbSchema.user.id,
 							name: dbSchema.user.name,
-							email: dbSchema.user.email,
+							...(canSeeEmail
+								? {
+										email: dbSchema.user.email,
+									}
+								: {}),
 							image: dbSchema.user.image,
 						})
 						.from(dbSchema.member)
@@ -239,7 +286,9 @@ export const listResourcePrincipals = authed.resource.listPrincipals
 								searchLike
 									? or(
 											ilike(dbSchema.user.name, searchLike),
-											ilike(dbSchema.user.email, searchLike),
+											canSeeEmail
+												? ilike(dbSchema.user.email, searchLike)
+												: undefined,
 										)
 									: undefined,
 							),
@@ -247,28 +296,37 @@ export const listResourcePrincipals = authed.resource.listPrincipals
 						.limit(input.limit)
 				: [];
 
-		const groups =
-			!input.principalType || input.principalType === "group"
-				? yield* db
-						.select({
-							id: dbSchema.group.id,
-							name: dbSchema.group.name,
-							description: dbSchema.group.description,
-							kind: dbSchema.group.kind,
-							systemKey: dbSchema.group.systemKey,
-							organizationId: dbSchema.group.organizationId,
-						})
-						.from(dbSchema.group)
-						.where(
-							and(
-								inArray(dbSchema.group.organizationId, orgIds),
-								isNull(dbSchema.group.deletedAt),
-								searchLike ? ilike(dbSchema.group.name, searchLike) : undefined,
-							),
-						)
-						.orderBy(desc(dbSchema.group.kind), dbSchema.group.name)
-						.limit(input.limit)
-				: [];
+		const groups = wantsGroups
+			? yield* visibleGroupScope({
+					organizationIds: orgIds,
+					userId: context.auth.user.id,
+					zedToken: context.meta?.zedToken,
+				}).pipe(
+					Effect.flatMap((groupScope) =>
+						db
+							.select({
+								id: dbSchema.group.id,
+								name: dbSchema.group.name,
+								description: dbSchema.group.description,
+								kind: dbSchema.group.kind,
+								systemKey: dbSchema.group.systemKey,
+								organizationId: dbSchema.group.organizationId,
+							})
+							.from(dbSchema.group)
+							.where(
+								and(
+									groupScope,
+									isNull(dbSchema.group.deletedAt),
+									searchLike
+										? ilike(dbSchema.group.name, searchLike)
+										: undefined,
+								),
+							)
+							.orderBy(desc(dbSchema.group.kind), dbSchema.group.name)
+							.limit(input.limit),
+					),
+				)
+			: [];
 
 		const principals: ResourcePrincipal[] = [
 			...users.map((user) => ({
@@ -358,13 +416,41 @@ export const grantResourceAccess = authed.resource.grant
 			})
 			.returning();
 
+		const scopes = yield* db
+			.select({
+				organizationId: dbSchema.resourceScope.organizationId,
+			})
+			.from(dbSchema.resourceScope)
+			.where(
+				and(
+					eq(dbSchema.resourceScope.resourceType, input.resourceType),
+					eq(dbSchema.resourceScope.resourceId, input.resourceId),
+					isNull(dbSchema.resourceScope.endedAt),
+				),
+			);
+		const emailPermissions = yield* Effect.all(
+			scopes.map(({ organizationId }) =>
+				hasManageGroups({
+					organizationId,
+					userId: context.auth.user.id,
+					zedToken: context.meta?.zedToken,
+				}),
+			),
+		);
+		const canSeeEmail =
+			emailPermissions.length > 0 && emailPermissions.every(Boolean);
+
 		const principal: ResourcePrincipal | null =
 			input.principalType === "user"
 				? yield* db
 						.select({
 							id: dbSchema.user.id,
 							name: dbSchema.user.name,
-							email: dbSchema.user.email,
+							...(canSeeEmail
+								? {
+										email: dbSchema.user.email,
+									}
+								: {}),
 							image: dbSchema.user.image,
 						})
 						.from(dbSchema.user)

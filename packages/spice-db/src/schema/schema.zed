@@ -23,7 +23,7 @@ definition group {
 	relation organization: organization
 	relation member: user | organization#admin | organization#manager | organization#member | organization#viewer
 
-	permission read = organization->read
+	permission read = organization->manage_groups + member
 	permission manage = organization->manage_groups
 }
 
