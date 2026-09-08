@@ -7,6 +7,7 @@ import {
 } from "@orcai/spice-db";
 import { and, eq } from "drizzle-orm";
 import * as Effect from "effect/Effect";
+import { getZedToken } from "@/lib/authz/zed-token";
 import * as AppErrors from "@/lib/effect/utils/errors";
 import { authed } from "@/lib/orpc/implementation/authed";
 import { requireEntityPermission } from "@/lib/orpc/middlewares/permission";
@@ -20,7 +21,7 @@ export const listChatBlocks = authed.chatBlock.list
 	)
 	.effect(function* ({ input, context }) {
 		const db = yield* DB;
-		const resolvedZedToken = input.zedToken ?? context.meta?.zedToken;
+		const resolvedZedToken = getZedToken(context, input);
 
 		const chatBlocks = yield* db.query.chatBlock.findMany({
 			where: {
@@ -87,7 +88,7 @@ export const attachChatBlock = authed.chatBlock.attach
 	)
 	.effect(function* ({ input, context }) {
 		const db = yield* DB;
-		const resolvedZedToken = input.zedToken ?? context.meta?.zedToken;
+		const resolvedZedToken = getZedToken(context, input);
 		const chat = yield* db.query.chat.findFirst({
 			where: {
 				id: {

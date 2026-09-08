@@ -27,6 +27,7 @@ import {
 	sql,
 } from "drizzle-orm";
 import * as Effect from "effect/Effect";
+import { getZedToken } from "@/lib/authz/zed-token";
 import {
 	AuthzService,
 	enqueueRelationshipMutations,
@@ -59,7 +60,7 @@ export const listOrganizations = authed.organization.list.effect(function* ({
 		userId: context.auth.user.id,
 		permission: "read",
 		entityType: "organization",
-		zedToken: context.meta?.zedToken,
+		zedToken: getZedToken(context),
 	}).pipe(
 		Effect.map((response) => response.map((item) => item.resourceObjectId)),
 		Effect.catch(() => Effect.succeed([])),

@@ -1,12 +1,12 @@
 import { DB } from "@orcai/db";
 import { organizationIdSchema, userIdSchema } from "@orcai/schema";
+import { os } from "@orpc/server";
 import * as Effect from "effect/Effect";
 import { auth as betterAuth } from "@/lib/auth/auth";
 import type { authClient } from "@/lib/auth/auth-client";
 import { isInstanceAdminRole } from "@/lib/authz/instance-role";
 import * as AppErrors from "@/lib/effect/utils/errors";
 import { runMiddlewareEffect } from "@/lib/effect/utils/orpc-helpers";
-import { os } from "@/lib/orpc/implementation/os";
 import { withName } from "@/lib/orpc/middlewares/utils";
 import type { AuthContext } from ".";
 

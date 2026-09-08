@@ -20,6 +20,7 @@ import {
 	hasManageGroups,
 	visibleGroupScope,
 } from "@/lib/authz/group-visibility";
+import { getZedToken } from "@/lib/authz/zed-token";
 import { AuthzService } from "@/lib/effect/services/authz";
 import * as AppErrors from "@/lib/effect/utils/errors";
 import { authed } from "@/lib/orpc/implementation/authed";
@@ -89,7 +90,7 @@ export const listResourceGrants = authed.resource.listGrants
 				hasManageGroups({
 					organizationId,
 					userId: context.auth.user.id,
-					zedToken: context.meta?.zedToken,
+					zedToken: getZedToken(context),
 				}),
 			),
 		);
@@ -252,7 +253,7 @@ export const listResourcePrincipals = authed.resource.listPrincipals
 				hasManageGroups({
 					organizationId,
 					userId: context.auth.user.id,
-					zedToken: context.meta?.zedToken,
+					zedToken: getZedToken(context),
 				}),
 			),
 		);
@@ -300,7 +301,7 @@ export const listResourcePrincipals = authed.resource.listPrincipals
 			? yield* visibleGroupScope({
 					organizationIds: orgIds,
 					userId: context.auth.user.id,
-					zedToken: context.meta?.zedToken,
+					zedToken: getZedToken(context),
 				}).pipe(
 					Effect.flatMap((groupScope) =>
 						db
@@ -433,7 +434,7 @@ export const grantResourceAccess = authed.resource.grant
 				hasManageGroups({
 					organizationId,
 					userId: context.auth.user.id,
-					zedToken: context.meta?.zedToken,
+					zedToken: getZedToken(context),
 				}),
 			),
 		);
@@ -532,7 +533,7 @@ export const grantResourceAccess = authed.resource.grant
 			operation: "touch",
 		});
 
-		const relation = yield* authz.applyRelationshipMutations({
+		yield* authz.applyRelationshipMutations({
 			mutations,
 		});
 		const source =
@@ -545,9 +546,6 @@ export const grantResourceAccess = authed.resource.grant
 				...grant,
 				principal,
 				source,
-			},
-			meta: {
-				zedToken: relation.zedToken,
 			},
 		};
 	});
@@ -706,7 +704,7 @@ export const setResourceVisibility = authed.resource.setVisibility
 					})
 					.returning();
 
-		const relation = yield* authz.applyRelationshipMutations({
+		yield* authz.applyRelationshipMutations({
 			mutations: [
 				{
 					resourceType: input.resourceType,
@@ -721,8 +719,5 @@ export const setResourceVisibility = authed.resource.setVisibility
 
 		return {
 			data,
-			meta: {
-				zedToken: relation.zedToken,
-			},
 		};
 	});

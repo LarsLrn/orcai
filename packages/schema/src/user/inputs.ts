@@ -53,9 +53,7 @@ export const deleteUsersInputSchema = z.object({
 	userIds: userIdSchema.array().min(1),
 });
 
-export const meInputSchema = z.object({
-	...zedTokenSchema.shape,
-});
+export const meInputSchema = z.object({});
 
 export const updatePasswordInputSchema = z.object({
 	currentPassword: sharedSchemas.password,

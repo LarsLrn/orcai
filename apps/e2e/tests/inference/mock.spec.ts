@@ -1,4 +1,3 @@
-import type { ProviderId } from "@orcai/core";
 import { untilAllowed } from "../../fixtures/authorization";
 import {
 	DEFAULT_EMBEDDING_DIMENSIONS,
@@ -349,11 +348,10 @@ test("the app discovers the inference mock's models through a provider", async (
 
 	const apiKey = "e2e-mock-provider-key";
 
-	// Snapshot lag: the admin membership from the `org` fixture can still be invisible to `manage_providers`.
-	let providerId: ProviderId | undefined;
-
-	await expect(async () => {
-		const created = await api.as("admin").provider.create({
+	// The `org` fixture's admin joined through the sign-up hook, whose grant no
+	// response announces. A refused create wrote nothing, so repeating is safe.
+	const created = await untilAllowed(() =>
+		api.as("admin").provider.create({
 			name: `E2E Inference Mock ${String(Date.now())}`,
 			description: "Mock OpenAI-compatible endpoint for the e2e suite.",
 			endpoint: inference.url,
@@ -361,40 +359,25 @@ test("the app discovers the inference mock's models through a provider", async (
 			meteringMode: "tokens",
 			apiKey,
 			enabled: true,
-		});
-
-		providerId = created.data.id;
-	}).toPass({
-		timeout: 20_000,
-	});
-
-	if (!providerId) {
-		throw new Error("The provider was not created.");
-	}
-
-	// The retries below read the id from a closure, where the narrowing above
-	// does not reach, so it is bound once.
-	const createdProviderId = providerId;
-
-	// Same lag on `manage_models`; a refused discover added nothing, so repeating it is safe.
-	const discovered = await untilAllowed(() =>
-		api.as("admin").model.discover({
-			providerId: createdProviderId,
 		}),
 	);
+
+	const createdProviderId = created.data.id;
+
+	const discovered = await api.as("admin").model.discover({
+		providerId: createdProviderId,
+	});
 
 	expect(discovered.data.foundCount).toBe(inference.models.length);
 	expect(discovered.data.addedCount).toBe(inference.models.length);
 
-	const listed = await untilAllowed(() =>
-		api.as("admin").model.list({
-			pageIndex: 0,
-			pageSize: 100,
-			filters: {
-				providerId: createdProviderId,
-			},
-		}),
-	);
+	const listed = await api.as("admin").model.list({
+		pageIndex: 0,
+		pageSize: 100,
+		filters: {
+			providerId: createdProviderId,
+		},
+	});
 
 	expect(listed.data.map((model) => model.providerModelId).sort()).toEqual(
 		[

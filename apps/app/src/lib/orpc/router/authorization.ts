@@ -14,6 +14,7 @@ import {
 } from "@orcai/spice-db";
 import * as Effect from "effect/Effect";
 import { capabilitySets } from "@/lib/authz/capabilities";
+import { getZedToken } from "@/lib/authz/zed-token";
 import * as AppErrors from "@/lib/effect/utils/errors";
 import { authed } from "@/lib/orpc/implementation/authed";
 
@@ -44,7 +45,7 @@ export const checkAuthorization = authed.authorization.check.effect(function* ({
 		entityId: input.entityId,
 		permission: input.permission,
 		userId: context.auth.user.id,
-		zedToken: input.zedToken,
+		zedToken: getZedToken(context, input),
 	});
 
 	return {
@@ -77,7 +78,7 @@ export const checkManyAuthorization = authed.authorization.checkMany.effect(
 				entityIds: input.entityIds as EntityIdFor<EntityType>[],
 				permission: permission as PermissionFor<EntityType>,
 				userId: context.auth.user.id as UserId,
-				zedToken: input.zedToken,
+				zedToken: getZedToken(context, input),
 			});
 
 			for (const pair of result.pairs) {
@@ -128,7 +129,7 @@ export const organizationCapabilities =
 				entityId: organizationId,
 				permission: permission as OrganizationCapability,
 				userId: context.auth.user.id,
-				zedToken: input.zedToken,
+				zedToken: getZedToken(context, input),
 			});
 		}
 

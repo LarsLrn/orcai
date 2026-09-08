@@ -1,12 +1,10 @@
 import type { BotId, ChatId } from "@orcai/core";
 import type { ChatConfig, Model, Provider } from "@orcai/schema";
 import { useQueryClient } from "@tanstack/react-query";
-import Cookies from "js-cookie";
 import { useCallback, useEffect, useState } from "react";
 import { toast } from "sonner";
 import { DEFAULT_CHAT_GENERATION_PARAMS } from "@/lib/ai/utils/chat-generation-defaults";
 import { client, orpc } from "@/lib/orpc/orpc";
-import { COOKIES } from "@/settings/constants";
 
 const useChatStarter = ({
 	initialBotId,
@@ -64,12 +62,6 @@ const useChatStarter = ({
 
 				const chatId = result.data.id;
 				const zedToken = result.meta?.zedToken;
-
-				if (zedToken) {
-					Cookies.set(COOKIES.ZED_TOKEN.name, zedToken, {
-						expires: COOKIES.ZED_TOKEN.expires,
-					});
-				}
 
 				void queryClient.invalidateQueries({
 					queryKey: orpc.chat.key(),

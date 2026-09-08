@@ -22,8 +22,10 @@ import {
 	pendingInvitationsFor,
 	soleOrganizationOf,
 } from "@/lib/auth/invitation-signup";
+import { secureCookiesFor, zedTokenCookieOptions } from "@/lib/authz/zed-token";
 import { runtime } from "@/lib/effect/runtime";
 import { loadAppConfigSync } from "@/lib/effect/services/config";
+import { COOKIES } from "@/settings/constants";
 
 const cfg = loadAppConfigSync();
 
@@ -148,7 +150,7 @@ export const auth = betterAuth({
 				after: async (user, ctx) => {
 					const userId = userIdSchema.parse(user.id);
 
-					await runtime.runPromise(
+					const { zedToken } = await runtime.runPromise(
 						acceptInvitation({
 							invitationId: organizationInvitationIdSchema.parse(
 								ctx?.body?.invitationId,
@@ -157,6 +159,16 @@ export const auth = betterAuth({
 							email: user.email,
 						}),
 					);
+
+					/** The membership is delivered inline, so the sign-up response
+					 * hands its revision to the new session. */
+					if (zedToken && ctx)
+						ctx.setCookie(
+							COOKIES.ZED_TOKEN.name,
+							zedToken,
+							zedTokenCookieOptions(secureCookiesFor(cfg.auth.url)),
+						);
+
 					await runtime.runPromise(activateSoleOrganizationForSessions(userId));
 				},
 			},

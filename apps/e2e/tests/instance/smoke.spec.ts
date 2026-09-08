@@ -32,19 +32,12 @@ test("the well-known admin signs in and reads instance data", async ({
 
 	await enterApp(page, INSTANCE_ORGANISATION.slug);
 
-	// Snapshot lag: the guard redirects to the dashboard until the initialisation grant is visible.
-	await expect(async () => {
-		await page.goto("/en/app/orgs");
-		await expect(
-			page.getByRole("heading", {
-				name: "Organisations",
-			}),
-		).toBeVisible({
-			timeout: 3_000,
-		});
-	}).toPass({
-		timeout: 20_000,
-	});
+	await open(page, "/en/app/orgs");
+	await expect(
+		page.getByRole("heading", {
+			name: "Organisations",
+		}),
+	).toBeVisible();
 	// The active organisation in the sidebar comes from the database; the table
 	// itself paginates, so its rows are not a stable place to look for a name.
 	await expect(

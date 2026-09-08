@@ -1,4 +1,4 @@
-import { expectDenied, untilAllowed } from "../../fixtures/authorization";
+import { expectDenied } from "../../fixtures/authorization";
 import { ROLES } from "../../fixtures/constants";
 import { expect, test } from "../../fixtures/index";
 import { runId } from "../../fixtures/organisation";
@@ -28,20 +28,15 @@ const blockIds = async (
 test("a private block is hidden from another member of the organisation until it is public", async ({
 	api,
 }) => {
-	// Snapshot lag: the member's `create_block` grant may still be invisible on a fresh worker.
-	const created = await untilAllowed(() =>
-		api
-			.as("member")
-			.block.create(templateBlock(`E2E Private Block ${runId()}`)),
-	);
+	const created = await api
+		.as("member")
+		.block.create(templateBlock(`E2E Private Block ${runId()}`));
 	const resourceId = created.data.id;
 
-	const visibility = await untilAllowed(() =>
-		api.as("member").resource.getVisibility({
-			resourceType: "block",
-			resourceId,
-		}),
-	);
+	const visibility = await api.as("member").resource.getVisibility({
+		resourceType: "block",
+		resourceId,
+	});
 	expect(visibility.data.visibility).toBe("private");
 
 	// The manager of the same organisation was granted nothing on the block.
@@ -59,38 +54,30 @@ test("a private block is hidden from another member of the organisation until it
 		),
 	).not.toContain(resourceId);
 
-	const madePublic = await untilAllowed(() =>
-		api.as("member").resource.setVisibility({
-			resourceType: "block",
-			resourceId,
-			visibility: "public",
-		}),
-	);
+	const madePublic = await api.as("member").resource.setVisibility({
+		resourceType: "block",
+		resourceId,
+		visibility: "public",
+	});
 	const zedToken = madePublic.meta?.zedToken;
 
-	const found = await untilAllowed(() =>
-		api.as("manager").block.find({
-			id: resourceId,
-			zedToken,
-		}),
-	);
+	const found = await api.as("manager").block.find({
+		id: resourceId,
+	});
 	expect(found.data.id).toBe(resourceId);
 
 	// Blocks come back newest first, so a block created in this test is on the
-	// first page whatever else the run has accumulated.
-	await expect(async () => {
-		expect(
-			await blockIds(
-				api.as("manager").block.list({
-					pageIndex: 0,
-					pageSize: 100,
-					zedToken,
-				}),
-			),
-		).toContain(resourceId);
-	}).toPass({
-		timeout: 15_000,
-	});
+	// first page whatever else the run has accumulated. `block.list` takes its
+	// revision from the input, so the listing carries the token of the change.
+	expect(
+		await blockIds(
+			api.as("manager").block.list({
+				pageIndex: 0,
+				pageSize: 100,
+				zedToken,
+			}),
+		),
+	).toContain(resourceId);
 });
 
 test("a private block is hidden from another organisation", async ({
@@ -99,9 +86,9 @@ test("a private block is hidden from another organisation", async ({
 }) => {
 	const other = await orgs.create("E2E Visibility Neighbour");
 
-	const created = await untilAllowed(() =>
-		api.as("member").block.create(templateBlock(`E2E Shared Block ${runId()}`)),
-	);
+	const created = await api
+		.as("member")
+		.block.create(templateBlock(`E2E Shared Block ${runId()}`));
 	const resourceId = created.data.id;
 
 	for (const role of ROLES) {
@@ -127,54 +114,44 @@ test("a public block is readable from another organisation", async ({
 }) => {
 	const other = await orgs.create("E2E Visibility Neighbour Reader");
 
-	const created = await untilAllowed(() =>
-		api.as("member").block.create(templateBlock(`E2E Public Block ${runId()}`)),
-	);
+	const created = await api
+		.as("member")
+		.block.create(templateBlock(`E2E Public Block ${runId()}`));
 	const resourceId = created.data.id;
 
-	const madePublic = await untilAllowed(() =>
-		api.as("member").resource.setVisibility({
-			resourceType: "block",
-			resourceId,
-			visibility: "public",
-		}),
-	);
+	const madePublic = await api.as("member").resource.setVisibility({
+		resourceType: "block",
+		resourceId,
+		visibility: "public",
+	});
 	const zedToken = madePublic.meta?.zedToken;
 
 	// The owner's own organisation reaches it, which is the point of public.
-	await untilAllowed(() =>
-		api.as("manager").block.find({
-			id: resourceId,
-			zedToken,
-		}),
-	);
+	await api.as("manager").block.find({
+		id: resourceId,
+	});
 
 	/** Public is instance-wide: every role in another organisation can read and
 	 * list it, while the owning organisation's providers, models, and quotas
 	 * remain local. */
 	for (const role of ROLES) {
-		const found = await untilAllowed(() =>
-			api.as(role, other).block.find({
-				id: resourceId,
-				zedToken,
-			}),
-		);
+		const found = await api.as(role, other).block.find({
+			id: resourceId,
+		});
 		expect(found.data.id).toBe(resourceId);
 
 		/** Blocks come back newest first, so the block this test created is on
-		 * the first page whatever else the run has accumulated. */
-		await expect(async () => {
-			expect(
-				await blockIds(
-					api.as(role, other).block.list({
-						pageIndex: 0,
-						pageSize: 100,
-						zedToken,
-					}),
-				),
-			).toContain(resourceId);
-		}).toPass({
-			timeout: 15_000,
-		});
+		 * the first page whatever else the run has accumulated. `block.list`
+		 * takes its revision from the input, so the listing carries the token
+		 * of the change. */
+		expect(
+			await blockIds(
+				api.as(role, other).block.list({
+					pageIndex: 0,
+					pageSize: 100,
+					zedToken,
+				}),
+			),
+		).toContain(resourceId);
 	}
 });

@@ -63,7 +63,9 @@ for (const role of ROLES) {
 		);
 
 		// Every organisation gets an "All Members" group when it is created, so
-		// the neighbour always has at least one group that could leak.
+		// the neighbour always has at least one group that could leak. The
+		// neighbour admin's membership comes from the sign-up hook, which
+		// answers no zedToken.
 		const otherGroups = await untilAllowed(() =>
 			api.as("admin", other).group.list({
 				pageIndex: 0,
@@ -81,6 +83,13 @@ for (const role of ROLES) {
 		const page = await pageAs(role);
 		await enterApp(page, org.slug);
 
+		// The switcher carries the active organisation, so it renders before the
+		// neighbour's absence means anything.
+		await expect(
+			page.getByRole("button", {
+				name: org.name,
+			}),
+		).toBeVisible();
 		await expect(page.getByText(other.name)).toHaveCount(0);
 	});
 }

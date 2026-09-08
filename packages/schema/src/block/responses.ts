@@ -5,7 +5,6 @@ import {
 	createDataResponseSchema,
 	createListResponseSchema,
 	statusResponseSchema,
-	zedTokenSchema,
 } from "../shared";
 import { blockSchema, blockWithCapabilitiesSchema } from "./schema";
 
@@ -17,7 +16,6 @@ export const createBlockResponseSchema = createDataResponseSchema(
 	blockSchema,
 ).extend({
 	assets: z.array(assetIdSchema).optional(),
-	meta: zedTokenSchema.optional(),
 });
 
 export const findBlockResponseSchema = createDataResponseSchema(

@@ -12,7 +12,7 @@
 		"@orcai/contracts": "workspace:*",
 		"@orcai/core": "workspace:*",
 		"@orcai/schema": "workspace:*",
-		"@orpc/client": "2.0.0-beta.32",
+		"@orpc/client": "2.0.0-beta.34",
 		"@playwright/test": "1.62.1",
 		"@types/node": "catalog:",
 		"@types/pg": "catalog:",

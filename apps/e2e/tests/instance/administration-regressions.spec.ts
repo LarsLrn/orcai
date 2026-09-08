@@ -9,7 +9,7 @@ import {
 } from "../../fixtures/constants";
 import { expect, test } from "../../fixtures/index";
 import { enterApp, open } from "../../fixtures/navigation";
-import { signUpUnaffiliated } from "../../fixtures/organisation";
+import { adminSession, signUpUnaffiliated } from "../../fixtures/organisation";
 
 test("instance management has an independent route and survives the last organisation", async ({
 	appBaseURL,
@@ -201,24 +201,40 @@ test("admin browser and API sessions keep independent organisation selections", 
 		appBaseURL,
 		cookies.map(({ name, value }) => `${name}=${value}`).join("; "),
 	);
-	await browserClient.user.setActiveOrganization({
-		organizationId: other.id,
-	});
-	await api.asWellKnownAdmin().user.setActiveOrganization({
-		organizationId: org.id,
-	});
-	const session = await (
-		await page.request.get(`${appBaseURL}/api/auth/get-session`)
-	).json();
-	expect(session.session.activeOrganizationId).toBe(other.id);
-	await browserClient.user.setActiveOrganization({
-		organizationId: org.id,
-	});
-	await api.asWellKnownAdmin().user.setActiveOrganization({
-		organizationId: other.id,
-	});
-	const unchanged = await (
-		await page.request.get(`${appBaseURL}/api/auth/get-session`)
-	).json();
-	expect(unchanged.session.activeOrganizationId).toBe(org.id);
+	// The API session is cached per worker, so what this test selects on it
+	// outlives the test; the rest of the instance project expects the
+	// instance organisation.
+	const selected = await activeOrganizationOf(
+		appBaseURL,
+		await adminSession(appBaseURL),
+	);
+
+	try {
+		await browserClient.user.setActiveOrganization({
+			organizationId: other.id,
+		});
+		await api.asWellKnownAdmin().user.setActiveOrganization({
+			organizationId: org.id,
+		});
+		const session = await (
+			await page.request.get(`${appBaseURL}/api/auth/get-session`)
+		).json();
+		expect(session.session.activeOrganizationId).toBe(other.id);
+		await browserClient.user.setActiveOrganization({
+			organizationId: org.id,
+		});
+		await api.asWellKnownAdmin().user.setActiveOrganization({
+			organizationId: other.id,
+		});
+		const unchanged = await (
+			await page.request.get(`${appBaseURL}/api/auth/get-session`)
+		).json();
+		expect(unchanged.session.activeOrganizationId).toBe(org.id);
+	} finally {
+		if (selected) {
+			await api.asWellKnownAdmin().user.setActiveOrganization({
+				organizationId: organizationIdSchema.parse(selected),
+			});
+		}
+	}
 });

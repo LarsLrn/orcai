@@ -39,6 +39,7 @@ import * as Effect from "effect/Effect";
 import { SqlError } from "effect/unstable/sql/SqlError";
 import { auth } from "@/lib/auth/auth";
 import { detachAccountAccess } from "@/lib/authz/membership-detach";
+import { getZedToken } from "@/lib/authz/zed-token";
 import {
 	AuthzService,
 	enqueueRelationshipMutations,
@@ -95,7 +96,7 @@ export const listUsers = authed.user.list
 			entityType: "organization",
 			permission: "manage_members",
 			userId: context.auth.user.id,
-			zedToken: context.meta?.zedToken,
+			zedToken: getZedToken(context, input),
 		});
 
 		if (hasPermission(permission) === false) {
@@ -333,6 +334,7 @@ export const findUser = authed.user.find
 	.effect(function* ({ input, context }) {
 		const db = yield* DB;
 		const organizationId = context.auth.session.activeOrganizationId;
+		const zedToken = getZedToken(context, input);
 
 		if (input.id !== context.auth.user.id) {
 			const permission = yield* checkEntityPermission({
@@ -340,7 +342,7 @@ export const findUser = authed.user.find
 				entityType: "organization",
 				permission: "manage_members",
 				userId: context.auth.user.id,
-				zedToken: context.meta?.zedToken,
+				zedToken,
 			});
 
 			if (hasPermission(permission) === false) {
@@ -393,6 +395,7 @@ export const listUserAccess = authed.user.listAccess
 	.effect(function* ({ input, context }) {
 		const db = yield* DB;
 		const organizationId = context.auth.session.activeOrganizationId;
+		const zedToken = getZedToken(context, input);
 
 		if (input.id !== context.auth.user.id) {
 			const permission = yield* checkEntityPermission({
@@ -400,7 +403,7 @@ export const listUserAccess = authed.user.listAccess
 				entityType: "organization",
 				permission: "manage_members",
 				userId: context.auth.user.id,
-				zedToken: context.meta?.zedToken,
+				zedToken,
 			});
 
 			if (hasPermission(permission) === false) {
@@ -423,7 +426,7 @@ export const listUserAccess = authed.user.listAccess
 					userId: input.id,
 					permission: "read",
 					entityType: "bot",
-					zedToken: context.meta?.zedToken,
+					zedToken,
 				}).pipe(
 					Effect.map((items) =>
 						items.map((item) => ({
@@ -436,7 +439,7 @@ export const listUserAccess = authed.user.listAccess
 					userId: input.id,
 					permission: "read",
 					entityType: "block",
-					zedToken: context.meta?.zedToken,
+					zedToken,
 				}).pipe(
 					Effect.map((items) =>
 						items.map((item) => ({
@@ -449,7 +452,7 @@ export const listUserAccess = authed.user.listAccess
 					userId: input.id,
 					permission: "read",
 					entityType: "asset",
-					zedToken: context.meta?.zedToken,
+					zedToken,
 				}).pipe(
 					Effect.map((items) =>
 						items.map((item) => ({
@@ -541,7 +544,7 @@ export const listUserAccess = authed.user.listAccess
 						entityType,
 						permission,
 						userId: input.id,
-						zedToken: context.meta?.zedToken,
+						zedToken,
 					}).pipe(
 						Effect.map(
 							(response) =>
@@ -1166,7 +1169,7 @@ export const setActiveOrganization = authed.user.setActiveOrganization.effect(
 			entityType: "organization",
 			permission: "read",
 			userId: context.auth.user.id,
-			zedToken: context.meta?.zedToken,
+			zedToken: getZedToken(context),
 		}).pipe(
 			Effect.map((permission) => hasPermission(permission) === true),
 			Effect.catch(() => Effect.succeed(false)),

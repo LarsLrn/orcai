@@ -1,6 +1,5 @@
 import { createApiClient } from "../../fixtures/api";
 import { pageForSession } from "../../fixtures/auth/users";
-import { untilAllowed } from "../../fixtures/authorization";
 import { baseURL } from "../../fixtures/env";
 import { expect, test } from "../../fixtures/index";
 import { enterApp, open } from "../../fixtures/navigation";
@@ -10,14 +9,20 @@ test("users: a user in two organisations switches the active one", async ({
 	api,
 	browser,
 	orgs,
+	seedZedToken,
+	zedTokens,
 }) => {
 	const org = await orgs.create("E2E Users First");
 	const second = await orgs.create("E2E Users Second");
 	const user = await createThrowawayUser(baseURL(), "two-orgs");
-	await addMember(api, org, user);
-	await addMember(api, second, user);
+	await addMember(api, org, user, "member", zedTokens);
+	await addMember(api, second, user, "member", zedTokens);
 
-	const client = createApiClient(baseURL(), user.session.cookieHeader);
+	const client = createApiClient(
+		baseURL(),
+		user.session.cookieHeader,
+		zedTokens,
+	);
 
 	const me = await client.user.me({});
 	expect(me.data.id).toBe(user.id);
@@ -31,12 +36,10 @@ test("users: a user in two organisations switches the active one", async ({
 		organizationId: org.id,
 	});
 
-	const memberships = await untilAllowed(() =>
-		client.organization.list({
-			pageIndex: 0,
-			pageSize: 100,
-		}),
-	);
+	const memberships = await client.organization.list({
+		pageIndex: 0,
+		pageSize: 100,
+	});
 	expect(memberships.data.map((organisation) => organisation.slug)).toEqual(
 		expect.arrayContaining([
 			org.slug,
@@ -44,11 +47,9 @@ test("users: a user in two organisations switches the active one", async ({
 		]),
 	);
 
-	const access = await untilAllowed(() =>
-		client.user.listAccess({
-			id: user.id,
-		}),
-	);
+	const access = await client.user.listAccess({
+		id: user.id,
+	});
 	// This user owns nothing and was granted nothing, so it holds no access of
 	// its own. Public means visible to every signed-in user of the instance,
 	// so a public resource a parallel worker created is listed here too: what
@@ -62,7 +63,9 @@ test("users: a user in two organisations switches the active one", async ({
 	const { context, page } = await pageForSession(browser, user.session);
 
 	try {
+		await seedZedToken(page);
 		await enterApp(page, org.slug);
+
 		await expect(
 			page.getByRole("button", {
 				name: org.name,
@@ -77,19 +80,13 @@ test("users: a user in two organisations switches the active one", async ({
 		});
 		expect(switched.success).toBe(true);
 
-		// Snapshot lag: the first load after the switch can still miss the organisation in the sidebar.
-		await expect(async () => {
-			await open(page, "/en/app");
-			await expect(
-				page.getByRole("button", {
-					name: second.name,
-				}),
-			).toBeVisible({
-				timeout: 3_000,
-			});
-		}).toPass({
-			timeout: 20_000,
-		});
+		await seedZedToken(page);
+		await open(page, "/en/app");
+		await expect(
+			page.getByRole("button", {
+				name: second.name,
+			}),
+		).toBeVisible();
 		await expect(
 			page.getByRole("button", {
 				name: org.name,

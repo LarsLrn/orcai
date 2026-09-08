@@ -11,6 +11,7 @@ import {
 	acceptInvitation as acceptInvitedMembership,
 	invitationAddressedTo,
 } from "@/lib/auth/invitation-signup";
+import { getZedToken } from "@/lib/authz/zed-token";
 import { AppConfigService } from "@/lib/effect/services/config";
 import * as AppErrors from "@/lib/effect/utils/errors";
 import { authed } from "@/lib/orpc/implementation/authed";
@@ -228,6 +229,7 @@ export const createOrganizationInvitations =
 				yield* assertCanManageOrganizationAdmins({
 					organizationId: input.organizationId,
 					userId: context.auth.user.id,
+					zedToken: getZedToken(context),
 				});
 			}
 

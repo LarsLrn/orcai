@@ -1,29 +1,35 @@
-import { expectDenied, untilAllowed } from "../../fixtures/authorization";
+import { expectDenied } from "../../fixtures/authorization";
 import { baseURL } from "../../fixtures/env";
 import { expect, test } from "../../fixtures/index";
 import { enterApp } from "../../fixtures/navigation";
+import { runId } from "../../fixtures/organisation";
 import {
 	addMember,
 	chooseRole,
 	createThrowawayUser,
 	reachPage,
+	templateBlock,
 } from "../../fixtures/users/users";
 
 test("users: the edit page shows what an admin may know about a user", async ({
 	api,
 	org,
 	pageAs,
+	zedTokens,
 }) => {
 	const user = await createThrowawayUser(baseURL(), "details");
-	await addMember(api, org, user);
+	await addMember(api, org, user, "member", zedTokens);
 
-	// Earlier tests can leave public and All Members grants in this worker's
-	// organisation. Read the listed access before the page renders it.
-	const access = await untilAllowed(() =>
-		api.as("admin").user.listAccess({
-			id: user.id,
-		}),
-	);
+	// A block only this test grants, so the card carries a row of its own.
+	const blockName = `E2E Users Block ${runId()}`;
+	const block = await api.as("admin").block.create(templateBlock(blockName));
+	await api.as("admin").resource.grant({
+		resourceType: "block",
+		resourceId: block.data.id,
+		principalType: "user",
+		principalId: user.id,
+		role: "viewer",
+	});
 
 	const page = await pageAs("admin");
 	await enterApp(page, org.slug);
@@ -43,21 +49,41 @@ test("users: the edit page shows what an admin may know about a user", async ({
 	).toBeVisible();
 	/** Name and email are read-only; this page changes the organisation role and
 	 * ban state, while account deletion is instance-scoped. */
-	await expect(page.getByText("Active")).toBeVisible();
+	await expect(
+		page.getByText("Active", {
+			exact: true,
+		}),
+	).toBeVisible();
 	await expect(page.getByText("Not verified")).toBeVisible();
 	const accessCard = page.locator('[data-slot="card"]').filter({
 		hasText: "Effective Resource Access",
 	});
 	await expect(accessCard).toBeVisible();
-	await expect(accessCard.locator('[data-slot="card-content"] a')).toHaveCount(
-		access.data.length,
-	);
-	if (access.data.length === 0)
-		await expect(
-			accessCard.getByText(
-				"No effective resource access entries in this organisation.",
-			),
-		).toBeVisible();
+	const accessRow = accessCard
+		.locator('[data-slot="card-content"] > div')
+		.filter({
+			hasText: blockName,
+		});
+	await expect(
+		accessRow.getByRole("link", {
+			name: blockName,
+		}),
+	).toBeVisible();
+	await expect(
+		accessRow.getByText("Block", {
+			exact: true,
+		}),
+	).toBeVisible();
+	await expect(
+		accessRow.getByText("Direct user", {
+			exact: true,
+		}),
+	).toBeVisible();
+	await expect(
+		accessRow.getByText("viewer", {
+			exact: true,
+		}),
+	).toBeVisible();
 	await expect(
 		page.getByRole("button", {
 			name: "Member",
@@ -66,13 +92,42 @@ test("users: the edit page shows what an admin may know about a user", async ({
 	).toBeVisible();
 });
 
+test("users: the edit page reports a user without resource access", async ({
+	api,
+	orgs,
+	pageAs,
+	zedTokens,
+}) => {
+	// A new organisation grants nothing and owns no resources, so the card is empty.
+	const org = await orgs.create("E2E Users No Access");
+	const user = await createThrowawayUser(baseURL(), "no-access");
+	await addMember(api, org, user, "member", zedTokens);
+
+	const page = await pageAs("admin", org);
+	await enterApp(page, org.slug);
+	await reachPage(page, `/en/app/users/${user.id}/edit`, "Edit User");
+
+	const accessCard = page.locator('[data-slot="card"]').filter({
+		hasText: "Effective Resource Access",
+	});
+	await expect(
+		accessCard.getByText(
+			"No effective resource access entries in this organisation.",
+		),
+	).toBeVisible();
+	await expect(accessCard.locator('[data-slot="card-content"] a')).toHaveCount(
+		0,
+	);
+});
+
 test("users: an admin changes a user's organisation role", async ({
 	api,
 	org,
 	pageAs,
+	zedTokens,
 }) => {
 	const user = await createThrowawayUser(baseURL(), "promoted");
-	await addMember(api, org, user);
+	await addMember(api, org, user, "member", zedTokens);
 
 	const page = await pageAs("admin");
 	await enterApp(page, org.slug);
@@ -87,12 +142,10 @@ test("users: an admin changes a user's organisation role", async ({
 		}),
 	).toBeVisible();
 
-	const member = await untilAllowed(() =>
-		api.as("admin").organizationMember.find({
-			organizationId: org.id,
-			userId: user.id,
-		}),
-	);
+	const member = await api.as("admin").organizationMember.find({
+		organizationId: org.id,
+		userId: user.id,
+	});
 	expect(member.data.role).toBe("manager");
 });
 
@@ -100,9 +153,10 @@ test("users: a manager may not hand out the admin role", async ({
 	api,
 	org,
 	pageAs,
+	zedTokens,
 }) => {
 	const user = await createThrowawayUser(baseURL(), "not-admin");
-	await addMember(api, org, user);
+	await addMember(api, org, user, "member", zedTokens);
 
 	const page = await pageAs("manager");
 	await enterApp(page, org.slug);
@@ -150,9 +204,10 @@ test("users: an organisation admin is not offered ban or delete", async ({
 	api,
 	org,
 	pageAs,
+	zedTokens,
 }) => {
 	const user = await createThrowawayUser(baseURL(), "banned");
-	await addMember(api, org, user);
+	await addMember(api, org, user, "member", zedTokens);
 
 	const page = await pageAs("admin");
 	await enterApp(page, org.slug);

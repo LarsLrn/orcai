@@ -4,6 +4,7 @@ import { and, count, eq, getColumns, inArray, sql } from "drizzle-orm";
 import * as Effect from "effect/Effect";
 import { detachOrganizationAccess } from "@/lib/authz/membership-detach";
 import { syncRelationshipTransition } from "@/lib/authz/relationship-transition";
+import { getZedToken } from "@/lib/authz/zed-token";
 import {
 	AuthzService,
 	enqueueRelationshipMutations,
@@ -148,6 +149,7 @@ export const updateOrganizationMember = authed.organizationMember.update
 					yield* assertCanManageOrganizationAdmins({
 						organizationId: input.organizationId,
 						userId: context.auth.user.id,
+						zedToken: getZedToken(context),
 					});
 				}
 
@@ -217,7 +219,7 @@ export const updateOrganizationMember = authed.organizationMember.update
 			);
 		}
 
-		if (existing && existing.role !== member.role) {
+		if (existing && existing.role !== member.role)
 			yield* syncRelationshipTransition({
 				resourceType: "organization",
 				resourceId: input.organizationId,
@@ -226,7 +228,6 @@ export const updateOrganizationMember = authed.organizationMember.update
 				oldRelation: existing.role,
 				newRelation: member.role,
 			});
-		}
 
 		return {
 			data: member,
@@ -274,6 +275,7 @@ export const deleteOrganizationMembers = authed.organizationMember.delete
 					yield* assertCanManageOrganizationAdmins({
 						organizationId: input.organizationId,
 						userId: context.auth.user.id,
+						zedToken: getZedToken(context),
 					});
 
 					const [adminCountResult] = yield* tx

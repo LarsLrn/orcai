@@ -2,7 +2,7 @@ import { submitForm } from "../../fixtures/forms";
 import { expect, test } from "../../fixtures/index";
 import { enterApp } from "../../fixtures/navigation";
 import { runId } from "../../fixtures/organisation";
-import { openWhenGranted } from "../../fixtures/orgs/navigation";
+import { openGuarded } from "../../fixtures/orgs/navigation";
 
 /** The id the app puts in the detail URL once an organisation exists. */
 const ORGANISATION_URL = /\/en\/app\/orgs\/([0-9a-f-]{36})$/;
@@ -22,13 +22,13 @@ test("orgs: an admin edits the settings of its organisation", async ({
 
 	await enterApp(page, created.slug);
 
-	// Reached by id, retrying the navigation through snapshot lag on the loader's read.
-	await openWhenGranted(page, `/en/app/orgs/${created.id}`, created.name);
+	// Reached by id; the detail page is the only place the slug is shown.
+	await openGuarded(page, `/en/app/orgs/${created.id}`, created.name);
 	await expect(page.getByText(created.slug)).toBeVisible();
 
 	const renamed = `${created.name} Renamed`;
 
-	await openWhenGranted(
+	await openGuarded(
 		page,
 		`/en/app/orgs/${created.id}/edit`,
 		"Edit Organisation",
@@ -44,7 +44,7 @@ test("orgs: an admin edits the settings of its organisation", async ({
 		until: ORGANISATION_URL,
 	});
 
-	await openWhenGranted(page, `/en/app/orgs/${created.id}`, renamed);
+	await openGuarded(page, `/en/app/orgs/${created.id}`, renamed);
 
 	const found = await api.as("admin", created).organization.find({
 		id: created.id,

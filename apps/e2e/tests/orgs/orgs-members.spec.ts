@@ -6,7 +6,7 @@ import {
 	createOrgsUser,
 	memberRole,
 } from "../../fixtures/orgs/members";
-import { openWhenGranted } from "../../fixtures/orgs/navigation";
+import { openGuarded } from "../../fixtures/orgs/navigation";
 import {
 	chooseRole,
 	openRolePicker,
@@ -19,6 +19,7 @@ test("orgs: an admin changes a member's role from the member's page", async ({
 	appBaseURL,
 	org,
 	pageAs,
+	zedTokens,
 }) => {
 	test.slow();
 
@@ -27,27 +28,22 @@ test("orgs: an admin changes a member's role from the member's page", async ({
 		organizationId: org.id,
 		user,
 		role: "member",
+		zedTokens,
 	});
 
 	const page = await pageAs("admin");
 	await enterApp(page, org.slug);
-	await openWhenGranted(page, `/en/app/users/${user.id}/edit`, "Edit User");
+	await openGuarded(page, `/en/app/users/${user.id}/edit`, "Edit User");
 
 	await chooseRole(page, "member", "manager");
 
 	await expect(rolePicker(page, "manager")).toBeVisible();
-	await expect
-		.poll(
-			async () =>
-				await memberRole(api.as("admin"), {
-					organizationId: org.id,
-					userId: user.id,
-				}),
-			{
-				timeout: 15_000,
-			},
-		)
-		.toBe("manager");
+	expect(
+		await memberRole(api.as("admin"), {
+			organizationId: org.id,
+			userId: user.id,
+		}),
+	).toBe("manager");
 });
 
 test("orgs: a manager changes roles but is not offered the admin role", async ({
@@ -55,6 +51,7 @@ test("orgs: a manager changes roles but is not offered the admin role", async ({
 	appBaseURL,
 	org,
 	pageAs,
+	zedTokens,
 }) => {
 	test.slow();
 
@@ -63,27 +60,22 @@ test("orgs: a manager changes roles but is not offered the admin role", async ({
 		organizationId: org.id,
 		user,
 		role: "member",
+		zedTokens,
 	});
 
 	const page = await pageAs("manager");
 	await enterApp(page, org.slug);
-	await openWhenGranted(page, `/en/app/users/${user.id}/edit`, "Edit User");
+	await openGuarded(page, `/en/app/users/${user.id}/edit`, "Edit User");
 
 	await chooseRole(page, "member", "viewer");
 
 	await expect(rolePicker(page, "viewer")).toBeVisible();
-	await expect
-		.poll(
-			async () =>
-				await memberRole(api.as("admin"), {
-					organizationId: org.id,
-					userId: user.id,
-				}),
-			{
-				timeout: 15_000,
-			},
-		)
-		.toBe("viewer");
+	expect(
+		await memberRole(api.as("admin"), {
+			organizationId: org.id,
+			userId: user.id,
+		}),
+	).toBe("viewer");
 
 	// Handing out an admin role needs `manage_organization`, which a manager
 	// does not have, so the picker leaves it out entirely. The role change
@@ -115,12 +107,16 @@ test("orgs: an admin removes a member from the organisation", async ({
 	appBaseURL,
 	org,
 	pageAs,
+	zedTokens,
 }) => {
+	test.slow();
+
 	const user = await createOrgsUser(appBaseURL, "removed");
 	await addMember(api.as("admin"), {
 		organizationId: org.id,
 		user,
 		role: "member",
+		zedTokens,
 	});
 
 	// There is no remove-from-organisation control in the interface, only a
@@ -146,9 +142,17 @@ test("orgs: an admin removes a member from the organisation", async ({
 	const page = await pageAs("admin");
 	await enterApp(page, org.slug);
 
-	// The member page is scoped to the active organisation, so a user that is
-	// no longer a member has nothing to show.
+	// The member page reads the user through the active organisation, so a
+	// user that is no longer a member fails the read and the error boundary
+	// takes over instead of the page.
 	await page.goto(`/en/app/users/${user.id}/edit`);
+	await expect(
+		page.getByRole("button", {
+			name: "Try Again",
+		}),
+	).toBeVisible({
+		timeout: 30_000,
+	});
 	await expect(
 		page.getByRole("heading", {
 			name: "Edit User",

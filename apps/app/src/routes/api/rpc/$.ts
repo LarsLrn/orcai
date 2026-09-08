@@ -1,18 +1,16 @@
 import { trace } from "@opentelemetry/api";
 import { ORPCError, onError, ValidationError } from "@orpc/server";
 import { RPCHandler } from "@orpc/server/fetch";
-import { getCookie } from "@orpc/server/helpers";
 import {
-	BatchHandlerPlugin,
 	GetMethodCsrfProtectionHandlerPlugin,
 	RequestHeadersHandlerPlugin,
 	ResponseCompressionHandlerPlugin,
+	ResponseHeadersHandlerPlugin,
 } from "@orpc/server/plugins";
 import { createFileRoute } from "@tanstack/react-router";
 import { z } from "zod/v4";
 import { createORPCContext } from "@/lib/orpc/implementation/context";
 import { router } from "@/lib/orpc/router";
-import { COOKIES, HEADERS } from "@/settings/constants";
 
 const handler = new RPCHandler(router, {
 	clientInterceptors: [
@@ -65,7 +63,7 @@ const handler = new RPCHandler(router, {
 	],
 	plugins: [
 		new RequestHeadersHandlerPlugin(),
-		new BatchHandlerPlugin(),
+		new ResponseHeadersHandlerPlugin(),
 		new ResponseCompressionHandlerPlugin(),
 		new GetMethodCsrfProtectionHandlerPlugin(),
 	],
@@ -75,19 +73,10 @@ export const Route = createFileRoute("/api/rpc/$")({
 	server: {
 		handlers: {
 			ANY: async ({ request }) => {
-				// 1. Try explicit header (from Client Fetch)
-				let zedToken = request.headers.get(HEADERS.X_ZED_TOKEN) || undefined;
-
-				// 2. Fallback to Cookie (from SSR/Loader calls)
-				if (!zedToken) {
-					zedToken = getCookie(request.headers, COOKIES.ZED_TOKEN.name);
-				}
-
 				const { response } = await handler.handle(request, {
 					prefix: "/api/rpc",
 					context: await createORPCContext({
 						reqHeaders: request.headers,
-						zedToken,
 					}),
 				});
 

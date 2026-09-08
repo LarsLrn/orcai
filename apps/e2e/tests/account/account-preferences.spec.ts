@@ -21,27 +21,15 @@ test("account: a user switches the theme and the choice survives a reload", asyn
 	// resolved theme onto the document before React takes over.
 	await expect(html).toHaveClass(/light/);
 
-	await expect(async () => {
-		await themeToggle(page).click();
-		await expect(html).toHaveClass(/dark/, {
-			timeout: 3_000,
-		});
-	}).toPass({
-		timeout: 25_000,
-	});
+	await themeToggle(page).click();
+	await expect(html).toHaveClass(/dark/);
 
 	// The theme lives in local storage of the browser, not with the user.
 	await openAccountPage(page);
 	await expect(html).toHaveClass(/dark/);
 
-	await expect(async () => {
-		await themeToggle(page).click();
-		await expect(html).toHaveClass(/light/, {
-			timeout: 3_000,
-		});
-	}).toPass({
-		timeout: 25_000,
-	});
+	await themeToggle(page).click();
+	await expect(html).toHaveClass(/light/);
 });
 
 test("account: skipping the app tour is remembered for the user", async ({
@@ -74,11 +62,9 @@ test("account: skipping the app tour is remembered for the user", async ({
 
 		await expect(page.getByText("Tour skipped")).toBeVisible();
 
-		await expect
-			.poll(async () => (await user.api.user.me({})).data.preferences?.tours)
-			.toEqual({
-				initialTour: "skipped",
-			});
+		expect((await user.api.user.me({})).data.preferences?.tours).toEqual({
+			initialTour: "skipped",
+		});
 
 		// The state is the user's, so the tour stays away on the next load.
 		await open(page, "/en/app");

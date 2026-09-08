@@ -1,5 +1,4 @@
 import { randomBytes } from "node:crypto";
-import { ORPCError } from "@orpc/client";
 import {
 	activeOrganizationOf,
 	attemptSignUp,
@@ -83,31 +82,14 @@ test("sign-up consumes the invitation and enters the organisation", async ({
 
 	// Sign-up wrote the membership with the invited role, and with one
 	// organisation the new session already sits inside it.
-	await expect
-		.poll(
-			async () => {
-				try {
-					const users = await api.as("admin").user.list({
-						pageIndex: 0,
-						pageSize: 100,
-					});
+	const users = await api.as("admin").user.list({
+		pageIndex: 0,
+		pageSize: 100,
+	});
 
-					return users.data.find((user) => user.email === email)
-						?.organizationRole;
-				} catch (error) {
-					// Snapshot lag: a stale FORBIDDEN is polled away like the fixtures do.
-					if (error instanceof ORPCError && error.code === "FORBIDDEN") {
-						return undefined;
-					}
-
-					throw error;
-				}
-			},
-			{
-				timeout: 15_000,
-			},
-		)
-		.toBe("viewer");
+	expect(
+		users.data.find((user) => user.email === email)?.organizationRole,
+	).toBe("viewer");
 
 	expect(await activeOrganizationOf(appBaseURL, session)).toBe(org.id);
 });

@@ -6,6 +6,7 @@ import {
 	hasManageGroups,
 	visibleGroupScope,
 } from "@/lib/authz/group-visibility";
+import { getZedToken } from "@/lib/authz/zed-token";
 import { AuthzService } from "@/lib/effect/services/authz";
 import * as AppErrors from "@/lib/effect/utils/errors";
 import { authed } from "@/lib/orpc/implementation/authed";
@@ -26,7 +27,7 @@ export const listGroups = authed.group.list
 				organizationId,
 			],
 			userId: context.auth.user.id,
-			zedToken: context.meta?.zedToken,
+			zedToken: getZedToken(context),
 		});
 
 		const queryLike = input.filters?.search
@@ -94,7 +95,7 @@ export const findGroup = authed.group.find
 				organizationId,
 			],
 			userId: context.auth.user.id,
-			zedToken: context.meta?.zedToken,
+			zedToken: getZedToken(context),
 		});
 
 		const [group] = yield* db
@@ -367,7 +368,7 @@ export const listGroupMembers = authed.group.listMembers
 				organizationId,
 			],
 			userId: context.auth.user.id,
-			zedToken: context.meta?.zedToken,
+			zedToken: getZedToken(context),
 		});
 
 		const [group] = yield* db
@@ -398,7 +399,7 @@ export const listGroupMembers = authed.group.listMembers
 		const canSeeEmail = yield* hasManageGroups({
 			organizationId,
 			userId: context.auth.user.id,
-			zedToken: context.meta?.zedToken,
+			zedToken: getZedToken(context),
 		});
 		const queryLike = input.query
 			? literalSearch(input.query.trim())

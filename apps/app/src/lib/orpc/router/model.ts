@@ -1,6 +1,6 @@
 import { DB, dbSchema } from "@orcai/db";
 import type { ModelCapability, ModelSortKey } from "@orcai/schema";
-import { call } from "@orpc/server";
+import { call, ORPCError } from "@orpc/server";
 import {
 	and,
 	arrayContains,
@@ -322,11 +322,26 @@ export const discoverModels = authed.model.discover
 						context,
 					},
 				),
-			catch: (cause) =>
-				new AppErrors.BadRequestError({
+			catch: (cause) => {
+				if (cause instanceof ORPCError && cause.code === "FORBIDDEN") {
+					return new AppErrors.ForbiddenError({
+						message: "Failed to find provider",
+						cause,
+					});
+				}
+
+				if (cause instanceof ORPCError && cause.code === "NOT_FOUND") {
+					return new AppErrors.NotFoundError({
+						message: "Failed to find provider",
+						cause,
+					});
+				}
+
+				return new AppErrors.BadRequestError({
 					message: "Failed to find provider",
 					cause,
-				}),
+				});
+			},
 		});
 
 		const openAiClient = new OpenAI({

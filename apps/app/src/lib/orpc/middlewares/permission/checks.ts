@@ -1,6 +1,7 @@
 import type { EntityIdFor, EntityType } from "@orcai/spice-db";
 import { checkManyEntityPermissions, hasPermission } from "@orcai/spice-db";
 import * as Effect from "effect/Effect";
+import { getZedToken } from "@/lib/authz/zed-token";
 import * as AppErrors from "@/lib/effect/utils/errors";
 import { runMiddlewareEffect } from "@/lib/effect/utils/orpc-helpers";
 import { withName } from "@/lib/orpc/middlewares/utils";
@@ -8,7 +9,6 @@ import { unique } from "@/lib/utils/array-utils";
 import {
 	ensurePermission,
 	forbiddenPermissionError,
-	getZedToken,
 	permissionBase,
 } from "./core";
 import type {

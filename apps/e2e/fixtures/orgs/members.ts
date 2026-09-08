@@ -1,8 +1,7 @@
 import type { OrganizationId, UserId } from "@orcai/core";
 import { userIdSchema } from "@orcai/schema";
-import { type ApiClient, createApiClient } from "../api";
+import { type ApiClient, createApiClient, type ZedTokenStore } from "../api";
 import type { Session } from "../auth";
-import { untilAllowed } from "../authorization";
 import { EMAIL_DOMAIN, type Role, USER_PASSWORD } from "../constants";
 import { baseURL } from "../env";
 import { runId, signUpUnaffiliated } from "../organisation";
@@ -49,6 +48,8 @@ export const addMember = async (
 		organizationId: OrganizationId;
 		user: OrgsUser;
 		role: Role;
+		/** The test's zedToken memory, so its later reads see the acceptance. */
+		zedTokens: ZedTokenStore;
 	},
 ): Promise<void> => {
 	const invitation = await inviteEmail(api, {
@@ -60,6 +61,7 @@ export const addMember = async (
 	await createApiClient(
 		baseURL(),
 		membership.user.session.cookieHeader,
+		membership.zedTokens,
 	).organizationInvitation.respond({
 		id: invitation.id,
 		response: "accept",
@@ -74,9 +76,7 @@ export const memberRole = async (
 		userId: UserId;
 	},
 ): Promise<Role | undefined> => {
-	const found = await untilAllowed(() =>
-		api.organizationMember.find(membership),
-	);
+	const found = await api.organizationMember.find(membership);
 
 	return found.data.role;
 };

@@ -2,9 +2,8 @@ import { randomUUID } from "node:crypto";
 import { organizationInvitationIdSchema } from "@orcai/schema";
 import { createApiClient } from "../../fixtures/api";
 import { attemptSignUp, signIn } from "../../fixtures/auth";
-import { untilAllowed } from "../../fixtures/authorization";
 import { USER_PASSWORD } from "../../fixtures/constants";
-import { expect, test } from "../../fixtures/index";
+import { expect, test, type WorkerOrganisation } from "../../fixtures/index";
 import { open } from "../../fixtures/navigation";
 import { registerFromInvitation } from "../../fixtures/orgs/invitations";
 
@@ -17,23 +16,23 @@ test("registration validates the selected invitation and leaves the others pendi
 }) => {
 	const second = await orgs.create("Pending invitation");
 	const email = `selected-${randomUUID()}@e2e.orcai.test`;
-	const invite = async (organizationId: typeof org.id) =>
+	// Each organisation invites through its own admin, whose membership the
+	// organisation fixture has already read back.
+	const invite = async (organisation: WorkerOrganisation) =>
 		(
-			await untilAllowed(() =>
-				api.asWellKnownAdmin().organizationInvitation.create({
-					organizationId,
-					role: "viewer",
-					expiresAt: new Date(Date.now() + 86400000),
-					items: [
-						{
-							email,
-						},
-					],
-				}),
-			)
+			await api.as("admin", organisation).organizationInvitation.create({
+				organizationId: organisation.id,
+				role: "viewer",
+				expiresAt: new Date(Date.now() + 86400000),
+				items: [
+					{
+						email,
+					},
+				],
+			})
 		).data[0].id;
-	const firstId = await invite(org.id);
-	const secondId = await invite(second.id);
+	const firstId = await invite(org);
+	const secondId = await invite(second);
 	const signup = {
 		name: "Selected invitation",
 		email,
@@ -69,13 +68,11 @@ test("registration validates the selected invitation and leaves the others pendi
 			status: "accepted" as const,
 		},
 	]) {
-		await untilAllowed(() =>
-			api.as("admin").organizationInvitation.update({
-				organizationId: org.id,
-				id: firstId,
-				...patch,
-			}),
-		);
+		await api.as("admin").organizationInvitation.update({
+			organizationId: org.id,
+			id: firstId,
+			...patch,
+		});
 		expect(
 			(
 				await attemptSignUp(appBaseURL, {
@@ -84,14 +81,12 @@ test("registration validates the selected invitation and leaves the others pendi
 				})
 			).ok,
 		).toBe(false);
-		await untilAllowed(() =>
-			api.as("admin").organizationInvitation.update({
-				organizationId: org.id,
-				id: firstId,
-				status: "pending",
-				expiresAt: new Date(Date.now() + 86400000),
-			}),
-		);
+		await api.as("admin").organizationInvitation.update({
+			organizationId: org.id,
+			id: firstId,
+			status: "pending",
+			expiresAt: new Date(Date.now() + 86400000),
+		});
 	}
 	const accepted = await attemptSignUp(appBaseURL, {
 		...signup,
@@ -157,23 +152,23 @@ test("registration lands on the picker when another invitation is pending", asyn
 }) => {
 	const other = await orgs.create("Additional registration invitation");
 	const email = `picker-${randomUUID()}@e2e.orcai.test`;
-	const invite = async (organizationId: typeof org.id) =>
+	// Each organisation invites through its own admin, whose membership the
+	// organisation fixture has already read back.
+	const invite = async (organisation: WorkerOrganisation) =>
 		(
-			await untilAllowed(() =>
-				api.asWellKnownAdmin().organizationInvitation.create({
-					organizationId,
-					role: "viewer",
-					expiresAt: new Date(Date.now() + 86400000),
-					items: [
-						{
-							email,
-						},
-					],
-				}),
-			)
+			await api.as("admin", organisation).organizationInvitation.create({
+				organizationId: organisation.id,
+				role: "viewer",
+				expiresAt: new Date(Date.now() + 86400000),
+				items: [
+					{
+						email,
+					},
+				],
+			})
 		).data[0].id;
-	const firstId = await invite(org.id);
-	await invite(other.id);
+	const firstId = await invite(org);
+	await invite(other);
 	await registerFromInvitation(page, `/en/register?inv=${firstId}`, {
 		name: "Picker registration",
 		password: USER_PASSWORD,

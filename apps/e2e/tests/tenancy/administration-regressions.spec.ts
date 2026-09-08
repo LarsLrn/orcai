@@ -1,7 +1,7 @@
 import { userIdSchema } from "@orcai/schema";
-import { untilAllowed } from "../../fixtures/authorization";
 import { templateBlock } from "../../fixtures/groups/groups";
 import { expect, test } from "../../fixtures/index";
+import { runId } from "../../fixtures/organisation";
 
 test("directory omits and cannot search emails for ordinary roles", async ({
 	api,
@@ -15,22 +15,20 @@ test("directory omits and cannot search emails for ordinary roles", async ({
 		"manager",
 	] as const) {
 		const client = api.as(role);
-		const groups = await untilAllowed(() =>
-			client.group.list({
-				pageIndex: 0,
-				pageSize: 100,
-			}),
-		);
+		// The roster is scoped by the caller's group visibility and shows emails
+		// only to `manage_groups`.
+		const groups = await client.group.list({
+			pageIndex: 0,
+			pageSize: 100,
+		});
 		const group = groups.data.find((item) => item.systemKey === "all_members");
 		expect(group).toBeDefined();
 		if (!group) throw new Error("Missing All Members group");
-		const roster = await untilAllowed(() =>
-			client.group.listMembers({
-				groupId: group.id,
-				pageIndex: 0,
-				pageSize: 100,
-			}),
-		);
+		const roster = await client.group.listMembers({
+			groupId: group.id,
+			pageIndex: 0,
+			pageSize: 100,
+		});
 		expect(roster.data.some(({ user }) => user.id === org.users.admin.id)).toBe(
 			true,
 		);
@@ -48,56 +46,48 @@ test("directory omits and cannot search emails for ordinary roles", async ({
 		expect(emailSearch.rowCount).toBe(role === "manager" ? 1 : 0);
 	}
 	const member = api.as("member");
-	const block = await untilAllowed(() =>
-		member.block.create(templateBlock("Directory share")),
-	);
-	const principals = await untilAllowed(() =>
-		member.resource.listPrincipals({
-			resourceType: "block",
-			resourceId: block.data.id,
-			principalType: "user",
-		}),
-	);
+	const block = await member.block.create(templateBlock("Directory share"));
+	const principals = await member.resource.listPrincipals({
+		resourceType: "block",
+		resourceId: block.data.id,
+		principalType: "user",
+	});
 	const colleague = principals.data.find(
 		(principal) => principal.id === org.users.viewer.id,
 	);
 	expect(colleague).toBeDefined();
 	expect(colleague).not.toHaveProperty("email");
 	if (!colleague) throw new Error("Colleague not found");
-	const named = await untilAllowed(() =>
-		member.resource.listPrincipals({
-			resourceType: "block",
-			resourceId: block.data.id,
-			principalType: "user",
-			query: colleague.name,
-		}),
-	);
+	const named = await member.resource.listPrincipals({
+		resourceType: "block",
+		resourceId: block.data.id,
+		principalType: "user",
+		query: colleague.name,
+	});
 	expect(named.data.some((principal) => principal.id === colleague.id)).toBe(
 		true,
 	);
-	expect(
-		(
-			await member.resource.listPrincipals({
-				resourceType: "block",
-				resourceId: block.data.id,
-				query: org.users.viewer.email,
-			})
-		).rowCount,
-	).toBe(0);
-	const granted = await untilAllowed(() =>
-		member.resource.grant({
-			resourceType: "block",
-			resourceId: block.data.id,
-			principalType: "user",
-			principalId: userIdSchema.parse(org.users.viewer.id),
-			role: "viewer",
-		}),
-	);
+	const byEmail = await member.resource.listPrincipals({
+		resourceType: "block",
+		resourceId: block.data.id,
+		query: org.users.viewer.email,
+	});
+	expect(byEmail.rowCount).toBe(0);
+	const granted = await member.resource.grant({
+		resourceType: "block",
+		resourceId: block.data.id,
+		principalType: "user",
+		principalId: userIdSchema.parse(org.users.viewer.id),
+		role: "viewer",
+	});
 	expect(granted.data.principal).not.toHaveProperty("email");
 	const grants = await member.resource.listGrants({
 		resourceType: "block",
 		resourceId: block.data.id,
 	});
+	expect(grants.data.some((grant) => grant.principalId === colleague.id)).toBe(
+		true,
+	);
 	for (const grant of grants.data)
 		expect(grant.principal).not.toHaveProperty("email");
 });
@@ -106,16 +96,16 @@ test("literal wildcard searches do not broaden group discovery", async ({
 	api,
 }) => {
 	const client = api.as("admin");
-	const name = "Literal %_\\ marker";
-	await untilAllowed(() =>
-		client.group.create({
-			name,
-		}),
-	);
+	const name = `Literal %_\\ marker ${runId()}`;
+	await client.group.create({
+		name,
+	});
 	for (const search of [
 		"%_\\",
 		"LITERAL %",
 	]) {
+		// A wildcard reading of `%` and `_` would reach every group of the
+		// organisation; a literal one reaches the marker groups and no others.
 		const result = await client.group.list({
 			filters: {
 				search,
@@ -123,8 +113,8 @@ test("literal wildcard searches do not broaden group discovery", async ({
 			pageIndex: 0,
 			pageSize: 100,
 		});
-		expect(result.data.map((group) => group.name)).toEqual([
-			name,
-		]);
+		expect(result.data.map((group) => group.name)).toContain(name);
+		for (const group of result.data)
+			expect(group.name.toLowerCase()).toContain(search.toLowerCase());
 	}
 });

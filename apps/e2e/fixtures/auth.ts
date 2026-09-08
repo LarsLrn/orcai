@@ -1,7 +1,6 @@
 import type { OrganizationId, OrganizationInvitationId } from "@orcai/core";
 import type { BrowserContextOptions } from "@playwright/test";
-import type { ApiClient } from "./api";
-import { untilAllowed } from "./authorization";
+import { type ApiClient, ZED_TOKEN_COOKIE } from "./api";
 import { type Role, USER_PASSWORD } from "./constants";
 
 export type StorageState = Exclude<
@@ -16,6 +15,8 @@ export type Session = {
 	cookieHeader: string;
 	/** Playwright storage state, for `browser.newContext`. */
 	storageState: StorageState;
+	/** The `zed_token` the response set, when it granted authorisation. */
+	zedToken?: string;
 };
 
 type SetCookie = {
@@ -81,6 +82,15 @@ const toStorageState = (
 	};
 };
 
+/** The revision the response handed out, decoded from its cookie value. */
+const zedTokenIn = (cookies: readonly SetCookie[]) => {
+	const cookie = cookies.find(
+		(candidate) => candidate.name === ZED_TOKEN_COOKIE,
+	);
+
+	return cookie ? decodeURIComponent(cookie.value) : undefined;
+};
+
 const toCookieHeader = (cookies: readonly SetCookie[]) =>
 	cookies.map((cookie) => `${cookie.name}=${cookie.value}`).join("; ");
 
@@ -117,6 +127,7 @@ const readSession = async (
 		email: body.user.email,
 		cookieHeader: toCookieHeader(cookies),
 		storageState: toStorageState(baseURL, cookies),
+		zedToken: zedTokenIn(cookies),
 	};
 };
 
@@ -167,7 +178,9 @@ const ONE_WEEK = 7 * 24 * 60 * 60 * 1000;
 
 /**
  * Invite an address as `admin`, then sign it up. The user comes back a member
- * with the invited role and, if this is its only organisation, inside it.
+ * with the invited role and, if this is its only organisation, inside it. The
+ * sign-up response carries the `zedToken` of the granted membership, so a
+ * caller that keeps it reads the membership without waiting.
  */
 export const signUpInvited = async (params: {
 	baseURL: string;
@@ -185,18 +198,16 @@ export const signUpInvited = async (params: {
 	}
 > => {
 	const password = params.password ?? USER_PASSWORD;
-	const created = await untilAllowed(() =>
-		params.admin.organizationInvitation.create({
-			organizationId: params.organisation.id,
-			role: params.role,
-			expiresAt: new Date(Date.now() + ONE_WEEK),
-			items: [
-				{
-					email: params.email,
-				},
-			],
-		}),
-	);
+	const created = await params.admin.organizationInvitation.create({
+		organizationId: params.organisation.id,
+		role: params.role,
+		expiresAt: new Date(Date.now() + ONE_WEEK),
+		items: [
+			{
+				email: params.email,
+			},
+		],
+	});
 
 	const response = await attemptSignUp(params.baseURL, {
 		invitationId: created.data[0].id,

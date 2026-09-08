@@ -8,6 +8,7 @@ import {
 } from "@orcai/spice-db";
 import { and, count, desc, eq, getColumns, ilike, inArray } from "drizzle-orm";
 import * as Effect from "effect/Effect";
+import { getZedToken } from "@/lib/authz/zed-token";
 import { AuthzService } from "@/lib/effect/services/authz";
 import * as AppErrors from "@/lib/effect/utils/errors";
 import { authed } from "@/lib/orpc/implementation/authed";
@@ -29,7 +30,7 @@ export const listChats = authed.chat.list.effect(function* ({
 		userId: context.auth.user.id,
 		permission: "read",
 		entityType: "chat",
-		zedToken: input.zedToken,
+		zedToken: getZedToken(context, input),
 	}).pipe(
 		Effect.map((response) => response.map((item) => item.resourceObjectId)),
 	);
@@ -146,7 +147,7 @@ export const createChat = authed.chat.create.effect(function* ({
 			entityType: "bot",
 			permission: "use",
 			userId: context.auth.user.id,
-			zedToken: context.meta?.zedToken,
+			zedToken: getZedToken(context),
 		});
 
 		if (hasPermission(canUseBot) === false) {
@@ -156,7 +157,7 @@ export const createChat = authed.chat.create.effect(function* ({
 						allowed: false,
 						permission: "use",
 						entityType: "bot",
-						zedToken: context.meta?.zedToken,
+						zedToken: getZedToken(context),
 					},
 				}),
 			);
@@ -198,7 +199,7 @@ export const createChat = authed.chat.create.effect(function* ({
 		}),
 	);
 
-	const relationResult = yield* authz.applyRelationshipMutations({
+	yield* authz.applyRelationshipMutations({
 		mutations: [
 			{
 				resourceType: "chat",
@@ -227,9 +228,6 @@ export const createChat = authed.chat.create.effect(function* ({
 		data: {
 			...chat,
 			activeBranchId: mainBranch.id,
-		},
-		meta: {
-			zedToken: relationResult.zedToken,
 		},
 	};
 });

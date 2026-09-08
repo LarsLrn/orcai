@@ -19,13 +19,14 @@ export const organizationRoleRequiresAdminControl = (
 export const assertCanManageOrganizationAdmins = (params: {
 	organizationId: OrganizationId;
 	userId: UserId;
+	zedToken: string | undefined;
 }) =>
 	checkEntityPermission({
 		entityType: "organization",
 		entityId: params.organizationId,
 		permission: "manage_organization" satisfies PermissionFor<"organization">,
 		userId: params.userId,
-		zedToken: undefined,
+		zedToken: params.zedToken,
 	}).pipe(
 		Effect.filterOrFail(
 			(result) => hasPermission(result),

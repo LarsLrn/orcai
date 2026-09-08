@@ -1,9 +1,8 @@
 import { randomBytes } from "node:crypto";
 import type { OrganizationId, UserId } from "@orcai/core";
 import { organizationIdSchema, userIdSchema } from "@orcai/schema";
-import { createApiClient } from "./api";
+import { createApiClient, createZedTokenStore } from "./api";
 import { type Session, type StorageState, signIn, signUpInvited } from "./auth";
-import { untilAllowed } from "./authorization";
 import {
 	EMAIL_DOMAIN,
 	INSTANCE_ORGANISATION,
@@ -32,10 +31,16 @@ export type WorkerOrganisation = {
 /** Short suffix that keeps `--no-reset` reruns from colliding. */
 export const runId = (): string => randomBytes(3).toString("hex");
 
+/** One zedToken memory per worker: setup writes and the tests that follow share it. */
+export const workerZedTokens = createZedTokenStore();
+
+const adminApiClient = (baseURL: string, cookieHeader: string) =>
+	createApiClient(baseURL, cookieHeader, workerZedTokens);
+
 /** Sign in as the well-known admin with the instance organisation active. */
 const openAdminSession = async (baseURL: string): Promise<Session> => {
 	const session = await signIn(baseURL, WELL_KNOWN_ADMIN);
-	const api = createApiClient(baseURL, session.cookieHeader);
+	const api = adminApiClient(baseURL, session.cookieHeader);
 
 	// The instance organisation is the oldest, so ascending puts it on the first page.
 	const organisations = await api.organization.list({
@@ -79,7 +84,7 @@ export const createWorkerOrganisation = async (params: {
 	name: string;
 	slug: string;
 }): Promise<WorkerOrganisation> => {
-	const adminApi = createApiClient(params.baseURL, params.admin.cookieHeader);
+	const adminApi = adminApiClient(params.baseURL, params.admin.cookieHeader);
 
 	const created = await adminApi.organization.create({
 		name: params.name,
@@ -103,6 +108,10 @@ export const createWorkerOrganisation = async (params: {
 			email,
 			password: USER_PASSWORD,
 		});
+
+		// The sign-up response carries the membership revision, so every later
+		// read of this worker is at least as fresh as the grant.
+		if (session.zedToken) workerZedTokens.write(session.zedToken);
 
 		members.push({
 			role,
@@ -141,7 +150,7 @@ const openThrowawayOrganisation = async (
 	baseURL: string,
 ): Promise<OrganizationId> => {
 	const admin = await adminSession(baseURL);
-	const created = await createApiClient(
+	const created = await adminApiClient(
 		baseURL,
 		admin.cookieHeader,
 	).organization.create({
@@ -166,7 +175,7 @@ export const signUpUnaffiliated = async (params: {
 	password?: string;
 }): Promise<Session> => {
 	const admin = await adminSession(params.baseURL);
-	const adminApi = createApiClient(params.baseURL, admin.cookieHeader);
+	const adminApi = adminApiClient(params.baseURL, admin.cookieHeader);
 	const organizationId = await throwawayOrganisation(params.baseURL);
 
 	const session = await signUpInvited({
@@ -181,16 +190,16 @@ export const signUpUnaffiliated = async (params: {
 		password: params.password,
 	});
 
-	await untilAllowed(() =>
-		adminApi.organizationMember.delete({
-			organizationId,
-			refs: [
-				{
-					userId: userIdSchema.parse(session.userId),
-				},
-			],
-		}),
-	);
+	if (session.zedToken) workerZedTokens.write(session.zedToken);
+
+	await adminApi.organizationMember.delete({
+		organizationId,
+		refs: [
+			{
+				userId: userIdSchema.parse(session.userId),
+			},
+		],
+	});
 
 	return session;
 };

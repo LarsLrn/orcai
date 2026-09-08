@@ -1,7 +1,7 @@
 export const COOKIES = {
 	ZED_TOKEN: {
 		name: "zed_token",
-		expires: 1, // days
+		maxAge: 60, // seconds
 	},
 };
 
@@ -29,6 +29,8 @@ export const RETRIEVAL_LIMITS = {
 } as const;
 
 export const AUTHZ = {
+	outboxInlineWaitMs: 25,
+	outboxInlineWaitAttempts: 80,
 	outboxRetryBaseDelayMs: 30_000,
 	outboxProcessingStaleAfterMs: 5 * 60_000,
 	outboxMaxAttempts: 20,

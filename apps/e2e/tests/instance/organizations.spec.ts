@@ -1,4 +1,6 @@
 import type { Page } from "@playwright/test";
+import type { ApiClient } from "../../fixtures/api";
+import { ROLES } from "../../fixtures/constants";
 import { expect, test } from "../../fixtures/index";
 import { open } from "../../fixtures/navigation";
 import { runId } from "../../fixtures/organisation";
@@ -6,6 +8,19 @@ import { runId } from "../../fixtures/organisation";
 test.describe.configure({
 	mode: "serial",
 });
+
+/** The instance listing narrowed to one slug, which it matches as a search term. */
+const findOrganisation = async (api: ApiClient, slug: string) => {
+	const found = await api.organization.listAll({
+		pageIndex: 0,
+		pageSize: 100,
+		filters: {
+			search: slug,
+		},
+	});
+
+	return found.data.find((organisation) => organisation.slug === slug);
+};
 
 /** Creating and deleting an organisation are instance actions, so these run as the well-known admin. */
 const openInstanceOrganisations = async (page: Page): Promise<void> => {
@@ -65,17 +80,8 @@ test("instance: the organisations page creates an organisation", async ({
 	await expect(row).toBeVisible();
 	await expect(row).toContainText(name);
 
-	const created = await api.asWellKnownAdmin().organization.listAll({
-		pageIndex: 0,
-		pageSize: 5,
-		sort: [
-			{
-				id: "createdAt",
-				desc: true,
-			},
-		],
-	});
-	const match = created.data.find((organisation) => organisation.slug === slug);
+	const match = await findOrganisation(api.asWellKnownAdmin(), slug);
+	expect(match).toBeDefined();
 	expect(match?.name).toBe(name);
 	// The creator becomes the first member of what it created.
 	expect(match?.memberCount).toBe(1);
@@ -159,13 +165,17 @@ test("instance: the deletion dialog counts what goes and asks for the slug", asy
 
 	const dialog = page.getByRole("dialog");
 
+	// One user per role plus the well-known admin who created the organisation.
+	const memberCount = ROLES.length + 1;
+
 	// The counts are one list item each, matched exactly: "5 members" as a
 	// substring of the dialog would also be satisfied by "15 members".
 	await expect(
-		dialog.getByText("5 members", {
+		dialog.getByText(`${String(memberCount)} members`, {
 			exact: true,
 		}),
 	).toBeVisible();
+	// Creating an organisation inserts exactly one system group.
 	await expect(
 		dialog.getByText("1 group", {
 			exact: true,
@@ -191,17 +201,7 @@ test("instance: the deletion dialog counts what goes and asks for the slug", asy
 	await expect(dialog).toHaveCount(0);
 	await expect(row).toHaveCount(0);
 
-	const remaining = await api.asWellKnownAdmin().organization.listAll({
-		pageIndex: 0,
-		pageSize: 10,
-		sort: [
-			{
-				id: "createdAt",
-				desc: true,
-			},
-		],
-	});
 	expect(
-		remaining.data.some((organisation) => organisation.slug === doomed.slug),
-	).toBe(false);
+		await findOrganisation(api.asWellKnownAdmin(), doomed.slug),
+	).toBeUndefined();
 });

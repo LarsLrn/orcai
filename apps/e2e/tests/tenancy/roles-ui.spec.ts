@@ -39,19 +39,13 @@ test("an admin reaches the management pages", async ({ org, pageAs }) => {
 	await enterApp(page, org.slug);
 
 	for (const managementPage of MANAGEMENT_PAGES) {
-		// Snapshot lag: the guard redirects to the dashboard until the grant is visible.
-		await expect(async () => {
-			await page.goto(managementPage.path);
-			await expect(
-				page.getByRole("heading", {
-					name: managementPage.heading,
-				}),
-			).toBeVisible({
-				timeout: 3_000,
-			});
-		}).toPass({
-			timeout: 20_000,
-		});
+		await open(page, managementPage.path);
+
+		await expect(
+			page.getByRole("heading", {
+				name: managementPage.heading,
+			}),
+		).toBeVisible();
 	}
 });
 
@@ -76,6 +70,12 @@ test("an organisation admin cannot enter instance management", async ({
 			name: /E2E admin/,
 		})
 		.click();
+	// The organisation entries prove the menu is open before its absence is read.
+	await expect(
+		page.getByRole("menuitem", {
+			name: "Switch Organisation",
+		}),
+	).toBeVisible();
 	await expect(
 		page.getByRole("menuitem", {
 			name: "Manage instance",

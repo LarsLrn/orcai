@@ -1,4 +1,5 @@
 import { EMAIL_DOMAIN } from "../../fixtures/constants";
+import { submitForm } from "../../fixtures/forms";
 import { expect, test } from "../../fixtures/index";
 import { enterApp } from "../../fixtures/navigation";
 import { runId } from "../../fixtures/organisation";
@@ -18,19 +19,12 @@ test("users: an admin invites a user from the users page", async ({
 	await enterApp(page, org.slug);
 	await reachPage(page, "/en/app/users/add", "Add User");
 
-	// Late hydration: the retry waits for the invitations list URL.
-	await expect(async () => {
-		await page.getByLabel("User 1 Email").fill(email);
-		await page
-			.getByRole("button", {
-				name: "Create Invitations",
-			})
-			.click();
-		await expect(page).toHaveURL(/\/en\/app\/users\/invites/, {
-			timeout: 10_000,
-		});
-	}).toPass({
-		timeout: 25_000,
+	await submitForm(page, {
+		fill: async () => {
+			await page.getByLabel("User 1 Email").fill(email);
+		},
+		submit: "Create Invitations",
+		until: /\/en\/app\/users\/invites/,
 	});
 
 	await expect(
@@ -53,6 +47,7 @@ test("users: the add form refuses an invalid email", async ({
 	await enterApp(page, org.slug);
 	await reachPage(page, "/en/app/users/add", "Add User");
 
+	// Repeated until the form is hydrated; before that the click submits nothing.
 	await expect(async () => {
 		await page.getByLabel("User 1 Email").fill("not-an-email");
 		await page

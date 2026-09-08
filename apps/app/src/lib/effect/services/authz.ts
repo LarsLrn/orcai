@@ -8,6 +8,7 @@ import { and, asc, eq, inArray, isNull, lt, lte, or, sql } from "drizzle-orm";
 import * as Context from "effect/Context";
 import * as Effect from "effect/Effect";
 import * as Layer from "effect/Layer";
+import { recordZedToken } from "@/lib/effect/services/zed-token-mailbox";
 import { AuthzError } from "@/lib/effect/utils/errors";
 import { AUTHZ } from "@/settings/constants";
 
@@ -261,16 +262,69 @@ export const AuthzLive = Layer.effect(
 				};
 			});
 
+		/** The token of an event a concurrent projector claimed, once it is processed. */
+		const awaitDeliveredToken = (
+			eventId: string,
+			attempt = 0,
+		): Effect.Effect<Delivery, AuthzError> =>
+			Effect.gen(function* () {
+				const [event] = yield* db
+					.select({
+						status: dbSchema.authzOutbox.status,
+						payloadJson: dbSchema.authzOutbox.payloadJson,
+					})
+					.from(dbSchema.authzOutbox)
+					.where(eq(dbSchema.authzOutbox.id, eventId))
+					.limit(1)
+					.pipe(
+						Effect.mapError(
+							(cause) =>
+								new AuthzError({
+									reason: "projection_failed",
+									cause,
+								}),
+						),
+					);
+				if (!event) return {};
+				if (event.status === PROCESSED)
+					return {
+						zedToken: (
+							event.payloadJson as {
+								zedToken?: string;
+							}
+						).zedToken,
+					};
+				const inFlight =
+					event.status === PROCESSING || event.status === PENDING;
+				if (inFlight && attempt >= AUTHZ.outboxInlineWaitAttempts) {
+					yield* Effect.logWarning(
+						`authz.inline_wait_gave_up eventId=${eventId} status=${event.status}`,
+					);
+					return {};
+				}
+				if (!inFlight) return {};
+				yield* Effect.sleep(AUTHZ.outboxInlineWaitMs);
+				return yield* awaitDeliveredToken(eventId, attempt + 1);
+			});
+
 		const deliverRelationshipEvent = (eventId: string | undefined) =>
 			eventId
 				? project({
 						limit: 200,
 					}).pipe(
-						Effect.map(({ outcomes }) => ({
-							zedToken: outcomes.find(
-								(outcome) => outcome.eventId === eventId && outcome.ok,
-							)?.zedToken,
-						})),
+						Effect.flatMap(
+							({ outcomes }): Effect.Effect<Delivery, AuthzError> => {
+								const own = outcomes.find(
+									(outcome) => outcome.eventId === eventId,
+								);
+								return own
+									? Effect.succeed({
+											zedToken: own.ok ? own.zedToken : undefined,
+										})
+									: awaitDeliveredToken(eventId);
+							},
+						),
+						Effect.tap((delivery) => recordZedToken(delivery.zedToken)),
 					)
 				: Effect.succeed({
 						zedToken: undefined,

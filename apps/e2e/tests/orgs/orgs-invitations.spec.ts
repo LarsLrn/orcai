@@ -11,7 +11,7 @@ import {
 	registerFromInvitation,
 } from "../../fixtures/orgs/invitations";
 import { createOrgsUser } from "../../fixtures/orgs/members";
-import { openWhenGranted } from "../../fixtures/orgs/navigation";
+import { openGuarded } from "../../fixtures/orgs/navigation";
 import { chooseRole } from "../../fixtures/orgs/roles";
 
 test("orgs: an admin invites an address through the form and the link reaches the outbox", async ({
@@ -26,7 +26,7 @@ test("orgs: an admin invites an address through the form and the link reaches th
 	const page = await pageAs("admin");
 
 	await enterApp(page, org.slug);
-	await openWhenGranted(page, "/en/app/users/add", "Add User");
+	await openGuarded(page, "/en/app/users/add", "Add User");
 
 	// The form starts on the active organisation and on "Member"; only the
 	// role and the address are worth saying out loud.
@@ -97,6 +97,8 @@ test("orgs: an invited visitor registers from the link and joins with the invite
 		// without an email step in between.
 		await expect(page).toHaveURL(/\/en\/app(\/|$)/);
 
+		// The sign-up hook grants the membership outside any oRPC response, so
+		// there is no zedToken to make the first reads of it fresh.
 		await expect
 			.poll(async () => await organisationRoleOf(api.as("admin"), email), {
 				timeout: 15_000,
@@ -139,24 +141,16 @@ test("orgs: an existing user accepts a pending invitation from the selection pag
 			}),
 		).toBeVisible();
 
-		await expect(async () => {
-			await page
-				.getByRole("button", {
-					name: "Accept",
-				})
-				.click();
-			await expect(page).toHaveURL(/\/en\/app(\/|$)/, {
-				timeout: 10_000,
-			});
-		}).toPass({
-			timeout: 25_000,
-		});
-
-		await expect
-			.poll(async () => await organisationRoleOf(api.as("admin"), user.email), {
-				timeout: 15_000,
+		await page
+			.getByRole("button", {
+				name: "Accept",
 			})
-			.toBe("manager");
+			.click();
+		await expect(page).toHaveURL(/\/en\/app(\/|$)/);
+
+		expect(await organisationRoleOf(api.as("admin"), user.email)).toBe(
+			"manager",
+		);
 	} finally {
 		await context.close();
 	}
@@ -182,11 +176,7 @@ test("orgs: a revoked invitation no longer opens the registration form", async (
 	const page = await pageAs("admin");
 
 	await enterApp(page, org.slug);
-	await openWhenGranted(
-		page,
-		"/en/app/users/invites",
-		"Organisation Invitations",
-	);
+	await openGuarded(page, "/en/app/users/invites", "Organisation Invitations");
 
 	// The list is sorted newest first, so the invitation this test just
 	// created is on the first page.
@@ -195,6 +185,8 @@ test("orgs: a revoked invitation no longer opens the registration form", async (
 	});
 	await expect(row).toBeVisible();
 
+	// The row menu opens on the client, so the click is retried until hydration
+	// has attached its handler.
 	await expect(async () => {
 		await row
 			.getByRole("button", {
@@ -293,11 +285,7 @@ test("orgs: the invitations list carries only the inviter's own invitations", as
 
 	const page = await pageAs("admin");
 	await enterApp(page, org.slug);
-	await openWhenGranted(
-		page,
-		"/en/app/users/invites",
-		"Organisation Invitations",
-	);
+	await openGuarded(page, "/en/app/users/invites", "Organisation Invitations");
 
 	// Both invitations are newer than anything else this admin sent, so the
 	// first page of the list settles the question.

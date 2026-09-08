@@ -39,8 +39,9 @@ export const expectForbidden = async (
 	expect((await rejection(promise)).code).toBe("FORBIDDEN");
 };
 
-/** Retry an operation through snapshot lag while it answers FORBIDDEN. Only for operations safe to repeat. */
-export const untilAllowed = async <T>(
+/** Repeat an operation while it answers one of `codes`. Only for operations safe to repeat. */
+const untilOtherThan = async <T>(
+	codes: readonly string[],
 	operation: () => Promise<T>,
 ): Promise<T> => {
 	const deadline = Date.now() + 15_000;
@@ -51,7 +52,7 @@ export const untilAllowed = async <T>(
 		} catch (error) {
 			if (
 				!(error instanceof ORPCError) ||
-				error.code !== "FORBIDDEN" ||
+				!codes.includes(error.code) ||
 				Date.now() > deadline
 			) {
 				throw error;
@@ -61,3 +62,15 @@ export const untilAllowed = async <T>(
 		}
 	}
 };
+
+/**
+ * Retry an operation while it answers FORBIDDEN, for a grant that is
+ * asynchronous by design, such as the sign-up hook's membership.
+ */
+export const untilAllowed = <T>(operation: () => Promise<T>): Promise<T> =>
+	untilOtherThan(
+		[
+			"FORBIDDEN",
+		],
+		operation,
+	);

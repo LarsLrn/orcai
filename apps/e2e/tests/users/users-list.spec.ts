@@ -9,23 +9,31 @@ import {
 	userRow,
 } from "../../fixtures/users/users";
 
+/**
+ * The table holds 20 rows per page, newest member first, and the worker
+ * organisation grows with every spec that adds a member to it. The role users
+ * are its oldest members, so a page large enough for all of them is asked for
+ * in the URL; the route coerces the search parameter.
+ */
+const USERS_PATH = "/en/app/users?pageSize=200";
+
 test("users: an admin sees every member of the organisation", async ({
 	api,
 	org,
 	pageAs,
+	zedTokens,
 }) => {
 	const user = await createThrowawayUser(baseURL(), "listed");
-	await addMember(api, org, user);
+	await addMember(api, org, user, "member", zedTokens);
 
 	const page = await pageAs("admin");
 	await enterApp(page, org.slug);
-	await reachPage(page, "/en/app/users", "Users");
+	await reachPage(page, USERS_PATH, "Users");
 
 	// `user.list` is scoped to the active organisation, so the table holds one
 	// user per role, the well-known admin that created the organisation, and
-	// the user this spec just added, all on the first page. The search control
-	// has its own spec; here the unique email is looked up as a row of the
-	// scoped table.
+	// the user this spec just added. The search control has its own spec; here
+	// the unique email is looked up as a row of the scoped table.
 	for (const role of [
 		"admin",
 		"manager",
@@ -46,13 +54,14 @@ test("users: a manager sees the users page but may not remove an admin", async (
 	api,
 	org,
 	pageAs,
+	zedTokens,
 }) => {
 	const user = await createThrowawayUser(baseURL(), "manager-view");
-	await addMember(api, org, user);
+	await addMember(api, org, user, "member", zedTokens);
 
 	const page = await pageAs("manager");
 	await enterApp(page, org.slug);
-	await reachPage(page, "/en/app/users", "Users");
+	await reachPage(page, USERS_PATH, "Users");
 
 	await expect(userRow(page, user.email)).toBeVisible();
 	await expect(userRow(page, org.users.admin.email)).toBeVisible();
@@ -97,13 +106,14 @@ test("users: an admin searches the organisation users by email", async ({
 	api,
 	org,
 	pageAs,
+	zedTokens,
 }) => {
 	const user = await createThrowawayUser(baseURL(), "searched");
-	await addMember(api, org, user);
+	await addMember(api, org, user, "member", zedTokens);
 
 	const page = await pageAs("admin");
 	await enterApp(page, org.slug);
-	await reachPage(page, "/en/app/users", "Users");
+	await reachPage(page, USERS_PATH, "Users");
 
 	await expect(userRow(page, user.email)).toBeVisible();
 	await expect(userRow(page, org.users.admin.email)).toBeVisible();

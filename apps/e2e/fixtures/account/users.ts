@@ -1,5 +1,6 @@
 import { type ApiClient, createApiClient } from "../api";
 import { type Session, signUpInvited } from "../auth";
+import { untilAllowed } from "../authorization";
 import { EMAIL_DOMAIN, USER_PASSWORD } from "../constants";
 import { runId, type WorkerOrganisation } from "../organisation";
 
@@ -37,6 +38,16 @@ export const createAccountUser = async (params: {
 	});
 
 	const api = createApiClient(params.baseURL, session.cookieHeader);
+
+	// The sign-up hook grants the membership without a zedToken, so wait once
+	// here for it to be readable; every later read of this user sees it.
+	await untilAllowed(() =>
+		api.organizationMember.list({
+			organizationId: params.organisation.id,
+			pageIndex: 0,
+			pageSize: 1,
+		}),
+	);
 
 	return {
 		name,

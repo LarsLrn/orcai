@@ -5,20 +5,14 @@ import { open } from "../navigation";
 export const accountPath = (locale: "en" | "de" = "en"): string =>
 	`/${locale}/app/account`;
 
-/** Open a page under `/app`, retrying the navigation through snapshot lag until the marker shows. */
+/** Open a page under `/app` and wait for the marker that says it rendered. */
 export const openAppPage = async (
 	page: Page,
 	path: string,
 	visible: Locator,
 ): Promise<void> => {
-	await expect(async () => {
-		await open(page, path);
-		await expect(visible).toBeVisible({
-			timeout: 5_000,
-		});
-	}).toPass({
-		timeout: 30_000,
-	});
+	await open(page, path);
+	await expect(visible).toBeVisible();
 };
 
 /** Open the account page and wait for its title. */

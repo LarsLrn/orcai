@@ -4,7 +4,6 @@ import {
 	createDataResponseSchema,
 	createDeleteResponseSchema,
 	createListResponseSchema,
-	zedTokenSchema,
 } from "../shared";
 import { chatListRowSchema, chatSchema } from "./schema";
 
@@ -17,11 +16,7 @@ export const findChatResponseSchema = createDataResponseSchema(
 	}),
 );
 
-export const createChatResponseSchema = createDataResponseSchema(
-	chatSchema,
-).extend({
-	meta: zedTokenSchema.optional(),
-});
+export const createChatResponseSchema = createDataResponseSchema(chatSchema);
 
 export const updateChatResponseSchema = createDataResponseSchema(chatSchema);
 

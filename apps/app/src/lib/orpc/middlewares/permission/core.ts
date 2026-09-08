@@ -1,7 +1,8 @@
 import { checkEntityPermission, hasPermission } from "@orcai/spice-db";
+import { os } from "@orpc/server";
 import * as Effect from "effect/Effect";
+import { getZedToken } from "@/lib/authz/zed-token";
 import * as AppErrors from "@/lib/effect/utils/errors";
-import { os } from "@/lib/orpc/implementation/os";
 import type { AuthContext } from "@/lib/orpc/middlewares/auth";
 import type { CheckPermissionInput, PermissionContext } from "./types";
 
@@ -12,13 +13,6 @@ export const permissionBase = os.$context<
 		};
 	}
 >();
-
-export const getZedToken = (
-	context: PermissionContext,
-	input: {
-		zedToken?: string;
-	},
-) => input.zedToken ?? context.meta?.zedToken;
 
 export const forbiddenPermissionError = (params: {
 	entityType: CheckPermissionInput["entityType"];

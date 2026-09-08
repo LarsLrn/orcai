@@ -4,13 +4,13 @@ import {
 	expectDenied,
 	expectForbidden,
 	rejection,
-	untilAllowed,
 } from "../../fixtures/authorization";
 import { baseURL } from "../../fixtures/env";
 import { expect, test } from "../../fixtures/index";
 import { enterApp } from "../../fixtures/navigation";
 import {
 	addMember,
+	adoptZedToken,
 	createThrowawayUser,
 	reachPage,
 	userRow,
@@ -20,9 +20,10 @@ test("users: an admin removes a user from the organisation", async ({
 	api,
 	org,
 	pageAs,
+	zedTokens,
 }) => {
 	const user = await createThrowawayUser(baseURL(), "removed");
-	await addMember(api, org, user);
+	await addMember(api, org, user, "member", zedTokens);
 
 	const page = await pageAs("admin");
 	await enterApp(page, org.slug);
@@ -55,8 +56,10 @@ test("users: an admin removes a user from the organisation", async ({
 	await expect(page.getByRole("alertdialog")).toHaveCount(0);
 	await expect(row).toHaveCount(0);
 
-	// The account survives the removal; only the membership is gone, so the
-	// user drops out of the organisation's list and out of `user.find`.
+	// The removal happened in the browser, so the API client takes its revision
+	// from the page. The account survives it; only the membership is gone, so
+	// the user drops out of the organisation's list and out of `user.find`.
+	await adoptZedToken(page, zedTokens);
 	await expectDenied(
 		api.as("admin").user.find({
 			id: user.id,
@@ -68,12 +71,15 @@ test("users: a removed user loses the organisation it was signed in to", async (
 	api,
 	browser,
 	org,
+	seedZedToken,
+	zedTokens,
 }) => {
 	const user = await createThrowawayUser(baseURL(), "evicted");
-	await addMember(api, org, user);
+	await addMember(api, org, user, "member", zedTokens);
 	await createApiClient(
 		baseURL(),
 		user.session.cookieHeader,
+		zedTokens,
 	).user.setActiveOrganization({
 		organizationId: org.id,
 	});
@@ -81,24 +87,25 @@ test("users: a removed user loses the organisation it was signed in to", async (
 	const { context, page } = await pageForSession(browser, user.session);
 
 	try {
+		await seedZedToken(page);
 		await enterApp(page, org.slug);
+
 		await expect(
 			page.getByRole("button", {
 				name: org.name,
 			}),
 		).toBeVisible();
 
-		await untilAllowed(() =>
-			api.as("admin").organizationMember.delete({
-				organizationId: org.id,
-				refs: [
-					{
-						userId: user.id,
-					},
-				],
-			}),
-		);
+		await api.as("admin").organizationMember.delete({
+			organizationId: org.id,
+			refs: [
+				{
+					userId: user.id,
+				},
+			],
+		});
 
+		await seedZedToken(page);
 		await page.goto("/en/app");
 		await page.waitForLoadState("networkidle");
 
@@ -108,9 +115,13 @@ test("users: a removed user loses the organisation it was signed in to", async (
 	}
 });
 
-test("users: an admin deletes a user's account", async ({ api, org }) => {
+test("users: an admin deletes a user's account", async ({
+	api,
+	org,
+	zedTokens,
+}) => {
 	const user = await createThrowawayUser(baseURL(), "deleted");
-	await addMember(api, org, user);
+	await addMember(api, org, user, "member", zedTokens);
 
 	// Deleting an account is an instance action, so an organisation admin is
 	// refused however much it may manage inside its own organisation.
@@ -140,13 +151,18 @@ test("users: an admin deletes a user's account", async ({ api, org }) => {
 test("users: an account that still owns content is not deleted halfway", async ({
 	api,
 	org,
+	zedTokens,
 }) => {
 	const user = await createThrowawayUser(baseURL(), "owner");
-	await addMember(api, org, user);
+	await addMember(api, org, user, "member", zedTokens);
 
 	// A throwaway user is created without an organisation, and creating a
 	// block is an organisation action, so the session gets one first.
-	const client = createApiClient(baseURL(), user.session.cookieHeader);
+	const client = createApiClient(
+		baseURL(),
+		user.session.cookieHeader,
+		zedTokens,
+	);
 	await client.user.setActiveOrganization({
 		organizationId: org.id,
 	});
@@ -154,16 +170,14 @@ test("users: an account that still owns content is not deleted halfway", async (
 	// Creating a block leaves `resource_scope.assigned_by` and
 	// `resource_visibility.updated_by` pointing at the account, and neither
 	// cascades, so the account cannot go until that content is handed over.
-	await untilAllowed(() =>
-		client.block.create({
-			type: "template",
-			name: `E2E Users Owned ${user.id}`,
-			status: "ready",
-			config: {
-				systemPrompt: "Created by the users slice.",
-			},
-		}),
-	);
+	await client.block.create({
+		type: "template",
+		name: `E2E Users Owned ${user.id}`,
+		status: "ready",
+		config: {
+			systemPrompt: "Created by the users slice.",
+		},
+	});
 
 	const refused = await rejection(
 		api.asWellKnownAdmin().user.delete({
@@ -192,29 +206,28 @@ test("users: an account that still owns content is not deleted halfway", async (
 test("users: a removed user loses the access its groups and grants gave it", async ({
 	api,
 	org,
+	zedTokens,
 }) => {
-	test.slow();
-
 	const user = await createThrowawayUser(baseURL(), "detached");
-	await addMember(api, org, user);
-	const client = createApiClient(baseURL(), user.session.cookieHeader);
+	await addMember(api, org, user, "member", zedTokens);
+	const client = createApiClient(
+		baseURL(),
+		user.session.cookieHeader,
+		zedTokens,
+	);
 
 	// A group both the granting admin and the target belong to: sharing with a
 	// group is only offered for the groups the caller is in.
-	const group = await untilAllowed(() =>
-		api.as("admin").group.create({
-			name: `E2E Users Detach ${user.id}`,
-		}),
-	);
-	await untilAllowed(() =>
-		api.as("admin").group.addMembers({
-			groupId: group.data.id,
-			userIds: [
-				org.users.admin.id,
-				user.id,
-			],
-		}),
-	);
+	const group = await api.as("admin").group.create({
+		name: `E2E Users Detach ${user.id}`,
+	});
+	await api.as("admin").group.addMembers({
+		groupId: group.data.id,
+		userIds: [
+			org.users.admin.id,
+			user.id,
+		],
+	});
 
 	const block = (name: string) => ({
 		type: "template" as const,
@@ -225,78 +238,61 @@ test("users: a removed user loses the access its groups and grants gave it", asy
 		},
 	});
 
-	const throughGroup = await untilAllowed(() =>
-		api.as("admin").block.create(block(`E2E Users Group Block ${user.id}`)),
-	);
-	const throughGrant = await untilAllowed(() =>
-		api.as("admin").block.create(block(`E2E Users Grant Block ${user.id}`)),
-	);
+	const throughGroup = await api
+		.as("admin")
+		.block.create(block(`E2E Users Group Block ${user.id}`));
+	const throughGrant = await api
+		.as("admin")
+		.block.create(block(`E2E Users Grant Block ${user.id}`));
 
-	await untilAllowed(() =>
-		api.as("admin").resource.grant({
-			resourceType: "block",
-			resourceId: throughGroup.data.id,
-			principalType: "group",
-			principalId: group.data.id,
-			role: "viewer",
-		}),
-	);
-	await untilAllowed(() =>
-		api.as("admin").resource.grant({
-			resourceType: "block",
-			resourceId: throughGrant.data.id,
-			principalType: "user",
-			principalId: user.id,
-			role: "viewer",
-		}),
-	);
+	await api.as("admin").resource.grant({
+		resourceType: "block",
+		resourceId: throughGroup.data.id,
+		principalType: "group",
+		principalId: group.data.id,
+		role: "viewer",
+	});
+	await api.as("admin").resource.grant({
+		resourceType: "block",
+		resourceId: throughGrant.data.id,
+		principalType: "user",
+		principalId: user.id,
+		role: "viewer",
+	});
 
 	// Both blocks are private, so reaching them is the group membership and
 	// the direct grant, nothing else.
-	await untilAllowed(() =>
+	await client.block.find({
+		id: throughGroup.data.id,
+	});
+	await client.block.find({
+		id: throughGrant.data.id,
+	});
+
+	await api.as("admin").organizationMember.delete({
+		organizationId: org.id,
+		refs: [
+			{
+				userId: user.id,
+			},
+		],
+	});
+
+	await expectDenied(
 		client.block.find({
 			id: throughGroup.data.id,
 		}),
 	);
-	await untilAllowed(() =>
+	await expectDenied(
 		client.block.find({
 			id: throughGrant.data.id,
 		}),
 	);
 
-	await untilAllowed(() =>
-		api.as("admin").organizationMember.delete({
-			organizationId: org.id,
-			refs: [
-				{
-					userId: user.id,
-				},
-			],
-		}),
-	);
-
-	// Snapshot lag: the SpiceDB tuples of the removed membership take a moment to go.
-	await expect(async () => {
-		await expectDenied(
-			client.block.find({
-				id: throughGroup.data.id,
-			}),
-		);
-		await expectDenied(
-			client.block.find({
-				id: throughGrant.data.id,
-			}),
-		);
-	}).toPass({
-		timeout: 20_000,
+	const grants = await api.as("admin").resource.listGrants({
+		resourceType: "block",
+		resourceId: throughGrant.data.id,
 	});
-
-	const grants = await untilAllowed(() =>
-		api.as("admin").resource.listGrants({
-			resourceType: "block",
-			resourceId: throughGrant.data.id,
-		}),
-	);
 	expect(grants.data.map((grant) => String(grant.principalId))).not.toContain(
 		String(user.id),
 	);

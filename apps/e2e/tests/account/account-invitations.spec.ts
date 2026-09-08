@@ -4,7 +4,6 @@ import {
 } from "../../fixtures/account/navigation";
 import { createAccountUser } from "../../fixtures/account/users";
 import { pageForSession } from "../../fixtures/auth/users";
-import { untilAllowed } from "../../fixtures/authorization";
 import { expect, test } from "../../fixtures/index";
 
 /** How long the app's own invitation form gives an invitation. */
@@ -27,18 +26,16 @@ test("account: the invitations card shows a pending invitation and accepting it 
 	// The invitation has to come from an organisation the user is not in yet.
 	const second = await orgs.create("Account Invitations");
 
-	await untilAllowed(() =>
-		api.as("admin", second).organizationInvitation.create({
-			organizationId: second.id,
-			role: "member",
-			expiresAt: new Date(Date.now() + ONE_WEEK),
-			items: [
-				{
-					email: user.email,
-				},
-			],
-		}),
-	);
+	await api.as("admin", second).organizationInvitation.create({
+		organizationId: second.id,
+		role: "member",
+		expiresAt: new Date(Date.now() + ONE_WEEK),
+		items: [
+			{
+				email: user.email,
+			},
+		],
+	});
 
 	const { context, page } = await pageForSession(browser, user.session);
 
@@ -58,31 +55,23 @@ test("account: the invitations card shows a pending invitation and accepting it 
 		await expect(entry).toBeVisible();
 		await expect(entry.getByText("Pending")).toBeVisible();
 
-		await expect(async () => {
-			await entry
-				.getByRole("button", {
-					name: "Accept",
-				})
-				.click();
-			await expect(page.getByText("Invitation accepted")).toBeVisible({
-				timeout: 5_000,
-			});
-		}).toPass({
-			timeout: 25_000,
-		});
+		await entry
+			.getByRole("button", {
+				name: "Accept",
+			})
+			.click();
+		await expect(page.getByText("Invitation accepted")).toBeVisible();
 
 		// Accepting writes the membership, which the user's own organisation
 		// list reports from the database.
-		await expect
-			.poll(async () =>
-				(
-					await user.api.organization.list({
-						pageIndex: 0,
-						pageSize: 100,
-					})
-				).data.map((organisation) => organisation.slug),
-			)
-			.toContain(second.slug);
+		const organisations = await user.api.organization.list({
+			pageIndex: 0,
+			pageSize: 100,
+		});
+
+		expect(
+			organisations.data.map((organisation) => organisation.slug),
+		).toContain(second.slug);
 	} finally {
 		await context.close();
 	}
@@ -103,18 +92,16 @@ test("account: the invitations card names the inviting organisation", async ({
 	});
 	const second = await orgs.create("Account Invitation Name");
 
-	await untilAllowed(() =>
-		api.as("admin", second).organizationInvitation.create({
-			organizationId: second.id,
-			role: "member",
-			expiresAt: new Date(Date.now() + ONE_WEEK),
-			items: [
-				{
-					email: user.email,
-				},
-			],
-		}),
-	);
+	await api.as("admin", second).organizationInvitation.create({
+		organizationId: second.id,
+		role: "member",
+		expiresAt: new Date(Date.now() + ONE_WEEK),
+		items: [
+			{
+				email: user.email,
+			},
+		],
+	});
 
 	const { context, page } = await pageForSession(browser, user.session);
 

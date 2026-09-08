@@ -4,17 +4,16 @@ import { OpenAPIGenerator } from "@orpc/openapi";
 import { OpenAPIHandler } from "@orpc/openapi/fetch";
 import { OpenAPIReferenceHandlerPlugin } from "@orpc/openapi/plugins";
 import { ORPCError, onError, ValidationError } from "@orpc/server";
-import { getCookie } from "@orpc/server/helpers";
 import {
-	BatchHandlerPlugin,
 	RequestHeadersHandlerPlugin,
+	ResponseHeadersHandlerPlugin,
 } from "@orpc/server/plugins";
 import { ZodToJsonSchemaConverter } from "@orpc/zod";
 import { createFileRoute } from "@tanstack/react-router";
 import { z } from "zod/v4";
 import { createORPCContext } from "@/lib/orpc/implementation/context";
 import { router } from "@/lib/orpc/router";
-import { COOKIES, HEADERS } from "@/settings/constants";
+import { HEADERS } from "@/settings/constants";
 
 const openAPIGenerator = new OpenAPIGenerator({
 	converters: [
@@ -103,7 +102,7 @@ const openAPIHandler = new OpenAPIHandler(router, {
 	],
 	plugins: [
 		new RequestHeadersHandlerPlugin(),
-		new BatchHandlerPlugin(),
+		new ResponseHeadersHandlerPlugin(),
 		/**
 		 * TODO: Uncomment this when CSRF protection is needed
 		 * Adds CSRF protection to the handler:
@@ -125,19 +124,10 @@ export const Route = createFileRoute("/api/doc/$")({
 	server: {
 		handlers: {
 			ANY: async ({ request }) => {
-				// 1. Try explicit header (from Client Fetch)
-				let zedToken = request.headers.get(HEADERS.X_ZED_TOKEN) || undefined;
-
-				// 2. Fallback to Cookie (from SSR/Loader calls)
-				if (!zedToken) {
-					zedToken = getCookie(request.headers, COOKIES.ZED_TOKEN.name);
-				}
-
 				const { response } = await openAPIHandler.handle(request, {
 					prefix: "/api/doc",
 					context: await createORPCContext({
 						reqHeaders: request.headers,
-						zedToken,
 					}),
 				});
 

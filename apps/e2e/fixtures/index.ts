@@ -4,7 +4,12 @@ import {
 	expect,
 	type Page,
 } from "@playwright/test";
-import { type ApiClient, createApiClient } from "./api";
+import {
+	type ApiClient,
+	createApiClient,
+	ZED_TOKEN_COOKIE,
+	type ZedTokenStore,
+} from "./api";
 import { type Session, signIn } from "./auth";
 import { type Role, WELL_KNOWN_ADMIN } from "./constants";
 import { baseURL } from "./env";
@@ -13,6 +18,7 @@ import {
 	createWorkerOrganisation,
 	runId,
 	type WorkerOrganisation,
+	workerZedTokens,
 } from "./organisation";
 import { latestFor, type Outbox } from "./outbox";
 
@@ -39,9 +45,13 @@ export type PageAsWellKnownAdmin = () => Promise<Page>;
 
 type TestFixtures = {
 	api: Api;
+	/** The newest zedToken this worker's setup and API clients have seen. */
+	zedTokens: ZedTokenStore;
 	outbox: Outbox;
 	pageAs: (role: Role, organisation?: WorkerOrganisation) => Promise<Page>;
 	pageAsWellKnownAdmin: PageAsWellKnownAdmin;
+	/** Give an open page the newest zedToken of this test, so its next reads are fresh. */
+	seedZedToken: (page: Page) => Promise<void>;
 };
 
 const slugify = (name: string) =>
@@ -49,6 +59,27 @@ const slugify = (name: string) =>
 		.toLowerCase()
 		.replace(/[^a-z0-9]+/g, "-")
 		.replace(/^-|-$/g, "");
+
+/** Carry the API setup's revision into the browser, so its first load is fresh. */
+const seedZedToken = async (
+	context: BrowserContext,
+	appBaseURL: string,
+	zedTokens: ZedTokenStore,
+): Promise<void> => {
+	const zedToken = zedTokens.read();
+
+	if (!zedToken) return;
+
+	await context.addCookies([
+		{
+			name: ZED_TOKEN_COOKIE,
+			value: zedToken,
+			url: appBaseURL,
+			httpOnly: true,
+			sameSite: "Lax",
+		},
+	]);
+};
 
 export const test = base.extend<TestFixtures, WorkerFixtures>({
 	appBaseURL: [
@@ -91,13 +122,34 @@ export const test = base.extend<TestFixtures, WorkerFixtures>({
 		},
 	],
 
-	api: async ({ appBaseURL, org }, use) => {
+	// biome-ignore lint/correctness/noEmptyPattern: Playwright reads fixture dependencies from this pattern.
+	zedTokens: async ({}, use) => {
+		await use(workerZedTokens);
+	},
+
+	api: async ({ appBaseURL, org, zedTokens }, use) => {
 		const admin = await adminSession(appBaseURL);
+		// One client per session for the test, so a sequence of calls shares the
+		// zedToken memory instead of starting stale again.
+		const clients = new Map<string, ApiClient>();
+		const client = (key: string, cookieHeader: string) => {
+			const existing = clients.get(key);
+
+			if (existing) return existing;
+
+			const created = createApiClient(appBaseURL, cookieHeader, zedTokens);
+			clients.set(key, created);
+
+			return created;
+		};
 
 		await use({
 			as: (role, organisation = org) =>
-				createApiClient(appBaseURL, organisation.cookieHeaders[role]),
-			asWellKnownAdmin: () => createApiClient(appBaseURL, admin.cookieHeader),
+				client(
+					`${organisation.slug}:${role}`,
+					organisation.cookieHeaders[role],
+				),
+			asWellKnownAdmin: () => client("well-known-admin", admin.cookieHeader),
 		});
 	},
 
@@ -105,7 +157,11 @@ export const test = base.extend<TestFixtures, WorkerFixtures>({
 		latestFor,
 	},
 
-	pageAsWellKnownAdmin: async ({ appBaseURL, browser }, use) => {
+	seedZedToken: async ({ appBaseURL, zedTokens }, use) => {
+		await use((page) => seedZedToken(page.context(), appBaseURL, zedTokens));
+	},
+
+	pageAsWellKnownAdmin: async ({ appBaseURL, browser, zedTokens }, use) => {
 		const contexts: BrowserContext[] = [];
 
 		await use(async () => {
@@ -115,6 +171,7 @@ export const test = base.extend<TestFixtures, WorkerFixtures>({
 				locale: "en",
 			});
 			contexts.push(context);
+			await seedZedToken(context, appBaseURL, zedTokens);
 
 			return await context.newPage();
 		});
@@ -122,7 +179,7 @@ export const test = base.extend<TestFixtures, WorkerFixtures>({
 		await Promise.all(contexts.map((context) => context.close()));
 	},
 
-	pageAs: async ({ browser, org }, use) => {
+	pageAs: async ({ appBaseURL, browser, org, zedTokens }, use) => {
 		const contexts: BrowserContext[] = [];
 
 		await use(async (role, organisation = org) => {
@@ -131,6 +188,7 @@ export const test = base.extend<TestFixtures, WorkerFixtures>({
 				locale: "en",
 			});
 			contexts.push(context);
+			await seedZedToken(context, appBaseURL, zedTokens);
 
 			return await context.newPage();
 		});

@@ -2,7 +2,6 @@ import type { OrganizationId } from "@orcai/core";
 import type { OrganizationInvitation } from "@orcai/schema";
 import { expect, type Page } from "@playwright/test";
 import type { ApiClient } from "../api";
-import { untilAllowed } from "../authorization";
 import { EMAIL_DOMAIN, type Role } from "../constants";
 import { submitForm } from "../forms";
 import { open } from "../navigation";
@@ -27,18 +26,16 @@ export const inviteEmail = async (
 		role: Role;
 	},
 ): Promise<OrganizationInvitation> => {
-	const created = await untilAllowed(() =>
-		api.organizationInvitation.create({
-			organizationId: invitation.organizationId,
-			role: invitation.role,
-			expiresAt: new Date(Date.now() + ONE_WEEK),
-			items: [
-				{
-					email: invitation.email,
-				},
-			],
-		}),
-	);
+	const created = await api.organizationInvitation.create({
+		organizationId: invitation.organizationId,
+		role: invitation.role,
+		expiresAt: new Date(Date.now() + ONE_WEEK),
+		items: [
+			{
+				email: invitation.email,
+			},
+		],
+	});
 
 	return created.data[0];
 };
@@ -101,12 +98,10 @@ export const organisationRoleOf = async (
 	api: ApiClient,
 	email: string,
 ): Promise<Role | undefined> => {
-	const users = await untilAllowed(() =>
-		api.user.list({
-			pageIndex: 0,
-			pageSize: 100,
-		}),
-	);
+	const users = await api.user.list({
+		pageIndex: 0,
+		pageSize: 100,
+	});
 
 	return users.data.find((user) => user.email === email)?.organizationRole;
 };

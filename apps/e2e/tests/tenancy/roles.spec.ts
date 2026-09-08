@@ -58,20 +58,16 @@ test("every role reads its own organisation and its members", async ({
 	org,
 }) => {
 	for (const role of ROLES) {
-		const found = await untilAllowed(() =>
-			api.as(role).organization.find({
-				id: org.id,
-			}),
-		);
+		const found = await api.as(role).organization.find({
+			id: org.id,
+		});
 		expect(found.data.slug).toBe(org.slug);
 
-		const members = await untilAllowed(() =>
-			api.as(role).organizationMember.list({
-				organizationId: org.id,
-				pageIndex: 0,
-				pageSize: 100,
-			}),
-		);
+		const members = await api.as(role).organizationMember.list({
+			organizationId: org.id,
+			pageIndex: 0,
+			pageSize: 100,
+		});
 
 		expect(members.data.map((member) => member.userId)).toContain(
 			org.users[role].id,
@@ -92,12 +88,10 @@ test("only an admin changes the organisation", async ({ api, org }) => {
 		);
 	}
 
-	const updated = await untilAllowed(() =>
-		api.as("admin").organization.update({
-			id: org.id,
-			logo: null,
-		}),
-	);
+	const updated = await api.as("admin").organization.update({
+		id: org.id,
+		logo: null,
+	});
 
 	expect(updated.data.id).toBe(org.id);
 	expect(updated.data.name).toBe(org.name);
@@ -125,6 +119,8 @@ test("no organisation role may delete an organisation", async ({
 		);
 	}
 
+	// The throwaway admin's membership comes from the sign-up hook, which
+	// answers no zedToken.
 	const stillThere = await untilAllowed(() =>
 		api.as("admin", throwaway).organization.find({
 			id: throwaway.id,
@@ -138,18 +134,16 @@ test("the instance admin deletes an organisation", async ({ api, orgs }) => {
 	const invitee = `e2e-tenancy-deleted-org-${runId()}@${EMAIL_DOMAIN}`;
 	await invitedMember(api.asWellKnownAdmin(), throwaway.id, "deleted-org");
 
-	await untilAllowed(() =>
-		api.asWellKnownAdmin().organizationInvitation.create({
-			organizationId: throwaway.id,
-			role: "member",
-			expiresAt: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000),
-			items: [
-				{
-					email: invitee,
-				},
-			],
-		}),
-	);
+	await api.asWellKnownAdmin().organizationInvitation.create({
+		organizationId: throwaway.id,
+		role: "member",
+		expiresAt: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000),
+		items: [
+			{
+				email: invitee,
+			},
+		],
+	});
 
 	const impact = await api.asWellKnownAdmin().organization.deletionImpact({
 		id: throwaway.id,
@@ -212,13 +206,11 @@ test("only managers and admins change members", async ({ api, org }) => {
 		);
 	}
 
-	const demoted = await untilAllowed(() =>
-		api.as("manager").organizationMember.update({
-			organizationId: org.id,
-			userId,
-			role: "viewer",
-		}),
-	);
+	const demoted = await api.as("manager").organizationMember.update({
+		organizationId: org.id,
+		userId,
+		role: "viewer",
+	});
 	expect(demoted.data.role).toBe("viewer");
 
 	// Handing out an admin role needs `manage_organization`, which a manager
@@ -231,25 +223,21 @@ test("only managers and admins change members", async ({ api, org }) => {
 		}),
 	);
 
-	const promoted = await untilAllowed(() =>
-		api.as("admin").organizationMember.update({
-			organizationId: org.id,
-			userId,
-			role: "admin",
-		}),
-	);
+	const promoted = await api.as("admin").organizationMember.update({
+		organizationId: org.id,
+		userId,
+		role: "admin",
+	});
 	expect(promoted.data.role).toBe("admin");
 
-	await untilAllowed(() =>
-		api.as("admin").organizationMember.delete({
-			organizationId: org.id,
-			refs: [
-				{
-					userId,
-				},
-			],
-		}),
-	);
+	await api.as("admin").organizationMember.delete({
+		organizationId: org.id,
+		refs: [
+			{
+				userId,
+			},
+		],
+	});
 });
 
 test("only managers and admins remove members, and only an admin removes an admin", async ({
@@ -267,13 +255,11 @@ test("only managers and admins remove members, and only an admin removes an admi
 		"removed-admin",
 	);
 
-	await untilAllowed(() =>
-		api.as("admin").organizationMember.update({
-			organizationId: org.id,
-			userId: adminUserId,
-			role: "admin",
-		}),
-	);
+	await api.as("admin").organizationMember.update({
+		organizationId: org.id,
+		userId: adminUserId,
+		role: "admin",
+	});
 
 	for (const role of UNPRIVILEGED) {
 		await expectForbidden(
@@ -288,16 +274,14 @@ test("only managers and admins remove members, and only an admin removes an admi
 		);
 	}
 
-	const removed = await untilAllowed(() =>
-		api.as("manager").organizationMember.delete({
-			organizationId: org.id,
-			refs: [
-				{
-					userId: memberUserId,
-				},
-			],
-		}),
-	);
+	const removed = await api.as("manager").organizationMember.delete({
+		organizationId: org.id,
+		refs: [
+			{
+				userId: memberUserId,
+			},
+		],
+	});
 	expect(removed.success).toBe(true);
 
 	await expectForbidden(
@@ -311,16 +295,14 @@ test("only managers and admins remove members, and only an admin removes an admi
 		}),
 	);
 
-	const removedAdmin = await untilAllowed(() =>
-		api.as("admin").organizationMember.delete({
-			organizationId: org.id,
-			refs: [
-				{
-					userId: adminUserId,
-				},
-			],
-		}),
-	);
+	const removedAdmin = await api.as("admin").organizationMember.delete({
+		organizationId: org.id,
+		refs: [
+			{
+				userId: adminUserId,
+			},
+		],
+	});
 	expect(removedAdmin.success).toBe(true);
 });
 
@@ -332,53 +314,43 @@ test("members and viewers list only the groups they belong to", async ({
 		"admin",
 		"manager",
 	] as const) {
-		const groups = await untilAllowed(() =>
-			api.as(role).group.list({
-				pageIndex: 0,
-				pageSize: 100,
-			}),
-		);
+		const groups = await api.as(role).group.list({
+			pageIndex: 0,
+			pageSize: 100,
+		});
 
 		// Every organisation is created with an "All Members" system group.
 		expect(groups.rowCount).toBeGreaterThan(0);
 
-		const found = await untilAllowed(() =>
-			api.as(role).group.find({
-				id: groups.data[0].id,
-			}),
-		);
+		const found = await api.as(role).group.find({
+			id: groups.data[0].id,
+		});
 		expect(found.data.id).toBe(groups.data[0].id);
 	}
 
 	// A group none of the unprivileged roles belongs to. Lists paginate and
 	// the slice accumulates groups, so its own name is the filter.
 	const strangerName = `E2E Group Of Nobody ${runId()}`;
-	const stranger = await untilAllowed(() =>
-		api.as("admin").group.create({
-			name: strangerName,
-		}),
-	);
+	const stranger = await api.as("admin").group.create({
+		name: strangerName,
+	});
 
 	for (const role of UNPRIVILEGED) {
 		// The All Members group, which every member belongs to, is theirs to
 		// see: reading a group no longer needs `manage_groups`.
-		const groups = await untilAllowed(() =>
-			api.as(role).group.list({
-				pageIndex: 0,
-				pageSize: 100,
-			}),
-		);
+		const groups = await api.as(role).group.list({
+			pageIndex: 0,
+			pageSize: 100,
+		});
 		expect(groups.data.some((group) => group.kind === "system")).toBe(true);
 
-		const filtered = await untilAllowed(() =>
-			api.as(role).group.list({
-				pageIndex: 0,
-				pageSize: 100,
-				filters: {
-					search: strangerName,
-				},
-			}),
-		);
+		const filtered = await api.as(role).group.list({
+			pageIndex: 0,
+			pageSize: 100,
+			filters: {
+				search: strangerName,
+			},
+		});
 		expect(filtered.rowCount).toBe(0);
 
 		// A group they are not in answers as if it were not there.
@@ -398,33 +370,27 @@ test("members and viewers list only the groups they belong to", async ({
 
 	// Added to the group, a member sees it; the viewer, who was not added,
 	// still does not.
-	await untilAllowed(() =>
-		api.as("admin").group.addMembers({
-			groupId: stranger.data.id,
-			userIds: [
-				org.users.member.id,
-			],
-		}),
-	);
+	await api.as("admin").group.addMembers({
+		groupId: stranger.data.id,
+		userIds: [
+			org.users.member.id,
+		],
+	});
 
-	const visible = await untilAllowed(() =>
-		api.as("member").group.list({
-			pageIndex: 0,
-			pageSize: 100,
-			filters: {
-				search: strangerName,
-			},
-		}),
-	);
+	const visible = await api.as("member").group.list({
+		pageIndex: 0,
+		pageSize: 100,
+		filters: {
+			search: strangerName,
+		},
+	});
 	expect(visible.data.map((group) => String(group.id))).toContain(
 		String(stranger.data.id),
 	);
 
-	const foundByMember = await untilAllowed(() =>
-		api.as("member").group.find({
-			id: stranger.data.id,
-		}),
-	);
+	const foundByMember = await api.as("member").group.find({
+		id: stranger.data.id,
+	});
 	expect(foundByMember.data.id).toBe(stranger.data.id);
 
 	await expectNotFound(
@@ -433,15 +399,13 @@ test("members and viewers list only the groups they belong to", async ({
 		}),
 	);
 
-	await untilAllowed(() =>
-		api.as("admin").group.delete({
-			refs: [
-				{
-					id: stranger.data.id,
-				},
-			],
-		}),
-	);
+	await api.as("admin").group.delete({
+		refs: [
+			{
+				id: stranger.data.id,
+			},
+		],
+	});
 });
 
 test("only managers and admins create, change and delete a group", async ({
@@ -455,11 +419,9 @@ test("only managers and admins create, change and delete a group", async ({
 		);
 	}
 
-	const created = await untilAllowed(() =>
-		api.as("manager").group.create({
-			name: `E2E Manager Group ${runId()}`,
-		}),
-	);
+	const created = await api.as("manager").group.create({
+		name: `E2E Manager Group ${runId()}`,
+	});
 	const groupId = created.data.id;
 
 	for (const role of UNPRIVILEGED) {
@@ -481,23 +443,19 @@ test("only managers and admins create, change and delete a group", async ({
 	}
 
 	const name = `E2E Admin Renamed Group ${runId()}`;
-	const renamed = await untilAllowed(() =>
-		api.as("admin").group.update({
-			id: groupId,
-			name,
-		}),
-	);
+	const renamed = await api.as("admin").group.update({
+		id: groupId,
+		name,
+	});
 	expect(renamed.data.name).toBe(name);
 
-	const deleted = await untilAllowed(() =>
-		api.as("manager").group.delete({
-			refs: [
-				{
-					id: groupId,
-				},
-			],
-		}),
-	);
+	const deleted = await api.as("manager").group.delete({
+		refs: [
+			{
+				id: groupId,
+			},
+		],
+	});
 	expect(deleted.success).toBe(true);
 });
 
@@ -505,11 +463,9 @@ test("only managers and admins change group membership", async ({
 	api,
 	org,
 }) => {
-	const created = await untilAllowed(() =>
-		api.as("admin").group.create({
-			name: `E2E Membership Group ${runId()}`,
-		}),
-	);
+	const created = await api.as("admin").group.create({
+		name: `E2E Membership Group ${runId()}`,
+	});
 	const groupId = created.data.id;
 	const userIds = [
 		org.users.member.id,
@@ -524,20 +480,16 @@ test("only managers and admins change group membership", async ({
 		);
 	}
 
-	await untilAllowed(() =>
-		api.as("manager").group.addMembers({
-			groupId,
-			userIds,
-		}),
-	);
+	await api.as("manager").group.addMembers({
+		groupId,
+		userIds,
+	});
 
-	const members = await untilAllowed(() =>
-		api.as("manager").group.listMembers({
-			groupId,
-			pageIndex: 0,
-			pageSize: 100,
-		}),
-	);
+	const members = await api.as("manager").group.listMembers({
+		groupId,
+		pageIndex: 0,
+		pageSize: 100,
+	});
 	expect(members.data.map((member) => member.user.id)).toContain(
 		org.users.member.id,
 	);
@@ -551,21 +503,17 @@ test("only managers and admins change group membership", async ({
 		);
 	}
 
-	const removed = await untilAllowed(() =>
-		api.as("admin").group.removeMembers({
-			groupId,
-			userIds,
-		}),
-	);
+	const removed = await api.as("admin").group.removeMembers({
+		groupId,
+		userIds,
+	});
 	expect(removed.success).toBe(true);
 
-	await untilAllowed(() =>
-		api.as("admin").group.delete({
-			refs: [
-				{
-					id: groupId,
-				},
-			],
-		}),
-	);
+	await api.as("admin").group.delete({
+		refs: [
+			{
+				id: groupId,
+			},
+		],
+	});
 });

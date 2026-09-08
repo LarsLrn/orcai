@@ -8,10 +8,11 @@ import {
 	hasManageGroups,
 	isActiveGroupMember,
 } from "@/lib/authz/group-visibility";
+import { getZedToken } from "@/lib/authz/zed-token";
 import * as AppErrors from "@/lib/effect/utils/errors";
 import { runMiddlewareEffect } from "@/lib/effect/utils/orpc-helpers";
 import { withName } from "@/lib/orpc/middlewares/utils";
-import { ensurePermission, getZedToken, permissionBase } from "./core";
+import { ensurePermission, permissionBase } from "./core";
 import { createResourcePermissionInput } from "./resource";
 
 export type AssertCanGrantPrincipalInput = {
