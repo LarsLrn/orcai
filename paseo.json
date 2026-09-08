@@ -5,7 +5,7 @@
 			"bun run stack up"
 		],
 		"teardown": [
-			"bun run stack down --volumes"
+			"bun run stack down --volumes --yes"
 		]
 	},
 	"scripts": {

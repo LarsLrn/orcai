@@ -57,7 +57,7 @@ jobs:
         run: bun run stack up
 
       - name: Run end-to-end tests
-        run: bun run stack e2e
+        run: bun run stack e2e --yes
         env:
           CI: true
           NODE_OPTIONS: --max-old-space-size=4096

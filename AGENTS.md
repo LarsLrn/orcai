@@ -30,4 +30,4 @@ slice rules.
   shared fixtures belong to the foundation. A slice needing one of them
   changed stops and reports.
 - Never install software or change configuration outside the repository on
-  the shared development machine; report what is needed instead.
+  the users machine. Report what is needed instead.
