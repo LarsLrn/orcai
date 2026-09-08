@@ -1,3 +1,4 @@
+import { normalizeEmail, type UserId } from "@orcai/core";
 import { DB, dbSchema } from "@orcai/db";
 import {
 	notificationOutboxValues,
@@ -6,7 +7,11 @@ import {
 import type { OrganizationInvitationSortKey } from "@orcai/schema";
 import { and, count, desc, eq, getColumns, inArray, or } from "drizzle-orm";
 import * as Effect from "effect/Effect";
-import { syncRelationshipTransition } from "@/lib/authz/relationship-transition";
+import {
+	acceptInvitation as acceptInvitedMembership,
+	invitationAddressedTo,
+} from "@/lib/auth/invitation-signup";
+import { getZedToken } from "@/lib/authz/zed-token";
 import { AppConfigService } from "@/lib/effect/services/config";
 import * as AppErrors from "@/lib/effect/utils/errors";
 import { authed } from "@/lib/orpc/implementation/authed";
@@ -23,21 +28,31 @@ import {
 } from "./helpers/organization-role-policy";
 import { buildOrderBy, type SortExpression } from "./helpers/sorting";
 
+/** Invitations the caller was sent or sent themselves. */
+const invitationScope = (user: { id: UserId; email: string }) =>
+	or(
+		invitationAddressedTo(user.email),
+		eq(dbSchema.invitation.inviterId, user.id),
+	);
+
 export const listOrganizationInvitations =
 	authed.organizationInvitation.list.effect(function* ({ input, context }) {
 		const db = yield* DB;
 
-		const baseScopeClause = or(
-			eq(dbSchema.invitation.email, context.auth.user.email),
-			eq(dbSchema.invitation.inviterId, context.auth.user.id),
-		);
+		const baseScopeClause =
+			input.filters?.recipient === "me"
+				? invitationAddressedTo(context.auth.user.email)
+				: invitationScope(context.auth.user);
 
-		const whereClause = input.organizationId
-			? and(
-					baseScopeClause,
-					eq(dbSchema.invitation.organizationId, input.organizationId),
-				)
-			: baseScopeClause;
+		const whereClause = and(
+			baseScopeClause,
+			input.organizationId
+				? eq(dbSchema.invitation.organizationId, input.organizationId)
+				: undefined,
+			input.filters?.status
+				? eq(dbSchema.invitation.status, input.filters.status)
+				: undefined,
+		);
 
 		const orderBy = yield* buildOrderBy({
 			sort: input.sort,
@@ -61,8 +76,16 @@ export const listOrganizationInvitations =
 		const [data, [rowCount]] = yield* Effect.all(
 			[
 				db
-					.select()
+					.select({
+						...getColumns(dbSchema.invitation),
+						organizationName: dbSchema.organization.name,
+						organizationSlug: dbSchema.organization.slug,
+					})
 					.from(dbSchema.invitation)
+					.innerJoin(
+						dbSchema.organization,
+						eq(dbSchema.organization.id, dbSchema.invitation.organizationId),
+					)
 					.where(whereClause)
 					.orderBy(...orderBy)
 					.limit(input.pageSize)
@@ -86,80 +109,92 @@ export const listOrganizationInvitations =
 	});
 
 export const findOrganizationInvitation =
-	authed.organizationInvitation.find.effect(function* ({ input }) {
+	authed.organizationInvitation.find.effect(function* ({ input, context }) {
 		const db = yield* DB;
 
-		return yield* db.query.invitation
-			.findFirst({
-				where: {
-					id: {
-						eq: input.id,
-					},
-				},
+		const [invitation] = yield* db
+			.select({
+				...getColumns(dbSchema.invitation),
 			})
-			.pipe(
-				Effect.flatMap((invitation) =>
-					Effect.fromNullishOr(invitation).pipe(
-						Effect.mapError(
-							() =>
-								new AppErrors.NotFoundError({
-									message: "Invitation not found",
-								}),
-						),
-					),
+			.from(dbSchema.invitation)
+			.where(
+				and(
+					eq(dbSchema.invitation.id, input.id),
+					invitationScope(context.auth.user),
 				),
-				Effect.map((invitation) => ({
-					data: invitation,
-				})),
-			);
+			)
+			.limit(1);
+
+		return yield* Effect.fromNullishOr(invitation).pipe(
+			Effect.mapError(
+				() =>
+					new AppErrors.NotFoundError({
+						message: "Invitation not found",
+					}),
+			),
+			Effect.map((data) => ({
+				data,
+			})),
+		);
 	});
 
 export const validateOrganizationInvitation =
 	os.organizationInvitation.validate.effect(function* ({ input }) {
 		const db = yield* DB;
-		const invitation = yield* db.query.invitation.findFirst({
-			where: {
-				id: {
-					eq: input.id,
-				},
+
+		const [row] = yield* db
+			.select({
+				...getColumns(dbSchema.invitation),
+				organizationName: dbSchema.organization.name,
+				organizationSlug: dbSchema.organization.slug,
+			})
+			.from(dbSchema.invitation)
+			.innerJoin(
+				dbSchema.organization,
+				eq(dbSchema.organization.id, dbSchema.invitation.organizationId),
+			)
+			.where(eq(dbSchema.invitation.id, input.id))
+			.limit(1);
+
+		const invalid = (
+			reason: "not_found" | "consumed" | "expired",
+		): {
+			data: {
+				isValid: false;
+				reason: typeof reason;
+				email: null;
+				organizationName: null;
+				organizationSlug: null;
+			};
+		} => ({
+			data: {
+				isValid: false,
+				reason,
+				email: null,
+				organizationName: null,
+				organizationSlug: null,
 			},
 		});
 
-		if (!invitation) {
-			return {
-				data: {
-					isValid: false,
-					reason: "not_found" as const,
-					email: null,
-				},
-			};
+		if (!row) {
+			return invalid("not_found");
 		}
 
-		if (invitation.status !== "pending") {
-			return {
-				data: {
-					isValid: false,
-					reason: "consumed" as const,
-					email: null,
-				},
-			};
+		if (row.status !== "pending") {
+			return invalid("consumed");
 		}
 
-		if (invitation.expiresAt < new Date()) {
-			return {
-				data: {
-					isValid: false,
-					reason: "expired" as const,
-					email: null,
-				},
-			};
+		if (row.expiresAt < new Date()) {
+			return invalid("expired");
 		}
 
 		return {
 			data: {
 				isValid: true,
 				reason: null,
-				email: invitation.email,
+				email: row.email,
+				organizationName: row.organizationName,
+				organizationSlug: row.organizationSlug,
 			},
 		};
 	});
@@ -194,6 +229,7 @@ export const createOrganizationInvitations =
 				yield* assertCanManageOrganizationAdmins({
 					organizationId: input.organizationId,
 					userId: context.auth.user.id,
+					zedToken: getZedToken(context),
 				});
 			}
 
@@ -366,8 +402,8 @@ export const respondToOrganizationInvitation =
 			);
 
 		if (
-			invitation.email.trim().toLowerCase() !==
-			context.auth.user.email.trim().toLowerCase()
+			normalizeEmail(invitation.email) !==
+			normalizeEmail(context.auth.user.email)
 		) {
 			return yield* Effect.fail(
 				new AppErrors.ForbiddenError({
@@ -390,57 +426,11 @@ export const respondToOrganizationInvitation =
 		}
 
 		const acceptInvitation = Effect.gen(function* () {
-			if (invitation.status === "rejected") {
-				return yield* Effect.fail(
-					new AppErrors.BadRequestError({
-						message: "Rejected invitations cannot be accepted",
-					}),
-				);
-			}
-
-			const existingMember = yield* db.query.member.findFirst({
-				where: {
-					AND: [
-						{
-							organizationId: {
-								eq: invitation.organizationId,
-							},
-						},
-						{
-							userId: {
-								eq: context.auth.user.id,
-							},
-						},
-					],
-				},
+			yield* acceptInvitedMembership({
+				userId: context.auth.user.id,
+				email: context.auth.user.email,
+				invitationId: input.id,
 			});
-
-			if (!existingMember) {
-				yield* db.insert(dbSchema.member).values({
-					organizationId: invitation.organizationId,
-					userId: context.auth.user.id,
-					role: invitation.role ?? "member",
-					createdAt: new Date(),
-				});
-
-				yield* syncRelationshipTransition({
-					resourceType: "organization",
-					resourceId: invitation.organizationId,
-					subjectType: "user",
-					subjectId: context.auth.user.id,
-					newRelation: invitation.role ?? "member",
-				});
-			}
-
-			if (invitation.status !== "accepted") {
-				yield* db
-					.update(dbSchema.invitation)
-					.set({
-						status: "accepted",
-						updatedAt: new Date(),
-					})
-					.where(eq(dbSchema.invitation.id, input.id));
-			}
 
 			if (!context.auth.session.activeOrganizationId) {
 				yield* db
@@ -466,13 +456,27 @@ export const respondToOrganizationInvitation =
 				);
 			}
 
-			yield* db
+			const rejected = yield* db
 				.update(dbSchema.invitation)
 				.set({
 					status: "rejected",
 					updatedAt: new Date(),
 				})
-				.where(eq(dbSchema.invitation.id, input.id));
+				.where(
+					and(
+						eq(dbSchema.invitation.id, input.id),
+						eq(dbSchema.invitation.status, invitation.status),
+					),
+				)
+				.returning({
+					id: dbSchema.invitation.id,
+				});
+			if (rejected.length === 0)
+				return yield* Effect.fail(
+					new AppErrors.BadRequestError({
+						message: "Invitation changed while responding",
+					}),
+				);
 
 			return {
 				success: true,

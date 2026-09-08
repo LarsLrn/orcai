@@ -240,7 +240,7 @@ const BotEditorShell = ({
 	};
 
 	const handleSelectExistingTemplateBlock = async (blockId: string) => {
-		const block = await queryClient.fetchQuery(
+		const block = await queryClient.query(
 			orpc.block.find.queryOptions({
 				input: {
 					id: blockId,
@@ -267,7 +267,7 @@ const BotEditorShell = ({
 	};
 
 	const handleAddExistingDatabaseBlock = async (blockId: string) => {
-		const block = await queryClient.fetchQuery(
+		const block = await queryClient.query(
 			orpc.block.find.queryOptions({
 				input: {
 					id: blockId,

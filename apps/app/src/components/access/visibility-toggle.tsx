@@ -22,8 +22,9 @@ const VisibilityToggle = ({
 				<div>
 					<p className="font-medium text-sm">Visibility</p>
 					<p className="text-muted-foreground text-xs">
-						Public resources are visible to authenticated users across
-						organisations.
+						{isPublic
+							? "Every user of this instance can find and use this resource."
+							: "Only the people and groups granted access can find and use this resource."}
 					</p>
 				</div>
 				<div className="flex items-center gap-2">

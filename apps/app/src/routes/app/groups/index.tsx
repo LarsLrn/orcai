@@ -53,7 +53,7 @@ export const Route = createFileRoute("/app/groups/")({
 		context: { queryClient },
 		deps: { pageIndex, pageSize, query, sort },
 	}) => {
-		await queryClient.ensureQueryData(
+		await queryClient.query(
 			orpc.group.list.queryOptions({
 				input: {
 					filters: {
@@ -63,6 +63,7 @@ export const Route = createFileRoute("/app/groups/")({
 					pageSize,
 					sort,
 				},
+				staleTime: "static",
 			}),
 		);
 	},

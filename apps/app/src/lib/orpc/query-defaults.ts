@@ -177,6 +177,11 @@ export const queryDefaults = {
 				placeholderData: keepPreviousData,
 			},
 		},
+		listAll: {
+			queryOptions: {
+				placeholderData: keepPreviousData,
+			},
+		},
 		find: {
 			queryOptions: {
 				placeholderData: keepPreviousData,
@@ -219,6 +224,11 @@ export const queryDefaults = {
 	},
 	user: {
 		list: {
+			queryOptions: {
+				placeholderData: keepPreviousData,
+			},
+		},
+		listAll: {
 			queryOptions: {
 				placeholderData: keepPreviousData,
 			},

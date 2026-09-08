@@ -32,13 +32,14 @@ export const Route = createFileRoute("/app/providers/")({
 		context: { queryClient },
 		deps: { pageIndex, pageSize, sort },
 	}) => {
-		await queryClient.ensureQueryData(
+		await queryClient.query(
 			orpc.provider.list.queryOptions({
 				input: {
 					pageIndex,
 					pageSize,
 					sort,
 				},
+				staleTime: "static",
 			}),
 		);
 	},

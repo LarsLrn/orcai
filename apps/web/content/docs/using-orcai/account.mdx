@@ -11,7 +11,8 @@ The account page is your personal control panel inside the active organisation c
 - Email verification status and resend action
 - Change password form
 - Profile form
-- Organisation invitations list
+- Organisation invitations list, with Pending, Accepted, and Rejected tabs and
+  Previous/Next pagination within each tab
 - Legal links (privacy policy and terms of use)
 
 ## Email Verification
@@ -36,7 +37,19 @@ For forgotten passwords, the app also has a dedicated forgot/reset flow outside 
 
 ## Invitations
 
-Organisation invitations are visible in account and can also appear in the organisation selection flow.
+Registration is by invitation. An account is created from an invitation link
+sent by an administrator of the organisation you are joining; there is no open
+sign-up. The register page names the inviting organisation, and the address is
+fixed by the invitation.
+
+Signing up requires the invitation ID from the link and a matching address.
+It accepts only that invitation. Other pending invitations stay visible in the
+organisation picker, even with one active organisation. With one active
+organisation and no pending invitations you enter it directly. Email
+verification remains optional for access.
+
+Invitations that arrive after your account exists are listed on the account
+page and in the organisation selection flow, where you accept or reject them.
 
 ## Stats And Usage
 

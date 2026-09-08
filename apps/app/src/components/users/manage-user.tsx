@@ -1,29 +1,26 @@
+import { ORGANIZATION_ADMIN_ROLE } from "@orcai/core";
 import type { UserWithOrganizationRole } from "@orcai/schema";
-import { useQueryClient } from "@tanstack/react-query";
-import { useRouteContext } from "@tanstack/react-router";
+import { useNavigate, useRouteContext } from "@tanstack/react-router";
 import {
 	KeyRoundIcon,
 	MailCheckIcon,
 	ShieldAlertIcon,
-	ShieldCheckIcon,
-	Trash2Icon,
 	UserCogIcon,
-	UserXIcon,
+	UserMinusIcon,
 } from "lucide-react";
 import { useMemo } from "react";
-import { toast } from "sonner";
 import { OrganizationRolePicker } from "@/components/organizations/organization-role-picker";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { useOrganizationCapabilities } from "@/hooks/authz/use-capabilities";
 import { useForgotPassword } from "@/hooks/mutations/use-forgot-password";
-import { useUpdateOrganizationMemberMutation } from "@/hooks/mutations/use-organization-member-mutations";
+import {
+	useDeleteOrganizationMembersMutation,
+	useUpdateOrganizationMemberMutation,
+} from "@/hooks/mutations/use-organization-member-mutations";
 import { useResendVerificationEmail } from "@/hooks/mutations/use-resend-verification-email";
-import { useDeleteUsersMutation } from "@/hooks/mutations/use-user-admin-mutations";
-import { authClient } from "@/lib/auth/auth-client";
 import { getAssignableOrganizationRoles } from "@/lib/authz/organization-role-metadata";
-import { orpc } from "@/lib/orpc/orpc";
 
 const ManageUser = ({ user }: { user: UserWithOrganizationRole }) => {
 	const { auth } = useRouteContext({
@@ -32,20 +29,41 @@ const ManageUser = ({ user }: { user: UserWithOrganizationRole }) => {
 	const { data: capabilities } = useOrganizationCapabilities([
 		"manage_organization",
 	]);
-	const { mutate: deleteUsers } = useDeleteUsersMutation();
+	const navigate = useNavigate();
 	const { mutate: requestPasswordReset } = useForgotPassword();
 	const { mutate: resendVerificationEmail } = useResendVerificationEmail();
-	const queryClient = useQueryClient();
 	const updateMember = useUpdateOrganizationMemberMutation();
+	const removeMember = useDeleteOrganizationMembersMutation();
 	const organizationId = auth.session.activeOrganizationId;
 	const canManageOrganization =
 		capabilities?.data.capabilities.manage_organization === true;
 	const canManageProtectedUser =
-		user.organizationRole !== "admin" || canManageOrganization;
+		user.organizationRole !== ORGANIZATION_ADMIN_ROLE || canManageOrganization;
 	const canMutateUserAccount =
 		canManageProtectedUser && user.id !== auth.user.id;
 	const isProtectedAdmin =
-		user.organizationRole === "admin" && !canManageOrganization;
+		user.organizationRole === ORGANIZATION_ADMIN_ROLE && !canManageOrganization;
+
+	const handleRemoveFromOrganisation = async () => {
+		if (!organizationId) {
+			return;
+		}
+
+		const result = await removeMember.mutateAsync({
+			organizationId,
+			refs: [
+				{
+					userId: user.id,
+				},
+			],
+		});
+
+		if (result.status === "success") {
+			await navigate({
+				to: "/app/users",
+			});
+		}
+	};
 
 	const assignableRoles = useMemo(
 		() =>
@@ -56,64 +74,6 @@ const ManageUser = ({ user }: { user: UserWithOrganizationRole }) => {
 			canManageOrganization,
 		],
 	);
-
-	const refreshUser = async () => {
-		await queryClient.invalidateQueries({
-			queryKey: orpc.user.key(),
-		});
-	};
-
-	const handleBanUser = (userId: string) => {
-		toast.promise(
-			authClient.admin
-				.banUser({
-					userId,
-				})
-				.then(async (result) => {
-					if (result.error) throw new Error(result.error.message);
-					await refreshUser();
-					return result;
-				}),
-			{
-				loading: "Banning user...",
-				success: "User banned",
-				error: (error) => ({
-					message: "Failed to ban user",
-					description: error.message,
-				}),
-			},
-		);
-	};
-
-	const handleUnbanUser = (userId: string) => {
-		toast.promise(
-			authClient.admin
-				.unbanUser({
-					userId,
-				})
-				.then(async (result) => {
-					if (result.error) throw new Error(result.error.message);
-					await refreshUser();
-					return result;
-				}),
-			{
-				loading: "Unbanning user...",
-				success: "User unbanned",
-				error: (error) => ({
-					message: "Failed to unban user",
-					description: error.message,
-				}),
-			},
-		);
-	};
-
-	const handleDeleteUser = (userId: string) => {
-		deleteUsers({
-			userIds: [
-				userId,
-			],
-		});
-	};
 
 	return (
 		<div className="flex flex-col gap-4">
@@ -185,29 +145,15 @@ const ManageUser = ({ user }: { user: UserWithOrganizationRole }) => {
 						/>
 					</div>
 
-					{canMutateUserAccount ? (
+					{canMutateUserAccount && organizationId ? (
 						<div className="flex flex-wrap gap-2">
-							{!user.banned ? (
-								<Button
-									variant="destructive"
-									onClick={() => handleBanUser(user.id)}
-								>
-									<UserXIcon className="h-4 w-4" />
-									Ban User
-								</Button>
-							) : (
-								<Button onClick={() => handleUnbanUser(user.id)}>
-									<ShieldCheckIcon className="h-4 w-4" />
-									Unban User
-								</Button>
-							)}
-
 							<Button
 								variant="destructive"
-								onClick={() => handleDeleteUser(user.id)}
+								disabled={removeMember.isPending}
+								onClick={() => void handleRemoveFromOrganisation()}
 							>
-								<Trash2Icon className="h-4 w-4" />
-								Delete User
+								<UserMinusIcon className="h-4 w-4" />
+								Remove from organisation
 							</Button>
 						</div>
 					) : null}

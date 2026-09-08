@@ -1,7 +1,14 @@
+import { ORGANIZATION_ADMIN_ROLE } from "@orcai/core";
 import { DB, dbSchema } from "@orcai/db";
 import { and, count, eq, getColumns, inArray, sql } from "drizzle-orm";
 import * as Effect from "effect/Effect";
+import { detachOrganizationAccess } from "@/lib/authz/membership-detach";
 import { syncRelationshipTransition } from "@/lib/authz/relationship-transition";
+import { getZedToken } from "@/lib/authz/zed-token";
+import {
+	AuthzService,
+	enqueueRelationshipMutations,
+} from "@/lib/effect/services/authz";
 import * as AppErrors from "@/lib/effect/utils/errors";
 import { authed } from "@/lib/orpc/implementation/authed";
 import {
@@ -97,46 +104,6 @@ export const findOrganizationMember = authed.organizationMember.find
 			);
 	});
 
-export const createOrganizationMember = authed.organizationMember.create
-	.use(
-		requireEntityPermission("organization", "manage_members", {
-			entityId: "organizationId",
-		}),
-	)
-	.effect(function* ({ input, context }) {
-		const db = yield* DB;
-
-		if (organizationRoleRequiresAdminControl(input.role)) {
-			yield* assertCanManageOrganizationAdmins({
-				organizationId: input.organizationId,
-				userId: context.auth.user.id,
-			});
-		}
-
-		const member = yield* db
-			.insert(dbSchema.member)
-			.values({
-				...input,
-				createdAt: new Date(),
-			})
-			.returning({
-				...getColumns(dbSchema.member),
-			})
-			.pipe(Effect.map(([member]) => member));
-
-		yield* syncRelationshipTransition({
-			resourceType: "organization",
-			resourceId: input.organizationId,
-			subjectType: "user",
-			subjectId: input.userId,
-			newRelation: input.role,
-		});
-
-		return {
-			data: member,
-		};
-	});
-
 export const updateOrganizationMember = authed.organizationMember.update
 	.use(
 		requireEntityPermission("organization", "manage_members", {
@@ -182,6 +149,7 @@ export const updateOrganizationMember = authed.organizationMember.update
 					yield* assertCanManageOrganizationAdmins({
 						organizationId: input.organizationId,
 						userId: context.auth.user.id,
+						zedToken: getZedToken(context),
 					});
 				}
 
@@ -198,7 +166,7 @@ export const updateOrganizationMember = authed.organizationMember.update
 						.where(
 							and(
 								eq(dbSchema.member.organizationId, input.organizationId),
-								eq(dbSchema.member.role, "admin"),
+								eq(dbSchema.member.role, ORGANIZATION_ADMIN_ROLE),
 							),
 						);
 					yield* assertAdminRemainsAfterRemoving({
@@ -251,7 +219,7 @@ export const updateOrganizationMember = authed.organizationMember.update
 			);
 		}
 
-		if (existing && existing.role !== member.role) {
+		if (existing && existing.role !== member.role)
 			yield* syncRelationshipTransition({
 				resourceType: "organization",
 				resourceId: input.organizationId,
@@ -260,7 +228,6 @@ export const updateOrganizationMember = authed.organizationMember.update
 				oldRelation: existing.role,
 				newRelation: member.role,
 			});
-		}
 
 		return {
 			data: member,
@@ -280,8 +247,10 @@ export const deleteOrganizationMembers = authed.organizationMember.delete
 	)
 	.effect(function* ({ input, context }) {
 		const db = yield* DB;
+		const authz = yield* AuthzService;
+		const now = new Date();
 
-		const existingMembers = yield* db.transaction((tx) =>
+		const eventId = yield* db.transaction((tx) =>
 			Effect.gen(function* () {
 				yield* tx.execute(sql`LOCK TABLE "member" IN SHARE ROW EXCLUSIVE MODE`);
 
@@ -306,6 +275,7 @@ export const deleteOrganizationMembers = authed.organizationMember.delete
 					yield* assertCanManageOrganizationAdmins({
 						organizationId: input.organizationId,
 						userId: context.auth.user.id,
+						zedToken: getZedToken(context),
 					});
 
 					const [adminCountResult] = yield* tx
@@ -316,7 +286,7 @@ export const deleteOrganizationMembers = authed.organizationMember.delete
 						.where(
 							and(
 								eq(dbSchema.member.organizationId, input.organizationId),
-								eq(dbSchema.member.role, "admin"),
+								eq(dbSchema.member.role, ORGANIZATION_ADMIN_ROLE),
 							),
 						);
 					yield* assertAdminRemainsAfterRemoving({
@@ -334,26 +304,54 @@ export const deleteOrganizationMembers = authed.organizationMember.delete
 						),
 					);
 
-				return existingMembers;
+				if (existingMembers.length > 0) {
+					yield* tx
+						.update(dbSchema.session)
+						.set({
+							activeOrganizationId: null,
+						})
+						.where(
+							and(
+								inArray(
+									dbSchema.session.userId,
+									existingMembers.map((member) => member.userId),
+								),
+								eq(dbSchema.session.activeOrganizationId, input.organizationId),
+							),
+						);
+				}
+
+				const detached = yield* detachOrganizationAccess({
+					tx,
+					organizationId: input.organizationId,
+					userIds: existingMembers.map((member) => member.userId),
+					now,
+				});
+
+				return yield* enqueueRelationshipMutations({
+					tx,
+					mutations: [
+						...existingMembers.map((member) => ({
+							resourceType: "organization" as const,
+							resourceId: input.organizationId,
+							relation: member.role,
+							subjectType: "user" as const,
+							subjectId: member.userId,
+							operation: "delete" as const,
+						})),
+						...detached,
+					],
+				});
 			}),
 		);
 
-		if (existingMembers.length > 0) {
-			yield* Effect.forEach(
-				existingMembers,
-				(member) =>
-					syncRelationshipTransition({
-						resourceType: "organization",
-						resourceId: input.organizationId,
-						subjectType: "user",
-						subjectId: member.userId,
-						oldRelation: member.role,
-					}),
-				{
-					concurrency: "unbounded",
-				},
+		yield* authz
+			.deliverRelationshipEvent(eventId)
+			.pipe(
+				Effect.catch((cause) =>
+					Effect.logError(`authz.delivery_failed cause=${String(cause)}`),
+				),
 			);
-		}
 
 		return {
 			success: true,

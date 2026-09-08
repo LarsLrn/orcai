@@ -50,7 +50,7 @@ export const Route = createFileRoute("/app/models/")({
 		deps: { pageIndex, pageSize, providerId, query, sort },
 	}) => {
 		await Promise.all([
-			queryClient.ensureQueryData(
+			queryClient.query(
 				orpc.model.list.queryOptions({
 					input: {
 						filters: {
@@ -61,14 +61,16 @@ export const Route = createFileRoute("/app/models/")({
 						pageSize,
 						sort,
 					},
+					staleTime: "static",
 				}),
 			),
-			queryClient.ensureQueryData(
+			queryClient.query(
 				orpc.provider.list.queryOptions({
 					input: {
 						pageIndex: 0,
 						pageSize: 200,
 					},
+					staleTime: "static",
 				}),
 			),
 		]);

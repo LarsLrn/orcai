@@ -5,6 +5,7 @@ import { and, countDistinct, desc, eq, getColumns, inArray } from "drizzle-orm";
 import * as Effect from "effect/Effect";
 import { emptyCapabilities } from "@/lib/authz/capabilities";
 import { initializeResourceAuthorization } from "@/lib/authz/resource-lifecycle";
+import { getZedToken } from "@/lib/authz/zed-token";
 import * as AppErrors from "@/lib/effect/utils/errors";
 import { authed } from "@/lib/orpc/implementation/authed";
 import {
@@ -32,7 +33,7 @@ export const listBlocks = authed.block.list.effect(function* ({
 		userId: context.auth.user.id,
 		permission: "read",
 		entityType: "block",
-		zedToken: input.zedToken,
+		zedToken: getZedToken(context, input),
 	}).pipe(
 		Effect.map((response) => response.map((item) => item.resourceObjectId)),
 	);
@@ -90,7 +91,7 @@ export const listBlocks = authed.block.list.effect(function* ({
 		entityType: "block",
 		entityIds: blocks.map((block) => block.id),
 		userId: context.auth.user.id,
-		zedToken: input.zedToken,
+		zedToken: getZedToken(context, input),
 	});
 
 	return {
@@ -132,7 +133,7 @@ export const findBlock = authed.block.find
 			entityType: "block",
 			entityId: input.id,
 			userId: context.auth.user.id,
-			zedToken: input.zedToken,
+			zedToken: getZedToken(context, input),
 		});
 
 		if (block.type === "database") {
@@ -175,12 +176,12 @@ export const createBlock = authed.block.create
 			})
 			.pipe(Effect.map((rows) => rows as Block[]));
 
-		const zedToken = (yield* initializeResourceAuthorization({
+		yield* initializeResourceAuthorization({
 			resourceType: "block",
 			resourceId: block.id,
 			organizationId: context.auth.session.activeOrganizationId,
 			ownerUserId: context.auth.user.id,
-		})).zedToken;
+		});
 
 		if (input.type === "database") {
 			const syncResult = yield* syncDatabaseBlockAssets({
@@ -192,17 +193,11 @@ export const createBlock = authed.block.create
 			return {
 				data: block,
 				assets: syncResult.assetIds,
-				meta: {
-					zedToken,
-				},
 			};
 		}
 
 		return {
 			data: block,
-			meta: {
-				zedToken,
-			},
 		};
 	});
 

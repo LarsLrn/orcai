@@ -2,7 +2,6 @@ import {
 	createDataResponseSchema,
 	createDeleteResponseSchema,
 	createListResponseSchema,
-	zedTokenSchema,
 } from "../shared";
 import {
 	botEditorSchema,
@@ -20,11 +19,7 @@ export const findBotResponseSchema =
 export const findBotEditorResponseSchema =
 	createDataResponseSchema(botEditorSchema);
 
-export const saveBotResponseSchema = createDataResponseSchema(
-	botEditorSchema,
-).extend({
-	meta: zedTokenSchema.optional(),
-});
+export const saveBotResponseSchema = createDataResponseSchema(botEditorSchema);
 
 export const publishBotResponseSchema =
 	createDataResponseSchema(botEditorSchema);

@@ -1,0 +1,86 @@
+---
+title: End-To-End Tests
+description: How the Playwright end-to-end suite is run, isolated, and extended.
+---
+
+The end-to-end suite proves that the application works against real infrastructure: a real database, real authorisation store, real object storage. Unit tests (`bun run test`) never touch the stack; the end-to-end suite always does.
+
+## Runner
+
+- Playwright Test on the host, Chromium only.
+- Workspace package `apps/e2e` (`@orcai/e2e`).
+- Browser locale `en`. Locators use roles and accessible English names; test ids only where no accessible name exists.
+- Traces and screenshots are kept on failure. Test timeout 30 seconds.
+- Locally: Playwright's default worker count, no retries. On CI: two workers and one retry; flaky retries fail CI.
+
+## Workflow
+
+The suite runs against the checkout's own stack.
+
+```bash title="Repository root"
+bun run stack e2e                              # reset, then the whole suite
+bun run e2e                                    # root alias
+bun run stack e2e -- --grep auth               # one spec area
+bun run stack e2e -- --ui                      # Playwright UI mode
+bun run stack e2e --no-reset -- --grep smoke   # fast iteration on existing data
+```
+
+Everything after `--` is passed to Playwright.
+
+<Callout title="A run wipes the stack's data" type="warn">
+	Unless you pass `--no-reset`, `bun run stack e2e` resets the stack first: it drops and recreates the `app` database, reapplies migrations and the SpiceDB schema, deletes all SpiceDB relationships, empties the MinIO buckets, deletes the Qdrant collections, and flushes Valkey. Containers and `.env` are left in place, so a reset takes seconds. The reset refuses unless the database host is loopback, the stack is named `orcai-*`, and nothing is listening on the app port. To keep your development data, run the suite against a second stack with `bun run stack --name <name>-e2e --env-file .env.e2e up`, then the same flags on `e2e`. Run the stacks of one checkout one after the other: the production build bakes the stack's base URL into `apps/app/dist`, which both runs would share. Separate worktrees have separate builds and run concurrently.
+</Callout>
+
+The application under test is the production build: Playwright's `webServer` list first starts the mock inference server from `apps/e2e/fixtures/inference` on `E2E_INFERENCE_PORT`, then runs `bun run build:app && bun run start` on the `PORT` from the stack environment, with a 180 second start timeout. `bun run stack e2e` points the app's global OpenAI-compatible endpoint at the mock and names its models in `GENERAL_MODEL` and `EMBEDDING_MODEL`, so embeddings and chat titles never reach a real provider. The mock always starts fresh and refuses to adopt an existing server. Because `reuseExistingServer` is enabled for the app, `bun run stack e2e --no-reset` reuses a `bun run stack dev` already listening on that port, which skips the build and picks up code edits immediately. A reset refuses while an app is listening, because a running server caches the bootstrap status and owns the pg-boss schema it created on start; stop the dev server first or pass `--no-reset`.
+
+## Seed And Isolation
+
+There is no seed command. A Playwright `setup` project holds one spec that initialises the reset instance through the first-run UI at `/<locale>/init` with a well-known admin whose credentials and instance organisation are fixed constants. If the instance is already initialised, the spec skips itself with a visible reason. Every other project depends on `setup`, so a full run always exercises first-run setup and always has the well-known admin available.
+
+The reset happens once per run. Beyond the well-known admin, every Playwright worker creates its own organisations and users through the public API, named by worker index, and specs mutate only data inside their own worker's organisations. Users are created through the Better Auth sign-up endpoint and then given a role through the membership procedure. Creating an organisation requires the instance-admin role, so the well-known admin creates every worker organisation and becomes an admin member of each. It does not need an active organisation to perform that instance-scoped action. Fixture setup still exercises the same paths the interface does. Specs that need instance-level state live in `apps/e2e/tests/instance/`; that project runs serially and completes before the parallel specs start.
+
+## Fixtures
+
+Specs import `test` and `expect` from `apps/e2e/fixtures/index.ts` and get their data through fixtures rather than direct database writes.
+
+| Fixture | Scope | Provides |
+| --- | --- | --- |
+| `org` | worker | The worker's organisation: `id`, `slug`, `name`, and `users[role]` for `admin`, `manager`, `member`, and `viewer`, each with `email`, `password`, and `id`, plus per-role storage states obtained by HTTP sign-in. |
+| `pageAs(role)` | test | A page already signed in as that role. |
+| `api.as(role)` | test | A typed oRPC client against `/api/rpc`, built from the shared contracts. `api.asWellKnownAdmin()` covers instance-level calls. |
+| `orgs.create(name)` | worker | An additional organisation owned by the worker, for seam tests that need two. |
+| `outbox.latestFor(email, type)` | test | The newest link for an address from the notification outbox table, for invitation and password-reset flows. |
+| `inference` | worker | A mock OpenAI-compatible inference server on an ephemeral port, from `fixtures/inference/fixture.ts`. Its URL is a valid provider endpoint; it records every request and can script replies and failures. |
+
+Out of scope for the suite: background workers, email delivery, real AI endpoints, and OCR.
+
+## Slices
+
+A slice is one spec area owned by one contributor or agent. A slice owns `apps/e2e/tests/<area>/` and may add fixtures under `apps/e2e/fixtures/<area>/`. Everything else in `apps/e2e` belongs to the foundation: the Playwright configuration, `fixtures/index.ts`, and the core fixtures for authentication, authorization, API access, constants, forms, navigation, and the outbox. The same applies to `scripts/stack.ts` and these documentation pages. A slice that needs one of those changed stops and reports instead of editing it.
+
+Rules for working on a slice:
+
+- Reset before a full run; use `--no-reset` only while iterating.
+- Mutate data only inside your own worker's organisations.
+- Finish with `bun run stack e2e -- --grep <area>` passing.
+- Pin a defect the app has today with `test.fail()` and a comment; assert the intended behaviour, never the defect.
+
+Each area under `apps/e2e/tests/<area>/` owns its specs and may add area
+fixtures. The Playwright configuration, core fixtures, and stack tooling are
+foundation files shared by every area; coordinate before changing them.
+
+## Continuous Integration
+
+GitHub Actions runs the suite as a separate blocking `e2e` job, in parallel with `validate`. It installs Chromium with the pinned `apps/e2e` Playwright, starts the stack, runs `bun run stack e2e`, and uploads failure artifacts for seven days.
+
+Worker-local inference settings reset before and after every test, including
+failed tests; other workers keep their own scenarios. Well-known-admin browser
+pages sign in independently of the admin API client. Changing organisation on
+one session does not change the other.
+
+Unknown stack flags before `--` fail with a clear error. Everything after `--`
+is preserved for the delegated command.
+
+The documentation build prerenders on a free preview port when port 3001, the
+docs site's own port, is occupied, so another local server does not block
+`bun run ci`.

@@ -24,6 +24,7 @@ import * as Effect from "effect/Effect";
 import { v4 as uuidv4 } from "uuid";
 import { emptyCapabilities } from "@/lib/authz/capabilities";
 import { initializeResourceAuthorization } from "@/lib/authz/resource-lifecycle";
+import { getZedToken } from "@/lib/authz/zed-token";
 import * as AppErrors from "@/lib/effect/utils/errors";
 import { authed } from "@/lib/orpc/implementation/authed";
 import {
@@ -36,6 +37,7 @@ import {
 	getEntityCapabilities,
 	getManyEntityCapabilities,
 } from "@/lib/orpc/router/helpers/capabilities";
+import { literalSearch } from "./helpers/literal-search";
 
 const createAssetRecord = (params: {
 	id?: AssetId;
@@ -67,7 +69,7 @@ const createAssetRecord = (params: {
 			})
 			.returning();
 
-		const relationResult = yield* initializeResourceAuthorization({
+		yield* initializeResourceAuthorization({
 			resourceType: "asset",
 			resourceId: asset.id,
 			organizationId: params.organizationId,
@@ -76,7 +78,6 @@ const createAssetRecord = (params: {
 
 		return {
 			asset,
-			zedToken: relationResult.zedToken,
 		};
 	});
 
@@ -116,7 +117,7 @@ export const listAssets = authed.asset.list.effect(function* ({
 		userId: context.auth.user.id,
 		permission: "read",
 		entityType: "asset",
-		zedToken: input.zedToken,
+		zedToken: getZedToken(context, input),
 	}).pipe(
 		Effect.map((response) => response.map((item) => item.resourceObjectId)),
 	);
@@ -131,7 +132,7 @@ export const listAssets = authed.asset.list.effect(function* ({
 
 	if (input.filters?.search) {
 		whereConditions.push(
-			ilike(dbSchema.asset.title, `%${input.filters.search}%`),
+			ilike(dbSchema.asset.title, literalSearch(input.filters.search)),
 		);
 	}
 
@@ -163,7 +164,7 @@ export const listAssets = authed.asset.list.effect(function* ({
 					entityType: "asset",
 					entityIds: data.map((asset) => asset.id),
 					userId: context.auth.user.id,
-					zedToken: input.zedToken,
+					zedToken: getZedToken(context, input),
 				});
 
 				return {
@@ -211,7 +212,7 @@ export const findAsset = authed.asset.find
 					entityType: "asset",
 					entityId: query.id,
 					userId: context.auth.user.id,
-					zedToken: input.zedToken,
+					zedToken: getZedToken(context, input),
 				}),
 			},
 		};
@@ -225,7 +226,7 @@ export const createAsset = authed.asset.create
 			route: "asset",
 		});
 
-		const { asset, zedToken } = yield* createAssetRecord({
+		const { asset } = yield* createAssetRecord({
 			id: input.id,
 			title: input.title ?? "New Asset",
 			size: input.size,
@@ -239,9 +240,6 @@ export const createAsset = authed.asset.create
 
 		return {
 			data: asset,
-			meta: {
-				zedToken,
-			},
 		};
 	});
 
@@ -257,7 +255,7 @@ export const saveAsset = authed.asset.save.effect(function* ({
 			entityType: "asset",
 			permission: "edit",
 			userId: context.auth.user.id,
-			zedToken: undefined,
+			zedToken: getZedToken(context),
 		});
 
 		if (!hasPermission(permission)) {
@@ -311,7 +309,7 @@ export const saveAsset = authed.asset.save.effect(function* ({
 		entityType: "organization",
 		permission: "create_asset",
 		userId: context.auth.user.id,
-		zedToken: undefined,
+		zedToken: getZedToken(context),
 	});
 
 	if (!hasPermission(permission)) {
@@ -325,7 +323,7 @@ export const saveAsset = authed.asset.save.effect(function* ({
 		);
 	}
 
-	const { asset, zedToken } = yield* createAssetRecord({
+	const { asset } = yield* createAssetRecord({
 		id: input.upload.id,
 		title: input.title,
 		size: input.upload.size,
@@ -341,9 +339,6 @@ export const saveAsset = authed.asset.save.effect(function* ({
 
 	return {
 		data: asset,
-		meta: {
-			zedToken,
-		},
 	};
 });
 
@@ -360,7 +355,7 @@ export const saveManyAssets = authed.asset.saveMany
 							entityType: "asset",
 							permission: "edit",
 							userId: context.auth.user.id,
-							zedToken: context.meta?.zedToken,
+							zedToken: getZedToken(context),
 						});
 
 						if (!hasPermission(permission)) {
@@ -421,9 +416,6 @@ export const saveManyAssets = authed.asset.saveMany
 
 		return {
 			data: results.map((result) => result.asset),
-			meta: {
-				zedToken: results.find((result) => result.zedToken)?.zedToken,
-			},
 		};
 	});
 

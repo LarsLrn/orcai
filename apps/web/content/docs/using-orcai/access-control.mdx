@@ -14,17 +14,25 @@ OrcAI uses organisation-scoped access control with capability-gated UI and resou
 
 ## Active Organisation
 
-After login, users without an active organisation are redirected to organisation selection.
+Signing in activates the user's only organisation automatically. Users with
+multiple organisations choose one from the selection page. Pending invitations
+keep that picker visible even when one organisation is already active.
+
+If a signed-in user loses membership of the active organisation, the app clears
+the selection and shows the picker, even if only one organisation remains.
 
 The selection page supports:
 
 - Choosing from available organisations
-- Auto-select when only one exists
+- Filtering the organisations by name and loading more of them a page at a time
 - Accepting pending invitations to gain access
 
 ## Invitations
 
-Invitations are used to add users into organisations.
+Invitations are used to add users into organisations, and they are the only way
+an account comes into being: registration is invitation only, enforced by the
+sign-up endpoint. The first account of an instance comes from the init flow
+instead.
 
 Current flows in app:
 
@@ -33,7 +41,11 @@ Current flows in app:
 - Register via invitation-aware sign-up flow
 - See and respond to organisation invitations from account and selection pages
 
-Invitation links are validated for existence and expiry during registration.
+The sign-up endpoint validates the invitation ID, pending status, expiry, and
+matching email address. The register page names the inviting organisation.
+Signing up accepts only the linked invitation; other invitations remain pending
+for explicit acceptance. One active organisation opens directly when there are
+no pending invitations. Email verification remains optional for access.
 
 ## Groups
 
@@ -47,6 +59,12 @@ Current behaviour:
 - Add/remove explicit members
 - View implicit vs explicit membership labels
 
+Creating, renaming, deleting a group and changing its membership need
+`manage_groups`, so the Groups pages stay with admins and managers. Reading a
+group does not: members and viewers see the groups they belong to, plus the
+"All Members" group of their organisation. A group they are not in answers as
+if it were not there.
+
 System groups are immutable in the group detail view.
 
 ## Resource Sharing
@@ -56,6 +74,19 @@ Access dialogs are available on several resource types and allow:
 - Visibility management
 - Group grants
 - Direct grants
+
+Whoever holds `manage_access` on a resource shares it. Admins and managers may
+grant to every group of the organisation; members and viewers may grant to the
+groups they belong to and to "All Members", which only ever receives a viewer
+grant. Other groups are neither offered in the access dialog nor accepted by
+the API.
+
+A private resource is reachable only by those it was granted to, and never
+from another organisation: that boundary is what separates organisations. A
+public resource is the opposite: every signed-in user of the instance can find
+and use it, whatever organisation they are in. Only the configuration and its
+blocks are shared, because a public resource runs with the providers, models,
+and quotas of the organisation it is used in.
 
 The same access manager pattern is reused for:
 

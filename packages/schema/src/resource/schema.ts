@@ -122,7 +122,7 @@ const userPrincipalSchema = z.object({
 	type: z.literal("user"),
 	id: userIdSchema,
 	name: z.string(),
-	email: z.string(),
+	email: z.string().optional(),
 	image: z.string().nullable(),
 });
 

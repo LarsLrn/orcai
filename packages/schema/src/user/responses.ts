@@ -7,11 +7,16 @@ import {
 import {
 	userAccessEntrySchema,
 	userSchema,
+	userWithMembershipsSchema,
 	userWithOrganizationRoleSchema,
 } from "./schema";
 
 export const listUsersResponseSchema = createListResponseSchema(
 	userWithOrganizationRoleSchema,
+);
+
+export const listAllUsersResponseSchema = createListResponseSchema(
+	userWithMembershipsSchema,
 );
 
 export const findUserResponseSchema = createDataResponseSchema(
@@ -25,6 +30,10 @@ export const listUserAccessResponseSchema = createListResponseSchema(
 export const deleteUsersResponseSchema = statusResponseSchema.extend({
 	deletedCount: z.number(),
 });
+
+export const banUserResponseSchema = statusResponseSchema;
+
+export const unbanUserResponseSchema = statusResponseSchema;
 
 export const meResponseSchema = createDataResponseSchema(userSchema);
 

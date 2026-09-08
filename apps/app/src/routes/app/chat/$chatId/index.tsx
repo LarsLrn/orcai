@@ -35,7 +35,7 @@ export const Route = createFileRoute("/app/chat/$chatId/")({
 		deps: { branch, zedToken },
 	}) => {
 		// Fetch the chat to get activeBranchId if branch is not specified
-		const chat = await queryClient.fetchQuery(
+		const chat = await queryClient.query(
 			orpc.chat.find.queryOptions({
 				input: {
 					id: chatId,
@@ -52,7 +52,7 @@ export const Route = createFileRoute("/app/chat/$chatId/")({
 			throw new Error("No active branch found for chat");
 		}
 
-		const messages = await queryClient.fetchQuery(
+		const messages = await queryClient.query(
 			orpc.chatMessage.list.queryOptions({
 				input: {
 					chatId,

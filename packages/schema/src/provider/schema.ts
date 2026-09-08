@@ -25,7 +25,6 @@ export const providerSchema = providerFieldsSchema
 	.extend({
 		id: providerIdSchema,
 		organizationId: organizationIdSchema,
-		apiKeyEncrypted: z.string(),
 		createdAt: z.coerce.date().nullable(),
 		updatedAt: z.coerce.date().nullable(),
 	});

@@ -29,12 +29,13 @@ export const Route = createFileRoute("/app/hub/bots/$botId/setup")({
 			permission: "edit",
 			redirectTo: "/app/hub/bots",
 		});
-		await queryClient.ensureQueryData(
+		await queryClient.query(
 			orpc.bot.findEditor.queryOptions({
 				input: {
 					id: botId,
 					zedToken: deps.zedToken,
 				},
+				staleTime: "static",
 			}),
 		);
 	},

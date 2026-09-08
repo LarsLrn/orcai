@@ -44,6 +44,7 @@ const LocaleSwitcherSelect = ({ defaultValue, items, label }: Props) => {
 						variant="ghost"
 					>
 						<LanguagesIcon className="h-6 w-6" />
+						<span className="sr-only">{label}</span>
 					</Button>
 				}
 			/>

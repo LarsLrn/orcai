@@ -31,7 +31,7 @@ const GrantList = ({
 
 		return (
 			grant.principal.name.toLowerCase().includes(value) ||
-			details.toLowerCase().includes(value)
+			(details ?? "").toLowerCase().includes(value)
 		);
 	});
 

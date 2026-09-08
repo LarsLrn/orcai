@@ -186,7 +186,7 @@ const AccessManagerContent = ({
 					<GlobeIcon className="h-4 w-4" />
 					<AlertTitle>This resource is public</AlertTitle>
 					<AlertDescription>
-						Visible to authenticated users across all organisations.
+						Every user of this instance can find and use it.
 					</AlertDescription>
 				</Alert>
 			)}

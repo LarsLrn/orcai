@@ -59,6 +59,16 @@ flowchart LR
 
 The app stores domain records in PostgreSQL and uses SpiceDB for relationship-based authorization. Permission middleware checks whether a user can access or mutate a resource before executing protected operations.
 
+### Read Consistency
+
+Authorization reads are near real-time by default: SpiceDB answers them with `minimizeLatency`, which can miss a permission change made moments earlier. A request that writes authorization returns the resulting zedToken in the response `meta` and sets a `zed_token` cookie for 60 seconds, so the browser's following reads are at least as fresh as that write.
+
+The sign-up response carries the same cookie for the membership it grants, so a new account's first reads already see it.
+
+API consumers outside the browser can send the token back in the `X-Zed-Token` header, and some procedures also accept it as a `zedToken` input to pin the freshness of a single call.
+
+A response without `meta.zedToken` means the request wrote nothing to SpiceDB inline; the write is queued and applied shortly after, so a read issued immediately may still see the previous state.
+
 <Callout title="TODO" type="idea">
 	Document the concrete resource types, relations, and permissions from the SpiceDB schema.
 </Callout>

@@ -1,4 +1,5 @@
 import type { LucideIcon } from "lucide-react";
+import type { ReactNode } from "react";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Checkbox } from "@/components/ui/checkbox";
@@ -16,6 +17,7 @@ const SelectableListItem = <T extends string>({
 	option,
 	onSelect,
 	Icon,
+	leading,
 	isSelected = false,
 	isLoading = false,
 	className,
@@ -23,6 +25,7 @@ const SelectableListItem = <T extends string>({
 	option: SelectOption<T>;
 	onSelect: (value: T[]) => void;
 	Icon?: LucideIcon;
+	leading?: ReactNode;
 	isSelected?: boolean;
 	isLoading?: boolean;
 	className?: string;
@@ -44,12 +47,13 @@ const SelectableListItem = <T extends string>({
 			disabled={isLoading}
 		>
 			<div className="flex min-w-0 items-center gap-3">
-				{Icon && (
-					<div className="flex size-8 items-center justify-center rounded-full text-muted-foreground">
-						<Icon className="h-4 w-4" />
-					</div>
-				)}
-				<div className={cn("min-w-0", !Icon && "pl-3")}>
+				{leading ??
+					(Icon && (
+						<div className="flex size-8 items-center justify-center rounded-full text-muted-foreground">
+							<Icon className="h-4 w-4" />
+						</div>
+					))}
+				<div className={cn("min-w-0", !Icon && !leading && "pl-3")}>
 					<div className="flex items-center gap-2">
 						<p className="truncate font-medium text-sm">{option.label}</p>
 						{option.badge && (

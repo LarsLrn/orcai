@@ -31,7 +31,11 @@ const appErrorMessage = (error: AppError): string => {
 		return "Internal server error";
 	}
 
-	if ("message" in error && typeof error.message === "string") {
+	if (
+		"message" in error &&
+		typeof error.message === "string" &&
+		error.message
+	) {
 		return error.message;
 	}
 

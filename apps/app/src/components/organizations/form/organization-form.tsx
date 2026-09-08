@@ -6,15 +6,30 @@ import {
 } from "@/hooks/mutations/use-organization-mutations";
 import { organizationFormOptions } from "./organization-form-options";
 
+type OrganizationFormProps = {
+	onCompleted?: () => void;
+} & (
+	| {
+			action: "create";
+			organization?: never;
+	  }
+	| {
+			action: "update";
+			organization: Organization;
+	  }
+);
+
 export const OrganizationForm = ({
 	action,
 	organization,
-}: {
-	action: "create" | "update";
-	organization?: Organization;
-}) => {
-	const { mutate: createOrganization } = useCreateOrganizationMutation();
-	const { mutate: updateOrganization } = useUpdateOrganizationMutation();
+	onCompleted,
+}: OrganizationFormProps) => {
+	const { mutateAsync: createOrganization } = useCreateOrganizationMutation({
+		onSuccess: onCompleted,
+	});
+	const { mutateAsync: updateOrganization } = useUpdateOrganizationMutation({
+		onSuccess: onCompleted,
+	});
 
 	const form = useAppForm({
 		...organizationFormOptions,
@@ -24,14 +39,14 @@ export const OrganizationForm = ({
 					slug: organization.slug,
 				}
 			: organizationFormOptions.defaultValues,
-		onSubmit: ({ value }) => {
-			if (action === "update" && organization) {
-				updateOrganization({
+		onSubmit: async ({ value }) => {
+			if (action === "update") {
+				await updateOrganization({
 					...value,
 					id: organization.id,
 				});
 			} else {
-				createOrganization(value);
+				await createOrganization(value);
 			}
 		},
 	});

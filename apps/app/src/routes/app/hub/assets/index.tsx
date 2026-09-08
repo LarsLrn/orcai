@@ -29,12 +29,13 @@ export const Route = createFileRoute("/app/hub/assets/")({
 		context: { queryClient },
 		deps: { pageIndex, pageSize },
 	}) => {
-		await queryClient.ensureQueryData(
+		await queryClient.query(
 			orpc.asset.list.queryOptions({
 				input: {
 					pageIndex,
 					pageSize,
 				},
+				staleTime: "static",
 			}),
 		);
 	},

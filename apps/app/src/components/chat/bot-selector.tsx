@@ -37,25 +37,25 @@ const BotSelectorButton = ({
 		data: botsResult,
 		isLoading,
 		isFetching,
-	} = useQuery({
-		...orpc.bot.list.queryOptions({
+	} = useQuery(
+		orpc.bot.list.queryOptions({
 			input: {
 				pageIndex: page,
 				pageSize: BOT_PAGE_SIZE,
 				search: search || undefined,
 			},
+			enabled: dialogOpen,
 		}),
-		enabled: dialogOpen,
-	});
+	);
 
-	const { data: selectedBotResult } = useQuery({
-		...orpc.bot.find.queryOptions({
+	const { data: selectedBotResult } = useQuery(
+		orpc.bot.find.queryOptions({
 			input: {
 				id: selectedBotId ?? "",
 			},
+			enabled: !!selectedBotId,
 		}),
-		enabled: !!selectedBotId,
-	});
+	);
 
 	const bots = botsResult?.data ?? [];
 	const pageCount = Math.ceil((botsResult?.rowCount ?? 0) / BOT_PAGE_SIZE);

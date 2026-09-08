@@ -1,5 +1,6 @@
 import { organizationInvitationIdSchema } from "@orcai/schema";
 import { createFileRoute, Link, redirect } from "@tanstack/react-router";
+import { MailIcon } from "lucide-react";
 import z from "zod/v4";
 import { SignUpForm } from "@/components/auth/signup/signup-form";
 import { Placeholder } from "@/components/placeholders/placeholder";
@@ -22,9 +23,10 @@ export const Route = createFileRoute("/_pathlessLayout/register")({
 		inv: search.inv,
 	}),
 	loader: async ({ deps, context: { queryClient } }) => {
-		const status = await queryClient.ensureQueryData(
+		const status = await queryClient.query(
 			orpc.bootstrap.status.queryOptions({
 				input: {},
+				staleTime: "static",
 			}),
 		);
 
@@ -39,11 +41,12 @@ export const Route = createFileRoute("/_pathlessLayout/register")({
 			return undefined;
 		}
 
-		const validation = await queryClient.ensureQueryData(
+		const validation = await queryClient.query(
 			orpc.organizationInvitation.validate.queryOptions({
 				input: {
 					id: deps.inv,
 				},
+				staleTime: "static",
 			}),
 		);
 
@@ -58,8 +61,27 @@ export const Route = createFileRoute("/_pathlessLayout/register")({
 function RouteComponent() {
 	const invitation = Route.useLoaderData();
 
-	if (!invitation?.validation.isValid) {
-		const isExpired = invitation?.validation.reason === "expired";
+	if (!invitation) {
+		return (
+			<Placeholder
+				title="Registration is by invitation"
+				description="Accounts are created from an invitation link. Ask an administrator of the organisation you want to join to invite your email address."
+				Icon={MailIcon}
+				actions={[
+					{
+						key: "login",
+						label: "Go to sign in",
+						linkProps: {
+							to: "/login",
+						},
+					},
+				]}
+			/>
+		);
+	}
+
+	if (!invitation.validation.isValid) {
+		const isExpired = invitation.validation.reason === "expired";
 		return (
 			<Placeholder
 				title={isExpired ? "Invitation Expired" : "Invitation not found"}
@@ -72,11 +94,17 @@ function RouteComponent() {
 		);
 	}
 
+	const organizationName = invitation.validation.organizationName;
+
 	return (
 		<Card className="max-w-xl">
 			<CardHeader>
 				<CardTitle>Sign Up</CardTitle>
-				<CardDescription>Create a new account to continue.</CardDescription>
+				<CardDescription>
+					{organizationName
+						? `${organizationName} invited you. Create your account to join.`
+						: "Create a new account to continue."}
+				</CardDescription>
 			</CardHeader>
 			<CardContent>
 				<div>

@@ -31,3 +31,6 @@ export const getInitial = (value: string | undefined | null) => {
 
 	return initial;
 };
+
+/** The form an email address is stored and compared in. */
+export const normalizeEmail = (value: string) => value.trim().toLowerCase();

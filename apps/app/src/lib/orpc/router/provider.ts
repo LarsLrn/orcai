@@ -8,6 +8,20 @@ import { authed } from "@/lib/orpc/implementation/authed";
 import { requireOrganizationPermission } from "@/lib/orpc/middlewares/permission";
 import { buildOrderBy, type SortExpression } from "./helpers/sorting";
 
+/** Every column a caller may read; the encrypted API key stays server side. */
+const providerColumns = {
+	id: dbSchema.provider.id,
+	organizationId: dbSchema.provider.organizationId,
+	name: dbSchema.provider.name,
+	description: dbSchema.provider.description,
+	endpoint: dbSchema.provider.endpoint,
+	compatibility: dbSchema.provider.compatibility,
+	meteringMode: dbSchema.provider.meteringMode,
+	enabled: dbSchema.provider.enabled,
+	createdAt: dbSchema.provider.createdAt,
+	updatedAt: dbSchema.provider.updatedAt,
+};
+
 export const listProviders = authed.provider.list
 	.use(requireOrganizationPermission("read"))
 	.effect(function* ({ input, context }) {
@@ -45,7 +59,7 @@ export const listProviders = authed.provider.list
 		const [data, [rowCount]] = yield* Effect.all(
 			[
 				db
-					.select()
+					.select(providerColumns)
 					.from(dbSchema.provider)
 					.where(countWhereClause)
 					.orderBy(...orderBy)
@@ -76,7 +90,7 @@ export const findProvider = authed.provider.find
 		const organizationId = context.auth.session.activeOrganizationId;
 
 		const [provider] = yield* db
-			.select()
+			.select(providerColumns)
 			.from(dbSchema.provider)
 			.where(
 				and(

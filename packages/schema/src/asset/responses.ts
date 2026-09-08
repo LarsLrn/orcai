@@ -3,7 +3,6 @@ import {
 	createDataResponseSchema,
 	createDeleteResponseSchema,
 	createListResponseSchema,
-	zedTokenSchema,
 } from "../shared";
 import { assetSchema, assetWithCapabilitiesSchema } from "./schema";
 
@@ -15,22 +14,12 @@ export const findAssetResponseSchema = createDataResponseSchema(
 	assetWithCapabilitiesSchema,
 );
 
-export const createAssetResponseSchema = createDataResponseSchema(
-	assetSchema,
-).extend({
-	meta: zedTokenSchema.optional(),
-});
+export const createAssetResponseSchema = createDataResponseSchema(assetSchema);
 
-export const saveAssetResponseSchema = createDataResponseSchema(
-	assetSchema,
-).extend({
-	meta: zedTokenSchema.optional(),
-});
+export const saveAssetResponseSchema = createDataResponseSchema(assetSchema);
 
 export const saveManyAssetsResponseSchema = createDataResponseSchema(
 	z.array(assetSchema),
-).extend({
-	meta: zedTokenSchema.optional(),
-});
+);
 
 export const deleteAssetsResponseSchema = createDeleteResponseSchema();

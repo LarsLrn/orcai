@@ -6,7 +6,7 @@ import * as Effect from "effect/Effect";
 import { z } from "zod/v4";
 import { runtime } from "@/lib/effect/runtime";
 import { BadRequestError } from "@/lib/effect/utils/errors";
-import { decryptApiKey } from "@/lib/encryption";
+import { providerApiKey } from "@/lib/encryption";
 import { client } from "@/lib/orpc/orpc";
 
 export const generateImageTool = ({
@@ -79,7 +79,7 @@ export const generateImageTool = ({
 						});
 					}
 
-					const apiKey = yield* decryptApiKey(provider.apiKeyEncrypted);
+					const apiKey = yield* providerApiKey(provider.id);
 
 					const providerInstance = createOpenAICompatible({
 						baseURL: provider.endpoint ?? "", // TODO: Fix?

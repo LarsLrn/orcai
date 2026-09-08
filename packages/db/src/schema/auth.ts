@@ -1,8 +1,10 @@
-import type { OrganizationId, UserId } from "@orcai/core";
+import { INSTANCE_ROLES, type OrganizationId, type UserId } from "@orcai/core";
 import type { UserPreferencesType } from "@orcai/schema";
 import type { InferSelectModel } from "drizzle-orm";
+import { sql } from "drizzle-orm";
 import {
 	boolean,
+	check,
 	json,
 	pgTable,
 	text,
@@ -11,23 +13,32 @@ import {
 	uuid,
 } from "drizzle-orm/pg-core";
 
-export const user = pgTable("user", {
-	id: uuid("id").$type<UserId>().primaryKey().defaultRandom(),
-	name: text("name").notNull(),
-	email: text("email").notNull().unique(),
-	emailVerified: boolean("email_verified").notNull(),
-	image: text("image"),
-	createdAt: timestamp("created_at").notNull(),
-	updatedAt: timestamp("updated_at").notNull(),
-	role: text("role"),
-	banned: boolean("banned"),
-	banReason: text("ban_reason"),
-	banExpires: timestamp("ban_expires"),
-	preferences: json("preferences")
-		.notNull()
-		.$type<UserPreferencesType>()
-		.default({}),
-});
+export const user = pgTable(
+	"user",
+	{
+		id: uuid("id").$type<UserId>().primaryKey().defaultRandom(),
+		name: text("name").notNull(),
+		email: text("email").notNull().unique(),
+		emailVerified: boolean("email_verified").notNull(),
+		image: text("image"),
+		createdAt: timestamp("created_at").notNull(),
+		updatedAt: timestamp("updated_at").notNull(),
+		role: text("role").notNull().default("user"),
+		banned: boolean("banned"),
+		banReason: text("ban_reason"),
+		banExpires: timestamp("ban_expires"),
+		preferences: json("preferences")
+			.notNull()
+			.$type<UserPreferencesType>()
+			.default({}),
+	},
+	(table) => [
+		check(
+			"user_instance_role",
+			sql`${table.role} IN (${sql.raw(INSTANCE_ROLES.map((role) => `'${role}'`).join(", "))})`,
+		),
+	],
+);
 
 export const session = pgTable("session", {
 	id: uuid("id").primaryKey().defaultRandom(),

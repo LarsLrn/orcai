@@ -5,7 +5,7 @@ import { groupMemberSourceSchema } from "./parts/member-source";
 export const groupMemberUserSchema = z.object({
 	id: userIdSchema,
 	name: z.string(),
-	email: z.string(),
+	email: z.string().optional(),
 	image: z.string().nullable(),
 });
 

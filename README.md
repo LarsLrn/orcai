@@ -55,7 +55,67 @@ OrcAI is a self-hostable platform for building governed AI assistants around cur
 
 ## Development Workflows
 
-### Devcontainer (recommended)
+### Per-worktree dev stack (recommended)
+
+`bun run stack` gives every checkout, including each git worktree, its own Docker Compose project for PostgreSQL, Valkey, MinIO, Qdrant, and SpiceDB. Ports are chosen per worktree and written to a gitignored `.env`, so several checkouts and agents can run side by side without colliding.
+
+Prerequisites:
+- Bun `>=1.3.10`
+- Docker with Compose v2
+
+Steps:
+
+```bash
+bun install --frozen-lockfile
+bun run stack up      # start infrastructure, write .env, apply migrations and SpiceDB schema
+bun run stack dev     # app dev server on the port stored in .env
+```
+
+Useful commands:
+- `bun run stack status`: container state and a probe per service
+- `bun run stack reset`: empty every store of the stack in seconds, leaving containers and `.env` in place (refuses while an app is listening on the stack's port)
+- `bun run stack e2e`: reset, then run the end-to-end suite (`bun run e2e` is an alias)
+- `bun run stack dev --all`: app, workers, and docs together
+- `bun run stack workers` / `bun run stack web`: workers or docs site only
+- `bun run stack migrate`: reapply migrations and the SpiceDB schema
+- `bun run stack exec -- <command>`: run anything with the stack environment, for example `bun run stack exec -- bun run --filter @orcai/db generate`
+- `bun run stack logs [service]`: follow infrastructure logs
+- `bun run stack env --reset`: regenerate `.env` with fresh ports and secrets
+- `bun run stack down --volumes`: stop the stack and delete its data
+
+Notes:
+- `stack up` is idempotent and reuses an existing `.env`.
+- Machine-wide overrides such as a real `OPENAI_COMPATIBLE_*` endpoint belong in `~/.config/orcai/dev.env` (or the file named by `ORCAI_DEV_ENV_FILE`). They are merged whenever `.env` is created.
+- `bun run stack --name <name> --env-file <path> up` starts an additional independent stack, which is how you run end-to-end tests without touching this worktree's dev data.
+- Paseo workspaces run `bun install` and `bun run stack up` automatically on creation and `bun run stack down --volumes` when archived, see `paseo.json`.
+- Workers on the host need Tesseract with the `eng` (and optionally `deu`) language packs for OCR.
+- Unit tests (`bun run test`) never touch the stack.
+
+### End-to-end tests
+
+The end-to-end suite is Playwright Test on the host, Chromium only, in the `apps/e2e` workspace package. It runs against this worktree's stack and resets that stack's data before a full run, so a run wipes the worktree's database, object storage, vector collections, authorisation relationships, and cache.
+
+```bash
+bun run stack e2e                              # reset, then the whole suite
+bun run e2e                                    # root alias
+bun run stack e2e -- --grep auth               # one area
+bun run stack e2e -- --ui                      # Playwright UI mode
+bun run stack e2e --no-reset -- --grep smoke   # fast iteration on existing data
+```
+
+Everything after `--` is passed to Playwright.
+
+Notes:
+- The application under test is the production build. With `--no-reset`, a `bun run stack dev` already listening on the stack's port is reused, so local iteration needs no rebuild. A reset refuses while an app is listening, because a running server keeps stale state in memory; stop it first or pass `--no-reset`.
+- A Playwright `setup` project initialises the reset instance through the first-run UI with a well-known admin. There is no separate seed step.
+- Each Playwright worker creates its own organisations and users through the public API, so specs run in parallel without sharing data.
+- A mock OpenAI-compatible inference server (`apps/e2e/fixtures/inference`) runs on `E2E_INFERENCE_PORT` for the whole suite; `stack e2e` points the app's global endpoint at it, and specs that configure a provider start their own on an ephemeral port. No run reaches a real provider.
+- To keep your dev data, run the suite against a second stack: `bun run stack --name <name>-e2e --env-file .env.e2e up`, then the same command with those flags. Run the stacks of one checkout one after the other, since both builds would share `apps/app/dist`.
+- GitHub Actions uses the pinned workspace Playwright, fails on flaky retries, and uploads the report on failure.
+
+For the e2e workflow and fixture contract, see [Development docs: End-To-End Tests](apps/web/content/docs/development/testing.mdx).
+
+### Devcontainer
 
 The repository ships with a VS Code devcontainer based on `.devcontainer/devcontainer.json` and `.devcontainer/docker-compose.dev.yaml`.
 
@@ -127,20 +187,7 @@ Notes:
 
 ### Manual host setup
 
-Use this when you want to run the Bun app directly on your machine instead of through Compose.
-
-Prerequisites:
-- Bun `>=1.3.10`
-- PostgreSQL
-- Valkey
-- Qdrant
-- SpiceDB
-- S3-compatible object storage
-- An OpenAI-compatible inference endpoint
-- Tesseract with `eng` and `deu` language packs if workers run on the host
-- Optional SMTP server
-
-Steps:
+Use this only when you cannot run Docker. Provide PostgreSQL, Valkey, Qdrant, SpiceDB, S3-compatible storage, and an OpenAI-compatible endpoint yourself, then:
 
 ```bash
 cp .env.example .env
@@ -150,15 +197,18 @@ bun install --frozen-lockfile
 Edit `.env`, then run:
 
 ```bash
-bun run --filter @orcai/db migrate
-bun run --filter @orcai/spice-db up
-bun run dev
-bun run workers:dev
+bun run stack migrate
+bun run stack dev
+bun run stack workers
 ```
 
-The app will be available at [http://localhost:3000](http://localhost:3000).
+The stack subcommands only load `.env` and run the workspace scripts; they do not start containers unless you call `bun run stack up`.
 
 Use `bun run build && bun run start` for the app and `bun run workers:start` for the workers.
+
+The e2e inference mock starts fresh and its worker-local scenarios reset before
+and after each test. Admin browser pages use sessions separate from API clients.
+Stack flags before `--` are validated; delegated flags belong after `--`.
 
 ## Configuration
 
@@ -230,7 +280,10 @@ See [.env.example](.env.example) for a current baseline.
 
 ## Common Commands
 
-- `bun run dev`: start the development server
+- `bun run stack up`: start this checkout's infrastructure and apply migrations
+- `bun run dev`: start the development server (alias for `bun run stack dev`)
+- `bun run verify`: run lint and unit tests
+- `bun run e2e`: reset the stack and run the end-to-end suite
 - `bun run build`: build the app and documentation site
 - `bun run build:app`: build only the main app
 - `bun run build:web`: build only the documentation site
@@ -239,11 +292,10 @@ See [.env.example](.env.example) for a current baseline.
 - `bun run workers:start`: run worker process in production mode
 - `bun run lint`: run Biome and TypeScript checks
 - `bun run ci`: run the same lint, test, docs type-check, and build suite used by GitHub Actions
-- `bun run --filter @orcai/db migrate`: apply SQL migrations
-- `bun run --filter @orcai/db generate`: generate a new Drizzle migration
-- `bun run --filter @orcai/db studio`: open Drizzle Studio
-- `bun run --filter @orcai/spice-db up`: apply the SpiceDB schema
-- `bun run --filter @orcai/spice-db status`: inspect SpiceDB schema migration status
+- `bun run stack migrate`: apply SQL migrations and the SpiceDB schema
+- `bun run stack exec -- bun run --filter @orcai/db generate`: generate a new Drizzle migration
+- `bun run stack exec -- bun run --filter @orcai/db studio`: open Drizzle Studio
+- `bun run stack exec -- bun run --filter @orcai/spice-db status`: inspect SpiceDB schema migration status
 
 ## Contributing
 

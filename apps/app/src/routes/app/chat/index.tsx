@@ -45,7 +45,7 @@ export const Route = createFileRoute("/app/chat/")({
 	}),
 	loader: async ({ context: { queryClient }, deps }) => {
 		await Promise.all([
-			queryClient.ensureQueryData(
+			queryClient.query(
 				orpc.chat.list.queryOptions({
 					input: {
 						filters: {
@@ -56,14 +56,16 @@ export const Route = createFileRoute("/app/chat/")({
 						pageSize: deps.pageSize,
 						sort: deps.sort,
 					},
+					staleTime: "static",
 				}),
 			),
-			queryClient.ensureQueryData(
+			queryClient.query(
 				orpc.bot.list.queryOptions({
 					input: {
 						pageIndex: 0,
 						pageSize: 1000,
 					},
+					staleTime: "static",
 				}),
 			),
 		]);

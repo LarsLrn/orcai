@@ -1,17 +1,32 @@
-import { Link } from "@tanstack/react-router";
+import { Link, useRouterState } from "@tanstack/react-router";
 import {
 	DropdownMenuGroup,
 	DropdownMenuItem,
 } from "@/components/ui/dropdown-menu";
 import { useSidebar } from "@/components/ui/sidebar";
-import { sidebarUserMenu } from "@/settings/menus";
+import { useIsInstanceAdmin } from "@/hooks/authz/use-instance-admin";
+import {
+	instanceAdministrationUserMenuItem,
+	sidebarUserMenu,
+} from "@/settings/menus";
 
 const UserMenuActions = () => {
 	const { closeMobileForNavigation } = useSidebar();
+	const isInstanceAdmin = useIsInstanceAdmin();
+	const pathname = useRouterState({
+		select: (state) => state.location.pathname,
+	});
+	const menu =
+		isInstanceAdmin && !pathname.startsWith("/instance")
+			? [
+					...sidebarUserMenu,
+					instanceAdministrationUserMenuItem,
+				]
+			: sidebarUserMenu;
 
 	return (
 		<DropdownMenuGroup>
-			{sidebarUserMenu.map((item) => (
+			{menu.map((item) => (
 				<DropdownMenuItem
 					key={item.title}
 					render={

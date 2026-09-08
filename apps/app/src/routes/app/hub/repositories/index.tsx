@@ -30,7 +30,7 @@ const PAGE_SIZE = 100;
 export const Route = createFileRoute("/app/hub/repositories/")({
 	loader: async ({ context: { queryClient } }) => {
 		await Promise.all([
-			queryClient.ensureQueryData(
+			queryClient.query(
 				orpc.block.list.queryOptions({
 					input: {
 						pageIndex: 0,
@@ -40,9 +40,10 @@ export const Route = createFileRoute("/app/hub/repositories/")({
 							status: "ready",
 						},
 					},
+					staleTime: "static",
 				}),
 			),
-			queryClient.ensureQueryData(
+			queryClient.query(
 				orpc.block.list.queryOptions({
 					input: {
 						pageIndex: 0,
@@ -52,6 +53,7 @@ export const Route = createFileRoute("/app/hub/repositories/")({
 							status: "draft",
 						},
 					},
+					staleTime: "static",
 				}),
 			),
 		]);

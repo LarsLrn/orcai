@@ -4,381 +4,386 @@ import {
 	type TupleMutation,
 	writeRelationshipMutations,
 } from "@orcai/spice-db";
-import { and, asc, eq, inArray, isNull, lte, or } from "drizzle-orm";
+import { and, asc, eq, inArray, isNull, lt, lte, or, sql } from "drizzle-orm";
 import * as Context from "effect/Context";
 import * as Effect from "effect/Effect";
 import * as Layer from "effect/Layer";
+import { recordZedToken } from "@/lib/effect/services/zed-token-mailbox";
 import { AuthzError } from "@/lib/effect/utils/errors";
 import { AUTHZ } from "@/settings/constants";
 
-const isTupleMutation = (value: unknown): value is TupleMutation => {
-	if (!value || typeof value !== "object") return false;
-	const record = value as Record<string, unknown>;
-	return (
-		typeof record.resourceType === "string" &&
-		typeof record.resourceId === "string" &&
-		typeof record.relation === "string" &&
-		typeof record.subjectType === "string" &&
-		typeof record.subjectId === "string"
-	);
-};
-
-const decodeTupleMutations = (value: unknown): TupleMutation[] => {
-	if (!Array.isArray(value)) return [];
-	return value.filter(isTupleMutation);
-};
-
-/**
- * Computes the delay before the next outbox retry attempt using capped
- * exponential backoff: `base * 2^min(attempts, 4)`, capped at 10 minutes.
- *
- * @param attempts - Number of attempts already made for this event.
- */
-const nextRetryDelayMs = (attempts: number): number =>
-	Math.min(
-		AUTHZ.outboxRetryBaseDelayMs * 2 ** Math.min(attempts, 4),
-		10 * 60_000,
-	);
-
-const [OUTBOX_PENDING, OUTBOX_PROCESSING, OUTBOX_PROCESSED, OUTBOX_FAILED] =
+const [PENDING, PROCESSING, PROCESSED, FAILED, DEAD_LETTER] =
 	enumSchema.authzOutboxStatusEnum.enumValues;
+// Only the claim step takes the lock, so one projector claims a row.
+const lock = sql`SELECT pg_advisory_xact_lock(72370905)`;
 
-/**
- * AuthzService owns durable relationship writes:
- * it persists mutation intents to Postgres and projects them to SpiceDB.
- *
- * SpiceDbService remains the low-level Spice client used by this service.
- */
+/** Persist intent with the business changes. Never sends to SpiceDB. */
+export const enqueueRelationshipMutations = (params: {
+	tx: Pick<typeof DB.Service, "insert">;
+	mutations: TupleMutation[];
+}) =>
+	Effect.gen(function* () {
+		if (params.mutations.length === 0) return undefined;
+		const [event] = yield* params.tx
+			.insert(dbSchema.authzOutbox)
+			.values({
+				eventType: "spice.write-relationships",
+				payloadJson: {
+					mutations: params.mutations,
+				},
+				status: PENDING,
+			})
+			.returning({
+				id: dbSchema.authzOutbox.id,
+			});
+		return event.id;
+	}).pipe(
+		Effect.mapError(
+			(cause) =>
+				new AuthzError({
+					reason: "outbox_enqueue_failed",
+					cause,
+				}),
+		),
+	);
+
+type Delivery = {
+	zedToken?: string;
+};
 export class AuthzService extends Context.Service<
 	AuthzService,
 	{
-		/**
-		 * Durably applies a batch of SpiceDB relationship mutations.
-		 *
-		 * Persists the mutations to the `authzOutbox` table before attempting
-		 * the SpiceDB write. If the write succeeds the outbox row is marked
-		 * `processed` and the resulting `zedToken` is returned. If SpiceDB is
-		 * unavailable the row is left in `failed` state for the background
-		 * replay worker to retry.
-		 *
-		 * @param params.mutations - Ordered list of tuple mutations to apply.
-		 */
 		readonly applyRelationshipMutations: (params: {
 			mutations: TupleMutation[];
-		}) => Effect.Effect<
-			{
-				zedToken?: string;
-			},
-			AuthzError,
-			never
-		>;
-		/**
-		 * Replays undelivered outbox events to SpiceDB.
-		 *
-		 * Picks up rows in `pending` or `failed` state (and stale `processing`
-		 * rows from crashed workers) in sequence-order, re-attempts the SpiceDB
-		 * write for each, and updates the row status accordingly. Uses
-		 * `SELECT FOR UPDATE SKIP LOCKED` so concurrent workers never
-		 * double-process the same event.
-		 *
-		 * Runs automatically as a background daemon every 10 seconds.
-		 *
-		 * @param params.limit - Maximum events to process per invocation (default 100).
-		 */
+		}) => Effect.Effect<Delivery, AuthzError>;
+		readonly deliverRelationshipEvent: (
+			eventId: string | undefined,
+		) => Effect.Effect<Delivery, AuthzError>;
 		readonly replayRelationshipOutbox: (params?: {
 			limit?: number;
-		}) => Effect.Effect<
-			{
-				processed: number;
-				failed: number;
-			},
-			never,
-			never
-		>;
+		}) => Effect.Effect<{
+			processed: number;
+			failed: number;
+		}>;
 	}
 >()("AuthzService") {}
+
+type Outcome = {
+	eventId: string;
+	attempts: number;
+	payloadJson: Record<string, unknown>;
+	ok: boolean;
+	zedToken?: string;
+};
 
 export const AuthzLive = Layer.effect(
 	AuthzService,
 	Effect.gen(function* () {
 		const db = yield* DB;
 		const spiceDb = yield* SpiceDbService;
-
-		const applyRelationshipMutations = (params: {
-			mutations: TupleMutation[];
-		}) =>
-			Effect.gen(function* () {
-				if (params.mutations.length === 0) {
-					return {
-						zedToken: undefined,
-					};
-				}
-
-				const now = new Date();
-				const [event] = yield* db
-					.insert(dbSchema.authzOutbox)
-					.values({
-						eventType: "spice.write-relationships",
-						payloadJson: {
-							mutations: params.mutations,
-						},
-						status: OUTBOX_PROCESSING,
-						createdAt: now,
-						updatedAt: now,
-					})
-					.returning({
-						id: dbSchema.authzOutbox.id,
-					})
-					.pipe(
-						Effect.mapError(
-							(cause) =>
-								new AuthzError({
-									reason: "outbox_enqueue_failed",
-									cause,
-								}),
-						),
-					);
-
-				const projection = yield* writeRelationshipMutations(
-					params.mutations,
-				).pipe(
-					Effect.provideService(SpiceDbService, spiceDb),
-					Effect.catch((cause) =>
-						db
+		const claimDueEvents = (params: { limit: number }) =>
+			db
+				.transaction((tx) =>
+					Effect.gen(function* () {
+						yield* tx.execute(lock);
+						const now = new Date();
+						yield* tx
 							.update(dbSchema.authzOutbox)
 							.set({
-								status: OUTBOX_FAILED,
-								attempts: 1,
-								nextAttemptAt: new Date(
-									Date.now() + AUTHZ.outboxRetryBaseDelayMs,
-								),
-								updatedAt: new Date(),
+								status: PENDING,
+								updatedAt: now,
 							})
-							.where(eq(dbSchema.authzOutbox.id, event.id))
-							.pipe(
-								Effect.catch(() => Effect.void),
-								Effect.andThen(
-									Effect.logError(
-										`authz.projection_failed eventId=${event.id} cause=${String(cause)}`,
-									),
-								),
-								Effect.andThen(
-									Effect.fail(
-										new AuthzError({
-											reason: "projection_failed",
-											eventId: event.id,
-											cause,
-										}),
-									),
-								),
-							),
-					),
-				);
-
-				yield* db
-					.update(dbSchema.authzOutbox)
-					.set({
-						status: OUTBOX_PROCESSED,
-						attempts: 1,
-						nextAttemptAt: null,
-						updatedAt: new Date(),
-					})
-					.where(eq(dbSchema.authzOutbox.id, event.id))
-					.pipe(
-						Effect.mapError(
-							(cause) =>
-								new AuthzError({
-									reason: "outbox_finalize_failed",
-									eventId: event.id,
-									cause,
-								}),
-						),
-					);
-
-				return {
-					zedToken: projection.zedToken,
-				};
-			}).pipe(
-				Effect.catch((error) =>
-					Effect.logError(
-						`authz.outbox_enqueue_failed reason=${error.reason} eventId=${error.eventId ?? "n/a"} cause=${String(error.cause)}`,
-					).pipe(Effect.andThen(Effect.fail(error))),
-				),
-			);
-
-		const replayRelationshipOutbox = (params?: { limit?: number }) =>
-			Effect.gen(function* () {
-				const limit = params?.limit ?? 100;
-				const now = new Date();
-				const staleProcessingCutoff = new Date(
-					now.getTime() - AUTHZ.outboxProcessingStaleAfterMs,
-				);
-				const pending = yield* db.transaction((tx) =>
-					Effect.gen(function* () {
-						const selected = yield* tx
-							.select({
-								id: dbSchema.authzOutbox.id,
-								seq: dbSchema.authzOutbox.seq,
-								payloadJson: dbSchema.authzOutbox.payloadJson,
-								attempts: dbSchema.authzOutbox.attempts,
-							})
-							.from(dbSchema.authzOutbox)
 							.where(
-								or(
-									and(
-										inArray(dbSchema.authzOutbox.status, [
-											OUTBOX_PENDING,
-											OUTBOX_FAILED,
-										]),
-										or(
-											isNull(dbSchema.authzOutbox.nextAttemptAt),
-											lte(dbSchema.authzOutbox.nextAttemptAt, now),
+								and(
+									eq(dbSchema.authzOutbox.status, PROCESSING),
+									lt(
+										dbSchema.authzOutbox.updatedAt,
+										new Date(
+											now.getTime() - AUTHZ.outboxProcessingStaleAfterMs,
 										),
 									),
-									and(
-										eq(dbSchema.authzOutbox.status, OUTBOX_PROCESSING),
-										lte(dbSchema.authzOutbox.updatedAt, staleProcessingCutoff),
+								),
+							);
+						const events = yield* tx
+							.select()
+							.from(dbSchema.authzOutbox)
+							.where(
+								and(
+									inArray(dbSchema.authzOutbox.status, [
+										PENDING,
+										FAILED,
+									]),
+									or(
+										isNull(dbSchema.authzOutbox.nextAttemptAt),
+										lte(dbSchema.authzOutbox.nextAttemptAt, now),
 									),
 								),
 							)
 							.orderBy(asc(dbSchema.authzOutbox.seq))
-							.limit(limit)
-							.for("update", {
-								skipLocked: true,
-							});
-
-						if (selected.length === 0) {
-							return [];
-						}
-
+							.limit(params.limit)
+							.for("update");
+						if (events.length === 0) return events;
 						yield* tx
 							.update(dbSchema.authzOutbox)
 							.set({
-								status: OUTBOX_PROCESSING,
+								status: PROCESSING,
 								updatedAt: now,
 							})
 							.where(
 								inArray(
 									dbSchema.authzOutbox.id,
-									selected.map((event) => event.id),
+									events.map((event) => event.id),
 								),
 							);
-
-						return selected;
+						return events;
 					}),
+				)
+				.pipe(
+					Effect.mapError(
+						(cause) =>
+							new AuthzError({
+								reason: "projection_failed",
+								cause,
+							}),
+					),
 				);
 
-				let processed = 0;
-				let failed = 0;
-
-				for (const event of pending) {
-					const mutations = decodeTupleMutations(
-						(event.payloadJson as Record<string, unknown>)?.mutations,
-					);
-					if (mutations.length === 0) {
-						failed += 1;
-						yield* db
-							.update(dbSchema.authzOutbox)
-							.set({
-								status: OUTBOX_FAILED,
-								attempts: event.attempts + 1,
-								nextAttemptAt: new Date(
-									Date.now() + nextRetryDelayMs(event.attempts + 1),
-								),
-								updatedAt: new Date(),
-							})
-							.where(eq(dbSchema.authzOutbox.id, event.id));
-						yield* Effect.logWarning(
-							`authz.replay.invalid_payload eventId=${event.id}`,
-						);
-						continue;
+		const deliver = (event: {
+			id: string;
+			attempts: number;
+			payloadJson: Record<string, unknown>;
+		}) =>
+			Effect.gen(function* () {
+				const mutations = (
+					event.payloadJson as {
+						mutations?: TupleMutation[];
 					}
-
-					const projected = yield* writeRelationshipMutations(mutations).pipe(
-						Effect.provideService(SpiceDbService, spiceDb),
-						Effect.as(true),
-						Effect.catch((cause) =>
-							Effect.logWarning(
-								`authz.replay.projection_failed eventId=${event.id} cause=${String(cause)}`,
-							).pipe(Effect.as(false)),
-						),
+				).mutations;
+				if (!Array.isArray(mutations) || mutations.length === 0)
+					return yield* Effect.fail(
+						new Error("Invalid permission outbox payload"),
 					);
-
-					if (projected) {
-						processed += 1;
-						yield* db
-							.update(dbSchema.authzOutbox)
-							.set({
-								status: OUTBOX_PROCESSED,
-								nextAttemptAt: null,
-								updatedAt: new Date(),
-							})
-							.where(eq(dbSchema.authzOutbox.id, event.id));
-					} else {
-						failed += 1;
-						yield* db
-							.update(dbSchema.authzOutbox)
-							.set({
-								status: OUTBOX_FAILED,
-								attempts: event.attempts + 1,
-								nextAttemptAt: new Date(
-									Date.now() + nextRetryDelayMs(event.attempts + 1),
-								),
-								updatedAt: new Date(),
-							})
-							.where(eq(dbSchema.authzOutbox.id, event.id));
-					}
-				}
-
-				const oldestPending = yield* db.query.authzOutbox.findFirst({
-					columns: {
-						createdAt: true,
-					},
-					where: {
-						status: {
-							in: [
-								OUTBOX_PENDING,
-								OUTBOX_FAILED,
-								OUTBOX_PROCESSING,
-							],
-						},
-					},
-					orderBy: {
-						seq: "asc",
-					},
-				});
-
-				const oldestPendingAgeMs = oldestPending?.createdAt
-					? Date.now() - oldestPending.createdAt.getTime()
-					: 0;
-
-				yield* Effect.logDebug(
-					`authz.replay.summary processed=${processed} failed=${failed} oldestPendingAgeMs=${oldestPendingAgeMs}`,
-				);
-
-				return {
-					processed,
-					failed,
-				};
+				return yield* writeRelationshipMutations(
+					mutations.map((mutation) => ({
+						...mutation,
+						operation: mutation.operation ?? "touch",
+					})),
+				).pipe(Effect.provideService(SpiceDbService, spiceDb));
 			}).pipe(
-				Effect.catch(() =>
-					Effect.succeed({
-						processed: 0,
-						failed: 0,
+				Effect.map(
+					(value): Outcome => ({
+						eventId: event.id,
+						attempts: event.attempts,
+						payloadJson: event.payloadJson,
+						ok: true,
+						zedToken: value.zedToken,
 					}),
+				),
+				Effect.catch((cause) =>
+					Effect.logError(
+						`authz.projection_failed eventId=${event.id} cause=${String(cause)}`,
+					).pipe(
+						Effect.as<Outcome>({
+							eventId: event.id,
+							attempts: event.attempts,
+							payloadJson: event.payloadJson,
+							ok: false,
+						}),
+					),
 				),
 			);
 
+		const finalize = (outcomes: Outcome[]) =>
+			db
+				.transaction((tx) =>
+					Effect.gen(function* () {
+						const now = new Date();
+						for (const outcome of outcomes) {
+							const attempts = outcome.attempts + 1;
+							const exhausted =
+								!outcome.ok && attempts >= AUTHZ.outboxMaxAttempts;
+							if (exhausted)
+								yield* Effect.logError(
+									`authz.dead_letter eventId=${outcome.eventId} attempts=${attempts}`,
+								);
+							yield* tx
+								.update(dbSchema.authzOutbox)
+								.set({
+									status: outcome.ok
+										? PROCESSED
+										: exhausted
+											? DEAD_LETTER
+											: FAILED,
+									payloadJson: outcome.ok
+										? {
+												...outcome.payloadJson,
+												zedToken: outcome.zedToken,
+											}
+										: outcome.payloadJson,
+									attempts,
+									nextAttemptAt:
+										outcome.ok || exhausted
+											? null
+											: new Date(
+													now.getTime() +
+														Math.min(
+															AUTHZ.outboxRetryBaseDelayMs *
+																2 ** Math.min(outcome.attempts, 4),
+															600_000,
+														),
+												),
+									updatedAt: now,
+								})
+								.where(eq(dbSchema.authzOutbox.id, outcome.eventId));
+						}
+					}),
+				)
+				.pipe(
+					Effect.mapError(
+						(cause) =>
+							new AuthzError({
+								reason: "outbox_finalize_failed",
+								cause,
+							}),
+					),
+				);
+
+		/** Claim due events, write them to SpiceDB outside transactions, and record the results. */
+		const project = (params: { limit: number }) =>
+			Effect.gen(function* () {
+				const events = yield* claimDueEvents(params);
+				const outcomes: Outcome[] = [];
+				for (const event of events) outcomes.push(yield* deliver(event));
+				if (outcomes.length > 0) yield* finalize(outcomes);
+				return {
+					processed: outcomes.filter((outcome) => outcome.ok).length,
+					failed: outcomes.filter((outcome) => !outcome.ok).length,
+					outcomes,
+				};
+			});
+
+		/** The token of an event a concurrent projector claimed, once it is processed. */
+		const awaitDeliveredToken = (
+			eventId: string,
+			attempt = 0,
+		): Effect.Effect<Delivery, AuthzError> =>
+			Effect.gen(function* () {
+				const [event] = yield* db
+					.select({
+						status: dbSchema.authzOutbox.status,
+						payloadJson: dbSchema.authzOutbox.payloadJson,
+					})
+					.from(dbSchema.authzOutbox)
+					.where(eq(dbSchema.authzOutbox.id, eventId))
+					.limit(1)
+					.pipe(
+						Effect.mapError(
+							(cause) =>
+								new AuthzError({
+									reason: "projection_failed",
+									cause,
+								}),
+						),
+					);
+				if (!event) return {};
+				if (event.status === PROCESSED)
+					return {
+						zedToken: (
+							event.payloadJson as {
+								zedToken?: string;
+							}
+						).zedToken,
+					};
+				const inFlight =
+					event.status === PROCESSING || event.status === PENDING;
+				if (inFlight && attempt >= AUTHZ.outboxInlineWaitAttempts) {
+					yield* Effect.logWarning(
+						`authz.inline_wait_gave_up eventId=${eventId} status=${event.status}`,
+					);
+					return {};
+				}
+				if (!inFlight) return {};
+				yield* Effect.sleep(AUTHZ.outboxInlineWaitMs);
+				return yield* awaitDeliveredToken(eventId, attempt + 1);
+			});
+
+		const deliverRelationshipEvent = (eventId: string | undefined) =>
+			eventId
+				? project({
+						limit: 200,
+					}).pipe(
+						Effect.flatMap(
+							({ outcomes }): Effect.Effect<Delivery, AuthzError> => {
+								const own = outcomes.find(
+									(outcome) => outcome.eventId === eventId,
+								);
+								return own
+									? Effect.succeed({
+											zedToken: own.ok ? own.zedToken : undefined,
+										})
+									: awaitDeliveredToken(eventId);
+							},
+						),
+						Effect.tap((delivery) => recordZedToken(delivery.zedToken)),
+					)
+				: Effect.succeed({
+						zedToken: undefined,
+					});
+		const applyRelationshipMutations = (params: {
+			mutations: TupleMutation[];
+		}) =>
+			Effect.gen(function* () {
+				const eventId = yield* db
+					.transaction((tx) =>
+						enqueueRelationshipMutations({
+							tx,
+							mutations: params.mutations,
+						}),
+					)
+					.pipe(
+						Effect.mapError((cause) =>
+							cause instanceof AuthzError
+								? cause
+								: new AuthzError({
+										reason: "outbox_enqueue_failed",
+										cause,
+									}),
+						),
+					);
+				return yield* deliverRelationshipEvent(eventId);
+			});
+		const replayRelationshipOutbox = (params?: { limit?: number }) =>
+			project({
+				limit: params?.limit ?? 100,
+			}).pipe(
+				Effect.map(({ processed, failed }) => ({
+					processed,
+					failed,
+				})),
+				Effect.catch((cause) =>
+					Effect.logError(`authz.replay_failed cause=${String(cause)}`).pipe(
+						Effect.as({
+							processed: 0,
+							failed: 1,
+						}),
+					),
+				),
+			);
 		yield* Effect.forkDetach(
 			Effect.forever(
 				replayRelationshipOutbox({
 					limit: 200,
-				}).pipe(Effect.delay("10 seconds")),
+				}).pipe(
+					Effect.delay("10 seconds"),
+					Effect.catchCause((cause) =>
+						Effect.logError(`authz.replay_loop_defect cause=${String(cause)}`),
+					),
+				),
 			),
 		);
-
 		return {
 			applyRelationshipMutations,
+			deliverRelationshipEvent,
 			replayRelationshipOutbox,
 		};
 	}),

@@ -42,11 +42,12 @@ const updateBudgetFormSchema = z.object({
 
 export const Route = createFileRoute("/app/quotas/$quotaPoolId/")({
 	loader: async ({ context: { queryClient }, params: { quotaPoolId } }) => {
-		await queryClient.ensureQueryData(
+		await queryClient.query(
 			orpc.quota.find.queryOptions({
 				input: {
 					id: quotaPoolId,
 				},
+				staleTime: "static",
 			}),
 		);
 	},

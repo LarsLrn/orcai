@@ -12,6 +12,7 @@ import { Route as rootRouteImport } from './routes/__root'
 import { Route as IndexRouteImport } from './routes/index'
 import { Route as PathlessLayoutRouteRouteImport } from './routes/_pathlessLayout/route'
 import { Route as AppRouteRouteImport } from './routes/app/route'
+import { Route as InstanceRouteRouteImport } from './routes/instance/route'
 import { Route as PathlessLayoutForgotPasswordRouteImport } from './routes/_pathlessLayout/forgot-password'
 import { Route as PathlessLayoutInitRouteImport } from './routes/_pathlessLayout/init'
 import { Route as PathlessLayoutLoginRouteImport } from './routes/_pathlessLayout/login'
@@ -31,6 +32,7 @@ import { Route as AppOrgsRouteRouteImport } from './routes/app/orgs/route'
 import { Route as AppProvidersRouteRouteImport } from './routes/app/providers/route'
 import { Route as AppQuotasRouteRouteImport } from './routes/app/quotas/route'
 import { Route as AppUsersRouteRouteImport } from './routes/app/users/route'
+import { Route as InstanceIndexRouteImport } from './routes/instance/index'
 import { Route as ApiAuthSplatRouteImport } from './routes/api/auth/$'
 import { Route as ApiDocSplatRouteImport } from './routes/api/doc/$'
 import { Route as ApiRpcSplatRouteImport } from './routes/api/rpc/$'
@@ -50,7 +52,6 @@ import { Route as AppModelsModelIdRouteRouteImport } from './routes/app/models/$
 import { Route as AppModelsAddRouteImport } from './routes/app/models/add'
 import { Route as AppOrgsIndexRouteImport } from './routes/app/orgs/index'
 import { Route as AppOrgsOrgIdRouteRouteImport } from './routes/app/orgs/$orgId/route'
-import { Route as AppOrgsAddRouteImport } from './routes/app/orgs/add'
 import { Route as AppProvidersIndexRouteImport } from './routes/app/providers/index'
 import { Route as AppProvidersProviderIdRouteRouteImport } from './routes/app/providers/$providerId/route'
 import { Route as AppProvidersAddRouteImport } from './routes/app/providers/add'
@@ -61,6 +62,8 @@ import { Route as AppUsersIndexRouteImport } from './routes/app/users/index'
 import { Route as AppUsersUserIdRouteRouteImport } from './routes/app/users/$userId/route'
 import { Route as AppUsersAddRouteImport } from './routes/app/users/add'
 import { Route as AppUsersInvitesRouteImport } from './routes/app/users/invites'
+import { Route as InstanceOrganizationsIndexRouteImport } from './routes/instance/organizations/index'
+import { Route as InstanceUsersIndexRouteImport } from './routes/instance/users/index'
 import { Route as AppChatChatIdIndexRouteImport } from './routes/app/chat/$chatId/index'
 import { Route as AppGroupsGroupIdIndexRouteImport } from './routes/app/groups/$groupId/index'
 import { Route as AppHubAssetsIndexRouteImport } from './routes/app/hub/assets/index'
@@ -103,6 +106,11 @@ const PathlessLayoutRouteRoute = PathlessLayoutRouteRouteImport.update({
 const AppRouteRoute = AppRouteRouteImport.update({
   id: '/app',
   path: '/app',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const InstanceRouteRoute = InstanceRouteRouteImport.update({
+  id: '/instance',
+  path: '/instance',
   getParentRoute: () => rootRouteImport,
 } as any)
 const PathlessLayoutForgotPasswordRoute =
@@ -204,6 +212,11 @@ const AppUsersRouteRoute = AppUsersRouteRouteImport.update({
   path: '/users',
   getParentRoute: () => AppRouteRoute,
 } as any)
+const InstanceIndexRoute = InstanceIndexRouteImport.update({
+  id: '/',
+  path: '/',
+  getParentRoute: () => InstanceRouteRoute,
+} as any)
 const ApiAuthSplatRoute = ApiAuthSplatRouteImport.update({
   id: '/api/auth/$',
   path: '/api/auth/$',
@@ -299,11 +312,6 @@ const AppOrgsOrgIdRouteRoute = AppOrgsOrgIdRouteRouteImport.update({
   path: '/$orgId',
   getParentRoute: () => AppOrgsRouteRoute,
 } as any)
-const AppOrgsAddRoute = AppOrgsAddRouteImport.update({
-  id: '/add',
-  path: '/add',
-  getParentRoute: () => AppOrgsRouteRoute,
-} as any)
 const AppProvidersIndexRoute = AppProvidersIndexRouteImport.update({
   id: '/',
   path: '/',
@@ -355,6 +363,17 @@ const AppUsersInvitesRoute = AppUsersInvitesRouteImport.update({
   id: '/invites',
   path: '/invites',
   getParentRoute: () => AppUsersRouteRoute,
+} as any)
+const InstanceOrganizationsIndexRoute =
+  InstanceOrganizationsIndexRouteImport.update({
+    id: '/organizations/',
+    path: '/organizations/',
+    getParentRoute: () => InstanceRouteRoute,
+  } as any)
+const InstanceUsersIndexRoute = InstanceUsersIndexRouteImport.update({
+  id: '/users/',
+  path: '/users/',
+  getParentRoute: () => InstanceRouteRoute,
 } as any)
 const AppChatChatIdIndexRoute = AppChatChatIdIndexRouteImport.update({
   id: '/$chatId/',
@@ -515,6 +534,7 @@ const AppHubRepositoriesBlockIdPlaygroundRoute =
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
   '/app': typeof AppRouteRouteWithChildren
+  '/instance': typeof InstanceRouteRouteWithChildren
   '/app/account': typeof AppAccountRouteRouteWithChildren
   '/app/chat': typeof AppChatRouteRouteWithChildren
   '/app/groups': typeof AppGroupsRouteRouteWithChildren
@@ -534,6 +554,7 @@ export interface FileRoutesByFullPath {
   '/tou': typeof PathlessLayoutTouRoute
   '/verify-email': typeof PathlessLayoutVerifyEmailRoute
   '/app/': typeof AppIndexRoute
+  '/instance/': typeof InstanceIndexRoute
   '/app/groups/$groupId': typeof AppGroupsGroupIdRouteRouteWithChildren
   '/app/hub/assets': typeof AppHubAssetsRouteRouteWithChildren
   '/app/hub/blocks': typeof AppHubBlocksRouteRouteWithChildren
@@ -550,7 +571,6 @@ export interface FileRoutesByFullPath {
   '/app/chat/setup': typeof AppChatSetupRoute
   '/app/hub/behaviour': typeof AppHubBehaviourRoute
   '/app/models/add': typeof AppModelsAddRoute
-  '/app/orgs/add': typeof AppOrgsAddRoute
   '/app/providers/add': typeof AppProvidersAddRoute
   '/app/quotas/add': typeof AppQuotasAddRoute
   '/app/users/add': typeof AppUsersAddRoute
@@ -564,6 +584,8 @@ export interface FileRoutesByFullPath {
   '/app/providers/': typeof AppProvidersIndexRoute
   '/app/quotas/': typeof AppQuotasIndexRoute
   '/app/users/': typeof AppUsersIndexRoute
+  '/instance/organizations/': typeof InstanceOrganizationsIndexRoute
+  '/instance/users/': typeof InstanceUsersIndexRoute
   '/app/hub/assets/$assetId': typeof AppHubAssetsAssetIdRouteRouteWithChildren
   '/app/hub/blocks/$blockId': typeof AppHubBlocksBlockIdRouteRouteWithChildren
   '/app/hub/bots/$botId': typeof AppHubBotsBotIdRouteRouteWithChildren
@@ -606,6 +628,7 @@ export interface FileRoutesByTo {
   '/tou': typeof PathlessLayoutTouRoute
   '/verify-email': typeof PathlessLayoutVerifyEmailRoute
   '/app': typeof AppIndexRoute
+  '/instance': typeof InstanceIndexRoute
   '/app/users/$userId': typeof AppUsersUserIdRouteRouteWithChildren
   '/api/auth/$': typeof ApiAuthSplatRoute
   '/api/doc/$': typeof ApiDocSplatRoute
@@ -614,7 +637,6 @@ export interface FileRoutesByTo {
   '/app/chat/setup': typeof AppChatSetupRoute
   '/app/hub/behaviour': typeof AppHubBehaviourRoute
   '/app/models/add': typeof AppModelsAddRoute
-  '/app/orgs/add': typeof AppOrgsAddRoute
   '/app/providers/add': typeof AppProvidersAddRoute
   '/app/quotas/add': typeof AppQuotasAddRoute
   '/app/users/add': typeof AppUsersAddRoute
@@ -628,6 +650,8 @@ export interface FileRoutesByTo {
   '/app/providers': typeof AppProvidersIndexRoute
   '/app/quotas': typeof AppQuotasIndexRoute
   '/app/users': typeof AppUsersIndexRoute
+  '/instance/organizations': typeof InstanceOrganizationsIndexRoute
+  '/instance/users': typeof InstanceUsersIndexRoute
   '/app/hub/assets/add': typeof AppHubAssetsAddRoute
   '/app/hub/blocks/add': typeof AppHubBlocksAddRoute
   '/app/hub/bots/add': typeof AppHubBotsAddRoute
@@ -660,6 +684,7 @@ export interface FileRoutesById {
   '/': typeof IndexRoute
   '/_pathlessLayout': typeof PathlessLayoutRouteRouteWithChildren
   '/app': typeof AppRouteRouteWithChildren
+  '/instance': typeof InstanceRouteRouteWithChildren
   '/app/account': typeof AppAccountRouteRouteWithChildren
   '/app/chat': typeof AppChatRouteRouteWithChildren
   '/app/groups': typeof AppGroupsRouteRouteWithChildren
@@ -679,6 +704,7 @@ export interface FileRoutesById {
   '/_pathlessLayout/tou': typeof PathlessLayoutTouRoute
   '/_pathlessLayout/verify-email': typeof PathlessLayoutVerifyEmailRoute
   '/app/': typeof AppIndexRoute
+  '/instance/': typeof InstanceIndexRoute
   '/app/groups/$groupId': typeof AppGroupsGroupIdRouteRouteWithChildren
   '/app/hub/assets': typeof AppHubAssetsRouteRouteWithChildren
   '/app/hub/blocks': typeof AppHubBlocksRouteRouteWithChildren
@@ -695,7 +721,6 @@ export interface FileRoutesById {
   '/app/chat/setup': typeof AppChatSetupRoute
   '/app/hub/behaviour': typeof AppHubBehaviourRoute
   '/app/models/add': typeof AppModelsAddRoute
-  '/app/orgs/add': typeof AppOrgsAddRoute
   '/app/providers/add': typeof AppProvidersAddRoute
   '/app/quotas/add': typeof AppQuotasAddRoute
   '/app/users/add': typeof AppUsersAddRoute
@@ -709,6 +734,8 @@ export interface FileRoutesById {
   '/app/providers/': typeof AppProvidersIndexRoute
   '/app/quotas/': typeof AppQuotasIndexRoute
   '/app/users/': typeof AppUsersIndexRoute
+  '/instance/organizations/': typeof InstanceOrganizationsIndexRoute
+  '/instance/users/': typeof InstanceUsersIndexRoute
   '/app/hub/assets/$assetId': typeof AppHubAssetsAssetIdRouteRouteWithChildren
   '/app/hub/blocks/$blockId': typeof AppHubBlocksBlockIdRouteRouteWithChildren
   '/app/hub/bots/$botId': typeof AppHubBotsBotIdRouteRouteWithChildren
@@ -744,6 +771,7 @@ export interface FileRouteTypes {
   fullPaths:
     | '/'
     | '/app'
+    | '/instance'
     | '/app/account'
     | '/app/chat'
     | '/app/groups'
@@ -763,6 +791,7 @@ export interface FileRouteTypes {
     | '/tou'
     | '/verify-email'
     | '/app/'
+    | '/instance/'
     | '/app/groups/$groupId'
     | '/app/hub/assets'
     | '/app/hub/blocks'
@@ -779,7 +808,6 @@ export interface FileRouteTypes {
     | '/app/chat/setup'
     | '/app/hub/behaviour'
     | '/app/models/add'
-    | '/app/orgs/add'
     | '/app/providers/add'
     | '/app/quotas/add'
     | '/app/users/add'
@@ -793,6 +821,8 @@ export interface FileRouteTypes {
     | '/app/providers/'
     | '/app/quotas/'
     | '/app/users/'
+    | '/instance/organizations/'
+    | '/instance/users/'
     | '/app/hub/assets/$assetId'
     | '/app/hub/blocks/$blockId'
     | '/app/hub/bots/$botId'
@@ -835,6 +865,7 @@ export interface FileRouteTypes {
     | '/tou'
     | '/verify-email'
     | '/app'
+    | '/instance'
     | '/app/users/$userId'
     | '/api/auth/$'
     | '/api/doc/$'
@@ -843,7 +874,6 @@ export interface FileRouteTypes {
     | '/app/chat/setup'
     | '/app/hub/behaviour'
     | '/app/models/add'
-    | '/app/orgs/add'
     | '/app/providers/add'
     | '/app/quotas/add'
     | '/app/users/add'
@@ -857,6 +887,8 @@ export interface FileRouteTypes {
     | '/app/providers'
     | '/app/quotas'
     | '/app/users'
+    | '/instance/organizations'
+    | '/instance/users'
     | '/app/hub/assets/add'
     | '/app/hub/blocks/add'
     | '/app/hub/bots/add'
@@ -888,6 +920,7 @@ export interface FileRouteTypes {
     | '/'
     | '/_pathlessLayout'
     | '/app'
+    | '/instance'
     | '/app/account'
     | '/app/chat'
     | '/app/groups'
@@ -907,6 +940,7 @@ export interface FileRouteTypes {
     | '/_pathlessLayout/tou'
     | '/_pathlessLayout/verify-email'
     | '/app/'
+    | '/instance/'
     | '/app/groups/$groupId'
     | '/app/hub/assets'
     | '/app/hub/blocks'
@@ -923,7 +957,6 @@ export interface FileRouteTypes {
     | '/app/chat/setup'
     | '/app/hub/behaviour'
     | '/app/models/add'
-    | '/app/orgs/add'
     | '/app/providers/add'
     | '/app/quotas/add'
     | '/app/users/add'
@@ -937,6 +970,8 @@ export interface FileRouteTypes {
     | '/app/providers/'
     | '/app/quotas/'
     | '/app/users/'
+    | '/instance/organizations/'
+    | '/instance/users/'
     | '/app/hub/assets/$assetId'
     | '/app/hub/blocks/$blockId'
     | '/app/hub/bots/$botId'
@@ -972,6 +1007,7 @@ export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
   PathlessLayoutRouteRoute: typeof PathlessLayoutRouteRouteWithChildren
   AppRouteRoute: typeof AppRouteRouteWithChildren
+  InstanceRouteRoute: typeof InstanceRouteRouteWithChildren
   ApiAuthSplatRoute: typeof ApiAuthSplatRoute
   ApiDocSplatRoute: typeof ApiDocSplatRoute
   ApiRpcSplatRoute: typeof ApiRpcSplatRoute
@@ -998,6 +1034,13 @@ declare module '@tanstack/react-router' {
       path: '/app'
       fullPath: '/app'
       preLoaderRoute: typeof AppRouteRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/instance': {
+      id: '/instance'
+      path: '/instance'
+      fullPath: '/instance'
+      preLoaderRoute: typeof InstanceRouteRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/_pathlessLayout/forgot-password': {
@@ -1133,6 +1176,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AppUsersRouteRouteImport
       parentRoute: typeof AppRouteRoute
     }
+    '/instance/': {
+      id: '/instance/'
+      path: '/'
+      fullPath: '/instance/'
+      preLoaderRoute: typeof InstanceIndexRouteImport
+      parentRoute: typeof InstanceRouteRoute
+    }
     '/api/auth/$': {
       id: '/api/auth/$'
       path: '/api/auth/$'
@@ -1266,13 +1316,6 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AppOrgsOrgIdRouteRouteImport
       parentRoute: typeof AppOrgsRouteRoute
     }
-    '/app/orgs/add': {
-      id: '/app/orgs/add'
-      path: '/add'
-      fullPath: '/app/orgs/add'
-      preLoaderRoute: typeof AppOrgsAddRouteImport
-      parentRoute: typeof AppOrgsRouteRoute
-    }
     '/app/providers/': {
       id: '/app/providers/'
       path: '/'
@@ -1342,6 +1385,20 @@ declare module '@tanstack/react-router' {
       fullPath: '/app/users/invites'
       preLoaderRoute: typeof AppUsersInvitesRouteImport
       parentRoute: typeof AppUsersRouteRoute
+    }
+    '/instance/organizations/': {
+      id: '/instance/organizations/'
+      path: '/organizations'
+      fullPath: '/instance/organizations/'
+      preLoaderRoute: typeof InstanceOrganizationsIndexRouteImport
+      parentRoute: typeof InstanceRouteRoute
+    }
+    '/instance/users/': {
+      id: '/instance/users/'
+      path: '/users'
+      fullPath: '/instance/users/'
+      preLoaderRoute: typeof InstanceUsersIndexRouteImport
+      parentRoute: typeof InstanceRouteRoute
     }
     '/app/chat/$chatId/': {
       id: '/app/chat/$chatId/'
@@ -1797,13 +1854,11 @@ const AppOrgsOrgIdRouteRouteWithChildren =
 
 interface AppOrgsRouteRouteChildren {
   AppOrgsOrgIdRouteRoute: typeof AppOrgsOrgIdRouteRouteWithChildren
-  AppOrgsAddRoute: typeof AppOrgsAddRoute
   AppOrgsIndexRoute: typeof AppOrgsIndexRoute
 }
 
 const AppOrgsRouteRouteChildren: AppOrgsRouteRouteChildren = {
   AppOrgsOrgIdRouteRoute: AppOrgsOrgIdRouteRouteWithChildren,
-  AppOrgsAddRoute: AppOrgsAddRoute,
   AppOrgsIndexRoute: AppOrgsIndexRoute,
 }
 
@@ -1934,10 +1989,27 @@ const AppRouteRouteWithChildren = AppRouteRoute._addFileChildren(
   AppRouteRouteChildren,
 )
 
+interface InstanceRouteRouteChildren {
+  InstanceIndexRoute: typeof InstanceIndexRoute
+  InstanceOrganizationsIndexRoute: typeof InstanceOrganizationsIndexRoute
+  InstanceUsersIndexRoute: typeof InstanceUsersIndexRoute
+}
+
+const InstanceRouteRouteChildren: InstanceRouteRouteChildren = {
+  InstanceIndexRoute: InstanceIndexRoute,
+  InstanceOrganizationsIndexRoute: InstanceOrganizationsIndexRoute,
+  InstanceUsersIndexRoute: InstanceUsersIndexRoute,
+}
+
+const InstanceRouteRouteWithChildren = InstanceRouteRoute._addFileChildren(
+  InstanceRouteRouteChildren,
+)
+
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
   PathlessLayoutRouteRoute: PathlessLayoutRouteRouteWithChildren,
   AppRouteRoute: AppRouteRouteWithChildren,
+  InstanceRouteRoute: InstanceRouteRouteWithChildren,
   ApiAuthSplatRoute: ApiAuthSplatRoute,
   ApiDocSplatRoute: ApiDocSplatRoute,
   ApiRpcSplatRoute: ApiRpcSplatRoute,

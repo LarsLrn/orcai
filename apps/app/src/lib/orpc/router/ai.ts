@@ -24,6 +24,7 @@ import type { ChatAgentUIMessage } from "@/lib/ai/types/chat-agent-message";
 import { getChatMessageAttachments } from "@/lib/ai/types/chat-attachment";
 import { buildAttachmentPromptPartCached } from "@/lib/ai/utils/chat-attachment-parts";
 import { getChatAiSettings } from "@/lib/ai/utils/get-chat-ai-settings";
+import { getZedToken } from "@/lib/authz/zed-token";
 import { runtime } from "@/lib/effect/runtime";
 import * as AppErrors from "@/lib/effect/utils/errors";
 import { authed } from "@/lib/orpc/implementation/authed";
@@ -102,12 +103,12 @@ export const aiChat = authed.ai.chat
 	)
 	.effect(function* ({ input, context }) {
 		return yield* Effect.gen(function* () {
-			const resolvedZedToken = input.zedToken ?? context.meta?.zedToken;
+			const zedToken = getZedToken(context, input);
 			const requestContext = {
 				...context,
 				meta: {
 					...context.meta,
-					zedToken: resolvedZedToken,
+					zedToken,
 				},
 			};
 			const inputMessages = input.messages as ChatAgentUIMessage[];
@@ -193,7 +194,7 @@ export const aiChat = authed.ai.chat
 						listChatBlocks,
 						{
 							chatId: input.chatId,
-							zedToken: resolvedZedToken,
+							zedToken,
 						},
 						{
 							context: requestContext,
@@ -212,7 +213,7 @@ export const aiChat = authed.ai.chat
 				botId: chatRecord.botId,
 				chatConfig,
 				userId: context.auth.user.id,
-				zedToken: resolvedZedToken,
+				zedToken,
 			});
 
 			const attachedDatabaseBlocks = chatBlocks.filter(

@@ -11,7 +11,6 @@ import {
 	resourceRevokeResponseSchema,
 	resourceSetVisibilityInputSchema,
 	resourceSetVisibilityResponseSchema,
-	zedTokenSchema,
 } from "@orcai/schema";
 import { openapi } from "@orpc/openapi";
 import { base } from "./base";
@@ -55,11 +54,7 @@ export const resourceContracts = {
 			}),
 		)
 		.input(resourceGrantInputSchema)
-		.output(
-			resourceGrantResponseSchema.extend({
-				meta: zedTokenSchema.optional(),
-			}),
-		),
+		.output(resourceGrantResponseSchema),
 	revoke: base
 		.meta(
 			openapi({
@@ -98,9 +93,5 @@ export const resourceContracts = {
 			}),
 		)
 		.input(resourceSetVisibilityInputSchema)
-		.output(
-			resourceSetVisibilityResponseSchema.extend({
-				meta: zedTokenSchema.optional(),
-			}),
-		),
+		.output(resourceSetVisibilityResponseSchema),
 };

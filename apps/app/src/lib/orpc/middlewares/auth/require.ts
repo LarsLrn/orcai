@@ -1,11 +1,12 @@
 import { DB } from "@orcai/db";
 import { organizationIdSchema, userIdSchema } from "@orcai/schema";
+import { os } from "@orpc/server";
 import * as Effect from "effect/Effect";
 import { auth as betterAuth } from "@/lib/auth/auth";
 import type { authClient } from "@/lib/auth/auth-client";
+import { isInstanceAdminRole } from "@/lib/authz/instance-role";
 import * as AppErrors from "@/lib/effect/utils/errors";
 import { runMiddlewareEffect } from "@/lib/effect/utils/orpc-helpers";
-import { os } from "@/lib/orpc/implementation/os";
 import { withName } from "@/lib/orpc/middlewares/utils";
 import type { AuthContext } from ".";
 
@@ -104,6 +105,36 @@ export const requireActiveOrganizationMiddleware = withName(
 					);
 				}
 
+				const db = yield* DB;
+				const membership = yield* db.query.member.findFirst({
+					where: {
+						organizationId: {
+							eq: activeOrganizationId,
+						},
+						userId: {
+							eq: opts.context.auth.user.id,
+						},
+					},
+					columns: {
+						id: true,
+					},
+				});
+
+				if (!membership) {
+					return yield* Effect.fail(
+						new AppErrors.ForbiddenError({
+							message:
+								"You are no longer a member of the selected organization.",
+							data: {
+								allowed: false,
+								permission: "read",
+								entityType: "organization",
+								entityId: activeOrganizationId,
+							},
+						}),
+					);
+				}
+
 				return yield* Effect.promise(() =>
 					Promise.resolve(
 						opts.next({
@@ -173,4 +204,30 @@ export const requirePreferencesMiddleware = withName(
 		),
 	),
 	"requirePreferences",
+);
+
+/** Requires the instance admin role on `user.role`, which grants nothing inside an organisation. */
+export const requireInstanceAdminMiddleware = withName(
+	os.$context<AuthContext>().middleware((opts) =>
+		runMiddlewareEffect(
+			opts,
+			Effect.gen(function* () {
+				if (!isInstanceAdminRole(opts.context.auth.user.role)) {
+					return yield* Effect.fail(
+						new AppErrors.ForbiddenError({
+							message: "This action requires the instance administrator.",
+							data: {
+								allowed: false,
+								permission: "administer_instance",
+								entityType: "instance",
+							},
+						}),
+					);
+				}
+
+				return yield* Effect.promise(() => Promise.resolve(opts.next()));
+			}),
+		),
+	),
+	"requireInstanceAdmin",
 );

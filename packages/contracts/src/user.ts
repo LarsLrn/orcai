@@ -1,8 +1,12 @@
 import {
+	banUserInputSchema,
+	banUserResponseSchema,
 	deleteUsersInputSchema,
 	deleteUsersResponseSchema,
 	findUserInputSchema,
 	findUserResponseSchema,
+	listAllUsersInputSchema,
+	listAllUsersResponseSchema,
 	listUserAccessInputSchema,
 	listUserAccessResponseSchema,
 	listUsersInputSchema,
@@ -13,6 +17,8 @@ import {
 	setActiveOrganizationResponseSchema,
 	setTourStateInputSchema,
 	setTourStateResponseSchema,
+	unbanUserInputSchema,
+	unbanUserResponseSchema,
 	updatePasswordInputSchema,
 	updatePasswordResponseSchema,
 } from "@orcai/schema";
@@ -33,6 +39,19 @@ export const userContracts = {
 		)
 		.input(listUsersInputSchema)
 		.output(listUsersResponseSchema),
+	listAll: base
+		.meta(
+			openapi({
+				method: "GET",
+				path: "/instance/users",
+				summary: "List every user of the instance",
+				tags: [
+					"Users",
+				],
+			}),
+		)
+		.input(listAllUsersInputSchema)
+		.output(listAllUsersResponseSchema),
 	find: base
 		.meta(
 			openapi({
@@ -73,6 +92,32 @@ export const userContracts = {
 		)
 		.input(deleteUsersInputSchema)
 		.output(deleteUsersResponseSchema),
+	ban: base
+		.meta(
+			openapi({
+				method: "POST",
+				path: "/users/actions/ban",
+				summary: "Ban an account",
+				tags: [
+					"Users",
+				],
+			}),
+		)
+		.input(banUserInputSchema)
+		.output(banUserResponseSchema),
+	unban: base
+		.meta(
+			openapi({
+				method: "POST",
+				path: "/users/actions/unban",
+				summary: "Lift the ban on an account",
+				tags: [
+					"Users",
+				],
+			}),
+		)
+		.input(unbanUserInputSchema)
+		.output(unbanUserResponseSchema),
 	me: base
 		.meta(
 			openapi({

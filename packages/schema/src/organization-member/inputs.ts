@@ -3,7 +3,6 @@ import { paginationInputSchema } from "../shared";
 import { createUniqueRefsInputSchema } from "../shared/ref-list";
 import { userIdSchema } from "../user/ref";
 import {
-	organizationMemberFieldsSchema,
 	organizationMemberMutableFieldsSchema,
 	organizationMemberSchema,
 } from "./schema";
@@ -11,9 +10,6 @@ import {
 export const listOrganizationMembersInputSchema = paginationInputSchema.extend({
 	organizationId: organizationMemberSchema.shape.organizationId,
 });
-
-export const createOrganizationMemberInputSchema =
-	organizationMemberFieldsSchema;
 
 export const findOrganizationMemberInputSchema = organizationMemberSchema.pick({
 	userId: true,
@@ -37,9 +33,6 @@ export const deleteOrganizationMembersInputSchema = z.object({
 
 export type ListOrganizationMembersInput = z.infer<
 	typeof listOrganizationMembersInputSchema
->;
-export type CreateOrganizationMemberInput = z.infer<
-	typeof createOrganizationMemberInputSchema
 >;
 export type FindOrganizationMemberInput = z.infer<
 	typeof findOrganizationMemberInputSchema

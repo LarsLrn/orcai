@@ -16,13 +16,14 @@ export const ensureOrganizationCapability = async ({
 	permission: OrganizationCapability;
 	redirectTo?: string;
 }) => {
-	const result = await queryClient.ensureQueryData(
+	const result = await queryClient.query(
 		orpc.authorization.organizationCapabilities.queryOptions({
 			input: {
 				permissions: [
 					permission,
 				],
 			},
+			staleTime: "static",
 		}),
 	);
 
@@ -54,13 +55,14 @@ export const ensureEntityCapability = async <
 	permission: CapabilityFor<Entity>;
 	redirectTo?: string;
 }) => {
-	const result = await queryClient.ensureQueryData(
+	const result = await queryClient.query(
 		orpc.authorization.check.queryOptions({
 			input: {
 				entityType,
 				entityId,
 				permission,
 			},
+			staleTime: "static",
 		}),
 	);
 

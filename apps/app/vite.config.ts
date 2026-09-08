@@ -6,11 +6,14 @@ import { devtools } from "@tanstack/devtools-vite";
 import { tanstackStart } from "@tanstack/react-start/plugin/vite";
 import react, { reactCompilerPreset } from "@vitejs/plugin-react";
 import { defineConfig } from "vite";
-import { paraglideOptions } from "./paraglide.config.ts";
+import { paraglideOptions } from "./paraglide.config";
 
 export default defineConfig({
 	server: {
-		port: 3000,
+		port: Number(process.env.PORT ?? 3000),
+		strictPort: true,
+		// Dev servers are reached through per-worktree proxy hostnames.
+		allowedHosts: true,
 	},
 	ssr: {
 		noExternal: [

@@ -1,6 +1,4 @@
 import {
-	createOrganizationMemberInputSchema,
-	createOrganizationMemberResponseSchema,
 	deleteOrganizationMembersInputSchema,
 	deleteOrganizationMembersResponseSchema,
 	findOrganizationMemberInputSchema,
@@ -27,19 +25,6 @@ export const organizationMemberContracts = {
 		)
 		.input(listOrganizationMembersInputSchema)
 		.output(listOrganizationMembersResponseSchema),
-	create: base
-		.meta(
-			openapi({
-				method: "POST",
-				path: "/organizations/{organizationId}/members",
-				summary: "Create a member for an organization",
-				tags: [
-					"Organization Members",
-				],
-			}),
-		)
-		.input(createOrganizationMemberInputSchema)
-		.output(createOrganizationMemberResponseSchema),
 	find: base
 		.meta(
 			openapi({

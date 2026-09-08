@@ -17,6 +17,7 @@ import * as Effect from "effect/Effect";
 import { emptyCapabilities } from "@/lib/authz/capabilities";
 import { calculateRelationDelta } from "@/lib/authz/relation-delta";
 import { initializeResourceAuthorization } from "@/lib/authz/resource-lifecycle";
+import { getZedToken } from "@/lib/authz/zed-token";
 import { AuthzService } from "@/lib/effect/services/authz";
 import * as AppErrors from "@/lib/effect/utils/errors";
 import { NotFoundError } from "@/lib/effect/utils/errors";
@@ -32,6 +33,7 @@ import {
 	getManyEntityCapabilities,
 } from "@/lib/orpc/router/helpers/capabilities";
 import { loadDatabaseBlockAssets } from "@/lib/orpc/router/helpers/database-block";
+import { literalSearch } from "./helpers/literal-search";
 
 const listBotsByStatus = (params: {
 	userId: UserId;
@@ -60,7 +62,9 @@ const listBotsByStatus = (params: {
 		];
 
 		if (params.search) {
-			whereConditions.push(ilike(dbSchema.bot.name, `%${params.search}%`));
+			whereConditions.push(
+				ilike(dbSchema.bot.name, literalSearch(params.search)),
+			);
 		}
 
 		return yield* Effect.all(
@@ -462,14 +466,7 @@ const saveBotGraph = (params: {
 			zedToken: zedToken ?? params.zedToken,
 		});
 
-		return {
-			...editor,
-			meta: zedToken
-				? {
-						zedToken,
-					}
-				: undefined,
-		};
+		return editor;
 	});
 
 export const listBots = authed.bot.list.effect(function* ({ input, context }) {
@@ -479,7 +476,7 @@ export const listBots = authed.bot.list.effect(function* ({ input, context }) {
 		pageIndex: input.pageIndex,
 		pageSize: input.pageSize,
 		search: input.search,
-		zedToken: input.zedToken,
+		zedToken: getZedToken(context, input),
 		permission: "read",
 	});
 });
@@ -494,7 +491,7 @@ export const listDraftBots = authed.bot.listDrafts.effect(function* ({
 		pageIndex: input.pageIndex,
 		pageSize: input.pageSize,
 		search: input.search,
-		zedToken: input.zedToken,
+		zedToken: getZedToken(context, input),
 		permission: "edit",
 	});
 });
@@ -534,7 +531,7 @@ export const findBot = authed.bot.find
 			entityType: "bot",
 			entityId: bot.id,
 			userId: context.auth.user.id,
-			zedToken: input.zedToken,
+			zedToken: getZedToken(context, input),
 		});
 
 		return {
@@ -557,7 +554,7 @@ export const findBotEditor = authed.bot.findEditor
 		return yield* loadBotEditor({
 			id: input.id,
 			userId: context.auth.user.id,
-			zedToken: input.zedToken ?? context.meta?.zedToken,
+			zedToken: getZedToken(context, input),
 		}).pipe(
 			Effect.mapError(
 				() =>
@@ -571,7 +568,7 @@ export const findBotEditor = authed.bot.findEditor
 export const saveBot = authed.bot.save
 	.use(requireActiveOrganizationMiddleware)
 	.effect(function* ({ input, context }) {
-		const resolvedZedToken = input.zedToken ?? context.meta?.zedToken;
+		const resolvedZedToken = getZedToken(context, input);
 
 		if (input.id) {
 			const permission = yield* checkEntityPermission({

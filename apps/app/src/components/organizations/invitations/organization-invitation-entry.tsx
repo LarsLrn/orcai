@@ -1,5 +1,7 @@
-import type { OrganizationInvitation } from "@orcai/schema";
-import { useQuery } from "@tanstack/react-query";
+import type {
+	OrganizationInvitation,
+	OrganizationInvitationListItem,
+} from "@orcai/schema";
 import { format } from "date-fns";
 import { Building2Icon, CalendarIcon, Clock4Icon } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
@@ -12,12 +14,10 @@ import {
 	CardHeader,
 	CardTitle,
 } from "@/components/ui/card";
-import { Spinner } from "@/components/ui/spinner";
-import { orpc } from "@/lib/orpc/orpc";
 import { OrganizationInvitationActions } from "./organization-invitation-actions";
 
 type OrganizationInvitationEntryProps = {
-	invitation: OrganizationInvitation;
+	invitation: OrganizationInvitationListItem;
 	onAccepted?: () => void | Promise<void>;
 };
 
@@ -54,20 +54,8 @@ export function OrganizationInvitationEntry({
 	invitation,
 	onAccepted,
 }: OrganizationInvitationEntryProps) {
-	const { data: organization, status } = useQuery(
-		orpc.organization.find.queryOptions({
-			input: {
-				id: invitation.organizationId,
-			},
-		}),
-	);
-
 	const isPending = invitation.status === "pending";
 	const isExpired = isPending && invitation.expiresAt < new Date();
-
-	if (status === "pending") {
-		return <Spinner />;
-	}
 
 	return (
 		<Card className="w-full">
@@ -76,7 +64,7 @@ export function OrganizationInvitationEntry({
 					<div className="flex items-center gap-2">
 						<Building2Icon className="h-4 w-4 text-primary" />
 						<CardTitle className="text-lg">
-							{organization?.data.name ?? "Organisation"}
+							{invitation.organizationName}
 						</CardTitle>
 					</div>
 					<Badge variant={toBadgeVariant(invitation.status, isExpired)}>
@@ -84,9 +72,7 @@ export function OrganizationInvitationEntry({
 					</Badge>
 				</div>
 				<CardDescription className="text-xs">
-					{organization?.data.slug
-						? `@${organization.data.slug}`
-						: invitation.organizationId}
+					{`@${invitation.organizationSlug}`}
 				</CardDescription>
 			</CardHeader>
 			<CardContent className="py-2">

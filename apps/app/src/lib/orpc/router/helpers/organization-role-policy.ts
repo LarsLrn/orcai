@@ -1,4 +1,9 @@
-import type { OrganizationId, OrganizationRole, UserId } from "@orcai/core";
+import {
+	ORGANIZATION_ADMIN_ROLE,
+	type OrganizationId,
+	type OrganizationRole,
+	type UserId,
+} from "@orcai/core";
 import {
 	checkEntityPermission,
 	hasPermission,
@@ -7,22 +12,21 @@ import {
 import * as Effect from "effect/Effect";
 import * as AppErrors from "@/lib/effect/utils/errors";
 
-const ADMIN_ROLE = "admin" as const satisfies OrganizationRole;
-
 export const organizationRoleRequiresAdminControl = (
 	role: OrganizationRole | null | undefined,
-) => role === ADMIN_ROLE;
+) => role === ORGANIZATION_ADMIN_ROLE;
 
 export const assertCanManageOrganizationAdmins = (params: {
 	organizationId: OrganizationId;
 	userId: UserId;
+	zedToken: string | undefined;
 }) =>
 	checkEntityPermission({
 		entityType: "organization",
 		entityId: params.organizationId,
 		permission: "manage_organization" satisfies PermissionFor<"organization">,
 		userId: params.userId,
-		zedToken: undefined,
+		zedToken: params.zedToken,
 	}).pipe(
 		Effect.filterOrFail(
 			(result) => hasPermission(result),
@@ -58,6 +62,6 @@ export const countRemovedAdmins = (params: {
 }) =>
 	new Set(
 		params.members
-			.filter((member) => member.role === ADMIN_ROLE)
+			.filter((member) => member.role === ORGANIZATION_ADMIN_ROLE)
 			.map((member) => member.userId),
 	).size;

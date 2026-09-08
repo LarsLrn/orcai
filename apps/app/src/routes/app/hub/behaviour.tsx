@@ -23,7 +23,7 @@ const PAGE_SIZE = 100;
 export const Route = createFileRoute("/app/hub/behaviour")({
 	loader: async ({ context: { queryClient } }) => {
 		await Promise.all([
-			queryClient.ensureQueryData(
+			queryClient.query(
 				orpc.block.list.queryOptions({
 					input: {
 						pageIndex: 0,
@@ -33,9 +33,10 @@ export const Route = createFileRoute("/app/hub/behaviour")({
 							status: "ready",
 						},
 					},
+					staleTime: "static",
 				}),
 			),
-			queryClient.ensureQueryData(
+			queryClient.query(
 				orpc.block.list.queryOptions({
 					input: {
 						pageIndex: 0,
@@ -45,9 +46,10 @@ export const Route = createFileRoute("/app/hub/behaviour")({
 							status: "draft",
 						},
 					},
+					staleTime: "static",
 				}),
 			),
-			queryClient.ensureQueryData(
+			queryClient.query(
 				orpc.block.list.queryOptions({
 					input: {
 						pageIndex: 0,
@@ -57,9 +59,10 @@ export const Route = createFileRoute("/app/hub/behaviour")({
 							status: "ready",
 						},
 					},
+					staleTime: "static",
 				}),
 			),
-			queryClient.ensureQueryData(
+			queryClient.query(
 				orpc.block.list.queryOptions({
 					input: {
 						pageIndex: 0,
@@ -69,6 +72,7 @@ export const Route = createFileRoute("/app/hub/behaviour")({
 							status: "draft",
 						},
 					},
+					staleTime: "static",
 				}),
 			),
 		]);

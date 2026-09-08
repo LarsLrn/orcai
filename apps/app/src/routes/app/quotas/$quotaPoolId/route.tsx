@@ -10,11 +10,12 @@ export const Route = createFileRoute("/app/quotas/$quotaPoolId")({
 		}),
 	},
 	loader: async ({ context: { queryClient }, params: { quotaPoolId } }) => {
-		return await queryClient.ensureQueryData(
+		return await queryClient.query(
 			orpc.quota.find.queryOptions({
 				input: {
 					id: quotaPoolId,
 				},
+				staleTime: "static",
 			}),
 		);
 	},

@@ -57,6 +57,7 @@ export const authzOutboxStatusEnum = pgEnum("authz_outbox_status", [
 	"processing",
 	"processed",
 	"failed",
+	"dead_letter",
 ]);
 
 export const group = pgTable(

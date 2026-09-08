@@ -5,6 +5,9 @@
 			"path": "./apps/app"
 		},
 		{
+			"path": "./apps/e2e"
+		},
+		{
 			"path": "./apps/web"
 		},
 		{
@@ -51,6 +54,9 @@
 		},
 		{
 			"path": "./packages/notifications"
+		},
+		{
+			"path": "./scripts"
 		}
 	]
 }
