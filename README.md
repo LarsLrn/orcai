@@ -73,21 +73,22 @@ bun run stack dev     # app dev server on the port stored in .env
 
 Useful commands:
 - `bun run stack status`: container state and a probe per service
-- `bun run stack reset`: empty every store of the stack in seconds, leaving containers and `.env` in place (refuses while an app is listening on the stack's port)
-- `bun run stack e2e`: reset, then run the end-to-end suite (`bun run e2e` is an alias)
+- `bun run stack reset`: empty every store of the stack, leaving containers and `.env` in place (asks first; refuses while an app is listening on the stack's port)
+- `bun run stack e2e`: reset, then run the end-to-end suite (`bun run e2e` is an alias, asks first)
 - `bun run stack dev --all`: app, workers, and docs together
 - `bun run stack workers` / `bun run stack web`: workers or docs site only
 - `bun run stack migrate`: reapply migrations and the SpiceDB schema
 - `bun run stack exec -- <command>`: run anything with the stack environment, for example `bun run stack exec -- bun run --filter @orcai/db generate`
 - `bun run stack logs [service]`: follow infrastructure logs
 - `bun run stack env --reset`: regenerate `.env` with fresh ports and secrets
-- `bun run stack down --volumes`: stop the stack and delete its data
+- `bun run stack down --volumes`: stop the stack and delete its data (asks first)
 
 Notes:
 - `stack up` is idempotent and reuses an existing `.env`.
+- `stack reset`, `stack e2e` without `--no-reset`, and `stack down --volumes` are potentially destructive in the current environment and ask for confirmation first.
 - Machine-wide overrides such as a real `OPENAI_COMPATIBLE_*` endpoint belong in `~/.config/orcai/dev.env` (or the file named by `ORCAI_DEV_ENV_FILE`). They are merged whenever `.env` is created.
 - `bun run stack --name <name> --env-file <path> up` starts an additional independent stack, which is how you run end-to-end tests without touching this worktree's dev data.
-- Paseo workspaces run `bun install` and `bun run stack up` automatically on creation and `bun run stack down --volumes` when archived, see `paseo.json`.
+- [Paseo](https://github.com/getpaseo/paseo) workspaces run `bun install` and `bun run stack up` automatically on creation and `bun run stack down --volumes --yes` when archived, see `paseo.json`.
 - Workers on the host need Tesseract with the `eng` (and optionally `deu`) language packs for OCR.
 - Unit tests (`bun run test`) never touch the stack.
 

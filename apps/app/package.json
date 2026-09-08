@@ -18,6 +18,7 @@
 		"@ai-sdk/devtools": "1.0.13",
 		"@ai-sdk/openai-compatible": "3.0.40",
 		"@ai-sdk/react": "4.0.87",
+		"@authzed/authzed-node": "catalog:",
 		"@base-ui/react": "1.7.0",
 		"@better-auth/expo": "1.7.2",
 		"@effect/opentelemetry": "catalog:",

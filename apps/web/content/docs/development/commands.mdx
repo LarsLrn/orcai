@@ -17,7 +17,7 @@ Each checkout owns an isolated Docker Compose project with per-worktree ports st
 | --- | --- |
 | `bun run stack up` | Start infrastructure, write `.env`, apply migrations and the SpiceDB schema. |
 | `bun run stack status` | Show container state and probe every service. |
-| `bun run stack reset` | Empty every store of the stack, leaving containers and `.env` in place. |
+| `bun run stack reset` | Empty every store of the stack, leaving containers and `.env` in place. Asks first. |
 | `bun run stack e2e` | Reset the stack, then run the end-to-end suite. |
 | `bun run stack dev` | Start the app development server with the stack environment. |
 | `bun run stack dev --all` | Start the app, workers, and documentation site together. |
@@ -27,7 +27,7 @@ Each checkout owns an isolated Docker Compose project with per-worktree ports st
 | `bun run stack exec -- <command>` | Run any command with `.env` loaded. |
 | `bun run stack logs [service]` | Follow infrastructure logs. |
 | `bun run stack env --reset` | Regenerate `.env` with new ports and secrets. |
-| `bun run stack down --volumes` | Stop the stack and delete its data. |
+| `bun run stack down --volumes` | Stop the stack and delete its data. Asks first. |
 
 ## Application
 
@@ -76,6 +76,7 @@ Package scripts do not see the root `.env` on their own, so wrap them in `bun ru
 | `bun run stack exec -- bun run --filter @orcai/db generate` | Generate a new Drizzle migration. |
 | `bun run stack exec -- bun run --filter @orcai/db studio` | Open Drizzle Studio. |
 | `bun run stack exec -- bun run --filter @orcai/spice-db status` | Inspect SpiceDB schema migration status. |
+| `bun run stack exec -- bun run --filter @orcai/spice-db reset` | Delete every relationship, keeping the schema. Asks first, and names the endpoint it would wipe. `bun run stack reset` calls this with `--yes`. |
 
 ## Documentation Web Service
 

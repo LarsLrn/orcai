@@ -11,6 +11,7 @@
 	},
 	"scripts": {
 		"dry-run": "bun run src/cli.ts dry-run",
+		"reset": "bun run src/cli.ts reset",
 		"status": "bun run src/cli.ts status",
 		"up": "bun run src/cli.ts up"
 	},

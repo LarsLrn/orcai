@@ -35,9 +35,14 @@
  * a mock inference server on E2E_INFERENCE_PORT and points the app's global
  * OpenAI-compatible endpoint at it; a reused app keeps its own endpoint.
  *
+ * `reset`, `e2e` without `--no-reset`, and `down --volumes` ask before they
+ * destroy anything. `--yes` answers the question up front, and a caller
+ * without a terminal has to pass it.
+ *
  * Global options:
  *   --name <stack>         Compose project name. Defaults to orcai-<worktree>.
  *   --env-file <path>      Env file. Defaults to <repo>/.env.
+ *   --yes                  Skip the confirmation of a destructive command.
  *
  * Overrides shared by every worktree on this machine can live in
  * `~/.config/orcai/dev.env` (or the file named by ORCAI_DEV_ENV_FILE). They are
@@ -48,7 +53,6 @@ import { existsSync, mkdirSync, readFileSync, writeFileSync } from "node:fs";
 import net from "node:net";
 import { homedir } from "node:os";
 import path from "node:path";
-import { v1 } from "@authzed/authzed-node";
 import * as Bun from "bun";
 
 const repoRoot = path.resolve(import.meta.dirname, "..");
@@ -129,6 +133,7 @@ export function parseOptions(argv: string[]): Options {
 					"--no-reset",
 					"--reset",
 					"--volumes",
+					"--yes",
 				].includes(value)
 			) {
 				throw new Error(
@@ -693,6 +698,27 @@ async function assertResettable(options: Options, env: Env): Promise<void> {
 	}
 }
 
+const affirmatives = new Set([
+	"y",
+	"yes",
+]);
+
+/**
+ * Ask before destroying data. `--yes` skips the question, which every
+ * non-interactive caller has to pass; without a terminal there is nobody to
+ * answer, so the command refuses rather than assuming consent.
+ */
+function confirmDestructive(options: Options, warning: string): void {
+	if (options.flags.has("yes")) return;
+	if (!process.stdin.isTTY) {
+		throw new Error(`${warning} Pass --yes to confirm non-interactively.`);
+	}
+	const answer = prompt(`${warning} Continue? [y/N]`);
+	if (!affirmatives.has((answer ?? "").trim().toLowerCase())) {
+		throw new Error("Aborted.");
+	}
+}
+
 /**
  * Whether anything accepts a TCP connection on the app port.
  *
@@ -738,44 +764,15 @@ async function resetPostgres(env: Env): Promise<void> {
 	log(`Recreated PostgreSQL database '${database}'`);
 }
 
-/** Definitions without a relation cannot hold relationships. */
-function relationshipResourceTypes(schemaText: string): string[] {
-	const types: string[] = [];
-	for (const match of schemaText.matchAll(
-		/definition\s+([\w/]+)\s*\{([^}]*)\}/g,
-	)) {
-		const [, name = "", body = ""] = match;
-		if (/\brelation\s+\w+\s*:/.test(body)) types.push(name);
-	}
-	return types;
-}
-
 async function resetSpiceDb(env: Env): Promise<void> {
-	const client = v1.NewClient(
-		envValue(env, "SPICEDB_TOKEN"),
-		envValue(env, "SPICEDB_ENDPOINT"),
-		v1.ClientSecurity.INSECURE_PLAINTEXT_CREDENTIALS,
+	await runOrThrow(
+		"Deleting SpiceDB relationships",
+		[
+			...workspaceScript("@orcai/spice-db", "reset"),
+			"--yes",
+		],
+		env,
 	);
-	try {
-		const schema = await client.promises.readSchema(
-			v1.ReadSchemaRequest.create({}),
-		);
-		const resourceTypes = relationshipResourceTypes(schema.schemaText);
-		for (const resourceType of resourceTypes) {
-			await client.promises.deleteRelationships(
-				v1.DeleteRelationshipsRequest.create({
-					relationshipFilter: {
-						resourceType,
-					},
-				}),
-			);
-		}
-		log(
-			`Deleted SpiceDB relationships of ${String(resourceTypes.length)} resource types`,
-		);
-	} finally {
-		client.close();
-	}
 }
 
 /**
@@ -894,6 +891,10 @@ async function resetValkey(env: Env): Promise<void> {
  */
 async function reset(options: Options, env: Env): Promise<void> {
 	await assertResettable(options, env);
+	confirmDestructive(
+		options,
+		`Resetting '${options.stackName}' deletes its database, authorisation, object storage, vector, and cache data.`,
+	);
 	log(`Resetting the data of '${options.stackName}'`);
 	await resetPostgres(env);
 	await migrate(env);
@@ -1111,7 +1112,13 @@ async function main(): Promise<number> {
 				"down",
 				"--remove-orphans",
 			];
-			if (options.flags.has("volumes")) args.push("--volumes");
+			if (options.flags.has("volumes")) {
+				confirmDestructive(
+					options,
+					`Removing the volumes of '${options.stackName}' deletes its stored data.`,
+				);
+				args.push("--volumes");
+			}
 			// Compose still interpolates the override file on `down`; feed
 			// placeholders when the env file is already gone.
 			const placeholders = Object.fromEntries(

@@ -19,13 +19,18 @@ Valkey, MinIO, Qdrant, SpiceDB, and the generated `.env` ports.
    the stack environment.
 4. Verify a running app through the `BASE_URL` in `.env`; allow at least 60
    seconds for the first request.
-5. Leave a healthy stack running. Use `bun run stack down --volumes` only when
-   the user explicitly wants its data removed.
+5. Leave a healthy stack running. Use `bun run stack down --volumes --yes`
+   only when the user explicitly wants its data removed.
 
 `bun run stack reset` is destructive and has no undo. It clears every store
 while leaving containers and `.env` in place, and refuses to run while an
    app is listening on the stack port. Use `bun run stack env --reset` only to
    regenerate ports and secrets after a collision.
+
+Every destructive command asks for confirmation, and refuses outright when
+nothing can answer. You have no terminal, so pass `--yes` to `reset`, to `e2e`
+without `--no-reset`, and to `down --volumes`. Treat that flag as the point
+where you decide the data is expendable, not as boilerplate.
 
 Machine-wide model endpoints belong in the configured development env file;
 do not install OCR or other software on the shared machine. Report missing
@@ -36,10 +41,10 @@ dependencies instead.
 The suite runs Playwright on the host against this worktree's stack:
 
 ```bash
-bun run stack e2e                         # reset, then the full suite
-bun run stack e2e -- --grep auth          # one area
-bun run stack e2e -- --ui                 # Playwright UI mode
-bun run stack e2e --no-reset -- --grep smoke
+bun run stack e2e --yes                   # reset, then the full suite
+bun run stack e2e --yes -- --grep auth    # one area
+bun run stack e2e --yes -- --ui           # Playwright UI mode
+bun run stack e2e --no-reset -- --grep smoke   # no reset, so no confirmation
 ```
 
 Everything after `--` is passed to Playwright. A run without `--no-reset`
@@ -71,4 +76,4 @@ failure; keep its setup isolated and clean it up reliably.
 Locate elements by role and accessible English name; add a test id only when
 no accessible name exists. Pin a current defect with `test.fail()` while
 asserting the intended behaviour. Finish an area with
-`bun run stack e2e -- --grep <area>` and then a full suite run.
+`bun run stack e2e --yes -- --grep <area>` and then a full suite run.
