@@ -158,7 +158,7 @@ export const Reasoning = memo(
 		return (
 			<ReasoningContext.Provider value={contextValue}>
 				<Collapsible
-					className={cn("not-prose mb-4", className)}
+					className={cn("not-prose", className)}
 					onOpenChange={handleOpenChange}
 					open={isOpen}
 					{...props}
@@ -178,12 +178,16 @@ export type ReasoningTriggerProps = ComponentProps<
 
 const defaultGetThinkingMessage = (isStreaming: boolean, duration?: number) => {
 	if (isStreaming || duration === 0) {
-		return <Shimmer duration={1}>Thinking...</Shimmer>;
+		return (
+			<Shimmer as="span" duration={1}>
+				Thinking
+			</Shimmer>
+		);
 	}
 	if (duration === undefined) {
-		return <p>Thought for a few seconds</p>;
+		return "Thought for a few seconds";
 	}
-	return <p>Thought for {duration} seconds</p>;
+	return `Thought for ${duration} seconds`;
 };
 
 export const ReasoningTrigger = memo(
@@ -198,18 +202,20 @@ export const ReasoningTrigger = memo(
 		return (
 			<CollapsibleTrigger
 				className={cn(
-					"flex w-full items-center gap-2 text-muted-foreground text-sm transition-colors hover:text-foreground",
+					"flex w-full items-center gap-2 text-left text-muted-foreground text-sm transition-colors duration-150 hover:text-foreground",
 					className,
 				)}
 				{...props}
 			>
 				{children ?? (
 					<>
-						<BrainIcon className="size-4" />
-						{getThinkingMessage(isStreaming, duration)}
+						<BrainIcon className="size-4 shrink-0" />
+						<span className="min-w-0 flex-1 truncate">
+							{getThinkingMessage(isStreaming, duration)}
+						</span>
 						<ChevronDownIcon
 							className={cn(
-								"size-4 transition-transform",
+								"size-4 shrink-0 transition-transform duration-150",
 								isOpen ? "rotate-180" : "rotate-0",
 							)}
 						/>

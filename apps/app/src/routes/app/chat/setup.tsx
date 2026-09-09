@@ -38,7 +38,7 @@ export const Route = createFileRoute("/app/chat/setup")({
 	head: () => ({
 		meta: [
 			{
-				title: "Setup",
+				title: "Start a chat",
 			},
 		],
 	}),
@@ -53,9 +53,9 @@ function RouteComponent() {
 	return (
 		<Page>
 			<PageHeader className="text-center">
-				<PageTitle>Start a Chat</PageTitle>
+				<PageTitle>Start a chat</PageTitle>
 				<PageDescription>
-					Choose whether to work with a bot or open a free-form conversation.
+					Choose whether to chat with a bot or chat with the model alone.
 				</PageDescription>
 			</PageHeader>
 
@@ -70,7 +70,7 @@ function RouteComponent() {
 									<div className="mx-auto mb-4 flex h-16 w-16 items-center justify-center rounded-full bg-primary/10 transition-colors group-hover:bg-primary/20">
 										<BotIcon className="h-8 w-8 text-primary" />
 									</div>
-									<CardTitle className="text-xl">Use a Bot</CardTitle>
+									<CardTitle className="text-xl">Use a bot</CardTitle>
 									<CardDescription>
 										Start with a configured bot tailored to a specific use case
 									</CardDescription>
@@ -93,7 +93,7 @@ function RouteComponent() {
 
 					<DialogContent className="flex max-h-[80vh] max-w-2xl flex-col">
 						<DialogHeader>
-							<DialogTitle>Select a Bot</DialogTitle>
+							<DialogTitle>Select a bot</DialogTitle>
 							<DialogDescription>
 								Choose from the bots available in your workspace
 							</DialogDescription>
@@ -117,7 +117,7 @@ function RouteComponent() {
 									})
 								}
 							>
-								Start Chat
+								Start chat
 							</Button>
 						</div>
 					</DialogContent>
@@ -137,21 +137,21 @@ function RouteComponent() {
 							<div className="mx-auto mb-4 flex h-16 w-16 items-center justify-center rounded-full bg-secondary/10 transition-colors group-hover:bg-secondary/20">
 								<MessageSquarePlusIcon className="h-8 w-8 text-primary" />
 							</div>
-							<CardTitle className="text-xl">Start Fresh</CardTitle>
+							<CardTitle className="text-xl">Chat without a bot</CardTitle>
 							<CardDescription>
-								Begin without a preselected bot and decide the direction as you
-								go
+								Answers come from the model alone, with no configured behaviour
+								or content
 							</CardDescription>
 						</CardHeader>
 						<CardContent>
 							<div className="space-y-2 text-muted-foreground text-sm">
 								<div className="flex items-center gap-2">
 									<MessageSquarePlusIcon className="h-4 w-4" />
-									<span>Free-form prompting</span>
+									<span>Answers from the model's own knowledge</span>
 								</div>
 								<div className="flex items-center gap-2">
 									<SparklesIcon className="h-4 w-4" />
-									<span>No bot required</span>
+									<span>You choose the model</span>
 								</div>
 							</div>
 						</CardContent>
@@ -164,8 +164,8 @@ function RouteComponent() {
 			<PageFooter className="text-center text-muted-foreground text-sm">
 				<p>
 					Bots are best when someone else has already configured AI behaviour or
-					relevant content for you. Open conversations are best when you want to
-					explore freely.
+					relevant content for you. Chatting without a bot is best when you want
+					to explore freely.
 				</p>
 			</PageFooter>
 		</Page>

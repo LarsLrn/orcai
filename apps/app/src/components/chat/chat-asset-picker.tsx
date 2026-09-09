@@ -59,9 +59,9 @@ export const ChatAssetPicker = ({
 		<Dialog open={open} onOpenChange={onOpenChange}>
 			<DialogContent className="sm:max-w-2xl">
 				<DialogHeader>
-					<DialogTitle>Select Existing Assets</DialogTitle>
+					<DialogTitle>Select existing assets</DialogTitle>
 					<DialogDescription>
-						Attach files from your asset library to this chat message.
+						Attach assets from the Library to this message.
 					</DialogDescription>
 				</DialogHeader>
 

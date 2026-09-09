@@ -1,13 +1,13 @@
 import type { ChatListRow } from "@orcai/schema";
 import { Link } from "@tanstack/react-router";
 import { createColumnHelper } from "@tanstack/react-table";
-import { format } from "date-fns";
 import { MoreHorizontalIcon } from "lucide-react";
 import { ChatActionsDropdown } from "@/components/chat/chat-actions-dropdown";
 import { Button } from "@/components/ui/button";
 import { DataTableColumnHeader } from "@/components/ui/data-table/data-table-column-header";
 import type { DataTableFeatures } from "@/components/ui/data-table/data-table-features";
 import { createDataTableSelectColumn } from "@/components/ui/data-table/data-table-select-column";
+import { formatDisplayTimestamp } from "@/lib/presentation/format-timestamp";
 
 const columnHelper = createColumnHelper<DataTableFeatures, ChatListRow>();
 
@@ -31,7 +31,7 @@ export const chatTableColumns = columnHelper.columns([
 	}),
 	columnHelper.accessor("botName", {
 		header: ({ column }) => (
-			<DataTableColumnHeader column={column} title="Attached Bot" />
+			<DataTableColumnHeader column={column} title="Attached bot" />
 		),
 		cell: ({ row }) => row.original.botName ?? "—",
 	}),
@@ -41,7 +41,7 @@ export const chatTableColumns = columnHelper.columns([
 		),
 		cell: ({ row }) =>
 			row.original.updatedAt
-				? format(row.original.updatedAt, "MMM dd, yyyy HH:mm")
+				? formatDisplayTimestamp(row.original.updatedAt)
 				: "—",
 	}),
 	columnHelper.display({

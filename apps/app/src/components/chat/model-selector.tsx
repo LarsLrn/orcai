@@ -186,7 +186,7 @@ const ModelSelectorButton = ({
 			>
 				<span className="truncate">{triggerLabel}</span>
 			</DialogSelectTrigger>
-			<DialogSelectContent title="Choose a chat model">
+			<DialogSelectContent title="Choose a provider, then a chat model">
 				<DialogSelectSearch
 					value={modelSearch}
 					onValueChange={(value) => {
@@ -225,8 +225,8 @@ const ModelSelectorButton = ({
 					{!modelsLoading && !modelsFetching && models.length === 0 && (
 						<DialogSelectEmpty>
 							{providerFilterId
-								? "No models found."
-								: "No active providers available."}
+								? "No chat model matches. Try another provider or clear the search."
+								: "No chat model is available yet. An organisation admin can add a provider and a model under Administration."}
 						</DialogSelectEmpty>
 					)}
 				</DialogSelectList>

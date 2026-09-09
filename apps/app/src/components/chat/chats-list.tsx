@@ -1,6 +1,5 @@
 import { useQuery } from "@tanstack/react-query";
 import { Link } from "@tanstack/react-router";
-import { format } from "date-fns";
 import { MessagesSquareIcon, MoreHorizontalIcon } from "lucide-react";
 import type { ComponentProps } from "react";
 import { Button, buttonVariants } from "@/components/ui/button";
@@ -15,6 +14,7 @@ import {
 import { AnimatedGroup } from "@/components/ui/motion/animated-group";
 import { Spinner } from "@/components/ui/spinner";
 import { orpc } from "@/lib/orpc/orpc";
+import { formatDisplayTimestamp } from "@/lib/presentation/format-timestamp";
 import { cn } from "@/lib/utils";
 import { ChatActionsDropdown } from "./chat-actions-dropdown";
 
@@ -44,8 +44,7 @@ const ChatsList = ({
 				<CardHeader className="text-center">
 					<CardTitle className="font-semibold text-xl">No chats yet</CardTitle>
 					<CardDescription className="mt-4 flex flex-col items-center gap-4">
-						Start your first conversation by selecting a chatbot or jumping
-						straight in.
+						Ask a question above, or open a bot to chat against its sources.
 					</CardDescription>
 				</CardHeader>
 				<CardFooter className="flex justify-center">
@@ -97,7 +96,7 @@ const ChatsList = ({
 							</CardTitle>
 							{chat.updatedAt && (
 								<CardDescription className="text-xs">
-									Last updated: {format(chat.updatedAt, "MMM dd, yyyy HH:mm")}
+									Last updated {formatDisplayTimestamp(chat.updatedAt)}
 								</CardDescription>
 							)}
 						</CardHeader>

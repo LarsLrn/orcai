@@ -59,7 +59,7 @@ const BotSelectorButton = ({
 
 	const bots = botsResult?.data ?? [];
 	const pageCount = Math.ceil((botsResult?.rowCount ?? 0) / BOT_PAGE_SIZE);
-	const triggerLabel = selectedBotResult?.data.name ?? "No bot (free-form)";
+	const triggerLabel = selectedBotResult?.data.name ?? "No bot";
 
 	return (
 		<DialogSelect
@@ -97,8 +97,8 @@ const BotSelectorButton = ({
 				<DialogSelectList loading={isLoading || isFetching}>
 					<DialogSelectItem
 						value={NO_BOT_VALUE}
-						title="No bot (free-form chat)"
-						description="Start without a bot and configure behaviour in chat settings."
+						title="No bot"
+						description="Answers come from the model alone"
 						icon={<MessageSquareIcon className="size-4" />}
 					/>
 					{bots.map((bot) => (

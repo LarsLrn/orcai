@@ -36,9 +36,9 @@ export const ImagePart = ({ url, alt }: ImagePartProps) => {
 			document.body.removeChild(link);
 			URL.revokeObjectURL(downloadUrl);
 
-			toast.success("Image downloaded successfully!");
+			toast.success("Image downloaded");
 		} catch (_error) {
-			toast.error("Failed to download image");
+			toast.error("The image was not downloaded. Try again.");
 		}
 	};
 
@@ -46,7 +46,7 @@ export const ImagePart = ({ url, alt }: ImagePartProps) => {
 		<div className="mb-6 space-y-4">
 			<div className="flex items-center space-x-2 text-muted-foreground text-sm">
 				<ImageIcon className="h-4 w-4" />
-				<span>Generated Image</span>
+				<span>Generated image</span>
 			</div>
 
 			<div className="group relative overflow-hidden rounded-xl border bg-muted/20 shadow-sm transition-all hover:shadow-md">

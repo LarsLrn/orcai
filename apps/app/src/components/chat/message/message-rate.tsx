@@ -74,7 +74,7 @@ const MessageRate = ({
 				render={
 					<Action
 						label="Rate response"
-						tooltip="Rate how helpful this response was for your learning"
+						tooltip="Rate how helpful this response was"
 						className={cn(
 							className,
 							score &&

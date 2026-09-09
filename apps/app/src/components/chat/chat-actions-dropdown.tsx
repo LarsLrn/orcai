@@ -26,19 +26,26 @@ const ChatActionsDropdown = ({
 	});
 	const navigate = useNavigate();
 
-	const { mutate: deleteChats } = useDeleteChatsMutation({
-		onMutate: async ({ refs }) => {
-			const isCurrentChatSelected =
-				!!params.chatId && refs.some((ref) => ref.id === params.chatId);
+	const { mutate: deleteChats } = useDeleteChatsMutation(
+		{
+			onMutate: async ({ refs }) => {
+				const isCurrentChatSelected =
+					!!params.chatId && refs.some((ref) => ref.id === params.chatId);
 
-			// Navigate away before deleting to avoid rendering a deleted chat entry.
-			if (isCurrentChatSelected) {
-				await navigate({
-					to: "/app/chat",
-				});
-			}
+				// Navigate away before deleting to avoid rendering a deleted chat entry.
+				if (isCurrentChatSelected) {
+					await navigate({
+						to: "/app/chat",
+					});
+				}
+			},
 		},
-	});
+		{
+			names: [
+				title,
+			],
+		},
+	);
 	const { mutateAsync: updateChat, isPending: isUpdatingChat } =
 		useUpdateChatMutation();
 
@@ -68,9 +75,9 @@ const ChatActionsDropdown = ({
 			<DropdownMenu open={isDropdownOpen} onOpenChange={setIsDropdownOpen}>
 				<DropdownMenuTrigger render={children} />
 				<DropdownMenuContent align="end" className="w-40">
-					<DropdownMenuItem onClick={onUpdate}>Rename Chat</DropdownMenuItem>
+					<DropdownMenuItem onClick={onUpdate}>Rename chat</DropdownMenuItem>
 					<DropdownMenuItem variant="destructive" onClick={onDelete}>
-						Delete Chat
+						Delete chat
 					</DropdownMenuItem>
 				</DropdownMenuContent>
 			</DropdownMenu>

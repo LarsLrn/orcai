@@ -13,11 +13,39 @@ import {
 	InlineCitationCardTrigger,
 	InlineCitationText,
 } from "@/components/ai-elements/inline-citation";
+import { formatAssetTitle } from "@/components/chat/message/asset-title";
 import { Badge } from "@/components/ui/badge";
+import { buttonVariants } from "@/components/ui/button";
 import { Spinner } from "@/components/ui/spinner";
 import { orpc } from "@/lib/orpc/orpc";
 
-const CiteCardContent = ({ assetId }: { assetId: AssetId }) => {
+const CiteCardShell = ({
+	title,
+	page,
+	children,
+}: {
+	title: string;
+	page?: number | null;
+	children: ReactNode;
+}) => (
+	<div className="space-y-3 p-4">
+		<h4 className="font-medium text-sm leading-snug">{title}</h4>
+		{children}
+		{page == null ? null : (
+			<p className="text-muted-foreground text-xs">Page {page}</p>
+		)}
+	</div>
+);
+
+const CiteCardContent = ({
+	assetId,
+	title,
+	page,
+}: {
+	assetId: AssetId;
+	title: string;
+	page?: number | null;
+}) => {
 	const { data, isLoading, isError } = useQuery(
 		orpc.asset.find.queryOptions({
 			input: {
@@ -28,17 +56,22 @@ const CiteCardContent = ({ assetId }: { assetId: AssetId }) => {
 
 	if (isLoading) {
 		return (
-			<div className="flex items-center justify-center p-4">
-				<Spinner className="size-5" />
-			</div>
+			<CiteCardShell title={title} page={page}>
+				<p className="flex items-center gap-2 text-muted-foreground text-xs">
+					<Spinner className="size-3" />
+					Loading the source details
+				</p>
+			</CiteCardShell>
 		);
 	}
 
 	if (isError || !data?.data) {
 		return (
-			<div className="p-3 text-muted-foreground text-sm">
-				Could not load source details.
-			</div>
+			<CiteCardShell title={title} page={page}>
+				<p className="text-muted-foreground text-xs">
+					The source details could not be loaded.
+				</p>
+			</CiteCardShell>
 		);
 	}
 
@@ -48,52 +81,31 @@ const CiteCardContent = ({ assetId }: { assetId: AssetId }) => {
 	const typeLabel = sourceType ? sourceTypeLabels[sourceType] : null;
 
 	return (
-		<div className="space-y-2 p-3">
-			<div className="flex items-start gap-2">
-				<div className="min-w-0 flex-1">
-					<h4 className="font-medium text-sm leading-tight">{asset.title}</h4>
-					{metadata?.author && (
-						<p className="mt-0.5 text-muted-foreground text-xs">
-							{metadata.author}
-						</p>
-					)}
-				</div>
-			</div>
-
-			{(typeLabel || metadata?.citation) && (
-				<div className="flex flex-wrap items-center gap-1.5 text-muted-foreground text-xs">
-					{typeLabel && <Badge variant="outline">{typeLabel}</Badge>}
-					{metadata?.citation && (
-						<span className="italic">{metadata.citation}</span>
-					)}
-				</div>
+		<CiteCardShell title={formatAssetTitle(asset.title)} page={page}>
+			{typeLabel && <Badge variant="outline">{typeLabel}</Badge>}
+			{metadata?.author && (
+				<p className="text-muted-foreground text-xs">{metadata.author}</p>
 			)}
-
-			{metadata?.pageRange && (
-				<p className="text-muted-foreground text-xs">
-					Pages {metadata.pageRange}
+			{metadata?.citation && (
+				<p className="text-muted-foreground text-xs italic">
+					{metadata.citation}
 				</p>
 			)}
-
-			{metadata?.doi && (
-				<p className="truncate text-muted-foreground text-xs">
-					DOI: {metadata.doi}
-				</p>
-			)}
-
-			<div className="flex items-center gap-2 border-t pt-2">
-				<Link
-					className="inline-flex items-center gap-1 text-primary text-xs hover:underline"
-					to="/app/hub/assets/$assetId"
-					params={{
-						assetId,
-					}}
-				>
-					Open asset
-					<ExternalLinkIcon className="size-3" />
-				</Link>
-			</div>
-		</div>
+			<Link
+				className={buttonVariants({
+					variant: "outline",
+					size: "sm",
+					className: "w-full",
+				})}
+				to="/app/hub/assets/$assetId"
+				params={{
+					assetId,
+				}}
+			>
+				Open asset
+				<ExternalLinkIcon className="size-3" />
+			</Link>
+		</CiteCardShell>
 	);
 };
 
@@ -123,10 +135,9 @@ export const CiteComponent = ({
 		return result.success ? result.data : undefined;
 	})();
 	const resolvedPage = parsePageNumber(page ?? pageNumber ?? page_number);
-	const triggerLabel =
-		resolvedPage == null
-			? (title ?? "Source")
-			: `${title ?? "Source"} (p. ${resolvedPage})`;
+	const assetTitle = formatAssetTitle(title);
+	const pillLabel =
+		resolvedPage == null ? assetTitle : `${assetTitle} · p. ${resolvedPage}`;
 
 	return (
 		<InlineCitation>
@@ -138,14 +149,24 @@ export const CiteComponent = ({
 					if (open) setHasOpened(true);
 				}}
 			>
-				<InlineCitationCardTrigger label={triggerLabel} sources={[]} />
+				<InlineCitationCardTrigger
+					label={pillLabel}
+					sources={[]}
+					className="border-transparent bg-accent-brand/10 font-medium text-accent-brand text-xs transition-colors duration-150 hover:bg-accent-brand/20"
+				/>
 				<InlineCitationCardBody>
 					{resolvedAssetId && hasOpened ? (
-						<CiteCardContent assetId={resolvedAssetId} />
+						<CiteCardContent
+							assetId={resolvedAssetId}
+							title={assetTitle}
+							page={resolvedPage}
+						/>
 					) : (
-						<div className="p-3 text-muted-foreground text-sm">
-							{triggerLabel}
-						</div>
+						<CiteCardShell title={assetTitle} page={resolvedPage}>
+							<p className="text-muted-foreground text-xs">
+								This citation does not name a source in the library.
+							</p>
+						</CiteCardShell>
 					)}
 				</InlineCitationCardBody>
 			</InlineCitationCard>

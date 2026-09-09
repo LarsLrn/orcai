@@ -6,7 +6,9 @@ import {
 	PromptInputTools,
 } from "@/components/ai-elements/prompt-input";
 import { BotSelectorButton } from "@/components/chat/bot-selector";
+import { ChatModelNotice } from "@/components/chat/chat-model-notice";
 import { ModelSelectorButton } from "@/components/chat/model-selector";
+import type { ChatModelAvailability } from "@/components/chat/use-default-chat-model";
 import {
 	InputGroup,
 	InputGroupAddon,
@@ -21,6 +23,7 @@ const NewChatInput = ({
 	onModelSelect,
 	onSend,
 	isCreating,
+	modelAvailability = "ready",
 }: {
 	selectedBotId?: BotId;
 	selectedModelId?: ModelId;
@@ -29,8 +32,10 @@ const NewChatInput = ({
 	onModelSelect: (model: Model, provider: Provider) => void;
 	onSend: (text: string) => void;
 	isCreating: boolean;
+	modelAvailability?: ChatModelAvailability;
 }) => {
 	const [messageText, setMessageText] = useState("");
+	const noModel = modelAvailability === "none";
 
 	const handleSubmit = (event: React.FormEvent<HTMLFormElement>) => {
 		event.preventDefault();
@@ -50,13 +55,19 @@ const NewChatInput = ({
 	};
 
 	return (
-		<form onSubmit={handleSubmit}>
+		<form onSubmit={handleSubmit} className="flex flex-col gap-3">
 			<InputGroup className="overflow-hidden border-border bg-card">
 				<InputGroupTextarea
 					name="message"
-					placeholder="What would you like to know?"
+					placeholder={
+						noModel
+							? "Chatting opens once a model is available"
+							: "Ask a question"
+					}
 					className="field-sizing-content max-h-48 min-h-16"
 					value={messageText}
+					disabled={noModel}
+					aria-describedby={noModel ? "chat-model-notice" : undefined}
 					onChange={(event) => setMessageText(event.target.value)}
 					onKeyDown={handleTextareaKeyDown}
 				/>
@@ -82,6 +93,7 @@ const NewChatInput = ({
 					/>
 				</InputGroupAddon>
 			</InputGroup>
+			{noModel && <ChatModelNotice />}
 		</form>
 	);
 };

@@ -3,6 +3,7 @@ import type { ChatConfig, Model, Provider } from "@orcai/schema";
 import { useQueryClient } from "@tanstack/react-query";
 import { useCallback, useEffect, useState } from "react";
 import { toast } from "sonner";
+import { useDefaultChatModel } from "@/components/chat/use-default-chat-model";
 import { DEFAULT_CHAT_GENERATION_PARAMS } from "@/lib/ai/utils/chat-generation-defaults";
 import { client, orpc } from "@/lib/orpc/orpc";
 
@@ -26,11 +27,22 @@ const useChatStarter = ({
 		initialBotId,
 	);
 	const [isCreating, setIsCreating] = useState(false);
+	const { availability, defaultModel, defaultProvider } = useDefaultChatModel();
 
 	useEffect(() => {
 		setSelectedBotId(initialBotId);
 	}, [
 		initialBotId,
+	]);
+
+	useEffect(() => {
+		if (selectedModel || !defaultModel || !defaultProvider) return;
+		setSelectedModel(defaultModel);
+		setSelectedProvider(defaultProvider);
+	}, [
+		selectedModel,
+		defaultModel,
+		defaultProvider,
 	]);
 
 	const handleModelSelect = useCallback((model: Model, provider: Provider) => {
@@ -41,7 +53,7 @@ const useChatStarter = ({
 	const handleSend = useCallback(
 		async (text: string) => {
 			if (!selectedModel || !selectedProvider) {
-				toast.error("Please select a model before sending a message.");
+				toast.error("Choose a model before sending a message.");
 				return;
 			}
 
@@ -70,9 +82,12 @@ const useChatStarter = ({
 
 				await Promise.resolve(onChatCreated(chatId, text, zedToken));
 			} catch (error) {
-				toast.error("Failed to create chat", {
-					description: error instanceof Error ? error.message : "Unknown error",
-				});
+				toast.error(
+					"The chat was not created. Try sending the message again.",
+					{
+						description: error instanceof Error ? error.message : undefined,
+					},
+				);
 				setIsCreating(false);
 			}
 		},
@@ -90,6 +105,7 @@ const useChatStarter = ({
 		selectedModelId: selectedModel?.id,
 		selectedProviderId: selectedProvider?.id,
 		selectedBotId,
+		modelAvailability: availability,
 		isCreating,
 		handleModelSelect,
 		handleBotSelect: setSelectedBotId,

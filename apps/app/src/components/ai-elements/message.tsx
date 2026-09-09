@@ -34,8 +34,10 @@ export type MessageProps = HTMLAttributes<HTMLDivElement> & {
 export const Message = ({ className, from, ...props }: MessageProps) => (
 	<div
 		className={cn(
-			"group flex w-full max-w-[95%] flex-col gap-2",
-			from === "user" ? "is-user ml-auto justify-end" : "is-assistant",
+			"group flex w-full flex-col gap-2",
+			from === "user"
+				? "is-user ml-auto justify-end sm:max-w-[75%]"
+				: "is-assistant",
 			className,
 		)}
 		{...props}
@@ -51,9 +53,9 @@ export const MessageContent = ({
 }: MessageContentProps) => (
 	<div
 		className={cn(
-			"is-user:dark flex w-fit min-w-0 max-w-full flex-col gap-2 overflow-hidden text-sm",
-			"group-[.is-user]:ml-auto group-[.is-user]:rounded-lg group-[.is-user]:bg-secondary/10 group-[.is-user]:px-4 group-[.is-user]:py-3 group-[.is-user]:text-foreground",
-			"group-[.is-assistant]:text-foreground",
+			"flex w-fit min-w-0 max-w-full flex-col gap-2 overflow-hidden text-sm",
+			"group-[.is-user]:ml-auto group-[.is-user]:rounded-2xl group-[.is-user]:bg-muted group-[.is-user]:px-4 group-[.is-user]:py-3 group-[.is-user]:text-foreground",
+			"group-[.is-assistant]:w-full group-[.is-assistant]:text-foreground",
 			className,
 		)}
 		{...props}
@@ -374,7 +376,9 @@ export const MessageResponse = memo(
 		<Streamdown
 			allowedTags={streamdownAllowedTags}
 			className={cn(
-				"size-full [&>*:first-child]:mt-0 [&>*:last-child]:mb-0",
+				"w-full [&>*:first-child]:mt-0 [&>*:last-child]:mb-0",
+				"[&_h1]:font-semibold [&_h1]:text-2xl [&_h1]:tracking-tight [&_h2]:font-semibold [&_h2]:text-base [&_h2]:tracking-tight [&_h3]:font-medium [&_h3]:text-sm [&_h4]:font-medium [&_h4]:text-sm",
+				"[&_table]:rounded-xl [&_table]:text-sm",
 				className,
 			)}
 			components={streamdownComponents}

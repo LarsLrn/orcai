@@ -23,6 +23,7 @@ const NewChat = ({
 		selectedBotId,
 		selectedModelId,
 		selectedProviderId,
+		modelAvailability,
 		isCreating,
 		handleModelSelect,
 		handleBotSelect,
@@ -36,7 +37,7 @@ const NewChat = ({
 		<div className="flex size-full min-h-0 min-w-0 flex-col">
 			<Conversation className="flex w-full" initial="instant">
 				<ConversationContent className="mx-auto w-full max-w-200">
-					<ChatPlaceholder />
+					<ChatPlaceholder botId={selectedBotId} />
 				</ConversationContent>
 				<ConversationScrollButton />
 			</Conversation>
@@ -50,6 +51,7 @@ const NewChat = ({
 					onModelSelect={handleModelSelect}
 					onSend={handleSend}
 					isCreating={isCreating}
+					modelAvailability={modelAvailability}
 				/>
 			</div>
 		</div>
