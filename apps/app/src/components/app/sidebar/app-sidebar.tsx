@@ -41,7 +41,7 @@ const AppSidebar = () => {
 					<SidebarGroupLabel className="flex justify-between">
 						<span>Chats</span>
 						<Link to="/app/chat" className="hover:underline">
-							show all
+							Show all
 						</Link>
 					</SidebarGroupLabel>
 					<SidebarGroupContent>

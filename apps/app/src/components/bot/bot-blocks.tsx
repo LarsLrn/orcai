@@ -19,7 +19,7 @@ const BotBlocks = ({ blocks }: { blocks: BlockWithCapabilities[] }) => {
 					<SectionHeader>
 						<SectionTitle>Behaviour</SectionTitle>
 						<SectionDescription>
-							This Bot uses a template block to define its behaviour.
+							This bot uses a template block to define its behaviour.
 						</SectionDescription>
 					</SectionHeader>
 					<BlockCard
@@ -35,7 +35,7 @@ const BotBlocks = ({ blocks }: { blocks: BlockWithCapabilities[] }) => {
 					<SectionHeader>
 						<SectionTitle>Repositories</SectionTitle>
 						<SectionDescription>
-							This Bot uses repository blocks to reference curated content.
+							This bot uses repository blocks to reference curated content.
 						</SectionDescription>
 					</SectionHeader>
 					<SectionGrid layout="3">

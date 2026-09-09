@@ -17,7 +17,10 @@ import {
 } from "@/components/ui/dialog";
 import { useSaveAssetMutation } from "@/hooks/mutations/use-asset-mutations";
 import { getFileTypeLabel } from "@/lib/presentation/file-type";
-import { getProcessingStatusLabel } from "@/lib/presentation/processing-status";
+import {
+	getProcessingStatusLabel,
+	getProcessingStatusVariant,
+} from "@/lib/presentation/processing-status";
 
 const SelectedAssetList = ({
 	assets,
@@ -60,7 +63,9 @@ const SelectedAssetList = ({
 									{getFileTypeLabel(asset.fileType)}
 								</Badge>
 								{asset.processingStatus ? (
-									<Badge variant="outline">
+									<Badge
+										variant={getProcessingStatusVariant(asset.processingStatus)}
+									>
 										{getProcessingStatusLabel(asset.processingStatus)}
 									</Badge>
 								) : null}
@@ -92,7 +97,7 @@ const SelectedAssetList = ({
 						>
 							<DialogContent className="max-h-[88vh] sm:max-w-3xl">
 								<DialogHeader>
-									<DialogTitle>Edit Source Metadata</DialogTitle>
+									<DialogTitle>Edit source details</DialogTitle>
 									<DialogDescription>
 										Update how this content item should appear when cited by the
 										AI.
@@ -124,7 +129,7 @@ const SelectedAssetList = ({
 											}
 										}}
 									>
-										Save Metadata
+										Save metadata
 									</Button>
 								</DialogFooter>
 							</DialogContent>

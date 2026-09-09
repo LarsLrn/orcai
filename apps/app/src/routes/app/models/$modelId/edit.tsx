@@ -33,7 +33,7 @@ function RouteComponent() {
 	return (
 		<Page>
 			<PageHeader>
-				<PageTitle>Edit Model</PageTitle>
+				<PageTitle>Edit model</PageTitle>
 			</PageHeader>
 			<PageContent>
 				<ModelForm action="update" model={model.data} />

@@ -124,7 +124,7 @@ const DisplayPoint = ({ point }: { point: AssetPoint }) => {
 			<CardContent className="pt-0">
 				<div
 					className={cn(
-						"rounded-lg bg-background/60 p-4",
+						"rounded-xl bg-background/60 p-4",
 						imageObjectKey && "grid gap-4 xl:grid-cols-[minmax(0,1fr)_320px]",
 					)}
 				>

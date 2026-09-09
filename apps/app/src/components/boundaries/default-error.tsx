@@ -77,8 +77,8 @@ export function DefaultErrorBoundary({ error }: ErrorComponentProps) {
 
 						{/* Error Title */}
 						<div className="space-y-2">
-							<h1 className="font-bold text-2xl text-foreground">
-								{error.name}
+							<h1 className="font-semibold text-2xl text-foreground">
+								This page could not be loaded
 							</h1>
 							{hasValidationErrors ? (
 								<div className="space-y-2 text-left">
@@ -101,14 +101,14 @@ export function DefaultErrorBoundary({ error }: ErrorComponentProps) {
 						{/* Error Details */}
 						<div className="text-muted-foreground text-sm">
 							<p className="mb-4">
-								We're sorry for the inconvenience. Please try again or go back
-								to continue.
+								Try again, or go back to the previous page. The technical
+								details below help if the problem continues.
 							</p>
 
 							{/* Error Component (collapsible details) */}
 							<details className="rounded-md bg-muted/50 p-3 text-left text-xs">
 								<summary className="cursor-pointer font-medium text-muted-foreground hover:text-foreground">
-									Technical Details
+									Technical details
 								</summary>
 								<div className="mt-2 font-mono">
 									<ErrorComponent error={error} />
@@ -138,7 +138,7 @@ export function DefaultErrorBoundary({ error }: ErrorComponentProps) {
 							})}
 						>
 							<Home className="h-4 w-4" />
-							Return Home
+							Return home
 						</Link>
 					) : (
 						<Button
@@ -150,7 +150,7 @@ export function DefaultErrorBoundary({ error }: ErrorComponentProps) {
 							}}
 						>
 							<ArrowLeft className="h-4 w-4" />
-							Go Back
+							Go back
 						</Button>
 					)}
 				</div>

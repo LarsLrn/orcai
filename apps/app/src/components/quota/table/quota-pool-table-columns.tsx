@@ -3,6 +3,10 @@ import { Link } from "@tanstack/react-router";
 import { createColumnHelper } from "@tanstack/react-table";
 import { MoreHorizontal } from "lucide-react";
 import type { z } from "zod/v4";
+import {
+	QuotaConsumption,
+	QuotaRemaining,
+} from "@/components/quota/quota-consumption";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { DataTableColumnHeader } from "@/components/ui/data-table/data-table-column-header";
@@ -15,17 +19,12 @@ import {
 	DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import { useDeactivateQuotaPoolMutation } from "@/hooks/mutations/use-quota-mutations";
+import { formatNumber } from "@/lib/presentation/format-number";
 
 type QuotaPoolListRow = z.infer<typeof quotaPoolListRowSchema>;
 
-const numberFormatter = new Intl.NumberFormat();
-
 const formatAmount = (value: number | null | undefined) => {
-	if (value === null || value === undefined) {
-		return "-";
-	}
-
-	return numberFormatter.format(value);
+	return formatNumber(value, "-");
 };
 
 const formatPeriodType = (value: QuotaPoolListRow["periodType"]) => {
@@ -86,14 +85,17 @@ export const quotaPoolTableColumns = columnHelper.columns([
 	}),
 	columnHelper.display({
 		id: "consumed",
+		size: 200,
 		enableSorting: false,
 		header: ({ column }) => (
 			<DataTableColumnHeader column={column} title="Consumed" />
 		),
 		cell: ({ row }) => (
-			<div className="text-right">
-				{formatAmount(row.original.currentLedger?.consumedAmount)}
-			</div>
+			<QuotaConsumption
+				consumedAmount={row.original.currentLedger?.consumedAmount}
+				budgetAmount={row.original.currentLedger?.budgetAmount}
+				unit={row.original.provider.meteringMode}
+			/>
 		),
 	}),
 	columnHelper.display({
@@ -103,9 +105,11 @@ export const quotaPoolTableColumns = columnHelper.columns([
 			<DataTableColumnHeader column={column} title="Remaining" />
 		),
 		cell: ({ row }) => (
-			<div className="text-right font-medium">
-				{formatAmount(row.original.currentLedger?.remainingAmount)}
-			</div>
+			<QuotaRemaining
+				remainingAmount={row.original.currentLedger?.remainingAmount}
+				budgetAmount={row.original.currentLedger?.budgetAmount}
+				unit={row.original.provider.meteringMode}
+			/>
 		),
 	}),
 	columnHelper.display({
@@ -116,7 +120,7 @@ export const quotaPoolTableColumns = columnHelper.columns([
 		),
 		cell: ({ row }) => (
 			<div className="flex flex-wrap items-center gap-1">
-				<Badge variant={row.original.isActive ? "default" : "secondary"}>
+				<Badge variant={row.original.isActive ? "success" : "secondary"}>
 					{row.original.isActive ? "Active" : "Inactive"}
 				</Badge>
 				{row.original.isDefault ? (
@@ -147,7 +151,7 @@ export const quotaPoolTableColumns = columnHelper.columns([
 							quotaPoolId: row.original.id,
 						}}
 					>
-						<DropdownMenuItem>View Pool</DropdownMenuItem>
+						<DropdownMenuItem>View pool</DropdownMenuItem>
 					</Link>
 					<Link
 						to="/app/quotas/$quotaPoolId/edit"
@@ -155,7 +159,7 @@ export const quotaPoolTableColumns = columnHelper.columns([
 							quotaPoolId: row.original.id,
 						}}
 					>
-						<DropdownMenuItem>Edit Pool</DropdownMenuItem>
+						<DropdownMenuItem>Edit pool</DropdownMenuItem>
 					</Link>
 					<DropdownMenuSeparator />
 					<DeactivateItem pool={row.original} />
@@ -166,7 +170,7 @@ export const quotaPoolTableColumns = columnHelper.columns([
 ]);
 
 const DeactivateItem = ({ pool }: { pool: QuotaPoolListRow }) => {
-	const deactivatePool = useDeactivateQuotaPoolMutation();
+	const deactivatePool = useDeactivateQuotaPoolMutation({}, pool.name);
 
 	return (
 		<DropdownMenuItem
@@ -178,7 +182,7 @@ const DeactivateItem = ({ pool }: { pool: QuotaPoolListRow }) => {
 				})
 			}
 		>
-			Deactivate Pool
+			Deactivate pool
 		</DropdownMenuItem>
 	);
 };

@@ -42,9 +42,7 @@ const SliderField = ({
 	return (
 		<Field data-invalid={isInvalid}>
 			<div className="flex items-center justify-between gap-3">
-				<FieldLabel className="font-bold" htmlFor={id}>
-					{label}
-				</FieldLabel>
+				<FieldLabel htmlFor={id}>{label}</FieldLabel>
 				<span className="text-muted-foreground text-sm">
 					{formatValue ? formatValue(value) : value}
 				</span>

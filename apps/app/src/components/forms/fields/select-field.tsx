@@ -46,9 +46,7 @@ const SelectField = ({
 	return (
 		<Field orientation="responsive" data-invalid={isInvalid}>
 			<FieldContent>
-				<FieldLabel className="font-bold" htmlFor={id}>
-					{label}
-				</FieldLabel>
+				<FieldLabel htmlFor={id}>{label}</FieldLabel>
 				{description && <FieldDescription>{description}</FieldDescription>}
 				{isInvalid && <FieldError errors={errors} />}
 			</FieldContent>

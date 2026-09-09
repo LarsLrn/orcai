@@ -67,7 +67,7 @@ const toClientUploadError = (error: unknown): ClientUploadError => {
 
 	return {
 		type: "unknown",
-		message: "Failed to upload files.",
+		message: "The files were not uploaded. Try again.",
 	};
 };
 

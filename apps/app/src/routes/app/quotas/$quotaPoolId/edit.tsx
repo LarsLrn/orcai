@@ -33,7 +33,7 @@ function RouteComponent() {
 	return (
 		<Page>
 			<PageHeader>
-				<PageTitle>Edit Quota Pool</PageTitle>
+				<PageTitle>Edit quota pool</PageTitle>
 			</PageHeader>
 			<PageContent>
 				<QuotaPoolForm action="update" pool={data.data} />

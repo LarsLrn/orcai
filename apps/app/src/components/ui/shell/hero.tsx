@@ -29,7 +29,7 @@ const HeroGradient = ({ className, ...props }: React.ComponentProps<"div">) => {
 			data-slot="hero-gradient"
 			aria-hidden="true"
 			className={cn(
-				"pointer-events-none absolute inset-0 bg-linear-to-br from-primary/20 via-accent/20 to-transparent",
+				"pointer-events-none absolute inset-0 bg-linear-to-br from-primary/20 via-accent-brand/15 to-transparent",
 				className,
 			)}
 			{...props}
@@ -77,8 +77,8 @@ const HeroMedia = ({ className, ...props }: React.ComponentProps<"div">) => {
  * Alternative to HeroGradient. Renders a static SVG wave anchored to the
  * bottom of the hero. Use as a sibling of HeroInner inside Hero.
  *
- * The wave path uses the current card foreground colour at very low opacity so
- * it adapts automatically when the theme changes.
+ * The back waves use Deep Water and the front wave the brand accent, both at
+ * very low opacity, so the panel carries the identity in either theme.
  */
 const HeroWave = ({ className, ...props }: React.ComponentProps<"div">) => {
 	return (
@@ -108,7 +108,7 @@ const HeroWave = ({ className, ...props }: React.ComponentProps<"div">) => {
 				{/* front wave — most visible */}
 				<path
 					d="M0,288 C180,260 360,304 540,288 C720,272 900,300 1080,284 C1260,268 1380,292 1440,296 L1440,320 L0,320 Z"
-					className="fill-primary/15"
+					className="fill-accent-brand/20"
 				/>
 			</svg>
 		</div>

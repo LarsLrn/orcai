@@ -60,23 +60,23 @@ export const UploadProgress = ({
 					<CardTitle className="flex items-center gap-2 text-base">
 						{isPending ? (
 							<>
-								<Loader2 className="h-4 w-4 animate-spin text-primary" />
-								Uploading Files
+								<Loader2 className="h-4 w-4 animate-spin text-status-processing" />
+								Uploading files
 							</>
 						) : isError ? (
 							<>
 								<AlertCircle className="h-4 w-4 text-destructive" />
-								Upload Failed
+								Upload failed
 							</>
 						) : allSucceeded ? (
 							<>
-								<CheckCircle className="h-4 w-4 text-green-600" />
-								Upload Complete
+								<CheckCircle className="h-4 w-4 text-status-success" />
+								Upload complete
 							</>
 						) : (
 							<>
-								<AlertCircle className="h-4 w-4 text-yellow-600" />
-								Upload Completed with Issues
+								<AlertCircle className="h-4 w-4 text-status-warning" />
+								Upload completed with Issues
 							</>
 						)}
 					</CardTitle>
@@ -108,20 +108,10 @@ export const UploadProgress = ({
 				{/* Status Summary */}
 				<div className="flex items-center gap-2 pt-1">
 					{completedFiles > 0 && (
-						<Badge
-							variant="secondary"
-							className="bg-green-100 text-green-800 dark:bg-green-900/30 dark:text-green-400"
-						>
-							{completedFiles} successful
-						</Badge>
+						<Badge variant="success">{completedFiles} successful</Badge>
 					)}
 					{failedFileCount > 0 && (
-						<Badge
-							variant="destructive"
-							className="bg-red-100 text-red-800 dark:bg-red-900/30 dark:text-red-400"
-						>
-							{failedFileCount} failed
-						</Badge>
+						<Badge variant="danger">{failedFileCount} failed</Badge>
 					)}
 				</div>
 			</CardHeader>
@@ -129,7 +119,7 @@ export const UploadProgress = ({
 			<CardContent className="pt-0">
 				{/* Critical Error Display */}
 				{isError && error && (
-					<div className="mb-4 rounded-lg border border-destructive/20 bg-destructive/5 p-3">
+					<div className="mb-4 rounded-2xl border border-destructive/20 bg-destructive/5 p-3">
 						<div className="flex items-center gap-2 text-destructive text-sm">
 							<AlertCircle className="h-4 w-4" />
 							<span className="font-medium">Error:</span>
@@ -150,11 +140,11 @@ export const UploadProgress = ({
 							<div
 								key={fileInfo.objectKey}
 								className={cn(
-									"flex items-center gap-3 rounded-lg border p-3 transition-colors",
+									"flex items-center gap-3 rounded-xl border p-3 transition-colors",
 									isComplete &&
-										"border-green-200 bg-green-50/50 dark:border-green-800 dark:bg-green-900/10",
+										"border-status-success/30 bg-status-success/8 dark:bg-status-success/12",
 									isFailed &&
-										"border-red-200 bg-red-50/50 dark:border-red-800 dark:bg-red-900/10",
+										"border-status-danger/30 bg-status-danger/8 dark:bg-status-danger/12",
 									(isUploading || isPending) &&
 										"border-border/50 bg-background/50",
 								)}
@@ -164,9 +154,9 @@ export const UploadProgress = ({
 									className={cn(
 										"flex h-8 w-8 items-center justify-center rounded-md",
 										isComplete &&
-											"bg-green-100 text-green-600 dark:bg-green-900/30 dark:text-green-400",
+											"bg-status-success/12 text-status-success dark:bg-status-success/20",
 										isFailed &&
-											"bg-red-100 text-red-600 dark:bg-red-900/30 dark:text-red-400",
+											"bg-status-danger/12 text-status-danger dark:bg-status-danger/20",
 										(isUploading || isPending) &&
 											"bg-muted text-muted-foreground",
 									)}
@@ -206,14 +196,14 @@ export const UploadProgress = ({
 
 									{/* Error Message */}
 									{isFailed && "error" in fileInfo && (
-										<p className="mt-1 text-red-600 text-xs dark:text-red-400">
+										<p className="mt-1 text-status-danger text-xs">
 											{fileInfo.error.message}
 										</p>
 									)}
 
 									{/* Success Message */}
 									{isComplete && (
-										<p className="mt-1 text-green-600 text-xs dark:text-green-400">
+										<p className="mt-1 text-status-success text-xs">
 											Upload completed successfully
 										</p>
 									)}
@@ -239,7 +229,7 @@ export const UploadProgress = ({
 								}}
 								disabled
 							>
-								Retry Failed
+								Retry failed
 							</Button>
 						)} */}
 					</div>

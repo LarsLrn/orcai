@@ -1,6 +1,19 @@
 import { useQueryClient } from "@tanstack/react-query";
 import { useMutationAction } from "@/hooks/actions/use-mutation-action";
+import {
+	type DestructiveTarget,
+	describeAction,
+	describeFailure,
+	describeOutcome,
+	describeProgress,
+	describeTarget,
+} from "@/hooks/mutations/destructive-copy";
 import { orpc } from "@/lib/orpc/orpc";
+
+const ASSET_NOUNS = {
+	noun: "asset",
+	nounPlural: "assets",
+};
 
 export const useSaveAssetMutation = (
 	opts: ReturnType<typeof orpc.asset.save.mutationOptions> = {},
@@ -68,6 +81,7 @@ export const useSaveManyAssetsMutation = (
 
 export const useDeleteAssetsMutation = (
 	opts: ReturnType<typeof orpc.asset.delete.mutationOptions> = {},
+	target?: DestructiveTarget,
 ) => {
 	const queryClient = useQueryClient();
 
@@ -91,18 +105,23 @@ export const useDeleteAssetsMutation = (
 				},
 			}),
 		messages: {
-			loading: "Deleting assets...",
-			success: "Assets deleted",
-			error: "Failed to delete assets",
+			loading: ({ input }) =>
+				describeProgress("Deleting", input.refs.length, ASSET_NOUNS, target),
+			success: ({ input }) =>
+				describeOutcome(input.refs.length, ASSET_NOUNS, "deleted", target),
+			error: ({ input }) =>
+				describeFailure(input.refs.length, ASSET_NOUNS, "deleted", target),
 		},
 		confirm: (input) => {
 			const count = input.refs.length;
-			const plural = count === 1 ? "" : "s";
 
 			return {
-				title: `Delete Asset${plural}`,
-				description: `Are you sure you want to delete ${count} asset${plural}? This action cannot be undone.`,
-				confirmText: "Delete",
+				title: `Delete ${describeTarget(count, ASSET_NOUNS, target)}?`,
+				description:
+					count === 1
+						? "Repositories built on it lose the material, and answers can no longer cite it."
+						: "Repositories built on them lose the material, and answers can no longer cite them.",
+				confirmText: describeAction("Delete", count, ASSET_NOUNS, target),
 				cancelText: "Cancel",
 			};
 		},

@@ -1,8 +1,20 @@
 import { useQueryClient } from "@tanstack/react-query";
 import { useRouter } from "@tanstack/react-router";
 import { useMutationAction } from "@/hooks/actions/use-mutation-action";
+import {
+	type DestructiveTarget,
+	describeFailure,
+	describeOutcome,
+	describeProgress,
+	describeTarget,
+} from "@/hooks/mutations/destructive-copy";
 import { useUmami } from "@/hooks/use-umami";
 import { orpc } from "@/lib/orpc/orpc";
+
+const INVITATION_NOUNS = {
+	noun: "invitation",
+	nounPlural: "invitations",
+};
 
 export const useCreateOrganizationInvitationMutation = (
 	opts: ReturnType<
@@ -47,6 +59,7 @@ export const useDeleteOrganizationInvitationsMutation = (
 	opts: ReturnType<
 		typeof orpc.organizationInvitation.delete.mutationOptions
 	> = {},
+	target?: DestructiveTarget,
 ) => {
 	const queryClient = useQueryClient();
 
@@ -70,17 +83,28 @@ export const useDeleteOrganizationInvitationsMutation = (
 				},
 			}),
 		messages: {
-			loading: "Deleting invitations...",
-			success: "Invitations deleted",
-			error: "Failed to delete invitations",
+			loading: ({ input }) =>
+				describeProgress(
+					"Deleting",
+					input.refs.length,
+					INVITATION_NOUNS,
+					target,
+				),
+			success: ({ input }) =>
+				describeOutcome(input.refs.length, INVITATION_NOUNS, "deleted", target),
+			error: ({ input }) =>
+				describeFailure(input.refs.length, INVITATION_NOUNS, "deleted", target),
 		},
+		// "Delete" is the confirm label the invitations e2e spec clicks.
 		confirm: (input) => {
 			const count = input.refs.length;
-			const plural = count === 1 ? "" : "s";
 
 			return {
-				title: `Delete Invitation${plural}`,
-				description: `Are you sure you want to delete ${count} invitation${plural}? This action cannot be undone.`,
+				title: `Delete ${describeTarget(count, INVITATION_NOUNS, target)}?`,
+				description:
+					count === 1
+						? "The invitation link stops working. Invite the person again to let them join."
+						: "Their invitation links stop working. Invite those people again to let them join.",
 				confirmText: "Delete",
 				cancelText: "Cancel",
 			};

@@ -18,7 +18,7 @@ const PublicationStatusField = ({
 	description?: string;
 }) => (
 	<div className="space-y-2">
-		<Label htmlFor="publication-status">Publication Status</Label>
+		<Label htmlFor="publication-status">Publication status</Label>
 		<Select
 			value={value}
 			onValueChange={(nextValue) => onChange(nextValue as PublicationStatus)}

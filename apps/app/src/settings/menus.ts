@@ -58,7 +58,7 @@ export const sidebarMenu: SidebarMenuItem[] = [
 				icon: DatabaseIcon,
 			},
 			{
-				title: "Content",
+				title: "Assets",
 				requires: "read",
 				linkProps: {
 					to: "/app/hub/assets",

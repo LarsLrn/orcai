@@ -84,7 +84,7 @@ export const Route = createRootRouteWithContext<{
 			},
 			...seo({
 				title: "OrcAI",
-				description: "Orchestration platform for AI applications",
+				description: "Knowledge assistants you can operate on your own terms.",
 			}),
 		],
 		links: [

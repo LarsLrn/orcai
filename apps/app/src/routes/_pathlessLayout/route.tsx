@@ -22,12 +22,18 @@ function PathlessLayoutComponent() {
 				<Outlet />
 			</div>
 
-			<div className="my-4 flex w-full justify-center p-2">
-				<span>
-					OrcAI is a fork of{" "}
-					<a href="https://github.com/SokratesT/sokratest">SokratesT</a>.
-				</span>
-			</div>
+			<footer className="mx-auto my-4 w-full max-w-xl px-2 py-2 text-center text-muted-foreground text-xs">
+				OrcAI is a fork of{" "}
+				<a
+					href="https://github.com/SokratesT/sokratest"
+					target="_blank"
+					rel="noopener noreferrer"
+					className="rounded-sm text-primary underline-offset-4 outline-none transition-[color,box-shadow] hover:underline focus-visible:ring-3 focus-visible:ring-ring/30"
+				>
+					SokratesT
+				</a>
+				.
+			</footer>
 		</main>
 	);
 }

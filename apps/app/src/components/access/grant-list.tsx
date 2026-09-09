@@ -42,7 +42,7 @@ const GrantList = ({
 				<p className="font-medium text-sm">Direct grants</p>
 			</div>
 			<Input
-				placeholder="Filter direct grants..."
+				placeholder="Filter by name or email"
 				value={search}
 				onChange={(event) => onSearchChange(event.target.value)}
 				disabled={disabled}
@@ -58,7 +58,7 @@ const GrantList = ({
 					/>
 				))}
 				{filteredGrants.length === 0 && (
-					<div className="rounded-lg border border-dashed p-4 text-center text-muted-foreground text-sm">
+					<div className="rounded-xl border border-dashed p-4 text-center text-muted-foreground text-sm">
 						No direct grants found.
 					</div>
 				)}

@@ -37,9 +37,9 @@ export const Route = createFileRoute("/app/hub/blocks/$blockId/")({
 });
 
 const TYPE_LABELS: Record<string, string> = {
-	template: "AI Behaviour",
-	database: "Content Collection",
-	imageGeneration: "Image Generation",
+	template: "AI behaviour",
+	database: "Repository",
+	imageGeneration: "Image generation",
 };
 
 function RouteComponent() {
@@ -63,16 +63,23 @@ function RouteComponent() {
 		}),
 	);
 
-	const { mutate: deleteBlocks } = useDeleteBlocksMutation({
-		onMutate: async () => {
-			await navigate({
-				to:
-					block.data.type === "database"
-						? "/app/hub/repositories"
-						: "/app/hub/behaviour",
-			});
+	const isRepository = block.data.type === "database";
+	const { mutate: deleteBlocks } = useDeleteBlocksMutation(
+		{
+			onMutate: async () => {
+				await navigate({
+					to: isRepository ? "/app/hub/repositories" : "/app/hub/behaviour",
+				});
+			},
 		},
-	});
+		{
+			names: [
+				block.data.name,
+			],
+			noun: isRepository ? "repository" : "block",
+			nounPlural: isRepository ? "repositories" : "blocks",
+		},
+	);
 	const canEdit = hasCapability(block.data.capabilities, "edit");
 	const canDelete = hasCapability(block.data.capabilities, "delete");
 	const canManageAccess = hasCapability(
@@ -90,7 +97,7 @@ function RouteComponent() {
 				</PageDescription>
 				{block.data.status === "draft" ? (
 					<div>
-						<Badge variant="destructive">Draft</Badge>
+						<Badge variant="outline">Draft</Badge>
 					</div>
 				) : null}
 				<PageAction>
@@ -123,7 +130,7 @@ function RouteComponent() {
 										}
 									>
 										<EditIcon />
-										Edit Block
+										Edit block
 									</DropdownMenuItem>
 								) : null}
 								{canDelete ? <DropdownMenuSeparator /> : null}
@@ -141,7 +148,7 @@ function RouteComponent() {
 										}
 									>
 										<Trash2Icon />
-										Delete Block
+										Delete block
 									</DropdownMenuItem>
 								) : null}
 							</DropdownMenuContent>

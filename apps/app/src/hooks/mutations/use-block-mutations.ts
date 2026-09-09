@@ -1,7 +1,20 @@
 import { useQueryClient } from "@tanstack/react-query";
 import { useRouter } from "@tanstack/react-router";
 import { useMutationAction } from "@/hooks/actions/use-mutation-action";
+import {
+	type DestructiveTarget,
+	describeAction,
+	describeFailure,
+	describeOutcome,
+	describeProgress,
+	describeTarget,
+} from "@/hooks/mutations/destructive-copy";
 import { orpc } from "@/lib/orpc/orpc";
+
+const BLOCK_NOUNS = {
+	noun: "block",
+	nounPlural: "blocks",
+};
 
 export const useCreateBlockMutation = (
 	opts: ReturnType<typeof orpc.block.create.mutationOptions> = {},
@@ -81,6 +94,7 @@ export const useUpdateBlockMutation = (
 
 export const useDeleteBlocksMutation = (
 	opts: ReturnType<typeof orpc.block.delete.mutationOptions> = {},
+	target?: DestructiveTarget,
 ) => {
 	const queryClient = useQueryClient();
 
@@ -104,18 +118,23 @@ export const useDeleteBlocksMutation = (
 				},
 			}),
 		messages: {
-			loading: "Deleting block(s)...",
-			success: "Block(s) deleted successfully",
-			error: "Failed to delete block(s)",
+			loading: ({ input }) =>
+				describeProgress("Deleting", input.refs.length, BLOCK_NOUNS, target),
+			success: ({ input }) =>
+				describeOutcome(input.refs.length, BLOCK_NOUNS, "deleted", target),
+			error: ({ input }) =>
+				describeFailure(input.refs.length, BLOCK_NOUNS, "deleted", target),
 		},
 		confirm: (input) => {
 			const count = input.refs.length;
-			const plural = count === 1 ? "" : "s";
 
 			return {
-				title: `Delete Block${plural}`,
-				description: `Are you sure you want to delete ${count} block${plural}? This action cannot be undone.`,
-				confirmText: "Delete",
+				title: `Delete ${describeTarget(count, BLOCK_NOUNS, target)}?`,
+				description:
+					count === 1
+						? "Bots and chats that use it lose it, and its links to indexed material go with it."
+						: "Bots and chats that use them lose them, and their links to indexed material go with them.",
+				confirmText: describeAction("Delete", count, BLOCK_NOUNS, target),
 				cancelText: "Cancel",
 			};
 		},

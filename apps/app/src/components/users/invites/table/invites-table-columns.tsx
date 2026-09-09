@@ -2,7 +2,6 @@ import type { OrganizationInvitationId } from "@orcai/core";
 import type { OrganizationInvitation } from "@orcai/schema";
 import { useRouter } from "@tanstack/react-router";
 import { createColumnHelper } from "@tanstack/react-table";
-import { format } from "date-fns";
 import { MoreHorizontal } from "lucide-react";
 import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
@@ -18,6 +17,7 @@ import {
 } from "@/components/ui/dropdown-menu";
 import { useDeleteOrganizationInvitationsMutation } from "@/hooks/mutations/use-organization-invitation-mutations";
 import { clientEnv } from "@/lib/env/client";
+import { formatDisplayTimestamp } from "@/lib/presentation/format-timestamp";
 
 const columnHelper = createColumnHelper<
 	DataTableFeatures,
@@ -44,13 +44,13 @@ export const invitesTableColumns = columnHelper.columns([
 	}),
 	columnHelper.accessor("expiresAt", {
 		header: ({ column }) => (
-			<DataTableColumnHeader column={column} title="Expires At" />
+			<DataTableColumnHeader column={column} title="Expires" />
 		),
 		cell: ({ row }) => (
-			<span>{format(row.original.expiresAt || "", "MMM dd, yyyy HH:mm")}</span>
+			<span>{formatDisplayTimestamp(row.original.expiresAt || "")}</span>
 		),
 		meta: {
-			exportLabel: "Expires At",
+			exportLabel: "Expires",
 		},
 	}),
 	columnHelper.accessor("status", {
@@ -99,7 +99,8 @@ const ActionsCell = ({
 			loading: "Copying invitation link...",
 			success: "Invitation link copied",
 			error: (error) => ({
-				message: "Failed to copy invitation link",
+				message:
+					"The invitation link was not copied. Copy it again, or open the invitation and copy the address by hand.",
 				description: error.message,
 			}),
 		});
@@ -117,31 +118,29 @@ const ActionsCell = ({
 			/>
 			<DropdownMenuContent align="end">
 				<DropdownMenuItem onClick={() => handleCopyLink(invitation.id)}>
-					Copy Invitation Link
+					Copy invitation link
 				</DropdownMenuItem>
 				<DropdownMenuSeparator />
-				<DeleteItem
-					invitationId={invitation.id}
-					organizationId={invitation.organizationId}
-				/>
+				<DeleteItem invitation={invitation} />
 			</DropdownMenuContent>
 		</DropdownMenu>
 	);
 };
 
-const DeleteItem = ({
-	invitationId,
-	organizationId,
-}: {
-	invitationId: OrganizationInvitationId;
-	organizationId: OrganizationInvitation["organizationId"];
-}) => {
+const DeleteItem = ({ invitation }: { invitation: OrganizationInvitation }) => {
 	const { mutate: deleteInvitations } =
-		useDeleteOrganizationInvitationsMutation();
+		useDeleteOrganizationInvitationsMutation(
+			{},
+			{
+				names: [
+					`for ${invitation.email}`,
+				],
+			},
+		);
 
 	const handleDelete = (id: OrganizationInvitationId) => {
 		deleteInvitations({
-			organizationId,
+			organizationId: invitation.organizationId,
 			refs: [
 				{
 					id,
@@ -153,7 +152,7 @@ const DeleteItem = ({
 	return (
 		<DropdownMenuItem
 			variant="destructive"
-			onClick={() => handleDelete(invitationId)}
+			onClick={() => handleDelete(invitation.id)}
 		>
 			Delete Organization Invitation
 		</DropdownMenuItem>

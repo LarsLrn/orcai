@@ -1,5 +1,10 @@
 import type { Asset, AssetWithCapabilities } from "@orcai/schema";
-import { EditIcon, EyeIcon, FileTextIcon } from "lucide-react";
+import {
+	EditIcon,
+	EyeIcon,
+	FileTextIcon,
+	LoaderCircleIcon,
+} from "lucide-react";
 import {
 	DropdownMenu,
 	DropdownMenuContent,
@@ -27,7 +32,11 @@ import {
 } from "@/components/ui/shell/resource-card";
 import { hasCapability } from "@/lib/authz/capabilities";
 import { getFileTypeLabel } from "@/lib/presentation/file-type";
-import { getProcessingStatusLabel } from "@/lib/presentation/processing-status";
+import { formatDisplayDate } from "@/lib/presentation/format-timestamp";
+import {
+	getProcessingStatusLabel,
+	getProcessingStatusVariant,
+} from "@/lib/presentation/processing-status";
 
 const AssetCard = ({
 	asset,
@@ -50,7 +59,7 @@ const AssetCard = ({
 	if (asset.createdAt) {
 		meta.push({
 			label: "Created",
-			value: new Date(asset.createdAt).toLocaleDateString(),
+			value: formatDisplayDate(asset.createdAt),
 		});
 	}
 
@@ -70,7 +79,7 @@ const AssetCard = ({
 			? [
 					{
 						key: "edit",
-						label: "Edit content",
+						label: "Edit asset",
 						icon: EditIcon,
 						variant: "default",
 						linkProps: {
@@ -93,33 +102,13 @@ const AssetCard = ({
 		},
 	];
 
-	if (asset.processingStatus === "failed") {
-		badges.push({
-			label: getProcessingStatusLabel(asset.processingStatus),
-			variant: "destructive",
-		});
-	}
-
-	if (asset.processingStatus === "active") {
-		badges.push({
-			label: getProcessingStatusLabel(asset.processingStatus),
-			variant: "default",
-		});
-	}
-
-	if (asset.processingStatus === "pending") {
-		badges.push({
-			label: getProcessingStatusLabel(asset.processingStatus),
-			variant: "secondary",
-		});
-	}
-
-	if (asset.processingStatus === "completed") {
-		badges.push({
-			label: getProcessingStatusLabel(asset.processingStatus),
-			variant: "outline",
-		});
-	}
+	badges.push({
+		label: getProcessingStatusLabel(asset.processingStatus),
+		variant: getProcessingStatusVariant(asset.processingStatus),
+		icon: asset.processingStatus === "active" ? LoaderCircleIcon : undefined,
+		className:
+			asset.processingStatus === "active" ? "[&>svg]:animate-spin" : undefined,
+	});
 
 	const primaryAction = actions?.primary ?? {
 		linkProps: {
@@ -164,8 +153,8 @@ const AssetCard = ({
 
 			<ResourceCardBody action={primaryAction}>
 				<ResourceCardHeader>
-					<ResourceCardMedia variant="icon">
-						<FileTextIcon className="text-emerald-600 dark:text-emerald-400" />
+					<ResourceCardMedia variant="icon" tone="asset">
+						<FileTextIcon />
 					</ResourceCardMedia>
 					<ResourceCardTitle>{asset.title}</ResourceCardTitle>
 					{description && (

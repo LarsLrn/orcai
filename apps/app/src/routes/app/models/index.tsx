@@ -114,7 +114,7 @@ function RouteComponent() {
 							variant: "default",
 						})}
 					>
-						Add Model
+						Add model
 					</Link>
 					<DiscoverModels />
 				</PageAction>
@@ -138,7 +138,7 @@ function RouteComponent() {
 					<DataTableToolbar>
 						<DataTableSearch
 							value={query}
-							placeholder="Search models or providers..."
+							placeholder="Search models or providers"
 							onChange={(value) =>
 								void navigate({
 									to: ".",

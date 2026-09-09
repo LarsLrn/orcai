@@ -55,7 +55,7 @@ function RouteComponent() {
 				<div className="space-y-6 lg:col-span-2">
 					<Card>
 						<CardHeader>
-							<CardTitle>Organisation Details</CardTitle>
+							<CardTitle>Organisation details</CardTitle>
 							<CardDescription>
 								Core organisation profile information.
 							</CardDescription>

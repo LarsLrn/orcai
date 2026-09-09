@@ -52,7 +52,7 @@ const TemplateBlockForm = ({
 				name="status"
 				children={(field) => (
 					<field.SelectField
-						label="Publication Status"
+						label="Publication status"
 						description="Control whether this resource is still in draft or ready to be used in published experiences."
 						options={[
 							{
@@ -76,7 +76,7 @@ const TemplateBlockForm = ({
 			<form.AppForm>
 				<form.SubmitButton
 					label={
-						action === "create" ? "Save AI Behaviour" : "Update AI Behaviour"
+						action === "create" ? "Save AI Behaviour" : "Update AI behaviour"
 					}
 				/>
 			</form.AppForm>

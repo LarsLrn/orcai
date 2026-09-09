@@ -44,14 +44,12 @@ const NavUser = () => {
 								size="lg"
 								className="border bg-background data-[state=open]:bg-sidebar-accent data-[state=open]:text-sidebar-accent-foreground dark:bg-background/50"
 							>
-								<Avatar className="size-8 rounded-lg">
+								<Avatar className="size-8">
 									<AvatarImage
 										src={auth.user.image ?? undefined}
 										alt={auth.user.name}
 									/>
-									<AvatarFallback className="rounded-lg">
-										{getInitial(auth.user.name)}
-									</AvatarFallback>
+									<AvatarFallback>{getInitial(auth.user.name)}</AvatarFallback>
 								</Avatar>
 								<div className="grid flex-1 text-left text-sm leading-tight">
 									<span className="truncate font-semibold">

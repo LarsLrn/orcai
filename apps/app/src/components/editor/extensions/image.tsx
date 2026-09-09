@@ -256,7 +256,7 @@ function TiptapImage(props: NodeViewProps) {
 						src={node.attrs.src}
 						alt={node.attrs.alt}
 						title={node.attrs.title}
-						className="rounded-lg transition-shadow duration-200 hover:shadow-lg"
+						className="rounded-md transition-shadow duration-200 hover:shadow-lg"
 						onLoad={(e) => {
 							const img = e.currentTarget;
 							const aspectRatio = img.naturalWidth / img.naturalHeight;
@@ -308,7 +308,7 @@ function TiptapImage(props: NodeViewProps) {
 						onBlur={handleCaptionBlur}
 						onKeyDown={handleCaptionKeyDown}
 						className="mt-2 text-center text-muted-foreground text-sm focus:ring-0"
-						placeholder="Add a caption..."
+						placeholder="Add a caption"
 						autoFocus
 					/>
 				) : (
@@ -316,7 +316,7 @@ function TiptapImage(props: NodeViewProps) {
 						className="mt-2 cursor-text text-center text-muted-foreground text-sm"
 						onClick={() => editor?.isEditable && setEditingCaption(true)}
 					>
-						{caption || "Add a caption..."}
+						{caption || "Add a caption"}
 					</div>
 				)}
 
@@ -388,16 +388,16 @@ function TiptapImage(props: NodeViewProps) {
 								className="mt-1 text-sm"
 							>
 								<DropdownMenuItem onClick={() => setEditingCaption(true)}>
-									<Edit className="mr-2 size-4" /> Edit Caption
+									<Edit className="mr-2 size-4" /> Edit caption
 								</DropdownMenuItem>
 								<DropdownMenuSub>
 									<DropdownMenuSubTrigger>
-										<ImageIcon className="mr-2 size-4" /> Replace Image
+										<ImageIcon className="mr-2 size-4" /> Replace image
 									</DropdownMenuSubTrigger>
 									<DropdownMenuSubContent className="w-fit min-w-52 p-2">
 										<div className="space-y-4">
 											<div>
-												<p className="mb-2 font-medium text-xs">Upload Image</p>
+												<p className="mb-2 font-medium text-xs">Upload image</p>
 												<input
 													ref={fileInputRef}
 													type="file"
@@ -418,7 +418,7 @@ function TiptapImage(props: NodeViewProps) {
 													) : (
 														<>
 															<ImageIcon className="h-4 w-4" />
-															<span>Choose Image</span>
+															<span>Choose image</span>
 														</>
 													)}
 												</label>
@@ -430,12 +430,12 @@ function TiptapImage(props: NodeViewProps) {
 											</div>
 
 											<div>
-												<p className="mb-2 font-medium text-xs">Or use URL</p>
+												<p className="mb-2 font-medium text-xs">Or use a URL</p>
 												<div className="space-y-2">
 													<Input
 														value={imageUrl}
 														onChange={(e) => setImageUrl(e.target.value)}
-														placeholder="Enter image URL..."
+														placeholder="https://example.com/image.png"
 														className="text-xs"
 													/>
 													<Button
@@ -450,7 +450,7 @@ function TiptapImage(props: NodeViewProps) {
 											</div>
 
 											<div>
-												<p className="mb-2 font-medium text-xs">Alt Text</p>
+												<p className="mb-2 font-medium text-xs">Alt text</p>
 												<Input
 													value={altText}
 													onChange={(e) => setAltText(e.target.value)}
@@ -474,14 +474,14 @@ function TiptapImage(props: NodeViewProps) {
 										}
 									}}
 								>
-									<Maximize className="mr-2 size-4" /> Full Width
+									<Maximize className="mr-2 size-4" /> Full width
 								</DropdownMenuItem>
 								<DropdownMenuSeparator />
 								<DropdownMenuItem
 									className="text-destructive focus:text-destructive"
 									onClick={deleteNode}
 								>
-									<Trash className="mr-2 size-4" /> Delete Image
+									<Trash className="mr-2 size-4" /> Delete image
 								</DropdownMenuItem>
 							</DropdownMenuContent>
 						</DropdownMenu>

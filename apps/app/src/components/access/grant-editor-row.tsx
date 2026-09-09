@@ -44,7 +44,7 @@ const GrantEditorRow = ({
 	const canEditRole = isDirect && !isAllMembers;
 
 	return (
-		<div className="flex flex-col gap-2 rounded-lg border p-3 sm:flex-row sm:items-center sm:justify-between">
+		<div className="flex flex-col gap-2 rounded-xl border p-3 sm:flex-row sm:items-center sm:justify-between">
 			<div className="flex min-w-0 items-center gap-3">
 				{grant.principal.type === "user" ? (
 					<Avatar size="sm">
@@ -61,14 +61,12 @@ const GrantEditorRow = ({
 						<p className="truncate font-medium text-sm">
 							{grant.principal.name}
 						</p>
-						<Badge variant="outline" className="text-[10px]">
-							{sourceLabel[grant.source]}
-						</Badge>
+						<Badge variant="outline">{sourceLabel[grant.source]}</Badge>
 					</div>
 					<p className="truncate text-muted-foreground text-xs">
 						{grant.principal.type === "user"
 							? grant.principal.email
-							: grant.principal.description || "Group principal"}
+							: grant.principal.description || "Group"}
 					</p>
 				</div>
 			</div>

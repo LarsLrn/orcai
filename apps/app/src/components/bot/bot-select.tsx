@@ -50,7 +50,7 @@ const BotSelect = ({ onBotSelect, selectedBot }: BotSelectProps) => {
 			<div className="relative">
 				<SearchIcon className="absolute top-1/2 left-3 h-4 w-4 -translate-y-1/2 transform text-muted-foreground" />
 				<Input
-					placeholder="Search bots..."
+					placeholder="Search bots"
 					onChange={(e) => setSearchQuery(e.target.value)}
 					className="pl-10"
 				/>
@@ -60,12 +60,12 @@ const BotSelect = ({ onBotSelect, selectedBot }: BotSelectProps) => {
 			<div className="flex-1 space-y-3 overflow-y-auto">
 				{status === "error" && (
 					<div className="py-8 text-center text-destructive">
-						<p>Failed to load bots</p>
+						<p>The bots could not be loaded</p>
 						{error && (
 							<p className="mt-2 text-muted-foreground text-sm">
 								{error instanceof Error
 									? error.message
-									: "Unknown error occurred"}
+									: "Try again in a moment."}
 							</p>
 						)}
 					</div>

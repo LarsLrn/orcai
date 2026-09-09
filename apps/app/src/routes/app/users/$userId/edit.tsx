@@ -1,6 +1,5 @@
 import { useSuspenseQuery } from "@tanstack/react-query";
 import { createFileRoute } from "@tanstack/react-router";
-import { format } from "date-fns";
 import {
 	BadgeIcon,
 	CalendarIcon,
@@ -18,6 +17,7 @@ import {
 import { ManageUser } from "@/components/users/manage-user";
 import { UserAccessOverview } from "@/components/users/user-access-overview";
 import { orpc } from "@/lib/orpc/orpc";
+import { formatDisplayDate } from "@/lib/presentation/format-timestamp";
 
 export const Route = createFileRoute("/app/users/$userId/edit")({
 	component: RouteComponent,
@@ -49,7 +49,7 @@ function RouteComponent() {
 			<PageContent className="flex flex-col gap-4">
 				<Card>
 					<CardHeader>
-						<CardTitle>User Information</CardTitle>
+						<CardTitle>User information</CardTitle>
 					</CardHeader>
 					<CardContent className="flex flex-col gap-4">
 						<div className="grid grid-cols-1 gap-4 md:grid-cols-2">
@@ -101,9 +101,9 @@ function RouteComponent() {
 							<div className="flex items-center gap-2">
 								<CalendarIcon className="h-4 w-4 text-primary" />
 								<div className="space-y-0.5">
-									<p className="font-medium text-sm">Created At</p>
+									<p className="font-medium text-sm">Created</p>
 									<p className="text-muted-foreground text-sm">
-										{format(user.data.createdAt, "MMM d, yyyy")}
+										{formatDisplayDate(user.data.createdAt)}
 									</p>
 								</div>
 							</div>
@@ -111,9 +111,9 @@ function RouteComponent() {
 							<div className="flex items-center gap-2">
 								<CalendarIcon className="h-4 w-4 text-primary" />
 								<div className="space-y-0.5">
-									<p className="font-medium text-sm">Updated At</p>
+									<p className="font-medium text-sm">Updated</p>
 									<p className="text-muted-foreground text-sm">
-										{format(user.data.updatedAt, "MMM d, yyyy")}
+										{formatDisplayDate(user.data.updatedAt)}
 									</p>
 								</div>
 							</div>

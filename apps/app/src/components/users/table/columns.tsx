@@ -49,14 +49,14 @@ export const columns = columnHelper.columns([
 	}),
 	columnHelper.accessor("emailVerified", {
 		header: ({ column }) => (
-			<DataTableColumnHeader column={column} title="Email Verified" />
+			<DataTableColumnHeader column={column} title="Email verified" />
 		),
 		cell: ({ row }) =>
 			row.original.emailVerified ? "Verified" : "Not verified",
 	}),
 	columnHelper.accessor("organizationRole", {
 		header: ({ column }) => (
-			<DataTableColumnHeader column={column} title="Organization Role" />
+			<DataTableColumnHeader column={column} title="Organisation role" />
 		),
 		cell: ({ row }) => organizationRoleLabels[row.original.organizationRole],
 	}),
@@ -109,7 +109,7 @@ const UserActions = ({ user }: { user: UserWithOrganizationRole }) => {
 				{canRemoveUser ? (
 					<>
 						<DropdownMenuSeparator />
-						<RemoveItem userId={user.id} />
+						<RemoveItem user={user} />
 					</>
 				) : null}
 			</DropdownMenuContent>
@@ -117,11 +117,18 @@ const UserActions = ({ user }: { user: UserWithOrganizationRole }) => {
 	);
 };
 
-const RemoveItem = ({ userId }: { userId: UserWithOrganizationRole["id"] }) => {
+const RemoveItem = ({ user }: { user: UserWithOrganizationRole }) => {
 	const { auth } = useRouteContext({
 		from: "/app",
 	});
-	const { mutate: removeMembers } = useDeleteOrganizationMembersMutation();
+	const { mutate: removeMembers } = useDeleteOrganizationMembersMutation(
+		{},
+		{
+			names: [
+				user.email,
+			],
+		},
+	);
 	const organizationId = auth.session.activeOrganizationId;
 
 	if (!organizationId) {
@@ -136,7 +143,7 @@ const RemoveItem = ({ userId }: { userId: UserWithOrganizationRole["id"] }) => {
 					organizationId,
 					refs: [
 						{
-							userId,
+							userId: user.id,
 						},
 					],
 				})

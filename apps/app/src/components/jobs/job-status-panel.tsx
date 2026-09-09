@@ -64,7 +64,7 @@ const JobStatusPanel = ({
 		<Card className={cn(className)}>
 			<CardHeader>
 				<CardTitle className="flex items-center gap-1">
-					Preparation Status
+					Preparation status
 					<InfoDot
 						content="The content is prepared in background jobs after upload so it is
 							ready"

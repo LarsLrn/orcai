@@ -2,7 +2,6 @@ import type {
 	OrganizationInvitation,
 	OrganizationInvitationListItem,
 } from "@orcai/schema";
-import { format } from "date-fns";
 import { Building2Icon, CalendarIcon, Clock4Icon } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import {
@@ -14,6 +13,7 @@ import {
 	CardHeader,
 	CardTitle,
 } from "@/components/ui/card";
+import { formatDisplayDate } from "@/lib/presentation/format-timestamp";
 import { OrganizationInvitationActions } from "./organization-invitation-actions";
 
 type OrganizationInvitationEntryProps = {
@@ -82,16 +82,14 @@ export function OrganizationInvitationEntry({
 						<span>
 							Invited on{" "}
 							{invitation.createdAt
-								? format(invitation.createdAt, "MMM d, yyyy")
+								? formatDisplayDate(invitation.createdAt)
 								: "Unknown date"}
 						</span>
 					</div>
 					{isPending && (
 						<div className="mt-1 flex items-center gap-2">
 							<Clock4Icon className="h-3.5 w-3.5" />
-							<span>
-								Expires on {format(invitation.expiresAt, "MMM d, yyyy")}
-							</span>
+							<span>Expires on {formatDisplayDate(invitation.expiresAt)}</span>
 						</div>
 					)}
 				</div>

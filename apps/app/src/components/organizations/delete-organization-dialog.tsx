@@ -102,11 +102,13 @@ const DeleteOrganizationDialog = ({
 					className="space-y-4"
 				>
 					<DialogHeader>
-						<DialogTitle>Delete Organisation</DialogTitle>
-						<DialogDescription>
+						<DialogTitle>
 							{impact
-								? `Deleting ${impact.data.name} cannot be undone.`
-								: "Deleting an organisation cannot be undone."}
+								? `Delete the ${impact.data.name} organisation?`
+								: "Delete this organisation?"}
+						</DialogTitle>
+						<DialogDescription>
+							Everything counted below goes with it, and deletion is permanent.
 						</DialogDescription>
 					</DialogHeader>
 					{isImpactPending || !impact ? (

@@ -1,9 +1,22 @@
 import { useQueryClient } from "@tanstack/react-query";
 import { useMutationAction } from "@/hooks/actions/use-mutation-action";
+import {
+	type DestructiveTarget,
+	describeFailure,
+	describeOutcome,
+	describeProgress,
+	describeTarget,
+} from "@/hooks/mutations/destructive-copy";
 import { orpc } from "@/lib/orpc/orpc";
+
+const ACCOUNT_NOUNS = {
+	noun: "account",
+	nounPlural: "accounts",
+};
 
 export const useDeleteUsersMutation = (
 	opts: ReturnType<typeof orpc.user.delete.mutationOptions> = {},
+	target?: DestructiveTarget,
 ) => {
 	const queryClient = useQueryClient();
 
@@ -27,17 +40,28 @@ export const useDeleteUsersMutation = (
 				},
 			}),
 		messages: {
-			loading: "Deleting accounts...",
-			success: "Accounts deleted",
-			error: "Failed to delete accounts",
+			loading: ({ input }) =>
+				describeProgress(
+					"Deleting",
+					input.userIds.length,
+					ACCOUNT_NOUNS,
+					target,
+				),
+			success: ({ input }) =>
+				describeOutcome(input.userIds.length, ACCOUNT_NOUNS, "deleted", target),
+			error: ({ input }) =>
+				describeFailure(input.userIds.length, ACCOUNT_NOUNS, "deleted", target),
 		},
+		// "Delete" is the confirm label the instance users e2e spec clicks.
 		confirm: (input) => {
 			const count = input.userIds.length;
-			const plural = count === 1 ? "" : "s";
 
 			return {
-				title: `Delete Account${plural}`,
-				description: `Are you sure you want to delete ${count} account${plural}? The account leaves every organisation it belongs to. This action cannot be undone.`,
+				title: `Delete ${describeTarget(count, ACCOUNT_NOUNS, target)}?`,
+				description:
+					count === 1
+						? "The account leaves every organisation it belongs to, and the person can no longer sign in. Deletion is permanent."
+						: "The accounts leave every organisation they belong to, and those people can no longer sign in. Deletion is permanent.",
 				confirmText: "Delete",
 				cancelText: "Cancel",
 			};
@@ -47,6 +71,7 @@ export const useDeleteUsersMutation = (
 
 export const useBanUserMutation = (
 	opts: ReturnType<typeof orpc.user.ban.mutationOptions> = {},
+	target?: DestructiveTarget,
 ) => {
 	const queryClient = useQueryClient();
 
@@ -70,14 +95,14 @@ export const useBanUserMutation = (
 				},
 			}),
 		messages: {
-			loading: "Banning account...",
+			loading: "Banning the account...",
 			success: "Account banned",
-			error: "Failed to ban the account",
+			error: "The account was not banned. Try again.",
 		},
 		confirm: {
-			title: "Ban Account",
+			title: `Ban ${describeTarget(1, ACCOUNT_NOUNS, target)}?`,
 			description:
-				"A banned account cannot sign in until the ban is lifted. Its memberships stay in place.",
+				"The person cannot sign in until the ban is lifted. Their memberships and resources stay in place.",
 			confirmText: "Ban",
 			cancelText: "Cancel",
 		},
@@ -111,7 +136,7 @@ export const useUnbanUserMutation = (
 		messages: {
 			loading: "Lifting the ban...",
 			success: "Ban lifted",
-			error: "Failed to lift the ban",
+			error: "The ban was not lifted. Try again.",
 		},
 	});
 };

@@ -18,7 +18,7 @@ export function NotFound({ children }: { children?: any }) {
 
 						{/* Error Code */}
 						<div className="space-y-2">
-							<h1 className="font-bold text-4xl text-foreground">404</h1>
+							<h1 className="font-semibold text-4xl text-foreground">404</h1>
 							<h2 className="font-semibold text-lg text-muted-foreground">
 								Page Not Found
 							</h2>
@@ -43,7 +43,7 @@ export function NotFound({ children }: { children?: any }) {
 						className="flex items-center gap-2"
 					>
 						<ArrowLeft className="h-4 w-4" />
-						Go Back
+						Go back
 					</Button>
 
 					<Link
@@ -54,7 +54,7 @@ export function NotFound({ children }: { children?: any }) {
 						})}
 					>
 						<Home className="h-4 w-4" />
-						Return Home
+						Return home
 					</Link>
 				</div>
 			</div>

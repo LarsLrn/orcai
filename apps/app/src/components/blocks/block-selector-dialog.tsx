@@ -30,17 +30,17 @@ const copyByType: Record<
 	}
 > = {
 	template: {
-		title: "Choose an AI Behaviour",
+		title: "Choose an AI behaviour",
 		description: "Select a reusable behaviour block to guide responses.",
 		searchPlaceholder: "Search AI behaviours...",
 		empty: "No AI behaviour blocks found.",
 	},
 	database: {
-		title: "Choose a Content Collection",
+		title: "Choose a repository",
 		description:
-			"Select a reusable content collection block for retrieval-based answers.",
-		searchPlaceholder: "Search content collections...",
-		empty: "No content collection blocks found.",
+			"Select a reusable repository block for retrieval-based answers.",
+		searchPlaceholder: "Search repositories...",
+		empty: "No repository blocks found.",
 	},
 };
 
@@ -234,10 +234,7 @@ const BlockSelectorDialog = ({
 								trailing={
 									<div className="flex items-center gap-2">
 										{block.status === "draft" ? (
-											<Badge
-												variant="destructive"
-												className="h-5 px-1.5 text-[10px]"
-											>
+											<Badge variant="outline" className="h-5 px-1.5">
 												Draft
 											</Badge>
 										) : null}

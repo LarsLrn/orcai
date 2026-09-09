@@ -115,12 +115,12 @@ const FileUploader = (props: FileUploaderProps) => {
 	const onDrop = useCallback(
 		(acceptedFiles: File[], rejectedFiles: FileRejection[]) => {
 			if (!multiple && maxFileCount === 1 && acceptedFiles.length > 1) {
-				toast.error("Cannot upload more than 1 file at a time");
+				toast.error("Only one file can be uploaded at a time.");
 				return;
 			}
 
 			if ((files?.length ?? 0) + acceptedFiles.length > maxFileCount) {
-				toast.error(`Cannot upload more than ${maxFileCount} files`);
+				toast.error(`You can upload up to ${maxFileCount} files at once`);
 				return;
 			}
 
@@ -141,7 +141,9 @@ const FileUploader = (props: FileUploaderProps) => {
 
 			if (rejectedFiles.length > 0) {
 				rejectedFiles.forEach(({ file }) => {
-					toast.error(`File ${file.name} was rejected`);
+					toast.error(
+						`${file.name} was not accepted. Check the file type and size.`,
+					);
 				});
 			}
 
@@ -159,7 +161,7 @@ const FileUploader = (props: FileUploaderProps) => {
 						setFiles([]);
 						return `${target} uploaded`;
 					},
-					error: `Failed to upload ${target}`,
+					error: `${target} could not be uploaded. Try again.`,
 				});
 			}
 		},
@@ -209,7 +211,7 @@ const FileUploader = (props: FileUploaderProps) => {
 					<div
 						{...getRootProps()}
 						className={cn(
-							"group relative grid h-52 w-full cursor-pointer place-items-center rounded-lg border-2 border-muted-foreground/25 border-dashed px-5 py-2.5 text-center transition hover:bg-muted/25",
+							"group relative grid h-52 w-full cursor-pointer place-items-center rounded-2xl border-2 border-muted-foreground/25 border-dashed px-5 py-2.5 text-center transition hover:bg-muted/25",
 							"ring-offset-background focus-visible:outline-hidden focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2",
 							isDragActive && "border-muted-foreground/50",
 							isDisabled && "pointer-events-none opacity-60",

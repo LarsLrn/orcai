@@ -58,7 +58,7 @@ const SignUpForm = ({
 				name="invitationId"
 				children={(field) => (
 					<field.TextField
-						label="Invitation Code"
+						label="Invitation code"
 						placeholder="Unique invitation code"
 						disabled
 					/>
@@ -86,7 +86,7 @@ const SignUpForm = ({
 				)}
 			/>
 
-			<div className="space-y-4 rounded-lg border bg-background/50 p-4 shadow-sm">
+			<div className="space-y-4 rounded-2xl border bg-background/50 p-4 shadow-sm">
 				<div className="space-y-2">
 					<h3 className="font-semibold">Privacy Policy</h3>
 					<p className="text-muted-foreground text-sm">

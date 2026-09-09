@@ -9,6 +9,42 @@
 
 @custom-variant dark (&:is(.dark *));
 
+/*
+ * Brand Accent Rule
+ *
+ * --accent-brand is the steel blue of the colour wordmark (#456789) and the
+ * manifest theme colour, kept on the dark-mode hue 249.3 so it stays inside
+ * the Same Hue Rule. It is a governance and state colour only: published
+ * state, active/default pills, quota low-balance warnings, citation markers,
+ * the active sidebar indicator, and the hero wave and gradient. It never
+ * fills a call to action; Deep Water (--primary) remains the only solid CTA.
+ */
+
+/*
+ * Semantic Colour Layer
+ *
+ * Two families sit outside the ink-blue neutrals. Both are one family by
+ * construction: a single lightness (0.5 light, 0.72 dark) and a single chroma
+ * per family, with only the hue changing. Chroma is clamped to the sRGB
+ * boundary where the gamut is narrower than the target (--status-warning,
+ * --status-info, --kind-bot); the clamped values are within 0.02 of the
+ * target and read as the same weight of colour.
+ *
+ * --status-* names an outcome (success, warning, danger, info, processing).
+ * Tint Not Fill: 12% background in light, 18% in dark, full-colour text. The
+ * lowest measured contrast in the set is 4.6:1 at a 15% light tint and 4.6:1
+ * at a 20% dark tint, so every pair clears WCAG AA for text.
+ *
+ * --kind-* names what a resource is (bot, behaviour, repository, asset) and
+ * appears only on that resource's icon well, never on a control. The four
+ * hues sit 65 degrees or more apart and clear of both Orca Steel (hue 249)
+ * and Signal Red (hue 25), so a kind is never mistaken for a governance fact
+ * or a failure.
+ *
+ * Neither family fills a call to action, and neither is used for emphasis on
+ * its own; the Governance Accent Rule still owns published, active, default,
+ * low balance and cited.
+ */
 :root {
 	--background: oklch(0.98 0.01 257.8);
 	--foreground: oklch(0.3 0.04 257.8);
@@ -24,11 +60,34 @@
 	--muted-foreground: oklch(0.5 0.01 257.8);
 	--accent: oklch(0.92 0.01 269.8);
 	--accent-foreground: oklch(0.3 0.04 257.8);
-	--destructive: oklch(63.68% 0.208 25.33);
-	--destructive-foreground: oklch(1 0 0);
+	--destructive: oklch(0.5 0.11 25.33);
+	--destructive-foreground: oklch(0.98 0.02 257.8);
 	--border: oklch(0.9 0.01 257.8);
 	--input: oklch(0.9 0.01 257.8);
-	--ring: oklch(0.7 0.02 257.8);
+	--ring: oklch(0.5 0.03 257.8);
+	--primary-hover: oklch(0.32 0.075 257.8);
+	--primary-active: oklch(0.21 0.07 257.8);
+	--surface-pressed: oklch(0.87 0.015 257.8);
+	--accent-brand: oklch(0.5024 0.067 249.3);
+	--accent-brand-foreground: oklch(0.98 0.02 249.3);
+	--status-success: oklch(0.5 0.11 152);
+	--status-success-foreground: oklch(0.98 0.02 257.8);
+	--status-warning: oklch(0.5 0.104 78);
+	--status-warning-foreground: oklch(0.98 0.02 257.8);
+	--status-danger: oklch(0.5 0.11 25.33);
+	--status-danger-foreground: oklch(0.98 0.02 257.8);
+	--status-info: oklch(0.5 0.1 230);
+	--status-info-foreground: oklch(0.98 0.02 257.8);
+	--status-processing: oklch(0.5 0.11 288);
+	--status-processing-foreground: oklch(0.98 0.02 257.8);
+	--kind-bot: oklch(0.5 0.085 200);
+	--kind-bot-foreground: oklch(0.98 0.02 257.8);
+	--kind-behaviour: oklch(0.5 0.1 300);
+	--kind-behaviour-foreground: oklch(0.98 0.02 257.8);
+	--kind-repository: oklch(0.5 0.1 135);
+	--kind-repository-foreground: oklch(0.98 0.02 257.8);
+	--kind-asset: oklch(0.5 0.1 65);
+	--kind-asset-foreground: oklch(0.98 0.02 257.8);
 	--chart-1: oklch(0.42 0.09 257.8);
 	--chart-2: oklch(0.28 0.08 35.3);
 	--chart-3: oklch(0.32 0.1 172.9);
@@ -41,7 +100,7 @@
 	--sidebar-accent: oklch(0.92 0.01 269.84);
 	--sidebar-accent-foreground: oklch(0.3 0.04 257.8);
 	--sidebar-border: oklch(0.9 0.01 257.8);
-	--sidebar-ring: oklch(0.7 0.02 257.8);
+	--sidebar-ring: oklch(0.5 0.03 257.8);
 	--header: oklch(0.98 0.01 257.8);
 	--header-foreground: oklch(0.3 0.04 257.8);
 	--footer: oklch(0.98 0.005 257.8);
@@ -70,11 +129,34 @@
 	--muted-foreground: oklch(0.7 0.01 249.3);
 	--accent: oklch(0.28 0.01 237.3);
 	--accent-foreground: oklch(0.85 0.01 249.3);
-	--destructive: oklch(63.68% 0.208 25.33);
-	--destructive-foreground: oklch(1 0 0);
+	--destructive: oklch(0.72 0.11 25.33);
+	--destructive-foreground: oklch(0.18 0.01 249.3);
 	--border: oklch(0.33 0.01 249.3);
 	--input: oklch(0.33 0.01 249.3);
-	--ring: oklch(0.55 0.03 249.3);
+	--ring: oklch(0.68 0.03 249.3);
+	--primary-hover: oklch(0.54 0.075 249.3);
+	--primary-active: oklch(0.45 0.07 249.3);
+	--surface-pressed: oklch(0.35 0.012 249.3);
+	--accent-brand: oklch(0.72 0.075 249.3);
+	--accent-brand-foreground: oklch(0.18 0.01 249.3);
+	--status-success: oklch(0.72 0.11 152);
+	--status-success-foreground: oklch(0.18 0.01 249.3);
+	--status-warning: oklch(0.72 0.11 78);
+	--status-warning-foreground: oklch(0.18 0.01 249.3);
+	--status-danger: oklch(0.72 0.11 25.33);
+	--status-danger-foreground: oklch(0.18 0.01 249.3);
+	--status-info: oklch(0.72 0.11 230);
+	--status-info-foreground: oklch(0.18 0.01 249.3);
+	--status-processing: oklch(0.72 0.11 288);
+	--status-processing-foreground: oklch(0.18 0.01 249.3);
+	--kind-bot: oklch(0.72 0.1 200);
+	--kind-bot-foreground: oklch(0.18 0.01 249.3);
+	--kind-behaviour: oklch(0.72 0.1 300);
+	--kind-behaviour-foreground: oklch(0.18 0.01 249.3);
+	--kind-repository: oklch(0.72 0.1 135);
+	--kind-repository-foreground: oklch(0.18 0.01 249.3);
+	--kind-asset: oklch(0.72 0.1 65);
+	--kind-asset-foreground: oklch(0.18 0.01 249.3);
 	--chart-1: oklch(0.62 0.09 249.3);
 	--chart-2: oklch(0.44 0.08 26.8);
 	--chart-3: oklch(0.52 0.1 164.3);
@@ -87,7 +169,7 @@
 	--sidebar-accent: oklch(0.28 0.01005 237.3);
 	--sidebar-accent-foreground: oklch(0.85 0.01 249.3);
 	--sidebar-border: oklch(0.33 0.01 249.3);
-	--sidebar-ring: oklch(0.55 0.03 249.3);
+	--sidebar-ring: oklch(0.68 0.03 249.3);
 	--header: oklch(0.18 0.01 249.3);
 	--header-foreground: oklch(0.85 0.01 249.3);
 	--footer: oklch(0.18 0.01 249.3);
@@ -127,7 +209,30 @@
 	--color-secondary-foreground: var(--secondary-foreground);
 	--color-secondary: var(--secondary);
 	--color-primary-foreground: var(--primary-foreground);
+	--color-primary-hover: var(--primary-hover);
+	--color-primary-active: var(--primary-active);
 	--color-primary: var(--primary);
+	--color-surface-pressed: var(--surface-pressed);
+	--color-accent-brand: var(--accent-brand);
+	--color-accent-brand-foreground: var(--accent-brand-foreground);
+	--color-status-success: var(--status-success);
+	--color-status-success-foreground: var(--status-success-foreground);
+	--color-status-warning: var(--status-warning);
+	--color-status-warning-foreground: var(--status-warning-foreground);
+	--color-status-danger: var(--status-danger);
+	--color-status-danger-foreground: var(--status-danger-foreground);
+	--color-status-info: var(--status-info);
+	--color-status-info-foreground: var(--status-info-foreground);
+	--color-status-processing: var(--status-processing);
+	--color-status-processing-foreground: var(--status-processing-foreground);
+	--color-kind-bot: var(--kind-bot);
+	--color-kind-bot-foreground: var(--kind-bot-foreground);
+	--color-kind-behaviour: var(--kind-behaviour);
+	--color-kind-behaviour-foreground: var(--kind-behaviour-foreground);
+	--color-kind-repository: var(--kind-repository);
+	--color-kind-repository-foreground: var(--kind-repository-foreground);
+	--color-kind-asset: var(--kind-asset);
+	--color-kind-asset-foreground: var(--kind-asset-foreground);
 	--color-popover-foreground: var(--popover-foreground);
 	--color-popover: var(--popover);
 	--color-card-foreground: var(--card-foreground);

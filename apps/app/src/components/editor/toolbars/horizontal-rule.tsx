@@ -36,7 +36,7 @@ const HorizontalRuleToolbar = ({
 				}
 			/>
 			<TooltipContent>
-				<span>Horizontal Rule</span>
+				<span>Horizontal rule</span>
 			</TooltipContent>
 		</Tooltip>
 	);

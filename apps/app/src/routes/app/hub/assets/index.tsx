@@ -64,7 +64,7 @@ function RouteComponent() {
 	return (
 		<Section>
 			<SectionHeader>
-				<SectionTitle>Content Library</SectionTitle>
+				<SectionTitle>Assets</SectionTitle>
 				<SectionDescription>
 					Reusable source material for retrieval, grounding, and citations.
 				</SectionDescription>
@@ -77,7 +77,7 @@ function RouteComponent() {
 							})}
 						>
 							<PlusIcon />
-							Add Content
+							Add assets
 						</Link>
 					</SectionAction>
 				) : null}
@@ -86,14 +86,15 @@ function RouteComponent() {
 				{assets.data.length === 0 ? (
 					<Placeholder
 						Icon={FileTextIcon}
-						title="No content yet"
-						description="Upload documents, URLs, or text snippets to build your knowledge base."
+						tone="asset"
+						title="No assets yet"
+						description="Upload files, URLs, or text snippets so bots can retrieve and cite them."
 						actions={
 							canCreateAsset
 								? [
 										{
 											key: "add",
-											label: "Add Content",
+											label: "Add assets",
 											icon: PlusIcon,
 											variant: "default",
 											linkProps: {

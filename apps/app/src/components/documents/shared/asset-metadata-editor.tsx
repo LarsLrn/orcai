@@ -71,19 +71,19 @@ const BookFields = ({
 		<MetadataField
 			label="Author(s)"
 			value={metadata.author ?? ""}
-			placeholder="Author names"
+			placeholder="e.g. Schmidt, A.; Okonkwo, B."
 			onChange={(v) => onFieldChange("author", v)}
 		/>
 		<MetadataField
 			label="Citation label"
 			value={metadata.citation ?? ""}
-			placeholder="How this source should be cited"
+			placeholder="e.g. Schmidt 2023"
 			onChange={(v) => onFieldChange("citation", v)}
 		/>
 		<MetadataField
 			label="Chapter title"
 			value={metadata.chapterTitle ?? ""}
-			placeholder="Chapter title"
+			placeholder="e.g. Introduction"
 			onChange={(v) => onFieldChange("chapterTitle", v)}
 		/>
 		<MetadataField
@@ -106,19 +106,19 @@ const JournalArticleFields = ({
 		<MetadataField
 			label="Author(s)"
 			value={metadata.author ?? ""}
-			placeholder="Author names"
+			placeholder="e.g. Schmidt, A.; Okonkwo, B."
 			onChange={(v) => onFieldChange("author", v)}
 		/>
 		<MetadataField
 			label="Citation label"
 			value={metadata.citation ?? ""}
-			placeholder="How this source should be cited"
+			placeholder="e.g. Schmidt 2023"
 			onChange={(v) => onFieldChange("citation", v)}
 		/>
 		<MetadataField
 			label="Journal name"
 			value={metadata.journalName ?? ""}
-			placeholder="Name of the journal"
+			placeholder="e.g. Nature"
 			onChange={(v) => onFieldChange("journalName", v)}
 		/>
 		<MetadataField
@@ -159,19 +159,19 @@ const WebSourceFields = ({
 		<MetadataField
 			label="Author(s)"
 			value={metadata.author ?? ""}
-			placeholder="Author names"
+			placeholder="e.g. Schmidt, A.; Okonkwo, B."
 			onChange={(v) => onFieldChange("author", v)}
 		/>
 		<MetadataField
 			label="Citation label"
 			value={metadata.citation ?? ""}
-			placeholder="How this source should be cited"
+			placeholder="e.g. Schmidt 2023"
 			onChange={(v) => onFieldChange("citation", v)}
 		/>
 		<MetadataField
 			label="Website name"
 			value={metadata.websiteName ?? ""}
-			placeholder="Name of the website"
+			placeholder="e.g. Rhine-Waal University"
 			onChange={(v) => onFieldChange("websiteName", v)}
 		/>
 		<MetadataField
@@ -201,7 +201,7 @@ const LegalTextFields = ({
 		<MetadataField
 			label="Citation label"
 			value={metadata.citation ?? ""}
-			placeholder="How this source should be cited"
+			placeholder="e.g. Schmidt 2023"
 			onChange={(v) => onFieldChange("citation", v)}
 		/>
 		<MetadataField
@@ -266,7 +266,7 @@ const AssetMetadataEditor = ({
 								title: event.target.value,
 							})
 						}
-						placeholder="Source title"
+						placeholder="e.g. Introduction to statistics"
 					/>
 				</div>
 			) : null}
@@ -307,7 +307,7 @@ const AssetMetadataEditor = ({
 				<MetadataField
 					label="External URL"
 					value={metadata.externalUrl ?? ""}
-					placeholder="Link to source material"
+					placeholder="https://example.org/article"
 					className="space-y-2 md:col-span-2"
 					onChange={(v) => onFieldChange("externalUrl", v)}
 				/>

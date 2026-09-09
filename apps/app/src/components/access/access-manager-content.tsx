@@ -220,12 +220,12 @@ const AccessManagerContent = ({
 				</AlertDescription>
 			</Alert>
 
-			<div className="rounded-lg border p-4">
+			<div className="rounded-2xl border p-4">
 				<div className="flex items-center justify-between gap-3">
 					<div>
-						<p className="font-medium text-sm">Add direct grants</p>
+						<p className="font-medium text-sm">Add people and groups</p>
 						<p className="text-muted-foreground text-xs">
-							Grant direct access to principals in the same organisation scope.
+							Give someone in this organisation access to this resource.
 						</p>
 					</div>
 					{isBusy && (
@@ -293,7 +293,7 @@ const AccessManagerContent = ({
 							onClick={handleGrant}
 						>
 							<PlusIcon />
-							Add {selectedPrincipals.length > 1 ? "Principals" : "Principal"}
+							Grant access
 						</Button>
 					</div>
 				</div>
@@ -323,7 +323,7 @@ const AccessManagerContent = ({
 				}
 			/>
 
-			<div className="rounded-lg border border-dashed p-3 text-muted-foreground text-xs">
+			<div className="rounded-2xl border border-dashed p-3 text-muted-foreground text-xs">
 				{
 					RESOURCES.find((resource) => resource.value === resourceRef.type)
 						?.accessHint

@@ -23,7 +23,7 @@ const sourceLabel: Record<UserAccessEntry["source"], string> = {
 	[USER_ACCESS_SOURCE.DIRECT_USER]: "Direct user",
 	[USER_ACCESS_SOURCE.DIRECT_GROUP]: "Group",
 	[USER_ACCESS_SOURCE.DIRECT_GROUP_ALL_MEMBERS]: "All members",
-	[USER_ACCESS_SOURCE.INHERITED_ORGANIZATION]: "Inherited org",
+	[USER_ACCESS_SOURCE.INHERITED_ORGANIZATION]: "Inherited from organisation",
 	[USER_ACCESS_SOURCE.INHERITED_BOT]: "Inherited bot",
 	[USER_ACCESS_SOURCE.INHERITED_BLOCK]: "Inherited block",
 	[USER_ACCESS_SOURCE.PUBLIC]: "Public",
@@ -64,7 +64,7 @@ const ResourceLink = ({ access }: { access: UserAccessEntry }) => {
 					}}
 					className="text-primary hover:underline"
 				>
-					{access.resourceName ?? "Untitled content item"}
+					{access.resourceName ?? "Untitled asset"}
 				</Link>
 			);
 		default:
@@ -96,7 +96,7 @@ const ResourceTypeLabel = ({
 			return (
 				<span className="inline-flex items-center gap-1 text-muted-foreground text-xs">
 					<FileIcon className="h-3 w-3" />
-					Content item
+					Asset
 				</span>
 			);
 		default:
@@ -123,13 +123,13 @@ const UserAccessOverview = ({ userId }: UserAccessOverviewProps) => {
 					access.data.data.map((item) => (
 						<div
 							key={`${item.resourceType}:${item.resourceId}:${item.source}`}
-							className="flex items-center justify-between rounded-lg border p-3"
+							className="flex items-center justify-between rounded-xl border p-3"
 						>
 							<div className="space-y-1">
 								<ResourceLink access={item} />
 								<div className="flex items-center gap-2">
 									<ResourceTypeLabel type={item.resourceType} />
-									<Badge variant="outline" className="gap-1 text-[10px]">
+									<Badge variant="outline" className="gap-1">
 										<LinkIcon className="h-2.5 w-2.5" />
 										{sourceLabel[item.source]}
 									</Badge>

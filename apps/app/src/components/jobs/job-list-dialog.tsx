@@ -72,7 +72,7 @@ const JobListDialog = ({
 			<Dialog open={open} onOpenChange={setOpen}>
 				<DialogContent className="max-h-[80vh] sm:max-w-lg">
 					<DialogHeader>
-						<DialogTitle>Job History</DialogTitle>
+						<DialogTitle>Job history</DialogTitle>
 						<DialogDescription>
 							{jobQueue} jobs for this resource
 						</DialogDescription>

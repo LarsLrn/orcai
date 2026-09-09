@@ -5,6 +5,7 @@ import {
 	EditIcon,
 	EyeIcon,
 	ImageIcon,
+	type LucideIcon,
 } from "lucide-react";
 import {
 	DropdownMenu,
@@ -32,29 +33,30 @@ import {
 	ResourceCardTitle,
 } from "@/components/ui/shell/resource-card";
 import { hasCapability } from "@/lib/authz/capabilities";
+import { formatDisplayDate } from "@/lib/presentation/format-timestamp";
 
 const BLOCK_TYPE_CONFIG = {
 	template: {
 		Icon: BrainCircuitIcon,
-		iconBg: "bg-amber-500/10",
-		iconColor: "text-amber-600 dark:text-amber-400",
+		tone: "behaviour",
+		badgeTone: "kind-behaviour",
 	},
 	database: {
 		Icon: DatabaseIcon,
-		iconBg: "bg-sky-500/10",
-		iconColor: "text-sky-600 dark:text-sky-400",
+		tone: "repository",
+		badgeTone: "kind-repository",
 	},
 	imageGeneration: {
 		Icon: ImageIcon,
-		iconBg: "bg-violet-500/10",
-		iconColor: "text-violet-600 dark:text-violet-400",
+		tone: "behaviour",
+		badgeTone: "kind-behaviour",
 	},
 } satisfies Record<
 	Block["type"],
 	{
-		Icon: any;
-		iconBg: string;
-		iconColor: string;
+		Icon: LucideIcon;
+		tone: React.ComponentProps<typeof ResourceCardMedia>["tone"];
+		badgeTone: ResourceCardBadgeItem["variant"];
 	}
 >;
 
@@ -62,8 +64,8 @@ const getBlockTypeLabel = (type: Block["type"]) =>
 	type === "template"
 		? "Behaviour"
 		: type === "database"
-			? "Content Collection"
-			: "Image Generation";
+			? "Repository"
+			: "Image generation";
 
 const BlockCard = ({
 	block,
@@ -80,13 +82,13 @@ const BlockCard = ({
 		primary?: ResourceCardPrimaryAction;
 	};
 }) => {
-	const { Icon, iconBg, iconColor } = BLOCK_TYPE_CONFIG[block.type];
+	const { Icon, tone, badgeTone } = BLOCK_TYPE_CONFIG[block.type];
 
 	const meta: ResourceCardMetaItem[] = [];
 	if (block.createdAt) {
 		meta.push({
 			label: "Created",
-			value: new Date(block.createdAt).toLocaleDateString(),
+			value: formatDisplayDate(block.createdAt),
 		});
 	}
 
@@ -129,14 +131,14 @@ const BlockCard = ({
 		},
 		{
 			label: getBlockTypeLabel(block.type),
-			variant: "secondary",
+			variant: badgeTone,
 		},
 	];
 
 	if (block.status === "draft") {
 		badges.push({
 			label: "Draft",
-			variant: "destructive",
+			variant: "outline",
 		});
 	}
 
@@ -176,8 +178,8 @@ const BlockCard = ({
 
 			<ResourceCardBody action={primaryAction}>
 				<ResourceCardHeader>
-					<ResourceCardMedia variant="icon" className={iconBg}>
-						<Icon className={iconColor} />
+					<ResourceCardMedia variant="icon" tone={tone}>
+						<Icon />
 					</ResourceCardMedia>
 					<ResourceCardTitle>{block.name}</ResourceCardTitle>
 					{block.description && (

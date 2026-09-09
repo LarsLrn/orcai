@@ -25,6 +25,10 @@ function EmptyHeader({ className, ...props }: React.ComponentProps<"div">) {
 	);
 }
 
+/*
+ * `tone` matches the resource kind of the list that is empty, so the icon
+ * well reads as the same thing the filled cards would have shown.
+ */
 const emptyMediaVariants = cva(
 	"mb-2 flex shrink-0 items-center justify-center [&_svg]:pointer-events-none [&_svg]:shrink-0",
 	{
@@ -33,9 +37,41 @@ const emptyMediaVariants = cva(
 				default: "bg-transparent",
 				icon: "flex size-10 shrink-0 items-center justify-center rounded-xl bg-muted text-foreground [&_svg:not([class*='size-'])]:size-5",
 			},
+			tone: {
+				neutral: "",
+				bot: "",
+				behaviour: "",
+				repository: "",
+				asset: "",
+			},
 		},
+		compoundVariants: [
+			{
+				variant: "icon",
+				tone: "bot",
+				className: "bg-kind-bot/12 text-kind-bot dark:bg-kind-bot/20",
+			},
+			{
+				variant: "icon",
+				tone: "behaviour",
+				className:
+					"bg-kind-behaviour/12 text-kind-behaviour dark:bg-kind-behaviour/20",
+			},
+			{
+				variant: "icon",
+				tone: "repository",
+				className:
+					"bg-kind-repository/12 text-kind-repository dark:bg-kind-repository/20",
+			},
+			{
+				variant: "icon",
+				tone: "asset",
+				className: "bg-kind-asset/12 text-kind-asset dark:bg-kind-asset/20",
+			},
+		],
 		defaultVariants: {
 			variant: "default",
+			tone: "neutral",
 		},
 	},
 );
@@ -43,15 +79,18 @@ const emptyMediaVariants = cva(
 function EmptyMedia({
 	className,
 	variant = "default",
+	tone = "neutral",
 	...props
 }: React.ComponentProps<"div"> & VariantProps<typeof emptyMediaVariants>) {
 	return (
 		<div
 			data-slot="empty-icon"
 			data-variant={variant}
+			data-tone={tone}
 			className={cn(
 				emptyMediaVariants({
 					variant,
+					tone,
 					className,
 				}),
 			)}

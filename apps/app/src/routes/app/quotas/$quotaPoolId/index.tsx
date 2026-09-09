@@ -4,6 +4,10 @@ import { createFileRoute, Link } from "@tanstack/react-router";
 import { useEffect, useMemo } from "react";
 import { z } from "zod/v4";
 import { MetadataCard } from "@/components/app/metadata-card";
+import {
+	QuotaConsumption,
+	QuotaRemaining,
+} from "@/components/quota/quota-consumption";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import {
@@ -75,7 +79,7 @@ function RouteComponent() {
 	);
 
 	const updatePool = useUpdateQuotaPoolMutation();
-	const deactivatePool = useDeactivateQuotaPoolMutation();
+	const deactivatePool = useDeactivateQuotaPoolMutation({}, data.data.name);
 
 	const budgetForm = useAppForm({
 		defaultValues: {
@@ -123,7 +127,7 @@ function RouteComponent() {
 					<PageDescription>{data.data.description}</PageDescription>
 				) : null}
 				<div className="flex flex-wrap gap-2">
-					<Badge variant={data.data.isActive ? "default" : "secondary"}>
+					<Badge variant={data.data.isActive ? "brand" : "secondary"}>
 						{data.data.isActive ? "Active" : "Inactive"}
 					</Badge>
 					<Badge variant="outline">{data.data.periodType.toUpperCase()}</Badge>
@@ -138,7 +142,7 @@ function RouteComponent() {
 							quotaPoolId: data.data.id,
 						}}
 					>
-						<Button variant="outline">Edit Pool</Button>
+						<Button variant="outline">Edit pool</Button>
 					</Link>
 					{data.data.isActive ? (
 						<Button
@@ -149,7 +153,7 @@ function RouteComponent() {
 								})
 							}
 						>
-							Deactivate Pool
+							Deactivate pool
 						</Button>
 					) : null}
 				</PageAction>
@@ -158,7 +162,7 @@ function RouteComponent() {
 				<div className="space-y-6 lg:col-span-2">
 					<Card>
 						<CardHeader>
-							<CardTitle>Current Usage</CardTitle>
+							<CardTitle>Current usage</CardTitle>
 							<CardDescription>
 								Current ledger amounts for this quota period.
 							</CardDescription>
@@ -179,11 +183,12 @@ function RouteComponent() {
 									<div className="text-muted-foreground text-xs uppercase">
 										Consumed
 									</div>
-									<div className="font-semibold text-lg">
-										{data.data.currentLedger?.consumedAmount != null
-											? data.data.currentLedger.consumedAmount.toLocaleString()
-											: "-"}
-									</div>
+									<QuotaConsumption
+										className="justify-start font-semibold text-lg"
+										consumedAmount={data.data.currentLedger?.consumedAmount}
+										budgetAmount={data.data.currentLedger?.budgetAmount}
+										unit={data.data.provider.meteringMode}
+									/>
 								</div>
 								<div>
 									<div className="text-muted-foreground text-xs uppercase">
@@ -199,11 +204,12 @@ function RouteComponent() {
 									<div className="text-muted-foreground text-xs uppercase">
 										Remaining
 									</div>
-									<div className="font-semibold text-lg">
-										{data.data.currentLedger?.remainingAmount != null
-											? data.data.currentLedger.remainingAmount.toLocaleString()
-											: "-"}
-									</div>
+									<QuotaRemaining
+										className="justify-start font-semibold text-lg"
+										remainingAmount={data.data.currentLedger?.remainingAmount}
+										budgetAmount={data.data.currentLedger?.budgetAmount}
+										unit={data.data.provider.meteringMode}
+									/>
 								</div>
 							</div>
 						</CardContent>
@@ -211,7 +217,7 @@ function RouteComponent() {
 
 					<Card>
 						<CardHeader>
-							<CardTitle>Adjust Budget</CardTitle>
+							<CardTitle>Adjust budget</CardTitle>
 						</CardHeader>
 						<CardContent>
 							<form
@@ -229,19 +235,19 @@ function RouteComponent() {
 												label="New budget amount"
 												type="number"
 												min={1}
-												description="Remaining updates immediately: max(0, budget - reserved - consumed)."
+												description="Raising the budget frees up the remaining allowance straight away."
 											/>
 										)}
 									/>
 								</div>
-								<Button type="submit">Update Budget</Button>
+								<Button type="submit">Update budget</Button>
 							</form>
 						</CardContent>
 					</Card>
 
 					<Card>
 						<CardHeader>
-							<CardTitle>Eligible Groups</CardTitle>
+							<CardTitle>Eligible groups</CardTitle>
 						</CardHeader>
 						<CardContent>
 							<div className="space-y-2">
@@ -281,15 +287,15 @@ function RouteComponent() {
 
 					<Card>
 						<CardHeader>
-							<CardTitle>Recent Usage Events</CardTitle>
+							<CardTitle>Recent usage events</CardTitle>
 						</CardHeader>
 						<CardContent>
 							<div className="rounded-md border">
 								<Table>
 									<TableHeader>
 										<TableRow>
-											<TableHead>Event type</TableHead>
-											<TableHead>Request ID</TableHead>
+											<TableHead>Event</TableHead>
+											<TableHead>Request</TableHead>
 											<TableHead className="text-right">
 												Reserved amount
 											</TableHead>

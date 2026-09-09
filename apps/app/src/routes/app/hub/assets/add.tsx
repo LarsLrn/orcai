@@ -21,7 +21,7 @@ export const Route = createFileRoute("/app/hub/assets/add")({
 	head: () => ({
 		meta: [
 			{
-				title: "Add Content",
+				title: "Add assets",
 			},
 		],
 	}),
@@ -31,14 +31,14 @@ function RouteComponent() {
 	return (
 		<Page>
 			<PageHeader>
-				<PageTitle>Add Content</PageTitle>
+				<PageTitle>Add assets</PageTitle>
 				<PageDescription>
 					Upload files, then confirm the metadata that should travel with each
-					content item wherever it is reused.
+					asset wherever it is reused.
 				</PageDescription>
 			</PageHeader>
 			<PageContent>
-				<AssetIntakeFlow submitLabel="Save Content" />
+				<AssetIntakeFlow submitLabel="Save assets" />
 			</PageContent>
 		</Page>
 	);

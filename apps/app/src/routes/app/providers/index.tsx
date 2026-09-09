@@ -69,7 +69,7 @@ function RouteComponent() {
 							variant: "default",
 						})}
 					>
-						Add Provider
+						Add provider
 					</Link>
 				</PageAction>
 			</PageHeader>

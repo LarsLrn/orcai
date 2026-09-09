@@ -124,7 +124,7 @@ const QuotaPoolForm = ({
 			return [
 				{
 					value: PROVIDER_WIDE_MODEL_VALUE,
-					label: "Provider-wide (all models)",
+					label: "All models from this provider",
 				},
 			];
 		}
@@ -139,7 +139,7 @@ const QuotaPoolForm = ({
 		return [
 			{
 				value: PROVIDER_WIDE_MODEL_VALUE,
-				label: "Provider-wide (all models)",
+				label: "All models from this provider",
 			},
 			...matchingModels,
 		];
@@ -203,7 +203,7 @@ const QuotaPoolForm = ({
 					children={(field) => (
 						<field.TextField
 							label="Name"
-							description="Visible for users as the pool they are using."
+							description="Shown to users as the pool their usage is charged to."
 							placeholder="e.g. OpenAI shared monthly pool"
 						/>
 					)}
@@ -214,7 +214,7 @@ const QuotaPoolForm = ({
 						<field.SelectField
 							label="Provider"
 							placeholder="Select provider"
-							description="All quota resolution and metering mode derive from this provider."
+							description="The pool meters usage of this provider, in the unit that provider is metered in."
 							options={providerOptions}
 							disabled={action === "update"}
 						/>
@@ -237,9 +237,9 @@ const QuotaPoolForm = ({
 					name="providerModelId"
 					children={(field) => (
 						<field.SelectField
-							label="Model Scope"
+							label="Model scope"
 							placeholder="Select model scope"
-							description="Choose a specific model to make this pool model-specific, or keep it provider-wide."
+							description="Pick one model to bound that model only, or keep every model from this provider in one budget."
 							options={providerModelOptions}
 						/>
 					)}
@@ -250,7 +250,7 @@ const QuotaPoolForm = ({
 						<field.SelectField
 							label="Period"
 							placeholder="Select reset period"
-							description="Quota resets at UTC boundaries: weekly (Mon 00:00), monthly (1st), yearly (Jan 1)."
+							description="The budget resets in UTC: weekly on Monday, monthly on the 1st, yearly on 1 January."
 							options={[
 								{
 									value: "weekly",
@@ -285,7 +285,7 @@ const QuotaPoolForm = ({
 						<field.TextField
 							label="Priority"
 							type="number"
-							description="Higher value wins when multiple candidates have the same specificity."
+							description="When more than one pool could apply, the pool with the higher priority is used."
 						/>
 					)}
 				/>
@@ -296,8 +296,8 @@ const QuotaPoolForm = ({
 					name="isDefault"
 					children={(field) => (
 						<field.SwitchField
-							label="Default Pool"
-							description="Marks this as the provider-wide default candidate when no higher-priority match exists."
+							label="Default pool"
+							description="This pool is used when no other pool matches."
 						/>
 					)}
 				/>
@@ -306,7 +306,7 @@ const QuotaPoolForm = ({
 					children={(field) => (
 						<field.SwitchField
 							label="Active"
-							description="Inactive pools block new reservations but still allow in-flight finalize/release."
+							description="While a pool is inactive, no new usage can be charged to it. Usage already in progress still completes."
 						/>
 					)}
 				/>
@@ -316,7 +316,7 @@ const QuotaPoolForm = ({
 				name="groupIds"
 				children={(field) => (
 					<field.MultiSelectField
-						label="Eligible Groups"
+						label="Eligible groups"
 						placeholder="Select one or more groups"
 						description="Users can access this pool when they belong to any selected group."
 						options={eligibleGroupOptions}
@@ -337,7 +337,7 @@ const QuotaPoolForm = ({
 
 			<form.AppForm>
 				<form.SubmitButton
-					label={action === "create" ? "Create Pool" : "Save Changes"}
+					label={action === "create" ? "Create pool" : "Save changes"}
 					disabled={isPending}
 				/>
 			</form.AppForm>

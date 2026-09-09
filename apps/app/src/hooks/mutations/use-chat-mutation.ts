@@ -1,6 +1,19 @@
 import { useQueryClient } from "@tanstack/react-query";
 import { useMutationAction } from "@/hooks/actions/use-mutation-action";
+import {
+	type DestructiveTarget,
+	describeAction,
+	describeFailure,
+	describeOutcome,
+	describeProgress,
+	describeTarget,
+} from "@/hooks/mutations/destructive-copy";
 import { orpc } from "@/lib/orpc/orpc";
+
+const CHAT_NOUNS = {
+	noun: "chat",
+	nounPlural: "chats",
+};
 
 export const useUpdateChatMutation = (
 	opts: ReturnType<typeof orpc.chat.update.mutationOptions> = {},
@@ -36,6 +49,7 @@ export const useUpdateChatMutation = (
 
 export const useDeleteChatsMutation = (
 	opts: ReturnType<typeof orpc.chat.delete.mutationOptions> = {},
+	target?: DestructiveTarget,
 ) => {
 	const queryClient = useQueryClient();
 
@@ -59,18 +73,23 @@ export const useDeleteChatsMutation = (
 				},
 			}),
 		messages: {
-			loading: "Deleting chats...",
-			success: "Chats deleted",
-			error: "Failed to delete chats",
+			loading: ({ input }) =>
+				describeProgress("Deleting", input.refs.length, CHAT_NOUNS, target),
+			success: ({ input }) =>
+				describeOutcome(input.refs.length, CHAT_NOUNS, "deleted", target),
+			error: ({ input }) =>
+				describeFailure(input.refs.length, CHAT_NOUNS, "deleted", target),
 		},
 		confirm: (input) => {
 			const count = input.refs.length;
-			const plural = count === 1 ? "" : "s";
 
 			return {
-				title: `Delete Chat${plural}`,
-				description: `Are you sure you want to delete ${count} chat${plural}? This action cannot be undone.`,
-				confirmText: "Delete",
+				title: `Delete ${describeTarget(count, CHAT_NOUNS, target)}?`,
+				description:
+					count === 1
+						? "Its messages and branches are removed for good."
+						: "Their messages and branches are removed for good.",
+				confirmText: describeAction("Delete", count, CHAT_NOUNS, target),
 				cancelText: "Cancel",
 			};
 		},

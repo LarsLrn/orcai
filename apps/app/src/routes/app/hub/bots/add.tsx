@@ -25,7 +25,7 @@ export const Route = createFileRoute("/app/hub/bots/add")({
 	head: () => ({
 		meta: [
 			{
-				title: "Create Bot",
+				title: "Create bot",
 			},
 		],
 	}),
@@ -38,10 +38,10 @@ function RouteComponent() {
 	return (
 		<Page>
 			<PageHeader>
-				<PageTitle>Create Bot</PageTitle>
+				<PageTitle>Create bot</PageTitle>
 				<PageDescription>
 					Follow the guided setup to define the bot, its AI behaviour, its
-					content collections, and its access settings.
+					repositories, and its access settings.
 				</PageDescription>
 			</PageHeader>
 			<PageContent>

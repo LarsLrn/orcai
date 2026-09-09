@@ -2,9 +2,10 @@
 	"$schema": "https://inlang.com/schema/inlang-message-format",
 	"example_message": "Hello world {username}",
 	"language": "Language",
+	"greeting_neutral": "Welcome",
 	"acidic_last_llama_peek": "Good morning",
 	"awful_salty_tern_cut": "Good afternoon",
 	"yummy_watery_hawk_grin": "Good evening",
-	"only_pink_meerkat_relish": "Welcome to your AI workspace. Start a conversation, continue recent work, or browse the library for pre-configured bots.",
+	"only_pink_meerkat_relish": "Ask questions against your organisation's approved sources, or build a bot that others can use.",
 	"fluffy_short_halibut_enchant": "About OrcAI"
 }

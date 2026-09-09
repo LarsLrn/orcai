@@ -33,7 +33,7 @@ export const Route = createFileRoute("/app/hub/blocks/add")({
 	head: () => ({
 		meta: [
 			{
-				title: "Add Block",
+				title: "Add block",
 			},
 		],
 	}),
@@ -47,9 +47,9 @@ function RouteComponent() {
 	return (
 		<Page>
 			<PageHeader>
-				<PageTitle>Add Block</PageTitle>
+				<PageTitle>Add block</PageTitle>
 				<PageDescription>
-					Create reusable AI behaviour, content collections, or image-generation
+					Create reusable AI behaviour, repositories, or image-generation
 					blocks.
 				</PageDescription>
 			</PageHeader>
@@ -58,19 +58,19 @@ function RouteComponent() {
 					{[
 						{
 							type: "template" as const,
-							title: "AI Behaviour",
-							description: "Define how the assistant should respond.",
+							title: "AI behaviour",
+							description: "Define how the bot should respond.",
 							icon: SparklesIcon,
 						},
 						{
 							type: "database" as const,
-							title: "Content Collection",
-							description: "Bundle reusable content with retrieval settings.",
+							title: "Repository",
+							description: "Bundle reusable assets with retrieval settings.",
 							icon: BookOpenIcon,
 						},
 						{
 							type: "imageGeneration" as const,
-							title: "Image Generation",
+							title: "Image generation",
 							description: "Configure image-generation behaviour.",
 							icon: ImageIcon,
 						},
@@ -100,16 +100,16 @@ function RouteComponent() {
 					<CardHeader>
 						<CardTitle>
 							{type === "template"
-								? "AI Behaviour"
+								? "AI behaviour"
 								: type === "database"
-									? "Content Collection"
-									: "Image Generation"}
+									? "Repository"
+									: "Image generation"}
 						</CardTitle>
 						<CardDescription>
 							{type === "template"
 								? "Configure a reusable AI behaviour block."
 								: type === "database"
-									? "Configure a reusable content collection."
+									? "Configure a reusable repository."
 									: "Configure a reusable image-generation block."}
 						</CardDescription>
 					</CardHeader>

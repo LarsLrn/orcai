@@ -82,7 +82,7 @@ function RouteComponent() {
 				<PageTitle>{model.name}</PageTitle>
 				<PageDescription>{model.description}</PageDescription>
 				<div className="flex flex-wrap gap-2">
-					<Badge variant={model.isDeprecated ? "destructive" : "secondary"}>
+					<Badge variant={model.isDeprecated ? "warning" : "success"}>
 						{model.isDeprecated ? (
 							<BadgeX className="size-3" />
 						) : (
@@ -111,7 +111,7 @@ function RouteComponent() {
 						})}
 					>
 						<EditIcon />
-						Edit Model
+						Edit model
 					</Link>
 					<Link
 						to="/app/providers/$providerId"
@@ -123,7 +123,7 @@ function RouteComponent() {
 						})}
 					>
 						<LinkIcon />
-						View Provider
+						View provider
 					</Link>
 				</PageAction>
 			</PageHeader>
@@ -131,7 +131,7 @@ function RouteComponent() {
 				<div className="space-y-6 lg:col-span-2">
 					<Card>
 						<CardHeader>
-							<CardTitle>Model Details</CardTitle>
+							<CardTitle>Model details</CardTitle>
 							<CardDescription>
 								Core metadata used for routing and model selection.
 							</CardDescription>
@@ -140,7 +140,7 @@ function RouteComponent() {
 							<div className="flex items-start justify-between gap-4">
 								<div className="flex items-center gap-2 text-muted-foreground text-sm">
 									<TagIcon className="h-4 w-4" />
-									Provider Model ID
+									Provider model ID
 								</div>
 								<code className="rounded border bg-muted/40 px-2 py-1 font-mono text-xs">
 									{model.providerModelId}
@@ -160,7 +160,7 @@ function RouteComponent() {
 							<div className="flex items-start justify-between gap-4">
 								<div className="flex items-center gap-2 text-muted-foreground text-sm">
 									<ServerIcon className="h-4 w-4" />
-									Provider Compatibility
+									Provider compatibility
 								</div>
 								<span className="font-medium">{compatibilityLabel}</span>
 							</div>
@@ -193,7 +193,7 @@ function RouteComponent() {
 
 					<Card>
 						<CardHeader>
-							<CardTitle>Provider Connection</CardTitle>
+							<CardTitle>Provider connection</CardTitle>
 							<CardDescription>
 								The provider endpoint and status backing this model.
 							</CardDescription>
@@ -226,7 +226,7 @@ function RouteComponent() {
 								})}
 							>
 								<EditIcon />
-								Edit Provider
+								Edit provider
 							</Link>
 						</CardContent>
 					</Card>

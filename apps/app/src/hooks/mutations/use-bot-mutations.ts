@@ -1,7 +1,20 @@
 import { useQueryClient } from "@tanstack/react-query";
 import { useRouter } from "@tanstack/react-router";
 import { useMutationAction } from "@/hooks/actions/use-mutation-action";
+import {
+	type DestructiveTarget,
+	describeAction,
+	describeFailure,
+	describeOutcome,
+	describeProgress,
+	describeTarget,
+} from "@/hooks/mutations/destructive-copy";
 import { orpc } from "@/lib/orpc/orpc";
+
+const BOT_NOUNS = {
+	noun: "bot",
+	nounPlural: "bots",
+};
 
 export const useSaveBotMutation = (
 	opts: ReturnType<typeof orpc.bot.save.mutationOptions> = {},
@@ -77,6 +90,7 @@ export const usePublishBotMutation = (
 
 export const useDeleteBotsMutation = (
 	opts: ReturnType<typeof orpc.bot.delete.mutationOptions> = {},
+	target?: DestructiveTarget,
 ) => {
 	const queryClient = useQueryClient();
 
@@ -100,18 +114,23 @@ export const useDeleteBotsMutation = (
 				},
 			}),
 		messages: {
-			loading: "Deleting bots...",
-			success: "Bots deleted",
-			error: "Failed to delete bots",
+			loading: ({ input }) =>
+				describeProgress("Deleting", input.refs.length, BOT_NOUNS, target),
+			success: ({ input }) =>
+				describeOutcome(input.refs.length, BOT_NOUNS, "deleted", target),
+			error: ({ input }) =>
+				describeFailure(input.refs.length, BOT_NOUNS, "deleted", target),
 		},
 		confirm: (input) => {
 			const count = input.refs.length;
-			const plural = count === 1 ? "" : "s";
 
 			return {
-				title: `Delete Bot${plural}`,
-				description: `Are you sure you want to delete ${count} bot${plural}? This action cannot be undone.`,
-				confirmText: "Delete",
+				title: `Delete ${describeTarget(count, BOT_NOUNS, target)}?`,
+				description:
+					count === 1
+						? "Everyone it was shared with loses access. Chats that used it keep their messages but lose the bot."
+						: "Everyone they were shared with loses access. Chats that used them keep their messages but lose the bot.",
+				confirmText: describeAction("Delete", count, BOT_NOUNS, target),
 				cancelText: "Cancel",
 			};
 		},

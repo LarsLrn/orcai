@@ -32,9 +32,7 @@ const SwitchField = ({
 		<FieldLabel htmlFor={id}>
 			<Field orientation="horizontal" data-invalid={isInvalid}>
 				<FieldContent>
-					<FieldTitle id={titleId} className="font-bold">
-						{label}
-					</FieldTitle>
+					<FieldTitle id={titleId}>{label}</FieldTitle>
 					{description && <FieldDescription>{description}</FieldDescription>}
 					{isInvalid && <FieldError errors={errors} />}
 				</FieldContent>

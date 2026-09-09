@@ -49,7 +49,7 @@ const ManageSidebarGroup = () => {
 
 	return (
 		<SidebarGroup className="p-0">
-			<SidebarGroupLabel>Your Workspace</SidebarGroupLabel>
+			<SidebarGroupLabel>Your workspace</SidebarGroupLabel>
 			<SidebarGroupContent>
 				<SidebarMenu>
 					{visibleMenu.map((item) => (

@@ -21,14 +21,14 @@ const DisplayPointImage = ({
 	);
 
 	if (status === "pending") {
-		return <Skeleton className="aspect-[4/3] w-full rounded-lg" />;
+		return <Skeleton className="aspect-4/3 w-full rounded-lg" />;
 	}
 
 	if (status === "error") {
 		return (
 			<Placeholder
 				title="Image unavailable"
-				description="The extracted image could not be loaded."
+				description="Reload the page to try again."
 				Icon={ImageOffIcon}
 				className="min-h-52 rounded-lg border bg-background"
 			/>

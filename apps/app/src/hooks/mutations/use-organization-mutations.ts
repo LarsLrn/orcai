@@ -101,9 +101,9 @@ export const useDeleteOrganizationsMutation = (
 				},
 			}),
 		messages: {
-			loading: "Deleting organisation...",
+			loading: "Deleting the organisation...",
 			success: "Organisation deleted",
-			error: "Failed to delete organisation",
+			error: "The organisation was not deleted. Try again.",
 		},
 	});
 };

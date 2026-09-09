@@ -45,7 +45,6 @@ export const Route = createFileRoute("/app/hub/bots/")({
 });
 
 function RouteComponent() {
-	const navigate = useNavigate();
 	const { data: bots } = useSuspenseQuery(
 		orpc.bot.list.queryOptions({
 			input: {
@@ -62,7 +61,6 @@ function RouteComponent() {
 			},
 		}),
 	);
-	const { mutate: deleteBots } = useDeleteBotsMutation();
 	const { data: organizationCapabilities } = useOrganizationCapabilities([
 		"create_bot",
 	]);
@@ -77,8 +75,8 @@ function RouteComponent() {
 				<SectionHeader>
 					<SectionTitle>Published</SectionTitle>
 					<SectionDescription>
-						Configured AI experiences ready to use in chats across your
-						workspace.
+						Bots ready to use in chats across your workspace. A bot bundles a
+						behaviour, its repositories, a model and its access rules.
 					</SectionDescription>
 					{canCreateBot ? (
 						<SectionAction>
@@ -89,7 +87,7 @@ function RouteComponent() {
 								})}
 							>
 								<PlusIcon />
-								Create Bot
+								Create bot
 							</Link>
 						</SectionAction>
 					) : null}
@@ -98,6 +96,7 @@ function RouteComponent() {
 					{bots.data.length === 0 ? (
 						<Placeholder
 							Icon={BotIcon}
+							tone="bot"
 							title="No published bots yet"
 							description="Create and publish a bot to make it available for chats."
 							actions={
@@ -105,7 +104,7 @@ function RouteComponent() {
 									? [
 											{
 												key: "create",
-												label: "Create Bot",
+												label: "Create bot",
 												icon: PlusIcon,
 												variant: "default",
 												linkProps: {
@@ -135,7 +134,7 @@ function RouteComponent() {
 			{drafts.data.length > 0 && (
 				<Section>
 					<SectionHeader>
-						<SectionTitle>Your Drafts</SectionTitle>
+						<SectionTitle>Your drafts</SectionTitle>
 						<SectionDescription>
 							Resume bot setups that have not been published yet.
 						</SectionDescription>
@@ -143,48 +142,7 @@ function RouteComponent() {
 					<SectionContent>
 						<SectionGrid layout="3">
 							{drafts.data.map((bot) => (
-								<BotCard
-									key={bot.id}
-									bot={bot}
-									actions={{
-										dropdown: [
-											...(hasCapability(bot.capabilities, "edit")
-												? [
-														{
-															key: "edit",
-															label: "Edit Draft",
-															icon: EditIcon,
-															onClick: () =>
-																navigate({
-																	to: "/app/hub/bots/$botId/setup",
-																	params: {
-																		botId: bot.id,
-																	},
-																}),
-														},
-													]
-												: []),
-											...(hasCapability(bot.capabilities, "delete")
-												? [
-														{
-															key: "delete",
-															label: "Delete Draft",
-															icon: TrashIcon,
-															onClick: () =>
-																deleteBots({
-																	refs: [
-																		{
-																			id: bot.id,
-																		},
-																	],
-																}),
-														},
-													]
-												: []),
-										],
-										footer: [],
-									}}
-								/>
+								<DraftBotCard key={bot.id} bot={bot} />
 							))}
 						</SectionGrid>
 					</SectionContent>
@@ -193,3 +151,63 @@ function RouteComponent() {
 		</div>
 	);
 }
+
+const DraftBotCard = ({
+	bot,
+}: {
+	bot: React.ComponentProps<typeof BotCard>["bot"];
+}) => {
+	const navigate = useNavigate();
+	const { mutate: deleteBots } = useDeleteBotsMutation(
+		{},
+		{
+			names: [
+				bot.name,
+			],
+		},
+	);
+
+	return (
+		<BotCard
+			bot={bot}
+			actions={{
+				dropdown: [
+					...(hasCapability(bot.capabilities, "edit")
+						? [
+								{
+									key: "edit",
+									label: "Edit draft",
+									icon: EditIcon,
+									onClick: () =>
+										navigate({
+											to: "/app/hub/bots/$botId/setup",
+											params: {
+												botId: bot.id,
+											},
+										}),
+								},
+							]
+						: []),
+					...(hasCapability(bot.capabilities, "delete")
+						? [
+								{
+									key: "delete",
+									label: "Delete draft",
+									icon: TrashIcon,
+									onClick: () =>
+										deleteBots({
+											refs: [
+												{
+													id: bot.id,
+												},
+											],
+										}),
+								},
+							]
+						: []),
+				],
+				footer: [],
+			}}
+		/>
+	);
+};

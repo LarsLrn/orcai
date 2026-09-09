@@ -19,7 +19,7 @@ const InvitesTableActions = () => {
 
 		if (organizationIds.size > 1) {
 			toast.error("Mixed organisations selected", {
-				description: "Please select invitations from a single organisation.",
+				description: "Select invitations from one organisation only.",
 			});
 			return;
 		}
@@ -27,7 +27,7 @@ const InvitesTableActions = () => {
 		const organizationId = selectedInvitations[0]?.organizationId;
 
 		if (!organizationId) {
-			toast.error("Organisation ID is required");
+			toast.error("Select an organisation first.");
 			return;
 		}
 

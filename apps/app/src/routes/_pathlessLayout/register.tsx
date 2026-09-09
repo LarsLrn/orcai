@@ -99,7 +99,7 @@ function RouteComponent() {
 	return (
 		<Card className="max-w-xl">
 			<CardHeader>
-				<CardTitle>Sign Up</CardTitle>
+				<CardTitle>Create your account</CardTitle>
 				<CardDescription>
 					{organizationName
 						? `${organizationName} invited you. Create your account to join.`

@@ -1,7 +1,6 @@
 import { modelCapabilities, providerCompatibilities } from "@orcai/core";
 import { useSuspenseQuery } from "@tanstack/react-query";
 import { createFileRoute, Link } from "@tanstack/react-router";
-import { format } from "date-fns";
 import {
 	BadgeCheck,
 	BadgeX,
@@ -31,6 +30,7 @@ import {
 	PageTitle,
 } from "@/components/ui/shell/page";
 import { orpc } from "@/lib/orpc/orpc";
+import { formatDisplayTimestamp } from "@/lib/presentation/format-timestamp";
 
 export const Route = createFileRoute("/app/providers/$providerId/")({
 	component: RouteComponent,
@@ -59,7 +59,7 @@ const formatTimestamp = (timestamp?: Date | string | null) => {
 		timestamp instanceof Date ? timestamp : new Date(timestamp);
 	return Number.isNaN(parsedDate.getTime())
 		? "Not available"
-		: format(parsedDate, "MMM dd, yyyy 'at' HH:mm");
+		: formatDisplayTimestamp(parsedDate);
 };
 
 const getEndpointHost = (endpoint: string) => {
@@ -139,7 +139,7 @@ function RouteComponent() {
 						})}
 					>
 						<EditIcon />
-						Edit Provider
+						Edit provider
 					</Link>
 					<Link
 						to="/app/models/add"
@@ -148,7 +148,7 @@ function RouteComponent() {
 						})}
 					>
 						<PlusIcon />
-						Add Model
+						Add model
 					</Link>
 				</PageAction>
 			</PageHeader>
@@ -156,7 +156,7 @@ function RouteComponent() {
 				<div className="space-y-6 lg:col-span-2">
 					<Card>
 						<CardHeader>
-							<CardTitle>Provider Overview</CardTitle>
+							<CardTitle>Provider overview</CardTitle>
 							<CardDescription>
 								Model coverage and endpoint summary for this provider.
 							</CardDescription>
@@ -165,7 +165,7 @@ function RouteComponent() {
 							<div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
 								<div>
 									<div className="text-muted-foreground text-xs uppercase">
-										Endpoint Host
+										Endpoint host
 									</div>
 									<div className="mt-1 font-semibold text-sm">
 										{endpointHost}
@@ -173,7 +173,7 @@ function RouteComponent() {
 								</div>
 								<div>
 									<div className="text-muted-foreground text-xs uppercase">
-										Active Models
+										Active models
 									</div>
 									<div className="mt-1 font-semibold text-sm">
 										{activeModelCount}
@@ -181,7 +181,7 @@ function RouteComponent() {
 								</div>
 								<div>
 									<div className="text-muted-foreground text-xs uppercase">
-										Deprecated Models
+										Deprecated models
 									</div>
 									<div className="mt-1 font-semibold text-sm">
 										{deprecatedModelCount}
@@ -189,7 +189,7 @@ function RouteComponent() {
 								</div>
 								<div>
 									<div className="text-muted-foreground text-xs uppercase">
-										Capability Coverage
+										Capability coverage
 									</div>
 									<div className="mt-1 font-semibold text-sm">
 										{supportedCapabilities.length}
@@ -201,7 +201,7 @@ function RouteComponent() {
 
 					<Card>
 						<CardHeader>
-							<CardTitle>Provider Configuration</CardTitle>
+							<CardTitle>Provider configuration</CardTitle>
 							<CardDescription>
 								Connection details and metadata for this provider profile.
 							</CardDescription>
@@ -254,7 +254,7 @@ function RouteComponent() {
 
 					<Card>
 						<CardHeader>
-							<CardTitle>Connected Models</CardTitle>
+							<CardTitle>Connected models</CardTitle>
 							<CardDescription>
 								Models currently configured to use this provider.
 							</CardDescription>
@@ -282,9 +282,7 @@ function RouteComponent() {
 													</p>
 												</div>
 												<Badge
-													variant={
-														model.isDeprecated ? "destructive" : "secondary"
-													}
+													variant={model.isDeprecated ? "warning" : "success"}
 												>
 													{model.isDeprecated ? (
 														<BadgeX className="h-3 w-3" />

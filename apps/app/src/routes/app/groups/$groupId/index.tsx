@@ -1,4 +1,4 @@
-import { useQuery, useQueryClient } from "@tanstack/react-query";
+import { useQuery } from "@tanstack/react-query";
 import { createFileRoute, useNavigate } from "@tanstack/react-router";
 import { PlusIcon, SearchIcon, Trash2Icon, UsersIcon } from "lucide-react";
 import { useEffect, useMemo, useState } from "react";
@@ -22,7 +22,12 @@ import {
 	PageTitle,
 } from "@/components/ui/shell/page";
 import { Textarea } from "@/components/ui/textarea";
-import { useMutationAction } from "@/hooks/actions/use-mutation-action";
+import {
+	useAddGroupMembersMutation,
+	useDeleteGroupsMutation,
+	useRemoveGroupMembersMutation,
+	useUpdateGroupMutation,
+} from "@/hooks/mutations/use-group-mutations";
 import { orpc } from "@/lib/orpc/orpc";
 
 export const Route = createFileRoute("/app/groups/$groupId/")({
@@ -32,7 +37,6 @@ export const Route = createFileRoute("/app/groups/$groupId/")({
 function RouteComponent() {
 	const { groupId } = Route.useParams();
 	const navigate = useNavigate();
-	const queryClient = useQueryClient();
 
 	const [memberSearch, setMemberSearch] = useState("");
 	const [userSearch, setUserSearch] = useState("");
@@ -75,79 +79,25 @@ function RouteComponent() {
 		group.data?.data,
 	]);
 
-	const refreshGroupQueries = () => {
-		queryClient.invalidateQueries({
-			queryKey: orpc.group.key(),
-		});
-	};
-
-	const updateGroup = useMutationAction({
-		mutationOptions: () =>
-			orpc.group.update.mutationOptions({
-				onSuccess: refreshGroupQueries,
-			}),
-		messages: {
-			loading: "Saving group...",
-			success: "Group updated",
-			error: "Failed to update group",
+	const updateGroup = useUpdateGroupMutation();
+	const deleteGroup = useDeleteGroupsMutation(
+		{
+			onSuccess: async () => {
+				await navigate({
+					to: "/app/groups",
+				});
+			},
 		},
+		{
+			names: [
+				group.data?.data.name ?? name,
+			],
+		},
+	);
+	const addMembers = useAddGroupMembersMutation({
+		onSuccess: () => setSelectedUserIds([]),
 	});
-
-	const deleteGroup = useMutationAction({
-		mutationOptions: () =>
-			orpc.group.delete.mutationOptions({
-				onSuccess: async () => {
-					refreshGroupQueries();
-					await navigate({
-						to: "/app/groups",
-					});
-				},
-			}),
-		messages: {
-			loading: "Deleting group...",
-			success: "Group deleted",
-			error: "Failed to delete group",
-		},
-		confirm: {
-			title: "Delete group",
-			description: "This revokes all grants tied to this group.",
-			confirmText: "Delete",
-			cancelText: "Cancel",
-		},
-	});
-
-	const addMembers = useMutationAction({
-		mutationOptions: () =>
-			orpc.group.addMembers.mutationOptions({
-				onSuccess: () => {
-					refreshGroupQueries();
-					setSelectedUserIds([]);
-				},
-			}),
-		messages: {
-			loading: "Adding members...",
-			success: "Members added",
-			error: "Failed to add members",
-		},
-	});
-
-	const removeMembers = useMutationAction({
-		mutationOptions: () =>
-			orpc.group.removeMembers.mutationOptions({
-				onSuccess: refreshGroupQueries,
-			}),
-		messages: {
-			loading: "Removing members...",
-			success: "Members removed",
-			error: "Failed to remove members",
-		},
-		confirm: {
-			title: "Remove members",
-			description: "Selected users will be removed from this group.",
-			confirmText: "Remove",
-			cancelText: "Cancel",
-		},
-	});
+	const removeMembers = useRemoveGroupMembersMutation();
 
 	const memberIds = useMemo(
 		() => new Set(members.data?.data.map((entry) => entry.user.id) ?? []),
@@ -199,8 +149,10 @@ function RouteComponent() {
 			<PageContent className="space-y-4">
 				<Card>
 					<CardHeader>
-						<CardTitle>Group Settings</CardTitle>
-						<CardDescription>System groups are immutable.</CardDescription>
+						<CardTitle>Group settings</CardTitle>
+						<CardDescription>
+							System groups cannot be renamed or deleted.
+						</CardDescription>
 					</CardHeader>
 					<CardContent className="space-y-3">
 						<div className="space-y-2">
@@ -269,7 +221,7 @@ function RouteComponent() {
 					</CardHeader>
 					<CardContent className="space-y-4">
 						{!isSystemGroup && (
-							<div className="space-y-3 rounded-lg border p-3">
+							<div className="space-y-3 rounded-xl border p-3">
 								<div className="flex items-center gap-2">
 									<UsersIcon className="h-4 w-4 text-muted-foreground" />
 									<p className="font-medium text-sm">Add members</p>
@@ -283,7 +235,7 @@ function RouteComponent() {
 										onChange={(event) => setUserSearch(event.target.value)}
 									/>
 								</div>
-								<div className="max-h-56 space-y-1 overflow-auto rounded border p-1">
+								<div className="max-h-56 space-y-1 overflow-auto rounded-md border p-1">
 									{availableUsers.map((user) => {
 										const isSelected = selectedUserIds.includes(user.id);
 										return (
@@ -346,7 +298,7 @@ function RouteComponent() {
 								{members.data?.data.map((entry) => (
 									<div
 										key={entry.user.id}
-										className="flex items-center justify-between rounded-lg border p-3"
+										className="flex items-center justify-between rounded-xl border p-3"
 									>
 										<div>
 											<p className="font-medium text-sm">{entry.user.name}</p>

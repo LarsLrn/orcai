@@ -53,7 +53,7 @@ const QdrantPlaygroundResults = ({
 	if (!points || points.data.length === 0) {
 		return (
 			<Placeholder
-				title="No matching content"
+				title="No matching passages"
 				description="Try a different query or retrieval mode."
 			/>
 		);

@@ -41,7 +41,7 @@ const CodeBlockToolbar = ({
 				}
 			/>
 			<TooltipContent>
-				<span>Code Block</span>
+				<span>Code block</span>
 			</TooltipContent>
 		</Tooltip>
 	);

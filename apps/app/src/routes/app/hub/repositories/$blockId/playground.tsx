@@ -43,7 +43,7 @@ export const Route = createFileRoute(
 	head: () => ({
 		meta: [
 			{
-				title: "Repository Playground",
+				title: "Repository playground",
 			},
 		],
 	}),
@@ -78,8 +78,8 @@ function RouteComponent() {
 					/>
 				) : (
 					<Placeholder
-						title="No Search Results"
-						description="Search for chunks to see results."
+						title="No results yet"
+						description="Run a search to see which passages this repository returns."
 					/>
 				)}
 			</PageContent>

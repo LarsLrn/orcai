@@ -1,6 +1,8 @@
 import { quotaPoolListInputSchema } from "@orcai/schema";
 import { useSuspenseQuery } from "@tanstack/react-query";
 import { createFileRoute, Link } from "@tanstack/react-router";
+import { GaugeIcon } from "lucide-react";
+import { Placeholder } from "@/components/placeholders/placeholder";
 import { quotaPoolTableColumns } from "@/components/quota/table/quota-pool-table-columns";
 import { buttonVariants } from "@/components/ui/button";
 import { DataTable } from "@/components/ui/data-table/data-table";
@@ -60,7 +62,7 @@ function RouteComponent() {
 	return (
 		<Page>
 			<PageHeader>
-				<PageTitle>Quota Pools</PageTitle>
+				<PageTitle>Quota pools</PageTitle>
 				<PageAction>
 					<Link
 						to="/app/quotas/add"
@@ -68,34 +70,51 @@ function RouteComponent() {
 							variant: "default",
 						})}
 					>
-						Add Pool
+						Add pool
 					</Link>
 				</PageAction>
 			</PageHeader>
 			<PageContent>
-				<DataTable
-					data={pools.data}
-					columns={quotaPoolTableColumns}
-					state={{
-						pagination: {
-							pageIndex,
-							pageSize,
-						},
-						sorting: sort,
-					}}
-					options={{
-						rowCount: pools.rowCount,
-						uidAccessor: "id",
-					}}
-				>
-					<DataTableToolbar>
-						<DataTableToolbarActions>
-							<DataTableViewOptions />
-						</DataTableToolbarActions>
-					</DataTableToolbar>
-					<DataTableBody />
-					<DataTablePagination />
-				</DataTable>
+				{pools.rowCount === 0 ? (
+					<Placeholder
+						Icon={GaugeIcon}
+						title="No quota pools yet"
+						description="A quota pool bounds how much a provider may be used in a period. Add one to meter tokens or requests for this organisation."
+						actions={[
+							{
+								key: "add",
+								label: "Add pool",
+								linkProps: {
+									to: "/app/quotas/add",
+								},
+							},
+						]}
+					/>
+				) : (
+					<DataTable
+						data={pools.data}
+						columns={quotaPoolTableColumns}
+						state={{
+							pagination: {
+								pageIndex,
+								pageSize,
+							},
+							sorting: sort,
+						}}
+						options={{
+							rowCount: pools.rowCount,
+							uidAccessor: "id",
+						}}
+					>
+						<DataTableToolbar>
+							<DataTableToolbarActions>
+								<DataTableViewOptions />
+							</DataTableToolbarActions>
+						</DataTableToolbar>
+						<DataTableBody />
+						<DataTablePagination />
+					</DataTable>
+				)}
 			</PageContent>
 		</Page>
 	);

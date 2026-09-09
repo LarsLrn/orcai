@@ -48,9 +48,7 @@ const PrincipalPicker = ({
 		) ?? [];
 
 	const searchPlaceholder =
-		principalType === "user"
-			? "Search organisation members..."
-			: "Search organisation groups...";
+		principalType === "user" ? "Search members" : "Search groups";
 
 	return (
 		<div className="space-y-2">
@@ -66,7 +64,7 @@ const PrincipalPicker = ({
 			</div>
 			<div className="flex items-center justify-between">
 				<p className="text-muted-foreground text-xs">
-					Selected {selectedPrincipalIds.length}
+					{selectedPrincipalIds.length} selected
 				</p>
 				<Button
 					variant="destructive"
@@ -79,7 +77,7 @@ const PrincipalPicker = ({
 				</Button>
 			</div>
 
-			<ScrollArea className="h-48 rounded-lg border">
+			<ScrollArea className="h-48 rounded-xl border">
 				<div className="flex flex-col gap-1 p-1">
 					{visiblePrincipals.map((principal) => {
 						const isSelected = selectedPrincipalIds.includes(principal.id);
@@ -131,7 +129,7 @@ const PrincipalPicker = ({
 
 					{!principals.isLoading && visiblePrincipals.length === 0 && (
 						<div className="p-4 text-center text-muted-foreground text-sm">
-							No matching principals found.
+							No people or groups match this search.
 						</div>
 					)}
 				</div>
