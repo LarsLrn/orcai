@@ -1,22 +1,20 @@
 import type {
 	PrincipalType,
 	ResourceGrantRole,
-	ResourceGrantSource,
 	ResourcePrincipal,
+	ResourcePrincipalIdentity,
 	ResourceRef,
 } from "@orcai/schema";
-import {
-	ALL_MEMBERS_GROUP_SYSTEM_KEY,
-	RESOURCE_GRANT_SOURCE,
-} from "@orcai/schema";
+import { ALL_MEMBERS_GROUP_SYSTEM_KEY } from "@orcai/schema";
 import {
 	AlertCircleIcon,
 	GlobeIcon,
 	Loader2Icon,
 	PlusIcon,
 } from "lucide-react";
-import { useEffect, useMemo, useState } from "react";
+import { useState } from "react";
 import { GrantList } from "@/components/access/grant-list";
+import { InheritedAccessSummary } from "@/components/access/inherited-access-summary";
 import { PrincipalPicker } from "@/components/access/principal-picker";
 import { VisibilityToggle } from "@/components/access/visibility-toggle";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
@@ -25,6 +23,7 @@ import { OptionPicker } from "@/components/ui/composed/option-picker";
 import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import {
 	useGrantResourceAccess,
+	useInheritedAccess,
 	useResourceGrants,
 	useResourceVisibility,
 	useRevokeResourceAccess,
@@ -32,40 +31,39 @@ import {
 } from "@/hooks/authz/use-resource-access";
 import { RESOURCES, ROLES } from "@/settings/display-config";
 
-const isDirectSource = (source: ResourceGrantSource) =>
-	source === RESOURCE_GRANT_SOURCE.DIRECT_USER ||
-	source === RESOURCE_GRANT_SOURCE.DIRECT_GROUP ||
-	source === RESOURCE_GRANT_SOURCE.DIRECT_GROUP_ALL_MEMBERS;
+const toPrincipalIdentity = (
+	principal: ResourcePrincipal,
+): ResourcePrincipalIdentity =>
+	principal.type === "user"
+		? {
+				principalType: "user",
+				principalId: principal.id,
+			}
+		: {
+				principalType: "group",
+				principalId: principal.id,
+			};
 
 type AccessManagerContentProps = {
 	resourceRef: ResourceRef;
 	resourceName?: string;
-	enabled?: boolean;
 };
 
 const AccessManagerContent = ({
 	resourceRef,
 	resourceName,
-	enabled = true,
 }: AccessManagerContentProps) => {
 	const [grantSearch, setGrantSearch] = useState("");
 	const [principalSearch, setPrincipalSearch] = useState("");
 	const [principalType, setPrincipalType] = useState<PrincipalType>("group");
-	const [selectedPrincipalIds, setSelectedPrincipalIds] = useState<string[]>(
-		[],
-	);
-	const [selectedPrincipalMap, setSelectedPrincipalMap] = useState<
-		Record<string, ResourcePrincipal>
-	>({});
+	const [selectedPrincipals, setSelectedPrincipals] = useState<
+		ResourcePrincipal[]
+	>([]);
 	const [selectedRole, setSelectedRole] = useState<ResourceGrantRole>("viewer");
-	const [projectionNotice, setProjectionNotice] = useState<string | null>(null);
 
-	const grants = useResourceGrants(resourceRef, {
-		enabled,
-	});
-	const visibility = useResourceVisibility(resourceRef, {
-		enabled,
-	});
+	const grants = useResourceGrants(resourceRef);
+	const inherited = useInheritedAccess(resourceRef);
+	const visibility = useResourceVisibility(resourceRef);
 
 	const grantAccess = useGrantResourceAccess(resourceRef);
 	const revokeAccess = useRevokeResourceAccess(resourceRef);
@@ -74,35 +72,6 @@ const AccessManagerContent = ({
 	const isMutating =
 		grantAccess.isPending || revokeAccess.isPending || setVisibility.isPending;
 	const isRefreshing = grants.isFetching || visibility.isFetching;
-	const isBusy = isMutating || isRefreshing;
-
-	useEffect(() => {
-		if (!enabled) {
-			setGrantSearch("");
-			setPrincipalSearch("");
-			setPrincipalType("user");
-			setSelectedPrincipalIds([]);
-			setSelectedPrincipalMap({});
-			setSelectedRole("viewer");
-			setProjectionNotice(null);
-		}
-	}, [
-		enabled,
-	]);
-
-	const directGrants = useMemo(
-		() =>
-			(grants.data?.data ?? []).filter((grant) => isDirectSource(grant.source)),
-		[
-			grants.data?.data,
-		],
-	);
-
-	const selectedPrincipals = selectedPrincipalIds
-		.map((id) => selectedPrincipalMap[id])
-		.filter(
-			(principal): principal is ResourcePrincipal => principal !== undefined,
-		);
 
 	const selectedHasAllMembers = selectedPrincipals.some(
 		(principal) =>
@@ -111,73 +80,26 @@ const AccessManagerContent = ({
 			principal.systemKey === ALL_MEMBERS_GROUP_SYSTEM_KEY,
 	);
 
-	useEffect(() => {
-		if (selectedHasAllMembers && selectedRole !== "viewer") {
-			setSelectedRole("viewer");
-		}
-	}, [
-		selectedHasAllMembers,
-		selectedRole,
-	]);
+	const effectiveRole = selectedHasAllMembers ? "viewer" : selectedRole;
 
 	const handleGrant = async () => {
 		if (selectedPrincipals.length === 0) {
 			return;
 		}
 
-		const results = await Promise.all(
-			selectedPrincipals.map((principal) =>
-				grantAccess.mutateAsync({
-					resourceType: resourceRef.type,
-					resourceId: resourceRef.id,
-					principalType: principal.type,
-					principalId: principal.id,
-					role: selectedRole,
-				}),
-			),
-		);
-
-		const successfulPrincipalIds = results
-			.map((result, index) =>
-				result.status === "success"
-					? String(selectedPrincipals[index]?.id)
-					: undefined,
-			)
-			.filter((value): value is string => value !== undefined);
-
-		if (successfulPrincipalIds.length > 0) {
-			setSelectedPrincipalIds((current) =>
-				current.filter((id) => !successfulPrincipalIds.includes(id)),
-			);
-		}
-
-		const hasProjectionLag = results.some((result) => {
-			if (result.status !== "success") {
-				return false;
-			}
-
-			const meta = (
-				result.data as {
-					meta?: {
-						zedToken?: string;
-					};
-				}
-			).meta;
-			return !meta?.zedToken;
+		const result = await grantAccess.mutateAsync({
+			resourceType: resourceRef.type,
+			resourceId: resourceRef.id,
+			principals: selectedPrincipals.map(toPrincipalIdentity),
+			role: effectiveRole,
 		});
 
-		if (hasProjectionLag) {
-			setProjectionNotice(
-				"Permissions are updating in the background. Changes may take a few seconds to appear.",
-			);
+		if (result.status === "success") {
+			setSelectedPrincipals([]);
 		}
 	};
 
 	const currentVisibility = visibility.data?.data.visibility ?? "private";
-
-	const excludedPrincipalIds = directGrants
-		.filter((grant) => grant.principalType === principalType)
-		.map((grant) => grant.principalId);
 
 	return (
 		<div className="space-y-6">
@@ -191,17 +113,13 @@ const AccessManagerContent = ({
 				</Alert>
 			)}
 
-			{projectionNotice && (
-				<Alert>
-					<AlertCircleIcon className="h-4 w-4" />
-					<AlertTitle>Permissions updating</AlertTitle>
-					<AlertDescription>{projectionNotice}</AlertDescription>
-				</Alert>
+			{inherited.data && (
+				<InheritedAccessSummary inherited={inherited.data.data} />
 			)}
 
 			<VisibilityToggle
 				visibility={currentVisibility}
-				disabled={isBusy}
+				disabled={isMutating}
 				onChange={(nextVisibility) =>
 					setVisibility.mutate({
 						resourceType: resourceRef.type,
@@ -228,7 +146,7 @@ const AccessManagerContent = ({
 							Give someone in this organisation access to this resource.
 						</p>
 					</div>
-					{isBusy && (
+					{(isMutating || isRefreshing) && (
 						<Loader2Icon className="h-4 w-4 animate-spin text-muted-foreground" />
 					)}
 				</div>
@@ -237,18 +155,17 @@ const AccessManagerContent = ({
 					value={principalType}
 					onValueChange={(value) => {
 						setPrincipalType(value as PrincipalType);
-						setSelectedPrincipalIds([]);
-						setSelectedPrincipalMap({});
+						setSelectedPrincipals([]);
 						setPrincipalSearch("");
 						setSelectedRole("viewer");
 					}}
 					className="mt-3"
 				>
 					<TabsList className="grid w-full grid-cols-2">
-						<TabsTrigger value="group" disabled={isBusy}>
+						<TabsTrigger value="group" disabled={isMutating}>
 							Groups
 						</TabsTrigger>
-						<TabsTrigger value="user" disabled={isBusy}>
+						<TabsTrigger value="user" disabled={isMutating}>
 							People
 						</TabsTrigger>
 					</TabsList>
@@ -260,36 +177,31 @@ const AccessManagerContent = ({
 						principalType={principalType}
 						query={principalSearch}
 						onQueryChange={setPrincipalSearch}
-						selectedPrincipalIds={selectedPrincipalIds}
-						onToggle={(principal) => {
-							setSelectedPrincipalMap((current) => ({
-								...current,
-								[principal.id]: principal,
-							}));
-							setSelectedPrincipalIds((current) =>
-								current.includes(principal.id)
-									? current.filter((id) => id !== principal.id)
+						selectedPrincipals={selectedPrincipals}
+						onToggle={(principal) =>
+							setSelectedPrincipals((current) =>
+								current.some((selected) => selected.id === principal.id)
+									? current.filter((selected) => selected.id !== principal.id)
 									: [
 											...current,
-											principal.id,
+											principal,
 										],
-							);
-						}}
-						onClearSelection={() => setSelectedPrincipalIds([])}
-						excludedPrincipalIds={excludedPrincipalIds}
-						disabled={isBusy}
+							)
+						}
+						onClearSelection={() => setSelectedPrincipals([])}
+						disabled={isMutating}
 					/>
 
 					<div className="space-y-2">
 						<OptionPicker
 							options={ROLES}
 							onChange={(role) => setSelectedRole(role)}
-							value={selectedRole}
-							disabled={isBusy || selectedHasAllMembers}
+							value={effectiveRole}
+							disabled={isMutating || selectedHasAllMembers}
 						/>
 						<Button
 							className="w-full"
-							disabled={selectedPrincipals.length === 0 || isBusy}
+							disabled={selectedPrincipals.length === 0 || isMutating}
 							onClick={handleGrant}
 						>
 							<PlusIcon />
@@ -300,16 +212,17 @@ const AccessManagerContent = ({
 			</div>
 
 			<GrantList
-				grants={directGrants}
+				grants={grants.data?.data ?? []}
 				search={grantSearch}
 				onSearchChange={setGrantSearch}
-				disabled={isBusy}
+				disabled={isMutating}
 				onChangeRole={(grant, role) =>
 					grantAccess.mutate({
 						resourceType: resourceRef.type,
 						resourceId: resourceRef.id,
-						principalType: grant.principalType,
-						principalId: grant.principalId,
+						principals: [
+							toPrincipalIdentity(grant.principal),
+						],
 						role,
 					})
 				}

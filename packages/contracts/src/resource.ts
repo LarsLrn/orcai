@@ -3,6 +3,8 @@ import {
 	resourceGetVisibilityResponseSchema,
 	resourceGrantInputSchema,
 	resourceGrantResponseSchema,
+	resourceInheritedAccessInputSchema,
+	resourceInheritedAccessResponseSchema,
 	resourceListGrantsInputSchema,
 	resourceListGrantsResponseSchema,
 	resourceListPrincipalsInputSchema,
@@ -31,6 +33,19 @@ export const resourceContracts = {
 		)
 		.input(resourceListGrantsInputSchema)
 		.output(resourceListGrantsResponseSchema),
+	inheritedAccess: base
+		.meta(
+			openapi({
+				method: "GET",
+				path: "/resources/{resourceType}/{resourceId}/inherited-access",
+				summary: "Summarise the access a resource inherits from its ancestors",
+				tags: [
+					"Resources",
+				],
+			}),
+		)
+		.input(resourceInheritedAccessInputSchema)
+		.output(resourceInheritedAccessResponseSchema),
 	listPrincipals: base
 		.meta(
 			openapi({

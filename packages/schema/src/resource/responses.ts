@@ -4,6 +4,7 @@ import {
 	statusResponseSchema,
 } from "../shared";
 import {
+	inheritedAccessSchema,
 	recentResourceSchema,
 	resourceGrantSchema,
 	resourcePrincipalSchema,
@@ -12,10 +13,14 @@ import {
 } from "./schema";
 
 export const resourceGrantResponseSchema =
-	createDataResponseSchema(resourceGrantSchema);
+	createListResponseSchema(resourceGrantSchema);
 
 export const resourceListGrantsResponseSchema =
 	createListResponseSchema(resourceGrantSchema);
+
+export const resourceInheritedAccessResponseSchema = createDataResponseSchema(
+	inheritedAccessSchema,
+);
 
 export const resourceListPrincipalsResponseSchema = createListResponseSchema(
 	resourcePrincipalSchema,

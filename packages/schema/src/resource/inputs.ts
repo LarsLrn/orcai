@@ -9,16 +9,12 @@ import {
 	resourceVisibilitySchema,
 } from "./schema";
 
-const resourceGrantRoleFieldsSchema = z.object({
-	role: resourceGrantRoleSchema,
-});
-
 export const resourceGrantInputSchema = z.intersection(
 	resourceIdentitySchema,
-	z.intersection(
-		resourcePrincipalIdentitySchema,
-		resourceGrantRoleFieldsSchema,
-	),
+	z.object({
+		principals: z.array(resourcePrincipalIdentitySchema).min(1).max(50),
+		role: resourceGrantRoleSchema,
+	}),
 );
 
 export const resourceRevokeInputSchema = z.intersection(
@@ -28,10 +24,14 @@ export const resourceRevokeInputSchema = z.intersection(
 
 export const resourceListGrantsInputSchema = resourceIdentitySchema;
 
+export const resourceInheritedAccessInputSchema = resourceIdentitySchema;
+
 export const resourceListPrincipalsInputSchema = createResourceScopedSchema({
 	principalType: principalTypeSchema.optional(),
 	query: z.string().trim().max(200).optional(),
 	limit: z.number().int().positive().max(100).default(25),
+	/** Leave out principals that already hold a direct grant on this resource. */
+	excludeGranted: z.boolean().default(false),
 });
 
 export const resourceSetVisibilityInputSchema = createResourceScopedSchema({

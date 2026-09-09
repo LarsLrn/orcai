@@ -74,12 +74,16 @@ Access dialogs are available on several resource types and allow:
 - Visibility management
 - Group grants
 - Direct grants
+- A summary of the access inherited from the bots and blocks above
 
 Whoever holds `manage_access` on a resource shares it. Admins and managers may
 grant to every group of the organisation; members and viewers may grant to the
 groups they belong to and to "All Members", which only ever receives a viewer
 grant. Other groups are neither offered in the access dialog nor accepted by
-the API.
+the API. The picker leaves out anyone who already holds a direct grant.
+Several people and groups can be selected and granted the same role together.
+If any of them cannot be granted, none of them are, and the error names each
+one that failed.
 
 A private resource is reachable only by those it was granted to, and never
 from another organisation: that boundary is what separates organisations. A
@@ -93,6 +97,20 @@ The same access manager pattern is reused for:
 - Content items
 - Blocks
 - Bots
+
+### Inherited Access
+
+Access cascades downwards. Sharing a bot lets its audience read the blocks it
+links and the assets those blocks carry. So a resource can be widely readable
+while its own grant list is empty, and the access dialog says so: it reports
+the bots and blocks whose grants reach the resource, how many groups and
+people arrive that way, and whether one of them is public.
+
+Inherited access is shown, not edited. `manage_access` does not cascade, so a
+grant that arrives from a bot is changed on that bot, which is where the
+summary's links lead. Bots and blocks the viewer cannot read are counted rather
+than named. Inherited access lasts only as long as the link above it: a direct
+grant is what survives a block being detached from its bot.
 
 ## Capability-Gated Workspace Sections
 

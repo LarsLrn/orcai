@@ -1,5 +1,9 @@
 import { getInitial } from "@orcai/core";
-import type { ResourceGrant, ResourceGrantRole } from "@orcai/schema";
+import type {
+	DirectGrantSource,
+	ResourceGrant,
+	ResourceGrantRole,
+} from "@orcai/schema";
 import {
 	ALL_MEMBERS_GROUP_SYSTEM_KEY,
 	RESOURCE_GRANT_SOURCE,
@@ -11,19 +15,11 @@ import { Button } from "@/components/ui/button";
 import { OptionPicker } from "@/components/ui/composed/option-picker";
 import { ROLES } from "@/settings/display-config";
 
-const sourceLabel: Record<ResourceGrant["source"], string> = {
+const sourceLabel: Record<DirectGrantSource, string> = {
 	[RESOURCE_GRANT_SOURCE.DIRECT_USER]: "Direct user",
 	[RESOURCE_GRANT_SOURCE.DIRECT_GROUP]: "Direct group",
 	[RESOURCE_GRANT_SOURCE.DIRECT_GROUP_ALL_MEMBERS]: "All Members",
-	[RESOURCE_GRANT_SOURCE.INHERITED_BOT]: "Inherited from bot",
-	[RESOURCE_GRANT_SOURCE.INHERITED_BLOCK]: "Inherited from block",
-	[RESOURCE_GRANT_SOURCE.PUBLIC]: "Public",
 };
-
-const isDirectGrant = (grant: ResourceGrant) =>
-	grant.source === RESOURCE_GRANT_SOURCE.DIRECT_USER ||
-	grant.source === RESOURCE_GRANT_SOURCE.DIRECT_GROUP ||
-	grant.source === RESOURCE_GRANT_SOURCE.DIRECT_GROUP_ALL_MEMBERS;
 
 const GrantEditorRow = ({
 	grant,
@@ -36,12 +32,10 @@ const GrantEditorRow = ({
 	onChangeRole: (role: ResourceGrantRole) => void;
 	onRevoke: () => void;
 }) => {
-	const isDirect = isDirectGrant(grant);
 	const isAllMembers =
 		grant.principal.type === "group" &&
 		grant.principal.kind === "system" &&
 		grant.principal.systemKey === ALL_MEMBERS_GROUP_SYSTEM_KEY;
-	const canEditRole = isDirect && !isAllMembers;
 
 	return (
 		<div className="flex flex-col gap-2 rounded-xl border p-3 sm:flex-row sm:items-center sm:justify-between">
@@ -72,30 +66,28 @@ const GrantEditorRow = ({
 			</div>
 
 			<div className="flex items-center gap-2">
-				{canEditRole ? (
+				{isAllMembers ? (
+					<Badge variant="outline" className="capitalize">
+						{ROLES.find((role) => role.value === grant.role)?.label}
+					</Badge>
+				) : (
 					<OptionPicker
 						options={ROLES}
 						value={grant.role}
 						onChange={onChangeRole}
 						disabled={disabled}
 					/>
-				) : (
-					<Badge variant="outline" className="capitalize">
-						{ROLES.find((role) => role.value === grant.role)?.label}
-					</Badge>
 				)}
-				{isDirect && (
-					<Button
-						variant="ghost"
-						size="icon-sm"
-						onClick={onRevoke}
-						disabled={disabled}
-						className="text-destructive"
-					>
-						<Trash2Icon className="h-4 w-4" />
-						<span className="sr-only">Revoke access</span>
-					</Button>
-				)}
+				<Button
+					variant="ghost"
+					size="icon-sm"
+					onClick={onRevoke}
+					disabled={disabled}
+					className="text-destructive"
+				>
+					<Trash2Icon className="h-4 w-4" />
+					<span className="sr-only">Revoke access</span>
+				</Button>
 			</div>
 		</div>
 	);

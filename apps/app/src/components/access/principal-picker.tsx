@@ -6,6 +6,7 @@ import type {
 } from "@orcai/schema";
 import { ALL_MEMBERS_GROUP_SYSTEM_KEY } from "@orcai/schema";
 import { SearchIcon, UserIcon, UsersIcon } from "lucide-react";
+import { useDebounceValue } from "usehooks-ts";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Button } from "@/components/ui/button";
 import { SelectableListItem } from "@/components/ui/composed/selectable-list-item";
@@ -18,10 +19,9 @@ type PrincipalPickerProps = {
 	principalType: PrincipalType;
 	query: string;
 	onQueryChange: (value: string) => void;
-	selectedPrincipalIds: string[];
+	selectedPrincipals: ResourcePrincipal[];
 	onToggle: (principal: ResourcePrincipal) => void;
 	onClearSelection: () => void;
-	excludedPrincipalIds?: string[];
 	disabled?: boolean;
 };
 
@@ -30,22 +30,21 @@ const PrincipalPicker = ({
 	principalType,
 	query,
 	onQueryChange,
-	selectedPrincipalIds,
+	selectedPrincipals,
 	onToggle,
 	onClearSelection,
-	excludedPrincipalIds = [],
 	disabled,
 }: PrincipalPickerProps) => {
-	const principals = useShareablePrincipals(resourceRef, query, {
-		enabled: !disabled,
+	const [debouncedQuery] = useDebounceValue(query, 300);
+	const principals = useShareablePrincipals(resourceRef, debouncedQuery, {
 		limit: 30,
 		principalType,
 	});
 
-	const visiblePrincipals =
-		principals.data?.data.filter(
-			(principal) => !excludedPrincipalIds.includes(principal.id),
-		) ?? [];
+	const rows = principals.data?.data ?? [];
+	const selectedIds = new Set(
+		selectedPrincipals.map((principal) => principal.id),
+	);
 
 	const searchPlaceholder =
 		principalType === "user" ? "Search members" : "Search groups";
@@ -64,14 +63,14 @@ const PrincipalPicker = ({
 			</div>
 			<div className="flex items-center justify-between">
 				<p className="text-muted-foreground text-xs">
-					{selectedPrincipalIds.length} selected
+					{selectedPrincipals.length} selected
 				</p>
 				<Button
 					variant="destructive"
 					size="xs"
 					className="text-xs"
 					onClick={onClearSelection}
-					disabled={disabled || selectedPrincipalIds.length === 0}
+					disabled={disabled || selectedPrincipals.length === 0}
 				>
 					Clear selection
 				</Button>
@@ -79,8 +78,8 @@ const PrincipalPicker = ({
 
 			<ScrollArea className="h-48 rounded-xl border">
 				<div className="flex flex-col gap-1 p-1">
-					{visiblePrincipals.map((principal) => {
-						const isSelected = selectedPrincipalIds.includes(principal.id);
+					{rows.map((principal) => {
+						const isSelected = selectedIds.has(principal.id);
 						const isUser = principal.type === "user";
 						const subtitle = isUser
 							? principal.email
@@ -127,7 +126,7 @@ const PrincipalPicker = ({
 						);
 					})}
 
-					{!principals.isLoading && visiblePrincipals.length === 0 && (
+					{!principals.isLoading && rows.length === 0 && (
 						<div className="p-4 text-center text-muted-foreground text-sm">
 							No people or groups match this search.
 						</div>

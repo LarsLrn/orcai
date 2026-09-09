@@ -111,6 +111,7 @@ import {
 	updateQuotaPool,
 } from "./quota";
 import {
+	getInheritedAccess,
 	getResourceVisibility,
 	grantResourceAccess,
 	listRecentResources,
@@ -186,6 +187,7 @@ export const router = {
 	},
 	resource: {
 		listGrants: listResourceGrants,
+		inheritedAccess: getInheritedAccess,
 		listPrincipals: listResourcePrincipals,
 		listRecent: listRecentResources,
 		grant: grantResourceAccess,
