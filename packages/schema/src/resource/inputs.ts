@@ -1,4 +1,5 @@
 import { z } from "zod/v4";
+import { zedTokenSchema } from "../shared";
 import {
 	createResourceScopedSchema,
 	principalTypeSchema,
@@ -39,6 +40,11 @@ export const resourceSetVisibilityInputSchema = createResourceScopedSchema({
 
 export const resourceGetVisibilityInputSchema = resourceIdentitySchema;
 
+export const resourceListRecentInputSchema = z.object({
+	limit: z.number().int().positive().max(20).default(8),
+	...zedTokenSchema.shape,
+});
+
 export type ResourceGrantInput = z.infer<typeof resourceGrantInputSchema>;
 export type ResourceRevokeInput = z.infer<typeof resourceRevokeInputSchema>;
 export type ResourceListGrantsInput = z.infer<
@@ -52,4 +58,7 @@ export type ResourceSetVisibilityInput = z.infer<
 >;
 export type ResourceGetVisibilityInput = z.infer<
 	typeof resourceGetVisibilityInputSchema
+>;
+export type ResourceListRecentInput = z.infer<
+	typeof resourceListRecentInputSchema
 >;

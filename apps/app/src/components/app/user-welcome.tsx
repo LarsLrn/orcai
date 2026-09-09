@@ -6,31 +6,32 @@ import { clientEnv } from "@/lib/env/client";
 import { cn } from "@/lib/utils";
 import { m } from "@/paraglide/messages";
 
+const getTimeBasedGreeting = () => {
+	const hour = new Date().getHours();
+	if (hour < 12) return m.acidic_last_llama_peek();
+	if (hour < 18) return m.awful_salty_tern_cut();
+	return m.yummy_watery_hawk_grin();
+};
+
 const UserWelcome = () => {
 	const { auth } = useRouteContext({
 		from: "/app",
 	});
 
-	const getTimeBasedGreeting = () => {
-		const hour = new Date().getHours();
-		if (hour < 12) return m.acidic_last_llama_peek();
-		if (hour < 18) return m.awful_salty_tern_cut();
-		return m.yummy_watery_hawk_grin();
-	};
-
 	return (
 		<div className="space-y-2">
 			<div className="flex flex-col justify-between gap-2 sm:flex-row sm:items-center">
-				<h1 className="font-bold text-3xl tracking-tight">
+				<h1 className="font-semibold text-2xl tracking-tight">
 					{getTimeBasedGreeting()}, {auth.user.name?.split(" ")[0]}!
 				</h1>
-				<div className="flex items-center gap-2">
+				<div className="flex items-center justify-end gap-1">
 					<AppTourButton
-						variant="outline"
+						variant="ghost"
 						size="sm"
-						className="right-0 size-8"
 						tour="initialTour"
 						autoTrigger={true}
+						label="Take a tour"
+						aria-label="Take a tour of OrcAI"
 					>
 						<CompassIcon className="text-foreground" />
 					</AppTourButton>
@@ -41,7 +42,7 @@ const UserWelcome = () => {
 							rel="noopener noreferrer"
 							className={cn(
 								buttonVariants({
-									variant: "outline",
+									variant: "ghost",
 									size: "sm",
 								}),
 							)}

@@ -4,6 +4,7 @@ import {
 	statusResponseSchema,
 } from "../shared";
 import {
+	recentResourceSchema,
 	resourceGrantSchema,
 	resourcePrincipalSchema,
 	resourceVisibilityDataSchema,
@@ -29,3 +30,6 @@ export const resourceRevokeResponseSchema = statusResponseSchema;
 export const resourceGetVisibilityResponseSchema = createDataResponseSchema(
 	resourceVisibilityDataSchema,
 );
+
+export const resourceListRecentResponseSchema =
+	createListResponseSchema(recentResourceSchema);

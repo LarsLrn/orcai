@@ -1,9 +1,12 @@
 import { z } from "zod/v4";
+import { processingStatusSchema } from "../asset/parts/processing-status";
 import { assetIdSchema } from "../asset/ref";
 import { blockIdSchema } from "../block/ref";
+import { blockTypeSchema } from "../block/schema";
 import { botIdSchema } from "../bot/ref";
 import { groupIdSchema } from "../group/ref";
 import { groupSchema } from "../group/schema";
+import { publicationStatusSchema } from "../shared/primitives/publication-status";
 import { userIdSchema } from "../user/ref";
 
 export const RESOURCE_TYPES = [
@@ -179,6 +182,26 @@ export const resourceVisibilityDataSchema = createResourceScopedSchema({
 	visibility: resourceVisibilitySchema,
 });
 
+/** A resource that changed recently, carrying only what a summary row shows. */
+export const recentResourceSchema = z.discriminatedUnion("resourceType", [
+	assetResourceIdentitySchema.extend({
+		name: z.string(),
+		changedAt: z.coerce.date(),
+		processingStatus: processingStatusSchema,
+	}),
+	blockResourceIdentitySchema.extend({
+		name: z.string(),
+		changedAt: z.coerce.date(),
+		blockType: blockTypeSchema,
+		status: publicationStatusSchema,
+	}),
+	botResourceIdentitySchema.extend({
+		name: z.string(),
+		changedAt: z.coerce.date(),
+		status: publicationStatusSchema,
+	}),
+]);
+
 export type ResourceType = z.infer<typeof resourceTypeSchema>;
 export type ResourceGrantRole = z.infer<typeof resourceGrantRoleSchema>;
 export type ResourceVisibility = z.infer<typeof resourceVisibilitySchema>;
@@ -186,4 +209,5 @@ export type PrincipalType = z.infer<typeof principalTypeSchema>;
 export type ResourceGrantSource = z.infer<typeof resourceGrantSourceSchema>;
 export type ResourceRef = z.infer<typeof resourceRefSchema>;
 export type ResourceGrant = z.infer<typeof resourceGrantSchema>;
+export type RecentResource = z.infer<typeof recentResourceSchema>;
 export type ResourcePrincipal = z.infer<typeof resourcePrincipalSchema>;

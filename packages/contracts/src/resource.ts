@@ -7,6 +7,8 @@ import {
 	resourceListGrantsResponseSchema,
 	resourceListPrincipalsInputSchema,
 	resourceListPrincipalsResponseSchema,
+	resourceListRecentInputSchema,
+	resourceListRecentResponseSchema,
 	resourceRevokeInputSchema,
 	resourceRevokeResponseSchema,
 	resourceSetVisibilityInputSchema,
@@ -42,6 +44,19 @@ export const resourceContracts = {
 		)
 		.input(resourceListPrincipalsInputSchema)
 		.output(resourceListPrincipalsResponseSchema),
+	listRecent: base
+		.meta(
+			openapi({
+				method: "GET",
+				path: "/resources/recent",
+				summary: "List the resources that changed most recently",
+				tags: [
+					"Resources",
+				],
+			}),
+		)
+		.input(resourceListRecentInputSchema)
+		.output(resourceListRecentResponseSchema),
 	grant: base
 		.meta(
 			openapi({

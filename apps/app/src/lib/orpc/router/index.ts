@@ -113,6 +113,7 @@ import {
 import {
 	getResourceVisibility,
 	grantResourceAccess,
+	listRecentResources,
 	listResourceGrants,
 	listResourcePrincipals,
 	revokeResourceAccess,
@@ -186,6 +187,7 @@ export const router = {
 	resource: {
 		listGrants: listResourceGrants,
 		listPrincipals: listResourcePrincipals,
+		listRecent: listRecentResources,
 		grant: grantResourceAccess,
 		revoke: revokeResourceAccess,
 		getVisibility: getResourceVisibility,

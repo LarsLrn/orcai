@@ -1,5 +1,6 @@
 import { DB, dbSchema } from "@orcai/db";
 import type {
+	BlockType,
 	ResourceGrantRole,
 	ResourceGrant as ResourceGrantView,
 	ResourcePrincipal,
@@ -14,6 +15,7 @@ import {
 	userIdSchema,
 } from "@orcai/schema";
 import type { TupleMutation } from "@orcai/spice-db";
+import { lookupEntitiesByPermission } from "@orcai/spice-db";
 import { and, count, desc, eq, ilike, inArray, isNull, or } from "drizzle-orm";
 import * as Effect from "effect/Effect";
 import {
@@ -28,6 +30,7 @@ import {
 	assertCanGrantPrincipalMiddleware,
 	requireResourcePermission,
 } from "@/lib/orpc/middlewares/permission";
+import { changedAt } from "./helpers/changed-at";
 import { literalSearch } from "./helpers/literal-search";
 
 type GroupPrincipal = Extract<
@@ -721,3 +724,111 @@ export const setResourceVisibility = authed.resource.setVisibility
 			data,
 		};
 	});
+
+/** Postgres returns the coalesced timestamp as text, so normalise before comparing. */
+const toTime = (value: Date | string) => new Date(value).getTime();
+
+export const listRecentResources = authed.resource.listRecent.effect(
+	function* ({ input, context }) {
+		const db = yield* DB;
+		const userId = context.auth.user.id;
+		const zedToken = getZedToken(context, input);
+
+		const readableIds = <TEntity extends "asset" | "block" | "bot">(
+			entityType: TEntity,
+		) =>
+			lookupEntitiesByPermission({
+				entityType,
+				permission: "read",
+				userId,
+				zedToken,
+			}).pipe(
+				Effect.map((entities) =>
+					entities.map((entity) => entity.resourceObjectId),
+				),
+			);
+
+		const [bots, blocks, assets] = yield* Effect.all(
+			[
+				readableIds("bot").pipe(
+					Effect.flatMap((ids) =>
+						ids.length === 0
+							? Effect.succeed([])
+							: db
+									.select({
+										resourceId: dbSchema.bot.id,
+										name: dbSchema.bot.name,
+										status: dbSchema.bot.status,
+										changedAt: changedAt(dbSchema.bot),
+									})
+									.from(dbSchema.bot)
+									.where(inArray(dbSchema.bot.id, ids))
+									.orderBy(desc(changedAt(dbSchema.bot)))
+									.limit(input.limit),
+					),
+				),
+				readableIds("block").pipe(
+					Effect.flatMap((ids) =>
+						ids.length === 0
+							? Effect.succeed([])
+							: db
+									.select({
+										resourceId: dbSchema.block.id,
+										name: dbSchema.block.name,
+										blockType: dbSchema.block.type,
+										status: dbSchema.block.status,
+										changedAt: changedAt(dbSchema.block),
+									})
+									.from(dbSchema.block)
+									.where(inArray(dbSchema.block.id, ids))
+									.orderBy(desc(changedAt(dbSchema.block)))
+									.limit(input.limit),
+					),
+				),
+				readableIds("asset").pipe(
+					Effect.flatMap((ids) =>
+						ids.length === 0
+							? Effect.succeed([])
+							: db
+									.select({
+										resourceId: dbSchema.asset.id,
+										name: dbSchema.asset.title,
+										processingStatus: dbSchema.asset.processingStatus,
+										changedAt: changedAt(dbSchema.asset),
+									})
+									.from(dbSchema.asset)
+									.where(inArray(dbSchema.asset.id, ids))
+									.orderBy(desc(changedAt(dbSchema.asset)))
+									.limit(input.limit),
+					),
+				),
+			],
+			{
+				concurrency: "unbounded",
+			},
+		);
+
+		const data = [
+			...bots.map((bot) => ({
+				resourceType: "bot" as const,
+				...bot,
+			})),
+			...blocks.map((block) => ({
+				resourceType: "block" as const,
+				...block,
+				blockType: block.blockType as BlockType,
+			})),
+			...assets.map((asset) => ({
+				resourceType: "asset" as const,
+				...asset,
+			})),
+		]
+			.sort((left, right) => toTime(right.changedAt) - toTime(left.changedAt))
+			.slice(0, input.limit);
+
+		return {
+			data,
+			rowCount: data.length,
+		};
+	},
+);
