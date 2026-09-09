@@ -65,7 +65,7 @@ export const LinkSelector = ({ editor }: { editor: Editor }) => {
 				>
 					<Input
 						ref={inputRef}
-						placeholder="Paste a link..."
+						placeholder="https://example.com"
 						defaultValue={editorState.getLink}
 					/>
 					{editorState.isLink ? (

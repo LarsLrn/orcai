@@ -153,7 +153,7 @@ function RouteComponent() {
 				</Link>
 			)}
 			<div className="space-y-2 text-center">
-				<h1 className="font-bold text-2xl tracking-tight">
+				<h1 className="font-semibold text-2xl tracking-tight">
 					Select your organisation
 				</h1>
 				<p className="text-lg text-muted-foreground">
@@ -165,7 +165,7 @@ function RouteComponent() {
 				<div className="flex justify-center">
 					<DataTableSearch
 						value={search}
-						placeholder="Filter by name..."
+						placeholder="Filter by name"
 						onChange={(value) => {
 							setSearch(value);
 							setPageCount(1);

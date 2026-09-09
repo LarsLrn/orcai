@@ -1,5 +1,5 @@
 import { listGroupsInputSchema } from "@orcai/schema";
-import { useQueryClient, useSuspenseQuery } from "@tanstack/react-query";
+import { useSuspenseQuery } from "@tanstack/react-query";
 import { createFileRoute, useNavigate } from "@tanstack/react-router";
 import { PlusIcon } from "lucide-react";
 import { useState } from "react";
@@ -34,7 +34,7 @@ import {
 	PageTitle,
 } from "@/components/ui/shell/page";
 import { Textarea } from "@/components/ui/textarea";
-import { useMutationAction } from "@/hooks/actions/use-mutation-action";
+import { useCreateGroupMutation } from "@/hooks/mutations/use-group-mutations";
 import { orpc } from "@/lib/orpc/orpc";
 
 const searchSchema = listGroupsInputSchema.extend({
@@ -72,7 +72,6 @@ export const Route = createFileRoute("/app/groups/")({
 
 function RouteComponent() {
 	const navigate = useNavigate();
-	const queryClient = useQueryClient();
 	const { pageIndex, pageSize, query, sort } = Route.useSearch();
 	const [isCreateOpen, setIsCreateOpen] = useState(false);
 	const [name, setName] = useState("");
@@ -91,22 +90,11 @@ function RouteComponent() {
 		}),
 	);
 
-	const createGroup = useMutationAction({
-		mutationOptions: () =>
-			orpc.group.create.mutationOptions({
-				onSuccess: () => {
-					queryClient.invalidateQueries({
-						queryKey: orpc.group.key(),
-					});
-					setIsCreateOpen(false);
-					setName("");
-					setDescription("");
-				},
-			}),
-		messages: {
-			loading: "Creating group...",
-			success: "Group created",
-			error: "Failed to create group",
+	const createGroup = useCreateGroupMutation({
+		onSuccess: () => {
+			setIsCreateOpen(false);
+			setName("");
+			setDescription("");
 		},
 	});
 
@@ -154,7 +142,7 @@ function RouteComponent() {
 					<DataTableToolbar>
 						<DataTableSearch
 							value={query}
-							placeholder="Search groups..."
+							placeholder="Search groups"
 							onChange={(value) =>
 								void navigate({
 									to: ".",

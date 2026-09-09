@@ -5,7 +5,7 @@ export const Route = createFileRoute("/app/hub/assets")({
 	head: () => ({
 		meta: [
 			{
-				title: "Content Library",
+				title: "Assets",
 			},
 		],
 	}),

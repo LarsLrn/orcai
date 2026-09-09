@@ -3,6 +3,7 @@ import { Link, useParams } from "@tanstack/react-router";
 import { MessagesSquareIcon, MoreHorizontalIcon } from "lucide-react";
 import { ChatActionsDropdown } from "@/components/chat/chat-actions-dropdown";
 import { SimplePlaceholder } from "@/components/placeholders/simple-placeholder";
+import { Button } from "@/components/ui/button";
 import {
 	SidebarMenu,
 	SidebarMenuAction,
@@ -16,7 +17,7 @@ import { cn } from "@/lib/utils";
 
 const ChatSidebarMenu = () => {
 	const { closeMobileForNavigation } = useSidebar();
-	const { data, status, error } = useQuery(
+	const { data, status, refetch, isRefetching } = useQuery(
 		orpc.chat.list.queryOptions({
 			input: {
 				pageIndex: 0,
@@ -35,7 +36,18 @@ const ChatSidebarMenu = () => {
 
 	if (status === "error") {
 		return (
-			<SimplePlaceholder variant="muted">{error.message}</SimplePlaceholder>
+			<SimplePlaceholder Icon={MessagesSquareIcon} variant="muted">
+				<span className="block">Your chats could not be loaded</span>
+				<Button
+					variant="outline"
+					size="sm"
+					className="mt-3"
+					disabled={isRefetching}
+					onClick={() => refetch()}
+				>
+					Try again
+				</Button>
+			</SimplePlaceholder>
 		);
 	}
 
@@ -75,6 +87,7 @@ const ChatSidebarMenu = () => {
 							)}
 						>
 							<MoreHorizontalIcon />
+							<span className="sr-only">Chat actions for {chat.title}</span>
 						</SidebarMenuAction>
 					</ChatActionsDropdown>
 				</SidebarMenuItem>

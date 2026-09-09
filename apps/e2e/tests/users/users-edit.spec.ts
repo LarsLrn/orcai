@@ -26,8 +26,12 @@ test("users: the edit page shows what an admin may know about a user", async ({
 	await api.as("admin").resource.grant({
 		resourceType: "block",
 		resourceId: block.data.id,
-		principalType: "user",
-		principalId: user.id,
+		principals: [
+			{
+				principalType: "user",
+				principalId: user.id,
+			},
+		],
 		role: "viewer",
 	});
 

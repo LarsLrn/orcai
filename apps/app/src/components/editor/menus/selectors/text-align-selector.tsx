@@ -29,7 +29,7 @@ const items = [
 		isActive: (state: SelectorResult) => state.isLeft,
 	},
 	{
-		title: "Center",
+		title: "Centre",
 		icon: AlignCenterIcon,
 		onClick: (editor: Editor) =>
 			editor.chain().focus().setTextAlign("center").run(),

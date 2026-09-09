@@ -19,7 +19,7 @@ const OrganizationRolePicker = ({
 	variant = "compact",
 	className,
 	disabled,
-	title = "Select organization role",
+	title = "Select organisation role",
 	roles = ORGANIZATION_ROLES,
 }: {
 	value: OrganizationRole;

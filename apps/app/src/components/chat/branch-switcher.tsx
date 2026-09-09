@@ -74,7 +74,7 @@ export function BranchSwitcher({ chat, branches }: BranchSwitcherProps) {
 			<DropdownMenuContent align="end" className="w-50">
 				<DropdownMenuGroup>
 					<DropdownMenuLabel className="px-2 py-1.5 font-normal text-muted-foreground text-xs">
-						Switch Branch
+						Switch branch
 					</DropdownMenuLabel>
 					<DropdownMenuSeparator />
 					<div className="max-h-75 overflow-y-auto">

@@ -18,18 +18,20 @@ const Placeholder = ({
 	description,
 	className,
 	Icon = CircleHelpIcon,
+	tone,
 	actions,
 }: {
 	title: string;
 	description?: string;
 	className?: string;
 	Icon?: LucideIcon;
+	tone?: React.ComponentProps<typeof EmptyMedia>["tone"];
 	actions?: ResourceCardActionItem[];
 }): React.ReactNode => {
 	return (
 		<Empty className={cn(className)}>
 			<EmptyHeader>
-				<EmptyMedia variant="icon">
+				<EmptyMedia variant="icon" tone={tone}>
 					<Icon />
 				</EmptyMedia>
 				<EmptyTitle>{title}</EmptyTitle>

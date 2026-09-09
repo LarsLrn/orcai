@@ -34,8 +34,8 @@ const FileViewer = ({ asset }: { asset: Asset }) => {
 	if (status === "error") {
 		return (
 			<Placeholder
-				title="Error"
-				description="There was an error loading this content item. Please try again later."
+				title="This asset could not be loaded"
+				description="Reload the page to try again. A newly uploaded file may still be processing."
 			/>
 		);
 	}
@@ -51,8 +51,8 @@ const FileViewer = ({ asset }: { asset: Asset }) => {
 				<div className="size-full xl:col-span-3">
 					{isMobile ? (
 						<Placeholder
-							title="Mobile Preview Unavailable"
-							description="Content preview is not available on mobile."
+							title="Preview not available on mobile"
+							description="Open this asset on a larger screen to preview it."
 							Icon={SmartphoneIcon}
 						/>
 					) : (
@@ -130,8 +130,8 @@ const Viewport = ({
 		default:
 			return (
 				<Placeholder
-					title="Unsupported File Type"
-					description="This file type cannot be displayed in the browser. Please download it instead."
+					title="Unsupported file type"
+					description="Download the file to open it in another application."
 				/>
 			);
 	}

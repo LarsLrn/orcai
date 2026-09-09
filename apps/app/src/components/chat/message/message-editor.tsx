@@ -49,7 +49,9 @@ const MessageEditor = ({
 		const messageId = message.id;
 
 		if (!messageId) {
-			toast.error("Something went wrong, please try again!");
+			toast.error(
+				"This message has no identifier yet, so it cannot be edited. Wait for it to finish sending, then try again.",
+			);
 			return;
 		}
 

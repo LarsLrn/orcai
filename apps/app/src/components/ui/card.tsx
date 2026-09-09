@@ -5,16 +5,19 @@ import { cn } from "@/lib/utils";
 function Card({
 	className,
 	size = "default",
+	selected,
 	...props
 }: React.ComponentProps<"div"> & {
 	size?: "default" | "sm";
+	selected?: boolean;
 }) {
 	return (
 		<div
 			data-slot="card"
 			data-size={size}
+			data-selected={selected ? "true" : undefined}
 			className={cn(
-				"group/card flex flex-col gap-6 overflow-hidden rounded-4xl bg-card py-6 text-card-foreground text-sm shadow-md ring-1 ring-foreground/5 has-[>img:first-child]:pt-0 data-[size=sm]:gap-4 data-[size=sm]:py-4 dark:ring-foreground/10 *:[img:first-child]:rounded-t-4xl *:[img:last-child]:rounded-b-4xl",
+				"group/card flex flex-col gap-6 overflow-hidden rounded-4xl bg-card py-6 text-card-foreground text-sm shadow-md ring-1 ring-foreground/5 transition-shadow duration-200 has-[>img:first-child]:pt-0 data-[size=sm]:gap-4 data-[size=sm]:py-4 data-[selected=true]:ring-2 data-[selected=true]:ring-accent-brand dark:ring-foreground/10 *:[img:first-child]:rounded-t-4xl *:[img:last-child]:rounded-b-4xl",
 				className,
 			)}
 			{...props}

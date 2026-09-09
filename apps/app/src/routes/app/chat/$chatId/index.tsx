@@ -115,7 +115,8 @@ function RouteComponent() {
 	});
 
 	return (
-		<div className="-mx-2 -mb-6 h-[calc(100dvh-72px)] sm:-mx-2">
+		// The shell above the outlet takes the 48px header plus its 24px of vertical padding.
+		<div className="flex h-[calc(100dvh-6rem)] min-h-0 flex-col">
 			<Chat
 				key={`${chatId}-${loaderData.branchId ?? "new"}`}
 				id={chatId}

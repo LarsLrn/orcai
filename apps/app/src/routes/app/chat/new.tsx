@@ -13,7 +13,7 @@ export const Route = createFileRoute("/app/chat/new")({
 	head: () => ({
 		meta: [
 			{
-				title: "New Chat",
+				title: "New chat",
 			},
 		],
 	}),

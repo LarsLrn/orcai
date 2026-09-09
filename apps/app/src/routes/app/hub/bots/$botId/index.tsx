@@ -91,14 +91,21 @@ function RouteComponent() {
 				]
 			: blocks.data;
 
-	const { mutate: deleteBots } = useDeleteBotsMutation({
-		onMutate: async () => {
-			// Navigate away before deleting to avoid rendering the deleted bot.
-			await navigate({
-				to: "/app/hub/bots",
-			});
+	const { mutate: deleteBots } = useDeleteBotsMutation(
+		{
+			onMutate: async () => {
+				// Navigate away before deleting to avoid rendering the deleted bot.
+				await navigate({
+					to: "/app/hub/bots",
+				});
+			},
 		},
-	});
+		{
+			names: [
+				bot.data.name,
+			],
+		},
+	);
 	const canUse = hasCapability(bot.data.capabilities, "use");
 	const canEdit = hasCapability(bot.data.capabilities, "edit");
 	const canDelete = hasCapability(bot.data.capabilities, "delete");
@@ -112,7 +119,7 @@ function RouteComponent() {
 				<PageDescription>{bot.data.description}</PageDescription>
 				{bot.data.status === "draft" ? (
 					<div>
-						<Badge variant="destructive">Draft</Badge>
+						<Badge variant="outline">Draft</Badge>
 					</div>
 				) : null}
 				<PageAction>
@@ -159,7 +166,7 @@ function RouteComponent() {
 										}
 									>
 										<EditIcon />
-										Edit Bot
+										Edit bot
 									</DropdownMenuItem>
 								) : null}
 								{canDelete ? <DropdownMenuSeparator /> : null}
@@ -177,7 +184,7 @@ function RouteComponent() {
 										}
 									>
 										<Trash2Icon />
-										Delete Bot
+										Delete bot
 									</DropdownMenuItem>
 								) : null}
 							</DropdownMenuContent>

@@ -80,7 +80,7 @@ const UploadedFileReviewList = ({
 							<Badge variant="secondary">
 								{file.type ? getFileTypeLabel(file.type) : "FILE"}
 							</Badge>
-							<Badge variant={hasMetadata ? "default" : "outline"}>
+							<Badge variant={hasMetadata ? "success" : "warning"}>
 								{hasMetadata ? "Metadata added" : "Needs metadata"}
 							</Badge>
 						</div>
@@ -92,7 +92,7 @@ const UploadedFileReviewList = ({
 						onClick={() => setEditingFileId(file.id)}
 					>
 						{hasMetadata ? <CheckCircle2Icon /> : <PencilIcon />}
-						{hasMetadata ? "Edit Metadata" : "Add Metadata"}
+						{hasMetadata ? "Edit metadata" : "Add metadata"}
 					</Button>
 
 					<Dialog
@@ -101,7 +101,7 @@ const UploadedFileReviewList = ({
 					>
 						<DialogContent className="max-h-[88vh] sm:max-w-3xl">
 							<DialogHeader>
-								<DialogTitle>Source Metadata</DialogTitle>
+								<DialogTitle>Source details</DialogTitle>
 								<DialogDescription>
 									Define how this uploaded file should appear in AI citations
 									and references.
@@ -117,7 +117,7 @@ const UploadedFileReviewList = ({
 
 							<DialogFooter>
 								<Button onClick={() => setEditingFileId(null)}>
-									Save Metadata
+									Save metadata
 								</Button>
 							</DialogFooter>
 						</DialogContent>

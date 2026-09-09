@@ -43,7 +43,7 @@ const LocaleSwitcherSelect = ({ defaultValue, items, label }: Props) => {
 						size="icon"
 						variant="ghost"
 					>
-						<LanguagesIcon className="h-6 w-6" />
+						<LanguagesIcon className="h-6 w-6" aria-hidden="true" />
 						<span className="sr-only">{label}</span>
 					</Button>
 				}

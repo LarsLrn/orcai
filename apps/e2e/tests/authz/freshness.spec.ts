@@ -37,8 +37,12 @@ test("a grant made over the API is visible on the first page load of the granted
 	await api.as("member").resource.grant({
 		resourceType: "block",
 		resourceId: block.data.id,
-		principalType: "user",
-		principalId: org.users.viewer.id,
+		principals: [
+			{
+				principalType: "user",
+				principalId: org.users.viewer.id,
+			},
+		],
 		role: "viewer",
 	});
 
@@ -67,8 +71,12 @@ test("a grant and a revoke are both readable over the API without waiting", asyn
 	await api.as("member").resource.grant({
 		resourceType: "block",
 		resourceId,
-		principalType: "user",
-		principalId: org.users.viewer.id,
+		principals: [
+			{
+				principalType: "user",
+				principalId: org.users.viewer.id,
+			},
+		],
 		role: "viewer",
 	});
 

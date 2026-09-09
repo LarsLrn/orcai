@@ -138,7 +138,7 @@ export const AlignmentTooolbar = () => {
 						/>
 					}
 				/>
-				<TooltipContent>Text Alignment</TooltipContent>
+				<TooltipContent>Text alignment</TooltipContent>
 			</Tooltip>
 			<DropdownMenuContent>
 				<DropdownMenuGroup className="w-40">

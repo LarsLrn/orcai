@@ -1,6 +1,4 @@
-import type { GroupId } from "@orcai/core";
 import type { Group } from "@orcai/schema";
-import { useQueryClient } from "@tanstack/react-query";
 import { Link } from "@tanstack/react-router";
 import { createColumnHelper } from "@tanstack/react-table";
 import { MoreHorizontal } from "lucide-react";
@@ -16,8 +14,7 @@ import {
 	DropdownMenuSeparator,
 	DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
-import { useMutationAction } from "@/hooks/actions/use-mutation-action";
-import { orpc } from "@/lib/orpc/orpc";
+import { useDeleteGroupsMutation } from "@/hooks/mutations/use-group-mutations";
 
 const columnHelper = createColumnHelper<DataTableFeatures, Group>();
 
@@ -85,12 +82,12 @@ const ActionCell = ({ group }: { group: Group }) => {
 						groupId: group.id,
 					}}
 				>
-					<DropdownMenuItem>Manage Group</DropdownMenuItem>
+					<DropdownMenuItem>Manage group</DropdownMenuItem>
 				</Link>
 				{group.kind === "custom" && (
 					<>
 						<DropdownMenuSeparator />
-						<DeleteGroupItem groupId={group.id} />
+						<DeleteGroupItem group={group} />
 					</>
 				)}
 			</DropdownMenuContent>
@@ -98,29 +95,15 @@ const ActionCell = ({ group }: { group: Group }) => {
 	);
 };
 
-const DeleteGroupItem = ({ groupId }: { groupId: GroupId }) => {
-	const queryClient = useQueryClient();
-	const deleteGroup = useMutationAction({
-		mutationOptions: () =>
-			orpc.group.delete.mutationOptions({
-				onSuccess: () => {
-					queryClient.invalidateQueries({
-						queryKey: orpc.group.key(),
-					});
-				},
-			}),
-		messages: {
-			loading: "Deleting group...",
-			success: "Group deleted",
-			error: "Failed to delete group",
+const DeleteGroupItem = ({ group }: { group: Group }) => {
+	const deleteGroup = useDeleteGroupsMutation(
+		{},
+		{
+			names: [
+				group.name,
+			],
 		},
-		confirm: {
-			title: "Delete group",
-			description: "This revokes all grants tied to this group.",
-			confirmText: "Delete",
-			cancelText: "Cancel",
-		},
-	});
+	);
 
 	return (
 		<DropdownMenuItem
@@ -129,7 +112,7 @@ const DeleteGroupItem = ({ groupId }: { groupId: GroupId }) => {
 				deleteGroup.mutate({
 					refs: [
 						{
-							id: groupId,
+							id: group.id,
 						},
 					],
 				})

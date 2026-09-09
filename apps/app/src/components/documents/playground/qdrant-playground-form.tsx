@@ -40,8 +40,8 @@ const QdrantPlaygroundForm = () => {
 				name="search"
 				children={(field) => (
 					<field.TextField
-						label="Your search query"
-						placeholder="Your search query..."
+						label="Search query"
+						placeholder="e.g. how do I book a train ticket"
 					/>
 				)}
 			/>
@@ -50,7 +50,7 @@ const QdrantPlaygroundForm = () => {
 				name="retrievalMode"
 				children={(field) => (
 					<field.SelectField
-						label="Retrieval Mode"
+						label="Retrieval mode"
 						options={[
 							{
 								label: "Hybrid",

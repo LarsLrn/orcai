@@ -1,6 +1,7 @@
 import type { JobHistoryEntry } from "@orcai/schema";
 import { Badge } from "@/components/ui/badge";
 import { Spinner } from "@/components/ui/spinner";
+import { formatDisplayTimestamp } from "@/lib/presentation/format-timestamp";
 
 const stateVariant: Record<
 	JobHistoryEntry["state"],
@@ -24,11 +25,11 @@ const JobListItem = ({ job }: { job: JobHistoryEntry }) => {
 			<div className="flex flex-col gap-1 text-sm">
 				<span className="font-medium">{job.name}</span>
 				<span className="text-muted-foreground text-xs">
-					Created: {new Date(job.createdOn).toLocaleString()}
+					Created: {formatDisplayTimestamp(job.createdOn)}
 					{job.startedOn &&
-						` · Started: ${new Date(job.startedOn).toLocaleString()}`}
+						` · Started: ${formatDisplayTimestamp(job.startedOn)}`}
 					{job.completedOn &&
-						` · Done: ${new Date(job.completedOn).toLocaleString()}`}
+						` · Done: ${formatDisplayTimestamp(job.completedOn)}`}
 				</span>
 				{job.retryCount > 0 && (
 					<span className="text-muted-foreground text-xs">

@@ -27,8 +27,12 @@ test("groups: the access manager shows the group grant on the block page", async
 	await api.as("member").resource.grant({
 		resourceType: "block",
 		resourceId: block.data.id,
-		principalType: "group",
-		principalId: created.data.id,
+		principals: [
+			{
+				principalType: "group",
+				principalId: created.data.id,
+			},
+		],
 		role: "viewer",
 	});
 
@@ -125,4 +129,95 @@ test("groups: the access manager shows the group grant on the block page", async
 			},
 		],
 	});
+});
+
+test("groups: the access manager grants several people at once", async ({
+	api,
+	org,
+	pageAs,
+}) => {
+	const blockName = groupsName("Batch Grant Block");
+	const block = await api.as("member").block.create(templateBlock(blockName));
+
+	const page = await pageAs("member");
+	await enterApp(page, org.slug);
+	await open(page, `/en/app/hub/blocks/${block.data.id}`);
+	await expect(
+		page.getByRole("heading", {
+			name: blockName,
+		}),
+	).toBeVisible();
+
+	const accessItem = page.getByRole("menuitem", {
+		name: "Access & Groups",
+	});
+
+	// The menu button opens the menu once the page has hydrated.
+	await expect(async () => {
+		await page
+			.getByRole("button", {
+				name: "More options",
+			})
+			.click();
+		await expect(accessItem).toBeVisible({
+			timeout: 3_000,
+		});
+	}).toPass({
+		timeout: 25_000,
+	});
+	await accessItem.click();
+
+	await expect(
+		page.getByRole("heading", {
+			name: "Manage Access",
+		}),
+	).toBeVisible();
+
+	// People, not groups: the tab carries the picker this test is about.
+	await page
+		.getByRole("tab", {
+			name: "People",
+		})
+		.click();
+
+	// A member cannot see emails, so the rows carry the seeded names. No grants
+	// exist yet, so each name appears only in the picker.
+	const admin = page.getByText("E2E admin", {
+		exact: true,
+	});
+	const manager = page.getByText("E2E manager", {
+		exact: true,
+	});
+	await expect(admin).toBeVisible();
+	await expect(manager).toBeVisible();
+
+	await admin.click();
+	await manager.click();
+	await expect(page.getByText("2 selected")).toBeVisible();
+
+	await page
+		.getByRole("button", {
+			name: "Grant access",
+		})
+		.click();
+
+	await expect(page.getByText("Access updated")).toBeVisible();
+
+	// Both land from the one call. The names now belong to the grant rows, so
+	// the source badges are what says two direct grants arrived, and an empty
+	// selection says the picker no longer offers them.
+	await expect(
+		page.getByText("Direct user", {
+			exact: true,
+		}),
+	).toHaveCount(2);
+	await expect(page.getByText("0 selected")).toBeVisible();
+
+	const grants = await api.as("member").resource.listGrants({
+		resourceType: "block",
+		resourceId: block.data.id,
+	});
+	const granted = grants.data.map((grant) => String(grant.principalId));
+	expect(granted).toContain(String(org.users.admin.id));
+	expect(granted).toContain(String(org.users.manager.id));
 });

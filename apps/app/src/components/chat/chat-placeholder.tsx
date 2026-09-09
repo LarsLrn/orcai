@@ -1,39 +1,57 @@
-import { Bot } from "lucide-react";
-import { useEffect, useState } from "react";
-import { Card, CardContent, CardHeader } from "@/components/ui/card";
-import { authClient } from "@/lib/auth/auth-client";
+import type { BotId } from "@orcai/core";
+import { useQuery } from "@tanstack/react-query";
+import { BotIcon, MessageSquareIcon } from "lucide-react";
+import {
+	Empty,
+	EmptyDescription,
+	EmptyHeader,
+	EmptyMedia,
+	EmptyTitle,
+} from "@/components/ui/empty";
+import { orpc } from "@/lib/orpc/orpc";
 
-const welcomeMessages = [
-	"Let me support you on your learning journey. I am ready for you to initiate our conversation.",
-	"Let me support you on your learning journey. What challenge can we tackle?",
-];
+const ChatPlaceholder = ({ botId }: { botId?: BotId }) => {
+	const { data: botResult } = useQuery(
+		orpc.bot.find.queryOptions({
+			input: {
+				id: botId ?? "",
+			},
+			enabled: !!botId,
+		}),
+	);
+	const bot = botResult?.data;
 
-const ChatPlaceholder = () => {
-	const session = authClient.useSession();
-
-	const userName = session.data?.user.name.split(" ")[0] ?? "user";
-
-	const [message, setMessage] = useState<string>();
-
-	useEffect(() => {
-		const randomIndex = Math.floor(Math.random() * welcomeMessages.length);
-		setMessage(welcomeMessages[randomIndex]);
-	}, []);
+	if (botId && bot) {
+		return (
+			<Empty className="h-full">
+				<EmptyHeader>
+					<EmptyMedia variant="icon">
+						<BotIcon />
+					</EmptyMedia>
+					<EmptyTitle>{bot.name}</EmptyTitle>
+					<EmptyDescription>
+						{bot.description
+							? bot.description
+							: "Answers draw on this bot's sources and behaviour."}
+					</EmptyDescription>
+				</EmptyHeader>
+			</Empty>
+		);
+	}
 
 	return (
-		<div className="flex h-full flex-col items-center justify-center p-4">
-			<Card className="w-full max-w-md border shadow-none">
-				<CardHeader className="items-center text-center">
-					<div className="mb-4 flex flex-row items-center gap-4 rounded-full bg-primary/10 p-3 text-primary">
-						<Bot size={40} strokeWidth={1.5} />
-						<span className="font-semibold text-2xl">Welcome, {userName}!</span>
-					</div>
-				</CardHeader>
-				<CardContent className="text-center text-muted-foreground">
-					<p>{message}</p>
-				</CardContent>
-			</Card>
-		</div>
+		<Empty className="h-full">
+			<EmptyHeader>
+				<EmptyMedia variant="icon">
+					<MessageSquareIcon />
+				</EmptyMedia>
+				<EmptyTitle>Ask anything</EmptyTitle>
+				<EmptyDescription>
+					Without a bot, answers come from the model alone. Choose a bot to
+					ground them in your organisation's sources.
+				</EmptyDescription>
+			</EmptyHeader>
+		</Empty>
 	);
 };
 

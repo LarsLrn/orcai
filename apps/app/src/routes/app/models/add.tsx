@@ -22,7 +22,7 @@ function RouteComponent() {
 	return (
 		<Page>
 			<PageHeader>
-				<PageTitle>Add Model</PageTitle>
+				<PageTitle>Add model</PageTitle>
 			</PageHeader>
 			<PageContent>
 				<ModelForm action="create" />

@@ -22,7 +22,7 @@ function RouteComponent() {
 	return (
 		<Page>
 			<PageHeader>
-				<PageTitle>Add Provider</PageTitle>
+				<PageTitle>Add provider</PageTitle>
 			</PageHeader>
 			<PageContent>
 				<ProviderForm action="create" />

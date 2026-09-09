@@ -1,4 +1,5 @@
 import { z } from "zod/v4";
+import { zedTokenSchema } from "../shared";
 import {
 	createResourceScopedSchema,
 	principalTypeSchema,
@@ -8,16 +9,12 @@ import {
 	resourceVisibilitySchema,
 } from "./schema";
 
-const resourceGrantRoleFieldsSchema = z.object({
-	role: resourceGrantRoleSchema,
-});
-
 export const resourceGrantInputSchema = z.intersection(
 	resourceIdentitySchema,
-	z.intersection(
-		resourcePrincipalIdentitySchema,
-		resourceGrantRoleFieldsSchema,
-	),
+	z.object({
+		principals: z.array(resourcePrincipalIdentitySchema).min(1).max(50),
+		role: resourceGrantRoleSchema,
+	}),
 );
 
 export const resourceRevokeInputSchema = z.intersection(
@@ -27,10 +24,14 @@ export const resourceRevokeInputSchema = z.intersection(
 
 export const resourceListGrantsInputSchema = resourceIdentitySchema;
 
+export const resourceInheritedAccessInputSchema = resourceIdentitySchema;
+
 export const resourceListPrincipalsInputSchema = createResourceScopedSchema({
 	principalType: principalTypeSchema.optional(),
 	query: z.string().trim().max(200).optional(),
 	limit: z.number().int().positive().max(100).default(25),
+	/** Leave out principals that already hold a direct grant on this resource. */
+	excludeGranted: z.boolean().default(false),
 });
 
 export const resourceSetVisibilityInputSchema = createResourceScopedSchema({
@@ -38,6 +39,11 @@ export const resourceSetVisibilityInputSchema = createResourceScopedSchema({
 });
 
 export const resourceGetVisibilityInputSchema = resourceIdentitySchema;
+
+export const resourceListRecentInputSchema = z.object({
+	limit: z.number().int().positive().max(20).default(8),
+	...zedTokenSchema.shape,
+});
 
 export type ResourceGrantInput = z.infer<typeof resourceGrantInputSchema>;
 export type ResourceRevokeInput = z.infer<typeof resourceRevokeInputSchema>;
@@ -52,4 +58,7 @@ export type ResourceSetVisibilityInput = z.infer<
 >;
 export type ResourceGetVisibilityInput = z.infer<
 	typeof resourceGetVisibilityInputSchema
+>;
+export type ResourceListRecentInput = z.infer<
+	typeof resourceListRecentInputSchema
 >;

@@ -181,7 +181,7 @@ function ImagePlaceholderComponent(props: NodeViewProps) {
 					<div
 						onClick={() => setIsExpanded(true)}
 						className={cn(
-							"group relative flex cursor-pointer flex-col items-center gap-4 rounded-lg border-2 border-dashed p-8 transition-all hover:bg-accent",
+							"group relative flex cursor-pointer flex-col items-center gap-4 rounded-2xl border-2 border-dashed p-8 transition-all hover:bg-accent",
 							selected && "border-primary bg-primary/5",
 							isDragActive && "border-primary bg-primary/5",
 							error && "border-destructive bg-destructive/5",
@@ -200,9 +200,9 @@ function ImagePlaceholderComponent(props: NodeViewProps) {
 						</div>
 					</div>
 				) : (
-					<div className="rounded-lg border bg-card p-4 shadow-sm">
+					<div className="rounded-2xl border bg-card p-4 shadow-sm">
 						<div className="mb-4 flex items-center justify-between">
-							<h3 className="font-semibold text-lg">Add Image</h3>
+							<h3 className="font-semibold text-lg">Add image</h3>
 							<Button
 								variant="ghost"
 								size="icon"
@@ -235,7 +235,7 @@ function ImagePlaceholderComponent(props: NodeViewProps) {
 									onDragOver={handleDragOver}
 									onDrop={handleDrop}
 									className={cn(
-										"my-4 rounded-lg border-2 border-dashed p-8 text-center transition-colors",
+										"my-4 rounded-xl border-2 border-dashed p-8 text-center transition-colors",
 										isDragActive && "border-primary bg-primary/10",
 										error && "border-destructive bg-destructive/10",
 									)}
@@ -311,7 +311,7 @@ function ImagePlaceholderComponent(props: NodeViewProps) {
 												setUrl(e.target.value);
 												if (urlError) setUrlError(false);
 											}}
-											placeholder="Enter image URL..."
+											placeholder="https://example.com/image.png"
 										/>
 										{urlError && (
 											<p className="text-destructive text-xs">

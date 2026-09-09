@@ -30,7 +30,7 @@ import {
 import { emptyCapabilities } from "@/lib/authz/capabilities";
 
 const createDefaultDatabaseBlock = (params?: { botName: string }) => ({
-	name: `Content Collection${params?.botName ? ` for '${params.botName}'` : ""}`,
+	name: `Repository${params?.botName ? ` for '${params.botName}'` : ""}`,
 	type: "database" as const,
 	description: "",
 	contentJson: null,
@@ -103,15 +103,15 @@ const DatabaseBlockEditor = ({
 	const [isUploadOpen, setIsUploadOpen] = useState(false);
 
 	return (
-		<Card>
+		<Card className="min-w-0 rounded-2xl">
 			<CardHeader className="flex flex-row items-start justify-between gap-4 space-y-0">
 				<div>
 					<CardTitle className="flex items-center gap-2">
 						<DatabaseIcon className="h-5 w-5" />
-						Content Collection
+						Repository
 					</CardTitle>
 					<CardDescription>
-						Attach reusable content and tune how retrieval works for this bot.
+						Attach reusable assets and tune how retrieval works for this bot.
 					</CardDescription>
 				</div>
 				{onRemove ? (
@@ -126,12 +126,12 @@ const DatabaseBlockEditor = ({
 				{descriptionField}
 				{contentField}
 
-				<div className="rounded-2xl border border-dashed bg-muted/20 p-4">
+				<div className="min-w-0 rounded-xl border border-dashed bg-muted/20 p-4">
 					<div className="flex flex-wrap items-center justify-between gap-3">
 						<div>
-							<div className="font-medium text-sm">Content items</div>
+							<div className="font-medium text-sm">Assets</div>
 							<div className="text-muted-foreground text-sm">
-								Use existing content from the library or upload new files with
+								Use existing assets from the Library or upload new files with
 								metadata before attaching them.
 							</div>
 						</div>
@@ -142,7 +142,7 @@ const DatabaseBlockEditor = ({
 								onClick={() => setIsLibraryOpen((current) => !current)}
 							>
 								<PlusIcon />
-								Add Existing
+								Add existing
 							</Button>
 							<Button
 								variant="outline"
@@ -150,7 +150,7 @@ const DatabaseBlockEditor = ({
 								onClick={() => setIsUploadOpen((current) => !current)}
 							>
 								<PlusIcon />
-								Upload New
+								Upload new
 							</Button>
 						</div>
 					</div>
@@ -158,10 +158,10 @@ const DatabaseBlockEditor = ({
 					<Dialog open={isLibraryOpen} onOpenChange={setIsLibraryOpen}>
 						<DialogContent className="max-h-[88vh] sm:max-w-5xl">
 							<DialogHeader>
-								<DialogTitle>Add Existing Content</DialogTitle>
+								<DialogTitle>Add existing assets</DialogTitle>
 								<DialogDescription>
-									Select reusable content items from the library and attach them
-									to this content collection.
+									Select reusable assets from the Library and attach them to
+									this repository.
 								</DialogDescription>
 							</DialogHeader>
 							<AssetLibraryPicker
@@ -194,14 +194,14 @@ const DatabaseBlockEditor = ({
 					<Dialog open={isUploadOpen} onOpenChange={setIsUploadOpen}>
 						<DialogContent className="max-h-[88vh] sm:max-w-5xl">
 							<DialogHeader>
-								<DialogTitle>Upload New Content</DialogTitle>
+								<DialogTitle>Upload new assets</DialogTitle>
 								<DialogDescription>
 									Upload files, complete their metadata, and attach them in one
 									focused flow.
 								</DialogDescription>
 							</DialogHeader>
 							<AssetIntakeFlow
-								submitLabel="Save Content"
+								submitLabel="Save assets"
 								onAssetsSaved={(savedAssets) => {
 									const nextAssets = mergeAssets(assets, savedAssets);
 									onAssetsChange(nextAssets);
@@ -216,9 +216,9 @@ const DatabaseBlockEditor = ({
 				<div className="space-y-3">
 					<div className="flex items-center justify-between gap-3">
 						<div>
-							<div className="font-medium text-sm">Attached Content</div>
+							<div className="font-medium text-sm">Attached assets</div>
 							<div className="text-muted-foreground text-sm">
-								Each item keeps its reusable metadata from the content library.
+								Each item keeps its reusable metadata from the Library.
 							</div>
 						</div>
 						<Badge variant="secondary">{assets.length} attached</Badge>
@@ -241,7 +241,7 @@ const DatabaseBlockEditor = ({
 						/>
 					) : (
 						<div className="rounded-xl border border-dashed bg-muted/10 p-6 text-center text-muted-foreground text-sm">
-							No content attached yet.
+							No assets attached yet.
 						</div>
 					)}
 				</div>

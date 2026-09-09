@@ -1,4 +1,4 @@
-import type { OrganizationId } from "@orcai/core";
+import type { AssetId, BlockId, BotId, OrganizationId } from "@orcai/core";
 import { type Group, userIdSchema } from "@orcai/schema";
 import { expect, type Locator, type Page } from "@playwright/test";
 import { type ApiClient, createApiClient, type ZedTokenStore } from "../api";
@@ -21,6 +21,76 @@ export const templateBlock = (name: string) => ({
 		systemPrompt: "Created by the groups slice.",
 	},
 });
+
+/**
+ * A database block, the kind a bot links as a repository and the only kind
+ * that carries assets.
+ */
+export const databaseBlock = (name: string, assets: AssetId[] = []) => ({
+	type: "database" as const,
+	name,
+	status: "ready" as const,
+	assets,
+	config: {
+		minReferences: 1,
+		maxReferences: 5,
+		defaultReferences: 3,
+	},
+});
+
+/** An asset row without an upload: `asset.create` needs no bytes and no worker. */
+export const assetRow = (title: string) => ({
+	title,
+	size: 1024,
+	fileType: "text/plain",
+});
+
+/**
+ * The inheritance chain the authz schema cascades over: a bot linking a
+ * template block and a database block, and an asset inside that database
+ * block. `bot.save` writes the `block#bot` relationship that makes
+ * `block.read` include `bot->read`.
+ */
+export const inheritanceChain = async (params: {
+	api: ApiClient;
+	label: string;
+}): Promise<{
+	botId: BotId;
+	botName: string;
+	templateBlockId: BlockId;
+	databaseBlockId: BlockId;
+	assetId: AssetId;
+}> => {
+	const template = await params.api.block.create(
+		templateBlock(groupsName(`${params.label} Template`)),
+	);
+	const asset = await params.api.asset.create(
+		assetRow(groupsName(`${params.label} Asset`)),
+	);
+	const database = await params.api.block.create(
+		databaseBlock(groupsName(`${params.label} Database`), [
+			asset.data.id,
+		]),
+	);
+	const botName = groupsName(`${params.label} Bot`);
+	const bot = await params.api.bot.save({
+		name: botName,
+		description: "Created by the groups slice.",
+		status: "draft",
+		templateBlockId: template.data.id,
+		databaseBlockIds: [
+			database.data.id,
+		],
+	});
+
+	return {
+		botId: bot.data.id,
+		botName,
+		templateBlockId: template.data.id,
+		databaseBlockId: database.data.id,
+		assetId: asset.data.id,
+	};
+};
 
 /** The ids of a `block.list` page, for containment assertions. */
 export const blockIds = async (

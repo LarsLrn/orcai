@@ -1,7 +1,6 @@
 import type { Provider } from "@orcai/schema";
 import { Link } from "@tanstack/react-router";
 import { createColumnHelper } from "@tanstack/react-table";
-import { format } from "date-fns";
 import { MoreHorizontal } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -16,6 +15,7 @@ import {
 	DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import { useDeleteProvidersMutation } from "@/hooks/mutations/use-provider-mutations";
+import { formatDisplayTimestamp } from "@/lib/presentation/format-timestamp";
 
 const columnHelper = createColumnHelper<DataTableFeatures, Provider>();
 
@@ -43,7 +43,7 @@ export const providerTableColumns = columnHelper.columns([
 			<DataTableColumnHeader column={column} title="Status" />
 		),
 		cell: ({ row }) => (
-			<Badge variant={row.original.enabled ? "default" : "destructive"}>
+			<Badge variant={row.original.enabled ? "success" : "secondary"}>
 				{row.original.enabled ? "Active" : "Inactive"}
 			</Badge>
 		),
@@ -58,18 +58,18 @@ export const providerTableColumns = columnHelper.columns([
 	}),
 	columnHelper.accessor("createdAt", {
 		header: ({ column }) => (
-			<DataTableColumnHeader column={column} title="Created At" />
+			<DataTableColumnHeader column={column} title="Created" />
 		),
 		cell: ({ row }) => (
-			<span>{format(row.original.createdAt || "", "MMM dd, yyyy HH:mm")}</span>
+			<span>{formatDisplayTimestamp(row.original.createdAt || "")}</span>
 		),
 	}),
 	columnHelper.accessor("updatedAt", {
 		header: ({ column }) => (
-			<DataTableColumnHeader column={column} title="Updated At" />
+			<DataTableColumnHeader column={column} title="Updated" />
 		),
 		cell: ({ row }) => (
-			<span>{format(row.original.updatedAt || "", "MMM dd, yyyy HH:mm")}</span>
+			<span>{formatDisplayTimestamp(row.original.updatedAt || "")}</span>
 		),
 	}),
 	columnHelper.display({
@@ -97,7 +97,7 @@ export const providerTableColumns = columnHelper.columns([
 								providerId: row.original.id,
 							}}
 						>
-							<DropdownMenuItem>View Provider</DropdownMenuItem>
+							<DropdownMenuItem>View provider</DropdownMenuItem>
 						</Link>
 						<Link
 							to={"/app/providers/$providerId/edit"}
@@ -105,7 +105,7 @@ export const providerTableColumns = columnHelper.columns([
 								providerId: row.original.id,
 							}}
 						>
-							<DropdownMenuItem>Edit Provider</DropdownMenuItem>
+							<DropdownMenuItem>Edit provider</DropdownMenuItem>
 						</Link>
 						<DropdownMenuSeparator />
 						<DeleteItem provider={provider} />
@@ -117,7 +117,14 @@ export const providerTableColumns = columnHelper.columns([
 ]);
 
 const DeleteItem = ({ provider }: { provider: Provider }) => {
-	const { mutate: deleteProviders } = useDeleteProvidersMutation();
+	const { mutate: deleteProviders } = useDeleteProvidersMutation(
+		{},
+		{
+			names: [
+				provider.name,
+			],
+		},
+	);
 
 	return (
 		<DropdownMenuItem
@@ -132,7 +139,7 @@ const DeleteItem = ({ provider }: { provider: Provider }) => {
 				})
 			}
 		>
-			Delete Provider
+			Delete provider
 		</DropdownMenuItem>
 	);
 };

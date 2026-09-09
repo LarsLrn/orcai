@@ -36,7 +36,7 @@ const AssetLibraryPicker = ({
 			<Input
 				value={search}
 				onChange={(event) => setSearch(event.target.value)}
-				placeholder="Search the content library"
+				placeholder="Search the Library"
 			/>
 
 			<ScrollArea

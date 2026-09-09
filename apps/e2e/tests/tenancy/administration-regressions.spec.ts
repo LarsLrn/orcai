@@ -76,11 +76,15 @@ test("directory omits and cannot search emails for ordinary roles", async ({
 	const granted = await member.resource.grant({
 		resourceType: "block",
 		resourceId: block.data.id,
-		principalType: "user",
-		principalId: userIdSchema.parse(org.users.viewer.id),
+		principals: [
+			{
+				principalType: "user",
+				principalId: userIdSchema.parse(org.users.viewer.id),
+			},
+		],
 		role: "viewer",
 	});
-	expect(granted.data.principal).not.toHaveProperty("email");
+	expect(granted.data[0]?.principal).not.toHaveProperty("email");
 	const grants = await member.resource.listGrants({
 		resourceType: "block",
 		resourceId: block.data.id,

@@ -33,7 +33,14 @@ const ManageUser = ({ user }: { user: UserWithOrganizationRole }) => {
 	const { mutate: requestPasswordReset } = useForgotPassword();
 	const { mutate: resendVerificationEmail } = useResendVerificationEmail();
 	const updateMember = useUpdateOrganizationMemberMutation();
-	const removeMember = useDeleteOrganizationMembersMutation();
+	const removeMember = useDeleteOrganizationMembersMutation(
+		{},
+		{
+			names: [
+				user.email,
+			],
+		},
+	);
 	const organizationId = auth.session.activeOrganizationId;
 	const canManageOrganization =
 		capabilities?.data.capabilities.manage_organization === true;
@@ -82,7 +89,7 @@ const ManageUser = ({ user }: { user: UserWithOrganizationRole }) => {
 					<div className="flex items-center justify-between">
 						<CardTitle className="flex items-center gap-2">
 							<UserCogIcon className="h-5 w-5 text-primary" />
-							User Management
+							User management
 						</CardTitle>
 						{user.banned && (
 							<Badge variant="destructive" className="gap-1">
@@ -104,7 +111,7 @@ const ManageUser = ({ user }: { user: UserWithOrganizationRole }) => {
 								}
 							>
 								<KeyRoundIcon className="h-4 w-4" />
-								Send Password Reset
+								Send password reset
 							</Button>
 							{!user.emailVerified ? (
 								<Button
@@ -122,7 +129,7 @@ const ManageUser = ({ user }: { user: UserWithOrganizationRole }) => {
 						</div>
 					) : null}
 					<div className="max-w-sm space-y-2">
-						<p className="font-medium text-sm">Organisation Role</p>
+						<p className="font-medium text-sm">Organisation role</p>
 						<OrganizationRolePicker
 							value={user.organizationRole}
 							onValueChange={(nextRole) => {
@@ -140,7 +147,7 @@ const ManageUser = ({ user }: { user: UserWithOrganizationRole }) => {
 							disabled={
 								updateMember.isPending || !organizationId || isProtectedAdmin
 							}
-							title="Change organization role"
+							title="Change organisation role"
 							roles={assignableRoles}
 						/>
 					</div>

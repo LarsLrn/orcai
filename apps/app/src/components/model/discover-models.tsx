@@ -89,7 +89,9 @@ const DiscoverModels = () => {
 			setResult({
 				status: "error",
 				message:
-					error instanceof Error ? error.message : "Failed to discover models",
+					error instanceof Error
+						? error.message
+						: "The provider was not reached, so no models were listed. Check the provider settings and try again.",
 			});
 		}
 	};
@@ -97,11 +99,11 @@ const DiscoverModels = () => {
 	return (
 		<Dialog open={isOpen} onOpenChange={handleOpenChange}>
 			<DialogTrigger
-				render={<Button variant="outline">Discover Models</Button>}
+				render={<Button variant="outline">Discover models</Button>}
 			/>
 			<DialogContent>
 				<DialogHeader>
-					<DialogTitle>Discover Models</DialogTitle>
+					<DialogTitle>Discover models</DialogTitle>
 					<DialogDescription>
 						Choose a provider and discover available models automatically.
 					</DialogDescription>
@@ -188,7 +190,7 @@ const DiscoverModels = () => {
 							(providers.data?.data.length ?? 0) === 0
 						}
 					>
-						{isPending ? "Discovering..." : "Discover Models"}
+						{isPending ? "Discovering..." : "Discover models"}
 					</Button>
 				</DialogFooter>
 			</DialogContent>

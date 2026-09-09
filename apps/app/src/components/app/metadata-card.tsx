@@ -1,4 +1,3 @@
-import { format } from "date-fns";
 import {
 	CalendarIcon,
 	CheckIcon,
@@ -17,6 +16,10 @@ import {
 	TooltipContent,
 	TooltipTrigger,
 } from "@/components/ui/tooltip";
+import {
+	formatDisplayDate,
+	formatDisplayTimestamp,
+} from "@/lib/presentation/format-timestamp";
 
 const CopyableId = ({ value }: { value: string }) => {
 	const [copiedValue, copy] = useCopyToClipboard();
@@ -59,12 +62,12 @@ const MetadataCard = ({
 }) => {
 	const formatDate = (date: Date | string) => {
 		const dateObj = typeof date === "string" ? new Date(date) : date;
-		return format(dateObj, "PPP 'at' p");
+		return formatDisplayTimestamp(dateObj);
 	};
 
 	const formatDateShort = (date: Date | string) => {
 		const dateObj = typeof date === "string" ? new Date(date) : date;
-		return format(dateObj, "PP");
+		return formatDisplayDate(dateObj);
 	};
 
 	if (!createdAt && !updatedAt && !visibility && !version && !id) {
@@ -74,7 +77,7 @@ const MetadataCard = ({
 	return (
 		<Card>
 			<CardHeader>
-				<CardTitle className="text-base">Metadata</CardTitle>
+				<CardTitle className="text-base">Details</CardTitle>
 			</CardHeader>
 			<CardContent>
 				<div className="space-y-2.5 text-sm">

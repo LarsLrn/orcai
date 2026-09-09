@@ -56,7 +56,7 @@ const AssetForm = ({ asset }: { asset: Asset }) => {
 					}
 					disabled={isPending}
 				>
-					Save Content
+					Save content
 				</Button>
 			</div>
 		</div>

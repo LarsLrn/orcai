@@ -31,6 +31,7 @@ const QuickChatSection = () => {
 		selectedBotId,
 		selectedModelId,
 		selectedProviderId,
+		modelAvailability,
 		isCreating,
 		handleModelSelect,
 		handleBotSelect,
@@ -55,7 +56,10 @@ const QuickChatSection = () => {
 	return (
 		<Section>
 			<SectionHeader>
-				<SectionTitle>Start chatting with AI</SectionTitle>
+				<SectionTitle>Ask a question</SectionTitle>
+				<SectionDescription>
+					Pick a bot to answer from its sources, or ask the model directly.
+				</SectionDescription>
 				<SectionAction>
 					<Link
 						to="/app/hub/bots"
@@ -80,6 +84,7 @@ const QuickChatSection = () => {
 						onModelSelect={handleModelSelect}
 						onSend={handleSend}
 						isCreating={isCreating}
+						modelAvailability={modelAvailability}
 					/>
 				</div>
 			</SectionContent>
@@ -103,10 +108,8 @@ const UserHome = () => {
 
 			<Section>
 				<SectionHeader>
-					<SectionTitle>Your Recent AI Conversations</SectionTitle>
-					<SectionDescription>
-						Pick right back up where you left off.
-					</SectionDescription>
+					<SectionTitle>Recent chats</SectionTitle>
+					<SectionDescription>Pick up where you left off.</SectionDescription>
 					<SectionAction>
 						<Link
 							to={"/app/chat"}
@@ -119,6 +122,7 @@ const UserHome = () => {
 						</Link>
 						<Link
 							to="/app/chat/setup"
+							aria-label="Start a new chat"
 							className={buttonVariants({
 								size: "icon-sm",
 								variant: "outline",

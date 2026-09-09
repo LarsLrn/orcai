@@ -31,9 +31,9 @@ const BotsShowcase = ({ limit = 6 }: { limit?: number }) => {
 	return (
 		<Section>
 			<SectionHeader>
-				<SectionTitle>Available Chatbots</SectionTitle>
+				<SectionTitle>Bots you can use</SectionTitle>
 				<SectionDescription>
-					Open a configured bot and jump into a focused chat.
+					Each bot answers from its own sources and behaviour.
 				</SectionDescription>
 				<SectionAction>
 					<Link
@@ -44,7 +44,7 @@ const BotsShowcase = ({ limit = 6 }: { limit?: number }) => {
 							className: "w-full sm:w-auto",
 						})}
 					>
-						Open library
+						View all bots
 					</Link>
 				</SectionAction>
 			</SectionHeader>
@@ -53,7 +53,7 @@ const BotsShowcase = ({ limit = 6 }: { limit?: number }) => {
 				{bots.data.length === 0 ? (
 					<Placeholder
 						title="No bots yet"
-						description="Create a bot to see it showcased here."
+						description="A bot bundles approved sources with a set behaviour so anyone in the organisation can ask against them."
 						actions={[
 							{
 								key: "create_bot",
@@ -84,7 +84,7 @@ const BotsShowcase = ({ limit = 6 }: { limit?: number }) => {
 														botId: bot.id,
 													},
 												}),
-											variant: "default",
+											variant: "outline",
 										},
 									],
 								}}

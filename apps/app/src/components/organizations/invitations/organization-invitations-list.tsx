@@ -124,7 +124,7 @@ function InvitationPage({
 export function OrganizationInvitationsList({
 	mode = "all",
 	onAccepted,
-	emptyTitle = "No Invitations",
+	emptyTitle = "No invitations",
 	emptyDescription = "You don't have any organisation invitations at this time.",
 }: OrganizationInvitationsListProps) {
 	if (mode === "pending")

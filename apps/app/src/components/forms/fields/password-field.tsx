@@ -39,9 +39,7 @@ const PasswordField = ({
 
 	return (
 		<Field data-invalid={isInvalid}>
-			<FieldLabel className="font-bold" htmlFor={id}>
-				{label}
-			</FieldLabel>
+			<FieldLabel htmlFor={id}>{label}</FieldLabel>
 			{description && <FieldDescription>{description}</FieldDescription>}
 			<div className="relative">
 				<Input

@@ -1,6 +1,5 @@
 import type { UserWithMemberships } from "@orcai/schema";
 import { createColumnHelper } from "@tanstack/react-table";
-import { format } from "date-fns";
 import { MoreHorizontal } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -20,6 +19,7 @@ import {
 	useUnbanUserMutation,
 } from "@/hooks/mutations/use-user-admin-mutations";
 import { organizationRoleLabels } from "@/lib/authz/organization-role-metadata";
+import { formatDisplayTimestamp } from "@/lib/presentation/format-timestamp";
 
 const columnHelper = createColumnHelper<
 	DataTableFeatures,
@@ -68,10 +68,10 @@ export const instanceUserTableColumns = columnHelper.columns([
 	}),
 	columnHelper.accessor("createdAt", {
 		header: ({ column }) => (
-			<DataTableColumnHeader column={column} title="Created At" />
+			<DataTableColumnHeader column={column} title="Created" />
 		),
 		cell: ({ row }) => (
-			<span>{format(row.original.createdAt || "", "MMM dd, yyyy HH:mm")}</span>
+			<span>{formatDisplayTimestamp(row.original.createdAt || "")}</span>
 		),
 	}),
 	columnHelper.display({
@@ -85,9 +85,14 @@ export const instanceUserTableColumns = columnHelper.columns([
 
 const InstanceUserActions = ({ user }: { user: UserWithMemberships }) => {
 	const { auth } = useAuthenticatedRouteContext();
-	const { mutate: banUser } = useBanUserMutation();
+	const target = {
+		names: [
+			user.email,
+		],
+	};
+	const { mutate: banUser } = useBanUserMutation({}, target);
 	const { mutate: unbanUser } = useUnbanUserMutation();
-	const { mutate: deleteUsers } = useDeleteUsersMutation();
+	const { mutate: deleteUsers } = useDeleteUsersMutation({}, target);
 
 	if (user.id === auth.user.id) {
 		return null;

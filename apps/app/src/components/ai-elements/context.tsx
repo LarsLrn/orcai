@@ -8,6 +8,11 @@ import {
 } from "@/components/ui/popover";
 import { Progress } from "@/components/ui/progress";
 import { Separator } from "@/components/ui/separator";
+import {
+	formatCompactNumber,
+	formatCount,
+	formatPercent,
+} from "@/lib/presentation/format-number";
 import { cn } from "@/lib/utils";
 
 const PERCENT_MAX = 100;
@@ -20,7 +25,8 @@ type ModelId = string;
 
 type ContextSchema = {
 	usedTokens: number;
-	maxTokens: number;
+	/** Omitted when the model's context window is unknown. */
+	maxTokens?: number;
 	usage?: LanguageModelUsage;
 	modelId?: ModelId;
 };
@@ -60,6 +66,11 @@ export const Context = ({
 
 const ContextIcon = () => {
 	const { usedTokens, maxTokens } = useContextValue();
+
+	if (!maxTokens) {
+		return null;
+	}
+
 	const circumference = 2 * Math.PI * ICON_RADIUS;
 	const usedPercent = usedTokens / maxTokens;
 	const dashOffset = circumference * (1 - usedPercent);
@@ -110,11 +121,9 @@ export type ContextTriggerProps = ComponentProps<typeof Button> & {
 
 export const ContextTrigger = ({ children, ...props }: ContextTriggerProps) => {
 	const { usedTokens, maxTokens } = useContextValue();
-	const usedPercent = usedTokens / maxTokens;
-	const renderedPercent = new Intl.NumberFormat("en-US", {
-		style: "percent",
-		maximumFractionDigits: 1,
-	}).format(usedPercent);
+	const renderedPercent = maxTokens
+		? formatPercent(usedTokens / maxTokens)
+		: null;
 
 	return (
 		<PopoverTrigger
@@ -127,16 +136,16 @@ export const ContextTrigger = ({ children, ...props }: ContextTriggerProps) => {
 				/>
 			}
 		>
-			{children && (
+			{children}
+			{renderedPercent && (
 				<>
-					{children}
 					<Separator orientation="vertical" className="mx-2 my-auto h-4" />
+					<span className="shrink-0 font-medium text-muted-foreground">
+						{renderedPercent}
+					</span>
+					<ContextIcon />
 				</>
 			)}
-			<span className="shrink-0 font-medium text-muted-foreground">
-				{renderedPercent}
-			</span>
-			<ContextIcon />
 		</PopoverTrigger>
 	);
 };
@@ -164,33 +173,33 @@ export const ContextContentHeader = ({
 	...props
 }: ContextContentHeaderProps) => {
 	const { usedTokens, maxTokens } = useContextValue();
-	const usedPercent = usedTokens / maxTokens;
-	const displayPct = new Intl.NumberFormat("en-US", {
-		style: "percent",
-		maximumFractionDigits: 1,
-	}).format(usedPercent);
-	const used = new Intl.NumberFormat("en-US", {
-		notation: "compact",
-	}).format(usedTokens);
-	const total = new Intl.NumberFormat("en-US", {
-		notation: "compact",
-	}).format(maxTokens);
+	const usedPercent = maxTokens ? usedTokens / maxTokens : null;
 
 	return (
 		<div className={cn("w-full space-y-2 p-3", className)} {...props}>
-			{children ?? (
-				<>
+			{children ??
+				(usedPercent === null ? (
 					<div className="flex items-center justify-between gap-3 text-xs">
-						<p>{displayPct}</p>
-						<p className="font-mono text-muted-foreground">
-							{used} / {total}
-						</p>
+						<span className="text-muted-foreground">Tokens used</span>
+						<span className="tabular-nums">{formatCount(usedTokens)}</span>
 					</div>
-					<div className="space-y-2">
-						<Progress className="bg-muted" value={usedPercent * PERCENT_MAX} />
-					</div>
-				</>
-			)}
+				) : (
+					<>
+						<div className="flex items-center justify-between gap-3 text-xs">
+							<p>{formatPercent(usedPercent)}</p>
+							<p className="tabular-nums">
+								{formatCompactNumber(usedTokens)} /{" "}
+								{formatCompactNumber(maxTokens ?? 0)}
+							</p>
+						</div>
+						<div className="space-y-2">
+							<Progress
+								className="bg-muted"
+								value={usedPercent * PERCENT_MAX}
+							/>
+						</div>
+					</>
+				))}
 		</div>
 	);
 };
@@ -351,11 +360,7 @@ export const ContextCacheUsage = ({
 };
 
 const Tokens = ({ tokens }: { tokens?: number }) => (
-	<span>
-		{tokens === undefined
-			? "—"
-			: new Intl.NumberFormat("en-US", {
-					notation: "compact",
-				}).format(tokens)}
+	<span className="tabular-nums">
+		{tokens === undefined ? "—" : formatCompactNumber(tokens)}
 	</span>
 );

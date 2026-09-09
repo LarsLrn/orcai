@@ -33,7 +33,7 @@ function RouteComponent() {
 	return (
 		<Page>
 			<PageHeader>
-				<PageTitle>Edit Provider</PageTitle>
+				<PageTitle>Edit provider</PageTitle>
 			</PageHeader>
 			<PageContent>
 				<ProviderForm action="update" provider={provider.data} />

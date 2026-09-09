@@ -1,6 +1,5 @@
 import type { Asset } from "@orcai/schema";
 import { convert } from "convert";
-import { formatDistanceToNow } from "date-fns";
 import {
 	BookMarkedIcon,
 	Calendar,
@@ -20,47 +19,27 @@ import {
 	TooltipTrigger,
 } from "@/components/ui/tooltip";
 import { getFileTypeLabel } from "@/lib/presentation/file-type";
-
-const getFileTypeColor = (fileType: string): string => {
-	const label = getFileTypeLabel(fileType).toLowerCase();
-	const typeMap: Record<string, string> = {
-		pdf: "bg-red-100 text-red-800",
-		doc: "bg-blue-100 text-blue-800",
-		docx: "bg-blue-100 text-blue-800",
-		txt: "bg-gray-100 text-gray-800",
-		csv: "bg-green-100 text-green-800",
-		xls: "bg-green-100 text-green-800",
-		xlsx: "bg-green-100 text-green-800",
-		ppt: "bg-orange-100 text-orange-800",
-		pptx: "bg-orange-100 text-orange-800",
-		jpg: "bg-purple-100 text-purple-800",
-		png: "bg-purple-100 text-purple-800",
-	};
-
-	return typeMap[label] || "bg-zinc-100 text-zinc-800";
-};
+import { formatDisplayDate } from "@/lib/presentation/format-timestamp";
 
 const formatDate = (date: Date | null): string => {
 	if (!date) return "Unknown date";
-	return formatDistanceToNow(date, {
-		addSuffix: true,
-	});
+	return formatDisplayDate(date);
 };
 
-const getRelevanceBadgeColor = (relevance: string): string => {
-	const relevanceMap: Record<string, string> = {
-		high: "bg-green-100 text-green-800",
-		medium: "bg-yellow-100 text-yellow-800",
-		low: "bg-red-100 text-red-800",
-	};
+type BadgeVariant = React.ComponentProps<typeof Badge>["variant"];
 
-	return relevanceMap[relevance.toLowerCase()] || "bg-zinc-100 text-zinc-800";
+const RELEVANCE_VARIANT: Record<string, BadgeVariant> = {
+	high: "success",
+	medium: "warning",
+	low: "danger",
 };
+
+const getRelevanceVariant = (relevance: string): BadgeVariant =>
+	RELEVANCE_VARIANT[relevance.toLowerCase()] ?? "outline";
 
 const AssetMeta = ({ asset }: { asset: Asset }) => {
-	const fileTypeColor = getFileTypeColor(asset.fileType);
 	const fileTypeLabel = getFileTypeLabel(asset.fileType);
-	const relevanceBadgeColor = getRelevanceBadgeColor(asset.metadata.relevance);
+	const relevanceVariant = getRelevanceVariant(asset.metadata.relevance);
 
 	return (
 		<Card>
@@ -71,13 +50,14 @@ const AssetMeta = ({ asset }: { asset: Asset }) => {
 						<TooltipTrigger
 							render={
 								<Badge
-									className={`${fileTypeColor} font-medium text-xs uppercase`}
+									variant="outline"
+									className="font-medium text-xs uppercase"
 								>
 									{fileTypeLabel}
 								</Badge>
 							}
 						/>
-						<TooltipContent>File Type</TooltipContent>
+						<TooltipContent>File type</TooltipContent>
 					</Tooltip>
 				</CardTitle>
 			</CardHeader>
@@ -106,7 +86,7 @@ const AssetMeta = ({ asset }: { asset: Asset }) => {
 					<div className="flex items-center gap-2">
 						<Star className="h-4 w-4 text-muted-foreground" />
 						<span className="text-muted-foreground">Relevance:</span>
-						<Badge className={`${relevanceBadgeColor} font-normal text-xs`}>
+						<Badge variant={relevanceVariant} className="font-normal text-xs">
 							{asset.metadata.relevance.charAt(0).toUpperCase() +
 								asset.metadata.relevance.slice(1)}
 						</Badge>
@@ -128,7 +108,7 @@ const AssetMeta = ({ asset }: { asset: Asset }) => {
 					{asset.metadata.externalUrl && (
 						<div className="flex items-center gap-2">
 							<ExternalLink className="h-4 w-4 text-muted-foreground" />
-							<span className="text-muted-foreground">External:</span>
+							<span className="text-muted-foreground">Source URL:</span>
 							<a
 								href={asset.metadata.externalUrl}
 								target="_blank"
@@ -157,7 +137,7 @@ const AssetMeta = ({ asset }: { asset: Asset }) => {
 					{asset.metadata.pageRange && (
 						<div className="flex items-center gap-2">
 							<MoveHorizontalIcon className="h-4 w-4 text-muted-foreground" />
-							<span className="text-muted-foreground">Page Range:</span>
+							<span className="text-muted-foreground">Page range:</span>
 							<span
 								className="truncate font-medium text-xs"
 								title={asset.metadata.pageRange}

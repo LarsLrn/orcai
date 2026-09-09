@@ -81,8 +81,8 @@ const DatabaseBlockFieldGroup = withFieldGroup({
 						name="description"
 						children={(field) => (
 							<field.TextareaField
-								label="Short Description"
-								placeholder="Describe what this content collection is used for."
+								label="Short description"
+								placeholder="Describe what this repository is used for."
 								rows={4}
 							/>
 						)}
@@ -93,7 +93,7 @@ const DatabaseBlockFieldGroup = withFieldGroup({
 						name="contentJson"
 						children={(field) => (
 							<field.BlockEditorField
-								label="Detailed Description"
+								label="Detailed description"
 								htmlFieldName="contentHtml"
 							/>
 						)}
@@ -103,7 +103,7 @@ const DatabaseBlockFieldGroup = withFieldGroup({
 					<group.AppField
 						name="minReferences"
 						children={(field) => (
-							<field.TextField label="Minimum References" type="number" />
+							<field.TextField label="Minimum references" type="number" />
 						)}
 					/>
 				}
@@ -111,7 +111,7 @@ const DatabaseBlockFieldGroup = withFieldGroup({
 					<group.AppField
 						name="defaultReferences"
 						children={(field) => (
-							<field.TextField label="Default References" type="number" />
+							<field.TextField label="Default references" type="number" />
 						)}
 					/>
 				}
@@ -119,7 +119,7 @@ const DatabaseBlockFieldGroup = withFieldGroup({
 					<group.AppField
 						name="maxReferences"
 						children={(field) => (
-							<field.TextField label="Maximum References" type="number" />
+							<field.TextField label="Maximum references" type="number" />
 						)}
 					/>
 				}
@@ -127,7 +127,7 @@ const DatabaseBlockFieldGroup = withFieldGroup({
 					<group.AppField
 						name="candidateLimit"
 						children={(field) => (
-							<field.TextField label="Candidate Limit" type="number" />
+							<field.TextField label="Candidate limit" type="number" />
 						)}
 					/>
 				}
@@ -135,7 +135,7 @@ const DatabaseBlockFieldGroup = withFieldGroup({
 					<group.AppField
 						name="maxPerAsset"
 						children={(field) => (
-							<field.TextField label="Max Per Document" type="number" />
+							<field.TextField label="Max per asset" type="number" />
 						)}
 					/>
 				}
@@ -144,7 +144,7 @@ const DatabaseBlockFieldGroup = withFieldGroup({
 						name="scoreThreshold"
 						children={(field) => (
 							<field.TextField
-								label="Score Threshold"
+								label="Score threshold"
 								type="number"
 								min={0}
 								max={1}
@@ -158,7 +158,7 @@ const DatabaseBlockFieldGroup = withFieldGroup({
 						name="retrievalMode"
 						children={(field) => (
 							<field.SelectField
-								label="Retrieval Mode"
+								label="Retrieval mode"
 								options={[
 									{
 										value: "hybrid",

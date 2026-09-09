@@ -86,7 +86,7 @@ function RouteComponent() {
 							variant: "outline",
 						})}
 					>
-						View Invitations
+						View invitations
 					</Link>
 					<Link
 						to={"/app/users/add"}
@@ -94,7 +94,7 @@ function RouteComponent() {
 							variant: "default",
 						})}
 					>
-						Invite User
+						Invite user
 					</Link>
 				</PageAction>
 			</PageHeader>

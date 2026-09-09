@@ -47,7 +47,7 @@ const SectionTitle = ({ className, ...props }: React.ComponentProps<"h2">) => {
 		<h2
 			data-slot="section-title"
 			className={cn(
-				"text-balance font-semibold text-2xl text-foreground/70 tracking-tight md:text-2xl",
+				"text-balance font-heading font-semibold text-2xl text-foreground/70 tracking-tight md:text-2xl",
 				className,
 			)}
 			{...props}

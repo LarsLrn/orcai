@@ -56,13 +56,20 @@ function RouteComponent() {
 		}),
 	);
 
-	const { mutate: deleteAssets } = useDeleteAssetsMutation({
-		onMutate: async () => {
-			await navigate({
-				to: "/app/hub/assets",
-			});
+	const { mutate: deleteAssets } = useDeleteAssetsMutation(
+		{
+			onMutate: async () => {
+				await navigate({
+					to: "/app/hub/assets",
+				});
+			},
 		},
-	});
+		{
+			names: [
+				asset.data.title,
+			],
+		},
+	);
 	const canDownload = hasCapability(asset.data.capabilities, "download");
 	const canEdit = hasCapability(asset.data.capabilities, "edit");
 	const canDelete = hasCapability(asset.data.capabilities, "delete");
@@ -116,7 +123,7 @@ function RouteComponent() {
 										}
 									>
 										<EditIcon />
-										Edit Content
+										Edit content
 									</DropdownMenuItem>
 								) : null}
 								{canEdit &&
@@ -148,7 +155,7 @@ function RouteComponent() {
 										}
 									>
 										<Trash2Icon />
-										Delete Content
+										Delete asset
 									</DropdownMenuItem>
 								) : null}
 							</DropdownMenuContent>

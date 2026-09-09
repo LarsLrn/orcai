@@ -56,7 +56,7 @@ const ModelForm = ({
 					<field.SelectField
 						label="Provider"
 						placeholder="Select a provider"
-						description="Select the provider for this model"
+						description="The model is called through this provider's endpoint."
 						options={providers.data?.data?.map((provider) => ({
 							value: provider.id,
 							label: provider.name,
@@ -69,10 +69,7 @@ const ModelForm = ({
 			<form.AppField
 				name="name"
 				children={(field) => (
-					<field.TextField
-						label="Name"
-						placeholder="Enter a name for this model"
-					/>
+					<field.TextField label="Name" placeholder="e.g. GPT-4o mini" />
 				)}
 			/>
 
@@ -80,8 +77,8 @@ const ModelForm = ({
 				name="providerModelId"
 				children={(field) => (
 					<field.TextField
-						label="Provider Model ID"
-						placeholder="Enter the provider model ID"
+						label="Provider model ID"
+						placeholder="gpt-4o-mini"
 					/>
 				)}
 			/>
@@ -91,7 +88,7 @@ const ModelForm = ({
 				children={(field) => (
 					<field.TextareaField
 						label="Description"
-						placeholder="Describe this model"
+						placeholder="e.g. Fast and cheap, good for summaries"
 					/>
 				)}
 			/>
@@ -101,8 +98,8 @@ const ModelForm = ({
 				children={(field) => (
 					<field.MultiSelectField
 						label="Capabilities"
-						placeholder="text, embeddings, etc."
-						description="Select the capabilities for this model. Note that models for chat require at least the 'text' and 'tool-calling' capabilities."
+						placeholder="e.g. text, tool calling"
+						description="Chat needs a model with at least text and tool calling. A model is hidden wherever a capability it lacks is required."
 						options={modelCapabilities.map((capability) => ({
 							value: capability.value,
 							label: capability.label,
@@ -116,13 +113,13 @@ const ModelForm = ({
 				children={(field) => (
 					<field.SwitchField
 						label="Deprecated"
-						description="Mark this model as deprecated. Deprecated models will not be available for new agent configurations, but existing agents using this model will continue to work."
+						description="Deprecated models are not offered for new bots. Bots already using this model keep working."
 					/>
 				)}
 			/>
 
 			<form.AppForm>
-				<form.SubmitButton label="Save Model" />
+				<form.SubmitButton label="Save model" />
 			</form.AppForm>
 		</form>
 	);

@@ -37,11 +37,10 @@ const AccessDialog = ({
 					</DialogDescription>
 				</DialogHeader>
 
-				<ScrollArea className="flex min-h-0 flex-1 flex-col [&>[data-slot=scroll-area-viewport]]:h-auto [&>[data-slot=scroll-area-viewport]]:min-h-0">
+				<ScrollArea className="flex min-h-0 flex-1 flex-col *:data-[slot=scroll-area-viewport]:h-auto *:data-[slot=scroll-area-viewport]:min-h-0">
 					<AccessManagerContent
 						resourceRef={resourceRef}
 						resourceName={resourceName}
-						enabled={open}
 					/>
 				</ScrollArea>
 

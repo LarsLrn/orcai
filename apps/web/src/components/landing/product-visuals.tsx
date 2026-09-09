@@ -12,7 +12,7 @@ export const ConsoleVisual = ({ className }: { className?: string }) => (
 		role="img"
 		aria-label="Governed knowledge assistant operations console visualization"
 		className={cn(
-			"rounded-xl border border-landing-border bg-landing-surface-raised p-4 text-landing-foreground shadow-black/10 shadow-xl dark:shadow-black/30",
+			"rounded-3xl border border-landing-border bg-landing-surface-raised p-4 text-landing-foreground",
 			className,
 		)}
 	>
@@ -23,7 +23,7 @@ export const ConsoleVisual = ({ className }: { className?: string }) => (
 					Knowledge assistant configuration
 				</div>
 			</div>
-			<div className="rounded-full bg-landing-accent px-2 py-1 font-medium text-landing-accent-foreground text-xs">
+			<div className="rounded-full bg-landing-accent-tint px-2 py-1 font-medium text-landing-accent-muted text-xs">
 				Indexed
 			</div>
 		</div>
@@ -52,10 +52,10 @@ export const ConsoleVisual = ({ className }: { className?: string }) => (
 			].map(([label, value, Icon]) => (
 				<div
 					key={label as string}
-					className="rounded-lg border border-landing-border bg-landing-surface p-4"
+					className="rounded-2xl border border-landing-border-subtle bg-landing-surface p-4"
 				>
 					<div className="mb-5 flex items-center justify-between">
-						<Icon className="size-5 text-landing-accent-muted" />
+						<Icon className="size-5 text-landing-muted" />
 						<div className="h-2 w-16 rounded-full bg-landing-border" />
 					</div>
 					<div className="font-medium">{label as string}</div>
@@ -63,9 +63,9 @@ export const ConsoleVisual = ({ className }: { className?: string }) => (
 				</div>
 			))}
 		</div>
-		<div className="mt-3 rounded-lg border border-landing-border bg-landing-surface p-4">
+		<div className="mt-3 rounded-2xl border border-landing-border-subtle bg-landing-surface p-4">
 			<div className="mb-3 flex items-center gap-2 text-sm">
-				<CheckCircle2Icon className="size-4 text-landing-accent-muted" />
+				<CheckCircle2Icon className="size-4 text-landing-muted" />
 				Ready for governed access
 			</div>
 			<div className="grid grid-cols-5 gap-2">

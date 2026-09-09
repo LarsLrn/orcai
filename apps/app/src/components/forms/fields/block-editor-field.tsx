@@ -41,9 +41,7 @@ const BlockEditorField = ({
 
 	return (
 		<Field data-invalid={isInvalid}>
-			<FieldLabel className="font-bold" htmlFor={id}>
-				{label}
-			</FieldLabel>
+			<FieldLabel htmlFor={id}>{label}</FieldLabel>
 			<BlockEditor
 				content={field.state.value}
 				onUpdate={(editor) => {

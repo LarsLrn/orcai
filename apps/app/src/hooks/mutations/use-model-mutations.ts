@@ -1,7 +1,20 @@
 import { useQueryClient } from "@tanstack/react-query";
 import { useRouter } from "@tanstack/react-router";
 import { useMutationAction } from "@/hooks/actions/use-mutation-action";
+import {
+	type DestructiveTarget,
+	describeAction,
+	describeFailure,
+	describeOutcome,
+	describeProgress,
+	describeTarget,
+} from "@/hooks/mutations/destructive-copy";
 import { orpc } from "@/lib/orpc/orpc";
+
+const MODEL_NOUNS = {
+	noun: "model",
+	nounPlural: "models",
+};
 
 export const useCreateModelMutation = (
 	opts: ReturnType<typeof orpc.model.create.mutationOptions> = {},
@@ -80,6 +93,7 @@ export const useUpdateModelMutation = (
 
 export const useDeleteModelsMutation = (
 	opts: ReturnType<typeof orpc.model.delete.mutationOptions> = {},
+	target?: DestructiveTarget,
 ) => {
 	const queryClient = useQueryClient();
 
@@ -103,18 +117,23 @@ export const useDeleteModelsMutation = (
 				},
 			}),
 		messages: {
-			loading: "Deleting models...",
-			success: "Models deleted",
-			error: "Failed to delete models",
+			loading: ({ input }) =>
+				describeProgress("Deleting", input.refs.length, MODEL_NOUNS, target),
+			success: ({ input }) =>
+				describeOutcome(input.refs.length, MODEL_NOUNS, "deleted", target),
+			error: ({ input }) =>
+				describeFailure(input.refs.length, MODEL_NOUNS, "deleted", target),
 		},
 		confirm: (input) => {
 			const count = input.refs.length;
-			const plural = count === 1 ? "" : "s";
 
 			return {
-				title: `Delete Model${plural}`,
-				description: `Are you sure you want to delete ${count} model${plural}? This action cannot be undone.`,
-				confirmText: "Delete",
+				title: `Delete ${describeTarget(count, MODEL_NOUNS, target)}?`,
+				description:
+					count === 1
+						? "Chats set to it lose their model choice, and quota pools scoped to it fall back to the whole provider."
+						: "Chats set to them lose their model choice, and quota pools scoped to them fall back to the whole provider.",
+				confirmText: describeAction("Delete", count, MODEL_NOUNS, target),
 				cancelText: "Cancel",
 			};
 		},

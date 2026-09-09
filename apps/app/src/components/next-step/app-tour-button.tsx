@@ -10,13 +10,16 @@ import { orpc } from "@/lib/orpc/orpc";
 const AppTourButton = ({
 	tour,
 	autoTrigger = false,
+	label,
 	className,
 	variant,
 	size,
+	children,
 	...props
 }: {
 	tour: "initialTour" | "chatTour";
 	autoTrigger?: boolean;
+	label?: string;
 } & ButtonPrimitive.Props &
 	VariantProps<typeof buttonVariants>) => {
 	const { auth } = useRouteContext({
@@ -52,15 +55,20 @@ const AppTourButton = ({
 		status,
 	]);
 
+	const showLabel = !!label && status === "success" && !isTourCompleted;
+
 	return (
 		<Button
 			onClick={handleStartTour}
 			data-slot="button"
 			variant={variant}
-			size={size}
+			size={showLabel ? size : size === "sm" ? "icon-sm" : size}
 			className={className}
 			{...props}
-		/>
+		>
+			{children}
+			{showLabel && <span>{label}</span>}
+		</Button>
 	);
 };
 

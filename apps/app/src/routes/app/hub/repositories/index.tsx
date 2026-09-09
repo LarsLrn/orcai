@@ -69,8 +69,6 @@ export const Route = createFileRoute("/app/hub/repositories/")({
 });
 
 function RouteComponent() {
-	const navigate = useNavigate();
-	const { mutate: deleteBlocks } = useDeleteBlocksMutation();
 	const { data: organizationCapabilities } = useOrganizationCapabilities([
 		"create_block",
 	]);
@@ -123,7 +121,9 @@ function RouteComponent() {
 				<SectionHeader>
 					<SectionTitle>Published</SectionTitle>
 					<SectionDescription>
-						Repository blocks currently available for bot retrieval.
+						A repository packages indexed material with retrieval settings, so a
+						bot can answer from your own sources. Published repositories are
+						available to bots and chats.
 					</SectionDescription>
 					{canCreateBlock ? (
 						<SectionAction>
@@ -134,7 +134,7 @@ function RouteComponent() {
 								})}
 							>
 								<PlusIcon />
-								Add Repository
+								Add repository
 							</Link>
 						</SectionAction>
 					) : null}
@@ -143,6 +143,7 @@ function RouteComponent() {
 					{publishedRepositoryBlocks.length === 0 ? (
 						<Placeholder
 							Icon={DatabaseIcon}
+							tone="repository"
 							title="No published repositories yet"
 							description="Create and publish a repository block to make it available for bots."
 							actions={
@@ -150,7 +151,7 @@ function RouteComponent() {
 									? [
 											{
 												key: "add",
-												label: "Add Repository",
+												label: "Add repository",
 												icon: BlocksIcon,
 												variant: "default",
 												linkProps: {
@@ -200,48 +201,7 @@ function RouteComponent() {
 					<SectionContent>
 						<SectionGrid layout="3">
 							{draftRepositoryBlocks.map((block) => (
-								<BlockCard
-									key={block.id}
-									block={block}
-									actions={{
-										dropdown: [
-											...(hasCapability(block.capabilities, "edit")
-												? [
-														{
-															key: "edit",
-															label: "Edit Draft",
-															icon: EditIcon,
-															onClick: () =>
-																navigate({
-																	to: "/app/hub/blocks/$blockId/edit",
-																	params: {
-																		blockId: block.id,
-																	},
-																}),
-														},
-													]
-												: []),
-											...(hasCapability(block.capabilities, "delete")
-												? [
-														{
-															key: "delete",
-															label: "Delete Draft",
-															icon: TrashIcon,
-															onClick: () =>
-																deleteBlocks({
-																	refs: [
-																		{
-																			id: block.id,
-																		},
-																	],
-																}),
-														},
-													]
-												: []),
-										],
-										footer: [],
-									}}
-								/>
+								<DraftRepositoryCard key={block.id} block={block} />
 							))}
 						</SectionGrid>
 					</SectionContent>
@@ -250,3 +210,65 @@ function RouteComponent() {
 		</div>
 	);
 }
+
+const DraftRepositoryCard = ({
+	block,
+}: {
+	block: React.ComponentProps<typeof BlockCard>["block"];
+}) => {
+	const navigate = useNavigate();
+	const { mutate: deleteBlocks } = useDeleteBlocksMutation(
+		{},
+		{
+			names: [
+				block.name,
+			],
+			noun: "repository",
+			nounPlural: "repositories",
+		},
+	);
+
+	return (
+		<BlockCard
+			block={block}
+			actions={{
+				dropdown: [
+					...(hasCapability(block.capabilities, "edit")
+						? [
+								{
+									key: "edit",
+									label: "Edit draft",
+									icon: EditIcon,
+									onClick: () =>
+										navigate({
+											to: "/app/hub/blocks/$blockId/edit",
+											params: {
+												blockId: block.id,
+											},
+										}),
+								},
+							]
+						: []),
+					...(hasCapability(block.capabilities, "delete")
+						? [
+								{
+									key: "delete",
+									label: "Delete draft",
+									icon: TrashIcon,
+									onClick: () =>
+										deleteBlocks({
+											refs: [
+												{
+													id: block.id,
+												},
+											],
+										}),
+								},
+							]
+						: []),
+				],
+				footer: [],
+			}}
+		/>
+	);
+};

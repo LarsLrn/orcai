@@ -27,7 +27,7 @@ export const Route = createFileRoute("/app/hub/blocks/$blockId/points")({
 	head: () => ({
 		meta: [
 			{
-				title: "Points",
+				title: "Indexed passages",
 			},
 		],
 	}),
@@ -49,7 +49,7 @@ function RouteComponent() {
 	return (
 		<Page>
 			<PageHeader>
-				<PageTitle>Points</PageTitle>
+				<PageTitle>Indexed passages</PageTitle>
 			</PageHeader>
 
 			<PageContent className="grid gap-4">

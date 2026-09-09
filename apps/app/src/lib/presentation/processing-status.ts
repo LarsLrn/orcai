@@ -1,4 +1,5 @@
 import type { ProcessingStatus } from "@orcai/schema";
+import type { Badge } from "@/components/ui/badge";
 
 const PROCESSING_STATUS_LABELS: Record<ProcessingStatus, string> = {
 	pending: "Queued",
@@ -19,3 +20,17 @@ export const getProcessingStatusLabel = (status: ProcessingStatus) =>
 
 export const getProcessingStatusDescription = (status: ProcessingStatus) =>
 	PROCESSING_STATUS_DESCRIPTIONS[status];
+
+/** Status colour family for a processing state, per the Tint Not Fill Rule. */
+const PROCESSING_STATUS_VARIANTS: Record<
+	ProcessingStatus,
+	React.ComponentProps<typeof Badge>["variant"]
+> = {
+	pending: "info",
+	active: "processing",
+	completed: "success",
+	failed: "danger",
+};
+
+export const getProcessingStatusVariant = (status: ProcessingStatus) =>
+	PROCESSING_STATUS_VARIANTS[status];

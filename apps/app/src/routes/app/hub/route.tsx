@@ -5,6 +5,14 @@ import {
 	useNavigate,
 	useRouterState,
 } from "@tanstack/react-router";
+import {
+	BotIcon,
+	BrainCircuitIcon,
+	DatabaseIcon,
+	FileTextIcon,
+	LibraryIcon,
+	type LucideIcon,
+} from "lucide-react";
 import { LoadingPage } from "@/components/app/loading/loading-page";
 import {
 	Select,
@@ -26,31 +34,43 @@ const HUB_ROUTES = [
 		value: "all",
 		label: "All",
 		to: "/app/hub",
+		Icon: LibraryIcon,
+		iconClassName: "text-muted-foreground",
 	},
 	{
 		value: "bots",
 		label: "Bots",
 		to: "/app/hub/bots",
+		Icon: BotIcon,
+		iconClassName: "text-kind-bot",
 	},
 	{
 		value: "behaviour",
 		label: "Behaviour",
 		to: "/app/hub/behaviour",
+		Icon: BrainCircuitIcon,
+		iconClassName: "text-kind-behaviour",
 	},
 	{
 		value: "repositories",
 		label: "Repositories",
 		to: "/app/hub/repositories",
+		Icon: DatabaseIcon,
+		iconClassName: "text-kind-repository",
 	},
 	{
 		value: "assets",
-		label: "Content",
+		label: "Assets",
 		to: "/app/hub/assets",
+		Icon: FileTextIcon,
+		iconClassName: "text-kind-asset",
 	},
 ] satisfies {
 	value: string;
 	label: string;
 	to: LinkProps["to"];
+	Icon: LucideIcon;
+	iconClassName: string;
 }[];
 
 type TabValue = (typeof HUB_ROUTES)[number]["value"];
@@ -96,7 +116,7 @@ function RouteComponent() {
 				<HeroWave />
 				<HeroInner className="pb-10">
 					<HeroContent className="flex justify-between sm:flex-row">
-						<h1 className="font-bold text-4xl text-card-foreground tracking-tight">
+						<h1 className="font-heading font-semibold text-4xl text-card-foreground tracking-tight">
 							Library
 						</h1>
 						<Select
@@ -126,6 +146,7 @@ function RouteComponent() {
 							<TabsList>
 								{HUB_ROUTES.map((route) => (
 									<TabsTrigger key={route.value} value={route.value}>
+										<route.Icon className={route.iconClassName} />
 										{route.label}
 									</TabsTrigger>
 								))}

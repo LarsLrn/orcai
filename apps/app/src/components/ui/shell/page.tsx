@@ -28,7 +28,7 @@ const PageTitle = ({ className, ...props }: React.ComponentProps<"h1">) => {
 		<h1
 			data-slot="page-title"
 			className={cn(
-				"max-w-4xl text-balance font-semibold text-3xl tracking-tight md:text-4xl",
+				"max-w-4xl text-balance font-heading font-semibold text-3xl tracking-tight md:text-4xl",
 				className,
 			)}
 			{...props}

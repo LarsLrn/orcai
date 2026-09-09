@@ -51,43 +51,40 @@ const DataTableBulkActions = <TData extends RowData>({
 		selectedRows,
 		table,
 	};
-	const hasSelection = selectedCount > 0;
-
-	if (actions.length === 0) {
-		return null;
-	}
+	const isVisible = selectedCount > 0 && actions.length > 0;
 
 	return (
-		<div className="flex items-center gap-2">
-			<DropdownMenu>
-				<DropdownMenuTrigger
-					render={
-						<Button
-							variant="outline"
-							size="sm"
-							className="h-8"
-							disabled={!hasSelection || isPending}
-						>
-							<ReplaceAllIcon />
-							Actions
-						</Button>
-					}
-				/>
-				<DropdownMenuContent align="end" className="w-50">
-					{actions.map((action) => (
-						<DropdownMenuItem
-							key={action.label}
-							variant={action.variant}
-							disabled={
-								!hasSelection || isPending || resolveDisabled(action, context)
-							}
-							onClick={() => action.onSelect(context)}
-						>
-							{action.label}
-						</DropdownMenuItem>
-					))}
-				</DropdownMenuContent>
-			</DropdownMenu>
+		<div className="flex min-w-36 items-center justify-end gap-2">
+			{isVisible && (
+				<DropdownMenu>
+					<DropdownMenuTrigger
+						render={
+							<Button
+								variant="outline"
+								size="sm"
+								className="h-8"
+								disabled={isPending}
+								aria-label="Bulk actions"
+							>
+								<ReplaceAllIcon />
+								{selectedCount} selected
+							</Button>
+						}
+					/>
+					<DropdownMenuContent align="end" className="w-50">
+						{actions.map((action) => (
+							<DropdownMenuItem
+								key={action.label}
+								variant={action.variant}
+								disabled={isPending || resolveDisabled(action, context)}
+								onClick={() => action.onSelect(context)}
+							>
+								{action.label}
+							</DropdownMenuItem>
+						))}
+					</DropdownMenuContent>
+				</DropdownMenu>
+			)}
 		</div>
 	);
 };

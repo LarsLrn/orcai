@@ -46,7 +46,7 @@ const ProviderForm = ({
 						<field.SelectField
 							label="Compatibility"
 							placeholder="Provider compatibility"
-							description="Select the compatibility type for this provider"
+							description="Only OpenAI-compatible endpoints are supported at the moment."
 							options={providerCompatibilities.map((compatibility) => ({
 								value: compatibility.value,
 								label: compatibility.label,
@@ -61,8 +61,8 @@ const ProviderForm = ({
 					children={(field) => (
 						<field.TextField
 							label="Name"
-							description="This will show for users"
-							placeholder="Enter a name for this provider configuration"
+							description="Shown to users wherever this provider is named."
+							placeholder="e.g. University OpenAI endpoint"
 						/>
 					)}
 				/>
@@ -73,8 +73,8 @@ const ProviderForm = ({
 				children={(field) => (
 					<field.TextField
 						label="Endpoint"
-						description="Enter the full API endpoint URL for this provider (e.g. https://api.provider.com/v1)"
-						placeholder="Enter the endpoint for this provider configuration"
+						description="The base URL of the OpenAI-compatible endpoint, including the version path."
+						placeholder="https://api.openai.com/v1"
 					/>
 				)}
 			/>
@@ -83,9 +83,9 @@ const ProviderForm = ({
 				name="apiKey"
 				children={(field) => (
 					<field.PasswordField
-						label="API Key"
-						description="Your API key will be stored encrypted"
-						placeholder="Enter your API key"
+						label="API key"
+						description="The key is stored encrypted."
+						placeholder="Paste the key from the provider"
 					/>
 				)}
 			/>
@@ -95,8 +95,8 @@ const ProviderForm = ({
 					name="meteringMode"
 					children={(field) => (
 						<field.SelectField
-							label="Metering Mode"
-							description="Defines how quota is enforced for this provider"
+							label="Metering mode"
+							description="Sets whether quota counts tokens or requests for this provider."
 							options={providerMeteringModes.map((mode) => ({
 								value: mode.value,
 								label: mode.label,
@@ -109,14 +109,14 @@ const ProviderForm = ({
 					children={(field) => (
 						<field.SwitchField
 							label="Enabled"
-							description="Enable this provider for use in the organisation"
+							description="When enabled, models from this provider can be used in this organisation."
 						/>
 					)}
 				/>
 			</div>
 
 			<form.AppForm>
-				<form.SubmitButton label="Save Provider" />
+				<form.SubmitButton label="Save provider" />
 			</form.AppForm>
 		</form>
 	);

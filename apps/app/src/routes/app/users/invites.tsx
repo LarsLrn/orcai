@@ -84,7 +84,7 @@ function RouteComponent() {
 							variant: "default",
 						})}
 					>
-						Invite Users
+						Invite users
 					</Link>
 				</PageAction>
 			</PageHeader>

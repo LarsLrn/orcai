@@ -1,4 +1,5 @@
 import type { PrincipalType, ResourceRef } from "@orcai/schema";
+import type { QueryClient } from "@tanstack/react-query";
 import { skipToken, useQuery, useQueryClient } from "@tanstack/react-query";
 import { useMutationAction } from "@/hooks/actions/use-mutation-action";
 import { orpc } from "@/lib/orpc/orpc";
@@ -28,6 +29,27 @@ const getGrantsOptions = (resourceRef: ResourceRef) =>
 		input: getResourceInput(resourceRef),
 	});
 
+const invalidateResourceAccess = (
+	queryClient: QueryClient,
+	resourceRef: ResourceRef,
+) => {
+	queryClient.invalidateQueries({
+		queryKey: getGrantsOptions(resourceRef).queryKey,
+	});
+	queryClient.invalidateQueries({
+		queryKey: orpc.resource.listPrincipals.key({
+			input: getResourceInput(resourceRef),
+		}),
+	});
+};
+
+export const useInheritedAccess = (resourceRef: ResourceRef) =>
+	useQuery(
+		orpc.resource.inheritedAccess.queryOptions({
+			input: getResourceInput(resourceRef),
+		}),
+	);
+
 const getVisibilityOptions = (resourceRef: ResourceRef) =>
 	orpc.resource.getVisibility.queryOptions({
 		input: getResourceInput(resourceRef),
@@ -49,21 +71,20 @@ export const useResourceGrants = (
 export const useShareablePrincipals = (
 	resourceRef: ResourceRef,
 	query: string,
-	options?: {
-		enabled?: boolean;
-		limit?: number;
-		principalType?: PrincipalType;
+	options: {
+		limit: number;
+		principalType: PrincipalType;
 	},
 ) =>
 	useQuery(
 		orpc.resource.listPrincipals.queryOptions({
 			input: {
 				...getResourceInput(resourceRef),
-				principalType: options?.principalType,
+				principalType: options.principalType,
 				query: query.trim().length > 0 ? query.trim() : undefined,
-				limit: options?.limit ?? 25,
+				limit: options.limit,
+				excludeGranted: true,
 			},
-			enabled: options?.enabled ?? true,
 		}),
 	);
 
@@ -82,15 +103,12 @@ export const useResourceVisibility = (
 
 export const useGrantResourceAccess = (resourceRef: ResourceRef) => {
 	const queryClient = useQueryClient();
-	const grantsOptions = getGrantsOptions(resourceRef);
 
 	return useMutationAction({
 		mutationOptions: () =>
 			orpc.resource.grant.mutationOptions({
 				onSuccess: () => {
-					queryClient.invalidateQueries({
-						queryKey: grantsOptions.queryKey,
-					});
+					invalidateResourceAccess(queryClient, resourceRef);
 				},
 			}),
 		messages: {
@@ -103,15 +121,12 @@ export const useGrantResourceAccess = (resourceRef: ResourceRef) => {
 
 export const useRevokeResourceAccess = (resourceRef: ResourceRef) => {
 	const queryClient = useQueryClient();
-	const grantsOptions = getGrantsOptions(resourceRef);
 
 	return useMutationAction({
 		mutationOptions: () =>
 			orpc.resource.revoke.mutationOptions({
 				onSuccess: () => {
-					queryClient.invalidateQueries({
-						queryKey: grantsOptions.queryKey,
-					});
+					invalidateResourceAccess(queryClient, resourceRef);
 				},
 			}),
 		messages: {

@@ -1,12 +1,15 @@
 import type { UseChatHelpers } from "@ai-sdk/react";
 import type { ChatId } from "@orcai/core";
+import type { ReactNode } from "react";
 import {
 	Message,
 	MessageContent,
 	MessageToolbar,
 } from "@/components/ai-elements/message";
 import { Shimmer } from "@/components/ai-elements/shimmer";
+import { classifyTurn } from "@/components/chat/message/classify-turn";
 import { MessageEditor } from "@/components/chat/message/message-editor";
+import { WorkLog } from "@/components/chat/message/work-log/work-log";
 import { InView } from "@/components/ui/motion/in-view";
 import type { ChatAgentUIMessage } from "@/lib/ai/types/chat-agent-message";
 import { getChatMessageAttachments } from "@/lib/ai/types/chat-attachment";
@@ -23,57 +26,20 @@ interface MessageBlockProps {
 	setMessages: UseChatHelpers<ChatAgentUIMessage>["setMessages"];
 	regenerate: () => Promise<void>;
 	status: UseChatHelpers<ChatAgentUIMessage>["status"];
+	/** Only the latest message can still be receiving parts. */
+	isLatest: boolean;
+	animate?: boolean;
 }
 
-export const MessageBlock = ({
-	message,
-	chatId,
-	setMessages,
-	regenerate,
-	status,
-}: MessageBlockProps) => {
-	const { mode, toggleMode, setViewMode } = useMessageEditor();
-	const variant = message.role === "user" ? "sent" : "received";
-	const messageAttachments = getChatMessageAttachments(message);
-
-	// Filter and sort message parts:
-	// keep only the last text part; keep all non-text parts
-	// Some models tend to generate text WITH their tool calls, which this filters out
-	const sortedParts = (() => {
-		const parts = [
-			...message.parts,
-		];
-
-		let lastTextIndex = -1;
-		for (let i = parts.length - 1; i >= 0; i--) {
-			if (parts[i].type === "text") {
-				lastTextIndex = i;
-				break;
-			}
-		}
-
-		const filteredParts = parts.filter((part, index) => {
-			if (part.type !== "text") return true;
-			return index === lastTextIndex;
-		});
-
-		return filteredParts.sort((a, b) => {
-			if (a.type === "text" && b.type !== "text") return 1;
-			if (b.type === "text" && a.type !== "text") return -1;
-			return 0;
-		});
-	})();
-
-	if (
-		status === "streaming" &&
-		message.role === "assistant" &&
-		message.parts.length === 0
-	) {
-		return (
-			<div className="wrap-break-word sticky m-0 w-full max-w-full whitespace-pre-wrap rounded-none bg-transparent p-4 text-foreground">
-				<Shimmer>Waiting for model...</Shimmer>
-			</div>
-		);
+const MessageEntrance = ({
+	animate,
+	children,
+}: {
+	animate: boolean;
+	children: ReactNode;
+}) => {
+	if (!animate) {
+		return <>{children}</>;
 	}
 
 	return (
@@ -81,23 +47,56 @@ export const MessageBlock = ({
 			variants={{
 				hidden: {
 					opacity: 0,
-					y: 100,
-					filter: "blur(4px)",
+					y: 8,
 				},
 				visible: {
 					opacity: 1,
 					y: 0,
-					filter: "blur(0px)",
 				},
 			}}
 			viewOptions={{
 				margin: "0px 0px -200px 0px",
 			}}
 			transition={{
-				duration: 0.3,
-				ease: "easeInOut",
+				duration: 0.2,
+				ease: "easeOut",
 			}}
 		>
+			{children}
+		</InView>
+	);
+};
+
+export const MessageBlock = ({
+	message,
+	chatId,
+	setMessages,
+	regenerate,
+	status,
+	isLatest,
+	animate = true,
+}: MessageBlockProps) => {
+	const { mode, toggleMode, setViewMode } = useMessageEditor();
+	const variant = message.role === "user" ? "sent" : "received";
+	const messageAttachments = getChatMessageAttachments(message);
+
+	const { entries, answerParts } = classifyTurn(message.parts);
+	const running = isLatest && status === "streaming";
+
+	if (
+		status === "streaming" &&
+		message.role === "assistant" &&
+		message.parts.length === 0
+	) {
+		return (
+			<div className="w-full text-foreground">
+				<Shimmer>Waiting for the model</Shimmer>
+			</div>
+		);
+	}
+
+	return (
+		<MessageEntrance animate={animate}>
 			<Message
 				from={message.role}
 				key={message.id}
@@ -114,7 +113,10 @@ export const MessageBlock = ({
 				) : (
 					<MessageContent>
 						<ChatMessageAttachments attachments={messageAttachments} />
-						{sortedParts.map((part, i) => (
+						{entries.length > 0 && (
+							<WorkLog entries={entries} running={running} />
+						)}
+						{answerParts.map((part, i) => (
 							<MessagePartRenderer
 								key={`${part.type}${message.id}${i}`}
 								part={part}
@@ -139,6 +141,6 @@ export const MessageBlock = ({
 					)}
 				</MessageToolbar>
 			</Message>
-		</InView>
+		</MessageEntrance>
 	);
 };

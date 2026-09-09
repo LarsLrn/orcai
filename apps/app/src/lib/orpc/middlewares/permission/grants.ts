@@ -1,6 +1,8 @@
-import type { GroupId, UserId } from "@orcai/core";
 import { DB } from "@orcai/db";
-import type { ResourceGrantRole } from "@orcai/schema";
+import type {
+	ResourceGrantRole,
+	ResourcePrincipalIdentity,
+} from "@orcai/schema";
 import { ALL_MEMBERS_GROUP_SYSTEM_KEY } from "@orcai/schema";
 import type { EntityIdFor, ResourceType } from "@orcai/spice-db";
 import * as Effect from "effect/Effect";
@@ -18,22 +20,13 @@ import { createResourcePermissionInput } from "./resource";
 export type AssertCanGrantPrincipalInput = {
 	role: ResourceGrantRole;
 	zedToken?: string;
+	principals: ResourcePrincipalIdentity[];
 } & {
 	[Entity in ResourceType]: {
 		resourceType: Entity;
 		resourceId: EntityIdFor<Entity>;
 	};
-}[ResourceType] &
-	(
-		| {
-				principalType: "user";
-				principalId: UserId;
-		  }
-		| {
-				principalType: "group";
-				principalId: GroupId;
-		  }
-	);
+}[ResourceType];
 
 export const assertCanGrantPrincipalMiddleware = withName(
 	permissionBase.middleware((opts, input: AssertCanGrantPrincipalInput) =>
@@ -91,43 +84,42 @@ export const assertCanGrantPrincipalMiddleware = withName(
 				const organizationIds = resourceScopes.map(
 					(scope) => scope.organizationId,
 				);
-				if (input.principalType === "user") {
-					const membership = yield* db.query.member.findFirst({
-						columns: {
-							userId: true,
-						},
-						where: {
-							AND: [
-								{
-									organizationId: {
-										in: organizationIds,
-									},
-								},
-								{
-									userId: {
-										eq: input.principalId,
-									},
-								},
-							],
-						},
-					});
 
-					if (!membership) {
-						return yield* Effect.fail(
-							new AppErrors.BadRequestError({
-								message:
-									"[CROSS_ORG_PRINCIPAL_FORBIDDEN] User principal must belong to the resource organization scope",
-								data: {
-									code: "CROSS_ORG_PRINCIPAL_FORBIDDEN",
-								},
-							}),
-						);
+				const rejections: string[] = [];
+
+				for (const principal of input.principals) {
+					if (principal.principalType === "user") {
+						const membership = yield* db.query.member.findFirst({
+							columns: {
+								userId: true,
+							},
+							where: {
+								AND: [
+									{
+										organizationId: {
+											in: organizationIds,
+										},
+									},
+									{
+										userId: {
+											eq: principal.principalId,
+										},
+									},
+								],
+							},
+						});
+
+						if (!membership) {
+							rejections.push(
+								`${principal.principalId}: user is not a member of this resource's organization scope`,
+							);
+						}
+						continue;
 					}
-				}
 
-				if (input.principalType === "group") {
 					const group = yield* db.query.group.findFirst({
 						columns: {
+							name: true,
 							organizationId: true,
 							kind: true,
 							systemKey: true,
@@ -136,7 +128,7 @@ export const assertCanGrantPrincipalMiddleware = withName(
 							AND: [
 								{
 									id: {
-										eq: input.principalId,
+										eq: principal.principalId,
 									},
 								},
 								{
@@ -154,15 +146,10 @@ export const assertCanGrantPrincipalMiddleware = withName(
 					});
 
 					if (!group) {
-						return yield* Effect.fail(
-							new AppErrors.BadRequestError({
-								message:
-									"[CROSS_ORG_PRINCIPAL_FORBIDDEN] Group principal must belong to the resource organization scope",
-								data: {
-									code: "CROSS_ORG_PRINCIPAL_FORBIDDEN",
-								},
-							}),
+						rejections.push(
+							`${principal.principalId}: group is not part of this resource's organization scope`,
 						);
+						continue;
 					}
 
 					const isAllMembers =
@@ -170,15 +157,10 @@ export const assertCanGrantPrincipalMiddleware = withName(
 						group.systemKey === ALL_MEMBERS_GROUP_SYSTEM_KEY;
 
 					if (isAllMembers && input.role !== "viewer") {
-						return yield* Effect.fail(
-							new AppErrors.BadRequestError({
-								message:
-									"[ALL_MEMBERS_VIEWER_ONLY] All Members group can only receive viewer grants",
-								data: {
-									code: "ALL_MEMBERS_VIEWER_ONLY",
-								},
-							}),
+						rejections.push(
+							`${principal.principalId}: ${group.name} can only receive viewer grants`,
 						);
+						continue;
 					}
 
 					// Members grant only to All Members and to their own groups.
@@ -191,25 +173,28 @@ export const assertCanGrantPrincipalMiddleware = withName(
 
 						if (!manages) {
 							const belongs = yield* isActiveGroupMember({
-								groupId: input.principalId,
+								groupId: principal.principalId,
 								userId: opts.context.auth.user.id,
 							});
 
 							if (!belongs) {
-								return yield* Effect.fail(
-									new AppErrors.ForbiddenError({
-										message: "You can only share with groups you belong to.",
-										data: {
-											allowed: false,
-											code: "GROUP_PRINCIPAL_FORBIDDEN",
-											entityType: "group",
-											permission: "read",
-										},
-									}),
+								rejections.push(
+									`${principal.principalId}: you can only share with groups you belong to`,
 								);
 							}
 						}
 					}
+				}
+
+				if (rejections.length > 0) {
+					return yield* Effect.fail(
+						new AppErrors.BadRequestError({
+							message: `[GRANT_PRINCIPALS_INVALID] ${rejections.join("; ")}`,
+							data: {
+								code: "GRANT_PRINCIPALS_INVALID",
+							},
+						}),
+					);
 				}
 
 				return yield* Effect.promise(() => Promise.resolve(opts.next()));

@@ -1,7 +1,6 @@
 import type { ModelListRow } from "@orcai/schema";
 import { Link } from "@tanstack/react-router";
 import { createColumnHelper } from "@tanstack/react-table";
-import { format } from "date-fns";
 import { MoreHorizontal } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -16,6 +15,7 @@ import {
 	DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import { useDeleteModelsMutation } from "@/hooks/mutations/use-model-mutations";
+import { formatDisplayTimestamp } from "@/lib/presentation/format-timestamp";
 
 const columnHelper = createColumnHelper<DataTableFeatures, ModelListRow>();
 
@@ -66,10 +66,10 @@ export const modelTableColumns = columnHelper.columns([
 	}),
 	columnHelper.accessor("createdAt", {
 		header: ({ column }) => (
-			<DataTableColumnHeader column={column} title="Created At" />
+			<DataTableColumnHeader column={column} title="Created" />
 		),
 		cell: ({ row }) => (
-			<span>{format(row.original.createdAt || "", "MMM dd, yyyy HH:mm")}</span>
+			<span>{formatDisplayTimestamp(row.original.createdAt || "")}</span>
 		),
 	}),
 	columnHelper.display({
@@ -97,7 +97,7 @@ export const modelTableColumns = columnHelper.columns([
 								modelId: model.id,
 							}}
 						>
-							<DropdownMenuItem>View Model</DropdownMenuItem>
+							<DropdownMenuItem>View model</DropdownMenuItem>
 						</Link>
 						<Link
 							to={"/app/models/$modelId/edit"}
@@ -105,7 +105,7 @@ export const modelTableColumns = columnHelper.columns([
 								modelId: model.id,
 							}}
 						>
-							<DropdownMenuItem>Edit Model</DropdownMenuItem>
+							<DropdownMenuItem>Edit model</DropdownMenuItem>
 						</Link>
 						<DropdownMenuSeparator />
 						<DeleteItem model={model} />
@@ -117,7 +117,14 @@ export const modelTableColumns = columnHelper.columns([
 ]);
 
 const DeleteItem = ({ model }: { model: ModelListRow }) => {
-	const { mutate: deleteModels } = useDeleteModelsMutation();
+	const { mutate: deleteModels } = useDeleteModelsMutation(
+		{},
+		{
+			names: [
+				model.name,
+			],
+		},
+	);
 
 	return (
 		<DropdownMenuItem
@@ -132,7 +139,7 @@ const DeleteItem = ({ model }: { model: ModelListRow }) => {
 				})
 			}
 		>
-			Delete Model
+			Delete model
 		</DropdownMenuItem>
 	);
 };

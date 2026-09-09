@@ -1,7 +1,6 @@
 import type { Organization } from "@orcai/schema";
 import { Link } from "@tanstack/react-router";
 import { createColumnHelper } from "@tanstack/react-table";
-import { format } from "date-fns";
 import { MoreHorizontal } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { DataTableColumnHeader } from "@/components/ui/data-table/data-table-column-header";
@@ -12,6 +11,7 @@ import {
 	DropdownMenuItem,
 	DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
+import { formatDisplayTimestamp } from "@/lib/presentation/format-timestamp";
 
 const columnHelper = createColumnHelper<DataTableFeatures, Organization>();
 
@@ -40,10 +40,10 @@ export const organizationTableColumns = columnHelper.columns([
 	}),
 	columnHelper.accessor("createdAt", {
 		header: ({ column }) => (
-			<DataTableColumnHeader column={column} title="Created At" />
+			<DataTableColumnHeader column={column} title="Created" />
 		),
 		cell: ({ row }) => (
-			<span>{format(row.original.createdAt || "", "MMM dd, yyyy HH:mm")}</span>
+			<span>{formatDisplayTimestamp(row.original.createdAt || "")}</span>
 		),
 	}),
 	columnHelper.display({
@@ -77,7 +77,7 @@ const OrganizationRowActions = ({
 						orgId: organization.id,
 					}}
 				>
-					<DropdownMenuItem>View Organisation</DropdownMenuItem>
+					<DropdownMenuItem>View organisation</DropdownMenuItem>
 				</Link>
 				<Link
 					to={"/app/orgs/$orgId/edit"}

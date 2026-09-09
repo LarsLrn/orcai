@@ -24,7 +24,7 @@ type IntakeStep = "upload" | "uploaded" | "review";
 
 const AssetIntakeFlow = ({
 	onAssetsSaved,
-	submitLabel = "Save Content",
+	submitLabel = "Save assets",
 }: {
 	onAssetsSaved?: (assets: Asset[]) => void;
 	submitLabel?: string;
@@ -46,9 +46,9 @@ const AssetIntakeFlow = ({
 			{step !== "review" ? (
 				<UploadComponent
 					route="asset"
-					title="Upload Content"
-					description="Select files for this batch, upload them, then continue to add metadata for each source item."
-					uploadLabel="Upload Batch"
+					title="Upload assets"
+					description="Select files, upload them, then add source details for each one."
+					uploadLabel="Upload files"
 					finalizeUpload
 					hidePickerWhenSettled
 					completionAction={{
@@ -91,7 +91,7 @@ const AssetIntakeFlow = ({
 			{step === "review" && uploadedFiles.length > 0 ? (
 				<Card className="border-border/70 bg-background shadow-sm">
 					<CardHeader>
-						<CardTitle>Review Uploaded Files</CardTitle>
+						<CardTitle>Review uploaded files</CardTitle>
 						<CardDescription>
 							Add metadata to each uploaded file before saving the final content
 							items.
@@ -128,7 +128,7 @@ const AssetIntakeFlow = ({
 								disabled={isPending}
 								onClick={() => {
 									if (uploadedFiles.length === 0) {
-										toast.error("Upload at least one file first.");
+										toast.error("Upload at least one file before continuing.");
 										return;
 									}
 

@@ -2,11 +2,83 @@
 @import "fumadocs-ui/css/neutral.css";
 @import "fumadocs-ui/css/preset.css";
 
+/*
+ * Northern Waters, ported from apps/app/src/styles/app.css.
+ *
+ * The docs and landing site share the app's neutrals (hue 257.8 light,
+ * 249.3 dark), Deep Water as the only solid call to action, and Orca Steel
+ * as a governance and state colour that never fills an action. Fumadocs
+ * ships its own greyscale in `neutral.css`, so every `--color-fd-*` token is
+ * restated here, after that import.
+ */
+@theme {
+	/* apps/web does not depend on @fontsource-variable/geist, so Geist is only
+	   used when the visitor happens to have it installed. */
+	--font-sans: "Geist Variable", ui-sans-serif, system-ui, sans-serif;
+
+	--radius-sm: 6px;
+	--radius-md: 8px;
+	--radius-lg: 10px;
+	--radius-xl: 14px;
+	--radius-2xl: 18px;
+	--radius-3xl: 22px;
+	--radius-4xl: 26px;
+
+	--color-fd-background: oklch(0.98 0.01 257.8);
+	--color-fd-foreground: oklch(0.3 0.04 257.8);
+	--color-fd-muted: oklch(0.92 0.01 257.8);
+	--color-fd-muted-foreground: oklch(0.5 0.01 257.8);
+	--color-fd-popover: oklch(0.96 0.01 257.8);
+	--color-fd-popover-foreground: oklch(0.3 0.04 257.8);
+	--color-fd-card: oklch(1 0 0);
+	--color-fd-card-foreground: oklch(0.3 0.04 257.8);
+	--color-fd-border: oklch(0.9 0.01 257.8);
+	--color-fd-primary: oklch(0.2544 0.07 257.8);
+	--color-fd-primary-foreground: oklch(0.98 0.02 257.8);
+	--color-fd-secondary: oklch(0.92 0.01 257.8);
+	--color-fd-secondary-foreground: oklch(0.3 0.04 257.8);
+	--color-fd-accent: oklch(0.92 0.01 269.8);
+	--color-fd-accent-foreground: oklch(0.3 0.04 257.8);
+	--color-fd-ring: oklch(0.5 0.03 257.8);
+	--color-fd-overlay: oklch(0.18 0.01 249.3 / 0.3);
+}
+
+.dark {
+	--color-fd-background: oklch(0.18 0.01 249.3);
+	--color-fd-foreground: oklch(0.85 0.01 249.3);
+	--color-fd-muted: oklch(0.28 0.01 249.3);
+	--color-fd-muted-foreground: oklch(0.7 0.01 249.3);
+	--color-fd-popover: oklch(0.23 0.01 249.3);
+	--color-fd-popover-foreground: oklch(0.85 0.01 249.3);
+	--color-fd-card: oklch(0.23 0.01 249.3);
+	--color-fd-card-foreground: oklch(0.85 0.01 249.3);
+	--color-fd-border: oklch(0.33 0.01 249.3);
+	--color-fd-primary: oklch(0.5 0.07 249.3);
+	--color-fd-primary-foreground: oklch(0.98 0.02 249.3);
+	--color-fd-secondary: oklch(0.28 0.01 249.3);
+	--color-fd-secondary-foreground: oklch(0.85 0.01 249.3);
+	--color-fd-accent: oklch(0.28 0.01 237.3);
+	--color-fd-accent-foreground: oklch(0.85 0.01 249.3);
+	--color-fd-ring: oklch(0.68 0.03 249.3);
+	--color-fd-overlay: oklch(0.18 0.01 249.3 / 0.4);
+}
+
+/* neutral.css lifts the dark sidebar out of the palette; keep it on hue. */
+.dark #nd-sidebar {
+	--color-fd-muted: oklch(0.28 0.01 249.3);
+	--color-fd-muted-foreground: oklch(0.7 0.01 249.3);
+	--color-fd-secondary: oklch(0.28 0.01 249.3);
+}
+
 @theme inline {
 	--color-landing-canvas: var(--landing-canvas);
 	--color-landing-surface: var(--landing-surface);
 	--color-landing-surface-raised: var(--landing-surface-raised);
+	--color-landing-surface-hover: var(--landing-surface-hover);
 	--color-landing-surface-inverse: var(--landing-surface-inverse);
+	--color-landing-surface-inverse-foreground: var(
+		--landing-surface-inverse-foreground
+	);
 	--color-landing-border: var(--landing-border);
 	--color-landing-border-subtle: var(--landing-border-subtle);
 	--color-landing-foreground: var(--landing-foreground);
@@ -14,34 +86,55 @@
 	--color-landing-accent: var(--landing-accent);
 	--color-landing-accent-foreground: var(--landing-accent-foreground);
 	--color-landing-accent-muted: var(--landing-accent-muted);
+	--color-landing-accent-tint: var(--landing-accent-tint);
 }
 
 .landing-page {
-	--landing-canvas: #eef1f0;
-	--landing-surface: #f8faf9;
-	--landing-surface-raised: #ffffff;
-	--landing-surface-inverse: #101615;
-	--landing-border: #c7d0cd;
-	--landing-border-subtle: #dce2df;
-	--landing-foreground: #101615;
-	--landing-muted: #53615e;
-	--landing-accent: #d9f99d;
-	--landing-accent-foreground: #263400;
-	--landing-accent-muted: #4f6f2a;
+	/* The Fourteen Rule: 14px is the working size. */
+	font-size: 0.875rem;
+
+	--landing-canvas: oklch(0.96 0.01 257.8);
+	--landing-surface: oklch(0.98 0.01 257.8);
+	--landing-surface-raised: oklch(1 0 0);
+	--landing-surface-hover: oklch(0.92 0.01 257.8);
+	--landing-surface-inverse: oklch(0.2544 0.07 257.8);
+	--landing-surface-inverse-foreground: oklch(0.98 0.02 257.8);
+	--landing-border: oklch(0.9 0.01 257.8);
+	--landing-border-subtle: oklch(0.94 0.01 257.8);
+	--landing-foreground: oklch(0.3 0.04 257.8);
+	--landing-muted: oklch(0.5 0.01 257.8);
+	--landing-accent: oklch(0.5024 0.067 249.3);
+	--landing-accent-foreground: oklch(0.98 0.02 249.3);
+	--landing-accent-muted: oklch(0.5024 0.067 249.3);
+	--landing-accent-tint: oklch(0.5024 0.067 249.3 / 0.12);
 }
 
 .dark .landing-page {
-	--landing-canvas: #080d0c;
-	--landing-surface: #0d1513;
-	--landing-surface-raised: #101917;
-	--landing-surface-inverse: #111d1a;
-	--landing-border: #1e2b28;
-	--landing-border-subtle: #2e3b38;
-	--landing-foreground: #f3f7f5;
-	--landing-muted: #b8c4c0;
-	--landing-accent: #d9f99d;
-	--landing-accent-foreground: #172000;
-	--landing-accent-muted: #d9f99d;
+	--landing-canvas: oklch(0.18 0.01 249.3);
+	--landing-surface: oklch(0.21 0.01 249.3);
+	--landing-surface-raised: oklch(0.23 0.01 249.3);
+	--landing-surface-hover: oklch(0.28 0.01 249.3);
+	--landing-surface-inverse: oklch(0.5 0.07 249.3);
+	--landing-surface-inverse-foreground: oklch(0.98 0.02 249.3);
+	--landing-border: oklch(0.33 0.01 249.3);
+	--landing-border-subtle: oklch(0.28 0.01 249.3);
+	--landing-foreground: oklch(0.85 0.01 249.3);
+	--landing-muted: oklch(0.7 0.01 249.3);
+	--landing-accent: oklch(0.72 0.075 249.3);
+	--landing-accent-foreground: oklch(0.18 0.01 249.3);
+	--landing-accent-muted: oklch(0.72 0.075 249.3);
+	--landing-accent-tint: oklch(0.72 0.075 249.3 / 0.16);
+}
+
+/* The Fourteen Rule again: docs prose reads at 14px, as the app does. */
+.prose {
+	--tw-prose-size: 0.875;
+}
+
+/* The Weight Ladder Rule: headings are semibold with tight tracking. */
+.prose :is(h1, h2, h3, h4, h5, h6) {
+	font-weight: 600;
+	letter-spacing: -0.025em;
 }
 
 html {

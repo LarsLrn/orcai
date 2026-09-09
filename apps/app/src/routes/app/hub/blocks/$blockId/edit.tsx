@@ -31,7 +31,7 @@ export const Route = createFileRoute("/app/hub/blocks/$blockId/edit")({
 	head: () => ({
 		meta: [
 			{
-				title: "Edit Block",
+				title: "Edit block",
 			},
 		],
 	}),
@@ -52,10 +52,10 @@ function RouteComponent() {
 			<PageHeader>
 				<PageTitle>
 					{isTemplateBlock(block.data)
-						? "Edit AI Behaviour"
+						? "Edit AI behaviour"
 						: isDatabaseBlock(block.data)
-							? "Edit Content Collection"
-							: "Edit Image Generation"}
+							? "Edit repository"
+							: "Edit image generation"}
 				</PageTitle>
 			</PageHeader>
 			<PageContent>

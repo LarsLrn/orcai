@@ -3,10 +3,14 @@ import {
 	resourceGetVisibilityResponseSchema,
 	resourceGrantInputSchema,
 	resourceGrantResponseSchema,
+	resourceInheritedAccessInputSchema,
+	resourceInheritedAccessResponseSchema,
 	resourceListGrantsInputSchema,
 	resourceListGrantsResponseSchema,
 	resourceListPrincipalsInputSchema,
 	resourceListPrincipalsResponseSchema,
+	resourceListRecentInputSchema,
+	resourceListRecentResponseSchema,
 	resourceRevokeInputSchema,
 	resourceRevokeResponseSchema,
 	resourceSetVisibilityInputSchema,
@@ -29,6 +33,19 @@ export const resourceContracts = {
 		)
 		.input(resourceListGrantsInputSchema)
 		.output(resourceListGrantsResponseSchema),
+	inheritedAccess: base
+		.meta(
+			openapi({
+				method: "GET",
+				path: "/resources/{resourceType}/{resourceId}/inherited-access",
+				summary: "Summarise the access a resource inherits from its ancestors",
+				tags: [
+					"Resources",
+				],
+			}),
+		)
+		.input(resourceInheritedAccessInputSchema)
+		.output(resourceInheritedAccessResponseSchema),
 	listPrincipals: base
 		.meta(
 			openapi({
@@ -42,6 +59,19 @@ export const resourceContracts = {
 		)
 		.input(resourceListPrincipalsInputSchema)
 		.output(resourceListPrincipalsResponseSchema),
+	listRecent: base
+		.meta(
+			openapi({
+				method: "GET",
+				path: "/resources/recent",
+				summary: "List the resources that changed most recently",
+				tags: [
+					"Resources",
+				],
+			}),
+		)
+		.input(resourceListRecentInputSchema)
+		.output(resourceListRecentResponseSchema),
 	grant: base
 		.meta(
 			openapi({

@@ -80,6 +80,7 @@ export const useUpdateQuotaPoolMutation = (
 
 export const useDeactivateQuotaPoolMutation = (
 	opts: ReturnType<typeof orpc.quota.deactivate.mutationOptions> = {},
+	poolName?: string,
 ) => {
 	const queryClient = useQueryClient();
 
@@ -103,14 +104,15 @@ export const useDeactivateQuotaPoolMutation = (
 				},
 			}),
 		messages: {
-			loading: "Deactivating quota pool...",
-			success: "Quota pool deactivated",
-			error: "Failed to deactivate quota pool",
+			loading: "Deactivating the pool...",
+			success: "Pool deactivated",
+			error: "The pool was not deactivated. Try again.",
 		},
 		confirm: {
-			title: "Deactivate pool",
-			description: "New reservations will be blocked for this pool.",
-			confirmText: "Deactivate",
+			title: `Deactivate the ${poolName?.trim() || "selected"} pool?`,
+			description:
+				"New chats on that provider are refused until another active pool covers them. Usage already in flight still finalises.",
+			confirmText: "Deactivate pool",
 			cancelText: "Cancel",
 		},
 	});

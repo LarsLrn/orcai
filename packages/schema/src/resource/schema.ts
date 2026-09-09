@@ -1,9 +1,12 @@
 import { z } from "zod/v4";
+import { processingStatusSchema } from "../asset/parts/processing-status";
 import { assetIdSchema } from "../asset/ref";
 import { blockIdSchema } from "../block/ref";
+import { blockTypeSchema } from "../block/schema";
 import { botIdSchema } from "../bot/ref";
 import { groupIdSchema } from "../group/ref";
 import { groupSchema } from "../group/schema";
+import { publicationStatusSchema } from "../shared/primitives/publication-status";
 import { userIdSchema } from "../user/ref";
 
 export const RESOURCE_TYPES = [
@@ -162,10 +165,47 @@ export const resourceGrantSourceSchema = z.enum([
 	RESOURCE_GRANT_SOURCE.PUBLIC,
 ]);
 
+export const directGrantSourceSchema = z.enum([
+	RESOURCE_GRANT_SOURCE.DIRECT_USER,
+	RESOURCE_GRANT_SOURCE.DIRECT_GROUP,
+	RESOURCE_GRANT_SOURCE.DIRECT_GROUP_ALL_MEMBERS,
+]);
+
 export const resourceGrantSchema = createResourceScopedSchema({
 	...resourceGrantFieldsSchema,
 	principal: resourcePrincipalSchema,
-	source: resourceGrantSourceSchema,
+	source: directGrantSourceSchema,
+});
+
+/** A bot or block a resource hangs off, whose grants cascade down to it. */
+const accessAncestorSchema = z.discriminatedUnion("resourceType", [
+	z.object({
+		resourceType: z.literal("bot"),
+		resourceId: botIdSchema,
+		name: z.string(),
+	}),
+	z.object({
+		resourceType: z.literal("block"),
+		resourceId: blockIdSchema,
+		name: z.string(),
+	}),
+]);
+
+/**
+ * Who reaches a resource without holding a grant on it.
+ */
+export const inheritedAccessSchema = z.object({
+	/** Named ancestors, capped, and only those the viewer may read. */
+	ancestors: z.array(accessAncestorSchema),
+	/** Totals by type, counted over every ancestor rather than the named ones. */
+	botCount: z.number(),
+	blockCount: z.number(),
+	/** Ancestors left unnamed because the viewer cannot read them. */
+	hiddenAncestorCount: z.number(),
+	groupCount: z.number(),
+	userCount: z.number(),
+	/** An ancestor is public, so every user of the instance reads through it. */
+	throughPublic: z.boolean(),
 });
 
 export const resourceVisibilityRecordSchema = createResourceScopedSchema({
@@ -179,11 +219,39 @@ export const resourceVisibilityDataSchema = createResourceScopedSchema({
 	visibility: resourceVisibilitySchema,
 });
 
+/** A resource that changed recently, carrying only what a summary row shows. */
+export const recentResourceSchema = z.discriminatedUnion("resourceType", [
+	assetResourceIdentitySchema.extend({
+		name: z.string(),
+		changedAt: z.coerce.date(),
+		processingStatus: processingStatusSchema,
+	}),
+	blockResourceIdentitySchema.extend({
+		name: z.string(),
+		changedAt: z.coerce.date(),
+		blockType: blockTypeSchema,
+		status: publicationStatusSchema,
+	}),
+	botResourceIdentitySchema.extend({
+		name: z.string(),
+		changedAt: z.coerce.date(),
+		status: publicationStatusSchema,
+	}),
+]);
+
 export type ResourceType = z.infer<typeof resourceTypeSchema>;
 export type ResourceGrantRole = z.infer<typeof resourceGrantRoleSchema>;
 export type ResourceVisibility = z.infer<typeof resourceVisibilitySchema>;
 export type PrincipalType = z.infer<typeof principalTypeSchema>;
 export type ResourceGrantSource = z.infer<typeof resourceGrantSourceSchema>;
+export type DirectGrantSource = z.infer<typeof directGrantSourceSchema>;
 export type ResourceRef = z.infer<typeof resourceRefSchema>;
+export type ResourceIdentity = z.infer<typeof resourceIdentitySchema>;
 export type ResourceGrant = z.infer<typeof resourceGrantSchema>;
+export type RecentResource = z.infer<typeof recentResourceSchema>;
 export type ResourcePrincipal = z.infer<typeof resourcePrincipalSchema>;
+export type ResourcePrincipalIdentity = z.infer<
+	typeof resourcePrincipalIdentitySchema
+>;
+export type InheritedAccess = z.infer<typeof inheritedAccessSchema>;
+export type AccessAncestor = z.infer<typeof accessAncestorSchema>;

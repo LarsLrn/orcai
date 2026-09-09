@@ -64,7 +64,7 @@ const ChatSettings = ({
 		<Dialog open={open} onOpenChange={onOpenChange}>
 			<DialogContent className="flex h-[90vh] max-h-[90vh] flex-col sm:max-w-4xl">
 				<DialogHeader>
-					<DialogTitle>Chat Settings</DialogTitle>
+					<DialogTitle>Chat settings</DialogTitle>
 					<DialogDescription>
 						{isBotLinked
 							? "This chat is linked to a bot. The system prompt is locked, but you can change the model and generation parameters."
@@ -247,7 +247,7 @@ const ChatConfigEditor = ({
 							name="maxTokens"
 							children={(field) => (
 								<field.TextField
-									label="Max Tokens"
+									label="Max tokens"
 									type="number"
 									min={1}
 									placeholder="Default (model limit)"
@@ -259,7 +259,7 @@ const ChatConfigEditor = ({
 							name="frequencyPenalty"
 							children={(field) => (
 								<field.SliderField
-									label="Frequency Penalty"
+									label="Frequency penalty"
 									defaultValue={DEFAULT_CHAT_GENERATION_PARAMS.frequencyPenalty}
 									min={-2}
 									max={2}
@@ -273,7 +273,7 @@ const ChatConfigEditor = ({
 							name="presencePenalty"
 							children={(field) => (
 								<field.SliderField
-									label="Presence Penalty"
+									label="Presence penalty"
 									defaultValue={DEFAULT_CHAT_GENERATION_PARAMS.presencePenalty}
 									min={-2}
 									max={2}
@@ -292,7 +292,7 @@ const ChatConfigEditor = ({
 
 			<div className="flex justify-end">
 				<Button type="submit" size="sm" disabled={isSubmitting}>
-					Save Settings
+					Save settings
 				</Button>
 			</div>
 		</form>
@@ -337,7 +337,7 @@ const ChatBlocksEditor = ({
 			});
 		},
 		onError: (error) => {
-			toast.error("Failed to attach block", {
+			toast.error("The block was not attached. Try again.", {
 				description: error instanceof Error ? error.message : undefined,
 			});
 		},
@@ -361,7 +361,7 @@ const ChatBlocksEditor = ({
 			});
 		},
 		onError: () => {
-			toast.error("Failed to detach block");
+			toast.error("The block was not detached. Try again.");
 		},
 	});
 
@@ -378,7 +378,7 @@ const ChatBlocksEditor = ({
 
 	return (
 		<div className="flex flex-col gap-3">
-			<Label className="text-base">Chat Blocks</Label>
+			<Label className="text-base">Chat blocks</Label>
 
 			<div className="space-y-3 rounded-2xl border border-dashed bg-muted/15 p-4">
 				<div className="grid gap-2 sm:grid-cols-2">
@@ -389,7 +389,7 @@ const ChatBlocksEditor = ({
 						disabled={!!attachedTemplateBlock || attachMutation.isPending}
 					>
 						<PlusIcon className="mr-2 size-4" />
-						Add Behaviour
+						Add behaviour
 					</Button>
 					<Button
 						type="button"
@@ -398,19 +398,19 @@ const ChatBlocksEditor = ({
 						disabled={attachMutation.isPending}
 					>
 						<PlusIcon className="mr-2 size-4" />
-						Add Content Collection
+						Add repository
 					</Button>
 				</div>
 				<p className="text-muted-foreground text-sm">
 					{attachedTemplateBlock
 						? `Only one behaviour block can be attached. Remove "${attachedTemplateBlock.name}" to attach another behaviour.`
-						: "Behaviour blocks define system behaviour. Content collections provide retrieval context."}
+						: "Behaviour blocks set how answers are written. Repositories give the chat material to retrieve from."}
 				</p>
 			</div>
 
 			<Separator />
 
-			<Label>Attached Blocks</Label>
+			<Label>Attached blocks</Label>
 
 			{attached.length === 0 && (
 				<p className="text-muted-foreground text-sm">
@@ -443,7 +443,7 @@ const ChatBlocksEditor = ({
 				onSelect={async (block) => {
 					await attachMutation.mutateAsync(block.id);
 				}}
-				title="Add Behaviour"
+				title="Add behaviour"
 				description="Attach one reusable AI behaviour block to this chat."
 			/>
 			<BlockSelectorDialog
@@ -454,8 +454,8 @@ const ChatBlocksEditor = ({
 				onSelect={async (block) => {
 					await attachMutation.mutateAsync(block.id);
 				}}
-				title="Add Content Collection"
-				description="Attach reusable content collections to enrich chat responses."
+				title="Add repository"
+				description="Attach reusable repositories to enrich chat responses."
 			/>
 		</div>
 	);

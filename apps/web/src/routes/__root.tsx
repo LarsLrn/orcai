@@ -18,7 +18,7 @@ export const Route = createRootRoute({
 				content: "width=device-width, initial-scale=1",
 			},
 			{
-				title: "OrcAI — Governed, grounded AI assistants",
+				title: "OrcAI: governed, grounded AI assistants",
 			},
 			{
 				name: "description",

@@ -143,8 +143,8 @@ const OrganizationInvitationForm = () => {
 						name="expiresAt"
 						children={(field) => (
 							<field.DatetimeField
-								label="Expires At"
-								placeholder="Select expiration date"
+								label="Expires"
+								placeholder="Select expiry date"
 								showTimePicker={true}
 							/>
 						)}
@@ -154,10 +154,10 @@ const OrganizationInvitationForm = () => {
 
 			<Card className="h-fit">
 				<CardHeader>
-					<CardTitle>Add user emails</CardTitle>
+					<CardTitle>Add email addresses</CardTitle>
 					<CardDescription>
 						Add the emails of users you want to invite. You can manually add
-						each email, or all at once using &quot;Bulk Add Emails&quot;.
+						each email, or all at once using &quot;Bulk add emails&quot;.
 					</CardDescription>
 				</CardHeader>
 				<CardContent className="flex flex-col gap-4">
@@ -176,7 +176,7 @@ const OrganizationInvitationForm = () => {
 													children={(field) => (
 														<field.TextField
 															label={`User ${index + 1} Email`}
-															placeholder="User email"
+															placeholder="name@example.org"
 														/>
 													)}
 												/>
@@ -215,14 +215,14 @@ const OrganizationInvitationForm = () => {
 						</Button>
 						<Dialog>
 							<DialogTrigger
-								render={<Button variant="outline">Bulk Add Emails</Button>}
+								render={<Button variant="outline">Bulk add emails</Button>}
 							/>
 							<DialogContent className="max-w-150">
 								<DialogHeader>
-									<DialogTitle>Bulk Add Emails</DialogTitle>
+									<DialogTitle>Bulk add emails</DialogTitle>
 									<DialogDescription>
-										Add multiple emails at once once by pasting them here. Make
-										sure each email is on a new line and formatted correctly.
+										Add several emails at once by pasting them here. Make sure
+										each email is on a new line and formatted correctly.
 									</DialogDescription>
 								</DialogHeader>
 								<div className="flex flex-col gap-4">
@@ -230,7 +230,7 @@ const OrganizationInvitationForm = () => {
 										name="bulkEmails"
 										id={bulkEmailsId}
 										rows={5}
-										placeholder="Add emails here, separated by new lines"
+										placeholder="One email address per line"
 									/>
 									<DialogClose
 										render={
@@ -244,7 +244,7 @@ const OrganizationInvitationForm = () => {
 													handleBulkPaste(textArea);
 												}}
 											>
-												Add Emails
+												Add emails
 											</Button>
 										}
 									/>

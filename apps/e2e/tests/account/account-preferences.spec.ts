@@ -60,11 +60,14 @@ test("account: skipping the app tour is remembered for the user", async ({
 			})
 			.click();
 
-		await expect(page.getByText("Tour skipped")).toBeVisible();
+		// Skipping is silent in the UI, so the card going away is the only signal.
+		await expect(tourCard).toHaveCount(0);
 
-		expect((await user.api.user.me({})).data.preferences?.tours).toEqual({
-			initialTour: "skipped",
-		});
+		await expect
+			.poll(async () => (await user.api.user.me({})).data.preferences?.tours)
+			.toEqual({
+				initialTour: "skipped",
+			});
 
 		// The state is the user's, so the tour stays away on the next load.
 		await open(page, "/en/app");

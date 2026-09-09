@@ -26,6 +26,7 @@ import {
 	ResourceCardTitle,
 } from "@/components/ui/shell/resource-card";
 import { hasCapability } from "@/lib/authz/capabilities";
+import { formatDisplayDate } from "@/lib/presentation/format-timestamp";
 
 const BotCard = ({
 	bot,
@@ -42,7 +43,7 @@ const BotCard = ({
 	if (bot.createdAt) {
 		meta.push({
 			label: "Created",
-			value: new Date(bot.createdAt).toLocaleDateString(),
+			value: formatDisplayDate(bot.createdAt),
 		});
 	}
 
@@ -62,9 +63,9 @@ const BotCard = ({
 			? [
 					{
 						key: "edit",
-						label: "Edit Bot",
+						label: "Edit bot",
 						icon: EditIcon,
-						variant: "default",
+						variant: "outline",
 						linkProps: {
 							to: "/app/hub/bots/$botId/setup",
 							params: {
@@ -80,17 +81,14 @@ const BotCard = ({
 
 	const badges: ResourceCardBadgeItem[] = [
 		{
+			label: bot.status === "ready" ? "Published" : "Draft",
+			variant: bot.status === "ready" ? "success" : "outline",
+		},
+		{
 			label: `v${bot.version}`,
 			variant: "outline",
 		},
 	];
-
-	if (bot.status === "draft") {
-		badges.push({
-			label: "Draft",
-			variant: "destructive",
-		});
-	}
 
 	const primaryAction = actions?.primary ?? {
 		linkProps: {
@@ -128,7 +126,7 @@ const BotCard = ({
 
 			<ResourceCardBody action={primaryAction}>
 				<ResourceCardHeader>
-					<ResourceCardMedia variant="icon">
+					<ResourceCardMedia variant="icon" tone="bot">
 						<BotIcon />
 					</ResourceCardMedia>
 					<ResourceCardTitle>{bot.name}</ResourceCardTitle>

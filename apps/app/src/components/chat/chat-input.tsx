@@ -1,7 +1,7 @@
 import type { UseChatHelpers } from "@ai-sdk/react";
 import type { ChatId } from "@orcai/core";
 import type { Model, Provider } from "@orcai/schema";
-import { useQuery, useQueryClient } from "@tanstack/react-query";
+import { useQuery } from "@tanstack/react-query";
 import type { ChatStatus } from "ai";
 import {
 	CompassIcon,
@@ -50,7 +50,6 @@ const ChatInput = ({
 	stop,
 	messages,
 	status,
-	chatLength,
 }: {
 	chatId: ChatId;
 	zedToken?: string;
@@ -58,9 +57,7 @@ const ChatInput = ({
 	stop: UseChatHelpers<ChatAgentUIMessage>["stop"];
 	messages: ChatAgentUIMessage[];
 	status: UseChatHelpers<ChatAgentUIMessage>["status"];
-	chatLength: number;
 }) => {
-	const queryClient = useQueryClient();
 	const [messageText, setMessageText] = useState("");
 	const [settingsOpen, setSettingsOpen] = useState(false);
 
@@ -132,7 +129,7 @@ const ChatInput = ({
 		}
 
 		if (!isModelConfigured) {
-			toast.error("Select a model before sending a message.");
+			toast.error("Choose a model before sending a message.");
 			return;
 		}
 
@@ -160,26 +157,16 @@ const ChatInput = ({
 
 			clearAttachments();
 			await sendPromise;
-
-			if (chatLength < 2) {
-				await new Promise((resolve) => setTimeout(resolve, 5000));
-				await queryClient.invalidateQueries({
-					queryKey: orpc.chat.list.key({
-						input: {
-							pageIndex: 0,
-							pageSize: 100,
-						},
-					}),
-				});
-			}
 		} catch (error) {
 			if (hasText) {
 				setMessageText((current) => current || trimmedText);
 			}
-			toast.error("Failed to send message with attachments.", {
-				description:
-					error instanceof Error ? error.message : "Unknown upload error.",
-			});
+			toast.error(
+				"The message and its attachments were not sent. Send them again.",
+				{
+					description: error instanceof Error ? error.message : undefined,
+				},
+			);
 		}
 	};
 
@@ -214,7 +201,7 @@ const ChatInput = ({
 
 					<InputGroupTextarea
 						name="message"
-						placeholder="What would you like to know?"
+						placeholder="Ask a question"
 						className="field-sizing-content max-h-48 min-h-16"
 						value={messageText}
 						onChange={(event) => setMessageText(event.target.value)}
@@ -266,7 +253,7 @@ const ChatInput = ({
 										variant="ghost"
 										className="w-full justify-start"
 									>
-										<DownloadIcon className="size-4" /> Download conversation
+										<DownloadIcon className="size-4" /> Download chat
 									</ConversationDownload>
 								</DropdownMenuContent>
 							</DropdownMenu>

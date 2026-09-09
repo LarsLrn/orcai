@@ -88,8 +88,6 @@ export const Route = createFileRoute("/app/hub/behaviour")({
 });
 
 function RouteComponent() {
-	const navigate = useNavigate();
-	const { mutate: deleteBlocks } = useDeleteBlocksMutation();
 	const { data: organizationCapabilities } = useOrganizationCapabilities([
 		"create_block",
 	]);
@@ -169,7 +167,8 @@ function RouteComponent() {
 				<SectionHeader>
 					<SectionTitle>Published</SectionTitle>
 					<SectionDescription>
-						Behaviour blocks currently available for bot usage.
+						A behaviour block is a reusable system prompt that sets how a bot
+						answers. Published blocks are available to bots and chats.
 					</SectionDescription>
 					{canCreateBlock ? (
 						<SectionAction>
@@ -180,7 +179,7 @@ function RouteComponent() {
 								})}
 							>
 								<PlusIcon />
-								Add Behaviour
+								Add behaviour
 							</Link>
 						</SectionAction>
 					) : null}
@@ -189,6 +188,7 @@ function RouteComponent() {
 					{publishedBehaviourBlocks.length === 0 ? (
 						<Placeholder
 							Icon={BrainCircuitIcon}
+							tone="behaviour"
 							title="No published behaviour yet"
 							description="Create and publish a behaviour block to make it available for bots."
 							actions={
@@ -196,7 +196,7 @@ function RouteComponent() {
 									? [
 											{
 												key: "add",
-												label: "Add Behaviour",
+												label: "Add behaviour",
 												icon: PlusIcon,
 												variant: "default",
 												linkProps: {
@@ -234,48 +234,7 @@ function RouteComponent() {
 					<SectionContent>
 						<SectionGrid layout="3">
 							{draftBehaviourBlocks.map((block) => (
-								<BlockCard
-									key={block.id}
-									block={block}
-									actions={{
-										dropdown: [
-											...(hasCapability(block.capabilities, "edit")
-												? [
-														{
-															key: "edit",
-															label: "Edit Draft",
-															icon: EditIcon,
-															onClick: () =>
-																navigate({
-																	to: "/app/hub/blocks/$blockId/edit",
-																	params: {
-																		blockId: block.id,
-																	},
-																}),
-														},
-													]
-												: []),
-											...(hasCapability(block.capabilities, "delete")
-												? [
-														{
-															key: "delete",
-															label: "Delete Draft",
-															icon: TrashIcon,
-															onClick: () =>
-																deleteBlocks({
-																	refs: [
-																		{
-																			id: block.id,
-																		},
-																	],
-																}),
-														},
-													]
-												: []),
-										],
-										footer: [],
-									}}
-								/>
+								<DraftBehaviourCard key={block.id} block={block} />
 							))}
 						</SectionGrid>
 					</SectionContent>
@@ -284,3 +243,65 @@ function RouteComponent() {
 		</div>
 	);
 }
+
+const DraftBehaviourCard = ({
+	block,
+}: {
+	block: React.ComponentProps<typeof BlockCard>["block"];
+}) => {
+	const navigate = useNavigate();
+	const { mutate: deleteBlocks } = useDeleteBlocksMutation(
+		{},
+		{
+			names: [
+				block.name,
+			],
+			noun: "behaviour block",
+			nounPlural: "behaviour blocks",
+		},
+	);
+
+	return (
+		<BlockCard
+			block={block}
+			actions={{
+				dropdown: [
+					...(hasCapability(block.capabilities, "edit")
+						? [
+								{
+									key: "edit",
+									label: "Edit draft",
+									icon: EditIcon,
+									onClick: () =>
+										navigate({
+											to: "/app/hub/blocks/$blockId/edit",
+											params: {
+												blockId: block.id,
+											},
+										}),
+								},
+							]
+						: []),
+					...(hasCapability(block.capabilities, "delete")
+						? [
+								{
+									key: "delete",
+									label: "Delete draft",
+									icon: TrashIcon,
+									onClick: () =>
+										deleteBlocks({
+											refs: [
+												{
+													id: block.id,
+												},
+											],
+										}),
+								},
+							]
+						: []),
+				],
+				footer: [],
+			}}
+		/>
+	);
+};

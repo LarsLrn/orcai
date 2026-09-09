@@ -17,8 +17,8 @@ const nextStepTours: Tour[] = [
 				title: "Welcome to OrcAI",
 				content: (
 					<>
-						Great to have you here! Let&apos;s take a quick tour through the
-						app. Click &quot;Next&quot; to proceed.
+						Let&apos;s take a quick tour through the app. Click &quot;Next&quot;
+						to proceed.
 					</>
 				),
 				side: "right",
@@ -88,12 +88,12 @@ const nextStepTours: Tour[] = [
 			},
 			{
 				icon: null,
-				title: "You are all set!",
+				title: "You are all set",
 				content: (
 					<>
-						You are ready to explore the workspace. Build bots, manage content,
-						or continue chats whenever you need them. The project team is also
-						looking forward to your feedback on the experience.
+						You are ready to explore the workspace. Build bots, add material to
+						the Library, or continue chats whenever you need them. The project
+						team is also looking forward to your feedback on the experience.
 						<br />
 						<a
 							className="text-accent text-sm"
@@ -214,17 +214,14 @@ export const NextStepTours = ({ children }: { children: ReactNode }) => {
 		},
 		onSkip: (_step: number, tourName: string | null) => {
 			if (tourName === "initialTour" || tourName === "chatTour") {
-				toast.promise(
-					setTourState({
-						tourId: tourName,
-						state: "skipped",
-					}),
-					{
-						loading: "Skipping tour...",
-						success: "Tour skipped",
-						error: "Failed to skip tour",
-					},
-				);
+				setTourState({
+					tourId: tourName,
+					state: "skipped",
+				}).catch(() => {
+					toast.error("The tour was not marked as skipped", {
+						description: "It may open again next time.",
+					});
+				});
 				trackEvent("tour-skipped", {
 					tour: tourName,
 				});

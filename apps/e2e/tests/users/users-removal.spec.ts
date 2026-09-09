@@ -248,15 +248,23 @@ test("users: a removed user loses the access its groups and grants gave it", asy
 	await api.as("admin").resource.grant({
 		resourceType: "block",
 		resourceId: throughGroup.data.id,
-		principalType: "group",
-		principalId: group.data.id,
+		principals: [
+			{
+				principalType: "group",
+				principalId: group.data.id,
+			},
+		],
 		role: "viewer",
 	});
 	await api.as("admin").resource.grant({
 		resourceType: "block",
 		resourceId: throughGrant.data.id,
-		principalType: "user",
-		principalId: user.id,
+		principals: [
+			{
+				principalType: "user",
+				principalId: user.id,
+			},
+		],
 		role: "viewer",
 	});
 

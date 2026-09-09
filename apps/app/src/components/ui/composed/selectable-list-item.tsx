@@ -76,4 +76,5 @@ const SelectableListItem = <T extends string>({
 	);
 };
 
+export type { SelectOption };
 export { SelectableListItem };

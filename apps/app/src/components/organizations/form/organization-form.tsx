@@ -64,7 +64,7 @@ export const OrganizationForm = ({
 				children={(field) => (
 					<field.TextField
 						label="Organisation Name"
-						placeholder="Your Organisation"
+						placeholder="Your organisation"
 					/>
 				)}
 			/>

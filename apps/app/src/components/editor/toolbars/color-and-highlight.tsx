@@ -182,7 +182,7 @@ export const ColorHighlightToolbar = () => {
 	if (isMobile) {
 		return (
 			<div className="flex gap-1">
-				<MobileToolbarGroup label="Color">
+				<MobileToolbarGroup label="Colour">
 					{TEXT_COLORS.map(({ name, color }) => (
 						<MobileToolbarItem
 							key={name}
@@ -253,12 +253,12 @@ export const ColorHighlightToolbar = () => {
 							/>
 						}
 					/>
-					<TooltipContent>Text Color & Highlight</TooltipContent>
+					<TooltipContent>Text colour and highlight</TooltipContent>
 				</Tooltip>
 
 				<PopoverContent align="start" className="w-56 p-1 dark:bg-gray-2">
 					<ScrollArea className="max-h-80 overflow-y-auto pr-2">
-						<div className="mt-2 mb-2.5 px-2 text-gray-11 text-xs">Color</div>
+						<div className="mt-2 mb-2.5 px-2 text-gray-11 text-xs">Colour</div>
 						{TEXT_COLORS.map(({ name, color }) => (
 							<ColorHighlightButton
 								key={name}

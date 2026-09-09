@@ -1,6 +1,18 @@
 import { useQueryClient } from "@tanstack/react-query";
 import { useMutationAction } from "@/hooks/actions/use-mutation-action";
+import {
+	type DestructiveTarget,
+	describeFailure,
+	describeOutcome,
+	describeProgress,
+	describeTarget,
+} from "@/hooks/mutations/destructive-copy";
 import { orpc } from "@/lib/orpc/orpc";
+
+const MEMBER_NOUNS = {
+	noun: "member",
+	nounPlural: "members",
+};
 
 export const useUpdateOrganizationMemberMutation = (
 	opts: ReturnType<typeof orpc.organizationMember.update.mutationOptions> = {},
@@ -43,6 +55,7 @@ export const useUpdateOrganizationMemberMutation = (
 /** Removes memberships from the active organisation. The accounts stay. */
 export const useDeleteOrganizationMembersMutation = (
 	opts: ReturnType<typeof orpc.organizationMember.delete.mutationOptions> = {},
+	target?: DestructiveTarget,
 ) => {
 	const queryClient = useQueryClient();
 
@@ -69,17 +82,33 @@ export const useDeleteOrganizationMembersMutation = (
 				},
 			}),
 		messages: {
-			loading: "Removing from the organisation...",
-			success: "Removed from the organisation",
-			error: "Failed to remove from the organisation",
+			loading: ({ input }) =>
+				describeProgress("Removing", input.refs.length, MEMBER_NOUNS, target),
+			success: ({ input }) =>
+				describeOutcome(
+					input.refs.length,
+					MEMBER_NOUNS,
+					"removed from the organisation",
+					target,
+				),
+			error: ({ input }) =>
+				describeFailure(
+					input.refs.length,
+					MEMBER_NOUNS,
+					"removed from the organisation",
+					target,
+				),
 		},
+		// "Remove" is the confirm label the users and groups e2e specs click.
 		confirm: (input) => {
 			const count = input.refs.length;
-			const plural = count === 1 ? "" : "s";
 
 			return {
-				title: "Remove From Organisation",
-				description: `Are you sure you want to remove ${count} user${plural} from this organisation? The account${plural} stay${count === 1 ? "s" : ""} and can be invited back.`,
+				title: `Remove ${describeTarget(count, MEMBER_NOUNS, target)} from the organisation?`,
+				description:
+					count === 1
+						? "The person loses access to everything in this organisation. Their account stays and can be invited back."
+						: "Those people lose access to everything in this organisation. Their accounts stay and can be invited back.",
 				confirmText: "Remove",
 				cancelText: "Cancel",
 			};

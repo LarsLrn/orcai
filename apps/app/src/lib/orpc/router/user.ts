@@ -5,12 +5,12 @@ import {
 	assetIdSchema,
 	blockIdSchema,
 	botIdSchema,
+	type DirectGrantSource,
 	type InstanceUserSortKey,
 	inheritedSourceByResourceType,
 	RESOURCE_GRANT_SOURCE,
 	RESOURCE_TYPES,
 	type ResourceGrantRole,
-	type ResourceGrantSource,
 	type UserSortKey,
 } from "@orcai/schema";
 import {
@@ -777,8 +777,6 @@ export const listUserAccess = authed.user.listAccess
 			editor: 2,
 			manager: 3,
 		} as const;
-
-		type DirectGrantSource = Extract<ResourceGrantSource, `direct:${string}`>;
 
 		const directByResource = new Map<
 			string,

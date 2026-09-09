@@ -71,7 +71,7 @@ const DatabaseBlockConfigCard = ({
 					)}
 
 					<div className="space-y-1">
-						<div className="font-medium text-sm">Retrieval Configuration</div>
+						<div className="font-medium text-sm">Retrieval configuration</div>
 						<p className="text-muted-foreground text-sm">
 							These settings control how the AI searches attached content.
 						</p>
@@ -81,7 +81,7 @@ const DatabaseBlockConfigCard = ({
 					<div className="flex items-center justify-between">
 						<div className="space-y-1">
 							<div className="text-muted-foreground text-xs uppercase">
-								Retrieval Mode
+								Retrieval mode
 							</div>
 							<Badge variant="secondary" className="capitalize">
 								{config.retrievalMode ?? "hybrid"}
@@ -94,7 +94,7 @@ const DatabaseBlockConfigCard = ({
 					<div className="space-y-2">
 						<div className="font-medium text-sm">References</div>
 						<div className="grid grid-cols-3 gap-3">
-							<div className="rounded-lg border bg-muted/30 p-3 text-center">
+							<div className="rounded-xl border bg-muted/30 p-3 text-center">
 								<div className="font-semibold text-xl tabular-nums">
 									{config.minReferences}
 								</div>
@@ -102,7 +102,7 @@ const DatabaseBlockConfigCard = ({
 									Minimum
 								</div>
 							</div>
-							<div className="rounded-lg border bg-muted/30 p-3 text-center">
+							<div className="rounded-xl border bg-muted/30 p-3 text-center">
 								<div className="font-semibold text-xl tabular-nums">
 									{config.defaultReferences}
 								</div>
@@ -110,7 +110,7 @@ const DatabaseBlockConfigCard = ({
 									Default
 								</div>
 							</div>
-							<div className="rounded-lg border bg-muted/30 p-3 text-center">
+							<div className="rounded-xl border bg-muted/30 p-3 text-center">
 								<div className="font-semibold text-xl tabular-nums">
 									{config.maxReferences}
 								</div>
@@ -126,35 +126,35 @@ const DatabaseBlockConfigCard = ({
 					{/* Advanced settings collapsible */}
 					<Collapsible open={isAdvancedOpen} onOpenChange={setIsAdvancedOpen}>
 						<CollapsibleTrigger className="flex w-full items-center justify-between text-sm">
-							<span className="font-medium">Advanced Settings</span>
+							<span className="font-medium">Advanced settings</span>
 							<ChevronDownIcon
 								className={`size-4 text-muted-foreground transition-transform ${isAdvancedOpen ? "rotate-180" : ""}`}
 							/>
 						</CollapsibleTrigger>
 						<CollapsibleContent className="pt-4">
 							<div className="grid grid-cols-3 gap-3">
-								<div className="rounded-lg border bg-muted/30 p-3 text-center">
+								<div className="rounded-xl border bg-muted/30 p-3 text-center">
 									<div className="font-semibold text-xl tabular-nums">
 										{config.scoreThreshold ?? 0.2}
 									</div>
 									<div className="mt-1 text-muted-foreground text-xs">
-										Score Threshold
+										Score threshold
 									</div>
 								</div>
-								<div className="rounded-lg border bg-muted/30 p-3 text-center">
+								<div className="rounded-xl border bg-muted/30 p-3 text-center">
 									<div className="font-semibold text-xl tabular-nums">
 										{config.candidateLimit ?? 40}
 									</div>
 									<div className="mt-1 text-muted-foreground text-xs">
-										Candidate Limit
+										Candidate limit
 									</div>
 								</div>
-								<div className="rounded-lg border bg-muted/30 p-3 text-center">
+								<div className="rounded-xl border bg-muted/30 p-3 text-center">
 									<div className="font-semibold text-xl tabular-nums">
 										{config.maxPerAsset ?? 6}
 									</div>
 									<div className="mt-1 text-muted-foreground text-xs">
-										Max Per Document
+										Max per asset
 									</div>
 								</div>
 							</div>
@@ -183,7 +183,7 @@ const AssetSection = ({
 			<SectionHeader>
 				<SectionTitle>Content ({assets.length})</SectionTitle>
 				<SectionDescription>
-					This is the content currently attached to this knowledge base.
+					This is the content currently attached to this repository.
 				</SectionDescription>
 				<SectionAction>
 					<JobListDialog
@@ -212,7 +212,7 @@ const AssetSection = ({
 								}
 							>
 								<Move3dIcon />
-								Create Vector Store
+								Create vector store
 							</DropdownMenuItem>
 							<DropdownMenuItem
 								onClick={() =>
@@ -225,7 +225,7 @@ const AssetSection = ({
 								}
 							>
 								<ExternalLinkIcon />
-								View Vector Points
+								View vector points
 							</DropdownMenuItem>
 						</DropdownMenuContent>
 					</DropdownMenu>

@@ -54,9 +54,9 @@ const toFinalizeInputFiles = (result: UploadResult) =>
 
 const UploadComponent = ({
 	route,
-	title = "Upload Files",
-	description = "Select files, upload them, and review progress inline.",
-	uploadLabel = "Upload Files",
+	title = "Upload files",
+	description = "Select files and upload them. Progress appears below.",
+	uploadLabel = "Upload files",
 	accept = {
 		...ASSET_UPLOAD_ACCEPT,
 	},
@@ -128,7 +128,7 @@ const UploadComponent = ({
 			{
 				loading: `Uploading ${target}...`,
 				success: () => `${target} uploaded`,
-				error: `Failed to upload ${target}`,
+				error: `${target} could not be uploaded. Try again.`,
 			},
 		);
 	};
@@ -165,7 +165,7 @@ const UploadComponent = ({
 									isFinalizing
 								}
 							>
-								{isFinalizing ? "Preparing Files..." : uploadLabel}
+								{isFinalizing ? "Preparing files..." : uploadLabel}
 							</Button>
 						</div>
 					</CardContent>

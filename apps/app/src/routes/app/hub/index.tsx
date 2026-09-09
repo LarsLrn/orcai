@@ -185,7 +185,7 @@ function RouteComponent() {
 			{assets.data.length > 0 && (
 				<Section>
 					<SectionHeader>
-						<SectionTitle>Content Library</SectionTitle>
+						<SectionTitle>Assets</SectionTitle>
 						<SectionAction>
 							<Link
 								to="/app/hub/assets"

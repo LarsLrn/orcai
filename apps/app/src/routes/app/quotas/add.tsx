@@ -22,7 +22,7 @@ function RouteComponent() {
 	return (
 		<Page>
 			<PageHeader>
-				<PageTitle>Add Quota Pool</PageTitle>
+				<PageTitle>Add quota pool</PageTitle>
 			</PageHeader>
 			<PageContent>
 				<QuotaPoolForm action="create" />

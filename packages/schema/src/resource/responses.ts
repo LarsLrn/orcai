@@ -4,6 +4,8 @@ import {
 	statusResponseSchema,
 } from "../shared";
 import {
+	inheritedAccessSchema,
+	recentResourceSchema,
 	resourceGrantSchema,
 	resourcePrincipalSchema,
 	resourceVisibilityDataSchema,
@@ -11,10 +13,14 @@ import {
 } from "./schema";
 
 export const resourceGrantResponseSchema =
-	createDataResponseSchema(resourceGrantSchema);
+	createListResponseSchema(resourceGrantSchema);
 
 export const resourceListGrantsResponseSchema =
 	createListResponseSchema(resourceGrantSchema);
+
+export const resourceInheritedAccessResponseSchema = createDataResponseSchema(
+	inheritedAccessSchema,
+);
 
 export const resourceListPrincipalsResponseSchema = createListResponseSchema(
 	resourcePrincipalSchema,
@@ -29,3 +35,6 @@ export const resourceRevokeResponseSchema = statusResponseSchema;
 export const resourceGetVisibilityResponseSchema = createDataResponseSchema(
 	resourceVisibilityDataSchema,
 );
+
+export const resourceListRecentResponseSchema =
+	createListResponseSchema(recentResourceSchema);

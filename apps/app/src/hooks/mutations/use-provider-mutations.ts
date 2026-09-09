@@ -1,7 +1,20 @@
 import { useQueryClient } from "@tanstack/react-query";
 import { useRouter } from "@tanstack/react-router";
 import { useMutationAction } from "@/hooks/actions/use-mutation-action";
+import {
+	type DestructiveTarget,
+	describeAction,
+	describeFailure,
+	describeOutcome,
+	describeProgress,
+	describeTarget,
+} from "@/hooks/mutations/destructive-copy";
 import { orpc } from "@/lib/orpc/orpc";
+
+const PROVIDER_NOUNS = {
+	noun: "provider",
+	nounPlural: "providers",
+};
 
 export const useCreateProviderMutation = (
 	opts: ReturnType<typeof orpc.provider.create.mutationOptions> = {},
@@ -80,6 +93,7 @@ export const useUpdateProviderMutation = (
 
 export const useDeleteProvidersMutation = (
 	opts: ReturnType<typeof orpc.provider.delete.mutationOptions> = {},
+	target?: DestructiveTarget,
 ) => {
 	const queryClient = useQueryClient();
 
@@ -103,18 +117,23 @@ export const useDeleteProvidersMutation = (
 				},
 			}),
 		messages: {
-			loading: "Deleting providers...",
-			success: "Providers deleted",
-			error: "Failed to delete providers",
+			loading: ({ input }) =>
+				describeProgress("Deleting", input.refs.length, PROVIDER_NOUNS, target),
+			success: ({ input }) =>
+				describeOutcome(input.refs.length, PROVIDER_NOUNS, "deleted", target),
+			error: ({ input }) =>
+				describeFailure(input.refs.length, PROVIDER_NOUNS, "deleted", target),
 		},
 		confirm: (input) => {
 			const count = input.refs.length;
-			const plural = count === 1 ? "" : "s";
 
 			return {
-				title: `Delete Provider${plural}`,
-				description: `Are you sure you want to delete ${count} provider${plural}? This action cannot be undone.`,
-				confirmText: "Delete",
+				title: `Delete ${describeTarget(count, PROVIDER_NOUNS, target)}?`,
+				description:
+					count === 1
+						? "Its models and quota pools are deleted with it."
+						: "Their models and quota pools are deleted with them.",
+				confirmText: describeAction("Delete", count, PROVIDER_NOUNS, target),
 				cancelText: "Cancel",
 			};
 		},

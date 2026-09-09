@@ -10,7 +10,7 @@ import {
 } from "@/components/ui/card";
 
 const createDefaultTemplateBlock = (params?: { botName: string }) => ({
-	name: `AI Behaviour${params?.botName ? ` for '${params.botName}'` : ""}`,
+	name: `AI behaviour${params?.botName ? ` for '${params.botName}'` : ""}`,
 	description: "",
 	contentHtml: "",
 	contentJson: null,
@@ -33,12 +33,12 @@ const TemplateBlockEditor = ({
 	contentField: ReactNode;
 }) => {
 	return (
-		<div className="grid gap-5">
-			<Card>
+		<div className="grid min-w-0 grid-cols-1 gap-5">
+			<Card className="min-w-0 rounded-2xl">
 				<CardHeader>
 					<CardTitle className="flex items-center gap-2">
 						<SparklesIcon className="h-5 w-5" />
-						AI Behaviour
+						AI behaviour
 					</CardTitle>
 					<CardDescription>
 						Define how the bot should respond, what tone it should use, and what

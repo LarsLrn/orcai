@@ -34,7 +34,7 @@ const TemplateBlockFieldGroup = withFieldGroup({
 					<group.AppField
 						name="name"
 						children={(field) => (
-							<field.TextField label="Name" placeholder="AI Behaviour" />
+							<field.TextField label="Name" placeholder="AI behaviour" />
 						)}
 					/>
 				}
@@ -55,7 +55,7 @@ const TemplateBlockFieldGroup = withFieldGroup({
 						name="description"
 						children={(field) => (
 							<field.TextareaField
-								label="Short Description"
+								label="Short description"
 								placeholder="Define the purpose of this block."
 								rows={4}
 							/>
@@ -67,7 +67,7 @@ const TemplateBlockFieldGroup = withFieldGroup({
 						name="contentJson"
 						children={(field) => (
 							<field.BlockEditorField
-								label="Detailed Description"
+								label="Detailed description"
 								htmlFieldName="contentHtml"
 							/>
 						)}

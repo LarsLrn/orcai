@@ -17,7 +17,7 @@ export function Surface({ className, ...props }: ComponentProps<"div">) {
 	return (
 		<div
 			className={cn(
-				"rounded-xl border border-landing-border bg-landing-surface-raised",
+				"rounded-3xl border border-landing-border bg-landing-surface-raised",
 				className,
 			)}
 			{...props}
@@ -29,7 +29,7 @@ export function Eyebrow({ className, ...props }: ComponentProps<"p">) {
 	return (
 		<p
 			className={cn(
-				"font-mono text-landing-accent-muted text-sm uppercase tracking-[0.12em]",
+				"font-medium text-landing-muted text-xs uppercase tracking-[0.12em]",
 				className,
 			)}
 			{...props}
@@ -50,7 +50,10 @@ export function SectionHeading({
 		<div className={className}>
 			{eyebrow ? <Eyebrow>{eyebrow}</Eyebrow> : null}
 			<h2
-				className={cn("text-balance text-3xl leading-tight", eyebrow && "mt-4")}
+				className={cn(
+					"text-balance font-semibold text-3xl leading-tight tracking-tight",
+					eyebrow && "mt-4",
+				)}
 			>
 				{children}
 			</h2>
@@ -60,15 +63,15 @@ export function SectionHeading({
 
 export function BodyCopy({ className, ...props }: ComponentProps<"p">) {
 	return (
-		<p className={cn("text-landing-muted leading-7", className)} {...props} />
+		<p className={cn("text-landing-muted leading-6", className)} {...props} />
 	);
 }
 
 const actionVariants = {
 	primary:
-		"border-landing-surface-inverse bg-landing-surface-inverse text-white hover:opacity-90 dark:text-landing-accent-foreground",
+		"border-landing-surface-inverse bg-landing-surface-inverse text-landing-surface-inverse-foreground hover:opacity-90",
 	secondary:
-		"border-landing-border bg-transparent text-landing-foreground hover:bg-landing-surface-raised",
+		"border-landing-border bg-transparent text-landing-foreground hover:bg-landing-surface-hover",
 } as const;
 
 export function ActionLink({
@@ -81,9 +84,9 @@ export function ActionLink({
 	return (
 		<a
 			className={cn(
-				"inline-flex items-center gap-2 rounded-lg border px-5 py-3 font-medium transition-colors",
+				"inline-flex items-center gap-2 rounded-full border px-5 py-2.5 font-medium transition-[color,background-color,border-color,opacity]",
+				"focus-visible:outline-2 focus-visible:outline-landing-accent focus-visible:outline-offset-2",
 				actionVariants[variant],
-				variant === "primary" && "dark:bg-landing-accent",
 				className,
 			)}
 			{...props}

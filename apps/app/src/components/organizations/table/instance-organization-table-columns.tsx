@@ -1,6 +1,5 @@
 import type { OrganizationWithMemberCount } from "@orcai/schema";
 import { createColumnHelper } from "@tanstack/react-table";
-import { format } from "date-fns";
 import { MoreHorizontal } from "lucide-react";
 import { useState } from "react";
 import { DeleteOrganizationDialog } from "@/components/organizations/delete-organization-dialog";
@@ -13,6 +12,7 @@ import {
 	DropdownMenuItem,
 	DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
+import { formatDisplayTimestamp } from "@/lib/presentation/format-timestamp";
 
 const columnHelper = createColumnHelper<
 	DataTableFeatures,
@@ -39,10 +39,10 @@ export const instanceOrganizationTableColumns = columnHelper.columns([
 	}),
 	columnHelper.accessor("createdAt", {
 		header: ({ column }) => (
-			<DataTableColumnHeader column={column} title="Created At" />
+			<DataTableColumnHeader column={column} title="Created" />
 		),
 		cell: ({ row }) => (
-			<span>{format(row.original.createdAt || "", "MMM dd, yyyy HH:mm")}</span>
+			<span>{formatDisplayTimestamp(row.original.createdAt || "")}</span>
 		),
 	}),
 	columnHelper.display({

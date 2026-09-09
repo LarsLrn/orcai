@@ -52,6 +52,7 @@ import {
 	createGroup,
 	deleteGroups,
 	findGroup,
+	listGroupCandidates,
 	listGroupMembers,
 	listGroups,
 	removeGroupMembers,
@@ -111,8 +112,10 @@ import {
 	updateQuotaPool,
 } from "./quota";
 import {
+	getInheritedAccess,
 	getResourceVisibility,
 	grantResourceAccess,
+	listRecentResources,
 	listResourceGrants,
 	listResourcePrincipals,
 	revokeResourceAccess,
@@ -185,7 +188,9 @@ export const router = {
 	},
 	resource: {
 		listGrants: listResourceGrants,
+		inheritedAccess: getInheritedAccess,
 		listPrincipals: listResourcePrincipals,
+		listRecent: listRecentResources,
 		grant: grantResourceAccess,
 		revoke: revokeResourceAccess,
 		getVisibility: getResourceVisibility,
@@ -198,6 +203,7 @@ export const router = {
 		update: updateGroup,
 		delete: deleteGroups,
 		listMembers: listGroupMembers,
+		listCandidates: listGroupCandidates,
 		addMembers: addGroupMembers,
 		removeMembers: removeGroupMembers,
 	},

@@ -100,7 +100,7 @@ const ImageGenerationBlockForm = ({
 							name="description"
 							children={(field) => (
 								<field.TextareaField
-									label="Short Description"
+									label="Short description"
 									placeholder="Describe the purpose of this image generation block."
 									rows={4}
 								/>
@@ -116,7 +116,7 @@ const ImageGenerationBlockForm = ({
 				</Card>
 				<Card className="h-fit">
 					<CardHeader>
-						<CardTitle>Block AI Settings</CardTitle>
+						<CardTitle>Block AI settings</CardTitle>
 					</CardHeader>
 					<CardContent className="flex flex-col gap-4">
 						<form.AppField
@@ -127,7 +127,7 @@ const ImageGenerationBlockForm = ({
 							children={(field) => (
 								<field.SelectField
 									label="Provider"
-									placeholder="Choose a Provider"
+									placeholder="Choose a provider"
 									options={providers.data.map((provider) => ({
 										value: provider.id,
 										label: provider.name,
@@ -140,8 +140,8 @@ const ImageGenerationBlockForm = ({
 							name="config.model"
 							children={(field) => (
 								<field.SelectField
-									label="Image Model"
-									placeholder="Choose an Image Model"
+									label="Image model"
+									placeholder="Choose an image model"
 									options={models?.data?.map((model) => ({
 										value: model.id,
 										label: model.name,
@@ -154,7 +154,7 @@ const ImageGenerationBlockForm = ({
 							name="config.prompt"
 							children={(field) => (
 								<field.TextareaField
-									label="Guidance Prompt"
+									label="Guidance prompt"
 									placeholder="All images should be in the style of Van Gogh."
 									description="This prompt is prepended to the image generation requests to guide the AI model."
 								/>
@@ -165,7 +165,7 @@ const ImageGenerationBlockForm = ({
 			</div>
 			<Card>
 				<CardHeader>
-					<CardTitle>Block Description</CardTitle>
+					<CardTitle>Block description</CardTitle>
 					<CardDescription>
 						Optional rich text context for teammates maintaining this block.
 					</CardDescription>
@@ -184,7 +184,7 @@ const ImageGenerationBlockForm = ({
 				</CardContent>
 			</Card>
 			<form.AppForm>
-				<form.SubmitButton label="Save Block" />
+				<form.SubmitButton label="Save block" />
 			</form.AppForm>
 		</form>
 	);

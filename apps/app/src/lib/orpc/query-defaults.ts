@@ -96,6 +96,11 @@ export const queryDefaults = {
 				placeholderData: keepPreviousData,
 			},
 		},
+		listCandidates: {
+			queryOptions: {
+				placeholderData: keepPreviousData,
+			},
+		},
 	},
 	organizationInvitation: {
 		list: {

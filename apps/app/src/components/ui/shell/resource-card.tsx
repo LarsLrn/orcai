@@ -39,7 +39,7 @@ const ResourceCard = ({
 		<Card
 			size="sm"
 			className={cn(
-				"relative h-full gap-2 border-border/60 bg-card/95 shadow-xs transition-all duration-200 has-[>[data-slot=resource-card-body][data-interactive=true]]:hover:border-border has-[>[data-slot=resource-card-body][data-interactive=true]]:hover:shadow-md",
+				"relative h-full gap-2 border-border/60 bg-card/95 shadow-xs transition-all duration-200 has-[>[data-slot=resource-card-body][data-interactive=true]]:hover:-translate-y-0.5 has-[>[data-slot=resource-card-body][data-interactive=true]]:hover:border-border has-[>[data-slot=resource-card-body][data-interactive=true]]:hover:shadow-lg has-[>[data-slot=resource-card-body][data-interactive=true]]:hover:ring-foreground/10 data-[selected=true]:border-accent-brand/40",
 				className,
 			)}
 			{...props}
@@ -47,6 +47,11 @@ const ResourceCard = ({
 	);
 };
 
+/*
+ * `tone` names what the resource is, so a bot, behaviour block, repository
+ * and asset are told apart by their icon well across the Library. It tints
+ * the well and colours the glyph.
+ */
 const resourceCardMediaVariants = cva(
 	"flex shrink-0 items-center justify-center [&_svg]:pointer-events-none [&_svg]:shrink-0",
 	{
@@ -55,9 +60,41 @@ const resourceCardMediaVariants = cva(
 				default: "bg-transparent",
 				icon: "flex size-8 shrink-0 items-center justify-center rounded-lg bg-muted text-foreground [&_svg:not([class*='size-'])]:size-6",
 			},
+			tone: {
+				neutral: "",
+				bot: "",
+				behaviour: "",
+				repository: "",
+				asset: "",
+			},
 		},
+		compoundVariants: [
+			{
+				variant: "icon",
+				tone: "bot",
+				className: "bg-kind-bot/12 text-kind-bot dark:bg-kind-bot/20",
+			},
+			{
+				variant: "icon",
+				tone: "behaviour",
+				className:
+					"bg-kind-behaviour/12 text-kind-behaviour dark:bg-kind-behaviour/20",
+			},
+			{
+				variant: "icon",
+				tone: "repository",
+				className:
+					"bg-kind-repository/12 text-kind-repository dark:bg-kind-repository/20",
+			},
+			{
+				variant: "icon",
+				tone: "asset",
+				className: "bg-kind-asset/12 text-kind-asset dark:bg-kind-asset/20",
+			},
+		],
 		defaultVariants: {
 			variant: "default",
+			tone: "neutral",
 		},
 	},
 );
@@ -65,6 +102,7 @@ const resourceCardMediaVariants = cva(
 function ResourceCardMedia({
 	className,
 	variant = "default",
+	tone = "neutral",
 	...props
 }: React.ComponentProps<"div"> &
 	VariantProps<typeof resourceCardMediaVariants>) {
@@ -72,9 +110,11 @@ function ResourceCardMedia({
 		<div
 			data-slot="resource-card-icon"
 			data-variant={variant}
+			data-tone={tone}
 			className={cn(
 				resourceCardMediaVariants({
 					variant,
+					tone,
 					className,
 				}),
 				"row-span-2 self-start",
@@ -97,7 +137,7 @@ const ResourceCardBody = ({
 	const bodyClassName = cn(
 		"block rounded-2xl",
 		isInteractive &&
-			"space-y-2 no-underline outline-none ring-ring/50 transition-all duration-200 focus-visible:ring-[3px]",
+			"space-y-2 no-underline outline-none ring-ring/75 transition-all duration-200 focus-visible:ring-[3px]",
 		className,
 	);
 
@@ -191,7 +231,7 @@ const ResourceCardTitle = ({
 			<CardTitle className={titleClassName} {...props}>
 				<Link
 					{...action.linkProps}
-					className="inline rounded-sm no-underline outline-none ring-ring/50 transition-colors hover:text-primary focus-visible:ring-[3px]"
+					className="inline rounded-sm no-underline outline-none ring-ring/75 transition-colors hover:text-primary focus-visible:ring-[3px]"
 				>
 					{children}
 				</Link>
@@ -207,7 +247,7 @@ const ResourceCardTitle = ({
 					onClick={action.onClick}
 					disabled={action.disabled}
 					className={cn(
-						"rounded-sm border-0 bg-transparent p-0 text-left text-inherit outline-none ring-ring/50 transition-colors hover:text-primary focus-visible:ring-[3px]",
+						"rounded-sm border-0 bg-transparent p-0 text-left text-inherit outline-none ring-ring/75 transition-colors hover:text-primary focus-visible:ring-[3px]",
 						action.disabled &&
 							"cursor-not-allowed opacity-70 hover:text-inherit",
 					)}
@@ -247,6 +287,7 @@ const ResourceCardContent = ({
 type ResourceCardBadgeItem = {
 	label: string;
 	icon?: LucideIcon;
+	className?: string;
 } & VariantProps<typeof badgeVariants>;
 
 const ResourceCardBadges = ({
@@ -266,7 +307,7 @@ const ResourceCardBadges = ({
 				<Badge
 					key={badge.label}
 					variant={badge.variant ?? "secondary"}
-					className="px-2.5 font-medium"
+					className={cn("px-2.5 font-medium", badge.className)}
 				>
 					{badge.icon ? <badge.icon className="h-3 w-3" /> : null}
 					{badge.label}

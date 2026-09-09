@@ -63,6 +63,12 @@ export const listGroupMembersInputSchema = paginationInputSchema.extend({
 	query: z.string().trim().max(200).optional(),
 });
 
+export const listGroupCandidatesInputSchema = z.object({
+	groupId: groupIdSchema,
+	query: z.string().trim().max(200).optional(),
+	limit: z.number().int().positive().max(100).default(30),
+});
+
 export const addGroupMembersInputSchema = z.object({
 	groupId: groupIdSchema,
 	userIds: groupUserIdsSchema,
@@ -78,6 +84,9 @@ export type GroupSortKey = z.infer<typeof groupSortKeySchema>;
 export type CreateGroupInput = z.infer<typeof createGroupInputSchema>;
 export type UpdateGroupInput = z.infer<typeof updateGroupInputSchema>;
 export type DeleteGroupsInput = z.infer<typeof deleteGroupsInputSchema>;
+export type ListGroupCandidatesInput = z.infer<
+	typeof listGroupCandidatesInputSchema
+>;
 export type FindGroupInput = z.infer<typeof findGroupInputSchema>;
 export type ListGroupMembersInput = z.infer<typeof listGroupMembersInputSchema>;
 export type AddGroupMembersInput = z.infer<typeof addGroupMembersInputSchema>;

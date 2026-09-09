@@ -57,7 +57,8 @@ const Header = ({ homeTo = "/app" }: { homeTo?: "/app" | "/instance" }) => {
 									}),
 								)}
 							>
-								<HomeIcon className="size-4.5" />
+								<HomeIcon className="size-4.5" aria-hidden="true" />
+								<span className="sr-only">Home</span>
 							</Link>
 						</BreadcrumbItem>
 
@@ -69,7 +70,10 @@ const Header = ({ homeTo = "/app" }: { homeTo?: "/app" | "/instance" }) => {
 											<DropdownMenuTrigger
 												render={
 													<Button variant="ghost" size="icon-sm">
-														<EllipsisIcon />
+														<EllipsisIcon aria-hidden="true" />
+														<span className="sr-only">
+															Show the breadcrumb trail
+														</span>
 													</Button>
 												}
 											/>

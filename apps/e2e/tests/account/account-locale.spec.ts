@@ -5,8 +5,8 @@ import { expect, test } from "../../fixtures/index";
 
 /** The two translated sentences the app home greets a user with. */
 const WELCOME = {
-	en: "Welcome to your AI workspace. Start a conversation, continue recent work, or browse the library for pre-configured bots.",
-	de: "Willkommen in Ihrem KI-Arbeitsbereich. Starten Sie eine Unterhaltung, setzen Sie Ihre letzten Arbeiten fort oder durchsuchen Sie die Bibliothek nach vorkonfigurierten Bots.",
+	en: "Ask questions against your organisation's approved sources, or build a bot that others can use.",
+	de: "Stellen Sie Fragen an die freigegebenen Quellen Ihrer Organisation oder erstellen Sie einen Bot, den andere nutzen können.",
 } as const;
 
 test("account: a user switches the interface language to German and back", async ({

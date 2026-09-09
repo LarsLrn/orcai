@@ -43,7 +43,7 @@ export const Route = createFileRoute("/app/hub/bots/$botId/setup")({
 	head: () => ({
 		meta: [
 			{
-				title: "Bot Setup",
+				title: "Bot setup",
 			},
 		],
 	}),
@@ -65,7 +65,7 @@ function RouteComponent() {
 	return (
 		<Page>
 			<PageHeader>
-				<PageTitle>Bot Setup</PageTitle>
+				<PageTitle>Bot setup</PageTitle>
 				<PageDescription>
 					Use the shared authoring flow to update the bot configuration, reuse
 					existing blocks, and publish changes when they are ready.

@@ -51,7 +51,7 @@ function Home() {
 							<div className="flex flex-wrap gap-2">
 								<a
 									href={siteConfig.repository.url}
-									className="rounded-full bg-landing-accent px-3 py-1 font-medium text-landing-accent-foreground transition-opacity hover:opacity-80 focus-visible:outline-2 focus-visible:outline-landing-accent-muted focus-visible:outline-offset-2"
+									className="rounded-full bg-landing-accent-tint px-3 py-1 font-medium text-landing-accent-muted text-xs transition-opacity hover:opacity-80 focus-visible:outline-2 focus-visible:outline-landing-accent focus-visible:outline-offset-2"
 								>
 									Open source
 								</a>
@@ -60,7 +60,7 @@ function Home() {
 									params={{
 										_splat: "self-hosting",
 									}}
-									className="rounded-full border border-landing-border px-3 py-1 transition-colors hover:bg-landing-surface-raised focus-visible:outline-2 focus-visible:outline-landing-accent-muted focus-visible:outline-offset-2"
+									className="rounded-full border border-landing-border px-3 py-1 text-xs transition-colors hover:bg-landing-surface-hover focus-visible:outline-2 focus-visible:outline-landing-accent focus-visible:outline-offset-2"
 								>
 									Self-hostable
 								</Link>
@@ -70,10 +70,10 @@ function Home() {
 						<div className="grid gap-10 px-1 py-10 lg:grid-cols-[0.92fr_1.08fr] lg:items-center lg:px-6 lg:py-16">
 							<div>
 								<Eyebrow className="mb-4">Configure. Ground. Govern.</Eyebrow>
-								<h1 className="max-w-4xl text-balance font-semibold text-5xl leading-none sm:text-7xl">
+								<h1 className="max-w-4xl text-balance font-semibold text-5xl leading-none tracking-tight sm:text-6xl">
 									Knowledge assistants you can operate on your own terms.
 								</h1>
-								<BodyCopy className="mt-6 max-w-2xl text-lg leading-8">
+								<BodyCopy className="mt-6 max-w-2xl text-base leading-7">
 									OrcAI helps individuals, specialist teams, educators, and
 									research groups build AI assistants around curated knowledge
 									bases. Upload material, shape assistant behaviour, control
@@ -103,8 +103,10 @@ function Home() {
 					<div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
 						{pillars.map((pillar) => (
 							<Surface key={pillar.title} className="p-6">
-								<pillar.icon className="mb-10 size-7 text-landing-accent-muted" />
-								<h2 className="text-2xl">{pillar.title}</h2>
+								<pillar.icon className="mb-10 size-7 text-landing-muted" />
+								<h2 className="font-semibold text-2xl tracking-tight">
+									{pillar.title}
+								</h2>
 								<BodyCopy className="mt-3">{pillar.description}</BodyCopy>
 							</Surface>
 						))}
@@ -129,10 +131,10 @@ function Home() {
 								key={item}
 								className="grid gap-4 p-4 sm:grid-cols-[2.5rem_1fr] sm:items-center"
 							>
-								<div className="flex size-9 items-center justify-center rounded-full bg-landing-accent font-mono text-landing-accent-foreground text-sm">
+								<div className="flex size-9 items-center justify-center rounded-full bg-landing-accent-tint font-medium text-landing-accent-muted text-xs">
 									{index + 1}
 								</div>
-								<p className="text-lg">{item}</p>
+								<p>{item}</p>
 							</div>
 						))}
 					</Surface>
@@ -153,7 +155,7 @@ function Home() {
 					<div className="mt-6 grid gap-4 md:grid-cols-3">
 						{governance.map((item) => (
 							<Surface key={item.title} className="p-6">
-								<item.icon className="mb-10 size-6 text-landing-accent-muted" />
+								<item.icon className="mb-10 size-6 text-landing-muted" />
 								<h3 className="font-semibold text-xl">{item.title}</h3>
 								<BodyCopy className="mt-3">{item.description}</BodyCopy>
 							</Surface>
@@ -176,7 +178,7 @@ function Home() {
 						<ActionLink
 							href="/docs/self-hosting"
 							variant="primary"
-							className="mt-6 px-4 py-2"
+							className="mt-6"
 						>
 							Self-hosting docs <ArrowRightIcon className="size-4" />
 						</ActionLink>
@@ -184,7 +186,7 @@ function Home() {
 					<div className="grid gap-3 sm:grid-cols-2">
 						{stack.map((item) => (
 							<Surface key={item} className="flex items-center gap-3 p-4">
-								<CheckCircle2Icon className="size-5 shrink-0 text-landing-accent-muted" />
+								<CheckCircle2Icon className="size-5 shrink-0 text-landing-muted" />
 								<span>{item}</span>
 							</Surface>
 						))}
@@ -195,7 +197,7 @@ function Home() {
 					<div className="grid gap-4 md:grid-cols-2 xl:grid-cols-3">
 						{audiences.map((audience) => (
 							<Surface key={audience.label} className="p-6">
-								<audience.icon className="mb-10 size-6 text-landing-accent-muted" />
+								<audience.icon className="mb-10 size-6 text-landing-muted" />
 								<h3 className="font-semibold">{audience.label}</h3>
 								<BodyCopy className="mt-3">{audience.value}</BodyCopy>
 							</Surface>
@@ -212,7 +214,7 @@ function Home() {
 							<div className="grid gap-4">
 								{useCases.map((useCase) => (
 									<div key={useCase} className="flex items-start gap-3">
-										<CircleDotIcon className="mt-1 size-4 shrink-0 text-landing-accent-muted" />
+										<CircleDotIcon className="mt-1 size-4 shrink-0 text-landing-muted" />
 										<BodyCopy>{useCase}</BodyCopy>
 									</div>
 								))}
@@ -228,9 +230,9 @@ function Home() {
 							{constraints.map((constraint) => (
 								<div
 									key={constraint}
-									className="flex items-start gap-3 rounded-lg bg-landing-surface-raised p-4"
+									className="flex items-start gap-3 rounded-2xl bg-landing-surface-raised p-4"
 								>
-									<CircleDotIcon className="mt-1 size-4 shrink-0 text-landing-accent-muted" />
+									<CircleDotIcon className="mt-1 size-4 shrink-0 text-landing-muted" />
 									<BodyCopy>{constraint}</BodyCopy>
 								</div>
 							))}
