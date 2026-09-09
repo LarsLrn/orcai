@@ -1,4 +1,9 @@
-import type { BotEditor, PublicationStatus, SaveBotInput } from "@orcai/schema";
+import type {
+	BotEditor,
+	PublicationStatus,
+	ResourceGrant,
+	SaveBotInput,
+} from "@orcai/schema";
 import { useQueryClient } from "@tanstack/react-query";
 import { useNavigate } from "@tanstack/react-router";
 import { useSelector } from "@tanstack/react-store";
@@ -9,7 +14,6 @@ import {
 	ChevronRightIcon,
 	FileTextIcon,
 	LockKeyholeIcon,
-	RocketIcon,
 	SparklesIcon,
 } from "lucide-react";
 import { useEffect, useMemo, useRef, useState } from "react";
@@ -21,6 +25,10 @@ import {
 	createDefaultBuilderTemplateBlock,
 	toBotEditorFormValues,
 } from "@/components/authoring/bot-editor-form-options";
+import {
+	describeAllMembersAccess,
+	PublishSummary,
+} from "@/components/authoring/publish-summary";
 import { TemplateBlockEditor } from "@/components/authoring/template-block-editor";
 import { BlockSelectorDialog } from "@/components/blocks/block-selector-dialog";
 import {
@@ -36,6 +44,7 @@ import {
 	CardHeader,
 	CardTitle,
 } from "@/components/ui/card";
+import { useConfirm } from "@/components/ui/dialog/confirm-dialog";
 import { Label } from "@/components/ui/label";
 import {
 	Select,
@@ -67,35 +76,48 @@ import { cn } from "@/lib/utils";
 const WIZARD_STEPS = [
 	{
 		key: "basics",
-		title: "Bot Basics",
+		title: "Bot basics",
 		description: "Name the bot and describe its purpose.",
 		icon: FileTextIcon,
 	},
 	{
 		key: "behavior",
-		title: "AI Behaviour",
-		description: "Define the bot's response rules.",
+		title: "AI behaviour",
+		description:
+			"The system prompt sets the bot's role, tone and limits. There is no default, so write one here or reuse a behaviour you have already defined.",
 		icon: SparklesIcon,
 	},
 	{
 		key: "documents",
-		title: "Content",
-		description: "Attach content collections and source material.",
+		title: "Repositories",
+		description:
+			"A repository holds the material the bot answers from, so it can quote and cite your own documents. Attach as many as the bot needs, or none at all.",
 		icon: BookOpenIcon,
 	},
 	{
 		key: "sharing",
-		title: "Sharing & Access",
+		title: "Sharing and access",
 		description: "Control who can use and edit the bot.",
 		icon: LockKeyholeIcon,
 	},
 	{
 		key: "review",
-		title: "Review & Launch",
+		title: "Review and publish",
 		description: "Check the setup and publish the bot.",
 		icon: CheckCircle2Icon,
 	},
 ] as const;
+
+const EXAMPLE_SYSTEM_PROMPT = `You are the course assistant for this module.
+
+Answer only from the repositories attached to you, and name the document each answer came from. If the material does not cover the question, say so and point the person to the course team.
+
+Keep answers short and plain. Use British English.
+
+Refuse anything outside the course material: do not grade work, do not predict marks, and do not give personal, legal or medical advice.`;
+
+const UNSHARED_ACCESS_COPY =
+	"Until you share it, only you can use this bot. Publishing does not change that: it makes the bot usable by the groups and people named here, and by nobody else.";
 
 const canEditBlock = (block: {
 	capabilities?: Partial<Record<"edit", boolean>>;
@@ -112,24 +134,18 @@ const getPublishIssues = (editor: BotEditorFormValues) => {
 	const issues: string[] = [];
 
 	if (!editor.templateBlock) {
-		issues.push("Add an AI behaviour before launching the bot.");
+		issues.push("Add an AI behaviour before publishing the bot.");
 	}
 	if (editor.templateBlock && editor.templateBlock.status !== "ready") {
-		issues.push(
-			'Set the AI behaviour block status to "Ready" before launching.',
-		);
+		issues.push("Mark the AI behaviour as ready before publishing.");
 	}
 
 	for (const databaseBlock of editor.databaseBlocks) {
 		if (databaseBlock.status !== "ready") {
-			issues.push(
-				`Set "${databaseBlock.name}" block status to "Ready" before launching.`,
-			);
+			issues.push(`Mark "${databaseBlock.name}" as ready before publishing.`);
 		}
 		if (databaseBlock.assetIds.length === 0) {
-			issues.push(
-				`Attach at least one content item to "${databaseBlock.name}".`,
-			);
+			issues.push(`Attach at least one asset to "${databaseBlock.name}".`);
 		}
 	}
 
@@ -172,6 +188,7 @@ const BotEditorShell = ({
 }) => {
 	const navigate = useNavigate();
 	const queryClient = useQueryClient();
+	const confirm = useConfirm();
 	const [internalStepIndex, setInternalStepIndex] = useState(0);
 	const [isTemplateBlockLibraryOpen, setIsTemplateBlockLibraryOpen] =
 		useState(false);
@@ -202,7 +219,11 @@ const BotEditorShell = ({
 		stepIndex,
 	]);
 
-	const { mutateAsync: saveBot, isPending: isSaving } = useSaveBotMutation();
+	const {
+		mutateAsync: saveBot,
+		isPending: isSaving,
+		isSuccess: hasSaved,
+	} = useSaveBotMutation();
 	const { mutateAsync: publishBot, isPending: isPublishing } =
 		usePublishBotMutation();
 	const { mutateAsync: createBlock, isPending: isCreatingBlock } =
@@ -452,7 +473,30 @@ const BotEditorShell = ({
 		setStep(Math.max(activeStepIndex - 1, 0));
 	};
 
-	const handleSetReady = async () => {
+	const handlePublish = async () => {
+		const confirmed = await confirm({
+			title: "Publish this bot",
+			description: `Publishing makes "${
+				editor.name || "this bot"
+			}" available to everyone the access rules below name.`,
+			contentSlot: (
+				<PublishSummary
+					visibility={visibility.data?.data.visibility}
+					grants={grants.data?.data ?? []}
+					grantsAvailable={grants.isSuccess}
+				/>
+			),
+			confirmText: "Publish",
+			cancelText: "Cancel",
+			confirmButton: {
+				variant: "default",
+			},
+		});
+
+		if (!confirmed) {
+			return;
+		}
+
 		const savedEditor = editor.id
 			? editor
 			: await handleSave({
@@ -564,8 +608,8 @@ const BotEditorShell = ({
 	const currentStep = WIZARD_STEPS[activeStepIndex];
 
 	return (
-		<div className="space-y-6">
-			<div className="grid gap-3 md:grid-cols-5">
+		<div className="grid min-w-0 grid-cols-1 gap-6">
+			<div className="grid grid-cols-2 gap-3 sm:grid-cols-3 lg:grid-cols-5">
 				{WIZARD_STEPS.map((step, index) => {
 					const Icon = step.icon;
 					const isLocked = !editor.id && index > 0;
@@ -576,13 +620,11 @@ const BotEditorShell = ({
 							type="button"
 							key={step.key}
 							className={cn(
-								"rounded-[24px] border p-4 text-left transition-all",
-								isActive &&
-									"bg-primary text-primary-foreground shadow-md ring-2 ring-primary",
-								isComplete && "border-secondary bg-secondary/5 shadow-sm",
+								"min-w-0 rounded-2xl border border-border bg-background p-4 text-left transition-colors",
+								isActive && "border-primary bg-primary text-primary-foreground",
+								isComplete && "border-secondary bg-secondary/5",
 								isLocked &&
-									"cursor-not-allowed border-border/60 border-dashed bg-transparent opacity-55 shadow-none",
-								!isActive && !isComplete && !isLocked && "bg-muted/20",
+									"cursor-not-allowed border-border/60 border-dashed bg-transparent opacity-55",
 							)}
 							onClick={() => {
 								if (!isLocked) {
@@ -603,13 +645,15 @@ const BotEditorShell = ({
 									{index + 1}
 								</Badge>
 							</div>
-							<div className="font-medium text-xs">{step.title}</div>
+							<div className="wrap-break-word font-medium text-xs">
+								{step.title}
+							</div>
 						</button>
 					);
 				})}
 			</div>
 
-			<div className="rounded-[32px] border bg-muted/25 p-6 shadow-inner">
+			<div className="min-w-0 rounded-4xl border bg-muted/25 p-6 shadow-inner">
 				<div className="mb-6">
 					<h2 className="font-semibold text-2xl">{currentStep.title}</h2>
 					<p className="mt-2 max-w-2xl text-muted-foreground">
@@ -617,10 +661,10 @@ const BotEditorShell = ({
 					</p>
 				</div>
 
-				<div className="space-y-6">
+				<div className="grid min-w-0 grid-cols-1 gap-6">
 					{activeStepIndex === 0 ? (
-						<div className="space-y-6">
-							<Card>
+						<div className="grid min-w-0 grid-cols-1 gap-6">
+							<Card className="min-w-0 rounded-2xl">
 								<CardHeader>
 									<CardTitle>Identity</CardTitle>
 									<CardDescription>
@@ -632,8 +676,8 @@ const BotEditorShell = ({
 										name="name"
 										children={(field) => (
 											<field.TextField
-												label="Bot Name"
-												placeholder="Intro to Sociology Tutor"
+												label="Bot name"
+												placeholder="Travel expenses guide"
 											/>
 										)}
 									/>
@@ -641,8 +685,8 @@ const BotEditorShell = ({
 										name="description"
 										children={(field) => (
 											<field.TextareaField
-												label="Short Description"
-												placeholder="Provides a user group with access to a focused AI workflow and cites approved source material."
+												label="Short description"
+												placeholder="Answers colleagues' questions about travel bookings and reimbursements from the approved guidance documents."
 												rows={4}
 											/>
 										)}
@@ -650,9 +694,9 @@ const BotEditorShell = ({
 								</CardContent>
 							</Card>
 
-							<Card>
+							<Card className="min-w-0 rounded-2xl">
 								<CardHeader>
-									<CardTitle>Bot Description</CardTitle>
+									<CardTitle>Bot description</CardTitle>
 									<CardDescription>
 										A richer overview for teammates who configure and maintain
 										the bot.
@@ -663,7 +707,7 @@ const BotEditorShell = ({
 										name="contentJson"
 										children={(field) => (
 											<field.BlockEditorField
-												label="Bot Description"
+												label="Bot description"
 												htmlFieldName="contentHtml"
 											/>
 										)}
@@ -674,14 +718,14 @@ const BotEditorShell = ({
 					) : null}
 
 					{activeStepIndex === 1 ? (
-						<div className="space-y-4">
+						<div className="grid min-w-0 grid-cols-1 gap-4">
 							{editor.templateBlock ? (
 								<div className="flex flex-wrap justify-end gap-2">
 									<Button
 										variant="outline"
 										onClick={() => setIsTemplateBlockLibraryOpen(true)}
 									>
-										Use Existing AI Behaviour
+										Use existing AI behaviour
 									</Button>
 								</div>
 							) : null}
@@ -696,29 +740,52 @@ const BotEditorShell = ({
 												children={(field) => (
 													<field.TextField
 														label="Name"
-														placeholder="AI Behaviour"
+														placeholder="AI behaviour"
 													/>
 												)}
 											/>
 										}
 										systemPromptField={
-											<form.AppField
-												name="templateBlock.config.systemPrompt"
-												children={(field) => (
-													<field.TextareaField
-														label="System Prompt"
-														placeholder="Explain the bot's role, response style, and constraints."
-														rows={12}
-													/>
-												)}
-											/>
+											<div className="space-y-2">
+												<form.AppField
+													name="templateBlock.config.systemPrompt"
+													children={(field) => (
+														<field.TextareaField
+															label="System prompt"
+															placeholder={EXAMPLE_SYSTEM_PROMPT}
+															rows={12}
+														/>
+													)}
+												/>
+												<div className="flex flex-wrap items-center gap-3">
+													<Button
+														variant="outline"
+														size="sm"
+														disabled={
+															!!editor.templateBlock?.config.systemPrompt.trim()
+														}
+														onClick={() =>
+															form.setFieldValue(
+																"templateBlock.config.systemPrompt",
+																EXAMPLE_SYSTEM_PROMPT,
+															)
+														}
+													>
+														Start from an example
+													</Button>
+													<span className="text-muted-foreground text-xs">
+														Name the role, the sources to answer from, the tone
+														to use, and what to refuse.
+													</span>
+												</div>
+											</div>
 										}
 										descriptionField={
 											<form.AppField
 												name="templateBlock.description"
 												children={(field) => (
 													<field.TextareaField
-														label="Short Description"
+														label="Short description"
 														placeholder="Define the purpose of this block."
 														rows={4}
 													/>
@@ -730,7 +797,7 @@ const BotEditorShell = ({
 												name="templateBlock.contentJson"
 												children={(field) => (
 													<field.BlockEditorField
-														label="Detailed Description"
+														label="Detailed description"
 														htmlFieldName="templateBlock.contentHtml"
 													/>
 												)}
@@ -741,14 +808,15 @@ const BotEditorShell = ({
 									<ReadOnlyTemplateCard block={editor.templateBlock} />
 								)
 							) : (
-								<Card>
+								<Card className="min-w-0 rounded-2xl">
 									<CardContent className="flex flex-wrap items-center justify-between gap-3 p-6">
 										<div>
 											<div className="font-medium">
 												No AI behaviour linked yet
 											</div>
 											<div className="text-muted-foreground text-sm">
-												Create a new behaviour or attach one from the library.
+												Write a new behaviour, or reuse one you have already
+												defined. You can start from an example.
 											</div>
 										</div>
 										<div className="flex flex-wrap gap-2">
@@ -760,13 +828,13 @@ const BotEditorShell = ({
 													)
 												}
 											>
-												Create AI Behaviour
+												Create AI behaviour
 											</Button>
 											<Button
 												variant="outline"
 												onClick={() => setIsTemplateBlockLibraryOpen(true)}
 											>
-												Use Existing AI Behaviour
+												Use existing AI behaviour
 											</Button>
 										</div>
 									</CardContent>
@@ -788,31 +856,24 @@ const BotEditorShell = ({
 								onSelect={(block) =>
 									handleSelectExistingTemplateBlock(block.id)
 								}
-								title="Use Existing AI Behaviour"
-								description="Attach a reusable AI behaviour block instead of creating a new one."
-								searchPlaceholder="Search AI behaviour blocks..."
+								title="Use existing AI behaviour"
+								description="Reuse a behaviour you have already defined instead of writing a new one."
+								searchPlaceholder="Search AI behaviours..."
 							/>
 						</div>
 					) : null}
 
 					{activeStepIndex === 2 ? (
-						<div className="space-y-4">
-							<div className="space-y-2">
-								<h3 className="font-semibold text-xl">Content & Collections</h3>
-								<p className="max-w-3xl text-muted-foreground text-sm">
-									Add reusable content collections the AI can retrieve from when
-									answering questions.
-								</p>
-							</div>
-
+						<div className="grid min-w-0 grid-cols-1 gap-4">
 							{editor.databaseBlocks.length === 0 ? (
-								<div className="rounded-[28px] border border-dashed bg-background/70 p-6 shadow-sm">
-									<div className="font-medium">Do you want to add content?</div>
+								<div className="min-w-0 rounded-2xl border border-dashed bg-background/70 p-6">
+									<div className="font-medium">
+										Do you want to add a repository?
+									</div>
 									<div className="mt-2 text-muted-foreground text-sm">
-										Content gives the AI grounded context and citations. You can
-										add one or more content collections, and each one can
-										include existing or newly uploaded items from the content
-										library.
+										A repository gives the bot grounded context and citations.
+										You can add one or more, and each one can hold existing or
+										newly uploaded assets from the Library.
 									</div>
 									<div className="mt-4 flex flex-wrap gap-2">
 										<Button
@@ -825,24 +886,24 @@ const BotEditorShell = ({
 												])
 											}
 										>
-											Create Content Collection
+											Create repository
 										</Button>
 										<Button
 											variant="outline"
 											onClick={() => setIsDatabaseBlockLibraryOpen(true)}
 										>
-											Use Existing Content Collection
+											Use existing repository
 										</Button>
 									</div>
 								</div>
 							) : (
-								<div className="space-y-4">
+								<div className="grid min-w-0 grid-cols-1 gap-4">
 									<div className="flex flex-wrap justify-end gap-2">
 										<Button
 											variant="outline"
 											onClick={() => setIsDatabaseBlockLibraryOpen(true)}
 										>
-											Add Existing Content Collection
+											Add existing repository
 										</Button>
 									</div>
 
@@ -892,6 +953,7 @@ const BotEditorShell = ({
 									)}
 
 									<Button
+										className="justify-self-start"
 										variant="outline"
 										onClick={() =>
 											form.setFieldValue("databaseBlocks", [
@@ -902,7 +964,7 @@ const BotEditorShell = ({
 											])
 										}
 									>
-										Add Another Content Collection
+										Add another repository
 									</Button>
 								</div>
 							)}
@@ -922,14 +984,20 @@ const BotEditorShell = ({
 								onSelect={async (block) => {
 									await handleAddExistingDatabaseBlock(block.id);
 								}}
-								title="Use Existing Content Collection"
-								description="Attach a reusable content collection block instead of creating a new one."
-								searchPlaceholder="Search content collection blocks..."
+								title="Use existing repository"
+								description="Attach a repository that already exists instead of creating a new one."
+								searchPlaceholder="Search repositories..."
 							/>
 						</div>
 					) : null}
 
-					{activeStepIndex === 3 ? <SharingSection editor={editor} /> : null}
+					{activeStepIndex === 3 ? (
+						<SharingSection
+							editor={editor}
+							grants={grants.data?.data ?? []}
+							grantsAvailable={grants.isSuccess}
+						/>
+					) : null}
 
 					{activeStepIndex === 4 ? (
 						<ReviewSection
@@ -937,15 +1005,14 @@ const BotEditorShell = ({
 							visibility={visibility.data?.data.visibility}
 							grantCount={grants.data?.data.length ?? 0}
 							issues={publishIssues}
-							onStatusChange={(status) => form.setFieldValue("status", status)}
 							onTemplateBlockStatusChange={handleTemplateBlockStatusChange}
 							onDatabaseBlockStatusChange={handleDatabaseBlockStatusChange}
 							isSettingBlockStatus={isSettingBlockStatus}
 						/>
 					) : null}
 
-					<Card>
-						<CardContent className="flex flex-row items-center justify-between gap-3">
+					<div className="flex min-w-0 flex-wrap items-center justify-between gap-3 rounded-2xl border bg-background p-4">
+						<div className="flex flex-wrap items-center gap-3">
 							<Button
 								variant="outline"
 								onClick={handleWizardBack}
@@ -954,45 +1021,73 @@ const BotEditorShell = ({
 								<ChevronLeftIcon />
 								Back
 							</Button>
+							<span
+								className="text-muted-foreground text-xs"
+								aria-live="polite"
+							>
+								{isSaving
+									? "Saving..."
+									: hasSaved
+										? "Saved. Moving between steps saves your changes."
+										: "Moving between steps saves your changes."}
+							</span>
+						</div>
 
-							{activeStepIndex === WIZARD_STEPS.length - 1 ? (
-								editor.status === "ready" ? (
-									<Button
-										onClick={handleSetReady}
-										disabled={publishIssues.length > 0 || isWorking}
-									>
-										<RocketIcon />
-										Launch Bot
-									</Button>
-								) : (
-									<Button onClick={handleSetDraft} disabled={isWorking}>
-										Save as Draft
-									</Button>
-								)
-							) : (
-								<Button onClick={handleWizardNext} disabled={isWorking}>
-									Next
-									<ChevronRightIcon />
+						{activeStepIndex === WIZARD_STEPS.length - 1 ? (
+							<div className="flex flex-wrap items-center gap-2">
+								<Button
+									variant="outline"
+									onClick={handleSetDraft}
+									disabled={isWorking}
+								>
+									Save draft
 								</Button>
-							)}
-						</CardContent>
-					</Card>
+								<Button
+									onClick={handlePublish}
+									disabled={publishIssues.length > 0 || isWorking}
+								>
+									Publish bot
+								</Button>
+							</div>
+						) : (
+							<Button onClick={handleWizardNext} disabled={isWorking}>
+								Next
+								<ChevronRightIcon />
+							</Button>
+						)}
+					</div>
 				</div>
 			</div>
 		</div>
 	);
 };
 
-const SharingSection = ({ editor }: { editor: BotEditorFormValues }) => {
+const SharingSection = ({
+	editor,
+	grants,
+	grantsAvailable,
+}: {
+	editor: BotEditorFormValues;
+	grants: ResourceGrant[];
+	grantsAvailable: boolean;
+}) => {
+	const memberAccess = grantsAvailable
+		? describeAllMembersAccess(grants)
+		: null;
+
 	if (!editor.id) {
 		return (
-			<Card>
+			<Card className="min-w-0 rounded-2xl">
 				<CardHeader>
-					<CardTitle>Sharing & Access</CardTitle>
+					<CardTitle>Sharing and access</CardTitle>
 					<CardDescription>
 						Access controls are available once the draft bot has been saved.
 					</CardDescription>
 				</CardHeader>
+				<CardContent className="space-y-3">
+					<p>{UNSHARED_ACCESS_COPY}</p>
+					{memberAccess ? <p>{memberAccess}</p> : null}
+				</CardContent>
 			</Card>
 		);
 	}
@@ -1002,15 +1097,17 @@ const SharingSection = ({ editor }: { editor: BotEditorFormValues }) => {
 	}
 
 	return (
-		<Card>
+		<Card className="min-w-0 rounded-2xl">
 			<CardHeader>
-				<CardTitle>Sharing & Access</CardTitle>
+				<CardTitle>Sharing and access</CardTitle>
 				<CardDescription>
 					Use groups for cohort access whenever possible, then add direct grants
 					only when needed.
 				</CardDescription>
 			</CardHeader>
-			<CardContent>
+			<CardContent className="space-y-4">
+				{grants.length === 0 ? <p>{UNSHARED_ACCESS_COPY}</p> : null}
+				{memberAccess ? <p>{memberAccess}</p> : null}
 				<AccessManagerContent
 					resourceRef={{
 						type: "bot",
@@ -1028,7 +1125,6 @@ const ReviewSection = ({
 	visibility,
 	grantCount,
 	issues,
-	onStatusChange,
 	onTemplateBlockStatusChange,
 	onDatabaseBlockStatusChange,
 	isSettingBlockStatus,
@@ -1037,7 +1133,6 @@ const ReviewSection = ({
 	visibility?: "private" | "public";
 	grantCount: number;
 	issues: string[];
-	onStatusChange: (status: PublicationStatus) => void;
 	onTemplateBlockStatusChange: (status: PublicationStatus) => void;
 	onDatabaseBlockStatusChange: (params: {
 		blockId?: string;
@@ -1046,43 +1141,12 @@ const ReviewSection = ({
 	}) => void;
 	isSettingBlockStatus: boolean;
 }) => (
-	<Card className="border-border/70 bg-background shadow-sm">
+	<Card className="min-w-0 rounded-2xl border-border/70 bg-background">
 		<CardHeader>
 			<CardTitle>Review</CardTitle>
-			<CardDescription>
-				Check the authored bot before launching it.
-			</CardDescription>
+			<CardDescription>Check the bot before publishing it.</CardDescription>
 		</CardHeader>
 		<CardContent className="space-y-6">
-			<div>
-				<div className="font-medium text-sm">Publication Status</div>
-				<div className="mt-2 rounded-xl border p-4">
-					<div className="max-w-sm space-y-2">
-						<Label htmlFor="bot-publication-status">Target status</Label>
-						<Select
-							value={editor.status}
-							onValueChange={(status) =>
-								onStatusChange(status as PublicationStatus)
-							}
-						>
-							<SelectTrigger id="bot-publication-status">
-								<SelectValue placeholder="Select status" />
-							</SelectTrigger>
-							<SelectContent>
-								<SelectItem value="draft">Draft</SelectItem>
-								<SelectItem value="ready">Ready</SelectItem>
-							</SelectContent>
-						</Select>
-						<p className="text-muted-foreground text-xs">
-							Set to Ready to publish with strict checks, or keep as Draft while
-							you iterate.
-						</p>
-					</div>
-				</div>
-			</div>
-
-			<Separator />
-
 			<div>
 				<div className="font-medium text-sm">Bot</div>
 				<div className="mt-2 rounded-xl border p-4">
@@ -1096,17 +1160,18 @@ const ReviewSection = ({
 			<Separator />
 
 			<div>
-				<div className="font-medium text-sm">AI Behaviour</div>
+				<div className="font-medium text-sm">AI behaviour</div>
 				<div className="mt-2 rounded-xl border p-4 text-sm">
 					{editor.templateBlock ? (
 						<>
 							<div className="font-medium">{editor.templateBlock.name}</div>
 							<div className="mt-1 text-muted-foreground">
-								System prompt and response behaviour are configured on this
-								template block.
+								This behaviour carries the system prompt the bot answers with.
 							</div>
 							<div className="mt-3 max-w-sm space-y-2">
-								<Label htmlFor="review-template-status">Block status</Label>
+								<Label htmlFor="review-template-status">
+									AI behaviour status
+								</Label>
 								<Select
 									value={editor.templateBlock.status}
 									onValueChange={(status) =>
@@ -1129,7 +1194,8 @@ const ReviewSection = ({
 								{editor.templateBlock.id &&
 								!canEditBlock(editor.templateBlock) ? (
 									<p className="text-muted-foreground text-xs">
-										You can use this shared block but cannot change its status.
+										You can use this shared behaviour but cannot change its
+										status.
 									</p>
 								) : null}
 							</div>
@@ -1145,11 +1211,11 @@ const ReviewSection = ({
 			<Separator />
 
 			<div>
-				<div className="font-medium text-sm">Content Collections</div>
+				<div className="font-medium text-sm">Repositories</div>
 				<div className="mt-2 space-y-3">
 					{editor.databaseBlocks.length === 0 ? (
 						<div className="rounded-xl border p-4 text-muted-foreground text-sm">
-							No content collections added.
+							No repositories added.
 						</div>
 					) : (
 						editor.databaseBlocks.map((databaseBlock, index) => (
@@ -1159,12 +1225,12 @@ const ReviewSection = ({
 							>
 								<div className="font-medium">{databaseBlock.name}</div>
 								<div className="mt-1 text-muted-foreground text-sm">
-									{databaseBlock.assetIds.length} content item
+									{databaseBlock.assetIds.length} asset
 									{databaseBlock.assetIds.length === 1 ? "" : "s"} attached
 								</div>
 								<div className="mt-3 max-w-sm space-y-2">
 									<Label htmlFor={`review-db-status-${index}`}>
-										Block status
+										Repository status
 									</Label>
 									<Select
 										value={databaseBlock.status}
@@ -1190,7 +1256,7 @@ const ReviewSection = ({
 									</Select>
 									{databaseBlock.id && !canEditBlock(databaseBlock) ? (
 										<p className="text-muted-foreground text-xs">
-											You can use this shared block but cannot change its
+											You can use this shared repository but cannot change its
 											status.
 										</p>
 									) : null}
@@ -1213,10 +1279,11 @@ const ReviewSection = ({
 					</div>
 				</div>
 				<div className="rounded-xl border p-4">
-					<div className="font-medium text-sm">Direct Grants</div>
+					<div className="font-medium text-sm">Direct grants</div>
 					<div className="mt-1 text-muted-foreground text-sm">
-						{grantCount} principal{grantCount === 1 ? "" : "s"} with direct
-						access
+						{grantCount === 1
+							? "1 person or group with direct access"
+							: `${grantCount} people and groups with direct access`}
 					</div>
 				</div>
 			</div>
@@ -1224,7 +1291,7 @@ const ReviewSection = ({
 			{issues.length > 0 ? (
 				<div className="rounded-xl border border-destructive/30 bg-destructive/5 p-4">
 					<div className="font-medium text-destructive text-sm">
-						Resolve before launch
+						Resolve before publishing
 					</div>
 					<ul className="mt-2 list-disc space-y-1 pl-5 text-sm">
 						{issues.map((issue) => (
@@ -1245,12 +1312,12 @@ const ReadOnlyTemplateCard = ({
 	const navigate = useNavigate();
 
 	return (
-		<Card>
+		<Card className="min-w-0 rounded-2xl">
 			<CardHeader>
-				<CardTitle>AI Behaviour</CardTitle>
+				<CardTitle>AI behaviour</CardTitle>
 				<CardDescription>
-					This behaviour block is linked as read-only in this setup flow since
-					you do not have permission to edit it directly.
+					This behaviour is attached as read-only, since you do not have
+					permission to edit it.
 				</CardDescription>
 			</CardHeader>
 			<CardContent className="space-y-3">
@@ -1274,7 +1341,7 @@ const ReadOnlyTemplateCard = ({
 								: undefined
 						}
 					>
-						Open Block
+						Open block
 					</Button>
 				) : null}
 			</CardContent>
@@ -1292,12 +1359,12 @@ const ReadOnlyDatabaseCard = ({
 	const navigate = useNavigate();
 
 	return (
-		<Card>
+		<Card className="min-w-0 rounded-2xl">
 			<CardHeader className="flex flex-row items-start justify-between gap-4 space-y-0">
-				<div>
+				<div className="min-w-0">
 					<CardTitle className="text-base">{block.name}</CardTitle>
 					<CardDescription>
-						This content collection is linked as read-only in this setup flow.
+						This repository is attached as read-only.
 					</CardDescription>
 				</div>
 				<Button variant="outline" size="sm" onClick={onDetach}>
@@ -1306,20 +1373,22 @@ const ReadOnlyDatabaseCard = ({
 			</CardHeader>
 			<CardContent className="space-y-3">
 				<div className="text-muted-foreground text-sm">
-					{block.assetIds.length} item{block.assetIds.length === 1 ? "" : "s"}{" "}
+					{block.assetIds.length} asset{block.assetIds.length === 1 ? "" : "s"}{" "}
 					attached
 				</div>
 				{block.assets.length > 0 ? (
-					<ul className="space-y-2 rounded-lg border bg-muted/20 p-3 text-sm">
+					<ul className="space-y-2 rounded-xl border bg-muted/20 p-3 text-sm">
 						{block.assets.map((asset) => (
 							<li
 								key={asset.id}
 								className="flex items-center justify-between gap-2"
 							>
 								<span className="truncate">{asset.title}</span>
-								<Badge variant="secondary">
-									{getProcessingStatusLabel(asset.processingStatus)}
-								</Badge>
+								{asset.processingStatus === "completed" ? null : (
+									<Badge variant="secondary">
+										{getProcessingStatusLabel(asset.processingStatus)}
+									</Badge>
+								)}
 							</li>
 						))}
 					</ul>
@@ -1338,7 +1407,7 @@ const ReadOnlyDatabaseCard = ({
 								: undefined
 						}
 					>
-						Open Block
+						Open block
 					</Button>
 				) : null}
 			</CardContent>
