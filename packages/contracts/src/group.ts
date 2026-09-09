@@ -6,6 +6,8 @@ import {
 	findGroupResponseSchema,
 	groupMembersMutateResponseSchema,
 	groupWriteResponseSchema,
+	listGroupCandidatesInputSchema,
+	listGroupCandidatesResponseSchema,
 	listGroupMembersInputSchema,
 	listGroupMembersResponseSchema,
 	listGroupsInputSchema,
@@ -95,6 +97,19 @@ export const groupContracts = {
 		)
 		.input(listGroupMembersInputSchema)
 		.output(listGroupMembersResponseSchema),
+	listCandidates: base
+		.meta(
+			openapi({
+				method: "GET",
+				path: "/groups/{groupId}/candidates",
+				summary: "List organisation members who are not yet in a custom group",
+				tags: [
+					"Groups",
+				],
+			}),
+		)
+		.input(listGroupCandidatesInputSchema)
+		.output(listGroupCandidatesResponseSchema),
 	addMembers: base
 		.meta(
 			openapi({

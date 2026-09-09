@@ -1,3 +1,5 @@
+import type { GroupId } from "@orcai/core";
+import type { QueryClient } from "@tanstack/react-query";
 import { useQueryClient } from "@tanstack/react-query";
 import { useMutationAction } from "@/hooks/actions/use-mutation-action";
 import {
@@ -17,6 +19,26 @@ const GROUP_NOUNS = {
 const MEMBER_NOUNS = {
 	noun: "member",
 	nounPlural: "members",
+};
+
+const invalidateGroupMembership = (
+	queryClient: QueryClient,
+	groupId: GroupId,
+) => {
+	queryClient.invalidateQueries({
+		queryKey: orpc.group.listMembers.key({
+			input: {
+				groupId,
+			},
+		}),
+	});
+	queryClient.invalidateQueries({
+		queryKey: orpc.group.listCandidates.key({
+			input: {
+				groupId,
+			},
+		}),
+	});
 };
 
 export const useCreateGroupMutation = (
@@ -132,28 +154,14 @@ export const useDeleteGroupsMutation = (
 	});
 };
 
-export const useAddGroupMembersMutation = (
-	opts: ReturnType<typeof orpc.group.addMembers.mutationOptions> = {},
-) => {
+export const useAddGroupMembersMutation = (groupId: GroupId) => {
 	const queryClient = useQueryClient();
 
 	return useMutationAction({
 		mutationOptions: () =>
 			orpc.group.addMembers.mutationOptions({
-				...opts,
-				onSuccess: async (...args) => {
-					queryClient.invalidateQueries({
-						queryKey: orpc.group.key(),
-					});
-
-					try {
-						await opts.onSuccess?.(...args);
-					} catch (error) {
-						console.error(
-							"useAddGroupMembersMutation onSuccess callback failed:",
-							error,
-						);
-					}
+				onSuccess: () => {
+					invalidateGroupMembership(queryClient, groupId);
 				},
 			}),
 		messages: {
@@ -164,28 +172,14 @@ export const useAddGroupMembersMutation = (
 	});
 };
 
-export const useRemoveGroupMembersMutation = (
-	opts: ReturnType<typeof orpc.group.removeMembers.mutationOptions> = {},
-) => {
+export const useRemoveGroupMembersMutation = (groupId: GroupId) => {
 	const queryClient = useQueryClient();
 
 	return useMutationAction({
 		mutationOptions: () =>
 			orpc.group.removeMembers.mutationOptions({
-				...opts,
-				onSuccess: async (...args) => {
-					queryClient.invalidateQueries({
-						queryKey: orpc.group.key(),
-					});
-
-					try {
-						await opts.onSuccess?.(...args);
-					} catch (error) {
-						console.error(
-							"useRemoveGroupMembersMutation onSuccess callback failed:",
-							error,
-						);
-					}
+				onSuccess: () => {
+					invalidateGroupMembership(queryClient, groupId);
 				},
 			}),
 		messages: {

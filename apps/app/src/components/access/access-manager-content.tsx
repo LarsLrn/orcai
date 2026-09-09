@@ -29,6 +29,7 @@ import {
 	useRevokeResourceAccess,
 	useSetResourceVisibility,
 } from "@/hooks/authz/use-resource-access";
+import { toggleSelection } from "@/lib/utils/array-utils";
 import { RESOURCES, ROLES } from "@/settings/display-config";
 
 const toPrincipalIdentity = (
@@ -180,12 +181,7 @@ const AccessManagerContent = ({
 						selectedPrincipals={selectedPrincipals}
 						onToggle={(principal) =>
 							setSelectedPrincipals((current) =>
-								current.some((selected) => selected.id === principal.id)
-									? current.filter((selected) => selected.id !== principal.id)
-									: [
-											...current,
-											principal,
-										],
+								toggleSelection(current, principal, (item) => item.id),
 							)
 						}
 						onClearSelection={() => setSelectedPrincipals([])}

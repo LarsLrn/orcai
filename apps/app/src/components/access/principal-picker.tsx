@@ -5,13 +5,11 @@ import type {
 	ResourceRef,
 } from "@orcai/schema";
 import { ALL_MEMBERS_GROUP_SYSTEM_KEY } from "@orcai/schema";
-import { SearchIcon, UserIcon, UsersIcon } from "lucide-react";
+import { UserIcon, UsersIcon } from "lucide-react";
 import { useDebounceValue } from "usehooks-ts";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
-import { Button } from "@/components/ui/button";
-import { SelectableListItem } from "@/components/ui/composed/selectable-list-item";
-import { Input } from "@/components/ui/input";
-import { ScrollArea } from "@/components/ui/scroll-area";
+import type { SearchablePickerRow } from "@/components/ui/composed/searchable-picker";
+import { SearchablePicker } from "@/components/ui/composed/searchable-picker";
 import { useShareablePrincipals } from "@/hooks/authz/use-resource-access";
 
 type PrincipalPickerProps = {
@@ -23,6 +21,33 @@ type PrincipalPickerProps = {
 	onToggle: (principal: ResourcePrincipal) => void;
 	onClearSelection: () => void;
 	disabled?: boolean;
+};
+
+const renderPrincipal = (principal: ResourcePrincipal): SearchablePickerRow => {
+	const isUser = principal.type === "user";
+	const subtitle = isUser
+		? principal.email
+		: principal.description ||
+			(principal.kind === "system" &&
+			principal.systemKey === ALL_MEMBERS_GROUP_SYSTEM_KEY
+				? "System group"
+				: "Custom group");
+
+	return {
+		option: {
+			value: principal.id,
+			label: principal.name,
+			description: subtitle,
+			badge: !isUser && principal.kind === "system" ? "System" : undefined,
+		},
+		Icon: isUser ? UserIcon : UsersIcon,
+		leading: isUser ? (
+			<Avatar className="size-8">
+				<AvatarImage src={principal.image ?? undefined} alt={principal.name} />
+				<AvatarFallback>{getInitial(principal.name)}</AvatarFallback>
+			</Avatar>
+		) : undefined,
+	};
 };
 
 const PrincipalPicker = ({
@@ -41,99 +66,23 @@ const PrincipalPicker = ({
 		principalType,
 	});
 
-	const rows = principals.data?.data ?? [];
-	const selectedIds = new Set(
-		selectedPrincipals.map((principal) => principal.id),
-	);
-
-	const searchPlaceholder =
-		principalType === "user" ? "Search members" : "Search groups";
-
 	return (
-		<div className="space-y-2">
-			<div className="relative">
-				<SearchIcon className="pointer-events-none absolute top-1/2 left-3 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
-				<Input
-					placeholder={searchPlaceholder}
-					className="pl-9"
-					value={query}
-					onChange={(event) => onQueryChange(event.target.value)}
-					disabled={disabled}
-				/>
-			</div>
-			<div className="flex items-center justify-between">
-				<p className="text-muted-foreground text-xs">
-					{selectedPrincipals.length} selected
-				</p>
-				<Button
-					variant="destructive"
-					size="xs"
-					className="text-xs"
-					onClick={onClearSelection}
-					disabled={disabled || selectedPrincipals.length === 0}
-				>
-					Clear selection
-				</Button>
-			</div>
-
-			<ScrollArea className="h-48 rounded-xl border">
-				<div className="flex flex-col gap-1 p-1">
-					{rows.map((principal) => {
-						const isSelected = selectedIds.has(principal.id);
-						const isUser = principal.type === "user";
-						const subtitle = isUser
-							? principal.email
-							: principal.description ||
-								(principal.kind === "system" &&
-								principal.systemKey === ALL_MEMBERS_GROUP_SYSTEM_KEY
-									? "System group"
-									: "Custom group");
-
-						return (
-							<SelectableListItem
-								key={principal.id}
-								option={{
-									value: principal.id,
-									label: principal.name,
-									description: subtitle,
-									badge:
-										!isUser && principal.kind === "system"
-											? "System"
-											: undefined,
-								}}
-								onSelect={(values) => {
-									if (values.includes(principal.id)) {
-										onToggle(principal);
-									}
-								}}
-								Icon={isUser ? UserIcon : UsersIcon}
-								leading={
-									isUser ? (
-										<Avatar className="size-8">
-											<AvatarImage
-												src={principal.image ?? undefined}
-												alt={principal.name}
-											/>
-											<AvatarFallback>
-												{getInitial(principal.name)}
-											</AvatarFallback>
-										</Avatar>
-									) : undefined
-								}
-								isSelected={isSelected}
-								isLoading={principals.isLoading}
-							/>
-						);
-					})}
-
-					{!principals.isLoading && rows.length === 0 && (
-						<div className="p-4 text-center text-muted-foreground text-sm">
-							No people or groups match this search.
-						</div>
-					)}
-				</div>
-			</ScrollArea>
-		</div>
+		<SearchablePicker
+			query={query}
+			onQueryChange={onQueryChange}
+			placeholder={
+				principalType === "user" ? "Search members" : "Search groups"
+			}
+			items={principals.data?.data ?? []}
+			isLoading={principals.isLoading}
+			selected={selectedPrincipals}
+			getKey={(principal) => principal.id}
+			onToggle={onToggle}
+			onClearSelection={onClearSelection}
+			renderItem={renderPrincipal}
+			emptyText="No people or groups match this search."
+			disabled={disabled}
+		/>
 	);
 };
 

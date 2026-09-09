@@ -1,6 +1,18 @@
+import type { GroupId, OrganizationId } from "@orcai/core";
 import { DB, dbSchema } from "@orcai/db";
 import { ALL_MEMBERS_GROUP_SYSTEM_KEY, type GroupSortKey } from "@orcai/schema";
-import { and, count, desc, eq, ilike, inArray, isNull, or } from "drizzle-orm";
+import {
+	and,
+	count,
+	desc,
+	eq,
+	ilike,
+	inArray,
+	isNull,
+	notExists,
+	or,
+	sql,
+} from "drizzle-orm";
 import * as Effect from "effect/Effect";
 import {
 	hasManageGroups,
@@ -15,6 +27,83 @@ import { requireOrganizationPermission } from "@/lib/orpc/middlewares/permission
 import { literalSearch } from "./helpers/literal-search";
 import { parseScopedResourceId } from "./helpers/scoped-resource-id";
 import { buildOrderBy, type SortExpression } from "./helpers/sorting";
+
+/** Matches the search term against the user name, and the email when it is visible. */
+const userSearch = (params: {
+	queryLike: string | undefined;
+	canSeeEmail: boolean;
+}) =>
+	params.queryLike
+		? or(
+				ilike(dbSchema.user.name, params.queryLike),
+				params.canSeeEmail
+					? ilike(dbSchema.user.email, params.queryLike)
+					: undefined,
+			)
+		: undefined;
+
+const userColumns = (canSeeEmail: boolean) => ({
+	id: dbSchema.user.id,
+	name: dbSchema.user.name,
+	...(canSeeEmail
+		? {
+				email: dbSchema.user.email,
+			}
+		: {}),
+	image: dbSchema.user.image,
+});
+
+const findOrganizationGroup = (params: {
+	groupId: GroupId;
+	organizationId: OrganizationId;
+}) =>
+	Effect.gen(function* () {
+		const db = yield* DB;
+
+		const [group] = yield* db
+			.select({
+				id: dbSchema.group.id,
+				kind: dbSchema.group.kind,
+			})
+			.from(dbSchema.group)
+			.where(
+				and(
+					eq(dbSchema.group.id, params.groupId),
+					eq(dbSchema.group.organizationId, params.organizationId),
+					isNull(dbSchema.group.deletedAt),
+				),
+			)
+			.limit(1);
+
+		if (!group) {
+			return yield* Effect.fail(
+				new AppErrors.NotFoundError({
+					message: "Group not found",
+				}),
+			);
+		}
+
+		return group;
+	});
+
+/** The custom group of this organisation, or a failure explaining why it cannot be edited. */
+const requireCustomGroup = (params: {
+	groupId: GroupId;
+	organizationId: OrganizationId;
+}) =>
+	Effect.gen(function* () {
+		const group = yield* findOrganizationGroup(params);
+
+		if (group.kind === "system") {
+			return yield* Effect.fail(
+				new AppErrors.BadRequestError({
+					message: "[SYSTEM_GROUP_IMMUTABLE] System groups cannot be modified",
+				}),
+			);
+		}
+
+		return group;
+	});
 
 export const listGroups = authed.group.list
 	.use(requireActiveOrganizationMiddleware)
@@ -401,46 +490,32 @@ export const listGroupMembers = authed.group.listMembers
 			userId: context.auth.user.id,
 			zedToken: getZedToken(context),
 		});
-		const queryLike = input.query
-			? literalSearch(input.query.trim())
-			: undefined;
+		const searchClause = userSearch({
+			queryLike: input.query ? literalSearch(input.query.trim()) : undefined,
+			canSeeEmail,
+		});
+
 		if (
 			group.kind === "system" &&
 			group.systemKey === ALL_MEMBERS_GROUP_SYSTEM_KEY
 		) {
+			const whereClause = and(
+				eq(dbSchema.member.organizationId, organizationId),
+				searchClause,
+			);
+
 			const [data, [rowCount]] = yield* Effect.all(
 				[
 					db
 						.select({
-							user: {
-								id: dbSchema.user.id,
-								name: dbSchema.user.name,
-								...(canSeeEmail
-									? {
-											email: dbSchema.user.email,
-										}
-									: {}),
-								image: dbSchema.user.image,
-							},
+							user: userColumns(canSeeEmail),
 						})
 						.from(dbSchema.member)
 						.innerJoin(
 							dbSchema.user,
 							eq(dbSchema.user.id, dbSchema.member.userId),
 						)
-						.where(
-							and(
-								eq(dbSchema.member.organizationId, organizationId),
-								queryLike
-									? or(
-											ilike(dbSchema.user.name, queryLike),
-											canSeeEmail
-												? ilike(dbSchema.user.email, queryLike)
-												: undefined,
-										)
-									: undefined,
-							),
-						)
+						.where(whereClause)
 						.limit(input.pageSize)
 						.offset(input.pageIndex * input.pageSize),
 					db
@@ -452,19 +527,7 @@ export const listGroupMembers = authed.group.listMembers
 							dbSchema.user,
 							eq(dbSchema.user.id, dbSchema.member.userId),
 						)
-						.where(
-							and(
-								eq(dbSchema.member.organizationId, organizationId),
-								queryLike
-									? or(
-											ilike(dbSchema.user.name, queryLike),
-											canSeeEmail
-												? ilike(dbSchema.user.email, queryLike)
-												: undefined,
-										)
-									: undefined,
-							),
-						),
+						.where(whereClause),
 				],
 				{
 					concurrency: "unbounded",
@@ -482,20 +545,17 @@ export const listGroupMembers = authed.group.listMembers
 			};
 		}
 
+		const whereClause = and(
+			eq(dbSchema.groupMember.groupId, group.id),
+			isNull(dbSchema.groupMember.removedAt),
+			searchClause,
+		);
+
 		const [data, [rowCount]] = yield* Effect.all(
 			[
 				db
 					.select({
-						user: {
-							id: dbSchema.user.id,
-							name: dbSchema.user.name,
-							...(canSeeEmail
-								? {
-										email: dbSchema.user.email,
-									}
-								: {}),
-							image: dbSchema.user.image,
-						},
+						user: userColumns(canSeeEmail),
 						addedAt: dbSchema.groupMember.createdAt,
 						addedBy: dbSchema.groupMember.addedBy,
 					})
@@ -504,20 +564,7 @@ export const listGroupMembers = authed.group.listMembers
 						dbSchema.user,
 						eq(dbSchema.user.id, dbSchema.groupMember.userId),
 					)
-					.where(
-						and(
-							eq(dbSchema.groupMember.groupId, group.id),
-							isNull(dbSchema.groupMember.removedAt),
-							queryLike
-								? or(
-										ilike(dbSchema.user.name, queryLike),
-										canSeeEmail
-											? ilike(dbSchema.user.email, queryLike)
-											: undefined,
-									)
-								: undefined,
-						),
-					)
+					.where(whereClause)
 					.limit(input.pageSize)
 					.offset(input.pageIndex * input.pageSize),
 				db
@@ -529,20 +576,7 @@ export const listGroupMembers = authed.group.listMembers
 						dbSchema.user,
 						eq(dbSchema.user.id, dbSchema.groupMember.userId),
 					)
-					.where(
-						and(
-							eq(dbSchema.groupMember.groupId, group.id),
-							isNull(dbSchema.groupMember.removedAt),
-							queryLike
-								? or(
-										ilike(dbSchema.user.name, queryLike),
-										canSeeEmail
-											? ilike(dbSchema.user.email, queryLike)
-											: undefined,
-									)
-								: undefined,
-						),
-					),
+					.where(whereClause),
 			],
 			{
 				concurrency: "unbounded",
@@ -560,6 +594,68 @@ export const listGroupMembers = authed.group.listMembers
 		};
 	});
 
+export const listGroupCandidates = authed.group.listCandidates
+	.use(requireOrganizationPermission("manage_groups"))
+	.effect(function* ({ input, context }) {
+		const db = yield* DB;
+		const organizationId = context.auth.session.activeOrganizationId;
+
+		const group = yield* findOrganizationGroup({
+			groupId: input.groupId,
+			organizationId,
+		});
+
+		if (group.kind === "system") {
+			return {
+				data: [],
+				rowCount: 0,
+			};
+		}
+
+		const canSeeEmail = yield* hasManageGroups({
+			organizationId,
+			userId: context.auth.user.id,
+			zedToken: getZedToken(context),
+		});
+
+		const data = yield* db
+			.select(userColumns(canSeeEmail))
+			.from(dbSchema.member)
+			.innerJoin(dbSchema.user, eq(dbSchema.user.id, dbSchema.member.userId))
+			.where(
+				and(
+					eq(dbSchema.member.organizationId, organizationId),
+					notExists(
+						db
+							.select({
+								one: sql`1`,
+							})
+							.from(dbSchema.groupMember)
+							.where(
+								and(
+									eq(dbSchema.groupMember.groupId, group.id),
+									eq(dbSchema.groupMember.userId, dbSchema.user.id),
+									isNull(dbSchema.groupMember.removedAt),
+								),
+							),
+					),
+					userSearch({
+						queryLike: input.query
+							? literalSearch(input.query.trim())
+							: undefined,
+						canSeeEmail,
+					}),
+				),
+			)
+			.orderBy(dbSchema.user.name)
+			.limit(input.limit);
+
+		return {
+			data,
+			rowCount: data.length,
+		};
+	});
+
 export const addGroupMembers = authed.group.addMembers
 	.use(requireOrganizationPermission("manage_groups"))
 	.effect(function* ({ input, context }) {
@@ -568,35 +664,10 @@ export const addGroupMembers = authed.group.addMembers
 		const organizationId = context.auth.session.activeOrganizationId;
 		const now = new Date();
 
-		const [group] = yield* db
-			.select({
-				id: dbSchema.group.id,
-				kind: dbSchema.group.kind,
-			})
-			.from(dbSchema.group)
-			.where(
-				and(
-					eq(dbSchema.group.id, input.groupId),
-					eq(dbSchema.group.organizationId, organizationId),
-					isNull(dbSchema.group.deletedAt),
-				),
-			)
-			.limit(1);
-
-		if (!group) {
-			return yield* Effect.fail(
-				new AppErrors.NotFoundError({
-					message: "Group not found",
-				}),
-			);
-		}
-		if (group.kind === "system") {
-			return yield* Effect.fail(
-				new AppErrors.BadRequestError({
-					message: "[SYSTEM_GROUP_IMMUTABLE] System groups cannot be modified",
-				}),
-			);
-		}
+		yield* requireCustomGroup({
+			groupId: input.groupId,
+			organizationId,
+		});
 
 		const members = yield* db
 			.select({
@@ -611,79 +682,83 @@ export const addGroupMembers = authed.group.addMembers
 			);
 
 		const validUserIds = new Set(members.map((item) => item.userId));
-		if (validUserIds.size !== new Set(input.userIds).size) {
+		const rejectedUserIds = input.userIds.filter(
+			(userId) => !validUserIds.has(userId),
+		);
+
+		if (rejectedUserIds.length > 0) {
 			return yield* Effect.fail(
 				new AppErrors.BadRequestError({
 					message:
-						"[CROSS_ORG_PRINCIPAL_FORBIDDEN] Group members must belong to the same organization",
+						"[GROUP_MEMBERS_INVALID] Group members must belong to this organisation",
+					data: {
+						code: "GROUP_MEMBERS_INVALID",
+						userIds: rejectedUserIds,
+					},
 				}),
 			);
 		}
 
-		const existing = yield* db
-			.select({
-				id: dbSchema.groupMember.id,
-				userId: dbSchema.groupMember.userId,
-				removedAt: dbSchema.groupMember.removedAt,
-			})
-			.from(dbSchema.groupMember)
-			.where(
-				and(
-					eq(dbSchema.groupMember.groupId, input.groupId),
-					inArray(dbSchema.groupMember.userId, input.userIds),
-				),
-			);
+		yield* db.transaction((tx) =>
+			Effect.gen(function* () {
+				const existing = yield* tx
+					.select({
+						userId: dbSchema.groupMember.userId,
+						removedAt: dbSchema.groupMember.removedAt,
+					})
+					.from(dbSchema.groupMember)
+					.where(
+						and(
+							eq(dbSchema.groupMember.groupId, input.groupId),
+							inArray(dbSchema.groupMember.userId, input.userIds),
+						),
+					);
 
-		const existingByUserId = new Map(
-			existing.map((row) => [
-				row.userId,
-				row,
-			]),
-		);
-		const toInsert = input.userIds.filter(
-			(userId) => !existingByUserId.has(userId),
-		);
-		const toRestore = input.userIds.filter(
-			(userId) => existingByUserId.get(userId)?.removedAt !== null,
-		);
-		const toTouch = new Set([
-			...toInsert,
-			...toRestore,
-			...input.userIds.filter(
-				(userId) => existingByUserId.get(userId)?.removedAt === null,
-			),
-		]);
-
-		if (toRestore.length > 0) {
-			yield* db
-				.update(dbSchema.groupMember)
-				.set({
-					removedAt: null,
-					addedBy: context.auth.user.id,
-					createdAt: now,
-				})
-				.where(
-					and(
-						eq(dbSchema.groupMember.groupId, input.groupId),
-						inArray(dbSchema.groupMember.userId, toRestore),
-					),
+				const existingByUserId = new Map(
+					existing.map((row) => [
+						row.userId,
+						row,
+					]),
 				);
-		}
+				const toInsert = input.userIds.filter(
+					(userId) => !existingByUserId.has(userId),
+				);
+				const toRestore = input.userIds.filter(
+					(userId) => existingByUserId.get(userId)?.removedAt != null,
+				);
 
-		if (toInsert.length > 0) {
-			yield* db.insert(dbSchema.groupMember).values(
-				toInsert.map((userId) => ({
-					groupId: input.groupId,
-					userId,
-					addedBy: context.auth.user.id,
-					createdAt: now,
-					removedAt: null,
-				})),
-			);
-		}
+				if (toRestore.length > 0) {
+					yield* tx
+						.update(dbSchema.groupMember)
+						.set({
+							removedAt: null,
+							addedBy: context.auth.user.id,
+							createdAt: now,
+						})
+						.where(
+							and(
+								eq(dbSchema.groupMember.groupId, input.groupId),
+								inArray(dbSchema.groupMember.userId, toRestore),
+							),
+						);
+				}
+
+				if (toInsert.length > 0) {
+					yield* tx.insert(dbSchema.groupMember).values(
+						toInsert.map((userId) => ({
+							groupId: input.groupId,
+							userId,
+							addedBy: context.auth.user.id,
+							createdAt: now,
+							removedAt: null,
+						})),
+					);
+				}
+			}),
+		);
 
 		yield* authz.applyRelationshipMutations({
-			mutations: Array.from(toTouch).map((userId) => ({
+			mutations: input.userIds.map((userId) => ({
 				resourceType: "group" as const,
 				resourceId: input.groupId,
 				relation: "member" as const,
@@ -708,35 +783,10 @@ export const removeGroupMembers = authed.group.removeMembers
 		const organizationId = context.auth.session.activeOrganizationId;
 		const now = new Date();
 
-		const [group] = yield* db
-			.select({
-				id: dbSchema.group.id,
-				kind: dbSchema.group.kind,
-			})
-			.from(dbSchema.group)
-			.where(
-				and(
-					eq(dbSchema.group.id, input.groupId),
-					eq(dbSchema.group.organizationId, organizationId),
-					isNull(dbSchema.group.deletedAt),
-				),
-			)
-			.limit(1);
-
-		if (!group) {
-			return yield* Effect.fail(
-				new AppErrors.NotFoundError({
-					message: "Group not found",
-				}),
-			);
-		}
-		if (group.kind === "system") {
-			return yield* Effect.fail(
-				new AppErrors.BadRequestError({
-					message: "[SYSTEM_GROUP_IMMUTABLE] System groups cannot be modified",
-				}),
-			);
-		}
+		yield* requireCustomGroup({
+			groupId: input.groupId,
+			organizationId,
+		});
 
 		const activeMembers = yield* db
 			.select({
@@ -758,6 +808,8 @@ export const removeGroupMembers = authed.group.removeMembers
 			};
 		}
 
+		const removedUserIds = activeMembers.map((member) => member.userId);
+
 		yield* db
 			.update(dbSchema.groupMember)
 			.set({
@@ -766,21 +818,18 @@ export const removeGroupMembers = authed.group.removeMembers
 			.where(
 				and(
 					eq(dbSchema.groupMember.groupId, input.groupId),
-					inArray(
-						dbSchema.groupMember.userId,
-						activeMembers.map((member) => member.userId),
-					),
+					inArray(dbSchema.groupMember.userId, removedUserIds),
 					isNull(dbSchema.groupMember.removedAt),
 				),
 			);
 
 		yield* authz.applyRelationshipMutations({
-			mutations: activeMembers.map((member) => ({
+			mutations: removedUserIds.map((userId) => ({
 				resourceType: "group" as const,
 				resourceId: input.groupId,
 				relation: "member" as const,
 				subjectType: "user" as const,
-				subjectId: member.userId,
+				subjectId: userId,
 				operation: "delete" as const,
 			})),
 		});

@@ -36,10 +36,7 @@ import {
 	sql,
 } from "drizzle-orm";
 import * as Effect from "effect/Effect";
-import {
-	hasManageGroups,
-	visibleGroupScope,
-} from "@/lib/authz/group-visibility";
+import { visibleGroupScope } from "@/lib/authz/group-visibility";
 import { getZedToken } from "@/lib/authz/zed-token";
 import { AuthzService } from "@/lib/effect/services/authz";
 import * as AppErrors from "@/lib/effect/utils/errors";
@@ -48,6 +45,7 @@ import {
 	assertCanGrantPrincipalMiddleware,
 	requireResourcePermission,
 } from "@/lib/orpc/middlewares/permission";
+import { canSeeEmailIn, canSeeEmailOn } from "./helpers/can-see-email";
 import { changedAt } from "./helpers/changed-at";
 import { literalSearch } from "./helpers/literal-search";
 
@@ -137,38 +135,6 @@ const activeGrantsFor = (resource: ResourceIdentity) =>
 					isNull(dbSchema.resourceGrant.revokedAt),
 				),
 			);
-	});
-
-/** Whether the caller manages groups in every organisation the resource is scoped to. */
-const canSeeEmailOn = (params: {
-	resource: ResourceIdentity;
-	userId: UserId;
-	zedToken?: string;
-}) =>
-	Effect.gen(function* () {
-		const db = yield* DB;
-		const scopes = yield* db
-			.select({
-				organizationId: dbSchema.resourceScope.organizationId,
-			})
-			.from(dbSchema.resourceScope)
-			.where(
-				and(
-					eq(dbSchema.resourceScope.resourceType, params.resource.resourceType),
-					eq(dbSchema.resourceScope.resourceId, params.resource.resourceId),
-					isNull(dbSchema.resourceScope.endedAt),
-				),
-			);
-		const permissions = yield* Effect.all(
-			scopes.map(({ organizationId }) =>
-				hasManageGroups({
-					organizationId,
-					userId: params.userId,
-					zedToken: params.zedToken,
-				}),
-			),
-		);
-		return permissions.length > 0 && permissions.every(Boolean);
 	});
 
 /** Attaches the principal and source to grant rows; rows whose principal is gone are dropped. */
@@ -589,17 +555,11 @@ export const listResourcePrincipals = authed.resource.listPrincipals
 		}
 
 		const orgIds = scopes.map((scope) => scope.organizationId);
-		const emailPermissions = yield* Effect.all(
-			orgIds.map((organizationId) =>
-				hasManageGroups({
-					organizationId,
-					userId: context.auth.user.id,
-					zedToken: getZedToken(context),
-				}),
-			),
-		);
-		const canSeeEmail =
-			emailPermissions.length > 0 && emailPermissions.every(Boolean);
+		const canSeeEmail = yield* canSeeEmailIn({
+			organizationIds: orgIds,
+			userId: context.auth.user.id,
+			zedToken: getZedToken(context),
+		});
 		const query = input.query?.trim();
 		const searchLike = query ? literalSearch(query) : undefined;
 		const wantsGroups = !input.principalType || input.principalType === "group";
