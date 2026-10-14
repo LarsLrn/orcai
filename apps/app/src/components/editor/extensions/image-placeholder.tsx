@@ -19,6 +19,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { cn } from "@/lib/utils";
+import { m } from "@/paraglide/messages";
 
 export interface ImagePlaceholderOptions {
 	HTMLAttributes: Record<string, any>;
@@ -192,17 +193,19 @@ function ImagePlaceholderComponent(props: NodeViewProps) {
 						</div>
 						<div className="text-center">
 							<p className="font-medium text-sm">
-								Click to upload or drag and drop
+								{m.editor_image_upload_prompt()}
 							</p>
 							<p className="text-muted-foreground text-xs">
-								SVG, PNG, JPG or GIF
+								{m.editor_image_upload_formats_hint()}
 							</p>
 						</div>
 					</div>
 				) : (
 					<div className="rounded-2xl border bg-card p-4 shadow-sm">
 						<div className="mb-4 flex items-center justify-between">
-							<h3 className="font-semibold text-lg">Add image</h3>
+							<h3 className="font-semibold text-lg">
+								{m.editor_image_add_dialog_title()}
+							</h3>
 							<Button
 								variant="ghost"
 								size="icon"
@@ -220,11 +223,11 @@ function ImagePlaceholderComponent(props: NodeViewProps) {
 							<TabsList className="grid w-full grid-cols-2">
 								<TabsTrigger value="upload">
 									<Upload />
-									Upload
+									{m.editor_image_upload_tab()}
 								</TabsTrigger>
 								<TabsTrigger value="url">
 									<Link />
-									URL
+									{m.editor_image_url_tab()}
 								</TabsTrigger>
 							</TabsList>
 
@@ -244,14 +247,14 @@ function ImagePlaceholderComponent(props: NodeViewProps) {
 										<div className="space-y-4">
 											<img
 												src={previewUrl}
-												alt="Preview"
+												alt={m.editor_image_preview_alt()}
 												className="mx-auto max-h-50 rounded-lg object-cover"
 											/>
 											<div className="space-y-2">
 												<Input
 													value={altText}
 													onChange={(e) => setAltText(e.target.value)}
-													placeholder="Alt text (optional)"
+													placeholder={m.editor_image_alt_text_placeholder()}
 												/>
 												<div className="flex justify-end gap-2">
 													<Button
@@ -259,13 +262,13 @@ function ImagePlaceholderComponent(props: NodeViewProps) {
 														onClick={handleRemove}
 														disabled={uploading}
 													>
-														Remove
+														{m.common_remove_button()}
 													</Button>
 													<Button disabled={uploading}>
 														{uploading && (
 															<Loader2 className="mr-2 h-4 w-4 animate-spin" />
 														)}
-														Upload
+														{m.editor_image_upload_button()}
 													</Button>
 												</div>
 											</div>
@@ -287,10 +290,10 @@ function ImagePlaceholderComponent(props: NodeViewProps) {
 												<Upload className="h-8 w-8 text-muted-foreground" />
 												<div>
 													<p className="font-medium text-sm">
-														Click to upload or drag and drop
+														{m.editor_image_upload_prompt()}
 													</p>
 													<p className="text-muted-foreground text-xs">
-														SVG, PNG, JPG or GIF
+														{m.editor_image_upload_formats_hint()}
 													</p>
 												</div>
 											</label>
@@ -315,7 +318,7 @@ function ImagePlaceholderComponent(props: NodeViewProps) {
 										/>
 										{urlError && (
 											<p className="text-destructive text-xs">
-												Please enter a valid URL
+												{m.editor_image_url_invalid_error()}
 											</p>
 										)}
 									</div>
@@ -323,7 +326,7 @@ function ImagePlaceholderComponent(props: NodeViewProps) {
 										<Input
 											value={altText}
 											onChange={(e) => setAltText(e.target.value)}
-											placeholder="Alt text (optional)"
+											placeholder={m.editor_image_alt_text_placeholder()}
 										/>
 									</div>
 									<Button
@@ -331,7 +334,7 @@ function ImagePlaceholderComponent(props: NodeViewProps) {
 										className="w-full"
 										disabled={!url}
 									>
-										Add Image
+										{m.editor_image_add_button()}
 									</Button>
 								</div>
 							</TabsContent>

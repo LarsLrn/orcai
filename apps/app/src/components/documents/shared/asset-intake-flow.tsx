@@ -19,12 +19,13 @@ import {
 	CardTitle,
 } from "@/components/ui/card";
 import { useSaveManyAssetsMutation } from "@/hooks/mutations/use-asset-mutations";
+import { m } from "@/paraglide/messages";
 
 type IntakeStep = "upload" | "uploaded" | "review";
 
 const AssetIntakeFlow = ({
 	onAssetsSaved,
-	submitLabel = "Save assets",
+	submitLabel,
 }: {
 	onAssetsSaved?: (assets: Asset[]) => void;
 	submitLabel?: string;
@@ -46,13 +47,13 @@ const AssetIntakeFlow = ({
 			{step !== "review" ? (
 				<UploadComponent
 					route="asset"
-					title="Upload assets"
-					description="Select files, upload them, then add source details for each one."
-					uploadLabel="Upload files"
+					title={m.assets_intake_upload_title()}
+					description={m.assets_intake_upload_description()}
+					uploadLabel={m.assets_intake_upload_button()}
 					finalizeUpload
 					hidePickerWhenSettled
 					completionAction={{
-						label: "Next",
+						label: m.common_next_button(),
 						onClick: () => setStep("review"),
 						disabled: uploadedFiles.length === 0,
 					}}
@@ -91,10 +92,9 @@ const AssetIntakeFlow = ({
 			{step === "review" && uploadedFiles.length > 0 ? (
 				<Card className="border-border/70 bg-background shadow-sm">
 					<CardHeader>
-						<CardTitle>Review uploaded files</CardTitle>
+						<CardTitle>{m.assets_intake_review_title()}</CardTitle>
 						<CardDescription>
-							Add metadata to each uploaded file before saving the final content
-							items.
+							{m.assets_intake_review_description()}
 						</CardDescription>
 					</CardHeader>
 					<CardContent className="space-y-6">
@@ -111,8 +111,8 @@ const AssetIntakeFlow = ({
 
 						<div className="flex items-center justify-between gap-3 rounded-2xl border bg-muted/15 px-4 py-3">
 							<div className="text-muted-foreground text-sm">
-								{
-									uploadedFiles.filter((file) =>
+								{m.assets_intake_review_metadata_count({
+									completed: uploadedFiles.filter((file) =>
 										hasMetadataAdded(
 											drafts[file.id] ?? {
 												title: file.name,
@@ -120,15 +120,15 @@ const AssetIntakeFlow = ({
 											},
 											file.name,
 										),
-									).length
-								}{" "}
-								of {uploadedFiles.length} files have metadata added.
+									).length,
+									count: uploadedFiles.length,
+								})}
 							</div>
 							<Button
 								disabled={isPending}
 								onClick={() => {
 									if (uploadedFiles.length === 0) {
-										toast.error("Upload at least one file before continuing.");
+										toast.error(m.assets_intake_no_files_toast_error());
 										return;
 									}
 
@@ -143,7 +143,7 @@ const AssetIntakeFlow = ({
 									});
 								}}
 							>
-								{submitLabel}
+								{submitLabel ?? m.assets_intake_submit_button()}
 							</Button>
 						</div>
 					</CardContent>

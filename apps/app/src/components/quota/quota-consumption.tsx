@@ -2,6 +2,7 @@ import { Badge } from "@/components/ui/badge";
 import { Progress } from "@/components/ui/progress";
 import { formatNumber } from "@/lib/presentation/format-number";
 import { cn } from "@/lib/utils";
+import { m } from "@/paraglide/messages";
 
 const LOW_BALANCE_SHARE = 0.1;
 
@@ -59,7 +60,9 @@ const QuotaConsumption = ({
 					</span>
 					<Progress
 						value={percentage}
-						aria-label={`${percentage} per cent of the budget consumed`}
+						aria-label={m.quotas_consumption_progress_aria_label({
+							percentage,
+						})}
 						className="w-16 gap-0 **:data-[slot=progress-track]:h-1.5"
 					/>
 				</>
@@ -94,7 +97,9 @@ const QuotaRemaining = ({
 				{formatAmount(remainingAmount)}
 			</span>
 			<QuotaUnitLabel unit={unit} amount={remainingAmount} />
-			{isLow ? <Badge variant="warning">Low</Badge> : null}
+			{isLow ? (
+				<Badge variant="warning">{m.quotas_remaining_low_badge()}</Badge>
+			) : null}
 		</div>
 	);
 };

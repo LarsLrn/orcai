@@ -8,6 +8,7 @@ import {
 	PageTitle,
 } from "@/components/ui/shell/page";
 import { ensureOrganizationCapability } from "@/lib/authz/route-guards";
+import { m } from "@/paraglide/messages";
 
 export const Route = createFileRoute("/app/hub/assets/add")({
 	loader: async ({ context: { queryClient } }) => {
@@ -21,7 +22,7 @@ export const Route = createFileRoute("/app/hub/assets/add")({
 	head: () => ({
 		meta: [
 			{
-				title: "Add assets",
+				title: m.assets_add_page_title(),
 			},
 		],
 	}),
@@ -31,14 +32,11 @@ function RouteComponent() {
 	return (
 		<Page>
 			<PageHeader>
-				<PageTitle>Add assets</PageTitle>
-				<PageDescription>
-					Upload files, then confirm the metadata that should travel with each
-					asset wherever it is reused.
-				</PageDescription>
+				<PageTitle>{m.assets_add_page_title()}</PageTitle>
+				<PageDescription>{m.assets_add_page_description()}</PageDescription>
 			</PageHeader>
 			<PageContent>
-				<AssetIntakeFlow submitLabel="Save assets" />
+				<AssetIntakeFlow submitLabel={m.assets_add_submit_button()} />
 			</PageContent>
 		</Page>
 	);

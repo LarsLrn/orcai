@@ -14,6 +14,7 @@ import {
 	useSidebar,
 } from "@/components/ui/sidebar";
 import { Skeleton } from "@/components/ui/skeleton";
+import { m } from "@/paraglide/messages";
 import { ChatSidebarMenu } from "./chat-sidebar-menu";
 import { ManageSidebarGroup } from "./manage-sidebar-group";
 import { SidebarLogo } from "./sidebar-logo";
@@ -33,15 +34,15 @@ const AppSidebar = () => {
 					})}
 					onClick={() => isMobile && closeMobileForNavigation()}
 				>
-					Start a chat
+					{m.sidebar_start_chat_button()}
 				</Link>
 			</SidebarHeader>
 			<SidebarContent>
 				<SidebarGroup>
 					<SidebarGroupLabel className="flex justify-between">
-						<span>Chats</span>
+						<span>{m.sidebar_chats_group_label()}</span>
 						<Link to="/app/chat" className="hover:underline">
-							Show all
+							{m.common_show_all_action()}
 						</Link>
 					</SidebarGroupLabel>
 					<SidebarGroupContent>

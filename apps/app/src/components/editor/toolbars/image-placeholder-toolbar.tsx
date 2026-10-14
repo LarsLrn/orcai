@@ -6,6 +6,7 @@ import {
 	TooltipTrigger,
 } from "@/components/ui/tooltip";
 import { cn } from "@/lib/utils";
+import { m } from "@/paraglide/messages";
 import { useToolbar } from "./toolbar-provider";
 
 const ImagePlaceholderToolbar = ({
@@ -40,7 +41,7 @@ const ImagePlaceholderToolbar = ({
 				}
 			/>
 			<TooltipContent>
-				<span>Image</span>
+				<span>{m.editor_toolbar_image_tooltip()}</span>
 			</TooltipContent>
 		</Tooltip>
 	);

@@ -1,6 +1,7 @@
 import type { UseMutationOptions } from "@tanstack/react-query";
 import { useMutationAction } from "@/hooks/actions/use-mutation-action";
 import { authClient } from "@/lib/auth/auth-client";
+import { m } from "@/paraglide/messages";
 
 type UpdateProfileInput = {
 	name: string;
@@ -39,9 +40,9 @@ export const useUpdateProfileMutation = (
 			},
 		}),
 		messages: {
-			loading: "Saving profile...",
-			success: "Profile updated successfully!",
-			error: "Failed to update profile",
+			loading: m.account_profile_toast_loading(),
+			success: m.account_profile_toast_success(),
+			error: m.account_profile_toast_error(),
 		},
 	});
 };

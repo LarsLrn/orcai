@@ -3,6 +3,7 @@ import { type LinkProps, useNavigate } from "@tanstack/react-router";
 import { useMutationAction } from "@/hooks/actions/use-mutation-action";
 import { useUmami } from "@/hooks/use-umami";
 import { authClient } from "@/lib/auth/auth-client";
+import { m } from "@/paraglide/messages";
 
 export const useSignup = () => {
 	const navigate = useNavigate();
@@ -40,9 +41,9 @@ export const useSignup = () => {
 			},
 		}),
 		messages: {
-			loading: "Creating your account...",
-			success: "Your account is ready.",
-			error: "Account creation failed",
+			loading: m.auth_signup_toast_loading(),
+			success: m.auth_signup_toast_success(),
+			error: m.auth_signup_toast_error(),
 		},
 	});
 };

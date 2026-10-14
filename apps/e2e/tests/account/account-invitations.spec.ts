@@ -5,6 +5,7 @@ import {
 import { createAccountUser } from "../../fixtures/account/users";
 import { pageForSession } from "../../fixtures/auth/users";
 import { expect, test } from "../../fixtures/index";
+import { message } from "../../fixtures/messages";
 
 /** How long the app's own invitation form gives an invitation. */
 const ONE_WEEK = 7 * 24 * 60 * 60 * 1000;
@@ -42,7 +43,10 @@ test("account: the invitations card shows a pending invitation and accepting it 
 	try {
 		await openAccountPage(page);
 
-		const invitations = accountCard(page, "Organisation Invitations");
+		const invitations = accountCard(
+			page,
+			message("account_invitations_card_title"),
+		);
 
 		// The list carries the organisation's name and slug, so the invitee
 		// can tell the entries apart without reading the organisation.
@@ -53,14 +57,18 @@ test("account: the invitations card shows a pending invitation and accepting it 
 			.locator('xpath=ancestor::div[@data-slot="card"][1]');
 
 		await expect(entry).toBeVisible();
-		await expect(entry.getByText("Pending")).toBeVisible();
+		await expect(
+			entry.getByText(message("orgs_invitation_status_pending")),
+		).toBeVisible();
 
 		await entry
 			.getByRole("button", {
-				name: "Accept",
+				name: message("orgs_invitation_accept_button"),
 			})
 			.click();
-		await expect(page.getByText("Invitation accepted")).toBeVisible();
+		await expect(
+			page.getByText(message("orgs_invitation_accept_toast_success")),
+		).toBeVisible();
 
 		// Accepting writes the membership, which the user's own organisation
 		// list reports from the database.
@@ -108,7 +116,10 @@ test("account: the invitations card names the inviting organisation", async ({
 	try {
 		await openAccountPage(page);
 
-		const invitations = accountCard(page, "Organisation Invitations");
+		const invitations = accountCard(
+			page,
+			message("account_invitations_card_title"),
+		);
 
 		await expect(
 			invitations.getByText(second.name, {

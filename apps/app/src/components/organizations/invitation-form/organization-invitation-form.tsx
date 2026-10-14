@@ -28,6 +28,7 @@ import { useAppForm } from "@/hooks/form";
 import { useCreateOrganizationInvitationMutation } from "@/hooks/mutations/use-organization-invitation-mutations";
 import { getAssignableOrganizationRoles } from "@/lib/authz/organization-role-metadata";
 import { orpc } from "@/lib/orpc/orpc";
+import { m } from "@/paraglide/messages";
 import { organizationInvitationFormOptions } from "./organization-invitation-form-options";
 
 const OrganizationInvitationForm = () => {
@@ -101,11 +102,9 @@ const OrganizationInvitationForm = () => {
 
 			<Card className="order-last h-fit lg:order-first">
 				<CardHeader>
-					<CardTitle>Set invitation details</CardTitle>
+					<CardTitle>{m.orgs_invitation_form_details_title()}</CardTitle>
 					<CardDescription>
-						These settings will apply to all users invited in this batch. Note
-						that users will also automatically be added to the organisation
-						corresponding to the selected organisation.
+						{m.orgs_invitation_form_details_description()}
 					</CardDescription>
 				</CardHeader>
 				<CardContent className="flex flex-col gap-4">
@@ -113,8 +112,8 @@ const OrganizationInvitationForm = () => {
 						name="organizationId"
 						children={(field) => (
 							<field.SelectField
-								label="Organisation"
-								placeholder="Select organisation"
+								label={m.orgs_invitation_form_organisation_label()}
+								placeholder={m.orgs_invitation_form_organisation_placeholder()}
 								options={organizations.data.map((organization) => ({
 									label: organization.name,
 									value: organization.id,
@@ -127,12 +126,12 @@ const OrganizationInvitationForm = () => {
 						name="role"
 						children={(field) => (
 							<div className="space-y-2">
-								<Label>Role</Label>
+								<Label>{m.orgs_invitation_form_role_label()}</Label>
 								<OrganizationRolePicker
 									value={field.state.value as OrganizationRole}
 									onValueChange={(role) => field.handleChange(role)}
 									variant="full"
-									title="Select invitation role"
+									title={m.orgs_invitation_form_role_picker_title()}
 									roles={assignableRoles}
 								/>
 							</div>
@@ -143,8 +142,8 @@ const OrganizationInvitationForm = () => {
 						name="expiresAt"
 						children={(field) => (
 							<field.DatetimeField
-								label="Expires"
-								placeholder="Select expiry date"
+								label={m.orgs_invitation_form_expires_label()}
+								placeholder={m.orgs_invitation_form_expires_placeholder()}
 								showTimePicker={true}
 							/>
 						)}
@@ -154,10 +153,9 @@ const OrganizationInvitationForm = () => {
 
 			<Card className="h-fit">
 				<CardHeader>
-					<CardTitle>Add email addresses</CardTitle>
+					<CardTitle>{m.orgs_invitation_form_emails_title()}</CardTitle>
 					<CardDescription>
-						Add the emails of users you want to invite. You can manually add
-						each email, or all at once using &quot;Bulk add emails&quot;.
+						{m.orgs_invitation_form_emails_description()}
 					</CardDescription>
 				</CardHeader>
 				<CardContent className="flex flex-col gap-4">
@@ -175,8 +173,10 @@ const OrganizationInvitationForm = () => {
 													name={`items[${index}].email`}
 													children={(field) => (
 														<field.TextField
-															label={`User ${index + 1} Email`}
-															placeholder="name@example.org"
+															label={m.orgs_invitation_form_email_label({
+																position: index + 1,
+															})}
+															placeholder={m.orgs_invitation_form_email_placeholder()}
 														/>
 													)}
 												/>
@@ -211,18 +211,23 @@ const OrganizationInvitationForm = () => {
 								)
 							}
 						>
-							Add email field
+							{m.orgs_invitation_form_add_email_button()}
 						</Button>
 						<Dialog>
 							<DialogTrigger
-								render={<Button variant="outline">Bulk add emails</Button>}
+								render={
+									<Button variant="outline">
+										{m.orgs_invitation_form_bulk_button()}
+									</Button>
+								}
 							/>
 							<DialogContent className="max-w-150">
 								<DialogHeader>
-									<DialogTitle>Bulk add emails</DialogTitle>
+									<DialogTitle>
+										{m.orgs_invitation_form_bulk_dialog_title()}
+									</DialogTitle>
 									<DialogDescription>
-										Add several emails at once by pasting them here. Make sure
-										each email is on a new line and formatted correctly.
+										{m.orgs_invitation_form_bulk_dialog_description()}
 									</DialogDescription>
 								</DialogHeader>
 								<div className="flex flex-col gap-4">
@@ -230,7 +235,7 @@ const OrganizationInvitationForm = () => {
 										name="bulkEmails"
 										id={bulkEmailsId}
 										rows={5}
-										placeholder="One email address per line"
+										placeholder={m.orgs_invitation_form_bulk_placeholder()}
 									/>
 									<DialogClose
 										render={
@@ -244,7 +249,7 @@ const OrganizationInvitationForm = () => {
 													handleBulkPaste(textArea);
 												}}
 											>
-												Add emails
+												{m.orgs_invitation_form_bulk_confirm_button()}
 											</Button>
 										}
 									/>
@@ -257,7 +262,7 @@ const OrganizationInvitationForm = () => {
 
 			<div className="flex justify-end pt-4">
 				<form.AppForm>
-					<form.SubmitButton label="Create Invitations" />
+					<form.SubmitButton label={m.orgs_invitation_form_submit_button()} />
 				</form.AppForm>
 			</div>
 		</form>

@@ -34,6 +34,7 @@ import {
 } from "@/components/ui/shell/resource-card";
 import { hasCapability } from "@/lib/authz/capabilities";
 import { formatDisplayDate } from "@/lib/presentation/format-timestamp";
+import { m } from "@/paraglide/messages";
 
 const BLOCK_TYPE_CONFIG = {
 	template: {
@@ -62,10 +63,10 @@ const BLOCK_TYPE_CONFIG = {
 
 const getBlockTypeLabel = (type: Block["type"]) =>
 	type === "template"
-		? "Behaviour"
+		? m.blocks_card_type_template()
 		: type === "database"
-			? "Repository"
-			: "Image generation";
+			? m.blocks_card_type_database()
+			: m.blocks_card_type_image_generation();
 
 const BlockCard = ({
 	block,
@@ -87,7 +88,7 @@ const BlockCard = ({
 	const meta: ResourceCardMetaItem[] = [];
 	if (block.createdAt) {
 		meta.push({
-			label: "Created",
+			label: m.blocks_card_created_label(),
 			value: formatDisplayDate(block.createdAt),
 		});
 	}
@@ -95,7 +96,7 @@ const BlockCard = ({
 	const footerActions: ResourceCardActionItem[] = actions?.footer ?? [
 		{
 			key: "view",
-			label: "View",
+			label: m.blocks_card_view_action(),
 			icon: EyeIcon,
 			linkProps: {
 				to: "/app/hub/blocks/$blockId",
@@ -108,7 +109,7 @@ const BlockCard = ({
 			? [
 					{
 						key: "edit",
-						label: "Edit",
+						label: m.common_edit_button(),
 						icon: EditIcon,
 						variant: "default",
 						linkProps: {
@@ -137,7 +138,7 @@ const BlockCard = ({
 
 	if (block.status === "draft") {
 		badges.push({
-			label: "Draft",
+			label: m.blocks_card_draft_badge(),
 			variant: "outline",
 		});
 	}

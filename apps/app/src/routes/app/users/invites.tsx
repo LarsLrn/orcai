@@ -22,6 +22,7 @@ import {
 import { InvitesTableActions } from "@/components/users/invites/table/invites-table-actions";
 import { invitesTableColumns } from "@/components/users/invites/table/invites-table-columns";
 import { orpc } from "@/lib/orpc/orpc";
+import { m } from "@/paraglide/messages";
 
 export const Route = createFileRoute("/app/users/invites")({
 	validateSearch: listOrganizationInvitationsInputSchema,
@@ -50,7 +51,7 @@ export const Route = createFileRoute("/app/users/invites")({
 	head: () => ({
 		meta: [
 			{
-				title: "Invites",
+				title: m.users_invites_page_meta_title(),
 			},
 		],
 	}),
@@ -73,10 +74,8 @@ function RouteComponent() {
 	return (
 		<Page>
 			<PageHeader>
-				<PageTitle>Organisation Invitations</PageTitle>
-				<PageDescription>
-					Manage your organisation's invitations.
-				</PageDescription>
+				<PageTitle>{m.users_invites_page_title()}</PageTitle>
+				<PageDescription>{m.users_invites_page_description()}</PageDescription>
 				<PageAction>
 					<Link
 						to={"/app/users/add"}
@@ -84,7 +83,7 @@ function RouteComponent() {
 							variant: "default",
 						})}
 					>
-						Invite users
+						{m.users_invites_invite_action()}
 					</Link>
 				</PageAction>
 			</PageHeader>

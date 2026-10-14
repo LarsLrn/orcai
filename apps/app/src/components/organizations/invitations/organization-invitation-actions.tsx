@@ -1,6 +1,7 @@
 import type { OrganizationInvitation } from "@orcai/schema";
 import { Button } from "@/components/ui/button";
 import { useRespondOrganizationInvitationMutation } from "@/hooks/mutations/use-organization-invitation-mutations";
+import { m } from "@/paraglide/messages";
 
 type OrganizationInvitationActionsProps = {
 	invitation: OrganizationInvitation;
@@ -36,7 +37,7 @@ export function OrganizationInvitationActions({
 				variant="default"
 				size="sm"
 			>
-				Accept
+				{m.orgs_invitation_accept_button()}
 			</Button>
 			<Button
 				onClick={() =>
@@ -48,7 +49,7 @@ export function OrganizationInvitationActions({
 				variant="destructive"
 				size="sm"
 			>
-				Reject
+				{m.orgs_invitation_reject_button()}
 			</Button>
 		</div>
 	);

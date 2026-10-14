@@ -1,12 +1,11 @@
 import type { SearchKnowledgeBaseToolPart } from "@/lib/ai/types/tools";
+import { m } from "@/paraglide/messages";
 import {
 	SourcePassage,
 	SourcePassageList,
 	spansMultipleBlocks,
 } from "../source-passage";
 import { ToolEntry } from "../tool-entry";
-
-const count = (n: number) => `${n} ${n === 1 ? "passage" : "passages"}`;
 
 export const SearchKnowledgeBase = ({
 	part,
@@ -26,8 +25,10 @@ export const SearchKnowledgeBase = ({
 			running={running}
 			label={
 				results.length > 0
-					? `Searched the sources, found ${count(results.length)}`
-					: "Searched the sources"
+					? m.chat_work_log_tool_search_result({
+							count: results.length,
+						})
+					: m.chat_work_log_tool_search_name()
 			}
 		>
 			{results.length > 0 && (

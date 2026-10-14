@@ -21,6 +21,7 @@ import {
 	getProcessingStatusLabel,
 	getProcessingStatusVariant,
 } from "@/lib/presentation/processing-status";
+import { m } from "@/paraglide/messages";
 
 const SelectedAssetList = ({
 	assets,
@@ -79,7 +80,7 @@ const SelectedAssetList = ({
 								onClick={() => setEditingAssetId(asset.id)}
 							>
 								<PencilIcon />
-								Metadata
+								{m.assets_selected_list_metadata_button()}
 							</Button>
 							<Button
 								variant="outline"
@@ -87,7 +88,7 @@ const SelectedAssetList = ({
 								onClick={() => onRemove(asset.id)}
 							>
 								<XIcon />
-								Remove
+								{m.common_remove_button()}
 							</Button>
 						</div>
 
@@ -97,10 +98,11 @@ const SelectedAssetList = ({
 						>
 							<DialogContent className="max-h-[88vh] sm:max-w-3xl">
 								<DialogHeader>
-									<DialogTitle>Edit source details</DialogTitle>
+									<DialogTitle>
+										{m.assets_selected_list_dialog_title()}
+									</DialogTitle>
 									<DialogDescription>
-										Update how this content item should appear when cited by the
-										AI.
+										{m.assets_selected_list_dialog_description()}
 									</DialogDescription>
 								</DialogHeader>
 
@@ -129,7 +131,7 @@ const SelectedAssetList = ({
 											}
 										}}
 									>
-										Save metadata
+										{m.assets_metadata_save_button()}
 									</Button>
 								</DialogFooter>
 							</DialogContent>

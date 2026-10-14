@@ -4,6 +4,7 @@ import {
 	useCreateOrganizationMutation,
 	useUpdateOrganizationMutation,
 } from "@/hooks/mutations/use-organization-mutations";
+import { m } from "@/paraglide/messages";
 import { organizationFormOptions } from "./organization-form-options";
 
 type OrganizationFormProps = {
@@ -63,21 +64,24 @@ export const OrganizationForm = ({
 				name="name"
 				children={(field) => (
 					<field.TextField
-						label="Organisation Name"
-						placeholder="Your organisation"
+						label={m.orgs_form_name_label()}
+						placeholder={m.orgs_form_name_placeholder()}
 					/>
 				)}
 			/>
 			<form.AppField
 				name="slug"
 				children={(field) => (
-					<field.TextField label="Slug" placeholder="your-organisation" />
+					<field.TextField
+						label={m.orgs_form_slug_label()}
+						placeholder={m.orgs_form_slug_placeholder()}
+					/>
 				)}
 			/>
 
 			<div className="flex justify-end pt-4">
 				<form.AppForm>
-					<form.SubmitButton label="Save Organisation" />
+					<form.SubmitButton label={m.orgs_form_submit_button()} />
 				</form.AppForm>
 			</div>
 		</form>

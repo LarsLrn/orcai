@@ -2,6 +2,7 @@ import type { Page } from "@playwright/test";
 import type { ApiClient } from "../../fixtures/api";
 import { ROLES } from "../../fixtures/constants";
 import { expect, test } from "../../fixtures/index";
+import { message } from "../../fixtures/messages";
 import { open } from "../../fixtures/navigation";
 import { runId } from "../../fixtures/organisation";
 
@@ -27,7 +28,7 @@ const openInstanceOrganisations = async (page: Page): Promise<void> => {
 	await open(page, "/instance/organizations");
 	await expect(
 		page.getByRole("heading", {
-			name: "Organisations",
+			name: message("instance_organizations_page_title"),
 		}),
 	).toBeVisible();
 };
@@ -37,12 +38,12 @@ const openCreateDialog = async (page: Page): Promise<void> => {
 	await expect(async () => {
 		await page
 			.getByRole("button", {
-				name: "Create Organisation",
+				name: message("instance_organizations_create_button"),
 			})
 			.click();
 		await expect(
 			page.getByRole("heading", {
-				name: "Create Organisation",
+				name: message("instance_organizations_create_dialog_title"),
 			}),
 		).toBeVisible({
 			timeout: 3_000,
@@ -65,11 +66,11 @@ test("instance: the organisations page creates an organisation", async ({
 	await openInstanceOrganisations(page);
 	await openCreateDialog(page);
 
-	await page.getByLabel("Organisation Name").fill(name);
-	await page.getByLabel("Slug").fill(slug);
+	await page.getByLabel(message("orgs_form_name_label")).fill(name);
+	await page.getByLabel(message("orgs_form_slug_label")).fill(slug);
 	await page
 		.getByRole("button", {
-			name: "Save Organisation",
+			name: message("orgs_form_submit_button"),
 		})
 		.click();
 
@@ -102,7 +103,9 @@ test("instance: the search narrows the organisations page", async ({
 			hasText: slug,
 		});
 
-	await page.getByPlaceholder("Search organisations...").fill(wanted.slug);
+	await page
+		.getByPlaceholder(message("instance_organizations_search_placeholder"))
+		.fill(wanted.slug);
 
 	await expect(rowFor(wanted.slug)).toBeVisible();
 	await expect(rowFor(other.slug)).toHaveCount(0);
@@ -117,7 +120,7 @@ test("instance: the organisation form refuses an empty name and an empty slug", 
 
 	await page
 		.getByRole("button", {
-			name: "Save Organisation",
+			name: message("orgs_form_submit_button"),
 		})
 		.click();
 
@@ -125,11 +128,15 @@ test("instance: the organisation form refuses an empty name and an empty slug", 
 	await expect(page.getByText("Slug is required")).toBeVisible();
 
 	// A name alone leaves the slug complaint standing.
-	await page.getByLabel("Organisation Name").fill(`E2E Invalid ${runId()}`);
+	await page
+		.getByLabel(message("orgs_form_name_label"))
+		.fill(`E2E Invalid ${runId()}`);
 	await expect(page.getByText("Name is required")).toHaveCount(0);
 	await expect(page.getByText("Slug is required")).toBeVisible();
 
-	await page.getByLabel("Slug").fill(`e2e-invalid-${runId()}`);
+	await page
+		.getByLabel(message("orgs_form_slug_label"))
+		.fill(`e2e-invalid-${runId()}`);
 	await expect(page.getByText("Slug is required")).toHaveCount(0);
 });
 
@@ -154,12 +161,12 @@ test("instance: the deletion dialog counts what goes and asks for the slug", asy
 
 	await row
 		.getByRole("button", {
-			name: "Open menu",
+			name: message("common_row_menu_trigger"),
 		})
 		.click();
 	await page
 		.getByRole("menuitem", {
-			name: "Delete Organisation",
+			name: message("instance_orgs_table_delete_menu_item"),
 		})
 		.click();
 
@@ -183,7 +190,7 @@ test("instance: the deletion dialog counts what goes and asks for the slug", asy
 	).toBeVisible();
 
 	const deleteButton = dialog.getByRole("button", {
-		name: "Delete",
+		name: message("common_delete_button"),
 		exact: true,
 	});
 	await expect(deleteButton).toBeDisabled();

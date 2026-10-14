@@ -8,6 +8,7 @@ import { z } from "zod/v4";
 import { Chat } from "@/components/chat/chat";
 import type { ChatAgentUIMessage } from "@/lib/ai/types/chat-agent-message";
 import { orpc } from "@/lib/orpc/orpc";
+import { m } from "@/paraglide/messages";
 
 const searchSchema = z.object({
 	branch: chatBranchIdSchema.optional(),
@@ -78,7 +79,7 @@ export const Route = createFileRoute("/app/chat/$chatId/")({
 			return {
 				meta: [
 					{
-						title: "Chat",
+						title: m.chat_detail_page_title_fallback(),
 					},
 				],
 			};
@@ -86,7 +87,7 @@ export const Route = createFileRoute("/app/chat/$chatId/")({
 		const branchId = loaderData.branchId ?? chat.activeBranchId;
 		const branchName = chat.branches?.find((b) => b.id === branchId)?.name;
 
-		const baseTitle = chat.title ?? "Chat";
+		const baseTitle = chat.title ?? m.chat_detail_page_title_fallback();
 		const title =
 			branchName && branchName !== "Main"
 				? `${baseTitle} / ${branchName}`

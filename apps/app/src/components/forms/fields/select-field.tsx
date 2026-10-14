@@ -15,12 +15,13 @@ import {
 	SelectValue,
 } from "@/components/ui/select";
 import { useFieldContext } from "@/hooks/form/context";
+import { m } from "@/paraglide/messages";
 
 const SelectField = ({
 	label,
 	options,
 	description,
-	placeholder = "Select an option",
+	placeholder = m.forms_select_field_placeholder(),
 	disabled = false,
 }: {
 	label: string;

@@ -8,6 +8,7 @@ import {
 	WELL_KNOWN_ADMIN,
 } from "../../fixtures/constants";
 import { expect, test } from "../../fixtures/index";
+import { message } from "../../fixtures/messages";
 import { enterApp, open } from "../../fixtures/navigation";
 import { adminSession, signUpUnaffiliated } from "../../fixtures/organisation";
 
@@ -52,7 +53,7 @@ test("instance management has an independent route and survives the last organis
 		await expect(page).toHaveURL(/\/select-organization/);
 		await expect(
 			page.getByRole("link", {
-				name: "Manage instance",
+				name: message("select_organisation_page_manage_instance_link"),
 			}),
 		).toHaveCount(0);
 	} finally {
@@ -72,7 +73,7 @@ test("instance management has an independent route and survives the last organis
 		await open(page, "/select-organization");
 		await expect(
 			page.getByRole("link", {
-				name: "Manage instance",
+				name: message("select_organisation_page_manage_instance_link"),
 			}),
 		).toBeVisible();
 
@@ -80,7 +81,7 @@ test("instance management has an independent route and survives the last organis
 		await expect(page).toHaveURL(/\/instance\/organizations/);
 		await expect(
 			page.getByRole("heading", {
-				name: "Organisations",
+				name: message("instance_organizations_page_title"),
 				exact: true,
 			}),
 		).toBeVisible();
@@ -96,7 +97,7 @@ test("instance management has an independent route and survives the last organis
 		await open(page, "/instance/users");
 		await expect(
 			page.getByRole("heading", {
-				name: "Users",
+				name: message("instance_users_page_title"),
 				exact: true,
 			}),
 		).toBeVisible();
@@ -104,7 +105,7 @@ test("instance management has an independent route and survives the last organis
 
 		await page
 			.getByRole("link", {
-				name: "Back to app",
+				name: message("instance_sidebar_back_to_app_action"),
 			})
 			.click();
 		await expect(page).toHaveURL(/\/app(?:\/|$)/);
@@ -117,7 +118,7 @@ test("instance management has an independent route and survives the last organis
 		await open(page, "/app/instance/organizations");
 		await expect(
 			page.getByRole("heading", {
-				name: "Page Not Found",
+				name: message("boundaries_not_found_title"),
 			}),
 		).toBeVisible();
 
@@ -132,14 +133,14 @@ test("instance management has an independent route and survives the last organis
 		await open(page, "/instance/users");
 		await expect(
 			page.getByRole("heading", {
-				name: "Users",
+				name: message("instance_users_page_title"),
 				exact: true,
 			}),
 		).toBeVisible();
 
 		await page
 			.getByRole("link", {
-				name: "Back to app",
+				name: message("instance_sidebar_back_to_app_action"),
 			})
 			.click();
 		await expect(page).toHaveURL(/\/select-organization/);
@@ -156,7 +157,7 @@ test("the app user menu offers instance management only to instance admins", asy
 	const adminPage = await pageAsWellKnownAdmin();
 	await enterApp(adminPage, INSTANCE_ORGANISATION.slug);
 	const skipTour = adminPage.getByRole("button", {
-		name: "Skip",
+		name: message("next_step_card_skip_button"),
 	});
 	if (await skipTour.isVisible()) {
 		await skipTour.click();
@@ -167,7 +168,7 @@ test("the app user menu offers instance management only to instance admins", asy
 		})
 		.click();
 	const launcher = adminPage.getByRole("menuitem", {
-		name: "Manage instance",
+		name: message("user_menu_manage_instance_item"),
 	});
 	await expect(launcher).toBeVisible();
 	await launcher.click();
@@ -182,7 +183,7 @@ test("the app user menu offers instance management only to instance admins", asy
 		.click();
 	await expect(
 		memberPage.getByRole("menuitem", {
-			name: "Manage instance",
+			name: message("user_menu_manage_instance_item"),
 		}),
 	).toHaveCount(0);
 });

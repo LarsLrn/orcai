@@ -16,6 +16,7 @@ import {
 	CardTitle,
 } from "@/components/ui/card";
 import { orpc } from "@/lib/orpc/orpc";
+import { m } from "@/paraglide/messages";
 
 type UploadResult = DirectUploadResult<true>;
 
@@ -54,9 +55,9 @@ const toFinalizeInputFiles = (result: UploadResult) =>
 
 const UploadComponent = ({
 	route,
-	title = "Upload files",
-	description = "Select files and upload them. Progress appears below.",
-	uploadLabel = "Upload files",
+	title,
+	description,
+	uploadLabel,
 	accept = {
 		...ASSET_UPLOAD_ACCEPT,
 	},
@@ -97,7 +98,7 @@ const UploadComponent = ({
 			return;
 		}
 
-		const target = files.length === 1 ? "1 file" : `${files.length} files`;
+		const count = files.length;
 
 		await toast.promise(
 			(async () => {
@@ -126,9 +127,16 @@ const UploadComponent = ({
 				}
 			})(),
 			{
-				loading: `Uploading ${target}...`,
-				success: () => `${target} uploaded`,
-				error: `${target} could not be uploaded. Try again.`,
+				loading: m.assets_upload_toast_loading({
+					count,
+				}),
+				success: () =>
+					m.assets_upload_toast_success({
+						count,
+					}),
+				error: m.assets_upload_toast_error({
+					count,
+				}),
 			},
 		);
 	};
@@ -138,8 +146,10 @@ const UploadComponent = ({
 			{!(hidePickerWhenSettled && control.isSettled) ? (
 				<Card>
 					<CardHeader>
-						<CardTitle>{title}</CardTitle>
-						<CardDescription>{description}</CardDescription>
+						<CardTitle>{title ?? m.assets_upload_title()}</CardTitle>
+						<CardDescription>
+							{description ?? m.assets_upload_description()}
+						</CardDescription>
 					</CardHeader>
 					<CardContent>
 						<FileUploader
@@ -165,7 +175,9 @@ const UploadComponent = ({
 									isFinalizing
 								}
 							>
-								{isFinalizing ? "Preparing files..." : uploadLabel}
+								{isFinalizing
+									? m.assets_upload_preparing_button()
+									: (uploadLabel ?? m.assets_upload_submit_button())}
 							</Button>
 						</div>
 					</CardContent>

@@ -20,6 +20,7 @@ import {
 	TooltipContent,
 	TooltipTrigger,
 } from "@/components/ui/tooltip";
+import { m } from "@/paraglide/messages";
 import { MobileToolbarGroup, MobileToolbarItem } from "./mobile-toolbar-group";
 import { useToolbar } from "./toolbar-provider";
 
@@ -68,22 +69,22 @@ export const AlignmentTooolbar = () => {
 
 	const alignmentOptions = [
 		{
-			name: "Left Align",
+			name: m.editor_toolbar_alignment_left_option(),
 			value: "left",
 			icon: <AlignLeft className="h-4 w-4" />,
 		},
 		{
-			name: "Center Align",
+			name: m.editor_toolbar_alignment_centre_option(),
 			value: "center",
 			icon: <AlignCenter className="h-4 w-4" />,
 		},
 		{
-			name: "Right Align",
+			name: m.editor_toolbar_alignment_right_option(),
 			value: "right",
 			icon: <AlignRight className="h-4 w-4" />,
 		},
 		{
-			name: "Justify Align",
+			name: m.editor_toolbar_alignment_justify_option(),
 			value: "justify",
 			icon: <AlignJustify className="h-4 w-4" />,
 		},
@@ -97,7 +98,8 @@ export const AlignmentTooolbar = () => {
 		return (
 			<MobileToolbarGroup
 				label={
-					alignmentOptions[findIndex(currentTextAlign())]?.name ?? "Left Align"
+					alignmentOptions[findIndex(currentTextAlign())]?.name ??
+					m.editor_toolbar_alignment_left_option()
 				}
 			>
 				{alignmentOptions.map((option) => (
@@ -138,7 +140,7 @@ export const AlignmentTooolbar = () => {
 						/>
 					}
 				/>
-				<TooltipContent>Text alignment</TooltipContent>
+				<TooltipContent>{m.editor_toolbar_alignment_tooltip()}</TooltipContent>
 			</Tooltip>
 			<DropdownMenuContent>
 				<DropdownMenuGroup className="w-40">

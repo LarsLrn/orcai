@@ -21,6 +21,7 @@ import type { DOMOutputSpec } from "@tiptap/pm/model";
 import StarterKit from "@tiptap/starter-kit";
 import GlobalDragHandle from "tiptap-extension-global-drag-handle";
 import { cn } from "@/lib/utils";
+import { m } from "@/paraglide/messages";
 import { ImageExtension } from "./extensions/image";
 import { ImagePlaceholder } from "./extensions/image-placeholder";
 
@@ -195,14 +196,16 @@ export const extensions = [
 		placeholder: ({ node }) => {
 			switch (node.type.name) {
 				case "heading":
-					return `Heading ${node.attrs.level}`;
+					return m.editor_placeholder_heading({
+						level: node.attrs.level,
+					});
 				case "detailsSummary":
-					return "Section title";
+					return m.editor_placeholder_section_title();
 				case "codeBlock":
 					// never show the placeholder when editing code
 					return "";
 				default:
-					return "Write, type '/' for commands";
+					return m.editor_placeholder_default();
 			}
 		},
 		includeChildren: false,

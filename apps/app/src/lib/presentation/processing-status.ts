@@ -1,25 +1,26 @@
 import type { ProcessingStatus } from "@orcai/schema";
 import type { Badge } from "@/components/ui/badge";
+import { m } from "@/paraglide/messages";
 
-const PROCESSING_STATUS_LABELS: Record<ProcessingStatus, string> = {
-	pending: "Queued",
-	active: "Processing",
-	completed: "Ready",
-	failed: "Needs attention",
+const processingStatusLabels: Record<ProcessingStatus, () => string> = {
+	pending: m.processing_status_pending_label,
+	active: m.processing_status_active_label,
+	completed: m.processing_status_completed_label,
+	failed: m.processing_status_failed_label,
 };
 
-const PROCESSING_STATUS_DESCRIPTIONS: Record<ProcessingStatus, string> = {
-	pending: "Waiting to be prepared for search and citations.",
-	active: "Currently being prepared for search and citations.",
-	completed: "Ready to be used in search, retrieval, and citations.",
-	failed: "Preparation failed. Review the job log or retry processing.",
+const processingStatusDescriptions: Record<ProcessingStatus, () => string> = {
+	pending: m.processing_status_pending_description,
+	active: m.processing_status_active_description,
+	completed: m.processing_status_completed_description,
+	failed: m.processing_status_failed_description,
 };
 
 export const getProcessingStatusLabel = (status: ProcessingStatus) =>
-	PROCESSING_STATUS_LABELS[status];
+	processingStatusLabels[status]();
 
 export const getProcessingStatusDescription = (status: ProcessingStatus) =>
-	PROCESSING_STATUS_DESCRIPTIONS[status];
+	processingStatusDescriptions[status]();
 
 /** Status colour family for a processing state, per the Tint Not Fill Rule. */
 const PROCESSING_STATUS_VARIANTS: Record<

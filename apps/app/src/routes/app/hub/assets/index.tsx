@@ -18,6 +18,7 @@ import { useOrganizationCapabilities } from "@/hooks/authz/use-capabilities";
 import { useReprocessAssetMutation } from "@/hooks/mutations/use-job-mutations";
 import { hasCapability } from "@/lib/authz/capabilities";
 import { orpc } from "@/lib/orpc/orpc";
+import { m } from "@/paraglide/messages";
 
 export const Route = createFileRoute("/app/hub/assets/")({
 	validateSearch: paginationInputSchema,
@@ -64,10 +65,8 @@ function RouteComponent() {
 	return (
 		<Section>
 			<SectionHeader>
-				<SectionTitle>Assets</SectionTitle>
-				<SectionDescription>
-					Reusable source material for retrieval, grounding, and citations.
-				</SectionDescription>
+				<SectionTitle>{m.assets_list_title()}</SectionTitle>
+				<SectionDescription>{m.assets_list_description()}</SectionDescription>
 				{canCreateAsset ? (
 					<SectionAction>
 						<Link
@@ -77,7 +76,7 @@ function RouteComponent() {
 							})}
 						>
 							<PlusIcon />
-							Add assets
+							{m.assets_list_add_action()}
 						</Link>
 					</SectionAction>
 				) : null}
@@ -87,14 +86,14 @@ function RouteComponent() {
 					<Placeholder
 						Icon={FileTextIcon}
 						tone="asset"
-						title="No assets yet"
-						description="Upload files, URLs, or text snippets so bots can retrieve and cite them."
+						title={m.assets_list_empty_state_title()}
+						description={m.assets_list_empty_state_description()}
 						actions={
 							canCreateAsset
 								? [
 										{
 											key: "add",
-											label: "Add assets",
+											label: m.assets_list_add_action(),
 											icon: PlusIcon,
 											variant: "default",
 											linkProps: {
@@ -120,7 +119,7 @@ function RouteComponent() {
 											: [
 													{
 														key: "reprocess",
-														label: "Reprocess",
+														label: m.assets_list_reprocess_action(),
 														icon: RefreshCwIcon,
 														onClick: () =>
 															reprocessAsset({

@@ -20,6 +20,7 @@ import {
 	PopoverTrigger,
 } from "@/components/ui/popover";
 import { cn } from "@/lib/utils";
+import { m } from "@/paraglide/messages";
 
 export type InlineCitationProps = ComponentProps<"span">;
 
@@ -70,7 +71,11 @@ export const InlineCitationCardTrigger = ({
 					className,
 				)}
 				variant="secondary"
-				title={label ?? sources[0] ?? "unknown"}
+				title={
+					label ??
+					sources[0] ??
+					m.ai_elements_inline_citation_unknown_source_label()
+				}
 				{...props}
 				render={<button type="button" />}
 			/>
@@ -85,7 +90,7 @@ export const InlineCitationCardTrigger = ({
 					{sources.length > 1 && `+${sources.length - 1}`}
 				</>
 			) : (
-				"unknown"
+				m.ai_elements_inline_citation_unknown_source_label()
 			)}
 		</span>
 	</PopoverTrigger>
@@ -241,7 +246,7 @@ export const InlineCitationCarouselPrev = ({
 
 	return (
 		<button
-			aria-label="Previous"
+			aria-label={m.ai_elements_inline_citation_previous_aria_label()}
 			className={cn("shrink-0", className)}
 			onClick={handleClick}
 			type="button"
@@ -270,7 +275,7 @@ export const InlineCitationCarouselNext = ({
 
 	return (
 		<button
-			aria-label="Next"
+			aria-label={m.ai_elements_inline_citation_next_aria_label()}
 			className={cn("shrink-0", className)}
 			onClick={handleClick}
 			type="button"
@@ -302,10 +307,7 @@ export const InlineCitationSource = ({
 			</h4>
 		)}
 		{url && (
-			<p
-				className="text-muted-foreground text-xs [overflow-wrap:anywhere]"
-				title={url}
-			>
+			<p className="wrap-anywhere text-muted-foreground text-xs" title={url}>
 				{url}
 			</p>
 		)}
@@ -327,7 +329,7 @@ export const InlineCitationQuote = ({
 }: InlineCitationQuoteProps) => (
 	<blockquote
 		className={cn(
-			"min-w-0 break-words border-muted border-l-2 pl-3 text-muted-foreground text-sm italic [overflow-wrap:anywhere]",
+			"wrap-anywhere min-w-0 border-muted border-l-2 pl-3 text-muted-foreground text-sm italic",
 			className,
 		)}
 		{...props}

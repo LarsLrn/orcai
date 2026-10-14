@@ -13,12 +13,10 @@ import { Shimmer } from "@/components/ai-elements/shimmer";
 import type { ChatAgentUIMessage } from "@/lib/ai/types/chat-agent-message";
 import { client, orpc } from "@/lib/orpc/orpc";
 import { formatCount } from "@/lib/presentation/format-number";
+import { m } from "@/paraglide/messages";
 import { ChatInput } from "./chat-input";
 import { ChatPlaceholder } from "./chat-placeholder";
 import { MessageBlock } from "./message/message-block";
-
-const MODEL_DID_NOT_RESPOND =
-	"The model did not respond. Send the message again or choose another model.";
 
 /** Quota is a governance fact, so it sits in the accent, above the composer. */
 const QuotaLine = ({ chatId }: { chatId: ChatId }) => {
@@ -36,10 +34,18 @@ const QuotaLine = ({ chatId }: { chatId: ChatId }) => {
 	}
 
 	return (
-		<p className="px-1 text-accent-brand text-xs">
-			{badge.poolName ?? "Quota"} pool ·{" "}
-			<span className="tabular-nums">{formatCount(badge.remainingAmount)}</span>{" "}
-			{badge.meteringMode === "requests" ? "requests" : "tokens"} left
+		<p className="px-1 text-accent-brand text-xs tabular-nums">
+			{badge.meteringMode === "requests"
+				? m.chat_quota_requests_left({
+						pool: badge.poolName ?? m.chat_quota_pool_fallback_name(),
+						amount: formatCount(badge.remainingAmount),
+						count: badge.remainingAmount,
+					})
+				: m.chat_quota_tokens_left({
+						pool: badge.poolName ?? m.chat_quota_pool_fallback_name(),
+						amount: formatCount(badge.remainingAmount),
+						count: badge.remainingAmount,
+					})}
 		</p>
 	);
 };
@@ -132,7 +138,7 @@ const Chat = ({
 			text: pendingMessage,
 		}).catch((error) => {
 			hasSentPendingMessage.current = false;
-			toast.error("The message was not sent. Send it again.", {
+			toast.error(m.chat_pending_message_failed_toast_error(), {
 				description: error instanceof Error ? error.message : undefined,
 			});
 		});
@@ -162,7 +168,7 @@ const Chat = ({
 					{messages.length === 0 && <ChatPlaceholder />}
 					{status === "submitted" && (
 						<div className="w-full text-foreground">
-							<Shimmer>Waiting for the model</Shimmer>
+							<Shimmer>{m.chat_waiting_for_model()}</Shimmer>
 						</div>
 					)}
 					{status === "error" && (
@@ -170,7 +176,7 @@ const Chat = ({
 							role="alert"
 							className="w-full space-y-1 rounded-xl bg-destructive/10 px-4 py-3 text-sm"
 						>
-							<p className="text-destructive">{MODEL_DID_NOT_RESPOND}</p>
+							<p className="text-destructive">{m.chat_response_failed()}</p>
 							{errorDetail && (
 								<p className="wrap-anywhere text-muted-foreground text-xs">
 									{errorDetail}

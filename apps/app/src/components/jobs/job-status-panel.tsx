@@ -19,6 +19,7 @@ import {
 } from "@/hooks/mutations/use-job-mutations";
 import { getProcessingStatusDescription } from "@/lib/presentation/processing-status";
 import { cn } from "@/lib/utils";
+import { m } from "@/paraglide/messages";
 
 type JobStatusPanelProps = {
 	processingStatus: ProcessingStatus;
@@ -64,11 +65,8 @@ const JobStatusPanel = ({
 		<Card className={cn(className)}>
 			<CardHeader>
 				<CardTitle className="flex items-center gap-1">
-					Preparation status
-					<InfoDot
-						content="The content is prepared in background jobs after upload so it is
-							ready"
-					/>
+					{m.jobs_status_panel_title()}
+					<InfoDot content={m.jobs_status_panel_info_description()} />
 				</CardTitle>
 				<CardDescription>
 					{getProcessingStatusDescription(processingStatus)}
@@ -84,7 +82,7 @@ const JobStatusPanel = ({
 				{showRetry && (
 					<Button variant="outline" size="sm" onClick={handleRetry}>
 						<RefreshCwIcon className="mr-1 h-3 w-3" />
-						Retry
+						{m.jobs_status_panel_retry_button()}
 					</Button>
 				)}
 			</CardContent>

@@ -1,7 +1,6 @@
 import type { AssetId } from "@orcai/core";
 import type { Asset } from "@orcai/schema";
 import { useQuery } from "@tanstack/react-query";
-import convert from "convert";
 import { SearchIcon } from "lucide-react";
 import { useState } from "react";
 import { useDebounceValue } from "usehooks-ts";
@@ -21,6 +20,8 @@ import { ScrollArea } from "@/components/ui/scroll-area";
 import { Spinner } from "@/components/ui/spinner";
 import { orpc } from "@/lib/orpc/orpc";
 import { getFileTypeLabel } from "@/lib/presentation/file-type";
+import { formatFileSize } from "@/lib/presentation/format-file-size";
+import { m } from "@/paraglide/messages";
 
 const PAGE_SIZE = 20;
 
@@ -59,9 +60,9 @@ export const ChatAssetPicker = ({
 		<Dialog open={open} onOpenChange={onOpenChange}>
 			<DialogContent className="sm:max-w-2xl">
 				<DialogHeader>
-					<DialogTitle>Select existing assets</DialogTitle>
+					<DialogTitle>{m.chat_asset_picker_title()}</DialogTitle>
 					<DialogDescription>
-						Attach assets from the Library to this message.
+						{m.chat_asset_picker_description()}
 					</DialogDescription>
 				</DialogHeader>
 
@@ -69,7 +70,7 @@ export const ChatAssetPicker = ({
 					<SearchIcon className="pointer-events-none absolute top-1/2 left-3 size-4 -translate-y-1/2 text-muted-foreground" />
 					<Input
 						className="pl-9"
-						placeholder="Search by title..."
+						placeholder={m.chat_asset_picker_search_placeholder()}
 						value={search}
 						onChange={(event) => setSearch(event.target.value)}
 					/>
@@ -80,8 +81,8 @@ export const ChatAssetPicker = ({
 						{isPending && <Spinner className="mt-10 size-10 w-full" />}
 						{!isPending && assets?.data.length === 0 && (
 							<Placeholder
-								title="Not found"
-								description="No matching assets available."
+								title={m.chat_asset_picker_empty_state_title()}
+								description={m.chat_asset_picker_empty_state_description()}
 							/>
 						)}
 						{assets?.data.map((asset) => (
@@ -95,7 +96,7 @@ export const ChatAssetPicker = ({
 									</div>
 									<div className="truncate text-muted-foreground text-xs">
 										{getFileTypeLabel(asset.fileType)} ·{" "}
-										{convert(asset.size, "B").to("best").toString(2)}
+										{formatFileSize(asset.size)}
 									</div>
 								</div>
 								{selectedAssetIds.has(asset.id) ? (
@@ -105,7 +106,7 @@ export const ChatAssetPicker = ({
 										variant="destructive"
 										onClick={() => onRemoveAsset(asset.id)}
 									>
-										Remove
+										{m.common_remove_button()}
 									</Button>
 								) : (
 									<Button
@@ -113,7 +114,7 @@ export const ChatAssetPicker = ({
 										type="button"
 										onClick={() => onAddAsset(asset)}
 									>
-										Attach
+										{m.chat_asset_picker_attach_action()}
 									</Button>
 								)}
 							</div>

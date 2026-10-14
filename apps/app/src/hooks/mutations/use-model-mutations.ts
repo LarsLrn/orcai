@@ -3,18 +3,10 @@ import { useRouter } from "@tanstack/react-router";
 import { useMutationAction } from "@/hooks/actions/use-mutation-action";
 import {
 	type DestructiveTarget,
-	describeAction,
-	describeFailure,
-	describeOutcome,
-	describeProgress,
-	describeTarget,
-} from "@/hooks/mutations/destructive-copy";
+	singleTargetName,
+} from "@/hooks/mutations/destructive-target";
 import { orpc } from "@/lib/orpc/orpc";
-
-const MODEL_NOUNS = {
-	noun: "model",
-	nounPlural: "models",
-};
+import { m } from "@/paraglide/messages";
 
 export const useCreateModelMutation = (
 	opts: ReturnType<typeof orpc.model.create.mutationOptions> = {},
@@ -49,9 +41,9 @@ export const useCreateModelMutation = (
 				},
 			}),
 		messages: {
-			loading: "Creating model...",
-			success: "Model created successfully",
-			error: "Failed to create model",
+			loading: m.models_create_toast_loading(),
+			success: m.models_create_toast_success(),
+			error: m.models_create_toast_error(),
 		},
 	});
 };
@@ -84,9 +76,9 @@ export const useUpdateModelMutation = (
 				},
 			}),
 		messages: {
-			loading: "Updating model...",
-			success: "Model updated successfully",
-			error: "Failed to update model",
+			loading: m.models_update_toast_loading(),
+			success: m.models_update_toast_success(),
+			error: m.models_update_toast_error(),
 		},
 	});
 };
@@ -118,23 +110,37 @@ export const useDeleteModelsMutation = (
 			}),
 		messages: {
 			loading: ({ input }) =>
-				describeProgress("Deleting", input.refs.length, MODEL_NOUNS, target),
+				m.models_delete_toast_loading({
+					count: input.refs.length,
+				}),
 			success: ({ input }) =>
-				describeOutcome(input.refs.length, MODEL_NOUNS, "deleted", target),
+				m.models_delete_toast_success({
+					count: input.refs.length,
+				}),
 			error: ({ input }) =>
-				describeFailure(input.refs.length, MODEL_NOUNS, "deleted", target),
+				m.models_delete_toast_error({
+					count: input.refs.length,
+				}),
 		},
 		confirm: (input) => {
 			const count = input.refs.length;
+			const name = singleTargetName(count, target);
 
 			return {
-				title: `Delete ${describeTarget(count, MODEL_NOUNS, target)}?`,
-				description:
-					count === 1
-						? "Chats set to it lose their model choice, and quota pools scoped to it fall back to the whole provider."
-						: "Chats set to them lose their model choice, and quota pools scoped to them fall back to the whole provider.",
-				confirmText: describeAction("Delete", count, MODEL_NOUNS, target),
-				cancelText: "Cancel",
+				title: name
+					? m.models_delete_confirm_title_named({
+							name,
+						})
+					: m.models_delete_confirm_title({
+							count,
+						}),
+				description: m.models_delete_confirm_description({
+					count,
+				}),
+				confirmText: m.models_delete_confirm_button({
+					count,
+				}),
+				cancelText: m.common_cancel_button(),
 			};
 		},
 	});

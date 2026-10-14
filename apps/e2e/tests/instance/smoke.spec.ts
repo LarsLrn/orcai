@@ -4,6 +4,7 @@ import {
 } from "../../fixtures/constants";
 import { submitForm } from "../../fixtures/forms";
 import { expect, test } from "../../fixtures/index";
+import { message } from "../../fixtures/messages";
 import { enterApp, open } from "../../fixtures/navigation";
 
 test.describe.configure({
@@ -17,14 +18,16 @@ test("the well-known admin signs in and reads instance data", async ({
 
 	await submitForm(page, {
 		fill: async () => {
-			await page.getByLabel("Email").fill(WELL_KNOWN_ADMIN.email);
 			await page
-				.getByLabel("Password", {
+				.getByLabel(message("common_email_label"))
+				.fill(WELL_KNOWN_ADMIN.email);
+			await page
+				.getByLabel(message("common_password_label"), {
 					exact: true,
 				})
 				.fill(WELL_KNOWN_ADMIN.password);
 		},
-		submit: "Login",
+		submit: message("auth_signin_form_submit_button"),
 		// Sign-in leaves the login page before the app knows which
 		// organisation is active, so any other URL counts.
 		until: /^(?!.*\/login).*$/,
@@ -35,7 +38,7 @@ test("the well-known admin signs in and reads instance data", async ({
 	await open(page, "/app/orgs");
 	await expect(
 		page.getByRole("heading", {
-			name: "Organisations",
+			name: message("instance_organizations_page_title"),
 		}),
 	).toBeVisible();
 	// The active organisation in the sidebar comes from the database; the table

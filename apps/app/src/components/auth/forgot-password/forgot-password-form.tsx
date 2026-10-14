@@ -1,5 +1,6 @@
 import { useAppForm } from "@/hooks/form";
 import { useForgotPassword } from "@/hooks/mutations/use-forgot-password";
+import { m } from "@/paraglide/messages";
 import { forgotPasswordFormOptions } from "./forgot-password-form-options";
 
 export function ForgotPasswordForm() {
@@ -24,14 +25,17 @@ export function ForgotPasswordForm() {
 				name="email"
 				children={(field) => (
 					<field.TextField
-						label="Email"
-						placeholder="your@email.com"
+						label={m.common_email_label()}
+						placeholder={m.common_email_placeholder()}
 						type="email"
 					/>
 				)}
 			/>
 			<form.AppForm>
-				<form.SubmitButton label="Send reset email" className="w-full" />
+				<form.SubmitButton
+					label={m.auth_forgot_password_form_submit_button()}
+					className="w-full"
+				/>
 			</form.AppForm>
 		</form>
 	);

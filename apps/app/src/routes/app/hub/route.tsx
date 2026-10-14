@@ -28,50 +28,60 @@ import {
 	HeroWave,
 } from "@/components/ui/shell/hero";
 import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { m } from "@/paraglide/messages";
 
 const HUB_ROUTES = [
 	{
 		value: "all",
-		label: "All",
 		to: "/app/hub",
 		Icon: LibraryIcon,
 		iconClassName: "text-muted-foreground",
 	},
 	{
 		value: "bots",
-		label: "Bots",
 		to: "/app/hub/bots",
 		Icon: BotIcon,
 		iconClassName: "text-kind-bot",
 	},
 	{
 		value: "behaviour",
-		label: "Behaviour",
 		to: "/app/hub/behaviour",
 		Icon: BrainCircuitIcon,
 		iconClassName: "text-kind-behaviour",
 	},
 	{
 		value: "repositories",
-		label: "Repositories",
 		to: "/app/hub/repositories",
 		Icon: DatabaseIcon,
 		iconClassName: "text-kind-repository",
 	},
 	{
 		value: "assets",
-		label: "Assets",
 		to: "/app/hub/assets",
 		Icon: FileTextIcon,
 		iconClassName: "text-kind-asset",
 	},
 ] satisfies {
 	value: string;
-	label: string;
 	to: LinkProps["to"];
 	Icon: LucideIcon;
 	iconClassName: string;
 }[];
+
+const getHubRouteLabel = (value: TabValue) => {
+	switch (value) {
+		case "bots":
+			return m.hub_tab_bots_label();
+		case "behaviour":
+			return m.hub_tab_behaviour_label();
+		case "repositories":
+			return m.hub_tab_repositories_label();
+		case "assets":
+			return m.hub_tab_assets_label();
+		default:
+			return m.hub_tab_all_label();
+	}
+};
 
 type TabValue = (typeof HUB_ROUTES)[number]["value"];
 
@@ -87,7 +97,7 @@ export const Route = createFileRoute("/app/hub")({
 	head: () => ({
 		meta: [
 			{
-				title: "Library",
+				title: m.hub_page_title(),
 			},
 		],
 	}),
@@ -101,6 +111,10 @@ function RouteComponent() {
 		select: (s) => s.location.pathname,
 	});
 	const activeTab = getActiveTab(pathname);
+	const hubRouteItems = HUB_ROUTES.map((route) => ({
+		...route,
+		label: getHubRouteLabel(route.value),
+	}));
 	const navigateToRoute = (value: string | null) => {
 		if (!value) return;
 		const route = HUB_ROUTES.find((candidate) => candidate.value === value);
@@ -117,21 +131,21 @@ function RouteComponent() {
 				<HeroInner className="pb-10">
 					<HeroContent className="flex justify-between sm:flex-row">
 						<h1 className="font-heading font-semibold text-4xl text-card-foreground tracking-tight">
-							Library
+							{m.hub_page_title()}
 						</h1>
 						<Select
 							value={activeTab}
 							onValueChange={navigateToRoute}
-							items={HUB_ROUTES}
+							items={hubRouteItems}
 						>
 							<SelectTrigger
 								className="w-full md:hidden"
-								aria-label="Library section"
+								aria-label={m.hub_section_switcher_aria_label()}
 							>
 								<SelectValue />
 							</SelectTrigger>
 							<SelectContent>
-								{HUB_ROUTES.map((route) => (
+								{hubRouteItems.map((route) => (
 									<SelectItem key={route.value} value={route.value}>
 										{route.label}
 									</SelectItem>
@@ -144,7 +158,7 @@ function RouteComponent() {
 							onValueChange={navigateToRoute}
 						>
 							<TabsList>
-								{HUB_ROUTES.map((route) => (
+								{hubRouteItems.map((route) => (
 									<TabsTrigger key={route.value} value={route.value}>
 										<route.Icon className={route.iconClassName} />
 										{route.label}

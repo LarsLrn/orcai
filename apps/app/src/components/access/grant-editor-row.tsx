@@ -13,13 +13,21 @@ import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { OptionPicker } from "@/components/ui/composed/option-picker";
-import { ROLES } from "@/settings/display-config";
+import { m } from "@/paraglide/messages";
+import {
+	getResourceRoleLabel,
+	getResourceRoleOptions,
+} from "@/settings/display-config";
 
-const sourceLabel: Record<DirectGrantSource, string> = {
-	[RESOURCE_GRANT_SOURCE.DIRECT_USER]: "Direct user",
-	[RESOURCE_GRANT_SOURCE.DIRECT_GROUP]: "Direct group",
-	[RESOURCE_GRANT_SOURCE.DIRECT_GROUP_ALL_MEMBERS]: "All Members",
-};
+const sourceLabel = (source: DirectGrantSource) =>
+	({
+		[RESOURCE_GRANT_SOURCE.DIRECT_USER]:
+			m.access_grant_row_source_direct_user(),
+		[RESOURCE_GRANT_SOURCE.DIRECT_GROUP]:
+			m.access_grant_row_source_direct_group(),
+		[RESOURCE_GRANT_SOURCE.DIRECT_GROUP_ALL_MEMBERS]:
+			m.access_grant_row_source_all_members(),
+	})[source];
 
 const GrantEditorRow = ({
 	grant,
@@ -55,12 +63,13 @@ const GrantEditorRow = ({
 						<p className="truncate font-medium text-sm">
 							{grant.principal.name}
 						</p>
-						<Badge variant="outline">{sourceLabel[grant.source]}</Badge>
+						<Badge variant="outline">{sourceLabel(grant.source)}</Badge>
 					</div>
 					<p className="truncate text-muted-foreground text-xs">
 						{grant.principal.type === "user"
 							? grant.principal.email
-							: grant.principal.description || "Group"}
+							: grant.principal.description ||
+								m.access_grant_row_group_fallback()}
 					</p>
 				</div>
 			</div>
@@ -68,11 +77,11 @@ const GrantEditorRow = ({
 			<div className="flex items-center gap-2">
 				{isAllMembers ? (
 					<Badge variant="outline" className="capitalize">
-						{ROLES.find((role) => role.value === grant.role)?.label}
+						{getResourceRoleLabel(grant.role)}
 					</Badge>
 				) : (
 					<OptionPicker
-						options={ROLES}
+						options={getResourceRoleOptions()}
 						value={grant.role}
 						onChange={onChangeRole}
 						disabled={disabled}
@@ -86,7 +95,9 @@ const GrantEditorRow = ({
 					className="text-destructive"
 				>
 					<Trash2Icon className="h-4 w-4" />
-					<span className="sr-only">Revoke access</span>
+					<span className="sr-only">
+						{m.access_grant_row_revoke_aria_label()}
+					</span>
 				</Button>
 			</div>
 		</div>

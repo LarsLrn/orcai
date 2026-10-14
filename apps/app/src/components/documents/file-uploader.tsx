@@ -1,4 +1,3 @@
-import { convert } from "convert";
 import { FileText, Upload, X } from "lucide-react";
 import { useCallback, useEffect } from "react";
 import Dropzone, {
@@ -10,7 +9,9 @@ import { Button } from "@/components/ui/button";
 import { Progress } from "@/components/ui/progress";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { useControllableState } from "@/hooks/use-controllable-state";
+import { formatFileSize } from "@/lib/presentation/format-file-size";
 import { cn } from "@/lib/utils";
+import { m } from "@/paraglide/messages";
 
 interface FileUploaderProps extends React.HTMLAttributes<HTMLDivElement> {
 	/**
@@ -115,12 +116,16 @@ const FileUploader = (props: FileUploaderProps) => {
 	const onDrop = useCallback(
 		(acceptedFiles: File[], rejectedFiles: FileRejection[]) => {
 			if (!multiple && maxFileCount === 1 && acceptedFiles.length > 1) {
-				toast.error("Only one file can be uploaded at a time.");
+				toast.error(m.assets_file_uploader_single_file_toast_error());
 				return;
 			}
 
 			if ((files?.length ?? 0) + acceptedFiles.length > maxFileCount) {
-				toast.error(`You can upload up to ${maxFileCount} files at once`);
+				toast.error(
+					m.assets_file_uploader_max_files_toast_error({
+						count: maxFileCount,
+					}),
+				);
 				return;
 			}
 
@@ -142,7 +147,9 @@ const FileUploader = (props: FileUploaderProps) => {
 			if (rejectedFiles.length > 0) {
 				rejectedFiles.forEach(({ file }) => {
 					toast.error(
-						`${file.name} was not accepted. Check the file type and size.`,
+						m.assets_file_uploader_rejected_toast_error({
+							name: file.name,
+						}),
 					);
 				});
 			}
@@ -152,16 +159,21 @@ const FileUploader = (props: FileUploaderProps) => {
 				updatedFiles.length > 0 &&
 				updatedFiles.length <= maxFileCount
 			) {
-				const target =
-					updatedFiles.length > 0 ? `${updatedFiles.length} files` : "file";
+				const count = updatedFiles.length;
 
 				toast.promise(onUpload(updatedFiles), {
-					loading: `Uploading ${target}...`,
+					loading: m.assets_upload_toast_loading({
+						count,
+					}),
 					success: () => {
 						setFiles([]);
-						return `${target} uploaded`;
+						return m.assets_upload_toast_success({
+							count,
+						});
 					},
-					error: `${target} could not be uploaded. Try again.`,
+					error: m.assets_upload_toast_error({
+						count,
+					}),
 				});
 			}
 		},
@@ -229,7 +241,7 @@ const FileUploader = (props: FileUploaderProps) => {
 									/>
 								</div>
 								<p className="font-medium text-muted-foreground">
-									Drop the files here
+									{m.assets_file_uploader_drop_active_label()}
 								</p>
 							</div>
 						) : (
@@ -242,14 +254,21 @@ const FileUploader = (props: FileUploaderProps) => {
 								</div>
 								<div className="flex flex-col gap-px">
 									<p className="font-medium text-muted-foreground">
-										Drag {`'n'`} drop files here, or click to select files
+										{m.assets_file_uploader_drop_idle_label()}
 									</p>
 									<p className="text-muted-foreground/70 text-sm">
-										You can upload
-										{maxFileCount > 1
-											? ` ${maxFileCount === Number.POSITIVE_INFINITY ? "multiple" : maxFileCount}
-                      files (up to ${convert(maxSize, "bytes").to("MiB").toLocaleString()} MB each)`
-											: ` a file with ${convert(maxSize, "bytes").to("MiB").toLocaleString()} MB`}
+										{maxFileCount === Number.POSITIVE_INFINITY
+											? m.assets_file_uploader_limit_unlimited_hint({
+													size: formatFileSize(maxSize),
+												})
+											: maxFileCount > 1
+												? m.assets_file_uploader_limit_multiple_hint({
+														count: maxFileCount,
+														size: formatFileSize(maxSize),
+													})
+												: m.assets_file_uploader_limit_single_hint({
+														size: formatFileSize(maxSize),
+													})}
 									</p>
 								</div>
 							</div>
@@ -295,7 +314,7 @@ function FileCard({ file, progress, onRemove }: FileCardProps) {
 							{file.name}
 						</p>
 						<p className="text-muted-foreground text-xs">
-							{`${convert(file.size, "bytes").to("MiB").toLocaleString()} MB`}
+							{formatFileSize(file.size)}
 						</p>
 					</div>
 					{progress ? <Progress value={progress} /> : null}
@@ -310,7 +329,9 @@ function FileCard({ file, progress, onRemove }: FileCardProps) {
 					onClick={onRemove}
 				>
 					<X className="size-4" aria-hidden="true" />
-					<span className="sr-only">Remove file</span>
+					<span className="sr-only">
+						{m.assets_file_uploader_remove_file_button()}
+					</span>
 				</Button>
 			</div>
 		</div>

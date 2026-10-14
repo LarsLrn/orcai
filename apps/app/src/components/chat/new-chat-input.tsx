@@ -14,6 +14,7 @@ import {
 	InputGroupAddon,
 	InputGroupTextarea,
 } from "@/components/ui/input-group";
+import { m } from "@/paraglide/messages";
 
 const NewChatInput = ({
 	selectedBotId,
@@ -61,8 +62,8 @@ const NewChatInput = ({
 					name="message"
 					placeholder={
 						noModel
-							? "Chatting opens once a model is available"
-							: "Ask a question"
+							? m.chat_composer_placeholder_no_model()
+							: m.chat_composer_placeholder()
 					}
 					className="field-sizing-content max-h-48 min-h-16"
 					value={messageText}

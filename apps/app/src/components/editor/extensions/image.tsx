@@ -35,6 +35,7 @@ import {
 import { Input } from "@/components/ui/input";
 import { Separator } from "@/components/ui/separator";
 import { cn } from "@/lib/utils";
+import { m } from "@/paraglide/messages";
 
 export const ImageExtension = Image.extend({
 	addAttributes() {
@@ -308,7 +309,7 @@ function TiptapImage(props: NodeViewProps) {
 						onBlur={handleCaptionBlur}
 						onKeyDown={handleCaptionKeyDown}
 						className="mt-2 text-center text-muted-foreground text-sm focus:ring-0"
-						placeholder="Add a caption"
+						placeholder={m.editor_image_caption_placeholder()}
 						autoFocus
 					/>
 				) : (
@@ -316,7 +317,7 @@ function TiptapImage(props: NodeViewProps) {
 						className="mt-2 cursor-text text-center text-muted-foreground text-sm"
 						onClick={() => editor?.isEditable && setEditingCaption(true)}
 					>
-						{caption || "Add a caption"}
+						{caption || m.editor_image_caption_placeholder()}
 					</div>
 				)}
 
@@ -388,16 +389,20 @@ function TiptapImage(props: NodeViewProps) {
 								className="mt-1 text-sm"
 							>
 								<DropdownMenuItem onClick={() => setEditingCaption(true)}>
-									<Edit className="mr-2 size-4" /> Edit caption
+									<Edit className="mr-2 size-4" />{" "}
+									{m.editor_image_edit_caption_action()}
 								</DropdownMenuItem>
 								<DropdownMenuSub>
 									<DropdownMenuSubTrigger>
-										<ImageIcon className="mr-2 size-4" /> Replace image
+										<ImageIcon className="mr-2 size-4" />{" "}
+										{m.editor_image_replace_action()}
 									</DropdownMenuSubTrigger>
 									<DropdownMenuSubContent className="w-fit min-w-52 p-2">
 										<div className="space-y-4">
 											<div>
-												<p className="mb-2 font-medium text-xs">Upload image</p>
+												<p className="mb-2 font-medium text-xs">
+													{m.editor_image_upload_label()}
+												</p>
 												<input
 													ref={fileInputRef}
 													type="file"
@@ -413,12 +418,12 @@ function TiptapImage(props: NodeViewProps) {
 													{uploading ? (
 														<>
 															<Loader2 className="h-4 w-4 animate-spin" />
-															<span>Uploading...</span>
+															<span>{m.editor_image_uploading_label()}</span>
 														</>
 													) : (
 														<>
 															<ImageIcon className="h-4 w-4" />
-															<span>Choose image</span>
+															<span>{m.editor_image_choose_button()}</span>
 														</>
 													)}
 												</label>
@@ -430,7 +435,9 @@ function TiptapImage(props: NodeViewProps) {
 											</div>
 
 											<div>
-												<p className="mb-2 font-medium text-xs">Or use a URL</p>
+												<p className="mb-2 font-medium text-xs">
+													{m.editor_image_url_label()}
+												</p>
 												<div className="space-y-2">
 													<Input
 														value={imageUrl}
@@ -444,17 +451,19 @@ function TiptapImage(props: NodeViewProps) {
 														disabled={!imageUrl}
 														size="sm"
 													>
-														Replace with URL
+														{m.editor_image_replace_with_url_button()}
 													</Button>
 												</div>
 											</div>
 
 											<div>
-												<p className="mb-2 font-medium text-xs">Alt text</p>
+												<p className="mb-2 font-medium text-xs">
+													{m.editor_image_alt_text_label()}
+												</p>
 												<Input
 													value={altText}
 													onChange={(e) => setAltText(e.target.value)}
-													placeholder="Alt text (optional)"
+													placeholder={m.editor_image_alt_text_placeholder()}
 													className="text-xs"
 												/>
 											</div>
@@ -474,14 +483,16 @@ function TiptapImage(props: NodeViewProps) {
 										}
 									}}
 								>
-									<Maximize className="mr-2 size-4" /> Full width
+									<Maximize className="mr-2 size-4" />{" "}
+									{m.editor_image_full_width_action()}
 								</DropdownMenuItem>
 								<DropdownMenuSeparator />
 								<DropdownMenuItem
 									className="text-destructive focus:text-destructive"
 									onClick={deleteNode}
 								>
-									<Trash className="mr-2 size-4" /> Delete image
+									<Trash className="mr-2 size-4" />{" "}
+									{m.editor_image_delete_action()}
 								</DropdownMenuItem>
 							</DropdownMenuContent>
 						</DropdownMenu>

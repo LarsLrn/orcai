@@ -20,6 +20,7 @@ import {
 } from "@/components/ui/dropdown-menu";
 import { useDeactivateQuotaPoolMutation } from "@/hooks/mutations/use-quota-mutations";
 import { formatNumber } from "@/lib/presentation/format-number";
+import { m } from "@/paraglide/messages";
 
 type QuotaPoolListRow = z.infer<typeof quotaPoolListRowSchema>;
 
@@ -30,11 +31,11 @@ const formatAmount = (value: number | null | undefined) => {
 const formatPeriodType = (value: QuotaPoolListRow["periodType"]) => {
 	switch (value) {
 		case "weekly":
-			return "Weekly";
+			return m.quotas_period_weekly_label();
 		case "monthly":
-			return "Monthly";
+			return m.quotas_period_monthly_label();
 		case "yearly":
-			return "Yearly";
+			return m.quotas_period_yearly_label();
 		default:
 			return value;
 	}
@@ -46,7 +47,10 @@ export const quotaPoolTableColumns = columnHelper.columns([
 	columnHelper.accessor("name", {
 		size: 320,
 		header: ({ column }) => (
-			<DataTableColumnHeader column={column} title="Pool" />
+			<DataTableColumnHeader
+				column={column}
+				title={m.quotas_table_pool_column_header()}
+			/>
 		),
 		cell: ({ row }) => (
 			<div className="min-w-0 space-y-1">
@@ -67,7 +71,10 @@ export const quotaPoolTableColumns = columnHelper.columns([
 	}),
 	columnHelper.accessor("periodType", {
 		header: ({ column }) => (
-			<DataTableColumnHeader column={column} title="Period" />
+			<DataTableColumnHeader
+				column={column}
+				title={m.quotas_table_period_column_header()}
+			/>
 		),
 		cell: ({ row }) => formatPeriodType(row.original.periodType),
 	}),
@@ -75,7 +82,10 @@ export const quotaPoolTableColumns = columnHelper.columns([
 		id: "budget",
 		enableSorting: false,
 		header: ({ column }) => (
-			<DataTableColumnHeader column={column} title="Budget" />
+			<DataTableColumnHeader
+				column={column}
+				title={m.quotas_table_budget_column_header()}
+			/>
 		),
 		cell: ({ row }) => (
 			<div className="text-right">
@@ -88,7 +98,10 @@ export const quotaPoolTableColumns = columnHelper.columns([
 		size: 200,
 		enableSorting: false,
 		header: ({ column }) => (
-			<DataTableColumnHeader column={column} title="Consumed" />
+			<DataTableColumnHeader
+				column={column}
+				title={m.quotas_table_consumed_column_header()}
+			/>
 		),
 		cell: ({ row }) => (
 			<QuotaConsumption
@@ -102,7 +115,10 @@ export const quotaPoolTableColumns = columnHelper.columns([
 		id: "remaining",
 		enableSorting: false,
 		header: ({ column }) => (
-			<DataTableColumnHeader column={column} title="Remaining" />
+			<DataTableColumnHeader
+				column={column}
+				title={m.quotas_table_remaining_column_header()}
+			/>
 		),
 		cell: ({ row }) => (
 			<QuotaRemaining
@@ -116,15 +132,20 @@ export const quotaPoolTableColumns = columnHelper.columns([
 		id: "status",
 		enableSorting: false,
 		header: ({ column }) => (
-			<DataTableColumnHeader column={column} title="Status" />
+			<DataTableColumnHeader
+				column={column}
+				title={m.common_status_column_header()}
+			/>
 		),
 		cell: ({ row }) => (
 			<div className="flex flex-wrap items-center gap-1">
 				<Badge variant={row.original.isActive ? "success" : "secondary"}>
-					{row.original.isActive ? "Active" : "Inactive"}
+					{row.original.isActive
+						? m.common_status_active_label()
+						: m.common_status_inactive_label()}
 				</Badge>
 				{row.original.isDefault ? (
-					<Badge variant="outline">Default</Badge>
+					<Badge variant="outline">{m.quotas_table_default_badge()}</Badge>
 				) : null}
 			</div>
 		),
@@ -139,7 +160,7 @@ export const quotaPoolTableColumns = columnHelper.columns([
 				<DropdownMenuTrigger
 					render={
 						<Button variant="ghost" className="size-8 p-0">
-							<span className="sr-only">Open menu</span>
+							<span className="sr-only">{m.common_row_menu_trigger()}</span>
 							<MoreHorizontal className="size-4" />
 						</Button>
 					}
@@ -151,7 +172,9 @@ export const quotaPoolTableColumns = columnHelper.columns([
 							quotaPoolId: row.original.id,
 						}}
 					>
-						<DropdownMenuItem>View pool</DropdownMenuItem>
+						<DropdownMenuItem>
+							{m.quotas_table_view_menu_item()}
+						</DropdownMenuItem>
 					</Link>
 					<Link
 						to="/app/quotas/$quotaPoolId/edit"
@@ -159,7 +182,9 @@ export const quotaPoolTableColumns = columnHelper.columns([
 							quotaPoolId: row.original.id,
 						}}
 					>
-						<DropdownMenuItem>Edit pool</DropdownMenuItem>
+						<DropdownMenuItem>
+							{m.quotas_table_edit_menu_item()}
+						</DropdownMenuItem>
 					</Link>
 					<DropdownMenuSeparator />
 					<DeactivateItem pool={row.original} />
@@ -182,7 +207,7 @@ const DeactivateItem = ({ pool }: { pool: QuotaPoolListRow }) => {
 				})
 			}
 		>
-			Deactivate pool
+			{m.quotas_table_deactivate_menu_item()}
 		</DropdownMenuItem>
 	);
 };

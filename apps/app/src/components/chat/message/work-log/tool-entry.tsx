@@ -10,7 +10,8 @@ import {
 	CollapsibleTrigger,
 } from "@/components/ui/collapsible";
 import { cn } from "@/lib/utils";
-import { isFailedStatus, toolStatus, toolStatusLabels } from "./tool-status";
+import { m } from "@/paraglide/messages";
+import { isFailedStatus, toolStatus, toolStatusLabel } from "./tool-status";
 
 interface ToolEntryProps {
 	part: ToolPart;
@@ -42,12 +43,18 @@ export const ToolEntry = ({
 						variant={isFailedStatus(status) ? "danger" : "outline"}
 						className="shrink-0"
 					>
-						{toolStatusLabels[status]}
+						{toolStatusLabel(status)}
 					</Badge>
 				)}
 			</div>
 			{children}
-			<ToolDetails label={showsRawResult ? "Details" : "Parameters"}>
+			<ToolDetails
+				label={
+					showsRawResult
+						? m.chat_work_log_tool_details_label()
+						: m.chat_work_log_tool_parameters_label()
+				}
+			>
 				<ToolInput
 					input={part.input}
 					rawInput={"rawInput" in part ? part.rawInput : undefined}

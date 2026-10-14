@@ -27,6 +27,7 @@ import {
 } from "@/components/ui/shell/resource-card";
 import { hasCapability } from "@/lib/authz/capabilities";
 import { formatDisplayDate } from "@/lib/presentation/format-timestamp";
+import { m } from "@/paraglide/messages";
 
 const BotCard = ({
 	bot,
@@ -42,7 +43,7 @@ const BotCard = ({
 	const meta: ResourceCardMetaItem[] = [];
 	if (bot.createdAt) {
 		meta.push({
-			label: "Created",
+			label: m.bots_card_created_meta_label(),
 			value: formatDisplayDate(bot.createdAt),
 		});
 	}
@@ -50,7 +51,7 @@ const BotCard = ({
 	const footerActions: ResourceCardActionItem[] = actions?.footer ?? [
 		{
 			key: "view",
-			label: "View",
+			label: m.bots_card_view_action(),
 			icon: EyeIcon,
 			linkProps: {
 				to: "/app/hub/bots/$botId",
@@ -63,7 +64,7 @@ const BotCard = ({
 			? [
 					{
 						key: "edit",
-						label: "Edit bot",
+						label: m.bots_card_edit_action(),
 						icon: EditIcon,
 						variant: "outline",
 						linkProps: {
@@ -81,7 +82,10 @@ const BotCard = ({
 
 	const badges: ResourceCardBadgeItem[] = [
 		{
-			label: bot.status === "ready" ? "Published" : "Draft",
+			label:
+				bot.status === "ready"
+					? m.bots_card_published_badge()
+					: m.bots_card_draft_badge(),
 			variant: bot.status === "ready" ? "success" : "outline",
 		},
 		{

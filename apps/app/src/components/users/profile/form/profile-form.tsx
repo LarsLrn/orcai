@@ -3,6 +3,7 @@ import { useRouteContext } from "@tanstack/react-router";
 import { profileFormOptions } from "@/components/users/profile/form/profile-form-options";
 import { useAppForm } from "@/hooks/form";
 import { useUpdateProfileMutation } from "@/hooks/mutations/use-profile-mutations";
+import { m } from "@/paraglide/messages";
 
 const ProfileForm = () => {
 	const { auth } = useRouteContext({
@@ -36,12 +37,15 @@ const ProfileForm = () => {
 			<form.AppField
 				name="name"
 				children={(field) => (
-					<field.TextField label="Name" placeholder="Your name" />
+					<field.TextField
+						label={m.users_profile_form_name_label()}
+						placeholder={m.users_profile_form_name_placeholder()}
+					/>
 				)}
 			/>
 
 			<form.AppForm>
-				<form.SubmitButton label="Save Profile" />
+				<form.SubmitButton label={m.users_profile_form_submit_button()} />
 			</form.AppForm>
 		</form>
 	);

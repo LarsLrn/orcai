@@ -1,5 +1,6 @@
 import { useLayoutEffect, useRef, useState } from "react";
 import { cn } from "@/lib/utils";
+import { m } from "@/paraglide/messages";
 
 /** Plain text clamped to three lines, with a toggle once it overflows. */
 export const ClampedText = ({
@@ -49,7 +50,9 @@ export const ClampedText = ({
 					onClick={() => setExpanded((value) => !value)}
 					className="mt-1 text-muted-foreground text-xs transition-colors duration-150 hover:text-foreground"
 				>
-					{expanded ? "Show less" : "Show more"}
+					{expanded
+						? m.chat_work_log_clamped_text_show_less()
+						: m.chat_work_log_clamped_text_show_more()}
 				</button>
 			)}
 		</div>

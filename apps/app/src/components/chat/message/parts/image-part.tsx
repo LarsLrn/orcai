@@ -1,6 +1,7 @@
 import { DownloadIcon, ImageIcon } from "lucide-react";
 import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
+import { m } from "@/paraglide/messages";
 
 interface ImagePartProps {
 	url: string;
@@ -36,9 +37,9 @@ export const ImagePart = ({ url, alt }: ImagePartProps) => {
 			document.body.removeChild(link);
 			URL.revokeObjectURL(downloadUrl);
 
-			toast.success("Image downloaded");
+			toast.success(m.chat_image_part_download_toast_success());
 		} catch (_error) {
-			toast.error("The image was not downloaded. Try again.");
+			toast.error(m.chat_image_part_download_toast_error());
 		}
 	};
 
@@ -46,7 +47,7 @@ export const ImagePart = ({ url, alt }: ImagePartProps) => {
 		<div className="mb-6 space-y-4">
 			<div className="flex items-center space-x-2 text-muted-foreground text-sm">
 				<ImageIcon className="h-4 w-4" />
-				<span>Generated image</span>
+				<span>{m.chat_image_part_label()}</span>
 			</div>
 
 			<div className="group relative overflow-hidden rounded-xl border bg-muted/20 shadow-sm transition-all hover:shadow-md">
@@ -62,7 +63,7 @@ export const ImagePart = ({ url, alt }: ImagePartProps) => {
 					variant="default"
 					className="absolute top-2 right-2 h-8 w-8 p-0 opacity-0 shadow-lg backdrop-blur-sm transition-opacity duration-200 group-hover:opacity-100"
 					onClick={() => handleDownloadImage(url, alt)}
-					title="Download image"
+					title={m.chat_image_part_download_action()}
 				>
 					<DownloadIcon className="h-4 w-4" />
 				</Button>

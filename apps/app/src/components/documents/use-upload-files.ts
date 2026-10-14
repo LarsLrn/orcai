@@ -11,6 +11,7 @@ import {
 import { useMutation } from "@tanstack/react-query";
 import { useCallback, useMemo, useState } from "react";
 import { orpc } from "@/lib/orpc/orpc";
+import { m } from "@/paraglide/messages";
 
 const CLIENT_UPLOAD_ERROR_TYPES = [
 	"unknown",
@@ -67,7 +68,7 @@ const toClientUploadError = (error: unknown): ClientUploadError => {
 
 	return {
 		type: "unknown",
-		message: "The files were not uploaded. Try again.",
+		message: m.assets_upload_unknown_error(),
 	};
 };
 
@@ -83,10 +84,11 @@ const toStringMetadata = (metadata?: ServerMetadata) =>
 			)
 		: undefined;
 
-const noFilesError = {
-	type: "no_files",
-	message: "No files to upload.",
-} as const;
+const createNoFilesError = () =>
+	({
+		type: "no_files",
+		message: m.assets_upload_no_files_error(),
+	}) as const;
 
 export function useUploadFiles({
 	route = "asset",
@@ -203,6 +205,7 @@ export function useUploadFiles({
 			const fileArray = Array.from(files);
 
 			if (fileArray.length === 0) {
+				const noFilesError = createNoFilesError();
 				onError?.(noFilesError);
 				setError(noFilesError);
 				throw new ClientUploadErrorClass(noFilesError);
@@ -218,6 +221,7 @@ export function useUploadFiles({
 
 					if (Array.isArray(callbackResult)) {
 						if (callbackResult.length === 0) {
+							const noFilesError = createNoFilesError();
 							onError?.(noFilesError);
 							setError(noFilesError);
 							throw new ClientUploadErrorClass(noFilesError);

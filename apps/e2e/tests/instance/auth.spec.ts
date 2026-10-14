@@ -1,4 +1,5 @@
 import { expect, test } from "../../fixtures/index";
+import { message } from "../../fixtures/messages";
 import { open } from "../../fixtures/navigation";
 
 test.describe.configure({
@@ -15,7 +16,7 @@ test("the init page is gone once the instance is initialised", async ({
 	await expect(page).toHaveURL(/\/login/);
 	await expect(
 		page.getByRole("button", {
-			name: "Login",
+			name: message("auth_signin_form_submit_button"),
 		}),
 	).toBeVisible();
 });
@@ -28,7 +29,7 @@ test("the root path sends a signed-out visitor to the login page", async ({
 	await expect(page).toHaveURL(/\/login/);
 	await expect(
 		page.getByRole("button", {
-			name: "Login",
+			name: message("auth_signin_form_submit_button"),
 		}),
 	).toBeVisible();
 });
@@ -41,7 +42,7 @@ test("instance management sends a signed-out visitor to the login page", async (
 	await expect(page).toHaveURL(/\/login/);
 	await expect(
 		page.getByRole("button", {
-			name: "Login",
+			name: message("auth_signin_form_submit_button"),
 		}),
 	).toBeVisible();
 });

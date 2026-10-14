@@ -1,12 +1,13 @@
 import { expect, type Page } from "@playwright/test";
 import type { Role } from "../constants";
+import { message } from "../messages";
 
 /** What the app calls each organisation role on screen. */
 export const ROLE_LABELS: Record<Role, string> = {
-	admin: "Admin",
-	manager: "Manager",
-	member: "Member",
-	viewer: "Viewer",
+	admin: message("orgs_role_admin_label"),
+	manager: message("orgs_role_manager_label"),
+	member: message("orgs_role_member_label"),
+	viewer: message("orgs_role_viewer_label"),
 };
 
 /** The role picker button, named after the role it currently shows. */

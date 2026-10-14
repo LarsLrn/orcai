@@ -7,20 +7,18 @@ import { NextStepCard } from "@/components/next-step/next-step-card";
 import { useSidebar } from "@/components/ui/sidebar";
 import { useUmami } from "@/hooks/use-umami";
 import { orpc } from "@/lib/orpc/orpc";
+import { m } from "@/paraglide/messages";
 
-const nextStepTours: Tour[] = [
+const FEEDBACK_EMAIL = "sokratest@hochschule-rhein-waal.de";
+
+const buildNextStepTours = (): Tour[] => [
 	{
 		tour: "initialTour",
 		steps: [
 			{
 				icon: null,
-				title: "Welcome to OrcAI",
-				content: (
-					<>
-						Let&apos;s take a quick tour through the app. Click &quot;Next&quot;
-						to proceed.
-					</>
-				),
+				title: m.next_step_initial_welcome_title(),
+				content: <>{m.next_step_initial_welcome_content()}</>,
 				side: "right",
 				showControls: true,
 				showSkip: true,
@@ -29,13 +27,8 @@ const nextStepTours: Tour[] = [
 			},
 			{
 				icon: null,
-				title: "Sidebar",
-				content: (
-					<>
-						The sidebar gives you quick access to your chats, workspace, and
-						account settings.
-					</>
-				),
+				title: m.next_step_initial_sidebar_title(),
+				content: <>{m.next_step_initial_sidebar_content()}</>,
 				side: "right",
 				showControls: true,
 				showSkip: true,
@@ -44,13 +37,8 @@ const nextStepTours: Tour[] = [
 			},
 			{
 				icon: null,
-				title: "Start a chat",
-				content: (
-					<>
-						Use the button at the top of the sidebar to start a chat at any
-						time.
-					</>
-				),
+				title: m.next_step_initial_start_chat_title(),
+				content: <>{m.next_step_initial_start_chat_content()}</>,
 				side: "top-right",
 				showControls: true,
 				showSkip: true,
@@ -59,13 +47,8 @@ const nextStepTours: Tour[] = [
 			},
 			{
 				icon: null,
-				title: "Chat history",
-				content: (
-					<>
-						Your previous chats will appear here. To keep the list organised,
-						you can delete or rename chats.
-					</>
-				),
+				title: m.next_step_initial_chat_history_title(),
+				content: <>{m.next_step_initial_chat_history_content()}</>,
 				side: "top-left",
 				showControls: true,
 				showSkip: true,
@@ -74,12 +57,8 @@ const nextStepTours: Tour[] = [
 			},
 			{
 				icon: null,
-				title: "Account",
-				content: (
-					<>
-						You can manage your account settings, access grants and more here.
-					</>
-				),
+				title: m.next_step_initial_account_title(),
+				content: <>{m.next_step_initial_account_content()}</>,
 				side: "top",
 				showControls: true,
 				showSkip: true,
@@ -88,18 +67,16 @@ const nextStepTours: Tour[] = [
 			},
 			{
 				icon: null,
-				title: "You are all set",
+				title: m.next_step_initial_complete_title(),
 				content: (
 					<>
-						You are ready to explore the workspace. Build bots, add material to
-						the Library, or continue chats whenever you need them. The project
-						team is also looking forward to your feedback on the experience.
+						{m.next_step_initial_complete_content()}
 						<br />
 						<a
 							className="text-accent text-sm"
-							href="mailto:sokratest@hochschule-rhein-waal.de"
+							href={`mailto:${FEEDBACK_EMAIL}`}
 						>
-							sokratest@hochschule-rhein-waal.de
+							{FEEDBACK_EMAIL}
 						</a>
 					</>
 				),
@@ -117,14 +94,8 @@ const nextStepTours: Tour[] = [
 		steps: [
 			{
 				icon: null,
-				title: "Chat",
-				content: (
-					<>
-						Now that you have received your first response, you may want to take
-						a quick tour around the chat interface. Click &quot;Next&quot; to
-						proceed.
-					</>
-				),
+				title: m.next_step_chat_intro_title(),
+				content: <>{m.next_step_chat_intro_content()}</>,
 				showControls: true,
 				showSkip: true,
 				pointerPadding: 10,
@@ -132,20 +103,8 @@ const nextStepTours: Tour[] = [
 			},
 			{
 				icon: null,
-				title: "References",
-				content: (
-					<>
-						A response usually includes references to related content that the
-						bot considered particularly relevant. Since these references are
-						automatically retrieved, please note that not all referenced
-						material is necessarily relevant. For technical reasons, these
-						references furthermore do not yet adhere to common citation
-						standards. The system may cite some sources in verbatim without
-						indicating so in the text. In any case, if the system references
-						material, it has definitely also used that material to generate the
-						response.
-					</>
-				),
+				title: m.next_step_chat_references_title(),
+				content: <>{m.next_step_chat_references_content()}</>,
 				side: "bottom",
 				showControls: true,
 				showSkip: true,
@@ -154,14 +113,8 @@ const nextStepTours: Tour[] = [
 			},
 			{
 				icon: null,
-				title: "Rate responses",
-				content: (
-					<>
-						Please assess each response you receive by using the buttons below.
-						This will help to improve the bot, while it will not have a direct
-						impact on your current chat.
-					</>
-				),
+				title: m.next_step_chat_rating_title(),
+				content: <>{m.next_step_chat_rating_content()}</>,
 				side: "bottom",
 				showControls: true,
 				showSkip: true,
@@ -218,8 +171,8 @@ export const NextStepTours = ({ children }: { children: ReactNode }) => {
 					tourId: tourName,
 					state: "skipped",
 				}).catch(() => {
-					toast.error("The tour was not marked as skipped", {
-						description: "It may open again next time.",
+					toast.error(m.next_step_skip_toast_error(), {
+						description: m.next_step_skip_toast_error_description(),
 					});
 				});
 				trackEvent("tour-skipped", {
@@ -232,7 +185,7 @@ export const NextStepTours = ({ children }: { children: ReactNode }) => {
 	return (
 		<NextStepReact
 			navigationAdapter={useCustomAdapter}
-			steps={nextStepTours}
+			steps={buildNextStepTours()}
 			cardComponent={NextStepCard}
 			{...nextStepCallbacks}
 		>

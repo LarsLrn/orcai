@@ -7,6 +7,7 @@ import {
 import { createAccountUser, nameOf } from "../../fixtures/account/users";
 import { pageForSession } from "../../fixtures/auth/users";
 import { expect, test } from "../../fixtures/index";
+import { message } from "../../fixtures/messages";
 import { runId } from "../../fixtures/organisation";
 
 test("account: a user changes the display name through the profile card", async ({
@@ -37,9 +38,12 @@ test("account: a user changes the display name through the profile card", async 
 		await expect(userMenu(page, newName)).toBeVisible();
 		await expect(page.getByText(newName).first()).toBeVisible();
 		await expect(
-			accountCard(page, "Your Profile").getByLabel("Name", {
-				exact: true,
-			}),
+			accountCard(page, message("account_profile_card_title")).getByLabel(
+				message("users_profile_form_name_label"),
+				{
+					exact: true,
+				},
+			),
 		).toHaveValue(newName);
 	} finally {
 		await context.close();
@@ -65,8 +69,12 @@ test("account: saving the profile reports that it succeeded", async ({
 		await openAccountPage(page);
 		await saveProfileName(page, newName, user.api);
 
-		await expect(page.getByText("Profile updated successfully!")).toBeVisible();
-		await expect(page.getByText("Failed to update profile")).toHaveCount(0);
+		await expect(
+			page.getByText(message("account_profile_toast_success")),
+		).toBeVisible();
+		await expect(
+			page.getByText(message("account_profile_toast_error")),
+		).toHaveCount(0);
 	} finally {
 		await context.close();
 	}
@@ -89,7 +97,10 @@ test("account: an empty display name is refused", async ({
 	try {
 		await openAccountPage(page);
 
-		const name = accountCard(page, "Your Profile").getByLabel("Name", {
+		const name = accountCard(
+			page,
+			message("account_profile_card_title"),
+		).getByLabel(message("users_profile_form_name_label"), {
 			exact: true,
 		});
 
@@ -99,7 +110,7 @@ test("account: an empty display name is refused", async ({
 			await name.fill("");
 			await page
 				.getByRole("button", {
-					name: "Save Profile",
+					name: message("users_profile_form_submit_button"),
 				})
 				.click();
 			await expect(page.getByText("Name is required").first()).toBeVisible({

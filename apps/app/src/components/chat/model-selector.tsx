@@ -16,6 +16,7 @@ import {
 } from "@/components/ui/composed/dialog-select";
 import { orpc } from "@/lib/orpc/orpc";
 import { cn } from "@/lib/utils";
+import { m } from "@/paraglide/messages";
 
 const PROVIDER_PLACEHOLDER_VALUE = "__select-provider__";
 const MODEL_PAGE_SIZE = 20;
@@ -159,7 +160,8 @@ const ModelSelectorButton = ({
 
 	const selectedModel = selectedModelData?.data;
 
-	const triggerLabel = selectedModel?.name ?? "Choose model";
+	const triggerLabel =
+		selectedModel?.name ?? m.chat_model_selector_trigger_fallback_label();
 
 	return (
 		<DialogSelect
@@ -181,19 +183,19 @@ const ModelSelectorButton = ({
 						: "w-full justify-between",
 					className,
 				)}
-				placeholder="Choose model..."
+				placeholder={m.chat_model_selector_trigger_placeholder()}
 				size={variant === "compact" ? "sm" : "default"}
 			>
 				<span className="truncate">{triggerLabel}</span>
 			</DialogSelectTrigger>
-			<DialogSelectContent title="Choose a provider, then a chat model">
+			<DialogSelectContent title={m.chat_model_selector_dialog_title()}>
 				<DialogSelectSearch
 					value={modelSearch}
 					onValueChange={(value) => {
 						setModelSearch(value);
 						setModelPage(0);
 					}}
-					placeholder="Search models..."
+					placeholder={m.chat_model_selector_search_placeholder()}
 				/>
 				<DialogSelectFilters>
 					<DialogSelectFilter
@@ -203,7 +205,7 @@ const ModelSelectorButton = ({
 							setModelSearch("");
 							setModelPage(0);
 						}}
-						placeholder="Select a provider"
+						placeholder={m.chat_model_selector_provider_filter_placeholder()}
 						options={providerFilterOptions}
 					/>
 				</DialogSelectFilters>
@@ -217,7 +219,10 @@ const ModelSelectorButton = ({
 							title={model.name}
 							description={
 								model.description
-									? `${model.provider.name} • ${model.description}`
+									? m.chat_model_selector_item_description({
+											provider: model.provider.name,
+											description: model.description,
+										})
 									: model.provider.name
 							}
 						/>
@@ -225,8 +230,8 @@ const ModelSelectorButton = ({
 					{!modelsLoading && !modelsFetching && models.length === 0 && (
 						<DialogSelectEmpty>
 							{providerFilterId
-								? "No chat model matches. Try another provider or clear the search."
-								: "No chat model is available yet. An organisation admin can add a provider and a model under Administration."}
+								? m.chat_model_selector_empty_state()
+								: m.chat_model_selector_no_provider_empty_state()}
 						</DialogSelectEmpty>
 					)}
 				</DialogSelectList>

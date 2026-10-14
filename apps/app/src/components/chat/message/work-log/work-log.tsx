@@ -14,6 +14,7 @@ import {
 	CollapsibleTrigger,
 } from "@/components/ui/collapsible";
 import { cn } from "@/lib/utils";
+import { m } from "@/paraglide/messages";
 import { ReasoningEntry } from "./reasoning-entry";
 import { TextEntry } from "./text-entry";
 import { ToolEntryPart } from "./tool-entry-part";
@@ -45,13 +46,19 @@ const headerLabel = (entries: WorkEntry[], running: boolean) => {
 		last?.kind === "reasoning" &&
 		last.part.state === "streaming"
 	) {
-		return "Thinking";
+		return m.chat_work_log_thinking();
 	}
 
 	const failed = failedCount(entries, running);
-	const steps = `${entries.length} ${entries.length === 1 ? "step" : "steps"}`;
 
-	return failed > 0 ? `${steps} · ${failed} failed` : steps;
+	return failed > 0
+		? m.chat_work_log_header_steps_failed({
+				count: entries.length,
+				failed,
+			})
+		: m.chat_work_log_header_steps({
+				count: entries.length,
+			});
 };
 
 const EntryIcon = ({

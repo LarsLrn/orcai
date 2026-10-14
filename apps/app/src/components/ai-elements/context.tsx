@@ -14,6 +14,7 @@ import {
 	formatPercent,
 } from "@/lib/presentation/format-number";
 import { cn } from "@/lib/utils";
+import { m } from "@/paraglide/messages";
 
 const PERCENT_MAX = 100;
 const ICON_RADIUS = 10;
@@ -77,7 +78,7 @@ const ContextIcon = () => {
 
 	return (
 		<svg
-			aria-label="Model context usage"
+			aria-label={m.ai_elements_context_usage_aria_label()}
 			height="20"
 			role="img"
 			style={{
@@ -180,7 +181,9 @@ export const ContextContentHeader = ({
 			{children ??
 				(usedPercent === null ? (
 					<div className="flex items-center justify-between gap-3 text-xs">
-						<span className="text-muted-foreground">Tokens used</span>
+						<span className="text-muted-foreground">
+							{m.ai_elements_context_tokens_used_label()}
+						</span>
 						<span className="tabular-nums">{formatCount(usedTokens)}</span>
 					</div>
 				) : (
@@ -235,7 +238,9 @@ export const ContextContentFooter = ({
 		>
 			{children ?? (
 				<>
-					<span className="text-muted-foreground">Total tokens</span>
+					<span className="text-muted-foreground">
+						{m.ai_elements_context_total_tokens_label()}
+					</span>
 					<span>{usage?.totalTokens}</span>
 				</>
 			)}
@@ -266,7 +271,9 @@ export const ContextInputUsage = ({
 			className={cn("flex items-center justify-between text-xs", className)}
 			{...props}
 		>
-			<span className="text-muted-foreground">Input</span>
+			<span className="text-muted-foreground">
+				{m.ai_elements_context_input_label()}
+			</span>
 			<Tokens tokens={inputTokens} />
 		</div>
 	);
@@ -295,7 +302,9 @@ export const ContextOutputUsage = ({
 			className={cn("flex items-center justify-between text-xs", className)}
 			{...props}
 		>
-			<span className="text-muted-foreground">Output</span>
+			<span className="text-muted-foreground">
+				{m.ai_elements_context_output_label()}
+			</span>
 			<Tokens tokens={outputTokens} />
 		</div>
 	);
@@ -324,7 +333,9 @@ export const ContextReasoningUsage = ({
 			className={cn("flex items-center justify-between text-xs", className)}
 			{...props}
 		>
-			<span className="text-muted-foreground">Reasoning</span>
+			<span className="text-muted-foreground">
+				{m.ai_elements_context_reasoning_label()}
+			</span>
 			<Tokens tokens={reasoningTokens} />
 		</div>
 	);
@@ -353,7 +364,9 @@ export const ContextCacheUsage = ({
 			className={cn("flex items-center justify-between text-xs", className)}
 			{...props}
 		>
-			<span className="text-muted-foreground">Cache</span>
+			<span className="text-muted-foreground">
+				{m.ai_elements_context_cache_label()}
+			</span>
 			<Tokens tokens={cacheTokens} />
 		</div>
 	);

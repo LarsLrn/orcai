@@ -1,6 +1,7 @@
 import type { Asset, RetrievalMode } from "@orcai/schema";
 import { DatabaseBlockEditor } from "@/components/authoring/database-block-editor";
 import { withFieldGroup } from "@/hooks/form";
+import { m } from "@/paraglide/messages";
 
 const databaseBlockGroupDefaultValues = {
 	name: "",
@@ -72,7 +73,10 @@ const DatabaseBlockFieldGroup = withFieldGroup({
 					<group.AppField
 						name="name"
 						children={(field) => (
-							<field.TextField label="Name" placeholder="Course handbook" />
+							<field.TextField
+								label={m.common_name_label()}
+								placeholder={m.blocks_database_form_name_placeholder()}
+							/>
 						)}
 					/>
 				}
@@ -81,8 +85,8 @@ const DatabaseBlockFieldGroup = withFieldGroup({
 						name="description"
 						children={(field) => (
 							<field.TextareaField
-								label="Short description"
-								placeholder="Describe what this repository is used for."
+								label={m.blocks_database_form_description_label()}
+								placeholder={m.blocks_database_form_description_placeholder()}
 								rows={4}
 							/>
 						)}
@@ -93,7 +97,7 @@ const DatabaseBlockFieldGroup = withFieldGroup({
 						name="contentJson"
 						children={(field) => (
 							<field.BlockEditorField
-								label="Detailed description"
+								label={m.blocks_database_form_content_label()}
 								htmlFieldName="contentHtml"
 							/>
 						)}
@@ -103,7 +107,10 @@ const DatabaseBlockFieldGroup = withFieldGroup({
 					<group.AppField
 						name="minReferences"
 						children={(field) => (
-							<field.TextField label="Minimum references" type="number" />
+							<field.TextField
+								label={m.blocks_database_form_min_references_label()}
+								type="number"
+							/>
 						)}
 					/>
 				}
@@ -111,7 +118,10 @@ const DatabaseBlockFieldGroup = withFieldGroup({
 					<group.AppField
 						name="defaultReferences"
 						children={(field) => (
-							<field.TextField label="Default references" type="number" />
+							<field.TextField
+								label={m.blocks_database_form_default_references_label()}
+								type="number"
+							/>
 						)}
 					/>
 				}
@@ -119,7 +129,10 @@ const DatabaseBlockFieldGroup = withFieldGroup({
 					<group.AppField
 						name="maxReferences"
 						children={(field) => (
-							<field.TextField label="Maximum references" type="number" />
+							<field.TextField
+								label={m.blocks_database_form_max_references_label()}
+								type="number"
+							/>
 						)}
 					/>
 				}
@@ -127,7 +140,10 @@ const DatabaseBlockFieldGroup = withFieldGroup({
 					<group.AppField
 						name="candidateLimit"
 						children={(field) => (
-							<field.TextField label="Candidate limit" type="number" />
+							<field.TextField
+								label={m.blocks_database_form_candidate_limit_label()}
+								type="number"
+							/>
 						)}
 					/>
 				}
@@ -135,7 +151,10 @@ const DatabaseBlockFieldGroup = withFieldGroup({
 					<group.AppField
 						name="maxPerAsset"
 						children={(field) => (
-							<field.TextField label="Max per asset" type="number" />
+							<field.TextField
+								label={m.blocks_database_form_max_per_asset_label()}
+								type="number"
+							/>
 						)}
 					/>
 				}
@@ -144,7 +163,7 @@ const DatabaseBlockFieldGroup = withFieldGroup({
 						name="scoreThreshold"
 						children={(field) => (
 							<field.TextField
-								label="Score threshold"
+								label={m.blocks_database_form_score_threshold_label()}
 								type="number"
 								min={0}
 								max={1}
@@ -158,19 +177,19 @@ const DatabaseBlockFieldGroup = withFieldGroup({
 						name="retrievalMode"
 						children={(field) => (
 							<field.SelectField
-								label="Retrieval mode"
+								label={m.blocks_database_form_retrieval_mode_label()}
 								options={[
 									{
 										value: "hybrid",
-										label: "Hybrid",
+										label: m.blocks_retrieval_mode_hybrid_label(),
 									},
 									{
 										value: "dense",
-										label: "Dense",
+										label: m.blocks_retrieval_mode_dense_label(),
 									},
 									{
 										value: "sparse",
-										label: "Sparse",
+										label: m.blocks_retrieval_mode_sparse_label(),
 									},
 								]}
 							/>

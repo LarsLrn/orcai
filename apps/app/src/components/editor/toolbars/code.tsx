@@ -7,6 +7,7 @@ import {
 	TooltipTrigger,
 } from "@/components/ui/tooltip";
 import { cn } from "@/lib/utils";
+import { m } from "@/paraglide/messages";
 import { useToolbar } from "./toolbar-provider";
 
 const CodeToolbar = ({
@@ -41,7 +42,7 @@ const CodeToolbar = ({
 				}
 			/>
 			<TooltipContent>
-				<span>Code</span>
+				<span>{m.editor_toolbar_code_tooltip()}</span>
 			</TooltipContent>
 		</Tooltip>
 	);

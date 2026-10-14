@@ -15,7 +15,15 @@ import {
 } from "@/components/ui/hover-card";
 import { formatPageRange } from "@/lib/ai/tools/rag/format-page-range";
 import { cn } from "@/lib/utils";
+import { m } from "@/paraglide/messages";
+import { getLocale } from "@/paraglide/runtime";
 import { DisplayPointImage } from "./display-point-image";
+
+const formatScore = (score: number) =>
+	new Intl.NumberFormat(getLocale(), {
+		minimumFractionDigits: 3,
+		maximumFractionDigits: 3,
+	}).format(score);
 
 const DisplayPoint = ({ point }: { point: AssetPoint }) => {
 	const { id, payload, score } = point;
@@ -54,22 +62,30 @@ const DisplayPoint = ({ point }: { point: AssetPoint }) => {
 					</div>
 					{hasScore && (
 						<Badge variant="secondary" className="mt-1 font-mono text-xs">
-							Score {score.toFixed(3)}
+							{m.assets_point_score_badge({
+								score: formatScore(score),
+							})}
 						</Badge>
 					)}
 				</div>
 				<div className="flex flex-wrap items-center gap-2 text-xs">
 					<Badge variant="outline" className="font-mono">
-						Point {id}
+						{m.assets_point_id_badge({
+							id,
+						})}
 					</Badge>
 					{payload.block_id && (
 						<Badge variant="outline" className="font-mono">
-							Block {payload.block_id}
+							{m.assets_point_block_badge({
+								id: payload.block_id,
+							})}
 						</Badge>
 					)}
 					{payload.asset_id && (
 						<Badge variant="outline" className="font-mono">
-							Asset {payload.asset_id}
+							{m.assets_point_asset_badge({
+								id: payload.asset_id,
+							})}
 						</Badge>
 					)}
 					<HoverCard>
@@ -79,14 +95,14 @@ const DisplayPoint = ({ point }: { point: AssetPoint }) => {
 									variant="outline"
 									className="cursor-pointer border border-dashed text-muted-foreground"
 								>
-									Details
+									{m.assets_point_details_badge()}
 								</Badge>
 							}
 						/>
 						<HoverCardContent className="space-y-2">
 							{typeof payload.depth === "number" && (
 								<div className="flex items-center justify-between text-muted-foreground text-sm">
-									<span>Depth</span>
+									<span>{m.assets_point_depth_label()}</span>
 									<span className="font-medium text-foreground">
 										{payload.depth}
 									</span>
@@ -95,7 +111,7 @@ const DisplayPoint = ({ point }: { point: AssetPoint }) => {
 							{typeof payload.chunk_index === "number" &&
 								payload.chunkCount != null && (
 									<div className="flex items-center justify-between text-muted-foreground text-sm">
-										<span>Chunk</span>
+										<span>{m.assets_point_chunk_label()}</span>
 										<span className="font-medium text-foreground">
 											{payload.chunk_index + 1} / {payload.chunkCount}
 										</span>
@@ -103,7 +119,7 @@ const DisplayPoint = ({ point }: { point: AssetPoint }) => {
 								)}
 							{typeof payload.tokens === "number" && (
 								<div className="flex items-center justify-between text-muted-foreground text-sm">
-									<span>Tokens</span>
+									<span>{m.assets_point_tokens_label()}</span>
 									<span className="font-medium text-foreground">
 										{payload.tokens}
 									</span>
@@ -111,7 +127,7 @@ const DisplayPoint = ({ point }: { point: AssetPoint }) => {
 							)}
 							{pageRange && (
 								<div className="flex items-center justify-between text-muted-foreground text-sm">
-									<span>Pages</span>
+									<span>{m.assets_point_pages_label()}</span>
 									<span className="font-medium text-foreground">
 										{pageRange}
 									</span>

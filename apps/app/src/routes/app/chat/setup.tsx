@@ -33,12 +33,13 @@ import {
 	PageHeader,
 	PageTitle,
 } from "@/components/ui/shell/page";
+import { m } from "@/paraglide/messages";
 
 export const Route = createFileRoute("/app/chat/setup")({
 	head: () => ({
 		meta: [
 			{
-				title: "Start a chat",
+				title: m.chat_setup_page_title(),
 			},
 		],
 	}),
@@ -53,10 +54,8 @@ function RouteComponent() {
 	return (
 		<Page>
 			<PageHeader className="text-center">
-				<PageTitle>Start a chat</PageTitle>
-				<PageDescription>
-					Choose whether to chat with a bot or chat with the model alone.
-				</PageDescription>
+				<PageTitle>{m.chat_setup_page_title()}</PageTitle>
+				<PageDescription>{m.chat_setup_page_description()}</PageDescription>
 			</PageHeader>
 
 			<PageContent className="grid gap-6 md:grid-cols-2">
@@ -70,20 +69,22 @@ function RouteComponent() {
 									<div className="mx-auto mb-4 flex h-16 w-16 items-center justify-center rounded-full bg-primary/10 transition-colors group-hover:bg-primary/20">
 										<BotIcon className="h-8 w-8 text-primary" />
 									</div>
-									<CardTitle className="text-xl">Use a bot</CardTitle>
+									<CardTitle className="text-xl">
+										{m.chat_setup_bot_card_title()}
+									</CardTitle>
 									<CardDescription>
-										Start with a configured bot tailored to a specific use case
+										{m.chat_setup_bot_card_description()}
 									</CardDescription>
 								</CardHeader>
 								<CardContent>
 									<div className="space-y-2 text-muted-foreground text-sm">
 										<div className="flex items-center gap-2">
 											<SparklesIcon className="h-4 w-4" />
-											<span>Ready-to-use setups</span>
+											<span>{m.chat_setup_bot_card_point_ready()}</span>
 										</div>
 										<div className="flex items-center gap-2">
 											<UserIcon className="h-4 w-4" />
-											<span>Configured behaviour and content access</span>
+											<span>{m.chat_setup_bot_card_point_configured()}</span>
 										</div>
 									</div>
 								</CardContent>
@@ -93,9 +94,9 @@ function RouteComponent() {
 
 					<DialogContent className="flex max-h-[80vh] max-w-2xl flex-col">
 						<DialogHeader>
-							<DialogTitle>Select a bot</DialogTitle>
+							<DialogTitle>{m.chat_setup_bot_dialog_title()}</DialogTitle>
 							<DialogDescription>
-								Choose from the bots available in your workspace
+								{m.chat_setup_bot_dialog_description()}
 							</DialogDescription>
 						</DialogHeader>
 
@@ -104,7 +105,7 @@ function RouteComponent() {
 						{/* Action Buttons */}
 						<div className="flex justify-end gap-3 border-t pt-4">
 							<Button variant="outline" onClick={() => setDialogOpen(false)}>
-								Cancel
+								{m.common_cancel_button()}
 							</Button>
 							<Button
 								disabled={!selectedBot}
@@ -117,7 +118,7 @@ function RouteComponent() {
 									})
 								}
 							>
-								Start chat
+								{m.chat_setup_bot_dialog_start_action()}
 							</Button>
 						</div>
 					</DialogContent>
@@ -137,21 +138,22 @@ function RouteComponent() {
 							<div className="mx-auto mb-4 flex h-16 w-16 items-center justify-center rounded-full bg-secondary/10 transition-colors group-hover:bg-secondary/20">
 								<MessageSquarePlusIcon className="h-8 w-8 text-primary" />
 							</div>
-							<CardTitle className="text-xl">Chat without a bot</CardTitle>
+							<CardTitle className="text-xl">
+								{m.chat_setup_solo_card_title()}
+							</CardTitle>
 							<CardDescription>
-								Answers come from the model alone, with no configured behaviour
-								or content
+								{m.chat_setup_solo_card_description()}
 							</CardDescription>
 						</CardHeader>
 						<CardContent>
 							<div className="space-y-2 text-muted-foreground text-sm">
 								<div className="flex items-center gap-2">
 									<MessageSquarePlusIcon className="h-4 w-4" />
-									<span>Answers from the model's own knowledge</span>
+									<span>{m.chat_setup_solo_card_point_knowledge()}</span>
 								</div>
 								<div className="flex items-center gap-2">
 									<SparklesIcon className="h-4 w-4" />
-									<span>You choose the model</span>
+									<span>{m.chat_setup_solo_card_point_model()}</span>
 								</div>
 							</div>
 						</CardContent>
@@ -162,11 +164,7 @@ function RouteComponent() {
 			<Separator className="my-2" />
 
 			<PageFooter className="text-center text-muted-foreground text-sm">
-				<p>
-					Bots are best when someone else has already configured AI behaviour or
-					relevant content for you. Chatting without a bot is best when you want
-					to explore freely.
-				</p>
+				<p>{m.chat_setup_footer_note()}</p>
 			</PageFooter>
 		</Page>
 	);

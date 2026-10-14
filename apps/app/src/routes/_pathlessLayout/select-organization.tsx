@@ -101,9 +101,11 @@ function PendingInvitationsSection({
 	return (
 		<Card>
 			<CardContent>
-				<h2 className="font-semibold text-xl">Pending invitations</h2>
+				<h2 className="font-semibold text-xl">
+					{m.select_organisation_page_pending_invitations_title()}
+				</h2>
 				<p className="mt-1 mb-4 text-muted-foreground text-sm">
-					Accept an invitation to join an organisation.
+					{m.select_organisation_page_pending_invitations_description()}
 				</p>
 				<OrganizationInvitationsList mode="pending" onAccepted={onAccepted} />
 			</CardContent>
@@ -150,7 +152,7 @@ function RouteComponent() {
 						variant: "link",
 					})}
 				>
-					Manage instance
+					{m.select_organisation_page_manage_instance_link()}
 				</Link>
 			)}
 			<div className="space-y-2 text-center">
@@ -158,7 +160,7 @@ function RouteComponent() {
 					{m.select_organisation_page_title()}
 				</h1>
 				<p className="text-lg text-muted-foreground">
-					You can switch to a different organisation at any time.
+					{m.select_organisation_page_subtitle()}
 				</p>
 			</div>
 
@@ -166,7 +168,7 @@ function RouteComponent() {
 				<div className="flex justify-center">
 					<DataTableSearch
 						value={search}
-						placeholder="Filter by name"
+						placeholder={m.select_organisation_page_search_placeholder()}
 						onChange={(value) => {
 							setSearch(value);
 							setPageCount(1);
@@ -198,7 +200,7 @@ function RouteComponent() {
 						disabled={isFetching}
 						onClick={() => setPageCount((count) => count + 1)}
 					>
-						Load more organisations
+						{m.select_organisation_page_load_more_button()}
 					</Button>
 				</div>
 			) : null}
@@ -209,7 +211,9 @@ function RouteComponent() {
 
 			{rowCount === 0 && trimmedSearch ? (
 				<p className="text-center text-muted-foreground text-sm">
-					No organisation matches "{trimmedSearch}".
+					{m.select_organisation_page_no_match({
+						search: trimmedSearch,
+					})}
 				</p>
 			) : null}
 
@@ -220,11 +224,10 @@ function RouteComponent() {
 							<BuildingIcon className="h-8 w-8 text-muted-foreground" />
 						</div>
 						<p className="mb-4 text-lg text-muted-foreground">
-							No organisations available yet
+							{m.select_organisation_page_empty_title()}
 						</p>
 						<p className="text-muted-foreground text-sm">
-							Accept an invitation above or contact your administrator to get
-							access.
+							{m.select_organisation_page_empty_description()}
 						</p>
 					</CardContent>
 				</Card>

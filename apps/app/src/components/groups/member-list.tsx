@@ -2,6 +2,7 @@ import type { GroupMemberRow } from "@orcai/schema";
 import { UsersIcon } from "lucide-react";
 import { MemberRow } from "@/components/groups/member-row";
 import { FilterableList } from "@/components/ui/composed/filterable-list";
+import { m } from "@/paraglide/messages";
 
 const MemberList = ({
 	members,
@@ -19,13 +20,13 @@ const MemberList = ({
 	onRemove: (member: GroupMemberRow) => void;
 }) => (
 	<FilterableList
-		title="Current members"
+		title={m.groups_member_list_title()}
 		icon={UsersIcon}
 		search={search}
 		onSearchChange={onSearchChange}
-		placeholder="Filter members"
+		placeholder={m.groups_member_list_filter_placeholder()}
 		isEmpty={members.length === 0}
-		emptyText="No members found."
+		emptyText={m.groups_member_list_empty_state_description()}
 	>
 		{members.map((member) => (
 			<MemberRow

@@ -31,6 +31,7 @@ import {
 import { useDeleteBotsMutation } from "@/hooks/mutations/use-bot-mutations";
 import { hasCapability } from "@/lib/authz/capabilities";
 import { orpc } from "@/lib/orpc/orpc";
+import { m } from "@/paraglide/messages";
 
 export const Route = createFileRoute("/app/hub/bots/$botId/")({
 	component: RouteComponent,
@@ -119,7 +120,7 @@ function RouteComponent() {
 				<PageDescription>{bot.data.description}</PageDescription>
 				{bot.data.status === "draft" ? (
 					<div>
-						<Badge variant="outline">Draft</Badge>
+						<Badge variant="outline">{m.bots_detail_draft_badge()}</Badge>
 					</div>
 				) : null}
 				<PageAction>
@@ -134,7 +135,7 @@ function RouteComponent() {
 								})
 							}
 						>
-							Start chat
+							{m.bots_detail_start_chat_action()}
 						</Button>
 					) : null}
 					{hasMenuActions ? (
@@ -143,7 +144,9 @@ function RouteComponent() {
 								render={
 									<Button variant="ghost" size="icon">
 										<MoreVerticalIcon className="size-4" />
-										<span className="sr-only">More options</span>
+										<span className="sr-only">
+											{m.bots_detail_more_options_aria_label()}
+										</span>
 									</Button>
 								}
 							/>
@@ -151,7 +154,7 @@ function RouteComponent() {
 								{canManageAccess ? (
 									<DropdownMenuItem onClick={() => setIsAccessOpen(true)}>
 										<KeyRoundIcon className="size-4" />
-										Access & Groups
+										{m.bots_detail_access_action()}
 									</DropdownMenuItem>
 								) : null}
 								{canEdit ? (
@@ -166,7 +169,7 @@ function RouteComponent() {
 										}
 									>
 										<EditIcon />
-										Edit bot
+										{m.bots_detail_edit_action()}
 									</DropdownMenuItem>
 								) : null}
 								{canDelete ? <DropdownMenuSeparator /> : null}
@@ -184,7 +187,7 @@ function RouteComponent() {
 										}
 									>
 										<Trash2Icon />
-										Delete bot
+										{m.bots_detail_delete_action()}
 									</DropdownMenuItem>
 								) : null}
 							</DropdownMenuContent>

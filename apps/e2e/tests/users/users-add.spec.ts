@@ -1,6 +1,7 @@
 import { EMAIL_DOMAIN } from "../../fixtures/constants";
 import { submitForm } from "../../fixtures/forms";
 import { expect, test } from "../../fixtures/index";
+import { message } from "../../fixtures/messages";
 import { enterApp } from "../../fixtures/navigation";
 import { runId } from "../../fixtures/organisation";
 import { reachPage, userRow } from "../../fixtures/users/users";
@@ -17,11 +18,17 @@ test("users: an admin invites a user from the users page", async ({
 	const email = `e2e-users-invited-${runId()}@${EMAIL_DOMAIN}`;
 	const page = await pageAs("admin");
 	await enterApp(page, org.slug);
-	await reachPage(page, "/app/users/add", "Add User");
+	await reachPage(page, "/app/users/add", message("users_add_page_title"));
 
 	await submitForm(page, {
 		fill: async () => {
-			await page.getByLabel("User 1 Email").fill(email);
+			await page
+				.getByLabel(
+					message("orgs_invitation_form_email_label", {
+						position: 1,
+					}),
+				)
+				.fill(email);
 		},
 		submit: "Create Invitations",
 		until: /\/app\/users\/invites/,
@@ -29,7 +36,7 @@ test("users: an admin invites a user from the users page", async ({
 
 	await expect(
 		page.getByRole("heading", {
-			name: "Organisation Invitations",
+			name: message("users_invites_page_title"),
 		}),
 	).toBeVisible();
 
@@ -45,18 +52,24 @@ test("users: the add form refuses an invalid email", async ({
 }) => {
 	const page = await pageAs("admin");
 	await enterApp(page, org.slug);
-	await reachPage(page, "/app/users/add", "Add User");
+	await reachPage(page, "/app/users/add", message("users_add_page_title"));
 
 	// Repeated until the form is hydrated; before that the click submits nothing.
 	await expect(async () => {
-		await page.getByLabel("User 1 Email").fill("not-an-email");
+		await page
+			.getByLabel(
+				message("orgs_invitation_form_email_label", {
+					position: 1,
+				}),
+			)
+			.fill("not-an-email");
 		await page
 			.getByRole("button", {
-				name: "Create Invitations",
+				name: message("orgs_invitation_form_submit_button"),
 			})
 			.click();
 		await expect(
-			page.getByText("Please fix the following errors:"),
+			page.getByText(message("forms_validation_errors_title")),
 		).toBeVisible({
 			timeout: 5_000,
 		});

@@ -31,15 +31,23 @@ import {
 import { useDeleteBlocksMutation } from "@/hooks/mutations/use-block-mutations";
 import { hasCapability } from "@/lib/authz/capabilities";
 import { orpc } from "@/lib/orpc/orpc";
+import { m } from "@/paraglide/messages";
 
 export const Route = createFileRoute("/app/hub/blocks/$blockId/")({
 	component: RouteComponent,
 });
 
-const TYPE_LABELS: Record<string, string> = {
-	template: "AI behaviour",
-	database: "Repository",
-	imageGeneration: "Image generation",
+const getBlockTypeLabel = (type: string) => {
+	switch (type) {
+		case "template":
+			return m.blocks_detail_type_template();
+		case "database":
+			return m.blocks_detail_type_database();
+		case "imageGeneration":
+			return m.blocks_detail_type_image_generation();
+		default:
+			return type;
+	}
 };
 
 function RouteComponent() {
@@ -76,8 +84,7 @@ function RouteComponent() {
 			names: [
 				block.data.name,
 			],
-			noun: isRepository ? "repository" : "block",
-			nounPlural: isRepository ? "repositories" : "blocks",
+			kind: isRepository ? "repository" : "block",
 		},
 	);
 	const canEdit = hasCapability(block.data.capabilities, "edit");
@@ -92,12 +99,10 @@ function RouteComponent() {
 		<Page>
 			<PageHeader>
 				<PageTitle>{block.data.name}</PageTitle>
-				<PageDescription>
-					{TYPE_LABELS[block.data.type] ?? block.data.type}
-				</PageDescription>
+				<PageDescription>{getBlockTypeLabel(block.data.type)}</PageDescription>
 				{block.data.status === "draft" ? (
 					<div>
-						<Badge variant="outline">Draft</Badge>
+						<Badge variant="outline">{m.blocks_detail_draft_badge()}</Badge>
 					</div>
 				) : null}
 				<PageAction>
@@ -107,7 +112,9 @@ function RouteComponent() {
 								render={
 									<Button variant="ghost" size="icon">
 										<MoreVerticalIcon className="size-4" />
-										<span className="sr-only">More options</span>
+										<span className="sr-only">
+											{m.blocks_detail_menu_trigger()}
+										</span>
 									</Button>
 								}
 							/>
@@ -115,7 +122,7 @@ function RouteComponent() {
 								{canManageAccess ? (
 									<DropdownMenuItem onClick={() => setIsAccessOpen(true)}>
 										<KeyRoundIcon className="size-4" />
-										Access & Groups
+										{m.blocks_detail_access_action()}
 									</DropdownMenuItem>
 								) : null}
 								{canEdit ? (
@@ -130,7 +137,7 @@ function RouteComponent() {
 										}
 									>
 										<EditIcon />
-										Edit block
+										{m.blocks_detail_edit_action()}
 									</DropdownMenuItem>
 								) : null}
 								{canDelete ? <DropdownMenuSeparator /> : null}
@@ -148,7 +155,7 @@ function RouteComponent() {
 										}
 									>
 										<Trash2Icon />
-										Delete block
+										{m.blocks_detail_delete_action()}
 									</DropdownMenuItem>
 								) : null}
 							</DropdownMenuContent>

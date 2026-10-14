@@ -8,26 +8,38 @@ import {
 	PopoverTrigger,
 } from "@/components/ui/popover";
 import { ScrollArea } from "@/components/ui/scroll-area";
+import { m } from "@/paraglide/messages";
 
-const count = (value: number, singular: string, plural = `${singular}s`) =>
-	`${value} ${value === 1 ? singular : plural}`;
-
-const joinCounts = (parts: (string | undefined)[]) =>
-	parts.filter((part): part is string => part !== undefined).join(" and ");
+/** Which of the two counts a phrase names, so the message picks its shape. */
+const pairKind = <TFirst extends string, TSecond extends string>(
+	first: number,
+	second: number,
+	names: {
+		first: TFirst;
+		second: TSecond;
+	},
+) =>
+	first > 0 && second > 0 ? "both" : first > 0 ? names.first : names.second;
 
 const ancestorPhrase = (inherited: InheritedAccess) =>
-	joinCounts([
-		inherited.blockCount > 0 ? count(inherited.blockCount, "block") : undefined,
-		inherited.botCount > 0 ? count(inherited.botCount, "bot") : undefined,
-	]);
+	m.access_inherited_ancestor_phrase({
+		kind: pairKind(inherited.blockCount, inherited.botCount, {
+			first: "blocks",
+			second: "bots",
+		}),
+		blockCount: inherited.blockCount,
+		botCount: inherited.botCount,
+	});
 
 const principalPhrase = (inherited: InheritedAccess) =>
-	joinCounts([
-		inherited.groupCount > 0 ? count(inherited.groupCount, "group") : undefined,
-		inherited.userCount > 0
-			? count(inherited.userCount, "person", "people")
-			: undefined,
-	]);
+	m.access_inherited_principal_phrase({
+		kind: pairKind(inherited.groupCount, inherited.userCount, {
+			first: "groups",
+			second: "people",
+		}),
+		groupCount: inherited.groupCount,
+		userCount: inherited.userCount,
+	});
 
 const InheritedAccessSummary = ({
 	inherited,
@@ -39,7 +51,8 @@ const InheritedAccessSummary = ({
 		return null;
 	}
 
-	const shared = principalPhrase(inherited);
+	const isShared = inherited.groupCount > 0 || inherited.userCount > 0;
+	const ancestors = ancestorPhrase(inherited);
 	const unnamed = ancestorCount - inherited.ancestors.length;
 
 	return (
@@ -48,17 +61,21 @@ const InheritedAccessSummary = ({
 				<div className="flex items-center gap-2">
 					<Share2Icon className="h-4 w-4 shrink-0 text-muted-foreground" />
 					<p className="text-muted-foreground text-xs">
-						{shared
-							? `Also shared through ${ancestorPhrase(inherited)} with ${shared}.`
-							: `Also reachable through ${ancestorPhrase(inherited)}, not shared with anyone yet.`}
+						{isShared
+							? m.access_inherited_summary_shared({
+									ancestors,
+									principals: principalPhrase(inherited),
+								})
+							: m.access_inherited_summary_unshared({
+									ancestors,
+								})}
 					</p>
 				</div>
 				{inherited.throughPublic && (
 					<div className="flex items-center gap-2">
 						<GlobeIcon className="h-4 w-4 shrink-0 text-muted-foreground" />
 						<p className="text-muted-foreground text-xs">
-							One of them is public, so everyone on this instance can read this
-							resource.
+							{m.access_inherited_public_note()}
 						</p>
 					</div>
 				)}
@@ -68,16 +85,17 @@ const InheritedAccessSummary = ({
 				<PopoverTrigger
 					render={
 						<Button variant="outline" size="xs">
-							See details
+							{m.access_inherited_details_action()}
 						</Button>
 					}
 				/>
 				<PopoverContent align="end" className="w-80 gap-3">
 					<div className="space-y-1">
-						<p className="font-medium text-sm">Inherited access</p>
+						<p className="font-medium text-sm">
+							{m.access_inherited_details_title()}
+						</p>
 						<p className="text-muted-foreground text-xs">
-							These grants are set on the bot or block itself. Open one to
-							change them.
+							{m.access_inherited_details_description()}
 						</p>
 					</div>
 
@@ -111,10 +129,14 @@ const InheritedAccessSummary = ({
 
 					{unnamed > 0 && (
 						<p className="text-muted-foreground text-xs">
-							{count(unnamed, "more is", "more are")} not listed
 							{inherited.hiddenAncestorCount > 0
-								? `, ${count(inherited.hiddenAncestorCount, "of which", "of which")} you cannot open.`
-								: "."}
+								? m.access_inherited_unnamed_hidden({
+										count: unnamed,
+										hidden: inherited.hiddenAncestorCount,
+									})
+								: m.access_inherited_unnamed({
+										count: unnamed,
+									})}
 						</p>
 					)}
 				</PopoverContent>

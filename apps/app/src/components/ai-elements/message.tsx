@@ -24,6 +24,7 @@ import {
 	TooltipTrigger,
 } from "@/components/ui/tooltip";
 import { cn } from "@/lib/utils";
+import { m } from "@/paraglide/messages";
 import "katex/dist/katex.min.css";
 import "streamdown/styles.css";
 
@@ -285,7 +286,7 @@ export const MessageBranchPrevious = ({
 
 	return (
 		<Button
-			aria-label="Previous branch"
+			aria-label={m.ai_elements_message_branch_previous_aria_label()}
 			disabled={totalBranches <= 1}
 			onClick={goToPrevious}
 			size="icon-sm"
@@ -308,7 +309,7 @@ export const MessageBranchNext = ({
 
 	return (
 		<Button
-			aria-label="Next branch"
+			aria-label={m.ai_elements_message_branch_next_aria_label()}
 			disabled={totalBranches <= 1}
 			onClick={goToNext}
 			size="icon-sm"
@@ -337,7 +338,10 @@ export const MessageBranchPage = ({
 			)}
 			{...props}
 		>
-			{currentBranch + 1} of {totalBranches}
+			{m.ai_elements_message_branch_page({
+				current: currentBranch + 1,
+				total: totalBranches,
+			})}
 		</ButtonGroupText>
 	);
 };

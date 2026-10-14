@@ -7,6 +7,7 @@ import {
 	systemGroup,
 } from "../../fixtures/groups/groups";
 import { expect, test } from "../../fixtures/index";
+import { message } from "../../fixtures/messages";
 import { enterApp } from "../../fixtures/navigation";
 
 test("groups: an admin creates, renames and deletes a group through the UI", async ({
@@ -23,7 +24,7 @@ test("groups: an admin creates, renames and deletes a group through the UI", asy
 		page,
 		"/app/groups",
 		page.getByRole("heading", {
-			name: "Groups",
+			name: message("groups_page_title"),
 		}),
 	);
 
@@ -40,16 +41,16 @@ test("groups: an admin creates, renames and deletes a group through the UI", asy
 		}),
 	).toBeVisible();
 	await expect(
-		page.getByText("Custom", {
+		page.getByText(message("groups_kind_custom"), {
 			exact: true,
 		}),
 	).toBeVisible();
 
 	const saved = page.getByRole("button", {
-		name: "Save",
+		name: message("common_save_button"),
 	});
 
-	await page.getByLabel("Name").fill(renamed);
+	await page.getByLabel(message("common_name_label")).fill(renamed);
 	await saved.click();
 	await expect(
 		page.getByRole("heading", {
@@ -59,18 +60,18 @@ test("groups: an admin creates, renames and deletes a group through the UI", asy
 
 	// An empty name is refused by the form itself: the group keeps its name
 	// because the save button stays disabled.
-	await page.getByLabel("Name").fill("   ");
+	await page.getByLabel(message("common_name_label")).fill("   ");
 	await expect(saved).toBeDisabled();
-	await page.getByLabel("Name").fill(renamed);
+	await page.getByLabel(message("common_name_label")).fill(renamed);
 
 	await page
 		.getByRole("button", {
-			name: "Delete Group",
+			name: message("groups_delete_action"),
 		})
 		.click();
 	await page
 		.getByRole("button", {
-			name: "Delete",
+			name: message("common_delete_button"),
 			exact: true,
 		})
 		.click();
@@ -96,19 +97,19 @@ test("groups: the create dialog refuses an empty name", async ({
 		page,
 		"/app/groups",
 		page.getByRole("heading", {
-			name: "Groups",
+			name: message("groups_page_title"),
 		}),
 	);
 
 	const dialogTitle = page.getByRole("heading", {
-		name: "Create Group",
+		name: message("groups_create_dialog_title"),
 	});
 
 	// The button opens the dialog once the page has hydrated.
 	await expect(async () => {
 		await page
 			.getByRole("button", {
-				name: "Create Group",
+				name: message("groups_list_create_action"),
 			})
 			.click();
 		await expect(dialogTitle).toBeVisible({
@@ -119,18 +120,18 @@ test("groups: the create dialog refuses an empty name", async ({
 	});
 
 	const create = page.getByRole("button", {
-		name: "Create",
+		name: message("common_create_button"),
 		exact: true,
 	});
 	await expect(create).toBeDisabled();
 
 	// Whitespace alone is not a name either.
-	await page.getByLabel("Name").fill("   ");
+	await page.getByLabel(message("common_name_label")).fill("   ");
 	await expect(create).toBeDisabled();
 
 	await page
 		.getByRole("button", {
-			name: "Cancel",
+			name: message("common_cancel_button"),
 		})
 		.click();
 	await expect(dialogTitle).toBeHidden();
@@ -173,7 +174,7 @@ test("groups: an admin adds and removes members through the UI", async ({
 	}
 
 	const addSelected = page.getByRole("button", {
-		name: "Add Selected",
+		name: message("groups_members_add_selected_action"),
 	});
 	await expect(addSelected).toBeEnabled();
 	await addSelected.click();
@@ -187,9 +188,12 @@ test("groups: an admin adds and removes members through the UI", async ({
 
 	// Both are explicit members, in contrast to the implicit membership of the
 	// system group.
-	const explicitBadges = page.getByText("Explicit", {
-		exact: true,
-	});
+	const explicitBadges = page.getByText(
+		message("groups_member_row_source_explicit"),
+		{
+			exact: true,
+		},
+	);
 	await expect(explicitBadges).toHaveCount(2);
 
 	const listed = await api.as("admin").group.listMembers({
@@ -206,12 +210,12 @@ test("groups: an admin adds and removes members through the UI", async ({
 
 	await memberRow(page, org.users.viewer.email)
 		.getByRole("button", {
-			name: "Remove member",
+			name: message("groups_member_row_remove_aria_label"),
 		})
 		.click();
 	await page
 		.getByRole("button", {
-			name: "Remove",
+			name: message("common_remove_button"),
 			exact: true,
 		})
 		.click();
@@ -264,27 +268,27 @@ test("groups: the system group is immutable in the UI and at the API", async ({
 
 	await expect(
 		page
-			.getByText("System", {
+			.getByText(message("groups_kind_system"), {
 				exact: true,
 			})
 			.first(),
 	).toBeVisible();
-	await expect(page.getByLabel("Name")).toBeDisabled();
+	await expect(page.getByLabel(message("common_name_label"))).toBeDisabled();
 	await expect(
 		page.getByRole("button", {
-			name: "Save",
+			name: message("common_save_button"),
 		}),
 	).toBeDisabled();
 	await expect(
 		page.getByRole("button", {
-			name: "Delete Group",
+			name: message("groups_delete_action"),
 		}),
 	).toHaveCount(0);
 
 	// Its members come from the organisation, not from explicit rows.
 	await expect(
 		page
-			.getByText("Implicit", {
+			.getByText(message("groups_member_row_source_implicit"), {
 				exact: true,
 			})
 			.first(),

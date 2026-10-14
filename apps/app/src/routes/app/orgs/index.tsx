@@ -19,6 +19,7 @@ import {
 	PageTitle,
 } from "@/components/ui/shell/page";
 import { orpc } from "@/lib/orpc/orpc";
+import { m } from "@/paraglide/messages";
 
 export const Route = createFileRoute("/app/orgs/")({
 	validateSearch: listOrganizationsInputSchema,
@@ -66,8 +67,8 @@ function RouteComponent() {
 	return (
 		<Page>
 			<PageHeader>
-				<PageTitle>Organisations</PageTitle>
-				<PageDescription>The organisations you administer.</PageDescription>
+				<PageTitle>{m.orgs_page_title()}</PageTitle>
+				<PageDescription>{m.orgs_list_description()}</PageDescription>
 			</PageHeader>
 			<PageContent>
 				<DataTable

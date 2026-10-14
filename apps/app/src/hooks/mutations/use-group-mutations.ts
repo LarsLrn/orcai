@@ -4,22 +4,10 @@ import { useQueryClient } from "@tanstack/react-query";
 import { useMutationAction } from "@/hooks/actions/use-mutation-action";
 import {
 	type DestructiveTarget,
-	describeFailure,
-	describeOutcome,
-	describeProgress,
-	describeTarget,
-} from "@/hooks/mutations/destructive-copy";
+	singleTargetName,
+} from "@/hooks/mutations/destructive-target";
 import { orpc } from "@/lib/orpc/orpc";
-
-const GROUP_NOUNS = {
-	noun: "group",
-	nounPlural: "groups",
-};
-
-const MEMBER_NOUNS = {
-	noun: "member",
-	nounPlural: "members",
-};
+import { m } from "@/paraglide/messages";
 
 const invalidateGroupMembership = (
 	queryClient: QueryClient,
@@ -66,9 +54,9 @@ export const useCreateGroupMutation = (
 				},
 			}),
 		messages: {
-			loading: "Creating group...",
-			success: "Group created",
-			error: "The group was not created. Check the name and try again.",
+			loading: m.groups_create_toast_loading(),
+			success: m.groups_create_toast_success(),
+			error: m.groups_create_toast_error(),
 		},
 	});
 };
@@ -98,9 +86,9 @@ export const useUpdateGroupMutation = (
 				},
 			}),
 		messages: {
-			loading: "Saving group...",
-			success: "Group updated",
-			error: "The group was not updated. Try again.",
+			loading: m.groups_update_toast_loading(),
+			success: m.groups_update_toast_success(),
+			error: m.groups_update_toast_error(),
 		},
 	});
 };
@@ -132,23 +120,35 @@ export const useDeleteGroupsMutation = (
 			}),
 		messages: {
 			loading: ({ input }) =>
-				describeProgress("Deleting", input.refs.length, GROUP_NOUNS, target),
+				m.groups_delete_toast_loading({
+					count: input.refs.length,
+				}),
 			success: ({ input }) =>
-				describeOutcome(input.refs.length, GROUP_NOUNS, "deleted", target),
+				m.groups_delete_toast_success({
+					count: input.refs.length,
+				}),
 			error: ({ input }) =>
-				describeFailure(input.refs.length, GROUP_NOUNS, "deleted", target),
+				m.groups_delete_toast_error({
+					count: input.refs.length,
+				}),
 		},
 		confirm: (input) => {
 			const count = input.refs.length;
+			const name = singleTargetName(count, target);
 
 			return {
-				title: `Delete ${describeTarget(count, GROUP_NOUNS, target)}?`,
-				description:
-					count === 1
-						? "Every grant this group carries is revoked, so its members lose the access it gave them. Their accounts stay."
-						: "Every grant these groups carry is revoked, so their members lose the access those groups gave them. Their accounts stay.",
-				confirmText: "Delete",
-				cancelText: "Cancel",
+				title: name
+					? m.groups_delete_confirm_title_named({
+							name,
+						})
+					: m.groups_delete_confirm_title({
+							count,
+						}),
+				description: m.groups_delete_confirm_description({
+					count,
+				}),
+				confirmText: m.common_delete_button(),
+				cancelText: m.common_cancel_button(),
 			};
 		},
 	});
@@ -165,9 +165,9 @@ export const useAddGroupMembersMutation = (groupId: GroupId) => {
 				},
 			}),
 		messages: {
-			loading: "Adding members...",
-			success: "Members added",
-			error: "The members were not added. Try again.",
+			loading: m.groups_members_add_toast_loading(),
+			success: m.groups_members_add_toast_success(),
+			error: m.groups_members_add_toast_error(),
 		},
 	});
 };
@@ -183,21 +183,22 @@ export const useRemoveGroupMembersMutation = (groupId: GroupId) => {
 				},
 			}),
 		messages: {
-			loading: "Removing the member...",
-			success: "Member removed",
-			error: "The member was not removed. Try again.",
+			loading: m.groups_members_remove_toast_loading(),
+			success: m.groups_members_remove_toast_success(),
+			error: m.groups_members_remove_toast_error(),
 		},
 		confirm: (input) => {
 			const count = input.userIds.length;
 
 			return {
-				title: `Remove ${describeTarget(count, MEMBER_NOUNS)} from the group?`,
-				description:
-					count === 1
-						? "They lose the access this group gives them. Their account and their own resources stay."
-						: "They lose the access this group gives them. Their accounts and their own resources stay.",
-				confirmText: "Remove",
-				cancelText: "Cancel",
+				title: m.groups_members_remove_confirm_title({
+					count,
+				}),
+				description: m.groups_members_remove_confirm_description({
+					count,
+				}),
+				confirmText: m.common_remove_button(),
+				cancelText: m.common_cancel_button(),
 			};
 		},
 	});

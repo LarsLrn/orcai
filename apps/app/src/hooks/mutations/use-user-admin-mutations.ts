@@ -2,17 +2,10 @@ import { useQueryClient } from "@tanstack/react-query";
 import { useMutationAction } from "@/hooks/actions/use-mutation-action";
 import {
 	type DestructiveTarget,
-	describeFailure,
-	describeOutcome,
-	describeProgress,
-	describeTarget,
-} from "@/hooks/mutations/destructive-copy";
+	singleTargetName,
+} from "@/hooks/mutations/destructive-target";
 import { orpc } from "@/lib/orpc/orpc";
-
-const ACCOUNT_NOUNS = {
-	noun: "account",
-	nounPlural: "accounts",
-};
+import { m } from "@/paraglide/messages";
 
 export const useDeleteUsersMutation = (
 	opts: ReturnType<typeof orpc.user.delete.mutationOptions> = {},
@@ -41,29 +34,35 @@ export const useDeleteUsersMutation = (
 			}),
 		messages: {
 			loading: ({ input }) =>
-				describeProgress(
-					"Deleting",
-					input.userIds.length,
-					ACCOUNT_NOUNS,
-					target,
-				),
+				m.users_delete_toast_loading({
+					count: input.userIds.length,
+				}),
 			success: ({ input }) =>
-				describeOutcome(input.userIds.length, ACCOUNT_NOUNS, "deleted", target),
+				m.users_delete_toast_success({
+					count: input.userIds.length,
+				}),
 			error: ({ input }) =>
-				describeFailure(input.userIds.length, ACCOUNT_NOUNS, "deleted", target),
+				m.users_delete_toast_error({
+					count: input.userIds.length,
+				}),
 		},
-		// "Delete" is the confirm label the instance users e2e spec clicks.
 		confirm: (input) => {
 			const count = input.userIds.length;
+			const name = singleTargetName(count, target);
 
 			return {
-				title: `Delete ${describeTarget(count, ACCOUNT_NOUNS, target)}?`,
-				description:
-					count === 1
-						? "The account leaves every organisation it belongs to, and the person can no longer sign in. Deletion is permanent."
-						: "The accounts leave every organisation they belong to, and those people can no longer sign in. Deletion is permanent.",
-				confirmText: "Delete",
-				cancelText: "Cancel",
+				title: name
+					? m.users_delete_confirm_title_named({
+							name,
+						})
+					: m.users_delete_confirm_title({
+							count,
+						}),
+				description: m.users_delete_confirm_description({
+					count,
+				}),
+				confirmText: m.common_delete_button(),
+				cancelText: m.common_cancel_button(),
 			};
 		},
 	});
@@ -74,6 +73,7 @@ export const useBanUserMutation = (
 	target?: DestructiveTarget,
 ) => {
 	const queryClient = useQueryClient();
+	const name = singleTargetName(1, target);
 
 	return useMutationAction({
 		mutationOptions: () =>
@@ -95,16 +95,19 @@ export const useBanUserMutation = (
 				},
 			}),
 		messages: {
-			loading: "Banning the account...",
-			success: "Account banned",
-			error: "The account was not banned. Try again.",
+			loading: m.users_ban_toast_loading(),
+			success: m.users_ban_toast_success(),
+			error: m.users_ban_toast_error(),
 		},
 		confirm: {
-			title: `Ban ${describeTarget(1, ACCOUNT_NOUNS, target)}?`,
-			description:
-				"The person cannot sign in until the ban is lifted. Their memberships and resources stay in place.",
-			confirmText: "Ban",
-			cancelText: "Cancel",
+			title: name
+				? m.users_ban_confirm_title_named({
+						name,
+					})
+				: m.users_ban_confirm_title(),
+			description: m.users_ban_confirm_description(),
+			confirmText: m.users_ban_confirm_button(),
+			cancelText: m.common_cancel_button(),
 		},
 	});
 };
@@ -134,9 +137,9 @@ export const useUnbanUserMutation = (
 				},
 			}),
 		messages: {
-			loading: "Lifting the ban...",
-			success: "Ban lifted",
-			error: "The ban was not lifted. Try again.",
+			loading: m.users_unban_toast_loading(),
+			success: m.users_unban_toast_success(),
+			error: m.users_unban_toast_error(),
 		},
 	});
 };

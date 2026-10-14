@@ -23,6 +23,7 @@ import {
 	PageTitle,
 } from "@/components/ui/shell/page";
 import { orpc } from "@/lib/orpc/orpc";
+import { m } from "@/paraglide/messages";
 
 const searchSchema = listChatsInputSchema
 	.omit({
@@ -101,10 +102,10 @@ function RouteComponent() {
 	return (
 		<Page>
 			<PageHeader>
-				<PageTitle>Chats</PageTitle>
+				<PageTitle>{m.chat_list_page_title()}</PageTitle>
 				<PageAction>
 					<Link to="/app/chat/setup" className={buttonVariants()}>
-						Start a chat
+						{m.chat_start_action()}
 					</Link>
 				</PageAction>
 			</PageHeader>
@@ -127,7 +128,7 @@ function RouteComponent() {
 					<DataTableToolbar>
 						<DataTableSearch
 							value={query}
-							placeholder="Search chats..."
+							placeholder={m.chat_list_search_placeholder()}
 							onChange={(value) =>
 								void navigate({
 									to: ".",
@@ -141,7 +142,7 @@ function RouteComponent() {
 							}
 						/>
 						<DataTableSelectFilter
-							label="Bot"
+							label={m.chat_list_bot_filter_label()}
 							value={botId}
 							options={bots.data.map((bot) => ({
 								label: bot.name,

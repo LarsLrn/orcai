@@ -30,6 +30,7 @@ import { useDeleteAssetsMutation } from "@/hooks/mutations/use-asset-mutations";
 import { useReprocessAssetMutation } from "@/hooks/mutations/use-job-mutations";
 import { hasCapability } from "@/lib/authz/capabilities";
 import { orpc } from "@/lib/orpc/orpc";
+import { m } from "@/paraglide/messages";
 
 export const Route = createFileRoute("/app/hub/assets/$assetId/")({
 	component: RouteComponent,
@@ -91,7 +92,7 @@ function RouteComponent() {
 							onClick={() => window.open(file?.url, "_blank")}
 						>
 							<DownloadIcon />
-							Download
+							{m.assets_detail_download_button()}
 						</Button>
 					) : null}
 					{hasMenuActions ? (
@@ -100,7 +101,9 @@ function RouteComponent() {
 								render={
 									<Button variant="ghost" size="icon">
 										<MoreVerticalIcon className="size-4" />
-										<span className="sr-only">More options</span>
+										<span className="sr-only">
+											{m.assets_detail_menu_trigger()}
+										</span>
 									</Button>
 								}
 							/>
@@ -108,7 +111,7 @@ function RouteComponent() {
 								{canManageAccess ? (
 									<DropdownMenuItem onClick={() => setIsAccessOpen(true)}>
 										<KeyRoundIcon className="size-4" />
-										Access & Groups
+										{m.assets_detail_access_action()}
 									</DropdownMenuItem>
 								) : null}
 								{canEdit ? (
@@ -123,7 +126,7 @@ function RouteComponent() {
 										}
 									>
 										<EditIcon />
-										Edit content
+										{m.assets_detail_edit_action()}
 									</DropdownMenuItem>
 								) : null}
 								{canEdit &&
@@ -137,7 +140,7 @@ function RouteComponent() {
 											}
 										>
 											<RefreshCwIcon className="size-4" />
-											Reprocess
+											{m.assets_detail_reprocess_action()}
 										</DropdownMenuItem>
 									)}
 								{canDelete ? <DropdownMenuSeparator /> : null}
@@ -155,7 +158,7 @@ function RouteComponent() {
 										}
 									>
 										<Trash2Icon />
-										Delete asset
+										{m.assets_detail_delete_action()}
 									</DropdownMenuItem>
 								) : null}
 							</DropdownMenuContent>

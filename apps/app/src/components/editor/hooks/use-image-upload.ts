@@ -1,4 +1,5 @@
 import { useCallback, useEffect, useRef, useState } from "react";
+import { m } from "@/paraglide/messages";
 
 interface UseImageUploadProps {
 	onUpload?: (url: string) => void;
@@ -31,7 +32,8 @@ export function useImageUpload({ onUpload }: UseImageUploadProps = {}) {
 			// In a real implementation, this would be the URL from the server
 			return localUrl;
 		} catch (err) {
-			const errorMessage = err instanceof Error ? err.message : "Upload failed";
+			const errorMessage =
+				err instanceof Error ? err.message : m.editor_image_upload_error();
 			setError(errorMessage);
 			throw new Error(errorMessage);
 		} finally {

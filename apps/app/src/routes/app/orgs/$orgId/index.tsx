@@ -18,6 +18,7 @@ import {
 	PageTitle,
 } from "@/components/ui/shell/page";
 import { orpc } from "@/lib/orpc/orpc";
+import { m } from "@/paraglide/messages";
 
 export const Route = createFileRoute("/app/orgs/$orgId/")({
 	component: RouteComponent,
@@ -47,7 +48,7 @@ function RouteComponent() {
 							variant: "default",
 						})}
 					>
-						Edit Organisation
+						{m.orgs_edit_action()}
 					</Link>
 				</PageAction>
 			</PageHeader>
@@ -55,14 +56,16 @@ function RouteComponent() {
 				<div className="space-y-6 lg:col-span-2">
 					<Card>
 						<CardHeader>
-							<CardTitle>Organisation details</CardTitle>
+							<CardTitle>{m.orgs_detail_card_title()}</CardTitle>
 							<CardDescription>
-								Core organisation profile information.
+								{m.orgs_detail_card_description()}
 							</CardDescription>
 						</CardHeader>
 						<CardContent className="space-y-4">
 							<div className="flex items-start justify-between gap-4">
-								<div className="text-muted-foreground text-sm">Slug</div>
+								<div className="text-muted-foreground text-sm">
+									{m.orgs_detail_slug_label()}
+								</div>
 								<code className="rounded border bg-muted/40 px-2 py-1 font-mono text-xs">
 									{organization.data.slug}
 								</code>
@@ -71,7 +74,9 @@ function RouteComponent() {
 								<>
 									<Separator />
 									<div className="flex items-start justify-between gap-4">
-										<div className="text-muted-foreground text-sm">Logo</div>
+										<div className="text-muted-foreground text-sm">
+											{m.orgs_detail_logo_label()}
+										</div>
 										<span className="max-w-md truncate text-right text-sm">
 											{organization.data.logo}
 										</span>
@@ -83,7 +88,7 @@ function RouteComponent() {
 									<Separator />
 									<div className="space-y-2">
 										<div className="text-muted-foreground text-sm">
-											Metadata
+											{m.orgs_detail_metadata_label()}
 										</div>
 										<pre className="overflow-auto rounded border bg-muted/40 p-3 text-xs">
 											{organization.data.metadata}

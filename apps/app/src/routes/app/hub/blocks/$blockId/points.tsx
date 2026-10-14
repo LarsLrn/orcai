@@ -8,6 +8,7 @@ import {
 	PageTitle,
 } from "@/components/ui/shell/page";
 import { orpc } from "@/lib/orpc/orpc";
+import { m } from "@/paraglide/messages";
 
 export const Route = createFileRoute("/app/hub/blocks/$blockId/points")({
 	loader: async ({ context: { queryClient }, params: { blockId } }) => {
@@ -27,7 +28,7 @@ export const Route = createFileRoute("/app/hub/blocks/$blockId/points")({
 	head: () => ({
 		meta: [
 			{
-				title: "Indexed passages",
+				title: m.blocks_points_page_title(),
 			},
 		],
 	}),
@@ -49,7 +50,7 @@ function RouteComponent() {
 	return (
 		<Page>
 			<PageHeader>
-				<PageTitle>Indexed passages</PageTitle>
+				<PageTitle>{m.blocks_points_page_title()}</PageTitle>
 			</PageHeader>
 
 			<PageContent className="grid gap-4">

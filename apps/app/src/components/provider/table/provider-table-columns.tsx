@@ -16,6 +16,7 @@ import {
 } from "@/components/ui/dropdown-menu";
 import { useDeleteProvidersMutation } from "@/hooks/mutations/use-provider-mutations";
 import { formatDisplayTimestamp } from "@/lib/presentation/format-timestamp";
+import { m } from "@/paraglide/messages";
 
 const columnHelper = createColumnHelper<DataTableFeatures, Provider>();
 
@@ -24,7 +25,7 @@ export const providerTableColumns = columnHelper.columns([
 	columnHelper.accessor("name", {
 		size: 300,
 		header: ({ column }) => (
-			<DataTableColumnHeader column={column} title="Name" />
+			<DataTableColumnHeader column={column} title={m.common_name_label()} />
 		),
 		cell: ({ row }) => (
 			<Link
@@ -40,17 +41,25 @@ export const providerTableColumns = columnHelper.columns([
 	}),
 	columnHelper.accessor("enabled", {
 		header: ({ column }) => (
-			<DataTableColumnHeader column={column} title="Status" />
+			<DataTableColumnHeader
+				column={column}
+				title={m.common_status_column_header()}
+			/>
 		),
 		cell: ({ row }) => (
 			<Badge variant={row.original.enabled ? "success" : "secondary"}>
-				{row.original.enabled ? "Active" : "Inactive"}
+				{row.original.enabled
+					? m.common_status_active_label()
+					: m.common_status_inactive_label()}
 			</Badge>
 		),
 	}),
 	columnHelper.accessor("meteringMode", {
 		header: ({ column }) => (
-			<DataTableColumnHeader column={column} title="Metering" />
+			<DataTableColumnHeader
+				column={column}
+				title={m.providers_table_metering_column_header()}
+			/>
 		),
 		cell: ({ row }) => (
 			<Badge variant="outline">{row.original.meteringMode}</Badge>
@@ -58,7 +67,10 @@ export const providerTableColumns = columnHelper.columns([
 	}),
 	columnHelper.accessor("createdAt", {
 		header: ({ column }) => (
-			<DataTableColumnHeader column={column} title="Created" />
+			<DataTableColumnHeader
+				column={column}
+				title={m.common_created_column_header()}
+			/>
 		),
 		cell: ({ row }) => (
 			<span>{formatDisplayTimestamp(row.original.createdAt || "")}</span>
@@ -66,7 +78,10 @@ export const providerTableColumns = columnHelper.columns([
 	}),
 	columnHelper.accessor("updatedAt", {
 		header: ({ column }) => (
-			<DataTableColumnHeader column={column} title="Updated" />
+			<DataTableColumnHeader
+				column={column}
+				title={m.providers_table_updated_column_header()}
+			/>
 		),
 		cell: ({ row }) => (
 			<span>{formatDisplayTimestamp(row.original.updatedAt || "")}</span>
@@ -85,7 +100,7 @@ export const providerTableColumns = columnHelper.columns([
 					<DropdownMenuTrigger
 						render={
 							<Button variant="ghost" className="size-8 p-0">
-								<span className="sr-only">Open menu</span>
+								<span className="sr-only">{m.common_row_menu_trigger()}</span>
 								<MoreHorizontal className="size-4" />
 							</Button>
 						}
@@ -97,7 +112,9 @@ export const providerTableColumns = columnHelper.columns([
 								providerId: row.original.id,
 							}}
 						>
-							<DropdownMenuItem>View provider</DropdownMenuItem>
+							<DropdownMenuItem>
+								{m.providers_table_view_menu_item()}
+							</DropdownMenuItem>
 						</Link>
 						<Link
 							to={"/app/providers/$providerId/edit"}
@@ -105,7 +122,9 @@ export const providerTableColumns = columnHelper.columns([
 								providerId: row.original.id,
 							}}
 						>
-							<DropdownMenuItem>Edit provider</DropdownMenuItem>
+							<DropdownMenuItem>
+								{m.providers_table_edit_menu_item()}
+							</DropdownMenuItem>
 						</Link>
 						<DropdownMenuSeparator />
 						<DeleteItem provider={provider} />
@@ -139,7 +158,7 @@ const DeleteItem = ({ provider }: { provider: Provider }) => {
 				})
 			}
 		>
-			Delete provider
+			{m.providers_table_delete_menu_item()}
 		</DropdownMenuItem>
 	);
 };

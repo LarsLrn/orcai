@@ -17,6 +17,7 @@ import {
 	useDeleteGroupsMutation,
 	useUpdateGroupMutation,
 } from "@/hooks/mutations/use-group-mutations";
+import { m } from "@/paraglide/messages";
 
 const GroupSettingsForm = ({ group }: { group: Group }) => {
 	const navigate = useNavigate();
@@ -44,14 +45,14 @@ const GroupSettingsForm = ({ group }: { group: Group }) => {
 	return (
 		<Card>
 			<CardHeader>
-				<CardTitle>Group settings</CardTitle>
+				<CardTitle>{m.groups_settings_card_title()}</CardTitle>
 				<CardDescription>
-					System groups cannot be renamed or deleted.
+					{m.groups_settings_card_description()}
 				</CardDescription>
 			</CardHeader>
 			<CardContent className="space-y-3">
 				<div className="space-y-2">
-					<Label htmlFor="group-name">Name</Label>
+					<Label htmlFor="group-name">{m.common_name_label()}</Label>
 					<Input
 						id="group-name"
 						value={name}
@@ -60,7 +61,9 @@ const GroupSettingsForm = ({ group }: { group: Group }) => {
 					/>
 				</div>
 				<div className="space-y-2">
-					<Label htmlFor="group-description">Description</Label>
+					<Label htmlFor="group-description">
+						{m.common_description_label()}
+					</Label>
 					<Textarea
 						id="group-description"
 						value={description}
@@ -80,7 +83,7 @@ const GroupSettingsForm = ({ group }: { group: Group }) => {
 						}
 						disabled={isSystemGroup || !name.trim() || updateGroup.isPending}
 					>
-						Save
+						{m.common_save_button()}
 					</Button>
 					{!isSystemGroup && (
 						<Button
@@ -96,7 +99,7 @@ const GroupSettingsForm = ({ group }: { group: Group }) => {
 							}
 						>
 							<Trash2Icon />
-							Delete Group
+							{m.groups_delete_action()}
 						</Button>
 					)}
 				</div>

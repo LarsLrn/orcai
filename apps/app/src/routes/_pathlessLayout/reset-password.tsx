@@ -9,6 +9,7 @@ import {
 	CardHeader,
 	CardTitle,
 } from "@/components/ui/card";
+import { m } from "@/paraglide/messages";
 
 export const Route = createFileRoute("/_pathlessLayout/reset-password")({
 	validateSearch: z.object({
@@ -24,13 +25,15 @@ function ResetPasswordPage() {
 		return (
 			<Card className="w-full max-w-md">
 				<CardHeader>
-					<CardTitle>Invalid reset link</CardTitle>
+					<CardTitle>{m.auth_reset_password_page_invalid_title()}</CardTitle>
 					<CardDescription>
-						Request a new password reset email to continue.
+						{m.auth_reset_password_page_invalid_description()}
 					</CardDescription>
 				</CardHeader>
 				<CardFooter>
-					<Link to="/forgot-password">Request another link</Link>
+					<Link to="/forgot-password">
+						{m.auth_reset_password_page_request_link()}
+					</Link>
 				</CardFooter>
 			</Card>
 		);
@@ -39,9 +42,9 @@ function ResetPasswordPage() {
 	return (
 		<Card className="w-full max-w-md">
 			<CardHeader>
-				<CardTitle>Choose a new password</CardTitle>
+				<CardTitle>{m.auth_reset_password_page_title()}</CardTitle>
 				<CardDescription>
-					Use at least eight characters and enter the same password twice.
+					{m.auth_reset_password_page_description()}
 				</CardDescription>
 			</CardHeader>
 			<CardContent>

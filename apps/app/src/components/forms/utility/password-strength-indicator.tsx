@@ -1,5 +1,6 @@
 import { CheckIcon, XIcon } from "lucide-react";
 import { useMemo } from "react";
+import { m } from "@/paraglide/messages";
 
 const PasswordStrengthIndicator = ({
 	value,
@@ -12,19 +13,19 @@ const PasswordStrengthIndicator = ({
 		const requirements = [
 			{
 				regex: /.{8,}/,
-				text: "At least 8 characters",
+				text: m.forms_password_strength_requirement_length(),
 			},
 			{
 				regex: /[0-9]/,
-				text: "At least 1 number",
+				text: m.forms_password_strength_requirement_number(),
 			},
 			{
 				regex: /[a-z]/,
-				text: "At least 1 lowercase letter",
+				text: m.forms_password_strength_requirement_lowercase(),
 			},
 			{
 				regex: /[A-Z]/,
-				text: "At least 1 uppercase letter",
+				text: m.forms_password_strength_requirement_uppercase(),
 			},
 		];
 
@@ -58,10 +59,10 @@ const PasswordStrengthIndicator = ({
 	};
 
 	const getStrengthText = (score: number) => {
-		if (score === 0) return "Enter a password";
-		if (score <= 2) return "Weak password";
-		if (score === 3) return "Medium password";
-		return "Strong password";
+		if (score === 0) return m.forms_password_strength_empty();
+		if (score <= 2) return m.forms_password_strength_weak();
+		if (score === 3) return m.forms_password_strength_medium();
+		return m.forms_password_strength_strong();
 	};
 
 	return (
@@ -72,7 +73,7 @@ const PasswordStrengthIndicator = ({
 				aria-valuenow={strengthScore}
 				aria-valuemin={0}
 				aria-valuemax={4}
-				aria-label="Password strength"
+				aria-label={m.forms_password_strength_meter_label()}
 			>
 				<div
 					className={`h-full ${getStrengthColor(
@@ -89,11 +90,16 @@ const PasswordStrengthIndicator = ({
 				id={`${fieldName}-description`}
 				className="mb-2 font-medium text-foreground text-sm"
 			>
-				{getStrengthText(strengthScore)}. Must contain:
+				{m.forms_password_strength_summary({
+					strength: getStrengthText(strengthScore),
+				})}
 			</p>
 
 			{/* Password requirements list */}
-			<ul className="space-y-1.5" aria-label="Password requirements">
+			<ul
+				className="space-y-1.5"
+				aria-label={m.forms_password_strength_requirements_label()}
+			>
 				{strength.map((req) => (
 					<li key={req.text} className="flex items-center gap-2">
 						{req.met ? (

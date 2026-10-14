@@ -8,6 +8,7 @@ import {
 	CardHeader,
 	CardTitle,
 } from "@/components/ui/card";
+import { m } from "@/paraglide/messages";
 
 export const Route = createFileRoute("/_pathlessLayout/verify-email")({
 	component: VerifyEmailPage,
@@ -17,17 +18,16 @@ function VerifyEmailPage() {
 	return (
 		<Card className="max-w-xl">
 			<CardHeader>
-				<CardTitle>Check your email</CardTitle>
+				<CardTitle>{m.auth_verify_email_page_title()}</CardTitle>
 				<CardDescription>
-					Use the verification link we sent before signing in. The message may
-					take a few minutes to arrive.
+					{m.auth_verify_email_page_description()}
 				</CardDescription>
 			</CardHeader>
 			<CardContent>
 				<VerifyEmailForm />
 			</CardContent>
 			<CardFooter>
-				<Link to="/login">Return to sign in</Link>
+				<Link to="/login">{m.auth_verify_email_page_signin_link()}</Link>
 			</CardFooter>
 		</Card>
 	);

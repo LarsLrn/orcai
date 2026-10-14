@@ -1,5 +1,6 @@
 import { useAppForm } from "@/hooks/form";
 import { useResendVerificationEmail } from "@/hooks/mutations/use-resend-verification-email";
+import { m } from "@/paraglide/messages";
 import { verifyEmailFormOptions } from "./verify-email-form-options";
 
 export function VerifyEmailForm() {
@@ -24,15 +25,15 @@ export function VerifyEmailForm() {
 				name="email"
 				children={(field) => (
 					<field.TextField
-						label="Email"
-						placeholder="your@email.com"
+						label={m.common_email_label()}
+						placeholder={m.common_email_placeholder()}
 						type="email"
 					/>
 				)}
 			/>
 			<form.AppForm>
 				<form.SubmitButton
-					label="Resend verification email"
+					label={m.auth_verify_email_form_submit_button()}
 					className="w-full"
 				/>
 			</form.AppForm>

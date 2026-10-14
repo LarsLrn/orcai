@@ -5,6 +5,7 @@ import {
 	PromptInputActionMenuItem,
 	PromptInputActionMenuTrigger,
 } from "@/components/ai-elements/prompt-input";
+import { m } from "@/paraglide/messages";
 
 export const ChatAttachmentActionMenu = ({
 	disabled,
@@ -19,16 +20,16 @@ export const ChatAttachmentActionMenu = ({
 		<PromptInputActionMenu>
 			<PromptInputActionMenuTrigger type="button" disabled={disabled}>
 				<PaperclipIcon className="size-4" />
-				<span>Add file</span>
+				<span>{m.chat_attachment_menu_trigger()}</span>
 			</PromptInputActionMenuTrigger>
 			<PromptInputActionMenuContent className="w-48">
 				<PromptInputActionMenuItem onClick={onUploadFile}>
 					<UploadIcon className="size-4" />
-					<span>Upload file</span>
+					<span>{m.chat_attachment_menu_upload_action()}</span>
 				</PromptInputActionMenuItem>
 				<PromptInputActionMenuItem onClick={onSelectFromAssets}>
 					<FolderOpenIcon className="size-4" />
-					<span>From assets</span>
+					<span>{m.chat_attachment_menu_assets_action()}</span>
 				</PromptInputActionMenuItem>
 			</PromptInputActionMenuContent>
 		</PromptInputActionMenu>

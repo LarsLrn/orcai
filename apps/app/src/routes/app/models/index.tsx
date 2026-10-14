@@ -24,6 +24,7 @@ import {
 	PageTitle,
 } from "@/components/ui/shell/page";
 import { orpc } from "@/lib/orpc/orpc";
+import { m } from "@/paraglide/messages";
 
 const searchSchema = listModelsInputSchema
 	.omit({
@@ -106,7 +107,7 @@ function RouteComponent() {
 	return (
 		<Page>
 			<PageHeader>
-				<PageTitle>Models</PageTitle>
+				<PageTitle>{m.models_route_page_title()}</PageTitle>
 				<PageAction>
 					<Link
 						to="/app/models/add"
@@ -114,7 +115,7 @@ function RouteComponent() {
 							variant: "default",
 						})}
 					>
-						Add model
+						{m.models_index_add_button()}
 					</Link>
 					<DiscoverModels />
 				</PageAction>
@@ -138,7 +139,7 @@ function RouteComponent() {
 					<DataTableToolbar>
 						<DataTableSearch
 							value={query}
-							placeholder="Search models or providers"
+							placeholder={m.models_index_search_placeholder()}
 							onChange={(value) =>
 								void navigate({
 									to: ".",
@@ -152,7 +153,7 @@ function RouteComponent() {
 							}
 						/>
 						<DataTableSelectFilter
-							label="Provider"
+							label={m.common_provider_label()}
 							value={providerId}
 							options={providers.data.map((provider) => ({
 								label: provider.name,

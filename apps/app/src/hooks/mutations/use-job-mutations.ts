@@ -1,6 +1,7 @@
 import { useQueryClient } from "@tanstack/react-query";
 import { useMutationAction } from "@/hooks/actions/use-mutation-action";
 import { orpc } from "@/lib/orpc/orpc";
+import { m } from "@/paraglide/messages";
 
 export const useCreateJobMutation = (
 	opts: ReturnType<typeof orpc.job.create.mutationOptions> = {},
@@ -27,14 +28,16 @@ export const useCreateJobMutation = (
 				},
 			}),
 		messages: {
-			loading: "Creating job...",
-			success: "Job created",
-			error: "Failed to create job",
+			loading: m.jobs_create_toast_loading(),
+			success: m.jobs_create_toast_success(),
+			error: m.jobs_create_toast_error(),
 		},
 		confirm: (input) => ({
-			title: "Create Job",
-			description: `Are you sure you want to create a job for '${input.jobRunner}'?`,
-			confirmText: "Yes, create it",
+			title: m.jobs_create_confirm_title(),
+			description: m.jobs_create_confirm_description({
+				jobRunner: input.jobRunner,
+			}),
+			confirmText: m.jobs_create_confirm_button(),
 		}),
 	});
 };
@@ -55,9 +58,9 @@ export const useRetryProcessingMutation = () => {
 				},
 			}),
 		messages: {
-			loading: "Retrying processing...",
-			success: "Processing job queued",
-			error: "Failed to retry processing",
+			loading: m.jobs_retry_processing_toast_loading(),
+			success: m.jobs_retry_processing_toast_success(),
+			error: m.jobs_retry_processing_toast_error(),
 		},
 	});
 };
@@ -78,15 +81,14 @@ export const useReprocessAssetMutation = () => {
 				},
 			}),
 		messages: {
-			loading: "Reprocessing content...",
-			success: "Reprocessing job queued",
-			error: "Failed to reprocess content",
+			loading: m.jobs_reprocess_toast_loading(),
+			success: m.jobs_reprocess_toast_success(),
+			error: m.jobs_reprocess_toast_error(),
 		},
 		confirm: {
-			title: "Reprocess Content",
-			description:
-				"This will rerun document processing and refresh vector data for any attached knowledge bases.",
-			confirmText: "Yes, reprocess it",
+			title: m.jobs_reprocess_confirm_title(),
+			description: m.jobs_reprocess_confirm_description(),
+			confirmText: m.jobs_reprocess_confirm_button(),
 		},
 	});
 };
@@ -104,9 +106,9 @@ export const useRetryVectorizationMutation = () => {
 				},
 			}),
 		messages: {
-			loading: "Retrying vectorization...",
-			success: "Vectorization job queued",
-			error: "Failed to retry vectorization",
+			loading: m.jobs_retry_vectorization_toast_loading(),
+			success: m.jobs_retry_vectorization_toast_success(),
+			error: m.jobs_retry_vectorization_toast_error(),
 		},
 	});
 };

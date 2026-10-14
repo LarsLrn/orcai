@@ -22,6 +22,7 @@ import {
 } from "@/components/ui/collapsible";
 import { useControllableState } from "@/hooks/use-controllable-state";
 import { cn } from "@/lib/utils";
+import { m } from "@/paraglide/messages";
 import { Shimmer } from "./shimmer";
 
 interface ReasoningContextValue {
@@ -180,14 +181,16 @@ const defaultGetThinkingMessage = (isStreaming: boolean, duration?: number) => {
 	if (isStreaming || duration === 0) {
 		return (
 			<Shimmer as="span" duration={1}>
-				Thinking
+				{m.ai_elements_reasoning_thinking()}
 			</Shimmer>
 		);
 	}
 	if (duration === undefined) {
-		return "Thought for a few seconds";
+		return m.ai_elements_reasoning_duration_unknown();
 	}
-	return `Thought for ${duration} seconds`;
+	return m.ai_elements_reasoning_duration({
+		count: duration,
+	});
 };
 
 export const ReasoningTrigger = memo(

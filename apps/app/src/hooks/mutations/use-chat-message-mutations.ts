@@ -2,6 +2,7 @@ import { useQueryClient } from "@tanstack/react-query";
 import { useMutationAction } from "@/hooks/actions/use-mutation-action";
 import { useUmami } from "@/hooks/use-umami";
 import { orpc } from "@/lib/orpc/orpc";
+import { m } from "@/paraglide/messages";
 
 export const useRateChatMessageMutation = (
 	opts: ReturnType<typeof orpc.chatMessage.rate.mutationOptions> = {},
@@ -39,9 +40,9 @@ export const useRateChatMessageMutation = (
 				},
 			}),
 		messages: {
-			loading: "Rating...",
-			success: "Thank you for your feedback!",
-			error: "Failed to rate",
+			loading: m.chat_message_rate_toast_loading(),
+			success: m.chat_message_rate_toast_success(),
+			error: m.chat_message_rate_toast_error(),
 		},
 	});
 };

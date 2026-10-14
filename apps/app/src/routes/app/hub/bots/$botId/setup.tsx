@@ -12,6 +12,7 @@ import {
 } from "@/components/ui/shell/page";
 import { ensureEntityCapability } from "@/lib/authz/route-guards";
 import { orpc } from "@/lib/orpc/orpc";
+import { m } from "@/paraglide/messages";
 
 export const Route = createFileRoute("/app/hub/bots/$botId/setup")({
 	validateSearch: z.object({
@@ -43,7 +44,7 @@ export const Route = createFileRoute("/app/hub/bots/$botId/setup")({
 	head: () => ({
 		meta: [
 			{
-				title: "Bot setup",
+				title: m.bots_setup_page_title(),
 			},
 		],
 	}),
@@ -65,11 +66,8 @@ function RouteComponent() {
 	return (
 		<Page>
 			<PageHeader>
-				<PageTitle>Bot setup</PageTitle>
-				<PageDescription>
-					Use the shared authoring flow to update the bot configuration, reuse
-					existing blocks, and publish changes when they are ready.
-				</PageDescription>
+				<PageTitle>{m.bots_setup_page_title()}</PageTitle>
+				<PageDescription>{m.bots_setup_page_description()}</PageDescription>
 			</PageHeader>
 			<PageContent>
 				<BotEditorShell

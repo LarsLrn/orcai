@@ -8,6 +8,7 @@ import { DataTableColumnHeader } from "@/components/ui/data-table/data-table-col
 import type { DataTableFeatures } from "@/components/ui/data-table/data-table-features";
 import { createDataTableSelectColumn } from "@/components/ui/data-table/data-table-select-column";
 import { formatDisplayTimestamp } from "@/lib/presentation/format-timestamp";
+import { m } from "@/paraglide/messages";
 
 const columnHelper = createColumnHelper<DataTableFeatures, ChatListRow>();
 
@@ -15,7 +16,7 @@ export const chatTableColumns = columnHelper.columns([
 	createDataTableSelectColumn<ChatListRow>(),
 	columnHelper.accessor("title", {
 		header: ({ column }) => (
-			<DataTableColumnHeader column={column} title="Name" />
+			<DataTableColumnHeader column={column} title={m.common_name_label()} />
 		),
 		cell: ({ row }) => (
 			<Link
@@ -25,19 +26,25 @@ export const chatTableColumns = columnHelper.columns([
 				}}
 				className="font-medium hover:underline"
 			>
-				{row.original.title || "Untitled chat"}
+				{row.original.title || m.chat_table_untitled_chat()}
 			</Link>
 		),
 	}),
 	columnHelper.accessor("botName", {
 		header: ({ column }) => (
-			<DataTableColumnHeader column={column} title="Attached bot" />
+			<DataTableColumnHeader
+				column={column}
+				title={m.chat_table_bot_column_header()}
+			/>
 		),
 		cell: ({ row }) => row.original.botName ?? "—",
 	}),
 	columnHelper.accessor("updatedAt", {
 		header: ({ column }) => (
-			<DataTableColumnHeader column={column} title="Date" />
+			<DataTableColumnHeader
+				column={column}
+				title={m.chat_table_date_column_header()}
+			/>
 		),
 		cell: ({ row }) =>
 			row.original.updatedAt
@@ -53,7 +60,7 @@ export const chatTableColumns = columnHelper.columns([
 			<ChatActionsDropdown chatId={row.original.id} title={row.original.title}>
 				<Button variant="ghost" className="size-8 p-0">
 					<MoreHorizontalIcon />
-					<span className="sr-only">Open chat actions</span>
+					<span className="sr-only">{m.chat_table_row_menu_trigger()}</span>
 				</Button>
 			</ChatActionsDropdown>
 		),

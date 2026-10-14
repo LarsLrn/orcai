@@ -5,6 +5,7 @@ import {
 	useCreateProviderMutation,
 	useUpdateProviderMutation,
 } from "@/hooks/mutations/use-provider-mutations";
+import { m } from "@/paraglide/messages";
 import { providerFormOptions } from "./provider-form-options";
 
 const ProviderForm = ({
@@ -44,9 +45,9 @@ const ProviderForm = ({
 					name="compatibility"
 					children={(field) => (
 						<field.SelectField
-							label="Compatibility"
-							placeholder="Provider compatibility"
-							description="Only OpenAI-compatible endpoints are supported at the moment."
+							label={m.providers_form_compatibility_label()}
+							placeholder={m.providers_form_compatibility_placeholder()}
+							description={m.providers_form_compatibility_description()}
 							options={providerCompatibilities.map((compatibility) => ({
 								value: compatibility.value,
 								label: compatibility.label,
@@ -60,9 +61,9 @@ const ProviderForm = ({
 					name="name"
 					children={(field) => (
 						<field.TextField
-							label="Name"
-							description="Shown to users wherever this provider is named."
-							placeholder="e.g. University OpenAI endpoint"
+							label={m.common_name_label()}
+							description={m.providers_form_name_description()}
+							placeholder={m.providers_form_name_placeholder()}
 						/>
 					)}
 				/>
@@ -72,8 +73,8 @@ const ProviderForm = ({
 				name="endpoint"
 				children={(field) => (
 					<field.TextField
-						label="Endpoint"
-						description="The base URL of the OpenAI-compatible endpoint, including the version path."
+						label={m.providers_form_endpoint_label()}
+						description={m.providers_form_endpoint_description()}
 						placeholder="https://api.openai.com/v1"
 					/>
 				)}
@@ -83,9 +84,9 @@ const ProviderForm = ({
 				name="apiKey"
 				children={(field) => (
 					<field.PasswordField
-						label="API key"
-						description="The key is stored encrypted."
-						placeholder="Paste the key from the provider"
+						label={m.providers_form_api_key_label()}
+						description={m.providers_form_api_key_description()}
+						placeholder={m.providers_form_api_key_placeholder()}
 					/>
 				)}
 			/>
@@ -95,8 +96,8 @@ const ProviderForm = ({
 					name="meteringMode"
 					children={(field) => (
 						<field.SelectField
-							label="Metering mode"
-							description="Sets whether quota counts tokens or requests for this provider."
+							label={m.providers_form_metering_mode_label()}
+							description={m.providers_form_metering_mode_description()}
 							options={providerMeteringModes.map((mode) => ({
 								value: mode.value,
 								label: mode.label,
@@ -108,15 +109,15 @@ const ProviderForm = ({
 					name="enabled"
 					children={(field) => (
 						<field.SwitchField
-							label="Enabled"
-							description="When enabled, models from this provider can be used in this organisation."
+							label={m.common_status_enabled_label()}
+							description={m.providers_form_enabled_description()}
 						/>
 					)}
 				/>
 			</div>
 
 			<form.AppForm>
-				<form.SubmitButton label="Save provider" />
+				<form.SubmitButton label={m.providers_form_save_button()} />
 			</form.AppForm>
 		</form>
 	);

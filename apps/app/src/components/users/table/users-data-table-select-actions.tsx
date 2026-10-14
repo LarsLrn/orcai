@@ -5,6 +5,7 @@ import { DataTableBulkActions } from "@/components/ui/data-table/data-table-bulk
 import { useTable } from "@/components/ui/data-table/data-table-context";
 import { useOrganizationCapabilities } from "@/hooks/authz/use-capabilities";
 import { useDeleteOrganizationMembersMutation } from "@/hooks/mutations/use-organization-member-mutations";
+import { m } from "@/paraglide/messages";
 
 const UsersDataTableSelectActions = () => {
 	const { auth } = useRouteContext({
@@ -38,7 +39,7 @@ const UsersDataTableSelectActions = () => {
 					? []
 					: [
 							{
-								label: "Remove selected from organisation",
+								label: m.users_table_bulk_remove_action(),
 								variant: "destructive",
 								onSelect: ({ selectedRows }) =>
 									removeMembers.mutate({

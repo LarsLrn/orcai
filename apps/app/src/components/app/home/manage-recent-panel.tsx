@@ -19,14 +19,15 @@ import {
 import { orpc } from "@/lib/orpc/orpc";
 import { formatDisplayDate } from "@/lib/presentation/format-timestamp";
 import { getProcessingStatusLabel } from "@/lib/presentation/processing-status";
+import { m } from "@/paraglide/messages";
 
 const RECENT_LIMIT = 6;
 
 const PublicationBadge = ({ status }: { status: PublicationStatus }) =>
 	status === "ready" ? (
-		<Badge variant="success">Published</Badge>
+		<Badge variant="success">{m.home_recent_published_badge()}</Badge>
 	) : (
-		<Badge variant="outline">Draft</Badge>
+		<Badge variant="outline">{m.home_recent_draft_badge()}</Badge>
 	);
 
 const ProcessingBadge = ({ status }: { status: ProcessingStatus }) => {
@@ -80,7 +81,7 @@ const RecentRow = ({ entry }: { entry: RecentResource }) => {
 					})}
 				>
 					<RecentRowBody
-						kind="Bot"
+						kind={m.home_recent_bot_kind()}
 						name={entry.name}
 						changedAt={entry.changedAt}
 						badge={<PublicationBadge status={entry.status} />}
@@ -100,7 +101,9 @@ const RecentRow = ({ entry }: { entry: RecentResource }) => {
 				>
 					<RecentRowBody
 						kind={
-							entry.blockType === "database" ? "Repository" : "Behaviour block"
+							entry.blockType === "database"
+								? m.home_recent_repository_kind()
+								: m.home_recent_block_kind()
 						}
 						name={entry.name}
 						changedAt={entry.changedAt}
@@ -120,7 +123,7 @@ const RecentRow = ({ entry }: { entry: RecentResource }) => {
 					})}
 				>
 					<RecentRowBody
-						kind="Asset"
+						kind={m.home_recent_asset_kind()}
 						name={entry.name}
 						changedAt={entry.changedAt}
 						badge={<ProcessingBadge status={entry.processingStatus} />}
@@ -143,7 +146,7 @@ const ManageRecentPanel = () => {
 	return (
 		<Panel>
 			<PanelHeader>
-				<PanelTitle>Recently changed</PanelTitle>
+				<PanelTitle>{m.home_recent_panel_title()}</PanelTitle>
 				<Link
 					to="/app/hub"
 					className={buttonVariants({
@@ -151,14 +154,11 @@ const ManageRecentPanel = () => {
 						size: "sm",
 					})}
 				>
-					Open the library
+					{m.home_recent_panel_open_library_action()}
 				</Link>
 			</PanelHeader>
 			{recent.data.length === 0 ? (
-				<PanelNote>
-					Nothing has been edited yet. Bots, behaviour blocks, repositories, and
-					assets appear here as they change.
-				</PanelNote>
+				<PanelNote>{m.home_recent_panel_empty_note()}</PanelNote>
 			) : (
 				<PanelRows>
 					{recent.data.map((entry) => (

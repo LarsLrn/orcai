@@ -1,5 +1,6 @@
 import { submitForm } from "../../fixtures/forms";
 import { expect, test } from "../../fixtures/index";
+import { message } from "../../fixtures/messages";
 import { enterApp } from "../../fixtures/navigation";
 import { runId } from "../../fixtures/organisation";
 import { openGuarded } from "../../fixtures/orgs/navigation";
@@ -28,15 +29,19 @@ test("orgs: an admin edits the settings of its organisation", async ({
 
 	const renamed = `${created.name} Renamed`;
 
-	await openGuarded(page, `/app/orgs/${created.id}/edit`, "Edit Organisation");
+	await openGuarded(
+		page,
+		`/app/orgs/${created.id}/edit`,
+		message("orgs_edit_page_title"),
+	);
 
 	// Saving sends the browser back to the detail page it came from.
 	await submitForm(page, {
 		fill: async () => {
-			await page.getByLabel("Organisation Name").fill(renamed);
-			await page.getByLabel("Slug").fill(created.slug);
+			await page.getByLabel(message("orgs_form_name_label")).fill(renamed);
+			await page.getByLabel(message("orgs_form_slug_label")).fill(created.slug);
 		},
-		submit: "Save Organisation",
+		submit: message("orgs_form_submit_button"),
 		until: ORGANISATION_URL,
 	});
 

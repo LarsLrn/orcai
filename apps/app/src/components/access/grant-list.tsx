@@ -1,6 +1,7 @@
 import type { ResourceGrant, ResourceGrantRole } from "@orcai/schema";
 import { UsersIcon } from "lucide-react";
 import { FilterableList } from "@/components/ui/composed/filterable-list";
+import { m } from "@/paraglide/messages";
 import { GrantEditorRow } from "./grant-editor-row";
 
 type GrantListProps = {
@@ -39,13 +40,13 @@ const GrantList = ({
 
 	return (
 		<FilterableList
-			title="Direct grants"
+			title={m.access_grant_list_title()}
 			icon={UsersIcon}
 			search={search}
 			onSearchChange={onSearchChange}
-			placeholder="Filter by name or email"
+			placeholder={m.access_grant_list_filter_placeholder()}
 			isEmpty={filteredGrants.length === 0}
-			emptyText="No direct grants found."
+			emptyText={m.access_grant_list_empty_state_description()}
 			disabled={disabled}
 		>
 			{filteredGrants.map((grant) => (

@@ -3,6 +3,7 @@ import { LogoText } from "@/components/app/branding/logo-text";
 import { LoadingPage } from "@/components/app/loading/loading-page";
 import { ThemeSwitcher } from "@/components/app/theme-switcher";
 import { AuroraBackground } from "@/components/ui/aceternity/aurora-background";
+import { m } from "@/paraglide/messages";
 
 export const Route = createFileRoute("/_pathlessLayout")({
 	component: PathlessLayoutComponent,
@@ -23,16 +24,16 @@ function PathlessLayoutComponent() {
 			</div>
 
 			<footer className="mx-auto my-4 w-full max-w-xl px-2 py-2 text-center text-muted-foreground text-xs">
-				OrcAI is a fork of{" "}
+				{m.auth_layout_footer_before()}{" "}
 				<a
 					href="https://github.com/SokratesT/sokratest"
 					target="_blank"
 					rel="noopener noreferrer"
 					className="rounded-sm text-primary underline-offset-4 outline-none transition-[color,box-shadow] hover:underline focus-visible:ring-3 focus-visible:ring-ring/30"
 				>
-					SokratesT
+					{m.auth_layout_footer_link()}
 				</a>
-				.
+				{m.auth_layout_footer_after()}
 			</footer>
 		</main>
 	);

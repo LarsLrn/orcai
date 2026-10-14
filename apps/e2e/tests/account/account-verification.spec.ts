@@ -9,6 +9,7 @@ import {
 import { createAccountUser } from "../../fixtures/account/users";
 import { pageForSession } from "../../fixtures/auth/users";
 import { expect, test } from "../../fixtures/index";
+import { message } from "../../fixtures/messages";
 import { open } from "../../fixtures/navigation";
 
 test("account: a user sends the verification email and the link verifies the address", async ({
@@ -39,17 +40,22 @@ test("account: a user sends the verification email and the link verifies the add
 	try {
 		await openAccountPage(page);
 
-		const verification = accountCard(page, "Email Verification");
+		const verification = accountCard(
+			page,
+			message("account_verification_card_title"),
+		);
 
 		await expect(
-			verification.getByText("Your email address is not verified."),
+			verification.getByText(
+				message("account_verification_unverified_description"),
+			),
 		).toBeVisible();
 
 		// Late hydration: the click is retried until the toast shows.
 		await expect(async () => {
 			await verification
 				.getByRole("button", {
-					name: "Send Verification Email",
+					name: message("account_verification_send_button"),
 				})
 				.click();
 			await expect(
@@ -78,14 +84,17 @@ test("account: a user sends the verification email and the link verifies the add
 		await openAccountPage(page);
 
 		await expect(
-			accountCard(page, "Email Verification").getByText(
-				"Your email address is verified.",
+			accountCard(page, message("account_verification_card_title")).getByText(
+				message("account_verification_verified_description"),
 			),
 		).toBeVisible();
 		await expect(
-			accountCard(page, "Email Verification").getByRole("button", {
-				name: "Send Verification Email",
-			}),
+			accountCard(page, message("account_verification_card_title")).getByRole(
+				"button",
+				{
+					name: message("account_verification_send_button"),
+				},
+			),
 		).toHaveCount(0);
 	} finally {
 		await context.close();

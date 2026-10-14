@@ -10,6 +10,7 @@ import {
 	useUpdateQuotaPoolMutation,
 } from "@/hooks/mutations/use-quota-mutations";
 import { orpc } from "@/lib/orpc/orpc";
+import { m } from "@/paraglide/messages";
 import {
 	PROVIDER_WIDE_MODEL_VALUE,
 	quotaPoolFormOptions,
@@ -112,7 +113,10 @@ const QuotaPoolForm = ({
 		() =>
 			(providers.data?.data ?? []).map((provider) => ({
 				value: provider.id,
-				label: `${provider.name} (${provider.meteringMode})`,
+				label: m.quotas_form_provider_option_label({
+					name: provider.name,
+					meteringMode: provider.meteringMode,
+				}),
 			})),
 		[
 			providers.data?.data,
@@ -124,7 +128,7 @@ const QuotaPoolForm = ({
 			return [
 				{
 					value: PROVIDER_WIDE_MODEL_VALUE,
-					label: "All models from this provider",
+					label: m.quotas_form_model_scope_all_option(),
 				},
 			];
 		}
@@ -139,7 +143,7 @@ const QuotaPoolForm = ({
 		return [
 			{
 				value: PROVIDER_WIDE_MODEL_VALUE,
-				label: "All models from this provider",
+				label: m.quotas_form_model_scope_all_option(),
 			},
 			...matchingModels,
 		];
@@ -152,7 +156,12 @@ const QuotaPoolForm = ({
 		() =>
 			(groups.data?.data ?? []).map((group) => ({
 				value: group.id,
-				label: group.kind === "system" ? `${group.name} (system)` : group.name,
+				label:
+					group.kind === "system"
+						? m.quotas_form_group_system_label({
+								name: group.name,
+							})
+						: group.name,
 			})),
 		[
 			groups.data?.data,
@@ -202,9 +211,9 @@ const QuotaPoolForm = ({
 					name="name"
 					children={(field) => (
 						<field.TextField
-							label="Name"
-							description="Shown to users as the pool their usage is charged to."
-							placeholder="e.g. OpenAI shared monthly pool"
+							label={m.common_name_label()}
+							description={m.quotas_form_name_description()}
+							placeholder={m.quotas_form_name_placeholder()}
 						/>
 					)}
 				/>
@@ -212,9 +221,9 @@ const QuotaPoolForm = ({
 					name="providerId"
 					children={(field) => (
 						<field.SelectField
-							label="Provider"
-							placeholder="Select provider"
-							description="The pool meters usage of this provider, in the unit that provider is metered in."
+							label={m.common_provider_label()}
+							placeholder={m.quotas_form_provider_placeholder()}
+							description={m.quotas_form_provider_description()}
 							options={providerOptions}
 							disabled={action === "update"}
 						/>
@@ -226,8 +235,8 @@ const QuotaPoolForm = ({
 				name="description"
 				children={(field) => (
 					<field.TextareaField
-						label="Description"
-						placeholder="Optional internal notes"
+						label={m.common_description_label()}
+						placeholder={m.quotas_form_description_placeholder()}
 					/>
 				)}
 			/>
@@ -237,9 +246,9 @@ const QuotaPoolForm = ({
 					name="providerModelId"
 					children={(field) => (
 						<field.SelectField
-							label="Model scope"
-							placeholder="Select model scope"
-							description="Pick one model to bound that model only, or keep every model from this provider in one budget."
+							label={m.quotas_form_model_scope_label()}
+							placeholder={m.quotas_form_model_scope_placeholder()}
+							description={m.quotas_form_model_scope_description()}
 							options={providerModelOptions}
 						/>
 					)}
@@ -248,21 +257,21 @@ const QuotaPoolForm = ({
 					name="periodType"
 					children={(field) => (
 						<field.SelectField
-							label="Period"
-							placeholder="Select reset period"
-							description="The budget resets in UTC: weekly on Monday, monthly on the 1st, yearly on 1 January."
+							label={m.quotas_form_period_label()}
+							placeholder={m.quotas_form_period_placeholder()}
+							description={m.quotas_form_period_description()}
 							options={[
 								{
 									value: "weekly",
-									label: "Weekly",
+									label: m.quotas_period_weekly_label(),
 								},
 								{
 									value: "monthly",
-									label: "Monthly",
+									label: m.quotas_period_monthly_label(),
 								},
 								{
 									value: "yearly",
-									label: "Yearly",
+									label: m.quotas_period_yearly_label(),
 								},
 							]}
 						/>
@@ -272,10 +281,10 @@ const QuotaPoolForm = ({
 					name="budgetAmount"
 					children={(field) => (
 						<field.TextField
-							label="Budget"
+							label={m.quotas_form_budget_label()}
 							type="number"
 							min={1}
-							description="Maximum requests or tokens for the current period."
+							description={m.quotas_form_budget_description()}
 						/>
 					)}
 				/>
@@ -283,9 +292,9 @@ const QuotaPoolForm = ({
 					name="priority"
 					children={(field) => (
 						<field.TextField
-							label="Priority"
+							label={m.quotas_form_priority_label()}
 							type="number"
-							description="When more than one pool could apply, the pool with the higher priority is used."
+							description={m.quotas_form_priority_description()}
 						/>
 					)}
 				/>
@@ -296,8 +305,8 @@ const QuotaPoolForm = ({
 					name="isDefault"
 					children={(field) => (
 						<field.SwitchField
-							label="Default pool"
-							description="This pool is used when no other pool matches."
+							label={m.quotas_form_default_label()}
+							description={m.quotas_form_default_description()}
 						/>
 					)}
 				/>
@@ -305,8 +314,8 @@ const QuotaPoolForm = ({
 					name="isActive"
 					children={(field) => (
 						<field.SwitchField
-							label="Active"
-							description="While a pool is inactive, no new usage can be charged to it. Usage already in progress still completes."
+							label={m.common_status_active_label()}
+							description={m.quotas_form_active_description()}
 						/>
 					)}
 				/>
@@ -316,9 +325,9 @@ const QuotaPoolForm = ({
 				name="groupIds"
 				children={(field) => (
 					<field.MultiSelectField
-						label="Eligible groups"
-						placeholder="Select one or more groups"
-						description="Users can access this pool when they belong to any selected group."
+						label={m.quotas_form_groups_label()}
+						placeholder={m.quotas_form_groups_placeholder()}
+						description={m.quotas_form_groups_description()}
 						options={eligibleGroupOptions}
 					/>
 				)}
@@ -327,17 +336,20 @@ const QuotaPoolForm = ({
 			{action === "create" ? (
 				<Alert>
 					<AlertCircleIcon className="h-4 w-4" />
-					<AlertTitle>Pools cannot be deleted</AlertTitle>
+					<AlertTitle>{m.quotas_form_undeletable_alert_title()}</AlertTitle>
 					<AlertDescription>
-						After creation, pools can only be deactivated to stop new
-						reservations.
+						{m.quotas_form_undeletable_alert_description()}
 					</AlertDescription>
 				</Alert>
 			) : null}
 
 			<form.AppForm>
 				<form.SubmitButton
-					label={action === "create" ? "Create pool" : "Save changes"}
+					label={
+						action === "create"
+							? m.quotas_form_create_button()
+							: m.quotas_form_save_changes_button()
+					}
 					disabled={isPending}
 				/>
 			</form.AppForm>

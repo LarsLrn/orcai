@@ -3,6 +3,7 @@ import { LoadingPage } from "@/components/app/loading/loading-page";
 import { InstanceShell } from "@/components/instance/instance-shell";
 import { useUmami } from "@/hooks/use-umami";
 import { isInstanceAdminRole } from "@/lib/authz/instance-role";
+import { m } from "@/paraglide/messages";
 
 export const Route = createFileRoute("/instance")({
 	beforeLoad: ({ context }) => {
@@ -27,7 +28,7 @@ export const Route = createFileRoute("/instance")({
 	head: () => ({
 		meta: [
 			{
-				title: "Manage instance",
+				title: m.instance_route_page_title(),
 			},
 		],
 	}),
