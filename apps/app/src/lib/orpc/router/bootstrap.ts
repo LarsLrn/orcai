@@ -140,7 +140,6 @@ export const initializeBootstrap = os.bootstrap.initialize.effect(function* ({
 
 				yield* tx.insert(dbSchema.account).values({
 					accountId: user.id,
-					issuer: "local:credential",
 					providerId: "credential",
 					userId: user.id,
 					password: passwordHash,
