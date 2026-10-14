@@ -48,8 +48,7 @@ The local override publishes:
 | OrcAI app | `3000` | Main web application |
 | PostgreSQL | `5432` | Application database |
 | Valkey | `6379` | Cache and coordination |
-| MinIO API | `9000` | S3-compatible object storage |
-| MinIO Console | `9001` | MinIO administration UI |
+| SeaweedFS S3 API | `8333` | S3-compatible object storage |
 | Qdrant HTTP | `6333` | Vector database HTTP API |
 | Qdrant gRPC | `6334` | Vector database gRPC API |
 | SpiceDB gRPC | `50051` | Authorization service |
@@ -57,7 +56,7 @@ The local override publishes:
 | SpiceDB metrics | `9090` | SpiceDB metrics |
 | SpiceDB PostgreSQL | `5431` | SpiceDB backing database |
 
-Most ports can be overridden with environment variables such as `APP_PORT`, `POSTGRES_PORT`, `MINIO_API_PORT`, and `QDRANT_HTTP_PORT`.
+Most ports can be overridden with environment variables such as `APP_PORT`, `POSTGRES_PORT`, `S3_PORT`, and `QDRANT_HTTP_PORT`.
 
 ## Required AI Variables
 
@@ -94,8 +93,9 @@ Add `-v` only if you intentionally want to remove local volumes and lose stored 
 The Compose stack includes one-shot services for:
 
 - Application database migrations.
-- MinIO bucket bootstrap.
 - SpiceDB schema migration.
+
+SeaweedFS creates the `uploads` and `processed-files` buckets itself on startup.
 
 <Callout title="TODO" type="idea">
 	Add a first-login/admin-bootstrap flow once the production initialization process is finalized, plus an example `.env` for a realistic self-hosted deployment.

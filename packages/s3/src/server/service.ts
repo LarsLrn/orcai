@@ -27,6 +27,9 @@ export const S3ServiceLive = Layer.effect(
 					secretAccessKey: Redacted.value(config.secretKey),
 				},
 				forcePathStyle: true,
+				// Default checksums end up in presigned URLs, which SeaweedFS rejects.
+				requestChecksumCalculation: "WHEN_REQUIRED",
+				responseChecksumValidation: "WHEN_REQUIRED",
 			} as const;
 
 			return yield* Effect.try({

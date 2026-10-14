@@ -22,10 +22,6 @@ x-dev-db-env: &dev_db_env
   POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-postgres}
   POSTGRES_DB: ${POSTGRES_DB:-app}
 
-x-dev-minio-env: &dev_minio_env
-  MINIO_ROOT_USER: ${MINIO_ROOT_USER:-minioadmin}
-  MINIO_ROOT_PASSWORD: ${MINIO_ROOT_PASSWORD:-minioadmin}
-
 x-dev-spicedb-env: &dev_spicedb_env
   SPICEDB_GRPC_PRESHARED_KEY: ${SPICEDB_GRPC_PRESHARED_KEY:-dev-spicedb-token}
   SPICEDB_POSTGRES_USER: ${SPICEDB_POSTGRES_USER:-postgres}
@@ -55,18 +51,18 @@ services:
     volumes:
       - .:/workspaces/orcai:cached
     environment:
-      <<: [ *dev_app_env, *dev_db_env, *dev_minio_env, *dev_spicedb_env, *dev_qdrant_env ]
+      <<: [ *dev_app_env, *dev_db_env, *dev_spicedb_env, *dev_qdrant_env ]
       NODE_ENV: development
       KREUZBERG_OCR_LANGUAGE: ${KREUZBERG_OCR_LANGUAGE:-eng+deu}
       POSTGRES_HOST: postgres
       POSTGRES_PORT: "5432"
       POSTGRES_SSL: "false"
       VALKEY_URL: redis://valkey:6379
-      S3_ENDPOINT: http://minio:9000
-      S3_PUBLIC_ENDPOINT: ${S3_PUBLIC_ENDPOINT:-http://localhost:9000}
+      S3_ENDPOINT: http://seaweedfs:8333
+      S3_PUBLIC_ENDPOINT: ${S3_PUBLIC_ENDPOINT:-http://localhost:8333}
       S3_REGION: ${S3_REGION:-eu-central-1}
-      S3_ACCESS_KEY: ${MINIO_ROOT_USER:-minioadmin}
-      S3_SECRET_KEY: ${MINIO_ROOT_PASSWORD:-minioadmin}
+      S3_ACCESS_KEY: ${S3_ACCESS_KEY:-s3admin}
+      S3_SECRET_KEY: ${S3_SECRET_KEY:-s3admin-secret}
       QDRANT_URL: http://qdrant:6333/
       SPICEDB_ENDPOINT: spicedb:50051
       SPICEDB_TOKEN: ${SPICEDB_GRPC_PRESHARED_KEY:-dev-spicedb-token}
@@ -86,10 +82,8 @@ services:
         condition: service_healthy
       migrations:
         condition: service_completed_successfully
-      minio:
+      seaweedfs:
         condition: service_healthy
-      minio-setup:
-        condition: service_completed_successfully
       qdrant:
         condition: service_healthy
       spicedb:
@@ -105,14 +99,6 @@ services:
     environment:
       <<: *dev_db_env
       POSTGRES_HOST: postgres
-
-  minio:
-    environment:
-      <<: *dev_minio_env
-
-  minio-setup:
-    environment:
-      <<: *dev_minio_env
 
   spicedb-database:
     environment:

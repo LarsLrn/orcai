@@ -6,7 +6,7 @@
 #
 # Use with:
 #   docker compose -p <stack> -f docker-compose.yaml -f docker-compose.infra.yaml up -d --wait \
-#     postgres valkey minio minio-setup qdrant spicedb-database spicedb-migrate spicedb
+#     postgres valkey seaweedfs qdrant spicedb-database spicedb-migrate spicedb
 
 services:
   postgres:
@@ -17,10 +17,9 @@ services:
     ports:
       - "127.0.0.1:${VALKEY_PORT:?}:6379"
 
-  minio:
+  seaweedfs:
     ports:
-      - "127.0.0.1:${MINIO_API_PORT:?}:9000"
-      - "127.0.0.1:${MINIO_CONSOLE_PORT:?}:9001"
+      - "127.0.0.1:${S3_PORT:?}:8333"
 
   qdrant:
     environment:
