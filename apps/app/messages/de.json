@@ -1,12 +1,3064 @@
 {
 	"$schema": "https://inlang.com/schema/inlang-message-format",
+	"access_dialog_description": "Konfigurieren Sie Sichtbarkeit, Gruppen und direkte Freigaben für {resource}.",
+	"access_dialog_description_named": "Konfigurieren Sie Sichtbarkeit, Gruppen und direkte Freigaben für {resource}: {name}.",
+	"access_dialog_title": "Zugriff verwalten",
+	"access_grant_list_empty_state_description": "Keine direkten Freigaben gefunden.",
+	"access_grant_list_filter_placeholder": "Nach Name oder E-Mail filtern",
+	"access_grant_list_title": "Direkte Freigaben",
+	"access_grant_row_group_fallback": "Gruppe",
+	"access_grant_row_revoke_aria_label": "Zugriff entziehen",
+	"access_grant_row_source_all_members": "Alle Mitglieder",
+	"access_grant_row_source_direct_group": "Direkte Gruppe",
+	"access_grant_row_source_direct_user": "Direkter Benutzer",
+	"access_grant_toast_error": "Zugriff konnte nicht aktualisiert werden",
+	"access_grant_toast_loading": "Zugriff wird aktualisiert...",
+	"access_grant_toast_success": "Zugriff aktualisiert",
+	"access_inherited_ancestor_phrase": [
+		{
+			"declarations": [
+				"input kind",
+				"input blockCount",
+				"input botCount",
+				"local blockPlural = blockCount: plural",
+				"local botPlural = botCount: plural"
+			],
+			"selectors": [
+				"kind",
+				"blockPlural",
+				"botPlural"
+			],
+			"match": {
+				"kind=blocks, blockPlural=one, botPlural=*": "{blockCount} Block",
+				"kind=blocks, blockPlural=other, botPlural=*": "{blockCount} Blöcke",
+				"kind=bots, blockPlural=*, botPlural=one": "{botCount} Bot",
+				"kind=bots, blockPlural=*, botPlural=other": "{botCount} Bots",
+				"kind=both, blockPlural=one, botPlural=one": "{blockCount} Block und {botCount} Bot",
+				"kind=both, blockPlural=one, botPlural=other": "{blockCount} Block und {botCount} Bots",
+				"kind=both, blockPlural=other, botPlural=one": "{blockCount} Blöcke und {botCount} Bot",
+				"kind=both, blockPlural=other, botPlural=other": "{blockCount} Blöcke und {botCount} Bots"
+			}
+		}
+	],
+	"access_inherited_details_action": "Details anzeigen",
+	"access_inherited_details_description": "Diese Freigaben sind am Bot oder Block selbst gesetzt. Öffnen Sie einen davon, um sie zu ändern.",
+	"access_inherited_details_title": "Geerbter Zugriff",
+	"access_inherited_principal_phrase": [
+		{
+			"declarations": [
+				"input kind",
+				"input groupCount",
+				"input userCount",
+				"local groupPlural = groupCount: plural",
+				"local userPlural = userCount: plural"
+			],
+			"selectors": [
+				"kind",
+				"groupPlural",
+				"userPlural"
+			],
+			"match": {
+				"kind=groups, groupPlural=one, userPlural=*": "{groupCount} Gruppe",
+				"kind=groups, groupPlural=other, userPlural=*": "{groupCount} Gruppen",
+				"kind=people, groupPlural=*, userPlural=one": "{userCount} Person",
+				"kind=people, groupPlural=*, userPlural=other": "{userCount} Personen",
+				"kind=both, groupPlural=one, userPlural=one": "{groupCount} Gruppe und {userCount} Person",
+				"kind=both, groupPlural=one, userPlural=other": "{groupCount} Gruppe und {userCount} Personen",
+				"kind=both, groupPlural=other, userPlural=one": "{groupCount} Gruppen und {userCount} Person",
+				"kind=both, groupPlural=other, userPlural=other": "{groupCount} Gruppen und {userCount} Personen"
+			}
+		}
+	],
+	"access_inherited_public_note": "Einer davon ist öffentlich, daher kann jeder in dieser Instanz diese Ressource lesen.",
+	"access_inherited_summary_shared": "Außerdem über {ancestors} mit {principals} geteilt.",
+	"access_inherited_summary_unshared": "Außerdem über {ancestors} erreichbar, noch mit niemandem geteilt.",
+	"access_inherited_unnamed": [
+		{
+			"declarations": [
+				"input count",
+				"local countPlural = count: plural"
+			],
+			"selectors": [
+				"countPlural"
+			],
+			"match": {
+				"countPlural=one": "{count} weiterer Eintrag ist nicht aufgeführt.",
+				"countPlural=other": "{count} weitere Einträge sind nicht aufgeführt."
+			}
+		}
+	],
+	"access_inherited_unnamed_hidden": [
+		{
+			"declarations": [
+				"input count",
+				"local countPlural = count: plural"
+			],
+			"selectors": [
+				"countPlural"
+			],
+			"match": {
+				"countPlural=one": "{count} weiterer Eintrag ist nicht aufgeführt, davon können Sie {hidden} nicht öffnen.",
+				"countPlural=other": "{count} weitere Einträge sind nicht aufgeführt, davon können Sie {hidden} nicht öffnen."
+			}
+		}
+	],
+	"access_make_private_confirm_button": "Privat machen",
+	"access_make_private_confirm_description": "Benutzer ohne direkten oder geerbten Zugriff verlieren die Sichtbarkeit.",
+	"access_make_private_confirm_title": "Ressource privat machen",
+	"access_manager_add_description": "Geben Sie jemandem in dieser Organisation Zugriff auf diese Ressource.",
+	"access_manager_add_heading": "Personen und Gruppen hinzufügen",
+	"access_manager_current_resource": "Aktuelle Ressource: {name}.",
+	"access_manager_grant_action": "Zugriff gewähren",
+	"access_manager_groups_hint_description": "Verwenden Sie nach Möglichkeit Gruppen für Kurse, Kohorten oder Teams. Direkte Freigaben eignen sich am besten für Ausnahmen und einzelne Mitwirkende.",
+	"access_manager_groups_hint_title": "Gruppen sind meist der richtige Ausgangspunkt",
+	"access_manager_public_alert_description": "Jeder Benutzer dieser Instanz kann sie finden und verwenden.",
+	"access_manager_public_alert_title": "Diese Ressource ist öffentlich",
+	"access_manager_tab_groups": "Gruppen",
+	"access_manager_tab_people": "Personen",
+	"access_principal_picker_custom_group_subtitle": "Benutzerdefinierte Gruppe",
+	"access_principal_picker_empty_state_description": "Keine Personen oder Gruppen passen zu dieser Suche.",
+	"access_principal_picker_search_placeholder_groups": "Gruppen suchen",
+	"access_principal_picker_search_placeholder_people": "Mitglieder suchen",
+	"access_principal_picker_system_badge": "System",
+	"access_principal_picker_system_group_subtitle": "Systemgruppe",
+	"access_publish_confirm_button": "Veröffentlichen",
+	"access_publish_confirm_description": "Jeder Benutzer dieser Instanz kann diese Ressource dann finden und verwenden.",
+	"access_publish_confirm_title": "Ressource veröffentlichen",
+	"access_resource_asset_hint": "Der Zugriff kann auch vom übergeordneten Bot geerbt werden.",
+	"access_resource_asset_label": "Asset",
+	"access_resource_block_hint": "Der Zugriff kann auch vom übergeordneten Bot geerbt werden.",
+	"access_resource_block_label": "Block",
+	"access_resource_bot_hint": "Verwenden Sie nach Möglichkeit Gruppen, um einer Kohorte Zugriff zu gewähren. Der Zugriff hier wird an verknüpfte Blöcke und Assets weitergegeben.",
+	"access_resource_bot_label": "Bot",
+	"access_revoke_confirm_button": "Entziehen",
+	"access_revoke_confirm_description": "Diese Person oder Gruppe verliert ihren direkten Zugriff auf diese Ressource.",
+	"access_revoke_confirm_title": "Zugriff entziehen",
+	"access_revoke_toast_error": "Zugriff konnte nicht entzogen werden",
+	"access_revoke_toast_loading": "Zugriff wird entzogen...",
+	"access_revoke_toast_success": "Zugriff entzogen",
+	"access_role_editor_description": "Kann die Ressource bearbeiten",
+	"access_role_editor_label": "Bearbeiter",
+	"access_role_manager_description": "Kann die Ressource bearbeiten und den Zugriff verwalten",
+	"access_role_manager_label": "Manager",
+	"access_role_viewer_description": "Kann die Ressource ansehen",
+	"access_role_viewer_label": "Betrachter",
+	"access_visibility_badge_private": "Privat",
+	"access_visibility_badge_public": "Öffentlich",
+	"access_visibility_description_private": "Nur die Personen und Gruppen mit gewährtem Zugriff können diese Ressource finden und verwenden.",
+	"access_visibility_description_public": "Jeder Benutzer dieser Instanz kann diese Ressource finden und verwenden.",
+	"access_visibility_label": "Sichtbarkeit",
+	"access_visibility_toast_error": "Sichtbarkeit konnte nicht aktualisiert werden",
+	"access_visibility_toast_loading": "Sichtbarkeit wird aktualisiert...",
+	"access_visibility_toast_private": "Ressource ist jetzt privat",
+	"access_visibility_toast_public": "Ressource ist jetzt öffentlich",
+	"account_change_password_confirm_description": "Möchten Sie Ihr Passwort wirklich ändern?",
+	"account_change_password_confirm_title": "Passwort ändern",
+	"account_change_password_toast_error": "Passwort konnte nicht geändert werden",
+	"account_change_password_toast_loading": "Passwort wird geändert...",
+	"account_change_password_toast_success": "Passwort geändert",
+	"account_invitations_card_description": "Einladungen zu Organisationen verwalten",
+	"account_invitations_card_title": "Einladungen zu Organisationen",
+	"account_legal_privacy_link": "Datenschutzerklärung",
+	"account_legal_terms_link": "Nutzungsbedingungen",
+	"account_legal_title": "Rechtliches",
 	"account_page_title": "Konto",
+	"account_password_card_title": "Passwort ändern",
+	"account_profile_card_description": "Passen Sie Ihre Profilinformationen an",
+	"account_profile_card_title": "Ihr Profil",
+	"account_profile_toast_error": "Profil konnte nicht aktualisiert werden",
+	"account_profile_toast_loading": "Profil wird gespeichert...",
+	"account_profile_toast_success": "Profil erfolgreich aktualisiert!",
+	"account_user_menu_sign_out_action": "Abmelden",
+	"account_verification_card_title": "E-Mail-Bestätigung",
+	"account_verification_send_button": "Bestätigungs-E-Mail senden",
+	"account_verification_unverified_description": "Ihre E-Mail-Adresse ist nicht bestätigt.",
+	"account_verification_verified_description": "Ihre E-Mail-Adresse ist bestätigt.",
+	"ai_elements_attachment_empty_state": "Keine Anhänge",
+	"ai_elements_attachment_fallback_label": "Anhang",
+	"ai_elements_attachment_image_alt": "Bild",
+	"ai_elements_attachment_image_fallback_label": "Bild",
+	"ai_elements_attachment_source_fallback_label": "Quelle",
+	"ai_elements_cite_load_error": "Die Quellenangaben konnten nicht geladen werden.",
+	"ai_elements_cite_loading_label": "Quellenangaben werden geladen",
+	"ai_elements_cite_open_asset_action": "Asset öffnen",
+	"ai_elements_cite_page_label": "Seite {page}",
+	"ai_elements_cite_pill_label_with_page": "{title} · S. {page}",
+	"ai_elements_cite_unknown_source": "Dieses Zitat nennt keine Quelle in der Bibliothek.",
+	"ai_elements_context_cache_label": "Cache",
+	"ai_elements_context_input_label": "Eingabe",
+	"ai_elements_context_output_label": "Ausgabe",
+	"ai_elements_context_reasoning_label": "Reasoning",
+	"ai_elements_context_tokens_used_label": "Verbrauchte Token",
+	"ai_elements_context_total_tokens_label": "Token gesamt",
+	"ai_elements_context_usage_aria_label": "Kontextnutzung des Modells",
+	"ai_elements_conversation_empty_state_description": "Starten Sie einen Chat, um hier Nachrichten zu sehen",
+	"ai_elements_conversation_empty_state_title": "Noch keine Nachrichten",
+	"ai_elements_inline_citation_next_aria_label": "Weiter",
+	"ai_elements_inline_citation_previous_aria_label": "Zurück",
+	"ai_elements_inline_citation_unknown_source_label": "unbekannt",
+	"ai_elements_message_branch_next_aria_label": "Nächster Zweig",
+	"ai_elements_message_branch_page": "{current} von {total}",
+	"ai_elements_message_branch_previous_aria_label": "Vorheriger Zweig",
+	"ai_elements_prompt_input_add_attachments_label": "Fotos oder Dateien hinzufügen",
+	"ai_elements_prompt_input_add_screenshot_label": "Screenshot aufnehmen",
+	"ai_elements_prompt_input_error_accept": "Keine Datei entspricht den zulässigen Dateitypen.",
+	"ai_elements_prompt_input_error_max_file_size": "Alle Dateien überschreiten die maximale Größe.",
+	"ai_elements_prompt_input_error_max_files": "Zu viele Dateien. Einige wurden nicht hinzugefügt.",
+	"ai_elements_prompt_input_file_input_label": "Dateien hochladen",
+	"ai_elements_prompt_input_stop_aria_label": "Stopp",
+	"ai_elements_prompt_input_submit_aria_label": "Senden",
+	"ai_elements_prompt_input_textarea_placeholder": "Was möchten Sie wissen?",
+	"ai_elements_reasoning_duration": [
+		{
+			"declarations": [
+				"input count",
+				"local countPlural = count: plural"
+			],
+			"selectors": [
+				"countPlural"
+			],
+			"match": {
+				"countPlural=one": "Hat {count} Sekunde nachgedacht",
+				"countPlural=other": "Hat {count} Sekunden nachgedacht"
+			}
+		}
+	],
+	"ai_elements_reasoning_duration_unknown": "Hat einige Sekunden nachgedacht",
+	"ai_elements_reasoning_thinking": "Denkt nach",
+	"ai_elements_tool_error_label": "Fehler",
+	"ai_elements_tool_parameters_empty": "Keine Parameter.",
+	"ai_elements_tool_parameters_invalid": "Der Aufruf hat kein gültiges Parameterobjekt erzeugt.",
+	"ai_elements_tool_parameters_label": "Parameter",
+	"ai_elements_tool_raw_parameters_hint": "Die ursprünglichen Argumente werden angezeigt, weil die Validierung fehlgeschlagen ist.",
+	"ai_elements_tool_raw_parameters_label": "Rohe Parameter",
+	"ai_elements_tool_result_label": "Ergebnis",
+	"app_logo_alt": "OrcAI-Logo",
+	"app_meta_description": "Wissensassistenten, die Sie zu Ihren eigenen Bedingungen betreiben.",
+	"app_metadata_card_copy_tooltip": "Zum Kopieren klicken",
+	"app_metadata_card_created_label": "Erstellt",
+	"app_metadata_card_id_label": "ID",
+	"app_metadata_card_title": "Details",
+	"app_metadata_card_updated_label": "Aktualisiert",
+	"app_metadata_card_version_label": "Version",
+	"app_metadata_card_version_value": "v{version}",
+	"app_metadata_card_visibility_label": "Sichtbarkeit",
+	"app_metadata_card_visibility_private": "Privat",
+	"app_metadata_card_visibility_public": "Öffentlich",
+	"assets_add_page_description": "Laden Sie Dateien hoch und bestätigen Sie anschließend die Metadaten, die jedes Asset überallhin begleiten sollen, wo es wiederverwendet wird.",
+	"assets_add_page_title": "Assets hinzufügen",
+	"assets_add_submit_button": "Assets speichern",
+	"assets_card_author_description": "Autor: {name}",
+	"assets_card_chapter_description": "Kapitel: {name}",
+	"assets_card_created_label": "Erstellt",
+	"assets_card_edit_action": "Asset bearbeiten",
+	"assets_card_view_action": "Ansehen",
+	"assets_delete_confirm_button": [
+		{
+			"declarations": [
+				"input count",
+				"local countPlural = count: plural"
+			],
+			"selectors": [
+				"countPlural"
+			],
+			"match": {
+				"countPlural=one": "Asset löschen",
+				"countPlural=other": "{count} Assets löschen"
+			}
+		}
+	],
+	"assets_delete_confirm_description": [
+		{
+			"declarations": [
+				"input count",
+				"local countPlural = count: plural"
+			],
+			"selectors": [
+				"countPlural"
+			],
+			"match": {
+				"countPlural=one": "Darauf aufgebaute Repositories verlieren das Material, und Antworten können es nicht mehr zitieren.",
+				"countPlural=other": "Darauf aufgebaute Repositories verlieren das Material, und Antworten können sie nicht mehr zitieren."
+			}
+		}
+	],
+	"assets_delete_confirm_title": [
+		{
+			"declarations": [
+				"input count",
+				"local countPlural = count: plural"
+			],
+			"selectors": [
+				"countPlural"
+			],
+			"match": {
+				"countPlural=one": "Dieses Asset löschen?",
+				"countPlural=other": "{count} Assets löschen?"
+			}
+		}
+	],
+	"assets_delete_confirm_title_named": "Das Asset {name} löschen?",
+	"assets_delete_toast_error": [
+		{
+			"declarations": [
+				"input count",
+				"local countPlural = count: plural"
+			],
+			"selectors": [
+				"countPlural"
+			],
+			"match": {
+				"countPlural=one": "Das Asset wurde nicht gelöscht. Versuchen Sie es erneut.",
+				"countPlural=other": "Die Assets wurden nicht gelöscht. Versuchen Sie es erneut."
+			}
+		}
+	],
+	"assets_delete_toast_loading": [
+		{
+			"declarations": [
+				"input count",
+				"local countPlural = count: plural"
+			],
+			"selectors": [
+				"countPlural"
+			],
+			"match": {
+				"countPlural=one": "Das Asset wird gelöscht...",
+				"countPlural=other": "{count} Assets werden gelöscht..."
+			}
+		}
+	],
+	"assets_delete_toast_success": [
+		{
+			"declarations": [
+				"input count",
+				"local countPlural = count: plural"
+			],
+			"selectors": [
+				"countPlural"
+			],
+			"match": {
+				"countPlural=one": "{count} Asset gelöscht",
+				"countPlural=other": "{count} Assets gelöscht"
+			}
+		}
+	],
+	"assets_detail_access_action": "Zugriff & Gruppen",
+	"assets_detail_delete_action": "Asset löschen",
+	"assets_detail_download_button": "Herunterladen",
+	"assets_detail_edit_action": "Inhalt bearbeiten",
+	"assets_detail_menu_trigger": "Weitere Optionen",
+	"assets_detail_reprocess_action": "Neu verarbeiten",
+	"assets_edit_page_meta_title": "Bearbeiten",
+	"assets_edit_page_title": "Asset bearbeiten",
+	"assets_file_uploader_drop_active_label": "Dateien hier ablegen",
+	"assets_file_uploader_drop_idle_label": "Dateien hierher ziehen und ablegen oder klicken, um Dateien auszuwählen",
+	"assets_file_uploader_limit_multiple_hint": "Sie können {count} Dateien hochladen (jeweils bis zu {size})",
+	"assets_file_uploader_limit_single_hint": "Sie können eine Datei mit bis zu {size} hochladen",
+	"assets_file_uploader_limit_unlimited_hint": "Sie können mehrere Dateien hochladen (jeweils bis zu {size})",
+	"assets_file_uploader_max_files_toast_error": [
+		{
+			"declarations": [
+				"input count",
+				"local countPlural = count: plural"
+			],
+			"selectors": [
+				"countPlural"
+			],
+			"match": {
+				"countPlural=one": "Sie können höchstens {count} Datei auf einmal hochladen",
+				"countPlural=other": "Sie können höchstens {count} Dateien auf einmal hochladen"
+			}
+		}
+	],
+	"assets_file_uploader_rejected_toast_error": "{name} wurde nicht akzeptiert. Prüfen Sie Dateityp und Größe.",
+	"assets_file_uploader_remove_file_button": "Datei entfernen",
+	"assets_file_uploader_single_file_toast_error": "Es kann nur eine Datei auf einmal hochgeladen werden.",
+	"assets_file_viewer_error_description": "Laden Sie die Seite neu, um es erneut zu versuchen. Eine gerade hochgeladene Datei wird möglicherweise noch verarbeitet.",
+	"assets_file_viewer_error_title": "Dieses Asset konnte nicht geladen werden",
+	"assets_file_viewer_mobile_description": "Öffnen Sie dieses Asset auf einem größeren Bildschirm, um es in der Vorschau anzusehen.",
+	"assets_file_viewer_mobile_title": "Vorschau auf Mobilgeräten nicht verfügbar",
+	"assets_file_viewer_unsupported_description": "Laden Sie die Datei herunter, um sie in einer anderen Anwendung zu öffnen.",
+	"assets_file_viewer_unsupported_title": "Nicht unterstützter Dateityp",
+	"assets_form_description": "Bearbeiten Sie die wiederverwendbaren Metadaten, die angezeigt werden, wenn dieser Inhalt in KI-Antworten zitiert wird.",
+	"assets_form_submit_button": "Inhalt speichern",
+	"assets_intake_no_files_toast_error": "Laden Sie mindestens eine Datei hoch, bevor Sie fortfahren.",
+	"assets_intake_review_description": "Ergänzen Sie für jede hochgeladene Datei Metadaten, bevor Sie die endgültigen Inhalte speichern.",
+	"assets_intake_review_metadata_count": [
+		{
+			"declarations": [
+				"input completed",
+				"input count",
+				"local countPlural = count: plural"
+			],
+			"selectors": [
+				"countPlural"
+			],
+			"match": {
+				"countPlural=one": "{completed} von {count} Datei hat Metadaten erhalten.",
+				"countPlural=other": "{completed} von {count} Dateien haben Metadaten erhalten."
+			}
+		}
+	],
+	"assets_intake_review_title": "Hochgeladene Dateien prüfen",
+	"assets_intake_submit_button": "Assets speichern",
+	"assets_intake_upload_button": "Dateien hochladen",
+	"assets_intake_upload_description": "Wählen Sie Dateien aus, laden Sie sie hoch und ergänzen Sie anschließend für jede Datei die Quellenangaben.",
+	"assets_intake_upload_title": "Assets hochladen",
+	"assets_library_picker_search_placeholder": "Bibliothek durchsuchen",
+	"assets_list_add_action": "Assets hinzufügen",
+	"assets_list_description": "Wiederverwendbares Quellenmaterial für Abruf, Fundierung und Zitate.",
+	"assets_list_empty_state_description": "Laden Sie Dateien, URLs oder Textausschnitte hoch, damit Bots sie abrufen und zitieren können.",
+	"assets_list_empty_state_title": "Noch keine Assets",
+	"assets_list_reprocess_action": "Neu verarbeiten",
+	"assets_list_title": "Assets",
+	"assets_meta_author_label": "Autor(en):",
+	"assets_meta_chapter_label": "Kapitel:",
+	"assets_meta_citation_label": "Zitat:",
+	"assets_meta_citations_allowed_badge": "Die KI darf diese Quelle zitieren",
+	"assets_meta_citations_blocked_badge": "Diese Quelle aus Zitaten heraushalten",
+	"assets_meta_created_label": "Erstellt:",
+	"assets_meta_file_type_tooltip": "Dateityp",
+	"assets_meta_page_range_label": "Seitenbereich:",
+	"assets_meta_relevance_label": "Relevanz:",
+	"assets_meta_size_label": "Größe:",
+	"assets_meta_source_url_label": "Quell-URL:",
+	"assets_meta_title": "Metadaten",
+	"assets_meta_unknown_date": "Unbekanntes Datum",
+	"assets_meta_updated_label": "Aktualisiert:",
+	"assets_meta_view_source_link": "Quelle ansehen",
+	"assets_metadata_access_date_label": "Abrufdatum",
+	"assets_metadata_author_label": "Autor(en)",
+	"assets_metadata_author_placeholder": "z. B. Schmidt, A.; Okonkwo, B.",
+	"assets_metadata_chapter_title_label": "Kapiteltitel",
+	"assets_metadata_chapter_title_placeholder": "z. B. Einleitung",
+	"assets_metadata_citation_label": "Zitatbezeichnung",
+	"assets_metadata_citation_placeholder": "z. B. Schmidt 2023",
+	"assets_metadata_doi_label": "DOI",
+	"assets_metadata_external_url_label": "Externe URL",
+	"assets_metadata_issue_label": "Ausgabe",
+	"assets_metadata_issue_placeholder": "z. B. 3",
+	"assets_metadata_journal_name_label": "Name der Zeitschrift",
+	"assets_metadata_journal_name_placeholder": "z. B. Nature",
+	"assets_metadata_jurisdiction_label": "Rechtsraum",
+	"assets_metadata_jurisdiction_placeholder": "z. B. Deutschland, EU",
+	"assets_metadata_legal_reference_label": "Rechtsverweis",
+	"assets_metadata_legal_reference_placeholder": "z. B. § 1 BGB oder Art. 5 GG",
+	"assets_metadata_page_range_label": "Seitenbereich",
+	"assets_metadata_relevance_label": "Relevanz",
+	"assets_metadata_relevance_placeholder": "Relevanz auswählen",
+	"assets_metadata_save_button": "Metadaten speichern",
+	"assets_metadata_show_reference_description": "Die KI darf im Text auf diese Quelle verweisen.",
+	"assets_metadata_show_reference_label": "Zitate in Antworten erlauben",
+	"assets_metadata_source_title_label": "Titel der Quelle",
+	"assets_metadata_source_title_placeholder": "z. B. Einführung in die Statistik",
+	"assets_metadata_source_type_label": "Quellentyp",
+	"assets_metadata_source_type_placeholder": "Quellentyp auswählen",
+	"assets_metadata_volume_label": "Band",
+	"assets_metadata_volume_placeholder": "z. B. 12",
+	"assets_metadata_website_name_label": "Name der Website",
+	"assets_metadata_website_name_placeholder": "z. B. Hochschule Rhein-Waal",
+	"assets_page_title": "Assets",
+	"assets_playground_empty_state_description": "Versuchen Sie eine andere Suchanfrage oder einen anderen Abrufmodus.",
+	"assets_playground_empty_state_title": "Keine passenden Passagen",
+	"assets_playground_error_description": "Das Repository konnte nicht durchsucht werden. Bitte versuchen Sie es erneut.",
+	"assets_playground_error_title": "Suche fehlgeschlagen",
+	"assets_playground_retrieval_mode_label": "Abrufmodus",
+	"assets_playground_search_label": "Suchanfrage",
+	"assets_playground_search_placeholder": "z. B. wie buche ich ein Zugticket",
+	"assets_playground_submit_button": "Suchen",
+	"assets_point_asset_badge": "Asset {id}",
+	"assets_point_block_badge": "Block {id}",
+	"assets_point_chunk_label": "Passage",
+	"assets_point_depth_label": "Tiefe",
+	"assets_point_details_badge": "Details",
+	"assets_point_id_badge": "Point {id}",
+	"assets_point_image_alt": "Extrahierte Vorschau",
+	"assets_point_image_error_description": "Laden Sie die Seite neu, um es erneut zu versuchen.",
+	"assets_point_image_error_title": "Bild nicht verfügbar",
+	"assets_point_pages_label": "Seiten",
+	"assets_point_score_badge": "Score {score}",
+	"assets_point_tokens_label": "Token",
+	"assets_relevance_high_label": "Hoch",
+	"assets_relevance_low_label": "Niedrig",
+	"assets_relevance_medium_label": "Mittel",
+	"assets_review_list_add_metadata_button": "Metadaten hinzufügen",
+	"assets_review_list_dialog_description": "Legen Sie fest, wie diese hochgeladene Datei in KI-Zitaten und -Verweisen erscheinen soll.",
+	"assets_review_list_dialog_title": "Quellenangaben",
+	"assets_review_list_edit_metadata_button": "Metadaten bearbeiten",
+	"assets_review_list_metadata_added_badge": "Metadaten ergänzt",
+	"assets_review_list_metadata_missing_badge": "Metadaten fehlen",
+	"assets_save_many_toast_error": "Assets konnten nicht gespeichert werden",
+	"assets_save_many_toast_loading": "Assets werden gespeichert...",
+	"assets_save_many_toast_success": "Assets gespeichert",
+	"assets_save_toast_error": "Asset konnte nicht gespeichert werden",
+	"assets_save_toast_loading": "Asset wird gespeichert...",
+	"assets_save_toast_success": "Asset gespeichert",
+	"assets_selected_list_dialog_description": "Aktualisieren Sie, wie dieser Inhalt erscheinen soll, wenn die KI ihn zitiert.",
+	"assets_selected_list_dialog_title": "Quellenangaben bearbeiten",
+	"assets_selected_list_metadata_button": "Metadaten",
+	"assets_upload_description": "Wählen Sie Dateien aus und laden Sie sie hoch. Der Fortschritt wird unten angezeigt.",
+	"assets_upload_no_files_error": "Keine Dateien zum Hochladen.",
+	"assets_upload_preparing_button": "Dateien werden vorbereitet...",
+	"assets_upload_progress_clear_button": "Leeren",
+	"assets_upload_progress_completed_count": [
+		{
+			"declarations": [
+				"input completed",
+				"input count",
+				"local countPlural = count: plural"
+			],
+			"selectors": [
+				"countPlural"
+			],
+			"match": {
+				"countPlural=one": "{completed} von {count} Datei abgeschlossen",
+				"countPlural=other": "{completed} von {count} Dateien abgeschlossen"
+			}
+		}
+	],
+	"assets_upload_progress_error_label": "Fehler:",
+	"assets_upload_progress_error_title": "Upload fehlgeschlagen",
+	"assets_upload_progress_failed_badge": "{count} fehlgeschlagen",
+	"assets_upload_progress_file_success_label": "Upload erfolgreich abgeschlossen",
+	"assets_upload_progress_partial_title": "Upload mit Problemen abgeschlossen",
+	"assets_upload_progress_pending_title": "Dateien werden hochgeladen",
+	"assets_upload_progress_success_badge": "{count} erfolgreich",
+	"assets_upload_progress_success_title": "Upload abgeschlossen",
+	"assets_upload_submit_button": "Dateien hochladen",
+	"assets_upload_title": "Dateien hochladen",
+	"assets_upload_toast_error": [
+		{
+			"declarations": [
+				"input count",
+				"local countPlural = count: plural"
+			],
+			"selectors": [
+				"countPlural"
+			],
+			"match": {
+				"countPlural=one": "{count} Datei konnte nicht hochgeladen werden. Versuchen Sie es erneut.",
+				"countPlural=other": "{count} Dateien konnten nicht hochgeladen werden. Versuchen Sie es erneut."
+			}
+		}
+	],
+	"assets_upload_toast_loading": [
+		{
+			"declarations": [
+				"input count",
+				"local countPlural = count: plural"
+			],
+			"selectors": [
+				"countPlural"
+			],
+			"match": {
+				"countPlural=one": "{count} Datei wird hochgeladen...",
+				"countPlural=other": "{count} Dateien werden hochgeladen..."
+			}
+		}
+	],
+	"assets_upload_toast_success": [
+		{
+			"declarations": [
+				"input count",
+				"local countPlural = count: plural"
+			],
+			"selectors": [
+				"countPlural"
+			],
+			"match": {
+				"countPlural=one": "{count} Datei hochgeladen",
+				"countPlural=other": "{count} Dateien hochgeladen"
+			}
+		}
+	],
+	"assets_upload_unknown_error": "Die Dateien wurden nicht hochgeladen. Versuchen Sie es erneut.",
+	"auth_change_password_form_confirm_password_label": "Neues Passwort bestätigen",
+	"auth_change_password_form_confirm_password_placeholder": "Neues Passwort bestätigen",
+	"auth_change_password_form_current_password_label": "Aktuelles Passwort",
+	"auth_change_password_form_current_password_placeholder": "Aktuelles Passwort eingeben",
+	"auth_change_password_form_new_password_label": "Neues Passwort",
+	"auth_change_password_form_new_password_placeholder": "Neues Passwort eingeben",
+	"auth_change_password_form_submit_button": "Passwort ändern",
+	"auth_forgot_password_form_submit_button": "E-Mail zum Zurücksetzen senden",
+	"auth_forgot_password_page_description": "Geben Sie Ihre E-Mail-Adresse ein, und wir senden Ihnen eine Anleitung zum Zurücksetzen, sofern ein Konto existiert.",
+	"auth_forgot_password_page_signin_link": "Zurück zur Anmeldung",
+	"auth_forgot_password_page_title": "Passwort zurücksetzen",
+	"auth_forgot_password_toast_error": "Das Zurücksetzen des Passworts konnte nicht angefordert werden",
+	"auth_forgot_password_toast_loading": "Zurücksetzen des Passworts wird angefordert...",
+	"auth_forgot_password_toast_success": "Wenn für diese Adresse ein Konto existiert, wurde eine E-Mail zum Zurücksetzen des Passworts gesendet.",
+	"auth_init_form_admin_email_label": "Admin-E-Mail",
+	"auth_init_form_admin_name_label": "Admin-Name",
+	"auth_init_form_confirm_password_label": "Passwort bestätigen",
+	"auth_init_form_organization_name_label": "Name der Organisation",
+	"auth_init_form_organization_name_placeholder": "Ihre Organisation",
+	"auth_init_form_organization_slug_label": "Organisations-Slug",
+	"auth_init_form_organization_slug_placeholder": "your-org",
+	"auth_init_form_privacy_consent_description": "Ja, ich habe die Datenschutzerklärung und die Nutzungsbedingungen der OrcAI-Plattform gelesen und verstanden und stimme ihnen zu.",
+	"auth_init_form_privacy_consent_label": "Datenschutz-Einwilligung",
+	"auth_init_form_privacy_policy_body": "Mit der Initialisierung dieser Instanz stimmen Sie unserer Datenschutzerklärung und unseren Nutzungsbedingungen zu.",
+	"auth_init_form_privacy_policy_title": "Datenschutzerklärung",
+	"auth_init_form_review_privacy_link": "Datenschutzerklärung ansehen",
+	"auth_init_form_review_terms_link": "Nutzungsbedingungen ansehen",
+	"auth_init_form_submit_button": "Instanz initialisieren",
+	"auth_init_page_description": "Richten Sie die erste Organisation und das Admin-Konto für diese Installation ein.",
+	"auth_init_page_footer": "Diese Seite ist nur verfügbar, bis die Instanz initialisiert ist.",
+	"auth_init_page_title": "Instanz initialisieren",
+	"auth_init_toast_error": "Initialisierung fehlgeschlagen",
+	"auth_init_toast_loading": "Anwendung wird initialisiert...",
+	"auth_init_toast_signin_failed_error": "Initialisierung abgeschlossen, aber die automatische Anmeldung ist fehlgeschlagen: {reason}. Bitte melden Sie sich manuell an.",
+	"auth_init_toast_success": "Initialisierung erfolgreich abgeschlossen!",
+	"auth_layout_footer_after": ".",
+	"auth_layout_footer_before": "OrcAI ist ein Fork von",
+	"auth_layout_footer_link": "SokratesT",
+	"auth_login_page_description": "Melden Sie sich bei Ihrem Konto an, um fortzufahren.",
+	"auth_login_page_forgot_password_link": "Passwort vergessen?",
+	"auth_login_page_title": "Anmelden",
+	"auth_register_page_go_to_signin_action": "Zur Anmeldung",
+	"auth_register_page_invitation_expired_description": "Die Einladung, die Sie aufrufen möchten, ist abgelaufen.",
+	"auth_register_page_invitation_expired_title": "Einladung abgelaufen",
+	"auth_register_page_invitation_not_found_description": "Die Einladung, die Sie aufrufen möchten, existiert nicht oder wurde bereits eingelöst.",
+	"auth_register_page_invitation_not_found_title": "Einladung nicht gefunden",
+	"auth_register_page_invited_description": "Erstellen Sie ein neues Konto, um fortzufahren.",
+	"auth_register_page_invited_description_named": "{organizationName} hat Sie eingeladen. Erstellen Sie Ihr Konto, um beizutreten.",
+	"auth_register_page_no_invitation_description": "Konten werden über einen Einladungslink erstellt. Bitten Sie einen Administrator der Organisation, der Sie beitreten möchten, Ihre E-Mail-Adresse einzuladen.",
+	"auth_register_page_no_invitation_title": "Registrierung nur mit Einladung",
+	"auth_register_page_signin_link": "Sie haben bereits ein Konto?",
+	"auth_register_page_title": "Konto erstellen",
+	"auth_resend_verification_toast_error": "Die Bestätigungs-E-Mail konnte nicht erneut gesendet werden",
+	"auth_resend_verification_toast_loading": "Bestätigungs-E-Mail wird gesendet...",
+	"auth_resend_verification_toast_success": "Wenn für diese Adresse ein Konto existiert, wurde eine Bestätigungs-E-Mail gesendet.",
+	"auth_reset_password_form_confirm_password_label": "Passwort bestätigen",
+	"auth_reset_password_form_confirm_password_placeholder": "Passwort bestätigen",
+	"auth_reset_password_form_new_password_label": "Neues Passwort",
+	"auth_reset_password_form_new_password_placeholder": "Neues Passwort",
+	"auth_reset_password_form_submit_button": "Passwort zurücksetzen",
+	"auth_reset_password_page_description": "Verwenden Sie mindestens acht Zeichen und geben Sie dasselbe Passwort zweimal ein.",
+	"auth_reset_password_page_invalid_description": "Fordern Sie eine neue E-Mail zum Zurücksetzen des Passworts an, um fortzufahren.",
+	"auth_reset_password_page_invalid_title": "Ungültiger Link zum Zurücksetzen",
+	"auth_reset_password_page_request_link": "Neuen Link anfordern",
+	"auth_reset_password_page_title": "Neues Passwort wählen",
+	"auth_reset_password_toast_error": "Der Link zum Zurücksetzen ist ungültig oder abgelaufen",
+	"auth_reset_password_toast_loading": "Passwort wird zurückgesetzt...",
+	"auth_reset_password_toast_success": "Ihr Passwort wurde zurückgesetzt. Sie können sich jetzt anmelden.",
+	"auth_sign_out_toast_success": "Auf Wiedersehen!",
+	"auth_signin_form_submit_button": "Anmelden",
+	"auth_signin_toast_error": "Anmeldung fehlgeschlagen",
+	"auth_signin_toast_loading": "Anmeldung läuft...",
+	"auth_signin_toast_success": "Willkommen zurück!",
+	"auth_signup_form_confirm_password_label": "Passwort bestätigen",
+	"auth_signup_form_invitation_code_label": "Einladungscode",
+	"auth_signup_form_invitation_code_placeholder": "Eindeutiger Einladungscode",
+	"auth_signup_form_name_label": "Name",
+	"auth_signup_form_password_label": "Passwort",
+	"auth_signup_form_privacy_consent_description": "Ja, ich habe die Datenschutzerklärung und die Nutzungsbedingungen der OrcAI-Plattform gelesen und verstanden und stimme ihnen zu.",
+	"auth_signup_form_privacy_consent_label": "Datenschutz-Einwilligung",
+	"auth_signup_form_privacy_policy_body": "Mit der Registrierung stimmen Sie unserer Datenschutzerklärung und unseren Nutzungsbedingungen zu. Bitte lesen Sie beide, bevor Sie fortfahren.",
+	"auth_signup_form_privacy_policy_title": "Datenschutzerklärung",
+	"auth_signup_form_review_privacy_link": "Datenschutzerklärung ansehen",
+	"auth_signup_form_review_terms_link": "Nutzungsbedingungen ansehen",
+	"auth_signup_form_submit_button": "Registrieren",
+	"auth_signup_toast_error": "Kontoerstellung fehlgeschlagen",
+	"auth_signup_toast_loading": "Ihr Konto wird erstellt...",
+	"auth_signup_toast_success": "Ihr Konto ist bereit.",
+	"auth_verify_email_form_submit_button": "Bestätigungs-E-Mail erneut senden",
+	"auth_verify_email_page_description": "Verwenden Sie den Bestätigungslink, den wir Ihnen gesendet haben, bevor Sie sich anmelden. Es kann einige Minuten dauern, bis die Nachricht eintrifft.",
+	"auth_verify_email_page_signin_link": "Zurück zur Anmeldung",
+	"auth_verify_email_page_title": "Prüfen Sie Ihre E-Mails",
+	"authoring_attached_asset_count": [
+		{
+			"declarations": [
+				"input count",
+				"local countPlural = count: plural"
+			],
+			"selectors": [
+				"countPlural"
+			],
+			"match": {
+				"countPlural=one": "1 Asset angehängt",
+				"countPlural=other": "{count} Assets angehängt"
+			}
+		}
+	],
+	"authoring_basics_content_description": "Ein ausführlicherer Überblick für Teammitglieder, die den Bot konfigurieren und pflegen.",
+	"authoring_basics_content_label": "Bot-Beschreibung",
+	"authoring_basics_content_title": "Bot-Beschreibung",
+	"authoring_basics_description_label": "Kurzbeschreibung",
+	"authoring_basics_description_placeholder": "Beantwortet Fragen von Kolleginnen und Kollegen zu Reisebuchungen und Kostenerstattungen anhand der freigegebenen Richtliniendokumente.",
+	"authoring_basics_identity_description": "Diese Angaben helfen anderen Personen zu verstehen, wofür der Bot gedacht ist.",
+	"authoring_basics_identity_title": "Identität",
+	"authoring_basics_name_label": "Bot-Name",
+	"authoring_basics_name_placeholder": "Leitfaden für Reisekosten",
+	"authoring_behaviour_content_label": "Ausführliche Beschreibung",
+	"authoring_behaviour_create_action": "KI-Verhalten erstellen",
+	"authoring_behaviour_description_label": "Kurzbeschreibung",
+	"authoring_behaviour_description_placeholder": "Legen Sie den Zweck dieses Blocks fest.",
+	"authoring_behaviour_empty_state_description": "Schreiben Sie ein neues Verhalten oder verwenden Sie eines wieder, das Sie bereits definiert haben. Sie können mit einem Beispiel beginnen.",
+	"authoring_behaviour_empty_state_title": "Noch kein KI-Verhalten verknüpft",
+	"authoring_behaviour_example_button": "Mit einem Beispiel beginnen",
+	"authoring_behaviour_example_hint": "Benennen Sie die Rolle, die Quellen für die Antworten, den gewünschten Tonfall und das, was abgelehnt werden soll.",
+	"authoring_behaviour_library_dialog_description": "Verwenden Sie ein bereits definiertes Verhalten wieder, statt ein neues zu schreiben.",
+	"authoring_behaviour_library_dialog_title": "Vorhandenes KI-Verhalten verwenden",
+	"authoring_behaviour_library_search_placeholder": "KI-Verhalten suchen...",
+	"authoring_behaviour_name_placeholder": "KI-Verhalten",
+	"authoring_behaviour_system_prompt_label": "System-Prompt",
+	"authoring_behaviour_use_existing_action": "Vorhandenes KI-Verhalten verwenden",
+	"authoring_database_block_add_existing_action": "Vorhandene hinzufügen",
+	"authoring_database_block_advanced_description": "Passen Sie die Anzahl der Verweise und die Einschränkungen für den Abruf an.",
+	"authoring_database_block_advanced_title": "Erweiterte Abruf-Einstellungen",
+	"authoring_database_block_assets_description": "Verwenden Sie vorhandene Assets aus der Bibliothek oder laden Sie neue Dateien mit Metadaten hoch, bevor Sie sie anhängen.",
+	"authoring_database_block_assets_empty_state": "Noch keine Assets angehängt.",
+	"authoring_database_block_assets_title": "Assets",
+	"authoring_database_block_attached_badge": "{count} angehängt",
+	"authoring_database_block_attached_description": "Jedes Element behält seine wiederverwendbaren Metadaten aus der Bibliothek.",
+	"authoring_database_block_attached_title": "Angehängte Assets",
+	"authoring_database_block_default_name": "Repository",
+	"authoring_database_block_default_name_named": "Repository für '{botName}'",
+	"authoring_database_block_description": "Hängen Sie wiederverwendbare Assets an und passen Sie an, wie der Abruf für diesen Bot funktioniert.",
+	"authoring_database_block_library_dialog_description": "Wählen Sie wiederverwendbare Assets aus der Bibliothek aus und hängen Sie sie an dieses Repository an.",
+	"authoring_database_block_library_dialog_title": "Vorhandene Assets hinzufügen",
+	"authoring_database_block_save_assets_button": "Assets speichern",
+	"authoring_database_block_title": "Repository",
+	"authoring_database_block_upload_dialog_description": "Laden Sie Dateien hoch, vervollständigen Sie deren Metadaten und hängen Sie sie in einem einzigen Ablauf an.",
+	"authoring_database_block_upload_dialog_title": "Neue Assets hochladen",
+	"authoring_database_block_upload_new_action": "Neue hochladen",
+	"authoring_publish_confirm_button": "Veröffentlichen",
+	"authoring_publish_confirm_description": "Durch die Veröffentlichung wird „dieser Bot“ für alle verfügbar, die in den Zugriffsregeln unten genannt werden.",
+	"authoring_publish_confirm_description_named": "Durch die Veröffentlichung wird „{name}“ für alle verfügbar, die in den Zugriffsregeln unten genannt werden.",
+	"authoring_publish_confirm_title": "Diesen Bot veröffentlichen",
+	"authoring_publish_issue_behaviour_missing": "Fügen Sie ein KI-Verhalten hinzu, bevor Sie den Bot veröffentlichen.",
+	"authoring_publish_issue_behaviour_not_ready": "Markieren Sie das KI-Verhalten als bereit, bevor Sie veröffentlichen.",
+	"authoring_publish_issue_repository_no_assets": "Hängen Sie mindestens ein Asset an „{name}“ an.",
+	"authoring_publish_issue_repository_not_ready": "Markieren Sie „{name}“ als bereit, bevor Sie veröffentlichen.",
+	"authoring_publish_summary_access_fact_label": "Wer Zugriff erhält",
+	"authoring_publish_summary_all_members_badge": "Jedes Mitglied der Organisation",
+	"authoring_publish_summary_all_members_granted": "Die Gruppe All Members erhält die Rolle {role}, sodass jedes Mitglied der Organisation diesen Bot nutzen kann.",
+	"authoring_publish_summary_all_members_granted_before_publish": "Die Gruppe All Members erhält die Rolle {role}, sodass jedes Mitglied der Organisation diesen Bot nutzen kann, sobald er veröffentlicht ist.",
+	"authoring_publish_summary_all_members_ungranted": "All Members hat keine Freigabe, sodass Mitglieder der Organisation nicht automatisch Zugriff erhalten.",
+	"authoring_publish_summary_all_members_ungranted_before_publish": "All Members hat keine Freigabe, sodass nur die unten aufgeführten Gruppen und Personen diesen Bot nutzen können, sobald er veröffentlicht ist.",
+	"authoring_publish_summary_direct_grants_label": "Direkte Freigaben:",
+	"authoring_publish_summary_grants_unavailable": "Die Gruppen und direkten Freigaben konnten nicht geladen werden und werden hier daher nicht angezeigt. Öffnen Sie den Schritt Freigabe und Zugriff, um sie zu prüfen.",
+	"authoring_publish_summary_no_group_grants": "Keiner Gruppe wurde Zugriff gewährt.",
+	"authoring_publish_summary_no_user_grants": "Keine Person hat eine direkte Freigabe.",
+	"authoring_publish_summary_private_description": "Privat. Nur die hier aufgeführten Gruppen und Personen können diesen Bot nutzen.",
+	"authoring_publish_summary_provider_description": "Ein Bot legt weder einen Anbieter noch ein Modell fest. Jeder Chat läuft mit dem Anbieter und dem Modell, die in diesem Chat gewählt wurden, daher lässt sich hier keines von beidem anzeigen.",
+	"authoring_publish_summary_provider_fact_label": "Anbieter und Modell",
+	"authoring_publish_summary_public_description": "Öffentlich. Alle, die an dieser Instanz angemeldet sind, können diesen Bot finden und nutzen, und zwar mit den Anbietern, Modellen und Kontingenten ihrer eigenen Organisation.",
+	"authoring_publish_summary_quota_description": "Ein Bot legt auch keinen Kontingent-Pool fest. Die Nutzung wird auf den Pool angerechnet, der die Organisation der chattenden Person und den in ihrem Chat verwendeten Anbieter abdeckt.",
+	"authoring_publish_summary_quota_fact_label": "Kontingent-Pool",
+	"authoring_readonly_behaviour_description": "Dieses Verhalten ist schreibgeschützt angehängt, da Sie keine Berechtigung haben, es zu bearbeiten.",
+	"authoring_readonly_behaviour_title": "KI-Verhalten",
+	"authoring_readonly_detach_action": "Lösen",
+	"authoring_readonly_open_block_action": "Block öffnen",
+	"authoring_readonly_repository_description": "Dieses Repository ist schreibgeschützt angehängt.",
+	"authoring_repositories_add_another_action": "Weiteres Repository hinzufügen",
+	"authoring_repositories_add_existing_action": "Vorhandenes Repository hinzufügen",
+	"authoring_repositories_create_action": "Repository erstellen",
+	"authoring_repositories_empty_state_description": "Ein Repository gibt dem Bot fundierten Kontext und Zitate. Sie können eines oder mehrere hinzufügen, und jedes kann vorhandene oder neu hochgeladene Assets aus der Bibliothek enthalten.",
+	"authoring_repositories_empty_state_title": "Möchten Sie ein Repository hinzufügen?",
+	"authoring_repositories_library_dialog_description": "Hängen Sie ein bereits vorhandenes Repository an, statt ein neues zu erstellen.",
+	"authoring_repositories_library_dialog_title": "Vorhandenes Repository verwenden",
+	"authoring_repositories_library_search_placeholder": "Repositories suchen...",
+	"authoring_repositories_use_existing_action": "Vorhandenes Repository verwenden",
+	"authoring_review_behaviour_empty_state": "Noch kein KI-Verhalten konfiguriert.",
+	"authoring_review_behaviour_hint": "Dieses Verhalten enthält den System-Prompt, mit dem der Bot antwortet.",
+	"authoring_review_behaviour_label": "KI-Verhalten",
+	"authoring_review_behaviour_readonly_hint": "Sie können dieses freigegebene Verhalten verwenden, aber seinen Status nicht ändern.",
+	"authoring_review_behaviour_status_label": "Status des KI-Verhaltens",
+	"authoring_review_bot_label": "Bot",
+	"authoring_review_bot_no_description": "Noch keine Kurzbeschreibung.",
+	"authoring_review_bot_untitled": "Unbenannter Bot",
+	"authoring_review_description": "Prüfen Sie den Bot, bevor Sie ihn veröffentlichen.",
+	"authoring_review_grant_count": [
+		{
+			"declarations": [
+				"input count",
+				"local countPlural = count: plural"
+			],
+			"selectors": [
+				"countPlural"
+			],
+			"match": {
+				"countPlural=one": "1 Person oder Gruppe mit direktem Zugriff",
+				"countPlural=other": "{count} Personen und Gruppen mit direktem Zugriff"
+			}
+		}
+	],
+	"authoring_review_grants_label": "Direkte Freigaben",
+	"authoring_review_issues_title": "Vor dem Veröffentlichen zu beheben",
+	"authoring_review_repositories_empty_state": "Keine Repositories hinzugefügt.",
+	"authoring_review_repositories_label": "Repositories",
+	"authoring_review_repository_readonly_hint": "Sie können dieses freigegebene Repository verwenden, aber seinen Status nicht ändern.",
+	"authoring_review_repository_status_label": "Repository-Status",
+	"authoring_review_status_draft_option": "Entwurf",
+	"authoring_review_status_ready_option": "Bereit",
+	"authoring_review_title": "Überprüfung",
+	"authoring_review_visibility_label": "Sichtbarkeit",
+	"authoring_review_visibility_private": "Nur privater Zugriff",
+	"authoring_review_visibility_public": "Öffentlich für angemeldete Benutzer",
+	"authoring_sharing_description": "Nutzen Sie nach Möglichkeit Gruppen für den Zugriff größerer Personenkreise und fügen Sie direkte Freigaben nur bei Bedarf hinzu.",
+	"authoring_sharing_title": "Freigabe und Zugriff",
+	"authoring_sharing_unsaved_description": "Die Zugriffseinstellungen sind verfügbar, sobald der Bot-Entwurf gespeichert wurde.",
+	"authoring_sharing_unshared_description": "Solange Sie ihn nicht freigeben, können nur Sie diesen Bot nutzen. Die Veröffentlichung ändert daran nichts: Sie macht den Bot für die hier genannten Gruppen und Personen nutzbar, für sonst niemanden.",
+	"authoring_template_block_default_name": "KI-Verhalten",
+	"authoring_template_block_default_name_named": "KI-Verhalten für '{botName}'",
+	"authoring_template_block_description": "Legen Sie fest, wie der Bot antworten soll, welchen Tonfall er verwenden und welche Regeln er befolgen soll.",
+	"authoring_template_block_title": "KI-Verhalten",
+	"authoring_wizard_autosave_hint": "Beim Wechsel zwischen den Schritten werden Ihre Änderungen gespeichert.",
+	"authoring_wizard_publish_action": "Bot veröffentlichen",
+	"authoring_wizard_save_draft_action": "Entwurf speichern",
+	"authoring_wizard_saved_status": "Gespeichert. Beim Wechsel zwischen den Schritten werden Ihre Änderungen gespeichert.",
+	"authoring_wizard_saving_status": "Wird gespeichert...",
+	"authoring_wizard_step_basics_description": "Benennen Sie den Bot und beschreiben Sie seinen Zweck.",
+	"authoring_wizard_step_basics_title": "Bot-Grundlagen",
+	"authoring_wizard_step_behaviour_description": "Der System-Prompt legt Rolle, Tonfall und Grenzen des Bots fest. Es gibt keine Vorgabe, schreiben Sie ihn also hier oder verwenden Sie ein bereits definiertes Verhalten wieder.",
+	"authoring_wizard_step_behaviour_title": "KI-Verhalten",
+	"authoring_wizard_step_repositories_description": "Ein Repository enthält das Material, aus dem der Bot antwortet, sodass er Ihre eigenen Dokumente zitieren und belegen kann. Hängen Sie so viele an, wie der Bot benötigt, oder auch gar keines.",
+	"authoring_wizard_step_repositories_title": "Repositories",
+	"authoring_wizard_step_review_description": "Prüfen Sie die Konfiguration und veröffentlichen Sie den Bot.",
+	"authoring_wizard_step_review_title": "Überprüfen und veröffentlichen",
+	"authoring_wizard_step_sharing_description": "Legen Sie fest, wer den Bot nutzen und bearbeiten darf.",
+	"authoring_wizard_step_sharing_title": "Freigabe und Zugriff",
+	"behaviour_add_action": "Verhalten hinzufügen",
+	"behaviour_draft_delete_action": "Entwurf löschen",
+	"behaviour_draft_edit_action": "Entwurf bearbeiten",
+	"behaviour_drafts_description": "Setzen Sie Verhaltensblöcke fort, die noch nicht veröffentlicht sind.",
+	"behaviour_drafts_title": "Ihre Entwürfe",
+	"behaviour_empty_state_description": "Erstellen und veröffentlichen Sie einen Verhaltensblock, um ihn für Bots verfügbar zu machen.",
+	"behaviour_empty_state_title": "Noch kein veröffentlichtes Verhalten",
+	"behaviour_page_title": "Verhalten",
+	"behaviour_published_description": "Ein Verhaltensblock ist ein wiederverwendbarer System-Prompt, der festlegt, wie ein Bot antwortet. Veröffentlichte Blöcke stehen Bots und Chats zur Verfügung.",
+	"behaviour_published_title": "Veröffentlicht",
+	"blocks_add_database_form_description": "Konfigurieren Sie ein wiederverwendbares Repository.",
+	"blocks_add_database_option_description": "Bündeln Sie wiederverwendbare Assets mit Abruf-Einstellungen.",
+	"blocks_add_database_option_title": "Repository",
+	"blocks_add_image_generation_form_description": "Konfigurieren Sie einen wiederverwendbaren Bildgenerierungs-Block.",
+	"blocks_add_image_generation_option_description": "Konfigurieren Sie das Verhalten der Bildgenerierung.",
+	"blocks_add_image_generation_option_title": "Bildgenerierung",
+	"blocks_add_page_description": "Erstellen Sie wiederverwendbare Blöcke für KI-Verhalten, Repositories oder Bildgenerierung.",
+	"blocks_add_page_title": "Block hinzufügen",
+	"blocks_add_template_form_description": "Konfigurieren Sie einen wiederverwendbaren KI-Verhaltensblock.",
+	"blocks_add_template_option_description": "Legen Sie fest, wie der Bot antworten soll.",
+	"blocks_add_template_option_title": "KI-Verhalten",
+	"blocks_card_created_label": "Erstellt",
+	"blocks_card_draft_badge": "Entwurf",
+	"blocks_card_type_database": "Repository",
+	"blocks_card_type_image_generation": "Bildgenerierung",
+	"blocks_card_type_template": "Verhalten",
+	"blocks_card_view_action": "Anzeigen",
+	"blocks_create_inline_toast_error": "Block konnte nicht erstellt werden",
+	"blocks_create_inline_toast_loading": "Block wird erstellt...",
+	"blocks_create_inline_toast_success": "Block erstellt",
+	"blocks_create_toast_error": "Block konnte nicht erstellt werden",
+	"blocks_create_toast_loading": "Block wird erstellt...",
+	"blocks_create_toast_success": "Block erfolgreich erstellt",
+	"blocks_database_config_advanced_settings_label": "Erweiterte Einstellungen",
+	"blocks_database_config_assets_description": "Dies ist der Inhalt, der derzeit an dieses Repository angehängt ist.",
+	"blocks_database_config_assets_menu_trigger": "Weitere Optionen",
+	"blocks_database_config_assets_title": "Inhalte ({count})",
+	"blocks_database_config_candidate_limit_label": "Kandidatenlimit",
+	"blocks_database_config_create_vector_store_action": "Vektorspeicher erstellen",
+	"blocks_database_config_default_references_label": "Standard",
+	"blocks_database_config_max_per_asset_label": "Max. pro Asset",
+	"blocks_database_config_max_references_label": "Maximum",
+	"blocks_database_config_min_references_label": "Minimum",
+	"blocks_database_config_references_title": "Verweise",
+	"blocks_database_config_retrieval_description": "Diese Einstellungen steuern, wie die KI die angehängten Inhalte durchsucht.",
+	"blocks_database_config_retrieval_mode_label": "Abrufmodus",
+	"blocks_database_config_retrieval_title": "Abruf-Konfiguration",
+	"blocks_database_config_score_threshold_label": "Score-Schwellenwert",
+	"blocks_database_config_view_vector_points_action": "Vektorpunkte anzeigen",
+	"blocks_database_form_candidate_limit_label": "Kandidatenlimit",
+	"blocks_database_form_content_label": "Detaillierte Beschreibung",
+	"blocks_database_form_create_submit_button": "Repository speichern",
+	"blocks_database_form_default_references_label": "Standard-Verweise",
+	"blocks_database_form_description_label": "Kurzbeschreibung",
+	"blocks_database_form_description_placeholder": "Beschreiben Sie, wofür dieses Repository verwendet wird.",
+	"blocks_database_form_max_per_asset_label": "Max. pro Asset",
+	"blocks_database_form_max_references_label": "Maximale Verweise",
+	"blocks_database_form_min_references_label": "Minimale Verweise",
+	"blocks_database_form_name_placeholder": "Kurshandbuch",
+	"blocks_database_form_retrieval_mode_label": "Abrufmodus",
+	"blocks_database_form_score_threshold_label": "Score-Schwellenwert",
+	"blocks_database_form_update_submit_button": "Repository aktualisieren",
+	"blocks_delete_confirm_button": [
+		{
+			"declarations": [
+				"input count",
+				"input kind",
+				"local countPlural = count: plural"
+			],
+			"selectors": [
+				"kind",
+				"countPlural"
+			],
+			"match": {
+				"kind=repository, countPlural=one": "Repository löschen",
+				"kind=repository, countPlural=other": "{count} Repositories löschen",
+				"kind=behaviour, countPlural=one": "Verhaltensblock löschen",
+				"kind=behaviour, countPlural=other": "{count} Verhaltensblöcke löschen",
+				"kind=*, countPlural=one": "Block löschen",
+				"kind=*, countPlural=other": "{count} Blöcke löschen"
+			}
+		}
+	],
+	"blocks_delete_confirm_description": [
+		{
+			"declarations": [
+				"input count",
+				"local countPlural = count: plural"
+			],
+			"selectors": [
+				"countPlural"
+			],
+			"match": {
+				"countPlural=one": "Bots und Chats, die darauf zugreifen, verlieren den Zugriff, und die Verknüpfungen zu indexiertem Material werden mitgelöscht.",
+				"countPlural=other": "Bots und Chats, die darauf zugreifen, verlieren den Zugriff, und alle Verknüpfungen zu indexiertem Material werden mitgelöscht."
+			}
+		}
+	],
+	"blocks_delete_confirm_title": [
+		{
+			"declarations": [
+				"input count",
+				"input kind",
+				"local countPlural = count: plural"
+			],
+			"selectors": [
+				"kind",
+				"countPlural"
+			],
+			"match": {
+				"kind=repository, countPlural=one": "Dieses Repository löschen?",
+				"kind=repository, countPlural=other": "{count} Repositories löschen?",
+				"kind=behaviour, countPlural=one": "Diesen Verhaltensblock löschen?",
+				"kind=behaviour, countPlural=other": "{count} Verhaltensblöcke löschen?",
+				"kind=*, countPlural=one": "Diesen Block löschen?",
+				"kind=*, countPlural=other": "{count} Blöcke löschen?"
+			}
+		}
+	],
+	"blocks_delete_confirm_title_named": [
+		{
+			"declarations": [
+				"input kind",
+				"input name"
+			],
+			"selectors": [
+				"kind"
+			],
+			"match": {
+				"kind=repository": "Das Repository {name} löschen?",
+				"kind=behaviour": "Den Verhaltensblock {name} löschen?",
+				"kind=*": "Den Block {name} löschen?"
+			}
+		}
+	],
+	"blocks_delete_toast_error": [
+		{
+			"declarations": [
+				"input count",
+				"input kind",
+				"local countPlural = count: plural"
+			],
+			"selectors": [
+				"kind",
+				"countPlural"
+			],
+			"match": {
+				"kind=repository, countPlural=one": "Das Repository wurde nicht gelöscht. Versuchen Sie es erneut.",
+				"kind=repository, countPlural=other": "Die Repositories wurden nicht gelöscht. Versuchen Sie es erneut.",
+				"kind=behaviour, countPlural=one": "Der Verhaltensblock wurde nicht gelöscht. Versuchen Sie es erneut.",
+				"kind=behaviour, countPlural=other": "Die Verhaltensblöcke wurden nicht gelöscht. Versuchen Sie es erneut.",
+				"kind=*, countPlural=one": "Der Block wurde nicht gelöscht. Versuchen Sie es erneut.",
+				"kind=*, countPlural=other": "Die Blöcke wurden nicht gelöscht. Versuchen Sie es erneut."
+			}
+		}
+	],
+	"blocks_delete_toast_loading": [
+		{
+			"declarations": [
+				"input count",
+				"input kind",
+				"local countPlural = count: plural"
+			],
+			"selectors": [
+				"kind",
+				"countPlural"
+			],
+			"match": {
+				"kind=repository, countPlural=one": "Das Repository wird gelöscht...",
+				"kind=repository, countPlural=other": "{count} Repositories werden gelöscht...",
+				"kind=behaviour, countPlural=one": "Der Verhaltensblock wird gelöscht...",
+				"kind=behaviour, countPlural=other": "{count} Verhaltensblöcke werden gelöscht...",
+				"kind=*, countPlural=one": "Der Block wird gelöscht...",
+				"kind=*, countPlural=other": "{count} Blöcke werden gelöscht..."
+			}
+		}
+	],
+	"blocks_delete_toast_success": [
+		{
+			"declarations": [
+				"input count",
+				"input kind",
+				"local countPlural = count: plural"
+			],
+			"selectors": [
+				"kind",
+				"countPlural"
+			],
+			"match": {
+				"kind=repository, countPlural=one": "{count} Repository gelöscht",
+				"kind=repository, countPlural=other": "{count} Repositories gelöscht",
+				"kind=behaviour, countPlural=one": "{count} Verhaltensblock gelöscht",
+				"kind=behaviour, countPlural=other": "{count} Verhaltensblöcke gelöscht",
+				"kind=*, countPlural=one": "{count} Block gelöscht",
+				"kind=*, countPlural=other": "{count} Blöcke gelöscht"
+			}
+		}
+	],
+	"blocks_detail_access_action": "Zugriff & Gruppen",
+	"blocks_detail_delete_action": "Block löschen",
+	"blocks_detail_draft_badge": "Entwurf",
+	"blocks_detail_edit_action": "Block bearbeiten",
+	"blocks_detail_menu_trigger": "Weitere Optionen",
+	"blocks_detail_type_database": "Repository",
+	"blocks_detail_type_image_generation": "Bildgenerierung",
+	"blocks_detail_type_template": "KI-Verhalten",
+	"blocks_edit_database_page_title": "Repository bearbeiten",
+	"blocks_edit_image_generation_page_title": "Bildgenerierung bearbeiten",
+	"blocks_edit_page_meta_title": "Block bearbeiten",
+	"blocks_edit_template_page_title": "KI-Verhalten bearbeiten",
+	"blocks_image_generation_form_ai_settings_title": "KI-Einstellungen des Blocks",
+	"blocks_image_generation_form_content_description": "Optionaler Rich-Text-Kontext für Teammitglieder, die diesen Block pflegen.",
+	"blocks_image_generation_form_content_title": "Blockbeschreibung",
+	"blocks_image_generation_form_description_label": "Kurzbeschreibung",
+	"blocks_image_generation_form_description_placeholder": "Beschreiben Sie den Zweck dieses Bildgenerierungs-Blocks.",
+	"blocks_image_generation_form_model_label": "Bildmodell",
+	"blocks_image_generation_form_model_placeholder": "Bildmodell auswählen",
+	"blocks_image_generation_form_name_placeholder": "Blockname",
+	"blocks_image_generation_form_prompt_description": "Dieser Prompt wird den Anfragen zur Bildgenerierung vorangestellt, um das KI-Modell zu steuern.",
+	"blocks_image_generation_form_prompt_label": "Leit-Prompt",
+	"blocks_image_generation_form_prompt_placeholder": "Alle Bilder sollen im Stil von Van Gogh sein.",
+	"blocks_image_generation_form_provider_label": "Anbieter",
+	"blocks_image_generation_form_provider_placeholder": "Anbieter auswählen",
+	"blocks_image_generation_form_submit_button": "Block speichern",
+	"blocks_page_title": "Blöcke",
+	"blocks_points_page_title": "Indexierte Passagen",
+	"blocks_publication_status_description": "Legen Sie fest, ob diese Ressource noch ein Entwurf ist oder bereit für den Einsatz in veröffentlichten Anwendungen.",
+	"blocks_publication_status_draft_option": "Entwurf",
+	"blocks_publication_status_label": "Veröffentlichungsstatus",
+	"blocks_publication_status_placeholder": "Status auswählen",
+	"blocks_publication_status_ready_option": "Bereit",
+	"blocks_repositories_add_action": "Repository hinzufügen",
+	"blocks_repositories_delete_draft_action": "Entwurf löschen",
+	"blocks_repositories_drafts_section_description": "Setzen Sie die Arbeit an Repository-Blöcken fort, die noch nicht veröffentlicht sind.",
+	"blocks_repositories_drafts_section_title": "Ihre Entwürfe",
+	"blocks_repositories_edit_draft_action": "Entwurf bearbeiten",
+	"blocks_repositories_empty_state_description": "Erstellen und veröffentlichen Sie einen Repository-Block, um ihn für Bots verfügbar zu machen.",
+	"blocks_repositories_empty_state_title": "Noch keine veröffentlichten Repositories",
+	"blocks_repositories_page_title": "Repositories",
+	"blocks_repositories_playground_action": "Playground",
+	"blocks_repositories_playground_description": "Experimentieren Sie mit dem Abruf aus diesem veröffentlichten Repository.",
+	"blocks_repositories_playground_empty_state_description": "Starten Sie eine Suche, um zu sehen, welche Passagen dieses Repository zurückgibt.",
+	"blocks_repositories_playground_empty_state_title": "Noch keine Ergebnisse",
+	"blocks_repositories_playground_heading": "Playground für {name}",
+	"blocks_repositories_playground_page_title": "Repository-Playground",
+	"blocks_repositories_published_section_description": "Ein Repository bündelt indexiertes Material mit Abruf-Einstellungen, damit ein Bot aus Ihren eigenen Quellen antworten kann. Veröffentlichte Repositories stehen Bots und Chats zur Verfügung.",
+	"blocks_repositories_published_section_title": "Veröffentlicht",
+	"blocks_retrieval_mode_dense_label": "Dense",
+	"blocks_retrieval_mode_hybrid_label": "Hybrid",
+	"blocks_retrieval_mode_sparse_label": "Sparse",
+	"blocks_selector_dialog_added_label": "Hinzugefügt",
+	"blocks_selector_dialog_database_description": "Wählen Sie einen wiederverwendbaren Repository-Block für abrufbasierte Antworten.",
+	"blocks_selector_dialog_database_empty_state_title": "Keine Repository-Blöcke gefunden.",
+	"blocks_selector_dialog_database_search_placeholder": "Repositories suchen...",
+	"blocks_selector_dialog_database_title": "Repository auswählen",
+	"blocks_selector_dialog_draft_badge": "Entwurf",
+	"blocks_selector_dialog_template_description": "Wählen Sie einen wiederverwendbaren Verhaltensblock, um die Antworten zu steuern.",
+	"blocks_selector_dialog_template_empty_state_title": "Keine KI-Verhaltensblöcke gefunden.",
+	"blocks_selector_dialog_template_search_placeholder": "KI-Verhalten suchen...",
+	"blocks_selector_dialog_template_title": "KI-Verhalten auswählen",
+	"blocks_status_toast_error": "Blockstatus konnte nicht aktualisiert werden",
+	"blocks_status_toast_loading": "Blockstatus wird aktualisiert...",
+	"blocks_status_toast_success_draft": "Block in Entwurf verschoben",
+	"blocks_status_toast_success_ready": "Block als bereit markiert",
+	"blocks_template_config_show_system_prompt_action": "Vollständigen System-Prompt anzeigen",
+	"blocks_template_config_system_prompt_empty_state_title": "Kein System-Prompt konfiguriert.",
+	"blocks_template_form_content_label": "Detaillierte Beschreibung",
+	"blocks_template_form_create_submit_button": "KI-Verhalten speichern",
+	"blocks_template_form_description_label": "Kurzbeschreibung",
+	"blocks_template_form_description_placeholder": "Definieren Sie den Zweck dieses Blocks.",
+	"blocks_template_form_name_placeholder": "KI-Verhalten",
+	"blocks_template_form_system_prompt_label": "System-Prompt",
+	"blocks_template_form_system_prompt_placeholder": "Erläutern Sie die Rolle des Bots, den Antwortstil und die Einschränkungen.",
+	"blocks_template_form_update_submit_button": "KI-Verhalten aktualisieren",
+	"blocks_update_inline_toast_error": "Block konnte nicht aktualisiert werden",
+	"blocks_update_inline_toast_loading": "Block wird aktualisiert...",
+	"blocks_update_inline_toast_success": "Block aktualisiert",
+	"blocks_update_toast_error": "Block konnte nicht aktualisiert werden",
+	"blocks_update_toast_loading": "Block wird aktualisiert...",
+	"blocks_update_toast_success": "Block erfolgreich aktualisiert",
+	"bots_add_page_description": "Folgen Sie der geführten Einrichtung, um den Bot, sein KI-Verhalten, seine Repositories und seine Zugriffseinstellungen festzulegen.",
+	"bots_add_page_title": "Bot erstellen",
+	"bots_blocks_behaviour_description": "Dieser Bot verwendet einen Vorlagenblock, um sein Verhalten festzulegen.",
+	"bots_blocks_behaviour_title": "Verhalten",
+	"bots_blocks_repositories_description": "Dieser Bot verwendet Repository-Blöcke, um auf kuratierte Inhalte zu verweisen.",
+	"bots_blocks_repositories_title": "Repositories",
+	"bots_card_created_meta_label": "Erstellt",
+	"bots_card_draft_badge": "Entwurf",
+	"bots_card_edit_action": "Bot bearbeiten",
+	"bots_card_published_badge": "Veröffentlicht",
+	"bots_card_view_action": "Ansehen",
+	"bots_delete_confirm_button": [
+		{
+			"declarations": [
+				"input count",
+				"local countPlural = count: plural"
+			],
+			"selectors": [
+				"countPlural"
+			],
+			"match": {
+				"countPlural=one": "Bot löschen",
+				"countPlural=other": "{count} Bots löschen"
+			}
+		}
+	],
+	"bots_delete_confirm_description": [
+		{
+			"declarations": [
+				"input count",
+				"local countPlural = count: plural"
+			],
+			"selectors": [
+				"countPlural"
+			],
+			"match": {
+				"countPlural=one": "Alle, für die er freigegeben war, verlieren den Zugriff. Chats, die ihn verwendet haben, behalten ihre Nachrichten, verlieren aber den Bot.",
+				"countPlural=other": "Alle, für die sie freigegeben waren, verlieren den Zugriff. Chats, die sie verwendet haben, behalten ihre Nachrichten, verlieren aber den Bot."
+			}
+		}
+	],
+	"bots_delete_confirm_title": [
+		{
+			"declarations": [
+				"input count",
+				"local countPlural = count: plural"
+			],
+			"selectors": [
+				"countPlural"
+			],
+			"match": {
+				"countPlural=one": "Diesen Bot löschen?",
+				"countPlural=other": "{count} Bots löschen?"
+			}
+		}
+	],
+	"bots_delete_confirm_title_named": "Den Bot {name} löschen?",
+	"bots_delete_toast_error": [
+		{
+			"declarations": [
+				"input count",
+				"local countPlural = count: plural"
+			],
+			"selectors": [
+				"countPlural"
+			],
+			"match": {
+				"countPlural=one": "Der Bot wurde nicht gelöscht. Versuchen Sie es erneut.",
+				"countPlural=other": "Die Bots wurden nicht gelöscht. Versuchen Sie es erneut."
+			}
+		}
+	],
+	"bots_delete_toast_loading": [
+		{
+			"declarations": [
+				"input count",
+				"local countPlural = count: plural"
+			],
+			"selectors": [
+				"countPlural"
+			],
+			"match": {
+				"countPlural=one": "Der Bot wird gelöscht...",
+				"countPlural=other": "{count} Bots werden gelöscht..."
+			}
+		}
+	],
+	"bots_delete_toast_success": [
+		{
+			"declarations": [
+				"input count",
+				"local countPlural = count: plural"
+			],
+			"selectors": [
+				"countPlural"
+			],
+			"match": {
+				"countPlural=one": "1 Bot gelöscht",
+				"countPlural=other": "{count} Bots gelöscht"
+			}
+		}
+	],
+	"bots_detail_access_action": "Zugriff & Gruppen",
+	"bots_detail_delete_action": "Bot löschen",
+	"bots_detail_draft_badge": "Entwurf",
+	"bots_detail_edit_action": "Bot bearbeiten",
+	"bots_detail_more_options_aria_label": "Weitere Optionen",
+	"bots_detail_start_chat_action": "Chat starten",
+	"bots_list_create_action": "Bot erstellen",
+	"bots_list_draft_delete_action": "Entwurf löschen",
+	"bots_list_draft_edit_action": "Entwurf bearbeiten",
+	"bots_list_drafts_description": "Setzen Sie Bot-Einrichtungen fort, die noch nicht veröffentlicht wurden.",
+	"bots_list_drafts_title": "Ihre Entwürfe",
+	"bots_list_empty_state_description": "Erstellen und veröffentlichen Sie einen Bot, um ihn für Chats verfügbar zu machen.",
+	"bots_list_empty_state_title": "Noch keine veröffentlichten Bots",
+	"bots_list_published_description": "Bots, die in Chats im gesamten Arbeitsbereich einsatzbereit sind. Ein Bot bündelt ein Verhalten, seine Repositories, ein Modell und seine Zugriffsregeln.",
+	"bots_list_published_title": "Veröffentlicht",
+	"bots_page_title": "Bots",
+	"bots_publish_toast_error": "Bot konnte nicht veröffentlicht werden",
+	"bots_publish_toast_loading": "Bot wird veröffentlicht...",
+	"bots_publish_toast_success": "Bot veröffentlicht",
+	"bots_save_toast_error": "Bot konnte nicht gespeichert werden",
+	"bots_save_toast_loading": "Bot wird gespeichert...",
+	"bots_save_toast_success": "Bot gespeichert",
+	"bots_select_empty_state_title": "Keine Bots verfügbar",
+	"bots_select_load_error_description": "Versuchen Sie es in Kürze erneut.",
+	"bots_select_load_error_title": "Die Bots konnten nicht geladen werden",
+	"bots_select_no_results": "Keine Bots gefunden für „{query}“",
+	"bots_select_search_placeholder": "Bots suchen",
+	"bots_setup_page_description": "Verwenden Sie den gemeinsamen Bearbeitungsablauf, um die Bot-Konfiguration zu aktualisieren, vorhandene Blöcke wiederzuverwenden und Änderungen zu veröffentlichen, sobald sie bereit sind.",
+	"bots_setup_page_title": "Bot-Einrichtung",
+	"bots_showcase_create_action": "Bot erstellen",
+	"bots_showcase_description": "Jeder Bot antwortet aus seinen eigenen Quellen und seinem eigenen Verhalten.",
+	"bots_showcase_empty_description": "Ein Bot bündelt freigegebene Quellen mit einem festgelegten Verhalten, sodass alle in der Organisation Fragen dazu stellen können.",
+	"bots_showcase_empty_title": "Noch keine Bots",
+	"bots_showcase_start_chat_action": "Chat starten",
+	"bots_showcase_title": "Bots, die Sie verwenden können",
+	"bots_showcase_view_all_action": "Alle Bots anzeigen",
+	"boundaries_default_error_back_button": "Zurück",
+	"boundaries_default_error_description": "Versuchen Sie es erneut oder kehren Sie zur vorherigen Seite zurück. Die technischen Details unten helfen, wenn das Problem weiterhin besteht.",
+	"boundaries_default_error_details_summary": "Technische Details",
+	"boundaries_default_error_home_link": "Zur Startseite",
+	"boundaries_default_error_retry_button": "Erneut versuchen",
+	"boundaries_default_error_title": "Diese Seite konnte nicht geladen werden",
+	"boundaries_not_found_back_button": "Zurück",
+	"boundaries_not_found_description": "Die gesuchte Seite existiert nicht oder wurde verschoben.",
+	"boundaries_not_found_home_link": "Zur Startseite",
+	"boundaries_not_found_title": "Seite nicht gefunden",
+	"chat_actions_delete_action": "Chat löschen",
+	"chat_actions_rename_action": "Chat umbenennen",
+	"chat_asset_picker_attach_action": "Anhängen",
+	"chat_asset_picker_description": "Assets aus der Bibliothek an diese Nachricht anhängen.",
+	"chat_asset_picker_empty_state_description": "Keine passenden Assets verfügbar.",
+	"chat_asset_picker_empty_state_title": "Nicht gefunden",
+	"chat_asset_picker_search_placeholder": "Nach Titel suchen...",
+	"chat_asset_picker_title": "Vorhandene Assets auswählen",
+	"chat_attachment_menu_assets_action": "Aus Assets",
+	"chat_attachment_menu_trigger": "Datei hinzufügen",
+	"chat_attachment_menu_upload_action": "Datei hochladen",
+	"chat_attachments_capacity_toast_warning": [
+		{
+			"declarations": [
+				"input count",
+				"local countPlural = count: plural"
+			],
+			"selectors": [
+				"countPlural"
+			],
+			"match": {
+				"countPlural=one": "Es kann nur noch {count} Anhang hinzugefügt werden.",
+				"countPlural=other": "Es können nur noch {count} Anhänge hinzugefügt werden."
+			}
+		}
+	],
+	"chat_attachments_limit_toast_error": [
+		{
+			"declarations": [
+				"input count",
+				"local countPlural = count: plural"
+			],
+			"selectors": [
+				"countPlural"
+			],
+			"match": {
+				"countPlural=one": "Sie können höchstens {count} Datei anhängen.",
+				"countPlural=other": "Sie können höchstens {count} Dateien anhängen."
+			}
+		}
+	],
+	"chat_attachments_upload_failed_toast_warning": [
+		{
+			"declarations": [
+				"input count",
+				"local countPlural = count: plural"
+			],
+			"selectors": [
+				"countPlural"
+			],
+			"match": {
+				"countPlural=one": "{count} Anhang konnte nicht hochgeladen werden.",
+				"countPlural=other": "{count} Anhänge konnten nicht hochgeladen werden."
+			}
+		}
+	],
+	"chat_bot_selector_dialog_title": "Bot auswählen",
+	"chat_bot_selector_empty_state": "Keine Bots gefunden.",
+	"chat_bot_selector_no_bot_description": "Antworten kommen allein vom Modell",
+	"chat_bot_selector_no_bot_title": "Kein Bot",
+	"chat_bot_selector_search_placeholder": "Bots suchen...",
+	"chat_bot_selector_trigger_placeholder": "Bot auswählen...",
+	"chat_branch_switcher_label": "Zweig wechseln",
+	"chat_composer_attachments_missing_toast_error": "Es waren keine Anhänge zum Senden verfügbar. Bitte wiederholen Sie den Upload.",
+	"chat_composer_attachments_only_message": "Mit Anhängen gesendet",
+	"chat_composer_download_action": "Chat herunterladen",
+	"chat_composer_model_required_hint": "Wählen Sie ein Modell aus, um zu chatten.",
+	"chat_composer_model_required_toast_error": "Wählen Sie ein Modell aus, bevor Sie eine Nachricht senden.",
+	"chat_composer_more_actions_aria_label": "Weitere Chat-Aktionen",
+	"chat_composer_placeholder": "Stellen Sie eine Frage",
+	"chat_composer_placeholder_no_model": "Der Chat wird verfügbar, sobald ein Modell bereitsteht",
+	"chat_composer_send_failed_toast_error": "Die Nachricht und ihre Anhänge wurden nicht gesendet. Senden Sie sie erneut.",
+	"chat_composer_settings_action": "Chat-Einstellungen",
+	"chat_composer_start_tour_action": "Tour starten",
+	"chat_delete_confirm_button": [
+		{
+			"declarations": [
+				"input count",
+				"local countPlural = count: plural"
+			],
+			"selectors": [
+				"countPlural"
+			],
+			"match": {
+				"countPlural=one": "Chat löschen",
+				"countPlural=other": "{count} Chats löschen"
+			}
+		}
+	],
+	"chat_delete_confirm_description": [
+		{
+			"declarations": [
+				"input count",
+				"local countPlural = count: plural"
+			],
+			"selectors": [
+				"countPlural"
+			],
+			"match": {
+				"countPlural=one": "Seine Nachrichten und Zweige werden endgültig entfernt.",
+				"countPlural=other": "Ihre Nachrichten und Zweige werden endgültig entfernt."
+			}
+		}
+	],
+	"chat_delete_confirm_title": [
+		{
+			"declarations": [
+				"input count",
+				"local countPlural = count: plural"
+			],
+			"selectors": [
+				"countPlural"
+			],
+			"match": {
+				"countPlural=one": "Diesen Chat löschen?",
+				"countPlural=other": "{count} Chats löschen?"
+			}
+		}
+	],
+	"chat_delete_confirm_title_named": "Den Chat {name} löschen?",
+	"chat_delete_toast_error": [
+		{
+			"declarations": [
+				"input count",
+				"local countPlural = count: plural"
+			],
+			"selectors": [
+				"countPlural"
+			],
+			"match": {
+				"countPlural=one": "Der Chat wurde nicht gelöscht. Versuchen Sie es erneut.",
+				"countPlural=other": "Die Chats wurden nicht gelöscht. Versuchen Sie es erneut."
+			}
+		}
+	],
+	"chat_delete_toast_loading": [
+		{
+			"declarations": [
+				"input count",
+				"local countPlural = count: plural"
+			],
+			"selectors": [
+				"countPlural"
+			],
+			"match": {
+				"countPlural=one": "Chat wird gelöscht...",
+				"countPlural=other": "{count} Chats werden gelöscht..."
+			}
+		}
+	],
+	"chat_delete_toast_success": [
+		{
+			"declarations": [
+				"input count",
+				"local countPlural = count: plural"
+			],
+			"selectors": [
+				"countPlural"
+			],
+			"match": {
+				"countPlural=one": "{count} Chat gelöscht",
+				"countPlural=other": "{count} Chats gelöscht"
+			}
+		}
+	],
+	"chat_detail_page_title_fallback": "Chat",
+	"chat_image_part_download_action": "Bild herunterladen",
+	"chat_image_part_download_toast_error": "Das Bild wurde nicht heruntergeladen. Versuchen Sie es erneut.",
+	"chat_image_part_download_toast_success": "Bild heruntergeladen",
+	"chat_image_part_label": "Generiertes Bild",
+	"chat_list_bot_filter_label": "Bot",
+	"chat_list_card_continue_action": "Chat fortsetzen",
+	"chat_list_card_last_updated": "Zuletzt aktualisiert {timestamp}",
+	"chat_list_empty_state_description": "Stellen Sie oben eine Frage oder öffnen Sie einen Bot, um mit dessen Quellen zu chatten.",
+	"chat_list_empty_state_title": "Noch keine Chats",
+	"chat_list_page_title": "Chats",
+	"chat_list_search_placeholder": "Chats suchen...",
+	"chat_message_copy_label": "Kopieren",
+	"chat_message_copy_response_tooltip": "Antwort kopieren",
+	"chat_message_copy_toast_error": "Kopieren in die Zwischenablage fehlgeschlagen",
+	"chat_message_copy_toast_loading": "Wird in die Zwischenablage kopiert...",
+	"chat_message_copy_toast_success": "In die Zwischenablage kopiert!",
+	"chat_message_copy_tooltip": "Nachricht kopieren",
+	"chat_message_edit_tooltip": "Nachricht bearbeiten",
+	"chat_message_editor_generating_label": "Wird generiert...",
+	"chat_message_editor_missing_id_toast_error": "Diese Nachricht hat noch keine Kennung und kann daher nicht bearbeitet werden. Warten Sie, bis sie vollständig gesendet wurde, und versuchen Sie es dann erneut.",
+	"chat_message_editor_submit_button": "Bearbeiten",
+	"chat_message_rate_action_label": "Antwort bewerten",
+	"chat_message_rate_option_a_bit": "Ein wenig",
+	"chat_message_rate_option_not_at_all": "Überhaupt nicht",
+	"chat_message_rate_option_not_really": "Eher nicht",
+	"chat_message_rate_option_very_much": "Sehr",
+	"chat_message_rate_prompt": "War diese Antwort hilfreich für Ihren Lernprozess?",
+	"chat_message_rate_toast_error": "Bewerten fehlgeschlagen",
+	"chat_message_rate_toast_loading": "Wird bewertet...",
+	"chat_message_rate_toast_success": "Vielen Dank für Ihr Feedback!",
+	"chat_message_rate_tooltip": "Bewerten Sie, wie hilfreich diese Antwort war",
+	"chat_message_usage_unknown_model": "Unbekanntes Modell",
+	"chat_model_notice_add_model_action": "Modell hinzufügen",
+	"chat_model_notice_description_manager": "Fügen Sie einen Anbieter und ein Modell hinzu, dann wird der Chat für alle verfügbar.",
+	"chat_model_notice_description_member": "Ein Organisations-Admin muss einen Anbieter und ein Modell hinzufügen, bevor jemand chatten kann.",
+	"chat_model_notice_organisation_fallback": "dieser Organisation",
+	"chat_model_notice_title": "In {organisation} ist noch kein Chat-Modell verfügbar.",
+	"chat_model_selector_dialog_title": "Wählen Sie einen Anbieter und dann ein Chat-Modell",
+	"chat_model_selector_empty_state": "Kein Chat-Modell passt. Versuchen Sie einen anderen Anbieter oder leeren Sie die Suche.",
+	"chat_model_selector_item_description": "{provider} • {description}",
+	"chat_model_selector_no_provider_empty_state": "Es ist noch kein Chat-Modell verfügbar. Ein Organisations-Admin kann unter Administration einen Anbieter und ein Modell hinzufügen.",
+	"chat_model_selector_provider_filter_placeholder": "Anbieter auswählen",
+	"chat_model_selector_search_placeholder": "Modelle suchen...",
+	"chat_model_selector_trigger_fallback_label": "Modell auswählen",
+	"chat_model_selector_trigger_placeholder": "Modell auswählen...",
+	"chat_new_page_title": "Neuer Chat",
+	"chat_pending_message_failed_toast_error": "Die Nachricht wurde nicht gesendet. Senden Sie sie erneut.",
+	"chat_placeholder_bot_description_fallback": "Antworten stützen sich auf die Quellen und das Verhalten dieses Bots.",
+	"chat_placeholder_description": "Ohne Bot kommen Antworten allein vom Modell. Wählen Sie einen Bot, um sie auf die Quellen Ihrer Organisation zu stützen.",
+	"chat_placeholder_title": "Fragen Sie, was Sie möchten",
+	"chat_quota_pool_fallback_name": "Kontingent",
+	"chat_quota_requests_left": [
+		{
+			"declarations": [
+				"input count",
+				"input pool",
+				"input amount",
+				"local countPlural = count: plural"
+			],
+			"selectors": [
+				"countPlural"
+			],
+			"match": {
+				"countPlural=one": "{pool}-Pool · {amount} Anfrage übrig",
+				"countPlural=other": "{pool}-Pool · {amount} Anfragen übrig"
+			}
+		}
+	],
+	"chat_quota_tokens_left": [
+		{
+			"declarations": [
+				"input count",
+				"input pool",
+				"input amount",
+				"local countPlural = count: plural"
+			],
+			"selectors": [
+				"countPlural"
+			],
+			"match": {
+				"countPlural=one": "{pool}-Pool · {amount} Token übrig",
+				"countPlural=other": "{pool}-Pool · {amount} Token übrig"
+			}
+		}
+	],
+	"chat_response_failed": "Das Modell hat nicht geantwortet. Senden Sie die Nachricht erneut oder wählen Sie ein anderes Modell.",
+	"chat_settings_add_behaviour_action": "Verhalten hinzufügen",
+	"chat_settings_add_repository_action": "Repository hinzufügen",
+	"chat_settings_advanced_description": "Passen Sie Temperatur, Token-Limits und Penalties an.",
+	"chat_settings_advanced_title": "Erweiterte Generierungseinstellungen",
+	"chat_settings_attached_blocks_empty_state": "Noch keine Blöcke an diesen Chat angehängt.",
+	"chat_settings_attached_blocks_label": "Angehängte Blöcke",
+	"chat_settings_behaviour_dialog_description": "Hängen Sie einen wiederverwendbaren KI-Verhaltensblock an diesen Chat an.",
+	"chat_settings_behaviour_dialog_title": "Verhalten hinzufügen",
+	"chat_settings_block_attach_failed_toast_error": "Der Block wurde nicht angehängt. Versuchen Sie es erneut.",
+	"chat_settings_block_detach_failed_toast_error": "Der Block wurde nicht entfernt. Versuchen Sie es erneut.",
+	"chat_settings_blocks_bot_managed_notice": "Bei Chats, die mit einem Bot verknüpft sind, werden die angehängten Blöcke vom Bot verwaltet.",
+	"chat_settings_blocks_hint": "Verhaltensblöcke legen fest, wie Antworten formuliert werden. Repositories liefern dem Chat Material für den Abruf.",
+	"chat_settings_blocks_hint_behaviour_attached": "Es kann nur ein Verhaltensblock angehängt werden. Entfernen Sie „{name}“, um ein anderes Verhalten anzuhängen.",
+	"chat_settings_blocks_label": "Chat-Blöcke",
+	"chat_settings_dialog_description": "Konfigurieren Sie das Modell und die Parameter für diesen Chat.",
+	"chat_settings_dialog_description_bot_linked": "Dieser Chat ist mit einem Bot verknüpft. Der System-Prompt ist gesperrt, aber Sie können das Modell und die Generierungsparameter ändern.",
+	"chat_settings_dialog_title": "Chat-Einstellungen",
+	"chat_settings_frequency_penalty_label": "Frequency Penalty",
+	"chat_settings_max_tokens_label": "Maximale Token",
+	"chat_settings_max_tokens_placeholder": "Standard (Modelllimit)",
+	"chat_settings_model_label": "Modell",
+	"chat_settings_presence_penalty_label": "Presence Penalty",
+	"chat_settings_repository_dialog_description": "Hängen Sie wiederverwendbare Repositories an, um Chat-Antworten anzureichern.",
+	"chat_settings_repository_dialog_title": "Repository hinzufügen",
+	"chat_settings_save_button": "Einstellungen speichern",
+	"chat_settings_system_prompt_label": "System-Prompt",
+	"chat_settings_system_prompt_locked_description": "Vom Bot gesperrt. Der System-Prompt ist im Vorlagenblock des Bots definiert.",
+	"chat_settings_system_prompt_placeholder": "Sie sind ein hilfreicher Assistent.",
+	"chat_settings_temperature_label": "Temperatur",
+	"chat_settings_top_p_label": "Top P",
+	"chat_setup_bot_card_description": "Beginnen Sie mit einem konfigurierten Bot für einen bestimmten Anwendungsfall",
+	"chat_setup_bot_card_point_configured": "Konfiguriertes Verhalten und konfigurierter Zugriff auf Inhalte",
+	"chat_setup_bot_card_point_ready": "Sofort einsatzbereite Konfigurationen",
+	"chat_setup_bot_card_title": "Bot verwenden",
+	"chat_setup_bot_dialog_description": "Wählen Sie aus den Bots, die in Ihrem Arbeitsbereich verfügbar sind",
+	"chat_setup_bot_dialog_start_action": "Chat starten",
+	"chat_setup_bot_dialog_title": "Bot auswählen",
+	"chat_setup_footer_note": "Bots eignen sich am besten, wenn jemand anderes bereits KI-Verhalten oder passende Inhalte für Sie konfiguriert hat. Ein Chat ohne Bot eignet sich am besten, wenn Sie frei erkunden möchten.",
+	"chat_setup_page_description": "Wählen Sie, ob Sie mit einem Bot oder allein mit dem Modell chatten möchten.",
+	"chat_setup_page_title": "Chat starten",
+	"chat_setup_solo_card_description": "Antworten kommen allein vom Modell, ohne konfiguriertes Verhalten und ohne konfigurierte Inhalte",
+	"chat_setup_solo_card_point_knowledge": "Antworten aus dem eigenen Wissen des Modells",
+	"chat_setup_solo_card_point_model": "Sie wählen das Modell",
+	"chat_setup_solo_card_title": "Chat ohne Bot",
+	"chat_source_fallback_title": "Quelle",
+	"chat_start_action": "Chat starten",
+	"chat_starter_create_failed_toast_error": "Der Chat wurde nicht erstellt. Senden Sie die Nachricht erneut.",
+	"chat_table_bot_column_header": "Angehängter Bot",
+	"chat_table_bulk_delete_action": "Auswahl löschen",
+	"chat_table_date_column_header": "Datum",
+	"chat_table_row_menu_trigger": "Chat-Aktionen öffnen",
+	"chat_table_untitled_chat": "Chat ohne Titel",
+	"chat_update_toast_error": "Chat konnte nicht aktualisiert werden",
+	"chat_update_toast_loading": "Chat wird aktualisiert...",
+	"chat_update_toast_success": "Chat erfolgreich aktualisiert",
+	"chat_waiting_for_model": "Warten auf das Modell",
+	"chat_work_log_clamped_text_show_less": "Weniger anzeigen",
+	"chat_work_log_clamped_text_show_more": "Mehr anzeigen",
+	"chat_work_log_header_steps": [
+		{
+			"declarations": [
+				"input count",
+				"local countPlural = count: plural"
+			],
+			"selectors": [
+				"countPlural"
+			],
+			"match": {
+				"countPlural=one": "{count} Schritt",
+				"countPlural=other": "{count} Schritte"
+			}
+		}
+	],
+	"chat_work_log_header_steps_failed": [
+		{
+			"declarations": [
+				"input count",
+				"input failed",
+				"local countPlural = count: plural"
+			],
+			"selectors": [
+				"countPlural"
+			],
+			"match": {
+				"countPlural=one": "{count} Schritt · {failed} fehlgeschlagen",
+				"countPlural=other": "{count} Schritte · {failed} fehlgeschlagen"
+			}
+		}
+	],
+	"chat_work_log_reasoning_duration": [
+		{
+			"declarations": [
+				"input count",
+				"local countPlural = count: plural"
+			],
+			"selectors": [
+				"countPlural"
+			],
+			"match": {
+				"countPlural=one": "{count} Sekunde nachgedacht",
+				"countPlural=other": "{count} Sekunden nachgedacht"
+			}
+		}
+	],
+	"chat_work_log_reasoning_duration_unknown": "Einige Sekunden nachgedacht",
+	"chat_work_log_source_block_and_pages": "{block} · S. {range}",
+	"chat_work_log_source_pages": "S. {range}",
+	"chat_work_log_thinking": "Denkt nach",
+	"chat_work_log_tool_details_label": "Details",
+	"chat_work_log_tool_generic_active": "{tool} wird ausgeführt",
+	"chat_work_log_tool_get_chunks_active": "Passagen werden gelesen",
+	"chat_work_log_tool_get_chunks_name": "Passagen gelesen",
+	"chat_work_log_tool_get_chunks_result": [
+		{
+			"declarations": [
+				"input count",
+				"local countPlural = count: plural"
+			],
+			"selectors": [
+				"countPlural"
+			],
+			"match": {
+				"countPlural=one": "{count} Passage gelesen",
+				"countPlural=other": "{count} Passagen gelesen"
+			}
+		}
+	],
+	"chat_work_log_tool_get_page_active": "Seite wird gelesen",
+	"chat_work_log_tool_get_page_name": "Seite gelesen",
+	"chat_work_log_tool_get_page_range": "Seiten {from} bis {to} gelesen",
+	"chat_work_log_tool_get_page_single": "Seite {page} gelesen",
+	"chat_work_log_tool_list_documents_active": "Quellen werden aufgelistet",
+	"chat_work_log_tool_list_documents_name": "Verfügbare Quellen aufgelistet",
+	"chat_work_log_tool_list_documents_result": [
+		{
+			"declarations": [
+				"input count",
+				"local countPlural = count: plural"
+			],
+			"selectors": [
+				"countPlural"
+			],
+			"match": {
+				"countPlural=one": "{count} verfügbare Quelle aufgelistet",
+				"countPlural=other": "{count} verfügbare Quellen aufgelistet"
+			}
+		}
+	],
+	"chat_work_log_tool_parameters_label": "Parameter",
+	"chat_work_log_tool_search_active": "Quellen werden durchsucht",
+	"chat_work_log_tool_search_name": "Quellen durchsucht",
+	"chat_work_log_tool_search_result": [
+		{
+			"declarations": [
+				"input count",
+				"local countPlural = count: plural"
+			],
+			"selectors": [
+				"countPlural"
+			],
+			"match": {
+				"countPlural=one": "Quellen durchsucht, {count} Passage gefunden",
+				"countPlural=other": "Quellen durchsucht, {count} Passagen gefunden"
+			}
+		}
+	],
+	"chat_work_log_tool_status_awaiting_approval": "Warten auf Genehmigung",
+	"chat_work_log_tool_status_denied": "Abgelehnt",
+	"chat_work_log_tool_status_failed": "Fehlgeschlagen",
+	"chat_work_log_tool_status_incomplete": "Nicht abgeschlossen",
+	"chat_work_log_tool_status_running": "Wird ausgeführt",
+	"common_actions_column_header": "Aktionen",
+	"common_add_button": "Hinzufügen",
+	"common_back_button": "Zurück",
+	"common_cancel_button": "Abbrechen",
+	"common_capabilities_title": "Fähigkeiten",
+	"common_close_button": "Schließen",
+	"common_confirm_button": "Bestätigen",
+	"common_confirm_password_placeholder": "Passwort bestätigen",
+	"common_create_button": "Erstellen",
+	"common_created_column_header": "Erstellt",
+	"common_delete_button": "Löschen",
+	"common_delete_selected_action": "Ausgewählte löschen",
+	"common_description_label": "Beschreibung",
+	"common_edit_button": "Bearbeiten",
+	"common_email_label": "E-Mail",
+	"common_email_placeholder": "your@email.com",
+	"common_loading_label": "Wird geladen...",
+	"common_name_label": "Name",
+	"common_name_placeholder": "Ihr Name",
+	"common_next_button": "Weiter",
+	"common_optional_label": "Optional",
+	"common_password_label": "Passwort",
+	"common_password_placeholder": "Passwort",
+	"common_provider_label": "Anbieter",
+	"common_remove_button": "Entfernen",
+	"common_retry_button": "Erneut versuchen",
+	"common_row_menu_trigger": "Menü öffnen",
+	"common_save_button": "Speichern",
+	"common_search_placeholder": "Suchen...",
+	"common_show_all_action": "Alle anzeigen",
+	"common_status_active_label": "Aktiv",
+	"common_status_column_header": "Status",
+	"common_status_deprecated_label": "Veraltet",
+	"common_status_disabled_label": "Deaktiviert",
+	"common_status_enabled_label": "Aktiviert",
+	"common_status_inactive_label": "Inaktiv",
+	"common_unknown_error_description": "Etwas ist schiefgelaufen. Versuchen Sie es erneut.",
+	"editor_colour_blue_option": "Blau",
+	"editor_colour_brown_option": "Braun",
+	"editor_colour_default_option": "Standard",
+	"editor_colour_green_option": "Grün",
+	"editor_colour_grey_option": "Grau",
+	"editor_colour_orange_option": "Orange",
+	"editor_colour_pink_option": "Rosa",
+	"editor_colour_purple_option": "Lila",
+	"editor_colour_red_option": "Rot",
+	"editor_colour_yellow_option": "Gelb",
+	"editor_image_add_button": "Bild hinzufügen",
+	"editor_image_add_dialog_title": "Bild hinzufügen",
+	"editor_image_alt_text_label": "Alt-Text",
+	"editor_image_alt_text_placeholder": "Alt-Text (optional)",
+	"editor_image_caption_placeholder": "Bildunterschrift hinzufügen",
+	"editor_image_choose_button": "Bild auswählen",
+	"editor_image_delete_action": "Bild löschen",
+	"editor_image_edit_caption_action": "Bildunterschrift bearbeiten",
+	"editor_image_full_width_action": "Volle Breite",
+	"editor_image_preview_alt": "Vorschau",
+	"editor_image_replace_action": "Bild ersetzen",
+	"editor_image_replace_with_url_button": "Durch URL ersetzen",
+	"editor_image_upload_button": "Hochladen",
+	"editor_image_upload_error": "Upload fehlgeschlagen",
+	"editor_image_upload_formats_hint": "SVG, PNG, JPG oder GIF",
+	"editor_image_upload_label": "Bild hochladen",
+	"editor_image_upload_prompt": "Zum Hochladen klicken oder Datei hierher ziehen",
+	"editor_image_upload_tab": "Hochladen",
+	"editor_image_uploading_label": "Wird hochgeladen...",
+	"editor_image_url_invalid_error": "Bitte geben Sie eine gültige URL ein",
+	"editor_image_url_label": "Oder eine URL verwenden",
+	"editor_image_url_tab": "URL",
+	"editor_node_selector_bullet_list_option": "Aufzählungsliste",
+	"editor_node_selector_heading_1_option": "Überschrift 1",
+	"editor_node_selector_heading_2_option": "Überschrift 2",
+	"editor_node_selector_heading_3_option": "Überschrift 3",
+	"editor_node_selector_multiple_label": "Mehrere",
+	"editor_node_selector_numbered_list_option": "Nummerierte Liste",
+	"editor_node_selector_quote_option": "Zitat",
+	"editor_node_selector_text_option": "Text",
+	"editor_placeholder_default": "Schreiben Sie, tippen Sie '/' für Befehle",
+	"editor_placeholder_heading": "Überschrift {level}",
+	"editor_placeholder_section_title": "Abschnittstitel",
+	"editor_table_add_column_after_action": "Spalte danach einfügen",
+	"editor_table_add_column_before_action": "Spalte davor einfügen",
+	"editor_table_add_row_after_action": "Zeile danach einfügen",
+	"editor_table_add_row_before_action": "Zeile davor einfügen",
+	"editor_table_cell_tooltip": "Zelle",
+	"editor_table_column_tooltip": "Spalte",
+	"editor_table_delete_column_action": "Spalte löschen",
+	"editor_table_delete_row_action": "Zeile löschen",
+	"editor_table_delete_table_action": "Tabelle löschen",
+	"editor_table_merge_cells_action": "Zellen verbinden",
+	"editor_table_options_tooltip": "Optionen",
+	"editor_table_row_tooltip": "Zeile",
+	"editor_table_split_cell_action": "Zelle teilen",
+	"editor_table_toggle_header_cell_action": "Kopfzelle umschalten",
+	"editor_table_toggle_header_column_action": "Kopfspalte umschalten",
+	"editor_table_toggle_header_row_action": "Kopfzeile umschalten",
+	"editor_text_align_selector_centre_option": "Zentriert",
+	"editor_text_align_selector_left_option": "Links",
+	"editor_text_align_selector_right_option": "Rechts",
+	"editor_toolbar_alignment_centre_option": "Zentriert ausrichten",
+	"editor_toolbar_alignment_justify_option": "Als Blocksatz ausrichten",
+	"editor_toolbar_alignment_left_option": "Linksbündig ausrichten",
+	"editor_toolbar_alignment_right_option": "Rechtsbündig ausrichten",
+	"editor_toolbar_alignment_tooltip": "Textausrichtung",
+	"editor_toolbar_background_section_label": "Hintergrund",
+	"editor_toolbar_blockquote_tooltip": "Blockzitat",
+	"editor_toolbar_bold_tooltip": "Fett",
+	"editor_toolbar_bullet_list_tooltip": "Aufzählungsliste",
+	"editor_toolbar_code_block_tooltip": "Codeblock",
+	"editor_toolbar_code_tooltip": "Code",
+	"editor_toolbar_colour_group_label": "Farbe",
+	"editor_toolbar_colour_section_label": "Farbe",
+	"editor_toolbar_colour_tooltip": "Textfarbe und Hervorhebung",
+	"editor_toolbar_hard_break_tooltip": "Zeilenumbruch",
+	"editor_toolbar_headings_normal_option": "Normal",
+	"editor_toolbar_headings_tooltip": "Überschriften",
+	"editor_toolbar_highlight_group_label": "Hervorhebung",
+	"editor_toolbar_horizontal_rule_tooltip": "Trennlinie",
+	"editor_toolbar_image_tooltip": "Bild",
+	"editor_toolbar_italic_tooltip": "Kursiv",
+	"editor_toolbar_link_button": "Link",
+	"editor_toolbar_link_popover_description": "Hängen Sie einen Link an den ausgewählten Text an",
+	"editor_toolbar_link_popover_label": "Link",
+	"editor_toolbar_link_tooltip": "Link",
+	"editor_toolbar_link_update_button": "Aktualisieren",
+	"editor_toolbar_ordered_list_tooltip": "Nummerierte Liste",
+	"editor_toolbar_redo_tooltip": "Wiederholen",
+	"editor_toolbar_strikethrough_tooltip": "Durchgestrichen",
+	"editor_toolbar_underline_tooltip": "Unterstrichen",
+	"editor_toolbar_undo_tooltip": "Rückgängig",
+	"forms_datetime_field_date_label": "Datum",
+	"forms_datetime_field_placeholder": "Datum auswählen",
+	"forms_datetime_field_time_label": "Uhrzeit",
+	"forms_multi_select_field_placeholder": "Mehrere auswählen",
+	"forms_password_field_hide_button": "Passwort verbergen",
+	"forms_password_field_show_button": "Passwort anzeigen",
+	"forms_password_strength_empty": "Passwort eingeben",
+	"forms_password_strength_medium": "Mittelstarkes Passwort",
+	"forms_password_strength_meter_label": "Passwortstärke",
+	"forms_password_strength_requirement_length": "Mindestens 8 Zeichen",
+	"forms_password_strength_requirement_lowercase": "Mindestens 1 Kleinbuchstabe",
+	"forms_password_strength_requirement_number": "Mindestens 1 Ziffer",
+	"forms_password_strength_requirement_uppercase": "Mindestens 1 Großbuchstabe",
+	"forms_password_strength_requirements_label": "Passwortanforderungen",
+	"forms_password_strength_strong": "Starkes Passwort",
+	"forms_password_strength_summary": "{strength}. Muss enthalten:",
+	"forms_password_strength_weak": "Schwaches Passwort",
+	"forms_select_field_placeholder": "Option auswählen",
+	"forms_validation_errors_title": "Bitte beheben Sie die folgenden Fehler:",
+	"groups_create_dialog_description": "Erstellen Sie eine benutzerdefinierte Organisationsgruppe für die Zugriffsverwaltung.",
+	"groups_create_dialog_title": "Gruppe erstellen",
+	"groups_create_toast_error": "Die Gruppe wurde nicht erstellt. Prüfen Sie den Namen und versuchen Sie es erneut.",
+	"groups_create_toast_loading": "Gruppe wird erstellt...",
+	"groups_create_toast_success": "Gruppe erstellt",
+	"groups_delete_action": "Gruppe löschen",
+	"groups_delete_confirm_description": [
+		{
+			"declarations": [
+				"input count",
+				"local countPlural = count: plural"
+			],
+			"selectors": [
+				"countPlural"
+			],
+			"match": {
+				"countPlural=one": "Jede Freigabe dieser Gruppe wird entzogen, sodass ihre Mitglieder den damit gewährten Zugriff verlieren. Ihre Konten bleiben bestehen.",
+				"countPlural=other": "Jede Freigabe dieser Gruppen wird entzogen, sodass ihre Mitglieder den damit gewährten Zugriff verlieren. Ihre Konten bleiben bestehen."
+			}
+		}
+	],
+	"groups_delete_confirm_title": [
+		{
+			"declarations": [
+				"input count",
+				"local countPlural = count: plural"
+			],
+			"selectors": [
+				"countPlural"
+			],
+			"match": {
+				"countPlural=one": "Diese Gruppe löschen?",
+				"countPlural=other": "{count} Gruppen löschen?"
+			}
+		}
+	],
+	"groups_delete_confirm_title_named": "Die Gruppe {name} löschen?",
+	"groups_delete_toast_error": [
+		{
+			"declarations": [
+				"input count",
+				"local countPlural = count: plural"
+			],
+			"selectors": [
+				"countPlural"
+			],
+			"match": {
+				"countPlural=one": "Die Gruppe wurde nicht gelöscht. Versuchen Sie es erneut.",
+				"countPlural=other": "Die Gruppen wurden nicht gelöscht. Versuchen Sie es erneut."
+			}
+		}
+	],
+	"groups_delete_toast_loading": [
+		{
+			"declarations": [
+				"input count",
+				"local countPlural = count: plural"
+			],
+			"selectors": [
+				"countPlural"
+			],
+			"match": {
+				"countPlural=one": "Die Gruppe wird gelöscht...",
+				"countPlural=other": "{count} Gruppen werden gelöscht..."
+			}
+		}
+	],
+	"groups_delete_toast_success": [
+		{
+			"declarations": [
+				"input count",
+				"local countPlural = count: plural"
+			],
+			"selectors": [
+				"countPlural"
+			],
+			"match": {
+				"countPlural=one": "{count} Gruppe gelöscht",
+				"countPlural=other": "{count} Gruppen gelöscht"
+			}
+		}
+	],
+	"groups_detail_loading": "Gruppe wird geladen...",
+	"groups_kind_custom": "Benutzerdefiniert",
+	"groups_kind_system": "System",
+	"groups_list_create_action": "Gruppe erstellen",
+	"groups_list_search_placeholder": "Gruppen suchen",
+	"groups_member_list_empty_state_description": "Keine Mitglieder gefunden.",
+	"groups_member_list_filter_placeholder": "Mitglieder filtern",
+	"groups_member_list_title": "Aktuelle Mitglieder",
+	"groups_member_picker_empty_state_all_members": "Alle sind bereits in dieser Gruppe.",
+	"groups_member_picker_empty_state_no_match": "Keine Mitglieder entsprechen dieser Suche.",
+	"groups_member_picker_search_placeholder": "Benutzer suchen",
+	"groups_member_row_remove_aria_label": "Mitglied entfernen",
+	"groups_member_row_source_explicit": "Explizit",
+	"groups_member_row_source_implicit": "Implizit",
+	"groups_members_add_heading": "Mitglieder hinzufügen",
+	"groups_members_add_selected_action": "Auswahl hinzufügen",
+	"groups_members_add_toast_error": "Die Mitglieder wurden nicht hinzugefügt. Versuchen Sie es erneut.",
+	"groups_members_add_toast_loading": "Mitglieder werden hinzugefügt...",
+	"groups_members_add_toast_success": "Mitglieder hinzugefügt",
+	"groups_members_card_description_custom": "Verwalten Sie die explizite Gruppenmitgliedschaft.",
+	"groups_members_card_description_system": "Alle Mitglieder der Organisation sind implizit enthalten.",
+	"groups_members_card_title": "Mitglieder",
+	"groups_members_remove_confirm_description": [
+		{
+			"declarations": [
+				"input count",
+				"local countPlural = count: plural"
+			],
+			"selectors": [
+				"countPlural"
+			],
+			"match": {
+				"countPlural=one": "Der Zugriff, den diese Gruppe gewährt, geht verloren. Das Konto und die eigenen Ressourcen bleiben bestehen.",
+				"countPlural=other": "Der Zugriff, den diese Gruppe gewährt, geht verloren. Die Konten und die eigenen Ressourcen bleiben bestehen."
+			}
+		}
+	],
+	"groups_members_remove_confirm_title": [
+		{
+			"declarations": [
+				"input count",
+				"local countPlural = count: plural"
+			],
+			"selectors": [
+				"countPlural"
+			],
+			"match": {
+				"countPlural=one": "Dieses Mitglied aus der Gruppe entfernen?",
+				"countPlural=other": "{count} Mitglieder aus der Gruppe entfernen?"
+			}
+		}
+	],
+	"groups_members_remove_toast_error": "Das Mitglied wurde nicht entfernt. Versuchen Sie es erneut.",
+	"groups_members_remove_toast_loading": "Das Mitglied wird entfernt...",
+	"groups_members_remove_toast_success": "Mitglied entfernt",
+	"groups_page_title": "Gruppen",
+	"groups_settings_card_description": "Systemgruppen können nicht umbenannt oder gelöscht werden.",
+	"groups_settings_card_title": "Gruppeneinstellungen",
+	"groups_table_kind_column_header": "Typ",
+	"groups_table_manage_action": "Gruppe verwalten",
+	"groups_update_toast_error": "Die Gruppe wurde nicht aktualisiert. Versuchen Sie es erneut.",
+	"groups_update_toast_loading": "Gruppe wird gespeichert...",
+	"groups_update_toast_success": "Gruppe aktualisiert",
+	"header_breadcrumb_menu_label": "Navigationspfad anzeigen",
+	"header_home_link_label": "Startseite",
 	"header_locale_switcher_label": "Sprache",
 	"header_theme_switcher_label": "Design wechseln",
+	"home_about_link": "Über OrcAI",
+	"home_ask_browse_bots_action": "Bots durchstöbern",
+	"home_ask_section_description": "Wählen Sie einen Bot, der aus seinen Quellen antwortet, oder fragen Sie das Modell direkt.",
+	"home_ask_section_title": "Eine Frage stellen",
+	"home_chats_new_chat_aria_label": "Neuen Chat starten",
+	"home_chats_section_description": "Machen Sie dort weiter, wo Sie aufgehört haben.",
+	"home_chats_section_title": "Letzte Chats",
 	"home_greeting_afternoon": "Guten Tag",
 	"home_greeting_evening": "Guten Abend",
 	"home_greeting_morning": "Guten Morgen",
 	"home_intro": "Stellen Sie Fragen an die freigegebenen Quellen Ihrer Organisation oder erstellen Sie einen Bot, den andere nutzen können.",
+	"home_library_assets_label": "Assets",
+	"home_library_assets_meta": "Quellenmaterial für Abruf und Zitate",
+	"home_library_blocks_label": "Verhaltensblöcke",
+	"home_library_blocks_meta": "Prompts und Bildgenerierung",
+	"home_library_bots_label": "Bots",
+	"home_library_bots_meta": [
+		{
+			"declarations": [
+				"input published",
+				"input drafts",
+				"input count",
+				"local countPlural = count: plural"
+			],
+			"selectors": [
+				"countPlural"
+			],
+			"match": {
+				"countPlural=one": "{published} veröffentlicht, {drafts} Entwurf",
+				"countPlural=other": "{published} veröffentlicht, {drafts} Entwürfe"
+			}
+		}
+	],
+	"home_library_panel_add_asset_action": "Asset hinzufügen",
+	"home_library_panel_title": "Bibliothek",
+	"home_library_repositories_label": "Repositories",
+	"home_library_repositories_meta": "Abruf-Datenbanken, die Antworten fundieren",
+	"home_manage_create_bot_action": "Bot erstellen",
+	"home_manage_description": "Was diese Organisation hat, was sie ausgibt und was sich geändert hat.",
+	"home_people_groups_label": "Gruppen",
+	"home_people_groups_meta": "Wie mehreren Personen Zugriff gewährt wird",
+	"home_people_invitations_label": "Ausstehende Einladungen",
+	"home_people_invitations_meta": "Gesendet, noch nicht angenommen",
+	"home_people_members_label": "Mitglieder",
+	"home_people_members_meta": "Personen, die sich bei dieser Organisation anmelden können",
+	"home_people_panel_invite_action": "Personen einladen",
+	"home_people_panel_title": "Personen",
+	"home_quota_panel_all_pools_action": "Alle Pools",
+	"home_quota_panel_empty_note": "Noch keine Kontingent-Pools. Chats verwenden die Limits des Anbieters, solange keiner existiert.",
+	"home_quota_panel_title": "Kontingent",
+	"home_quota_pool_default_badge": "Standard",
+	"home_quota_pool_meta_no_period": "{provider}, kein offener Zeitraum",
+	"home_quota_pool_meta_renews": "{provider}, erneuert sich am {date}",
+	"home_recent_asset_kind": "Asset",
+	"home_recent_block_kind": "Verhaltensblock",
+	"home_recent_bot_kind": "Bot",
+	"home_recent_draft_badge": "Entwurf",
+	"home_recent_panel_empty_note": "Es wurde noch nichts bearbeitet. Bots, Verhaltensblöcke, Repositories und Assets erscheinen hier, sobald sie sich ändern.",
+	"home_recent_panel_open_library_action": "Bibliothek öffnen",
+	"home_recent_panel_title": "Zuletzt geändert",
+	"home_recent_published_badge": "Veröffentlicht",
+	"home_recent_repository_kind": "Repository",
+	"home_tour_button_aria_label": "Eine Tour durch OrcAI machen",
+	"home_tour_button_label": "Tour starten",
+	"home_view_manage_tab": "Verwalten",
+	"home_view_use_tab": "Nutzen",
+	"home_welcome_heading": [
+		{
+			"declarations": [
+				"input name",
+				"input timeOfDay"
+			],
+			"selectors": [
+				"timeOfDay"
+			],
+			"match": {
+				"timeOfDay=morning": "Guten Morgen, {name}!",
+				"timeOfDay=afternoon": "Guten Tag, {name}!",
+				"timeOfDay=*": "Guten Abend, {name}!"
+			}
+		}
+	],
+	"hub_assets_section_title": "Assets",
+	"hub_behaviour_section_title": "Verhalten",
+	"hub_bots_section_title": "Bots",
+	"hub_page_title": "Bibliothek",
+	"hub_repositories_section_title": "Repositories",
+	"hub_section_switcher_aria_label": "Bibliotheksbereich",
+	"hub_section_view_all_action": "Alle anzeigen",
+	"hub_tab_all_label": "Alle",
+	"hub_tab_assets_label": "Assets",
+	"hub_tab_behaviour_label": "Verhalten",
+	"hub_tab_bots_label": "Bots",
+	"hub_tab_repositories_label": "Repositories",
+	"instance_organizations_create_button": "Organisation erstellen",
+	"instance_organizations_create_dialog_description": "Die erstellende Person wird zum ersten Admin der neuen Organisation.",
+	"instance_organizations_create_dialog_title": "Organisation erstellen",
+	"instance_organizations_page_description": "Alle Organisationen dieser Instanz.",
+	"instance_organizations_page_title": "Organisationen",
+	"instance_organizations_search_placeholder": "Organisationen suchen...",
+	"instance_orgs_table_delete_menu_item": "Organisation löschen",
+	"instance_orgs_table_members_column_header": "Mitglieder",
+	"instance_orgs_table_slug_column_header": "Slug",
+	"instance_route_page_title": "Instanz verwalten",
+	"instance_sidebar_back_to_app_action": "Zurück zur App",
+	"instance_sidebar_manage_group_label": "Instanz verwalten",
+	"instance_sidebar_organisations_nav_label": "Organisationen",
+	"instance_sidebar_users_nav_label": "Benutzer",
+	"instance_users_page_description": "Alle Konten dieser Instanz und die Organisationen, denen sie angehören.",
+	"instance_users_page_title": "Benutzer",
+	"instance_users_search_placeholder": "Benutzer suchen...",
+	"instance_users_table_ban_menu_item": "Konto sperren",
+	"instance_users_table_delete_menu_item": "Konto löschen",
+	"instance_users_table_no_organisation_label": "Keine Organisation",
+	"instance_users_table_organisations_column_header": "Organisationen",
+	"instance_users_table_status_banned_label": "Gesperrt",
+	"instance_users_table_unban_menu_item": "Sperre aufheben",
+	"jobs_create_confirm_button": "Ja, erstellen",
+	"jobs_create_confirm_description": "Möchten Sie wirklich einen Auftrag für „{jobRunner}“ erstellen?",
+	"jobs_create_confirm_title": "Auftrag erstellen",
+	"jobs_create_toast_error": "Auftrag konnte nicht erstellt werden",
+	"jobs_create_toast_loading": "Auftrag wird erstellt...",
+	"jobs_create_toast_success": "Auftrag erstellt",
+	"jobs_list_dialog_description": "{jobQueue}-Aufträge für diese Ressource",
+	"jobs_list_dialog_empty_label": "Keine Aufträge gefunden.",
+	"jobs_list_dialog_title": "Auftragsverlauf",
+	"jobs_list_dialog_trigger_button": "Aufträge",
+	"jobs_list_item_completed_label": "· Fertig: {timestamp}",
+	"jobs_list_item_created_label": "Erstellt: {timestamp}",
+	"jobs_list_item_retries_label": "Wiederholungen: {count}/{limit}",
+	"jobs_list_item_started_label": "· Gestartet: {timestamp}",
+	"jobs_reprocess_confirm_button": "Ja, neu verarbeiten",
+	"jobs_reprocess_confirm_description": "Dadurch wird die Dokumentverarbeitung erneut ausgeführt und die Vektordaten aller angehängten Wissensdatenbanken werden aktualisiert.",
+	"jobs_reprocess_confirm_title": "Inhalt neu verarbeiten",
+	"jobs_reprocess_toast_error": "Inhalt konnte nicht neu verarbeitet werden",
+	"jobs_reprocess_toast_loading": "Inhalt wird neu verarbeitet...",
+	"jobs_reprocess_toast_success": "Auftrag zur Neuverarbeitung eingereiht",
+	"jobs_retry_processing_toast_error": "Verarbeitung konnte nicht wiederholt werden",
+	"jobs_retry_processing_toast_loading": "Verarbeitung wird wiederholt...",
+	"jobs_retry_processing_toast_success": "Verarbeitungsauftrag eingereiht",
+	"jobs_retry_vectorization_toast_error": "Vektorisierung konnte nicht wiederholt werden",
+	"jobs_retry_vectorization_toast_loading": "Vektorisierung wird wiederholt...",
+	"jobs_retry_vectorization_toast_success": "Vektorisierungsauftrag eingereiht",
+	"jobs_status_panel_info_description": "Der Inhalt wird nach dem Upload in Hintergrundaufträgen aufbereitet, damit er bereit ist",
+	"jobs_status_panel_retry_button": "Erneut versuchen",
+	"jobs_status_panel_title": "Status der Aufbereitung",
+	"models_add_page_title": "Modell hinzufügen",
+	"models_create_toast_error": "Modell konnte nicht erstellt werden",
+	"models_create_toast_loading": "Modell wird erstellt...",
+	"models_create_toast_success": "Modell erfolgreich erstellt",
+	"models_delete_confirm_button": [
+		{
+			"declarations": [
+				"input count",
+				"local countPlural = count: plural"
+			],
+			"selectors": [
+				"countPlural"
+			],
+			"match": {
+				"countPlural=one": "Modell löschen",
+				"countPlural=other": "{count} Modelle löschen"
+			}
+		}
+	],
+	"models_delete_confirm_description": [
+		{
+			"declarations": [
+				"input count",
+				"local countPlural = count: plural"
+			],
+			"selectors": [
+				"countPlural"
+			],
+			"match": {
+				"countPlural=one": "Chats, die auf dieses Modell eingestellt sind, verlieren ihre Modellauswahl, und Kontingent-Pools, die darauf beschränkt sind, greifen auf den gesamten Anbieter zurück.",
+				"countPlural=other": "Chats, die auf diese Modelle eingestellt sind, verlieren ihre Modellauswahl, und Kontingent-Pools, die darauf beschränkt sind, greifen auf den gesamten Anbieter zurück."
+			}
+		}
+	],
+	"models_delete_confirm_title": [
+		{
+			"declarations": [
+				"input count",
+				"local countPlural = count: plural"
+			],
+			"selectors": [
+				"countPlural"
+			],
+			"match": {
+				"countPlural=one": "Dieses Modell löschen?",
+				"countPlural=other": "{count} Modelle löschen?"
+			}
+		}
+	],
+	"models_delete_confirm_title_named": "Das Modell {name} löschen?",
+	"models_delete_toast_error": [
+		{
+			"declarations": [
+				"input count",
+				"local countPlural = count: plural"
+			],
+			"selectors": [
+				"countPlural"
+			],
+			"match": {
+				"countPlural=one": "Das Modell wurde nicht gelöscht. Versuchen Sie es erneut.",
+				"countPlural=other": "Die Modelle wurden nicht gelöscht. Versuchen Sie es erneut."
+			}
+		}
+	],
+	"models_delete_toast_loading": [
+		{
+			"declarations": [
+				"input count",
+				"local countPlural = count: plural"
+			],
+			"selectors": [
+				"countPlural"
+			],
+			"match": {
+				"countPlural=one": "Das Modell wird gelöscht...",
+				"countPlural=other": "{count} Modelle werden gelöscht..."
+			}
+		}
+	],
+	"models_delete_toast_success": [
+		{
+			"declarations": [
+				"input count",
+				"local countPlural = count: plural"
+			],
+			"selectors": [
+				"countPlural"
+			],
+			"match": {
+				"countPlural=one": "1 Modell gelöscht",
+				"countPlural=other": "{count} Modelle gelöscht"
+			}
+		}
+	],
+	"models_detail_capabilities_description": "Aktivierte Fähigkeiten dieser Modellkonfiguration.",
+	"models_detail_capability_count_badge": [
+		{
+			"declarations": [
+				"input count",
+				"local countPlural = count: plural"
+			],
+			"selectors": [
+				"countPlural"
+			],
+			"match": {
+				"countPlural=one": "{count} Fähigkeit",
+				"countPlural=other": "{count} Fähigkeiten"
+			}
+		}
+	],
+	"models_detail_details_description": "Zentrale Metadaten für Routing und Modellauswahl.",
+	"models_detail_details_title": "Modelldetails",
+	"models_detail_edit_button": "Modell bearbeiten",
+	"models_detail_no_capabilities_label": "Keine Fähigkeiten konfiguriert.",
+	"models_detail_provider_compatibility_label": "Anbieter-Kompatibilität",
+	"models_detail_provider_connection_description": "Endpunkt und Status des Anbieters hinter diesem Modell.",
+	"models_detail_provider_connection_title": "Anbieterverbindung",
+	"models_detail_provider_id_label": "Anbieter-ID",
+	"models_detail_view_provider_button": "Anbieter anzeigen",
+	"models_discover_dialog_description": "Wählen Sie einen Anbieter aus und entdecken Sie verfügbare Modelle automatisch.",
+	"models_discover_dialog_title": "Modelle entdecken",
+	"models_discover_error_fallback_description": "Der Anbieter war nicht erreichbar, daher wurden keine Modelle aufgelistet. Prüfen Sie die Anbietereinstellungen und versuchen Sie es erneut.",
+	"models_discover_error_title": "Entdeckung fehlgeschlagen",
+	"models_discover_no_providers_description": "Erstellen Sie zuerst einen Anbieter und starten Sie dann die Modellentdeckung.",
+	"models_discover_no_providers_title": "Keine Anbieter verfügbar",
+	"models_discover_pending_button": "Wird entdeckt...",
+	"models_discover_provider_field_description": "Wählen Sie den Anbieter aus, dessen Modelle entdeckt werden sollen.",
+	"models_discover_provider_placeholder": "Anbieter auswählen",
+	"models_discover_success_description": [
+		{
+			"declarations": [
+				"input count",
+				"input addedCount",
+				"input alreadyExistedCount",
+				"local countPlural = count: plural"
+			],
+			"selectors": [
+				"countPlural"
+			],
+			"match": {
+				"countPlural=one": "{count} Modell gefunden. {addedCount} hinzugefügt, {alreadyExistedCount} bereits vorhanden.",
+				"countPlural=other": "{count} Modelle gefunden. {addedCount} hinzugefügt, {alreadyExistedCount} bereits vorhanden."
+			}
+		}
+	],
+	"models_discover_success_title": "Entdeckung abgeschlossen",
+	"models_discover_trigger_button": "Modelle entdecken",
+	"models_edit_page_title": "Modell bearbeiten",
+	"models_form_capabilities_description": "Für Chat wird mindestens ein Modell mit Text und Tool-Aufrufen benötigt. Ein Modell wird überall dort ausgeblendet, wo eine Fähigkeit erforderlich ist, die ihm fehlt.",
+	"models_form_capabilities_label": "Fähigkeiten",
+	"models_form_capabilities_placeholder": "z. B. Text, Tool-Aufrufe",
+	"models_form_deprecated_description": "Veraltete Modelle werden für neue Bots nicht angeboten. Bots, die dieses Modell bereits verwenden, funktionieren weiterhin.",
+	"models_form_description_placeholder": "z. B. Schnell und günstig, gut für Zusammenfassungen",
+	"models_form_name_placeholder": "z. B. GPT-4o mini",
+	"models_form_provider_description": "Das Modell wird über den Endpunkt dieses Anbieters aufgerufen.",
+	"models_form_provider_model_id_label": "Modell-ID beim Anbieter",
+	"models_form_provider_model_id_placeholder": "gpt-4o-mini",
+	"models_form_provider_placeholder": "Anbieter auswählen",
+	"models_form_save_button": "Modell speichern",
+	"models_index_add_button": "Modell hinzufügen",
+	"models_index_search_placeholder": "Modelle oder Anbieter suchen",
+	"models_route_page_title": "Modelle",
+	"models_table_delete_menu_item": "Modell löschen",
+	"models_table_edit_menu_item": "Modell bearbeiten",
+	"models_table_status_available_label": "Verfügbar",
+	"models_table_view_menu_item": "Modell anzeigen",
+	"models_update_toast_error": "Modell konnte nicht aktualisiert werden",
+	"models_update_toast_loading": "Modell wird aktualisiert...",
+	"models_update_toast_success": "Modell erfolgreich aktualisiert",
+	"next_step_card_finish_button": "Fertig",
+	"next_step_card_previous_button": "Zurück",
+	"next_step_card_progress": "{current} von {total}",
 	"next_step_card_skip_button": "Überspringen",
-	"select_organisation_page_title": "Wählen Sie Ihre Organisation"
+	"next_step_chat_intro_content": "Nachdem Sie nun Ihre erste Antwort erhalten haben, möchten Sie vielleicht einen kurzen Rundgang durch die Chat-Oberfläche machen. Klicken Sie auf „Weiter“, um fortzufahren.",
+	"next_step_chat_intro_title": "Chat",
+	"next_step_chat_rating_content": "Bitte bewerten Sie jede Antwort, die Sie erhalten, über die Schaltflächen unten. Das hilft dabei, den Bot zu verbessern, wirkt sich aber nicht direkt auf Ihren aktuellen Chat aus.",
+	"next_step_chat_rating_title": "Antworten bewerten",
+	"next_step_chat_references_content": "Eine Antwort enthält in der Regel Verweise auf zugehörige Inhalte, die der Bot als besonders relevant eingestuft hat. Da diese Verweise automatisch abgerufen werden, beachten Sie bitte, dass nicht jedes verwiesene Material zwangsläufig relevant ist. Aus technischen Gründen entsprechen diese Verweise zudem noch nicht den gängigen Zitierstandards. Das System zitiert manche Quellen möglicherweise wörtlich, ohne dies im Text kenntlich zu machen. In jedem Fall gilt: Wenn das System auf Material verweist, hat es dieses Material auch für die Erstellung der Antwort verwendet.",
+	"next_step_chat_references_title": "Verweise",
+	"next_step_initial_account_content": "Hier können Sie Ihre Kontoeinstellungen, Zugriffsfreigaben und mehr verwalten.",
+	"next_step_initial_account_title": "Konto",
+	"next_step_initial_chat_history_content": "Ihre bisherigen Chats erscheinen hier. Um die Liste übersichtlich zu halten, können Sie Chats löschen oder umbenennen.",
+	"next_step_initial_chat_history_title": "Chat-Verlauf",
+	"next_step_initial_complete_content": "Sie können den Arbeitsbereich jetzt erkunden. Erstellen Sie Bots, fügen Sie Material zur Bibliothek hinzu oder setzen Sie Chats fort, wann immer Sie möchten. Das Projektteam freut sich außerdem über Ihr Feedback zu Ihren Erfahrungen.",
+	"next_step_initial_complete_title": "Sie sind startklar",
+	"next_step_initial_sidebar_content": "Die Seitenleiste bietet Ihnen schnellen Zugriff auf Ihre Chats, Ihren Arbeitsbereich und Ihre Kontoeinstellungen.",
+	"next_step_initial_sidebar_title": "Seitenleiste",
+	"next_step_initial_start_chat_content": "Über die Schaltfläche oben in der Seitenleiste können Sie jederzeit einen Chat starten.",
+	"next_step_initial_start_chat_title": "Chat starten",
+	"next_step_initial_welcome_content": "Machen wir einen kurzen Rundgang durch die App. Klicken Sie auf „Weiter“, um fortzufahren.",
+	"next_step_initial_welcome_title": "Willkommen bei OrcAI",
+	"next_step_skip_toast_error": "Die Tour wurde nicht als übersprungen markiert",
+	"next_step_skip_toast_error_description": "Sie wird beim nächsten Mal möglicherweise erneut geöffnet.",
+	"orgs_card_type_badge": "Organisation",
+	"orgs_create_toast_error": "Organisation konnte nicht erstellt werden",
+	"orgs_create_toast_loading": "Organisation wird erstellt...",
+	"orgs_create_toast_success": "Organisation erfolgreich erstellt",
+	"orgs_delete_dialog_description": "Alles unten Aufgezählte wird mitgelöscht, und die Löschung ist endgültig.",
+	"orgs_delete_dialog_impact_groups": [
+		{
+			"declarations": [
+				"input count",
+				"local countPlural = count: plural"
+			],
+			"selectors": [
+				"countPlural"
+			],
+			"match": {
+				"countPlural=one": "{count} Gruppe",
+				"countPlural=other": "{count} Gruppen"
+			}
+		}
+	],
+	"orgs_delete_dialog_impact_invitations": [
+		{
+			"declarations": [
+				"input count",
+				"local countPlural = count: plural"
+			],
+			"selectors": [
+				"countPlural"
+			],
+			"match": {
+				"countPlural=one": "{count} ausstehende Einladung",
+				"countPlural=other": "{count} ausstehende Einladungen"
+			}
+		}
+	],
+	"orgs_delete_dialog_impact_members": [
+		{
+			"declarations": [
+				"input count",
+				"local countPlural = count: plural"
+			],
+			"selectors": [
+				"countPlural"
+			],
+			"match": {
+				"countPlural=one": "{count} Mitglied",
+				"countPlural=other": "{count} Mitglieder"
+			}
+		}
+	],
+	"orgs_delete_dialog_impact_note": "Mitglieder, Einladungen und Gruppen werden mit der Organisation gelöscht. Ressourcen, die nur hier zugeordnet sind, bleiben ohne Organisation zurück.",
+	"orgs_delete_dialog_impact_resources": [
+		{
+			"declarations": [
+				"input count",
+				"local countPlural = count: plural"
+			],
+			"selectors": [
+				"countPlural"
+			],
+			"match": {
+				"countPlural=one": "{count} Ressource, die nur hier zugeordnet ist",
+				"countPlural=other": "{count} Ressourcen, die nur hier zugeordnet sind"
+			}
+		}
+	],
+	"orgs_delete_dialog_slug_label_after": "zur Bestätigung ein",
+	"orgs_delete_dialog_slug_label_before": "Geben Sie",
+	"orgs_delete_dialog_slug_label_unknown": "Geben Sie den Slug zur Bestätigung ein",
+	"orgs_delete_dialog_submit_pending": "Wird gelöscht...",
+	"orgs_delete_dialog_title": "Diese Organisation löschen?",
+	"orgs_delete_dialog_title_named": "Die Organisation {name} löschen?",
+	"orgs_delete_toast_error": "Die Organisation wurde nicht gelöscht. Versuchen Sie es erneut.",
+	"orgs_delete_toast_loading": "Die Organisation wird gelöscht...",
+	"orgs_delete_toast_success": "Organisation gelöscht",
+	"orgs_detail_card_description": "Grundlegende Profildaten der Organisation.",
+	"orgs_detail_card_title": "Organisationsdetails",
+	"orgs_detail_logo_label": "Logo",
+	"orgs_detail_metadata_label": "Metadaten",
+	"orgs_detail_slug_label": "Slug",
+	"orgs_edit_action": "Organisation bearbeiten",
+	"orgs_edit_meta_title": "Bearbeiten",
+	"orgs_edit_page_title": "Organisation bearbeiten",
+	"orgs_form_name_label": "Name der Organisation",
+	"orgs_form_name_placeholder": "Ihre Organisation",
+	"orgs_form_slug_label": "Slug",
+	"orgs_form_slug_placeholder": "ihre-organisation",
+	"orgs_form_submit_button": "Organisation speichern",
+	"orgs_invitation_accept_button": "Annehmen",
+	"orgs_invitation_accept_toast_error": "Einladung konnte nicht angenommen werden",
+	"orgs_invitation_accept_toast_loading": "Einladung wird angenommen...",
+	"orgs_invitation_accept_toast_success": "Einladung angenommen",
+	"orgs_invitation_create_toast_error": "Einladungen konnten nicht erstellt werden",
+	"orgs_invitation_create_toast_loading": "Einladungen werden erstellt...",
+	"orgs_invitation_create_toast_success": "Einladungen erfolgreich erstellt",
+	"orgs_invitation_delete_confirm_description": [
+		{
+			"declarations": [
+				"input count",
+				"local countPlural = count: plural"
+			],
+			"selectors": [
+				"countPlural"
+			],
+			"match": {
+				"countPlural=one": "Der Einladungslink funktioniert nicht mehr. Laden Sie die Person erneut ein, damit sie beitreten kann.",
+				"countPlural=other": "Ihre Einladungslinks funktionieren nicht mehr. Laden Sie diese Personen erneut ein, damit sie beitreten können."
+			}
+		}
+	],
+	"orgs_invitation_delete_confirm_title": [
+		{
+			"declarations": [
+				"input count",
+				"local countPlural = count: plural"
+			],
+			"selectors": [
+				"countPlural"
+			],
+			"match": {
+				"countPlural=one": "Diese Einladung löschen?",
+				"countPlural=other": "{count} Einladungen löschen?"
+			}
+		}
+	],
+	"orgs_invitation_delete_confirm_title_named": "Die Einladung {name} löschen?",
+	"orgs_invitation_delete_toast_error": [
+		{
+			"declarations": [
+				"input count",
+				"local countPlural = count: plural"
+			],
+			"selectors": [
+				"countPlural"
+			],
+			"match": {
+				"countPlural=one": "Die Einladung wurde nicht gelöscht. Versuchen Sie es erneut.",
+				"countPlural=other": "Die Einladungen wurden nicht gelöscht. Versuchen Sie es erneut."
+			}
+		}
+	],
+	"orgs_invitation_delete_toast_loading": [
+		{
+			"declarations": [
+				"input count",
+				"local countPlural = count: plural"
+			],
+			"selectors": [
+				"countPlural"
+			],
+			"match": {
+				"countPlural=one": "Die Einladung wird gelöscht...",
+				"countPlural=other": "{count} Einladungen werden gelöscht..."
+			}
+		}
+	],
+	"orgs_invitation_delete_toast_success": [
+		{
+			"declarations": [
+				"input count",
+				"local countPlural = count: plural"
+			],
+			"selectors": [
+				"countPlural"
+			],
+			"match": {
+				"countPlural=one": "{count} Einladung gelöscht",
+				"countPlural=other": "{count} Einladungen gelöscht"
+			}
+		}
+	],
+	"orgs_invitation_expires_on": "Läuft am {date} ab",
+	"orgs_invitation_form_add_email_button": "E-Mail-Feld hinzufügen",
+	"orgs_invitation_form_bulk_button": "Mehrere E-Mails hinzufügen",
+	"orgs_invitation_form_bulk_confirm_button": "E-Mails hinzufügen",
+	"orgs_invitation_form_bulk_dialog_description": "Fügen Sie mehrere E-Mails auf einmal hinzu, indem Sie sie hier einfügen. Achten Sie darauf, dass jede E-Mail in einer eigenen Zeile steht und korrekt formatiert ist.",
+	"orgs_invitation_form_bulk_dialog_title": "Mehrere E-Mails hinzufügen",
+	"orgs_invitation_form_bulk_placeholder": "Eine E-Mail-Adresse pro Zeile",
+	"orgs_invitation_form_details_description": "Diese Einstellungen gelten für alle in diesem Vorgang eingeladenen Benutzer. Beachten Sie, dass die Benutzer automatisch der ausgewählten Organisation hinzugefügt werden.",
+	"orgs_invitation_form_details_title": "Einladungsdetails festlegen",
+	"orgs_invitation_form_email_label": "E-Mail von Benutzer {position}",
+	"orgs_invitation_form_email_placeholder": "name@example.org",
+	"orgs_invitation_form_emails_description": "Fügen Sie die E-Mails der Benutzer hinzu, die Sie einladen möchten. Sie können jede E-Mail einzeln hinzufügen oder alle auf einmal über „Mehrere E-Mails hinzufügen“.",
+	"orgs_invitation_form_emails_title": "E-Mail-Adressen hinzufügen",
+	"orgs_invitation_form_expires_label": "Läuft ab",
+	"orgs_invitation_form_expires_placeholder": "Ablaufdatum auswählen",
+	"orgs_invitation_form_organisation_label": "Organisation",
+	"orgs_invitation_form_organisation_placeholder": "Organisation auswählen",
+	"orgs_invitation_form_role_label": "Rolle",
+	"orgs_invitation_form_role_picker_title": "Rolle für die Einladung auswählen",
+	"orgs_invitation_form_submit_button": "Einladungen erstellen",
+	"orgs_invitation_invited_on": "Eingeladen am {date}",
+	"orgs_invitation_invited_on_unknown": "Eingeladen an einem unbekannten Datum",
+	"orgs_invitation_reject_button": "Ablehnen",
+	"orgs_invitation_reject_toast_error": "Einladung konnte nicht abgelehnt werden",
+	"orgs_invitation_reject_toast_loading": "Einladung wird abgelehnt...",
+	"orgs_invitation_reject_toast_success": "Einladung abgelehnt",
+	"orgs_invitation_status_accepted": "Angenommen",
+	"orgs_invitation_status_expired": "Abgelaufen",
+	"orgs_invitation_status_pending": "Ausstehend",
+	"orgs_invitation_status_rejected": "Abgelehnt",
+	"orgs_invitations_empty_state_description": "Sie haben derzeit keine Einladungen zu Organisationen.",
+	"orgs_invitations_empty_state_title": "Keine Einladungen",
+	"orgs_invitations_pagination_aria_label": "Seitennavigation für Einladungen",
+	"orgs_invitations_pagination_position": "Seite {page} von {pageCount}",
+	"orgs_invitations_pagination_previous_button": "Zurück",
+	"orgs_invitations_status_empty_state_description": [
+		{
+			"declarations": [
+				"input status"
+			],
+			"selectors": [
+				"status"
+			],
+			"match": {
+				"status=pending": "Sie haben keine ausstehenden Einladungen.",
+				"status=accepted": "Sie haben keine angenommenen Einladungen.",
+				"status=*": "Sie haben keine abgelehnten Einladungen."
+			}
+		}
+	],
+	"orgs_list_description": "Die Organisationen, die Sie verwalten.",
+	"orgs_member_delete_confirm_description": [
+		{
+			"declarations": [
+				"input count",
+				"local countPlural = count: plural"
+			],
+			"selectors": [
+				"countPlural"
+			],
+			"match": {
+				"countPlural=one": "Die Person verliert den Zugriff auf alles in dieser Organisation. Ihr Konto bleibt bestehen und kann erneut eingeladen werden.",
+				"countPlural=other": "Diese Personen verlieren den Zugriff auf alles in dieser Organisation. Ihre Konten bleiben bestehen und können erneut eingeladen werden."
+			}
+		}
+	],
+	"orgs_member_delete_confirm_title": [
+		{
+			"declarations": [
+				"input count",
+				"local countPlural = count: plural"
+			],
+			"selectors": [
+				"countPlural"
+			],
+			"match": {
+				"countPlural=one": "Dieses Mitglied aus der Organisation entfernen?",
+				"countPlural=other": "{count} Mitglieder aus der Organisation entfernen?"
+			}
+		}
+	],
+	"orgs_member_delete_confirm_title_named": "Das Mitglied {name} aus der Organisation entfernen?",
+	"orgs_member_delete_toast_error": [
+		{
+			"declarations": [
+				"input count",
+				"local countPlural = count: plural"
+			],
+			"selectors": [
+				"countPlural"
+			],
+			"match": {
+				"countPlural=one": "Das Mitglied wurde nicht aus der Organisation entfernt. Versuchen Sie es erneut.",
+				"countPlural=other": "Die Mitglieder wurden nicht aus der Organisation entfernt. Versuchen Sie es erneut."
+			}
+		}
+	],
+	"orgs_member_delete_toast_loading": [
+		{
+			"declarations": [
+				"input count",
+				"local countPlural = count: plural"
+			],
+			"selectors": [
+				"countPlural"
+			],
+			"match": {
+				"countPlural=one": "Das Mitglied wird entfernt...",
+				"countPlural=other": "{count} Mitglieder werden entfernt..."
+			}
+		}
+	],
+	"orgs_member_delete_toast_success": [
+		{
+			"declarations": [
+				"input count",
+				"local countPlural = count: plural"
+			],
+			"selectors": [
+				"countPlural"
+			],
+			"match": {
+				"countPlural=one": "{count} Mitglied aus der Organisation entfernt",
+				"countPlural=other": "{count} Mitglieder aus der Organisation entfernt"
+			}
+		}
+	],
+	"orgs_member_update_toast_error": "Rolle konnte nicht aktualisiert werden",
+	"orgs_member_update_toast_loading": "Rolle wird aktualisiert...",
+	"orgs_member_update_toast_success": "Rolle aktualisiert",
+	"orgs_page_title": "Organisationen",
+	"orgs_permission_create_asset_label": "Assets erstellen",
+	"orgs_permission_create_block_label": "Blöcke erstellen",
+	"orgs_permission_create_bot_label": "Bots erstellen",
+	"orgs_permission_invite_members_label": "Mitglieder einladen",
+	"orgs_permission_manage_groups_label": "Gruppen verwalten",
+	"orgs_permission_manage_members_label": "Mitglieder verwalten",
+	"orgs_permission_manage_models_label": "Modelle verwalten",
+	"orgs_permission_manage_organisation_label": "Organisation verwalten",
+	"orgs_permission_manage_providers_label": "Anbieter verwalten",
+	"orgs_permission_manage_quotas_label": "Kontingente verwalten",
+	"orgs_permission_read_label": "Arbeitsbereich lesen",
+	"orgs_role_admin_label": "Admin",
+	"orgs_role_manager_label": "Manager",
+	"orgs_role_member_label": "Mitglied",
+	"orgs_role_picker_placeholder": "Rolle auswählen",
+	"orgs_role_picker_title": "Organisationsrolle auswählen",
+	"orgs_role_viewer_label": "Betrachter",
+	"orgs_table_created_column_header": "Erstellt",
+	"orgs_table_slug_column_header": "Slug",
+	"orgs_table_view_action": "Organisation ansehen",
+	"orgs_update_toast_error": "Organisation konnte nicht aktualisiert werden",
+	"orgs_update_toast_loading": "Organisation wird aktualisiert...",
+	"orgs_update_toast_success": "Organisation erfolgreich aktualisiert",
+	"processing_status_active_description": "Wird derzeit für Suche und Zitate vorbereitet.",
+	"processing_status_active_label": "Wird verarbeitet",
+	"processing_status_completed_description": "Bereit für die Nutzung in Suche, Abruf und Zitaten.",
+	"processing_status_completed_label": "Bereit",
+	"processing_status_failed_description": "Die Vorbereitung ist fehlgeschlagen. Prüfen Sie das Auftragsprotokoll oder starten Sie die Verarbeitung erneut.",
+	"processing_status_failed_label": "Erfordert Aufmerksamkeit",
+	"processing_status_pending_description": "Wartet auf die Vorbereitung für Suche und Zitate.",
+	"processing_status_pending_label": "In Warteschlange",
+	"providers_add_page_title": "Anbieter hinzufügen",
+	"providers_create_toast_error": "Anbieter konnte nicht erstellt werden",
+	"providers_create_toast_loading": "Anbieter wird erstellt...",
+	"providers_create_toast_success": "Anbieter erfolgreich erstellt",
+	"providers_delete_confirm_button": [
+		{
+			"declarations": [
+				"input count",
+				"local countPlural = count: plural"
+			],
+			"selectors": [
+				"countPlural"
+			],
+			"match": {
+				"countPlural=one": "Anbieter löschen",
+				"countPlural=other": "{count} Anbieter löschen"
+			}
+		}
+	],
+	"providers_delete_confirm_description": [
+		{
+			"declarations": [
+				"input count",
+				"local countPlural = count: plural"
+			],
+			"selectors": [
+				"countPlural"
+			],
+			"match": {
+				"countPlural=one": "Seine Modelle und Kontingent-Pools werden mitgelöscht.",
+				"countPlural=other": "Ihre Modelle und Kontingent-Pools werden mitgelöscht."
+			}
+		}
+	],
+	"providers_delete_confirm_title": [
+		{
+			"declarations": [
+				"input count",
+				"local countPlural = count: plural"
+			],
+			"selectors": [
+				"countPlural"
+			],
+			"match": {
+				"countPlural=one": "Diesen Anbieter löschen?",
+				"countPlural=other": "{count} Anbieter löschen?"
+			}
+		}
+	],
+	"providers_delete_confirm_title_named": "Den Anbieter {name} löschen?",
+	"providers_delete_toast_error": [
+		{
+			"declarations": [
+				"input count",
+				"local countPlural = count: plural"
+			],
+			"selectors": [
+				"countPlural"
+			],
+			"match": {
+				"countPlural=one": "Der Anbieter wurde nicht gelöscht. Versuchen Sie es erneut.",
+				"countPlural=other": "Die Anbieter wurden nicht gelöscht. Versuchen Sie es erneut."
+			}
+		}
+	],
+	"providers_delete_toast_loading": [
+		{
+			"declarations": [
+				"input count",
+				"local countPlural = count: plural"
+			],
+			"selectors": [
+				"countPlural"
+			],
+			"match": {
+				"countPlural=one": "Der Anbieter wird gelöscht...",
+				"countPlural=other": "{count} Anbieter werden gelöscht..."
+			}
+		}
+	],
+	"providers_delete_toast_success": [
+		{
+			"declarations": [
+				"input count",
+				"local countPlural = count: plural"
+			],
+			"selectors": [
+				"countPlural"
+			],
+			"match": {
+				"countPlural=one": "1 Anbieter gelöscht",
+				"countPlural=other": "{count} Anbieter gelöscht"
+			}
+		}
+	],
+	"providers_detail_active_models_label": "Aktive Modelle",
+	"providers_detail_add_model_button": "Modell hinzufügen",
+	"providers_detail_capabilities_description": "Zusammengefasst aus den Modellen, die mit diesem Anbieter verbunden sind.",
+	"providers_detail_capability_coverage_label": "Abdeckung der Fähigkeiten",
+	"providers_detail_configuration_description": "Verbindungsdetails und Metadaten dieses Anbieterprofils.",
+	"providers_detail_configuration_title": "Anbieterkonfiguration",
+	"providers_detail_connected_models_description": "Modelle, die derzeit für diesen Anbieter konfiguriert sind.",
+	"providers_detail_connected_models_title": "Verbundene Modelle",
+	"providers_detail_deprecated_models_label": "Veraltete Modelle",
+	"providers_detail_edit_button": "Anbieter bearbeiten",
+	"providers_detail_endpoint_host_label": "Endpunkt-Host",
+	"providers_detail_model_count_badge": [
+		{
+			"declarations": [
+				"input count",
+				"local countPlural = count: plural"
+			],
+			"selectors": [
+				"countPlural"
+			],
+			"match": {
+				"countPlural=one": "{count} Modell",
+				"countPlural=other": "{count} Modelle"
+			}
+		}
+	],
+	"providers_detail_model_created_label": "Erstellt {timestamp}",
+	"providers_detail_no_capabilities_label": "Noch keine Fähigkeiten verfügbar.",
+	"providers_detail_no_models_description": "Fügen Sie ein Modell hinzu, um diesen Anbieter in Bots zu verwenden.",
+	"providers_detail_no_models_title": "Noch keine Modelle verbunden",
+	"providers_detail_overview_description": "Modellabdeckung und Endpunktübersicht für diesen Anbieter.",
+	"providers_detail_overview_title": "Anbieterübersicht",
+	"providers_detail_timestamp_not_available": "Nicht verfügbar",
+	"providers_detail_view_model_link": "Anzeigen",
+	"providers_edit_page_title": "Anbieter bearbeiten",
+	"providers_form_api_key_description": "Der Schlüssel wird verschlüsselt gespeichert.",
+	"providers_form_api_key_label": "API-Schlüssel",
+	"providers_form_api_key_placeholder": "Schlüssel des Anbieters einfügen",
+	"providers_form_compatibility_description": "Derzeit werden nur OpenAI-kompatible Endpunkte unterstützt.",
+	"providers_form_compatibility_label": "Kompatibilität",
+	"providers_form_compatibility_placeholder": "Anbieter-Kompatibilität",
+	"providers_form_enabled_description": "Wenn aktiviert, können Modelle dieses Anbieters in dieser Organisation verwendet werden.",
+	"providers_form_endpoint_description": "Die Basis-URL des OpenAI-kompatiblen Endpunkts, einschließlich des Versionspfads.",
+	"providers_form_endpoint_label": "Endpunkt",
+	"providers_form_metering_mode_description": "Legt fest, ob das Kontingent für diesen Anbieter Token oder Anfragen zählt.",
+	"providers_form_metering_mode_label": "Modus der Verbrauchserfassung",
+	"providers_form_name_description": "Wird Benutzern überall dort angezeigt, wo dieser Anbieter genannt wird.",
+	"providers_form_name_placeholder": "z. B. OpenAI-Endpunkt der Universität",
+	"providers_form_save_button": "Anbieter speichern",
+	"providers_index_add_button": "Anbieter hinzufügen",
+	"providers_route_page_title": "Anbieter",
+	"providers_table_delete_menu_item": "Anbieter löschen",
+	"providers_table_edit_menu_item": "Anbieter bearbeiten",
+	"providers_table_metering_column_header": "Verbrauchserfassung",
+	"providers_table_updated_column_header": "Aktualisiert",
+	"providers_table_view_menu_item": "Anbieter anzeigen",
+	"providers_update_toast_error": "Anbieter konnte nicht aktualisiert werden",
+	"providers_update_toast_loading": "Anbieter wird aktualisiert...",
+	"providers_update_toast_success": "Anbieter erfolgreich aktualisiert",
+	"quotas_add_page_title": "Kontingent-Pool hinzufügen",
+	"quotas_consumption_progress_aria_label": "{percentage} Prozent des Budgets verbraucht",
+	"quotas_create_toast_error": "Kontingent-Pool konnte nicht erstellt werden",
+	"quotas_create_toast_loading": "Kontingent-Pool wird erstellt...",
+	"quotas_create_toast_success": "Kontingent-Pool erstellt",
+	"quotas_deactivate_confirm_button": "Pool deaktivieren",
+	"quotas_deactivate_confirm_description": "Neue Chats bei diesem Anbieter werden abgelehnt, bis ein anderer aktiver Pool sie abdeckt. Bereits laufende Nutzung wird noch abgeschlossen.",
+	"quotas_deactivate_confirm_title": "Den ausgewählten Pool deaktivieren?",
+	"quotas_deactivate_confirm_title_named": "Den Pool {name} deaktivieren?",
+	"quotas_deactivate_toast_error": "Der Pool wurde nicht deaktiviert. Versuchen Sie es erneut.",
+	"quotas_deactivate_toast_loading": "Der Pool wird deaktiviert...",
+	"quotas_deactivate_toast_success": "Pool deaktiviert",
+	"quotas_detail_actual_amount_column_header": "Tatsächliche Menge",
+	"quotas_detail_adjust_budget_title": "Budget anpassen",
+	"quotas_detail_budget_metric_label": "Budget",
+	"quotas_detail_consumed_metric_label": "Verbraucht",
+	"quotas_detail_current_usage_description": "Aktuelle Buchungswerte für diesen Kontingentzeitraum.",
+	"quotas_detail_current_usage_title": "Aktuelle Nutzung",
+	"quotas_detail_deactivate_button": "Pool deaktivieren",
+	"quotas_detail_edit_button": "Pool bearbeiten",
+	"quotas_detail_eligible_groups_title": "Berechtigte Gruppen",
+	"quotas_detail_event_column_header": "Ereignis",
+	"quotas_detail_new_budget_description": "Wenn Sie das Budget erhöhen, wird das verbleibende Guthaben sofort freigegeben.",
+	"quotas_detail_new_budget_label": "Neuer Budgetbetrag",
+	"quotas_detail_no_events_label": "Noch keine Nutzungsereignisse.",
+	"quotas_detail_no_groups_label": "Keine Gruppen zugewiesen.",
+	"quotas_detail_recent_events_title": "Letzte Nutzungsereignisse",
+	"quotas_detail_remaining_metric_label": "Verbleibend",
+	"quotas_detail_request_column_header": "Anfrage",
+	"quotas_detail_reserved_amount_column_header": "Reservierte Menge",
+	"quotas_detail_reserved_metric_label": "Reserviert",
+	"quotas_detail_update_budget_button": "Budget aktualisieren",
+	"quotas_edit_page_title": "Kontingent-Pool bearbeiten",
+	"quotas_form_active_description": "Solange ein Pool inaktiv ist, kann ihm keine neue Nutzung angerechnet werden. Bereits laufende Nutzung wird noch abgeschlossen.",
+	"quotas_form_budget_description": "Maximale Anzahl an Anfragen oder Token für den aktuellen Zeitraum.",
+	"quotas_form_budget_label": "Budget",
+	"quotas_form_create_button": "Pool erstellen",
+	"quotas_form_default_description": "Dieser Pool wird verwendet, wenn kein anderer Pool passt.",
+	"quotas_form_default_label": "Standard-Pool",
+	"quotas_form_description_placeholder": "Optionale interne Notizen",
+	"quotas_form_group_system_label": "{name} (System)",
+	"quotas_form_groups_description": "Benutzer können diesen Pool nutzen, wenn sie einer der ausgewählten Gruppen angehören.",
+	"quotas_form_groups_label": "Berechtigte Gruppen",
+	"quotas_form_groups_placeholder": "Eine oder mehrere Gruppen auswählen",
+	"quotas_form_model_scope_all_option": "Alle Modelle dieses Anbieters",
+	"quotas_form_model_scope_description": "Wählen Sie ein Modell, um nur dieses Modell zu begrenzen, oder fassen Sie alle Modelle dieses Anbieters in einem Budget zusammen.",
+	"quotas_form_model_scope_label": "Modell-Geltungsbereich",
+	"quotas_form_model_scope_placeholder": "Modell-Geltungsbereich auswählen",
+	"quotas_form_name_description": "Wird Benutzern als der Pool angezeigt, dem ihre Nutzung angerechnet wird.",
+	"quotas_form_name_placeholder": "z. B. Gemeinsamer monatlicher OpenAI-Pool",
+	"quotas_form_period_description": "Das Budget wird in UTC zurückgesetzt: wöchentlich am Montag, monatlich am 1., jährlich am 1. Januar.",
+	"quotas_form_period_label": "Zeitraum",
+	"quotas_form_period_placeholder": "Zurücksetzungszeitraum auswählen",
+	"quotas_form_priority_description": "Wenn mehrere Pools infrage kommen, wird der Pool mit der höheren Priorität verwendet.",
+	"quotas_form_priority_label": "Priorität",
+	"quotas_form_provider_description": "Der Pool erfasst die Nutzung dieses Anbieters in der Einheit, in der dieser Anbieter erfasst wird.",
+	"quotas_form_provider_option_label": "{name} ({meteringMode})",
+	"quotas_form_provider_placeholder": "Anbieter auswählen",
+	"quotas_form_save_changes_button": "Änderungen speichern",
+	"quotas_form_undeletable_alert_description": "Nach der Erstellung können Pools nur noch deaktiviert werden, um neue Reservierungen zu stoppen.",
+	"quotas_form_undeletable_alert_title": "Pools können nicht gelöscht werden",
+	"quotas_index_add_button": "Pool hinzufügen",
+	"quotas_index_empty_description": "Ein Kontingent-Pool begrenzt, wie stark ein Anbieter in einem Zeitraum genutzt werden darf. Fügen Sie einen hinzu, um Token oder Anfragen für diese Organisation zu erfassen.",
+	"quotas_index_empty_title": "Noch keine Kontingent-Pools",
+	"quotas_index_page_title": "Kontingent-Pools",
+	"quotas_period_monthly_label": "Monatlich",
+	"quotas_period_weekly_label": "Wöchentlich",
+	"quotas_period_yearly_label": "Jährlich",
+	"quotas_remaining_low_badge": "Niedrig",
+	"quotas_route_page_title": "Kontingente",
+	"quotas_table_budget_column_header": "Budget",
+	"quotas_table_consumed_column_header": "Verbraucht",
+	"quotas_table_deactivate_menu_item": "Pool deaktivieren",
+	"quotas_table_default_badge": "Standard",
+	"quotas_table_edit_menu_item": "Pool bearbeiten",
+	"quotas_table_period_column_header": "Zeitraum",
+	"quotas_table_pool_column_header": "Pool",
+	"quotas_table_remaining_column_header": "Verbleibend",
+	"quotas_table_view_menu_item": "Pool anzeigen",
+	"quotas_update_toast_error": "Kontingent-Pool konnte nicht aktualisiert werden",
+	"quotas_update_toast_loading": "Kontingent-Pool wird aktualisiert...",
+	"quotas_update_toast_success": "Kontingent-Pool aktualisiert",
+	"select_organisation_page_empty_description": "Nehmen Sie oben eine Einladung an oder wenden Sie sich an Ihren Administrator, um Zugriff zu erhalten.",
+	"select_organisation_page_empty_title": "Noch keine Organisationen verfügbar",
+	"select_organisation_page_load_more_button": "Weitere Organisationen laden",
+	"select_organisation_page_manage_instance_link": "Instanz verwalten",
+	"select_organisation_page_no_match": "Keine Organisation passt zu „{search}“.",
+	"select_organisation_page_pending_invitations_description": "Nehmen Sie eine Einladung an, um einer Organisation beizutreten.",
+	"select_organisation_page_pending_invitations_title": "Ausstehende Einladungen",
+	"select_organisation_page_search_placeholder": "Nach Name filtern",
+	"select_organisation_page_subtitle": "Sie können jederzeit zu einer anderen Organisation wechseln.",
+	"select_organisation_page_title": "Wählen Sie Ihre Organisation",
+	"sidebar_chat_actions_aria_label": "Chat-Aktionen für {title}",
+	"sidebar_chats_empty_state_title": "Ihre Chats erscheinen hier",
+	"sidebar_chats_error_retry_button": "Erneut versuchen",
+	"sidebar_chats_error_title": "Ihre Chats konnten nicht geladen werden",
+	"sidebar_chats_group_label": "Chats",
+	"sidebar_manage_group_label": "Ihr Arbeitsbereich",
+	"sidebar_menu_administration_item": "Administration",
+	"sidebar_menu_assets_item": "Assets",
+	"sidebar_menu_behaviour_item": "Verhalten",
+	"sidebar_menu_bots_item": "Bots",
+	"sidebar_menu_groups_item": "Gruppen",
+	"sidebar_menu_library_item": "Bibliothek",
+	"sidebar_menu_models_item": "Modelle",
+	"sidebar_menu_organisations_item": "Organisationen",
+	"sidebar_menu_providers_item": "Anbieter",
+	"sidebar_menu_quotas_item": "Kontingente",
+	"sidebar_menu_repositories_item": "Repositories",
+	"sidebar_menu_toggle_label": "Umschalten",
+	"sidebar_menu_users_item": "Benutzer",
+	"sidebar_start_chat_button": "Chat starten",
+	"user_menu_account_item": "Konto",
+	"user_menu_manage_instance_item": "Instanz verwalten",
+	"user_menu_switch_organisation_item": "Organisation wechseln",
+	"users_access_overview_empty_state_description": "Keine effektiven Zugriffseinträge für Ressourcen in dieser Organisation.",
+	"users_access_overview_source_all_members": "Alle Mitglieder",
+	"users_access_overview_source_direct_group": "Gruppe",
+	"users_access_overview_source_direct_user": "Direkter Benutzer",
+	"users_access_overview_source_inherited_block": "Vom Block geerbt",
+	"users_access_overview_source_inherited_bot": "Vom Bot geerbt",
+	"users_access_overview_source_inherited_organisation": "Von der Organisation geerbt",
+	"users_access_overview_source_public": "Öffentlich",
+	"users_access_overview_title": "Effektiver Ressourcenzugriff",
+	"users_access_overview_type_asset": "Asset",
+	"users_access_overview_type_block": "Block",
+	"users_access_overview_type_bot": "Bot",
+	"users_access_overview_untitled_asset": "Unbenanntes Asset",
+	"users_access_overview_untitled_block": "Unbenannter Block",
+	"users_access_overview_untitled_bot": "Unbenannter Bot",
+	"users_add_page_meta_title": "Hinzufügen",
+	"users_add_page_title": "Benutzer hinzufügen",
+	"users_ban_confirm_button": "Sperren",
+	"users_ban_confirm_description": "Die Person kann sich nicht anmelden, solange die Sperre besteht. Ihre Mitgliedschaften und Ressourcen bleiben bestehen.",
+	"users_ban_confirm_title": "Dieses Konto sperren?",
+	"users_ban_confirm_title_named": "Das Konto {name} sperren?",
+	"users_ban_toast_error": "Das Konto wurde nicht gesperrt. Versuchen Sie es erneut.",
+	"users_ban_toast_loading": "Konto wird gesperrt...",
+	"users_ban_toast_success": "Konto gesperrt",
+	"users_delete_confirm_description": [
+		{
+			"declarations": [
+				"input count",
+				"local countPlural = count: plural"
+			],
+			"selectors": [
+				"countPlural"
+			],
+			"match": {
+				"countPlural=one": "Das Konto verlässt alle Organisationen, denen es angehört, und die Person kann sich nicht mehr anmelden. Das Löschen ist endgültig.",
+				"countPlural=other": "Die Konten verlassen alle Organisationen, denen sie angehören, und diese Personen können sich nicht mehr anmelden. Das Löschen ist endgültig."
+			}
+		}
+	],
+	"users_delete_confirm_title": [
+		{
+			"declarations": [
+				"input count",
+				"local countPlural = count: plural"
+			],
+			"selectors": [
+				"countPlural"
+			],
+			"match": {
+				"countPlural=one": "Dieses Konto löschen?",
+				"countPlural=other": "{count} Konten löschen?"
+			}
+		}
+	],
+	"users_delete_confirm_title_named": "Das Konto {name} löschen?",
+	"users_delete_toast_error": [
+		{
+			"declarations": [
+				"input count",
+				"local countPlural = count: plural"
+			],
+			"selectors": [
+				"countPlural"
+			],
+			"match": {
+				"countPlural=one": "Das Konto wurde nicht gelöscht. Versuchen Sie es erneut.",
+				"countPlural=other": "Die Konten wurden nicht gelöscht. Versuchen Sie es erneut."
+			}
+		}
+	],
+	"users_delete_toast_loading": [
+		{
+			"declarations": [
+				"input count",
+				"local countPlural = count: plural"
+			],
+			"selectors": [
+				"countPlural"
+			],
+			"match": {
+				"countPlural=one": "Konto wird gelöscht...",
+				"countPlural=other": "{count} Konten werden gelöscht..."
+			}
+		}
+	],
+	"users_delete_toast_success": [
+		{
+			"declarations": [
+				"input count",
+				"local countPlural = count: plural"
+			],
+			"selectors": [
+				"countPlural"
+			],
+			"match": {
+				"countPlural=one": "{count} Konto gelöscht",
+				"countPlural=other": "{count} Konten gelöscht"
+			}
+		}
+	],
+	"users_edit_details_created_label": "Erstellt",
+	"users_edit_details_status_active": "Aktiv",
+	"users_edit_details_status_banned": "Gesperrt",
+	"users_edit_details_status_label": "Status",
+	"users_edit_details_title": "Benutzerinformationen",
+	"users_edit_details_updated_label": "Aktualisiert",
+	"users_edit_details_verification_label": "E-Mail-Bestätigung",
+	"users_edit_page_meta_title": "Bearbeiten",
+	"users_edit_page_title": "Benutzer bearbeiten",
+	"users_invites_bulk_mixed_organisations_error_description": "Wählen Sie nur Einladungen aus einer Organisation aus.",
+	"users_invites_bulk_mixed_organisations_error_title": "Verschiedene Organisationen ausgewählt",
+	"users_invites_bulk_no_organisation_error": "Wählen Sie zuerst eine Organisation aus.",
+	"users_invites_copy_link_toast_error": "Der Einladungslink wurde nicht kopiert. Kopieren Sie ihn erneut oder öffnen Sie die Einladung und kopieren Sie die Adresse von Hand.",
+	"users_invites_copy_link_toast_loading": "Einladungslink wird kopiert...",
+	"users_invites_copy_link_toast_success": "Einladungslink kopiert",
+	"users_invites_invite_action": "Benutzer einladen",
+	"users_invites_page_description": "Verwalten Sie die Einladungen Ihrer Organisation.",
+	"users_invites_page_meta_title": "Einladungen",
+	"users_invites_page_title": "Einladungen der Organisation",
+	"users_invites_table_copy_link_action": "Einladungslink kopieren",
+	"users_invites_table_delete_action": "Organisationseinladung löschen",
+	"users_invites_table_expires_column_header": "Läuft ab",
+	"users_invites_table_id_column_header": "Einladungs-ID",
+	"users_invites_table_role_column_header": "Rolle",
+	"users_invites_table_status_column_header": "Status",
+	"users_list_invitations_link": "Einladungen anzeigen",
+	"users_list_invite_action": "Benutzer einladen",
+	"users_list_search_placeholder": "Benutzer suchen...",
+	"users_manage_banned_badge": "Gesperrt",
+	"users_manage_card_title": "Benutzerverwaltung",
+	"users_manage_password_reset_action": "Passwort-Zurücksetzung senden",
+	"users_manage_resend_verification_action": "Bestätigungs-E-Mail senden",
+	"users_manage_role_picker_title": "Organisationsrolle ändern",
+	"users_organisation_role_label": "Organisationsrolle",
+	"users_page_description": "Verwalten Sie die Benutzer Ihrer Organisation.",
+	"users_page_title": "Benutzer",
+	"users_profile_form_name_label": "Name",
+	"users_profile_form_name_placeholder": "Ihr Name",
+	"users_profile_form_submit_button": "Profil speichern",
+	"users_remove_from_organisation_action": "Aus der Organisation entfernen",
+	"users_set_active_organisation_toast_error": "Die aktive Organisation konnte nicht festgelegt werden",
+	"users_set_active_organisation_toast_loading": "Aktive Organisation wird festgelegt...",
+	"users_set_active_organisation_toast_success": "Aktive Organisation festgelegt",
+	"users_table_bulk_remove_action": "Ausgewählte aus der Organisation entfernen",
+	"users_table_edit_action": "Benutzer bearbeiten",
+	"users_table_email_verified_column_header": "E-Mail bestätigt",
+	"users_unban_toast_error": "Die Sperre wurde nicht aufgehoben. Versuchen Sie es erneut.",
+	"users_unban_toast_loading": "Sperre wird aufgehoben...",
+	"users_unban_toast_success": "Sperre aufgehoben",
+	"users_verification_not_verified": "Nicht bestätigt",
+	"users_verification_verified": "Bestätigt"
 }
