@@ -188,7 +188,9 @@ test("users: an account that still owns content is not deleted halfway", async (
 		}),
 	);
 	expect(refused.code).toBe("CONFLICT");
-	expect(refused.message).toContain("cannot be deleted yet");
+	expect(refused.data).toMatchObject({
+		reason: "USER_OWNS_CONTENT",
+	});
 
 	// The refusal leaves nothing half done: the membership and the account are
 	// both still there.

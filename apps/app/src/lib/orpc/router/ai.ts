@@ -20,10 +20,12 @@ import * as Effect from "effect/Effect";
 import { v4 as uuidv4 } from "uuid";
 import { createChatAgent } from "@/lib/ai/agents/chat-agent";
 import { forkChatTitleGenerationIfNeeded } from "@/lib/ai/effects/fork-chat-title-generation";
+import { quotaDenialError } from "@/lib/ai/effects/generate-text-with-quota";
 import type { ChatAgentUIMessage } from "@/lib/ai/types/chat-agent-message";
 import { getChatMessageAttachments } from "@/lib/ai/types/chat-attachment";
 import { buildAttachmentPromptPartCached } from "@/lib/ai/utils/chat-attachment-parts";
 import { getChatAiSettings } from "@/lib/ai/utils/get-chat-ai-settings";
+import { streamErrorReason } from "@/lib/ai/utils/stream-error-reason";
 import { getZedToken } from "@/lib/authz/zed-token";
 import { runtime } from "@/lib/effect/runtime";
 import * as AppErrors from "@/lib/effect/utils/errors";
@@ -117,6 +119,7 @@ export const aiChat = authed.ai.chat
 			if (!hasMessageShape(userMessage)) {
 				return yield* Effect.fail(
 					new AppErrors.BadRequestError({
+						reason: "CHAT_MESSAGE_INVALID",
 						message: "Missing or invalid user message",
 					}),
 				);
@@ -137,7 +140,9 @@ export const aiChat = authed.ai.chat
 						Effect.fromNullishOr(chat).pipe(
 							Effect.mapError(
 								() =>
-									new AppErrors.BadRequestError({
+									new AppErrors.NotFoundError({
+										reason: "CHAT_NOT_FOUND",
+										id: input.chatId,
 										message: "Chat not found",
 									}),
 							),
@@ -152,6 +157,7 @@ export const aiChat = authed.ai.chat
 			if (!providerId || !modelId) {
 				return yield* Effect.fail(
 					new AppErrors.BadRequestError({
+						reason: "CHAT_MODEL_NOT_CONFIGURED",
 						message:
 							"Chat is missing model or provider configuration. Please select a model in chat settings.",
 					}),
@@ -182,6 +188,7 @@ export const aiChat = authed.ai.chat
 			if (!chatModel?.capabilities.includes("tool-calling")) {
 				return yield* Effect.fail(
 					new AppErrors.BadRequestError({
+						reason: "MODEL_TOOLS_UNSUPPORTED",
 						message:
 							"Selected model does not support tool calling. Please choose a chat-capable model.",
 					}),
@@ -200,9 +207,11 @@ export const aiChat = authed.ai.chat
 							context: requestContext,
 						},
 					),
-				catch: () =>
+				catch: (cause) =>
 					new AppErrors.BadRequestError({
+						reason: "CHAT_BLOCKS_UNAVAILABLE",
 						message: "Failed to fetch chat blocks",
+						cause,
 					}),
 			});
 			const chatBlocks = chatBlocksResult.data;
@@ -249,16 +258,8 @@ export const aiChat = authed.ai.chat
 				!quotaReservation.allowed ||
 				quotaReservation.reservation === undefined
 			) {
-				const denialReason = quotaReservation.denialReason ?? "error";
 				return yield* Effect.fail(
-					new AppErrors.BadRequestError({
-						message:
-							denialReason === "no_pool"
-								? "No quota pool available for this request."
-								: denialReason === "exhausted"
-									? "Quota exhausted for this provider/model."
-									: "Quota check failed.",
-					}),
+					quotaDenialError(quotaReservation.denialReason),
 				);
 			}
 
@@ -269,6 +270,7 @@ export const aiChat = authed.ai.chat
 			if (!branchId) {
 				return yield* Effect.fail(
 					new AppErrors.BadRequestError({
+						reason: "CHAT_ACTIVE_BRANCH_MISSING",
 						message:
 							"Chat has no active branch. Refresh the page and try again.",
 					}),
@@ -343,7 +345,9 @@ export const aiChat = authed.ai.chat
 						),
 					catch: (cause) =>
 						new AppErrors.BadRequestError({
-							message: `Failed to create user message: ${cause}`,
+							reason: "CHAT_MESSAGE_CREATE_FAILED",
+							message: "Failed to create user message",
+							cause,
 						}),
 				}).pipe(
 					Effect.catch((error) =>
@@ -476,7 +480,7 @@ export const aiChat = authed.ai.chat
 									}),
 								)
 								.catch(() => undefined);
-							return "An error occurred while streaming the AI response.";
+							return streamErrorReason(error, "AI_STREAM_FAILED");
 						},
 						messageMetadata: ({ part }) => {
 							if (part.type === "finish-step") {

@@ -124,6 +124,7 @@ export const findBlock = authed.block.find
 		if (!block) {
 			return yield* Effect.fail(
 				new AppErrors.NotFoundError({
+					reason: "BLOCK_NOT_FOUND",
 					message: "Block not found",
 				}),
 			);
@@ -227,10 +228,14 @@ export const updateBlock = authed.block.update
 				.limit(5);
 
 			if (linkedReadyBots.length > 0) {
-				const names = linkedReadyBots.map((bot) => `"${bot.name}"`).join(", ");
+				const botNames = linkedReadyBots.map((bot) => bot.name);
 				return yield* Effect.fail(
 					new AppErrors.BadRequestError({
-						message: `Cannot move this block to draft because it is used by ready bot(s): ${names}.`,
+						reason: "BLOCK_IN_USE_BY_READY_BOTS",
+						params: {
+							botNames,
+						},
+						message: `Cannot move this block to draft because it is used by ready bot(s): ${botNames.join(", ")}.`,
 					}),
 				);
 			}

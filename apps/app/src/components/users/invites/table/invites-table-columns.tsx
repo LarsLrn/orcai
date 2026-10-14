@@ -17,6 +17,7 @@ import {
 } from "@/components/ui/dropdown-menu";
 import { useDeleteOrganizationInvitationsMutation } from "@/hooks/mutations/use-organization-invitation-mutations";
 import { clientEnv } from "@/lib/env/client";
+import { reasonMessageOf } from "@/lib/errors/describe-error";
 import { formatDisplayTimestamp } from "@/lib/presentation/format-timestamp";
 import { m } from "@/paraglide/messages";
 
@@ -113,7 +114,7 @@ const ActionsCell = ({
 			success: m.users_invites_copy_link_toast_success(),
 			error: (error) => ({
 				message: m.users_invites_copy_link_toast_error(),
-				description: error.message,
+				description: reasonMessageOf(error),
 			}),
 		});
 	};

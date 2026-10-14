@@ -129,6 +129,7 @@ export const findOrganizationInvitation =
 			Effect.mapError(
 				() =>
 					new AppErrors.NotFoundError({
+						reason: "INVITATION_NOT_FOUND",
 						message: "Invitation not found",
 					}),
 			),
@@ -220,6 +221,7 @@ export const createOrganizationInvitations =
 			if (!organization) {
 				return yield* Effect.fail(
 					new AppErrors.NotFoundError({
+						reason: "ORGANIZATION_NOT_FOUND",
 						message: "Organization not found",
 					}),
 				);
@@ -313,10 +315,9 @@ export const updateOrganizationInvitation = authed.organizationInvitation.update
 			Effect.mapError(
 				() =>
 					new AppErrors.NotFoundError({
+						reason: "INVITATION_NOT_FOUND",
+						id: input.id,
 						message: "Organization invitation not found",
-						data: {
-							id: input.id,
-						},
 					}),
 			),
 			Effect.map((data) => ({
@@ -356,6 +357,7 @@ export const deleteOrganizationInvitations =
 			if (existingInvitations.length !== ids.length) {
 				return yield* Effect.fail(
 					new AppErrors.NotFoundError({
+						reason: "INVITATION_NOT_FOUND",
 						message: "One or more organization invitations were not found",
 					}),
 				);
@@ -394,6 +396,7 @@ export const respondToOrganizationInvitation =
 						Effect.mapError(
 							() =>
 								new AppErrors.NotFoundError({
+									reason: "INVITATION_NOT_FOUND",
 									message: "Organization invitation not found",
 								}),
 						),
@@ -407,9 +410,9 @@ export const respondToOrganizationInvitation =
 		) {
 			return yield* Effect.fail(
 				new AppErrors.ForbiddenError({
+					reason: "INVITATION_RESPONSE_FORBIDDEN",
 					message: "You are not allowed to respond to this invitation",
 					data: {
-						allowed: false,
 						permission: "respond",
 						entityType: "organizationInvitation",
 					},
@@ -420,6 +423,7 @@ export const respondToOrganizationInvitation =
 		if (invitation.expiresAt < new Date()) {
 			return yield* Effect.fail(
 				new AppErrors.BadRequestError({
+					reason: "INVITATION_EXPIRED",
 					message: "Invitation has expired",
 				}),
 			);
@@ -451,6 +455,7 @@ export const respondToOrganizationInvitation =
 			if (invitation.status === "accepted") {
 				return yield* Effect.fail(
 					new AppErrors.BadRequestError({
+						reason: "INVITATION_ALREADY_ACCEPTED",
 						message: "Accepted invitations cannot be rejected",
 					}),
 				);
@@ -474,6 +479,7 @@ export const respondToOrganizationInvitation =
 			if (rejected.length === 0)
 				return yield* Effect.fail(
 					new AppErrors.BadRequestError({
+						reason: "INVITATION_CHANGED",
 						message: "Invitation changed while responding",
 					}),
 				);
@@ -492,6 +498,7 @@ export const respondToOrganizationInvitation =
 			default:
 				return yield* Effect.fail(
 					new AppErrors.BadRequestError({
+						reason: "INVITATION_RESPONSE_INVALID",
 						message: "Invalid response to organization invitation",
 					}),
 				);

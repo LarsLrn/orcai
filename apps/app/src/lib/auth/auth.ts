@@ -32,6 +32,7 @@ const cfg = loadAppConfigSync();
 const validateInstanceRole = (role: unknown) => {
 	if (!INSTANCE_ROLES.some((value) => value === role))
 		throw new APIError("BAD_REQUEST", {
+			code: "INSTANCE_ROLE_INVALID",
 			message: `Instance role must be ${INSTANCE_ROLES.join(" or ")}`,
 		});
 };

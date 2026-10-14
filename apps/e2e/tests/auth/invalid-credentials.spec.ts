@@ -31,6 +31,9 @@ test("the login form rejects a wrong password and stays on the login page", asyn
 		until: page.getByText(message("auth_signin_toast_error")),
 	});
 
+	await expect(
+		page.getByText(message("error_invalid_credentials")),
+	).toBeVisible();
 	await expect(page).toHaveURL(/\/login/);
 });
 
@@ -48,6 +51,9 @@ test("the login form rejects an unknown email address", async ({ page }) => {
 		until: page.getByText(message("auth_signin_toast_error")),
 	});
 
+	await expect(
+		page.getByText(message("error_invalid_credentials")),
+	).toBeVisible();
 	await expect(page).toHaveURL(/\/login/);
 });
 
@@ -61,7 +67,9 @@ test("the login form validates an empty email and a short password", async ({
 	await expect(async () => {
 		await emailField(page).fill("not-an-email");
 		await passwordField(page).fill("short");
-		await expect(page.getByText("Invalid email address.")).toBeVisible({
+		await expect(
+			page.getByText(message("error_validation_invalid_email")),
+		).toBeVisible({
 			timeout: 5_000,
 		});
 	}).toPass({
@@ -69,15 +77,25 @@ test("the login form validates an empty email and a short password", async ({
 	});
 
 	await expect(
-		page.getByText("Password must be at least 8 characters."),
+		page.getByText(
+			message("error_validation_string_too_small", {
+				minimum: 8,
+			}),
+		),
 	).toBeVisible();
 
 	await emailField(page).fill("");
 	await passwordField(page).fill("");
 
-	await expect(page.getByText("Invalid email address.")).toBeVisible();
 	await expect(
-		page.getByText("Password must be at least 8 characters."),
+		page.getByText(message("error_validation_invalid_email")),
+	).toBeVisible();
+	await expect(
+		page.getByText(
+			message("error_validation_string_too_small", {
+				minimum: 8,
+			}),
+		),
 	).toBeVisible();
 
 	await page

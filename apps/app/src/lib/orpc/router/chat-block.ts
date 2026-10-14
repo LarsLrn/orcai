@@ -99,7 +99,9 @@ export const attachChatBlock = authed.chatBlock.attach
 
 		if (!chat) {
 			return yield* Effect.fail(
-				new AppErrors.BadRequestError({
+				new AppErrors.NotFoundError({
+					reason: "CHAT_NOT_FOUND",
+					id: input.chatId,
 					message: "Chat not found",
 				}),
 			);
@@ -108,6 +110,7 @@ export const attachChatBlock = authed.chatBlock.attach
 		if (chat.botId) {
 			return yield* Effect.fail(
 				new AppErrors.BadRequestError({
+					reason: "CHAT_BOT_BLOCKS_IMMUTABLE",
 					message: "Cannot attach blocks directly to chats linked to a bot.",
 				}),
 			);
@@ -124,8 +127,8 @@ export const attachChatBlock = authed.chatBlock.attach
 		if (hasPermission(canUseBlock) === false) {
 			return yield* Effect.fail(
 				new AppErrors.ForbiddenError({
+					reason: "PERMISSION_DENIED",
 					data: {
-						allowed: false,
 						permission: "use",
 						entityType: "block",
 						zedToken: resolvedZedToken,
@@ -147,7 +150,9 @@ export const attachChatBlock = authed.chatBlock.attach
 					Effect.fromNullishOr(block).pipe(
 						Effect.mapError(
 							() =>
-								new AppErrors.BadRequestError({
+								new AppErrors.NotFoundError({
+									reason: "BLOCK_NOT_FOUND",
+									id: input.blockId,
 									message: "Block not found",
 								}),
 						),
@@ -179,6 +184,7 @@ export const attachChatBlock = authed.chatBlock.attach
 			if (hasOtherTemplate) {
 				return yield* Effect.fail(
 					new AppErrors.BadRequestError({
+						reason: "CHAT_TEMPLATE_BLOCK_ALREADY_ATTACHED",
 						message:
 							"This chat already has a template block attached. Remove it before attaching another one.",
 					}),
@@ -223,7 +229,9 @@ export const detachChatBlock = authed.chatBlock.detach
 
 		if (!chat) {
 			return yield* Effect.fail(
-				new AppErrors.BadRequestError({
+				new AppErrors.NotFoundError({
+					reason: "CHAT_NOT_FOUND",
+					id: input.chatId,
 					message: "Chat not found",
 				}),
 			);
@@ -232,6 +240,7 @@ export const detachChatBlock = authed.chatBlock.detach
 		if (chat.botId) {
 			return yield* Effect.fail(
 				new AppErrors.BadRequestError({
+					reason: "CHAT_BOT_BLOCKS_IMMUTABLE",
 					message: "Cannot detach blocks directly from chats linked to a bot.",
 				}),
 			);

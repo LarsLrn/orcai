@@ -11,6 +11,7 @@ import {
 } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Skeleton } from "@/components/ui/skeleton";
+import { describeError } from "@/lib/errors/describe-error";
 import { orpc } from "@/lib/orpc/orpc";
 import { m } from "@/paraglide/messages";
 
@@ -65,7 +66,7 @@ const BotSelect = ({ onBotSelect, selectedBot }: BotSelectProps) => {
 						{error && (
 							<p className="mt-2 text-muted-foreground text-sm">
 								{error instanceof Error
-									? error.message
+									? describeError(error)
 									: m.bots_select_load_error_description()}
 							</p>
 						)}

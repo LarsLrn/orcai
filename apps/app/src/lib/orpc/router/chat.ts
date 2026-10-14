@@ -123,6 +123,8 @@ export const findChat = authed.chat.find
 						Effect.mapError(
 							() =>
 								new AppErrors.NotFoundError({
+									reason: "CHAT_NOT_FOUND",
+									id: input.id,
 									message: "Chat not found",
 								}),
 						),
@@ -153,8 +155,8 @@ export const createChat = authed.chat.create.effect(function* ({
 		if (hasPermission(canUseBot) === false) {
 			return yield* Effect.fail(
 				new AppErrors.ForbiddenError({
+					reason: "PERMISSION_DENIED",
 					data: {
-						allowed: false,
 						permission: "use",
 						entityType: "bot",
 						zedToken: getZedToken(context),
@@ -295,10 +297,9 @@ export const updateChat = authed.chat.update
 			Effect.mapError(
 				() =>
 					new AppErrors.NotFoundError({
+						reason: "CHAT_NOT_FOUND",
+						id: input.id,
 						message: "Chat not found",
-						data: {
-							id: input.id,
-						},
 					}),
 			),
 		);

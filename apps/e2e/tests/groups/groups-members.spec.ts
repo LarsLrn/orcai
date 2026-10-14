@@ -90,10 +90,12 @@ test("groups: adding members lands whole, or not at all", async ({
 	);
 	expect(rejected.code).toBe("BAD_REQUEST");
 	expect(rejected.data).toEqual({
-		code: "GROUP_MEMBERS_INVALID",
-		userIds: [
-			stranger,
-		],
+		reason: "GROUP_MEMBERS_INVALID",
+		params: {
+			userIds: [
+				stranger,
+			],
+		},
 	});
 
 	const members = await api.as("admin").group.listMembers({

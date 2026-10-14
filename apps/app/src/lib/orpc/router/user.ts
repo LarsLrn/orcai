@@ -65,6 +65,7 @@ const requireRequestHeaders = (headers: Headers | undefined) =>
 		Effect.mapError(
 			() =>
 				new AppErrors.BadRequestError({
+					reason: "REQUEST_HEADERS_REQUIRED",
 					message: "Request headers are required for this action.",
 				}),
 		),
@@ -102,8 +103,8 @@ export const listUsers = authed.user.list
 		if (hasPermission(permission) === false) {
 			return yield* Effect.fail(
 				new AppErrors.ForbiddenError({
+					reason: "PERMISSION_DENIED",
 					data: {
-						allowed: false,
 						permission: "manage_members",
 						entityType: "organization",
 					},
@@ -274,6 +275,7 @@ export const banUser = authed.user.ban
 		if (input.userId === context.auth.user.id) {
 			return yield* Effect.fail(
 				new AppErrors.BadRequestError({
+					reason: "SELF_BAN_FORBIDDEN",
 					message: "You cannot ban your own account.",
 				}),
 			);
@@ -292,8 +294,10 @@ export const banUser = authed.user.ban
 				}),
 			catch: (error) =>
 				new AppErrors.BadRequestError({
+					reason: "USER_BAN_FAILED",
 					message:
 						error instanceof Error ? error.message : "Failed to ban the user.",
+					cause: error,
 				}),
 		});
 
@@ -317,10 +321,12 @@ export const unbanUser = authed.user.unban
 				}),
 			catch: (error) =>
 				new AppErrors.BadRequestError({
+					reason: "USER_UNBAN_FAILED",
 					message:
 						error instanceof Error
 							? error.message
 							: "Failed to unban the user.",
+					cause: error,
 				}),
 		});
 
@@ -348,8 +354,8 @@ export const findUser = authed.user.find
 			if (hasPermission(permission) === false) {
 				return yield* Effect.fail(
 					new AppErrors.ForbiddenError({
+						reason: "PERMISSION_DENIED",
 						data: {
-							allowed: false,
 							permission: "manage_members",
 							entityType: "organization",
 						},
@@ -379,6 +385,7 @@ export const findUser = authed.user.find
 						Effect.mapError(
 							() =>
 								new AppErrors.NotFoundError({
+									reason: "USER_NOT_MEMBER",
 									message: "User is not a member of the active organization",
 								}),
 						),
@@ -409,8 +416,8 @@ export const listUserAccess = authed.user.listAccess
 			if (hasPermission(permission) === false) {
 				return yield* Effect.fail(
 					new AppErrors.ForbiddenError({
+						reason: "PERMISSION_DENIED",
 						data: {
-							allowed: false,
 							permission: "manage_members",
 							entityType: "organization",
 						},
@@ -871,6 +878,7 @@ export const deleteUsers = authed.user.delete
 		if (userIds.length !== input.userIds.length) {
 			return yield* Effect.fail(
 				new AppErrors.BadRequestError({
+					reason: "ITEMS_NOT_UNIQUE",
 					message: "Selected users must be unique",
 				}),
 			);
@@ -879,6 +887,7 @@ export const deleteUsers = authed.user.delete
 		if (userIds.includes(context.auth.user.id)) {
 			return yield* Effect.fail(
 				new AppErrors.BadRequestError({
+					reason: "SELF_DELETE_FORBIDDEN",
 					message: "You cannot delete your own account.",
 				}),
 			);
@@ -898,6 +907,7 @@ export const deleteUsers = authed.user.delete
 				if (existingUsers.length !== userIds.length) {
 					return yield* Effect.fail(
 						new AppErrors.NotFoundError({
+							reason: "USER_NOT_FOUND",
 							message: "One or more selected users do not exist.",
 						}),
 					);
@@ -974,6 +984,7 @@ export const deleteUsers = authed.user.delete
 						Effect.catchIf(isConstraintViolation, (cause) =>
 							Effect.fail(
 								new AppErrors.ConflictError({
+									reason: "USER_OWNS_CONTENT",
 									message:
 										"This account still owns groups, resources, grants or invitations, so it cannot be deleted yet. Hand that content over first.",
 									cause,
@@ -1030,6 +1041,7 @@ export const me = authed.user.me.effect(function* ({ context }) {
 					Effect.mapError(
 						() =>
 							new AppErrors.NotFoundError({
+								reason: "USER_NOT_FOUND",
 								message: "User not found",
 							}),
 					),
@@ -1064,6 +1076,7 @@ export const updatePassword = authed.user.updatePassword.effect(function* ({
 					Effect.mapError(
 						() =>
 							new AppErrors.NotFoundError({
+								reason: "PASSWORD_NOT_SET",
 								message: "No password found for the user",
 							}),
 					),
@@ -1082,6 +1095,7 @@ export const updatePassword = authed.user.updatePassword.effect(function* ({
 	if (!passwordMatches) {
 		return yield* Effect.fail(
 			new AppErrors.UnauthorizedError({
+				reason: "CURRENT_PASSWORD_INCORRECT",
 				message: "Current password is incorrect",
 			}),
 		);
@@ -1153,8 +1167,8 @@ export const setActiveOrganization = authed.user.setActiveOrganization.effect(
 		if (!membership) {
 			return yield* Effect.fail(
 				new AppErrors.ForbiddenError({
+					reason: "PERMISSION_DENIED",
 					data: {
-						allowed: false,
 						permission: "read",
 						entityType: "organization",
 					},

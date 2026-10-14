@@ -66,6 +66,7 @@ export const acceptInvitation = (params: {
 				if (!invitation)
 					return yield* Effect.fail(
 						new AppErrors.BadRequestError({
+							reason: "INVITATION_REQUIRED",
 							message:
 								"A pending, unexpired invitation for this address is required",
 						}),

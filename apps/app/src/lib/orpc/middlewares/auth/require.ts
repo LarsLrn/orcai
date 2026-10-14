@@ -30,6 +30,7 @@ export const requiredAuthMiddleware = withName(
 						Effect.mapError(
 							() =>
 								new AppErrors.BadRequestError({
+									reason: "REQUEST_HEADERS_REQUIRED",
 									message: "Request headers are required for authentication.",
 								}),
 						),
@@ -44,6 +45,7 @@ export const requiredAuthMiddleware = withName(
 									}),
 								catch: () =>
 									new AppErrors.BadRequestError({
+										reason: "SESSION_NOT_FOUND",
 										message: "Authentication session not found.",
 									}),
 							});
@@ -51,6 +53,7 @@ export const requiredAuthMiddleware = withName(
 					if (!auth?.session || !auth?.user) {
 						return yield* Effect.fail(
 							new AppErrors.UnauthorizedError({
+								reason: "AUTH_REQUIRED",
 								message: "You must be logged in to access this resource.",
 							}),
 						);
@@ -99,6 +102,7 @@ export const requireActiveOrganizationMiddleware = withName(
 				if (!activeOrganizationId) {
 					return yield* Effect.fail(
 						new AppErrors.BadRequestError({
+							reason: "ACTIVE_ORGANIZATION_REQUIRED",
 							message:
 								"An active organization must be selected to access this resource.",
 						}),
@@ -123,13 +127,12 @@ export const requireActiveOrganizationMiddleware = withName(
 				if (!membership) {
 					return yield* Effect.fail(
 						new AppErrors.ForbiddenError({
+							reason: "ORGANIZATION_MEMBERSHIP_REVOKED",
 							message:
 								"You are no longer a member of the selected organization.",
 							data: {
-								allowed: false,
 								permission: "read",
 								entityType: "organization",
-								entityId: activeOrganizationId,
 							},
 						}),
 					);
@@ -181,10 +184,9 @@ export const requirePreferencesMiddleware = withName(
 								Effect.mapError(
 									() =>
 										new AppErrors.NotFoundError({
+											reason: "USER_PREFERENCES_NOT_FOUND",
+											id: opts.context.auth.user.id,
 											message: "User preferences not found",
-											data: {
-												id: opts.context.auth.user.id,
-											},
 										}),
 								),
 							),
@@ -215,9 +217,9 @@ export const requireInstanceAdminMiddleware = withName(
 				if (!isInstanceAdminRole(opts.context.auth.user.role)) {
 					return yield* Effect.fail(
 						new AppErrors.ForbiddenError({
+							reason: "INSTANCE_ADMIN_REQUIRED",
 							message: "This action requires the instance administrator.",
 							data: {
-								allowed: false,
 								permission: "administer_instance",
 								entityType: "instance",
 							},

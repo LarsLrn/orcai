@@ -1,3 +1,4 @@
+export * from "./error-reason";
 export * from "./forms/auth-email";
 export * from "./forms/change-password";
 export * from "./forms/init";

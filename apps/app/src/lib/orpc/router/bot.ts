@@ -128,7 +128,7 @@ const loadBotEditor = (params: {
 
 		if (!bot) {
 			return yield* new NotFoundError({
-				entity: "Bot",
+				reason: "BOT_NOT_FOUND",
 				id: params.id,
 			});
 		}
@@ -237,6 +237,7 @@ const resolveLinkedBlocksForSave = (params: {
 		if (linkedBlocks.length !== nextBlockIds.length) {
 			return yield* Effect.fail(
 				new AppErrors.BadRequestError({
+					reason: "BLOCK_NOT_FOUND",
 					message: "One or more linked blocks could not be found.",
 				}),
 			);
@@ -255,6 +256,7 @@ const resolveLinkedBlocksForSave = (params: {
 		) {
 			return yield* Effect.fail(
 				new AppErrors.BadRequestError({
+					reason: "BEHAVIOUR_BLOCK_TYPE_INVALID",
 					message: "Linked AI behaviour block must be a template block.",
 				}),
 			);
@@ -264,6 +266,7 @@ const resolveLinkedBlocksForSave = (params: {
 			if (blockById.get(databaseBlockId)?.type !== "database") {
 				return yield* Effect.fail(
 					new AppErrors.BadRequestError({
+						reason: "REPOSITORY_BLOCK_TYPE_INVALID",
 						message:
 							"Linked content collection block must be a database block.",
 					}),
@@ -301,11 +304,9 @@ const resolveLinkedBlocksForSave = (params: {
 		if (unreadableIds.length > 0) {
 			return yield* Effect.fail(
 				new AppErrors.ForbiddenError({
+					reason: "BLOCK_LINK_FORBIDDEN",
 					message:
 						"You do not have access to link one or more selected blocks.",
-					data: {
-						allowed: false,
-					},
 				}),
 			);
 		}
@@ -516,6 +517,7 @@ export const findBot = authed.bot.find
 		if (!bot) {
 			return yield* Effect.fail(
 				new AppErrors.NotFoundError({
+					reason: "BOT_NOT_FOUND",
 					message: "Bot not found",
 				}),
 			);
@@ -559,6 +561,7 @@ export const findBotEditor = authed.bot.findEditor
 			Effect.mapError(
 				() =>
 					new AppErrors.NotFoundError({
+						reason: "BOT_NOT_FOUND",
 						message: "Bot not found",
 					}),
 			),
@@ -581,10 +584,8 @@ export const saveBot = authed.bot.save
 			if (!hasPermission(permission)) {
 				return yield* Effect.fail(
 					new AppErrors.ForbiddenError({
+						reason: "PERMISSION_DENIED",
 						message: "You do not have permission to edit this bot.",
-						data: {
-							allowed: false,
-						},
 					}),
 				);
 			}
@@ -599,10 +600,8 @@ export const saveBot = authed.bot.save
 			if (!hasPermission(permission)) {
 				return yield* Effect.fail(
 					new AppErrors.ForbiddenError({
+						reason: "PERMISSION_DENIED",
 						message: "You do not have permission to create bots.",
-						data: {
-							allowed: false,
-						},
 					}),
 				);
 			}
@@ -632,6 +631,7 @@ export const publishBot = authed.bot.publish
 		if (!editor.data.templateBlock) {
 			return yield* Effect.fail(
 				new AppErrors.BadRequestError({
+					reason: "BOT_BEHAVIOUR_BLOCK_REQUIRED",
 					message: "Bots need a template block before they can be published.",
 				}),
 			);
@@ -640,6 +640,7 @@ export const publishBot = authed.bot.publish
 		if (editor.data.templateBlock.status !== "ready") {
 			return yield* Effect.fail(
 				new AppErrors.BadRequestError({
+					reason: "BOT_BEHAVIOUR_BLOCK_NOT_READY",
 					message:
 						'Set the AI behaviour block to "ready" before publishing this bot.',
 				}),
@@ -650,6 +651,10 @@ export const publishBot = authed.bot.publish
 			if (databaseBlock.status !== "ready") {
 				return yield* Effect.fail(
 					new AppErrors.BadRequestError({
+						reason: "BOT_REPOSITORY_NOT_READY",
+						params: {
+							blockName: databaseBlock.name,
+						},
 						message: `Set "${databaseBlock.name}" to "ready" before publishing this bot.`,
 					}),
 				);
@@ -658,6 +663,10 @@ export const publishBot = authed.bot.publish
 			if (databaseBlock.assetIds.length === 0) {
 				return yield* Effect.fail(
 					new AppErrors.BadRequestError({
+						reason: "BOT_REPOSITORY_EMPTY",
+						params: {
+							blockName: databaseBlock.name,
+						},
 						message: `Attach at least one document to "${databaseBlock.name}" before publishing.`,
 					}),
 				);

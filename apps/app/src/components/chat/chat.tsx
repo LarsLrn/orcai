@@ -11,6 +11,7 @@ import {
 } from "@/components/ai-elements/conversation";
 import { Shimmer } from "@/components/ai-elements/shimmer";
 import type { ChatAgentUIMessage } from "@/lib/ai/types/chat-agent-message";
+import { describeError, reasonMessageOf } from "@/lib/errors/describe-error";
 import { client, orpc } from "@/lib/orpc/orpc";
 import { formatCount } from "@/lib/presentation/format-number";
 import { m } from "@/paraglide/messages";
@@ -121,7 +122,7 @@ const Chat = ({
 				});
 			},
 			onError: (error) => {
-				setErrorDetail(error.message);
+				setErrorDetail(describeError(error));
 			},
 		});
 
@@ -139,7 +140,7 @@ const Chat = ({
 		}).catch((error) => {
 			hasSentPendingMessage.current = false;
 			toast.error(m.chat_pending_message_failed_toast_error(), {
-				description: error instanceof Error ? error.message : undefined,
+				description: reasonMessageOf(error),
 			});
 		});
 	}, [

@@ -9,6 +9,7 @@ import {
 } from "@/components/ai-elements/message";
 import { MessageRate } from "@/components/chat/message/message-rate";
 import type { ChatAgentUIMessage } from "@/lib/ai/types/chat-agent-message";
+import { reasonMessageOf } from "@/lib/errors/describe-error";
 import { cn } from "@/lib/utils";
 import { m } from "@/paraglide/messages";
 
@@ -34,7 +35,7 @@ export const MessageActions = ({
 			success: m.chat_message_copy_toast_success(),
 			error: (error) => ({
 				message: m.chat_message_copy_toast_error(),
-				description: error.message,
+				description: reasonMessageOf(error),
 			}),
 		});
 	};

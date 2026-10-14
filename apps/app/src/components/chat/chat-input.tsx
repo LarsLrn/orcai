@@ -37,6 +37,7 @@ import {
 } from "@/components/ui/input-group";
 import { useUpdateChatMutation } from "@/hooks/mutations/use-chat-mutation";
 import type { ChatAgentUIMessage } from "@/lib/ai/types/chat-agent-message";
+import { reasonMessageOf } from "@/lib/errors/describe-error";
 import { orpc } from "@/lib/orpc/orpc";
 import { m } from "@/paraglide/messages";
 import {
@@ -163,7 +164,7 @@ const ChatInput = ({
 				setMessageText((current) => current || trimmedText);
 			}
 			toast.error(m.chat_composer_send_failed_toast_error(), {
-				description: error instanceof Error ? error.message : undefined,
+				description: reasonMessageOf(error),
 			});
 		}
 	};

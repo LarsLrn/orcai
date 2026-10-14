@@ -241,10 +241,8 @@ const hydrateGrants = (params: {
 
 const lastManagerError = () =>
 	new AppErrors.BadRequestError({
+		reason: "LAST_MANAGER_REQUIRED",
 		message: "At least one manager must remain on this resource",
-		data: {
-			code: "LAST_MANAGER_REQUIRED",
-		},
 	});
 
 /** Fails when a managed resource would end up with no manager after `change` is applied. */
@@ -736,6 +734,7 @@ export const grantResourceAccess = authed.resource.grant
 					if (!grant) {
 						return yield* Effect.fail(
 							new AppErrors.BadRequestError({
+								reason: "GRANT_NOT_RECORDED",
 								message: "Grant could not be recorded",
 							}),
 						);

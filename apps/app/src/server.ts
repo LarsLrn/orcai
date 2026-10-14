@@ -1,6 +1,9 @@
 import handler from "@tanstack/react-start/server-entry";
 import { ensureRuntimeReady, runtime } from "./lib/effect/runtime";
+import { installZodErrorMap } from "./lib/errors/zod-error-map";
 import { paraglideMiddleware } from "./paraglide/server.js";
+
+installZodErrorMap();
 
 // Eagerly initialize the runtime and forces all layers to build.
 // If any layer fails, the process exits immediately before serving requests.

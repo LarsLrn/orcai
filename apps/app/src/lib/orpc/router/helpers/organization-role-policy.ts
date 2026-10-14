@@ -32,9 +32,9 @@ export const assertCanManageOrganizationAdmins = (params: {
 			(result) => hasPermission(result),
 			() =>
 				new AppErrors.ForbiddenError({
+					reason: "ORGANIZATION_ADMIN_REQUIRED",
 					message: "Managing organization admins requires admin access.",
 					data: {
-						allowed: false,
 						entityType: "organization",
 						permission: "manage_organization",
 					},
@@ -50,6 +50,7 @@ export const assertAdminRemainsAfterRemoving = (params: {
 		? Effect.void
 		: Effect.fail(
 				new AppErrors.BadRequestError({
+					reason: "LAST_ORGANIZATION_ADMIN_REQUIRED",
 					message: "At least one organization admin must remain.",
 				}),
 			);

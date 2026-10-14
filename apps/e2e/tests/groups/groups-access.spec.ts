@@ -383,7 +383,17 @@ test("groups: listPrincipals and listGrants reflect the group grants", async ({
 		}),
 	);
 	expect(refused.code).toBe("BAD_REQUEST");
-	expect(refused.message).toContain("groups you belong to");
+	expect(refused.data).toMatchObject({
+		reason: "GRANT_PRINCIPALS_INVALID",
+		params: {
+			rejections: [
+				{
+					principalId: groupId,
+					reason: "GROUP_NOT_JOINED",
+				},
+			],
+		},
+	});
 
 	// Added to the group, the same member may share with it.
 	await api.as("admin").group.addMembers({
@@ -594,6 +604,7 @@ test("groups: a batch grant lands whole, or not at all", async ({
 
 	// One bad principal in the batch rejects all of it: the good grant that
 	// travelled with it must not be written.
+	const stranger = userIdSchema.parse(crypto.randomUUID());
 	const rejected = await rejection(
 		api.as("member").resource.grant({
 			resourceType: "block",
@@ -605,15 +616,24 @@ test("groups: a batch grant lands whole, or not at all", async ({
 				},
 				{
 					principalType: "user",
-					principalId: userIdSchema.parse(crypto.randomUUID()),
+					principalId: stranger,
 				},
 			],
 			role: "editor",
 		}),
 	);
 	expect(rejected.code).toBe("BAD_REQUEST");
-	expect(rejected.message).toContain("GRANT_PRINCIPALS_INVALID");
-	expect(rejected.message).toContain("organization scope");
+	expect(rejected.data).toMatchObject({
+		reason: "GRANT_PRINCIPALS_INVALID",
+		params: {
+			rejections: [
+				{
+					principalId: stranger,
+					reason: "USER_NOT_IN_SCOPE",
+				},
+			],
+		},
+	});
 
 	const after = await api.as("member").resource.listGrants({
 		resourceType: "block",
@@ -674,7 +694,9 @@ test("groups: a batch that would demote the last manager writes nothing", async 
 		}),
 	);
 	expect(rejected.code).toBe("BAD_REQUEST");
-	expect(rejected.message).toContain("manager must remain");
+	expect(rejected.data).toMatchObject({
+		reason: "LAST_MANAGER_REQUIRED",
+	});
 
 	const after = await api.as("member").resource.listGrants({
 		resourceType: "block",

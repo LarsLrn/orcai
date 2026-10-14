@@ -39,7 +39,6 @@ export const deleteProviderInputSchema = z.object({
 	refs: createUniqueRefsInputSchema({
 		key: "id",
 		value: providerIdSchema,
-		entityName: "provider",
 	}),
 });
 

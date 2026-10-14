@@ -111,6 +111,7 @@ export const requireOrganizationPermission = (
 					if (!activeOrganizationId) {
 						return yield* Effect.fail(
 							new AppErrors.BadRequestError({
+								reason: "ACTIVE_ORGANIZATION_REQUIRED",
 								message:
 									"An active organization must be selected to access this resource.",
 							}),

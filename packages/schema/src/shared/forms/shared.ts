@@ -1,28 +1,12 @@
 import { z } from "zod/v4";
 
-const email = z.email({
-	message: "Invalid email address.",
-});
+const email = z.email();
 
-const username = z
-	.string()
-	.min(3, {
-		message: "Username must be at least 3 characters.",
-	})
-	.nullish();
+const username = z.string().min(3).nullish();
 
-const password = z.string().min(8, {
-	message: "Password must be at least 8 characters.",
-});
+const password = z.string().min(8);
 
-const name = z
-	.string()
-	.min(3, {
-		message: "Name must be at least 3 characters.",
-	})
-	.max(100, {
-		message: "Name must be at most 100 characters.",
-	});
+const name = z.string().min(3).max(100);
 
 export const sharedSchemas = {
 	email,

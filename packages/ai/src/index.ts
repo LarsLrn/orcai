@@ -10,7 +10,7 @@ export {
 	AiConfigService,
 } from "./config";
 export { countTokens } from "./count-tokens";
-export { AiError, BadRequestError } from "./errors";
+export { AiError } from "./errors";
 export {
 	generateEmbedding,
 	generateManyEmbeddings,

@@ -2,6 +2,7 @@ import type { EmailActionSchemaType } from "@orcai/schema";
 import type { LinkProps } from "@tanstack/react-router";
 import { useMutationAction } from "@/hooks/actions/use-mutation-action";
 import { authClient } from "@/lib/auth/auth-client";
+import { toAuthError } from "@/lib/errors/auth-error";
 import { m } from "@/paraglide/messages";
 
 export const useResendVerificationEmail = () =>
@@ -12,7 +13,7 @@ export const useResendVerificationEmail = () =>
 					email: value.email,
 					callbackURL: "/select-organization" satisfies LinkProps["to"],
 				});
-				if (result.error) throw new Error(result.error.message);
+				if (result.error) throw toAuthError(result.error);
 				return result;
 			},
 		}),

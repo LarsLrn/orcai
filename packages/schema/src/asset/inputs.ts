@@ -1,5 +1,6 @@
 import { z } from "zod/v4";
 import { paginationInputSchema, zedTokenSchema } from "../shared";
+import type { ErrorReason } from "../shared/error-reason";
 import { createUniqueRefsInputSchema } from "../shared/ref-list";
 import { bucketSchema } from "../storage/parts/buckets";
 import { processingStatusSchema } from "./parts/processing-status";
@@ -39,7 +40,7 @@ export const updateAssetInputSchema = assetMutableFieldsSchema.extend({
 export const saveAssetInputSchema = z
 	.object({
 		id: assetIdSchema.optional(),
-		title: z.string().min(1, "Title is required"),
+		title: z.string().min(1),
 		metadata: assetFieldsSchema.shape.metadata,
 		upload: finalizedUploadFileSchema.optional(),
 	})
@@ -47,7 +48,9 @@ export const saveAssetInputSchema = z
 		if (!ctx.value.id && !ctx.value.upload) {
 			ctx.issues.push({
 				code: "custom",
-				message: "Either an existing asset id or an uploaded file is required.",
+				params: {
+					reason: "ASSET_SOURCE_REQUIRED" satisfies ErrorReason,
+				},
 				path: [
 					"upload",
 				],
@@ -64,7 +67,6 @@ export const deleteAssetsInputSchema = z.object({
 	refs: createUniqueRefsInputSchema({
 		key: "id",
 		value: assetIdSchema,
-		entityName: "asset",
 	}),
 });
 

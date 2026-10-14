@@ -1,4 +1,5 @@
 import { z } from "zod/v4";
+import type { ErrorReason } from "../error-reason";
 import { sharedSchemas } from "./shared";
 
 export const emailActionSchema = z.object({
@@ -11,7 +12,9 @@ export const resetPasswordSchema = z
 		confirmPassword: sharedSchemas.password,
 	})
 	.refine((value) => value.password === value.confirmPassword, {
-		message: "Passwords must match",
+		params: {
+			reason: "PASSWORDS_MISMATCH" satisfies ErrorReason,
+		},
 		path: [
 			"confirmPassword",
 		],

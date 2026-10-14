@@ -124,20 +124,28 @@ test("instance: the organisation form refuses an empty name and an empty slug", 
 		})
 		.click();
 
-	await expect(page.getByText("Name is required")).toBeVisible();
-	await expect(page.getByText("Slug is required")).toBeVisible();
+	const required = message("error_validation_required");
+	const fieldOf = (label: string) =>
+		page.getByRole("group").filter({
+			has: page.getByLabel(label),
+		});
+	const nameField = fieldOf(message("orgs_form_name_label"));
+	const slugField = fieldOf(message("orgs_form_slug_label"));
+
+	await expect(nameField.getByText(required)).toBeVisible();
+	await expect(slugField.getByText(required)).toBeVisible();
 
 	// A name alone leaves the slug complaint standing.
-	await page
+	await nameField
 		.getByLabel(message("orgs_form_name_label"))
 		.fill(`E2E Invalid ${runId()}`);
-	await expect(page.getByText("Name is required")).toHaveCount(0);
-	await expect(page.getByText("Slug is required")).toBeVisible();
+	await expect(nameField.getByText(required)).toHaveCount(0);
+	await expect(slugField.getByText(required)).toBeVisible();
 
-	await page
+	await slugField
 		.getByLabel(message("orgs_form_slug_label"))
 		.fill(`e2e-invalid-${runId()}`);
-	await expect(page.getByText("Slug is required")).toHaveCount(0);
+	await expect(slugField.getByText(required)).toHaveCount(0);
 });
 
 test("instance: the deletion dialog counts what goes and asks for the slug", async ({

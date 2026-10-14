@@ -151,6 +151,7 @@ export const findModel = authed.model.find
 		if (!model) {
 			return yield* Effect.fail(
 				new AppErrors.NotFoundError({
+					reason: "MODEL_NOT_FOUND",
 					message: "Model not found",
 				}),
 			);
@@ -183,6 +184,7 @@ export const createModel = authed.model.create
 		if (!foundProvider) {
 			return yield* Effect.fail(
 				new AppErrors.BadRequestError({
+					reason: "PROVIDER_NOT_FOUND",
 					message: "Provider not found in active organization",
 				}),
 			);
@@ -224,6 +226,7 @@ export const updateModel = authed.model.update
 		if (!existingModel) {
 			return yield* Effect.fail(
 				new AppErrors.NotFoundError({
+					reason: "MODEL_NOT_FOUND",
 					message: "Model not found",
 				}),
 			);
@@ -238,6 +241,7 @@ export const updateModel = authed.model.update
 		if (!model) {
 			return yield* Effect.fail(
 				new AppErrors.NotFoundError({
+					reason: "MODEL_NOT_FOUND",
 					message: "Model not found",
 				}),
 			);
@@ -266,6 +270,7 @@ export const deleteModel = authed.model.delete
 		if (providerIds.length === 0) {
 			return yield* Effect.fail(
 				new AppErrors.NotFoundError({
+					reason: "MODEL_NOT_FOUND",
 					message: "One or more models were not found",
 				}),
 			);
@@ -286,6 +291,7 @@ export const deleteModel = authed.model.delete
 		if (existingModels.length !== modelIds.length) {
 			return yield* Effect.fail(
 				new AppErrors.NotFoundError({
+					reason: "MODEL_NOT_FOUND",
 					message: "One or more models were not found",
 				}),
 			);
@@ -325,6 +331,7 @@ export const discoverModels = authed.model.discover
 			catch: (cause) => {
 				if (cause instanceof ORPCError && cause.code === "FORBIDDEN") {
 					return new AppErrors.ForbiddenError({
+						reason: "PERMISSION_DENIED",
 						message: "Failed to find provider",
 						cause,
 					});
@@ -332,12 +339,14 @@ export const discoverModels = authed.model.discover
 
 				if (cause instanceof ORPCError && cause.code === "NOT_FOUND") {
 					return new AppErrors.NotFoundError({
+						reason: "PROVIDER_NOT_FOUND",
 						message: "Failed to find provider",
 						cause,
 					});
 				}
 
 				return new AppErrors.BadRequestError({
+					reason: "PROVIDER_NOT_FOUND",
 					message: "Failed to find provider",
 					cause,
 				});
@@ -353,6 +362,7 @@ export const discoverModels = authed.model.discover
 			try: () => openAiClient.models.list(),
 			catch: (cause) =>
 				new AppErrors.BadRequestError({
+					reason: "PROVIDER_MODELS_FETCH_FAILED",
 					message: "Failed to fetch models from provider",
 					cause,
 				}),

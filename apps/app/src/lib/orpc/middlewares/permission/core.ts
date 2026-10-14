@@ -20,8 +20,8 @@ export const forbiddenPermissionError = (params: {
 	zedToken?: string;
 }) =>
 	new AppErrors.ForbiddenError({
+		reason: "PERMISSION_DENIED",
 		data: {
-			allowed: false,
 			entityType: params.entityType,
 			permission: params.permission,
 			zedToken: params.zedToken,

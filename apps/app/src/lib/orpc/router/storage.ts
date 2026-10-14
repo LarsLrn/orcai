@@ -83,10 +83,11 @@ export const createUploadUrls = authed.storage.createUploadUrls.effect(
 		if (input.files.length > uploadRoute.maxFiles) {
 			return yield* Effect.fail(
 				new AppErrors.BadRequestError({
-					message: `Too many files. Max allowed: ${uploadRoute.maxFiles}.`,
-					data: {
-						type: "too_many_files",
+					reason: "UPLOAD_TOO_MANY_FILES",
+					params: {
+						maxFiles: uploadRoute.maxFiles,
 					},
+					message: `Too many files. Max allowed: ${uploadRoute.maxFiles}.`,
 				}),
 			);
 		}
@@ -96,10 +97,11 @@ export const createUploadUrls = authed.storage.createUploadUrls.effect(
 				if (file.size > uploadRoute.maxFileSize) {
 					return yield* Effect.fail(
 						new AppErrors.BadRequestError({
-							message: `File "${file.name}" exceeds max allowed size.`,
-							data: {
-								type: "file_too_large",
+							reason: "UPLOAD_FILE_TOO_LARGE",
+							params: {
+								fileName: file.name,
 							},
+							message: `File "${file.name}" exceeds max allowed size.`,
 						}),
 					);
 				}
@@ -112,10 +114,12 @@ export const createUploadUrls = authed.storage.createUploadUrls.effect(
 				) {
 					return yield* Effect.fail(
 						new AppErrors.BadRequestError({
-							message: `File type "${file.type}" is not allowed.`,
-							data: {
-								type: "invalid_file_type",
+							reason: "UPLOAD_FILE_TYPE_INVALID",
+							params: {
+								fileName: file.name,
+								fileType: file.type,
 							},
+							message: `File type "${file.type}" is not allowed.`,
 						}),
 					);
 				}
@@ -184,10 +188,11 @@ export const createUploadUrls = authed.storage.createUploadUrls.effect(
 					if (totalParts > 10_000) {
 						return yield* Effect.fail(
 							new AppErrors.BadRequestError({
-								message: `File "${file.name}" has too many multipart chunks.`,
-								data: {
-									type: "file_too_large",
+								reason: "UPLOAD_FILE_TOO_LARGE",
+								params: {
+									fileName: file.name,
 								},
+								message: `File "${file.name}" has too many multipart chunks.`,
 							}),
 						);
 					}
@@ -206,10 +211,8 @@ export const createUploadUrls = authed.storage.createUploadUrls.effect(
 					if (!uploadId) {
 						return yield* Effect.fail(
 							new AppErrors.BadRequestError({
+								reason: "UPLOAD_INIT_FAILED",
 								message: "Failed to initialize multipart upload. Please retry.",
-								data: {
-									type: "invalid_request",
-								},
 							}),
 						);
 					}
@@ -304,6 +307,7 @@ export const createDownloadUrl = authed.storage.createDownloadUrl
 						Effect.mapError(
 							() =>
 								new AppErrors.NotFoundError({
+									reason: "ASSET_NOT_FOUND",
 									message: "Asset not found",
 								}),
 						),
@@ -327,10 +331,8 @@ export const createDownloadUrl = authed.storage.createDownloadUrl
 		if (!filePath) {
 			return yield* Effect.fail(
 				new AppErrors.BadRequestError({
+					reason: "UPLOAD_REQUEST_INVALID",
 					message: "Object key must belong to the requested asset.",
-					data: {
-						type: "invalid_request",
-					},
 				}),
 			);
 		}
@@ -354,10 +356,8 @@ export const completeMultipartUpload =
 		if (!uploadId) {
 			return yield* Effect.fail(
 				new AppErrors.BadRequestError({
+					reason: "UPLOAD_REQUEST_INVALID",
 					message: "Multipart upload ID is missing.",
-					data: {
-						type: "invalid_request",
-					},
 				}),
 			);
 		}
@@ -372,10 +372,8 @@ export const completeMultipartUpload =
 			Effect.mapError(
 				() =>
 					new AppErrors.BadRequestError({
+						reason: "UPLOAD_REQUEST_INVALID",
 						message: "Invalid upload metadata.",
-						data: {
-							type: "invalid_request",
-						},
 					}),
 			),
 		);
@@ -409,10 +407,8 @@ export const abortMultipartUpload = authed.storage.abortMultipartUpload.effect(
 		if (!uploadId) {
 			return yield* Effect.fail(
 				new AppErrors.BadRequestError({
+					reason: "UPLOAD_REQUEST_INVALID",
 					message: "Multipart upload ID is missing.",
-					data: {
-						type: "invalid_request",
-					},
 				}),
 			);
 		}
@@ -427,10 +423,8 @@ export const abortMultipartUpload = authed.storage.abortMultipartUpload.effect(
 			Effect.mapError(
 				() =>
 					new AppErrors.BadRequestError({
+						reason: "UPLOAD_REQUEST_INVALID",
 						message: "Invalid upload metadata.",
-						data: {
-							type: "invalid_request",
-						},
 					}),
 			),
 		);
@@ -465,10 +459,8 @@ export const finalizeUpload = authed.storage.finalizeUpload
 						Effect.mapError(
 							() =>
 								new AppErrors.BadRequestError({
+									reason: "UPLOAD_REQUEST_INVALID",
 									message: "Invalid upload metadata.",
-									data: {
-										type: "invalid_request",
-									},
 								}),
 						),
 					);
@@ -480,10 +472,8 @@ export const finalizeUpload = authed.storage.finalizeUpload
 						Effect.mapError((error) =>
 							isS3NotFound(error.cause)
 								? new AppErrors.BadRequestError({
+										reason: "UPLOAD_FILE_MISSING",
 										message: "Uploaded file not found in storage.",
-										data: {
-											type: "invalid_request",
-										},
 									})
 								: error,
 						),
@@ -495,10 +485,8 @@ export const finalizeUpload = authed.storage.finalizeUpload
 					) {
 						return yield* Effect.fail(
 							new AppErrors.BadRequestError({
+								reason: "UPLOAD_FILE_SIZE_MISMATCH",
 								message: "Uploaded file size mismatch.",
-								data: {
-									type: "invalid_request",
-								},
 							}),
 						);
 					}

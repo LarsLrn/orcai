@@ -105,7 +105,9 @@ const FormValidationErrors = ({
 				</ul>
 				{totalErrors > 1 && (
 					<p className="mt-2 text-xs opacity-75">
-						Please correct {totalErrors} errors above.
+						{m.forms_validation_errors_summary({
+							count: totalErrors,
+						})}
 					</p>
 				)}
 			</AlertDescription>

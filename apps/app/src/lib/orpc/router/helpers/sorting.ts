@@ -45,11 +45,11 @@ export const buildOrderBy = <TKey extends string>({
 			if (!expression) {
 				return yield* Effect.fail(
 					new AppErrors.BadRequestError({
-						message: `Unsupported sort key: ${item.id}`,
-						data: {
+						reason: "SORT_KEY_UNSUPPORTED",
+						params: {
 							sortKey: item.id,
-							allowedSortKeys: Object.keys(allowlist),
 						},
+						message: "Unsupported sort key",
 					}),
 				);
 			}

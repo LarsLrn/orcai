@@ -7,14 +7,6 @@ import { type AppError, ErrorTags } from "@/lib/effect/utils/errors";
 type AnyORPCError = ORPCError<ORPCErrorCode, unknown>;
 
 const APP_ERROR_TAGS = new Set<string>(Object.values(ErrorTags));
-const PUBLIC_ERROR_TAGS = new Set<string>([
-	ErrorTags.NOT_FOUND,
-	ErrorTags.CONFLICT,
-	ErrorTags.UNAUTHORIZED,
-	ErrorTags.FORBIDDEN,
-	ErrorTags.VALIDATION,
-	ErrorTags.BAD_REQUEST,
-]);
 
 const isAppError = (error: unknown): error is AppError => {
 	return (
@@ -26,71 +18,61 @@ const isAppError = (error: unknown): error is AppError => {
 	);
 };
 
-const appErrorMessage = (error: AppError): string => {
-	if (!PUBLIC_ERROR_TAGS.has(error._tag)) {
-		return "Internal server error";
-	}
-
-	if (
-		"message" in error &&
-		typeof error.message === "string" &&
-		error.message
-	) {
-		return error.message;
-	}
-
-	if ("reason" in error && typeof error.reason === "string") {
-		return error.reason;
-	}
-
-	switch (error._tag) {
-		case "NotFoundError":
-			return error.entity ? `${error.entity} not found` : "Resource not found.";
-		case "ConflictError":
-			return error.entity ? `${error.entity} conflict` : "Conflict.";
-		case "UnauthorizedError":
-			return "Unauthorized access.";
-		case "ForbiddenError":
-			return "Forbidden access.";
-		case "BadRequestError":
-		case "ValidationError":
-			return "Bad request.";
-		default:
-			return "Internal server error";
-	}
-};
-
-const appErrorToCode = (error: AppError): ORPCErrorCode => {
+// Only the reason, its params and the typed data cross the wire. The English
+// `message` on an AppError stays in logs.
+const appErrorToORPCError = (error: AppError): AnyORPCError => {
 	switch (error._tag) {
 		case ErrorTags.NOT_FOUND:
-			return "NOT_FOUND";
+			return new ORPCError("NOT_FOUND", {
+				data: {
+					reason: error.reason,
+					entity: error.entity,
+				},
+				cause: error,
+			});
 		case ErrorTags.UNAUTHORIZED:
-			return "UNAUTHORIZED";
+			return new ORPCError("UNAUTHORIZED", {
+				data: {
+					reason: error.reason,
+				},
+				cause: error,
+			});
 		case ErrorTags.FORBIDDEN:
-			return "FORBIDDEN";
+			return new ORPCError("FORBIDDEN", {
+				data: {
+					...error.data,
+					allowed: false,
+					reason: error.reason,
+					params: error.params,
+				},
+				cause: error,
+			});
 		case ErrorTags.BAD_REQUEST:
+			return new ORPCError("BAD_REQUEST", {
+				data: {
+					reason: error.reason,
+					params: error.params,
+				},
+				cause: error,
+			});
 		case ErrorTags.VALIDATION:
-			return "BAD_REQUEST";
+			return new ORPCError("BAD_REQUEST", {
+				data: {},
+				cause: error,
+			});
 		case ErrorTags.CONFLICT:
-			return "CONFLICT";
+			return new ORPCError("CONFLICT", {
+				data: {
+					reason: error.reason,
+					params: error.params,
+				},
+				cause: error,
+			});
 		default:
-			return "INTERNAL_SERVER_ERROR";
+			return new ORPCError("INTERNAL_SERVER_ERROR", {
+				cause: error,
+			});
 	}
-};
-
-const appErrorToORPCError = (error: AppError): AnyORPCError => {
-	const data =
-		PUBLIC_ERROR_TAGS.has(error._tag) &&
-		"data" in error &&
-		error.data !== undefined
-			? error.data
-			: undefined;
-
-	return new ORPCError(appErrorToCode(error), {
-		message: appErrorMessage(error),
-		data,
-		cause: error,
-	});
 };
 
 export const unknownToORPCError = (error: unknown): AnyORPCError => {
@@ -103,7 +85,6 @@ export const unknownToORPCError = (error: unknown): AnyORPCError => {
 	}
 
 	return new ORPCError("INTERNAL_SERVER_ERROR", {
-		message: "Internal server error",
 		cause: error,
 	});
 };
@@ -120,7 +101,6 @@ export const causeToORPCError = (cause: Cause.Cause<unknown>): AnyORPCError => {
 	}
 
 	return new ORPCError("INTERNAL_SERVER_ERROR", {
-		message: "Internal server error",
 		cause: Cause.pretty(cause),
 	});
 };

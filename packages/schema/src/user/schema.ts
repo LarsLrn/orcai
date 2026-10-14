@@ -13,7 +13,7 @@ import { preferencesSchema } from "./parts/preferences";
 import { userIdSchema } from "./ref";
 
 export const userFieldsSchema = z.object({
-	name: z.string().min(1, "Name is required"),
+	name: z.string().min(1),
 	email: z.string(),
 	emailVerified: z.boolean(),
 	image: z.string().nullable(),

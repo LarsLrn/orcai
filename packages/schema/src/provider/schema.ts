@@ -5,14 +5,12 @@ import { providerMeteringModeSchema } from "./parts/metering-mode";
 import { providerIdSchema } from "./ref";
 
 export const providerFieldsSchema = z.object({
-	name: z.string().min(1, "Name is required"),
+	name: z.string().min(1),
 	description: z.string(),
-	endpoint: z.url({
-		message: "Endpoint must be a valid URL",
-	}),
+	endpoint: z.url(),
 	compatibility: providerCompatibilitySchema,
 	meteringMode: providerMeteringModeSchema,
-	apiKey: z.string().min(1, "API key is required"),
+	apiKey: z.string().min(1),
 	enabled: z.boolean().default(true),
 });
 

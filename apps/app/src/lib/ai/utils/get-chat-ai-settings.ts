@@ -131,6 +131,7 @@ export const getChatAiSettings = ({
 
 		if (modelSettings.providerId !== provider.id) {
 			return yield* new BadRequestError({
+				reason: "MODEL_PROVIDER_MISMATCH",
 				message:
 					"Selected model does not belong to the selected provider. Please update chat settings.",
 			});
@@ -138,6 +139,7 @@ export const getChatAiSettings = ({
 
 		if (!provider.enabled) {
 			return yield* new BadRequestError({
+				reason: "PROVIDER_DISABLED",
 				message:
 					"Selected provider is disabled. Please choose an active provider.",
 			});
@@ -145,6 +147,7 @@ export const getChatAiSettings = ({
 
 		if (modelSettings.isDeprecated) {
 			return yield* new BadRequestError({
+				reason: "MODEL_DEPRECATED",
 				message:
 					"Selected model is deprecated. Please choose a non-deprecated model.",
 			});
