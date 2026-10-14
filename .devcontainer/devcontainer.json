@@ -11,8 +11,7 @@
 		"postgres",
 		"valkey",
 		"migrations",
-		"minio",
-		"minio-setup",
+		"seaweedfs",
 		"qdrant",
 		"spicedb-database",
 		"spicedb-migrate",
@@ -27,8 +26,7 @@
 		4206,
 		"valkey:6379",
 		"qdrant:6333",
-		"minio:9000",
-		"minio:9001",
+		"seaweedfs:8333",
 		"postgres:5432"
 	],
 	"portsAttributes": {
@@ -47,11 +45,8 @@
 		"qdrant:6333": {
 			"label": "Qdrant Vector DB"
 		},
-		"minio:9000": {
-			"label": "MinIO S3 API"
-		},
-		"minio:9001": {
-			"label": "MinIO Console"
+		"seaweedfs:8333": {
+			"label": "SeaweedFS S3 API"
 		},
 		"postgres:5432": {
 			"label": "PostgreSQL Database"
