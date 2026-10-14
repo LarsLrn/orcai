@@ -74,7 +74,7 @@ bun run stack dev     # app dev server on the port stored in .env
 Useful commands:
 - `bun run stack status`: container state and a probe per service
 - `bun run stack reset`: empty every store of the stack, leaving containers and `.env` in place (asks first; refuses while an app is listening on the stack's port)
-- `bun run stack e2e`: reset, then run the end-to-end suite (`bun run e2e` is an alias, asks first)
+- `bun run stack e2e`: install the pinned Chromium, reset, then run the end-to-end suite (`bun run e2e` is an alias, asks first)
 - `bun run stack dev --all`: app, workers, and docs together
 - `bun run stack workers` / `bun run stack web`: workers or docs site only
 - `bun run stack migrate`: reapply migrations and the SpiceDB schema
