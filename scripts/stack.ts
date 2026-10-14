@@ -14,7 +14,8 @@
  *   env [--reset]          Print the path and content of the resolved .env.
  *   migrate                Apply database migrations and the SpiceDB schema.
  *   reset                  Empty every store, then reapply migrations.
- *   e2e [--no-reset]       Reset, then run the Playwright suite.
+ *   e2e [--no-reset]       Install the pinned Chromium, reset, then run the
+ *                          Playwright suite.
  *   dev [--all]            Run the app dev server. --all adds workers and web.
  *   workers                Run the background workers.
  *   web                    Run the docs site dev server.
@@ -904,6 +905,24 @@ function e2eEnv(env: Env): Env {
 }
 
 async function runE2e(options: Options, env: Env): Promise<number> {
+	// No-op once this Playwright version's browser is in the shared cache.
+	log("Installing the pinned Playwright Chromium");
+	const installed = await run(
+		[
+			"bunx",
+			"--no-install",
+			"playwright",
+			"install",
+			"chromium",
+		],
+		env,
+		path.join(repoRoot, "apps", "e2e"),
+	);
+	if (installed !== 0) {
+		throw new Error(
+			`Installing the pinned Playwright Chromium failed with exit code ${String(installed)}`,
+		);
+	}
 	if (!options.flags.has("no-reset")) {
 		await reset(options, env);
 	}
