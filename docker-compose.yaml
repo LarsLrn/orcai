@@ -41,7 +41,7 @@ services:
       POSTGRES_USER: postgres
       POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-postgres}
       POSTGRES_DB: app
-    restart: on-failure
+    restart: on-failure:5
 
   # SeaweedFS S3-Compatible Object Storage
   seaweedfs:
@@ -233,13 +233,14 @@ services:
   spicedb:
     image: "authzed/spicedb:v1.51.0"
     command: "serve"
-    restart: "always"
+    restart: unless-stopped
     expose:
       - "8080"
       - "9090"
       - "50051"
     environment:
       SPICEDB_GRPC_PRESHARED_KEY: ${SPICEDB_GRPC_PRESHARED_KEY:-dev-spicedb-token}
+      SPICEDB_SKIP_RELEASE_CHECK: "true"
       SPICEDB_DATASTORE_ENGINE: postgres
       SPICEDB_DATASTORE_CONN_URI: postgres://${SPICEDB_POSTGRES_USER:-postgres}:${SPICEDB_POSTGRES_PASSWORD:-postgres}@spicedb-database:5432/spicedb
     healthcheck:
@@ -256,8 +257,9 @@ services:
   spicedb-migrate:
     image: "authzed/spicedb:v1.51.0"
     command: "migrate head"
-    restart: "on-failure"
+    restart: on-failure:5
     environment:
+      SPICEDB_SKIP_RELEASE_CHECK: "true"
       SPICEDB_DATASTORE_ENGINE: postgres
       SPICEDB_DATASTORE_CONN_URI: postgres://${SPICEDB_POSTGRES_USER:-postgres}:${SPICEDB_POSTGRES_PASSWORD:-postgres}@spicedb-database:5432/spicedb
     depends_on:
@@ -275,7 +277,7 @@ services:
     depends_on:
       spicedb:
         condition: service_healthy
-    restart: on-failure
+    restart: on-failure:5
 
   spicedb-database:
     image: "postgres:17.10"
@@ -290,6 +292,7 @@ services:
       interval: 10s
       timeout: 5s
       retries: 10
+    restart: unless-stopped
 
 volumes:
   postgres_data:
