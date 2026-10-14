@@ -13,6 +13,7 @@ import {
 	DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import { orpc } from "@/lib/orpc/orpc";
+import { m } from "@/paraglide/messages";
 
 interface BranchSwitcherProps {
 	chat: Chat;
@@ -74,7 +75,7 @@ export function BranchSwitcher({ chat, branches }: BranchSwitcherProps) {
 			<DropdownMenuContent align="end" className="w-50">
 				<DropdownMenuGroup>
 					<DropdownMenuLabel className="px-2 py-1.5 font-normal text-muted-foreground text-xs">
-						Switch branch
+						{m.chat_branch_switcher_label()}
 					</DropdownMenuLabel>
 					<DropdownMenuSeparator />
 					<div className="max-h-75 overflow-y-auto">

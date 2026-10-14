@@ -18,8 +18,9 @@ import {
 	useDeleteUsersMutation,
 	useUnbanUserMutation,
 } from "@/hooks/mutations/use-user-admin-mutations";
-import { organizationRoleLabels } from "@/lib/authz/organization-role-metadata";
+import { getOrganizationRoleLabel } from "@/lib/authz/organization-role-metadata";
 import { formatDisplayTimestamp } from "@/lib/presentation/format-timestamp";
+import { m } from "@/paraglide/messages";
 
 const columnHelper = createColumnHelper<
 	DataTableFeatures,
@@ -30,27 +31,29 @@ export const instanceUserTableColumns = columnHelper.columns([
 	columnHelper.accessor("name", {
 		size: 300,
 		header: ({ column }) => (
-			<DataTableColumnHeader column={column} title="Name" />
+			<DataTableColumnHeader column={column} title={m.common_name_label()} />
 		),
 		cell: ({ row }) => <span className="font-medium">{row.original.name}</span>,
 	}),
 	columnHelper.accessor("email", {
 		header: ({ column }) => (
-			<DataTableColumnHeader column={column} title="Email" />
+			<DataTableColumnHeader column={column} title={m.common_email_label()} />
 		),
 	}),
 	columnHelper.display({
 		id: "organisations",
-		header: "Organisations",
+		header: () => m.instance_users_table_organisations_column_header(),
 		cell: ({ row }) =>
 			row.original.memberships.length === 0 ? (
-				<span className="text-muted-foreground">No organisation</span>
+				<span className="text-muted-foreground">
+					{m.instance_users_table_no_organisation_label()}
+				</span>
 			) : (
 				<span>
 					{row.original.memberships
 						.map(
 							(membership) =>
-								`${membership.organizationName} (${organizationRoleLabels[membership.role]})`,
+								`${membership.organizationName} (${getOrganizationRoleLabel(membership.role)})`,
 						)
 						.join(", ")}
 				</span>
@@ -58,17 +61,22 @@ export const instanceUserTableColumns = columnHelper.columns([
 	}),
 	columnHelper.display({
 		id: "status",
-		header: "Status",
+		header: () => m.common_status_column_header(),
 		cell: ({ row }) =>
 			row.original.banned ? (
-				<Badge variant="destructive">Banned</Badge>
+				<Badge variant="destructive">
+					{m.instance_users_table_status_banned_label()}
+				</Badge>
 			) : (
-				<span>Active</span>
+				<span>{m.common_status_active_label()}</span>
 			),
 	}),
 	columnHelper.accessor("createdAt", {
 		header: ({ column }) => (
-			<DataTableColumnHeader column={column} title="Created" />
+			<DataTableColumnHeader
+				column={column}
+				title={m.common_created_column_header()}
+			/>
 		),
 		cell: ({ row }) => (
 			<span>{formatDisplayTimestamp(row.original.createdAt || "")}</span>
@@ -103,7 +111,7 @@ const InstanceUserActions = ({ user }: { user: UserWithMemberships }) => {
 			<DropdownMenuTrigger
 				render={
 					<Button variant="ghost" className="size-8 p-0">
-						<span className="sr-only">Open menu</span>
+						<span className="sr-only">{m.common_row_menu_trigger()}</span>
 						<MoreHorizontal className="size-4" />
 					</Button>
 				}
@@ -117,7 +125,7 @@ const InstanceUserActions = ({ user }: { user: UserWithMemberships }) => {
 							})
 						}
 					>
-						Unban Account
+						{m.instance_users_table_unban_menu_item()}
 					</DropdownMenuItem>
 				) : (
 					<DropdownMenuItem
@@ -127,7 +135,7 @@ const InstanceUserActions = ({ user }: { user: UserWithMemberships }) => {
 							})
 						}
 					>
-						Ban Account
+						{m.instance_users_table_ban_menu_item()}
 					</DropdownMenuItem>
 				)}
 				<DropdownMenuSeparator />
@@ -141,7 +149,7 @@ const InstanceUserActions = ({ user }: { user: UserWithMemberships }) => {
 						})
 					}
 				>
-					Delete Account
+					{m.instance_users_table_delete_menu_item()}
 				</DropdownMenuItem>
 			</DropdownMenuContent>
 		</DropdownMenu>

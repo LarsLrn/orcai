@@ -4,31 +4,41 @@ import {
 	ORGANIZATION_ROLES,
 	type OrganizationRole,
 } from "@orcai/core";
+import { m } from "@/paraglide/messages";
 
-export const organizationRoleLabels = {
-	admin: "Admin",
-	manager: "Manager",
-	member: "Member",
-	viewer: "Viewer",
-} as const satisfies Record<OrganizationRole, string>;
+type OrganizationPermission =
+	(typeof ORGANIZATION_ROLE_PERMISSIONS)[OrganizationRole][number];
 
-const organizationPermissionLabels = {
-	read: "Read workspace",
-	manage_organization: "Manage organisation",
-	manage_members: "Manage members",
-	manage_groups: "Manage groups",
-	invite_members: "Invite members",
-	create_bot: "Create bots",
-	create_block: "Create blocks",
-	create_asset: "Create assets",
-	manage_providers: "Manage providers",
-	manage_models: "Manage models",
-	manage_quotas: "Manage quotas",
-} as const;
+const organizationRoleLabels: Record<OrganizationRole, () => string> = {
+	admin: m.orgs_role_admin_label,
+	manager: m.orgs_role_manager_label,
+	member: m.orgs_role_member_label,
+	viewer: m.orgs_role_viewer_label,
+};
+
+const organizationPermissionLabels: Record<
+	OrganizationPermission,
+	() => string
+> = {
+	read: m.orgs_permission_read_label,
+	manage_organization: m.orgs_permission_manage_organisation_label,
+	manage_members: m.orgs_permission_manage_members_label,
+	manage_groups: m.orgs_permission_manage_groups_label,
+	invite_members: m.orgs_permission_invite_members_label,
+	create_bot: m.orgs_permission_create_bot_label,
+	create_block: m.orgs_permission_create_block_label,
+	create_asset: m.orgs_permission_create_asset_label,
+	manage_providers: m.orgs_permission_manage_providers_label,
+	manage_models: m.orgs_permission_manage_models_label,
+	manage_quotas: m.orgs_permission_manage_quotas_label,
+};
+
+export const getOrganizationRoleLabel = (role: OrganizationRole) =>
+	organizationRoleLabels[role]();
 
 export const getOrganizationRoleDescription = (role: OrganizationRole) =>
 	ORGANIZATION_ROLE_PERMISSIONS[role]
-		.map((permission) => organizationPermissionLabels[permission])
+		.map((permission) => organizationPermissionLabels[permission]())
 		.join(", ");
 
 export const getAssignableOrganizationRoles = (params: {

@@ -13,6 +13,7 @@ import {
 	SelectValue,
 } from "@/components/ui/select";
 import { Switch } from "@/components/ui/switch";
+import { m } from "@/paraglide/messages";
 
 type AssetMetadataDraft = {
 	title: string;
@@ -69,25 +70,25 @@ const BookFields = ({
 }) => (
 	<>
 		<MetadataField
-			label="Author(s)"
+			label={m.assets_metadata_author_label()}
 			value={metadata.author ?? ""}
-			placeholder="e.g. Schmidt, A.; Okonkwo, B."
+			placeholder={m.assets_metadata_author_placeholder()}
 			onChange={(v) => onFieldChange("author", v)}
 		/>
 		<MetadataField
-			label="Citation label"
+			label={m.assets_metadata_citation_label()}
 			value={metadata.citation ?? ""}
-			placeholder="e.g. Schmidt 2023"
+			placeholder={m.assets_metadata_citation_placeholder()}
 			onChange={(v) => onFieldChange("citation", v)}
 		/>
 		<MetadataField
-			label="Chapter title"
+			label={m.assets_metadata_chapter_title_label()}
 			value={metadata.chapterTitle ?? ""}
-			placeholder="e.g. Introduction"
+			placeholder={m.assets_metadata_chapter_title_placeholder()}
 			onChange={(v) => onFieldChange("chapterTitle", v)}
 		/>
 		<MetadataField
-			label="Page range"
+			label={m.assets_metadata_page_range_label()}
 			value={metadata.pageRange ?? ""}
 			placeholder="12-56"
 			onChange={(v) => onFieldChange("pageRange", v)}
@@ -104,43 +105,43 @@ const JournalArticleFields = ({
 }) => (
 	<>
 		<MetadataField
-			label="Author(s)"
+			label={m.assets_metadata_author_label()}
 			value={metadata.author ?? ""}
-			placeholder="e.g. Schmidt, A.; Okonkwo, B."
+			placeholder={m.assets_metadata_author_placeholder()}
 			onChange={(v) => onFieldChange("author", v)}
 		/>
 		<MetadataField
-			label="Citation label"
+			label={m.assets_metadata_citation_label()}
 			value={metadata.citation ?? ""}
-			placeholder="e.g. Schmidt 2023"
+			placeholder={m.assets_metadata_citation_placeholder()}
 			onChange={(v) => onFieldChange("citation", v)}
 		/>
 		<MetadataField
-			label="Journal name"
+			label={m.assets_metadata_journal_name_label()}
 			value={metadata.journalName ?? ""}
-			placeholder="e.g. Nature"
+			placeholder={m.assets_metadata_journal_name_placeholder()}
 			onChange={(v) => onFieldChange("journalName", v)}
 		/>
 		<MetadataField
-			label="Volume"
+			label={m.assets_metadata_volume_label()}
 			value={metadata.volume ?? ""}
-			placeholder="e.g. 12"
+			placeholder={m.assets_metadata_volume_placeholder()}
 			onChange={(v) => onFieldChange("volume", v)}
 		/>
 		<MetadataField
-			label="Issue"
+			label={m.assets_metadata_issue_label()}
 			value={metadata.issueNumber ?? ""}
-			placeholder="e.g. 3"
+			placeholder={m.assets_metadata_issue_placeholder()}
 			onChange={(v) => onFieldChange("issueNumber", v)}
 		/>
 		<MetadataField
-			label="Page range"
+			label={m.assets_metadata_page_range_label()}
 			value={metadata.pageRange ?? ""}
 			placeholder="120-135"
 			onChange={(v) => onFieldChange("pageRange", v)}
 		/>
 		<MetadataField
-			label="DOI"
+			label={m.assets_metadata_doi_label()}
 			value={metadata.doi ?? ""}
 			placeholder="10.1000/xyz123"
 			onChange={(v) => onFieldChange("doi", v)}
@@ -157,32 +158,32 @@ const WebSourceFields = ({
 }) => (
 	<>
 		<MetadataField
-			label="Author(s)"
+			label={m.assets_metadata_author_label()}
 			value={metadata.author ?? ""}
-			placeholder="e.g. Schmidt, A.; Okonkwo, B."
+			placeholder={m.assets_metadata_author_placeholder()}
 			onChange={(v) => onFieldChange("author", v)}
 		/>
 		<MetadataField
-			label="Citation label"
+			label={m.assets_metadata_citation_label()}
 			value={metadata.citation ?? ""}
-			placeholder="e.g. Schmidt 2023"
+			placeholder={m.assets_metadata_citation_placeholder()}
 			onChange={(v) => onFieldChange("citation", v)}
 		/>
 		<MetadataField
-			label="Website name"
+			label={m.assets_metadata_website_name_label()}
 			value={metadata.websiteName ?? ""}
-			placeholder="e.g. Rhine-Waal University"
+			placeholder={m.assets_metadata_website_name_placeholder()}
 			onChange={(v) => onFieldChange("websiteName", v)}
 		/>
 		<MetadataField
-			label="External URL"
+			label={m.assets_metadata_external_url_label()}
 			value={metadata.externalUrl ?? ""}
 			placeholder="https://example.com/article"
 			className="space-y-2 md:col-span-2"
 			onChange={(v) => onFieldChange("externalUrl", v)}
 		/>
 		<MetadataField
-			label="Access date"
+			label={m.assets_metadata_access_date_label()}
 			value={metadata.accessDate ?? ""}
 			placeholder="YYYY-MM-DD"
 			onChange={(v) => onFieldChange("accessDate", v)}
@@ -199,21 +200,21 @@ const LegalTextFields = ({
 }) => (
 	<>
 		<MetadataField
-			label="Citation label"
+			label={m.assets_metadata_citation_label()}
 			value={metadata.citation ?? ""}
-			placeholder="e.g. Schmidt 2023"
+			placeholder={m.assets_metadata_citation_placeholder()}
 			onChange={(v) => onFieldChange("citation", v)}
 		/>
 		<MetadataField
-			label="Legal reference"
+			label={m.assets_metadata_legal_reference_label()}
 			value={metadata.legalReference ?? ""}
-			placeholder="e.g. § 1 BGB or Art. 5 GG"
+			placeholder={m.assets_metadata_legal_reference_placeholder()}
 			onChange={(v) => onFieldChange("legalReference", v)}
 		/>
 		<MetadataField
-			label="Jurisdiction"
+			label={m.assets_metadata_jurisdiction_label()}
 			value={metadata.jurisdiction ?? ""}
-			placeholder="e.g. Germany, EU"
+			placeholder={m.assets_metadata_jurisdiction_placeholder()}
 			onChange={(v) => onFieldChange("jurisdiction", v)}
 		/>
 	</>
@@ -257,7 +258,9 @@ const AssetMetadataEditor = ({
 		<div className="grid gap-4 md:grid-cols-2">
 			{showTitle ? (
 				<div className="space-y-2 md:col-span-2">
-					<div className="font-medium text-sm">Source title</div>
+					<div className="font-medium text-sm">
+						{m.assets_metadata_source_title_label()}
+					</div>
 					<Input
 						value={value.title}
 						onChange={(event) =>
@@ -266,13 +269,15 @@ const AssetMetadataEditor = ({
 								title: event.target.value,
 							})
 						}
-						placeholder="e.g. Introduction to statistics"
+						placeholder={m.assets_metadata_source_title_placeholder()}
 					/>
 				</div>
 			) : null}
 
 			<div className="space-y-2 md:col-span-2">
-				<div className="font-medium text-sm">Source type</div>
+				<div className="font-medium text-sm">
+					{m.assets_metadata_source_type_label()}
+				</div>
 				<Select
 					value={metadata.sourceType ?? ""}
 					onValueChange={(nextValue) =>
@@ -286,7 +291,9 @@ const AssetMetadataEditor = ({
 					}
 				>
 					<SelectTrigger className="w-full">
-						<SelectValue placeholder="Choose a source type" />
+						<SelectValue
+							placeholder={m.assets_metadata_source_type_placeholder()}
+						/>
 					</SelectTrigger>
 					<SelectContent>
 						{sourceTypes.map((type) => (
@@ -305,7 +312,7 @@ const AssetMetadataEditor = ({
 			{/* External URL is always available when the source type doesn't already include it */}
 			{metadata.sourceType && metadata.sourceType !== "web-source" ? (
 				<MetadataField
-					label="External URL"
+					label={m.assets_metadata_external_url_label()}
 					value={metadata.externalUrl ?? ""}
 					placeholder="https://example.org/article"
 					className="space-y-2 md:col-span-2"
@@ -314,7 +321,9 @@ const AssetMetadataEditor = ({
 			) : null}
 
 			<div className="space-y-2">
-				<div className="font-medium text-sm">Relevance</div>
+				<div className="font-medium text-sm">
+					{m.assets_metadata_relevance_label()}
+				</div>
 				<Select
 					value={metadata.relevance}
 					onValueChange={(nextValue) =>
@@ -328,12 +337,20 @@ const AssetMetadataEditor = ({
 					}
 				>
 					<SelectTrigger className="w-full">
-						<SelectValue placeholder="Choose relevance" />
+						<SelectValue
+							placeholder={m.assets_metadata_relevance_placeholder()}
+						/>
 					</SelectTrigger>
 					<SelectContent>
-						<SelectItem value="high">High</SelectItem>
-						<SelectItem value="medium">Medium</SelectItem>
-						<SelectItem value="low">Low</SelectItem>
+						<SelectItem value="high">
+							{m.assets_relevance_high_label()}
+						</SelectItem>
+						<SelectItem value="medium">
+							{m.assets_relevance_medium_label()}
+						</SelectItem>
+						<SelectItem value="low">
+							{m.assets_relevance_low_label()}
+						</SelectItem>
 					</SelectContent>
 				</Select>
 			</div>
@@ -342,10 +359,10 @@ const AssetMetadataEditor = ({
 				<div className="flex items-center justify-between gap-3">
 					<div>
 						<div className="font-medium text-sm">
-							Allow citations in answers
+							{m.assets_metadata_show_reference_label()}
 						</div>
 						<div className="text-muted-foreground text-xs">
-							The AI may make in-text references to this source.
+							{m.assets_metadata_show_reference_description()}
 						</div>
 					</div>
 					<Switch

@@ -2,18 +2,10 @@ import { useQueryClient } from "@tanstack/react-query";
 import { useMutationAction } from "@/hooks/actions/use-mutation-action";
 import {
 	type DestructiveTarget,
-	describeAction,
-	describeFailure,
-	describeOutcome,
-	describeProgress,
-	describeTarget,
-} from "@/hooks/mutations/destructive-copy";
+	singleTargetName,
+} from "@/hooks/mutations/destructive-target";
 import { orpc } from "@/lib/orpc/orpc";
-
-const CHAT_NOUNS = {
-	noun: "chat",
-	nounPlural: "chats",
-};
+import { m } from "@/paraglide/messages";
 
 export const useUpdateChatMutation = (
 	opts: ReturnType<typeof orpc.chat.update.mutationOptions> = {},
@@ -40,9 +32,9 @@ export const useUpdateChatMutation = (
 				},
 			}),
 		messages: {
-			loading: "Updating chat...",
-			success: "Chat updated successfully",
-			error: "Failed to update chat",
+			loading: m.chat_update_toast_loading(),
+			success: m.chat_update_toast_success(),
+			error: m.chat_update_toast_error(),
 		},
 	});
 };
@@ -74,23 +66,37 @@ export const useDeleteChatsMutation = (
 			}),
 		messages: {
 			loading: ({ input }) =>
-				describeProgress("Deleting", input.refs.length, CHAT_NOUNS, target),
+				m.chat_delete_toast_loading({
+					count: input.refs.length,
+				}),
 			success: ({ input }) =>
-				describeOutcome(input.refs.length, CHAT_NOUNS, "deleted", target),
+				m.chat_delete_toast_success({
+					count: input.refs.length,
+				}),
 			error: ({ input }) =>
-				describeFailure(input.refs.length, CHAT_NOUNS, "deleted", target),
+				m.chat_delete_toast_error({
+					count: input.refs.length,
+				}),
 		},
 		confirm: (input) => {
 			const count = input.refs.length;
+			const name = singleTargetName(count, target);
 
 			return {
-				title: `Delete ${describeTarget(count, CHAT_NOUNS, target)}?`,
-				description:
-					count === 1
-						? "Its messages and branches are removed for good."
-						: "Their messages and branches are removed for good.",
-				confirmText: describeAction("Delete", count, CHAT_NOUNS, target),
-				cancelText: "Cancel",
+				title: name
+					? m.chat_delete_confirm_title_named({
+							name,
+						})
+					: m.chat_delete_confirm_title({
+							count,
+						}),
+				description: m.chat_delete_confirm_description({
+					count,
+				}),
+				confirmText: m.chat_delete_confirm_button({
+					count,
+				}),
+				cancelText: m.common_cancel_button(),
 			};
 		},
 	});

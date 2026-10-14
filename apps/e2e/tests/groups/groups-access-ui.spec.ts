@@ -1,5 +1,6 @@
 import { groupsName, templateBlock } from "../../fixtures/groups/groups";
 import { expect, test } from "../../fixtures/index";
+import { message } from "../../fixtures/messages";
 import { enterApp, open } from "../../fixtures/navigation";
 
 test("groups: the access manager shows the group grant on the block page", async ({
@@ -40,10 +41,10 @@ test("groups: the access manager shows the group grant on the block page", async
 	await enterApp(page, org.slug);
 
 	const accessItem = page.getByRole("menuitem", {
-		name: "Access & Groups",
+		name: message("bots_detail_access_action"),
 	});
 
-	await open(page, `/en/app/hub/blocks/${block.data.id}`);
+	await open(page, `/app/hub/blocks/${block.data.id}`);
 	await expect(
 		page.getByRole("heading", {
 			name: blockName,
@@ -54,7 +55,7 @@ test("groups: the access manager shows the group grant on the block page", async
 	await expect(async () => {
 		await page
 			.getByRole("button", {
-				name: "More options",
+				name: message("bots_detail_more_options_aria_label"),
 			})
 			.click();
 		await expect(accessItem).toBeVisible({
@@ -68,14 +69,14 @@ test("groups: the access manager shows the group grant on the block page", async
 
 	await expect(
 		page.getByRole("heading", {
-			name: "Manage Access",
+			name: message("access_dialog_title"),
 		}),
 	).toBeVisible();
 
 	// The grant list names the group and where the grant comes from.
 	await expect(page.getByText(groupName).first()).toBeVisible();
 	await expect(
-		page.getByText("Direct group", {
+		page.getByText(message("access_grant_row_source_direct_group"), {
 			exact: true,
 		}),
 	).toBeVisible();
@@ -84,7 +85,7 @@ test("groups: the access manager shows the group grant on the block page", async
 	// reachable inside the 1280x720 viewport of the shared Playwright config.
 	await page
 		.getByRole("button", {
-			name: "Revoke access",
+			name: message("access_grant_row_revoke_aria_label"),
 			exact: true,
 		})
 		.click();
@@ -93,25 +94,29 @@ test("groups: the access manager shows the group grant on the block page", async
 	// the same words, so both locators name their role.
 	await expect(
 		page.getByRole("heading", {
-			name: "Revoke access",
+			name: message("access_revoke_confirm_title"),
 			exact: true,
 		}),
 	).toBeVisible();
 	await page
 		.getByRole("button", {
-			name: "Revoke",
+			name: message("access_revoke_confirm_button"),
 			exact: true,
 		})
 		.click();
 
-	await expect(page.getByText("Access revoked")).toBeVisible();
+	await expect(
+		page.getByText(message("access_revoke_toast_success")),
+	).toBeVisible();
 
 	await expect(
-		page.getByText("Direct group", {
+		page.getByText(message("access_grant_row_source_direct_group"), {
 			exact: true,
 		}),
 	).toBeHidden();
-	await expect(page.getByText("No direct grants found.")).toBeVisible();
+	await expect(
+		page.getByText(message("access_grant_list_empty_state_description")),
+	).toBeVisible();
 
 	// The API agrees the grant is gone, and not merely out of the list.
 	const grants = await api.as("member").resource.listGrants({
@@ -141,7 +146,7 @@ test("groups: the access manager grants several people at once", async ({
 
 	const page = await pageAs("member");
 	await enterApp(page, org.slug);
-	await open(page, `/en/app/hub/blocks/${block.data.id}`);
+	await open(page, `/app/hub/blocks/${block.data.id}`);
 	await expect(
 		page.getByRole("heading", {
 			name: blockName,
@@ -149,14 +154,14 @@ test("groups: the access manager grants several people at once", async ({
 	).toBeVisible();
 
 	const accessItem = page.getByRole("menuitem", {
-		name: "Access & Groups",
+		name: message("bots_detail_access_action"),
 	});
 
 	// The menu button opens the menu once the page has hydrated.
 	await expect(async () => {
 		await page
 			.getByRole("button", {
-				name: "More options",
+				name: message("bots_detail_more_options_aria_label"),
 			})
 			.click();
 		await expect(accessItem).toBeVisible({
@@ -169,14 +174,14 @@ test("groups: the access manager grants several people at once", async ({
 
 	await expect(
 		page.getByRole("heading", {
-			name: "Manage Access",
+			name: message("access_dialog_title"),
 		}),
 	).toBeVisible();
 
 	// People, not groups: the tab carries the picker this test is about.
 	await page
 		.getByRole("tab", {
-			name: "People",
+			name: message("access_manager_tab_people"),
 		})
 		.click();
 
@@ -197,17 +202,19 @@ test("groups: the access manager grants several people at once", async ({
 
 	await page
 		.getByRole("button", {
-			name: "Grant access",
+			name: message("access_manager_grant_action"),
 		})
 		.click();
 
-	await expect(page.getByText("Access updated")).toBeVisible();
+	await expect(
+		page.getByText(message("access_grant_toast_success")),
+	).toBeVisible();
 
 	// Both land from the one call. The names now belong to the grant rows, so
 	// the source badges are what says two direct grants arrived, and an empty
 	// selection says the picker no longer offers them.
 	await expect(
-		page.getByText("Direct user", {
+		page.getByText(message("access_grant_row_source_direct_user"), {
 			exact: true,
 		}),
 	).toHaveCount(2);

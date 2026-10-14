@@ -15,7 +15,7 @@ import {
 } from "./schema";
 
 const blockWriteFieldsSchema = blockFieldsSchema.extend({
-	name: z.string().min(1, "Name is required"),
+	name: z.string().min(1),
 	description: blockFieldsSchema.shape.description.optional(),
 	contentJson: contentJsonSchema.nullable().optional(),
 	contentHtml: blockFieldsSchema.shape.contentHtml.optional(),
@@ -83,7 +83,6 @@ export const deleteBlocksInputSchema = z.object({
 	refs: createUniqueRefsInputSchema({
 		key: "id",
 		value: blockIdSchema,
-		entityName: "block",
 	}),
 });
 

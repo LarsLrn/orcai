@@ -14,6 +14,7 @@ import {
 	CardTitle,
 } from "@/components/ui/card";
 import { formatDisplayDate } from "@/lib/presentation/format-timestamp";
+import { m } from "@/paraglide/messages";
 import { OrganizationInvitationActions } from "./organization-invitation-actions";
 
 type OrganizationInvitationEntryProps = {
@@ -26,10 +27,17 @@ const toDisplayStatus = (
 	isExpired: boolean,
 ) => {
 	if (isExpired) {
-		return "Expired";
+		return m.orgs_invitation_status_expired();
 	}
 
-	return status.charAt(0).toUpperCase() + status.slice(1);
+	switch (status) {
+		case "accepted":
+			return m.orgs_invitation_status_accepted();
+		case "rejected":
+			return m.orgs_invitation_status_rejected();
+		default:
+			return m.orgs_invitation_status_pending();
+	}
 };
 
 const toBadgeVariant = (
@@ -80,16 +88,21 @@ export function OrganizationInvitationEntry({
 					<div className="flex items-center gap-2">
 						<CalendarIcon className="h-3.5 w-3.5" />
 						<span>
-							Invited on{" "}
 							{invitation.createdAt
-								? formatDisplayDate(invitation.createdAt)
-								: "Unknown date"}
+								? m.orgs_invitation_invited_on({
+										date: formatDisplayDate(invitation.createdAt),
+									})
+								: m.orgs_invitation_invited_on_unknown()}
 						</span>
 					</div>
 					{isPending && (
 						<div className="mt-1 flex items-center gap-2">
 							<Clock4Icon className="h-3.5 w-3.5" />
-							<span>Expires on {formatDisplayDate(invitation.expiresAt)}</span>
+							<span>
+								{m.orgs_invitation_expires_on({
+									date: formatDisplayDate(invitation.expiresAt),
+								})}
+							</span>
 						</div>
 					)}
 				</div>

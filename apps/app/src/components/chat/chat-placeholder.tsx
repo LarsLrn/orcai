@@ -9,6 +9,7 @@ import {
 	EmptyTitle,
 } from "@/components/ui/empty";
 import { orpc } from "@/lib/orpc/orpc";
+import { m } from "@/paraglide/messages";
 
 const ChatPlaceholder = ({ botId }: { botId?: BotId }) => {
 	const { data: botResult } = useQuery(
@@ -32,7 +33,7 @@ const ChatPlaceholder = ({ botId }: { botId?: BotId }) => {
 					<EmptyDescription>
 						{bot.description
 							? bot.description
-							: "Answers draw on this bot's sources and behaviour."}
+							: m.chat_placeholder_bot_description_fallback()}
 					</EmptyDescription>
 				</EmptyHeader>
 			</Empty>
@@ -45,11 +46,8 @@ const ChatPlaceholder = ({ botId }: { botId?: BotId }) => {
 				<EmptyMedia variant="icon">
 					<MessageSquareIcon />
 				</EmptyMedia>
-				<EmptyTitle>Ask anything</EmptyTitle>
-				<EmptyDescription>
-					Without a bot, answers come from the model alone. Choose a bot to
-					ground them in your organisation's sources.
-				</EmptyDescription>
+				<EmptyTitle>{m.chat_placeholder_title()}</EmptyTitle>
+				<EmptyDescription>{m.chat_placeholder_description()}</EmptyDescription>
 			</EmptyHeader>
 		</Empty>
 	);

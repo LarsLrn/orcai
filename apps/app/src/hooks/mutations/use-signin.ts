@@ -3,6 +3,8 @@ import { useNavigate } from "@tanstack/react-router";
 import { useMutationAction } from "@/hooks/actions/use-mutation-action";
 import { useUmami } from "@/hooks/use-umami";
 import { authClient } from "@/lib/auth/auth-client";
+import { toAuthError } from "@/lib/errors/auth-error";
+import { m } from "@/paraglide/messages";
 
 export const useSignin = () => {
 	const navigate = useNavigate();
@@ -16,7 +18,7 @@ export const useSignin = () => {
 					password: values.password,
 				});
 				if (result.error) {
-					throw new Error(result.error.message);
+					throw toAuthError(result.error);
 				}
 				return result;
 			},
@@ -28,9 +30,9 @@ export const useSignin = () => {
 			},
 		}),
 		messages: {
-			loading: "Logging in...",
-			success: "Welcome back!",
-			error: "Login failed",
+			loading: m.auth_signin_toast_loading(),
+			success: m.auth_signin_toast_success(),
+			error: m.auth_signin_toast_error(),
 		},
 	});
 };

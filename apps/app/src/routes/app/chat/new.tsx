@@ -2,6 +2,7 @@ import { botIdSchema } from "@orcai/schema";
 import { createFileRoute, useNavigate } from "@tanstack/react-router";
 import { z } from "zod/v4";
 import { NewChat } from "@/components/chat/new-chat";
+import { m } from "@/paraglide/messages";
 
 const searchSchema = z.object({
 	botId: botIdSchema.optional(),
@@ -13,7 +14,7 @@ export const Route = createFileRoute("/app/chat/new")({
 	head: () => ({
 		meta: [
 			{
-				title: "New chat",
+				title: m.chat_new_page_title(),
 			},
 		],
 	}),

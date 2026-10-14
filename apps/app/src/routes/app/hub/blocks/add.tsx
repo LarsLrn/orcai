@@ -20,6 +20,7 @@ import {
 } from "@/components/ui/shell/page";
 import { ensureOrganizationCapability } from "@/lib/authz/route-guards";
 import { cn } from "@/lib/utils";
+import { m } from "@/paraglide/messages";
 
 export const Route = createFileRoute("/app/hub/blocks/add")({
 	loader: async ({ context: { queryClient } }) => {
@@ -33,7 +34,7 @@ export const Route = createFileRoute("/app/hub/blocks/add")({
 	head: () => ({
 		meta: [
 			{
-				title: "Add block",
+				title: m.blocks_add_page_title(),
 			},
 		],
 	}),
@@ -47,31 +48,28 @@ function RouteComponent() {
 	return (
 		<Page>
 			<PageHeader>
-				<PageTitle>Add block</PageTitle>
-				<PageDescription>
-					Create reusable AI behaviour, repositories, or image-generation
-					blocks.
-				</PageDescription>
+				<PageTitle>{m.blocks_add_page_title()}</PageTitle>
+				<PageDescription>{m.blocks_add_page_description()}</PageDescription>
 			</PageHeader>
 			<PageContent className="space-y-6">
 				<div className="grid gap-4 md:grid-cols-3">
 					{[
 						{
 							type: "template" as const,
-							title: "AI behaviour",
-							description: "Define how the bot should respond.",
+							title: m.blocks_add_template_option_title(),
+							description: m.blocks_add_template_option_description(),
 							icon: SparklesIcon,
 						},
 						{
 							type: "database" as const,
-							title: "Repository",
-							description: "Bundle reusable assets with retrieval settings.",
+							title: m.blocks_add_database_option_title(),
+							description: m.blocks_add_database_option_description(),
 							icon: BookOpenIcon,
 						},
 						{
 							type: "imageGeneration" as const,
-							title: "Image generation",
-							description: "Configure image-generation behaviour.",
+							title: m.blocks_add_image_generation_option_title(),
+							description: m.blocks_add_image_generation_option_description(),
 							icon: ImageIcon,
 						},
 					].map((option) => {
@@ -100,17 +98,17 @@ function RouteComponent() {
 					<CardHeader>
 						<CardTitle>
 							{type === "template"
-								? "AI behaviour"
+								? m.blocks_add_template_option_title()
 								: type === "database"
-									? "Repository"
-									: "Image generation"}
+									? m.blocks_add_database_option_title()
+									: m.blocks_add_image_generation_option_title()}
 						</CardTitle>
 						<CardDescription>
 							{type === "template"
-								? "Configure a reusable AI behaviour block."
+								? m.blocks_add_template_form_description()
 								: type === "database"
-									? "Configure a reusable repository."
-									: "Configure a reusable image-generation block."}
+									? m.blocks_add_database_form_description()
+									: m.blocks_add_image_generation_form_description()}
 						</CardDescription>
 					</CardHeader>
 					<CardContent>

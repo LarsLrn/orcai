@@ -6,11 +6,11 @@ import { clientEnv } from "@/lib/env/client";
 import { cn } from "@/lib/utils";
 import { m } from "@/paraglide/messages";
 
-const getTimeBasedGreeting = () => {
+const timeOfDay = () => {
 	const hour = new Date().getHours();
-	if (hour < 12) return m.acidic_last_llama_peek();
-	if (hour < 18) return m.awful_salty_tern_cut();
-	return m.yummy_watery_hawk_grin();
+	if (hour < 12) return "morning";
+	if (hour < 18) return "afternoon";
+	return "evening";
 };
 
 const UserWelcome = () => {
@@ -22,7 +22,10 @@ const UserWelcome = () => {
 		<div className="space-y-2">
 			<div className="flex flex-col justify-between gap-2 sm:flex-row sm:items-center">
 				<h1 className="font-semibold text-2xl tracking-tight">
-					{getTimeBasedGreeting()}, {auth.user.name?.split(" ")[0]}!
+					{m.home_welcome_heading({
+						timeOfDay: timeOfDay(),
+						name: auth.user.name?.split(" ")[0] ?? "",
+					})}
 				</h1>
 				<div className="flex items-center justify-end gap-1">
 					<AppTourButton
@@ -30,8 +33,8 @@ const UserWelcome = () => {
 						size="sm"
 						tour="initialTour"
 						autoTrigger={true}
-						label="Take a tour"
-						aria-label="Take a tour of OrcAI"
+						label={m.home_tour_button_label()}
+						aria-label={m.home_tour_button_aria_label()}
 					>
 						<CompassIcon className="text-foreground" />
 					</AppTourButton>
@@ -47,13 +50,13 @@ const UserWelcome = () => {
 								}),
 							)}
 						>
-							About OrcAI
+							{m.home_about_link()}
 							<ExternalLinkIcon className="size-3.5" />
 						</a>
 					)}
 				</div>
 			</div>
-			<p className="text-muted-foreground">{m.only_pink_meerkat_relish()}</p>
+			<p className="text-muted-foreground">{m.home_intro()}</p>
 		</div>
 	);
 };

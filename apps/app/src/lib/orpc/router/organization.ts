@@ -244,6 +244,7 @@ export const findOrganization = authed.organization.find
 						Effect.mapError(
 							() =>
 								new AppErrors.NotFoundError({
+									reason: "ORGANIZATION_NOT_FOUND",
 									message: "Organization not found",
 								}),
 						),
@@ -454,6 +455,7 @@ export const getOrganizationDeletionImpact = authed.organization.deletionImpact
 		if (!organization) {
 			return yield* Effect.fail(
 				new AppErrors.NotFoundError({
+					reason: "ORGANIZATION_NOT_FOUND",
 					message: "Organization not found",
 				}),
 			);
@@ -532,6 +534,7 @@ export const deleteOrganizations = authed.organization.delete
 				if (existingOrganizations.length !== organizationIds.length) {
 					return yield* Effect.fail(
 						new AppErrors.NotFoundError({
+							reason: "ORGANIZATION_NOT_FOUND",
 							message: "One or more organizations were not found",
 						}),
 					);

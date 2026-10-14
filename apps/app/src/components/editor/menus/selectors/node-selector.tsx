@@ -18,6 +18,7 @@ import {
 	PopoverContent,
 	PopoverTrigger,
 } from "@/components/ui/popover";
+import { m } from "@/paraglide/messages";
 
 interface SelectorResult {
 	isParagraph: boolean;
@@ -36,9 +37,9 @@ interface MenuItem {
 	isActive: (state: SelectorResult) => boolean;
 }
 
-const items: MenuItem[] = [
+const menuItems = (): MenuItem[] => [
 	{
-		name: "Text",
+		name: m.editor_node_selector_text_option(),
 		icon: LetterTextIcon,
 		onClick: (editor) =>
 			editor.chain().focus().toggleNode("paragraph", "paragraph").run(),
@@ -46,7 +47,7 @@ const items: MenuItem[] = [
 			state.isParagraph && !state.isBulletList && !state.isOrderedList,
 	},
 	{
-		name: "Heading 1",
+		name: m.editor_node_selector_heading_1_option(),
 		icon: Heading1,
 		onClick: (editor) =>
 			editor
@@ -59,7 +60,7 @@ const items: MenuItem[] = [
 		isActive: (state) => state.isHeading1,
 	},
 	{
-		name: "Heading 2",
+		name: m.editor_node_selector_heading_2_option(),
 		icon: Heading2,
 		onClick: (editor) =>
 			editor
@@ -72,7 +73,7 @@ const items: MenuItem[] = [
 		isActive: (state) => state.isHeading2,
 	},
 	{
-		name: "Heading 3",
+		name: m.editor_node_selector_heading_3_option(),
 		icon: Heading3,
 		onClick: (editor) =>
 			editor
@@ -91,19 +92,19 @@ const items: MenuItem[] = [
 	//   isActive: (editor) => editor!.isActive("taskItem"),
 	// },
 	{
-		name: "Bullet List",
+		name: m.editor_node_selector_bullet_list_option(),
 		icon: List,
 		onClick: (editor) => editor.chain().focus().toggleBulletList().run(),
 		isActive: (state) => state.isBulletList,
 	},
 	{
-		name: "Numbered List",
+		name: m.editor_node_selector_numbered_list_option(),
 		icon: ListOrdered,
 		onClick: (editor) => editor.chain().focus().toggleOrderedList().run(),
 		isActive: (state) => state.isOrderedList,
 	},
 	{
-		name: "Quote",
+		name: m.editor_node_selector_quote_option(),
 		icon: QuoteIcon,
 		onClick: (editor) =>
 			editor
@@ -142,10 +143,13 @@ export const NodeSelector = ({ editor }: { editor: Editor }) => {
 		}),
 	});
 
+	const items = menuItems();
 	const activeItems = items.filter((item) => item.isActive(editorState));
 
 	const name =
-		activeItems.length > 1 ? "Multiple" : (activeItems.pop()?.name ?? "Text");
+		activeItems.length > 1
+			? m.editor_node_selector_multiple_label()
+			: (activeItems.pop()?.name ?? m.editor_node_selector_text_option());
 
 	return (
 		<Popover>

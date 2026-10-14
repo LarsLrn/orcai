@@ -21,6 +21,7 @@ import {
 import { Skeleton } from "@/components/ui/skeleton";
 import { ProfileForm } from "@/components/users/profile/form/profile-form";
 import { useResendVerificationEmail } from "@/hooks/mutations/use-resend-verification-email";
+import { m } from "@/paraglide/messages";
 
 export const Route = createFileRoute("/app/account/")({
 	component: RouteComponent,
@@ -33,7 +34,7 @@ function RouteComponent() {
 	return (
 		<Page>
 			<PageHeader>
-				<PageTitle>Account</PageTitle>
+				<PageTitle>{m.account_page_title()}</PageTitle>
 			</PageHeader>
 
 			<PageContent>
@@ -44,7 +45,7 @@ function RouteComponent() {
 						</Suspense>
 						<Card>
 							<CardHeader>
-								<CardTitle>Email Verification</CardTitle>
+								<CardTitle>{m.account_verification_card_title()}</CardTitle>
 								<CardDescription className="flex items-center gap-2">
 									{auth.user.emailVerified ? (
 										<MailCheckIcon className="h-4 w-4 text-green-600" />
@@ -52,8 +53,8 @@ function RouteComponent() {
 										<MailWarningIcon className="h-4 w-4 text-amber-600" />
 									)}
 									{auth.user.emailVerified
-										? "Your email address is verified."
-										: "Your email address is not verified."}
+										? m.account_verification_verified_description()
+										: m.account_verification_unverified_description()}
 								</CardDescription>
 							</CardHeader>
 							{!auth.user.emailVerified ? (
@@ -66,14 +67,14 @@ function RouteComponent() {
 											})
 										}
 									>
-										Send Verification Email
+										{m.account_verification_send_button()}
 									</Button>
 								</CardContent>
 							) : null}
 						</Card>
 						<Card>
 							<CardHeader>
-								<CardTitle>Change Password</CardTitle>
+								<CardTitle>{m.account_password_card_title()}</CardTitle>
 							</CardHeader>
 							<CardContent className="flex flex-col gap-4">
 								<ChangePasswordForm />
@@ -84,9 +85,9 @@ function RouteComponent() {
 					<div className="flex flex-1 flex-col gap-4">
 						<Card>
 							<CardHeader>
-								<CardTitle>Your Profile</CardTitle>
+								<CardTitle>{m.account_profile_card_title()}</CardTitle>
 								<CardDescription>
-									Adjust your profile information
+									{m.account_profile_card_description()}
 								</CardDescription>
 							</CardHeader>
 							<CardContent className="flex flex-col gap-4">
@@ -95,9 +96,9 @@ function RouteComponent() {
 						</Card>
 						<Card>
 							<CardHeader>
-								<CardTitle>Organisation Invitations</CardTitle>
+								<CardTitle>{m.account_invitations_card_title()}</CardTitle>
 								<CardDescription>
-									Manage invitations to join organisations
+									{m.account_invitations_card_description()}
 								</CardDescription>
 							</CardHeader>
 							<CardContent>
@@ -109,7 +110,7 @@ function RouteComponent() {
 					</div>
 				</div>
 				<div className="flex flex-col gap-2">
-					<p className="text-xl">Legal</p>
+					<p className="text-xl">{m.account_legal_title()}</p>
 					<div className="flex gap-2">
 						<Link
 							className={buttonVariants({
@@ -118,7 +119,7 @@ function RouteComponent() {
 							to={"/privacy"}
 							target="_blank"
 						>
-							<FileTextIcon /> Privacy Policy
+							<FileTextIcon /> {m.account_legal_privacy_link()}
 						</Link>
 						<Link
 							className={buttonVariants({
@@ -127,7 +128,7 @@ function RouteComponent() {
 							to={"/tou"}
 							target="_blank"
 						>
-							<FileTextIcon /> Terms of Use
+							<FileTextIcon /> {m.account_legal_terms_link()}
 						</Link>
 					</div>
 				</div>

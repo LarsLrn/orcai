@@ -12,6 +12,7 @@ import {
 	type MultiSelectOption,
 } from "@/components/ui/multi-select";
 import { useFieldContext } from "@/hooks/form/context";
+import { m } from "@/paraglide/messages";
 
 const MultiSelectField = ({
 	label,
@@ -49,7 +50,7 @@ const MultiSelectField = ({
 				defaultValue={field.state.value}
 				value={field.state.value}
 				onValueChange={field.handleChange}
-				placeholder={placeholder ?? "Select multiple"}
+				placeholder={placeholder ?? m.forms_multi_select_field_placeholder()}
 				disabled={disabled || options === undefined || options.length === 0}
 			/>
 		</Field>

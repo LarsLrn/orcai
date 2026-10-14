@@ -9,9 +9,10 @@ import {
 } from "@/components/ui/composed/dialog-select";
 import {
 	getOrganizationRoleDescription,
-	organizationRoleLabels,
+	getOrganizationRoleLabel,
 } from "@/lib/authz/organization-role-metadata";
 import { cn } from "@/lib/utils";
+import { m } from "@/paraglide/messages";
 
 const OrganizationRolePicker = ({
 	value,
@@ -19,7 +20,7 @@ const OrganizationRolePicker = ({
 	variant = "compact",
 	className,
 	disabled,
-	title = "Select organisation role",
+	title = m.orgs_role_picker_title(),
 	roles = ORGANIZATION_ROLES,
 }: {
 	value: OrganizationRole;
@@ -63,10 +64,10 @@ const OrganizationRolePicker = ({
 					className,
 				)}
 				disabled={disabled}
-				placeholder="Select role"
+				placeholder={m.orgs_role_picker_placeholder()}
 				size={variant === "compact" ? "sm" : "default"}
 			>
-				<span className="truncate">{organizationRoleLabels[value]}</span>
+				<span className="truncate">{getOrganizationRoleLabel(value)}</span>
 			</DialogSelectTrigger>
 			<DialogSelectContent title={title}>
 				<DialogSelectList>
@@ -74,7 +75,7 @@ const OrganizationRolePicker = ({
 						<DialogSelectItem
 							key={entry}
 							value={entry}
-							title={organizationRoleLabels[entry]}
+							title={getOrganizationRoleLabel(entry)}
 							description={descriptions.get(entry)}
 						/>
 					))}

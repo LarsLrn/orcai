@@ -24,6 +24,7 @@ import { useOrganizationCapabilities } from "@/hooks/authz/use-capabilities";
 import { useDeleteBlocksMutation } from "@/hooks/mutations/use-block-mutations";
 import { hasCapability } from "@/lib/authz/capabilities";
 import { orpc } from "@/lib/orpc/orpc";
+import { m } from "@/paraglide/messages";
 
 const PAGE_SIZE = 100;
 
@@ -62,7 +63,7 @@ export const Route = createFileRoute("/app/hub/repositories/")({
 	head: () => ({
 		meta: [
 			{
-				title: "Repositories",
+				title: m.blocks_repositories_page_title(),
 			},
 		],
 	}),
@@ -119,11 +120,11 @@ function RouteComponent() {
 		<div className="space-y-12">
 			<Section>
 				<SectionHeader>
-					<SectionTitle>Published</SectionTitle>
+					<SectionTitle>
+						{m.blocks_repositories_published_section_title()}
+					</SectionTitle>
 					<SectionDescription>
-						A repository packages indexed material with retrieval settings, so a
-						bot can answer from your own sources. Published repositories are
-						available to bots and chats.
+						{m.blocks_repositories_published_section_description()}
 					</SectionDescription>
 					{canCreateBlock ? (
 						<SectionAction>
@@ -134,7 +135,7 @@ function RouteComponent() {
 								})}
 							>
 								<PlusIcon />
-								Add repository
+								{m.blocks_repositories_add_action()}
 							</Link>
 						</SectionAction>
 					) : null}
@@ -144,14 +145,14 @@ function RouteComponent() {
 						<Placeholder
 							Icon={DatabaseIcon}
 							tone="repository"
-							title="No published repositories yet"
-							description="Create and publish a repository block to make it available for bots."
+							title={m.blocks_repositories_empty_state_title()}
+							description={m.blocks_repositories_empty_state_description()}
 							actions={
 								canCreateBlock
 									? [
 											{
 												key: "add",
-												label: "Add repository",
+												label: m.blocks_repositories_add_action(),
 												icon: BlocksIcon,
 												variant: "default",
 												linkProps: {
@@ -172,7 +173,7 @@ function RouteComponent() {
 										footer: [
 											{
 												key: "playground",
-												label: "Playground",
+												label: m.blocks_repositories_playground_action(),
 												icon: FlaskConicalIcon,
 												linkProps: {
 													to: "/app/hub/repositories/$blockId/playground",
@@ -193,9 +194,11 @@ function RouteComponent() {
 			{draftRepositoryBlocks.length > 0 && (
 				<Section>
 					<SectionHeader>
-						<SectionTitle>Your drafts</SectionTitle>
+						<SectionTitle>
+							{m.blocks_repositories_drafts_section_title()}
+						</SectionTitle>
 						<SectionDescription>
-							Resume repository blocks that are not published yet.
+							{m.blocks_repositories_drafts_section_description()}
 						</SectionDescription>
 					</SectionHeader>
 					<SectionContent>
@@ -223,8 +226,7 @@ const DraftRepositoryCard = ({
 			names: [
 				block.name,
 			],
-			noun: "repository",
-			nounPlural: "repositories",
+			kind: "repository",
 		},
 	);
 
@@ -237,7 +239,7 @@ const DraftRepositoryCard = ({
 						? [
 								{
 									key: "edit",
-									label: "Edit draft",
+									label: m.blocks_repositories_edit_draft_action(),
 									icon: EditIcon,
 									onClick: () =>
 										navigate({
@@ -253,7 +255,7 @@ const DraftRepositoryCard = ({
 						? [
 								{
 									key: "delete",
-									label: "Delete draft",
+									label: m.blocks_repositories_delete_draft_action(),
 									icon: TrashIcon,
 									onClick: () =>
 										deleteBlocks({

@@ -2,6 +2,7 @@ import { Link, useRouter } from "@tanstack/react-router";
 import { AlertCircle, ArrowLeft, Home } from "lucide-react";
 import { Button, buttonVariants } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
+import { m } from "@/paraglide/messages";
 
 export function NotFound({ children }: { children?: any }) {
 	const router = useRouter();
@@ -20,17 +21,13 @@ export function NotFound({ children }: { children?: any }) {
 						<div className="space-y-2">
 							<h1 className="font-semibold text-4xl text-foreground">404</h1>
 							<h2 className="font-semibold text-lg text-muted-foreground">
-								Page Not Found
+								{m.boundaries_not_found_title()}
 							</h2>
 						</div>
 
 						{/* Error Message */}
 						<div className="text-muted-foreground">
-							{children || (
-								<p>
-									The page you're looking for doesn't exist or has been moved.
-								</p>
-							)}
+							{children || <p>{m.boundaries_not_found_description()}</p>}
 						</div>
 					</CardContent>
 				</Card>
@@ -43,7 +40,7 @@ export function NotFound({ children }: { children?: any }) {
 						className="flex items-center gap-2"
 					>
 						<ArrowLeft className="h-4 w-4" />
-						Go back
+						{m.boundaries_not_found_back_button()}
 					</Button>
 
 					<Link
@@ -54,7 +51,7 @@ export function NotFound({ children }: { children?: any }) {
 						})}
 					>
 						<Home className="h-4 w-4" />
-						Return home
+						{m.boundaries_not_found_home_link()}
 					</Link>
 				</div>
 			</div>

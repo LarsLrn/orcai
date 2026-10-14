@@ -6,6 +6,7 @@ import {
 import { createAccountUser } from "../../fixtures/account/users";
 import { pageForSession } from "../../fixtures/auth/users";
 import { expect, signIn, test } from "../../fixtures/index";
+import { message } from "../../fixtures/messages";
 import { open } from "../../fixtures/navigation";
 
 test("account: a wrong current password is refused, a valid change replaces the password", async ({
@@ -36,7 +37,7 @@ test("account: a wrong current password is refused, a valid change replaces the 
 				current: `${user.password}-wrong`,
 				next: newPassword,
 			},
-			page.getByText("Current password is incorrect"),
+			page.getByText(message("error_current_password_incorrect")),
 		);
 
 		// The refused attempt left the password alone. Signing in again opens a
@@ -59,7 +60,7 @@ test("account: a wrong current password is refused, a valid change replaces the 
 				current: user.password,
 				next: newPassword,
 			},
-			page.getByText("Password changed", {
+			page.getByText(message("account_change_password_toast_success"), {
 				exact: true,
 			}),
 		);
@@ -80,8 +81,8 @@ test("account: a wrong current password is refused, a valid change replaces the 
 
 		// The change revoked the other session, as a reset does, so the page
 		// holding it is handed to the login page.
-		await open(earlier.page, accountPath());
-		await expect(earlier.page).toHaveURL(/\/en\/login/);
+		await open(earlier.page, accountPath);
+		await expect(earlier.page).toHaveURL(/\/login/);
 
 		// The session that made the change survives it.
 		await openAccountPage(page);

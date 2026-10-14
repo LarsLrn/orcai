@@ -1,5 +1,6 @@
 import { useAppForm } from "@/hooks/form";
 import { useResetPassword } from "@/hooks/mutations/use-reset-password";
+import { m } from "@/paraglide/messages";
 import { resetPasswordFormOptions } from "./reset-password-form-options";
 
 export function ResetPasswordForm({ token }: { token: string }) {
@@ -24,8 +25,8 @@ export function ResetPasswordForm({ token }: { token: string }) {
 				name="password"
 				children={(field) => (
 					<field.PasswordField
-						label="New Password"
-						placeholder="New password"
+						label={m.auth_reset_password_form_new_password_label()}
+						placeholder={m.auth_reset_password_form_new_password_placeholder()}
 						showStrength
 					/>
 				)}
@@ -34,13 +35,16 @@ export function ResetPasswordForm({ token }: { token: string }) {
 				name="confirmPassword"
 				children={(field) => (
 					<field.PasswordField
-						label="Confirm Password"
-						placeholder="Confirm password"
+						label={m.auth_reset_password_form_confirm_password_label()}
+						placeholder={m.auth_reset_password_form_confirm_password_placeholder()}
 					/>
 				)}
 			/>
 			<form.AppForm>
-				<form.SubmitButton label="Reset password" className="w-full" />
+				<form.SubmitButton
+					label={m.auth_reset_password_form_submit_button()}
+					className="w-full"
+				/>
 			</form.AppForm>
 		</form>
 	);

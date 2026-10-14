@@ -17,6 +17,7 @@ import {
 	TooltipTrigger,
 } from "@/components/ui/tooltip";
 import { cn } from "@/lib/utils";
+import { m } from "@/paraglide/messages";
 import { useToolbar } from "./toolbar-provider";
 
 const LinkToolbar = ({
@@ -74,7 +75,7 @@ const LinkToolbar = ({
 									<p
 										className={"underline decoration-gray-7 underline-offset-4"}
 									>
-										Link
+										{m.editor_toolbar_link_button()}
 									</p>
 								</Button>
 							}
@@ -82,7 +83,7 @@ const LinkToolbar = ({
 					}
 				/>
 				<TooltipContent>
-					<span>Link</span>
+					<span>{m.editor_toolbar_link_tooltip()}</span>
 				</TooltipContent>
 			</Tooltip>
 
@@ -95,9 +96,9 @@ const LinkToolbar = ({
 							render={<X className="h-4 w-4" />}
 						/>
 						<div>
-							<Label>Link</Label>
+							<Label>{m.editor_toolbar_link_popover_label()}</Label>
 							<p className="text-gray-11 text-sm">
-								Attach a link to the selected text
+								{m.editor_toolbar_link_popover_description()}
 							</p>
 							<div className="mt-3 flex flex-col items-end justify-end gap-3">
 								<Input
@@ -125,11 +126,13 @@ const LinkToolbar = ({
 											}}
 										>
 											<Trash2 />
-											Remove
+											{m.common_remove_button()}
 										</Button>
 									)}
 									<Button size="sm" className="h-8" onClick={handleConfirm}>
-										{editor?.getAttributes("link").href ? "Update" : "Confirm"}
+										{editor?.getAttributes("link").href
+											? m.editor_toolbar_link_update_button()
+											: m.common_confirm_button()}
 									</Button>
 								</div>
 							</div>

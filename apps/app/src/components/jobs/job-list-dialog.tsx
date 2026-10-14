@@ -16,6 +16,7 @@ import {
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { Spinner } from "@/components/ui/spinner";
 import { orpc } from "@/lib/orpc/orpc";
+import { m } from "@/paraglide/messages";
 
 type JobListDialogProps = {
 	jobQueue: JobQueue;
@@ -67,14 +68,16 @@ const JobListDialog = ({
 		<>
 			<Button variant="outline" size="sm" onClick={() => setOpen(true)}>
 				<ListIcon className="mr-1 h-3 w-3" />
-				Jobs
+				{m.jobs_list_dialog_trigger_button()}
 			</Button>
 			<Dialog open={open} onOpenChange={setOpen}>
 				<DialogContent className="max-h-[80vh] sm:max-w-lg">
 					<DialogHeader>
-						<DialogTitle>Job history</DialogTitle>
+						<DialogTitle>{m.jobs_list_dialog_title()}</DialogTitle>
 						<DialogDescription>
-							{jobQueue} jobs for this resource
+							{m.jobs_list_dialog_description({
+								jobQueue,
+							})}
 						</DialogDescription>
 					</DialogHeader>
 					{isLoading ? (
@@ -91,7 +94,7 @@ const JobListDialog = ({
 						</ScrollArea>
 					) : (
 						<p className="py-8 text-center text-muted-foreground text-sm">
-							No jobs found.
+							{m.jobs_list_dialog_empty_label()}
 						</p>
 					)}
 					<DialogFooter showCloseButton />

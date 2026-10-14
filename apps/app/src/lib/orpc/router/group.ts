@@ -78,6 +78,7 @@ const findOrganizationGroup = (params: {
 		if (!group) {
 			return yield* Effect.fail(
 				new AppErrors.NotFoundError({
+					reason: "GROUP_NOT_FOUND",
 					message: "Group not found",
 				}),
 			);
@@ -97,7 +98,8 @@ const requireCustomGroup = (params: {
 		if (group.kind === "system") {
 			return yield* Effect.fail(
 				new AppErrors.BadRequestError({
-					message: "[SYSTEM_GROUP_IMMUTABLE] System groups cannot be modified",
+					reason: "SYSTEM_GROUP_IMMUTABLE",
+					message: "System groups cannot be modified",
 				}),
 			);
 		}
@@ -202,6 +204,7 @@ export const findGroup = authed.group.find
 		if (!group) {
 			return yield* Effect.fail(
 				new AppErrors.NotFoundError({
+					reason: "GROUP_NOT_FOUND",
 					message: "Group not found",
 				}),
 			);
@@ -277,6 +280,7 @@ export const updateGroup = authed.group.update
 		if (!existing) {
 			return yield* Effect.fail(
 				new AppErrors.NotFoundError({
+					reason: "GROUP_NOT_FOUND",
 					message: "Group not found",
 				}),
 			);
@@ -285,7 +289,8 @@ export const updateGroup = authed.group.update
 		if (existing.kind === "system") {
 			return yield* Effect.fail(
 				new AppErrors.BadRequestError({
-					message: "[SYSTEM_GROUP_IMMUTABLE] System groups cannot be modified",
+					reason: "SYSTEM_GROUP_IMMUTABLE",
+					message: "System groups cannot be modified",
 				}),
 			);
 		}
@@ -332,6 +337,7 @@ export const deleteGroups = authed.group.delete
 		if (existingGroups.length !== groupIds.length) {
 			return yield* Effect.fail(
 				new AppErrors.NotFoundError({
+					reason: "GROUP_NOT_FOUND",
 					message: "One or more groups were not found",
 				}),
 			);
@@ -340,7 +346,8 @@ export const deleteGroups = authed.group.delete
 		if (existingGroups.some((group) => group.kind === "system")) {
 			return yield* Effect.fail(
 				new AppErrors.BadRequestError({
-					message: "[SYSTEM_GROUP_IMMUTABLE] System groups cannot be deleted",
+					reason: "SYSTEM_GROUP_IMMUTABLE",
+					message: "System groups cannot be deleted",
 				}),
 			);
 		}
@@ -480,6 +487,7 @@ export const listGroupMembers = authed.group.listMembers
 		if (!group) {
 			return yield* Effect.fail(
 				new AppErrors.NotFoundError({
+					reason: "GROUP_NOT_FOUND",
 					message: "Group not found",
 				}),
 			);
@@ -689,12 +697,11 @@ export const addGroupMembers = authed.group.addMembers
 		if (rejectedUserIds.length > 0) {
 			return yield* Effect.fail(
 				new AppErrors.BadRequestError({
-					message:
-						"[GROUP_MEMBERS_INVALID] Group members must belong to this organisation",
-					data: {
-						code: "GROUP_MEMBERS_INVALID",
+					reason: "GROUP_MEMBERS_INVALID",
+					params: {
 						userIds: rejectedUserIds,
 					},
+					message: "Group members must belong to this organisation",
 				}),
 			);
 		}

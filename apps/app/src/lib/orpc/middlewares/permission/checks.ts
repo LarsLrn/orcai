@@ -90,13 +90,8 @@ export const checkManyPermissionMiddleware = <Entity extends EntityType>(
 						if (allowedIds.length === 0) {
 							return yield* Effect.fail(
 								new AppErrors.BadRequestError({
+									reason: "ENTITY_IDS_REQUIRED",
 									message: "No valid entity IDs provided",
-									data: {
-										allowed: false,
-										entityType,
-										permission: input.permission,
-										zedToken,
-									},
 								}),
 							);
 						}

@@ -2,6 +2,7 @@ import type { ResourceVisibility } from "@orcai/schema";
 import { GlobeIcon, LockIcon } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { Switch } from "@/components/ui/switch";
+import { m } from "@/paraglide/messages";
 
 type VisibilityToggleProps = {
 	visibility: ResourceVisibility;
@@ -20,11 +21,11 @@ const VisibilityToggle = ({
 		<div className="space-y-2">
 			<div className="flex items-center justify-between gap-4">
 				<div>
-					<p className="font-medium text-sm">Visibility</p>
+					<p className="font-medium text-sm">{m.access_visibility_label()}</p>
 					<p className="text-muted-foreground text-xs">
 						{isPublic
-							? "Every user of this instance can find and use this resource."
-							: "Only the people and groups granted access can find and use this resource."}
+							? m.access_visibility_description_public()
+							: m.access_visibility_description_private()}
 					</p>
 				</div>
 				<div className="flex items-center gap-2">
@@ -34,7 +35,9 @@ const VisibilityToggle = ({
 						) : (
 							<LockIcon className="mr-1 h-3 w-3" />
 						)}
-						{isPublic ? "Public" : "Private"}
+						{isPublic
+							? m.access_visibility_badge_public()
+							: m.access_visibility_badge_private()}
 					</Badge>
 					<Switch
 						checked={isPublic}

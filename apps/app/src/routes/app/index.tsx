@@ -6,6 +6,7 @@ import { UserHome } from "@/components/app/home/user-home";
 import { Page, PageContent } from "@/components/ui/shell/page";
 import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { orpc } from "@/lib/orpc/orpc";
+import { m } from "@/paraglide/messages";
 
 const PREFETCH_PARAMS = {
 	pageIndex: 0,
@@ -59,11 +60,11 @@ function RouteComponent() {
 						<TabsList>
 							<TabsTrigger value="user">
 								<MessageSquareIcon />
-								Use
+								{m.home_view_use_tab()}
 							</TabsTrigger>
 							<TabsTrigger value="manager">
 								<LayoutDashboardIcon />
-								Manage
+								{m.home_view_manage_tab()}
 							</TabsTrigger>
 						</TabsList>
 					</Tabs>

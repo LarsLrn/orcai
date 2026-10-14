@@ -9,7 +9,7 @@ The end-to-end suite proves that the application works against real infrastructu
 
 - Playwright Test on the host, Chromium only.
 - Workspace package `apps/e2e` (`@orcai/e2e`).
-- Browser locale `en`. Locators use roles and accessible English names; test ids only where no accessible name exists.
+- Browser locale `en`. Locators use roles and accessible names taken from the message catalogue through `fixtures/messages.ts`, never a repeated English literal; test ids only where no accessible name exists. See [Localisation](/docs/development/localisation).
 - Traces and screenshots are kept on failure. Test timeout 30 seconds.
 - Locally: Playwright's default worker count, no retries. On CI: two workers and one retry; flaky retries fail CI.
 
@@ -35,7 +35,7 @@ The application under test is the production build: Playwright's `webServer` lis
 
 ## Seed And Isolation
 
-There is no seed command. A Playwright `setup` project holds one spec that initialises the reset instance through the first-run UI at `/<locale>/init` with a well-known admin whose credentials and instance organisation are fixed constants. If the instance is already initialised, the spec skips itself with a visible reason. Every other project depends on `setup`, so a full run always exercises first-run setup and always has the well-known admin available.
+There is no seed command. A Playwright `setup` project holds one spec that initialises the reset instance through the first-run UI at `/init` with a well-known admin whose credentials and instance organisation are fixed constants. If the instance is already initialised, the spec skips itself with a visible reason. Every other project depends on `setup`, so a full run always exercises first-run setup and always has the well-known admin available.
 
 The reset happens once per run. Beyond the well-known admin, every Playwright worker creates its own organisations and users through the public API, named by worker index, and specs mutate only data inside their own worker's organisations. Users are created through the Better Auth sign-up endpoint and then given a role through the membership procedure. Creating an organisation requires the instance-admin role, so the well-known admin creates every worker organisation and becomes an admin member of each. It does not need an active organisation to perform that instance-scoped action. Fixture setup still exercises the same paths the interface does. Specs that need instance-level state live in `apps/e2e/tests/instance/`; that project runs serially and completes before the parallel specs start.
 

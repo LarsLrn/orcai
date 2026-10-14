@@ -23,6 +23,7 @@ import { auth } from "@/lib/auth/auth";
 import { clientEnv } from "@/lib/env/client";
 import { seo } from "@/lib/seo";
 import { cn } from "@/lib/utils";
+import { m } from "@/paraglide/messages";
 import { getLocale } from "@/paraglide/runtime";
 import appCss from "@/styles/app.css?url";
 
@@ -84,7 +85,7 @@ export const Route = createRootRouteWithContext<{
 			},
 			...seo({
 				title: "OrcAI",
-				description: "Knowledge assistants you can operate on your own terms.",
+				description: m.app_meta_description(),
 			}),
 		],
 		links: [

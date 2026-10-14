@@ -7,6 +7,7 @@ import {
 } from "../../fixtures/authorization";
 import { baseURL } from "../../fixtures/env";
 import { expect, test } from "../../fixtures/index";
+import { message } from "../../fixtures/messages";
 import { enterApp } from "../../fixtures/navigation";
 import {
 	addMember,
@@ -27,7 +28,7 @@ test("users: an admin removes a user from the organisation", async ({
 
 	const page = await pageAs("admin");
 	await enterApp(page, org.slug);
-	await reachPage(page, "/en/app/users", "Users");
+	await reachPage(page, "/app/users", message("users_page_title"));
 
 	const row = userRow(page, user.email);
 	await expect(row).toBeVisible();
@@ -36,17 +37,17 @@ test("users: an admin removes a user from the organisation", async ({
 	// deleting the account is an instance action on Instance > Users.
 	await row
 		.getByRole("button", {
-			name: "Open menu",
+			name: message("common_row_menu_trigger"),
 		})
 		.click();
 	await page
 		.getByRole("menuitem", {
-			name: "Remove from organisation",
+			name: message("users_remove_from_organisation_action"),
 		})
 		.click();
 	await page
 		.getByRole("button", {
-			name: "Remove",
+			name: message("common_remove_button"),
 			exact: true,
 		})
 		.click();
@@ -106,10 +107,10 @@ test("users: a removed user loses the organisation it was signed in to", async (
 		});
 
 		await seedZedToken(page);
-		await page.goto("/en/app");
+		await page.goto("/app");
 		await page.waitForLoadState("networkidle");
 
-		await expect(page).toHaveURL(/\/en\/select-organization/);
+		await expect(page).toHaveURL(/\/select-organization/);
 	} finally {
 		await context.close();
 	}
@@ -187,7 +188,9 @@ test("users: an account that still owns content is not deleted halfway", async (
 		}),
 	);
 	expect(refused.code).toBe("CONFLICT");
-	expect(refused.message).toContain("cannot be deleted yet");
+	expect(refused.data).toMatchObject({
+		reason: "USER_OWNS_CONTENT",
+	});
 
 	// The refusal leaves nothing half done: the membership and the account are
 	// both still there.

@@ -16,6 +16,7 @@ import {
 } from "@/components/ui/dropdown-menu";
 import { useDeleteModelsMutation } from "@/hooks/mutations/use-model-mutations";
 import { formatDisplayTimestamp } from "@/lib/presentation/format-timestamp";
+import { m } from "@/paraglide/messages";
 
 const columnHelper = createColumnHelper<DataTableFeatures, ModelListRow>();
 
@@ -23,7 +24,7 @@ export const modelTableColumns = columnHelper.columns([
 	createDataTableSelectColumn<ModelListRow>(),
 	columnHelper.accessor("name", {
 		header: ({ column }) => (
-			<DataTableColumnHeader column={column} title="Name" />
+			<DataTableColumnHeader column={column} title={m.common_name_label()} />
 		),
 		cell: ({ row }) => (
 			<Link
@@ -40,7 +41,10 @@ export const modelTableColumns = columnHelper.columns([
 	columnHelper.accessor((row) => row.provider.name, {
 		id: "providerName",
 		header: ({ column }) => (
-			<DataTableColumnHeader column={column} title="Provider" />
+			<DataTableColumnHeader
+				column={column}
+				title={m.common_provider_label()}
+			/>
 		),
 		cell: ({ row }) => (
 			<Link
@@ -56,17 +60,25 @@ export const modelTableColumns = columnHelper.columns([
 	}),
 	columnHelper.accessor("isDeprecated", {
 		header: ({ column }) => (
-			<DataTableColumnHeader column={column} title="Status" />
+			<DataTableColumnHeader
+				column={column}
+				title={m.common_status_column_header()}
+			/>
 		),
 		cell: ({ row }) => (
 			<Badge variant={row.original.isDeprecated ? "destructive" : "default"}>
-				{row.original.isDeprecated ? "Deprecated" : "Available"}
+				{row.original.isDeprecated
+					? m.common_status_deprecated_label()
+					: m.models_table_status_available_label()}
 			</Badge>
 		),
 	}),
 	columnHelper.accessor("createdAt", {
 		header: ({ column }) => (
-			<DataTableColumnHeader column={column} title="Created" />
+			<DataTableColumnHeader
+				column={column}
+				title={m.common_created_column_header()}
+			/>
 		),
 		cell: ({ row }) => (
 			<span>{formatDisplayTimestamp(row.original.createdAt || "")}</span>
@@ -85,7 +97,7 @@ export const modelTableColumns = columnHelper.columns([
 					<DropdownMenuTrigger
 						render={
 							<Button variant="ghost" className="size-8 p-0">
-								<span className="sr-only">Open menu</span>
+								<span className="sr-only">{m.common_row_menu_trigger()}</span>
 								<MoreHorizontal className="size-4" />
 							</Button>
 						}
@@ -97,7 +109,9 @@ export const modelTableColumns = columnHelper.columns([
 								modelId: model.id,
 							}}
 						>
-							<DropdownMenuItem>View model</DropdownMenuItem>
+							<DropdownMenuItem>
+								{m.models_table_view_menu_item()}
+							</DropdownMenuItem>
 						</Link>
 						<Link
 							to={"/app/models/$modelId/edit"}
@@ -105,7 +119,9 @@ export const modelTableColumns = columnHelper.columns([
 								modelId: model.id,
 							}}
 						>
-							<DropdownMenuItem>Edit model</DropdownMenuItem>
+							<DropdownMenuItem>
+								{m.models_table_edit_menu_item()}
+							</DropdownMenuItem>
 						</Link>
 						<DropdownMenuSeparator />
 						<DeleteItem model={model} />
@@ -139,7 +155,7 @@ const DeleteItem = ({ model }: { model: ModelListRow }) => {
 				})
 			}
 		>
-			Delete model
+			{m.models_table_delete_menu_item()}
 		</DropdownMenuItem>
 	);
 };

@@ -15,6 +15,7 @@ import {
 } from "@/components/ui/shell/section";
 import { Skeleton } from "@/components/ui/skeleton";
 import { orpc } from "@/lib/orpc/orpc";
+import { m } from "@/paraglide/messages";
 import { BotCard } from "./bot-card";
 
 const BotsShowcase = ({ limit = 6 }: { limit?: number }) => {
@@ -31,10 +32,8 @@ const BotsShowcase = ({ limit = 6 }: { limit?: number }) => {
 	return (
 		<Section>
 			<SectionHeader>
-				<SectionTitle>Bots you can use</SectionTitle>
-				<SectionDescription>
-					Each bot answers from its own sources and behaviour.
-				</SectionDescription>
+				<SectionTitle>{m.bots_showcase_title()}</SectionTitle>
+				<SectionDescription>{m.bots_showcase_description()}</SectionDescription>
 				<SectionAction>
 					<Link
 						to="/app/hub/bots"
@@ -44,7 +43,7 @@ const BotsShowcase = ({ limit = 6 }: { limit?: number }) => {
 							className: "w-full sm:w-auto",
 						})}
 					>
-						View all bots
+						{m.bots_showcase_view_all_action()}
 					</Link>
 				</SectionAction>
 			</SectionHeader>
@@ -52,12 +51,12 @@ const BotsShowcase = ({ limit = 6 }: { limit?: number }) => {
 			<SectionContent>
 				{bots.data.length === 0 ? (
 					<Placeholder
-						title="No bots yet"
-						description="A bot bundles approved sources with a set behaviour so anyone in the organisation can ask against them."
+						title={m.bots_showcase_empty_title()}
+						description={m.bots_showcase_empty_description()}
 						actions={[
 							{
 								key: "create_bot",
-								label: "Create bot",
+								label: m.bots_showcase_create_action(),
 								icon: SparklesIcon,
 								variant: "outline",
 								linkProps: {
@@ -76,7 +75,7 @@ const BotsShowcase = ({ limit = 6 }: { limit?: number }) => {
 									footer: [
 										{
 											key: "start_chat",
-											label: "Start chat",
+											label: m.bots_showcase_start_chat_action(),
 											onClick: () =>
 												navigate({
 													to: "/app/chat/new",

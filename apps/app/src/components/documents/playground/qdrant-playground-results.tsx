@@ -4,6 +4,7 @@ import { DisplayPoint } from "@/components/documents/chunks/display-point";
 import { Placeholder } from "@/components/placeholders/placeholder";
 import { Spinner } from "@/components/ui/spinner";
 import { orpc } from "@/lib/orpc/orpc";
+import { m } from "@/paraglide/messages";
 
 const QdrantPlaygroundResults = ({
 	search,
@@ -44,8 +45,8 @@ const QdrantPlaygroundResults = ({
 	if (isError) {
 		return (
 			<Placeholder
-				title="Search failed"
-				description="The repository could not be searched. Please try again."
+				title={m.assets_playground_error_title()}
+				description={m.assets_playground_error_description()}
 			/>
 		);
 	}
@@ -53,8 +54,8 @@ const QdrantPlaygroundResults = ({
 	if (!points || points.data.length === 0) {
 		return (
 			<Placeholder
-				title="No matching passages"
-				description="Try a different query or retrieval mode."
+				title={m.assets_playground_empty_state_title()}
+				description={m.assets_playground_empty_state_description()}
 			/>
 		);
 	}

@@ -1,11 +1,3219 @@
 {
 	"$schema": "https://inlang.com/schema/inlang-message-format",
-	"example_message": "Hello world {username}",
-	"language": "Language",
-	"greeting_neutral": "Welcome",
-	"acidic_last_llama_peek": "Good morning",
-	"awful_salty_tern_cut": "Good afternoon",
-	"yummy_watery_hawk_grin": "Good evening",
-	"only_pink_meerkat_relish": "Ask questions against your organisation's approved sources, or build a bot that others can use.",
-	"fluffy_short_halibut_enchant": "About OrcAI"
+	"access_dialog_description": "Configure visibility, groups, and direct grants for this {resource}.",
+	"access_dialog_description_named": "Configure visibility, groups, and direct grants for this {resource}: {name}.",
+	"access_dialog_title": "Manage Access",
+	"access_grant_list_empty_state_description": "No direct grants found.",
+	"access_grant_list_filter_placeholder": "Filter by name or email",
+	"access_grant_list_title": "Direct grants",
+	"access_grant_row_group_fallback": "Group",
+	"access_grant_row_revoke_aria_label": "Revoke access",
+	"access_grant_row_source_all_members": "All Members",
+	"access_grant_row_source_direct_group": "Direct group",
+	"access_grant_row_source_direct_user": "Direct user",
+	"access_grant_toast_error": "Failed to update access",
+	"access_grant_toast_loading": "Updating access...",
+	"access_grant_toast_success": "Access updated",
+	"access_inherited_ancestor_phrase": [
+		{
+			"declarations": [
+				"input kind",
+				"input blockCount",
+				"input botCount",
+				"local blockPlural = blockCount: plural",
+				"local botPlural = botCount: plural"
+			],
+			"selectors": [
+				"kind",
+				"blockPlural",
+				"botPlural"
+			],
+			"match": {
+				"kind=blocks, blockPlural=one, botPlural=*": "{blockCount} block",
+				"kind=blocks, blockPlural=other, botPlural=*": "{blockCount} blocks",
+				"kind=bots, blockPlural=*, botPlural=one": "{botCount} bot",
+				"kind=bots, blockPlural=*, botPlural=other": "{botCount} bots",
+				"kind=both, blockPlural=one, botPlural=one": "{blockCount} block and {botCount} bot",
+				"kind=both, blockPlural=one, botPlural=other": "{blockCount} block and {botCount} bots",
+				"kind=both, blockPlural=other, botPlural=one": "{blockCount} blocks and {botCount} bot",
+				"kind=both, blockPlural=other, botPlural=other": "{blockCount} blocks and {botCount} bots"
+			}
+		}
+	],
+	"access_inherited_details_action": "See details",
+	"access_inherited_details_description": "These grants are set on the bot or block itself. Open one to change them.",
+	"access_inherited_details_title": "Inherited access",
+	"access_inherited_principal_phrase": [
+		{
+			"declarations": [
+				"input kind",
+				"input groupCount",
+				"input userCount",
+				"local groupPlural = groupCount: plural",
+				"local userPlural = userCount: plural"
+			],
+			"selectors": [
+				"kind",
+				"groupPlural",
+				"userPlural"
+			],
+			"match": {
+				"kind=groups, groupPlural=one, userPlural=*": "{groupCount} group",
+				"kind=groups, groupPlural=other, userPlural=*": "{groupCount} groups",
+				"kind=people, groupPlural=*, userPlural=one": "{userCount} person",
+				"kind=people, groupPlural=*, userPlural=other": "{userCount} people",
+				"kind=both, groupPlural=one, userPlural=one": "{groupCount} group and {userCount} person",
+				"kind=both, groupPlural=one, userPlural=other": "{groupCount} group and {userCount} people",
+				"kind=both, groupPlural=other, userPlural=one": "{groupCount} groups and {userCount} person",
+				"kind=both, groupPlural=other, userPlural=other": "{groupCount} groups and {userCount} people"
+			}
+		}
+	],
+	"access_inherited_public_note": "One of them is public, so everyone on this instance can read this resource.",
+	"access_inherited_summary_shared": "Also shared through {ancestors} with {principals}.",
+	"access_inherited_summary_unshared": "Also reachable through {ancestors}, not shared with anyone yet.",
+	"access_inherited_unnamed": [
+		{
+			"declarations": [
+				"input count",
+				"local countPlural = count: plural"
+			],
+			"selectors": [
+				"countPlural"
+			],
+			"match": {
+				"countPlural=one": "{count} more is not listed.",
+				"countPlural=other": "{count} more are not listed."
+			}
+		}
+	],
+	"access_inherited_unnamed_hidden": [
+		{
+			"declarations": [
+				"input count",
+				"local countPlural = count: plural"
+			],
+			"selectors": [
+				"countPlural"
+			],
+			"match": {
+				"countPlural=one": "{count} more is not listed, {hidden} of which you cannot open.",
+				"countPlural=other": "{count} more are not listed, {hidden} of which you cannot open."
+			}
+		}
+	],
+	"access_make_private_confirm_button": "Make Private",
+	"access_make_private_confirm_description": "Users outside direct or inherited access will lose visibility.",
+	"access_make_private_confirm_title": "Make resource private",
+	"access_manager_add_description": "Give someone in this organisation access to this resource.",
+	"access_manager_add_heading": "Add people and groups",
+	"access_manager_current_resource": "Current resource: {name}.",
+	"access_manager_grant_action": "Grant access",
+	"access_manager_groups_hint_description": "Use groups for classes, cohorts, or teams whenever possible. Direct grants are best for exceptions and individual collaborators.",
+	"access_manager_groups_hint_title": "Groups are usually the right place to start",
+	"access_manager_public_alert_description": "Every user of this instance can find and use it.",
+	"access_manager_public_alert_title": "This resource is public",
+	"access_manager_tab_groups": "Groups",
+	"access_manager_tab_people": "People",
+	"access_principal_picker_custom_group_subtitle": "Custom group",
+	"access_principal_picker_empty_state_description": "No people or groups match this search.",
+	"access_principal_picker_search_placeholder_groups": "Search groups",
+	"access_principal_picker_search_placeholder_people": "Search members",
+	"access_principal_picker_system_badge": "System",
+	"access_principal_picker_system_group_subtitle": "System group",
+	"access_publish_confirm_button": "Publish",
+	"access_publish_confirm_description": "Every user of this instance will be able to find and use this resource.",
+	"access_publish_confirm_title": "Publish resource",
+	"access_resource_asset_hint": "Access may also be inherited from the parent bot.",
+	"access_resource_asset_label": "Asset",
+	"access_resource_block_hint": "Access may also be inherited from the parent bot.",
+	"access_resource_block_label": "Block",
+	"access_resource_bot_hint": "Use groups when possible to grant cohort access. Access here cascades to linked blocks and assets.",
+	"access_resource_bot_label": "Bot",
+	"access_revoke_confirm_button": "Revoke",
+	"access_revoke_confirm_description": "This principal will lose their direct access to this resource.",
+	"access_revoke_confirm_title": "Revoke access",
+	"access_revoke_toast_error": "Failed to revoke access",
+	"access_revoke_toast_loading": "Revoking access...",
+	"access_revoke_toast_success": "Access revoked",
+	"access_role_editor_description": "Can edit the resource",
+	"access_role_editor_label": "Editor",
+	"access_role_manager_description": "Can edit the resource and manage access",
+	"access_role_manager_label": "Manager",
+	"access_role_viewer_description": "Can view the resource",
+	"access_role_viewer_label": "Viewer",
+	"access_visibility_badge_private": "Private",
+	"access_visibility_badge_public": "Public",
+	"access_visibility_description_private": "Only the people and groups granted access can find and use this resource.",
+	"access_visibility_description_public": "Every user of this instance can find and use this resource.",
+	"access_visibility_label": "Visibility",
+	"access_visibility_toast_error": "Failed to update visibility",
+	"access_visibility_toast_loading": "Updating visibility...",
+	"access_visibility_toast_private": "Resource is now private",
+	"access_visibility_toast_public": "Resource is now public",
+	"account_change_password_confirm_description": "Are you sure you want to change your password?",
+	"account_change_password_confirm_title": "Change password",
+	"account_change_password_toast_error": "Failed to change password",
+	"account_change_password_toast_loading": "Changing password...",
+	"account_change_password_toast_success": "Password changed",
+	"account_invitations_card_description": "Manage invitations to join organisations",
+	"account_invitations_card_title": "Organisation Invitations",
+	"account_legal_privacy_link": "Privacy Policy",
+	"account_legal_terms_link": "Terms of Use",
+	"account_legal_title": "Legal",
+	"account_page_title": "Account",
+	"account_password_card_title": "Change Password",
+	"account_profile_card_description": "Adjust your profile information",
+	"account_profile_card_title": "Your Profile",
+	"account_profile_toast_error": "Failed to update profile",
+	"account_profile_toast_loading": "Saving profile...",
+	"account_profile_toast_success": "Profile updated successfully!",
+	"account_user_menu_sign_out_action": "Sign Out",
+	"account_verification_card_title": "Email Verification",
+	"account_verification_send_button": "Send Verification Email",
+	"account_verification_unverified_description": "Your email address is not verified.",
+	"account_verification_verified_description": "Your email address is verified.",
+	"ai_elements_attachment_empty_state": "No attachments",
+	"ai_elements_attachment_fallback_label": "Attachment",
+	"ai_elements_attachment_image_alt": "Image",
+	"ai_elements_attachment_image_fallback_label": "Image",
+	"ai_elements_attachment_source_fallback_label": "Source",
+	"ai_elements_cite_load_error": "The source details could not be loaded.",
+	"ai_elements_cite_loading_label": "Loading the source details",
+	"ai_elements_cite_open_asset_action": "Open asset",
+	"ai_elements_cite_page_label": "Page {page}",
+	"ai_elements_cite_pill_label_with_page": "{title} · p. {page}",
+	"ai_elements_cite_unknown_source": "This citation does not name a source in the library.",
+	"ai_elements_context_cache_label": "Cache",
+	"ai_elements_context_input_label": "Input",
+	"ai_elements_context_output_label": "Output",
+	"ai_elements_context_reasoning_label": "Reasoning",
+	"ai_elements_context_tokens_used_label": "Tokens used",
+	"ai_elements_context_total_tokens_label": "Total tokens",
+	"ai_elements_context_usage_aria_label": "Model context usage",
+	"ai_elements_conversation_empty_state_description": "Start a chat to see messages here",
+	"ai_elements_conversation_empty_state_title": "No messages yet",
+	"ai_elements_inline_citation_next_aria_label": "Next",
+	"ai_elements_inline_citation_previous_aria_label": "Previous",
+	"ai_elements_inline_citation_unknown_source_label": "unknown",
+	"ai_elements_message_branch_next_aria_label": "Next branch",
+	"ai_elements_message_branch_page": "{current} of {total}",
+	"ai_elements_message_branch_previous_aria_label": "Previous branch",
+	"ai_elements_prompt_input_add_attachments_label": "Add photos or files",
+	"ai_elements_prompt_input_add_screenshot_label": "Take screenshot",
+	"ai_elements_prompt_input_error_accept": "No files match the accepted types.",
+	"ai_elements_prompt_input_error_max_file_size": "All files exceed the maximum size.",
+	"ai_elements_prompt_input_error_max_files": "Too many files. Some were not added.",
+	"ai_elements_prompt_input_file_input_label": "Upload files",
+	"ai_elements_prompt_input_stop_aria_label": "Stop",
+	"ai_elements_prompt_input_submit_aria_label": "Submit",
+	"ai_elements_prompt_input_textarea_placeholder": "What would you like to know?",
+	"ai_elements_reasoning_duration": [
+		{
+			"declarations": [
+				"input count",
+				"local countPlural = count: plural"
+			],
+			"selectors": [
+				"countPlural"
+			],
+			"match": {
+				"countPlural=one": "Thought for {count} second",
+				"countPlural=other": "Thought for {count} seconds"
+			}
+		}
+	],
+	"ai_elements_reasoning_duration_unknown": "Thought for a few seconds",
+	"ai_elements_reasoning_thinking": "Thinking",
+	"ai_elements_tool_error_label": "Error",
+	"ai_elements_tool_parameters_empty": "No parameters.",
+	"ai_elements_tool_parameters_invalid": "The call did not produce a valid parameter object.",
+	"ai_elements_tool_parameters_label": "Parameters",
+	"ai_elements_tool_raw_parameters_hint": "Showing the original arguments because validation failed.",
+	"ai_elements_tool_raw_parameters_label": "Raw parameters",
+	"ai_elements_tool_result_label": "Result",
+	"app_logo_alt": "OrcAI logo",
+	"app_meta_description": "Knowledge assistants you can operate on your own terms.",
+	"app_metadata_card_copy_tooltip": "Click to copy",
+	"app_metadata_card_created_label": "Created",
+	"app_metadata_card_id_label": "ID",
+	"app_metadata_card_title": "Details",
+	"app_metadata_card_updated_label": "Updated",
+	"app_metadata_card_version_label": "Version",
+	"app_metadata_card_version_value": "v{version}",
+	"app_metadata_card_visibility_label": "Visibility",
+	"app_metadata_card_visibility_private": "Private",
+	"app_metadata_card_visibility_public": "Public",
+	"assets_add_page_description": "Upload files, then confirm the metadata that should travel with each asset wherever it is reused.",
+	"assets_add_page_title": "Add assets",
+	"assets_add_submit_button": "Save assets",
+	"assets_card_author_description": "Author: {name}",
+	"assets_card_chapter_description": "Chapter: {name}",
+	"assets_card_created_label": "Created",
+	"assets_card_edit_action": "Edit asset",
+	"assets_card_view_action": "View",
+	"assets_delete_confirm_button": [
+		{
+			"declarations": [
+				"input count",
+				"local countPlural = count: plural"
+			],
+			"selectors": [
+				"countPlural"
+			],
+			"match": {
+				"countPlural=one": "Delete asset",
+				"countPlural=other": "Delete {count} assets"
+			}
+		}
+	],
+	"assets_delete_confirm_description": [
+		{
+			"declarations": [
+				"input count",
+				"local countPlural = count: plural"
+			],
+			"selectors": [
+				"countPlural"
+			],
+			"match": {
+				"countPlural=one": "Repositories built on it lose the material, and answers can no longer cite it.",
+				"countPlural=other": "Repositories built on them lose the material, and answers can no longer cite them."
+			}
+		}
+	],
+	"assets_delete_confirm_title": [
+		{
+			"declarations": [
+				"input count",
+				"local countPlural = count: plural"
+			],
+			"selectors": [
+				"countPlural"
+			],
+			"match": {
+				"countPlural=one": "Delete this asset?",
+				"countPlural=other": "Delete {count} assets?"
+			}
+		}
+	],
+	"assets_delete_confirm_title_named": "Delete the asset {name}?",
+	"assets_delete_toast_error": [
+		{
+			"declarations": [
+				"input count",
+				"local countPlural = count: plural"
+			],
+			"selectors": [
+				"countPlural"
+			],
+			"match": {
+				"countPlural=one": "The asset was not deleted. Try again.",
+				"countPlural=other": "The assets were not deleted. Try again."
+			}
+		}
+	],
+	"assets_delete_toast_loading": [
+		{
+			"declarations": [
+				"input count",
+				"local countPlural = count: plural"
+			],
+			"selectors": [
+				"countPlural"
+			],
+			"match": {
+				"countPlural=one": "Deleting the asset...",
+				"countPlural=other": "Deleting {count} assets..."
+			}
+		}
+	],
+	"assets_delete_toast_success": [
+		{
+			"declarations": [
+				"input count",
+				"local countPlural = count: plural"
+			],
+			"selectors": [
+				"countPlural"
+			],
+			"match": {
+				"countPlural=one": "{count} asset deleted",
+				"countPlural=other": "{count} assets deleted"
+			}
+		}
+	],
+	"assets_detail_access_action": "Access & Groups",
+	"assets_detail_delete_action": "Delete asset",
+	"assets_detail_download_button": "Download",
+	"assets_detail_edit_action": "Edit content",
+	"assets_detail_menu_trigger": "More options",
+	"assets_detail_reprocess_action": "Reprocess",
+	"assets_edit_page_meta_title": "Edit",
+	"assets_edit_page_title": "Edit asset",
+	"assets_file_uploader_drop_active_label": "Drop the files here",
+	"assets_file_uploader_drop_idle_label": "Drag 'n' drop files here, or click to select files",
+	"assets_file_uploader_limit_multiple_hint": "You can upload {count} files (up to {size} each)",
+	"assets_file_uploader_limit_single_hint": "You can upload a file with {size}",
+	"assets_file_uploader_limit_unlimited_hint": "You can upload multiple files (up to {size} each)",
+	"assets_file_uploader_max_files_toast_error": [
+		{
+			"declarations": [
+				"input count",
+				"local countPlural = count: plural"
+			],
+			"selectors": [
+				"countPlural"
+			],
+			"match": {
+				"countPlural=one": "You can upload up to {count} file at once",
+				"countPlural=other": "You can upload up to {count} files at once"
+			}
+		}
+	],
+	"assets_file_uploader_rejected_toast_error": "{name} was not accepted. Check the file type and size.",
+	"assets_file_uploader_remove_file_button": "Remove file",
+	"assets_file_uploader_single_file_toast_error": "Only one file can be uploaded at a time.",
+	"assets_file_viewer_error_description": "Reload the page to try again. A newly uploaded file may still be processing.",
+	"assets_file_viewer_error_title": "This asset could not be loaded",
+	"assets_file_viewer_mobile_description": "Open this asset on a larger screen to preview it.",
+	"assets_file_viewer_mobile_title": "Preview not available on mobile",
+	"assets_file_viewer_unsupported_description": "Download the file to open it in another application.",
+	"assets_file_viewer_unsupported_title": "Unsupported file type",
+	"assets_form_description": "Edit the reusable metadata shown when this content item is cited in AI answers.",
+	"assets_form_submit_button": "Save content",
+	"assets_intake_no_files_toast_error": "Upload at least one file before continuing.",
+	"assets_intake_review_description": "Add metadata to each uploaded file before saving the final content items.",
+	"assets_intake_review_metadata_count": [
+		{
+			"declarations": [
+				"input completed",
+				"input count",
+				"local countPlural = count: plural"
+			],
+			"selectors": [
+				"countPlural"
+			],
+			"match": {
+				"countPlural=one": "{completed} of {count} file has metadata added.",
+				"countPlural=other": "{completed} of {count} files have metadata added."
+			}
+		}
+	],
+	"assets_intake_review_title": "Review uploaded files",
+	"assets_intake_submit_button": "Save assets",
+	"assets_intake_upload_button": "Upload files",
+	"assets_intake_upload_description": "Select files, upload them, then add source details for each one.",
+	"assets_intake_upload_title": "Upload assets",
+	"assets_library_picker_search_placeholder": "Search the Library",
+	"assets_list_add_action": "Add assets",
+	"assets_list_description": "Reusable source material for retrieval, grounding, and citations.",
+	"assets_list_empty_state_description": "Upload files, URLs, or text snippets so bots can retrieve and cite them.",
+	"assets_list_empty_state_title": "No assets yet",
+	"assets_list_reprocess_action": "Reprocess",
+	"assets_list_title": "Assets",
+	"assets_meta_author_label": "Author(s):",
+	"assets_meta_chapter_label": "Chapter:",
+	"assets_meta_citation_label": "Citation:",
+	"assets_meta_citations_allowed_badge": "AI may cite this source",
+	"assets_meta_citations_blocked_badge": "Keep this source out of citations",
+	"assets_meta_created_label": "Created:",
+	"assets_meta_file_type_tooltip": "File type",
+	"assets_meta_page_range_label": "Page range:",
+	"assets_meta_relevance_label": "Relevance:",
+	"assets_meta_size_label": "Size:",
+	"assets_meta_source_url_label": "Source URL:",
+	"assets_meta_title": "Metadata",
+	"assets_meta_unknown_date": "Unknown date",
+	"assets_meta_updated_label": "Updated:",
+	"assets_meta_view_source_link": "View source",
+	"assets_metadata_access_date_label": "Access date",
+	"assets_metadata_author_label": "Author(s)",
+	"assets_metadata_author_placeholder": "e.g. Schmidt, A.; Okonkwo, B.",
+	"assets_metadata_chapter_title_label": "Chapter title",
+	"assets_metadata_chapter_title_placeholder": "e.g. Introduction",
+	"assets_metadata_citation_label": "Citation label",
+	"assets_metadata_citation_placeholder": "e.g. Schmidt 2023",
+	"assets_metadata_doi_label": "DOI",
+	"assets_metadata_external_url_label": "External URL",
+	"assets_metadata_issue_label": "Issue",
+	"assets_metadata_issue_placeholder": "e.g. 3",
+	"assets_metadata_journal_name_label": "Journal name",
+	"assets_metadata_journal_name_placeholder": "e.g. Nature",
+	"assets_metadata_jurisdiction_label": "Jurisdiction",
+	"assets_metadata_jurisdiction_placeholder": "e.g. Germany, EU",
+	"assets_metadata_legal_reference_label": "Legal reference",
+	"assets_metadata_legal_reference_placeholder": "e.g. § 1 BGB or Art. 5 GG",
+	"assets_metadata_page_range_label": "Page range",
+	"assets_metadata_relevance_label": "Relevance",
+	"assets_metadata_relevance_placeholder": "Choose relevance",
+	"assets_metadata_save_button": "Save metadata",
+	"assets_metadata_show_reference_description": "The AI may make in-text references to this source.",
+	"assets_metadata_show_reference_label": "Allow citations in answers",
+	"assets_metadata_source_title_label": "Source title",
+	"assets_metadata_source_title_placeholder": "e.g. Introduction to statistics",
+	"assets_metadata_source_type_label": "Source type",
+	"assets_metadata_source_type_placeholder": "Choose a source type",
+	"assets_metadata_volume_label": "Volume",
+	"assets_metadata_volume_placeholder": "e.g. 12",
+	"assets_metadata_website_name_label": "Website name",
+	"assets_metadata_website_name_placeholder": "e.g. Rhine-Waal University",
+	"assets_page_title": "Assets",
+	"assets_playground_empty_state_description": "Try a different query or retrieval mode.",
+	"assets_playground_empty_state_title": "No matching passages",
+	"assets_playground_error_description": "The repository could not be searched. Please try again.",
+	"assets_playground_error_title": "Search failed",
+	"assets_playground_retrieval_mode_label": "Retrieval mode",
+	"assets_playground_search_label": "Search query",
+	"assets_playground_search_placeholder": "e.g. how do I book a train ticket",
+	"assets_playground_submit_button": "Search",
+	"assets_point_asset_badge": "Asset {id}",
+	"assets_point_block_badge": "Block {id}",
+	"assets_point_chunk_label": "Chunk",
+	"assets_point_depth_label": "Depth",
+	"assets_point_details_badge": "Details",
+	"assets_point_id_badge": "Point {id}",
+	"assets_point_image_alt": "Extracted preview",
+	"assets_point_image_error_description": "Reload the page to try again.",
+	"assets_point_image_error_title": "Image unavailable",
+	"assets_point_pages_label": "Pages",
+	"assets_point_score_badge": "Score {score}",
+	"assets_point_tokens_label": "Tokens",
+	"assets_relevance_high_label": "High",
+	"assets_relevance_low_label": "Low",
+	"assets_relevance_medium_label": "Medium",
+	"assets_review_list_add_metadata_button": "Add metadata",
+	"assets_review_list_dialog_description": "Define how this uploaded file should appear in AI citations and references.",
+	"assets_review_list_dialog_title": "Source details",
+	"assets_review_list_edit_metadata_button": "Edit metadata",
+	"assets_review_list_metadata_added_badge": "Metadata added",
+	"assets_review_list_metadata_missing_badge": "Needs metadata",
+	"assets_save_many_toast_error": "Failed to save assets",
+	"assets_save_many_toast_loading": "Saving assets...",
+	"assets_save_many_toast_success": "Assets saved",
+	"assets_save_toast_error": "Failed to save asset",
+	"assets_save_toast_loading": "Saving asset...",
+	"assets_save_toast_success": "Asset saved",
+	"assets_selected_list_dialog_description": "Update how this content item should appear when cited by the AI.",
+	"assets_selected_list_dialog_title": "Edit source details",
+	"assets_selected_list_metadata_button": "Metadata",
+	"assets_upload_description": "Select files and upload them. Progress appears below.",
+	"assets_upload_no_files_error": "No files to upload.",
+	"assets_upload_preparing_button": "Preparing files...",
+	"assets_upload_progress_clear_button": "Clear",
+	"assets_upload_progress_completed_count": [
+		{
+			"declarations": [
+				"input completed",
+				"input count",
+				"local countPlural = count: plural"
+			],
+			"selectors": [
+				"countPlural"
+			],
+			"match": {
+				"countPlural=one": "{completed} of {count} file completed",
+				"countPlural=other": "{completed} of {count} files completed"
+			}
+		}
+	],
+	"assets_upload_progress_error_label": "Error:",
+	"assets_upload_progress_error_title": "Upload failed",
+	"assets_upload_progress_failed_badge": "{count} failed",
+	"assets_upload_progress_file_error_label": "The file was not uploaded.",
+	"assets_upload_progress_file_success_label": "Upload completed successfully",
+	"assets_upload_progress_partial_title": "Upload completed with issues",
+	"assets_upload_progress_pending_title": "Uploading files",
+	"assets_upload_progress_success_badge": "{count} successful",
+	"assets_upload_progress_success_title": "Upload complete",
+	"assets_upload_submit_button": "Upload files",
+	"assets_upload_title": "Upload files",
+	"assets_upload_toast_error": [
+		{
+			"declarations": [
+				"input count",
+				"local countPlural = count: plural"
+			],
+			"selectors": [
+				"countPlural"
+			],
+			"match": {
+				"countPlural=one": "{count} file could not be uploaded. Try again.",
+				"countPlural=other": "{count} files could not be uploaded. Try again."
+			}
+		}
+	],
+	"assets_upload_toast_loading": [
+		{
+			"declarations": [
+				"input count",
+				"local countPlural = count: plural"
+			],
+			"selectors": [
+				"countPlural"
+			],
+			"match": {
+				"countPlural=one": "Uploading {count} file...",
+				"countPlural=other": "Uploading {count} files..."
+			}
+		}
+	],
+	"assets_upload_toast_success": [
+		{
+			"declarations": [
+				"input count",
+				"local countPlural = count: plural"
+			],
+			"selectors": [
+				"countPlural"
+			],
+			"match": {
+				"countPlural=one": "{count} file uploaded",
+				"countPlural=other": "{count} files uploaded"
+			}
+		}
+	],
+	"assets_upload_unknown_error": "The files were not uploaded. Try again.",
+	"auth_change_password_form_confirm_password_label": "Confirm New Password",
+	"auth_change_password_form_confirm_password_placeholder": "Confirm new password",
+	"auth_change_password_form_current_password_label": "Current Password",
+	"auth_change_password_form_current_password_placeholder": "Enter current password",
+	"auth_change_password_form_new_password_label": "New Password",
+	"auth_change_password_form_new_password_placeholder": "Enter new password",
+	"auth_change_password_form_submit_button": "Change Password",
+	"auth_forgot_password_form_submit_button": "Send reset email",
+	"auth_forgot_password_page_description": "Enter your email address and we will send reset instructions if an account exists.",
+	"auth_forgot_password_page_signin_link": "Return to sign in",
+	"auth_forgot_password_page_title": "Reset your password",
+	"auth_forgot_password_toast_error": "Unable to request a password reset",
+	"auth_forgot_password_toast_loading": "Requesting password reset...",
+	"auth_forgot_password_toast_success": "If an account exists for that address, a password reset email has been sent.",
+	"auth_init_form_admin_email_label": "Admin Email",
+	"auth_init_form_admin_name_label": "Admin Name",
+	"auth_init_form_confirm_password_label": "Confirm Password",
+	"auth_init_form_organization_name_label": "Organisation Name",
+	"auth_init_form_organization_name_placeholder": "Your Organisation",
+	"auth_init_form_organization_slug_label": "Organisation Slug",
+	"auth_init_form_organization_slug_placeholder": "your-org",
+	"auth_init_form_privacy_consent_description": "Yes, I have read, understood, and agree to the privacy policy and terms of use of the OrcAI platform.",
+	"auth_init_form_privacy_consent_label": "Privacy Consent",
+	"auth_init_form_privacy_policy_body": "By initialising this instance, you agree to our Privacy Policy and Terms of Use.",
+	"auth_init_form_privacy_policy_title": "Privacy Policy",
+	"auth_init_form_review_privacy_link": "Review Privacy Policy",
+	"auth_init_form_review_terms_link": "Review Terms of Use",
+	"auth_init_form_submit_button": "Initialise Instance",
+	"auth_init_page_description": "Set up the first organisation and admin account for this deployment.",
+	"auth_init_page_footer": "This page is only available until the instance is initialised.",
+	"auth_init_page_title": "Initialise Instance",
+	"auth_init_toast_error": "Initialisation failed",
+	"auth_init_toast_loading": "Initialising application...",
+	"auth_init_toast_success": "Initialisation completed successfully!",
+	"auth_layout_footer_after": ".",
+	"auth_layout_footer_before": "OrcAI is a fork of",
+	"auth_layout_footer_link": "SokratesT",
+	"auth_login_page_description": "Sign in to your account to continue.",
+	"auth_login_page_forgot_password_link": "Forgot password?",
+	"auth_login_page_title": "Login",
+	"auth_register_page_go_to_signin_action": "Go to sign in",
+	"auth_register_page_invitation_expired_description": "The invitation you are trying to access has expired.",
+	"auth_register_page_invitation_expired_title": "Invitation Expired",
+	"auth_register_page_invitation_not_found_description": "The invitation you are trying to access does not exist or has already been consumed.",
+	"auth_register_page_invitation_not_found_title": "Invitation not found",
+	"auth_register_page_invited_description": "Create a new account to continue.",
+	"auth_register_page_invited_description_named": "{organizationName} invited you. Create your account to join.",
+	"auth_register_page_no_invitation_description": "Accounts are created from an invitation link. Ask an administrator of the organisation you want to join to invite your email address.",
+	"auth_register_page_no_invitation_title": "Registration is by invitation",
+	"auth_register_page_signin_link": "Already have an account?",
+	"auth_register_page_title": "Create your account",
+	"auth_resend_verification_toast_error": "Unable to resend verification email",
+	"auth_resend_verification_toast_loading": "Sending verification email...",
+	"auth_resend_verification_toast_success": "If an account exists for that address, a verification email has been sent.",
+	"auth_reset_password_form_confirm_password_label": "Confirm Password",
+	"auth_reset_password_form_confirm_password_placeholder": "Confirm password",
+	"auth_reset_password_form_new_password_label": "New Password",
+	"auth_reset_password_form_new_password_placeholder": "New password",
+	"auth_reset_password_form_submit_button": "Reset password",
+	"auth_reset_password_page_description": "Use at least eight characters and enter the same password twice.",
+	"auth_reset_password_page_invalid_description": "Request a new password reset email to continue.",
+	"auth_reset_password_page_invalid_title": "Invalid reset link",
+	"auth_reset_password_page_request_link": "Request another link",
+	"auth_reset_password_page_title": "Choose a new password",
+	"auth_reset_password_toast_error": "The reset link is invalid or expired",
+	"auth_reset_password_toast_loading": "Resetting password...",
+	"auth_reset_password_toast_success": "Your password has been reset. You can now sign in.",
+	"auth_sign_out_toast_success": "Goodbye!",
+	"auth_signin_form_submit_button": "Login",
+	"auth_signin_toast_error": "Login failed",
+	"auth_signin_toast_loading": "Logging in...",
+	"auth_signin_toast_success": "Welcome back!",
+	"auth_signup_form_confirm_password_label": "Confirm Password",
+	"auth_signup_form_invitation_code_label": "Invitation code",
+	"auth_signup_form_invitation_code_placeholder": "Unique invitation code",
+	"auth_signup_form_name_label": "Name",
+	"auth_signup_form_password_label": "Password",
+	"auth_signup_form_privacy_consent_description": "Yes, I have read, understood, and agree to the privacy policy and terms of use of the OrcAI platform.",
+	"auth_signup_form_privacy_consent_label": "Privacy Consent",
+	"auth_signup_form_privacy_policy_body": "By signing up, you agree to our Privacy Policy and Terms of Use. Please review each before continuing.",
+	"auth_signup_form_privacy_policy_title": "Privacy Policy",
+	"auth_signup_form_review_privacy_link": "Review Privacy Policy",
+	"auth_signup_form_review_terms_link": "Review Terms of Use",
+	"auth_signup_form_submit_button": "Register",
+	"auth_signup_toast_error": "Account creation failed",
+	"auth_signup_toast_loading": "Creating your account...",
+	"auth_signup_toast_success": "Your account is ready.",
+	"auth_verify_email_form_submit_button": "Resend verification email",
+	"auth_verify_email_page_description": "Use the verification link we sent before signing in. The message may take a few minutes to arrive.",
+	"auth_verify_email_page_signin_link": "Return to sign in",
+	"auth_verify_email_page_title": "Check your email",
+	"authoring_attached_asset_count": [
+		{
+			"declarations": [
+				"input count",
+				"local countPlural = count: plural"
+			],
+			"selectors": [
+				"countPlural"
+			],
+			"match": {
+				"countPlural=one": "1 asset attached",
+				"countPlural=other": "{count} assets attached"
+			}
+		}
+	],
+	"authoring_basics_content_description": "A richer overview for teammates who configure and maintain the bot.",
+	"authoring_basics_content_label": "Bot description",
+	"authoring_basics_content_title": "Bot description",
+	"authoring_basics_description_label": "Short description",
+	"authoring_basics_description_placeholder": "Answers colleagues' questions about travel bookings and reimbursements from the approved guidance documents.",
+	"authoring_basics_identity_description": "These details help people understand what the bot is for.",
+	"authoring_basics_identity_title": "Identity",
+	"authoring_basics_name_label": "Bot name",
+	"authoring_basics_name_placeholder": "Travel expenses guide",
+	"authoring_behaviour_content_label": "Detailed description",
+	"authoring_behaviour_create_action": "Create AI behaviour",
+	"authoring_behaviour_description_label": "Short description",
+	"authoring_behaviour_description_placeholder": "Define the purpose of this block.",
+	"authoring_behaviour_empty_state_description": "Write a new behaviour, or reuse one you have already defined. You can start from an example.",
+	"authoring_behaviour_empty_state_title": "No AI behaviour linked yet",
+	"authoring_behaviour_example_button": "Start from an example",
+	"authoring_behaviour_example_hint": "Name the role, the sources to answer from, the tone to use, and what to refuse.",
+	"authoring_behaviour_library_dialog_description": "Reuse a behaviour you have already defined instead of writing a new one.",
+	"authoring_behaviour_library_dialog_title": "Use existing AI behaviour",
+	"authoring_behaviour_library_search_placeholder": "Search AI behaviours...",
+	"authoring_behaviour_name_placeholder": "AI behaviour",
+	"authoring_behaviour_system_prompt_label": "System prompt",
+	"authoring_behaviour_use_existing_action": "Use existing AI behaviour",
+	"authoring_database_block_add_existing_action": "Add existing",
+	"authoring_database_block_advanced_description": "Tune reference counts and retrieval constraints.",
+	"authoring_database_block_advanced_title": "Advanced retrieval settings",
+	"authoring_database_block_assets_description": "Use existing assets from the Library or upload new files with metadata before attaching them.",
+	"authoring_database_block_assets_empty_state": "No assets attached yet.",
+	"authoring_database_block_assets_title": "Assets",
+	"authoring_database_block_attached_badge": "{count} attached",
+	"authoring_database_block_attached_description": "Each item keeps its reusable metadata from the Library.",
+	"authoring_database_block_attached_title": "Attached assets",
+	"authoring_database_block_default_name": "Repository",
+	"authoring_database_block_default_name_named": "Repository for '{botName}'",
+	"authoring_database_block_description": "Attach reusable assets and tune how retrieval works for this bot.",
+	"authoring_database_block_library_dialog_description": "Select reusable assets from the Library and attach them to this repository.",
+	"authoring_database_block_library_dialog_title": "Add existing assets",
+	"authoring_database_block_save_assets_button": "Save assets",
+	"authoring_database_block_title": "Repository",
+	"authoring_database_block_upload_dialog_description": "Upload files, complete their metadata, and attach them in one focused flow.",
+	"authoring_database_block_upload_dialog_title": "Upload new assets",
+	"authoring_database_block_upload_new_action": "Upload new",
+	"authoring_publish_confirm_button": "Publish",
+	"authoring_publish_confirm_description": "Publishing makes \"this bot\" available to everyone the access rules below name.",
+	"authoring_publish_confirm_description_named": "Publishing makes \"{name}\" available to everyone the access rules below name.",
+	"authoring_publish_confirm_title": "Publish this bot",
+	"authoring_publish_issue_behaviour_missing": "Add an AI behaviour before publishing the bot.",
+	"authoring_publish_issue_behaviour_not_ready": "Mark the AI behaviour as ready before publishing.",
+	"authoring_publish_issue_repository_no_assets": "Attach at least one asset to \"{name}\".",
+	"authoring_publish_issue_repository_not_ready": "Mark \"{name}\" as ready before publishing.",
+	"authoring_publish_summary_access_fact_label": "Who gains access",
+	"authoring_publish_summary_all_members_badge": "Every member of the organisation",
+	"authoring_publish_summary_all_members_granted": "The All Members group receives the {role} role, so every member of the organisation can use this bot.",
+	"authoring_publish_summary_all_members_granted_before_publish": "The All Members group receives the {role} role, so every member of the organisation can use this bot once it is published.",
+	"authoring_publish_summary_all_members_ungranted": "All Members has no grant, so organisation members do not gain access automatically.",
+	"authoring_publish_summary_all_members_ungranted_before_publish": "All Members has no grant, so only the groups and people listed below can use this bot once it is published.",
+	"authoring_publish_summary_direct_grants_label": "Direct grants:",
+	"authoring_publish_summary_grants_unavailable": "The groups and direct grants could not be loaded, so they are not shown here. Open the sharing and access step to check them.",
+	"authoring_publish_summary_no_group_grants": "No group has been granted access.",
+	"authoring_publish_summary_no_user_grants": "No person holds a direct grant.",
+	"authoring_publish_summary_private_description": "Private. Only the groups and people listed here can use this bot.",
+	"authoring_publish_summary_provider_description": "A bot does not fix a provider or a model. Each chat runs on the provider and model chosen in that chat, so neither can be shown here.",
+	"authoring_publish_summary_provider_fact_label": "Provider and model",
+	"authoring_publish_summary_public_description": "Public. Everyone signed in to this instance can find and use this bot, on their own organisation's providers, models and quotas.",
+	"authoring_publish_summary_quota_description": "A bot does not fix a quota pool either. Usage is metered against the pool that covers the chatting person's organisation and the provider their chat uses.",
+	"authoring_publish_summary_quota_fact_label": "Quota pool",
+	"authoring_readonly_behaviour_description": "This behaviour is attached as read-only, since you do not have permission to edit it.",
+	"authoring_readonly_behaviour_title": "AI behaviour",
+	"authoring_readonly_detach_action": "Detach",
+	"authoring_readonly_open_block_action": "Open block",
+	"authoring_readonly_repository_description": "This repository is attached as read-only.",
+	"authoring_repositories_add_another_action": "Add another repository",
+	"authoring_repositories_add_existing_action": "Add existing repository",
+	"authoring_repositories_create_action": "Create repository",
+	"authoring_repositories_empty_state_description": "A repository gives the bot grounded context and citations. You can add one or more, and each one can hold existing or newly uploaded assets from the Library.",
+	"authoring_repositories_empty_state_title": "Do you want to add a repository?",
+	"authoring_repositories_library_dialog_description": "Attach a repository that already exists instead of creating a new one.",
+	"authoring_repositories_library_dialog_title": "Use existing repository",
+	"authoring_repositories_library_search_placeholder": "Search repositories...",
+	"authoring_repositories_use_existing_action": "Use existing repository",
+	"authoring_review_behaviour_empty_state": "No AI behaviour configured yet.",
+	"authoring_review_behaviour_hint": "This behaviour carries the system prompt the bot answers with.",
+	"authoring_review_behaviour_label": "AI behaviour",
+	"authoring_review_behaviour_readonly_hint": "You can use this shared behaviour but cannot change its status.",
+	"authoring_review_behaviour_status_label": "AI behaviour status",
+	"authoring_review_bot_label": "Bot",
+	"authoring_review_bot_no_description": "No short description yet.",
+	"authoring_review_bot_untitled": "Untitled bot",
+	"authoring_review_description": "Check the bot before publishing it.",
+	"authoring_review_grant_count": [
+		{
+			"declarations": [
+				"input count",
+				"local countPlural = count: plural"
+			],
+			"selectors": [
+				"countPlural"
+			],
+			"match": {
+				"countPlural=one": "1 person or group with direct access",
+				"countPlural=other": "{count} people and groups with direct access"
+			}
+		}
+	],
+	"authoring_review_grants_label": "Direct grants",
+	"authoring_review_issues_title": "Resolve before publishing",
+	"authoring_review_repositories_empty_state": "No repositories added.",
+	"authoring_review_repositories_label": "Repositories",
+	"authoring_review_repository_readonly_hint": "You can use this shared repository but cannot change its status.",
+	"authoring_review_repository_status_label": "Repository status",
+	"authoring_review_status_draft_option": "Draft",
+	"authoring_review_status_ready_option": "Ready",
+	"authoring_review_title": "Review",
+	"authoring_review_visibility_label": "Visibility",
+	"authoring_review_visibility_private": "Private access only",
+	"authoring_review_visibility_public": "Public to authenticated users",
+	"authoring_sharing_description": "Use groups for cohort access whenever possible, then add direct grants only when needed.",
+	"authoring_sharing_title": "Sharing and access",
+	"authoring_sharing_unsaved_description": "Access controls are available once the draft bot has been saved.",
+	"authoring_sharing_unshared_description": "Until you share it, only you can use this bot. Publishing does not change that: it makes the bot usable by the groups and people named here, and by nobody else.",
+	"authoring_template_block_default_name": "AI behaviour",
+	"authoring_template_block_default_name_named": "AI behaviour for '{botName}'",
+	"authoring_template_block_description": "Define how the bot should respond, what tone it should use, and what rules it should follow.",
+	"authoring_template_block_title": "AI behaviour",
+	"authoring_wizard_autosave_hint": "Moving between steps saves your changes.",
+	"authoring_wizard_publish_action": "Publish bot",
+	"authoring_wizard_save_draft_action": "Save draft",
+	"authoring_wizard_saved_status": "Saved. Moving between steps saves your changes.",
+	"authoring_wizard_saving_status": "Saving...",
+	"authoring_wizard_step_basics_description": "Name the bot and describe its purpose.",
+	"authoring_wizard_step_basics_title": "Bot basics",
+	"authoring_wizard_step_behaviour_description": "The system prompt sets the bot's role, tone and limits. There is no default, so write one here or reuse a behaviour you have already defined.",
+	"authoring_wizard_step_behaviour_title": "AI behaviour",
+	"authoring_wizard_step_repositories_description": "A repository holds the material the bot answers from, so it can quote and cite your own documents. Attach as many as the bot needs, or none at all.",
+	"authoring_wizard_step_repositories_title": "Repositories",
+	"authoring_wizard_step_review_description": "Check the setup and publish the bot.",
+	"authoring_wizard_step_review_title": "Review and publish",
+	"authoring_wizard_step_sharing_description": "Control who can use and edit the bot.",
+	"authoring_wizard_step_sharing_title": "Sharing and access",
+	"behaviour_add_action": "Add behaviour",
+	"behaviour_draft_delete_action": "Delete draft",
+	"behaviour_draft_edit_action": "Edit draft",
+	"behaviour_drafts_description": "Resume behaviour blocks that are not published yet.",
+	"behaviour_drafts_title": "Your drafts",
+	"behaviour_empty_state_description": "Create and publish a behaviour block to make it available for bots.",
+	"behaviour_empty_state_title": "No published behaviour yet",
+	"behaviour_page_title": "Behaviour",
+	"behaviour_published_description": "A behaviour block is a reusable system prompt that sets how a bot answers. Published blocks are available to bots and chats.",
+	"behaviour_published_title": "Published",
+	"blocks_add_database_form_description": "Configure a reusable repository.",
+	"blocks_add_database_option_description": "Bundle reusable assets with retrieval settings.",
+	"blocks_add_database_option_title": "Repository",
+	"blocks_add_image_generation_form_description": "Configure a reusable image-generation block.",
+	"blocks_add_image_generation_option_description": "Configure image-generation behaviour.",
+	"blocks_add_image_generation_option_title": "Image generation",
+	"blocks_add_page_description": "Create reusable AI behaviour, repositories, or image-generation blocks.",
+	"blocks_add_page_title": "Add block",
+	"blocks_add_template_form_description": "Configure a reusable AI behaviour block.",
+	"blocks_add_template_option_description": "Define how the bot should respond.",
+	"blocks_add_template_option_title": "AI behaviour",
+	"blocks_card_created_label": "Created",
+	"blocks_card_draft_badge": "Draft",
+	"blocks_card_type_database": "Repository",
+	"blocks_card_type_image_generation": "Image generation",
+	"blocks_card_type_template": "Behaviour",
+	"blocks_card_view_action": "View",
+	"blocks_create_inline_toast_error": "Failed to create block",
+	"blocks_create_inline_toast_loading": "Creating block...",
+	"blocks_create_inline_toast_success": "Block created",
+	"blocks_create_toast_error": "Failed to create block",
+	"blocks_create_toast_loading": "Creating block...",
+	"blocks_create_toast_success": "Block created successfully",
+	"blocks_database_config_advanced_settings_label": "Advanced settings",
+	"blocks_database_config_assets_description": "This is the content currently attached to this repository.",
+	"blocks_database_config_assets_menu_trigger": "More options",
+	"blocks_database_config_assets_title": "Content ({count})",
+	"blocks_database_config_candidate_limit_label": "Candidate limit",
+	"blocks_database_config_create_vector_store_action": "Create vector store",
+	"blocks_database_config_default_references_label": "Default",
+	"blocks_database_config_max_per_asset_label": "Max per asset",
+	"blocks_database_config_max_references_label": "Maximum",
+	"blocks_database_config_min_references_label": "Minimum",
+	"blocks_database_config_references_title": "References",
+	"blocks_database_config_retrieval_description": "These settings control how the AI searches attached content.",
+	"blocks_database_config_retrieval_mode_label": "Retrieval mode",
+	"blocks_database_config_retrieval_title": "Retrieval configuration",
+	"blocks_database_config_score_threshold_label": "Score threshold",
+	"blocks_database_config_view_vector_points_action": "View vector points",
+	"blocks_database_form_candidate_limit_label": "Candidate limit",
+	"blocks_database_form_content_label": "Detailed description",
+	"blocks_database_form_create_submit_button": "Save repository",
+	"blocks_database_form_default_references_label": "Default references",
+	"blocks_database_form_description_label": "Short description",
+	"blocks_database_form_description_placeholder": "Describe what this repository is used for.",
+	"blocks_database_form_max_per_asset_label": "Max per asset",
+	"blocks_database_form_max_references_label": "Maximum references",
+	"blocks_database_form_min_references_label": "Minimum references",
+	"blocks_database_form_name_placeholder": "Course handbook",
+	"blocks_database_form_retrieval_mode_label": "Retrieval mode",
+	"blocks_database_form_score_threshold_label": "Score threshold",
+	"blocks_database_form_update_submit_button": "Update repository",
+	"blocks_delete_confirm_button": [
+		{
+			"declarations": [
+				"input count",
+				"input kind",
+				"local countPlural = count: plural"
+			],
+			"selectors": [
+				"kind",
+				"countPlural"
+			],
+			"match": {
+				"kind=repository, countPlural=one": "Delete repository",
+				"kind=repository, countPlural=other": "Delete {count} repositories",
+				"kind=behaviour, countPlural=one": "Delete behaviour block",
+				"kind=behaviour, countPlural=other": "Delete {count} behaviour blocks",
+				"kind=*, countPlural=one": "Delete block",
+				"kind=*, countPlural=other": "Delete {count} blocks"
+			}
+		}
+	],
+	"blocks_delete_confirm_description": [
+		{
+			"declarations": [
+				"input count",
+				"local countPlural = count: plural"
+			],
+			"selectors": [
+				"countPlural"
+			],
+			"match": {
+				"countPlural=one": "Bots and chats that use it lose it, and its links to indexed material go with it.",
+				"countPlural=other": "Bots and chats that use them lose them, and their links to indexed material go with them."
+			}
+		}
+	],
+	"blocks_delete_confirm_title": [
+		{
+			"declarations": [
+				"input count",
+				"input kind",
+				"local countPlural = count: plural"
+			],
+			"selectors": [
+				"kind",
+				"countPlural"
+			],
+			"match": {
+				"kind=repository, countPlural=one": "Delete this repository?",
+				"kind=repository, countPlural=other": "Delete {count} repositories?",
+				"kind=behaviour, countPlural=one": "Delete this behaviour block?",
+				"kind=behaviour, countPlural=other": "Delete {count} behaviour blocks?",
+				"kind=*, countPlural=one": "Delete this block?",
+				"kind=*, countPlural=other": "Delete {count} blocks?"
+			}
+		}
+	],
+	"blocks_delete_confirm_title_named": [
+		{
+			"declarations": [
+				"input kind",
+				"input name"
+			],
+			"selectors": [
+				"kind"
+			],
+			"match": {
+				"kind=repository": "Delete the repository {name}?",
+				"kind=behaviour": "Delete the behaviour block {name}?",
+				"kind=*": "Delete the block {name}?"
+			}
+		}
+	],
+	"blocks_delete_toast_error": [
+		{
+			"declarations": [
+				"input count",
+				"input kind",
+				"local countPlural = count: plural"
+			],
+			"selectors": [
+				"kind",
+				"countPlural"
+			],
+			"match": {
+				"kind=repository, countPlural=one": "The repository was not deleted. Try again.",
+				"kind=repository, countPlural=other": "The repositories were not deleted. Try again.",
+				"kind=behaviour, countPlural=one": "The behaviour block was not deleted. Try again.",
+				"kind=behaviour, countPlural=other": "The behaviour blocks were not deleted. Try again.",
+				"kind=*, countPlural=one": "The block was not deleted. Try again.",
+				"kind=*, countPlural=other": "The blocks were not deleted. Try again."
+			}
+		}
+	],
+	"blocks_delete_toast_loading": [
+		{
+			"declarations": [
+				"input count",
+				"input kind",
+				"local countPlural = count: plural"
+			],
+			"selectors": [
+				"kind",
+				"countPlural"
+			],
+			"match": {
+				"kind=repository, countPlural=one": "Deleting the repository...",
+				"kind=repository, countPlural=other": "Deleting {count} repositories...",
+				"kind=behaviour, countPlural=one": "Deleting the behaviour block...",
+				"kind=behaviour, countPlural=other": "Deleting {count} behaviour blocks...",
+				"kind=*, countPlural=one": "Deleting the block...",
+				"kind=*, countPlural=other": "Deleting {count} blocks..."
+			}
+		}
+	],
+	"blocks_delete_toast_success": [
+		{
+			"declarations": [
+				"input count",
+				"input kind",
+				"local countPlural = count: plural"
+			],
+			"selectors": [
+				"kind",
+				"countPlural"
+			],
+			"match": {
+				"kind=repository, countPlural=one": "{count} repository deleted",
+				"kind=repository, countPlural=other": "{count} repositories deleted",
+				"kind=behaviour, countPlural=one": "{count} behaviour block deleted",
+				"kind=behaviour, countPlural=other": "{count} behaviour blocks deleted",
+				"kind=*, countPlural=one": "{count} block deleted",
+				"kind=*, countPlural=other": "{count} blocks deleted"
+			}
+		}
+	],
+	"blocks_detail_access_action": "Access & Groups",
+	"blocks_detail_delete_action": "Delete block",
+	"blocks_detail_draft_badge": "Draft",
+	"blocks_detail_edit_action": "Edit block",
+	"blocks_detail_menu_trigger": "More options",
+	"blocks_detail_type_database": "Repository",
+	"blocks_detail_type_image_generation": "Image generation",
+	"blocks_detail_type_template": "AI behaviour",
+	"blocks_edit_database_page_title": "Edit repository",
+	"blocks_edit_image_generation_page_title": "Edit image generation",
+	"blocks_edit_page_meta_title": "Edit block",
+	"blocks_edit_template_page_title": "Edit AI behaviour",
+	"blocks_image_generation_form_ai_settings_title": "Block AI settings",
+	"blocks_image_generation_form_content_description": "Optional rich text context for teammates maintaining this block.",
+	"blocks_image_generation_form_content_title": "Block description",
+	"blocks_image_generation_form_description_label": "Short description",
+	"blocks_image_generation_form_description_placeholder": "Describe the purpose of this image generation block.",
+	"blocks_image_generation_form_model_label": "Image model",
+	"blocks_image_generation_form_model_placeholder": "Choose an image model",
+	"blocks_image_generation_form_name_placeholder": "Block name",
+	"blocks_image_generation_form_prompt_description": "This prompt is prepended to the image generation requests to guide the AI model.",
+	"blocks_image_generation_form_prompt_label": "Guidance prompt",
+	"blocks_image_generation_form_prompt_placeholder": "All images should be in the style of Van Gogh.",
+	"blocks_image_generation_form_provider_label": "Provider",
+	"blocks_image_generation_form_provider_placeholder": "Choose a provider",
+	"blocks_image_generation_form_submit_button": "Save block",
+	"blocks_page_title": "Blocks",
+	"blocks_points_page_title": "Indexed passages",
+	"blocks_publication_status_description": "Control whether this resource is still in draft or ready to be used in published experiences.",
+	"blocks_publication_status_draft_option": "Draft",
+	"blocks_publication_status_label": "Publication status",
+	"blocks_publication_status_placeholder": "Select status",
+	"blocks_publication_status_ready_option": "Ready",
+	"blocks_repositories_add_action": "Add repository",
+	"blocks_repositories_delete_draft_action": "Delete draft",
+	"blocks_repositories_drafts_section_description": "Resume repository blocks that are not published yet.",
+	"blocks_repositories_drafts_section_title": "Your drafts",
+	"blocks_repositories_edit_draft_action": "Edit draft",
+	"blocks_repositories_empty_state_description": "Create and publish a repository block to make it available for bots.",
+	"blocks_repositories_empty_state_title": "No published repositories yet",
+	"blocks_repositories_page_title": "Repositories",
+	"blocks_repositories_playground_action": "Playground",
+	"blocks_repositories_playground_description": "Experiment with retrieval against this published repository.",
+	"blocks_repositories_playground_empty_state_description": "Run a search to see which passages this repository returns.",
+	"blocks_repositories_playground_empty_state_title": "No results yet",
+	"blocks_repositories_playground_heading": "{name} Playground",
+	"blocks_repositories_playground_page_title": "Repository playground",
+	"blocks_repositories_published_section_description": "A repository packages indexed material with retrieval settings, so a bot can answer from your own sources. Published repositories are available to bots and chats.",
+	"blocks_repositories_published_section_title": "Published",
+	"blocks_retrieval_mode_dense_label": "Dense",
+	"blocks_retrieval_mode_hybrid_label": "Hybrid",
+	"blocks_retrieval_mode_sparse_label": "Sparse",
+	"blocks_selector_dialog_added_label": "Added",
+	"blocks_selector_dialog_database_description": "Select a reusable repository block for retrieval-based answers.",
+	"blocks_selector_dialog_database_empty_state_title": "No repository blocks found.",
+	"blocks_selector_dialog_database_search_placeholder": "Search repositories...",
+	"blocks_selector_dialog_database_title": "Choose a repository",
+	"blocks_selector_dialog_draft_badge": "Draft",
+	"blocks_selector_dialog_template_description": "Select a reusable behaviour block to guide responses.",
+	"blocks_selector_dialog_template_empty_state_title": "No AI behaviour blocks found.",
+	"blocks_selector_dialog_template_search_placeholder": "Search AI behaviours...",
+	"blocks_selector_dialog_template_title": "Choose an AI behaviour",
+	"blocks_status_toast_error": "Failed to update block status",
+	"blocks_status_toast_loading": "Updating block status...",
+	"blocks_status_toast_success_draft": "Block moved to draft",
+	"blocks_status_toast_success_ready": "Block marked as ready",
+	"blocks_template_config_show_system_prompt_action": "Show full system prompt",
+	"blocks_template_config_system_prompt_empty_state_title": "No system prompt configured.",
+	"blocks_template_form_content_label": "Detailed description",
+	"blocks_template_form_create_submit_button": "Save AI behaviour",
+	"blocks_template_form_description_label": "Short description",
+	"blocks_template_form_description_placeholder": "Define the purpose of this block.",
+	"blocks_template_form_name_placeholder": "AI behaviour",
+	"blocks_template_form_system_prompt_label": "System Prompt",
+	"blocks_template_form_system_prompt_placeholder": "Explain the bot's role, response style, and constraints.",
+	"blocks_template_form_update_submit_button": "Update AI behaviour",
+	"blocks_update_inline_toast_error": "Failed to update block",
+	"blocks_update_inline_toast_loading": "Updating block...",
+	"blocks_update_inline_toast_success": "Block updated",
+	"blocks_update_toast_error": "Failed to update block",
+	"blocks_update_toast_loading": "Updating block...",
+	"blocks_update_toast_success": "Block updated successfully",
+	"bots_add_page_description": "Follow the guided setup to define the bot, its AI behaviour, its repositories, and its access settings.",
+	"bots_add_page_title": "Create bot",
+	"bots_blocks_behaviour_description": "This bot uses a template block to define its behaviour.",
+	"bots_blocks_behaviour_title": "Behaviour",
+	"bots_blocks_repositories_description": "This bot uses repository blocks to reference curated content.",
+	"bots_blocks_repositories_title": "Repositories",
+	"bots_card_created_meta_label": "Created",
+	"bots_card_draft_badge": "Draft",
+	"bots_card_edit_action": "Edit bot",
+	"bots_card_published_badge": "Published",
+	"bots_card_view_action": "View",
+	"bots_delete_confirm_button": [
+		{
+			"declarations": [
+				"input count",
+				"local countPlural = count: plural"
+			],
+			"selectors": [
+				"countPlural"
+			],
+			"match": {
+				"countPlural=one": "Delete bot",
+				"countPlural=other": "Delete {count} bots"
+			}
+		}
+	],
+	"bots_delete_confirm_description": [
+		{
+			"declarations": [
+				"input count",
+				"local countPlural = count: plural"
+			],
+			"selectors": [
+				"countPlural"
+			],
+			"match": {
+				"countPlural=one": "Everyone it was shared with loses access. Chats that used it keep their messages but lose the bot.",
+				"countPlural=other": "Everyone they were shared with loses access. Chats that used them keep their messages but lose the bot."
+			}
+		}
+	],
+	"bots_delete_confirm_title": [
+		{
+			"declarations": [
+				"input count",
+				"local countPlural = count: plural"
+			],
+			"selectors": [
+				"countPlural"
+			],
+			"match": {
+				"countPlural=one": "Delete this bot?",
+				"countPlural=other": "Delete {count} bots?"
+			}
+		}
+	],
+	"bots_delete_confirm_title_named": "Delete the bot {name}?",
+	"bots_delete_toast_error": [
+		{
+			"declarations": [
+				"input count",
+				"local countPlural = count: plural"
+			],
+			"selectors": [
+				"countPlural"
+			],
+			"match": {
+				"countPlural=one": "The bot was not deleted. Try again.",
+				"countPlural=other": "The bots were not deleted. Try again."
+			}
+		}
+	],
+	"bots_delete_toast_loading": [
+		{
+			"declarations": [
+				"input count",
+				"local countPlural = count: plural"
+			],
+			"selectors": [
+				"countPlural"
+			],
+			"match": {
+				"countPlural=one": "Deleting the bot...",
+				"countPlural=other": "Deleting {count} bots..."
+			}
+		}
+	],
+	"bots_delete_toast_success": [
+		{
+			"declarations": [
+				"input count",
+				"local countPlural = count: plural"
+			],
+			"selectors": [
+				"countPlural"
+			],
+			"match": {
+				"countPlural=one": "1 bot deleted",
+				"countPlural=other": "{count} bots deleted"
+			}
+		}
+	],
+	"bots_detail_access_action": "Access & Groups",
+	"bots_detail_delete_action": "Delete bot",
+	"bots_detail_draft_badge": "Draft",
+	"bots_detail_edit_action": "Edit bot",
+	"bots_detail_more_options_aria_label": "More options",
+	"bots_detail_start_chat_action": "Start chat",
+	"bots_list_create_action": "Create bot",
+	"bots_list_draft_delete_action": "Delete draft",
+	"bots_list_draft_edit_action": "Edit draft",
+	"bots_list_drafts_description": "Resume bot setups that have not been published yet.",
+	"bots_list_drafts_title": "Your drafts",
+	"bots_list_empty_state_description": "Create and publish a bot to make it available for chats.",
+	"bots_list_empty_state_title": "No published bots yet",
+	"bots_list_published_description": "Bots ready to use in chats across your workspace. A bot bundles a behaviour, its repositories, a model and its access rules.",
+	"bots_list_published_title": "Published",
+	"bots_page_title": "Bots",
+	"bots_publish_toast_error": "Failed to publish bot",
+	"bots_publish_toast_loading": "Publishing bot...",
+	"bots_publish_toast_success": "Bot published",
+	"bots_save_toast_error": "Failed to save bot",
+	"bots_save_toast_loading": "Saving bot...",
+	"bots_save_toast_success": "Bot saved",
+	"bots_select_empty_state_title": "No bots available",
+	"bots_select_load_error_description": "Try again in a moment.",
+	"bots_select_load_error_title": "The bots could not be loaded",
+	"bots_select_no_results": "No bots found matching \"{query}\"",
+	"bots_select_search_placeholder": "Search bots",
+	"bots_setup_page_description": "Use the shared authoring flow to update the bot configuration, reuse existing blocks, and publish changes when they are ready.",
+	"bots_setup_page_title": "Bot setup",
+	"bots_showcase_create_action": "Create bot",
+	"bots_showcase_description": "Each bot answers from its own sources and behaviour.",
+	"bots_showcase_empty_description": "A bot bundles approved sources with a set behaviour so anyone in the organisation can ask against them.",
+	"bots_showcase_empty_title": "No bots yet",
+	"bots_showcase_start_chat_action": "Start chat",
+	"bots_showcase_title": "Bots you can use",
+	"bots_showcase_view_all_action": "View all bots",
+	"boundaries_default_error_back_button": "Go back",
+	"boundaries_default_error_description": "Try again, or go back to the previous page. The technical details below help if the problem continues.",
+	"boundaries_default_error_details_summary": "Technical details",
+	"boundaries_default_error_home_link": "Return home",
+	"boundaries_default_error_retry_button": "Try Again",
+	"boundaries_default_error_title": "This page could not be loaded",
+	"boundaries_not_found_back_button": "Go back",
+	"boundaries_not_found_description": "The page you're looking for doesn't exist or has been moved.",
+	"boundaries_not_found_home_link": "Return home",
+	"boundaries_not_found_title": "Page Not Found",
+	"chat_actions_delete_action": "Delete chat",
+	"chat_actions_rename_action": "Rename chat",
+	"chat_asset_picker_attach_action": "Attach",
+	"chat_asset_picker_description": "Attach assets from the Library to this message.",
+	"chat_asset_picker_empty_state_description": "No matching assets available.",
+	"chat_asset_picker_empty_state_title": "Not found",
+	"chat_asset_picker_search_placeholder": "Search by title...",
+	"chat_asset_picker_title": "Select existing assets",
+	"chat_attachment_menu_assets_action": "From assets",
+	"chat_attachment_menu_trigger": "Add file",
+	"chat_attachment_menu_upload_action": "Upload file",
+	"chat_attachments_capacity_toast_warning": [
+		{
+			"declarations": [
+				"input count",
+				"local countPlural = count: plural"
+			],
+			"selectors": [
+				"countPlural"
+			],
+			"match": {
+				"countPlural=one": "Only {count} more attachment can be added.",
+				"countPlural=other": "Only {count} more attachments can be added."
+			}
+		}
+	],
+	"chat_attachments_limit_toast_error": [
+		{
+			"declarations": [
+				"input count",
+				"local countPlural = count: plural"
+			],
+			"selectors": [
+				"countPlural"
+			],
+			"match": {
+				"countPlural=one": "You can only attach up to {count} file.",
+				"countPlural=other": "You can only attach up to {count} files."
+			}
+		}
+	],
+	"chat_attachments_upload_failed_toast_warning": [
+		{
+			"declarations": [
+				"input count",
+				"local countPlural = count: plural"
+			],
+			"selectors": [
+				"countPlural"
+			],
+			"match": {
+				"countPlural=one": "{count} attachment failed to upload.",
+				"countPlural=other": "{count} attachments failed to upload."
+			}
+		}
+	],
+	"chat_bot_selector_dialog_title": "Choose a bot",
+	"chat_bot_selector_empty_state": "No bots found.",
+	"chat_bot_selector_no_bot_description": "Answers come from the model alone",
+	"chat_bot_selector_no_bot_title": "No bot",
+	"chat_bot_selector_search_placeholder": "Search bots...",
+	"chat_bot_selector_trigger_placeholder": "Choose bot...",
+	"chat_branch_switcher_label": "Switch branch",
+	"chat_composer_attachments_missing_toast_error": "No attachments were available to send. Please retry your upload.",
+	"chat_composer_attachments_only_message": "Sent with attachments",
+	"chat_composer_download_action": "Download chat",
+	"chat_composer_model_required_hint": "Select a model to start chatting.",
+	"chat_composer_model_required_toast_error": "Choose a model before sending a message.",
+	"chat_composer_more_actions_aria_label": "More chat actions",
+	"chat_composer_placeholder": "Ask a question",
+	"chat_composer_placeholder_no_model": "Chatting opens once a model is available",
+	"chat_composer_send_failed_toast_error": "The message and its attachments were not sent. Send them again.",
+	"chat_composer_settings_action": "Chat settings",
+	"chat_composer_start_tour_action": "Start tour",
+	"chat_delete_confirm_button": [
+		{
+			"declarations": [
+				"input count",
+				"local countPlural = count: plural"
+			],
+			"selectors": [
+				"countPlural"
+			],
+			"match": {
+				"countPlural=one": "Delete chat",
+				"countPlural=other": "Delete {count} chats"
+			}
+		}
+	],
+	"chat_delete_confirm_description": [
+		{
+			"declarations": [
+				"input count",
+				"local countPlural = count: plural"
+			],
+			"selectors": [
+				"countPlural"
+			],
+			"match": {
+				"countPlural=one": "Its messages and branches are removed for good.",
+				"countPlural=other": "Their messages and branches are removed for good."
+			}
+		}
+	],
+	"chat_delete_confirm_title": [
+		{
+			"declarations": [
+				"input count",
+				"local countPlural = count: plural"
+			],
+			"selectors": [
+				"countPlural"
+			],
+			"match": {
+				"countPlural=one": "Delete this chat?",
+				"countPlural=other": "Delete {count} chats?"
+			}
+		}
+	],
+	"chat_delete_confirm_title_named": "Delete the chat {name}?",
+	"chat_delete_toast_error": [
+		{
+			"declarations": [
+				"input count",
+				"local countPlural = count: plural"
+			],
+			"selectors": [
+				"countPlural"
+			],
+			"match": {
+				"countPlural=one": "The chat was not deleted. Try again.",
+				"countPlural=other": "The chats were not deleted. Try again."
+			}
+		}
+	],
+	"chat_delete_toast_loading": [
+		{
+			"declarations": [
+				"input count",
+				"local countPlural = count: plural"
+			],
+			"selectors": [
+				"countPlural"
+			],
+			"match": {
+				"countPlural=one": "Deleting the chat...",
+				"countPlural=other": "Deleting {count} chats..."
+			}
+		}
+	],
+	"chat_delete_toast_success": [
+		{
+			"declarations": [
+				"input count",
+				"local countPlural = count: plural"
+			],
+			"selectors": [
+				"countPlural"
+			],
+			"match": {
+				"countPlural=one": "{count} chat deleted",
+				"countPlural=other": "{count} chats deleted"
+			}
+		}
+	],
+	"chat_detail_page_title_fallback": "Chat",
+	"chat_image_part_download_action": "Download image",
+	"chat_image_part_download_toast_error": "The image was not downloaded. Try again.",
+	"chat_image_part_download_toast_success": "Image downloaded",
+	"chat_image_part_label": "Generated image",
+	"chat_list_bot_filter_label": "Bot",
+	"chat_list_card_continue_action": "Continue chat",
+	"chat_list_card_last_updated": "Last updated {timestamp}",
+	"chat_list_empty_state_description": "Ask a question above, or open a bot to chat against its sources.",
+	"chat_list_empty_state_title": "No chats yet",
+	"chat_list_page_title": "Chats",
+	"chat_list_search_placeholder": "Search chats...",
+	"chat_message_copy_label": "Copy",
+	"chat_message_copy_response_tooltip": "Copy response",
+	"chat_message_copy_toast_error": "Failed to copy to clipboard",
+	"chat_message_copy_toast_loading": "Copying to clipboard...",
+	"chat_message_copy_toast_success": "Copied to clipboard!",
+	"chat_message_copy_tooltip": "Copy message",
+	"chat_message_edit_tooltip": "Edit message",
+	"chat_message_editor_generating_label": "Generating...",
+	"chat_message_editor_missing_id_toast_error": "This message has no identifier yet, so it cannot be edited. Wait for it to finish sending, then try again.",
+	"chat_message_editor_submit_button": "Edit",
+	"chat_message_rate_action_label": "Rate response",
+	"chat_message_rate_option_a_bit": "A bit",
+	"chat_message_rate_option_not_at_all": "Not at all",
+	"chat_message_rate_option_not_really": "Not really",
+	"chat_message_rate_option_very_much": "Very much",
+	"chat_message_rate_prompt": "Was this response helpful for your learning?",
+	"chat_message_rate_toast_error": "Failed to rate",
+	"chat_message_rate_toast_loading": "Rating...",
+	"chat_message_rate_toast_success": "Thank you for your feedback!",
+	"chat_message_rate_tooltip": "Rate how helpful this response was",
+	"chat_message_usage_unknown_model": "Unknown model",
+	"chat_model_notice_add_model_action": "Add a model",
+	"chat_model_notice_description_manager": "Add a provider and a model, then chatting opens for everyone.",
+	"chat_model_notice_description_member": "An organisation admin needs to add a provider and a model before anyone can chat.",
+	"chat_model_notice_organisation_fallback": "this organisation",
+	"chat_model_notice_title": "No chat model is available in {organisation} yet.",
+	"chat_model_selector_dialog_title": "Choose a provider, then a chat model",
+	"chat_model_selector_empty_state": "No chat model matches. Try another provider or clear the search.",
+	"chat_model_selector_item_description": "{provider} • {description}",
+	"chat_model_selector_no_provider_empty_state": "No chat model is available yet. An organisation admin can add a provider and a model under Administration.",
+	"chat_model_selector_provider_filter_placeholder": "Select a provider",
+	"chat_model_selector_search_placeholder": "Search models...",
+	"chat_model_selector_trigger_fallback_label": "Choose model",
+	"chat_model_selector_trigger_placeholder": "Choose model...",
+	"chat_new_page_title": "New chat",
+	"chat_pending_message_failed_toast_error": "The message was not sent. Send it again.",
+	"chat_placeholder_bot_description_fallback": "Answers draw on this bot's sources and behaviour.",
+	"chat_placeholder_description": "Without a bot, answers come from the model alone. Choose a bot to ground them in your organisation's sources.",
+	"chat_placeholder_title": "Ask anything",
+	"chat_quota_pool_fallback_name": "Quota",
+	"chat_quota_requests_left": [
+		{
+			"declarations": [
+				"input count",
+				"input pool",
+				"input amount",
+				"local countPlural = count: plural"
+			],
+			"selectors": [
+				"countPlural"
+			],
+			"match": {
+				"countPlural=one": "{pool} pool · {amount} request left",
+				"countPlural=other": "{pool} pool · {amount} requests left"
+			}
+		}
+	],
+	"chat_quota_tokens_left": [
+		{
+			"declarations": [
+				"input count",
+				"input pool",
+				"input amount",
+				"local countPlural = count: plural"
+			],
+			"selectors": [
+				"countPlural"
+			],
+			"match": {
+				"countPlural=one": "{pool} pool · {amount} token left",
+				"countPlural=other": "{pool} pool · {amount} tokens left"
+			}
+		}
+	],
+	"chat_response_failed": "The model did not respond. Send the message again or choose another model.",
+	"chat_settings_add_behaviour_action": "Add behaviour",
+	"chat_settings_add_repository_action": "Add repository",
+	"chat_settings_advanced_description": "Adjust temperature, token limits, and penalties.",
+	"chat_settings_advanced_title": "Advanced generation settings",
+	"chat_settings_attached_blocks_empty_state": "No blocks attached to this chat yet.",
+	"chat_settings_attached_blocks_label": "Attached blocks",
+	"chat_settings_behaviour_dialog_description": "Attach one reusable AI behaviour block to this chat.",
+	"chat_settings_behaviour_dialog_title": "Add behaviour",
+	"chat_settings_block_attach_failed_toast_error": "The block was not attached. Try again.",
+	"chat_settings_block_detach_failed_toast_error": "The block was not detached. Try again.",
+	"chat_settings_blocks_bot_managed_notice": "Attached blocks are managed by the bot for bot-linked chats.",
+	"chat_settings_blocks_hint": "Behaviour blocks set how answers are written. Repositories give the chat material to retrieve from.",
+	"chat_settings_blocks_hint_behaviour_attached": "Only one behaviour block can be attached. Remove \"{name}\" to attach another behaviour.",
+	"chat_settings_blocks_label": "Chat blocks",
+	"chat_settings_dialog_description": "Configure the model and parameters for this chat.",
+	"chat_settings_dialog_description_bot_linked": "This chat is linked to a bot. The system prompt is locked, but you can change the model and generation parameters.",
+	"chat_settings_dialog_title": "Chat settings",
+	"chat_settings_frequency_penalty_label": "Frequency penalty",
+	"chat_settings_max_tokens_label": "Max tokens",
+	"chat_settings_max_tokens_placeholder": "Default (model limit)",
+	"chat_settings_model_label": "Model",
+	"chat_settings_presence_penalty_label": "Presence penalty",
+	"chat_settings_repository_dialog_description": "Attach reusable repositories to enrich chat responses.",
+	"chat_settings_repository_dialog_title": "Add repository",
+	"chat_settings_save_button": "Save settings",
+	"chat_settings_system_prompt_label": "System Prompt",
+	"chat_settings_system_prompt_locked_description": "Locked by bot. The system prompt is defined in the bot's template block.",
+	"chat_settings_system_prompt_placeholder": "You are a helpful assistant.",
+	"chat_settings_temperature_label": "Temperature",
+	"chat_settings_top_p_label": "Top P",
+	"chat_setup_bot_card_description": "Start with a configured bot tailored to a specific use case",
+	"chat_setup_bot_card_point_configured": "Configured behaviour and content access",
+	"chat_setup_bot_card_point_ready": "Ready-to-use setups",
+	"chat_setup_bot_card_title": "Use a bot",
+	"chat_setup_bot_dialog_description": "Choose from the bots available in your workspace",
+	"chat_setup_bot_dialog_start_action": "Start chat",
+	"chat_setup_bot_dialog_title": "Select a bot",
+	"chat_setup_footer_note": "Bots are best when someone else has already configured AI behaviour or relevant content for you. Chatting without a bot is best when you want to explore freely.",
+	"chat_setup_page_description": "Choose whether to chat with a bot or chat with the model alone.",
+	"chat_setup_page_title": "Start a chat",
+	"chat_setup_solo_card_description": "Answers come from the model alone, with no configured behaviour or content",
+	"chat_setup_solo_card_point_knowledge": "Answers from the model's own knowledge",
+	"chat_setup_solo_card_point_model": "You choose the model",
+	"chat_setup_solo_card_title": "Chat without a bot",
+	"chat_source_fallback_title": "Source",
+	"chat_start_action": "Start a chat",
+	"chat_starter_create_failed_toast_error": "The chat was not created. Try sending the message again.",
+	"chat_table_bot_column_header": "Attached bot",
+	"chat_table_bulk_delete_action": "Delete selected",
+	"chat_table_date_column_header": "Date",
+	"chat_table_row_menu_trigger": "Open chat actions",
+	"chat_table_untitled_chat": "Untitled chat",
+	"chat_update_toast_error": "Failed to update chat",
+	"chat_update_toast_loading": "Updating chat...",
+	"chat_update_toast_success": "Chat updated successfully",
+	"chat_waiting_for_model": "Waiting for the model",
+	"chat_work_log_clamped_text_show_less": "Show less",
+	"chat_work_log_clamped_text_show_more": "Show more",
+	"chat_work_log_header_steps": [
+		{
+			"declarations": [
+				"input count",
+				"local countPlural = count: plural"
+			],
+			"selectors": [
+				"countPlural"
+			],
+			"match": {
+				"countPlural=one": "{count} step",
+				"countPlural=other": "{count} steps"
+			}
+		}
+	],
+	"chat_work_log_header_steps_failed": [
+		{
+			"declarations": [
+				"input count",
+				"input failed",
+				"local countPlural = count: plural"
+			],
+			"selectors": [
+				"countPlural"
+			],
+			"match": {
+				"countPlural=one": "{count} step · {failed} failed",
+				"countPlural=other": "{count} steps · {failed} failed"
+			}
+		}
+	],
+	"chat_work_log_reasoning_duration": [
+		{
+			"declarations": [
+				"input count",
+				"local countPlural = count: plural"
+			],
+			"selectors": [
+				"countPlural"
+			],
+			"match": {
+				"countPlural=one": "Thought for {count} second",
+				"countPlural=other": "Thought for {count} seconds"
+			}
+		}
+	],
+	"chat_work_log_reasoning_duration_unknown": "Thought for a few seconds",
+	"chat_work_log_source_block_and_pages": "{block} · p. {range}",
+	"chat_work_log_source_pages": "p. {range}",
+	"chat_work_log_thinking": "Thinking",
+	"chat_work_log_tool_details_label": "Details",
+	"chat_work_log_tool_generic_active": "Running {tool}",
+	"chat_work_log_tool_get_chunks_active": "Reading passages",
+	"chat_work_log_tool_get_chunks_name": "Read the passages",
+	"chat_work_log_tool_get_chunks_result": [
+		{
+			"declarations": [
+				"input count",
+				"local countPlural = count: plural"
+			],
+			"selectors": [
+				"countPlural"
+			],
+			"match": {
+				"countPlural=one": "Read {count} passage",
+				"countPlural=other": "Read {count} passages"
+			}
+		}
+	],
+	"chat_work_log_tool_get_page_active": "Reading a page",
+	"chat_work_log_tool_get_page_name": "Read a page",
+	"chat_work_log_tool_get_page_range": "Read pages {from} to {to}",
+	"chat_work_log_tool_get_page_single": "Read page {page}",
+	"chat_work_log_tool_list_documents_active": "Listing the sources",
+	"chat_work_log_tool_list_documents_name": "Listed the available sources",
+	"chat_work_log_tool_list_documents_result": [
+		{
+			"declarations": [
+				"input count",
+				"local countPlural = count: plural"
+			],
+			"selectors": [
+				"countPlural"
+			],
+			"match": {
+				"countPlural=one": "Listed {count} available source",
+				"countPlural=other": "Listed {count} available sources"
+			}
+		}
+	],
+	"chat_work_log_tool_parameters_label": "Parameters",
+	"chat_work_log_tool_search_active": "Searching the sources",
+	"chat_work_log_tool_search_name": "Searched the sources",
+	"chat_work_log_tool_search_result": [
+		{
+			"declarations": [
+				"input count",
+				"local countPlural = count: plural"
+			],
+			"selectors": [
+				"countPlural"
+			],
+			"match": {
+				"countPlural=one": "Searched the sources, found {count} passage",
+				"countPlural=other": "Searched the sources, found {count} passages"
+			}
+		}
+	],
+	"chat_work_log_tool_status_awaiting_approval": "Awaiting approval",
+	"chat_work_log_tool_status_denied": "Denied",
+	"chat_work_log_tool_status_failed": "Failed",
+	"chat_work_log_tool_status_incomplete": "Not completed",
+	"chat_work_log_tool_status_running": "Running",
+	"common_actions_column_header": "Actions",
+	"common_add_button": "Add",
+	"common_back_button": "Back",
+	"common_cancel_button": "Cancel",
+	"common_capabilities_title": "Capabilities",
+	"common_close_button": "Close",
+	"common_confirm_button": "Confirm",
+	"common_confirm_password_placeholder": "Confirm Password",
+	"common_create_button": "Create",
+	"common_created_column_header": "Created",
+	"common_delete_button": "Delete",
+	"common_delete_selected_action": "Delete selected",
+	"common_description_label": "Description",
+	"common_edit_button": "Edit",
+	"common_email_label": "Email",
+	"common_email_placeholder": "your@email.com",
+	"common_loading_label": "Loading...",
+	"common_name_label": "Name",
+	"common_name_placeholder": "Your Name",
+	"common_next_button": "Next",
+	"common_optional_label": "Optional",
+	"common_password_label": "Password",
+	"common_password_placeholder": "Password",
+	"common_provider_label": "Provider",
+	"common_remove_button": "Remove",
+	"common_retry_button": "Retry",
+	"common_row_menu_trigger": "Open menu",
+	"common_save_button": "Save",
+	"common_search_placeholder": "Search...",
+	"common_show_all_action": "Show all",
+	"common_status_active_label": "Active",
+	"common_status_column_header": "Status",
+	"common_status_deprecated_label": "Deprecated",
+	"common_status_disabled_label": "Disabled",
+	"common_status_enabled_label": "Enabled",
+	"common_status_inactive_label": "Inactive",
+	"common_unknown_error_description": "Something went wrong. Try again.",
+	"editor_colour_blue_option": "Blue",
+	"editor_colour_brown_option": "Brown",
+	"editor_colour_default_option": "Default",
+	"editor_colour_green_option": "Green",
+	"editor_colour_grey_option": "Grey",
+	"editor_colour_orange_option": "Orange",
+	"editor_colour_pink_option": "Pink",
+	"editor_colour_purple_option": "Purple",
+	"editor_colour_red_option": "Red",
+	"editor_colour_yellow_option": "Yellow",
+	"editor_image_add_button": "Add Image",
+	"editor_image_add_dialog_title": "Add image",
+	"editor_image_alt_text_label": "Alt text",
+	"editor_image_alt_text_placeholder": "Alt text (optional)",
+	"editor_image_caption_placeholder": "Add a caption",
+	"editor_image_choose_button": "Choose image",
+	"editor_image_delete_action": "Delete image",
+	"editor_image_edit_caption_action": "Edit caption",
+	"editor_image_full_width_action": "Full width",
+	"editor_image_preview_alt": "Preview",
+	"editor_image_replace_action": "Replace image",
+	"editor_image_replace_with_url_button": "Replace with URL",
+	"editor_image_upload_button": "Upload",
+	"editor_image_upload_error": "Upload failed",
+	"editor_image_upload_formats_hint": "SVG, PNG, JPG or GIF",
+	"editor_image_upload_label": "Upload image",
+	"editor_image_upload_prompt": "Click to upload or drag and drop",
+	"editor_image_upload_tab": "Upload",
+	"editor_image_uploading_label": "Uploading...",
+	"editor_image_url_invalid_error": "Please enter a valid URL",
+	"editor_image_url_label": "Or use a URL",
+	"editor_image_url_tab": "URL",
+	"editor_node_selector_bullet_list_option": "Bullet List",
+	"editor_node_selector_heading_1_option": "Heading 1",
+	"editor_node_selector_heading_2_option": "Heading 2",
+	"editor_node_selector_heading_3_option": "Heading 3",
+	"editor_node_selector_multiple_label": "Multiple",
+	"editor_node_selector_numbered_list_option": "Numbered List",
+	"editor_node_selector_quote_option": "Quote",
+	"editor_node_selector_text_option": "Text",
+	"editor_placeholder_default": "Write, type '/' for commands",
+	"editor_placeholder_heading": "Heading {level}",
+	"editor_placeholder_section_title": "Section title",
+	"editor_table_add_column_after_action": "Add column after",
+	"editor_table_add_column_before_action": "Add column before",
+	"editor_table_add_row_after_action": "Add row after",
+	"editor_table_add_row_before_action": "Add row before",
+	"editor_table_cell_tooltip": "Cell",
+	"editor_table_column_tooltip": "Column",
+	"editor_table_delete_column_action": "Delete column",
+	"editor_table_delete_row_action": "Delete row",
+	"editor_table_delete_table_action": "Delete table",
+	"editor_table_merge_cells_action": "Merge cells",
+	"editor_table_options_tooltip": "Options",
+	"editor_table_row_tooltip": "Row",
+	"editor_table_split_cell_action": "Split cell",
+	"editor_table_toggle_header_cell_action": "Toggle header cell",
+	"editor_table_toggle_header_column_action": "Toggle header col",
+	"editor_table_toggle_header_row_action": "Toggle header row",
+	"editor_text_align_selector_centre_option": "Centre",
+	"editor_text_align_selector_left_option": "Left",
+	"editor_text_align_selector_right_option": "Right",
+	"editor_toolbar_alignment_centre_option": "Centre Align",
+	"editor_toolbar_alignment_justify_option": "Justify Align",
+	"editor_toolbar_alignment_left_option": "Left Align",
+	"editor_toolbar_alignment_right_option": "Right Align",
+	"editor_toolbar_alignment_tooltip": "Text alignment",
+	"editor_toolbar_background_section_label": "Background",
+	"editor_toolbar_blockquote_tooltip": "Blockquote",
+	"editor_toolbar_bold_tooltip": "Bold",
+	"editor_toolbar_bullet_list_tooltip": "Bullet list",
+	"editor_toolbar_code_block_tooltip": "Code block",
+	"editor_toolbar_code_tooltip": "Code",
+	"editor_toolbar_colour_group_label": "Colour",
+	"editor_toolbar_colour_section_label": "Colour",
+	"editor_toolbar_colour_tooltip": "Text colour and highlight",
+	"editor_toolbar_hard_break_tooltip": "Hard break",
+	"editor_toolbar_headings_normal_option": "Normal",
+	"editor_toolbar_headings_tooltip": "Headings",
+	"editor_toolbar_highlight_group_label": "Highlight",
+	"editor_toolbar_horizontal_rule_tooltip": "Horizontal rule",
+	"editor_toolbar_image_tooltip": "Image",
+	"editor_toolbar_italic_tooltip": "Italic",
+	"editor_toolbar_link_button": "Link",
+	"editor_toolbar_link_popover_description": "Attach a link to the selected text",
+	"editor_toolbar_link_popover_label": "Link",
+	"editor_toolbar_link_tooltip": "Link",
+	"editor_toolbar_link_update_button": "Update",
+	"editor_toolbar_ordered_list_tooltip": "Ordered list",
+	"editor_toolbar_redo_tooltip": "Redo",
+	"editor_toolbar_strikethrough_tooltip": "Strikethrough",
+	"editor_toolbar_underline_tooltip": "Underline",
+	"editor_toolbar_undo_tooltip": "Undo",
+	"error_active_organization_required": "Select an organisation first.",
+	"error_ai_prompt_required": "A prompt or messages are required to generate text.",
+	"error_ai_stream_failed": "The AI response could not be completed.",
+	"error_ai_tool_failed": "The tool call failed.",
+	"error_asset_not_attached": "The asset is not attached to this block.",
+	"error_asset_not_found": "Asset not found.",
+	"error_asset_source_required": "Choose an existing asset or upload a file.",
+	"error_asset_upload_required": "Upload a file to create an asset.",
+	"error_auth_required": "Sign in to continue.",
+	"error_behaviour_block_type_invalid": "The linked AI behaviour must be a behaviour block.",
+	"error_block_in_use_by_ready_bots": "This block cannot be moved to draft because ready bots use it: {botNames}.",
+	"error_block_link_forbidden": "You do not have access to one or more of the selected blocks.",
+	"error_block_not_found": "Block not found.",
+	"error_bootstrap_organization_create_failed": "The organisation could not be created.",
+	"error_bootstrap_user_create_failed": "The user could not be created.",
+	"error_bot_behaviour_block_not_ready": "Set the AI behaviour block to ready before publishing this bot.",
+	"error_bot_behaviour_block_required": "Bots need an AI behaviour block before they can be published.",
+	"error_bot_not_found": "Bot not found.",
+	"error_bot_repository_empty": "Attach at least one document to \"{blockName}\" before publishing.",
+	"error_bot_repository_not_ready": "Set \"{blockName}\" to ready before publishing this bot.",
+	"error_chat_active_branch_missing": "This chat has no active branch. Refresh the page and try again.",
+	"error_chat_blocks_unavailable": "The blocks of this chat could not be loaded.",
+	"error_chat_bot_blocks_immutable": "The blocks of a chat linked to a bot cannot be changed directly.",
+	"error_chat_branch_not_found": "Branch not found.",
+	"error_chat_branch_required": "A branch is required.",
+	"error_chat_message_create_failed": "Your message could not be saved.",
+	"error_chat_message_invalid": "The message is missing or invalid.",
+	"error_chat_message_not_found": "Message not found.",
+	"error_chat_model_not_configured": "Select a model in the chat settings first.",
+	"error_chat_not_found": "Chat not found.",
+	"error_chat_rating_failed": "The rating could not be saved.",
+	"error_chat_template_block_already_attached": "This chat already has an AI behaviour block. Remove it before attaching another one.",
+	"error_current_password_incorrect": "Current password is incorrect.",
+	"error_default_references_out_of_range": "The default number of references must lie between the minimum and the maximum.",
+	"error_email_already_registered": "An account with this email address already exists.",
+	"error_email_not_verified": "Verify your email address before signing in.",
+	"error_entity_ids_required": "No valid entities were selected.",
+	"error_generic_bad_request": "The request could not be processed.",
+	"error_generic_conflict": "The change conflicts with the current state.",
+	"error_generic_forbidden": "You do not have permission to do this.",
+	"error_generic_internal": "Something went wrong on the server.",
+	"error_generic_not_found": "Not found.",
+	"error_generic_unauthorized": "Sign in to continue.",
+	"error_generic_unknown": "Something went wrong.",
+	"error_generic_validation": "Some of the entered values are invalid.",
+	"error_grant_not_recorded": "The grant could not be recorded.",
+	"error_grant_principals_invalid": "Access could not be granted to one or more of the selected principals.",
+	"error_grant_rejection_all_members_viewer_only": "All Members can only receive viewer access.",
+	"error_grant_rejection_group_not_in_scope": "A group is not part of the organisation this resource belongs to.",
+	"error_grant_rejection_group_not_joined": "You can only share with groups you belong to.",
+	"error_grant_rejection_user_not_in_scope": "A user is not a member of the organisation this resource belongs to.",
+	"error_group_members_invalid": "Group members must belong to this organisation.",
+	"error_group_not_found": "Group not found.",
+	"error_instance_admin_required": "This action requires the instance administrator.",
+	"error_instance_already_initialised": "The instance is already initialised.",
+	"error_instance_role_invalid": "The instance role is invalid.",
+	"error_invalid_credentials": "Invalid email address or password.",
+	"error_invitation_already_accepted": "An accepted invitation cannot be rejected.",
+	"error_invitation_changed": "The invitation changed while responding. Try again.",
+	"error_invitation_expired": "The invitation has expired.",
+	"error_invitation_not_found": "Invitation not found.",
+	"error_invitation_required": "Registration is by invitation. Ask an organisation administrator to invite this address.",
+	"error_invitation_response_forbidden": "You cannot respond to this invitation.",
+	"error_invitation_response_invalid": "The response to the invitation is invalid.",
+	"error_items_not_unique": "Selected items must be unique.",
+	"error_job_runner_unsupported": "This job type cannot be run.",
+	"error_last_manager_required": "At least one manager must remain on this resource.",
+	"error_last_organization_admin_required": "At least one organisation admin must remain.",
+	"error_member_not_found": "Member not found.",
+	"error_model_deprecated": "The selected model is deprecated. Choose another model.",
+	"error_model_not_found": "Model not found.",
+	"error_model_provider_mismatch": "The selected model does not belong to the selected provider.",
+	"error_model_tools_unsupported": "The selected model does not support tool calling. Choose a chat-capable model.",
+	"error_mutable_field_required": "Change at least one field.",
+	"error_organization_admin_required": "Managing organisation admins requires admin access.",
+	"error_organization_membership_revoked": "You are no longer a member of the selected organisation.",
+	"error_organization_not_found": "Organisation not found.",
+	"error_password_not_set": "This account has no password.",
+	"error_passwords_mismatch": "Passwords must match.",
+	"error_permission_denied": "You do not have permission to do this.",
+	"error_privacy_consent_required": "You must accept the privacy policy.",
+	"error_provider_disabled": "The selected provider is disabled. Choose an active provider.",
+	"error_provider_models_fetch_failed": "Models could not be fetched from the provider.",
+	"error_provider_not_found": "Provider not found.",
+	"error_quota_check_failed": "The quota check failed.",
+	"error_quota_exhausted": "The quota for this provider and model is exhausted.",
+	"error_quota_groups_invalid": "One or more group assignments are invalid.",
+	"error_quota_pool_not_found": "Quota pool not found.",
+	"error_quota_pool_unavailable": "No quota pool is available for this request.",
+	"error_reference_range_invalid": "The maximum number of references cannot be less than the minimum.",
+	"error_repository_block_type_invalid": "The linked repository must be a repository block.",
+	"error_repository_not_found": "Repository not found.",
+	"error_request_headers_required": "The request is missing its headers.",
+	"error_resource_scope_required": "This resource has no organisation scope and cannot be shared.",
+	"error_self_ban_forbidden": "You cannot ban your own account.",
+	"error_self_delete_forbidden": "You cannot delete your own account.",
+	"error_session_not_found": "Your session could not be found. Sign in again.",
+	"error_sort_key_unsupported": "Sorting by \"{sortKey}\" is not supported.",
+	"error_system_group_immutable": "System groups cannot be changed.",
+	"error_token_invalid": "The link is invalid or has expired.",
+	"error_upload_file_missing": "The uploaded file was not found in storage.",
+	"error_upload_file_size_mismatch": "The uploaded file size does not match.",
+	"error_upload_file_too_large": "\"{fileName}\" exceeds the maximum file size.",
+	"error_upload_file_type_invalid": "\"{fileName}\" has a file type that is not allowed ({fileType}).",
+	"error_upload_init_failed": "The upload could not be started. Try again.",
+	"error_upload_request_invalid": "The upload request is invalid.",
+	"error_upload_too_many_files": "Too many files. Upload at most {maxFiles}.",
+	"error_user_ban_failed": "The user could not be banned.",
+	"error_user_banned": "This account is banned.",
+	"error_user_not_found": "User not found.",
+	"error_user_not_member": "The user is not a member of the active organisation.",
+	"error_user_owns_content": "This account still owns groups, resources, grants or invitations, so it cannot be deleted yet. Hand that content over first.",
+	"error_user_preferences_not_found": "User preferences not found.",
+	"error_user_unban_failed": "The user could not be unbanned.",
+	"error_validation_array_too_big": [
+		{
+			"declarations": [
+				"input maximum",
+				"local maximumPlural = maximum: plural"
+			],
+			"selectors": [
+				"maximumPlural"
+			],
+			"match": {
+				"maximumPlural=one": "Select at most one item.",
+				"maximumPlural=other": "Select at most {maximum} items."
+			}
+		}
+	],
+	"error_validation_array_too_small": [
+		{
+			"declarations": [
+				"input minimum",
+				"local minimumPlural = minimum: plural"
+			],
+			"selectors": [
+				"minimumPlural"
+			],
+			"match": {
+				"minimumPlural=one": "Select at least one item.",
+				"minimumPlural=other": "Select at least {minimum} items."
+			}
+		}
+	],
+	"error_validation_invalid_email": "Enter a valid email address.",
+	"error_validation_invalid_format": "The format is invalid.",
+	"error_validation_invalid_url": "Enter a valid URL.",
+	"error_validation_invalid_value": "The value is invalid.",
+	"error_validation_not_multiple_of": "Must be a multiple of {divisor}.",
+	"error_validation_number_too_big": "Must be at most {maximum}.",
+	"error_validation_number_too_small": "Must be at least {minimum}.",
+	"error_validation_required": "Required.",
+	"error_validation_string_too_big": "Must be at most {maximum} characters.",
+	"error_validation_string_too_small": "Must be at least {minimum} characters.",
+	"error_vectorize_retry_not_ready": "Vectorisation can only be retried after the asset has been processed.",
+	"forms_datetime_field_date_label": "Date",
+	"forms_datetime_field_placeholder": "Select a date",
+	"forms_datetime_field_time_label": "Time",
+	"forms_multi_select_field_placeholder": "Select multiple",
+	"forms_password_field_hide_button": "Hide password",
+	"forms_password_field_show_button": "Show password",
+	"forms_password_strength_empty": "Enter a password",
+	"forms_password_strength_medium": "Medium password",
+	"forms_password_strength_meter_label": "Password strength",
+	"forms_password_strength_requirement_length": "At least 8 characters",
+	"forms_password_strength_requirement_lowercase": "At least 1 lowercase letter",
+	"forms_password_strength_requirement_number": "At least 1 number",
+	"forms_password_strength_requirement_uppercase": "At least 1 uppercase letter",
+	"forms_password_strength_requirements_label": "Password requirements",
+	"forms_password_strength_strong": "Strong password",
+	"forms_password_strength_summary": "{strength}. Must contain:",
+	"forms_password_strength_weak": "Weak password",
+	"forms_select_field_placeholder": "Select an option",
+	"forms_validation_errors_summary": "Correct the {count} errors above.",
+	"forms_validation_errors_title": "Please fix the following errors:",
+	"groups_create_dialog_description": "Create a custom organisation group for access management.",
+	"groups_create_dialog_title": "Create Group",
+	"groups_create_toast_error": "The group was not created. Check the name and try again.",
+	"groups_create_toast_loading": "Creating group...",
+	"groups_create_toast_success": "Group created",
+	"groups_delete_action": "Delete Group",
+	"groups_delete_confirm_description": [
+		{
+			"declarations": [
+				"input count",
+				"local countPlural = count: plural"
+			],
+			"selectors": [
+				"countPlural"
+			],
+			"match": {
+				"countPlural=one": "Every grant this group carries is revoked, so its members lose the access it gave them. Their accounts stay.",
+				"countPlural=other": "Every grant these groups carry is revoked, so their members lose the access those groups gave them. Their accounts stay."
+			}
+		}
+	],
+	"groups_delete_confirm_title": [
+		{
+			"declarations": [
+				"input count",
+				"local countPlural = count: plural"
+			],
+			"selectors": [
+				"countPlural"
+			],
+			"match": {
+				"countPlural=one": "Delete this group?",
+				"countPlural=other": "Delete {count} groups?"
+			}
+		}
+	],
+	"groups_delete_confirm_title_named": "Delete the group {name}?",
+	"groups_delete_toast_error": [
+		{
+			"declarations": [
+				"input count",
+				"local countPlural = count: plural"
+			],
+			"selectors": [
+				"countPlural"
+			],
+			"match": {
+				"countPlural=one": "The group was not deleted. Try again.",
+				"countPlural=other": "The groups were not deleted. Try again."
+			}
+		}
+	],
+	"groups_delete_toast_loading": [
+		{
+			"declarations": [
+				"input count",
+				"local countPlural = count: plural"
+			],
+			"selectors": [
+				"countPlural"
+			],
+			"match": {
+				"countPlural=one": "Deleting the group...",
+				"countPlural=other": "Deleting {count} groups..."
+			}
+		}
+	],
+	"groups_delete_toast_success": [
+		{
+			"declarations": [
+				"input count",
+				"local countPlural = count: plural"
+			],
+			"selectors": [
+				"countPlural"
+			],
+			"match": {
+				"countPlural=one": "{count} group deleted",
+				"countPlural=other": "{count} groups deleted"
+			}
+		}
+	],
+	"groups_detail_loading": "Loading group...",
+	"groups_kind_custom": "Custom",
+	"groups_kind_system": "System",
+	"groups_list_create_action": "Create Group",
+	"groups_list_search_placeholder": "Search groups",
+	"groups_member_list_empty_state_description": "No members found.",
+	"groups_member_list_filter_placeholder": "Filter members",
+	"groups_member_list_title": "Current members",
+	"groups_member_picker_empty_state_all_members": "Everyone is already in this group.",
+	"groups_member_picker_empty_state_no_match": "No members match this search.",
+	"groups_member_picker_search_placeholder": "Search users",
+	"groups_member_row_remove_aria_label": "Remove member",
+	"groups_member_row_source_explicit": "Explicit",
+	"groups_member_row_source_implicit": "Implicit",
+	"groups_members_add_heading": "Add members",
+	"groups_members_add_selected_action": "Add Selected",
+	"groups_members_add_toast_error": "The members were not added. Try again.",
+	"groups_members_add_toast_loading": "Adding members...",
+	"groups_members_add_toast_success": "Members added",
+	"groups_members_card_description_custom": "Manage explicit group membership.",
+	"groups_members_card_description_system": "All organisation members are included implicitly.",
+	"groups_members_card_title": "Members",
+	"groups_members_remove_confirm_description": [
+		{
+			"declarations": [
+				"input count",
+				"local countPlural = count: plural"
+			],
+			"selectors": [
+				"countPlural"
+			],
+			"match": {
+				"countPlural=one": "They lose the access this group gives them. Their account and their own resources stay.",
+				"countPlural=other": "They lose the access this group gives them. Their accounts and their own resources stay."
+			}
+		}
+	],
+	"groups_members_remove_confirm_title": [
+		{
+			"declarations": [
+				"input count",
+				"local countPlural = count: plural"
+			],
+			"selectors": [
+				"countPlural"
+			],
+			"match": {
+				"countPlural=one": "Remove this member from the group?",
+				"countPlural=other": "Remove {count} members from the group?"
+			}
+		}
+	],
+	"groups_members_remove_toast_error": "The member was not removed. Try again.",
+	"groups_members_remove_toast_loading": "Removing the member...",
+	"groups_members_remove_toast_success": "Member removed",
+	"groups_page_title": "Groups",
+	"groups_settings_card_description": "System groups cannot be renamed or deleted.",
+	"groups_settings_card_title": "Group settings",
+	"groups_table_kind_column_header": "Type",
+	"groups_table_manage_action": "Manage group",
+	"groups_update_toast_error": "The group was not updated. Try again.",
+	"groups_update_toast_loading": "Saving group...",
+	"groups_update_toast_success": "Group updated",
+	"header_breadcrumb_menu_label": "Show the breadcrumb trail",
+	"header_home_link_label": "Home",
+	"header_locale_switcher_label": "Language",
+	"header_theme_switcher_label": "Toggle theme",
+	"home_about_link": "About OrcAI",
+	"home_ask_browse_bots_action": "Browse bots",
+	"home_ask_section_description": "Pick a bot to answer from its sources, or ask the model directly.",
+	"home_ask_section_title": "Ask a question",
+	"home_chats_new_chat_aria_label": "Start a new chat",
+	"home_chats_section_description": "Pick up where you left off.",
+	"home_chats_section_title": "Recent chats",
+	"home_greeting_afternoon": "Good afternoon",
+	"home_greeting_evening": "Good evening",
+	"home_greeting_morning": "Good morning",
+	"home_intro": "Ask questions against your organisation's approved sources, or build a bot that others can use.",
+	"home_library_assets_label": "Assets",
+	"home_library_assets_meta": "Source material for retrieval and citations",
+	"home_library_blocks_label": "Behaviour blocks",
+	"home_library_blocks_meta": "Prompts and image generation",
+	"home_library_bots_label": "Bots",
+	"home_library_bots_meta": [
+		{
+			"declarations": [
+				"input published",
+				"input drafts",
+				"input count",
+				"local countPlural = count: plural"
+			],
+			"selectors": [
+				"countPlural"
+			],
+			"match": {
+				"countPlural=one": "{published} published, {drafts} draft",
+				"countPlural=other": "{published} published, {drafts} drafts"
+			}
+		}
+	],
+	"home_library_panel_add_asset_action": "Add an asset",
+	"home_library_panel_title": "Library",
+	"home_library_repositories_label": "Repositories",
+	"home_library_repositories_meta": "Retrieval databases that ground answers",
+	"home_manage_create_bot_action": "Create a bot",
+	"home_manage_description": "What this organisation has, what it is spending, and what changed.",
+	"home_people_groups_label": "Groups",
+	"home_people_groups_meta": "How access is granted to more than one person",
+	"home_people_invitations_label": "Pending invitations",
+	"home_people_invitations_meta": "Sent, not yet accepted",
+	"home_people_members_label": "Members",
+	"home_people_members_meta": "People who can sign in to this organisation",
+	"home_people_panel_invite_action": "Invite people",
+	"home_people_panel_title": "People",
+	"home_quota_panel_all_pools_action": "All pools",
+	"home_quota_panel_empty_note": "No quota pools yet. Chats use the provider's own limits until one exists.",
+	"home_quota_panel_title": "Quota",
+	"home_quota_pool_default_badge": "Default",
+	"home_quota_pool_meta_no_period": "{provider}, no open period",
+	"home_quota_pool_meta_renews": "{provider}, renews {date}",
+	"home_recent_asset_kind": "Asset",
+	"home_recent_block_kind": "Behaviour block",
+	"home_recent_bot_kind": "Bot",
+	"home_recent_draft_badge": "Draft",
+	"home_recent_panel_empty_note": "Nothing has been edited yet. Bots, behaviour blocks, repositories, and assets appear here as they change.",
+	"home_recent_panel_open_library_action": "Open the library",
+	"home_recent_panel_title": "Recently changed",
+	"home_recent_published_badge": "Published",
+	"home_recent_repository_kind": "Repository",
+	"home_tour_button_aria_label": "Take a tour of OrcAI",
+	"home_tour_button_label": "Take a tour",
+	"home_view_manage_tab": "Manage",
+	"home_view_use_tab": "Use",
+	"home_welcome_heading": [
+		{
+			"declarations": [
+				"input name",
+				"input timeOfDay"
+			],
+			"selectors": [
+				"timeOfDay"
+			],
+			"match": {
+				"timeOfDay=morning": "Good morning, {name}!",
+				"timeOfDay=afternoon": "Good afternoon, {name}!",
+				"timeOfDay=*": "Good evening, {name}!"
+			}
+		}
+	],
+	"hub_assets_section_title": "Assets",
+	"hub_behaviour_section_title": "Behaviour",
+	"hub_bots_section_title": "Bots",
+	"hub_page_title": "Library",
+	"hub_repositories_section_title": "Repositories",
+	"hub_section_switcher_aria_label": "Library section",
+	"hub_section_view_all_action": "View all",
+	"hub_tab_all_label": "All",
+	"hub_tab_assets_label": "Assets",
+	"hub_tab_behaviour_label": "Behaviour",
+	"hub_tab_bots_label": "Bots",
+	"hub_tab_repositories_label": "Repositories",
+	"instance_organizations_create_button": "Create Organisation",
+	"instance_organizations_create_dialog_description": "The creator becomes the first administrator of the new organisation.",
+	"instance_organizations_create_dialog_title": "Create Organisation",
+	"instance_organizations_page_description": "Every organisation of this instance.",
+	"instance_organizations_page_title": "Organisations",
+	"instance_organizations_search_placeholder": "Search organisations...",
+	"instance_orgs_table_delete_menu_item": "Delete Organisation",
+	"instance_orgs_table_members_column_header": "Members",
+	"instance_orgs_table_slug_column_header": "Slug",
+	"instance_route_page_title": "Manage instance",
+	"instance_sidebar_back_to_app_action": "Back to app",
+	"instance_sidebar_manage_group_label": "Manage instance",
+	"instance_sidebar_organisations_nav_label": "Organisations",
+	"instance_sidebar_users_nav_label": "Users",
+	"instance_users_page_description": "Every account of this instance and the organisations it belongs to.",
+	"instance_users_page_title": "Users",
+	"instance_users_search_placeholder": "Search users...",
+	"instance_users_table_ban_menu_item": "Ban Account",
+	"instance_users_table_delete_menu_item": "Delete Account",
+	"instance_users_table_no_organisation_label": "No organisation",
+	"instance_users_table_organisations_column_header": "Organisations",
+	"instance_users_table_status_banned_label": "Banned",
+	"instance_users_table_unban_menu_item": "Unban Account",
+	"jobs_create_confirm_button": "Yes, create it",
+	"jobs_create_confirm_description": "Are you sure you want to create a job for '{jobRunner}'?",
+	"jobs_create_confirm_title": "Create Job",
+	"jobs_create_toast_error": "Failed to create job",
+	"jobs_create_toast_loading": "Creating job...",
+	"jobs_create_toast_success": "Job created",
+	"jobs_list_dialog_description": "{jobQueue} jobs for this resource",
+	"jobs_list_dialog_empty_label": "No jobs found.",
+	"jobs_list_dialog_title": "Job history",
+	"jobs_list_dialog_trigger_button": "Jobs",
+	"jobs_list_item_completed_label": "· Done: {timestamp}",
+	"jobs_list_item_created_label": "Created: {timestamp}",
+	"jobs_list_item_retries_label": "Retries: {count}/{limit}",
+	"jobs_list_item_started_label": "· Started: {timestamp}",
+	"jobs_reprocess_confirm_button": "Yes, reprocess it",
+	"jobs_reprocess_confirm_description": "This will rerun document processing and refresh vector data for any attached knowledge bases.",
+	"jobs_reprocess_confirm_title": "Reprocess Content",
+	"jobs_reprocess_toast_error": "Failed to reprocess content",
+	"jobs_reprocess_toast_loading": "Reprocessing content...",
+	"jobs_reprocess_toast_success": "Reprocessing job queued",
+	"jobs_retry_processing_toast_error": "Failed to retry processing",
+	"jobs_retry_processing_toast_loading": "Retrying processing...",
+	"jobs_retry_processing_toast_success": "Processing job queued",
+	"jobs_retry_vectorization_toast_error": "Failed to retry vectorization",
+	"jobs_retry_vectorization_toast_loading": "Retrying vectorization...",
+	"jobs_retry_vectorization_toast_success": "Vectorization job queued",
+	"jobs_status_panel_info_description": "The content is prepared in background jobs after upload so it is ready",
+	"jobs_status_panel_retry_button": "Retry",
+	"jobs_status_panel_title": "Preparation status",
+	"models_add_page_title": "Add model",
+	"models_create_toast_error": "Failed to create model",
+	"models_create_toast_loading": "Creating model...",
+	"models_create_toast_success": "Model created successfully",
+	"models_delete_confirm_button": [
+		{
+			"declarations": [
+				"input count",
+				"local countPlural = count: plural"
+			],
+			"selectors": [
+				"countPlural"
+			],
+			"match": {
+				"countPlural=one": "Delete model",
+				"countPlural=other": "Delete {count} models"
+			}
+		}
+	],
+	"models_delete_confirm_description": [
+		{
+			"declarations": [
+				"input count",
+				"local countPlural = count: plural"
+			],
+			"selectors": [
+				"countPlural"
+			],
+			"match": {
+				"countPlural=one": "Chats set to it lose their model choice, and quota pools scoped to it fall back to the whole provider.",
+				"countPlural=other": "Chats set to them lose their model choice, and quota pools scoped to them fall back to the whole provider."
+			}
+		}
+	],
+	"models_delete_confirm_title": [
+		{
+			"declarations": [
+				"input count",
+				"local countPlural = count: plural"
+			],
+			"selectors": [
+				"countPlural"
+			],
+			"match": {
+				"countPlural=one": "Delete this model?",
+				"countPlural=other": "Delete {count} models?"
+			}
+		}
+	],
+	"models_delete_confirm_title_named": "Delete the model {name}?",
+	"models_delete_toast_error": [
+		{
+			"declarations": [
+				"input count",
+				"local countPlural = count: plural"
+			],
+			"selectors": [
+				"countPlural"
+			],
+			"match": {
+				"countPlural=one": "The model was not deleted. Try again.",
+				"countPlural=other": "The models were not deleted. Try again."
+			}
+		}
+	],
+	"models_delete_toast_loading": [
+		{
+			"declarations": [
+				"input count",
+				"local countPlural = count: plural"
+			],
+			"selectors": [
+				"countPlural"
+			],
+			"match": {
+				"countPlural=one": "Deleting the model...",
+				"countPlural=other": "Deleting {count} models..."
+			}
+		}
+	],
+	"models_delete_toast_success": [
+		{
+			"declarations": [
+				"input count",
+				"local countPlural = count: plural"
+			],
+			"selectors": [
+				"countPlural"
+			],
+			"match": {
+				"countPlural=one": "1 model deleted",
+				"countPlural=other": "{count} models deleted"
+			}
+		}
+	],
+	"models_detail_capabilities_description": "Enabled capabilities for this model configuration.",
+	"models_detail_capability_count_badge": [
+		{
+			"declarations": [
+				"input count",
+				"local countPlural = count: plural"
+			],
+			"selectors": [
+				"countPlural"
+			],
+			"match": {
+				"countPlural=one": "{count} capability",
+				"countPlural=other": "{count} capabilities"
+			}
+		}
+	],
+	"models_detail_details_description": "Core metadata used for routing and model selection.",
+	"models_detail_details_title": "Model details",
+	"models_detail_edit_button": "Edit model",
+	"models_detail_no_capabilities_label": "No capabilities configured.",
+	"models_detail_provider_compatibility_label": "Provider compatibility",
+	"models_detail_provider_connection_description": "The provider endpoint and status backing this model.",
+	"models_detail_provider_connection_title": "Provider connection",
+	"models_detail_provider_id_label": "Provider ID",
+	"models_detail_view_provider_button": "View provider",
+	"models_discover_dialog_description": "Choose a provider and discover available models automatically.",
+	"models_discover_dialog_title": "Discover models",
+	"models_discover_error_title": "Discovery failed",
+	"models_discover_no_providers_description": "Create a provider first, then run model discovery.",
+	"models_discover_no_providers_title": "No providers available",
+	"models_discover_pending_button": "Discovering...",
+	"models_discover_provider_field_description": "Select the provider to discover models from.",
+	"models_discover_provider_placeholder": "Select a provider",
+	"models_discover_success_description": [
+		{
+			"declarations": [
+				"input count",
+				"input addedCount",
+				"input alreadyExistedCount",
+				"local countPlural = count: plural"
+			],
+			"selectors": [
+				"countPlural"
+			],
+			"match": {
+				"countPlural=one": "Found {count} model. Added {addedCount}, {alreadyExistedCount} already existed.",
+				"countPlural=other": "Found {count} models. Added {addedCount}, {alreadyExistedCount} already existed."
+			}
+		}
+	],
+	"models_discover_success_title": "Discovery completed",
+	"models_discover_trigger_button": "Discover models",
+	"models_edit_page_title": "Edit model",
+	"models_form_capabilities_description": "Chat needs a model with at least text and tool calling. A model is hidden wherever a capability it lacks is required.",
+	"models_form_capabilities_label": "Capabilities",
+	"models_form_capabilities_placeholder": "e.g. text, tool calling",
+	"models_form_deprecated_description": "Deprecated models are not offered for new bots. Bots already using this model keep working.",
+	"models_form_description_placeholder": "e.g. Fast and cheap, good for summaries",
+	"models_form_name_placeholder": "e.g. GPT-4o mini",
+	"models_form_provider_description": "The model is called through this provider's endpoint.",
+	"models_form_provider_model_id_label": "Provider model ID",
+	"models_form_provider_model_id_placeholder": "gpt-4o-mini",
+	"models_form_provider_placeholder": "Select a provider",
+	"models_form_save_button": "Save model",
+	"models_index_add_button": "Add model",
+	"models_index_search_placeholder": "Search models or providers",
+	"models_route_page_title": "Models",
+	"models_table_delete_menu_item": "Delete model",
+	"models_table_edit_menu_item": "Edit model",
+	"models_table_status_available_label": "Available",
+	"models_table_view_menu_item": "View model",
+	"models_update_toast_error": "Failed to update model",
+	"models_update_toast_loading": "Updating model...",
+	"models_update_toast_success": "Model updated successfully",
+	"next_step_card_finish_button": "Finish",
+	"next_step_card_previous_button": "Previous",
+	"next_step_card_progress": "{current} of {total}",
+	"next_step_card_skip_button": "Skip",
+	"next_step_chat_intro_content": "Now that you have received your first response, you may want to take a quick tour around the chat interface. Click \"Next\" to proceed.",
+	"next_step_chat_intro_title": "Chat",
+	"next_step_chat_rating_content": "Please assess each response you receive by using the buttons below. This will help to improve the bot, while it will not have a direct impact on your current chat.",
+	"next_step_chat_rating_title": "Rate responses",
+	"next_step_chat_references_content": "A response usually includes references to related content that the bot considered particularly relevant. Since these references are automatically retrieved, please note that not all referenced material is necessarily relevant. For technical reasons, these references furthermore do not yet adhere to common citation standards. The system may cite some sources in verbatim without indicating so in the text. In any case, if the system references material, it has definitely also used that material to generate the response.",
+	"next_step_chat_references_title": "References",
+	"next_step_initial_account_content": "You can manage your account settings, access grants and more here.",
+	"next_step_initial_account_title": "Account",
+	"next_step_initial_chat_history_content": "Your previous chats will appear here. To keep the list organised, you can delete or rename chats.",
+	"next_step_initial_chat_history_title": "Chat history",
+	"next_step_initial_complete_content": "You are ready to explore the workspace. Build bots, add material to the Library, or continue chats whenever you need them. The project team is also looking forward to your feedback on the experience.",
+	"next_step_initial_complete_title": "You are all set",
+	"next_step_initial_sidebar_content": "The sidebar gives you quick access to your chats, workspace, and account settings.",
+	"next_step_initial_sidebar_title": "Sidebar",
+	"next_step_initial_start_chat_content": "Use the button at the top of the sidebar to start a chat at any time.",
+	"next_step_initial_start_chat_title": "Start a chat",
+	"next_step_initial_welcome_content": "Let's take a quick tour through the app. Click \"Next\" to proceed.",
+	"next_step_initial_welcome_title": "Welcome to OrcAI",
+	"next_step_skip_toast_error": "The tour was not marked as skipped",
+	"next_step_skip_toast_error_description": "It may open again next time.",
+	"orgs_card_type_badge": "Organisation",
+	"orgs_create_toast_error": "Failed to create organisation",
+	"orgs_create_toast_loading": "Creating organisation...",
+	"orgs_create_toast_success": "Organisation created successfully",
+	"orgs_delete_dialog_description": "Everything counted below goes with it, and deletion is permanent.",
+	"orgs_delete_dialog_impact_groups": [
+		{
+			"declarations": [
+				"input count",
+				"local countPlural = count: plural"
+			],
+			"selectors": [
+				"countPlural"
+			],
+			"match": {
+				"countPlural=one": "{count} group",
+				"countPlural=other": "{count} groups"
+			}
+		}
+	],
+	"orgs_delete_dialog_impact_invitations": [
+		{
+			"declarations": [
+				"input count",
+				"local countPlural = count: plural"
+			],
+			"selectors": [
+				"countPlural"
+			],
+			"match": {
+				"countPlural=one": "{count} pending invitation",
+				"countPlural=other": "{count} pending invitations"
+			}
+		}
+	],
+	"orgs_delete_dialog_impact_members": [
+		{
+			"declarations": [
+				"input count",
+				"local countPlural = count: plural"
+			],
+			"selectors": [
+				"countPlural"
+			],
+			"match": {
+				"countPlural=one": "{count} member",
+				"countPlural=other": "{count} members"
+			}
+		}
+	],
+	"orgs_delete_dialog_impact_note": "Members, invitations and groups go with the organisation. Resources scoped only here stay behind without an organisation.",
+	"orgs_delete_dialog_impact_resources": [
+		{
+			"declarations": [
+				"input count",
+				"local countPlural = count: plural"
+			],
+			"selectors": [
+				"countPlural"
+			],
+			"match": {
+				"countPlural=one": "{count} resource scoped only here",
+				"countPlural=other": "{count} resources scoped only here"
+			}
+		}
+	],
+	"orgs_delete_dialog_slug_label_after": "to confirm",
+	"orgs_delete_dialog_slug_label_before": "Type",
+	"orgs_delete_dialog_slug_label_unknown": "Type the slug to confirm",
+	"orgs_delete_dialog_submit_pending": "Deleting...",
+	"orgs_delete_dialog_title": "Delete this organisation?",
+	"orgs_delete_dialog_title_named": "Delete the {name} organisation?",
+	"orgs_delete_toast_error": "The organisation was not deleted. Try again.",
+	"orgs_delete_toast_loading": "Deleting the organisation...",
+	"orgs_delete_toast_success": "Organisation deleted",
+	"orgs_detail_card_description": "Core organisation profile information.",
+	"orgs_detail_card_title": "Organisation details",
+	"orgs_detail_logo_label": "Logo",
+	"orgs_detail_metadata_label": "Metadata",
+	"orgs_detail_slug_label": "Slug",
+	"orgs_edit_action": "Edit Organisation",
+	"orgs_edit_meta_title": "Edit",
+	"orgs_edit_page_title": "Edit Organisation",
+	"orgs_form_name_label": "Organisation Name",
+	"orgs_form_name_placeholder": "Your organisation",
+	"orgs_form_slug_label": "Slug",
+	"orgs_form_slug_placeholder": "your-organisation",
+	"orgs_form_submit_button": "Save Organisation",
+	"orgs_invitation_accept_button": "Accept",
+	"orgs_invitation_accept_toast_error": "Failed to accept invitation",
+	"orgs_invitation_accept_toast_loading": "Accepting invitation...",
+	"orgs_invitation_accept_toast_success": "Invitation accepted",
+	"orgs_invitation_create_toast_error": "Failed to create invitations",
+	"orgs_invitation_create_toast_loading": "Creating invitations...",
+	"orgs_invitation_create_toast_success": "Invitations created successfully",
+	"orgs_invitation_delete_confirm_description": [
+		{
+			"declarations": [
+				"input count",
+				"local countPlural = count: plural"
+			],
+			"selectors": [
+				"countPlural"
+			],
+			"match": {
+				"countPlural=one": "The invitation link stops working. Invite the person again to let them join.",
+				"countPlural=other": "Their invitation links stop working. Invite those people again to let them join."
+			}
+		}
+	],
+	"orgs_invitation_delete_confirm_title": [
+		{
+			"declarations": [
+				"input count",
+				"local countPlural = count: plural"
+			],
+			"selectors": [
+				"countPlural"
+			],
+			"match": {
+				"countPlural=one": "Delete this invitation?",
+				"countPlural=other": "Delete {count} invitations?"
+			}
+		}
+	],
+	"orgs_invitation_delete_confirm_title_named": "Delete the invitation {name}?",
+	"orgs_invitation_delete_toast_error": [
+		{
+			"declarations": [
+				"input count",
+				"local countPlural = count: plural"
+			],
+			"selectors": [
+				"countPlural"
+			],
+			"match": {
+				"countPlural=one": "The invitation was not deleted. Try again.",
+				"countPlural=other": "The invitations were not deleted. Try again."
+			}
+		}
+	],
+	"orgs_invitation_delete_toast_loading": [
+		{
+			"declarations": [
+				"input count",
+				"local countPlural = count: plural"
+			],
+			"selectors": [
+				"countPlural"
+			],
+			"match": {
+				"countPlural=one": "Deleting the invitation...",
+				"countPlural=other": "Deleting {count} invitations..."
+			}
+		}
+	],
+	"orgs_invitation_delete_toast_success": [
+		{
+			"declarations": [
+				"input count",
+				"local countPlural = count: plural"
+			],
+			"selectors": [
+				"countPlural"
+			],
+			"match": {
+				"countPlural=one": "{count} invitation deleted",
+				"countPlural=other": "{count} invitations deleted"
+			}
+		}
+	],
+	"orgs_invitation_expires_on": "Expires on {date}",
+	"orgs_invitation_form_add_email_button": "Add email field",
+	"orgs_invitation_form_bulk_button": "Bulk add emails",
+	"orgs_invitation_form_bulk_confirm_button": "Add emails",
+	"orgs_invitation_form_bulk_dialog_description": "Add several emails at once by pasting them here. Make sure each email is on a new line and formatted correctly.",
+	"orgs_invitation_form_bulk_dialog_title": "Bulk add emails",
+	"orgs_invitation_form_bulk_placeholder": "One email address per line",
+	"orgs_invitation_form_details_description": "These settings will apply to all users invited in this batch. Note that users will also automatically be added to the organisation corresponding to the selected organisation.",
+	"orgs_invitation_form_details_title": "Set invitation details",
+	"orgs_invitation_form_email_label": "User {position} Email",
+	"orgs_invitation_form_email_placeholder": "name@example.org",
+	"orgs_invitation_form_emails_description": "Add the emails of users you want to invite. You can manually add each email, or all at once using \"Bulk add emails\".",
+	"orgs_invitation_form_emails_title": "Add email addresses",
+	"orgs_invitation_form_expires_label": "Expires",
+	"orgs_invitation_form_expires_placeholder": "Select expiry date",
+	"orgs_invitation_form_organisation_label": "Organisation",
+	"orgs_invitation_form_organisation_placeholder": "Select organisation",
+	"orgs_invitation_form_role_label": "Role",
+	"orgs_invitation_form_role_picker_title": "Select invitation role",
+	"orgs_invitation_form_submit_button": "Create Invitations",
+	"orgs_invitation_invited_on": "Invited on {date}",
+	"orgs_invitation_invited_on_unknown": "Invited on an unknown date",
+	"orgs_invitation_reject_button": "Reject",
+	"orgs_invitation_reject_toast_error": "Failed to reject invitation",
+	"orgs_invitation_reject_toast_loading": "Rejecting invitation...",
+	"orgs_invitation_reject_toast_success": "Invitation rejected",
+	"orgs_invitation_status_accepted": "Accepted",
+	"orgs_invitation_status_expired": "Expired",
+	"orgs_invitation_status_pending": "Pending",
+	"orgs_invitation_status_rejected": "Rejected",
+	"orgs_invitations_empty_state_description": "You don't have any organisation invitations at this time.",
+	"orgs_invitations_empty_state_title": "No invitations",
+	"orgs_invitations_pagination_aria_label": "Invitation pagination",
+	"orgs_invitations_pagination_position": "Page {page} of {pageCount}",
+	"orgs_invitations_pagination_previous_button": "Previous",
+	"orgs_invitations_status_empty_state_description": [
+		{
+			"declarations": [
+				"input status"
+			],
+			"selectors": [
+				"status"
+			],
+			"match": {
+				"status=pending": "You don't have any pending invitations.",
+				"status=accepted": "You don't have any accepted invitations.",
+				"status=*": "You don't have any rejected invitations."
+			}
+		}
+	],
+	"orgs_list_description": "The organisations you administer.",
+	"orgs_member_delete_confirm_description": [
+		{
+			"declarations": [
+				"input count",
+				"local countPlural = count: plural"
+			],
+			"selectors": [
+				"countPlural"
+			],
+			"match": {
+				"countPlural=one": "The person loses access to everything in this organisation. Their account stays and can be invited back.",
+				"countPlural=other": "Those people lose access to everything in this organisation. Their accounts stay and can be invited back."
+			}
+		}
+	],
+	"orgs_member_delete_confirm_title": [
+		{
+			"declarations": [
+				"input count",
+				"local countPlural = count: plural"
+			],
+			"selectors": [
+				"countPlural"
+			],
+			"match": {
+				"countPlural=one": "Remove this member from the organisation?",
+				"countPlural=other": "Remove {count} members from the organisation?"
+			}
+		}
+	],
+	"orgs_member_delete_confirm_title_named": "Remove the member {name} from the organisation?",
+	"orgs_member_delete_toast_error": [
+		{
+			"declarations": [
+				"input count",
+				"local countPlural = count: plural"
+			],
+			"selectors": [
+				"countPlural"
+			],
+			"match": {
+				"countPlural=one": "The member was not removed from the organisation. Try again.",
+				"countPlural=other": "The members were not removed from the organisation. Try again."
+			}
+		}
+	],
+	"orgs_member_delete_toast_loading": [
+		{
+			"declarations": [
+				"input count",
+				"local countPlural = count: plural"
+			],
+			"selectors": [
+				"countPlural"
+			],
+			"match": {
+				"countPlural=one": "Removing the member...",
+				"countPlural=other": "Removing {count} members..."
+			}
+		}
+	],
+	"orgs_member_delete_toast_success": [
+		{
+			"declarations": [
+				"input count",
+				"local countPlural = count: plural"
+			],
+			"selectors": [
+				"countPlural"
+			],
+			"match": {
+				"countPlural=one": "{count} member removed from the organisation",
+				"countPlural=other": "{count} members removed from the organisation"
+			}
+		}
+	],
+	"orgs_member_update_toast_error": "Failed to update role",
+	"orgs_member_update_toast_loading": "Updating role...",
+	"orgs_member_update_toast_success": "Role updated",
+	"orgs_page_title": "Organisations",
+	"orgs_permission_create_asset_label": "Create assets",
+	"orgs_permission_create_block_label": "Create blocks",
+	"orgs_permission_create_bot_label": "Create bots",
+	"orgs_permission_invite_members_label": "Invite members",
+	"orgs_permission_manage_groups_label": "Manage groups",
+	"orgs_permission_manage_members_label": "Manage members",
+	"orgs_permission_manage_models_label": "Manage models",
+	"orgs_permission_manage_organisation_label": "Manage organisation",
+	"orgs_permission_manage_providers_label": "Manage providers",
+	"orgs_permission_manage_quotas_label": "Manage quotas",
+	"orgs_permission_read_label": "Read workspace",
+	"orgs_role_admin_label": "Admin",
+	"orgs_role_manager_label": "Manager",
+	"orgs_role_member_label": "Member",
+	"orgs_role_picker_placeholder": "Select role",
+	"orgs_role_picker_title": "Select organisation role",
+	"orgs_role_viewer_label": "Viewer",
+	"orgs_table_created_column_header": "Created",
+	"orgs_table_slug_column_header": "Slug",
+	"orgs_table_view_action": "View organisation",
+	"orgs_update_toast_error": "Failed to update organisation",
+	"orgs_update_toast_loading": "Updating organisation...",
+	"orgs_update_toast_success": "Organisation updated successfully",
+	"processing_status_active_description": "Currently being prepared for search and citations.",
+	"processing_status_active_label": "Processing",
+	"processing_status_completed_description": "Ready to be used in search, retrieval, and citations.",
+	"processing_status_completed_label": "Ready",
+	"processing_status_failed_description": "Preparation failed. Review the job log or retry processing.",
+	"processing_status_failed_label": "Needs attention",
+	"processing_status_pending_description": "Waiting to be prepared for search and citations.",
+	"processing_status_pending_label": "Queued",
+	"providers_add_page_title": "Add provider",
+	"providers_create_toast_error": "Failed to create provider",
+	"providers_create_toast_loading": "Creating provider...",
+	"providers_create_toast_success": "Provider created successfully",
+	"providers_delete_confirm_button": [
+		{
+			"declarations": [
+				"input count",
+				"local countPlural = count: plural"
+			],
+			"selectors": [
+				"countPlural"
+			],
+			"match": {
+				"countPlural=one": "Delete provider",
+				"countPlural=other": "Delete {count} providers"
+			}
+		}
+	],
+	"providers_delete_confirm_description": [
+		{
+			"declarations": [
+				"input count",
+				"local countPlural = count: plural"
+			],
+			"selectors": [
+				"countPlural"
+			],
+			"match": {
+				"countPlural=one": "Its models and quota pools are deleted with it.",
+				"countPlural=other": "Their models and quota pools are deleted with them."
+			}
+		}
+	],
+	"providers_delete_confirm_title": [
+		{
+			"declarations": [
+				"input count",
+				"local countPlural = count: plural"
+			],
+			"selectors": [
+				"countPlural"
+			],
+			"match": {
+				"countPlural=one": "Delete this provider?",
+				"countPlural=other": "Delete {count} providers?"
+			}
+		}
+	],
+	"providers_delete_confirm_title_named": "Delete the provider {name}?",
+	"providers_delete_toast_error": [
+		{
+			"declarations": [
+				"input count",
+				"local countPlural = count: plural"
+			],
+			"selectors": [
+				"countPlural"
+			],
+			"match": {
+				"countPlural=one": "The provider was not deleted. Try again.",
+				"countPlural=other": "The providers were not deleted. Try again."
+			}
+		}
+	],
+	"providers_delete_toast_loading": [
+		{
+			"declarations": [
+				"input count",
+				"local countPlural = count: plural"
+			],
+			"selectors": [
+				"countPlural"
+			],
+			"match": {
+				"countPlural=one": "Deleting the provider...",
+				"countPlural=other": "Deleting {count} providers..."
+			}
+		}
+	],
+	"providers_delete_toast_success": [
+		{
+			"declarations": [
+				"input count",
+				"local countPlural = count: plural"
+			],
+			"selectors": [
+				"countPlural"
+			],
+			"match": {
+				"countPlural=one": "1 provider deleted",
+				"countPlural=other": "{count} providers deleted"
+			}
+		}
+	],
+	"providers_detail_active_models_label": "Active models",
+	"providers_detail_add_model_button": "Add model",
+	"providers_detail_capabilities_description": "Aggregated from models connected to this provider.",
+	"providers_detail_capability_coverage_label": "Capability coverage",
+	"providers_detail_configuration_description": "Connection details and metadata for this provider profile.",
+	"providers_detail_configuration_title": "Provider configuration",
+	"providers_detail_connected_models_description": "Models currently configured to use this provider.",
+	"providers_detail_connected_models_title": "Connected models",
+	"providers_detail_deprecated_models_label": "Deprecated models",
+	"providers_detail_edit_button": "Edit provider",
+	"providers_detail_endpoint_host_label": "Endpoint host",
+	"providers_detail_model_count_badge": [
+		{
+			"declarations": [
+				"input count",
+				"local countPlural = count: plural"
+			],
+			"selectors": [
+				"countPlural"
+			],
+			"match": {
+				"countPlural=one": "{count} model",
+				"countPlural=other": "{count} models"
+			}
+		}
+	],
+	"providers_detail_model_created_label": "Created {timestamp}",
+	"providers_detail_no_capabilities_label": "No capabilities available yet.",
+	"providers_detail_no_models_description": "Add a model to start using this provider in bots.",
+	"providers_detail_no_models_title": "No models connected yet",
+	"providers_detail_overview_description": "Model coverage and endpoint summary for this provider.",
+	"providers_detail_overview_title": "Provider overview",
+	"providers_detail_timestamp_not_available": "Not available",
+	"providers_detail_view_model_link": "View",
+	"providers_edit_page_title": "Edit provider",
+	"providers_form_api_key_description": "The key is stored encrypted.",
+	"providers_form_api_key_label": "API key",
+	"providers_form_api_key_placeholder": "Paste the key from the provider",
+	"providers_form_compatibility_description": "Only OpenAI-compatible endpoints are supported at the moment.",
+	"providers_form_compatibility_label": "Compatibility",
+	"providers_form_compatibility_placeholder": "Provider compatibility",
+	"providers_form_enabled_description": "When enabled, models from this provider can be used in this organisation.",
+	"providers_form_endpoint_description": "The base URL of the OpenAI-compatible endpoint, including the version path.",
+	"providers_form_endpoint_label": "Endpoint",
+	"providers_form_metering_mode_description": "Sets whether quota counts tokens or requests for this provider.",
+	"providers_form_metering_mode_label": "Metering mode",
+	"providers_form_name_description": "Shown to users wherever this provider is named.",
+	"providers_form_name_placeholder": "e.g. University OpenAI endpoint",
+	"providers_form_save_button": "Save provider",
+	"providers_index_add_button": "Add provider",
+	"providers_route_page_title": "Providers",
+	"providers_table_delete_menu_item": "Delete provider",
+	"providers_table_edit_menu_item": "Edit provider",
+	"providers_table_metering_column_header": "Metering",
+	"providers_table_updated_column_header": "Updated",
+	"providers_table_view_menu_item": "View provider",
+	"providers_update_toast_error": "Failed to update provider",
+	"providers_update_toast_loading": "Updating provider...",
+	"providers_update_toast_success": "Provider updated successfully",
+	"quotas_add_page_title": "Add quota pool",
+	"quotas_consumption_progress_aria_label": "{percentage} per cent of the budget consumed",
+	"quotas_create_toast_error": "Failed to create quota pool",
+	"quotas_create_toast_loading": "Creating quota pool...",
+	"quotas_create_toast_success": "Quota pool created",
+	"quotas_deactivate_confirm_button": "Deactivate pool",
+	"quotas_deactivate_confirm_description": "New chats on that provider are refused until another active pool covers them. Usage already in flight still finalises.",
+	"quotas_deactivate_confirm_title": "Deactivate the selected pool?",
+	"quotas_deactivate_confirm_title_named": "Deactivate the {name} pool?",
+	"quotas_deactivate_toast_error": "The pool was not deactivated. Try again.",
+	"quotas_deactivate_toast_loading": "Deactivating the pool...",
+	"quotas_deactivate_toast_success": "Pool deactivated",
+	"quotas_detail_actual_amount_column_header": "Actual amount",
+	"quotas_detail_adjust_budget_title": "Adjust budget",
+	"quotas_detail_budget_metric_label": "Budget",
+	"quotas_detail_consumed_metric_label": "Consumed",
+	"quotas_detail_current_usage_description": "Current ledger amounts for this quota period.",
+	"quotas_detail_current_usage_title": "Current usage",
+	"quotas_detail_deactivate_button": "Deactivate pool",
+	"quotas_detail_edit_button": "Edit pool",
+	"quotas_detail_eligible_groups_title": "Eligible groups",
+	"quotas_detail_event_column_header": "Event",
+	"quotas_detail_new_budget_description": "Raising the budget frees up the remaining allowance straight away.",
+	"quotas_detail_new_budget_label": "New budget amount",
+	"quotas_detail_no_events_label": "No usage events yet.",
+	"quotas_detail_no_groups_label": "No groups assigned.",
+	"quotas_detail_recent_events_title": "Recent usage events",
+	"quotas_detail_remaining_metric_label": "Remaining",
+	"quotas_detail_request_column_header": "Request",
+	"quotas_detail_reserved_amount_column_header": "Reserved amount",
+	"quotas_detail_reserved_metric_label": "Reserved",
+	"quotas_detail_update_budget_button": "Update budget",
+	"quotas_edit_page_title": "Edit quota pool",
+	"quotas_form_active_description": "While a pool is inactive, no new usage can be charged to it. Usage already in progress still completes.",
+	"quotas_form_budget_description": "Maximum requests or tokens for the current period.",
+	"quotas_form_budget_label": "Budget",
+	"quotas_form_create_button": "Create pool",
+	"quotas_form_default_description": "This pool is used when no other pool matches.",
+	"quotas_form_default_label": "Default pool",
+	"quotas_form_description_placeholder": "Optional internal notes",
+	"quotas_form_group_system_label": "{name} (system)",
+	"quotas_form_groups_description": "Users can access this pool when they belong to any selected group.",
+	"quotas_form_groups_label": "Eligible groups",
+	"quotas_form_groups_placeholder": "Select one or more groups",
+	"quotas_form_model_scope_all_option": "All models from this provider",
+	"quotas_form_model_scope_description": "Pick one model to bound that model only, or keep every model from this provider in one budget.",
+	"quotas_form_model_scope_label": "Model scope",
+	"quotas_form_model_scope_placeholder": "Select model scope",
+	"quotas_form_name_description": "Shown to users as the pool their usage is charged to.",
+	"quotas_form_name_placeholder": "e.g. OpenAI shared monthly pool",
+	"quotas_form_period_description": "The budget resets in UTC: weekly on Monday, monthly on the 1st, yearly on 1 January.",
+	"quotas_form_period_label": "Period",
+	"quotas_form_period_placeholder": "Select reset period",
+	"quotas_form_priority_description": "When more than one pool could apply, the pool with the higher priority is used.",
+	"quotas_form_priority_label": "Priority",
+	"quotas_form_provider_description": "The pool meters usage of this provider, in the unit that provider is metered in.",
+	"quotas_form_provider_option_label": "{name} ({meteringMode})",
+	"quotas_form_provider_placeholder": "Select provider",
+	"quotas_form_save_changes_button": "Save changes",
+	"quotas_form_undeletable_alert_description": "After creation, pools can only be deactivated to stop new reservations.",
+	"quotas_form_undeletable_alert_title": "Pools cannot be deleted",
+	"quotas_index_add_button": "Add pool",
+	"quotas_index_empty_description": "A quota pool bounds how much a provider may be used in a period. Add one to meter tokens or requests for this organisation.",
+	"quotas_index_empty_title": "No quota pools yet",
+	"quotas_index_page_title": "Quota pools",
+	"quotas_period_monthly_label": "Monthly",
+	"quotas_period_weekly_label": "Weekly",
+	"quotas_period_yearly_label": "Yearly",
+	"quotas_remaining_low_badge": "Low",
+	"quotas_route_page_title": "Quotas",
+	"quotas_table_budget_column_header": "Budget",
+	"quotas_table_consumed_column_header": "Consumed",
+	"quotas_table_deactivate_menu_item": "Deactivate pool",
+	"quotas_table_default_badge": "Default",
+	"quotas_table_edit_menu_item": "Edit pool",
+	"quotas_table_period_column_header": "Period",
+	"quotas_table_pool_column_header": "Pool",
+	"quotas_table_remaining_column_header": "Remaining",
+	"quotas_table_view_menu_item": "View pool",
+	"quotas_update_toast_error": "Failed to update quota pool",
+	"quotas_update_toast_loading": "Updating quota pool...",
+	"quotas_update_toast_success": "Quota pool updated",
+	"select_organisation_page_empty_description": "Accept an invitation above or contact your administrator to get access.",
+	"select_organisation_page_empty_title": "No organisations available yet",
+	"select_organisation_page_load_more_button": "Load more organisations",
+	"select_organisation_page_manage_instance_link": "Manage instance",
+	"select_organisation_page_no_match": "No organisation matches \"{search}\".",
+	"select_organisation_page_pending_invitations_description": "Accept an invitation to join an organisation.",
+	"select_organisation_page_pending_invitations_title": "Pending invitations",
+	"select_organisation_page_search_placeholder": "Filter by name",
+	"select_organisation_page_subtitle": "You can switch to a different organisation at any time.",
+	"select_organisation_page_title": "Select your organisation",
+	"sidebar_chat_actions_aria_label": "Chat actions for {title}",
+	"sidebar_chats_empty_state_title": "Your chats will appear here",
+	"sidebar_chats_error_retry_button": "Try again",
+	"sidebar_chats_error_title": "Your chats could not be loaded",
+	"sidebar_chats_group_label": "Chats",
+	"sidebar_manage_group_label": "Your workspace",
+	"sidebar_menu_administration_item": "Administration",
+	"sidebar_menu_assets_item": "Assets",
+	"sidebar_menu_behaviour_item": "Behaviour",
+	"sidebar_menu_bots_item": "Bots",
+	"sidebar_menu_groups_item": "Groups",
+	"sidebar_menu_library_item": "Library",
+	"sidebar_menu_models_item": "Models",
+	"sidebar_menu_organisations_item": "Organisations",
+	"sidebar_menu_providers_item": "Providers",
+	"sidebar_menu_quotas_item": "Quotas",
+	"sidebar_menu_repositories_item": "Repositories",
+	"sidebar_menu_toggle_label": "Toggle",
+	"sidebar_menu_users_item": "Users",
+	"sidebar_start_chat_button": "Start a chat",
+	"user_menu_account_item": "Account",
+	"user_menu_manage_instance_item": "Manage instance",
+	"user_menu_switch_organisation_item": "Switch Organisation",
+	"users_access_overview_empty_state_description": "No effective resource access entries in this organisation.",
+	"users_access_overview_source_all_members": "All members",
+	"users_access_overview_source_direct_group": "Group",
+	"users_access_overview_source_direct_user": "Direct user",
+	"users_access_overview_source_inherited_block": "Inherited block",
+	"users_access_overview_source_inherited_bot": "Inherited bot",
+	"users_access_overview_source_inherited_organisation": "Inherited from organisation",
+	"users_access_overview_source_public": "Public",
+	"users_access_overview_title": "Effective Resource Access",
+	"users_access_overview_type_asset": "Asset",
+	"users_access_overview_type_block": "Block",
+	"users_access_overview_type_bot": "Bot",
+	"users_access_overview_untitled_asset": "Untitled asset",
+	"users_access_overview_untitled_block": "Untitled block",
+	"users_access_overview_untitled_bot": "Untitled bot",
+	"users_add_page_meta_title": "Add",
+	"users_add_page_title": "Add User",
+	"users_ban_confirm_button": "Ban",
+	"users_ban_confirm_description": "The person cannot sign in until the ban is lifted. Their memberships and resources stay in place.",
+	"users_ban_confirm_title": "Ban this account?",
+	"users_ban_confirm_title_named": "Ban the account {name}?",
+	"users_ban_toast_error": "The account was not banned. Try again.",
+	"users_ban_toast_loading": "Banning the account...",
+	"users_ban_toast_success": "Account banned",
+	"users_delete_confirm_description": [
+		{
+			"declarations": [
+				"input count",
+				"local countPlural = count: plural"
+			],
+			"selectors": [
+				"countPlural"
+			],
+			"match": {
+				"countPlural=one": "The account leaves every organisation it belongs to, and the person can no longer sign in. Deletion is permanent.",
+				"countPlural=other": "The accounts leave every organisation they belong to, and those people can no longer sign in. Deletion is permanent."
+			}
+		}
+	],
+	"users_delete_confirm_title": [
+		{
+			"declarations": [
+				"input count",
+				"local countPlural = count: plural"
+			],
+			"selectors": [
+				"countPlural"
+			],
+			"match": {
+				"countPlural=one": "Delete this account?",
+				"countPlural=other": "Delete {count} accounts?"
+			}
+		}
+	],
+	"users_delete_confirm_title_named": "Delete the account {name}?",
+	"users_delete_toast_error": [
+		{
+			"declarations": [
+				"input count",
+				"local countPlural = count: plural"
+			],
+			"selectors": [
+				"countPlural"
+			],
+			"match": {
+				"countPlural=one": "The account was not deleted. Try again.",
+				"countPlural=other": "The accounts were not deleted. Try again."
+			}
+		}
+	],
+	"users_delete_toast_loading": [
+		{
+			"declarations": [
+				"input count",
+				"local countPlural = count: plural"
+			],
+			"selectors": [
+				"countPlural"
+			],
+			"match": {
+				"countPlural=one": "Deleting the account...",
+				"countPlural=other": "Deleting {count} accounts..."
+			}
+		}
+	],
+	"users_delete_toast_success": [
+		{
+			"declarations": [
+				"input count",
+				"local countPlural = count: plural"
+			],
+			"selectors": [
+				"countPlural"
+			],
+			"match": {
+				"countPlural=one": "{count} account deleted",
+				"countPlural=other": "{count} accounts deleted"
+			}
+		}
+	],
+	"users_edit_details_created_label": "Created",
+	"users_edit_details_status_active": "Active",
+	"users_edit_details_status_banned": "Banned",
+	"users_edit_details_status_label": "Status",
+	"users_edit_details_title": "User information",
+	"users_edit_details_updated_label": "Updated",
+	"users_edit_details_verification_label": "Email Verification",
+	"users_edit_page_meta_title": "Edit",
+	"users_edit_page_title": "Edit User",
+	"users_invites_bulk_mixed_organisations_error_description": "Select invitations from one organisation only.",
+	"users_invites_bulk_mixed_organisations_error_title": "Mixed organisations selected",
+	"users_invites_bulk_no_organisation_error": "Select an organisation first.",
+	"users_invites_copy_link_toast_error": "The invitation link was not copied. Copy it again, or open the invitation and copy the address by hand.",
+	"users_invites_copy_link_toast_loading": "Copying invitation link...",
+	"users_invites_copy_link_toast_success": "Invitation link copied",
+	"users_invites_invite_action": "Invite users",
+	"users_invites_page_description": "Manage your organisation's invitations.",
+	"users_invites_page_meta_title": "Invites",
+	"users_invites_page_title": "Organisation Invitations",
+	"users_invites_table_copy_link_action": "Copy invitation link",
+	"users_invites_table_delete_action": "Delete Organisation Invitation",
+	"users_invites_table_expires_column_header": "Expires",
+	"users_invites_table_id_column_header": "Invitation ID",
+	"users_invites_table_role_column_header": "Role",
+	"users_invites_table_status_column_header": "Status",
+	"users_list_invitations_link": "View invitations",
+	"users_list_invite_action": "Invite user",
+	"users_list_search_placeholder": "Search users...",
+	"users_manage_banned_badge": "Banned",
+	"users_manage_card_title": "User management",
+	"users_manage_password_reset_action": "Send password reset",
+	"users_manage_resend_verification_action": "Send Verification Email",
+	"users_manage_role_picker_title": "Change organisation role",
+	"users_organisation_role_label": "Organisation role",
+	"users_page_description": "Manage your organisation's users.",
+	"users_page_title": "Users",
+	"users_profile_form_name_label": "Name",
+	"users_profile_form_name_placeholder": "Your name",
+	"users_profile_form_submit_button": "Save Profile",
+	"users_remove_from_organisation_action": "Remove from organisation",
+	"users_set_active_organisation_toast_error": "Failed to set active organisation",
+	"users_set_active_organisation_toast_loading": "Setting active organisation...",
+	"users_set_active_organisation_toast_success": "Active organisation set",
+	"users_table_bulk_remove_action": "Remove selected from organisation",
+	"users_table_edit_action": "Edit User",
+	"users_table_email_verified_column_header": "Email verified",
+	"users_unban_toast_error": "The ban was not lifted. Try again.",
+	"users_unban_toast_loading": "Lifting the ban...",
+	"users_unban_toast_success": "Ban lifted",
+	"users_verification_not_verified": "Not verified",
+	"users_verification_verified": "Verified"
 }

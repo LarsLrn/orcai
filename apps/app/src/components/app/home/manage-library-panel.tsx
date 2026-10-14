@@ -10,7 +10,8 @@ import {
 	panelRowVariants,
 } from "@/components/ui/composed/panel";
 import { orpc } from "@/lib/orpc/orpc";
-import { formatCount, formatCountOf } from "@/lib/presentation/format-count";
+import { formatCount } from "@/lib/presentation/format-number";
+import { m } from "@/paraglide/messages";
 
 const COUNT_INPUT = {
 	pageIndex: 0,
@@ -73,32 +74,36 @@ const ManageLibraryPanel = () => {
 		linkProps: LinkProps;
 	}> = [
 		{
-			label: "Bots",
-			meta: `${formatCount(publishedCount)} published, ${formatCountOf(draftCount, "draft", "drafts")}`,
+			label: m.home_library_bots_label(),
+			meta: m.home_library_bots_meta({
+				published: formatCount(publishedCount),
+				drafts: formatCount(draftCount),
+				count: draftCount,
+			}),
 			count: publishedCount + draftCount,
 			linkProps: {
 				to: "/app/hub/bots",
 			},
 		},
 		{
-			label: "Behaviour blocks",
-			meta: "Prompts and image generation",
+			label: m.home_library_blocks_label(),
+			meta: m.home_library_blocks_meta(),
 			count: templates.data.rowCount + imageGeneration.data.rowCount,
 			linkProps: {
 				to: "/app/hub/behaviour",
 			},
 		},
 		{
-			label: "Repositories",
-			meta: "Retrieval databases that ground answers",
+			label: m.home_library_repositories_label(),
+			meta: m.home_library_repositories_meta(),
 			count: repositories.data.rowCount,
 			linkProps: {
 				to: "/app/hub/repositories",
 			},
 		},
 		{
-			label: "Assets",
-			meta: "Source material for retrieval and citations",
+			label: m.home_library_assets_label(),
+			meta: m.home_library_assets_meta(),
 			count: assets.data.rowCount,
 			linkProps: {
 				to: "/app/hub/assets",
@@ -109,7 +114,7 @@ const ManageLibraryPanel = () => {
 	return (
 		<Panel>
 			<PanelHeader>
-				<PanelTitle>Library</PanelTitle>
+				<PanelTitle>{m.home_library_panel_title()}</PanelTitle>
 				<Link
 					to="/app/hub/assets/add"
 					className={buttonVariants({
@@ -117,7 +122,7 @@ const ManageLibraryPanel = () => {
 						size: "sm",
 					})}
 				>
-					Add an asset
+					{m.home_library_panel_add_asset_action()}
 				</Link>
 			</PanelHeader>
 			<PanelRows>

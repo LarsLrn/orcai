@@ -18,6 +18,7 @@ import {
 } from "@/components/ui/dialog";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { getFileTypeLabel } from "@/lib/presentation/file-type";
+import { m } from "@/paraglide/messages";
 
 const hasMetadataAdded = (draft: AssetMetadataDraft, fileName: string) => {
 	const defaults = createDefaultAssetMetadata();
@@ -81,7 +82,9 @@ const UploadedFileReviewList = ({
 								{file.type ? getFileTypeLabel(file.type) : "FILE"}
 							</Badge>
 							<Badge variant={hasMetadata ? "success" : "warning"}>
-								{hasMetadata ? "Metadata added" : "Needs metadata"}
+								{hasMetadata
+									? m.assets_review_list_metadata_added_badge()
+									: m.assets_review_list_metadata_missing_badge()}
 							</Badge>
 						</div>
 					</div>
@@ -92,7 +95,9 @@ const UploadedFileReviewList = ({
 						onClick={() => setEditingFileId(file.id)}
 					>
 						{hasMetadata ? <CheckCircle2Icon /> : <PencilIcon />}
-						{hasMetadata ? "Edit metadata" : "Add metadata"}
+						{hasMetadata
+							? m.assets_review_list_edit_metadata_button()
+							: m.assets_review_list_add_metadata_button()}
 					</Button>
 
 					<Dialog
@@ -101,10 +106,9 @@ const UploadedFileReviewList = ({
 					>
 						<DialogContent className="max-h-[88vh] sm:max-w-3xl">
 							<DialogHeader>
-								<DialogTitle>Source details</DialogTitle>
+								<DialogTitle>{m.assets_review_list_dialog_title()}</DialogTitle>
 								<DialogDescription>
-									Define how this uploaded file should appear in AI citations
-									and references.
+									{m.assets_review_list_dialog_description()}
 								</DialogDescription>
 							</DialogHeader>
 
@@ -117,7 +121,7 @@ const UploadedFileReviewList = ({
 
 							<DialogFooter>
 								<Button onClick={() => setEditingFileId(null)}>
-									Save metadata
+									{m.assets_metadata_save_button()}
 								</Button>
 							</DialogFooter>
 						</DialogContent>

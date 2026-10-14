@@ -104,6 +104,7 @@ export const findProvider = authed.provider.find
 			Effect.mapError(
 				() =>
 					new AppErrors.NotFoundError({
+						reason: "PROVIDER_NOT_FOUND",
 						message: "Provider not found",
 					}),
 			),
@@ -167,6 +168,7 @@ export const updateProvider = authed.provider.update
 		if (!provider) {
 			return yield* Effect.fail(
 				new AppErrors.NotFoundError({
+					reason: "PROVIDER_NOT_FOUND",
 					message: "Provider not found",
 				}),
 			);
@@ -199,6 +201,7 @@ export const deleteProviders = authed.provider.delete
 		if (existingProviders.length !== providerIds.length) {
 			return yield* Effect.fail(
 				new AppErrors.NotFoundError({
+					reason: "PROVIDER_NOT_FOUND",
 					message: "One or more providers were not found",
 				}),
 			);

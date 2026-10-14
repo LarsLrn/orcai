@@ -7,6 +7,7 @@ import {
 	TooltipTrigger,
 } from "@/components/ui/tooltip";
 import { cn } from "@/lib/utils";
+import { m } from "@/paraglide/messages";
 import { useToolbar } from "./toolbar-provider";
 
 const HorizontalRuleToolbar = ({
@@ -36,7 +37,7 @@ const HorizontalRuleToolbar = ({
 				}
 			/>
 			<TooltipContent>
-				<span>Horizontal rule</span>
+				<span>{m.editor_toolbar_horizontal_rule_tooltip()}</span>
 			</TooltipContent>
 		</Tooltip>
 	);

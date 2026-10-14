@@ -36,6 +36,7 @@ import {
 import { Textarea } from "@/components/ui/textarea";
 import { useCreateGroupMutation } from "@/hooks/mutations/use-group-mutations";
 import { orpc } from "@/lib/orpc/orpc";
+import { m } from "@/paraglide/messages";
 
 const searchSchema = listGroupsInputSchema.extend({
 	query: z.string().trim().max(100).default(""),
@@ -113,11 +114,11 @@ function RouteComponent() {
 	return (
 		<Page>
 			<PageHeader>
-				<PageTitle>Groups</PageTitle>
+				<PageTitle>{m.groups_page_title()}</PageTitle>
 				<PageAction>
 					<Button onClick={() => setIsCreateOpen(true)}>
 						<PlusIcon />
-						Create Group
+						{m.groups_list_create_action()}
 					</Button>
 				</PageAction>
 			</PageHeader>
@@ -142,7 +143,7 @@ function RouteComponent() {
 					<DataTableToolbar>
 						<DataTableSearch
 							value={query}
-							placeholder="Search groups"
+							placeholder={m.groups_list_search_placeholder()}
 							onChange={(value) =>
 								void navigate({
 									to: ".",
@@ -168,15 +169,15 @@ function RouteComponent() {
 			<Dialog open={isCreateOpen} onOpenChange={setIsCreateOpen}>
 				<DialogContent>
 					<DialogHeader>
-						<DialogTitle>Create Group</DialogTitle>
+						<DialogTitle>{m.groups_create_dialog_title()}</DialogTitle>
 						<DialogDescription>
-							Create a custom organisation group for access management.
+							{m.groups_create_dialog_description()}
 						</DialogDescription>
 					</DialogHeader>
 
 					<form className="space-y-4" onSubmit={onCreateSubmit}>
 						<div className="space-y-2">
-							<Label htmlFor="group-name">Name</Label>
+							<Label htmlFor="group-name">{m.common_name_label()}</Label>
 							<Input
 								id="group-name"
 								value={name}
@@ -186,7 +187,9 @@ function RouteComponent() {
 							/>
 						</div>
 						<div className="space-y-2">
-							<Label htmlFor="group-description">Description</Label>
+							<Label htmlFor="group-description">
+								{m.common_description_label()}
+							</Label>
 							<Textarea
 								id="group-description"
 								value={description}
@@ -200,13 +203,13 @@ function RouteComponent() {
 								variant="outline"
 								onClick={() => setIsCreateOpen(false)}
 							>
-								Cancel
+								{m.common_cancel_button()}
 							</Button>
 							<Button
 								type="submit"
 								disabled={!name.trim() || createGroup.isPending}
 							>
-								Create
+								{m.common_create_button()}
 							</Button>
 						</DialogFooter>
 					</form>

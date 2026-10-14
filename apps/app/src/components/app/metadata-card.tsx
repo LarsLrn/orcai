@@ -20,6 +20,7 @@ import {
 	formatDisplayDate,
 	formatDisplayTimestamp,
 } from "@/lib/presentation/format-timestamp";
+import { m } from "@/paraglide/messages";
 
 const CopyableId = ({ value }: { value: string }) => {
 	const [copiedValue, copy] = useCopyToClipboard();
@@ -42,7 +43,7 @@ const CopyableId = ({ value }: { value: string }) => {
 					</button>
 				}
 			/>
-			<TooltipContent>Click to copy</TooltipContent>
+			<TooltipContent>{m.app_metadata_card_copy_tooltip()}</TooltipContent>
 		</Tooltip>
 	);
 };
@@ -77,7 +78,9 @@ const MetadataCard = ({
 	return (
 		<Card>
 			<CardHeader>
-				<CardTitle className="text-base">Details</CardTitle>
+				<CardTitle className="text-base">
+					{m.app_metadata_card_title()}
+				</CardTitle>
 			</CardHeader>
 			<CardContent>
 				<div className="space-y-2.5 text-sm">
@@ -85,7 +88,7 @@ const MetadataCard = ({
 						<div className="flex items-center justify-between gap-4">
 							<div className="flex items-center gap-2 text-muted-foreground">
 								<HashIcon className="size-3.5 shrink-0" />
-								<span>ID</span>
+								<span>{m.app_metadata_card_id_label()}</span>
 							</div>
 							<CopyableId value={id} />
 						</div>
@@ -98,12 +101,14 @@ const MetadataCard = ({
 								) : (
 									<LockIcon className="size-3.5 shrink-0" />
 								)}
-								<span>Visibility</span>
+								<span>{m.app_metadata_card_visibility_label()}</span>
 							</div>
 							<Badge
 								variant={visibility === "public" ? "secondary" : "outline"}
 							>
-								{visibility === "public" ? "Public" : "Private"}
+								{visibility === "public"
+									? m.app_metadata_card_visibility_public()
+									: m.app_metadata_card_visibility_private()}
 							</Badge>
 						</div>
 					)}
@@ -111,9 +116,13 @@ const MetadataCard = ({
 						<div className="flex items-center justify-between gap-4">
 							<div className="flex items-center gap-2 text-muted-foreground">
 								<MilestoneIcon className="size-3.5 shrink-0" />
-								<span>Version</span>
+								<span>{m.app_metadata_card_version_label()}</span>
 							</div>
-							<Badge variant="outline">v{version}</Badge>
+							<Badge variant="outline">
+								{m.app_metadata_card_version_value({
+									version,
+								})}
+							</Badge>
 						</div>
 					)}
 					{(id || visibility || version !== undefined) &&
@@ -122,7 +131,7 @@ const MetadataCard = ({
 						<div className="flex items-center justify-between gap-4">
 							<div className="flex items-center gap-2 text-muted-foreground">
 								<CalendarIcon className="size-3.5 shrink-0" />
-								<span>Created</span>
+								<span>{m.app_metadata_card_created_label()}</span>
 							</div>
 							<Tooltip>
 								<TooltipTrigger className="text-right text-muted-foreground text-xs">
@@ -136,7 +145,7 @@ const MetadataCard = ({
 						<div className="flex items-center justify-between gap-4">
 							<div className="flex items-center gap-2 text-muted-foreground">
 								<ClockIcon className="size-3.5 shrink-0" />
-								<span>Updated</span>
+								<span>{m.app_metadata_card_updated_label()}</span>
 							</div>
 							<Tooltip>
 								<TooltipTrigger className="text-right text-muted-foreground text-xs">

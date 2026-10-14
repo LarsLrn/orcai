@@ -6,6 +6,7 @@ import { useEffect, useMemo, useRef, useState } from "react";
 import { toast } from "sonner";
 import { useUploadFiles } from "@/components/documents/use-upload-files";
 import { orpc } from "@/lib/orpc/orpc";
+import { m } from "@/paraglide/messages";
 
 export type LocalChatFile = {
 	id: string;
@@ -110,7 +111,11 @@ export const useChatAttachments = ({ limit = 8 }: { limit?: number } = {}) => {
 
 		const slotsRemaining = limit - (selectedAssets.length + localFiles.length);
 		if (slotsRemaining <= 0) {
-			toast.error(`You can only attach up to ${limit} files.`);
+			toast.error(
+				m.chat_attachments_limit_toast_error({
+					count: limit,
+				}),
+			);
 			return;
 		}
 
@@ -122,7 +127,9 @@ export const useChatAttachments = ({ limit = 8 }: { limit?: number } = {}) => {
 
 		if (incoming.length > slotsRemaining) {
 			toast.warning(
-				`Only ${slotsRemaining} more attachment${slotsRemaining > 1 ? "s" : ""} can be added.`,
+				m.chat_attachments_capacity_toast_warning({
+					count: slotsRemaining,
+				}),
 			);
 		}
 
@@ -148,7 +155,11 @@ export const useChatAttachments = ({ limit = 8 }: { limit?: number } = {}) => {
 		}
 
 		if (!canAttachMore) {
-			toast.error(`You can only attach up to ${limit} files.`);
+			toast.error(
+				m.chat_attachments_limit_toast_error({
+					count: limit,
+				}),
+			);
 			return;
 		}
 
@@ -215,7 +226,9 @@ export const useChatAttachments = ({ limit = 8 }: { limit?: number } = {}) => {
 
 			if (uploadResult.failedFiles.length > 0) {
 				toast.warning(
-					`${uploadResult.failedFiles.length} attachment${uploadResult.failedFiles.length > 1 ? "s" : ""} failed to upload.`,
+					m.chat_attachments_upload_failed_toast_warning({
+						count: uploadResult.failedFiles.length,
+					}),
 				);
 			}
 		}

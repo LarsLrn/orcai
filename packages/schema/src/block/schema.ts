@@ -1,5 +1,6 @@
 import { z } from "zod/v4";
 import { entityCapabilitiesSchema } from "../authorization";
+import type { ErrorReason } from "../shared/error-reason";
 import { publicationStatusSchema } from "../shared/primitives/publication-status";
 import { retrievalModeSchema } from "../shared/primitives/retrieval-mode";
 import { userIdSchema } from "../user/ref";
@@ -41,7 +42,9 @@ export const referencesConfigSchema = z
 		if (ctx.value.maxReferences < ctx.value.minReferences) {
 			ctx.issues.push({
 				code: "custom",
-				message: "maxReferences cannot be less than minReferences",
+				params: {
+					reason: "REFERENCE_RANGE_INVALID" satisfies ErrorReason,
+				},
 				path: [
 					"maxReferences",
 				],
@@ -54,8 +57,9 @@ export const referencesConfigSchema = z
 		) {
 			ctx.issues.push({
 				code: "custom",
-				message:
-					"defaultReferences must be between minReferences and maxReferences",
+				params: {
+					reason: "DEFAULT_REFERENCES_OUT_OF_RANGE" satisfies ErrorReason,
+				},
 				path: [
 					"defaultReferences",
 				],

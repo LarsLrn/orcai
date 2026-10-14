@@ -3,6 +3,7 @@ import { signUpInvited } from "../../fixtures/auth";
 import { EMAIL_DOMAIN, USER_PASSWORD } from "../../fixtures/constants";
 import { submitForm } from "../../fixtures/forms";
 import { expect, test } from "../../fixtures/index";
+import { message } from "../../fixtures/messages";
 import { enterApp, open } from "../../fixtures/navigation";
 
 test("a member signs in through the login form, then signs out and loses access", async ({
@@ -11,21 +12,21 @@ test("a member signs in through the login form, then signs out and loses access"
 }) => {
 	const member = org.users.member;
 
-	await open(page, "/en/login");
+	await open(page, "/login");
 
 	await submitForm(page, {
 		fill: async () => {
-			await page.getByLabel("Email").fill(member.email);
+			await page.getByLabel(message("common_email_label")).fill(member.email);
 			await page
-				.getByLabel("Password", {
+				.getByLabel(message("common_password_label"), {
 					exact: true,
 				})
 				.fill(member.password);
 		},
-		submit: "Login",
+		submit: message("auth_signin_form_submit_button"),
 		// Sign-in leaves the login page before the app knows which
 		// organisation is active, so any other URL counts.
-		until: /^(?!.*\/en\/login).*$/,
+		until: /^(?!.*\/login).*$/,
 	});
 
 	await enterApp(page, org.slug);
@@ -42,19 +43,19 @@ test("a member signs in through the login form, then signs out and loses access"
 
 	await page
 		.getByRole("menuitem", {
-			name: "Sign Out",
+			name: message("account_user_menu_sign_out_action"),
 		})
 		.click();
 
 	// Signing out sends the browser to the root, which redirects a visitor
 	// without a session to the login page.
-	await expect(page).toHaveURL(/\/en\/login/);
+	await expect(page).toHaveURL(/\/login/);
 
-	await open(page, "/en/app");
-	await expect(page).toHaveURL(/\/en\/login/);
+	await open(page, "/app");
+	await expect(page).toHaveURL(/\/login/);
 	await expect(
 		page.getByRole("button", {
-			name: "Login",
+			name: message("auth_signin_form_submit_button"),
 		}),
 	).toBeVisible();
 });
@@ -86,7 +87,7 @@ test("a user with one organisation signs in straight into the app", async ({
 		}
 	});
 
-	await open(page, "/en/login");
+	await open(page, "/login");
 
 	// Registration is by invitation, so the login page offers no way to
 	// create an account.
@@ -98,18 +99,18 @@ test("a user with one organisation signs in straight into the app", async ({
 
 	await submitForm(page, {
 		fill: async () => {
-			await page.getByLabel("Email").fill(email);
+			await page.getByLabel(message("common_email_label")).fill(email);
 			await page
-				.getByLabel("Password", {
+				.getByLabel(message("common_password_label"), {
 					exact: true,
 				})
 				.fill(USER_PASSWORD);
 		},
-		submit: "Login",
+		submit: message("auth_signin_form_submit_button"),
 		// The `session.create.before` hook makes the one organisation active
 		// as the session opens, so the app route lets the user through
 		// instead of sending them to the picker.
-		until: /\/en\/app(\/|$)/,
+		until: /\/app(\/|$)/,
 	});
 
 	expect(visited.filter((url) => url.includes("select-organization"))).toEqual(

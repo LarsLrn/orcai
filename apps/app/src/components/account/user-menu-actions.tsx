@@ -28,11 +28,11 @@ const UserMenuActions = () => {
 		<DropdownMenuGroup>
 			{menu.map((item) => (
 				<DropdownMenuItem
-					key={item.title}
+					key={item.title()}
 					render={
 						<Link {...item.linkProps} onClick={closeMobileForNavigation}>
 							<item.icon className="hover:text-foreground" />
-							{item.title}
+							{item.title()}
 						</Link>
 					}
 				/>

@@ -13,6 +13,7 @@ import {
 } from "@/components/ui/dropdown-menu";
 import { useRateChatMessageMutation } from "@/hooks/mutations/use-chat-message-mutations";
 import { cn } from "@/lib/utils";
+import { m } from "@/paraglide/messages";
 
 const MessageRate = ({
 	messageId,
@@ -51,19 +52,19 @@ const MessageRate = ({
 
 	const ratings = [
 		{
-			label: "Very much",
+			label: m.chat_message_rate_option_very_much(),
 			value: 10,
 		},
 		{
-			label: "A bit",
+			label: m.chat_message_rate_option_a_bit(),
 			value: 5,
 		},
 		{
-			label: "Not really",
+			label: m.chat_message_rate_option_not_really(),
 			value: -5,
 		},
 		{
-			label: "Not at all",
+			label: m.chat_message_rate_option_not_at_all(),
 			value: -10,
 		},
 	];
@@ -73,8 +74,8 @@ const MessageRate = ({
 			<DropdownMenuTrigger
 				render={
 					<Action
-						label="Rate response"
-						tooltip="Rate how helpful this response was"
+						label={m.chat_message_rate_action_label()}
+						tooltip={m.chat_message_rate_tooltip()}
 						className={cn(
 							className,
 							score &&
@@ -91,7 +92,7 @@ const MessageRate = ({
 			<DropdownMenuContent align="start" className="w-48">
 				<DropdownMenuGroup>
 					<DropdownMenuLabel className="text-xs">
-						Was this response helpful for your learning?
+						{m.chat_message_rate_prompt()}
 					</DropdownMenuLabel>
 					<DropdownMenuSeparator />
 

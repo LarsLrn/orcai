@@ -1,4 +1,5 @@
 import { z } from "zod/v4";
+import type { ErrorReason } from "../error-reason";
 import { sharedSchemas } from "./shared";
 
 export const initSchema = z
@@ -7,14 +8,18 @@ export const initSchema = z
 		name: sharedSchemas.name,
 		password: sharedSchemas.password,
 		confirmPassword: sharedSchemas.password,
-		organizationName: z.string().min(1, "Organization name is required"),
-		organizationSlug: z.string().min(1, "Organization slug is required"),
+		organizationName: z.string().min(1),
+		organizationSlug: z.string().min(1),
 		privacyConsent: z.boolean().refine((val) => val === true, {
-			message: "You must accept the privacy policy",
+			params: {
+				reason: "PRIVACY_CONSENT_REQUIRED" satisfies ErrorReason,
+			},
 		}),
 	})
 	.refine((data) => data.password === data.confirmPassword, {
-		message: "Passwords must match",
+		params: {
+			reason: "PASSWORDS_MISMATCH" satisfies ErrorReason,
+		},
 		path: [
 			"confirmPassword",
 		],

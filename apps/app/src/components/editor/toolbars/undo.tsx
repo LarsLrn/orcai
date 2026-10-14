@@ -7,6 +7,7 @@ import {
 	TooltipTrigger,
 } from "@/components/ui/tooltip";
 import { cn } from "@/lib/utils";
+import { m } from "@/paraglide/messages";
 import { useToolbar } from "./toolbar-provider";
 
 const UndoToolbar = ({
@@ -38,7 +39,7 @@ const UndoToolbar = ({
 				}
 			/>
 			<TooltipContent>
-				<span>Undo</span>
+				<span>{m.editor_toolbar_undo_tooltip()}</span>
 			</TooltipContent>
 		</Tooltip>
 	);

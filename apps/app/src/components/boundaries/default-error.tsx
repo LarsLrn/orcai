@@ -9,46 +9,28 @@ import {
 import { AlertTriangle, ArrowLeft, Home, RefreshCw } from "lucide-react";
 import { Button, buttonVariants } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
+import { describeError } from "@/lib/errors/describe-error";
+import { m } from "@/paraglide/messages";
 
-// Type for ORPC validation error structure
-interface ORPCValidationError {
+interface ValidationErrorData {
 	data?: {
 		fieldErrors?: Record<string, string[]>;
 		formErrors?: string[];
 	};
 }
 
-/**
- * Extract human-readable error messages from ORPC validation errors
- */
+/** Validation payloads already carry sentences translated by the zod error map. */
 function getValidationErrorMessages(error: Error): string[] {
-	// Try to parse as ORPC error with validation data
-	const orpcError = error as Error & ORPCValidationError;
+	const { data } = error as Error & ValidationErrorData;
 
-	if (orpcError.data?.fieldErrors) {
-		const messages: string[] = [];
-		for (const errors of Object.values(orpcError.data.fieldErrors)) {
-			messages.push(...errors);
-		}
-		if (orpcError.data.formErrors?.length) {
-			messages.push(...orpcError.data.formErrors);
-		}
-		return messages;
+	if (!data?.fieldErrors) {
+		return [];
 	}
 
-	// Try to parse error.message as JSON array (fallback for stringified errors)
-	try {
-		const parsed = JSON.parse(error.message);
-		if (Array.isArray(parsed)) {
-			return parsed
-				.filter((item) => item && typeof item === "object" && "message" in item)
-				.map((item) => item.message);
-		}
-	} catch {
-		// Not JSON, continue to default
-	}
-
-	return [];
+	return [
+		...Object.values(data.fieldErrors).flat(),
+		...(data.formErrors ?? []),
+	];
 }
 
 export function DefaultErrorBoundary({ error }: ErrorComponentProps) {
@@ -78,7 +60,7 @@ export function DefaultErrorBoundary({ error }: ErrorComponentProps) {
 						{/* Error Title */}
 						<div className="space-y-2">
 							<h1 className="font-semibold text-2xl text-foreground">
-								This page could not be loaded
+								{m.boundaries_default_error_title()}
 							</h1>
 							{hasValidationErrors ? (
 								<div className="space-y-2 text-left">
@@ -93,22 +75,19 @@ export function DefaultErrorBoundary({ error }: ErrorComponentProps) {
 								</div>
 							) : (
 								<h2 className="font-semibold text-lg text-muted-foreground">
-									{error.message}
+									{describeError(error)}
 								</h2>
 							)}
 						</div>
 
 						{/* Error Details */}
 						<div className="text-muted-foreground text-sm">
-							<p className="mb-4">
-								Try again, or go back to the previous page. The technical
-								details below help if the problem continues.
-							</p>
+							<p className="mb-4">{m.boundaries_default_error_description()}</p>
 
 							{/* Error Component (collapsible details) */}
 							<details className="rounded-md bg-muted/50 p-3 text-left text-xs">
 								<summary className="cursor-pointer font-medium text-muted-foreground hover:text-foreground">
-									Technical details
+									{m.boundaries_default_error_details_summary()}
 								</summary>
 								<div className="mt-2 font-mono">
 									<ErrorComponent error={error} />
@@ -127,7 +106,7 @@ export function DefaultErrorBoundary({ error }: ErrorComponentProps) {
 						className="flex items-center gap-2"
 					>
 						<RefreshCw className="h-4 w-4" />
-						Try Again
+						{m.boundaries_default_error_retry_button()}
 					</Button>
 					{isRoot ? (
 						<Link
@@ -138,7 +117,7 @@ export function DefaultErrorBoundary({ error }: ErrorComponentProps) {
 							})}
 						>
 							<Home className="h-4 w-4" />
-							Return home
+							{m.boundaries_default_error_home_link()}
 						</Link>
 					) : (
 						<Button
@@ -150,7 +129,7 @@ export function DefaultErrorBoundary({ error }: ErrorComponentProps) {
 							}}
 						>
 							<ArrowLeft className="h-4 w-4" />
-							Go back
+							{m.boundaries_default_error_back_button()}
 						</Button>
 					)}
 				</div>

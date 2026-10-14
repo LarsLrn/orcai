@@ -1,6 +1,7 @@
 import { expect, type Locator, type Page } from "@playwright/test";
 import type { ApiClient } from "../api";
 import { submitFormUntilVisible } from "../auth/forms";
+import { message } from "../messages";
 import { nameOf } from "./users";
 
 /** Fill the change-password form and confirm the dialog it opens. */
@@ -14,20 +15,24 @@ export const submitPasswordChange = async (
 	until: Locator,
 ): Promise<void> => {
 	const confirm = page.getByRole("button", {
-		name: "Confirm",
+		name: message("common_confirm_button"),
 	});
 
 	await submitFormUntilVisible(page, {
 		fill: async () => {
-			await page.getByLabel("Current Password").fill(passwords.current);
 			await page
-				.getByLabel("New Password", {
+				.getByLabel(message("auth_change_password_form_current_password_label"))
+				.fill(passwords.current);
+			await page
+				.getByLabel(message("auth_change_password_form_new_password_label"), {
 					exact: true,
 				})
 				.fill(passwords.next);
-			await page.getByLabel("Confirm New Password").fill(passwords.next);
+			await page
+				.getByLabel(message("auth_change_password_form_confirm_password_label"))
+				.fill(passwords.next);
 		},
-		submit: "Change Password",
+		submit: message("auth_change_password_form_submit_button"),
 		until: confirm,
 	});
 
@@ -46,13 +51,13 @@ export const saveProfileName = async (
 ): Promise<void> => {
 	await expect(async () => {
 		await page
-			.getByLabel("Name", {
+			.getByLabel(message("users_profile_form_name_label"), {
 				exact: true,
 			})
 			.fill(name);
 		await page
 			.getByRole("button", {
-				name: "Save Profile",
+				name: message("users_profile_form_submit_button"),
 			})
 			.click();
 		await expect

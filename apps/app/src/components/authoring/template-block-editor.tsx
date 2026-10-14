@@ -8,9 +8,14 @@ import {
 	CardHeader,
 	CardTitle,
 } from "@/components/ui/card";
+import { m } from "@/paraglide/messages";
 
 const createDefaultTemplateBlock = (params?: { botName: string }) => ({
-	name: `AI behaviour${params?.botName ? ` for '${params.botName}'` : ""}`,
+	name: params?.botName
+		? m.authoring_template_block_default_name_named({
+				botName: params.botName,
+			})
+		: m.authoring_template_block_default_name(),
 	description: "",
 	contentHtml: "",
 	contentJson: null,
@@ -38,11 +43,10 @@ const TemplateBlockEditor = ({
 				<CardHeader>
 					<CardTitle className="flex items-center gap-2">
 						<SparklesIcon className="h-5 w-5" />
-						AI behaviour
+						{m.authoring_template_block_title()}
 					</CardTitle>
 					<CardDescription>
-						Define how the bot should respond, what tone it should use, and what
-						rules it should follow.
+						{m.authoring_template_block_description()}
 					</CardDescription>
 				</CardHeader>
 				<CardContent className="space-y-4">

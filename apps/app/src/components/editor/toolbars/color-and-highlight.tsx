@@ -14,94 +14,69 @@ import {
 	TooltipTrigger,
 } from "@/components/ui/tooltip";
 import { cn } from "@/lib/utils";
+import { m } from "@/paraglide/messages";
 import { MobileToolbarGroup, MobileToolbarItem } from "./mobile-toolbar-group";
 import { useToolbar } from "./toolbar-provider";
 
-const TEXT_COLORS = [
-	{
-		name: "Default",
-		color: "var(--editor-text-default)",
-	},
-	{
-		name: "Gray",
-		color: "var(--editor-text-gray)",
-	},
-	{
-		name: "Brown",
-		color: "var(--editor-text-brown)",
-	},
-	{
-		name: "Orange",
-		color: "var(--editor-text-orange)",
-	},
-	{
-		name: "Yellow",
-		color: "var(--editor-text-yellow)",
-	},
-	{
-		name: "Green",
-		color: "var(--editor-text-green)",
-	},
-	{
-		name: "Blue",
-		color: "var(--editor-text-blue)",
-	},
-	{
-		name: "Purple",
-		color: "var(--editor-text-purple)",
-	},
-	{
-		name: "Pink",
-		color: "var(--editor-text-pink)",
-	},
-	{
-		name: "Red",
-		color: "var(--editor-text-red)",
-	},
-];
+const COLOUR_IDS = [
+	"default",
+	"grey",
+	"brown",
+	"orange",
+	"yellow",
+	"green",
+	"blue",
+	"purple",
+	"pink",
+	"red",
+] as const;
 
-const HIGHLIGHT_COLORS = [
-	{
-		name: "Default",
-		color: "var(--editor-highlight-default)",
-	},
-	{
-		name: "Gray",
-		color: "var(--editor-highlight-gray)",
-	},
-	{
-		name: "Brown",
-		color: "var(--editor-highlight-brown)",
-	},
-	{
-		name: "Orange",
-		color: "var(--editor-highlight-orange)",
-	},
-	{
-		name: "Yellow",
-		color: "var(--editor-highlight-yellow)",
-	},
-	{
-		name: "Green",
-		color: "var(--editor-highlight-green)",
-	},
-	{
-		name: "Blue",
-		color: "var(--editor-highlight-blue)",
-	},
-	{
-		name: "Purple",
-		color: "var(--editor-highlight-purple)",
-	},
-	{
-		name: "Pink",
-		color: "var(--editor-highlight-pink)",
-	},
-	{
-		name: "Red",
-		color: "var(--editor-highlight-red)",
-	},
-];
+type ColourId = (typeof COLOUR_IDS)[number];
+
+const CSS_COLOUR_NAMES: Record<ColourId, string> = {
+	default: "default",
+	grey: "gray",
+	brown: "brown",
+	orange: "orange",
+	yellow: "yellow",
+	green: "green",
+	blue: "blue",
+	purple: "purple",
+	pink: "pink",
+	red: "red",
+};
+
+const colourLabel = (id: ColourId) => {
+	switch (id) {
+		case "grey":
+			return m.editor_colour_grey_option();
+		case "brown":
+			return m.editor_colour_brown_option();
+		case "orange":
+			return m.editor_colour_orange_option();
+		case "yellow":
+			return m.editor_colour_yellow_option();
+		case "green":
+			return m.editor_colour_green_option();
+		case "blue":
+			return m.editor_colour_blue_option();
+		case "purple":
+			return m.editor_colour_purple_option();
+		case "pink":
+			return m.editor_colour_pink_option();
+		case "red":
+			return m.editor_colour_red_option();
+		default:
+			return m.editor_colour_default_option();
+	}
+};
+
+const colourOptions = (kind: "text" | "highlight") =>
+	COLOUR_IDS.map((id) => ({
+		id,
+		name: colourLabel(id),
+		color: `var(--editor-${kind}-${CSS_COLOUR_NAMES[id]})`,
+	}));
 
 interface ColorHighlightButtonProps {
 	name: string;
@@ -148,6 +123,8 @@ export const ColorHighlightToolbar = () => {
 	const { editor } = useToolbar();
 	const isMobile = useMediaQuery("(max-width: 640px)");
 
+	const textColours = colourOptions("text");
+	const highlightColours = colourOptions("highlight");
 	const currentColor = editor?.getAttributes("textStyle").color;
 	const currentHighlight = editor?.getAttributes("highlight").color;
 
@@ -182,10 +159,10 @@ export const ColorHighlightToolbar = () => {
 	if (isMobile) {
 		return (
 			<div className="flex gap-1">
-				<MobileToolbarGroup label="Colour">
-					{TEXT_COLORS.map(({ name, color }) => (
+				<MobileToolbarGroup label={m.editor_toolbar_colour_group_label()}>
+					{textColours.map(({ id, name, color }) => (
 						<MobileToolbarItem
-							key={name}
+							key={id}
 							onClick={() => handleSetColor(color)}
 							active={currentColor === color}
 						>
@@ -204,10 +181,10 @@ export const ColorHighlightToolbar = () => {
 					))}
 				</MobileToolbarGroup>
 
-				<MobileToolbarGroup label="Highlight">
-					{HIGHLIGHT_COLORS.map(({ name, color }) => (
+				<MobileToolbarGroup label={m.editor_toolbar_highlight_group_label()}>
+					{highlightColours.map(({ id, name, color }) => (
 						<MobileToolbarItem
-							key={name}
+							key={id}
 							onClick={() => handleSetHighlight(color)}
 							active={currentHighlight === color}
 						>
@@ -253,15 +230,17 @@ export const ColorHighlightToolbar = () => {
 							/>
 						}
 					/>
-					<TooltipContent>Text colour and highlight</TooltipContent>
+					<TooltipContent>{m.editor_toolbar_colour_tooltip()}</TooltipContent>
 				</Tooltip>
 
 				<PopoverContent align="start" className="w-56 p-1 dark:bg-gray-2">
 					<ScrollArea className="max-h-80 overflow-y-auto pr-2">
-						<div className="mt-2 mb-2.5 px-2 text-gray-11 text-xs">Colour</div>
-						{TEXT_COLORS.map(({ name, color }) => (
+						<div className="mt-2 mb-2.5 px-2 text-gray-11 text-xs">
+							{m.editor_toolbar_colour_section_label()}
+						</div>
+						{textColours.map(({ id, name, color }) => (
 							<ColorHighlightButton
-								key={name}
+								key={id}
 								name={name}
 								color={color}
 								isActive={currentColor === color}
@@ -272,11 +251,11 @@ export const ColorHighlightToolbar = () => {
 						<Separator className="my-3" />
 
 						<div className="mb-2.5 w-full px-2 pr-3 text-gray-11 text-xs">
-							Background
+							{m.editor_toolbar_background_section_label()}
 						</div>
-						{HIGHLIGHT_COLORS.map(({ name, color }) => (
+						{highlightColours.map(({ id, name, color }) => (
 							<ColorHighlightButton
-								key={name}
+								key={id}
 								name={name}
 								color={color}
 								isActive={currentHighlight === color}

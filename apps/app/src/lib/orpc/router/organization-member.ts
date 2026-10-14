@@ -93,6 +93,7 @@ export const findOrganizationMember = authed.organizationMember.find
 						Effect.mapError(
 							() =>
 								new AppErrors.NotFoundError({
+									reason: "MEMBER_NOT_FOUND",
 									message: "Member not found",
 								}),
 						),
@@ -133,11 +134,9 @@ export const updateOrganizationMember = authed.organizationMember.update
 				if (!existing) {
 					return yield* Effect.fail(
 						new AppErrors.NotFoundError({
+							reason: "MEMBER_NOT_FOUND",
+							id: input.userId,
 							message: "Member not found",
-							data: {
-								organizationId: input.organizationId,
-								userId: input.userId,
-							},
 						}),
 					);
 				}
@@ -191,11 +190,9 @@ export const updateOrganizationMember = authed.organizationMember.update
 				if (!member) {
 					return yield* Effect.fail(
 						new AppErrors.NotFoundError({
+							reason: "MEMBER_NOT_FOUND",
+							id: input.userId,
 							message: "Member not found",
-							data: {
-								organizationId: input.organizationId,
-								userId: input.userId,
-							},
 						}),
 					);
 				}
@@ -210,11 +207,9 @@ export const updateOrganizationMember = authed.organizationMember.update
 		if (!member) {
 			return yield* Effect.fail(
 				new AppErrors.NotFoundError({
+					reason: "MEMBER_NOT_FOUND",
+					id: input.userId,
 					message: "Member not found",
-					data: {
-						organizationId: input.organizationId,
-						userId: input.userId,
-					},
 				}),
 			);
 		}

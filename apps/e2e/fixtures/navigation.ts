@@ -7,6 +7,7 @@ import {
 	type ZedTokenStore,
 	zedTokenOf,
 } from "./api";
+import { message } from "./messages";
 
 /** Open a page and wait for the network to settle, which covers late hydration. */
 export const open = async (page: Page, path: string): Promise<void> => {
@@ -116,7 +117,7 @@ const activateOverApi = async (
  */
 const skipInitialTour = async (page: Page): Promise<void> => {
 	const skip = page.getByRole("button", {
-		name: "Skip",
+		name: message("next_step_card_skip_button"),
 	});
 
 	const appeared = await skip
@@ -140,13 +141,13 @@ export const enterApp = async (
 	page: Page,
 	organisationSlug: string,
 ): Promise<void> => {
-	await page.goto("/en/select-organization");
+	await page.goto("/select-organization");
 
 	const card = page.getByRole("button").filter({
 		hasText: `@${organisationSlug}`,
 	});
 	const heading = page.getByRole("heading", {
-		name: "Select your organisation",
+		name: message("select_organisation_page_title"),
 	});
 
 	// The card appears once the sign-up hook's membership is visible, which no
@@ -158,10 +159,10 @@ export const enterApp = async (
 			(await heading.isVisible()) &&
 			(await activateOverApi(page, organisationSlug))
 		) {
-			await page.goto("/en/app");
+			await page.goto("/app");
 		}
 
-		await expect(page).toHaveURL(/\/en\/app(\/|$)/, {
+		await expect(page).toHaveURL(/\/app(\/|$)/, {
 			timeout: 5_000,
 		});
 	}).toPass({
@@ -177,7 +178,7 @@ export const enterApp = async (
 		const organisation = await findOrganisation(page, organisationSlug);
 
 		if (!organisation) {
-			await open(page, "/en/app");
+			await open(page, "/app");
 			throw new Error(`"${organisationSlug}" is not listed for this user yet.`);
 		}
 
@@ -186,7 +187,7 @@ export const enterApp = async (
 		});
 
 		if (!(await organisationName.isVisible())) {
-			await open(page, "/en/app");
+			await open(page, "/app");
 		}
 
 		await expect(organisationName).toBeVisible({

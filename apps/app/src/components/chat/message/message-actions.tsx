@@ -9,7 +9,9 @@ import {
 } from "@/components/ai-elements/message";
 import { MessageRate } from "@/components/chat/message/message-rate";
 import type { ChatAgentUIMessage } from "@/lib/ai/types/chat-agent-message";
+import { reasonMessageOf } from "@/lib/errors/describe-error";
 import { cn } from "@/lib/utils";
+import { m } from "@/paraglide/messages";
 
 export const MessageActions = ({
 	message,
@@ -29,11 +31,11 @@ export const MessageActions = ({
 		const textContent =
 			message.parts?.find((part) => part.type === "text")?.text ?? "";
 		toast.promise(copy(textContent), {
-			loading: "Copying to clipboard...",
-			success: "Copied to clipboard!",
+			loading: m.chat_message_copy_toast_loading(),
+			success: m.chat_message_copy_toast_success(),
 			error: (error) => ({
-				message: "Failed to copy to clipboard",
-				description: error.message,
+				message: m.chat_message_copy_toast_error(),
+				description: reasonMessageOf(error),
 			}),
 		});
 	};
@@ -42,11 +44,19 @@ export const MessageActions = ({
 		return (
 			<Actions className={cn("mt-2", className)}>
 				{onEdit && (
-					<Action label="Edit" tooltip="Edit message" onClick={onEdit}>
+					<Action
+						label={m.common_edit_button()}
+						tooltip={m.chat_message_edit_tooltip()}
+						onClick={onEdit}
+					>
 						<PencilIcon className="size-3" />
 					</Action>
 				)}
-				<Action label="Copy" tooltip="Copy message" onClick={handleCopy}>
+				<Action
+					label={m.chat_message_copy_label()}
+					tooltip={m.chat_message_copy_tooltip()}
+					onClick={handleCopy}
+				>
 					<CopyIcon className="size-3" />
 				</Action>
 			</Actions>
@@ -55,7 +65,11 @@ export const MessageActions = ({
 
 	return (
 		<Actions className={cn("mt-2", className)}>
-			<Action label="Copy" tooltip="Copy response" onClick={handleCopy}>
+			<Action
+				label={m.chat_message_copy_label()}
+				tooltip={m.chat_message_copy_response_tooltip()}
+				onClick={handleCopy}
+			>
 				<CopyIcon className="size-3" />
 			</Action>
 			<MessageRate chatId={chatId} messageId={message.id} />

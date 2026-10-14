@@ -7,6 +7,7 @@ import {
 	TooltipTrigger,
 } from "@/components/ui/tooltip";
 import { cn } from "@/lib/utils";
+import { m } from "@/paraglide/messages";
 import { useToolbar } from "./toolbar-provider";
 
 const BoldToolbar = ({
@@ -41,7 +42,7 @@ const BoldToolbar = ({
 				}
 			/>
 			<TooltipContent>
-				<span>Bold</span>
+				<span>{m.editor_toolbar_bold_tooltip()}</span>
 				<span className="ml-1 text-gray-11 text-xs">(cmd + b)</span>
 			</TooltipContent>
 		</Tooltip>

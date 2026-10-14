@@ -30,6 +30,7 @@ import {
 	PageTitle,
 } from "@/components/ui/shell/page";
 import { orpc } from "@/lib/orpc/orpc";
+import { m } from "@/paraglide/messages";
 
 export const Route = createFileRoute("/app/models/$modelId/")({
 	component: RouteComponent,
@@ -88,12 +89,15 @@ function RouteComponent() {
 						) : (
 							<BadgeCheck className="size-3" />
 						)}
-						{model.isDeprecated ? "Deprecated" : "Active"}
+						{model.isDeprecated
+							? m.common_status_deprecated_label()
+							: m.common_status_active_label()}
 					</Badge>
 					<Badge variant="outline">
 						<SparklesIcon className="size-3" />
-						{capabilityLabels.length} capability
-						{capabilityLabels.length === 1 ? "" : "ies"}
+						{m.models_detail_capability_count_badge({
+							count: capabilityLabels.length,
+						})}
 					</Badge>
 					<Badge variant="outline">
 						<ServerIcon className="size-3" />
@@ -111,7 +115,7 @@ function RouteComponent() {
 						})}
 					>
 						<EditIcon />
-						Edit model
+						{m.models_detail_edit_button()}
 					</Link>
 					<Link
 						to="/app/providers/$providerId"
@@ -123,7 +127,7 @@ function RouteComponent() {
 						})}
 					>
 						<LinkIcon />
-						View provider
+						{m.models_detail_view_provider_button()}
 					</Link>
 				</PageAction>
 			</PageHeader>
@@ -131,16 +135,16 @@ function RouteComponent() {
 				<div className="space-y-6 lg:col-span-2">
 					<Card>
 						<CardHeader>
-							<CardTitle>Model details</CardTitle>
+							<CardTitle>{m.models_detail_details_title()}</CardTitle>
 							<CardDescription>
-								Core metadata used for routing and model selection.
+								{m.models_detail_details_description()}
 							</CardDescription>
 						</CardHeader>
 						<CardContent className="space-y-4">
 							<div className="flex items-start justify-between gap-4">
 								<div className="flex items-center gap-2 text-muted-foreground text-sm">
 									<TagIcon className="h-4 w-4" />
-									Provider model ID
+									{m.models_form_provider_model_id_label()}
 								</div>
 								<code className="rounded border bg-muted/40 px-2 py-1 font-mono text-xs">
 									{model.providerModelId}
@@ -150,7 +154,7 @@ function RouteComponent() {
 							<div className="flex items-start justify-between gap-4">
 								<div className="flex items-center gap-2 text-muted-foreground text-sm">
 									<LinkIcon className="h-4 w-4" />
-									Provider ID
+									{m.models_detail_provider_id_label()}
 								</div>
 								<code className="rounded border bg-muted/40 px-2 py-1 font-mono text-xs">
 									{model.providerId}
@@ -160,7 +164,7 @@ function RouteComponent() {
 							<div className="flex items-start justify-between gap-4">
 								<div className="flex items-center gap-2 text-muted-foreground text-sm">
 									<ServerIcon className="h-4 w-4" />
-									Provider compatibility
+									{m.models_detail_provider_compatibility_label()}
 								</div>
 								<span className="font-medium">{compatibilityLabel}</span>
 							</div>
@@ -169,15 +173,15 @@ function RouteComponent() {
 
 					<Card>
 						<CardHeader>
-							<CardTitle>Capabilities</CardTitle>
+							<CardTitle>{m.common_capabilities_title()}</CardTitle>
 							<CardDescription>
-								Enabled capabilities for this model configuration.
+								{m.models_detail_capabilities_description()}
 							</CardDescription>
 						</CardHeader>
 						<CardContent>
 							{capabilityLabels.length === 0 ? (
 								<p className="text-muted-foreground text-sm">
-									No capabilities configured.
+									{m.models_detail_no_capabilities_label()}
 								</p>
 							) : (
 								<div className="flex flex-wrap gap-2">
@@ -193,9 +197,11 @@ function RouteComponent() {
 
 					<Card>
 						<CardHeader>
-							<CardTitle>Provider connection</CardTitle>
+							<CardTitle>
+								{m.models_detail_provider_connection_title()}
+							</CardTitle>
 							<CardDescription>
-								The provider endpoint and status backing this model.
+								{m.models_detail_provider_connection_description()}
 							</CardDescription>
 						</CardHeader>
 						<CardContent className="space-y-4">
@@ -212,7 +218,9 @@ function RouteComponent() {
 									) : (
 										<BadgeX className="h-3 w-3" />
 									)}
-									{provider.enabled ? "Enabled" : "Disabled"}
+									{provider.enabled
+										? m.common_status_enabled_label()
+										: m.common_status_disabled_label()}
 								</Badge>
 							</div>
 							<Separator />
@@ -226,7 +234,7 @@ function RouteComponent() {
 								})}
 							>
 								<EditIcon />
-								Edit provider
+								{m.providers_detail_edit_button()}
 							</Link>
 						</CardContent>
 					</Card>

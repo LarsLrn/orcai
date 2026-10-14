@@ -1,9 +1,8 @@
 import { formatAssetTitle } from "@/components/chat/message/asset-title";
 import type { ListKnowledgeBaseDocumentsToolPart } from "@/lib/ai/types/tools";
+import { m } from "@/paraglide/messages";
 import { SourcePassageList, spansMultipleBlocks } from "../source-passage";
 import { ToolEntry } from "../tool-entry";
-
-const count = (n: number) => `${n} available ${n === 1 ? "source" : "sources"}`;
 
 export const ListKnowledgeBaseDocuments = ({
 	part,
@@ -23,8 +22,10 @@ export const ListKnowledgeBaseDocuments = ({
 			running={running}
 			label={
 				documents.length > 0
-					? `Listed ${count(documents.length)}`
-					: "Listed the available sources"
+					? m.chat_work_log_tool_list_documents_result({
+							count: documents.length,
+						})
+					: m.chat_work_log_tool_list_documents_name()
 			}
 		>
 			{documents.length > 0 && (
@@ -35,7 +36,8 @@ export const ListKnowledgeBaseDocuments = ({
 							className="flex items-center gap-2 rounded-lg border border-border bg-background px-3 py-1.5 shadow-xs"
 						>
 							<span className="min-w-0 flex-1 truncate font-medium text-sm">
-								{formatAssetTitle(document.title)}
+								{formatAssetTitle(document.title) ??
+									m.chat_source_fallback_title()}
 							</span>
 							{showBlockName && (
 								<span className="hidden max-w-[40%] shrink-0 truncate text-muted-foreground text-xs sm:inline">

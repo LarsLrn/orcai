@@ -14,6 +14,7 @@ import {
 import { Spinner } from "@/components/ui/spinner";
 import { orpc } from "@/lib/orpc/orpc";
 import { cn } from "@/lib/utils";
+import { m } from "@/paraglide/messages";
 
 const ChatSidebarMenu = () => {
 	const { closeMobileForNavigation } = useSidebar();
@@ -37,7 +38,7 @@ const ChatSidebarMenu = () => {
 	if (status === "error") {
 		return (
 			<SimplePlaceholder Icon={MessagesSquareIcon} variant="muted">
-				<span className="block">Your chats could not be loaded</span>
+				<span className="block">{m.sidebar_chats_error_title()}</span>
 				<Button
 					variant="outline"
 					size="sm"
@@ -45,7 +46,7 @@ const ChatSidebarMenu = () => {
 					disabled={isRefetching}
 					onClick={() => refetch()}
 				>
-					Try again
+					{m.sidebar_chats_error_retry_button()}
 				</Button>
 			</SimplePlaceholder>
 		);
@@ -56,7 +57,7 @@ const ChatSidebarMenu = () => {
 	if (!chats || chats.length === 0) {
 		return (
 			<SimplePlaceholder Icon={MessagesSquareIcon} variant="muted">
-				Your chats will appear here
+				{m.sidebar_chats_empty_state_title()}
 			</SimplePlaceholder>
 		);
 	}
@@ -87,7 +88,11 @@ const ChatSidebarMenu = () => {
 							)}
 						>
 							<MoreHorizontalIcon />
-							<span className="sr-only">Chat actions for {chat.title}</span>
+							<span className="sr-only">
+								{m.sidebar_chat_actions_aria_label({
+									title: chat.title ?? "",
+								})}
+							</span>
 						</SidebarMenuAction>
 					</ChatActionsDropdown>
 				</SidebarMenuItem>

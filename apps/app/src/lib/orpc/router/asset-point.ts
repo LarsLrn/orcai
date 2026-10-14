@@ -259,6 +259,7 @@ export const searchRepositoryAssetPoint = authed.assetPoint.searchRepository
 		if (repository?.type !== "database" || repository.status !== "ready") {
 			return yield* Effect.fail(
 				new AppErrors.NotFoundError({
+					reason: "REPOSITORY_NOT_FOUND",
 					message: "Repository not found",
 				}),
 			);

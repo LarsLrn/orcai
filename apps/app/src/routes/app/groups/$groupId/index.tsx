@@ -11,6 +11,7 @@ import {
 	PageTitle,
 } from "@/components/ui/shell/page";
 import { orpc } from "@/lib/orpc/orpc";
+import { m } from "@/paraglide/messages";
 
 export const Route = createFileRoute("/app/groups/$groupId/")({
 	component: RouteComponent,
@@ -31,7 +32,7 @@ function RouteComponent() {
 		return (
 			<Page>
 				<PageContent className="py-10 text-center text-muted-foreground">
-					Loading group...
+					{m.groups_detail_loading()}
 				</PageContent>
 			</Page>
 		);
@@ -46,7 +47,7 @@ function RouteComponent() {
 				<PageTitle>{groupData.name}</PageTitle>
 				<PageAction>
 					<Badge variant={isSystemGroup ? "outline" : "secondary"}>
-						{isSystemGroup ? "System" : "Custom"}
+						{isSystemGroup ? m.groups_kind_system() : m.groups_kind_custom()}
 					</Badge>
 				</PageAction>
 			</PageHeader>

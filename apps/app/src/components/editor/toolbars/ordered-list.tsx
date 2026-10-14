@@ -7,6 +7,7 @@ import {
 	TooltipTrigger,
 } from "@/components/ui/tooltip";
 import { cn } from "@/lib/utils";
+import { m } from "@/paraglide/messages";
 import { useToolbar } from "./toolbar-provider";
 
 const OrderedListToolbar = ({
@@ -41,7 +42,7 @@ const OrderedListToolbar = ({
 				}
 			/>
 			<TooltipContent>
-				<span>Ordered list</span>
+				<span>{m.editor_toolbar_ordered_list_tooltip()}</span>
 			</TooltipContent>
 		</Tooltip>
 	);

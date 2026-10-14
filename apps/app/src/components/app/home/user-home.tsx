@@ -24,6 +24,7 @@ import {
 	SectionHeader,
 	SectionTitle,
 } from "@/components/ui/shell/section";
+import { m } from "@/paraglide/messages";
 
 const QuickChatSection = () => {
 	const navigate = useNavigate();
@@ -56,9 +57,9 @@ const QuickChatSection = () => {
 	return (
 		<Section>
 			<SectionHeader>
-				<SectionTitle>Ask a question</SectionTitle>
+				<SectionTitle>{m.home_ask_section_title()}</SectionTitle>
 				<SectionDescription>
-					Pick a bot to answer from its sources, or ask the model directly.
+					{m.home_ask_section_description()}
 				</SectionDescription>
 				<SectionAction>
 					<Link
@@ -70,7 +71,7 @@ const QuickChatSection = () => {
 						})}
 					>
 						<BotIcon />
-						Browse bots
+						{m.home_ask_browse_bots_action()}
 					</Link>
 				</SectionAction>
 			</SectionHeader>
@@ -108,8 +109,10 @@ const UserHome = () => {
 
 			<Section>
 				<SectionHeader>
-					<SectionTitle>Recent chats</SectionTitle>
-					<SectionDescription>Pick up where you left off.</SectionDescription>
+					<SectionTitle>{m.home_chats_section_title()}</SectionTitle>
+					<SectionDescription>
+						{m.home_chats_section_description()}
+					</SectionDescription>
 					<SectionAction>
 						<Link
 							to={"/app/chat"}
@@ -118,11 +121,11 @@ const UserHome = () => {
 								size: "sm",
 							})}
 						>
-							Show all
+							{m.common_show_all_action()}
 						</Link>
 						<Link
 							to="/app/chat/setup"
-							aria-label="Start a new chat"
+							aria-label={m.home_chats_new_chat_aria_label()}
 							className={buttonVariants({
 								size: "icon-sm",
 								variant: "outline",

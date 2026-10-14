@@ -8,13 +8,14 @@ import {
 	PageTitle,
 } from "@/components/ui/shell/page";
 import { orpc } from "@/lib/orpc/orpc";
+import { m } from "@/paraglide/messages";
 
 export const Route = createFileRoute("/app/orgs/$orgId/edit")({
 	component: RouteComponent,
 	head: () => ({
 		meta: [
 			{
-				title: "Edit",
+				title: m.orgs_edit_meta_title(),
 			},
 		],
 	}),
@@ -33,7 +34,7 @@ function RouteComponent() {
 	return (
 		<Page>
 			<PageHeader>
-				<PageTitle>Edit Organisation</PageTitle>
+				<PageTitle>{m.orgs_edit_page_title()}</PageTitle>
 			</PageHeader>
 			<PageContent>
 				<OrganizationForm action="update" organization={organization.data} />

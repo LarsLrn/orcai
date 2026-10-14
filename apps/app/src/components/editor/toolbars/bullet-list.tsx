@@ -7,6 +7,7 @@ import {
 	TooltipTrigger,
 } from "@/components/ui/tooltip";
 import { cn } from "@/lib/utils";
+import { m } from "@/paraglide/messages";
 import { useToolbar } from "./toolbar-provider";
 
 const BulletListToolbar = ({
@@ -42,7 +43,7 @@ const BulletListToolbar = ({
 				}
 			/>
 			<TooltipContent>
-				<span>Bullet list</span>
+				<span>{m.editor_toolbar_bullet_list_tooltip()}</span>
 			</TooltipContent>
 		</Tooltip>
 	);

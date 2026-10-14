@@ -1,12 +1,11 @@
 import type { GetKnowledgeBaseChunksToolPart } from "@/lib/ai/types/tools";
+import { m } from "@/paraglide/messages";
 import {
 	SourcePassage,
 	SourcePassageList,
 	spansMultipleBlocks,
 } from "../source-passage";
 import { ToolEntry } from "../tool-entry";
-
-const count = (n: number) => `${n} ${n === 1 ? "passage" : "passages"}`;
 
 export const GetKnowledgeBaseChunks = ({
 	part,
@@ -25,7 +24,11 @@ export const GetKnowledgeBaseChunks = ({
 			part={part}
 			running={running}
 			label={
-				chunks.length > 0 ? `Read ${count(chunks.length)}` : "Read the passages"
+				chunks.length > 0
+					? m.chat_work_log_tool_get_chunks_result({
+							count: chunks.length,
+						})
+					: m.chat_work_log_tool_get_chunks_name()
 			}
 		>
 			{chunks.length > 0 && (

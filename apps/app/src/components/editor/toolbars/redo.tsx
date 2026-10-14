@@ -7,6 +7,7 @@ import {
 	TooltipTrigger,
 } from "@/components/ui/tooltip";
 import { cn } from "@/lib/utils";
+import { m } from "@/paraglide/messages";
 import { useToolbar } from "./toolbar-provider";
 
 const RedoToolbar = ({
@@ -38,7 +39,7 @@ const RedoToolbar = ({
 				}
 			/>
 			<TooltipContent>
-				<span>Redo</span>
+				<span>{m.editor_toolbar_redo_tooltip()}</span>
 			</TooltipContent>
 		</Tooltip>
 	);

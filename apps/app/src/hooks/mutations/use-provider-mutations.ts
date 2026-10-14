@@ -3,18 +3,10 @@ import { useRouter } from "@tanstack/react-router";
 import { useMutationAction } from "@/hooks/actions/use-mutation-action";
 import {
 	type DestructiveTarget,
-	describeAction,
-	describeFailure,
-	describeOutcome,
-	describeProgress,
-	describeTarget,
-} from "@/hooks/mutations/destructive-copy";
+	singleTargetName,
+} from "@/hooks/mutations/destructive-target";
 import { orpc } from "@/lib/orpc/orpc";
-
-const PROVIDER_NOUNS = {
-	noun: "provider",
-	nounPlural: "providers",
-};
+import { m } from "@/paraglide/messages";
 
 export const useCreateProviderMutation = (
 	opts: ReturnType<typeof orpc.provider.create.mutationOptions> = {},
@@ -49,9 +41,9 @@ export const useCreateProviderMutation = (
 				},
 			}),
 		messages: {
-			loading: "Creating provider...",
-			success: "Provider created successfully",
-			error: "Failed to create provider",
+			loading: m.providers_create_toast_loading(),
+			success: m.providers_create_toast_success(),
+			error: m.providers_create_toast_error(),
 		},
 	});
 };
@@ -84,9 +76,9 @@ export const useUpdateProviderMutation = (
 				},
 			}),
 		messages: {
-			loading: "Updating provider...",
-			success: "Provider updated successfully",
-			error: "Failed to update provider",
+			loading: m.providers_update_toast_loading(),
+			success: m.providers_update_toast_success(),
+			error: m.providers_update_toast_error(),
 		},
 	});
 };
@@ -118,23 +110,37 @@ export const useDeleteProvidersMutation = (
 			}),
 		messages: {
 			loading: ({ input }) =>
-				describeProgress("Deleting", input.refs.length, PROVIDER_NOUNS, target),
+				m.providers_delete_toast_loading({
+					count: input.refs.length,
+				}),
 			success: ({ input }) =>
-				describeOutcome(input.refs.length, PROVIDER_NOUNS, "deleted", target),
+				m.providers_delete_toast_success({
+					count: input.refs.length,
+				}),
 			error: ({ input }) =>
-				describeFailure(input.refs.length, PROVIDER_NOUNS, "deleted", target),
+				m.providers_delete_toast_error({
+					count: input.refs.length,
+				}),
 		},
 		confirm: (input) => {
 			const count = input.refs.length;
+			const name = singleTargetName(count, target);
 
 			return {
-				title: `Delete ${describeTarget(count, PROVIDER_NOUNS, target)}?`,
-				description:
-					count === 1
-						? "Its models and quota pools are deleted with it."
-						: "Their models and quota pools are deleted with them.",
-				confirmText: describeAction("Delete", count, PROVIDER_NOUNS, target),
-				cancelText: "Cancel",
+				title: name
+					? m.providers_delete_confirm_title_named({
+							name,
+						})
+					: m.providers_delete_confirm_title({
+							count,
+						}),
+				description: m.providers_delete_confirm_description({
+					count,
+				}),
+				confirmText: m.providers_delete_confirm_button({
+					count,
+				}),
+				cancelText: m.common_cancel_button(),
 			};
 		},
 	});

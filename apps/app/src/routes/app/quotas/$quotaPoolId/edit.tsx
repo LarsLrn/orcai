@@ -8,13 +8,14 @@ import {
 	PageTitle,
 } from "@/components/ui/shell/page";
 import { orpc } from "@/lib/orpc/orpc";
+import { m } from "@/paraglide/messages";
 
 export const Route = createFileRoute("/app/quotas/$quotaPoolId/edit")({
 	component: RouteComponent,
 	head: () => ({
 		meta: [
 			{
-				title: "Edit",
+				title: m.common_edit_button(),
 			},
 		],
 	}),
@@ -33,7 +34,7 @@ function RouteComponent() {
 	return (
 		<Page>
 			<PageHeader>
-				<PageTitle>Edit quota pool</PageTitle>
+				<PageTitle>{m.quotas_edit_page_title()}</PageTitle>
 			</PageHeader>
 			<PageContent>
 				<QuotaPoolForm action="update" pool={data.data} />

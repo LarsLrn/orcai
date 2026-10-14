@@ -10,7 +10,8 @@ import {
 	DialogTitle,
 } from "@/components/ui/dialog";
 import { ScrollArea } from "@/components/ui/scroll-area";
-import { RESOURCES } from "@/settings/display-config";
+import { m } from "@/paraglide/messages";
+import { getResourceTypeLabel } from "@/settings/display-config";
 
 type AccessDialogProps = {
 	open: boolean;
@@ -25,15 +26,22 @@ const AccessDialog = ({
 	resourceRef,
 	resourceName,
 }: AccessDialogProps) => {
+	const resource = getResourceTypeLabel(resourceRef.type);
+
 	return (
 		<Dialog open={open} onOpenChange={onOpenChange}>
 			<DialogContent className="flex max-h-[92vh] flex-col sm:max-w-5xl">
 				<DialogHeader>
-					<DialogTitle>Manage Access</DialogTitle>
+					<DialogTitle>{m.access_dialog_title()}</DialogTitle>
 					<DialogDescription>
-						Configure visibility, groups, and direct grants for this{" "}
-						{RESOURCES.find((r) => r.value === resourceRef.type)?.label}
-						{resourceName ? `: ${resourceName}` : ""}.
+						{resourceName
+							? m.access_dialog_description_named({
+									resource,
+									name: resourceName,
+								})
+							: m.access_dialog_description({
+									resource,
+								})}
 					</DialogDescription>
 				</DialogHeader>
 
@@ -46,7 +54,7 @@ const AccessDialog = ({
 
 				<DialogFooter>
 					<Button variant="outline" onClick={() => onOpenChange(false)}>
-						Close
+						{m.common_close_button()}
 					</Button>
 				</DialogFooter>
 			</DialogContent>

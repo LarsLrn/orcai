@@ -10,65 +10,73 @@ import {
 } from "@orcai/s3/client";
 import { useMutation } from "@tanstack/react-query";
 import { useCallback, useMemo, useState } from "react";
+import {
+	describeError,
+	errorReasonOf,
+	reasonMessageOf,
+} from "@/lib/errors/describe-error";
 import { orpc } from "@/lib/orpc/orpc";
+import { m } from "@/paraglide/messages";
 
-const CLIENT_UPLOAD_ERROR_TYPES = [
-	"unknown",
-	"invalid_request",
-	"no_files",
-	"s3_upload",
-	"file_too_large",
-	"invalid_file_type",
-	"rejected",
-	"too_many_files",
-] as const satisfies ClientUploadError["type"][];
+const createNoFilesError = () =>
+	({
+		type: "no_files",
+		message: m.assets_upload_no_files_error(),
+	}) as const;
 
-const isClientUploadErrorType = (
-	type: unknown,
-): type is ClientUploadError["type"] =>
-	typeof type === "string" &&
-	CLIENT_UPLOAD_ERROR_TYPES.includes(type as ClientUploadError["type"]);
+const uploadErrorTypeOf = (error: unknown): ClientUploadError["type"] => {
+	switch (errorReasonOf(error)?.reason) {
+		case undefined:
+			return "unknown";
+		case "UPLOAD_TOO_MANY_FILES":
+			return "too_many_files";
+		case "UPLOAD_FILE_TOO_LARGE":
+			return "file_too_large";
+		case "UPLOAD_FILE_TYPE_INVALID":
+			return "invalid_file_type";
+		default:
+			return "invalid_request";
+	}
+};
 
 const toClientUploadError = (error: unknown): ClientUploadError => {
 	if (error instanceof ClientUploadErrorClass) {
-		return {
-			type: error.type,
-			message: error.message,
-		};
-	}
-
-	if (error instanceof Error) {
-		const maybeErrorData = (
-			error as Error & {
-				data?: unknown;
-			}
-		).data as
-			| {
-					type?: unknown;
-					message?: unknown;
-			  }
-			| undefined;
-
-		if (maybeErrorData && isClientUploadErrorType(maybeErrorData.type)) {
-			return {
-				type: maybeErrorData.type,
-				message:
-					typeof maybeErrorData.message === "string"
-						? maybeErrorData.message
-						: error.message,
-			};
+		if (error.type === "no_files") {
+			return createNoFilesError();
 		}
 
+		console.error(error);
+
 		return {
-			type: "unknown",
-			message: error.message,
+			type: error.type,
+			message: m.assets_upload_unknown_error(),
 		};
 	}
 
 	return {
-		type: "unknown",
-		message: "The files were not uploaded. Try again.",
+		type: uploadErrorTypeOf(error),
+		message: describeError(error),
 	};
+};
+
+const translateFileError = (
+	file: FileUploadInfo<UploadStatus>,
+): FileUploadInfo<UploadStatus> => {
+	if (file.status !== "failed") {
+		return file;
+	}
+
+	const { error } = file as FileUploadInfo<"failed">;
+
+	return {
+		...file,
+		error: {
+			...error,
+			message:
+				reasonMessageOf(error.cause) ??
+				m.assets_upload_progress_file_error_label(),
+		},
+	} as FileUploadInfo<"failed">;
 };
 
 const toStringMetadata = (metadata?: ServerMetadata) =>
@@ -82,11 +90,6 @@ const toStringMetadata = (metadata?: ServerMetadata) =>
 					]),
 			)
 		: undefined;
-
-const noFilesError = {
-	type: "no_files",
-	message: "No files to upload.",
-} as const;
 
 export function useUploadFiles({
 	route = "asset",
@@ -203,6 +206,7 @@ export function useUploadFiles({
 			const fileArray = Array.from(files);
 
 			if (fileArray.length === 0) {
+				const noFilesError = createNoFilesError();
 				onError?.(noFilesError);
 				setError(noFilesError);
 				throw new ClientUploadErrorClass(noFilesError);
@@ -218,6 +222,7 @@ export function useUploadFiles({
 
 					if (Array.isArray(callbackResult)) {
 						if (callbackResult.length === 0) {
+							const noFilesError = createNoFilesError();
 							onError?.(noFilesError);
 							setError(noFilesError);
 							throw new ClientUploadErrorClass(noFilesError);
@@ -261,7 +266,8 @@ export function useUploadFiles({
 							uploadId: data.uploadId,
 							file: data.file,
 						}),
-					onFileStateChange: ({ file }) => {
+					onFileStateChange: ({ file: rawFile }) => {
+						const file = translateFileError(rawFile);
 						setUploads((prev) => new Map(prev).set(file.objectKey, file));
 
 						if (file.status === "uploading") {

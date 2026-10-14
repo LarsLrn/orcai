@@ -8,6 +8,7 @@ import {
 	CardHeader,
 	CardTitle,
 } from "@/components/ui/card";
+import { m } from "@/paraglide/messages";
 
 const NextStepCard = ({
 	step,
@@ -24,7 +25,10 @@ const NextStepCard = ({
 					{step.icon} {step.title}
 				</CardTitle>
 				<CardDescription>
-					{currentStep + 1} of {totalSteps}
+					{m.next_step_card_progress({
+						current: currentStep + 1,
+						total: totalSteps,
+					})}
 				</CardDescription>
 			</CardHeader>
 
@@ -32,23 +36,23 @@ const NextStepCard = ({
 			<CardFooter className="flex justify-between gap-2">
 				{step.showSkip && currentStep + 1 !== totalSteps && (
 					<Button size="sm" variant="ghost" onClick={skipTour}>
-						Skip
+						{m.next_step_card_skip_button()}
 					</Button>
 				)}
 				<div className="flex w-full justify-end gap-2">
 					{currentStep !== 0 && (
 						<Button size="sm" variant="outline" onClick={prevStep}>
-							Previous
+							{m.next_step_card_previous_button()}
 						</Button>
 					)}
 					{currentStep + 1 < totalSteps && (
 						<Button size="sm" onClick={nextStep}>
-							Next
+							{m.common_next_button()}
 						</Button>
 					)}
 					{currentStep + 1 === totalSteps && (
 						<Button size="sm" onClick={nextStep}>
-							Finish
+							{m.next_step_card_finish_button()}
 						</Button>
 					)}
 				</div>

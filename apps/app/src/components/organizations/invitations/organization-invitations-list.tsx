@@ -6,6 +6,7 @@ import { Placeholder } from "@/components/placeholders/placeholder";
 import { Button } from "@/components/ui/button";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { orpc } from "@/lib/orpc/orpc";
+import { m } from "@/paraglide/messages";
 import { OrganizationInvitationEntry } from "./organization-invitation-entry";
 
 const PAGE_SIZE = 12;
@@ -32,17 +33,17 @@ type OrganizationInvitationsListProps = {
 const invitationTabs = [
 	{
 		status: "pending",
-		label: "Pending",
+		label: () => m.orgs_invitation_status_pending(),
 		Icon: ClipboardList,
 	},
 	{
 		status: "accepted",
-		label: "Accepted",
+		label: () => m.orgs_invitation_status_accepted(),
 		Icon: BadgeCheck,
 	},
 	{
 		status: "rejected",
-		label: "Rejected",
+		label: () => m.orgs_invitation_status_rejected(),
 		Icon: BadgeX,
 	},
 ] as const;
@@ -91,7 +92,7 @@ function InvitationPage({
 			)}
 			{(pageCount > 1 || pageIndex > 0) && (
 				<nav
-					aria-label="Invitation pagination"
+					aria-label={m.orgs_invitations_pagination_aria_label()}
 					className="flex items-center justify-center gap-4"
 				>
 					<Button
@@ -101,10 +102,13 @@ function InvitationPage({
 							startTransition(() => setPageIndex((index) => index - 1))
 						}
 					>
-						Previous
+						{m.orgs_invitations_pagination_previous_button()}
 					</Button>
 					<span className="text-muted-foreground text-sm">
-						Page {Math.min(pageIndex + 1, pageCount)} of {pageCount}
+						{m.orgs_invitations_pagination_position({
+							page: Math.min(pageIndex + 1, pageCount),
+							pageCount,
+						})}
 					</span>
 					<Button
 						variant="outline"
@@ -113,7 +117,7 @@ function InvitationPage({
 							startTransition(() => setPageIndex((index) => index + 1))
 						}
 					>
-						Next
+						{m.common_next_button()}
 					</Button>
 				</nav>
 			)}
@@ -124,8 +128,8 @@ function InvitationPage({
 export function OrganizationInvitationsList({
 	mode = "all",
 	onAccepted,
-	emptyTitle = "No invitations",
-	emptyDescription = "You don't have any organisation invitations at this time.",
+	emptyTitle = m.orgs_invitations_empty_state_title(),
+	emptyDescription = m.orgs_invitations_empty_state_description(),
 }: OrganizationInvitationsListProps) {
 	if (mode === "pending")
 		return (
@@ -146,7 +150,7 @@ export function OrganizationInvitationsList({
 						className="flex items-center gap-2"
 					>
 						<Icon className="h-4 w-4" />
-						<span>{label}</span>
+						<span>{label()}</span>
 					</TabsTrigger>
 				))}
 			</TabsList>
@@ -156,7 +160,11 @@ export function OrganizationInvitationsList({
 						status={status}
 						onAccepted={onAccepted}
 						emptyTitle={emptyTitle}
-						emptyDescription={`You don't have any ${status} invitations.`}
+						emptyDescription={m.orgs_invitations_status_empty_state_description(
+							{
+								status,
+							},
+						)}
 					/>
 				</TabsContent>
 			))}

@@ -3,13 +3,14 @@ import { useSelector } from "@tanstack/react-store";
 import { AlertTriangle } from "lucide-react";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { useFormContext } from "@/hooks/form/context";
+import { m } from "@/paraglide/messages";
 
 /**
  * A reusable component that displays all form validation errors.
  * Must be used within form.AppForm context (as a formComponent).
  */
 const FormValidationErrors = ({
-	title = "Please fix the following errors:",
+	title = m.forms_validation_errors_title(),
 	className,
 }: {
 	title?: string;
@@ -104,7 +105,9 @@ const FormValidationErrors = ({
 				</ul>
 				{totalErrors > 1 && (
 					<p className="mt-2 text-xs opacity-75">
-						Please correct {totalErrors} errors above.
+						{m.forms_validation_errors_summary({
+							count: totalErrors,
+						})}
 					</p>
 				)}
 			</AlertDescription>

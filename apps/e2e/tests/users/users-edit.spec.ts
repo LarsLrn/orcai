@@ -1,6 +1,7 @@
 import { expectDenied } from "../../fixtures/authorization";
 import { baseURL } from "../../fixtures/env";
 import { expect, test } from "../../fixtures/index";
+import { message } from "../../fixtures/messages";
 import { enterApp } from "../../fixtures/navigation";
 import { runId } from "../../fixtures/organisation";
 import {
@@ -37,7 +38,11 @@ test("users: the edit page shows what an admin may know about a user", async ({
 
 	const page = await pageAs("admin");
 	await enterApp(page, org.slug);
-	await reachPage(page, `/en/app/users/${user.id}/edit`, "Edit User");
+	await reachPage(
+		page,
+		`/app/users/${user.id}/edit`,
+		message("users_edit_page_title"),
+	);
 
 	// The breadcrumb repeats the name and the email, so both are matched
 	// exactly against the field the card renders.
@@ -54,13 +59,15 @@ test("users: the edit page shows what an admin may know about a user", async ({
 	/** Name and email are read-only; this page changes the organisation role and
 	 * ban state, while account deletion is instance-scoped. */
 	await expect(
-		page.getByText("Active", {
+		page.getByText(message("users_edit_details_status_active"), {
 			exact: true,
 		}),
 	).toBeVisible();
-	await expect(page.getByText("Not verified")).toBeVisible();
+	await expect(
+		page.getByText(message("users_verification_not_verified")),
+	).toBeVisible();
 	const accessCard = page.locator('[data-slot="card"]').filter({
-		hasText: "Effective Resource Access",
+		hasText: message("users_access_overview_title"),
 	});
 	await expect(accessCard).toBeVisible();
 	const accessRow = accessCard
@@ -74,12 +81,12 @@ test("users: the edit page shows what an admin may know about a user", async ({
 		}),
 	).toBeVisible();
 	await expect(
-		accessRow.getByText("Block", {
+		accessRow.getByText(message("users_access_overview_type_block"), {
 			exact: true,
 		}),
 	).toBeVisible();
 	await expect(
-		accessRow.getByText("Direct user", {
+		accessRow.getByText(message("users_access_overview_source_direct_user"), {
 			exact: true,
 		}),
 	).toBeVisible();
@@ -90,7 +97,7 @@ test("users: the edit page shows what an admin may know about a user", async ({
 	).toBeVisible();
 	await expect(
 		page.getByRole("button", {
-			name: "Member",
+			name: message("orgs_role_member_label"),
 			exact: true,
 		}),
 	).toBeVisible();
@@ -109,14 +116,18 @@ test("users: the edit page reports a user without resource access", async ({
 
 	const page = await pageAs("admin", org);
 	await enterApp(page, org.slug);
-	await reachPage(page, `/en/app/users/${user.id}/edit`, "Edit User");
+	await reachPage(
+		page,
+		`/app/users/${user.id}/edit`,
+		message("users_edit_page_title"),
+	);
 
 	const accessCard = page.locator('[data-slot="card"]').filter({
-		hasText: "Effective Resource Access",
+		hasText: message("users_access_overview_title"),
 	});
 	await expect(
 		accessCard.getByText(
-			"No effective resource access entries in this organisation.",
+			message("users_access_overview_empty_state_description"),
 		),
 	).toBeVisible();
 	await expect(accessCard.locator('[data-slot="card-content"] a')).toHaveCount(
@@ -135,13 +146,17 @@ test("users: an admin changes a user's organisation role", async ({
 
 	const page = await pageAs("admin");
 	await enterApp(page, org.slug);
-	await reachPage(page, `/en/app/users/${user.id}/edit`, "Edit User");
+	await reachPage(
+		page,
+		`/app/users/${user.id}/edit`,
+		message("users_edit_page_title"),
+	);
 
 	await chooseRole(page, "Member", "Manager");
 
 	await expect(
 		page.getByRole("button", {
-			name: "Manager",
+			name: message("orgs_role_manager_label"),
 			exact: true,
 		}),
 	).toBeVisible();
@@ -164,11 +179,15 @@ test("users: a manager may not hand out the admin role", async ({
 
 	const page = await pageAs("manager");
 	await enterApp(page, org.slug);
-	await reachPage(page, `/en/app/users/${user.id}/edit`, "Edit User");
+	await reachPage(
+		page,
+		`/app/users/${user.id}/edit`,
+		message("users_edit_page_title"),
+	);
 
 	await page
 		.getByRole("button", {
-			name: "Member",
+			name: message("orgs_role_member_label"),
 			exact: true,
 		})
 		.click();
@@ -215,14 +234,18 @@ test("users: an organisation admin is not offered ban or delete", async ({
 
 	const page = await pageAs("admin");
 	await enterApp(page, org.slug);
-	await reachPage(page, `/en/app/users/${user.id}/edit`, "Edit User");
+	await reachPage(
+		page,
+		`/app/users/${user.id}/edit`,
+		message("users_edit_page_title"),
+	);
 
 	// Banning and deleting an account are instance actions, so the edit page of
 	// an organisation admin offers neither. The organisation role picker, which
 	// is the organisation-scoped control, stays.
 	await expect(
 		page.getByRole("button", {
-			name: "Member",
+			name: message("orgs_role_member_label"),
 			exact: true,
 		}),
 	).toBeVisible();
@@ -239,7 +262,7 @@ test("users: an organisation admin is not offered ban or delete", async ({
 	// What it does offer is the organisation-scoped removal.
 	await expect(
 		page.getByRole("button", {
-			name: "Remove from organisation",
+			name: message("users_remove_from_organisation_action"),
 		}),
 	).toBeVisible();
 });

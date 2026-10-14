@@ -20,6 +20,7 @@ import {
 	PageTitle,
 } from "@/components/ui/shell/page";
 import { orpc } from "@/lib/orpc/orpc";
+import { m } from "@/paraglide/messages";
 
 export const Route = createFileRoute("/app/providers/")({
 	validateSearch: listProvidersInputSchema,
@@ -61,7 +62,7 @@ function RouteComponent() {
 	return (
 		<Page>
 			<PageHeader>
-				<PageTitle>Providers</PageTitle>
+				<PageTitle>{m.providers_route_page_title()}</PageTitle>
 				<PageAction>
 					<Link
 						to="/app/providers/add"
@@ -69,7 +70,7 @@ function RouteComponent() {
 							variant: "default",
 						})}
 					>
-						Add provider
+						{m.providers_index_add_button()}
 					</Link>
 				</PageAction>
 			</PageHeader>

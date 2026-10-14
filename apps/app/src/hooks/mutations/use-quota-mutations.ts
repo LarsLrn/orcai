@@ -2,6 +2,7 @@ import { useQueryClient } from "@tanstack/react-query";
 import { useRouter } from "@tanstack/react-router";
 import { useMutationAction } from "@/hooks/actions/use-mutation-action";
 import { orpc } from "@/lib/orpc/orpc";
+import { m } from "@/paraglide/messages";
 
 export const useCreateQuotaPoolMutation = (
 	opts: ReturnType<typeof orpc.quota.create.mutationOptions> = {},
@@ -36,9 +37,9 @@ export const useCreateQuotaPoolMutation = (
 				},
 			}),
 		messages: {
-			loading: "Creating quota pool...",
-			success: "Quota pool created",
-			error: "Failed to create quota pool",
+			loading: m.quotas_create_toast_loading(),
+			success: m.quotas_create_toast_success(),
+			error: m.quotas_create_toast_error(),
 		},
 	});
 };
@@ -71,9 +72,9 @@ export const useUpdateQuotaPoolMutation = (
 				},
 			}),
 		messages: {
-			loading: "Updating quota pool...",
-			success: "Quota pool updated",
-			error: "Failed to update quota pool",
+			loading: m.quotas_update_toast_loading(),
+			success: m.quotas_update_toast_success(),
+			error: m.quotas_update_toast_error(),
 		},
 	});
 };
@@ -104,16 +105,19 @@ export const useDeactivateQuotaPoolMutation = (
 				},
 			}),
 		messages: {
-			loading: "Deactivating the pool...",
-			success: "Pool deactivated",
-			error: "The pool was not deactivated. Try again.",
+			loading: m.quotas_deactivate_toast_loading(),
+			success: m.quotas_deactivate_toast_success(),
+			error: m.quotas_deactivate_toast_error(),
 		},
 		confirm: {
-			title: `Deactivate the ${poolName?.trim() || "selected"} pool?`,
-			description:
-				"New chats on that provider are refused until another active pool covers them. Usage already in flight still finalises.",
-			confirmText: "Deactivate pool",
-			cancelText: "Cancel",
+			title: poolName?.trim()
+				? m.quotas_deactivate_confirm_title_named({
+						name: poolName.trim(),
+					})
+				: m.quotas_deactivate_confirm_title(),
+			description: m.quotas_deactivate_confirm_description(),
+			confirmText: m.quotas_deactivate_confirm_button(),
+			cancelText: m.common_cancel_button(),
 		},
 	});
 };

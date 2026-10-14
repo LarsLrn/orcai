@@ -4,6 +4,7 @@ import { expect, type Page } from "@playwright/test";
 import type { ApiClient } from "../api";
 import { EMAIL_DOMAIN, type Role } from "../constants";
 import { submitForm } from "../forms";
+import { message } from "../messages";
 import { open } from "../navigation";
 import { runId } from "../organisation";
 
@@ -56,7 +57,7 @@ export const registerFromInvitation = async (
 
 	await expect(
 		page.getByRole("button", {
-			name: "Register",
+			name: message("auth_signup_form_submit_button"),
 		}),
 	).toBeVisible();
 
@@ -71,25 +72,27 @@ export const registerFromInvitation = async (
 	await submitForm(page, {
 		fill: async () => {
 			await page
-				.getByLabel("Name", {
+				.getByLabel(message("auth_signup_form_name_label"), {
 					exact: true,
 				})
 				.fill(user.name);
 			await page
-				.getByLabel("Password", {
+				.getByLabel(message("auth_signup_form_password_label"), {
 					exact: true,
 				})
 				.fill(user.password);
-			await page.getByLabel("Confirm Password").fill(user.password);
+			await page
+				.getByLabel(message("auth_signup_form_confirm_password_label"))
+				.fill(user.password);
 
 			const consent = page.getByRole("switch", {
-				name: "Privacy Consent",
+				name: message("auth_signup_form_privacy_consent_label"),
 			});
 			await consent.check();
 			await expect(consent).toBeChecked();
 		},
-		submit: "Register",
-		until: user.until ?? /\/en\/app(\/|$)/,
+		submit: message("auth_signup_form_submit_button"),
+		until: user.until ?? /\/app(\/|$)/,
 	});
 };
 

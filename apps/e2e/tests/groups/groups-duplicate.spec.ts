@@ -19,7 +19,7 @@ test("groups: the list search finds an existing group beyond page one", async ({
 		});
 	const page = await pageAs("admin");
 	await enterApp(page, org.slug);
-	await open(page, "/en/app/groups?pageSize=5");
+	await open(page, "/app/groups?pageSize=5");
 	await reachGroupRow(page, name);
 
 	// The search finds the one group, so no second one was created for the name.

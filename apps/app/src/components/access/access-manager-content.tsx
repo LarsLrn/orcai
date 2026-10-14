@@ -30,7 +30,11 @@ import {
 	useSetResourceVisibility,
 } from "@/hooks/authz/use-resource-access";
 import { toggleSelection } from "@/lib/utils/array-utils";
-import { RESOURCES, ROLES } from "@/settings/display-config";
+import { m } from "@/paraglide/messages";
+import {
+	getResourceAccessHint,
+	getResourceRoleOptions,
+} from "@/settings/display-config";
 
 const toPrincipalIdentity = (
 	principal: ResourcePrincipal,
@@ -107,9 +111,9 @@ const AccessManagerContent = ({
 			{currentVisibility === "public" && (
 				<Alert>
 					<GlobeIcon className="h-4 w-4" />
-					<AlertTitle>This resource is public</AlertTitle>
+					<AlertTitle>{m.access_manager_public_alert_title()}</AlertTitle>
 					<AlertDescription>
-						Every user of this instance can find and use it.
+						{m.access_manager_public_alert_description()}
 					</AlertDescription>
 				</Alert>
 			)}
@@ -132,19 +136,20 @@ const AccessManagerContent = ({
 
 			<Alert>
 				<AlertCircleIcon className="h-4 w-4" />
-				<AlertTitle>Groups are usually the right place to start</AlertTitle>
+				<AlertTitle>{m.access_manager_groups_hint_title()}</AlertTitle>
 				<AlertDescription>
-					Use groups for classes, cohorts, or teams whenever possible. Direct
-					grants are best for exceptions and individual collaborators.
+					{m.access_manager_groups_hint_description()}
 				</AlertDescription>
 			</Alert>
 
 			<div className="rounded-2xl border p-4">
 				<div className="flex items-center justify-between gap-3">
 					<div>
-						<p className="font-medium text-sm">Add people and groups</p>
+						<p className="font-medium text-sm">
+							{m.access_manager_add_heading()}
+						</p>
 						<p className="text-muted-foreground text-xs">
-							Give someone in this organisation access to this resource.
+							{m.access_manager_add_description()}
 						</p>
 					</div>
 					{(isMutating || isRefreshing) && (
@@ -164,10 +169,10 @@ const AccessManagerContent = ({
 				>
 					<TabsList className="grid w-full grid-cols-2">
 						<TabsTrigger value="group" disabled={isMutating}>
-							Groups
+							{m.access_manager_tab_groups()}
 						</TabsTrigger>
 						<TabsTrigger value="user" disabled={isMutating}>
-							People
+							{m.access_manager_tab_people()}
 						</TabsTrigger>
 					</TabsList>
 				</Tabs>
@@ -190,7 +195,7 @@ const AccessManagerContent = ({
 
 					<div className="space-y-2">
 						<OptionPicker
-							options={ROLES}
+							options={getResourceRoleOptions()}
 							onChange={(role) => setSelectedRole(role)}
 							value={effectiveRole}
 							disabled={isMutating || selectedHasAllMembers}
@@ -201,7 +206,7 @@ const AccessManagerContent = ({
 							onClick={handleGrant}
 						>
 							<PlusIcon />
-							Grant access
+							{m.access_manager_grant_action()}
 						</Button>
 					</div>
 				</div>
@@ -233,11 +238,12 @@ const AccessManagerContent = ({
 			/>
 
 			<div className="rounded-2xl border border-dashed p-3 text-muted-foreground text-xs">
-				{
-					RESOURCES.find((resource) => resource.value === resourceRef.type)
-						?.accessHint
-				}
-				{resourceName ? ` Current resource: ${resourceName}.` : ""}
+				{getResourceAccessHint(resourceRef.type)}
+				{resourceName
+					? ` ${m.access_manager_current_resource({
+							name: resourceName,
+						})}`
+					: ""}
 			</div>
 		</div>
 	);

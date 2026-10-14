@@ -16,6 +16,7 @@ import {
 } from "@/components/ui/shell/page";
 import { ensureEntityCapability } from "@/lib/authz/route-guards";
 import { orpc } from "@/lib/orpc/orpc";
+import { m } from "@/paraglide/messages";
 
 export const Route = createFileRoute("/app/hub/blocks/$blockId/edit")({
 	loader: async ({ context: { queryClient }, params: { blockId } }) => {
@@ -31,7 +32,7 @@ export const Route = createFileRoute("/app/hub/blocks/$blockId/edit")({
 	head: () => ({
 		meta: [
 			{
-				title: "Edit block",
+				title: m.blocks_edit_page_meta_title(),
 			},
 		],
 	}),
@@ -52,10 +53,10 @@ function RouteComponent() {
 			<PageHeader>
 				<PageTitle>
 					{isTemplateBlock(block.data)
-						? "Edit AI behaviour"
+						? m.blocks_edit_template_page_title()
 						: isDatabaseBlock(block.data)
-							? "Edit repository"
-							: "Edit image generation"}
+							? m.blocks_edit_database_page_title()
+							: m.blocks_edit_image_generation_page_title()}
 				</PageTitle>
 			</PageHeader>
 			<PageContent>

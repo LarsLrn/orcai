@@ -7,6 +7,7 @@ import {
 	TooltipTrigger,
 } from "@/components/ui/tooltip";
 import { cn } from "@/lib/utils";
+import { m } from "@/paraglide/messages";
 import { useToolbar } from "./toolbar-provider";
 
 const ItalicToolbar = ({
@@ -41,7 +42,7 @@ const ItalicToolbar = ({
 				}
 			/>
 			<TooltipContent>
-				<span>Italic</span>
+				<span>{m.editor_toolbar_italic_tooltip()}</span>
 				<span className="ml-1 text-gray-11 text-xs">(cmd + i)</span>
 			</TooltipContent>
 		</Tooltip>

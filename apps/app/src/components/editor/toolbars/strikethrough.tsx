@@ -7,6 +7,7 @@ import {
 	TooltipTrigger,
 } from "@/components/ui/tooltip";
 import { cn } from "@/lib/utils";
+import { m } from "@/paraglide/messages";
 import { useToolbar } from "./toolbar-provider";
 
 const StrikeThroughToolbar = ({
@@ -41,7 +42,7 @@ const StrikeThroughToolbar = ({
 				}
 			/>
 			<TooltipContent>
-				<span>Strikethrough</span>
+				<span>{m.editor_toolbar_strikethrough_tooltip()}</span>
 				<span className="ml-1 text-gray-11 text-xs">(cmd + shift + x)</span>
 			</TooltipContent>
 		</Tooltip>

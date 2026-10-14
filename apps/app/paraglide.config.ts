@@ -6,30 +6,8 @@ export const paraglideOptions = {
 	outputStructure: "message-modules",
 	cookieName: "PARAGLIDE_LOCALE",
 	strategy: [
-		"url",
 		"cookie",
 		"preferredLanguage",
 		"baseLocale",
-	],
-	routeStrategies: [
-		{
-			match: "/api/:path(.*)?",
-			exclude: true,
-		},
-	],
-	urlPatterns: [
-		{
-			pattern: "/:path(.*)?",
-			localized: [
-				[
-					"en",
-					"/en/:path(.*)?",
-				],
-				[
-					"de",
-					"/de/:path(.*)?",
-				],
-			],
-		},
 	],
 } satisfies CompilerOptions;

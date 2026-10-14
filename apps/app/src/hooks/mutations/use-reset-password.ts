@@ -2,6 +2,8 @@ import type { ResetPasswordSchemaType } from "@orcai/schema";
 import { useNavigate } from "@tanstack/react-router";
 import { useMutationAction } from "@/hooks/actions/use-mutation-action";
 import { authClient } from "@/lib/auth/auth-client";
+import { toAuthError } from "@/lib/errors/auth-error";
+import { m } from "@/paraglide/messages";
 
 export const useResetPassword = (token: string) => {
 	const navigate = useNavigate();
@@ -12,7 +14,7 @@ export const useResetPassword = (token: string) => {
 					newPassword: value.password,
 					token,
 				});
-				if (result.error) throw new Error(result.error.message);
+				if (result.error) throw toAuthError(result.error);
 				return result;
 			},
 			onSuccess: () =>
@@ -22,9 +24,9 @@ export const useResetPassword = (token: string) => {
 				}),
 		}),
 		messages: {
-			loading: "Resetting password...",
-			success: "Your password has been reset. You can now sign in.",
-			error: "The reset link is invalid or expired",
+			loading: m.auth_reset_password_toast_loading(),
+			success: m.auth_reset_password_toast_success(),
+			error: m.auth_reset_password_toast_error(),
 		},
 	});
 };

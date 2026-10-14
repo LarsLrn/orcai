@@ -7,6 +7,7 @@ import {
 	TooltipTrigger,
 } from "@/components/ui/tooltip";
 import { cn } from "@/lib/utils";
+import { m } from "@/paraglide/messages";
 import { useToolbar } from "./toolbar-provider";
 
 const UnderlineToolbar = ({
@@ -41,7 +42,7 @@ const UnderlineToolbar = ({
 				}
 			/>
 			<TooltipContent>
-				<span>Underline</span>
+				<span>{m.editor_toolbar_underline_tooltip()}</span>
 				<span className="ml-1 text-gray-11 text-xs">(cmd + u)</span>
 			</TooltipContent>
 		</Tooltip>

@@ -18,6 +18,7 @@ import { Badge } from "@/components/ui/badge";
 import { buttonVariants } from "@/components/ui/button";
 import { Spinner } from "@/components/ui/spinner";
 import { orpc } from "@/lib/orpc/orpc";
+import { m } from "@/paraglide/messages";
 
 const CiteCardShell = ({
 	title,
@@ -32,7 +33,11 @@ const CiteCardShell = ({
 		<h4 className="font-medium text-sm leading-snug">{title}</h4>
 		{children}
 		{page == null ? null : (
-			<p className="text-muted-foreground text-xs">Page {page}</p>
+			<p className="text-muted-foreground text-xs">
+				{m.ai_elements_cite_page_label({
+					page,
+				})}
+			</p>
 		)}
 	</div>
 );
@@ -59,7 +64,7 @@ const CiteCardContent = ({
 			<CiteCardShell title={title} page={page}>
 				<p className="flex items-center gap-2 text-muted-foreground text-xs">
 					<Spinner className="size-3" />
-					Loading the source details
+					{m.ai_elements_cite_loading_label()}
 				</p>
 			</CiteCardShell>
 		);
@@ -69,7 +74,7 @@ const CiteCardContent = ({
 		return (
 			<CiteCardShell title={title} page={page}>
 				<p className="text-muted-foreground text-xs">
-					The source details could not be loaded.
+					{m.ai_elements_cite_load_error()}
 				</p>
 			</CiteCardShell>
 		);
@@ -81,7 +86,10 @@ const CiteCardContent = ({
 	const typeLabel = sourceType ? sourceTypeLabels[sourceType] : null;
 
 	return (
-		<CiteCardShell title={formatAssetTitle(asset.title)} page={page}>
+		<CiteCardShell
+			title={formatAssetTitle(asset.title) ?? m.chat_source_fallback_title()}
+			page={page}
+		>
 			{typeLabel && <Badge variant="outline">{typeLabel}</Badge>}
 			{metadata?.author && (
 				<p className="text-muted-foreground text-xs">{metadata.author}</p>
@@ -102,7 +110,7 @@ const CiteCardContent = ({
 					assetId,
 				}}
 			>
-				Open asset
+				{m.ai_elements_cite_open_asset_action()}
 				<ExternalLinkIcon className="size-3" />
 			</Link>
 		</CiteCardShell>
@@ -135,9 +143,14 @@ export const CiteComponent = ({
 		return result.success ? result.data : undefined;
 	})();
 	const resolvedPage = parsePageNumber(page ?? pageNumber ?? page_number);
-	const assetTitle = formatAssetTitle(title);
+	const assetTitle = formatAssetTitle(title) ?? m.chat_source_fallback_title();
 	const pillLabel =
-		resolvedPage == null ? assetTitle : `${assetTitle} · p. ${resolvedPage}`;
+		resolvedPage == null
+			? assetTitle
+			: m.ai_elements_cite_pill_label_with_page({
+					title: assetTitle,
+					page: resolvedPage,
+				});
 
 	return (
 		<InlineCitation>
@@ -164,7 +177,7 @@ export const CiteComponent = ({
 					) : (
 						<CiteCardShell title={assetTitle} page={resolvedPage}>
 							<p className="text-muted-foreground text-xs">
-								This citation does not name a source in the library.
+								{m.ai_elements_cite_unknown_source()}
 							</p>
 						</CiteCardShell>
 					)}

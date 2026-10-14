@@ -11,7 +11,9 @@ import {
 } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Skeleton } from "@/components/ui/skeleton";
+import { describeError } from "@/lib/errors/describe-error";
 import { orpc } from "@/lib/orpc/orpc";
+import { m } from "@/paraglide/messages";
 
 interface BotSelectProps {
 	onBotSelect: (bot: Bot | null) => void;
@@ -50,7 +52,7 @@ const BotSelect = ({ onBotSelect, selectedBot }: BotSelectProps) => {
 			<div className="relative">
 				<SearchIcon className="absolute top-1/2 left-3 h-4 w-4 -translate-y-1/2 transform text-muted-foreground" />
 				<Input
-					placeholder="Search bots"
+					placeholder={m.bots_select_search_placeholder()}
 					onChange={(e) => setSearchQuery(e.target.value)}
 					className="pl-10"
 				/>
@@ -60,12 +62,12 @@ const BotSelect = ({ onBotSelect, selectedBot }: BotSelectProps) => {
 			<div className="flex-1 space-y-3 overflow-y-auto">
 				{status === "error" && (
 					<div className="py-8 text-center text-destructive">
-						<p>The bots could not be loaded</p>
+						<p>{m.bots_select_load_error_title()}</p>
 						{error && (
 							<p className="mt-2 text-muted-foreground text-sm">
 								{error instanceof Error
-									? error.message
-									: "Try again in a moment."}
+									? describeError(error)
+									: m.bots_select_load_error_description()}
 							</p>
 						)}
 					</div>
@@ -100,8 +102,10 @@ const BotSelect = ({ onBotSelect, selectedBot }: BotSelectProps) => {
 						{bots.data.length === 0 ? (
 							<div className="py-8 text-center text-muted-foreground">
 								{searchQuery
-									? `No bots found matching "${searchQuery}"`
-									: "No bots available"}
+									? m.bots_select_no_results({
+											query: searchQuery,
+										})
+									: m.bots_select_empty_state_title()}
 							</div>
 						) : (
 							bots.data.map((bot: Bot) => (

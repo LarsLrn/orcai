@@ -1,6 +1,7 @@
 import { useEffect, useRef, useState } from "react";
 import { Shimmer } from "@/components/ai-elements/shimmer";
 import type { ReasoningPart } from "@/components/chat/message/classify-turn";
+import { m } from "@/paraglide/messages";
 import { ClampedText } from "./clamped-text";
 
 const MS_IN_S = 1000;
@@ -33,12 +34,14 @@ export const ReasoningEntry = ({ part }: { part: ReasoningPart }) => {
 			<p className="font-medium text-sm">
 				{streaming ? (
 					<Shimmer as="span" duration={1}>
-						Thinking
+						{m.chat_work_log_thinking()}
 					</Shimmer>
 				) : duration === undefined ? (
-					"Thought for a few seconds"
+					m.chat_work_log_reasoning_duration_unknown()
 				) : (
-					`Thought for ${duration} ${duration === 1 ? "second" : "seconds"}`
+					m.chat_work_log_reasoning_duration({
+						count: duration,
+					})
 				)}
 			</p>
 			{part.text.trim() !== "" && (

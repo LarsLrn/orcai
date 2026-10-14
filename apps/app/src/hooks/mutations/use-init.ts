@@ -3,7 +3,9 @@ import { useNavigate } from "@tanstack/react-router";
 import { useMutationAction } from "@/hooks/actions/use-mutation-action";
 import { useUmami } from "@/hooks/use-umami";
 import { authClient } from "@/lib/auth/auth-client";
+import { toAuthError } from "@/lib/errors/auth-error";
 import { client } from "@/lib/orpc/orpc";
+import { m } from "@/paraglide/messages";
 
 export const useInit = () => {
 	const navigate = useNavigate();
@@ -27,9 +29,7 @@ export const useInit = () => {
 				});
 
 				if (signInResult.error) {
-					throw new Error(
-						`Initialization completed, but automatic sign-in failed: ${signInResult.error.message}. Please sign in manually.`,
-					);
+					throw toAuthError(signInResult.error);
 				}
 
 				try {
@@ -52,9 +52,9 @@ export const useInit = () => {
 			},
 		}),
 		messages: {
-			loading: "Initializing application...",
-			success: "Initialization completed successfully!",
-			error: "Initialization failed",
+			loading: m.auth_init_toast_loading(),
+			success: m.auth_init_toast_success(),
+			error: m.auth_init_toast_error(),
 		},
 	});
 };

@@ -14,6 +14,7 @@ import {
 } from "@/components/ui/composed/dialog-select";
 import { orpc } from "@/lib/orpc/orpc";
 import { cn } from "@/lib/utils";
+import { m } from "@/paraglide/messages";
 
 const BOT_PAGE_SIZE = 20;
 const NO_BOT_VALUE = "__no_bot__";
@@ -59,7 +60,8 @@ const BotSelectorButton = ({
 
 	const bots = botsResult?.data ?? [];
 	const pageCount = Math.ceil((botsResult?.rowCount ?? 0) / BOT_PAGE_SIZE);
-	const triggerLabel = selectedBotResult?.data.name ?? "No bot";
+	const triggerLabel =
+		selectedBotResult?.data.name ?? m.chat_bot_selector_no_bot_title();
 
 	return (
 		<DialogSelect
@@ -79,26 +81,26 @@ const BotSelectorButton = ({
 						: "w-full justify-between",
 					className,
 				)}
-				placeholder="Choose bot..."
+				placeholder={m.chat_bot_selector_trigger_placeholder()}
 				size={variant === "compact" ? "sm" : "default"}
 			>
 				<BotIcon className="size-3.5" />
 				<span className="truncate">{triggerLabel}</span>
 			</DialogSelectTrigger>
-			<DialogSelectContent title="Choose a bot">
+			<DialogSelectContent title={m.chat_bot_selector_dialog_title()}>
 				<DialogSelectSearch
 					value={search}
 					onValueChange={(value) => {
 						setSearch(value);
 						setPage(0);
 					}}
-					placeholder="Search bots..."
+					placeholder={m.chat_bot_selector_search_placeholder()}
 				/>
 				<DialogSelectList loading={isLoading || isFetching}>
 					<DialogSelectItem
 						value={NO_BOT_VALUE}
-						title="No bot"
-						description="Answers come from the model alone"
+						title={m.chat_bot_selector_no_bot_title()}
+						description={m.chat_bot_selector_no_bot_description()}
 						icon={<MessageSquareIcon className="size-4" />}
 					/>
 					{bots.map((bot) => (
@@ -111,7 +113,9 @@ const BotSelectorButton = ({
 						/>
 					))}
 					{!isLoading && !isFetching && bots.length === 0 && (
-						<DialogSelectEmpty>No bots found.</DialogSelectEmpty>
+						<DialogSelectEmpty>
+							{m.chat_bot_selector_empty_state()}
+						</DialogSelectEmpty>
 					)}
 				</DialogSelectList>
 				<DialogSelectPagination

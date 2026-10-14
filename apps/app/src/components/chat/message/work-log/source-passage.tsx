@@ -6,6 +6,7 @@ import {
 	PopoverTrigger,
 } from "@/components/ui/popover";
 import { formatPageRange } from "@/lib/ai/tools/rag/format-page-range";
+import { m } from "@/paraglide/messages";
 
 export interface SourcePassageProps {
 	title: string;
@@ -27,7 +28,8 @@ export const SourcePassage = ({
 	totalPages,
 	text,
 }: SourcePassageProps) => {
-	const displayTitle = formatAssetTitle(title);
+	const displayTitle =
+		formatAssetTitle(title) ?? m.chat_source_fallback_title();
 	const pageRange = formatPageRange({
 		chunkPageStart: pageStart,
 		chunkPageEnd: pageEnd,
@@ -49,7 +51,9 @@ export const SourcePassage = ({
 				</span>
 				{pageRange && (
 					<span className="shrink-0 text-muted-foreground text-xs">
-						p. {pageRange}
+						{m.chat_work_log_source_pages({
+							range: pageRange,
+						})}
 					</span>
 				)}
 				{showBlockName && (
@@ -66,8 +70,12 @@ export const SourcePassage = ({
 				<div className="space-y-1">
 					<h4 className="font-medium text-sm leading-snug">{displayTitle}</h4>
 					<p className="text-muted-foreground text-xs">
-						{blockName}
-						{pageRange ? ` · p. ${pageRange}` : ""}
+						{pageRange
+							? m.chat_work_log_source_block_and_pages({
+									block: blockName,
+									range: pageRange,
+								})
+							: blockName}
 					</p>
 				</div>
 				<Markdown className="text-sm leading-relaxed [&_h1]:text-base [&_h2]:text-base [&_h3]:text-sm [&_h4]:text-sm [&_h5]:text-sm [&_h6]:text-sm">

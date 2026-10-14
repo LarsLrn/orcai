@@ -31,6 +31,7 @@ import {
 } from "@/components/ui/shell/page";
 import { orpc } from "@/lib/orpc/orpc";
 import { formatDisplayTimestamp } from "@/lib/presentation/format-timestamp";
+import { m } from "@/paraglide/messages";
 
 export const Route = createFileRoute("/app/providers/$providerId/")({
 	component: RouteComponent,
@@ -52,13 +53,13 @@ const capabilityLabelMap = new Map(
 
 const formatTimestamp = (timestamp?: Date | string | null) => {
 	if (!timestamp) {
-		return "Not available";
+		return m.providers_detail_timestamp_not_available();
 	}
 
 	const parsedDate =
 		timestamp instanceof Date ? timestamp : new Date(timestamp);
 	return Number.isNaN(parsedDate.getTime())
-		? "Not available"
+		? m.providers_detail_timestamp_not_available()
 		: formatDisplayTimestamp(parsedDate);
 };
 
@@ -116,7 +117,9 @@ function RouteComponent() {
 						) : (
 							<BadgeX className="size-3" />
 						)}
-						{provider.enabled ? "Enabled" : "Disabled"}
+						{provider.enabled
+							? m.common_status_enabled_label()
+							: m.common_status_disabled_label()}
 					</Badge>
 					<Badge variant="outline">
 						<ServerIcon className="size-3" />
@@ -124,8 +127,9 @@ function RouteComponent() {
 					</Badge>
 					<Badge variant="outline">
 						<BotIcon className="size-3" />
-						{providerModels.length} model
-						{providerModels.length === 1 ? "" : "s"}
+						{m.providers_detail_model_count_badge({
+							count: providerModels.length,
+						})}
 					</Badge>
 				</div>
 				<PageAction>
@@ -139,7 +143,7 @@ function RouteComponent() {
 						})}
 					>
 						<EditIcon />
-						Edit provider
+						{m.providers_detail_edit_button()}
 					</Link>
 					<Link
 						to="/app/models/add"
@@ -148,7 +152,7 @@ function RouteComponent() {
 						})}
 					>
 						<PlusIcon />
-						Add model
+						{m.providers_detail_add_model_button()}
 					</Link>
 				</PageAction>
 			</PageHeader>
@@ -156,16 +160,16 @@ function RouteComponent() {
 				<div className="space-y-6 lg:col-span-2">
 					<Card>
 						<CardHeader>
-							<CardTitle>Provider overview</CardTitle>
+							<CardTitle>{m.providers_detail_overview_title()}</CardTitle>
 							<CardDescription>
-								Model coverage and endpoint summary for this provider.
+								{m.providers_detail_overview_description()}
 							</CardDescription>
 						</CardHeader>
 						<CardContent>
 							<div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
 								<div>
 									<div className="text-muted-foreground text-xs uppercase">
-										Endpoint host
+										{m.providers_detail_endpoint_host_label()}
 									</div>
 									<div className="mt-1 font-semibold text-sm">
 										{endpointHost}
@@ -173,7 +177,7 @@ function RouteComponent() {
 								</div>
 								<div>
 									<div className="text-muted-foreground text-xs uppercase">
-										Active models
+										{m.providers_detail_active_models_label()}
 									</div>
 									<div className="mt-1 font-semibold text-sm">
 										{activeModelCount}
@@ -181,7 +185,7 @@ function RouteComponent() {
 								</div>
 								<div>
 									<div className="text-muted-foreground text-xs uppercase">
-										Deprecated models
+										{m.providers_detail_deprecated_models_label()}
 									</div>
 									<div className="mt-1 font-semibold text-sm">
 										{deprecatedModelCount}
@@ -189,7 +193,7 @@ function RouteComponent() {
 								</div>
 								<div>
 									<div className="text-muted-foreground text-xs uppercase">
-										Capability coverage
+										{m.providers_detail_capability_coverage_label()}
 									</div>
 									<div className="mt-1 font-semibold text-sm">
 										{supportedCapabilities.length}
@@ -201,16 +205,16 @@ function RouteComponent() {
 
 					<Card>
 						<CardHeader>
-							<CardTitle>Provider configuration</CardTitle>
+							<CardTitle>{m.providers_detail_configuration_title()}</CardTitle>
 							<CardDescription>
-								Connection details and metadata for this provider profile.
+								{m.providers_detail_configuration_description()}
 							</CardDescription>
 						</CardHeader>
 						<CardContent className="space-y-4">
 							<div className="flex items-start justify-between gap-4">
 								<div className="flex items-center gap-2 text-muted-foreground text-sm">
 									<ServerIcon className="h-4 w-4" />
-									Compatibility
+									{m.providers_form_compatibility_label()}
 								</div>
 								<span className="font-medium">{compatibilityLabel}</span>
 							</div>
@@ -218,7 +222,7 @@ function RouteComponent() {
 							<div className="flex items-start justify-between gap-4">
 								<div className="flex items-center gap-2 text-muted-foreground text-sm">
 									<ServerIcon className="h-4 w-4" />
-									Endpoint
+									{m.providers_form_endpoint_label()}
 								</div>
 								<code className="rounded border bg-muted/40 px-2 py-1 font-mono text-xs">
 									{provider.endpoint}
@@ -229,15 +233,15 @@ function RouteComponent() {
 
 					<Card>
 						<CardHeader>
-							<CardTitle>Capabilities</CardTitle>
+							<CardTitle>{m.common_capabilities_title()}</CardTitle>
 							<CardDescription>
-								Aggregated from models connected to this provider.
+								{m.providers_detail_capabilities_description()}
 							</CardDescription>
 						</CardHeader>
 						<CardContent>
 							{supportedCapabilities.length === 0 ? (
 								<p className="text-muted-foreground text-sm">
-									No capabilities available yet.
+									{m.providers_detail_no_capabilities_label()}
 								</p>
 							) : (
 								<div className="flex flex-wrap gap-2">
@@ -254,17 +258,21 @@ function RouteComponent() {
 
 					<Card>
 						<CardHeader>
-							<CardTitle>Connected models</CardTitle>
+							<CardTitle>
+								{m.providers_detail_connected_models_title()}
+							</CardTitle>
 							<CardDescription>
-								Models currently configured to use this provider.
+								{m.providers_detail_connected_models_description()}
 							</CardDescription>
 						</CardHeader>
 						<CardContent>
 							{providerModels.length === 0 ? (
 								<div className="rounded-xl border border-border border-dashed p-6 text-center">
-									<p className="font-medium">No models connected yet</p>
+									<p className="font-medium">
+										{m.providers_detail_no_models_title()}
+									</p>
 									<p className="mt-1 text-muted-foreground text-sm">
-										Add a model to start using this provider in bots.
+										{m.providers_detail_no_models_description()}
 									</p>
 								</div>
 							) : (
@@ -289,7 +297,9 @@ function RouteComponent() {
 													) : (
 														<BadgeCheck className="h-3 w-3" />
 													)}
-													{model.isDeprecated ? "Deprecated" : "Active"}
+													{model.isDeprecated
+														? m.common_status_deprecated_label()
+														: m.common_status_active_label()}
 												</Badge>
 											</div>
 
@@ -302,7 +312,11 @@ function RouteComponent() {
 											</div>
 
 											<div className="flex items-center justify-between text-muted-foreground text-xs">
-												<span>Created {formatTimestamp(model.createdAt)}</span>
+												<span>
+													{m.providers_detail_model_created_label({
+														timestamp: formatTimestamp(model.createdAt),
+													})}
+												</span>
 												<Link
 													to="/app/models/$modelId"
 													params={{
@@ -313,7 +327,7 @@ function RouteComponent() {
 														size: "sm",
 													})}
 												>
-													View
+													{m.providers_detail_view_model_link()}
 												</Link>
 											</div>
 										</div>

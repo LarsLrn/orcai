@@ -9,6 +9,7 @@ import {
 	CardTitle,
 } from "@/components/ui/card";
 import { orpc } from "@/lib/orpc/orpc";
+import { m } from "@/paraglide/messages";
 
 export const Route = createFileRoute("/_pathlessLayout/init")({
 	loader: async ({ context: { queryClient } }) => {
@@ -33,16 +34,14 @@ function RouteComponent() {
 	return (
 		<Card className="max-w-xl">
 			<CardHeader>
-				<CardTitle>Initialize Instance</CardTitle>
-				<CardDescription>
-					Set up the first organisation and admin account for this deployment.
-				</CardDescription>
+				<CardTitle>{m.auth_init_page_title()}</CardTitle>
+				<CardDescription>{m.auth_init_page_description()}</CardDescription>
 			</CardHeader>
 			<CardContent>
 				<InitForm />
 			</CardContent>
 			<CardFooter className="text-muted-foreground text-sm">
-				This page is only available until the instance is initialized.
+				{m.auth_init_page_footer()}
 			</CardFooter>
 		</Card>
 	);

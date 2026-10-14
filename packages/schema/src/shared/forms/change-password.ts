@@ -1,4 +1,5 @@
 import { z } from "zod/v4";
+import type { ErrorReason } from "../error-reason";
 import { sharedSchemas } from "./shared";
 
 export const changePasswordSchema = z
@@ -8,7 +9,9 @@ export const changePasswordSchema = z
 		confirmPassword: sharedSchemas.password,
 	})
 	.refine((data) => data.password === data.confirmPassword, {
-		message: "Passwords must match",
+		params: {
+			reason: "PASSWORDS_MISMATCH" satisfies ErrorReason,
+		},
 		path: [
 			"confirmPassword",
 		],

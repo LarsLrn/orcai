@@ -9,6 +9,7 @@ import {
 	CardTitle,
 } from "@/components/ui/card";
 import { orpc } from "@/lib/orpc/orpc";
+import { m } from "@/paraglide/messages";
 
 export const Route = createFileRoute("/_pathlessLayout/login")({
 	loader: async ({ context: { queryClient } }) => {
@@ -33,14 +34,16 @@ function RouteComponent() {
 	return (
 		<Card className="w-full max-w-md">
 			<CardHeader>
-				<CardTitle>Login</CardTitle>
-				<CardDescription>Sign in to your account to continue.</CardDescription>
+				<CardTitle>{m.auth_login_page_title()}</CardTitle>
+				<CardDescription>{m.auth_login_page_description()}</CardDescription>
 			</CardHeader>
 			<CardContent>
 				<SignInForm />
 			</CardContent>
 			<CardFooter className="flex justify-end text-muted-foreground text-sm">
-				<Link to={"/forgot-password"}>Forgot password?</Link>
+				<Link to={"/forgot-password"}>
+					{m.auth_login_page_forgot_password_link()}
+				</Link>
 			</CardFooter>
 		</Card>
 	);

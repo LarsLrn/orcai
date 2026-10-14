@@ -5,6 +5,7 @@ import { FileIcon, LinkIcon, ShieldIcon, SquareStackIcon } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { orpc } from "@/lib/orpc/orpc";
+import { m } from "@/paraglide/messages";
 
 type UserAccessOverviewProps = {
 	userId: string;
@@ -19,15 +20,22 @@ const roleVariant: Record<
 	manager: "default",
 };
 
-const sourceLabel: Record<UserAccessEntry["source"], string> = {
-	[USER_ACCESS_SOURCE.DIRECT_USER]: "Direct user",
-	[USER_ACCESS_SOURCE.DIRECT_GROUP]: "Group",
-	[USER_ACCESS_SOURCE.DIRECT_GROUP_ALL_MEMBERS]: "All members",
-	[USER_ACCESS_SOURCE.INHERITED_ORGANIZATION]: "Inherited from organisation",
-	[USER_ACCESS_SOURCE.INHERITED_BOT]: "Inherited bot",
-	[USER_ACCESS_SOURCE.INHERITED_BLOCK]: "Inherited block",
-	[USER_ACCESS_SOURCE.PUBLIC]: "Public",
-};
+const sourceLabel = (source: UserAccessEntry["source"]) =>
+	({
+		[USER_ACCESS_SOURCE.DIRECT_USER]:
+			m.users_access_overview_source_direct_user(),
+		[USER_ACCESS_SOURCE.DIRECT_GROUP]:
+			m.users_access_overview_source_direct_group(),
+		[USER_ACCESS_SOURCE.DIRECT_GROUP_ALL_MEMBERS]:
+			m.users_access_overview_source_all_members(),
+		[USER_ACCESS_SOURCE.INHERITED_ORGANIZATION]:
+			m.users_access_overview_source_inherited_organisation(),
+		[USER_ACCESS_SOURCE.INHERITED_BOT]:
+			m.users_access_overview_source_inherited_bot(),
+		[USER_ACCESS_SOURCE.INHERITED_BLOCK]:
+			m.users_access_overview_source_inherited_block(),
+		[USER_ACCESS_SOURCE.PUBLIC]: m.users_access_overview_source_public(),
+	})[source];
 
 const ResourceLink = ({ access }: { access: UserAccessEntry }) => {
 	switch (access.resourceType) {
@@ -40,7 +48,7 @@ const ResourceLink = ({ access }: { access: UserAccessEntry }) => {
 					}}
 					className="text-primary hover:underline"
 				>
-					{access.resourceName ?? "Untitled bot"}
+					{access.resourceName ?? m.users_access_overview_untitled_bot()}
 				</Link>
 			);
 		case "block":
@@ -52,7 +60,7 @@ const ResourceLink = ({ access }: { access: UserAccessEntry }) => {
 					}}
 					className="text-primary hover:underline"
 				>
-					{access.resourceName ?? "Untitled block"}
+					{access.resourceName ?? m.users_access_overview_untitled_block()}
 				</Link>
 			);
 		case "asset":
@@ -64,7 +72,7 @@ const ResourceLink = ({ access }: { access: UserAccessEntry }) => {
 					}}
 					className="text-primary hover:underline"
 				>
-					{access.resourceName ?? "Untitled asset"}
+					{access.resourceName ?? m.users_access_overview_untitled_asset()}
 				</Link>
 			);
 		default:
@@ -82,21 +90,21 @@ const ResourceTypeLabel = ({
 			return (
 				<span className="inline-flex items-center gap-1 text-muted-foreground text-xs">
 					<ShieldIcon className="h-3 w-3" />
-					Bot
+					{m.users_access_overview_type_bot()}
 				</span>
 			);
 		case "block":
 			return (
 				<span className="inline-flex items-center gap-1 text-muted-foreground text-xs">
 					<SquareStackIcon className="h-3 w-3" />
-					Block
+					{m.users_access_overview_type_block()}
 				</span>
 			);
 		case "asset":
 			return (
 				<span className="inline-flex items-center gap-1 text-muted-foreground text-xs">
 					<FileIcon className="h-3 w-3" />
-					Asset
+					{m.users_access_overview_type_asset()}
 				</span>
 			);
 		default:
@@ -116,7 +124,7 @@ const UserAccessOverview = ({ userId }: UserAccessOverviewProps) => {
 	return (
 		<Card>
 			<CardHeader>
-				<CardTitle>Effective Resource Access</CardTitle>
+				<CardTitle>{m.users_access_overview_title()}</CardTitle>
 			</CardHeader>
 			<CardContent className="space-y-3">
 				{access.data?.data.length ? (
@@ -131,7 +139,7 @@ const UserAccessOverview = ({ userId }: UserAccessOverviewProps) => {
 									<ResourceTypeLabel type={item.resourceType} />
 									<Badge variant="outline" className="gap-1">
 										<LinkIcon className="h-2.5 w-2.5" />
-										{sourceLabel[item.source]}
+										{sourceLabel(item.source)}
 									</Badge>
 								</div>
 							</div>
@@ -142,7 +150,7 @@ const UserAccessOverview = ({ userId }: UserAccessOverviewProps) => {
 					))
 				) : (
 					<p className="text-muted-foreground text-sm">
-						No effective resource access entries in this organisation.
+						{m.users_access_overview_empty_state_description()}
 					</p>
 				)}
 			</CardContent>

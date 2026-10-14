@@ -7,6 +7,7 @@ import {
 	TooltipTrigger,
 } from "@/components/ui/tooltip";
 import { cn } from "@/lib/utils";
+import { m } from "@/paraglide/messages";
 import { useToolbar } from "./toolbar-provider";
 
 const HardBreakToolbar = ({
@@ -36,7 +37,7 @@ const HardBreakToolbar = ({
 				}
 			/>
 			<TooltipContent>
-				<span>Hard break</span>
+				<span>{m.editor_toolbar_hard_break_tooltip()}</span>
 			</TooltipContent>
 		</Tooltip>
 	);

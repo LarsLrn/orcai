@@ -16,6 +16,7 @@ import { Spinner } from "@/components/ui/spinner";
 import { orpc } from "@/lib/orpc/orpc";
 import { formatDisplayTimestamp } from "@/lib/presentation/format-timestamp";
 import { cn } from "@/lib/utils";
+import { m } from "@/paraglide/messages";
 import { ChatActionsDropdown } from "./chat-actions-dropdown";
 
 const ChatsList = ({
@@ -42,9 +43,11 @@ const ChatsList = ({
 		return (
 			<Card className="border-dashed" {...props}>
 				<CardHeader className="text-center">
-					<CardTitle className="font-semibold text-xl">No chats yet</CardTitle>
+					<CardTitle className="font-semibold text-xl">
+						{m.chat_list_empty_state_title()}
+					</CardTitle>
 					<CardDescription className="mt-4 flex flex-col items-center gap-4">
-						Ask a question above, or open a bot to chat against its sources.
+						{m.chat_list_empty_state_description()}
 					</CardDescription>
 				</CardHeader>
 				<CardFooter className="flex justify-center">
@@ -54,7 +57,7 @@ const ChatsList = ({
 							variant: "outline",
 						})}
 					>
-						Start a chat
+						{m.chat_start_action()}
 					</Link>
 				</CardFooter>
 			</Card>
@@ -86,7 +89,7 @@ const ChatsList = ({
 								onClick={(e) => e.preventDefault()}
 							>
 								<MoreHorizontalIcon className="h-4 w-4" />
-								<span className="sr-only">Open menu</span>
+								<span className="sr-only">{m.common_row_menu_trigger()}</span>
 							</Button>
 						</ChatActionsDropdown>
 
@@ -96,14 +99,16 @@ const ChatsList = ({
 							</CardTitle>
 							{chat.updatedAt && (
 								<CardDescription className="text-xs">
-									Last updated {formatDisplayTimestamp(chat.updatedAt)}
+									{m.chat_list_card_last_updated({
+										timestamp: formatDisplayTimestamp(chat.updatedAt),
+									})}
 								</CardDescription>
 							)}
 						</CardHeader>
 						<CardContent className="pt-0">
 							<div className="flex items-center text-muted-foreground text-sm">
 								<MessagesSquareIcon className="mr-2 size-4" />
-								Continue chat
+								{m.chat_list_card_continue_action()}
 							</div>
 						</CardContent>
 					</Card>

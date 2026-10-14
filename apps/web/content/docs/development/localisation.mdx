@@ -1,0 +1,111 @@
+---
+title: Localisation
+description: How interface copy is translated, how messages are named, and how tests find translated text.
+---
+
+The app is translated with [Paraglide](https://inlang.com/m/gerre34r/library-inlang-paraglideJs). Copy lives in `apps/app/messages/<locale>.json`, one file per locale, and compiles to typed message functions under `apps/app/src/paraglide`. That output is generated, not committed; `bun run ci` compiles it before the type check, and the Vite plugin does the same during `dev` and `build`.
+
+## Locale Resolution
+
+The locale is not in the URL. Paraglide resolves it from the `PARAGLIDE_LOCALE` cookie, then the browser's `Accept-Language`, then falls back to the base locale `en`. The header's language switcher sets the cookie and reloads.
+
+Locales: `en` (base, British spelling) and `de`.
+
+## Messages
+
+User-facing interface strings in `apps/app/src` belong in message functions:
+
+```tsx
+import { m } from "@/paraglide/messages";
+
+<Button>{m.common_save_button()}</Button>
+```
+
+Message functions are plain functions, so hooks, utilities, loaders, and server functions call them the same way. On the server the Paraglide middleware in `apps/app/src/server.ts` scopes the locale to the request.
+
+Keys are flat, lower snake case, and named after where the text lives, not after what it says:
+
+```
+<area>_<component or screen>_<element>[_<qualifier>]
+
+chat_composer_placeholder
+bots_card_view_action
+access_dialog_title
+```
+
+A key never encodes its English text, so rewording the copy leaves the key alone. When the surrounding component is renamed, rename the key with it. Interpolation uses `{name}` placeholders, plural and other variants use Paraglide's variant syntax in the message file, and copy with inline links or emphasis is split into separate messages around the marked-up part. Dates, numbers, and relative times go through `Intl` with the active locale from `getLocale()`.
+
+Out of scope for translation: content that users author, such as bot names, descriptions, documents, and organisation copy.
+
+## German
+
+German uses the formal "Sie". Product terms that stay English in German copy: Bot, Chat, Prompt, Dashboard, Playground, Token, Tour, Slug, Repository, Asset (das Asset, die Assets). Terms that are translated:
+
+| English | German |
+| --- | --- |
+| Library | Bibliothek |
+| Workspace | Arbeitsbereich |
+| Organisation | Organisation |
+| Group | Gruppe |
+| Member | Mitglied |
+| People | Personen |
+| User | Benutzer |
+| Account | Konto |
+| Source | Quelle |
+| Block | Block |
+| Behaviour, AI behaviour | Verhalten, KI-Verhalten |
+| Behaviour block | Verhaltensblock |
+| Instance | Instanz |
+| Invitation | Einladung |
+| Role | Rolle |
+| Admin, Manager | Admin, Manager |
+| Viewer | Betrachter |
+| Editor (role) | Bearbeiter |
+| Grant, grant access | Freigabe, Zugriff gewähren |
+| Revoke | Entziehen |
+| Access | Zugriff |
+| Public, Private | Öffentlich, Privat |
+| Draft, Ready, Published | Entwurf, Bereit, Veröffentlicht |
+| Quota, Quota pool | Kontingent, Kontingent-Pool |
+| Provider | Anbieter |
+| Model | Modell |
+| Job | Auftrag |
+| System prompt | System-Prompt |
+| Attachment | Anhang |
+| Work log | Arbeitsprotokoll |
+| Branch (of a chat) | Zweig |
+| Passage, chunk | Passage |
+| Citation | Zitat |
+| Reference | Verweis |
+| Retrieval | Abruf |
+| Metadata | Metadaten |
+| Sign in, Sign out | Anmelden, Abmelden |
+
+`bun run machine-translate` fills gaps in the non-base locales from `en.json`; review its output before committing.
+
+## Server Errors
+
+The server never sends user-facing prose. Every refused request carries a stable reason code that the client translates, so a German user never sees English from the server.
+
+- Reasons are SCREAMING_SNAKE values of the `ErrorReason` union in `packages/schema/src/shared/error-reason.ts`, for example `CHAT_NOT_FOUND` or `SYSTEM_GROUP_IMMUTABLE`. Prefer a specific reason over a generic one; a reason that needs data declares its params type there as well. User data such as a file or block name travels raw in `params`; app vocabulary in `params` is typed and translated on the client.
+- `BadRequestError`, `ConflictError` and `ForbiddenError` in `apps/app/src/lib/effect/utils/errors.ts` require a reason; `NotFoundError` and `UnauthorizedError` take one optionally, and a `NotFoundError` may name an `entity` as a fallback. The English `message` on these classes is for logs only and never reaches the client.
+- The oRPC contracts in `packages/contracts/src/base.ts` type `data.reason` and `data.params` on every defined error. `error-mapping.ts` forwards reason, params and the typed data, nothing else.
+- The client holds one `Record<ErrorReason, (params) => string>` in `apps/app/src/lib/errors/reason-messages.ts`, pointing at `error_<reason>` message keys. Adding a reason means adding it to the union, the English and German catalogues, and that map; TypeScript refuses an incomplete map. There is no dynamic key lookup.
+- `describeError` always returns a translated sentence: the reason's, or a generic one for the transport code when the reason is missing or unknown. `reasonMessageOf` returns the reason's sentence or nothing. Raw server text goes to the console only. Mutation toasts keep the hook's own error title and show the reason's sentence as the description; without a reason they show the title alone.
+- Channels outside oRPC use the same union. The AI chat stream returns a reason as its error text and the chat translates it. The Better Auth client maps the library's own `error.code` to a reason, and our server hooks throw `APIError` with a reason as the code.
+
+## Validation
+
+Zod issues are translated per issue kind, not per field. `apps/app/src/lib/errors/zod-error-map.ts` installs a global `z.config({ customError })` on the client and the server that turns `too_small`, `invalid_format` and the other built-in kinds into messages such as "Must be at least 8 characters." from the issue's structured data. Schemas in `packages/schema` therefore carry no English for built-in checks. A custom refinement passes `params: { reason }` with a reason from the same union, for example `PASSWORDS_MISMATCH`, and the error map renders it through the reason map. Never put a code in `message`.
+
+## Tests
+
+Unit tests never depend on copy. End-to-end specs locate elements by role and accessible name, and take the name from the message catalogue rather than repeating the English:
+
+```ts
+import { message } from "../../fixtures/messages";
+
+page.getByRole("button", { name: message("common_save_button") });
+```
+
+The helper reads `apps/app/messages/en.json` directly, so it needs no compile step. It resolves plain strings and `{placeholder}` interpolation; a message with variants throws, and the spec targets the rendered text another way. Test ids are for containers that have no accessible name, never for anything a message names.

@@ -95,6 +95,7 @@ export const listChatMessages = authed.chatMessage.list
 						Effect.mapError(
 							() =>
 								new AppErrors.NotFoundError({
+									reason: "CHAT_BRANCH_NOT_FOUND",
 									message: "Branch not found",
 								}),
 						),
@@ -233,6 +234,8 @@ export const findChatMessage = authed.chatMessage.find
 						Effect.mapError(
 							() =>
 								new AppErrors.NotFoundError({
+									reason: "CHAT_MESSAGE_NOT_FOUND",
+									id: input.id,
 									message: "Chat message not found",
 								}),
 						),
@@ -283,6 +286,7 @@ export const getBranchIdForMessage = authed.chatMessage.getBranch
 						Effect.mapError(
 							() =>
 								new AppErrors.NotFoundError({
+									reason: "CHAT_BRANCH_NOT_FOUND",
 									message: "No branch found context for this message",
 								}),
 						),
@@ -303,6 +307,7 @@ export const createChatMessage = authed.chatMessage.create
 		if (!input.branchId) {
 			return yield* Effect.fail(
 				new AppErrors.BadRequestError({
+					reason: "CHAT_BRANCH_REQUIRED",
 					message: "branchId is required",
 				}),
 			);
@@ -328,6 +333,7 @@ export const createChatMessage = authed.chatMessage.create
 						Effect.mapError(
 							() =>
 								new AppErrors.NotFoundError({
+									reason: "CHAT_BRANCH_NOT_FOUND",
 									message: "Branch not found",
 								}),
 						),
@@ -501,10 +507,9 @@ export const updateChatMessage = authed.chatMessage.update
 						Effect.mapError(
 							() =>
 								new AppErrors.NotFoundError({
-									message: "Chat Message not found",
-									data: {
-										id: input.id,
-									},
+									reason: "CHAT_MESSAGE_NOT_FOUND",
+									id: input.id,
+									message: "Chat message not found",
 								}),
 						),
 					),
@@ -645,6 +650,7 @@ export const rateChatMessage = authed.chatMessage.rate
 				}),
 			catch: () =>
 				new AppErrors.BadRequestError({
+					reason: "CHAT_RATING_FAILED",
 					message: "Error rating message",
 				}),
 		}).pipe(

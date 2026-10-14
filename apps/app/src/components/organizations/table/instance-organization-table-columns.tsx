@@ -13,6 +13,7 @@ import {
 	DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import { formatDisplayTimestamp } from "@/lib/presentation/format-timestamp";
+import { m } from "@/paraglide/messages";
 
 const columnHelper = createColumnHelper<
 	DataTableFeatures,
@@ -23,23 +24,32 @@ export const instanceOrganizationTableColumns = columnHelper.columns([
 	columnHelper.accessor("name", {
 		size: 400,
 		header: ({ column }) => (
-			<DataTableColumnHeader column={column} title="Name" />
+			<DataTableColumnHeader column={column} title={m.common_name_label()} />
 		),
 		cell: ({ row }) => <span className="font-medium">{row.original.name}</span>,
 	}),
 	columnHelper.accessor("slug", {
 		header: ({ column }) => (
-			<DataTableColumnHeader column={column} title="Slug" />
+			<DataTableColumnHeader
+				column={column}
+				title={m.instance_orgs_table_slug_column_header()}
+			/>
 		),
 	}),
 	columnHelper.accessor("memberCount", {
 		header: ({ column }) => (
-			<DataTableColumnHeader column={column} title="Members" />
+			<DataTableColumnHeader
+				column={column}
+				title={m.instance_orgs_table_members_column_header()}
+			/>
 		),
 	}),
 	columnHelper.accessor("createdAt", {
 		header: ({ column }) => (
-			<DataTableColumnHeader column={column} title="Created" />
+			<DataTableColumnHeader
+				column={column}
+				title={m.common_created_column_header()}
+			/>
 		),
 		cell: ({ row }) => (
 			<span>{formatDisplayTimestamp(row.original.createdAt || "")}</span>
@@ -69,7 +79,7 @@ const InstanceOrganizationRowActions = ({
 				<DropdownMenuTrigger
 					render={
 						<Button variant="ghost" className="size-8 p-0">
-							<span className="sr-only">Open menu</span>
+							<span className="sr-only">{m.common_row_menu_trigger()}</span>
 							<MoreHorizontal className="size-4" />
 						</Button>
 					}
@@ -79,7 +89,7 @@ const InstanceOrganizationRowActions = ({
 						variant="destructive"
 						onClick={() => setIsDeleteOpen(true)}
 					>
-						Delete Organisation
+						{m.instance_orgs_table_delete_menu_item()}
 					</DropdownMenuItem>
 				</DropdownMenuContent>
 			</DropdownMenu>

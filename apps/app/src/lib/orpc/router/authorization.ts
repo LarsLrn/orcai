@@ -112,6 +112,7 @@ export const organizationCapabilities =
 		if (!organizationId) {
 			return yield* Effect.fail(
 				new AppErrors.BadRequestError({
+					reason: "ACTIVE_ORGANIZATION_REQUIRED",
 					message:
 						"An active organization must be selected to check capabilities.",
 				}),

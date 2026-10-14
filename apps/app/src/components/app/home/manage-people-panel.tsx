@@ -10,7 +10,8 @@ import {
 	panelRowVariants,
 } from "@/components/ui/composed/panel";
 import { orpc } from "@/lib/orpc/orpc";
-import { formatCount } from "@/lib/presentation/format-count";
+import { formatCount } from "@/lib/presentation/format-number";
+import { m } from "@/paraglide/messages";
 
 const COUNT_INPUT = {
 	pageIndex: 0,
@@ -54,24 +55,24 @@ const ManagePeoplePanel = () => {
 		linkProps: LinkProps;
 	}> = [
 		{
-			label: "Members",
-			meta: "People who can sign in to this organisation",
+			label: m.home_people_members_label(),
+			meta: m.home_people_members_meta(),
 			count: members.data.rowCount,
 			linkProps: {
 				to: "/app/users",
 			},
 		},
 		{
-			label: "Groups",
-			meta: "How access is granted to more than one person",
+			label: m.home_people_groups_label(),
+			meta: m.home_people_groups_meta(),
 			count: groups.data.rowCount,
 			linkProps: {
 				to: "/app/groups",
 			},
 		},
 		{
-			label: "Pending invitations",
-			meta: "Sent, not yet accepted",
+			label: m.home_people_invitations_label(),
+			meta: m.home_people_invitations_meta(),
 			count: invitations.data.rowCount,
 			linkProps: {
 				to: "/app/users/invites",
@@ -82,7 +83,7 @@ const ManagePeoplePanel = () => {
 	return (
 		<Panel>
 			<PanelHeader>
-				<PanelTitle>People</PanelTitle>
+				<PanelTitle>{m.home_people_panel_title()}</PanelTitle>
 				<Link
 					to="/app/users/add"
 					className={buttonVariants({
@@ -90,7 +91,7 @@ const ManagePeoplePanel = () => {
 						size: "sm",
 					})}
 				>
-					Invite people
+					{m.home_people_panel_invite_action()}
 				</Link>
 			</PanelHeader>
 			<PanelRows>

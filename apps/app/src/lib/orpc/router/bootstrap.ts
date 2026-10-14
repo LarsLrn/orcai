@@ -91,6 +91,7 @@ export const initializeBootstrap = os.bootstrap.initialize.effect(function* ({
 				if (initialized) {
 					return yield* Effect.fail(
 						new AppErrors.BadRequestError({
+							reason: "INSTANCE_ALREADY_INITIALISED",
 							message: "Application is already initialized.",
 						}),
 					);
@@ -107,6 +108,7 @@ export const initializeBootstrap = os.bootstrap.initialize.effect(function* ({
 				if (existingUser) {
 					return yield* Effect.fail(
 						new AppErrors.BadRequestError({
+							reason: "EMAIL_ALREADY_REGISTERED",
 							message: "A user with this email already exists.",
 						}),
 					);
@@ -130,6 +132,7 @@ export const initializeBootstrap = os.bootstrap.initialize.effect(function* ({
 					Effect.mapError(
 						() =>
 							new AppErrors.BadRequestError({
+								reason: "BOOTSTRAP_USER_CREATE_FAILED",
 								message: "Failed to create bootstrap user.",
 							}),
 					),
@@ -160,6 +163,7 @@ export const initializeBootstrap = os.bootstrap.initialize.effect(function* ({
 					Effect.mapError(
 						() =>
 							new AppErrors.BadRequestError({
+								reason: "BOOTSTRAP_ORGANIZATION_CREATE_FAILED",
 								message: "Failed to create bootstrap organisation.",
 							}),
 					),

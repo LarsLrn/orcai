@@ -1,4 +1,5 @@
 import { z } from "zod/v4";
+import type { ErrorReason } from "./error-reason";
 
 export const createUniqueRefsInputSchema = <
 	TKey extends string,
@@ -6,12 +7,10 @@ export const createUniqueRefsInputSchema = <
 >({
 	key,
 	value,
-	entityName,
 	max = 500,
 }: {
 	key: TKey;
 	value: TValueSchema;
-	entityName: string;
 	max?: number;
 }) =>
 	z
@@ -20,8 +19,8 @@ export const createUniqueRefsInputSchema = <
 				[key]: value,
 			} as Record<TKey, TValueSchema>),
 		)
-		.min(1, `Please select at least one ${entityName}`)
-		.max(max, `Please select no more than ${max} ${entityName}`)
+		.min(1)
+		.max(max)
 		.check((ctx) => {
 			const refs = ctx.value as Array<Record<TKey, unknown>>;
 			const ids = refs.map((ref) => ref[key]);
@@ -30,7 +29,9 @@ export const createUniqueRefsInputSchema = <
 			if (uniqueCount !== ids.length) {
 				ctx.issues.push({
 					code: "custom",
-					message: "Selected items must be unique",
+					params: {
+						reason: "ITEMS_NOT_UNIQUE" satisfies ErrorReason,
+					},
 					path: [
 						"refs",
 					],

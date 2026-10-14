@@ -2,6 +2,7 @@ import { createApiClient, ZED_TOKEN_COOKIE } from "../../fixtures/api";
 import { expectForbidden, untilAllowed } from "../../fixtures/authorization";
 import { submitForm } from "../../fixtures/forms";
 import { expect, test } from "../../fixtures/index";
+import { message } from "../../fixtures/messages";
 import { enterApp, open } from "../../fixtures/navigation";
 import { runId } from "../../fixtures/organisation";
 
@@ -50,7 +51,7 @@ test("a grant made over the API is visible on the first page load of the granted
 	// least as fresh as the grant.
 	const page = await pageAs("viewer");
 	await enterApp(page, org.slug);
-	await open(page, `/en/app/hub/blocks/${block.data.id}`);
+	await open(page, `/app/hub/blocks/${block.data.id}`);
 
 	await expect(
 		page.getByRole("heading", {
@@ -136,20 +137,20 @@ test("a block created in the browser is readable on the page the creation naviga
 	const blockName = authzName("Browser Created Block");
 	const page = await pageAs("member");
 	await enterApp(page, org.slug);
-	await open(page, "/en/app/hub/blocks/add");
+	await open(page, "/app/hub/blocks/add");
 
 	// Creating the block writes the owner relationship, and the response carries
 	// the zedToken back as a cookie the page keeps.
 	await submitForm(page, {
 		fill: async () => {
-			await page.getByLabel("Name").fill(blockName);
+			await page.getByLabel(message("common_name_label")).fill(blockName);
 			await page
-				.getByLabel("System Prompt")
+				.getByLabel(message("blocks_template_form_system_prompt_label"))
 				.fill("Created through the browser by the authz freshness slice.");
 		},
-		submit: "Save AI Behaviour",
+		submit: message("blocks_template_form_create_submit_button"),
 		// The created block, not the add page it was submitted from.
-		until: /\/en\/app\/hub\/blocks\/(?!add$)[^/]+$/,
+		until: /\/app\/hub\/blocks\/(?!add$)[^/]+$/,
 	});
 
 	// The page the creation navigates to reads the block behind a permission
@@ -162,7 +163,7 @@ test("a block created in the browser is readable on the page the creation naviga
 	).toBeVisible();
 	await expect(
 		page.getByRole("button", {
-			name: "Try Again",
+			name: message("boundaries_default_error_retry_button"),
 		}),
 	).toHaveCount(0);
 });

@@ -8,6 +8,7 @@ import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import type { SearchablePickerRow } from "@/components/ui/composed/searchable-picker";
 import { SearchablePicker } from "@/components/ui/composed/searchable-picker";
 import { orpc } from "@/lib/orpc/orpc";
+import { m } from "@/paraglide/messages";
 
 const renderCandidate = (user: GroupMemberUser): SearchablePickerRow => ({
 	option: {
@@ -55,7 +56,7 @@ const MemberPicker = ({
 		<SearchablePicker
 			query={query}
 			onQueryChange={onQueryChange}
-			placeholder="Search users"
+			placeholder={m.groups_member_picker_search_placeholder()}
 			items={candidates.data?.data ?? []}
 			isLoading={candidates.isLoading}
 			selected={selectedUsers}
@@ -65,8 +66,8 @@ const MemberPicker = ({
 			renderItem={renderCandidate}
 			emptyText={
 				debouncedQuery.trim()
-					? "No members match this search."
-					: "Everyone is already in this group."
+					? m.groups_member_picker_empty_state_no_match()
+					: m.groups_member_picker_empty_state_all_members()
 			}
 			disabled={disabled}
 		/>

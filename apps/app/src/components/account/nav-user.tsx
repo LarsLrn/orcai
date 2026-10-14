@@ -19,6 +19,7 @@ import {
 import { useSignOut } from "@/hooks/actions/use-sign-out";
 import { useAuthenticatedRouteContext } from "@/hooks/authz/use-authenticated-route-context";
 import { orpc } from "@/lib/orpc/orpc";
+import { m } from "@/paraglide/messages";
 import { UserMenuActions } from "./user-menu-actions";
 
 const NavUser = () => {
@@ -91,7 +92,7 @@ const NavUser = () => {
 							<DropdownMenuSeparator />
 							<DropdownMenuItem variant="destructive" onClick={() => signOut()}>
 								<LogOut />
-								Sign Out
+								{m.account_user_menu_sign_out_action()}
 							</DropdownMenuItem>
 						</DropdownMenuGroup>
 					</DropdownMenuContent>

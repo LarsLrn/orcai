@@ -2,6 +2,7 @@ import type { Group } from "@orcai/schema";
 import { DataTableBulkActions } from "@/components/ui/data-table/data-table-bulk-actions";
 import { useTable } from "@/components/ui/data-table/data-table-context";
 import { useDeleteGroupsMutation } from "@/hooks/mutations/use-group-mutations";
+import { m } from "@/paraglide/messages";
 
 const GroupTableActions = () => {
 	const { table } = useTable();
@@ -14,7 +15,7 @@ const GroupTableActions = () => {
 			isPending={deleteGroups.isPending}
 			actions={[
 				{
-					label: "Delete selected",
+					label: m.common_delete_selected_action(),
 					variant: "destructive",
 					onSelect: ({ selectedRows }) =>
 						deleteGroups.mutate({

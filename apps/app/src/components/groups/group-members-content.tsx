@@ -18,6 +18,7 @@ import {
 } from "@/hooks/mutations/use-group-mutations";
 import { orpc } from "@/lib/orpc/orpc";
 import { toggleSelection } from "@/lib/utils/array-utils";
+import { m } from "@/paraglide/messages";
 
 const GroupMembersContent = ({ group }: { group: Group }) => {
 	const groupId = group.id;
@@ -55,11 +56,11 @@ const GroupMembersContent = ({ group }: { group: Group }) => {
 	return (
 		<Card>
 			<CardHeader>
-				<CardTitle>Members</CardTitle>
+				<CardTitle>{m.groups_members_card_title()}</CardTitle>
 				<CardDescription>
 					{isSystemGroup
-						? "All organisation members are included implicitly."
-						: "Manage explicit group membership."}
+						? m.groups_members_card_description_system()
+						: m.groups_members_card_description_custom()}
 				</CardDescription>
 			</CardHeader>
 			<CardContent className="space-y-4">
@@ -67,7 +68,9 @@ const GroupMembersContent = ({ group }: { group: Group }) => {
 					<div className="space-y-3 rounded-2xl border p-4">
 						<div className="flex items-center gap-2">
 							<UsersIcon className="h-4 w-4 text-muted-foreground" />
-							<p className="font-medium text-sm">Add members</p>
+							<p className="font-medium text-sm">
+								{m.groups_members_add_heading()}
+							</p>
 						</div>
 						<MemberPicker
 							groupId={groupId}
@@ -87,7 +90,7 @@ const GroupMembersContent = ({ group }: { group: Group }) => {
 							onClick={handleAdd}
 						>
 							<PlusIcon />
-							Add Selected
+							{m.groups_members_add_selected_action()}
 						</Button>
 					</div>
 				)}

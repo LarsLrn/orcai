@@ -1,4 +1,5 @@
 import { expect, test } from "../../fixtures/index";
+import { message } from "../../fixtures/messages";
 import { open } from "../../fixtures/navigation";
 
 test.describe.configure({
@@ -8,14 +9,14 @@ test.describe.configure({
 test("the init page is gone once the instance is initialised", async ({
 	page,
 }) => {
-	await open(page, "/en/init");
+	await open(page, "/init");
 
 	// The loader reads the bootstrap status and sends a visitor away as soon
 	// as an admin exists, so the first-run form can never be replayed.
-	await expect(page).toHaveURL(/\/en\/login/);
+	await expect(page).toHaveURL(/\/login/);
 	await expect(
 		page.getByRole("button", {
-			name: "Login",
+			name: message("auth_signin_form_submit_button"),
 		}),
 	).toBeVisible();
 });
@@ -23,12 +24,12 @@ test("the init page is gone once the instance is initialised", async ({
 test("the root path sends a signed-out visitor to the login page", async ({
 	page,
 }) => {
-	await open(page, "/en");
+	await open(page, "/");
 
-	await expect(page).toHaveURL(/\/en\/login/);
+	await expect(page).toHaveURL(/\/login/);
 	await expect(
 		page.getByRole("button", {
-			name: "Login",
+			name: message("auth_signin_form_submit_button"),
 		}),
 	).toBeVisible();
 });
@@ -36,12 +37,12 @@ test("the root path sends a signed-out visitor to the login page", async ({
 test("instance management sends a signed-out visitor to the login page", async ({
 	page,
 }) => {
-	await open(page, "/en/instance/users");
+	await open(page, "/instance/users");
 
-	await expect(page).toHaveURL(/\/en\/login/);
+	await expect(page).toHaveURL(/\/login/);
 	await expect(
 		page.getByRole("button", {
-			name: "Login",
+			name: message("auth_signin_form_submit_button"),
 		}),
 	).toBeVisible();
 });

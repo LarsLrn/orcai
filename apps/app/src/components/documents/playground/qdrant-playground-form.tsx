@@ -1,6 +1,7 @@
 import { qdrantPlaygroundSearchSchema } from "@orcai/schema";
 import { useNavigate, useSearch } from "@tanstack/react-router";
 import { useAppForm } from "@/hooks/form";
+import { m } from "@/paraglide/messages";
 
 const QdrantPlaygroundForm = () => {
 	const { search, retrievalMode } = useSearch({
@@ -40,8 +41,8 @@ const QdrantPlaygroundForm = () => {
 				name="search"
 				children={(field) => (
 					<field.TextField
-						label="Search query"
-						placeholder="e.g. how do I book a train ticket"
+						label={m.assets_playground_search_label()}
+						placeholder={m.assets_playground_search_placeholder()}
 					/>
 				)}
 			/>
@@ -50,18 +51,18 @@ const QdrantPlaygroundForm = () => {
 				name="retrievalMode"
 				children={(field) => (
 					<field.SelectField
-						label="Retrieval mode"
+						label={m.assets_playground_retrieval_mode_label()}
 						options={[
 							{
-								label: "Hybrid",
+								label: m.blocks_retrieval_mode_hybrid_label(),
 								value: "hybrid",
 							},
 							{
-								label: "Dense",
+								label: m.blocks_retrieval_mode_dense_label(),
 								value: "dense",
 							},
 							{
-								label: "Sparse",
+								label: m.blocks_retrieval_mode_sparse_label(),
 								value: "sparse",
 							},
 						]}
@@ -70,7 +71,7 @@ const QdrantPlaygroundForm = () => {
 			/>
 
 			<form.AppForm>
-				<form.SubmitButton label="Search" />
+				<form.SubmitButton label={m.assets_playground_submit_button()} />
 			</form.AppForm>
 		</form>
 	);

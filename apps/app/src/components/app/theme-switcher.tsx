@@ -6,6 +6,7 @@ import { Button } from "@/components/ui/button";
 import { Skeleton } from "@/components/ui/skeleton";
 import { META_THEME_COLORS, useMetaColor } from "@/hooks/use-meta-color";
 import { cn } from "@/lib/utils";
+import { m } from "@/paraglide/messages";
 
 const ThemeSwitcher = ({ className }: { className?: string }) => {
 	const [mounted, setMounted] = useState(false);
@@ -87,7 +88,7 @@ const ThemeSwitcher = ({ className }: { className?: string }) => {
 					</motion.div>
 				)}
 			</AnimatePresence>
-			<span className="sr-only">Toggle theme</span>
+			<span className="sr-only">{m.header_theme_switcher_label()}</span>
 		</Button>
 	);
 };

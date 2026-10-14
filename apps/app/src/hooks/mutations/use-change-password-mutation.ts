@@ -1,5 +1,6 @@
 import { useMutationAction } from "@/hooks/actions/use-mutation-action";
 import { orpc } from "@/lib/orpc/orpc";
+import { m } from "@/paraglide/messages";
 
 export const useChangePasswordMutation = (
 	opts: ReturnType<typeof orpc.user.updatePassword.mutationOptions> = {},
@@ -10,13 +11,13 @@ export const useChangePasswordMutation = (
 				...opts,
 			}),
 		messages: {
-			loading: "Changing password...",
-			success: "Password changed",
-			error: "Failed to change password",
+			loading: m.account_change_password_toast_loading(),
+			success: m.account_change_password_toast_success(),
+			error: m.account_change_password_toast_error(),
 		},
 		confirm: {
-			title: "Change password",
-			description: "Are you sure you want to change your password?",
+			title: m.account_change_password_confirm_title(),
+			description: m.account_change_password_confirm_description(),
 		},
 	});
 };

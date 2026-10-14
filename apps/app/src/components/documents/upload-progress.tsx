@@ -4,20 +4,16 @@ import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Progress } from "@/components/ui/progress";
+import { formatFileSize } from "@/lib/presentation/format-file-size";
 import { cn } from "@/lib/utils";
+import { m } from "@/paraglide/messages";
+import { getLocale } from "@/paraglide/runtime";
 
-function formatFileSize(bytes: number): string {
-	if (bytes === 0) return "0 B";
-	const k = 1024;
-	const sizes = [
-		"B",
-		"KB",
-		"MB",
-		"GB",
-	];
-	const i = Math.floor(Math.log(bytes) / Math.log(k));
-	return `${Number.parseFloat((bytes / Math.pow(k, i)).toFixed(1))} ${sizes[i]}`;
-}
+const formatProgress = (value: number) =>
+	new Intl.NumberFormat(getLocale(), {
+		style: "percent",
+		maximumFractionDigits: 0,
+	}).format(value);
 
 export const UploadProgress = ({
 	control,
@@ -61,22 +57,22 @@ export const UploadProgress = ({
 						{isPending ? (
 							<>
 								<Loader2 className="h-4 w-4 animate-spin text-status-processing" />
-								Uploading files
+								{m.assets_upload_progress_pending_title()}
 							</>
 						) : isError ? (
 							<>
 								<AlertCircle className="h-4 w-4 text-destructive" />
-								Upload failed
+								{m.assets_upload_progress_error_title()}
 							</>
 						) : allSucceeded ? (
 							<>
 								<CheckCircle className="h-4 w-4 text-status-success" />
-								Upload complete
+								{m.assets_upload_progress_success_title()}
 							</>
 						) : (
 							<>
 								<AlertCircle className="h-4 w-4 text-status-warning" />
-								Upload completed with Issues
+								{m.assets_upload_progress_partial_title()}
 							</>
 						)}
 					</CardTitle>
@@ -96,10 +92,13 @@ export const UploadProgress = ({
 				<div className="space-y-2">
 					<div className="flex items-center justify-between text-sm">
 						<span className="text-muted-foreground">
-							{completedFiles} of {totalFiles} files completed
+							{m.assets_upload_progress_completed_count({
+								completed: completedFiles,
+								count: totalFiles,
+							})}
 						</span>
 						<span className="font-medium">
-							{Math.round(averageProgress * 100)}%
+							{formatProgress(averageProgress)}
 						</span>
 					</div>
 					<Progress value={averageProgress * 100} className="h-2" />
@@ -108,10 +107,18 @@ export const UploadProgress = ({
 				{/* Status Summary */}
 				<div className="flex items-center gap-2 pt-1">
 					{completedFiles > 0 && (
-						<Badge variant="success">{completedFiles} successful</Badge>
+						<Badge variant="success">
+							{m.assets_upload_progress_success_badge({
+								count: completedFiles,
+							})}
+						</Badge>
 					)}
 					{failedFileCount > 0 && (
-						<Badge variant="danger">{failedFileCount} failed</Badge>
+						<Badge variant="danger">
+							{m.assets_upload_progress_failed_badge({
+								count: failedFileCount,
+							})}
+						</Badge>
 					)}
 				</div>
 			</CardHeader>
@@ -122,7 +129,9 @@ export const UploadProgress = ({
 					<div className="mb-4 rounded-2xl border border-destructive/20 bg-destructive/5 p-3">
 						<div className="flex items-center gap-2 text-destructive text-sm">
 							<AlertCircle className="h-4 w-4" />
-							<span className="font-medium">Error:</span>
+							<span className="font-medium">
+								{m.assets_upload_progress_error_label()}
+							</span>
 							<span>{error.message}</span>
 						</div>
 					</div>
@@ -181,7 +190,7 @@ export const UploadProgress = ({
 										<div className="flex items-center gap-2 text-muted-foreground text-xs">
 											<span>{formatFileSize(fileInfo.size)}</span>
 											{(isUploading || isPending) && (
-												<span>{Math.round(fileInfo.progress * 100)}%</span>
+												<span>{formatProgress(fileInfo.progress)}</span>
 											)}
 										</div>
 									</div>
@@ -204,7 +213,7 @@ export const UploadProgress = ({
 									{/* Success Message */}
 									{isComplete && (
 										<p className="mt-1 text-status-success text-xs">
-											Upload completed successfully
+											{m.assets_upload_progress_file_success_label()}
 										</p>
 									)}
 								</div>
@@ -217,7 +226,7 @@ export const UploadProgress = ({
 				{isSettled && (
 					<div className="mt-4 flex justify-end gap-2 border-border/50 border-t pt-3">
 						<Button variant="outline" size="sm" onClick={handleReset}>
-							Clear
+							{m.assets_upload_progress_clear_button()}
 						</Button>
 						{/* {hasFailedFiles && (
 							<Button

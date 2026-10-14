@@ -16,6 +16,7 @@ import {
 } from "@/components/ui/composed/panel";
 import { orpc } from "@/lib/orpc/orpc";
 import { formatDisplayDate } from "@/lib/presentation/format-timestamp";
+import { m } from "@/paraglide/messages";
 
 const POOL_LIMIT = 3;
 
@@ -42,7 +43,7 @@ const ManageQuotaPanel = () => {
 	return (
 		<Panel>
 			<PanelHeader>
-				<PanelTitle>Quota</PanelTitle>
+				<PanelTitle>{m.home_quota_panel_title()}</PanelTitle>
 				<Link
 					to="/app/quotas"
 					className={buttonVariants({
@@ -50,14 +51,11 @@ const ManageQuotaPanel = () => {
 						size: "sm",
 					})}
 				>
-					All pools
+					{m.home_quota_panel_all_pools_action()}
 				</Link>
 			</PanelHeader>
 			{pools.data.length === 0 ? (
-				<PanelNote>
-					No quota pools yet. Chats use the provider's own limits until one
-					exists.
-				</PanelNote>
+				<PanelNote>{m.home_quota_panel_empty_note()}</PanelNote>
 			) : (
 				<PanelRows>
 					{pools.data.map((pool) => (
@@ -75,14 +73,20 @@ const ManageQuotaPanel = () => {
 								<div className="flex items-center gap-2">
 									<span className="truncate font-medium">{pool.name}</span>
 									{pool.isDefault ? (
-										<Badge variant="brand">Default</Badge>
+										<Badge variant="brand">
+											{m.home_quota_pool_default_badge()}
+										</Badge>
 									) : null}
 								</div>
 								<p className="truncate text-muted-foreground text-xs">
-									{pool.provider.name}
 									{pool.currentPeriod
-										? `, renews ${formatDisplayDate(pool.currentPeriod.endsAt)}`
-										: ", no open period"}
+										? m.home_quota_pool_meta_renews({
+												provider: pool.provider.name,
+												date: formatDisplayDate(pool.currentPeriod.endsAt),
+											})
+										: m.home_quota_pool_meta_no_period({
+												provider: pool.provider.name,
+											})}
 								</p>
 							</div>
 							<div className="flex shrink-0 flex-col items-end gap-1">

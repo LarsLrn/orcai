@@ -15,6 +15,7 @@ import {
 	DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import { useDeleteGroupsMutation } from "@/hooks/mutations/use-group-mutations";
+import { m } from "@/paraglide/messages";
 
 const columnHelper = createColumnHelper<DataTableFeatures, Group>();
 
@@ -23,7 +24,7 @@ export const groupTableColumns = columnHelper.columns([
 	columnHelper.accessor("name", {
 		size: 440,
 		header: ({ column }) => (
-			<DataTableColumnHeader column={column} title="Name" />
+			<DataTableColumnHeader column={column} title={m.common_name_label()} />
 		),
 		cell: ({ row }) => (
 			<div className="min-w-0">
@@ -47,11 +48,16 @@ export const groupTableColumns = columnHelper.columns([
 	columnHelper.accessor("kind", {
 		size: 160,
 		header: ({ column }) => (
-			<DataTableColumnHeader column={column} title="Type" />
+			<DataTableColumnHeader
+				column={column}
+				title={m.groups_table_kind_column_header()}
+			/>
 		),
 		cell: ({ row }) => (
 			<Badge variant={row.original.kind === "system" ? "outline" : "secondary"}>
-				{row.original.kind === "system" ? "System" : "Custom"}
+				{row.original.kind === "system"
+					? m.groups_kind_system()
+					: m.groups_kind_custom()}
 			</Badge>
 		),
 	}),
@@ -70,7 +76,7 @@ const ActionCell = ({ group }: { group: Group }) => {
 			<DropdownMenuTrigger
 				render={
 					<Button variant="ghost" className="size-8 p-0">
-						<span className="sr-only">Open menu</span>
+						<span className="sr-only">{m.common_row_menu_trigger()}</span>
 						<MoreHorizontal className="size-4" />
 					</Button>
 				}
@@ -82,7 +88,7 @@ const ActionCell = ({ group }: { group: Group }) => {
 						groupId: group.id,
 					}}
 				>
-					<DropdownMenuItem>Manage group</DropdownMenuItem>
+					<DropdownMenuItem>{m.groups_table_manage_action()}</DropdownMenuItem>
 				</Link>
 				{group.kind === "custom" && (
 					<>
@@ -118,7 +124,7 @@ const DeleteGroupItem = ({ group }: { group: Group }) => {
 				})
 			}
 		>
-			Delete Group
+			{m.groups_delete_action()}
 		</DropdownMenuItem>
 	);
 };

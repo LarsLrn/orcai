@@ -17,6 +17,7 @@ import { useOrganizationCapabilities } from "@/hooks/authz/use-capabilities";
 import { useDeleteBotsMutation } from "@/hooks/mutations/use-bot-mutations";
 import { hasCapability } from "@/lib/authz/capabilities";
 import { orpc } from "@/lib/orpc/orpc";
+import { m } from "@/paraglide/messages";
 
 export const Route = createFileRoute("/app/hub/bots/")({
 	loader: async ({ context: { queryClient } }) => {
@@ -73,10 +74,9 @@ function RouteComponent() {
 		<div className="space-y-12">
 			<Section>
 				<SectionHeader>
-					<SectionTitle>Published</SectionTitle>
+					<SectionTitle>{m.bots_list_published_title()}</SectionTitle>
 					<SectionDescription>
-						Bots ready to use in chats across your workspace. A bot bundles a
-						behaviour, its repositories, a model and its access rules.
+						{m.bots_list_published_description()}
 					</SectionDescription>
 					{canCreateBot ? (
 						<SectionAction>
@@ -87,7 +87,7 @@ function RouteComponent() {
 								})}
 							>
 								<PlusIcon />
-								Create bot
+								{m.bots_list_create_action()}
 							</Link>
 						</SectionAction>
 					) : null}
@@ -97,14 +97,14 @@ function RouteComponent() {
 						<Placeholder
 							Icon={BotIcon}
 							tone="bot"
-							title="No published bots yet"
-							description="Create and publish a bot to make it available for chats."
+							title={m.bots_list_empty_state_title()}
+							description={m.bots_list_empty_state_description()}
 							actions={
 								canCreateBot
 									? [
 											{
 												key: "create",
-												label: "Create bot",
+												label: m.bots_list_create_action(),
 												icon: PlusIcon,
 												variant: "default",
 												linkProps: {
@@ -134,9 +134,9 @@ function RouteComponent() {
 			{drafts.data.length > 0 && (
 				<Section>
 					<SectionHeader>
-						<SectionTitle>Your drafts</SectionTitle>
+						<SectionTitle>{m.bots_list_drafts_title()}</SectionTitle>
 						<SectionDescription>
-							Resume bot setups that have not been published yet.
+							{m.bots_list_drafts_description()}
 						</SectionDescription>
 					</SectionHeader>
 					<SectionContent>
@@ -176,7 +176,7 @@ const DraftBotCard = ({
 						? [
 								{
 									key: "edit",
-									label: "Edit draft",
+									label: m.bots_list_draft_edit_action(),
 									icon: EditIcon,
 									onClick: () =>
 										navigate({
@@ -192,7 +192,7 @@ const DraftBotCard = ({
 						? [
 								{
 									key: "delete",
-									label: "Delete draft",
+									label: m.bots_list_draft_delete_action(),
 									icon: TrashIcon,
 									onClick: () =>
 										deleteBots({

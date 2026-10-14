@@ -17,6 +17,7 @@ import { useOrganizationCapabilities } from "@/hooks/authz/use-capabilities";
 import { useDeleteBlocksMutation } from "@/hooks/mutations/use-block-mutations";
 import { hasCapability } from "@/lib/authz/capabilities";
 import { orpc } from "@/lib/orpc/orpc";
+import { m } from "@/paraglide/messages";
 
 const PAGE_SIZE = 100;
 
@@ -81,7 +82,7 @@ export const Route = createFileRoute("/app/hub/behaviour")({
 	head: () => ({
 		meta: [
 			{
-				title: "Behaviour",
+				title: m.behaviour_page_title(),
 			},
 		],
 	}),
@@ -165,10 +166,9 @@ function RouteComponent() {
 		<div className="space-y-12">
 			<Section>
 				<SectionHeader>
-					<SectionTitle>Published</SectionTitle>
+					<SectionTitle>{m.behaviour_published_title()}</SectionTitle>
 					<SectionDescription>
-						A behaviour block is a reusable system prompt that sets how a bot
-						answers. Published blocks are available to bots and chats.
+						{m.behaviour_published_description()}
 					</SectionDescription>
 					{canCreateBlock ? (
 						<SectionAction>
@@ -179,7 +179,7 @@ function RouteComponent() {
 								})}
 							>
 								<PlusIcon />
-								Add behaviour
+								{m.behaviour_add_action()}
 							</Link>
 						</SectionAction>
 					) : null}
@@ -189,14 +189,14 @@ function RouteComponent() {
 						<Placeholder
 							Icon={BrainCircuitIcon}
 							tone="behaviour"
-							title="No published behaviour yet"
-							description="Create and publish a behaviour block to make it available for bots."
+							title={m.behaviour_empty_state_title()}
+							description={m.behaviour_empty_state_description()}
 							actions={
 								canCreateBlock
 									? [
 											{
 												key: "add",
-												label: "Add behaviour",
+												label: m.behaviour_add_action(),
 												icon: PlusIcon,
 												variant: "default",
 												linkProps: {
@@ -226,9 +226,9 @@ function RouteComponent() {
 			{draftBehaviourBlocks.length > 0 && (
 				<Section>
 					<SectionHeader>
-						<SectionTitle>Your drafts</SectionTitle>
+						<SectionTitle>{m.behaviour_drafts_title()}</SectionTitle>
 						<SectionDescription>
-							Resume behaviour blocks that are not published yet.
+							{m.behaviour_drafts_description()}
 						</SectionDescription>
 					</SectionHeader>
 					<SectionContent>
@@ -256,8 +256,7 @@ const DraftBehaviourCard = ({
 			names: [
 				block.name,
 			],
-			noun: "behaviour block",
-			nounPlural: "behaviour blocks",
+			kind: "behaviour",
 		},
 	);
 
@@ -270,7 +269,7 @@ const DraftBehaviourCard = ({
 						? [
 								{
 									key: "edit",
-									label: "Edit draft",
+									label: m.behaviour_draft_edit_action(),
 									icon: EditIcon,
 									onClick: () =>
 										navigate({
@@ -286,7 +285,7 @@ const DraftBehaviourCard = ({
 						? [
 								{
 									key: "delete",
-									label: "Delete draft",
+									label: m.behaviour_draft_delete_action(),
 									icon: TrashIcon,
 									onClick: () =>
 										deleteBlocks({

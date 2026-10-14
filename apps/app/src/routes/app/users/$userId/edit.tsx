@@ -18,13 +18,14 @@ import { ManageUser } from "@/components/users/manage-user";
 import { UserAccessOverview } from "@/components/users/user-access-overview";
 import { orpc } from "@/lib/orpc/orpc";
 import { formatDisplayDate } from "@/lib/presentation/format-timestamp";
+import { m } from "@/paraglide/messages";
 
 export const Route = createFileRoute("/app/users/$userId/edit")({
 	component: RouteComponent,
 	head: () => ({
 		meta: [
 			{
-				title: "Edit",
+				title: m.users_edit_page_meta_title(),
 			},
 		],
 	}),
@@ -43,20 +44,20 @@ function RouteComponent() {
 	return (
 		<Page>
 			<PageHeader>
-				<PageTitle>Edit User</PageTitle>
+				<PageTitle>{m.users_edit_page_title()}</PageTitle>
 			</PageHeader>
 
 			<PageContent className="flex flex-col gap-4">
 				<Card>
 					<CardHeader>
-						<CardTitle>User information</CardTitle>
+						<CardTitle>{m.users_edit_details_title()}</CardTitle>
 					</CardHeader>
 					<CardContent className="flex flex-col gap-4">
 						<div className="grid grid-cols-1 gap-4 md:grid-cols-2">
 							<div className="flex items-center gap-2">
 								<UserIcon className="h-4 w-4 text-primary" />
 								<div className="space-y-0.5">
-									<p className="font-medium text-sm">Name</p>
+									<p className="font-medium text-sm">{m.common_name_label()}</p>
 									<p className="text-muted-foreground text-sm">
 										{user.data.name}
 									</p>
@@ -66,7 +67,9 @@ function RouteComponent() {
 							<div className="flex items-center gap-2">
 								<MailIcon className="h-4 w-4 text-primary" />
 								<div className="space-y-0.5">
-									<p className="font-medium text-sm">Email</p>
+									<p className="font-medium text-sm">
+										{m.common_email_label()}
+									</p>
 									<p className="text-muted-foreground text-sm">
 										{user.data.email}
 									</p>
@@ -76,13 +79,17 @@ function RouteComponent() {
 							<div className="flex items-center gap-2">
 								<BadgeIcon className="h-4 w-4 text-primary" />
 								<div className="space-y-0.5">
-									<p className="font-medium text-sm">Status</p>
+									<p className="font-medium text-sm">
+										{m.users_edit_details_status_label()}
+									</p>
 									<div className="flex items-center gap-2">
 										<span
 											className={`h-2 w-2 rounded-full ${user.data.banned ? "bg-destructive" : "bg-green-500"}`}
 										/>
 										<p className="text-muted-foreground text-sm">
-											{user.data.banned ? "Banned" : "Active"}
+											{user.data.banned
+												? m.users_edit_details_status_banned()
+												: m.users_edit_details_status_active()}
 										</p>
 									</div>
 								</div>
@@ -91,9 +98,13 @@ function RouteComponent() {
 							<div className="flex items-center gap-2">
 								<MailCheckIcon className="h-4 w-4 text-primary" />
 								<div className="space-y-0.5">
-									<p className="font-medium text-sm">Email Verification</p>
+									<p className="font-medium text-sm">
+										{m.users_edit_details_verification_label()}
+									</p>
 									<p className="text-muted-foreground text-sm">
-										{user.data.emailVerified ? "Verified" : "Not verified"}
+										{user.data.emailVerified
+											? m.users_verification_verified()
+											: m.users_verification_not_verified()}
 									</p>
 								</div>
 							</div>
@@ -101,7 +112,9 @@ function RouteComponent() {
 							<div className="flex items-center gap-2">
 								<CalendarIcon className="h-4 w-4 text-primary" />
 								<div className="space-y-0.5">
-									<p className="font-medium text-sm">Created</p>
+									<p className="font-medium text-sm">
+										{m.users_edit_details_created_label()}
+									</p>
 									<p className="text-muted-foreground text-sm">
 										{formatDisplayDate(user.data.createdAt)}
 									</p>
@@ -111,7 +124,9 @@ function RouteComponent() {
 							<div className="flex items-center gap-2">
 								<CalendarIcon className="h-4 w-4 text-primary" />
 								<div className="space-y-0.5">
-									<p className="font-medium text-sm">Updated</p>
+									<p className="font-medium text-sm">
+										{m.users_edit_details_updated_label()}
+									</p>
 									<p className="text-muted-foreground text-sm">
 										{formatDisplayDate(user.data.updatedAt)}
 									</p>

@@ -5,6 +5,7 @@ import {
 	deactivateQuotaPool as deactivateQuotaPoolCommand,
 	resolveQuotaPool,
 	updateQuotaPool as updateQuotaPoolCommand,
+	type WriteQuotaPoolResult,
 } from "@orcai/quota";
 import type { QuotaPoolSortKey } from "@orcai/schema";
 import { and, count, desc, eq, ilike } from "drizzle-orm";
@@ -17,6 +18,33 @@ import {
 } from "@/lib/orpc/middlewares/permission";
 import { literalSearch } from "./helpers/literal-search";
 import { buildOrderBy, type SortExpression } from "./helpers/sorting";
+
+const quotaPoolWriteError = (
+	status: Exclude<WriteQuotaPoolResult["status"], "ok">,
+) => {
+	switch (status) {
+		case "pool_not_found":
+			return new AppErrors.NotFoundError({
+				reason: "QUOTA_POOL_NOT_FOUND",
+				message: "Quota pool not found",
+			});
+		case "provider_not_found":
+			return new AppErrors.BadRequestError({
+				reason: "PROVIDER_NOT_FOUND",
+				message: "Provider not found in active organization",
+			});
+		case "model_invalid":
+			return new AppErrors.BadRequestError({
+				reason: "MODEL_PROVIDER_MISMATCH",
+				message: "Model does not belong to the pool provider",
+			});
+		case "groups_invalid":
+			return new AppErrors.BadRequestError({
+				reason: "QUOTA_GROUPS_INVALID",
+				message: "One or more group assignments are invalid",
+			});
+	}
+};
 
 const getCurrentPeriodAndLedger = (params: { quotaPoolId: QuotaPoolId }) =>
 	Effect.gen(function* () {
@@ -192,6 +220,7 @@ export const findQuotaPool = authed.quota.find
 		if (!row) {
 			return yield* Effect.fail(
 				new AppErrors.NotFoundError({
+					reason: "QUOTA_POOL_NOT_FOUND",
 					message: "Quota pool not found",
 				}),
 			);
@@ -268,16 +297,7 @@ export const createQuotaPool = authed.quota.create
 		});
 
 		if (created.status !== "ok") {
-			return yield* Effect.fail(
-				new AppErrors.BadRequestError({
-					message:
-						created.status === "provider_not_found"
-							? "Provider not found in active organization"
-							: created.status === "model_invalid"
-								? "Model does not belong to selected provider"
-								: "One or more group assignments are invalid",
-				}),
-			);
+			return yield* Effect.fail(quotaPoolWriteError(created.status));
 		}
 
 		return {
@@ -296,18 +316,7 @@ export const updateQuotaPool = authed.quota.update
 		});
 
 		if (updated.status !== "ok") {
-			return yield* Effect.fail(
-				updated.status === "pool_not_found"
-					? new AppErrors.NotFoundError({
-							message: "Quota pool not found",
-						})
-					: new AppErrors.BadRequestError({
-							message:
-								updated.status === "model_invalid"
-									? "Model does not belong to pool provider"
-									: "One or more group assignments are invalid",
-						}),
-			);
+			return yield* Effect.fail(quotaPoolWriteError(updated.status));
 		}
 
 		return {
@@ -328,6 +337,7 @@ export const deactivateQuotaPool = authed.quota.deactivate
 		if (deactivated.status !== "ok") {
 			return yield* Effect.fail(
 				new AppErrors.NotFoundError({
+					reason: "QUOTA_POOL_NOT_FOUND",
 					message: "Quota pool not found",
 				}),
 			);

@@ -4,6 +4,7 @@ import { createApiClient } from "../../fixtures/api";
 import { attemptSignUp, signIn } from "../../fixtures/auth";
 import { USER_PASSWORD } from "../../fixtures/constants";
 import { expect, test, type WorkerOrganisation } from "../../fixtures/index";
+import { message } from "../../fixtures/messages";
 import { open } from "../../fixtures/navigation";
 import { registerFromInvitation } from "../../fixtures/orgs/invitations";
 
@@ -118,15 +119,18 @@ test("registration validates the selected invitation and leaves the others pendi
 	});
 	try {
 		const page = await context.newPage();
-		await open(page, "/en/select-organization");
+		await open(page, "/select-organization");
 		await expect(
-			page.getByText("Pending invitations", {
-				exact: true,
-			}),
+			page.getByText(
+				message("select_organisation_page_pending_invitations_title"),
+				{
+					exact: true,
+				},
+			),
 		).toBeVisible();
 		await expect(
 			page.getByRole("heading", {
-				name: "Select your organisation",
+				name: message("select_organisation_page_title"),
 			}),
 		).toBeVisible();
 	} finally {
@@ -169,16 +173,19 @@ test("registration lands on the picker when another invitation is pending", asyn
 		).data[0].id;
 	const firstId = await invite(org);
 	await invite(other);
-	await registerFromInvitation(page, `/en/register?inv=${firstId}`, {
+	await registerFromInvitation(page, `/register?inv=${firstId}`, {
 		name: "Picker registration",
 		password: USER_PASSWORD,
 		organisationName: org.name,
-		until: /\/en\/select-organization/,
+		until: /\/select-organization/,
 	});
 	await expect(
-		page.getByText("Pending invitations", {
-			exact: true,
-		}),
+		page.getByText(
+			message("select_organisation_page_pending_invitations_title"),
+			{
+				exact: true,
+			},
+		),
 	).toBeVisible();
 	await expect(
 		page.getByRole("button").filter({
