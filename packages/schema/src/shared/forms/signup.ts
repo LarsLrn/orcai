@@ -1,19 +1,24 @@
 import { z } from "zod/v4";
+import type { ErrorReason } from "../error-reason";
 import { sharedSchemas } from "./shared";
 
 export const signupSchema = z
 	.object({
-		email: z.email("Invalid email address").min(1, "Email is required"),
-		name: z.string().min(1, "Name is required"),
+		email: z.email().min(1),
+		name: z.string().min(1),
 		password: sharedSchemas.password,
 		confirmPassword: sharedSchemas.password,
 		invitationId: z.uuidv4(),
 		privacyConsent: z.boolean().refine((val) => val === true, {
-			message: "You must accept the privacy policy",
+			params: {
+				reason: "PRIVACY_CONSENT_REQUIRED" satisfies ErrorReason,
+			},
 		}),
 	})
 	.refine((data) => data.password === data.confirmPassword, {
-		message: "Passwords must match",
+		params: {
+			reason: "PASSWORDS_MISMATCH" satisfies ErrorReason,
+		},
 		path: [
 			"confirmPassword",
 		],

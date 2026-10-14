@@ -1,5 +1,6 @@
 import type { DynamicToolUIPart, ToolUIPart } from "ai";
 import type { ComponentProps } from "react";
+import { describeError } from "@/lib/errors/describe-error";
 import { cn } from "@/lib/utils";
 import { m } from "@/paraglide/messages";
 
@@ -78,7 +79,9 @@ export const ToolOutput = ({ output, errorText }: ToolOutputProps) => {
 	if (errorText) {
 		return (
 			<ToolField label={m.ai_elements_tool_error_label()}>
-				<p className="wrap-anywhere text-destructive text-xs">{errorText}</p>
+				<p className="wrap-anywhere text-destructive text-xs">
+					{describeError(errorText)}
+				</p>
 			</ToolField>
 		);
 	}

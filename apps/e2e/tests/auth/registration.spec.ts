@@ -47,7 +47,9 @@ test("sign-up without an invitation is refused", async ({
 	});
 
 	expect(response.ok).toBe(false);
-	expect(await response.text()).toContain("invitation");
+	expect(await response.json()).toMatchObject({
+		code: "INVITATION_REQUIRED",
+	});
 
 	// The hook refuses before the row is written, so the address stays unknown
 	// to the instance.

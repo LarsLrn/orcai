@@ -1,7 +1,10 @@
-import { zedTokenSchema } from "@orcai/schema";
+import {
+	errorDataSchema,
+	forbiddenErrorDataSchema,
+	notFoundErrorDataSchema,
+} from "@orcai/schema";
 import { oc } from "@orpc/contract";
 import { openapi } from "@orpc/openapi";
-import { z } from "zod/v4";
 
 export const base = oc
 	.meta(
@@ -18,28 +21,27 @@ export const base = oc
 	)
 	.errors({
 		FORBIDDEN: {
-			data: z.object({
-				allowed: z.boolean(),
-				permission: z.string().optional(),
-				entityType: z.string().optional(),
-				...zedTokenSchema.shape,
-			}),
+			data: forbiddenErrorDataSchema,
 			message: "Forbidden access.",
 			status: 403,
 		},
 		UNAUTHORIZED: {
+			data: errorDataSchema,
 			message: "Unauthorized access.",
 			status: 401,
 		},
 		BAD_REQUEST: {
+			data: errorDataSchema,
 			message: "Bad request.",
 			status: 400,
 		},
 		CONFLICT: {
+			data: errorDataSchema,
 			message: "Conflict.",
 			status: 409,
 		},
 		NOT_FOUND: {
+			data: notFoundErrorDataSchema,
 			message: "Resource not found.",
 			status: 404,
 		},

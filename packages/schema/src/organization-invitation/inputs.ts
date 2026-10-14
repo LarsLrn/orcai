@@ -1,6 +1,7 @@
 import { z } from "zod/v4";
 import { organizationIdSchema } from "../organization/ref";
 import { paginationInputSchema } from "../shared";
+import type { ErrorReason } from "../shared/error-reason";
 import { createUniqueRefsInputSchema } from "../shared/ref-list";
 import { createSortingInputSchema } from "../shared/sorting";
 import { organizationInvitationResponseActionSchema } from "./parts/response-action";
@@ -28,20 +29,17 @@ export const listOrganizationInvitationsInputSchema =
 	});
 
 export const createOrganizationInvitationsInputSchema = z.object({
-	organizationId: z
-		.string()
-		.min(1, "Please select an organization")
-		.pipe(organizationIdSchema),
+	organizationId: z.string().min(1).pipe(organizationIdSchema),
 	role: organizationInvitationSchema.shape.role,
 	expiresAt: z.date(),
 	items: z
 		.array(
 			z.object({
-				email: z.email("Field must be a valid email"),
+				email: z.email(),
 			}),
 		)
-		.min(1, "Please add at least one email")
-		.max(200, "Max 200 emails")
+		.min(1)
+		.max(200)
 		.check((ctx) => {
 			const emails = ctx.value.map((item) => item.email.toLowerCase());
 			const uniqueEmails = new Set(emails);
@@ -49,7 +47,9 @@ export const createOrganizationInvitationsInputSchema = z.object({
 			if (uniqueEmails.size !== emails.length) {
 				ctx.issues.push({
 					code: "custom",
-					message: "Emails must be unique",
+					params: {
+						reason: "ITEMS_NOT_UNIQUE" satisfies ErrorReason,
+					},
 					path: [
 						"root",
 					],
@@ -80,7 +80,9 @@ export const updateOrganizationInvitationInputSchema =
 			if (ctx.value.status === undefined && ctx.value.expiresAt === undefined) {
 				ctx.issues.push({
 					code: "custom",
-					message: "At least one mutable field must be provided",
+					params: {
+						reason: "MUTABLE_FIELD_REQUIRED" satisfies ErrorReason,
+					},
 					path: [
 						"root",
 					],
@@ -94,7 +96,6 @@ export const deleteOrganizationInvitationsInputSchema = z.object({
 	refs: createUniqueRefsInputSchema({
 		key: "id",
 		value: organizationInvitationIdSchema,
-		entityName: "invitation",
 	}),
 });
 

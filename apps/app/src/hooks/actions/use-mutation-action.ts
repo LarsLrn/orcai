@@ -9,31 +9,12 @@ import {
 	type ConfirmOptions,
 	useConfirm,
 } from "@/components/ui/dialog/confirm-dialog";
-
-const getErrorDescription = (error: unknown) => {
-	if (error instanceof Error) {
-		return error.message;
-	}
-
-	if (typeof error === "string") {
-		return error;
-	}
-
-	return undefined;
-};
+import { reasonMessageOf } from "@/lib/errors/describe-error";
 
 const isDefinedORPCError = (error: unknown) => {
 	const maybeError = error as ORPCError<string, unknown>;
 
 	return isDefinedError(maybeError);
-};
-
-const getDefinedErrorMessage = (error: unknown) => {
-	if (isDefinedORPCError(error)) {
-		return (error as ORPCError<string, unknown>).message;
-	}
-
-	return undefined;
 };
 
 export const MUTATION_ACTION_CANCELLED = "cancelled" as const;
@@ -209,23 +190,14 @@ export function useMutationAction<
 					input,
 					data,
 				}),
-			error: (error) => {
-				const fallbackMessage = resolveMessage(config.messages.error, {
+			// The hook's own copy is the title; a translated reason is the detail.
+			error: (error) => ({
+				message: resolveMessage(config.messages.error, {
 					input,
 					error: error as TError,
-				});
-				const definedErrorMessage = getDefinedErrorMessage(error);
-				const message = definedErrorMessage ?? fallbackMessage;
-				const description = definedErrorMessage
-					? undefined
-					: getErrorDescription(error);
-
-				return {
-					message,
-					description:
-						description && description !== message ? description : undefined,
-				};
-			},
+				}),
+				description: reasonMessageOf(error),
+			}),
 		});
 
 		try {

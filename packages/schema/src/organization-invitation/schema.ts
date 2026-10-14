@@ -7,7 +7,7 @@ import { organizationInvitationIdSchema } from "./ref";
 
 export const organizationInvitationFieldsSchema = z.object({
 	organizationId: organizationIdSchema,
-	email: z.email("Field must be a valid email"),
+	email: z.email(),
 	role: organizationRoleSchema,
 	status: organizationInvitationStatusSchema,
 	expiresAt: z.coerce.date(),

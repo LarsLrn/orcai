@@ -37,7 +37,7 @@ test("account: a wrong current password is refused, a valid change replaces the 
 				current: `${user.password}-wrong`,
 				next: newPassword,
 			},
-			page.getByText("Current password is incorrect"),
+			page.getByText(message("error_current_password_incorrect")),
 		);
 
 		// The refused attempt left the password alone. Signing in again opens a

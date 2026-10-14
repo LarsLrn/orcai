@@ -1,5 +1,6 @@
 import { DB } from "@orcai/db";
 import type {
+	GrantRejection,
 	ResourceGrantRole,
 	ResourcePrincipalIdentity,
 } from "@orcai/schema";
@@ -69,14 +70,9 @@ export const assertCanGrantPrincipalMiddleware = withName(
 				if (resourceScopes.length === 0) {
 					return yield* Effect.fail(
 						new AppErrors.BadRequestError({
+							reason: "RESOURCE_SCOPE_REQUIRED",
 							message:
-								"[RESOURCE_SCOPE_REQUIRED] Resource has no active organization scope and cannot be shared",
-							data: {
-								allowed: false,
-								entityType: input.resourceType,
-								permission: "manage_access",
-								zedToken,
-							},
+								"Resource has no active organization scope and cannot be shared",
 						}),
 					);
 				}
@@ -85,7 +81,7 @@ export const assertCanGrantPrincipalMiddleware = withName(
 					(scope) => scope.organizationId,
 				);
 
-				const rejections: string[] = [];
+				const rejections: GrantRejection[] = [];
 
 				for (const principal of input.principals) {
 					if (principal.principalType === "user") {
@@ -110,16 +106,16 @@ export const assertCanGrantPrincipalMiddleware = withName(
 						});
 
 						if (!membership) {
-							rejections.push(
-								`${principal.principalId}: user is not a member of this resource's organization scope`,
-							);
+							rejections.push({
+								principalId: principal.principalId,
+								reason: "USER_NOT_IN_SCOPE",
+							});
 						}
 						continue;
 					}
 
 					const group = yield* db.query.group.findFirst({
 						columns: {
-							name: true,
 							organizationId: true,
 							kind: true,
 							systemKey: true,
@@ -146,9 +142,10 @@ export const assertCanGrantPrincipalMiddleware = withName(
 					});
 
 					if (!group) {
-						rejections.push(
-							`${principal.principalId}: group is not part of this resource's organization scope`,
-						);
+						rejections.push({
+							principalId: principal.principalId,
+							reason: "GROUP_NOT_IN_SCOPE",
+						});
 						continue;
 					}
 
@@ -157,9 +154,10 @@ export const assertCanGrantPrincipalMiddleware = withName(
 						group.systemKey === ALL_MEMBERS_GROUP_SYSTEM_KEY;
 
 					if (isAllMembers && input.role !== "viewer") {
-						rejections.push(
-							`${principal.principalId}: ${group.name} can only receive viewer grants`,
-						);
+						rejections.push({
+							principalId: principal.principalId,
+							reason: "ALL_MEMBERS_VIEWER_ONLY",
+						});
 						continue;
 					}
 
@@ -178,9 +176,10 @@ export const assertCanGrantPrincipalMiddleware = withName(
 							});
 
 							if (!belongs) {
-								rejections.push(
-									`${principal.principalId}: you can only share with groups you belong to`,
-								);
+								rejections.push({
+									principalId: principal.principalId,
+									reason: "GROUP_NOT_JOINED",
+								});
 							}
 						}
 					}
@@ -189,10 +188,11 @@ export const assertCanGrantPrincipalMiddleware = withName(
 				if (rejections.length > 0) {
 					return yield* Effect.fail(
 						new AppErrors.BadRequestError({
-							message: `[GRANT_PRINCIPALS_INVALID] ${rejections.join("; ")}`,
-							data: {
-								code: "GRANT_PRINCIPALS_INVALID",
+							reason: "GRANT_PRINCIPALS_INVALID",
+							params: {
+								rejections,
 							},
+							message: "Grant principals rejected",
 						}),
 					);
 				}

@@ -1,5 +1,6 @@
 import { z } from "zod/v4";
 import { paginationInputSchema } from "../shared";
+import type { ErrorReason } from "../shared/error-reason";
 import { createUniqueRefsInputSchema } from "../shared/ref-list";
 import { createSortingInputSchema } from "../shared/sorting";
 import { userIdSchema } from "../user/ref";
@@ -19,7 +20,9 @@ const groupUserIdsSchema = z
 		if (uniqueCount !== ctx.value.length) {
 			ctx.issues.push({
 				code: "custom",
-				message: "User IDs must be unique",
+				params: {
+					reason: "ITEMS_NOT_UNIQUE" satisfies ErrorReason,
+				},
 				path: [
 					"userIds",
 				],
@@ -50,7 +53,6 @@ export const deleteGroupsInputSchema = z.object({
 	refs: createUniqueRefsInputSchema({
 		key: "id",
 		value: groupIdSchema,
-		entityName: "group",
 	}),
 });
 

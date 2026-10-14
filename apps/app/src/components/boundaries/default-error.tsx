@@ -9,47 +9,28 @@ import {
 import { AlertTriangle, ArrowLeft, Home, RefreshCw } from "lucide-react";
 import { Button, buttonVariants } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
+import { describeError } from "@/lib/errors/describe-error";
 import { m } from "@/paraglide/messages";
 
-// Type for ORPC validation error structure
-interface ORPCValidationError {
+interface ValidationErrorData {
 	data?: {
 		fieldErrors?: Record<string, string[]>;
 		formErrors?: string[];
 	};
 }
 
-/**
- * Extract human-readable error messages from ORPC validation errors
- */
+/** Validation payloads already carry sentences translated by the zod error map. */
 function getValidationErrorMessages(error: Error): string[] {
-	// Try to parse as ORPC error with validation data
-	const orpcError = error as Error & ORPCValidationError;
+	const { data } = error as Error & ValidationErrorData;
 
-	if (orpcError.data?.fieldErrors) {
-		const messages: string[] = [];
-		for (const errors of Object.values(orpcError.data.fieldErrors)) {
-			messages.push(...errors);
-		}
-		if (orpcError.data.formErrors?.length) {
-			messages.push(...orpcError.data.formErrors);
-		}
-		return messages;
+	if (!data?.fieldErrors) {
+		return [];
 	}
 
-	// Try to parse error.message as JSON array (fallback for stringified errors)
-	try {
-		const parsed = JSON.parse(error.message);
-		if (Array.isArray(parsed)) {
-			return parsed
-				.filter((item) => item && typeof item === "object" && "message" in item)
-				.map((item) => item.message);
-		}
-	} catch {
-		// Not JSON, continue to default
-	}
-
-	return [];
+	return [
+		...Object.values(data.fieldErrors).flat(),
+		...(data.formErrors ?? []),
+	];
 }
 
 export function DefaultErrorBoundary({ error }: ErrorComponentProps) {
@@ -94,7 +75,7 @@ export function DefaultErrorBoundary({ error }: ErrorComponentProps) {
 								</div>
 							) : (
 								<h2 className="font-semibold text-lg text-muted-foreground">
-									{error.message}
+									{describeError(error)}
 								</h2>
 							)}
 						</div>

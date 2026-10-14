@@ -17,8 +17,8 @@ export const botContentJsonSchema = z.custom<object>(
 );
 
 export const botFieldsSchema = z.object({
-	name: z.string().min(1, "Bot name is required"),
-	description: z.string().min(1, "Bot description is required").max(500),
+	name: z.string().min(1),
+	description: z.string().min(1).max(500),
 	contentJson: botContentJsonSchema,
 	contentHtml: z.string(),
 	status: publicationStatusSchema,
@@ -47,7 +47,7 @@ export const botWithBlocksSchema = botSchema.extend({
 const botEditorBlockSchema = z.object({
 	id: blockIdSchema,
 	capabilities: entityCapabilitiesSchema,
-	name: z.string().min(1, "Name is required"),
+	name: z.string().min(1),
 	description: blockFieldsSchema.shape.description,
 	contentJson: blockFieldsSchema.shape.contentJson,
 	contentHtml: blockFieldsSchema.shape.contentHtml,

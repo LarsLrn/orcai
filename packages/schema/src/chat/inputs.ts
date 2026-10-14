@@ -34,7 +34,6 @@ export const deleteChatInputSchema = z.object({
 	refs: createUniqueRefsInputSchema({
 		key: "id",
 		value: chatIdSchema,
-		entityName: "chat",
 	}),
 });
 

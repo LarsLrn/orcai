@@ -113,7 +113,9 @@ test("account: an empty display name is refused", async ({
 					name: message("users_profile_form_submit_button"),
 				})
 				.click();
-			await expect(page.getByText("Name is required").first()).toBeVisible({
+			await expect(
+				page.getByText(message("error_validation_required")).first(),
+			).toBeVisible({
 				timeout: 5_000,
 			});
 		}).toPass({

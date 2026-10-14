@@ -2,6 +2,7 @@ import type { ResetPasswordSchemaType } from "@orcai/schema";
 import { useNavigate } from "@tanstack/react-router";
 import { useMutationAction } from "@/hooks/actions/use-mutation-action";
 import { authClient } from "@/lib/auth/auth-client";
+import { toAuthError } from "@/lib/errors/auth-error";
 import { m } from "@/paraglide/messages";
 
 export const useResetPassword = (token: string) => {
@@ -13,7 +14,7 @@ export const useResetPassword = (token: string) => {
 					newPassword: value.password,
 					token,
 				});
-				if (result.error) throw new Error(result.error.message);
+				if (result.error) throw toAuthError(result.error);
 				return result;
 			},
 			onSuccess: () =>

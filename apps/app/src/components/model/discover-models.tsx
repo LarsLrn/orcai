@@ -24,6 +24,7 @@ import {
 	SelectTrigger,
 	SelectValue,
 } from "@/components/ui/select";
+import { describeError } from "@/lib/errors/describe-error";
 import { orpc } from "@/lib/orpc/orpc";
 import { m } from "@/paraglide/messages";
 
@@ -89,10 +90,7 @@ const DiscoverModels = () => {
 		} catch (error) {
 			setResult({
 				status: "error",
-				message:
-					error instanceof Error
-						? error.message
-						: m.models_discover_error_fallback_description(),
+				message: describeError(error),
 			});
 		}
 	};

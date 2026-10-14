@@ -1,4 +1,4 @@
-import { AiError, BadRequestError } from "@orcai/ai";
+import { AiError } from "@orcai/ai";
 import type { OrganizationId, ProviderId, UserId } from "@orcai/core";
 import {
 	finalizeAppRequestQuota,
@@ -8,6 +8,7 @@ import {
 import { generateText, type LanguageModel, type ModelMessage } from "ai";
 import * as Effect from "effect/Effect";
 import * as Exit from "effect/Exit";
+import { BadRequestError } from "@/lib/effect/utils/errors";
 
 export interface GenerateTextWithQuotaInput {
 	operation: string;
@@ -31,12 +32,35 @@ export interface GenerateTextWithQuotaInput {
 	maxExpectedProviderRequests?: number;
 }
 
+export const quotaDenialError = (
+	denialReason: "no_pool" | "exhausted" | "error" | undefined,
+) => {
+	switch (denialReason) {
+		case "no_pool":
+			return new BadRequestError({
+				reason: "QUOTA_POOL_UNAVAILABLE",
+				message: "No quota pool available for this request.",
+			});
+		case "exhausted":
+			return new BadRequestError({
+				reason: "QUOTA_EXHAUSTED",
+				message: "Quota exhausted for this provider/model.",
+			});
+		default:
+			return new BadRequestError({
+				reason: "QUOTA_CHECK_FAILED",
+				message: "Quota check failed.",
+			});
+	}
+};
+
 export const generateTextWithQuota = (input: GenerateTextWithQuotaInput) =>
 	Effect.gen(function* () {
 		const messages = input.messages ?? [];
 
 		if (messages.length === 0 && !input.prompt) {
 			return yield* new BadRequestError({
+				reason: "AI_PROMPT_REQUIRED",
 				message: "Either messages or prompt is required for text generation.",
 			});
 		}
@@ -54,15 +78,7 @@ export const generateTextWithQuota = (input: GenerateTextWithQuotaInput) =>
 		});
 
 		if (!reservation.allowed || !reservation.reservation) {
-			const denialReason = reservation.denialReason ?? "error";
-			return yield* new BadRequestError({
-				message:
-					denialReason === "no_pool"
-						? "No quota pool available for this request."
-						: denialReason === "exhausted"
-							? "Quota exhausted for this provider/model."
-							: "Quota check failed.",
-			});
+			return yield* quotaDenialError(reservation.denialReason);
 		}
 
 		const baseInput = {

@@ -11,6 +11,7 @@ export type ClientUploadError = {
 		| "rejected"
 		| "too_many_files";
 	message: string;
+	cause?: unknown;
 };
 
 export type UploadStatus = "pending" | "uploading" | "complete" | "failed";

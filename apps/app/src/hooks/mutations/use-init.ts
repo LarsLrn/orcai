@@ -3,6 +3,7 @@ import { useNavigate } from "@tanstack/react-router";
 import { useMutationAction } from "@/hooks/actions/use-mutation-action";
 import { useUmami } from "@/hooks/use-umami";
 import { authClient } from "@/lib/auth/auth-client";
+import { toAuthError } from "@/lib/errors/auth-error";
 import { client } from "@/lib/orpc/orpc";
 import { m } from "@/paraglide/messages";
 
@@ -28,11 +29,7 @@ export const useInit = () => {
 				});
 
 				if (signInResult.error) {
-					throw new Error(
-						m.auth_init_toast_signin_failed_error({
-							reason: signInResult.error.message ?? "unknown error",
-						}),
-					);
+					throw toAuthError(signInResult.error);
 				}
 
 				try {

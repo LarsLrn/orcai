@@ -35,6 +35,7 @@ import { Skeleton } from "@/components/ui/skeleton";
 import { useAppForm } from "@/hooks/form";
 import { useUpdateChatMutation } from "@/hooks/mutations/use-chat-mutation";
 import { DEFAULT_CHAT_GENERATION_PARAMS } from "@/lib/ai/utils/chat-generation-defaults";
+import { reasonMessageOf } from "@/lib/errors/describe-error";
 import { client, orpc } from "@/lib/orpc/orpc";
 import { m } from "@/paraglide/messages";
 
@@ -338,7 +339,7 @@ const ChatBlocksEditor = ({
 		},
 		onError: (error) => {
 			toast.error(m.chat_settings_block_attach_failed_toast_error(), {
-				description: error instanceof Error ? error.message : undefined,
+				description: reasonMessageOf(error),
 			});
 		},
 	});

@@ -200,6 +200,7 @@ export const findAsset = authed.asset.find
 		if (!query) {
 			return yield* Effect.fail(
 				new AppErrors.NotFoundError({
+					reason: "ASSET_NOT_FOUND",
 					message: "Asset not found",
 				}),
 			);
@@ -261,10 +262,8 @@ export const saveAsset = authed.asset.save.effect(function* ({
 		if (!hasPermission(permission)) {
 			return yield* Effect.fail(
 				new AppErrors.ForbiddenError({
+					reason: "PERMISSION_DENIED",
 					message: "You do not have permission to edit this asset.",
-					data: {
-						allowed: false,
-					},
 				}),
 			);
 		}
@@ -289,6 +288,7 @@ export const saveAsset = authed.asset.save.effect(function* ({
 	if (!input.upload) {
 		return yield* Effect.fail(
 			new AppErrors.BadRequestError({
+				reason: "ASSET_UPLOAD_REQUIRED",
 				message: "An uploaded file reference is required to create an asset.",
 			}),
 		);
@@ -299,6 +299,7 @@ export const saveAsset = authed.asset.save.effect(function* ({
 	if (!organizationId) {
 		return yield* Effect.fail(
 			new AppErrors.BadRequestError({
+				reason: "ACTIVE_ORGANIZATION_REQUIRED",
 				message: "An active organization is required to create assets.",
 			}),
 		);
@@ -315,10 +316,8 @@ export const saveAsset = authed.asset.save.effect(function* ({
 	if (!hasPermission(permission)) {
 		return yield* Effect.fail(
 			new AppErrors.ForbiddenError({
+				reason: "PERMISSION_DENIED",
 				message: "You do not have permission to create assets.",
-				data: {
-					allowed: false,
-				},
 			}),
 		);
 	}
@@ -361,10 +360,8 @@ export const saveManyAssets = authed.asset.saveMany
 						if (!hasPermission(permission)) {
 							return yield* Effect.fail(
 								new AppErrors.ForbiddenError({
+									reason: "PERMISSION_DENIED",
 									message: "You do not have permission to edit this asset.",
-									data: {
-										allowed: false,
-									},
 								}),
 							);
 						}
@@ -391,6 +388,7 @@ export const saveManyAssets = authed.asset.saveMany
 					if (!assetInput.upload) {
 						return yield* Effect.fail(
 							new AppErrors.BadRequestError({
+								reason: "ASSET_UPLOAD_REQUIRED",
 								message:
 									"An uploaded file reference is required to create an asset.",
 							}),

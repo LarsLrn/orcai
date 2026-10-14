@@ -166,7 +166,7 @@ export async function uploadFiles<TRoute extends string>(params: {
 						},
 					});
 				}
-			} catch {
+			} catch (cause) {
 				if (isMultipart) {
 					await params
 						.onMultipartAbort?.({
@@ -183,6 +183,7 @@ export async function uploadFiles<TRoute extends string>(params: {
 					error: {
 						type: "s3_upload",
 						message: "Failed to upload file to S3.",
+						cause,
 					},
 				});
 

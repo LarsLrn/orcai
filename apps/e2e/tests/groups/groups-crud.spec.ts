@@ -301,7 +301,9 @@ test("groups: the system group is immutable in the UI and at the API", async ({
 		}),
 	);
 	expect(rename.code).toBe("BAD_REQUEST");
-	expect(rename.message).toContain("SYSTEM_GROUP_IMMUTABLE");
+	expect(rename.data).toMatchObject({
+		reason: "SYSTEM_GROUP_IMMUTABLE",
+	});
 
 	const removal = await rejection(
 		api.as("admin").group.delete({
@@ -313,7 +315,9 @@ test("groups: the system group is immutable in the UI and at the API", async ({
 		}),
 	);
 	expect(removal.code).toBe("BAD_REQUEST");
-	expect(removal.message).toContain("SYSTEM_GROUP_IMMUTABLE");
+	expect(removal.data).toMatchObject({
+		reason: "SYSTEM_GROUP_IMMUTABLE",
+	});
 
 	const stillThere = await api.as("admin").group.find({
 		id: group.id,

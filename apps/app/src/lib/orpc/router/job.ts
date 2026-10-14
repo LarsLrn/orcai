@@ -38,6 +38,7 @@ export const createJobs = authed.job.create
 		if (input.jobRunner !== VECTORIZE_ASSET_JOB_NAME)
 			return yield* Effect.fail(
 				new AppErrors.BadRequestError({
+					reason: "JOB_RUNNER_UNSUPPORTED",
 					message: `Only ${VECTORIZE_ASSET_JOB_NAME} jobRunner is currently supported`,
 				}),
 			);
@@ -108,6 +109,7 @@ export const retryProcessing = authed.job.retryProcessing
 		if (!asset) {
 			return yield* Effect.fail(
 				new AppErrors.NotFoundError({
+					reason: "ASSET_NOT_FOUND",
 					message: "Asset not found",
 				}),
 			);
@@ -175,6 +177,7 @@ export const retryVectorization = authed.job.retryVectorization
 		if (!blockAsset) {
 			return yield* Effect.fail(
 				new AppErrors.NotFoundError({
+					reason: "ASSET_NOT_ATTACHED",
 					message: "Asset not attached to this block",
 				}),
 			);
@@ -183,6 +186,7 @@ export const retryVectorization = authed.job.retryVectorization
 		if (blockAsset.processingStatus !== "completed") {
 			return yield* Effect.fail(
 				new AppErrors.BadRequestError({
+					reason: "VECTORIZE_RETRY_NOT_READY",
 					message:
 						"Vectorization can only be retried after asset processing has completed successfully",
 				}),

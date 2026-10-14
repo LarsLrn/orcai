@@ -46,7 +46,6 @@ export const deleteBotsInputSchema = z.object({
 	refs: createUniqueRefsInputSchema({
 		key: "id",
 		value: botIdSchema,
-		entityName: "bot",
 	}),
 });
 

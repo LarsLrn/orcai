@@ -1,6 +1,7 @@
 import type { EmailActionSchemaType } from "@orcai/schema";
 import { useMutationAction } from "@/hooks/actions/use-mutation-action";
 import { authClient } from "@/lib/auth/auth-client";
+import { toAuthError } from "@/lib/errors/auth-error";
 import { m } from "@/paraglide/messages";
 
 export const useForgotPassword = () =>
@@ -11,7 +12,7 @@ export const useForgotPassword = () =>
 					email: value.email,
 					redirectTo: `${window.location.origin}/reset-password`,
 				});
-				if (result.error) throw new Error(result.error.message);
+				if (result.error) throw toAuthError(result.error);
 				return result;
 			},
 		}),

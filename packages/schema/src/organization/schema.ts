@@ -4,8 +4,8 @@ import { organizationRoleSchema } from "./parts/role";
 import { organizationIdSchema } from "./ref";
 
 export const organizationFieldsSchema = z.object({
-	name: z.string().min(1, "Name is required"),
-	slug: z.string().min(1, "Slug is required"),
+	name: z.string().min(1),
+	slug: z.string().min(1),
 	logo: z.string().nullable().optional(),
 	metadata: z.string().nullable().optional(),
 });

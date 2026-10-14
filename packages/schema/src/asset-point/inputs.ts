@@ -43,7 +43,6 @@ export const deleteAssetPointInputSchema = z.object({
 	refs: createUniqueRefsInputSchema({
 		key: "id",
 		value: assetPointSchema.shape.id,
-		entityName: "asset point",
 	}),
 });
 

@@ -1,6 +1,7 @@
 import type { UseMutationOptions } from "@tanstack/react-query";
 import { useMutationAction } from "@/hooks/actions/use-mutation-action";
 import { authClient } from "@/lib/auth/auth-client";
+import { toAuthError } from "@/lib/errors/auth-error";
 import { m } from "@/paraglide/messages";
 
 type UpdateProfileInput = {
@@ -22,9 +23,10 @@ export const useUpdateProfileMutation = (
 		mutationOptions: () => ({
 			...opts,
 			mutationFn: async (values: UpdateProfileInput) => {
-				await authClient.updateUser({
+				const result = await authClient.updateUser({
 					name: values.name,
 				});
+				if (result.error) throw toAuthError(result.error);
 			},
 			onSuccess: async (...args) => {
 				await refetch();

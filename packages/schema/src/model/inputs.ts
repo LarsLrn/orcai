@@ -39,7 +39,6 @@ export const deleteModelsInputSchema = z.object({
 	refs: createUniqueRefsInputSchema({
 		key: "id",
 		value: modelIdSchema,
-		entityName: "model",
 	}),
 });
 

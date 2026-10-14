@@ -53,7 +53,6 @@ export const deleteOrganizationsInputSchema = z.object({
 	refs: createUniqueRefsInputSchema({
 		key: "id",
 		value: organizationIdSchema,
-		entityName: "organisation",
 	}),
 });
 
