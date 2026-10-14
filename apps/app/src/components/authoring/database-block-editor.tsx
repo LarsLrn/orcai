@@ -28,9 +28,14 @@ import {
 	DialogTitle,
 } from "@/components/ui/dialog";
 import { emptyCapabilities } from "@/lib/authz/capabilities";
+import { m } from "@/paraglide/messages";
 
 const createDefaultDatabaseBlock = (params?: { botName: string }) => ({
-	name: `Repository${params?.botName ? ` for '${params.botName}'` : ""}`,
+	name: params?.botName
+		? m.authoring_database_block_default_name_named({
+				botName: params.botName,
+			})
+		: m.authoring_database_block_default_name(),
 	type: "database" as const,
 	description: "",
 	contentJson: null,
@@ -108,15 +113,15 @@ const DatabaseBlockEditor = ({
 				<div>
 					<CardTitle className="flex items-center gap-2">
 						<DatabaseIcon className="h-5 w-5" />
-						Repository
+						{m.authoring_database_block_title()}
 					</CardTitle>
 					<CardDescription>
-						Attach reusable assets and tune how retrieval works for this bot.
+						{m.authoring_database_block_description()}
 					</CardDescription>
 				</div>
 				{onRemove ? (
 					<Button variant="outline" size="sm" onClick={onRemove}>
-						Remove
+						{m.common_remove_button()}
 					</Button>
 				) : null}
 			</CardHeader>
@@ -129,10 +134,11 @@ const DatabaseBlockEditor = ({
 				<div className="min-w-0 rounded-xl border border-dashed bg-muted/20 p-4">
 					<div className="flex flex-wrap items-center justify-between gap-3">
 						<div>
-							<div className="font-medium text-sm">Assets</div>
+							<div className="font-medium text-sm">
+								{m.authoring_database_block_assets_title()}
+							</div>
 							<div className="text-muted-foreground text-sm">
-								Use existing assets from the Library or upload new files with
-								metadata before attaching them.
+								{m.authoring_database_block_assets_description()}
 							</div>
 						</div>
 						<div className="flex flex-wrap gap-2">
@@ -142,7 +148,7 @@ const DatabaseBlockEditor = ({
 								onClick={() => setIsLibraryOpen((current) => !current)}
 							>
 								<PlusIcon />
-								Add existing
+								{m.authoring_database_block_add_existing_action()}
 							</Button>
 							<Button
 								variant="outline"
@@ -150,7 +156,7 @@ const DatabaseBlockEditor = ({
 								onClick={() => setIsUploadOpen((current) => !current)}
 							>
 								<PlusIcon />
-								Upload new
+								{m.authoring_database_block_upload_new_action()}
 							</Button>
 						</div>
 					</div>
@@ -158,10 +164,11 @@ const DatabaseBlockEditor = ({
 					<Dialog open={isLibraryOpen} onOpenChange={setIsLibraryOpen}>
 						<DialogContent className="max-h-[88vh] sm:max-w-5xl">
 							<DialogHeader>
-								<DialogTitle>Add existing assets</DialogTitle>
+								<DialogTitle>
+									{m.authoring_database_block_library_dialog_title()}
+								</DialogTitle>
 								<DialogDescription>
-									Select reusable assets from the Library and attach them to
-									this repository.
+									{m.authoring_database_block_library_dialog_description()}
 								</DialogDescription>
 							</DialogHeader>
 							<AssetLibraryPicker
@@ -194,14 +201,15 @@ const DatabaseBlockEditor = ({
 					<Dialog open={isUploadOpen} onOpenChange={setIsUploadOpen}>
 						<DialogContent className="max-h-[88vh] sm:max-w-5xl">
 							<DialogHeader>
-								<DialogTitle>Upload new assets</DialogTitle>
+								<DialogTitle>
+									{m.authoring_database_block_upload_dialog_title()}
+								</DialogTitle>
 								<DialogDescription>
-									Upload files, complete their metadata, and attach them in one
-									focused flow.
+									{m.authoring_database_block_upload_dialog_description()}
 								</DialogDescription>
 							</DialogHeader>
 							<AssetIntakeFlow
-								submitLabel="Save assets"
+								submitLabel={m.authoring_database_block_save_assets_button()}
 								onAssetsSaved={(savedAssets) => {
 									const nextAssets = mergeAssets(assets, savedAssets);
 									onAssetsChange(nextAssets);
@@ -216,12 +224,18 @@ const DatabaseBlockEditor = ({
 				<div className="space-y-3">
 					<div className="flex items-center justify-between gap-3">
 						<div>
-							<div className="font-medium text-sm">Attached assets</div>
+							<div className="font-medium text-sm">
+								{m.authoring_database_block_attached_title()}
+							</div>
 							<div className="text-muted-foreground text-sm">
-								Each item keeps its reusable metadata from the Library.
+								{m.authoring_database_block_attached_description()}
 							</div>
 						</div>
-						<Badge variant="secondary">{assets.length} attached</Badge>
+						<Badge variant="secondary">
+							{m.authoring_database_block_attached_badge({
+								count: assets.length,
+							})}
+						</Badge>
 					</div>
 
 					{assets.length > 0 ? (
@@ -241,7 +255,7 @@ const DatabaseBlockEditor = ({
 						/>
 					) : (
 						<div className="rounded-xl border border-dashed bg-muted/10 p-6 text-center text-muted-foreground text-sm">
-							No assets attached yet.
+							{m.authoring_database_block_assets_empty_state()}
 						</div>
 					)}
 				</div>
@@ -250,10 +264,10 @@ const DatabaseBlockEditor = ({
 					<CollapsibleTrigger className="flex w-full items-center justify-between rounded-xl border bg-muted/15 px-4 py-3 text-left">
 						<div>
 							<div className="font-medium text-sm">
-								Advanced retrieval settings
+								{m.authoring_database_block_advanced_title()}
 							</div>
 							<div className="text-muted-foreground text-sm">
-								Tune reference counts and retrieval constraints.
+								{m.authoring_database_block_advanced_description()}
 							</div>
 						</div>
 						<ChevronDownIcon

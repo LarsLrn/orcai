@@ -9,6 +9,7 @@ import {
 } from "@/components/ui/shell/page";
 import { ensureEntityCapability } from "@/lib/authz/route-guards";
 import { orpc } from "@/lib/orpc/orpc";
+import { m } from "@/paraglide/messages";
 
 export const Route = createFileRoute("/app/hub/assets/$assetId/edit")({
 	loader: async ({ context: { queryClient }, params: { assetId } }) => {
@@ -24,7 +25,7 @@ export const Route = createFileRoute("/app/hub/assets/$assetId/edit")({
 	head: () => ({
 		meta: [
 			{
-				title: "Edit",
+				title: m.assets_edit_page_meta_title(),
 			},
 		],
 	}),
@@ -43,7 +44,7 @@ function RouteComponent() {
 	return (
 		<Page>
 			<PageHeader>
-				<PageTitle>Edit asset</PageTitle>
+				<PageTitle>{m.assets_edit_page_title()}</PageTitle>
 			</PageHeader>
 			<PageContent>
 				<AssetForm asset={asset.data} />

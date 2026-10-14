@@ -1,7 +1,6 @@
 import type { AssetId } from "@orcai/core";
 import type { Asset } from "@orcai/schema";
 import type { FileUIPart, SourceDocumentUIPart } from "ai";
-import convert from "convert";
 import {
 	Attachment,
 	type AttachmentData,
@@ -15,6 +14,7 @@ import {
 } from "@/components/ai-elements/attachments";
 import { InputGroupAddon } from "@/components/ui/input-group";
 import { getFileTypeLabel } from "@/lib/presentation/file-type";
+import { formatFileSize } from "@/lib/presentation/format-file-size";
 import type { LocalChatFile } from "./use-chat-attachments";
 
 const localFileToUiPart = (file: LocalChatFile) =>
@@ -76,8 +76,7 @@ const AttachmentNode = ({
 						<h4 className="font-semibold text-sm leading-none">{title}</h4>
 
 						<p className="font-mono text-muted-foreground text-xs">
-							{getFileTypeLabel(fileType)} ·{" "}
-							{convert(size, "B").to("best").toString(2)}
+							{getFileTypeLabel(fileType)} · {formatFileSize(size)}
 						</p>
 					</div>
 				</div>

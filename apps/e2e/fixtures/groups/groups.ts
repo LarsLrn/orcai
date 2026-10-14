@@ -5,6 +5,7 @@ import { type ApiClient, createApiClient, type ZedTokenStore } from "../api";
 import { signUpInvited } from "../auth";
 import { EMAIL_DOMAIN } from "../constants";
 import { baseURL } from "../env";
+import { message } from "../messages";
 import { open } from "../navigation";
 import { runId } from "../organisation";
 
@@ -141,7 +142,7 @@ export const createGroupThroughUi = async (
 	await open(page, filteredList(page, name));
 
 	const dialogTitle = page.getByRole("heading", {
-		name: "Create Group",
+		name: message("groups_create_dialog_title"),
 	});
 
 	// The button opens the dialog once the page has hydrated.
@@ -149,7 +150,7 @@ export const createGroupThroughUi = async (
 		if (!(await dialogTitle.isVisible())) {
 			await page
 				.getByRole("button", {
-					name: "Create Group",
+					name: message("groups_list_create_action"),
 				})
 				.click();
 		}
@@ -161,10 +162,10 @@ export const createGroupThroughUi = async (
 		timeout: 25_000,
 	});
 
-	await page.getByLabel("Name").fill(name);
+	await page.getByLabel(message("common_name_label")).fill(name);
 	await page
 		.getByRole("button", {
-			name: "Create",
+			name: message("common_create_button"),
 			exact: true,
 		})
 		.click();
@@ -198,7 +199,9 @@ export const memberRow = (page: Page, email: string): Locator =>
 			exact: true,
 		})
 		.locator(
-			'xpath=ancestor::div[.//button[normalize-space()="Remove member"]][1]',
+			`xpath=ancestor::div[.//button[normalize-space()="${message(
+				"groups_member_row_remove_aria_label",
+			)}"]][1]`,
 		);
 
 /** A member of the organisation that belongs to no group. Shares the test's zedToken memory. */

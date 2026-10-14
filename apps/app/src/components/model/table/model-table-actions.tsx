@@ -2,6 +2,7 @@ import type { Model } from "@orcai/schema";
 import { DataTableBulkActions } from "@/components/ui/data-table/data-table-bulk-actions";
 import { useTable } from "@/components/ui/data-table/data-table-context";
 import { useDeleteModelsMutation } from "@/hooks/mutations/use-model-mutations";
+import { m } from "@/paraglide/messages";
 
 const ModelTableActions = () => {
 	const { table } = useTable();
@@ -16,7 +17,7 @@ const ModelTableActions = () => {
 			isPending={deleteModels.isPending}
 			actions={[
 				{
-					label: "Delete selected",
+					label: m.common_delete_selected_action(),
 					variant: "destructive",
 					onSelect: ({ selectedRows }) =>
 						deleteModels.mutate({

@@ -6,6 +6,7 @@ import {
 } from "../../fixtures/auth";
 import { EMAIL_DOMAIN, USER_PASSWORD } from "../../fixtures/constants";
 import { expect, test } from "../../fixtures/index";
+import { message } from "../../fixtures/messages";
 import { open } from "../../fixtures/navigation";
 
 const freshEmail = (label: string) =>
@@ -18,15 +19,17 @@ test("the register page turns away a visitor without an invitation", async ({
 
 	// Registration is by invitation, so the bare page says so and points at
 	// sign-in instead of offering a form.
-	await expect(page.getByText("Registration is by invitation")).toBeVisible();
+	await expect(
+		page.getByText(message("auth_register_page_no_invitation_title")),
+	).toBeVisible();
 	await expect(
 		page.getByRole("button", {
-			name: "Register",
+			name: message("auth_signup_form_submit_button"),
 		}),
 	).toHaveCount(0);
 	await expect(
 		page.getByRole("link", {
-			name: "Go to sign in",
+			name: message("auth_register_page_go_to_signin_action"),
 		}),
 	).toBeVisible();
 });

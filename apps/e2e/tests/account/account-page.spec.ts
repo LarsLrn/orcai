@@ -3,6 +3,7 @@ import {
 	openAccountPage,
 } from "../../fixtures/account/navigation";
 import { expect, test } from "../../fixtures/index";
+import { message } from "../../fixtures/messages";
 
 test("account: the account page shows the signed-in user's profile and an unverified address", async ({
 	org,
@@ -19,38 +20,49 @@ test("account: the account page shows the signed-in user's profile and an unveri
 	await expect(page.getByText("E2E member").first()).toBeVisible();
 
 	await expect(
-		accountCard(page, "Your Profile").getByLabel("Name", {
-			exact: true,
-		}),
+		accountCard(page, message("account_profile_card_title")).getByLabel(
+			message("users_profile_form_name_label"),
+			{
+				exact: true,
+			},
+		),
 	).toHaveValue("E2E member");
 
 	// Sign-up never verifies an address, so a fixture user is unverified and
 	// the card offers to send the mail again.
-	const verification = accountCard(page, "Email Verification");
+	const verification = accountCard(
+		page,
+		message("account_verification_card_title"),
+	);
 
 	await expect(
-		verification.getByText("Your email address is not verified."),
+		verification.getByText(
+			message("account_verification_unverified_description"),
+		),
 	).toBeVisible();
 	await expect(
 		verification.getByRole("button", {
-			name: "Send Verification Email",
+			name: message("account_verification_send_button"),
 		}),
 	).toBeVisible();
 
 	await expect(
-		accountCard(page, "Change Password").getByRole("button", {
-			name: "Change Password",
-		}),
+		accountCard(page, message("account_password_card_title")).getByRole(
+			"button",
+			{
+				name: message("auth_change_password_form_submit_button"),
+			},
+		),
 	).toBeVisible();
 
 	await expect(
 		page.getByRole("link", {
-			name: "Privacy Policy",
+			name: message("account_legal_privacy_link"),
 		}),
 	).toBeVisible();
 	await expect(
 		page.getByRole("link", {
-			name: "Terms of Use",
+			name: message("account_legal_terms_link"),
 		}),
 	).toBeVisible();
 });

@@ -25,6 +25,7 @@ import {
 	SelectValue,
 } from "@/components/ui/select";
 import { orpc } from "@/lib/orpc/orpc";
+import { m } from "@/paraglide/messages";
 
 type DiscoverResult =
 	| {
@@ -91,7 +92,7 @@ const DiscoverModels = () => {
 				message:
 					error instanceof Error
 						? error.message
-						: "The provider was not reached, so no models were listed. Check the provider settings and try again.",
+						: m.models_discover_error_fallback_description(),
 			});
 		}
 	};
@@ -99,22 +100,28 @@ const DiscoverModels = () => {
 	return (
 		<Dialog open={isOpen} onOpenChange={handleOpenChange}>
 			<DialogTrigger
-				render={<Button variant="outline">Discover models</Button>}
+				render={
+					<Button variant="outline">
+						{m.models_discover_trigger_button()}
+					</Button>
+				}
 			/>
 			<DialogContent>
 				<DialogHeader>
-					<DialogTitle>Discover models</DialogTitle>
+					<DialogTitle>{m.models_discover_dialog_title()}</DialogTitle>
 					<DialogDescription>
-						Choose a provider and discover available models automatically.
+						{m.models_discover_dialog_description()}
 					</DialogDescription>
 				</DialogHeader>
 
 				<div className="flex flex-col gap-4">
 					<Field orientation="vertical">
 						<FieldContent>
-							<FieldLabel htmlFor={providerSelectId}>Provider</FieldLabel>
+							<FieldLabel htmlFor={providerSelectId}>
+								{m.common_provider_label()}
+							</FieldLabel>
 							<FieldDescription>
-								Select the provider to discover models from.
+								{m.models_discover_provider_field_description()}
 							</FieldDescription>
 						</FieldContent>
 						<Select
@@ -132,7 +139,7 @@ const DiscoverModels = () => {
 									{(value) =>
 										providers.data?.data.find(
 											(provider) => provider.id === value,
-										)?.name ?? "Select a provider"
+										)?.name ?? m.models_discover_provider_placeholder()
 									}
 								</SelectValue>
 							</SelectTrigger>
@@ -148,27 +155,29 @@ const DiscoverModels = () => {
 
 					{providers.data?.data.length === 0 && (
 						<Alert variant="destructive">
-							<AlertTitle>No providers available</AlertTitle>
+							<AlertTitle>{m.models_discover_no_providers_title()}</AlertTitle>
 							<AlertDescription>
-								Create a provider first, then run model discovery.
+								{m.models_discover_no_providers_description()}
 							</AlertDescription>
 						</Alert>
 					)}
 
 					{result?.status === "success" && (
 						<Alert>
-							<AlertTitle>Discovery completed</AlertTitle>
+							<AlertTitle>{m.models_discover_success_title()}</AlertTitle>
 							<AlertDescription>
-								Found {result.foundCount} model
-								{result.foundCount === 1 ? "" : "s"}. Added {result.addedCount},{" "}
-								{result.alreadyExistedCount} already existed.
+								{m.models_discover_success_description({
+									count: result.foundCount,
+									addedCount: result.addedCount,
+									alreadyExistedCount: result.alreadyExistedCount,
+								})}
 							</AlertDescription>
 						</Alert>
 					)}
 
 					{result?.status === "error" && (
 						<Alert variant="destructive">
-							<AlertTitle>Discovery failed</AlertTitle>
+							<AlertTitle>{m.models_discover_error_title()}</AlertTitle>
 							<AlertDescription>{result.message}</AlertDescription>
 						</Alert>
 					)}
@@ -180,7 +189,7 @@ const DiscoverModels = () => {
 						onClick={() => handleOpenChange(false)}
 						disabled={isPending}
 					>
-						Cancel
+						{m.common_cancel_button()}
 					</Button>
 					<Button
 						onClick={handleDiscoverModels}
@@ -190,7 +199,9 @@ const DiscoverModels = () => {
 							(providers.data?.data.length ?? 0) === 0
 						}
 					>
-						{isPending ? "Discovering..." : "Discover models"}
+						{isPending
+							? m.models_discover_pending_button()
+							: m.models_discover_trigger_button()}
 					</Button>
 				</DialogFooter>
 			</DialogContent>

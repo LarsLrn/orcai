@@ -15,6 +15,8 @@ import {
 } from "@/components/ui/card";
 import { useSaveAssetMutation } from "@/hooks/mutations/use-asset-mutations";
 import { getFileTypeLabel } from "@/lib/presentation/file-type";
+import { formatFileSize } from "@/lib/presentation/format-file-size";
+import { m } from "@/paraglide/messages";
 
 const AssetForm = ({ asset }: { asset: Asset }) => {
 	const { mutate: saveAsset, isPending } = useSaveAssetMutation();
@@ -28,17 +30,14 @@ const AssetForm = ({ asset }: { asset: Asset }) => {
 			<Card>
 				<CardHeader>
 					<CardTitle>{asset.title}</CardTitle>
-					<CardDescription>
-						Edit the reusable metadata shown when this content item is cited in
-						AI answers.
-					</CardDescription>
+					<CardDescription>{m.assets_form_description()}</CardDescription>
 				</CardHeader>
 				<CardContent className="space-y-4">
 					<div className="flex flex-wrap gap-2">
 						<Badge variant="secondary">
 							{getFileTypeLabel(asset.fileType)}
 						</Badge>
-						<Badge variant="outline">{asset.size} bytes</Badge>
+						<Badge variant="outline">{formatFileSize(asset.size)}</Badge>
 					</div>
 
 					<AssetMetadataEditor value={value} onChange={setValue} />
@@ -56,7 +55,7 @@ const AssetForm = ({ asset }: { asset: Asset }) => {
 					}
 					disabled={isPending}
 				>
-					Save content
+					{m.assets_form_submit_button()}
 				</Button>
 			</div>
 		</div>

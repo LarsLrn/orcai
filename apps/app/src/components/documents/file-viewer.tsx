@@ -10,6 +10,7 @@ import { Spinner } from "@/components/ui/spinner";
 import { useIsMobile } from "@/hooks/use-mobile";
 import { orpc } from "@/lib/orpc/orpc";
 import { cn } from "@/lib/utils";
+import { m } from "@/paraglide/messages";
 import { AssetMeta } from "./asset-meta";
 
 const FileViewer = ({ asset }: { asset: Asset }) => {
@@ -34,8 +35,8 @@ const FileViewer = ({ asset }: { asset: Asset }) => {
 	if (status === "error") {
 		return (
 			<Placeholder
-				title="This asset could not be loaded"
-				description="Reload the page to try again. A newly uploaded file may still be processing."
+				title={m.assets_file_viewer_error_title()}
+				description={m.assets_file_viewer_error_description()}
 			/>
 		);
 	}
@@ -51,8 +52,8 @@ const FileViewer = ({ asset }: { asset: Asset }) => {
 				<div className="size-full xl:col-span-3">
 					{isMobile ? (
 						<Placeholder
-							title="Preview not available on mobile"
-							description="Open this asset on a larger screen to preview it."
+							title={m.assets_file_viewer_mobile_title()}
+							description={m.assets_file_viewer_mobile_description()}
 							Icon={SmartphoneIcon}
 						/>
 					) : (
@@ -130,8 +131,8 @@ const Viewport = ({
 		default:
 			return (
 				<Placeholder
-					title="Unsupported file type"
-					description="Download the file to open it in another application."
+					title={m.assets_file_viewer_unsupported_title()}
+					description={m.assets_file_viewer_unsupported_description()}
 				/>
 			);
 	}

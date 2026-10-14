@@ -36,6 +36,16 @@ import {
 	SectionTitle,
 } from "@/components/ui/shell/section";
 import { useCreateJobMutation } from "@/hooks/mutations/use-job-mutations";
+import { m } from "@/paraglide/messages";
+
+const getRetrievalModeLabel = (
+	mode: DatabaseBlock["config"]["retrievalMode"],
+) =>
+	mode === "dense"
+		? m.blocks_retrieval_mode_dense_label()
+		: mode === "sparse"
+			? m.blocks_retrieval_mode_sparse_label()
+			: m.blocks_retrieval_mode_hybrid_label();
 
 /** --- Main Card --- */
 const DatabaseBlockConfigCard = ({
@@ -71,9 +81,11 @@ const DatabaseBlockConfigCard = ({
 					)}
 
 					<div className="space-y-1">
-						<div className="font-medium text-sm">Retrieval configuration</div>
+						<div className="font-medium text-sm">
+							{m.blocks_database_config_retrieval_title()}
+						</div>
 						<p className="text-muted-foreground text-sm">
-							These settings control how the AI searches attached content.
+							{m.blocks_database_config_retrieval_description()}
 						</p>
 					</div>
 
@@ -81,10 +93,10 @@ const DatabaseBlockConfigCard = ({
 					<div className="flex items-center justify-between">
 						<div className="space-y-1">
 							<div className="text-muted-foreground text-xs uppercase">
-								Retrieval mode
+								{m.blocks_database_config_retrieval_mode_label()}
 							</div>
-							<Badge variant="secondary" className="capitalize">
-								{config.retrievalMode ?? "hybrid"}
+							<Badge variant="secondary">
+								{getRetrievalModeLabel(config.retrievalMode)}
 							</Badge>
 						</div>
 					</div>
@@ -92,14 +104,16 @@ const DatabaseBlockConfigCard = ({
 					<Separator />
 
 					<div className="space-y-2">
-						<div className="font-medium text-sm">References</div>
+						<div className="font-medium text-sm">
+							{m.blocks_database_config_references_title()}
+						</div>
 						<div className="grid grid-cols-3 gap-3">
 							<div className="rounded-xl border bg-muted/30 p-3 text-center">
 								<div className="font-semibold text-xl tabular-nums">
 									{config.minReferences}
 								</div>
 								<div className="mt-1 text-muted-foreground text-xs">
-									Minimum
+									{m.blocks_database_config_min_references_label()}
 								</div>
 							</div>
 							<div className="rounded-xl border bg-muted/30 p-3 text-center">
@@ -107,7 +121,7 @@ const DatabaseBlockConfigCard = ({
 									{config.defaultReferences}
 								</div>
 								<div className="mt-1 text-muted-foreground text-xs">
-									Default
+									{m.blocks_database_config_default_references_label()}
 								</div>
 							</div>
 							<div className="rounded-xl border bg-muted/30 p-3 text-center">
@@ -115,7 +129,7 @@ const DatabaseBlockConfigCard = ({
 									{config.maxReferences}
 								</div>
 								<div className="mt-1 text-muted-foreground text-xs">
-									Maximum
+									{m.blocks_database_config_max_references_label()}
 								</div>
 							</div>
 						</div>
@@ -126,7 +140,9 @@ const DatabaseBlockConfigCard = ({
 					{/* Advanced settings collapsible */}
 					<Collapsible open={isAdvancedOpen} onOpenChange={setIsAdvancedOpen}>
 						<CollapsibleTrigger className="flex w-full items-center justify-between text-sm">
-							<span className="font-medium">Advanced settings</span>
+							<span className="font-medium">
+								{m.blocks_database_config_advanced_settings_label()}
+							</span>
 							<ChevronDownIcon
 								className={`size-4 text-muted-foreground transition-transform ${isAdvancedOpen ? "rotate-180" : ""}`}
 							/>
@@ -138,7 +154,7 @@ const DatabaseBlockConfigCard = ({
 										{config.scoreThreshold ?? 0.2}
 									</div>
 									<div className="mt-1 text-muted-foreground text-xs">
-										Score threshold
+										{m.blocks_database_config_score_threshold_label()}
 									</div>
 								</div>
 								<div className="rounded-xl border bg-muted/30 p-3 text-center">
@@ -146,7 +162,7 @@ const DatabaseBlockConfigCard = ({
 										{config.candidateLimit ?? 40}
 									</div>
 									<div className="mt-1 text-muted-foreground text-xs">
-										Candidate limit
+										{m.blocks_database_config_candidate_limit_label()}
 									</div>
 								</div>
 								<div className="rounded-xl border bg-muted/30 p-3 text-center">
@@ -154,7 +170,7 @@ const DatabaseBlockConfigCard = ({
 										{config.maxPerAsset ?? 6}
 									</div>
 									<div className="mt-1 text-muted-foreground text-xs">
-										Max per asset
+										{m.blocks_database_config_max_per_asset_label()}
 									</div>
 								</div>
 							</div>
@@ -181,9 +197,13 @@ const AssetSection = ({
 	return (
 		<Section>
 			<SectionHeader>
-				<SectionTitle>Content ({assets.length})</SectionTitle>
+				<SectionTitle>
+					{m.blocks_database_config_assets_title({
+						count: assets.length,
+					})}
+				</SectionTitle>
 				<SectionDescription>
-					This is the content currently attached to this repository.
+					{m.blocks_database_config_assets_description()}
 				</SectionDescription>
 				<SectionAction>
 					<JobListDialog
@@ -198,7 +218,9 @@ const AssetSection = ({
 							render={
 								<Button variant="ghost" size="icon">
 									<MoreVerticalIcon className="size-4" />
-									<span className="sr-only">More options</span>
+									<span className="sr-only">
+										{m.blocks_database_config_assets_menu_trigger()}
+									</span>
 								</Button>
 							}
 						/>
@@ -212,7 +234,7 @@ const AssetSection = ({
 								}
 							>
 								<Move3dIcon />
-								Create vector store
+								{m.blocks_database_config_create_vector_store_action()}
 							</DropdownMenuItem>
 							<DropdownMenuItem
 								onClick={() =>
@@ -225,7 +247,7 @@ const AssetSection = ({
 								}
 							>
 								<ExternalLinkIcon />
-								View vector points
+								{m.blocks_database_config_view_vector_points_action()}
 							</DropdownMenuItem>
 						</DropdownMenuContent>
 					</DropdownMenu>

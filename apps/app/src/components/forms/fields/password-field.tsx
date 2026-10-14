@@ -11,6 +11,7 @@ import {
 import { Input } from "@/components/ui/input";
 import { useFieldContext } from "@/hooks/form/context";
 import { cn } from "@/lib/utils";
+import { m } from "@/paraglide/messages";
 
 type PasswordFieldProps = {
 	label: string;
@@ -60,7 +61,11 @@ const PasswordField = ({
 						type="button"
 						onClick={() => setIsPasswordVisible(!isPasswordVisible)}
 						tabIndex={-1}
-						aria-label={isPasswordVisible ? "Hide password" : "Show password"}
+						aria-label={
+							isPasswordVisible
+								? m.forms_password_field_hide_button()
+								: m.forms_password_field_show_button()
+						}
 						aria-pressed={isPasswordVisible}
 						aria-controls={id}
 					>

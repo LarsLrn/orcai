@@ -12,6 +12,7 @@ import {
 	ContextTrigger,
 } from "@/components/ai-elements/context";
 import type { ChatAgentUIMessage } from "@/lib/ai/types/chat-agent-message";
+import { m } from "@/paraglide/messages";
 
 const MessageUsage = ({ message }: { message: ChatAgentUIMessage }) => {
 	if (message.role === "user") return null;
@@ -47,7 +48,7 @@ const MessageUsage = ({ message }: { message: ChatAgentUIMessage }) => {
 				<span className="flex h-8 min-w-0 items-center gap-1 text-muted-foreground text-xs">
 					<BotIcon className="size-4 shrink-0" />
 					<span className="wrap-anywhere min-w-0 text-left">
-						{message.metadata?.model ?? "Unknown model"}
+						{message.metadata?.model ?? m.chat_message_usage_unknown_model()}
 					</span>
 				</span>
 			</ContextTrigger>

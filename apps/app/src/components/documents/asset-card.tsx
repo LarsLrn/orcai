@@ -37,6 +37,7 @@ import {
 	getProcessingStatusLabel,
 	getProcessingStatusVariant,
 } from "@/lib/presentation/processing-status";
+import { m } from "@/paraglide/messages";
 
 const AssetCard = ({
 	asset,
@@ -58,7 +59,7 @@ const AssetCard = ({
 	const meta: ResourceCardMetaItem[] = [];
 	if (asset.createdAt) {
 		meta.push({
-			label: "Created",
+			label: m.assets_card_created_label(),
 			value: formatDisplayDate(asset.createdAt),
 		});
 	}
@@ -66,7 +67,7 @@ const AssetCard = ({
 	const footerActions: ResourceCardActionItem[] = actions?.footer ?? [
 		{
 			key: "view",
-			label: "View",
+			label: m.assets_card_view_action(),
 			icon: EyeIcon,
 			linkProps: {
 				to: "/app/hub/assets/$assetId",
@@ -79,7 +80,7 @@ const AssetCard = ({
 			? [
 					{
 						key: "edit",
-						label: "Edit asset",
+						label: m.assets_card_edit_action(),
 						icon: EditIcon,
 						variant: "default",
 						linkProps: {
@@ -121,9 +122,13 @@ const AssetCard = ({
 
 	let description: string | undefined;
 	if (asset.metadata.chapterTitle) {
-		description = `Chapter: ${asset.metadata.chapterTitle}`;
+		description = m.assets_card_chapter_description({
+			name: asset.metadata.chapterTitle,
+		});
 	} else if (asset.metadata.author) {
-		description = `Author: ${asset.metadata.author}`;
+		description = m.assets_card_author_description({
+			name: asset.metadata.author,
+		});
 	}
 
 	return (

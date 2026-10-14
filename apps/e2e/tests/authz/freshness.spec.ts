@@ -2,6 +2,7 @@ import { createApiClient, ZED_TOKEN_COOKIE } from "../../fixtures/api";
 import { expectForbidden, untilAllowed } from "../../fixtures/authorization";
 import { submitForm } from "../../fixtures/forms";
 import { expect, test } from "../../fixtures/index";
+import { message } from "../../fixtures/messages";
 import { enterApp, open } from "../../fixtures/navigation";
 import { runId } from "../../fixtures/organisation";
 
@@ -142,12 +143,12 @@ test("a block created in the browser is readable on the page the creation naviga
 	// the zedToken back as a cookie the page keeps.
 	await submitForm(page, {
 		fill: async () => {
-			await page.getByLabel("Name").fill(blockName);
+			await page.getByLabel(message("common_name_label")).fill(blockName);
 			await page
-				.getByLabel("System Prompt")
+				.getByLabel(message("blocks_template_form_system_prompt_label"))
 				.fill("Created through the browser by the authz freshness slice.");
 		},
-		submit: "Save AI Behaviour",
+		submit: message("blocks_template_form_create_submit_button"),
 		// The created block, not the add page it was submitted from.
 		until: /\/app\/hub\/blocks\/(?!add$)[^/]+$/,
 	});
@@ -162,7 +163,7 @@ test("a block created in the browser is readable on the page the creation naviga
 	).toBeVisible();
 	await expect(
 		page.getByRole("button", {
-			name: "Try Again",
+			name: message("boundaries_default_error_retry_button"),
 		}),
 	).toHaveCount(0);
 });

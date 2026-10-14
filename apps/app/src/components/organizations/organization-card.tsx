@@ -9,6 +9,7 @@ import {
 	ResourceCardHeader,
 	ResourceCardTitle,
 } from "@/components/ui/shell/resource-card";
+import { m } from "@/paraglide/messages";
 
 const OrganizationCard = ({
 	organization,
@@ -37,7 +38,7 @@ const OrganizationCard = ({
 					<ResourceCardBadges
 						badges={[
 							{
-								label: "Organisation",
+								label: m.orgs_card_type_badge(),
 								variant: "secondary",
 								icon: BuildingIcon,
 							},

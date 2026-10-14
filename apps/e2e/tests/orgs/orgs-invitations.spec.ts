@@ -2,6 +2,7 @@ import { waitForLink } from "../../fixtures/auth/outbox";
 import { USER_PASSWORD } from "../../fixtures/constants";
 import { submitForm } from "../../fixtures/forms";
 import { expect, test } from "../../fixtures/index";
+import { message } from "../../fixtures/messages";
 import { enterApp, open } from "../../fixtures/navigation";
 import {
 	INVITED_NOTIFICATION,
@@ -26,7 +27,7 @@ test("orgs: an admin invites an address through the form and the link reaches th
 	const page = await pageAs("admin");
 
 	await enterApp(page, org.slug);
-	await openGuarded(page, "/app/users/add", "Add User");
+	await openGuarded(page, "/app/users/add", message("users_add_page_title"));
 
 	// The form starts on the active organisation and on "Member"; only the
 	// role and the address are worth saying out loud.
@@ -34,9 +35,15 @@ test("orgs: an admin invites an address through the form and the link reaches th
 
 	await submitForm(page, {
 		fill: async () => {
-			await page.getByLabel("User 1 Email").fill(email);
+			await page
+				.getByLabel(
+					message("orgs_invitation_form_email_label", {
+						position: 1,
+					}),
+				)
+				.fill(email);
 		},
-		submit: "Create Invitations",
+		submit: message("orgs_invitation_form_submit_button"),
 		until: /\/app\/users\/invites/,
 	});
 
@@ -132,7 +139,11 @@ test("orgs: an existing user accepts a pending invitation from the selection pag
 
 	try {
 		await open(page, "/select-organization");
-		await expect(page.getByText("Pending invitations")).toBeVisible();
+		await expect(
+			page.getByText(
+				message("select_organisation_page_pending_invitations_title"),
+			),
+		).toBeVisible();
 		// The invitation carries the organisation's name and slug, so the card
 		// names them without reading an organisation the user is not in yet.
 		await expect(
@@ -143,7 +154,7 @@ test("orgs: an existing user accepts a pending invitation from the selection pag
 
 		await page
 			.getByRole("button", {
-				name: "Accept",
+				name: message("orgs_invitation_accept_button"),
 			})
 			.click();
 		await expect(page).toHaveURL(/\/app(\/|$)/);
@@ -176,7 +187,11 @@ test("orgs: a revoked invitation no longer opens the registration form", async (
 	const page = await pageAs("admin");
 
 	await enterApp(page, org.slug);
-	await openGuarded(page, "/app/users/invites", "Organisation Invitations");
+	await openGuarded(
+		page,
+		"/app/users/invites",
+		message("users_invites_page_title"),
+	);
 
 	// The list is sorted newest first, so the invitation this test just
 	// created is on the first page.
@@ -190,12 +205,12 @@ test("orgs: a revoked invitation no longer opens the registration form", async (
 	await expect(async () => {
 		await row
 			.getByRole("button", {
-				name: "Open menu",
+				name: message("common_row_menu_trigger"),
 			})
 			.click();
 		await expect(
 			page.getByRole("menuitem", {
-				name: "Delete Organization Invitation",
+				name: message("users_invites_table_delete_action"),
 			}),
 		).toBeVisible({
 			timeout: 3_000,
@@ -206,12 +221,12 @@ test("orgs: a revoked invitation no longer opens the registration form", async (
 
 	await page
 		.getByRole("menuitem", {
-			name: "Delete Organization Invitation",
+			name: message("users_invites_table_delete_action"),
 		})
 		.click();
 	await page
 		.getByRole("button", {
-			name: "Delete",
+			name: message("common_delete_button"),
 			exact: true,
 		})
 		.click();
@@ -231,10 +246,14 @@ test("orgs: a revoked invitation no longer opens the registration form", async (
 
 	try {
 		await open(visitor, link);
-		await expect(visitor.getByText("Invitation not found")).toBeVisible();
+		await expect(
+			visitor.getByText(
+				message("auth_register_page_invitation_not_found_title"),
+			),
+		).toBeVisible();
 		await expect(
 			visitor.getByRole("button", {
-				name: "Register",
+				name: message("auth_signup_form_submit_button"),
 			}),
 		).toHaveCount(0);
 	} finally {
@@ -285,7 +304,11 @@ test("orgs: the invitations list carries only the inviter's own invitations", as
 
 	const page = await pageAs("admin");
 	await enterApp(page, org.slug);
-	await openGuarded(page, "/app/users/invites", "Organisation Invitations");
+	await openGuarded(
+		page,
+		"/app/users/invites",
+		message("users_invites_page_title"),
+	);
 
 	// Both invitations are newer than anything else this admin sent, so the
 	// first page of the list settles the question.

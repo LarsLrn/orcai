@@ -3,17 +3,13 @@ import { useRouter } from "@tanstack/react-router";
 import { useMutationAction } from "@/hooks/actions/use-mutation-action";
 import {
 	type DestructiveTarget,
-	describeAction,
-	describeFailure,
-	describeOutcome,
-	describeProgress,
-	describeTarget,
-} from "@/hooks/mutations/destructive-copy";
+	singleTargetName,
+} from "@/hooks/mutations/destructive-target";
 import { orpc } from "@/lib/orpc/orpc";
+import { m } from "@/paraglide/messages";
 
-const BLOCK_NOUNS = {
-	noun: "block",
-	nounPlural: "blocks",
+type BlockDeleteTarget = DestructiveTarget & {
+	kind?: "block" | "repository" | "behaviour";
 };
 
 export const useCreateBlockMutation = (
@@ -50,9 +46,9 @@ export const useCreateBlockMutation = (
 			});
 		},
 		messages: {
-			loading: "Creating block...",
-			success: "Block created successfully",
-			error: "Failed to create block",
+			loading: () => m.blocks_create_toast_loading(),
+			success: () => m.blocks_create_toast_success(),
+			error: () => m.blocks_create_toast_error(),
 		},
 	});
 };
@@ -85,16 +81,16 @@ export const useUpdateBlockMutation = (
 				},
 			}),
 		messages: {
-			loading: "Updating block...",
-			success: "Block updated successfully",
-			error: "Failed to update block",
+			loading: () => m.blocks_update_toast_loading(),
+			success: () => m.blocks_update_toast_success(),
+			error: () => m.blocks_update_toast_error(),
 		},
 	});
 };
 
 export const useDeleteBlocksMutation = (
 	opts: ReturnType<typeof orpc.block.delete.mutationOptions> = {},
-	target?: DestructiveTarget,
+	target?: BlockDeleteTarget,
 ) => {
 	const queryClient = useQueryClient();
 
@@ -119,23 +115,44 @@ export const useDeleteBlocksMutation = (
 			}),
 		messages: {
 			loading: ({ input }) =>
-				describeProgress("Deleting", input.refs.length, BLOCK_NOUNS, target),
+				m.blocks_delete_toast_loading({
+					count: input.refs.length,
+					kind: target?.kind ?? "block",
+				}),
 			success: ({ input }) =>
-				describeOutcome(input.refs.length, BLOCK_NOUNS, "deleted", target),
+				m.blocks_delete_toast_success({
+					count: input.refs.length,
+					kind: target?.kind ?? "block",
+				}),
 			error: ({ input }) =>
-				describeFailure(input.refs.length, BLOCK_NOUNS, "deleted", target),
+				m.blocks_delete_toast_error({
+					count: input.refs.length,
+					kind: target?.kind ?? "block",
+				}),
 		},
 		confirm: (input) => {
 			const count = input.refs.length;
+			const kind = target?.kind ?? "block";
+			const name = singleTargetName(count, target);
 
 			return {
-				title: `Delete ${describeTarget(count, BLOCK_NOUNS, target)}?`,
-				description:
-					count === 1
-						? "Bots and chats that use it lose it, and its links to indexed material go with it."
-						: "Bots and chats that use them lose them, and their links to indexed material go with them.",
-				confirmText: describeAction("Delete", count, BLOCK_NOUNS, target),
-				cancelText: "Cancel",
+				title: name
+					? m.blocks_delete_confirm_title_named({
+							kind,
+							name,
+						})
+					: m.blocks_delete_confirm_title({
+							count,
+							kind,
+						}),
+				description: m.blocks_delete_confirm_description({
+					count,
+				}),
+				confirmText: m.blocks_delete_confirm_button({
+					count,
+					kind,
+				}),
+				cancelText: m.common_cancel_button(),
 			};
 		},
 	});
@@ -166,12 +183,12 @@ export const useSetBlockStatusMutation = (
 				},
 			}),
 		messages: {
-			loading: "Updating block status...",
+			loading: () => m.blocks_status_toast_loading(),
 			success: ({ input }) =>
 				input.status === "ready"
-					? "Block marked as ready"
-					: "Block moved to draft",
-			error: "Failed to update block status",
+					? m.blocks_status_toast_success_ready()
+					: m.blocks_status_toast_success_draft(),
+			error: () => m.blocks_status_toast_error(),
 		},
 	});
 };
@@ -201,9 +218,9 @@ export const useCreateBlockInlineMutation = (
 				},
 			}),
 		messages: {
-			loading: "Creating block...",
-			success: "Block created",
-			error: "Failed to create block",
+			loading: () => m.blocks_create_inline_toast_loading(),
+			success: () => m.blocks_create_inline_toast_success(),
+			error: () => m.blocks_create_inline_toast_error(),
 		},
 	});
 };
@@ -233,9 +250,9 @@ export const useUpdateBlockInlineMutation = (
 				},
 			}),
 		messages: {
-			loading: "Updating block...",
-			success: "Block updated",
-			error: "Failed to update block",
+			loading: () => m.blocks_update_inline_toast_loading(),
+			success: () => m.blocks_update_inline_toast_success(),
+			error: () => m.blocks_update_inline_toast_error(),
 		},
 	});
 };

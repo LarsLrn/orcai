@@ -8,6 +8,7 @@ import {
 	CardHeader,
 	CardTitle,
 } from "@/components/ui/card";
+import { m } from "@/paraglide/messages";
 
 export const Route = createFileRoute("/_pathlessLayout/forgot-password")({
 	component: ForgotPasswordPage,
@@ -17,17 +18,16 @@ function ForgotPasswordPage() {
 	return (
 		<Card className="w-full max-w-md">
 			<CardHeader>
-				<CardTitle>Reset your password</CardTitle>
+				<CardTitle>{m.auth_forgot_password_page_title()}</CardTitle>
 				<CardDescription>
-					Enter your email address and we will send reset instructions if an
-					account exists.
+					{m.auth_forgot_password_page_description()}
 				</CardDescription>
 			</CardHeader>
 			<CardContent>
 				<ForgotPasswordForm />
 			</CardContent>
 			<CardFooter>
-				<Link to="/login">Return to sign in</Link>
+				<Link to="/login">{m.auth_forgot_password_page_signin_link()}</Link>
 			</CardFooter>
 		</Card>
 	);

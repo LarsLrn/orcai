@@ -39,10 +39,23 @@ import {
 	useUpdateQuotaPoolMutation,
 } from "@/hooks/mutations/use-quota-mutations";
 import { orpc } from "@/lib/orpc/orpc";
+import { formatNumber } from "@/lib/presentation/format-number";
+import { m } from "@/paraglide/messages";
 
 const updateBudgetFormSchema = z.object({
 	budgetAmount: z.number().int().positive(),
 });
+
+const periodTypeLabel = (periodType: "weekly" | "monthly" | "yearly") => {
+	switch (periodType) {
+		case "weekly":
+			return m.quotas_period_weekly_label();
+		case "monthly":
+			return m.quotas_period_monthly_label();
+		case "yearly":
+			return m.quotas_period_yearly_label();
+	}
+};
 
 export const Route = createFileRoute("/app/quotas/$quotaPoolId/")({
 	loader: async ({ context: { queryClient }, params: { quotaPoolId } }) => {
@@ -128,9 +141,13 @@ function RouteComponent() {
 				) : null}
 				<div className="flex flex-wrap gap-2">
 					<Badge variant={data.data.isActive ? "brand" : "secondary"}>
-						{data.data.isActive ? "Active" : "Inactive"}
+						{data.data.isActive
+							? m.common_status_active_label()
+							: m.common_status_inactive_label()}
 					</Badge>
-					<Badge variant="outline">{data.data.periodType.toUpperCase()}</Badge>
+					<Badge variant="outline">
+						{periodTypeLabel(data.data.periodType).toUpperCase()}
+					</Badge>
 					<Badge variant="outline">
 						{data.data.provider.name} / {data.data.provider.meteringMode}
 					</Badge>
@@ -142,7 +159,7 @@ function RouteComponent() {
 							quotaPoolId: data.data.id,
 						}}
 					>
-						<Button variant="outline">Edit pool</Button>
+						<Button variant="outline">{m.quotas_detail_edit_button()}</Button>
 					</Link>
 					{data.data.isActive ? (
 						<Button
@@ -153,7 +170,7 @@ function RouteComponent() {
 								})
 							}
 						>
-							Deactivate pool
+							{m.quotas_detail_deactivate_button()}
 						</Button>
 					) : null}
 				</PageAction>
@@ -162,26 +179,24 @@ function RouteComponent() {
 				<div className="space-y-6 lg:col-span-2">
 					<Card>
 						<CardHeader>
-							<CardTitle>Current usage</CardTitle>
+							<CardTitle>{m.quotas_detail_current_usage_title()}</CardTitle>
 							<CardDescription>
-								Current ledger amounts for this quota period.
+								{m.quotas_detail_current_usage_description()}
 							</CardDescription>
 						</CardHeader>
 						<CardContent>
 							<div className="grid gap-4 md:grid-cols-4">
 								<div>
 									<div className="text-muted-foreground text-xs uppercase">
-										Budget
+										{m.quotas_detail_budget_metric_label()}
 									</div>
 									<div className="font-semibold text-lg">
-										{data.data.currentLedger?.budgetAmount != null
-											? data.data.currentLedger.budgetAmount.toLocaleString()
-											: "-"}
+										{formatNumber(data.data.currentLedger?.budgetAmount)}
 									</div>
 								</div>
 								<div>
 									<div className="text-muted-foreground text-xs uppercase">
-										Consumed
+										{m.quotas_detail_consumed_metric_label()}
 									</div>
 									<QuotaConsumption
 										className="justify-start font-semibold text-lg"
@@ -192,17 +207,15 @@ function RouteComponent() {
 								</div>
 								<div>
 									<div className="text-muted-foreground text-xs uppercase">
-										Reserved
+										{m.quotas_detail_reserved_metric_label()}
 									</div>
 									<div className="font-semibold text-lg">
-										{data.data.currentLedger?.reservedAmount != null
-											? data.data.currentLedger.reservedAmount.toLocaleString()
-											: "-"}
+										{formatNumber(data.data.currentLedger?.reservedAmount)}
 									</div>
 								</div>
 								<div>
 									<div className="text-muted-foreground text-xs uppercase">
-										Remaining
+										{m.quotas_detail_remaining_metric_label()}
 									</div>
 									<QuotaRemaining
 										className="justify-start font-semibold text-lg"
@@ -217,7 +230,7 @@ function RouteComponent() {
 
 					<Card>
 						<CardHeader>
-							<CardTitle>Adjust budget</CardTitle>
+							<CardTitle>{m.quotas_detail_adjust_budget_title()}</CardTitle>
 						</CardHeader>
 						<CardContent>
 							<form
@@ -232,22 +245,24 @@ function RouteComponent() {
 										name="budgetAmount"
 										children={(field) => (
 											<field.TextField
-												label="New budget amount"
+												label={m.quotas_detail_new_budget_label()}
 												type="number"
 												min={1}
-												description="Raising the budget frees up the remaining allowance straight away."
+												description={m.quotas_detail_new_budget_description()}
 											/>
 										)}
 									/>
 								</div>
-								<Button type="submit">Update budget</Button>
+								<Button type="submit">
+									{m.quotas_detail_update_budget_button()}
+								</Button>
 							</form>
 						</CardContent>
 					</Card>
 
 					<Card>
 						<CardHeader>
-							<CardTitle>Eligible groups</CardTitle>
+							<CardTitle>{m.quotas_detail_eligible_groups_title()}</CardTitle>
 						</CardHeader>
 						<CardContent>
 							<div className="space-y-2">
@@ -255,7 +270,9 @@ function RouteComponent() {
 									const group = groupById.get(assignment.groupId as GroupId);
 									const displayName = group
 										? group.kind === "system"
-											? `${group.name} (system)`
+											? m.quotas_form_group_system_label({
+													name: group.name,
+												})
 											: group.name
 										: assignment.groupId;
 
@@ -278,7 +295,7 @@ function RouteComponent() {
 								})}
 								{data.data.assignments.length === 0 && (
 									<div className="text-muted-foreground text-sm">
-										No groups assigned.
+										{m.quotas_detail_no_groups_label()}
 									</div>
 								)}
 							</div>
@@ -287,20 +304,24 @@ function RouteComponent() {
 
 					<Card>
 						<CardHeader>
-							<CardTitle>Recent usage events</CardTitle>
+							<CardTitle>{m.quotas_detail_recent_events_title()}</CardTitle>
 						</CardHeader>
 						<CardContent>
 							<div className="rounded-md border">
 								<Table>
 									<TableHeader>
 										<TableRow>
-											<TableHead>Event</TableHead>
-											<TableHead>Request</TableHead>
-											<TableHead className="text-right">
-												Reserved amount
+											<TableHead>
+												{m.quotas_detail_event_column_header()}
+											</TableHead>
+											<TableHead>
+												{m.quotas_detail_request_column_header()}
 											</TableHead>
 											<TableHead className="text-right">
-												Actual amount
+												{m.quotas_detail_reserved_amount_column_header()}
+											</TableHead>
+											<TableHead className="text-right">
+												{m.quotas_detail_actual_amount_column_header()}
 											</TableHead>
 										</TableRow>
 									</TableHeader>
@@ -317,10 +338,10 @@ function RouteComponent() {
 													{event.appRequestId}
 												</TableCell>
 												<TableCell className="text-right tabular-nums">
-													{event.reservedAmount?.toLocaleString()}
+													{formatNumber(event.reservedAmount)}
 												</TableCell>
 												<TableCell className="text-right tabular-nums">
-													{event.actualAmount?.toLocaleString()}
+													{formatNumber(event.actualAmount)}
 												</TableCell>
 											</TableRow>
 										))}
@@ -330,7 +351,7 @@ function RouteComponent() {
 													colSpan={4}
 													className="h-24 text-center text-muted-foreground"
 												>
-													No usage events yet.
+													{m.quotas_detail_no_events_label()}
 												</TableCell>
 											</TableRow>
 										)}

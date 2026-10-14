@@ -6,13 +6,14 @@ import {
 	PageHeader,
 	PageTitle,
 } from "@/components/ui/shell/page";
+import { m } from "@/paraglide/messages";
 
 export const Route = createFileRoute("/app/providers/add")({
 	component: RouteComponent,
 	head: () => ({
 		meta: [
 			{
-				title: "Add",
+				title: m.common_add_button(),
 			},
 		],
 	}),
@@ -22,7 +23,7 @@ function RouteComponent() {
 	return (
 		<Page>
 			<PageHeader>
-				<PageTitle>Add provider</PageTitle>
+				<PageTitle>{m.providers_add_page_title()}</PageTitle>
 			</PageHeader>
 			<PageContent>
 				<ProviderForm action="create" />

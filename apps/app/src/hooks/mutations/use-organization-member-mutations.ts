@@ -2,17 +2,10 @@ import { useQueryClient } from "@tanstack/react-query";
 import { useMutationAction } from "@/hooks/actions/use-mutation-action";
 import {
 	type DestructiveTarget,
-	describeFailure,
-	describeOutcome,
-	describeProgress,
-	describeTarget,
-} from "@/hooks/mutations/destructive-copy";
+	singleTargetName,
+} from "@/hooks/mutations/destructive-target";
 import { orpc } from "@/lib/orpc/orpc";
-
-const MEMBER_NOUNS = {
-	noun: "member",
-	nounPlural: "members",
-};
+import { m } from "@/paraglide/messages";
 
 export const useUpdateOrganizationMemberMutation = (
 	opts: ReturnType<typeof orpc.organizationMember.update.mutationOptions> = {},
@@ -45,9 +38,9 @@ export const useUpdateOrganizationMemberMutation = (
 				},
 			}),
 		messages: {
-			loading: "Updating role...",
-			success: "Role updated",
-			error: "Failed to update role",
+			loading: m.orgs_member_update_toast_loading(),
+			success: m.orgs_member_update_toast_success(),
+			error: m.orgs_member_update_toast_error(),
 		},
 	});
 };
@@ -83,34 +76,35 @@ export const useDeleteOrganizationMembersMutation = (
 			}),
 		messages: {
 			loading: ({ input }) =>
-				describeProgress("Removing", input.refs.length, MEMBER_NOUNS, target),
+				m.orgs_member_delete_toast_loading({
+					count: input.refs.length,
+				}),
 			success: ({ input }) =>
-				describeOutcome(
-					input.refs.length,
-					MEMBER_NOUNS,
-					"removed from the organisation",
-					target,
-				),
+				m.orgs_member_delete_toast_success({
+					count: input.refs.length,
+				}),
 			error: ({ input }) =>
-				describeFailure(
-					input.refs.length,
-					MEMBER_NOUNS,
-					"removed from the organisation",
-					target,
-				),
+				m.orgs_member_delete_toast_error({
+					count: input.refs.length,
+				}),
 		},
-		// "Remove" is the confirm label the users and groups e2e specs click.
 		confirm: (input) => {
 			const count = input.refs.length;
+			const name = singleTargetName(count, target);
 
 			return {
-				title: `Remove ${describeTarget(count, MEMBER_NOUNS, target)} from the organisation?`,
-				description:
-					count === 1
-						? "The person loses access to everything in this organisation. Their account stays and can be invited back."
-						: "Those people lose access to everything in this organisation. Their accounts stay and can be invited back.",
-				confirmText: "Remove",
-				cancelText: "Cancel",
+				title: name
+					? m.orgs_member_delete_confirm_title_named({
+							name,
+						})
+					: m.orgs_member_delete_confirm_title({
+							count,
+						}),
+				description: m.orgs_member_delete_confirm_description({
+					count,
+				}),
+				confirmText: m.common_remove_button(),
+				cancelText: m.common_cancel_button(),
 			};
 		},
 	});

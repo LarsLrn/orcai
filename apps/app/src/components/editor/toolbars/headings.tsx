@@ -13,6 +13,7 @@ import {
 	TooltipTrigger,
 } from "@/components/ui/tooltip";
 import { cn } from "@/lib/utils";
+import { m } from "@/paraglide/messages";
 import { MobileToolbarGroup, MobileToolbarItem } from "./mobile-toolbar-group";
 import { useToolbar } from "./toolbar-provider";
 
@@ -37,12 +38,18 @@ export const HeadingsToolbar = ({
 
 	if (isMobile) {
 		return (
-			<MobileToolbarGroup label={activeLevel ? `H${activeLevel}` : "Normal"}>
+			<MobileToolbarGroup
+				label={
+					activeLevel
+						? `H${activeLevel}`
+						: m.editor_toolbar_headings_normal_option()
+				}
+			>
 				<MobileToolbarItem
 					onClick={() => editor?.chain().focus().setParagraph().run()}
 					active={!editor?.isActive("heading")}
 				>
-					Normal
+					{m.editor_toolbar_headings_normal_option()}
 				</MobileToolbarItem>
 				{levels.map((level) => (
 					<MobileToolbarItem
@@ -85,7 +92,9 @@ export const HeadingsToolbar = ({
 									)}
 									{...props}
 								>
-									{activeLevel ? `H${activeLevel}` : "Normal"}
+									{activeLevel
+										? `H${activeLevel}`
+										: m.editor_toolbar_headings_normal_option()}
 									<ChevronDown className="h-4 w-4" />
 								</Button>
 							}
@@ -98,7 +107,7 @@ export const HeadingsToolbar = ({
 									!editor?.isActive("heading") && "bg-accent",
 								)}
 							>
-								Normal
+								{m.editor_toolbar_headings_normal_option()}
 							</DropdownMenuItem>
 							{levels.map((level) => (
 								<DropdownMenuItem
@@ -127,7 +136,7 @@ export const HeadingsToolbar = ({
 				}
 			/>
 			<TooltipContent>
-				<span>Headings</span>
+				<span>{m.editor_toolbar_headings_tooltip()}</span>
 			</TooltipContent>
 		</Tooltip>
 	);

@@ -7,6 +7,7 @@ import {
 } from "../../fixtures/authorization";
 import { baseURL } from "../../fixtures/env";
 import { expect, test } from "../../fixtures/index";
+import { message } from "../../fixtures/messages";
 import { enterApp } from "../../fixtures/navigation";
 import {
 	addMember,
@@ -27,7 +28,7 @@ test("users: an admin removes a user from the organisation", async ({
 
 	const page = await pageAs("admin");
 	await enterApp(page, org.slug);
-	await reachPage(page, "/app/users", "Users");
+	await reachPage(page, "/app/users", message("users_page_title"));
 
 	const row = userRow(page, user.email);
 	await expect(row).toBeVisible();
@@ -36,17 +37,17 @@ test("users: an admin removes a user from the organisation", async ({
 	// deleting the account is an instance action on Instance > Users.
 	await row
 		.getByRole("button", {
-			name: "Open menu",
+			name: message("common_row_menu_trigger"),
 		})
 		.click();
 	await page
 		.getByRole("menuitem", {
-			name: "Remove from organisation",
+			name: message("users_remove_from_organisation_action"),
 		})
 		.click();
 	await page
 		.getByRole("button", {
-			name: "Remove",
+			name: message("common_remove_button"),
 			exact: true,
 		})
 		.click();

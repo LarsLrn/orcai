@@ -1,6 +1,7 @@
 import type { EmailActionSchemaType } from "@orcai/schema";
 import { useMutationAction } from "@/hooks/actions/use-mutation-action";
 import { authClient } from "@/lib/auth/auth-client";
+import { m } from "@/paraglide/messages";
 
 export const useForgotPassword = () =>
 	useMutationAction({
@@ -15,9 +16,8 @@ export const useForgotPassword = () =>
 			},
 		}),
 		messages: {
-			loading: "Requesting password reset...",
-			success:
-				"If an account exists for that address, a password reset email has been sent.",
-			error: "Unable to request a password reset",
+			loading: m.auth_forgot_password_toast_loading(),
+			success: m.auth_forgot_password_toast_success(),
+			error: m.auth_forgot_password_toast_error(),
 		},
 	});

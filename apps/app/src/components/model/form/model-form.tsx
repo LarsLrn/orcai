@@ -7,6 +7,7 @@ import {
 	useUpdateModelMutation,
 } from "@/hooks/mutations/use-model-mutations";
 import { orpc } from "@/lib/orpc/orpc";
+import { m } from "@/paraglide/messages";
 import { modelFormOptions } from "./model-form-options";
 
 const ModelForm = ({
@@ -54,9 +55,9 @@ const ModelForm = ({
 				name="providerId"
 				children={(field) => (
 					<field.SelectField
-						label="Provider"
-						placeholder="Select a provider"
-						description="The model is called through this provider's endpoint."
+						label={m.common_provider_label()}
+						placeholder={m.models_form_provider_placeholder()}
+						description={m.models_form_provider_description()}
 						options={providers.data?.data?.map((provider) => ({
 							value: provider.id,
 							label: provider.name,
@@ -69,7 +70,10 @@ const ModelForm = ({
 			<form.AppField
 				name="name"
 				children={(field) => (
-					<field.TextField label="Name" placeholder="e.g. GPT-4o mini" />
+					<field.TextField
+						label={m.common_name_label()}
+						placeholder={m.models_form_name_placeholder()}
+					/>
 				)}
 			/>
 
@@ -77,8 +81,8 @@ const ModelForm = ({
 				name="providerModelId"
 				children={(field) => (
 					<field.TextField
-						label="Provider model ID"
-						placeholder="gpt-4o-mini"
+						label={m.models_form_provider_model_id_label()}
+						placeholder={m.models_form_provider_model_id_placeholder()}
 					/>
 				)}
 			/>
@@ -87,8 +91,8 @@ const ModelForm = ({
 				name="description"
 				children={(field) => (
 					<field.TextareaField
-						label="Description"
-						placeholder="e.g. Fast and cheap, good for summaries"
+						label={m.common_description_label()}
+						placeholder={m.models_form_description_placeholder()}
 					/>
 				)}
 			/>
@@ -97,9 +101,9 @@ const ModelForm = ({
 				name="capabilities"
 				children={(field) => (
 					<field.MultiSelectField
-						label="Capabilities"
-						placeholder="e.g. text, tool calling"
-						description="Chat needs a model with at least text and tool calling. A model is hidden wherever a capability it lacks is required."
+						label={m.models_form_capabilities_label()}
+						placeholder={m.models_form_capabilities_placeholder()}
+						description={m.models_form_capabilities_description()}
 						options={modelCapabilities.map((capability) => ({
 							value: capability.value,
 							label: capability.label,
@@ -112,14 +116,14 @@ const ModelForm = ({
 				name="isDeprecated"
 				children={(field) => (
 					<field.SwitchField
-						label="Deprecated"
-						description="Deprecated models are not offered for new bots. Bots already using this model keep working."
+						label={m.common_status_deprecated_label()}
+						description={m.models_form_deprecated_description()}
 					/>
 				)}
 			/>
 
 			<form.AppForm>
-				<form.SubmitButton label="Save model" />
+				<form.SubmitButton label={m.models_form_save_button()} />
 			</form.AppForm>
 		</form>
 	);

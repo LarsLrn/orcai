@@ -13,6 +13,7 @@ import {
 	PopoverContent,
 	PopoverTrigger,
 } from "@/components/ui/popover";
+import { m } from "@/paraglide/messages";
 
 interface SelectorResult {
 	isLeft: boolean;
@@ -20,23 +21,26 @@ interface SelectorResult {
 	isRight: boolean;
 }
 
-const items = [
+const alignItems = () => [
 	{
-		title: "Left",
+		id: "left",
+		title: m.editor_text_align_selector_left_option(),
 		icon: AlignLeftIcon,
 		onClick: (editor: Editor) =>
 			editor.chain().focus().setTextAlign("left").run(),
 		isActive: (state: SelectorResult) => state.isLeft,
 	},
 	{
-		title: "Centre",
+		id: "centre",
+		title: m.editor_text_align_selector_centre_option(),
 		icon: AlignCenterIcon,
 		onClick: (editor: Editor) =>
 			editor.chain().focus().setTextAlign("center").run(),
 		isActive: (state: SelectorResult) => state.isCenter,
 	},
 	{
-		title: "Right",
+		id: "right",
+		title: m.editor_text_align_selector_right_option(),
 		icon: AlignRightIcon,
 		onClick: (editor: Editor) =>
 			editor.chain().focus().setTextAlign("right").run(),
@@ -60,6 +64,7 @@ export const TextAlignSelector = ({ editor }: { editor: Editor }) => {
 		}),
 	});
 
+	const items = alignItems();
 	const activeItem =
 		items.find((item) => item.isActive(editorState)) ?? items[0];
 
@@ -78,7 +83,7 @@ export const TextAlignSelector = ({ editor }: { editor: Editor }) => {
 					return (
 						<button
 							type="button"
-							key={item.title}
+							key={item.id}
 							onClick={() => item.onClick(editor)}
 							className="flex cursor-pointer items-center space-x-2 rounded-md px-2 py-1.5 hover:bg-accent hover:text-accent-foreground"
 						>

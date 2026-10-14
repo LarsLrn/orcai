@@ -18,6 +18,7 @@ import {
 	TooltipTrigger,
 } from "@/components/ui/tooltip";
 import { cn } from "@/lib/utils";
+import { m } from "@/paraglide/messages";
 
 export const TableOptionsMenu = ({ editor }: { editor: Editor }) => {
 	if (!editor) {
@@ -59,7 +60,7 @@ export const TableOptionsMenu = ({ editor }: { editor: Editor }) => {
 							/>
 						}
 					/>
-					<TooltipContent>Column</TooltipContent>
+					<TooltipContent>{m.editor_table_column_tooltip()}</TooltipContent>
 				</Tooltip>
 				<PopoverContent
 					className="flex max-h-80 w-40 flex-col overflow-hidden overflow-y-auto rounded border p-1 shadow-xl"
@@ -73,7 +74,7 @@ export const TableOptionsMenu = ({ editor }: { editor: Editor }) => {
 							}}
 							className={menuItemClass}
 						>
-							Add column before
+							{m.editor_table_add_column_before_action()}
 						</button>
 						<button
 							type="button"
@@ -82,7 +83,7 @@ export const TableOptionsMenu = ({ editor }: { editor: Editor }) => {
 							}}
 							className={menuItemClass}
 						>
-							Add column after
+							{m.editor_table_add_column_after_action()}
 						</button>
 						<button
 							type="button"
@@ -96,7 +97,7 @@ export const TableOptionsMenu = ({ editor }: { editor: Editor }) => {
 								"text-destructive",
 							)}
 						>
-							Delete column
+							{m.editor_table_delete_column_action()}
 						</button>
 					</div>
 				</PopoverContent>
@@ -119,7 +120,7 @@ export const TableOptionsMenu = ({ editor }: { editor: Editor }) => {
 							/>
 						}
 					/>
-					<TooltipContent>Row</TooltipContent>
+					<TooltipContent>{m.editor_table_row_tooltip()}</TooltipContent>
 				</Tooltip>
 				<PopoverContent
 					className="flex max-h-80 w-40 flex-col overflow-hidden overflow-y-auto rounded border p-1 shadow-xl"
@@ -133,7 +134,7 @@ export const TableOptionsMenu = ({ editor }: { editor: Editor }) => {
 							}}
 							className={menuItemClass}
 						>
-							Add row before
+							{m.editor_table_add_row_before_action()}
 						</button>
 						<button
 							type="button"
@@ -142,7 +143,7 @@ export const TableOptionsMenu = ({ editor }: { editor: Editor }) => {
 							}}
 							className={menuItemClass}
 						>
-							Add row after
+							{m.editor_table_add_row_after_action()}
 						</button>
 						<button
 							type="button"
@@ -156,7 +157,7 @@ export const TableOptionsMenu = ({ editor }: { editor: Editor }) => {
 								"text-destructive",
 							)}
 						>
-							Delete row
+							{m.editor_table_delete_row_action()}
 						</button>
 					</div>
 				</PopoverContent>
@@ -179,7 +180,7 @@ export const TableOptionsMenu = ({ editor }: { editor: Editor }) => {
 							/>
 						}
 					/>
-					<TooltipContent>Cell</TooltipContent>
+					<TooltipContent>{m.editor_table_cell_tooltip()}</TooltipContent>
 				</Tooltip>
 				<PopoverContent
 					className="flex max-h-80 w-40 flex-col overflow-hidden overflow-y-auto rounded border p-1 shadow-xl"
@@ -193,7 +194,7 @@ export const TableOptionsMenu = ({ editor }: { editor: Editor }) => {
 							}}
 							className={menuItemClass}
 						>
-							Merge cells
+							{m.editor_table_merge_cells_action()}
 						</button>
 						<button
 							type="button"
@@ -202,7 +203,7 @@ export const TableOptionsMenu = ({ editor }: { editor: Editor }) => {
 							}}
 							className={menuItemClass}
 						>
-							Split cell
+							{m.editor_table_split_cell_action()}
 						</button>
 						<button
 							type="button"
@@ -211,7 +212,7 @@ export const TableOptionsMenu = ({ editor }: { editor: Editor }) => {
 							}}
 							className={menuItemClass}
 						>
-							Toggle header cell
+							{m.editor_table_toggle_header_cell_action()}
 						</button>
 					</div>
 				</PopoverContent>
@@ -234,7 +235,7 @@ export const TableOptionsMenu = ({ editor }: { editor: Editor }) => {
 							/>
 						}
 					/>
-					<TooltipContent>Options</TooltipContent>
+					<TooltipContent>{m.editor_table_options_tooltip()}</TooltipContent>
 				</Tooltip>
 				<PopoverContent
 					className="flex max-h-80 w-40 flex-col overflow-hidden overflow-y-auto rounded border p-1 shadow-xl"
@@ -248,7 +249,7 @@ export const TableOptionsMenu = ({ editor }: { editor: Editor }) => {
 							}}
 							className={menuItemClass}
 						>
-							Toggle header row
+							{m.editor_table_toggle_header_row_action()}
 						</button>
 						<button
 							type="button"
@@ -257,7 +258,7 @@ export const TableOptionsMenu = ({ editor }: { editor: Editor }) => {
 							}}
 							className={menuItemClass}
 						>
-							Toggle header col
+							{m.editor_table_toggle_header_column_action()}
 						</button>
 						<button
 							type="button"
@@ -271,7 +272,7 @@ export const TableOptionsMenu = ({ editor }: { editor: Editor }) => {
 								"text-destructive",
 							)}
 						>
-							Delete table
+							{m.editor_table_delete_table_action()}
 						</button>
 					</div>
 				</PopoverContent>

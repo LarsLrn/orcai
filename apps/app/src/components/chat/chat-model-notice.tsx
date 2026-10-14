@@ -6,6 +6,7 @@ import { useOrganizationCapabilities } from "@/hooks/authz/use-capabilities";
 import { hasCapability } from "@/lib/authz/capabilities";
 import { orpc } from "@/lib/orpc/orpc";
 import { cn } from "@/lib/utils";
+import { m } from "@/paraglide/messages";
 
 const ChatModelNotice = ({ className }: { className?: string }) => {
 	const { auth } = useRouteContext({
@@ -26,7 +27,8 @@ const ChatModelNotice = ({ className }: { className?: string }) => {
 		capabilities?.data.capabilities,
 		"manage_models",
 	);
-	const organizationName = organization?.data.name ?? "this organisation";
+	const organizationName =
+		organization?.data.name ?? m.chat_model_notice_organisation_fallback();
 
 	return (
 		<div
@@ -40,11 +42,13 @@ const ChatModelNotice = ({ className }: { className?: string }) => {
 			<div className="flex items-start gap-2.5">
 				<CircleAlertIcon className="mt-0.5 size-4 shrink-0 text-foreground" />
 				<p className="text-foreground">
-					No chat model is available in {organizationName} yet.{" "}
+					{m.chat_model_notice_title({
+						organisation: organizationName,
+					})}{" "}
 					<span className="text-muted-foreground">
 						{canManageModels
-							? "Add a provider and a model, then chatting opens for everyone."
-							: "An organisation admin needs to add a provider and a model before anyone can chat."}
+							? m.chat_model_notice_description_manager()
+							: m.chat_model_notice_description_member()}
 					</span>
 				</p>
 			</div>
@@ -57,7 +61,7 @@ const ChatModelNotice = ({ className }: { className?: string }) => {
 						className: "shrink-0",
 					})}
 				>
-					Add a model
+					{m.chat_model_notice_add_model_action()}
 				</Link>
 			)}
 		</div>

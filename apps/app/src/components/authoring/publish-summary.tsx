@@ -4,10 +4,10 @@ import {
 	RESOURCE_GRANT_SOURCE,
 } from "@orcai/schema";
 import { Badge } from "@/components/ui/badge";
-import { ROLES } from "@/settings/display-config";
+import { m } from "@/paraglide/messages";
+import { getResourceRoleLabel } from "@/settings/display-config";
 
-const roleLabel = (role: ResourceGrantRole) =>
-	ROLES.find((entry) => entry.value === role)?.label ?? role;
+const roleLabel = (role: ResourceGrantRole) => getResourceRoleLabel(role);
 
 const isAllMembersGrant = (grant: ResourceGrant) =>
 	grant.principal.type === "group" &&
@@ -23,10 +23,10 @@ const describeAllMembersAccess = (grants: ResourceGrant[]) => {
 	const allMembersGrant = grants.filter(isDirectGrant).find(isAllMembersGrant);
 
 	return allMembersGrant
-		? `All Members receives ${roleLabel(
-				allMembersGrant.role,
-			).toLowerCase()} access, so every member of the organisation can use this bot once it is published.`
-		: "All Members has no grant, so only the groups and people listed below can use this bot once it is published.";
+		? m.authoring_publish_summary_all_members_granted_before_publish({
+				role: roleLabel(allMembersGrant.role),
+			})
+		: m.authoring_publish_summary_all_members_ungranted_before_publish();
 };
 
 const Fact = ({
@@ -47,7 +47,9 @@ const PrincipalLine = ({ grant }: { grant: ResourceGrant }) => (
 		<span className="wrap-break-word min-w-0">{grant.principal.name}</span>
 		<Badge variant="outline">{roleLabel(grant.role)}</Badge>
 		{isAllMembersGrant(grant) ? (
-			<Badge variant="secondary">Every member of the organisation</Badge>
+			<Badge variant="secondary">
+				{m.authoring_publish_summary_all_members_badge()}
+			</Badge>
 		) : null}
 	</div>
 );
@@ -73,16 +75,11 @@ const PublishSummary = ({
 
 	return (
 		<div className="max-h-[50vh] w-full space-y-4 overflow-y-auto text-left">
-			<Fact label="Who gains access">
+			<Fact label={m.authoring_publish_summary_access_fact_label()}>
 				{visibility === "public" ? (
-					<p>
-						Public. Everyone signed in to this instance can find and use this
-						bot, on their own organisation's providers, models and quotas.
-					</p>
+					<p>{m.authoring_publish_summary_public_description()}</p>
 				) : (
-					<p>
-						Private. Only the groups and people listed here can use this bot.
-					</p>
+					<p>{m.authoring_publish_summary_private_description()}</p>
 				)}
 
 				{grantsAvailable ? (
@@ -94,49 +91,39 @@ const PublishSummary = ({
 								))}
 							</div>
 						) : (
-							<p>No group has been granted access.</p>
+							<p>{m.authoring_publish_summary_no_group_grants()}</p>
 						)}
 
 						<p>
 							{allMembersGrant
-								? `All Members receives ${roleLabel(
-										allMembersGrant.role,
-									).toLowerCase()} access, so every member of the organisation can use this bot.`
-								: "All Members has no grant, so organisation members do not gain access automatically."}
+								? m.authoring_publish_summary_all_members_granted({
+										role: roleLabel(allMembersGrant.role),
+									})
+								: m.authoring_publish_summary_all_members_ungranted()}
 						</p>
 
 						{userGrants.length > 0 ? (
 							<div className="space-y-1">
-								<p>Direct grants:</p>
+								<p>{m.authoring_publish_summary_direct_grants_label()}</p>
 								{userGrants.map((grant) => (
 									<PrincipalLine key={grant.id} grant={grant} />
 								))}
 							</div>
 						) : (
-							<p>No person holds a direct grant.</p>
+							<p>{m.authoring_publish_summary_no_user_grants()}</p>
 						)}
 					</>
 				) : (
-					<p>
-						The groups and direct grants could not be loaded, so they are not
-						shown here. Open the sharing and access step to check them.
-					</p>
+					<p>{m.authoring_publish_summary_grants_unavailable()}</p>
 				)}
 			</Fact>
 
-			<Fact label="Provider and model">
-				<p>
-					A bot does not fix a provider or a model. Each chat runs on the
-					provider and model chosen in that chat, so neither can be shown here.
-				</p>
+			<Fact label={m.authoring_publish_summary_provider_fact_label()}>
+				<p>{m.authoring_publish_summary_provider_description()}</p>
 			</Fact>
 
-			<Fact label="Quota pool">
-				<p>
-					A bot does not fix a quota pool either. Usage is metered against the
-					pool that covers the chatting person's organisation and the provider
-					their chat uses.
-				</p>
+			<Fact label={m.authoring_publish_summary_quota_fact_label()}>
+				<p>{m.authoring_publish_summary_quota_description()}</p>
 			</Fact>
 		</div>
 	);

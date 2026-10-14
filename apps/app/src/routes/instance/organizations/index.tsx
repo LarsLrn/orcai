@@ -32,6 +32,7 @@ import {
 	PageTitle,
 } from "@/components/ui/shell/page";
 import { orpc } from "@/lib/orpc/orpc";
+import { m } from "@/paraglide/messages";
 
 const searchSchema = listAllOrganizationsInputSchema.extend({
 	query: z.string().trim().max(100).default(""),
@@ -76,7 +77,7 @@ export const Route = createFileRoute("/instance/organizations/")({
 	head: () => ({
 		meta: [
 			{
-				title: "Organisations",
+				title: m.instance_organizations_page_title(),
 			},
 		],
 	}),
@@ -100,12 +101,14 @@ function RouteComponent() {
 	return (
 		<Page>
 			<PageHeader>
-				<PageTitle>Organisations</PageTitle>
-				<PageDescription>Every organisation of this instance.</PageDescription>
+				<PageTitle>{m.instance_organizations_page_title()}</PageTitle>
+				<PageDescription>
+					{m.instance_organizations_page_description()}
+				</PageDescription>
 				<PageAction>
 					<Button onClick={() => setIsCreateOpen(true)}>
 						<PlusIcon />
-						Create Organisation
+						{m.instance_organizations_create_button()}
 					</Button>
 				</PageAction>
 			</PageHeader>
@@ -128,7 +131,7 @@ function RouteComponent() {
 					<DataTableToolbar>
 						<DataTableSearch
 							value={query}
-							placeholder="Search organisations..."
+							placeholder={m.instance_organizations_search_placeholder()}
 							onChange={(value) =>
 								void navigate({
 									to: ".",
@@ -153,10 +156,11 @@ function RouteComponent() {
 			<Dialog open={isCreateOpen} onOpenChange={setIsCreateOpen}>
 				<DialogContent>
 					<DialogHeader>
-						<DialogTitle>Create Organisation</DialogTitle>
+						<DialogTitle>
+							{m.instance_organizations_create_dialog_title()}
+						</DialogTitle>
 						<DialogDescription>
-							The creator becomes the first administrator of the new
-							organisation.
+							{m.instance_organizations_create_dialog_description()}
 						</DialogDescription>
 					</DialogHeader>
 					<OrganizationForm

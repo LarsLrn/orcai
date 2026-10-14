@@ -1,4 +1,5 @@
 import type { ToolPart } from "@/components/chat/message/classify-turn";
+import { m } from "@/paraglide/messages";
 
 export type ToolStatus =
 	| "awaiting-approval"
@@ -7,12 +8,19 @@ export type ToolStatus =
 	| "incomplete"
 	| "running";
 
-export const toolStatusLabels: Record<ToolStatus, string> = {
-	"awaiting-approval": "Awaiting approval",
-	denied: "Denied",
-	failed: "Failed",
-	incomplete: "Not completed",
-	running: "Running",
+export const toolStatusLabel = (status: ToolStatus) => {
+	switch (status) {
+		case "awaiting-approval":
+			return m.chat_work_log_tool_status_awaiting_approval();
+		case "denied":
+			return m.chat_work_log_tool_status_denied();
+		case "failed":
+			return m.chat_work_log_tool_status_failed();
+		case "incomplete":
+			return m.chat_work_log_tool_status_incomplete();
+		case "running":
+			return m.chat_work_log_tool_status_running();
+	}
 };
 
 export const isFailedStatus = (status: ToolStatus | null) =>

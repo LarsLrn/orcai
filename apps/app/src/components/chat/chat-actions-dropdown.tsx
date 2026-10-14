@@ -11,6 +11,7 @@ import {
 	useDeleteChatsMutation,
 	useUpdateChatMutation,
 } from "@/hooks/mutations/use-chat-mutation";
+import { m } from "@/paraglide/messages";
 
 const ChatActionsDropdown = ({
 	children,
@@ -75,9 +76,11 @@ const ChatActionsDropdown = ({
 			<DropdownMenu open={isDropdownOpen} onOpenChange={setIsDropdownOpen}>
 				<DropdownMenuTrigger render={children} />
 				<DropdownMenuContent align="end" className="w-40">
-					<DropdownMenuItem onClick={onUpdate}>Rename chat</DropdownMenuItem>
+					<DropdownMenuItem onClick={onUpdate}>
+						{m.chat_actions_rename_action()}
+					</DropdownMenuItem>
 					<DropdownMenuItem variant="destructive" onClick={onDelete}>
-						Delete chat
+						{m.chat_actions_delete_action()}
 					</DropdownMenuItem>
 				</DropdownMenuContent>
 			</DropdownMenu>

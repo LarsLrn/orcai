@@ -17,6 +17,7 @@ import {
 	useUpdateBlockMutation,
 } from "@/hooks/mutations/use-block-mutations";
 import { orpc } from "@/lib/orpc/orpc";
+import { m } from "@/paraglide/messages";
 import { imageGenerationBlockFormOptions } from "./image-generation-block-form-options";
 
 const ImageGenerationBlockForm = ({
@@ -93,15 +94,18 @@ const ImageGenerationBlockForm = ({
 						<form.AppField
 							name="name"
 							children={(field) => (
-								<field.TextField label="Name" placeholder="Block name" />
+								<field.TextField
+									label={m.common_name_label()}
+									placeholder={m.blocks_image_generation_form_name_placeholder()}
+								/>
 							)}
 						/>
 						<form.AppField
 							name="description"
 							children={(field) => (
 								<field.TextareaField
-									label="Short description"
-									placeholder="Describe the purpose of this image generation block."
+									label={m.blocks_image_generation_form_description_label()}
+									placeholder={m.blocks_image_generation_form_description_placeholder()}
 									rows={4}
 								/>
 							)}
@@ -116,7 +120,9 @@ const ImageGenerationBlockForm = ({
 				</Card>
 				<Card className="h-fit">
 					<CardHeader>
-						<CardTitle>Block AI settings</CardTitle>
+						<CardTitle>
+							{m.blocks_image_generation_form_ai_settings_title()}
+						</CardTitle>
 					</CardHeader>
 					<CardContent className="flex flex-col gap-4">
 						<form.AppField
@@ -126,8 +132,8 @@ const ImageGenerationBlockForm = ({
 							}}
 							children={(field) => (
 								<field.SelectField
-									label="Provider"
-									placeholder="Choose a provider"
+									label={m.blocks_image_generation_form_provider_label()}
+									placeholder={m.blocks_image_generation_form_provider_placeholder()}
 									options={providers.data.map((provider) => ({
 										value: provider.id,
 										label: provider.name,
@@ -140,8 +146,8 @@ const ImageGenerationBlockForm = ({
 							name="config.model"
 							children={(field) => (
 								<field.SelectField
-									label="Image model"
-									placeholder="Choose an image model"
+									label={m.blocks_image_generation_form_model_label()}
+									placeholder={m.blocks_image_generation_form_model_placeholder()}
 									options={models?.data?.map((model) => ({
 										value: model.id,
 										label: model.name,
@@ -154,9 +160,9 @@ const ImageGenerationBlockForm = ({
 							name="config.prompt"
 							children={(field) => (
 								<field.TextareaField
-									label="Guidance prompt"
-									placeholder="All images should be in the style of Van Gogh."
-									description="This prompt is prepended to the image generation requests to guide the AI model."
+									label={m.blocks_image_generation_form_prompt_label()}
+									placeholder={m.blocks_image_generation_form_prompt_placeholder()}
+									description={m.blocks_image_generation_form_prompt_description()}
 								/>
 							)}
 						/>
@@ -165,9 +171,11 @@ const ImageGenerationBlockForm = ({
 			</div>
 			<Card>
 				<CardHeader>
-					<CardTitle>Block description</CardTitle>
+					<CardTitle>
+						{m.blocks_image_generation_form_content_title()}
+					</CardTitle>
 					<CardDescription>
-						Optional rich text context for teammates maintaining this block.
+						{m.blocks_image_generation_form_content_description()}
 					</CardDescription>
 				</CardHeader>
 				<CardContent>
@@ -184,7 +192,9 @@ const ImageGenerationBlockForm = ({
 				</CardContent>
 			</Card>
 			<form.AppForm>
-				<form.SubmitButton label="Save block" />
+				<form.SubmitButton
+					label={m.blocks_image_generation_form_submit_button()}
+				/>
 			</form.AppForm>
 		</form>
 	);

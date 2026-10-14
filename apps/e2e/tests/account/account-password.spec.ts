@@ -6,6 +6,7 @@ import {
 import { createAccountUser } from "../../fixtures/account/users";
 import { pageForSession } from "../../fixtures/auth/users";
 import { expect, signIn, test } from "../../fixtures/index";
+import { message } from "../../fixtures/messages";
 import { open } from "../../fixtures/navigation";
 
 test("account: a wrong current password is refused, a valid change replaces the password", async ({
@@ -59,7 +60,7 @@ test("account: a wrong current password is refused, a valid change replaces the 
 				current: user.password,
 				next: newPassword,
 			},
-			page.getByText("Password changed", {
+			page.getByText(message("account_change_password_toast_success"), {
 				exact: true,
 			}),
 		);

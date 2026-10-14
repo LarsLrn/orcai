@@ -36,6 +36,7 @@ import { useAppForm } from "@/hooks/form";
 import { useUpdateChatMutation } from "@/hooks/mutations/use-chat-mutation";
 import { DEFAULT_CHAT_GENERATION_PARAMS } from "@/lib/ai/utils/chat-generation-defaults";
 import { client, orpc } from "@/lib/orpc/orpc";
+import { m } from "@/paraglide/messages";
 
 const ChatSettings = ({
 	chatId,
@@ -64,11 +65,11 @@ const ChatSettings = ({
 		<Dialog open={open} onOpenChange={onOpenChange}>
 			<DialogContent className="flex h-[90vh] max-h-[90vh] flex-col sm:max-w-4xl">
 				<DialogHeader>
-					<DialogTitle>Chat settings</DialogTitle>
+					<DialogTitle>{m.chat_settings_dialog_title()}</DialogTitle>
 					<DialogDescription>
 						{isBotLinked
-							? "This chat is linked to a bot. The system prompt is locked, but you can change the model and generation parameters."
-							: "Configure the model and parameters for this chat."}
+							? m.chat_settings_dialog_description_bot_linked()
+							: m.chat_settings_dialog_description()}
 					</DialogDescription>
 				</DialogHeader>
 				<ScrollArea className="h-full min-h-0 flex-1">
@@ -92,7 +93,7 @@ const ChatSettings = ({
 								<>
 									<Separator />
 									<div className="text-muted-foreground text-sm">
-										Attached blocks are managed by the bot for bot-linked chats.
+										{m.chat_settings_blocks_bot_managed_notice()}
 									</div>
 								</>
 							) : (
@@ -162,7 +163,7 @@ const ChatConfigEditor = ({
 			<Separator />
 
 			<div className="flex flex-col gap-2">
-				<Label>Model</Label>
+				<Label>{m.chat_settings_model_label()}</Label>
 				<ModelSelectorButton
 					selectedModelId={selectedModelId}
 					selectedProviderId={selectedProviderId}
@@ -177,10 +178,9 @@ const ChatConfigEditor = ({
 			<div className="flex flex-col gap-2">
 				{isBotLinked ? (
 					<>
-						<Label>System Prompt</Label>
+						<Label>{m.chat_settings_system_prompt_label()}</Label>
 						<p className="text-muted-foreground text-sm">
-							Locked by bot. The system prompt is defined in the bot's template
-							block.
+							{m.chat_settings_system_prompt_locked_description()}
 						</p>
 					</>
 				) : (
@@ -188,8 +188,8 @@ const ChatConfigEditor = ({
 						name="systemPrompt"
 						children={(field) => (
 							<field.TextareaField
-								label="System Prompt"
-								placeholder="You are a helpful assistant."
+								label={m.chat_settings_system_prompt_label()}
+								placeholder={m.chat_settings_system_prompt_placeholder()}
 								rows={4}
 							/>
 						)}
@@ -201,10 +201,10 @@ const ChatConfigEditor = ({
 				<CollapsibleTrigger className="flex w-full items-center justify-between rounded-xl border bg-muted/15 px-4 py-3 text-left">
 					<div>
 						<div className="font-medium text-sm">
-							Advanced generation settings
+							{m.chat_settings_advanced_title()}
 						</div>
 						<div className="text-muted-foreground text-sm">
-							Adjust temperature, token limits, and penalties.
+							{m.chat_settings_advanced_description()}
 						</div>
 					</div>
 					<ChevronDownIcon
@@ -219,7 +219,7 @@ const ChatConfigEditor = ({
 							name="temperature"
 							children={(field) => (
 								<field.SliderField
-									label="Temperature"
+									label={m.chat_settings_temperature_label()}
 									defaultValue={DEFAULT_CHAT_GENERATION_PARAMS.temperature}
 									min={0}
 									max={2}
@@ -233,7 +233,7 @@ const ChatConfigEditor = ({
 							name="topP"
 							children={(field) => (
 								<field.SliderField
-									label="Top P"
+									label={m.chat_settings_top_p_label()}
 									defaultValue={DEFAULT_CHAT_GENERATION_PARAMS.topP}
 									min={0}
 									max={1}
@@ -247,10 +247,10 @@ const ChatConfigEditor = ({
 							name="maxTokens"
 							children={(field) => (
 								<field.TextField
-									label="Max tokens"
+									label={m.chat_settings_max_tokens_label()}
 									type="number"
 									min={1}
-									placeholder="Default (model limit)"
+									placeholder={m.chat_settings_max_tokens_placeholder()}
 								/>
 							)}
 						/>
@@ -259,7 +259,7 @@ const ChatConfigEditor = ({
 							name="frequencyPenalty"
 							children={(field) => (
 								<field.SliderField
-									label="Frequency penalty"
+									label={m.chat_settings_frequency_penalty_label()}
 									defaultValue={DEFAULT_CHAT_GENERATION_PARAMS.frequencyPenalty}
 									min={-2}
 									max={2}
@@ -273,7 +273,7 @@ const ChatConfigEditor = ({
 							name="presencePenalty"
 							children={(field) => (
 								<field.SliderField
-									label="Presence penalty"
+									label={m.chat_settings_presence_penalty_label()}
 									defaultValue={DEFAULT_CHAT_GENERATION_PARAMS.presencePenalty}
 									min={-2}
 									max={2}
@@ -292,7 +292,7 @@ const ChatConfigEditor = ({
 
 			<div className="flex justify-end">
 				<Button type="submit" size="sm" disabled={isSubmitting}>
-					Save settings
+					{m.chat_settings_save_button()}
 				</Button>
 			</div>
 		</form>
@@ -337,7 +337,7 @@ const ChatBlocksEditor = ({
 			});
 		},
 		onError: (error) => {
-			toast.error("The block was not attached. Try again.", {
+			toast.error(m.chat_settings_block_attach_failed_toast_error(), {
 				description: error instanceof Error ? error.message : undefined,
 			});
 		},
@@ -361,7 +361,7 @@ const ChatBlocksEditor = ({
 			});
 		},
 		onError: () => {
-			toast.error("The block was not detached. Try again.");
+			toast.error(m.chat_settings_block_detach_failed_toast_error());
 		},
 	});
 
@@ -378,7 +378,7 @@ const ChatBlocksEditor = ({
 
 	return (
 		<div className="flex flex-col gap-3">
-			<Label className="text-base">Chat blocks</Label>
+			<Label className="text-base">{m.chat_settings_blocks_label()}</Label>
 
 			<div className="space-y-3 rounded-2xl border border-dashed bg-muted/15 p-4">
 				<div className="grid gap-2 sm:grid-cols-2">
@@ -389,7 +389,7 @@ const ChatBlocksEditor = ({
 						disabled={!!attachedTemplateBlock || attachMutation.isPending}
 					>
 						<PlusIcon className="mr-2 size-4" />
-						Add behaviour
+						{m.chat_settings_add_behaviour_action()}
 					</Button>
 					<Button
 						type="button"
@@ -398,23 +398,25 @@ const ChatBlocksEditor = ({
 						disabled={attachMutation.isPending}
 					>
 						<PlusIcon className="mr-2 size-4" />
-						Add repository
+						{m.chat_settings_add_repository_action()}
 					</Button>
 				</div>
 				<p className="text-muted-foreground text-sm">
 					{attachedTemplateBlock
-						? `Only one behaviour block can be attached. Remove "${attachedTemplateBlock.name}" to attach another behaviour.`
-						: "Behaviour blocks set how answers are written. Repositories give the chat material to retrieve from."}
+						? m.chat_settings_blocks_hint_behaviour_attached({
+								name: attachedTemplateBlock.name,
+							})
+						: m.chat_settings_blocks_hint()}
 				</p>
 			</div>
 
 			<Separator />
 
-			<Label>Attached blocks</Label>
+			<Label>{m.chat_settings_attached_blocks_label()}</Label>
 
 			{attached.length === 0 && (
 				<p className="text-muted-foreground text-sm">
-					No blocks attached to this chat yet.
+					{m.chat_settings_attached_blocks_empty_state()}
 				</p>
 			)}
 
@@ -443,8 +445,8 @@ const ChatBlocksEditor = ({
 				onSelect={async (block) => {
 					await attachMutation.mutateAsync(block.id);
 				}}
-				title="Add behaviour"
-				description="Attach one reusable AI behaviour block to this chat."
+				title={m.chat_settings_behaviour_dialog_title()}
+				description={m.chat_settings_behaviour_dialog_description()}
 			/>
 			<BlockSelectorDialog
 				open={isDatabasePickerOpen}
@@ -454,8 +456,8 @@ const ChatBlocksEditor = ({
 				onSelect={async (block) => {
 					await attachMutation.mutateAsync(block.id);
 				}}
-				title="Add repository"
-				description="Attach reusable repositories to enrich chat responses."
+				title={m.chat_settings_repository_dialog_title()}
+				description={m.chat_settings_repository_dialog_description()}
 			/>
 		</div>
 	);

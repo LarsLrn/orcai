@@ -1,5 +1,6 @@
 import { useAppForm } from "@/hooks/form";
 import { useChangePasswordMutation } from "@/hooks/mutations/use-change-password-mutation";
+import { m } from "@/paraglide/messages";
 import { changePasswordFormOptions } from "./change-password-form-options";
 
 const ChangePasswordForm = () => {
@@ -29,8 +30,8 @@ const ChangePasswordForm = () => {
 				name="currentPassword"
 				children={(field) => (
 					<field.PasswordField
-						label="Current Password"
-						placeholder="Enter current password"
+						label={m.auth_change_password_form_current_password_label()}
+						placeholder={m.auth_change_password_form_current_password_placeholder()}
 					/>
 				)}
 			/>
@@ -39,8 +40,8 @@ const ChangePasswordForm = () => {
 				name="password"
 				children={(field) => (
 					<field.PasswordField
-						label="New Password"
-						placeholder="Enter new password"
+						label={m.auth_change_password_form_new_password_label()}
+						placeholder={m.auth_change_password_form_new_password_placeholder()}
 					/>
 				)}
 			/>
@@ -49,14 +50,16 @@ const ChangePasswordForm = () => {
 				name="confirmPassword"
 				children={(field) => (
 					<field.PasswordField
-						label="Confirm New Password"
-						placeholder="Confirm new password"
+						label={m.auth_change_password_form_confirm_password_label()}
+						placeholder={m.auth_change_password_form_confirm_password_placeholder()}
 					/>
 				)}
 			/>
 
 			<form.AppForm>
-				<form.SubmitButton label="Change Password" />
+				<form.SubmitButton
+					label={m.auth_change_password_form_submit_button()}
+				/>
 			</form.AppForm>
 		</form>
 	);

@@ -14,6 +14,7 @@ import { InView } from "@/components/ui/motion/in-view";
 import type { ChatAgentUIMessage } from "@/lib/ai/types/chat-agent-message";
 import { getChatMessageAttachments } from "@/lib/ai/types/chat-attachment";
 import { cn } from "@/lib/utils";
+import { m } from "@/paraglide/messages";
 import { ChatMessageAttachments } from "./chat-message-attachments";
 import { useMessageEditor } from "./hooks/use-message-editor";
 import { MessageActions } from "./message-actions";
@@ -90,7 +91,7 @@ export const MessageBlock = ({
 	) {
 		return (
 			<div className="w-full text-foreground">
-				<Shimmer>Waiting for the model</Shimmer>
+				<Shimmer>{m.chat_waiting_for_model()}</Shimmer>
 			</div>
 		);
 	}

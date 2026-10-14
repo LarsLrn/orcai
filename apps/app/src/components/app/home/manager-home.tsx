@@ -12,6 +12,7 @@ import {
 } from "@/components/ui/shell/page";
 import { Skeleton } from "@/components/ui/skeleton";
 import { orpc } from "@/lib/orpc/orpc";
+import { m } from "@/paraglide/messages";
 import { ManageLibraryPanel } from "./manage-library-panel";
 import { ManagePeoplePanel } from "./manage-people-panel";
 import { ManageQuotaPanel } from "./manage-quota-panel";
@@ -38,13 +39,11 @@ const ManagerHome = () => (
 			<Suspense fallback={<Skeleton className="h-9 w-64 md:h-10" />}>
 				<OrganizationTitle />
 			</Suspense>
-			<PageDescription>
-				What this organisation has, what it is spending, and what changed.
-			</PageDescription>
+			<PageDescription>{m.home_manage_description()}</PageDescription>
 			<PageAction>
 				<Link to="/app/hub/bots/add" className={buttonVariants()}>
 					<SparklesIcon />
-					Create a bot
+					{m.home_manage_create_bot_action()}
 				</Link>
 			</PageAction>
 		</PageHeader>

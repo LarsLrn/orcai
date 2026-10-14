@@ -38,6 +38,7 @@ import {
 import { useUpdateChatMutation } from "@/hooks/mutations/use-chat-mutation";
 import type { ChatAgentUIMessage } from "@/lib/ai/types/chat-agent-message";
 import { orpc } from "@/lib/orpc/orpc";
+import { m } from "@/paraglide/messages";
 import {
 	CHAT_ATTACHMENT_ACCEPT,
 	CHAT_ATTACHMENT_LIMIT,
@@ -129,7 +130,7 @@ const ChatInput = ({
 		}
 
 		if (!isModelConfigured) {
-			toast.error("Choose a model before sending a message.");
+			toast.error(m.chat_composer_model_required_toast_error());
 			return;
 		}
 
@@ -139,14 +140,14 @@ const ChatInput = ({
 			const attachments = await resolveAttachmentsForSend();
 
 			if (!hasText && attachments.length === 0) {
-				toast.error(
-					"No attachments were available to send. Please retry your upload.",
-				);
+				toast.error(m.chat_composer_attachments_missing_toast_error());
 				return;
 			}
 
 			const sendPromise = sendMessage({
-				text: hasText ? trimmedText : "Sent with attachments",
+				text: hasText
+					? trimmedText
+					: m.chat_composer_attachments_only_message(),
 				metadata:
 					attachments.length > 0
 						? {
@@ -161,12 +162,9 @@ const ChatInput = ({
 			if (hasText) {
 				setMessageText((current) => current || trimmedText);
 			}
-			toast.error(
-				"The message and its attachments were not sent. Send them again.",
-				{
-					description: error instanceof Error ? error.message : undefined,
-				},
-			);
+			toast.error(m.chat_composer_send_failed_toast_error(), {
+				description: error instanceof Error ? error.message : undefined,
+			});
 		}
 	};
 
@@ -201,7 +199,7 @@ const ChatInput = ({
 
 					<InputGroupTextarea
 						name="message"
-						placeholder="Ask a question"
+						placeholder={m.chat_composer_placeholder()}
 						className="field-sizing-content max-h-48 min-h-16"
 						value={messageText}
 						onChange={(event) => setMessageText(event.target.value)}
@@ -231,7 +229,9 @@ const ChatInput = ({
 									}
 								>
 									<EllipsisIcon />
-									<span className="sr-only">More chat actions</span>
+									<span className="sr-only">
+										{m.chat_composer_more_actions_aria_label()}
+									</span>
 								</DropdownMenuTrigger>
 								<DropdownMenuContent align="start" className="w-56">
 									<AppTourButton
@@ -242,10 +242,11 @@ const ChatInput = ({
 										render={<DropdownMenuItem />}
 										className="w-full justify-start"
 									>
-										<CompassIcon className="size-4" /> Start tour
+										<CompassIcon className="size-4" />{" "}
+										{m.chat_composer_start_tour_action()}
 									</AppTourButton>
 									<DropdownMenuItem onClick={() => setSettingsOpen(true)}>
-										<SettingsIcon /> Chat settings
+										<SettingsIcon /> {m.chat_composer_settings_action()}
 									</DropdownMenuItem>
 									<ConversationDownload
 										messages={messages}
@@ -253,7 +254,8 @@ const ChatInput = ({
 										variant="ghost"
 										className="w-full justify-start"
 									>
-										<DownloadIcon className="size-4" /> Download chat
+										<DownloadIcon className="size-4" />{" "}
+										{m.chat_composer_download_action()}
 									</ConversationDownload>
 								</DropdownMenuContent>
 							</DropdownMenu>
@@ -277,7 +279,7 @@ const ChatInput = ({
 				</InputGroup>
 				{!isModelConfigured && (
 					<p className="mt-2 text-muted-foreground text-xs">
-						Select a model to start chatting.
+						{m.chat_composer_model_required_hint()}
 					</p>
 				)}
 			</form>

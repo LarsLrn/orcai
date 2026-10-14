@@ -3,6 +3,7 @@ import { FileTextIcon } from "lucide-react";
 import { buttonVariants } from "@/components/ui/button";
 import { useAppForm } from "@/hooks/form";
 import { useInit } from "@/hooks/mutations/use-init";
+import { m } from "@/paraglide/messages";
 import { initFormOptions } from "./init-form-options";
 
 const InitForm = () => {
@@ -28,8 +29,8 @@ const InitForm = () => {
 				name="organizationName"
 				children={(field) => (
 					<field.TextField
-						label="Organisation Name"
-						placeholder="Your Organisation"
+						label={m.auth_init_form_organization_name_label()}
+						placeholder={m.auth_init_form_organization_name_placeholder()}
 					/>
 				)}
 			/>
@@ -37,14 +38,20 @@ const InitForm = () => {
 			<form.AppField
 				name="organizationSlug"
 				children={(field) => (
-					<field.TextField label="Organisation Slug" placeholder="your-org" />
+					<field.TextField
+						label={m.auth_init_form_organization_slug_label()}
+						placeholder={m.auth_init_form_organization_slug_placeholder()}
+					/>
 				)}
 			/>
 
 			<form.AppField
 				name="name"
 				children={(field) => (
-					<field.TextField label="Admin Name" placeholder="Your Name" />
+					<field.TextField
+						label={m.auth_init_form_admin_name_label()}
+						placeholder={m.common_name_placeholder()}
+					/>
 				)}
 			/>
 
@@ -52,8 +59,8 @@ const InitForm = () => {
 				name="email"
 				children={(field) => (
 					<field.TextField
-						label="Admin Email"
-						placeholder="your@email.com"
+						label={m.auth_init_form_admin_email_label()}
+						placeholder={m.common_email_placeholder()}
 						type="email"
 					/>
 				)}
@@ -63,8 +70,8 @@ const InitForm = () => {
 				name="password"
 				children={(field) => (
 					<field.PasswordField
-						label="Password"
-						placeholder="Password"
+						label={m.common_password_label()}
+						placeholder={m.common_password_placeholder()}
 						showStrength
 					/>
 				)}
@@ -74,18 +81,19 @@ const InitForm = () => {
 				name="confirmPassword"
 				children={(field) => (
 					<field.PasswordField
-						label="Confirm Password"
-						placeholder="Confirm Password"
+						label={m.auth_init_form_confirm_password_label()}
+						placeholder={m.common_confirm_password_placeholder()}
 					/>
 				)}
 			/>
 
 			<div className="space-y-4 rounded-2xl border bg-background/50 p-4 shadow-sm">
 				<div className="space-y-2">
-					<h3 className="font-semibold">Privacy Policy</h3>
+					<h3 className="font-semibold">
+						{m.auth_init_form_privacy_policy_title()}
+					</h3>
 					<p className="text-muted-foreground text-sm">
-						By initializing this instance, you agree to our Privacy Policy and
-						Terms of Use.
+						{m.auth_init_form_privacy_policy_body()}
 					</p>
 				</div>
 
@@ -97,7 +105,7 @@ const InitForm = () => {
 						})}
 						to={"/privacy"}
 					>
-						<FileTextIcon /> Review Privacy Policy
+						<FileTextIcon /> {m.auth_init_form_review_privacy_link()}
 					</Link>
 					<Link
 						className={buttonVariants({
@@ -106,7 +114,7 @@ const InitForm = () => {
 						})}
 						to={"/tou"}
 					>
-						<FileTextIcon /> Review Terms of Use
+						<FileTextIcon /> {m.auth_init_form_review_terms_link()}
 					</Link>
 				</div>
 
@@ -114,8 +122,8 @@ const InitForm = () => {
 					name="privacyConsent"
 					children={(field) => (
 						<field.SwitchField
-							label="Privacy Consent"
-							description="Yes, I have read, understood, and agree to the privacy policy and terms of use of the OrcAI platform."
+							label={m.auth_init_form_privacy_consent_label()}
+							description={m.auth_init_form_privacy_consent_description()}
 						/>
 					)}
 				/>
@@ -126,7 +134,10 @@ const InitForm = () => {
 			</form.AppForm>
 
 			<form.AppForm>
-				<form.SubmitButton label="Initialize Instance" className="w-full" />
+				<form.SubmitButton
+					label={m.auth_init_form_submit_button()}
+					className="w-full"
+				/>
 			</form.AppForm>
 		</form>
 	);

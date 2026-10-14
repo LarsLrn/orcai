@@ -6,6 +6,7 @@ import { toast } from "sonner";
 import { useDefaultChatModel } from "@/components/chat/use-default-chat-model";
 import { DEFAULT_CHAT_GENERATION_PARAMS } from "@/lib/ai/utils/chat-generation-defaults";
 import { client, orpc } from "@/lib/orpc/orpc";
+import { m } from "@/paraglide/messages";
 
 const useChatStarter = ({
 	initialBotId,
@@ -53,7 +54,7 @@ const useChatStarter = ({
 	const handleSend = useCallback(
 		async (text: string) => {
 			if (!selectedModel || !selectedProvider) {
-				toast.error("Choose a model before sending a message.");
+				toast.error(m.chat_composer_model_required_toast_error());
 				return;
 			}
 
@@ -82,12 +83,9 @@ const useChatStarter = ({
 
 				await Promise.resolve(onChatCreated(chatId, text, zedToken));
 			} catch (error) {
-				toast.error(
-					"The chat was not created. Try sending the message again.",
-					{
-						description: error instanceof Error ? error.message : undefined,
-					},
-				);
+				toast.error(m.chat_starter_create_failed_toast_error(), {
+					description: error instanceof Error ? error.message : undefined,
+				});
 				setIsCreating(false);
 			}
 		},

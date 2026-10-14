@@ -3,18 +3,10 @@ import { useRouter } from "@tanstack/react-router";
 import { useMutationAction } from "@/hooks/actions/use-mutation-action";
 import {
 	type DestructiveTarget,
-	describeAction,
-	describeFailure,
-	describeOutcome,
-	describeProgress,
-	describeTarget,
-} from "@/hooks/mutations/destructive-copy";
+	singleTargetName,
+} from "@/hooks/mutations/destructive-target";
 import { orpc } from "@/lib/orpc/orpc";
-
-const BOT_NOUNS = {
-	noun: "bot",
-	nounPlural: "bots",
-};
+import { m } from "@/paraglide/messages";
 
 export const useSaveBotMutation = (
 	opts: ReturnType<typeof orpc.bot.save.mutationOptions> = {},
@@ -41,9 +33,9 @@ export const useSaveBotMutation = (
 				},
 			}),
 		messages: {
-			loading: "Saving bot...",
-			success: "Bot saved",
-			error: "Failed to save bot",
+			loading: () => m.bots_save_toast_loading(),
+			success: () => m.bots_save_toast_success(),
+			error: () => m.bots_save_toast_error(),
 		},
 	});
 };
@@ -81,9 +73,9 @@ export const usePublishBotMutation = (
 				},
 			}),
 		messages: {
-			loading: "Publishing bot...",
-			success: "Bot published",
-			error: "Failed to publish bot",
+			loading: () => m.bots_publish_toast_loading(),
+			success: () => m.bots_publish_toast_success(),
+			error: () => m.bots_publish_toast_error(),
 		},
 	});
 };
@@ -115,23 +107,37 @@ export const useDeleteBotsMutation = (
 			}),
 		messages: {
 			loading: ({ input }) =>
-				describeProgress("Deleting", input.refs.length, BOT_NOUNS, target),
+				m.bots_delete_toast_loading({
+					count: input.refs.length,
+				}),
 			success: ({ input }) =>
-				describeOutcome(input.refs.length, BOT_NOUNS, "deleted", target),
+				m.bots_delete_toast_success({
+					count: input.refs.length,
+				}),
 			error: ({ input }) =>
-				describeFailure(input.refs.length, BOT_NOUNS, "deleted", target),
+				m.bots_delete_toast_error({
+					count: input.refs.length,
+				}),
 		},
 		confirm: (input) => {
 			const count = input.refs.length;
+			const name = singleTargetName(count, target);
 
 			return {
-				title: `Delete ${describeTarget(count, BOT_NOUNS, target)}?`,
-				description:
-					count === 1
-						? "Everyone it was shared with loses access. Chats that used it keep their messages but lose the bot."
-						: "Everyone they were shared with loses access. Chats that used them keep their messages but lose the bot.",
-				confirmText: describeAction("Delete", count, BOT_NOUNS, target),
-				cancelText: "Cancel",
+				title: name
+					? m.bots_delete_confirm_title_named({
+							name,
+						})
+					: m.bots_delete_confirm_title({
+							count,
+						}),
+				description: m.bots_delete_confirm_description({
+					count,
+				}),
+				confirmText: m.bots_delete_confirm_button({
+					count,
+				}),
+				cancelText: m.common_cancel_button(),
 			};
 		},
 	});

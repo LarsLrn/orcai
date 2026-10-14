@@ -22,29 +22,30 @@ import {
 	useSidebar,
 } from "@/components/ui/sidebar";
 import { Skeleton } from "@/components/ui/skeleton";
-
-const instanceNavigation: {
-	title: string;
-	to: "/instance/organizations" | "/instance/users";
-	icon: LucideIcon;
-}[] = [
-	{
-		title: "Organisations",
-		to: "/instance/organizations",
-		icon: Building2Icon,
-	},
-	{
-		title: "Users",
-		to: "/instance/users",
-		icon: UsersIcon,
-	},
-];
+import { m } from "@/paraglide/messages";
 
 const InstanceSidebar = () => {
 	const { closeMobileForNavigation } = useSidebar();
 	const pathname = useRouterState({
 		select: (state) => state.location.pathname,
 	});
+
+	const instanceNavigation: {
+		title: string;
+		to: "/instance/organizations" | "/instance/users";
+		icon: LucideIcon;
+	}[] = [
+		{
+			title: m.instance_sidebar_organisations_nav_label(),
+			to: "/instance/organizations",
+			icon: Building2Icon,
+		},
+		{
+			title: m.instance_sidebar_users_nav_label(),
+			to: "/instance/users",
+			icon: UsersIcon,
+		},
+	];
 
 	return (
 		<Sidebar variant="floating">
@@ -53,7 +54,9 @@ const InstanceSidebar = () => {
 			</SidebarHeader>
 			<SidebarContent>
 				<SidebarGroup>
-					<SidebarGroupLabel>Manage instance</SidebarGroupLabel>
+					<SidebarGroupLabel>
+						{m.instance_sidebar_manage_group_label()}
+					</SidebarGroupLabel>
 					<SidebarGroupContent>
 						<SidebarMenu>
 							{instanceNavigation.map((item) => (
@@ -80,7 +83,7 @@ const InstanceSidebar = () => {
 							render={
 								<Link to="/app" onClick={closeMobileForNavigation}>
 									<ArrowLeftRightIcon />
-									<span>Back to app</span>
+									<span>{m.instance_sidebar_back_to_app_action()}</span>
 								</Link>
 							}
 						/>

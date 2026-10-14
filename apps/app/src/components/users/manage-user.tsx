@@ -21,6 +21,7 @@ import {
 } from "@/hooks/mutations/use-organization-member-mutations";
 import { useResendVerificationEmail } from "@/hooks/mutations/use-resend-verification-email";
 import { getAssignableOrganizationRoles } from "@/lib/authz/organization-role-metadata";
+import { m } from "@/paraglide/messages";
 
 const ManageUser = ({ user }: { user: UserWithOrganizationRole }) => {
 	const { auth } = useRouteContext({
@@ -89,12 +90,12 @@ const ManageUser = ({ user }: { user: UserWithOrganizationRole }) => {
 					<div className="flex items-center justify-between">
 						<CardTitle className="flex items-center gap-2">
 							<UserCogIcon className="h-5 w-5 text-primary" />
-							User management
+							{m.users_manage_card_title()}
 						</CardTitle>
 						{user.banned && (
 							<Badge variant="destructive" className="gap-1">
 								<ShieldAlertIcon className="h-3 w-3" />
-								Banned
+								{m.users_manage_banned_badge()}
 							</Badge>
 						)}
 					</div>
@@ -111,7 +112,7 @@ const ManageUser = ({ user }: { user: UserWithOrganizationRole }) => {
 								}
 							>
 								<KeyRoundIcon className="h-4 w-4" />
-								Send password reset
+								{m.users_manage_password_reset_action()}
 							</Button>
 							{!user.emailVerified ? (
 								<Button
@@ -123,13 +124,15 @@ const ManageUser = ({ user }: { user: UserWithOrganizationRole }) => {
 									}
 								>
 									<MailCheckIcon className="h-4 w-4" />
-									Send Verification Email
+									{m.users_manage_resend_verification_action()}
 								</Button>
 							) : null}
 						</div>
 					) : null}
 					<div className="max-w-sm space-y-2">
-						<p className="font-medium text-sm">Organisation role</p>
+						<p className="font-medium text-sm">
+							{m.users_organisation_role_label()}
+						</p>
 						<OrganizationRolePicker
 							value={user.organizationRole}
 							onValueChange={(nextRole) => {
@@ -147,7 +150,7 @@ const ManageUser = ({ user }: { user: UserWithOrganizationRole }) => {
 							disabled={
 								updateMember.isPending || !organizationId || isProtectedAdmin
 							}
-							title="Change organisation role"
+							title={m.users_manage_role_picker_title()}
 							roles={assignableRoles}
 						/>
 					</div>
@@ -160,7 +163,7 @@ const ManageUser = ({ user }: { user: UserWithOrganizationRole }) => {
 								onClick={() => void handleRemoveFromOrganisation()}
 							>
 								<UserMinusIcon className="h-4 w-4" />
-								Remove from organisation
+								{m.users_remove_from_organisation_action()}
 							</Button>
 						</div>
 					) : null}

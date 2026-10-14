@@ -6,6 +6,7 @@ import {
 } from "@/components/ui/sidebar";
 import { useOrganizationCapabilities } from "@/hooks/authz/use-capabilities";
 import { hasCapability } from "@/lib/authz/capabilities";
+import { m } from "@/paraglide/messages";
 import { sidebarMenu } from "@/settings/menus";
 import { CollapsibleSidebarMenu } from "./collapsible-sidebar-menu";
 
@@ -49,11 +50,11 @@ const ManageSidebarGroup = () => {
 
 	return (
 		<SidebarGroup className="p-0">
-			<SidebarGroupLabel>Your workspace</SidebarGroupLabel>
+			<SidebarGroupLabel>{m.sidebar_manage_group_label()}</SidebarGroupLabel>
 			<SidebarGroupContent>
 				<SidebarMenu>
 					{visibleMenu.map((item) => (
-						<CollapsibleSidebarMenu key={item.title} item={item} />
+						<CollapsibleSidebarMenu key={item.title()} item={item} />
 					))}
 				</SidebarMenu>
 			</SidebarGroupContent>

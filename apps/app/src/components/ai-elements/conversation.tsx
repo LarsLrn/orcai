@@ -5,6 +5,7 @@ import { useCallback } from "react";
 import { StickToBottom, useStickToBottomContext } from "use-stick-to-bottom";
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
+import { m } from "@/paraglide/messages";
 
 export type ConversationProps = ComponentProps<typeof StickToBottom>;
 
@@ -40,8 +41,8 @@ export type ConversationEmptyStateProps = ComponentProps<"div"> & {
 
 export const ConversationEmptyState = ({
 	className,
-	title = "No messages yet",
-	description = "Start a chat to see messages here",
+	title = m.ai_elements_conversation_empty_state_title(),
+	description = m.ai_elements_conversation_empty_state_description(),
 	icon,
 	children,
 	...props

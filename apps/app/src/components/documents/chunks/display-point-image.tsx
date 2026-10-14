@@ -3,6 +3,7 @@ import { ImageOffIcon } from "lucide-react";
 import { Placeholder } from "@/components/placeholders/placeholder";
 import { Skeleton } from "@/components/ui/skeleton";
 import { orpc } from "@/lib/orpc/orpc";
+import { m } from "@/paraglide/messages";
 
 const DisplayPointImage = ({
 	assetId,
@@ -27,8 +28,8 @@ const DisplayPointImage = ({
 	if (status === "error") {
 		return (
 			<Placeholder
-				title="Image unavailable"
-				description="Reload the page to try again."
+				title={m.assets_point_image_error_title()}
+				description={m.assets_point_image_error_description()}
 				Icon={ImageOffIcon}
 				className="min-h-52 rounded-lg border bg-background"
 			/>
@@ -39,7 +40,7 @@ const DisplayPointImage = ({
 		<div className="overflow-hidden rounded-lg border bg-background">
 			<img
 				src={data.url}
-				alt="Extracted preview"
+				alt={m.assets_point_image_alt()}
 				className="h-full max-h-80 w-full object-contain"
 				loading="lazy"
 			/>

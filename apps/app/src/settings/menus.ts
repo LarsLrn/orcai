@@ -15,9 +15,10 @@ import {
 	UsersIcon,
 	WalletIcon,
 } from "lucide-react";
+import { m } from "@/paraglide/messages";
 
 interface SidebarMenuItem {
-	title: string;
+	title: () => string;
 	linkProps?: LinkProps;
 	icon: LucideIcon;
 	requires?: OrganizationCapability;
@@ -27,14 +28,14 @@ interface SidebarMenuItem {
 
 export const sidebarMenu: SidebarMenuItem[] = [
 	{
-		title: "Library",
+		title: m.sidebar_menu_library_item,
 		linkProps: {
 			to: "/app/hub",
 		},
 		icon: BlocksIcon,
 		items: [
 			{
-				title: "Bots",
+				title: m.sidebar_menu_bots_item,
 				requires: "read",
 				linkProps: {
 					to: "/app/hub/bots",
@@ -42,7 +43,7 @@ export const sidebarMenu: SidebarMenuItem[] = [
 				icon: BotIcon,
 			},
 			{
-				title: "Behaviour",
+				title: m.sidebar_menu_behaviour_item,
 				requires: "read",
 				linkProps: {
 					to: "/app/hub/behaviour",
@@ -50,7 +51,7 @@ export const sidebarMenu: SidebarMenuItem[] = [
 				icon: BrainCircuitIcon,
 			},
 			{
-				title: "Repositories",
+				title: m.sidebar_menu_repositories_item,
 				requires: "read",
 				linkProps: {
 					to: "/app/hub/repositories",
@@ -58,7 +59,7 @@ export const sidebarMenu: SidebarMenuItem[] = [
 				icon: DatabaseIcon,
 			},
 			{
-				title: "Assets",
+				title: m.sidebar_menu_assets_item,
 				requires: "read",
 				linkProps: {
 					to: "/app/hub/assets",
@@ -68,11 +69,11 @@ export const sidebarMenu: SidebarMenuItem[] = [
 		],
 	},
 	{
-		title: "Administration",
+		title: m.sidebar_menu_administration_item,
 		icon: ServerCogIcon,
 		items: [
 			{
-				title: "Users",
+				title: m.sidebar_menu_users_item,
 				requires: "manage_members",
 				linkProps: {
 					to: "/app/users",
@@ -80,7 +81,7 @@ export const sidebarMenu: SidebarMenuItem[] = [
 				icon: UsersIcon,
 			},
 			{
-				title: "Groups",
+				title: m.sidebar_menu_groups_item,
 				requires: "manage_groups",
 				linkProps: {
 					to: "/app/groups",
@@ -88,7 +89,7 @@ export const sidebarMenu: SidebarMenuItem[] = [
 				icon: UserCogIcon,
 			},
 			{
-				title: "Quotas",
+				title: m.sidebar_menu_quotas_item,
 				requires: "manage_quotas",
 				linkProps: {
 					to: "/app/quotas",
@@ -96,7 +97,7 @@ export const sidebarMenu: SidebarMenuItem[] = [
 				icon: WalletIcon,
 			},
 			{
-				title: "Providers",
+				title: m.sidebar_menu_providers_item,
 				requires: "manage_providers",
 				linkProps: {
 					to: "/app/providers",
@@ -104,7 +105,7 @@ export const sidebarMenu: SidebarMenuItem[] = [
 				icon: ServerCogIcon,
 			},
 			{
-				title: "Models",
+				title: m.sidebar_menu_models_item,
 				requires: "manage_models",
 				linkProps: {
 					to: "/app/models",
@@ -112,7 +113,7 @@ export const sidebarMenu: SidebarMenuItem[] = [
 				icon: BotIcon,
 			},
 			{
-				title: "Organisations",
+				title: m.sidebar_menu_organisations_item,
 				requires: "manage_organization",
 				linkProps: {
 					to: "/app/orgs",
@@ -125,14 +126,14 @@ export const sidebarMenu: SidebarMenuItem[] = [
 
 export const sidebarUserMenu: SidebarMenuItem[] = [
 	{
-		title: "Account",
+		title: m.user_menu_account_item,
 		linkProps: {
 			to: "/app/account",
 		},
 		icon: UserIcon,
 	},
 	{
-		title: "Switch Organisation",
+		title: m.user_menu_switch_organisation_item,
 		linkProps: {
 			to: "/select-organization",
 		},
@@ -141,7 +142,7 @@ export const sidebarUserMenu: SidebarMenuItem[] = [
 ];
 
 export const instanceAdministrationUserMenuItem: SidebarMenuItem = {
-	title: "Manage instance",
+	title: m.user_menu_manage_instance_item,
 	linkProps: {
 		to: "/instance",
 	},

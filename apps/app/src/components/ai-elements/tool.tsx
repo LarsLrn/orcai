@@ -1,6 +1,7 @@
 import type { DynamicToolUIPart, ToolUIPart } from "ai";
 import type { ComponentProps } from "react";
 import { cn } from "@/lib/utils";
+import { m } from "@/paraglide/messages";
 
 export type ToolPart = ToolUIPart | DynamicToolUIPart;
 
@@ -40,21 +41,27 @@ export const ToolInput = ({ input, rawInput, errorText }: ToolInputProps) => {
 
 	if (displayedInput === undefined) {
 		return (
-			<ToolField label="Parameters">
+			<ToolField label={m.ai_elements_tool_parameters_label()}>
 				<p className="text-muted-foreground text-xs">
 					{errorText
-						? "The call did not produce a valid parameter object."
-						: "No parameters."}
+						? m.ai_elements_tool_parameters_invalid()
+						: m.ai_elements_tool_parameters_empty()}
 				</p>
 			</ToolField>
 		);
 	}
 
 	return (
-		<ToolField label={isRawInput ? "Raw parameters" : "Parameters"}>
+		<ToolField
+			label={
+				isRawInput
+					? m.ai_elements_tool_raw_parameters_label()
+					: m.ai_elements_tool_parameters_label()
+			}
+		>
 			{isRawInput && (
 				<p className="mb-1 text-muted-foreground text-xs">
-					Showing the original arguments because validation failed.
+					{m.ai_elements_tool_raw_parameters_hint()}
 				</p>
 			)}
 			<ToolJson value={displayedInput} />
@@ -70,7 +77,7 @@ export type ToolOutputProps = {
 export const ToolOutput = ({ output, errorText }: ToolOutputProps) => {
 	if (errorText) {
 		return (
-			<ToolField label="Error">
+			<ToolField label={m.ai_elements_tool_error_label()}>
 				<p className="wrap-anywhere text-destructive text-xs">{errorText}</p>
 			</ToolField>
 		);
@@ -81,7 +88,7 @@ export const ToolOutput = ({ output, errorText }: ToolOutputProps) => {
 	}
 
 	return (
-		<ToolField label="Result">
+		<ToolField label={m.ai_elements_tool_result_label()}>
 			<ToolJson value={output} />
 		</ToolField>
 	);

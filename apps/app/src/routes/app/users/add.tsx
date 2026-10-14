@@ -8,13 +8,14 @@ import {
 	PageHeader,
 	PageTitle,
 } from "@/components/ui/shell/page";
+import { m } from "@/paraglide/messages";
 
 export const Route = createFileRoute("/app/users/add")({
 	component: RouteComponent,
 	head: () => ({
 		meta: [
 			{
-				title: "Add",
+				title: m.users_add_page_meta_title(),
 			},
 		],
 	}),
@@ -24,7 +25,7 @@ function RouteComponent() {
 	return (
 		<Page>
 			<PageHeader>
-				<PageTitle>Add User</PageTitle>
+				<PageTitle>{m.users_add_page_title()}</PageTitle>
 			</PageHeader>
 			<PageContent>
 				<Suspense fallback={<LoadingPage />}>

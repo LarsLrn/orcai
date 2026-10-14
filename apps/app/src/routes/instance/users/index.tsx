@@ -20,6 +20,7 @@ import {
 } from "@/components/ui/shell/page";
 import { instanceUserTableColumns } from "@/components/users/table/instance-user-table-columns";
 import { orpc } from "@/lib/orpc/orpc";
+import { m } from "@/paraglide/messages";
 
 const searchSchema = listAllUsersInputSchema.extend({
 	query: z.string().trim().max(100).default(""),
@@ -64,7 +65,7 @@ export const Route = createFileRoute("/instance/users/")({
 	head: () => ({
 		meta: [
 			{
-				title: "Users",
+				title: m.instance_users_page_title(),
 			},
 		],
 	}),
@@ -87,10 +88,8 @@ function RouteComponent() {
 	return (
 		<Page>
 			<PageHeader>
-				<PageTitle>Users</PageTitle>
-				<PageDescription>
-					Every account of this instance and the organisations it belongs to.
-				</PageDescription>
+				<PageTitle>{m.instance_users_page_title()}</PageTitle>
+				<PageDescription>{m.instance_users_page_description()}</PageDescription>
 			</PageHeader>
 			<PageContent>
 				<DataTable
@@ -111,7 +110,7 @@ function RouteComponent() {
 					<DataTableToolbar>
 						<DataTableSearch
 							value={query}
-							placeholder="Search users..."
+							placeholder={m.instance_users_search_placeholder()}
 							onChange={(value) =>
 								void navigate({
 									to: ".",

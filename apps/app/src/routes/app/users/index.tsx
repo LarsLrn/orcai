@@ -23,6 +23,7 @@ import {
 import { columns } from "@/components/users/table/columns";
 import { UsersDataTableSelectActions } from "@/components/users/table/users-data-table-select-actions";
 import { orpc } from "@/lib/orpc/orpc";
+import { m } from "@/paraglide/messages";
 
 const searchSchema = listUsersInputSchema.extend({
 	query: z.string().trim().max(100).default(""),
@@ -76,8 +77,8 @@ function RouteComponent() {
 	return (
 		<Page>
 			<PageHeader>
-				<PageTitle>Users</PageTitle>
-				<PageDescription>Manage your organisation's users.</PageDescription>
+				<PageTitle>{m.users_page_title()}</PageTitle>
+				<PageDescription>{m.users_page_description()}</PageDescription>
 
 				<PageAction>
 					<Link
@@ -86,7 +87,7 @@ function RouteComponent() {
 							variant: "outline",
 						})}
 					>
-						View invitations
+						{m.users_list_invitations_link()}
 					</Link>
 					<Link
 						to={"/app/users/add"}
@@ -94,7 +95,7 @@ function RouteComponent() {
 							variant: "default",
 						})}
 					>
-						Invite user
+						{m.users_list_invite_action()}
 					</Link>
 				</PageAction>
 			</PageHeader>
@@ -117,7 +118,7 @@ function RouteComponent() {
 					<DataTableToolbar>
 						<DataTableSearch
 							value={query}
-							placeholder="Search users..."
+							placeholder={m.users_list_search_placeholder()}
 							onChange={(value) =>
 								void navigate({
 									to: ".",

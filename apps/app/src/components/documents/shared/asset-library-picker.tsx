@@ -6,6 +6,7 @@ import { Input } from "@/components/ui/input";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { orpc } from "@/lib/orpc/orpc";
 import { cn } from "@/lib/utils";
+import { m } from "@/paraglide/messages";
 
 const AssetLibraryPicker = ({
 	selectedIds,
@@ -36,7 +37,7 @@ const AssetLibraryPicker = ({
 			<Input
 				value={search}
 				onChange={(event) => setSearch(event.target.value)}
-				placeholder="Search the Library"
+				placeholder={m.assets_library_picker_search_placeholder()}
 			/>
 
 			<ScrollArea

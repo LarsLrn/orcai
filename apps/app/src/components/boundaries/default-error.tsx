@@ -9,6 +9,7 @@ import {
 import { AlertTriangle, ArrowLeft, Home, RefreshCw } from "lucide-react";
 import { Button, buttonVariants } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
+import { m } from "@/paraglide/messages";
 
 // Type for ORPC validation error structure
 interface ORPCValidationError {
@@ -78,7 +79,7 @@ export function DefaultErrorBoundary({ error }: ErrorComponentProps) {
 						{/* Error Title */}
 						<div className="space-y-2">
 							<h1 className="font-semibold text-2xl text-foreground">
-								This page could not be loaded
+								{m.boundaries_default_error_title()}
 							</h1>
 							{hasValidationErrors ? (
 								<div className="space-y-2 text-left">
@@ -100,15 +101,12 @@ export function DefaultErrorBoundary({ error }: ErrorComponentProps) {
 
 						{/* Error Details */}
 						<div className="text-muted-foreground text-sm">
-							<p className="mb-4">
-								Try again, or go back to the previous page. The technical
-								details below help if the problem continues.
-							</p>
+							<p className="mb-4">{m.boundaries_default_error_description()}</p>
 
 							{/* Error Component (collapsible details) */}
 							<details className="rounded-md bg-muted/50 p-3 text-left text-xs">
 								<summary className="cursor-pointer font-medium text-muted-foreground hover:text-foreground">
-									Technical details
+									{m.boundaries_default_error_details_summary()}
 								</summary>
 								<div className="mt-2 font-mono">
 									<ErrorComponent error={error} />
@@ -127,7 +125,7 @@ export function DefaultErrorBoundary({ error }: ErrorComponentProps) {
 						className="flex items-center gap-2"
 					>
 						<RefreshCw className="h-4 w-4" />
-						Try Again
+						{m.boundaries_default_error_retry_button()}
 					</Button>
 					{isRoot ? (
 						<Link
@@ -138,7 +136,7 @@ export function DefaultErrorBoundary({ error }: ErrorComponentProps) {
 							})}
 						>
 							<Home className="h-4 w-4" />
-							Return home
+							{m.boundaries_default_error_home_link()}
 						</Link>
 					) : (
 						<Button
@@ -150,7 +148,7 @@ export function DefaultErrorBoundary({ error }: ErrorComponentProps) {
 							}}
 						>
 							<ArrowLeft className="h-4 w-4" />
-							Go back
+							{m.boundaries_default_error_back_button()}
 						</Button>
 					)}
 				</div>

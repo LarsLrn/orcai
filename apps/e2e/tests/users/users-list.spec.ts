@@ -1,5 +1,6 @@
 import { baseURL } from "../../fixtures/env";
 import { expect, test } from "../../fixtures/index";
+import { message } from "../../fixtures/messages";
 import { enterApp, open } from "../../fixtures/navigation";
 import {
 	addMember,
@@ -28,7 +29,7 @@ test("users: an admin sees every member of the organisation", async ({
 
 	const page = await pageAs("admin");
 	await enterApp(page, org.slug);
-	await reachPage(page, USERS_PATH, "Users");
+	await reachPage(page, USERS_PATH, message("users_page_title"));
 
 	// `user.list` is scoped to the active organisation, so the table holds one
 	// user per role, the well-known admin that created the organisation, and
@@ -46,8 +47,8 @@ test("users: an admin sees every member of the organisation", async ({
 	const row = userRow(page, user.email);
 	await expect(row).toBeVisible();
 	await expect(row).toContainText(user.name);
-	await expect(row).toContainText("Member");
-	await expect(row).toContainText("Not verified");
+	await expect(row).toContainText(message("orgs_role_member_label"));
+	await expect(row).toContainText(message("users_verification_not_verified"));
 });
 
 test("users: a manager sees the users page but may not remove an admin", async ({
@@ -61,7 +62,7 @@ test("users: a manager sees the users page but may not remove an admin", async (
 
 	const page = await pageAs("manager");
 	await enterApp(page, org.slug);
-	await reachPage(page, USERS_PATH, "Users");
+	await reachPage(page, USERS_PATH, message("users_page_title"));
 
 	await expect(userRow(page, user.email)).toBeVisible();
 	await expect(userRow(page, org.users.admin.email)).toBeVisible();
@@ -69,13 +70,13 @@ test("users: a manager sees the users page but may not remove an admin", async (
 	// A manager has `manage_members` but not `manage_organization`, so the app
 	// offers no destructive action on a row that holds an admin.
 	expect(await rowMenuItems(page, org.users.admin.email)).toEqual([
-		"Edit User",
+		message("users_table_edit_action"),
 	]);
 	await page.keyboard.press("Escape");
 
 	expect(await rowMenuItems(page, user.email)).toEqual([
-		"Edit User",
-		"Remove from organisation",
+		message("users_table_edit_action"),
+		message("users_remove_from_organisation_action"),
 	]);
 });
 
@@ -96,7 +97,7 @@ test("users: a member and a viewer never see the users page", async ({
 		await expect(page).toHaveURL(/\/app$/);
 		await expect(
 			page.getByRole("heading", {
-				name: "Users",
+				name: message("users_page_title"),
 			}),
 		).toHaveCount(0);
 	}
@@ -113,12 +114,14 @@ test("users: an admin searches the organisation users by email", async ({
 
 	const page = await pageAs("admin");
 	await enterApp(page, org.slug);
-	await reachPage(page, USERS_PATH, "Users");
+	await reachPage(page, USERS_PATH, message("users_page_title"));
 
 	await expect(userRow(page, user.email)).toBeVisible();
 	await expect(userRow(page, org.users.admin.email)).toBeVisible();
 
-	const search = page.getByPlaceholder("Search users...");
+	const search = page.getByPlaceholder(
+		message("users_list_search_placeholder"),
+	);
 	await search.fill(user.email);
 
 	// The search is debounced and goes to the server, so the table settles a

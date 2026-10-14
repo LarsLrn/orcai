@@ -2,6 +2,7 @@ import { useQueryClient } from "@tanstack/react-query";
 import { useRouter } from "@tanstack/react-router";
 import { useMutationAction } from "@/hooks/actions/use-mutation-action";
 import { orpc } from "@/lib/orpc/orpc";
+import { m } from "@/paraglide/messages";
 
 export const useCreateOrganizationMutation = (
 	opts: ReturnType<typeof orpc.organization.create.mutationOptions> = {},
@@ -33,9 +34,9 @@ export const useCreateOrganizationMutation = (
 				},
 			}),
 		messages: {
-			loading: "Creating organisation...",
-			success: "Organisation created successfully",
-			error: "Failed to create organisation",
+			loading: m.orgs_create_toast_loading(),
+			success: m.orgs_create_toast_success(),
+			error: m.orgs_create_toast_error(),
 		},
 	});
 };
@@ -68,9 +69,9 @@ export const useUpdateOrganizationMutation = (
 				},
 			}),
 		messages: {
-			loading: "Updating organisation...",
-			success: "Organisation updated successfully",
-			error: "Failed to update organisation",
+			loading: m.orgs_update_toast_loading(),
+			success: m.orgs_update_toast_success(),
+			error: m.orgs_update_toast_error(),
 		},
 	});
 };
@@ -101,9 +102,9 @@ export const useDeleteOrganizationsMutation = (
 				},
 			}),
 		messages: {
-			loading: "Deleting the organisation...",
-			success: "Organisation deleted",
-			error: "The organisation was not deleted. Try again.",
+			loading: m.orgs_delete_toast_loading(),
+			success: m.orgs_delete_toast_success(),
+			error: m.orgs_delete_toast_error(),
 		},
 	});
 };

@@ -13,6 +13,7 @@ import {
 	CardTitle,
 } from "@/components/ui/card";
 import { orpc } from "@/lib/orpc/orpc";
+import { m } from "@/paraglide/messages";
 
 export const Route = createFileRoute("/_pathlessLayout/register")({
 	component: RouteComponent,
@@ -64,13 +65,13 @@ function RouteComponent() {
 	if (!invitation) {
 		return (
 			<Placeholder
-				title="Registration is by invitation"
-				description="Accounts are created from an invitation link. Ask an administrator of the organisation you want to join to invite your email address."
+				title={m.auth_register_page_no_invitation_title()}
+				description={m.auth_register_page_no_invitation_description()}
 				Icon={MailIcon}
 				actions={[
 					{
 						key: "login",
-						label: "Go to sign in",
+						label: m.auth_register_page_go_to_signin_action(),
 						linkProps: {
 							to: "/login",
 						},
@@ -84,11 +85,15 @@ function RouteComponent() {
 		const isExpired = invitation.validation.reason === "expired";
 		return (
 			<Placeholder
-				title={isExpired ? "Invitation Expired" : "Invitation not found"}
+				title={
+					isExpired
+						? m.auth_register_page_invitation_expired_title()
+						: m.auth_register_page_invitation_not_found_title()
+				}
 				description={
 					isExpired
-						? "The invitation you are trying to access has expired."
-						: "The invitation you are trying to access does not exist or has already been consumed."
+						? m.auth_register_page_invitation_expired_description()
+						: m.auth_register_page_invitation_not_found_description()
 				}
 			/>
 		);
@@ -99,11 +104,13 @@ function RouteComponent() {
 	return (
 		<Card className="max-w-xl">
 			<CardHeader>
-				<CardTitle>Create your account</CardTitle>
+				<CardTitle>{m.auth_register_page_title()}</CardTitle>
 				<CardDescription>
 					{organizationName
-						? `${organizationName} invited you. Create your account to join.`
-						: "Create a new account to continue."}
+						? m.auth_register_page_invited_description_named({
+								organizationName,
+							})
+						: m.auth_register_page_invited_description()}
 				</CardDescription>
 			</CardHeader>
 			<CardContent>
@@ -115,7 +122,7 @@ function RouteComponent() {
 				</div>
 			</CardContent>
 			<CardFooter className="text-muted-foreground text-sm">
-				<Link to={"/login"}>Already have an account?</Link>
+				<Link to={"/login"}>{m.auth_register_page_signin_link()}</Link>
 			</CardFooter>
 		</Card>
 	);

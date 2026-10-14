@@ -1,5 +1,6 @@
 import { baseURL } from "../../fixtures/env";
 import { expect, test } from "../../fixtures/index";
+import { message } from "../../fixtures/messages";
 import { open } from "../../fixtures/navigation";
 import { runId } from "../../fixtures/organisation";
 import {
@@ -30,7 +31,7 @@ test("instance: the users page lists accounts from several organisations", async
 	await open(page, "/instance/users");
 	await expect(
 		page.getByRole("heading", {
-			name: "Users",
+			name: message("instance_users_page_title"),
 		}),
 	).toBeVisible();
 
@@ -41,9 +42,9 @@ test("instance: the users page lists accounts from several organisations", async
 	await expect(firstRow).toBeVisible();
 	await expect(secondRow).toBeVisible();
 	await expect(firstRow).toContainText(org.name);
-	await expect(firstRow).toContainText("Member");
+	await expect(firstRow).toContainText(message("orgs_role_member_label"));
 	await expect(secondRow).toContainText(other.name);
-	await expect(secondRow).toContainText("Manager");
+	await expect(secondRow).toContainText(message("orgs_role_manager_label"));
 });
 
 test("instance: the search narrows the users page", async ({
@@ -63,7 +64,9 @@ test("instance: the search narrows the users page", async ({
 	await expect(userRow(page, wanted.email)).toBeVisible();
 	await expect(userRow(page, other.email)).toBeVisible();
 
-	await page.getByPlaceholder("Search users...").fill(wanted.email);
+	await page
+		.getByPlaceholder(message("instance_users_search_placeholder"))
+		.fill(wanted.email);
 
 	await expect(userRow(page, other.email)).toHaveCount(0);
 	await expect(userRow(page, wanted.email)).toBeVisible();
@@ -82,40 +85,42 @@ test("instance: the users page bans and unbans an account", async ({
 
 	const row = userRow(page, user.email);
 	await expect(row).toBeVisible();
-	await expect(row).toContainText("Active");
+	await expect(row).toContainText(message("common_status_active_label"));
 
 	await row
 		.getByRole("button", {
-			name: "Open menu",
+			name: message("common_row_menu_trigger"),
 		})
 		.click();
 	await page
 		.getByRole("menuitem", {
-			name: "Ban Account",
+			name: message("instance_users_table_ban_menu_item"),
 		})
 		.click();
 	await page
 		.getByRole("button", {
-			name: "Ban",
+			name: message("users_ban_confirm_button"),
 			exact: true,
 		})
 		.click();
 
 	await expect(page.getByRole("alertdialog")).toHaveCount(0);
-	await expect(row).toContainText("Banned");
+	await expect(row).toContainText(
+		message("instance_users_table_status_banned_label"),
+	);
 
 	await row
 		.getByRole("button", {
-			name: "Open menu",
+			name: message("common_row_menu_trigger"),
 		})
 		.click();
 	await page
 		.getByRole("menuitem", {
-			name: "Unban Account",
+			name: message("instance_users_table_unban_menu_item"),
 		})
 		.click();
 
-	await expect(row).toContainText("Active");
+	await expect(row).toContainText(message("common_status_active_label"));
 });
 
 test("instance: the users page deletes an account", async ({
@@ -134,17 +139,17 @@ test("instance: the users page deletes an account", async ({
 
 	await row
 		.getByRole("button", {
-			name: "Open menu",
+			name: message("common_row_menu_trigger"),
 		})
 		.click();
 	await page
 		.getByRole("menuitem", {
-			name: "Delete Account",
+			name: message("instance_users_table_delete_menu_item"),
 		})
 		.click();
 	await page
 		.getByRole("button", {
-			name: "Delete",
+			name: message("common_delete_button"),
 			exact: true,
 		})
 		.click();

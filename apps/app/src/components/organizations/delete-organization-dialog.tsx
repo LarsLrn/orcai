@@ -15,27 +15,36 @@ import { Label } from "@/components/ui/label";
 import { Skeleton } from "@/components/ui/skeleton";
 import { useDeleteOrganizationsMutation } from "@/hooks/mutations/use-organization-mutations";
 import { orpc } from "@/lib/orpc/orpc";
+import { m } from "@/paraglide/messages";
 
-const IMPACT_LABELS = [
+const IMPACT_ROWS = [
 	{
 		key: "members",
-		singular: "member",
-		plural: "members",
+		describe: (count: number) =>
+			m.orgs_delete_dialog_impact_members({
+				count,
+			}),
 	},
 	{
 		key: "pendingInvitations",
-		singular: "pending invitation",
-		plural: "pending invitations",
+		describe: (count: number) =>
+			m.orgs_delete_dialog_impact_invitations({
+				count,
+			}),
 	},
 	{
 		key: "groups",
-		singular: "group",
-		plural: "groups",
+		describe: (count: number) =>
+			m.orgs_delete_dialog_impact_groups({
+				count,
+			}),
 	},
 	{
 		key: "exclusiveResources",
-		singular: "resource scoped only here",
-		plural: "resources scoped only here",
+		describe: (count: number) =>
+			m.orgs_delete_dialog_impact_resources({
+				count,
+			}),
 	},
 ] as const;
 
@@ -104,11 +113,13 @@ const DeleteOrganizationDialog = ({
 					<DialogHeader>
 						<DialogTitle>
 							{impact
-								? `Delete the ${impact.data.name} organisation?`
-								: "Delete this organisation?"}
+								? m.orgs_delete_dialog_title_named({
+										name: impact.data.name,
+									})
+								: m.orgs_delete_dialog_title()}
 						</DialogTitle>
 						<DialogDescription>
-							Everything counted below goes with it, and deletion is permanent.
+							{m.orgs_delete_dialog_description()}
 						</DialogDescription>
 					</DialogHeader>
 					{isImpactPending || !impact ? (
@@ -116,25 +127,25 @@ const DeleteOrganizationDialog = ({
 					) : (
 						<div className="space-y-3 text-sm">
 							<ul className="list-inside list-disc space-y-1">
-								{IMPACT_LABELS.map((label) => {
-									const value = impact.data[label.key];
-
-									return (
-										<li key={label.key}>
-											{value} {value === 1 ? label.singular : label.plural}
-										</li>
-									);
-								})}
+								{IMPACT_ROWS.map((row) => (
+									<li key={row.key}>{row.describe(impact.data[row.key])}</li>
+								))}
 							</ul>
 							<p className="text-muted-foreground">
-								Members, invitations and groups go with the organisation.
-								Resources scoped only here stay behind without an organisation.
+								{m.orgs_delete_dialog_impact_note()}
 							</p>
 						</div>
 					)}
 					<div className="space-y-2">
 						<Label htmlFor="delete-organization-slug">
-							Type {slug ? <code>{slug}</code> : "the slug"} to confirm
+							{slug ? (
+								<>
+									{m.orgs_delete_dialog_slug_label_before()} <code>{slug}</code>{" "}
+									{m.orgs_delete_dialog_slug_label_after()}
+								</>
+							) : (
+								m.orgs_delete_dialog_slug_label_unknown()
+							)}
 						</Label>
 						<Input
 							id="delete-organization-slug"
@@ -151,14 +162,16 @@ const DeleteOrganizationDialog = ({
 							onClick={() => onOpenChange(false)}
 							disabled={isPending}
 						>
-							Cancel
+							{m.common_cancel_button()}
 						</Button>
 						<Button
 							type="submit"
 							variant="destructive"
 							disabled={!canDelete || isPending}
 						>
-							{isPending ? "Deleting..." : "Delete"}
+							{isPending
+								? m.orgs_delete_dialog_submit_pending()
+								: m.common_delete_button()}
 						</Button>
 					</DialogFooter>
 				</form>

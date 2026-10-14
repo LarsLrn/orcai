@@ -18,6 +18,7 @@ import {
 import { useDeleteOrganizationInvitationsMutation } from "@/hooks/mutations/use-organization-invitation-mutations";
 import { clientEnv } from "@/lib/env/client";
 import { formatDisplayTimestamp } from "@/lib/presentation/format-timestamp";
+import { m } from "@/paraglide/messages";
 
 const columnHelper = createColumnHelper<
 	DataTableFeatures,
@@ -28,45 +29,57 @@ export const invitesTableColumns = columnHelper.columns([
 	createDataTableSelectColumn<OrganizationInvitation>(),
 	columnHelper.accessor("email", {
 		header: ({ column }) => (
-			<DataTableColumnHeader column={column} title="Name" />
+			<DataTableColumnHeader column={column} title={m.common_name_label()} />
 		),
 		meta: {
-			exportLabel: "Email",
+			exportLabel: m.common_email_label(),
 		},
 	}),
 	columnHelper.accessor("id", {
 		header: ({ column }) => (
-			<DataTableColumnHeader column={column} title="Invitation ID" />
+			<DataTableColumnHeader
+				column={column}
+				title={m.users_invites_table_id_column_header()}
+			/>
 		),
 		meta: {
-			exportLabel: "Invitation ID",
+			exportLabel: m.users_invites_table_id_column_header(),
 		},
 	}),
 	columnHelper.accessor("expiresAt", {
 		header: ({ column }) => (
-			<DataTableColumnHeader column={column} title="Expires" />
+			<DataTableColumnHeader
+				column={column}
+				title={m.users_invites_table_expires_column_header()}
+			/>
 		),
 		cell: ({ row }) => (
 			<span>{formatDisplayTimestamp(row.original.expiresAt || "")}</span>
 		),
 		meta: {
-			exportLabel: "Expires",
+			exportLabel: m.users_invites_table_expires_column_header(),
 		},
 	}),
 	columnHelper.accessor("status", {
 		header: ({ column }) => (
-			<DataTableColumnHeader column={column} title="Status" />
+			<DataTableColumnHeader
+				column={column}
+				title={m.users_invites_table_status_column_header()}
+			/>
 		),
 		meta: {
-			exportLabel: "Status",
+			exportLabel: m.users_invites_table_status_column_header(),
 		},
 	}),
 	columnHelper.accessor("role", {
 		header: ({ column }) => (
-			<DataTableColumnHeader column={column} title="Role" />
+			<DataTableColumnHeader
+				column={column}
+				title={m.users_invites_table_role_column_header()}
+			/>
 		),
 		meta: {
-			exportLabel: "Role",
+			exportLabel: m.users_invites_table_role_column_header(),
 		},
 	}),
 	columnHelper.display({
@@ -96,11 +109,10 @@ const ActionsCell = ({
 		const fullUrl = new URL(href, clientEnv.VITE_BASE_URL).toString();
 
 		toast.promise(navigator.clipboard.writeText(fullUrl), {
-			loading: "Copying invitation link...",
-			success: "Invitation link copied",
+			loading: m.users_invites_copy_link_toast_loading(),
+			success: m.users_invites_copy_link_toast_success(),
 			error: (error) => ({
-				message:
-					"The invitation link was not copied. Copy it again, or open the invitation and copy the address by hand.",
+				message: m.users_invites_copy_link_toast_error(),
 				description: error.message,
 			}),
 		});
@@ -111,14 +123,14 @@ const ActionsCell = ({
 			<DropdownMenuTrigger
 				render={
 					<Button variant="ghost" className="size-8 p-0">
-						<span className="sr-only">Open menu</span>
+						<span className="sr-only">{m.common_row_menu_trigger()}</span>
 						<MoreHorizontal className="size-4" />
 					</Button>
 				}
 			/>
 			<DropdownMenuContent align="end">
 				<DropdownMenuItem onClick={() => handleCopyLink(invitation.id)}>
-					Copy invitation link
+					{m.users_invites_table_copy_link_action()}
 				</DropdownMenuItem>
 				<DropdownMenuSeparator />
 				<DeleteItem invitation={invitation} />
@@ -154,7 +166,7 @@ const DeleteItem = ({ invitation }: { invitation: OrganizationInvitation }) => {
 			variant="destructive"
 			onClick={() => handleDelete(invitation.id)}
 		>
-			Delete Organization Invitation
+			{m.users_invites_table_delete_action()}
 		</DropdownMenuItem>
 	);
 };

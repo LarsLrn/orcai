@@ -2,6 +2,7 @@ import type { JobHistoryEntry } from "@orcai/schema";
 import { Badge } from "@/components/ui/badge";
 import { Spinner } from "@/components/ui/spinner";
 import { formatDisplayTimestamp } from "@/lib/presentation/format-timestamp";
+import { m } from "@/paraglide/messages";
 
 const stateVariant: Record<
 	JobHistoryEntry["state"],
@@ -25,15 +26,24 @@ const JobListItem = ({ job }: { job: JobHistoryEntry }) => {
 			<div className="flex flex-col gap-1 text-sm">
 				<span className="font-medium">{job.name}</span>
 				<span className="text-muted-foreground text-xs">
-					Created: {formatDisplayTimestamp(job.createdOn)}
+					{m.jobs_list_item_created_label({
+						timestamp: formatDisplayTimestamp(job.createdOn),
+					})}
 					{job.startedOn &&
-						` · Started: ${formatDisplayTimestamp(job.startedOn)}`}
+						` ${m.jobs_list_item_started_label({
+							timestamp: formatDisplayTimestamp(job.startedOn),
+						})}`}
 					{job.completedOn &&
-						` · Done: ${formatDisplayTimestamp(job.completedOn)}`}
+						` ${m.jobs_list_item_completed_label({
+							timestamp: formatDisplayTimestamp(job.completedOn),
+						})}`}
 				</span>
 				{job.retryCount > 0 && (
 					<span className="text-muted-foreground text-xs">
-						Retries: {job.retryCount}/{job.retryLimit}
+						{m.jobs_list_item_retries_label({
+							count: job.retryCount,
+							limit: job.retryLimit,
+						})}
 					</span>
 				)}
 			</div>

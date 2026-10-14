@@ -6,6 +6,7 @@ import {
 import { createAccountUser } from "../../fixtures/account/users";
 import { pageForSession } from "../../fixtures/auth/users";
 import { expect, test } from "../../fixtures/index";
+import { message } from "../../fixtures/messages";
 import { open } from "../../fixtures/navigation";
 
 test("account: a user switches the theme and the choice survives a reload", async ({
@@ -47,16 +48,19 @@ test("account: skipping the app tour is remembered for the user", async ({
 	const { context, page } = await pageForSession(browser, user.session);
 
 	try {
-		const tourCard = page.getByText("Welcome to OrcAI", {
-			exact: true,
-		});
+		const tourCard = page.getByText(
+			message("next_step_initial_welcome_title"),
+			{
+				exact: true,
+			},
+		);
 
 		// A user who has not seen the tour gets it on the app home.
 		await openAppPage(page, "/app", tourCard);
 
 		await page
 			.getByRole("button", {
-				name: "Skip",
+				name: message("next_step_card_skip_button"),
 			})
 			.click();
 

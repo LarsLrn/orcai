@@ -16,7 +16,8 @@ import {
 } from "@/components/ui/dropdown-menu";
 import { useOrganizationCapabilities } from "@/hooks/authz/use-capabilities";
 import { useDeleteOrganizationMembersMutation } from "@/hooks/mutations/use-organization-member-mutations";
-import { organizationRoleLabels } from "@/lib/authz/organization-role-metadata";
+import { getOrganizationRoleLabel } from "@/lib/authz/organization-role-metadata";
+import { m } from "@/paraglide/messages";
 
 const columnHelper = createColumnHelper<
 	DataTableFeatures,
@@ -28,7 +29,7 @@ export const columns = columnHelper.columns([
 	columnHelper.accessor("name", {
 		size: 500,
 		header: ({ column }) => (
-			<DataTableColumnHeader column={column} title="Name" />
+			<DataTableColumnHeader column={column} title={m.common_name_label()} />
 		),
 		cell: ({ row }) => (
 			<Link
@@ -44,21 +45,29 @@ export const columns = columnHelper.columns([
 	}),
 	columnHelper.accessor("email", {
 		header: ({ column }) => (
-			<DataTableColumnHeader column={column} title="Email" />
+			<DataTableColumnHeader column={column} title={m.common_email_label()} />
 		),
 	}),
 	columnHelper.accessor("emailVerified", {
 		header: ({ column }) => (
-			<DataTableColumnHeader column={column} title="Email verified" />
+			<DataTableColumnHeader
+				column={column}
+				title={m.users_table_email_verified_column_header()}
+			/>
 		),
 		cell: ({ row }) =>
-			row.original.emailVerified ? "Verified" : "Not verified",
+			row.original.emailVerified
+				? m.users_verification_verified()
+				: m.users_verification_not_verified(),
 	}),
 	columnHelper.accessor("organizationRole", {
 		header: ({ column }) => (
-			<DataTableColumnHeader column={column} title="Organisation role" />
+			<DataTableColumnHeader
+				column={column}
+				title={m.users_organisation_role_label()}
+			/>
 		),
-		cell: ({ row }) => organizationRoleLabels[row.original.organizationRole],
+		cell: ({ row }) => getOrganizationRoleLabel(row.original.organizationRole),
 	}),
 	columnHelper.display({
 		id: "actions",
@@ -92,7 +101,7 @@ const UserActions = ({ user }: { user: UserWithOrganizationRole }) => {
 			<DropdownMenuTrigger
 				render={
 					<Button variant="ghost" className="size-8 p-0">
-						<span className="sr-only">Open menu</span>
+						<span className="sr-only">{m.common_row_menu_trigger()}</span>
 						<MoreHorizontal className="size-4" />
 					</Button>
 				}
@@ -104,7 +113,7 @@ const UserActions = ({ user }: { user: UserWithOrganizationRole }) => {
 						userId: user.id,
 					}}
 				>
-					<DropdownMenuItem>Edit User</DropdownMenuItem>
+					<DropdownMenuItem>{m.users_table_edit_action()}</DropdownMenuItem>
 				</Link>
 				{canRemoveUser ? (
 					<>
@@ -149,7 +158,7 @@ const RemoveItem = ({ user }: { user: UserWithOrganizationRole }) => {
 				})
 			}
 		>
-			Remove from organisation
+			{m.users_remove_from_organisation_action()}
 		</DropdownMenuItem>
 	);
 };

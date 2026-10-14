@@ -3,18 +3,11 @@ import { useRouter } from "@tanstack/react-router";
 import { useMutationAction } from "@/hooks/actions/use-mutation-action";
 import {
 	type DestructiveTarget,
-	describeFailure,
-	describeOutcome,
-	describeProgress,
-	describeTarget,
-} from "@/hooks/mutations/destructive-copy";
+	singleTargetName,
+} from "@/hooks/mutations/destructive-target";
 import { useUmami } from "@/hooks/use-umami";
 import { orpc } from "@/lib/orpc/orpc";
-
-const INVITATION_NOUNS = {
-	noun: "invitation",
-	nounPlural: "invitations",
-};
+import { m } from "@/paraglide/messages";
 
 export const useCreateOrganizationInvitationMutation = (
 	opts: ReturnType<
@@ -48,9 +41,9 @@ export const useCreateOrganizationInvitationMutation = (
 				},
 			}),
 		messages: {
-			loading: "Creating invitations...",
-			success: "Invitations created successfully",
-			error: "Failed to create invitations",
+			loading: m.orgs_invitation_create_toast_loading(),
+			success: m.orgs_invitation_create_toast_success(),
+			error: m.orgs_invitation_create_toast_error(),
 		},
 	});
 };
@@ -84,29 +77,35 @@ export const useDeleteOrganizationInvitationsMutation = (
 			}),
 		messages: {
 			loading: ({ input }) =>
-				describeProgress(
-					"Deleting",
-					input.refs.length,
-					INVITATION_NOUNS,
-					target,
-				),
+				m.orgs_invitation_delete_toast_loading({
+					count: input.refs.length,
+				}),
 			success: ({ input }) =>
-				describeOutcome(input.refs.length, INVITATION_NOUNS, "deleted", target),
+				m.orgs_invitation_delete_toast_success({
+					count: input.refs.length,
+				}),
 			error: ({ input }) =>
-				describeFailure(input.refs.length, INVITATION_NOUNS, "deleted", target),
+				m.orgs_invitation_delete_toast_error({
+					count: input.refs.length,
+				}),
 		},
-		// "Delete" is the confirm label the invitations e2e spec clicks.
 		confirm: (input) => {
 			const count = input.refs.length;
+			const name = singleTargetName(count, target);
 
 			return {
-				title: `Delete ${describeTarget(count, INVITATION_NOUNS, target)}?`,
-				description:
-					count === 1
-						? "The invitation link stops working. Invite the person again to let them join."
-						: "Their invitation links stop working. Invite those people again to let them join.",
-				confirmText: "Delete",
-				cancelText: "Cancel",
+				title: name
+					? m.orgs_invitation_delete_confirm_title_named({
+							name,
+						})
+					: m.orgs_invitation_delete_confirm_title({
+							count,
+						}),
+				description: m.orgs_invitation_delete_confirm_description({
+					count,
+				}),
+				confirmText: m.common_delete_button(),
+				cancelText: m.common_cancel_button(),
 			};
 		},
 	});
@@ -147,16 +146,16 @@ export const useRespondOrganizationInvitationMutation = (
 		messages: {
 			loading: ({ input }) =>
 				input.response === "accept"
-					? "Accepting invitation..."
-					: "Rejecting invitation...",
+					? m.orgs_invitation_accept_toast_loading()
+					: m.orgs_invitation_reject_toast_loading(),
 			success: ({ input }) =>
 				input.response === "accept"
-					? "Invitation accepted"
-					: "Invitation rejected",
+					? m.orgs_invitation_accept_toast_success()
+					: m.orgs_invitation_reject_toast_success(),
 			error: ({ input }) =>
 				input.response === "accept"
-					? "Failed to accept invitation"
-					: "Failed to reject invitation",
+					? m.orgs_invitation_accept_toast_error()
+					: m.orgs_invitation_reject_toast_error(),
 		},
 	});
 };

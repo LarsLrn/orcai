@@ -5,6 +5,7 @@ import { FileTextIcon } from "lucide-react";
 import { buttonVariants } from "@/components/ui/button";
 import { useAppForm } from "@/hooks/form";
 import { useSignup } from "@/hooks/mutations/use-signup";
+import { m } from "@/paraglide/messages";
 import { signupFormOptions } from "./signup-form-options";
 
 const SignUpForm = ({
@@ -38,7 +39,10 @@ const SignUpForm = ({
 			<form.AppField
 				name="name"
 				children={(field) => (
-					<field.TextField label="Name" placeholder="Your Name" />
+					<field.TextField
+						label={m.auth_signup_form_name_label()}
+						placeholder={m.common_name_placeholder()}
+					/>
 				)}
 			/>
 
@@ -46,8 +50,8 @@ const SignUpForm = ({
 				name="email"
 				children={(field) => (
 					<field.TextField
-						label="Email"
-						placeholder="your@email.com"
+						label={m.common_email_label()}
+						placeholder={m.common_email_placeholder()}
 						type="email"
 						disabled
 					/>
@@ -58,8 +62,8 @@ const SignUpForm = ({
 				name="invitationId"
 				children={(field) => (
 					<field.TextField
-						label="Invitation code"
-						placeholder="Unique invitation code"
+						label={m.auth_signup_form_invitation_code_label()}
+						placeholder={m.auth_signup_form_invitation_code_placeholder()}
 						disabled
 					/>
 				)}
@@ -69,8 +73,8 @@ const SignUpForm = ({
 				name="password"
 				children={(field) => (
 					<field.PasswordField
-						label="Password"
-						placeholder="Password"
+						label={m.auth_signup_form_password_label()}
+						placeholder={m.common_password_placeholder()}
 						showStrength
 					/>
 				)}
@@ -80,18 +84,19 @@ const SignUpForm = ({
 				name="confirmPassword"
 				children={(field) => (
 					<field.PasswordField
-						label="Confirm Password"
-						placeholder="Confirm Password"
+						label={m.auth_signup_form_confirm_password_label()}
+						placeholder={m.common_confirm_password_placeholder()}
 					/>
 				)}
 			/>
 
 			<div className="space-y-4 rounded-2xl border bg-background/50 p-4 shadow-sm">
 				<div className="space-y-2">
-					<h3 className="font-semibold">Privacy Policy</h3>
+					<h3 className="font-semibold">
+						{m.auth_signup_form_privacy_policy_title()}
+					</h3>
 					<p className="text-muted-foreground text-sm">
-						By signing up, you agree to our Privacy Policy and Terms of Use.
-						Please review each before continuing.
+						{m.auth_signup_form_privacy_policy_body()}
 					</p>
 				</div>
 
@@ -103,7 +108,7 @@ const SignUpForm = ({
 						})}
 						to={"/privacy"}
 					>
-						<FileTextIcon /> Review Privacy Policy
+						<FileTextIcon /> {m.auth_signup_form_review_privacy_link()}
 					</Link>
 					<Link
 						className={buttonVariants({
@@ -112,7 +117,7 @@ const SignUpForm = ({
 						})}
 						to={"/tou"}
 					>
-						<FileTextIcon /> Review Terms of Use
+						<FileTextIcon /> {m.auth_signup_form_review_terms_link()}
 					</Link>
 				</div>
 
@@ -120,15 +125,18 @@ const SignUpForm = ({
 					name="privacyConsent"
 					children={(field) => (
 						<field.SwitchField
-							label="Privacy Consent"
-							description="Yes, I have read, understood, and agree to the privacy policy and terms of use of the OrcAI platform."
+							label={m.auth_signup_form_privacy_consent_label()}
+							description={m.auth_signup_form_privacy_consent_description()}
 						/>
 					)}
 				/>
 			</div>
 
 			<form.AppForm>
-				<form.SubmitButton label="Register" className="w-full" />
+				<form.SubmitButton
+					label={m.auth_signup_form_submit_button()}
+					className="w-full"
+				/>
 			</form.AppForm>
 		</form>
 	);

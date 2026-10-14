@@ -7,31 +7,40 @@ import {
 	SelectTrigger,
 	SelectValue,
 } from "@/components/ui/select";
+import { m } from "@/paraglide/messages";
 
 const PublicationStatusField = ({
 	value,
 	onChange,
-	description = "Control whether this resource is still in draft or ready to be used in published experiences.",
+	description,
 }: {
 	value: PublicationStatus;
 	onChange: (status: PublicationStatus) => void;
 	description?: string;
 }) => (
 	<div className="space-y-2">
-		<Label htmlFor="publication-status">Publication status</Label>
+		<Label htmlFor="publication-status">
+			{m.blocks_publication_status_label()}
+		</Label>
 		<Select
 			value={value}
 			onValueChange={(nextValue) => onChange(nextValue as PublicationStatus)}
 		>
 			<SelectTrigger id="publication-status">
-				<SelectValue placeholder="Select status" />
+				<SelectValue placeholder={m.blocks_publication_status_placeholder()} />
 			</SelectTrigger>
 			<SelectContent>
-				<SelectItem value="draft">Draft</SelectItem>
-				<SelectItem value="ready">Ready</SelectItem>
+				<SelectItem value="draft">
+					{m.blocks_publication_status_draft_option()}
+				</SelectItem>
+				<SelectItem value="ready">
+					{m.blocks_publication_status_ready_option()}
+				</SelectItem>
 			</SelectContent>
 		</Select>
-		<p className="text-muted-foreground text-xs">{description}</p>
+		<p className="text-muted-foreground text-xs">
+			{description ?? m.blocks_publication_status_description()}
+		</p>
 	</div>
 );
 

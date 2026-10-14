@@ -19,7 +19,7 @@ describe("formatAssetTitle", () => {
 	});
 
 	test("falls back when the title is missing", () => {
-		expect(formatAssetTitle(undefined)).toBe("Source");
-		expect(formatAssetTitle("  ")).toBe("Source");
+		expect(formatAssetTitle(undefined)).toBeUndefined();
+		expect(formatAssetTitle("  ")).toBeUndefined();
 	});
 });

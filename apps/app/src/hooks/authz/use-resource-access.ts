@@ -3,6 +3,7 @@ import type { QueryClient } from "@tanstack/react-query";
 import { skipToken, useQuery, useQueryClient } from "@tanstack/react-query";
 import { useMutationAction } from "@/hooks/actions/use-mutation-action";
 import { orpc } from "@/lib/orpc/orpc";
+import { m } from "@/paraglide/messages";
 
 const getResourceInput = (resourceRef: ResourceRef) => {
 	switch (resourceRef.type) {
@@ -112,9 +113,9 @@ export const useGrantResourceAccess = (resourceRef: ResourceRef) => {
 				},
 			}),
 		messages: {
-			loading: "Updating access...",
-			success: "Access updated",
-			error: "Failed to update access",
+			loading: m.access_grant_toast_loading(),
+			success: m.access_grant_toast_success(),
+			error: m.access_grant_toast_error(),
 		},
 	});
 };
@@ -130,16 +131,15 @@ export const useRevokeResourceAccess = (resourceRef: ResourceRef) => {
 				},
 			}),
 		messages: {
-			loading: "Revoking access...",
-			success: "Access revoked",
-			error: "Failed to revoke access",
+			loading: m.access_revoke_toast_loading(),
+			success: m.access_revoke_toast_success(),
+			error: m.access_revoke_toast_error(),
 		},
 		confirm: {
-			title: "Revoke access",
-			description:
-				"This principal will lose their direct access to this resource.",
-			confirmText: "Revoke",
-			cancelText: "Cancel",
+			title: m.access_revoke_confirm_title(),
+			description: m.access_revoke_confirm_description(),
+			confirmText: m.access_revoke_confirm_button(),
+			cancelText: m.common_cancel_button(),
 		},
 	});
 };
@@ -158,28 +158,26 @@ export const useSetResourceVisibility = (resourceRef: ResourceRef) => {
 				},
 			}),
 		messages: {
-			loading: "Updating visibility...",
+			loading: m.access_visibility_toast_loading(),
 			success: ({ input }) =>
 				input.visibility === "public"
-					? "Resource is now public"
-					: "Resource is now private",
-			error: "Failed to update visibility",
+					? m.access_visibility_toast_public()
+					: m.access_visibility_toast_private(),
+			error: m.access_visibility_toast_error(),
 		},
 		confirm: (input) =>
 			input.visibility === "private"
 				? {
-						title: "Make resource private",
-						description:
-							"Users outside direct or inherited access will lose visibility.",
-						confirmText: "Make Private",
-						cancelText: "Cancel",
+						title: m.access_make_private_confirm_title(),
+						description: m.access_make_private_confirm_description(),
+						confirmText: m.access_make_private_confirm_button(),
+						cancelText: m.common_cancel_button(),
 					}
 				: {
-						title: "Publish resource",
-						description:
-							"Every user of this instance will be able to find and use this resource.",
-						confirmText: "Publish",
-						cancelText: "Cancel",
+						title: m.access_publish_confirm_title(),
+						description: m.access_publish_confirm_description(),
+						confirmText: m.access_publish_confirm_button(),
+						cancelText: m.common_cancel_button(),
 					},
 	});
 };

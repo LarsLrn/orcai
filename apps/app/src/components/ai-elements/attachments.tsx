@@ -17,6 +17,7 @@ import {
 	HoverCardTrigger,
 } from "@/components/ui/hover-card";
 import { cn } from "@/lib/utils";
+import { m } from "@/paraglide/messages";
 
 // ============================================================================
 // Types
@@ -80,11 +81,20 @@ export const getMediaCategory = (
 
 export const getAttachmentLabel = (data: AttachmentData): string => {
 	if (data.type === "source-document") {
-		return data.title || data.filename || "Source";
+		return (
+			data.title ||
+			data.filename ||
+			m.ai_elements_attachment_source_fallback_label()
+		);
 	}
 
 	const category = getMediaCategory(data);
-	return data.filename || (category === "image" ? "Image" : "Attachment");
+	return (
+		data.filename ||
+		(category === "image"
+			? m.ai_elements_attachment_image_fallback_label()
+			: m.ai_elements_attachment_fallback_label())
+	);
 };
 
 const renderAttachmentImage = (
@@ -94,7 +104,7 @@ const renderAttachmentImage = (
 ) =>
 	isGrid ? (
 		<img
-			alt={filename || "Image"}
+			alt={filename || m.ai_elements_attachment_image_alt()}
 			className="size-full object-cover"
 			height={96}
 			src={url}
@@ -102,7 +112,7 @@ const renderAttachmentImage = (
 		/>
 	) : (
 		<img
-			alt={filename || "Image"}
+			alt={filename || m.ai_elements_attachment_image_alt()}
 			className="size-full rounded object-cover"
 			height={20}
 			src={url}
@@ -337,7 +347,7 @@ export type AttachmentRemoveProps = ComponentProps<typeof Button> & {
 };
 
 export const AttachmentRemove = ({
-	label = "Remove",
+	label = m.common_remove_button(),
 	className,
 	children,
 	...props
@@ -443,6 +453,6 @@ export const AttachmentEmpty = ({
 		)}
 		{...props}
 	>
-		{children ?? "No attachments"}
+		{children ?? m.ai_elements_attachment_empty_state()}
 	</div>
 );

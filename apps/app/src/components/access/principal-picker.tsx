@@ -11,6 +11,7 @@ import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import type { SearchablePickerRow } from "@/components/ui/composed/searchable-picker";
 import { SearchablePicker } from "@/components/ui/composed/searchable-picker";
 import { useShareablePrincipals } from "@/hooks/authz/use-resource-access";
+import { m } from "@/paraglide/messages";
 
 type PrincipalPickerProps = {
 	resourceRef: ResourceRef;
@@ -30,15 +31,18 @@ const renderPrincipal = (principal: ResourcePrincipal): SearchablePickerRow => {
 		: principal.description ||
 			(principal.kind === "system" &&
 			principal.systemKey === ALL_MEMBERS_GROUP_SYSTEM_KEY
-				? "System group"
-				: "Custom group");
+				? m.access_principal_picker_system_group_subtitle()
+				: m.access_principal_picker_custom_group_subtitle());
 
 	return {
 		option: {
 			value: principal.id,
 			label: principal.name,
 			description: subtitle,
-			badge: !isUser && principal.kind === "system" ? "System" : undefined,
+			badge:
+				!isUser && principal.kind === "system"
+					? m.access_principal_picker_system_badge()
+					: undefined,
 		},
 		Icon: isUser ? UserIcon : UsersIcon,
 		leading: isUser ? (
@@ -71,7 +75,9 @@ const PrincipalPicker = ({
 			query={query}
 			onQueryChange={onQueryChange}
 			placeholder={
-				principalType === "user" ? "Search members" : "Search groups"
+				principalType === "user"
+					? m.access_principal_picker_search_placeholder_people()
+					: m.access_principal_picker_search_placeholder_groups()
 			}
 			items={principals.data?.data ?? []}
 			isLoading={principals.isLoading}
@@ -80,7 +86,7 @@ const PrincipalPicker = ({
 			onToggle={onToggle}
 			onClearSelection={onClearSelection}
 			renderItem={renderPrincipal}
-			emptyText="No people or groups match this search."
+			emptyText={m.access_principal_picker_empty_state_description()}
 			disabled={disabled}
 		/>
 	);

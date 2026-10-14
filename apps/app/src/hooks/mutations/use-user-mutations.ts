@@ -3,6 +3,7 @@ import { useNavigate } from "@tanstack/react-router";
 import { useMutationAction } from "@/hooks/actions/use-mutation-action";
 import { authClient } from "@/lib/auth/auth-client";
 import { orpc } from "@/lib/orpc/orpc";
+import { m } from "@/paraglide/messages";
 
 export const useSetActiveOrganizationMutation = (
 	opts: ReturnType<typeof orpc.user.setActiveOrganization.mutationOptions> = {},
@@ -33,9 +34,9 @@ export const useSetActiveOrganizationMutation = (
 				},
 			}),
 		messages: {
-			loading: "Setting active organisation...",
-			success: "Active organisation set",
-			error: "Failed to set active organisation",
+			loading: m.users_set_active_organisation_toast_loading(),
+			success: m.users_set_active_organisation_toast_success(),
+			error: m.users_set_active_organisation_toast_error(),
 		},
 	});
 };

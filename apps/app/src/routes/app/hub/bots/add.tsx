@@ -9,6 +9,7 @@ import {
 	PageTitle,
 } from "@/components/ui/shell/page";
 import { ensureOrganizationCapability } from "@/lib/authz/route-guards";
+import { m } from "@/paraglide/messages";
 
 export const Route = createFileRoute("/app/hub/bots/add")({
 	validateSearch: z.object({
@@ -25,7 +26,7 @@ export const Route = createFileRoute("/app/hub/bots/add")({
 	head: () => ({
 		meta: [
 			{
-				title: "Create bot",
+				title: m.bots_add_page_title(),
 			},
 		],
 	}),
@@ -38,11 +39,8 @@ function RouteComponent() {
 	return (
 		<Page>
 			<PageHeader>
-				<PageTitle>Create bot</PageTitle>
-				<PageDescription>
-					Follow the guided setup to define the bot, its AI behaviour, its
-					repositories, and its access settings.
-				</PageDescription>
+				<PageTitle>{m.bots_add_page_title()}</PageTitle>
+				<PageDescription>{m.bots_add_page_description()}</PageDescription>
 			</PageHeader>
 			<PageContent>
 				<BotEditorShell

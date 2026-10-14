@@ -7,6 +7,7 @@ import {
 	SectionHeader,
 	SectionTitle,
 } from "@/components/ui/shell/section";
+import { m } from "@/paraglide/messages";
 
 const BotBlocks = ({ blocks }: { blocks: BlockWithCapabilities[] }) => {
 	const templateBlock = blocks.find((b) => b.type === "template");
@@ -17,9 +18,9 @@ const BotBlocks = ({ blocks }: { blocks: BlockWithCapabilities[] }) => {
 			{templateBlock && (
 				<Section>
 					<SectionHeader>
-						<SectionTitle>Behaviour</SectionTitle>
+						<SectionTitle>{m.bots_blocks_behaviour_title()}</SectionTitle>
 						<SectionDescription>
-							This bot uses a template block to define its behaviour.
+							{m.bots_blocks_behaviour_description()}
 						</SectionDescription>
 					</SectionHeader>
 					<BlockCard
@@ -33,9 +34,9 @@ const BotBlocks = ({ blocks }: { blocks: BlockWithCapabilities[] }) => {
 			{databaseBlocks.length > 0 && (
 				<Section>
 					<SectionHeader>
-						<SectionTitle>Repositories</SectionTitle>
+						<SectionTitle>{m.bots_blocks_repositories_title()}</SectionTitle>
 						<SectionDescription>
-							This bot uses repository blocks to reference curated content.
+							{m.bots_blocks_repositories_description()}
 						</SectionDescription>
 					</SectionHeader>
 					<SectionGrid layout="3">

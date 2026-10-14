@@ -13,6 +13,7 @@ import {
 	SectionTitle,
 } from "@/components/ui/shell/section";
 import { orpc } from "@/lib/orpc/orpc";
+import { m } from "@/paraglide/messages";
 
 const PREVIEW_INPUT = {
 	pageIndex: 0,
@@ -107,7 +108,7 @@ function RouteComponent() {
 			{bots.data.length > 0 && (
 				<Section>
 					<SectionHeader>
-						<SectionTitle>Bots</SectionTitle>
+						<SectionTitle>{m.hub_bots_section_title()}</SectionTitle>
 						<SectionAction>
 							<Link
 								to="/app/hub/bots"
@@ -116,7 +117,7 @@ function RouteComponent() {
 									size: "sm",
 								})}
 							>
-								View all
+								{m.hub_section_view_all_action()}
 							</Link>
 						</SectionAction>
 					</SectionHeader>
@@ -133,7 +134,7 @@ function RouteComponent() {
 			{behaviourBlocks.data.length > 0 && (
 				<Section>
 					<SectionHeader>
-						<SectionTitle>Behaviour</SectionTitle>
+						<SectionTitle>{m.hub_behaviour_section_title()}</SectionTitle>
 						<SectionAction>
 							<Link
 								to="/app/hub/behaviour"
@@ -142,7 +143,7 @@ function RouteComponent() {
 									size: "sm",
 								})}
 							>
-								View all
+								{m.hub_section_view_all_action()}
 							</Link>
 						</SectionAction>
 					</SectionHeader>
@@ -159,7 +160,7 @@ function RouteComponent() {
 			{knowledgeBlocks.data.length > 0 && (
 				<Section>
 					<SectionHeader>
-						<SectionTitle>Repositories</SectionTitle>
+						<SectionTitle>{m.hub_repositories_section_title()}</SectionTitle>
 						<SectionAction>
 							<Link
 								to="/app/hub/repositories"
@@ -168,7 +169,7 @@ function RouteComponent() {
 									size: "sm",
 								})}
 							>
-								View all
+								{m.hub_section_view_all_action()}
 							</Link>
 						</SectionAction>
 					</SectionHeader>
@@ -185,7 +186,7 @@ function RouteComponent() {
 			{assets.data.length > 0 && (
 				<Section>
 					<SectionHeader>
-						<SectionTitle>Assets</SectionTitle>
+						<SectionTitle>{m.hub_assets_section_title()}</SectionTitle>
 						<SectionAction>
 							<Link
 								to="/app/hub/assets"
@@ -194,7 +195,7 @@ function RouteComponent() {
 									size: "sm",
 								})}
 							>
-								View all
+								{m.hub_section_view_all_action()}
 							</Link>
 						</SectionAction>
 					</SectionHeader>

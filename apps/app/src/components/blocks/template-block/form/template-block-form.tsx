@@ -4,6 +4,7 @@ import {
 	useCreateBlockMutation,
 	useUpdateBlockMutation,
 } from "@/hooks/mutations/use-block-mutations";
+import { m } from "@/paraglide/messages";
 import {
 	TemplateBlockFieldGroup,
 	templateBlockTopLevelFieldMap,
@@ -52,16 +53,16 @@ const TemplateBlockForm = ({
 				name="status"
 				children={(field) => (
 					<field.SelectField
-						label="Publication status"
-						description="Control whether this resource is still in draft or ready to be used in published experiences."
+						label={m.blocks_publication_status_label()}
+						description={m.blocks_publication_status_description()}
 						options={[
 							{
 								value: "draft",
-								label: "Draft",
+								label: m.blocks_publication_status_draft_option(),
 							},
 							{
 								value: "ready",
-								label: "Ready",
+								label: m.blocks_publication_status_ready_option(),
 							},
 						]}
 					/>
@@ -76,7 +77,9 @@ const TemplateBlockForm = ({
 			<form.AppForm>
 				<form.SubmitButton
 					label={
-						action === "create" ? "Save AI Behaviour" : "Update AI behaviour"
+						action === "create"
+							? m.blocks_template_form_create_submit_button()
+							: m.blocks_template_form_update_submit_button()
 					}
 				/>
 			</form.AppForm>

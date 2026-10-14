@@ -72,38 +72,37 @@ import { emptyCapabilities, hasCapability } from "@/lib/authz/capabilities";
 import { orpc } from "@/lib/orpc/orpc";
 import { getProcessingStatusLabel } from "@/lib/presentation/processing-status";
 import { cn } from "@/lib/utils";
+import { m } from "@/paraglide/messages";
 
 const WIZARD_STEPS = [
 	{
 		key: "basics",
-		title: "Bot basics",
-		description: "Name the bot and describe its purpose.",
+		title: m.authoring_wizard_step_basics_title,
+		description: m.authoring_wizard_step_basics_description,
 		icon: FileTextIcon,
 	},
 	{
 		key: "behavior",
-		title: "AI behaviour",
-		description:
-			"The system prompt sets the bot's role, tone and limits. There is no default, so write one here or reuse a behaviour you have already defined.",
+		title: m.authoring_wizard_step_behaviour_title,
+		description: m.authoring_wizard_step_behaviour_description,
 		icon: SparklesIcon,
 	},
 	{
 		key: "documents",
-		title: "Repositories",
-		description:
-			"A repository holds the material the bot answers from, so it can quote and cite your own documents. Attach as many as the bot needs, or none at all.",
+		title: m.authoring_wizard_step_repositories_title,
+		description: m.authoring_wizard_step_repositories_description,
 		icon: BookOpenIcon,
 	},
 	{
 		key: "sharing",
-		title: "Sharing and access",
-		description: "Control who can use and edit the bot.",
+		title: m.authoring_wizard_step_sharing_title,
+		description: m.authoring_wizard_step_sharing_description,
 		icon: LockKeyholeIcon,
 	},
 	{
 		key: "review",
-		title: "Review and publish",
-		description: "Check the setup and publish the bot.",
+		title: m.authoring_wizard_step_review_title,
+		description: m.authoring_wizard_step_review_description,
 		icon: CheckCircle2Icon,
 	},
 ] as const;
@@ -115,9 +114,6 @@ Answer only from the repositories attached to you, and name the document each an
 Keep answers short and plain. Use British English.
 
 Refuse anything outside the course material: do not grade work, do not predict marks, and do not give personal, legal or medical advice.`;
-
-const UNSHARED_ACCESS_COPY =
-	"Until you share it, only you can use this bot. Publishing does not change that: it makes the bot usable by the groups and people named here, and by nobody else.";
 
 const canEditBlock = (block: {
 	capabilities?: Partial<Record<"edit", boolean>>;
@@ -134,18 +130,26 @@ const getPublishIssues = (editor: BotEditorFormValues) => {
 	const issues: string[] = [];
 
 	if (!editor.templateBlock) {
-		issues.push("Add an AI behaviour before publishing the bot.");
+		issues.push(m.authoring_publish_issue_behaviour_missing());
 	}
 	if (editor.templateBlock && editor.templateBlock.status !== "ready") {
-		issues.push("Mark the AI behaviour as ready before publishing.");
+		issues.push(m.authoring_publish_issue_behaviour_not_ready());
 	}
 
 	for (const databaseBlock of editor.databaseBlocks) {
 		if (databaseBlock.status !== "ready") {
-			issues.push(`Mark "${databaseBlock.name}" as ready before publishing.`);
+			issues.push(
+				m.authoring_publish_issue_repository_not_ready({
+					name: databaseBlock.name,
+				}),
+			);
 		}
 		if (databaseBlock.assetIds.length === 0) {
-			issues.push(`Attach at least one asset to "${databaseBlock.name}".`);
+			issues.push(
+				m.authoring_publish_issue_repository_no_assets({
+					name: databaseBlock.name,
+				}),
+			);
 		}
 	}
 
@@ -475,10 +479,12 @@ const BotEditorShell = ({
 
 	const handlePublish = async () => {
 		const confirmed = await confirm({
-			title: "Publish this bot",
-			description: `Publishing makes "${
-				editor.name || "this bot"
-			}" available to everyone the access rules below name.`,
+			title: m.authoring_publish_confirm_title(),
+			description: editor.name
+				? m.authoring_publish_confirm_description_named({
+						name: editor.name,
+					})
+				: m.authoring_publish_confirm_description(),
 			contentSlot: (
 				<PublishSummary
 					visibility={visibility.data?.data.visibility}
@@ -486,8 +492,8 @@ const BotEditorShell = ({
 					grantsAvailable={grants.isSuccess}
 				/>
 			),
-			confirmText: "Publish",
-			cancelText: "Cancel",
+			confirmText: m.authoring_publish_confirm_button(),
+			cancelText: m.common_cancel_button(),
 			confirmButton: {
 				variant: "default",
 			},
@@ -646,7 +652,7 @@ const BotEditorShell = ({
 								</Badge>
 							</div>
 							<div className="wrap-break-word font-medium text-xs">
-								{step.title}
+								{step.title()}
 							</div>
 						</button>
 					);
@@ -655,9 +661,9 @@ const BotEditorShell = ({
 
 			<div className="min-w-0 rounded-4xl border bg-muted/25 p-6 shadow-inner">
 				<div className="mb-6">
-					<h2 className="font-semibold text-2xl">{currentStep.title}</h2>
+					<h2 className="font-semibold text-2xl">{currentStep.title()}</h2>
 					<p className="mt-2 max-w-2xl text-muted-foreground">
-						{currentStep.description}
+						{currentStep.description()}
 					</p>
 				</div>
 
@@ -666,9 +672,9 @@ const BotEditorShell = ({
 						<div className="grid min-w-0 grid-cols-1 gap-6">
 							<Card className="min-w-0 rounded-2xl">
 								<CardHeader>
-									<CardTitle>Identity</CardTitle>
+									<CardTitle>{m.authoring_basics_identity_title()}</CardTitle>
 									<CardDescription>
-										These details help people understand what the bot is for.
+										{m.authoring_basics_identity_description()}
 									</CardDescription>
 								</CardHeader>
 								<CardContent className="space-y-4">
@@ -676,8 +682,8 @@ const BotEditorShell = ({
 										name="name"
 										children={(field) => (
 											<field.TextField
-												label="Bot name"
-												placeholder="Travel expenses guide"
+												label={m.authoring_basics_name_label()}
+												placeholder={m.authoring_basics_name_placeholder()}
 											/>
 										)}
 									/>
@@ -685,8 +691,8 @@ const BotEditorShell = ({
 										name="description"
 										children={(field) => (
 											<field.TextareaField
-												label="Short description"
-												placeholder="Answers colleagues' questions about travel bookings and reimbursements from the approved guidance documents."
+												label={m.authoring_basics_description_label()}
+												placeholder={m.authoring_basics_description_placeholder()}
 												rows={4}
 											/>
 										)}
@@ -696,10 +702,9 @@ const BotEditorShell = ({
 
 							<Card className="min-w-0 rounded-2xl">
 								<CardHeader>
-									<CardTitle>Bot description</CardTitle>
+									<CardTitle>{m.authoring_basics_content_title()}</CardTitle>
 									<CardDescription>
-										A richer overview for teammates who configure and maintain
-										the bot.
+										{m.authoring_basics_content_description()}
 									</CardDescription>
 								</CardHeader>
 								<CardContent>
@@ -707,7 +712,7 @@ const BotEditorShell = ({
 										name="contentJson"
 										children={(field) => (
 											<field.BlockEditorField
-												label="Bot description"
+												label={m.authoring_basics_content_label()}
 												htmlFieldName="contentHtml"
 											/>
 										)}
@@ -725,7 +730,7 @@ const BotEditorShell = ({
 										variant="outline"
 										onClick={() => setIsTemplateBlockLibraryOpen(true)}
 									>
-										Use existing AI behaviour
+										{m.authoring_behaviour_use_existing_action()}
 									</Button>
 								</div>
 							) : null}
@@ -739,8 +744,8 @@ const BotEditorShell = ({
 												name="templateBlock.name"
 												children={(field) => (
 													<field.TextField
-														label="Name"
-														placeholder="AI behaviour"
+														label={m.common_name_label()}
+														placeholder={m.authoring_behaviour_name_placeholder()}
 													/>
 												)}
 											/>
@@ -751,7 +756,7 @@ const BotEditorShell = ({
 													name="templateBlock.config.systemPrompt"
 													children={(field) => (
 														<field.TextareaField
-															label="System prompt"
+															label={m.authoring_behaviour_system_prompt_label()}
 															placeholder={EXAMPLE_SYSTEM_PROMPT}
 															rows={12}
 														/>
@@ -771,11 +776,10 @@ const BotEditorShell = ({
 															)
 														}
 													>
-														Start from an example
+														{m.authoring_behaviour_example_button()}
 													</Button>
 													<span className="text-muted-foreground text-xs">
-														Name the role, the sources to answer from, the tone
-														to use, and what to refuse.
+														{m.authoring_behaviour_example_hint()}
 													</span>
 												</div>
 											</div>
@@ -785,8 +789,8 @@ const BotEditorShell = ({
 												name="templateBlock.description"
 												children={(field) => (
 													<field.TextareaField
-														label="Short description"
-														placeholder="Define the purpose of this block."
+														label={m.authoring_behaviour_description_label()}
+														placeholder={m.authoring_behaviour_description_placeholder()}
 														rows={4}
 													/>
 												)}
@@ -797,7 +801,7 @@ const BotEditorShell = ({
 												name="templateBlock.contentJson"
 												children={(field) => (
 													<field.BlockEditorField
-														label="Detailed description"
+														label={m.authoring_behaviour_content_label()}
 														htmlFieldName="templateBlock.contentHtml"
 													/>
 												)}
@@ -812,11 +816,10 @@ const BotEditorShell = ({
 									<CardContent className="flex flex-wrap items-center justify-between gap-3 p-6">
 										<div>
 											<div className="font-medium">
-												No AI behaviour linked yet
+												{m.authoring_behaviour_empty_state_title()}
 											</div>
 											<div className="text-muted-foreground text-sm">
-												Write a new behaviour, or reuse one you have already
-												defined. You can start from an example.
+												{m.authoring_behaviour_empty_state_description()}
 											</div>
 										</div>
 										<div className="flex flex-wrap gap-2">
@@ -828,13 +831,13 @@ const BotEditorShell = ({
 													)
 												}
 											>
-												Create AI behaviour
+												{m.authoring_behaviour_create_action()}
 											</Button>
 											<Button
 												variant="outline"
 												onClick={() => setIsTemplateBlockLibraryOpen(true)}
 											>
-												Use existing AI behaviour
+												{m.authoring_behaviour_use_existing_action()}
 											</Button>
 										</div>
 									</CardContent>
@@ -856,9 +859,9 @@ const BotEditorShell = ({
 								onSelect={(block) =>
 									handleSelectExistingTemplateBlock(block.id)
 								}
-								title="Use existing AI behaviour"
-								description="Reuse a behaviour you have already defined instead of writing a new one."
-								searchPlaceholder="Search AI behaviours..."
+								title={m.authoring_behaviour_library_dialog_title()}
+								description={m.authoring_behaviour_library_dialog_description()}
+								searchPlaceholder={m.authoring_behaviour_library_search_placeholder()}
 							/>
 						</div>
 					) : null}
@@ -868,12 +871,10 @@ const BotEditorShell = ({
 							{editor.databaseBlocks.length === 0 ? (
 								<div className="min-w-0 rounded-2xl border border-dashed bg-background/70 p-6">
 									<div className="font-medium">
-										Do you want to add a repository?
+										{m.authoring_repositories_empty_state_title()}
 									</div>
 									<div className="mt-2 text-muted-foreground text-sm">
-										A repository gives the bot grounded context and citations.
-										You can add one or more, and each one can hold existing or
-										newly uploaded assets from the Library.
+										{m.authoring_repositories_empty_state_description()}
 									</div>
 									<div className="mt-4 flex flex-wrap gap-2">
 										<Button
@@ -886,13 +887,13 @@ const BotEditorShell = ({
 												])
 											}
 										>
-											Create repository
+											{m.authoring_repositories_create_action()}
 										</Button>
 										<Button
 											variant="outline"
 											onClick={() => setIsDatabaseBlockLibraryOpen(true)}
 										>
-											Use existing repository
+											{m.authoring_repositories_use_existing_action()}
 										</Button>
 									</div>
 								</div>
@@ -903,7 +904,7 @@ const BotEditorShell = ({
 											variant="outline"
 											onClick={() => setIsDatabaseBlockLibraryOpen(true)}
 										>
-											Add existing repository
+											{m.authoring_repositories_add_existing_action()}
 										</Button>
 									</div>
 
@@ -964,7 +965,7 @@ const BotEditorShell = ({
 											])
 										}
 									>
-										Add another repository
+										{m.authoring_repositories_add_another_action()}
 									</Button>
 								</div>
 							)}
@@ -984,9 +985,9 @@ const BotEditorShell = ({
 								onSelect={async (block) => {
 									await handleAddExistingDatabaseBlock(block.id);
 								}}
-								title="Use existing repository"
-								description="Attach a repository that already exists instead of creating a new one."
-								searchPlaceholder="Search repositories..."
+								title={m.authoring_repositories_library_dialog_title()}
+								description={m.authoring_repositories_library_dialog_description()}
+								searchPlaceholder={m.authoring_repositories_library_search_placeholder()}
 							/>
 						</div>
 					) : null}
@@ -1019,17 +1020,17 @@ const BotEditorShell = ({
 								disabled={activeStepIndex === 0 || isWorking}
 							>
 								<ChevronLeftIcon />
-								Back
+								{m.common_back_button()}
 							</Button>
 							<span
 								className="text-muted-foreground text-xs"
 								aria-live="polite"
 							>
 								{isSaving
-									? "Saving..."
+									? m.authoring_wizard_saving_status()
 									: hasSaved
-										? "Saved. Moving between steps saves your changes."
-										: "Moving between steps saves your changes."}
+										? m.authoring_wizard_saved_status()
+										: m.authoring_wizard_autosave_hint()}
 							</span>
 						</div>
 
@@ -1040,18 +1041,18 @@ const BotEditorShell = ({
 									onClick={handleSetDraft}
 									disabled={isWorking}
 								>
-									Save draft
+									{m.authoring_wizard_save_draft_action()}
 								</Button>
 								<Button
 									onClick={handlePublish}
 									disabled={publishIssues.length > 0 || isWorking}
 								>
-									Publish bot
+									{m.authoring_wizard_publish_action()}
 								</Button>
 							</div>
 						) : (
 							<Button onClick={handleWizardNext} disabled={isWorking}>
-								Next
+								{m.common_next_button()}
 								<ChevronRightIcon />
 							</Button>
 						)}
@@ -1079,13 +1080,13 @@ const SharingSection = ({
 		return (
 			<Card className="min-w-0 rounded-2xl">
 				<CardHeader>
-					<CardTitle>Sharing and access</CardTitle>
+					<CardTitle>{m.authoring_sharing_title()}</CardTitle>
 					<CardDescription>
-						Access controls are available once the draft bot has been saved.
+						{m.authoring_sharing_unsaved_description()}
 					</CardDescription>
 				</CardHeader>
 				<CardContent className="space-y-3">
-					<p>{UNSHARED_ACCESS_COPY}</p>
+					<p>{m.authoring_sharing_unshared_description()}</p>
 					{memberAccess ? <p>{memberAccess}</p> : null}
 				</CardContent>
 			</Card>
@@ -1099,14 +1100,13 @@ const SharingSection = ({
 	return (
 		<Card className="min-w-0 rounded-2xl">
 			<CardHeader>
-				<CardTitle>Sharing and access</CardTitle>
-				<CardDescription>
-					Use groups for cohort access whenever possible, then add direct grants
-					only when needed.
-				</CardDescription>
+				<CardTitle>{m.authoring_sharing_title()}</CardTitle>
+				<CardDescription>{m.authoring_sharing_description()}</CardDescription>
 			</CardHeader>
 			<CardContent className="space-y-4">
-				{grants.length === 0 ? <p>{UNSHARED_ACCESS_COPY}</p> : null}
+				{grants.length === 0 ? (
+					<p>{m.authoring_sharing_unshared_description()}</p>
+				) : null}
 				{memberAccess ? <p>{memberAccess}</p> : null}
 				<AccessManagerContent
 					resourceRef={{
@@ -1143,16 +1143,20 @@ const ReviewSection = ({
 }) => (
 	<Card className="min-w-0 rounded-2xl border-border/70 bg-background">
 		<CardHeader>
-			<CardTitle>Review</CardTitle>
-			<CardDescription>Check the bot before publishing it.</CardDescription>
+			<CardTitle>{m.authoring_review_title()}</CardTitle>
+			<CardDescription>{m.authoring_review_description()}</CardDescription>
 		</CardHeader>
 		<CardContent className="space-y-6">
 			<div>
-				<div className="font-medium text-sm">Bot</div>
+				<div className="font-medium text-sm">
+					{m.authoring_review_bot_label()}
+				</div>
 				<div className="mt-2 rounded-xl border p-4">
-					<div className="font-medium">{editor.name || "Untitled bot"}</div>
+					<div className="font-medium">
+						{editor.name || m.authoring_review_bot_untitled()}
+					</div>
 					<div className="mt-1 text-muted-foreground text-sm">
-						{editor.description || "No short description yet."}
+						{editor.description || m.authoring_review_bot_no_description()}
 					</div>
 				</div>
 			</div>
@@ -1160,17 +1164,19 @@ const ReviewSection = ({
 			<Separator />
 
 			<div>
-				<div className="font-medium text-sm">AI behaviour</div>
+				<div className="font-medium text-sm">
+					{m.authoring_review_behaviour_label()}
+				</div>
 				<div className="mt-2 rounded-xl border p-4 text-sm">
 					{editor.templateBlock ? (
 						<>
 							<div className="font-medium">{editor.templateBlock.name}</div>
 							<div className="mt-1 text-muted-foreground">
-								This behaviour carries the system prompt the bot answers with.
+								{m.authoring_review_behaviour_hint()}
 							</div>
 							<div className="mt-3 max-w-sm space-y-2">
 								<Label htmlFor="review-template-status">
-									AI behaviour status
+									{m.authoring_review_behaviour_status_label()}
 								</Label>
 								<Select
 									value={editor.templateBlock.status}
@@ -1187,22 +1193,25 @@ const ReviewSection = ({
 										<SelectValue />
 									</SelectTrigger>
 									<SelectContent>
-										<SelectItem value="draft">Draft</SelectItem>
-										<SelectItem value="ready">Ready</SelectItem>
+										<SelectItem value="draft">
+											{m.authoring_review_status_draft_option()}
+										</SelectItem>
+										<SelectItem value="ready">
+											{m.authoring_review_status_ready_option()}
+										</SelectItem>
 									</SelectContent>
 								</Select>
 								{editor.templateBlock.id &&
 								!canEditBlock(editor.templateBlock) ? (
 									<p className="text-muted-foreground text-xs">
-										You can use this shared behaviour but cannot change its
-										status.
+										{m.authoring_review_behaviour_readonly_hint()}
 									</p>
 								) : null}
 							</div>
 						</>
 					) : (
 						<div className="text-muted-foreground">
-							No AI behaviour configured yet.
+							{m.authoring_review_behaviour_empty_state()}
 						</div>
 					)}
 				</div>
@@ -1211,11 +1220,13 @@ const ReviewSection = ({
 			<Separator />
 
 			<div>
-				<div className="font-medium text-sm">Repositories</div>
+				<div className="font-medium text-sm">
+					{m.authoring_review_repositories_label()}
+				</div>
 				<div className="mt-2 space-y-3">
 					{editor.databaseBlocks.length === 0 ? (
 						<div className="rounded-xl border p-4 text-muted-foreground text-sm">
-							No repositories added.
+							{m.authoring_review_repositories_empty_state()}
 						</div>
 					) : (
 						editor.databaseBlocks.map((databaseBlock, index) => (
@@ -1225,12 +1236,13 @@ const ReviewSection = ({
 							>
 								<div className="font-medium">{databaseBlock.name}</div>
 								<div className="mt-1 text-muted-foreground text-sm">
-									{databaseBlock.assetIds.length} asset
-									{databaseBlock.assetIds.length === 1 ? "" : "s"} attached
+									{m.authoring_attached_asset_count({
+										count: databaseBlock.assetIds.length,
+									})}
 								</div>
 								<div className="mt-3 max-w-sm space-y-2">
 									<Label htmlFor={`review-db-status-${index}`}>
-										Repository status
+										{m.authoring_review_repository_status_label()}
 									</Label>
 									<Select
 										value={databaseBlock.status}
@@ -1250,14 +1262,17 @@ const ReviewSection = ({
 											<SelectValue />
 										</SelectTrigger>
 										<SelectContent>
-											<SelectItem value="draft">Draft</SelectItem>
-											<SelectItem value="ready">Ready</SelectItem>
+											<SelectItem value="draft">
+												{m.authoring_review_status_draft_option()}
+											</SelectItem>
+											<SelectItem value="ready">
+												{m.authoring_review_status_ready_option()}
+											</SelectItem>
 										</SelectContent>
 									</Select>
 									{databaseBlock.id && !canEditBlock(databaseBlock) ? (
 										<p className="text-muted-foreground text-xs">
-											You can use this shared repository but cannot change its
-											status.
+											{m.authoring_review_repository_readonly_hint()}
 										</p>
 									) : null}
 								</div>
@@ -1271,19 +1286,23 @@ const ReviewSection = ({
 
 			<div className="grid gap-4 md:grid-cols-2">
 				<div className="rounded-xl border p-4">
-					<div className="font-medium text-sm">Visibility</div>
+					<div className="font-medium text-sm">
+						{m.authoring_review_visibility_label()}
+					</div>
 					<div className="mt-1 text-muted-foreground text-sm">
 						{visibility === "public"
-							? "Public to authenticated users"
-							: "Private access only"}
+							? m.authoring_review_visibility_public()
+							: m.authoring_review_visibility_private()}
 					</div>
 				</div>
 				<div className="rounded-xl border p-4">
-					<div className="font-medium text-sm">Direct grants</div>
+					<div className="font-medium text-sm">
+						{m.authoring_review_grants_label()}
+					</div>
 					<div className="mt-1 text-muted-foreground text-sm">
-						{grantCount === 1
-							? "1 person or group with direct access"
-							: `${grantCount} people and groups with direct access`}
+						{m.authoring_review_grant_count({
+							count: grantCount,
+						})}
 					</div>
 				</div>
 			</div>
@@ -1291,7 +1310,7 @@ const ReviewSection = ({
 			{issues.length > 0 ? (
 				<div className="rounded-xl border border-destructive/30 bg-destructive/5 p-4">
 					<div className="font-medium text-destructive text-sm">
-						Resolve before publishing
+						{m.authoring_review_issues_title()}
 					</div>
 					<ul className="mt-2 list-disc space-y-1 pl-5 text-sm">
 						{issues.map((issue) => (
@@ -1314,10 +1333,9 @@ const ReadOnlyTemplateCard = ({
 	return (
 		<Card className="min-w-0 rounded-2xl">
 			<CardHeader>
-				<CardTitle>AI behaviour</CardTitle>
+				<CardTitle>{m.authoring_readonly_behaviour_title()}</CardTitle>
 				<CardDescription>
-					This behaviour is attached as read-only, since you do not have
-					permission to edit it.
+					{m.authoring_readonly_behaviour_description()}
 				</CardDescription>
 			</CardHeader>
 			<CardContent className="space-y-3">
@@ -1341,7 +1359,7 @@ const ReadOnlyTemplateCard = ({
 								: undefined
 						}
 					>
-						Open block
+						{m.authoring_readonly_open_block_action()}
 					</Button>
 				) : null}
 			</CardContent>
@@ -1364,17 +1382,18 @@ const ReadOnlyDatabaseCard = ({
 				<div className="min-w-0">
 					<CardTitle className="text-base">{block.name}</CardTitle>
 					<CardDescription>
-						This repository is attached as read-only.
+						{m.authoring_readonly_repository_description()}
 					</CardDescription>
 				</div>
 				<Button variant="outline" size="sm" onClick={onDetach}>
-					Detach
+					{m.authoring_readonly_detach_action()}
 				</Button>
 			</CardHeader>
 			<CardContent className="space-y-3">
 				<div className="text-muted-foreground text-sm">
-					{block.assetIds.length} asset{block.assetIds.length === 1 ? "" : "s"}{" "}
-					attached
+					{m.authoring_attached_asset_count({
+						count: block.assetIds.length,
+					})}
 				</div>
 				{block.assets.length > 0 ? (
 					<ul className="space-y-2 rounded-xl border bg-muted/20 p-3 text-sm">
@@ -1407,7 +1426,7 @@ const ReadOnlyDatabaseCard = ({
 								: undefined
 						}
 					>
-						Open block
+						{m.authoring_readonly_open_block_action()}
 					</Button>
 				) : null}
 			</CardContent>

@@ -15,6 +15,7 @@ import {
 	SidebarMenuSubItem,
 	useSidebar,
 } from "@/components/ui/sidebar";
+import { m } from "@/paraglide/messages";
 import type { sidebarMenu } from "@/settings/menus";
 
 const CollapsibleSidebarMenu = ({
@@ -52,7 +53,7 @@ const CollapsibleSidebarMenu = ({
 
 	return (
 		<Collapsible
-			key={item.title}
+			key={item.title()}
 			open={isRouteActive || userExpanded}
 			onOpenChange={setUserExpanded}
 			render={
@@ -73,12 +74,12 @@ const CollapsibleSidebarMenu = ({
 							hasRoute ? (
 								<Link {...item.linkProps} onClick={closeMobileForNavigation}>
 									<item.icon />
-									<span>{item.title}</span>
+									<span>{item.title()}</span>
 								</Link>
 							) : (
 								<div className="flex items-center gap-2">
 									<item.icon />
-									<span>{item.title}</span>
+									<span>{item.title()}</span>
 								</div>
 							)
 						}
@@ -90,14 +91,16 @@ const CollapsibleSidebarMenu = ({
 								render={
 									<SidebarMenuAction className="data-panel-open:rotate-90">
 										<ChevronRightIcon />
-										<span className="sr-only">Toggle</span>
+										<span className="sr-only">
+											{m.sidebar_menu_toggle_label()}
+										</span>
 									</SidebarMenuAction>
 								}
 							/>
 							<CollapsibleContent>
 								<SidebarMenuSub>
 									{(item.items ?? []).map((subItem) => (
-										<SidebarMenuSubItem key={subItem.title}>
+										<SidebarMenuSubItem key={subItem.title()}>
 											<SidebarMenuSubButton
 												isActive={
 													!!subItem.linkProps?.to &&
@@ -109,7 +112,7 @@ const CollapsibleSidebarMenu = ({
 														onClick={closeMobileForNavigation}
 													>
 														<subItem.icon />
-														<span>{subItem.title}</span>
+														<span>{subItem.title()}</span>
 													</Link>
 												}
 											/>

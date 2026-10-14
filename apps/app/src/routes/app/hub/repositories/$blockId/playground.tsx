@@ -13,6 +13,7 @@ import {
 	PageTitle,
 } from "@/components/ui/shell/page";
 import { orpc } from "@/lib/orpc/orpc";
+import { m } from "@/paraglide/messages";
 
 const searchParams = z.object({
 	search: z.coerce.string().default(""),
@@ -43,7 +44,7 @@ export const Route = createFileRoute(
 	head: () => ({
 		meta: [
 			{
-				title: "Repository playground",
+				title: m.blocks_repositories_playground_page_title(),
 			},
 		],
 	}),
@@ -63,9 +64,13 @@ function RouteComponent() {
 	return (
 		<Page>
 			<PageHeader>
-				<PageTitle>{repository.data.name} Playground</PageTitle>
+				<PageTitle>
+					{m.blocks_repositories_playground_heading({
+						name: repository.data.name,
+					})}
+				</PageTitle>
 				<PageDescription>
-					Experiment with retrieval against this published repository.
+					{m.blocks_repositories_playground_description()}
 				</PageDescription>
 			</PageHeader>
 			<PageContent className="space-y-6">
@@ -78,8 +83,8 @@ function RouteComponent() {
 					/>
 				) : (
 					<Placeholder
-						title="No results yet"
-						description="Run a search to see which passages this repository returns."
+						title={m.blocks_repositories_playground_empty_state_title()}
+						description={m.blocks_repositories_playground_empty_state_description()}
 					/>
 				)}
 			</PageContent>

@@ -1,4 +1,5 @@
 import type { GetKnowledgeBasePageToolPart } from "@/lib/ai/types/tools";
+import { m } from "@/paraglide/messages";
 import {
 	SourcePassage,
 	SourcePassageList,
@@ -11,12 +12,17 @@ const pageLabel = (output: GetKnowledgeBasePageToolPart["output"]) => {
 	const to = output?.stats?.pageTo;
 
 	if (from === undefined) {
-		return "Read a page";
+		return m.chat_work_log_tool_get_page_name();
 	}
 
 	return to === undefined || to === from
-		? `Read page ${from}`
-		: `Read pages ${from} to ${to}`;
+		? m.chat_work_log_tool_get_page_single({
+				page: from,
+			})
+		: m.chat_work_log_tool_get_page_range({
+				from,
+				to,
+			});
 };
 
 export const GetKnowledgeBasePage = ({

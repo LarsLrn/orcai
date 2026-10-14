@@ -19,16 +19,17 @@ import {
 import { Separator } from "@/components/ui/separator";
 import { SidebarTrigger } from "@/components/ui/sidebar";
 import { cn } from "@/lib/utils";
+import { m } from "@/paraglide/messages";
 import { LocaleSwitcher } from "./locale/locale-switcher";
 
 const Header = ({ homeTo = "/app" }: { homeTo?: "/app" | "/instance" }) => {
 	const matches = useMatches();
 
 	const breadcrumbItems = matches
-		.filter((match) => match.meta?.find((m) => m?.title))
+		.filter((match) => match.meta?.find((entry) => entry?.title))
 		.map(({ pathname, meta }) => ({
 			href: pathname,
-			label: meta?.find((m) => m?.title)?.title,
+			label: meta?.find((entry) => entry?.title)?.title,
 		}))
 		.filter((i) => i.href !== "/" && i.href !== homeTo)
 		.filter((i) => i.label !== undefined) as {
@@ -58,7 +59,7 @@ const Header = ({ homeTo = "/app" }: { homeTo?: "/app" | "/instance" }) => {
 								)}
 							>
 								<HomeIcon className="size-4.5" aria-hidden="true" />
-								<span className="sr-only">Home</span>
+								<span className="sr-only">{m.header_home_link_label()}</span>
 							</Link>
 						</BreadcrumbItem>
 
@@ -72,7 +73,7 @@ const Header = ({ homeTo = "/app" }: { homeTo?: "/app" | "/instance" }) => {
 													<Button variant="ghost" size="icon-sm">
 														<EllipsisIcon aria-hidden="true" />
 														<span className="sr-only">
-															Show the breadcrumb trail
+															{m.header_breadcrumb_menu_label()}
 														</span>
 													</Button>
 												}

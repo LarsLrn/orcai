@@ -19,6 +19,7 @@ import {
 } from "@/components/ui/popover";
 import { useFieldContext } from "@/hooks/form/context";
 import { cn } from "@/lib/utils";
+import { m } from "@/paraglide/messages";
 
 type DatetimeFieldProps = {
 	label: string;
@@ -32,7 +33,7 @@ type DatetimeFieldProps = {
 
 const DatetimeField = ({
 	label,
-	placeholder = "Select a date",
+	placeholder = m.forms_datetime_field_placeholder(),
 	description,
 	showTimePicker = false,
 	showClearButton = false,
@@ -138,7 +139,9 @@ const DatetimeField = ({
 					<div className="flex">
 						<div className="flex flex-col">
 							<div className="p-3 pb-0">
-								<Label className="px-1 font-medium text-sm">Date</Label>
+								<Label className="px-1 font-medium text-sm">
+									{m.forms_datetime_field_date_label()}
+								</Label>
 							</div>
 							<Calendar
 								mode="single"
@@ -156,7 +159,9 @@ const DatetimeField = ({
 						{showTimePicker && (
 							<div className="border-border border-l">
 								<div className="flex flex-col gap-3 p-3">
-									<Label className="px-1 font-medium text-sm">Time</Label>
+									<Label className="px-1 font-medium text-sm">
+										{m.forms_datetime_field_time_label()}
+									</Label>
 									<Input
 										type="time"
 										step="1"

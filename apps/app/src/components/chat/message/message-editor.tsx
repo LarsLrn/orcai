@@ -4,6 +4,7 @@ import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
 import type { ChatAgentUIMessage } from "@/lib/ai/types/chat-agent-message";
+import { m } from "@/paraglide/messages";
 
 type MessageEditorProps = {
 	message: ChatAgentUIMessage;
@@ -49,9 +50,7 @@ const MessageEditor = ({
 		const messageId = message.id;
 
 		if (!messageId) {
-			toast.error(
-				"This message has no identifier yet, so it cannot be edited. Wait for it to finish sending, then try again.",
-			);
+			toast.error(m.chat_message_editor_missing_id_toast_error());
 			return;
 		}
 
@@ -103,7 +102,7 @@ const MessageEditor = ({
 						setMode("view");
 					}}
 				>
-					Cancel
+					{m.common_cancel_button()}
 				</Button>
 				<Button
 					variant="default"
@@ -111,7 +110,9 @@ const MessageEditor = ({
 					disabled={isLoading}
 					onClick={handleEdit}
 				>
-					{isLoading ? "Generating..." : "Edit"}
+					{isLoading
+						? m.chat_message_editor_generating_label()
+						: m.chat_message_editor_submit_button()}
 				</Button>
 			</div>
 		</div>

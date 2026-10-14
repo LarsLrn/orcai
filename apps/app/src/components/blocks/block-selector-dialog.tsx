@@ -15,34 +15,28 @@ import {
 } from "@/components/ui/composed/dialog-select";
 import { orpc } from "@/lib/orpc/orpc";
 import { cn } from "@/lib/utils";
+import { m } from "@/paraglide/messages";
 
 const BLOCK_PAGE_SIZE = 12;
 
 type SupportedBlockType = Extract<Block["type"], "template" | "database">;
 
-const copyByType: Record<
-	SupportedBlockType,
-	{
-		title: string;
-		description: string;
-		searchPlaceholder: string;
-		empty: string;
-	}
-> = {
-	template: {
-		title: "Choose an AI behaviour",
-		description: "Select a reusable behaviour block to guide responses.",
-		searchPlaceholder: "Search AI behaviours...",
-		empty: "No AI behaviour blocks found.",
-	},
-	database: {
-		title: "Choose a repository",
-		description:
-			"Select a reusable repository block for retrieval-based answers.",
-		searchPlaceholder: "Search repositories...",
-		empty: "No repository blocks found.",
-	},
-};
+const getCopy = (type: SupportedBlockType) =>
+	type === "template"
+		? {
+				title: m.blocks_selector_dialog_template_title(),
+				description: m.blocks_selector_dialog_template_description(),
+				searchPlaceholder:
+					m.blocks_selector_dialog_template_search_placeholder(),
+				empty: m.blocks_selector_dialog_template_empty_state_title(),
+			}
+		: {
+				title: m.blocks_selector_dialog_database_title(),
+				description: m.blocks_selector_dialog_database_description(),
+				searchPlaceholder:
+					m.blocks_selector_dialog_database_search_placeholder(),
+				empty: m.blocks_selector_dialog_database_empty_state_title(),
+			};
 
 const iconByType: Record<SupportedBlockType, typeof SparklesIcon> = {
 	template: SparklesIcon,
@@ -178,7 +172,7 @@ const BlockSelectorDialog = ({
 		],
 	);
 	const Icon = iconByType[type];
-	const copy = copyByType[type];
+	const copy = getCopy(type);
 
 	return (
 		<DialogSelect
@@ -235,12 +229,12 @@ const BlockSelectorDialog = ({
 									<div className="flex items-center gap-2">
 										{block.status === "draft" ? (
 											<Badge variant="outline" className="h-5 px-1.5">
-												Draft
+												{m.blocks_selector_dialog_draft_badge()}
 											</Badge>
 										) : null}
 										{isSelected ? (
 											<span className="text-muted-foreground text-xs">
-												Added
+												{m.blocks_selector_dialog_added_label()}
 											</span>
 										) : null}
 									</div>

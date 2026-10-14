@@ -4,6 +4,7 @@ import { useMutationAction } from "@/hooks/actions/use-mutation-action";
 import { useUmami } from "@/hooks/use-umami";
 import { authClient } from "@/lib/auth/auth-client";
 import { client } from "@/lib/orpc/orpc";
+import { m } from "@/paraglide/messages";
 
 export const useInit = () => {
 	const navigate = useNavigate();
@@ -28,7 +29,9 @@ export const useInit = () => {
 
 				if (signInResult.error) {
 					throw new Error(
-						`Initialization completed, but automatic sign-in failed: ${signInResult.error.message}. Please sign in manually.`,
+						m.auth_init_toast_signin_failed_error({
+							reason: signInResult.error.message ?? "unknown error",
+						}),
 					);
 				}
 
@@ -52,9 +55,9 @@ export const useInit = () => {
 			},
 		}),
 		messages: {
-			loading: "Initializing application...",
-			success: "Initialization completed successfully!",
-			error: "Initialization failed",
+			loading: m.auth_init_toast_loading(),
+			success: m.auth_init_toast_success(),
+			error: m.auth_init_toast_error(),
 		},
 	});
 };

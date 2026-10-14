@@ -21,6 +21,7 @@ import {
 	PageTitle,
 } from "@/components/ui/shell/page";
 import { orpc } from "@/lib/orpc/orpc";
+import { m } from "@/paraglide/messages";
 
 export const Route = createFileRoute("/app/quotas/")({
 	validateSearch: quotaPoolListInputSchema,
@@ -62,7 +63,7 @@ function RouteComponent() {
 	return (
 		<Page>
 			<PageHeader>
-				<PageTitle>Quota pools</PageTitle>
+				<PageTitle>{m.quotas_index_page_title()}</PageTitle>
 				<PageAction>
 					<Link
 						to="/app/quotas/add"
@@ -70,7 +71,7 @@ function RouteComponent() {
 							variant: "default",
 						})}
 					>
-						Add pool
+						{m.quotas_index_add_button()}
 					</Link>
 				</PageAction>
 			</PageHeader>
@@ -78,12 +79,12 @@ function RouteComponent() {
 				{pools.rowCount === 0 ? (
 					<Placeholder
 						Icon={GaugeIcon}
-						title="No quota pools yet"
-						description="A quota pool bounds how much a provider may be used in a period. Add one to meter tokens or requests for this organisation."
+						title={m.quotas_index_empty_title()}
+						description={m.quotas_index_empty_description()}
 						actions={[
 							{
 								key: "add",
-								label: "Add pool",
+								label: m.quotas_index_add_button(),
 								linkProps: {
 									to: "/app/quotas/add",
 								},

@@ -1,4 +1,5 @@
 import { expect, test } from "../../fixtures/index";
+import { message } from "../../fixtures/messages";
 import { enterApp, open } from "../../fixtures/navigation";
 
 /** The management pages and the heading each one puts on the screen. */
@@ -73,12 +74,12 @@ test("an organisation admin cannot enter instance management", async ({
 	// The organisation entries prove the menu is open before its absence is read.
 	await expect(
 		page.getByRole("menuitem", {
-			name: "Switch Organisation",
+			name: message("user_menu_switch_organisation_item"),
 		}),
 	).toBeVisible();
 	await expect(
 		page.getByRole("menuitem", {
-			name: "Manage instance",
+			name: message("user_menu_manage_instance_item"),
 		}),
 	).toHaveCount(0);
 });

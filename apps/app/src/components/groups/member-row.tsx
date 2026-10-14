@@ -4,6 +4,7 @@ import { Trash2Icon } from "lucide-react";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
+import { m } from "@/paraglide/messages";
 
 const MemberRow = ({
 	member,
@@ -26,7 +27,9 @@ const MemberRow = ({
 				<div className="flex items-center gap-2">
 					<p className="truncate font-medium text-sm">{member.user.name}</p>
 					<Badge variant="outline">
-						{member.source === "implicit" ? "Implicit" : "Explicit"}
+						{member.source === "implicit"
+							? m.groups_member_row_source_implicit()
+							: m.groups_member_row_source_explicit()}
 					</Badge>
 				</div>
 				{member.user.email && (
@@ -47,7 +50,9 @@ const MemberRow = ({
 					className="text-destructive"
 				>
 					<Trash2Icon className="h-4 w-4" />
-					<span className="sr-only">Remove member</span>
+					<span className="sr-only">
+						{m.groups_member_row_remove_aria_label()}
+					</span>
 				</Button>
 			</div>
 		)}

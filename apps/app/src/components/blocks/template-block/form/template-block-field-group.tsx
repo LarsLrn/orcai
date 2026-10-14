@@ -1,5 +1,6 @@
 import { TemplateBlockEditor } from "@/components/authoring/template-block-editor";
 import { withFieldGroup } from "@/hooks/form";
+import { m } from "@/paraglide/messages";
 
 const templateBlockGroupDefaultValues = {
 	name: "",
@@ -34,7 +35,10 @@ const TemplateBlockFieldGroup = withFieldGroup({
 					<group.AppField
 						name="name"
 						children={(field) => (
-							<field.TextField label="Name" placeholder="AI behaviour" />
+							<field.TextField
+								label={m.common_name_label()}
+								placeholder={m.blocks_template_form_name_placeholder()}
+							/>
 						)}
 					/>
 				}
@@ -43,8 +47,8 @@ const TemplateBlockFieldGroup = withFieldGroup({
 						name="systemPrompt"
 						children={(field) => (
 							<field.TextareaField
-								label="System Prompt"
-								placeholder="Explain the bot's role, response style, and constraints."
+								label={m.blocks_template_form_system_prompt_label()}
+								placeholder={m.blocks_template_form_system_prompt_placeholder()}
 								rows={12}
 							/>
 						)}
@@ -55,8 +59,8 @@ const TemplateBlockFieldGroup = withFieldGroup({
 						name="description"
 						children={(field) => (
 							<field.TextareaField
-								label="Short description"
-								placeholder="Define the purpose of this block."
+								label={m.blocks_template_form_description_label()}
+								placeholder={m.blocks_template_form_description_placeholder()}
 								rows={4}
 							/>
 						)}
@@ -67,7 +71,7 @@ const TemplateBlockFieldGroup = withFieldGroup({
 						name="contentJson"
 						children={(field) => (
 							<field.BlockEditorField
-								label="Detailed description"
+								label={m.blocks_template_form_content_label()}
 								htmlFieldName="contentHtml"
 							/>
 						)}

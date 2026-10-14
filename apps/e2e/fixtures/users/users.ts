@@ -7,6 +7,7 @@ import type { Session } from "../auth";
 import { EMAIL_DOMAIN, USER_PASSWORD } from "../constants";
 import { baseURL } from "../env";
 import type { Api } from "../index";
+import { message } from "../messages";
 import type { WorkerOrganisation } from "../organisation";
 import { runId, signUpUnaffiliated } from "../organisation";
 
@@ -129,7 +130,7 @@ export const rowMenuItems = async (
 ): Promise<string[]> => {
 	await userRow(page, email)
 		.getByRole("button", {
-			name: "Open menu",
+			name: message("common_row_menu_trigger"),
 		})
 		.click();
 
