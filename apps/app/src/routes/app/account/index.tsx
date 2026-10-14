@@ -21,6 +21,7 @@ import {
 import { Skeleton } from "@/components/ui/skeleton";
 import { ProfileForm } from "@/components/users/profile/form/profile-form";
 import { useResendVerificationEmail } from "@/hooks/mutations/use-resend-verification-email";
+import { m } from "@/paraglide/messages";
 
 export const Route = createFileRoute("/app/account/")({
 	component: RouteComponent,
@@ -33,7 +34,7 @@ function RouteComponent() {
 	return (
 		<Page>
 			<PageHeader>
-				<PageTitle>Account</PageTitle>
+				<PageTitle>{m.account_page_title()}</PageTitle>
 			</PageHeader>
 
 			<PageContent>

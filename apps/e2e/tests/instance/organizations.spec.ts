@@ -24,7 +24,7 @@ const findOrganisation = async (api: ApiClient, slug: string) => {
 
 /** Creating and deleting an organisation are instance actions, so these run as the well-known admin. */
 const openInstanceOrganisations = async (page: Page): Promise<void> => {
-	await open(page, "/en/instance/organizations");
+	await open(page, "/instance/organizations");
 	await expect(
 		page.getByRole("heading", {
 			name: "Organisations",

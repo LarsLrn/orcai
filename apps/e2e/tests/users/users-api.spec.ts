@@ -81,7 +81,7 @@ test("users: a user in two organisations switches the active one", async ({
 		expect(switched.success).toBe(true);
 
 		await seedZedToken(page);
-		await open(page, "/en/app");
+		await open(page, "/app");
 		await expect(
 			page.getByRole("button", {
 				name: second.name,

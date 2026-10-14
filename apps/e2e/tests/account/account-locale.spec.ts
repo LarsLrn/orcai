@@ -2,11 +2,12 @@ import { openAppPage, switchLocale } from "../../fixtures/account/navigation";
 import { createAccountUser } from "../../fixtures/account/users";
 import { pageForSession } from "../../fixtures/auth/users";
 import { expect, test } from "../../fixtures/index";
+import { message } from "../../fixtures/messages";
 
-/** The two translated sentences the app home greets a user with. */
+/** The translated sentence the app home greets a user with. */
 const WELCOME = {
-	en: "Ask questions against your organisation's approved sources, or build a bot that others can use.",
-	de: "Stellen Sie Fragen an die freigegebenen Quellen Ihrer Organisation oder erstellen Sie einen Bot, den andere nutzen können.",
+	en: message("home_intro"),
+	de: message("home_intro", {}, "de"),
 } as const;
 
 test("account: a user switches the interface language to German and back", async ({
@@ -32,25 +33,25 @@ test("account: a user switches the interface language to German and back", async
 	const { context, page } = await pageForSession(browser, user.session);
 
 	try {
-		await openAppPage(page, "/en/app", page.getByText(WELCOME.en));
+		await openAppPage(page, "/app", page.getByText(WELCOME.en));
 
 		await switchLocale(page, {
-			menuLabel: "Language",
+			menuLabel: message("header_locale_switcher_label"),
 			item: "Deutsch",
-			until: /\/de\/app(\/|$)/,
+			until: "de",
 		});
 
 		await expect(page.getByText(WELCOME.de)).toBeVisible();
 		await expect(page.locator("html")).toHaveAttribute("lang", "de");
 
-		// The language is the URL prefix plus a cookie of this browser
-		// context, not a preference stored for the user, so nothing outside
-		// this context sees it; it is switched back all the same, because
-		// every other locator in the suite reads English names.
+		// The language is a cookie of this browser context, not a preference
+		// stored for the user, so nothing outside this context sees it; it is
+		// switched back all the same, because every other locator in the suite
+		// reads English names.
 		await switchLocale(page, {
-			menuLabel: "Sprache",
+			menuLabel: message("header_locale_switcher_label", {}, "de"),
 			item: "English",
-			until: /\/en\/app(\/|$)/,
+			until: "en",
 		});
 
 		await expect(page.getByText(WELCOME.en)).toBeVisible();

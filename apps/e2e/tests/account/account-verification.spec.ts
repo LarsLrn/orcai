@@ -73,7 +73,7 @@ test("account: a user sends the verification email and the link verifies the add
 		// (`autoSignInAfterVerification`) and hands the browser to the
 		// callback the account page asked for.
 		await open(page, link);
-		await expect(page).toHaveURL(/\/en\/(select-organization|app)/);
+		await expect(page).toHaveURL(/\/(select-organization|app)/);
 
 		await openAccountPage(page);
 

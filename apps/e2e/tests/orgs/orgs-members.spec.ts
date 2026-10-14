@@ -33,7 +33,7 @@ test("orgs: an admin changes a member's role from the member's page", async ({
 
 	const page = await pageAs("admin");
 	await enterApp(page, org.slug);
-	await openGuarded(page, `/en/app/users/${user.id}/edit`, "Edit User");
+	await openGuarded(page, `/app/users/${user.id}/edit`, "Edit User");
 
 	await chooseRole(page, "member", "manager");
 
@@ -65,7 +65,7 @@ test("orgs: a manager changes roles but is not offered the admin role", async ({
 
 	const page = await pageAs("manager");
 	await enterApp(page, org.slug);
-	await openGuarded(page, `/en/app/users/${user.id}/edit`, "Edit User");
+	await openGuarded(page, `/app/users/${user.id}/edit`, "Edit User");
 
 	await chooseRole(page, "member", "viewer");
 
@@ -145,7 +145,7 @@ test("orgs: an admin removes a member from the organisation", async ({
 	// The member page reads the user through the active organisation, so a
 	// user that is no longer a member fails the read and the error boundary
 	// takes over instead of the page.
-	await page.goto(`/en/app/users/${user.id}/edit`);
+	await page.goto(`/app/users/${user.id}/edit`);
 	await expect(
 		page.getByRole("button", {
 			name: "Try Again",

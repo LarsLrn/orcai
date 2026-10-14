@@ -14,7 +14,7 @@ const freshEmail = (label: string) =>
 test("the register page turns away a visitor without an invitation", async ({
 	page,
 }) => {
-	await open(page, "/en/register");
+	await open(page, "/register");
 
 	// Registration is by invitation, so the bare page says so and points at
 	// sign-in instead of offering a form.

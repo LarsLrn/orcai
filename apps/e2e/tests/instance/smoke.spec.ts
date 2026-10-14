@@ -13,7 +13,7 @@ test.describe.configure({
 test("the well-known admin signs in and reads instance data", async ({
 	page,
 }) => {
-	await open(page, "/en/login");
+	await open(page, "/login");
 
 	await submitForm(page, {
 		fill: async () => {
@@ -27,12 +27,12 @@ test("the well-known admin signs in and reads instance data", async ({
 		submit: "Login",
 		// Sign-in leaves the login page before the app knows which
 		// organisation is active, so any other URL counts.
-		until: /^(?!.*\/en\/login).*$/,
+		until: /^(?!.*\/login).*$/,
 	});
 
 	await enterApp(page, INSTANCE_ORGANISATION.slug);
 
-	await open(page, "/en/app/orgs");
+	await open(page, "/app/orgs");
 	await expect(
 		page.getByRole("heading", {
 			name: "Organisations",

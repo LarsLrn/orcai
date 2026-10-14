@@ -118,7 +118,7 @@ test("registration validates the selected invitation and leaves the others pendi
 	});
 	try {
 		const page = await context.newPage();
-		await open(page, "/en/select-organization");
+		await open(page, "/select-organization");
 		await expect(
 			page.getByText("Pending invitations", {
 				exact: true,
@@ -169,11 +169,11 @@ test("registration lands on the picker when another invitation is pending", asyn
 		).data[0].id;
 	const firstId = await invite(org);
 	await invite(other);
-	await registerFromInvitation(page, `/en/register?inv=${firstId}`, {
+	await registerFromInvitation(page, `/register?inv=${firstId}`, {
 		name: "Picker registration",
 		password: USER_PASSWORD,
 		organisationName: org.name,
-		until: /\/en\/select-organization/,
+		until: /\/select-organization/,
 	});
 	await expect(
 		page.getByText("Pending invitations", {

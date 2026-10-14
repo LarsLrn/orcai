@@ -17,14 +17,14 @@ test("users: an admin invites a user from the users page", async ({
 	const email = `e2e-users-invited-${runId()}@${EMAIL_DOMAIN}`;
 	const page = await pageAs("admin");
 	await enterApp(page, org.slug);
-	await reachPage(page, "/en/app/users/add", "Add User");
+	await reachPage(page, "/app/users/add", "Add User");
 
 	await submitForm(page, {
 		fill: async () => {
 			await page.getByLabel("User 1 Email").fill(email);
 		},
 		submit: "Create Invitations",
-		until: /\/en\/app\/users\/invites/,
+		until: /\/app\/users\/invites/,
 	});
 
 	await expect(
@@ -45,7 +45,7 @@ test("users: the add form refuses an invalid email", async ({
 }) => {
 	const page = await pageAs("admin");
 	await enterApp(page, org.slug);
-	await reachPage(page, "/en/app/users/add", "Add User");
+	await reachPage(page, "/app/users/add", "Add User");
 
 	// Repeated until the form is hydrated; before that the click submits nothing.
 	await expect(async () => {
@@ -67,5 +67,5 @@ test("users: the add form refuses an invalid email", async ({
 	await expect(
 		page.getByText("Items[0] → Email: Field must be a valid email"),
 	).toBeVisible();
-	await expect(page).toHaveURL(/\/en\/app\/users\/add/);
+	await expect(page).toHaveURL(/\/app\/users\/add/);
 });

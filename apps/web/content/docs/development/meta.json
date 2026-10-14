@@ -5,6 +5,7 @@
 		"commands",
 		"architecture",
 		"testing",
+		"localisation",
 		"contributing"
 	]
 }

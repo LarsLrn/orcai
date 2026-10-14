@@ -21,7 +21,7 @@ test("groups: an admin creates, renames and deletes a group through the UI", asy
 	await enterApp(page, org.slug);
 	await openGroupsPage(
 		page,
-		"/en/app/groups",
+		"/app/groups",
 		page.getByRole("heading", {
 			name: "Groups",
 		}),
@@ -74,7 +74,7 @@ test("groups: an admin creates, renames and deletes a group through the UI", asy
 			exact: true,
 		})
 		.click();
-	await expect(page).toHaveURL(/\/en\/app\/groups(\?|$)/);
+	await expect(page).toHaveURL(/\/app\/groups(\?|$)/);
 
 	const remaining = await api.as("admin").group.list({
 		filters: {
@@ -94,7 +94,7 @@ test("groups: the create dialog refuses an empty name", async ({
 	await enterApp(page, org.slug);
 	await openGroupsPage(
 		page,
-		"/en/app/groups",
+		"/app/groups",
 		page.getByRole("heading", {
 			name: "Groups",
 		}),
@@ -150,7 +150,7 @@ test("groups: an admin adds and removes members through the UI", async ({
 	await enterApp(page, org.slug);
 	await openGroupsPage(
 		page,
-		`/en/app/groups/${created.data.id}`,
+		`/app/groups/${created.data.id}`,
 		page.getByRole("heading", {
 			name,
 		}),
@@ -256,7 +256,7 @@ test("groups: the system group is immutable in the UI and at the API", async ({
 	await enterApp(page, org.slug);
 	await openGroupsPage(
 		page,
-		`/en/app/groups/${group.id}`,
+		`/app/groups/${group.id}`,
 		page.getByRole("heading", {
 			name: group.name,
 		}),

@@ -26,7 +26,7 @@ test("orgs: an admin invites an address through the form and the link reaches th
 	const page = await pageAs("admin");
 
 	await enterApp(page, org.slug);
-	await openGuarded(page, "/en/app/users/add", "Add User");
+	await openGuarded(page, "/app/users/add", "Add User");
 
 	// The form starts on the active organisation and on "Member"; only the
 	// role and the address are worth saying out loud.
@@ -37,7 +37,7 @@ test("orgs: an admin invites an address through the form and the link reaches th
 			await page.getByLabel("User 1 Email").fill(email);
 		},
 		submit: "Create Invitations",
-		until: /\/en\/app\/users\/invites/,
+		until: /\/app\/users\/invites/,
 	});
 
 	const link = await waitForLink(outbox, email, INVITED_NOTIFICATION);
@@ -95,7 +95,7 @@ test("orgs: an invited visitor registers from the link and joins with the invite
 		// there and the one organisation it joined is the active one: the
 		// selection page has nothing to ask and hands the visitor to the app,
 		// without an email step in between.
-		await expect(page).toHaveURL(/\/en\/app(\/|$)/);
+		await expect(page).toHaveURL(/\/app(\/|$)/);
 
 		// The sign-up hook grants the membership outside any oRPC response, so
 		// there is no zedToken to make the first reads of it fresh.
@@ -131,7 +131,7 @@ test("orgs: an existing user accepts a pending invitation from the selection pag
 	const page = await context.newPage();
 
 	try {
-		await open(page, "/en/select-organization");
+		await open(page, "/select-organization");
 		await expect(page.getByText("Pending invitations")).toBeVisible();
 		// The invitation carries the organisation's name and slug, so the card
 		// names them without reading an organisation the user is not in yet.
@@ -146,7 +146,7 @@ test("orgs: an existing user accepts a pending invitation from the selection pag
 				name: "Accept",
 			})
 			.click();
-		await expect(page).toHaveURL(/\/en\/app(\/|$)/);
+		await expect(page).toHaveURL(/\/app(\/|$)/);
 
 		expect(await organisationRoleOf(api.as("admin"), user.email)).toBe(
 			"manager",
@@ -176,7 +176,7 @@ test("orgs: a revoked invitation no longer opens the registration form", async (
 	const page = await pageAs("admin");
 
 	await enterApp(page, org.slug);
-	await openGuarded(page, "/en/app/users/invites", "Organisation Invitations");
+	await openGuarded(page, "/app/users/invites", "Organisation Invitations");
 
 	// The list is sorted newest first, so the invitation this test just
 	// created is on the first page.
@@ -285,7 +285,7 @@ test("orgs: the invitations list carries only the inviter's own invitations", as
 
 	const page = await pageAs("admin");
 	await enterApp(page, org.slug);
-	await openGuarded(page, "/en/app/users/invites", "Organisation Invitations");
+	await openGuarded(page, "/app/users/invites", "Organisation Invitations");
 
 	// Both invitations are newer than anything else this admin sent, so the
 	// first page of the list settles the question.

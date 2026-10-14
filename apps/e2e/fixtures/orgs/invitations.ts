@@ -89,7 +89,7 @@ export const registerFromInvitation = async (
 			await expect(consent).toBeChecked();
 		},
 		submit: "Register",
-		until: user.until ?? /\/en\/app(\/|$)/,
+		until: user.until ?? /\/app(\/|$)/,
 	});
 };
 

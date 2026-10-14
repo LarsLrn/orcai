@@ -20,10 +20,10 @@ test("a user resets the password from the emailed link, which revokes the old se
 	const earlier = await pageForSession(browser, user.session);
 
 	try {
-		await open(earlier.page, "/en/select-organization");
-		await expect(earlier.page).toHaveURL(/\/en\/select-organization/);
+		await open(earlier.page, "/select-organization");
+		await expect(earlier.page).toHaveURL(/\/select-organization/);
 
-		await open(page, "/en/forgot-password");
+		await open(page, "/forgot-password");
 
 		await submitFormUntilVisible(page, {
 			fill: async () => {
@@ -51,7 +51,7 @@ test("a user resets the password from the emailed link, which revokes the old se
 				await page.getByLabel("Confirm Password").fill(newPassword);
 			},
 			submit: "Reset password",
-			until: /\/en\/login/,
+			until: /\/login/,
 		});
 
 		// The password that was replaced no longer opens a session.
@@ -72,15 +72,15 @@ test("a user resets the password from the emailed link, which revokes the old se
 					.fill(newPassword);
 			},
 			submit: "Login",
-			until: /^(?!.*\/en\/login).*$/,
+			until: /^(?!.*\/login).*$/,
 		});
 
 		// The user belongs to no organisation, so the app hands it to the
 		// selection page.
-		await expect(page).toHaveURL(/\/en\/select-organization/);
+		await expect(page).toHaveURL(/\/select-organization/);
 
-		await open(earlier.page, "/en/select-organization");
-		await expect(earlier.page).toHaveURL(/\/en\/login/);
+		await open(earlier.page, "/select-organization");
+		await expect(earlier.page).toHaveURL(/\/login/);
 	} finally {
 		await earlier.context.close();
 	}

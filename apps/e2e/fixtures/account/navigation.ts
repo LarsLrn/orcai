@@ -1,9 +1,9 @@
 import { expect, type Locator, type Page } from "@playwright/test";
+import { message } from "../messages";
 import { open } from "../navigation";
 
-/** Where the account page lives, per locale prefix. */
-export const accountPath = (locale: "en" | "de" = "en"): string =>
-	`/${locale}/app/account`;
+/** Where the account page lives. */
+export const accountPath = "/app/account";
 
 /** Open a page under `/app` and wait for the marker that says it rendered. */
 export const openAppPage = async (
@@ -16,15 +16,12 @@ export const openAppPage = async (
 };
 
 /** Open the account page and wait for its title. */
-export const openAccountPage = async (
-	page: Page,
-	locale: "en" | "de" = "en",
-): Promise<void> => {
+export const openAccountPage = async (page: Page): Promise<void> => {
 	await openAppPage(
 		page,
-		accountPath(locale),
+		accountPath,
 		page.getByRole("heading", {
-			name: "Account",
+			name: message("account_page_title"),
 		}),
 	);
 };
@@ -53,10 +50,10 @@ export const localeSwitcher = (page: Page, label: string): Locator =>
 /** The header's theme toggle, whose accessible name says what it does. */
 export const themeToggle = (page: Page): Locator =>
 	page.getByRole("button", {
-		name: "Toggle theme",
+		name: message("header_theme_switcher_label"),
 	});
 
-/** Pick a language from the header's switcher, retrying late hydration until the localized path loads. */
+/** Pick a language from the header's switcher, retrying late hydration until the page renders in it. */
 export const switchLocale = async (
 	page: Page,
 	params: {
@@ -64,8 +61,8 @@ export const switchLocale = async (
 		menuLabel: string;
 		/** The language to pick, named as the switcher names it. */
 		item: string;
-		/** The path the switch has to land on. */
-		until: RegExp;
+		/** The `lang` attribute the document has to end up with. */
+		until: "en" | "de";
 	},
 ): Promise<void> => {
 	await expect(async () => {
@@ -83,7 +80,7 @@ export const switchLocale = async (
 				name: params.item,
 			})
 			.click();
-		await expect(page).toHaveURL(params.until, {
+		await expect(page.locator("html")).toHaveAttribute("lang", params.until, {
 			timeout: 10_000,
 		});
 	}).toPass({
