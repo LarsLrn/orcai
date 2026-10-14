@@ -8,9 +8,9 @@ import { m } from "@/paraglide/messages";
 
 const getTimeBasedGreeting = () => {
 	const hour = new Date().getHours();
-	if (hour < 12) return m.acidic_last_llama_peek();
-	if (hour < 18) return m.awful_salty_tern_cut();
-	return m.yummy_watery_hawk_grin();
+	if (hour < 12) return m.home_greeting_morning();
+	if (hour < 18) return m.home_greeting_afternoon();
+	return m.home_greeting_evening();
 };
 
 const UserWelcome = () => {
@@ -53,7 +53,7 @@ const UserWelcome = () => {
 					)}
 				</div>
 			</div>
-			<p className="text-muted-foreground">{m.only_pink_meerkat_relish()}</p>
+			<p className="text-muted-foreground">{m.home_intro()}</p>
 		</div>
 	);
 };

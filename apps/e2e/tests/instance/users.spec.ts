@@ -27,7 +27,7 @@ test("instance: the users page lists accounts from several organisations", async
 	await addMember(api, other, second, "manager");
 
 	const page = await pageAsWellKnownAdmin();
-	await open(page, "/en/instance/users");
+	await open(page, "/instance/users");
 	await expect(
 		page.getByRole("heading", {
 			name: "Users",
@@ -58,7 +58,7 @@ test("instance: the search narrows the users page", async ({
 	await addMember(api, org, other);
 
 	const page = await pageAsWellKnownAdmin();
-	await open(page, "/en/instance/users");
+	await open(page, "/instance/users");
 
 	await expect(userRow(page, wanted.email)).toBeVisible();
 	await expect(userRow(page, other.email)).toBeVisible();
@@ -78,7 +78,7 @@ test("instance: the users page bans and unbans an account", async ({
 	await addMember(api, org, user);
 
 	const page = await pageAsWellKnownAdmin();
-	await open(page, "/en/instance/users");
+	await open(page, "/instance/users");
 
 	const row = userRow(page, user.email);
 	await expect(row).toBeVisible();
@@ -127,7 +127,7 @@ test("instance: the users page deletes an account", async ({
 	await addMember(api, org, user);
 
 	const page = await pageAsWellKnownAdmin();
-	await open(page, "/en/instance/users");
+	await open(page, "/instance/users");
 
 	const row = userRow(page, user.email);
 	await expect(row).toBeVisible();

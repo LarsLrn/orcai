@@ -1,11 +1,12 @@
 {
 	"$schema": "https://inlang.com/schema/inlang-message-format",
-	"example_message": "Hello world {username}",
-	"language": "Language",
-	"greeting_neutral": "Welcome",
-	"acidic_last_llama_peek": "Good morning",
-	"awful_salty_tern_cut": "Good afternoon",
-	"yummy_watery_hawk_grin": "Good evening",
-	"only_pink_meerkat_relish": "Ask questions against your organisation's approved sources, or build a bot that others can use.",
-	"fluffy_short_halibut_enchant": "About OrcAI"
+	"account_page_title": "Account",
+	"header_locale_switcher_label": "Language",
+	"header_theme_switcher_label": "Toggle theme",
+	"home_greeting_afternoon": "Good afternoon",
+	"home_greeting_evening": "Good evening",
+	"home_greeting_morning": "Good morning",
+	"home_intro": "Ask questions against your organisation's approved sources, or build a bot that others can use.",
+	"next_step_card_skip_button": "Skip",
+	"select_organisation_page_title": "Select your organisation"
 }

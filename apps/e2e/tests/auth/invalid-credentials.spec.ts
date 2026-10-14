@@ -16,7 +16,7 @@ test("the login form rejects a wrong password and stays on the login page", asyn
 	org,
 	page,
 }) => {
-	await open(page, "/en/login");
+	await open(page, "/login");
 
 	await submitFormUntilVisible(page, {
 		fill: async () => {
@@ -29,13 +29,13 @@ test("the login form rejects a wrong password and stays on the login page", asyn
 		until: page.getByText("Login failed"),
 	});
 
-	await expect(page).toHaveURL(/\/en\/login/);
+	await expect(page).toHaveURL(/\/login/);
 });
 
 test("the login form rejects an unknown email address", async ({ page }) => {
 	const unknown = `auth-unknown-${randomBytes(3).toString("hex")}@${EMAIL_DOMAIN}`;
 
-	await open(page, "/en/login");
+	await open(page, "/login");
 
 	await submitFormUntilVisible(page, {
 		fill: async () => {
@@ -46,13 +46,13 @@ test("the login form rejects an unknown email address", async ({ page }) => {
 		until: page.getByText("Login failed"),
 	});
 
-	await expect(page).toHaveURL(/\/en\/login/);
+	await expect(page).toHaveURL(/\/login/);
 });
 
 test("the login form validates an empty email and a short password", async ({
 	page,
 }) => {
-	await open(page, "/en/login");
+	await open(page, "/login");
 
 	// The fields validate on change and only show a message once touched, so
 	// the spec types and clears instead of submitting an untouched form.
@@ -84,5 +84,5 @@ test("the login form validates an empty email and a short password", async ({
 		})
 		.click();
 
-	await expect(page).toHaveURL(/\/en\/login/);
+	await expect(page).toHaveURL(/\/login/);
 });

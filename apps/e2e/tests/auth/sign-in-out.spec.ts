@@ -11,7 +11,7 @@ test("a member signs in through the login form, then signs out and loses access"
 }) => {
 	const member = org.users.member;
 
-	await open(page, "/en/login");
+	await open(page, "/login");
 
 	await submitForm(page, {
 		fill: async () => {
@@ -25,7 +25,7 @@ test("a member signs in through the login form, then signs out and loses access"
 		submit: "Login",
 		// Sign-in leaves the login page before the app knows which
 		// organisation is active, so any other URL counts.
-		until: /^(?!.*\/en\/login).*$/,
+		until: /^(?!.*\/login).*$/,
 	});
 
 	await enterApp(page, org.slug);
@@ -48,10 +48,10 @@ test("a member signs in through the login form, then signs out and loses access"
 
 	// Signing out sends the browser to the root, which redirects a visitor
 	// without a session to the login page.
-	await expect(page).toHaveURL(/\/en\/login/);
+	await expect(page).toHaveURL(/\/login/);
 
-	await open(page, "/en/app");
-	await expect(page).toHaveURL(/\/en\/login/);
+	await open(page, "/app");
+	await expect(page).toHaveURL(/\/login/);
 	await expect(
 		page.getByRole("button", {
 			name: "Login",
@@ -86,7 +86,7 @@ test("a user with one organisation signs in straight into the app", async ({
 		}
 	});
 
-	await open(page, "/en/login");
+	await open(page, "/login");
 
 	// Registration is by invitation, so the login page offers no way to
 	// create an account.
@@ -109,7 +109,7 @@ test("a user with one organisation signs in straight into the app", async ({
 		// The `session.create.before` hook makes the one organisation active
 		// as the session opens, so the app route lets the user through
 		// instead of sending them to the picker.
-		until: /\/en\/app(\/|$)/,
+		until: /\/app(\/|$)/,
 	});
 
 	expect(visited.filter((url) => url.includes("select-organization"))).toEqual(

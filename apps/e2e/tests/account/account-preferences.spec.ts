@@ -52,7 +52,7 @@ test("account: skipping the app tour is remembered for the user", async ({
 		});
 
 		// A user who has not seen the tour gets it on the app home.
-		await openAppPage(page, "/en/app", tourCard);
+		await openAppPage(page, "/app", tourCard);
 
 		await page
 			.getByRole("button", {
@@ -70,7 +70,7 @@ test("account: skipping the app tour is remembered for the user", async ({
 			});
 
 		// The state is the user's, so the tour stays away on the next load.
-		await open(page, "/en/app");
+		await open(page, "/app");
 		await expect(tourCard).toHaveCount(0);
 	} finally {
 		await context.close();

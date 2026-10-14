@@ -80,8 +80,8 @@ test("account: a wrong current password is refused, a valid change replaces the 
 
 		// The change revoked the other session, as a reset does, so the page
 		// holding it is handed to the login page.
-		await open(earlier.page, accountPath());
-		await expect(earlier.page).toHaveURL(/\/en\/login/);
+		await open(earlier.page, accountPath);
+		await expect(earlier.page).toHaveURL(/\/login/);
 
 		// The session that made the change survives it.
 		await openAccountPage(page);

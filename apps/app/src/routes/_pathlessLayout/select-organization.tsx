@@ -20,6 +20,7 @@ import { useSetActiveOrganizationMutation } from "@/hooks/mutations/use-user-mut
 import { authClient } from "@/lib/auth/auth-client";
 import { isInstanceAdminRole } from "@/lib/authz/instance-role";
 import { orpc } from "@/lib/orpc/orpc";
+import { m } from "@/paraglide/messages";
 
 const PAGE_SIZE = 12;
 
@@ -154,7 +155,7 @@ function RouteComponent() {
 			)}
 			<div className="space-y-2 text-center">
 				<h1 className="font-semibold text-2xl tracking-tight">
-					Select your organisation
+					{m.select_organisation_page_title()}
 				</h1>
 				<p className="text-lg text-muted-foreground">
 					You can switch to a different organisation at any time.

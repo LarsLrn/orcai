@@ -27,7 +27,7 @@ test("users: an admin removes a user from the organisation", async ({
 
 	const page = await pageAs("admin");
 	await enterApp(page, org.slug);
-	await reachPage(page, "/en/app/users", "Users");
+	await reachPage(page, "/app/users", "Users");
 
 	const row = userRow(page, user.email);
 	await expect(row).toBeVisible();
@@ -106,10 +106,10 @@ test("users: a removed user loses the organisation it was signed in to", async (
 		});
 
 		await seedZedToken(page);
-		await page.goto("/en/app");
+		await page.goto("/app");
 		await page.waitForLoadState("networkidle");
 
-		await expect(page).toHaveURL(/\/en\/select-organization/);
+		await expect(page).toHaveURL(/\/select-organization/);
 	} finally {
 		await context.close();
 	}

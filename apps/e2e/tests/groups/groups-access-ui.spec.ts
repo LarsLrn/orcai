@@ -43,7 +43,7 @@ test("groups: the access manager shows the group grant on the block page", async
 		name: "Access & Groups",
 	});
 
-	await open(page, `/en/app/hub/blocks/${block.data.id}`);
+	await open(page, `/app/hub/blocks/${block.data.id}`);
 	await expect(
 		page.getByRole("heading", {
 			name: blockName,
@@ -141,7 +141,7 @@ test("groups: the access manager grants several people at once", async ({
 
 	const page = await pageAs("member");
 	await enterApp(page, org.slug);
-	await open(page, `/en/app/hub/blocks/${block.data.id}`);
+	await open(page, `/app/hub/blocks/${block.data.id}`);
 	await expect(
 		page.getByRole("heading", {
 			name: blockName,

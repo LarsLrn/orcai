@@ -8,6 +8,7 @@ import {
 	CardHeader,
 	CardTitle,
 } from "@/components/ui/card";
+import { m } from "@/paraglide/messages";
 
 const NextStepCard = ({
 	step,
@@ -32,7 +33,7 @@ const NextStepCard = ({
 			<CardFooter className="flex justify-between gap-2">
 				{step.showSkip && currentStep + 1 !== totalSteps && (
 					<Button size="sm" variant="ghost" onClick={skipTour}>
-						Skip
+						{m.next_step_card_skip_button()}
 					</Button>
 				)}
 				<div className="flex w-full justify-end gap-2">

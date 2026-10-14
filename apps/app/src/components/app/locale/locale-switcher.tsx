@@ -18,7 +18,7 @@ const LocaleSwitcher = () => {
 					label: "Deutsch",
 				},
 			]}
-			label={m.language()}
+			label={m.header_locale_switcher_label()}
 		/>
 	);
 };

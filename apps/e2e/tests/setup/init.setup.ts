@@ -17,7 +17,7 @@ test("initialises the instance with the well-known admin", async ({ page }) => {
 		"Instance already initialised; reusing the well-known admin",
 	);
 
-	await open(page, "/en/init");
+	await open(page, "/init");
 
 	await submitForm(page, {
 		fill: async () => {
@@ -42,7 +42,7 @@ test("initialises the instance with the well-known admin", async ({ page }) => {
 				.check();
 		},
 		submit: "Initialize Instance",
-		until: /\/en\/(app|login)/,
+		until: /\/(app|login)/,
 	});
 
 	const after = await api.bootstrap.status({});

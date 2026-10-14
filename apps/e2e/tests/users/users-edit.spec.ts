@@ -37,7 +37,7 @@ test("users: the edit page shows what an admin may know about a user", async ({
 
 	const page = await pageAs("admin");
 	await enterApp(page, org.slug);
-	await reachPage(page, `/en/app/users/${user.id}/edit`, "Edit User");
+	await reachPage(page, `/app/users/${user.id}/edit`, "Edit User");
 
 	// The breadcrumb repeats the name and the email, so both are matched
 	// exactly against the field the card renders.
@@ -109,7 +109,7 @@ test("users: the edit page reports a user without resource access", async ({
 
 	const page = await pageAs("admin", org);
 	await enterApp(page, org.slug);
-	await reachPage(page, `/en/app/users/${user.id}/edit`, "Edit User");
+	await reachPage(page, `/app/users/${user.id}/edit`, "Edit User");
 
 	const accessCard = page.locator('[data-slot="card"]').filter({
 		hasText: "Effective Resource Access",
@@ -135,7 +135,7 @@ test("users: an admin changes a user's organisation role", async ({
 
 	const page = await pageAs("admin");
 	await enterApp(page, org.slug);
-	await reachPage(page, `/en/app/users/${user.id}/edit`, "Edit User");
+	await reachPage(page, `/app/users/${user.id}/edit`, "Edit User");
 
 	await chooseRole(page, "Member", "Manager");
 
@@ -164,7 +164,7 @@ test("users: a manager may not hand out the admin role", async ({
 
 	const page = await pageAs("manager");
 	await enterApp(page, org.slug);
-	await reachPage(page, `/en/app/users/${user.id}/edit`, "Edit User");
+	await reachPage(page, `/app/users/${user.id}/edit`, "Edit User");
 
 	await page
 		.getByRole("button", {
@@ -215,7 +215,7 @@ test("users: an organisation admin is not offered ban or delete", async ({
 
 	const page = await pageAs("admin");
 	await enterApp(page, org.slug);
-	await reachPage(page, `/en/app/users/${user.id}/edit`, "Edit User");
+	await reachPage(page, `/app/users/${user.id}/edit`, "Edit User");
 
 	// Banning and deleting an account are instance actions, so the edit page of
 	// an organisation admin offers neither. The organisation role picker, which

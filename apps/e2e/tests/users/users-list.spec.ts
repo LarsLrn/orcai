@@ -15,7 +15,7 @@ import {
  * are its oldest members, so a page large enough for all of them is asked for
  * in the URL; the route coerces the search parameter.
  */
-const USERS_PATH = "/en/app/users?pageSize=200";
+const USERS_PATH = "/app/users?pageSize=200";
 
 test("users: an admin sees every member of the organisation", async ({
 	api,
@@ -89,11 +89,11 @@ test("users: a member and a viewer never see the users page", async ({
 	] as const) {
 		const page = await pageAs(role);
 		await enterApp(page, org.slug);
-		await open(page, "/en/app/users");
+		await open(page, "/app/users");
 
 		// The route guard checks `manage_members` and sends the rest back to
 		// the dashboard.
-		await expect(page).toHaveURL(/\/en\/app$/);
+		await expect(page).toHaveURL(/\/app$/);
 		await expect(
 			page.getByRole("heading", {
 				name: "Users",

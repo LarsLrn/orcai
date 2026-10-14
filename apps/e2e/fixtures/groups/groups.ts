@@ -101,7 +101,7 @@ export const blockIds = async (
 	}>,
 ): Promise<string[]> => (await list).data.map((block) => block.id);
 
-/** Open a page under `/en/app/groups` and wait for the element that marks it as rendered. */
+/** Open a page under `/app/groups` and wait for the element that marks it as rendered. */
 export const openGroupsPage = async (
 	page: Page,
 	path: string,

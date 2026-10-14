@@ -48,8 +48,8 @@ test("instance management has an independent route and survives the last organis
 	});
 	try {
 		const page = await ordinary.newPage();
-		await open(page, "/en/instance/organizations");
-		await expect(page).toHaveURL(/\/en\/select-organization/);
+		await open(page, "/instance/organizations");
+		await expect(page).toHaveURL(/\/select-organization/);
 		await expect(
 			page.getByRole("link", {
 				name: "Manage instance",
@@ -69,15 +69,15 @@ test("instance management has an independent route and survives the last organis
 	});
 	try {
 		const page = await context.newPage();
-		await open(page, "/en/select-organization");
+		await open(page, "/select-organization");
 		await expect(
 			page.getByRole("link", {
 				name: "Manage instance",
 			}),
 		).toBeVisible();
 
-		await open(page, "/en/instance");
-		await expect(page).toHaveURL(/\/en\/instance\/organizations/);
+		await open(page, "/instance");
+		await expect(page).toHaveURL(/\/instance\/organizations/);
 		await expect(
 			page.getByRole("heading", {
 				name: "Organisations",
@@ -93,7 +93,7 @@ test("instance management has an independent route and survives the last organis
 			organizationId: id,
 		});
 
-		await open(page, "/en/instance/users");
+		await open(page, "/instance/users");
 		await expect(
 			page.getByRole("heading", {
 				name: "Users",
@@ -107,21 +107,21 @@ test("instance management has an independent route and survives the last organis
 				name: "Back to app",
 			})
 			.click();
-		await expect(page).toHaveURL(/\/en\/app(?:\/|$)/);
+		await expect(page).toHaveURL(/\/app(?:\/|$)/);
 		await expect(
 			page.getByRole("button", {
 				name: "Only organisation",
 			}),
 		).toBeVisible();
 
-		await open(page, "/en/app/instance/organizations");
+		await open(page, "/app/instance/organizations");
 		await expect(
 			page.getByRole("heading", {
 				name: "Page Not Found",
 			}),
 		).toBeVisible();
 
-		await open(page, "/en/instance/organizations");
+		await open(page, "/instance/organizations");
 		await client.organization.delete({
 			refs: [
 				{
@@ -129,7 +129,7 @@ test("instance management has an independent route and survives the last organis
 				},
 			],
 		});
-		await open(page, "/en/instance/users");
+		await open(page, "/instance/users");
 		await expect(
 			page.getByRole("heading", {
 				name: "Users",
@@ -142,7 +142,7 @@ test("instance management has an independent route and survives the last organis
 				name: "Back to app",
 			})
 			.click();
-		await expect(page).toHaveURL(/\/en\/select-organization/);
+		await expect(page).toHaveURL(/\/select-organization/);
 	} finally {
 		await context.close();
 	}
@@ -171,7 +171,7 @@ test("the app user menu offers instance management only to instance admins", asy
 	});
 	await expect(launcher).toBeVisible();
 	await launcher.click();
-	await expect(adminPage).toHaveURL(/\/en\/instance\/organizations/);
+	await expect(adminPage).toHaveURL(/\/instance\/organizations/);
 
 	const memberPage = await pageAs("member");
 	await enterApp(memberPage, org.slug);

@@ -15,7 +15,7 @@ Registration is invitation only, enforced by the sign-up endpoint itself: it
 requires the ID of a pending, unexpired invitation matching the address. There is no
 open sign-up to disable, and no setting turns one on.
 
-- The first account of an instance comes from the init flow at `/<locale>/init`,
+- The first account of an instance comes from the init flow at `/init`,
   which writes the user directly and is therefore not affected by the rule.
 - Every later account is created from an invitation link an organisation
   administrator sends. Signing up accepts that invitation and writes its

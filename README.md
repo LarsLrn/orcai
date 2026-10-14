@@ -109,6 +109,7 @@ Everything after `--` is passed to Playwright.
 Notes:
 - The application under test is the production build. With `--no-reset`, a `bun run stack dev` already listening on the stack's port is reused, so local iteration needs no rebuild. A reset refuses while an app is listening, because a running server keeps stale state in memory; stop it first or pass `--no-reset`.
 - A Playwright `setup` project initialises the reset instance through the first-run UI with a well-known admin. There is no separate seed step.
+- Locators use roles and accessible names read from `apps/app/messages/en.json` through `apps/e2e/fixtures/messages.ts`, so specs follow the copy. See [Development docs: Localisation](apps/web/content/docs/development/localisation.mdx).
 - Each Playwright worker creates its own organisations and users through the public API, so specs run in parallel without sharing data.
 - A mock OpenAI-compatible inference server (`apps/e2e/fixtures/inference`) runs on `E2E_INFERENCE_PORT` for the whole suite; `stack e2e` points the app's global endpoint at it, and specs that configure a provider start their own on an ephemeral port. No run reaches a real provider.
 - To keep your dev data, run the suite against a second stack: `bun run stack --name <name>-e2e --env-file .env.e2e up`, then the same command with those flags. Run the stacks of one checkout one after the other, since both builds would share `apps/app/dist`.

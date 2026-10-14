@@ -4,11 +4,11 @@ import { enterApp, open } from "../../fixtures/navigation";
 /** The management pages and the heading each one puts on the screen. */
 const MANAGEMENT_PAGES = [
 	{
-		path: "/en/app/orgs",
+		path: "/app/orgs",
 		heading: "Organisations",
 	},
 	{
-		path: "/en/app/users",
+		path: "/app/users",
 		heading: "Users",
 	},
 ];
@@ -25,7 +25,7 @@ test("a viewer is sent back from the management pages", async ({
 
 		// The route guard checks the organisation capability and redirects to
 		// the dashboard when the viewer does not have it.
-		await expect(page).toHaveURL(/\/en\/app$/);
+		await expect(page).toHaveURL(/\/app$/);
 		await expect(
 			page.getByRole("heading", {
 				name: managementPage.heading,
@@ -57,12 +57,12 @@ test("an organisation admin cannot enter instance management", async ({
 	await enterApp(page, org.slug);
 
 	for (const path of [
-		"/en/instance/organizations",
-		"/en/instance/users",
+		"/instance/organizations",
+		"/instance/users",
 	]) {
 		await open(page, path);
 
-		await expect(page).toHaveURL(/\/en\/app$/);
+		await expect(page).toHaveURL(/\/app$/);
 	}
 
 	await page
