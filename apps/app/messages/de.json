@@ -229,8 +229,6 @@
 	"ai_elements_tool_parameters_empty": "Keine Parameter.",
 	"ai_elements_tool_parameters_invalid": "Der Aufruf hat kein gültiges Parameterobjekt erzeugt.",
 	"ai_elements_tool_parameters_label": "Parameter",
-	"ai_elements_tool_raw_parameters_hint": "Die ursprünglichen Argumente werden angezeigt, weil die Validierung fehlgeschlagen ist.",
-	"ai_elements_tool_raw_parameters_label": "Rohe Parameter",
 	"ai_elements_tool_result_label": "Ergebnis",
 	"app_logo_alt": "OrcAI-Logo",
 	"app_meta_description": "Wissensassistenten, die Sie zu Ihren eigenen Bedingungen betreiben.",

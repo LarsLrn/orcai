@@ -10,6 +10,6 @@
 		"@orcai/db": "workspace:*",
 		"@orcai/schema": "workspace:*",
 		"effect": "catalog:",
-		"pg-boss": "12.28.0"
+		"pg-boss": "12.37.1"
 	}
 }

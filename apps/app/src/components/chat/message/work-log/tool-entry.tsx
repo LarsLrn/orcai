@@ -55,11 +55,7 @@ export const ToolEntry = ({
 						: m.chat_work_log_tool_parameters_label()
 				}
 			>
-				<ToolInput
-					input={part.input}
-					rawInput={"rawInput" in part ? part.rawInput : undefined}
-					errorText={part.errorText}
-				/>
+				<ToolInput input={part.input} errorText={part.errorText} />
 				{(showsRawResult || part.errorText) && (
 					<ToolOutput output={part.output} errorText={part.errorText} />
 				)}
