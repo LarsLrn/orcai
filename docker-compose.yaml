@@ -43,23 +43,24 @@ services:
       POSTGRES_DB: app
     restart: on-failure
 
-  # MinIO S3-Compatible Object Storage
-  minio:
-    image: minio/minio:RELEASE.2025-02-28T09-55-16Z
-    command: server /data --console-address ":9001"
+  # SeaweedFS S3-Compatible Object Storage
+  seaweedfs:
+    image: chrislusf/seaweedfs:4.48
+    command: mini -dir=/data -admin.ui=false -webdav=false -s3.port.iceberg=0 -s3.port.lance=0 -master.telemetry=false
     environment:
-      MINIO_ROOT_USER: ${MINIO_ROOT_USER:-minioadmin}
-      MINIO_ROOT_PASSWORD: ${MINIO_ROOT_PASSWORD:-minioadmin}
+      AWS_ACCESS_KEY_ID: ${S3_ACCESS_KEY:-s3admin}
+      AWS_SECRET_ACCESS_KEY: ${S3_SECRET_KEY:-s3admin-secret}
+      S3_BUCKET: uploads,processed-files
     expose:
-      - "9000"
-      - "9001"
+      - "8333"
     volumes:
-      - minio_data:/data
+      - seaweedfs_data:/data
     healthcheck:
-      test: [ "CMD", "curl", "-f", "http://localhost:9000/minio/health/live" ]
-      interval: 30s
-      timeout: 20s
-      retries: 3
+      test: [ "CMD", "curl", "-f", "http://localhost:8333/healthz" ]
+      interval: 10s
+      timeout: 5s
+      retries: 6
+      start_period: 10s
     restart: unless-stopped
 
   # Qdrant Vector Database
@@ -102,12 +103,12 @@ services:
       POSTGRES_SSL: "false"
       VALKEY_URL: redis://valkey:6379
 
-      # S3/MinIO Configuration
-      S3_ENDPOINT: ${S3_ENDPOINT:-http://minio:9000}
+      # S3 Configuration
+      S3_ENDPOINT: ${S3_ENDPOINT:-http://seaweedfs:8333}
       S3_PUBLIC_ENDPOINT: ${S3_PUBLIC_ENDPOINT:-}
       S3_REGION: ${S3_REGION:-eu-central-1}
-      S3_ACCESS_KEY: ${MINIO_ROOT_USER:-minioadmin}
-      S3_SECRET_KEY: ${MINIO_ROOT_PASSWORD:-minioadmin}
+      S3_ACCESS_KEY: ${S3_ACCESS_KEY:-s3admin}
+      S3_SECRET_KEY: ${S3_SECRET_KEY:-s3admin-secret}
 
       # Qdrant Configuration
       QDRANT_URL: http://qdrant:6333/
@@ -150,10 +151,8 @@ services:
     depends_on:
       postgres:
         condition: service_healthy
-      minio:
+      seaweedfs:
         condition: service_healthy
-      minio-setup:
-        condition: service_completed_successfully
       qdrant:
         condition: service_healthy
       migrations:
@@ -195,11 +194,11 @@ services:
       POSTGRES_DB: ${POSTGRES_DB:-app}
       POSTGRES_HOST: postgres
       VALKEY_URL: redis://valkey:6379
-      S3_ENDPOINT: ${S3_ENDPOINT:-http://minio:9000}
+      S3_ENDPOINT: ${S3_ENDPOINT:-http://seaweedfs:8333}
       S3_PUBLIC_ENDPOINT: ${S3_PUBLIC_ENDPOINT:-}
       S3_REGION: ${S3_REGION:-eu-central-1}
-      S3_ACCESS_KEY: ${MINIO_ROOT_USER:-minioadmin}
-      S3_SECRET_KEY: ${MINIO_ROOT_PASSWORD:-minioadmin}
+      S3_ACCESS_KEY: ${S3_ACCESS_KEY:-s3admin}
+      S3_SECRET_KEY: ${S3_SECRET_KEY:-s3admin-secret}
       QDRANT_URL: http://qdrant:6333/
       QDRANT_API_KEY: ${QDRANT_API_KEY:-}
       SMTP_HOST: ${SMTP_HOST:-}
@@ -221,10 +220,8 @@ services:
     depends_on:
       postgres:
         condition: service_healthy
-      minio:
+      seaweedfs:
         condition: service_healthy
-      minio-setup:
-        condition: service_completed_successfully
       qdrant:
         condition: service_healthy
       migrations:
@@ -232,19 +229,6 @@ services:
       valkey:
         condition: service_healthy
     restart: unless-stopped
-
-  # Create MinIO buckets once on startup
-  minio-setup:
-    image: minio/mc:RELEASE.2025-02-21T16-00-46Z
-    depends_on:
-      minio:
-        condition: service_healthy
-    entrypoint: >
-      /bin/sh -c " /usr/bin/mc alias set myminio http://minio:9000 $$MINIO_ROOT_USER $$MINIO_ROOT_PASSWORD && /usr/bin/mc mb myminio/uploads --ignore-existing && /usr/bin/mc mb myminio/processed-files --ignore-existing && echo 'MinIO buckets created successfully' "
-    environment:
-      MINIO_ROOT_USER: ${MINIO_ROOT_USER:-minioadmin}
-      MINIO_ROOT_PASSWORD: ${MINIO_ROOT_PASSWORD:-minioadmin}
-    restart: "no"
 
   spicedb:
     image: "authzed/spicedb:v1.51.0"
@@ -312,7 +296,7 @@ volumes:
     driver: local
   valkey_data:
     driver: local
-  minio_data:
+  seaweedfs_data:
     driver: local
   qdrant_data:
     driver: local

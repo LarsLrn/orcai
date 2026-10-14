@@ -7,7 +7,7 @@ description: Run OrcAI against real infrastructure in this worktree. Use when st
 
 Use `bun run stack` as the only entry point for this worktree's isolated
 Docker Compose stack. Do not call Compose directly. The stack owns PostgreSQL,
-Valkey, MinIO, Qdrant, SpiceDB, and the generated `.env` ports.
+Valkey, SeaweedFS, Qdrant, SpiceDB, and the generated `.env` ports.
 
 ## Run the stack
 

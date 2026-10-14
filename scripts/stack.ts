@@ -2,7 +2,7 @@
  * OrcAI development stack.
  *
  * One command per worktree that owns the backing services (PostgreSQL, Valkey,
- * MinIO, Qdrant, SpiceDB) in an isolated Docker Compose project, picks free
+ * SeaweedFS, Qdrant, SpiceDB) in an isolated Docker Compose project, picks free
  * loopback ports, writes them to `.env`, applies migrations, and runs the app
  * with that environment.
  *
@@ -26,7 +26,7 @@
  * those arguments to Playwright.
  *
  * `reset` wipes the data of every store (PostgreSQL, SpiceDB relationships,
- * MinIO objects, Qdrant collections, Valkey keys) while leaving the containers
+ * S3 objects, Qdrant collections, Valkey keys) while leaving the containers
  * and `.env` in place; `e2e` does the same unless `--no-reset` is given. Both
  * refuse to run unless POSTGRES_HOST is a loopback address, the stack is named
  * `orcai-*`, and nothing is listening on the app port. There is no override.
@@ -59,8 +59,7 @@ const repoRoot = path.resolve(import.meta.dirname, "..");
 const infraServices = [
 	"postgres",
 	"valkey",
-	"minio",
-	"minio-setup",
+	"seaweedfs",
 	"qdrant",
 	"spicedb-database",
 	"spicedb-migrate",
@@ -71,8 +70,7 @@ const portKeys = [
 	"WEB_PORT",
 	"POSTGRES_PORT",
 	"VALKEY_PORT",
-	"MINIO_API_PORT",
-	"MINIO_CONSOLE_PORT",
+	"S3_PORT",
 	"QDRANT_HTTP_PORT",
 	"QDRANT_GRPC_PORT",
 	"SPICEDB_GRPC_PORT",
@@ -227,7 +225,7 @@ function userOverlayFile(): string {
 function defaultEnv(stackName: string, ports: Ports): Env {
 	const appUrl = `http://127.0.0.1:${String(ports.PORT)}`;
 	const webUrl = `http://127.0.0.1:${String(ports.WEB_PORT)}`;
-	const minioUrl = `http://127.0.0.1:${String(ports.MINIO_API_PORT)}`;
+	const s3Url = `http://127.0.0.1:${String(ports.S3_PORT)}`;
 	return {
 		ORCAI_STACK_NAME: stackName,
 
@@ -251,15 +249,12 @@ function defaultEnv(stackName: string, ports: Ports): Env {
 		VALKEY_PORT: String(ports.VALKEY_PORT),
 		VALKEY_URL: `redis://127.0.0.1:${String(ports.VALKEY_PORT)}`,
 
-		MINIO_API_PORT: String(ports.MINIO_API_PORT),
-		MINIO_CONSOLE_PORT: String(ports.MINIO_CONSOLE_PORT),
-		MINIO_ROOT_USER: "minioadmin",
-		MINIO_ROOT_PASSWORD: "minioadmin",
-		S3_ENDPOINT: minioUrl,
-		S3_PUBLIC_ENDPOINT: minioUrl,
+		S3_PORT: String(ports.S3_PORT),
+		S3_ENDPOINT: s3Url,
+		S3_PUBLIC_ENDPOINT: s3Url,
 		S3_REGION: "eu-central-1",
-		S3_ACCESS_KEY: "minioadmin",
-		S3_SECRET_KEY: "minioadmin",
+		S3_ACCESS_KEY: "s3admin",
+		S3_SECRET_KEY: randomSecret(24),
 
 		QDRANT_HTTP_PORT: String(ports.QDRANT_HTTP_PORT),
 		QDRANT_GRPC_PORT: String(ports.QDRANT_GRPC_PORT),
@@ -433,7 +428,6 @@ async function compose(
 }
 
 const oneShotServices = [
-	"minio-setup",
 	"spicedb-migrate",
 ];
 const longRunningServices = infraServices.filter(
@@ -684,6 +678,17 @@ async function assertResettable(options: Options, env: Env): Promise<void> {
 			`Refusing to reset '${options.stackName}': POSTGRES_HOST is '${host}', not a loopback address.`,
 		);
 	}
+	const s3 = URL.parse(env.S3_ENDPOINT ?? "");
+	if (
+		!s3 ||
+		!env.S3_PORT ||
+		!loopbackHosts.has(s3.hostname) ||
+		s3.port !== env.S3_PORT
+	) {
+		throw new Error(
+			`Refusing to reset '${options.stackName}': S3_ENDPOINT is '${env.S3_ENDPOINT ?? ""}', not this stack's SeaweedFS on loopback port ${env.S3_PORT ?? ""}.`,
+		);
+	}
 	if (!options.stackName.startsWith("orcai-")) {
 		throw new Error(
 			`Refusing to reset: stack '${options.stackName}' is not named 'orcai-*'.`,
@@ -775,67 +780,37 @@ async function resetSpiceDb(env: Env): Promise<void> {
 	);
 }
 
-/**
- * `mc` only ships in the minio-setup image, which is also what created the
- * buckets, so both the listing and the deletion run there. The alias is passed
- * through the environment so the credentials stay off the command line.
- */
-function mcArgs(args: string[]): string[] {
-	return [
-		"run",
-		"--rm",
-		"--no-deps",
-		"--env",
-		"MC_HOST_stack",
-		"--entrypoint",
-		"/usr/bin/mc",
-		"minio-setup",
-		...args,
-	];
-}
+/** The buckets SeaweedFS creates on startup, see `S3_BUCKET` in docker-compose.yaml. */
+const s3Buckets = [
+	"uploads",
+	"processed-files",
+];
 
-async function resetMinio(options: Options, env: Env): Promise<void> {
-	const user = encodeURIComponent(envValue(env, "MINIO_ROOT_USER"));
-	const password = encodeURIComponent(envValue(env, "MINIO_ROOT_PASSWORD"));
-	const mcEnv: Env = {
-		...env,
-		MC_HOST_stack: `http://${user}:${password}@minio:9000`,
-	};
-	const listing = await composeCapture(
-		options,
-		mcEnv,
-		mcArgs([
-			"ls",
-			"--json",
-			"stack",
-		]),
-	);
-	const buckets = listing
-		.split("\n")
-		.filter((line) => line.trim().length > 0)
-		.map(
-			(line) =>
-				JSON.parse(line) as {
-					status: string;
-					key: string;
-				},
-		)
-		.filter((entry) => entry.status === "success" && entry.key.endsWith("/"))
-		.map((entry) => `stack/${entry.key}`);
-	if (buckets.length > 0) {
-		await composeCapture(
-			options,
-			mcEnv,
-			mcArgs([
-				"rm",
-				"--recursive",
-				"--force",
-				"--quiet",
-				...buckets,
-			]),
-		);
+async function resetObjectStorage(env: Env): Promise<void> {
+	let deleted = 0;
+	for (const bucket of s3Buckets) {
+		const client = new Bun.S3Client({
+			endpoint: envValue(env, "S3_ENDPOINT"),
+			region: envValue(env, "S3_REGION"),
+			accessKeyId: envValue(env, "S3_ACCESS_KEY"),
+			secretAccessKey: envValue(env, "S3_SECRET_KEY"),
+			bucket,
+		});
+		let startAfter: string | undefined;
+		for (;;) {
+			const page = await client.list({
+				startAfter,
+			});
+			const keys = (page.contents ?? []).map((object) => object.key);
+			await Promise.all(keys.map((key) => client.delete(key)));
+			deleted += keys.length;
+			if (!page.isTruncated || keys.length === 0) break;
+			startAfter = keys.at(-1);
+		}
 	}
-	log(`Emptied ${String(buckets.length)} MinIO buckets`);
+	log(
+		`Deleted ${String(deleted)} objects from ${String(s3Buckets.length)} buckets`,
+	);
 }
 
 async function resetQdrant(env: Env): Promise<void> {
@@ -899,7 +874,7 @@ async function reset(options: Options, env: Env): Promise<void> {
 	await resetPostgres(env);
 	await migrate(env);
 	await resetSpiceDb(env);
-	await resetMinio(options, env);
+	await resetObjectStorage(env);
 	await resetQdrant(env);
 	await resetValkey(env);
 }
@@ -1015,8 +990,8 @@ function probes(env: Env): Probe[] {
 			detail: env.VALKEY_URL ?? "",
 		},
 		{
-			name: "minio",
-			check: http(`${env.S3_ENDPOINT ?? ""}/minio/health/live`),
+			name: "seaweedfs",
+			check: http(`${env.S3_ENDPOINT ?? ""}/healthz`),
 			detail: env.S3_ENDPOINT ?? "",
 		},
 		{
@@ -1067,9 +1042,7 @@ function printSummary(options: Options, env: Env): void {
 	console.log(
 		`  postgres       ${env.POSTGRES_HOST ?? ""}:${env.POSTGRES_PORT ?? ""}`,
 	);
-	console.log(
-		`  minio console  http://127.0.0.1:${env.MINIO_CONSOLE_PORT ?? ""}`,
-	);
+	console.log(`  s3             ${env.S3_ENDPOINT ?? ""}`);
 	console.log(`  qdrant         ${env.QDRANT_URL ?? ""}`);
 	console.log(`  spicedb        ${env.SPICEDB_ENDPOINT ?? ""}`);
 	console.log("");

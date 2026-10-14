@@ -57,7 +57,7 @@ OrcAI is a self-hostable platform for building governed AI assistants around cur
 
 ### Per-worktree dev stack (recommended)
 
-`bun run stack` gives every checkout, including each git worktree, its own Docker Compose project for PostgreSQL, Valkey, MinIO, Qdrant, and SpiceDB. Ports are chosen per worktree and written to a gitignored `.env`, so several checkouts and agents can run side by side without colliding.
+`bun run stack` gives every checkout, including each git worktree, its own Docker Compose project for PostgreSQL, Valkey, SeaweedFS, Qdrant, and SpiceDB. Ports are chosen per worktree and written to a gitignored `.env`, so several checkouts and agents can run side by side without colliding.
 
 Prerequisites:
 - Bun `>=1.3.10`
@@ -134,12 +134,11 @@ Steps:
 What starts automatically:
 - PostgreSQL
 - Valkey
-- MinIO
+- SeaweedFS
 - Qdrant
 - SpiceDB
 - Workspace dependency install
 - Database migrations
-- MinIO bucket bootstrap
 - SpiceDB schema migration
 - A Bun workspace container with the repository mounted
 
@@ -168,8 +167,7 @@ This starts:
 - a dedicated workers container for scheduled and background jobs
 - PostgreSQL on `localhost:5432`
 - Valkey on `localhost:6379`
-- MinIO API on `localhost:9000`
-- MinIO Console on `localhost:9001`
+- SeaweedFS S3 API on `localhost:8333`
 - Qdrant HTTP on `localhost:6333`
 - Qdrant gRPC on `localhost:6334`
 - SpiceDB gRPC on `localhost:50051`
@@ -184,7 +182,7 @@ Notes:
 - The local override injects development defaults for required application variables.
 - For embeddings and image processing, you still need a configured `OPENAI_COMPATIBLE_*` endpoint.
 - `EMBEDDING_MODEL` and `EMBEDDING_DIMENSIONS` must match across the app, workers, and Qdrant collection. Changing them on an existing deployment is not supported right now.
-- MinIO buckets and the SpiceDB schema are initialized automatically by one-shot services.
+- SeaweedFS creates the buckets on startup, and a one-shot service applies the SpiceDB schema.
 
 ### Manual host setup
 
