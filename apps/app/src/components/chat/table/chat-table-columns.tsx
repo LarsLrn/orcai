@@ -26,7 +26,7 @@ export const chatTableColumns = columnHelper.columns([
 				}}
 				className="font-medium hover:underline"
 			>
-				{row.original.title || m.chat_table_untitled_chat()}
+				{row.original.title ?? m.chat_title_placeholder()}
 			</Link>
 		),
 		meta: {

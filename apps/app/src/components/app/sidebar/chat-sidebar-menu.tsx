@@ -79,7 +79,9 @@ const ChatSidebarMenu = () => {
 								}}
 								onClick={closeMobileForNavigation}
 							>
-								<span className="truncate">{chat.title}</span>
+								<span className="truncate">
+									{chat.title ?? m.chat_title_placeholder()}
+								</span>
 							</Link>
 						}
 					/>
@@ -92,7 +94,7 @@ const ChatSidebarMenu = () => {
 							<MoreHorizontalIcon />
 							<span className="sr-only">
 								{m.sidebar_chat_actions_aria_label({
-									title: chat.title ?? "",
+									title: chat.title ?? m.chat_title_placeholder(),
 								})}
 							</span>
 						</SidebarMenuAction>

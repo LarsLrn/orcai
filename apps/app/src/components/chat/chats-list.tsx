@@ -91,7 +91,7 @@ const ChatsList = ({
 
 						<CardHeader className="pb-2">
 							<CardTitle className="line-clamp-1 w-[calc(100%-1rem)] text-base">
-								{chat.title}
+								{chat.title ?? m.chat_title_placeholder()}
 							</CardTitle>
 							{chat.updatedAt && (
 								<CardDescription className="text-xs">

@@ -1559,7 +1559,7 @@
 	"chat_table_bulk_delete_action": "Auswahl löschen",
 	"chat_table_date_column_header": "Datum",
 	"chat_table_row_menu_trigger": "Chat-Aktionen öffnen",
-	"chat_table_untitled_chat": "Chat ohne Titel",
+	"chat_title_placeholder": "Neuer Chat",
 	"chat_update_toast_error": "Chat konnte nicht aktualisiert werden",
 	"chat_update_toast_loading": "Chat wird aktualisiert...",
 	"chat_update_toast_success": "Chat erfolgreich aktualisiert",

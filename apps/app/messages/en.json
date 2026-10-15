@@ -1559,7 +1559,7 @@
 	"chat_table_bulk_delete_action": "Delete selected",
 	"chat_table_date_column_header": "Date",
 	"chat_table_row_menu_trigger": "Open chat actions",
-	"chat_table_untitled_chat": "Untitled chat",
+	"chat_title_placeholder": "New chat",
 	"chat_update_toast_error": "Failed to update chat",
 	"chat_update_toast_loading": "Updating chat...",
 	"chat_update_toast_success": "Chat updated successfully",
