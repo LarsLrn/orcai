@@ -22,6 +22,8 @@ export default defineConfig({
 	},
 	ssr: {
 		noExternal: [
+			// Bundled with the workspace packages so the server holds one OpenTelemetry SDK.
+			"@effect/opentelemetry",
 			"nextstepjs",
 			"motion",
 			"streamdown",
