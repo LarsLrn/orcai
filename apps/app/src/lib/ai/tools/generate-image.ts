@@ -1,6 +1,7 @@
 import { createOpenAICompatible } from "@ai-sdk/openai-compatible";
 import { AiError, generateTextEffect } from "@orcai/ai";
 import type { ImageGenerationBlock } from "@orcai/schema";
+import { call } from "@orpc/server";
 import { generateImage, tool, type UIMessageStreamWriter } from "ai";
 import * as Effect from "effect/Effect";
 import { z } from "zod/v4";
@@ -8,15 +9,19 @@ import { streamErrorReason } from "@/lib/ai/utils/stream-error-reason";
 import { runPromise } from "@/lib/effect/runtime";
 import { BadRequestError } from "@/lib/effect/utils/errors";
 import { providerApiKey } from "@/lib/encryption";
-import { client } from "@/lib/orpc/orpc";
+import type { ORPCContext } from "@/lib/orpc/implementation/os";
+import { findModel } from "@/lib/orpc/router/model";
+import { findProvider } from "@/lib/orpc/router/provider";
 
 export const generateImageTool = ({
 	writer,
 	block,
+	context,
 }: {
 	writer: UIMessageStreamWriter;
 	block: ImageGenerationBlock;
 	organizationId: string;
+	context: ORPCContext;
 }) =>
 	tool({
 		description: "Generate an image based on a text prompt",
@@ -34,9 +39,15 @@ export const generateImageTool = ({
 						[
 							Effect.tryPromise({
 								try: () =>
-									client.provider.find({
-										id: block.config.provider,
-									}),
+									call(
+										findProvider,
+										{
+											id: block.config.provider,
+										},
+										{
+											context,
+										},
+									),
 								catch: (cause) =>
 									new AiError({
 										operation: "generateImageTool.fetch.provider",
@@ -45,9 +56,15 @@ export const generateImageTool = ({
 							}),
 							Effect.tryPromise({
 								try: () =>
-									client.model.find({
-										id: block.config.model,
-									}),
+									call(
+										findModel,
+										{
+											id: block.config.model,
+										},
+										{
+											context,
+										},
+									),
 								catch: (cause) =>
 									new AiError({
 										operation: "generateImageTool.fetch.model",

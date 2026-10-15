@@ -11,15 +11,23 @@ import { recordRequestUser } from "@/lib/observability/request-span";
 import { withName } from "@/lib/orpc/middlewares/utils";
 import type { AuthContext } from ".";
 
+type IncomingAuth = {
+	isAuthenticated?: boolean;
+	session?: typeof authClient.$Infer.Session.session;
+	user?: typeof authClient.$Infer.Session.user;
+};
+
+/** The session a surrounding procedure already resolved, so a nested `call` keeps it. */
+const resolvedAuth = (auth: IncomingAuth | undefined) =>
+	auth?.isAuthenticated === true && auth.session && auth.user
+		? auth
+		: undefined;
+
 export const requiredAuthMiddleware = withName(
 	os
 		.$context<{
 			reqHeaders?: Headers | undefined;
-			auth?: {
-				isAuthenticated?: boolean;
-				session?: typeof authClient.$Infer.Session.session;
-				user?: typeof authClient.$Infer.Session.user;
-			};
+			auth?: IncomingAuth;
 		}>()
 		.middleware(async (opts) =>
 			runMiddlewareEffect(
@@ -37,19 +45,19 @@ export const requiredAuthMiddleware = withName(
 						),
 					);
 
-					const auth = opts.context.auth
-						? opts.context.auth
-						: yield* Effect.tryPromise({
-								try: () =>
-									betterAuth.api.getSession({
-										headers,
-									}),
-								catch: () =>
-									new AppErrors.BadRequestError({
-										reason: "SESSION_NOT_FOUND",
-										message: "Authentication session not found.",
-									}),
-							});
+					const auth =
+						resolvedAuth(opts.context.auth) ??
+						(yield* Effect.tryPromise({
+							try: () =>
+								betterAuth.api.getSession({
+									headers,
+								}),
+							catch: () =>
+								new AppErrors.BadRequestError({
+									reason: "SESSION_NOT_FOUND",
+									message: "Authentication session not found.",
+								}),
+						}));
 
 					if (!auth?.session || !auth?.user) {
 						return yield* Effect.fail(

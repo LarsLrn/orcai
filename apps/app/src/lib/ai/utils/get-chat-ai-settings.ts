@@ -3,12 +3,17 @@ import { AiError } from "@orcai/ai";
 import type { BotId, ModelId, ProviderId, UserId } from "@orcai/core";
 import type { ChatConfig, DatabaseBlock, TemplateBlock } from "@orcai/schema";
 import { checkManyEntityPermissions, hasPermission } from "@orcai/spice-db";
+import { call } from "@orpc/server";
 import { extractReasoningMiddleware, wrapLanguageModel } from "ai";
 import * as Effect from "effect/Effect";
 import { resolveChatGenerationParams } from "@/lib/ai/utils/chat-generation-defaults";
+import { getZedToken } from "@/lib/authz/zed-token";
 import { BadRequestError } from "@/lib/effect/utils/errors";
 import { providerApiKey } from "@/lib/encryption";
-import { client } from "@/lib/orpc/orpc";
+import type { ORPCContext } from "@/lib/orpc/implementation/os";
+import { listBlocks } from "@/lib/orpc/router/block";
+import { findModel } from "@/lib/orpc/router/model";
+import { findProvider } from "@/lib/orpc/router/provider";
 
 interface ChatAiSettingsInput {
 	providerId: ProviderId;
@@ -16,7 +21,7 @@ interface ChatAiSettingsInput {
 	botId?: BotId | null;
 	chatConfig?: ChatConfig | null;
 	userId: UserId;
-	zedToken?: string;
+	context: ORPCContext;
 }
 
 export const getChatAiSettings = ({
@@ -25,20 +30,28 @@ export const getChatAiSettings = ({
 	botId,
 	chatConfig,
 	userId,
-	zedToken,
+	context,
 }: ChatAiSettingsInput) =>
 	Effect.gen(function* () {
+		const zedToken = getZedToken(context);
 		let templateBlock: TemplateBlock | undefined;
 		let databaseBlocks: DatabaseBlock[] = [];
 
 		if (botId) {
 			const blocks = yield* Effect.tryPromise({
 				try: () =>
-					client.block.list({
-						filters: {
-							botId,
+					call(
+						listBlocks,
+						{
+							filters: {
+								botId,
+							},
+							zedToken,
 						},
-					}),
+						{
+							context,
+						},
+					),
 				catch: (cause) =>
 					new AiError({
 						operation: "chatAgent.getChatAiSettings.fetch.blocks",
@@ -103,9 +116,15 @@ export const getChatAiSettings = ({
 			[
 				Effect.tryPromise({
 					try: () =>
-						client.provider.find({
-							id: providerId,
-						}),
+						call(
+							findProvider,
+							{
+								id: providerId,
+							},
+							{
+								context,
+							},
+						),
 					catch: (cause) =>
 						new AiError({
 							operation: "chatAgent.getChatAiSettings.fetch.provider",
@@ -114,9 +133,15 @@ export const getChatAiSettings = ({
 				}),
 				Effect.tryPromise({
 					try: () =>
-						client.model.find({
-							id: modelId,
-						}),
+						call(
+							findModel,
+							{
+								id: modelId,
+							},
+							{
+								context,
+							},
+						),
 					catch: (cause) =>
 						new AiError({
 							operation: "chatAgent.getChatAiSettings.fetch.model",
