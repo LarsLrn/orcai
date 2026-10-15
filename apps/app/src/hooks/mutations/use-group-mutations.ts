@@ -1,6 +1,8 @@
 import type { GroupId } from "@orcai/core";
+import type { listGroupCandidatesResponseSchema } from "@orcai/schema";
 import type { QueryClient } from "@tanstack/react-query";
 import { useQueryClient } from "@tanstack/react-query";
+import type { z } from "zod/v4";
 import { useMutationAction } from "@/hooks/actions/use-mutation-action";
 import {
 	type DestructiveTarget,
@@ -8,6 +10,8 @@ import {
 } from "@/hooks/mutations/destructive-target";
 import { orpc } from "@/lib/orpc/orpc";
 import { m } from "@/paraglide/messages";
+
+type GroupCandidates = z.infer<typeof listGroupCandidatesResponseSchema>;
 
 const invalidateGroupMembership = (
 	queryClient: QueryClient,
@@ -160,7 +164,36 @@ export const useAddGroupMembersMutation = (groupId: GroupId) => {
 	return useMutationAction({
 		mutationOptions: () =>
 			orpc.group.addMembers.mutationOptions({
-				onSuccess: () => {
+				onSuccess: (_data, input) => {
+					// Added users leave the picker at once rather than when its
+					// refetch lands.
+					const added = new Set(input.userIds);
+
+					queryClient.setQueriesData<GroupCandidates>(
+						{
+							queryKey: orpc.group.listCandidates.key({
+								input: {
+									groupId,
+								},
+							}),
+						},
+						(candidates) => {
+							if (!candidates) {
+								return candidates;
+							}
+
+							const data = candidates.data.filter(
+								(user) => !added.has(user.id),
+							);
+
+							return {
+								...candidates,
+								data,
+								rowCount:
+									candidates.rowCount - (candidates.data.length - data.length),
+							};
+						},
+					);
 					invalidateGroupMembership(queryClient, groupId);
 				},
 			}),
