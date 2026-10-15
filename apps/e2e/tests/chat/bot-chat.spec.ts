@@ -67,6 +67,13 @@ test("a chat linked to a just-saved bot answers its first message", async ({
 	);
 	expect(chatModel).toBeDefined();
 	if (!chatModel) throw new Error("Missing mock chat model");
+	await api.as("admin").model.update({
+		id: chatModel.id,
+		capabilities: [
+			"text",
+			"tool-calling",
+		],
+	});
 
 	const groups = await api.as("admin").group.list({
 		pageIndex: 0,

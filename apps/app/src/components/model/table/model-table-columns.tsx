@@ -1,3 +1,4 @@
+import { modelCapabilities } from "@orcai/core";
 import type { ModelListRow } from "@orcai/schema";
 import { Link } from "@tanstack/react-router";
 import { createColumnHelper } from "@tanstack/react-table";
@@ -23,6 +24,13 @@ import {
 import { m } from "@/paraglide/messages";
 
 const columnHelper = createColumnHelper<DataTableFeatures, ModelListRow>();
+
+const capabilityLabelMap = new Map(
+	modelCapabilities.map((capability) => [
+		capability.value,
+		capability.label,
+	]),
+);
 
 export const modelTableColumns = columnHelper.columns([
 	createDataTableSelectColumn<ModelListRow>(),
@@ -61,6 +69,39 @@ export const modelTableColumns = columnHelper.columns([
 				{row.original.provider.name}
 			</Link>
 		),
+	}),
+	columnHelper.accessor("capabilities", {
+		enableSorting: false,
+		header: ({ column }) => (
+			<DataTableColumnHeader
+				column={column}
+				title={m.common_capabilities_title()}
+			/>
+		),
+		cell: ({ row }) =>
+			row.original.capabilities.length === 0 ? (
+				<Badge
+					variant="warning"
+					render={
+						<Link
+							to="/app/models/$modelId/edit"
+							params={{
+								modelId: row.original.id,
+							}}
+						/>
+					}
+				>
+					{m.models_table_capabilities_unset_badge()}
+				</Badge>
+			) : (
+				<div className="flex flex-wrap gap-1">
+					{row.original.capabilities.map((capability) => (
+						<Badge key={capability} variant="outline">
+							{capabilityLabelMap.get(capability) ?? capability}
+						</Badge>
+					))}
+				</div>
+			),
 	}),
 	columnHelper.accessor("isDeprecated", {
 		header: ({ column }) => (
