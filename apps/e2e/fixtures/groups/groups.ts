@@ -192,17 +192,18 @@ export const systemGroup = async (client: ApiClient): Promise<Group> => {
 	return group;
 };
 
-/** The member row for an email on the group detail page: the block around it that holds "Remove member". */
+/** The entry for an email in the group detail page's "Current members" list. */
 export const memberRow = (page: Page, email: string): Locator =>
 	page
-		.getByText(email, {
-			exact: true,
+		.getByRole("region", {
+			name: message("groups_member_list_title"),
 		})
-		.locator(
-			`xpath=ancestor::div[.//button[normalize-space()="${message(
-				"groups_member_row_remove_aria_label",
-			)}"]][1]`,
-		);
+		.getByRole("listitem")
+		.filter({
+			has: page.getByText(email, {
+				exact: true,
+			}),
+		});
 
 /** A member of the organisation that belongs to no group. Shares the test's zedToken memory. */
 export const outsiderMember = async (params: {
