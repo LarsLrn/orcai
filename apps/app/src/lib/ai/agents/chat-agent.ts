@@ -1,3 +1,4 @@
+import { aiTelemetry } from "@orcai/ai";
 import type { DatabaseBlock } from "@orcai/schema";
 import { isStepCount, type LanguageModel, Output, ToolLoopAgent } from "ai";
 import { applyToolHistoryPruning } from "@/lib/ai/agents/chat-agent-history-pruning";
@@ -22,10 +23,17 @@ export const createChatAgent = (params: {
 	systemPrompt: string;
 	databaseBlocks: DatabaseBlock[];
 	generationParams?: ChatAgentGenerationParams;
+	telemetryIds: {
+		organizationId: string;
+		chatId: string;
+		providerId: string;
+		modelId: string;
+	};
 }) =>
 	new ToolLoopAgent({
 		model: params.model,
 		tools: chatAgentToolSet,
+		...aiTelemetry("chat.agent", params.telemetryIds),
 		experimental_repairToolCall: repairKnowledgeBaseToolCall,
 		prepareCall: ({ options, ...settings }) => {
 			const preparedSettings = applyToolHistoryPruning(settings);

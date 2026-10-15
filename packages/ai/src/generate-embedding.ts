@@ -4,6 +4,7 @@ import * as Effect from "effect/Effect";
 import * as Redacted from "effect/Redacted";
 import { AiConfigService } from "./config";
 import { AiError } from "./errors";
+import { aiTelemetry } from "./telemetry";
 
 const trimNewlines = (input: string) => input.replaceAll("\\n", " ");
 
@@ -28,6 +29,7 @@ export const generateEmbedding = (params: { value: string }) =>
 				embed({
 					model: provider.embedding(config.embedding.model),
 					value: input,
+					...aiTelemetry("ai.embed"),
 				}),
 			catch: (cause) =>
 				new AiError({
@@ -49,6 +51,7 @@ export const generateManyEmbeddings = (params: { values: string[] }) =>
 				embedMany({
 					model: provider.embedding(config.embedding.model),
 					values: input,
+					...aiTelemetry("ai.embedMany"),
 				}),
 			catch: (cause) =>
 				new AiError({

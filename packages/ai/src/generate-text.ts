@@ -4,6 +4,7 @@ import * as Effect from "effect/Effect";
 import * as Redacted from "effect/Redacted";
 import { AiConfigService } from "./config";
 import { AiError } from "./errors";
+import { aiTelemetry } from "./telemetry";
 
 export interface GenerateTextResult {
 	readonly text: string;
@@ -32,6 +33,7 @@ export const generateTextEffect = (params: LanguageModelCallOptions & Prompt) =>
 				generateText({
 					model: provider(config.general.model),
 					...params,
+					...aiTelemetry("ai.generateText"),
 				}),
 			catch: (cause) =>
 				new AiError({

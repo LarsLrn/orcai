@@ -16,3 +16,4 @@ export {
 	generateManyEmbeddings,
 } from "./generate-embedding";
 export { generateTextEffect } from "./generate-text";
+export { AiTelemetryLive, aiTelemetry } from "./telemetry";
