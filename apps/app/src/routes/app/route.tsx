@@ -13,7 +13,8 @@ import { NextStepTours } from "@/components/next-step/next-step-tours";
 import { SidebarInset, SidebarProvider } from "@/components/ui/sidebar";
 import { useUmami } from "@/hooks/use-umami";
 import { auth } from "@/lib/auth/auth";
-import { runtime } from "@/lib/effect/runtime";
+import { runPromise } from "@/lib/effect/runtime";
+import { recordRequestUser } from "@/lib/observability/request-span";
 
 /** Recheck membership and clear an obsolete active organisation. */
 const hasActiveOrganizationMembership = createServerFn({
@@ -23,6 +24,7 @@ const hasActiveOrganizationMembership = createServerFn({
 	const sessionData = await auth.api.getSession({
 		headers,
 	});
+	if (sessionData) recordRequestUser(sessionData.user.id);
 	if (!sessionData?.session.activeOrganizationId) {
 		return false;
 	}
@@ -33,7 +35,7 @@ const hasActiveOrganizationMembership = createServerFn({
 	);
 	const userId = userIdSchema.parse(sessionData.user.id);
 
-	return await runtime.runPromise(
+	return await runPromise(
 		Effect.gen(function* () {
 			const db = yield* DB;
 

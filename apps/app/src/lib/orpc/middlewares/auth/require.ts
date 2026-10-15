@@ -7,6 +7,7 @@ import type { authClient } from "@/lib/auth/auth-client";
 import { isInstanceAdminRole } from "@/lib/authz/instance-role";
 import * as AppErrors from "@/lib/effect/utils/errors";
 import { runMiddlewareEffect } from "@/lib/effect/utils/orpc-helpers";
+import { recordRequestUser } from "@/lib/observability/request-span";
 import { withName } from "@/lib/orpc/middlewares/utils";
 import type { AuthContext } from ".";
 
@@ -61,6 +62,7 @@ export const requiredAuthMiddleware = withName(
 
 					const { session, user } = auth;
 					const activeOrganizationId = session.activeOrganizationId;
+					recordRequestUser(user.id);
 
 					return yield* Effect.promise(() =>
 						Promise.resolve(

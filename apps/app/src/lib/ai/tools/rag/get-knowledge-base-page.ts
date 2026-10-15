@@ -7,7 +7,7 @@ import {
 import { tool } from "ai";
 import * as Effect from "effect/Effect";
 import z from "zod/v4";
-import { runtime } from "@/lib/effect/runtime";
+import { runPromise } from "@/lib/effect/runtime";
 import { client } from "@/lib/orpc/orpc";
 import type { ChunkResult, KnowledgeBaseDocument } from "./types";
 import {
@@ -74,7 +74,7 @@ export const getKnowledgeBasePageTool = ({
 			includeAdjacentPages,
 			limit,
 		}) =>
-			runtime.runPromise(
+			runPromise(
 				Effect.gen(function* () {
 					const targetBlocks = resolveSearchBlocks({
 						blocks,

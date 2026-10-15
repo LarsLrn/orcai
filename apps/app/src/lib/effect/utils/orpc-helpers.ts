@@ -1,6 +1,4 @@
-import * as OtelTracer from "@effect/opentelemetry/OtelTracer";
-import { context as otelContext, trace } from "@opentelemetry/api";
-import { logErrorCause } from "@orcai/observability";
+import { logErrorCause, withActiveSpan } from "@orcai/observability";
 import { runPromise, type WithEffectContext } from "@orpc/experimental-effect";
 import type { AnyProcedure } from "@orpc/server";
 import * as Cause from "effect/Cause";
@@ -19,14 +17,9 @@ export async function runMiddlewareEffect<A, E, R>(
 	const effectContext = (opts.context as WithEffectContext<R>)[
 		"effect/context"
 	];
-	const provided = effect.pipe(Effect.provide(effectContext));
-	const activeSpan = trace.getSpan(otelContext.active());
-
-	const traced =
-		activeSpan === undefined
-			? provided
-			: OtelTracer.withSpanContext(provided, activeSpan.spanContext());
-	const logged = traced.pipe(
+	const logged = withActiveSpan(
+		effect.pipe(Effect.provide(effectContext)),
+	).pipe(
 		Effect.tapCause((cause) =>
 			Cause.hasInterruptsOnly(cause)
 				? Effect.void
