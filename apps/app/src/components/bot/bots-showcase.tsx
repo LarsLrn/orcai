@@ -14,6 +14,8 @@ import {
 	SectionTitle,
 } from "@/components/ui/shell/section";
 import { Skeleton } from "@/components/ui/skeleton";
+import { useOrganizationCapabilities } from "@/hooks/authz/use-capabilities";
+import { hasCapability } from "@/lib/authz/capabilities";
 import { orpc } from "@/lib/orpc/orpc";
 import { m } from "@/paraglide/messages";
 import { BotCard } from "./bot-card";
@@ -27,6 +29,12 @@ const BotsShowcase = ({ limit = 6 }: { limit?: number }) => {
 				pageSize: limit,
 			},
 		}),
+	);
+
+	const { data: organizationCapabilities } = useOrganizationCapabilities();
+	const canCreateBot = hasCapability(
+		organizationCapabilities?.data.capabilities,
+		"create_bot",
 	);
 
 	return (
@@ -55,17 +63,21 @@ const BotsShowcase = ({ limit = 6 }: { limit?: number }) => {
 						tone="bot"
 						title={m.bots_showcase_empty_title()}
 						description={m.bots_showcase_empty_description()}
-						actions={[
-							{
-								key: "create_bot",
-								label: m.bots_showcase_create_action(),
-								icon: SparklesIcon,
-								variant: "outline",
-								linkProps: {
-									to: "/app/hub/bots/add",
-								},
-							},
-						]}
+						actions={
+							canCreateBot
+								? [
+										{
+											key: "create_bot",
+											label: m.bots_showcase_create_action(),
+											icon: SparklesIcon,
+											variant: "outline",
+											linkProps: {
+												to: "/app/hub/bots/add",
+											},
+										},
+									]
+								: []
+						}
 					/>
 				) : (
 					<SectionGrid layout="3">

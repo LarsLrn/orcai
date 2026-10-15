@@ -9,6 +9,8 @@ import {
 	PanelTitle,
 	panelRowVariants,
 } from "@/components/ui/composed/panel";
+import { useOrganizationCapabilities } from "@/hooks/authz/use-capabilities";
+import { hasCapability } from "@/lib/authz/capabilities";
 import { orpc } from "@/lib/orpc/orpc";
 import { formatCount } from "@/lib/presentation/format-number";
 import { m } from "@/paraglide/messages";
@@ -64,6 +66,7 @@ const ManageLibraryPanel = () => {
 		],
 	});
 
+	const { data: organizationCapabilities } = useOrganizationCapabilities();
 	const publishedCount = publishedBots.data.rowCount;
 	const draftCount = draftBots.data.rowCount;
 
@@ -115,15 +118,20 @@ const ManageLibraryPanel = () => {
 		<Panel>
 			<PanelHeader>
 				<PanelTitle>{m.home_library_panel_title()}</PanelTitle>
-				<Link
-					to="/app/hub/assets/add"
-					className={buttonVariants({
-						variant: "ghost",
-						size: "sm",
-					})}
-				>
-					{m.home_library_panel_add_asset_action()}
-				</Link>
+				{hasCapability(
+					organizationCapabilities?.data.capabilities,
+					"create_asset",
+				) ? (
+					<Link
+						to="/app/hub/assets/add"
+						className={buttonVariants({
+							variant: "ghost",
+							size: "sm",
+						})}
+					>
+						{m.home_library_panel_add_asset_action()}
+					</Link>
+				) : null}
 			</PanelHeader>
 			<PanelRows>
 				{rows.map((row) => (
