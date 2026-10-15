@@ -1,13 +1,30 @@
 import * as NodeSdk from "@effect/opentelemetry/NodeSdk";
 import * as OtelTracer from "@effect/opentelemetry/OtelTracer";
 import * as Resource from "@effect/opentelemetry/Resource";
-import { getNodeAutoInstrumentations } from "@opentelemetry/auto-instrumentations-node";
+import { context, metrics, propagation, trace } from "@opentelemetry/api";
 import { OTLPLogExporter } from "@opentelemetry/exporter-logs-otlp-http";
+import { OTLPMetricExporter } from "@opentelemetry/exporter-metrics-otlp-http";
 import { OTLPTraceExporter } from "@opentelemetry/exporter-trace-otlp-http";
-import type { Instrumentation } from "@opentelemetry/instrumentation";
-import { registerInstrumentations } from "@opentelemetry/instrumentation";
-import { BatchLogRecordProcessor } from "@opentelemetry/sdk-logs";
-import { BatchSpanProcessor } from "@opentelemetry/sdk-trace-base";
+import {
+	type Instrumentation,
+	registerInstrumentations,
+} from "@opentelemetry/instrumentation";
+import { HttpInstrumentation } from "@opentelemetry/instrumentation-http";
+import {
+	BatchLogRecordProcessor,
+	type LogRecordProcessor,
+} from "@opentelemetry/sdk-logs";
+import {
+	MeterProvider,
+	type MetricReader,
+	PeriodicExportingMetricReader,
+} from "@opentelemetry/sdk-metrics";
+import {
+	BatchSpanProcessor,
+	type SpanProcessor,
+} from "@opentelemetry/sdk-trace-base";
+import { NodeTracerProvider } from "@opentelemetry/sdk-trace-node";
+import * as Context from "effect/Context";
 import * as Effect from "effect/Effect";
 import * as Layer from "effect/Layer";
 import * as Logger from "effect/Logger";
@@ -20,76 +37,139 @@ const PrettyLoggerLive =
 			])
 		: Layer.empty;
 
-type RegisterableTracerProvider = {
-	register(): void;
-};
-
-export const makeObservabilityLayer = (config: {
+type ServiceConfig = {
 	serviceName: string;
 	serviceVersion: string;
-	additionalInstrumentations?: Instrumentation[];
-}) => {
-	const ResourceLive = Resource.layer({
-		serviceName: config.serviceName,
-		serviceVersion: config.serviceVersion,
-	});
+};
 
-	if (!isOtelEnabled()) {
-		return Layer.mergeAll(ResourceLive, PrettyLoggerLive);
-	}
+class OtelMeterProvider extends Context.Service<
+	OtelMeterProvider,
+	MeterProvider
+>()("@orcai/observability/OtelMeterProvider") {}
 
-	const LogLive = NodeSdk.layer(() => ({
-		resource: {
-			serviceName: config.serviceName,
-			serviceVersion: config.serviceVersion,
-		},
-		logRecordProcessor: new BatchLogRecordProcessor({
-			exporter: new OTLPLogExporter(),
-		}),
-	}));
-
-	const TracerProviderLive = NodeSdk.layerTracerProvider(
-		new BatchSpanProcessor(new OTLPTraceExporter()),
-	);
-
-	const RegisterGlobalTracerProviderLive = Layer.effectDiscard(
+// Installs the tracer provider with the global context manager and propagator.
+const GlobalTracerProviderLive = Layer.effectDiscard(
+	Effect.acquireRelease(
 		Effect.gen(function* () {
-			const tracerProvider = yield* OtelTracer.OtelTracerProvider;
+			const provider = yield* OtelTracer.OtelTracerProvider;
+			if (provider instanceof NodeTracerProvider) provider.register();
+		}),
+		() =>
+			Effect.sync(() => {
+				trace.disable();
+				context.disable();
+				propagation.disable();
+			}),
+	),
+);
 
-			// Effect's Node tracer provider is local to the layer until registered.
-			// ORPC reads the global OpenTelemetry API, so it needs the same provider there.
-			yield* Effect.sync(() =>
-				(tracerProvider as unknown as RegisterableTracerProvider).register(),
+const makeMeterProviderLayer = (metricReader: MetricReader) =>
+	Layer.effect(
+		OtelMeterProvider,
+		Effect.gen(function* () {
+			const resource = yield* Resource.Resource;
+			return yield* Effect.acquireRelease(
+				Effect.sync(() => {
+					const provider = new MeterProvider({
+						resource,
+						readers: [
+							metricReader,
+						],
+					});
+					metrics.setGlobalMeterProvider(provider);
+					return provider;
+				}),
+				(provider) =>
+					Effect.promise(() => {
+						metrics.disable();
+						return provider.shutdown();
+					}).pipe(
+						Effect.ignore,
+						Effect.interruptible,
+						Effect.timeoutOption("3 seconds"),
+					),
 			);
 		}),
 	);
 
-	const AutoInstrumentationLive = Layer.effectDiscard(
+const makeInstrumentationsLayer = (instrumentations: Instrumentation[]) =>
+	Layer.effectDiscard(
 		Effect.acquireRelease(
 			Effect.gen(function* () {
 				const tracerProvider = yield* OtelTracer.OtelTracerProvider;
-
-				return yield* Effect.sync(() =>
-					registerInstrumentations({
-						tracerProvider,
-						instrumentations: [
-							getNodeAutoInstrumentations(),
-							...(config.additionalInstrumentations ?? []),
-						],
-					}),
-				);
+				const meterProvider = yield* OtelMeterProvider;
+				return registerInstrumentations({
+					tracerProvider,
+					meterProvider,
+					instrumentations,
+				});
 			}),
 			(unregister) => Effect.sync(unregister),
 		),
 	);
 
-	const TracerLive = Layer.mergeAll(
-		OtelTracer.layer,
-		RegisterGlobalTracerProviderLive,
-		AutoInstrumentationLive,
-	).pipe(Layer.provide(TracerProviderLive));
+const makeSdkLayer = (
+	config: ServiceConfig & {
+		logRecordProcessor?: LogRecordProcessor;
+	},
+) =>
+	NodeSdk.layer(() => ({
+		resource: {
+			serviceName: config.serviceName,
+			serviceVersion: config.serviceVersion,
+		},
+		logRecordProcessor: config.logRecordProcessor,
+	}));
 
-	return Layer.mergeAll(LogLive, TracerLive).pipe(
-		Layer.provideMerge(ResourceLive),
+/** Traces, logs and metrics sharing one resource, with global tracer and meter providers. */
+export const makeLayer = (
+	config: ServiceConfig & {
+		spanProcessor: SpanProcessor;
+		logRecordProcessor: LogRecordProcessor;
+		metricReader: MetricReader;
+		instrumentations?: Instrumentation[];
+	},
+) =>
+	Layer.mergeAll(
+		OtelTracer.layer,
+		GlobalTracerProviderLive,
+		makeInstrumentationsLayer(config.instrumentations ?? []),
+	).pipe(
+		Layer.provide(
+			Layer.mergeAll(
+				NodeSdk.layerTracerProvider(config.spanProcessor),
+				makeMeterProviderLayer(config.metricReader),
+			),
+		),
+		Layer.provideMerge(makeSdkLayer(config)),
 	);
+
+export const makeObservabilityLayer = (
+	config: ServiceConfig & {
+		additionalInstrumentations?: Instrumentation[];
+	},
+) => {
+	if (!isOtelEnabled()) {
+		return Layer.mergeAll(makeSdkLayer(config), PrettyLoggerLive);
+	}
+
+	return makeLayer({
+		serviceName: config.serviceName,
+		serviceVersion: config.serviceVersion,
+		spanProcessor: new BatchSpanProcessor(new OTLPTraceExporter()),
+		logRecordProcessor: new BatchLogRecordProcessor({
+			exporter: new OTLPLogExporter(),
+		}),
+		metricReader: new PeriodicExportingMetricReader({
+			exporter: new OTLPMetricExporter(),
+			exportIntervalMillis: 60_000,
+		}),
+		instrumentations: [
+			// Bun serves HTTP without node:http, so only client requests are traced.
+			new HttpInstrumentation({
+				disableIncomingRequestInstrumentation: true,
+			}),
+			...(config.additionalInstrumentations ?? []),
+		],
+	});
 };
