@@ -152,12 +152,11 @@ test("orgs: an admin removes a member from the organisation", async ({
 	await enterApp(page, org.slug);
 
 	// The member page reads the user through the active organisation, so a
-	// user that is no longer a member fails the read and the error boundary
-	// takes over instead of the page.
+	// user that is no longer a member is not found there.
 	await page.goto(`/app/users/${user.id}/edit`);
 	await expect(
-		page.getByRole("button", {
-			name: message("boundaries_default_error_retry_button"),
+		page.getByRole("heading", {
+			name: message("boundaries_not_found_title"),
 		}),
 	).toBeVisible({
 		timeout: 30_000,

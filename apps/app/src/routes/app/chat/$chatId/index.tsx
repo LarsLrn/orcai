@@ -8,6 +8,7 @@ import { z } from "zod/v4";
 import { Chat } from "@/components/chat/chat";
 import type { ChatAgentUIMessage } from "@/lib/ai/types/chat-agent-message";
 import { orpc } from "@/lib/orpc/orpc";
+import { orNotFound, parseParam } from "@/lib/router/not-found";
 import { m } from "@/paraglide/messages";
 
 const searchSchema = z.object({
@@ -23,7 +24,7 @@ export const Route = createFileRoute("/app/chat/$chatId/")({
 	validateSearch: searchSchema,
 	params: {
 		parse: (params) => ({
-			chatId: chatIdSchema.parse(params.chatId),
+			chatId: parseParam(chatIdSchema, params.chatId),
 		}),
 	},
 	loaderDeps: ({ search: { branch, zedToken } }) => ({
@@ -36,14 +37,16 @@ export const Route = createFileRoute("/app/chat/$chatId/")({
 		deps: { branch, zedToken },
 	}) => {
 		// Fetch the chat to get activeBranchId if branch is not specified
-		const chat = await queryClient.query(
-			orpc.chat.find.queryOptions({
-				input: {
-					id: chatId,
-					zedToken,
-				},
-				staleTime: 0,
-			}),
+		const chat = await orNotFound(
+			queryClient.query(
+				orpc.chat.find.queryOptions({
+					input: {
+						id: chatId,
+						zedToken,
+					},
+					staleTime: 0,
+				}),
+			),
 		);
 
 		// Use branch from URL or fallback to activeBranchId from chat

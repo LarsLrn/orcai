@@ -2,21 +2,24 @@ import { assetIdSchema } from "@orcai/schema";
 import { createFileRoute, Outlet } from "@tanstack/react-router";
 import { LoadingPage } from "@/components/app/loading/loading-page";
 import { orpc } from "@/lib/orpc/orpc";
+import { orNotFound, parseParam } from "@/lib/router/not-found";
 
 export const Route = createFileRoute("/app/hub/assets/$assetId")({
 	params: {
 		parse: (params) => ({
-			assetId: assetIdSchema.parse(params.assetId),
+			assetId: parseParam(assetIdSchema, params.assetId),
 		}),
 	},
 	loader: async ({ context: { queryClient }, params: { assetId } }) => {
-		return await queryClient.query(
-			orpc.asset.find.queryOptions({
-				input: {
-					id: assetId,
-				},
-				staleTime: "static",
-			}),
+		return await orNotFound(
+			queryClient.query(
+				orpc.asset.find.queryOptions({
+					input: {
+						id: assetId,
+					},
+					staleTime: "static",
+				}),
+			),
 		);
 	},
 	head: ({ loaderData }) => ({
