@@ -108,6 +108,7 @@ import {
 	deactivateQuotaPool,
 	findQuotaPool,
 	listQuotaPools,
+	quotaAvailability,
 	quotaChatBadge,
 	updateQuotaPool,
 } from "./quota";
@@ -185,6 +186,7 @@ export const router = {
 		update: updateQuotaPool,
 		deactivate: deactivateQuotaPool,
 		chatBadge: quotaChatBadge,
+		availability: quotaAvailability,
 	},
 	resource: {
 		listGrants: listResourceGrants,

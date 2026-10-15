@@ -1,4 +1,6 @@
 import {
+	quotaAvailabilityInputSchema,
+	quotaAvailabilityResponseSchema,
 	quotaChatBadgeInputSchema,
 	quotaChatBadgeResponseSchema,
 	quotaPoolCreateInputSchema,
@@ -92,4 +94,17 @@ export const quotaContracts = {
 		)
 		.input(quotaChatBadgeInputSchema)
 		.output(quotaChatBadgeResponseSchema),
+	availability: base
+		.meta(
+			openapi({
+				method: "GET",
+				path: "/quota/availability",
+				summary: "Check whether a quota pool covers the user for a model",
+				tags: [
+					"Quota",
+				],
+			}),
+		)
+		.input(quotaAvailabilityInputSchema)
+		.output(quotaAvailabilityResponseSchema),
 };

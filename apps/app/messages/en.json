@@ -1316,6 +1316,7 @@
 	"chat_composer_more_actions_aria_label": "More chat actions",
 	"chat_composer_placeholder": "Ask a question",
 	"chat_composer_placeholder_no_model": "Chatting opens once a model is available",
+	"chat_composer_placeholder_no_quota": "Chatting opens once a quota pool covers this model",
 	"chat_composer_send_failed_toast_error": "The message and its attachments were not sent. Send them again.",
 	"chat_composer_settings_action": "Chat settings",
 	"chat_composer_start_tour_action": "Start tour",
@@ -1463,6 +1464,10 @@
 	"chat_placeholder_bot_description_fallback": "Answers draw on this bot's sources and behaviour.",
 	"chat_placeholder_description": "Without a bot, answers come from the model alone. Choose a bot to ground them in your organisation's sources.",
 	"chat_placeholder_title": "Ask anything",
+	"chat_quota_notice_create_pool_action": "Create a quota pool",
+	"chat_quota_notice_description_manager": "Create a pool for its provider, then chatting opens.",
+	"chat_quota_notice_description_member": "Choose another model or ask an organisation admin to create a quota pool.",
+	"chat_quota_notice_title": "No quota pool covers this model for you yet.",
 	"chat_quota_pool_fallback_name": "Quota",
 	"chat_quota_requests_left": [
 		{
@@ -2217,7 +2222,7 @@
 	"home_people_panel_invite_action": "Invite people",
 	"home_people_panel_title": "People",
 	"home_quota_panel_all_pools_action": "All pools",
-	"home_quota_panel_empty_note": "No quota pools yet. Chats use the provider's own limits until one exists.",
+	"home_quota_panel_empty_note": "No quota pools yet. Nobody can chat until a pool covers a provider.",
 	"home_quota_panel_title": "Quota",
 	"home_quota_pool_default_badge": "Default",
 	"home_quota_pool_meta_no_period": "{provider}, no open period",

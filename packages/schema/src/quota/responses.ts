@@ -1,6 +1,7 @@
 import { createDataResponseSchema, createListResponseSchema } from "../shared";
 import { quotaPoolSchema } from "./schema";
 import {
+	quotaAvailabilitySchema,
 	quotaChatBadgeSchema,
 	quotaPoolDetailSchema,
 	quotaPoolListRowSchema,
@@ -19,3 +20,7 @@ export const quotaPoolWriteResponseSchema =
 
 export const quotaChatBadgeResponseSchema =
 	createDataResponseSchema(quotaChatBadgeSchema);
+
+export const quotaAvailabilityResponseSchema = createDataResponseSchema(
+	quotaAvailabilitySchema,
+);

@@ -1,13 +1,18 @@
 import type { BotId, ChatId } from "@orcai/core";
 import type { ChatConfig, Model, Provider } from "@orcai/schema";
-import { useQueryClient } from "@tanstack/react-query";
+import { skipToken, useQuery, useQueryClient } from "@tanstack/react-query";
 import { useCallback, useEffect, useState } from "react";
 import { toast } from "sonner";
-import { useDefaultChatModel } from "@/components/chat/use-default-chat-model";
+import {
+	type ChatModelAvailability,
+	useDefaultChatModel,
+} from "@/components/chat/use-default-chat-model";
 import { DEFAULT_CHAT_GENERATION_PARAMS } from "@/lib/ai/utils/chat-generation-defaults";
 import { reasonMessageOf } from "@/lib/errors/describe-error";
 import { client, orpc } from "@/lib/orpc/orpc";
 import { m } from "@/paraglide/messages";
+
+type ChatAvailability = ChatModelAvailability | "no-quota";
 
 const useChatStarter = ({
 	initialBotId,
@@ -30,6 +35,22 @@ const useChatStarter = ({
 	);
 	const [isCreating, setIsCreating] = useState(false);
 	const { availability, defaultModel, defaultProvider } = useDefaultChatModel();
+	const { data: quotaAvailability } = useQuery(
+		orpc.quota.availability.queryOptions({
+			input:
+				selectedModel && selectedProvider
+					? {
+							providerId: selectedProvider.id,
+							modelId: selectedModel.id,
+						}
+					: skipToken,
+		}),
+	);
+
+	const chatAvailability: ChatAvailability =
+		availability === "ready" && quotaAvailability?.data.available === false
+			? "no-quota"
+			: availability;
 
 	useEffect(() => {
 		setSelectedBotId(initialBotId);
@@ -104,7 +125,7 @@ const useChatStarter = ({
 		selectedModelId: selectedModel?.id,
 		selectedProviderId: selectedProvider?.id,
 		selectedBotId,
-		modelAvailability: availability,
+		availability: chatAvailability,
 		isCreating,
 		handleModelSelect,
 		handleBotSelect: setSelectedBotId,
@@ -112,4 +133,4 @@ const useChatStarter = ({
 	};
 };
 
-export { useChatStarter };
+export { type ChatAvailability, useChatStarter };
