@@ -12,6 +12,7 @@ import {
 } from "@/components/ui/shell/page";
 import { ensureEntityCapability } from "@/lib/authz/route-guards";
 import { orpc } from "@/lib/orpc/orpc";
+import { orNotFound } from "@/lib/router/not-found";
 import { m } from "@/paraglide/messages";
 
 export const Route = createFileRoute("/app/hub/bots/$botId/setup")({
@@ -30,14 +31,16 @@ export const Route = createFileRoute("/app/hub/bots/$botId/setup")({
 			permission: "edit",
 			redirectTo: "/app/hub/bots",
 		});
-		await queryClient.query(
-			orpc.bot.findEditor.queryOptions({
-				input: {
-					id: botId,
-					zedToken: deps.zedToken,
-				},
-				staleTime: "static",
-			}),
+		await orNotFound(
+			queryClient.query(
+				orpc.bot.findEditor.queryOptions({
+					input: {
+						id: botId,
+						zedToken: deps.zedToken,
+					},
+					staleTime: "static",
+				}),
+			),
 		);
 	},
 	component: RouteComponent,

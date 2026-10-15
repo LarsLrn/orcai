@@ -2,21 +2,24 @@ import { providerIdSchema } from "@orcai/schema";
 import { createFileRoute, Outlet } from "@tanstack/react-router";
 import { LoadingPage } from "@/components/app/loading/loading-page";
 import { orpc } from "@/lib/orpc/orpc";
+import { orNotFound, parseParam } from "@/lib/router/not-found";
 
 export const Route = createFileRoute("/app/providers/$providerId")({
 	params: {
 		parse: (params) => ({
-			providerId: providerIdSchema.parse(params.providerId),
+			providerId: parseParam(providerIdSchema, params.providerId),
 		}),
 	},
 	loader: async ({ context: { queryClient }, params: { providerId } }) => {
-		return await queryClient.query(
-			orpc.provider.find.queryOptions({
-				input: {
-					id: providerId,
-				},
-				staleTime: "static",
-			}),
+		return await orNotFound(
+			queryClient.query(
+				orpc.provider.find.queryOptions({
+					input: {
+						id: providerId,
+					},
+					staleTime: "static",
+				}),
+			),
 		);
 	},
 	head: ({ loaderData }) => ({

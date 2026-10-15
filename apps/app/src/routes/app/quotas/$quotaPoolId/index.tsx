@@ -44,6 +44,7 @@ import {
 	getQuotaPoolStatusLabel,
 	getQuotaPoolStatusVariant,
 } from "@/lib/presentation/quota-pool-status";
+import { orNotFound } from "@/lib/router/not-found";
 import { m } from "@/paraglide/messages";
 
 const updateBudgetFormSchema = z.object({
@@ -63,13 +64,15 @@ const periodTypeLabel = (periodType: "weekly" | "monthly" | "yearly") => {
 
 export const Route = createFileRoute("/app/quotas/$quotaPoolId/")({
 	loader: async ({ context: { queryClient }, params: { quotaPoolId } }) => {
-		await queryClient.query(
-			orpc.quota.find.queryOptions({
-				input: {
-					id: quotaPoolId,
-				},
-				staleTime: "static",
-			}),
+		await orNotFound(
+			queryClient.query(
+				orpc.quota.find.queryOptions({
+					input: {
+						id: quotaPoolId,
+					},
+					staleTime: "static",
+				}),
+			),
 		);
 	},
 	component: RouteComponent,

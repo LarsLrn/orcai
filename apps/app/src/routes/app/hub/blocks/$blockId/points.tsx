@@ -8,20 +8,23 @@ import {
 	PageTitle,
 } from "@/components/ui/shell/page";
 import { orpc } from "@/lib/orpc/orpc";
+import { orNotFound } from "@/lib/router/not-found";
 import { m } from "@/paraglide/messages";
 
 export const Route = createFileRoute("/app/hub/blocks/$blockId/points")({
 	loader: async ({ context: { queryClient }, params: { blockId } }) => {
-		await queryClient.query(
-			orpc.assetPoint.searchRepository.queryOptions({
-				input: {
-					repositoryId: blockId,
-					filters: {
-						limit: 1000,
+		await orNotFound(
+			queryClient.query(
+				orpc.assetPoint.searchRepository.queryOptions({
+					input: {
+						repositoryId: blockId,
+						filters: {
+							limit: 1000,
+						},
 					},
-				},
-				staleTime: "static",
-			}),
+					staleTime: "static",
+				}),
+			),
 		);
 	},
 	component: RouteComponent,

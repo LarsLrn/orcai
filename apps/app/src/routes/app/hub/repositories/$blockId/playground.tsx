@@ -1,4 +1,4 @@
-import { retrievalModeSchema } from "@orcai/schema";
+import { blockIdSchema, retrievalModeSchema } from "@orcai/schema";
 import { useSuspenseQuery } from "@tanstack/react-query";
 import { createFileRoute, notFound } from "@tanstack/react-router";
 import { z } from "zod/v4";
@@ -13,6 +13,7 @@ import {
 	PageTitle,
 } from "@/components/ui/shell/page";
 import { orpc } from "@/lib/orpc/orpc";
+import { orNotFound, parseParam } from "@/lib/router/not-found";
 import { m } from "@/paraglide/messages";
 
 const searchParams = z.object({
@@ -24,14 +25,21 @@ export const Route = createFileRoute(
 	"/app/hub/repositories/$blockId/playground",
 )({
 	validateSearch: searchParams,
+	params: {
+		parse: (params) => ({
+			blockId: parseParam(blockIdSchema, params.blockId),
+		}),
+	},
 	loader: async ({ context: { queryClient }, params: { blockId } }) => {
-		const repository = await queryClient.query(
-			orpc.block.find.queryOptions({
-				input: {
-					id: blockId,
-				},
-				staleTime: "static",
-			}),
+		const repository = await orNotFound(
+			queryClient.query(
+				orpc.block.find.queryOptions({
+					input: {
+						id: blockId,
+					},
+					staleTime: "static",
+				}),
+			),
 		);
 		if (
 			repository.data.type !== "database" ||
