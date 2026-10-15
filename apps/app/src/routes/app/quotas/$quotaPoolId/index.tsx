@@ -108,8 +108,8 @@ function RouteComponent() {
 		validators: {
 			onChange: updateBudgetFormSchema,
 		},
-		onSubmit: ({ value }) => {
-			updatePool.mutate({
+		onSubmit: async ({ value }) => {
+			await updatePool.mutateAsync({
 				id: data.data.id,
 				budgetAmount: value.budgetAmount,
 			});
@@ -259,9 +259,11 @@ function RouteComponent() {
 										)}
 									/>
 								</div>
-								<Button type="submit">
-									{m.quotas_detail_update_budget_button()}
-								</Button>
+								<budgetForm.AppForm>
+									<budgetForm.SubmitButton
+										label={m.quotas_detail_update_budget_button()}
+									/>
+								</budgetForm.AppForm>
 							</form>
 						</CardContent>
 					</Card>

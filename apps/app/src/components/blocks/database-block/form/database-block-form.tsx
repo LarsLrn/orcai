@@ -1,4 +1,5 @@
 import type { Asset, DatabaseBlock } from "@orcai/schema";
+import { useNavigate } from "@tanstack/react-router";
 import { useSelector } from "@tanstack/react-store";
 import { useState } from "react";
 import { useAppForm } from "@/hooks/form";
@@ -24,7 +25,16 @@ const DatabaseBlockForm = ({
 	assets?: Asset[];
 }) => {
 	const { mutateAsync: createBlock } = useCreateBlockMutation();
-	const { mutateAsync: updateBlock } = useUpdateBlockMutation();
+	const navigate = useNavigate();
+	const { mutateAsync: updateBlock } = useUpdateBlockMutation({
+		onSuccess: (result) =>
+			navigate({
+				to: "/app/hub/blocks/$blockId",
+				params: {
+					blockId: result.data.id,
+				},
+			}),
+	});
 	const [selectedAssets, setSelectedAssets] = useState<Asset[]>(assets ?? []);
 
 	const form = useAppForm({

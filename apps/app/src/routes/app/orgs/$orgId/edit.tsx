@@ -1,5 +1,5 @@
 import { useSuspenseQuery } from "@tanstack/react-query";
-import { createFileRoute } from "@tanstack/react-router";
+import { createFileRoute, useNavigate } from "@tanstack/react-router";
 import { OrganizationForm } from "@/components/organizations/form/organization-form";
 import {
 	Page,
@@ -23,6 +23,7 @@ export const Route = createFileRoute("/app/orgs/$orgId/edit")({
 
 function RouteComponent() {
 	const { orgId } = Route.useParams();
+	const navigate = useNavigate();
 	const { data: organization } = useSuspenseQuery(
 		orpc.organization.find.queryOptions({
 			input: {
@@ -37,7 +38,18 @@ function RouteComponent() {
 				<PageTitle>{m.orgs_edit_page_title()}</PageTitle>
 			</PageHeader>
 			<PageContent>
-				<OrganizationForm action="update" organization={organization.data} />
+				<OrganizationForm
+					action="update"
+					organization={organization.data}
+					onCompleted={() =>
+						navigate({
+							to: "/app/orgs/$orgId",
+							params: {
+								orgId,
+							},
+						})
+					}
+				/>
 			</PageContent>
 		</Page>
 	);

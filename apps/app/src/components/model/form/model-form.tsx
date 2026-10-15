@@ -1,6 +1,7 @@
 import { modelCapabilities } from "@orcai/core";
 import type { Model } from "@orcai/schema";
 import { useQuery } from "@tanstack/react-query";
+import { useNavigate } from "@tanstack/react-router";
 import { useAppForm } from "@/hooks/form";
 import {
 	useCreateModelMutation,
@@ -18,7 +19,16 @@ const ModelForm = ({
 	model?: Model;
 }) => {
 	const { mutateAsync: createModel } = useCreateModelMutation();
-	const { mutateAsync: updateModel } = useUpdateModelMutation();
+	const navigate = useNavigate();
+	const { mutateAsync: updateModel } = useUpdateModelMutation({
+		onSuccess: (result) =>
+			navigate({
+				to: "/app/models/$modelId",
+				params: {
+					modelId: result.data.id,
+				},
+			}),
+	});
 
 	const providers = useQuery(
 		orpc.provider.list.queryOptions({

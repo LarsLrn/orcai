@@ -51,7 +51,6 @@ export const useCreateModelMutation = (
 export const useUpdateModelMutation = (
 	opts: ReturnType<typeof orpc.model.update.mutationOptions> = {},
 ) => {
-	const router = useRouter();
 	const queryClient = useQueryClient();
 
 	return useMutationAction({
@@ -62,8 +61,6 @@ export const useUpdateModelMutation = (
 					queryClient.invalidateQueries({
 						queryKey: orpc.model.key(),
 					});
-
-					router.history.back();
 
 					try {
 						await opts.onSuccess?.(...args);

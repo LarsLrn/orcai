@@ -1,5 +1,6 @@
 import type { QuotaPoolDetail } from "@orcai/schema";
 import { useQuery } from "@tanstack/react-query";
+import { useNavigate } from "@tanstack/react-router";
 import { useSelector } from "@tanstack/react-store";
 import { AlertCircleIcon } from "lucide-react";
 import { useEffect, useMemo } from "react";
@@ -24,7 +25,16 @@ const QuotaPoolForm = ({
 	pool?: QuotaPoolDetail;
 }) => {
 	const createQuotaPool = useCreateQuotaPoolMutation();
-	const updateQuotaPool = useUpdateQuotaPoolMutation();
+	const navigate = useNavigate();
+	const updateQuotaPool = useUpdateQuotaPoolMutation({
+		onSuccess: (result) =>
+			navigate({
+				to: "/app/quotas/$quotaPoolId",
+				params: {
+					quotaPoolId: result.data.id,
+				},
+			}),
+	});
 	const form = useAppForm({
 		...quotaPoolFormOptions(pool),
 		onSubmit: async ({ value }) => {
