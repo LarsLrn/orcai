@@ -1,3 +1,4 @@
+import { W3CTraceContextPropagator } from "@opentelemetry/core";
 import {
 	DbConfigLive,
 	DbConfigService,
@@ -35,6 +36,11 @@ export const PgBossServiceLive: Layer.Layer<
 				try: async () => {
 					const boss = new PgBoss({
 						connectionString: Redacted.value(url),
+						// Jobs carry the trace context only, never baggage.
+						openTelemetry: {
+							propagateContext: true,
+							propagator: new W3CTraceContextPropagator(),
+						},
 					});
 					// pg-boss re-emits pool errors on itself; without a listener a
 					// terminated idle connection ends the process.

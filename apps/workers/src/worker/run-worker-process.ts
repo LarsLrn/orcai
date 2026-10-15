@@ -1,4 +1,4 @@
-import { logErrorCause } from "@orcai/observability";
+import { logErrorCause, withActiveSpan } from "@orcai/observability";
 import type { Job } from "@orcai/pg-boss";
 import { PgBossService, PgBossWorkersError } from "@orcai/pg-boss";
 import type { JobQueue } from "@orcai/schema";
@@ -50,14 +50,17 @@ const registerWorkers = <TContext>(
 			) =>
 			(jobs: Job<unknown>[]) =>
 				Effect.runPromiseWith(services)(
-					handler(jobs).pipe(
-						Effect.tapCause((cause) =>
-							logErrorCause("Worker batch failed", cause).pipe(
-								Effect.annotateLogs({
-									queue,
-									jobIds: jobs.map((job) => job.id),
-									jobCount: jobs.length,
-								}),
+					// Joins the span this callback is called in.
+					withActiveSpan(
+						handler(jobs).pipe(
+							Effect.tapCause((cause) =>
+								logErrorCause("Worker batch failed", cause).pipe(
+									Effect.annotateLogs({
+										queue,
+										jobIds: jobs.map((job) => job.id),
+										jobCount: jobs.length,
+									}),
+								),
 							),
 						),
 					),
@@ -147,7 +150,7 @@ export const runWorkerProcess = async <TContext, TError>(params: {
 		void shutdown("SIGTERM");
 	});
 
-	const workerProgram = Effect.gen(function* () {
+	const startWorkers = Effect.gen(function* () {
 		yield* Effect.logInfo(`Starting ${params.name}...`);
 		yield* Effect.logInfo(
 			`Preparing ${params.definitions.length} worker definition(s)`,
@@ -166,8 +169,9 @@ export const runWorkerProcess = async <TContext, TError>(params: {
 		yield* scheduleWorkers(params.definitions);
 
 		yield* Effect.logInfo(`${params.name} started`);
-		return yield* Effect.never;
-	});
+	}).pipe(Effect.withSpan("workers.startup"));
+
+	const workerProgram = startWorkers.pipe(Effect.andThen(Effect.never));
 
 	try {
 		await runtime.runPromise(workerProgram);
