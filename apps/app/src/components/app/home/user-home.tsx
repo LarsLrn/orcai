@@ -32,7 +32,7 @@ const QuickChatSection = () => {
 		selectedBotId,
 		selectedModelId,
 		selectedProviderId,
-		modelAvailability,
+		availability,
 		isCreating,
 		handleModelSelect,
 		handleBotSelect,
@@ -85,7 +85,7 @@ const QuickChatSection = () => {
 						onModelSelect={handleModelSelect}
 						onSend={handleSend}
 						isCreating={isCreating}
-						modelAvailability={modelAvailability}
+						availability={availability}
 					/>
 				</div>
 			</SectionContent>

@@ -510,3 +510,20 @@ export const quotaChatBadge = authed.quota.chatBadge
 			},
 		};
 	});
+
+export const quotaAvailability = authed.quota.availability
+	.use(requireOrganizationPermission("read"))
+	.effect(function* ({ input, context }) {
+		const resolved = yield* resolveQuotaPool({
+			organizationId: context.auth.session.activeOrganizationId,
+			userId: context.auth.user.id,
+			providerId: input.providerId,
+			providerModelId: input.modelId,
+		});
+
+		return {
+			data: {
+				available: resolved.winningPool !== null,
+			},
+		};
+	});

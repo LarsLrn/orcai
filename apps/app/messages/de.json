@@ -1316,6 +1316,7 @@
 	"chat_composer_more_actions_aria_label": "Weitere Chat-Aktionen",
 	"chat_composer_placeholder": "Stellen Sie eine Frage",
 	"chat_composer_placeholder_no_model": "Der Chat wird verfügbar, sobald ein Modell bereitsteht",
+	"chat_composer_placeholder_no_quota": "Der Chat wird verfügbar, sobald ein Kontingent-Pool dieses Modell abdeckt",
 	"chat_composer_send_failed_toast_error": "Die Nachricht und ihre Anhänge wurden nicht gesendet. Senden Sie sie erneut.",
 	"chat_composer_settings_action": "Chat-Einstellungen",
 	"chat_composer_start_tour_action": "Tour starten",
@@ -1463,6 +1464,10 @@
 	"chat_placeholder_bot_description_fallback": "Antworten stützen sich auf die Quellen und das Verhalten dieses Bots.",
 	"chat_placeholder_description": "Ohne Bot kommen Antworten allein vom Modell. Wählen Sie einen Bot, um sie auf die Quellen Ihrer Organisation zu stützen.",
 	"chat_placeholder_title": "Fragen Sie, was Sie möchten",
+	"chat_quota_notice_create_pool_action": "Kontingent-Pool erstellen",
+	"chat_quota_notice_description_manager": "Erstellen Sie einen Pool für den Anbieter, dann wird der Chat verfügbar.",
+	"chat_quota_notice_description_member": "Wählen Sie ein anderes Modell oder bitten Sie einen Organisations-Admin, einen Kontingent-Pool zu erstellen.",
+	"chat_quota_notice_title": "Für dieses Modell steht Ihnen noch kein Kontingent-Pool zur Verfügung.",
 	"chat_quota_pool_fallback_name": "Kontingent",
 	"chat_quota_requests_left": [
 		{
@@ -2217,7 +2222,7 @@
 	"home_people_panel_invite_action": "Personen einladen",
 	"home_people_panel_title": "Personen",
 	"home_quota_panel_all_pools_action": "Alle Pools",
-	"home_quota_panel_empty_note": "Noch keine Kontingent-Pools. Chats verwenden die Limits des Anbieters, solange keiner existiert.",
+	"home_quota_panel_empty_note": "Noch keine Kontingent-Pools. Niemand kann chatten, bis ein Pool einen Anbieter abdeckt.",
 	"home_quota_panel_title": "Kontingent",
 	"home_quota_pool_default_badge": "Standard",
 	"home_quota_pool_meta_no_period": "{provider}, kein offener Zeitraum",

@@ -72,6 +72,11 @@ export const quotaChatBadgeSchema = z.object({
 	periodEndsAt: z.coerce.date().nullable(),
 });
 
+export const quotaAvailabilitySchema = z.object({
+	available: z.boolean(),
+});
+
 export type QuotaPoolListRow = z.infer<typeof quotaPoolListRowSchema>;
 export type QuotaPoolDetail = z.infer<typeof quotaPoolDetailSchema>;
 export type QuotaChatBadge = z.infer<typeof quotaChatBadgeSchema>;
+export type QuotaAvailability = z.infer<typeof quotaAvailabilitySchema>;

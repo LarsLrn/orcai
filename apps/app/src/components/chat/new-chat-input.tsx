@@ -8,7 +8,7 @@ import {
 import { BotSelectorButton } from "@/components/chat/bot-selector";
 import { ChatModelNotice } from "@/components/chat/chat-model-notice";
 import { ModelSelectorButton } from "@/components/chat/model-selector";
-import type { ChatModelAvailability } from "@/components/chat/use-default-chat-model";
+import type { ChatAvailability } from "@/components/chat/use-chat-starter";
 import {
 	InputGroup,
 	InputGroupAddon,
@@ -24,7 +24,7 @@ const NewChatInput = ({
 	onModelSelect,
 	onSend,
 	isCreating,
-	modelAvailability = "ready",
+	availability = "ready",
 }: {
 	selectedBotId?: BotId;
 	selectedModelId?: ModelId;
@@ -33,10 +33,15 @@ const NewChatInput = ({
 	onModelSelect: (model: Model, provider: Provider) => void;
 	onSend: (text: string) => void;
 	isCreating: boolean;
-	modelAvailability?: ChatModelAvailability;
+	availability?: ChatAvailability;
 }) => {
 	const [messageText, setMessageText] = useState("");
-	const noModel = modelAvailability === "none";
+	const blocker =
+		availability === "none"
+			? "model"
+			: availability === "no-quota"
+				? "quota"
+				: null;
 
 	const handleSubmit = (event: React.FormEvent<HTMLFormElement>) => {
 		event.preventDefault();
@@ -62,14 +67,16 @@ const NewChatInput = ({
 					name="message"
 					aria-label={m.chat_composer_aria_label()}
 					placeholder={
-						noModel
+						blocker === "model"
 							? m.chat_composer_placeholder_no_model()
-							: m.chat_composer_placeholder()
+							: blocker === "quota"
+								? m.chat_composer_placeholder_no_quota()
+								: m.chat_composer_placeholder()
 					}
 					className="field-sizing-content max-h-48 min-h-16"
 					value={messageText}
-					disabled={noModel}
-					aria-describedby={noModel ? "chat-model-notice" : undefined}
+					disabled={blocker !== null}
+					aria-describedby={blocker ? "chat-model-notice" : undefined}
 					onChange={(event) => setMessageText(event.target.value)}
 					onKeyDown={handleTextareaKeyDown}
 				/>
@@ -95,7 +102,7 @@ const NewChatInput = ({
 					/>
 				</InputGroupAddon>
 			</InputGroup>
-			{noModel && <ChatModelNotice />}
+			{blocker && <ChatModelNotice reason={blocker} />}
 		</form>
 	);
 };
