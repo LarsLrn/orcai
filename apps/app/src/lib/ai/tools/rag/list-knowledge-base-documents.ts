@@ -3,6 +3,7 @@ import { tool } from "ai";
 import * as Effect from "effect/Effect";
 import z from "zod/v4";
 import { runPromise } from "@/lib/effect/runtime";
+import type { ORPCContext } from "@/lib/orpc/implementation/os";
 import type { KnowledgeBaseDocument } from "./types";
 import {
 	loadDocumentCatalog,
@@ -12,8 +13,10 @@ import {
 
 export const listKnowledgeBaseDocumentsTool = ({
 	blocks,
+	context,
 }: {
 	blocks: DatabaseBlock[];
+	context: ORPCContext;
 }) =>
 	tool({
 		description:
@@ -50,6 +53,7 @@ export const listKnowledgeBaseDocumentsTool = ({
 
 					const documents = yield* loadDocumentCatalog({
 						blocks: targetBlocks,
+						context,
 					});
 
 					const ranked = query

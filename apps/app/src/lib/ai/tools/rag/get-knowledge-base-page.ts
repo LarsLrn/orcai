@@ -4,11 +4,13 @@ import {
 	blockIdSchema,
 	type DatabaseBlock,
 } from "@orcai/schema";
+import { call } from "@orpc/server";
 import { tool } from "ai";
 import * as Effect from "effect/Effect";
 import z from "zod/v4";
 import { runPromise } from "@/lib/effect/runtime";
-import { client } from "@/lib/orpc/orpc";
+import type { ORPCContext } from "@/lib/orpc/implementation/os";
+import { searchRepositoryAssetPoint } from "@/lib/orpc/router/asset-point";
 import type { ChunkResult, KnowledgeBaseDocument } from "./types";
 import {
 	compareByPageAssetChunk,
@@ -22,8 +24,10 @@ import {
 
 export const getKnowledgeBasePageTool = ({
 	blocks,
+	context,
 }: {
 	blocks: DatabaseBlock[];
+	context: ORPCContext;
 }) =>
 	tool({
 		description:
@@ -93,6 +97,7 @@ export const getKnowledgeBasePageTool = ({
 
 					const documents = yield* loadDocumentCatalog({
 						blocks: targetBlocks,
+						context,
 					});
 
 					let matchedDocuments: KnowledgeBaseDocument[] = documents;
@@ -134,15 +139,21 @@ export const getKnowledgeBasePageTool = ({
 						try: () =>
 							Promise.all(
 								targetBlocks.map(async (block) => {
-									const response = await client.assetPoint.searchRepository({
-										repositoryId: block.id,
-										filters: {
-											assetIds: matchedAssetIds,
-											pageFrom,
-											pageTo,
-											limit: queryLimit,
+									const response = await call(
+										searchRepositoryAssetPoint,
+										{
+											repositoryId: block.id,
+											filters: {
+												assetIds: matchedAssetIds,
+												pageFrom,
+												pageTo,
+												limit: queryLimit,
+											},
 										},
-									});
+										{
+											context,
+										},
+									);
 
 									return {
 										block,

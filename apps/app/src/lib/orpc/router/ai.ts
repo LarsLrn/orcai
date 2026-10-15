@@ -223,7 +223,7 @@ export const aiChat = authed.ai.chat
 				botId: chatRecord.botId,
 				chatConfig,
 				userId: context.auth.user.id,
-				zedToken,
+				context: requestContext,
 			});
 
 			const attachedDatabaseBlocks = chatBlocks.filter(
@@ -388,6 +388,7 @@ export const aiChat = authed.ai.chat
 					providerId,
 					modelId,
 				},
+				context: requestContext,
 			});
 
 			let actualProviderRequestCount = 0;
