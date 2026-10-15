@@ -384,6 +384,9 @@ test("the app discovers the inference mock's models through a provider", async (
 			...inference.models,
 		].sort(),
 	);
+	expect(listed.data.map((model) => model.capabilities)).toEqual(
+		inference.models.map(() => []),
+	);
 
 	const discovery = inference.requests.find(
 		(request) => request.path === "/v1/models",

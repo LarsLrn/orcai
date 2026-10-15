@@ -164,11 +164,16 @@ const DiscoverModels = () => {
 						<Alert>
 							<AlertTitle>{m.models_discover_success_title()}</AlertTitle>
 							<AlertDescription>
-								{m.models_discover_success_description({
-									count: result.foundCount,
-									addedCount: result.addedCount,
-									alreadyExistedCount: result.alreadyExistedCount,
-								})}
+								<p>
+									{m.models_discover_success_description({
+										count: result.foundCount,
+										addedCount: result.addedCount,
+										alreadyExistedCount: result.alreadyExistedCount,
+									})}
+								</p>
+								{result.addedCount > 0 && (
+									<p>{m.models_discover_capabilities_hint()}</p>
+								)}
 							</AlertDescription>
 						</Alert>
 					)}

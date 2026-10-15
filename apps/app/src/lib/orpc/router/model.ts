@@ -373,10 +373,7 @@ export const discoverModels = authed.model.discover
 			providerModelId: model.id,
 			name: model.id,
 			description: `Model ID: ${model.id} | Owned by ${model.owned_by}`,
-			capabilities: [
-				"text",
-				"tool-calling",
-			] satisfies ModelCapability[],
+			capabilities: [],
 		}));
 
 		const insertedModels =

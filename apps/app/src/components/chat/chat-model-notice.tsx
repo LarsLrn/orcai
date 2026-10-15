@@ -61,7 +61,7 @@ const ChatModelNotice = ({ className }: { className?: string }) => {
 						className: "shrink-0",
 					})}
 				>
-					{m.chat_model_notice_add_model_action()}
+					{m.chat_model_notice_models_action()}
 				</Link>
 			)}
 		</div>
