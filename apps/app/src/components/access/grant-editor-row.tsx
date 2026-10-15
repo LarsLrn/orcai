@@ -46,7 +46,7 @@ const GrantEditorRow = ({
 		grant.principal.systemKey === ALL_MEMBERS_GROUP_SYSTEM_KEY;
 
 	return (
-		<div className="flex flex-col gap-2 rounded-xl border p-3 sm:flex-row sm:items-center sm:justify-between">
+		<li className="flex flex-col gap-2 rounded-xl border p-3 sm:flex-row sm:items-center sm:justify-between">
 			<div className="flex min-w-0 items-center gap-3">
 				{grant.principal.type === "user" ? (
 					<Avatar size="sm">
@@ -100,7 +100,7 @@ const GrantEditorRow = ({
 					</span>
 				</Button>
 			</div>
-		</div>
+		</li>
 	);
 };
 

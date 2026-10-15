@@ -17,7 +17,7 @@ const MemberRow = ({
 	disabled?: boolean;
 	onRemove: () => void;
 }) => (
-	<div className="flex flex-col gap-2 rounded-xl border p-3 sm:flex-row sm:items-center sm:justify-between">
+	<li className="flex flex-col gap-2 rounded-xl border p-3 sm:flex-row sm:items-center sm:justify-between">
 		<div className="flex min-w-0 items-center gap-3">
 			<Avatar size="sm">
 				<AvatarImage src={member.user.image ?? undefined} />
@@ -56,7 +56,7 @@ const MemberRow = ({
 				</Button>
 			</div>
 		)}
-	</div>
+	</li>
 );
 
 export { MemberRow };
