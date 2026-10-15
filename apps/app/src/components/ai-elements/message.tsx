@@ -1,7 +1,3 @@
-import { cjk } from "@streamdown/cjk";
-import { code } from "@streamdown/code";
-import { math } from "@streamdown/math";
-import { mermaid } from "@streamdown/mermaid";
 import type { UIMessage } from "ai";
 import { ChevronLeftIcon, ChevronRightIcon } from "lucide-react";
 import type { ComponentProps, HTMLAttributes, ReactElement } from "react";
@@ -14,8 +10,11 @@ import {
 	useMemo,
 	useState,
 } from "react";
-import { Streamdown } from "streamdown";
 import { CiteComponent } from "@/components/ai-elements/cite";
+import {
+	StreamdownContent,
+	type StreamdownContentProps,
+} from "@/components/ai-elements/streamdown-content";
 import { Button } from "@/components/ui/button";
 import { ButtonGroup, ButtonGroupText } from "@/components/ui/button-group";
 import {
@@ -25,8 +24,6 @@ import {
 } from "@/components/ui/tooltip";
 import { cn } from "@/lib/utils";
 import { m } from "@/paraglide/messages";
-import "katex/dist/katex.min.css";
-import "streamdown/styles.css";
 
 export type MessageProps = HTMLAttributes<HTMLDivElement> & {
 	from: UIMessage["role"];
@@ -346,14 +343,7 @@ export const MessageBranchPage = ({
 	);
 };
 
-export type MessageResponseProps = ComponentProps<typeof Streamdown>;
-
-const streamdownPlugins = {
-	cjk,
-	code,
-	math,
-	mermaid,
-};
+export type MessageResponseProps = StreamdownContentProps;
 
 const streamdownComponents = {
 	cite: CiteComponent,
@@ -377,7 +367,7 @@ const streamdownLiteralTagContent = [
 
 export const MessageResponse = memo(
 	({ className, ...props }: MessageResponseProps) => (
-		<Streamdown
+		<StreamdownContent
 			allowedTags={streamdownAllowedTags}
 			className={cn(
 				"w-full [&>*:first-child]:mt-0 [&>*:last-child]:mb-0",
@@ -387,7 +377,6 @@ export const MessageResponse = memo(
 			)}
 			components={streamdownComponents}
 			literalTagContent={streamdownLiteralTagContent}
-			plugins={streamdownPlugins}
 			{...props}
 		/>
 	),
