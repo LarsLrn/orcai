@@ -3,8 +3,6 @@ import { CharacterCount } from "@tiptap/extension-character-count";
 import { Color } from "@tiptap/extension-color";
 import { Heading } from "@tiptap/extension-heading";
 import Highlight from "@tiptap/extension-highlight";
-import { Image } from "@tiptap/extension-image";
-import Link from "@tiptap/extension-link";
 import Placeholder from "@tiptap/extension-placeholder";
 import Subscript from "@tiptap/extension-subscript";
 import Superscript from "@tiptap/extension-superscript";
@@ -15,7 +13,6 @@ import { TableRow } from "@tiptap/extension-table-row";
 import TextAlign from "@tiptap/extension-text-align";
 import { TextStyle } from "@tiptap/extension-text-style";
 import Typography from "@tiptap/extension-typography";
-import Underline from "@tiptap/extension-underline";
 import { Youtube } from "@tiptap/extension-youtube";
 import type { DOMOutputSpec } from "@tiptap/pm/model";
 import StarterKit from "@tiptap/starter-kit";
@@ -149,7 +146,7 @@ const TiptapTableCell = TableCell.configure({
 	},
 });
 
-const TiptapImage = Image.configure({
+const TiptapImage = ImageExtension.configure({
 	allowBase64: false,
 	HTMLAttributes: {
 		class: cn("mx-auto rounded border"),
@@ -188,7 +185,6 @@ export const extensions = [
 	TiptapTableCell,
 	TiptapYoutube,
 	TiptapCharacterCount,
-	TiptapImage,
 	TextStyle,
 	DragHandle,
 	Placeholder.configure({
@@ -212,13 +208,11 @@ export const extensions = [
 	}),
 	Subscript,
 	Superscript,
-	Underline,
-	Link,
 	Color,
 	Highlight.configure({
 		multicolor: true,
 	}),
-	ImageExtension,
+	TiptapImage,
 	ImagePlaceholder,
 	Typography,
 ];

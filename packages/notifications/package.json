@@ -17,13 +17,12 @@
 		"@react-email/render": "2.1.0",
 		"drizzle-orm": "catalog:",
 		"effect": "catalog:",
-		"nodemailer": "9.0.6",
+		"nodemailer": "10.1.0",
 		"react": "catalog:",
 		"zod": "catalog:"
 	},
 	"devDependencies": {
 		"@types/node": "catalog:",
-		"@types/nodemailer": "8.0.1",
 		"@types/react": "catalog:"
 	}
 }

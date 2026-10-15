@@ -1,13 +1,11 @@
+import { aiTelemetry } from "@orcai/ai";
 import type { DatabaseBlock } from "@orcai/schema";
 import { isStepCount, type LanguageModel, Output, ToolLoopAgent } from "ai";
 import { applyToolHistoryPruning } from "@/lib/ai/agents/chat-agent-history-pruning";
 import { buildChatAgentSystemPrompt } from "@/lib/ai/agents/chat-agent-system-prompt";
 import { repairKnowledgeBaseToolCall } from "@/lib/ai/agents/repair-tool-call";
 import { buildKnowledgeBaseTools } from "@/lib/ai/tools/rag/toolset";
-
-const chatAgentToolSet = buildKnowledgeBaseTools({
-	blocks: [], // Placeholder, will be set in prepareCall
-});
+import type { ORPCContext } from "@/lib/orpc/implementation/os";
 
 export interface ChatAgentGenerationParams {
 	temperature?: number;
@@ -22,10 +20,22 @@ export const createChatAgent = (params: {
 	systemPrompt: string;
 	databaseBlocks: DatabaseBlock[];
 	generationParams?: ChatAgentGenerationParams;
+	telemetryIds: {
+		organizationId: string;
+		chatId: string;
+		providerId: string;
+		modelId: string;
+	};
+	context: ORPCContext;
 }) =>
 	new ToolLoopAgent({
 		model: params.model,
-		tools: chatAgentToolSet,
+		// The typed tool set; prepareCall swaps in the one for the bot's blocks.
+		tools: buildKnowledgeBaseTools({
+			blocks: [],
+			context: params.context,
+		}),
+		...aiTelemetry("chat.agent", params.telemetryIds),
 		experimental_repairToolCall: repairKnowledgeBaseToolCall,
 		prepareCall: ({ options, ...settings }) => {
 			const preparedSettings = applyToolHistoryPruning(settings);
@@ -33,6 +43,7 @@ export const createChatAgent = (params: {
 			const tools = hasKnowledgeBaseBlocks
 				? buildKnowledgeBaseTools({
 						blocks: params.databaseBlocks,
+						context: params.context,
 					})
 				: undefined;
 			const systemPrompt = buildChatAgentSystemPrompt({

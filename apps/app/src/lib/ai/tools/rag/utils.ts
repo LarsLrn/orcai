@@ -6,8 +6,11 @@ import {
 	tokenize,
 } from "@orcai/core";
 import type { AssetPoint, DatabaseBlock } from "@orcai/schema";
+import { call } from "@orpc/server";
 import * as Effect from "effect/Effect";
-import { client } from "@/lib/orpc/orpc";
+import type { ORPCContext } from "@/lib/orpc/implementation/os";
+import { listAssets } from "@/lib/orpc/router/asset";
+import { findBlock } from "@/lib/orpc/router/block";
 import { RETRIEVAL_LIMITS } from "@/settings/constants";
 import type {
 	ChunkResult,
@@ -246,16 +249,28 @@ export const rankDocumentsByQuery = ({
 		.map((item) => item.doc);
 };
 
-export const loadDocumentCatalog = ({ blocks }: { blocks: DatabaseBlock[] }) =>
+export const loadDocumentCatalog = ({
+	blocks,
+	context,
+}: {
+	blocks: DatabaseBlock[];
+	context: ORPCContext;
+}) =>
 	Effect.gen(function* () {
 		const blockAssetRefs = yield* Effect.forEach(
 			blocks,
 			(block) =>
 				Effect.tryPromise({
 					try: () =>
-						client.block.find({
-							id: block.id,
-						}),
+						call(
+							findBlock,
+							{
+								id: block.id,
+							},
+							{
+								context,
+							},
+						),
 					catch: (cause) =>
 						new AiError({
 							operation: "loadDocumentCatalog.findBlock",
@@ -282,13 +297,19 @@ export const loadDocumentCatalog = ({ blocks }: { blocks: DatabaseBlock[] }) =>
 
 		const assetResponse = yield* Effect.tryPromise({
 			try: () =>
-				client.asset.list({
-					pageIndex: 0,
-					pageSize: Math.min(1000, Math.max(uniqueAssetIds.length, 20)),
-					filters: {
-						ids: uniqueAssetIds,
+				call(
+					listAssets,
+					{
+						pageIndex: 0,
+						pageSize: Math.min(1000, Math.max(uniqueAssetIds.length, 20)),
+						filters: {
+							ids: uniqueAssetIds,
+						},
 					},
-				}),
+					{
+						context,
+					},
+				),
 			catch: (cause) =>
 				new AiError({
 					operation: "loadDocumentCatalog.listAssets",

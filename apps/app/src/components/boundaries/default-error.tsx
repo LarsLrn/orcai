@@ -20,7 +20,11 @@ interface ValidationErrorData {
 }
 
 /** Validation payloads already carry sentences translated by the zod error map. */
-function getValidationErrorMessages(error: Error): string[] {
+function getValidationErrorMessages(error: unknown): string[] {
+	if (!(error instanceof Error)) {
+		return [];
+	}
+
 	const { data } = error as Error & ValidationErrorData;
 
 	if (!data?.fieldErrors) {

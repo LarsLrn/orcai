@@ -32,15 +32,11 @@ export const ToolField = ({
 
 export type ToolInputProps = {
 	input: ToolPart["input"];
-	rawInput?: unknown;
 	errorText?: ToolPart["errorText"];
 };
 
-export const ToolInput = ({ input, rawInput, errorText }: ToolInputProps) => {
-	const displayedInput = input ?? rawInput;
-	const isRawInput = input == null && rawInput !== undefined;
-
-	if (displayedInput === undefined) {
+export const ToolInput = ({ input, errorText }: ToolInputProps) => {
+	if (input === undefined) {
 		return (
 			<ToolField label={m.ai_elements_tool_parameters_label()}>
 				<p className="text-muted-foreground text-xs">
@@ -53,19 +49,8 @@ export const ToolInput = ({ input, rawInput, errorText }: ToolInputProps) => {
 	}
 
 	return (
-		<ToolField
-			label={
-				isRawInput
-					? m.ai_elements_tool_raw_parameters_label()
-					: m.ai_elements_tool_parameters_label()
-			}
-		>
-			{isRawInput && (
-				<p className="mb-1 text-muted-foreground text-xs">
-					{m.ai_elements_tool_raw_parameters_hint()}
-				</p>
-			)}
-			<ToolJson value={displayedInput} />
+		<ToolField label={m.ai_elements_tool_parameters_label()}>
+			<ToolJson value={input} />
 		</ToolField>
 	);
 };

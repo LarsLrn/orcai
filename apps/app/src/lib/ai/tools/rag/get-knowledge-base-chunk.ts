@@ -1,10 +1,12 @@
 import { AiError } from "@orcai/ai";
 import { blockIdSchema, type DatabaseBlock } from "@orcai/schema";
+import { call } from "@orpc/server";
 import { tool } from "ai";
 import * as Effect from "effect/Effect";
 import { z } from "zod/v4";
-import { runtime } from "@/lib/effect/runtime";
-import { client } from "@/lib/orpc/orpc";
+import { runPromise } from "@/lib/effect/runtime";
+import type { ORPCContext } from "@/lib/orpc/implementation/os";
+import { searchRepositoryAssetPoint } from "@/lib/orpc/router/asset-point";
 import { RETRIEVAL_LIMITS } from "@/settings/constants";
 import type { ChunkResult, PointWithBlock } from "./types";
 import {
@@ -19,8 +21,10 @@ import {
 
 export const getKnowledgeBaseChunksTool = ({
 	blocks,
+	context,
 }: {
 	blocks: DatabaseBlock[];
+	context: ORPCContext;
 }) =>
 	tool({
 		description:
@@ -58,7 +62,7 @@ export const getKnowledgeBaseChunksTool = ({
 				),
 		}),
 		execute: async ({ ids, limit, blockId, includeAdjacent }) =>
-			runtime.runPromise(
+			runPromise(
 				Effect.gen(function* () {
 					if (blocks.length === 0) {
 						return yield* new AiError({
@@ -107,13 +111,19 @@ export const getKnowledgeBaseChunksTool = ({
 						try: () =>
 							Promise.all(
 								targetBlocks.map(async (block) => {
-									const response = await client.assetPoint.searchRepository({
-										repositoryId: block.id,
-										filters: {
-											pointIds: uniqueIds,
-											limit: uniqueIds.length,
+									const response = await call(
+										searchRepositoryAssetPoint,
+										{
+											repositoryId: block.id,
+											filters: {
+												pointIds: uniqueIds,
+												limit: uniqueIds.length,
+											},
 										},
-									});
+										{
+											context,
+										},
+									);
 									return {
 										block,
 										response,
@@ -161,16 +171,22 @@ export const getKnowledgeBaseChunksTool = ({
 											};
 										}
 
-										const response = await client.assetPoint.searchRepository({
-											repositoryId: candidate.sourceBlock.id,
-											filters: {
-												assetIds: [
-													candidate.payload.asset_id,
-												],
-												chunkIndices: neighboringChunkIndexes,
-												limit: neighboringChunkIndexes.length,
+										const response = await call(
+											searchRepositoryAssetPoint,
+											{
+												repositoryId: candidate.sourceBlock.id,
+												filters: {
+													assetIds: [
+														candidate.payload.asset_id,
+													],
+													chunkIndices: neighboringChunkIndexes,
+													limit: neighboringChunkIndexes.length,
+												},
 											},
-										});
+											{
+												context,
+											},
+										);
 
 										const points = withSourceBlock({
 											sourceBlockId: candidate.sourceBlock.id,

@@ -1,3 +1,4 @@
+import { withActiveSpan } from "@orcai/observability";
 import * as Effect from "effect/Effect";
 import type * as Layer from "effect/Layer";
 import * as ManagedRuntime from "effect/ManagedRuntime";
@@ -36,3 +37,9 @@ export const ensureRuntimeReady = (): Promise<void> => {
 
 	return globalThis.__effectRuntimeReady;
 };
+
+/** Runs an effect from promise-based code as part of the caller's active trace. */
+export const runPromise = <A, E>(
+	effect: Effect.Effect<A, E, AppRuntimeContext>,
+	options?: Effect.RunOptions,
+): Promise<A> => runtime.runPromise(withActiveSpan(effect), options);

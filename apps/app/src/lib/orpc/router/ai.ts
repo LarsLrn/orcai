@@ -1,3 +1,4 @@
+import { context as otelContext } from "@opentelemetry/api";
 import { AiError } from "@orcai/ai";
 import { DB, dbSchema } from "@orcai/db";
 import {
@@ -27,7 +28,7 @@ import { buildAttachmentPromptPartCached } from "@/lib/ai/utils/chat-attachment-
 import { getChatAiSettings } from "@/lib/ai/utils/get-chat-ai-settings";
 import { streamErrorReason } from "@/lib/ai/utils/stream-error-reason";
 import { getZedToken } from "@/lib/authz/zed-token";
-import { runtime } from "@/lib/effect/runtime";
+import { runPromise } from "@/lib/effect/runtime";
 import * as AppErrors from "@/lib/effect/utils/errors";
 import { authed } from "@/lib/orpc/implementation/authed";
 import { requireActiveOrganizationMiddleware } from "@/lib/orpc/middlewares/auth";
@@ -222,7 +223,7 @@ export const aiChat = authed.ai.chat
 				botId: chatRecord.botId,
 				chatConfig,
 				userId: context.auth.user.id,
-				zedToken,
+				context: requestContext,
 			});
 
 			const attachedDatabaseBlocks = chatBlocks.filter(
@@ -381,9 +382,19 @@ export const aiChat = authed.ai.chat
 				systemPrompt,
 				databaseBlocks: allDatabaseBlocks,
 				generationParams: chatAiSettings.generationParams,
+				telemetryIds: {
+					organizationId: context.auth.session.activeOrganizationId,
+					chatId: input.chatId,
+					providerId,
+					modelId,
+				},
+				context: requestContext,
 			});
 
 			let actualProviderRequestCount = 0;
+
+			// The stream outlives the handler; its callbacks rejoin the request trace.
+			const traceContext = otelContext.active();
 
 			const stream = yield* Effect.tryPromise({
 				try: async () =>
@@ -399,31 +410,33 @@ export const aiChat = authed.ai.chat
 						onStepEnd: () => {
 							actualProviderRequestCount += 1;
 						},
-						onEnd: async ({ responseMessage }) => {
-							const usage = getTokenUsageFromMetadata(responseMessage.metadata);
+						onEnd: ({ responseMessage }) =>
+							otelContext.with(traceContext, async () => {
+								const usage = getTokenUsageFromMetadata(
+									responseMessage.metadata,
+								);
 
-							await call(
-								createChatMessage,
-								{
-									id: responseMessage.id,
-									chatId: input.chatId,
-									role: responseMessage.role,
-									parts: responseMessage.parts,
-									attachments: [],
-									metadata: (responseMessage.metadata ?? {}) as Record<
-										string,
-										unknown
-									>,
-									branchId: currentBranchId,
-									parentMessageId: null,
-								},
-								{
-									context: requestContext,
-								},
-							);
+								await call(
+									createChatMessage,
+									{
+										id: responseMessage.id,
+										chatId: input.chatId,
+										role: responseMessage.role,
+										parts: responseMessage.parts,
+										attachments: [],
+										metadata: (responseMessage.metadata ?? {}) as Record<
+											string,
+											unknown
+										>,
+										branchId: currentBranchId,
+										parentMessageId: null,
+									},
+									{
+										context: requestContext,
+									},
+								);
 
-							await runtime
-								.runPromise(
+								await runPromise(
 									finalizeAppRequestQuota({
 										reservation,
 										actualRequestCount: actualProviderRequestCount,
@@ -431,57 +444,47 @@ export const aiChat = authed.ai.chat
 										outputTokens: usage.outputTokens,
 										totalTokens: usage.totalTokens,
 									}),
-								)
-								.catch((error) =>
-									runtime
-										.runPromise(
-											Effect.logError({
-												appRequestId: reservation.appRequestId,
-												error:
-													error instanceof Error
-														? error.message
-														: String(error),
-												message: "quota.finalize.failed",
-												reservationKey: reservation.reservationKey,
-											}),
-										)
-										.catch(() => undefined),
+								).catch((error) =>
+									runPromise(
+										Effect.logError({
+											appRequestId: reservation.appRequestId,
+											error:
+												error instanceof Error ? error.message : String(error),
+											message: "quota.finalize.failed",
+											reservationKey: reservation.reservationKey,
+										}),
+									).catch(() => undefined),
 								);
-						},
-						onError: (error) => {
-							runtime
-								.runPromise(
+							}),
+						onError: (error) =>
+							otelContext.with(traceContext, () => {
+								runPromise(
 									releaseAppRequestQuota({
 										reservation,
 										reason: "provider_failure",
 									}),
-								)
-								.catch((releaseError) =>
-									runtime
-										.runPromise(
-											Effect.logError({
-												appRequestId: reservation.appRequestId,
-												error:
-													releaseError instanceof Error
-														? releaseError.message
-														: String(releaseError),
-												message: "quota.release.failed",
-												reservationKey: reservation.reservationKey,
-											}),
-										)
-										.catch(() => undefined),
+								).catch((releaseError) =>
+									runPromise(
+										Effect.logError({
+											appRequestId: reservation.appRequestId,
+											error:
+												releaseError instanceof Error
+													? releaseError.message
+													: String(releaseError),
+											message: "quota.release.failed",
+											reservationKey: reservation.reservationKey,
+										}),
+									).catch(() => undefined),
 								);
-							runtime
-								.runPromise(
+								runPromise(
 									Effect.logError({
 										error:
 											error instanceof Error ? error.message : String(error),
 										message: "AI stream error",
 									}),
-								)
-								.catch(() => undefined);
-							return streamErrorReason(error, "AI_STREAM_FAILED");
-						},
+								).catch(() => undefined);
+								return streamErrorReason(error, "AI_STREAM_FAILED");
+							}),
 						messageMetadata: ({ part }) => {
 							if (part.type === "finish-step") {
 								return {

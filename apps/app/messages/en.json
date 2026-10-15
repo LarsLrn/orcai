@@ -229,8 +229,6 @@
 	"ai_elements_tool_parameters_empty": "No parameters.",
 	"ai_elements_tool_parameters_invalid": "The call did not produce a valid parameter object.",
 	"ai_elements_tool_parameters_label": "Parameters",
-	"ai_elements_tool_raw_parameters_hint": "Showing the original arguments because validation failed.",
-	"ai_elements_tool_raw_parameters_label": "Raw parameters",
 	"ai_elements_tool_result_label": "Result",
 	"app_logo_alt": "OrcAI logo",
 	"app_meta_description": "Knowledge assistants you can operate on your own terms.",

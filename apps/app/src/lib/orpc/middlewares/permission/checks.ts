@@ -20,28 +20,30 @@ const normalizeEntityIds = <Entity extends EntityType>(
 	entityIds: readonly EntityIdFor<Entity>[],
 ) => unique(entityIds);
 
-export const checkPermissionMiddleware = withName(
-	permissionBase.middleware((opts, input: CheckPermissionInput) =>
-		runMiddlewareEffect(
-			opts,
-			ensurePermission({
-				context: opts.context,
-				input,
-			}).pipe(
-				Effect.flatMap(() =>
-					Effect.promise(() => Promise.resolve(opts.next())),
+// Named on the inner function: `adaptInput` copies that name, not the decorated one.
+export const checkPermissionMiddleware = permissionBase.middleware(
+	withName(
+		(opts, input: CheckPermissionInput) =>
+			runMiddlewareEffect(
+				opts,
+				ensurePermission({
+					context: opts.context,
+					input,
+				}).pipe(
+					Effect.flatMap(() =>
+						Effect.promise(() => Promise.resolve(opts.next())),
+					),
 				),
 			),
-		),
+		"checkPermission",
 	),
-	"checkPermission",
 );
 
 export const checkManyPermissionMiddleware = <Entity extends EntityType>(
 	entityType: Entity,
 ) =>
-	withName(
-		permissionBase.middleware(
+	permissionBase.middleware(
+		withName(
 			(opts, input: CheckManyPermissionInputFor<Entity>) =>
 				runMiddlewareEffect(
 					opts,
@@ -107,6 +109,6 @@ export const checkManyPermissionMiddleware = <Entity extends EntityType>(
 						);
 					}),
 				),
+			"checkManyPermissions",
 		),
-		"checkManyPermissions",
 	);

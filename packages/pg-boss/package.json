@@ -7,9 +7,10 @@
 		".": "./src/index.ts"
 	},
 	"dependencies": {
+		"@opentelemetry/core": "2.12.0",
 		"@orcai/db": "workspace:*",
 		"@orcai/schema": "workspace:*",
 		"effect": "catalog:",
-		"pg-boss": "12.28.0"
+		"pg-boss": "12.37.1"
 	}
 }

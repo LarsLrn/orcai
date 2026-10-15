@@ -1,4 +1,4 @@
-import { AiConfigLive } from "@orcai/ai";
+import { AiConfigLive, AiTelemetryLive } from "@orcai/ai";
 import { DrizzleLive } from "@orcai/db";
 import { PgBossLive } from "@orcai/pg-boss";
 import { QdrantLive } from "@orcai/qdrant";
@@ -26,4 +26,8 @@ const AppInfra = Layer.mergeAll(AuthzLive, QuotaCounterStoreLive).pipe(
 );
 
 // Compose all app-level services in one place.
-export const AppLayer = Layer.mergeAll(ObservabilityLive, AppInfra);
+export const AppLayer = Layer.mergeAll(
+	ObservabilityLive,
+	AiTelemetryLive,
+	AppInfra,
+);
