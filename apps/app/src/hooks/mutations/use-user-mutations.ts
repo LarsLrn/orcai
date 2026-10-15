@@ -17,11 +17,14 @@ export const useSetActiveOrganizationMutation = (
 			orpc.user.setActiveOrganization.mutationOptions({
 				...opts,
 				onSuccess: async (...args) => {
+					await refetchSession();
+					// Only inactive queries, so no mounted observer is left on a removed one.
+					queryClient.removeQueries({
+						type: "inactive",
+					});
 					await navigate({
 						to: "/app",
 					});
-					await refetchSession();
-					queryClient.clear();
 
 					try {
 						await opts.onSuccess?.(...args);
