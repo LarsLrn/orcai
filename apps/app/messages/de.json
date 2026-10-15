@@ -2192,7 +2192,8 @@
 			"match": {
 				"timeOfDay=morning": "Guten Morgen, {name}!",
 				"timeOfDay=afternoon": "Guten Tag, {name}!",
-				"timeOfDay=*": "Guten Abend, {name}!"
+				"timeOfDay=evening": "Guten Abend, {name}!",
+				"timeOfDay=*": "Hallo, {name}!"
 			}
 		}
 	],

@@ -1,4 +1,4 @@
-import { useRouteContext } from "@tanstack/react-router";
+import { useHydrated, useRouteContext } from "@tanstack/react-router";
 import { CompassIcon, ExternalLinkIcon } from "lucide-react";
 import { AppTourButton } from "@/components/next-step/app-tour-button";
 import { buttonVariants } from "@/components/ui/button";
@@ -17,12 +17,15 @@ const UserWelcome = () => {
 	const { auth } = useRouteContext({
 		from: "/app",
 	});
+	// The server does not know the browser's timezone, so it renders a neutral greeting.
+	const hydrated = useHydrated();
+	const greetingTime = hydrated ? timeOfDay() : "unknown";
 
 	return (
 		<div className="space-y-2">
 			<h1 className="font-semibold text-2xl tracking-tight">
 				{m.home_welcome_heading({
-					timeOfDay: timeOfDay(),
+					timeOfDay: greetingTime,
 					name: auth.user.name?.split(" ")[0] ?? "",
 				})}
 			</h1>
