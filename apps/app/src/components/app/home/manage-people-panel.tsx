@@ -1,3 +1,4 @@
+import type { OrganizationCapability } from "@orcai/schema";
 import { useSuspenseQueries } from "@tanstack/react-query";
 import type { LinkProps } from "@tanstack/react-router";
 import { Link, useRouteContext } from "@tanstack/react-router";
@@ -5,10 +6,13 @@ import { buttonVariants } from "@/components/ui/button";
 import {
 	Panel,
 	PanelHeader,
+	PanelRow,
 	PanelRows,
 	PanelTitle,
 	panelRowVariants,
 } from "@/components/ui/composed/panel";
+import { useOrganizationCapabilities } from "@/hooks/authz/use-capabilities";
+import { hasCapability } from "@/lib/authz/capabilities";
 import { orpc } from "@/lib/orpc/orpc";
 import { formatCount } from "@/lib/presentation/format-number";
 import { m } from "@/paraglide/messages";
@@ -24,6 +28,8 @@ const ManagePeoplePanel = () => {
 		from: "/app",
 	});
 	const organizationId = auth.session.activeOrganizationId;
+	const { data: organizationCapabilities } = useOrganizationCapabilities();
+	const capabilities = organizationCapabilities?.data.capabilities;
 
 	const [members, groups, invitations] = useSuspenseQueries({
 		queries: [
@@ -53,6 +59,7 @@ const ManagePeoplePanel = () => {
 		meta: string;
 		count: number;
 		linkProps: LinkProps;
+		requires: OrganizationCapability;
 	}> = [
 		{
 			label: m.home_people_members_label(),
@@ -61,6 +68,7 @@ const ManagePeoplePanel = () => {
 			linkProps: {
 				to: "/app/users",
 			},
+			requires: "manage_members",
 		},
 		{
 			label: m.home_people_groups_label(),
@@ -69,6 +77,7 @@ const ManagePeoplePanel = () => {
 			linkProps: {
 				to: "/app/groups",
 			},
+			requires: "manage_groups",
 		},
 		{
 			label: m.home_people_invitations_label(),
@@ -77,6 +86,7 @@ const ManagePeoplePanel = () => {
 			linkProps: {
 				to: "/app/users/invites",
 			},
+			requires: "manage_members",
 		},
 	];
 
@@ -84,36 +94,48 @@ const ManagePeoplePanel = () => {
 		<Panel>
 			<PanelHeader>
 				<PanelTitle>{m.home_people_panel_title()}</PanelTitle>
-				<Link
-					to="/app/users/add"
-					className={buttonVariants({
-						variant: "ghost",
-						size: "sm",
-					})}
-				>
-					{m.home_people_panel_invite_action()}
-				</Link>
-			</PanelHeader>
-			<PanelRows>
-				{rows.map((row) => (
+				{hasCapability(capabilities, "manage_members") ? (
 					<Link
-						key={row.label}
-						{...row.linkProps}
-						className={panelRowVariants({
-							variant: "link",
+						to="/app/users/add"
+						className={buttonVariants({
+							variant: "ghost",
+							size: "sm",
 						})}
 					>
-						<div className="flex min-w-0 flex-col gap-1">
-							<span className="truncate font-medium">{row.label}</span>
-							<p className="truncate text-muted-foreground text-xs">
-								{row.meta}
-							</p>
-						</div>
-						<span className="shrink-0 font-medium text-base tabular-nums">
-							{formatCount(row.count)}
-						</span>
+						{m.home_people_panel_invite_action()}
 					</Link>
-				))}
+				) : null}
+			</PanelHeader>
+			<PanelRows>
+				{rows.map((row) => {
+					const body = (
+						<>
+							<div className="flex min-w-0 flex-col gap-1">
+								<span className="truncate font-medium">{row.label}</span>
+								<p className="truncate text-muted-foreground text-xs">
+									{row.meta}
+								</p>
+							</div>
+							<span className="shrink-0 font-medium text-base tabular-nums">
+								{formatCount(row.count)}
+							</span>
+						</>
+					);
+
+					return hasCapability(capabilities, row.requires) ? (
+						<Link
+							key={row.label}
+							{...row.linkProps}
+							className={panelRowVariants({
+								variant: "link",
+							})}
+						>
+							{body}
+						</Link>
+					) : (
+						<PanelRow key={row.label}>{body}</PanelRow>
+					);
+				})}
 			</PanelRows>
 		</Panel>
 	);

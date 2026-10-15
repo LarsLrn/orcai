@@ -11,6 +11,8 @@ import {
 	PageTitle,
 } from "@/components/ui/shell/page";
 import { Skeleton } from "@/components/ui/skeleton";
+import { useOrganizationCapabilities } from "@/hooks/authz/use-capabilities";
+import { hasCapability } from "@/lib/authz/capabilities";
 import { orpc } from "@/lib/orpc/orpc";
 import { m } from "@/paraglide/messages";
 import { ManageLibraryPanel } from "./manage-library-panel";
@@ -33,6 +35,23 @@ const OrganizationTitle = () => {
 	return <PageTitle>{organization.data.name}</PageTitle>;
 };
 
+const CreateBotAction = () => {
+	const { data } = useOrganizationCapabilities();
+
+	if (!hasCapability(data?.data.capabilities, "create_bot")) {
+		return null;
+	}
+
+	return (
+		<PageAction>
+			<Link to="/app/hub/bots/add" className={buttonVariants()}>
+				<SparklesIcon />
+				{m.home_manage_create_bot_action()}
+			</Link>
+		</PageAction>
+	);
+};
+
 const ManagerHome = () => (
 	<div className="space-y-10">
 		<PageHeader>
@@ -40,12 +59,7 @@ const ManagerHome = () => (
 				<OrganizationTitle />
 			</Suspense>
 			<PageDescription>{m.home_manage_description()}</PageDescription>
-			<PageAction>
-				<Link to="/app/hub/bots/add" className={buttonVariants()}>
-					<SparklesIcon />
-					{m.home_manage_create_bot_action()}
-				</Link>
-			</PageAction>
+			<CreateBotAction />
 		</PageHeader>
 
 		<div className="grid grid-cols-1 gap-4 lg:grid-cols-3">
