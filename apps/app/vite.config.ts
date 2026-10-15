@@ -14,6 +14,11 @@ export default defineConfig({
 		strictPort: true,
 		// Dev servers are reached through per-worktree proxy hostnames.
 		allowedHosts: true,
+		// Devtools already pipes browser console output; forwarding it twice loops.
+		forwardConsole: {
+			unhandledErrors: true,
+			logLevels: [],
+		},
 	},
 	ssr: {
 		noExternal: [
