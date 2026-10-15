@@ -47,64 +47,73 @@ const GroupSettingsForm = ({ group }: { group: Group }) => {
 			<CardHeader>
 				<CardTitle>{m.groups_settings_card_title()}</CardTitle>
 				<CardDescription>
-					{m.groups_settings_card_description()}
+					{isSystemGroup
+						? m.groups_settings_card_description_system()
+						: m.groups_settings_card_description_custom()}
 				</CardDescription>
 			</CardHeader>
-			<CardContent className="space-y-3">
-				<div className="space-y-2">
-					<Label htmlFor="group-name">{m.common_name_label()}</Label>
-					<Input
-						id="group-name"
-						value={name}
-						onChange={(event) => setName(event.target.value)}
-						disabled={isSystemGroup}
-					/>
-				</div>
-				<div className="space-y-2">
-					<Label htmlFor="group-description">
-						{m.common_description_label()}
-					</Label>
-					<Textarea
-						id="group-description"
-						value={description}
-						onChange={(event) => setDescription(event.target.value)}
-						disabled={isSystemGroup}
-						rows={3}
-					/>
-				</div>
-				<div className="flex gap-2">
-					<Button
-						onClick={() =>
-							updateGroup.mutate({
-								id: group.id,
-								name: name.trim(),
-								description: description.trim() ? description.trim() : null,
-							})
-						}
-						loading={updateGroup.isPending}
-						disabled={isSystemGroup || !name.trim()}
-					>
-						{m.common_save_button()}
-					</Button>
-					{!isSystemGroup && (
+			<CardContent>
+				<form
+					className="space-y-3"
+					onSubmit={(event) => {
+						event.preventDefault();
+						updateGroup.mutate({
+							id: group.id,
+							name: name.trim(),
+							description: description.trim() ? description.trim() : null,
+						});
+					}}
+				>
+					<div className="space-y-2">
+						<Label htmlFor="group-name">{m.common_name_label()}</Label>
+						<Input
+							id="group-name"
+							value={name}
+							onChange={(event) => setName(event.target.value)}
+							disabled={isSystemGroup}
+						/>
+					</div>
+					<div className="space-y-2">
+						<Label htmlFor="group-description">
+							{m.common_description_label()}
+						</Label>
+						<Textarea
+							id="group-description"
+							value={description}
+							onChange={(event) => setDescription(event.target.value)}
+							disabled={isSystemGroup}
+							rows={3}
+						/>
+					</div>
+					<div className="flex gap-2">
 						<Button
-							variant="destructive"
-							loading={deleteGroup.isPending}
-							onClick={() =>
-								deleteGroup.mutate({
-									refs: [
-										{
-											id: group.id,
-										},
-									],
-								})
-							}
+							type="submit"
+							loading={updateGroup.isPending}
+							disabled={isSystemGroup || !name.trim()}
 						>
-							<Trash2Icon />
-							{m.groups_delete_action()}
+							{m.common_save_button()}
 						</Button>
-					)}
-				</div>
+						{!isSystemGroup && (
+							<Button
+								type="button"
+								variant="destructive"
+								loading={deleteGroup.isPending}
+								onClick={() =>
+									deleteGroup.mutate({
+										refs: [
+											{
+												id: group.id,
+											},
+										],
+									})
+								}
+							>
+								<Trash2Icon />
+								{m.groups_delete_action()}
+							</Button>
+						)}
+					</div>
+				</form>
 			</CardContent>
 		</Card>
 	);

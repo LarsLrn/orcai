@@ -5,7 +5,6 @@ import { GroupSettingsForm } from "@/components/groups/group-settings-form";
 import { Badge } from "@/components/ui/badge";
 import {
 	Page,
-	PageAction,
 	PageContent,
 	PageHeader,
 	PageTitle,
@@ -45,11 +44,9 @@ function RouteComponent() {
 		<Page>
 			<PageHeader>
 				<PageTitle>{groupData.name}</PageTitle>
-				<PageAction>
-					<Badge variant={isSystemGroup ? "outline" : "secondary"}>
-						{isSystemGroup ? m.groups_kind_system() : m.groups_kind_custom()}
-					</Badge>
-				</PageAction>
+				<Badge variant={isSystemGroup ? "outline" : "secondary"}>
+					{isSystemGroup ? m.groups_kind_system() : m.groups_kind_custom()}
+				</Badge>
 			</PageHeader>
 
 			<PageContent className="space-y-4">
