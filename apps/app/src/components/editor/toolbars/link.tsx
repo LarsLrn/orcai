@@ -92,9 +92,11 @@ const LinkToolbar = ({
 				render={
 					<div className="relative">
 						<PopoverPrimitive.Close
+							aria-label={m.common_close_button()}
 							className="absolute top-3 right-3"
-							render={<X className="h-4 w-4" />}
-						/>
+						>
+							<X className="h-4 w-4" />
+						</PopoverPrimitive.Close>
 						<div>
 							<Label>{m.editor_toolbar_link_popover_label()}</Label>
 							<p className="text-gray-11 text-sm">
