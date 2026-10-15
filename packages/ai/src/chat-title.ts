@@ -1,7 +1,5 @@
 const MAX_CHAT_TITLE_LENGTH = 80;
 
-export const DEFAULT_CHAT_TITLE = "New Chat";
-
 const isTextPart = (
 	part: unknown,
 ): part is {
@@ -16,7 +14,7 @@ const isTextPart = (
 	typeof part.text === "string";
 
 export const shouldGenerateChatTitle = (title: string | null | undefined) =>
-	title == null || title.trim() === "" || title.trim() === DEFAULT_CHAT_TITLE;
+	title == null || title.trim() === "";
 
 export const getChatTitleSourceText = (message: { parts: unknown[] }) => {
 	const text = message.parts

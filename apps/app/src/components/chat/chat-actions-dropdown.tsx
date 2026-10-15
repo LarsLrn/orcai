@@ -91,7 +91,7 @@ const ChatActionsDropdown = ({
 				copy={{
 					title: m.chat_rename_dialog_title(),
 					description: m.chat_rename_dialog_description(),
-					placeholder: m.chat_rename_dialog_placeholder(),
+					placeholder: m.chat_title_placeholder(),
 					submit: m.chat_rename_dialog_submit(),
 				}}
 				isSubmitting={isUpdatingChat}

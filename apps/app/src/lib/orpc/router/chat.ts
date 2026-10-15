@@ -1,4 +1,3 @@
-import { DEFAULT_CHAT_TITLE } from "@orcai/ai";
 import { DB, dbSchema } from "@orcai/db";
 import type { ChatSortKey } from "@orcai/schema";
 import {
@@ -171,7 +170,7 @@ export const createChat = authed.chat.create.effect(function* ({
 			const [chat] = yield* tx
 				.insert(dbSchema.chat)
 				.values({
-					title: input.title ?? DEFAULT_CHAT_TITLE,
+					title: input.title,
 					userId: context.auth.user.id,
 					botId: input.botId,
 					config: input.config ?? {},

@@ -1,6 +1,5 @@
 export {
 	buildChatTitlePrompt,
-	DEFAULT_CHAT_TITLE,
 	getChatTitleSourceText,
 	sanitizeGeneratedChatTitle,
 	shouldGenerateChatTitle,

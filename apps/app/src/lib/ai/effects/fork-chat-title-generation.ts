@@ -1,6 +1,5 @@
 import {
 	buildChatTitlePrompt,
-	DEFAULT_CHAT_TITLE,
 	getChatTitleSourceText,
 	sanitizeGeneratedChatTitle,
 	shouldGenerateChatTitle,
@@ -71,11 +70,7 @@ const generateAndPersistChatTitle = (params: {
 			.where(
 				and(
 					eq(dbSchema.chat.id, params.chatId),
-					or(
-						isNull(dbSchema.chat.title),
-						eq(dbSchema.chat.title, ""),
-						eq(dbSchema.chat.title, DEFAULT_CHAT_TITLE),
-					),
+					or(isNull(dbSchema.chat.title), eq(dbSchema.chat.title, "")),
 				),
 			);
 	});
