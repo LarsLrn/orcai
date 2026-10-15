@@ -8,6 +8,7 @@
 	},
 	"dependencies": {
 		"@ai-sdk/openai": "4.0.91",
+		"@ai-sdk/otel": "1.0.137",
 		"ai": "catalog:",
 		"effect": "catalog:",
 		"llama-tokenizer-js": "1.2.2"

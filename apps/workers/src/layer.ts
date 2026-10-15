@@ -1,4 +1,4 @@
-import { AiConfigLive } from "@orcai/ai";
+import { AiConfigLive, AiTelemetryLive } from "@orcai/ai";
 import { DrizzleLive } from "@orcai/db";
 import { EmailConfigLive, EmailLive } from "@orcai/notifications";
 import { PgBossLive } from "@orcai/pg-boss";
@@ -21,6 +21,7 @@ const BaseWorkerLayer = Layer.mergeAll(
 
 export const BackgroundWorkerLayer = Layer.mergeAll(
 	ObservabilityLive,
+	AiTelemetryLive,
 	BaseWorkerLayer,
 	QuotaCounterStoreLive.pipe(Layer.provideMerge(BaseWorkerLayer)),
 );

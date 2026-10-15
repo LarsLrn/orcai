@@ -229,6 +229,7 @@
       "version": "0.1.0",
       "dependencies": {
         "@ai-sdk/openai": "4.0.91",
+        "@ai-sdk/otel": "1.0.137",
         "ai": "catalog:",
         "effect": "catalog:",
         "llama-tokenizer-js": "1.2.2",
@@ -437,6 +438,8 @@
     "@ai-sdk/openai": ["@ai-sdk/openai@4.0.91", "", { "dependencies": { "@ai-sdk/provider": "4.0.26", "@ai-sdk/provider-utils": "5.0.58" }, "peerDependencies": { "zod": "^3.25.76 || ^4.1.8" } }, "sha512-Nk382R6us0GNxI1cGJUXMryz1XHpyrmC3K/Rmqdx9tIsqAlc7UtuO/hC9dd31F41w8uzoS362HJSDXgAI7zKbA=="],
 
     "@ai-sdk/openai-compatible": ["@ai-sdk/openai-compatible@3.0.67", "", { "dependencies": { "@ai-sdk/provider": "4.0.26", "@ai-sdk/provider-utils": "5.0.58" }, "peerDependencies": { "zod": "^3.25.76 || ^4.1.8" } }, "sha512-w1l+CRQoPgXGRuDMpD0hal7RWXYXzbr0uMzTF7L/zHusYRUfwQHphs/voY/H8yMWLc+8chu2UCfvfwUGSANubA=="],
+
+    "@ai-sdk/otel": ["@ai-sdk/otel@1.0.137", "", { "dependencies": { "@ai-sdk/provider": "4.0.26", "@opentelemetry/api": "1.9.1", "ai": "7.0.137" } }, "sha512-CXpSaJpzcc3l8ZN/4OHLtW+tSjJBs4iAMeJhS7L0BofkVM7qKsv8dK9XhpOsuo8Jvd5ZGmXSgo1gL/3RWtKpHw=="],
 
     "@ai-sdk/provider": ["@ai-sdk/provider@4.0.26", "", { "dependencies": { "json-schema": "^0.4.0" } }, "sha512-BZ443uBEq6HuMA+Z4b7Hpm65GpZSo7pWqnYqpf/7tAO3C48JbtvAhOE2JnODFj+jodsZzfRHkAyQb64xuD2tZQ=="],
 

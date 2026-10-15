@@ -1,4 +1,4 @@
-import { AiError } from "@orcai/ai";
+import { AiError, aiTelemetry } from "@orcai/ai";
 import type { OrganizationId, ProviderId, UserId } from "@orcai/core";
 import {
 	finalizeAppRequestQuota,
@@ -89,6 +89,10 @@ export const generateTextWithQuota = (input: GenerateTextWithQuotaInput) =>
 			topP: input.topP,
 			frequencyPenalty: input.frequencyPenalty,
 			presencePenalty: input.presencePenalty,
+			...aiTelemetry(input.operation, {
+				organizationId: input.organizationId,
+				providerId: input.providerId,
+			}),
 		};
 
 		const providerCallBase = Effect.tryPromise({
