@@ -6,6 +6,7 @@ import type { SelectOption } from "@/components/ui/composed/selectable-list-item
 import { SelectableListItem } from "@/components/ui/composed/selectable-list-item";
 import { Input } from "@/components/ui/input";
 import { ScrollArea } from "@/components/ui/scroll-area";
+import { m } from "@/paraglide/messages";
 
 type SearchablePickerRow = {
 	option: SelectOption<string>;
@@ -59,16 +60,18 @@ const SearchablePicker = <TItem,>({
 			</div>
 			<div className="flex items-center justify-between">
 				<p className="text-muted-foreground text-xs">
-					{selected.length} selected
+					{m.common_selected_count_label({
+						count: selected.length,
+					})}
 				</p>
 				<Button
-					variant="destructive"
+					variant="ghost"
 					size="xs"
 					className="text-xs"
 					onClick={onClearSelection}
 					disabled={disabled || selected.length === 0}
 				>
-					Clear selection
+					{m.common_clear_selection_button()}
 				</Button>
 			</div>
 
