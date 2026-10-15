@@ -1,4 +1,5 @@
 import type { TemplateBlock } from "@orcai/schema";
+import { useNavigate } from "@tanstack/react-router";
 import { useAppForm } from "@/hooks/form";
 import {
 	useCreateBlockMutation,
@@ -20,7 +21,16 @@ const TemplateBlockForm = ({
 	block?: TemplateBlock;
 }) => {
 	const { mutateAsync: createBlock } = useCreateBlockMutation();
-	const { mutateAsync: updateBlock } = useUpdateBlockMutation();
+	const navigate = useNavigate();
+	const { mutateAsync: updateBlock } = useUpdateBlockMutation({
+		onSuccess: (result) =>
+			navigate({
+				to: "/app/hub/blocks/$blockId",
+				params: {
+					blockId: result.data.id,
+				},
+			}),
+	});
 
 	const form = useAppForm({
 		...templateBlockFormOptions(block),

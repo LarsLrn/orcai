@@ -44,7 +44,6 @@ export const useCreateOrganizationMutation = (
 export const useUpdateOrganizationMutation = (
 	opts: ReturnType<typeof orpc.organization.update.mutationOptions> = {},
 ) => {
-	const router = useRouter();
 	const queryClient = useQueryClient();
 
 	return useMutationAction({
@@ -55,8 +54,6 @@ export const useUpdateOrganizationMutation = (
 					queryClient.invalidateQueries({
 						queryKey: orpc.organization.key(),
 					});
-
-					router.history.back();
 
 					try {
 						await opts.onSuccess?.(...args);

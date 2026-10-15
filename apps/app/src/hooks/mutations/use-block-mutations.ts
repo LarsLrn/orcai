@@ -56,7 +56,6 @@ export const useCreateBlockMutation = (
 export const useUpdateBlockMutation = (
 	opts: ReturnType<typeof orpc.block.update.mutationOptions> = {},
 ) => {
-	const router = useRouter();
 	const queryClient = useQueryClient();
 
 	return useMutationAction({
@@ -67,8 +66,6 @@ export const useUpdateBlockMutation = (
 					queryClient.invalidateQueries({
 						queryKey: orpc.block.key(),
 					});
-
-					router.history.back();
 
 					try {
 						await opts.onSuccess?.(...args);

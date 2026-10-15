@@ -1,5 +1,6 @@
 import type { ImageGenerationBlock } from "@orcai/schema";
 import { skipToken, useQuery, useSuspenseQuery } from "@tanstack/react-query";
+import { useNavigate } from "@tanstack/react-router";
 import { useSelector } from "@tanstack/react-store";
 import type { Content } from "@tiptap/react";
 import { useId } from "react";
@@ -29,7 +30,16 @@ const ImageGenerationBlockForm = ({
 	block?: ImageGenerationBlock;
 }) => {
 	const { mutateAsync: createBlock } = useCreateBlockMutation();
-	const { mutateAsync: updateBlock } = useUpdateBlockMutation();
+	const navigate = useNavigate();
+	const { mutateAsync: updateBlock } = useUpdateBlockMutation({
+		onSuccess: (result) =>
+			navigate({
+				to: "/app/hub/blocks/$blockId",
+				params: {
+					blockId: result.data.id,
+				},
+			}),
+	});
 	const contentTitleId = useId();
 
 	const { data: providers } = useSuspenseQuery(

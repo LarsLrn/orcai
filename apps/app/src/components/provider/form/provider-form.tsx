@@ -1,5 +1,6 @@
 import { providerCompatibilities, providerMeteringModes } from "@orcai/core";
 import type { Provider } from "@orcai/schema";
+import { useNavigate } from "@tanstack/react-router";
 import { useAppForm } from "@/hooks/form";
 import {
 	useCreateProviderMutation,
@@ -16,7 +17,16 @@ const ProviderForm = ({
 	provider?: Provider;
 }) => {
 	const { mutateAsync: createProvider } = useCreateProviderMutation();
-	const { mutateAsync: updateProvider } = useUpdateProviderMutation();
+	const navigate = useNavigate();
+	const { mutateAsync: updateProvider } = useUpdateProviderMutation({
+		onSuccess: (result) =>
+			navigate({
+				to: "/app/providers/$providerId",
+				params: {
+					providerId: result.data.id,
+				},
+			}),
+	});
 
 	const form = useAppForm({
 		...providerFormOptions(provider),

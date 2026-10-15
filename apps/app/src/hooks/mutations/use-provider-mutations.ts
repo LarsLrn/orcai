@@ -51,7 +51,6 @@ export const useCreateProviderMutation = (
 export const useUpdateProviderMutation = (
 	opts: ReturnType<typeof orpc.provider.update.mutationOptions> = {},
 ) => {
-	const router = useRouter();
 	const queryClient = useQueryClient();
 
 	return useMutationAction({
@@ -62,8 +61,6 @@ export const useUpdateProviderMutation = (
 					queryClient.invalidateQueries({
 						queryKey: orpc.provider.key(),
 					});
-
-					router.history.back();
 
 					try {
 						await opts.onSuccess?.(...args);
