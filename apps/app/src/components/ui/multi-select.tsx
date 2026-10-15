@@ -8,7 +8,7 @@ import {
 } from "lucide-react";
 import * as React from "react";
 import { Badge } from "@/components/ui/badge";
-import { Button } from "@/components/ui/button";
+import { buttonVariants } from "@/components/ui/button";
 import {
 	Command,
 	CommandEmpty,
@@ -110,10 +110,7 @@ interface MultiSelectGroup {
  * Props for MultiSelect component
  */
 interface MultiSelectProps
-	extends Omit<
-			React.ButtonHTMLAttributes<HTMLButtonElement>,
-			"animationConfig"
-		>,
+	extends Omit<React.HTMLAttributes<HTMLDivElement>, "animationConfig">,
 		VariantProps<typeof multiSelectVariants> {
 	/**
 	 * An array of option objects or groups to be displayed in the multi-select component.
@@ -401,7 +398,7 @@ export const MultiSelect = React.forwardRef<MultiSelectRef, MultiSelectProps>(
 			onValueChange,
 		]);
 
-		const buttonRef = React.useRef<HTMLButtonElement>(null);
+		const triggerRef = React.useRef<HTMLDivElement>(null);
 
 		React.useImperativeHandle(
 			ref,
@@ -417,16 +414,17 @@ export const MultiSelect = React.forwardRef<MultiSelectRef, MultiSelectProps>(
 					onValueChange([]);
 				},
 				focus: () => {
-					if (buttonRef.current) {
-						buttonRef.current.focus();
-						const originalOutline = buttonRef.current.style.outline;
-						const originalOutlineOffset = buttonRef.current.style.outlineOffset;
-						buttonRef.current.style.outline = "2px solid hsl(var(--ring))";
-						buttonRef.current.style.outlineOffset = "2px";
+					if (triggerRef.current) {
+						triggerRef.current.focus();
+						const originalOutline = triggerRef.current.style.outline;
+						const originalOutlineOffset =
+							triggerRef.current.style.outlineOffset;
+						triggerRef.current.style.outline = "2px solid hsl(var(--ring))";
+						triggerRef.current.style.outlineOffset = "2px";
 						setTimeout(() => {
-							if (buttonRef.current) {
-								buttonRef.current.style.outline = originalOutline;
-								buttonRef.current.style.outlineOffset = originalOutlineOffset;
+							if (triggerRef.current) {
+								triggerRef.current.style.outline = originalOutline;
+								triggerRef.current.style.outlineOffset = originalOutlineOffset;
 							}
 						}, 1000);
 					}
@@ -659,11 +657,6 @@ export const MultiSelect = React.forwardRef<MultiSelectRef, MultiSelectProps>(
 			onValueChange([]);
 		};
 
-		const handleTogglePopover = () => {
-			if (disabled) return;
-			setIsPopoverOpen((prev) => !prev);
-		};
-
 		const clearExtraOptions = () => {
 			if (disabled) return;
 			const newSelectedValues = selectedValues.slice(
@@ -830,12 +823,14 @@ export const MultiSelect = React.forwardRef<MultiSelectRef, MultiSelectProps>(
 					</div>
 
 					<PopoverTrigger
+						nativeButton={false}
+						disabled={disabled}
 						render={
-							<Button
+							<div
 								{...props}
-								onClick={handleTogglePopover}
-								disabled={disabled}
+								ref={triggerRef}
 								role="combobox"
+								tabIndex={disabled ? -1 : 0}
 								aria-expanded={isPopoverOpen}
 								aria-haspopup="listbox"
 								aria-controls={isPopoverOpen ? listboxId : undefined}
@@ -844,6 +839,7 @@ export const MultiSelect = React.forwardRef<MultiSelectRef, MultiSelectProps>(
 									getAllOptions().length
 								} options selected. ${placeholder}`}
 								className={cn(
+									buttonVariants(),
 									"flex h-auto min-h-10 items-center justify-between rounded-md border bg-inherit p-1 hover:bg-inherit [&_svg]:pointer-events-auto",
 									autoSize ? "w-auto" : "w-full",
 									responsiveSettings.compactMode && "min-h-8 text-sm",
@@ -942,20 +938,10 @@ export const MultiSelect = React.forwardRef<MultiSelectRef, MultiSelectProps>(
 															</span>
 															<button
 																type="button"
-																tabIndex={0}
+																disabled={disabled}
 																onClick={(event) => {
 																	event.stopPropagation();
 																	toggleOption(value);
-																}}
-																onKeyDown={(event) => {
-																	if (
-																		event.key === "Enter" ||
-																		event.key === " "
-																	) {
-																		event.preventDefault();
-																		event.stopPropagation();
-																		toggleOption(value);
-																	}
 																}}
 																aria-label={`Remove ${option.label} from selection`}
 																className="-m-0.5 ml-2 h-4.5 w-4.5 cursor-pointer rounded-sm p-0.5 hover:bg-white/20 focus:outline-none focus:ring-1 focus:ring-white/50"
@@ -995,33 +981,39 @@ export const MultiSelect = React.forwardRef<MultiSelectRef, MultiSelectProps>(
 													{`+ ${
 														selectedValues.length - responsiveSettings.maxCount
 													} more`}
-													<XCircle
-														className={cn(
-															"ml-2 h-4 w-4 cursor-pointer",
-															responsiveSettings.compactMode && "ml-1 h-3 w-3",
-														)}
+													<button
+														type="button"
+														disabled={disabled}
 														onClick={(event) => {
 															event.stopPropagation();
 															clearExtraOptions();
 														}}
-													/>
+														aria-label={`Remove ${
+															selectedValues.length -
+															responsiveSettings.maxCount
+														} more options from selection`}
+														className={cn(
+															"-m-0.5 ml-2 cursor-pointer rounded-sm p-0.5 hover:bg-white/20 focus:outline-none focus:ring-1 focus:ring-white/50",
+															responsiveSettings.compactMode && "ml-1",
+														)}
+													>
+														<XCircle
+															className={cn(
+																"h-4 w-4",
+																responsiveSettings.compactMode && "h-3 w-3",
+															)}
+														/>
+													</button>
 												</Badge>
 											)}
 										</div>
 										<div className="flex items-center justify-between">
 											<button
 												type="button"
-												tabIndex={0}
+												disabled={disabled}
 												onClick={(event) => {
 													event.stopPropagation();
 													handleClear();
-												}}
-												onKeyDown={(event) => {
-													if (event.key === "Enter" || event.key === " ") {
-														event.preventDefault();
-														event.stopPropagation();
-														handleClear();
-													}
 												}}
 												aria-label={`Clear all ${selectedValues.length} selected options`}
 												className="mx-2 flex h-4 w-4 cursor-pointer items-center justify-center rounded-sm text-muted-foreground hover:text-foreground focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-1"
@@ -1046,7 +1038,7 @@ export const MultiSelect = React.forwardRef<MultiSelectRef, MultiSelectProps>(
 										<ChevronDown className="mx-2 h-4 cursor-pointer text-muted-foreground" />
 									</div>
 								)}
-							</Button>
+							</div>
 						}
 					/>
 					<PopoverContent

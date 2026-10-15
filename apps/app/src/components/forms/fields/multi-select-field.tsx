@@ -28,7 +28,7 @@ const MultiSelectField = ({
 	disabled?: boolean;
 }) => {
 	const field = useFieldContext<string[]>();
-	const id = useId();
+	const labelId = useId();
 
 	const errors = useSelector(field.store, (state) => state.meta.errors);
 	const isInvalid = useSelector(
@@ -39,16 +39,15 @@ const MultiSelectField = ({
 	return (
 		<Field orientation="responsive" data-invalid={isInvalid}>
 			<FieldContent>
-				<FieldLabel htmlFor={id}>{label}</FieldLabel>
+				<FieldLabel id={labelId}>{label}</FieldLabel>
 				{description && <FieldDescription>{description}</FieldDescription>}
 				{isInvalid && <FieldError errors={errors} />}
 			</FieldContent>
 			<MultiSelect
-				id={id}
+				aria-labelledby={labelId}
 				aria-invalid={isInvalid}
 				options={options}
 				defaultValue={field.state.value}
-				value={field.state.value}
 				onValueChange={field.handleChange}
 				placeholder={placeholder ?? m.forms_multi_select_field_placeholder()}
 				disabled={disabled || options === undefined || options.length === 0}
