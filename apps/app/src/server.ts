@@ -1,7 +1,9 @@
 import handler from "@tanstack/react-start/server-entry";
 import { ensureRuntimeReady, runtime } from "./lib/effect/runtime";
 import { installZodErrorMap } from "./lib/errors/zod-error-map";
+import { traceRequest } from "./lib/observability/request-span";
 import { paraglideMiddleware } from "./paraglide/server.js";
+import { getRouter } from "./router";
 
 installZodErrorMap();
 
@@ -29,9 +31,15 @@ const shutdown = () => {
 process.once("SIGTERM", shutdown);
 process.once("SIGINT", shutdown);
 
+// Only matches request paths to route templates for span names.
+const routeMatcher = getRouter();
+
 export default {
 	async fetch(req: Request): Promise<Response> {
+		// The tracer provider is registered while the runtime builds.
 		await runtimeReady;
-		return paraglideMiddleware(req, () => handler.fetch(req));
+		return traceRequest(req, routeMatcher, () =>
+			paraglideMiddleware(req, () => handler.fetch(req)),
+		);
 	},
 };

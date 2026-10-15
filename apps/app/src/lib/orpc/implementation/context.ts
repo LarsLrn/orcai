@@ -1,6 +1,4 @@
-import * as OtelTracer from "@effect/opentelemetry/OtelTracer";
-import { context as otelContext, trace } from "@opentelemetry/api";
-import { logErrorCause } from "@orcai/observability";
+import { logErrorCause, withActiveSpan } from "@orcai/observability";
 import { getCookie } from "@orpc/server/helpers";
 import * as Cause from "effect/Cause";
 import * as Effect from "effect/Effect";
@@ -47,14 +45,7 @@ export async function createORPCContext(params: {
 		},
 		secureCookies,
 		"effect/context": await runtime.context(),
-		"effect/wrap": (effect) => {
-			const activeSpan = trace.getSpan(otelContext.active());
-
-			const traced = activeSpan
-				? OtelTracer.withSpanContext(effect, activeSpan.spanContext())
-				: effect;
-
-			return mapEffectCauseToORPCError(traced);
-		},
+		"effect/wrap": (effect) =>
+			mapEffectCauseToORPCError(withActiveSpan(effect)),
 	};
 }

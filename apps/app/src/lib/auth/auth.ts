@@ -23,7 +23,7 @@ import {
 	soleOrganizationOf,
 } from "@/lib/auth/invitation-signup";
 import { secureCookiesFor, zedTokenCookieOptions } from "@/lib/authz/zed-token";
-import { runtime } from "@/lib/effect/runtime";
+import { runPromise } from "@/lib/effect/runtime";
 import { loadAppConfigSync } from "@/lib/effect/services/config";
 import { COOKIES } from "@/settings/constants";
 
@@ -77,7 +77,7 @@ export const auth = betterAuth({
 		requireEmailVerification: false,
 		revokeSessionsOnPasswordReset: true,
 		sendResetPassword: async ({ user, url, token }, _request) => {
-			await runtime.runPromise(
+			await runPromise(
 				enqueueNotification(
 					{
 						type: "auth.reset-password",
@@ -95,7 +95,7 @@ export const auth = betterAuth({
 		sendOnSignIn: false,
 		autoSignInAfterVerification: true,
 		sendVerificationEmail: async ({ user, url, token }) => {
-			await runtime.runPromise(
+			await runPromise(
 				enqueueNotification(
 					{
 						type: "auth.verify-email",
@@ -131,7 +131,7 @@ export const auth = betterAuth({
 					const invitationId = organizationInvitationIdSchema.safeParse(
 						ctx?.body?.invitationId,
 					);
-					const invitations = await runtime.runPromise(
+					const invitations = await runPromise(
 						pendingInvitationsFor(user.email),
 					);
 
@@ -151,7 +151,7 @@ export const auth = betterAuth({
 				after: async (user, ctx) => {
 					const userId = userIdSchema.parse(user.id);
 
-					const { zedToken } = await runtime.runPromise(
+					const { zedToken } = await runPromise(
 						acceptInvitation({
 							invitationId: organizationInvitationIdSchema.parse(
 								ctx?.body?.invitationId,
@@ -170,7 +170,7 @@ export const auth = betterAuth({
 							zedTokenCookieOptions(secureCookiesFor(cfg.auth.url)),
 						);
 
-					await runtime.runPromise(activateSoleOrganizationForSessions(userId));
+					await runPromise(activateSoleOrganizationForSessions(userId));
 				},
 			},
 		},
@@ -183,7 +183,7 @@ export const auth = betterAuth({
 						return;
 					}
 
-					const organizationId = await runtime.runPromise(
+					const organizationId = await runPromise(
 						soleOrganizationOf(userIdSchema.parse(session.userId)),
 					);
 

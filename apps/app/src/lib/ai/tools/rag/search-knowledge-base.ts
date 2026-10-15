@@ -7,7 +7,7 @@ import {
 import { tool } from "ai";
 import * as Effect from "effect/Effect";
 import { z } from "zod/v4";
-import { runtime } from "@/lib/effect/runtime";
+import { runPromise } from "@/lib/effect/runtime";
 import { client } from "@/lib/orpc/orpc";
 import { RETRIEVAL_LIMITS } from "@/settings/constants";
 import type { SearchResult } from "./types";
@@ -97,7 +97,7 @@ export const searchKnowledgeBaseTool = ({
 				.describe("Optional block ID to search only one knowledge base block."),
 		}),
 		execute: async ({ query, queryVariants, queries, assetIds, blockId }) =>
-			runtime.runPromise(
+			runPromise(
 				Effect.gen(function* () {
 					if (blocks.length === 0) {
 						return yield* new AiError({
