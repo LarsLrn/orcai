@@ -1845,6 +1845,7 @@
 	"editor_toolbar_strikethrough_tooltip": "Strikethrough",
 	"editor_toolbar_underline_tooltip": "Underline",
 	"editor_toolbar_undo_tooltip": "Undo",
+	"editor_youtube_title": "YouTube video",
 	"error_active_organization_required": "Select an organisation first.",
 	"error_ai_prompt_required": "A prompt or messages are required to generate text.",
 	"error_ai_stream_failed": "The AI response could not be completed.",

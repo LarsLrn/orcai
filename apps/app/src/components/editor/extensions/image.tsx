@@ -60,6 +60,7 @@ export const ImageExtension = Image.extend({
 			},
 			aspectRatio: {
 				default: null,
+				rendered: false,
 			},
 		};
 	},

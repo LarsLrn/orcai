@@ -1,11 +1,14 @@
 import "./tiptap.css";
 
 import type { JSONContent } from "@tiptap/core";
-import { getHTMLFromFragment, getSchema, isNodeEmpty } from "@tiptap/core";
+import { getSchema, isNodeEmpty } from "@tiptap/core";
+import { getEmbedUrlFromYoutubeUrl } from "@tiptap/extension-youtube";
 import { Node } from "@tiptap/pm/model";
-import { render } from "katex";
-import { useEffect, useMemo, useState } from "react";
-import { extensions } from "./extensions";
+import { renderToReactElement } from "@tiptap/static-renderer/pm/react";
+import { useMemo } from "react";
+import { m } from "@/paraglide/messages";
+import { extensions, TiptapYoutube } from "./extensions";
+import { renderMathToString } from "./extensions/math";
 
 const schema = getSchema(extensions);
 
@@ -29,45 +32,53 @@ const isContentEmpty = (content: unknown) => {
 };
 
 const ContentRenderer = ({ content }: { content?: unknown }) => {
-	const [element, setElement] = useState<HTMLElement | null>(null);
-	const html = useMemo(() => {
+	const rendered = useMemo(() => {
 		const doc = toDocument(content);
 
-		return doc ? getHTMLFromFragment(doc.content, schema) : "";
+		return doc
+			? renderToReactElement({
+					content: doc,
+					extensions,
+					options: {
+						nodeMapping: {
+							math: ({ node }) => (
+								<span
+									data-type="math"
+									dangerouslySetInnerHTML={{
+										__html: renderMathToString(node.attrs.latex),
+									}}
+								/>
+							),
+							youtube: ({ node }) => (
+								<div data-youtube-video="">
+									<iframe
+										title={m.editor_youtube_title()}
+										className={TiptapYoutube.options.HTMLAttributes.class}
+										src={
+											getEmbedUrlFromYoutubeUrl({
+												...TiptapYoutube.options,
+												url: node.attrs.src,
+												startAt: node.attrs.start || 0,
+											}) ?? undefined
+										}
+										width={node.attrs.width}
+										height={node.attrs.height}
+										allowFullScreen={TiptapYoutube.options.allowFullscreen}
+									/>
+								</div>
+							),
+						},
+					},
+				})
+			: null;
 	}, [
 		content,
 	]);
 
-	useEffect(() => {
-		if (!element) {
-			return;
-		}
-		if (!html) {
-			return;
-		}
-
-		element.querySelectorAll('[data-type="math"]').forEach((el) => {
-			const latex = el.getAttribute("latex");
-			if (!latex) {
-				return;
-			}
-			render(latex, el as HTMLElement, {
-				throwOnError: false,
-			});
-		});
-	}, [
-		element,
-		html,
-	]);
-
 	return (
-		<article
-			ref={setElement}
-			className="tiptap prose dark:prose-invert max-w-full focus:outline-none"
-			dangerouslySetInnerHTML={{
-				__html: html,
-			}}
-		/>
+		<article className="tiptap prose dark:prose-invert max-w-full focus:outline-none">
+			{rendered}
+		</article>
 	);
 };
 
