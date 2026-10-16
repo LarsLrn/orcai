@@ -85,6 +85,7 @@ const GrantEditorRow = ({
 						value={grant.role}
 						onChange={onChangeRole}
 						disabled={disabled}
+						className="w-32"
 					/>
 				)}
 				<Button

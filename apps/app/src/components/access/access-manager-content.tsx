@@ -203,6 +203,7 @@ const AccessManagerContent = ({
 							onChange={(role) => setSelectedRole(role)}
 							value={effectiveRole}
 							disabled={isMutating || selectedHasAllMembers}
+							className="w-32"
 						/>
 						<Button
 							className="w-full"

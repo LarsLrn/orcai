@@ -13,13 +13,7 @@ import {
 	type LucideIcon,
 } from "lucide-react";
 import { LoadingPage } from "@/components/app/loading/loading-page";
-import {
-	Select,
-	SelectContent,
-	SelectItem,
-	SelectTrigger,
-	SelectValue,
-} from "@/components/ui/select";
+import { OptionPicker } from "@/components/ui/composed/option-picker";
 import {
 	Hero,
 	HeroContent,
@@ -130,25 +124,13 @@ function RouteComponent() {
 						<h1 className="font-heading font-semibold text-4xl text-card-foreground tracking-tight">
 							{m.hub_page_title()}
 						</h1>
-						<Select
+						<OptionPicker
+							options={hubRouteItems}
 							value={activeTab}
-							onValueChange={navigateToRoute}
-							items={hubRouteItems}
-						>
-							<SelectTrigger
-								className="w-full @2xl:hidden"
-								aria-label={m.hub_section_switcher_aria_label()}
-							>
-								<SelectValue />
-							</SelectTrigger>
-							<SelectContent>
-								{hubRouteItems.map((route) => (
-									<SelectItem key={route.value} value={route.value}>
-										{route.label}
-									</SelectItem>
-								))}
-							</SelectContent>
-						</Select>
+							onChange={navigateToRoute}
+							aria-label={m.hub_section_switcher_aria_label()}
+							className="w-full @2xl:hidden"
+						/>
 						<Tabs
 							className="hidden @2xl:flex"
 							value={activeTab}

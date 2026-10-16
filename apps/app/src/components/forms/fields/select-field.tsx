@@ -1,5 +1,6 @@
 import { useSelector } from "@tanstack/react-store";
 import { useId } from "react";
+import { OptionPicker } from "@/components/ui/composed/option-picker";
 import {
 	Field,
 	FieldContent,
@@ -7,13 +8,6 @@ import {
 	FieldError,
 	FieldLabel,
 } from "@/components/ui/field";
-import {
-	Select,
-	SelectContent,
-	SelectItem,
-	SelectTrigger,
-	SelectValue,
-} from "@/components/ui/select";
 import { useFieldContext } from "@/hooks/form/context";
 import { useFieldLabel } from "@/hooks/form/field-labels";
 import { m } from "@/paraglide/messages";
@@ -53,31 +47,17 @@ const SelectField = ({
 				{description && <FieldDescription>{description}</FieldDescription>}
 				{isInvalid && <FieldError errors={errors} />}
 			</FieldContent>
-			<Select
+			<OptionPicker
+				id={id}
 				name={field.name}
+				options={options ?? []}
 				value={field.state.value}
-				onValueChange={(newValue) => {
-					if (newValue) {
-						field.handleChange(newValue);
-					}
-				}}
+				onChange={field.handleChange}
+				placeholder={placeholder}
 				disabled={disabled || options === undefined || options.length === 0}
-			>
-				<SelectTrigger id={id} aria-invalid={isInvalid} className="min-w-30">
-					<SelectValue>
-						{(value) =>
-							options?.find((o) => o.value === value)?.label ?? placeholder
-						}
-					</SelectValue>
-				</SelectTrigger>
-				<SelectContent>
-					{options?.map((option) => (
-						<SelectItem key={option.value} value={option.value}>
-							{option.label}
-						</SelectItem>
-					))}
-				</SelectContent>
-			</Select>
+				aria-invalid={isInvalid}
+				className="min-w-30"
+			/>
 		</Field>
 	);
 };

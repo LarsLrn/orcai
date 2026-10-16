@@ -5,15 +5,9 @@ import {
 	sourceTypes,
 } from "@orcai/schema";
 import { useId } from "react";
+import { OptionPicker } from "@/components/ui/composed/option-picker";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import {
-	Select,
-	SelectContent,
-	SelectItem,
-	SelectTrigger,
-	SelectValue,
-} from "@/components/ui/select";
 import { Switch } from "@/components/ui/switch";
 import { m } from "@/paraglide/messages";
 
@@ -287,31 +281,25 @@ const AssetMetadataEditor = ({
 				<Label htmlFor={`${id}-source-type`}>
 					{m.assets_metadata_source_type_label()}
 				</Label>
-				<Select
-					value={metadata.sourceType ?? ""}
-					onValueChange={(nextValue) =>
+				<OptionPicker<SourceType>
+					id={`${id}-source-type`}
+					options={sourceTypes.map((type) => ({
+						value: type,
+						label: sourceTypeLabels[type],
+					}))}
+					value={metadata.sourceType ?? null}
+					onChange={(sourceType) =>
 						onChange({
 							...value,
 							metadata: {
 								...metadata,
-								sourceType: nextValue as SourceType,
+								sourceType,
 							},
 						})
 					}
-				>
-					<SelectTrigger id={`${id}-source-type`} className="w-full">
-						<SelectValue
-							placeholder={m.assets_metadata_source_type_placeholder()}
-						/>
-					</SelectTrigger>
-					<SelectContent>
-						{sourceTypes.map((type) => (
-							<SelectItem key={type} value={type}>
-								{sourceTypeLabels[type]}
-							</SelectItem>
-						))}
-					</SelectContent>
-				</Select>
+					placeholder={m.assets_metadata_source_type_placeholder()}
+					className="w-full"
+				/>
 			</div>
 
 			{SourceFields ? (
@@ -333,35 +321,35 @@ const AssetMetadataEditor = ({
 				<Label htmlFor={`${id}-relevance`}>
 					{m.assets_metadata_relevance_label()}
 				</Label>
-				<Select
+				<OptionPicker<Asset["metadata"]["relevance"]>
+					id={`${id}-relevance`}
+					options={[
+						{
+							value: "high",
+							label: m.assets_relevance_high_label(),
+						},
+						{
+							value: "medium",
+							label: m.assets_relevance_medium_label(),
+						},
+						{
+							value: "low",
+							label: m.assets_relevance_low_label(),
+						},
+					]}
 					value={metadata.relevance}
-					onValueChange={(nextValue) =>
+					onChange={(relevance) =>
 						onChange({
 							...value,
 							metadata: {
 								...metadata,
-								relevance: nextValue as Asset["metadata"]["relevance"],
+								relevance,
 							},
 						})
 					}
-				>
-					<SelectTrigger id={`${id}-relevance`} className="w-full">
-						<SelectValue
-							placeholder={m.assets_metadata_relevance_placeholder()}
-						/>
-					</SelectTrigger>
-					<SelectContent>
-						<SelectItem value="high">
-							{m.assets_relevance_high_label()}
-						</SelectItem>
-						<SelectItem value="medium">
-							{m.assets_relevance_medium_label()}
-						</SelectItem>
-						<SelectItem value="low">
-							{m.assets_relevance_low_label()}
-						</SelectItem>
-					</SelectContent>
-				</Select>
+					placeholder={m.assets_metadata_relevance_placeholder()}
+					className="w-full"
+				/>
 			</div>
 
 			<div className="space-y-3 rounded-xl border p-3">

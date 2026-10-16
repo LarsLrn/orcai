@@ -1,21 +1,13 @@
 import {
-	Select,
-	SelectContent,
-	SelectItem,
-	SelectTrigger,
-	SelectValue,
-} from "@/components/ui/select";
+	OptionPicker,
+	type PickerOption,
+} from "@/components/ui/composed/option-picker";
 import { m } from "@/paraglide/messages";
-
-type DataTableSelectFilterOption<TValue extends string> = {
-	label: string;
-	value: TValue;
-};
 
 type DataTableSelectFilterProps<TValue extends string> = {
 	label: string;
 	value?: TValue;
-	options: DataTableSelectFilterOption<TValue>[];
+	options: PickerOption<TValue>[];
 	onChange: (value: TValue | undefined) => void;
 };
 
@@ -27,39 +19,24 @@ const DataTableSelectFilter = <TValue extends string>({
 	options,
 	onChange,
 }: DataTableSelectFilterProps<TValue>) => (
-	<Select
+	<OptionPicker<TValue | typeof ALL_VALUE>
+		options={[
+			{
+				value: ALL_VALUE,
+				label: m.data_table_select_filter_all_option({
+					label,
+				}),
+			},
+			...options,
+		]}
 		value={value ?? ALL_VALUE}
-		onValueChange={(nextValue) =>
+		onChange={(nextValue) =>
 			onChange(nextValue === ALL_VALUE ? undefined : (nextValue as TValue))
 		}
-	>
-		<SelectTrigger
-			aria-label={label}
-			className="max-w-full sm:max-w-64"
-			size="sm"
-		>
-			<SelectValue>
-				{value
-					? options.find((option) => option.value === value)?.label
-					: m.data_table_select_filter_all_option({
-							label,
-						})}
-			</SelectValue>
-		</SelectTrigger>
-		<SelectContent align="start">
-			<SelectItem value={ALL_VALUE}>
-				{m.data_table_select_filter_all_option({
-					label,
-				})}
-			</SelectItem>
-			{options.map((option) => (
-				<SelectItem key={option.value} value={option.value}>
-					{option.label}
-				</SelectItem>
-			))}
-		</SelectContent>
-	</Select>
+		aria-label={label}
+		className="max-w-full sm:max-w-64"
+		size="sm"
+	/>
 );
 
-export type { DataTableSelectFilterOption };
 export { DataTableSelectFilter };

@@ -6,6 +6,7 @@ import {
 	useContext,
 	useMemo,
 } from "react";
+import { OptionPicker } from "@/components/ui/composed/option-picker";
 import {
 	Dialog,
 	DialogContent,
@@ -28,13 +29,6 @@ import {
 	PaginationNext,
 	PaginationPrevious,
 } from "@/components/ui/pagination";
-import {
-	Select,
-	SelectContent as SelectDropdownContent,
-	SelectItem as SelectDropdownItem,
-	SelectTrigger as SelectDropdownTrigger,
-	SelectValue as SelectDropdownValue,
-} from "@/components/ui/select";
 import { Skeleton } from "@/components/ui/skeleton";
 import { cn } from "@/lib/utils";
 import { m } from "@/paraglide/messages";
@@ -272,20 +266,14 @@ function DialogSelectFilter({
 	className?: string;
 }) {
 	return (
-		<Select value={value} onValueChange={(v) => onValueChange(v ?? value)}>
-			<SelectDropdownTrigger className={cn("h-8 text-xs", className)} size="sm">
-				<SelectDropdownValue>
-					{(v) => options.find((o) => o.value === v)?.label ?? placeholder}
-				</SelectDropdownValue>
-			</SelectDropdownTrigger>
-			<SelectDropdownContent>
-				{options.map((option) => (
-					<SelectDropdownItem key={option.value} value={option.value}>
-						{option.label}
-					</SelectDropdownItem>
-				))}
-			</SelectDropdownContent>
-		</Select>
+		<OptionPicker
+			options={options}
+			value={value}
+			onChange={onValueChange}
+			placeholder={placeholder}
+			size="sm"
+			className={cn("h-8 text-xs", className)}
+		/>
 	);
 }
 

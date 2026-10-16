@@ -44,15 +44,9 @@ import {
 	CardHeader,
 	CardTitle,
 } from "@/components/ui/card";
+import { OptionPicker } from "@/components/ui/composed/option-picker";
 import { useConfirm } from "@/components/ui/dialog/confirm-dialog";
 import { Label } from "@/components/ui/label";
-import {
-	Select,
-	SelectContent,
-	SelectItem,
-	SelectTrigger,
-	SelectValue,
-} from "@/components/ui/select";
 import { Separator } from "@/components/ui/separator";
 import {
 	useResourceGrants,
@@ -1205,29 +1199,18 @@ const ReviewSection = ({
 									<Label htmlFor="review-template-status">
 										{m.authoring_review_behaviour_status_label()}
 									</Label>
-									<Select
+									<OptionPicker
+										id="review-template-status"
+										options={publicationStatusOptions}
 										value={editor.templateBlock.status}
-										items={publicationStatusOptions}
-										onValueChange={(status) =>
-											onTemplateBlockStatusChange(status as PublicationStatus)
-										}
+										onChange={onTemplateBlockStatusChange}
 										disabled={
-											(editor.templateBlock.id &&
-												!canEditBlock(editor.templateBlock)) ||
-											isSettingBlockStatus
+											Boolean(
+												editor.templateBlock.id &&
+													!canEditBlock(editor.templateBlock),
+											) || isSettingBlockStatus
 										}
-									>
-										<SelectTrigger id="review-template-status">
-											<SelectValue />
-										</SelectTrigger>
-										<SelectContent>
-											{publicationStatusOptions.map((option) => (
-												<SelectItem key={option.value} value={option.value}>
-													{option.label}
-												</SelectItem>
-											))}
-										</SelectContent>
-									</Select>
+									/>
 									{editor.templateBlock.id &&
 									!canEditBlock(editor.templateBlock) ? (
 										<p className="text-muted-foreground text-xs">
@@ -1271,32 +1254,23 @@ const ReviewSection = ({
 										<Label htmlFor={`review-db-status-${index}`}>
 											{m.authoring_review_repository_status_label()}
 										</Label>
-										<Select
+										<OptionPicker
+											id={`review-db-status-${index}`}
+											options={publicationStatusOptions}
 											value={databaseBlock.status}
-											items={publicationStatusOptions}
-											onValueChange={(status) => {
+											onChange={(status) =>
 												onDatabaseBlockStatusChange({
 													blockId: databaseBlock.id,
 													blockIndex: index,
-													status: status as PublicationStatus,
-												});
-											}}
-											disabled={
-												(databaseBlock.id && !canEditBlock(databaseBlock)) ||
-												isSettingBlockStatus
+													status,
+												})
 											}
-										>
-											<SelectTrigger id={`review-db-status-${index}`}>
-												<SelectValue />
-											</SelectTrigger>
-											<SelectContent>
-												{publicationStatusOptions.map((option) => (
-													<SelectItem key={option.value} value={option.value}>
-														{option.label}
-													</SelectItem>
-												))}
-											</SelectContent>
-										</Select>
+											disabled={
+												Boolean(
+													databaseBlock.id && !canEditBlock(databaseBlock),
+												) || isSettingBlockStatus
+											}
+										/>
 										{databaseBlock.id && !canEditBlock(databaseBlock) ? (
 											<p className="text-muted-foreground text-xs">
 												{m.authoring_review_repository_readonly_hint()}
