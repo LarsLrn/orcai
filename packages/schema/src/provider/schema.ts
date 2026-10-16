@@ -10,11 +10,15 @@ export const providerFieldsSchema = z.object({
 	endpoint: z.url(),
 	compatibility: providerCompatibilitySchema,
 	meteringMode: providerMeteringModeSchema,
-	apiKey: z.string().min(1),
+	apiKey: z.string().trim().min(1),
 	enabled: z.boolean().default(true),
 });
 
-export const providerMutableFieldsSchema = providerFieldsSchema.partial();
+export const providerMutableFieldsSchema = providerFieldsSchema
+	.extend({
+		enabled: z.boolean(),
+	})
+	.partial();
 
 export const providerSchema = providerFieldsSchema
 	.omit({

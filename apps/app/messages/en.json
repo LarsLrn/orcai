@@ -3176,6 +3176,8 @@
 	"providers_detail_view_model_link": "View",
 	"providers_edit_page_title": "Edit provider",
 	"providers_form_api_key_description": "The key is stored encrypted.",
+	"providers_form_api_key_edit_description": "Leave blank to keep the stored key. A new key is stored encrypted.",
+	"providers_form_api_key_edit_label": "API key (optional)",
 	"providers_form_api_key_label": "API key",
 	"providers_form_api_key_placeholder": "Paste the key from the provider",
 	"providers_form_compatibility_description": "Only OpenAI-compatible endpoints are supported at the moment.",
