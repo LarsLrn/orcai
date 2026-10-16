@@ -20,6 +20,7 @@ import GlobalDragHandle from "tiptap-extension-global-drag-handle";
 import { cn } from "@/lib/utils";
 import { m } from "@/paraglide/messages";
 import { ImageExtension } from "./extensions/image";
+import { MathExtension } from "./extensions/math";
 
 const TiptapStarterKit = StarterKit.configure({
 	bulletList: {
@@ -48,7 +49,6 @@ const TiptapStarterKit = StarterKit.configure({
 			class: cn(
 				"rounded-lg bg-muted px-1.5 py-1 font-medium font-mono text-red-700 before:content-none after:content-none dark:bg-muted/90 dark:text-red-400",
 			),
-			spellcheck: "false",
 		},
 	},
 	horizontalRule: {
@@ -111,7 +111,7 @@ const TiptapTable = Table.extend({
 				mergeAttributes(this.options.HTMLAttributes, HTMLAttributes, {
 					style: tableWidth
 						? `width: ${tableWidth}`
-						: `minWidth: ${tableMinWidth}`,
+						: `min-width: ${tableMinWidth}`,
 				}),
 				colgroup,
 				[
@@ -159,7 +159,7 @@ const DragHandle = GlobalDragHandle.configure({
 	],
 });
 
-const TiptapYoutube = Youtube.configure({
+export const TiptapYoutube = Youtube.configure({
 	HTMLAttributes: {
 		class: cn("border border-muted"),
 	},
@@ -212,5 +212,6 @@ export const extensions = [
 		multicolor: true,
 	}),
 	TiptapImage,
+	MathExtension,
 	Typography,
 ];

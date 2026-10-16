@@ -1845,6 +1845,7 @@
 	"editor_toolbar_strikethrough_tooltip": "Durchgestrichen",
 	"editor_toolbar_underline_tooltip": "Unterstrichen",
 	"editor_toolbar_undo_tooltip": "Rückgängig",
+	"editor_youtube_title": "YouTube-Video",
 	"error_active_organization_required": "Wählen Sie zuerst eine Organisation aus.",
 	"error_ai_prompt_required": "Zum Generieren von Text ist ein Prompt oder sind Nachrichten erforderlich.",
 	"error_ai_stream_failed": "Die KI-Antwort konnte nicht abgeschlossen werden.",
