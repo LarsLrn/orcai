@@ -3176,6 +3176,8 @@
 	"providers_detail_view_model_link": "Anzeigen",
 	"providers_edit_page_title": "Anbieter bearbeiten",
 	"providers_form_api_key_description": "Der Schlüssel wird verschlüsselt gespeichert.",
+	"providers_form_api_key_edit_description": "Leer lassen, um den gespeicherten Schlüssel zu behalten. Ein neuer Schlüssel wird verschlüsselt gespeichert.",
+	"providers_form_api_key_edit_label": "API-Schlüssel (optional)",
 	"providers_form_api_key_label": "API-Schlüssel",
 	"providers_form_api_key_placeholder": "Schlüssel des Anbieters einfügen",
 	"providers_form_compatibility_description": "Derzeit werden nur OpenAI-kompatible Endpunkte unterstützt.",

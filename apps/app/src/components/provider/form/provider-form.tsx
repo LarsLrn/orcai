@@ -32,8 +32,10 @@ const ProviderForm = ({
 		...providerFormOptions(provider),
 		onSubmit: async ({ value }) => {
 			if (action === "update" && provider) {
+				const { apiKey, ...fields } = value;
 				await updateProvider({
-					...value,
+					...fields,
+					apiKey: apiKey.trim() || undefined,
 					id: provider.id,
 				});
 			} else {
@@ -94,8 +96,16 @@ const ProviderForm = ({
 				name="apiKey"
 				children={(field) => (
 					<field.PasswordField
-						label={m.providers_form_api_key_label()}
-						description={m.providers_form_api_key_description()}
+						label={
+							action === "update"
+								? m.providers_form_api_key_edit_label()
+								: m.providers_form_api_key_label()
+						}
+						description={
+							action === "update"
+								? m.providers_form_api_key_edit_description()
+								: m.providers_form_api_key_description()
+						}
 						placeholder={m.providers_form_api_key_placeholder()}
 					/>
 				)}

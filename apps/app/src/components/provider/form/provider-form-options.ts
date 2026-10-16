@@ -1,6 +1,11 @@
 import { type Provider, providerFieldsSchema } from "@orcai/schema";
 import { formOptions } from "@tanstack/react-form";
-import type { z } from "zod/v4";
+import { z } from "zod/v4";
+
+/** A blank key on edit keeps the stored one. */
+const providerEditFormSchema = providerFieldsSchema.extend({
+	apiKey: z.string(),
+});
 
 const defaultValues = (
 	provider?: Provider,
@@ -18,6 +23,6 @@ export const providerFormOptions = (provider?: Provider) =>
 	formOptions({
 		defaultValues: defaultValues(provider),
 		validators: {
-			onChange: providerFieldsSchema,
+			onChange: provider ? providerEditFormSchema : providerFieldsSchema,
 		},
 	});
