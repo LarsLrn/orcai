@@ -11,69 +11,88 @@ import {
 	SelectTrigger,
 	SelectValue,
 } from "@/components/ui/select";
-import { cn } from "@/lib/utils";
 
 type PickerOption<T extends string> = {
 	value: T;
 	label: string;
 	description?: string;
-};
-
-const PickerOptionItem = <T extends string>({
-	option,
-}: {
-	option: PickerOption<T>;
-}) => {
-	return (
-		<Item size="xs" className="w-full p-0">
-			<ItemContent className="gap-0">
-				<ItemTitle>{option.label}</ItemTitle>
-				{option.description && (
-					<ItemDescription className="text-wrap text-xs">
-						{option.description}
-					</ItemDescription>
-				)}
-			</ItemContent>
-		</Item>
-	);
+	disabled?: boolean;
 };
 
 const OptionPicker = <T extends string>({
 	options,
 	onChange,
 	value,
+	placeholder,
 	disabled,
 	size = "default",
+	side,
 	className,
+	id,
+	name,
+	"aria-label": ariaLabel,
+	"aria-invalid": ariaInvalid,
 }: {
-	options: PickerOption<T>[];
+	options: readonly PickerOption<T>[];
 	onChange: (value: T) => void;
-	value: T;
+	value: T | null;
+	placeholder?: string;
 	disabled?: boolean;
 	size?: "sm" | "default";
+	side?: "top" | "bottom";
 	className?: string;
-}) => {
-	return (
-		<Select
-			value={value}
-			onValueChange={(value) => onChange(value as T)}
-			disabled={disabled}
+	id?: string;
+	name?: string;
+	"aria-label"?: string;
+	"aria-invalid"?: boolean;
+}) => (
+	<Select
+		name={name}
+		// Unknown values, e.g. while options load, show the placeholder.
+		value={options.some((option) => option.value === value) ? value : null}
+		onValueChange={(nextValue) => {
+			if (nextValue !== null) onChange(nextValue);
+		}}
+		items={options}
+		disabled={disabled}
+	>
+		<SelectTrigger
+			id={id}
+			aria-label={ariaLabel}
+			aria-invalid={ariaInvalid}
+			className={className}
+			size={size}
 		>
-			<SelectTrigger className={cn("w-32", className)} size={size}>
-				<SelectValue>
-					{(value) => options.find((opt) => opt.value === value)?.label}
-				</SelectValue>
-			</SelectTrigger>
-			<SelectContent className="w-auto">
-				{options.map((option) => (
-					<SelectItem key={option.value} value={option.value}>
-						<PickerOptionItem option={option} />
-					</SelectItem>
-				))}
-			</SelectContent>
-		</Select>
-	);
-};
+			<SelectValue placeholder={placeholder} />
+		</SelectTrigger>
+		<SelectContent
+			side={side}
+			align="start"
+			className="w-auto min-w-[max(--spacing(36),var(--anchor-width))]"
+		>
+			{options.map((option) => (
+				<SelectItem
+					key={option.value}
+					value={option.value}
+					disabled={option.disabled}
+				>
+					{option.description ? (
+						<Item size="xs" className="w-full p-0">
+							<ItemContent className="gap-0">
+								<ItemTitle>{option.label}</ItemTitle>
+								<ItemDescription className="text-wrap text-xs">
+									{option.description}
+								</ItemDescription>
+							</ItemContent>
+						</Item>
+					) : (
+						option.label
+					)}
+				</SelectItem>
+			))}
+		</SelectContent>
+	</Select>
+);
 
 export type { PickerOption };
 export { OptionPicker };

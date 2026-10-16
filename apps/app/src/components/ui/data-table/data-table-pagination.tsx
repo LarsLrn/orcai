@@ -5,15 +5,20 @@ import {
 	ChevronsRight,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
-import {
-	Select,
-	SelectContent,
-	SelectItem,
-	SelectTrigger,
-	SelectValue,
-} from "@/components/ui/select";
+import { OptionPicker } from "@/components/ui/composed/option-picker";
 import { m } from "@/paraglide/messages";
 import { useTable } from "./data-table-context";
+
+const PAGE_SIZE_OPTIONS = [
+	20,
+	30,
+	50,
+	100,
+	200,
+].map((pageSize) => ({
+	value: `${pageSize}`,
+	label: `${pageSize}`,
+}));
 
 const DataTablePagination = () => {
 	const { table } = useTable();
@@ -41,31 +46,15 @@ const DataTablePagination = () => {
 					<p className="whitespace-nowrap font-medium text-sm">
 						{m.data_table_pagination_rows_per_page_label()}
 					</p>
-					<Select
+					<OptionPicker
+						options={PAGE_SIZE_OPTIONS}
 						value={`${table.state.pagination.pageSize}`}
-						onValueChange={(value) => {
+						onChange={(value) => {
 							table.setPageSize(Number(value));
 						}}
-					>
-						<SelectTrigger className="h-8 w-20">
-							<SelectValue>
-								{table.state.pagination.pageSize.toString()}
-							</SelectValue>
-						</SelectTrigger>
-						<SelectContent side="top">
-							{[
-								20,
-								30,
-								50,
-								100,
-								200,
-							].map((pageSize) => (
-								<SelectItem key={pageSize} value={`${pageSize}`}>
-									{pageSize}
-								</SelectItem>
-							))}
-						</SelectContent>
-					</Select>
+						side="top"
+						className="h-8 w-20"
+					/>
 				</div>
 				<div className="flex items-center space-x-2">
 					<div className="flex w-25 items-center justify-center font-medium text-sm">

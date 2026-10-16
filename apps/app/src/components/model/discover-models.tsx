@@ -2,6 +2,7 @@ import { useMutation, useQuery } from "@tanstack/react-query";
 import { useId, useState } from "react";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { Button } from "@/components/ui/button";
+import { OptionPicker } from "@/components/ui/composed/option-picker";
 import {
 	Dialog,
 	DialogContent,
@@ -17,13 +18,6 @@ import {
 	FieldDescription,
 	FieldLabel,
 } from "@/components/ui/field";
-import {
-	Select,
-	SelectContent,
-	SelectItem,
-	SelectTrigger,
-	SelectValue,
-} from "@/components/ui/select";
 import { describeError } from "@/lib/errors/describe-error";
 import { orpc } from "@/lib/orpc/orpc";
 import { m } from "@/paraglide/messages";
@@ -122,33 +116,23 @@ const DiscoverModels = () => {
 								{m.models_discover_provider_field_description()}
 							</FieldDescription>
 						</FieldContent>
-						<Select
+						<OptionPicker
+							id={providerSelectId}
+							options={
+								providers.data?.data.map((provider) => ({
+									value: provider.id,
+									label: provider.name,
+								})) ?? []
+							}
 							value={providerId}
-							onValueChange={(value) => {
-								if (value) {
-									setProviderId(value);
-									setResult(null);
-								}
+							onChange={(value) => {
+								setProviderId(value);
+								setResult(null);
 							}}
+							placeholder={m.models_discover_provider_placeholder()}
 							disabled={isPending || (providers.data?.data.length ?? 0) === 0}
-						>
-							<SelectTrigger id={providerSelectId} className="w-full">
-								<SelectValue>
-									{(value) =>
-										providers.data?.data.find(
-											(provider) => provider.id === value,
-										)?.name ?? m.models_discover_provider_placeholder()
-									}
-								</SelectValue>
-							</SelectTrigger>
-							<SelectContent>
-								{providers.data?.data.map((provider) => (
-									<SelectItem key={provider.id} value={provider.id}>
-										{provider.name}
-									</SelectItem>
-								))}
-							</SelectContent>
-						</Select>
+							className="w-full"
+						/>
 					</Field>
 
 					{providers.data?.data.length === 0 && (
