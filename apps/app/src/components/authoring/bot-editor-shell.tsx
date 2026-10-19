@@ -199,6 +199,9 @@ const BotEditorShell = ({
 		useState(false);
 	const [isDatabaseBlockLibraryOpen, setIsDatabaseBlockLibraryOpen] =
 		useState(false);
+	const [wizardAction, setWizardAction] = useState<
+		"back" | "next" | "draft" | "publish" | null
+	>(null);
 	const activeStepIndex = stepIndex ?? internalStepIndex;
 	const zedTokenRef = useRef<string | undefined>(undefined);
 	const form = useAppForm({
@@ -257,6 +260,19 @@ const BotEditorShell = ({
 		isCreatingBlock ||
 		isUpdatingBlock ||
 		isSettingBlockStatus;
+
+	const runWizardAction =
+		(action: NonNullable<typeof wizardAction>, run: () => Promise<void>) =>
+		async () => {
+			setWizardAction(action);
+			try {
+				await run();
+			} finally {
+				setWizardAction(null);
+			}
+		};
+	const isWizardActionPending = (action: typeof wizardAction) =>
+		isWorking && wizardAction === action;
 
 	const setStep = (nextStep: number) => {
 		onStepChange?.(nextStep);
@@ -1017,7 +1033,8 @@ const BotEditorShell = ({
 						<div className="flex flex-wrap items-center gap-3">
 							<Button
 								variant="outline"
-								onClick={handleWizardBack}
+								onClick={runWizardAction("back", handleWizardBack)}
+								loading={isWizardActionPending("back")}
 								disabled={activeStepIndex === 0 || isWorking}
 							>
 								<ChevronLeftIcon />
@@ -1039,20 +1056,26 @@ const BotEditorShell = ({
 							<div className="flex flex-wrap items-center gap-2">
 								<Button
 									variant="outline"
-									onClick={handleSetDraft}
+									onClick={runWizardAction("draft", handleSetDraft)}
+									loading={isWizardActionPending("draft")}
 									disabled={isWorking}
 								>
 									{m.authoring_wizard_save_draft_action()}
 								</Button>
 								<Button
-									onClick={handlePublish}
+									onClick={runWizardAction("publish", handlePublish)}
+									loading={isWizardActionPending("publish")}
 									disabled={publishIssues.length > 0 || isWorking}
 								>
 									{m.authoring_wizard_publish_action()}
 								</Button>
 							</div>
 						) : (
-							<Button onClick={handleWizardNext} disabled={isWorking}>
+							<Button
+								onClick={runWizardAction("next", handleWizardNext)}
+								loading={isWizardActionPending("next")}
+								disabled={isWorking}
+							>
 								{m.common_next_button()}
 								<ChevronRightIcon />
 							</Button>

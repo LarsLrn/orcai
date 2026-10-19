@@ -286,3 +286,62 @@
 		cursor: pointer;
 	}
 }
+
+/* Busy button: a comet circling a 2 px ring 3 px outside the border. */
+@property --loading-ring-angle {
+	syntax: "<angle>";
+	inherits: false;
+	initial-value: 0deg;
+}
+
+@keyframes loading-ring-spin {
+	to {
+		--loading-ring-angle: 360deg;
+	}
+}
+
+@utility loading-ring {
+	position: relative;
+	cursor: progress;
+
+	&::after {
+		--loading-ring-comet: conic-gradient(
+			from var(--loading-ring-angle),
+			transparent 0 55%,
+			var(--loading-ring-color, var(--color-muted-foreground)) 100%
+		);
+		content: "";
+		position: absolute;
+		inset: -6px;
+		padding: 2px;
+		border-radius: 9999px;
+		background: var(--loading-ring-comet);
+		mask:
+			linear-gradient(#000 0 0) content-box exclude,
+			linear-gradient(#000 0 0);
+		animation: loading-ring-spin 1.45s linear infinite;
+		pointer-events: none;
+	}
+
+	/* Focus shows as a faint track under the comet instead of the usual ring. */
+	&:focus-visible {
+		border-color: transparent;
+		box-shadow: none;
+	}
+
+	&:focus-visible::after {
+		background:
+			var(--loading-ring-comet),
+			color-mix(in oklab, var(--color-ring) 45%, transparent);
+	}
+
+	@media (prefers-reduced-motion: reduce) {
+		&::after {
+			animation-duration: 4s;
+		}
+	}
+}
+
+@utility loading-ring-* {
+	--loading-ring-color: --value(--color-*);
+}

@@ -1,7 +1,9 @@
 import { ORPCError, type ORPCErrorCode } from "@orpc/server";
+import { EffectDrizzleQueryError } from "drizzle-orm/effect-core";
 import * as Cause from "effect/Cause";
 import * as Option from "effect/Option";
 import * as Result from "effect/Result";
+import { SqlError } from "effect/unstable/sql/SqlError";
 import { type AppError, ErrorTags } from "@/lib/effect/utils/errors";
 
 type AnyORPCError = ORPCError<ORPCErrorCode, unknown>;
@@ -15,6 +17,17 @@ const isAppError = (error: unknown): error is AppError => {
 		"_tag" in error &&
 		typeof error._tag === "string" &&
 		APP_ERROR_TAGS.has(error._tag)
+	);
+};
+
+const isUniqueViolation = (error: AppError) => {
+	const failure =
+		error instanceof EffectDrizzleQueryError && Cause.isCause(error.cause)
+			? Cause.squash(error.cause)
+			: error;
+
+	return (
+		failure instanceof SqlError && failure.reason._tag === "UniqueViolation"
 	);
 };
 
@@ -68,6 +81,18 @@ const appErrorToORPCError = (error: AppError): AnyORPCError => {
 				},
 				cause: error,
 			});
+		case ErrorTags.DRIZZLE_QUERY:
+		case ErrorTags.SQL:
+			return isUniqueViolation(error)
+				? new ORPCError("CONFLICT", {
+						data: {
+							reason: "ALREADY_EXISTS",
+						},
+						cause: error,
+					})
+				: new ORPCError("INTERNAL_SERVER_ERROR", {
+						cause: error,
+					});
 		default:
 			return new ORPCError("INTERNAL_SERVER_ERROR", {
 				cause: error,

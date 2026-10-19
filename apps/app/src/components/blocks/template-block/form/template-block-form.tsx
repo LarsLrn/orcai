@@ -19,21 +19,21 @@ const TemplateBlockForm = ({
 	action: "create" | "update";
 	block?: TemplateBlock;
 }) => {
-	const { mutate: createBlock } = useCreateBlockMutation();
-	const { mutate: updateBlock } = useUpdateBlockMutation();
+	const { mutateAsync: createBlock } = useCreateBlockMutation();
+	const { mutateAsync: updateBlock } = useUpdateBlockMutation();
 
 	const form = useAppForm({
 		...templateBlockFormOptions(block),
-		onSubmit: ({ value }) => {
+		onSubmit: async ({ value }) => {
 			if (action === "update" && block) {
-				updateBlock({
+				await updateBlock({
 					...value,
 					id: block.id,
 				});
 				return;
 			}
 
-			createBlock(value);
+			await createBlock(value);
 		},
 	});
 

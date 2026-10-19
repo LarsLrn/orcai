@@ -79,8 +79,12 @@ export const RenameDialog = ({
 						>
 							Cancel
 						</Button>
-						<Button type="submit" disabled={isSubmitting || !trimmedValue}>
-							{isSubmitting ? "Renaming..." : "Rename"}
+						<Button
+							type="submit"
+							loading={isSubmitting}
+							disabled={!trimmedValue}
+						>
+							Rename
 						</Button>
 					</DialogFooter>
 				</form>

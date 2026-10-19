@@ -498,7 +498,6 @@
 	"assets_selected_list_metadata_button": "Metadaten",
 	"assets_upload_description": "Wählen Sie Dateien aus und laden Sie sie hoch. Der Fortschritt wird unten angezeigt.",
 	"assets_upload_no_files_error": "Keine Dateien zum Hochladen.",
-	"assets_upload_preparing_button": "Dateien werden vorbereitet...",
 	"assets_upload_progress_clear_button": "Leeren",
 	"assets_upload_progress_completed_count": [
 		{
@@ -1793,6 +1792,7 @@
 	"error_ai_prompt_required": "Zum Generieren von Text ist ein Prompt oder sind Nachrichten erforderlich.",
 	"error_ai_stream_failed": "Die KI-Antwort konnte nicht abgeschlossen werden.",
 	"error_ai_tool_failed": "Der Tool-Aufruf ist fehlgeschlagen.",
+	"error_already_exists": "Ein Eintrag mit demselben Namen oder Schlüssel existiert bereits.",
 	"error_asset_not_attached": "Das Asset ist diesem Block nicht zugeordnet.",
 	"error_asset_not_found": "Asset nicht gefunden.",
 	"error_asset_source_required": "Wählen Sie ein vorhandenes Asset aus oder laden Sie eine Datei hoch.",
@@ -2386,7 +2386,6 @@
 	"models_discover_error_title": "Entdeckung fehlgeschlagen",
 	"models_discover_no_providers_description": "Erstellen Sie zuerst einen Anbieter und starten Sie dann die Modellentdeckung.",
 	"models_discover_no_providers_title": "Keine Anbieter verfügbar",
-	"models_discover_pending_button": "Wird entdeckt...",
 	"models_discover_provider_field_description": "Wählen Sie den Anbieter aus, dessen Modelle entdeckt werden sollen.",
 	"models_discover_provider_placeholder": "Anbieter auswählen",
 	"models_discover_success_description": [
@@ -2522,7 +2521,6 @@
 	"orgs_delete_dialog_slug_label_after": "zur Bestätigung ein",
 	"orgs_delete_dialog_slug_label_before": "Geben Sie",
 	"orgs_delete_dialog_slug_label_unknown": "Geben Sie den Slug zur Bestätigung ein",
-	"orgs_delete_dialog_submit_pending": "Wird gelöscht...",
 	"orgs_delete_dialog_title": "Diese Organisation löschen?",
 	"orgs_delete_dialog_title_named": "Die Organisation {name} löschen?",
 	"orgs_delete_toast_error": "Die Organisation wurde nicht gelöscht. Versuchen Sie es erneut.",
@@ -2648,6 +2646,9 @@
 	"orgs_invitation_invited_on": "Eingeladen am {date}",
 	"orgs_invitation_invited_on_unknown": "Eingeladen an einem unbekannten Datum",
 	"orgs_invitation_reject_button": "Ablehnen",
+	"orgs_invitation_reject_confirm_button": "Einladung ablehnen",
+	"orgs_invitation_reject_confirm_description": "Sie treten der Organisation nicht bei. Um später beizutreten, benötigen Sie eine neue Einladung.",
+	"orgs_invitation_reject_confirm_title": "Einladung zu {name} ablehnen?",
 	"orgs_invitation_reject_toast_error": "Einladung konnte nicht abgelehnt werden",
 	"orgs_invitation_reject_toast_loading": "Einladung wird abgelehnt...",
 	"orgs_invitation_reject_toast_success": "Einladung abgelehnt",

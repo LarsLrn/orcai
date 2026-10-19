@@ -197,7 +197,7 @@ function RouteComponent() {
 				<div className="flex justify-center">
 					<Button
 						variant="outline"
-						disabled={isFetching}
+						loading={isFetching}
 						onClick={() => setPageCount((count) => count + 1)}
 					>
 						{m.select_organisation_page_load_more_button()}

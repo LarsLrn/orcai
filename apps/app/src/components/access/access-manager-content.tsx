@@ -71,11 +71,15 @@ const AccessManagerContent = ({
 	const visibility = useResourceVisibility(resourceRef);
 
 	const grantAccess = useGrantResourceAccess(resourceRef);
+	const changeGrantRole = useGrantResourceAccess(resourceRef);
 	const revokeAccess = useRevokeResourceAccess(resourceRef);
 	const setVisibility = useSetResourceVisibility(resourceRef);
 
 	const isMutating =
-		grantAccess.isPending || revokeAccess.isPending || setVisibility.isPending;
+		grantAccess.isPending ||
+		changeGrantRole.isPending ||
+		revokeAccess.isPending ||
+		setVisibility.isPending;
 	const isRefreshing = grants.isFetching || visibility.isFetching;
 
 	const selectedHasAllMembers = selectedPrincipals.some(
@@ -202,6 +206,7 @@ const AccessManagerContent = ({
 						/>
 						<Button
 							className="w-full"
+							loading={grantAccess.isPending}
 							disabled={selectedPrincipals.length === 0 || isMutating}
 							onClick={handleGrant}
 						>
@@ -218,7 +223,7 @@ const AccessManagerContent = ({
 				onSearchChange={setGrantSearch}
 				disabled={isMutating}
 				onChangeRole={(grant, role) =>
-					grantAccess.mutate({
+					changeGrantRole.mutate({
 						resourceType: resourceRef.type,
 						resourceId: resourceRef.id,
 						principals: [

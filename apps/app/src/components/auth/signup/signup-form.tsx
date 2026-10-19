@@ -15,15 +15,15 @@ const SignUpForm = ({
 	invitationId: OrganizationInvitationId;
 	email: string;
 }) => {
-	const { mutate: signup } = useSignup();
+	const { mutateAsync: signup } = useSignup();
 
 	const form = useAppForm({
 		...signupFormOptions({
 			invitationId,
 			email,
 		}),
-		onSubmit: ({ value }) => {
-			signup(signupSchema.parse(value));
+		onSubmit: async ({ value }) => {
+			await signup(signupSchema.parse(value));
 		},
 	});
 

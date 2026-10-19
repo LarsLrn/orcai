@@ -498,7 +498,6 @@
 	"assets_selected_list_metadata_button": "Metadata",
 	"assets_upload_description": "Select files and upload them. Progress appears below.",
 	"assets_upload_no_files_error": "No files to upload.",
-	"assets_upload_preparing_button": "Preparing files...",
 	"assets_upload_progress_clear_button": "Clear",
 	"assets_upload_progress_completed_count": [
 		{
@@ -1793,6 +1792,7 @@
 	"error_ai_prompt_required": "A prompt or messages are required to generate text.",
 	"error_ai_stream_failed": "The AI response could not be completed.",
 	"error_ai_tool_failed": "The tool call failed.",
+	"error_already_exists": "An entry with the same name or key already exists.",
 	"error_asset_not_attached": "The asset is not attached to this block.",
 	"error_asset_not_found": "Asset not found.",
 	"error_asset_source_required": "Choose an existing asset or upload a file.",
@@ -2386,7 +2386,6 @@
 	"models_discover_error_title": "Discovery failed",
 	"models_discover_no_providers_description": "Create a provider first, then run model discovery.",
 	"models_discover_no_providers_title": "No providers available",
-	"models_discover_pending_button": "Discovering...",
 	"models_discover_provider_field_description": "Select the provider to discover models from.",
 	"models_discover_provider_placeholder": "Select a provider",
 	"models_discover_success_description": [
@@ -2522,7 +2521,6 @@
 	"orgs_delete_dialog_slug_label_after": "to confirm",
 	"orgs_delete_dialog_slug_label_before": "Type",
 	"orgs_delete_dialog_slug_label_unknown": "Type the slug to confirm",
-	"orgs_delete_dialog_submit_pending": "Deleting...",
 	"orgs_delete_dialog_title": "Delete this organisation?",
 	"orgs_delete_dialog_title_named": "Delete the {name} organisation?",
 	"orgs_delete_toast_error": "The organisation was not deleted. Try again.",
@@ -2648,6 +2646,9 @@
 	"orgs_invitation_invited_on": "Invited on {date}",
 	"orgs_invitation_invited_on_unknown": "Invited on an unknown date",
 	"orgs_invitation_reject_button": "Reject",
+	"orgs_invitation_reject_confirm_button": "Reject invitation",
+	"orgs_invitation_reject_confirm_description": "You will not join the organisation. To join later, you need a new invitation.",
+	"orgs_invitation_reject_confirm_title": "Reject the invitation to {name}?",
 	"orgs_invitation_reject_toast_error": "Failed to reject invitation",
 	"orgs_invitation_reject_toast_loading": "Rejecting invitation...",
 	"orgs_invitation_reject_toast_success": "Invitation rejected",

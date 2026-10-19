@@ -97,8 +97,7 @@ function RouteComponent() {
 
 	const { mutate: deleteBots } = useDeleteBotsMutation(
 		{
-			onMutate: async () => {
-				// Navigate away before deleting to avoid rendering the deleted bot.
+			onSuccess: async () => {
 				await navigate({
 					to: "/app/hub/bots",
 				});

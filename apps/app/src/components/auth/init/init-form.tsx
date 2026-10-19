@@ -7,11 +7,11 @@ import { m } from "@/paraglide/messages";
 import { initFormOptions } from "./init-form-options";
 
 const InitForm = () => {
-	const { mutate: init } = useInit();
+	const { mutateAsync: init } = useInit();
 	const form = useAppForm({
 		...initFormOptions(),
-		onSubmit: ({ value }) => {
-			init(value);
+		onSubmit: async ({ value }) => {
+			await init(value);
 		},
 	});
 

@@ -53,7 +53,7 @@ const AssetForm = ({ asset }: { asset: Asset }) => {
 							metadata: value.metadata,
 						})
 					}
-					disabled={isPending}
+					loading={isPending}
 				>
 					{m.assets_form_submit_button()}
 				</Button>

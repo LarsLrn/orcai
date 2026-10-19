@@ -27,14 +27,14 @@ const QuotaPoolForm = ({
 	const updateQuotaPool = useUpdateQuotaPoolMutation();
 	const form = useAppForm({
 		...quotaPoolFormOptions(pool),
-		onSubmit: ({ value }) => {
+		onSubmit: async ({ value }) => {
 			const providerModelId =
 				value.providerModelId === PROVIDER_WIDE_MODEL_VALUE
 					? null
 					: value.providerModelId;
 
 			if (action === "update" && pool) {
-				updateQuotaPool.mutate({
+				await updateQuotaPool.mutateAsync({
 					id: pool.id,
 					name: value.name.trim(),
 					description: value.description.trim() || null,
@@ -49,7 +49,7 @@ const QuotaPoolForm = ({
 				return;
 			}
 
-			createQuotaPool.mutate({
+			await createQuotaPool.mutateAsync({
 				name: value.name.trim(),
 				description: value.description.trim() || null,
 				providerId: value.providerId,
@@ -195,8 +195,6 @@ const QuotaPoolForm = ({
 		providerModelOptions,
 		selectedProviderModelId,
 	]);
-
-	const isPending = createQuotaPool.isPending || updateQuotaPool.isPending;
 
 	return (
 		<form
@@ -350,7 +348,6 @@ const QuotaPoolForm = ({
 							? m.quotas_form_create_button()
 							: m.quotas_form_save_changes_button()
 					}
-					disabled={isPending}
 				/>
 			</form.AppForm>
 		</form>

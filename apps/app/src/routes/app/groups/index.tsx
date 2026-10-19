@@ -99,13 +99,13 @@ function RouteComponent() {
 		},
 	});
 
-	const onCreateSubmit = (event: React.FormEvent<HTMLFormElement>) => {
+	const onCreateSubmit = async (event: React.FormEvent<HTMLFormElement>) => {
 		event.preventDefault();
 		if (!name.trim()) {
 			return;
 		}
 
-		createGroup.mutate({
+		await createGroup.mutateAsync({
 			name: name.trim(),
 			description: description.trim() ? description.trim() : null,
 		});
@@ -207,7 +207,8 @@ function RouteComponent() {
 							</Button>
 							<Button
 								type="submit"
-								disabled={!name.trim() || createGroup.isPending}
+								loading={createGroup.isPending}
+								disabled={!name.trim()}
 							>
 								{m.common_create_button()}
 							</Button>

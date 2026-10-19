@@ -127,6 +127,11 @@ export const useRespondOrganizationInvitationMutation = (
 					queryClient.invalidateQueries({
 						queryKey: orpc.organizationInvitation.key(),
 					});
+					if (variables.response === "accept") {
+						queryClient.invalidateQueries({
+							queryKey: orpc.organization.key(),
+						});
+					}
 
 					trackEvent("respond-organization-invitation", {
 						invitationId: variables.id,

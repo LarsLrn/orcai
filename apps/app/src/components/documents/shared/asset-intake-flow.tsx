@@ -125,7 +125,7 @@ const AssetIntakeFlow = ({
 								})}
 							</div>
 							<Button
-								disabled={isPending}
+								loading={isPending}
 								onClick={() => {
 									if (uploadedFiles.length === 0) {
 										toast.error(m.assets_intake_no_files_toast_error());

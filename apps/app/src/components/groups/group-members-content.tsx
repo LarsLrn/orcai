@@ -86,6 +86,7 @@ const GroupMembersContent = ({ group }: { group: Group }) => {
 							disabled={isMutating}
 						/>
 						<Button
+							loading={addMembers.isPending}
 							disabled={selectedUsers.length === 0 || isMutating}
 							onClick={handleAdd}
 						>

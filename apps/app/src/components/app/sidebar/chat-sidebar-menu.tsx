@@ -45,7 +45,7 @@ const ChatSidebarMenu = () => {
 					variant="outline"
 					size="sm"
 					className="mt-3"
-					disabled={isRefetching}
+					loading={isRefetching}
 					onClick={() => refetch()}
 				>
 					{m.sidebar_chats_error_retry_button()}

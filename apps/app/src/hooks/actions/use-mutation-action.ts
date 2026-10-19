@@ -4,6 +4,7 @@ import {
 	type UseMutationResult,
 	useMutation,
 } from "@tanstack/react-query";
+import { useState } from "react";
 import { toast } from "sonner";
 import {
 	type ConfirmOptions,
@@ -165,6 +166,10 @@ export function useMutationAction<
 	const mutation = useMutation<TData, TError, TVariables, TContext>(
 		config.mutationOptions(),
 	);
+	// Query reports `isPending` and `variables` a tick late; this marks a button busy before a second click lands.
+	const [starting, setStarting] = useState<{
+		input: TVariables;
+	} | null>(null);
 
 	const mutateAsync = async (input: TVariables) => {
 		if (config.confirm) {
@@ -181,6 +186,9 @@ export function useMutationAction<
 			}
 		}
 
+		setStarting({
+			input,
+		});
 		const toastPromise = toast.promise(mutation.mutateAsync(input), {
 			loading: resolveMessage(config.messages.loading, {
 				input,
@@ -221,6 +229,8 @@ export function useMutationAction<
 				error: error as TError,
 				isDefinedError: false,
 			} as MutationActionUnhandledError<TError>;
+		} finally {
+			setStarting(null);
 		}
 	};
 
@@ -233,10 +243,10 @@ export function useMutationAction<
 		mutateAsync,
 		data: mutation.data,
 		error: mutation.error,
-		variables: mutation.variables,
+		variables: starting ? starting.input : mutation.variables,
 		status: mutation.status,
 		isIdle: mutation.isIdle,
-		isPending: mutation.isPending,
+		isPending: mutation.isPending || starting !== null,
 		isSuccess: mutation.isSuccess,
 		isError: mutation.isError,
 		failureCount: mutation.failureCount,

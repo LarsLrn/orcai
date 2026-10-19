@@ -28,8 +28,8 @@ const ImageGenerationBlockForm = ({
 	action: "create" | "update";
 	block?: ImageGenerationBlock;
 }) => {
-	const { mutate: createBlock } = useCreateBlockMutation();
-	const { mutate: updateBlock } = useUpdateBlockMutation();
+	const { mutateAsync: createBlock } = useCreateBlockMutation();
+	const { mutateAsync: updateBlock } = useUpdateBlockMutation();
 	const contentTitleId = useId();
 
 	const { data: providers } = useSuspenseQuery(
@@ -40,14 +40,14 @@ const ImageGenerationBlockForm = ({
 
 	const form = useAppForm({
 		...imageGenerationBlockFormOptions(block),
-		onSubmit: ({ value }) => {
+		onSubmit: async ({ value }) => {
 			if (action === "update" && block) {
-				updateBlock({
+				await updateBlock({
 					...value,
 					id: block.id,
 				});
 			} else {
-				createBlock(value);
+				await createBlock(value);
 			}
 		},
 	});

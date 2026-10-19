@@ -4,11 +4,11 @@ import { m } from "@/paraglide/messages";
 import { resetPasswordFormOptions } from "./reset-password-form-options";
 
 export function ResetPasswordForm({ token }: { token: string }) {
-	const { mutate: resetPassword } = useResetPassword(token);
+	const { mutateAsync: resetPassword } = useResetPassword(token);
 	const form = useAppForm({
 		...resetPasswordFormOptions(),
-		onSubmit: ({ value }) => {
-			resetPassword(value);
+		onSubmit: async ({ value }) => {
+			await resetPassword(value);
 		},
 	});
 

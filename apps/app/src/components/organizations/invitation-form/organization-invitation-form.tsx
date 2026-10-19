@@ -35,7 +35,7 @@ const OrganizationInvitationForm = () => {
 	const { auth } = useRouteContext({
 		from: "/app",
 	});
-	const { mutate: createInvitation } =
+	const { mutateAsync: createInvitation } =
 		useCreateOrganizationInvitationMutation();
 	const { data: capabilities } = useOrganizationCapabilities([
 		"manage_organization",
@@ -63,8 +63,8 @@ const OrganizationInvitationForm = () => {
 
 	const form = useAppForm({
 		...organizationInvitationFormOptions(initialOrganizationId),
-		onSubmit: ({ value }) => {
-			createInvitation({
+		onSubmit: async ({ value }) => {
+			await createInvitation({
 				...value,
 				role: value.role as OrganizationInvitation["role"],
 			});

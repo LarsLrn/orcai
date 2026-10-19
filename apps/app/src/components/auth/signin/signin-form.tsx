@@ -4,12 +4,12 @@ import { m } from "@/paraglide/messages";
 import { signinFormOptions } from "./signin-form-options";
 
 const SignInForm = () => {
-	const { mutate: signin } = useSignin();
+	const { mutateAsync: signin } = useSignin();
 
 	const form = useAppForm({
 		...signinFormOptions(),
-		onSubmit: ({ value }) => {
-			signin(value);
+		onSubmit: async ({ value }) => {
+			await signin(value);
 		},
 	});
 

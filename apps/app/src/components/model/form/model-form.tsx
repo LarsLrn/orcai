@@ -17,8 +17,8 @@ const ModelForm = ({
 	action: "create" | "update";
 	model?: Model;
 }) => {
-	const { mutate: createModel } = useCreateModelMutation();
-	const { mutate: updateModel } = useUpdateModelMutation();
+	const { mutateAsync: createModel } = useCreateModelMutation();
+	const { mutateAsync: updateModel } = useUpdateModelMutation();
 
 	const providers = useQuery(
 		orpc.provider.list.queryOptions({
@@ -31,14 +31,14 @@ const ModelForm = ({
 
 	const form = useAppForm({
 		...modelFormOptions(model),
-		onSubmit: ({ value }) => {
+		onSubmit: async ({ value }) => {
 			if (action === "update" && model) {
-				updateModel({
+				await updateModel({
 					...value,
 					id: model.id,
 				});
 			} else {
-				createModel(value);
+				await createModel(value);
 			}
 		},
 	});
