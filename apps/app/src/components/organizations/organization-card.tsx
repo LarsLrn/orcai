@@ -14,15 +14,21 @@ import { m } from "@/paraglide/messages";
 const OrganizationCard = ({
 	organization,
 	onSelect,
+	loading,
+	disabled,
 }: {
 	organization: Organization;
 	onSelect: () => void;
+	loading?: boolean;
+	disabled?: boolean;
 }) => {
 	return (
 		<ResourceCard>
 			<ResourceCardBody
 				action={{
 					onClick: onSelect,
+					loading,
+					disabled,
 				}}
 			>
 				<ResourceCardHeader>
