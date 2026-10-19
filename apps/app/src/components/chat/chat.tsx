@@ -1,5 +1,5 @@
 import { useChat } from "@ai-sdk/react";
-import type { ChatBranchId, ChatId } from "@orcai/core";
+import type { ChatId } from "@orcai/core";
 import { eventIteratorToUnproxiedDataStream } from "@orpc/client";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { useEffect, useRef, useState } from "react";
@@ -54,13 +54,11 @@ const QuotaLine = ({ chatId }: { chatId: ChatId }) => {
 const Chat = ({
 	id,
 	initialMessages,
-	branchId,
 	zedToken,
 	pendingMessage,
 }: {
 	id: ChatId;
 	initialMessages: ChatAgentUIMessage[];
-	branchId?: ChatBranchId;
 	zedToken?: string;
 	pendingMessage?: string;
 }) => {
@@ -87,7 +85,6 @@ const Chat = ({
 							{
 								chatId: options.chatId as ChatId,
 								messages: options.messages,
-								branchId,
 								zedToken,
 							},
 							{

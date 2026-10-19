@@ -266,22 +266,6 @@ export const aiChat = authed.ai.chat
 
 			const reservation = quotaReservation.reservation;
 			const userMessageAttachments = getChatMessageAttachments(userMessage);
-			const branchId = input.branchId ?? chatRecord.activeBranchId;
-
-			if (!branchId) {
-				return yield* Effect.fail(
-					new AppErrors.BadRequestError({
-						reason: "CHAT_ACTIVE_BRANCH_MISSING",
-						message:
-							"Chat has no active branch. Refresh the page and try again.",
-					}),
-				);
-			}
-
-			const parentMessageId =
-				inputMessages.length > 1
-					? inputMessages[inputMessages.length - 2]?.id
-					: null;
 
 			const attachmentPartCache = new Map<string, FileUIPart | TextUIPart>();
 			const messagesWithAttachmentParts = yield* Effect.forEach(
@@ -322,45 +306,39 @@ export const aiChat = authed.ai.chat
 				},
 			);
 
-			const { data: persistedUserMessage, branchId: currentBranchId } =
-				yield* Effect.tryPromise({
-					try: async () =>
-						call(
-							createChatMessage,
-							{
-								id: uuidv4(),
-								chatId: input.chatId,
-								role: "user",
-								parts: userMessage.parts,
-								attachments: userMessageAttachments,
-								metadata: (userMessage.metadata ?? {}) as Record<
-									string,
-									unknown
-								>,
-								branchId,
-								parentMessageId,
-							},
-							{
-								context: requestContext,
-							},
-						),
-					catch: (cause) =>
-						new AppErrors.BadRequestError({
-							reason: "CHAT_MESSAGE_CREATE_FAILED",
-							message: "Failed to create user message",
-							cause,
-						}),
-				}).pipe(
-					Effect.catch((error) =>
-						releaseAppRequestQuota({
-							reservation,
-							reason: "app_failure",
-						}).pipe(
-							Effect.catch(() => Effect.void),
-							Effect.andThen(Effect.fail(error)),
-						),
+			const { data: persistedUserMessage } = yield* Effect.tryPromise({
+				try: async () =>
+					call(
+						createChatMessage,
+						{
+							id: uuidv4(),
+							chatId: input.chatId,
+							role: "user",
+							parts: userMessage.parts,
+							attachments: userMessageAttachments,
+							metadata: (userMessage.metadata ?? {}) as Record<string, unknown>,
+						},
+						{
+							context: requestContext,
+						},
 					),
-				);
+				catch: (cause) =>
+					new AppErrors.BadRequestError({
+						reason: "CHAT_MESSAGE_CREATE_FAILED",
+						message: "Failed to create user message",
+						cause,
+					}),
+			}).pipe(
+				Effect.catch((error) =>
+					releaseAppRequestQuota({
+						reservation,
+						reason: "app_failure",
+					}).pipe(
+						Effect.catch(() => Effect.void),
+						Effect.andThen(Effect.fail(error)),
+					),
+				),
+			);
 
 			yield* forkChatTitleGenerationIfNeeded({
 				chatId: input.chatId,
@@ -428,8 +406,6 @@ export const aiChat = authed.ai.chat
 											string,
 											unknown
 										>,
-										branchId: currentBranchId,
-										parentMessageId: null,
 									},
 									{
 										context: requestContext,

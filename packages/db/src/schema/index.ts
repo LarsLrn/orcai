@@ -18,7 +18,6 @@ import {
 import { block, blockAsset, chatBlock } from "./block";
 import { bot, botBlock } from "./bot";
 import { chat } from "./chat";
-import { chatBranch } from "./chat-branch";
 import { chatMessage } from "./chat-message";
 import { model, provider, providerMeteringModeEnum } from "./model";
 import {
@@ -50,7 +49,6 @@ export const dbSchema = {
 	blockAsset,
 	bot,
 	botBlock,
-	chatBranch,
 	chatMessage,
 	chat,
 	group,

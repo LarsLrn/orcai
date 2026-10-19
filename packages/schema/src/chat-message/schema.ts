@@ -12,22 +12,11 @@ export const chatMessageFieldsSchema = z.object({
 	parts: chatMessagePartsSchema,
 	attachments: z.array(chatMessageAttachmentSchema),
 	metadata: chatMessageMetadataSchema,
-	parentMessageId: chatMessageIdSchema.nullable().optional(),
-	depth: z.number().int().default(0),
 });
-
-export const chatMessageMutableFieldsSchema = chatMessageFieldsSchema
-	.omit({
-		chatId: true,
-		role: true,
-		parentMessageId: true,
-		depth: true,
-	})
-	.partial();
 
 export const chatMessageSchema = chatMessageFieldsSchema.extend({
 	id: chatMessageIdSchema,
-	parentMessageId: chatMessageIdSchema.nullable(),
+	position: z.number().int().nonnegative(),
 	createdAt: z.coerce.date(),
 });
 

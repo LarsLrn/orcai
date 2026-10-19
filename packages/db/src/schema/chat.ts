@@ -1,7 +1,7 @@
 import type {
 	BotId,
-	ChatBranchId,
 	ChatId,
+	ChatMessageId,
 	ModelId,
 	ProviderId,
 	UserId,
@@ -16,7 +16,7 @@ import {
 } from "drizzle-orm/pg-core";
 import { user } from "./auth";
 import { bot } from "./bot";
-import { chatBranch } from "./chat-branch";
+import { chatMessage } from "./chat-message";
 
 export const chat = pgTable("chat", {
 	id: uuid("id").$type<ChatId>().primaryKey().notNull().defaultRandom(),
@@ -32,9 +32,14 @@ export const chat = pgTable("chat", {
 		.references(() => bot.id, {
 			onDelete: "set null",
 		}),
-	activeBranchId: uuid("active_branch_id")
-		.$type<ChatBranchId>()
-		.references((): AnyPgColumn => chatBranch.id, {
+	parentChatId: uuid("parent_chat_id")
+		.$type<ChatId>()
+		.references((): AnyPgColumn => chat.id, {
+			onDelete: "set null",
+		}),
+	branchedFromMessageId: uuid("branched_from_message_id")
+		.$type<ChatMessageId>()
+		.references((): AnyPgColumn => chatMessage.id, {
 			onDelete: "set null",
 		}),
 	config: json("config").$type<ChatConfig>().default({}),

@@ -2,30 +2,10 @@ import { defineRelations } from "drizzle-orm";
 import { dbSchema } from ".";
 
 export const relations = defineRelations(dbSchema, (r) => ({
-	chatBranch: {
-		chat: r.one.chat({
-			from: r.chatBranch.chatId,
-			to: r.chat.id,
-		}),
-		leafMessage: r.one.chatMessage({
-			from: r.chatBranch.leafMessageId,
-			to: r.chatMessage.id,
-		}),
-	},
 	chatMessage: {
 		chat: r.one.chat({
 			from: r.chatMessage.chatId,
 			to: r.chat.id,
-		}),
-
-		parent: r.one.chatMessage({
-			from: r.chatMessage.parentMessageId,
-			to: r.chatMessage.id,
-			alias: "child_parent",
-		}),
-
-		children: r.many.chatMessage({
-			alias: "child_parent",
 		}),
 	},
 	chat: {
@@ -33,13 +13,14 @@ export const relations = defineRelations(dbSchema, (r) => ({
 			from: r.chat.userId,
 			to: r.user.id,
 		}),
-
-		activeBranch: r.one.chatBranch({
-			from: r.chat.activeBranchId,
-			to: r.chatBranch.id,
+		parentChat: r.one.chat({
+			from: r.chat.parentChatId,
+			to: r.chat.id,
+			alias: "chat_parent",
 		}),
-
+		branches: r.many.chat({
+			alias: "chat_parent",
+		}),
 		messages: r.many.chatMessage(),
-		branches: r.many.chatBranch(),
 	},
 }));

@@ -42,10 +42,8 @@ import {
 	createChatMessage,
 	deleteChatMessages,
 	findChatMessage,
-	getBranchIdForMessage,
 	listChatMessages,
 	rateChatMessage,
-	updateChatMessage,
 } from "./chat-message";
 import {
 	addGroupMembers,
@@ -225,10 +223,8 @@ export const router = {
 		list: listChatMessages,
 		create: createChatMessage,
 		find: findChatMessage,
-		update: updateChatMessage,
 		delete: deleteChatMessages,
 		rate: rateChatMessage,
-		getBranch: getBranchIdForMessage,
 	},
 	block: {
 		list: listBlocks,
