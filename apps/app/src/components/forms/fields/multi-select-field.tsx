@@ -12,6 +12,7 @@ import {
 	type MultiSelectOption,
 } from "@/components/ui/multi-select";
 import { useFieldContext } from "@/hooks/form/context";
+import { useFieldLabel } from "@/hooks/form/field-labels";
 import { m } from "@/paraglide/messages";
 
 const MultiSelectField = ({
@@ -28,6 +29,7 @@ const MultiSelectField = ({
 	disabled?: boolean;
 }) => {
 	const field = useFieldContext<string[]>();
+	useFieldLabel(field, label);
 	const labelId = useId();
 
 	const errors = useSelector(field.store, (state) => state.meta.errors);

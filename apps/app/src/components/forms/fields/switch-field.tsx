@@ -10,6 +10,7 @@ import {
 } from "@/components/ui/field";
 import { Switch } from "@/components/ui/switch";
 import { useFieldContext } from "@/hooks/form/context";
+import { useFieldLabel } from "@/hooks/form/field-labels";
 
 const SwitchField = ({
 	label,
@@ -19,6 +20,7 @@ const SwitchField = ({
 	description?: string;
 }) => {
 	const field = useFieldContext<boolean>();
+	useFieldLabel(field, label);
 	const id = useId();
 	const titleId = `${id}-title`;
 

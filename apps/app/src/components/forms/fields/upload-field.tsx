@@ -9,6 +9,7 @@ import {
 	FieldLabel,
 } from "@/components/ui/field";
 import { useFieldContext } from "@/hooks/form/context";
+import { useFieldLabel } from "@/hooks/form/field-labels";
 
 const UploadField = ({
 	label,
@@ -28,6 +29,7 @@ const UploadField = ({
 	disabled?: boolean;
 }) => {
 	const field = useFieldContext<File[]>();
+	useFieldLabel(field, label);
 	const id = useId();
 
 	const errors = useSelector(field.store, (state) => state.meta.errors);

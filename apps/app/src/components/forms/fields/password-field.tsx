@@ -10,6 +10,7 @@ import {
 } from "@/components/ui/field";
 import { Input } from "@/components/ui/input";
 import { useFieldContext } from "@/hooks/form/context";
+import { useFieldLabel } from "@/hooks/form/field-labels";
 import { cn } from "@/lib/utils";
 import { m } from "@/paraglide/messages";
 
@@ -29,6 +30,7 @@ const PasswordField = ({
 	...props
 }: PasswordFieldProps) => {
 	const field = useFieldContext<string>();
+	useFieldLabel(field, label);
 	const id = useId();
 	const [isPasswordVisible, setIsPasswordVisible] = useState(false);
 

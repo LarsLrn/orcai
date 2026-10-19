@@ -9,6 +9,7 @@ import {
 	FieldLabel,
 } from "@/components/ui/field";
 import { useFieldContext } from "@/hooks/form/context";
+import { useFieldLabel } from "@/hooks/form/field-labels";
 
 type BlockEditorFieldProps = {
 	label: string;
@@ -31,6 +32,7 @@ const BlockEditorField = ({
 	htmlFieldName,
 }: BlockEditorFieldProps) => {
 	const field = useFieldContext<Content>();
+	useFieldLabel(field, label);
 	const id = useId();
 
 	const errors = useSelector(field.store, (state) => state.meta.errors);

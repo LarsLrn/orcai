@@ -3,6 +3,7 @@ import { useSelector } from "@tanstack/react-store";
 import { AlertTriangle } from "lucide-react";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { useFormContext } from "@/hooks/form/context";
+import { fieldLabelOf } from "@/hooks/form/field-labels";
 import { m } from "@/paraglide/messages";
 
 /**
@@ -62,18 +63,6 @@ const FormValidationErrors = ({
 		return null;
 	}
 
-	const formatFieldName = (fieldPath: string): string => {
-		return fieldPath
-			.split(".")
-			.map((part) =>
-				part
-					.replace(/([A-Z])/g, " $1")
-					.replace(/^./, (str) => str.toUpperCase())
-					.trim(),
-			)
-			.join(" → ");
-	};
-
 	const totalErrors = fieldErrors.length + formErrors.length;
 
 	return (
@@ -88,20 +77,24 @@ const FormValidationErrors = ({
 							<span>{error}</span>
 						</li>
 					))}
-					{fieldErrors.map((error) => (
-						<li
-							key={`${error.field}-${error.message}`}
-							className="flex items-start gap-2"
-						>
-							<span className="mt-1 h-1 w-1 shrink-0 rounded-full bg-current" />
-							<div>
-								<span className="font-medium">
-									{formatFieldName(error.field)}:
-								</span>{" "}
-								<span>{error.message}</span>
-							</div>
-						</li>
-					))}
+					{fieldErrors.map((error) => {
+						const label = fieldLabelOf(form.store, error.field);
+
+						return (
+							<li
+								key={`${error.field}-${error.message}`}
+								className="flex items-start gap-2"
+							>
+								<span className="mt-1 h-1 w-1 shrink-0 rounded-full bg-current" />
+								<div>
+									{label ? (
+										<span className="font-medium">{label}: </span>
+									) : null}
+									<span>{error.message}</span>
+								</div>
+							</li>
+						);
+					})}
 				</ul>
 				{totalErrors > 1 && (
 					<p className="mt-2 text-xs opacity-75">
