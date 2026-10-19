@@ -353,3 +353,10 @@ export const deleteOrganizationMembers = authed.organizationMember.delete
 			message: "Organization members deleted successfully",
 		};
 	});
+
+export const organizationMemberRouter = {
+	list: listOrganizationMembers,
+	find: findOrganizationMember,
+	update: updateOrganizationMember,
+	delete: deleteOrganizationMembers,
+};

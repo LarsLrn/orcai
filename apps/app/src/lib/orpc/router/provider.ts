@@ -221,3 +221,11 @@ export const deleteProviders = authed.provider.delete
 			message: "Providers deleted successfully",
 		};
 	});
+
+export const providerRouter = {
+	list: listProviders,
+	create: createProvider,
+	find: findProvider,
+	update: updateProvider,
+	delete: deleteProviders,
+};

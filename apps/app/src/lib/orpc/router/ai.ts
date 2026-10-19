@@ -526,3 +526,7 @@ export const aiChat = authed.ai.chat
 			),
 		);
 	});
+
+export const aiRouter = {
+	chat: aiChat,
+};

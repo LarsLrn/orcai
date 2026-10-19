@@ -846,3 +846,15 @@ export const removeGroupMembers = authed.group.removeMembers
 			message: "Group members removed successfully",
 		};
 	});
+
+export const groupRouter = {
+	list: listGroups,
+	create: createGroup,
+	find: findGroup,
+	update: updateGroup,
+	delete: deleteGroups,
+	listMembers: listGroupMembers,
+	listCandidates: listGroupCandidates,
+	addMembers: addGroupMembers,
+	removeMembers: removeGroupMembers,
+};

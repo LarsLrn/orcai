@@ -331,3 +331,11 @@ export const deleteBlocks = authed.block.delete
 			message: "Blocks deleted successfully",
 		};
 	});
+
+export const blockRouter = {
+	list: listBlocks,
+	create: createBlock,
+	find: findBlock,
+	update: updateBlock,
+	delete: deleteBlocks,
+};

@@ -474,3 +474,12 @@ export const deleteAssets = authed.asset.delete
 			message: "Assets deleted successfully",
 		};
 	});
+
+export const assetRouter = {
+	list: listAssets,
+	save: saveAsset,
+	saveMany: saveManyAssets,
+	create: createAsset,
+	find: findAsset,
+	delete: deleteAssets,
+};

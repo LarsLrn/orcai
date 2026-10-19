@@ -236,3 +236,10 @@ export const rateChatMessage = authed.chatMessage.rate
 			})),
 		);
 	});
+
+export const chatMessageRouter = {
+	list: listChatMessages,
+	create: createChatMessage,
+	find: findChatMessage,
+	rate: rateChatMessage,
+};

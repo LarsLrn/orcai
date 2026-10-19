@@ -271,3 +271,8 @@ export const initializeBootstrap = os.bootstrap.initialize.effect(function* ({
 		},
 	};
 });
+
+export const bootstrapRouter = {
+	status: getBootstrapStatus,
+	initialize: initializeBootstrap,
+};

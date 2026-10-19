@@ -215,3 +215,10 @@ export const retryVectorization = authed.job.retryVectorization
 			message: "Vectorization job re-dispatched",
 		};
 	});
+
+export const jobRouter = {
+	list: listJobs,
+	create: createJobs,
+	retryProcessing,
+	retryVectorization,
+};

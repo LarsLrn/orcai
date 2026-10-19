@@ -527,3 +527,13 @@ export const quotaAvailability = authed.quota.availability
 			},
 		};
 	});
+
+export const quotaRouter = {
+	list: listQuotaPools,
+	create: createQuotaPool,
+	find: findQuotaPool,
+	update: updateQuotaPool,
+	deactivate: deactivateQuotaPool,
+	chatBadge: quotaChatBadge,
+	availability: quotaAvailability,
+};

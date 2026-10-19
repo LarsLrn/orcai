@@ -510,3 +510,11 @@ export const finalizeUpload = authed.storage.finalizeUpload
 			data: results,
 		};
 	});
+
+export const storageRouter = {
+	createUploadUrls,
+	createDownloadUrl,
+	finalizeUpload,
+	completeMultipartUpload,
+	abortMultipartUpload,
+};

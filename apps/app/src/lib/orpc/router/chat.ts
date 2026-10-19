@@ -551,3 +551,12 @@ export const branchChat = authed.chat.branch
 				: null,
 		};
 	});
+
+export const chatRouter = {
+	list: listChats,
+	create: createChat,
+	find: findChat,
+	update: updateChat,
+	delete: deleteChats,
+	branch: branchChat,
+};

@@ -697,3 +697,13 @@ export const deleteOrganizations = authed.organization.delete
 			message: "Organizations deleted successfully",
 		};
 	});
+
+export const organizationRouter = {
+	list: listOrganizations,
+	listAll: listAllOrganizations,
+	create: createOrganization,
+	find: findOrganization,
+	update: updateOrganization,
+	delete: deleteOrganizations,
+	deletionImpact: getOrganizationDeletionImpact,
+};

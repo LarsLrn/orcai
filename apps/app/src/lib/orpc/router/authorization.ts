@@ -140,3 +140,9 @@ export const organizationCapabilities =
 			},
 		};
 	});
+
+export const authorizationRouter = {
+	check: checkAuthorization,
+	checkMany: checkManyAuthorization,
+	organizationCapabilities,
+};
