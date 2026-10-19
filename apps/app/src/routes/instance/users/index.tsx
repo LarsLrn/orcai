@@ -1,6 +1,7 @@
 import { listAllUsersInputSchema } from "@orcai/schema";
 import { useSuspenseQuery } from "@tanstack/react-query";
 import { createFileRoute, useNavigate } from "@tanstack/react-router";
+import { UsersIcon } from "lucide-react";
 import { z } from "zod/v4";
 import { DataTable } from "@/components/ui/data-table/data-table";
 import { DataTableBody } from "@/components/ui/data-table/data-table-body";
@@ -127,7 +128,16 @@ function RouteComponent() {
 							<DataTableViewOptions />
 						</DataTableToolbarActions>
 					</DataTableToolbar>
-					<DataTableBody />
+					<DataTableBody
+						empty={{
+							Icon: UsersIcon,
+							title: m.instance_users_empty_title(),
+							description: m.instance_users_empty_description(),
+						}}
+						filters={{
+							query,
+						}}
+					/>
 					<DataTablePagination />
 				</DataTable>
 			</PageContent>

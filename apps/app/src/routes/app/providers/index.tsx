@@ -1,6 +1,7 @@
 import { listProvidersInputSchema } from "@orcai/schema";
 import { useSuspenseQuery } from "@tanstack/react-query";
 import { createFileRoute, Link } from "@tanstack/react-router";
+import { PlusIcon, ServerCogIcon } from "lucide-react";
 import { ProviderTableActions } from "@/components/provider/table/provider-table-actions";
 import { providerTableColumns } from "@/components/provider/table/provider-table-columns";
 import { buttonVariants } from "@/components/ui/button";
@@ -96,7 +97,24 @@ function RouteComponent() {
 							<ProviderTableActions />
 						</DataTableToolbarActions>
 					</DataTableToolbar>
-					<DataTableBody />
+					<DataTableBody
+						empty={{
+							Icon: ServerCogIcon,
+							title: m.providers_index_empty_title(),
+							description: m.providers_index_empty_description(),
+							actions: [
+								{
+									key: "add",
+									label: m.providers_index_add_button(),
+									icon: PlusIcon,
+									variant: "default",
+									linkProps: {
+										to: "/app/providers/add",
+									},
+								},
+							],
+						}}
+					/>
 					<DataTablePagination />
 				</DataTable>
 			</PageContent>

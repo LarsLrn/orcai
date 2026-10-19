@@ -1,6 +1,6 @@
 import { useSuspenseQuery } from "@tanstack/react-query";
 import { Link, useNavigate } from "@tanstack/react-router";
-import { SparklesIcon } from "lucide-react";
+import { BotIcon, SparklesIcon } from "lucide-react";
 import { Placeholder } from "@/components/placeholders/placeholder";
 import { SkeletonsArray } from "@/components/placeholders/skeletons-array";
 import { buttonVariants } from "@/components/ui/button";
@@ -51,6 +51,8 @@ const BotsShowcase = ({ limit = 6 }: { limit?: number }) => {
 			<SectionContent>
 				{bots.data.length === 0 ? (
 					<Placeholder
+						Icon={BotIcon}
+						tone="bot"
 						title={m.bots_showcase_empty_title()}
 						description={m.bots_showcase_empty_description()}
 						actions={[

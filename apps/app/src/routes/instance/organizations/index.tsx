@@ -1,7 +1,7 @@
 import { listAllOrganizationsInputSchema } from "@orcai/schema";
 import { useSuspenseQuery } from "@tanstack/react-query";
 import { createFileRoute, useNavigate } from "@tanstack/react-router";
-import { PlusIcon } from "lucide-react";
+import { Building2Icon, PlusIcon } from "lucide-react";
 import { useState } from "react";
 import { z } from "zod/v4";
 import { OrganizationForm } from "@/components/organizations/form/organization-form";
@@ -148,7 +148,25 @@ function RouteComponent() {
 							<DataTableViewOptions />
 						</DataTableToolbarActions>
 					</DataTableToolbar>
-					<DataTableBody />
+					<DataTableBody
+						empty={{
+							Icon: Building2Icon,
+							title: m.instance_organizations_empty_title(),
+							description: m.instance_organizations_empty_description(),
+							actions: [
+								{
+									key: "create",
+									label: m.instance_organizations_create_button(),
+									icon: PlusIcon,
+									variant: "default",
+									onClick: () => setIsCreateOpen(true),
+								},
+							],
+						}}
+						filters={{
+							query,
+						}}
+					/>
 					<DataTablePagination />
 				</DataTable>
 			</PageContent>

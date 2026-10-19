@@ -92,9 +92,11 @@ const parseSearch = (raw: Record<string, unknown>): Search => ({
 
 const renderTable = async ({
 	data = items,
+	rowCount = 50,
 	search = "",
 }: {
 	data?: Item[];
+	rowCount?: number;
 	search?: string;
 } = {}) => {
 	const rootRoute = createRootRoute({
@@ -113,13 +115,17 @@ const renderTable = async ({
 						sorting: sort,
 					}}
 					options={{
-						rowCount: 50,
+						rowCount,
 						uidAccessor: "id",
 						enableRowSelection: (row) => !row.original.locked,
 					}}
 				>
 					<DataTableViewOptions />
-					<DataTableBody />
+					<DataTableBody
+						empty={{
+							title: "Nothing yet",
+						}}
+					/>
 					<DataTablePagination />
 					<CsvProbe />
 				</DataTable>
@@ -135,7 +141,7 @@ const renderTable = async ({
 		}),
 	});
 	render(<RouterProvider router={router} />);
-	await screen.findByText("Rows per page");
+	await screen.findByTestId("csv");
 	return router;
 };
 
@@ -153,8 +159,27 @@ describe("DataTable", () => {
 
 		await renderTable({
 			data: [],
+			rowCount: 0,
 		});
-		expect(screen.getByText("No results.")).toBeTruthy();
+		expect(screen.getByText("Nothing yet")).toBeTruthy();
+		expect(screen.queryByText("Rows per page")).toBeNull();
+	});
+
+	test("an empty page past the data offers to go back to the first page", async () => {
+		const router = await renderTable({
+			data: [],
+			search: "?pageIndex=4",
+		});
+
+		fireEvent.click(
+			screen.getByRole("button", {
+				name: "Clear filters",
+			}),
+		);
+
+		await waitFor(() => {
+			expect(currentSearch(router).pageIndex).toBe(0);
+		});
 	});
 
 	test("sorting updates the indicator and clears selection on the first page", async () => {

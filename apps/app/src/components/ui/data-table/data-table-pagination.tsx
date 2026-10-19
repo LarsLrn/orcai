@@ -21,6 +21,10 @@ const DataTablePagination = () => {
 		.getAllLeafColumns()
 		.some((column) => column.id === "select");
 
+	if (table.getRowModel().rows.length === 0) {
+		return null;
+	}
+
 	return (
 		<div className="flex flex-wrap items-center justify-between gap-x-6 gap-y-2 px-2">
 			<div className="grow whitespace-nowrap text-muted-foreground text-sm">

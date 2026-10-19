@@ -37,7 +37,7 @@ const Placeholder = ({
 				<EmptyTitle>{title}</EmptyTitle>
 				{description && <EmptyDescription>{description}</EmptyDescription>}
 			</EmptyHeader>
-			<EmptyContent className="flex flex-row justify-center gap-2">
+			<EmptyContent className="flex flex-row flex-wrap justify-center gap-2">
 				{actions?.map((action) => (
 					<ResourceCardAction key={action.key} action={action} />
 				))}

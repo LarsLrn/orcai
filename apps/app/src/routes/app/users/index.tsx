@@ -1,6 +1,7 @@
 import { listUsersInputSchema } from "@orcai/schema";
 import { useSuspenseQuery } from "@tanstack/react-query";
 import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
+import { PlusIcon, UsersIcon } from "lucide-react";
 import { z } from "zod/v4";
 import { buttonVariants } from "@/components/ui/button";
 import { DataTable } from "@/components/ui/data-table/data-table";
@@ -136,7 +137,27 @@ function RouteComponent() {
 							<UsersDataTableSelectActions />
 						</DataTableToolbarActions>
 					</DataTableToolbar>
-					<DataTableBody />
+					<DataTableBody
+						empty={{
+							Icon: UsersIcon,
+							title: m.users_list_empty_title(),
+							description: m.users_list_empty_description(),
+							actions: [
+								{
+									key: "invite",
+									label: m.users_list_invite_action(),
+									icon: PlusIcon,
+									variant: "default",
+									linkProps: {
+										to: "/app/users/add",
+									},
+								},
+							],
+						}}
+						filters={{
+							query,
+						}}
+					/>
 					<DataTablePagination />
 				</DataTable>
 			</PageContent>

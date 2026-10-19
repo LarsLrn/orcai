@@ -1,7 +1,7 @@
 import { listGroupsInputSchema } from "@orcai/schema";
 import { useSuspenseQuery } from "@tanstack/react-query";
 import { createFileRoute, useNavigate } from "@tanstack/react-router";
-import { PlusIcon } from "lucide-react";
+import { PlusIcon, UserCogIcon } from "lucide-react";
 import { useState } from "react";
 import { z } from "zod/v4";
 import { GroupTableActions } from "@/components/groups/table/group-table-actions";
@@ -161,7 +161,25 @@ function RouteComponent() {
 							<GroupTableActions />
 						</DataTableToolbarActions>
 					</DataTableToolbar>
-					<DataTableBody />
+					<DataTableBody
+						empty={{
+							Icon: UserCogIcon,
+							title: m.groups_list_empty_title(),
+							description: m.groups_list_empty_description(),
+							actions: [
+								{
+									key: "create",
+									label: m.groups_list_create_action(),
+									icon: PlusIcon,
+									variant: "default",
+									onClick: () => setIsCreateOpen(true),
+								},
+							],
+						}}
+						filters={{
+							query,
+						}}
+					/>
 					<DataTablePagination />
 				</DataTable>
 			</PageContent>
