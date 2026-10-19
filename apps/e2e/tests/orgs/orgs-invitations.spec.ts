@@ -200,25 +200,11 @@ test("orgs: a revoked invitation no longer opens the registration form", async (
 	});
 	await expect(row).toBeVisible();
 
-	// The row menu opens on the client, so the click is retried until hydration
-	// has attached its handler.
-	await expect(async () => {
-		await row
-			.getByRole("button", {
-				name: message("common_row_menu_trigger"),
-			})
-			.click();
-		await expect(
-			page.getByRole("menuitem", {
-				name: message("users_invites_table_delete_action"),
-			}),
-		).toBeVisible({
-			timeout: 3_000,
-		});
-	}).toPass({
-		timeout: 20_000,
-	});
-
+	await row
+		.getByRole("button", {
+			name: message("common_row_menu_trigger"),
+		})
+		.click();
 	await page
 		.getByRole("menuitem", {
 			name: message("users_invites_table_delete_action"),

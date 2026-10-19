@@ -33,24 +33,18 @@ const openInstanceOrganisations = async (page: Page): Promise<void> => {
 	).toBeVisible();
 };
 
-/** Open the create dialog, retrying late hydration until it answers. */
+/** Open the create dialog and wait for its title. */
 const openCreateDialog = async (page: Page): Promise<void> => {
-	await expect(async () => {
-		await page
-			.getByRole("button", {
-				name: message("instance_organizations_create_button"),
-			})
-			.click();
-		await expect(
-			page.getByRole("heading", {
-				name: message("instance_organizations_create_dialog_title"),
-			}),
-		).toBeVisible({
-			timeout: 3_000,
-		});
-	}).toPass({
-		timeout: 20_000,
-	});
+	await page
+		.getByRole("button", {
+			name: message("instance_organizations_create_button"),
+		})
+		.click();
+	await expect(
+		page.getByRole("heading", {
+			name: message("instance_organizations_create_dialog_title"),
+		}),
+	).toBeVisible();
 };
 
 test("instance: the organisations page creates an organisation", async ({

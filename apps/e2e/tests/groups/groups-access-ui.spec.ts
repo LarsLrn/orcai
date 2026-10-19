@@ -51,19 +51,12 @@ test("groups: the access manager shows the group grant on the block page", async
 		}),
 	).toBeVisible();
 
-	// The menu button opens the menu once the page has hydrated.
-	await expect(async () => {
-		await page
-			.getByRole("button", {
-				name: message("bots_detail_more_options_aria_label"),
-			})
-			.click();
-		await expect(accessItem).toBeVisible({
-			timeout: 3_000,
-		});
-	}).toPass({
-		timeout: 25_000,
-	});
+	await page
+		.getByRole("button", {
+			name: message("bots_detail_more_options_aria_label"),
+		})
+		.click();
+	await expect(accessItem).toBeVisible();
 
 	await accessItem.click();
 
@@ -157,19 +150,12 @@ test("groups: the access manager grants several people at once", async ({
 		name: message("bots_detail_access_action"),
 	});
 
-	// The menu button opens the menu once the page has hydrated.
-	await expect(async () => {
-		await page
-			.getByRole("button", {
-				name: message("bots_detail_more_options_aria_label"),
-			})
-			.click();
-		await expect(accessItem).toBeVisible({
-			timeout: 3_000,
-		});
-	}).toPass({
-		timeout: 25_000,
-	});
+	await page
+		.getByRole("button", {
+			name: message("bots_detail_more_options_aria_label"),
+		})
+		.click();
+	await expect(accessItem).toBeVisible();
 	await accessItem.click();
 
 	await expect(

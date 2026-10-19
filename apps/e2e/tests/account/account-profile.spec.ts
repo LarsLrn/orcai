@@ -104,23 +104,16 @@ test("account: an empty display name is refused", async ({
 			exact: true,
 		});
 
-		/** Late hydration: retry the whole attempt.
-		 * The message appears under the field and in the error list. */
-		await expect(async () => {
-			await name.fill("");
-			await page
-				.getByRole("button", {
-					name: message("users_profile_form_submit_button"),
-				})
-				.click();
-			await expect(
-				page.getByText(message("error_validation_required")).first(),
-			).toBeVisible({
-				timeout: 5_000,
-			});
-		}).toPass({
-			timeout: 25_000,
-		});
+		await name.fill("");
+		await page
+			.getByRole("button", {
+				name: message("users_profile_form_submit_button"),
+			})
+			.click();
+		// The message appears under the field and in the error list.
+		await expect(
+			page.getByText(message("error_validation_required")).first(),
+		).toBeVisible();
 
 		await expect(nameOf(user.api)).resolves.toBe(user.name);
 	} finally {

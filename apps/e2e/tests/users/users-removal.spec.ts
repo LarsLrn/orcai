@@ -8,7 +8,7 @@ import {
 import { baseURL } from "../../fixtures/env";
 import { expect, test } from "../../fixtures/index";
 import { message } from "../../fixtures/messages";
-import { enterApp } from "../../fixtures/navigation";
+import { enterApp, open } from "../../fixtures/navigation";
 import {
 	addMember,
 	adoptZedToken,
@@ -107,8 +107,7 @@ test("users: a removed user loses the organisation it was signed in to", async (
 		});
 
 		await seedZedToken(page);
-		await page.goto("/app");
-		await page.waitForLoadState("networkidle");
+		await open(page, "/app");
 
 		await expect(page).toHaveURL(/\/select-organization/);
 	} finally {

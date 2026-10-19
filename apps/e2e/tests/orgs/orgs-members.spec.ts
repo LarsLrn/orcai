@@ -1,7 +1,7 @@
 import { expectDenied, expectForbidden } from "../../fixtures/authorization";
 import { expect, test } from "../../fixtures/index";
 import { message } from "../../fixtures/messages";
-import { enterApp } from "../../fixtures/navigation";
+import { enterApp, open } from "../../fixtures/navigation";
 import {
 	addMember,
 	createOrgsUser,
@@ -153,7 +153,7 @@ test("orgs: an admin removes a member from the organisation", async ({
 
 	// The member page reads the user through the active organisation, so a
 	// user that is no longer a member is not found there.
-	await page.goto(`/app/users/${user.id}/edit`);
+	await open(page, `/app/users/${user.id}/edit`);
 	await expect(
 		page.getByRole("heading", {
 			name: message("boundaries_not_found_title"),

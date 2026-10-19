@@ -9,10 +9,17 @@ import {
 } from "./api";
 import { message } from "./messages";
 
-/** Open a page and wait for the network to settle, which covers late hydration. */
+/** Wait until React has hydrated the current document, so clicks and fills register. */
+export const awaitHydration = async (page: Page): Promise<void> => {
+	await page.locator("html[data-hydrated]").waitFor({
+		state: "attached",
+	});
+};
+
+/** Open a page and wait for it to hydrate. */
 export const open = async (page: Page, path: string): Promise<void> => {
 	await page.goto(path);
-	await page.waitForLoadState("networkidle");
+	await awaitHydration(page);
 };
 
 const zedTokensByPage = new WeakMap<Page, ZedTokenStore>();
@@ -141,7 +148,7 @@ export const enterApp = async (
 	page: Page,
 	organisationSlug: string,
 ): Promise<void> => {
-	await page.goto("/select-organization");
+	await open(page, "/select-organization");
 
 	const card = page.getByRole("button").filter({
 		hasText: `@${organisationSlug}`,
@@ -159,7 +166,7 @@ export const enterApp = async (
 			(await heading.isVisible()) &&
 			(await activateOverApi(page, organisationSlug))
 		) {
-			await page.goto("/app");
+			await open(page, "/app");
 		}
 
 		await expect(page).toHaveURL(/\/app(\/|$)/, {
@@ -169,7 +176,7 @@ export const enterApp = async (
 		timeout: 30_000,
 	});
 
-	await page.waitForLoadState("networkidle");
+	await awaitHydration(page);
 	await skipInitialTour(page);
 
 	// The membership the sign-up hook granted announces itself in no response, so
