@@ -67,8 +67,8 @@
 		"workers:start": "bun run --filter @orcai/workers start"
 	},
 	"lint-staged": {
-		"*.{ts,tsx,js,jsx,cjs,mjs,json,css}": [
-			"biome format --write"
+		"*": [
+			"biome check --write --no-errors-on-unmatched --files-ignore-unknown=true"
 		]
 	},
 	"devDependencies": {

@@ -191,7 +191,7 @@ function RouteComponent() {
 							</CardDescription>
 						</CardHeader>
 						<CardContent className="@container">
-							<div className="grid gap-4 @sm:grid-cols-2 @2xl:grid-cols-4">
+							<div className="grid @2xl:grid-cols-4 @sm:grid-cols-2 gap-4">
 								<div>
 									<div className="text-muted-foreground text-xs uppercase">
 										{m.quotas_detail_budget_metric_label()}
