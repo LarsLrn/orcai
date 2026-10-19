@@ -31,6 +31,10 @@ import {
 import { useDeleteBlocksMutation } from "@/hooks/mutations/use-block-mutations";
 import { hasCapability } from "@/lib/authz/capabilities";
 import { orpc } from "@/lib/orpc/orpc";
+import {
+	getPublicationStatusLabel,
+	getPublicationStatusVariant,
+} from "@/lib/presentation/publication-status";
 import { m } from "@/paraglide/messages";
 
 export const Route = createFileRoute("/app/hub/blocks/$blockId/")({
@@ -102,7 +106,9 @@ function RouteComponent() {
 				<PageDescription>{getBlockTypeLabel(block.data.type)}</PageDescription>
 				{block.data.status === "draft" ? (
 					<div>
-						<Badge variant="outline">{m.blocks_detail_draft_badge()}</Badge>
+						<Badge variant={getPublicationStatusVariant(block.data.status)}>
+							{getPublicationStatusLabel(block.data.status)}
+						</Badge>
 					</div>
 				) : null}
 				<PageAction>

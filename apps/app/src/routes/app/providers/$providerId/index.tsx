@@ -31,6 +31,14 @@ import {
 } from "@/components/ui/shell/page";
 import { orpc } from "@/lib/orpc/orpc";
 import { formatDisplayTimestamp } from "@/lib/presentation/format-timestamp";
+import {
+	getModelStatusLabel,
+	getModelStatusVariant,
+} from "@/lib/presentation/model-status";
+import {
+	getProviderStatusLabel,
+	getProviderStatusVariant,
+} from "@/lib/presentation/provider-status";
 import { m } from "@/paraglide/messages";
 
 export const Route = createFileRoute("/app/providers/$providerId/")({
@@ -111,15 +119,13 @@ function RouteComponent() {
 				<PageTitle>{provider.name}</PageTitle>
 				<PageDescription>{provider.description}</PageDescription>
 				<div className="flex flex-wrap gap-2">
-					<Badge variant={provider.enabled ? "secondary" : "destructive"}>
+					<Badge variant={getProviderStatusVariant(provider.enabled)}>
 						{provider.enabled ? (
 							<BadgeCheck className="size-3" />
 						) : (
 							<BadgeX className="size-3" />
 						)}
-						{provider.enabled
-							? m.common_status_enabled_label()
-							: m.common_status_disabled_label()}
+						{getProviderStatusLabel(provider.enabled)}
 					</Badge>
 					<Badge variant="outline">
 						<ServerIcon className="size-3" />
@@ -166,7 +172,7 @@ function RouteComponent() {
 							</CardDescription>
 						</CardHeader>
 						<CardContent className="@container">
-							<div className="grid gap-4 @sm:grid-cols-2 @2xl:grid-cols-4">
+							<div className="grid @2xl:grid-cols-4 @sm:grid-cols-2 gap-4">
 								<div>
 									<div className="text-muted-foreground text-xs uppercase">
 										{m.providers_detail_endpoint_host_label()}
@@ -290,16 +296,14 @@ function RouteComponent() {
 													</p>
 												</div>
 												<Badge
-													variant={model.isDeprecated ? "warning" : "success"}
+													variant={getModelStatusVariant(model.isDeprecated)}
 												>
 													{model.isDeprecated ? (
 														<BadgeX className="h-3 w-3" />
 													) : (
 														<BadgeCheck className="h-3 w-3" />
 													)}
-													{model.isDeprecated
-														? m.common_status_deprecated_label()
-														: m.common_status_active_label()}
+													{getModelStatusLabel(model.isDeprecated)}
 												</Badge>
 											</div>
 

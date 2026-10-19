@@ -14,6 +14,10 @@ import {
 	DialogSelectSearch,
 } from "@/components/ui/composed/dialog-select";
 import { orpc } from "@/lib/orpc/orpc";
+import {
+	getPublicationStatusLabel,
+	getPublicationStatusVariant,
+} from "@/lib/presentation/publication-status";
 import { cn } from "@/lib/utils";
 import { m } from "@/paraglide/messages";
 
@@ -228,8 +232,11 @@ const BlockSelectorDialog = ({
 								trailing={
 									<div className="flex items-center gap-2">
 										{block.status === "draft" ? (
-											<Badge variant="outline" className="h-5 px-1.5">
-												{m.blocks_selector_dialog_draft_badge()}
+											<Badge
+												variant={getPublicationStatusVariant(block.status)}
+												className="h-5 px-1.5"
+											>
+												{getPublicationStatusLabel(block.status)}
 											</Badge>
 										) : null}
 										{isSelected ? (

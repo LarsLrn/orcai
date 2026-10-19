@@ -34,6 +34,10 @@ import {
 } from "@/components/ui/shell/resource-card";
 import { hasCapability } from "@/lib/authz/capabilities";
 import { formatDisplayDate } from "@/lib/presentation/format-timestamp";
+import {
+	getPublicationStatusLabel,
+	getPublicationStatusVariant,
+} from "@/lib/presentation/publication-status";
 import { m } from "@/paraglide/messages";
 
 const BLOCK_TYPE_CONFIG = {
@@ -138,8 +142,8 @@ const BlockCard = ({
 
 	if (block.status === "draft") {
 		badges.push({
-			label: m.blocks_card_draft_badge(),
-			variant: "outline",
+			label: getPublicationStatusLabel(block.status),
+			variant: getPublicationStatusVariant(block.status),
 		});
 	}
 

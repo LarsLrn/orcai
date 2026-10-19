@@ -30,6 +30,14 @@ import {
 	PageTitle,
 } from "@/components/ui/shell/page";
 import { orpc } from "@/lib/orpc/orpc";
+import {
+	getModelStatusLabel,
+	getModelStatusVariant,
+} from "@/lib/presentation/model-status";
+import {
+	getProviderStatusLabel,
+	getProviderStatusVariant,
+} from "@/lib/presentation/provider-status";
 import { m } from "@/paraglide/messages";
 
 export const Route = createFileRoute("/app/models/$modelId/")({
@@ -83,15 +91,13 @@ function RouteComponent() {
 				<PageTitle>{model.name}</PageTitle>
 				<PageDescription>{model.description}</PageDescription>
 				<div className="flex flex-wrap gap-2">
-					<Badge variant={model.isDeprecated ? "warning" : "success"}>
+					<Badge variant={getModelStatusVariant(model.isDeprecated)}>
 						{model.isDeprecated ? (
 							<BadgeX className="size-3" />
 						) : (
 							<BadgeCheck className="size-3" />
 						)}
-						{model.isDeprecated
-							? m.common_status_deprecated_label()
-							: m.common_status_active_label()}
+						{getModelStatusLabel(model.isDeprecated)}
 					</Badge>
 					<Badge variant="outline">
 						<SparklesIcon className="size-3" />
@@ -212,15 +218,13 @@ function RouteComponent() {
 										{provider.endpoint}
 									</p>
 								</div>
-								<Badge variant={provider.enabled ? "secondary" : "destructive"}>
+								<Badge variant={getProviderStatusVariant(provider.enabled)}>
 									{provider.enabled ? (
 										<BadgeCheck className="h-3 w-3" />
 									) : (
 										<BadgeX className="h-3 w-3" />
 									)}
-									{provider.enabled
-										? m.common_status_enabled_label()
-										: m.common_status_disabled_label()}
+									{getProviderStatusLabel(provider.enabled)}
 								</Badge>
 							</div>
 							<Separator />

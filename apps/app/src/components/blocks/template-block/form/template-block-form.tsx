@@ -4,6 +4,7 @@ import {
 	useCreateBlockMutation,
 	useUpdateBlockMutation,
 } from "@/hooks/mutations/use-block-mutations";
+import { getPublicationStatusOptions } from "@/lib/presentation/publication-status";
 import { m } from "@/paraglide/messages";
 import {
 	TemplateBlockFieldGroup,
@@ -55,16 +56,7 @@ const TemplateBlockForm = ({
 					<field.SelectField
 						label={m.blocks_publication_status_label()}
 						description={m.blocks_publication_status_description()}
-						options={[
-							{
-								value: "draft",
-								label: m.blocks_publication_status_draft_option(),
-							},
-							{
-								value: "ready",
-								label: m.blocks_publication_status_ready_option(),
-							},
-						]}
+						options={getPublicationStatusOptions()}
 					/>
 				)}
 			/>
