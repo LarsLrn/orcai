@@ -1,7 +1,7 @@
 import type { EntityIdFor, EntityType, PermissionFor } from "@orcai/spice-db";
+import { middlewareGen } from "@orpc/experimental-effect";
 import * as Effect from "effect/Effect";
 import * as AppErrors from "@/lib/effect/utils/errors";
-import { runMiddlewareEffect } from "@/lib/effect/utils/orpc-helpers";
 import { withName } from "@/lib/orpc/middlewares/utils";
 import { checkPermissionMiddleware } from "./checks";
 import { ensurePermission, permissionBase } from "./core";
@@ -102,44 +102,41 @@ export const requireOrganizationPermission = (
 	permission: OrganizationPermission,
 ) =>
 	withName(
-		permissionBase.middleware((opts) =>
-			runMiddlewareEffect(
-				opts,
-				Effect.gen(function* () {
-					const { activeOrganizationId } = opts.context.auth.session;
+		permissionBase.middleware(
+			middlewareGen(function* (opts) {
+				const { activeOrganizationId } = opts.context.auth.session;
 
-					if (!activeOrganizationId) {
-						return yield* Effect.fail(
-							new AppErrors.BadRequestError({
-								reason: "ACTIVE_ORGANIZATION_REQUIRED",
-								message:
-									"An active organization must be selected to access this resource.",
-							}),
-						);
-					}
+				if (!activeOrganizationId) {
+					return yield* Effect.fail(
+						new AppErrors.BadRequestError({
+							reason: "ACTIVE_ORGANIZATION_REQUIRED",
+							message:
+								"An active organization must be selected to access this resource.",
+						}),
+					);
+				}
 
-					yield* ensurePermission({
-						context: opts.context,
-						input: {
-							entityType: "organization",
-							entityId: activeOrganizationId,
-							permission,
-						},
-					});
+				yield* ensurePermission({
+					context: opts.context,
+					input: {
+						entityType: "organization",
+						entityId: activeOrganizationId,
+						permission,
+					},
+				});
 
-					return opts.next({
-						context: {
-							auth: {
-								...opts.context.auth,
-								session: {
-									...opts.context.auth.session,
-									activeOrganizationId,
-								},
+				return yield* opts.next({
+					context: {
+						auth: {
+							...opts.context.auth,
+							session: {
+								...opts.context.auth.session,
+								activeOrganizationId,
 							},
 						},
-					});
-				}),
-			),
+					},
+				});
+			}),
 		),
 		`requireOrganizationPermission:${permission}`,
 	);

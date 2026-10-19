@@ -68,3 +68,24 @@ export const logErrorCause = (
 		}),
 	);
 };
+
+/**
+ * Logs an error that arrives outside an Effect `Cause`, such as one a
+ * framework rethrows. Expected errors log at info without the stack.
+ */
+export const logFailure = (
+	message: string,
+	error: unknown,
+	options: {
+		expected: boolean;
+	},
+): Effect.Effect<void> =>
+	(options.expected ? Effect.logInfo(message) : Effect.logError(message)).pipe(
+		Effect.annotateLogs({
+			"error.tag": extractErrorTag(error),
+			"error.message": extractErrorMessage(error),
+			...(!options.expected && {
+				"error.cause": Cause.pretty(Cause.die(error)),
+			}),
+		}),
+	);

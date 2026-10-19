@@ -3,6 +3,7 @@ import { INSTANCE_ADMIN_ROLE } from "@orcai/core";
 import { userIdSchema } from "@orcai/schema";
 import { call, ORPCError, os } from "@orpc/server";
 import * as Context from "effect/Context";
+import type { AppEffectContext } from "@/lib/orpc/implementation/os";
 
 const USER_ID = userIdSchema.parse("7b6d7c0e-2a3f-4c1d-9e8f-0a1b2c3d4e5f");
 
@@ -22,14 +23,18 @@ mock.module("@/lib/auth/auth", () => ({
 	},
 }));
 
+const { mapEffectErrors } = await import(
+	"@/lib/orpc/implementation/error-mapping"
+);
 const { requiredAuthMiddleware, requireInstanceAdminMiddleware } = await import(
 	"./require"
 );
 
-const base = os.$context<{
-	reqHeaders?: Headers;
-	"effect/context": Context.Context<never>;
-}>();
+const base = os.$context<
+	AppEffectContext & {
+		reqHeaders?: Headers;
+	}
+>();
 
 /** A procedure guarded by a permission middleware, as a nested `call` reaches it. */
 const inner = base
@@ -48,7 +53,8 @@ const requestContext = () => ({
 	reqHeaders: new Headers({
 		cookie: "better-auth.session_token=token",
 	}),
-	"effect/context": Context.empty(),
+	"effect/context": Context.empty() as AppEffectContext["effect/context"],
+	"effect/wrap": mapEffectErrors,
 });
 
 const signedInAs = (role: string) => {
@@ -116,6 +122,20 @@ describe("requiredAuthMiddleware", () => {
 
 		expect(error.code).toBe("UNAUTHORIZED");
 		expect(getSession).toHaveBeenCalledTimes(1);
+	});
+
+	test("a failing session lookup answers as an internal error with its cause", async () => {
+		const failure = new Error("database unavailable");
+		getSession.mockImplementationOnce(() => Promise.reject(failure));
+
+		const error = await rejection(
+			call(outer, undefined, {
+				context: requestContext(),
+			}),
+		);
+
+		expect(error.code).toBe("INTERNAL_SERVER_ERROR");
+		expect((error.cause as Error).cause).toBe(failure);
 	});
 
 	test("a context that only claims to be authenticated is not trusted", async () => {

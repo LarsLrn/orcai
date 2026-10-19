@@ -3,15 +3,17 @@ import { os } from "@orpc/server";
 import * as Effect from "effect/Effect";
 import { getZedToken } from "@/lib/authz/zed-token";
 import * as AppErrors from "@/lib/effect/utils/errors";
+import type { AppEffectContext } from "@/lib/orpc/implementation/os";
 import type { AuthContext } from "@/lib/orpc/middlewares/auth";
 import type { CheckPermissionInput, PermissionContext } from "./types";
 
 export const permissionBase = os.$context<
-	AuthContext & {
-		meta?: {
-			zedToken?: string;
-		};
-	}
+	AppEffectContext &
+		AuthContext & {
+			meta?: {
+				zedToken?: string;
+			};
+		}
 >();
 
 export const forbiddenPermissionError = (params: {

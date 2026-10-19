@@ -1,6 +1,13 @@
-import { ORPCError, type ORPCErrorCode } from "@orpc/server";
+import { logFailure } from "@orcai/observability";
+import {
+	COMMON_ERROR_STATUS_MAP,
+	ORPCError,
+	type ORPCErrorCode,
+} from "@orpc/server";
+import { isAbortError } from "@orpc/shared";
 import { EffectDrizzleQueryError } from "drizzle-orm/effect-core";
 import * as Cause from "effect/Cause";
+import * as Effect from "effect/Effect";
 import * as Option from "effect/Option";
 import * as Result from "effect/Result";
 import { SqlError } from "effect/unstable/sql/SqlError";
@@ -118,18 +125,55 @@ export const unknownToORPCError = (error: unknown): AnyORPCError => {
 	});
 };
 
-export const causeToORPCError = (cause: Cause.Cause<unknown>): AnyORPCError => {
-	const failure = Cause.findErrorOption(cause);
-	if (Option.isSome(failure)) {
-		return unknownToORPCError(failure.value);
-	}
+/** Whether the RPC handler answers `code` with a 4xx status; codes it has no status for get 500. */
+export const isClientErrorCode = (code: string): boolean =>
+	Object.hasOwn(COMMON_ERROR_STATUS_MAP, code) &&
+	COMMON_ERROR_STATUS_MAP[code as keyof typeof COMMON_ERROR_STATUS_MAP] < 500;
 
+/** A defect wins over failures alongside it, so the request answers 500. */
+export const causeToORPCError = (cause: Cause.Cause<unknown>): AnyORPCError => {
 	const defect = Cause.findDefect(cause);
 	if (Result.isSuccess(defect)) {
 		return unknownToORPCError(defect.success);
 	}
 
+	const failure = Cause.findErrorOption(cause);
+	if (Option.isSome(failure)) {
+		return unknownToORPCError(failure.value);
+	}
+
 	return new ORPCError("INTERNAL_SERVER_ERROR", {
 		cause: Cause.pretty(cause),
 	});
+};
+
+/**
+ * Fails with the cause's ORPCError, keeping interruptions and client aborts.
+ * Idempotent, as a failure passes through the `effect/wrap` of every layer.
+ */
+export const mapEffectErrors = <A, E>(
+	effect: Effect.Effect<A, E>,
+): Effect.Effect<A, E> =>
+	effect.pipe(
+		Effect.catchCause((cause) =>
+			Cause.hasInterruptsOnly(cause) || isAbortError(Cause.squash(cause))
+				? Effect.failCause(cause)
+				: Effect.fail(causeToORPCError(cause) as E),
+		),
+	);
+
+/** Logs a failed procedure: client errors at info, everything else at error, client aborts not at all. */
+export const logProcedureError = (error: unknown): Effect.Effect<void> => {
+	if (isAbortError(error)) {
+		return Effect.void;
+	}
+
+	const orpcError = unknownToORPCError(error);
+	return logFailure("ORPC procedure failed", orpcError.cause ?? orpcError, {
+		expected: isClientErrorCode(orpcError.code),
+	}).pipe(
+		Effect.annotateLogs({
+			"orpc.error.code": orpcError.code,
+		}),
+	);
 };
