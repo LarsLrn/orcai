@@ -1,9 +1,13 @@
+import type { OrganizationCapability } from "@orcai/schema";
 import { useSuspenseQuery } from "@tanstack/react-query";
 import { createFileRoute, Link } from "@tanstack/react-router";
+import { LibraryIcon, PlusIcon } from "lucide-react";
 import { BlockCard } from "@/components/blocks/block-card";
 import { BotCard } from "@/components/bot/bot-card";
 import { AssetCard } from "@/components/documents/asset-card";
+import { Placeholder } from "@/components/placeholders/placeholder";
 import { buttonVariants } from "@/components/ui/button";
+import type { ResourceCardActionItem } from "@/components/ui/shell/resource-card";
 import {
 	Section,
 	SectionAction,
@@ -12,6 +16,10 @@ import {
 	SectionHeader,
 	SectionTitle,
 } from "@/components/ui/shell/section";
+import {
+	filterByCapabilities,
+	useOrganizationCapabilities,
+} from "@/hooks/authz/use-capabilities";
 import { orpc } from "@/lib/orpc/orpc";
 import { m } from "@/paraglide/messages";
 
@@ -102,6 +110,54 @@ function RouteComponent() {
 			input: PREVIEW_INPUT,
 		}),
 	);
+	const { data: organizationCapabilities } = useOrganizationCapabilities([
+		"create_bot",
+		"create_asset",
+	]);
+
+	if (
+		bots.data.length === 0 &&
+		behaviourBlocks.data.length === 0 &&
+		knowledgeBlocks.data.length === 0 &&
+		assets.data.length === 0
+	) {
+		const actions: (ResourceCardActionItem & {
+			requires: OrganizationCapability;
+		})[] = [
+			{
+				key: "create_bot",
+				requires: "create_bot",
+				label: m.bots_list_create_action(),
+				icon: PlusIcon,
+				variant: "default",
+				linkProps: {
+					to: "/app/hub/bots/add",
+				},
+			},
+			{
+				key: "add_asset",
+				requires: "create_asset",
+				label: m.assets_list_add_action(),
+				icon: PlusIcon,
+				linkProps: {
+					to: "/app/hub/assets/add",
+				},
+			},
+		];
+
+		return (
+			<Placeholder
+				Icon={LibraryIcon}
+				title={m.hub_all_empty_title()}
+				description={m.hub_all_empty_description()}
+				actions={filterByCapabilities(
+					actions,
+					organizationCapabilities?.data.capabilities,
+					(action) => action.requires,
+				)}
+			/>
+		);
+	}
 
 	return (
 		<div className="space-y-14">

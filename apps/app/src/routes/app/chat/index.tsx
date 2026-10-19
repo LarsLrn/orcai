@@ -1,6 +1,7 @@
 import { botIdSchema, listChatsInputSchema } from "@orcai/schema";
 import { useSuspenseQuery } from "@tanstack/react-query";
 import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
+import { MessagesSquareIcon, PlusIcon } from "lucide-react";
 import { z } from "zod/v4";
 import { ChatTableActions } from "@/components/chat/table/chat-table-actions";
 import { chatTableColumns } from "@/components/chat/table/chat-table-columns";
@@ -164,7 +165,28 @@ function RouteComponent() {
 							<ChatTableActions />
 						</DataTableToolbarActions>
 					</DataTableToolbar>
-					<DataTableBody />
+					<DataTableBody
+						empty={{
+							Icon: MessagesSquareIcon,
+							title: m.chat_list_empty_state_title(),
+							description: m.chat_list_page_empty_description(),
+							actions: [
+								{
+									key: "start",
+									label: m.chat_start_action(),
+									icon: PlusIcon,
+									variant: "default",
+									linkProps: {
+										to: "/app/chat/setup",
+									},
+								},
+							],
+						}}
+						filters={{
+							query,
+							botId,
+						}}
+					/>
 					<DataTablePagination />
 				</DataTable>
 			</PageContent>

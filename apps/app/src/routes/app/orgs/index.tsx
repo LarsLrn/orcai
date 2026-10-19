@@ -2,6 +2,7 @@ import { ORGANIZATION_ADMIN_ROLE } from "@orcai/core";
 import { listOrganizationsInputSchema } from "@orcai/schema";
 import { useSuspenseQuery } from "@tanstack/react-query";
 import { createFileRoute } from "@tanstack/react-router";
+import { Building2Icon } from "lucide-react";
 import { organizationTableColumns } from "@/components/organizations/table/organization-table-columns";
 import { DataTable } from "@/components/ui/data-table/data-table";
 import { DataTableBody } from "@/components/ui/data-table/data-table-body";
@@ -91,7 +92,13 @@ function RouteComponent() {
 							<DataTableViewOptions />
 						</DataTableToolbarActions>
 					</DataTableToolbar>
-					<DataTableBody />
+					<DataTableBody
+						empty={{
+							Icon: Building2Icon,
+							title: m.orgs_list_empty_title(),
+							description: m.orgs_list_empty_description(),
+						}}
+					/>
 					<DataTablePagination />
 				</DataTable>
 			</PageContent>

@@ -1,13 +1,13 @@
 import { useQuery } from "@tanstack/react-query";
 import { Link } from "@tanstack/react-router";
-import { MessagesSquareIcon, MoreHorizontalIcon } from "lucide-react";
+import { MessagesSquareIcon, MoreHorizontalIcon, PlusIcon } from "lucide-react";
 import type { ComponentProps } from "react";
-import { Button, buttonVariants } from "@/components/ui/button";
+import { Placeholder } from "@/components/placeholders/placeholder";
+import { Button } from "@/components/ui/button";
 import {
 	Card,
 	CardContent,
 	CardDescription,
-	CardFooter,
 	CardHeader,
 	CardTitle,
 } from "@/components/ui/card";
@@ -41,26 +41,22 @@ const ChatsList = ({
 
 	if (!data?.data || data.data.length === 0) {
 		return (
-			<Card className="border-dashed" {...props}>
-				<CardHeader className="text-center">
-					<CardTitle className="font-semibold text-xl">
-						{m.chat_list_empty_state_title()}
-					</CardTitle>
-					<CardDescription className="mt-4 flex flex-col items-center gap-4">
-						{m.chat_list_empty_state_description()}
-					</CardDescription>
-				</CardHeader>
-				<CardFooter className="flex justify-center">
-					<Link
-						to="/app/chat/setup"
-						className={buttonVariants({
-							variant: "outline",
-						})}
-					>
-						{m.chat_start_action()}
-					</Link>
-				</CardFooter>
-			</Card>
+			<Placeholder
+				Icon={MessagesSquareIcon}
+				title={m.chat_list_empty_state_title()}
+				description={m.chat_list_empty_state_description()}
+				className={props.className}
+				actions={[
+					{
+						key: "start",
+						label: m.chat_start_action(),
+						icon: PlusIcon,
+						linkProps: {
+							to: "/app/chat/setup",
+						},
+					},
+				]}
+			/>
 		);
 	}
 

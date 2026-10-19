@@ -1,8 +1,7 @@
 import { quotaPoolListInputSchema } from "@orcai/schema";
 import { useSuspenseQuery } from "@tanstack/react-query";
 import { createFileRoute, Link } from "@tanstack/react-router";
-import { GaugeIcon } from "lucide-react";
-import { Placeholder } from "@/components/placeholders/placeholder";
+import { GaugeIcon, PlusIcon } from "lucide-react";
 import { quotaPoolTableColumns } from "@/components/quota/table/quota-pool-table-columns";
 import { buttonVariants } from "@/components/ui/button";
 import { DataTable } from "@/components/ui/data-table/data-table";
@@ -76,46 +75,46 @@ function RouteComponent() {
 				</PageAction>
 			</PageHeader>
 			<PageContent>
-				{pools.rowCount === 0 ? (
-					<Placeholder
-						Icon={GaugeIcon}
-						title={m.quotas_index_empty_title()}
-						description={m.quotas_index_empty_description()}
-						actions={[
-							{
-								key: "add",
-								label: m.quotas_index_add_button(),
-								linkProps: {
-									to: "/app/quotas/add",
+				<DataTable
+					data={pools.data}
+					columns={quotaPoolTableColumns}
+					state={{
+						pagination: {
+							pageIndex,
+							pageSize,
+						},
+						sorting: sort,
+					}}
+					options={{
+						rowCount: pools.rowCount,
+						uidAccessor: "id",
+					}}
+				>
+					<DataTableToolbar>
+						<DataTableToolbarActions>
+							<DataTableViewOptions />
+						</DataTableToolbarActions>
+					</DataTableToolbar>
+					<DataTableBody
+						empty={{
+							Icon: GaugeIcon,
+							title: m.quotas_index_empty_title(),
+							description: m.quotas_index_empty_description(),
+							actions: [
+								{
+									key: "add",
+									label: m.quotas_index_add_button(),
+									icon: PlusIcon,
+									variant: "default",
+									linkProps: {
+										to: "/app/quotas/add",
+									},
 								},
-							},
-						]}
+							],
+						}}
 					/>
-				) : (
-					<DataTable
-						data={pools.data}
-						columns={quotaPoolTableColumns}
-						state={{
-							pagination: {
-								pageIndex,
-								pageSize,
-							},
-							sorting: sort,
-						}}
-						options={{
-							rowCount: pools.rowCount,
-							uidAccessor: "id",
-						}}
-					>
-						<DataTableToolbar>
-							<DataTableToolbarActions>
-								<DataTableViewOptions />
-							</DataTableToolbarActions>
-						</DataTableToolbar>
-						<DataTableBody />
-						<DataTablePagination />
-					</DataTable>
-				)}
+					<DataTablePagination />
+				</DataTable>
 			</PageContent>
 		</Page>
 	);

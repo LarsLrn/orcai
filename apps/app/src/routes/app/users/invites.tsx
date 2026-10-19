@@ -1,6 +1,7 @@
 import { listOrganizationInvitationsInputSchema } from "@orcai/schema";
 import { useSuspenseQuery } from "@tanstack/react-query";
 import { createFileRoute, Link } from "@tanstack/react-router";
+import { MailIcon, PlusIcon } from "lucide-react";
 import { buttonVariants } from "@/components/ui/button";
 import { DataTable } from "@/components/ui/data-table/data-table";
 import { DataTableBody } from "@/components/ui/data-table/data-table-body";
@@ -110,7 +111,24 @@ function RouteComponent() {
 							<DataTableExportButton fileName="invitations" />
 						</DataTableToolbarActions>
 					</DataTableToolbar>
-					<DataTableBody />
+					<DataTableBody
+						empty={{
+							Icon: MailIcon,
+							title: m.users_invites_empty_title(),
+							description: m.users_invites_empty_description(),
+							actions: [
+								{
+									key: "invite",
+									label: m.users_invites_invite_action(),
+									icon: PlusIcon,
+									variant: "default",
+									linkProps: {
+										to: "/app/users/add",
+									},
+								},
+							],
+						}}
+					/>
 					<DataTablePagination />
 				</DataTable>
 			</PageContent>

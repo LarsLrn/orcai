@@ -1,6 +1,7 @@
 import { listModelsInputSchema, providerIdSchema } from "@orcai/schema";
 import { useSuspenseQuery } from "@tanstack/react-query";
 import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
+import { BoxIcon, PlusIcon } from "lucide-react";
 import { z } from "zod/v4";
 import { DiscoverModels } from "@/components/model/discover-models";
 import { ModelTableActions } from "@/components/model/table/model-table-actions";
@@ -175,7 +176,28 @@ function RouteComponent() {
 							<ModelTableActions />
 						</DataTableToolbarActions>
 					</DataTableToolbar>
-					<DataTableBody />
+					<DataTableBody
+						empty={{
+							Icon: BoxIcon,
+							title: m.models_index_empty_title(),
+							description: m.models_index_empty_description(),
+							actions: [
+								{
+									key: "add",
+									label: m.models_index_add_button(),
+									icon: PlusIcon,
+									variant: "default",
+									linkProps: {
+										to: "/app/models/add",
+									},
+								},
+							],
+						}}
+						filters={{
+							query,
+							providerId,
+						}}
+					/>
 					<DataTablePagination />
 				</DataTable>
 			</PageContent>
