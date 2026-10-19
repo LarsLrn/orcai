@@ -3046,6 +3046,7 @@
 	"sidebar_chats_error_retry_button": "Try again",
 	"sidebar_chats_error_title": "Your chats could not be loaded",
 	"sidebar_chats_group_label": "Chats",
+	"sidebar_chats_show_all_link": "Show all {count} chats",
 	"sidebar_manage_group_label": "Your workspace",
 	"sidebar_menu_administration_item": "Administration",
 	"sidebar_menu_assets_item": "Assets",

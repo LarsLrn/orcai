@@ -6,10 +6,13 @@ import {
 	BotIcon,
 	BrainCircuitIcon,
 	Building2Icon,
+	CpuIcon,
 	DatabaseIcon,
 	FolderOpenIcon,
 	type LucideIcon,
+	PlugIcon,
 	ServerCogIcon,
+	ShieldCogIcon,
 	UserCogIcon,
 	UserIcon,
 	UsersIcon,
@@ -70,7 +73,7 @@ export const sidebarMenu: SidebarMenuItem[] = [
 	},
 	{
 		title: m.sidebar_menu_administration_item,
-		icon: ServerCogIcon,
+		icon: ShieldCogIcon,
 		items: [
 			{
 				title: m.sidebar_menu_users_item,
@@ -102,7 +105,7 @@ export const sidebarMenu: SidebarMenuItem[] = [
 				linkProps: {
 					to: "/app/providers",
 				},
-				icon: ServerCogIcon,
+				icon: PlugIcon,
 			},
 			{
 				title: m.sidebar_menu_models_item,
@@ -110,7 +113,7 @@ export const sidebarMenu: SidebarMenuItem[] = [
 				linkProps: {
 					to: "/app/models",
 				},
-				icon: BotIcon,
+				icon: CpuIcon,
 			},
 			{
 				title: m.sidebar_menu_organisations_item,

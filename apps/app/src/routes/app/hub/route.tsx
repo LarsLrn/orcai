@@ -3,7 +3,6 @@ import {
 	type LinkProps,
 	Outlet,
 	useNavigate,
-	useRouterState,
 } from "@tanstack/react-router";
 import {
 	BotIcon,
@@ -28,6 +27,7 @@ import {
 	HeroWave,
 } from "@/components/ui/shell/hero";
 import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { useSectionPathname } from "@/hooks/use-section-pathname";
 import { m } from "@/paraglide/messages";
 
 const HUB_ROUTES = [
@@ -107,10 +107,7 @@ export const Route = createFileRoute("/app/hub")({
 
 function RouteComponent() {
 	const navigate = useNavigate();
-	const pathname = useRouterState({
-		select: (s) => s.location.pathname,
-	});
-	const activeTab = getActiveTab(pathname);
+	const activeTab = getActiveTab(useSectionPathname());
 	const hubRouteItems = HUB_ROUTES.map((route) => ({
 		...route,
 		label: getHubRouteLabel(route.value),
