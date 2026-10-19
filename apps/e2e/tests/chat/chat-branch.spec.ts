@@ -12,7 +12,6 @@ import {
 	openChat,
 	sendTurn,
 	setUpChatModel,
-	topOf,
 } from "../../fixtures/chat/chat";
 import type { ApiClient } from "../../fixtures/index";
 import {
@@ -131,18 +130,22 @@ test("branching from a reply opens a copy up to it, linked both ways", async ({
 		.click();
 	await expect(page).toHaveURL(new RegExp(`/app/chat/${parentId}`));
 
-	const branches = page.getByText(message("chat_message_branches_label"), {
+	const branchesLabel = message("chat_message_branches_label");
+	const branches = page.getByText(branchesLabel, {
 		exact: true,
 	});
 	await expect(branches).toBeVisible();
 	await expect(messageText(page, turns[1].reply)).toBeVisible();
-	const markerTop = await topOf(branches);
-	expect(markerTop).toBeGreaterThan(
-		await topOf(messageText(page, turns[0].reply)),
-	);
-	expect(markerTop).toBeLessThan(
-		await topOf(messageText(page, turns[1].question)),
-	);
+	// A union matches in document order, which the log's scrolling cannot change.
+	await expect(
+		messageText(page, turns[0].reply)
+			.or(branches)
+			.or(messageText(page, turns[1].question)),
+	).toHaveText([
+		turns[0].reply,
+		branchesLabel,
+		turns[1].question,
+	]);
 
 	await page
 		.getByRole("log")
