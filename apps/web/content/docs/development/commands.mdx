@@ -51,6 +51,9 @@ Each checkout owns an isolated Docker Compose project with per-worktree ports st
 | `bun run knip` | Run unused dependency/export analysis. |
 | `bun run prepush` | Run the full pre-push check. |
 
+The TypeScript check passes `--force` to `tsgo --build`, so stale build info
+cannot hide an error that a fresh CI checkout reports.
+
 `lint:eslint`, which `lint-full` runs, enumerates the workspaces
 (`apps/app`, `apps/web`, then `apps/e2e`, `apps/workers`, `packages`) because
 each carries its own ESLint project settings.
