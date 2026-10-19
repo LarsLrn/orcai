@@ -32,6 +32,7 @@ export const useCreateBlockMutation = (
 						params: {
 							blockId: result.data.id,
 						},
+						ignoreBlocker: true,
 					});
 
 					try {

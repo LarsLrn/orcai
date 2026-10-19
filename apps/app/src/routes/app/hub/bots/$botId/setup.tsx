@@ -83,6 +83,7 @@ function RouteComponent() {
 								zedToken: search.zedToken,
 							},
 							replace: true,
+							ignoreBlocker: true,
 						})
 					}
 				/>

@@ -18,6 +18,7 @@ import {
 	useCreateBlockMutation,
 	useUpdateBlockMutation,
 } from "@/hooks/mutations/use-block-mutations";
+import { useUnsavedChangesGuard } from "@/hooks/use-unsaved-changes-guard";
 import { orpc } from "@/lib/orpc/orpc";
 import { m } from "@/paraglide/messages";
 import { imageGenerationBlockFormOptions } from "./image-generation-block-form-options";
@@ -38,6 +39,7 @@ const ImageGenerationBlockForm = ({
 				params: {
 					blockId: result.data.id,
 				},
+				ignoreBlocker: true,
 			}),
 	});
 	const contentTitleId = useId();
@@ -61,6 +63,8 @@ const ImageGenerationBlockForm = ({
 			}
 		},
 	});
+
+	useUnsavedChangesGuard(() => !form.state.isDefaultValue);
 
 	const providerId = useSelector(
 		form.store,

@@ -27,6 +27,7 @@ import {
 	DialogHeader,
 	DialogTitle,
 } from "@/components/ui/dialog";
+import { useConfirmDiscard } from "@/hooks/use-unsaved-changes-guard";
 import { emptyCapabilities } from "@/lib/authz/capabilities";
 import { m } from "@/paraglide/messages";
 
@@ -106,6 +107,15 @@ const DatabaseBlockEditor = ({
 	const [isAdvancedOpen, setIsAdvancedOpen] = useState(false);
 	const [isLibraryOpen, setIsLibraryOpen] = useState(false);
 	const [isUploadOpen, setIsUploadOpen] = useState(false);
+	const [hasPendingUploads, setHasPendingUploads] = useState(false);
+	const confirmDiscard = useConfirmDiscard();
+
+	const handleUploadOpenChange = async (open: boolean) => {
+		if (!open && hasPendingUploads && !(await confirmDiscard())) {
+			return;
+		}
+		setIsUploadOpen(open);
+	};
 
 	return (
 		<Card className="min-w-0 rounded-2xl">
@@ -198,7 +208,10 @@ const DatabaseBlockEditor = ({
 						</DialogContent>
 					</Dialog>
 
-					<Dialog open={isUploadOpen} onOpenChange={setIsUploadOpen}>
+					<Dialog
+						open={isUploadOpen}
+						onOpenChange={(open) => void handleUploadOpenChange(open)}
+					>
 						<DialogContent className="max-h-[88vh] sm:max-w-5xl">
 							<DialogHeader>
 								<DialogTitle>
@@ -209,6 +222,7 @@ const DatabaseBlockEditor = ({
 								</DialogDescription>
 							</DialogHeader>
 							<AssetIntakeFlow
+								onPendingChange={setHasPendingUploads}
 								submitLabel={m.authoring_database_block_save_assets_button()}
 								onAssetsSaved={(savedAssets) => {
 									const nextAssets = mergeAssets(assets, savedAssets);

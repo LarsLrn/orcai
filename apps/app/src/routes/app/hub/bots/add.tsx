@@ -51,6 +51,7 @@ function RouteComponent() {
 								step,
 							},
 							replace: true,
+							ignoreBlocker: true,
 						})
 					}
 				/>

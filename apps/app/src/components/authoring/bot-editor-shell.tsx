@@ -62,6 +62,7 @@ import {
 	usePublishBotMutation,
 	useSaveBotMutation,
 } from "@/hooks/mutations/use-bot-mutations";
+import { useUnsavedChangesGuard } from "@/hooks/use-unsaved-changes-guard";
 import { emptyCapabilities, hasCapability } from "@/lib/authz/capabilities";
 import { orpc } from "@/lib/orpc/orpc";
 import { getProcessingStatusLabel } from "@/lib/presentation/processing-status";
@@ -202,6 +203,8 @@ const BotEditorShell = ({
 		...botEditorFormOptions(editorData),
 		onSubmit: () => undefined,
 	});
+	useUnsavedChangesGuard(() => !form.state.isDefaultValue);
+
 	const editor = useSelector(
 		form.store,
 		(state) => state.values,
@@ -460,6 +463,7 @@ const BotEditorShell = ({
 					zedToken: zedTokenRef.current,
 				},
 				replace: true,
+				ignoreBlocker: true,
 			});
 		}
 
@@ -514,11 +518,12 @@ const BotEditorShell = ({
 			return;
 		}
 
-		const savedEditor = editor.id
-			? editor
-			: await handleSave({
-					status: "draft",
-				});
+		const savedEditor =
+			editor.id && form.state.isDefaultValue
+				? editor
+				: await handleSave({
+						status: editor.id ? undefined : "draft",
+					});
 		if (!savedEditor?.id) {
 			return;
 		}

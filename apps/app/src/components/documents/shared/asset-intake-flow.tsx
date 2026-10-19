@@ -1,5 +1,5 @@
 import type { Asset, FinalizedUploadFile } from "@orcai/schema";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { toast } from "sonner";
 import {
 	type AssetMetadataDraft,
@@ -19,15 +19,18 @@ import {
 	CardTitle,
 } from "@/components/ui/card";
 import { useSaveManyAssetsMutation } from "@/hooks/mutations/use-asset-mutations";
+import { useUnsavedChangesGuard } from "@/hooks/use-unsaved-changes-guard";
 import { m } from "@/paraglide/messages";
 
 type IntakeStep = "upload" | "uploaded" | "review";
 
 const AssetIntakeFlow = ({
 	onAssetsSaved,
+	onPendingChange,
 	submitLabel,
 }: {
 	onAssetsSaved?: (assets: Asset[]) => void;
+	onPendingChange?: (pending: boolean) => void;
 	submitLabel?: string;
 }) => {
 	const [step, setStep] = useState<IntakeStep>("upload");
@@ -41,6 +44,17 @@ const AssetIntakeFlow = ({
 			setStep("upload");
 		},
 	});
+
+	const hasPending = uploadedFiles.length > 0;
+
+	useUnsavedChangesGuard(() => hasPending);
+
+	useEffect(() => {
+		onPendingChange?.(hasPending);
+	}, [
+		hasPending,
+		onPendingChange,
+	]);
 
 	return (
 		<div className="space-y-6">

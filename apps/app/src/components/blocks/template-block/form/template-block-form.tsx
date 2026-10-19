@@ -5,6 +5,7 @@ import {
 	useCreateBlockMutation,
 	useUpdateBlockMutation,
 } from "@/hooks/mutations/use-block-mutations";
+import { useUnsavedChangesGuard } from "@/hooks/use-unsaved-changes-guard";
 import { getPublicationStatusOptions } from "@/lib/presentation/publication-status";
 import { m } from "@/paraglide/messages";
 import {
@@ -29,6 +30,7 @@ const TemplateBlockForm = ({
 				params: {
 					blockId: result.data.id,
 				},
+				ignoreBlocker: true,
 			}),
 	});
 
@@ -46,6 +48,8 @@ const TemplateBlockForm = ({
 			await createBlock(value);
 		},
 	});
+
+	useUnsavedChangesGuard(() => !form.state.isDefaultValue);
 
 	return (
 		<form

@@ -60,6 +60,7 @@ export const usePublishBotMutation = (
 						params: {
 							botId: result.data.id,
 						},
+						ignoreBlocker: true,
 					});
 
 					try {
