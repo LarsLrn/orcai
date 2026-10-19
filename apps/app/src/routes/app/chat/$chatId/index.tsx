@@ -8,7 +8,7 @@ import {
 import { useEffect } from "react";
 import { z } from "zod/v4";
 import { Chat } from "@/components/chat/chat";
-import type { ChatAgentUIMessage } from "@/lib/ai/types/chat-agent-message";
+import { toChatAgentMessages } from "@/components/chat/chat-history";
 import { orpc } from "@/lib/orpc/orpc";
 import { orNotFound, parseParam } from "@/lib/router/not-found";
 import { m } from "@/paraglide/messages";
@@ -16,10 +16,6 @@ import { m } from "@/paraglide/messages";
 const searchSchema = z.object({
 	...zedTokenSchema.shape,
 });
-
-// Unfortunately required for now to restore types after route validation, since UI Messages are dynamically inferred based on available tools, metadata and more, which makes it impossible to statically define the shape in the @orcai/schema package.
-const toChatAgentMessages = (messages: unknown[]): ChatAgentUIMessage[] =>
-	messages as ChatAgentUIMessage[];
 
 export const Route = createFileRoute("/app/chat/$chatId/")({
 	validateSearch: searchSchema,
@@ -52,8 +48,6 @@ export const Route = createFileRoute("/app/chat/$chatId/")({
 			orpc.chatMessage.list.queryOptions({
 				input: {
 					chatId,
-					includeScores: true,
-					pageSize: 100,
 					zedToken,
 				},
 				staleTime: 0,
@@ -124,6 +118,8 @@ function RouteComponent() {
 				key={chatId}
 				id={chatId}
 				initialMessages={initialMessages}
+				initialBefore={loaderData.messages.data[0]?.position}
+				initialHasMore={loaderData.messages.hasMore}
 				zedToken={zedToken}
 				pendingMessage={pendingMessage}
 			/>

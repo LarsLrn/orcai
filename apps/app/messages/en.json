@@ -1412,6 +1412,9 @@
 		}
 	],
 	"chat_detail_page_title_fallback": "Chat",
+	"chat_download_failed_toast_error": "The chat could not be downloaded.",
+	"chat_earlier_messages_failed": "Earlier messages could not be loaded.",
+	"chat_earlier_messages_loading": "Loading earlier messages...",
 	"chat_image_part_download_action": "Download image",
 	"chat_image_part_download_toast_error": "The image was not downloaded. Try again.",
 	"chat_image_part_download_toast_success": "Image downloaded",

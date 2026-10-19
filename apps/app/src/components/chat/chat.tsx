@@ -17,6 +17,7 @@ import { formatCount } from "@/lib/presentation/format-number";
 import { m } from "@/paraglide/messages";
 import { ChatInput } from "./chat-input";
 import { ChatPlaceholder } from "./chat-placeholder";
+import { EarlierMessages } from "./earlier-messages";
 import { MessageBlock } from "./message/message-block";
 
 /** Quota is a governance fact, so it sits in the accent, above the composer. */
@@ -54,18 +55,24 @@ const QuotaLine = ({ chatId }: { chatId: ChatId }) => {
 const Chat = ({
 	id,
 	initialMessages,
+	initialBefore,
+	initialHasMore,
 	zedToken,
 	pendingMessage,
 }: {
 	id: ChatId;
 	initialMessages: ChatAgentUIMessage[];
+	/** Position of the oldest loaded message, the cursor for the next older page. */
+	initialBefore?: number;
+	initialHasMore: boolean;
 	zedToken?: string;
 	pendingMessage?: string;
 }) => {
 	const queryClient = useQueryClient();
 	const hasSentPendingMessage = useRef(false);
 	const [errorDetail, setErrorDetail] = useState<string | undefined>(undefined);
-	const initialMessageIds = useRef(
+	// Only messages that arrive during this visit animate in.
+	const loadedMessageIds = useRef(
 		new Set(initialMessages.map((message) => message.id)),
 	);
 
@@ -133,6 +140,19 @@ const Chat = ({
 			},
 		});
 
+	const prependMessages = (older: ChatAgentUIMessage[]) => {
+		for (const message of older) {
+			loadedMessageIds.current.add(message.id);
+		}
+		setMessages((current) => {
+			const currentIds = new Set(current.map((message) => message.id));
+			return [
+				...older.filter((message) => !currentIds.has(message.id)),
+				...current,
+			];
+		});
+	};
+
 	useEffect(() => {
 		if (!pendingMessage || hasSentPendingMessage.current) {
 			return;
@@ -160,7 +180,18 @@ const Chat = ({
 	return (
 		<div className="flex size-full min-h-0 min-w-0 flex-col">
 			<Conversation className="flex w-full" initial="instant">
-				<ConversationContent className="mx-auto w-full max-w-200">
+				<ConversationContent
+					className="mx-auto w-full max-w-200"
+					scrollClassName="[overflow-anchor:none]"
+				>
+					<EarlierMessages
+						chatId={id}
+						zedToken={zedToken}
+						initialBefore={initialBefore}
+						initialHasMore={initialHasMore}
+						firstMessageId={messages[0]?.id}
+						onLoad={prependMessages}
+					/>
 					{messages.map((m, index) => (
 						<MessageBlock
 							key={m.id}
@@ -170,7 +201,7 @@ const Chat = ({
 							regenerate={regenerate}
 							status={status}
 							isLatest={index === messages.length - 1}
-							animate={!initialMessageIds.current.has(m.id)}
+							animate={!loadedMessageIds.current.has(m.id)}
 						/>
 					))}
 					{messages.length === 0 && <ChatPlaceholder />}
@@ -204,7 +235,6 @@ const Chat = ({
 					status={status}
 					sendMessage={sendMessage}
 					stop={stop}
-					messages={messages}
 				/>
 			</div>
 		</div>

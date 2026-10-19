@@ -1,5 +1,5 @@
 import { DB, dbSchema } from "@orcai/db";
-import { and, asc, count, eq, inArray, max } from "drizzle-orm";
+import { and, desc, eq, inArray, lt, max } from "drizzle-orm";
 import * as Effect from "effect/Effect";
 import * as AppErrors from "@/lib/effect/utils/errors";
 import { authed } from "@/lib/orpc/implementation/authed";
@@ -16,33 +16,23 @@ export const listChatMessages = authed.chatMessage.list
 	.effect(function* ({ input }) {
 		const db = yield* DB;
 
-		const chatMessages = yield* db
+		const rows = yield* db
 			.select()
 			.from(dbSchema.chatMessage)
-			.where(eq(dbSchema.chatMessage.chatId, input.chatId))
-			.orderBy(asc(dbSchema.chatMessage.position))
-			.limit(input.pageSize)
-			.offset(input.pageIndex * input.pageSize);
-
-		const [rowCount] = yield* db
-			.select({
-				count: count(),
-			})
-			.from(dbSchema.chatMessage)
-			.where(eq(dbSchema.chatMessage.chatId, input.chatId));
+			.where(
+				and(
+					eq(dbSchema.chatMessage.chatId, input.chatId),
+					input.before === undefined
+						? undefined
+						: lt(dbSchema.chatMessage.position, input.before),
+				),
+			)
+			.orderBy(desc(dbSchema.chatMessage.position))
+			.limit(input.limit + 1);
 
 		return {
-			data: chatMessages,
-			rowCount: rowCount.count,
-			scores: {
-				data: [],
-				meta: {
-					page: 1,
-					totalItems: 0,
-					limit: 0,
-					totalPages: 0,
-				},
-			}, // Placeholder for scores, to be implemented when rating is added
+			data: rows.slice(0, input.limit).reverse(),
+			hasMore: rows.length > input.limit,
 		};
 	});
 

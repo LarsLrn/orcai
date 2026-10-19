@@ -11,7 +11,7 @@ import {
 } from "lucide-react";
 import { useCallback, useState } from "react";
 import { toast } from "sonner";
-import { ConversationDownload } from "@/components/ai-elements/conversation";
+import { downloadConversation } from "@/components/ai-elements/conversation";
 import {
 	PromptInputSubmit,
 	PromptInputTools,
@@ -20,6 +20,7 @@ import { ChatAttachmentActionMenu } from "@/components/chat/attachments/chat-att
 import { ChatComposerAttachments } from "@/components/chat/attachments/chat-attachment-input";
 import { useChatAttachments } from "@/components/chat/attachments/use-chat-attachments";
 import { ChatAssetPicker } from "@/components/chat/chat-asset-picker";
+import { fetchWholeChat } from "@/components/chat/chat-history";
 import { ChatSettings } from "@/components/chat/chat-settings";
 import { ModelSelectorButton } from "@/components/chat/model-selector";
 import { AppTourButton } from "@/components/next-step/app-tour-button";
@@ -50,14 +51,12 @@ const ChatInput = ({
 	zedToken,
 	sendMessage,
 	stop,
-	messages,
 	status,
 }: {
 	chatId: ChatId;
 	zedToken?: string;
 	sendMessage: UseChatHelpers<ChatAgentUIMessage>["sendMessage"];
 	stop: UseChatHelpers<ChatAgentUIMessage>["stop"];
-	messages: ChatAgentUIMessage[];
 	status: UseChatHelpers<ChatAgentUIMessage>["status"];
 }) => {
 	const [messageText, setMessageText] = useState("");
@@ -169,6 +168,21 @@ const ChatInput = ({
 		}
 	};
 
+	const handleDownload = async () => {
+		try {
+			downloadConversation(
+				await fetchWholeChat({
+					chatId,
+					zedToken,
+				}),
+			);
+		} catch (error) {
+			toast.error(m.chat_download_failed_toast_error(), {
+				description: reasonMessageOf(error),
+			});
+		}
+	};
+
 	const handleTextareaKeyDown = (
 		event: React.KeyboardEvent<HTMLTextAreaElement>,
 	) => {
@@ -250,15 +264,9 @@ const ChatInput = ({
 									<DropdownMenuItem onClick={() => setSettingsOpen(true)}>
 										<SettingsIcon /> {m.chat_composer_settings_action()}
 									</DropdownMenuItem>
-									<ConversationDownload
-										messages={messages}
-										render={<DropdownMenuItem />}
-										variant="ghost"
-										className="w-full justify-start"
-									>
-										<DownloadIcon className="size-4" />{" "}
-										{m.chat_composer_download_action()}
-									</ConversationDownload>
+									<DropdownMenuItem onClick={handleDownload}>
+										<DownloadIcon /> {m.chat_composer_download_action()}
+									</DropdownMenuItem>
 								</DropdownMenuContent>
 							</DropdownMenu>
 						</PromptInputTools>
