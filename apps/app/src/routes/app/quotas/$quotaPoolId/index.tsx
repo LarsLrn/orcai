@@ -175,7 +175,7 @@ function RouteComponent() {
 					) : null}
 				</PageAction>
 			</PageHeader>
-			<PageContent className="grid gap-6 lg:grid-cols-3">
+			<PageContent className="grid grid-cols-1 gap-6 lg:grid-cols-3">
 				<div className="space-y-6 lg:col-span-2">
 					<Card>
 						<CardHeader>
@@ -184,8 +184,8 @@ function RouteComponent() {
 								{m.quotas_detail_current_usage_description()}
 							</CardDescription>
 						</CardHeader>
-						<CardContent>
-							<div className="grid gap-4 md:grid-cols-4">
+						<CardContent className="@container">
+							<div className="grid gap-4 @sm:grid-cols-2 @2xl:grid-cols-4">
 								<div>
 									<div className="text-muted-foreground text-xs uppercase">
 										{m.quotas_detail_budget_metric_label()}

@@ -370,7 +370,7 @@ export const MessageResponse = memo(
 		<StreamdownContent
 			allowedTags={streamdownAllowedTags}
 			className={cn(
-				"w-full [&>*:first-child]:mt-0 [&>*:last-child]:mb-0",
+				"wrap-break-word w-full [&>*:first-child]:mt-0 [&>*:last-child]:mb-0",
 				"[&_h1]:font-semibold [&_h1]:text-2xl [&_h1]:tracking-tight [&_h2]:font-semibold [&_h2]:text-base [&_h2]:tracking-tight [&_h3]:font-medium [&_h3]:text-sm [&_h4]:font-medium [&_h4]:text-sm",
 				"[&_table]:rounded-xl [&_table]:text-sm",
 				className,

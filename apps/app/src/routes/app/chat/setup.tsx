@@ -79,11 +79,11 @@ function RouteComponent() {
 								<CardContent>
 									<div className="space-y-2 text-muted-foreground text-sm">
 										<div className="flex items-center gap-2">
-											<SparklesIcon className="h-4 w-4" />
+											<SparklesIcon className="h-4 w-4 shrink-0" />
 											<span>{m.chat_setup_bot_card_point_ready()}</span>
 										</div>
 										<div className="flex items-center gap-2">
-											<UserIcon className="h-4 w-4" />
+											<UserIcon className="h-4 w-4 shrink-0" />
 											<span>{m.chat_setup_bot_card_point_configured()}</span>
 										</div>
 									</div>
@@ -148,11 +148,11 @@ function RouteComponent() {
 						<CardContent>
 							<div className="space-y-2 text-muted-foreground text-sm">
 								<div className="flex items-center gap-2">
-									<MessageSquarePlusIcon className="h-4 w-4" />
+									<MessageSquarePlusIcon className="h-4 w-4 shrink-0" />
 									<span>{m.chat_setup_solo_card_point_knowledge()}</span>
 								</div>
 								<div className="flex items-center gap-2">
-									<SparklesIcon className="h-4 w-4" />
+									<SparklesIcon className="h-4 w-4 shrink-0" />
 									<span>{m.chat_setup_solo_card_point_model()}</span>
 								</div>
 							</div>

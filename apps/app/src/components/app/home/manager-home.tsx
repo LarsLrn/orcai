@@ -48,7 +48,7 @@ const ManagerHome = () => (
 			</PageAction>
 		</PageHeader>
 
-		<div className="grid gap-4 lg:grid-cols-3">
+		<div className="grid grid-cols-1 gap-4 lg:grid-cols-3">
 			<div className="lg:col-span-2">
 				<Suspense fallback={<PanelSkeleton rows={3} />}>
 					<ManageQuotaPanel />

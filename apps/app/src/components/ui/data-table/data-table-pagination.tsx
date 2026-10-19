@@ -22,15 +22,15 @@ const DataTablePagination = () => {
 		.some((column) => column.id === "select");
 
 	return (
-		<div className="flex flex-col items-center justify-between px-2 sm:flex-row">
-			<div className="flex-1 text-muted-foreground text-sm">
+		<div className="flex flex-wrap items-center justify-between gap-x-6 gap-y-2 px-2">
+			<div className="grow whitespace-nowrap text-muted-foreground text-sm">
 				{hasSelectionColumn
 					? `${table.getFilteredSelectedRowModel().rows.length} of ${table.getRowModel().rows.length} row(s) selected on this page.`
 					: null}
 			</div>
-			<div className="flex items-center space-x-6 lg:space-x-8">
+			<div className="flex flex-wrap items-center gap-x-6 gap-y-2 lg:gap-x-8">
 				<div className="flex items-center space-x-2">
-					<p className="font-medium text-sm">Rows per page</p>
+					<p className="whitespace-nowrap font-medium text-sm">Rows per page</p>
 					<Select
 						value={`${table.state.pagination.pageSize}`}
 						onValueChange={(value) => {
@@ -57,10 +57,11 @@ const DataTablePagination = () => {
 						</SelectContent>
 					</Select>
 				</div>
-				<div className="flex w-25 items-center justify-center font-medium text-sm">
-					Page {table.state.pagination.pageIndex + 1} of {table.getPageCount()}
-				</div>
 				<div className="flex items-center space-x-2">
+					<div className="flex w-25 items-center justify-center font-medium text-sm">
+						Page {table.state.pagination.pageIndex + 1} of{" "}
+						{table.getPageCount()}
+					</div>
 					<Button
 						variant="outline"
 						className="hidden h-8 w-8 p-0 lg:flex"
