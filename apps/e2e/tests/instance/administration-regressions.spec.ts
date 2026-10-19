@@ -15,6 +15,8 @@ import { adminSession, signUpUnaffiliated } from "../../fixtures/organisation";
 test("instance management has an independent route and survives the last organisation", async ({
 	appBaseURL,
 	browser,
+	seedZedToken,
+	zedTokens,
 }) => {
 	test.slow();
 	const session = await signUpUnaffiliated({
@@ -64,7 +66,7 @@ test("instance management has an independent route and survives the last organis
 		email: session.email,
 		password: USER_PASSWORD,
 	});
-	const client = createApiClient(appBaseURL, promoted.cookieHeader);
+	const client = createApiClient(appBaseURL, promoted.cookieHeader, zedTokens);
 	const context = await browser.newContext({
 		storageState: promoted.storageState,
 	});
@@ -93,6 +95,7 @@ test("instance management has an independent route and survives the last organis
 		await client.user.setActiveOrganization({
 			organizationId: id,
 		});
+		await seedZedToken(page);
 
 		await open(page, "/instance/users");
 		await expect(
@@ -130,6 +133,7 @@ test("instance management has an independent route and survives the last organis
 				},
 			],
 		});
+		await seedZedToken(page);
 		await open(page, "/instance/users");
 		await expect(
 			page.getByRole("heading", {
