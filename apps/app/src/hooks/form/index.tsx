@@ -1,44 +1,20 @@
 import { createFormHook } from "@tanstack/react-form";
-import { lazy } from "react";
 import { flushSync } from "react-dom";
+import BlockEditorField from "@/components/forms/fields/block-editor-field";
+import CheckboxGroup from "@/components/forms/fields/checkbox-group";
+import DatetimeField from "@/components/forms/fields/datetime-field";
+import FormValidationErrors from "@/components/forms/fields/form-validation-errors";
+import MultiSelectField from "@/components/forms/fields/multi-select-field";
+import PasswordField from "@/components/forms/fields/password-field";
+import RadioGroup from "@/components/forms/fields/radio-group";
+import SelectField from "@/components/forms/fields/select-field";
+import SliderField from "@/components/forms/fields/slider-field";
+import SwitchField from "@/components/forms/fields/switch-field";
+import TextField from "@/components/forms/fields/text-field";
+import TextareaField from "@/components/forms/fields/textarea-field";
+import UploadField from "@/components/forms/fields/upload-field";
 import { SubmitButton } from "@/components/forms/submit-button";
 import { fieldContext, formContext } from "./context";
-
-const TextField = lazy(() => import("@/components/forms/fields/text-field"));
-const SelectField = lazy(
-	() => import("@/components/forms/fields/select-field"),
-);
-const MultiSelectField = lazy(
-	() => import("@/components/forms/fields/multi-select-field"),
-);
-const TextareaField = lazy(
-	() => import("@/components/forms/fields/textarea-field"),
-);
-const SwitchField = lazy(
-	() => import("@/components/forms/fields/switch-field"),
-);
-const RadioGroup = lazy(() => import("@/components/forms/fields/radio-group"));
-const CheckboxGroup = lazy(
-	() => import("@/components/forms/fields/checkbox-group"),
-);
-const DatetimeField = lazy(
-	() => import("@/components/forms/fields/datetime-field"),
-);
-const PasswordField = lazy(
-	() => import("@/components/forms/fields/password-field"),
-);
-const BlockEditorField = lazy(
-	() => import("@/components/forms/fields/block-editor-field"),
-);
-const UploadField = lazy(
-	() => import("@/components/forms/fields/upload-field"),
-);
-const SliderField = lazy(
-	() => import("@/components/forms/fields/slider-field"),
-);
-const FormValidationErrors = lazy(
-	() => import("@/components/forms/fields/form-validation-errors"),
-);
 
 const formHook = createFormHook({
 	fieldComponents: {

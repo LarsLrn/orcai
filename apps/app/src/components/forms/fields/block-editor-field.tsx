@@ -1,7 +1,7 @@
 import { useSelector } from "@tanstack/react-store";
 import type { Content } from "@tiptap/core";
-import { useId } from "react";
-import { BlockEditor } from "@/components/editor";
+import { lazy, Suspense, useId } from "react";
+import { BlockEditorPlaceholder } from "@/components/editor/block-editor-placeholder";
 import {
 	Field,
 	FieldDescription,
@@ -10,6 +10,13 @@ import {
 } from "@/components/ui/field";
 import { useFieldContext } from "@/hooks/form/context";
 import { useFieldLabel } from "@/hooks/form/field-labels";
+
+// Tiptap is large, so only the editor waits for its chunk while the form hydrates.
+const BlockEditor = lazy(() =>
+	import("@/components/editor/block-editor").then((module) => ({
+		default: module.BlockEditor,
+	})),
+);
 
 type BlockEditorFieldProps = {
 	label: string;
@@ -44,23 +51,25 @@ const BlockEditorField = ({
 	return (
 		<Field data-invalid={isInvalid}>
 			<FieldLabel id={id}>{label}</FieldLabel>
-			<BlockEditor
-				labelledBy={id}
-				content={field.state.value}
-				onUpdate={(editor) => {
-					field.handleChange(editor.getJSON() as Content);
-					if (htmlFieldName) {
-						const htmlTargetFieldName = resolveSiblingFieldName(
-							String(field.name),
-							htmlFieldName,
-						);
-						field.form.setFieldValue(
-							htmlTargetFieldName as never,
-							editor.getHTML() as never,
-						);
-					}
-				}}
-			/>
+			<Suspense fallback={<BlockEditorPlaceholder />}>
+				<BlockEditor
+					labelledBy={id}
+					content={field.state.value}
+					onUpdate={(editor) => {
+						field.handleChange(editor.getJSON() as Content);
+						if (htmlFieldName) {
+							const htmlTargetFieldName = resolveSiblingFieldName(
+								String(field.name),
+								htmlFieldName,
+							);
+							field.form.setFieldValue(
+								htmlTargetFieldName as never,
+								editor.getHTML() as never,
+							);
+						}
+					}}
+				/>
+			</Suspense>
 			{description && <FieldDescription>{description}</FieldDescription>}
 			{isInvalid && <FieldError errors={errors} />}
 		</Field>

@@ -6,6 +6,7 @@ import {
 	EditorContent,
 	useEditor,
 } from "@tiptap/react";
+import { BlockEditorPlaceholder } from "./block-editor-placeholder";
 import { extensions } from "./extensions";
 import { DefaultBubbleMenu } from "./menus/default-bubble-menu";
 import { TableOptionsMenu } from "./menus/table-options-menu";
@@ -58,7 +59,7 @@ const BlockEditor = ({
 	});
 
 	if (!editor) {
-		return null;
+		return <BlockEditorPlaceholder />;
 	}
 
 	return (

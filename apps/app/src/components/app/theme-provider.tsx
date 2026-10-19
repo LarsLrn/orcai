@@ -1,12 +1,26 @@
 import { ScriptOnce } from "@tanstack/react-router";
-import { createContext, useContext, useEffect, useState } from "react";
+import Cookies from "js-cookie";
+import {
+	createContext,
+	useCallback,
+	useContext,
+	useEffect,
+	useMemo,
+	useState,
+} from "react";
 
-type Theme = "dark" | "light" | "system";
+export type Theme = "dark" | "light" | "system";
+
+export const THEME_COOKIE_NAME = "theme";
+const THEME_COOKIE_MAX_AGE_DAYS = 365;
+
+export function parseTheme(value: string | undefined): Theme {
+	return value === "light" || value === "dark" ? value : "system";
+}
 
 type ThemeProviderProps = {
 	children: React.ReactNode;
-	defaultTheme?: Theme;
-	storageKey?: string;
+	initialTheme: Theme;
 };
 
 type ThemeProviderState = {
@@ -14,11 +28,18 @@ type ThemeProviderState = {
 	setTheme: (theme: Theme) => void;
 };
 
-function getThemeScript(storageKey: string, defaultTheme: Theme) {
-	const key = JSON.stringify(storageKey);
-	const fallback = JSON.stringify(defaultTheme);
-
-	return `(function(){try{var t=localStorage.getItem(${key});if(t!=='light'&&t!=='dark'&&t!=='system'){t=${fallback}}var d=matchMedia('(prefers-color-scheme: dark)').matches;var r=t==='system'?(d?'dark':'light'):t;var e=document.documentElement;e.classList.add(r);e.style.colorScheme=r}catch(e){}})();`;
+// The server renders an explicit theme on <html>; this resolves "system" before paint.
+// Inlined as source, so it must stay self-contained.
+function applySystemTheme() {
+	const root = document.documentElement;
+	if (root.classList.contains("light") || root.classList.contains("dark")) {
+		return;
+	}
+	const resolved = matchMedia("(prefers-color-scheme: dark)").matches
+		? "dark"
+		: "light";
+	root.classList.add(resolved);
+	root.style.colorScheme = resolved;
 }
 
 const ThemeProviderContext = createContext<ThemeProviderState>({
@@ -42,37 +63,12 @@ function applyTheme(theme: Theme) {
 	root.style.colorScheme = resolved;
 }
 
-export function ThemeProvider({
-	children,
-	defaultTheme = "system",
-	storageKey = "theme",
-}: ThemeProviderProps) {
-	const [theme, setThemeState] = useState<Theme>(defaultTheme);
-	const [mounted, setMounted] = useState(false);
+export function ThemeProvider({ children, initialTheme }: ThemeProviderProps) {
+	const [theme, setThemeState] = useState(initialTheme);
 
 	useEffect(() => {
-		const stored = localStorage.getItem(storageKey);
-		setThemeState(
-			stored === "light" || stored === "dark" || stored === "system"
-				? stored
-				: defaultTheme,
-		);
-		setMounted(true);
-	}, [
-		defaultTheme,
-		storageKey,
-	]);
-
-	useEffect(() => {
-		if (!mounted) return;
 		applyTheme(theme);
-	}, [
-		theme,
-		mounted,
-	]);
-
-	useEffect(() => {
-		if (!mounted || theme !== "system") return;
+		if (theme !== "system") return;
 
 		const media = window.matchMedia("(prefers-color-scheme: dark)");
 		const onChange = () => applyTheme("system");
@@ -80,30 +76,41 @@ export function ThemeProvider({
 		return () => media.removeEventListener("change", onChange);
 	}, [
 		theme,
-		mounted,
 	]);
 
-	const setTheme = (next: Theme) => {
-		localStorage.setItem(storageKey, next);
+	const setTheme = useCallback((next: Theme) => {
+		try {
+			Cookies.set(THEME_COOKIE_NAME, next, {
+				expires: THEME_COOKIE_MAX_AGE_DAYS,
+				path: "/",
+				sameSite: "Lax",
+			});
+		} catch {
+			// The theme still applies for this page without being stored.
+		}
 		setThemeState(next);
-	};
+	}, []);
+
+	// A fresh value would make React discard server HTML in unhydrated Suspense boundaries.
+	const value = useMemo(
+		() => ({
+			theme,
+			setTheme,
+		}),
+		[
+			theme,
+			setTheme,
+		],
+	);
 
 	return (
-		<ThemeProviderContext
-			value={{
-				theme,
-				setTheme,
-			}}
-		>
-			<ScriptOnce>{getThemeScript(storageKey, defaultTheme)}</ScriptOnce>
+		<ThemeProviderContext value={value}>
+			<ScriptOnce>{`(${applySystemTheme})()`}</ScriptOnce>
 			{children}
 		</ThemeProviderContext>
 	);
 }
 
 export function useTheme() {
-	const context = useContext(ThemeProviderContext);
-	if (context === undefined)
-		throw new Error("useTheme must be used within a ThemeProvider");
-	return context;
+	return useContext(ThemeProviderContext);
 }

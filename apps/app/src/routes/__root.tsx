@@ -12,11 +12,16 @@ import {
 	useHydrated,
 } from "@tanstack/react-router";
 import { TanStackRouterDevtoolsPanel } from "@tanstack/react-router-devtools";
-import { createServerFn } from "@tanstack/react-start";
-import { getRequest } from "@tanstack/react-start/server";
-import type { ReactNode } from "react";
+import { createIsomorphicFn, createServerFn } from "@tanstack/react-start";
+import { getCookie, getRequest } from "@tanstack/react-start/server";
+import Cookies from "js-cookie";
+import { type ReactNode, useState } from "react";
 import { LoadingPage } from "@/components/app/loading/loading-page";
-import { ThemeProvider } from "@/components/app/theme-provider";
+import {
+	parseTheme,
+	THEME_COOKIE_NAME,
+	ThemeProvider,
+} from "@/components/app/theme-provider";
 import { ConfirmDialogProvider } from "@/components/ui/dialog/confirm-dialog";
 import { Toaster } from "@/components/ui/sonner";
 import { TooltipProvider } from "@/components/ui/tooltip";
@@ -48,15 +53,21 @@ const getSession = createServerFn({
 		: null;
 });
 
+const getThemePreference = createIsomorphicFn()
+	.server(() => parseTheme(getCookie(THEME_COOKIE_NAME)))
+	.client(() => parseTheme(Cookies.get(THEME_COOKIE_NAME)));
+
 export const Route = createRootRouteWithContext<{
 	queryClient: QueryClient;
 }>()({
 	beforeLoad: async () => {
+		const theme = getThemePreference();
 		const session = await getSession();
 
 		// Check if session and user actually exist
 		if (!session?.session || !session?.user) {
 			return {
+				theme,
 				auth: {
 					isAuthenticated: false as const,
 				},
@@ -64,6 +75,7 @@ export const Route = createRootRouteWithContext<{
 		}
 
 		return {
+			theme,
 			auth: {
 				isAuthenticated: true as const,
 				session: session.session,
@@ -136,11 +148,25 @@ function RootDocument({
 	children: ReactNode;
 }>) {
 	const hydrated = useHydrated();
+	const theme = Route.useRouteContext({
+		select: (context) => context.theme,
+	});
+	// Later navigations re-read the cookie; <html> keeps what the server rendered.
+	const [initialTheme] = useState(theme);
+	const serverTheme = initialTheme === "system" ? undefined : initialTheme;
 
 	return (
 		<html
+			className={serverTheme}
 			data-hydrated={hydrated ? "" : undefined}
 			lang={getLocale()}
+			style={
+				serverTheme
+					? {
+							colorScheme: serverTheme,
+						}
+					: undefined
+			}
 			suppressHydrationWarning
 		>
 			<head>
@@ -152,7 +178,7 @@ function RootDocument({
 				)}
 			>
 				<ConfirmDialogProvider>
-					<ThemeProvider defaultTheme="system" storageKey="theme">
+					<ThemeProvider initialTheme={initialTheme}>
 						<TooltipProvider>
 							{children}
 
