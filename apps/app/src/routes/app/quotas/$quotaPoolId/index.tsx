@@ -40,6 +40,10 @@ import {
 } from "@/hooks/mutations/use-quota-mutations";
 import { orpc } from "@/lib/orpc/orpc";
 import { formatNumber } from "@/lib/presentation/format-number";
+import {
+	getQuotaPoolStatusLabel,
+	getQuotaPoolStatusVariant,
+} from "@/lib/presentation/quota-pool-status";
 import { m } from "@/paraglide/messages";
 
 const updateBudgetFormSchema = z.object({
@@ -140,10 +144,8 @@ function RouteComponent() {
 					<PageDescription>{data.data.description}</PageDescription>
 				) : null}
 				<div className="flex flex-wrap gap-2">
-					<Badge variant={data.data.isActive ? "brand" : "secondary"}>
-						{data.data.isActive
-							? m.common_status_active_label()
-							: m.common_status_inactive_label()}
+					<Badge variant={getQuotaPoolStatusVariant(data.data.isActive)}>
+						{getQuotaPoolStatusLabel(data.data.isActive)}
 					</Badge>
 					<Badge variant="outline">
 						{periodTypeLabel(data.data.periodType).toUpperCase()}

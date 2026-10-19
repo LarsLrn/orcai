@@ -16,6 +16,10 @@ import {
 } from "@/components/ui/dropdown-menu";
 import { useDeleteModelsMutation } from "@/hooks/mutations/use-model-mutations";
 import { formatDisplayTimestamp } from "@/lib/presentation/format-timestamp";
+import {
+	getModelStatusLabel,
+	getModelStatusVariant,
+} from "@/lib/presentation/model-status";
 import { m } from "@/paraglide/messages";
 
 const columnHelper = createColumnHelper<DataTableFeatures, ModelListRow>();
@@ -66,10 +70,8 @@ export const modelTableColumns = columnHelper.columns([
 			/>
 		),
 		cell: ({ row }) => (
-			<Badge variant={row.original.isDeprecated ? "destructive" : "default"}>
-				{row.original.isDeprecated
-					? m.common_status_deprecated_label()
-					: m.models_table_status_available_label()}
+			<Badge variant={getModelStatusVariant(row.original.isDeprecated)}>
+				{getModelStatusLabel(row.original.isDeprecated)}
 			</Badge>
 		),
 	}),

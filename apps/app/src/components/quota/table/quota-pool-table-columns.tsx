@@ -20,6 +20,10 @@ import {
 } from "@/components/ui/dropdown-menu";
 import { useDeactivateQuotaPoolMutation } from "@/hooks/mutations/use-quota-mutations";
 import { formatNumber } from "@/lib/presentation/format-number";
+import {
+	getQuotaPoolStatusLabel,
+	getQuotaPoolStatusVariant,
+} from "@/lib/presentation/quota-pool-status";
 import { m } from "@/paraglide/messages";
 
 type QuotaPoolListRow = z.infer<typeof quotaPoolListRowSchema>;
@@ -139,10 +143,8 @@ export const quotaPoolTableColumns = columnHelper.columns([
 		),
 		cell: ({ row }) => (
 			<div className="flex flex-wrap items-center gap-1">
-				<Badge variant={row.original.isActive ? "success" : "secondary"}>
-					{row.original.isActive
-						? m.common_status_active_label()
-						: m.common_status_inactive_label()}
+				<Badge variant={getQuotaPoolStatusVariant(row.original.isActive)}>
+					{getQuotaPoolStatusLabel(row.original.isActive)}
 				</Badge>
 				{row.original.isDefault ? (
 					<Badge variant="outline">{m.quotas_table_default_badge()}</Badge>

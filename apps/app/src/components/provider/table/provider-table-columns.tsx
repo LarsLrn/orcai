@@ -16,6 +16,10 @@ import {
 } from "@/components/ui/dropdown-menu";
 import { useDeleteProvidersMutation } from "@/hooks/mutations/use-provider-mutations";
 import { formatDisplayTimestamp } from "@/lib/presentation/format-timestamp";
+import {
+	getProviderStatusLabel,
+	getProviderStatusVariant,
+} from "@/lib/presentation/provider-status";
 import { m } from "@/paraglide/messages";
 
 const columnHelper = createColumnHelper<DataTableFeatures, Provider>();
@@ -47,10 +51,8 @@ export const providerTableColumns = columnHelper.columns([
 			/>
 		),
 		cell: ({ row }) => (
-			<Badge variant={row.original.enabled ? "success" : "secondary"}>
-				{row.original.enabled
-					? m.common_status_active_label()
-					: m.common_status_inactive_label()}
+			<Badge variant={getProviderStatusVariant(row.original.enabled)}>
+				{getProviderStatusLabel(row.original.enabled)}
 			</Badge>
 		),
 	}),

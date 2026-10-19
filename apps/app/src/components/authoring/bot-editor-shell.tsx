@@ -71,6 +71,7 @@ import {
 import { emptyCapabilities, hasCapability } from "@/lib/authz/capabilities";
 import { orpc } from "@/lib/orpc/orpc";
 import { getProcessingStatusLabel } from "@/lib/presentation/processing-status";
+import { getPublicationStatusOptions } from "@/lib/presentation/publication-status";
 import { cn } from "@/lib/utils";
 import { m } from "@/paraglide/messages";
 
@@ -1140,188 +1141,192 @@ const ReviewSection = ({
 		status: PublicationStatus;
 	}) => void;
 	isSettingBlockStatus: boolean;
-}) => (
-	<Card className="min-w-0 rounded-2xl border-border/70 bg-background">
-		<CardHeader>
-			<CardTitle>{m.authoring_review_title()}</CardTitle>
-			<CardDescription>{m.authoring_review_description()}</CardDescription>
-		</CardHeader>
-		<CardContent className="space-y-6">
-			<div>
-				<div className="font-medium text-sm">
-					{m.authoring_review_bot_label()}
-				</div>
-				<div className="mt-2 rounded-xl border p-4">
-					<div className="font-medium">
-						{editor.name || m.authoring_review_bot_untitled()}
+}) => {
+	const publicationStatusOptions = getPublicationStatusOptions();
+
+	return (
+		<Card className="min-w-0 rounded-2xl border-border/70 bg-background">
+			<CardHeader>
+				<CardTitle>{m.authoring_review_title()}</CardTitle>
+				<CardDescription>{m.authoring_review_description()}</CardDescription>
+			</CardHeader>
+			<CardContent className="space-y-6">
+				<div>
+					<div className="font-medium text-sm">
+						{m.authoring_review_bot_label()}
 					</div>
-					<div className="mt-1 text-muted-foreground text-sm">
-						{editor.description || m.authoring_review_bot_no_description()}
+					<div className="mt-2 rounded-xl border p-4">
+						<div className="font-medium">
+							{editor.name || m.authoring_review_bot_untitled()}
+						</div>
+						<div className="mt-1 text-muted-foreground text-sm">
+							{editor.description || m.authoring_review_bot_no_description()}
+						</div>
 					</div>
 				</div>
-			</div>
 
-			<Separator />
+				<Separator />
 
-			<div>
-				<div className="font-medium text-sm">
-					{m.authoring_review_behaviour_label()}
-				</div>
-				<div className="mt-2 rounded-xl border p-4 text-sm">
-					{editor.templateBlock ? (
-						<>
-							<div className="font-medium">{editor.templateBlock.name}</div>
-							<div className="mt-1 text-muted-foreground">
-								{m.authoring_review_behaviour_hint()}
-							</div>
-							<div className="mt-3 max-w-sm space-y-2">
-								<Label htmlFor="review-template-status">
-									{m.authoring_review_behaviour_status_label()}
-								</Label>
-								<Select
-									value={editor.templateBlock.status}
-									onValueChange={(status) =>
-										onTemplateBlockStatusChange(status as PublicationStatus)
-									}
-									disabled={
-										(editor.templateBlock.id &&
-											!canEditBlock(editor.templateBlock)) ||
-										isSettingBlockStatus
-									}
-								>
-									<SelectTrigger id="review-template-status">
-										<SelectValue />
-									</SelectTrigger>
-									<SelectContent>
-										<SelectItem value="draft">
-											{m.authoring_review_status_draft_option()}
-										</SelectItem>
-										<SelectItem value="ready">
-											{m.authoring_review_status_ready_option()}
-										</SelectItem>
-									</SelectContent>
-								</Select>
-								{editor.templateBlock.id &&
-								!canEditBlock(editor.templateBlock) ? (
-									<p className="text-muted-foreground text-xs">
-										{m.authoring_review_behaviour_readonly_hint()}
-									</p>
-								) : null}
-							</div>
-						</>
-					) : (
-						<div className="text-muted-foreground">
-							{m.authoring_review_behaviour_empty_state()}
-						</div>
-					)}
-				</div>
-			</div>
-
-			<Separator />
-
-			<div>
-				<div className="font-medium text-sm">
-					{m.authoring_review_repositories_label()}
-				</div>
-				<div className="mt-2 space-y-3">
-					{editor.databaseBlocks.length === 0 ? (
-						<div className="rounded-xl border p-4 text-muted-foreground text-sm">
-							{m.authoring_review_repositories_empty_state()}
-						</div>
-					) : (
-						editor.databaseBlocks.map((databaseBlock, index) => (
-							<div
-								key={databaseBlock.id ?? `review-db-${index}`}
-								className="rounded-xl border p-4"
-							>
-								<div className="font-medium">{databaseBlock.name}</div>
-								<div className="mt-1 text-muted-foreground text-sm">
-									{m.authoring_attached_asset_count({
-										count: databaseBlock.assetIds.length,
-									})}
+				<div>
+					<div className="font-medium text-sm">
+						{m.authoring_review_behaviour_label()}
+					</div>
+					<div className="mt-2 rounded-xl border p-4 text-sm">
+						{editor.templateBlock ? (
+							<>
+								<div className="font-medium">{editor.templateBlock.name}</div>
+								<div className="mt-1 text-muted-foreground">
+									{m.authoring_review_behaviour_hint()}
 								</div>
 								<div className="mt-3 max-w-sm space-y-2">
-									<Label htmlFor={`review-db-status-${index}`}>
-										{m.authoring_review_repository_status_label()}
+									<Label htmlFor="review-template-status">
+										{m.authoring_review_behaviour_status_label()}
 									</Label>
 									<Select
-										value={databaseBlock.status}
-										onValueChange={(status) => {
-											onDatabaseBlockStatusChange({
-												blockId: databaseBlock.id,
-												blockIndex: index,
-												status: status as PublicationStatus,
-											});
-										}}
+										value={editor.templateBlock.status}
+										items={publicationStatusOptions}
+										onValueChange={(status) =>
+											onTemplateBlockStatusChange(status as PublicationStatus)
+										}
 										disabled={
-											(databaseBlock.id && !canEditBlock(databaseBlock)) ||
+											(editor.templateBlock.id &&
+												!canEditBlock(editor.templateBlock)) ||
 											isSettingBlockStatus
 										}
 									>
-										<SelectTrigger id={`review-db-status-${index}`}>
+										<SelectTrigger id="review-template-status">
 											<SelectValue />
 										</SelectTrigger>
 										<SelectContent>
-											<SelectItem value="draft">
-												{m.authoring_review_status_draft_option()}
-											</SelectItem>
-											<SelectItem value="ready">
-												{m.authoring_review_status_ready_option()}
-											</SelectItem>
+											{publicationStatusOptions.map((option) => (
+												<SelectItem key={option.value} value={option.value}>
+													{option.label}
+												</SelectItem>
+											))}
 										</SelectContent>
 									</Select>
-									{databaseBlock.id && !canEditBlock(databaseBlock) ? (
+									{editor.templateBlock.id &&
+									!canEditBlock(editor.templateBlock) ? (
 										<p className="text-muted-foreground text-xs">
-											{m.authoring_review_repository_readonly_hint()}
+											{m.authoring_review_behaviour_readonly_hint()}
 										</p>
 									) : null}
 								</div>
+							</>
+						) : (
+							<div className="text-muted-foreground">
+								{m.authoring_review_behaviour_empty_state()}
 							</div>
-						))
-					)}
+						)}
+					</div>
 				</div>
-			</div>
 
-			<Separator />
+				<Separator />
 
-			<div className="grid gap-4 md:grid-cols-2">
-				<div className="rounded-xl border p-4">
+				<div>
 					<div className="font-medium text-sm">
-						{m.authoring_review_visibility_label()}
+						{m.authoring_review_repositories_label()}
 					</div>
-					<div className="mt-1 text-muted-foreground text-sm">
-						{visibility === "public"
-							? m.authoring_review_visibility_public()
-							: m.authoring_review_visibility_private()}
+					<div className="mt-2 space-y-3">
+						{editor.databaseBlocks.length === 0 ? (
+							<div className="rounded-xl border p-4 text-muted-foreground text-sm">
+								{m.authoring_review_repositories_empty_state()}
+							</div>
+						) : (
+							editor.databaseBlocks.map((databaseBlock, index) => (
+								<div
+									key={databaseBlock.id ?? `review-db-${index}`}
+									className="rounded-xl border p-4"
+								>
+									<div className="font-medium">{databaseBlock.name}</div>
+									<div className="mt-1 text-muted-foreground text-sm">
+										{m.authoring_attached_asset_count({
+											count: databaseBlock.assetIds.length,
+										})}
+									</div>
+									<div className="mt-3 max-w-sm space-y-2">
+										<Label htmlFor={`review-db-status-${index}`}>
+											{m.authoring_review_repository_status_label()}
+										</Label>
+										<Select
+											value={databaseBlock.status}
+											items={publicationStatusOptions}
+											onValueChange={(status) => {
+												onDatabaseBlockStatusChange({
+													blockId: databaseBlock.id,
+													blockIndex: index,
+													status: status as PublicationStatus,
+												});
+											}}
+											disabled={
+												(databaseBlock.id && !canEditBlock(databaseBlock)) ||
+												isSettingBlockStatus
+											}
+										>
+											<SelectTrigger id={`review-db-status-${index}`}>
+												<SelectValue />
+											</SelectTrigger>
+											<SelectContent>
+												{publicationStatusOptions.map((option) => (
+													<SelectItem key={option.value} value={option.value}>
+														{option.label}
+													</SelectItem>
+												))}
+											</SelectContent>
+										</Select>
+										{databaseBlock.id && !canEditBlock(databaseBlock) ? (
+											<p className="text-muted-foreground text-xs">
+												{m.authoring_review_repository_readonly_hint()}
+											</p>
+										) : null}
+									</div>
+								</div>
+							))
+						)}
 					</div>
 				</div>
-				<div className="rounded-xl border p-4">
-					<div className="font-medium text-sm">
-						{m.authoring_review_grants_label()}
-					</div>
-					<div className="mt-1 text-muted-foreground text-sm">
-						{m.authoring_review_grant_count({
-							count: grantCount,
-						})}
-					</div>
-				</div>
-			</div>
 
-			{issues.length > 0 ? (
-				<div className="rounded-xl border border-destructive/30 bg-destructive/5 p-4">
-					<div className="font-medium text-destructive text-sm">
-						{m.authoring_review_issues_title()}
+				<Separator />
+
+				<div className="grid gap-4 md:grid-cols-2">
+					<div className="rounded-xl border p-4">
+						<div className="font-medium text-sm">
+							{m.authoring_review_visibility_label()}
+						</div>
+						<div className="mt-1 text-muted-foreground text-sm">
+							{visibility === "public"
+								? m.authoring_review_visibility_public()
+								: m.authoring_review_visibility_private()}
+						</div>
 					</div>
-					<ul className="mt-2 list-disc space-y-1 pl-5 text-sm">
-						{issues.map((issue) => (
-							<li key={issue}>{issue}</li>
-						))}
-					</ul>
+					<div className="rounded-xl border p-4">
+						<div className="font-medium text-sm">
+							{m.authoring_review_grants_label()}
+						</div>
+						<div className="mt-1 text-muted-foreground text-sm">
+							{m.authoring_review_grant_count({
+								count: grantCount,
+							})}
+						</div>
+					</div>
 				</div>
-			) : null}
-		</CardContent>
-	</Card>
-);
+
+				{issues.length > 0 ? (
+					<div className="rounded-xl border border-destructive/30 bg-destructive/5 p-4">
+						<div className="font-medium text-destructive text-sm">
+							{m.authoring_review_issues_title()}
+						</div>
+						<ul className="mt-2 list-disc space-y-1 pl-5 text-sm">
+							{issues.map((issue) => (
+								<li key={issue}>{issue}</li>
+							))}
+						</ul>
+					</div>
+				) : null}
+			</CardContent>
+		</Card>
+	);
+};
 
 const ReadOnlyTemplateCard = ({
 	block,
