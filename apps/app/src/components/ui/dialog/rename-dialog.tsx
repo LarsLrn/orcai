@@ -9,12 +9,13 @@ import {
 	DialogTitle,
 } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
+import { m } from "@/paraglide/messages";
 
 export const RenameDialog = ({
 	open,
 	onOpenChange,
 	initialValue,
-	entityLabel,
+	copy,
 	onSubmit,
 	isSubmitting = false,
 	maxLength = 250,
@@ -22,7 +23,12 @@ export const RenameDialog = ({
 	open: boolean;
 	onOpenChange: (open: boolean) => void;
 	initialValue: string | null;
-	entityLabel: string;
+	copy: {
+		title: string;
+		description: string;
+		placeholder: string;
+		submit: string;
+	};
 	onSubmit: (value: string) => Promise<void> | void;
 	isSubmitting?: boolean;
 	maxLength?: number;
@@ -38,7 +44,6 @@ export const RenameDialog = ({
 		open,
 	]);
 
-	const normalizedEntityLabel = entityLabel.toLowerCase();
 	const trimmedValue = value.trim();
 
 	return (
@@ -57,14 +62,12 @@ export const RenameDialog = ({
 					className="space-y-4"
 				>
 					<DialogHeader>
-						<DialogTitle>Rename {entityLabel}</DialogTitle>
-						<DialogDescription>
-							Enter a new name for this {normalizedEntityLabel}.
-						</DialogDescription>
+						<DialogTitle>{copy.title}</DialogTitle>
+						<DialogDescription>{copy.description}</DialogDescription>
 					</DialogHeader>
 					<Input
 						autoFocus
-						placeholder={`New ${normalizedEntityLabel} name`}
+						placeholder={copy.placeholder}
 						value={value}
 						onChange={(event) => setValue(event.target.value)}
 						maxLength={maxLength}
@@ -77,14 +80,14 @@ export const RenameDialog = ({
 							onClick={() => onOpenChange(false)}
 							disabled={isSubmitting}
 						>
-							Cancel
+							{m.common_cancel_button()}
 						</Button>
 						<Button
 							type="submit"
 							loading={isSubmitting}
 							disabled={!trimmedValue}
 						>
-							Rename
+							{copy.submit}
 						</Button>
 					</DialogFooter>
 				</form>

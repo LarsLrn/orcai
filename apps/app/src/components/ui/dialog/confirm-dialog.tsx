@@ -24,6 +24,7 @@ import {
 	type AlertDialogOverlay,
 	AlertDialogTitle,
 } from "@/components/ui/alert-dialog";
+import { m } from "@/paraglide/messages";
 
 export interface CustomActionsProps {
 	confirm: () => void;
@@ -81,8 +82,6 @@ export const ConfirmContext = createContext<ConfirmContextValue | undefined>(
 const baseDefaultOptions: ConfirmOptions = {
 	title: "",
 	description: "",
-	confirmText: "Confirm",
-	cancelText: "Cancel",
 	confirmButton: {
 		variant: "destructive",
 	},
@@ -128,11 +127,11 @@ const ConfirmDialogContent: React.FC<{
 				<>
 					{cancelButton !== null && (
 						<AlertDialogCancel onClick={onCancel} {...cancelButton}>
-							{cancelText}
+							{cancelText ?? m.common_cancel_button()}
 						</AlertDialogCancel>
 					)}
 					<AlertDialogAction onClick={onConfirm} {...confirmButton}>
-						{confirmText}
+						{confirmText ?? m.common_confirm_button()}
 					</AlertDialogAction>
 				</>
 			);

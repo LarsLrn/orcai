@@ -30,10 +30,10 @@ export const invitesTableColumns = columnHelper.columns([
 	createDataTableSelectColumn<OrganizationInvitation>(),
 	columnHelper.accessor("email", {
 		header: ({ column }) => (
-			<DataTableColumnHeader column={column} title={m.common_name_label()} />
+			<DataTableColumnHeader column={column} title={m.common_email_label()} />
 		),
 		meta: {
-			exportLabel: m.common_email_label(),
+			label: m.common_email_label,
 		},
 	}),
 	columnHelper.accessor("id", {
@@ -44,7 +44,7 @@ export const invitesTableColumns = columnHelper.columns([
 			/>
 		),
 		meta: {
-			exportLabel: m.users_invites_table_id_column_header(),
+			label: m.users_invites_table_id_column_header,
 		},
 	}),
 	columnHelper.accessor("expiresAt", {
@@ -58,7 +58,7 @@ export const invitesTableColumns = columnHelper.columns([
 			<span>{formatDisplayTimestamp(row.original.expiresAt || "")}</span>
 		),
 		meta: {
-			exportLabel: m.users_invites_table_expires_column_header(),
+			label: m.users_invites_table_expires_column_header,
 		},
 	}),
 	columnHelper.accessor("status", {
@@ -69,7 +69,7 @@ export const invitesTableColumns = columnHelper.columns([
 			/>
 		),
 		meta: {
-			exportLabel: m.users_invites_table_status_column_header(),
+			label: m.users_invites_table_status_column_header,
 		},
 	}),
 	columnHelper.accessor("role", {
@@ -80,7 +80,7 @@ export const invitesTableColumns = columnHelper.columns([
 			/>
 		),
 		meta: {
-			exportLabel: m.users_invites_table_role_column_header(),
+			label: m.users_invites_table_role_column_header,
 		},
 	}),
 	columnHelper.display({

@@ -25,7 +25,7 @@ export const buildCsvRows = <TData extends RowData>(
 		.filter((column) => column.accessorFn !== undefined);
 
 	const header = columns.map(
-		(column) => column.columnDef.meta?.exportLabel ?? column.id,
+		(column) => column.columnDef.meta?.label?.() ?? column.id,
 	);
 	const body = table
 		.getCoreRowModel()

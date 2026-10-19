@@ -5,6 +5,7 @@ import {
 	SelectTrigger,
 	SelectValue,
 } from "@/components/ui/select";
+import { m } from "@/paraglide/messages";
 
 type DataTableSelectFilterOption<TValue extends string> = {
 	label: string;
@@ -16,7 +17,6 @@ type DataTableSelectFilterProps<TValue extends string> = {
 	value?: TValue;
 	options: DataTableSelectFilterOption<TValue>[];
 	onChange: (value: TValue | undefined) => void;
-	allLabel?: string;
 };
 
 const ALL_VALUE = "__all__";
@@ -26,7 +26,6 @@ const DataTableSelectFilter = <TValue extends string>({
 	value,
 	options,
 	onChange,
-	allLabel = "All",
 }: DataTableSelectFilterProps<TValue>) => (
 	<Select
 		value={value ?? ALL_VALUE}
@@ -42,11 +41,17 @@ const DataTableSelectFilter = <TValue extends string>({
 			<SelectValue>
 				{value
 					? options.find((option) => option.value === value)?.label
-					: `${label}: ${allLabel}`}
+					: m.data_table_select_filter_all_option({
+							label,
+						})}
 			</SelectValue>
 		</SelectTrigger>
 		<SelectContent align="start">
-			<SelectItem value={ALL_VALUE}>{`${label}: ${allLabel}`}</SelectItem>
+			<SelectItem value={ALL_VALUE}>
+				{m.data_table_select_filter_all_option({
+					label,
+				})}
+			</SelectItem>
 			{options.map((option) => (
 				<SelectItem key={option.value} value={option.value}>
 					{option.label}

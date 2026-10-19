@@ -1239,6 +1239,10 @@
 	"boundaries_not_found_description": "The page you're looking for doesn't exist or has been moved.",
 	"boundaries_not_found_home_link": "Return home",
 	"boundaries_not_found_title": "Page Not Found",
+	"breadcrumb_label": "Breadcrumb",
+	"breadcrumb_more_label": "More",
+	"carousel_next_slide_label": "Next slide",
+	"carousel_previous_slide_label": "Previous slide",
 	"chat_actions_delete_action": "Delete chat",
 	"chat_actions_rename_action": "Rename chat",
 	"chat_asset_picker_attach_action": "Attach",
@@ -1493,6 +1497,9 @@
 			}
 		}
 	],
+	"chat_rename_dialog_description": "Enter a new name for this chat.",
+	"chat_rename_dialog_submit": "Rename",
+	"chat_rename_dialog_title": "Rename chat",
 	"chat_response_failed": "The model did not respond. Send the message again or choose another model.",
 	"chat_settings_add_behaviour_action": "Add behaviour",
 	"chat_settings_add_repository_action": "Add repository",
@@ -1689,14 +1696,22 @@
 	"common_name_placeholder": "Your Name",
 	"common_next_button": "Next",
 	"common_optional_label": "Optional",
+	"common_pagination_first_page_label": "Go to first page",
+	"common_pagination_label": "Pagination",
+	"common_pagination_last_page_label": "Go to last page",
+	"common_pagination_more_pages_label": "More pages",
+	"common_pagination_next_page_label": "Go to next page",
+	"common_pagination_previous_page_label": "Go to previous page",
 	"common_password_label": "Password",
 	"common_password_placeholder": "Password",
+	"common_previous_button": "Previous",
 	"common_provider_label": "Provider",
 	"common_remove_button": "Remove",
 	"common_retry_button": "Retry",
 	"common_row_menu_trigger": "Open menu",
 	"common_save_button": "Save",
 	"common_search_placeholder": "Search...",
+	"common_selected_count": "{count} selected",
 	"common_selected_count_label": "{count} selected",
 	"common_show_all_action": "Show all",
 	"common_status_active_label": "Active",
@@ -1708,10 +1723,40 @@
 	"common_status_inactive_label": "Inactive",
 	"common_status_ready_label": "Ready",
 	"common_unknown_error_description": "Something went wrong. Try again.",
+	"data_table_bulk_actions_trigger": "Bulk actions",
 	"data_table_clear_filters_action": "Clear filters",
+	"data_table_column_header_hide_action": "Hide",
+	"data_table_column_header_sort_ascending_action": "Ascending",
+	"data_table_column_header_sort_descending_action": "Descending",
+	"data_table_export_button": "Download",
 	"data_table_filtered_empty_description": "Nothing matches the current search or filters.",
 	"data_table_filtered_empty_title": "No matching results",
+	"data_table_pagination_position": "Page {page} of {pageCount}",
+	"data_table_pagination_rows_per_page_label": "Rows per page",
+	"data_table_pagination_selected_rows": [
+		{
+			"declarations": [
+				"input selected",
+				"input total",
+				"local totalPlural = total: plural"
+			],
+			"selectors": [
+				"totalPlural"
+			],
+			"match": {
+				"totalPlural=one": "{selected} of {total} row selected on this page.",
+				"totalPlural=other": "{selected} of {total} rows selected on this page."
+			}
+		}
+	],
 	"data_table_search_clear_label": "Clear search",
+	"data_table_select_all_rows_label": "Select all rows on this page",
+	"data_table_select_filter_all_option": "{label}: All",
+	"data_table_select_row_label": "Select row",
+	"data_table_view_options_title": "Toggle columns",
+	"data_table_view_options_trigger": "View",
+	"dialog_select_empty_state": "No results found.",
+	"dialog_select_filter_placeholder": "Filter",
 	"editor_colour_blue_option": "Blue",
 	"editor_colour_brown_option": "Brown",
 	"editor_colour_default_option": "Default",
@@ -2277,6 +2322,15 @@
 	"jobs_status_panel_retry_button": "Retry",
 	"jobs_status_panel_title": "Preparation status",
 	"models_add_page_title": "Add model",
+	"models_capability_audio_generation_label": "Audio generation",
+	"models_capability_audio_label": "Audio",
+	"models_capability_embedding_label": "Embedding",
+	"models_capability_image_generation_label": "Image generation",
+	"models_capability_image_label": "Image",
+	"models_capability_reasoning_label": "Reasoning",
+	"models_capability_text_label": "Text",
+	"models_capability_tool_calling_label": "Tool calling",
+	"models_capability_video_label": "Video",
 	"models_create_toast_error": "Failed to create model",
 	"models_create_toast_loading": "Creating model...",
 	"models_create_toast_success": "Model created successfully",
@@ -2447,6 +2501,181 @@
 	"models_update_toast_error": "Failed to update model",
 	"models_update_toast_loading": "Updating model...",
 	"models_update_toast_success": "Model updated successfully",
+	"multi_select_announcement_closed": "Dropdown closed.",
+	"multi_select_announcement_opened": [
+		{
+			"declarations": [
+				"input count",
+				"local countPlural = count: plural"
+			],
+			"selectors": [
+				"countPlural"
+			],
+			"match": {
+				"countPlural=one": "Dropdown opened. {count} option available. Use arrow keys to navigate.",
+				"countPlural=other": "Dropdown opened. {count} options available. Use arrow keys to navigate."
+			}
+		}
+	],
+	"multi_select_announcement_option_added": [
+		{
+			"declarations": [
+				"input label",
+				"input selected",
+				"input total",
+				"local totalPlural = total: plural"
+			],
+			"selectors": [
+				"totalPlural"
+			],
+			"match": {
+				"totalPlural=one": "{label} selected. {selected} of {total} option selected.",
+				"totalPlural=other": "{label} selected. {selected} of {total} options selected."
+			}
+		}
+	],
+	"multi_select_announcement_option_removed": [
+		{
+			"declarations": [
+				"input selected",
+				"input total",
+				"local totalPlural = total: plural"
+			],
+			"selectors": [
+				"totalPlural"
+			],
+			"match": {
+				"totalPlural=one": "Option removed. {selected} of {total} option selected.",
+				"totalPlural=other": "Option removed. {selected} of {total} options selected."
+			}
+		}
+	],
+	"multi_select_announcement_options_added": [
+		{
+			"declarations": [
+				"input count",
+				"input selected",
+				"input total",
+				"local countPlural = count: plural"
+			],
+			"selectors": [
+				"countPlural"
+			],
+			"match": {
+				"countPlural=one": "{count} option selected. {selected} of {total} selected.",
+				"countPlural=other": "{count} options selected. {selected} of {total} selected."
+			}
+		}
+	],
+	"multi_select_announcement_search_results": [
+		{
+			"declarations": [
+				"input count",
+				"input query",
+				"local countPlural = count: plural"
+			],
+			"selectors": [
+				"countPlural"
+			],
+			"match": {
+				"countPlural=one": "{count} option found for “{query}”",
+				"countPlural=other": "{count} options found for “{query}”"
+			}
+		}
+	],
+	"multi_select_clear_action": "Clear",
+	"multi_select_clear_all_label": [
+		{
+			"declarations": [
+				"input count",
+				"local countPlural = count: plural"
+			],
+			"selectors": [
+				"countPlural"
+			],
+			"match": {
+				"countPlural=one": "Clear {count} selected option",
+				"countPlural=other": "Clear all {count} selected options"
+			}
+		}
+	],
+	"multi_select_empty_state": "No results found.",
+	"multi_select_more_badge": "+ {count} more",
+	"multi_select_option_state_disabled": "disabled",
+	"multi_select_option_state_not_selected": "not selected",
+	"multi_select_option_state_selected": "selected",
+	"multi_select_options_label": "Available options",
+	"multi_select_placeholder": "Select options",
+	"multi_select_remove_more_label": [
+		{
+			"declarations": [
+				"input count",
+				"local countPlural = count: plural"
+			],
+			"selectors": [
+				"countPlural"
+			],
+			"match": {
+				"countPlural=one": "Remove {count} more option from selection",
+				"countPlural=other": "Remove {count} more options from selection"
+			}
+		}
+	],
+	"multi_select_remove_option_label": "Remove {label} from selection",
+	"multi_select_search_help": "Type to filter options. Use arrow keys to navigate results.",
+	"multi_select_search_placeholder": "Search options",
+	"multi_select_select_all_label": [
+		{
+			"declarations": [
+				"input count",
+				"local countPlural = count: plural"
+			],
+			"selectors": [
+				"countPlural"
+			],
+			"match": {
+				"countPlural=one": "Select {count} option",
+				"countPlural=other": "Select all {count} options"
+			}
+		}
+	],
+	"multi_select_select_all_option": "(Select all)",
+	"multi_select_select_all_option_with_count": "(Select all, {count} options)",
+	"multi_select_selected_summary": [
+		{
+			"declarations": [
+				"input count",
+				"input labels",
+				"local countPlural = count: plural"
+			],
+			"selectors": [
+				"countPlural"
+			],
+			"match": {
+				"countPlural=one": "{count} option selected: {labels}",
+				"countPlural=other": "{count} options selected: {labels}"
+			}
+		}
+	],
+	"multi_select_selected_summary_empty": "No options selected",
+	"multi_select_trigger_description": "Multi-select dropdown. Use arrow keys to navigate, Enter to select, and Escape to close.",
+	"multi_select_trigger_label": [
+		{
+			"declarations": [
+				"input selected",
+				"input total",
+				"input placeholder",
+				"local totalPlural = total: plural"
+			],
+			"selectors": [
+				"totalPlural"
+			],
+			"match": {
+				"totalPlural=one": "Multi-select: {selected} of {total} option selected. {placeholder}",
+				"totalPlural=other": "Multi-select: {selected} of {total} options selected. {placeholder}"
+			}
+		}
+	],
 	"next_step_card_finish_button": "Finish",
 	"next_step_card_previous_button": "Previous",
 	"next_step_card_progress": "{current} of {total}",
@@ -3078,7 +3307,10 @@
 	"sidebar_menu_repositories_item": "Repositories",
 	"sidebar_menu_toggle_label": "Toggle",
 	"sidebar_menu_users_item": "Users",
+	"sidebar_mobile_description": "Displays the mobile sidebar.",
+	"sidebar_mobile_title": "Sidebar",
 	"sidebar_start_chat_button": "Start a chat",
+	"sidebar_toggle_label": "Toggle sidebar",
 	"state_pagination_first_page_aria_label": "Go to first page",
 	"state_pagination_last_page_aria_label": "Go to last page",
 	"state_pagination_next_page_aria_label": "Go to next page",

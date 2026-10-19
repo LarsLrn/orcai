@@ -11,6 +11,7 @@ import {
 	DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import { cn } from "@/lib/utils";
+import { m } from "@/paraglide/messages";
 import type { DataTableFeatures } from "./data-table-features";
 
 interface DataTableColumnHeaderProps<TData extends RowData, TValue>
@@ -57,16 +58,16 @@ const DataTableColumnHeader = <TData extends RowData, TValue>({
 				<DropdownMenuContent align="start">
 					<DropdownMenuItem onClick={() => column.toggleSorting(false)}>
 						<ArrowUp className="h-3.5 w-3.5 text-muted-foreground/70" />
-						Asc
+						{m.data_table_column_header_sort_ascending_action()}
 					</DropdownMenuItem>
 					<DropdownMenuItem onClick={() => column.toggleSorting(true)}>
 						<ArrowDown className="h-3.5 w-3.5 text-muted-foreground/70" />
-						Desc
+						{m.data_table_column_header_sort_descending_action()}
 					</DropdownMenuItem>
 					<DropdownMenuSeparator />
 					<DropdownMenuItem onClick={() => column.toggleVisibility(false)}>
 						<EyeOff className="h-3.5 w-3.5 text-muted-foreground/70" />
-						Hide
+						{m.data_table_column_header_hide_action()}
 					</DropdownMenuItem>
 				</DropdownMenuContent>
 			</DropdownMenu>

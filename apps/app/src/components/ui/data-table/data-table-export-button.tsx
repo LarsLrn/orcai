@@ -3,6 +3,7 @@ import { DownloadIcon } from "lucide-react";
 import type { ComponentProps } from "react";
 import { Button, type buttonVariants } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
+import { m } from "@/paraglide/messages";
 import { useTable } from "./data-table-context";
 import { buildCsvRows, csvFileName, toCsv } from "./data-table-csv";
 
@@ -48,7 +49,7 @@ const DataTableExportButton = ({
 		>
 			{children ?? (
 				<>
-					<DownloadIcon /> Download
+					<DownloadIcon /> {m.data_table_export_button()}
 				</>
 			)}
 		</Button>

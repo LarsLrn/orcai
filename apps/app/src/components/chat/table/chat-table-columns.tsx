@@ -29,6 +29,9 @@ export const chatTableColumns = columnHelper.columns([
 				{row.original.title || m.chat_table_untitled_chat()}
 			</Link>
 		),
+		meta: {
+			label: m.common_name_label,
+		},
 	}),
 	columnHelper.accessor("botName", {
 		header: ({ column }) => (
@@ -38,6 +41,9 @@ export const chatTableColumns = columnHelper.columns([
 			/>
 		),
 		cell: ({ row }) => row.original.botName ?? "—",
+		meta: {
+			label: m.chat_table_bot_column_header,
+		},
 	}),
 	columnHelper.accessor("updatedAt", {
 		header: ({ column }) => (
@@ -50,6 +56,9 @@ export const chatTableColumns = columnHelper.columns([
 			row.original.updatedAt
 				? formatDisplayTimestamp(row.original.updatedAt)
 				: "—",
+		meta: {
+			label: m.chat_table_date_column_header,
+		},
 	}),
 	columnHelper.display({
 		id: "actions",

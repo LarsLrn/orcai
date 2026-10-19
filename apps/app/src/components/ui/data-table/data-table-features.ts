@@ -11,8 +11,8 @@ import {
 } from "@tanstack/react-table";
 
 type DataTableColumnMeta = {
-	/** Column label used by the CSV export. Falls back to the column id. */
-	exportLabel?: string;
+	/** Column name for the view options and the CSV export, read per render. */
+	label?: () => string;
 };
 
 export const dataTableFeatures = tableFeatures({

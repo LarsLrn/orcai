@@ -88,7 +88,12 @@ const ChatActionsDropdown = ({
 				open={isRenameDialogOpen}
 				onOpenChange={setIsRenameDialogOpen}
 				initialValue={title}
-				entityLabel="Chat"
+				copy={{
+					title: m.chat_rename_dialog_title(),
+					description: m.chat_rename_dialog_description(),
+					placeholder: m.chat_rename_dialog_placeholder(),
+					submit: m.chat_rename_dialog_submit(),
+				}}
 				isSubmitting={isUpdatingChat}
 				onSubmit={async (nextTitle) => {
 					const result = await updateChat({

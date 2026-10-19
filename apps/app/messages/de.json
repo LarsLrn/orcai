@@ -1239,6 +1239,10 @@
 	"boundaries_not_found_description": "Die gesuchte Seite existiert nicht oder wurde verschoben.",
 	"boundaries_not_found_home_link": "Zur Startseite",
 	"boundaries_not_found_title": "Seite nicht gefunden",
+	"breadcrumb_label": "Navigationspfad",
+	"breadcrumb_more_label": "Mehr",
+	"carousel_next_slide_label": "Nächste Folie",
+	"carousel_previous_slide_label": "Vorherige Folie",
 	"chat_actions_delete_action": "Chat löschen",
 	"chat_actions_rename_action": "Chat umbenennen",
 	"chat_asset_picker_attach_action": "Anhängen",
@@ -1493,6 +1497,9 @@
 			}
 		}
 	],
+	"chat_rename_dialog_description": "Geben Sie einen neuen Namen für diesen Chat ein.",
+	"chat_rename_dialog_submit": "Umbenennen",
+	"chat_rename_dialog_title": "Chat umbenennen",
 	"chat_response_failed": "Das Modell hat nicht geantwortet. Senden Sie die Nachricht erneut oder wählen Sie ein anderes Modell.",
 	"chat_settings_add_behaviour_action": "Verhalten hinzufügen",
 	"chat_settings_add_repository_action": "Repository hinzufügen",
@@ -1689,14 +1696,22 @@
 	"common_name_placeholder": "Ihr Name",
 	"common_next_button": "Weiter",
 	"common_optional_label": "Optional",
+	"common_pagination_first_page_label": "Zur ersten Seite",
+	"common_pagination_label": "Seitennavigation",
+	"common_pagination_last_page_label": "Zur letzten Seite",
+	"common_pagination_more_pages_label": "Weitere Seiten",
+	"common_pagination_next_page_label": "Zur nächsten Seite",
+	"common_pagination_previous_page_label": "Zur vorherigen Seite",
 	"common_password_label": "Passwort",
 	"common_password_placeholder": "Passwort",
+	"common_previous_button": "Zurück",
 	"common_provider_label": "Anbieter",
 	"common_remove_button": "Entfernen",
 	"common_retry_button": "Erneut versuchen",
 	"common_row_menu_trigger": "Menü öffnen",
 	"common_save_button": "Speichern",
 	"common_search_placeholder": "Suchen...",
+	"common_selected_count": "{count} ausgewählt",
 	"common_selected_count_label": "{count} ausgewählt",
 	"common_show_all_action": "Alle anzeigen",
 	"common_status_active_label": "Aktiv",
@@ -1708,10 +1723,40 @@
 	"common_status_inactive_label": "Inaktiv",
 	"common_status_ready_label": "Bereit",
 	"common_unknown_error_description": "Etwas ist schiefgelaufen. Versuchen Sie es erneut.",
+	"data_table_bulk_actions_trigger": "Sammelaktionen",
 	"data_table_clear_filters_action": "Filter zurücksetzen",
+	"data_table_column_header_hide_action": "Ausblenden",
+	"data_table_column_header_sort_ascending_action": "Aufsteigend",
+	"data_table_column_header_sort_descending_action": "Absteigend",
+	"data_table_export_button": "Herunterladen",
 	"data_table_filtered_empty_description": "Nichts passt zur aktuellen Suche oder zu den Filtern.",
 	"data_table_filtered_empty_title": "Keine passenden Ergebnisse",
+	"data_table_pagination_position": "Seite {page} von {pageCount}",
+	"data_table_pagination_rows_per_page_label": "Zeilen pro Seite",
+	"data_table_pagination_selected_rows": [
+		{
+			"declarations": [
+				"input selected",
+				"input total",
+				"local totalPlural = total: plural"
+			],
+			"selectors": [
+				"totalPlural"
+			],
+			"match": {
+				"totalPlural=one": "{selected} von {total} Zeile auf dieser Seite ausgewählt.",
+				"totalPlural=other": "{selected} von {total} Zeilen auf dieser Seite ausgewählt."
+			}
+		}
+	],
 	"data_table_search_clear_label": "Suche löschen",
+	"data_table_select_all_rows_label": "Alle Zeilen auf dieser Seite auswählen",
+	"data_table_select_filter_all_option": "{label}: Alle",
+	"data_table_select_row_label": "Zeile auswählen",
+	"data_table_view_options_title": "Spalten ein- und ausblenden",
+	"data_table_view_options_trigger": "Ansicht",
+	"dialog_select_empty_state": "Keine Ergebnisse gefunden.",
+	"dialog_select_filter_placeholder": "Filter",
 	"editor_colour_blue_option": "Blau",
 	"editor_colour_brown_option": "Braun",
 	"editor_colour_default_option": "Standard",
@@ -2277,6 +2322,15 @@
 	"jobs_status_panel_retry_button": "Erneut versuchen",
 	"jobs_status_panel_title": "Status der Aufbereitung",
 	"models_add_page_title": "Modell hinzufügen",
+	"models_capability_audio_generation_label": "Audiogenerierung",
+	"models_capability_audio_label": "Audio",
+	"models_capability_embedding_label": "Embedding",
+	"models_capability_image_generation_label": "Bildgenerierung",
+	"models_capability_image_label": "Bild",
+	"models_capability_reasoning_label": "Reasoning",
+	"models_capability_text_label": "Text",
+	"models_capability_tool_calling_label": "Tool-Aufrufe",
+	"models_capability_video_label": "Video",
 	"models_create_toast_error": "Modell konnte nicht erstellt werden",
 	"models_create_toast_loading": "Modell wird erstellt...",
 	"models_create_toast_success": "Modell erfolgreich erstellt",
@@ -2447,6 +2501,181 @@
 	"models_update_toast_error": "Modell konnte nicht aktualisiert werden",
 	"models_update_toast_loading": "Modell wird aktualisiert...",
 	"models_update_toast_success": "Modell erfolgreich aktualisiert",
+	"multi_select_announcement_closed": "Auswahlliste geschlossen.",
+	"multi_select_announcement_opened": [
+		{
+			"declarations": [
+				"input count",
+				"local countPlural = count: plural"
+			],
+			"selectors": [
+				"countPlural"
+			],
+			"match": {
+				"countPlural=one": "Auswahlliste geöffnet. {count} Option verfügbar. Navigieren Sie mit den Pfeiltasten.",
+				"countPlural=other": "Auswahlliste geöffnet. {count} Optionen verfügbar. Navigieren Sie mit den Pfeiltasten."
+			}
+		}
+	],
+	"multi_select_announcement_option_added": [
+		{
+			"declarations": [
+				"input label",
+				"input selected",
+				"input total",
+				"local totalPlural = total: plural"
+			],
+			"selectors": [
+				"totalPlural"
+			],
+			"match": {
+				"totalPlural=one": "{label} ausgewählt. {selected} von {total} Option ausgewählt.",
+				"totalPlural=other": "{label} ausgewählt. {selected} von {total} Optionen ausgewählt."
+			}
+		}
+	],
+	"multi_select_announcement_option_removed": [
+		{
+			"declarations": [
+				"input selected",
+				"input total",
+				"local totalPlural = total: plural"
+			],
+			"selectors": [
+				"totalPlural"
+			],
+			"match": {
+				"totalPlural=one": "Option entfernt. {selected} von {total} Option ausgewählt.",
+				"totalPlural=other": "Option entfernt. {selected} von {total} Optionen ausgewählt."
+			}
+		}
+	],
+	"multi_select_announcement_options_added": [
+		{
+			"declarations": [
+				"input count",
+				"input selected",
+				"input total",
+				"local countPlural = count: plural"
+			],
+			"selectors": [
+				"countPlural"
+			],
+			"match": {
+				"countPlural=one": "{count} Option ausgewählt. {selected} von {total} ausgewählt.",
+				"countPlural=other": "{count} Optionen ausgewählt. {selected} von {total} ausgewählt."
+			}
+		}
+	],
+	"multi_select_announcement_search_results": [
+		{
+			"declarations": [
+				"input count",
+				"input query",
+				"local countPlural = count: plural"
+			],
+			"selectors": [
+				"countPlural"
+			],
+			"match": {
+				"countPlural=one": "{count} Option für „{query}“ gefunden",
+				"countPlural=other": "{count} Optionen für „{query}“ gefunden"
+			}
+		}
+	],
+	"multi_select_clear_action": "Leeren",
+	"multi_select_clear_all_label": [
+		{
+			"declarations": [
+				"input count",
+				"local countPlural = count: plural"
+			],
+			"selectors": [
+				"countPlural"
+			],
+			"match": {
+				"countPlural=one": "{count} ausgewählte Option entfernen",
+				"countPlural=other": "Alle {count} ausgewählten Optionen entfernen"
+			}
+		}
+	],
+	"multi_select_empty_state": "Keine Ergebnisse gefunden.",
+	"multi_select_more_badge": "+ {count} weitere",
+	"multi_select_option_state_disabled": "deaktiviert",
+	"multi_select_option_state_not_selected": "nicht ausgewählt",
+	"multi_select_option_state_selected": "ausgewählt",
+	"multi_select_options_label": "Verfügbare Optionen",
+	"multi_select_placeholder": "Optionen auswählen",
+	"multi_select_remove_more_label": [
+		{
+			"declarations": [
+				"input count",
+				"local countPlural = count: plural"
+			],
+			"selectors": [
+				"countPlural"
+			],
+			"match": {
+				"countPlural=one": "{count} weitere Option aus der Auswahl entfernen",
+				"countPlural=other": "{count} weitere Optionen aus der Auswahl entfernen"
+			}
+		}
+	],
+	"multi_select_remove_option_label": "{label} aus der Auswahl entfernen",
+	"multi_select_search_help": "Tippen Sie, um Optionen zu filtern. Navigieren Sie mit den Pfeiltasten durch die Ergebnisse.",
+	"multi_select_search_placeholder": "Optionen durchsuchen",
+	"multi_select_select_all_label": [
+		{
+			"declarations": [
+				"input count",
+				"local countPlural = count: plural"
+			],
+			"selectors": [
+				"countPlural"
+			],
+			"match": {
+				"countPlural=one": "{count} Option auswählen",
+				"countPlural=other": "Alle {count} Optionen auswählen"
+			}
+		}
+	],
+	"multi_select_select_all_option": "(Alle auswählen)",
+	"multi_select_select_all_option_with_count": "(Alle auswählen, {count} Optionen)",
+	"multi_select_selected_summary": [
+		{
+			"declarations": [
+				"input count",
+				"input labels",
+				"local countPlural = count: plural"
+			],
+			"selectors": [
+				"countPlural"
+			],
+			"match": {
+				"countPlural=one": "{count} Option ausgewählt: {labels}",
+				"countPlural=other": "{count} Optionen ausgewählt: {labels}"
+			}
+		}
+	],
+	"multi_select_selected_summary_empty": "Keine Optionen ausgewählt",
+	"multi_select_trigger_description": "Mehrfachauswahl. Navigieren Sie mit den Pfeiltasten, wählen Sie mit der Eingabetaste aus und schließen Sie mit Escape.",
+	"multi_select_trigger_label": [
+		{
+			"declarations": [
+				"input selected",
+				"input total",
+				"input placeholder",
+				"local totalPlural = total: plural"
+			],
+			"selectors": [
+				"totalPlural"
+			],
+			"match": {
+				"totalPlural=one": "Mehrfachauswahl: {selected} von {total} Option ausgewählt. {placeholder}",
+				"totalPlural=other": "Mehrfachauswahl: {selected} von {total} Optionen ausgewählt. {placeholder}"
+			}
+		}
+	],
 	"next_step_card_finish_button": "Fertig",
 	"next_step_card_previous_button": "Zurück",
 	"next_step_card_progress": "{current} von {total}",
@@ -3078,7 +3307,10 @@
 	"sidebar_menu_repositories_item": "Repositories",
 	"sidebar_menu_toggle_label": "Umschalten",
 	"sidebar_menu_users_item": "Benutzer",
+	"sidebar_mobile_description": "Zeigt die mobile Seitenleiste an.",
+	"sidebar_mobile_title": "Seitenleiste",
 	"sidebar_start_chat_button": "Chat starten",
+	"sidebar_toggle_label": "Seitenleiste ein- oder ausblenden",
 	"state_pagination_first_page_aria_label": "Zur ersten Seite",
 	"state_pagination_last_page_aria_label": "Zur letzten Seite",
 	"state_pagination_next_page_aria_label": "Zur nächsten Seite",

@@ -8,6 +8,7 @@ import {
 	useUpdateModelMutation,
 } from "@/hooks/mutations/use-model-mutations";
 import { orpc } from "@/lib/orpc/orpc";
+import { getModelCapabilityLabel } from "@/lib/presentation/model-capability";
 import { m } from "@/paraglide/messages";
 import { modelFormOptions } from "./model-form-options";
 
@@ -115,8 +116,8 @@ const ModelForm = ({
 						placeholder={m.models_form_capabilities_placeholder()}
 						description={m.models_form_capabilities_description()}
 						options={modelCapabilities.map((capability) => ({
-							value: capability.value,
-							label: capability.label,
+							value: capability,
+							label: getModelCapabilityLabel(capability),
 						}))}
 					/>
 				)}

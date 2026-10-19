@@ -42,6 +42,9 @@ export const providerTableColumns = columnHelper.columns([
 				{row.original.name}
 			</Link>
 		),
+		meta: {
+			label: m.common_name_label,
+		},
 	}),
 	columnHelper.accessor("enabled", {
 		header: ({ column }) => (
@@ -55,6 +58,9 @@ export const providerTableColumns = columnHelper.columns([
 				{getProviderStatusLabel(row.original.enabled)}
 			</Badge>
 		),
+		meta: {
+			label: m.common_status_column_header,
+		},
 	}),
 	columnHelper.accessor("meteringMode", {
 		header: ({ column }) => (
@@ -66,6 +72,9 @@ export const providerTableColumns = columnHelper.columns([
 		cell: ({ row }) => (
 			<Badge variant="outline">{row.original.meteringMode}</Badge>
 		),
+		meta: {
+			label: m.providers_table_metering_column_header,
+		},
 	}),
 	columnHelper.accessor("createdAt", {
 		header: ({ column }) => (
@@ -77,6 +86,9 @@ export const providerTableColumns = columnHelper.columns([
 		cell: ({ row }) => (
 			<span>{formatDisplayTimestamp(row.original.createdAt || "")}</span>
 		),
+		meta: {
+			label: m.common_created_column_header,
+		},
 	}),
 	columnHelper.accessor("updatedAt", {
 		header: ({ column }) => (
@@ -88,6 +100,9 @@ export const providerTableColumns = columnHelper.columns([
 		cell: ({ row }) => (
 			<span>{formatDisplayTimestamp(row.original.updatedAt || "")}</span>
 		),
+		meta: {
+			label: m.providers_table_updated_column_header,
+		},
 	}),
 	columnHelper.display({
 		id: "actions",

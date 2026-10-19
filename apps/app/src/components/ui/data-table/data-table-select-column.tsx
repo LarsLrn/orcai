@@ -1,5 +1,6 @@
 import { createColumnHelper, type RowData } from "@tanstack/react-table";
 import { Checkbox } from "@/components/ui/checkbox";
+import { m } from "@/paraglide/messages";
 import type { DataTableFeatures } from "./data-table-features";
 
 export const createDataTableSelectColumn = <TData extends RowData>() =>
@@ -18,7 +19,7 @@ export const createDataTableSelectColumn = <TData extends RowData>() =>
 					disabled={!hasSelectableRows}
 					indeterminate={table.getIsSomePageRowsSelected() && !allSelected}
 					onCheckedChange={(value) => table.toggleAllPageRowsSelected(!!value)}
-					aria-label="Select all rows on this page"
+					aria-label={m.data_table_select_all_rows_label()}
 				/>
 			);
 		},
@@ -27,7 +28,7 @@ export const createDataTableSelectColumn = <TData extends RowData>() =>
 				checked={row.getIsSelected()}
 				disabled={!row.getCanSelect()}
 				onCheckedChange={(value) => row.toggleSelected(!!value)}
-				aria-label="Select row"
+				aria-label={m.data_table_select_row_label()}
 			/>
 		),
 		enableSorting: false,
