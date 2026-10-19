@@ -1,6 +1,6 @@
 import { z } from "zod/v4";
 import { botIdSchema } from "../bot/ref";
-import { chatBranchIdSchema } from "../chat-branch/ref";
+import { chatMessageIdSchema } from "../chat-message/ref";
 import { searchFilterSchema } from "../shared/filters";
 import { userIdSchema } from "../user/ref";
 import { chatConfigSchema } from "./parts/config";
@@ -10,13 +10,14 @@ export const chatFieldsSchema = z.object({
 	title: z.string().nullable(),
 	config: chatConfigSchema.nullable(),
 	botId: botIdSchema.nullable(),
-	activeBranchId: chatBranchIdSchema.nullable(),
 });
 
 export const chatMutableFieldsSchema = chatFieldsSchema.partial();
 
 export const chatSchema = chatFieldsSchema.extend({
 	id: chatIdSchema,
+	parentChatId: chatIdSchema.nullable(),
+	branchedFromMessageId: chatMessageIdSchema.nullable(),
 	userId: userIdSchema,
 	createdAt: z.coerce.date().nullable(),
 	updatedAt: z.coerce.date().nullable(),

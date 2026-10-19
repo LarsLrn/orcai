@@ -1,5 +1,3 @@
-import { z } from "zod/v4";
-import { chatBranchSchema } from "../chat-branch/schema";
 import {
 	createDataResponseSchema,
 	createDeleteResponseSchema,
@@ -10,11 +8,7 @@ import { chatListRowSchema, chatSchema } from "./schema";
 export const listChatsResponseSchema =
 	createListResponseSchema(chatListRowSchema);
 
-export const findChatResponseSchema = createDataResponseSchema(
-	chatSchema.extend({
-		branches: z.array(chatBranchSchema),
-	}),
-);
+export const findChatResponseSchema = createDataResponseSchema(chatSchema);
 
 export const createChatResponseSchema = createDataResponseSchema(chatSchema);
 

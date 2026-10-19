@@ -16,7 +16,6 @@ export type ModelId = UuidBrand<"ModelId">;
 export type BlockId = UuidBrand<"BlockId">;
 export type BotId = UuidBrand<"BotId">;
 export type ChatId = UuidBrand<"ChatId">;
-export type ChatBranchId = UuidBrand<"ChatBranchId">;
 export type ChatMessageId = UuidBrand<"ChatMessageId">;
 export type GroupId = UuidBrand<"GroupId">;
 export type GroupMemberId = UuidBrand<"GroupMemberId">;

@@ -5,14 +5,10 @@ import {
 	deleteChatMessagesResponseSchema,
 	findChatMessageInputSchema,
 	findChatMessageResponseSchema,
-	getBranchIdForMessageInputSchema,
-	getBranchIdForMessageResponseSchema,
 	listChatMessagesInputSchema,
 	listChatMessagesResponseSchema,
 	rateChatMessageInputSchema,
 	rateChatMessageResponseSchema,
-	updateChatMessageInputSchema,
-	updateChatMessageResponseSchema,
 } from "@orcai/schema";
 import { openapi } from "@orpc/openapi";
 import { base } from "./base";
@@ -57,19 +53,6 @@ export const chatMessageContracts = {
 		)
 		.input(findChatMessageInputSchema)
 		.output(findChatMessageResponseSchema),
-	update: base
-		.meta(
-			openapi({
-				method: "PUT",
-				path: "/chats/{chatId}/messages/{id}",
-				summary: "Update a chat message",
-				tags: [
-					"Chat Messages",
-				],
-			}),
-		)
-		.input(updateChatMessageInputSchema)
-		.output(updateChatMessageResponseSchema),
 	delete: base
 		.meta(
 			openapi({
@@ -96,17 +79,4 @@ export const chatMessageContracts = {
 		)
 		.input(rateChatMessageInputSchema)
 		.output(rateChatMessageResponseSchema),
-	getBranch: base
-		.meta(
-			openapi({
-				method: "GET",
-				path: "/chats/{chatId}/messages/{messageId}/branch",
-				summary: "Get the branch ID for a message",
-				tags: [
-					"Chat Messages",
-				],
-			}),
-		)
-		.input(getBranchIdForMessageInputSchema)
-		.output(getBranchIdForMessageResponseSchema),
 };

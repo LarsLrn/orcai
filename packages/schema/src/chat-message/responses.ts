@@ -1,6 +1,5 @@
 import { z } from "zod/v4";
 import { chatIdSchema } from "../chat/ref";
-import { chatBranchIdSchema } from "../chat-branch/ref";
 import {
 	createDataResponseSchema,
 	createDeleteResponseSchema,
@@ -27,20 +26,11 @@ export const listChatMessagesResponseSchema = createListResponseSchema(
 	scores: chatMessageScoresSchema,
 });
 
-export const createChatMessageResponseSchema = createDataResponseSchema(
-	chatMessageSchema,
-).extend({
-	branchId: chatBranchIdSchema.optional(),
-});
+export const createChatMessageResponseSchema =
+	createDataResponseSchema(chatMessageSchema);
 
 export const findChatMessageResponseSchema =
 	createDataResponseSchema(chatMessageSchema);
-
-export const updateChatMessageResponseSchema = createDataResponseSchema(
-	chatMessageSchema,
-).extend({
-	branchId: chatBranchIdSchema.optional(),
-});
 
 export const deleteChatMessagesResponseSchema = createDeleteResponseSchema();
 
@@ -52,8 +42,4 @@ export const rateChatMessageResponseSchema = createDataResponseSchema(
 	}),
 ).extend({
 	...statusResponseSchema.shape,
-});
-
-export const getBranchIdForMessageResponseSchema = z.object({
-	branchId: chatBranchIdSchema,
 });

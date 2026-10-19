@@ -108,13 +108,6 @@ export const findChat = authed.chat.find
 						eq: input.id,
 					},
 				},
-				with: {
-					branches: {
-						orderBy: {
-							updatedAt: "desc",
-						},
-					},
-				},
 			})
 			.pipe(
 				Effect.flatMap((chat) =>
@@ -165,40 +158,15 @@ export const createChat = authed.chat.create.effect(function* ({
 		}
 	}
 
-	const { chat, mainBranch } = yield* db.transaction((tx) =>
-		Effect.gen(function* () {
-			const [chat] = yield* tx
-				.insert(dbSchema.chat)
-				.values({
-					title: input.title,
-					userId: context.auth.user.id,
-					botId: input.botId,
-					config: input.config ?? {},
-				})
-				.returning();
-
-			const [mainBranch] = yield* tx
-				.insert(dbSchema.chatBranch)
-				.values({
-					chatId: chat.id,
-					name: "Main",
-					leafMessageId: null,
-				})
-				.returning();
-
-			yield* tx
-				.update(dbSchema.chat)
-				.set({
-					activeBranchId: mainBranch.id,
-				})
-				.where(eq(dbSchema.chat.id, chat.id));
-
-			return {
-				chat,
-				mainBranch,
-			};
-		}),
-	);
+	const [chat] = yield* db
+		.insert(dbSchema.chat)
+		.values({
+			title: input.title,
+			userId: context.auth.user.id,
+			botId: input.botId,
+			config: input.config ?? {},
+		})
+		.returning();
 
 	yield* authz.applyRelationshipMutations({
 		mutations: [
@@ -226,10 +194,7 @@ export const createChat = authed.chat.create.effect(function* ({
 	});
 
 	return {
-		data: {
-			...chat,
-			activeBranchId: mainBranch.id,
-		},
+		data: chat,
 	};
 });
 
@@ -284,7 +249,6 @@ export const updateChat = authed.chat.update
 			.set({
 				updatedAt: new Date(),
 				title: input.title,
-				activeBranchId: input.activeBranchId,
 				...(mergedConfig !== undefined && {
 					config: mergedConfig,
 				}),
