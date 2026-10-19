@@ -721,3 +721,13 @@ export const deleteBots = authed.bot.delete
 			message: "Bots deleted successfully",
 		};
 	});
+
+export const botRouter = {
+	list: listBots,
+	listDrafts: listDraftBots,
+	find: findBot,
+	findEditor: findBotEditor,
+	save: saveBot,
+	publish: publishBot,
+	delete: deleteBots,
+};

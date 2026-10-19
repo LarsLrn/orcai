@@ -1027,3 +1027,14 @@ export const listRecentResources = authed.resource.listRecent.effect(
 		};
 	},
 );
+
+export const resourceRouter = {
+	listGrants: listResourceGrants,
+	inheritedAccess: getInheritedAccess,
+	listPrincipals: listResourcePrincipals,
+	listRecent: listRecentResources,
+	grant: grantResourceAccess,
+	revoke: revokeResourceAccess,
+	getVisibility: getResourceVisibility,
+	setVisibility: setResourceVisibility,
+};

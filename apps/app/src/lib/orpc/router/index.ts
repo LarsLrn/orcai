@@ -1,299 +1,45 @@
-import { aiChat } from "./ai";
-import {
-	createAsset,
-	deleteAssets,
-	findAsset,
-	listAssets,
-	saveAsset,
-	saveManyAssets,
-} from "./asset";
-import { listAssetPoint, searchRepositoryAssetPoint } from "./asset-point";
-import {
-	checkAuthorization,
-	checkManyAuthorization,
-	organizationCapabilities,
-} from "./authorization";
-import {
-	createBlock,
-	deleteBlocks,
-	findBlock,
-	listBlocks,
-	updateBlock,
-} from "./block";
-import { getBootstrapStatus, initializeBootstrap } from "./bootstrap";
-import {
-	deleteBots,
-	findBot,
-	findBotEditor,
-	listBots,
-	listDraftBots,
-	publishBot,
-	saveBot,
-} from "./bot";
-import {
-	branchChat,
-	createChat,
-	deleteChats,
-	findChat,
-	listChats,
-	updateChat,
-} from "./chat";
-import { attachChatBlock, detachChatBlock, listChatBlocks } from "./chat-block";
-import {
-	createChatMessage,
-	findChatMessage,
-	listChatMessages,
-	rateChatMessage,
-} from "./chat-message";
-import {
-	addGroupMembers,
-	createGroup,
-	deleteGroups,
-	findGroup,
-	listGroupCandidates,
-	listGroupMembers,
-	listGroups,
-	removeGroupMembers,
-	updateGroup,
-} from "./group";
-import {
-	createJobs,
-	listJobs,
-	retryProcessing,
-	retryVectorization,
-} from "./job";
-import {
-	createModel,
-	deleteModel,
-	discoverModels,
-	findModel,
-	listModels,
-	updateModel,
-} from "./model";
-import {
-	createOrganization,
-	deleteOrganizations,
-	findOrganization,
-	getOrganizationDeletionImpact,
-	listAllOrganizations,
-	listOrganizations,
-	updateOrganization,
-} from "./organization";
-import {
-	createOrganizationInvitations,
-	deleteOrganizationInvitations,
-	findOrganizationInvitation,
-	listOrganizationInvitations,
-	respondToOrganizationInvitation,
-	updateOrganizationInvitation,
-	validateOrganizationInvitation,
-} from "./organization-invitation";
-import {
-	deleteOrganizationMembers,
-	findOrganizationMember,
-	listOrganizationMembers,
-	updateOrganizationMember,
-} from "./organization-member";
-import {
-	createProvider,
-	deleteProviders,
-	findProvider,
-	listProviders,
-	updateProvider,
-} from "./provider";
-import {
-	createQuotaPool,
-	deactivateQuotaPool,
-	findQuotaPool,
-	listQuotaPools,
-	quotaAvailability,
-	quotaChatBadge,
-	updateQuotaPool,
-} from "./quota";
-import {
-	getInheritedAccess,
-	getResourceVisibility,
-	grantResourceAccess,
-	listRecentResources,
-	listResourceGrants,
-	listResourcePrincipals,
-	revokeResourceAccess,
-	setResourceVisibility,
-} from "./resource";
-import {
-	abortMultipartUpload,
-	completeMultipartUpload,
-	createDownloadUrl,
-	createUploadUrls,
-	finalizeUpload,
-} from "./storage";
-import {
-	banUser,
-	deleteUsers,
-	findUser,
-	listAllUsers,
-	listUserAccess,
-	listUsers,
-	me,
-	setActiveOrganization,
-	setTourState,
-	unbanUser,
-	updatePassword,
-} from "./user";
+import { aiRouter } from "./ai";
+import { assetRouter } from "./asset";
+import { assetPointRouter } from "./asset-point";
+import { authorizationRouter } from "./authorization";
+import { blockRouter } from "./block";
+import { bootstrapRouter } from "./bootstrap";
+import { botRouter } from "./bot";
+import { chatRouter } from "./chat";
+import { chatBlockRouter } from "./chat-block";
+import { chatMessageRouter } from "./chat-message";
+import { groupRouter } from "./group";
+import { jobRouter } from "./job";
+import { modelRouter } from "./model";
+import { organizationRouter } from "./organization";
+import { organizationInvitationRouter } from "./organization-invitation";
+import { organizationMemberRouter } from "./organization-member";
+import { providerRouter } from "./provider";
+import { quotaRouter } from "./quota";
+import { resourceRouter } from "./resource";
+import { storageRouter } from "./storage";
+import { userRouter } from "./user";
 
 export const router = {
-	bootstrap: {
-		status: getBootstrapStatus,
-		initialize: initializeBootstrap,
-	},
-	organization: {
-		list: listOrganizations,
-		listAll: listAllOrganizations,
-		create: createOrganization,
-		find: findOrganization,
-		update: updateOrganization,
-		delete: deleteOrganizations,
-		deletionImpact: getOrganizationDeletionImpact,
-	},
-	organizationMember: {
-		list: listOrganizationMembers,
-		find: findOrganizationMember,
-		update: updateOrganizationMember,
-		delete: deleteOrganizationMembers,
-	},
-	organizationInvitation: {
-		list: listOrganizationInvitations,
-		create: createOrganizationInvitations,
-		find: findOrganizationInvitation,
-		validate: validateOrganizationInvitation,
-		update: updateOrganizationInvitation,
-		delete: deleteOrganizationInvitations,
-		respond: respondToOrganizationInvitation,
-	},
-	provider: {
-		list: listProviders,
-		create: createProvider,
-		find: findProvider,
-		update: updateProvider,
-		delete: deleteProviders,
-	},
-	quota: {
-		list: listQuotaPools,
-		create: createQuotaPool,
-		find: findQuotaPool,
-		update: updateQuotaPool,
-		deactivate: deactivateQuotaPool,
-		chatBadge: quotaChatBadge,
-		availability: quotaAvailability,
-	},
-	resource: {
-		listGrants: listResourceGrants,
-		inheritedAccess: getInheritedAccess,
-		listPrincipals: listResourcePrincipals,
-		listRecent: listRecentResources,
-		grant: grantResourceAccess,
-		revoke: revokeResourceAccess,
-		getVisibility: getResourceVisibility,
-		setVisibility: setResourceVisibility,
-	},
-	group: {
-		list: listGroups,
-		create: createGroup,
-		find: findGroup,
-		update: updateGroup,
-		delete: deleteGroups,
-		listMembers: listGroupMembers,
-		listCandidates: listGroupCandidates,
-		addMembers: addGroupMembers,
-		removeMembers: removeGroupMembers,
-	},
-	chat: {
-		list: listChats,
-		create: createChat,
-		find: findChat,
-		update: updateChat,
-		delete: deleteChats,
-		branch: branchChat,
-	},
-	chatBlock: {
-		list: listChatBlocks,
-		attach: attachChatBlock,
-		detach: detachChatBlock,
-	},
-	chatMessage: {
-		list: listChatMessages,
-		create: createChatMessage,
-		find: findChatMessage,
-		rate: rateChatMessage,
-	},
-	block: {
-		list: listBlocks,
-		create: createBlock,
-		find: findBlock,
-		update: updateBlock,
-		delete: deleteBlocks,
-	},
-	bot: {
-		list: listBots,
-		listDrafts: listDraftBots,
-		find: findBot,
-		findEditor: findBotEditor,
-		save: saveBot,
-		publish: publishBot,
-		delete: deleteBots,
-	},
-	asset: {
-		list: listAssets,
-		save: saveAsset,
-		saveMany: saveManyAssets,
-		create: createAsset,
-		find: findAsset,
-		delete: deleteAssets,
-	},
-	assetPoint: {
-		list: listAssetPoint,
-		searchRepository: searchRepositoryAssetPoint,
-	},
-	authorization: {
-		check: checkAuthorization,
-		checkMany: checkManyAuthorization,
-		organizationCapabilities,
-	},
-	user: {
-		list: listUsers,
-		listAll: listAllUsers,
-		find: findUser,
-		listAccess: listUserAccess,
-		delete: deleteUsers,
-		ban: banUser,
-		unban: unbanUser,
-		me,
-		updatePassword: updatePassword,
-		setTourState: setTourState,
-		setActiveOrganization: setActiveOrganization,
-	},
-	storage: {
-		createUploadUrls: createUploadUrls,
-		createDownloadUrl: createDownloadUrl,
-		finalizeUpload: finalizeUpload,
-		completeMultipartUpload: completeMultipartUpload,
-		abortMultipartUpload: abortMultipartUpload,
-	},
-	model: {
-		list: listModels,
-		create: createModel,
-		find: findModel,
-		update: updateModel,
-		delete: deleteModel,
-		discover: discoverModels,
-	},
-	job: {
-		list: listJobs,
-		create: createJobs,
-		retryProcessing: retryProcessing,
-		retryVectorization: retryVectorization,
-	},
-	ai: {
-		chat: aiChat,
-	},
+	bootstrap: bootstrapRouter,
+	organization: organizationRouter,
+	organizationMember: organizationMemberRouter,
+	organizationInvitation: organizationInvitationRouter,
+	provider: providerRouter,
+	quota: quotaRouter,
+	resource: resourceRouter,
+	group: groupRouter,
+	chat: chatRouter,
+	chatBlock: chatBlockRouter,
+	chatMessage: chatMessageRouter,
+	block: blockRouter,
+	bot: botRouter,
+	asset: assetRouter,
+	assetPoint: assetPointRouter,
+	authorization: authorizationRouter,
+	user: userRouter,
+	storage: storageRouter,
+	model: modelRouter,
+	job: jobRouter,
+	ai: aiRouter,
 };

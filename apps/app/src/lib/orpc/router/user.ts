@@ -1214,3 +1214,17 @@ export const setActiveOrganization = authed.user.setActiveOrganization.effect(
 		};
 	},
 );
+
+export const userRouter = {
+	list: listUsers,
+	listAll: listAllUsers,
+	find: findUser,
+	listAccess: listUserAccess,
+	delete: deleteUsers,
+	ban: banUser,
+	unban: unbanUser,
+	me,
+	updatePassword,
+	setTourState,
+	setActiveOrganization,
+};

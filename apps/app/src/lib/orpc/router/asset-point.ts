@@ -297,3 +297,8 @@ export const searchRepositoryAssetPoint = authed.assetPoint.searchRepository
 			assetIds,
 		});
 	});
+
+export const assetPointRouter = {
+	list: listAssetPoint,
+	searchRepository: searchRepositoryAssetPoint,
+};

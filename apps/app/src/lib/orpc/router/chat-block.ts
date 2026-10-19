@@ -260,3 +260,9 @@ export const detachChatBlock = authed.chatBlock.detach
 			message: "Block detached from chat",
 		};
 	});
+
+export const chatBlockRouter = {
+	list: listChatBlocks,
+	attach: attachChatBlock,
+	detach: detachChatBlock,
+};

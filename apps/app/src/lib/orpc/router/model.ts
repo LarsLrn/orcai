@@ -399,3 +399,12 @@ export const discoverModels = authed.model.discover
 			},
 		};
 	});
+
+export const modelRouter = {
+	list: listModels,
+	create: createModel,
+	find: findModel,
+	update: updateModel,
+	delete: deleteModel,
+	discover: discoverModels,
+};

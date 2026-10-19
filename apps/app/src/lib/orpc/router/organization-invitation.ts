@@ -505,3 +505,13 @@ export const respondToOrganizationInvitation =
 				);
 		}
 	});
+
+export const organizationInvitationRouter = {
+	list: listOrganizationInvitations,
+	create: createOrganizationInvitations,
+	find: findOrganizationInvitation,
+	validate: validateOrganizationInvitation,
+	update: updateOrganizationInvitation,
+	delete: deleteOrganizationInvitations,
+	respond: respondToOrganizationInvitation,
+};
