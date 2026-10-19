@@ -1,14 +1,33 @@
+import type { BotId, ChatId, ChatMessageId, UserId } from "@orcai/core";
 import { DB, dbSchema } from "@orcai/db";
 import type { ChatSortKey } from "@orcai/schema";
 import {
 	checkEntityPermission,
+	checkManyEntityPermissions,
 	hasPermission,
 	lookupEntitiesByPermission,
+	type TupleMutation,
 } from "@orcai/spice-db";
-import { and, count, desc, eq, getColumns, ilike, inArray } from "drizzle-orm";
+import { isTextUIPart, type UIMessage } from "ai";
+import {
+	and,
+	asc,
+	count,
+	desc,
+	eq,
+	getColumns,
+	ilike,
+	inArray,
+	lt,
+	lte,
+} from "drizzle-orm";
 import * as Effect from "effect/Effect";
+import { v4 as uuidv4 } from "uuid";
 import { getZedToken } from "@/lib/authz/zed-token";
-import { AuthzService } from "@/lib/effect/services/authz";
+import {
+	AuthzService,
+	enqueueRelationshipMutations,
+} from "@/lib/effect/services/authz";
 import * as AppErrors from "@/lib/effect/utils/errors";
 import { authed } from "@/lib/orpc/implementation/authed";
 import {
@@ -91,6 +110,68 @@ export const listChats = authed.chat.list.effect(function* ({
 	);
 });
 
+const chatNotFound = (id: ChatId) =>
+	new AppErrors.NotFoundError({
+		reason: "CHAT_NOT_FOUND",
+		id,
+		message: "Chat not found",
+	});
+
+const requireBotUse = (params: {
+	botId: BotId;
+	userId: UserId;
+	zedToken: string | undefined;
+}) =>
+	Effect.gen(function* () {
+		const canUseBot = yield* checkEntityPermission({
+			entityId: params.botId,
+			entityType: "bot",
+			permission: "use",
+			userId: params.userId,
+			zedToken: params.zedToken,
+		});
+
+		if (hasPermission(canUseBot) === false) {
+			return yield* Effect.fail(
+				new AppErrors.ForbiddenError({
+					reason: "PERMISSION_DENIED",
+					data: {
+						permission: "use",
+						entityType: "bot",
+						zedToken: params.zedToken,
+					},
+				}),
+			);
+		}
+	});
+
+const chatRelationships = (chat: {
+	id: ChatId;
+	userId: UserId;
+	botId: BotId | null;
+}): TupleMutation[] => [
+	{
+		resourceType: "chat",
+		resourceId: chat.id,
+		relation: "owner",
+		subjectType: "user",
+		subjectId: chat.userId,
+		operation: "touch",
+	},
+	...(chat.botId
+		? [
+				{
+					resourceType: "chat" as const,
+					resourceId: chat.id,
+					relation: "bot" as const,
+					subjectType: "bot" as const,
+					subjectId: chat.botId,
+					operation: "touch" as const,
+				},
+			]
+		: []),
+];
+
 export const findChat = authed.chat.find
 	.use(
 		requireEntityPermission("chat", "read", {
@@ -98,34 +179,102 @@ export const findChat = authed.chat.find
 			zedToken: "zedToken",
 		}),
 	)
-	.effect(function* ({ input }) {
+	.effect(function* ({ input, context }) {
 		const db = yield* DB;
 
-		return yield* db.query.chat
+		const chat = yield* db.query.chat
 			.findFirst({
 				where: {
 					id: {
 						eq: input.id,
 					},
 				},
+				with: {
+					parentChat: {
+						columns: {
+							id: true,
+							title: true,
+						},
+					},
+					branches: {
+						columns: {
+							id: true,
+							title: true,
+							branchedFromMessageId: true,
+							createdAt: true,
+						},
+						where: {
+							branchedFromMessageId: {
+								isNotNull: true,
+							},
+						},
+						orderBy: {
+							createdAt: "asc",
+						},
+					},
+				},
 			})
 			.pipe(
 				Effect.flatMap((chat) =>
 					Effect.fromNullishOr(chat).pipe(
-						Effect.mapError(
-							() =>
-								new AppErrors.NotFoundError({
-									reason: "CHAT_NOT_FOUND",
-									id: input.id,
-									message: "Chat not found",
-								}),
-						),
+						Effect.mapError(() => chatNotFound(input.id)),
 					),
 				),
-				Effect.map((chat) => ({
-					data: chat,
-				})),
 			);
+
+		const linkedIds = [
+			...(chat.parentChat
+				? [
+						chat.parentChat.id,
+					]
+				: []),
+			...chat.branches.map((branch) => branch.id),
+		];
+		const readableIds = new Set<string>();
+
+		if (linkedIds.length > 0) {
+			const result = yield* checkManyEntityPermissions({
+				entityIds: linkedIds,
+				entityType: "chat",
+				permission: "read",
+				userId: context.auth.user.id,
+				zedToken: getZedToken(context, input),
+			});
+
+			for (const pair of result.pairs) {
+				const id = pair.request?.resource?.objectId;
+				if (
+					id &&
+					pair.response.oneofKind === "item" &&
+					hasPermission({
+						permissionship: pair.response.item.permissionship,
+					})
+				) {
+					readableIds.add(id);
+				}
+			}
+		}
+
+		return {
+			data: {
+				...chat,
+				parentChat:
+					chat.parentChat && readableIds.has(chat.parentChat.id)
+						? chat.parentChat
+						: null,
+				branches: chat.branches.flatMap(
+					({ branchedFromMessageId, ...branch }) =>
+						branchedFromMessageId && readableIds.has(branch.id)
+							? [
+									{
+										...branch,
+										branchedFromMessageId,
+									},
+								]
+							: [],
+				),
+			},
+		};
 	});
 
 export const createChat = authed.chat.create.effect(function* ({
@@ -136,26 +285,11 @@ export const createChat = authed.chat.create.effect(function* ({
 	const authz = yield* AuthzService;
 
 	if (input.botId) {
-		const canUseBot = yield* checkEntityPermission({
-			entityId: input.botId,
-			entityType: "bot",
-			permission: "use",
+		yield* requireBotUse({
+			botId: input.botId,
 			userId: context.auth.user.id,
 			zedToken: getZedToken(context),
 		});
-
-		if (hasPermission(canUseBot) === false) {
-			return yield* Effect.fail(
-				new AppErrors.ForbiddenError({
-					reason: "PERMISSION_DENIED",
-					data: {
-						permission: "use",
-						entityType: "bot",
-						zedToken: getZedToken(context),
-					},
-				}),
-			);
-		}
 	}
 
 	const [chat] = yield* db
@@ -169,28 +303,7 @@ export const createChat = authed.chat.create.effect(function* ({
 		.returning();
 
 	yield* authz.applyRelationshipMutations({
-		mutations: [
-			{
-				resourceType: "chat",
-				resourceId: chat.id,
-				relation: "owner",
-				subjectType: "user",
-				subjectId: context.auth.user.id,
-				operation: "touch",
-			},
-			...(chat.botId
-				? [
-						{
-							resourceType: "chat" as const,
-							resourceId: chat.id,
-							relation: "bot" as const,
-							subjectType: "bot" as const,
-							subjectId: chat.botId,
-							operation: "touch" as const,
-						},
-					]
-				: []),
-		],
+		mutations: chatRelationships(chat),
 	});
 
 	return {
@@ -291,5 +404,147 @@ export const deleteChats = authed.chat.delete
 		return {
 			success: true,
 			message: "Chats deleted successfully",
+		};
+	});
+
+export const branchChat = authed.chat.branch
+	.use(
+		requireEntityPermission("chat", "read", {
+			entityId: "chatId",
+			zedToken: "zedToken",
+		}),
+	)
+	.effect(function* ({ input, context }) {
+		const db = yield* DB;
+		const authz = yield* AuthzService;
+
+		const source = yield* db.query.chat
+			.findFirst({
+				where: {
+					id: {
+						eq: input.chatId,
+					},
+				},
+			})
+			.pipe(
+				Effect.flatMap((chat) =>
+					Effect.fromNullishOr(chat).pipe(
+						Effect.mapError(() => chatNotFound(input.chatId)),
+					),
+				),
+			);
+
+		const message = yield* db.query.chatMessage
+			.findFirst({
+				where: {
+					id: {
+						eq: input.messageId,
+					},
+					chatId: {
+						eq: input.chatId,
+					},
+				},
+			})
+			.pipe(
+				Effect.flatMap((message) =>
+					Effect.fromNullishOr(message).pipe(
+						Effect.mapError(
+							() =>
+								new AppErrors.NotFoundError({
+									reason: "CHAT_MESSAGE_NOT_FOUND",
+									id: input.messageId,
+									message: "Chat message not found",
+								}),
+						),
+					),
+				),
+			);
+
+		if (source.botId) {
+			yield* requireBotUse({
+				botId: source.botId,
+				userId: context.auth.user.id,
+				zedToken: getZedToken(context, input),
+			});
+		}
+
+		// A user message becomes the draft, so the branch ends before it.
+		const isUserMessage = message.role === "user";
+		const copiedPositions = isUserMessage
+			? lt(dbSchema.chatMessage.position, message.position)
+			: lte(dbSchema.chatMessage.position, message.position);
+
+		const { chat, eventId } = yield* db.transaction((tx) =>
+			Effect.gen(function* () {
+				const [chat] = yield* tx
+					.insert(dbSchema.chat)
+					.values({
+						title: source.title,
+						userId: context.auth.user.id,
+						botId: source.botId,
+						config: source.config,
+						parentChatId: source.id,
+						branchedFromMessageId: message.id,
+					})
+					.returning();
+
+				const messages = yield* tx
+					.select()
+					.from(dbSchema.chatMessage)
+					.where(
+						and(eq(dbSchema.chatMessage.chatId, source.id), copiedPositions),
+					)
+					.orderBy(asc(dbSchema.chatMessage.position));
+
+				if (messages.length > 0) {
+					yield* tx.insert(dbSchema.chatMessage).values(
+						messages.map((copied, position) => ({
+							...copied,
+							id: uuidv4() as ChatMessageId,
+							chatId: chat.id,
+							position,
+						})),
+					);
+				}
+
+				const blocks = yield* tx
+					.select()
+					.from(dbSchema.chatBlock)
+					.where(eq(dbSchema.chatBlock.chatId, source.id));
+
+				if (blocks.length > 0) {
+					yield* tx.insert(dbSchema.chatBlock).values(
+						blocks.map((block) => ({
+							...block,
+							chatId: chat.id,
+						})),
+					);
+				}
+
+				const eventId = yield* enqueueRelationshipMutations({
+					tx,
+					mutations: chatRelationships(chat),
+				});
+
+				return {
+					chat,
+					eventId,
+				};
+			}),
+		);
+
+		yield* authz.deliverRelationshipEvent(eventId);
+
+		return {
+			data: chat,
+			draft: isUserMessage
+				? {
+						text: (message.parts as UIMessage["parts"])
+							.filter(isTextUIPart)
+							.map((part) => part.text)
+							.join("\n\n"),
+						attachments: message.attachments,
+					}
+				: null,
 		};
 	});

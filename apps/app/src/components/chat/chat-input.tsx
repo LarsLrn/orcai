@@ -20,6 +20,7 @@ import { ChatAttachmentActionMenu } from "@/components/chat/attachments/chat-att
 import { ChatComposerAttachments } from "@/components/chat/attachments/chat-attachment-input";
 import { useChatAttachments } from "@/components/chat/attachments/use-chat-attachments";
 import { ChatAssetPicker } from "@/components/chat/chat-asset-picker";
+import type { ChatDraft } from "@/components/chat/chat-draft";
 import { fetchWholeChat } from "@/components/chat/chat-history";
 import { ChatSettings } from "@/components/chat/chat-settings";
 import { ModelSelectorButton } from "@/components/chat/model-selector";
@@ -52,14 +53,17 @@ const ChatInput = ({
 	sendMessage,
 	stop,
 	status,
+	draft,
 }: {
 	chatId: ChatId;
 	zedToken?: string;
 	sendMessage: UseChatHelpers<ChatAgentUIMessage>["sendMessage"];
 	stop: UseChatHelpers<ChatAgentUIMessage>["stop"];
 	status: UseChatHelpers<ChatAgentUIMessage>["status"];
+	/** Prefills the composer, e.g. with the message a branch started from. */
+	draft?: ChatDraft;
 }) => {
-	const [messageText, setMessageText] = useState("");
+	const [messageText, setMessageText] = useState(draft?.text ?? "");
 	const [settingsOpen, setSettingsOpen] = useState(false);
 
 	const { data: chat } = useQuery(
@@ -93,7 +97,7 @@ const ChatInput = ({
 	const {
 		fileInputRef,
 		localFiles,
-		selectedAssets,
+		selectedAttachments,
 		selectedAssetIds,
 		canAttachMore,
 		isUploading,
@@ -108,6 +112,7 @@ const ChatInput = ({
 		resolveAttachmentsForSend,
 	} = useChatAttachments({
 		limit: CHAT_ATTACHMENT_LIMIT,
+		initialAttachments: draft?.attachments,
 	});
 
 	const isGenerating = status === "submitted" || status === "streaming";
@@ -119,9 +124,9 @@ const ChatInput = ({
 		const trimmedText = messageText.trim();
 		const hasText = trimmedText.length > 0;
 		const hasLocalFiles = localFiles.length > 0;
-		const hasSelectedAssets = selectedAssets.length > 0;
+		const hasSelectedAttachments = selectedAttachments.length > 0;
 
-		if (!(hasText || hasLocalFiles || hasSelectedAssets)) {
+		if (!(hasText || hasLocalFiles || hasSelectedAttachments)) {
 			return;
 		}
 
@@ -207,7 +212,7 @@ const ChatInput = ({
 				<InputGroup className="overflow-hidden border-border bg-card">
 					<ChatComposerAttachments
 						localFiles={localFiles}
-						assets={selectedAssets}
+						attachments={selectedAttachments}
 						onRemoveLocalFile={removeLocalFile}
 						onRemoveAsset={removeSelectedAsset}
 					/>
@@ -281,7 +286,7 @@ const ChatInput = ({
 										!(
 											messageText.trim().length > 0 ||
 											localFiles.length > 0 ||
-											selectedAssets.length > 0
+											selectedAttachments.length > 0
 										)))
 							}
 						/>

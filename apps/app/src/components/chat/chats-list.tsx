@@ -17,6 +17,7 @@ import { orpc } from "@/lib/orpc/orpc";
 import { formatDisplayTimestamp } from "@/lib/presentation/format-timestamp";
 import { cn } from "@/lib/utils";
 import { m } from "@/paraglide/messages";
+import { BranchMark } from "./branch-links";
 import { ChatActionsDropdown } from "./chat-actions-dropdown";
 
 const ChatsList = ({
@@ -90,8 +91,11 @@ const ChatsList = ({
 						</ChatActionsDropdown>
 
 						<CardHeader className="pb-2">
-							<CardTitle className="line-clamp-1 w-[calc(100%-1rem)] text-base">
-								{chat.title ?? m.chat_title_placeholder()}
+							<CardTitle className="flex w-[calc(100%-1rem)] items-center gap-1.5 text-base">
+								{chat.parentChatId && <BranchMark />}
+								<span className="line-clamp-1 min-w-0">
+									{chat.title ?? m.chat_title_placeholder()}
+								</span>
 							</CardTitle>
 							{chat.updatedAt && (
 								<CardDescription className="text-xs">

@@ -2,6 +2,7 @@ import type { ChatListRow } from "@orcai/schema";
 import { Link } from "@tanstack/react-router";
 import { createColumnHelper } from "@tanstack/react-table";
 import { MoreHorizontalIcon } from "lucide-react";
+import { BranchMark } from "@/components/chat/branch-links";
 import { ChatActionsDropdown } from "@/components/chat/chat-actions-dropdown";
 import { Button } from "@/components/ui/button";
 import { DataTableColumnHeader } from "@/components/ui/data-table/data-table-column-header";
@@ -24,9 +25,12 @@ export const chatTableColumns = columnHelper.columns([
 				params={{
 					chatId: row.original.id,
 				}}
-				className="font-medium hover:underline"
+				className="inline-flex max-w-full items-center gap-1.5 font-medium hover:underline"
 			>
-				{row.original.title ?? m.chat_title_placeholder()}
+				{row.original.parentChatId && <BranchMark />}
+				<span className="truncate">
+					{row.original.title ?? m.chat_title_placeholder()}
+				</span>
 			</Link>
 		),
 		meta: {

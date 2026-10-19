@@ -1,5 +1,6 @@
 import type { UseChatHelpers } from "@ai-sdk/react";
 import type { ChatId } from "@orcai/core";
+import type { ChatBranchLink } from "@orcai/schema";
 import type { ReactNode } from "react";
 import {
 	Message,
@@ -7,6 +8,7 @@ import {
 	MessageToolbar,
 } from "@/components/ai-elements/message";
 import { Shimmer } from "@/components/ai-elements/shimmer";
+import { MessageBranches } from "@/components/chat/branch-links";
 import { classifyTurn } from "@/components/chat/message/classify-turn";
 import { MessageEditor } from "@/components/chat/message/message-editor";
 import { WorkLog } from "@/components/chat/message/work-log/work-log";
@@ -30,6 +32,10 @@ interface MessageBlockProps {
 	/** Only the latest message can still be receiving parts. */
 	isLatest: boolean;
 	animate?: boolean;
+	/** Chats branched from this message. */
+	branches?: ChatBranchLink[];
+	onBranch?: () => void;
+	branching?: boolean;
 }
 
 const MessageEntrance = ({
@@ -76,6 +82,9 @@ export const MessageBlock = ({
 	status,
 	isLatest,
 	animate = true,
+	branches = [],
+	onBranch,
+	branching,
 }: MessageBlockProps) => {
 	const { mode, toggleMode, setViewMode } = useMessageEditor();
 	const variant = message.role === "user" ? "sent" : "received";
@@ -131,6 +140,8 @@ export const MessageBlock = ({
 						variant={variant}
 						chatId={chatId}
 						onEdit={variant === "sent" ? toggleMode : undefined}
+						onBranch={onBranch}
+						branching={branching}
 						className={cn({
 							"w-full justify-end": variant === "sent",
 						})}
@@ -141,6 +152,14 @@ export const MessageBlock = ({
 						</div>
 					)}
 				</MessageToolbar>
+				{branches.length > 0 && (
+					<MessageBranches
+						branches={branches}
+						className={cn({
+							"justify-end": variant === "sent",
+						})}
+					/>
+				)}
 			</Message>
 		</MessageEntrance>
 	);

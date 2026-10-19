@@ -1,4 +1,6 @@
 import {
+	branchChatInputSchema,
+	branchChatResponseSchema,
 	createChatInputSchema,
 	createChatResponseSchema,
 	deleteChatInputSchema,
@@ -79,4 +81,17 @@ export const chatContracts = {
 		)
 		.input(deleteChatInputSchema)
 		.output(deleteChatResponseSchema),
+	branch: base
+		.meta(
+			openapi({
+				method: "POST",
+				path: "/chats/{chatId}/branches",
+				summary: "Branch a chat from one of its messages",
+				tags: [
+					"Chats",
+				],
+			}),
+		)
+		.input(branchChatInputSchema)
+		.output(branchChatResponseSchema),
 };

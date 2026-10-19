@@ -1,5 +1,5 @@
 import type { AssetId } from "@orcai/core";
-import type { Asset } from "@orcai/schema";
+import type { ChatMessageAttachment } from "@orcai/schema";
 import type { FileUIPart, SourceDocumentUIPart } from "ai";
 import {
 	Attachment,
@@ -28,14 +28,14 @@ const localFileToUiPart = (file: LocalChatFile) =>
 		id: string;
 	};
 
-const assetToUiPart = (asset: Asset) =>
+const attachmentToUiPart = (attachment: ChatMessageAttachment) =>
 	({
-		id: asset.id,
+		id: attachment.assetId,
 		type: "source-document",
-		sourceId: asset.id,
-		mediaType: asset.fileType,
-		title: asset.title,
-		filename: asset.title,
+		sourceId: attachment.assetId,
+		mediaType: attachment.fileType,
+		title: attachment.title,
+		filename: attachment.title,
 	}) satisfies SourceDocumentUIPart & {
 		id: string;
 	};
@@ -87,16 +87,16 @@ const AttachmentNode = ({
 
 export const ChatComposerAttachments = ({
 	localFiles,
-	assets,
+	attachments,
 	onRemoveLocalFile,
 	onRemoveAsset,
 }: {
 	localFiles: LocalChatFile[];
-	assets: Asset[];
+	attachments: ChatMessageAttachment[];
 	onRemoveLocalFile: (id: string) => void;
 	onRemoveAsset: (id: AssetId) => void;
 }) => {
-	if (localFiles.length === 0 && assets.length === 0) {
+	if (localFiles.length === 0 && attachments.length === 0) {
 		return null;
 	}
 
@@ -113,14 +113,14 @@ export const ChatComposerAttachments = ({
 						onRemove={() => onRemoveLocalFile(file.id)}
 					/>
 				))}
-				{assets.map((asset) => (
+				{attachments.map((attachment) => (
 					<AttachmentNode
-						key={asset.id}
-						data={assetToUiPart(asset)}
-						title={asset.title}
-						fileType={asset.fileType}
-						size={asset.size}
-						onRemove={() => onRemoveAsset(asset.id)}
+						key={attachment.assetId}
+						data={attachmentToUiPart(attachment)}
+						title={attachment.title}
+						fileType={attachment.fileType}
+						size={attachment.size}
+						onRemove={() => onRemoveAsset(attachment.assetId)}
 					/>
 				))}
 			</Attachments>

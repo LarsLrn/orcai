@@ -33,12 +33,20 @@ const toChatAttachment = ({
 	source,
 });
 
-export const useChatAttachments = ({ limit = 8 }: { limit?: number } = {}) => {
+export const useChatAttachments = ({
+	limit = 8,
+	initialAttachments = [],
+}: {
+	limit?: number;
+	initialAttachments?: ChatMessageAttachment[];
+} = {}) => {
 	const fileInputRef = useRef<HTMLInputElement>(null);
 	const localFilesRef = useRef<LocalChatFile[]>([]);
 
 	const [localFiles, setLocalFiles] = useState<LocalChatFile[]>([]);
-	const [selectedAssets, setSelectedAssets] = useState<Asset[]>([]);
+	// Already stored assets: picked from the library or carried over from an earlier message.
+	const [selectedAttachments, setSelectedAttachments] =
+		useState<ChatMessageAttachment[]>(initialAttachments);
 	const [assetPickerOpen, setAssetPickerOpen] = useState(false);
 
 	const {
@@ -54,13 +62,13 @@ export const useChatAttachments = ({ limit = 8 }: { limit?: number } = {}) => {
 	);
 
 	const selectedAssetIds = useMemo(
-		() => new Set(selectedAssets.map((asset) => asset.id)),
+		() => new Set(selectedAttachments.map((attachment) => attachment.assetId)),
 		[
-			selectedAssets,
+			selectedAttachments,
 		],
 	);
 
-	const count = localFiles.length + selectedAssets.length;
+	const count = localFiles.length + selectedAttachments.length;
 	const canAttachMore = count < limit;
 
 	useEffect(() => {
@@ -109,7 +117,8 @@ export const useChatAttachments = ({ limit = 8 }: { limit?: number } = {}) => {
 			return;
 		}
 
-		const slotsRemaining = limit - (selectedAssets.length + localFiles.length);
+		const slotsRemaining =
+			limit - (selectedAttachments.length + localFiles.length);
 		if (slotsRemaining <= 0) {
 			toast.error(
 				m.chat_attachments_limit_toast_error({
@@ -163,19 +172,24 @@ export const useChatAttachments = ({ limit = 8 }: { limit?: number } = {}) => {
 			return;
 		}
 
-		setSelectedAssets((current) => [
+		setSelectedAttachments((current) => [
 			...current,
-			asset,
+			toChatAttachment({
+				asset,
+				source: "library",
+			}),
 		]);
 	};
 
 	const removeSelectedAsset = (id: AssetId) => {
-		setSelectedAssets((current) => current.filter((asset) => asset.id !== id));
+		setSelectedAttachments((current) =>
+			current.filter((attachment) => attachment.assetId !== id),
+		);
 	};
 
 	const clearAttachments = () => {
 		clearLocalFiles();
-		setSelectedAssets([]);
+		setSelectedAttachments([]);
 		setAssetPickerOpen(false);
 		resetUploadState();
 	};
@@ -233,16 +247,9 @@ export const useChatAttachments = ({ limit = 8 }: { limit?: number } = {}) => {
 			}
 		}
 
-		const libraryAttachments = selectedAssets.map((asset) =>
-			toChatAttachment({
-				asset,
-				source: "library",
-			}),
-		);
-
 		const attachmentsMap = new Map<string, ChatMessageAttachment>();
 		for (const attachment of [
-			...libraryAttachments,
+			...selectedAttachments,
 			...uploadedAttachments,
 		]) {
 			attachmentsMap.set(attachment.assetId, attachment);
@@ -254,7 +261,7 @@ export const useChatAttachments = ({ limit = 8 }: { limit?: number } = {}) => {
 	return {
 		fileInputRef,
 		localFiles,
-		selectedAssets,
+		selectedAttachments,
 		selectedAssetIds,
 		canAttachMore,
 		isUploading,
