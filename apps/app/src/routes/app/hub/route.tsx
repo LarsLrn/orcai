@@ -129,10 +129,10 @@ function RouteComponent() {
 							value={activeTab}
 							onChange={navigateToRoute}
 							aria-label={m.hub_section_switcher_aria_label()}
-							className="w-full @2xl:hidden"
+							className="@2xl:hidden w-full"
 						/>
 						<Tabs
-							className="hidden @2xl:flex"
+							className="@2xl:flex hidden"
 							value={activeTab}
 							onValueChange={navigateToRoute}
 						>

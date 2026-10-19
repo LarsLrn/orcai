@@ -96,7 +96,7 @@
 			},
 			"nursery": {
 				"useSortedClasses": {
-					"level": "info",
+					"level": "error",
 					"fix": "safe",
 					"options": {
 						"attributes": [

@@ -323,9 +323,9 @@ bun run --filter @orcai/web types:check
 
 Repository hooks and rules:
 
-- `pre-commit` runs `lint-staged`.
+- `pre-commit` runs `lint-staged`, which applies Biome's safe fixes and formatting to the staged files and fails on remaining errors.
 - `commit-msg` runs commitlint with `@commitlint/config-conventional`.
-- `pre-push` runs `bun run prepush`.
+- `pre-push` runs `bun run prepush`, which is `bun run lint-full`.
 
 For contributor docs on branch naming, PR content, and documentation expectations, see [Development docs: Contributing To The Main Repo](apps/web/content/docs/development/contributing.mdx).
 
