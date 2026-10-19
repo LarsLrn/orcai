@@ -3,6 +3,7 @@ import { useSuspenseQuery } from "@tanstack/react-query";
 import { useRouteContext } from "@tanstack/react-router";
 import { CircleMinusIcon } from "lucide-react";
 import { useId } from "react";
+import { LOCALE_NAMES } from "@/components/app/locale/locale-names";
 import { OrganizationRolePicker } from "@/components/organizations/organization-role-picker";
 import { Button } from "@/components/ui/button";
 import {
@@ -29,6 +30,7 @@ import { useCreateOrganizationInvitationMutation } from "@/hooks/mutations/use-o
 import { getAssignableOrganizationRoles } from "@/lib/authz/organization-role-metadata";
 import { orpc } from "@/lib/orpc/orpc";
 import { m } from "@/paraglide/messages";
+import { locales } from "@/paraglide/runtime";
 import { organizationInvitationFormOptions } from "./organization-invitation-form-options";
 
 const OrganizationInvitationForm = () => {
@@ -148,6 +150,20 @@ const OrganizationInvitationForm = () => {
 							/>
 						)}
 					/>
+
+					<form.AppField
+						name="locale"
+						children={(field) => (
+							<field.SelectField
+								label={m.orgs_invitation_form_locale_label()}
+								description={m.orgs_invitation_form_locale_description()}
+								options={locales.map((locale) => ({
+									label: LOCALE_NAMES[locale],
+									value: locale,
+								}))}
+							/>
+						)}
+					/>
 				</CardContent>
 			</Card>
 
@@ -202,7 +218,7 @@ const OrganizationInvitationForm = () => {
 							);
 						}}
 					</form.AppField>
-					<div className="flex gap-2">
+					<div className="flex flex-wrap gap-2">
 						<Button
 							type="button"
 							variant="outline"

@@ -2899,6 +2899,8 @@
 	"orgs_invitation_form_emails_title": "Add email addresses",
 	"orgs_invitation_form_expires_label": "Expires",
 	"orgs_invitation_form_expires_placeholder": "Select expiry date",
+	"orgs_invitation_form_locale_description": "The invitation emails are sent in this language.",
+	"orgs_invitation_form_locale_label": "Email language",
 	"orgs_invitation_form_organisation_label": "Organisation",
 	"orgs_invitation_form_organisation_placeholder": "Select organisation",
 	"orgs_invitation_form_remove_email_aria_label": "Remove user {position}",
