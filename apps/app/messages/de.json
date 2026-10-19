@@ -2899,6 +2899,8 @@
 	"orgs_invitation_form_emails_title": "E-Mail-Adressen hinzufügen",
 	"orgs_invitation_form_expires_label": "Läuft ab",
 	"orgs_invitation_form_expires_placeholder": "Ablaufdatum auswählen",
+	"orgs_invitation_form_locale_description": "Die Einladungs-E-Mails werden in dieser Sprache versendet.",
+	"orgs_invitation_form_locale_label": "E-Mail-Sprache",
 	"orgs_invitation_form_organisation_label": "Organisation",
 	"orgs_invitation_form_organisation_placeholder": "Organisation auswählen",
 	"orgs_invitation_form_remove_email_aria_label": "Benutzer {position} entfernen",

@@ -1,5 +1,6 @@
 import { m } from "@/paraglide/messages";
-import { getLocale } from "@/paraglide/runtime";
+import { getLocale, locales } from "@/paraglide/runtime";
+import { LOCALE_NAMES } from "./locale-names";
 import { LocaleSwitcherSelect } from "./locale-switcher-select";
 
 const LocaleSwitcher = () => {
@@ -8,16 +9,10 @@ const LocaleSwitcher = () => {
 	return (
 		<LocaleSwitcherSelect
 			defaultValue={locale}
-			items={[
-				{
-					value: "en",
-					label: "English",
-				},
-				{
-					value: "de",
-					label: "Deutsch",
-				},
-			]}
+			items={locales.map((value) => ({
+				value,
+				label: LOCALE_NAMES[value],
+			}))}
 			label={m.header_locale_switcher_label()}
 		/>
 	);

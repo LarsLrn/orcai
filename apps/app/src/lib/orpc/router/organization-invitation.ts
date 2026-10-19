@@ -266,7 +266,7 @@ export const createOrganizationInvitations =
 									role: invitation.role,
 									expiresAt: invitation.expiresAt,
 									registrationUrl: `${config.auth.url}/register?inv=${invitation.id}`,
-									locale: context.auth.user.locale ?? "en",
+									locale: input.locale ?? context.auth.user.locale ?? "en",
 								},
 								`organization.invited:${invitation.id}`,
 							),

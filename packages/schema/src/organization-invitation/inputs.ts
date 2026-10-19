@@ -2,6 +2,7 @@ import { z } from "zod/v4";
 import { organizationIdSchema } from "../organization/ref";
 import { paginationInputSchema } from "../shared";
 import type { ErrorReason } from "../shared/error-reason";
+import { localeSchema } from "../shared/primitives/locale";
 import { createUniqueRefsInputSchema } from "../shared/ref-list";
 import { createSortingInputSchema } from "../shared/sorting";
 import { organizationInvitationResponseActionSchema } from "./parts/response-action";
@@ -32,6 +33,8 @@ export const createOrganizationInvitationsInputSchema = z.object({
 	organizationId: z.string().min(1).pipe(organizationIdSchema),
 	role: organizationInvitationSchema.shape.role,
 	expiresAt: z.date(),
+	/** Language of the invitation emails. */
+	locale: localeSchema.optional(),
 	items: z
 		.array(
 			z.object({
