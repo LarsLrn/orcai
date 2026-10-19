@@ -4,13 +4,12 @@ import {
 	blockIdSchema,
 	type DatabaseBlock,
 } from "@orcai/schema";
-import { call } from "@orpc/server";
 import { tool } from "ai";
 import * as Effect from "effect/Effect";
 import { z } from "zod/v4";
 import { runPromise } from "@/lib/effect/runtime";
 import type { ORPCContext } from "@/lib/orpc/implementation/os";
-import { searchRepositoryAssetPoint } from "@/lib/orpc/router/asset-point";
+import { assetPointProcedures } from "@/lib/orpc/router/asset-point";
 import { RETRIEVAL_LIMITS } from "@/settings/constants";
 import type { SearchResult } from "./types";
 import {
@@ -136,43 +135,46 @@ export const searchKnowledgeBaseTool = ({
 						};
 					}
 
-					const blockResponses = yield* Effect.tryPromise({
-						try: () =>
-							Promise.all(
-								targetBlocks.map(async (block) => {
-									const response = await call(
-										searchRepositoryAssetPoint,
-										{
-											repositoryId: block.id,
-											filters: {
-												queries: normalizedQueries,
-												limit: Math.max(limit * 6, 24),
-												assetIds,
-												retrievalMode: block.config.retrievalMode ?? "hybrid",
-												minScore: block.config.scoreThreshold,
-												candidateLimit:
-													block.config.candidateLimit ??
-													Math.max(limit * 8, 32),
-												maxPerAsset: block.config.maxPerAsset ?? 2,
-											},
+					const blockResponses = yield* Effect.forEach(
+						targetBlocks,
+						(block) =>
+							assetPointProcedures
+								.searchRepository(
+									{
+										repositoryId: block.id,
+										filters: {
+											queries: normalizedQueries,
+											limit: Math.max(limit * 6, 24),
+											assetIds,
+											retrievalMode: block.config.retrievalMode ?? "hybrid",
+											minScore: block.config.scoreThreshold,
+											candidateLimit:
+												block.config.candidateLimit ?? Math.max(limit * 8, 32),
+											maxPerAsset: block.config.maxPerAsset ?? 2,
 										},
-										{
-											context,
-										},
-									);
-
-									return {
+									},
+									{
+										context,
+									},
+								)
+								.pipe(
+									Effect.map((response) => ({
 										block,
 										response,
-									};
+									})),
+								),
+						{
+							concurrency: "unbounded",
+						},
+					).pipe(
+						Effect.mapError(
+							(cause) =>
+								new AiError({
+									operation: "searchKnowledgeBaseTool.search",
+									cause,
 								}),
-							),
-						catch: (cause) =>
-							new AiError({
-								operation: "searchKnowledgeBaseTool.search",
-								cause,
-							}),
-					});
+						),
+					);
 
 					const candidates = mergeAndSortCandidates(
 						flattenBlockResponses(blockResponses),

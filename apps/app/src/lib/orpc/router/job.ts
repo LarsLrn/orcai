@@ -14,7 +14,7 @@ import {
 	requireResourcePermission,
 } from "@/lib/orpc/middlewares/permission";
 
-export const listJobs = authed.job.list
+const listJobs = authed.job.list
 	.use(requireResourcePermission("read"))
 	.effect(function* ({ input }) {
 		return yield* getJobsByResource({
@@ -28,7 +28,7 @@ export const listJobs = authed.job.list
 		);
 	});
 
-export const createJobs = authed.job.create
+const createJobs = authed.job.create
 	.use(
 		requireEntityPermission("block", "edit", {
 			entityId: "blockId",
@@ -90,7 +90,7 @@ export const createJobs = authed.job.create
 		};
 	});
 
-export const retryProcessing = authed.job.retryProcessing
+const retryProcessing = authed.job.retryProcessing
 	.use(
 		requireEntityPermission("asset", "edit", {
 			entityId: "assetId",
@@ -148,7 +148,7 @@ export const retryProcessing = authed.job.retryProcessing
 		};
 	});
 
-export const retryVectorization = authed.job.retryVectorization
+const retryVectorization = authed.job.retryVectorization
 	.use(
 		requireEntityPermission("block", "edit", {
 			entityId: "blockId",

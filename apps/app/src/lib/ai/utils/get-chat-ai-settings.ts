@@ -3,7 +3,6 @@ import { AiError } from "@orcai/ai";
 import type { BotId, ModelId, ProviderId, UserId } from "@orcai/core";
 import type { ChatConfig, DatabaseBlock, TemplateBlock } from "@orcai/schema";
 import { checkManyEntityPermissions, hasPermission } from "@orcai/spice-db";
-import { call } from "@orpc/server";
 import { extractReasoningMiddleware, wrapLanguageModel } from "ai";
 import * as Effect from "effect/Effect";
 import { resolveChatGenerationParams } from "@/lib/ai/utils/chat-generation-defaults";
@@ -11,9 +10,9 @@ import { getZedToken } from "@/lib/authz/zed-token";
 import { BadRequestError } from "@/lib/effect/utils/errors";
 import { providerApiKey } from "@/lib/encryption";
 import type { ORPCContext } from "@/lib/orpc/implementation/os";
-import { listBlocks } from "@/lib/orpc/router/block";
-import { findModel } from "@/lib/orpc/router/model";
-import { findProvider } from "@/lib/orpc/router/provider";
+import { blockProcedures } from "@/lib/orpc/router/block";
+import { modelProcedures } from "@/lib/orpc/router/model";
+import { providerProcedures } from "@/lib/orpc/router/provider";
 
 interface ChatAiSettingsInput {
 	providerId: ProviderId;
@@ -38,26 +37,27 @@ export const getChatAiSettings = ({
 		let databaseBlocks: DatabaseBlock[] = [];
 
 		if (botId) {
-			const blocks = yield* Effect.tryPromise({
-				try: () =>
-					call(
-						listBlocks,
-						{
-							filters: {
-								botId,
-							},
-							zedToken,
+			const blocks = yield* blockProcedures
+				.list(
+					{
+						filters: {
+							botId,
 						},
-						{
-							context,
-						},
+						zedToken,
+					},
+					{
+						context,
+					},
+				)
+				.pipe(
+					Effect.mapError(
+						(cause) =>
+							new AiError({
+								operation: "chatAgent.getChatAiSettings.fetch.blocks",
+								cause,
+							}),
 					),
-				catch: (cause) =>
-					new AiError({
-						operation: "chatAgent.getChatAiSettings.fetch.blocks",
-						cause,
-					}),
-			});
+				);
 
 			const foundTemplateBlock = blocks.data.find(
 				(block) => block.type === "template",
@@ -114,40 +114,42 @@ export const getChatAiSettings = ({
 
 		const [{ data: provider }, { data: modelSettings }] = yield* Effect.all(
 			[
-				Effect.tryPromise({
-					try: () =>
-						call(
-							findProvider,
-							{
-								id: providerId,
-							},
-							{
-								context,
-							},
+				providerProcedures
+					.find(
+						{
+							id: providerId,
+						},
+						{
+							context,
+						},
+					)
+					.pipe(
+						Effect.mapError(
+							(cause) =>
+								new AiError({
+									operation: "chatAgent.getChatAiSettings.fetch.provider",
+									cause,
+								}),
 						),
-					catch: (cause) =>
-						new AiError({
-							operation: "chatAgent.getChatAiSettings.fetch.provider",
-							cause,
-						}),
-				}),
-				Effect.tryPromise({
-					try: () =>
-						call(
-							findModel,
-							{
-								id: modelId,
-							},
-							{
-								context,
-							},
+					),
+				modelProcedures
+					.find(
+						{
+							id: modelId,
+						},
+						{
+							context,
+						},
+					)
+					.pipe(
+						Effect.mapError(
+							(cause) =>
+								new AiError({
+									operation: "chatAgent.getChatAiSettings.fetch.model",
+									cause,
+								}),
 						),
-					catch: (cause) =>
-						new AiError({
-							operation: "chatAgent.getChatAiSettings.fetch.model",
-							cause,
-						}),
-				}),
+					),
 			],
 			{
 				concurrency: "unbounded",

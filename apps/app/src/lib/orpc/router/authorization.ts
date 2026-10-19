@@ -36,7 +36,7 @@ const checkCapability = (params: {
 		zedToken: params.zedToken,
 	}).pipe(Effect.map((result) => hasPermission(result)));
 
-export const checkAuthorization = authed.authorization.check.effect(function* ({
+const checkAuthorization = authed.authorization.check.effect(function* ({
 	input,
 	context,
 }) {
@@ -55,7 +55,7 @@ export const checkAuthorization = authed.authorization.check.effect(function* ({
 	};
 });
 
-export const checkManyAuthorization = authed.authorization.checkMany.effect(
+const checkManyAuthorization = authed.authorization.checkMany.effect(
 	function* ({ input, context }) {
 		const entities: Record<
 			string,
@@ -103,7 +103,7 @@ export const checkManyAuthorization = authed.authorization.checkMany.effect(
 	},
 );
 
-export const organizationCapabilities =
+const organizationCapabilities =
 	authed.authorization.organizationCapabilities.effect(function* ({
 		input,
 		context,

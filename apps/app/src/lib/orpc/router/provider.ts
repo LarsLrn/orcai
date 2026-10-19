@@ -5,6 +5,7 @@ import * as Effect from "effect/Effect";
 import * as AppErrors from "@/lib/effect/utils/errors";
 import { encryptApiKey } from "@/lib/encryption";
 import { authed } from "@/lib/orpc/implementation/authed";
+import { createProcedures } from "@/lib/orpc/implementation/procedures";
 import { requireOrganizationPermission } from "@/lib/orpc/middlewares/permission";
 import { buildOrderBy, type SortExpression } from "./helpers/sorting";
 
@@ -22,7 +23,7 @@ const providerColumns = {
 	updatedAt: dbSchema.provider.updatedAt,
 };
 
-export const listProviders = authed.provider.list
+const listProviders = authed.provider.list
 	.use(requireOrganizationPermission("read"))
 	.effect(function* ({ input, context }) {
 		const db = yield* DB;
@@ -83,7 +84,7 @@ export const listProviders = authed.provider.list
 		};
 	});
 
-export const findProvider = authed.provider.find
+const findProvider = authed.provider.find
 	.use(requireOrganizationPermission("read"))
 	.effect(function* ({ input, context }) {
 		const db = yield* DB;
@@ -114,7 +115,7 @@ export const findProvider = authed.provider.find
 		);
 	});
 
-export const createProvider = authed.provider.create
+const createProvider = authed.provider.create
 	.use(requireOrganizationPermission("manage_providers"))
 	.effect(function* ({ input, context }) {
 		const db = yield* DB;
@@ -139,7 +140,7 @@ export const createProvider = authed.provider.create
 		};
 	});
 
-export const updateProvider = authed.provider.update
+const updateProvider = authed.provider.update
 	.use(requireOrganizationPermission("manage_providers"))
 	.effect(function* ({ input, context }) {
 		const db = yield* DB;
@@ -179,7 +180,7 @@ export const updateProvider = authed.provider.update
 		};
 	});
 
-export const deleteProviders = authed.provider.delete
+const deleteProviders = authed.provider.delete
 	.use(requireOrganizationPermission("manage_providers"))
 	.effect(function* ({ input, context }) {
 		const db = yield* DB;
@@ -229,3 +230,5 @@ export const providerRouter = {
 	update: updateProvider,
 	delete: deleteProviders,
 };
+
+export const providerProcedures = createProcedures("provider", providerRouter);

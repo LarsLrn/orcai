@@ -23,7 +23,7 @@ import {
 	organizationRoleRequiresAdminControl,
 } from "./helpers/organization-role-policy";
 
-export const listOrganizationMembers = authed.organizationMember.list
+const listOrganizationMembers = authed.organizationMember.list
 	.use(
 		requireEntityPermission("organization", "read", {
 			entityId: "organizationId",
@@ -61,7 +61,7 @@ export const listOrganizationMembers = authed.organizationMember.list
 		};
 	});
 
-export const findOrganizationMember = authed.organizationMember.find
+const findOrganizationMember = authed.organizationMember.find
 	.use(
 		requireEntityPermission("organization", "read", {
 			entityId: "organizationId",
@@ -105,7 +105,7 @@ export const findOrganizationMember = authed.organizationMember.find
 			);
 	});
 
-export const updateOrganizationMember = authed.organizationMember.update
+const updateOrganizationMember = authed.organizationMember.update
 	.use(
 		requireEntityPermission("organization", "manage_members", {
 			entityId: "organizationId",
@@ -229,7 +229,7 @@ export const updateOrganizationMember = authed.organizationMember.update
 		};
 	});
 
-export const deleteOrganizationMembers = authed.organizationMember.delete
+const deleteOrganizationMembers = authed.organizationMember.delete
 	.use(
 		checkManyPermissionMiddleware("organization").adaptInput(
 			(input): CheckManyPermissionInputFor<"organization"> => ({

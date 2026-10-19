@@ -10,9 +10,10 @@ import * as Effect from "effect/Effect";
 import { getZedToken } from "@/lib/authz/zed-token";
 import * as AppErrors from "@/lib/effect/utils/errors";
 import { authed } from "@/lib/orpc/implementation/authed";
+import { createProcedures } from "@/lib/orpc/implementation/procedures";
 import { requireEntityPermission } from "@/lib/orpc/middlewares/permission";
 
-export const listChatBlocks = authed.chatBlock.list
+const listChatBlocks = authed.chatBlock.list
 	.use(
 		requireEntityPermission("chat", "read", {
 			entityId: "chatId",
@@ -79,7 +80,7 @@ export const listChatBlocks = authed.chatBlock.list
 		};
 	});
 
-export const attachChatBlock = authed.chatBlock.attach
+const attachChatBlock = authed.chatBlock.attach
 	.use(
 		requireEntityPermission("chat", "edit", {
 			entityId: "chatId",
@@ -210,7 +211,7 @@ export const attachChatBlock = authed.chatBlock.attach
 		};
 	});
 
-export const detachChatBlock = authed.chatBlock.detach
+const detachChatBlock = authed.chatBlock.detach
 	.use(
 		requireEntityPermission("chat", "edit", {
 			entityId: "chatId",
@@ -266,3 +267,8 @@ export const chatBlockRouter = {
 	attach: attachChatBlock,
 	detach: detachChatBlock,
 };
+
+export const chatBlockProcedures = createProcedures(
+	"chatBlock",
+	chatBlockRouter,
+);

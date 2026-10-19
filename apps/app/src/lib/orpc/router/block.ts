@@ -8,6 +8,7 @@ import { initializeResourceAuthorization } from "@/lib/authz/resource-lifecycle"
 import { getZedToken } from "@/lib/authz/zed-token";
 import * as AppErrors from "@/lib/effect/utils/errors";
 import { authed } from "@/lib/orpc/implementation/authed";
+import { createProcedures } from "@/lib/orpc/implementation/procedures";
 import {
 	type CheckManyPermissionInputFor,
 	checkManyPermissionMiddleware,
@@ -23,10 +24,7 @@ import {
 	syncDatabaseBlockAssets,
 } from "@/lib/orpc/router/helpers/database-block";
 
-export const listBlocks = authed.block.list.effect(function* ({
-	input,
-	context,
-}) {
+const listBlocks = authed.block.list.effect(function* ({ input, context }) {
 	const db = yield* DB;
 
 	const allowedIds = yield* lookupEntitiesByPermission({
@@ -103,7 +101,7 @@ export const listBlocks = authed.block.list.effect(function* ({
 	};
 });
 
-export const findBlock = authed.block.find
+const findBlock = authed.block.find
 	.use(
 		requireEntityPermission("block", "read", {
 			entityId: "id",
@@ -159,7 +157,7 @@ export const findBlock = authed.block.find
 		};
 	});
 
-export const createBlock = authed.block.create
+const createBlock = authed.block.create
 	.use(requireOrganizationPermission("create_block"))
 	.effect(function* ({ input, context }) {
 		const db = yield* DB;
@@ -202,7 +200,7 @@ export const createBlock = authed.block.create
 		};
 	});
 
-export const updateBlock = authed.block.update
+const updateBlock = authed.block.update
 	.use(
 		requireEntityPermission("block", "edit", {
 			entityId: "id",
@@ -278,7 +276,7 @@ export const updateBlock = authed.block.update
 		};
 	});
 
-export const deleteBlocks = authed.block.delete
+const deleteBlocks = authed.block.delete
 	.use(
 		checkManyPermissionMiddleware("block").adaptInput(
 			(input): CheckManyPermissionInputFor<"block"> => ({
@@ -339,3 +337,5 @@ export const blockRouter = {
 	update: updateBlock,
 	delete: deleteBlocks,
 };
+
+export const blockProcedures = createProcedures("block", blockRouter);

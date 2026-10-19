@@ -87,7 +87,7 @@ const isConstraintViolation = (error: unknown) => {
 	);
 };
 
-export const listUsers = authed.user.list
+const listUsers = authed.user.list
 	.use(requireActiveOrganizationMiddleware)
 	.effect(function* ({ input, context }) {
 		const db = yield* DB;
@@ -179,7 +179,7 @@ export const listUsers = authed.user.list
 		};
 	});
 
-export const listAllUsers = authed.user.listAll
+const listAllUsers = authed.user.listAll
 	.use(requireInstanceAdminMiddleware)
 	.effect(function* ({ input }) {
 		const db = yield* DB;
@@ -269,7 +269,7 @@ export const listAllUsers = authed.user.listAll
 		};
 	});
 
-export const banUser = authed.user.ban
+const banUser = authed.user.ban
 	.use(requireInstanceAdminMiddleware)
 	.effect(function* ({ input, context }) {
 		if (input.userId === context.auth.user.id) {
@@ -306,7 +306,7 @@ export const banUser = authed.user.ban
 		};
 	});
 
-export const unbanUser = authed.user.unban
+const unbanUser = authed.user.unban
 	.use(requireInstanceAdminMiddleware)
 	.effect(function* ({ input, context }) {
 		const headers = yield* requireRequestHeaders(context.reqHeaders);
@@ -335,7 +335,7 @@ export const unbanUser = authed.user.unban
 		};
 	});
 
-export const findUser = authed.user.find
+const findUser = authed.user.find
 	.use(requireActiveOrganizationMiddleware)
 	.effect(function* ({ input, context }) {
 		const db = yield* DB;
@@ -397,7 +397,7 @@ export const findUser = authed.user.find
 			);
 	});
 
-export const listUserAccess = authed.user.listAccess
+const listUserAccess = authed.user.listAccess
 	.use(requireActiveOrganizationMiddleware)
 	.effect(function* ({ input, context }) {
 		const db = yield* DB;
@@ -867,7 +867,7 @@ export const listUserAccess = authed.user.listAccess
 		};
 	});
 
-export const deleteUsers = authed.user.delete
+const deleteUsers = authed.user.delete
 	.use(requireInstanceAdminMiddleware)
 	.effect(function* ({ input, context }) {
 		const db = yield* DB;
@@ -1024,7 +1024,7 @@ export const deleteUsers = authed.user.delete
 		};
 	});
 
-export const me = authed.user.me.effect(function* ({ context }) {
+const me = authed.user.me.effect(function* ({ context }) {
 	const db = yield* DB;
 
 	return yield* db.query.user
@@ -1053,7 +1053,7 @@ export const me = authed.user.me.effect(function* ({ context }) {
 		);
 });
 
-export const updatePassword = authed.user.updatePassword.effect(function* ({
+const updatePassword = authed.user.updatePassword.effect(function* ({
 	input,
 	context,
 }) {
@@ -1124,7 +1124,7 @@ export const updatePassword = authed.user.updatePassword.effect(function* ({
 	};
 });
 
-export const setTourState = authed.user.setTourState
+const setTourState = authed.user.setTourState
 	.use(requirePreferencesMiddleware)
 	.effect(function* ({ input, context }) {
 		const db = yield* DB;
@@ -1147,7 +1147,7 @@ export const setTourState = authed.user.setTourState
 		};
 	});
 
-export const setActiveOrganization = authed.user.setActiveOrganization.effect(
+const setActiveOrganization = authed.user.setActiveOrganization.effect(
 	function* ({ input, context }) {
 		const db = yield* DB;
 		const authz = yield* AuthzService;

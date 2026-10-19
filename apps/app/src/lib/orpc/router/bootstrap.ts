@@ -55,7 +55,7 @@ const getInitializedState = (db: { select: typeof DB.Service.select }) =>
 		return initialized;
 	});
 
-export const getBootstrapStatus = os.bootstrap.status.effect(function* () {
+const getBootstrapStatus = os.bootstrap.status.effect(function* () {
 	const db = yield* DB;
 	const initialized = yield* getInitializedState(db);
 
@@ -66,7 +66,7 @@ export const getBootstrapStatus = os.bootstrap.status.effect(function* () {
 	};
 });
 
-export const initializeBootstrap = os.bootstrap.initialize.effect(function* ({
+const initializeBootstrap = os.bootstrap.initialize.effect(function* ({
 	input,
 }) {
 	const db = yield* DB;

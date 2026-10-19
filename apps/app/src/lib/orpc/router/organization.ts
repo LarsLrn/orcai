@@ -41,7 +41,7 @@ import { literalSearch } from "./helpers/literal-search";
 import { parseScopedResourceId } from "./helpers/scoped-resource-id";
 import { buildOrderBy, type SortExpression } from "./helpers/sorting";
 
-export const listOrganizations = authed.organization.list.effect(function* ({
+const listOrganizations = authed.organization.list.effect(function* ({
 	input,
 	context,
 }) {
@@ -156,7 +156,7 @@ export const listOrganizations = authed.organization.list.effect(function* ({
 	);
 });
 
-export const listAllOrganizations = authed.organization.listAll
+const listAllOrganizations = authed.organization.listAll
 	.use(requireInstanceAdminMiddleware)
 	.effect(function* ({ input }) {
 		const db = yield* DB;
@@ -221,7 +221,7 @@ export const listAllOrganizations = authed.organization.listAll
 		);
 	});
 
-export const findOrganization = authed.organization.find
+const findOrganization = authed.organization.find
 	.use(
 		requireEntityPermission("organization", "read", {
 			entityId: "id",
@@ -256,7 +256,7 @@ export const findOrganization = authed.organization.find
 			);
 	});
 
-export const createOrganization = authed.organization.create
+const createOrganization = authed.organization.create
 	.use(requireInstanceAdminMiddleware)
 	.effect(function* ({ input, context }) {
 		const db = yield* DB;
@@ -374,7 +374,7 @@ export const createOrganization = authed.organization.create
 		};
 	});
 
-export const updateOrganization = authed.organization.update
+const updateOrganization = authed.organization.update
 	.use(
 		requireEntityPermission("organization", "manage_organization", {
 			entityId: "id",
@@ -436,7 +436,7 @@ const countExclusiveResources = (organizationId: OrganizationId) =>
 		return Number(result?.count ?? 0);
 	});
 
-export const getOrganizationDeletionImpact = authed.organization.deletionImpact
+const getOrganizationDeletionImpact = authed.organization.deletionImpact
 	.use(requireInstanceAdminMiddleware)
 	.effect(function* ({ input }) {
 		const db = yield* DB;
@@ -514,7 +514,7 @@ export const getOrganizationDeletionImpact = authed.organization.deletionImpact
 	});
 
 /** Reads every tuple the organisation owns before the cascading delete, since SpiceDB cannot list them afterwards. */
-export const deleteOrganizations = authed.organization.delete
+const deleteOrganizations = authed.organization.delete
 	.use(requireInstanceAdminMiddleware)
 	.effect(function* ({ input }) {
 		const db = yield* DB;

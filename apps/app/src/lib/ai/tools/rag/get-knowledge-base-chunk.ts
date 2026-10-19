@@ -1,12 +1,11 @@
 import { AiError } from "@orcai/ai";
 import { blockIdSchema, type DatabaseBlock } from "@orcai/schema";
-import { call } from "@orpc/server";
 import { tool } from "ai";
 import * as Effect from "effect/Effect";
 import { z } from "zod/v4";
 import { runPromise } from "@/lib/effect/runtime";
 import type { ORPCContext } from "@/lib/orpc/implementation/os";
-import { searchRepositoryAssetPoint } from "@/lib/orpc/router/asset-point";
+import { assetPointProcedures } from "@/lib/orpc/router/asset-point";
 import { RETRIEVAL_LIMITS } from "@/settings/constants";
 import type { ChunkResult, PointWithBlock } from "./types";
 import {
@@ -107,35 +106,40 @@ export const getKnowledgeBaseChunksTool = ({
 						};
 					}
 
-					const blockResponses = yield* Effect.tryPromise({
-						try: () =>
-							Promise.all(
-								targetBlocks.map(async (block) => {
-									const response = await call(
-										searchRepositoryAssetPoint,
-										{
-											repositoryId: block.id,
-											filters: {
-												pointIds: uniqueIds,
-												limit: uniqueIds.length,
-											},
+					const blockResponses = yield* Effect.forEach(
+						targetBlocks,
+						(block) =>
+							assetPointProcedures
+								.searchRepository(
+									{
+										repositoryId: block.id,
+										filters: {
+											pointIds: uniqueIds,
+											limit: uniqueIds.length,
 										},
-										{
-											context,
-										},
-									);
-									return {
+									},
+									{
+										context,
+									},
+								)
+								.pipe(
+									Effect.map((response) => ({
 										block,
 										response,
-									};
+									})),
+								),
+						{
+							concurrency: "unbounded",
+						},
+					).pipe(
+						Effect.mapError(
+							(cause) =>
+								new AiError({
+									operation: "getKnowledgeBaseChunksTool.fetch",
+									cause,
 								}),
-							),
-						catch: (cause) =>
-							new AiError({
-								operation: "getKnowledgeBaseChunksTool.fetch",
-								cause,
-							}),
-					});
+						),
+					);
 
 					const candidates = mergeAndSortCandidates(
 						flattenBlockResponses(blockResponses),
@@ -148,80 +152,79 @@ export const getKnowledgeBaseChunksTool = ({
 
 					const adjacentByCandidateKey = new Map<string, PointWithBlock[]>();
 					if (includeAdjacent > 0 && orderedCandidates.length > 0) {
-						const adjacentResponses = yield* Effect.tryPromise({
-							try: () =>
-								Promise.all(
-									orderedCandidates.map(async (candidate) => {
-										const neighboringChunkIndexes = [];
-										for (
-											let offset = 1;
-											offset <= includeAdjacent;
-											offset += 1
-										) {
-											const previous = candidate.payload.chunk_index - offset;
-											const next = candidate.payload.chunk_index + offset;
-											if (previous >= 0) neighboringChunkIndexes.push(previous);
-											neighboringChunkIndexes.push(next);
-										}
+						const adjacentResponses = yield* Effect.forEach(
+							orderedCandidates,
+							(candidate) =>
+								Effect.gen(function* () {
+									const neighboringChunkIndexes = [];
+									for (let offset = 1; offset <= includeAdjacent; offset += 1) {
+										const previous = candidate.payload.chunk_index - offset;
+										const next = candidate.payload.chunk_index + offset;
+										if (previous >= 0) neighboringChunkIndexes.push(previous);
+										neighboringChunkIndexes.push(next);
+									}
 
-										if (neighboringChunkIndexes.length === 0) {
-											return {
-												candidate,
-												points: [] as PointWithBlock[],
-											};
-										}
-
-										const response = await call(
-											searchRepositoryAssetPoint,
-											{
-												repositoryId: candidate.sourceBlock.id,
-												filters: {
-													assetIds: [
-														candidate.payload.asset_id,
-													],
-													chunkIndices: neighboringChunkIndexes,
-													limit: neighboringChunkIndexes.length,
-												},
-											},
-											{
-												context,
-											},
-										);
-
-										const points = withSourceBlock({
-											sourceBlockId: candidate.sourceBlock.id,
-											sourceBlockName: candidate.sourceBlock.name,
-											points: response.data,
-										})
-											.filter(
-												(point) =>
-													point.id !== candidate.id &&
-													point.payload.source === candidate.payload.source,
-											)
-											.sort((a, b) => {
-												const distanceA = Math.abs(
-													a.payload.chunk_index - candidate.payload.chunk_index,
-												);
-												const distanceB = Math.abs(
-													b.payload.chunk_index - candidate.payload.chunk_index,
-												);
-												if (distanceA !== distanceB)
-													return distanceA - distanceB;
-												return a.payload.chunk_index - b.payload.chunk_index;
-											});
-
+									if (neighboringChunkIndexes.length === 0) {
 										return {
 											candidate,
-											points,
+											points: [] as PointWithBlock[],
 										};
-									}),
-								),
-							catch: (cause) =>
-								new AiError({
-									operation: "getKnowledgeBaseChunksTool.adjacent",
-									cause,
+									}
+
+									const response = yield* assetPointProcedures.searchRepository(
+										{
+											repositoryId: candidate.sourceBlock.id,
+											filters: {
+												assetIds: [
+													candidate.payload.asset_id,
+												],
+												chunkIndices: neighboringChunkIndexes,
+												limit: neighboringChunkIndexes.length,
+											},
+										},
+										{
+											context,
+										},
+									);
+
+									const points = withSourceBlock({
+										sourceBlockId: candidate.sourceBlock.id,
+										sourceBlockName: candidate.sourceBlock.name,
+										points: response.data,
+									})
+										.filter(
+											(point) =>
+												point.id !== candidate.id &&
+												point.payload.source === candidate.payload.source,
+										)
+										.sort((a, b) => {
+											const distanceA = Math.abs(
+												a.payload.chunk_index - candidate.payload.chunk_index,
+											);
+											const distanceB = Math.abs(
+												b.payload.chunk_index - candidate.payload.chunk_index,
+											);
+											if (distanceA !== distanceB) return distanceA - distanceB;
+											return a.payload.chunk_index - b.payload.chunk_index;
+										});
+
+									return {
+										candidate,
+										points,
+									};
 								}),
-						});
+							{
+								concurrency: "unbounded",
+							},
+						).pipe(
+							Effect.mapError(
+								(cause) =>
+									new AiError({
+										operation: "getKnowledgeBaseChunksTool.adjacent",
+										cause,
+									}),
+							),
+						);
 
 						for (const adjacentResult of adjacentResponses) {
 							adjacentByCandidateKey.set(

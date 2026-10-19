@@ -1,6 +1,6 @@
 import { DB, dbSchema } from "@orcai/db";
 import type { ModelCapability, ModelSortKey } from "@orcai/schema";
-import { call, ORPCError } from "@orpc/server";
+import { ORPCError } from "@orpc/server";
 import {
 	and,
 	arrayContains,
@@ -18,6 +18,7 @@ import OpenAI from "openai";
 import * as AppErrors from "@/lib/effect/utils/errors";
 import { providerApiKey } from "@/lib/encryption";
 import { authed } from "@/lib/orpc/implementation/authed";
+import { createProcedures } from "@/lib/orpc/implementation/procedures";
 import { requireOrganizationPermission } from "@/lib/orpc/middlewares/permission";
 import { literalSearch } from "./helpers/literal-search";
 import { buildOrderBy, type SortExpression } from "./helpers/sorting";
@@ -27,9 +28,9 @@ import {
 	toModelDto,
 	toModelListRowDto,
 } from "./mappers/model";
-import { findProvider } from "./provider";
+import { providerProcedures } from "./provider";
 
-export const listModels = authed.model.list
+const listModels = authed.model.list
 	.use(requireOrganizationPermission("read"))
 	.effect(function* ({ input, context }) {
 		const db = yield* DB;
@@ -123,7 +124,7 @@ export const listModels = authed.model.list
 		};
 	});
 
-export const findModel = authed.model.find
+const findModel = authed.model.find
 	.use(requireOrganizationPermission("read"))
 	.effect(function* ({ input, context }) {
 		const db = yield* DB;
@@ -162,7 +163,7 @@ export const findModel = authed.model.find
 		};
 	});
 
-export const createModel = authed.model.create
+const createModel = authed.model.create
 	.use(requireOrganizationPermission("manage_models"))
 	.effect(function* ({ input, context }) {
 		const db = yield* DB;
@@ -200,7 +201,7 @@ export const createModel = authed.model.create
 		};
 	});
 
-export const updateModel = authed.model.update
+const updateModel = authed.model.update
 	.use(requireOrganizationPermission("manage_models"))
 	.effect(function* ({ input, context }) {
 		const db = yield* DB;
@@ -252,7 +253,7 @@ export const updateModel = authed.model.update
 		};
 	});
 
-export const deleteModel = authed.model.delete
+const deleteModel = authed.model.delete
 	.use(requireOrganizationPermission("manage_models"))
 	.effect(function* ({ input, context }) {
 		const db = yield* DB;
@@ -312,46 +313,45 @@ export const deleteModel = authed.model.delete
 		};
 	});
 
-export const discoverModels = authed.model.discover
+const discoverModels = authed.model.discover
 	.use(requireOrganizationPermission("manage_models"))
 	.effect(function* ({ input, context }) {
 		const db = yield* DB;
 
-		const { data: provider } = yield* Effect.tryPromise({
-			try: () =>
-				call(
-					findProvider,
-					{
-						id: input.providerId,
-					},
-					{
-						context,
-					},
-				),
-			catch: (cause) => {
-				if (cause instanceof ORPCError && cause.code === "FORBIDDEN") {
-					return new AppErrors.ForbiddenError({
-						reason: "PERMISSION_DENIED",
-						message: "Failed to find provider",
-						cause,
-					});
-				}
+		const { data: provider } = yield* providerProcedures
+			.find(
+				{
+					id: input.providerId,
+				},
+				{
+					context,
+				},
+			)
+			.pipe(
+				Effect.mapError((cause) => {
+					if (cause instanceof ORPCError && cause.code === "FORBIDDEN") {
+						return new AppErrors.ForbiddenError({
+							reason: "PERMISSION_DENIED",
+							message: "Failed to find provider",
+							cause,
+						});
+					}
 
-				if (cause instanceof ORPCError && cause.code === "NOT_FOUND") {
-					return new AppErrors.NotFoundError({
+					if (cause instanceof ORPCError && cause.code === "NOT_FOUND") {
+						return new AppErrors.NotFoundError({
+							reason: "PROVIDER_NOT_FOUND",
+							message: "Failed to find provider",
+							cause,
+						});
+					}
+
+					return new AppErrors.BadRequestError({
 						reason: "PROVIDER_NOT_FOUND",
 						message: "Failed to find provider",
 						cause,
 					});
-				}
-
-				return new AppErrors.BadRequestError({
-					reason: "PROVIDER_NOT_FOUND",
-					message: "Failed to find provider",
-					cause,
-				});
-			},
-		});
+				}),
+			);
 
 		const openAiClient = new OpenAI({
 			apiKey: yield* providerApiKey(provider.id),
@@ -408,3 +408,5 @@ export const modelRouter = {
 	delete: deleteModel,
 	discover: discoverModels,
 };
+
+export const modelProcedures = createProcedures("model", modelRouter);
