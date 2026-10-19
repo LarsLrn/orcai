@@ -86,16 +86,13 @@ export const MessageBlock = ({
 	const { entries, answerParts } = classifyTurn(message.parts);
 	const running = isLatest && status === "streaming";
 
-	if (
-		status === "streaming" &&
-		message.role === "assistant" &&
-		message.parts.length === 0
-	) {
-		return (
+	// A reply exists from the first chunk on, before the model has written anything.
+	if (message.role === "assistant" && message.parts.length === 0) {
+		return running ? (
 			<div className="w-full text-foreground">
 				<Shimmer>{m.chat_waiting_for_model()}</Shimmer>
 			</div>
-		);
+		) : null;
 	}
 
 	return (

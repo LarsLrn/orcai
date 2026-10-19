@@ -1,7 +1,7 @@
 import { useChat } from "@ai-sdk/react";
-import type { ChatId } from "@orcai/core";
+import type { ChatId, ChatMessageId } from "@orcai/core";
 import type { ChatBranchLink } from "@orcai/schema";
-import { eventIteratorToUnproxiedDataStream } from "@orpc/client";
+import { eventIteratorToUnproxiedDataStream, ORPCError } from "@orpc/client";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { useEffect, useMemo, useRef, useState } from "react";
 import { toast } from "sonner";
@@ -23,6 +23,24 @@ import { ChatPlaceholder } from "./chat-placeholder";
 import { EarlierMessages } from "./earlier-messages";
 import { MessageBlock } from "./message/message-block";
 import { useBranchChat } from "./message/use-branch-chat";
+
+/** Resolves once a reply is filled in or dropped, so the next turn's context includes it. */
+const waitForStoredReply = async (input: {
+	chatId: ChatId;
+	id: ChatMessageId;
+	zedToken?: string;
+}) => {
+	for (let attempt = 0; attempt < 40; attempt++) {
+		try {
+			const reply = await client.chatMessage.find(input);
+			if (reply.data.parts.length > 0) return;
+		} catch (error) {
+			// Dropped because the turn produced nothing; other failures are retried.
+			if (error instanceof ORPCError && error.code === "NOT_FOUND") return;
+		}
+		await new Promise((resolve) => setTimeout(resolve, 250));
+	}
+};
 
 /** Quota is a governance fact, so it sits in the accent, above the composer. */
 const QuotaLine = ({ chatId }: { chatId: ChatId }) => {
@@ -77,6 +95,7 @@ const Chat = ({
 	const queryClient = useQueryClient();
 	const hasSentPendingMessage = useRef(false);
 	const [errorDetail, setErrorDetail] = useState<string | undefined>(undefined);
+	const [isStoringReply, setIsStoringReply] = useState(false);
 	// Only messages that arrive during this visit animate in.
 	const loadedMessageIds = useRef(
 		new Set(initialMessages.map((message) => message.id)),
@@ -122,28 +141,43 @@ const Chat = ({
 						throw new Error("Only a user message can be sent");
 					}
 
-					return eventIteratorToUnproxiedDataStream(
-						await client.ai.chat(
-							{
-								chatId: options.chatId as ChatId,
-								message: {
-									...message,
-									role: "user",
-								},
-								zedToken,
+					// Stop cuts the stream only once the server has answered, so the reply is already reserved.
+					const request = new AbortController();
+					const events = await client.ai.chat(
+						{
+							chatId: options.chatId as ChatId,
+							message: {
+								...message,
+								role: "user",
 							},
-							{
-								signal: options.abortSignal,
-							},
-						),
+							zedToken,
+						},
+						{
+							signal: request.signal,
+						},
 					);
+					if (options.abortSignal?.aborted) {
+						request.abort();
+					}
+					options.abortSignal?.addEventListener("abort", () => request.abort());
+
+					return eventIteratorToUnproxiedDataStream(events);
 				},
 				reconnectToStream() {
 					throw new Error("Unsupported");
 				},
 			},
 			messages: initialMessages,
-			onFinish: async () => {
+			onFinish: async ({ message, isAbort, isDisconnect, isError }) => {
+				// A finished stream closes after the reply is stored; any other ending may still be saving.
+				if (isAbort || isDisconnect || isError) {
+					setIsStoringReply(true);
+					await waitForStoredReply({
+						chatId: id,
+						id: message.id as ChatMessageId,
+						zedToken,
+					}).finally(() => setIsStoringReply(false));
+				}
 				// Refreshes the chat list and the auto-title once a response lands
 				await queryClient.invalidateQueries({
 					queryKey: orpc.chat.key(),
@@ -270,6 +304,7 @@ const Chat = ({
 					chatId={id}
 					zedToken={zedToken}
 					status={status}
+					isStoringReply={isStoringReply}
 					sendMessage={sendMessage}
 					stop={stop}
 					draft={draft}

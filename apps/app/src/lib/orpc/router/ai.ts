@@ -1,5 +1,6 @@
 import { context as otelContext } from "@opentelemetry/api";
 import { AiError } from "@orcai/ai";
+import type { ChatMessageId } from "@orcai/core";
 import { DB, dbSchema } from "@orcai/db";
 import {
 	finalizeAppRequestQuota,
@@ -8,7 +9,7 @@ import {
 } from "@orcai/quota";
 import type { DatabaseBlock, TemplateBlock } from "@orcai/schema";
 import { streamToEventIterator } from "@orpc/client";
-import { call, ORPCError } from "@orpc/server";
+import { call } from "@orpc/server";
 import {
 	createAgentUIStream,
 	type FileUIPart,
@@ -34,7 +35,11 @@ import { authed } from "@/lib/orpc/implementation/authed";
 import { requireActiveOrganizationMiddleware } from "@/lib/orpc/middlewares/auth";
 import { requireEntityPermission } from "@/lib/orpc/middlewares/permission";
 import { listChatBlocks } from "./chat-block";
-import { createChatMessage } from "./chat-message";
+import {
+	appendChatMessages,
+	isEmptyReply,
+	settleChatReply,
+} from "./chat-message";
 
 const isRecord = (value: unknown): value is Record<string, unknown> =>
 	typeof value === "object" && value !== null;
@@ -57,11 +62,6 @@ const getTokenUsageFromMetadata = (metadata: unknown) => {
 		totalTokens: getOptionalNumber(metadata.totalUsage.totalTokens),
 	};
 };
-
-const isMessageIdTaken = (cause: unknown) =>
-	cause instanceof ORPCError &&
-	isRecord(cause.data) &&
-	cause.data.reason === "CHAT_MESSAGE_ID_TAKEN";
 
 const messageIdTakenError = (cause?: unknown) =>
 	new AppErrors.BadRequestError({
@@ -244,11 +244,13 @@ export const aiChat = authed.ai.chat
 				return yield* Effect.fail(messageIdTakenError());
 			}
 
-			const history = yield* db
+			const history = (yield* db
 				.select()
 				.from(dbSchema.chatMessage)
 				.where(eq(dbSchema.chatMessage.chatId, input.chatId))
-				.orderBy(asc(dbSchema.chatMessage.position));
+				.orderBy(asc(dbSchema.chatMessage.position))).filter(
+				(row) => !isEmptyReply(row),
+			);
 
 			const messages = [
 				...history.map(
@@ -270,7 +272,7 @@ export const aiChat = authed.ai.chat
 				} as ChatAgentUIMessage,
 			];
 
-			const assistantMessageId = uuidv4();
+			const assistantMessageId = uuidv4() as ChatMessageId;
 
 			const quotaReservation = yield* reserveForAppRequest({
 				organizationId: context.auth.session.activeOrganizationId,
@@ -332,31 +334,33 @@ export const aiChat = authed.ai.chat
 				},
 			);
 
-			const { data: persistedUserMessage } = yield* Effect.tryPromise({
-				try: async () =>
-					call(
-						createChatMessage,
-						{
-							id: userMessage.id,
-							chatId: input.chatId,
-							role: "user",
-							parts: userMessage.parts,
-							attachments: userMessageAttachments,
-							metadata: (userMessage.metadata ?? {}) as Record<string, unknown>,
-						},
-						{
-							context: requestContext,
-						},
-					),
-				catch: (cause) =>
-					isMessageIdTaken(cause)
-						? messageIdTakenError(cause)
+			// The reply is reserved with the question, so a later turn always lands after it.
+			const [persistedUserMessage] = yield* appendChatMessages(input.chatId, [
+				{
+					id: userMessage.id,
+					role: "user",
+					parts: userMessage.parts,
+					attachments: userMessageAttachments,
+					metadata: (userMessage.metadata ?? {}) as Record<string, unknown>,
+				},
+				{
+					id: assistantMessageId,
+					role: "assistant",
+					parts: [],
+					attachments: [],
+					metadata: {},
+				},
+			]).pipe(
+				Effect.mapError((error) =>
+					error instanceof AppErrors.BadRequestError &&
+					error.reason === "CHAT_MESSAGE_ID_TAKEN"
+						? error
 						: new AppErrors.BadRequestError({
 								reason: "CHAT_MESSAGE_CREATE_FAILED",
 								message: "Failed to create user message",
-								cause,
+								cause: error,
 							}),
-			}).pipe(
+				),
 				Effect.catch((error) =>
 					releaseAppRequestQuota({
 						reservation,
@@ -422,22 +426,13 @@ export const aiChat = authed.ai.chat
 									responseMessage.metadata,
 								);
 
-								await call(
-									createChatMessage,
-									{
-										id: responseMessage.id,
+								await runPromise(
+									settleChatReply({
+										id: assistantMessageId,
 										chatId: input.chatId,
-										role: responseMessage.role,
 										parts: responseMessage.parts,
-										attachments: [],
-										metadata: (responseMessage.metadata ?? {}) as Record<
-											string,
-											unknown
-										>,
-									},
-									{
-										context: requestContext,
-									},
+										metadata: responseMessage.metadata ?? {},
+									}),
 								);
 
 								await runPromise(
@@ -509,13 +504,18 @@ export const aiChat = authed.ai.chat
 					}),
 			}).pipe(
 				Effect.catch((error) =>
-					releaseAppRequestQuota({
-						reservation,
-						reason: "app_failure",
-					}).pipe(
-						Effect.catch(() => Effect.void),
-						Effect.andThen(Effect.fail(error)),
-					),
+					Effect.all([
+						releaseAppRequestQuota({
+							reservation,
+							reason: "app_failure",
+						}).pipe(Effect.ignore),
+						settleChatReply({
+							id: assistantMessageId,
+							chatId: input.chatId,
+							parts: [],
+							metadata: {},
+						}).pipe(Effect.ignore),
+					]).pipe(Effect.andThen(Effect.fail(error))),
 				),
 			);
 

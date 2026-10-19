@@ -41,6 +41,7 @@ import { useUpdateChatMutation } from "@/hooks/mutations/use-chat-mutation";
 import type { ChatAgentUIMessage } from "@/lib/ai/types/chat-agent-message";
 import { reasonMessageOf } from "@/lib/errors/describe-error";
 import { orpc } from "@/lib/orpc/orpc";
+import { cn } from "@/lib/utils";
 import { m } from "@/paraglide/messages";
 import {
 	CHAT_ATTACHMENT_ACCEPT,
@@ -53,6 +54,7 @@ const ChatInput = ({
 	sendMessage,
 	stop,
 	status,
+	isStoringReply,
 	draft,
 }: {
 	chatId: ChatId;
@@ -60,6 +62,8 @@ const ChatInput = ({
 	sendMessage: UseChatHelpers<ChatAgentUIMessage>["sendMessage"];
 	stop: UseChatHelpers<ChatAgentUIMessage>["stop"];
 	status: UseChatHelpers<ChatAgentUIMessage>["status"];
+	/** A stopped or failed reply is still being saved, so the next message waits. */
+	isStoringReply: boolean;
 	/** Prefills the composer, e.g. with the message a branch started from. */
 	draft?: ChatDraft;
 }) => {
@@ -116,7 +120,8 @@ const ChatInput = ({
 	});
 
 	const isGenerating = status === "submitted" || status === "streaming";
-	const submitStatus: ChatStatus = isUploading ? "submitted" : status;
+	const isBusy = isUploading || isStoringReply;
+	const submitStatus: ChatStatus = isBusy ? "submitted" : status;
 
 	const handleSubmit = async (event: React.FormEvent<HTMLFormElement>) => {
 		event.preventDefault();
@@ -130,7 +135,7 @@ const ChatInput = ({
 			return;
 		}
 
-		if (isGenerating || isUploading) {
+		if (isGenerating || isBusy) {
 			return;
 		}
 
@@ -209,89 +214,97 @@ const ChatInput = ({
 			/>
 
 			<form onSubmit={handleSubmit}>
-				<InputGroup className="overflow-hidden border-border bg-card">
-					<ChatComposerAttachments
-						localFiles={localFiles}
-						attachments={selectedAttachments}
-						onRemoveLocalFile={removeLocalFile}
-						onRemoveAsset={removeSelectedAsset}
-					/>
-
-					<InputGroupTextarea
-						name="message"
-						aria-label={m.chat_composer_aria_label()}
-						placeholder={m.chat_composer_placeholder()}
-						className="field-sizing-content max-h-48 min-h-16"
-						value={messageText}
-						onChange={(event) => setMessageText(event.target.value)}
-						onKeyDown={handleTextareaKeyDown}
-					/>
-
-					<InputGroupAddon
-						align="block-end"
-						className="min-w-0 justify-between gap-1"
-					>
-						<PromptInputTools className="min-w-0 overflow-hidden">
-							<ChatAttachmentActionMenu
-								disabled={!canAttachMore}
-								onUploadFile={openUploadDialog}
-								onSelectFromAssets={() => setAssetPickerOpen(true)}
-							/>
-							<ModelSelectorButton
-								selectedModelId={chat?.data.config?.modelId}
-								selectedProviderId={chat?.data.config?.providerId}
-								onSelect={handleModelSelect}
-								className="min-w-0 max-w-32 sm:max-w-60"
-							/>
-							<DropdownMenu>
-								<DropdownMenuTrigger
-									render={
-										<Button type="button" variant="ghost" size="icon-sm" />
-									}
-								>
-									<EllipsisIcon />
-									<span className="sr-only">
-										{m.chat_composer_more_actions_aria_label()}
-									</span>
-								</DropdownMenuTrigger>
-								<DropdownMenuContent align="start" className="w-56">
-									<AppTourButton
-										tour="chatTour"
-										type="button"
-										variant="ghost"
-										autoTrigger={true}
-										render={<DropdownMenuItem />}
-										className="w-full justify-start"
-									>
-										<CompassIcon className="size-4" />{" "}
-										{m.chat_composer_start_tour_action()}
-									</AppTourButton>
-									<DropdownMenuItem onClick={() => setSettingsOpen(true)}>
-										<SettingsIcon /> {m.chat_composer_settings_action()}
-									</DropdownMenuItem>
-									<DropdownMenuItem onClick={handleDownload}>
-										<DownloadIcon /> {m.chat_composer_download_action()}
-									</DropdownMenuItem>
-								</DropdownMenuContent>
-							</DropdownMenu>
-						</PromptInputTools>
-
-						<PromptInputSubmit
-							status={submitStatus}
-							onStop={stop}
-							disabled={
-								isUploading ||
-								(!isGenerating &&
-									(!isModelConfigured ||
-										!(
-											messageText.trim().length > 0 ||
-											localFiles.length > 0 ||
-											selectedAttachments.length > 0
-										)))
-							}
+				{/* The group clips its overflow, so the comet sits on a wrapper hugging its corners. */}
+				<div
+					className={cn(
+						"[--loading-ring-radius:calc(var(--radius-3xl)+6px)]",
+						(isGenerating || isStoringReply) && "loading-ring",
+					)}
+				>
+					<InputGroup className="overflow-hidden border-border bg-card">
+						<ChatComposerAttachments
+							localFiles={localFiles}
+							attachments={selectedAttachments}
+							onRemoveLocalFile={removeLocalFile}
+							onRemoveAsset={removeSelectedAsset}
 						/>
-					</InputGroupAddon>
-				</InputGroup>
+
+						<InputGroupTextarea
+							name="message"
+							aria-label={m.chat_composer_aria_label()}
+							placeholder={m.chat_composer_placeholder()}
+							className="field-sizing-content max-h-48 min-h-16"
+							value={messageText}
+							onChange={(event) => setMessageText(event.target.value)}
+							onKeyDown={handleTextareaKeyDown}
+						/>
+
+						<InputGroupAddon
+							align="block-end"
+							className="min-w-0 justify-between gap-1"
+						>
+							<PromptInputTools className="min-w-0 overflow-hidden">
+								<ChatAttachmentActionMenu
+									disabled={!canAttachMore}
+									onUploadFile={openUploadDialog}
+									onSelectFromAssets={() => setAssetPickerOpen(true)}
+								/>
+								<ModelSelectorButton
+									selectedModelId={chat?.data.config?.modelId}
+									selectedProviderId={chat?.data.config?.providerId}
+									onSelect={handleModelSelect}
+									className="min-w-0 max-w-32 sm:max-w-60"
+								/>
+								<DropdownMenu>
+									<DropdownMenuTrigger
+										render={
+											<Button type="button" variant="ghost" size="icon-sm" />
+										}
+									>
+										<EllipsisIcon />
+										<span className="sr-only">
+											{m.chat_composer_more_actions_aria_label()}
+										</span>
+									</DropdownMenuTrigger>
+									<DropdownMenuContent align="start" className="w-56">
+										<AppTourButton
+											tour="chatTour"
+											type="button"
+											variant="ghost"
+											autoTrigger={true}
+											render={<DropdownMenuItem />}
+											className="w-full justify-start"
+										>
+											<CompassIcon className="size-4" />{" "}
+											{m.chat_composer_start_tour_action()}
+										</AppTourButton>
+										<DropdownMenuItem onClick={() => setSettingsOpen(true)}>
+											<SettingsIcon /> {m.chat_composer_settings_action()}
+										</DropdownMenuItem>
+										<DropdownMenuItem onClick={handleDownload}>
+											<DownloadIcon /> {m.chat_composer_download_action()}
+										</DropdownMenuItem>
+									</DropdownMenuContent>
+								</DropdownMenu>
+							</PromptInputTools>
+
+							<PromptInputSubmit
+								status={submitStatus}
+								onStop={stop}
+								disabled={
+									isBusy ||
+									(!isGenerating &&
+										(!isModelConfigured ||
+											!(
+												messageText.trim().length > 0 ||
+												localFiles.length > 0 ||
+												selectedAttachments.length > 0
+											)))
+								}
+							/>
+						</InputGroupAddon>
+					</InputGroup>
+				</div>
 				{!isModelConfigured && (
 					<p className="mt-2 text-muted-foreground text-xs">
 						{m.chat_composer_model_required_hint()}
