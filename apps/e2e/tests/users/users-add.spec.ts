@@ -7,7 +7,7 @@ import { runId } from "../../fixtures/organisation";
 import { reachPage, userRow } from "../../fixtures/users/users";
 
 /**
- * "Add User" on the users page is an invitation form: it never creates an
+ * "Add user" on the users page is an invitation form: it never creates an
  * account, it queues an invitation per email address for the selected
  * organisation and role and then shows the invitations list.
  */
@@ -30,7 +30,7 @@ test("users: an admin invites a user from the users page", async ({
 				)
 				.fill(email);
 		},
-		submit: "Create Invitations",
+		submit: message("orgs_invitation_form_submit_button"),
 		until: /\/app\/users\/invites/,
 	});
 

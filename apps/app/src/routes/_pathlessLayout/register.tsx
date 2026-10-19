@@ -121,8 +121,14 @@ function RouteComponent() {
 					/>
 				</div>
 			</CardContent>
-			<CardFooter className="text-muted-foreground text-sm">
-				<Link to={"/login"}>{m.auth_register_page_signin_link()}</Link>
+			<CardFooter className="flex-wrap gap-x-1 text-muted-foreground text-sm">
+				{m.auth_register_page_signin_prompt()}
+				<Link
+					to={"/login"}
+					className="rounded-sm text-primary underline-offset-4 outline-none hover:underline focus-visible:ring-3 focus-visible:ring-ring/30"
+				>
+					{m.auth_register_page_signin_link()}
+				</Link>
 			</CardFooter>
 		</Card>
 	);

@@ -621,7 +621,8 @@
 	"auth_register_page_invited_description_named": "{organizationName} hat Sie eingeladen. Erstellen Sie Ihr Konto, um beizutreten.",
 	"auth_register_page_no_invitation_description": "Konten werden über einen Einladungslink erstellt. Bitten Sie einen Administrator der Organisation, der Sie beitreten möchten, Ihre E-Mail-Adresse einzuladen.",
 	"auth_register_page_no_invitation_title": "Registrierung nur mit Einladung",
-	"auth_register_page_signin_link": "Sie haben bereits ein Konto?",
+	"auth_register_page_signin_link": "Anmelden",
+	"auth_register_page_signin_prompt": "Sie haben bereits ein Konto?",
 	"auth_register_page_title": "Konto erstellen",
 	"auth_resend_verification_toast_error": "Die Bestätigungs-E-Mail konnte nicht erneut gesendet werden",
 	"auth_resend_verification_toast_loading": "Bestätigungs-E-Mail wird gesendet...",
@@ -1475,8 +1476,8 @@
 				"countPlural"
 			],
 			"match": {
-				"countPlural=one": "{pool}-Pool · {amount} Anfrage übrig",
-				"countPlural=other": "{pool}-Pool · {amount} Anfragen übrig"
+				"countPlural=one": "{pool} · {amount} Anfrage übrig",
+				"countPlural=other": "{pool} · {amount} Anfragen übrig"
 			}
 		}
 	],
@@ -1492,8 +1493,8 @@
 				"countPlural"
 			],
 			"match": {
-				"countPlural=one": "{pool}-Pool · {amount} Token übrig",
-				"countPlural=other": "{pool}-Pool · {amount} Token übrig"
+				"countPlural=one": "{pool} · {amount} Token übrig",
+				"countPlural=other": "{pool} · {amount} Token übrig"
 			}
 		}
 	],
