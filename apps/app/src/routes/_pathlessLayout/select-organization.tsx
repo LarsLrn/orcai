@@ -130,7 +130,11 @@ function RouteComponent() {
 			}),
 		}),
 	);
-	const { mutate: setActiveOrganization } = useSetActiveOrganizationMutation();
+	const setActiveOrganization = useSetActiveOrganizationMutation();
+	// One selection at a time: a second one would switch the session under the first's page.
+	const selectingId = setActiveOrganization.isPending
+		? setActiveOrganization.variables?.organizationId
+		: undefined;
 
 	const rows = organizations?.data ?? [];
 	const rowCount = organizations?.rowCount ?? 0;
@@ -183,8 +187,10 @@ function RouteComponent() {
 						<OrganizationCard
 							key={organization.id}
 							organization={organization}
+							loading={organization.id === selectingId}
+							disabled={setActiveOrganization.isPending}
 							onSelect={() =>
-								setActiveOrganization({
+								setActiveOrganization.mutate({
 									organizationId: organization.id,
 								})
 							}

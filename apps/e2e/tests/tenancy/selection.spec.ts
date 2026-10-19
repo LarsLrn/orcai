@@ -7,9 +7,11 @@ test("choosing an organisation loads its home page", async ({
 	orgs,
 	pageAsWellKnownAdmin,
 }) => {
-	// A fresh organisation nobody writes to, so both chat lists end empty. The
-	// picker searches names only, so the name stays unique across no-reset runs.
-	const organisation = await orgs.create(`E2E Selection ${runId()}`);
+	// Fresh organisations nobody writes to, so both chat lists end empty. The
+	// picker searches names only, so the prefix stays unique across no-reset runs.
+	const prefix = `E2E Selection ${runId()}`;
+	const organisation = await orgs.create(`${prefix} A`);
+	const other = await orgs.create(`${prefix} B`);
 
 	const page = await pageAsWellKnownAdmin();
 	await open(page, "/select-organization");
@@ -18,13 +20,29 @@ test("choosing an organisation loads its home page", async ({
 	// picker pages its cards.
 	await page
 		.getByPlaceholder(message("select_organisation_page_search_placeholder"))
-		.fill(organisation.name);
-	await page
-		.getByRole("button")
-		.filter({
-			hasText: `@${organisation.slug}`,
-		})
-		.click();
+		.fill(prefix);
+
+	const card = (slug: string) =>
+		page.getByRole("button").filter({
+			hasText: `@${slug}`,
+		});
+	await expect(card(other.slug)).toBeVisible();
+
+	// While one selection runs, the other cards wait for it.
+	let release!: () => void;
+	const held = new Promise<void>((resolve) => {
+		release = resolve;
+	});
+	await page.route("**/api/rpc/user/setActiveOrganization", async (route) => {
+		await held;
+		await route.continue();
+	});
+
+	await card(organisation.slug).click();
+	await expect(card(organisation.slug)).toHaveAttribute("aria-busy", "true");
+	await expect(card(organisation.slug)).toBeFocused();
+	await expect(card(other.slug)).toBeDisabled();
+	release();
 
 	await expect(page).toHaveURL(/\/app(\/|$)/);
 

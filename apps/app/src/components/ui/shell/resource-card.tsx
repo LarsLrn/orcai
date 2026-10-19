@@ -1,3 +1,4 @@
+import { Button as ButtonPrimitive } from "@base-ui/react/button";
 import { Link, type LinkProps } from "@tanstack/react-router";
 import { cva, type VariantProps } from "class-variance-authority";
 import { type LucideIcon, MoreHorizontalIcon } from "lucide-react";
@@ -20,17 +21,22 @@ type ResourceCardClickAction =
 			linkProps: LinkProps;
 			onClick?: never;
 			disabled?: never;
+			loading?: never;
 	  }
 	| {
 			onClick: () => void;
 			linkProps?: never;
 			disabled?: boolean;
+			loading?: boolean;
 	  };
 
 type ResourceCardPrimaryAction = ResourceCardClickAction;
 
 const isActionInteractive = (action?: ResourceCardClickAction) =>
-	Boolean(action?.linkProps || (action?.onClick && !action.disabled));
+	Boolean(
+		action?.linkProps ||
+			(action?.onClick && !action.disabled && !action.loading),
+	);
 
 const ResourceCard = ({
 	className,
@@ -40,7 +46,7 @@ const ResourceCard = ({
 		<Card
 			size="sm"
 			className={cn(
-				"relative h-full gap-2 border-border/60 bg-card/95 shadow-xs transition-all duration-200 has-[>[data-slot=resource-card-body][data-interactive=true]]:hover:-translate-y-0.5 has-[>[data-slot=resource-card-body][data-interactive=true]]:hover:border-border has-[>[data-slot=resource-card-body][data-interactive=true]]:hover:shadow-lg has-[>[data-slot=resource-card-body][data-interactive=true]]:hover:ring-foreground/10 data-[selected=true]:border-accent-brand/40",
+				"has-[>[data-slot=resource-card-body][aria-busy=true]]:loading-ring relative h-full gap-2 border-border/60 bg-card/95 shadow-xs transition-all duration-200 [--loading-ring-radius:calc(var(--radius-4xl)+6px)] has-[>[data-slot=resource-card-body][aria-busy=true]]:overflow-visible has-[>[data-slot=resource-card-body][data-interactive=true]]:hover:-translate-y-0.5 has-[>[data-slot=resource-card-body][data-interactive=true]]:hover:border-border has-[>[data-slot=resource-card-body][data-interactive=true]]:hover:shadow-lg has-[>[data-slot=resource-card-body][data-interactive=true]]:hover:ring-foreground/10 data-[selected=true]:border-accent-brand/40",
 				className,
 			)}
 			{...props}
@@ -137,7 +143,7 @@ const ResourceCardBody = ({
 	const isInteractive = isActionInteractive(action);
 	const bodyClassName = cn(
 		"block rounded-2xl",
-		isInteractive &&
+		action &&
 			"space-y-2 no-underline outline-none ring-ring/75 transition-all duration-200 focus-visible:ring-[3px]",
 		className,
 	);
@@ -157,21 +163,23 @@ const ResourceCardBody = ({
 
 	if (action?.onClick) {
 		return (
-			<button
-				type="button"
+			<ButtonPrimitive
 				onClick={action.onClick}
-				disabled={action.disabled}
+				disabled={action.disabled || action.loading}
+				focusableWhenDisabled={action.loading || undefined}
+				aria-busy={action.loading || undefined}
 				data-slot="resource-card-body"
-				data-interactive={action.disabled ? "false" : "true"}
+				data-interactive={isInteractive ? "true" : "false"}
 				className={cn(
 					bodyClassName,
-					"w-full border-0 bg-transparent text-left",
+					"w-full border-0 bg-transparent text-left aria-busy:cursor-progress",
 					action.disabled &&
+						!action.loading &&
 						"cursor-not-allowed opacity-70 hover:bg-transparent",
 				)}
 			>
 				{children}
-			</button>
+			</ButtonPrimitive>
 		);
 	}
 
@@ -393,6 +401,7 @@ const ResourceCardAction = ({ action }: { action: ResourceCardActionItem }) => {
 			variant={action.variant ?? "outline"}
 			size="sm"
 			className={cn("gap-1.5 shadow-none", action.className)}
+			loading={action.loading}
 			disabled={action.disabled}
 		>
 			{action.icon ? <action.icon className="h-3.5 w-3.5" /> : null}

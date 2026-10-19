@@ -314,7 +314,7 @@
 		position: absolute;
 		inset: -6px;
 		padding: 2px;
-		border-radius: 9999px;
+		border-radius: var(--loading-ring-radius, 9999px);
 		background: var(--loading-ring-comet);
 		mask:
 			linear-gradient(#000 0 0) content-box exclude,
