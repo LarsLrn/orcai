@@ -3,6 +3,9 @@ import { type EmailNotification, emailNotificationSchema } from "./schema";
 import { buildEmail } from "./templates";
 import type { RenderedEmail } from "./types";
 
+export * from "./schema";
+export type { RenderedEmail } from "./types";
+
 export const renderEmail = async (
 	input: EmailNotification,
 ): Promise<RenderedEmail> => {

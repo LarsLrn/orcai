@@ -4,10 +4,12 @@
 	"private": true,
 	"type": "module",
 	"exports": {
-		".": "./src/index.ts"
+		".": "./src/index.ts",
+		"./render": "./src/render.ts"
 	},
 	"scripts": {
-		"test": "bun test"
+		"paraglide:compile": "bun run compile-paraglide.ts",
+		"test": "bun run paraglide:compile && bun test"
 	},
 	"dependencies": {
 		"@orcai/db": "workspace:*",
@@ -22,6 +24,7 @@
 		"zod": "catalog:"
 	},
 	"devDependencies": {
+		"@inlang/paraglide-js": "catalog:",
 		"@types/node": "catalog:",
 		"@types/react": "catalog:"
 	}

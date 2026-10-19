@@ -4,8 +4,8 @@
 	"private": true,
 	"type": "module",
 	"scripts": {
-		"dev": "bun --watch src/start-workers.ts",
-		"start": "bun run src/start-workers.ts"
+		"dev": "bun run --filter @orcai/notifications paraglide:compile && bun --watch src/start-workers.ts",
+		"start": "bun run --filter @orcai/notifications paraglide:compile && bun run src/start-workers.ts"
 	},
 	"dependencies": {
 		"@effect/sql-pg": "catalog:",

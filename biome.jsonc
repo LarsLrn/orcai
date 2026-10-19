@@ -12,7 +12,7 @@
 			"!**/routeTree.gen.ts",
 			"!**/public",
 			"!**/migrations",
-			"!apps/app/src/paraglide",
+			"!**/src/paraglide",
 			"!**/.tanstack",
 			"!**/*.svg"
 		]

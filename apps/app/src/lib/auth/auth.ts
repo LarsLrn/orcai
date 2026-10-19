@@ -13,7 +13,7 @@ import {
 	organizationInvitationIdSchema,
 	userIdSchema,
 } from "@orcai/schema";
-import { betterAuth } from "better-auth";
+import { betterAuth, type User } from "better-auth";
 import { drizzleAdapter } from "better-auth/adapters/drizzle";
 import { APIError, createAuthMiddleware } from "better-auth/api";
 import { admin } from "better-auth/plugins";
@@ -34,6 +34,13 @@ import { cookieMaxAge, cookieName, getLocale } from "@/paraglide/runtime";
 import { COOKIES } from "@/settings/constants";
 
 const cfg = loadAppConfigSync();
+
+/** The user's stored locale, else the request's. */
+const emailLocaleOf = (
+	user: User & {
+		locale?: string | null;
+	},
+) => localeSchema.catch(getLocale()).parse(user.locale);
 
 const validateInstanceRole = (role: unknown) => {
 	if (!INSTANCE_ROLES.some((value) => value === role))
@@ -83,6 +90,7 @@ export const auth = betterAuth({
 		requireEmailVerification: false,
 		revokeSessionsOnPasswordReset: true,
 		sendResetPassword: async ({ user, url, token }, _request) => {
+			const locale = emailLocaleOf(user);
 			await runPromise(
 				enqueueNotification(
 					{
@@ -90,6 +98,7 @@ export const auth = betterAuth({
 						recipient: user.email,
 						recipientName: user.name,
 						resetUrl: url,
+						locale,
 					},
 					`auth.reset-password:${createHash("sha256").update(token).digest("hex")}`,
 				),
@@ -101,6 +110,7 @@ export const auth = betterAuth({
 		sendOnSignIn: false,
 		autoSignInAfterVerification: true,
 		sendVerificationEmail: async ({ user, url, token }) => {
+			const locale = emailLocaleOf(user);
 			await runPromise(
 				enqueueNotification(
 					{
@@ -108,6 +118,7 @@ export const auth = betterAuth({
 						recipient: user.email,
 						recipientName: user.name,
 						verificationUrl: url,
+						locale,
 					},
 					`auth.verify-email:${createHash("sha256").update(token).digest("hex")}`,
 				),
