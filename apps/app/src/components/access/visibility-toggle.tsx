@@ -1,6 +1,8 @@
 import type { ResourceVisibility } from "@orcai/schema";
 import { GlobeIcon, LockIcon } from "lucide-react";
+import { useId } from "react";
 import { Badge } from "@/components/ui/badge";
+import { Label } from "@/components/ui/label";
 import { Switch } from "@/components/ui/switch";
 import { m } from "@/paraglide/messages";
 
@@ -16,13 +18,14 @@ const VisibilityToggle = ({
 	onChange,
 }: VisibilityToggleProps) => {
 	const isPublic = visibility === "public";
+	const id = useId();
 
 	return (
 		<div className="space-y-2">
 			<div className="flex items-center justify-between gap-4">
 				<div>
-					<p className="font-medium text-sm">{m.access_visibility_label()}</p>
-					<p className="text-muted-foreground text-xs">
+					<Label htmlFor={id}>{m.access_visibility_label()}</Label>
+					<p id={`${id}-description`} className="text-muted-foreground text-xs">
 						{isPublic
 							? m.access_visibility_description_public()
 							: m.access_visibility_description_private()}
@@ -40,6 +43,8 @@ const VisibilityToggle = ({
 							: m.access_visibility_badge_private()}
 					</Badge>
 					<Switch
+						id={id}
+						aria-describedby={`${id}-description`}
 						checked={isPublic}
 						disabled={disabled}
 						onCheckedChange={(checked) =>

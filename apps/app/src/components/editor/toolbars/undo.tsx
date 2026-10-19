@@ -26,6 +26,7 @@ const UndoToolbar = ({
 						type="button"
 						variant="ghost"
 						size="icon"
+						aria-label={m.editor_toolbar_undo_tooltip()}
 						className={cn("h-8 w-8 p-0 sm:h-9 sm:w-9", className)}
 						onClick={(e) => {
 							editor?.chain().focus().undo().run();

@@ -41,8 +41,9 @@ const BlockEditorField = ({
 
 	return (
 		<Field data-invalid={isInvalid}>
-			<FieldLabel htmlFor={id}>{label}</FieldLabel>
+			<FieldLabel id={id}>{label}</FieldLabel>
 			<BlockEditor
+				labelledBy={id}
 				content={field.state.value}
 				onUpdate={(editor) => {
 					field.handleChange(editor.getJSON() as Content);

@@ -60,6 +60,7 @@ const NewChatInput = ({
 			<InputGroup className="overflow-hidden border-border bg-card">
 				<InputGroupTextarea
 					name="message"
+					aria-label={m.chat_composer_aria_label()}
 					placeholder={
 						noModel
 							? m.chat_composer_placeholder_no_model()

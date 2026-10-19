@@ -4,7 +4,9 @@ import {
 	sourceTypeLabels,
 	sourceTypes,
 } from "@orcai/schema";
+import { useId } from "react";
 import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
 import {
 	Select,
 	SelectContent,
@@ -46,16 +48,21 @@ const MetadataField = ({
 	placeholder: string;
 	onChange: (value: string) => void;
 	className?: string;
-}) => (
-	<div className={className ?? "space-y-2"}>
-		<div className="font-medium text-sm">{label}</div>
-		<Input
-			value={value}
-			onChange={(event) => onChange(event.target.value)}
-			placeholder={placeholder}
-		/>
-	</div>
-);
+}) => {
+	const id = useId();
+
+	return (
+		<div className={className ?? "space-y-2"}>
+			<Label htmlFor={id}>{label}</Label>
+			<Input
+				id={id}
+				value={value}
+				onChange={(event) => onChange(event.target.value)}
+				placeholder={placeholder}
+			/>
+		</div>
+	);
+};
 
 // ---------------------------------------------------------------------------
 // Source-type–specific field sets
@@ -241,6 +248,7 @@ const AssetMetadataEditor = ({
 	showTitle?: boolean;
 }) => {
 	const metadata = value.metadata ?? createDefaultAssetMetadata();
+	const id = useId();
 
 	const onFieldChange = (field: string, fieldValue: string) =>
 		onChange({
@@ -258,10 +266,11 @@ const AssetMetadataEditor = ({
 		<div className="grid gap-4 md:grid-cols-2">
 			{showTitle ? (
 				<div className="space-y-2 md:col-span-2">
-					<div className="font-medium text-sm">
+					<Label htmlFor={`${id}-title`}>
 						{m.assets_metadata_source_title_label()}
-					</div>
+					</Label>
 					<Input
+						id={`${id}-title`}
 						value={value.title}
 						onChange={(event) =>
 							onChange({
@@ -275,9 +284,9 @@ const AssetMetadataEditor = ({
 			) : null}
 
 			<div className="space-y-2 md:col-span-2">
-				<div className="font-medium text-sm">
+				<Label htmlFor={`${id}-source-type`}>
 					{m.assets_metadata_source_type_label()}
-				</div>
+				</Label>
 				<Select
 					value={metadata.sourceType ?? ""}
 					onValueChange={(nextValue) =>
@@ -290,7 +299,7 @@ const AssetMetadataEditor = ({
 						})
 					}
 				>
-					<SelectTrigger className="w-full">
+					<SelectTrigger id={`${id}-source-type`} className="w-full">
 						<SelectValue
 							placeholder={m.assets_metadata_source_type_placeholder()}
 						/>
@@ -321,9 +330,9 @@ const AssetMetadataEditor = ({
 			) : null}
 
 			<div className="space-y-2">
-				<div className="font-medium text-sm">
+				<Label htmlFor={`${id}-relevance`}>
 					{m.assets_metadata_relevance_label()}
-				</div>
+				</Label>
 				<Select
 					value={metadata.relevance}
 					onValueChange={(nextValue) =>
@@ -336,7 +345,7 @@ const AssetMetadataEditor = ({
 						})
 					}
 				>
-					<SelectTrigger className="w-full">
+					<SelectTrigger id={`${id}-relevance`} className="w-full">
 						<SelectValue
 							placeholder={m.assets_metadata_relevance_placeholder()}
 						/>
@@ -358,14 +367,19 @@ const AssetMetadataEditor = ({
 			<div className="space-y-3 rounded-xl border p-3">
 				<div className="flex items-center justify-between gap-3">
 					<div>
-						<div className="font-medium text-sm">
+						<Label htmlFor={`${id}-show-reference`}>
 							{m.assets_metadata_show_reference_label()}
-						</div>
-						<div className="text-muted-foreground text-xs">
+						</Label>
+						<div
+							id={`${id}-show-reference-description`}
+							className="text-muted-foreground text-xs"
+						>
 							{m.assets_metadata_show_reference_description()}
 						</div>
 					</div>
 					<Switch
+						id={`${id}-show-reference`}
+						aria-describedby={`${id}-show-reference-description`}
 						checked={metadata.showReference}
 						onCheckedChange={(checked) =>
 							onChange({

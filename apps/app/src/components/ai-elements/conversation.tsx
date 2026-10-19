@@ -90,12 +90,13 @@ export const ConversationScrollButton = ({
 					className,
 				)}
 				onClick={handleScrollToBottom}
+				aria-label={m.ai_elements_conversation_scroll_to_bottom_aria_label()}
 				size="icon"
 				type="button"
 				variant="outline"
 				{...props}
 			>
-				<ArrowDownIcon className="size-4" />
+				<ArrowDownIcon className="size-4" aria-hidden="true" />
 			</Button>
 		)
 	);

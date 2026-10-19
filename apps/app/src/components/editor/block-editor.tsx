@@ -14,6 +14,7 @@ import { EditorToolbar } from "./toolbars/editor-toolbar";
 interface BlockEditorProps {
 	content?: Content;
 	placeholder?: string;
+	labelledBy?: string;
 	onCreate?: (editor: Editor) => void;
 	onUpdate?: (editor: Editor) => void;
 }
@@ -24,7 +25,12 @@ const isEmptyObject = (content?: Content) =>
 	content !== null &&
 	Object.keys(content).length === 0;
 
-const BlockEditor = ({ content, onCreate, onUpdate }: BlockEditorProps) => {
+const BlockEditor = ({
+	content,
+	labelledBy,
+	onCreate,
+	onUpdate,
+}: BlockEditorProps) => {
 	const editor = useEditor({
 		extensions: [
 			...extensions,
@@ -35,6 +41,9 @@ const BlockEditor = ({ content, onCreate, onUpdate }: BlockEditorProps) => {
 		editorProps: {
 			attributes: {
 				spellcheck: "false",
+				...(labelledBy && {
+					"aria-labelledby": labelledBy,
+				}),
 			},
 		},
 		onCreate: ({ editor }) => {

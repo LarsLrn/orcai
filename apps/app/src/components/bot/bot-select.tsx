@@ -3,13 +3,16 @@ import { useQuery } from "@tanstack/react-query";
 import { BotIcon, SearchIcon } from "lucide-react";
 import { useDebounceValue } from "usehooks-ts";
 import { Badge } from "@/components/ui/badge";
+import { Card, CardHeader } from "@/components/ui/card";
 import {
-	Card,
-	CardDescription,
-	CardHeader,
-	CardTitle,
-} from "@/components/ui/card";
+	Field,
+	FieldContent,
+	FieldDescription,
+	FieldLabel,
+	FieldTitle,
+} from "@/components/ui/field";
 import { Input } from "@/components/ui/input";
+import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import { Skeleton } from "@/components/ui/skeleton";
 import { describeError } from "@/lib/errors/describe-error";
 import { orpc } from "@/lib/orpc/orpc";
@@ -37,21 +40,16 @@ const BotSelect = ({ onBotSelect, selectedBot }: BotSelectProps) => {
 		}),
 	);
 
-	const handleBotSelect = (bot: Bot) => {
-		// Toggle selection: if clicking the same bot, deselect it
-		if (selectedBot?.id === bot.id) {
-			onBotSelect(null); // Clear selection
-		} else {
-			onBotSelect(bot);
-		}
-	};
-
 	return (
 		<div className="flex min-h-0 flex-1 flex-col gap-4">
 			{/* Search Input */}
 			<div className="relative">
-				<SearchIcon className="absolute top-1/2 left-3 h-4 w-4 -translate-y-1/2 transform text-muted-foreground" />
+				<SearchIcon
+					aria-hidden="true"
+					className="absolute top-1/2 left-3 h-4 w-4 -translate-y-1/2 transform text-muted-foreground"
+				/>
 				<Input
+					aria-label={m.bots_select_search_placeholder()}
 					placeholder={m.bots_select_search_placeholder()}
 					onChange={(e) => setSearchQuery(e.target.value)}
 					className="pl-10"
@@ -108,37 +106,57 @@ const BotSelect = ({ onBotSelect, selectedBot }: BotSelectProps) => {
 									: m.bots_select_empty_state_title()}
 							</div>
 						) : (
-							bots.data.map((bot: Bot) => (
-								<Card
-									key={bot.id}
-									className={`cursor-pointer border transition-all duration-200 hover:shadow-md ${
-										selectedBot?.id === bot.id
-											? "border-primary bg-primary/5 shadow-sm"
-											: "hover:bg-muted/50"
-									}`}
-									onClick={() => handleBotSelect(bot)}
-								>
-									<CardHeader className="pb-3">
-										<div className="flex items-start justify-between">
-											<div className="min-w-0 flex-1">
-												<CardTitle className="flex items-center gap-2 truncate text-base">
-													<BotIcon className="h-4 w-4 shrink-0" />
-													<span className="truncate">{bot.name}</span>
-												</CardTitle>
-												<CardDescription className="mt-1 line-clamp-2 text-sm">
+							<RadioGroup
+								aria-label={m.bots_select_group_aria_label()}
+								value={selectedBot?.id ?? null}
+								onValueChange={(id) =>
+									onBotSelect(bots.data.find((bot) => bot.id === id) ?? null)
+								}
+								className="gap-2"
+							>
+								{bots.data.map((bot: Bot) => (
+									<FieldLabel
+										key={bot.id}
+										htmlFor={`bot-select-${bot.id}`}
+										className="cursor-pointer transition-colors hover:bg-muted/50 has-data-checked:border-primary has-focus-visible:border-ring has-data-checked:bg-primary/5 has-focus-visible:ring-3 has-focus-visible:ring-ring/30"
+									>
+										<Field orientation="horizontal">
+											<RadioGroupItem
+												value={bot.id}
+												id={`bot-select-${bot.id}`}
+												aria-labelledby={`bot-select-${bot.id}-name`}
+												aria-describedby={`bot-select-${bot.id}-description`}
+											/>
+											<FieldContent className="min-w-0">
+												<FieldTitle className="w-full min-w-0 text-base">
+													<BotIcon
+														className="size-4 shrink-0"
+														aria-hidden="true"
+													/>
+													<span
+														id={`bot-select-${bot.id}-name`}
+														className="truncate"
+													>
+														{bot.name}
+													</span>
+													<Badge
+														variant="secondary"
+														className="ml-auto shrink-0 text-xs"
+													>
+														v{bot.version}
+													</Badge>
+												</FieldTitle>
+												<FieldDescription
+													id={`bot-select-${bot.id}-description`}
+													className="line-clamp-2"
+												>
 													{bot.description}
-												</CardDescription>
-											</div>
-											<Badge
-												variant="secondary"
-												className="ml-2 shrink-0 text-xs"
-											>
-												v{bot.version}
-											</Badge>
-										</div>
-									</CardHeader>
-								</Card>
-							))
+												</FieldDescription>
+											</FieldContent>
+										</Field>
+									</FieldLabel>
+								))}
+							</RadioGroup>
 						)}
 					</div>
 				)}

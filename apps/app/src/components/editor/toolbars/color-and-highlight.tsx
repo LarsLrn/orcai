@@ -218,6 +218,7 @@ export const ColorHighlightToolbar = () => {
 									<Button
 										variant="ghost"
 										size="sm"
+										aria-label={m.editor_toolbar_colour_tooltip()}
 										style={{
 											color: currentColor,
 										}}

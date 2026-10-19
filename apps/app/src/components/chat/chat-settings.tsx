@@ -431,9 +431,12 @@ const ChatBlocksEditor = ({
 						size="icon"
 						className="shrink-0"
 						disabled={detachMutation.isPending}
+						aria-label={m.chat_settings_attached_block_remove_aria_label({
+							name: block.name,
+						})}
 						onClick={() => detachMutation.mutate(block.id)}
 					>
-						<XIcon className="size-4" />
+						<XIcon className="size-4" aria-hidden="true" />
 					</Button>
 				</div>
 			))}
