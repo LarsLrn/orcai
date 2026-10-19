@@ -1,12 +1,62 @@
 import type * as React from "react";
+import { useEffect, useState } from "react";
 
 import { cn } from "@/lib/utils";
 
+/** Which sides of a horizontal scroller still hide content. */
+const useInlineOverflow = (element: HTMLElement | null) => {
+	const [overflow, setOverflow] = useState({
+		start: false,
+		end: false,
+	});
+
+	useEffect(() => {
+		if (!element) return;
+
+		const update = () => {
+			const start = element.scrollLeft > 0;
+			const end =
+				element.scrollLeft + element.clientWidth < element.scrollWidth - 1;
+			setOverflow((previous) =>
+				previous.start === start && previous.end === end
+					? previous
+					: {
+							start,
+							end,
+						},
+			);
+		};
+
+		update();
+		element.addEventListener("scroll", update, {
+			passive: true,
+		});
+		const observer = new ResizeObserver(update);
+		observer.observe(element);
+		if (element.firstElementChild) observer.observe(element.firstElementChild);
+
+		return () => {
+			element.removeEventListener("scroll", update);
+			observer.disconnect();
+		};
+	}, [
+		element,
+	]);
+
+	return overflow;
+};
+
 function Table({ className, ...props }: React.ComponentProps<"table">) {
+	const [container, setContainer] = useState<HTMLDivElement | null>(null);
+	const overflow = useInlineOverflow(container);
+
 	return (
 		<div
+			ref={setContainer}
 			data-slot="table-container"
-			className="relative w-full overflow-x-auto"
+			data-overflow-start={overflow.start ? "" : undefined}
+			data-overflow-end={overflow.end ? "" : undefined}
+			className="mask-[linear-gradient(to_right,transparent,black_var(--fade-start),black_calc(100%-var(--fade-end)),transparent)] relative w-full overflow-x-auto [--fade-end:0rem] [--fade-start:0rem] data-overflow-end:[--fade-end:2.5rem] data-overflow-start:[--fade-start:2.5rem]"
 		>
 			<table
 				data-slot="table"

@@ -165,13 +165,13 @@ function RouteComponent() {
 								{m.providers_detail_overview_description()}
 							</CardDescription>
 						</CardHeader>
-						<CardContent>
-							<div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
+						<CardContent className="@container">
+							<div className="grid gap-4 @sm:grid-cols-2 @2xl:grid-cols-4">
 								<div>
 									<div className="text-muted-foreground text-xs uppercase">
 										{m.providers_detail_endpoint_host_label()}
 									</div>
-									<div className="mt-1 font-semibold text-sm">
+									<div className="wrap-anywhere mt-1 font-semibold text-sm">
 										{endpointHost}
 									</div>
 								</div>
