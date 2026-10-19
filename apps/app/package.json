@@ -101,7 +101,7 @@
 		"effect": "catalog:",
 		"embla-carousel-react": "8.6.0",
 		"js-cookie": "3.0.8",
-		"katex": "0.19.0",
+		"katex": "0.16.47",
 		"lucide-react": "catalog:",
 		"motion": "14.1.0",
 		"nanoid": "6.0.2",
