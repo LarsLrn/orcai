@@ -7,6 +7,7 @@ import {
 	useCreateBlockMutation,
 	useUpdateBlockMutation,
 } from "@/hooks/mutations/use-block-mutations";
+import { useUnsavedChangesGuard } from "@/hooks/use-unsaved-changes-guard";
 import { getPublicationStatusOptions } from "@/lib/presentation/publication-status";
 import { m } from "@/paraglide/messages";
 import {
@@ -33,6 +34,7 @@ const DatabaseBlockForm = ({
 				params: {
 					blockId: result.data.id,
 				},
+				ignoreBlocker: true,
 			}),
 	});
 	const [selectedAssets, setSelectedAssets] = useState<Asset[]>(assets ?? []);
@@ -54,6 +56,8 @@ const DatabaseBlockForm = ({
 			await createBlock(value);
 		},
 	});
+	useUnsavedChangesGuard(() => !form.state.isDefaultValue);
+
 	const assetIds = useSelector(form.store, (state) => state.values.assets);
 	return (
 		<form
