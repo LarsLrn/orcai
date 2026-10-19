@@ -1,5 +1,7 @@
+import { useRouteContext } from "@tanstack/react-router";
 import { CheckIcon, LanguagesIcon } from "lucide-react";
 import { useTransition } from "react";
+import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
 import {
 	DropdownMenu,
@@ -9,7 +11,10 @@ import {
 	DropdownMenuLabel,
 	DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
-import { cn } from "@/lib/utils";
+import { authClient } from "@/lib/auth/auth-client";
+import { toAuthError } from "@/lib/errors/auth-error";
+import { reasonMessageOf } from "@/lib/errors/describe-error";
+import { m } from "@/paraglide/messages";
 import { type Locale, setLocale } from "@/paraglide/runtime";
 
 type Props = {
@@ -23,10 +28,23 @@ type Props = {
 
 const LocaleSwitcherSelect = ({ defaultValue, items, label }: Props) => {
 	const [isPending, startTransition] = useTransition();
+	const { auth } = useRouteContext({
+		from: "__root__",
+	});
 
-	const onChange = (value: Locale) => {
-		const locale = value;
-		startTransition(() => {
+	const onChange = (locale: Locale) => {
+		startTransition(async () => {
+			if (auth.isAuthenticated) {
+				const result = await authClient.updateUser({
+					locale,
+				});
+				if (result.error) {
+					toast.error(m.header_locale_switcher_toast_error(), {
+						description: reasonMessageOf(toAuthError(result.error)),
+					});
+					return;
+				}
+			}
 			setLocale(locale);
 		});
 	};
@@ -36,10 +54,8 @@ const LocaleSwitcherSelect = ({ defaultValue, items, label }: Props) => {
 			<DropdownMenuTrigger
 				render={
 					<Button
-						className={cn(
-							"size-8",
-							isPending && "pointer-events-none opacity-60",
-						)}
+						className="size-8"
+						disabled={isPending}
 						size="icon"
 						variant="ghost"
 					>

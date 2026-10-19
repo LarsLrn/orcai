@@ -5,10 +5,12 @@ import { useUmami } from "@/hooks/use-umami";
 import { authClient } from "@/lib/auth/auth-client";
 import { toAuthError } from "@/lib/errors/auth-error";
 import { m } from "@/paraglide/messages";
+import { getLocale } from "@/paraglide/runtime";
 
 export const useSignin = () => {
 	const navigate = useNavigate();
 	const { trackEvent } = useUmami();
+	const renderedLocale = getLocale();
 
 	return useMutationAction({
 		mutationOptions: () => ({
@@ -22,8 +24,14 @@ export const useSignin = () => {
 				}
 				return result;
 			},
-			onSuccess: () => {
+			onSuccess: (result) => {
 				trackEvent("auth-login");
+				// Sign-in set the stored locale's cookie; only a document load renders it.
+				const storedLocale = result.data?.user.locale;
+				if (storedLocale && storedLocale !== renderedLocale) {
+					window.location.assign("/app");
+					return;
+				}
 				navigate({
 					to: "/app",
 				});

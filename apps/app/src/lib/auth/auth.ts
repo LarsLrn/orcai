@@ -15,7 +15,7 @@ import {
 } from "@orcai/schema";
 import { betterAuth } from "better-auth";
 import { drizzleAdapter } from "better-auth/adapters/drizzle";
-import { APIError } from "better-auth/api";
+import { APIError, createAuthMiddleware } from "better-auth/api";
 import { admin } from "better-auth/plugins";
 import { tanstackStartCookies } from "better-auth/tanstack-start";
 import * as Redacted from "effect/Redacted";
@@ -30,6 +30,7 @@ import {
 import { secureCookiesFor, zedTokenCookieOptions } from "@/lib/authz/zed-token";
 import { runPromise } from "@/lib/effect/runtime";
 import { loadAppConfigSync } from "@/lib/effect/services/config";
+import { cookieMaxAge, cookieName, getLocale } from "@/paraglide/runtime";
 import { COOKIES } from "@/settings/constants";
 
 const cfg = loadAppConfigSync();
@@ -118,6 +119,29 @@ export const auth = betterAuth({
 			generateId: () => uuidv4(),
 		},
 	},
+	hooks: {
+		/** A new browser follows the stored locale; users without one keep the
+		 * request's. */
+		after: createAuthMiddleware(async (ctx) => {
+			const user = ctx.context.newSession?.user;
+			if (!ctx.path.startsWith("/sign-in") || !user) return;
+
+			const stored = localeSchema.safeParse(
+				"locale" in user ? user.locale : undefined,
+			);
+			if (stored.success) {
+				ctx.setCookie(cookieName, stored.data, {
+					path: "/",
+					maxAge: cookieMaxAge,
+				});
+				return;
+			}
+
+			await ctx.context.internalAdapter.updateUser(user.id, {
+				locale: getLocale(),
+			});
+		}),
+	},
 	databaseHooks: {
 		user: {
 			update: {
@@ -132,6 +156,7 @@ export const auth = betterAuth({
 				// account of an instance does not pass through here and needs no
 				// exception.
 				before: async (user, ctx) => {
+					const requestLocale = getLocale();
 					validateInstanceRole("role" in user ? user.role : "user");
 					const invitationId = organizationInvitationIdSchema.safeParse(
 						ctx?.body?.invitationId,
@@ -152,6 +177,13 @@ export const auth = betterAuth({
 								"Registration is by invitation. Ask an organisation administrator to invite this address.",
 						});
 					}
+
+					return {
+						data: {
+							...user,
+							locale: user.locale ?? requestLocale,
+						},
+					};
 				},
 				after: async (user, ctx) => {
 					const userId = userIdSchema.parse(user.id);

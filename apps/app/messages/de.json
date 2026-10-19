@@ -2180,6 +2180,7 @@
 	"header_breadcrumb_menu_label": "Navigationspfad anzeigen",
 	"header_home_link_label": "Startseite",
 	"header_locale_switcher_label": "Sprache",
+	"header_locale_switcher_toast_error": "Sprache konnte nicht gespeichert werden",
 	"header_theme_switcher_label": "Design wechseln",
 	"home_about_link": "Über OrcAI",
 	"home_ask_browse_bots_action": "Bots durchstöbern",

@@ -2180,6 +2180,7 @@
 	"header_breadcrumb_menu_label": "Show the breadcrumb trail",
 	"header_home_link_label": "Home",
 	"header_locale_switcher_label": "Language",
+	"header_locale_switcher_toast_error": "Failed to save language",
 	"header_theme_switcher_label": "Toggle theme",
 	"home_about_link": "About OrcAI",
 	"home_ask_browse_bots_action": "Browse bots",
