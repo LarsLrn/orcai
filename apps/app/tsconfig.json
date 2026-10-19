@@ -12,6 +12,7 @@
 		".tanstack"
 	],
 	"compilerOptions": {
+		"allowImportingTsExtensions": true,
 		"types": [
 			"bun",
 			"vite/client"
