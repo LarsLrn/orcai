@@ -11,6 +11,7 @@
 	"devDependencies": {
 		"@orcai/contracts": "workspace:*",
 		"@orcai/core": "workspace:*",
+		"@orcai/notifications": "workspace:*",
 		"@orcai/schema": "workspace:*",
 		"@orpc/client": "2.0.0-beta.40",
 		"@playwright/test": "1.64.0",
