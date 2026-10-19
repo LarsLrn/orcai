@@ -192,7 +192,9 @@ const DiscoverModels = () => {
 						onClick={() => handleOpenChange(false)}
 						disabled={isPending}
 					>
-						{m.common_cancel_button()}
+						{result?.status === "success"
+							? m.common_close_button()
+							: m.common_cancel_button()}
 					</Button>
 					<Button
 						onClick={handleDiscoverModels}
