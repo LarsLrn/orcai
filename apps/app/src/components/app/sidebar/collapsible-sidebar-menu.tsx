@@ -1,4 +1,4 @@
-import { Link, useRouterState } from "@tanstack/react-router";
+import { Link } from "@tanstack/react-router";
 import { ChevronRightIcon } from "lucide-react";
 import { useEffect, useState } from "react";
 import {
@@ -15,6 +15,7 @@ import {
 	SidebarMenuSubItem,
 	useSidebar,
 } from "@/components/ui/sidebar";
+import { useSectionPathname } from "@/hooks/use-section-pathname";
 import { m } from "@/paraglide/messages";
 import type { sidebarMenu } from "@/settings/menus";
 
@@ -25,9 +26,7 @@ const CollapsibleSidebarMenu = ({
 }) => {
 	const { closeMobileForNavigation } = useSidebar();
 	const [userExpanded, setUserExpanded] = useState(false);
-	const pathname = useRouterState({
-		select: (s) => s.location.pathname,
-	});
+	const pathname = useSectionPathname();
 
 	const hasRoute = !!item.linkProps;
 	const hasChildren = !!item.items?.length;

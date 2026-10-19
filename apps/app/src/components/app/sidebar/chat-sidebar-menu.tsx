@@ -16,13 +16,15 @@ import { orpc } from "@/lib/orpc/orpc";
 import { cn } from "@/lib/utils";
 import { m } from "@/paraglide/messages";
 
+const PAGE_SIZE = 40;
+
 const ChatSidebarMenu = () => {
 	const { closeMobileForNavigation } = useSidebar();
 	const { data, status, refetch, isRefetching } = useQuery(
 		orpc.chat.list.queryOptions({
 			input: {
 				pageIndex: 0,
-				pageSize: 40,
+				pageSize: PAGE_SIZE,
 			},
 		}),
 	);
@@ -97,6 +99,21 @@ const ChatSidebarMenu = () => {
 					</ChatActionsDropdown>
 				</SidebarMenuItem>
 			))}
+			{data.rowCount > PAGE_SIZE && (
+				<SidebarMenuItem>
+					<SidebarMenuButton
+						size="sm"
+						className="text-muted-foreground"
+						render={
+							<Link to="/app/chat" onClick={closeMobileForNavigation}>
+								{m.sidebar_chats_show_all_link({
+									count: data.rowCount,
+								})}
+							</Link>
+						}
+					/>
+				</SidebarMenuItem>
+			)}
 		</SidebarMenu>
 	);
 };

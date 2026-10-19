@@ -27,8 +27,8 @@ const Header = ({ homeTo = "/app" }: { homeTo?: "/app" | "/instance" }) => {
 
 	const breadcrumbItems = matches
 		.filter((match) => match.meta?.find((entry) => entry?.title))
-		.map(({ pathname, meta }) => ({
-			href: pathname,
+		.map(({ pathname, meta, staticData }) => ({
+			href: staticData.breadcrumbTo?.(matches) ?? pathname,
 			label: meta?.find((entry) => entry?.title)?.title,
 		}))
 		.filter((i) => i.href !== "/" && i.href !== homeTo)

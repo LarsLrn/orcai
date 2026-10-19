@@ -130,6 +130,9 @@ function RouteComponent() {
 						<SectionAction>
 							<Link
 								to="/app/hub/blocks/add"
+								search={{
+									type: "database",
+								}}
 								className={buttonVariants({
 									size: "sm",
 								})}
@@ -157,6 +160,9 @@ function RouteComponent() {
 												variant: "default",
 												linkProps: {
 													to: "/app/hub/blocks/add",
+													search: {
+														type: "database",
+													},
 												},
 											},
 										]

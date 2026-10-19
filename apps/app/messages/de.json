@@ -3046,6 +3046,7 @@
 	"sidebar_chats_error_retry_button": "Erneut versuchen",
 	"sidebar_chats_error_title": "Ihre Chats konnten nicht geladen werden",
 	"sidebar_chats_group_label": "Chats",
+	"sidebar_chats_show_all_link": "Alle {count} Chats anzeigen",
 	"sidebar_manage_group_label": "Ihr Arbeitsbereich",
 	"sidebar_menu_administration_item": "Administration",
 	"sidebar_menu_assets_item": "Assets",

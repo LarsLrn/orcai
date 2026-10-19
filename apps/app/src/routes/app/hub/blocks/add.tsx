@@ -1,6 +1,11 @@
-import { createFileRoute } from "@tanstack/react-router";
+import { blockTypeSchema } from "@orcai/schema";
+import {
+	createFileRoute,
+	stripSearchParams,
+	useNavigate,
+} from "@tanstack/react-router";
 import { BookOpenIcon, ImageIcon, SparklesIcon } from "lucide-react";
-import { useState } from "react";
+import { z } from "zod/v4";
 import { DatabaseBlockForm } from "@/components/blocks/database-block/form/database-block-form";
 import { ImageGenerationBlockForm } from "@/components/blocks/image-generation-block/form/image-generation-block-form";
 import { TemplateBlockForm } from "@/components/blocks/template-block/form/template-block-form";
@@ -19,15 +24,29 @@ import {
 	PageTitle,
 } from "@/components/ui/shell/page";
 import { ensureOrganizationCapability } from "@/lib/authz/route-guards";
+import { blockSection } from "@/lib/navigation/block-section";
 import { cn } from "@/lib/utils";
 import { m } from "@/paraglide/messages";
 
 export const Route = createFileRoute("/app/hub/blocks/add")({
-	loader: async ({ context: { queryClient } }) => {
+	validateSearch: z.object({
+		type: blockTypeSchema.catch("template").default("template"),
+	}),
+	search: {
+		middlewares: [
+			stripSearchParams({
+				type: "template",
+			}),
+		],
+	},
+	loaderDeps: ({ search: { type } }) => ({
+		type,
+	}),
+	loader: async ({ context: { queryClient }, deps: { type } }) => {
 		await ensureOrganizationCapability({
 			queryClient,
 			permission: "create_block",
-			redirectTo: "/app/hub/behaviour",
+			redirectTo: blockSection(type).to,
 		});
 	},
 	component: RouteComponent,
@@ -41,9 +60,10 @@ export const Route = createFileRoute("/app/hub/blocks/add")({
 });
 
 function RouteComponent() {
-	const [type, setType] = useState<"template" | "database" | "imageGeneration">(
-		"template",
-	);
+	const navigate = useNavigate({
+		from: Route.fullPath,
+	});
+	const { type } = Route.useSearch();
 
 	return (
 		<Page>
@@ -82,7 +102,14 @@ function RouteComponent() {
 									"rounded-2xl border p-5 text-left transition-colors",
 									type === option.type && "border-primary bg-primary/5",
 								)}
-								onClick={() => setType(option.type)}
+								onClick={() =>
+									void navigate({
+										search: {
+											type: option.type,
+										},
+										replace: true,
+									})
+								}
 							>
 								<Icon className="mb-4 h-5 w-5" />
 								<div className="font-medium">{option.title}</div>

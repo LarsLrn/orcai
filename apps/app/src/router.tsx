@@ -1,6 +1,6 @@
 import { RPCJsonSerializer } from "@orpc/client";
 import { QueryClient } from "@tanstack/react-query";
-import { createRouter } from "@tanstack/react-router";
+import { type AnyRouteMatch, createRouter } from "@tanstack/react-router";
 import { setupRouterSsrQueryIntegration } from "@tanstack/react-router-ssr-query";
 import { DefaultErrorBoundary } from "./components/boundaries/default-error";
 import { NotFound } from "./components/boundaries/not-found";
@@ -55,5 +55,10 @@ export function getRouter() {
 declare module "@tanstack/react-router" {
 	interface Register {
 		router: ReturnType<typeof getRouter>;
+	}
+
+	interface StaticDataRouteOption {
+		/** Where the crumb of a route that is no page of its own leads. */
+		breadcrumbTo?: (matches: AnyRouteMatch[]) => string | undefined;
 	}
 }
