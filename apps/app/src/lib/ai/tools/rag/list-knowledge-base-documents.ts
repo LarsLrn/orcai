@@ -37,7 +37,7 @@ export const listKnowledgeBaseDocumentsTool = ({
 				.default(30)
 				.describe("Maximum number of documents to return."),
 		}),
-		execute: async ({ query, blockId, limit }) =>
+		execute: async ({ query, blockId, limit }, { abortSignal }) =>
 			runPromise(
 				Effect.gen(function* () {
 					const targetBlocks = resolveSearchBlocks({
@@ -73,5 +73,8 @@ export const listKnowledgeBaseDocumentsTool = ({
 						},
 					};
 				}),
+				{
+					signal: abortSignal,
+				},
 			),
 	});

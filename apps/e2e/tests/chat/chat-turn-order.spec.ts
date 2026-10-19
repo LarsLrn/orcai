@@ -290,6 +290,37 @@ test("a message sent straight after Stop follows the stopped reply and sees it",
 	]);
 });
 
+test("Stop aborts the model call the turn is waiting on", async ({
+	api,
+	inference,
+	org,
+	pageAs,
+}) => {
+	const model = await setUp(api, inference);
+	const member = api.as("member");
+	const chatId = await createChat(member, model, chatName("Aborted Turn"));
+
+	const page = await pageAs("member");
+	await enterApp(page, org.slug);
+	await openChat(page, chatId);
+
+	gate.close();
+	await composer(page).fill("Question A");
+	await submitButton(page).click();
+	await expect.poll(() => gate.held()).toBe(1);
+	await stopButton(page).click();
+
+	await expect.poll(() => gate.abandoned()).toBe(1);
+	await expect(submitButton(page)).toBeVisible();
+	await expect
+		.poll(async () =>
+			(await storedTurns(member, chatId)).map(({ role }) => role),
+		)
+		.toEqual([
+			"user",
+		]);
+});
+
 test("a reply still being written is not shown as an empty message", async ({
 	api,
 	inference,

@@ -60,7 +60,10 @@ export const getKnowledgeBaseChunksTool = ({
 					"Include previous and next chunks around each requested chunk for local context.",
 				),
 		}),
-		execute: async ({ ids, limit, blockId, includeAdjacent }) =>
+		execute: async (
+			{ ids, limit, blockId, includeAdjacent },
+			{ abortSignal },
+		) =>
 			runPromise(
 				Effect.gen(function* () {
 					if (blocks.length === 0) {
@@ -284,5 +287,8 @@ export const getKnowledgeBaseChunksTool = ({
 						},
 					};
 				}),
+				{
+					signal: abortSignal,
+				},
 			),
 	});

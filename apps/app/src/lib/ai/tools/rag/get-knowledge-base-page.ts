@@ -68,15 +68,18 @@ export const getKnowledgeBasePageTool = ({
 				.default(12)
 				.describe("Maximum number of returned chunks."),
 		}),
-		execute: async ({
-			page,
-			blockId,
-			assetId,
-			documentTitleQuery,
-			documentQuery,
-			includeAdjacentPages,
-			limit,
-		}) =>
+		execute: async (
+			{
+				page,
+				blockId,
+				assetId,
+				documentTitleQuery,
+				documentQuery,
+				includeAdjacentPages,
+				limit,
+			},
+			{ abortSignal },
+		) =>
 			runPromise(
 				Effect.gen(function* () {
 					const targetBlocks = resolveSearchBlocks({
@@ -196,5 +199,8 @@ export const getKnowledgeBasePageTool = ({
 						},
 					};
 				}),
+				{
+					signal: abortSignal,
+				},
 			),
 	});

@@ -99,7 +99,10 @@ export const searchKnowledgeBaseTool = ({
 				.optional()
 				.describe("Optional block ID to search only one knowledge base block."),
 		}),
-		execute: async ({ query, queryVariants, queries, assetIds, blockId }) =>
+		execute: async (
+			{ query, queryVariants, queries, assetIds, blockId },
+			{ abortSignal },
+		) =>
 			runPromise(
 				Effect.gen(function* () {
 					if (blocks.length === 0) {
@@ -206,5 +209,8 @@ export const searchKnowledgeBaseTool = ({
 						},
 					};
 				}),
+				{
+					signal: abortSignal,
+				},
 			),
 	});
