@@ -110,7 +110,7 @@ const Chat = ({
 		},
 	});
 
-	const { messages, status, setMessages, regenerate, sendMessage, stop } =
+	const { messages, status, setMessages, sendMessage, stop } =
 		useChat<ChatAgentUIMessage>({
 			id,
 			generateId: () => crypto.randomUUID(),
@@ -144,18 +144,9 @@ const Chat = ({
 			},
 			messages: initialMessages,
 			onFinish: async () => {
-				// Refreshes the chat list, activeBranchId and branches once a response lands
+				// Refreshes the chat list and the auto-title once a response lands
 				await queryClient.invalidateQueries({
 					queryKey: orpc.chat.key(),
-					refetchType: "active",
-				});
-				await queryClient.invalidateQueries({
-					queryKey: orpc.chatMessage.key({
-						input: {
-							chatId: id,
-							zedToken,
-						},
-					}),
 					refetchType: "active",
 				});
 				await queryClient.invalidateQueries({
@@ -240,8 +231,6 @@ const Chat = ({
 							key={m.id}
 							message={m}
 							chatId={id}
-							setMessages={setMessages}
-							regenerate={regenerate}
 							status={status}
 							isLatest={index === messages.length - 1}
 							animate={!loadedMessageIds.current.has(m.id)}

@@ -5,7 +5,6 @@ import {
 	deleteBlocksInputSchema,
 	deleteBotsInputSchema,
 	deleteChatInputSchema,
-	deleteChatMessagesInputSchema,
 	deleteGroupsInputSchema,
 	deleteModelsInputSchema,
 	deleteOrganizationInvitationsInputSchema,
@@ -65,9 +64,6 @@ const deleteSchemas = [
 	createIdRefCase("blocks", deleteBlocksInputSchema),
 	createIdRefCase("bots", deleteBotsInputSchema),
 	createIdRefCase("chats", deleteChatInputSchema),
-	createIdRefCase("chat messages", deleteChatMessagesInputSchema, {
-		chatId: ids[0],
-	}),
 	createIdRefCase("groups", deleteGroupsInputSchema),
 	createIdRefCase("models", deleteModelsInputSchema),
 	createIdRefCase(

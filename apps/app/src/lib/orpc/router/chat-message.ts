@@ -1,5 +1,5 @@
 import { DB, dbSchema } from "@orcai/db";
-import { and, desc, eq, inArray, lt, max } from "drizzle-orm";
+import { and, desc, eq, lt, max } from "drizzle-orm";
 import * as Effect from "effect/Effect";
 import * as AppErrors from "@/lib/effect/utils/errors";
 import { authed } from "@/lib/orpc/implementation/authed";
@@ -144,32 +144,6 @@ export const createChatMessage = authed.chatMessage.create
 
 		return {
 			data: message,
-		};
-	});
-
-export const deleteChatMessages = authed.chatMessage.delete
-	.use(
-		requireEntityPermission("chat", "edit", {
-			entityId: "chatId",
-		}),
-	)
-	.effect(function* ({ input }) {
-		const db = yield* DB;
-
-		const messageIds = input.refs.map((ref) => ref.id);
-
-		yield* db
-			.delete(dbSchema.chatMessage)
-			.where(
-				and(
-					inArray(dbSchema.chatMessage.id, messageIds),
-					eq(dbSchema.chatMessage.chatId, input.chatId),
-				),
-			);
-
-		return {
-			success: true,
-			message: "Chat messages deleted successfully",
 		};
 	});
 

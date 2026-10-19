@@ -10,7 +10,6 @@ import {
 import { Shimmer } from "@/components/ai-elements/shimmer";
 import { MessageBranches } from "@/components/chat/branch-links";
 import { classifyTurn } from "@/components/chat/message/classify-turn";
-import { MessageEditor } from "@/components/chat/message/message-editor";
 import { WorkLog } from "@/components/chat/message/work-log/work-log";
 import { InView } from "@/components/ui/motion/in-view";
 import type { ChatAgentUIMessage } from "@/lib/ai/types/chat-agent-message";
@@ -18,7 +17,6 @@ import { getChatMessageAttachments } from "@/lib/ai/types/chat-attachment";
 import { cn } from "@/lib/utils";
 import { m } from "@/paraglide/messages";
 import { ChatMessageAttachments } from "./chat-message-attachments";
-import { useMessageEditor } from "./hooks/use-message-editor";
 import { MessageActions } from "./message-actions";
 import { MessagePartRenderer } from "./message-part-renderer";
 import { MessageUsage } from "./metadata/message-usage";
@@ -26,8 +24,6 @@ import { MessageUsage } from "./metadata/message-usage";
 interface MessageBlockProps {
 	message: ChatAgentUIMessage;
 	chatId: ChatId;
-	setMessages: UseChatHelpers<ChatAgentUIMessage>["setMessages"];
-	regenerate: () => Promise<void>;
 	status: UseChatHelpers<ChatAgentUIMessage>["status"];
 	/** Only the latest message can still be receiving parts. */
 	isLatest: boolean;
@@ -77,8 +73,6 @@ const MessageEntrance = ({
 export const MessageBlock = ({
 	message,
 	chatId,
-	setMessages,
-	regenerate,
 	status,
 	isLatest,
 	animate = true,
@@ -86,7 +80,6 @@ export const MessageBlock = ({
 	onBranch,
 	branching,
 }: MessageBlockProps) => {
-	const { mode, toggleMode, setViewMode } = useMessageEditor();
 	const variant = message.role === "user" ? "sent" : "received";
 	const messageAttachments = getChatMessageAttachments(message);
 
@@ -112,34 +105,23 @@ export const MessageBlock = ({
 				key={message.id}
 				className="grid grid-cols-1"
 			>
-				{mode === "edit" && variant === "sent" ? (
-					<MessageEditor
-						message={message}
-						setMode={setViewMode}
-						setMessages={setMessages}
-						regenerate={regenerate}
-						status={status}
-					/>
-				) : (
-					<MessageContent>
-						<ChatMessageAttachments attachments={messageAttachments} />
-						{entries.length > 0 && (
-							<WorkLog entries={entries} running={running} />
-						)}
-						{answerParts.map((part, i) => (
-							<MessagePartRenderer
-								key={`${part.type}${message.id}${i}`}
-								part={part}
-							/>
-						))}
-					</MessageContent>
-				)}
+				<MessageContent>
+					<ChatMessageAttachments attachments={messageAttachments} />
+					{entries.length > 0 && (
+						<WorkLog entries={entries} running={running} />
+					)}
+					{answerParts.map((part, i) => (
+						<MessagePartRenderer
+							key={`${part.type}${message.id}${i}`}
+							part={part}
+						/>
+					))}
+				</MessageContent>
 				<MessageToolbar>
 					<MessageActions
 						message={message}
 						variant={variant}
 						chatId={chatId}
-						onEdit={variant === "sent" ? toggleMode : undefined}
 						onBranch={onBranch}
 						branching={branching}
 						className={cn({

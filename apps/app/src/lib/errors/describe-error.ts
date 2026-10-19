@@ -37,7 +37,6 @@ const ENTITY_REASONS: Record<NotFoundEntity, ErrorReason> = {
 	block: "BLOCK_NOT_FOUND",
 	bot: "BOT_NOT_FOUND",
 	chat: "CHAT_NOT_FOUND",
-	chatBranch: "CHAT_BRANCH_NOT_FOUND",
 	chatMessage: "CHAT_MESSAGE_NOT_FOUND",
 	group: "GROUP_NOT_FOUND",
 	invitation: "INVITATION_NOT_FOUND",
