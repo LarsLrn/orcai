@@ -105,19 +105,12 @@ test("groups: the create dialog refuses an empty name", async ({
 		name: message("groups_create_dialog_title"),
 	});
 
-	// The button opens the dialog once the page has hydrated.
-	await expect(async () => {
-		await page
-			.getByRole("button", {
-				name: message("groups_list_create_action"),
-			})
-			.click();
-		await expect(dialogTitle).toBeVisible({
-			timeout: 5_000,
-		});
-	}).toPass({
-		timeout: 25_000,
-	});
+	await page
+		.getByRole("button", {
+			name: message("groups_list_create_action"),
+		})
+		.click();
+	await expect(dialogTitle).toBeVisible();
 
 	const create = page.getByRole("button", {
 		name: message("common_create_button"),
@@ -166,8 +159,7 @@ test("groups: an admin adds and removes members through the UI", async ({
 		}),
 	);
 
-	// The picker is filled by a client query, so a visible option also means
-	// the page has hydrated and a click on it will register.
+	// The picker is filled by a client query.
 	for (const option of options) {
 		await expect(option).toBeVisible();
 		await option.click();

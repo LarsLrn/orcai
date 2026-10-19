@@ -8,6 +8,7 @@ import { EMAIL_DOMAIN, USER_PASSWORD } from "../constants";
 import { baseURL } from "../env";
 import type { Api } from "../index";
 import { message } from "../messages";
+import { open } from "../navigation";
 import type { WorkerOrganisation } from "../organisation";
 import { runId, signUpUnaffiliated } from "../organisation";
 
@@ -109,7 +110,7 @@ export const reachPage = async (
 	path: string,
 	heading: string,
 ): Promise<void> => {
-	await page.goto(path);
+	await open(page, path);
 	await expect(
 		page.getByRole("heading", {
 			name: heading,

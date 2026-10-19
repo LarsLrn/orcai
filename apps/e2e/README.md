@@ -16,21 +16,13 @@ config throws when the stack environment is missing.
 - Instance-wide state belongs in `tests/instance/`, which runs alone and
   serially before everything else.
 
-## Two things retry
+## Waiting
 
-Comments in fixtures and specs name these by these two words.
-
-**Late hydration.** The app is server rendered. A value typed or a click made
-before React hydrates is lost. `open` waits for the network to settle;
-`submitForm` and the dialog helpers retry the whole fill-and-submit, and stay
-idempotent by returning as soon as the page already sits on the target.
-
-**Snapshot lag.** SpiceDB serves permission checks from a quantized snapshot,
-so a grant written a moment ago can be invisible for a second or two: an API
-call answers FORBIDDEN, a route guard redirects to the dashboard, a menu entry
-is missing. `untilAllowed` from `fixtures/authorization.ts` retries a call that
-is safe to repeat; each slice's `open*` helper retries the navigation while the
-guard still redirects; `expect.poll` and `toPass` cover the rest.
+- `open` waits until React has hydrated (`data-hydrated` on `<html>`). After a
+  reload `open` did not make, call `awaitHydration` before interacting.
+- Permission changes can lag a second or two behind writes. After writing over
+  the API, call `seedZedToken(page)` before the browser reads; retry calls that
+  are safe to repeat with `untilAllowed`, `expect.poll` or `toPass`.
 
 ## Layout
 

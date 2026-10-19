@@ -64,17 +64,11 @@ test("the login form validates an empty email and a short password", async ({
 
 	// The fields validate on change and only show a message once touched, so
 	// the spec types and clears instead of submitting an untouched form.
-	await expect(async () => {
-		await emailField(page).fill("not-an-email");
-		await passwordField(page).fill("short");
-		await expect(
-			page.getByText(message("error_validation_invalid_email")),
-		).toBeVisible({
-			timeout: 5_000,
-		});
-	}).toPass({
-		timeout: 25_000,
-	});
+	await emailField(page).fill("not-an-email");
+	await passwordField(page).fill("short");
+	await expect(
+		page.getByText(message("error_validation_invalid_email")),
+	).toBeVisible();
 
 	await expect(
 		page.getByText(

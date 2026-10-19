@@ -9,6 +9,7 @@ import {
 	HeadContent,
 	Outlet,
 	Scripts,
+	useHydrated,
 } from "@tanstack/react-router";
 import { TanStackRouterDevtoolsPanel } from "@tanstack/react-router-devtools";
 import { createServerFn } from "@tanstack/react-start";
@@ -134,8 +135,14 @@ function RootDocument({
 }: Readonly<{
 	children: ReactNode;
 }>) {
+	const hydrated = useHydrated();
+
 	return (
-		<html lang={getLocale()} suppressHydrationWarning>
+		<html
+			data-hydrated={hydrated ? "" : undefined}
+			lang={getLocale()}
+			suppressHydrationWarning
+		>
 			<head>
 				<HeadContent />
 			</head>

@@ -1,6 +1,6 @@
 import { expect, type Locator, type Page } from "@playwright/test";
 import { message } from "../messages";
-import { open } from "../navigation";
+import { awaitHydration, open } from "../navigation";
 
 /** Where the account page lives. */
 export const accountPath = "/app/account";
@@ -53,7 +53,7 @@ export const themeToggle = (page: Page): Locator =>
 		name: message("header_theme_switcher_label"),
 	});
 
-/** Pick a language from the header's switcher, retrying late hydration until the page renders in it. */
+/** Pick a language from the header's switcher and wait for the reloaded page to hydrate in it. */
 export const switchLocale = async (
 	page: Page,
 	params: {
@@ -65,25 +65,20 @@ export const switchLocale = async (
 		until: "en" | "de";
 	},
 ): Promise<void> => {
-	await expect(async () => {
-		await localeSwitcher(page, params.menuLabel).click();
-		// The trigger carries the same label, so look inside the open menu.
-		await expect(
-			page.getByRole("menu").getByText(params.menuLabel, {
-				exact: true,
-			}),
-		).toBeVisible({
-			timeout: 3_000,
-		});
-		await page
-			.getByRole("menuitem", {
-				name: params.item,
-			})
-			.click();
-		await expect(page.locator("html")).toHaveAttribute("lang", params.until, {
-			timeout: 10_000,
-		});
-	}).toPass({
-		timeout: 30_000,
+	await localeSwitcher(page, params.menuLabel).click();
+	// The trigger carries the same label, so look inside the open menu.
+	await expect(
+		page.getByRole("menu").getByText(params.menuLabel, {
+			exact: true,
+		}),
+	).toBeVisible();
+	await page
+		.getByRole("menuitem", {
+			name: params.item,
+		})
+		.click();
+	await expect(page.locator("html")).toHaveAttribute("lang", params.until, {
+		timeout: 10_000,
 	});
+	await awaitHydration(page);
 };

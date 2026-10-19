@@ -145,22 +145,12 @@ export const createGroupThroughUi = async (
 		name: message("groups_create_dialog_title"),
 	});
 
-	// The button opens the dialog once the page has hydrated.
-	await expect(async () => {
-		if (!(await dialogTitle.isVisible())) {
-			await page
-				.getByRole("button", {
-					name: message("groups_list_create_action"),
-				})
-				.click();
-		}
-
-		await expect(dialogTitle).toBeVisible({
-			timeout: 5_000,
-		});
-	}).toPass({
-		timeout: 25_000,
-	});
+	await page
+		.getByRole("button", {
+			name: message("groups_list_create_action"),
+		})
+		.click();
+	await expect(dialogTitle).toBeVisible();
 
 	await page.getByLabel(message("common_name_label")).fill(name);
 	await page

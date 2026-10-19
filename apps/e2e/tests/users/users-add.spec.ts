@@ -54,28 +54,21 @@ test("users: the add form refuses an invalid email", async ({
 	await enterApp(page, org.slug);
 	await reachPage(page, "/app/users/add", message("users_add_page_title"));
 
-	// Repeated until the form is hydrated; before that the click submits nothing.
-	await expect(async () => {
-		await page
-			.getByLabel(
-				message("orgs_invitation_form_email_label", {
-					position: 1,
-				}),
-			)
-			.fill("not-an-email");
-		await page
-			.getByRole("button", {
-				name: message("orgs_invitation_form_submit_button"),
-			})
-			.click();
-		await expect(
-			page.getByText(message("forms_validation_errors_title")),
-		).toBeVisible({
-			timeout: 5_000,
-		});
-	}).toPass({
-		timeout: 25_000,
-	});
+	await page
+		.getByLabel(
+			message("orgs_invitation_form_email_label", {
+				position: 1,
+			}),
+		)
+		.fill("not-an-email");
+	await page
+		.getByRole("button", {
+			name: message("orgs_invitation_form_submit_button"),
+		})
+		.click();
+	await expect(
+		page.getByText(message("forms_validation_errors_title")),
+	).toBeVisible();
 
 	await expect(
 		page.getByText(

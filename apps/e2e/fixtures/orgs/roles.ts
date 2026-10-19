@@ -23,22 +23,13 @@ export const roleOption = (page: Page, role: Role) =>
 		name: new RegExp(`^${ROLE_LABELS[role]}\\b`),
 	});
 
-/** Open the role picker, retrying late hydration while the dialog is still closed. */
+/** Open the role picker and wait for its options. */
 export const openRolePicker = async (
 	page: Page,
 	currentRole: Role,
 ): Promise<void> => {
-	await expect(async () => {
-		if (!(await roleOption(page, currentRole).isVisible())) {
-			await rolePicker(page, currentRole).click();
-		}
-
-		await expect(roleOption(page, currentRole)).toBeVisible({
-			timeout: 3_000,
-		});
-	}).toPass({
-		timeout: 20_000,
-	});
+	await rolePicker(page, currentRole).click();
+	await expect(roleOption(page, currentRole)).toBeVisible();
 };
 
 /** Pick a different role in the picker that currently shows `from`. */

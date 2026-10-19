@@ -51,23 +51,16 @@ test("account: a user sends the verification email and the link verifies the add
 			),
 		).toBeVisible();
 
-		// Late hydration: the click is retried until the toast shows.
-		await expect(async () => {
-			await verification
-				.getByRole("button", {
-					name: message("account_verification_send_button"),
-				})
-				.click();
-			await expect(
-				page.getByText(
-					"If an account exists for that address, a verification email has been sent.",
-				),
-			).toBeVisible({
-				timeout: 5_000,
-			});
-		}).toPass({
-			timeout: 25_000,
-		});
+		await verification
+			.getByRole("button", {
+				name: message("account_verification_send_button"),
+			})
+			.click();
+		await expect(
+			page.getByText(
+				"If an account exists for that address, a verification email has been sent.",
+			),
+		).toBeVisible();
 
 		const link = await waitForNewVerificationLink(
 			outbox,
