@@ -5,7 +5,7 @@ import { aiChatMessageSchema } from "./schema";
 
 export const aiChatInputSchema = z.object({
 	chatId: chatIdSchema,
-	messages: z.array(aiChatMessageSchema),
+	message: aiChatMessageSchema,
 	...zedTokenSchema.shape,
 });
 

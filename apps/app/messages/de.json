@@ -1880,6 +1880,7 @@
 	"error_chat_branch_not_found": "Zweig nicht gefunden.",
 	"error_chat_branch_required": "Ein Zweig ist erforderlich.",
 	"error_chat_message_create_failed": "Ihre Nachricht konnte nicht gespeichert werden.",
+	"error_chat_message_id_taken": "Diese Nachricht wurde bereits gesendet. Laden Sie die Seite neu und versuchen Sie es erneut.",
 	"error_chat_message_invalid": "Die Nachricht fehlt oder ist ungültig.",
 	"error_chat_message_not_found": "Nachricht nicht gefunden.",
 	"error_chat_model_not_configured": "Wählen Sie zuerst in den Chat-Einstellungen ein Modell aus.",

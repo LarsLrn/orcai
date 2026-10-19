@@ -3,6 +3,7 @@ import { and, asc, count, eq, inArray, max } from "drizzle-orm";
 import * as Effect from "effect/Effect";
 import * as AppErrors from "@/lib/effect/utils/errors";
 import { authed } from "@/lib/orpc/implementation/authed";
+import { uniqueViolationConstraint } from "@/lib/orpc/implementation/error-mapping";
 import { requireEntityPermission } from "@/lib/orpc/middlewares/permission";
 
 export const listChatMessages = authed.chatMessage.list
@@ -91,6 +92,8 @@ export const findChatMessage = authed.chatMessage.find
 			);
 	});
 
+const CHAT_MESSAGE_PRIMARY_KEY = "chat_message_pkey";
+
 export const createChatMessage = authed.chatMessage.create
 	.use(
 		requireEntityPermission("chat", "edit", {
@@ -100,32 +103,54 @@ export const createChatMessage = authed.chatMessage.create
 	.effect(function* ({ input }) {
 		const db = yield* DB;
 
-		const [{ last }] = yield* db
-			.select({
-				last: max(dbSchema.chatMessage.position),
-			})
-			.from(dbSchema.chatMessage)
-			.where(eq(dbSchema.chatMessage.chatId, input.chatId));
+		// Touching the chat first locks its row, so one insert at a time claims the next position.
+		const message = yield* db
+			.transaction((tx) =>
+				Effect.gen(function* () {
+					yield* tx
+						.update(dbSchema.chat)
+						.set({
+							updatedAt: new Date(),
+						})
+						.where(eq(dbSchema.chat.id, input.chatId));
 
-		const [message] = yield* db
-			.insert(dbSchema.chatMessage)
-			.values({
-				id: input.id,
-				chatId: input.chatId,
-				role: input.role,
-				parts: input.parts,
-				attachments: input.attachments ?? [],
-				metadata: input.metadata,
-				position: (last ?? -1) + 1,
-			})
-			.returning();
+					const [{ last }] = yield* tx
+						.select({
+							last: max(dbSchema.chatMessage.position),
+						})
+						.from(dbSchema.chatMessage)
+						.where(eq(dbSchema.chatMessage.chatId, input.chatId));
 
-		yield* db
-			.update(dbSchema.chat)
-			.set({
-				updatedAt: new Date(),
-			})
-			.where(eq(dbSchema.chat.id, input.chatId));
+					const [message] = yield* tx
+						.insert(dbSchema.chatMessage)
+						.values({
+							id: input.id,
+							chatId: input.chatId,
+							role: input.role,
+							parts: input.parts,
+							attachments: input.attachments ?? [],
+							metadata: input.metadata,
+							position: (last ?? -1) + 1,
+						})
+						.returning();
+
+					return message;
+				}),
+			)
+			.pipe(
+				Effect.catchIf(
+					(error) =>
+						uniqueViolationConstraint(error) === CHAT_MESSAGE_PRIMARY_KEY,
+					(cause) =>
+						Effect.fail(
+							new AppErrors.BadRequestError({
+								reason: "CHAT_MESSAGE_ID_TAKEN",
+								message: "Chat message id is already taken",
+								cause,
+							}),
+						),
+				),
+			);
 
 		return {
 			data: message,

@@ -20,15 +20,19 @@ const isAppError = (error: unknown): error is AppError => {
 	);
 };
 
-const isUniqueViolation = (error: AppError) => {
+/** The violated constraint when `error` is a unique violation. */
+export const uniqueViolationConstraint = (
+	error: unknown,
+): string | undefined => {
 	const failure =
 		error instanceof EffectDrizzleQueryError && Cause.isCause(error.cause)
 			? Cause.squash(error.cause)
 			: error;
 
-	return (
-		failure instanceof SqlError && failure.reason._tag === "UniqueViolation"
-	);
+	return failure instanceof SqlError &&
+		failure.reason._tag === "UniqueViolation"
+		? failure.reason.constraint
+		: undefined;
 };
 
 // Only the reason, its params and the typed data cross the wire. The English
@@ -83,7 +87,7 @@ const appErrorToORPCError = (error: AppError): AnyORPCError => {
 			});
 		case ErrorTags.DRIZZLE_QUERY:
 		case ErrorTags.SQL:
-			return isUniqueViolation(error)
+			return uniqueViolationConstraint(error) !== undefined
 				? new ORPCError("CONFLICT", {
 						data: {
 							reason: "ALREADY_EXISTS",

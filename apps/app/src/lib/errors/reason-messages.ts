@@ -67,6 +67,7 @@ const reasonMessages: ReasonMessages = {
 	CHAT_BRANCH_NOT_FOUND: m.error_chat_branch_not_found,
 	CHAT_BRANCH_REQUIRED: m.error_chat_branch_required,
 	CHAT_MESSAGE_CREATE_FAILED: m.error_chat_message_create_failed,
+	CHAT_MESSAGE_ID_TAKEN: m.error_chat_message_id_taken,
 	CHAT_MESSAGE_INVALID: m.error_chat_message_invalid,
 	CHAT_MESSAGE_NOT_FOUND: m.error_chat_message_not_found,
 	CHAT_MODEL_NOT_CONFIGURED: m.error_chat_model_not_configured,

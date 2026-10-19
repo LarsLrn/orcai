@@ -1,13 +1,10 @@
 import { z } from "zod/v4";
+import { chatMessageIdSchema } from "../chat-message/ref";
 
 export const aiChatMessageSchema = z
 	.object({
-		id: z.string(),
-		role: z.enum([
-			"system",
-			"user",
-			"assistant",
-		]),
+		id: chatMessageIdSchema,
+		role: z.literal("user"),
 		parts: z.array(z.unknown()),
 		metadata: z.unknown().optional(),
 		attachments: z.unknown().optional(),
