@@ -18,12 +18,18 @@ interface BlockEditorProps {
 	onUpdate?: (editor: Editor) => void;
 }
 
+// A bot without content stores `{}`, which is no document.
+const isEmptyObject = (content?: Content) =>
+	typeof content === "object" &&
+	content !== null &&
+	Object.keys(content).length === 0;
+
 const BlockEditor = ({ content, onCreate, onUpdate }: BlockEditorProps) => {
 	const editor = useEditor({
 		extensions: [
 			...extensions,
 		],
-		content,
+		content: isEmptyObject(content) ? undefined : content,
 		immediatelyRender: false,
 		shouldRerenderOnTransaction: false,
 		editorProps: {

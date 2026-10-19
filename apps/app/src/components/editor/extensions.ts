@@ -20,7 +20,6 @@ import GlobalDragHandle from "tiptap-extension-global-drag-handle";
 import { cn } from "@/lib/utils";
 import { m } from "@/paraglide/messages";
 import { ImageExtension } from "./extensions/image";
-import { ImagePlaceholder } from "./extensions/image-placeholder";
 
 const TiptapStarterKit = StarterKit.configure({
 	bulletList: {
@@ -213,6 +212,5 @@ export const extensions = [
 		multicolor: true,
 	}),
 	TiptapImage,
-	ImagePlaceholder,
 	Typography,
 ];

@@ -9,7 +9,6 @@ import { CodeToolbar } from "./code";
 import { ColorHighlightToolbar } from "./color-and-highlight";
 import { HeadingsToolbar } from "./headings";
 import { HorizontalRuleToolbar } from "./horizontal-rule";
-import { ImagePlaceholderToolbar } from "./image-placeholder-toolbar";
 import { ItalicToolbar } from "./italic";
 import { LinkToolbar } from "./link";
 import { OrderedListToolbar } from "./ordered-list";
@@ -57,7 +56,6 @@ export const EditorToolbar = ({ editor }: { editor: Editor }) => {
 							<Separator orientation="vertical" className="mx-1 h-7" />
 
 							{/* Media & Styling Group */}
-							<ImagePlaceholderToolbar />
 							<ColorHighlightToolbar />
 							<Separator orientation="vertical" className="mx-1 h-7" />
 

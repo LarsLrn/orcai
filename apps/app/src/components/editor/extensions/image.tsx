@@ -1,6 +1,5 @@
 /** biome-ignore-all lint/a11y/noStaticElementInteractions: <test> */
 /** biome-ignore-all lint/correctness/useExhaustiveDependencies: <TODO: Fix these properly> */
-/** biome-ignore-all lint/correctness/useUniqueElementIds: <test> */
 /** biome-ignore-all lint/a11y/useKeyWithClickEvents: <test> */
 import Image from "@tiptap/extension-image";
 import {
@@ -14,13 +13,11 @@ import {
 	AlignRight,
 	Edit,
 	ImageIcon,
-	Loader2,
 	Maximize,
 	MoreVertical,
 	Trash,
 } from "lucide-react";
 import { useEffect, useRef, useState } from "react";
-import { useImageUpload } from "@/components/editor/hooks/use-image-upload";
 import { Button } from "@/components/ui/button";
 import {
 	DropdownMenu,
@@ -87,18 +84,6 @@ function TiptapImage(props: NodeViewProps) {
 	const [openedMore, setOpenedMore] = useState(false);
 	const [imageUrl, setImageUrl] = useState("");
 	const [altText, setAltText] = useState(node.attrs.alt || "");
-
-	const { fileInputRef, handleFileChange, handleRemove, uploading, error } =
-		useImageUpload({
-			onUpload: (imageUrl) => {
-				updateAttributes({
-					src: imageUrl,
-					alt: altText || fileInputRef.current?.files?.[0]?.name,
-				});
-				handleRemove();
-				setOpenedMore(false);
-			},
-		});
 
 	function handleResizingPosition({
 		e,
@@ -399,41 +384,6 @@ function TiptapImage(props: NodeViewProps) {
 									</DropdownMenuSubTrigger>
 									<DropdownMenuSubContent className="w-fit min-w-52 p-2">
 										<div className="space-y-4">
-											<div>
-												<p className="mb-2 font-medium text-xs">
-													{m.editor_image_upload_label()}
-												</p>
-												<input
-													ref={fileInputRef}
-													type="file"
-													accept="image/*"
-													onChange={handleFileChange}
-													className="hidden"
-													id="replace-image-upload"
-												/>
-												<label
-													htmlFor="replace-image-upload"
-													className="flex w-full cursor-pointer items-center justify-center gap-2 rounded-md border-2 border-dashed p-4 hover:bg-accent"
-												>
-													{uploading ? (
-														<>
-															<Loader2 className="h-4 w-4 animate-spin" />
-															<span>{m.editor_image_uploading_label()}</span>
-														</>
-													) : (
-														<>
-															<ImageIcon className="h-4 w-4" />
-															<span>{m.editor_image_choose_button()}</span>
-														</>
-													)}
-												</label>
-												{error && (
-													<p className="mt-2 text-destructive text-xs">
-														{error}
-													</p>
-												)}
-											</div>
-
 											<div>
 												<p className="mb-2 font-medium text-xs">
 													{m.editor_image_url_label()}
