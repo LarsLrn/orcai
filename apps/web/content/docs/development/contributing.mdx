@@ -69,7 +69,7 @@ bun run stack e2e
 - `pre-commit`: runs `lint-staged`, which applies Biome's safe fixes and formatting to the staged files and fails on remaining errors.
 - `commit-msg`: runs commitlint validation.
 - `pre-push`: runs `bun run prepush`, which is `bun run lint-full`.
-- GitHub Actions runs `bun run ci` and the end-to-end suite as two blocking jobs for pushes to `main` and for pull requests.
+- GitHub Actions runs `bun run ci` and the end-to-end suite as two blocking jobs for pushes to `main` and for pull requests. Pull request runs check the branch merged into `main`, so rebase onto `main` when CI fails on something a local run passes.
 
 ## Pull Request Expectations
 
