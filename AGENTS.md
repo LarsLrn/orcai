@@ -26,8 +26,9 @@ slice rules.
   package-specific TanStack and Drizzle rules.
 - When a workflow or configuration changes, update `README.md` and
   `apps/web/content/docs` in the same change.
-- An e2e slice owns `apps/e2e/tests/<area>/`; the Playwright config and the
-  shared fixtures belong to the foundation. A slice needing one of them
-  changed stops and reports.
+- An e2e slice owns `apps/e2e/tests/<area>/` and may add
+  `apps/e2e/fixtures/<area>/`; the Playwright config and the shared fixtures
+  belong to the foundation. A slice needing one of them changed stops and
+  reports.
 - Never install software or change configuration outside the repository on
   the users machine. Report what is needed instead.
