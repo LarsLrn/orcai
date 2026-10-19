@@ -1,26 +1,30 @@
 import { Text } from "@react-email/components";
+import { m } from "../paraglide/messages";
 import type { ResetPasswordNotification } from "../schema";
 import type { RenderableEmail } from "../types";
 import { EmailLayout, paragraphStyle } from "./layout";
 
 export const buildResetPasswordEmail = (
 	notification: ResetPasswordNotification,
-): RenderableEmail => ({
-	subject: "Reset your OrcAI password",
-	element: (
-		<EmailLayout
-			preview="Reset your OrcAI password"
-			title="Reset your password"
-			actionLabel="Reset password"
-			actionUrl={notification.resetUrl}
-		>
-			<Text style={paragraphStyle}>
-				Hello {notification.recipientName ?? ""},
-			</Text>
-			<Text style={paragraphStyle}>
-				Use this link to choose a new password. If you did not request this, you
-				can ignore this message.
-			</Text>
-		</EmailLayout>
-	),
-});
+): RenderableEmail => {
+	const options = {
+		locale: notification.locale,
+	};
+	return {
+		subject: m.email_reset_password_subject({}, options),
+		element: (
+			<EmailLayout
+				locale={notification.locale}
+				recipientName={notification.recipientName}
+				preview={m.email_reset_password_preview({}, options)}
+				title={m.email_reset_password_title({}, options)}
+				actionLabel={m.email_reset_password_action({}, options)}
+				actionUrl={notification.resetUrl}
+			>
+				<Text style={paragraphStyle}>
+					{m.email_reset_password_body({}, options)}
+				</Text>
+			</EmailLayout>
+		),
+	};
+};

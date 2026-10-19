@@ -1,4 +1,4 @@
-import { organizationRoleSchema } from "@orcai/schema";
+import { localeSchema, organizationRoleSchema } from "@orcai/schema";
 import { z } from "zod/v4";
 
 const emailActionUrlSchema = z
@@ -21,6 +21,8 @@ const emailActionUrlSchema = z
 const base = z.object({
 	recipient: z.email(),
 	recipientName: z.string().optional(),
+	// Rows queued before emails were localised carry no locale.
+	locale: localeSchema.default("en"),
 });
 
 const organizationInvitedSchema = base.extend({

@@ -258,7 +258,7 @@ export const createOrganizationInvitations =
 								{
 									type: "organization.invited",
 									recipient: invitation.email,
-									recipientName: invitation.email.split("@")[0] || "there",
+									recipientName: invitation.email.split("@")[0] || undefined,
 									invitationId: invitation.id,
 									organizationName: organization.name,
 									inviterName:
@@ -266,6 +266,7 @@ export const createOrganizationInvitations =
 									role: invitation.role,
 									expiresAt: invitation.expiresAt,
 									registrationUrl: `${config.auth.url}/register?inv=${invitation.id}`,
+									locale: context.auth.user.locale ?? "en",
 								},
 								`organization.invited:${invitation.id}`,
 							),

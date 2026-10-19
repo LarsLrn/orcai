@@ -26,6 +26,11 @@ COPY packages/valkey/package.json ./packages/valkey/package.json
 
 RUN bun install --frozen-lockfile --production --ignore-scripts
 
+FROM prod-deps AS paraglide
+RUN bun install --frozen-lockfile --ignore-scripts --filter @orcai/notifications
+COPY packages/notifications ./packages/notifications
+RUN bun run --filter @orcai/notifications paraglide:compile
+
 FROM ${BUN_IMAGE} AS runtime
 WORKDIR /app/apps/workers
 
@@ -49,7 +54,8 @@ COPY --chown=bun:bun apps/workers/package.json ./package.json
 COPY --chown=bun:bun apps/workers/tsconfig.json ./tsconfig.json
 COPY --chown=bun:bun apps/workers/src ./src
 COPY --chown=bun:bun packages /app/packages
+COPY --from=paraglide --chown=bun:bun /app/packages/notifications/src/paraglide /app/packages/notifications/src/paraglide
 
 USER bun
 
-CMD ["bun", "run", "start"]
+CMD ["bun", "run", "src/start-workers.ts"]

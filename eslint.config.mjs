@@ -23,7 +23,7 @@ export default defineConfig([
 			"**/routeTree.gen.ts",
 			"**/.tanstack/**",
 			"apps/*/.source/**",
-			"apps/*/src/paraglide/**",
+			"*/*/src/paraglide/**",
 		],
 	},
 	{

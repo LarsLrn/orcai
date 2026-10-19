@@ -1,26 +1,28 @@
 import { Text } from "@react-email/components";
+import { m } from "../paraglide/messages";
 import type { VerifyEmailNotification } from "../schema";
 import type { RenderableEmail } from "../types";
 import { EmailLayout, paragraphStyle } from "./layout";
 
 export const buildVerifyEmail = (
 	notification: VerifyEmailNotification,
-): RenderableEmail => ({
-	subject: "Verify your email address",
-	element: (
-		<EmailLayout
-			preview="Verify your OrcAI email address"
-			title="Verify your email"
-			actionLabel="Verify email"
-			actionUrl={notification.verificationUrl}
-		>
-			<Text style={paragraphStyle}>
-				Hello {notification.recipientName ?? ""},
-			</Text>
-			<Text style={paragraphStyle}>
-				Confirm that this email address belongs to you to finish setting up your
-				OrcAI account.
-			</Text>
-		</EmailLayout>
-	),
-});
+): RenderableEmail => {
+	const options = {
+		locale: notification.locale,
+	};
+	return {
+		subject: m.email_verify_subject({}, options),
+		element: (
+			<EmailLayout
+				locale={notification.locale}
+				recipientName={notification.recipientName}
+				preview={m.email_verify_preview({}, options)}
+				title={m.email_verify_title({}, options)}
+				actionLabel={m.email_verify_action({}, options)}
+				actionUrl={notification.verificationUrl}
+			>
+				<Text style={paragraphStyle}>{m.email_verify_body({}, options)}</Text>
+			</EmailLayout>
+		),
+	};
+};

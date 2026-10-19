@@ -1,3 +1,4 @@
+import type { Locale } from "@orcai/schema";
 import {
 	Body,
 	Button,
@@ -11,22 +12,43 @@ import {
 	Text,
 } from "@react-email/components";
 import type { ReactNode } from "react";
+import { m } from "../paraglide/messages";
 
 export function EmailLayout(props: {
+	locale: Locale;
+	recipientName: string | undefined;
 	preview: string;
 	title: string;
 	children: ReactNode;
 	actionLabel: string;
 	actionUrl: string;
 }) {
+	const { locale } = props;
 	return (
-		<Html>
+		<Html lang={locale}>
 			<Head />
 			<Preview>{props.preview}</Preview>
 			<Body style={styles.body}>
 				<Container style={styles.container}>
 					<Heading style={styles.brand}>OrcAI</Heading>
 					<Heading style={styles.heading}>{props.title}</Heading>
+					<Text style={paragraphStyle}>
+						{props.recipientName
+							? m.email_layout_greeting(
+									{
+										name: props.recipientName,
+									},
+									{
+										locale,
+									},
+								)
+							: m.email_layout_greeting_anonymous(
+									{},
+									{
+										locale,
+									},
+								)}
+					</Text>
 					{props.children}
 					<Section style={styles.action}>
 						<Button href={props.actionUrl} style={styles.button}>
@@ -34,12 +56,24 @@ export function EmailLayout(props: {
 						</Button>
 					</Section>
 					<Text style={styles.fallback}>
-						If the button does not work, copy this link into your browser:
+						{m.email_layout_fallback(
+							{},
+							{
+								locale,
+							},
+						)}
 						{"\n"}
 						{props.actionUrl}
 					</Text>
 					<Hr style={styles.hr} />
-					<Text style={styles.footer}>This message was sent by OrcAI.</Text>
+					<Text style={styles.footer}>
+						{m.email_layout_footer(
+							{},
+							{
+								locale,
+							},
+						)}
+					</Text>
 				</Container>
 			</Body>
 		</Html>

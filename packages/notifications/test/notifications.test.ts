@@ -1,5 +1,5 @@
 import { describe, expect, test } from "bun:test";
-import { emailActionSchema, resetPasswordSchema } from "@orcai/schema";
+import { emailActionSchema, LOCALES, resetPasswordSchema } from "@orcai/schema";
 import * as ConfigProvider from "effect/ConfigProvider";
 import * as Effect from "effect/Effect";
 import * as Logger from "effect/Logger";
@@ -12,6 +12,7 @@ import {
 	notificationOutboxValues,
 	renderEmail,
 } from "../src";
+import { m } from "../src/paraglide/messages";
 
 const notifications = [
 	{
@@ -177,6 +178,84 @@ describe("notification schemas and templates", () => {
 			}
 			expect(rendered.html).toContain(actionUrl.replaceAll("&", "&amp;"));
 			expect(rendered.html).not.toContain("<Invitee>");
+		});
+	}
+
+	test("renders payloads queued without a locale in English", async () => {
+		const { locale: _, ...legacy } = emailNotificationSchema.parse(
+			notifications[1],
+		);
+		const rendered = await renderEmail(emailNotificationSchema.parse(legacy));
+		expect(rendered.html).toMatch(/<html[^>]* lang="en"/);
+		expect(rendered.subject).toBe(
+			m.email_verify_subject(
+				{},
+				{
+					locale: "en",
+				},
+			),
+		);
+	});
+
+	for (const locale of LOCALES) {
+		const options = {
+			locale,
+		};
+
+		test(`renders the verification email in ${locale}`, async () => {
+			const rendered = await renderEmail(
+				emailNotificationSchema.parse({
+					...notifications[1],
+					locale,
+				}),
+			);
+			expect(rendered.html).toMatch(new RegExp(`<html[^>]* lang="${locale}"`));
+			expect(rendered.subject).toBe(m.email_verify_subject({}, options));
+			expect(rendered.text).toContain(m.email_verify_body({}, options));
+			expect(rendered.text).toContain(m.email_verify_action({}, options));
+		});
+
+		test(`renders the password reset email in ${locale}`, async () => {
+			const rendered = await renderEmail(
+				emailNotificationSchema.parse({
+					...notifications[2],
+					locale,
+				}),
+			);
+			expect(rendered.html).toMatch(new RegExp(`<html[^>]* lang="${locale}"`));
+			expect(rendered.subject).toBe(
+				m.email_reset_password_subject({}, options),
+			);
+			expect(rendered.text).toContain(m.email_reset_password_body({}, options));
+		});
+
+		test(`renders the invitation email in ${locale}`, async () => {
+			const rendered = await renderEmail(
+				emailNotificationSchema.parse({
+					...notifications[0],
+					locale,
+				}),
+			);
+			expect(rendered.html).toMatch(new RegExp(`<html[^>]* lang="${locale}"`));
+			expect(rendered.subject).toBe(
+				m.email_organization_invited_subject(
+					{
+						organization: "Research & Teaching",
+					},
+					options,
+				),
+			);
+			expect(rendered.text).toContain(
+				m.email_organization_invited_body(
+					{
+						inviter: "Ada",
+						organization: "Research & Teaching",
+						role: m.email_organization_invited_role_member({}, options),
+						date: locale === "de" ? "1. August 2026" : "1 August 2026",
+					},
+					options,
+				),
+			);
 		});
 	}
 
