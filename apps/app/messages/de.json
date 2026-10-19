@@ -1412,6 +1412,9 @@
 		}
 	],
 	"chat_detail_page_title_fallback": "Chat",
+	"chat_download_failed_toast_error": "Der Chat konnte nicht heruntergeladen werden.",
+	"chat_earlier_messages_failed": "Frühere Nachrichten konnten nicht geladen werden.",
+	"chat_earlier_messages_loading": "Frühere Nachrichten werden geladen...",
 	"chat_image_part_download_action": "Bild herunterladen",
 	"chat_image_part_download_toast_error": "Das Bild wurde nicht heruntergeladen. Versuchen Sie es erneut.",
 	"chat_image_part_download_toast_success": "Bild heruntergeladen",

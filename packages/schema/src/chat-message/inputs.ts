@@ -1,14 +1,15 @@
 import { z } from "zod/v4";
-import { paginationInputSchema, zedTokenSchema } from "../shared";
+import { zedTokenSchema } from "../shared";
 import { createUniqueRefsInputSchema } from "../shared/ref-list";
 import { chatMessageIdSchema } from "./ref";
 import { chatMessageFieldsSchema, chatMessageSchema } from "./schema";
 
+/** The newest `limit` messages below `before`, by `position`. */
 export const listChatMessagesInputSchema = z.object({
-	...paginationInputSchema.shape,
 	...zedTokenSchema.shape,
 	chatId: chatMessageSchema.shape.chatId,
-	includeScores: z.boolean().default(false),
+	before: z.number().int().nonnegative().optional(),
+	limit: z.number().int().min(1).max(100).default(20),
 });
 
 export const createChatMessageInputSchema = chatMessageFieldsSchema.extend({

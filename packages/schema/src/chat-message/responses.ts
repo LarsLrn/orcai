@@ -3,27 +3,15 @@ import { chatIdSchema } from "../chat/ref";
 import {
 	createDataResponseSchema,
 	createDeleteResponseSchema,
-	createListResponseSchema,
 	statusResponseSchema,
 } from "../shared";
 import { chatMessageIdSchema } from "./ref";
 import { chatMessageSchema } from "./schema";
 
-export const chatMessageScoresSchema = createDataResponseSchema(
-	z.array(z.unknown()),
-).extend({
-	meta: z.object({
-		page: z.number(),
-		totalItems: z.number(),
-		limit: z.number(),
-		totalPages: z.number(),
-	}),
-});
-
-export const listChatMessagesResponseSchema = createListResponseSchema(
-	chatMessageSchema,
-).extend({
-	scores: chatMessageScoresSchema,
+/** One page in ascending `position` order. */
+export const listChatMessagesResponseSchema = z.object({
+	data: z.array(chatMessageSchema),
+	hasMore: z.boolean(),
 });
 
 export const createChatMessageResponseSchema =
