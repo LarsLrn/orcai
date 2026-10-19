@@ -120,11 +120,11 @@ const ChatConfigEditor = ({
 	isBotLinked: boolean;
 }) => {
 	const [isAdvancedOpen, setIsAdvancedOpen] = useState(false);
-	const { mutate: updateChat } = useUpdateChatMutation();
+	const { mutateAsync: updateChat } = useUpdateChatMutation();
 	const form = useAppForm({
 		...chatConfigFormOptions(config),
-		onSubmit: ({ value }) => {
-			updateChat({
+		onSubmit: async ({ value }) => {
+			await updateChat({
 				id: chatId,
 				config: {
 					modelId: value.modelId,
@@ -292,7 +292,7 @@ const ChatConfigEditor = ({
 			</form.AppForm>
 
 			<div className="flex justify-end">
-				<Button type="submit" size="sm" disabled={isSubmitting}>
+				<Button type="submit" size="sm" loading={isSubmitting}>
 					{m.chat_settings_save_button()}
 				</Button>
 			</div>
@@ -430,6 +430,9 @@ const ChatBlocksEditor = ({
 						variant="ghost"
 						size="icon"
 						className="shrink-0"
+						loading={
+							detachMutation.isPending && detachMutation.variables === block.id
+						}
 						disabled={detachMutation.isPending}
 						aria-label={m.chat_settings_attached_block_remove_aria_label({
 							name: block.name,

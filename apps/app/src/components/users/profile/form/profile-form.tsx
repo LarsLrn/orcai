@@ -9,13 +9,13 @@ const ProfileForm = () => {
 	const { auth } = useRouteContext({
 		from: "/app",
 	});
-	const { mutate: updateProfile } = useUpdateProfileMutation();
+	const { mutateAsync: updateProfile } = useUpdateProfileMutation();
 
 	const form = useAppForm({
 		// TODO: Improve type after refactoring schemas
 		...profileFormOptions(auth.user as Omit<User, "preferences">),
-		onSubmit: ({ value }) => {
-			updateProfile({
+		onSubmit: async ({ value }) => {
+			await updateProfile({
 				name: value.name ?? "",
 			}); // FIXME: Check why name can be undefined
 		},

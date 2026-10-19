@@ -167,11 +167,10 @@ const DeleteOrganizationDialog = ({
 						<Button
 							type="submit"
 							variant="destructive"
-							disabled={!canDelete || isPending}
+							loading={isPending}
+							disabled={!canDelete}
 						>
-							{isPending
-								? m.orgs_delete_dialog_submit_pending()
-								: m.common_delete_button()}
+							{m.common_delete_button()}
 						</Button>
 					</DialogFooter>
 				</form>

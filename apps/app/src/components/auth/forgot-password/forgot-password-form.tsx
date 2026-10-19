@@ -4,11 +4,11 @@ import { m } from "@/paraglide/messages";
 import { forgotPasswordFormOptions } from "./forgot-password-form-options";
 
 export function ForgotPasswordForm() {
-	const { mutate: requestPasswordReset } = useForgotPassword();
+	const { mutateAsync: requestPasswordReset } = useForgotPassword();
 	const form = useAppForm({
 		...forgotPasswordFormOptions(),
-		onSubmit: ({ value }) => {
-			requestPasswordReset(value);
+		onSubmit: async ({ value }) => {
+			await requestPasswordReset(value);
 		},
 	});
 

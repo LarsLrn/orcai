@@ -63,7 +63,7 @@ const DataTableBulkActions = <TData extends RowData>({
 								variant="outline"
 								size="sm"
 								className="h-8"
-								disabled={isPending}
+								loading={isPending}
 								aria-label="Bulk actions"
 							>
 								<ReplaceAllIcon />

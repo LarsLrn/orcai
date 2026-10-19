@@ -168,16 +168,10 @@ const UploadComponent = ({
 								onClick={() => {
 									void handleUpload();
 								}}
-								disabled={
-									files.length === 0 ||
-									disabled ||
-									control.isPending ||
-									isFinalizing
-								}
+								loading={control.isPending || isFinalizing}
+								disabled={files.length === 0 || disabled}
 							>
-								{isFinalizing
-									? m.assets_upload_preparing_button()
-									: (uploadLabel ?? m.assets_upload_submit_button())}
+								{uploadLabel ?? m.assets_upload_submit_button()}
 							</Button>
 						</div>
 					</CardContent>

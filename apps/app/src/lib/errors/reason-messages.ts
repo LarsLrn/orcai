@@ -34,6 +34,7 @@ const reasonMessages: ReasonMessages = {
 	AI_PROMPT_REQUIRED: m.error_ai_prompt_required,
 	AI_STREAM_FAILED: m.error_ai_stream_failed,
 	AI_TOOL_FAILED: m.error_ai_tool_failed,
+	ALREADY_EXISTS: m.error_already_exists,
 	ASSET_NOT_ATTACHED: m.error_asset_not_attached,
 	ASSET_NOT_FOUND: m.error_asset_not_found,
 	ASSET_SOURCE_REQUIRED: m.error_asset_source_required,

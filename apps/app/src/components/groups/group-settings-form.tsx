@@ -81,13 +81,15 @@ const GroupSettingsForm = ({ group }: { group: Group }) => {
 								description: description.trim() ? description.trim() : null,
 							})
 						}
-						disabled={isSystemGroup || !name.trim() || updateGroup.isPending}
+						loading={updateGroup.isPending}
+						disabled={isSystemGroup || !name.trim()}
 					>
 						{m.common_save_button()}
 					</Button>
 					{!isSystemGroup && (
 						<Button
 							variant="destructive"
+							loading={deleteGroup.isPending}
 							onClick={() =>
 								deleteGroup.mutate({
 									refs: [

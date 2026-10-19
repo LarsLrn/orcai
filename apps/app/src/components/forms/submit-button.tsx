@@ -7,6 +7,7 @@ const SubmitButton = ({
 	className,
 	variant,
 	size,
+	disabled,
 	...props
 }: {
 	label: string;
@@ -20,7 +21,8 @@ const SubmitButton = ({
 					type="submit"
 					variant={variant}
 					size={size}
-					disabled={isSubmitting}
+					loading={isSubmitting}
+					disabled={disabled}
 					className={className}
 					{...props}
 				>

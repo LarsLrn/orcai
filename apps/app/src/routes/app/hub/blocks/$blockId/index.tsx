@@ -78,7 +78,7 @@ function RouteComponent() {
 	const isRepository = block.data.type === "database";
 	const { mutate: deleteBlocks } = useDeleteBlocksMutation(
 		{
-			onMutate: async () => {
+			onSuccess: async () => {
 				await navigate({
 					to: isRepository ? "/app/hub/repositories" : "/app/hub/behaviour",
 				});

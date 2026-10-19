@@ -59,7 +59,7 @@ function RouteComponent() {
 
 	const { mutate: deleteAssets } = useDeleteAssetsMutation(
 		{
-			onMutate: async () => {
+			onSuccess: async () => {
 				await navigate({
 					to: "/app/hub/assets",
 				});

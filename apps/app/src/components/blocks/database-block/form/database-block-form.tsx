@@ -23,8 +23,8 @@ const DatabaseBlockForm = ({
 	block?: DatabaseBlock;
 	assets?: Asset[];
 }) => {
-	const { mutate: createBlock } = useCreateBlockMutation();
-	const { mutate: updateBlock } = useUpdateBlockMutation();
+	const { mutateAsync: createBlock } = useCreateBlockMutation();
+	const { mutateAsync: updateBlock } = useUpdateBlockMutation();
 	const [selectedAssets, setSelectedAssets] = useState<Asset[]>(assets ?? []);
 
 	const form = useAppForm({
@@ -32,16 +32,16 @@ const DatabaseBlockForm = ({
 			block,
 			assets?.map((asset) => asset.id),
 		),
-		onSubmit: ({ value }) => {
+		onSubmit: async ({ value }) => {
 			if (action === "update" && block) {
-				updateBlock({
+				await updateBlock({
 					...value,
 					id: block.id,
 				});
 				return;
 			}
 
-			createBlock(value);
+			await createBlock(value);
 		},
 	});
 	const assetIds = useSelector(form.store, (state) => state.values.assets);

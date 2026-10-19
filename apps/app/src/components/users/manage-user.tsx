@@ -31,8 +31,8 @@ const ManageUser = ({ user }: { user: UserWithOrganizationRole }) => {
 		"manage_organization",
 	]);
 	const navigate = useNavigate();
-	const { mutate: requestPasswordReset } = useForgotPassword();
-	const { mutate: resendVerificationEmail } = useResendVerificationEmail();
+	const passwordReset = useForgotPassword();
+	const verificationEmail = useResendVerificationEmail();
 	const updateMember = useUpdateOrganizationMemberMutation();
 	const removeMember = useDeleteOrganizationMembersMutation(
 		{},
@@ -105,8 +105,9 @@ const ManageUser = ({ user }: { user: UserWithOrganizationRole }) => {
 						<div className="flex flex-wrap gap-2">
 							<Button
 								variant="outline"
+								loading={passwordReset.isPending}
 								onClick={() =>
-									requestPasswordReset({
+									passwordReset.mutate({
 										email: user.email,
 									})
 								}
@@ -117,8 +118,9 @@ const ManageUser = ({ user }: { user: UserWithOrganizationRole }) => {
 							{!user.emailVerified ? (
 								<Button
 									variant="outline"
+									loading={verificationEmail.isPending}
 									onClick={() =>
-										resendVerificationEmail({
+										verificationEmail.mutate({
 											email: user.email,
 										})
 									}
@@ -159,7 +161,7 @@ const ManageUser = ({ user }: { user: UserWithOrganizationRole }) => {
 						<div className="flex flex-wrap gap-2">
 							<Button
 								variant="destructive"
-								disabled={removeMember.isPending}
+								loading={removeMember.isPending}
 								onClick={() => void handleRemoveFromOrganisation()}
 							>
 								<UserMinusIcon className="h-4 w-4" />

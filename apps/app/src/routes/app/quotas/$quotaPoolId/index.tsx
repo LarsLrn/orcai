@@ -169,6 +169,7 @@ function RouteComponent() {
 					{data.data.isActive ? (
 						<Button
 							variant="destructive"
+							loading={deactivatePool.isPending}
 							onClick={() =>
 								deactivatePool.mutate({
 									id: data.data.id,

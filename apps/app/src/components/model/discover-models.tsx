@@ -191,15 +191,10 @@ const DiscoverModels = () => {
 					</Button>
 					<Button
 						onClick={handleDiscoverModels}
-						disabled={
-							!providerId ||
-							isPending ||
-							(providers.data?.data.length ?? 0) === 0
-						}
+						loading={isPending}
+						disabled={!providerId || (providers.data?.data.length ?? 0) === 0}
 					>
-						{isPending
-							? m.models_discover_pending_button()
-							: m.models_discover_trigger_button()}
+						{m.models_discover_trigger_button()}
 					</Button>
 				</DialogFooter>
 			</DialogContent>

@@ -4,11 +4,11 @@ import { m } from "@/paraglide/messages";
 import { verifyEmailFormOptions } from "./verify-email-form-options";
 
 export function VerifyEmailForm() {
-	const { mutate: resendVerificationEmail } = useResendVerificationEmail();
+	const { mutateAsync: resendVerificationEmail } = useResendVerificationEmail();
 	const form = useAppForm({
 		...verifyEmailFormOptions(),
-		onSubmit: ({ value }) => {
-			resendVerificationEmail(value);
+		onSubmit: async ({ value }) => {
+			await resendVerificationEmail(value);
 		},
 	});
 

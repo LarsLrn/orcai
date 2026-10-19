@@ -15,19 +15,19 @@ const ProviderForm = ({
 	action: "create" | "update";
 	provider?: Provider;
 }) => {
-	const { mutate: createProvider } = useCreateProviderMutation();
-	const { mutate: updateProvider } = useUpdateProviderMutation();
+	const { mutateAsync: createProvider } = useCreateProviderMutation();
+	const { mutateAsync: updateProvider } = useUpdateProviderMutation();
 
 	const form = useAppForm({
 		...providerFormOptions(provider),
-		onSubmit: ({ value }) => {
+		onSubmit: async ({ value }) => {
 			if (action === "update" && provider) {
-				updateProvider({
+				await updateProvider({
 					...value,
 					id: provider.id,
 				});
 			} else {
-				createProvider(value);
+				await createProvider(value);
 			}
 		},
 	});
