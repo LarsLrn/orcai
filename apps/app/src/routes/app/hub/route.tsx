@@ -129,7 +129,7 @@ function RouteComponent() {
 			<Hero>
 				<HeroWave />
 				<HeroInner className="pb-10">
-					<HeroContent className="flex justify-between sm:flex-row">
+					<HeroContent className="@container flex justify-between sm:flex-row">
 						<h1 className="font-heading font-semibold text-4xl text-card-foreground tracking-tight">
 							{m.hub_page_title()}
 						</h1>
@@ -139,7 +139,7 @@ function RouteComponent() {
 							items={hubRouteItems}
 						>
 							<SelectTrigger
-								className="w-full md:hidden"
+								className="w-full @2xl:hidden"
 								aria-label={m.hub_section_switcher_aria_label()}
 							>
 								<SelectValue />
@@ -153,7 +153,7 @@ function RouteComponent() {
 							</SelectContent>
 						</Select>
 						<Tabs
-							className="hidden md:flex"
+							className="hidden @2xl:flex"
 							value={activeTab}
 							onValueChange={navigateToRoute}
 						>

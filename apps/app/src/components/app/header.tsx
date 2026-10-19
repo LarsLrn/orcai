@@ -97,7 +97,7 @@ const Header = ({ homeTo = "/app" }: { homeTo?: "/app" | "/instance" }) => {
 									</BreadcrumbItem>
 								)}
 								<BreadcrumbSeparator className="md:hidden" />
-								<BreadcrumbItem className="md:hidden">
+								<BreadcrumbItem className="min-w-0 md:hidden">
 									<Link
 										to={breadcrumbItems[breadcrumbItems.length - 1].href}
 										aria-current="page"
