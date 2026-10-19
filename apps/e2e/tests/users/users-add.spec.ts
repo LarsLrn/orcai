@@ -2,7 +2,7 @@ import { EMAIL_DOMAIN } from "../../fixtures/constants";
 import { submitForm } from "../../fixtures/forms";
 import { expect, test } from "../../fixtures/index";
 import { message } from "../../fixtures/messages";
-import { enterApp } from "../../fixtures/navigation";
+import { awaitHydration, enterApp } from "../../fixtures/navigation";
 import { runId } from "../../fixtures/organisation";
 import { reachPage, userRow } from "../../fixtures/users/users";
 
@@ -79,3 +79,64 @@ test("users: the add form refuses an invalid email", async ({
 	).toBeVisible();
 	await expect(page).toHaveURL(/\/app\/users\/add/);
 });
+
+/**
+ * A context change above the route while its lazy fields still load makes
+ * React drop the server-rendered form and render a second copy.
+ */
+for (const { theme, colorScheme } of [
+	{
+		theme: "dark",
+		colorScheme: "light",
+	},
+	{
+		theme: "system",
+		colorScheme: "dark",
+	},
+] as const) {
+	test(`users: the add form keeps its server-rendered form through hydration with the ${theme} theme`, async ({
+		org,
+		pageAs,
+	}) => {
+		const page = await pageAs("admin");
+		await enterApp(page, org.slug);
+		await page.emulateMedia({
+			colorScheme,
+		});
+		await page.context().addCookies([
+			{
+				name: "theme",
+				value: theme,
+				url: new URL(page.url()).origin,
+			},
+		]);
+
+		// Scripts are held back until the server-rendered form is in hand.
+		let releaseScripts!: () => void;
+		const scriptsReleased = new Promise<void>((resolve) => {
+			releaseScripts = resolve;
+		});
+		await page.route("**/*", async (route) => {
+			if (route.request().resourceType() === "script") await scriptsReleased;
+			await route.fallback();
+		});
+
+		await page.goto("/app/users/add", {
+			waitUntil: "commit",
+		});
+		const serverForm = await page.locator("form").elementHandle();
+		releaseScripts();
+		await awaitHydration(page);
+		await expect(page.locator("html")).toHaveClass(/\bdark\b/);
+		await expect(
+			page.getByLabel(
+				message("orgs_invitation_form_email_label", {
+					position: 1,
+				}),
+			),
+		).toBeVisible();
+
+		expect(await serverForm?.isVisible()).toBe(true);
+		await expect(page.locator("form")).toHaveCount(1);
+	});
+}
