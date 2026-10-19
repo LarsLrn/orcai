@@ -1,31 +1,11 @@
-import { logErrorCause, withActiveSpan } from "@orcai/observability";
+import { withActiveSpan } from "@orcai/observability";
 import { getCookie } from "@orpc/server/helpers";
-import * as Cause from "effect/Cause";
-import * as Effect from "effect/Effect";
 import { secureCookiesFor } from "@/lib/authz/zed-token";
 import { runtime } from "@/lib/effect/runtime";
 import { loadAppConfigSync } from "@/lib/effect/services/config";
 import { COOKIES, HEADERS } from "@/settings/constants";
-import { causeToORPCError } from "./error-mapping";
+import { mapEffectErrors } from "./error-mapping";
 import type { ORPCContext } from "./os";
-
-function mapEffectCauseToORPCError<A, E>(
-	effect: Effect.Effect<A, E>,
-): Effect.Effect<A, E> {
-	const mapped = (effect as Effect.Effect<A, unknown>).pipe(
-		Effect.catchCause((cause: Cause.Cause<unknown>) => {
-			if (Cause.hasInterruptsOnly(cause)) {
-				return Effect.failCause(cause);
-			}
-
-			return logErrorCause("ORPC effect failed", cause).pipe(
-				Effect.andThen(Effect.fail(causeToORPCError(cause))),
-			);
-		}),
-	);
-
-	return mapped as unknown as Effect.Effect<A, E>;
-}
 
 const secureCookies = secureCookiesFor(loadAppConfigSync().auth.url);
 
@@ -45,7 +25,6 @@ export async function createORPCContext(params: {
 		},
 		secureCookies,
 		"effect/context": await runtime.context(),
-		"effect/wrap": (effect) =>
-			mapEffectCauseToORPCError(withActiveSpan(effect)),
+		"effect/wrap": (effect) => mapEffectErrors(withActiveSpan(effect)),
 	};
 }

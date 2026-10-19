@@ -10,10 +10,13 @@ import type {
 import type { AppRuntimeContext } from "@/lib/effect/runtime";
 import { zedTokenResponseMiddleware } from "@/lib/orpc/middlewares/zed-token";
 
+/** The Effect services every procedure and middleware runs with. */
+export type AppEffectContext = WithEffectContext<AppRuntimeContext>;
+
 export interface ORPCContext
 	extends RequestHeadersHandlerPluginContext,
 		ResponseHeadersHandlerPluginContext,
-		WithEffectContext<AppRuntimeContext> {
+		AppEffectContext {
 	meta?: {
 		zedToken?: string;
 	};
