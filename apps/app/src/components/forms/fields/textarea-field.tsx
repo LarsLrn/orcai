@@ -8,6 +8,7 @@ import {
 } from "@/components/ui/field";
 import { Textarea } from "@/components/ui/textarea";
 import { useFieldContext } from "@/hooks/form/context";
+import { useFieldLabel } from "@/hooks/form/field-labels";
 import { cn } from "@/lib/utils";
 
 const TextareaField = ({
@@ -21,6 +22,7 @@ const TextareaField = ({
 	unit?: string;
 } & React.ComponentProps<"textarea">) => {
 	const field = useFieldContext<string>();
+	useFieldLabel(field, label);
 	const id = useId();
 
 	const errors = useSelector(field.store, (state) => state.meta.errors);

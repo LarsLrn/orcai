@@ -8,6 +8,7 @@ import {
 } from "@/components/ui/field";
 import { Slider } from "@/components/ui/slider";
 import { useFieldContext } from "@/hooks/form/context";
+import { useFieldLabel } from "@/hooks/form/field-labels";
 
 const SliderField = ({
 	label,
@@ -27,6 +28,7 @@ const SliderField = ({
 	formatValue?: (value: number) => string;
 }) => {
 	const field = useFieldContext<number>();
+	useFieldLabel(field, label);
 	const id = useId();
 	const extractNumberValue = (nextValue: number | readonly number[]) =>
 		Array.isArray(nextValue) ? nextValue[0] : nextValue;

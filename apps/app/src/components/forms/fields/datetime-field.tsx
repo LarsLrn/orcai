@@ -18,6 +18,7 @@ import {
 	PopoverTrigger,
 } from "@/components/ui/popover";
 import { useFieldContext } from "@/hooks/form/context";
+import { useFieldLabel } from "@/hooks/form/field-labels";
 import { cn } from "@/lib/utils";
 import { m } from "@/paraglide/messages";
 
@@ -41,6 +42,7 @@ const DatetimeField = ({
 	maxDate,
 }: DatetimeFieldProps) => {
 	const field = useFieldContext<Date | null>();
+	useFieldLabel(field, label);
 	const id = useId();
 
 	const errors = useSelector(field.store, (state) => state.meta.errors);

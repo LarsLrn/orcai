@@ -1,5 +1,6 @@
 import { createFormHook } from "@tanstack/react-form";
 import { lazy } from "react";
+import { flushSync } from "react-dom";
 import { SubmitButton } from "@/components/forms/submit-button";
 import { fieldContext, formContext } from "./context";
 
@@ -39,7 +40,7 @@ const FormValidationErrors = lazy(
 	() => import("@/components/forms/fields/form-validation-errors"),
 );
 
-export const { useAppForm, withForm, withFieldGroup } = createFormHook({
+const formHook = createFormHook({
 	fieldComponents: {
 		TextField,
 		SelectField,
@@ -61,3 +62,21 @@ export const { useAppForm, withForm, withFieldGroup } = createFormHook({
 	fieldContext,
 	formContext,
 });
+
+// Once a submission is rejected, render the invalid fields and move to the first.
+const focusFirstInvalidField = () => {
+	flushSync(() => undefined);
+	const scope = document.activeElement?.closest("form") ?? document;
+	scope.querySelector<HTMLElement>('[aria-invalid="true"]')?.focus();
+};
+
+export const useAppForm: typeof formHook.useAppForm = (props) =>
+	formHook.useAppForm({
+		...props,
+		onSubmitInvalid: (invalid) => {
+			focusFirstInvalidField();
+			props.onSubmitInvalid?.(invalid);
+		},
+	});
+
+export const { withForm, withFieldGroup } = formHook;

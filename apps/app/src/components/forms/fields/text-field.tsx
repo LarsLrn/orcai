@@ -8,6 +8,7 @@ import {
 } from "@/components/ui/field";
 import { Input } from "@/components/ui/input";
 import { useFieldContext } from "@/hooks/form/context";
+import { useFieldLabel } from "@/hooks/form/field-labels";
 import { cn } from "@/lib/utils";
 
 const TextField = ({
@@ -22,6 +23,7 @@ const TextField = ({
 	unit?: string;
 } & React.ComponentProps<"input">) => {
 	const field = useFieldContext<string | number>();
+	useFieldLabel(field, label);
 	const id = useId();
 
 	const errors = useSelector(field.store, (state) => state.meta.errors);

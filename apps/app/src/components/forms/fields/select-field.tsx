@@ -15,6 +15,7 @@ import {
 	SelectValue,
 } from "@/components/ui/select";
 import { useFieldContext } from "@/hooks/form/context";
+import { useFieldLabel } from "@/hooks/form/field-labels";
 import { m } from "@/paraglide/messages";
 
 const SelectField = ({
@@ -36,6 +37,7 @@ const SelectField = ({
 	disabled?: boolean;
 }) => {
 	const field = useFieldContext<string>();
+	useFieldLabel(field, label);
 	const id = useId();
 
 	const errors = useSelector(field.store, (state) => state.meta.errors);

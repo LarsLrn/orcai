@@ -1,3 +1,4 @@
+import { useSelector } from "@tanstack/react-store";
 import type { VariantProps } from "class-variance-authority";
 import { Button, type buttonVariants } from "@/components/ui/button";
 import { useFormContext } from "@/hooks/form/context";
@@ -14,22 +15,20 @@ const SubmitButton = ({
 } & React.ComponentProps<"button"> &
 	VariantProps<typeof buttonVariants>) => {
 	const form = useFormContext();
+	const isSubmitting = useSelector(form.store, (state) => state.isSubmitting);
+
 	return (
-		<form.Subscribe selector={(state) => state.isSubmitting}>
-			{(isSubmitting) => (
-				<Button
-					type="submit"
-					variant={variant}
-					size={size}
-					loading={isSubmitting}
-					disabled={disabled}
-					className={className}
-					{...props}
-				>
-					{label}
-				</Button>
-			)}
-		</form.Subscribe>
+		<Button
+			type="submit"
+			variant={variant}
+			size={size}
+			loading={isSubmitting}
+			disabled={disabled}
+			className={className}
+			{...props}
+		>
+			{label}
+		</Button>
 	);
 };
 

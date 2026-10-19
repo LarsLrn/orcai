@@ -79,7 +79,9 @@ test("users: the add form refuses an invalid email", async ({
 
 	await expect(
 		page.getByText(
-			`Items[0] → Email: ${message("error_validation_invalid_email")}`,
+			`${message("orgs_invitation_form_email_label", {
+				position: 1,
+			})}: ${message("error_validation_invalid_email")}`,
 		),
 	).toBeVisible();
 	await expect(page).toHaveURL(/\/app\/users\/add/);

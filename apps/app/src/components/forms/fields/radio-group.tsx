@@ -11,6 +11,7 @@ import {
 } from "@/components/ui/field";
 import { RadioGroup } from "@/components/ui/radio-group";
 import { useFieldContext } from "@/hooks/form/context";
+import { useFieldLabel } from "@/hooks/form/field-labels";
 
 const CheckboxGroup = ({
 	label,
@@ -29,6 +30,7 @@ const CheckboxGroup = ({
 	placeholder?: string;
 }) => {
 	const field = useFieldContext<string>();
+	useFieldLabel(field, label);
 
 	const errors = useSelector(field.store, (state) => state.meta.errors);
 	const isInvalid = useSelector(
