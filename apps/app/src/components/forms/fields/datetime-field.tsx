@@ -19,6 +19,7 @@ import {
 } from "@/components/ui/popover";
 import { useFieldContext } from "@/hooks/form/context";
 import { useFieldLabel } from "@/hooks/form/field-labels";
+import { getDateLocale } from "@/lib/presentation/date-locale";
 import { cn } from "@/lib/utils";
 import { m } from "@/paraglide/messages";
 
@@ -53,12 +54,10 @@ const DatetimeField = ({
 
 	const value = field.state.value;
 
-	const formatDate = (date: Date) => {
-		if (showTimePicker) {
-			return format(date, "PPP 'at' p");
-		}
-		return format(date, "PPP");
-	};
+	const formatDate = (date: Date) =>
+		format(date, showTimePicker ? "PPPp" : "PPP", {
+			locale: getDateLocale(),
+		});
 
 	const handleDateSelect = (selectedDate: Date | undefined) => {
 		if (!selectedDate) {

@@ -13,6 +13,7 @@ import {
 	CardTitle,
 } from "@/components/ui/card";
 import { cn } from "@/lib/utils";
+import { m } from "@/paraglide/messages";
 
 type ResourceCardClickAction =
 	| {
@@ -403,7 +404,7 @@ const ResourceCardAction = ({ action }: { action: ResourceCardActionItem }) => {
 const ResourceCardMenuTrigger = ({
 	action,
 	icon: Icon = MoreHorizontalIcon,
-	label = "Open menu",
+	label = m.common_row_menu_trigger(),
 	className,
 	onClick,
 	disabled,

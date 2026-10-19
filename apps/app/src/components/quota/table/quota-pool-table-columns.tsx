@@ -72,6 +72,9 @@ export const quotaPoolTableColumns = columnHelper.columns([
 				</div>
 			</div>
 		),
+		meta: {
+			label: m.quotas_table_pool_column_header,
+		},
 	}),
 	columnHelper.accessor("periodType", {
 		header: ({ column }) => (
@@ -81,6 +84,9 @@ export const quotaPoolTableColumns = columnHelper.columns([
 			/>
 		),
 		cell: ({ row }) => formatPeriodType(row.original.periodType),
+		meta: {
+			label: m.quotas_table_period_column_header,
+		},
 	}),
 	columnHelper.display({
 		id: "budget",

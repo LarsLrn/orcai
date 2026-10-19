@@ -42,11 +42,17 @@ export const columns = columnHelper.columns([
 				{row.original.name}
 			</Link>
 		),
+		meta: {
+			label: m.common_name_label,
+		},
 	}),
 	columnHelper.accessor("email", {
 		header: ({ column }) => (
 			<DataTableColumnHeader column={column} title={m.common_email_label()} />
 		),
+		meta: {
+			label: m.common_email_label,
+		},
 	}),
 	columnHelper.accessor("emailVerified", {
 		header: ({ column }) => (
@@ -59,6 +65,9 @@ export const columns = columnHelper.columns([
 			row.original.emailVerified
 				? m.users_verification_verified()
 				: m.users_verification_not_verified(),
+		meta: {
+			label: m.users_table_email_verified_column_header,
+		},
 	}),
 	columnHelper.accessor("organizationRole", {
 		header: ({ column }) => (
@@ -68,6 +77,9 @@ export const columns = columnHelper.columns([
 			/>
 		),
 		cell: ({ row }) => getOrganizationRoleLabel(row.original.organizationRole),
+		meta: {
+			label: m.users_organisation_role_label,
+		},
 	}),
 	columnHelper.display({
 		id: "actions",

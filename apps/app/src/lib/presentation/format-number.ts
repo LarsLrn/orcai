@@ -1,26 +1,37 @@
-const countFormatter = new Intl.NumberFormat("en-GB");
+import { getLocale } from "@/paraglide/runtime";
 
-const compactNumberFormatter = new Intl.NumberFormat("en-GB", {
-	notation: "compact",
-});
+const formatterCache = new Map<string, Intl.NumberFormat>();
 
-const percentFormatter = new Intl.NumberFormat("en-GB", {
-	style: "percent",
-	maximumFractionDigits: 1,
-});
+const getFormatter = (
+	kind: string,
+	options: Intl.NumberFormatOptions = {},
+): Intl.NumberFormat => {
+	const locale = getLocale();
+	const key = `${locale}:${kind}`;
+	const cached = formatterCache.get(key);
+	if (cached) {
+		return cached;
+	}
 
-const numberFormatter = new Intl.NumberFormat();
+	const formatter = new Intl.NumberFormat(locale, options);
+	formatterCache.set(key, formatter);
+	return formatter;
+};
 
-const formatCount = (value: number) => countFormatter.format(value);
+const formatCount = (value: number) => getFormatter("count").format(value);
 
 const formatCompactNumber = (value: number) =>
-	compactNumberFormatter.format(value);
+	getFormatter("compact", {
+		notation: "compact",
+	}).format(value);
 
-const formatPercent = (value: number) => percentFormatter.format(value);
+const formatPercent = (value: number) =>
+	getFormatter("percent", {
+		style: "percent",
+		maximumFractionDigits: 1,
+	}).format(value);
 
 const formatNumber = (value: number | null | undefined, missing = "—") =>
-	value === null || value === undefined
-		? missing
-		: numberFormatter.format(value);
+	value === null || value === undefined ? missing : formatCount(value);
 
 export { formatCompactNumber, formatCount, formatNumber, formatPercent };

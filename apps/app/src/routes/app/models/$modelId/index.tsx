@@ -1,4 +1,4 @@
-import { modelCapabilities, providerCompatibilities } from "@orcai/core";
+import { providerCompatibilities } from "@orcai/core";
 import { useSuspenseQuery } from "@tanstack/react-query";
 import { createFileRoute, Link } from "@tanstack/react-router";
 import {
@@ -30,6 +30,7 @@ import {
 	PageTitle,
 } from "@/components/ui/shell/page";
 import { orpc } from "@/lib/orpc/orpc";
+import { getModelCapabilityLabel } from "@/lib/presentation/model-capability";
 import {
 	getModelStatusLabel,
 	getModelStatusVariant,
@@ -43,13 +44,6 @@ import { m } from "@/paraglide/messages";
 export const Route = createFileRoute("/app/models/$modelId/")({
 	component: RouteComponent,
 });
-
-const capabilityLabelMap = new Map(
-	modelCapabilities.map((capability) => [
-		capability.value,
-		capability.label,
-	]),
-);
 
 const compatibilityLabelMap = new Map(
 	providerCompatibilities.map((compatibility) => [
@@ -81,9 +75,7 @@ function RouteComponent() {
 	const provider = providerResponse.data;
 	const compatibilityLabel =
 		compatibilityLabelMap.get(provider.compatibility) ?? provider.compatibility;
-	const capabilityLabels = model.capabilities.map(
-		(capability) => capabilityLabelMap.get(capability) ?? capability,
-	);
+	const capabilityLabels = model.capabilities.map(getModelCapabilityLabel);
 
 	return (
 		<Page>

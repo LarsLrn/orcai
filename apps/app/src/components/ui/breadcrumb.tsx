@@ -3,11 +3,12 @@ import { useRender } from "@base-ui/react/use-render";
 import { ChevronRightIcon, MoreHorizontalIcon } from "lucide-react";
 import type * as React from "react";
 import { cn } from "@/lib/utils";
+import { m } from "@/paraglide/messages";
 
 function Breadcrumb({ className, ...props }: React.ComponentProps<"nav">) {
 	return (
 		<nav
-			aria-label="breadcrumb"
+			aria-label={m.breadcrumb_label()}
 			data-slot="breadcrumb"
 			className={cn(className)}
 			{...props}
@@ -104,7 +105,7 @@ function BreadcrumbEllipsis({
 			{...props}
 		>
 			<MoreHorizontalIcon />
-			<span className="sr-only">More</span>
+			<span className="sr-only">{m.breadcrumb_more_label()}</span>
 		</span>
 	);
 }

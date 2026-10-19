@@ -1,4 +1,4 @@
-import { modelCapabilities, providerCompatibilities } from "@orcai/core";
+import { providerCompatibilities } from "@orcai/core";
 import { useSuspenseQuery } from "@tanstack/react-query";
 import { createFileRoute, Link } from "@tanstack/react-router";
 import {
@@ -31,6 +31,7 @@ import {
 } from "@/components/ui/shell/page";
 import { orpc } from "@/lib/orpc/orpc";
 import { formatDisplayTimestamp } from "@/lib/presentation/format-timestamp";
+import { getModelCapabilityLabel } from "@/lib/presentation/model-capability";
 import {
 	getModelStatusLabel,
 	getModelStatusVariant,
@@ -49,13 +50,6 @@ const compatibilityLabelMap = new Map(
 	providerCompatibilities.map((compatibility) => [
 		compatibility.value,
 		compatibility.label,
-	]),
-);
-
-const capabilityLabelMap = new Map(
-	modelCapabilities.map((capability) => [
-		capability.value,
-		capability.label,
 	]),
 );
 
@@ -108,7 +102,7 @@ function RouteComponent() {
 	const activeModelCount = providerModels.length - deprecatedModelCount;
 	const supportedCapabilities = Array.from(
 		new Set(providerModels.flatMap((model) => model.capabilities)),
-	).map((capability) => capabilityLabelMap.get(capability) ?? capability);
+	).map(getModelCapabilityLabel);
 	const compatibilityLabel =
 		compatibilityLabelMap.get(provider.compatibility) ?? provider.compatibility;
 	const endpointHost = getEndpointHost(provider.endpoint);
@@ -310,7 +304,7 @@ function RouteComponent() {
 											<div className="flex flex-wrap gap-2">
 												{model.capabilities.map((capability) => (
 													<Badge key={capability} variant="outline">
-														{capabilityLabelMap.get(capability) ?? capability}
+														{getModelCapabilityLabel(capability)}
 													</Badge>
 												))}
 											</div>

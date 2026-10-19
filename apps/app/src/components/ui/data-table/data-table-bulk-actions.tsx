@@ -7,6 +7,7 @@ import {
 	DropdownMenuItem,
 	DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
+import { m } from "@/paraglide/messages";
 import { useTable } from "./data-table-context";
 import type { DataTableFeatures } from "./data-table-features";
 
@@ -64,10 +65,12 @@ const DataTableBulkActions = <TData extends RowData>({
 								size="sm"
 								className="h-8"
 								loading={isPending}
-								aria-label="Bulk actions"
+								aria-label={m.data_table_bulk_actions_trigger()}
 							>
 								<ReplaceAllIcon />
-								{selectedCount} selected
+								{m.common_selected_count({
+									count: selectedCount,
+								})}
 							</Button>
 						}
 					/>

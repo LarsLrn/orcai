@@ -37,6 +37,7 @@ import {
 } from "@/components/ui/select";
 import { Skeleton } from "@/components/ui/skeleton";
 import { cn } from "@/lib/utils";
+import { m } from "@/paraglide/messages";
 
 // ---------------------------------------------------------------------------
 // Context
@@ -190,10 +191,10 @@ function DialogSelectTrigger({
 function DialogSelectContent({
 	className,
 	children,
-	title = "Select an item",
+	title,
 	...props
 }: React.ComponentProps<typeof DialogContent> & {
-	title?: string;
+	title: string;
 }) {
 	return (
 		<DialogContent
@@ -261,7 +262,7 @@ function DialogSelectFilter({
 	options,
 	value,
 	onValueChange,
-	placeholder = "Filter",
+	placeholder = m.dialog_select_filter_placeholder(),
 	className,
 }: {
 	options: DialogSelectFilterOption[];
@@ -383,7 +384,7 @@ function DialogSelectItem({
 
 function DialogSelectEmpty({
 	className,
-	children = "No results found.",
+	children = m.dialog_select_empty_state(),
 	...props
 }: React.ComponentProps<"div">) {
 	return (

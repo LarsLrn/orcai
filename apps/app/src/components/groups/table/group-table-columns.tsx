@@ -44,6 +44,9 @@ export const groupTableColumns = columnHelper.columns([
 				)}
 			</div>
 		),
+		meta: {
+			label: m.common_name_label,
+		},
 	}),
 	columnHelper.accessor("kind", {
 		size: 160,
@@ -60,6 +63,9 @@ export const groupTableColumns = columnHelper.columns([
 					: m.groups_kind_custom()}
 			</Badge>
 		),
+		meta: {
+			label: m.groups_table_kind_column_header,
+		},
 	}),
 	columnHelper.display({
 		id: "actions",

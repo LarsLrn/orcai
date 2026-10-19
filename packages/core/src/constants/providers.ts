@@ -18,42 +18,15 @@ export const providerCompatibilities = [
 ] as const;
 
 export const modelCapabilities = [
-	{
-		value: "text",
-		label: "Text",
-	},
-	{
-		value: "embedding",
-		label: "Embedding",
-	},
-	{
-		value: "image",
-		label: "Image",
-	},
-	{
-		value: "image-generation",
-		label: "Image Generation",
-	},
-	{
-		value: "video",
-		label: "Video",
-	},
-	{
-		value: "audio",
-		label: "Audio",
-	},
-	{
-		value: "audio-generation",
-		label: "Audio Generation",
-	},
-	{
-		value: "reasoning",
-		label: "Reasoning",
-	},
-	{
-		value: "tool-calling",
-		label: "Tool Calling",
-	},
+	"text",
+	"embedding",
+	"image",
+	"image-generation",
+	"video",
+	"audio",
+	"audio-generation",
+	"reasoning",
+	"tool-calling",
 ] as const;
 
 export const providerMeteringModes = [

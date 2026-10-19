@@ -34,11 +34,17 @@ export const instanceUserTableColumns = columnHelper.columns([
 			<DataTableColumnHeader column={column} title={m.common_name_label()} />
 		),
 		cell: ({ row }) => <span className="font-medium">{row.original.name}</span>,
+		meta: {
+			label: m.common_name_label,
+		},
 	}),
 	columnHelper.accessor("email", {
 		header: ({ column }) => (
 			<DataTableColumnHeader column={column} title={m.common_email_label()} />
 		),
+		meta: {
+			label: m.common_email_label,
+		},
 	}),
 	columnHelper.display({
 		id: "organisations",
@@ -81,6 +87,9 @@ export const instanceUserTableColumns = columnHelper.columns([
 		cell: ({ row }) => (
 			<span>{formatDisplayTimestamp(row.original.createdAt || "")}</span>
 		),
+		meta: {
+			label: m.common_created_column_header,
+		},
 	}),
 	columnHelper.display({
 		id: "actions",

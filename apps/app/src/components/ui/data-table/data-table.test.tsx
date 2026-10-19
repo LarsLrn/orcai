@@ -15,6 +15,7 @@ import {
 	waitFor,
 } from "@testing-library/react";
 import { memo } from "react";
+import { m } from "@/paraglide/messages";
 import { DataTable } from "./data-table";
 import { DataTableBody } from "./data-table-body";
 import { DataTableColumnHeader } from "./data-table-column-header";
@@ -61,7 +62,7 @@ const columns = columnHelper.columns([
 			<MemoizedColumnHeader column={column} title="Name" />
 		),
 		meta: {
-			exportLabel: "Name",
+			label: () => "Name",
 		},
 	}),
 	columnHelper.accessor("id", {
@@ -190,11 +191,13 @@ describe("DataTable", () => {
 			name: "Name",
 		});
 
-		fireEvent.click(screen.getByLabelText("Select all rows on this page"));
+		fireEvent.click(
+			screen.getByLabelText(m.data_table_select_all_rows_label()),
+		);
 		fireEvent.click(headerButton);
 		fireEvent.click(
 			await screen.findByRole("menuitem", {
-				name: "Desc",
+				name: m.data_table_column_header_sort_descending_action(),
 			}),
 		);
 
@@ -212,13 +215,18 @@ describe("DataTable", () => {
 		});
 		expect(headerButton.querySelector(".lucide-arrow-down")).not.toBeNull();
 		expect(
-			screen.getByText("0 of 3 row(s) selected on this page."),
+			screen.getByText(
+				m.data_table_pagination_selected_rows({
+					selected: 0,
+					total: 3,
+				}),
+			),
 		).toBeTruthy();
 
 		fireEvent.click(headerButton);
 		fireEvent.click(
 			await screen.findByRole("menuitem", {
-				name: "Asc",
+				name: m.data_table_column_header_sort_ascending_action(),
 			}),
 		);
 		await waitFor(() => {
@@ -234,25 +242,46 @@ describe("DataTable", () => {
 
 	test("pagination controls navigate between pages", async () => {
 		const router = await renderTable();
-		expect(screen.getByText("Page 1 of 3")).toBeTruthy();
-		fireEvent.click(screen.getByLabelText("Select all rows on this page"));
+		expect(
+			screen.getByText(
+				m.data_table_pagination_position({
+					page: 1,
+					pageCount: 3,
+				}),
+			),
+		).toBeTruthy();
+		fireEvent.click(
+			screen.getByLabelText(m.data_table_select_all_rows_label()),
+		);
 
 		fireEvent.click(
 			screen.getByRole("button", {
-				name: "Go to next page",
+				name: m.common_pagination_next_page_label(),
 			}),
 		);
 		await waitFor(() => {
 			expect(currentSearch(router).pageIndex).toBe(1);
 		});
-		expect(screen.getByText("Page 2 of 3")).toBeTruthy();
 		expect(
-			screen.getByText("0 of 3 row(s) selected on this page."),
+			screen.getByText(
+				m.data_table_pagination_position({
+					page: 2,
+					pageCount: 3,
+				}),
+			),
+		).toBeTruthy();
+		expect(
+			screen.getByText(
+				m.data_table_pagination_selected_rows({
+					selected: 0,
+					total: 3,
+				}),
+			),
 		).toBeTruthy();
 
 		fireEvent.click(
 			screen.getByRole("button", {
-				name: "Go to last page",
+				name: m.common_pagination_last_page_label(),
 			}),
 		);
 		await waitFor(() => {
@@ -284,18 +313,34 @@ describe("DataTable", () => {
 				sort: [],
 			});
 		});
-		expect(screen.getByText("Page 1 of 1")).toBeTruthy();
+		expect(
+			screen.getByText(
+				m.data_table_pagination_position({
+					page: 1,
+					pageCount: 1,
+				}),
+			),
+		).toBeTruthy();
 	});
 
 	test("select all only selects selectable rows", async () => {
 		await renderTable();
 
-		fireEvent.click(screen.getByLabelText("Select all rows on this page"));
+		fireEvent.click(
+			screen.getByLabelText(m.data_table_select_all_rows_label()),
+		);
 
 		expect(
-			screen.getByText("2 of 3 row(s) selected on this page."),
+			screen.getByText(
+				m.data_table_pagination_selected_rows({
+					selected: 2,
+					total: 3,
+				}),
+			),
 		).toBeTruthy();
-		const rowCheckboxes = screen.getAllByLabelText("Select row");
+		const rowCheckboxes = screen.getAllByLabelText(
+			m.data_table_select_row_label(),
+		);
 		expect(
 			rowCheckboxes.map((checkbox) => checkbox.getAttribute("aria-checked")),
 		).toEqual([
@@ -305,7 +350,7 @@ describe("DataTable", () => {
 		]);
 		expect(
 			screen
-				.getByLabelText("Select all rows on this page")
+				.getByLabelText(m.data_table_select_all_rows_label())
 				.getAttribute("aria-checked"),
 		).toBe("true");
 	});
@@ -315,12 +360,12 @@ describe("DataTable", () => {
 
 		fireEvent.click(
 			screen.getByRole("button", {
-				name: "View",
+				name: m.data_table_view_options_trigger(),
 			}),
 		);
 		fireEvent.click(
 			await screen.findByRole("menuitemcheckbox", {
-				name: "name",
+				name: "Name",
 			}),
 		);
 
@@ -330,7 +375,9 @@ describe("DataTable", () => {
 				name: "Name",
 			}),
 		).toBeNull();
-		expect(screen.getAllByLabelText("Select row")).toHaveLength(3);
+		expect(
+			screen.getAllByLabelText(m.data_table_select_row_label()),
+		).toHaveLength(3);
 		expect(JSON.parse(screen.getByTestId("csv").textContent ?? "")).toEqual([
 			[
 				"id",

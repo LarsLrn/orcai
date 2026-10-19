@@ -12,6 +12,7 @@ import {
 	SelectTrigger,
 	SelectValue,
 } from "@/components/ui/select";
+import { m } from "@/paraglide/messages";
 import { useTable } from "./data-table-context";
 
 const DataTablePagination = () => {
@@ -29,12 +30,17 @@ const DataTablePagination = () => {
 		<div className="flex flex-wrap items-center justify-between gap-x-6 gap-y-2 px-2">
 			<div className="grow whitespace-nowrap text-muted-foreground text-sm">
 				{hasSelectionColumn
-					? `${table.getFilteredSelectedRowModel().rows.length} of ${table.getRowModel().rows.length} row(s) selected on this page.`
+					? m.data_table_pagination_selected_rows({
+							selected: table.getFilteredSelectedRowModel().rows.length,
+							total: table.getRowModel().rows.length,
+						})
 					: null}
 			</div>
 			<div className="flex flex-wrap items-center gap-x-6 gap-y-2 lg:gap-x-8">
 				<div className="flex items-center space-x-2">
-					<p className="whitespace-nowrap font-medium text-sm">Rows per page</p>
+					<p className="whitespace-nowrap font-medium text-sm">
+						{m.data_table_pagination_rows_per_page_label()}
+					</p>
 					<Select
 						value={`${table.state.pagination.pageSize}`}
 						onValueChange={(value) => {
@@ -63,8 +69,10 @@ const DataTablePagination = () => {
 				</div>
 				<div className="flex items-center space-x-2">
 					<div className="flex w-25 items-center justify-center font-medium text-sm">
-						Page {table.state.pagination.pageIndex + 1} of{" "}
-						{table.getPageCount()}
+						{m.data_table_pagination_position({
+							page: table.state.pagination.pageIndex + 1,
+							pageCount: table.getPageCount(),
+						})}
 					</div>
 					<Button
 						variant="outline"
@@ -72,7 +80,9 @@ const DataTablePagination = () => {
 						onClick={() => table.setPageIndex(0)}
 						disabled={!table.getCanPreviousPage()}
 					>
-						<span className="sr-only">Go to first page</span>
+						<span className="sr-only">
+							{m.common_pagination_first_page_label()}
+						</span>
 						<ChevronsLeft />
 					</Button>
 					<Button
@@ -81,7 +91,9 @@ const DataTablePagination = () => {
 						onClick={() => table.previousPage()}
 						disabled={!table.getCanPreviousPage()}
 					>
-						<span className="sr-only">Go to previous page</span>
+						<span className="sr-only">
+							{m.common_pagination_previous_page_label()}
+						</span>
 						<ChevronLeft />
 					</Button>
 					<Button
@@ -90,7 +102,9 @@ const DataTablePagination = () => {
 						onClick={() => table.nextPage()}
 						disabled={!table.getCanNextPage()}
 					>
-						<span className="sr-only">Go to next page</span>
+						<span className="sr-only">
+							{m.common_pagination_next_page_label()}
+						</span>
 						<ChevronRight />
 					</Button>
 					<Button
@@ -99,7 +113,9 @@ const DataTablePagination = () => {
 						onClick={() => table.setPageIndex(table.getPageCount() - 1)}
 						disabled={!table.getCanNextPage()}
 					>
-						<span className="sr-only">Go to last page</span>
+						<span className="sr-only">
+							{m.common_pagination_last_page_label()}
+						</span>
 						<ChevronsRight />
 					</Button>
 				</div>

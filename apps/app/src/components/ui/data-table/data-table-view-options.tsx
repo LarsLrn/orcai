@@ -9,6 +9,7 @@ import {
 	DropdownMenuSeparator,
 	DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
+import { m } from "@/paraglide/messages";
 import { useTable } from "./data-table-context";
 
 const DataTableViewOptions = () => {
@@ -20,13 +21,15 @@ const DataTableViewOptions = () => {
 				render={
 					<Button variant="outline" size="sm" className="h-8">
 						<Settings2Icon />
-						View
+						{m.data_table_view_options_trigger()}
 					</Button>
 				}
 			/>
 			<DropdownMenuContent align="end" className="w-37.5">
 				<DropdownMenuGroup>
-					<DropdownMenuLabel>Toggle columns</DropdownMenuLabel>
+					<DropdownMenuLabel>
+						{m.data_table_view_options_title()}
+					</DropdownMenuLabel>
 					<DropdownMenuSeparator />
 					{table
 						.getAllColumns()
@@ -37,12 +40,11 @@ const DataTableViewOptions = () => {
 						.map((column) => {
 							return (
 								<DropdownMenuCheckboxItem
-									key={column.id}
-									className="capitalize"
+									key={column.columnDef.meta?.label?.() ?? column.id}
 									checked={column.getIsVisible()}
 									onCheckedChange={(value) => column.toggleVisibility(!!value)}
 								>
-									{column.id}
+									{column.columnDef.meta?.label?.() ?? column.id}
 								</DropdownMenuCheckboxItem>
 							);
 						})}

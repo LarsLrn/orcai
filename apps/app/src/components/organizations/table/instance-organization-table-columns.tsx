@@ -27,6 +27,9 @@ export const instanceOrganizationTableColumns = columnHelper.columns([
 			<DataTableColumnHeader column={column} title={m.common_name_label()} />
 		),
 		cell: ({ row }) => <span className="font-medium">{row.original.name}</span>,
+		meta: {
+			label: m.common_name_label,
+		},
 	}),
 	columnHelper.accessor("slug", {
 		header: ({ column }) => (
@@ -35,6 +38,9 @@ export const instanceOrganizationTableColumns = columnHelper.columns([
 				title={m.instance_orgs_table_slug_column_header()}
 			/>
 		),
+		meta: {
+			label: m.instance_orgs_table_slug_column_header,
+		},
 	}),
 	columnHelper.accessor("memberCount", {
 		header: ({ column }) => (
@@ -43,6 +49,9 @@ export const instanceOrganizationTableColumns = columnHelper.columns([
 				title={m.instance_orgs_table_members_column_header()}
 			/>
 		),
+		meta: {
+			label: m.instance_orgs_table_members_column_header,
+		},
 	}),
 	columnHelper.accessor("createdAt", {
 		header: ({ column }) => (
@@ -54,6 +63,9 @@ export const instanceOrganizationTableColumns = columnHelper.columns([
 		cell: ({ row }) => (
 			<span>{formatDisplayTimestamp(row.original.createdAt || "")}</span>
 		),
+		meta: {
+			label: m.common_created_column_header,
+		},
 	}),
 	columnHelper.display({
 		id: "actions",

@@ -5,6 +5,7 @@ import { ChevronLeftIcon, ChevronRightIcon } from "lucide-react";
 import * as React from "react";
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
+import { m } from "@/paraglide/messages";
 
 type CarouselApi = UseEmblaCarouselType[1];
 type UseCarouselParameters = Parameters<typeof useEmblaCarousel>;
@@ -207,7 +208,7 @@ function CarouselPrevious({
 			{...props}
 		>
 			<ChevronLeftIcon />
-			<span className="sr-only">Previous slide</span>
+			<span className="sr-only">{m.carousel_previous_slide_label()}</span>
 		</Button>
 	);
 }
@@ -237,7 +238,7 @@ function CarouselNext({
 			{...props}
 		>
 			<ChevronRightIcon />
-			<span className="sr-only">Next slide</span>
+			<span className="sr-only">{m.carousel_next_slide_label()}</span>
 		</Button>
 	);
 }

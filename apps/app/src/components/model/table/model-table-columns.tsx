@@ -1,4 +1,3 @@
-import { modelCapabilities } from "@orcai/core";
 import type { ModelListRow } from "@orcai/schema";
 import { Link } from "@tanstack/react-router";
 import { createColumnHelper } from "@tanstack/react-table";
@@ -17,6 +16,7 @@ import {
 } from "@/components/ui/dropdown-menu";
 import { useDeleteModelsMutation } from "@/hooks/mutations/use-model-mutations";
 import { formatDisplayTimestamp } from "@/lib/presentation/format-timestamp";
+import { getModelCapabilityLabel } from "@/lib/presentation/model-capability";
 import {
 	getModelStatusLabel,
 	getModelStatusVariant,
@@ -24,13 +24,6 @@ import {
 import { m } from "@/paraglide/messages";
 
 const columnHelper = createColumnHelper<DataTableFeatures, ModelListRow>();
-
-const capabilityLabelMap = new Map(
-	modelCapabilities.map((capability) => [
-		capability.value,
-		capability.label,
-	]),
-);
 
 export const modelTableColumns = columnHelper.columns([
 	createDataTableSelectColumn<ModelListRow>(),
@@ -49,6 +42,9 @@ export const modelTableColumns = columnHelper.columns([
 				{row.original.name}
 			</Link>
 		),
+		meta: {
+			label: m.common_name_label,
+		},
 	}),
 	columnHelper.accessor((row) => row.provider.name, {
 		id: "providerName",
@@ -69,6 +65,9 @@ export const modelTableColumns = columnHelper.columns([
 				{row.original.provider.name}
 			</Link>
 		),
+		meta: {
+			label: m.common_provider_label,
+		},
 	}),
 	columnHelper.accessor("capabilities", {
 		enableSorting: false,
@@ -97,7 +96,7 @@ export const modelTableColumns = columnHelper.columns([
 				<div className="flex flex-wrap gap-1">
 					{row.original.capabilities.map((capability) => (
 						<Badge key={capability} variant="outline">
-							{capabilityLabelMap.get(capability) ?? capability}
+							{getModelCapabilityLabel(capability)}
 						</Badge>
 					))}
 				</div>
@@ -115,6 +114,9 @@ export const modelTableColumns = columnHelper.columns([
 				{getModelStatusLabel(row.original.isDeprecated)}
 			</Badge>
 		),
+		meta: {
+			label: m.common_status_column_header,
+		},
 	}),
 	columnHelper.accessor("createdAt", {
 		header: ({ column }) => (
@@ -126,6 +128,9 @@ export const modelTableColumns = columnHelper.columns([
 		cell: ({ row }) => (
 			<span>{formatDisplayTimestamp(row.original.createdAt || "")}</span>
 		),
+		meta: {
+			label: m.common_created_column_header,
+		},
 	}),
 	columnHelper.display({
 		id: "actions",

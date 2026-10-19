@@ -33,6 +33,9 @@ export const organizationTableColumns = columnHelper.columns([
 				{row.original.name}
 			</Link>
 		),
+		meta: {
+			label: m.common_name_label,
+		},
 	}),
 	columnHelper.accessor("slug", {
 		header: ({ column }) => (
@@ -41,6 +44,9 @@ export const organizationTableColumns = columnHelper.columns([
 				title={m.orgs_table_slug_column_header()}
 			/>
 		),
+		meta: {
+			label: m.orgs_table_slug_column_header,
+		},
 	}),
 	columnHelper.accessor("createdAt", {
 		header: ({ column }) => (
@@ -52,6 +58,9 @@ export const organizationTableColumns = columnHelper.columns([
 		cell: ({ row }) => (
 			<span>{formatDisplayTimestamp(row.original.createdAt || "")}</span>
 		),
+		meta: {
+			label: m.orgs_table_created_column_header,
+		},
 	}),
 	columnHelper.display({
 		id: "actions",
