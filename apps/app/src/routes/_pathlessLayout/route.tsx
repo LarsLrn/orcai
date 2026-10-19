@@ -1,6 +1,7 @@
 import { createFileRoute, Outlet } from "@tanstack/react-router";
 import { LogoText } from "@/components/app/branding/logo-text";
 import { LoadingPage } from "@/components/app/loading/loading-page";
+import { LocaleSwitcher } from "@/components/app/locale/locale-switcher";
 import { ThemeSwitcher } from "@/components/app/theme-switcher";
 import { AuroraBackground } from "@/components/ui/aceternity/aurora-background";
 import { m } from "@/paraglide/messages";
@@ -15,7 +16,10 @@ function PathlessLayoutComponent() {
 		<main className="flex min-h-screen flex-col">
 			<AuroraBackground className="fixed inset-0 -z-10 h-full w-full" />
 
-			<ThemeSwitcher className="fixed top-4 right-4 z-20 text-foreground" />
+			<div className="fixed top-4 right-4 z-20 flex gap-2 text-foreground">
+				<ThemeSwitcher className="size-8 px-0" />
+				<LocaleSwitcher />
+			</div>
 
 			<div className="flex flex-col items-center justify-center gap-4 px-2 py-8">
 				<LogoText className="h-20" />
