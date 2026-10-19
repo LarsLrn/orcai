@@ -20,43 +20,41 @@ const UserWelcome = () => {
 
 	return (
 		<div className="space-y-2">
-			<div className="flex flex-col justify-between gap-2 sm:flex-row sm:items-center">
-				<h1 className="font-semibold text-2xl tracking-tight">
-					{m.home_welcome_heading({
-						timeOfDay: timeOfDay(),
-						name: auth.user.name?.split(" ")[0] ?? "",
-					})}
-				</h1>
-				<div className="flex items-center justify-end gap-1">
-					<AppTourButton
-						variant="ghost"
-						size="sm"
-						tour="initialTour"
-						autoTrigger={true}
-						label={m.home_tour_button_label()}
-						aria-label={m.home_tour_button_aria_label()}
-					>
-						<CompassIcon className="text-foreground" />
-					</AppTourButton>
-					{clientEnv.VITE_WEB_URL && (
-						<a
-							href={clientEnv.VITE_WEB_URL}
-							target="_blank"
-							rel="noopener noreferrer"
-							className={cn(
-								buttonVariants({
-									variant: "ghost",
-									size: "sm",
-								}),
-							)}
-						>
-							{m.home_about_link()}
-							<ExternalLinkIcon className="size-3.5" />
-						</a>
-					)}
-				</div>
-			</div>
+			<h1 className="font-semibold text-2xl tracking-tight">
+				{m.home_welcome_heading({
+					timeOfDay: timeOfDay(),
+					name: auth.user.name?.split(" ")[0] ?? "",
+				})}
+			</h1>
 			<p className="text-muted-foreground">{m.home_intro()}</p>
+			<div className="-ms-3 flex flex-wrap items-center gap-1 pt-2">
+				<AppTourButton
+					variant="ghost"
+					size="sm"
+					tour="initialTour"
+					autoTrigger={true}
+					label={m.home_tour_button_label()}
+					aria-label={m.home_tour_button_aria_label()}
+				>
+					<CompassIcon className="text-foreground" />
+				</AppTourButton>
+				{clientEnv.VITE_WEB_URL && (
+					<a
+						href={clientEnv.VITE_WEB_URL}
+						target="_blank"
+						rel="noopener noreferrer"
+						className={cn(
+							buttonVariants({
+								variant: "ghost",
+								size: "sm",
+							}),
+						)}
+					>
+						{m.home_about_link()}
+						<ExternalLinkIcon className="size-3.5" />
+					</a>
+				)}
+			</div>
 		</div>
 	);
 };

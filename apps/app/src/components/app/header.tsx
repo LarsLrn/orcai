@@ -66,7 +66,7 @@ const Header = ({ homeTo = "/app" }: { homeTo?: "/app" | "/instance" }) => {
 						{breadcrumbItems.length > 0 && (
 							<>
 								{breadcrumbItems.length > 1 && (
-									<BreadcrumbItem className="md:hidden">
+									<BreadcrumbItem className="lg:hidden">
 										<DropdownMenu>
 											<DropdownMenuTrigger
 												render={
@@ -96,8 +96,8 @@ const Header = ({ homeTo = "/app" }: { homeTo?: "/app" | "/instance" }) => {
 										</DropdownMenu>
 									</BreadcrumbItem>
 								)}
-								<BreadcrumbSeparator className="md:hidden" />
-								<BreadcrumbItem className="min-w-0 md:hidden">
+								<BreadcrumbSeparator className="lg:hidden" />
+								<BreadcrumbItem className="min-w-0 lg:hidden">
 									<Link
 										to={breadcrumbItems[breadcrumbItems.length - 1].href}
 										aria-current="page"
@@ -121,8 +121,8 @@ const Header = ({ homeTo = "/app" }: { homeTo?: "/app" | "/instance" }) => {
 
 						{breadcrumbItems.map((item, index) => (
 							<Fragment key={item.href}>
-								<BreadcrumbSeparator className="hidden md:block" />
-								<BreadcrumbItem className="hidden min-w-0 md:inline-flex">
+								<BreadcrumbSeparator className="hidden lg:block" />
+								<BreadcrumbItem className="hidden min-w-0 lg:inline-flex">
 									<Link
 										to={item.href}
 										aria-current={
@@ -136,8 +136,8 @@ const Header = ({ homeTo = "/app" }: { homeTo?: "/app" | "/instance" }) => {
 												className: cn(
 													"h-7 min-w-0 shrink overflow-hidden",
 													index === breadcrumbItems.length - 1
-														? "max-w-72 lg:max-w-96"
-														: "max-w-40 lg:max-w-56",
+														? "max-w-96"
+														: "max-w-56",
 												),
 											}),
 										)}
