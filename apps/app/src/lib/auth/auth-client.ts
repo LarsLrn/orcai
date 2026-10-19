@@ -1,3 +1,4 @@
+import { LOCALES } from "@orcai/schema";
 import { adminClient, inferAdditionalFields } from "better-auth/client/plugins";
 import { createAuthClient } from "better-auth/react";
 import { clientEnv } from "@/lib/env/client";
@@ -6,6 +7,15 @@ export const authClient = createAuthClient({
 	plugins: [
 		adminClient(),
 		inferAdditionalFields({
+			user: {
+				locale: {
+					type: [
+						...LOCALES,
+					],
+					required: false,
+					input: true,
+				},
+			},
 			session: {
 				activeOrganizationId: {
 					type: "string",
