@@ -1,5 +1,8 @@
 # yaml-language-server: $schema=https://coderabbit.ai/integrations/schema.v2.json
 reviews:
+  path_filters:
+    - "!**/snapshot.json"
+    - "!bun.lock"
   pre_merge_checks:
     docstrings:
       mode: "off"
