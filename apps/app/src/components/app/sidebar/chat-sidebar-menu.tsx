@@ -1,6 +1,7 @@
 import { useQuery } from "@tanstack/react-query";
 import { Link, useParams } from "@tanstack/react-router";
 import { MessagesSquareIcon, MoreHorizontalIcon } from "lucide-react";
+import { BranchMark } from "@/components/chat/branch-links";
 import { ChatActionsDropdown } from "@/components/chat/chat-actions-dropdown";
 import { SimplePlaceholder } from "@/components/placeholders/simple-placeholder";
 import { Button } from "@/components/ui/button";
@@ -79,6 +80,7 @@ const ChatSidebarMenu = () => {
 								}}
 								onClick={closeMobileForNavigation}
 							>
+								{chat.parentChatId && <BranchMark />}
 								<span className="truncate">
 									{chat.title ?? m.chat_title_placeholder()}
 								</span>

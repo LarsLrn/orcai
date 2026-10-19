@@ -8,6 +8,7 @@ import {
 import { useEffect } from "react";
 import { z } from "zod/v4";
 import { Chat } from "@/components/chat/chat";
+import { chatDraftSchema } from "@/components/chat/chat-draft";
 import { toChatAgentMessages } from "@/components/chat/chat-history";
 import { orpc } from "@/lib/orpc/orpc";
 import { orNotFound, parseParam } from "@/lib/router/not-found";
@@ -111,6 +112,11 @@ function RouteComponent() {
 				: undefined,
 	});
 
+	const draftState = useRouterState({
+		select: (state) => state.location.state.draft,
+	});
+	const draft = chatDraftSchema.safeParse(draftState).data;
+
 	return (
 		// The shell above the outlet takes the 48px header plus its 24px of vertical padding.
 		<div className="flex h-[calc(100dvh-6rem)] min-h-0 flex-col">
@@ -122,6 +128,7 @@ function RouteComponent() {
 				initialHasMore={loaderData.messages.hasMore}
 				zedToken={zedToken}
 				pendingMessage={pendingMessage}
+				draft={draft}
 			/>
 		</div>
 	);

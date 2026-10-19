@@ -1,4 +1,5 @@
 import { z } from "zod/v4";
+import { chatMessageIdSchema } from "../chat-message/ref";
 import { paginationInputSchema, zedTokenSchema } from "../shared";
 import { createUniqueRefsInputSchema } from "../shared/ref-list";
 import { createSortingInputSchema } from "../shared/sorting";
@@ -37,9 +38,16 @@ export const deleteChatInputSchema = z.object({
 	}),
 });
 
+export const branchChatInputSchema = z.object({
+	chatId: chatIdSchema,
+	messageId: chatMessageIdSchema,
+	...zedTokenSchema.shape,
+});
+
 export type ListChatsInput = z.infer<typeof listChatsInputSchema>;
 export type ChatSortKey = z.infer<typeof chatSortKeySchema>;
 export type FindChatInput = z.infer<typeof findChatInputSchema>;
 export type CreateChatInput = z.infer<typeof createChatInputSchema>;
 export type UpdateChatInput = z.infer<typeof updateChatInputSchema>;
 export type DeleteChatInput = z.infer<typeof deleteChatInputSchema>;
+export type BranchChatInput = z.infer<typeof branchChatInputSchema>;

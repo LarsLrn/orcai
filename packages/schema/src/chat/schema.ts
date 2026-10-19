@@ -32,5 +32,17 @@ export const chatListRowSchema = chatSchema.extend({
 	botName: z.string().nullable(),
 });
 
+export const chatLinkSchema = z.object({
+	id: chatIdSchema,
+	title: z.string().nullable(),
+});
+
+export const chatBranchLinkSchema = chatLinkSchema.extend({
+	branchedFromMessageId: chatMessageIdSchema,
+	createdAt: z.coerce.date().nullable(),
+});
+
 export type Chat = z.infer<typeof chatSchema>;
+export type ChatLink = z.infer<typeof chatLinkSchema>;
+export type ChatBranchLink = z.infer<typeof chatBranchLinkSchema>;
 export type ChatListRow = z.infer<typeof chatListRowSchema>;

@@ -1,5 +1,5 @@
 import type { ChatId } from "@orcai/core";
-import { CopyIcon, PencilIcon } from "lucide-react";
+import { CopyIcon, GitBranchIcon, PencilIcon } from "lucide-react";
 import { toast } from "sonner";
 import { useCopyToClipboard } from "usehooks-ts";
 import {
@@ -18,12 +18,17 @@ export const MessageActions = ({
 	variant,
 	chatId,
 	onEdit,
+	onBranch,
+	branching = false,
 	className,
 }: {
 	message: ChatAgentUIMessage;
 	variant: "sent" | "received";
 	chatId: ChatId;
 	onEdit?: () => void;
+	/** Left out while the message can't be branched from yet. */
+	onBranch?: () => void;
+	branching?: boolean;
 } & MessageActionsProps) => {
 	const [, copy] = useCopyToClipboard();
 
@@ -39,6 +44,17 @@ export const MessageActions = ({
 			}),
 		});
 	};
+
+	const branchAction = onBranch && (
+		<Action
+			label={m.chat_message_branch_action()}
+			tooltip={m.chat_message_branch_action()}
+			loading={branching}
+			onClick={onBranch}
+		>
+			<GitBranchIcon className="size-3" />
+		</Action>
+	);
 
 	if (variant === "sent") {
 		return (
@@ -59,6 +75,7 @@ export const MessageActions = ({
 				>
 					<CopyIcon className="size-3" />
 				</Action>
+				{branchAction}
 			</Actions>
 		);
 	}
@@ -72,6 +89,7 @@ export const MessageActions = ({
 			>
 				<CopyIcon className="size-3" />
 			</Action>
+			{branchAction}
 			<MessageRate chatId={chatId} messageId={message.id} />
 		</Actions>
 	);

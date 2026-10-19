@@ -31,6 +31,7 @@ import {
 	saveBot,
 } from "./bot";
 import {
+	branchChat,
 	createChat,
 	deleteChats,
 	findChat,
@@ -213,6 +214,7 @@ export const router = {
 		find: findChat,
 		update: updateChat,
 		delete: deleteChats,
+		branch: branchChat,
 	},
 	chatBlock: {
 		list: listChatBlocks,

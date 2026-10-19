@@ -1,8 +1,9 @@
 import { useChat } from "@ai-sdk/react";
 import type { ChatId } from "@orcai/core";
+import type { ChatBranchLink } from "@orcai/schema";
 import { eventIteratorToUnproxiedDataStream } from "@orpc/client";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import { toast } from "sonner";
 import {
 	Conversation,
@@ -15,10 +16,13 @@ import { describeError, reasonMessageOf } from "@/lib/errors/describe-error";
 import { client, orpc } from "@/lib/orpc/orpc";
 import { formatCount } from "@/lib/presentation/format-number";
 import { m } from "@/paraglide/messages";
+import { BranchedFrom } from "./branch-links";
+import type { ChatDraft } from "./chat-draft";
 import { ChatInput } from "./chat-input";
 import { ChatPlaceholder } from "./chat-placeholder";
 import { EarlierMessages } from "./earlier-messages";
 import { MessageBlock } from "./message/message-block";
+import { useBranchChat } from "./message/use-branch-chat";
 
 /** Quota is a governance fact, so it sits in the accent, above the composer. */
 const QuotaLine = ({ chatId }: { chatId: ChatId }) => {
@@ -59,6 +63,7 @@ const Chat = ({
 	initialHasMore,
 	zedToken,
 	pendingMessage,
+	draft,
 }: {
 	id: ChatId;
 	initialMessages: ChatAgentUIMessage[];
@@ -67,6 +72,7 @@ const Chat = ({
 	initialHasMore: boolean;
 	zedToken?: string;
 	pendingMessage?: string;
+	draft?: ChatDraft;
 }) => {
 	const queryClient = useQueryClient();
 	const hasSentPendingMessage = useRef(false);
@@ -75,6 +81,28 @@ const Chat = ({
 	const loadedMessageIds = useRef(
 		new Set(initialMessages.map((message) => message.id)),
 	);
+
+	const { data: chat } = useQuery(
+		orpc.chat.find.queryOptions({
+			input: {
+				id,
+				zedToken,
+			},
+		}),
+	);
+	const branchesByMessage = useMemo(() => {
+		const byMessage = new Map<string, ChatBranchLink[]>();
+		for (const branch of chat?.data.branches ?? []) {
+			byMessage.set(branch.branchedFromMessageId, [
+				...(byMessage.get(branch.branchedFromMessageId) ?? []),
+				branch,
+			]);
+		}
+		return byMessage;
+	}, [
+		chat?.data.branches,
+	]);
+	const branchChat = useBranchChat();
 
 	const quotaBadgeQueryOptions = orpc.quota.chatBadge.queryOptions({
 		input: {
@@ -140,6 +168,16 @@ const Chat = ({
 			},
 		});
 
+	const canBranch = status === "ready" || status === "error";
+	const branchFrom = (messageId: string) => {
+		if (branchChat.isPending) return;
+		branchChat.mutate({
+			chatId: id,
+			messageId,
+			zedToken,
+		});
+	};
+
 	const prependMessages = (older: ChatAgentUIMessage[]) => {
 		for (const message of older) {
 			loadedMessageIds.current.add(message.id);
@@ -179,6 +217,11 @@ const Chat = ({
 
 	return (
 		<div className="flex size-full min-h-0 min-w-0 flex-col">
+			{chat?.data.parentChat && (
+				<div className="mx-auto flex w-full max-w-200 px-4 pb-2">
+					<BranchedFrom parentChat={chat.data.parentChat} />
+				</div>
+			)}
 			<Conversation className="flex w-full" initial="instant">
 				<ConversationContent
 					className="mx-auto w-full max-w-200"
@@ -202,6 +245,11 @@ const Chat = ({
 							status={status}
 							isLatest={index === messages.length - 1}
 							animate={!loadedMessageIds.current.has(m.id)}
+							branches={branchesByMessage.get(m.id)}
+							onBranch={canBranch ? () => branchFrom(m.id) : undefined}
+							branching={
+								branchChat.isPending && branchChat.variables?.messageId === m.id
+							}
 						/>
 					))}
 					{messages.length === 0 && <ChatPlaceholder />}
@@ -235,6 +283,7 @@ const Chat = ({
 					status={status}
 					sendMessage={sendMessage}
 					stop={stop}
+					draft={draft}
 				/>
 			</div>
 		</div>

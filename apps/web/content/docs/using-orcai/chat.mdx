@@ -3,7 +3,7 @@ title: Chat
 description: Start conversations, select bots and models, and manage per-chat behaviour.
 ---
 
-Chat is the core end-user workflow in OrcAI. You can start chats from scratch, start from a bot, attach sources, switch branches, and tune per-chat settings.
+Chat is the core end-user workflow in OrcAI. You can start chats from scratch, start from a bot, attach sources, branch a conversation, and tune per-chat settings.
 
 ## Entry Points
 
@@ -49,7 +49,7 @@ The chat list supports:
 In an active chat, OrcAI supports:
 
 - Streaming model responses
-- Message actions (for example regenerate and edit, depending on message type)
+- Message actions: copy, rate and branch from here
 - Usage metadata on assistant messages
 - Download conversation (always the whole chat)
 - Older messages load as you scroll up; a chat opens on its newest 20
@@ -57,10 +57,12 @@ In an active chat, OrcAI supports:
 
 ## Branching
 
-If a chat has multiple branches, a branch switcher appears at the top-right of the conversation.
+Every message has a **Branch from here** action. It creates a new chat that copies the history, the bot, the settings and the attached blocks, and opens it. The original chat stays as it was.
 
-- Switching branch updates both active branch state and URL query.
-- Branch names are reflected in the page title when not the default Main branch.
+- From an answer: the branch holds the conversation up to and including that answer, with an empty composer.
+- From a question: the branch holds the conversation before that question, and the composer is filled with its text and attachments so you can change it before sending. Nothing is sent automatically.
+
+Branches are ordinary chats. They keep the original title, show a branch icon in the sidebar and the chat list, and link back with **Branched from …** above the conversation. In the original chat, the message a branch started from lists its **Branches**.
 
 ## Attachments In Chat
 
@@ -116,5 +118,5 @@ The badge can represent either:
 Responses can include tool-driven retrieval output and source-aware rendering (for example citations and knowledge lookups) through message part renderers.
 
 <Callout title="TODO" type="idea">
-	Document exact citation interaction patterns in the UI with screenshots, confirm branch creation UX, and document retention/deletion behaviour for chats and messages.
+	Document exact citation interaction patterns in the UI with screenshots, and document retention/deletion behaviour for chats and messages.
 </Callout>
