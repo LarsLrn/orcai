@@ -1,4 +1,7 @@
+import type { ChatId, ChatMessageId } from "@orcai/core";
 import { DB, dbSchema } from "@orcai/db";
+import type { ChatMessageMetadata } from "@orcai/schema";
+import type { UIMessage } from "ai";
 import { and, desc, eq, lt, max } from "drizzle-orm";
 import * as Effect from "effect/Effect";
 import * as AppErrors from "@/lib/effect/utils/errors";
@@ -31,7 +34,10 @@ export const listChatMessages = authed.chatMessage.list
 			.limit(input.limit + 1);
 
 		return {
-			data: rows.slice(0, input.limit).reverse(),
+			data: rows
+				.slice(0, input.limit)
+				.reverse()
+				.filter((message) => !isEmptyReply(message)),
 			hasMore: rows.length > input.limit,
 		};
 	});
@@ -84,17 +90,21 @@ export const findChatMessage = authed.chatMessage.find
 
 const CHAT_MESSAGE_PRIMARY_KEY = "chat_message_pkey";
 
-export const createChatMessage = authed.chatMessage.create
-	.use(
-		requireEntityPermission("chat", "edit", {
-			entityId: "chatId",
-		}),
-	)
-	.effect(function* ({ input }) {
+type AppendedChatMessage = Omit<
+	typeof dbSchema.chatMessage.$inferInsert,
+	"chatId" | "position"
+>;
+
+/** Appends messages in order after the chat's last one. */
+export const appendChatMessages = (
+	chatId: ChatId,
+	messages: AppendedChatMessage[],
+) =>
+	Effect.gen(function* () {
 		const db = yield* DB;
 
-		// Touching the chat first locks its row, so one insert at a time claims the next position.
-		const message = yield* db
+		// Touching the chat first locks its row, so one append at a time claims the next positions.
+		return yield* db
 			.transaction((tx) =>
 				Effect.gen(function* () {
 					yield* tx
@@ -102,29 +112,25 @@ export const createChatMessage = authed.chatMessage.create
 						.set({
 							updatedAt: new Date(),
 						})
-						.where(eq(dbSchema.chat.id, input.chatId));
+						.where(eq(dbSchema.chat.id, chatId));
 
 					const [{ last }] = yield* tx
 						.select({
 							last: max(dbSchema.chatMessage.position),
 						})
 						.from(dbSchema.chatMessage)
-						.where(eq(dbSchema.chatMessage.chatId, input.chatId));
+						.where(eq(dbSchema.chatMessage.chatId, chatId));
 
-					const [message] = yield* tx
+					return yield* tx
 						.insert(dbSchema.chatMessage)
-						.values({
-							id: input.id,
-							chatId: input.chatId,
-							role: input.role,
-							parts: input.parts,
-							attachments: input.attachments ?? [],
-							metadata: input.metadata,
-							position: (last ?? -1) + 1,
-						})
+						.values(
+							messages.map((message, index) => ({
+								...message,
+								chatId,
+								position: (last ?? -1) + 1 + index,
+							})),
+						)
 						.returning();
-
-					return message;
 				}),
 			)
 			.pipe(
@@ -141,6 +147,61 @@ export const createChatMessage = authed.chatMessage.create
 						),
 				),
 			);
+	});
+
+/** A reserved reply that is still empty, e.g. one whose turn never ended. */
+export const isEmptyReply = (message: { parts: unknown[] }) =>
+	message.parts.length === 0;
+
+/** Fills a reserved reply, or drops it when the turn produced nothing. */
+export const settleChatReply = ({
+	id,
+	chatId,
+	parts,
+	metadata,
+}: {
+	id: ChatMessageId;
+	chatId: ChatId;
+	parts: UIMessage["parts"];
+	metadata: ChatMessageMetadata;
+}) =>
+	Effect.gen(function* () {
+		const db = yield* DB;
+		const where = and(
+			eq(dbSchema.chatMessage.id, id),
+			eq(dbSchema.chatMessage.chatId, chatId),
+		);
+
+		if (parts.every((part) => part.type === "step-start")) {
+			yield* db.delete(dbSchema.chatMessage).where(where);
+			return;
+		}
+
+		yield* db
+			.update(dbSchema.chatMessage)
+			.set({
+				parts,
+				metadata,
+			})
+			.where(where);
+	});
+
+export const createChatMessage = authed.chatMessage.create
+	.use(
+		requireEntityPermission("chat", "edit", {
+			entityId: "chatId",
+		}),
+	)
+	.effect(function* ({ input }) {
+		const [message] = yield* appendChatMessages(input.chatId, [
+			{
+				id: input.id,
+				role: input.role,
+				parts: input.parts,
+				attachments: input.attachments ?? [],
+				metadata: input.metadata,
+			},
+		]);
 
 		return {
 			data: message,

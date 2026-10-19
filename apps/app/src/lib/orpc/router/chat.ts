@@ -35,6 +35,7 @@ import {
 	checkManyPermissionMiddleware,
 	requireEntityPermission,
 } from "@/lib/orpc/middlewares/permission";
+import { isEmptyReply } from "./chat-message";
 import { literalSearch } from "./helpers/literal-search";
 import { buildOrderBy, type SortExpression } from "./helpers/sorting";
 
@@ -488,13 +489,15 @@ export const branchChat = authed.chat.branch
 					})
 					.returning();
 
-				const messages = yield* tx
+				const messages = (yield* tx
 					.select()
 					.from(dbSchema.chatMessage)
 					.where(
 						and(eq(dbSchema.chatMessage.chatId, source.id), copiedPositions),
 					)
-					.orderBy(asc(dbSchema.chatMessage.position));
+					.orderBy(asc(dbSchema.chatMessage.position))).filter(
+					(message) => !isEmptyReply(message),
+				);
 
 				if (messages.length > 0) {
 					yield* tx.insert(dbSchema.chatMessage).values(
