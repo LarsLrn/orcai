@@ -7,7 +7,12 @@ import {
 } from "@orcai/core";
 import { dbSchema } from "@orcai/db";
 import { enqueueNotification } from "@orcai/notifications";
-import { organizationInvitationIdSchema, userIdSchema } from "@orcai/schema";
+import {
+	LOCALES,
+	localeSchema,
+	organizationInvitationIdSchema,
+	userIdSchema,
+} from "@orcai/schema";
 import { betterAuth } from "better-auth";
 import { drizzleAdapter } from "better-auth/adapters/drizzle";
 import { APIError } from "better-auth/api";
@@ -197,6 +202,20 @@ export const auth = betterAuth({
 							activeOrganizationId: organizationId,
 						},
 					};
+				},
+			},
+		},
+	},
+	user: {
+		additionalFields: {
+			locale: {
+				type: [
+					...LOCALES,
+				],
+				required: false,
+				input: true,
+				validator: {
+					input: localeSchema,
 				},
 			},
 		},

@@ -1,5 +1,5 @@
 import { INSTANCE_ROLES, type OrganizationId, type UserId } from "@orcai/core";
-import type { UserPreferencesType } from "@orcai/schema";
+import { LOCALES, type Locale, type UserPreferencesType } from "@orcai/schema";
 import type { InferSelectModel } from "drizzle-orm";
 import { sql } from "drizzle-orm";
 import {
@@ -30,11 +30,16 @@ export const user = pgTable(
 			.notNull()
 			.$type<UserPreferencesType>()
 			.default({}),
+		locale: text("locale").$type<Locale>(),
 	},
 	(table) => [
 		check(
 			"user_instance_role",
 			sql`${table.role} IN (${sql.raw(INSTANCE_ROLES.map((role) => `'${role}'`).join(", "))})`,
+		),
+		check(
+			"user_locale",
+			sql`${table.locale} IN (${sql.raw(LOCALES.map((locale) => `'${locale}'`).join(", "))})`,
 		),
 	],
 );
