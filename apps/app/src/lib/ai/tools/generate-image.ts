@@ -31,7 +31,7 @@ export const generateImageTool = ({
 					"The prompt to generate the image from. If the user requests a revision of a previous image, inspect the 'description' field of the image in question, combined with the original prompt as 'prompt'.",
 				),
 		}),
-		execute: async ({ prompt }) =>
+		execute: async ({ prompt }, { abortSignal }) =>
 			runPromise(
 				Effect.gen(function* () {
 					const [{ data: provider }, { data: model }] = yield* Effect.all(
@@ -111,10 +111,11 @@ export const generateImageTool = ({
 					});
 
 					const { image } = yield* Effect.tryPromise({
-						try: () =>
+						try: (signal) =>
 							generateImage({
 								model: providerInstance.imageModel(block.config.model),
 								prompt: `${block.config.prompt}\n\n${prompt}`,
+								abortSignal: signal,
 							}),
 						catch: (cause) =>
 							new AiError({
@@ -154,6 +155,9 @@ export const generateImageTool = ({
 							"Successfully generated an image. The image has been displayed to the user already. Do not attempt to return the image itself. Simply acknowledge that the image was generated and provide a brief description.",
 					};
 				}),
+				{
+					signal: abortSignal,
+				},
 			).catch((error: unknown) => {
 				throw new Error(streamErrorReason(error, "AI_TOOL_FAILED"), {
 					cause: error,

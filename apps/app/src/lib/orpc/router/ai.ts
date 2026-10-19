@@ -102,7 +102,7 @@ const aiChat = authed.ai.chat
 			zedToken: "zedToken",
 		}),
 	)
-	.effect(function* ({ input, context }) {
+	.effect(function* ({ input, context, signal }) {
 		return yield* Effect.gen(function* () {
 			const zedToken = getZedToken(context, input);
 			const requestContext = {
@@ -411,6 +411,8 @@ const aiChat = authed.ai.chat
 					createAgentUIStream({
 						agent,
 						uiMessages: messagesWithAttachmentParts,
+						// Stop and disconnects abort the model call and running tools.
+						abortSignal: signal,
 						originalMessages: messages,
 						generateMessageId: () => assistantMessageId,
 						experimental_transform: smoothStream({

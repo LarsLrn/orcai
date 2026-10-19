@@ -6,6 +6,8 @@ export type CompletionGate = {
 	url: string;
 	/** Chat completion requests waiting for the gate to open. */
 	held: () => number;
+	/** Requests the app closed before their response ended. */
+	abandoned: () => number;
 	/** Let every waiting and later completion through. */
 	open: () => void;
 	/** Hold completions again from the next request on. */
@@ -36,8 +38,12 @@ export const startCompletionGate = async (
 	const origin = new URL(target).origin;
 	let isOpen = true;
 	let waiting: (() => void)[] = [];
+	let abandoned = 0;
 
 	const server = createServer(async (request, response) => {
+		response.on("close", () => {
+			if (!response.writableEnded) abandoned += 1;
+		});
 		const body = await readBody(request);
 		const path = request.url ?? "/";
 
@@ -47,6 +53,7 @@ export const startCompletionGate = async (
 			!isOpen
 		) {
 			await new Promise<void>((resolve) => waiting.push(resolve));
+			if (response.destroyed) return;
 		}
 
 		const upstream = await fetch(`${origin}${path}`, {
@@ -86,6 +93,7 @@ export const startCompletionGate = async (
 	return {
 		url: `http://127.0.0.1:${port}/v1`,
 		held: () => waiting.length,
+		abandoned: () => abandoned,
 		open: () => {
 			isOpen = true;
 			for (const release of waiting) release();
