@@ -1308,7 +1308,6 @@
 	"chat_bot_selector_trigger_placeholder": "Choose bot...",
 	"chat_branch_create_failed_toast_error": "The branch could not be created.",
 	"chat_branch_label": "Branch",
-	"chat_branch_switcher_label": "Switch branch",
 	"chat_branched_from_link": "Branched from {title}",
 	"chat_composer_aria_label": "Message",
 	"chat_composer_attachments_missing_toast_error": "No attachments were available to send. Please retry your upload.",
@@ -1348,8 +1347,8 @@
 				"countPlural"
 			],
 			"match": {
-				"countPlural=one": "Its messages and branches are removed for good.",
-				"countPlural=other": "Their messages and branches are removed for good."
+				"countPlural=one": "Its messages are removed for good; its branches stay.",
+				"countPlural=other": "Their messages are removed for good; their branches stay."
 			}
 		}
 	],
@@ -1438,11 +1437,6 @@
 	"chat_message_copy_toast_loading": "Copying to clipboard...",
 	"chat_message_copy_toast_success": "Copied to clipboard!",
 	"chat_message_copy_tooltip": "Copy message",
-	"chat_message_edit_tooltip": "Edit message",
-	"chat_message_editor_aria_label": "Message text",
-	"chat_message_editor_generating_label": "Generating...",
-	"chat_message_editor_missing_id_toast_error": "This message has no identifier yet, so it cannot be edited. Wait for it to finish sending, then try again.",
-	"chat_message_editor_submit_button": "Edit",
 	"chat_message_rate_action_label": "Rate response",
 	"chat_message_rate_option_a_bit": "A bit",
 	"chat_message_rate_option_not_at_all": "Not at all",
@@ -1882,14 +1876,10 @@
 	"error_bot_not_found": "Bot not found.",
 	"error_bot_repository_empty": "Attach at least one document to \"{blockName}\" before publishing.",
 	"error_bot_repository_not_ready": "Set \"{blockName}\" to ready before publishing this bot.",
-	"error_chat_active_branch_missing": "This chat has no active branch. Refresh the page and try again.",
 	"error_chat_blocks_unavailable": "The blocks of this chat could not be loaded.",
 	"error_chat_bot_blocks_immutable": "The blocks of a chat linked to a bot cannot be changed directly.",
-	"error_chat_branch_not_found": "Branch not found.",
-	"error_chat_branch_required": "A branch is required.",
 	"error_chat_message_create_failed": "Your message could not be saved.",
 	"error_chat_message_id_taken": "This message was already sent. Refresh the page and try again.",
-	"error_chat_message_invalid": "The message is missing or invalid.",
 	"error_chat_message_not_found": "Message not found.",
 	"error_chat_model_not_configured": "Select a model in the chat settings first.",
 	"error_chat_not_found": "Chat not found.",

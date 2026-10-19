@@ -1308,7 +1308,6 @@
 	"chat_bot_selector_trigger_placeholder": "Bot auswählen...",
 	"chat_branch_create_failed_toast_error": "Der Zweig konnte nicht erstellt werden.",
 	"chat_branch_label": "Zweig",
-	"chat_branch_switcher_label": "Zweig wechseln",
 	"chat_branched_from_link": "Verzweigt von {title}",
 	"chat_composer_aria_label": "Nachricht",
 	"chat_composer_attachments_missing_toast_error": "Es waren keine Anhänge zum Senden verfügbar. Bitte wiederholen Sie den Upload.",
@@ -1348,8 +1347,8 @@
 				"countPlural"
 			],
 			"match": {
-				"countPlural=one": "Seine Nachrichten und Zweige werden endgültig entfernt.",
-				"countPlural=other": "Ihre Nachrichten und Zweige werden endgültig entfernt."
+				"countPlural=one": "Seine Nachrichten werden endgültig entfernt, seine Zweige bleiben erhalten.",
+				"countPlural=other": "Ihre Nachrichten werden endgültig entfernt, ihre Zweige bleiben erhalten."
 			}
 		}
 	],
@@ -1438,11 +1437,6 @@
 	"chat_message_copy_toast_loading": "Wird in die Zwischenablage kopiert...",
 	"chat_message_copy_toast_success": "In die Zwischenablage kopiert!",
 	"chat_message_copy_tooltip": "Nachricht kopieren",
-	"chat_message_edit_tooltip": "Nachricht bearbeiten",
-	"chat_message_editor_aria_label": "Nachrichtentext",
-	"chat_message_editor_generating_label": "Wird generiert...",
-	"chat_message_editor_missing_id_toast_error": "Diese Nachricht hat noch keine Kennung und kann daher nicht bearbeitet werden. Warten Sie, bis sie vollständig gesendet wurde, und versuchen Sie es dann erneut.",
-	"chat_message_editor_submit_button": "Bearbeiten",
 	"chat_message_rate_action_label": "Antwort bewerten",
 	"chat_message_rate_option_a_bit": "Ein wenig",
 	"chat_message_rate_option_not_at_all": "Überhaupt nicht",
@@ -1882,14 +1876,10 @@
 	"error_bot_not_found": "Bot nicht gefunden.",
 	"error_bot_repository_empty": "Fügen Sie „{blockName}“ mindestens ein Dokument hinzu, bevor Sie veröffentlichen.",
 	"error_bot_repository_not_ready": "Setzen Sie „{blockName}“ auf Bereit, bevor Sie diesen Bot veröffentlichen.",
-	"error_chat_active_branch_missing": "Dieser Chat hat keinen aktiven Zweig. Laden Sie die Seite neu und versuchen Sie es erneut.",
 	"error_chat_blocks_unavailable": "Die Blöcke dieses Chats konnten nicht geladen werden.",
 	"error_chat_bot_blocks_immutable": "Die Blöcke eines mit einem Bot verknüpften Chats können nicht direkt geändert werden.",
-	"error_chat_branch_not_found": "Zweig nicht gefunden.",
-	"error_chat_branch_required": "Ein Zweig ist erforderlich.",
 	"error_chat_message_create_failed": "Ihre Nachricht konnte nicht gespeichert werden.",
 	"error_chat_message_id_taken": "Diese Nachricht wurde bereits gesendet. Laden Sie die Seite neu und versuchen Sie es erneut.",
-	"error_chat_message_invalid": "Die Nachricht fehlt oder ist ungültig.",
 	"error_chat_message_not_found": "Nachricht nicht gefunden.",
 	"error_chat_model_not_configured": "Wählen Sie zuerst in den Chat-Einstellungen ein Modell aus.",
 	"error_chat_not_found": "Chat nicht gefunden.",

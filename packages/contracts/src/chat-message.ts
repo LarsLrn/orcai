@@ -1,8 +1,6 @@
 import {
 	createChatMessageInputSchema,
 	createChatMessageResponseSchema,
-	deleteChatMessagesInputSchema,
-	deleteChatMessagesResponseSchema,
 	findChatMessageInputSchema,
 	findChatMessageResponseSchema,
 	listChatMessagesInputSchema,
@@ -53,19 +51,6 @@ export const chatMessageContracts = {
 		)
 		.input(findChatMessageInputSchema)
 		.output(findChatMessageResponseSchema),
-	delete: base
-		.meta(
-			openapi({
-				method: "DELETE",
-				path: "/chats/{chatId}/messages",
-				summary: "Delete a chat message",
-				tags: [
-					"Chat Messages",
-				],
-			}),
-		)
-		.input(deleteChatMessagesInputSchema)
-		.output(deleteChatMessagesResponseSchema),
 	rate: base
 		.meta(
 			openapi({

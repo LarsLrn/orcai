@@ -1,10 +1,6 @@
 import { z } from "zod/v4";
 import { chatIdSchema } from "../chat/ref";
-import {
-	createDataResponseSchema,
-	createDeleteResponseSchema,
-	statusResponseSchema,
-} from "../shared";
+import { createDataResponseSchema, statusResponseSchema } from "../shared";
 import { chatMessageIdSchema } from "./ref";
 import { chatMessageSchema } from "./schema";
 
@@ -19,8 +15,6 @@ export const createChatMessageResponseSchema =
 
 export const findChatMessageResponseSchema =
 	createDataResponseSchema(chatMessageSchema);
-
-export const deleteChatMessagesResponseSchema = createDeleteResponseSchema();
 
 export const rateChatMessageResponseSchema = createDataResponseSchema(
 	z.object({

@@ -1,6 +1,5 @@
 import { z } from "zod/v4";
 import { zedTokenSchema } from "../shared";
-import { createUniqueRefsInputSchema } from "../shared/ref-list";
 import { chatMessageIdSchema } from "./ref";
 import { chatMessageFieldsSchema, chatMessageSchema } from "./schema";
 
@@ -23,14 +22,6 @@ export const findChatMessageInputSchema = z.object({
 	...zedTokenSchema.shape,
 });
 
-export const deleteChatMessagesInputSchema = z.object({
-	chatId: chatMessageSchema.shape.chatId,
-	refs: createUniqueRefsInputSchema({
-		key: "id",
-		value: chatMessageIdSchema,
-	}),
-});
-
 export const rateChatMessageInputSchema = z.object({
 	id: chatMessageSchema.shape.id,
 	chatId: chatMessageSchema.shape.chatId,
@@ -42,7 +33,4 @@ export type CreateChatMessageInput = z.infer<
 	typeof createChatMessageInputSchema
 >;
 export type FindChatMessageInput = z.infer<typeof findChatMessageInputSchema>;
-export type DeleteChatMessagesInput = z.infer<
-	typeof deleteChatMessagesInputSchema
->;
 export type RateChatMessageInput = z.infer<typeof rateChatMessageInputSchema>;
