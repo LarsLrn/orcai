@@ -33,7 +33,12 @@ const headersGetter: TextMapGetter<Headers> = {
 	],
 };
 
-const failSpan = (span: Span, error: unknown) => {
+/** A client that disconnects cancels its request, which is no server failure. */
+const failSpan = (span: Span, request: Request, error: unknown) => {
+	if (request.signal.aborted) {
+		span.addEvent("aborted");
+		return;
+	}
 	span.recordException(error instanceof Error ? error : String(error));
 	span.setStatus({
 		code: SpanStatusCode.ERROR,
@@ -41,7 +46,11 @@ const failSpan = (span: Span, error: unknown) => {
 };
 
 /** Ends the span once the body is fully sent, fails or is cancelled by the client. */
-const endWithBody = (response: Response, span: Span): Response => {
+const endWithBody = (
+	request: Request,
+	response: Response,
+	span: Span,
+): Response => {
 	if (response.body === null) {
 		span.end();
 		return response;
@@ -59,7 +68,7 @@ const endWithBody = (response: Response, span: Span): Response => {
 					controller.enqueue(value);
 				}
 			} catch (error) {
-				failSpan(span, error);
+				failSpan(span, request, error);
 				span.end();
 				controller.error(error);
 			}
@@ -122,17 +131,19 @@ export const traceRequest = async (
 			handle,
 		);
 	} catch (error) {
-		failSpan(span, error);
+		failSpan(span, request, error);
 		span.end();
 		throw error;
 	}
 
 	span.setAttribute("http.response.status_code", response.status);
-	if (response.status >= 500) {
+	if (request.signal.aborted) {
+		span.addEvent("aborted");
+	} else if (response.status >= 500) {
 		span.setStatus({
 			code: SpanStatusCode.ERROR,
 		});
 	}
 
-	return endWithBody(response, span);
+	return endWithBody(request, response, span);
 };
