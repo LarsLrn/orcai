@@ -10,6 +10,7 @@ import {
 	PaginationContent,
 	PaginationItem,
 } from "@/components/ui/pagination";
+import { m } from "@/paraglide/messages";
 
 const StatePagination = ({
 	maxPages,
@@ -60,19 +61,21 @@ const StatePagination = ({
 					<PaginationItem>
 						<Button
 							variant="ghost"
+							aria-label={m.state_pagination_first_page_aria_label()}
 							onClick={() => onPageChange(0)}
 							disabled={page <= 0}
 						>
-							<ChevronsLeftIcon />
+							<ChevronsLeftIcon aria-hidden="true" />
 						</Button>
 					</PaginationItem>
 					<PaginationItem>
 						<Button
 							variant="ghost"
+							aria-label={m.state_pagination_previous_page_aria_label()}
 							onClick={() => onPageChange(page - 1)}
 							disabled={page <= 0}
 						>
-							<ChevronLeftIcon />
+							<ChevronLeftIcon aria-hidden="true" />
 						</Button>
 					</PaginationItem>
 					{visiblePages.map((pageIndex) => (
@@ -81,6 +84,7 @@ const StatePagination = ({
 								variant="ghost"
 								onClick={() => onPageChange(pageIndex)}
 								disabled={page === pageIndex}
+								aria-current={page === pageIndex ? "page" : undefined}
 							>
 								{pageIndex + 1}
 							</Button>
@@ -89,19 +93,21 @@ const StatePagination = ({
 					<PaginationItem>
 						<Button
 							variant="ghost"
+							aria-label={m.state_pagination_next_page_aria_label()}
 							onClick={() => onPageChange(page + 1)}
 							disabled={page >= maxPages - 1}
 						>
-							<ChevronRightIcon />
+							<ChevronRightIcon aria-hidden="true" />
 						</Button>
 					</PaginationItem>
 					<PaginationItem>
 						<Button
 							variant="ghost"
+							aria-label={m.state_pagination_last_page_aria_label()}
 							onClick={() => onPageChange(maxPages - 1)}
 							disabled={page >= maxPages - 1}
 						>
-							<ChevronsRightIcon />
+							<ChevronsRightIcon aria-hidden="true" />
 						</Button>
 					</PaginationItem>
 				</PaginationContent>

@@ -104,37 +104,42 @@ const DatetimeField = ({
 		return `${hours}:${minutes}:${seconds}`;
 	};
 
-	const handleClear = (e: React.MouseEvent) => {
-		e.stopPropagation();
-		field.handleChange(null);
-	};
-
 	return (
 		<Field data-invalid={isInvalid}>
 			<FieldLabel htmlFor={id}>{label}</FieldLabel>
 			<Popover>
-				<PopoverTrigger
-					render={
-						<Button
-							id={id}
-							variant="outline"
-							className={cn(
-								"w-full justify-start text-left font-normal",
-								!value && "text-muted-foreground",
-							)}
-							aria-invalid={isInvalid}
-						>
-							{value ? formatDate(value) : <span>{placeholder}</span>}
-							<CalendarIcon className="ml-auto h-4 w-4 opacity-50" />
-							{showClearButton && value && (
-								<XIcon
-									className="ml-2 h-4 w-4 cursor-pointer opacity-50"
-									onClick={handleClear}
+				<div className="flex gap-2">
+					<PopoverTrigger
+						render={
+							<Button
+								id={id}
+								variant="outline"
+								className={cn(
+									"min-w-0 flex-1 justify-start text-left font-normal",
+									!value && "text-muted-foreground",
+								)}
+								aria-invalid={isInvalid}
+							>
+								{value ? formatDate(value) : <span>{placeholder}</span>}
+								<CalendarIcon
+									className="ml-auto h-4 w-4 opacity-50"
+									aria-hidden="true"
 								/>
-							)}
+							</Button>
+						}
+					/>
+					{showClearButton && value && (
+						<Button
+							type="button"
+							variant="outline"
+							size="icon"
+							aria-label={m.forms_datetime_field_clear_aria_label()}
+							onClick={() => field.handleChange(null)}
+						>
+							<XIcon className="h-4 w-4 opacity-50" aria-hidden="true" />
 						</Button>
-					}
-				/>
+					)}
+				</div>
 				<PopoverContent className="w-auto p-0" align="start">
 					<div className="flex">
 						<div className="flex flex-col">
@@ -159,10 +164,14 @@ const DatetimeField = ({
 						{showTimePicker && (
 							<div className="border-border border-l">
 								<div className="flex flex-col gap-3 p-3">
-									<Label className="px-1 font-medium text-sm">
+									<Label
+										htmlFor={`${id}-time`}
+										className="px-1 font-medium text-sm"
+									>
 										{m.forms_datetime_field_time_label()}
 									</Label>
 									<Input
+										id={`${id}-time`}
 										type="time"
 										step="1"
 										value={getTimeValue()}

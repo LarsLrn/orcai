@@ -53,6 +53,7 @@ export const TableOptionsMenu = ({ editor }: { editor: Editor }) => {
 										className="drop-shadow-lg"
 										variant="outline"
 										size="icon"
+										aria-label={m.editor_table_column_tooltip()}
 									>
 										<Columns className="size-5" />
 									</Button>
@@ -113,6 +114,7 @@ export const TableOptionsMenu = ({ editor }: { editor: Editor }) => {
 										className="drop-shadow-lg"
 										variant="outline"
 										size="icon"
+										aria-label={m.editor_table_row_tooltip()}
 									>
 										<Rows className="size-5" />
 									</Button>
@@ -173,6 +175,7 @@ export const TableOptionsMenu = ({ editor }: { editor: Editor }) => {
 										className="drop-shadow-lg"
 										variant="outline"
 										size="icon"
+										aria-label={m.editor_table_cell_tooltip()}
 									>
 										<RectangleHorizontal className="size-5" />
 									</Button>
@@ -228,6 +231,7 @@ export const TableOptionsMenu = ({ editor }: { editor: Editor }) => {
 										className="drop-shadow-lg"
 										variant="outline"
 										size="icon"
+										aria-label={m.editor_table_options_tooltip()}
 									>
 										<MoreHorizontal className="size-5" />
 									</Button>

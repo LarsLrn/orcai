@@ -72,7 +72,11 @@ export const TextAlignSelector = ({ editor }: { editor: Editor }) => {
 		<Popover>
 			<PopoverTrigger
 				render={
-					<Button variant="ghost" className="rounded-none">
+					<Button
+						variant="ghost"
+						className="rounded-none"
+						aria-label={m.editor_toolbar_alignment_tooltip()}
+					>
 						<activeItem.icon className="me-2 size-4" strokeWidth={2.5} />
 						<ChevronDownIcon className="size-3" />
 					</Button>

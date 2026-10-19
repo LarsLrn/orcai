@@ -1,4 +1,4 @@
-import type { Editor } from "@tiptap/react";
+import { type Editor, useEditorState } from "@tiptap/react";
 import { createContext, useContext } from "react";
 
 export interface ToolbarContextProps {
@@ -32,4 +32,14 @@ export const useToolbar = () => {
 	}
 
 	return context;
+};
+
+/** Whether a mark or node is active, kept current as the editor changes. */
+export const useToolbarActive = (name: string) => {
+	const { editor } = useToolbar();
+
+	return useEditorState({
+		editor,
+		selector: ({ editor: current }) => current.isActive(name),
+	});
 };

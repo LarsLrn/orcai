@@ -142,7 +142,7 @@ test("users: an admin searches the organisation users by email", async ({
 
 	await page
 		.getByRole("button", {
-			name: "Clear search",
+			name: message("data_table_search_clear_label"),
 		})
 		.click();
 

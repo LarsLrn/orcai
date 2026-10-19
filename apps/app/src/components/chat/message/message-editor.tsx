@@ -89,6 +89,7 @@ const MessageEditor = ({
 		<div className="flex w-full flex-col gap-2">
 			<Textarea
 				ref={textareaRef}
+				aria-label={m.chat_message_editor_aria_label()}
 				className="w-full resize-none overflow-hidden rounded-xl bg-transparent text-base! outline-none dark:bg-transparent"
 				value={draftContent}
 				onChange={handleInput}

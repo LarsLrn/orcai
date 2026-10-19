@@ -2,6 +2,7 @@ import { SearchIcon, XIcon } from "lucide-react";
 import { useEffect, useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
+import { m } from "@/paraglide/messages";
 
 type DataTableSearchProps = {
 	value: string;
@@ -13,7 +14,7 @@ type DataTableSearchProps = {
 const DataTableSearch = ({
 	value,
 	onChange,
-	placeholder = "Search...",
+	placeholder = m.common_search_placeholder(),
 	debounceMs = 250,
 }: DataTableSearchProps) => {
 	const [draft, setDraft] = useState(value);
@@ -37,10 +38,14 @@ const DataTableSearch = ({
 
 	return (
 		<div className="relative w-full sm:w-auto sm:min-w-40 sm:max-w-xs sm:flex-1">
-			<SearchIcon className="pointer-events-none absolute top-1/2 left-3 size-4 -translate-y-1/2 text-muted-foreground" />
+			<SearchIcon
+				aria-hidden="true"
+				className="pointer-events-none absolute top-1/2 left-3 size-4 -translate-y-1/2 text-muted-foreground"
+			/>
 			<Input
 				value={draft}
 				onChange={(event) => setDraft(event.target.value)}
+				aria-label={placeholder}
 				placeholder={placeholder}
 				className="h-8 pr-9 pl-9"
 			/>
@@ -55,8 +60,8 @@ const DataTableSearch = ({
 						onChange("");
 					}}
 				>
-					<XIcon />
-					<span className="sr-only">Clear search</span>
+					<XIcon aria-hidden="true" />
+					<span className="sr-only">{m.data_table_search_clear_label()}</span>
 				</Button>
 			) : null}
 		</div>

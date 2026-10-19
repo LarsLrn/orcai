@@ -2,6 +2,7 @@ import type { ImageGenerationBlock } from "@orcai/schema";
 import { skipToken, useQuery, useSuspenseQuery } from "@tanstack/react-query";
 import { useSelector } from "@tanstack/react-store";
 import type { Content } from "@tiptap/react";
+import { useId } from "react";
 import { PublicationStatusField } from "@/components/blocks/form/publication-status-field";
 import { BlockEditor } from "@/components/editor/block-editor";
 import {
@@ -29,6 +30,7 @@ const ImageGenerationBlockForm = ({
 }) => {
 	const { mutate: createBlock } = useCreateBlockMutation();
 	const { mutate: updateBlock } = useUpdateBlockMutation();
+	const contentTitleId = useId();
 
 	const { data: providers } = useSuspenseQuery(
 		orpc.provider.list.queryOptions({
@@ -171,7 +173,7 @@ const ImageGenerationBlockForm = ({
 			</div>
 			<Card>
 				<CardHeader>
-					<CardTitle>
+					<CardTitle id={contentTitleId}>
 						{m.blocks_image_generation_form_content_title()}
 					</CardTitle>
 					<CardDescription>
@@ -180,6 +182,7 @@ const ImageGenerationBlockForm = ({
 				</CardHeader>
 				<CardContent>
 					<BlockEditor
+						labelledBy={contentTitleId}
 						content={contentJson ? (contentJson as Content) : undefined}
 						onUpdate={(blockEditor) => {
 							form.setFieldValue(

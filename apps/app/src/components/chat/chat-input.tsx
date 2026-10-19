@@ -200,6 +200,7 @@ const ChatInput = ({
 
 					<InputGroupTextarea
 						name="message"
+						aria-label={m.chat_composer_aria_label()}
 						placeholder={m.chat_composer_placeholder()}
 						className="field-sizing-content max-h-48 min-h-16"
 						value={messageText}

@@ -10,6 +10,7 @@ import {
 	PopoverTrigger,
 } from "@/components/ui/popover";
 import { cn } from "@/lib/utils";
+import { m } from "@/paraglide/messages";
 
 export const LinkSelector = ({ editor }: { editor: Editor }) => {
 	const inputRef = useRef<HTMLInputElement>(null);
@@ -29,6 +30,7 @@ export const LinkSelector = ({ editor }: { editor: Editor }) => {
 					<Button
 						variant="ghost"
 						size="icon"
+						aria-label={m.editor_toolbar_link_tooltip()}
 						className="shrink-0 rounded-none"
 						disabled={editorState.isMath}
 					>
@@ -65,6 +67,7 @@ export const LinkSelector = ({ editor }: { editor: Editor }) => {
 				>
 					<Input
 						ref={inputRef}
+						aria-label={m.editor_link_url_aria_label()}
 						placeholder="https://example.com"
 						defaultValue={editorState.getLink}
 					/>
@@ -73,6 +76,7 @@ export const LinkSelector = ({ editor }: { editor: Editor }) => {
 							variant="destructive"
 							size="icon"
 							type="button"
+							aria-label={m.editor_link_remove_aria_label()}
 							onClick={() => {
 								editor.chain().focus().unsetLink().run();
 								if (inputRef.current) {
@@ -80,11 +84,11 @@ export const LinkSelector = ({ editor }: { editor: Editor }) => {
 								}
 							}}
 						>
-							<Trash2Icon className="size-4" />
+							<Trash2Icon className="size-4" aria-hidden="true" />
 						</Button>
 					) : (
-						<Button size="icon">
-							<CheckIcon className="size-4" />
+						<Button size="icon" aria-label={m.editor_link_apply_aria_label()}>
+							<CheckIcon className="size-4" aria-hidden="true" />
 						</Button>
 					)}
 				</form>

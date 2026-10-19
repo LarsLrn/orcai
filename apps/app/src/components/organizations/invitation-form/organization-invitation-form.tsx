@@ -185,9 +185,14 @@ const OrganizationInvitationForm = () => {
 														type="button"
 														size="icon"
 														variant="destructive"
+														aria-label={m.orgs_invitation_form_remove_email_aria_label(
+															{
+																position: index + 1,
+															},
+														)}
 														onClick={() => field.removeValue(index)}
 													>
-														<CircleMinusIcon />
+														<CircleMinusIcon aria-hidden="true" />
 													</Button>
 												)}
 											</div>

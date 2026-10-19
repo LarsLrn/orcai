@@ -8,7 +8,7 @@ import {
 } from "@/components/ui/tooltip";
 import { cn } from "@/lib/utils";
 import { m } from "@/paraglide/messages";
-import { useToolbar } from "./toolbar-provider";
+import { useToolbar, useToolbarActive } from "./toolbar-provider";
 
 const OrderedListToolbar = ({
 	className,
@@ -17,6 +17,7 @@ const OrderedListToolbar = ({
 	...props
 }: React.ComponentProps<"button"> & VariantProps<typeof buttonVariants>) => {
 	const { editor } = useToolbar();
+	const isActive = useToolbarActive("orderedList");
 	return (
 		<Tooltip>
 			<TooltipTrigger
@@ -25,9 +26,11 @@ const OrderedListToolbar = ({
 						type="button"
 						variant="ghost"
 						size="icon"
+						aria-label={m.editor_toolbar_ordered_list_tooltip()}
+						aria-pressed={isActive}
 						className={cn(
 							"h-8 w-8 p-0 sm:h-9 sm:w-9",
-							editor?.isActive("orderedList") && "bg-accent",
+							isActive && "bg-accent",
 							className,
 						)}
 						onClick={(e) => {
