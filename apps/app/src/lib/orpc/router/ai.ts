@@ -8,14 +8,14 @@ import {
 } from "@orcai/quota";
 import type { DatabaseBlock, TemplateBlock } from "@orcai/schema";
 import { streamToEventIterator } from "@orpc/client";
-import { call } from "@orpc/server";
+import { call, ORPCError } from "@orpc/server";
 import {
 	createAgentUIStream,
 	type FileUIPart,
 	smoothStream,
 	type TextUIPart,
 } from "ai";
-import { and, eq } from "drizzle-orm";
+import { and, asc, eq } from "drizzle-orm";
 import * as Cause from "effect/Cause";
 import * as Effect from "effect/Effect";
 import { v4 as uuidv4 } from "uuid";
@@ -58,18 +58,17 @@ const getTokenUsageFromMetadata = (metadata: unknown) => {
 	};
 };
 
-const hasMessageShape = (
-	value: unknown,
-): value is {
-	id?: string;
-	role: string;
-	parts: unknown[];
-	metadata?: unknown;
-	attachments?: unknown;
-} =>
-	isRecord(value) &&
-	typeof value.role === "string" &&
-	Array.isArray(value.parts);
+const isMessageIdTaken = (cause: unknown) =>
+	cause instanceof ORPCError &&
+	isRecord(cause.data) &&
+	cause.data.reason === "CHAT_MESSAGE_ID_TAKEN";
+
+const messageIdTakenError = (cause?: unknown) =>
+	new AppErrors.BadRequestError({
+		reason: "CHAT_MESSAGE_ID_TAKEN",
+		message: "Chat message id is already taken",
+		cause,
+	});
 
 const mergeDatabaseBlocks = ({
 	baseBlocks,
@@ -114,19 +113,9 @@ export const aiChat = authed.ai.chat
 					zedToken,
 				},
 			};
-			const inputMessages = input.messages as ChatAgentUIMessage[];
-			const userMessage = inputMessages[inputMessages.length - 1];
+			const userMessage = input.message;
+			const userMessageAttachments = getChatMessageAttachments(userMessage);
 
-			if (!hasMessageShape(userMessage)) {
-				return yield* Effect.fail(
-					new AppErrors.BadRequestError({
-						reason: "CHAT_MESSAGE_INVALID",
-						message: "Missing or invalid user message",
-					}),
-				);
-			}
-
-			// Fetch chat record to get config + botId
 			const db = yield* DB;
 			const chatRecord = yield* db.query.chat
 				.findFirst({
@@ -243,6 +232,44 @@ export const aiChat = authed.ai.chat
 				attachedBlocks: attachedDatabaseBlocks,
 			});
 
+			const [takenMessage] = yield* db
+				.select({
+					id: dbSchema.chatMessage.id,
+				})
+				.from(dbSchema.chatMessage)
+				.where(eq(dbSchema.chatMessage.id, userMessage.id))
+				.limit(1);
+
+			if (takenMessage) {
+				return yield* Effect.fail(messageIdTakenError());
+			}
+
+			const history = yield* db
+				.select()
+				.from(dbSchema.chatMessage)
+				.where(eq(dbSchema.chatMessage.chatId, input.chatId))
+				.orderBy(asc(dbSchema.chatMessage.position));
+
+			const messages = [
+				...history.map(
+					(row) =>
+						({
+							id: row.id,
+							role: row.role,
+							parts: row.parts,
+							metadata: row.metadata,
+							attachments: row.attachments,
+						}) as ChatAgentUIMessage,
+				),
+				{
+					id: userMessage.id,
+					role: "user",
+					parts: userMessage.parts,
+					metadata: userMessage.metadata,
+					attachments: userMessageAttachments,
+				} as ChatAgentUIMessage,
+			];
+
 			const assistantMessageId = uuidv4();
 
 			const quotaReservation = yield* reserveForAppRequest({
@@ -251,8 +278,8 @@ export const aiChat = authed.ai.chat
 				providerId,
 				providerModelId: modelId,
 				appRequestId: assistantMessageId,
-				messages: inputMessages,
-				isFirstTurn: inputMessages.length < 2,
+				messages,
+				isFirstTurn: history.length === 0,
 			});
 
 			if (
@@ -265,14 +292,13 @@ export const aiChat = authed.ai.chat
 			}
 
 			const reservation = quotaReservation.reservation;
-			const userMessageAttachments = getChatMessageAttachments(userMessage);
 
 			const attachmentPartCache = new Map<string, FileUIPart | TextUIPart>();
 			const messagesWithAttachmentParts = yield* Effect.forEach(
-				inputMessages,
+				messages,
 				(message) =>
 					Effect.gen(function* () {
-						if (!hasMessageShape(message) || message.role !== "user") {
+						if (message.role !== "user") {
 							return message;
 						}
 
@@ -311,7 +337,7 @@ export const aiChat = authed.ai.chat
 					call(
 						createChatMessage,
 						{
-							id: uuidv4(),
+							id: userMessage.id,
 							chatId: input.chatId,
 							role: "user",
 							parts: userMessage.parts,
@@ -323,11 +349,13 @@ export const aiChat = authed.ai.chat
 						},
 					),
 				catch: (cause) =>
-					new AppErrors.BadRequestError({
-						reason: "CHAT_MESSAGE_CREATE_FAILED",
-						message: "Failed to create user message",
-						cause,
-					}),
+					isMessageIdTaken(cause)
+						? messageIdTakenError(cause)
+						: new AppErrors.BadRequestError({
+								reason: "CHAT_MESSAGE_CREATE_FAILED",
+								message: "Failed to create user message",
+								cause,
+							}),
 			}).pipe(
 				Effect.catch((error) =>
 					releaseAppRequestQuota({
@@ -379,7 +407,7 @@ export const aiChat = authed.ai.chat
 					createAgentUIStream({
 						agent,
 						uiMessages: messagesWithAttachmentParts,
-						originalMessages: inputMessages,
+						originalMessages: messages,
 						generateMessageId: () => assistantMessageId,
 						experimental_transform: smoothStream({
 							delayInMs: 20,

@@ -78,13 +78,23 @@ const Chat = ({
 	const { messages, status, setMessages, regenerate, sendMessage, stop } =
 		useChat<ChatAgentUIMessage>({
 			id,
+			generateId: () => crypto.randomUUID(),
 			transport: {
 				async sendMessages(options) {
+					// The server holds the history, so only the new user message travels.
+					const message = options.messages.at(-1);
+					if (message?.role !== "user") {
+						throw new Error("Only a user message can be sent");
+					}
+
 					return eventIteratorToUnproxiedDataStream(
 						await client.ai.chat(
 							{
 								chatId: options.chatId as ChatId,
-								messages: options.messages,
+								message: {
+									...message,
+									role: "user",
+								},
 								zedToken,
 							},
 							{

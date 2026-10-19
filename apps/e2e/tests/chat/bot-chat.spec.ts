@@ -1,3 +1,4 @@
+import { randomUUID } from "node:crypto";
 import { untilAllowed } from "../../fixtures/authorization";
 import {
 	expect,
@@ -121,18 +122,16 @@ test("a chat linked to a just-saved bot answers its first message", async ({
 
 	const stream = await member.ai.chat({
 		chatId: chat.data.id,
-		messages: [
-			{
-				id: `${chat.data.id}-first`,
-				role: "user",
-				parts: [
-					{
-						type: "text",
-						text: "Hello from the chat slice",
-					},
-				],
-			},
-		],
+		message: {
+			id: randomUUID(),
+			role: "user",
+			parts: [
+				{
+					type: "text",
+					text: "Hello from the chat slice",
+				},
+			],
+		},
 	});
 
 	expect(await streamedText(stream)).toContain(
