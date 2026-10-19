@@ -18,7 +18,7 @@ type IncomingAuth = {
 	user?: typeof authClient.$Infer.Session.user;
 };
 
-/** The session a surrounding procedure already resolved, so a nested `call` keeps it. */
+/** The session a surrounding procedure already resolved, so a nested procedure call keeps it. */
 const resolvedAuth = (auth: IncomingAuth | undefined) =>
 	auth?.isAuthenticated === true && auth.session && auth.user
 		? auth

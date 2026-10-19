@@ -76,210 +76,211 @@ const isS3NotFound = (cause: unknown) => {
 	);
 };
 
-export const createUploadUrls = authed.storage.createUploadUrls.effect(
-	function* ({ input, context }) {
-		const uploadRoute = UPLOAD_ROUTES[input.route];
+const createUploadUrls = authed.storage.createUploadUrls.effect(function* ({
+	input,
+	context,
+}) {
+	const uploadRoute = UPLOAD_ROUTES[input.route];
 
-		if (input.files.length > uploadRoute.maxFiles) {
-			return yield* Effect.fail(
-				new AppErrors.BadRequestError({
-					reason: "UPLOAD_TOO_MANY_FILES",
-					params: {
-						maxFiles: uploadRoute.maxFiles,
-					},
-					message: `Too many files. Max allowed: ${uploadRoute.maxFiles}.`,
-				}),
-			);
-		}
+	if (input.files.length > uploadRoute.maxFiles) {
+		return yield* Effect.fail(
+			new AppErrors.BadRequestError({
+				reason: "UPLOAD_TOO_MANY_FILES",
+				params: {
+					maxFiles: uploadRoute.maxFiles,
+				},
+				message: `Too many files. Max allowed: ${uploadRoute.maxFiles}.`,
+			}),
+		);
+	}
 
-		yield* Effect.forEach(input.files, (file) =>
+	yield* Effect.forEach(input.files, (file) =>
+		Effect.gen(function* () {
+			if (file.size > uploadRoute.maxFileSize) {
+				return yield* Effect.fail(
+					new AppErrors.BadRequestError({
+						reason: "UPLOAD_FILE_TOO_LARGE",
+						params: {
+							fileName: file.name,
+						},
+						message: `File "${file.name}" exceeds max allowed size.`,
+					}),
+				);
+			}
+
+			if (
+				!isMimeAllowed({
+					mimeType: file.type,
+					allowedMimePatterns: uploadRoute.allowedMimePatterns,
+				})
+			) {
+				return yield* Effect.fail(
+					new AppErrors.BadRequestError({
+						reason: "UPLOAD_FILE_TYPE_INVALID",
+						params: {
+							fileName: file.name,
+							fileType: file.type,
+						},
+						message: `File type "${file.type}" is not allowed.`,
+					}),
+				);
+			}
+		}),
+	);
+
+	const bucket = uploadRoute.bucket;
+	const prefix = buildUploadPrefix({
+		userId: context.auth.user.id,
+		route: input.route,
+	});
+
+	yield* createBucketIfNotExists(bucket);
+
+	const presignedUrls = yield* Effect.forEach(
+		input.files,
+		(file) =>
 			Effect.gen(function* () {
-				if (file.size > uploadRoute.maxFileSize) {
+				const id = uuidv4();
+				const extension = getFileTypeFromMime(file.type);
+				const filePath = `${prefix}/${id}.${extension}`;
+				const objectMetadata = {
+					...input.metadata,
+					id,
+					prefix,
+					key: filePath,
+					route: input.route,
+					userId: context.auth.user.id,
+					bucket,
+				};
+
+				const useMultipart = shouldUseMultipartUpload({
+					route: input.route,
+					fileSize: file.size,
+				});
+
+				if (!useMultipart) {
+					return yield* getSignedUploadUrl({
+						bucket,
+						key: filePath,
+						contentType: file.type,
+						contentLength: file.size,
+						expiresIn: uploadRoute.signedUrlExpiresIn,
+					}).pipe(
+						Effect.map((url) => ({
+							mode: "single" as const,
+							signedUrl: url,
+							headers: {
+								"Content-Type": file.type,
+							},
+							file: {
+								objectKey: id,
+								objectMetadata,
+								name: file.name,
+								size: file.size,
+								type: file.type,
+							},
+						})),
+					);
+				}
+
+				const multipartConfig = uploadRoute.multipart;
+				const partSize = multipartConfig.partSize;
+				const totalParts = Math.ceil(file.size / partSize);
+
+				if (totalParts > 10_000) {
 					return yield* Effect.fail(
 						new AppErrors.BadRequestError({
 							reason: "UPLOAD_FILE_TOO_LARGE",
 							params: {
 								fileName: file.name,
 							},
-							message: `File "${file.name}" exceeds max allowed size.`,
+							message: `File "${file.name}" has too many multipart chunks.`,
 						}),
 					);
 				}
 
-				if (
-					!isMimeAllowed({
-						mimeType: file.type,
-						allowedMimePatterns: uploadRoute.allowedMimePatterns,
-					})
-				) {
+				const multipartUpload = yield* sendCreateMultipartUploadCommand({
+					bucket,
+					key: filePath,
+					contentType: file.type,
+					metadata: objectMetadata,
+				});
+
+				const uploadId = multipartUpload.UploadId
+					? normalizeUploadId(multipartUpload.UploadId)
+					: undefined;
+
+				if (!uploadId) {
 					return yield* Effect.fail(
 						new AppErrors.BadRequestError({
-							reason: "UPLOAD_FILE_TYPE_INVALID",
-							params: {
-								fileName: file.name,
-								fileType: file.type,
-							},
-							message: `File type "${file.type}" is not allowed.`,
+							reason: "UPLOAD_INIT_FAILED",
+							message: "Failed to initialize multipart upload. Please retry.",
 						}),
 					);
 				}
-			}),
-		);
 
-		const bucket = uploadRoute.bucket;
-		const prefix = buildUploadPrefix({
-			userId: context.auth.user.id,
-			route: input.route,
-		});
-
-		yield* createBucketIfNotExists(bucket);
-
-		const presignedUrls = yield* Effect.forEach(
-			input.files,
-			(file) =>
-				Effect.gen(function* () {
-					const id = uuidv4();
-					const extension = getFileTypeFromMime(file.type);
-					const filePath = `${prefix}/${id}.${extension}`;
-					const objectMetadata = {
-						...input.metadata,
-						id,
-						prefix,
-						key: filePath,
-						route: input.route,
-						userId: context.auth.user.id,
-						bucket,
-					};
-
-					const useMultipart = shouldUseMultipartUpload({
-						route: input.route,
-						fileSize: file.size,
-					});
-
-					if (!useMultipart) {
-						return yield* getSignedUploadUrl({
-							bucket,
-							key: filePath,
-							contentType: file.type,
-							contentLength: file.size,
-							expiresIn: uploadRoute.signedUrlExpiresIn,
-						}).pipe(
-							Effect.map((url) => ({
-								mode: "single" as const,
-								signedUrl: url,
-								headers: {
-									"Content-Type": file.type,
-								},
-								file: {
-									objectKey: id,
-									objectMetadata,
-									name: file.name,
-									size: file.size,
-									type: file.type,
-								},
-							})),
-						);
-					}
-
-					const multipartConfig = uploadRoute.multipart;
-					const partSize = multipartConfig.partSize;
-					const totalParts = Math.ceil(file.size / partSize);
-
-					if (totalParts > 10_000) {
-						return yield* Effect.fail(
-							new AppErrors.BadRequestError({
-								reason: "UPLOAD_FILE_TOO_LARGE",
-								params: {
-									fileName: file.name,
-								},
-								message: `File "${file.name}" has too many multipart chunks.`,
-							}),
-						);
-					}
-
-					const multipartUpload = yield* sendCreateMultipartUploadCommand({
-						bucket,
-						key: filePath,
-						contentType: file.type,
-						metadata: objectMetadata,
-					});
-
-					const uploadId = multipartUpload.UploadId
-						? normalizeUploadId(multipartUpload.UploadId)
-						: undefined;
-
-					if (!uploadId) {
-						return yield* Effect.fail(
-							new AppErrors.BadRequestError({
-								reason: "UPLOAD_INIT_FAILED",
-								message: "Failed to initialize multipart upload. Please retry.",
-							}),
-						);
-					}
-
-					const parts = yield* Effect.forEach(
-						Array.from(
-							{
-								length: totalParts,
-							},
-							(_, index) => index + 1,
-						),
-						(partNumber) =>
-							Effect.gen(function* () {
-								const start = (partNumber - 1) * partSize;
-								const size = Math.min(partSize, file.size - start);
-
-								const signedUrl = yield* getSignedPartUploadUrl({
-									bucket,
-									key: filePath,
-									uploadId,
-									partNumber,
-									contentLength: size,
-									expiresIn: multipartConfig.partSignedUrlExpiresIn,
-								});
-
-								return {
-									signedUrl,
-									partNumber,
-									size,
-								};
-							}),
+				const parts = yield* Effect.forEach(
+					Array.from(
 						{
-							concurrency: 10,
+							length: totalParts,
 						},
-					);
+						(_, index) => index + 1,
+					),
+					(partNumber) =>
+						Effect.gen(function* () {
+							const start = (partNumber - 1) * partSize;
+							const size = Math.min(partSize, file.size - start);
 
-					return {
-						mode: "multipart" as const,
-						parts,
-						partSize,
-						uploadId,
-						file: {
-							objectKey: id,
-							objectMetadata,
-							name: file.name,
-							size: file.size,
-							type: file.type,
-						},
-					};
-				}),
-			{
-				concurrency: 10,
-			},
-		);
+							const signedUrl = yield* getSignedPartUploadUrl({
+								bucket,
+								key: filePath,
+								uploadId,
+								partNumber,
+								contentLength: size,
+								expiresIn: multipartConfig.partSignedUrlExpiresIn,
+							});
 
-		return {
-			data: presignedUrls,
-			metadata: {
-				route: input.route,
-				prefix,
-				bucket,
-			},
-		};
-	},
-);
+							return {
+								signedUrl,
+								partNumber,
+								size,
+							};
+						}),
+					{
+						concurrency: 10,
+					},
+				);
 
-export const createDownloadUrl = authed.storage.createDownloadUrl
+				return {
+					mode: "multipart" as const,
+					parts,
+					partSize,
+					uploadId,
+					file: {
+						objectKey: id,
+						objectMetadata,
+						name: file.name,
+						size: file.size,
+						type: file.type,
+					},
+				};
+			}),
+		{
+			concurrency: 10,
+		},
+	);
+
+	return {
+		data: presignedUrls,
+		metadata: {
+			route: input.route,
+			prefix,
+			bucket,
+		},
+	};
+});
+
+const createDownloadUrl = authed.storage.createDownloadUrl
 	.use(
 		requireEntityPermission("asset", "download", {
 			entityId: "id",
@@ -348,8 +349,8 @@ export const createDownloadUrl = authed.storage.createDownloadUrl
 		);
 	});
 
-export const completeMultipartUpload =
-	authed.storage.completeMultipartUpload.effect(function* ({ input, context }) {
+const completeMultipartUpload = authed.storage.completeMultipartUpload.effect(
+	function* ({ input, context }) {
 		const uploadRoute = UPLOAD_ROUTES[input.route];
 		const uploadId = normalizeUploadId(input.uploadId);
 
@@ -397,9 +398,10 @@ export const completeMultipartUpload =
 		return {
 			ok: true,
 		};
-	});
+	},
+);
 
-export const abortMultipartUpload = authed.storage.abortMultipartUpload.effect(
+const abortMultipartUpload = authed.storage.abortMultipartUpload.effect(
 	function* ({ input, context }) {
 		const uploadRoute = UPLOAD_ROUTES[input.route];
 		const uploadId = normalizeUploadId(input.uploadId);
@@ -441,7 +443,7 @@ export const abortMultipartUpload = authed.storage.abortMultipartUpload.effect(
 	},
 );
 
-export const finalizeUpload = authed.storage.finalizeUpload
+const finalizeUpload = authed.storage.finalizeUpload
 	.use(requireOrganizationPermission("create_asset"))
 	.effect(function* ({ input, context }) {
 		const uploadRoute = UPLOAD_ROUTES[input.route];

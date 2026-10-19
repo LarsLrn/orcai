@@ -35,8 +35,8 @@ const invitationScope = (user: { id: UserId; email: string }) =>
 		eq(dbSchema.invitation.inviterId, user.id),
 	);
 
-export const listOrganizationInvitations =
-	authed.organizationInvitation.list.effect(function* ({ input, context }) {
+const listOrganizationInvitations = authed.organizationInvitation.list.effect(
+	function* ({ input, context }) {
 		const db = yield* DB;
 
 		const baseScopeClause =
@@ -106,10 +106,11 @@ export const listOrganizationInvitations =
 			data,
 			rowCount: rowCount.count,
 		};
-	});
+	},
+);
 
-export const findOrganizationInvitation =
-	authed.organizationInvitation.find.effect(function* ({ input, context }) {
+const findOrganizationInvitation = authed.organizationInvitation.find.effect(
+	function* ({ input, context }) {
 		const db = yield* DB;
 
 		const [invitation] = yield* db
@@ -137,9 +138,10 @@ export const findOrganizationInvitation =
 				data,
 			})),
 		);
-	});
+	},
+);
 
-export const validateOrganizationInvitation =
+const validateOrganizationInvitation =
 	os.organizationInvitation.validate.effect(function* ({ input }) {
 		const db = yield* DB;
 
@@ -200,93 +202,91 @@ export const validateOrganizationInvitation =
 		};
 	});
 
-export const createOrganizationInvitations =
-	authed.organizationInvitation.create
-		.use(requireActiveOrganizationMiddleware)
-		.use(
-			requireEntityPermission("organization", "invite_members", {
-				entityId: "organizationId",
-			}),
-		)
-		.effect(function* ({ input, context }) {
-			const db = yield* DB;
-			const { config } = yield* AppConfigService;
-			const organization = yield* db.query.organization.findFirst({
-				where: {
-					id: {
-						eq: input.organizationId,
-					},
+const createOrganizationInvitations = authed.organizationInvitation.create
+	.use(requireActiveOrganizationMiddleware)
+	.use(
+		requireEntityPermission("organization", "invite_members", {
+			entityId: "organizationId",
+		}),
+	)
+	.effect(function* ({ input, context }) {
+		const db = yield* DB;
+		const { config } = yield* AppConfigService;
+		const organization = yield* db.query.organization.findFirst({
+			where: {
+				id: {
+					eq: input.organizationId,
 				},
-			});
-			if (!organization) {
-				return yield* Effect.fail(
-					new AppErrors.NotFoundError({
-						reason: "ORGANIZATION_NOT_FOUND",
-						message: "Organization not found",
-					}),
-				);
-			}
-
-			if (organizationRoleRequiresAdminControl(input.role)) {
-				yield* assertCanManageOrganizationAdmins({
-					organizationId: input.organizationId,
-					userId: context.auth.user.id,
-					zedToken: getZedToken(context),
-				});
-			}
-
-			const invitations = input.items.map((item) => ({
-				email: item.email,
-				organizationId: input.organizationId,
-				role: input.role,
-				status: "pending" as const,
-				expiresAt: input.expiresAt,
-				inviterId: context.auth.user.id,
-			}));
-
-			const data = yield* db.transaction((tx) =>
-				Effect.gen(function* () {
-					const created = yield* tx
-						.insert(dbSchema.invitation)
-						.values(invitations)
-						.returning({
-							...getColumns(dbSchema.invitation),
-						});
-					yield* tx.insert(dbSchema.notificationOutbox).values(
-						created.map((invitation) =>
-							notificationOutboxValues(
-								{
-									type: "organization.invited",
-									recipient: invitation.email,
-									recipientName: invitation.email.split("@")[0] || undefined,
-									invitationId: invitation.id,
-									organizationName: organization.name,
-									inviterName:
-										context.auth.user.name || context.auth.user.email,
-									role: invitation.role,
-									expiresAt: invitation.expiresAt,
-									registrationUrl: `${config.auth.url}/register?inv=${invitation.id}`,
-									locale: input.locale ?? context.auth.user.locale ?? "en",
-								},
-								`organization.invited:${invitation.id}`,
-							),
-						),
-					);
-					return created;
+			},
+		});
+		if (!organization) {
+			return yield* Effect.fail(
+				new AppErrors.NotFoundError({
+					reason: "ORGANIZATION_NOT_FOUND",
+					message: "Organization not found",
 				}),
 			);
-			yield* wakeNotificationWorker.pipe(
-				Effect.catch((cause) =>
-					Effect.logWarning(`notification.wake.failed cause=${String(cause)}`),
-				),
-			);
+		}
 
-			return {
-				data,
-			};
-		});
+		if (organizationRoleRequiresAdminControl(input.role)) {
+			yield* assertCanManageOrganizationAdmins({
+				organizationId: input.organizationId,
+				userId: context.auth.user.id,
+				zedToken: getZedToken(context),
+			});
+		}
 
-export const updateOrganizationInvitation = authed.organizationInvitation.update
+		const invitations = input.items.map((item) => ({
+			email: item.email,
+			organizationId: input.organizationId,
+			role: input.role,
+			status: "pending" as const,
+			expiresAt: input.expiresAt,
+			inviterId: context.auth.user.id,
+		}));
+
+		const data = yield* db.transaction((tx) =>
+			Effect.gen(function* () {
+				const created = yield* tx
+					.insert(dbSchema.invitation)
+					.values(invitations)
+					.returning({
+						...getColumns(dbSchema.invitation),
+					});
+				yield* tx.insert(dbSchema.notificationOutbox).values(
+					created.map((invitation) =>
+						notificationOutboxValues(
+							{
+								type: "organization.invited",
+								recipient: invitation.email,
+								recipientName: invitation.email.split("@")[0] || undefined,
+								invitationId: invitation.id,
+								organizationName: organization.name,
+								inviterName: context.auth.user.name || context.auth.user.email,
+								role: invitation.role,
+								expiresAt: invitation.expiresAt,
+								registrationUrl: `${config.auth.url}/register?inv=${invitation.id}`,
+								locale: input.locale ?? context.auth.user.locale ?? "en",
+							},
+							`organization.invited:${invitation.id}`,
+						),
+					),
+				);
+				return created;
+			}),
+		);
+		yield* wakeNotificationWorker.pipe(
+			Effect.catch((cause) =>
+				Effect.logWarning(`notification.wake.failed cause=${String(cause)}`),
+			),
+		);
+
+		return {
+			data,
+		};
+	});
+
+const updateOrganizationInvitation = authed.organizationInvitation.update
 	.use(
 		requireEntityPermission("organization", "invite_members", {
 			entityId: "organizationId",
@@ -327,59 +327,58 @@ export const updateOrganizationInvitation = authed.organizationInvitation.update
 		);
 	});
 
-export const deleteOrganizationInvitations =
-	authed.organizationInvitation.delete
-		.use(
-			checkManyPermissionMiddleware("organization").adaptInput(
-				(input): CheckManyPermissionInputFor<"organization"> => ({
-					entityIds: [
-						input.organizationId,
-					],
-					permission: "invite_members",
+const deleteOrganizationInvitations = authed.organizationInvitation.delete
+	.use(
+		checkManyPermissionMiddleware("organization").adaptInput(
+			(input): CheckManyPermissionInputFor<"organization"> => ({
+				entityIds: [
+					input.organizationId,
+				],
+				permission: "invite_members",
+			}),
+		),
+	)
+	.effect(function* ({ input }) {
+		const db = yield* DB;
+
+		const ids = input.refs.map((ref) => ref.id);
+		const existingInvitations = yield* db
+			.select({
+				id: dbSchema.invitation.id,
+			})
+			.from(dbSchema.invitation)
+			.where(
+				and(
+					eq(dbSchema.invitation.organizationId, input.organizationId),
+					inArray(dbSchema.invitation.id, ids),
+				),
+			);
+
+		if (existingInvitations.length !== ids.length) {
+			return yield* Effect.fail(
+				new AppErrors.NotFoundError({
+					reason: "INVITATION_NOT_FOUND",
+					message: "One or more organization invitations were not found",
 				}),
-			),
-		)
-		.effect(function* ({ input }) {
-			const db = yield* DB;
+			);
+		}
 
-			const ids = input.refs.map((ref) => ref.id);
-			const existingInvitations = yield* db
-				.select({
-					id: dbSchema.invitation.id,
-				})
-				.from(dbSchema.invitation)
-				.where(
-					and(
-						eq(dbSchema.invitation.organizationId, input.organizationId),
-						inArray(dbSchema.invitation.id, ids),
-					),
-				);
+		yield* db
+			.delete(dbSchema.invitation)
+			.where(
+				and(
+					eq(dbSchema.invitation.organizationId, input.organizationId),
+					inArray(dbSchema.invitation.id, ids),
+				),
+			);
 
-			if (existingInvitations.length !== ids.length) {
-				return yield* Effect.fail(
-					new AppErrors.NotFoundError({
-						reason: "INVITATION_NOT_FOUND",
-						message: "One or more organization invitations were not found",
-					}),
-				);
-			}
+		return {
+			success: true,
+			message: "Organization invitations deleted successfully",
+		};
+	});
 
-			yield* db
-				.delete(dbSchema.invitation)
-				.where(
-					and(
-						eq(dbSchema.invitation.organizationId, input.organizationId),
-						inArray(dbSchema.invitation.id, ids),
-					),
-				);
-
-			return {
-				success: true,
-				message: "Organization invitations deleted successfully",
-			};
-		});
-
-export const respondToOrganizationInvitation =
+const respondToOrganizationInvitation =
 	authed.organizationInvitation.respond.effect(function* ({ input, context }) {
 		const db = yield* DB;
 

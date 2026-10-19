@@ -107,7 +107,7 @@ const requireCustomGroup = (params: {
 		return group;
 	});
 
-export const listGroups = authed.group.list
+const listGroups = authed.group.list
 	.use(requireActiveOrganizationMiddleware)
 	.effect(function* ({ input, context }) {
 		const db = yield* DB;
@@ -175,7 +175,7 @@ export const listGroups = authed.group.list
 		};
 	});
 
-export const findGroup = authed.group.find
+const findGroup = authed.group.find
 	.use(requireActiveOrganizationMiddleware)
 	.effect(function* ({ input, context }) {
 		const db = yield* DB;
@@ -215,7 +215,7 @@ export const findGroup = authed.group.find
 		};
 	});
 
-export const createGroup = authed.group.create
+const createGroup = authed.group.create
 	.use(requireOrganizationPermission("manage_groups"))
 	.effect(function* ({ input, context }) {
 		const db = yield* DB;
@@ -256,7 +256,7 @@ export const createGroup = authed.group.create
 		};
 	});
 
-export const updateGroup = authed.group.update
+const updateGroup = authed.group.update
 	.use(requireOrganizationPermission("manage_groups"))
 	.effect(function* ({ input, context }) {
 		const db = yield* DB;
@@ -310,7 +310,7 @@ export const updateGroup = authed.group.update
 		};
 	});
 
-export const deleteGroups = authed.group.delete
+const deleteGroups = authed.group.delete
 	.use(requireOrganizationPermission("manage_groups"))
 	.effect(function* ({ input, context }) {
 		const db = yield* DB;
@@ -453,7 +453,7 @@ export const deleteGroups = authed.group.delete
 		};
 	});
 
-export const listGroupMembers = authed.group.listMembers
+const listGroupMembers = authed.group.listMembers
 	.use(requireActiveOrganizationMiddleware)
 	.effect(function* ({ input, context }) {
 		const db = yield* DB;
@@ -602,7 +602,7 @@ export const listGroupMembers = authed.group.listMembers
 		};
 	});
 
-export const listGroupCandidates = authed.group.listCandidates
+const listGroupCandidates = authed.group.listCandidates
 	.use(requireOrganizationPermission("manage_groups"))
 	.effect(function* ({ input, context }) {
 		const db = yield* DB;
@@ -664,7 +664,7 @@ export const listGroupCandidates = authed.group.listCandidates
 		};
 	});
 
-export const addGroupMembers = authed.group.addMembers
+const addGroupMembers = authed.group.addMembers
 	.use(requireOrganizationPermission("manage_groups"))
 	.effect(function* ({ input, context }) {
 		const db = yield* DB;
@@ -781,7 +781,7 @@ export const addGroupMembers = authed.group.addMembers
 		};
 	});
 
-export const removeGroupMembers = authed.group.removeMembers
+const removeGroupMembers = authed.group.removeMembers
 	.use(requireOrganizationPermission("manage_groups"))
 	.effect(function* ({ input, context }) {
 		const db = yield* DB;

@@ -6,11 +6,10 @@ import {
 	tokenize,
 } from "@orcai/core";
 import type { AssetPoint, DatabaseBlock } from "@orcai/schema";
-import { call } from "@orpc/server";
 import * as Effect from "effect/Effect";
 import type { ORPCContext } from "@/lib/orpc/implementation/os";
-import { listAssets } from "@/lib/orpc/router/asset";
-import { findBlock } from "@/lib/orpc/router/block";
+import { assetProcedures } from "@/lib/orpc/router/asset";
+import { blockProcedures } from "@/lib/orpc/router/block";
 import { RETRIEVAL_LIMITS } from "@/settings/constants";
 import type {
 	ChunkResult,
@@ -260,29 +259,29 @@ export const loadDocumentCatalog = ({
 		const blockAssetRefs = yield* Effect.forEach(
 			blocks,
 			(block) =>
-				Effect.tryPromise({
-					try: () =>
-						call(
-							findBlock,
-							{
-								id: block.id,
-							},
-							{
-								context,
-							},
+				blockProcedures
+					.find(
+						{
+							id: block.id,
+						},
+						{
+							context,
+						},
+					)
+					.pipe(
+						Effect.mapError(
+							(cause) =>
+								new AiError({
+									operation: "loadDocumentCatalog.findBlock",
+									cause,
+								}),
 						),
-					catch: (cause) =>
-						new AiError({
-							operation: "loadDocumentCatalog.findBlock",
-							cause,
-						}),
-				}).pipe(
-					Effect.map((result) => ({
-						block,
-						assetIds:
-							result.assets?.map((entry: { id: AssetId }) => entry.id) ?? [],
-					})),
-				),
+						Effect.map((result) => ({
+							block,
+							assetIds:
+								result.assets?.map((entry: { id: AssetId }) => entry.id) ?? [],
+						})),
+					),
 			{
 				concurrency: 4,
 			},
@@ -295,27 +294,28 @@ export const loadDocumentCatalog = ({
 			return [];
 		}
 
-		const assetResponse = yield* Effect.tryPromise({
-			try: () =>
-				call(
-					listAssets,
-					{
-						pageIndex: 0,
-						pageSize: Math.min(1000, Math.max(uniqueAssetIds.length, 20)),
-						filters: {
-							ids: uniqueAssetIds,
-						},
+		const assetResponse = yield* assetProcedures
+			.list(
+				{
+					pageIndex: 0,
+					pageSize: Math.min(1000, Math.max(uniqueAssetIds.length, 20)),
+					filters: {
+						ids: uniqueAssetIds,
 					},
-					{
-						context,
-					},
+				},
+				{
+					context,
+				},
+			)
+			.pipe(
+				Effect.mapError(
+					(cause) =>
+						new AiError({
+							operation: "loadDocumentCatalog.listAssets",
+							cause,
+						}),
 				),
-			catch: (cause) =>
-				new AiError({
-					operation: "loadDocumentCatalog.listAssets",
-					cause,
-				}),
-		});
+			);
 
 		const assetById = new Map(
 			assetResponse.data.map(

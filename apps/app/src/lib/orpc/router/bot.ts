@@ -470,7 +470,7 @@ const saveBotGraph = (params: {
 		return editor;
 	});
 
-export const listBots = authed.bot.list.effect(function* ({ input, context }) {
+const listBots = authed.bot.list.effect(function* ({ input, context }) {
 	return yield* listBotsByStatus({
 		userId: context.auth.user.id,
 		status: "ready",
@@ -482,7 +482,7 @@ export const listBots = authed.bot.list.effect(function* ({ input, context }) {
 	});
 });
 
-export const listDraftBots = authed.bot.listDrafts.effect(function* ({
+const listDraftBots = authed.bot.listDrafts.effect(function* ({
 	input,
 	context,
 }) {
@@ -497,7 +497,7 @@ export const listDraftBots = authed.bot.listDrafts.effect(function* ({
 	});
 });
 
-export const findBot = authed.bot.find
+const findBot = authed.bot.find
 	.use(
 		requireEntityPermission("bot", "read", {
 			entityId: "id",
@@ -546,7 +546,7 @@ export const findBot = authed.bot.find
 		};
 	});
 
-export const findBotEditor = authed.bot.findEditor
+const findBotEditor = authed.bot.findEditor
 	.use(
 		requireEntityPermission("bot", "edit", {
 			entityId: "id",
@@ -568,7 +568,7 @@ export const findBotEditor = authed.bot.findEditor
 		);
 	});
 
-export const saveBot = authed.bot.save
+const saveBot = authed.bot.save
 	.use(requireActiveOrganizationMiddleware)
 	.effect(function* ({ input, context }) {
 		const resolvedZedToken = getZedToken(context, input);
@@ -615,7 +615,7 @@ export const saveBot = authed.bot.save
 		});
 	});
 
-export const publishBot = authed.bot.publish
+const publishBot = authed.bot.publish
 	.use(
 		requireEntityPermission("bot", "edit", {
 			entityId: "id",
@@ -693,7 +693,7 @@ export const publishBot = authed.bot.publish
 		};
 	});
 
-export const deleteBots = authed.bot.delete
+const deleteBots = authed.bot.delete
 	.use(
 		checkManyPermissionMiddleware("bot").adaptInput(
 			(input): CheckManyPermissionInputFor<"bot"> => ({

@@ -9,7 +9,7 @@ import { authed } from "@/lib/orpc/implementation/authed";
 import { uniqueViolationConstraint } from "@/lib/orpc/implementation/error-mapping";
 import { requireEntityPermission } from "@/lib/orpc/middlewares/permission";
 
-export const listChatMessages = authed.chatMessage.list
+const listChatMessages = authed.chatMessage.list
 	.use(
 		requireEntityPermission("chat", "read", {
 			entityId: "chatId",
@@ -42,7 +42,7 @@ export const listChatMessages = authed.chatMessage.list
 		};
 	});
 
-export const findChatMessage = authed.chatMessage.find
+const findChatMessage = authed.chatMessage.find
 	.use(
 		requireEntityPermission("chat", "read", {
 			entityId: "chatId",
@@ -186,7 +186,7 @@ export const settleChatReply = ({
 			.where(where);
 	});
 
-export const createChatMessage = authed.chatMessage.create
+const createChatMessage = authed.chatMessage.create
 	.use(
 		requireEntityPermission("chat", "edit", {
 			entityId: "chatId",
@@ -208,7 +208,7 @@ export const createChatMessage = authed.chatMessage.create
 		};
 	});
 
-export const rateChatMessage = authed.chatMessage.rate
+const rateChatMessage = authed.chatMessage.rate
 	.use(
 		requireEntityPermission("chat", "edit", {
 			entityId: "chatId",

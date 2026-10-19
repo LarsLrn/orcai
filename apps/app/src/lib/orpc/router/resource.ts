@@ -372,7 +372,7 @@ const readableAncestorIds = <Entity extends "bot" | "block">(params: {
 				),
 			);
 
-export const getInheritedAccess = authed.resource.inheritedAccess
+const getInheritedAccess = authed.resource.inheritedAccess
 	.use(requireResourcePermission("manage_access"))
 	.effect(function* ({ input, context }) {
 		const db = yield* DB;
@@ -511,7 +511,7 @@ export const getInheritedAccess = authed.resource.inheritedAccess
 		};
 	});
 
-export const listResourceGrants = authed.resource.listGrants
+const listResourceGrants = authed.resource.listGrants
 	.use(requireResourcePermission("manage_access"))
 	.effect(function* ({ input, context }) {
 		const grants = yield* activeGrantsFor(input);
@@ -528,7 +528,7 @@ export const listResourceGrants = authed.resource.listGrants
 		};
 	});
 
-export const listResourcePrincipals = authed.resource.listPrincipals
+const listResourcePrincipals = authed.resource.listPrincipals
 	.use(requireResourcePermission("manage_access"))
 	.effect(function* ({ input, context }) {
 		const db = yield* DB;
@@ -669,7 +669,7 @@ export const listResourcePrincipals = authed.resource.listPrincipals
 		};
 	});
 
-export const grantResourceAccess = authed.resource.grant
+const grantResourceAccess = authed.resource.grant
 	.use(assertCanGrantPrincipalMiddleware)
 	.effect(function* ({ input, context }) {
 		const db = yield* DB;
@@ -787,7 +787,7 @@ export const grantResourceAccess = authed.resource.grant
 		};
 	});
 
-export const revokeResourceAccess = authed.resource.revoke
+const revokeResourceAccess = authed.resource.revoke
 	.use(requireResourcePermission("manage_access"))
 	.effect(function* ({ input }) {
 		const db = yield* DB;
@@ -838,7 +838,7 @@ export const revokeResourceAccess = authed.resource.revoke
 		};
 	});
 
-export const getResourceVisibility = authed.resource.getVisibility
+const getResourceVisibility = authed.resource.getVisibility
 	.use(requireResourcePermission("read"))
 	.effect(function* ({ input }) {
 		const db = yield* DB;
@@ -863,7 +863,7 @@ export const getResourceVisibility = authed.resource.getVisibility
 		};
 	});
 
-export const setResourceVisibility = authed.resource.setVisibility
+const setResourceVisibility = authed.resource.setVisibility
 	.use(requireResourcePermission("manage_access"))
 	.effect(function* ({ input, context }) {
 		const db = yield* DB;
@@ -923,110 +923,111 @@ export const setResourceVisibility = authed.resource.setVisibility
 /** Postgres returns the coalesced timestamp as text, so normalise before comparing. */
 const toTime = (value: Date | string) => new Date(value).getTime();
 
-export const listRecentResources = authed.resource.listRecent.effect(
-	function* ({ input, context }) {
-		const db = yield* DB;
-		const userId = context.auth.user.id;
-		const zedToken = getZedToken(context, input);
+const listRecentResources = authed.resource.listRecent.effect(function* ({
+	input,
+	context,
+}) {
+	const db = yield* DB;
+	const userId = context.auth.user.id;
+	const zedToken = getZedToken(context, input);
 
-		const readableIds = <TEntity extends "asset" | "block" | "bot">(
-			entityType: TEntity,
-		) =>
-			lookupEntitiesByPermission({
-				entityType,
-				permission: "read",
-				userId,
-				zedToken,
-			}).pipe(
-				Effect.map((entities) =>
-					entities.map((entity) => entity.resourceObjectId),
-				),
-			);
-
-		const [bots, blocks, assets] = yield* Effect.all(
-			[
-				readableIds("bot").pipe(
-					Effect.flatMap((ids) =>
-						ids.length === 0
-							? Effect.succeed([])
-							: db
-									.select({
-										resourceId: dbSchema.bot.id,
-										name: dbSchema.bot.name,
-										status: dbSchema.bot.status,
-										changedAt: changedAt(dbSchema.bot),
-									})
-									.from(dbSchema.bot)
-									.where(inArray(dbSchema.bot.id, ids))
-									.orderBy(desc(changedAt(dbSchema.bot)))
-									.limit(input.limit),
-					),
-				),
-				readableIds("block").pipe(
-					Effect.flatMap((ids) =>
-						ids.length === 0
-							? Effect.succeed([])
-							: db
-									.select({
-										resourceId: dbSchema.block.id,
-										name: dbSchema.block.name,
-										blockType: dbSchema.block.type,
-										status: dbSchema.block.status,
-										changedAt: changedAt(dbSchema.block),
-									})
-									.from(dbSchema.block)
-									.where(inArray(dbSchema.block.id, ids))
-									.orderBy(desc(changedAt(dbSchema.block)))
-									.limit(input.limit),
-					),
-				),
-				readableIds("asset").pipe(
-					Effect.flatMap((ids) =>
-						ids.length === 0
-							? Effect.succeed([])
-							: db
-									.select({
-										resourceId: dbSchema.asset.id,
-										name: dbSchema.asset.title,
-										processingStatus: dbSchema.asset.processingStatus,
-										changedAt: changedAt(dbSchema.asset),
-									})
-									.from(dbSchema.asset)
-									.where(inArray(dbSchema.asset.id, ids))
-									.orderBy(desc(changedAt(dbSchema.asset)))
-									.limit(input.limit),
-					),
-				),
-			],
-			{
-				concurrency: "unbounded",
-			},
+	const readableIds = <TEntity extends "asset" | "block" | "bot">(
+		entityType: TEntity,
+	) =>
+		lookupEntitiesByPermission({
+			entityType,
+			permission: "read",
+			userId,
+			zedToken,
+		}).pipe(
+			Effect.map((entities) =>
+				entities.map((entity) => entity.resourceObjectId),
+			),
 		);
 
-		const data = [
-			...bots.map((bot) => ({
-				resourceType: "bot" as const,
-				...bot,
-			})),
-			...blocks.map((block) => ({
-				resourceType: "block" as const,
-				...block,
-				blockType: block.blockType as BlockType,
-			})),
-			...assets.map((asset) => ({
-				resourceType: "asset" as const,
-				...asset,
-			})),
-		]
-			.sort((left, right) => toTime(right.changedAt) - toTime(left.changedAt))
-			.slice(0, input.limit);
+	const [bots, blocks, assets] = yield* Effect.all(
+		[
+			readableIds("bot").pipe(
+				Effect.flatMap((ids) =>
+					ids.length === 0
+						? Effect.succeed([])
+						: db
+								.select({
+									resourceId: dbSchema.bot.id,
+									name: dbSchema.bot.name,
+									status: dbSchema.bot.status,
+									changedAt: changedAt(dbSchema.bot),
+								})
+								.from(dbSchema.bot)
+								.where(inArray(dbSchema.bot.id, ids))
+								.orderBy(desc(changedAt(dbSchema.bot)))
+								.limit(input.limit),
+				),
+			),
+			readableIds("block").pipe(
+				Effect.flatMap((ids) =>
+					ids.length === 0
+						? Effect.succeed([])
+						: db
+								.select({
+									resourceId: dbSchema.block.id,
+									name: dbSchema.block.name,
+									blockType: dbSchema.block.type,
+									status: dbSchema.block.status,
+									changedAt: changedAt(dbSchema.block),
+								})
+								.from(dbSchema.block)
+								.where(inArray(dbSchema.block.id, ids))
+								.orderBy(desc(changedAt(dbSchema.block)))
+								.limit(input.limit),
+				),
+			),
+			readableIds("asset").pipe(
+				Effect.flatMap((ids) =>
+					ids.length === 0
+						? Effect.succeed([])
+						: db
+								.select({
+									resourceId: dbSchema.asset.id,
+									name: dbSchema.asset.title,
+									processingStatus: dbSchema.asset.processingStatus,
+									changedAt: changedAt(dbSchema.asset),
+								})
+								.from(dbSchema.asset)
+								.where(inArray(dbSchema.asset.id, ids))
+								.orderBy(desc(changedAt(dbSchema.asset)))
+								.limit(input.limit),
+				),
+			),
+		],
+		{
+			concurrency: "unbounded",
+		},
+	);
 
-		return {
-			data,
-			rowCount: data.length,
-		};
-	},
-);
+	const data = [
+		...bots.map((bot) => ({
+			resourceType: "bot" as const,
+			...bot,
+		})),
+		...blocks.map((block) => ({
+			resourceType: "block" as const,
+			...block,
+			blockType: block.blockType as BlockType,
+		})),
+		...assets.map((asset) => ({
+			resourceType: "asset" as const,
+			...asset,
+		})),
+	]
+		.sort((left, right) => toTime(right.changedAt) - toTime(left.changedAt))
+		.slice(0, input.limit);
+
+	return {
+		data,
+		rowCount: data.length,
+	};
+});
 
 export const resourceRouter = {
 	listGrants: listResourceGrants,

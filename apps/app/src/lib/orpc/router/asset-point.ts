@@ -17,6 +17,7 @@ import { clamp } from "effect/Number";
 import type { z } from "zod/v4";
 import * as AppErrors from "@/lib/effect/utils/errors";
 import { authed } from "@/lib/orpc/implementation/authed";
+import { createProcedures } from "@/lib/orpc/implementation/procedures";
 import { requireEntityPermission } from "@/lib/orpc/middlewares/permission";
 
 const retrieveAssetPoints = (
@@ -219,7 +220,7 @@ const retrieveAssetPoints = (
 		};
 	});
 
-export const listAssetPoint = authed.assetPoint.list
+const listAssetPoint = authed.assetPoint.list
 	.use(
 		requireEntityPermission("asset", "read", {
 			entityId: "assetId",
@@ -234,7 +235,7 @@ export const listAssetPoint = authed.assetPoint.list
 		});
 	});
 
-export const searchRepositoryAssetPoint = authed.assetPoint.searchRepository
+const searchRepositoryAssetPoint = authed.assetPoint.searchRepository
 	.use(
 		requireEntityPermission("block", "read", {
 			entityId: "repositoryId",
@@ -302,3 +303,8 @@ export const assetPointRouter = {
 	list: listAssetPoint,
 	searchRepository: searchRepositoryAssetPoint,
 };
+
+export const assetPointProcedures = createProcedures(
+	"assetPoint",
+	assetPointRouter,
+);

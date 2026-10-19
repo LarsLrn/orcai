@@ -98,7 +98,7 @@ const getCurrentPeriodAndLedger = (params: { quotaPoolId: QuotaPoolId }) =>
 		};
 	});
 
-export const listQuotaPools = authed.quota.list
+const listQuotaPools = authed.quota.list
 	.use(requireOrganizationPermission("read"))
 	.effect(function* ({ input, context }) {
 		const db = yield* DB;
@@ -193,7 +193,7 @@ export const listQuotaPools = authed.quota.list
 		};
 	});
 
-export const findQuotaPool = authed.quota.find
+const findQuotaPool = authed.quota.find
 	.use(requireOrganizationPermission("read"))
 	.effect(function* ({ input, context }) {
 		const db = yield* DB;
@@ -277,7 +277,7 @@ export const findQuotaPool = authed.quota.find
 		};
 	});
 
-export const createQuotaPool = authed.quota.create
+const createQuotaPool = authed.quota.create
 	.use(requireOrganizationPermission("manage_quotas"))
 	.effect(function* ({ input, context }) {
 		const organizationId = context.auth.session.activeOrganizationId;
@@ -305,7 +305,7 @@ export const createQuotaPool = authed.quota.create
 		};
 	});
 
-export const updateQuotaPool = authed.quota.update
+const updateQuotaPool = authed.quota.update
 	.use(requireOrganizationPermission("manage_quotas"))
 	.effect(function* ({ input, context }) {
 		const organizationId = context.auth.session.activeOrganizationId;
@@ -324,7 +324,7 @@ export const updateQuotaPool = authed.quota.update
 		};
 	});
 
-export const deactivateQuotaPool = authed.quota.deactivate
+const deactivateQuotaPool = authed.quota.deactivate
 	.use(requireOrganizationPermission("manage_quotas"))
 	.effect(function* ({ input, context }) {
 		const organizationId = context.auth.session.activeOrganizationId;
@@ -350,7 +350,7 @@ export const deactivateQuotaPool = authed.quota.deactivate
 
 // TODO: Consider restricting pool budget/usage data to admin users.
 // Currently any user with chat-read access can see pool budget details.
-export const quotaChatBadge = authed.quota.chatBadge
+const quotaChatBadge = authed.quota.chatBadge
 	.use(
 		requireEntityPermission("chat", "read", {
 			entityId: "chatId",
@@ -511,7 +511,7 @@ export const quotaChatBadge = authed.quota.chatBadge
 		};
 	});
 
-export const quotaAvailability = authed.quota.availability
+const quotaAvailability = authed.quota.availability
 	.use(requireOrganizationPermission("read"))
 	.effect(function* ({ input, context }) {
 		const resolved = yield* resolveQuotaPool({

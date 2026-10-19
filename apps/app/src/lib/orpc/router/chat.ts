@@ -39,10 +39,7 @@ import { isEmptyReply } from "./chat-message";
 import { literalSearch } from "./helpers/literal-search";
 import { buildOrderBy, type SortExpression } from "./helpers/sorting";
 
-export const listChats = authed.chat.list.effect(function* ({
-	input,
-	context,
-}) {
+const listChats = authed.chat.list.effect(function* ({ input, context }) {
 	const db = yield* DB;
 
 	const allowedIds = yield* lookupEntitiesByPermission({
@@ -173,7 +170,7 @@ const chatRelationships = (chat: {
 		: []),
 ];
 
-export const findChat = authed.chat.find
+const findChat = authed.chat.find
 	.use(
 		requireEntityPermission("chat", "read", {
 			entityId: "id",
@@ -278,10 +275,7 @@ export const findChat = authed.chat.find
 		};
 	});
 
-export const createChat = authed.chat.create.effect(function* ({
-	input,
-	context,
-}) {
+const createChat = authed.chat.create.effect(function* ({ input, context }) {
 	const db = yield* DB;
 	const authz = yield* AuthzService;
 
@@ -312,7 +306,7 @@ export const createChat = authed.chat.create.effect(function* ({
 	};
 });
 
-export const updateChat = authed.chat.update
+const updateChat = authed.chat.update
 	.use(
 		requireEntityPermission("chat", "edit", {
 			entityId: "id",
@@ -386,7 +380,7 @@ export const updateChat = authed.chat.update
 		};
 	});
 
-export const deleteChats = authed.chat.delete
+const deleteChats = authed.chat.delete
 	.use(
 		checkManyPermissionMiddleware("chat").adaptInput(
 			(input): CheckManyPermissionInputFor<"chat"> => ({
@@ -408,7 +402,7 @@ export const deleteChats = authed.chat.delete
 		};
 	});
 
-export const branchChat = authed.chat.branch
+const branchChat = authed.chat.branch
 	.use(
 		requireEntityPermission("chat", "read", {
 			entityId: "chatId",

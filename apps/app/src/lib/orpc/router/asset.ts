@@ -27,6 +27,7 @@ import { initializeResourceAuthorization } from "@/lib/authz/resource-lifecycle"
 import { getZedToken } from "@/lib/authz/zed-token";
 import * as AppErrors from "@/lib/effect/utils/errors";
 import { authed } from "@/lib/orpc/implementation/authed";
+import { createProcedures } from "@/lib/orpc/implementation/procedures";
 import {
 	type CheckManyPermissionInputFor,
 	checkManyPermissionMiddleware,
@@ -107,10 +108,7 @@ const dispatchProcessJob = (asset: {
 		},
 	});
 
-export const listAssets = authed.asset.list.effect(function* ({
-	input,
-	context,
-}) {
+const listAssets = authed.asset.list.effect(function* ({ input, context }) {
 	const db = yield* DB;
 
 	const allowedIds = yield* lookupEntitiesByPermission({
@@ -180,7 +178,7 @@ export const listAssets = authed.asset.list.effect(function* ({
 	);
 });
 
-export const findAsset = authed.asset.find
+const findAsset = authed.asset.find
 	.use(
 		requireEntityPermission("asset", "read", {
 			entityId: "id",
@@ -219,7 +217,7 @@ export const findAsset = authed.asset.find
 		};
 	});
 
-export const createAsset = authed.asset.create
+const createAsset = authed.asset.create
 	.use(requireOrganizationPermission("create_asset"))
 	.effect(function* ({ input, context }) {
 		const prefix = buildUploadPrefix({
@@ -244,10 +242,7 @@ export const createAsset = authed.asset.create
 		};
 	});
 
-export const saveAsset = authed.asset.save.effect(function* ({
-	input,
-	context,
-}) {
+const saveAsset = authed.asset.save.effect(function* ({ input, context }) {
 	const db = yield* DB;
 
 	if (input.id) {
@@ -341,7 +336,7 @@ export const saveAsset = authed.asset.save.effect(function* ({
 	};
 });
 
-export const saveManyAssets = authed.asset.saveMany
+const saveManyAssets = authed.asset.saveMany
 	.use(requireOrganizationPermission("create_asset"))
 	.effect(function* ({ input, context }) {
 		const results = yield* Effect.forEach(
@@ -417,7 +412,7 @@ export const saveManyAssets = authed.asset.saveMany
 		};
 	});
 
-export const deleteAssets = authed.asset.delete
+const deleteAssets = authed.asset.delete
 	.use(
 		checkManyPermissionMiddleware("asset").adaptInput(
 			(input): CheckManyPermissionInputFor<"asset"> => ({
@@ -483,3 +478,5 @@ export const assetRouter = {
 	find: findAsset,
 	delete: deleteAssets,
 };
+
+export const assetProcedures = createProcedures("asset", assetRouter);

@@ -9,7 +9,6 @@ import {
 } from "@orcai/quota";
 import type { DatabaseBlock, TemplateBlock } from "@orcai/schema";
 import { streamToEventIterator } from "@orpc/client";
-import { call } from "@orpc/server";
 import {
 	createAgentUIStream,
 	type FileUIPart,
@@ -34,7 +33,7 @@ import * as AppErrors from "@/lib/effect/utils/errors";
 import { authed } from "@/lib/orpc/implementation/authed";
 import { requireActiveOrganizationMiddleware } from "@/lib/orpc/middlewares/auth";
 import { requireEntityPermission } from "@/lib/orpc/middlewares/permission";
-import { listChatBlocks } from "./chat-block";
+import { chatBlockProcedures } from "./chat-block";
 import {
 	appendChatMessages,
 	isEmptyReply,
@@ -95,7 +94,7 @@ const mergeDatabaseBlocks = ({
 	return merged;
 };
 
-export const aiChat = authed.ai.chat
+const aiChat = authed.ai.chat
 	.use(requireActiveOrganizationMiddleware)
 	.use(
 		requireEntityPermission("chat", "edit", {
@@ -185,25 +184,26 @@ export const aiChat = authed.ai.chat
 				);
 			}
 
-			const chatBlocksResult = yield* Effect.tryPromise({
-				try: async () =>
-					call(
-						listChatBlocks,
-						{
-							chatId: input.chatId,
-							zedToken,
-						},
-						{
-							context: requestContext,
-						},
+			const chatBlocksResult = yield* chatBlockProcedures
+				.list(
+					{
+						chatId: input.chatId,
+						zedToken,
+					},
+					{
+						context: requestContext,
+					},
+				)
+				.pipe(
+					Effect.mapError(
+						(cause) =>
+							new AppErrors.BadRequestError({
+								reason: "CHAT_BLOCKS_UNAVAILABLE",
+								message: "Failed to fetch chat blocks",
+								cause,
+							}),
 					),
-				catch: (cause) =>
-					new AppErrors.BadRequestError({
-						reason: "CHAT_BLOCKS_UNAVAILABLE",
-						message: "Failed to fetch chat blocks",
-						cause,
-					}),
-			});
+				);
 			const chatBlocks = chatBlocksResult.data;
 
 			const chatAiSettings = yield* getChatAiSettings({

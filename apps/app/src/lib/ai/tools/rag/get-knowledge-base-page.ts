@@ -4,13 +4,12 @@ import {
 	blockIdSchema,
 	type DatabaseBlock,
 } from "@orcai/schema";
-import { call } from "@orpc/server";
 import { tool } from "ai";
 import * as Effect from "effect/Effect";
 import z from "zod/v4";
 import { runPromise } from "@/lib/effect/runtime";
 import type { ORPCContext } from "@/lib/orpc/implementation/os";
-import { searchRepositoryAssetPoint } from "@/lib/orpc/router/asset-point";
+import { assetPointProcedures } from "@/lib/orpc/router/asset-point";
 import type { ChunkResult, KnowledgeBaseDocument } from "./types";
 import {
 	compareByPageAssetChunk,
@@ -135,38 +134,42 @@ export const getKnowledgeBasePageTool = ({
 					const pageTo = normalizedRequestedPage + includeAdjacentPages;
 					const queryLimit = Math.max(limit * 4, 40);
 
-					const blockResponses = yield* Effect.tryPromise({
-						try: () =>
-							Promise.all(
-								targetBlocks.map(async (block) => {
-									const response = await call(
-										searchRepositoryAssetPoint,
-										{
-											repositoryId: block.id,
-											filters: {
-												assetIds: matchedAssetIds,
-												pageFrom,
-												pageTo,
-												limit: queryLimit,
-											},
+					const blockResponses = yield* Effect.forEach(
+						targetBlocks,
+						(block) =>
+							assetPointProcedures
+								.searchRepository(
+									{
+										repositoryId: block.id,
+										filters: {
+											assetIds: matchedAssetIds,
+											pageFrom,
+											pageTo,
+											limit: queryLimit,
 										},
-										{
-											context,
-										},
-									);
-
-									return {
+									},
+									{
+										context,
+									},
+								)
+								.pipe(
+									Effect.map((response) => ({
 										block,
 										response,
-									};
+									})),
+								),
+						{
+							concurrency: "unbounded",
+						},
+					).pipe(
+						Effect.mapError(
+							(cause) =>
+								new AiError({
+									operation: "getKnowledgeBasePageTool.query",
+									cause,
 								}),
-							),
-						catch: (cause) =>
-							new AiError({
-								operation: "getKnowledgeBasePageTool.query",
-								cause,
-							}),
-					});
+						),
+					);
 
 					const points = mergeAndSortCandidates(
 						flattenBlockResponses(blockResponses),
