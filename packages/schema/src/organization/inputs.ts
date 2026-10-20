@@ -1,4 +1,5 @@
 import { z } from "zod/v4";
+import { modelIdSchema } from "../model/ref";
 import { paginationInputSchema } from "../shared";
 import { searchFilterSchema } from "../shared/filters";
 import { createUniqueRefsInputSchema } from "../shared/ref-list";
@@ -47,6 +48,7 @@ export const createOrganizationInputSchema = organizationFieldsSchema;
 export const updateOrganizationInputSchema =
 	organizationMutableFieldsSchema.extend({
 		id: organizationIdSchema,
+		assistantModelId: modelIdSchema.nullable().optional(),
 	});
 
 export const deleteOrganizationsInputSchema = z.object({

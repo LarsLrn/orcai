@@ -7,6 +7,7 @@ import type {
 import { aiContracts } from "./ai";
 import { assetContracts } from "./asset";
 import { assetPointContracts } from "./asset-point";
+import { assistantContracts } from "./assistant";
 import { authorizationContracts } from "./authorization";
 import { blockContracts } from "./block";
 import { bootstrapContracts } from "./bootstrap";
@@ -30,6 +31,7 @@ export const contracts = {
 	ai: aiContracts,
 	asset: assetContracts,
 	assetPoint: assetPointContracts,
+	assistant: assistantContracts,
 	authorization: authorizationContracts,
 	block: blockContracts,
 	bot: botContracts,
@@ -60,6 +62,7 @@ export {
 	aiContracts,
 	assetContracts,
 	assetPointContracts,
+	assistantContracts,
 	authorizationContracts,
 	blockContracts,
 	bootstrapContracts,

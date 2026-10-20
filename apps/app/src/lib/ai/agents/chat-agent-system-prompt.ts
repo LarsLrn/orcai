@@ -30,7 +30,7 @@ const buildKnowledgeBaseGuidance = () =>
 		'- <cite assetid="d4e5f6" title="Miller, 2023">Sustainability requires systemic change</cite>',
 	].join("\n");
 
-const buildFormattingGuidance = () =>
+export const buildFormattingGuidance = () =>
 	[
 		"Message formatting and styling:",
 		"- You can use standard Markdown plus GitHub Flavored Markdown features: headings, emphasis, lists, blockquotes, tables, task lists, and strikethrough.",

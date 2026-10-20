@@ -62,6 +62,8 @@ The list page supports table operations and pool creation.
 
 In chat, users may see remaining quota badges by pool name and metering mode.
 
+The OrcAI Assistant draws on the same pools as chat, through the organisation's assistant model. For a separate assistant budget, create a pool for that model alone and assign it to All Members; a model-specific pool wins over the provider's pools. An exhausted pool blocks the assistant like any chat.
+
 <Callout title="TODO" type="idea">
 	Document the full quota model including reset periods, rollover, and assignment hierarchy.
 </Callout>
@@ -143,6 +145,19 @@ name, slug and logo and shows its ID and creation date. Only administrators of
 the organisation see it. To work on another organisation, switch to it with the
 organisation picker first. Creating and deleting an organisation are instance
 actions and live under Manage instance > Organisations.
+
+### Assistant model
+
+The **Assistant model** picker on the same page chooses the model the
+[OrcAI Assistant](/docs/using-orcai/assistant) answers with. It is the chat
+model picker, limited to usable models: models with tool calling, not
+deprecated, on an enabled provider. **Clear** removes the choice.
+
+While no model is set, the assistant is unavailable to everyone in the
+organisation. Deleting the model, or its provider, clears the setting. If the
+chosen model later becomes unusable, because it is deprecated, loses tool
+calling or its provider is disabled, the setting stays, the page warns with the
+reason, and the assistant's replies fail until another model is chosen.
 
 Removing a user from an organisation clears the active organisation of that
 user's open sessions in the same way, and entering the app rechecks that the

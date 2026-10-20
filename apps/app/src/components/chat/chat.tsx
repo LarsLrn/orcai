@@ -11,6 +11,8 @@ import {
 	ConversationScrollButton,
 } from "@/components/ai-elements/conversation";
 import { Shimmer } from "@/components/ai-elements/shimmer";
+import { AssistantComposerGate } from "@/components/assistant/assistant-composer-gate";
+import { AssistantPlaceholder } from "@/components/assistant/assistant-placeholder";
 import type { ChatAgentUIMessage } from "@/lib/ai/types/chat-agent-message";
 import { describeError, reasonMessageOf } from "@/lib/errors/describe-error";
 import { client, orpc } from "@/lib/orpc/orpc";
@@ -82,6 +84,7 @@ const Chat = ({
 	zedToken,
 	pendingMessage,
 	draft,
+	variant = "chat",
 }: {
 	id: ChatId;
 	initialMessages: ChatAgentUIMessage[];
@@ -91,7 +94,10 @@ const Chat = ({
 	zedToken?: string;
 	pendingMessage?: string;
 	draft?: ChatDraft;
+	/** Assistant conversations drop the chat-only controls. */
+	variant?: "chat" | "assistant";
 }) => {
+	const isAssistant = variant === "assistant";
 	const queryClient = useQueryClient();
 	const hasSentPendingMessage = useRef(false);
 	const [errorDetail, setErrorDetail] = useState<string | undefined>(undefined);
@@ -187,13 +193,19 @@ const Chat = ({
 					queryKey: quotaBadgeQueryOptions.queryKey,
 					refetchType: "active",
 				});
+				if (isAssistant) {
+					await queryClient.invalidateQueries({
+						queryKey: orpc.assistant.key(),
+						refetchType: "active",
+					});
+				}
 			},
 			onError: (error) => {
 				setErrorDetail(describeError(error));
 			},
 		});
 
-	const canBranch = status === "ready" || status === "error";
+	const canBranch = !isAssistant && (status === "ready" || status === "error");
 	const branchFrom = (messageId: string) => {
 		if (branchChat.isPending) return;
 		branchChat.mutate({
@@ -240,9 +252,22 @@ const Chat = ({
 		status,
 	]);
 
+	const composer = (
+		<ChatInput
+			chatId={id}
+			zedToken={zedToken}
+			status={status}
+			isStoringReply={isStoringReply}
+			sendMessage={sendMessage}
+			stop={stop}
+			draft={draft}
+			variant={variant}
+		/>
+	);
+
 	return (
 		<div className="flex size-full min-h-0 min-w-0 flex-col">
-			{chat?.data.parentChat && (
+			{!isAssistant && chat?.data.parentChat && (
 				<div className="mx-auto flex w-full max-w-200 px-4 pb-2">
 					<BranchedFrom parentChat={chat.data.parentChat} />
 				</div>
@@ -275,7 +300,12 @@ const Chat = ({
 							}
 						/>
 					))}
-					{messages.length === 0 && <ChatPlaceholder />}
+					{messages.length === 0 &&
+						(isAssistant ? (
+							<AssistantPlaceholder className="h-full justify-center" />
+						) : (
+							<ChatPlaceholder />
+						))}
 					{status === "submitted" && (
 						<div className="w-full text-foreground">
 							<Shimmer>{m.chat_waiting_for_model()}</Shimmer>
@@ -300,15 +330,11 @@ const Chat = ({
 
 			<div className="mx-auto flex w-full flex-col gap-2 px-4 pt-2 pb-6 md:max-w-3xl md:pb-2">
 				<QuotaLine chatId={id} />
-				<ChatInput
-					chatId={id}
-					zedToken={zedToken}
-					status={status}
-					isStoringReply={isStoringReply}
-					sendMessage={sendMessage}
-					stop={stop}
-					draft={draft}
-				/>
+				{isAssistant ? (
+					<AssistantComposerGate>{composer}</AssistantComposerGate>
+				) : (
+					composer
+				)}
 			</div>
 		</div>
 	);

@@ -43,6 +43,12 @@ const listModels = authed.model.list
 			input.filters?.providerId
 				? eq(dbSchema.model.providerId, input.filters.providerId)
 				: undefined,
+			input.filters?.isDeprecated === undefined
+				? undefined
+				: eq(dbSchema.model.isDeprecated, input.filters.isDeprecated),
+			input.filters?.providerEnabled === undefined
+				? undefined
+				: eq(dbSchema.provider.enabled, input.filters.providerEnabled),
 			input.filters?.capabilities
 				? arrayContains(
 						dbSchema.model.capabilities,

@@ -13,21 +13,26 @@ import {
 	createAgentUIStream,
 	type FileUIPart,
 	smoothStream,
+	type TextStreamPart,
 	type TextUIPart,
 	type ToolSet,
 } from "ai";
-import { and, asc, eq } from "drizzle-orm";
+import { asc, eq } from "drizzle-orm";
 import * as Cause from "effect/Cause";
 import * as Effect from "effect/Effect";
 import { v4 as uuidv4 } from "uuid";
+import { createAssistantAgent } from "@/lib/ai/agents/assistant-agent";
 import { createChatAgent } from "@/lib/ai/agents/chat-agent";
 import { forkChatTitleGenerationIfNeeded } from "@/lib/ai/effects/fork-chat-title-generation";
 import { quotaDenialError } from "@/lib/ai/effects/generate-text-with-quota";
+import type { AssistantAgentUIMessage } from "@/lib/ai/types/assistant-agent-message";
 import type { ChatAgentUIMessage } from "@/lib/ai/types/chat-agent-message";
 import { getChatMessageAttachments } from "@/lib/ai/types/chat-attachment";
 import { buildAttachmentPromptPartCached } from "@/lib/ai/utils/chat-attachment-parts";
 import { closePendingToolParts } from "@/lib/ai/utils/close-pending-tool-parts";
 import { getChatAiSettings } from "@/lib/ai/utils/get-chat-ai-settings";
+import { loadTurnChat } from "@/lib/ai/utils/load-turn-chat";
+import { resolveTurnModel } from "@/lib/ai/utils/resolve-turn-model";
 import { streamErrorReason } from "@/lib/ai/utils/stream-error-reason";
 import { getZedToken } from "@/lib/authz/zed-token";
 import { runPromise } from "@/lib/effect/runtime";
@@ -146,95 +151,41 @@ const aiChat = authed.ai.chat
 			const userMessageAttachments = getChatMessageAttachments(userMessage);
 
 			const db = yield* DB;
-			const chatRecord = yield* db.query.chat
-				.findFirst({
-					where: {
-						id: {
-							eq: input.chatId,
-						},
-					},
-				})
-				.pipe(
-					Effect.flatMap((chat) =>
-						Effect.fromNullishOr(chat).pipe(
+			const organizationId = context.auth.session.activeOrganizationId;
+			const chatRecord = yield* loadTurnChat({
+				chatId: input.chatId,
+				activeOrganizationId: organizationId,
+			});
+			const isAssistant = chatRecord.kind === "assistant";
+			const chatConfig = isAssistant ? null : chatRecord.config;
+
+			const { providerId, modelId } = yield* resolveTurnModel({
+				chat: chatRecord,
+				organizationId,
+			});
+
+			const chatBlocks = isAssistant
+				? []
+				: (yield* chatBlockProcedures
+						.list(
+							{
+								chatId: input.chatId,
+								zedToken,
+							},
+							{
+								context: requestContext,
+							},
+						)
+						.pipe(
 							Effect.mapError(
-								() =>
-									new AppErrors.NotFoundError({
-										reason: "CHAT_NOT_FOUND",
-										id: input.chatId,
-										message: "Chat not found",
+								(cause) =>
+									new AppErrors.BadRequestError({
+										reason: "CHAT_BLOCKS_UNAVAILABLE",
+										message: "Failed to fetch chat blocks",
+										cause,
 									}),
 							),
-						),
-					),
-				);
-
-			const chatConfig = chatRecord.config;
-			const providerId = chatConfig?.providerId;
-			const modelId = chatConfig?.modelId;
-
-			if (!providerId || !modelId) {
-				return yield* Effect.fail(
-					new AppErrors.BadRequestError({
-						reason: "CHAT_MODEL_NOT_CONFIGURED",
-						message:
-							"Chat is missing model or provider configuration. Please select a model in chat settings.",
-					}),
-				);
-			}
-
-			const [chatModel] = yield* db
-				.select({
-					capabilities: dbSchema.model.capabilities,
-				})
-				.from(dbSchema.model)
-				.innerJoin(
-					dbSchema.provider,
-					eq(dbSchema.provider.id, dbSchema.model.providerId),
-				)
-				.where(
-					and(
-						eq(dbSchema.model.id, modelId),
-						eq(dbSchema.provider.id, providerId),
-						eq(
-							dbSchema.provider.organizationId,
-							context.auth.session.activeOrganizationId,
-						),
-					),
-				)
-				.limit(1);
-
-			if (!chatModel?.capabilities.includes("tool-calling")) {
-				return yield* Effect.fail(
-					new AppErrors.BadRequestError({
-						reason: "MODEL_TOOLS_UNSUPPORTED",
-						message:
-							"Selected model does not support tool calling. Please choose a chat-capable model.",
-					}),
-				);
-			}
-
-			const chatBlocksResult = yield* chatBlockProcedures
-				.list(
-					{
-						chatId: input.chatId,
-						zedToken,
-					},
-					{
-						context: requestContext,
-					},
-				)
-				.pipe(
-					Effect.mapError(
-						(cause) =>
-							new AppErrors.BadRequestError({
-								reason: "CHAT_BLOCKS_UNAVAILABLE",
-								message: "Failed to fetch chat blocks",
-								cause,
-							}),
-					),
-				);
-			const chatBlocks = chatBlocksResult.data;
+						)).data;
 
 			const chatAiSettings = yield* getChatAiSettings({
 				providerId,
@@ -262,19 +213,32 @@ const aiChat = authed.ai.chat
 				attachedBlocks: attachedDatabaseBlocks,
 			});
 
-			const agent = createChatAgent({
-				model: chatAiSettings.model,
-				systemPrompt,
-				databaseBlocks: allDatabaseBlocks,
-				generationParams: chatAiSettings.generationParams,
-				telemetryIds: {
-					organizationId: context.auth.session.activeOrganizationId,
-					chatId: input.chatId,
-					providerId,
-					modelId,
-				},
-				context: requestContext,
-			});
+			const telemetryIds = {
+				organizationId,
+				chatId: input.chatId,
+				providerId,
+				modelId,
+			};
+			const turnAgent = isAssistant
+				? {
+						kind: "assistant" as const,
+						agent: createAssistantAgent({
+							model: chatAiSettings.model,
+							generationParams: chatAiSettings.generationParams,
+							telemetryIds,
+						}),
+					}
+				: {
+						kind: "chat" as const,
+						agent: createChatAgent({
+							model: chatAiSettings.model,
+							systemPrompt,
+							databaseBlocks: allDatabaseBlocks,
+							generationParams: chatAiSettings.generationParams,
+							telemetryIds,
+							context: requestContext,
+						}),
+					};
 
 			const [takenMessage] = yield* db
 				.select({
@@ -309,7 +273,7 @@ const aiChat = authed.ai.chat
 
 			const { closedHistory, closedReply } = closeLastReply(
 				storedMessages,
-				agent.tools,
+				turnAgent.agent.tools,
 			);
 
 			const messages = [
@@ -326,7 +290,7 @@ const aiChat = authed.ai.chat
 			const assistantMessageId = uuidv4() as ChatMessageId;
 
 			const quotaReservation = yield* reserveForAppRequest({
-				organizationId: context.auth.session.activeOrganizationId,
+				organizationId,
 				userId: context.auth.user.id,
 				providerId,
 				providerModelId: modelId,
@@ -439,7 +403,7 @@ const aiChat = authed.ai.chat
 				chatId: input.chatId,
 				currentTitle: chatRecord.title,
 				model: chatAiSettings.model,
-				organizationId: context.auth.session.activeOrganizationId,
+				organizationId,
 				providerId,
 				providerModelId: modelId,
 				userId: context.auth.user.id,
@@ -455,99 +419,117 @@ const aiChat = authed.ai.chat
 			// The stream outlives the handler; its callbacks rejoin the request trace.
 			const traceContext = otelContext.active();
 
+			const turnStream = {
+				uiMessages: messagesWithAttachmentParts,
+				// Stop and disconnects abort the model call and running tools.
+				abortSignal: signal,
+				generateMessageId: () => assistantMessageId,
+				onStepEnd: () => {
+					actualProviderRequestCount += 1;
+				},
+				onEnd: ({
+					responseMessage,
+				}: {
+					responseMessage: Pick<ChatAgentUIMessage, "parts" | "metadata">;
+				}) =>
+					otelContext.with(traceContext, async () => {
+						const usage = getTokenUsageFromMetadata(responseMessage.metadata);
+
+						await runPromise(
+							settleChatReply({
+								id: assistantMessageId,
+								chatId: input.chatId,
+								parts: responseMessage.parts,
+								metadata: responseMessage.metadata ?? {},
+							}),
+						);
+
+						await runPromise(
+							finalizeAppRequestQuota({
+								reservation,
+								actualRequestCount: actualProviderRequestCount,
+								inputTokens: usage.inputTokens,
+								outputTokens: usage.outputTokens,
+								totalTokens: usage.totalTokens,
+							}),
+						).catch((error) =>
+							runPromise(
+								Effect.logError({
+									appRequestId: reservation.appRequestId,
+									error: error instanceof Error ? error.message : String(error),
+									message: "quota.finalize.failed",
+									reservationKey: reservation.reservationKey,
+								}),
+							).catch(() => undefined),
+						);
+					}),
+				onError: (error: unknown) =>
+					otelContext.with(traceContext, () => {
+						runPromise(
+							releaseAppRequestQuota({
+								reservation,
+								reason: "provider_failure",
+							}),
+						).catch((releaseError) =>
+							runPromise(
+								Effect.logError({
+									appRequestId: reservation.appRequestId,
+									error:
+										releaseError instanceof Error
+											? releaseError.message
+											: String(releaseError),
+									message: "quota.release.failed",
+									reservationKey: reservation.reservationKey,
+								}),
+							).catch(() => undefined),
+						);
+						runPromise(
+							Effect.logError({
+								error: error instanceof Error ? error.message : String(error),
+								message: "AI stream error",
+							}),
+						).catch(() => undefined);
+						return streamErrorReason(error, "AI_STREAM_FAILED");
+					}),
+				messageMetadata: <Tools extends ToolSet>({
+					part,
+				}: {
+					part: TextStreamPart<Tools>;
+				}) => {
+					if (part.type === "finish-step") {
+						return {
+							model: part.response.modelId,
+						};
+					}
+					if (part.type === "finish") {
+						return {
+							totalUsage: part.totalUsage,
+						};
+					}
+				},
+			};
+			const wordStream = <Tools extends ToolSet>() =>
+				smoothStream<Tools>({
+					delayInMs: 20,
+					chunking: "word",
+				});
+
 			const stream = yield* Effect.tryPromise({
 				try: async () =>
-					createAgentUIStream({
-						agent,
-						uiMessages: messagesWithAttachmentParts,
-						// Stop and disconnects abort the model call and running tools.
-						abortSignal: signal,
-						originalMessages: messages,
-						generateMessageId: () => assistantMessageId,
-						experimental_transform: smoothStream({
-							delayInMs: 20,
-							chunking: "word",
-						}),
-						onStepEnd: () => {
-							actualProviderRequestCount += 1;
-						},
-						onEnd: ({ responseMessage }) =>
-							otelContext.with(traceContext, async () => {
-								const usage = getTokenUsageFromMetadata(
-									responseMessage.metadata,
-								);
-
-								await runPromise(
-									settleChatReply({
-										id: assistantMessageId,
-										chatId: input.chatId,
-										parts: responseMessage.parts,
-										metadata: responseMessage.metadata ?? {},
-									}),
-								);
-
-								await runPromise(
-									finalizeAppRequestQuota({
-										reservation,
-										actualRequestCount: actualProviderRequestCount,
-										inputTokens: usage.inputTokens,
-										outputTokens: usage.outputTokens,
-										totalTokens: usage.totalTokens,
-									}),
-								).catch((error) =>
-									runPromise(
-										Effect.logError({
-											appRequestId: reservation.appRequestId,
-											error:
-												error instanceof Error ? error.message : String(error),
-											message: "quota.finalize.failed",
-											reservationKey: reservation.reservationKey,
-										}),
-									).catch(() => undefined),
-								);
+					turnAgent.kind === "assistant"
+						? createAgentUIStream({
+								...turnStream,
+								agent: turnAgent.agent,
+								// An assistant conversation holds no knowledge-base tool parts.
+								originalMessages: messages as AssistantAgentUIMessage[],
+								experimental_transform: wordStream(),
+							})
+						: createAgentUIStream({
+								...turnStream,
+								agent: turnAgent.agent,
+								originalMessages: messages,
+								experimental_transform: wordStream(),
 							}),
-						onError: (error) =>
-							otelContext.with(traceContext, () => {
-								runPromise(
-									releaseAppRequestQuota({
-										reservation,
-										reason: "provider_failure",
-									}),
-								).catch((releaseError) =>
-									runPromise(
-										Effect.logError({
-											appRequestId: reservation.appRequestId,
-											error:
-												releaseError instanceof Error
-													? releaseError.message
-													: String(releaseError),
-											message: "quota.release.failed",
-											reservationKey: reservation.reservationKey,
-										}),
-									).catch(() => undefined),
-								);
-								runPromise(
-									Effect.logError({
-										error:
-											error instanceof Error ? error.message : String(error),
-										message: "AI stream error",
-									}),
-								).catch(() => undefined);
-								return streamErrorReason(error, "AI_STREAM_FAILED");
-							}),
-						messageMetadata: ({ part }) => {
-							if (part.type === "finish-step") {
-								return {
-									model: part.response.modelId,
-								};
-							}
-							if (part.type === "finish") {
-								return {
-									totalUsage: part.totalUsage,
-								};
-							}
-						},
-					}),
 				catch: (cause) =>
 					new AiError({
 						operation: "aiChat.handler",

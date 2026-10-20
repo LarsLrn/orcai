@@ -1,4 +1,4 @@
-import type { ProviderId, QuotaPoolId } from "@orcai/core";
+import type { OrganizationId, ProviderId, QuotaPoolId } from "@orcai/core";
 import { DB, dbSchema } from "@orcai/db";
 import {
 	createQuotaPool as createQuotaPoolCommand,
@@ -348,6 +348,29 @@ const deactivateQuotaPool = authed.quota.deactivate
 		};
 	});
 
+/** The organisation's assistant model in the shape of a chat config, empty when unset. */
+const assistantModelConfig = (organizationId: OrganizationId) =>
+	Effect.gen(function* () {
+		const db = yield* DB;
+		const [row] = yield* db
+			.select({
+				providerId: dbSchema.model.providerId,
+				modelId: dbSchema.model.id,
+			})
+			.from(dbSchema.organization)
+			.innerJoin(
+				dbSchema.model,
+				eq(dbSchema.model.id, dbSchema.organization.assistantModelId),
+			)
+			.where(eq(dbSchema.organization.id, organizationId))
+			.limit(1);
+
+		return {
+			providerId: row?.providerId,
+			modelId: row?.modelId,
+		};
+	});
+
 // TODO: Consider restricting pool budget/usage data to admin users.
 // Currently any user with chat-read access can see pool budget details.
 const quotaChatBadge = authed.quota.chatBadge
@@ -382,13 +405,17 @@ const quotaChatBadge = authed.quota.chatBadge
 			columns: {
 				botId: true,
 				config: true,
+				kind: true,
 			},
 		});
 
-		const chatConfig = (chat?.config ?? {}) as {
-			providerId?: ProviderId;
-			modelId?: string;
-		};
+		const chatConfig =
+			chat?.kind === "assistant"
+				? yield* assistantModelConfig(organizationId)
+				: ((chat?.config ?? {}) as {
+						providerId?: ProviderId;
+						modelId?: string;
+					});
 
 		if (chatConfig.providerId && chatConfig.modelId) {
 			const resolved = yield* resolveQuotaPool({

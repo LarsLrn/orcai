@@ -17,10 +17,13 @@ const ChatActionsDropdown = ({
 	children,
 	chatId,
 	title,
+	deleteRedirectTo = "/app/chat",
 }: {
 	children: React.ReactElement;
 	chatId: string;
 	title: string | null;
+	/** Where to go when the open chat is the one being deleted. */
+	deleteRedirectTo?: "/app/chat" | "/app/assistant";
 }) => {
 	const params = useParams({
 		strict: false,
@@ -36,7 +39,7 @@ const ChatActionsDropdown = ({
 				// Navigate away before deleting to avoid rendering a deleted chat entry.
 				if (isCurrentChatSelected) {
 					await navigate({
-						to: "/app/chat",
+						to: deleteRedirectTo,
 					});
 				}
 			},

@@ -35,6 +35,9 @@ const reasonMessages: ReasonMessages = {
 	ASSET_NOT_FOUND: m.error_asset_not_found,
 	ASSET_SOURCE_REQUIRED: m.error_asset_source_required,
 	ASSET_UPLOAD_REQUIRED: m.error_asset_upload_required,
+	ASSISTANT_CONVERSATION_IMMUTABLE: m.error_assistant_conversation_immutable,
+	ASSISTANT_MODEL_NOT_CONFIGURED: m.error_assistant_model_not_configured,
+	ASSISTANT_ORGANIZATION_MISMATCH: m.error_assistant_organization_mismatch,
 	AUTH_REQUIRED: m.error_auth_required,
 	BEHAVIOUR_BLOCK_TYPE_INVALID: m.error_behaviour_block_type_invalid,
 	BLOCK_IN_USE_BY_READY_BOTS: ({ botNames }) =>

@@ -4,6 +4,7 @@
 		"index",
 		"account",
 		"chat",
+		"assistant",
 		"content-library",
 		"bots",
 		"access-control",

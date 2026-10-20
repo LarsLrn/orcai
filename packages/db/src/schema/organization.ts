@@ -1,11 +1,13 @@
 import type {
 	MemberId,
+	ModelId,
 	OrganizationId,
 	OrganizationInvitationId,
 	UserId,
 } from "@orcai/core";
 import type { OrganizationInvitationStatus } from "@orcai/schema";
 import {
+	type AnyPgColumn,
 	index,
 	pgEnum,
 	pgTable,
@@ -14,6 +16,7 @@ import {
 	uuid,
 } from "drizzle-orm/pg-core";
 import { user } from "./auth";
+import { model } from "./model";
 
 export const organizationRoleEnum = pgEnum("organization_role", [
 	"admin",
@@ -29,6 +32,11 @@ export const organization = pgTable("organization", {
 	logo: text("logo"),
 	createdAt: timestamp("created_at").notNull(),
 	metadata: text("metadata"),
+	assistantModelId: uuid("assistant_model_id")
+		.$type<ModelId>()
+		.references((): AnyPgColumn => model.id, {
+			onDelete: "set null",
+		}),
 });
 
 export const member = pgTable(

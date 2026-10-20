@@ -2,6 +2,7 @@ import { chatIdSchema, zedTokenSchema } from "@orcai/schema";
 import { useQuery } from "@tanstack/react-query";
 import {
 	createFileRoute,
+	redirect,
 	useRouter,
 	useRouterState,
 } from "@tanstack/react-router";
@@ -44,6 +45,18 @@ export const Route = createFileRoute("/app/chat/$chatId/")({
 				}),
 			),
 		);
+
+		if (chat.data.kind === "assistant") {
+			throw redirect({
+				to: "/app/assistant/$chatId",
+				params: {
+					chatId,
+				},
+				search: {
+					zedToken,
+				},
+			});
+		}
 
 		const messages = await queryClient.query(
 			orpc.chatMessage.list.queryOptions({

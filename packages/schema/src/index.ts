@@ -1,6 +1,7 @@
 export * from "./ai";
 export * from "./asset";
 export * from "./asset-point";
+export * from "./assistant";
 export * from "./authorization";
 export * from "./block";
 export * from "./bootstrap";

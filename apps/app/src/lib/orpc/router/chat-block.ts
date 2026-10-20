@@ -12,6 +12,7 @@ import * as AppErrors from "@/lib/effect/utils/errors";
 import { authed } from "@/lib/orpc/implementation/authed";
 import { createProcedures } from "@/lib/orpc/implementation/procedures";
 import { requireEntityPermission } from "@/lib/orpc/middlewares/permission";
+import { assistantConversationImmutable } from "./helpers/assistant-conversation";
 
 const listChatBlocks = authed.chatBlock.list
 	.use(
@@ -106,6 +107,10 @@ const attachChatBlock = authed.chatBlock.attach
 					message: "Chat not found",
 				}),
 			);
+		}
+
+		if (chat.kind === "assistant") {
+			return yield* Effect.fail(assistantConversationImmutable());
 		}
 
 		if (chat.botId) {
@@ -236,6 +241,10 @@ const detachChatBlock = authed.chatBlock.detach
 					message: "Chat not found",
 				}),
 			);
+		}
+
+		if (chat.kind === "assistant") {
+			return yield* Effect.fail(assistantConversationImmutable());
 		}
 
 		if (chat.botId) {

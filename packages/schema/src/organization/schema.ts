@@ -1,4 +1,5 @@
 import { z } from "zod/v4";
+import { modelIdSchema } from "../model/ref";
 import { searchFilterSchema } from "../shared/filters";
 import { organizationIdSchema } from "./ref";
 
@@ -14,6 +15,7 @@ export const organizationMutableFieldsSchema =
 
 export const organizationSchema = organizationFieldsSchema.extend({
 	id: organizationIdSchema,
+	assistantModelId: modelIdSchema.nullable(),
 	createdAt: z.coerce.date(),
 });
 

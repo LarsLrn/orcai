@@ -1,0 +1,223 @@
+import { randomUUID } from "node:crypto";
+import type { ChatId, ModelId, ProviderId } from "@orcai/core";
+import type { ORPCError } from "@orpc/client";
+import { expect, type Page } from "@playwright/test";
+import type { ApiClient } from "../api";
+import { rejection } from "../authorization";
+import {
+	type ChatModel,
+	chatName,
+	completionRequests,
+	composer,
+	setUpChatModel,
+} from "../chat/chat";
+import type { Api, WorkerOrganisation } from "../index";
+import type { InferenceMock } from "../inference/fixture";
+import { message } from "../messages";
+import { open } from "../navigation";
+import { runId } from "../organisation";
+
+/**
+ * A chat model on the mock, set as the organisation's assistant model. Returns
+ * the model, whose `providerModelId` is the mock's chat model.
+ */
+export const setUpAssistantModel = async (
+	api: Api,
+	org: WorkerOrganisation,
+	inference: InferenceMock,
+): Promise<ChatModel> => {
+	const model = await setUpChatModel(api, inference);
+
+	await setAssistantModel(api.as("admin"), org, model.modelId);
+
+	return model;
+};
+
+/** Set or clear the assistant model of an organisation as its admin. */
+export const setAssistantModel = async (
+	admin: ApiClient,
+	org: WorkerOrganisation,
+	modelId: ModelId | null,
+): Promise<void> => {
+	await admin.organization.update({
+		id: org.id,
+		assistantModelId: modelId,
+	});
+};
+
+/** A further model on a mock provider, usable unless overridden. */
+export const createMockModel = async (
+	admin: ApiClient,
+	providerId: ProviderId,
+	overrides: {
+		name?: string;
+		isDeprecated?: boolean;
+		capabilities?: ("text" | "tool-calling")[];
+	} = {},
+): Promise<{
+	modelId: ModelId;
+	name: string;
+	providerModelId: string;
+}> => {
+	const providerModelId = `e2e-mock-assistant-${runId()}`;
+	const name = overrides.name ?? chatName("Model");
+	const created = await admin.model.create({
+		providerId,
+		providerModelId,
+		name,
+		description: "A further model on the mock for the assistant slice.",
+		isDeprecated: overrides.isDeprecated ?? false,
+		capabilities: overrides.capabilities ?? [
+			"text",
+			"tool-calling",
+		],
+	});
+
+	return {
+		modelId: created.data.id,
+		name,
+		providerModelId,
+	};
+};
+
+/** Start an assistant conversation in the client's active organisation. */
+export const startConversation = async (client: ApiClient): Promise<ChatId> => {
+	const created = await client.assistant.create({});
+
+	return created.data.id;
+};
+
+/** The error a turn is refused with, whether the call or its stream fails. */
+export const turnRefusal = async (
+	client: ApiClient,
+	chatId: ChatId,
+): Promise<ORPCError<string, unknown>> =>
+	await rejection(
+		(async () => {
+			const stream = await client.ai.chat({
+				chatId,
+				message: {
+					id: randomUUID(),
+					role: "user",
+					parts: [
+						{
+							type: "text",
+							text: "Is anyone there?",
+						},
+					],
+				},
+			});
+
+			for (
+				let step = await stream.next();
+				!step.done;
+				step = await stream.next()
+			) {
+				// Drain until the stream ends or fails.
+			}
+		})(),
+	);
+
+/** The reason code an oRPC error carries. */
+export const reasonOf = (error: ORPCError<string, unknown>): unknown =>
+	error.data !== null &&
+	typeof error.data === "object" &&
+	"reason" in error.data
+		? error.data.reason
+		: undefined;
+
+/** The mock model the latest turn asked for; title generation does not stream, so it is skipped. */
+export const lastTurnModel = (inference: InferenceMock): unknown =>
+	completionRequests(inference)
+		.map((request) => request.body)
+		.filter(
+			(body): body is Record<string, unknown> =>
+				body !== null &&
+				typeof body === "object" &&
+				"stream" in body &&
+				body.stream === true,
+		)
+		.at(-1)?.model;
+
+/** Open the assistant start page and wait for its history. */
+export const openAssistant = async (page: Page): Promise<void> => {
+	await open(page, "/app/assistant");
+	await expect(
+		page.getByRole("heading", {
+			name: message("assistant_history_title"),
+		}),
+	).toBeVisible();
+};
+
+/** Open an assistant conversation and wait for its transcript. */
+export const openConversation = async (
+	page: Page,
+	chatId: ChatId,
+): Promise<void> => {
+	await open(page, `/app/assistant/${chatId}`);
+	await expect(conversationLog(page)).toBeVisible();
+};
+
+export const conversationLog = (page: Page) => page.getByRole("log");
+
+/** The read-only model name in the composer footer. */
+export const composerModel = (page: Page, name: string) =>
+	page
+		.locator("form")
+		.filter({
+			has: composer(page),
+		})
+		.getByText(name, {
+			exact: true,
+		});
+
+/** A conversation in the assistant history, by its title. */
+export const historyEntry = (page: Page, title: string) =>
+	page
+		.getByRole("region", {
+			name: message("assistant_history_title"),
+		})
+		.getByRole("link", {
+			name: title,
+			exact: true,
+		});
+
+/** The assistant model field on the organisation page: the model picker and its clear action. */
+export const assistantModelField = (page: Page) =>
+	page.getByRole("group", {
+		name: message("orgs_form_assistant_model_label"),
+	});
+
+/** The open model picker dialog. */
+export const modelPickerDialog = (page: Page) =>
+	page.getByRole("dialog", {
+		name: message("chat_model_selector_dialog_title"),
+	});
+
+/** Open the assistant model picker on one provider's models, narrowed by a search. */
+export const openAssistantModelPicker = async (
+	page: Page,
+	providerName: string,
+	search: string,
+): Promise<void> => {
+	await assistantModelField(page).getByRole("button").first().click();
+	const dialog = modelPickerDialog(page);
+	await dialog.getByRole("combobox").click();
+	await page
+		.getByRole("option", {
+			name: providerName,
+			exact: true,
+		})
+		.click();
+	await dialog.getByRole("textbox").fill(search);
+};
+
+/** Pick a model in the open picker. */
+export const pickModel = async (page: Page, modelName: string) => {
+	await modelPickerDialog(page)
+		.getByRole("option", {
+			name: new RegExp(modelName),
+		})
+		.click();
+	await expect(modelPickerDialog(page)).toHaveCount(0);
+};
