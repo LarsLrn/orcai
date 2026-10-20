@@ -1,3 +1,4 @@
+import type { LinkSafetyConfig } from "streamdown";
 import { MessageResponse } from "@/components/ai-elements/message";
 import { isDisplayToolPart } from "@/components/chat/gen-ui/catalog";
 import { DisplayPart } from "@/components/chat/gen-ui/display-part";
@@ -7,16 +8,20 @@ import { ImagePart } from "./parts/image-part";
 const MessagePartRenderer = ({
 	part,
 	running,
+	linkSafety,
 }: {
 	part: MessagePart;
 	running: boolean;
+	linkSafety?: LinkSafetyConfig;
 }) => {
 	if (part.type === "file" && part.mediaType === "image/png") {
 		return <ImagePart url={part.url} alt={part.type} />;
 	}
 
 	if (part.type === "text") {
-		return <MessageResponse>{part.text}</MessageResponse>;
+		return (
+			<MessageResponse linkSafety={linkSafety}>{part.text}</MessageResponse>
+		);
 	}
 
 	if (isDisplayToolPart(part)) {

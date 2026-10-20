@@ -29,7 +29,8 @@ Primary config modules:
 | `BASE_URL` | Recommended | Compatibility fallback used by some auth tooling. Keep aligned with `BETTER_AUTH_URL` when set. |
 | `BETTER_AUTH_URL` | Yes | Public auth callback base URL. Keep aligned with `BASE_URL`. |
 | `VITE_BASE_URL` | Yes | Public frontend base URL used in client-side links. |
-| `VITE_WEB_URL` | No | Public docs site base URL used in the app dashboard. |
+| `VITE_WEB_URL` | No | Public docs site base URL used in the app dashboard and in the assistant's docs links. It is also where the assistant reads the docs unless `WEB_INTERNAL_URL` is set. Without it the assistant cannot read the docs. |
+| `WEB_INTERNAL_URL` | No | Docs site origin the app server fetches for the assistant. Defaults to `VITE_WEB_URL`. Docker Compose sets `http://web:3001`. |
 
 ## Authentication And Encryption
 

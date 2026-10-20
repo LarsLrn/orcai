@@ -1,9 +1,9 @@
 ---
 title: Workspace Setup For Admins
-description: Streamlined checklist for preparing a workspace before end users start chatting.
+description: Checklist for preparing an organisation before people start chatting, from provider, model, quota pool and assistant model to assets, repositories, bots, groups and invitations, with the app path for each step.
 ---
 
-Use this page as a practical runbook for preparing a new OrcAI workspace.
+Use this page as a practical runbook for preparing a new OrcAI workspace. Most steps need the Admin role; see [Access Control](/docs/using-orcai/access-control#organisation-roles).
 
 ## Outcome
 
@@ -11,94 +11,105 @@ After completing this checklist, users should be able to:
 
 - Sign in and join the correct organisation
 - Start chats with an approved model
-- Use published bots with ready content collections
+- Ask the OrcAI Assistant about the platform
+- Use published bots with ready repositories
 - Operate within defined quota and access boundaries
 
 ## 1. Confirm Access And Organisation Context
 
 - Sign in with an admin account.
-- Ensure your active organisation is correct.
-- Verify you can see Administration in the sidebar.
+- Ensure your active organisation is correct. **Switch organisation** in the user menu opens `/select-organization`.
+- Verify you can see Administration in the sidebar's "Your workspace" group.
 
 <Callout title="Missing Administration?" type="warn">
 	If Administration is missing, your account likely does not have the required capabilities.
 </Callout>
 
-## 2. Add Or Validate A Provider
+## 2. Add A Provider
 
-Go to Administration > Providers.
+Go to Administration > Providers (`/app/providers`).
 
-- Add provider entries for the inference backends your workspace should use.
-- Validate connectivity and credentials according to your deployment setup.
+- Choose **Add provider** (`/app/providers/add`) for each inference backend your workspace should use.
+- Enter the endpoint's base URL including the version path, the API key, and the metering mode (tokens or requests), and leave the provider enabled. Only OpenAI-compatible endpoints are supported at the moment.
 
-<Callout title="TODO" type="idea">
-	Add provider-by-provider field reference once provider forms are fully documented.
-</Callout>
+There is no separate connection test. Running **Discover models** in the next step is the check: if it lists the provider's models, the endpoint and key work. The fields are described in [Workspace Administration](/docs/using-orcai/administration#providers).
 
 ## 3. Add A Specific Model
 
-Go to Administration > Models.
+Go to Administration > Models (`/app/models`).
 
-- Click Add Model.
-- Select the provider you want the model to use.
-- Register the exact model identifier required by that provider.
+- Choose **Discover models** and select the provider to add the models it offers, or choose **Add model** (`/app/models/add`) to register one by hand.
+- For a model added by hand, select the provider and enter the exact **Provider model ID** the endpoint expects.
+- Give each model you want in chat the **Text** and **Tool calling** capabilities. Discovered models start with none, and a model without both does not appear in chat.
 - Save, then confirm the model appears in the list.
-
-Recommended validation:
-
-- Open a new chat.
-- Select the newly added model.
-- Send a simple test prompt and confirm a successful response.
 
 ## 4. Configure Quota Pools
 
-Go to Administration > Quotas.
+Go to Administration > Quotas (`/app/quotas`).
 
-- Create quota pools aligned with your cost and usage policy.
-- Assign pools according to your organisation policy.
+- Choose **Add pool** (`/app/quotas/add`) and create pools aligned with your cost and usage policy.
+- Who can use a pool is set inside the pool: its **Eligible groups**, its **Priority**, and optionally the **Default pool** flag. Choose All Members to cover everyone.
+
+Without a pool that covers them, people cannot chat: the composer stays disabled. Examples:
+
+- One shared pool: a monthly pool for the provider, eligible group All Members.
+- A larger allowance for a team: a second pool for the same provider, eligible group that team, with a higher priority than the shared pool.
+- A cap for one expensive model: a pool scoped to that model. A model-specific pool wins over the provider's other pools.
 
 In chat, users can see remaining pool amounts when quota badge data is available.
 
-<Callout title="TODO" type="idea">
-	Add quota assignment examples for class, team, and pilot environments.
-</Callout>
+Recommended validation:
 
-## 5. Prepare Content And Retrieval
+- Choose **Start a chat** in the sidebar, then "Chat without a bot".
+- Select the newly added model.
+- Send a simple test prompt and confirm a successful response.
 
-Go to Library > Content.
+## 5. Choose The Assistant Model
 
-- Add representative source material.
+Go to Administration > Organisation (`/app/organization`).
+
+- Choose a model in **Assistant model** and save. Only models with tool calling, not deprecated, on an enabled provider are listed.
+- Until a model is chosen, the [OrcAI Assistant](/docs/using-orcai/assistant) is unavailable to everyone in the organisation.
+- The assistant draws on the same quota pools as chat. For a separate assistant budget, add a pool for that model alone.
+
+## 6. Prepare Assets And Retrieval
+
+Go to Library > Assets (`/app/hub/assets`).
+
+- Choose **Add assets** (`/app/hub/assets/add`) and upload representative source material.
 - Confirm processing completes successfully.
 
-Then go to Library > Repositories:
+Then go to Library > Repositories (`/app/hub/repositories`):
 
-- Create or edit repository blocks.
-- Attach ready content items.
-- Keep repository block status as Ready for production use.
+- Create repository blocks with **Add repository**, or edit existing ones.
+- Attach ready assets.
+- Mark the repository block Ready for production use.
 
-Use the repository playground to sanity-check retrieval quality.
+Use the repository playground (`/app/hub/repositories/<block id>/playground`) to sanity-check retrieval quality.
 
-## 6. Prepare Bots
+## 7. Prepare Bots
 
-Go to Library > Bots.
+Go to Library > Bots (`/app/hub/bots`).
 
-- Create/edit bots with the guided setup.
-- Attach one ready behaviour block.
-- Attach ready repository blocks with content.
-- Configure sharing so the intended user groups can use the bot.
+- Create bots with **Create bot**, or edit them with **Edit bot**, in the guided setup.
+- Attach one ready AI behaviour block.
+- Attach ready repository blocks with assets, if the bot should answer from your sources. Repositories are optional.
+- Set sharing in the "Sharing and access" step. A bot is private until shared, and publishing does not share it, so grant the intended groups (or All Members) access.
 - Publish the bot.
 
-## 7. Set Up Users, Groups, And Invitations
+See [Bots and Behaviour](/docs/using-orcai/bots) for the editor's steps and publishing rules.
 
-Go to Administration > Users and Administration > Groups.
+## 8. Set Up Users, Groups, And Invitations
+
+Go to Administration > Users (`/app/users`) and Administration > Groups (`/app/groups`).
 
 - Create or verify groups.
-- Invite users. The invitation form sets the email's language for the whole batch;
+- Invite users with **Invite user** (`/app/users/add`). The invitation form sets the email's language for the whole batch;
   the interface itself follows each invitee's browser.
 - Place users in the right groups.
-- Validate that access to bots/content matches expectations.
+- Validate that access to bots and assets matches expectations. A user's page shows their **Effective resource access**.
 
-## 8. Final Smoke Test
+## 9. Final Smoke Test
 
 Run this short test from a non-admin user account:
 
@@ -108,7 +119,8 @@ Run this short test from a non-admin user account:
 2. Start a chat using a published bot.
 3. Confirm model selection works.
 4. Confirm retrieval-backed answers use expected content.
-5. Confirm permissions block access to resources outside the user scope.
+5. Ask the OrcAI Assistant a question about OrcAI.
+6. Confirm permissions block access to resources outside the user scope.
 
 ## Self-Hosting Note: Custom Embedding And Image Processing Models
 
@@ -116,8 +128,4 @@ Custom embedding model and image-processing model definitions are supported only
 
 For managed/shared deployments, treat these as platform-level settings controlled by the hosting operator.
 
-If you self-host and change embedding model or dimensions on an existing indexed dataset, you must recreate the vector collection and reprocess content.
-
-<Callout title="TODO" type="idea">
-	Add explicit configuration variable mapping for embedding and image-processing model configuration once central config docs are finalised.
-</Callout>
+If you self-host, they are set with `EMBEDDING_MODEL`, `EMBEDDING_DIMENSIONS`, `GENERAL_MODEL` (used to describe images during asset processing) and `KREUZBERG_OCR_LANGUAGE`; see [AI And Retrieval](/docs/self-hosting/configuration#ai-and-retrieval). If you change the embedding model or dimensions on an existing indexed dataset, you must recreate the vector collection and reprocess content.

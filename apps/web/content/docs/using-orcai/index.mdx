@@ -1,6 +1,6 @@
 ---
 title: Using OrcAI
-description: End-to-end guide for using the OrcAI application as a learner, contributor, or workspace manager.
+description: Guide to the OrcAI app for members, contributors and administrators, with the home page, sidebar, user menu and header and their paths.
 ---
 
 This section documents the actual UX flows currently implemented in the main OrcAI app.
@@ -26,7 +26,7 @@ If you are new to OrcAI, follow this order:
 		Upload material, track processing, reprocess assets, and prepare sources for retrieval.
 	</Card>
 	<Card href="/docs/using-orcai/bots" title="Bots and behaviour">
-		Build reusable chat experiences with behaviour blocks and content collections.
+		Build reusable chat experiences with behaviour blocks and repositories.
 	</Card>
 	<Card href="/docs/using-orcai/workspace-setup" title="Workspace setup">
 		Prepare a workspace before inviting end users.
@@ -35,15 +35,28 @@ If you are new to OrcAI, follow this order:
 
 ## App Structure At A Glance
 
-- The app requires authentication and an active organisation context.
-- The sidebar is capability-aware: each management section appears only if your organisation permissions allow it.
-- Chat is the primary workflow.
-- Library is where reusable resources are managed:
-	- Bots
-	- Behaviour blocks
-	- Repositories (database blocks)
-	- Content items (assets)
-- Administration is for tenant/workspace operations (users, groups, quotas, providers, models, organisation).
+The app requires authentication and an active organisation. Everything below belongs to the active organisation; switch organisation to see another one.
+
+### Home
+
+Home (`/app`) has two tabs:
+
+- **Use**: a greeting with **Take a tour**, the **Ask a question** composer with bot and model pickers (sending creates a chat), **Recent chats**, and a showcase of bots.
+- **Manage**: the organisation's name with **Create a bot**, and the **Quota**, **Library**, **Recently changed** and **People** panels.
+
+### Sidebar
+
+- **Start a chat** opens the chat setup (`/app/chat/setup`).
+- The **Chats** group lists your 40 most recent chats, with rename and delete in each chat's menu. **Show all** opens the chat list (`/app/chat`).
+- The **Your workspace** group holds:
+	- **OrcAI Assistant** (`/app/assistant`), available to every member.
+	- **Library** (`/app/hub`), always shown. Its items **Bots** (`/app/hub/bots`), **Behaviour** (`/app/hub/behaviour`), **Repositories** (`/app/hub/repositories`) and **Assets** (`/app/hub/assets`) need the `read` permission.
+	- **Administration**, shown when your role allows at least one of its items: **Users** (`/app/users`), **Groups** (`/app/groups`), **Quotas** (`/app/quotas`), **Providers** (`/app/providers`), **Models** (`/app/models`) and **Organisation** (`/app/organization`). See [Access control](/docs/using-orcai/access-control) for which roles see which items.
+- The user menu at the bottom holds **Account** (`/app/account`), **Switch organisation** (`/select-organization`), **Manage instance** (`/instance`, for instance administrators only) and **Sign out**.
+
+### Header
+
+The header shows a breadcrumb trail starting from Home, a **Language** switcher and a **Toggle theme** switch.
 
 ## Important Notes
 

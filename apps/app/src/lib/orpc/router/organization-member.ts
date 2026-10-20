@@ -11,6 +11,7 @@ import {
 } from "@/lib/effect/services/authz";
 import * as AppErrors from "@/lib/effect/utils/errors";
 import { authed } from "@/lib/orpc/implementation/authed";
+import { createProcedures } from "@/lib/orpc/implementation/procedures";
 import { requireOrganizationPermission } from "@/lib/orpc/middlewares/permission";
 import {
 	assertAdminRemainsAfterRemoving,
@@ -339,3 +340,8 @@ export const organizationMemberRouter = {
 	update: updateOrganizationMember,
 	delete: deleteOrganizationMembers,
 };
+
+export const organizationMemberProcedures = createProcedures(
+	"organizationMember",
+	organizationMemberRouter,
+);

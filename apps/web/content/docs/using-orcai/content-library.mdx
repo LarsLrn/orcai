@@ -1,71 +1,112 @@
 ---
 title: Content Library
-description: Upload, manage, process, and share reusable source material.
+description: Assets in the Library, covering upload, accepted file types and limits, metadata and citations, processing status, retry and reprocessing, access, and how assets reach chats through repositories.
 ---
 
-The Content Library (Library > Content) is where OrcAI stores reusable source material used for retrieval, grounding, and citations.
+Assets (Library > Assets, `/app/hub/assets`) are the reusable source material OrcAI uses for retrieval, grounding, and citations.
 
 ## What You Can Do
 
-- Add content items
-- View content item details
+- Add assets
+- View an asset's details
 - Edit metadata
-- Reprocess content
+- Reprocess an asset
 - Manage access and groups
-- Download original files (if permitted)
-- Delete content (if permitted)
+- Download the original file (if permitted)
+- Delete an asset (if permitted)
 
 ## End-To-End Flow
 
-1. Upload material to OrcAI.
-2. Confirm metadata in the intake flow.
-3. Store source in S3-compatible object storage.
-4. Process content through background jobs.
-5. Index retrieval-ready chunks.
-6. Attach items to repository blocks.
-7. Use repository blocks in bots or directly in chats.
+1. Upload files and add metadata on **Add assets** (`/app/hub/assets/add`).
+2. OrcAI stores the original file in S3-compatible object storage.
+3. A background job processes the file and extracts its text, or describes its images.
+4. Add the asset to one or more repositories, from the repository editor or the bot editor's Repositories step.
+5. For each repository the asset belongs to, a background job vectorises it into that repository's index. This runs when processing finishes and when the asset is added to a repository.
+6. Repositories are used in bots or attached directly to chats.
 
-## Add Content UX
+## Adding Assets
 
-The Add Content page uses a multi-step intake flow and emphasizes that metadata follows the content item wherever it is reused.
+**Add assets** on the Assets page opens `/app/hub/assets/add`. It needs the `create_asset` permission.
 
-Placeholder text in the UI indicates intended source types include:
+Intake is file upload only, in two steps:
 
-- Documents/files
-- URLs
-- Text snippets
+1. **Upload assets**: select files and **Upload files**, then **Next**.
+2. **Review uploaded files**: open **Add metadata** for each file to fill in its **Source details**, then **Save assets**.
 
-<Callout title="TODO" type="idea">
-	Confirm which of URL and snippet ingestion are fully active in production paths, not just planned by copy.
-</Callout>
+Accepted file types:
+
+- Images: JPEG, PNG, GIF, WebP
+- PDF
+- Text: TXT, CSV, Markdown
+- Office: DOC, DOCX, XLS, XLSX, PPT, PPTX
+
+Limits: up to 64 MB per file and 100 files per upload.
+
+## Metadata
+
+The metadata travels with the asset wherever it is reused. Fields:
+
+- **Source title**
+- **Source type**: Book, Journal Article, Web Source or Legal Text. Each type adds its own fields:
+	- Book: **Author(s)**, **Citation label**, **Chapter title**, **Page range**
+	- Journal Article: **Author(s)**, **Citation label**, **Journal name**, **Volume**, **Issue**, **Page range**, **DOI**
+	- Web Source: **Author(s)**, **Citation label**, **Website name**, **External URL**, **Access date**
+	- Legal Text: **Citation label**, **Legal reference**, **Jurisdiction**
+- **External URL** (for types other than Web Source)
+- **Relevance**: High, Medium or Low
+- **Allow citations in answers**: whether the AI may make in-text references to this source. The asset page shows the setting as a badge. Answers do not yet respect it: an asset in a repository can be cited either way.
+
+Edit metadata later with **Edit content** on the asset page, which opens `/app/hub/assets/<asset id>/edit`.
+
+## The Asset Page
+
+The asset page (`/app/hub/assets/<asset id>`) shows a preview of the file, its **Metadata**, and its **Preparation status**.
+
+Actions, depending on your access to the asset:
+
+- **Download**: download the original file.
+- **More options** menu:
+	- **Access & groups**: share the asset with people and groups. See [Access control](/docs/using-orcai/access-control).
+	- **Edit content**: edit the metadata.
+	- **Reprocess**: run processing again.
+	- **Delete asset**
 
 ## Processing Status And Reprocessing
 
-Content cards expose processing status, and reprocess actions are only available when status is not pending/active and the user has edit capability.
+Asset cards and the **Preparation status** panel show one of these states:
 
-Operationally:
+| Status | Meaning |
+| --- | --- |
+| Queued | Waiting to be prepared for search and citations. |
+| Processing | Currently being prepared for search and citations. |
+| Ready | Ready to be used in search, retrieval, and citations. |
+| Needs attention | Preparation failed. Review the job log or retry processing. |
 
-- Reprocess is useful after parser/config changes.
-- Reprocess can be triggered from list cards and detail pages.
+On the **Preparation status** panel:
 
-<Callout title="TODO" type="idea">
-	Add a full status legend once all status transitions are documented centrally.
-</Callout>
+- **Jobs** opens the **Job history** for the asset, with each job's created, started and completed times and its retries.
+- **Retry** appears when the status is Needs attention and queues processing again.
+
+**Reprocess** is available from the card menu on the Assets page and from the asset page, when the asset is not Queued or Processing and you can edit it. It asks for confirmation, then reruns processing and refreshes the vector data for the repositories the asset belongs to. Reprocess is useful after parser or configuration changes.
+
+Each repository's page (`/app/hub/blocks/<block id>`) also shows the vectorisation status and jobs of its assets.
 
 ## Permissions And Access
 
-Content details and actions are capability-based:
+Asset actions depend on your access to the asset:
 
 - download
 - edit
 - delete
 - manage_access
 
-Access management opens a shared Access dialog for visibility, groups, and direct grants.
+**Access & groups** opens the shared access dialog with People and Groups tabs.
 
 ## Relationship To Retrieval
 
-Content items are not retrieved directly by default in bot workflows. They are typically connected through database blocks (repositories), then attached to bots or chats.
+Bots and chats do not retrieve from assets directly. Assets are added to repositories (database blocks), which are then attached to bots or chats. See [Bots and behaviour](/docs/using-orcai/bots).
+
+In a chat, you can also attach an asset to a single message with **Add file** > **From assets**. The model receives the file, or its extracted text, with that message. See [Chat](/docs/using-orcai/chat#attachments-in-chat).
 
 ## Platform Dependencies
 
@@ -83,5 +124,5 @@ The embedding model and vector dimensions must stay compatible with existing col
 </Callout>
 
 <Callout title="TODO" type="idea">
-	Document file size limits, per-type parsing limits, OCR behaviour for image-heavy PDFs in mixed-language files, and troubleshooting for failed ingestion or stuck processing states.
+	Document per-type parsing limits, OCR behaviour for image-heavy PDFs in mixed-language files (see `KREUZBERG_OCR_LANGUAGE` in [Configuration](/docs/self-hosting/configuration#ai-and-retrieval)), and troubleshooting for failed ingestion or stuck processing states.
 </Callout>

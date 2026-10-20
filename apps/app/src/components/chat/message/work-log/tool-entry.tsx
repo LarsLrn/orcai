@@ -17,7 +17,7 @@ interface ToolEntryProps {
 	part: ToolPart;
 	running: boolean;
 	/** Outcome sentence such as "Searched the sources, found 6 passages". */
-	label: string;
+	label: ReactNode;
 	/** Human-readable output; when absent the raw result is shown in details. */
 	children?: ReactNode;
 }

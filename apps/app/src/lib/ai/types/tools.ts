@@ -1,4 +1,5 @@
 import type { InferUITool, ToolUIPart } from "ai";
+import type { readDocsTool } from "@/lib/ai/tools/docs/read-docs";
 import type { getKnowledgeBaseChunksTool } from "@/lib/ai/tools/rag/get-knowledge-base-chunk";
 import type { getKnowledgeBasePageTool } from "@/lib/ai/tools/rag/get-knowledge-base-page";
 import type { listKnowledgeBaseDocumentsTool } from "@/lib/ai/tools/rag/list-knowledge-base-documents";
@@ -33,4 +34,13 @@ type GetKnowledgeBasePageUITool = InferUITool<
 >;
 export type GetKnowledgeBasePageToolPart = ToolUIPart<{
 	getKnowledgeBasePage: GetKnowledgeBasePageUITool;
+}>;
+
+/**
+ * Docs Tool Part
+ */
+
+type ReadDocsUITool = InferUITool<ReturnType<typeof readDocsTool>>;
+export type ReadDocsToolPart = ToolUIPart<{
+	readDocs: ReadDocsUITool;
 }>;

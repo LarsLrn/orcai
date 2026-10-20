@@ -12,8 +12,10 @@ import {
 } from "@/components/ai-elements/conversation";
 import { Shimmer } from "@/components/ai-elements/shimmer";
 import { AssistantComposerGate } from "@/components/assistant/assistant-composer-gate";
+import { assistantLinkSafety } from "@/components/assistant/assistant-link-safety";
 import { AssistantPlaceholder } from "@/components/assistant/assistant-placeholder";
 import type { ChatAgentUIMessage } from "@/lib/ai/types/chat-agent-message";
+import { clientEnv } from "@/lib/env/client";
 import { describeError, reasonMessageOf } from "@/lib/errors/describe-error";
 import { client, orpc } from "@/lib/orpc/orpc";
 import { formatCount } from "@/lib/presentation/format-number";
@@ -25,6 +27,8 @@ import { ChatPlaceholder } from "./chat-placeholder";
 import { EarlierMessages } from "./earlier-messages";
 import { MessageBlock } from "./message/message-block";
 import { useBranchChat } from "./message/use-branch-chat";
+
+const assistantLinks = assistantLinkSafety(clientEnv.VITE_WEB_URL);
 
 /** Resolves once a reply is filled in or dropped, so the next turn's context includes it. */
 const waitForStoredReply = async (input: {
@@ -298,6 +302,7 @@ const Chat = ({
 							branching={
 								branchChat.isPending && branchChat.variables?.messageId === m.id
 							}
+							linkSafety={isAssistant ? assistantLinks : undefined}
 						/>
 					))}
 					{messages.length === 0 &&

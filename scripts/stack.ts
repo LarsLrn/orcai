@@ -884,9 +884,11 @@ async function reset(options: Options, env: Env): Promise<void> {
  * The e2e suite runs a mock OpenAI-compatible server
  * (`apps/e2e/fixtures/inference/serve.ts`) on `E2E_INFERENCE_PORT` and points
  * the app's global inference endpoint at it, so embeddings and chat titles
- * never reach a real provider. Env files written before the port existed get
- * the slot the allocator would have chosen. With `--no-reset` and an app
- * already listening, that app keeps the endpoint it was started with.
+ * never reach a real provider. The assistant reads the docs site that
+ * Playwright serves on `WEB_PORT` through `WEB_INTERNAL_URL`. Env files written
+ * before the port existed get the slot the allocator would have chosen. With
+ * `--no-reset` and an app already listening, that app keeps the endpoints it
+ * was started with.
  */
 function e2eEnv(env: Env): Env {
 	const inferencePort =
@@ -901,6 +903,7 @@ function e2eEnv(env: Env): Env {
 		OPENAI_COMPATIBLE_API_KEY: "e2e-mock-key",
 		GENERAL_MODEL: "e2e-mock-chat",
 		EMBEDDING_MODEL: "e2e-mock-embedding",
+		WEB_INTERNAL_URL: `http://127.0.0.1:${envValue(env, "WEB_PORT")}`,
 	};
 }
 

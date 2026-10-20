@@ -1657,6 +1657,9 @@
 		}
 	],
 	"chat_work_log_tool_parameters_label": "Parameter",
+	"chat_work_log_tool_read_docs_active": "Dokumentation wird gelesen",
+	"chat_work_log_tool_read_docs_index": "Inhaltsverzeichnis der Dokumentation gelesen",
+	"chat_work_log_tool_read_docs_page": "„{title}“ gelesen",
 	"chat_work_log_tool_search_active": "Quellen werden durchsucht",
 	"chat_work_log_tool_search_name": "Quellen durchsucht",
 	"chat_work_log_tool_search_result": [

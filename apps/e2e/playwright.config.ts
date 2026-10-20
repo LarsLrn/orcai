@@ -4,6 +4,7 @@ const missing = [
 	"BASE_URL",
 	"PORT",
 	"E2E_INFERENCE_PORT",
+	"WEB_PORT",
 ].filter((name) => !process.env[name]);
 
 if (missing.length > 0) {
@@ -14,6 +15,7 @@ if (missing.length > 0) {
 
 const baseURL = process.env.BASE_URL as string;
 const inferenceURL = `http://127.0.0.1:${process.env.E2E_INFERENCE_PORT as string}/v1`;
+const docsURL = `http://127.0.0.1:${process.env.WEB_PORT as string}`;
 const isCI = Boolean(process.env.CI);
 
 export default defineConfig({
@@ -103,6 +105,20 @@ export default defineConfig({
 			command: "bun run build:app && bun run start",
 			cwd: "../..",
 			url: baseURL,
+			reuseExistingServer: true,
+			timeout: 180_000,
+			stdout: "ignore",
+			stderr: "pipe",
+		},
+		// The docs site the assistant reads (`WEB_INTERNAL_URL`); it needs no
+		// stack services. A running `bun run stack web` is reused.
+		{
+			command: "bun run build:web && bun apps/web/.output/server/index.mjs",
+			cwd: "../..",
+			env: {
+				PORT: process.env.WEB_PORT as string,
+			},
+			url: `${docsURL}/llms.txt`,
 			reuseExistingServer: true,
 			timeout: 180_000,
 			stdout: "ignore",

@@ -2,6 +2,7 @@ import type { UseChatHelpers } from "@ai-sdk/react";
 import type { ChatId } from "@orcai/core";
 import type { ChatBranchLink } from "@orcai/schema";
 import { type ReactNode, useRef, useState } from "react";
+import type { LinkSafetyConfig } from "streamdown";
 import {
 	Message,
 	MessageContent,
@@ -36,6 +37,8 @@ interface MessageBlockProps {
 	branches?: ChatBranchLink[];
 	onBranch?: () => void;
 	branching?: boolean;
+	/** Overrides the default confirmation for links in the answer. */
+	linkSafety?: LinkSafetyConfig;
 }
 
 const MessageEntrance = ({
@@ -83,6 +86,7 @@ export const MessageBlock = ({
 	branches = [],
 	onBranch,
 	branching,
+	linkSafety,
 }: MessageBlockProps) => {
 	const variant = message.role === "user" ? "sent" : "received";
 	const messageAttachments = getChatMessageAttachments(message);
@@ -141,6 +145,7 @@ export const MessageBlock = ({
 							key={`${part.type}${message.id}${i}`}
 							part={part}
 							running={running}
+							linkSafety={linkSafety}
 						/>
 					))}
 					{running && (

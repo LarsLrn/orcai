@@ -7,11 +7,16 @@ import {
 	releaseAppRequestQuota,
 	reserveForAppRequest,
 } from "@orcai/quota";
-import type { DatabaseBlock, TemplateBlock } from "@orcai/schema";
+import type {
+	ChatMessageMetadata,
+	DatabaseBlock,
+	TemplateBlock,
+} from "@orcai/schema";
 import { streamToEventIterator } from "@orpc/client";
 import {
 	createAgentUIStream,
 	type FileUIPart,
+	type InferAgentUIMessage,
 	smoothStream,
 	type TextStreamPart,
 	type TextUIPart,
@@ -25,17 +30,18 @@ import { createAssistantAgent } from "@/lib/ai/agents/assistant-agent";
 import { createChatAgent } from "@/lib/ai/agents/chat-agent";
 import { forkChatTitleGenerationIfNeeded } from "@/lib/ai/effects/fork-chat-title-generation";
 import { quotaDenialError } from "@/lib/ai/effects/generate-text-with-quota";
-import type { AssistantAgentUIMessage } from "@/lib/ai/types/assistant-agent-message";
 import type { ChatAgentUIMessage } from "@/lib/ai/types/chat-agent-message";
 import { getChatMessageAttachments } from "@/lib/ai/types/chat-attachment";
 import { buildAttachmentPromptPartCached } from "@/lib/ai/utils/chat-attachment-parts";
 import { closePendingToolParts } from "@/lib/ai/utils/close-pending-tool-parts";
 import { getChatAiSettings } from "@/lib/ai/utils/get-chat-ai-settings";
+import { loadAssistantUserContext } from "@/lib/ai/utils/load-assistant-user-context";
 import { loadTurnChat } from "@/lib/ai/utils/load-turn-chat";
 import { resolveTurnModel } from "@/lib/ai/utils/resolve-turn-model";
 import { streamErrorReason } from "@/lib/ai/utils/stream-error-reason";
 import { getZedToken } from "@/lib/authz/zed-token";
 import { runPromise } from "@/lib/effect/runtime";
+import { AppConfigService } from "@/lib/effect/services/config";
 import * as AppErrors from "@/lib/effect/utils/errors";
 import { authed } from "@/lib/orpc/implementation/authed";
 import { requireActiveOrganizationMiddleware } from "@/lib/orpc/middlewares/auth";
@@ -164,6 +170,18 @@ const aiChat = authed.ai.chat
 				organizationId,
 			});
 
+			const assistantUserContext = isAssistant
+				? yield* loadAssistantUserContext({
+						user: {
+							id: context.auth.user.id,
+							name: context.auth.user.name,
+							email: context.auth.user.email,
+						},
+						organizationId,
+						context: requestContext,
+					})
+				: undefined;
+
 			const chatBlocks = isAssistant
 				? []
 				: (yield* chatBlockProcedures
@@ -219,12 +237,15 @@ const aiChat = authed.ai.chat
 				providerId,
 				modelId,
 			};
-			const turnAgent = isAssistant
+			const { docs } = yield* AppConfigService;
+			const turnAgent = assistantUserContext
 				? {
 						kind: "assistant" as const,
 						agent: createAssistantAgent({
 							model: chatAiSettings.model,
 							generationParams: chatAiSettings.generationParams,
+							docs,
+							userContext: assistantUserContext,
 							telemetryIds,
 						}),
 					}
@@ -521,14 +542,20 @@ const aiChat = authed.ai.chat
 						? createAgentUIStream({
 								...turnStream,
 								agent: turnAgent.agent,
-								// An assistant conversation holds no knowledge-base tool parts.
-								originalMessages: messages as AssistantAgentUIMessage[],
+								// Each chat kind stores only its own agent's tool parts.
+								originalMessages: messages as InferAgentUIMessage<
+									ReturnType<typeof createAssistantAgent>,
+									ChatMessageMetadata
+								>[],
 								experimental_transform: wordStream(),
 							})
 						: createAgentUIStream({
 								...turnStream,
 								agent: turnAgent.agent,
-								originalMessages: messages,
+								originalMessages: messages as InferAgentUIMessage<
+									ReturnType<typeof createChatAgent>,
+									ChatMessageMetadata
+								>[],
 								experimental_transform: wordStream(),
 							}),
 				catch: (cause) =>

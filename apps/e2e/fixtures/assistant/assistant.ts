@@ -10,6 +10,7 @@ import {
 	completionRequests,
 	composer,
 	setUpChatModel,
+	streamedText,
 } from "../chat/chat";
 import type { Api, WorkerOrganisation } from "../index";
 import type { InferenceMock } from "../inference/fixture";
@@ -126,18 +127,23 @@ export const reasonOf = (error: ORPCError<string, unknown>): unknown =>
 		? error.data.reason
 		: undefined;
 
-/** The mock model the latest turn asked for; title generation does not stream, so it is skipped. */
-export const lastTurnModel = (inference: InferenceMock): unknown =>
+const isRecord = (value: unknown): value is Record<string, unknown> =>
+	value !== null && typeof value === "object";
+
+/** The streamed completion requests of turns; title generation does not stream. */
+export const turnRequests = (
+	inference: InferenceMock,
+): Record<string, unknown>[] =>
 	completionRequests(inference)
 		.map((request) => request.body)
 		.filter(
 			(body): body is Record<string, unknown> =>
-				body !== null &&
-				typeof body === "object" &&
-				"stream" in body &&
-				body.stream === true,
-		)
-		.at(-1)?.model;
+				isRecord(body) && body.stream === true,
+		);
+
+/** The mock model the latest turn asked for. */
+export const lastTurnModel = (inference: InferenceMock): unknown =>
+	turnRequests(inference).at(-1)?.model;
 
 /** Open the assistant start page and wait for its history. */
 export const openAssistant = async (page: Page): Promise<void> => {
@@ -220,4 +226,84 @@ export const pickModel = async (page: Page, modelName: string) => {
 		})
 		.click();
 	await expect(modelPickerDialog(page)).toHaveCount(0);
+};
+
+const messagesOf = (body: unknown): Record<string, unknown>[] =>
+	isRecord(body) && Array.isArray(body.messages) ? body.messages : [];
+
+/** The system message a completion request starts with. */
+export const systemPromptOf = (body: unknown): string => {
+	const content = messagesOf(body).find(
+		(entry) => entry.role === "system",
+	)?.content;
+
+	return typeof content === "string" ? content : "";
+};
+
+/** The contents of the tool messages a completion request carries, oldest first. */
+export const toolResultsOf = (body: unknown): string[] =>
+	messagesOf(body).flatMap((entry) =>
+		entry.role === "tool" && typeof entry.content === "string"
+			? [
+					entry.content,
+				]
+			: [],
+	);
+
+/** The names of the tools a completion request offers. */
+export const offeredToolsOf = (body: unknown): string[] =>
+	isRecord(body) && Array.isArray(body.tools)
+		? body.tools.flatMap((entry: unknown) =>
+				isRecord(entry) &&
+				isRecord(entry.function) &&
+				typeof entry.function.name === "string"
+					? [
+							entry.function.name,
+						]
+					: [],
+			)
+		: [];
+
+/**
+ * A conversation past its first turn, so the title it generates on the way
+ * takes no scripted step from the turns a spec scripts next.
+ */
+export const startTitledConversation = async (
+	client: ApiClient,
+	inference: InferenceMock,
+): Promise<ChatId> => {
+	const chatId = await startConversation(client);
+	const reply = chatName("Conversation");
+
+	inference.respondWith({
+		text: reply,
+	});
+	await streamedText(
+		await client.ai.chat({
+			chatId,
+			message: {
+				id: randomUUID(),
+				role: "user",
+				parts: [
+					{
+						type: "text",
+						text: "Hello",
+					},
+				],
+			},
+		}),
+	);
+	await expect
+		.poll(
+			async () =>
+				(
+					await client.chat.find({
+						id: chatId,
+					})
+				).data.title,
+		)
+		.toBe(reply);
+	inference.reset();
+
+	return chatId;
 };
