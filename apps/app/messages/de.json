@@ -1052,6 +1052,23 @@
 	"assistant_tool_remove_members_active": "Mitglieder werden entfernt",
 	"assistant_tool_remove_members_name": "Mitglieder entfernen",
 	"assistant_tool_remove_members_summary": "{names} aus der Organisation entfernen",
+	"assistant_tool_request_upload_name": "Dateien hochladen",
+	"assistant_tool_request_upload_summary_cancelled": "Hochladen abgebrochen",
+	"assistant_tool_request_upload_summary_saved": [
+		{
+			"declarations": [
+				"input count",
+				"local countPlural = count: plural"
+			],
+			"selectors": [
+				"countPlural"
+			],
+			"match": {
+				"countPlural=one": "{count} Datei hochgeladen",
+				"countPlural=other": "{count} Dateien hochgeladen"
+			}
+		}
+	],
 	"assistant_tool_retry_asset_active": "Asset-Auftrag wird wiederholt",
 	"assistant_tool_retry_asset_name": "Asset-Auftrag wiederholen",
 	"assistant_tool_retry_asset_summary_processing": "Verarbeitung von {asset} wiederholen",
@@ -2176,6 +2193,7 @@
 	"chat_work_log_tool_show_review_name": "Prüfung",
 	"chat_work_log_tool_status_approved": "Genehmigt",
 	"chat_work_log_tool_status_awaiting_approval": "Warten auf Genehmigung",
+	"chat_work_log_tool_status_awaiting_input": "Warten auf Eingabe",
 	"chat_work_log_tool_status_denied": "Abgelehnt",
 	"chat_work_log_tool_status_failed": "Fehlgeschlagen",
 	"chat_work_log_tool_status_interrupted": "Unterbrochen",
@@ -2391,7 +2409,8 @@
 	"error_chat_not_found": "Chat nicht gefunden.",
 	"error_chat_rating_failed": "Die Bewertung konnte nicht gespeichert werden.",
 	"error_chat_template_block_already_attached": "Dieser Chat hat bereits einen KI-Verhaltensblock. Entfernen Sie ihn, bevor Sie einen anderen hinzufügen.",
-	"error_chat_turn_decisions_incomplete": "Beantworten Sie jede Bestätigung dieses Schritts, bevor Sie fortfahren.",
+	"error_chat_tool_output_invalid": "Die Antwort auf diesen Schritt ist ungültig. Laden Sie die Unterhaltung neu und versuchen Sie es erneut.",
+	"error_chat_turn_decisions_incomplete": "Beantworten Sie jede Bestätigung und jeden Upload dieses Schritts, bevor Sie fortfahren.",
 	"error_chat_turn_not_awaiting": "Dieser Schritt wurde bereits beantwortet, zum Beispiel in einem anderen Tab. Die Unterhaltung zeigt jetzt, was geschehen ist.",
 	"error_current_password_incorrect": "Das aktuelle Passwort ist falsch.",
 	"error_default_references_out_of_range": "Die Standardanzahl an Verweisen muss zwischen dem Minimum und dem Maximum liegen.",

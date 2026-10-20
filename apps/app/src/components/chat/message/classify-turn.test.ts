@@ -465,3 +465,114 @@ describe("paused step", () => {
 		expect(pausedStep(parts, false)).toBeUndefined();
 	});
 });
+
+describe("client call step", () => {
+	const upload = (state: string) =>
+		({
+			type: "tool-requestUpload",
+			toolCallId: "upload-1",
+			state,
+			input: {
+				reason: "Upload the style guides",
+			},
+			...(state === "output-available"
+				? {
+						output: {
+							status: "cancelled",
+						},
+					}
+				: {}),
+		}) as unknown as MessagePart;
+
+	const widgetTurn = (state: string) => [
+		stepStart(),
+		text("let me look"),
+		search(),
+		stepStart(),
+		text("Please upload them here."),
+		upload(state),
+	];
+
+	test("a pending client call forms the answer boundary", () => {
+		const parts = widgetTurn("input-available");
+		const turn = classifyTurn(parts);
+
+		expect(turn.entries.map((entry) => entry.part.type)).toEqual([
+			"text",
+			"tool-searchKnowledgeBase",
+		]);
+		expect(turn.answerParts).toEqual([
+			text("Please upload them here."),
+			upload("input-available"),
+		]);
+		expect(pausedStep(parts, false)).toEqual({
+			start: 4,
+			answered: false,
+		});
+	});
+
+	test("a mixed step is answered once the call and the approval are", () => {
+		expect(
+			pausedStep(
+				[
+					...widgetTurn("output-available"),
+					deleteBot("approval-requested"),
+				],
+				false,
+			)?.answered,
+		).toBe(false);
+		expect(
+			pausedStep(
+				[
+					...widgetTurn("input-available"),
+					deleteBot("approval-responded", true),
+				],
+				false,
+			)?.answered,
+		).toBe(false);
+		expect(
+			pausedStep(
+				[
+					...widgetTurn("output-available"),
+					deleteBot("approval-responded", true),
+				],
+				false,
+			)?.answered,
+		).toBe(true);
+	});
+
+	test("on an older message the call is a work-log entry", () => {
+		const parts = widgetTurn("input-available");
+		const turn = classifyTurn(parts, {
+			latest: false,
+		});
+
+		expect(pausedStep(parts, false, false)).toBeUndefined();
+		expect(turn.entries.map((entry) => entry.part.type)).toEqual([
+			"text",
+			"tool-searchKnowledgeBase",
+			"tool-requestUpload",
+		]);
+		expect(turn.answerParts).toEqual([
+			text("Please upload them here."),
+		]);
+	});
+
+	test("once resumed the call folds into the work log", () => {
+		const turn = classifyTurn([
+			...widgetTurn("output-available"),
+			stepStart(),
+			text("Done."),
+		]);
+
+		expect(turn.entries.map((entry) => entry.part.type)).toEqual([
+			"text",
+			"tool-searchKnowledgeBase",
+			"text",
+			"tool-requestUpload",
+		]);
+		expect(turn.answerParts).toEqual([
+			text("Done."),
+		]);
+	});
+});

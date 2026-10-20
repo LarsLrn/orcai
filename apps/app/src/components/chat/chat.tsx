@@ -1,9 +1,8 @@
 import { useChat } from "@ai-sdk/react";
 import type { ChatId, ChatMessageId } from "@orcai/core";
-import type { ChatBranchLink } from "@orcai/schema";
+import type { ChatBranchLink, ClientToolOutput } from "@orcai/schema";
 import { eventIteratorToUnproxiedDataStream, ORPCError } from "@orpc/client";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
-import { lastAssistantMessageIsCompleteWithApprovalResponses } from "ai";
 import { useEffect, useMemo, useRef, useState } from "react";
 import { toast } from "sonner";
 import {
@@ -15,6 +14,10 @@ import { Shimmer } from "@/components/ai-elements/shimmer";
 import { AssistantComposerGate } from "@/components/assistant/assistant-composer-gate";
 import { assistantLinkSafety } from "@/components/assistant/assistant-link-safety";
 import { AssistantPlaceholder } from "@/components/assistant/assistant-placeholder";
+import {
+	hasClientToolOutput,
+	isClientToolPart,
+} from "@/lib/ai/tools/assistant/client-tools";
 import {
 	ASSISTANT_TOOL_GROUPS,
 	DEFERRED_TOOL_GROUPS,
@@ -34,6 +37,7 @@ import type { ChatDraft } from "./chat-draft";
 import { toChatAgentMessages } from "./chat-history";
 import { ChatInput } from "./chat-input";
 import { ChatPlaceholder } from "./chat-placeholder";
+import { shouldContinueTurn } from "./continue-turn";
 import { EarlierMessages } from "./earlier-messages";
 import { isToolPart, pausedStep } from "./message/classify-turn";
 import { MessageBlock } from "./message/message-block";
@@ -59,16 +63,22 @@ const waitForStoredReply = async (input: {
 	}
 };
 
-/** Approval ids already answered in stored rows, which the server holds. */
+/** Approval and client call ids already answered in stored rows, which the server holds. */
 const storedAnswers = (messages: ChatAgentUIMessage[]) =>
 	messages.flatMap((message) =>
-		message.parts.filter(isToolPart).flatMap((part) =>
-			part.approval && part.state !== "approval-requested"
+		message.parts.filter(isToolPart).flatMap((part) => {
+			if (part.approval && part.state !== "approval-requested") {
+				return [
+					part.approval.id,
+				];
+			}
+
+			return hasClientToolOutput(part)
 				? [
-						part.approval.id,
+						part.toolCallId,
 					]
-				: [],
-		),
+				: [];
+		}),
 	);
 
 /** The last step's answers given on this page; a step answered before a reload sends none. */
@@ -93,6 +103,41 @@ const newDecisions = (message: ChatAgentUIMessage, stored: Set<string>) => {
 		: [];
 };
 
+/** The last step's client call results given on this page, never the parts themselves. */
+const newToolOutputs = (message: ChatAgentUIMessage, stored: Set<string>) => {
+	const paused = pausedStep(message.parts, false);
+
+	return paused
+		? message.parts
+				.slice(paused.start)
+				.filter(isClientToolPart)
+				.flatMap((part): ClientToolOutput[] => {
+					if (stored.has(part.toolCallId)) {
+						return [];
+					}
+
+					switch (part.state) {
+						case "output-available":
+							return [
+								{
+									toolCallId: part.toolCallId,
+									output: part.output,
+								},
+							];
+						case "output-error":
+							return [
+								{
+									toolCallId: part.toolCallId,
+									errorText: part.errorText,
+								},
+							];
+						default:
+							return [];
+					}
+				})
+		: [];
+};
+
 /**
  * The server holds the history, so only the new user message travels, or for
  * an assistant row the answers to its last step.
@@ -102,7 +147,9 @@ const openTurn = (
 	turn: {
 		chatId: ChatId;
 		zedToken?: string;
-		storedApprovalIds: Set<string>;
+		/** What a client call's write returned while answering the step. */
+		answerZedToken?: string;
+		storedAnswerIds: Set<string>;
 	},
 	options: {
 		signal: AbortSignal;
@@ -126,8 +173,9 @@ const openTurn = (
 				{
 					chatId: turn.chatId,
 					messageId: message.id,
-					approvals: newDecisions(message, turn.storedApprovalIds),
-					zedToken: turn.zedToken,
+					approvals: newDecisions(message, turn.storedAnswerIds),
+					toolOutputs: newToolOutputs(message, turn.storedAnswerIds),
+					zedToken: turn.answerZedToken,
 				},
 				options,
 			);
@@ -213,7 +261,27 @@ const Chat = ({
 	const loadedMessageIds = useRef(
 		new Set(initialMessages.map((message) => message.id)),
 	);
-	const storedApprovalIds = useRef(new Set(storedAnswers(initialMessages)));
+	const storedAnswerIds = useRef(new Set(storedAnswers(initialMessages)));
+	// The newest token seen: the page's, a turn's, then a widget's write.
+	const newestZedToken = useRef(zedToken);
+	// A widget's write in the paused step; its token also covers the paused turn's writes.
+	const answerZedToken = useRef<string | undefined>(undefined);
+	const keepZedToken = (token: string | undefined) => {
+		if (token) {
+			newestZedToken.current = token;
+		}
+	};
+	const keepAnswerZedToken = (token: string | undefined) => {
+		keepZedToken(token);
+		answerZedToken.current = token ?? answerZedToken.current;
+	};
+	useEffect(() => {
+		if (zedToken) {
+			newestZedToken.current = zedToken;
+		}
+	}, [
+		zedToken,
+	]);
 
 	const { data: chat } = useQuery(
 		orpc.chat.find.queryOptions({
@@ -250,10 +318,11 @@ const Chat = ({
 		sendMessage,
 		stop,
 		addToolApprovalResponse,
+		addToolOutput,
 	} = useChat<ChatAgentUIMessage>({
 		id,
 		generateId: () => crypto.randomUUID(),
-		sendAutomaticallyWhen: lastAssistantMessageIsCompleteWithApprovalResponses,
+		sendAutomaticallyWhen: shouldContinueTurn,
 		transport: {
 			async sendMessages(options) {
 				// Stop cuts the stream only once the server has answered, so the reply is already reserved.
@@ -262,8 +331,9 @@ const Chat = ({
 					options.messages.at(-1),
 					{
 						chatId: options.chatId as ChatId,
-						zedToken,
-						storedApprovalIds: storedApprovalIds.current,
+						zedToken: newestZedToken.current,
+						answerZedToken: answerZedToken.current,
+						storedAnswerIds: storedAnswerIds.current,
 					},
 					{
 						signal: request.signal,
@@ -282,6 +352,10 @@ const Chat = ({
 		},
 		messages: initialMessages,
 		onFinish: async ({ message, isAbort, isDisconnect, isError }) => {
+			keepZedToken(message.metadata?.zedToken);
+			if (!isAbort && !isDisconnect && !isError) {
+				answerZedToken.current = undefined;
+			}
 			// A finished stream closes after the reply is stored; any other ending may still be saving.
 			if (isAbort || isDisconnect || isError) {
 				setIsStoringReply(true);
@@ -347,8 +421,8 @@ const Chat = ({
 		for (const message of stored) {
 			loadedMessageIds.current.add(message.id);
 		}
-		for (const approvalId of storedAnswers(stored)) {
-			storedApprovalIds.current.add(approvalId);
+		for (const answerId of storedAnswers(stored)) {
+			storedAnswerIds.current.add(answerId);
 		}
 		setMessages((current) => [
 			...current.filter((message) => !storedIds.has(message.id)),
@@ -453,6 +527,14 @@ const Chat = ({
 							addToolApprovalResponse={
 								index === messages.length - 1
 									? addToolApprovalResponse
+									: undefined
+							}
+							clientToolActions={
+								index === messages.length - 1
+									? {
+											addToolOutput,
+											keepZedToken: keepAnswerZedToken,
+										}
 									: undefined
 							}
 							onContinue={

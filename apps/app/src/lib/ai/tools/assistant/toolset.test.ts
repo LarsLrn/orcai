@@ -2,6 +2,7 @@ import { describe, expect, test } from "bun:test";
 import { asSchema, type ToolSet } from "ai";
 import type { ORPCContext } from "@/lib/orpc/implementation/os";
 import { assistantToolApproval, GATED_ASSISTANT_TOOLS } from "./approval";
+import { CLIENT_TOOL_OUTPUT_SCHEMAS } from "./client-tools";
 import { ASSISTANT_TOOL_GROUPS, DEFERRED_TOOL_GROUPS } from "./groups";
 import "./test-procedures";
 import { createAssistantTurn } from "./turn-state";
@@ -78,6 +79,25 @@ describe("buildAssistantTools", () => {
 			}
 		},
 	);
+});
+
+describe("client tools", () => {
+	test("the registry holds exactly the tools without execute, with their output schemas", () => {
+		const clientTools = Object.entries(tools).filter(
+			([, tool]) => tool.execute === undefined,
+		);
+
+		expect(clientTools.map(([name]) => name).sort()).toEqual(
+			Object.keys(CLIENT_TOOL_OUTPUT_SCHEMAS).sort(),
+		);
+		for (const [name, tool] of clientTools) {
+			expect(tool.outputSchema).toBe(
+				CLIENT_TOOL_OUTPUT_SCHEMAS[
+					name as keyof typeof CLIENT_TOOL_OUTPUT_SCHEMAS
+				],
+			);
+		}
+	});
 });
 
 describe("assistantToolApproval", () => {

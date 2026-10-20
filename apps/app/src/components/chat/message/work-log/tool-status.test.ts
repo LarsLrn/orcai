@@ -56,6 +56,44 @@ describe("toolStatus", () => {
 		expect(toolStatus(pending, false)).toBe("interrupted");
 	});
 
+	test("a client call awaits input on the latest message and is skipped on an older one", () => {
+		const widget: ToolPart = {
+			type: "tool-requestUpload",
+			toolCallId: "call-2",
+			state: "input-available",
+			input: {
+				reason: "Upload the style guides",
+			},
+		};
+
+		expect(toolStatus(widget, false, true)).toBe("awaiting-input");
+		expect(toolStatus(widget, false)).toBe("skipped");
+		expect(toolStatus(widget, true, true)).toBe("running");
+		expect(
+			toolStatus(
+				{
+					...call,
+					state: "input-available",
+				},
+				false,
+				true,
+			),
+		).toBe("interrupted");
+		expect(
+			toolStatus(
+				{
+					...widget,
+					state: "output-available",
+					output: {
+						status: "cancelled",
+					},
+				},
+				false,
+				true,
+			),
+		).toBeNull();
+	});
+
 	test("a requested approval awaits it and a result has no status", () => {
 		expect(
 			toolStatus(

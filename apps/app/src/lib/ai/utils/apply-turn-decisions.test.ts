@@ -82,6 +82,7 @@ const apply = (
 			continuedAt,
 		},
 		decisions,
+		toolOutputs: [],
 		now,
 	});
 
@@ -378,6 +379,7 @@ describe("applyTurnDecisions", () => {
 					approved: true,
 				},
 			],
+			toolOutputs: [],
 			now,
 		});
 		const userRow = applyTurnDecisions({
@@ -388,6 +390,7 @@ describe("applyTurnDecisions", () => {
 				parts: [],
 			},
 			decisions: [],
+			toolOutputs: [],
 			now,
 		});
 
@@ -437,6 +440,339 @@ describe("applyTurnDecisions", () => {
 		expect(finished).toMatchObject({
 			ok: false,
 			reason: "CHAT_TURN_NOT_AWAITING",
+		});
+	});
+});
+
+const assetId = "00000000-0000-4000-8000-000000000001";
+
+const upload = (id: string): Part => ({
+	type: "tool-requestUpload",
+	toolCallId: `upload-${id}`,
+	state: "input-available",
+	input: {
+		reason: "Upload the style guides",
+	},
+});
+
+const saved = {
+	status: "saved",
+	assets: [
+		{
+			id: assetId,
+			title: "APA 7.pdf",
+		},
+	],
+};
+
+const answer = (
+	parts: Part[],
+	decisions: Parameters<typeof applyTurnDecisions>[0]["decisions"],
+	toolOutputs: Parameters<typeof applyTurnDecisions>[0]["toolOutputs"],
+) =>
+	applyTurnDecisions({
+		messageId: "reply",
+		lastMessage: reply(parts),
+		decisions,
+		toolOutputs,
+		now,
+	});
+
+describe("applyTurnDecisions with client tool outputs", () => {
+	const widgetStep: Part[] = [
+		...earlierStep,
+		{
+			type: "step-start",
+		},
+		{
+			type: "text",
+			text: "Upload them here.",
+		},
+		upload("a"),
+	];
+
+	test("patches a valid output and keeps the stored input", () => {
+		const result = answer(
+			widgetStep,
+			[],
+			[
+				{
+					toolCallId: "upload-a",
+					output: {
+						...saved,
+						extra: "dropped",
+					},
+				},
+			],
+		);
+
+		expect(result).toEqual({
+			ok: true,
+			parts: [
+				...widgetStep.slice(0, -1),
+				{
+					...upload("a"),
+					state: "output-available",
+					output: saved,
+				} as Part,
+			],
+		});
+	});
+
+	test("turns an error text into an errored call", () => {
+		const result = answer(
+			widgetStep,
+			[],
+			[
+				{
+					toolCallId: "upload-a",
+					errorText: "The widget failed.",
+				},
+			],
+		);
+
+		expect(result.ok && result.parts.at(-1)).toEqual({
+			...upload("a"),
+			state: "output-error",
+			errorText: "The widget failed.",
+		} as Part);
+	});
+
+	test("rejects an output that fails the tool's output schema", () => {
+		for (const output of [
+			{
+				status: "saved",
+				assets: [],
+			},
+			{
+				status: "saved",
+				assets: [
+					{
+						id: "not-an-id",
+						title: "x",
+					},
+				],
+			},
+			{
+				status: "done",
+			},
+		]) {
+			expect(
+				answer(
+					widgetStep,
+					[],
+					[
+						{
+							toolCallId: "upload-a",
+							output,
+						},
+					],
+				),
+			).toMatchObject({
+				ok: false,
+				reason: "CHAT_TOOL_OUTPUT_INVALID",
+			});
+		}
+	});
+
+	test("never takes a result for a server tool's call", () => {
+		const dangling: Part = {
+			type: "tool-findBots",
+			toolCallId: "call-find",
+			state: "input-available",
+			input: {},
+		};
+
+		expect(
+			answer(
+				[
+					...widgetStep,
+					dangling,
+				],
+				[],
+				[
+					{
+						toolCallId: "upload-a",
+						output: saved,
+					},
+					{
+						toolCallId: "call-find",
+						output: [],
+					},
+				],
+			),
+		).toMatchObject({
+			ok: false,
+			reason: "CHAT_TURN_NOT_AWAITING",
+		});
+	});
+
+	test("keeps a stored output that a retry repeats", () => {
+		const answered: Part[] = [
+			...widgetStep.slice(0, -1),
+			{
+				...upload("a"),
+				state: "output-available",
+				output: saved,
+			} as Part,
+		];
+
+		expect(
+			answer(
+				answered,
+				[],
+				[
+					{
+						toolCallId: "upload-a",
+						output: {
+							status: "cancelled",
+						},
+					},
+				],
+			),
+		).toEqual({
+			ok: true,
+			parts: answered,
+		});
+	});
+
+	test("rejects a call that is not in the last step", () => {
+		const earlier: Part[] = [
+			{
+				type: "step-start",
+			},
+			{
+				...upload("old"),
+				state: "output-available",
+				output: saved,
+			} as Part,
+			...widgetStep,
+		];
+
+		expect(
+			answer(
+				earlier,
+				[],
+				[
+					{
+						toolCallId: "upload-old",
+						output: saved,
+					},
+				],
+			),
+		).toMatchObject({
+			ok: false,
+			reason: "CHAT_TURN_NOT_AWAITING",
+		});
+	});
+
+	test("rejects a call answered twice in one request", () => {
+		expect(
+			answer(
+				widgetStep,
+				[],
+				[
+					{
+						toolCallId: "upload-a",
+						output: saved,
+					},
+					{
+						toolCallId: "upload-a",
+						output: {
+							status: "cancelled",
+						},
+					},
+				],
+			),
+		).toMatchObject({
+			ok: false,
+			reason: "CHAT_TURN_DECISIONS_INCOMPLETE",
+		});
+	});
+
+	test("needs every pending part of a mixed step across both lists", () => {
+		const mixed: Part[] = [
+			...widgetStep,
+			requested("a"),
+		];
+		const approval = {
+			approvalId: "approval-a",
+			approved: true,
+		};
+		const output = {
+			toolCallId: "upload-a",
+			output: {
+				status: "cancelled",
+			},
+		};
+
+		expect(
+			answer(
+				mixed,
+				[
+					approval,
+				],
+				[],
+			),
+		).toMatchObject({
+			ok: false,
+			reason: "CHAT_TURN_DECISIONS_INCOMPLETE",
+		});
+		expect(
+			answer(
+				mixed,
+				[],
+				[
+					output,
+				],
+			),
+		).toMatchObject({
+			ok: false,
+			reason: "CHAT_TURN_DECISIONS_INCOMPLETE",
+		});
+		expect(
+			answer(
+				mixed,
+				[
+					approval,
+				],
+				[
+					output,
+				],
+			),
+		).toEqual({
+			ok: true,
+			parts: [
+				...widgetStep.slice(0, -1),
+				{
+					...upload("a"),
+					state: "output-available",
+					output: {
+						status: "cancelled",
+					},
+				} as Part,
+				responded("a", true),
+			],
+		});
+	});
+
+	test("accepts no answers as a retry of a step answered by stored outputs", () => {
+		const answered: Part[] = [
+			...widgetStep.slice(0, -1),
+			{
+				...upload("a"),
+				state: "output-available",
+				output: saved,
+			} as Part,
+		];
+
+		expect(answer(answered, [], [])).toEqual({
+			ok: true,
+			parts: answered,
+		});
+		expect(answer(widgetStep, [], [])).toMatchObject({
+			ok: false,
+			reason: "CHAT_TURN_DECISIONS_INCOMPLETE",
 		});
 	});
 });

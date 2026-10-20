@@ -1,4 +1,5 @@
 import { isDisplayToolPart } from "@/components/chat/gen-ui/catalog";
+import { isClientToolPart } from "@/lib/ai/tools/assistant/client-tools";
 import type { ChatAgentUIMessage } from "@/lib/ai/types/chat-agent-message";
 
 export type MessagePart = ChatAgentUIMessage["parts"][number];
@@ -84,6 +85,13 @@ export const isPausingPart = (part: MessagePart): part is ToolPart =>
 	isToolPart(part) &&
 	(part.state === "approval-requested" || part.state === "approval-responded");
 
+/** Only the latest message can still be answered; older client calls were skipped. */
+const pausesTurn = (part: MessagePart, latest: boolean) =>
+	isPausingPart(part) || (latest && isClientToolPart(part));
+
+const isAnswered = (part: ToolPart) =>
+	part.state !== "approval-requested" && part.state !== "input-available";
+
 export interface PausedStep {
 	/** Index of the step's first part. */
 	start: number;
@@ -98,13 +106,16 @@ export interface PausedStep {
 export const pausedStep = (
 	parts: readonly MessagePart[],
 	running: boolean,
+	latest = true,
 ): PausedStep | undefined => {
 	if (running) {
 		return undefined;
 	}
 
 	const start = lastIndexWhere(parts, (part) => part.type === "step-start") + 1;
-	const pausing = parts.slice(start).filter(isPausingPart);
+	const pausing = parts
+		.slice(start)
+		.filter((part): part is ToolPart => pausesTurn(part, latest));
 
 	if (pausing.length === 0) {
 		return undefined;
@@ -112,7 +123,7 @@ export const pausedStep = (
 
 	return {
 		start,
-		answered: pausing.every((part) => part.state === "approval-responded"),
+		answered: pausing.every(isAnswered),
 	};
 };
 
@@ -125,19 +136,23 @@ const isBlankReasoning = (part: ReasoningPart) =>
  * order. Text right before a working tool call is progress and goes to the
  * work log; other text and display primitives are the answer. A finished
  * turn whose answer would be empty shows its last text as the answer.
- * A paused step's text and the calls it waits on are the answer too.
+ * A paused step's text and the calls it waits on, client calls such as the
+ * upload widget included, are the answer too.
  */
 export const classifyTurn = (
 	parts: readonly MessagePart[],
 	{
 		running = false,
+		latest = true,
 	}: {
 		running?: boolean;
+		/** The chat's latest message, the only one whose client calls still wait. */
+		latest?: boolean;
 	} = {},
 ): ClassifiedTurn => {
-	const paused = pausedStep(parts, running);
+	const paused = pausedStep(parts, running, latest);
 	const isPausedAnswer = (part: MessagePart, index: number) =>
-		paused !== undefined && index >= paused.start && isPausingPart(part);
+		paused !== undefined && index >= paused.start && pausesTurn(part, latest);
 
 	const interim = new Set<number>();
 	parts.forEach((part, index) => {

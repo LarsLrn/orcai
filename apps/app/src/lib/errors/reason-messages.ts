@@ -73,6 +73,7 @@ const reasonMessages: ReasonMessages = {
 	CHAT_RATING_FAILED: m.error_chat_rating_failed,
 	CHAT_TEMPLATE_BLOCK_ALREADY_ATTACHED:
 		m.error_chat_template_block_already_attached,
+	CHAT_TOOL_OUTPUT_INVALID: m.error_chat_tool_output_invalid,
 	CHAT_TURN_DECISIONS_INCOMPLETE: m.error_chat_turn_decisions_incomplete,
 	CHAT_TURN_NOT_AWAITING: m.error_chat_turn_not_awaiting,
 	CURRENT_PASSWORD_INCORRECT: m.error_current_password_incorrect,

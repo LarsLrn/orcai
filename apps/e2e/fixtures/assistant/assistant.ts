@@ -411,6 +411,7 @@ export const BOTS_TOOLS = [
 	"updateAsset",
 	"deleteAsset",
 	"retryAsset",
+	"requestUpload",
 ];
 
 export const SHARING_TOOLS = [

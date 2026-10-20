@@ -7,6 +7,7 @@ import { deleteAssetSummary } from "@/lib/ai/tools/assistant/bots/delete-asset.s
 import { deleteBlockSummary } from "@/lib/ai/tools/assistant/bots/delete-block.summary";
 import { deleteBotSummary } from "@/lib/ai/tools/assistant/bots/delete-bot.summary";
 import { publishBotSummary } from "@/lib/ai/tools/assistant/bots/publish-bot.summary";
+import { requestUploadSummary } from "@/lib/ai/tools/assistant/bots/request-upload.summary";
 import { retryAssetSummary } from "@/lib/ai/tools/assistant/bots/retry-asset.summary";
 import { updateAssetSummary } from "@/lib/ai/tools/assistant/bots/update-asset.summary";
 import { updateBotSummary } from "@/lib/ai/tools/assistant/bots/update-bot.summary";
@@ -74,6 +75,7 @@ export const assistantToolSummaries: SummaryRegistry = {
 	"tool-updateAsset": updateAssetSummary,
 	"tool-deleteAsset": deleteAssetSummary,
 	"tool-retryAsset": retryAssetSummary,
+	"tool-requestUpload": requestUploadSummary,
 	"tool-listAccess": listAccessSummary,
 	"tool-findPrincipals": findPrincipalsSummary,
 	"tool-grantAccess": grantAccessSummary,
