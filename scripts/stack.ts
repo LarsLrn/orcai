@@ -42,7 +42,7 @@
  *
  * Global options:
  *   --name <stack>         Compose project name. Defaults to orcai-<worktree>.
- *   --env-file <path>      Env file. Defaults to <repo>/.env.
+ *   --env-file <path>      Env file (or ORCAI_ENV_FILE). Defaults to <repo>/.env.
  *   --yes                  Skip the confirmation of a destructive command.
  *
  * Overrides shared by every worktree on this machine can live in
@@ -172,7 +172,7 @@ function sanitizeStackName(value: string): string {
 // Env file handling
 // ---------------------------------------------------------------------------
 
-function parseEnv(content: string): Env {
+export function parseEnv(content: string): Env {
 	const env: Env = {};
 	for (const rawLine of content.split(/\r?\n/)) {
 		const line = rawLine.trim();
@@ -196,7 +196,7 @@ function parseEnv(content: string): Env {
 	return env;
 }
 
-function serializeEnv(env: Env, header: string[]): string {
+export function serializeEnv(env: Env, header: string[]): string {
 	const lines = header.map((line) => `# ${line}`);
 	lines.push("");
 	for (const [key, value] of Object.entries(env)) {
@@ -290,7 +290,7 @@ function defaultEnv(stackName: string, ports: Ports): Env {
 	};
 }
 
-function randomSecret(bytes: number): string {
+export function randomSecret(bytes: number): string {
 	return Buffer.from(crypto.getRandomValues(new Uint8Array(bytes))).toString(
 		"hex",
 	);
@@ -332,7 +332,7 @@ function requireEnv(options: Options): Env {
 	const env = readEnvFile(options.envFile);
 	if (!env) {
 		throw new Error(
-			`${options.envFile} does not exist. Run \`bun run stack up\` first.`,
+			`${options.envFile} does not exist. Run \`bun run stack up\` first, or \`bun scripts/devcontainer-env.ts\` inside the devcontainer.`,
 		);
 	}
 	return env;

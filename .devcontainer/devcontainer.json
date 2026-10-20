@@ -19,6 +19,7 @@
 		"spicedb-schema"
 	],
 	"workspaceFolder": "/workspaces/orcai",
+	"postCreateCommand": "bun scripts/devcontainer-env.ts",
 	"remoteUser": "bun",
 	"forwardPorts": [
 		3000,
