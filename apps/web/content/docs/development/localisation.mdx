@@ -3,7 +3,7 @@ title: Localisation
 description: How interface copy is translated, how messages are named, and how tests find translated text.
 ---
 
-The app is translated with [Paraglide](https://inlang.com/m/gerre34r/library-inlang-paraglideJs). Copy lives in `apps/app/messages/<locale>.json`, one file per locale, and compiles to typed message functions under `apps/app/src/paraglide`. That output is generated, not committed; `bun run ci` compiles it before the type check, and the Vite plugin does the same during `dev` and `build`.
+The app is translated with [Paraglide](https://inlang.com/m/gerre34r/library-inlang-paraglideJs). Copy lives in `apps/app/messages/<locale>.json`, one file per locale, and compiles to typed message functions under `apps/app/src/paraglide`. That output is generated, not committed. `bun run test` and `bun run ci` compile it first, and the Vite plugin does the same during `dev` and `build`; the app's own `test` script expects it already compiled.
 
 ## Locale Resolution
 

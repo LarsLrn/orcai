@@ -91,7 +91,7 @@ Notes:
 - `bun run stack --name <name> --env-file <path> up` starts an additional independent stack, which is how you run end-to-end tests without touching this worktree's dev data.
 - [Paseo](https://github.com/getpaseo/paseo) workspaces run `bun install` and `bun run stack up` automatically on creation and `bun run stack down --volumes --yes` when archived, see `paseo.json`.
 - Workers on the host need Tesseract with the `eng` (and optionally `deu`) language packs for OCR.
-- Unit tests (`bun run test`) never touch the stack.
+- Unit tests (`bun run test`) never touch the stack. Each test file runs isolated in a pool of worker processes (`bun test --parallel`), so `mock.module` and DOM globals stay within their file.
 
 ### End-to-end tests
 

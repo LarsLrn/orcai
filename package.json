@@ -61,7 +61,7 @@
 		"prepush": "bun run lint-full",
 		"stack": "bun run scripts/stack.ts",
 		"start": "bun run --filter @orcai/app start",
-		"test": "bun run --filter '*' paraglide:compile && bun test --recursive packages/**/test/*.test.ts packages/**/test/**/*.test.ts scripts/*.test.ts && bun run --filter @orcai/app test",
+		"test": "bun run --filter '*' paraglide:compile && bun test --parallel --recursive packages/**/test/*.test.ts packages/**/test/**/*.test.ts scripts/*.test.ts && bun run --filter @orcai/app test",
 		"verify": "bun run lint && bun run test",
 		"workers:dev": "bun run stack workers",
 		"workers:start": "bun run --filter @orcai/workers start"

@@ -3,7 +3,7 @@ title: End-To-End Tests
 description: How the Playwright end-to-end suite is run, isolated, and extended.
 ---
 
-The end-to-end suite proves that the application works against real infrastructure: a real database, real authorisation store, real object storage. Unit tests (`bun run test`) never touch the stack; the end-to-end suite always does.
+The end-to-end suite proves that the application works against real infrastructure: a real database, real authorisation store, real object storage. Unit tests (`bun run test`) never touch the stack; the end-to-end suite always does. Each unit test file runs isolated in a pool of worker processes (`bun test --parallel`), so `mock.module` and DOM globals stay within their file.
 
 ## Runner
 
