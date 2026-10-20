@@ -1,4 +1,4 @@
-import type { Asset } from "@orcai/schema";
+import type { Asset, AssetWithCapabilities } from "@orcai/schema";
 import { PencilIcon, XIcon } from "lucide-react";
 import { useState } from "react";
 import {
@@ -16,6 +16,7 @@ import {
 	DialogTitle,
 } from "@/components/ui/dialog";
 import { useSaveAssetMutation } from "@/hooks/mutations/use-asset-mutations";
+import { hasCapability } from "@/lib/authz/capabilities";
 import { getFileTypeLabel } from "@/lib/presentation/file-type";
 import {
 	getProcessingStatusLabel,
@@ -28,7 +29,7 @@ const SelectedAssetList = ({
 	onRemove,
 	onAssetUpdated,
 }: {
-	assets: Asset[];
+	assets: AssetWithCapabilities[];
 	onRemove: (assetId: string) => void;
 	onAssetUpdated?: (asset: Asset) => void;
 }) => {
@@ -51,6 +52,7 @@ const SelectedAssetList = ({
 					title: asset.title,
 					metadata: asset.metadata ?? createDefaultAssetMetadata(),
 				};
+				const canEdit = hasCapability(asset.capabilities, "edit");
 
 				return (
 					<div
@@ -74,14 +76,16 @@ const SelectedAssetList = ({
 						</div>
 
 						<div className="flex gap-2">
-							<Button
-								variant="outline"
-								size="sm"
-								onClick={() => setEditingAssetId(asset.id)}
-							>
-								<PencilIcon />
-								{m.assets_selected_list_metadata_button()}
-							</Button>
+							{canEdit ? (
+								<Button
+									variant="outline"
+									size="sm"
+									onClick={() => setEditingAssetId(asset.id)}
+								>
+									<PencilIcon />
+									{m.assets_selected_list_metadata_button()}
+								</Button>
+							) : null}
 							<Button
 								variant="outline"
 								size="sm"
@@ -92,50 +96,54 @@ const SelectedAssetList = ({
 							</Button>
 						</div>
 
-						<Dialog
-							open={editingAssetId === asset.id}
-							onOpenChange={(open) => setEditingAssetId(open ? asset.id : null)}
-						>
-							<DialogContent className="max-h-[88vh] sm:max-w-3xl">
-								<DialogHeader>
-									<DialogTitle>
-										{m.assets_selected_list_dialog_title()}
-									</DialogTitle>
-									<DialogDescription>
-										{m.assets_selected_list_dialog_description()}
-									</DialogDescription>
-								</DialogHeader>
+						{canEdit ? (
+							<Dialog
+								open={editingAssetId === asset.id}
+								onOpenChange={(open) =>
+									setEditingAssetId(open ? asset.id : null)
+								}
+							>
+								<DialogContent className="max-h-[88vh] sm:max-w-3xl">
+									<DialogHeader>
+										<DialogTitle>
+											{m.assets_selected_list_dialog_title()}
+										</DialogTitle>
+										<DialogDescription>
+											{m.assets_selected_list_dialog_description()}
+										</DialogDescription>
+									</DialogHeader>
 
-								<AssetMetadataEditor
-									value={draft}
-									onChange={(nextValue) =>
-										setDrafts((current) => ({
-											...current,
-											[asset.id]: nextValue,
-										}))
-									}
-								/>
+									<AssetMetadataEditor
+										value={draft}
+										onChange={(nextValue) =>
+											setDrafts((current) => ({
+												...current,
+												[asset.id]: nextValue,
+											}))
+										}
+									/>
 
-								<DialogFooter>
-									<Button
-										onClick={async () => {
-											const result = await saveAsset({
-												id: asset.id,
-												title: draft.title,
-												metadata: draft.metadata,
-											});
+									<DialogFooter>
+										<Button
+											onClick={async () => {
+												const result = await saveAsset({
+													id: asset.id,
+													title: draft.title,
+													metadata: draft.metadata,
+												});
 
-											if (result.status === "success") {
-												onAssetUpdated?.(result.data.data);
-												setEditingAssetId(null);
-											}
-										}}
-									>
-										{m.assets_metadata_save_button()}
-									</Button>
-								</DialogFooter>
-							</DialogContent>
-						</Dialog>
+												if (result.status === "success") {
+													onAssetUpdated?.(result.data.data);
+													setEditingAssetId(null);
+												}
+											}}
+										>
+											{m.assets_metadata_save_button()}
+										</Button>
+									</DialogFooter>
+								</DialogContent>
+							</Dialog>
+						) : null}
 					</div>
 				);
 			})}

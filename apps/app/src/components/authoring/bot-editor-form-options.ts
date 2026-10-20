@@ -1,6 +1,6 @@
 import type { BlockId, BotId } from "@orcai/core";
 import type {
-	Asset,
+	AssetWithCapabilities,
 	BotEditor,
 	DatabaseBlock,
 	EntityCapabilities,
@@ -35,7 +35,7 @@ type BotEditorDatabaseBlock = {
 	status: PublicationStatus;
 	config: DatabaseBlock["config"];
 	assetIds: string[];
-	assets: Asset[];
+	assets: AssetWithCapabilities[];
 };
 
 export type BotEditorFormValues = {

@@ -9,15 +9,24 @@ export const capabilitySets = AUTHZ_PERMISSIONS_BY_ENTITY satisfies {
 	[Entity in CapabilityEntityType]: readonly CapabilityFor<Entity>[];
 };
 
-export const emptyCapabilities = <Entity extends CapabilityEntityType>(
+const uniformCapabilities = <Entity extends CapabilityEntityType>(
 	entityType: Entity,
+	granted: boolean,
 ): EntityCapabilities<Entity> =>
 	Object.fromEntries(
 		capabilitySets[entityType].map((permission) => [
 			permission,
-			false,
+			granted,
 		]),
 	) as EntityCapabilities<Entity>;
+
+export const emptyCapabilities = <Entity extends CapabilityEntityType>(
+	entityType: Entity,
+) => uniformCapabilities(entityType, false);
+
+export const ownerCapabilities = <Entity extends CapabilityEntityType>(
+	entityType: Entity,
+) => uniformCapabilities(entityType, true);
 
 export const hasCapability = <
 	Entity extends CapabilityEntityType,

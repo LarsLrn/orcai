@@ -8,7 +8,6 @@ import type {
 } from "@orcai/schema";
 import {
 	checkEntityPermission,
-	checkManyEntityPermissions,
 	hasPermission,
 	lookupEntitiesByPermission,
 } from "@orcai/spice-db";
@@ -16,7 +15,10 @@ import { and, count, eq, getColumns, ilike, inArray } from "drizzle-orm";
 import * as Effect from "effect/Effect";
 import { emptyCapabilities } from "@/lib/authz/capabilities";
 import { calculateRelationDelta } from "@/lib/authz/relation-delta";
-import { initializeResourceAuthorization } from "@/lib/authz/resource-lifecycle";
+import {
+	deleteResourcesWithAuthorization,
+	initializeResourceAuthorization,
+} from "@/lib/authz/resource-lifecycle";
 import { getZedToken } from "@/lib/authz/zed-token";
 import { AuthzService } from "@/lib/effect/services/authz";
 import * as AppErrors from "@/lib/effect/utils/errors";
@@ -31,6 +33,7 @@ import {
 import {
 	getEntityCapabilities,
 	getManyEntityCapabilities,
+	permittedEntityIds,
 } from "@/lib/orpc/router/helpers/capabilities";
 import { loadDatabaseBlockAssets } from "@/lib/orpc/router/helpers/database-block";
 import { literalSearch } from "./helpers/literal-search";
@@ -166,6 +169,8 @@ const loadBotEditor = (params: {
 				Effect.gen(function* () {
 					const assets = yield* loadDatabaseBlockAssets({
 						blockId: block.id,
+						userId: params.userId,
+						zedToken: params.zedToken,
 					});
 
 					return {
@@ -274,28 +279,13 @@ const resolveLinkedBlocksForSave = (params: {
 			}
 		}
 
-		const linkPermissions = yield* checkManyEntityPermissions({
+		const readableIds = yield* permittedEntityIds({
 			entityIds: nextBlockIds,
 			entityType: "block",
 			permission: "read",
 			userId: params.userId,
 			zedToken: params.zedToken,
 		});
-
-		const readableIds = new Set<string>();
-
-		for (const pair of linkPermissions.pairs) {
-			const blockId = pair.request?.resource?.objectId;
-			const allowed =
-				pair.response.oneofKind === "item" &&
-				hasPermission({
-					permissionship: pair.response.item.permissionship,
-				});
-
-			if (blockId && allowed) {
-				readableIds.add(blockId);
-			}
-		}
 
 		const unreadableIds = nextBlockIds.filter(
 			(blockId) => !readableIds.has(blockId),
@@ -703,18 +693,19 @@ const deleteBots = authed.bot.delete
 		),
 	)
 	.effect(function* ({ context }) {
-		const db = yield* DB;
+		const allowedIds = context.allowedIds ?? [];
 
-		if (!context.allowedIds || context.allowedIds.length === 0) {
+		if (allowedIds.length === 0) {
 			return {
 				success: true,
 				message: "No bots to delete",
 			};
 		}
 
-		yield* db
-			.delete(dbSchema.bot)
-			.where(inArray(dbSchema.bot.id, context.allowedIds));
+		yield* deleteResourcesWithAuthorization({
+			resourceType: "bot",
+			resourceIds: allowedIds,
+		});
 
 		return {
 			success: true,

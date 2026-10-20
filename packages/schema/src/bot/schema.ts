@@ -1,5 +1,5 @@
 import { z } from "zod/v4";
-import { assetSchema } from "../asset/schema";
+import { assetSchema, assetWithCapabilitiesSchema } from "../asset/schema";
 import { entityCapabilitiesSchema } from "../authorization";
 import { blockIdSchema } from "../block/ref";
 import {
@@ -65,7 +65,7 @@ export const botEditorDatabaseBlockSchema = botEditorBlockSchema.extend({
 	type: z.literal("database").default("database"),
 	config: databaseBlockSchema.shape.config,
 	assetIds: z.array(assetSchema.shape.id).default([]),
-	assets: z.array(assetSchema).default([]),
+	assets: z.array(assetWithCapabilitiesSchema).default([]),
 });
 
 export const botEditorSchema = z.object({

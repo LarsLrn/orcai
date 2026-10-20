@@ -18,12 +18,8 @@ import {
 	RESOURCE_GRANT_SOURCE,
 	userIdSchema,
 } from "@orcai/schema";
-import type { EntityIdFor, TupleMutation } from "@orcai/spice-db";
-import {
-	checkManyEntityPermissions,
-	hasPermission,
-	lookupEntitiesByPermission,
-} from "@orcai/spice-db";
+import type { TupleMutation } from "@orcai/spice-db";
+import { lookupEntitiesByPermission } from "@orcai/spice-db";
 import {
 	and,
 	desc,
@@ -46,6 +42,7 @@ import {
 	requireResourcePermission,
 } from "@/lib/orpc/middlewares/permission";
 import { canSeeEmailIn, canSeeEmailOn } from "./helpers/can-see-email";
+import { permittedEntityIds } from "./helpers/capabilities";
 import { changedAt } from "./helpers/changed-at";
 import { literalSearch } from "./helpers/literal-search";
 
@@ -340,38 +337,6 @@ const collectAncestors = (resource: ResourceIdentity) =>
 		}
 	});
 
-const readableAncestorIds = <Entity extends "bot" | "block">(params: {
-	entityType: Entity;
-	entityIds: EntityIdFor<Entity>[];
-	userId: UserId;
-	zedToken?: string;
-}) =>
-	params.entityIds.length === 0
-		? Effect.succeed(new Set<string>())
-		: checkManyEntityPermissions({
-				...params,
-				permission: "read",
-			}).pipe(
-				Effect.map(
-					(result) =>
-						new Set(
-							result.pairs.flatMap((pair) => {
-								const entityId = pair.request?.resource?.objectId;
-								const allowed =
-									pair.response.oneofKind === "item" &&
-									hasPermission({
-										permissionship: pair.response.item.permissionship,
-									});
-								return entityId && allowed
-									? [
-											entityId,
-										]
-									: [];
-							}),
-						),
-				),
-			);
-
 const getInheritedAccess = authed.resource.inheritedAccess
 	.use(requireResourcePermission("manage_access"))
 	.effect(function* ({ input, context }) {
@@ -444,14 +409,16 @@ const getInheritedAccess = authed.resource.inheritedAccess
 		const zedToken = getZedToken(context);
 		const [readableBots, readableBlocks] = yield* Effect.all(
 			[
-				readableAncestorIds({
+				permittedEntityIds({
 					entityType: "bot",
+					permission: "read",
 					entityIds: botIds,
 					userId,
 					zedToken,
 				}),
-				readableAncestorIds({
+				permittedEntityIds({
 					entityType: "block",
+					permission: "read",
 					entityIds: blockIds,
 					userId,
 					zedToken,

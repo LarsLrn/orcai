@@ -35,7 +35,8 @@ assertions:
     - bot:bot1#edit@user:editor1
     - bot:bot1#manage_access@user:manager1
     - block:block1#read@user:viewer2
-    - block:block1#edit@user:editor1
+    - block:block1#read@user:editor1
+    - asset:asset1#read@user:editor1
     - asset:asset1#download@user:viewer2
     - asset:asset1#fork@user:viewer1
     - bot:bot1#read@user:anyone
@@ -54,5 +55,7 @@ assertions:
     - bot:bot1#manage_access@user:editor1
     - block:block1#manage_access@user:viewer2
     - asset:asset1#edit@user:viewer2
+    - block:block1#edit@user:editor1
+    - asset:asset1#edit@user:editor1
     - chat:chat1#read@user:admin1
     - group:group1#manage@user:member1

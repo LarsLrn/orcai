@@ -1,4 +1,4 @@
-import type { Asset, DatabaseBlock } from "@orcai/schema";
+import type { AssetWithCapabilities, DatabaseBlock } from "@orcai/schema";
 import { ChevronDownIcon, DatabaseIcon, PlusIcon } from "lucide-react";
 import type { ReactNode } from "react";
 import { useState } from "react";
@@ -28,7 +28,7 @@ import {
 	DialogTitle,
 } from "@/components/ui/dialog";
 import { useConfirmDiscard } from "@/hooks/use-unsaved-changes-guard";
-import { emptyCapabilities } from "@/lib/authz/capabilities";
+import { emptyCapabilities, ownerCapabilities } from "@/lib/authz/capabilities";
 import { m } from "@/paraglide/messages";
 
 const createDefaultDatabaseBlock = (params?: { botName: string }) => ({
@@ -61,7 +61,10 @@ const createDefaultDatabaseBlock = (params?: { botName: string }) => ({
 	},
 });
 
-const mergeAssets = (currentAssets: Asset[], incomingAssets: Asset[]) => {
+const mergeAssets = (
+	currentAssets: AssetWithCapabilities[],
+	incomingAssets: AssetWithCapabilities[],
+) => {
 	const knownIds = new Set(currentAssets.map((asset) => asset.id));
 	const addedAssets = incomingAssets.filter((asset) => !knownIds.has(asset.id));
 
@@ -100,8 +103,8 @@ const DatabaseBlockEditor = ({
 	retrievalModeField: ReactNode;
 	assetIds: string[];
 	onAssetIdsChange: (ids: string[]) => void;
-	assets: Asset[];
-	onAssetsChange: (assets: Asset[]) => void;
+	assets: AssetWithCapabilities[];
+	onAssetsChange: (assets: AssetWithCapabilities[]) => void;
 	onRemove?: () => void;
 }) => {
 	const [isAdvancedOpen, setIsAdvancedOpen] = useState(false);
@@ -225,7 +228,13 @@ const DatabaseBlockEditor = ({
 								onPendingChange={setHasPendingUploads}
 								submitLabel={m.authoring_database_block_save_assets_button()}
 								onAssetsSaved={(savedAssets) => {
-									const nextAssets = mergeAssets(assets, savedAssets);
+									const nextAssets = mergeAssets(
+										assets,
+										savedAssets.map((asset) => ({
+											...asset,
+											capabilities: ownerCapabilities("asset"),
+										})),
+									);
 									onAssetsChange(nextAssets);
 									onAssetIdsChange(nextAssets.map((asset) => asset.id));
 									setIsUploadOpen(false);
@@ -262,7 +271,12 @@ const DatabaseBlockEditor = ({
 							onAssetUpdated={(asset) =>
 								onAssetsChange(
 									assets.map((existing) =>
-										existing.id === asset.id ? asset : existing,
+										existing.id === asset.id
+											? {
+													...asset,
+													capabilities: existing.capabilities,
+												}
+											: existing,
 									),
 								)
 							}

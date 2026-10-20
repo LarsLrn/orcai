@@ -1,4 +1,4 @@
-import type { Asset, RetrievalMode } from "@orcai/schema";
+import type { AssetWithCapabilities, RetrievalMode } from "@orcai/schema";
 import { DatabaseBlockEditor } from "@/components/authoring/database-block-editor";
 import { withFieldGroup } from "@/hooks/form";
 import { m } from "@/paraglide/messages";
@@ -53,8 +53,8 @@ const DatabaseBlockFieldGroup = withFieldGroup({
 		onAssetIdsChange: (_ids: string[]) => {
 			void _ids;
 		},
-		assets: [] as Asset[],
-		onAssetsChange: (_assets: Asset[]) => {
+		assets: [] as AssetWithCapabilities[],
+		onAssetsChange: (_assets: AssetWithCapabilities[]) => {
 			void _assets;
 		},
 		onRemove: undefined as (() => void) | undefined,

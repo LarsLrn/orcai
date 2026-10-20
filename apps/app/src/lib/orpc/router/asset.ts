@@ -23,7 +23,10 @@ import { and, count, desc, eq, getColumns, ilike, inArray } from "drizzle-orm";
 import * as Effect from "effect/Effect";
 import { v4 as uuidv4 } from "uuid";
 import { emptyCapabilities } from "@/lib/authz/capabilities";
-import { initializeResourceAuthorization } from "@/lib/authz/resource-lifecycle";
+import {
+	deleteResourcesWithAuthorization,
+	initializeResourceAuthorization,
+} from "@/lib/authz/resource-lifecycle";
 import { getZedToken } from "@/lib/authz/zed-token";
 import * as AppErrors from "@/lib/effect/utils/errors";
 import { authed } from "@/lib/orpc/implementation/authed";
@@ -424,7 +427,9 @@ const deleteAssets = authed.asset.delete
 	.effect(function* ({ context }) {
 		const db = yield* DB;
 
-		if (!context.allowedIds || context.allowedIds.length === 0) {
+		const allowedIds = context.allowedIds ?? [];
+
+		if (allowedIds.length === 0) {
 			return {
 				success: true,
 				message: "No assets to delete",
@@ -434,7 +439,7 @@ const deleteAssets = authed.asset.delete
 		const assetsToDelete = yield* db
 			.select()
 			.from(dbSchema.asset)
-			.where(inArray(dbSchema.asset.id, context.allowedIds));
+			.where(inArray(dbSchema.asset.id, allowedIds));
 
 		yield* Effect.all(
 			assetsToDelete.map((asset) =>
@@ -460,9 +465,10 @@ const deleteAssets = authed.asset.delete
 			},
 		);
 
-		yield* db
-			.delete(dbSchema.asset)
-			.where(inArray(dbSchema.asset.id, context.allowedIds));
+		yield* deleteResourcesWithAuthorization({
+			resourceType: "asset",
+			resourceIds: allowedIds,
+		});
 
 		return {
 			success: true,

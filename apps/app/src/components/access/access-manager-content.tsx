@@ -13,6 +13,10 @@ import {
 	PlusIcon,
 } from "lucide-react";
 import { useState } from "react";
+import {
+	BlockEditOffer,
+	type LinkedBlock,
+} from "@/components/access/block-edit-offer";
 import { GrantList } from "@/components/access/grant-list";
 import { InheritedAccessSummary } from "@/components/access/inherited-access-summary";
 import { PrincipalPicker } from "@/components/access/principal-picker";
@@ -22,6 +26,7 @@ import { Button } from "@/components/ui/button";
 import { OptionPicker } from "@/components/ui/composed/option-picker";
 import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import {
+	useGrantBlockEdit,
 	useGrantResourceAccess,
 	useInheritedAccess,
 	useResourceGrants,
@@ -52,11 +57,13 @@ const toPrincipalIdentity = (
 type AccessManagerContentProps = {
 	resourceRef: ResourceRef;
 	resourceName?: string;
+	linkedBlocks?: LinkedBlock[];
 };
 
 const AccessManagerContent = ({
 	resourceRef,
 	resourceName,
+	linkedBlocks = [],
 }: AccessManagerContentProps) => {
 	const [grantSearch, setGrantSearch] = useState("");
 	const [principalSearch, setPrincipalSearch] = useState("");
@@ -65,6 +72,7 @@ const AccessManagerContent = ({
 		ResourcePrincipal[]
 	>([]);
 	const [selectedRole, setSelectedRole] = useState<ResourceGrantRole>("viewer");
+	const [grantsBlockEdit, setGrantsBlockEdit] = useState(true);
 
 	const grants = useResourceGrants(resourceRef);
 	const inherited = useInheritedAccess(resourceRef);
@@ -74,9 +82,11 @@ const AccessManagerContent = ({
 	const changeGrantRole = useGrantResourceAccess(resourceRef);
 	const revokeAccess = useRevokeResourceAccess(resourceRef);
 	const setVisibility = useSetResourceVisibility(resourceRef);
+	const grantBlockEdit = useGrantBlockEdit();
 
+	const isGranting = grantAccess.isPending || grantBlockEdit.isPending;
 	const isMutating =
-		grantAccess.isPending ||
+		isGranting ||
 		changeGrantRole.isPending ||
 		revokeAccess.isPending ||
 		setVisibility.isPending;
@@ -90,22 +100,35 @@ const AccessManagerContent = ({
 	);
 
 	const effectiveRole = selectedHasAllMembers ? "viewer" : selectedRole;
+	const offersBlockEdit =
+		linkedBlocks.length > 0 &&
+		(effectiveRole === "editor" || effectiveRole === "manager");
 
 	const handleGrant = async () => {
 		if (selectedPrincipals.length === 0) {
 			return;
 		}
 
+		const principals = selectedPrincipals.map(toPrincipalIdentity);
 		const result = await grantAccess.mutateAsync({
 			resourceType: resourceRef.type,
 			resourceId: resourceRef.id,
-			principals: selectedPrincipals.map(toPrincipalIdentity),
+			principals,
 			role: effectiveRole,
 		});
 
-		if (result.status === "success") {
-			setSelectedPrincipals([]);
+		if (result.status !== "success") {
+			return;
 		}
+
+		if (offersBlockEdit && grantsBlockEdit) {
+			await grantBlockEdit.mutateAsync({
+				blocks: linkedBlocks.filter((block) => block.canManageAccess),
+				principals,
+			});
+		}
+		setSelectedPrincipals([]);
+		setGrantsBlockEdit(true);
 	};
 
 	const currentVisibility = visibility.data?.data.visibility ?? "private";
@@ -168,6 +191,7 @@ const AccessManagerContent = ({
 						setSelectedPrincipals([]);
 						setPrincipalSearch("");
 						setSelectedRole("viewer");
+						setGrantsBlockEdit(true);
 					}}
 					className="mt-3"
 				>
@@ -207,7 +231,7 @@ const AccessManagerContent = ({
 						/>
 						<Button
 							className="w-full"
-							loading={grantAccess.isPending}
+							loading={isGranting}
 							disabled={selectedPrincipals.length === 0 || isMutating}
 							onClick={handleGrant}
 						>
@@ -216,6 +240,15 @@ const AccessManagerContent = ({
 						</Button>
 					</div>
 				</div>
+
+				{offersBlockEdit ? (
+					<BlockEditOffer
+						linkedBlocks={linkedBlocks}
+						checked={grantsBlockEdit}
+						onCheckedChange={setGrantsBlockEdit}
+						disabled={isMutating}
+					/>
+				) : null}
 			</div>
 
 			<GrantList

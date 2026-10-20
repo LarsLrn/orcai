@@ -1,5 +1,7 @@
 import type { ResourceRef } from "@orcai/schema";
+import { skipToken, useQuery } from "@tanstack/react-query";
 import { AccessManagerContent } from "@/components/access/access-manager-content";
+import { toLinkedBlocks } from "@/components/access/block-edit-offer";
 import { Button } from "@/components/ui/button";
 import {
 	Dialog,
@@ -10,6 +12,7 @@ import {
 	DialogTitle,
 } from "@/components/ui/dialog";
 import { ScrollArea } from "@/components/ui/scroll-area";
+import { orpc } from "@/lib/orpc/orpc";
 import { m } from "@/paraglide/messages";
 import { getResourceTypeLabel } from "@/settings/display-config";
 
@@ -27,6 +30,16 @@ const AccessDialog = ({
 	resourceName,
 }: AccessDialogProps) => {
 	const resource = getResourceTypeLabel(resourceRef.type);
+	const botEditor = useQuery(
+		orpc.bot.findEditor.queryOptions({
+			input:
+				open && resourceRef.type === "bot"
+					? {
+							id: resourceRef.id,
+						}
+					: skipToken,
+		}),
+	);
 
 	return (
 		<Dialog open={open} onOpenChange={onOpenChange}>
@@ -49,6 +62,9 @@ const AccessDialog = ({
 					<AccessManagerContent
 						resourceRef={resourceRef}
 						resourceName={resourceName}
+						linkedBlocks={
+							botEditor.data ? toLinkedBlocks(botEditor.data.data) : undefined
+						}
 					/>
 				</ScrollArea>
 
