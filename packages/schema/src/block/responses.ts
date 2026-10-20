@@ -1,6 +1,6 @@
 import { z } from "zod/v4";
 import { assetIdSchema } from "../asset/ref";
-import { assetSchema } from "../asset/schema";
+import { assetWithCapabilitiesSchema } from "../asset/schema";
 import {
 	createDataResponseSchema,
 	createListResponseSchema,
@@ -21,7 +21,7 @@ export const createBlockResponseSchema = createDataResponseSchema(
 export const findBlockResponseSchema = createDataResponseSchema(
 	blockWithCapabilitiesSchema,
 ).extend({
-	assets: z.array(assetSchema).optional(),
+	assets: z.array(assetWithCapabilitiesSchema).optional(),
 });
 
 export const updateBlockResponseSchema = createDataResponseSchema(

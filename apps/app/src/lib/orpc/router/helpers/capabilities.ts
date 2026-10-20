@@ -90,3 +90,34 @@ export const getManyEntityCapabilities = <
 
 		return capabilitiesById;
 	});
+
+/** The ids among `entityIds` the user holds `permission` on. */
+export const permittedEntityIds = <Entity extends EntityType>(params: {
+	entityType: Entity;
+	entityIds: readonly EntityIdFor<Entity>[];
+	permission: PermissionFor<Entity>;
+	userId: UserId;
+	zedToken?: string;
+}) =>
+	params.entityIds.length === 0
+		? Effect.succeed(new Set<string>())
+		: checkManyEntityPermissions(params).pipe(
+				Effect.map(
+					(result) =>
+						new Set(
+							result.pairs.flatMap((pair) => {
+								const entityId = pair.request?.resource?.objectId;
+								const allowed =
+									pair.response.oneofKind === "item" &&
+									hasPermission({
+										permissionship: pair.response.item.permissionship,
+									});
+								return entityId && allowed
+									? [
+											entityId,
+										]
+									: [];
+							}),
+						),
+				),
+			);

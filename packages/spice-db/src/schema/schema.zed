@@ -53,7 +53,7 @@ definition block {
 	permission read = owner + manager + editor + viewer + bot->read + public
 	permission use = read
 	permission fork = read
-	permission edit = owner + manager + editor + bot->edit
+	permission edit = owner + manager + editor
 	permission delete = owner + manager
 	permission manage_access = owner + manager
 }
@@ -70,7 +70,7 @@ definition asset {
 	permission download = read
 	permission use = read
 	permission fork = read
-	permission edit = owner + manager + editor + block->edit
+	permission edit = owner + manager + editor
 	permission delete = owner + manager
 	permission manage_access = owner + manager
 }

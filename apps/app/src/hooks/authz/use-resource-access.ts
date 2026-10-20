@@ -1,8 +1,20 @@
-import type { PrincipalType, ResourceRef } from "@orcai/schema";
+import type { BlockId } from "@orcai/core";
+import type {
+	PrincipalType,
+	ResourcePrincipalIdentity,
+	ResourceRef,
+} from "@orcai/schema";
 import type { QueryClient } from "@tanstack/react-query";
-import { skipToken, useQuery, useQueryClient } from "@tanstack/react-query";
+import {
+	skipToken,
+	useMutation,
+	useQuery,
+	useQueryClient,
+} from "@tanstack/react-query";
+import { toast } from "sonner";
 import { useMutationAction } from "@/hooks/actions/use-mutation-action";
-import { orpc } from "@/lib/orpc/orpc";
+import { client, orpc } from "@/lib/orpc/orpc";
+import { formatList } from "@/lib/presentation/format-list";
 import { m } from "@/paraglide/messages";
 
 const getResourceInput = (resourceRef: ResourceRef) => {
@@ -179,5 +191,78 @@ export const useSetResourceVisibility = (resourceRef: ResourceRef) => {
 						confirmText: m.access_publish_confirm_button(),
 						cancelText: m.common_cancel_button(),
 					},
+	});
+};
+
+const principalKey = (principal: {
+	principalType: PrincipalType;
+	principalId: string;
+}) => `${principal.principalType}:${principal.principalId}`;
+
+/**
+ * Gives the principals `editor` on each block, skipping those who already
+ * hold `editor` or `manager` there. Blocks run independently; one warning
+ * names the blocks that failed.
+ */
+export const useGrantBlockEdit = () => {
+	const queryClient = useQueryClient();
+
+	return useMutation({
+		mutationFn: async ({
+			blocks,
+			principals,
+		}: {
+			blocks: {
+				id: BlockId;
+				name: string;
+			}[];
+			principals: ResourcePrincipalIdentity[];
+		}) => {
+			const outcomes = await Promise.allSettled(
+				blocks.map(async (block) => {
+					const resourceRef = {
+						type: "block",
+						id: block.id,
+					} as const;
+					const grants = await queryClient.query({
+						...getGrantsOptions(resourceRef),
+						staleTime: 0,
+					});
+					const holdsEdit = new Set(
+						grants.data
+							.filter(
+								(grant) => grant.role === "editor" || grant.role === "manager",
+							)
+							.map(principalKey),
+					);
+					const missing = principals.filter(
+						(principal) => !holdsEdit.has(principalKey(principal)),
+					);
+
+					if (missing.length === 0) {
+						return;
+					}
+
+					await client.resource.grant({
+						resourceType: "block",
+						resourceId: block.id,
+						principals: missing,
+						role: "editor",
+					});
+					invalidateResourceAccess(queryClient, resourceRef);
+				}),
+			);
+
+			const failed = blocks.filter(
+				(_, index) => outcomes[index]?.status === "rejected",
+			);
+			if (failed.length > 0) {
+				toast.warning(
+					m.access_grant_blocks_partial_toast({
+						names: formatList(failed.map((block) => block.name)),
+					}),
+				);
+			}
+		},
 	});
 };

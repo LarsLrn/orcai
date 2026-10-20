@@ -18,6 +18,7 @@ import {
 } from "lucide-react";
 import { useEffect, useMemo, useRef, useState } from "react";
 import { AccessManagerContent } from "@/components/access/access-manager-content";
+import { toLinkedBlocks } from "@/components/access/block-edit-offer";
 import {
 	type BotEditorFormValues,
 	botEditorFormOptions,
@@ -63,7 +64,7 @@ import {
 	useSaveBotMutation,
 } from "@/hooks/mutations/use-bot-mutations";
 import { useUnsavedChangesGuard } from "@/hooks/use-unsaved-changes-guard";
-import { emptyCapabilities, hasCapability } from "@/lib/authz/capabilities";
+import { hasCapability, ownerCapabilities } from "@/lib/authz/capabilities";
 import { orpc } from "@/lib/orpc/orpc";
 import { getProcessingStatusLabel } from "@/lib/presentation/processing-status";
 import { getPublicationStatusOptions } from "@/lib/presentation/publication-status";
@@ -114,13 +115,6 @@ Refuse anything outside the course material: do not grade work, do not predict m
 const canEditBlock = (block: {
 	capabilities?: Partial<Record<"edit", boolean>>;
 }) => hasCapability(block.capabilities, "edit");
-
-const editableBlockCapabilities = () => ({
-	...emptyCapabilities("block"),
-	read: true,
-	use: true,
-	edit: true,
-});
 
 const getPublishIssues = (editor: BotEditorFormValues) => {
 	const issues: string[] = [];
@@ -371,7 +365,7 @@ const BotEditorShell = ({
 				nextTemplateBlock = {
 					...editor.templateBlock,
 					id: result.data.data.id,
-					capabilities: editableBlockCapabilities(),
+					capabilities: ownerCapabilities("block"),
 				};
 			}
 		}
@@ -397,7 +391,7 @@ const BotEditorShell = ({
 				nextBlock = {
 					...databaseBlock,
 					id: result.data.data.id,
-					capabilities: editableBlockCapabilities(),
+					capabilities: ownerCapabilities("block"),
 				};
 			}
 
@@ -1137,6 +1131,7 @@ const SharingSection = ({
 						id: editor.id,
 					}}
 					resourceName={editor.name}
+					linkedBlocks={toLinkedBlocks(editor)}
 				/>
 			</CardContent>
 		</Card>

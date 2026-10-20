@@ -1,4 +1,4 @@
-import type { Asset } from "@orcai/schema";
+import type { AssetWithCapabilities } from "@orcai/schema";
 import { useQuery } from "@tanstack/react-query";
 import { useState } from "react";
 import { AssetCard } from "@/components/documents/asset-card";
@@ -15,8 +15,8 @@ const AssetLibraryPicker = ({
 	scrollAreaClassName,
 }: {
 	selectedIds: string[];
-	onSelect: (asset: Asset) => void;
-	onDeselect?: (asset: Asset) => void;
+	onSelect: (asset: AssetWithCapabilities) => void;
+	onDeselect?: (asset: AssetWithCapabilities) => void;
 	scrollAreaClassName?: string;
 }) => {
 	const [search, setSearch] = useState("");

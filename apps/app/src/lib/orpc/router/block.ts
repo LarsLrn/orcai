@@ -4,7 +4,10 @@ import { lookupEntitiesByPermission } from "@orcai/spice-db";
 import { and, countDistinct, desc, eq, getColumns, inArray } from "drizzle-orm";
 import * as Effect from "effect/Effect";
 import { emptyCapabilities } from "@/lib/authz/capabilities";
-import { initializeResourceAuthorization } from "@/lib/authz/resource-lifecycle";
+import {
+	deleteResourcesWithAuthorization,
+	initializeResourceAuthorization,
+} from "@/lib/authz/resource-lifecycle";
 import { getZedToken } from "@/lib/authz/zed-token";
 import * as AppErrors from "@/lib/effect/utils/errors";
 import { authed } from "@/lib/orpc/implementation/authed";
@@ -21,6 +24,7 @@ import {
 } from "@/lib/orpc/router/helpers/capabilities";
 import {
 	loadDatabaseBlockAssets,
+	requireReadableAssets,
 	syncDatabaseBlockAssets,
 } from "@/lib/orpc/router/helpers/database-block";
 
@@ -138,6 +142,8 @@ const findBlock = authed.block.find
 		if (block.type === "database") {
 			const assets = yield* loadDatabaseBlockAssets({
 				blockId: input.id,
+				userId: context.auth.user.id,
+				zedToken: getZedToken(context, input),
 			});
 
 			return {
@@ -161,6 +167,14 @@ const createBlock = authed.block.create
 	.use(requireOrganizationPermission("create_block"))
 	.effect(function* ({ input, context }) {
 		const db = yield* DB;
+
+		if (input.type === "database") {
+			yield* requireReadableAssets({
+				assetIds: input.assets,
+				userId: context.auth.user.id,
+				zedToken: getZedToken(context),
+			});
+		}
 
 		const [block] = yield* db
 			.insert(dbSchema.block)
@@ -206,8 +220,30 @@ const updateBlock = authed.block.update
 			entityId: "id",
 		}),
 	)
-	.effect(function* ({ input }) {
+	.effect(function* ({ input, context }) {
 		const db = yield* DB;
+
+		const previousAssetIds =
+			input.type === "database"
+				? (yield* db
+						.select({
+							assetId: dbSchema.blockAsset.assetId,
+						})
+						.from(dbSchema.blockAsset)
+						.where(eq(dbSchema.blockAsset.blockId, input.id))).map(
+						(asset) => asset.assetId,
+					)
+				: [];
+
+		if (input.type === "database") {
+			yield* requireReadableAssets({
+				assetIds: input.assets.filter(
+					(assetId) => !previousAssetIds.includes(assetId),
+				),
+				userId: context.auth.user.id,
+				zedToken: getZedToken(context),
+			});
+		}
 
 		if (input.status === "draft") {
 			const linkedReadyBots = yield* db
@@ -252,17 +288,10 @@ const updateBlock = authed.block.update
 			.pipe(Effect.map((rows) => rows as Block[]));
 
 		if (input.type === "database" && block.type === "database") {
-			const previousAssets = yield* db
-				.select({
-					assetId: dbSchema.blockAsset.assetId,
-				})
-				.from(dbSchema.blockAsset)
-				.where(eq(dbSchema.blockAsset.blockId, block.id));
-
 			const syncResult = yield* syncDatabaseBlockAssets({
 				blockId: block.id,
 				assetIds: input.assets,
-				previousAssetIds: previousAssets.map((asset) => asset.assetId),
+				previousAssetIds,
 			});
 
 			return {
@@ -288,7 +317,9 @@ const deleteBlocks = authed.block.delete
 	.effect(function* ({ context }) {
 		const db = yield* DB;
 
-		if (!context.allowedIds || context.allowedIds.length === 0) {
+		const allowedIds = context.allowedIds ?? [];
+
+		if (allowedIds.length === 0) {
 			return {
 				success: true,
 				message: "No blocks to delete",
@@ -302,7 +333,7 @@ const deleteBlocks = authed.block.delete
 			.from(dbSchema.block)
 			.where(
 				and(
-					inArray(dbSchema.block.id, context.allowedIds),
+					inArray(dbSchema.block.id, allowedIds),
 					eq(dbSchema.block.type, "database"),
 				),
 			);
@@ -320,9 +351,10 @@ const deleteBlocks = authed.block.delete
 			},
 		);
 
-		yield* db
-			.delete(dbSchema.block)
-			.where(inArray(dbSchema.block.id, context.allowedIds));
+		yield* deleteResourcesWithAuthorization({
+			resourceType: "block",
+			resourceIds: allowedIds,
+		});
 
 		return {
 			success: true,

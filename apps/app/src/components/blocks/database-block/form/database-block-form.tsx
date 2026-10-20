@@ -1,4 +1,4 @@
-import type { Asset, DatabaseBlock } from "@orcai/schema";
+import type { AssetWithCapabilities, DatabaseBlock } from "@orcai/schema";
 import { useNavigate } from "@tanstack/react-router";
 import { useSelector } from "@tanstack/react-store";
 import { useState } from "react";
@@ -23,7 +23,7 @@ const DatabaseBlockForm = ({
 }: {
 	action: "create" | "update";
 	block?: DatabaseBlock;
-	assets?: Asset[];
+	assets?: AssetWithCapabilities[];
 }) => {
 	const { mutateAsync: createBlock } = useCreateBlockMutation();
 	const navigate = useNavigate();
@@ -37,7 +37,9 @@ const DatabaseBlockForm = ({
 				ignoreBlocker: true,
 			}),
 	});
-	const [selectedAssets, setSelectedAssets] = useState<Asset[]>(assets ?? []);
+	const [selectedAssets, setSelectedAssets] = useState<AssetWithCapabilities[]>(
+		assets ?? [],
+	);
 
 	const form = useAppForm({
 		...databaseBlockFormOptions(

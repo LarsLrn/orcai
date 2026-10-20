@@ -4,17 +4,12 @@ import type {
 	GrantRejection,
 	GrantRejectionReason,
 } from "@orcai/schema";
+import { formatList } from "@/lib/presentation/format-list";
 import { m } from "@/paraglide/messages";
-import { getLocale } from "@/paraglide/runtime";
 
 type ReasonMessages = {
 	[R in ErrorReason]: (params: ErrorParamsOf<R>) => string;
 };
-
-const formatList = (items: string[]) =>
-	new Intl.ListFormat(getLocale(), {
-		type: "conjunction",
-	}).format(items);
 
 const grantRejectionMessages: Record<GrantRejectionReason, () => string> = {
 	ALL_MEMBERS_VIEWER_ONLY: m.error_grant_rejection_all_members_viewer_only,
@@ -35,6 +30,7 @@ const reasonMessages: ReasonMessages = {
 	AI_STREAM_FAILED: m.error_ai_stream_failed,
 	AI_TOOL_FAILED: m.error_ai_tool_failed,
 	ALREADY_EXISTS: m.error_already_exists,
+	ASSET_LINK_FORBIDDEN: m.error_asset_link_forbidden,
 	ASSET_NOT_ATTACHED: m.error_asset_not_attached,
 	ASSET_NOT_FOUND: m.error_asset_not_found,
 	ASSET_SOURCE_REQUIRED: m.error_asset_source_required,

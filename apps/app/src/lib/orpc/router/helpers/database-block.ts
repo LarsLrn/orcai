@@ -1,18 +1,28 @@
-import type { AssetId, BlockId } from "@orcai/core";
+import type { AssetId, BlockId, UserId } from "@orcai/core";
 import { DB, dbSchema } from "@orcai/db";
 import { sendJobBatch } from "@orcai/pg-boss";
 import { deletePointsByIdentifier } from "@orcai/qdrant";
 import { assetIdSchema, VECTORIZE_ASSET_JOB_NAME } from "@orcai/schema";
 import { and, eq, getColumns, inArray } from "drizzle-orm";
 import * as Effect from "effect/Effect";
+import { emptyCapabilities } from "@/lib/authz/capabilities";
 import { calculateRelationDelta } from "@/lib/authz/relation-delta";
 import { AuthzService } from "@/lib/effect/services/authz";
+import * as AppErrors from "@/lib/effect/utils/errors";
+import {
+	getManyEntityCapabilities,
+	permittedEntityIds,
+} from "@/lib/orpc/router/helpers/capabilities";
 
-export const loadDatabaseBlockAssets = (params: { blockId: BlockId }) =>
+export const loadDatabaseBlockAssets = (params: {
+	blockId: BlockId;
+	userId: UserId;
+	zedToken?: string;
+}) =>
 	Effect.gen(function* () {
 		const db = yield* DB;
 
-		return yield* db
+		const assets = yield* db
 			.select({
 				...getColumns(dbSchema.asset),
 			})
@@ -22,6 +32,48 @@ export const loadDatabaseBlockAssets = (params: { blockId: BlockId }) =>
 				eq(dbSchema.asset.id, dbSchema.blockAsset.assetId),
 			)
 			.where(eq(dbSchema.blockAsset.blockId, params.blockId));
+		const capabilities = yield* getManyEntityCapabilities({
+			entityType: "asset",
+			entityIds: assets.map((asset) => asset.id),
+			userId: params.userId,
+			zedToken: params.zedToken,
+		});
+
+		return assets.map((asset) => ({
+			...asset,
+			capabilities: capabilities.get(asset.id) ?? emptyCapabilities("asset"),
+		}));
+	});
+
+/**
+ * Fails unless the user can read every asset, since attaching one to a
+ * repository passes read on to the repository's audience. An unknown id is
+ * refused the same way, so the answer never tells whether it exists.
+ */
+export const requireReadableAssets = (params: {
+	assetIds: readonly AssetId[];
+	userId: UserId;
+	zedToken?: string;
+}) =>
+	Effect.gen(function* () {
+		const assetIds = Array.from(new Set(params.assetIds));
+		const readableIds = yield* permittedEntityIds({
+			entityIds: assetIds,
+			entityType: "asset",
+			permission: "read",
+			userId: params.userId,
+			zedToken: params.zedToken,
+		});
+
+		if (assetIds.some((assetId) => !readableIds.has(assetId))) {
+			return yield* Effect.fail(
+				new AppErrors.ForbiddenError({
+					reason: "ASSET_LINK_FORBIDDEN",
+					message:
+						"You do not have access to attach one or more selected assets.",
+				}),
+			);
+		}
 	});
 
 export const syncDatabaseBlockAssets = (params: {
