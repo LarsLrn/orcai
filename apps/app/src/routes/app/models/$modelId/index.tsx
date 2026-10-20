@@ -1,4 +1,3 @@
-import { providerCompatibilities } from "@orcai/core";
 import { useSuspenseQuery } from "@tanstack/react-query";
 import { createFileRoute, Link } from "@tanstack/react-router";
 import {
@@ -35,6 +34,7 @@ import {
 	getModelStatusLabel,
 	getModelStatusVariant,
 } from "@/lib/presentation/model-status";
+import { getProviderKindLabel } from "@/lib/presentation/provider-kind";
 import {
 	getProviderStatusLabel,
 	getProviderStatusVariant,
@@ -44,13 +44,6 @@ import { m } from "@/paraglide/messages";
 export const Route = createFileRoute("/app/models/$modelId/")({
 	component: RouteComponent,
 });
-
-const compatibilityLabelMap = new Map(
-	providerCompatibilities.map((compatibility) => [
-		compatibility.value,
-		compatibility.label,
-	]),
-);
 
 function RouteComponent() {
 	const { modelId } = Route.useParams();
@@ -73,8 +66,7 @@ function RouteComponent() {
 	);
 
 	const provider = providerResponse.data;
-	const compatibilityLabel =
-		compatibilityLabelMap.get(provider.compatibility) ?? provider.compatibility;
+	const kindLabel = getProviderKindLabel(provider.kind);
 	const capabilityLabels = model.capabilities.map(getModelCapabilityLabel);
 
 	return (
@@ -99,7 +91,7 @@ function RouteComponent() {
 					</Badge>
 					<Badge variant="outline">
 						<ServerIcon className="size-3" />
-						{compatibilityLabel}
+						{kindLabel}
 					</Badge>
 				</div>
 				<PageAction>
@@ -162,9 +154,9 @@ function RouteComponent() {
 							<div className="flex items-start justify-between gap-4">
 								<div className="flex items-center gap-2 text-muted-foreground text-sm">
 									<ServerIcon className="h-4 w-4" />
-									{m.models_detail_provider_compatibility_label()}
+									{m.models_detail_provider_kind_label()}
 								</div>
-								<span className="font-medium">{compatibilityLabel}</span>
+								<span className="font-medium">{kindLabel}</span>
 							</div>
 						</CardContent>
 					</Card>
@@ -207,7 +199,7 @@ function RouteComponent() {
 								<div className="min-w-0">
 									<p className="font-semibold">{provider.name}</p>
 									<p className="truncate text-muted-foreground text-sm">
-										{provider.endpoint}
+										{provider.endpoint ?? m.providers_detail_endpoint_default()}
 									</p>
 								</div>
 								<Badge variant={getProviderStatusVariant(provider.enabled)}>

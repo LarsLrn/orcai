@@ -1,4 +1,5 @@
-import { aiTelemetry } from "@orcai/ai";
+import { aiTelemetry, buildSystemInstructions } from "@orcai/ai";
+import type { ProviderKind } from "@orcai/core";
 import type { DatabaseBlock } from "@orcai/schema";
 import {
 	isStepCount,
@@ -31,6 +32,7 @@ export interface ChatAgentGenerationParams {
 
 export const createChatAgent = (params: {
 	model: LanguageModel;
+	providerKind: ProviderKind;
 	systemPrompt: string;
 	databaseBlocks: DatabaseBlock[];
 	features: ResolvedFeature[];
@@ -93,12 +95,9 @@ export const createChatAgent = (params: {
 				topP: params.generationParams?.topP,
 				frequencyPenalty: params.generationParams?.frequencyPenalty,
 				presencePenalty: params.generationParams?.presencePenalty,
-				instructions: [
-					{
-						role: "system",
-						content: systemPrompt,
-					},
-				],
+				instructions: buildSystemInstructions(params.providerKind, {
+					stable: systemPrompt,
+				}),
 				// A subset of the typed set; no tools at all when nothing is offered.
 				tools:
 					Object.keys(tools).length > 0 ? (tools as ChatAgentTools) : undefined,

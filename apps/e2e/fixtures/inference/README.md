@@ -12,7 +12,7 @@ test("my area talks to the mock", async ({ api, inference }) => {
 		name: "Mock",
 		description: "",
 		endpoint: inference.url,
-		compatibility: "openai",
+		kind: "openai-compatible",
 		meteringMode: "tokens",
 		apiKey: "any-key",
 		enabled: true,

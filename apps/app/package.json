@@ -16,7 +16,6 @@
 	},
 	"dependencies": {
 		"@ai-sdk/devtools": "1.0.40",
-		"@ai-sdk/openai-compatible": "3.0.67",
 		"@ai-sdk/react": "4.0.140",
 		"@authzed/authzed-node": "catalog:",
 		"@base-ui/react": "1.9.0",
@@ -108,7 +107,6 @@
 		"motion": "14.1.0",
 		"nanoid": "6.0.2",
 		"nextstepjs": "2.3.0",
-		"openai": "7.32.0",
 		"pg": "catalog:",
 		"postcss": "8.5.29",
 		"react": "catalog:",

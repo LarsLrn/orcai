@@ -1,5 +1,4 @@
-import { createOpenAICompatible } from "@ai-sdk/openai-compatible";
-import { AiError } from "@orcai/ai";
+import { AiError, createProviderLanguageModel } from "@orcai/ai";
 import type { BotId, ModelId, ProviderId, UserId } from "@orcai/core";
 import type { ChatConfig, DatabaseBlock, TemplateBlock } from "@orcai/schema";
 import { checkManyEntityPermissions, hasPermission } from "@orcai/spice-db";
@@ -214,13 +213,6 @@ export const getChatAiSettings = ({
 
 		const apiKey = yield* providerApiKey(provider.id);
 
-		const providerInstance = createOpenAICompatible({
-			baseURL: provider.endpoint ?? "",
-			apiKey,
-			name: provider.name,
-			includeUsage: true,
-		});
-
 		const middlewares = [
 			extractReasoningMiddleware({
 				tagName: "think",
@@ -242,7 +234,14 @@ export const getChatAiSettings = ({
 		}
 
 		const model = wrapLanguageModel({
-			model: providerInstance(modelSettings.providerModelId),
+			model: createProviderLanguageModel(
+				provider.kind,
+				{
+					apiKey,
+					endpoint: provider.endpoint,
+				},
+				modelSettings.providerModelId,
+			),
 			middleware: middlewares,
 		});
 

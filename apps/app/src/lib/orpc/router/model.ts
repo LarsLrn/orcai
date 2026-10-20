@@ -1,3 +1,4 @@
+import { listProviderModels } from "@orcai/ai";
 import { DB, dbSchema } from "@orcai/db";
 import type { ModelCapability, ModelSortKey } from "@orcai/schema";
 import { ORPCError } from "@orpc/server";
@@ -14,7 +15,6 @@ import {
 	sql,
 } from "drizzle-orm";
 import * as Effect from "effect/Effect";
-import OpenAI from "openai";
 import * as AppErrors from "@/lib/effect/utils/errors";
 import { providerApiKey } from "@/lib/encryption";
 import { authed } from "@/lib/orpc/implementation/authed";
@@ -359,13 +359,13 @@ const discoverModels = authed.model.discover
 				}),
 			);
 
-		const openAiClient = new OpenAI({
-			apiKey: yield* providerApiKey(provider.id),
-			baseURL: provider.endpoint,
-		});
-
-		const res = yield* Effect.tryPromise({
-			try: () => openAiClient.models.list(),
+		const apiKey = yield* providerApiKey(provider.id);
+		const discovered = yield* Effect.tryPromise({
+			try: () =>
+				listProviderModels(provider.kind, {
+					apiKey,
+					endpoint: provider.endpoint,
+				}),
 			catch: (cause) =>
 				new AppErrors.BadRequestError({
 					reason: "PROVIDER_MODELS_FETCH_FAILED",
@@ -374,11 +374,9 @@ const discoverModels = authed.model.discover
 				}),
 		});
 
-		const modelsToInsert = res.data.map((model) => ({
+		const modelsToInsert = discovered.map((model) => ({
+			...model,
 			providerId: input.providerId,
-			providerModelId: model.id,
-			name: model.id,
-			description: `Model ID: ${model.id} | Owned by ${model.owned_by}`,
 			capabilities: [],
 		}));
 

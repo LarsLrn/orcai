@@ -116,6 +116,10 @@ export const pausedStep = (
 	};
 };
 
+/** Finished reasoning without text, as models that omit their thinking send it. */
+const isBlankReasoning = (part: ReasoningPart) =>
+	part.state !== "streaming" && part.text.trim() === "";
+
 /**
  * Splits a turn's parts into the work log and the answer, both in stream
  * order. Text right before a working tool call is progress and goes to the
@@ -174,6 +178,7 @@ export const classifyTurn = (
 		const id = String(index);
 
 		if (part.type === "reasoning") {
+			if (isBlankReasoning(part)) return;
 			entries.push({
 				id,
 				kind: "reasoning",

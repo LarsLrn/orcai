@@ -1,5 +1,10 @@
-import type { ModelId, OrganizationId, ProviderId } from "@orcai/core";
-import type { ModelCapability, ProviderCompatibility } from "@orcai/schema";
+import type {
+	ModelId,
+	OrganizationId,
+	ProviderId,
+	ProviderKind,
+} from "@orcai/core";
+import type { ModelCapability } from "@orcai/schema";
 import { sql } from "drizzle-orm";
 import {
 	boolean,
@@ -59,13 +64,11 @@ export const provider = pgTable(
 				onDelete: "cascade",
 			}),
 		name: text("name").notNull(),
-		compatibility: text("compatibility")
-			.notNull()
-			.$type<ProviderCompatibility>(),
+		kind: text("kind").notNull().$type<ProviderKind>(),
 		description: varchar("description", {
 			length: 500,
 		}).notNull(),
-		endpoint: text("endpoint").notNull(),
+		endpoint: text("endpoint"),
 		apiKeyEncrypted: text("api_key_encrypted").notNull(),
 		meteringMode: providerMeteringModeEnum("metering_mode")
 			.notNull()

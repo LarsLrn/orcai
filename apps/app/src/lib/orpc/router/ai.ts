@@ -308,6 +308,7 @@ const runChatTurn = (turn: ChatTurn) =>
 						kind: "assistant" as const,
 						agent: createAssistantAgent({
 							model: chatAiSettings.model,
+							providerKind: chatAiSettings.provider.kind,
 							generationParams: chatAiSettings.generationParams,
 							docs,
 							userContext: assistantUserContext,
@@ -323,6 +324,7 @@ const runChatTurn = (turn: ChatTurn) =>
 						kind: "chat" as const,
 						agent: createChatAgent({
 							model: chatAiSettings.model,
+							providerKind: chatAiSettings.provider.kind,
 							systemPrompt,
 							databaseBlocks: allDatabaseBlocks,
 							features: chatAiSettings.features,

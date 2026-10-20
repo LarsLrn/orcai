@@ -4,6 +4,7 @@ import { createUniqueRefsInputSchema } from "../shared/ref-list";
 import { createSortingInputSchema } from "../shared/sorting";
 import { providerIdSchema } from "./ref";
 import {
+	checkProviderEndpoint,
 	providerFieldsSchema,
 	providerFiltersSchema,
 	providerMutableFieldsSchema,
@@ -29,7 +30,9 @@ export const findProviderInputSchema = providerSchema.pick({
 	id: true,
 });
 
-export const createProviderInputSchema = providerFieldsSchema;
+export const createProviderInputSchema = providerFieldsSchema.check(
+	checkProviderEndpoint,
+);
 
 export const updateProviderInputSchema = providerMutableFieldsSchema.extend({
 	id: providerIdSchema,

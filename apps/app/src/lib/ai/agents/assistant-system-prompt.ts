@@ -1,3 +1,4 @@
+import type { SystemPrompt } from "@orcai/ai";
 import type { OrganizationRole } from "@orcai/core";
 import type { OrganizationCapability } from "@orcai/schema";
 import { buildFormattingGuidance } from "@/lib/ai/agents/chat-agent-system-prompt";
@@ -153,14 +154,15 @@ export const buildAssistantSystemPrompt = ({
 	userContext: AssistantUserContext;
 	featurePrompts: readonly string[];
 	toolGroups: readonly DeferredToolGroup[];
-}) =>
-	[
-		buildAssistantStablePrompt({
-			docs,
-			featurePrompts,
-		}),
+}): SystemPrompt => ({
+	stable: buildAssistantStablePrompt({
+		docs,
+		featurePrompts,
+	}),
+	variable: [
 		buildAssistantToolGroupsSection(toolGroups),
 		buildAssistantRoleSection(userContext),
 	]
 		.filter((section) => section !== undefined)
-		.join("\n\n");
+		.join("\n\n"),
+});
