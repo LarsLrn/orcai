@@ -14,6 +14,7 @@ import {
 	toolResultsOf,
 	turnRequests,
 } from "../../fixtures/assistant/assistant";
+import { approvePlan } from "../../fixtures/assistant/plan";
 import { assetRow } from "../../fixtures/authz/resources";
 import { ask, chatName, messageText } from "../../fixtures/chat/chat";
 import { createBot } from "../../fixtures/gen-ui/gen-ui";
@@ -129,6 +130,12 @@ test("assistant: attaching an asset the member cannot read relays ASSET_LINK_FOR
 		.asset.create(assetRow(chatName("Private Asset")));
 	const name = chatName("Repository");
 	const relayed = "You cannot attach that asset.";
+	await approvePlan(member, chatId, inference, {
+		title: "Set up the repository",
+		items: [
+			"Create the repository",
+		],
+	});
 
 	inference.script(
 		loadTools("bots"),

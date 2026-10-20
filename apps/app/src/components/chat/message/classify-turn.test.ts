@@ -76,6 +76,33 @@ const deleteBot = (state: string, approved?: boolean) =>
 		},
 	}) as unknown as MessagePart;
 
+const updatePlan = (state: string) =>
+	({
+		type: "tool-updatePlan",
+		toolCallId: `plan-${state}`,
+		state,
+		input: {
+			title: "Set up the course",
+			items: [
+				{
+					label: "Create the bot",
+					status: "pending",
+				},
+			],
+		},
+		...(state === "output-available"
+			? {
+					output: {
+						updated: true,
+					},
+				}
+			: {
+					approval: {
+						id: `approval-${state}`,
+					},
+				}),
+	}) as unknown as MessagePart;
+
 describe("classifyTurn", () => {
 	test("finished reasoning without text stays out of the work log", () => {
 		const turn = classifyTurn(
@@ -468,6 +495,55 @@ describe("paused step", () => {
 		]);
 		expect(turn.answerParts).toEqual([
 			text("Deleted."),
+		]);
+	});
+
+	test("a plan that ran is a work-log entry before the answer", () => {
+		const turn = classifyTurn([
+			stepStart(),
+			updatePlan("output-available"),
+			stepStart(),
+			text("Done."),
+		]);
+
+		expect(
+			turn.entries.map((entry) => [
+				entry.kind,
+				entry.part.type,
+			]),
+		).toEqual([
+			[
+				"tool",
+				"tool-updatePlan",
+			],
+		]);
+		expect(turn.answerParts).toEqual([
+			text("Done."),
+		]);
+	});
+
+	test("a plan waiting for approval stays in the work log", () => {
+		const parts = [
+			stepStart(),
+			text("let me look"),
+			search(),
+			stepStart(),
+			text("Here is my plan."),
+			updatePlan("approval-requested"),
+		];
+		const turn = classifyTurn(parts);
+
+		expect(pausedStep(parts, false)).toEqual({
+			start: 4,
+			answered: false,
+		});
+		expect(turn.entries.map((entry) => entry.part.type)).toEqual([
+			"text",
+			"tool-searchKnowledgeBase",
+			"tool-updatePlan",
+		]);
+		expect(turn.answerParts).toEqual([
+			text("Here is my plan."),
 		]);
 	});
 

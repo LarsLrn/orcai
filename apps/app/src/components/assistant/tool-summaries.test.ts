@@ -75,6 +75,19 @@ const pendingInputs: Record<SummarisedToolName, unknown> = {
 			"people",
 		],
 	},
+	updatePlan: {
+		title: "Set up the course",
+		items: [
+			{
+				label: "Create the bot",
+				status: "pending",
+			},
+			{
+				label: "Share it",
+				status: "pending",
+			},
+		],
+	},
 	createBot: {
 		name: "Citation check",
 		description: "Checks citations",
@@ -674,5 +687,49 @@ describe("requestUpload summary", () => {
 			expect(summary.line(part as never, lookedUp)).toBe("Upload files");
 			expect(uploadedAssets(part as never)).toEqual([]);
 		}
+	});
+});
+
+describe("updatePlan summary", () => {
+	const planLine = (statuses: string[]) => {
+		const part = partOf("updatePlan", {
+			state: "output-available",
+			input: {
+				title: "Set up the course",
+				items: statuses.map((status, index) => ({
+					label: `Step ${index + 1}`,
+					status,
+				})),
+			},
+			output: {
+				updated: true,
+			},
+		});
+
+		return toolSummaryOf(part).line(part as never, lookedUp);
+	};
+
+	test("names the plan and tallies its steps", () => {
+		expect(
+			planLine([
+				"done",
+				"done",
+				"in_progress",
+				"pending",
+				"pending",
+			]),
+		).toBe("Plan “Set up the course”: 2 of 5 done");
+	});
+
+	test("adds the skipped steps", () => {
+		expect(
+			planLine([
+				"done",
+				"done",
+				"skipped",
+				"pending",
+				"pending",
+			]),
+		).toBe("Plan “Set up the course”: 2 of 5 done, 1 skipped");
 	});
 });

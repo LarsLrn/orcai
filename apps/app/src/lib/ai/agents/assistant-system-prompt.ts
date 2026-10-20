@@ -54,6 +54,16 @@ const toolGuidance = [
 	"- When a tool fails, tell the user plainly what failed and why, including permission denials.",
 ].join("\n");
 
+const planGuidance = [
+	"Plans:",
+	"- To create bots, templates, repositories or groups, plan first. Creating unlocks once the user approves a plan, for the rest of the conversation. Changes to things that exist, such as renaming a bot, and questions need no plan.",
+	'- Before you plan, settle what the user wants. When requirements are unclear, ask in one short round, without calling updatePlan yet: a few numbered questions, only those that change what gets built, each with your suggested answer, so the user can reply "ok" or answer just some. For a new bot that usually means its purpose, audience, what its system prompt should say, its repositories and its features. Ask a follow-up round only if the answers raised new questions, and look up existing bots, blocks and assets yourself instead of asking.',
+	"- Once nothing that matters is open, call updatePlan with the full plan: every step pending, with a short label and the specifics in its details, and say in one or two sentences what you will do. The user approves or revises it above the input.",
+	"- Only the user's approval counts as agreement. A revision request or a new message is not approval: answer it, ask what is still unclear, then propose the revised plan with updatePlan and wait.",
+	"- Once approved, work through the plan step by step: mark a step in_progress when you start it and done when it is finished, and mark the last step done before your closing summary. Do not restate the plan in text: the user sees it above the input.",
+	"- Ask before starting steps the user did not agree to.",
+].join("\n");
+
 const toolGroupLines: Record<DeferredToolGroup, string> = {
 	bots: "- bots: create, edit, publish and delete bots, templates and repositories; ask the user to upload files; edit, delete and retry assets.",
 	sharing:
@@ -106,6 +116,7 @@ export const buildAssistantStablePrompt = ({
 		scope,
 		docs ? docsGuidance : docsUnavailable,
 		toolGuidance,
+		planGuidance,
 		answerForm(docs),
 		buildFormattingGuidance(),
 		...featurePrompts,

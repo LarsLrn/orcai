@@ -33,6 +33,7 @@ import { listInvitationsSummary } from "@/lib/ai/tools/assistant/people/list-inv
 import { removeGroupMembersSummary } from "@/lib/ai/tools/assistant/people/remove-group-members.summary";
 import { removeMembersSummary } from "@/lib/ai/tools/assistant/people/remove-members.summary";
 import { updateGroupSummary } from "@/lib/ai/tools/assistant/people/update-group.summary";
+import { updatePlanSummary } from "@/lib/ai/tools/assistant/plan/update-plan.summary";
 import { findPrincipalsSummary } from "@/lib/ai/tools/assistant/sharing/find-principals.summary";
 import { grantAccessSummary } from "@/lib/ai/tools/assistant/sharing/grant-access.summary";
 import { listAccessSummary } from "@/lib/ai/tools/assistant/sharing/list-access.summary";
@@ -63,6 +64,7 @@ export const assistantToolSummaries: SummaryRegistry = {
 	"tool-listGroups": listGroupsSummary,
 	"tool-listMembers": listMembersSummary,
 	"tool-loadTools": loadToolsSummary,
+	"tool-updatePlan": updatePlanSummary,
 	"tool-createBot": createBotSummary,
 	"tool-updateBot": updateBotSummary,
 	"tool-publishBot": publishBotSummary,

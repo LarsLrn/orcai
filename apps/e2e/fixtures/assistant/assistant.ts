@@ -387,6 +387,7 @@ export const startTitledConversation = async (
 /** The core tools every role is offered, `listMembers` and `loadTools` aside. */
 export const VIEWER_TOOLS = [
 	"readDocs",
+	"updatePlan",
 	"showChecklist",
 	"showReview",
 	"showMatrix",

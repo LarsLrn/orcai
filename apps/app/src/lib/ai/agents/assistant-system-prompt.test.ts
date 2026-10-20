@@ -103,6 +103,50 @@ describe("buildAssistantSystemPrompt", () => {
 		expect(stable).not.toContain(toolGroupsHeading);
 	});
 
+	test("puts the plan guidance right after the tool guidance, for every user", () => {
+		const stable = buildAssistantStablePrompt({
+			docs,
+			featurePrompts,
+		});
+		const toolGuidance = stable.indexOf("Acting in OrcAI:");
+		const plans = stable.indexOf("\n\nPlans:\n");
+
+		expect(toolGuidance).toBeGreaterThan(-1);
+		expect(plans).toBeGreaterThan(toolGuidance);
+		expect(stable.slice(toolGuidance, plans)).not.toContain("\n\n");
+		expect(stable).toContain("call updatePlan");
+		expect(stable).toContain(
+			"When requirements are unclear, ask in one short round, without calling updatePlan yet",
+		);
+		expect(stable).toContain(
+			'each with your suggested answer, so the user can reply "ok" or answer just some',
+		);
+		expect(stable).toContain(
+			"its purpose, audience, what its system prompt should say, its repositories and its features",
+		);
+		expect(stable).toContain(
+			"Ask a follow-up round only if the answers raised new questions",
+		);
+		expect(stable).toContain(
+			"A revision request or a new message is not approval",
+		);
+		expect(stable).toContain(
+			"with a short label and the specifics in its details",
+		);
+		for (const prompt of [
+			promptFor({
+				role: "admin",
+				toolGroups: DEFERRED_TOOL_GROUPS,
+			}),
+			promptFor({
+				role: "viewer",
+				organizationName: "Globex",
+			}),
+		]) {
+			expect(prompt.stable).toBe(stable);
+		}
+	});
+
 	test("lists exactly the offered tool groups", () => {
 		const prompt = joinedPromptFor({
 			role: "member",

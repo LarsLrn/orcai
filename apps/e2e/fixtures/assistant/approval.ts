@@ -214,6 +214,7 @@ export const continueTurn = async (
 		approvals: {
 			approvalId: string;
 			approved: boolean;
+			reason?: string;
 		}[];
 		toolOutputs?: (
 			| {

@@ -13,8 +13,8 @@ const member: CapabilitySet = {
 	create_asset: true,
 };
 
-const load = (groups: ("bots" | "sharing" | "people")[]) =>
-	loadToolsTool(member).execute(
+const load = (groups: ("bots" | "sharing" | "people")[], planApproved = true) =>
+	loadToolsTool(member, () => planApproved).execute(
 		{
 			groups,
 		},
@@ -63,6 +63,37 @@ describe("loadTools", () => {
 		expect(groupsLoadedBy(output)).toEqual([
 			"bots",
 		]);
+	});
+
+	test("lists the create tools as locked until a plan is approved", async () => {
+		const output = await load(
+			[
+				"bots",
+			],
+			false,
+		);
+
+		expect("groups" in output && output.groups[0]).toEqual({
+			group: "bots",
+			loaded: true,
+			tools: [
+				"updateBot",
+				"publishBot",
+				"deleteBot",
+				"updateTemplate",
+				"updateRepository",
+				"deleteBlock",
+				"updateAsset",
+				"deleteAsset",
+				"retryAsset",
+				"requestUpload",
+			],
+			lockedUntilPlanApproved: [
+				"createBot",
+				"createTemplate",
+				"createRepository",
+			],
+		});
 	});
 
 	test("a repeated group is reported once", async () => {

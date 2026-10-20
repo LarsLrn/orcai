@@ -13,6 +13,11 @@ export interface AssistantHistoryPruningOptions {
 	enabledDisplayToolNames: readonly string[];
 }
 
+const TOOL_SET_CHANGING_TOOLS = new Set([
+	"loadTools",
+	"updatePlan",
+]);
+
 const SUMMARISED_OUTPUT_TYPES = new Set([
 	"json",
 	"text",
@@ -23,8 +28,8 @@ const SUMMARISED_OUTPUT_TYPES = new Set([
  * Keeps every tool call and input but replaces the outputs of finished turns
  * with their summary line; the turn in progress stays as sent. Errors,
  * denials and approvals stay; calls of disabled display tools are dropped.
- * Reasoning survives only from the turn's latest `loadTools` result on, as
- * loading tools changes what earlier reasoning was produced with.
+ * Reasoning survives only from the turn's latest tool-set change on: a
+ * `loadTools` result, or an `updatePlan` that ran and so unlocked tools.
  */
 export const pruneAssistantHistory = (
 	messages: ModelMessage[],
@@ -58,7 +63,9 @@ export const pruneAssistantHistory = (
 				message.role === "tool" &&
 				message.content.some(
 					(part) =>
-						part.type === "tool-result" && part.toolName === "loadTools",
+						part.type === "tool-result" &&
+						TOOL_SET_CHANGING_TOOLS.has(part.toolName) &&
+						part.output.type !== "execution-denied",
 				),
 		)
 		.lastIndexOf(true);
