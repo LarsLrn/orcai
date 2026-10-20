@@ -20,7 +20,6 @@ export interface GenerateTextWithQuotaInput {
 	model: LanguageModel;
 	messages?: ModelMessage[];
 	reservationMessages?: unknown[];
-	isFirstTurn: boolean;
 	system?: string;
 	prompt?: string;
 	maxOutputTokens?: number;
@@ -74,7 +73,6 @@ export const generateTextWithQuota = (input: GenerateTextWithQuotaInput) =>
 			maxExpectedOutputTokens: input.maxOutputTokens,
 			maxExpectedProviderRequests: input.maxExpectedProviderRequests ?? 1,
 			messages: input.reservationMessages ?? messages,
-			isFirstTurn: input.isFirstTurn,
 		});
 
 		if (!reservation.allowed || !reservation.reservation) {

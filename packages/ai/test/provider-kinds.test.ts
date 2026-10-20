@@ -6,11 +6,13 @@ import {
 	createProviderLanguageModel,
 	listProviderModels,
 	providerKindServerEntries,
+	withholdToolCalls,
 } from "../src/provider-kinds/registry";
 
 interface Recorded {
 	url: string;
 	headers: Headers;
+	body?: unknown;
 }
 
 /** A fetch that records each request and answers with the next body. */
@@ -26,6 +28,10 @@ const fakeFetch = (...bodies: unknown[]) => {
 				: {
 						url: input.toString(),
 						headers: new Headers(init?.headers),
+						body:
+							typeof init?.body === "string"
+								? JSON.parse(init.body)
+								: undefined,
 					},
 		);
 		const body = bodies.shift();
@@ -258,6 +264,60 @@ describe("listAnthropicModels", () => {
 				fetch,
 			}),
 		).rejects.toThrow("503");
+	});
+});
+
+describe("withholdToolCalls", () => {
+	const requestBodyWithToolChoiceNone = async (kind: ProviderKind) => {
+		const { fetch, requests } = fakeFetch();
+		const model = createProviderLanguageModel(
+			kind,
+			{
+				apiKey: "key",
+				endpoint: "https://llm.example.org/v1",
+				fetch,
+			},
+			"some-model",
+		);
+		await Promise.resolve(
+			model.doGenerate({
+				prompt,
+				tools: [
+					{
+						type: "function",
+						name: "search",
+						inputSchema: {
+							type: "object",
+							properties: {},
+						},
+					},
+				],
+				toolChoice: {
+					type: "none",
+				},
+			}),
+		).catch(() => undefined);
+		return requests[0]?.body as {
+			tools?: unknown[];
+		};
+	};
+
+	test("rules out tool calls only where the tool list stays in the request", async () => {
+		for (const { kind } of providerKinds) {
+			const body = await requestBodyWithToolChoiceNone(kind);
+			const keepsTools = (body.tools?.length ?? 0) > 0;
+
+			expect(providerKindServerEntries[kind].toolChoiceNoneKeepsTools).toBe(
+				keepsTools,
+			);
+			expect(withholdToolCalls(kind)).toEqual(
+				keepsTools
+					? {
+							toolChoice: "none",
+						}
+					: {},
+			);
+		}
 	});
 });
 

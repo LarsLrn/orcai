@@ -7,7 +7,10 @@ import {
 	MessageSquareTextIcon,
 } from "lucide-react";
 import type { Ref } from "react";
-import type { WorkEntry } from "@/components/chat/message/classify-turn";
+import {
+	isLiveReasoning,
+	type WorkEntry,
+} from "@/components/chat/message/classify-turn";
 import {
 	Collapsible,
 	CollapsibleContent,
@@ -47,11 +50,7 @@ export const activeStepLabel = (
 		return toolLabels(last.part).active;
 	}
 
-	if (
-		running &&
-		last?.kind === "reasoning" &&
-		last.part.state === "streaming"
-	) {
+	if (last?.kind === "reasoning" && isLiveReasoning(last.part, running)) {
 		return m.chat_work_log_thinking();
 	}
 
@@ -109,7 +108,7 @@ const EntryIcon = ({
 const Entry = ({ entry, running }: { entry: WorkEntry; running: boolean }) => {
 	switch (entry.kind) {
 		case "reasoning":
-			return <ReasoningEntry part={entry.part} />;
+			return <ReasoningEntry part={entry.part} running={running} />;
 		case "text":
 			return <TextEntry part={entry.part} />;
 		case "tool":

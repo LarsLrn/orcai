@@ -113,6 +113,14 @@ wins over pools covering all models; among those, the higher priority wins,
 then the older pool. If no pool covers someone, they cannot chat with that
 provider's models.
 
+Each reply reserves its likely cost before the model runs and is charged what
+it used once it ends. With requests metering a reply reserves one request per
+step it may take, 25 in chat and 20 in the OrcAI Assistant, or what the pool
+has left when that is less. A reply starts while at least one request remains,
+gets as many steps as it reserved, and answers on the last of them, so it never
+uses more than the pool has. With tokens metering the pool needs the whole
+estimate remaining.
+
 **View pool** opens `/app/quotas/<pool id>`, with the current period's
 budget, consumed, reserved and remaining amounts, **Adjust budget** (raising
 the budget frees the remaining allowance straight away), the eligible groups

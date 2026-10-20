@@ -51,6 +51,13 @@ export const streamedText = async (
 export const setUpChatModel = async (
 	api: Api,
 	inference: InferenceMock,
+	quota: {
+		meteringMode: "tokens" | "requests";
+		budgetAmount: number;
+	} = {
+		meteringMode: "tokens",
+		budgetAmount: 1_000_000,
+	},
 ): Promise<ChatModel> => {
 	const admin = api.as("admin");
 	// The `org` fixture's admin joined through the sign-up hook, whose grant no
@@ -61,7 +68,7 @@ export const setUpChatModel = async (
 			description: "Mock OpenAI-compatible endpoint for the chat slice.",
 			endpoint: inference.url,
 			kind: "openai-compatible",
-			meteringMode: "tokens",
+			meteringMode: quota.meteringMode,
 			apiKey: "e2e-mock-key",
 			enabled: true,
 		}),
@@ -103,7 +110,7 @@ export const setUpChatModel = async (
 		name: chatName("Pool"),
 		providerId,
 		periodType: "monthly",
-		budgetAmount: 1_000_000,
+		budgetAmount: quota.budgetAmount,
 		groupIds: [
 			allMembers.id,
 		],

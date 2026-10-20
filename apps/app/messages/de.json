@@ -2012,6 +2012,8 @@
 	"chat_rename_dialog_description": "Geben Sie einen neuen Namen für diesen Chat ein.",
 	"chat_rename_dialog_submit": "Umbenennen",
 	"chat_rename_dialog_title": "Chat umbenennen",
+	"chat_reply_no_answer": "Ohne Antwort beendet.",
+	"chat_reply_step_limit": "Vor der Antwort am Schrittlimit angehalten.",
 	"chat_response_failed": "Das Modell hat nicht geantwortet. Senden Sie die Nachricht erneut oder wählen Sie ein anderes Modell.",
 	"chat_settings_add_behaviour_action": "Verhalten hinzufügen",
 	"chat_settings_add_repository_action": "Repository hinzufügen",

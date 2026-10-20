@@ -51,7 +51,6 @@ const generateAndPersistChatTitle = (params: {
 			reservationMessages: buildTitleReservationMessages(
 				params.userMessageText,
 			),
-			isFirstTurn: true,
 			timeoutMs: TITLE_GENERATION_TIMEOUT_MS,
 		});
 

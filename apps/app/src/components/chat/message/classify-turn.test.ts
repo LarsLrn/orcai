@@ -1,5 +1,10 @@
 import { describe, expect, test } from "bun:test";
-import { classifyTurn, type MessagePart, pausedStep } from "./classify-turn";
+import {
+	classifyTurn,
+	type MessagePart,
+	missingAnswer,
+	pausedStep,
+} from "./classify-turn";
 
 const text = (content: string) =>
 	({
@@ -89,6 +94,18 @@ describe("classifyTurn", () => {
 			"1",
 			"2",
 		]);
+	});
+
+	test("a finished turn drops blank reasoning that never closed", () => {
+		const turn = classifyTurn([
+			search(),
+			reasoning("", "streaming"),
+		]);
+
+		expect(turn.entries.map((entry) => entry.kind)).toEqual([
+			"tool",
+		]);
+		expect(turn.answerParts).toEqual([]);
 	});
 
 	test("text after the last step is the answer", () => {
@@ -574,5 +591,91 @@ describe("client call step", () => {
 		expect(turn.answerParts).toEqual([
 			text("Done."),
 		]);
+	});
+});
+
+describe("missingAnswer", () => {
+	const reply = (
+		parts: MessagePart[],
+		metadata: {
+			stepLimitReached?: boolean;
+		} = {},
+	) => ({
+		role: "assistant" as const,
+		parts,
+		metadata,
+	});
+
+	test("an empty reply waits for the model while it runs, and shows nothing before", () => {
+		expect(
+			missingAnswer(reply([]), {
+				running: true,
+				settled: false,
+				answerParts: [],
+			}),
+		).toBe("waiting");
+		expect(
+			missingAnswer(reply([]), {
+				running: false,
+				settled: false,
+				answerParts: [],
+			}),
+		).toBe("pending");
+	});
+
+	test("an empty reply that settled ended without an answer", () => {
+		expect(
+			missingAnswer(reply([]), {
+				running: false,
+				settled: true,
+				answerParts: [],
+			}),
+		).toBe("no-answer");
+	});
+
+	test("a reply that ran out of steps stopped at the step limit", () => {
+		const parts = [
+			search(),
+		];
+
+		expect(
+			missingAnswer(
+				reply(parts, {
+					stepLimitReached: true,
+				}),
+				{
+					running: false,
+					settled: true,
+					answerParts: classifyTurn(parts).answerParts,
+				},
+			),
+		).toBe("step-limit");
+	});
+
+	test("nothing stands in for a reply under way or an answer", () => {
+		const parts = [
+			search(),
+			text("answer"),
+		];
+
+		expect(
+			missingAnswer(
+				reply([
+					search(),
+				]),
+				{
+					running: true,
+					settled: false,
+					answerParts: [],
+				},
+			),
+		).toBeUndefined();
+		expect(
+			missingAnswer(reply(parts), {
+				running: false,
+				settled: true,
+				answerParts: classifyTurn(parts).answerParts,
+			}),
+		).toBeUndefined();
 	});
 });

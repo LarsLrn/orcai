@@ -2012,6 +2012,8 @@
 	"chat_rename_dialog_description": "Enter a new name for this chat.",
 	"chat_rename_dialog_submit": "Rename",
 	"chat_rename_dialog_title": "Rename chat",
+	"chat_reply_no_answer": "Ended without an answer.",
+	"chat_reply_step_limit": "Stopped at the step limit before answering.",
 	"chat_response_failed": "The model did not respond. Send the message again or choose another model.",
 	"chat_settings_add_behaviour_action": "Add behaviour",
 	"chat_settings_add_repository_action": "Add repository",
