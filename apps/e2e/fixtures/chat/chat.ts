@@ -129,6 +129,29 @@ export const createChat = async (
 	return chat.data.id;
 };
 
+/** A repository block of the client's own, attached to the chat. */
+export const attachRepository = async (
+	client: ApiClient,
+	chatId: ChatId,
+): Promise<void> => {
+	const block = await client.block.create({
+		type: "database",
+		name: chatName("Repository"),
+		status: "ready",
+		assets: [],
+		config: {
+			minReferences: 1,
+			maxReferences: 5,
+			defaultReferences: 3,
+		},
+	});
+
+	await client.chatBlock.attach({
+		chatId,
+		blockId: block.data.id,
+	});
+};
+
 export type Turn = {
 	question: string;
 	reply: string;
@@ -151,23 +174,31 @@ export const sendTurn = async ({
 	inference.respondWith({
 		text: turn.reply,
 	});
-	const stream = await client.ai.chat({
-		chatId,
-		message: {
-			id: randomUUID(),
-			role: "user",
-			parts: [
-				{
-					type: "text",
-					text: turn.question,
-				},
-			],
-		},
-	});
-
-	expect(await streamedText(stream)).toBe(turn.reply);
+	expect(await ask(client, chatId, turn.question)).toBe(turn.reply);
 	await expect.poll(() => messageCount(client, chatId)).toBe(before + 2);
 };
+
+/** Send one user message over the API and return the streamed reply. */
+export const ask = (
+	client: ApiClient,
+	chatId: ChatId,
+	question: string,
+): Promise<string> =>
+	client.ai
+		.chat({
+			chatId,
+			message: {
+				id: randomUUID(),
+				role: "user",
+				parts: [
+					{
+						type: "text",
+						text: question,
+					},
+				],
+			},
+		})
+		.then(streamedText);
 
 /** Messages stored in a chat, counted over every page. */
 export const messageCount = async (

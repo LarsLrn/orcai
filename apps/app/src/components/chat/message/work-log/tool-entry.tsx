@@ -31,6 +31,11 @@ export const ToolEntry = ({
 }: ToolEntryProps) => {
 	const status = toolStatus(part, running);
 	const showsRawResult = children === undefined;
+	// A closed call's sentence is for the model; the badge already says it.
+	const errorText =
+		status === "skipped" || status === "interrupted"
+			? undefined
+			: part.errorText;
 
 	return (
 		<div className="min-w-0">
@@ -55,9 +60,9 @@ export const ToolEntry = ({
 						: m.chat_work_log_tool_parameters_label()
 				}
 			>
-				<ToolInput input={part.input} errorText={part.errorText} />
-				{(showsRawResult || part.errorText) && (
-					<ToolOutput output={part.output} errorText={part.errorText} />
+				<ToolInput input={part.input} errorText={errorText} />
+				{(showsRawResult || errorText) && (
+					<ToolOutput output={part.output} errorText={errorText} />
 				)}
 			</ToolDetails>
 		</div>

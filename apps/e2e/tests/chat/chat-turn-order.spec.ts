@@ -1,7 +1,7 @@
-import { randomUUID } from "node:crypto";
 import type { ChatId } from "@orcai/core";
 import type { Page } from "@playwright/test";
 import {
+	ask,
 	chatName,
 	completionRequests,
 	composer,
@@ -10,7 +10,6 @@ import {
 	messageText,
 	openChat,
 	setUpChatModel,
-	streamedText,
 } from "../../fixtures/chat/chat";
 import type { ApiClient } from "../../fixtures/index";
 import { expect, test } from "../../fixtures/inference/fixture";
@@ -70,23 +69,6 @@ const copyActions = (page: Page) =>
 		name: message("chat_message_copy_label"),
 		exact: true,
 	});
-
-const ask = (client: ApiClient, chatId: ChatId, question: string) =>
-	client.ai
-		.chat({
-			chatId,
-			message: {
-				id: randomUUID(),
-				role: "user",
-				parts: [
-					{
-						type: "text",
-						text: question,
-					},
-				],
-			},
-		})
-		.then(streamedText);
 
 test("two turns finishing together both keep their replies", async ({
 	api,

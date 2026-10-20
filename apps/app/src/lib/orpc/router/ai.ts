@@ -14,6 +14,7 @@ import {
 	type FileUIPart,
 	smoothStream,
 	type TextUIPart,
+	type ToolSet,
 } from "ai";
 import { and, asc, eq } from "drizzle-orm";
 import * as Cause from "effect/Cause";
@@ -25,6 +26,7 @@ import { quotaDenialError } from "@/lib/ai/effects/generate-text-with-quota";
 import type { ChatAgentUIMessage } from "@/lib/ai/types/chat-agent-message";
 import { getChatMessageAttachments } from "@/lib/ai/types/chat-attachment";
 import { buildAttachmentPromptPartCached } from "@/lib/ai/utils/chat-attachment-parts";
+import { closePendingToolParts } from "@/lib/ai/utils/close-pending-tool-parts";
 import { getChatAiSettings } from "@/lib/ai/utils/get-chat-ai-settings";
 import { streamErrorReason } from "@/lib/ai/utils/stream-error-reason";
 import { getZedToken } from "@/lib/authz/zed-token";
@@ -38,6 +40,7 @@ import {
 	appendChatMessages,
 	isEmptyReply,
 	settleChatReply,
+	storeClosedToolParts,
 } from "./chat-message";
 
 const isRecord = (value: unknown): value is Record<string, unknown> =>
@@ -92,6 +95,33 @@ const mergeDatabaseBlocks = ({
 		existingIds.add(block.id);
 	}
 	return merged;
+};
+
+/** Closes the pending tool calls of the last reply, which the model would reject. */
+const closeLastReply = (history: ChatAgentUIMessage[], tools: ToolSet) => {
+	const lastReply = history
+		.filter((message) => message.role === "assistant")
+		.at(-1);
+	const closed = lastReply && closePendingToolParts(lastReply.parts, tools);
+
+	if (!lastReply || !closed?.changed) {
+		return {
+			closedHistory: history,
+			closedReply: undefined,
+		};
+	}
+
+	const closedReply = {
+		...lastReply,
+		parts: closed.parts as ChatAgentUIMessage["parts"],
+	};
+
+	return {
+		closedHistory: history.map((message) =>
+			message === lastReply ? closedReply : message,
+		),
+		closedReply,
+	};
 };
 
 const aiChat = authed.ai.chat
@@ -232,6 +262,20 @@ const aiChat = authed.ai.chat
 				attachedBlocks: attachedDatabaseBlocks,
 			});
 
+			const agent = createChatAgent({
+				model: chatAiSettings.model,
+				systemPrompt,
+				databaseBlocks: allDatabaseBlocks,
+				generationParams: chatAiSettings.generationParams,
+				telemetryIds: {
+					organizationId: context.auth.session.activeOrganizationId,
+					chatId: input.chatId,
+					providerId,
+					modelId,
+				},
+				context: requestContext,
+			});
+
 			const [takenMessage] = yield* db
 				.select({
 					id: dbSchema.chatMessage.id,
@@ -252,17 +296,24 @@ const aiChat = authed.ai.chat
 				(row) => !isEmptyReply(row),
 			);
 
+			const storedMessages = history.map(
+				(row) =>
+					({
+						id: row.id,
+						role: row.role,
+						parts: row.parts,
+						metadata: row.metadata,
+						attachments: row.attachments,
+					}) as ChatAgentUIMessage,
+			);
+
+			const { closedHistory, closedReply } = closeLastReply(
+				storedMessages,
+				agent.tools,
+			);
+
 			const messages = [
-				...history.map(
-					(row) =>
-						({
-							id: row.id,
-							role: row.role,
-							parts: row.parts,
-							metadata: row.metadata,
-							attachments: row.attachments,
-						}) as ChatAgentUIMessage,
-				),
+				...closedHistory,
 				{
 					id: userMessage.id,
 					role: "user",
@@ -294,6 +345,18 @@ const aiChat = authed.ai.chat
 			}
 
 			const reservation = quotaReservation.reservation;
+			const releaseOnFailure = <A, E, R>(effect: Effect.Effect<A, E, R>) =>
+				effect.pipe(
+					Effect.catch((error) =>
+						releaseAppRequestQuota({
+							reservation,
+							reason: "app_failure",
+						}).pipe(
+							Effect.catch(() => Effect.void),
+							Effect.andThen(Effect.fail(error)),
+						),
+					),
+				);
 
 			const attachmentPartCache = new Map<string, FileUIPart | TextUIPart>();
 			const messagesWithAttachmentParts = yield* Effect.forEach(
@@ -334,6 +397,14 @@ const aiChat = authed.ai.chat
 				},
 			);
 
+			if (closedReply) {
+				yield* storeClosedToolParts({
+					id: closedReply.id,
+					chatId: input.chatId,
+					parts: closedReply.parts,
+				}).pipe(releaseOnFailure);
+			}
+
 			// The reply is reserved with the question, so a later turn always lands after it.
 			const [persistedUserMessage] = yield* appendChatMessages(input.chatId, [
 				{
@@ -361,15 +432,7 @@ const aiChat = authed.ai.chat
 								cause: error,
 							}),
 				),
-				Effect.catch((error) =>
-					releaseAppRequestQuota({
-						reservation,
-						reason: "app_failure",
-					}).pipe(
-						Effect.catch(() => Effect.void),
-						Effect.andThen(Effect.fail(error)),
-					),
-				),
+				releaseOnFailure,
 			);
 
 			yield* forkChatTitleGenerationIfNeeded({
@@ -385,20 +448,6 @@ const aiChat = authed.ai.chat
 					role: persistedUserMessage.role,
 					parts: persistedUserMessage.parts,
 				},
-			});
-
-			const agent = createChatAgent({
-				model: chatAiSettings.model,
-				systemPrompt,
-				databaseBlocks: allDatabaseBlocks,
-				generationParams: chatAiSettings.generationParams,
-				telemetryIds: {
-					organizationId: context.auth.session.activeOrganizationId,
-					chatId: input.chatId,
-					providerId,
-					modelId,
-				},
-				context: requestContext,
 			});
 
 			let actualProviderRequestCount = 0;
