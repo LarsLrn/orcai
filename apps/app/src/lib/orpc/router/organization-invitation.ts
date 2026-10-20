@@ -307,36 +307,57 @@ const updateOrganizationInvitation = authed.organizationInvitation.update
 	.use(requireOrganizationPermission("invite_members"))
 	.effect(function* ({ input, context }) {
 		const db = yield* DB;
+		const organizationId = context.auth.session.activeOrganizationId;
+		const inOrganization = and(
+			eq(dbSchema.invitation.id, input.id),
+			eq(dbSchema.invitation.organizationId, organizationId),
+		);
+		const notFound = new AppErrors.NotFoundError({
+			reason: "INVITATION_NOT_FOUND",
+			id: input.id,
+			message: "Organization invitation not found",
+		});
 
-		const [invitation] = yield* db
-			.update(dbSchema.invitation)
-			.set({
-				status: input.status,
-				expiresAt: input.expiresAt,
-				updatedAt: new Date(),
-			})
-			.where(
-				and(
-					eq(dbSchema.invitation.id, input.id),
-					eq(
-						dbSchema.invitation.organizationId,
-						context.auth.session.activeOrganizationId,
-					),
-				),
-			)
-			.returning({
-				...getColumns(dbSchema.invitation),
-			});
+		const invitation = yield* db.transaction((tx) =>
+			Effect.gen(function* () {
+				const [existing] = yield* tx
+					.select({
+						role: dbSchema.invitation.role,
+					})
+					.from(dbSchema.invitation)
+					.where(inOrganization)
+					.limit(1)
+					.for("update");
+
+				if (!existing) {
+					return yield* Effect.fail(notFound);
+				}
+
+				if (organizationRoleRequiresAdminControl(existing.role)) {
+					yield* assertCanManageOrganizationAdmins({
+						organizationId,
+						userId: context.auth.user.id,
+						zedToken: getZedToken(context),
+					});
+				}
+
+				const [updated] = yield* tx
+					.update(dbSchema.invitation)
+					.set({
+						status: input.status,
+						expiresAt: input.expiresAt,
+						updatedAt: new Date(),
+					})
+					.where(inOrganization)
+					.returning({
+						...getColumns(dbSchema.invitation),
+					});
+				return updated;
+			}),
+		);
 
 		return yield* Effect.fromNullishOr(invitation).pipe(
-			Effect.mapError(
-				() =>
-					new AppErrors.NotFoundError({
-						reason: "INVITATION_NOT_FOUND",
-						id: input.id,
-						message: "Organization invitation not found",
-					}),
-			),
+			Effect.mapError(() => notFound),
 			Effect.map((data) => ({
 				data,
 			})),
@@ -353,6 +374,7 @@ const deleteOrganizationInvitations = authed.organizationInvitation.delete
 		const existingInvitations = yield* db
 			.select({
 				id: dbSchema.invitation.id,
+				role: dbSchema.invitation.role,
 			})
 			.from(dbSchema.invitation)
 			.where(
@@ -369,6 +391,18 @@ const deleteOrganizationInvitations = authed.organizationInvitation.delete
 					message: "One or more organization invitations were not found",
 				}),
 			);
+		}
+
+		if (
+			existingInvitations.some((invitation) =>
+				organizationRoleRequiresAdminControl(invitation.role),
+			)
+		) {
+			yield* assertCanManageOrganizationAdmins({
+				organizationId,
+				userId: context.auth.user.id,
+				zedToken: getZedToken(context),
+			});
 		}
 
 		yield* db

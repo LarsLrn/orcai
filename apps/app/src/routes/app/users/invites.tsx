@@ -1,3 +1,4 @@
+import { ORGANIZATION_ADMIN_ROLE } from "@orcai/core";
 import { listOrganizationInvitationsInputSchema } from "@orcai/schema";
 import { useSuspenseQuery } from "@tanstack/react-query";
 import { createFileRoute, Link } from "@tanstack/react-router";
@@ -22,6 +23,7 @@ import {
 } from "@/components/ui/shell/page";
 import { InvitesTableActions } from "@/components/users/invites/table/invites-table-actions";
 import { invitesTableColumns } from "@/components/users/invites/table/invites-table-columns";
+import { useOrganizationCapabilities } from "@/hooks/authz/use-capabilities";
 import { orpc } from "@/lib/orpc/orpc";
 import { m } from "@/paraglide/messages";
 
@@ -68,6 +70,11 @@ function RouteComponent() {
 			},
 		}),
 	);
+	const { data: capabilities } = useOrganizationCapabilities([
+		"manage_organization",
+	]);
+	const canManageOrganization =
+		capabilities?.data.capabilities.manage_organization === true;
 
 	return (
 		<Page>
@@ -99,6 +106,9 @@ function RouteComponent() {
 					options={{
 						rowCount: invitations.rowCount,
 						uidAccessor: "id",
+						enableRowSelection: (row) =>
+							row.original.role !== ORGANIZATION_ADMIN_ROLE ||
+							canManageOrganization,
 					}}
 				>
 					<DataTableToolbar>

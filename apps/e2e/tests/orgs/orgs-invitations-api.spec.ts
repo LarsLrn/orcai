@@ -457,3 +457,108 @@ test("orgs: member and invitation procedures need an active organisation", async
 		});
 	}
 });
+
+test("orgs: only an admin changes or revokes an admin invitation", async ({
+	api,
+	appBaseURL,
+	zedTokens,
+}) => {
+	const user = await createOrgsUser(appBaseURL, "admin-invite");
+	const refusedCreate = await rejection(
+		inviteEmail(api.as("manager"), {
+			email: user.email,
+			role: "admin",
+		}),
+	);
+	expect(refusedCreate.code).toBe("FORBIDDEN");
+	expect(refusedCreate.data).toMatchObject({
+		reason: "ORGANIZATION_ADMIN_REQUIRED",
+	});
+
+	const invitation = await inviteEmail(api.as("admin"), {
+		email: user.email,
+		role: "admin",
+	});
+	const asUser = createApiClient(
+		appBaseURL,
+		user.session.cookieHeader,
+		zedTokens,
+	);
+	await asUser.organizationInvitation.respond({
+		id: invitation.id,
+		response: "reject",
+	});
+
+	// Acceptance grants the stored role, so restoring or extending an admin
+	// invitation hands out the admin role.
+	const nextWeek = new Date(Date.now() + 7 * 24 * 60 * 60 * 1000);
+	for (const change of [
+		{
+			status: "pending" as const,
+		},
+		{
+			expiresAt: nextWeek,
+		},
+	]) {
+		const refused = await rejection(
+			api.as("manager").organizationInvitation.update({
+				id: invitation.id,
+				...change,
+			}),
+		);
+		expect(refused.code).toBe("FORBIDDEN");
+		expect(refused.data).toMatchObject({
+			reason: "ORGANIZATION_ADMIN_REQUIRED",
+		});
+	}
+
+	const refusedDelete = await rejection(
+		api.as("manager").organizationInvitation.delete({
+			refs: [
+				{
+					id: invitation.id,
+				},
+			],
+		}),
+	);
+	expect(refusedDelete.code).toBe("FORBIDDEN");
+	expect(refusedDelete.data).toMatchObject({
+		reason: "ORGANIZATION_ADMIN_REQUIRED",
+	});
+
+	const untouched = await api.as("admin").organizationInvitation.validate({
+		id: invitation.id,
+	});
+	expect(untouched.data.reason).toBe("consumed");
+
+	const restored = await api.as("admin").organizationInvitation.update({
+		id: invitation.id,
+		status: "pending",
+		expiresAt: nextWeek,
+	});
+	expect(restored.data.status).toBe("pending");
+});
+
+test("orgs: a manager changes and revokes a non-admin invitation", async ({
+	api,
+}) => {
+	const invitation = await inviteEmail(api.as("admin"), {
+		email: invitationEmail("manager-revokes"),
+		role: "member",
+	});
+
+	const updated = await api.as("manager").organizationInvitation.update({
+		id: invitation.id,
+		expiresAt: new Date(Date.now() + 60 * 60 * 1000),
+	});
+	expect(String(updated.data.id)).toBe(String(invitation.id));
+
+	const deleted = await api.as("manager").organizationInvitation.delete({
+		refs: [
+			{
+				id: invitation.id,
+			},
+		],
+	});
+	expect(deleted.success).toBe(true);
+});
