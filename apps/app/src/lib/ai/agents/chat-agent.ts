@@ -22,6 +22,10 @@ import {
 	finalStepSettings,
 	stepBudgetOptionsSchema,
 } from "@/lib/ai/agents/step-budget";
+import {
+	stepFailures,
+	withStoredToolFailures,
+} from "@/lib/ai/agents/turn-history";
 import type { ResolvedFeature } from "@/lib/ai/features/resolve-features";
 import { buildKnowledgeBaseTools } from "@/lib/ai/tools/rag/toolset";
 import type { ChatCallSettings } from "@/lib/ai/utils/chat-call-settings";
@@ -96,13 +100,21 @@ export const createChatAgent = (params: {
 				tools:
 					Object.keys(tools).length > 0 ? (tools as ChatAgentTools) : undefined,
 				stopWhen: isStepCount(options.maxSteps),
-				prepareStep: ({ stepNumber, messages }) =>
-					finalStepSettings({
-						stepNumber,
-						maxSteps: options.maxSteps,
+				prepareStep: ({ stepNumber, messages, steps }) => {
+					const sentMessages = withStoredToolFailures(
 						messages,
-						providerKind: params.providerKind,
-					}),
+						stepFailures(steps),
+					);
+					return {
+						messages: sentMessages,
+						...finalStepSettings({
+							stepNumber,
+							maxSteps: options.maxSteps,
+							messages: sentMessages,
+							providerKind: params.providerKind,
+						}),
+					};
+				},
 			};
 		},
 		output: Output.text(),

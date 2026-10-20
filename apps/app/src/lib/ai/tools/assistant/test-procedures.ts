@@ -58,6 +58,10 @@ for (const [file, namespace] of [
 		"asset",
 	],
 	[
+		"asset-point",
+		"assetPoint",
+	],
+	[
 		"authorization",
 		"authorization",
 	],

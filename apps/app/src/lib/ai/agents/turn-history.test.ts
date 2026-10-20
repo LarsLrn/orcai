@@ -1,6 +1,11 @@
 import { describe, expect, test } from "bun:test";
-import type { ModelMessage } from "ai";
-import { currentTurnStart, dropEarlierReasoning } from "./turn-history";
+import { type ModelMessage, NoSuchToolError } from "ai";
+import { AssistantToolError } from "@/lib/ai/tools/assistant/procedure-tool";
+import {
+	currentTurnStart,
+	dropEarlierReasoning,
+	withStoredToolFailures,
+} from "./turn-history";
 
 const user = (text: string): ModelMessage => ({
 	role: "user",
@@ -133,6 +138,95 @@ describe("dropEarlierReasoning", () => {
 
 		expect(reasoningOf(dropEarlierReasoning(messages, 3))).toEqual([
 			"y",
+		]);
+	});
+});
+
+describe("withStoredToolFailures", () => {
+	const failed = (toolCallId: string, error: Error): ModelMessage => ({
+		role: "tool",
+		content: [
+			{
+				type: "tool-result",
+				toolCallId,
+				toolName: "getBot",
+				output: {
+					type: "error-text",
+					value: error.toString(),
+				},
+			},
+		],
+	});
+	const errorTexts = (messages: ModelMessage[]) =>
+		messages.flatMap((message) =>
+			message.role === "tool"
+				? message.content.flatMap((part) =>
+						part.type === "tool-result" && part.output.type === "error-text"
+							? [
+									part.output.value,
+								]
+							: [],
+					)
+				: [],
+		);
+
+	test("sends a failure as the reply stores it, not as the SDK prints it", () => {
+		const toolError = new AssistantToolError("BOT_NOT_FOUND: No bot b-1.");
+		const missing = new NoSuchToolError({
+			toolName: "renameBot",
+		});
+		const messages = [
+			failed("a", toolError),
+			failed("b", missing),
+			failed("c", new Error("not recorded")),
+		];
+
+		expect(
+			errorTexts(
+				withStoredToolFailures(messages, [
+					{
+						toolCallId: "a",
+						error: toolError,
+					},
+					{
+						toolCallId: "b",
+						error: missing,
+					},
+				]),
+			),
+		).toEqual([
+			"BOT_NOT_FOUND: No bot b-1.",
+			"TOOL_NOT_AVAILABLE: There is no tool named renameBot in this conversation.",
+			"Error: not recorded",
+		]);
+	});
+
+	test("sends a denial as the reply stores it", () => {
+		const denied: ModelMessage = {
+			role: "tool",
+			content: [
+				{
+					type: "tool-result",
+					toolCallId: "d",
+					toolName: "deleteBot",
+					output: {
+						type: "execution-denied",
+					},
+				},
+			],
+		};
+
+		expect(
+			errorTexts(
+				withStoredToolFailures(
+					[
+						denied,
+					],
+					[],
+				),
+			),
+		).toEqual([
+			"Tool call execution denied.",
 		]);
 	});
 });

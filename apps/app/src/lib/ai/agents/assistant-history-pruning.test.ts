@@ -544,7 +544,8 @@ describe("pruneAssistantHistory", () => {
 				toolCallId: "d",
 				toolName: "updatePlan",
 				output: {
-					type: "execution-denied",
+					type: "error-text",
+					value: "Tool call execution denied.",
 				},
 			}),
 		);

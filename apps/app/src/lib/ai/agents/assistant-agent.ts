@@ -28,6 +28,11 @@ import {
 	finalStepSettings,
 	stepBudgetOptionsSchema,
 } from "@/lib/ai/agents/step-budget";
+import {
+	stepFailures,
+	type ToolFailure,
+	withStoredToolFailures,
+} from "@/lib/ai/agents/turn-history";
 import type { ResolvedFeature } from "@/lib/ai/features/resolve-features";
 import { assistantToolApproval } from "@/lib/ai/tools/assistant/approval";
 import { groupsLoadedBy } from "@/lib/ai/tools/assistant/core/load-tools";
@@ -151,6 +156,8 @@ export const createAssistantAgent = (
 		Object.hasOwn(featureTools, name),
 	);
 	const toolLines = createToolLines(params.history);
+	// Calls approved in an earlier request fail before the first step, outside every step's content.
+	const executionFailures: ToolFailure[] = [];
 
 	return new ToolLoopAgent({
 		model: params.model,
@@ -173,8 +180,12 @@ export const createAssistantAgent = (
 				}),
 			),
 			stopWhen: isStepCount(options.maxSteps),
-			prepareStep: ({ stepNumber, messages }) => {
-				const prunedMessages = pruneAssistantHistory(messages, {
+			prepareStep: ({ stepNumber, messages, steps }) => {
+				const sentMessages = withStoredToolFailures(messages, [
+					...executionFailures,
+					...stepFailures(steps),
+				]);
+				const prunedMessages = pruneAssistantHistory(sentMessages, {
 					lines: toolLines.lines,
 					displayToolNames: GEN_UI_TOOL_NAMES,
 					enabledDisplayToolNames,
@@ -194,6 +205,9 @@ export const createAssistantAgent = (
 		}),
 		// Also sees tools approved in an earlier request, which run before the first step.
 		onToolExecutionEnd: ({ toolOutput }) => {
+			if (toolOutput.type === "tool-error") {
+				executionFailures.push(toolOutput);
+			}
 			if (toolOutput.type === "tool-result") {
 				toolLines.record([
 					toolOutput,

@@ -56,7 +56,7 @@ import {
 } from "@/lib/ai/utils/apply-turn-decisions";
 import { buildAttachmentPromptPartCached } from "@/lib/ai/utils/chat-attachment-parts";
 import { closeInvalidToolParts } from "@/lib/ai/utils/close-invalid-tool-parts";
-import { closePendingToolParts } from "@/lib/ai/utils/close-pending-tool-parts";
+import { closeLastReply } from "@/lib/ai/utils/close-pending-tool-parts";
 import { getChatAiSettings } from "@/lib/ai/utils/get-chat-ai-settings";
 import { loadAssistantUserContext } from "@/lib/ai/utils/load-assistant-user-context";
 import { loadTurnChat } from "@/lib/ai/utils/load-turn-chat";
@@ -132,33 +132,6 @@ const mergeDatabaseBlocks = ({
 		existingIds.add(block.id);
 	}
 	return merged;
-};
-
-/** Closes the pending tool calls of the last reply, which the model would reject. */
-const closeLastReply = (history: ChatAgentUIMessage[], tools: ToolSet) => {
-	const lastReply = history
-		.filter((message) => message.role === "assistant")
-		.at(-1);
-	const closed = lastReply && closePendingToolParts(lastReply.parts, tools);
-
-	if (!lastReply || !closed?.changed) {
-		return {
-			closedHistory: history,
-			closedReply: undefined,
-		};
-	}
-
-	const closedReply = {
-		...lastReply,
-		parts: closed.parts as ChatAgentUIMessage["parts"],
-	};
-
-	return {
-		closedHistory: history.map((message) =>
-			message === lastReply ? closedReply : message,
-		),
-		closedReply,
-	};
 };
 
 const loadChatRows = (chatId: ChatId) =>

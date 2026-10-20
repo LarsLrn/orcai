@@ -20,7 +20,8 @@ const TOOL_SET_CHANGING_TOOLS = new Set([
 	"updatePlan",
 ]);
 
-const SUMMARISED_OUTPUT_TYPES = new Set([
+/** Outputs of calls that ran and succeeded; denials and failures arrive as errors. */
+const SUCCEEDED_OUTPUT_TYPES = new Set([
 	"json",
 	"text",
 	"content",
@@ -100,7 +101,7 @@ export const pruneAssistantHistory = (
 					(part) =>
 						part.type === "tool-result" &&
 						TOOL_SET_CHANGING_TOOLS.has(part.toolName) &&
-						part.output.type !== "execution-denied",
+						SUCCEEDED_OUTPUT_TYPES.has(part.output.type),
 				),
 		)
 		.lastIndexOf(true);
@@ -113,7 +114,7 @@ export const pruneAssistantHistory = (
 						...message,
 						content: message.content.map((part) =>
 							part.type === "tool-result" &&
-							SUMMARISED_OUTPUT_TYPES.has(part.output.type) &&
+							SUCCEEDED_OUTPUT_TYPES.has(part.output.type) &&
 							!enabledDisplay.has(part.toolName)
 								? {
 										...part,

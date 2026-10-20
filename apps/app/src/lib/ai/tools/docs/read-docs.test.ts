@@ -2,12 +2,14 @@ import { beforeEach, describe, expect, test } from "bun:test";
 import * as Effect from "effect/Effect";
 import * as Fiber from "effect/Fiber";
 import * as TestClock from "effect/testing/TestClock";
-import {
-	type DocsFetch,
-	docsMarkdownPath,
-	docsPageTitle,
-	readDocs,
-} from "./read-docs";
+import "../assistant/test-procedures";
+import type { DocsFetch } from "./read-docs";
+
+const { AssistantToolError } = await import(
+	"@/lib/ai/tools/assistant/procedure-tool"
+);
+const { docsMarkdownPath, docsPageTitle, readDocs, readDocsTool } =
+	await import("./read-docs");
 
 const INDEX = `# OrcAI
 
@@ -321,5 +323,26 @@ describe("readDocs", () => {
 
 		await expect(result).rejects.toBeDefined();
 		expect(fetchSignal.aborted).toBe(true);
+	});
+});
+
+describe("readDocsTool", () => {
+	test("fails with the docs' message, which the model reads", async () => {
+		const execute = readDocsTool({
+			docs: undefined,
+		}).execute;
+
+		await expect(
+			execute?.(
+				{},
+				{
+					toolCallId: "call",
+					messages: [],
+					context: {},
+				},
+			),
+		).rejects.toThrow(
+			new AssistantToolError("The docs are unavailable right now."),
+		);
 	});
 });

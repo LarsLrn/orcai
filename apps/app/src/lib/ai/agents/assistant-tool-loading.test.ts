@@ -11,122 +11,17 @@ import {
 	DEFERRED_TOOL_NAMES,
 } from "../tools/assistant/groups";
 import { createAssistantTurn } from "../tools/assistant/turn-state";
+import {
+	type Body,
+	memberCapabilities,
+	scriptedFetch,
+	type ToolCall,
+} from "./test-provider";
 
 const { createAssistantAgent } = await import("./assistant-agent");
 
-type ToolCall = {
-	name: string;
-	input: unknown;
-};
 /** One model response: tool calls, or the closing text. */
 type Reply = ToolCall[] | string;
-
-type Body = Record<string, unknown>;
-
-let callCount = 0;
-
-const anthropicReply = (reply: Reply) => ({
-	id: "msg",
-	type: "message",
-	role: "assistant",
-	model: "claude",
-	content:
-		typeof reply === "string"
-			? [
-					{
-						type: "text",
-						text: reply,
-					},
-				]
-			: reply.map(({ name, input }) => ({
-					type: "tool_use",
-					id: `toolu_${++callCount}`,
-					name,
-					input,
-				})),
-	stop_reason: typeof reply === "string" ? "end_turn" : "tool_use",
-	stop_sequence: null,
-	usage: {
-		input_tokens: 1,
-		output_tokens: 1,
-	},
-});
-
-const openAIReply = (reply: Reply) => ({
-	id: "chatcmpl",
-	object: "chat.completion",
-	created: 0,
-	model: "model",
-	choices: [
-		{
-			index: 0,
-			message:
-				typeof reply === "string"
-					? {
-							role: "assistant",
-							content: reply,
-						}
-					: {
-							role: "assistant",
-							content: null,
-							tool_calls: reply.map(({ name, input }) => ({
-								id: `call_${++callCount}`,
-								type: "function",
-								function: {
-									name,
-									arguments: JSON.stringify(input),
-								},
-							})),
-						},
-			finish_reason: typeof reply === "string" ? "stop" : "tool_calls",
-		},
-	],
-	usage: {
-		prompt_tokens: 1,
-		completion_tokens: 1,
-		total_tokens: 2,
-	},
-});
-
-/** A fetch that records each request body and answers with the next scripted reply. */
-const scriptedFetch = (kind: ProviderKind, replies: Reply[]) => {
-	const bodies: Body[] = [];
-	const fetch = ((_input: string | URL | Request, init?: RequestInit) => {
-		bodies.push(JSON.parse(String(init?.body)));
-		const reply = replies.shift();
-		if (reply === undefined) {
-			return Promise.resolve(
-				new Response("no reply scripted", {
-					status: 500,
-				}),
-			);
-		}
-		return Promise.resolve(
-			Response.json(
-				kind === "anthropic" ? anthropicReply(reply) : openAIReply(reply),
-			),
-		);
-	}) as typeof globalThis.fetch;
-
-	return {
-		fetch,
-		bodies,
-	};
-};
-
-const memberCapabilities: Record<OrganizationCapability, boolean> = {
-	read: true,
-	manage_organization: false,
-	manage_members: false,
-	manage_groups: false,
-	invite_members: false,
-	create_bot: true,
-	create_block: true,
-	create_asset: true,
-	manage_providers: false,
-	manage_models: false,
-	manage_quotas: false,
-};
 
 const assistantAgent = ({
 	kind,
@@ -207,7 +102,18 @@ const runRequest = async ({
 	loadedToolGroups: DeferredToolGroup[];
 	replies: Reply[];
 }) => {
-	const { fetch, bodies } = scriptedFetch(kind, replies);
+	const { fetch, bodies, script } = scriptedFetch(kind);
+	script(
+		replies.map((reply) =>
+			typeof reply === "string"
+				? {
+						text: reply,
+					}
+				: {
+						calls: reply,
+					},
+		),
+	);
 	const agent = assistantAgent({
 		kind,
 		modelId,
