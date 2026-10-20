@@ -1,10 +1,12 @@
 import {
 	BookMarkedIcon,
 	FileTextIcon,
+	Grid3x3Icon,
 	LibraryIcon,
 	ListChecksIcon,
 	type LucideIcon,
 	SearchIcon,
+	SpellCheckIcon,
 	WrenchIcon,
 } from "lucide-react";
 import type { ToolPart } from "@/components/chat/message/classify-turn";
@@ -44,6 +46,16 @@ const knownToolLabels: Record<KnownToolType, () => ToolLabels> = {
 		name: m.chat_work_log_tool_show_checklist_name(),
 		active: m.chat_work_log_tool_show_checklist_active(),
 		icon: ListChecksIcon,
+	}),
+	"tool-showReview": () => ({
+		name: m.chat_work_log_tool_show_review_name(),
+		active: m.chat_work_log_tool_show_review_active(),
+		icon: SpellCheckIcon,
+	}),
+	"tool-showMatrix": () => ({
+		name: m.chat_work_log_tool_show_matrix_name(),
+		active: m.chat_work_log_tool_show_matrix_active(),
+		icon: Grid3x3Icon,
 	}),
 };
 

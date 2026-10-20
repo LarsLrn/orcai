@@ -120,13 +120,25 @@ A checklist is a card with one row per item. Rows can expand to show an explanat
 - With statuses, each row shows Met, Partly met, Not met or Not checkable, and the header counts the outcomes. This suits checking something against a list of criteria.
 - Without statuses, the checklist is a plain accordion of expandable points.
 
+### Review
+
+A review shows one or more texts checked against rules, such as a reference list against a style guide. Each text gets a status from its most serious finding, and the header counts them.
+
+- The Findings view shows each text with the passages a finding refers to underlined and numbered, followed by the findings with matching numbers. Findings about all texts together appear last, under Overall.
+- When the model suggests corrected versions, Changes shows each text with removed and added words marked, or before and after when most of it was rewritten, and Revised shows the corrected texts.
+- Copying a revision, or all of them with Copy all, keeps italics when you paste into a word processor; plain-text targets get the text without formatting marks.
+
+### Matrix
+
+A matrix is a table of several items checked against the same criteria, one row per item and one column per criterion, with a status icon in each cell. The header counts the statuses. A row with notes on cells that are not met ends in a notes button that expands the notes; several rows can be open at once.
+
 ### Turning The Feature Off
 
 Primitives already stored in a chat keep rendering after Generative UI is turned off. The model just stops placing new ones.
 
 ### Copy And Download
 
-Copying an answer and downloading the conversation include primitives as markdown, in the order they appear in the answer. A checklist becomes a list with each row's status, summary, quote and explanation.
+Copying an answer and downloading the conversation include primitives as markdown, in the order they appear in the answer. A checklist becomes a list with each row's status, summary, quote and explanation; a review becomes each text as a quote with its findings and revision; a matrix becomes a table of statuses followed by its notes.
 
 ## Quota Badge
 

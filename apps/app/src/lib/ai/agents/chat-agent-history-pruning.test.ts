@@ -69,9 +69,11 @@ const summarize = (messages: ModelMessage[]) =>
 
 const displayToolNames = [
 	"showChecklist",
+	"showReview",
+	"showMatrix",
 ];
 
-// A Checklist turn, a knowledge-base turn, then another Checklist turn.
+// A Checklist turn, a knowledge-base turn, then a turn with every primitive.
 const history: ModelMessage[] = [
 	user("check it"),
 	...call("showChecklist", "c1"),
@@ -81,6 +83,8 @@ const history: ModelMessage[] = [
 	text("done 2"),
 	user("check again"),
 	...call("showChecklist", "c2"),
+	...call("showReview", "r1"),
+	...call("showMatrix", "m1"),
 	text("done 3"),
 	user("and now?"),
 ];
@@ -91,9 +95,7 @@ describe("pruneToolHistory", () => {
 			summarize(
 				pruneToolHistory(history, {
 					displayToolNames,
-					enabledDisplayToolNames: [
-						"showChecklist",
-					],
+					enabledDisplayToolNames: displayToolNames,
 				}),
 			),
 		).toEqual(summarize(history));

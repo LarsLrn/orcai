@@ -2,6 +2,10 @@ import { type DeepPartial, type Tool, tool } from "ai";
 import type { z } from "zod/v4";
 import { checklistSchema } from "@/components/chat/gen-ui/checklist/schema";
 import { checklistToMarkdown } from "@/components/chat/gen-ui/checklist/to-markdown";
+import { matrixSchema } from "@/components/chat/gen-ui/matrix/schema";
+import { matrixToMarkdown } from "@/components/chat/gen-ui/matrix/to-markdown";
+import { reviewSchema } from "@/components/chat/gen-ui/review/schema";
+import { reviewToMarkdown } from "@/components/chat/gen-ui/review/to-markdown";
 
 interface PrimitiveEntry<Schema extends z.ZodType> {
 	schema: Schema;
@@ -20,6 +24,18 @@ export const primitiveCatalog = {
 		description:
 			"Show a checklist in your answer: a list of items, each with an optional status (met, partial, not_met, n_a), a one-line summary, and an expandable explanation with an optional quoted passage. Use it when you check something against a list of criteria or requirements, one row per criterion or per checked item. Leave out status for a plain list of expandable points. Use one call per list and do not repeat its content in text.",
 		toMarkdown: checklistToMarkdown,
+	}),
+	showReview: primitive({
+		schema: reviewSchema,
+		description:
+			"Show a review in your answer: one or more texts checked against rules or a guide, each with findings on specific passages and, where useful, a corrected version. Use it when the user asks you to check texts such as references, outcomes or paragraphs against rules, one item per text. Quote each excerpt exactly from its item's text. Put observations not tied to one text in `general`. Use one call per review and do not repeat its content in text.",
+		toMarkdown: reviewToMarkdown,
+	}),
+	showMatrix: primitive({
+		schema: matrixSchema,
+		description:
+			"Show a matrix in your answer: several items checked against the same set of criteria, as a grid of statuses (met, partial, not_met, n_a). Use it when a grid reads better than one review per item: one row per item, one column per criterion, and a note on any cell that needs explaining. Use one call per grid and do not repeat its content in text.",
+		toMarkdown: matrixToMarkdown,
 	}),
 };
 
@@ -42,21 +58,24 @@ export type GenUiTools = {
 	>;
 };
 
+const displayTool = ({
+	schema,
+	description,
+}: Pick<PrimitiveEntry<z.ZodType>, "schema" | "description">) =>
+	tool({
+		description,
+		inputSchema: schema,
+		execute: async () => ({
+			shown: true as const,
+		}),
+	});
+
 export const buildGenUiTools = (): GenUiTools =>
 	Object.fromEntries(
-		GEN_UI_TOOL_NAMES.map((name) => {
-			const { schema, description } = primitiveCatalog[name];
-			return [
-				name,
-				tool({
-					description,
-					inputSchema: schema,
-					execute: async () => ({
-						shown: true as const,
-					}),
-				}),
-			];
-		}),
+		GEN_UI_TOOL_NAMES.map((name) => [
+			name,
+			displayTool(primitiveCatalog[name]),
+		]),
 	) as GenUiTools;
 
 const isDisplayToolName = (name: string): name is DisplayToolName =>

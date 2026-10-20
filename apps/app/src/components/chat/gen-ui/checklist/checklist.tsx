@@ -2,16 +2,18 @@ import type { DeepPartial } from "ai";
 import { ChevronDownIcon } from "lucide-react";
 import { MessageResponse } from "@/components/ai-elements/message";
 import type { ChecklistInput } from "@/components/chat/gen-ui/checklist/schema";
-import {
-	type Status,
-	statusLabel,
-	statusSchema,
-} from "@/components/chat/gen-ui/status";
+import { statusLabel } from "@/components/chat/gen-ui/status";
 import {
 	StatusIcon,
 	statusTone,
 	Tally,
 } from "@/components/chat/gen-ui/status-icon";
+import {
+	isRecord,
+	listOf,
+	statusOf,
+	textOf,
+} from "@/components/chat/gen-ui/streamed";
 import {
 	Collapsible,
 	CollapsibleContent,
@@ -20,19 +22,6 @@ import {
 import { Skeleton } from "@/components/ui/skeleton";
 import { cn } from "@/lib/utils";
 
-/** A status cut off mid-stream is not one yet. */
-const statusOf = (value: unknown): Status | undefined => {
-	const parsed = statusSchema.safeParse(value);
-	return parsed.success ? parsed.data : undefined;
-};
-
-const textOf = (value: unknown): string | undefined =>
-	typeof value === "string" && value !== "" ? value : undefined;
-
-const isRecord = (value: unknown): value is Record<string, unknown> =>
-	value !== null && typeof value === "object" && !Array.isArray(value);
-
-/** Streamed input is unvalidated, so every field may be missing or malformed. */
 const itemOf = (value: unknown) =>
 	isRecord(value)
 		? {
@@ -53,7 +42,7 @@ export const Checklist = ({
 }) => {
 	const title = textOf(input.title);
 	const description = textOf(input.description);
-	const items = (Array.isArray(input.items) ? input.items : []).map(itemOf);
+	const items = listOf(input.items).map(itemOf);
 	const statuses = items.map((item) => item?.status);
 	const withStatus = statuses.some(Boolean);
 	const withHeader = Boolean(title || description || withStatus);

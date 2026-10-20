@@ -89,6 +89,67 @@ describe("DisplayPart", () => {
 		expect(screen.getByText("APA 7 check")).toBeDefined();
 	});
 
+	test.each<
+		[
+			DisplayToolPart["type"],
+			unknown,
+			string,
+		]
+	>([
+		[
+			"tool-showReview",
+			{
+				title: "APA 7 check",
+				items: [
+					{
+						label: "Shute (2008)",
+						text: "Shute, V. J. (2008).",
+					},
+				],
+			},
+			"Shute, V. J. (2008).",
+		],
+		[
+			"tool-showMatrix",
+			{
+				columns: [
+					{
+						key: "doi",
+						label: "DOI",
+					},
+				],
+				rows: [
+					{
+						label: "Shute (2008)",
+						cells: {
+							doi: {
+								status: "almost",
+							},
+						},
+					},
+				],
+			},
+			"DOI",
+		],
+	])(
+		"renders invalid stored %s input through toMarkdown",
+		async (type, input, text) => {
+			const { container } = render(
+				<DisplayPart
+					part={{
+						type,
+						state: "output-available",
+						input,
+					}}
+					running={false}
+				/>,
+			);
+
+			await waitFor(() => expect(container.textContent).toContain(text));
+			expect(container.querySelector(".rounded-xl.border.bg-card")).toBeNull();
+		},
+	);
+
 	test("validates a part that stopped streaming", async () => {
 		const { container } = render(
 			<DisplayPart
