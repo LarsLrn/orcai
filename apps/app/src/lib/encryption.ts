@@ -48,7 +48,7 @@ const decryptApiKey = (encryptedApiKey: string) =>
 
 		const { config } = yield* AppConfigService;
 
-		return yield* Effect.tryPromise({
+		const apiKey = yield* Effect.tryPromise({
 			try: () =>
 				decrypt(
 					encryptedApiKey.trim(),
@@ -60,6 +60,15 @@ const decryptApiKey = (encryptedApiKey: string) =>
 					cause,
 				}),
 		});
+
+		if (apiKey === undefined) {
+			return yield* new InternalError({
+				operation: "decryptApiKey",
+				cause: new Error("Encrypted API key does not decrypt"),
+			});
+		}
+
+		return apiKey;
 	});
 
 /** The decrypted API key of a provider. */

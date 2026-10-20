@@ -14,7 +14,7 @@ export const quotaPoolListRowSchema = quotaPoolSchema.extend({
 	provider: providerSchema.pick({
 		id: true,
 		name: true,
-		compatibility: true,
+		kind: true,
 		meteringMode: true,
 	}),
 	currentPeriod: quotaPeriodSchema

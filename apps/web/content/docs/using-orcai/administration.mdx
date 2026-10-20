@@ -129,9 +129,13 @@ Providers represent model backends/endpoints available to OrcAI.
 Providers (`/app/providers`) lists them with their status and metering mode.
 **Add provider** opens `/app/providers/add` with these fields:
 
+- **Kind**: **OpenAI-compatible** for any endpoint that speaks the OpenAI
+  API, or **OpenAI** or **Anthropic** for their official APIs. The kind is
+  fixed once the provider exists; to switch kind, create a new provider.
 - **Name**, shown to users wherever the provider is named.
-- **Compatibility**: only OpenAI-compatible endpoints are supported at the moment.
-- **Endpoint**: the base URL of the endpoint, including the version path.
+- **Endpoint**, only for OpenAI-compatible providers: the base URL of the
+  endpoint, including the version path. OpenAI and Anthropic providers have
+  no endpoint field and use the official API.
 - **API key**, stored encrypted. When editing, leave it blank to keep the stored key.
 - **Metering mode**: whether quota counts tokens or requests for this provider.
 - **Enabled**: only an enabled provider's models can be used in the organisation.
@@ -141,6 +145,15 @@ connected models, with **Add model** and **Edit provider**
 (`/app/providers/<provider id>/edit`). There is no separate connection test;
 **Discover models** on the Models page is a quick check that the endpoint and
 key work.
+
+Discovery lists the models the provider offers: `/models` of the endpoint for
+OpenAI-compatible providers and of OpenAI's API for OpenAI providers, and
+Anthropic's Models API for Anthropic providers.
+
+With an Anthropic provider, OrcAI marks the system prompt for Anthropic's
+prompt caching, so the steps of an answer that uses tools reuse it instead of
+paying for it again. Claude's reasoning, when the model returns any, shows in
+the answer's work log as Thinking.
 
 ## Models
 

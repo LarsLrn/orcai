@@ -15,4 +15,10 @@ export {
 	generateManyEmbeddings,
 } from "./generate-embedding";
 export { generateTextEffect } from "./generate-text";
+export {
+	buildSystemInstructions,
+	createProviderLanguageModel,
+	listProviderModels,
+} from "./provider-kinds/registry";
+export type { SystemPrompt } from "./provider-kinds/types";
 export { AiTelemetryLive, aiTelemetry } from "./telemetry";

@@ -7,10 +7,16 @@
 		".": "./src/index.ts"
 	},
 	"dependencies": {
+		"@ai-sdk/anthropic": "4.0.78",
 		"@ai-sdk/openai": "4.0.91",
+		"@ai-sdk/openai-compatible": "3.0.67",
 		"@ai-sdk/otel": "1.0.137",
+		"@ai-sdk/provider": "4.0.26",
+		"@orcai/core": "workspace:*",
 		"ai": "catalog:",
 		"effect": "catalog:",
-		"llama-tokenizer-js": "1.2.2"
+		"llama-tokenizer-js": "1.2.2",
+		"openai": "7.32.0",
+		"zod": "catalog:"
 	}
 }

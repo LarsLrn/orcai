@@ -1,5 +1,5 @@
 export * from "./inputs";
-export * from "./parts/compatibility";
+export * from "./parts/kind";
 export * from "./parts/metering-mode";
 export * from "./ref";
 export * from "./responses";

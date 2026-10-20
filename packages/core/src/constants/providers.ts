@@ -1,21 +1,35 @@
-export const providerCompatibilities = [
+export type ProviderEndpointMode = "required" | "none";
+
+/** Client-safe metadata, one entry per provider kind. */
+export const providerKinds = [
 	{
-		value: "openai",
-		label: "OpenAI (compatible)",
-	},
-	/* {
-		value: "azure",
-		label: "Azure OpenAI",
-	},
-	{
-		value: "anthropic",
-		label: "Anthropic",
+		kind: "openai-compatible",
+		endpointMode: "required",
 	},
 	{
-		value: "google",
-		label: "Google Gemini",
-	}, */
-] as const;
+		kind: "openai",
+		endpointMode: "none",
+	},
+	{
+		kind: "anthropic",
+		endpointMode: "none",
+	},
+] as const satisfies readonly {
+	kind: string;
+	endpointMode: ProviderEndpointMode;
+}[];
+
+export type ProviderKind = (typeof providerKinds)[number]["kind"];
+
+const endpointModes = Object.fromEntries(
+	providerKinds.map((entry) => [
+		entry.kind,
+		entry.endpointMode,
+	]),
+) as Record<ProviderKind, ProviderEndpointMode>;
+
+export const getProviderEndpointMode = (kind: ProviderKind) =>
+	endpointModes[kind];
 
 export const modelCapabilities = [
 	"text",

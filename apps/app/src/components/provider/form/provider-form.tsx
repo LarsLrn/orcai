@@ -1,11 +1,17 @@
-import { providerCompatibilities, providerMeteringModes } from "@orcai/core";
+import {
+	getProviderEndpointMode,
+	providerKinds,
+	providerMeteringModes,
+} from "@orcai/core";
 import type { Provider } from "@orcai/schema";
 import { useNavigate } from "@tanstack/react-router";
+import { useSelector } from "@tanstack/react-store";
 import { useAppForm } from "@/hooks/form";
 import {
 	useCreateProviderMutation,
 	useUpdateProviderMutation,
 } from "@/hooks/mutations/use-provider-mutations";
+import { getProviderKindLabel } from "@/lib/presentation/provider-kind";
 import { m } from "@/paraglide/messages";
 import { providerFormOptions } from "./provider-form-options";
 
@@ -31,18 +37,29 @@ const ProviderForm = ({
 	const form = useAppForm({
 		...providerFormOptions(provider),
 		onSubmit: async ({ value }) => {
+			const { apiKey, kind, ...fields } = value;
+			const endpoint =
+				getProviderEndpointMode(kind) === "required" ? fields.endpoint : null;
 			if (action === "update" && provider) {
-				const { apiKey, ...fields } = value;
 				await updateProvider({
 					...fields,
+					endpoint,
 					apiKey: apiKey.trim() || undefined,
 					id: provider.id,
 				});
 			} else {
-				await createProvider(value);
+				await createProvider({
+					...fields,
+					kind,
+					endpoint,
+					apiKey,
+				});
 			}
 		},
 	});
+	const endpointMode = useSelector(form.store, (state) =>
+		getProviderEndpointMode(state.values.kind),
+	);
 
 	return (
 		<form
@@ -54,17 +71,24 @@ const ProviderForm = ({
 		>
 			<div className="grid gap-4 md:grid-cols-2">
 				<form.AppField
-					name="compatibility"
+					name="kind"
+					listeners={{
+						onChange: () => form.setFieldValue("endpoint", ""),
+					}}
 					children={(field) => (
 						<field.SelectField
-							label={m.providers_form_compatibility_label()}
-							placeholder={m.providers_form_compatibility_placeholder()}
-							description={m.providers_form_compatibility_description()}
-							options={providerCompatibilities.map((compatibility) => ({
-								value: compatibility.value,
-								label: compatibility.label,
+							label={m.providers_form_kind_label()}
+							placeholder={m.providers_form_kind_placeholder()}
+							description={
+								action === "update"
+									? m.providers_form_kind_edit_description()
+									: m.providers_form_kind_description()
+							}
+							options={providerKinds.map(({ kind }) => ({
+								value: kind,
+								label: getProviderKindLabel(kind),
 							}))}
-							disabled={action === "update"} // Don't allow changing provider on edit
+							disabled={action === "update"}
 						/>
 					)}
 				/>
@@ -81,16 +105,22 @@ const ProviderForm = ({
 				/>
 			</div>
 
-			<form.AppField
-				name="endpoint"
-				children={(field) => (
-					<field.TextField
-						label={m.providers_form_endpoint_label()}
-						description={m.providers_form_endpoint_description()}
-						placeholder="https://api.openai.com/v1"
-					/>
-				)}
-			/>
+			{endpointMode === "required" ? (
+				<form.AppField
+					name="endpoint"
+					children={(field) => (
+						<field.TextField
+							label={m.providers_form_endpoint_label()}
+							description={m.providers_form_endpoint_description()}
+							placeholder="https://api.example.com/v1"
+						/>
+					)}
+				/>
+			) : (
+				<p className="text-muted-foreground text-sm">
+					{m.providers_form_endpoint_default_hint()}
+				</p>
+			)}
 
 			<form.AppField
 				name="apiKey"

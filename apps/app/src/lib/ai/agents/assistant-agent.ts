@@ -1,4 +1,5 @@
-import { aiTelemetry } from "@orcai/ai";
+import { aiTelemetry, buildSystemInstructions } from "@orcai/ai";
+import type { ProviderKind } from "@orcai/core";
 import {
 	isStepCount,
 	type LanguageModel,
@@ -36,6 +37,7 @@ import type { DocsConfig } from "@/lib/effect/services/config";
 export const createAssistantAgent = (
 	params: AssistantToolDeps & {
 		model: LanguageModel;
+		providerKind: ProviderKind;
 		generationParams?: ChatAgentGenerationParams;
 		docs: DocsConfig | undefined;
 		userContext: AssistantUserContext;
@@ -107,17 +109,15 @@ export const createAssistantAgent = (
 			topP: params.generationParams?.topP,
 			frequencyPenalty: params.generationParams?.frequencyPenalty,
 			presencePenalty: params.generationParams?.presencePenalty,
-			instructions: [
-				{
-					role: "system",
-					content: buildAssistantSystemPrompt({
-						docs: params.docs,
-						userContext: params.userContext,
-						featurePrompts: params.features.map(({ entry }) => entry.prompt),
-						toolGroups,
-					}),
-				},
-			],
+			instructions: buildSystemInstructions(
+				params.providerKind,
+				buildAssistantSystemPrompt({
+					docs: params.docs,
+					userContext: params.userContext,
+					featurePrompts: params.features.map(({ entry }) => entry.prompt),
+					toolGroups,
+				}),
+			),
 			stopWhen: isStepCount(20),
 		}),
 		// Also sees tools approved in an earlier request, which run before the first step.

@@ -8,11 +8,11 @@ const text = (content: string) =>
 		state: "done",
 	}) as unknown as MessagePart;
 
-const reasoning = (content: string) =>
+const reasoning = (content: string, state = "done") =>
 	({
 		type: "reasoning",
 		text: content,
-		state: "done",
+		state,
 	}) as unknown as MessagePart;
 
 const search = () =>
@@ -72,6 +72,25 @@ const deleteBot = (state: string, approved?: boolean) =>
 	}) as unknown as MessagePart;
 
 describe("classifyTurn", () => {
+	test("finished reasoning without text stays out of the work log", () => {
+		const turn = classifyTurn(
+			[
+				reasoning(""),
+				reasoning("", "streaming"),
+				search(),
+				text("answer"),
+			],
+			{
+				running: true,
+			},
+		);
+
+		expect(turn.entries.map((entry) => entry.id)).toEqual([
+			"1",
+			"2",
+		]);
+	});
+
 	test("text after the last step is the answer", () => {
 		const turn = classifyTurn([
 			reasoning("a"),

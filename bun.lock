@@ -27,7 +27,6 @@
       "version": "0.2.0",
       "dependencies": {
         "@ai-sdk/devtools": "1.0.40",
-        "@ai-sdk/openai-compatible": "3.0.67",
         "@ai-sdk/react": "4.0.140",
         "@authzed/authzed-node": "catalog:",
         "@base-ui/react": "1.9.0",
@@ -119,7 +118,6 @@
         "motion": "14.1.0",
         "nanoid": "6.0.2",
         "nextstepjs": "2.3.0",
-        "openai": "7.32.0",
         "pg": "catalog:",
         "postcss": "8.5.29",
         "react": "catalog:",
@@ -231,11 +229,17 @@
       "name": "@orcai/ai",
       "version": "0.1.0",
       "dependencies": {
+        "@ai-sdk/anthropic": "4.0.78",
         "@ai-sdk/openai": "4.0.91",
+        "@ai-sdk/openai-compatible": "3.0.67",
         "@ai-sdk/otel": "1.0.137",
+        "@ai-sdk/provider": "4.0.26",
+        "@orcai/core": "workspace:*",
         "ai": "catalog:",
         "effect": "catalog:",
         "llama-tokenizer-js": "1.2.2",
+        "openai": "7.32.0",
+        "zod": "catalog:",
       },
     },
     "packages/contracts": {
@@ -434,6 +438,8 @@
     "zod": "4.6.6",
   },
   "packages": {
+    "@ai-sdk/anthropic": ["@ai-sdk/anthropic@4.0.78", "", { "dependencies": { "@ai-sdk/provider": "4.0.26", "@ai-sdk/provider-utils": "5.0.58" }, "peerDependencies": { "zod": "^3.25.76 || ^4.1.8" } }, "sha512-lVMxa9tLM5WoB72bqxjzWEWQlCwtBTo1L3yIKxAefowWATd+1YKohrINey6wTn8gtGEqyYm79z4DUGJBYauUFw=="],
+
     "@ai-sdk/devtools": ["@ai-sdk/devtools@1.0.40", "", { "dependencies": { "@ai-sdk/provider": "4.0.26", "@hono/node-server": "^1.19.15", "ai": "7.0.137", "hono": "^4.13.7" }, "bin": { "devtools": "./bin/cli.js" } }, "sha512-ZWOzN08zjOk+rtUnioKvELw6/fxMrnldoeBXv5Rglckwggi4koX7kEmu7DfHoepJ5RvwCtkNH1+ri5bMGkVRwA=="],
 
     "@ai-sdk/gateway": ["@ai-sdk/gateway@4.0.110", "", { "dependencies": { "@ai-sdk/provider": "4.0.26", "@ai-sdk/provider-utils": "5.0.58", "@vercel/oidc": "3.2.0" }, "peerDependencies": { "zod": "^3.25.76 || ^4.1.8" } }, "sha512-5IwnOR6v7KC+D9eddUqsCobXl/FbLUVb2LaQc/uyuQdpP3/n9s0YLc9zl4/W3IS/R2pjHrqUfCzEAeOu7bFLoQ=="],

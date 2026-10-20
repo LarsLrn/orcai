@@ -771,7 +771,7 @@ test("the app discovers the inference mock's models through a provider", async (
 			name: `E2E Inference Mock ${String(Date.now())}`,
 			description: "Mock OpenAI-compatible endpoint for the e2e suite.",
 			endpoint: inference.url,
-			compatibility: "openai",
+			kind: "openai-compatible",
 			meteringMode: "tokens",
 			apiKey,
 			enabled: true,

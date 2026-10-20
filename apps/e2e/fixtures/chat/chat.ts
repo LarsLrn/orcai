@@ -60,7 +60,7 @@ export const setUpChatModel = async (
 			name: chatName("Provider"),
 			description: "Mock OpenAI-compatible endpoint for the chat slice.",
 			endpoint: inference.url,
-			compatibility: "openai",
+			kind: "openai-compatible",
 			meteringMode: "tokens",
 			apiKey: "e2e-mock-key",
 			enabled: true,

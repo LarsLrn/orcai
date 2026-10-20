@@ -1,4 +1,3 @@
-import { providerCompatibilities } from "@orcai/core";
 import { useSuspenseQuery } from "@tanstack/react-query";
 import { createFileRoute, Link } from "@tanstack/react-router";
 import {
@@ -36,6 +35,7 @@ import {
 	getModelStatusLabel,
 	getModelStatusVariant,
 } from "@/lib/presentation/model-status";
+import { getProviderKindLabel } from "@/lib/presentation/provider-kind";
 import {
 	getProviderStatusLabel,
 	getProviderStatusVariant,
@@ -45,13 +45,6 @@ import { m } from "@/paraglide/messages";
 export const Route = createFileRoute("/app/providers/$providerId/")({
 	component: RouteComponent,
 });
-
-const compatibilityLabelMap = new Map(
-	providerCompatibilities.map((compatibility) => [
-		compatibility.value,
-		compatibility.label,
-	]),
-);
 
 const formatTimestamp = (timestamp?: Date | string | null) => {
 	if (!timestamp) {
@@ -65,7 +58,10 @@ const formatTimestamp = (timestamp?: Date | string | null) => {
 		: formatDisplayTimestamp(parsedDate);
 };
 
-const getEndpointHost = (endpoint: string) => {
+const getEndpointHost = (endpoint: string | null) => {
+	if (endpoint === null) {
+		return m.providers_detail_endpoint_default();
+	}
 	try {
 		return new URL(endpoint).host;
 	} catch {
@@ -103,8 +99,7 @@ function RouteComponent() {
 	const supportedCapabilities = Array.from(
 		new Set(providerModels.flatMap((model) => model.capabilities)),
 	).map(getModelCapabilityLabel);
-	const compatibilityLabel =
-		compatibilityLabelMap.get(provider.compatibility) ?? provider.compatibility;
+	const kindLabel = getProviderKindLabel(provider.kind);
 	const endpointHost = getEndpointHost(provider.endpoint);
 
 	return (
@@ -123,7 +118,7 @@ function RouteComponent() {
 					</Badge>
 					<Badge variant="outline">
 						<ServerIcon className="size-3" />
-						{compatibilityLabel}
+						{kindLabel}
 					</Badge>
 					<Badge variant="outline">
 						<BotIcon className="size-3" />
@@ -214,9 +209,9 @@ function RouteComponent() {
 							<div className="flex items-start justify-between gap-4">
 								<div className="flex items-center gap-2 text-muted-foreground text-sm">
 									<ServerIcon className="h-4 w-4" />
-									{m.providers_form_compatibility_label()}
+									{m.providers_form_kind_label()}
 								</div>
-								<span className="font-medium">{compatibilityLabel}</span>
+								<span className="font-medium">{kindLabel}</span>
 							</div>
 							<Separator />
 							<div className="flex items-start justify-between gap-4">
@@ -224,9 +219,15 @@ function RouteComponent() {
 									<ServerIcon className="h-4 w-4" />
 									{m.providers_form_endpoint_label()}
 								</div>
-								<code className="rounded border bg-muted/40 px-2 py-1 font-mono text-xs">
-									{provider.endpoint}
-								</code>
+								{provider.endpoint === null ? (
+									<span className="font-medium">
+										{m.providers_detail_endpoint_default()}
+									</span>
+								) : (
+									<code className="rounded border bg-muted/40 px-2 py-1 font-mono text-xs">
+										{provider.endpoint}
+									</code>
+								)}
 							</div>
 						</CardContent>
 					</Card>

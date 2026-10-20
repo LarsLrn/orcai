@@ -7,7 +7,7 @@ const fields = {
 	name: "Provider",
 	description: "",
 	endpoint: "https://api.example.com/v1",
-	compatibility: "openai",
+	kind: "openai-compatible",
 	meteringMode: "tokens",
 	apiKey: "sk-test",
 	enabled: true,
@@ -31,7 +31,63 @@ describe("createProviderInputSchema", () => {
 	});
 });
 
+describe("createProviderInputSchema endpoint", () => {
+	const reasonsOf = (input: unknown) =>
+		createProviderInputSchema
+			.safeParse(input)
+			.error?.issues.map((issue) =>
+				"params" in issue ? issue.params?.reason : issue.code,
+			);
+
+	test("requires an endpoint for OpenAI-compatible providers", () => {
+		expect(
+			reasonsOf({
+				...fields,
+				endpoint: null,
+			}),
+		).toEqual([
+			"PROVIDER_ENDPOINT_REQUIRED",
+		]);
+	});
+
+	test("rejects an endpoint for official kinds", () => {
+		for (const kind of [
+			"openai",
+			"anthropic",
+		]) {
+			expect(
+				reasonsOf({
+					...fields,
+					kind,
+				}),
+			).toEqual([
+				"PROVIDER_ENDPOINT_NOT_ALLOWED",
+			]);
+			expect(
+				createProviderInputSchema.safeParse({
+					...fields,
+					kind,
+					endpoint: null,
+				}).success,
+			).toBe(true);
+		}
+	});
+});
+
 describe("updateProviderInputSchema", () => {
+	test("leaves the kind out", () => {
+		expect(
+			Object.keys(
+				updateProviderInputSchema.parse({
+					id,
+					kind: "anthropic",
+				}),
+			),
+		).toEqual([
+			"id",
+		]);
+	});
+
 	test("leaves the API key out when none is given", () => {
 		const result = updateProviderInputSchema.parse({
 			id,
