@@ -131,6 +131,7 @@ export const countContinuations = (page: Page): (() => number) => {
 
 export type StoredPart = {
 	type: string;
+	toolCallId?: string;
 	state?: string;
 	input?: unknown;
 	output?: unknown;
@@ -214,6 +215,16 @@ export const continueTurn = async (
 			approvalId: string;
 			approved: boolean;
 		}[];
+		toolOutputs?: (
+			| {
+					toolCallId: string;
+					output: unknown;
+			  }
+			| {
+					toolCallId: string;
+					errorText: string;
+			  }
+		)[];
 	},
 ): Promise<string> => await streamedText(await client.ai.continue(input));
 

@@ -1,5 +1,6 @@
 import { describe, expect, mock, test } from "bun:test";
 import { GATED_ASSISTANT_TOOLS } from "@/lib/ai/tools/assistant/approval";
+import { uploadedAssets } from "@/lib/ai/tools/assistant/bots/request-upload.summary";
 import {
 	formatNames,
 	type NameOf,
@@ -119,6 +120,9 @@ const pendingInputs: Record<SummarisedToolName, unknown> = {
 	retryAsset: {
 		assetId: id(3),
 		repositoryId: id(2),
+	},
+	requestUpload: {
+		reason: "Upload the style guides for the repository 'APA rules'",
 	},
 	listAccess: {
 		resourceType: "bot",
@@ -603,5 +607,72 @@ describe("loadTools summary", () => {
 		expect(toolSummaryOf(part).line(part as never, lookedUp)).toBe(
 			"Loaded tools: Bots and Sharing",
 		);
+	});
+});
+
+describe("requestUpload summary", () => {
+	const summary = toolSummaryOf(partOf("requestUpload", {}));
+	const input = pendingInputs.requestUpload;
+
+	test("counts the saved files and lists their titles", () => {
+		const saved = (titles: string[]) =>
+			partOf("requestUpload", {
+				state: "output-available",
+				input,
+				output: {
+					status: "saved",
+					assets: titles.map((title, index) => ({
+						id: id(index + 1),
+						title,
+					})),
+				},
+			});
+		const one = saved([
+			"APA 7.pdf",
+		]);
+		const two = saved([
+			"APA 7.pdf",
+			"Harvard.pdf",
+		]);
+
+		expect(summary.line(one as never, lookedUp)).toBe("Uploaded 1 file");
+		expect(summary.line(two as never, lookedUp)).toBe("Uploaded 2 files");
+		expect(uploadedAssets(two as never).map((asset) => asset.title)).toEqual([
+			"APA 7.pdf",
+			"Harvard.pdf",
+		]);
+	});
+
+	test("reads a cancelled upload", () => {
+		const part = partOf("requestUpload", {
+			state: "output-available",
+			input,
+			output: {
+				status: "cancelled",
+			},
+		});
+
+		expect(summary.line(part as never, lookedUp)).toBe("Upload cancelled");
+		expect(uploadedAssets(part as never)).toEqual([]);
+	});
+
+	test("names the tool while pending or closed", () => {
+		for (const fields of [
+			{
+				state: "input-available",
+			},
+			{
+				state: "output-error",
+				errorText: "Not run: the user sent a new message instead.",
+			},
+		]) {
+			const part = partOf("requestUpload", {
+				...fields,
+				input,
+			});
+
+			expect(summary.line(part as never, lookedUp)).toBe("Upload files");
+			expect(uploadedAssets(part as never)).toEqual([]);
+		}
 	});
 });

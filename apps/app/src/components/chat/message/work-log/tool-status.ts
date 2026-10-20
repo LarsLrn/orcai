@@ -1,4 +1,5 @@
 import type { ToolPart } from "@/components/chat/message/classify-turn";
+import { isClientToolPart } from "@/lib/ai/tools/assistant/client-tools";
 import {
 	type ToolCloseCode,
 	toolCloseCode,
@@ -10,6 +11,7 @@ import { m } from "@/paraglide/messages";
 export type ToolStatus =
 	| "approved"
 	| "awaiting-approval"
+	| "awaiting-input"
 	| "denied"
 	| "failed"
 	| "interrupted"
@@ -22,6 +24,8 @@ export const toolStatusLabel = (status: ToolStatus) => {
 			return m.chat_work_log_tool_status_approved();
 		case "awaiting-approval":
 			return m.chat_work_log_tool_status_awaiting_approval();
+		case "awaiting-input":
+			return m.chat_work_log_tool_status_awaiting_input();
 		case "denied":
 			return m.chat_work_log_tool_status_denied();
 		case "failed":
@@ -45,11 +49,13 @@ const closedStatus = {
 
 /**
  * A finished call has no status. Whether an unfinished call is still running
- * or was cut off by an ended turn is only known at the turn level.
+ * or was cut off by an ended turn is only known at the turn level. A client
+ * call still waits only on the `latest` message; elsewhere it was skipped.
  */
 export const toolStatus = (
 	part: ToolPart,
 	running: boolean,
+	latest = false,
 ): ToolStatus | null => {
 	switch (part.state) {
 		case "output-available":
@@ -68,7 +74,11 @@ export const toolStatus = (
 			if (!part.approval.approved) return "denied";
 			return running ? "running" : "approved";
 		default:
-			return running ? "running" : "interrupted";
+			if (running) return "running";
+			if (part.state === "input-available" && isClientToolPart(part)) {
+				return latest ? "awaiting-input" : "skipped";
+			}
+			return "interrupted";
 	}
 };
 

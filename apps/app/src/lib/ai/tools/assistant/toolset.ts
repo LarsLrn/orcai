@@ -5,6 +5,7 @@ import { deleteAssetTool } from "./bots/delete-asset";
 import { deleteBlockTool } from "./bots/delete-block";
 import { deleteBotTool } from "./bots/delete-bot";
 import { publishBotTool } from "./bots/publish-bot";
+import { requestUploadTool } from "./bots/request-upload";
 import { retryAssetTool } from "./bots/retry-asset";
 import { updateAssetTool } from "./bots/update-asset";
 import { updateBotTool } from "./bots/update-bot";
@@ -63,6 +64,7 @@ export const buildAssistantTools = ({
 	updateAsset: updateAssetTool(deps),
 	deleteAsset: deleteAssetTool(deps),
 	retryAsset: retryAssetTool(deps),
+	requestUpload: requestUploadTool,
 	listAccess: listAccessTool(deps),
 	findPrincipals: findPrincipalsTool(deps),
 	grantAccess: grantAccessTool(deps),

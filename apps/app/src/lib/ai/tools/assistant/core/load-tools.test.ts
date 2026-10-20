@@ -50,6 +50,7 @@ describe("loadTools", () => {
 						"updateAsset",
 						"deleteAsset",
 						"retryAsset",
+						"requestUpload",
 					],
 				},
 				{

@@ -1,6 +1,10 @@
 import type { ChatId, ChatMessageId } from "@orcai/core";
 import { DB, dbSchema } from "@orcai/db";
-import type { ChatMessageMetadata, ToolApprovalDecision } from "@orcai/schema";
+import type {
+	ChatMessageMetadata,
+	ClientToolOutput,
+	ToolApprovalDecision,
+} from "@orcai/schema";
 import type { UIMessage } from "ai";
 import { and, desc, eq, lt, max } from "drizzle-orm";
 import * as Effect from "effect/Effect";
@@ -196,18 +200,21 @@ export const turnNotAwaiting = (message: string) =>
 	});
 
 /**
- * Writes approval decisions onto a paused reply while it is still the chat's
- * last row and still waiting for them, and claims it for this continuation.
+ * Writes approval decisions and client-tool results onto a paused reply while
+ * it is still the chat's last row and still waiting for them, and claims it
+ * for this continuation.
  * Returns what it stored.
  */
 export const persistTurnDecisions = ({
 	id,
 	chatId,
 	decisions,
+	toolOutputs,
 }: {
 	id: ChatMessageId;
 	chatId: ChatId;
 	decisions: ToolApprovalDecision[];
+	toolOutputs: ClientToolOutput[];
 }) =>
 	Effect.gen(function* () {
 		const db = yield* DB;
@@ -255,6 +262,7 @@ export const persistTurnDecisions = ({
 								}
 							: undefined,
 					decisions,
+					toolOutputs,
 					now,
 				});
 

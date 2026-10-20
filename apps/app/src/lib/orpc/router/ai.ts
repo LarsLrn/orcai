@@ -15,6 +15,7 @@ import {
 import type {
 	AiChatInput,
 	ChatMessageMetadata,
+	ClientToolOutput,
 	DatabaseBlock,
 	TemplateBlock,
 	ToolApprovalDecision,
@@ -201,10 +202,11 @@ type ChatTurn = {
 			userMessage: AiChatInput["message"];
 	  }
 	| {
-			/** Resumes the last row of `history` after its approvals were answered. */
+			/** Resumes the last row of `history` once its last step is answered. */
 			kind: "continuation";
 			replyId: ChatMessageId;
 			decisions: ToolApprovalDecision[];
+			toolOutputs: ClientToolOutput[];
 	  }
 );
 
@@ -494,6 +496,7 @@ const runChatTurn = (turn: ChatTurn) =>
 				id: assistantMessageId,
 				chatId: chat.id,
 				decisions: turn.decisions,
+				toolOutputs: turn.toolOutputs,
 			}).pipe(releaseOnFailure);
 		}
 
@@ -740,7 +743,7 @@ const aiContinue = authed.ai.continue
 
 			if (chat.kind !== "assistant") {
 				return yield* Effect.fail(
-					turnNotAwaiting("Only assistant replies wait for approvals."),
+					turnNotAwaiting("Only assistant replies wait for answers."),
 				);
 			}
 
@@ -755,6 +758,7 @@ const aiContinue = authed.ai.continue
 					continuedAt: lastRow.metadata.continuedAt,
 				},
 				decisions: input.approvals,
+				toolOutputs: input.toolOutputs,
 				now: new Date(),
 			});
 
@@ -800,10 +804,15 @@ const aiContinue = authed.ai.continue
 				},
 				signal,
 				history,
-				// The client never saw what the paused turn wrote, so read on from there.
-				turnZedToken: lastRow?.metadata.zedToken ?? zedToken,
+				// A client call's write after the pause returns a token that also covers
+				// the paused turn's writes; otherwise read on from the reply's own token.
+				turnZedToken:
+					input.toolOutputs.length > 0 && input.zedToken !== undefined
+						? input.zedToken
+						: (lastRow?.metadata.zedToken ?? zedToken),
 				replyId: input.messageId,
 				decisions: input.approvals,
+				toolOutputs: input.toolOutputs,
 			});
 
 			return streamToEventIterator(stream);

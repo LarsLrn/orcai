@@ -1,10 +1,20 @@
-import type { ChatMessageMetadata, ToolApprovalDecision } from "@orcai/schema";
-import { isToolUIPart, type UIMessage } from "ai";
+import type {
+	ChatMessageMetadata,
+	ClientToolOutput,
+	ToolApprovalDecision,
+} from "@orcai/schema";
+import { getToolName, isToolUIPart, type UIMessage } from "ai";
+import {
+	CLIENT_TOOL_OUTPUT_SCHEMAS,
+	hasClientToolOutput,
+	isClientToolPart,
+} from "@/lib/ai/tools/assistant/client-tools";
 
 type Parts = UIMessage["parts"];
 type Part = Parts[number];
 
 export type TurnDecisionsRejection =
+	| "CHAT_TOOL_OUTPUT_INVALID"
 	| "CHAT_TURN_DECISIONS_INCOMPLETE"
 	| "CHAT_TURN_NOT_AWAITING";
 
@@ -31,6 +41,10 @@ const reject = (
 const approvalIdOf = (part: Part) =>
 	isToolUIPart(part) ? part.approval?.id : undefined;
 
+/** A client tool's call still waiting for the browser's result. */
+const isAwaitingClientOutput = (part: Part) =>
+	isClientToolPart(part) && part.state === "input-available";
+
 /** How long a started continuation holds its reply before a retry may take over. */
 export const CONTINUATION_LEASE_MS = 10 * 60_000;
 
@@ -48,16 +62,18 @@ export const withoutContinuationClaim = ({
 }: ChatMessageMetadata): ChatMessageMetadata => metadata;
 
 /**
- * Answers the approvals a paused reply waits for. The reply must be the
- * chat's last row, not claimed by a running continuation, and the decisions
- * must answer every approval its last step requests and nothing else. A
- * decision repeating a stored answer is accepted. No decisions resume a last
- * step that was answered but has not run.
+ * Answers the approvals and client-tool calls a paused reply waits for. The
+ * reply must be the chat's last row, not claimed by a running continuation,
+ * and the answers must cover every pending part of its last step and nothing
+ * else. An answer repeating a stored one is accepted and keeps the stored
+ * one; a new tool output is validated against its tool's output schema. No
+ * answers resume a last step that was answered but has not run.
  */
 export const applyTurnDecisions = ({
 	messageId,
 	lastMessage,
 	decisions,
+	toolOutputs,
 	now,
 }: {
 	messageId: string;
@@ -70,6 +86,7 @@ export const applyTurnDecisions = ({
 		  }
 		| undefined;
 	decisions: ToolApprovalDecision[];
+	toolOutputs: ClientToolOutput[];
 	now: Date;
 }): AppliedTurnDecisions => {
 	if (lastMessage?.id !== messageId) {
@@ -102,16 +119,20 @@ export const applyTurnDecisions = ({
 	const requested = lastStep.filter(
 		(part) => part.state === "approval-requested",
 	);
+	const awaitingOutput = lastStep.filter(isAwaitingClientOutput);
 
-	if (decisions.length === 0) {
-		if (requested.length > 0) {
+	if (decisions.length === 0 && toolOutputs.length === 0) {
+		if (requested.length > 0 || awaitingOutput.length > 0) {
 			return reject(
 				"CHAT_TURN_DECISIONS_INCOMPLETE",
-				"Every pending approval needs an answer.",
+				"Every pending call needs an answer.",
 			);
 		}
 
-		return lastStep.some((part) => part.state === "approval-responded")
+		return lastStep.some(
+			(part) =>
+				part.state === "approval-responded" || hasClientToolOutput(part),
+		)
 			? {
 					ok: true,
 					parts,
@@ -169,21 +190,90 @@ export const applyTurnDecisions = ({
 		}
 	}
 
-	if (requested.some((part) => !decisionById.has(part.approval.id))) {
+	const outputById = new Map<string, Part>();
+
+	for (const answer of toolOutputs) {
+		if (outputById.has(answer.toolCallId)) {
+			return reject(
+				"CHAT_TURN_DECISIONS_INCOMPLETE",
+				"Each call can be answered once.",
+			);
+		}
+
+		const part = awaitingOutput.find(
+			(candidate) => candidate.toolCallId === answer.toolCallId,
+		);
+		const stored = lastStep.find(
+			(candidate) =>
+				candidate.toolCallId === answer.toolCallId &&
+				hasClientToolOutput(candidate),
+		);
+
+		// A retry after a failed stream repeats outputs the reply already holds.
+		if (stored) {
+			outputById.set(answer.toolCallId, stored);
+			continue;
+		}
+
+		if (!part) {
+			return reject(
+				"CHAT_TURN_NOT_AWAITING",
+				`Call ${answer.toolCallId} is not waiting for a result.`,
+			);
+		}
+
+		if ("errorText" in answer) {
+			outputById.set(answer.toolCallId, {
+				...part,
+				state: "output-error",
+				errorText: answer.errorText,
+			} as Part);
+			continue;
+		}
+
+		const toolName = getToolName(part);
+		const parsed = CLIENT_TOOL_OUTPUT_SCHEMAS[
+			toolName as keyof typeof CLIENT_TOOL_OUTPUT_SCHEMAS
+		].safeParse(answer.output);
+
+		if (!parsed.success) {
+			return reject(
+				"CHAT_TOOL_OUTPUT_INVALID",
+				`The result for call ${answer.toolCallId} does not match ${toolName}'s output.`,
+			);
+		}
+
+		outputById.set(answer.toolCallId, {
+			...part,
+			state: "output-available",
+			output: parsed.data,
+		} as Part);
+	}
+
+	if (
+		requested.some((part) => !decisionById.has(part.approval.id)) ||
+		awaitingOutput.some((part) => !outputById.has(part.toolCallId))
+	) {
 		return reject(
 			"CHAT_TURN_DECISIONS_INCOMPLETE",
-			"Every pending approval needs an answer.",
+			"Every pending call needs an answer.",
 		);
 	}
 
 	return {
 		ok: true,
 		parts: parts.map((part, index): Part => {
-			if (
-				index < stepStart ||
-				!isToolUIPart(part) ||
-				part.state !== "approval-requested"
-			) {
+			if (index < stepStart || !isToolUIPart(part)) {
+				return part;
+			}
+
+			const output = outputById.get(part.toolCallId);
+
+			if (output) {
+				return output;
+			}
+
+			if (part.state !== "approval-requested") {
 				return part;
 			}
 

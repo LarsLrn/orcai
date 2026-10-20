@@ -474,7 +474,7 @@ export const runAssistantTool = <A, E>(
  * `tool()` with no tool context. Left to inference, a `toModelOutput` that
  * reads the output widens the context type and breaks the agent's settings.
  */
-type NoToolContext = Record<string, never>;
+export type NoToolContext = Record<string, never>;
 
 export const assistantTool = <Input, Output>(
 	definition: Tool<Input, Output, NoToolContext> & {

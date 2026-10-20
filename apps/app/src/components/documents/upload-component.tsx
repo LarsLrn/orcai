@@ -20,6 +20,9 @@ import { m } from "@/paraglide/messages";
 
 type UploadResult = DirectUploadResult<true>;
 
+/** Compact drops the Card chrome and the title, for a message column. */
+type UploadVariant = "page" | "compact";
+
 type UploadComponentProps = {
 	route: StorageUploadRoute;
 	title?: string;
@@ -32,6 +35,7 @@ type UploadComponentProps = {
 	disabled?: boolean;
 	finalizeUpload?: boolean;
 	hidePickerWhenSettled?: boolean;
+	variant?: UploadVariant;
 	completionAction?: {
 		label: string;
 		onClick: () => void;
@@ -67,6 +71,7 @@ const UploadComponent = ({
 	disabled = false,
 	finalizeUpload: shouldFinalizeUpload = false,
 	hidePickerWhenSettled = false,
+	variant = "page",
 	completionAction,
 	onReset,
 	onUploaded,
@@ -141,41 +146,49 @@ const UploadComponent = ({
 		);
 	};
 
+	const picker = (
+		<>
+			<FileUploader
+				value={files}
+				onValueChange={setFiles}
+				progresses={progresses}
+				maxFileCount={maxFileCount}
+				maxSize={maxSize}
+				multiple={multiple}
+				accept={accept}
+				disabled={disabled || control.isPending || isFinalizing}
+			/>
+			<div className="mt-4 flex justify-end">
+				<Button
+					type="button"
+					onClick={() => {
+						void handleUpload();
+					}}
+					loading={control.isPending || isFinalizing}
+					disabled={files.length === 0 || disabled}
+				>
+					{uploadLabel ?? m.assets_upload_submit_button()}
+				</Button>
+			</div>
+		</>
+	);
+
 	return (
-		<div className="space-y-6">
+		<div className={variant === "compact" ? "space-y-4" : "space-y-6"}>
 			{!(hidePickerWhenSettled && control.isSettled) ? (
-				<Card>
-					<CardHeader>
-						<CardTitle>{title ?? m.assets_upload_title()}</CardTitle>
-						<CardDescription>
-							{description ?? m.assets_upload_description()}
-						</CardDescription>
-					</CardHeader>
-					<CardContent>
-						<FileUploader
-							value={files}
-							onValueChange={setFiles}
-							progresses={progresses}
-							maxFileCount={maxFileCount}
-							maxSize={maxSize}
-							multiple={multiple}
-							accept={accept}
-							disabled={disabled || control.isPending || isFinalizing}
-						/>
-						<div className="mt-4 flex justify-end">
-							<Button
-								type="button"
-								onClick={() => {
-									void handleUpload();
-								}}
-								loading={control.isPending || isFinalizing}
-								disabled={files.length === 0 || disabled}
-							>
-								{uploadLabel ?? m.assets_upload_submit_button()}
-							</Button>
-						</div>
-					</CardContent>
-				</Card>
+				variant === "compact" ? (
+					picker
+				) : (
+					<Card>
+						<CardHeader>
+							<CardTitle>{title ?? m.assets_upload_title()}</CardTitle>
+							<CardDescription>
+								{description ?? m.assets_upload_description()}
+							</CardDescription>
+						</CardHeader>
+						<CardContent>{picker}</CardContent>
+					</Card>
+				)
 			) : null}
 
 			{control.isPending || control.isSettled ? (
@@ -204,4 +217,9 @@ const UploadComponent = ({
 	);
 };
 
-export { UploadComponent, type UploadComponentProps, type UploadResult };
+export {
+	UploadComponent,
+	type UploadComponentProps,
+	type UploadResult,
+	type UploadVariant,
+};

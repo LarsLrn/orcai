@@ -13,6 +13,7 @@ import { Shimmer } from "@/components/ai-elements/shimmer";
 import type { AddToolApprovalResponse } from "@/components/assistant/confirmation-card";
 import { TurnZedTokenContext } from "@/components/assistant/tool-summaries";
 import { MessageBranches } from "@/components/chat/branch-links";
+import type { ClientToolActions } from "@/components/chat/continue-turn";
 import {
 	classifyTurn,
 	pausedStep,
@@ -48,6 +49,8 @@ interface MessageBlockProps {
 	linkSafety?: LinkSafetyConfig;
 	/** Answers a Confirmation card; only the latest row's cards can be answered. */
 	addToolApprovalResponse?: AddToolApprovalResponse;
+	/** Answers the latest row's client calls, such as the upload widget. */
+	clientToolActions?: ClientToolActions;
 	/** Runs a step whose cards are answered but that has not run, as after a reload. */
 	onContinue?: () => void;
 }
@@ -99,6 +102,7 @@ export const MessageBlock = ({
 	branching,
 	linkSafety,
 	addToolApprovalResponse,
+	clientToolActions,
 	onContinue,
 }: MessageBlockProps) => {
 	const variant = message.role === "user" ? "sent" : "received";
@@ -107,6 +111,7 @@ export const MessageBlock = ({
 	const running = isLatest && status === "streaming";
 	const { entries, answerParts } = classifyTurn(message.parts, {
 		running,
+		latest: isLatest,
 	});
 	const [workLogOpen, setWorkLogOpen] = useState(false);
 	const workLogRef = useRef<HTMLDivElement>(null);
@@ -128,7 +133,7 @@ export const MessageBlock = ({
 	const canContinue =
 		onContinue !== undefined &&
 		message.role === "assistant" &&
-		pausedStep(message.parts, running)?.answered === true;
+		pausedStep(message.parts, running, isLatest)?.answered === true;
 
 	// A reply exists from the first chunk on, before the model has written anything.
 	if (message.role === "assistant" && message.parts.length === 0) {
@@ -165,6 +170,8 @@ export const MessageBlock = ({
 								running={running}
 								linkSafety={linkSafety}
 								addToolApprovalResponse={addToolApprovalResponse}
+								clientToolActions={clientToolActions}
+								disabled={status === "submitted" || status === "streaming"}
 							/>
 						))}
 						{canContinue && (

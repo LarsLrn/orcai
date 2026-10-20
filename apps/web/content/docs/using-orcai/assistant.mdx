@@ -1,6 +1,6 @@
 ---
 title: OrcAI Assistant
-description: The OrcAI Assistant at /app/assistant, how it answers questions about OrcAI from these docs, what it can do for each role, the actions it asks you to confirm, its conversations, and when it is unavailable.
+description: The OrcAI Assistant at /app/assistant, how it answers questions about OrcAI from these docs, what it can do for each role, the actions it asks you to confirm, uploading files in a conversation, its conversations, and when it is unavailable.
 ---
 
 The OrcAI Assistant is OrcAI's built-in helper. It is part of the platform, not a bot: nobody owns, edits or shares it, and its model is chosen by an administrator of your organisation. Every member can use it, whatever their role.
@@ -28,7 +28,7 @@ The assistant can also do things for you in the active organisation. It acts as 
 What it offers depends on your organisation role:
 
 - **Every role** can ask it to find bots, behaviour and repository blocks, and assets you can read, to show how a bot is set up, and to list the groups you can see.
-- **Members, managers and admins** can also have it set up bots: create and edit bots, behaviour (template) blocks and repository blocks, link a behaviour, repositories and features to a bot, publish a bot, edit asset metadata, retry a failed asset, and delete bots, blocks and assets. It also handles sharing: it lists who can access a bot, block or asset, finds people and groups, and grants or removes access on resources you manage. Public visibility, which opens a resource to everyone on the instance, stays in the resource's access dialog; the assistant does not change it.
+- **Members, managers and admins** can also have it set up bots: create and edit bots, behaviour (template) blocks and repository blocks, link a behaviour, repositories and features to a bot, publish a bot, ask you to upload files, edit asset metadata, retry a failed asset, and delete bots, blocks and assets. It also handles sharing: it lists who can access a bot, block or asset, finds people and groups, and grants or removes access on resources you manage. Public visibility, which opens a resource to everyone on the instance, stays in the resource's access dialog; the assistant does not change it.
 - **Managers and admins** can also have it do people work: create, rename and delete groups and change their members, list organisation members, change roles, remove members, and invite people or withdraw invitations. Only an Admin can give or change the Admin role, through the assistant as on the Users page.
 
 Bot setup follows the organisation role only: a viewer who holds edit on a bot edits it in the bot editor, not through the assistant.
@@ -59,7 +59,11 @@ If you answered every card but the page reloaded before the assistant continued,
 
 ## Uploads
 
-The assistant cannot upload files. It links **Add assets** (`/app/hub/assets/add`) instead. Upload the files there, then tell the assistant, and it finds the new assets and carries on, for example by attaching them to a repository.
+When you want to add files, the assistant shows an **Upload files** field in the conversation, with a line saying what the files are for. Upload the files, review their metadata and save them, as on **Add assets** (`/app/hub/assets/add`). The assistant gets the new assets and carries on, for example by attaching them to a repository. The field needs the right to create assets, which members, managers and admins have.
+
+Choosing **Cancel** tells the assistant that you added nothing; if you uploaded files but did not save them, you are asked first. Writing a new message instead closes the field and marks it **Skipped**. If the page reloads before you save, the files you picked are lost and the field comes back empty.
+
+In the work log the field shows as "Uploaded 2 files" with the file titles, or as "Upload cancelled".
 
 ## Asking from other pages
 

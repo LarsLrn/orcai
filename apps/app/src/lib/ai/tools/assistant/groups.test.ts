@@ -96,7 +96,7 @@ describe("activeAssistantToolNames", () => {
 
 		const names = activeAssistantToolNames(capabilities, DEFERRED_TOOL_GROUPS);
 
-		expect(names).toHaveLength(39);
+		expect(names).toHaveLength(40);
 		expect(names).toEqual([
 			...ASSISTANT_TOOL_GROUPS.core,
 			...ASSISTANT_TOOL_GROUPS.bots,
@@ -127,6 +127,28 @@ describe("activeAssistantToolNames", () => {
 		expect(offeredToolGroups(capabilities)).toEqual([
 			"people",
 		]);
+	});
+
+	test("requestUpload needs create_asset, the other bots tools any content capability", () => {
+		const names = activeAssistantToolNames(
+			{
+				...viewer,
+				create_bot: true,
+			},
+			DEFERRED_TOOL_GROUPS,
+		);
+
+		expect(names).toContain("createBot");
+		expect(names).not.toContain("requestUpload");
+		expect(
+			activeAssistantToolNames(
+				{
+					...viewer,
+					create_asset: true,
+				},
+				DEFERRED_TOOL_GROUPS,
+			),
+		).toContain("requestUpload");
 	});
 
 	test("a capability set to false offers nothing", () => {

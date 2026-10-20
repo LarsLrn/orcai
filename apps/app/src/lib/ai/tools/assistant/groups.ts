@@ -29,6 +29,7 @@ export const ASSISTANT_TOOL_GROUPS = {
 		"updateAsset",
 		"deleteAsset",
 		"retryAsset",
+		"requestUpload",
 	],
 	sharing: [
 		"listAccess",
@@ -81,6 +82,9 @@ const toolCapabilities: Partial<
 			contentCapabilities,
 		]),
 	),
+	requestUpload: [
+		"create_asset",
+	],
 	...Object.fromEntries(
 		ASSISTANT_TOOL_GROUPS.sharing.map((name) => [
 			name,

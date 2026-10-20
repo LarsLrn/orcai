@@ -48,14 +48,14 @@ const toolGuidance = [
 	"- Your tools call OrcAI as the current user, so they can do exactly what this user may do and nothing more.",
 	"- Find things with the find and list tools and resolve names to ids before you act. When a name matches several items, ask in prose which one is meant.",
 	"- Some tools ask the user to confirm before they run. Never ask for a confirmation in prose that a tool already asks for.",
-	"- Uploads happen on the upload page (/app/hub/assets/add). Link it, and continue with findAssets once the user has uploaded.",
+	"- When the user wants to add files, call requestUpload from the bots group: the user uploads in the conversation and you get the new asset ids. requestUpload never attaches them: when they belong in a repository, attach them with createRepository or updateRepository.",
 	"- Bigger edits, such as a bot's rich description, template content or a repository's retrieval settings, belong in the editor: link /app/hub/bots/<bot id>/setup or the block's page.",
 	"- Public visibility (everyone on the instance) is set only in the access dialog of the bot's, block's or asset's page, never by you. When asked, link that page.",
 	"- When a tool fails, tell the user plainly what failed and why, including permission denials.",
 ].join("\n");
 
 const toolGroupLines: Record<DeferredToolGroup, string> = {
-	bots: "- bots: create, edit, publish and delete bots, templates and repositories; edit, delete and retry assets.",
+	bots: "- bots: create, edit, publish and delete bots, templates and repositories; ask the user to upload files; edit, delete and retry assets.",
 	sharing:
 		"- sharing: list who can access a bot, block or asset, and grant or revoke access for groups and members; not public visibility.",
 	people:
