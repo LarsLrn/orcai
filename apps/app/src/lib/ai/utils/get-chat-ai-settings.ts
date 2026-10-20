@@ -5,7 +5,7 @@ import { checkManyEntityPermissions, hasPermission } from "@orcai/spice-db";
 import { extractReasoningMiddleware, wrapLanguageModel } from "ai";
 import * as Effect from "effect/Effect";
 import { resolveFeatures } from "@/lib/ai/features/resolve-features";
-import { resolveChatGenerationParams } from "@/lib/ai/utils/chat-generation-defaults";
+import { chatCallSettings } from "@/lib/ai/utils/chat-call-settings";
 import { getZedToken } from "@/lib/authz/zed-token";
 import { BadRequestError } from "@/lib/effect/utils/errors";
 import { providerApiKey } from "@/lib/encryption";
@@ -245,14 +245,12 @@ export const getChatAiSettings = ({
 			middleware: middlewares,
 		});
 
-		const generationParams = resolveChatGenerationParams(chatConfig);
-
 		return {
 			provider,
 			model,
 			systemPrompt,
 			databaseBlocks,
 			features,
-			generationParams,
+			callSettings: chatCallSettings(chatConfig),
 		};
 	});

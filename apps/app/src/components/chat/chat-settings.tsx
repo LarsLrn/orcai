@@ -35,7 +35,6 @@ import { Separator } from "@/components/ui/separator";
 import { Skeleton } from "@/components/ui/skeleton";
 import { useAppForm } from "@/hooks/form";
 import { useUpdateChatMutation } from "@/hooks/mutations/use-chat-mutation";
-import { DEFAULT_CHAT_GENERATION_PARAMS } from "@/lib/ai/utils/chat-generation-defaults";
 import { reasonMessageOf } from "@/lib/errors/describe-error";
 import { client, orpc } from "@/lib/orpc/orpc";
 import { m } from "@/paraglide/messages";
@@ -140,11 +139,11 @@ const ChatConfigEditor = ({
 				config: {
 					modelId: value.modelId,
 					providerId: value.providerId,
-					temperature: value.temperature,
+					temperature: value.temperature ?? null,
 					maxTokens: value.maxTokens ?? null,
-					topP: value.topP,
-					frequencyPenalty: value.frequencyPenalty,
-					presencePenalty: value.presencePenalty,
+					topP: value.topP ?? null,
+					frequencyPenalty: value.frequencyPenalty ?? null,
+					presencePenalty: value.presencePenalty ?? null,
 					...(isBotLinked
 						? {}
 						: {
@@ -232,7 +231,8 @@ const ChatConfigEditor = ({
 							children={(field) => (
 								<field.SliderField
 									label={m.chat_settings_temperature_label()}
-									defaultValue={DEFAULT_CHAT_GENERATION_PARAMS.temperature}
+									placeholder={m.chat_settings_provider_default_placeholder()}
+									restingValue={1}
 									min={0}
 									max={2}
 									step={0.1}
@@ -246,7 +246,8 @@ const ChatConfigEditor = ({
 							children={(field) => (
 								<field.SliderField
 									label={m.chat_settings_top_p_label()}
-									defaultValue={DEFAULT_CHAT_GENERATION_PARAMS.topP}
+									placeholder={m.chat_settings_provider_default_placeholder()}
+									restingValue={1}
 									min={0}
 									max={1}
 									step={0.05}
@@ -262,7 +263,7 @@ const ChatConfigEditor = ({
 									label={m.chat_settings_max_tokens_label()}
 									type="number"
 									min={1}
-									placeholder={m.chat_settings_max_tokens_placeholder()}
+									placeholder={m.chat_settings_provider_default_placeholder()}
 								/>
 							)}
 						/>
@@ -272,7 +273,8 @@ const ChatConfigEditor = ({
 							children={(field) => (
 								<field.SliderField
 									label={m.chat_settings_frequency_penalty_label()}
-									defaultValue={DEFAULT_CHAT_GENERATION_PARAMS.frequencyPenalty}
+									placeholder={m.chat_settings_provider_default_placeholder()}
+									restingValue={0}
 									min={-2}
 									max={2}
 									step={0.1}
@@ -286,7 +288,8 @@ const ChatConfigEditor = ({
 							children={(field) => (
 								<field.SliderField
 									label={m.chat_settings_presence_penalty_label()}
-									defaultValue={DEFAULT_CHAT_GENERATION_PARAMS.presencePenalty}
+									placeholder={m.chat_settings_provider_default_placeholder()}
+									restingValue={0}
 									min={-2}
 									max={2}
 									step={0.1}
