@@ -3,9 +3,12 @@ import {
 	type ToolCloseCode,
 	toolCloseCode,
 } from "@/lib/ai/utils/close-pending-tool-parts";
+import { isErrorReason } from "@/lib/errors/is-error-reason";
+import { paramlessReasonMessage } from "@/lib/errors/reason-messages";
 import { m } from "@/paraglide/messages";
 
 export type ToolStatus =
+	| "approved"
 	| "awaiting-approval"
 	| "denied"
 	| "failed"
@@ -15,6 +18,8 @@ export type ToolStatus =
 
 export const toolStatusLabel = (status: ToolStatus) => {
 	switch (status) {
+		case "approved":
+			return m.chat_work_log_tool_status_approved();
 		case "awaiting-approval":
 			return m.chat_work_log_tool_status_awaiting_approval();
 		case "denied":
@@ -59,7 +64,28 @@ export const toolStatus = (
 		}
 		case "approval-requested":
 			return "awaiting-approval";
+		case "approval-responded":
+			if (!part.approval.approved) return "denied";
+			return running ? "running" : "approved";
 		default:
 			return running ? "running" : "interrupted";
 	}
+};
+
+const REASON_PREFIX = /^([A-Z][A-Z0-9_]*): /;
+
+/**
+ * A failed call's error text translated through its leading reason code, or
+ * the generic failure for a reason whose message needs params.
+ */
+export const toolErrorMessage = (
+	errorText: string | undefined,
+): string | undefined => {
+	const code = errorText?.match(REASON_PREFIX)?.[1];
+
+	if (!isErrorReason(code)) {
+		return undefined;
+	}
+
+	return paramlessReasonMessage(code) ?? m.error_ai_tool_failed();
 };

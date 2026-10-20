@@ -15,15 +15,17 @@ import { Spinner } from "@/components/ui/spinner";
 import { m } from "@/paraglide/messages";
 
 const AssistantNewConversation = ({
+	initialText,
 	onConversationCreated,
 }: {
+	initialText?: string;
 	onConversationCreated: (
 		chatId: ChatId,
 		pendingMessage: string,
 		zedToken?: string,
 	) => void | Promise<void>;
 }) => {
-	const [messageText, setMessageText] = useState("");
+	const [messageText, setMessageText] = useState(initialText ?? "");
 	const { availability, isCreating, handleSend } = useAssistantStarter({
 		onConversationCreated,
 	});

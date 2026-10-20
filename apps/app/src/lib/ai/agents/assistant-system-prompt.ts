@@ -1,6 +1,7 @@
 import type { OrganizationRole } from "@orcai/core";
 import type { OrganizationCapability } from "@orcai/schema";
 import { buildFormattingGuidance } from "@/lib/ai/agents/chat-agent-system-prompt";
+import type { DeferredToolGroup } from "@/lib/ai/tools/assistant/groups";
 import type { DocsConfig } from "@/lib/effect/services/config";
 
 /** Who the assistant works for this turn: the signed-in user and their membership. */
@@ -41,6 +42,38 @@ const docsUnavailable = [
 	"- The OrcAI docs are not available on this instance. When asked how something works, say that the docs are unavailable, and do not answer from memory.",
 ].join("\n");
 
+const toolGuidance = [
+	"Acting in OrcAI:",
+	"- Your tools call OrcAI as the current user, so they can do exactly what this user may do and nothing more.",
+	"- Find things with the find and list tools and resolve names to ids before you act. When a name matches several items, ask in prose which one is meant.",
+	"- Some tools ask the user to confirm before they run. Never ask for a confirmation in prose that a tool already asks for.",
+	"- Uploads happen on the upload page (/app/hub/assets/add). Link it, and continue with findAssets once the user has uploaded.",
+	"- Bigger edits, such as a bot's rich description, template content or a repository's retrieval settings, belong in the editor: link /app/hub/bots/<bot id>/setup or the block's page.",
+	"- Public visibility (everyone on the instance) is set only in the access dialog of the bot's, block's or asset's page, never by you. When asked, link that page.",
+	"- When a tool fails, tell the user plainly what failed and why, including permission denials.",
+].join("\n");
+
+const toolGroupLines: Record<DeferredToolGroup, string> = {
+	bots: "- bots: create, edit, publish and delete bots, templates and repositories; edit, delete and retry assets.",
+	sharing:
+		"- sharing: list who can access a bot, block or asset, and grant or revoke access for groups and members; not public visibility.",
+	people:
+		"- people: groups and their members, organisation members and their roles, invitations.",
+};
+
+/** The deferred tool groups this user may load; nothing when there are none. */
+export const buildAssistantToolGroupsSection = (
+	groups: readonly DeferredToolGroup[],
+) =>
+	groups.length > 0
+		? [
+				"Tool groups:",
+				"More tools are available in the groups below. Call loadTools once with every group the request needs, named exactly as listed.",
+				"Once loaded, a group's tools are callable from your next step. Loaded groups stay loaded for the rest of the conversation, so never load a group again.",
+				...groups.map((group) => toolGroupLines[group]),
+			].join("\n")
+		: undefined;
+
 const answerForm = (docs: DocsConfig | undefined) =>
 	[
 		"Answer form:",
@@ -62,15 +95,19 @@ const roleSectionNote = [
 /** Identical for every user and turn of an instance, so the prefix caches. */
 export const buildAssistantStablePrompt = ({
 	docs,
+	featurePrompts,
 }: {
 	docs: DocsConfig | undefined;
+	featurePrompts: readonly string[];
 }) =>
 	[
 		identity,
 		scope,
 		docs ? docsGuidance : docsUnavailable,
+		toolGuidance,
 		answerForm(docs),
 		buildFormattingGuidance(),
+		...featurePrompts,
 		roleSectionNote,
 	].join("\n\n");
 
@@ -105,16 +142,25 @@ export const buildAssistantRoleSection = ({
 	].join("\n");
 };
 
+/** The stable part first so it caches; the role section stays last. */
 export const buildAssistantSystemPrompt = ({
 	docs,
 	userContext,
+	featurePrompts,
+	toolGroups,
 }: {
 	docs: DocsConfig | undefined;
 	userContext: AssistantUserContext;
+	featurePrompts: readonly string[];
+	toolGroups: readonly DeferredToolGroup[];
 }) =>
 	[
 		buildAssistantStablePrompt({
 			docs,
+			featurePrompts,
 		}),
+		buildAssistantToolGroupsSection(toolGroups),
 		buildAssistantRoleSection(userContext),
-	].join("\n\n");
+	]
+		.filter((section) => section !== undefined)
+		.join("\n\n");

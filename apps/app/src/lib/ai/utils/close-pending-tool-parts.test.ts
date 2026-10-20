@@ -2,6 +2,7 @@ import { describe, expect, test } from "bun:test";
 import { type ToolSet, tool, type UIMessage } from "ai";
 import { z } from "zod/v4";
 import {
+	closeCopiedToolParts,
 	closePendingToolParts,
 	TOOL_CLOSE_SENTENCES,
 	toolCloseCode,
@@ -63,6 +64,72 @@ describe("closePendingToolParts", () => {
 				},
 			],
 		});
+	});
+
+	test("denies an approved call that never ran as superseded", () => {
+		const result = close({
+			type: "tool-search",
+			toolCallId: "call-1",
+			state: "approval-responded",
+			input: {
+				query: "q",
+			},
+			approval: {
+				id: "approval-1",
+				approved: true,
+			},
+		});
+
+		expect(result).toEqual({
+			changed: true,
+			parts: [
+				{
+					type: "tool-search",
+					toolCallId: "call-1",
+					state: "output-denied",
+					input: {
+						query: "q",
+					},
+					approval: {
+						id: "approval-1",
+						approved: false,
+						reason: TOOL_CLOSE_SENTENCES.superseded,
+					},
+				},
+			],
+		});
+	});
+
+	test("closes a denied call that never ran with the user's denial", () => {
+		const result = close({
+			type: "tool-search",
+			toolCallId: "call-1",
+			state: "approval-responded",
+			input: {
+				query: "q",
+			},
+			approval: {
+				id: "approval-1",
+				approved: false,
+				reason: "Not now",
+			},
+		});
+
+		expect(result.parts).toEqual([
+			{
+				type: "tool-search",
+				toolCallId: "call-1",
+				state: "output-denied",
+				input: {
+					query: "q",
+				},
+				approval: {
+					id: "approval-1",
+					approved: false,
+					reason: "Not now",
+				},
+			},
+		]);
 	});
 
 	test("fails a client tool call without output as superseded", () => {
@@ -162,7 +229,7 @@ describe("closePendingToolParts", () => {
 		});
 	});
 
-	test("leaves finished and answered parts alone", () => {
+	test("leaves finished parts alone", () => {
 		const parts: Part[] = [
 			{
 				type: "step-start",
@@ -199,18 +266,6 @@ describe("closePendingToolParts", () => {
 				approval: {
 					id: "approval-3",
 					approved: false,
-				},
-			},
-			{
-				type: "tool-search",
-				toolCallId: "call-4",
-				state: "approval-responded",
-				input: {
-					query: "q",
-				},
-				approval: {
-					id: "approval-4",
-					approved: true,
 				},
 			},
 		];
@@ -267,6 +322,102 @@ describe("closePendingToolParts", () => {
 			"output-available",
 			"output-error",
 		]);
+	});
+});
+
+describe("closeCopiedToolParts", () => {
+	test("closes pending calls in copied replies only", () => {
+		const question = {
+			id: "m1",
+			role: "user",
+			parts: [
+				{
+					type: "text",
+					text: "Delete it",
+				},
+			],
+		};
+		const finished = {
+			id: "m2",
+			role: "assistant",
+			parts: [
+				{
+					type: "step-start",
+				},
+				{
+					type: "text",
+					text: "Done",
+				},
+			],
+		};
+		const paused = {
+			id: "m3",
+			role: "assistant",
+			parts: [
+				{
+					type: "step-start",
+				},
+				{
+					type: "tool-search",
+					toolCallId: "call-1",
+					state: "approval-requested",
+					input: {
+						query: "q",
+					},
+					approval: {
+						id: "approval-1",
+					},
+				},
+				{
+					type: "tool-search",
+					toolCallId: "call-2",
+					state: "approval-responded",
+					input: {
+						query: "q",
+					},
+					approval: {
+						id: "approval-2",
+						approved: true,
+					},
+				},
+			],
+		};
+
+		const [copiedQuestion, copiedFinished, copiedPaused] = closeCopiedToolParts(
+			[
+				question,
+				finished,
+				paused,
+			],
+		);
+
+		expect(copiedQuestion).toBe(question);
+		expect(copiedFinished).toBe(finished);
+		expect(copiedPaused).toEqual({
+			id: "m3",
+			role: "assistant",
+			parts: [
+				{
+					type: "step-start",
+				},
+				...[
+					"1",
+					"2",
+				].map((n) => ({
+					type: "tool-search",
+					toolCallId: `call-${n}`,
+					state: "output-denied",
+					input: {
+						query: "q",
+					},
+					approval: {
+						id: `approval-${n}`,
+						approved: false,
+						reason: TOOL_CLOSE_SENTENCES.superseded,
+					},
+				})),
+			],
+		});
 	});
 });
 

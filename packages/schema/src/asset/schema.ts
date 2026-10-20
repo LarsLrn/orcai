@@ -1,5 +1,6 @@
 import { z } from "zod/v4";
 import { entityCapabilitiesSchema } from "../authorization";
+import { blockIdSchema } from "../block/ref";
 import { bucketSchema } from "../storage/parts/buckets";
 import { userIdSchema } from "../user/ref";
 import { metadataSchema } from "./parts/metadata";
@@ -32,6 +33,8 @@ export const assetWithCapabilitiesSchema = assetSchema.extend({
 export const assetFiltersSchema = z.object({
 	ids: z.array(assetIdSchema).optional(),
 	search: z.string().optional(),
+	/** Only assets attached to this repository. */
+	repositoryId: blockIdSchema.optional(),
 });
 
 /**

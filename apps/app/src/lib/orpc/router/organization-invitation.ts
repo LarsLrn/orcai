@@ -28,6 +28,7 @@ import { AppConfigService } from "@/lib/effect/services/config";
 import * as AppErrors from "@/lib/effect/utils/errors";
 import { authed } from "@/lib/orpc/implementation/authed";
 import { os } from "@/lib/orpc/implementation/os";
+import { createProcedures } from "@/lib/orpc/implementation/procedures";
 import { requireOrganizationPermission } from "@/lib/orpc/middlewares/permission";
 import {
 	assertCanManageOrganizationAdmins,
@@ -557,3 +558,8 @@ export const organizationInvitationRouter = {
 	delete: deleteOrganizationInvitations,
 	respond: respondToOrganizationInvitation,
 };
+
+export const organizationInvitationProcedures = createProcedures(
+	"organizationInvitation",
+	organizationInvitationRouter,
+);

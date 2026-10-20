@@ -37,6 +37,7 @@ import { getZedToken } from "@/lib/authz/zed-token";
 import { AuthzService } from "@/lib/effect/services/authz";
 import * as AppErrors from "@/lib/effect/utils/errors";
 import { authed } from "@/lib/orpc/implementation/authed";
+import { createProcedures } from "@/lib/orpc/implementation/procedures";
 import {
 	assertCanGrantPrincipalMiddleware,
 	requireResourcePermission,
@@ -1006,3 +1007,5 @@ export const resourceRouter = {
 	getVisibility: getResourceVisibility,
 	setVisibility: setResourceVisibility,
 };
+
+export const resourceProcedures = createProcedures("resource", resourceRouter);

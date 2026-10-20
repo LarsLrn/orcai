@@ -1,7 +1,15 @@
 import { DB, dbSchema } from "@orcai/db";
 import type { Block } from "@orcai/schema";
 import { lookupEntitiesByPermission } from "@orcai/spice-db";
-import { and, countDistinct, desc, eq, getColumns, inArray } from "drizzle-orm";
+import {
+	and,
+	countDistinct,
+	desc,
+	eq,
+	getColumns,
+	ilike,
+	inArray,
+} from "drizzle-orm";
 import * as Effect from "effect/Effect";
 import { emptyCapabilities } from "@/lib/authz/capabilities";
 import {
@@ -27,6 +35,7 @@ import {
 	requireReadableAssets,
 	syncDatabaseBlockAssets,
 } from "@/lib/orpc/router/helpers/database-block";
+import { literalSearch } from "./helpers/literal-search";
 
 const listBlocks = authed.block.list.effect(function* ({ input, context }) {
 	const db = yield* DB;
@@ -49,6 +58,11 @@ const listBlocks = authed.block.list.effect(function* ({ input, context }) {
 	}
 	if (input.filters?.type) {
 		whereConditions.push(eq(dbSchema.block.type, input.filters.type));
+	}
+	if (input.filters?.search) {
+		whereConditions.push(
+			ilike(dbSchema.block.name, literalSearch(input.filters.search)),
+		);
 	}
 
 	const [rawBlocks, [countResult]] = yield* Effect.all(

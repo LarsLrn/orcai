@@ -24,6 +24,7 @@ import {
 import * as Effect from "effect/Effect";
 import { v4 as uuidv4 } from "uuid";
 import { checkFeatureRequirements } from "@/lib/ai/features/requirements";
+import { closeCopiedToolParts } from "@/lib/ai/utils/close-pending-tool-parts";
 import { getZedToken } from "@/lib/authz/zed-token";
 import {
 	AuthzService,
@@ -518,14 +519,16 @@ const branchChat = authed.chat.branch
 					})
 					.returning();
 
-				const messages = (yield* tx
-					.select()
-					.from(dbSchema.chatMessage)
-					.where(
-						and(eq(dbSchema.chatMessage.chatId, source.id), copiedPositions),
-					)
-					.orderBy(asc(dbSchema.chatMessage.position))).filter(
-					(message) => !isEmptyReply(message),
+				const messages = closeCopiedToolParts(
+					(yield* tx
+						.select()
+						.from(dbSchema.chatMessage)
+						.where(
+							and(eq(dbSchema.chatMessage.chatId, source.id), copiedPositions),
+						)
+						.orderBy(asc(dbSchema.chatMessage.position))).filter(
+						(message) => !isEmptyReply(message),
+					),
 				);
 
 				if (messages.length > 0) {

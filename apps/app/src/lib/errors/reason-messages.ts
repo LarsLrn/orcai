@@ -1,6 +1,7 @@
 import type {
 	ErrorParamsOf,
 	ErrorReason,
+	ErrorReasonWithParams,
 	GrantRejection,
 	GrantRejectionReason,
 } from "@orcai/schema";
@@ -72,6 +73,8 @@ const reasonMessages: ReasonMessages = {
 	CHAT_RATING_FAILED: m.error_chat_rating_failed,
 	CHAT_TEMPLATE_BLOCK_ALREADY_ATTACHED:
 		m.error_chat_template_block_already_attached,
+	CHAT_TURN_DECISIONS_INCOMPLETE: m.error_chat_turn_decisions_incomplete,
+	CHAT_TURN_NOT_AWAITING: m.error_chat_turn_not_awaiting,
 	CURRENT_PASSWORD_INCORRECT: m.error_current_password_incorrect,
 	DEFAULT_REFERENCES_OUT_OF_RANGE: m.error_default_references_out_of_range,
 	EMAIL_ALREADY_REGISTERED: m.error_email_already_registered,
@@ -94,6 +97,7 @@ const reasonMessages: ReasonMessages = {
 	INSTANCE_ALREADY_INITIALISED: m.error_instance_already_initialised,
 	INSTANCE_ROLE_INVALID: m.error_instance_role_invalid,
 	INVALID_CREDENTIALS: m.error_invalid_credentials,
+	INVALID_TOOL_INPUT: m.error_invalid_tool_input,
 	INVITATION_ALREADY_ACCEPTED: m.error_invitation_already_accepted,
 	INVITATION_CHANGED: m.error_invitation_changed,
 	INVITATION_EXPIRED: m.error_invitation_expired,
@@ -140,6 +144,7 @@ const reasonMessages: ReasonMessages = {
 		}),
 	SYSTEM_GROUP_IMMUTABLE: m.error_system_group_immutable,
 	TOKEN_INVALID: m.error_token_invalid,
+	TOOL_NOT_AVAILABLE: m.error_tool_not_available,
 	UPLOAD_FILE_MISSING: m.error_upload_file_missing,
 	UPLOAD_FILE_SIZE_MISMATCH: m.error_upload_file_size_mismatch,
 	UPLOAD_FILE_TOO_LARGE: ({ fileName }) =>
@@ -170,3 +175,24 @@ const reasonMessages: ReasonMessages = {
 /** Params arrive untyped from the wire; the message for a reason trusts their shape. */
 export const reasonMessage = (reason: ErrorReason, params: unknown): string =>
 	(reasonMessages[reason] as (params: unknown) => string)(params);
+
+const reasonsWithParams: Record<ErrorReasonWithParams, true> = {
+	BLOCK_IN_USE_BY_READY_BOTS: true,
+	BOT_REPOSITORY_EMPTY: true,
+	BOT_REPOSITORY_NOT_READY: true,
+	FEATURE_REQUIREMENT_MISSING: true,
+	GRANT_PRINCIPALS_INVALID: true,
+	GROUP_MEMBERS_INVALID: true,
+	SORT_KEY_UNSUPPORTED: true,
+	UPLOAD_FILE_TOO_LARGE: true,
+	UPLOAD_FILE_TYPE_INVALID: true,
+	UPLOAD_TOO_MANY_FILES: true,
+};
+
+/** The message of a reason that arrived without its params, when it needs none. */
+export const paramlessReasonMessage = (
+	reason: ErrorReason,
+): string | undefined =>
+	Object.hasOwn(reasonsWithParams, reason)
+		? undefined
+		: reasonMessage(reason, undefined);

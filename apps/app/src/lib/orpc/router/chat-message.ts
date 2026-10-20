@@ -1,9 +1,10 @@
 import type { ChatId, ChatMessageId } from "@orcai/core";
 import { DB, dbSchema } from "@orcai/db";
-import type { ChatMessageMetadata } from "@orcai/schema";
+import type { ChatMessageMetadata, ToolApprovalDecision } from "@orcai/schema";
 import type { UIMessage } from "ai";
 import { and, desc, eq, lt, max } from "drizzle-orm";
 import * as Effect from "effect/Effect";
+import { applyTurnDecisions } from "@/lib/ai/utils/apply-turn-decisions";
 import * as AppErrors from "@/lib/effect/utils/errors";
 import { authed } from "@/lib/orpc/implementation/authed";
 import { uniqueViolationConstraint } from "@/lib/orpc/implementation/error-mapping";
@@ -185,6 +186,95 @@ export const settleChatReply = ({
 				metadata,
 			})
 			.where(where);
+	});
+
+/** The turn moved on or another request answered it first. */
+export const turnNotAwaiting = (message: string) =>
+	new AppErrors.ConflictError({
+		reason: "CHAT_TURN_NOT_AWAITING",
+		message,
+	});
+
+/**
+ * Writes approval decisions onto a paused reply while it is still the chat's
+ * last row and still waiting for them, and claims it for this continuation.
+ * Returns what it stored.
+ */
+export const persistTurnDecisions = ({
+	id,
+	chatId,
+	decisions,
+}: {
+	id: ChatMessageId;
+	chatId: ChatId;
+	decisions: ToolApprovalDecision[];
+}) =>
+	Effect.gen(function* () {
+		const db = yield* DB;
+		const where = and(
+			eq(dbSchema.chatMessage.id, id),
+			eq(dbSchema.chatMessage.chatId, chatId),
+		);
+
+		return yield* db.transaction((tx) =>
+			Effect.gen(function* () {
+				// Appends lock the chat row too, so no message lands behind the check.
+				yield* tx
+					.select({
+						id: dbSchema.chat.id,
+					})
+					.from(dbSchema.chat)
+					.where(eq(dbSchema.chat.id, chatId))
+					.for("update");
+
+				const [row] = yield* tx
+					.select()
+					.from(dbSchema.chatMessage)
+					.where(where)
+					.for("update");
+
+				const [last] = yield* tx
+					.select({
+						id: dbSchema.chatMessage.id,
+					})
+					.from(dbSchema.chatMessage)
+					.where(eq(dbSchema.chatMessage.chatId, chatId))
+					.orderBy(desc(dbSchema.chatMessage.position))
+					.limit(1);
+
+				const now = new Date();
+				const applied = applyTurnDecisions({
+					messageId: id,
+					lastMessage:
+						row && last?.id === row.id
+							? {
+									id: row.id,
+									role: row.role,
+									parts: row.parts as UIMessage["parts"],
+									continuedAt: row.metadata.continuedAt,
+								}
+							: undefined,
+					decisions,
+					now,
+				});
+
+				if (!applied.ok) {
+					return yield* Effect.fail(turnNotAwaiting(applied.message));
+				}
+
+				const stored = {
+					parts: applied.parts,
+					metadata: {
+						...row?.metadata,
+						continuedAt: now.toISOString(),
+					},
+				};
+
+				yield* tx.update(dbSchema.chatMessage).set(stored).where(where);
+
+				return stored;
+			}),
+		);
 	});
 
 /** Stores a row's parts after its pending tool calls were closed. */

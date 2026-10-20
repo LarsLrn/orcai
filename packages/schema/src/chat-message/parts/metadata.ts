@@ -27,6 +27,10 @@ export const chatMessageMetadataSchema = z.object({
 	siblingIndex: z.number().optional(),
 	siblingIds: z.array(z.string()).optional(),
 	attachments: z.array(chatMessageAttachmentSchema).optional(),
+	/** The newest zedToken of the turn that wrote the reply, for its continuation. */
+	zedToken: z.string().optional(),
+	/** When a running continuation claimed the reply (ISO string). */
+	continuedAt: z.string().optional(),
 });
 
 export type ChatMessageMetadata = z.infer<typeof chatMessageMetadataSchema>;

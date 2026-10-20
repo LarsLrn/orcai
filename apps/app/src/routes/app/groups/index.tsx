@@ -1,9 +1,10 @@
 import { listGroupsInputSchema } from "@orcai/schema";
 import { useSuspenseQuery } from "@tanstack/react-query";
 import { createFileRoute, useNavigate } from "@tanstack/react-router";
-import { PlusIcon, UserCogIcon } from "lucide-react";
+import { PlusIcon, SparklesIcon, UserCogIcon } from "lucide-react";
 import { useState } from "react";
 import { z } from "zod/v4";
+import { useAssistantModel } from "@/components/assistant/use-assistant-model";
 import { GroupTableActions } from "@/components/groups/table/group-table-actions";
 import { groupTableColumns } from "@/components/groups/table/group-table-columns";
 import { Button } from "@/components/ui/button";
@@ -74,6 +75,7 @@ export const Route = createFileRoute("/app/groups/")({
 function RouteComponent() {
 	const navigate = useNavigate();
 	const { pageIndex, pageSize, query, sort } = Route.useSearch();
+	const { availability: assistantAvailability } = useAssistantModel();
 	const [isCreateOpen, setIsCreateOpen] = useState(false);
 	const [name, setName] = useState("");
 	const [description, setDescription] = useState("");
@@ -116,6 +118,22 @@ function RouteComponent() {
 			<PageHeader>
 				<PageTitle>{m.groups_page_title()}</PageTitle>
 				<PageAction>
+					{assistantAvailability === "set" ? (
+						<Button
+							variant="outline"
+							onClick={() =>
+								navigate({
+									to: "/app/assistant",
+									search: {
+										draft: m.assistant_ask_groups_draft(),
+									},
+								})
+							}
+						>
+							<SparklesIcon />
+							{m.assistant_ask_action()}
+						</Button>
+					) : null}
 					<Button onClick={() => setIsCreateOpen(true)}>
 						<PlusIcon />
 						{m.groups_list_create_action()}

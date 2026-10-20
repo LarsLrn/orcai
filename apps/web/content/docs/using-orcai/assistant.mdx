@@ -1,6 +1,6 @@
 ---
 title: OrcAI Assistant
-description: The OrcAI Assistant at /app/assistant, how it answers questions about OrcAI from these docs, its conversations, and when it is unavailable.
+description: The OrcAI Assistant at /app/assistant, how it answers questions about OrcAI from these docs, what it can do for each role, the actions it asks you to confirm, its conversations, and when it is unavailable.
 ---
 
 The OrcAI Assistant is OrcAI's built-in helper. It is part of the platform, not a bot: nobody owns, edits or shares it, and its model is chosen by an administrator of your organisation. Every member can use it, whatever their role.
@@ -20,6 +20,50 @@ The assistant says so when the docs do not cover something, and it does not gues
 The assistant answers in the language you write in. The docs are in English, so the names it gives for buttons and pages are the English ones.
 
 If the instance has no docs site configured, the assistant says that the docs are unavailable instead of answering from memory.
+
+## Working in OrcAI
+
+The assistant can also do things for you in the active organisation. It acts as you, with your own permissions: it can do exactly what you could do on the pages yourself and nothing more. When something is not allowed, it tells you that the action was denied and why.
+
+What it offers depends on your organisation role:
+
+- **Every role** can ask it to find bots, behaviour and repository blocks, and assets you can read, to show how a bot is set up, and to list the groups you can see.
+- **Members, managers and admins** can also have it set up bots: create and edit bots, behaviour (template) blocks and repository blocks, link a behaviour, repositories and features to a bot, publish a bot, edit asset metadata, retry a failed asset, and delete bots, blocks and assets. It also handles sharing: it lists who can access a bot, block or asset, finds people and groups, and grants or removes access on resources you manage. Public visibility, which opens a resource to everyone on the instance, stays in the resource's access dialog; the assistant does not change it.
+- **Managers and admins** can also have it do people work: create, rename and delete groups and change their members, list organisation members, change roles, remove members, and invite people or withdraw invitations. Only an Admin can give or change the Admin role, through the assistant as on the Users page.
+
+Bot setup follows the organisation role only: a viewer who holds edit on a bot edits it in the bot editor, not through the assistant.
+
+Each action appears in the answer's work log as one line, such as "Delete bot “Citation check”" or "Invite 3 people as members". A failed action shows as failed with the reason.
+
+Bigger edits, such as a bot's rich description, a behaviour block's content or a repository's retrieval settings, belong in the editor. The assistant links the bot editor or the block's page for them.
+
+The assistant can answer with structured elements such as checklists, reviews and matrices, as described under [Generative UI](/docs/using-orcai/chat#generative-ui).
+
+## Confirming actions
+
+Actions that destroy something, take access away, widen access, change a role or send something out pause the answer and show a confirmation card first:
+
+- Deleting a bot, a block or an asset (**Delete**)
+- Removing someone's access to a bot, block or asset, removing people from a group, and removing members from the organisation (**Remove**)
+- Withdrawing an invitation (**Withdraw**)
+- Granting access to a bot, block or asset (**Grant**)
+- Adding people to a group (**Add**)
+- Changing a member's role (**Change**)
+- Inviting people (**Invite**)
+
+The card names the action and offers its button and **Cancel**. Choosing the button runs the action and the assistant continues its answer. Choosing **Cancel** leaves everything as it was and marks the action **Denied**. Writing a new message instead of answering also leaves everything as it was and marks the action **Skipped**. When an answer shows several cards, the assistant continues once every card is answered.
+
+Creating and editing, linking blocks and features to a bot, attaching assets to a repository, retrying an asset and publishing a bot run without a card.
+
+If you answered every card but the page reloaded before the assistant continued, the answer shows a **Continue** button that picks it up again. If the page reloads while some cards are still unanswered, the answers you already gave are lost; answer those cards again.
+
+## Uploads
+
+The assistant cannot upload files. It links **Add assets** (`/app/hub/assets/add`) instead. Upload the files there, then tell the assistant, and it finds the new assets and carries on, for example by attaching them to a repository.
+
+## Asking from other pages
+
+The bot editor (`/app/hub/bots/<bot id>/setup`) and Groups (`/app/groups`) have an **Ask the assistant** button. It opens the assistant with a prefilled first message, such as "Help me set up the bot “Citation check”", which you can change before sending. The button shows only while the assistant is available in the active organisation.
 
 ## One conversation per task
 

@@ -137,6 +137,20 @@ const listAssets = authed.asset.list.effect(function* ({ input, context }) {
 		);
 	}
 
+	if (input.filters?.repositoryId) {
+		whereConditions.push(
+			inArray(
+				dbSchema.asset.id,
+				db
+					.select({
+						assetId: dbSchema.blockAsset.assetId,
+					})
+					.from(dbSchema.blockAsset)
+					.where(eq(dbSchema.blockAsset.blockId, input.filters.repositoryId)),
+			),
+		);
+	}
+
 	return yield* Effect.all(
 		[
 			db

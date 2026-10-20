@@ -21,7 +21,8 @@ import { message } from "../../fixtures/messages";
 import { enterApp } from "../../fixtures/navigation";
 
 const CALL_ID = "call_e2e_dangling";
-const INTERRUPTED = "Not completed: the turn was interrupted.";
+const INTERRUPTED =
+	"Not completed: the turn was interrupted. If the call changes something, it may have been applied; check before retrying.";
 
 /** A chat whose last reply holds a search call that never got a result. */
 const chatWithDanglingCall = async (

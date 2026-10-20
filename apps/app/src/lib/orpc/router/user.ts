@@ -46,6 +46,7 @@ import {
 } from "@/lib/effect/services/authz";
 import * as AppErrors from "@/lib/effect/utils/errors";
 import { authed } from "@/lib/orpc/implementation/authed";
+import { createProcedures } from "@/lib/orpc/implementation/procedures";
 import {
 	requireActiveOrganizationMiddleware,
 	requireInstanceAdminMiddleware,
@@ -1228,3 +1229,5 @@ export const userRouter = {
 	setTourState,
 	setActiveOrganization,
 };
+
+export const userProcedures = createProcedures("user", userRouter);

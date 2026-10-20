@@ -1,4 +1,8 @@
-import type { AssetWithCapabilities, DatabaseBlock } from "@orcai/schema";
+import {
+	type AssetWithCapabilities,
+	type DatabaseBlock,
+	defaultDatabaseBlockConfig,
+} from "@orcai/schema";
 import { ChevronDownIcon, DatabaseIcon, PlusIcon } from "lucide-react";
 import type { ReactNode } from "react";
 import { useState } from "react";
@@ -43,13 +47,7 @@ const createDefaultDatabaseBlock = (params?: { botName: string }) => ({
 	contentHtml: "",
 	status: "draft" as DatabaseBlock["status"],
 	config: {
-		minReferences: 1,
-		maxReferences: 8,
-		defaultReferences: 4,
-		retrievalMode: "hybrid" as const,
-		scoreThreshold: 0.2,
-		candidateLimit: 40,
-		maxPerAsset: 6,
+		...defaultDatabaseBlockConfig,
 	},
 	assetIds: [],
 	assets: [],

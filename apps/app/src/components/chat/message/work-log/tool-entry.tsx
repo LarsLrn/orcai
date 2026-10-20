@@ -11,7 +11,12 @@ import {
 } from "@/components/ui/collapsible";
 import { cn } from "@/lib/utils";
 import { m } from "@/paraglide/messages";
-import { isFailedStatus, toolStatus, toolStatusLabel } from "./tool-status";
+import {
+	isFailedStatus,
+	toolErrorMessage,
+	toolStatus,
+	toolStatusLabel,
+} from "./tool-status";
 
 interface ToolEntryProps {
 	part: ToolPart;
@@ -36,6 +41,7 @@ export const ToolEntry = ({
 		status === "skipped" || status === "interrupted"
 			? undefined
 			: part.errorText;
+	const failure = status === "failed" ? toolErrorMessage(errorText) : undefined;
 
 	return (
 		<div className="min-w-0">
@@ -52,6 +58,7 @@ export const ToolEntry = ({
 					</Badge>
 				)}
 			</div>
+			{failure && <p className="mt-1 text-status-danger text-xs">{failure}</p>}
 			{children}
 			<ToolDetails
 				label={

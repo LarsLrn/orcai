@@ -1,6 +1,7 @@
 import type { UseChatHelpers } from "@ai-sdk/react";
 import type { ChatId } from "@orcai/core";
 import type { ChatBranchLink } from "@orcai/schema";
+import { PlayIcon } from "lucide-react";
 import { type ReactNode, useRef, useState } from "react";
 import type { LinkSafetyConfig } from "streamdown";
 import {
@@ -9,13 +10,19 @@ import {
 	MessageToolbar,
 } from "@/components/ai-elements/message";
 import { Shimmer } from "@/components/ai-elements/shimmer";
+import type { AddToolApprovalResponse } from "@/components/assistant/confirmation-card";
+import { TurnZedTokenContext } from "@/components/assistant/tool-summaries";
 import { MessageBranches } from "@/components/chat/branch-links";
-import { classifyTurn } from "@/components/chat/message/classify-turn";
+import {
+	classifyTurn,
+	pausedStep,
+} from "@/components/chat/message/classify-turn";
 import { ActivityLine } from "@/components/chat/message/work-log/activity-line";
 import {
 	activeStepLabel,
 	WorkLog,
 } from "@/components/chat/message/work-log/work-log";
+import { Button } from "@/components/ui/button";
 import { InView } from "@/components/ui/motion/in-view";
 import type { ChatAgentUIMessage } from "@/lib/ai/types/chat-agent-message";
 import { getChatMessageAttachments } from "@/lib/ai/types/chat-attachment";
@@ -39,6 +46,10 @@ interface MessageBlockProps {
 	branching?: boolean;
 	/** Overrides the default confirmation for links in the answer. */
 	linkSafety?: LinkSafetyConfig;
+	/** Answers a Confirmation card; only the latest row's cards can be answered. */
+	addToolApprovalResponse?: AddToolApprovalResponse;
+	/** Runs a step whose cards are answered but that has not run, as after a reload. */
+	onContinue?: () => void;
 }
 
 const MessageEntrance = ({
@@ -87,6 +98,8 @@ export const MessageBlock = ({
 	onBranch,
 	branching,
 	linkSafety,
+	addToolApprovalResponse,
+	onContinue,
 }: MessageBlockProps) => {
 	const variant = message.role === "user" ? "sent" : "received";
 	const messageAttachments = getChatMessageAttachments(message);
@@ -112,6 +125,10 @@ export const MessageBlock = ({
 			block: "start",
 		});
 	};
+	const canContinue =
+		onContinue !== undefined &&
+		message.role === "assistant" &&
+		pausedStep(message.parts, running)?.answered === true;
 
 	// A reply exists from the first chunk on, before the model has written anything.
 	if (message.role === "assistant" && message.parts.length === 0) {
@@ -129,32 +146,46 @@ export const MessageBlock = ({
 				key={message.id}
 				className="grid grid-cols-1"
 			>
-				<MessageContent>
-					<ChatMessageAttachments attachments={messageAttachments} />
-					{entries.length > 0 && (
-						<WorkLog
-							ref={workLogRef}
-							entries={entries}
-							running={running}
-							open={workLogOpen}
-							onOpenChange={setWorkLogOpen}
-						/>
-					)}
-					{answerParts.map((part, i) => (
-						<MessagePartRenderer
-							key={`${part.type}${message.id}${i}`}
-							part={part}
-							running={running}
-							linkSafety={linkSafety}
-						/>
-					))}
-					{running && (
-						<ActivityLine
-							label={activity}
-							onShowSteps={entries.length > 0 ? showSteps : undefined}
-						/>
-					)}
-				</MessageContent>
+				<TurnZedTokenContext value={message.metadata?.zedToken}>
+					<MessageContent>
+						<ChatMessageAttachments attachments={messageAttachments} />
+						{entries.length > 0 && (
+							<WorkLog
+								ref={workLogRef}
+								entries={entries}
+								running={running}
+								open={workLogOpen}
+								onOpenChange={setWorkLogOpen}
+							/>
+						)}
+						{answerParts.map((part, i) => (
+							<MessagePartRenderer
+								key={`${part.type}${message.id}${i}`}
+								part={part}
+								running={running}
+								linkSafety={linkSafety}
+								addToolApprovalResponse={addToolApprovalResponse}
+							/>
+						))}
+						{canContinue && (
+							<Button
+								variant="outline"
+								size="sm"
+								className="w-fit"
+								onClick={onContinue}
+							>
+								<PlayIcon data-icon="inline-start" />
+								{m.assistant_turn_continue_action()}
+							</Button>
+						)}
+						{running && (
+							<ActivityLine
+								label={activity}
+								onShowSteps={entries.length > 0 ? showSteps : undefined}
+							/>
+						)}
+					</MessageContent>
+				</TurnZedTokenContext>
 				<MessageToolbar>
 					<MessageActions
 						message={message}

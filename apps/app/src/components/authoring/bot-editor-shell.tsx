@@ -19,6 +19,7 @@ import {
 import { useEffect, useMemo, useRef, useState } from "react";
 import { AccessManagerContent } from "@/components/access/access-manager-content";
 import { toLinkedBlocks } from "@/components/access/block-edit-offer";
+import { useAssistantModel } from "@/components/assistant/use-assistant-model";
 import {
 	type BotEditorFormValues,
 	botEditorFormOptions,
@@ -184,6 +185,7 @@ const BotEditorShell = ({
 	const navigate = useNavigate();
 	const queryClient = useQueryClient();
 	const confirm = useConfirm();
+	const { availability: assistantAvailability } = useAssistantModel();
 	const [internalStepIndex, setInternalStepIndex] = useState(0);
 	const [isTemplateBlockLibraryOpen, setIsTemplateBlockLibraryOpen] =
 		useState(false);
@@ -672,11 +674,31 @@ const BotEditorShell = ({
 			</div>
 
 			<div className="min-w-0 rounded-4xl border bg-muted/25 p-6 shadow-inner">
-				<div className="mb-6">
-					<h2 className="font-semibold text-2xl">{currentStep.title()}</h2>
-					<p className="mt-2 max-w-2xl text-muted-foreground">
-						{currentStep.description()}
-					</p>
+				<div className="mb-6 flex flex-wrap items-start justify-between gap-3">
+					<div>
+						<h2 className="font-semibold text-2xl">{currentStep.title()}</h2>
+						<p className="mt-2 max-w-2xl text-muted-foreground">
+							{currentStep.description()}
+						</p>
+					</div>
+					{editor.id && assistantAvailability === "set" ? (
+						<Button
+							variant="outline"
+							onClick={() =>
+								navigate({
+									to: "/app/assistant",
+									search: {
+										draft: m.assistant_ask_bot_setup_draft({
+											name: editor.name,
+										}),
+									},
+								})
+							}
+						>
+							<SparklesIcon />
+							{m.assistant_ask_action()}
+						</Button>
+					) : null}
 				</div>
 
 				<div className="grid min-w-0 grid-cols-1 gap-6">

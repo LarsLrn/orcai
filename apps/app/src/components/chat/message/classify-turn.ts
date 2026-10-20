@@ -69,11 +69,59 @@ const isInterimText = (parts: readonly MessagePart[], index: number) => {
 const isBlankText = (part: MessagePart) =>
 	part.type === "text" && part.text.trim() === "";
 
+const lastIndexWhere = (
+	parts: readonly MessagePart[],
+	predicate: (part: MessagePart) => boolean,
+) => {
+	for (let index = parts.length - 1; index >= 0; index--) {
+		if (predicate(parts[index] as MessagePart)) return index;
+	}
+	return -1;
+};
+
+/** A call the turn waits on: asked for approval, or answered but not run yet. */
+export const isPausingPart = (part: MessagePart): part is ToolPart =>
+	isToolPart(part) &&
+	(part.state === "approval-requested" || part.state === "approval-responded");
+
+export interface PausedStep {
+	/** Index of the step's first part. */
+	start: number;
+	/** Every pausing part has its answer; only the continuation is missing. */
+	answered: boolean;
+}
+
+/**
+ * The last step, the parts after the last `step-start`, while the turn waits
+ * on the user for one of its calls.
+ */
+export const pausedStep = (
+	parts: readonly MessagePart[],
+	running: boolean,
+): PausedStep | undefined => {
+	if (running) {
+		return undefined;
+	}
+
+	const start = lastIndexWhere(parts, (part) => part.type === "step-start") + 1;
+	const pausing = parts.slice(start).filter(isPausingPart);
+
+	if (pausing.length === 0) {
+		return undefined;
+	}
+
+	return {
+		start,
+		answered: pausing.every((part) => part.state === "approval-responded"),
+	};
+};
+
 /**
  * Splits a turn's parts into the work log and the answer, both in stream
  * order. Text right before a working tool call is progress and goes to the
  * work log; other text and display primitives are the answer. A finished
  * turn whose answer would be empty shows its last text as the answer.
+ * A paused step's text and the calls it waits on are the answer too.
  */
 export const classifyTurn = (
 	parts: readonly MessagePart[],
@@ -83,9 +131,17 @@ export const classifyTurn = (
 		running?: boolean;
 	} = {},
 ): ClassifiedTurn => {
+	const paused = pausedStep(parts, running);
+	const isPausedAnswer = (part: MessagePart, index: number) =>
+		paused !== undefined && index >= paused.start && isPausingPart(part);
+
 	const interim = new Set<number>();
 	parts.forEach((part, index) => {
-		if (part.type === "text" && isInterimText(parts, index)) {
+		if (
+			part.type === "text" &&
+			!(paused !== undefined && index >= paused.start) &&
+			isInterimText(parts, index)
+		) {
 			interim.add(index);
 		}
 	});
@@ -93,7 +149,8 @@ export const classifyTurn = (
 	const answerIndexes = parts.flatMap((part, index) =>
 		(part.type === "text" && !interim.has(index) && !isBlankText(part)) ||
 		part.type === "file" ||
-		isAnswerDisplayPart(part)
+		isAnswerDisplayPart(part) ||
+		isPausedAnswer(part, index)
 			? [
 					index,
 				]
@@ -122,7 +179,11 @@ export const classifyTurn = (
 				kind: "reasoning",
 				part,
 			});
-		} else if (isToolPart(part) && !isAnswerDisplayPart(part)) {
+		} else if (
+			isToolPart(part) &&
+			!isAnswerDisplayPart(part) &&
+			!isPausedAnswer(part, index)
+		) {
 			entries.push({
 				id,
 				kind: "tool",

@@ -9,6 +9,7 @@ import { and, eq, getColumns } from "drizzle-orm";
 import * as Effect from "effect/Effect";
 import * as AppErrors from "@/lib/effect/utils/errors";
 import { authed } from "@/lib/orpc/implementation/authed";
+import { createProcedures } from "@/lib/orpc/implementation/procedures";
 import {
 	requireEntityPermission,
 	requireResourcePermission,
@@ -222,3 +223,5 @@ export const jobRouter = {
 	retryProcessing,
 	retryVectorization,
 };
+
+export const jobProcedures = createProcedures("job", jobRouter);

@@ -1,0 +1,59 @@
+import { blockIdSchema } from "@orcai/schema";
+import * as Effect from "effect/Effect";
+import { z } from "zod/v4";
+import { assetProcedures } from "@/lib/orpc/router/asset";
+import {
+	type AssistantToolDeps,
+	assistantTool,
+	callProcedure,
+	runAssistantTool,
+} from "../procedure-tool";
+import { listLimitSchema, listQuerySchema } from "./list-input";
+
+export const findAssetsInputSchema = z.object({
+	query: listQuerySchema.describe(
+		"Part of the title to search for, case-insensitive.",
+	),
+	repositoryId: blockIdSchema
+		.optional()
+		.describe("Only assets attached to this repository, from findBlocks."),
+	limit: listLimitSchema,
+});
+
+export const findAssetsTool = (deps: AssistantToolDeps) =>
+	assistantTool({
+		description:
+			"Find assets (uploaded documents) by title among those the user can read, optionally only those attached to one repository. Without a query it lists them all, newest first.",
+		inputSchema: findAssetsInputSchema,
+		execute: ({ query, repositoryId, limit }, { abortSignal }) =>
+			runAssistantTool(
+				callProcedure(deps, (options) =>
+					assetProcedures.list(
+						{
+							pageSize: limit,
+							filters: {
+								search: query,
+								repositoryId,
+							},
+						},
+						options,
+					),
+				).pipe(
+					Effect.map(({ data, rowCount }) => ({
+						assets: data.map((asset) => ({
+							type: "asset" as const,
+							id: asset.id,
+							title: asset.title,
+							processingStatus: asset.processingStatus,
+							canEdit: asset.capabilities.edit === true,
+						})),
+						total: rowCount,
+					})),
+				),
+				abortSignal,
+			),
+		toModelOutput: ({ output }) => ({
+			type: "json",
+			value: output,
+		}),
+	});
