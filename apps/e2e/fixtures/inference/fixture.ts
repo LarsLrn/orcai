@@ -54,10 +54,16 @@ export const test = base.extend<
 	],
 });
 
+export type {
+	InferenceMock,
+	InferenceMockOptions,
+	JsonValue,
+	ScriptedStep,
+	ScriptedToolCall,
+} from "./server";
 export {
 	DEFAULT_EMBEDDING_DIMENSIONS,
 	INFERENCE_MOCK_MODELS,
 	startInferenceMock,
 } from "./server";
-export type { InferenceMock, InferenceMockOptions };
 export { expect };

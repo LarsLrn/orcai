@@ -2,7 +2,6 @@ import { randomUUID } from "node:crypto";
 import type { ChatId } from "@orcai/core";
 import type { Page } from "@playwright/test";
 import {
-	type ChatModel,
 	chatName,
 	completionRequests,
 	composer,
@@ -13,10 +12,6 @@ import {
 	setUpChatModel,
 	streamedText,
 } from "../../fixtures/chat/chat";
-import {
-	type CompletionGate,
-	startCompletionGate,
-} from "../../fixtures/chat/completion-gate";
 import type { ApiClient } from "../../fixtures/index";
 import { expect, test } from "../../fixtures/inference/fixture";
 import { message } from "../../fixtures/messages";
@@ -24,23 +19,11 @@ import { enterApp } from "../../fixtures/navigation";
 
 const REPLY = "Stored in order.";
 
-let gate: CompletionGate;
-
-test.beforeEach(async ({ inference }) => {
-	gate = await startCompletionGate(inference.url);
+test.beforeEach(({ inference }) => {
 	inference.respondWith({
 		text: REPLY,
 	});
 });
-
-test.afterEach(async () => {
-	await gate.stop();
-});
-
-const setUp = async (
-	api: Parameters<typeof setUpChatModel>[0],
-	inference: Parameters<typeof setUpChatModel>[1],
-): Promise<ChatModel> => setUpChatModel(api, inference, gate.url);
 
 /** Every stored message as role and text, in position order. */
 const storedTurns = async (client: ApiClient, chatId: ChatId) => {
@@ -109,17 +92,26 @@ test("two turns finishing together both keep their replies", async ({
 	api,
 	inference,
 }) => {
-	const model = await setUp(api, inference);
+	const model = await setUpChatModel(api, inference);
 	const member = api.as("member");
 	const chatId = await createChat(member, model, chatName("Concurrent"));
 
-	gate.close();
+	inference.script(
+		{
+			text: REPLY,
+			hold: "response",
+		},
+		{
+			text: REPLY,
+			hold: "response",
+		},
+	);
 	const turns = Promise.all([
 		ask(member, chatId, "First question?"),
 		ask(member, chatId, "Second question?"),
 	]);
-	await expect.poll(() => gate.held()).toBe(2);
-	gate.open();
+	await expect.poll(() => inference.held()).toBe(2);
+	inference.release();
 
 	expect(await turns).toEqual([
 		REPLY,
@@ -150,7 +142,7 @@ test("typing works while a turn runs, but sending waits for the stored reply", a
 	org,
 	pageAs,
 }) => {
-	const model = await setUp(api, inference);
+	const model = await setUpChatModel(api, inference);
 	const member = api.as("member");
 	const chatId = await createChat(member, model, chatName("Turn Order"));
 
@@ -158,20 +150,23 @@ test("typing works while a turn runs, but sending waits for the stored reply", a
 	await enterApp(page, org.slug);
 	await openChat(page, chatId);
 
-	gate.close();
+	inference.script({
+		text: REPLY,
+		hold: "response",
+	});
 	await composer(page).fill("Question A");
 	await submitButton(page).click();
-	await expect.poll(() => gate.held()).toBe(1);
+	await expect.poll(() => inference.held()).toBe(1);
 
 	await composer(page).fill("Question B");
 	await composer(page).press("Enter");
 	await expect(composer(page)).toHaveValue("Question B");
 	await expect(stopButton(page)).toBeVisible();
 	await expect(submitButton(page)).toHaveCount(0);
-	expect(gate.held()).toBe(1);
+	expect(inference.held()).toBe(1);
 	await expect(copyActions(page)).toHaveCount(1);
 
-	gate.open();
+	inference.release();
 	await submitButton(page).click();
 	await expect(messageText(page, "Question B")).toBeVisible();
 
@@ -208,7 +203,7 @@ test("a message sent straight after Stop follows the stopped reply and sees it",
 	org,
 	pageAs,
 }) => {
-	const model = await setUp(api, inference);
+	const model = await setUpChatModel(api, inference);
 	const member = api.as("member");
 	const chatId = await createChat(member, model, chatName("Stopped Turn"));
 	const longReply = Array.from(
@@ -296,7 +291,7 @@ test("Stop aborts the model call the turn is waiting on", async ({
 	org,
 	pageAs,
 }) => {
-	const model = await setUp(api, inference);
+	const model = await setUpChatModel(api, inference);
 	const member = api.as("member");
 	const chatId = await createChat(member, model, chatName("Aborted Turn"));
 
@@ -304,13 +299,16 @@ test("Stop aborts the model call the turn is waiting on", async ({
 	await enterApp(page, org.slug);
 	await openChat(page, chatId);
 
-	gate.close();
+	inference.script({
+		text: REPLY,
+		hold: "response",
+	});
 	await composer(page).fill("Question A");
 	await submitButton(page).click();
-	await expect.poll(() => gate.held()).toBe(1);
+	await expect.poll(() => inference.held()).toBe(1);
 	await stopButton(page).click();
 
-	await expect.poll(() => gate.abandoned()).toBe(1);
+	await expect.poll(() => inference.abandoned()).toBe(1);
 	await expect(submitButton(page)).toBeVisible();
 	await expect
 		.poll(async () =>
@@ -327,13 +325,16 @@ test("a reply still being written is not shown as an empty message", async ({
 	org,
 	pageAs,
 }) => {
-	const model = await setUp(api, inference);
+	const model = await setUpChatModel(api, inference);
 	const member = api.as("member");
 	const chatId = await createChat(member, model, chatName("Reserved Reply"));
 
-	gate.close();
+	inference.script({
+		text: REPLY,
+		hold: "response",
+	});
 	const turn = ask(member, chatId, "Question A");
-	await expect.poll(() => gate.held()).toBe(1);
+	await expect.poll(() => inference.held()).toBe(1);
 
 	const page = await pageAs("member");
 	await enterApp(page, org.slug);
@@ -348,7 +349,7 @@ test("a reply still being written is not shown as an empty message", async ({
 		},
 	]);
 
-	gate.open();
+	inference.release();
 	expect(await turn).toBe(REPLY);
 	expect(await storedTurns(member, chatId)).toEqual([
 		{

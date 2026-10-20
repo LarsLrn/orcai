@@ -41,6 +41,38 @@ export type ScriptedReply = {
 	model?: string;
 };
 
+export type JsonValue =
+	| string
+	| number
+	| boolean
+	| null
+	| JsonValue[]
+	| {
+			[key: string]: JsonValue;
+	  };
+
+export type ScriptedToolCall = {
+	name: string;
+	/** Sent as `function.arguments`, serialized with `JSON.stringify`. */
+	input: JsonValue;
+	/** Defaults to `call_e2e_<n>`, counting up per mock. */
+	id?: string;
+};
+
+/** One chat completion answer; `script` queues these. */
+export type ScriptedStep = {
+	/** Without `text` and `toolCalls` the step answers the standing reply. */
+	text?: string;
+	toolCalls?: ScriptedToolCall[];
+	/** Defaults to `tool_calls` when the step has calls, else `stop`. */
+	finishReason?: "stop" | "length" | "tool_calls" | "content_filter";
+	/**
+	 * `response` sends nothing until `release()`; `end` streams every chunk and
+	 * keeps the body open until `release()`, like `response` when not streaming.
+	 */
+	hold?: "response" | "end";
+};
+
 export type ScriptedFailure = {
 	status: number;
 	message?: string;
@@ -68,7 +100,15 @@ export type InferenceMock = {
 	respondWith: (reply: ScriptedReply) => void;
 	/** Answer the next request with this error instead of a result. */
 	failNext: (failure: ScriptedFailure) => void;
-	/** Forget recorded requests, scripted replies, and scripted failures. */
+	/** Queue steps; each chat completion answers the next one. */
+	script: (...steps: ScriptedStep[]) => void;
+	/** Let every held response go. */
+	release: () => void;
+	/** Responses waiting for `release()`. */
+	held: () => number;
+	/** Requests the client closed before their response ended. */
+	abandoned: () => number;
+	/** Forget requests, replies, failures, and steps; destroy held responses. */
 	reset: () => void;
 	close: () => Promise<void>;
 };
@@ -230,6 +270,25 @@ const embeddingInputs = (body: unknown): string[] => {
 	);
 };
 
+/** At least two pieces, so a streamed call is observably still arriving. */
+const argumentPieces = (serialized: string): string[] => {
+	if (serialized.length < 2) {
+		return [
+			"",
+			serialized,
+		];
+	}
+
+	const size = Math.min(8, Math.floor(serialized.length / 2));
+
+	return Array.from(
+		{
+			length: Math.ceil(serialized.length / size),
+		},
+		(_unused, index) => serialized.slice(index * size, (index + 1) * size),
+	);
+};
+
 const readBody = async (request: IncomingMessage): Promise<string> => {
 	const chunks: Buffer[] = [];
 
@@ -265,8 +324,14 @@ export const startInferenceMock = async (
 	const requests: RecordedRequest[] = [];
 	const failures: ScriptedFailure[] = [];
 	const repliesByModel = new Map<string, string>();
+	const steps: ScriptedStep[] = [];
+	const holds = new Map<ServerResponse, () => void>();
+	const closed = new WeakSet<ServerResponse>();
+	const discarded = new WeakSet<ServerResponse>();
 	let defaultReply: string | undefined;
 	let completionCount = 0;
+	let toolCallCount = 0;
+	let abandonedCount = 0;
 
 	const nextCompletionId = (): string => {
 		completionCount += 1;
@@ -274,23 +339,72 @@ export const startInferenceMock = async (
 		return `chatcmpl-e2e-${String(completionCount)}`;
 	};
 
+	const nextToolCallId = (): string => {
+		toolCallCount += 1;
+
+		return `call_e2e_${String(toolCallCount)}`;
+	};
+
 	const replyFor = (model: string, prompt: string): string =>
 		repliesByModel.get(model) ??
 		defaultReply ??
 		`Mock inference reply to: ${prompt || "(no user message)"}`;
 
-	const chatCompletion = (body: unknown, response: ServerResponse): void => {
+	/** Resolves `true` on `release()`, `false` when the response closes first. */
+	const holdUntilRelease = (response: ServerResponse): Promise<boolean> =>
+		new Promise((resolve) => {
+			if (closed.has(response)) {
+				resolve(false);
+
+				return;
+			}
+
+			holds.set(response, () => resolve(true));
+			response.once("close", () => resolve(false));
+		});
+
+	const chatCompletion = async (
+		body: unknown,
+		response: ServerResponse,
+	): Promise<void> => {
 		const model = stringField(body, "model") ?? INFERENCE_MOCK_MODELS.chat;
 		const prompt = lastUserText(body);
-		const text = replyFor(model, prompt);
+		const step = steps.shift() ?? {};
+		const scriptedCalls = step.toolCalls ?? [];
+		const text =
+			step.text === undefined && scriptedCalls.length === 0
+				? replyFor(model, prompt)
+				: (step.text ?? "");
+		const toolCalls = scriptedCalls.map((call) => ({
+			id: call.id ?? nextToolCallId(),
+			type: "function" as const,
+			function: {
+				name: call.name,
+				arguments: JSON.stringify(call.input),
+			},
+		}));
+		const finishReason =
+			step.finishReason ?? (toolCalls.length > 0 ? "tool_calls" : "stop");
 		const id = nextCompletionId();
+		const completionTokens = toolCalls.reduce(
+			(total, call) => total + tokenCount(call.function.arguments),
+			tokenCount(text),
+		);
 		const usage = {
 			prompt_tokens: tokenCount(prompt),
-			completion_tokens: tokenCount(text),
-			total_tokens: tokenCount(prompt) + tokenCount(text),
+			completion_tokens: completionTokens,
+			total_tokens: tokenCount(prompt) + completionTokens,
 		};
+		const streaming = booleanField(body, "stream");
 
-		if (!booleanField(body, "stream")) {
+		if (
+			(step.hold === "response" || (step.hold === "end" && !streaming)) &&
+			!(await holdUntilRelease(response))
+		) {
+			return;
+		}
+
+		if (!streaming) {
 			sendJson(response, 200, {
 				id,
 				object: "chat.completion",
@@ -301,10 +415,15 @@ export const startInferenceMock = async (
 						index: 0,
 						message: {
 							role: "assistant",
-							content: text,
+							content: toolCalls.length > 0 && text === "" ? null : text,
+							...(toolCalls.length > 0
+								? {
+										tool_calls: toolCalls,
+									}
+								: {}),
 						},
 						logprobs: null,
-						finish_reason: "stop",
+						finish_reason: finishReason,
 					},
 				],
 				usage,
@@ -319,7 +438,7 @@ export const startInferenceMock = async (
 			connection: "keep-alive",
 		});
 
-		const chunk = (delta: unknown, finishReason: string | null): void => {
+		const chunk = (delta: unknown, reason: string | null): void => {
 			response.write(
 				`data: ${JSON.stringify({
 					id,
@@ -331,7 +450,7 @@ export const startInferenceMock = async (
 							index: 0,
 							delta,
 							logprobs: null,
-							finish_reason: finishReason,
+							finish_reason: reason,
 						},
 					],
 				})}\n\n`,
@@ -347,7 +466,7 @@ export const startInferenceMock = async (
 		);
 
 		// One delta per word, whitespace kept, so the joined deltas equal `text`.
-		for (const piece of text.split(/(?<=\s)/)) {
+		for (const piece of text.split(/(?<=\s)/).filter(Boolean)) {
 			chunk(
 				{
 					content: piece,
@@ -356,7 +475,42 @@ export const startInferenceMock = async (
 			);
 		}
 
-		chunk({}, "stop");
+		for (const [index, call] of toolCalls.entries()) {
+			chunk(
+				{
+					tool_calls: [
+						{
+							index,
+							id: call.id,
+							type: call.type,
+							function: {
+								name: call.function.name,
+								arguments: "",
+							},
+						},
+					],
+				},
+				null,
+			);
+
+			for (const piece of argumentPieces(call.function.arguments)) {
+				chunk(
+					{
+						tool_calls: [
+							{
+								index,
+								function: {
+									arguments: piece,
+								},
+							},
+						],
+					},
+					null,
+				);
+			}
+		}
+
+		chunk({}, finishReason);
 
 		if (wantsUsageChunk(body)) {
 			response.write(
@@ -372,6 +526,11 @@ export const startInferenceMock = async (
 		}
 
 		response.write("data: [DONE]\n\n");
+
+		if (step.hold === "end" && !(await holdUntilRelease(response))) {
+			return;
+		}
+
 		response.end();
 	};
 
@@ -415,6 +574,15 @@ export const startInferenceMock = async (
 		request: IncomingMessage,
 		response: ServerResponse,
 	): Promise<void> => {
+		response.on("close", () => {
+			closed.add(response);
+			holds.delete(response);
+
+			if (!response.writableEnded && !discarded.has(response)) {
+				abandonedCount += 1;
+			}
+		});
+
 		const path = new URL(request.url ?? "/", `http://${host}`).pathname;
 		const raw = await readBody(request);
 
@@ -474,7 +642,7 @@ export const startInferenceMock = async (
 		}
 
 		if (path === "/v1/chat/completions" && request.method === "POST") {
-			chatCompletion(body, response);
+			await chatCompletion(body, response);
 
 			return;
 		}
@@ -534,12 +702,37 @@ export const startInferenceMock = async (
 		failNext: (failure) => {
 			failures.push(failure);
 		},
+		script: (...scripted) => {
+			steps.push(...scripted);
+		},
+		release: () => {
+			const resumes = [
+				...holds.values(),
+			];
+
+			holds.clear();
+
+			for (const resume of resumes) {
+				resume();
+			}
+		},
+		held: () => holds.size,
+		abandoned: () => abandonedCount,
 		reset: () => {
+			for (const response of holds.keys()) {
+				discarded.add(response);
+				response.destroy();
+			}
+
+			holds.clear();
 			requests.length = 0;
 			failures.length = 0;
+			steps.length = 0;
 			repliesByModel.clear();
 			defaultReply = undefined;
 			completionCount = 0;
+			toolCallCount = 0;
+			abandonedCount = 0;
 		},
 		close: async () => {
 			if (!server.listening) {
