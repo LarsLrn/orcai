@@ -18,7 +18,7 @@ The Library route includes four major sections:
 
 - Bots: named AI setups users can select when starting a chat.
 - Blocks: reusable building blocks used by bots and chats.
-- Behaviour blocks: template or image-generation blocks used to define response style/logic.
+- Behaviour blocks: template blocks used to define response style/logic.
 - Repository blocks: database blocks that package content and retrieval settings.
 - Content items: uploaded assets that can be attached to repository blocks and chats.
 
@@ -71,11 +71,10 @@ From current editor behaviour, launching requires:
 
 ## Block Types
 
-The block creation flow currently supports three types:
+The block creation flow currently supports two types:
 
 - Template block (AI Behaviour)
 - Database block (Content Collection / Repository)
-- Image Generation block
 
 Each block can have:
 
@@ -101,5 +100,5 @@ Bots and blocks expose access dialogs for visibility, groups, and direct grants.
 The same patterns are reused across assets, blocks, and bots.
 
 <Callout title="TODO" type="idea">
-	Document the exact share permission matrix for bot use vs bot edit, confirm whether image-generation blocks can be attached to bot runtime today, and add an end-to-end bot creation example.
+	Document the exact share permission matrix for bot use vs bot edit and add an end-to-end bot creation example.
 </Callout>

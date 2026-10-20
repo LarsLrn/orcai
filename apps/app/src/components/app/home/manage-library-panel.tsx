@@ -21,50 +21,36 @@ const COUNT_INPUT = {
 } as const;
 
 const ManageLibraryPanel = () => {
-	const [
-		publishedBots,
-		draftBots,
-		templates,
-		imageGeneration,
-		repositories,
-		assets,
-	] = useSuspenseQueries({
-		queries: [
-			orpc.bot.list.queryOptions({
-				input: COUNT_INPUT,
-			}),
-			orpc.bot.listDrafts.queryOptions({
-				input: COUNT_INPUT,
-			}),
-			orpc.block.list.queryOptions({
-				input: {
-					...COUNT_INPUT,
-					filters: {
-						type: "template",
+	const [publishedBots, draftBots, templates, repositories, assets] =
+		useSuspenseQueries({
+			queries: [
+				orpc.bot.list.queryOptions({
+					input: COUNT_INPUT,
+				}),
+				orpc.bot.listDrafts.queryOptions({
+					input: COUNT_INPUT,
+				}),
+				orpc.block.list.queryOptions({
+					input: {
+						...COUNT_INPUT,
+						filters: {
+							type: "template",
+						},
 					},
-				},
-			}),
-			orpc.block.list.queryOptions({
-				input: {
-					...COUNT_INPUT,
-					filters: {
-						type: "imageGeneration",
+				}),
+				orpc.block.list.queryOptions({
+					input: {
+						...COUNT_INPUT,
+						filters: {
+							type: "database",
+						},
 					},
-				},
-			}),
-			orpc.block.list.queryOptions({
-				input: {
-					...COUNT_INPUT,
-					filters: {
-						type: "database",
-					},
-				},
-			}),
-			orpc.asset.list.queryOptions({
-				input: COUNT_INPUT,
-			}),
-		],
-	});
+				}),
+				orpc.asset.list.queryOptions({
+					input: COUNT_INPUT,
+				}),
+			],
+		});
 
 	const { data: organizationCapabilities } = useOrganizationCapabilities();
 	const publishedCount = publishedBots.data.rowCount;
@@ -91,7 +77,7 @@ const ManageLibraryPanel = () => {
 		{
 			label: m.home_library_blocks_label(),
 			meta: m.home_library_blocks_meta(),
-			count: templates.data.rowCount + imageGeneration.data.rowCount,
+			count: templates.data.rowCount,
 			linkProps: {
 				to: "/app/hub/behaviour",
 			},

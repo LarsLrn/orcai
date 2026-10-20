@@ -4,7 +4,6 @@ import {
 	DatabaseIcon,
 	EditIcon,
 	EyeIcon,
-	ImageIcon,
 	type LucideIcon,
 } from "lucide-react";
 import {
@@ -51,11 +50,6 @@ const BLOCK_TYPE_CONFIG = {
 		tone: "repository",
 		badgeTone: "kind-repository",
 	},
-	imageGeneration: {
-		Icon: ImageIcon,
-		tone: "behaviour",
-		badgeTone: "kind-behaviour",
-	},
 } satisfies Record<
 	Block["type"],
 	{
@@ -68,9 +62,7 @@ const BLOCK_TYPE_CONFIG = {
 const getBlockTypeLabel = (type: Block["type"]) =>
 	type === "template"
 		? m.blocks_card_type_template()
-		: type === "database"
-			? m.blocks_card_type_database()
-			: m.blocks_card_type_image_generation();
+		: m.blocks_card_type_database();
 
 const BlockCard = ({
 	block,
