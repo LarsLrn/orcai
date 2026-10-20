@@ -23,6 +23,8 @@ export const modelSchema = modelFieldsSchema.extend({
 export const modelFiltersSchema = z.object({
 	providerId: providerIdSchema.optional(),
 	capabilities: z.array(modelCapabilitiesSchema).optional(),
+	isDeprecated: z.boolean().optional(),
+	providerEnabled: z.boolean().optional(),
 	...searchFilterSchema.shape,
 });
 

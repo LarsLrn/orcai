@@ -25,12 +25,15 @@ const ModelSelectorButton = ({
 	selectedModelId,
 	selectedProviderId,
 	onSelect,
+	excludeDeprecated = false,
 	variant = "compact",
 	className,
 }: {
 	selectedModelId?: string;
 	selectedProviderId?: string;
 	onSelect: (model: Model, provider: Provider) => void;
+	/** Offer only models that are not deprecated. */
+	excludeDeprecated?: boolean;
 	variant?: "compact" | "full";
 	className?: string;
 }) => {
@@ -71,6 +74,7 @@ const ModelSelectorButton = ({
 						"text",
 						"tool-calling",
 					],
+					isDeprecated: excludeDeprecated ? false : undefined,
 					search: modelSearch || undefined,
 				},
 			},

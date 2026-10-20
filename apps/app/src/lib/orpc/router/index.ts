@@ -1,6 +1,7 @@
 import { aiRouter } from "./ai";
 import { assetRouter } from "./asset";
 import { assetPointRouter } from "./asset-point";
+import { assistantRouter } from "./assistant";
 import { authorizationRouter } from "./authorization";
 import { blockRouter } from "./block";
 import { bootstrapRouter } from "./bootstrap";
@@ -29,6 +30,7 @@ export const router = {
 	quota: quotaRouter,
 	resource: resourceRouter,
 	group: groupRouter,
+	assistant: assistantRouter,
 	chat: chatRouter,
 	chatBlock: chatBlockRouter,
 	chatMessage: chatMessageRouter,

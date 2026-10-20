@@ -16,6 +16,7 @@ import {
 	PromptInputSubmit,
 	PromptInputTools,
 } from "@/components/ai-elements/prompt-input";
+import { AssistantModelLabel } from "@/components/assistant/assistant-model-label";
 import { ChatAttachmentActionMenu } from "@/components/chat/attachments/chat-attachment-action-menu";
 import { ChatComposerAttachments } from "@/components/chat/attachments/chat-attachment-input";
 import { useChatAttachments } from "@/components/chat/attachments/use-chat-attachments";
@@ -56,6 +57,7 @@ const ChatInput = ({
 	status,
 	isStoringReply,
 	draft,
+	variant = "chat",
 }: {
 	chatId: ChatId;
 	zedToken?: string;
@@ -66,7 +68,10 @@ const ChatInput = ({
 	isStoringReply: boolean;
 	/** Prefills the composer, e.g. with the message a branch started from. */
 	draft?: ChatDraft;
+	/** The assistant's model comes from the organisation, and it takes no attachments here. */
+	variant?: "chat" | "assistant";
 }) => {
+	const isAssistant = variant === "assistant";
 	const [messageText, setMessageText] = useState(draft?.text ?? "");
 	const [settingsOpen, setSettingsOpen] = useState(false);
 
@@ -79,9 +84,9 @@ const ChatInput = ({
 		}),
 	);
 	const { mutate: updateChat } = useUpdateChatMutation();
-	const isModelConfigured = Boolean(
-		chat?.data.config?.modelId && chat?.data.config?.providerId,
-	);
+	const isModelConfigured =
+		isAssistant ||
+		Boolean(chat?.data.config?.modelId && chat?.data.config?.providerId);
 	const handleModelSelect = useCallback(
 		(model: Model, provider: Provider) => {
 			updateChat({
@@ -204,14 +209,16 @@ const ChatInput = ({
 
 	return (
 		<>
-			<input
-				ref={fileInputRef}
-				type="file"
-				className="hidden"
-				multiple
-				accept={CHAT_ATTACHMENT_ACCEPT}
-				onChange={handleFileInputChange}
-			/>
+			{!isAssistant && (
+				<input
+					ref={fileInputRef}
+					type="file"
+					className="hidden"
+					multiple
+					accept={CHAT_ATTACHMENT_ACCEPT}
+					onChange={handleFileInputChange}
+				/>
+			)}
 
 			<form onSubmit={handleSubmit}>
 				{/* The group clips its overflow, so the comet sits on a wrapper hugging its corners. */}
@@ -222,12 +229,14 @@ const ChatInput = ({
 					)}
 				>
 					<InputGroup className="overflow-hidden border-border bg-card">
-						<ChatComposerAttachments
-							localFiles={localFiles}
-							attachments={selectedAttachments}
-							onRemoveLocalFile={removeLocalFile}
-							onRemoveAsset={removeSelectedAsset}
-						/>
+						{!isAssistant && (
+							<ChatComposerAttachments
+								localFiles={localFiles}
+								attachments={selectedAttachments}
+								onRemoveLocalFile={removeLocalFile}
+								onRemoveAsset={removeSelectedAsset}
+							/>
+						)}
 
 						<InputGroupTextarea
 							name="message"
@@ -244,17 +253,23 @@ const ChatInput = ({
 							className="min-w-0 justify-between gap-1"
 						>
 							<PromptInputTools className="min-w-0 overflow-hidden">
-								<ChatAttachmentActionMenu
-									disabled={!canAttachMore}
-									onUploadFile={openUploadDialog}
-									onSelectFromAssets={() => setAssetPickerOpen(true)}
-								/>
-								<ModelSelectorButton
-									selectedModelId={chat?.data.config?.modelId}
-									selectedProviderId={chat?.data.config?.providerId}
-									onSelect={handleModelSelect}
-									className="min-w-0 max-w-32 sm:max-w-60"
-								/>
+								{isAssistant ? (
+									<AssistantModelLabel />
+								) : (
+									<>
+										<ChatAttachmentActionMenu
+											disabled={!canAttachMore}
+											onUploadFile={openUploadDialog}
+											onSelectFromAssets={() => setAssetPickerOpen(true)}
+										/>
+										<ModelSelectorButton
+											selectedModelId={chat?.data.config?.modelId}
+											selectedProviderId={chat?.data.config?.providerId}
+											onSelect={handleModelSelect}
+											className="min-w-0 max-w-32 sm:max-w-60"
+										/>
+									</>
+								)}
 								<DropdownMenu>
 									<DropdownMenuTrigger
 										render={
@@ -267,20 +282,24 @@ const ChatInput = ({
 										</span>
 									</DropdownMenuTrigger>
 									<DropdownMenuContent align="start" className="w-56">
-										<AppTourButton
-											tour="chatTour"
-											type="button"
-											variant="ghost"
-											autoTrigger={true}
-											render={<DropdownMenuItem />}
-											className="w-full justify-start"
-										>
-											<CompassIcon className="size-4" />{" "}
-											{m.chat_composer_start_tour_action()}
-										</AppTourButton>
-										<DropdownMenuItem onClick={() => setSettingsOpen(true)}>
-											<SettingsIcon /> {m.chat_composer_settings_action()}
-										</DropdownMenuItem>
+										{!isAssistant && (
+											<>
+												<AppTourButton
+													tour="chatTour"
+													type="button"
+													variant="ghost"
+													autoTrigger={true}
+													render={<DropdownMenuItem />}
+													className="w-full justify-start"
+												>
+													<CompassIcon className="size-4" />{" "}
+													{m.chat_composer_start_tour_action()}
+												</AppTourButton>
+												<DropdownMenuItem onClick={() => setSettingsOpen(true)}>
+													<SettingsIcon /> {m.chat_composer_settings_action()}
+												</DropdownMenuItem>
+											</>
+										)}
 										<DropdownMenuItem onClick={handleDownload}>
 											<DownloadIcon /> {m.chat_composer_download_action()}
 										</DropdownMenuItem>
@@ -312,19 +331,23 @@ const ChatInput = ({
 				)}
 			</form>
 
-			<ChatAssetPicker
-				open={assetPickerOpen}
-				onOpenChange={setAssetPickerOpen}
-				selectedAssetIds={selectedAssetIds}
-				onAddAsset={addAsset}
-				onRemoveAsset={removeSelectedAsset}
-			/>
-			<ChatSettings
-				chatId={chatId}
-				zedToken={zedToken}
-				open={settingsOpen}
-				onOpenChange={setSettingsOpen}
-			/>
+			{!isAssistant && (
+				<>
+					<ChatAssetPicker
+						open={assetPickerOpen}
+						onOpenChange={setAssetPickerOpen}
+						selectedAssetIds={selectedAssetIds}
+						onAddAsset={addAsset}
+						onRemoveAsset={removeSelectedAsset}
+					/>
+					<ChatSettings
+						chatId={chatId}
+						zedToken={zedToken}
+						open={settingsOpen}
+						onOpenChange={setSettingsOpen}
+					/>
+				</>
+			)}
 		</>
 	);
 };

@@ -24,6 +24,7 @@ import { Route as PathlessLayoutTouRouteImport } from './routes/_pathlessLayout/
 import { Route as PathlessLayoutVerifyEmailRouteImport } from './routes/_pathlessLayout/verify-email'
 import { Route as AppIndexRouteImport } from './routes/app/index'
 import { Route as AppAccountRouteRouteImport } from './routes/app/account/route'
+import { Route as AppAssistantRouteRouteImport } from './routes/app/assistant/route'
 import { Route as AppChatRouteRouteImport } from './routes/app/chat/route'
 import { Route as AppGroupsRouteRouteImport } from './routes/app/groups/route'
 import { Route as AppHubRouteRouteImport } from './routes/app/hub/route'
@@ -37,6 +38,7 @@ import { Route as ApiAuthSplatRouteImport } from './routes/api/auth/$'
 import { Route as ApiDocSplatRouteImport } from './routes/api/doc/$'
 import { Route as ApiRpcSplatRouteImport } from './routes/api/rpc/$'
 import { Route as AppAccountIndexRouteImport } from './routes/app/account/index'
+import { Route as AppAssistantIndexRouteImport } from './routes/app/assistant/index'
 import { Route as AppChatIndexRouteImport } from './routes/app/chat/index'
 import { Route as AppChatNewRouteImport } from './routes/app/chat/new'
 import { Route as AppChatSetupRouteImport } from './routes/app/chat/setup'
@@ -63,6 +65,7 @@ import { Route as AppUsersAddRouteImport } from './routes/app/users/add'
 import { Route as AppUsersInvitesRouteImport } from './routes/app/users/invites'
 import { Route as InstanceOrganizationsIndexRouteImport } from './routes/instance/organizations/index'
 import { Route as InstanceUsersIndexRouteImport } from './routes/instance/users/index'
+import { Route as AppAssistantChatIdIndexRouteImport } from './routes/app/assistant/$chatId/index'
 import { Route as AppChatChatIdIndexRouteImport } from './routes/app/chat/$chatId/index'
 import { Route as AppGroupsGroupIdIndexRouteImport } from './routes/app/groups/$groupId/index'
 import { Route as AppHubAssetsIndexRouteImport } from './routes/app/hub/assets/index'
@@ -170,6 +173,11 @@ const AppAccountRouteRoute = AppAccountRouteRouteImport.update({
   path: '/account',
   getParentRoute: () => AppRouteRoute,
 } as any)
+const AppAssistantRouteRoute = AppAssistantRouteRouteImport.update({
+  id: '/assistant',
+  path: '/assistant',
+  getParentRoute: () => AppRouteRoute,
+} as any)
 const AppChatRouteRoute = AppChatRouteRouteImport.update({
   id: '/chat',
   path: '/chat',
@@ -234,6 +242,11 @@ const AppAccountIndexRoute = AppAccountIndexRouteImport.update({
   id: '/',
   path: '/',
   getParentRoute: () => AppAccountRouteRoute,
+} as any)
+const AppAssistantIndexRoute = AppAssistantIndexRouteImport.update({
+  id: '/',
+  path: '/',
+  getParentRoute: () => AppAssistantRouteRoute,
 } as any)
 const AppChatIndexRoute = AppChatIndexRouteImport.update({
   id: '/',
@@ -367,6 +380,11 @@ const InstanceUsersIndexRoute = InstanceUsersIndexRouteImport.update({
   id: '/users/',
   path: '/users/',
   getParentRoute: () => InstanceRouteRoute,
+} as any)
+const AppAssistantChatIdIndexRoute = AppAssistantChatIdIndexRouteImport.update({
+  id: '/$chatId/',
+  path: '/$chatId/',
+  getParentRoute: () => AppAssistantRouteRoute,
 } as any)
 const AppChatChatIdIndexRoute = AppChatChatIdIndexRouteImport.update({
   id: '/$chatId/',
@@ -524,6 +542,7 @@ export interface FileRoutesByFullPath {
   '/app': typeof AppRouteRouteWithChildren
   '/instance': typeof InstanceRouteRouteWithChildren
   '/app/account': typeof AppAccountRouteRouteWithChildren
+  '/app/assistant': typeof AppAssistantRouteRouteWithChildren
   '/app/chat': typeof AppChatRouteRouteWithChildren
   '/app/groups': typeof AppGroupsRouteRouteWithChildren
   '/app/hub': typeof AppHubRouteRouteWithChildren
@@ -563,6 +582,7 @@ export interface FileRoutesByFullPath {
   '/app/users/add': typeof AppUsersAddRoute
   '/app/users/invites': typeof AppUsersInvitesRoute
   '/app/account/': typeof AppAccountIndexRoute
+  '/app/assistant/': typeof AppAssistantIndexRoute
   '/app/chat/': typeof AppChatIndexRoute
   '/app/groups/': typeof AppGroupsIndexRoute
   '/app/hub/': typeof AppHubIndexRoute
@@ -583,6 +603,7 @@ export interface FileRoutesByFullPath {
   '/app/providers/$providerId/edit': typeof AppProvidersProviderIdEditRoute
   '/app/quotas/$quotaPoolId/edit': typeof AppQuotasQuotaPoolIdEditRoute
   '/app/users/$userId/edit': typeof AppUsersUserIdEditRoute
+  '/app/assistant/$chatId/': typeof AppAssistantChatIdIndexRoute
   '/app/chat/$chatId/': typeof AppChatChatIdIndexRoute
   '/app/groups/$groupId/': typeof AppGroupsGroupIdIndexRoute
   '/app/hub/assets/': typeof AppHubAssetsIndexRoute
@@ -627,6 +648,7 @@ export interface FileRoutesByTo {
   '/app/users/add': typeof AppUsersAddRoute
   '/app/users/invites': typeof AppUsersInvitesRoute
   '/app/account': typeof AppAccountIndexRoute
+  '/app/assistant': typeof AppAssistantIndexRoute
   '/app/chat': typeof AppChatIndexRoute
   '/app/groups': typeof AppGroupsIndexRoute
   '/app/hub': typeof AppHubIndexRoute
@@ -644,6 +666,7 @@ export interface FileRoutesByTo {
   '/app/providers/$providerId/edit': typeof AppProvidersProviderIdEditRoute
   '/app/quotas/$quotaPoolId/edit': typeof AppQuotasQuotaPoolIdEditRoute
   '/app/users/$userId/edit': typeof AppUsersUserIdEditRoute
+  '/app/assistant/$chatId': typeof AppAssistantChatIdIndexRoute
   '/app/chat/$chatId': typeof AppChatChatIdIndexRoute
   '/app/groups/$groupId': typeof AppGroupsGroupIdIndexRoute
   '/app/hub/assets': typeof AppHubAssetsIndexRoute
@@ -670,6 +693,7 @@ export interface FileRoutesById {
   '/app': typeof AppRouteRouteWithChildren
   '/instance': typeof InstanceRouteRouteWithChildren
   '/app/account': typeof AppAccountRouteRouteWithChildren
+  '/app/assistant': typeof AppAssistantRouteRouteWithChildren
   '/app/chat': typeof AppChatRouteRouteWithChildren
   '/app/groups': typeof AppGroupsRouteRouteWithChildren
   '/app/hub': typeof AppHubRouteRouteWithChildren
@@ -709,6 +733,7 @@ export interface FileRoutesById {
   '/app/users/add': typeof AppUsersAddRoute
   '/app/users/invites': typeof AppUsersInvitesRoute
   '/app/account/': typeof AppAccountIndexRoute
+  '/app/assistant/': typeof AppAssistantIndexRoute
   '/app/chat/': typeof AppChatIndexRoute
   '/app/groups/': typeof AppGroupsIndexRoute
   '/app/hub/': typeof AppHubIndexRoute
@@ -729,6 +754,7 @@ export interface FileRoutesById {
   '/app/providers/$providerId/edit': typeof AppProvidersProviderIdEditRoute
   '/app/quotas/$quotaPoolId/edit': typeof AppQuotasQuotaPoolIdEditRoute
   '/app/users/$userId/edit': typeof AppUsersUserIdEditRoute
+  '/app/assistant/$chatId/': typeof AppAssistantChatIdIndexRoute
   '/app/chat/$chatId/': typeof AppChatChatIdIndexRoute
   '/app/groups/$groupId/': typeof AppGroupsGroupIdIndexRoute
   '/app/hub/assets/': typeof AppHubAssetsIndexRoute
@@ -755,6 +781,7 @@ export interface FileRouteTypes {
     | '/app'
     | '/instance'
     | '/app/account'
+    | '/app/assistant'
     | '/app/chat'
     | '/app/groups'
     | '/app/hub'
@@ -794,6 +821,7 @@ export interface FileRouteTypes {
     | '/app/users/add'
     | '/app/users/invites'
     | '/app/account/'
+    | '/app/assistant/'
     | '/app/chat/'
     | '/app/groups/'
     | '/app/hub/'
@@ -814,6 +842,7 @@ export interface FileRouteTypes {
     | '/app/providers/$providerId/edit'
     | '/app/quotas/$quotaPoolId/edit'
     | '/app/users/$userId/edit'
+    | '/app/assistant/$chatId/'
     | '/app/chat/$chatId/'
     | '/app/groups/$groupId/'
     | '/app/hub/assets/'
@@ -858,6 +887,7 @@ export interface FileRouteTypes {
     | '/app/users/add'
     | '/app/users/invites'
     | '/app/account'
+    | '/app/assistant'
     | '/app/chat'
     | '/app/groups'
     | '/app/hub'
@@ -875,6 +905,7 @@ export interface FileRouteTypes {
     | '/app/providers/$providerId/edit'
     | '/app/quotas/$quotaPoolId/edit'
     | '/app/users/$userId/edit'
+    | '/app/assistant/$chatId'
     | '/app/chat/$chatId'
     | '/app/groups/$groupId'
     | '/app/hub/assets'
@@ -900,6 +931,7 @@ export interface FileRouteTypes {
     | '/app'
     | '/instance'
     | '/app/account'
+    | '/app/assistant'
     | '/app/chat'
     | '/app/groups'
     | '/app/hub'
@@ -939,6 +971,7 @@ export interface FileRouteTypes {
     | '/app/users/add'
     | '/app/users/invites'
     | '/app/account/'
+    | '/app/assistant/'
     | '/app/chat/'
     | '/app/groups/'
     | '/app/hub/'
@@ -959,6 +992,7 @@ export interface FileRouteTypes {
     | '/app/providers/$providerId/edit'
     | '/app/quotas/$quotaPoolId/edit'
     | '/app/users/$userId/edit'
+    | '/app/assistant/$chatId/'
     | '/app/chat/$chatId/'
     | '/app/groups/$groupId/'
     | '/app/hub/assets/'
@@ -1096,6 +1130,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AppAccountRouteRouteImport
       parentRoute: typeof AppRouteRoute
     }
+    '/app/assistant': {
+      id: '/app/assistant'
+      path: '/assistant'
+      fullPath: '/app/assistant'
+      preLoaderRoute: typeof AppAssistantRouteRouteImport
+      parentRoute: typeof AppRouteRoute
+    }
     '/app/chat': {
       id: '/app/chat'
       path: '/chat'
@@ -1186,6 +1227,13 @@ declare module '@tanstack/react-router' {
       fullPath: '/app/account/'
       preLoaderRoute: typeof AppAccountIndexRouteImport
       parentRoute: typeof AppAccountRouteRoute
+    }
+    '/app/assistant/': {
+      id: '/app/assistant/'
+      path: '/'
+      fullPath: '/app/assistant/'
+      preLoaderRoute: typeof AppAssistantIndexRouteImport
+      parentRoute: typeof AppAssistantRouteRoute
     }
     '/app/chat/': {
       id: '/app/chat/'
@@ -1368,6 +1416,13 @@ declare module '@tanstack/react-router' {
       fullPath: '/instance/users/'
       preLoaderRoute: typeof InstanceUsersIndexRouteImport
       parentRoute: typeof InstanceRouteRoute
+    }
+    '/app/assistant/$chatId/': {
+      id: '/app/assistant/$chatId/'
+      path: '/$chatId'
+      fullPath: '/app/assistant/$chatId/'
+      preLoaderRoute: typeof AppAssistantChatIdIndexRouteImport
+      parentRoute: typeof AppAssistantRouteRoute
     }
     '/app/chat/$chatId/': {
       id: '/app/chat/$chatId/'
@@ -1606,6 +1661,19 @@ const AppAccountRouteRouteChildren: AppAccountRouteRouteChildren = {
 const AppAccountRouteRouteWithChildren = AppAccountRouteRoute._addFileChildren(
   AppAccountRouteRouteChildren,
 )
+
+interface AppAssistantRouteRouteChildren {
+  AppAssistantIndexRoute: typeof AppAssistantIndexRoute
+  AppAssistantChatIdIndexRoute: typeof AppAssistantChatIdIndexRoute
+}
+
+const AppAssistantRouteRouteChildren: AppAssistantRouteRouteChildren = {
+  AppAssistantIndexRoute: AppAssistantIndexRoute,
+  AppAssistantChatIdIndexRoute: AppAssistantChatIdIndexRoute,
+}
+
+const AppAssistantRouteRouteWithChildren =
+  AppAssistantRouteRoute._addFileChildren(AppAssistantRouteRouteChildren)
 
 interface AppChatRouteRouteChildren {
   AppChatNewRoute: typeof AppChatNewRoute
@@ -1909,6 +1977,7 @@ const AppUsersRouteRouteWithChildren = AppUsersRouteRoute._addFileChildren(
 
 interface AppRouteRouteChildren {
   AppAccountRouteRoute: typeof AppAccountRouteRouteWithChildren
+  AppAssistantRouteRoute: typeof AppAssistantRouteRouteWithChildren
   AppChatRouteRoute: typeof AppChatRouteRouteWithChildren
   AppGroupsRouteRoute: typeof AppGroupsRouteRouteWithChildren
   AppHubRouteRoute: typeof AppHubRouteRouteWithChildren
@@ -1922,6 +1991,7 @@ interface AppRouteRouteChildren {
 
 const AppRouteRouteChildren: AppRouteRouteChildren = {
   AppAccountRouteRoute: AppAccountRouteRouteWithChildren,
+  AppAssistantRouteRoute: AppAssistantRouteRouteWithChildren,
   AppChatRouteRoute: AppChatRouteRouteWithChildren,
   AppGroupsRouteRoute: AppGroupsRouteRouteWithChildren,
   AppHubRouteRoute: AppHubRouteRouteWithChildren,

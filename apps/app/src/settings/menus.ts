@@ -13,6 +13,7 @@ import {
 	PlugIcon,
 	ServerCogIcon,
 	ShieldCogIcon,
+	SparklesIcon,
 	UserCogIcon,
 	UserIcon,
 	UsersIcon,
@@ -30,6 +31,13 @@ interface SidebarMenuItem {
 }
 
 export const sidebarMenu: SidebarMenuItem[] = [
+	{
+		title: m.assistant_name,
+		linkProps: {
+			to: "/app/assistant",
+		},
+		icon: SparklesIcon,
+	},
 	{
 		title: m.sidebar_menu_library_item,
 		linkProps: {

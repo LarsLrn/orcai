@@ -1,3 +1,5 @@
+import { randomUUID } from "node:crypto";
+import { rejection } from "../../fixtures/authorization";
 import {
 	chatName,
 	completionRequests,
@@ -75,4 +77,40 @@ test("a message sent in the page reaches the model with the stored history", asy
 	await page.reload();
 	await expect(messageText(page, second.question)).toBeVisible();
 	await expect(messageText(page, second.reply)).toBeVisible();
+});
+
+test("a chat whose model is gone from the organisation is refused as not found", async ({
+	api,
+	inference,
+}) => {
+	const model = await setUpChatModel(api, inference);
+	const member = api.as("member");
+	const chatId = await createChat(member, model, chatName("Gone"));
+
+	await api.as("admin").model.delete({
+		refs: [
+			{
+				id: model.modelId,
+			},
+		],
+	});
+
+	const refused = await rejection(
+		member.ai.chat({
+			chatId,
+			message: {
+				id: randomUUID(),
+				role: "user",
+				parts: [
+					{
+						type: "text",
+						text: "Anyone there?",
+					},
+				],
+			},
+		}),
+	);
+	expect(refused.data).toMatchObject({
+		reason: "MODEL_NOT_FOUND",
+	});
 });

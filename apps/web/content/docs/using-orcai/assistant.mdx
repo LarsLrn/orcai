@@ -1,0 +1,26 @@
+---
+title: OrcAI Assistant
+description: Ask the platform's built-in helper about your work in the active organisation.
+---
+
+The OrcAI Assistant is OrcAI's built-in helper. It is part of the platform, not a bot: nobody owns, edits or shares it, and its model is chosen by an administrator of your organisation. Every member can use it, whatever their role.
+
+## Opening the assistant
+
+Open **OrcAI Assistant** in the sidebar, or go to `/app/assistant`. The page shows a composer for a new conversation and your earlier conversations in the active organisation, most recently active first.
+
+Sending the first message starts a conversation and opens it at `/app/assistant/<id>`. The composer shows the assistant model as read-only text where a chat shows its model picker. Only an administrator can change it.
+
+## One conversation per task
+
+Start a new conversation for each task. A conversation belongs to you and to the organisation that was active when you started it, and it is listed only while that organisation is active.
+
+From the history you can rename and delete a conversation. Unlike chats, an assistant conversation cannot be branched, shared or edited and resent, and it has no model selector, settings, blocks or source pickers. Copy, download, rating and Stop work as in chat, and the quota line shows the pool that covers the assistant model.
+
+Assistant conversations live on their own page and never appear in the chat list or the chat sidebar.
+
+## When the assistant is unavailable
+
+The assistant answers with the model an administrator chose on the [Organisation page](/docs/using-orcai/administration#organisation). Until a model is chosen, the assistant page explains that the assistant is unavailable: administrators get a link to the Organisation page, everyone else is asked to contact an admin. Existing conversations keep their transcripts and show the same notice instead of the composer.
+
+When the administrator switches to another model, existing conversations use it from their next message on.

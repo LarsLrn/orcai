@@ -1,4 +1,5 @@
 import {
+	type ModelId,
 	ORGANIZATION_ADMIN_ROLE,
 	ORGANIZATION_ROLES,
 	type OrganizationId,
@@ -27,6 +28,7 @@ import {
 	sql,
 } from "drizzle-orm";
 import * as Effect from "effect/Effect";
+import { modelUnusableReason } from "@/lib/ai/utils/model-usability";
 import { getZedToken } from "@/lib/authz/zed-token";
 import {
 	AuthzService,
@@ -367,6 +369,56 @@ const createOrganization = authed.organization.create
 		};
 	});
 
+/** The assistant model must be the organisation's own and able to carry a tool-calling turn. */
+const requireUsableAssistantModel = ({
+	organizationId,
+	modelId,
+}: {
+	organizationId: OrganizationId;
+	modelId: ModelId;
+}) =>
+	Effect.gen(function* () {
+		const db = yield* DB;
+		const [model] = yield* db
+			.select({
+				capabilities: dbSchema.model.capabilities,
+				isDeprecated: dbSchema.model.isDeprecated,
+				providerEnabled: dbSchema.provider.enabled,
+			})
+			.from(dbSchema.model)
+			.innerJoin(
+				dbSchema.provider,
+				eq(dbSchema.provider.id, dbSchema.model.providerId),
+			)
+			.where(
+				and(
+					eq(dbSchema.model.id, modelId),
+					eq(dbSchema.provider.organizationId, organizationId),
+				),
+			)
+			.limit(1);
+
+		if (!model) {
+			return yield* Effect.fail(
+				new AppErrors.NotFoundError({
+					reason: "MODEL_NOT_FOUND",
+					id: modelId,
+					message: "The assistant model is not a model of this organisation.",
+				}),
+			);
+		}
+
+		const unusable = modelUnusableReason(model);
+		if (unusable) {
+			return yield* Effect.fail(
+				new AppErrors.BadRequestError({
+					reason: unusable,
+					message: "The assistant model cannot carry a tool-calling turn.",
+				}),
+			);
+		}
+	});
+
 const updateOrganization = authed.organization.update
 	.use(
 		requireEntityPermission("organization", "manage_organization", {
@@ -375,6 +427,13 @@ const updateOrganization = authed.organization.update
 	)
 	.effect(function* ({ input }) {
 		const db = yield* DB;
+
+		if (input.assistantModelId) {
+			yield* requireUsableAssistantModel({
+				organizationId: input.id,
+				modelId: input.assistantModelId,
+			});
+		}
 
 		return yield* db
 			.update(dbSchema.organization)

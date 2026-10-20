@@ -20,6 +20,9 @@ export const useUpdateChatMutation = (
 					queryClient.invalidateQueries({
 						queryKey: orpc.chat.key(),
 					});
+					queryClient.invalidateQueries({
+						queryKey: orpc.assistant.key(),
+					});
 
 					try {
 						await opts.onSuccess?.(...args);
@@ -52,6 +55,9 @@ export const useDeleteChatsMutation = (
 				onSuccess: async (...args) => {
 					queryClient.invalidateQueries({
 						queryKey: orpc.chat.key(),
+					});
+					queryClient.invalidateQueries({
+						queryKey: orpc.assistant.key(),
 					});
 
 					try {

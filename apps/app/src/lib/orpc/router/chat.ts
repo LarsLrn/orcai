@@ -36,6 +36,7 @@ import {
 	requireEntityPermission,
 } from "@/lib/orpc/middlewares/permission";
 import { isEmptyReply } from "./chat-message";
+import { assistantConversationImmutable } from "./helpers/assistant-conversation";
 import { literalSearch } from "./helpers/literal-search";
 import { buildOrderBy, type SortExpression } from "./helpers/sorting";
 
@@ -52,6 +53,7 @@ const listChats = authed.chat.list.effect(function* ({ input, context }) {
 	);
 	const conditions = [
 		inArray(dbSchema.chat.id, allowedIds),
+		eq(dbSchema.chat.kind, "chat"),
 		input.filters?.botId
 			? eq(dbSchema.chat.botId, input.filters.botId)
 			: undefined,
@@ -143,7 +145,7 @@ const requireBotUse = (params: {
 		}
 	});
 
-const chatRelationships = (chat: {
+export const chatRelationships = (chat: {
 	id: ChatId;
 	userId: UserId;
 	botId: BotId | null;
@@ -322,6 +324,10 @@ const updateChat = authed.chat.update
 			},
 		});
 
+		if (existingChat?.kind === "assistant" && input.config !== undefined) {
+			return yield* Effect.fail(assistantConversationImmutable());
+		}
+
 		const configPatch =
 			input.config == null
 				? input.config
@@ -428,6 +434,10 @@ const branchChat = authed.chat.branch
 					),
 				),
 			);
+
+		if (source.kind === "assistant") {
+			return yield* Effect.fail(assistantConversationImmutable());
+		}
 
 		const message = yield* db.query.chatMessage
 			.findFirst({

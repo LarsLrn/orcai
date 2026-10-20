@@ -8,6 +8,7 @@ import * as AppErrors from "@/lib/effect/utils/errors";
 import { authed } from "@/lib/orpc/implementation/authed";
 import { uniqueViolationConstraint } from "@/lib/orpc/implementation/error-mapping";
 import { requireEntityPermission } from "@/lib/orpc/middlewares/permission";
+import { assistantConversationImmutable } from "./helpers/assistant-conversation";
 
 const listChatMessages = authed.chatMessage.list
 	.use(
@@ -219,6 +220,22 @@ const createChatMessage = authed.chatMessage.create
 		}),
 	)
 	.effect(function* ({ input }) {
+		const db = yield* DB;
+		const chat = yield* db.query.chat.findFirst({
+			where: {
+				id: {
+					eq: input.chatId,
+				},
+			},
+			columns: {
+				kind: true,
+			},
+		});
+
+		if (chat?.kind === "assistant") {
+			return yield* Effect.fail(assistantConversationImmutable());
+		}
+
 		const [message] = yield* appendChatMessages(input.chatId, [
 			{
 				id: input.id,
