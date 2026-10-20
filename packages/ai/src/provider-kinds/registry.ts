@@ -3,7 +3,7 @@ import { createOpenAI } from "@ai-sdk/openai";
 import { createOpenAICompatible } from "@ai-sdk/openai-compatible";
 import type { LanguageModelV4 } from "@ai-sdk/provider";
 import type { ProviderKind } from "@orcai/core";
-import type { SystemModelMessage } from "ai";
+import type { SystemModelMessage, Tool, ToolResultPart } from "ai";
 import { listAnthropicModels } from "./list-anthropic-models";
 import { listOpenAIModels } from "./list-openai-models";
 import type {
@@ -11,6 +11,54 @@ import type {
 	ProviderConnection,
 	SystemPrompt,
 } from "./types";
+
+type ToolResultContentPart = Extract<
+	ToolResultPart["output"],
+	{
+		type: "content";
+	}
+>["value"][number];
+
+/** How an agent offers the tools it loads on demand. */
+export type ToolLoading =
+	/** Only the loaded tools are sent, so loading changes the request's tool list. */
+	| {
+			readonly type: "active-tools";
+	  }
+	/** Every tool is sent from the start, deferred; references in tool results load them. */
+	| {
+			readonly type: "references";
+			/** Declares a tool that stays out of the model's context until referenced. */
+			readonly deferredToolOptions: NonNullable<Tool["providerOptions"]>;
+			/** A tool result part that loads the named deferred tool. */
+			readonly reference: (toolName: string) => ToolResultContentPart;
+	  };
+
+const activeToolsLoading: ToolLoading = {
+	type: "active-tools",
+};
+
+/** Claude models before tool search: Claude 3, and Opus and Sonnet 4 up to 4.1. */
+const ANTHROPIC_MODELS_WITHOUT_TOOL_SEARCH =
+	/^claude-(3|(opus|sonnet)-4-(0|1|\d{8})(-|$))/;
+
+const anthropicReferences: ToolLoading = {
+	type: "references",
+	deferredToolOptions: {
+		anthropic: {
+			deferLoading: true,
+		},
+	},
+	reference: (toolName) => ({
+		type: "custom",
+		providerOptions: {
+			anthropic: {
+				type: "tool-reference",
+				toolName,
+			},
+		},
+	}),
+};
 
 export interface ProviderKindServerEntry {
 	readonly createLanguageModel: (
@@ -28,6 +76,8 @@ export interface ProviderKindServerEntry {
 	 * cached prompts and thinking blocks are bound to.
 	 */
 	readonly toolChoiceNoneKeepsTools: boolean;
+	/** Defaults to active tools. */
+	readonly toolLoading?: (modelId: string) => ToolLoading;
 }
 
 const requireEndpoint = ({ endpoint }: ProviderConnection) => {
@@ -86,6 +136,10 @@ export const providerKindServerEntries: Record<
 			},
 		},
 		toolChoiceNoneKeepsTools: false,
+		toolLoading: (modelId) =>
+			ANTHROPIC_MODELS_WITHOUT_TOOL_SEARCH.test(modelId)
+				? activeToolsLoading
+				: anthropicReferences,
 	},
 };
 
@@ -94,6 +148,12 @@ export const createProviderLanguageModel = (
 	connection: ProviderConnection,
 	modelId: string,
 ) => providerKindServerEntries[kind].createLanguageModel(connection, modelId);
+
+export const providerToolLoading = (
+	kind: ProviderKind,
+	modelId: string,
+): ToolLoading =>
+	providerKindServerEntries[kind].toolLoading?.(modelId) ?? activeToolsLoading;
 
 export const listProviderModels = (
 	kind: ProviderKind,

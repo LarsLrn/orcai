@@ -1,4 +1,8 @@
-import { AiError, createProviderLanguageModel } from "@orcai/ai";
+import {
+	AiError,
+	createProviderLanguageModel,
+	providerToolLoading,
+} from "@orcai/ai";
 import type { BotId, ModelId, ProviderId, UserId } from "@orcai/core";
 import type { ChatConfig, DatabaseBlock, TemplateBlock } from "@orcai/schema";
 import { checkManyEntityPermissions, hasPermission } from "@orcai/spice-db";
@@ -248,6 +252,10 @@ export const getChatAiSettings = ({
 		return {
 			provider,
 			model,
+			toolLoading: providerToolLoading(
+				provider.kind,
+				modelSettings.providerModelId,
+			),
 			systemPrompt,
 			databaseBlocks,
 			features,

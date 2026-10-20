@@ -1,3 +1,4 @@
+import type { ToolLoading } from "@orcai/ai";
 import { z } from "zod/v4";
 import {
 	ASSISTANT_TOOL_KINDS,
@@ -9,6 +10,7 @@ import {
 	offeredToolGroups,
 } from "../groups";
 import { assistantTool } from "../procedure-tool";
+import { toolLoadingOutput } from "../tool-references";
 
 export const loadToolsInputSchema = z.object({
 	groups: z
@@ -53,10 +55,15 @@ const loadedGroup = (
 };
 
 /** Loading is idempotent: the agent derives the loaded groups from these results. */
-export const loadToolsTool = (
-	capabilities: CapabilitySet,
-	isPlanApproved: () => boolean,
-) =>
+export const loadToolsTool = ({
+	capabilities,
+	isPlanApproved,
+	toolLoading,
+}: {
+	capabilities: CapabilitySet;
+	isPlanApproved: () => boolean;
+	toolLoading: ToolLoading;
+}) =>
 	assistantTool({
 		description:
 			"Load tool groups for the rest of this conversation. Their tools are callable from your next step. Loading a group that is already loaded changes nothing.",
@@ -83,10 +90,24 @@ export const loadToolsTool = (
 				),
 			};
 		},
-		toModelOutput: ({ output }) => ({
-			type: "json",
-			value: output,
-		}),
+		// The group's tools as this user may use them now; create tools only when the result made them callable.
+		toModelOutput: ({ output }) =>
+			toolLoadingOutput(
+				output,
+				output.groups.flatMap((result) =>
+					result.loaded
+						? offeredGroupTools(result.group, capabilities).filter(
+								(name) =>
+									ASSISTANT_TOOL_KINDS[name] !== "create" ||
+									result.tools.includes(name),
+							)
+						: [],
+				),
+				{
+					toolLoading,
+					capabilities,
+				},
+			),
 	});
 
 const isRecord = (value: unknown): value is Record<string, unknown> =>

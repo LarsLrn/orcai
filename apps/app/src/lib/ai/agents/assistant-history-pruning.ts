@@ -1,4 +1,4 @@
-import { type ModelMessage, pruneMessages } from "ai";
+import { type ModelMessage, pruneMessages, type ToolContent } from "ai";
 import {
 	currentTurnStart,
 	dropEarlierReasoning,
@@ -11,6 +11,8 @@ export interface AssistantHistoryPruningOptions {
 	displayToolNames: readonly string[];
 	/** Display tools offered this turn; their calls stay in history in full. */
 	enabledDisplayToolNames: readonly string[];
+	/** Whether loading tools or approving a plan changes the request's tool list. */
+	toolListChanges: boolean;
 }
 
 const TOOL_SET_CHANGING_TOOLS = new Set([
@@ -24,12 +26,44 @@ const SUMMARISED_OUTPUT_TYPES = new Set([
 	"content",
 ]);
 
+type ToolOutput = Extract<
+	ToolContent[number],
+	{
+		type: "tool-result";
+	}
+>["output"];
+
+/** The summary line, plus the output's tool references, which keep the tools they loaded loaded. */
+const summarisedOutput = (output: ToolOutput, line: string): ToolOutput => {
+	const references =
+		output.type === "content"
+			? output.value.filter((part) => part.type === "custom")
+			: [];
+
+	return references.length > 0
+		? {
+				type: "content",
+				value: [
+					{
+						type: "text",
+						text: line,
+					},
+					...references,
+				],
+			}
+		: {
+				type: "text",
+				value: line,
+			};
+};
+
 /**
  * Keeps every tool call and input but replaces the outputs of finished turns
  * with their summary line; the turn in progress stays as sent. Errors,
  * denials and approvals stay; calls of disabled display tools are dropped.
- * Reasoning survives only from the turn's latest tool-set change on: a
- * `loadTools` result, or an `updatePlan` that ran and so unlocked tools.
+ * Where the tool list changes, reasoning survives only from the turn's latest
+ * change on: a `loadTools` result, or an `updatePlan` that ran and so
+ * unlocked tools.
  */
 export const pruneAssistantHistory = (
 	messages: ModelMessage[],
@@ -37,6 +71,7 @@ export const pruneAssistantHistory = (
 		lines,
 		displayToolNames,
 		enabledDisplayToolNames,
+		toolListChanges,
 	}: AssistantHistoryPruningOptions,
 ): ModelMessage[] => {
 	const disabledDisplayToolNames = displayToolNames.filter(
@@ -82,18 +117,17 @@ export const pruneAssistantHistory = (
 							!enabledDisplay.has(part.toolName)
 								? {
 										...part,
-										output: {
-											type: "text" as const,
-											value:
-												lines.get(part.toolCallId) ??
+										output: summarisedOutput(
+											part.output,
+											lines.get(part.toolCallId) ??
 												`Called ${part.toolName}; its output is no longer available`,
-										},
+										),
 									}
 								: part,
 						),
 					}
 				: message,
 		),
-		Math.max(turnStart, latestLoad),
+		toolListChanges ? Math.max(turnStart, latestLoad) : turnStart,
 	);
 };

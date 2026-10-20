@@ -318,6 +318,7 @@ const runChatTurn = (turn: ChatTurn) =>
 						agent: createAssistantAgent({
 							model: chatAiSettings.model,
 							providerKind: chatAiSettings.provider.kind,
+							toolLoading: chatAiSettings.toolLoading,
 							callSettings: chatAiSettings.callSettings,
 							docs,
 							userContext: assistantUserContext,

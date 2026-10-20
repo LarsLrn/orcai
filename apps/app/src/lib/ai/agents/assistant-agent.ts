@@ -1,4 +1,8 @@
-import { aiTelemetry, buildSystemInstructions } from "@orcai/ai";
+import {
+	aiTelemetry,
+	buildSystemInstructions,
+	type ToolLoading,
+} from "@orcai/ai";
 import type { ProviderKind } from "@orcai/core";
 import {
 	isStepCount,
@@ -29,7 +33,9 @@ import { assistantToolApproval } from "@/lib/ai/tools/assistant/approval";
 import { groupsLoadedBy } from "@/lib/ai/tools/assistant/core/load-tools";
 import {
 	activeAssistantToolNames,
+	DEFERRED_TOOL_NAMES,
 	type DeferredToolGroup,
+	offeredAssistantToolNames,
 	offeredToolGroups,
 } from "@/lib/ai/tools/assistant/groups";
 import type { AssistantToolDeps } from "@/lib/ai/tools/assistant/procedure-tool";
@@ -38,10 +44,33 @@ import { readDocsTool } from "@/lib/ai/tools/docs/read-docs";
 import type { ChatCallSettings } from "@/lib/ai/utils/chat-call-settings";
 import type { DocsConfig } from "@/lib/effect/services/config";
 
+/** Where tools load through references, the deferred groups' tools are declared deferred. */
+const deferGroupTools = <T extends ToolSet>(
+	tools: T,
+	toolLoading: ToolLoading,
+): T =>
+	toolLoading.type === "references"
+		? (Object.fromEntries(
+				Object.entries(tools).map(([name, tool]) => [
+					name,
+					DEFERRED_TOOL_NAMES.has(name)
+						? {
+								...tool,
+								providerOptions: {
+									...tool.providerOptions,
+									...toolLoading.deferredToolOptions,
+								},
+							}
+						: tool,
+				]),
+			) as T)
+		: tools;
+
 export const createAssistantAgent = (
 	params: AssistantToolDeps & {
 		model: LanguageModel;
 		providerKind: ProviderKind;
+		toolLoading: ToolLoading;
 		callSettings: ChatCallSettings;
 		docs: DocsConfig | undefined;
 		userContext: AssistantUserContext;
@@ -74,28 +103,43 @@ export const createAssistantAgent = (
 
 	// Approval holds for the conversation; a plan approved in an earlier request runs before the first step.
 	let planApproved = params.planApproved;
+	// Loaded groups stay loaded for the conversation, including this generation's loads.
+	const loadedGroups = new Set(params.loadedToolGroups);
 
 	// The full set, so stored calls of any tool validate; activeTools narrows what the model sees.
-	const tools = {
-		// Stored readDocs parts keep validating when the docs are switched off.
-		readDocs: readDocsTool({
-			docs: params.docs,
-		}),
-		...buildGenUiTools(),
-		...buildAssistantTools({
-			context: params.context,
-			turn: params.turn,
-			capabilities: params.userContext.capabilities,
-			isPlanApproved: () => planApproved,
-		}),
-	};
+	const tools = deferGroupTools(
+		{
+			// Stored readDocs parts keep validating when the docs are switched off.
+			readDocs: readDocsTool({
+				docs: params.docs,
+			}),
+			...buildGenUiTools(),
+			...buildAssistantTools({
+				context: params.context,
+				turn: params.turn,
+				capabilities: params.userContext.capabilities,
+				isPlanApproved: () => planApproved,
+				loadedGroups: () => [
+					...loadedGroups,
+				],
+				toolLoading: params.toolLoading,
+			}),
+		},
+		params.toolLoading,
+	);
 
 	const toolGroups = offeredToolGroups(params.userContext.capabilities);
-	const activeToolsFor = (loadedGroups: readonly DeferredToolGroup[]) =>
-		activeAssistantToolNames(
-			params.userContext.capabilities,
-			loadedGroups,
-			planApproved,
+	// Deferred tools are all declared from the start, so loading and approving leave the list as it is.
+	const activeToolNames = () =>
+		(params.toolLoading.type === "references"
+			? offeredAssistantToolNames(params.userContext.capabilities)
+			: activeAssistantToolNames(
+					params.userContext.capabilities,
+					[
+						...loadedGroups,
+					],
+					planApproved,
+				)
 		).filter(
 			(name) =>
 				(name !== "readDocs" || params.docs !== undefined) &&
@@ -129,23 +173,16 @@ export const createAssistantAgent = (
 				}),
 			),
 			stopWhen: isStepCount(options.maxSteps),
-			// Loaded groups stay active for the conversation, including this generation's loads.
-			prepareStep: ({ stepNumber, steps, messages }) => {
+			prepareStep: ({ stepNumber, messages }) => {
 				const prunedMessages = pruneAssistantHistory(messages, {
 					lines: toolLines.lines,
 					displayToolNames: GEN_UI_TOOL_NAMES,
 					enabledDisplayToolNames,
+					toolListChanges: params.toolLoading.type === "active-tools",
 				});
 				return {
 					messages: prunedMessages,
-					activeTools: activeToolsFor([
-						...params.loadedToolGroups,
-						...steps.flatMap((step) =>
-							step.toolResults
-								.filter((result) => result.toolName === "loadTools")
-								.flatMap((result) => groupsLoadedBy(result.output)),
-						),
-					]),
+					activeTools: activeToolNames(),
 					...finalStepSettings({
 						stepNumber,
 						maxSteps: options.maxSteps,
@@ -164,6 +201,11 @@ export const createAssistantAgent = (
 				// Before approval every updatePlan call is gated, so one that ran was approved.
 				if (toolOutput.toolName === "updatePlan") {
 					planApproved = true;
+				}
+				if (toolOutput.toolName === "loadTools") {
+					for (const group of groupsLoadedBy(toolOutput.output)) {
+						loadedGroups.add(group);
+					}
 				}
 			}
 		},

@@ -117,6 +117,15 @@ export const DEFERRED_TOOL_GROUPS = [
 	"people",
 ] as const satisfies DeferredToolGroup[];
 
+/** Every tool of the deferred groups. */
+export const DEFERRED_TOOL_NAMES: ReadonlySet<string> = new Set(
+	DEFERRED_TOOL_GROUPS.flatMap((group) => ASSISTANT_TOOL_GROUPS[group]),
+);
+
+export const isCreateTool = (name: string) =>
+	Object.hasOwn(ASSISTANT_TOOL_KINDS, name) &&
+	ASSISTANT_TOOL_KINDS[name as AssistantToolName] === "create";
+
 const contentCapabilities: OrganizationCapability[] = [
 	"create_bot",
 	"create_block",
@@ -200,7 +209,10 @@ export const offeredToolGroups = (
 	);
 
 /** `loadTools` is offered when there is a group to load. */
-const isToolOffered = (name: AssistantToolName, capabilities: CapabilitySet) =>
+export const isToolOffered = (
+	name: AssistantToolName,
+	capabilities: CapabilitySet,
+) =>
 	name === "loadTools"
 		? offeredToolGroups(capabilities).length > 0
 		: isGrantedTool(name, capabilities);
@@ -231,3 +243,24 @@ export const activeAssistantToolNames = (
 			loadedGroups.includes(group),
 		).flatMap((group) => offeredGroupTools(group, capabilities)),
 	].filter((name) => planApproved || ASSISTANT_TOOL_KINDS[name] !== "create");
+
+/** Every tool this user may use, loaded or not, plan or not. */
+export const offeredAssistantToolNames = (
+	capabilities: CapabilitySet,
+): AssistantToolName[] => [
+	...ASSISTANT_TOOL_GROUPS.core.filter((name) =>
+		isToolOffered(name, capabilities),
+	),
+	...DEFERRED_TOOL_GROUPS.flatMap((group) =>
+		offeredGroupTools(group, capabilities),
+	),
+];
+
+/** The create tools of the loaded groups this user may use. */
+export const offeredCreateTools = (
+	capabilities: CapabilitySet,
+	loadedGroups: readonly DeferredToolGroup[],
+): AssistantToolName[] =>
+	DEFERRED_TOOL_GROUPS.filter((group) => loadedGroups.includes(group))
+		.flatMap((group) => offeredGroupTools(group, capabilities))
+		.filter((name) => ASSISTANT_TOOL_KINDS[name] === "create");

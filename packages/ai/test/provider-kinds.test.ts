@@ -6,6 +6,7 @@ import {
 	createProviderLanguageModel,
 	listProviderModels,
 	providerKindServerEntries,
+	providerToolLoading,
 	withholdToolCalls,
 } from "../src/provider-kinds/registry";
 
@@ -162,6 +163,53 @@ describe("provider kind registry", () => {
 			"https://llm.example.org/v1/models",
 		);
 		expect(official.requests[0]?.url).toBe("https://api.openai.com/v1/models");
+	});
+});
+
+describe("providerToolLoading", () => {
+	test("Claude models with tool search load tools through references", () => {
+		for (const modelId of [
+			"claude-opus-5-5",
+			"claude-sonnet-5",
+			"claude-haiku-4-5-20251001",
+			"claude-opus-4-5",
+			"claude-sonnet-4-5-20250929",
+		]) {
+			expect(providerToolLoading("anthropic", modelId).type).toBe("references");
+		}
+	});
+
+	test("older Claude models and other kinds keep active tools", () => {
+		for (const modelId of [
+			"claude-opus-4-1-20250805",
+			"claude-opus-4-20250514",
+			"claude-sonnet-4-0",
+			"claude-3-7-sonnet-latest",
+		]) {
+			expect(providerToolLoading("anthropic", modelId).type).toBe(
+				"active-tools",
+			);
+		}
+		expect(providerToolLoading("openai", "gpt-x").type).toBe("active-tools");
+		expect(
+			providerToolLoading("openai-compatible", "claude-opus-5-5").type,
+		).toBe("active-tools");
+	});
+
+	test("an Anthropic reference names the tool", () => {
+		const loading = providerToolLoading("anthropic", "claude-opus-5-5");
+
+		expect(
+			loading.type === "references" && loading.reference("getBot"),
+		).toEqual({
+			type: "custom",
+			providerOptions: {
+				anthropic: {
+					type: "tool-reference",
+					toolName: "getBot",
+				},
+			},
+		});
 	});
 });
 
