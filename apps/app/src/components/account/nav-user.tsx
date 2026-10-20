@@ -1,5 +1,6 @@
 import { getInitial } from "@orcai/core";
 import { skipToken, useQuery } from "@tanstack/react-query";
+import { useHydrated } from "@tanstack/react-router";
 import { ChevronsUpDown, LogOut } from "lucide-react";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import {
@@ -34,6 +35,10 @@ const NavUser = () => {
 				: skipToken,
 		}),
 	);
+	// The server renders the query as pending even when its data reaches the
+	// browser before hydration, so the name waits for hydration.
+	const hydrated = useHydrated();
+	const organizationName = hydrated ? activeOrganization?.data.name : undefined;
 
 	return (
 		<SidebarMenu>
@@ -56,10 +61,8 @@ const NavUser = () => {
 									<span className="truncate font-semibold">
 										{auth.user.name}
 									</span>
-									{activeOrganization && (
-										<span className="truncate text-xs">
-											{activeOrganization.data.name}
-										</span>
+									{organizationName && (
+										<span className="truncate text-xs">{organizationName}</span>
 									)}
 								</div>
 								<ChevronsUpDown className="ml-auto size-4" />
