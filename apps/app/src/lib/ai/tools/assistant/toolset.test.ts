@@ -22,6 +22,10 @@ const tools: ToolSet = buildAssistantTools({
 		read: true,
 	},
 	isPlanApproved: () => false,
+	loadedGroups: () => [],
+	toolLoading: {
+		type: "active-tools",
+	},
 });
 
 /** Core tools the toolset builds; readDocs and the display tools come from the agent. */

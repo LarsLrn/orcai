@@ -19,6 +19,8 @@ export {
 	buildSystemInstructions,
 	createProviderLanguageModel,
 	listProviderModels,
+	providerToolLoading,
+	type ToolLoading,
 	withholdToolCalls,
 } from "./provider-kinds/registry";
 export type { SystemPrompt } from "./provider-kinds/types";

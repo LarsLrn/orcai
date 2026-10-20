@@ -67,7 +67,11 @@ const outputsOf = (messages: ModelMessage[]) =>
 		),
 	);
 
-const prune = (messages: ModelMessage[], enabledDisplayToolNames = []) =>
+const prune = (
+	messages: ModelMessage[],
+	enabledDisplayToolNames = [],
+	toolListChanges = true,
+) =>
 	pruneAssistantHistory(messages, {
 		lines: new Map([
 			[
@@ -83,6 +87,7 @@ const prune = (messages: ModelMessage[], enabledDisplayToolNames = []) =>
 			"showChecklist",
 		],
 		enabledDisplayToolNames,
+		toolListChanges,
 	});
 
 const full = {
@@ -154,6 +159,51 @@ describe("pruneAssistantHistory", () => {
 			value: {
 				full: true,
 			},
+		});
+	});
+
+	test("keeps the tool references of a summarised output", () => {
+		const reference = {
+			type: "custom" as const,
+			providerOptions: {
+				anthropic: {
+					type: "tool-reference",
+					toolName: "updateBot",
+				},
+			},
+		};
+		const outputs = outputsOf(
+			prune([
+				user("hi"),
+				...call("loadTools", "a", {
+					type: "tool-result",
+					toolCallId: "a",
+					toolName: "loadTools",
+					output: {
+						type: "content",
+						value: [
+							{
+								type: "text",
+								text: "{}",
+							},
+							reference,
+						],
+					},
+				}),
+				user("go on"),
+				...call("getBot", "c"),
+			]),
+		);
+
+		expect(outputs.a).toEqual({
+			type: "content",
+			value: [
+				{
+					type: "text",
+					text: "Found 3 bots",
+				},
+				reference,
+			],
 		});
 	});
 
@@ -245,6 +295,7 @@ describe("pruneAssistantHistory", () => {
 				]),
 				displayToolNames: [],
 				enabledDisplayToolNames: [],
+				toolListChanges: true,
 			},
 		);
 
@@ -401,6 +452,7 @@ describe("pruneAssistantHistory", () => {
 					enabledDisplayToolNames: [
 						"showChecklist",
 					],
+					toolListChanges: true,
 				}),
 			).s,
 		).toEqual({
@@ -463,6 +515,23 @@ describe("pruneAssistantHistory", () => {
 		]);
 
 		expect(reasoningOf(pruned)).toEqual([
+			"after",
+		]);
+	});
+
+	test("keeps the turn's reasoning where loading leaves the tool list as it is", () => {
+		const pruned = prune(
+			[
+				user("hi"),
+				...thought("before", call("loadTools", "l")),
+				...thought("after", call("getBot", "c")),
+			],
+			[],
+			false,
+		);
+
+		expect(reasoningOf(pruned)).toEqual([
+			"before",
 			"after",
 		]);
 	});

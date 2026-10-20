@@ -14,7 +14,13 @@ const member: CapabilitySet = {
 };
 
 const load = (groups: ("bots" | "sharing" | "people")[], planApproved = true) =>
-	loadToolsTool(member, () => planApproved).execute(
+	loadToolsTool({
+		capabilities: member,
+		isPlanApproved: () => planApproved,
+		toolLoading: {
+			type: "active-tools",
+		},
+	}).execute(
 		{
 			groups,
 		},
