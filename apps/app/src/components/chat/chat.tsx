@@ -14,6 +14,7 @@ import { Shimmer } from "@/components/ai-elements/shimmer";
 import { AssistantComposerGate } from "@/components/assistant/assistant-composer-gate";
 import { assistantLinkSafety } from "@/components/assistant/assistant-link-safety";
 import { AssistantPlaceholder } from "@/components/assistant/assistant-placeholder";
+import { PlanPanel } from "@/components/assistant/plan-panel";
 import {
 	hasClientToolOutput,
 	isClientToolPart,
@@ -576,7 +577,14 @@ const Chat = ({
 			<div className="mx-auto flex w-full flex-col gap-2 px-4 pt-2 pb-6 md:max-w-3xl md:pb-2">
 				<QuotaLine chatId={id} />
 				{isAssistant ? (
-					<AssistantComposerGate>{composer}</AssistantComposerGate>
+					<>
+						<PlanPanel
+							messages={messages}
+							status={status}
+							addToolApprovalResponse={addToolApprovalResponse}
+						/>
+						<AssistantComposerGate>{composer}</AssistantComposerGate>
+					</>
 				) : (
 					composer
 				)}

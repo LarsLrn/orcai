@@ -46,6 +46,7 @@ import { forkChatTitleGenerationIfNeeded } from "@/lib/ai/effects/fork-chat-titl
 import { quotaDenialError } from "@/lib/ai/effects/generate-text-with-quota";
 import { resolveFeatures } from "@/lib/ai/features/resolve-features";
 import { loadedToolGroupsOf } from "@/lib/ai/tools/assistant/core/load-tools";
+import { isPlanApproved } from "@/lib/ai/tools/assistant/plan/plan-approval";
 import { createAssistantTurn } from "@/lib/ai/tools/assistant/turn-state";
 import type { ChatAgentUIMessage } from "@/lib/ai/types/chat-agent-message";
 import { getChatMessageAttachments } from "@/lib/ai/types/chat-attachment";
@@ -54,6 +55,7 @@ import {
 	withoutContinuationClaim,
 } from "@/lib/ai/utils/apply-turn-decisions";
 import { buildAttachmentPromptPartCached } from "@/lib/ai/utils/chat-attachment-parts";
+import { closeInvalidToolParts } from "@/lib/ai/utils/close-invalid-tool-parts";
 import { closePendingToolParts } from "@/lib/ai/utils/close-pending-tool-parts";
 import { getChatAiSettings } from "@/lib/ai/utils/get-chat-ai-settings";
 import { loadAssistantUserContext } from "@/lib/ai/utils/load-assistant-user-context";
@@ -320,6 +322,7 @@ const runChatTurn = (turn: ChatTurn) =>
 							docs,
 							userContext: assistantUserContext,
 							features: yield* resolveFeatures(ASSISTANT_FEATURES),
+							planApproved: isPlanApproved(turn.history),
 							loadedToolGroups: loadedToolGroupsOf(turn.history),
 							history: turn.history,
 							telemetryIds,
@@ -349,7 +352,7 @@ const runChatTurn = (turn: ChatTurn) =>
 		const userMessageAttachments =
 			turn.kind === "reply" ? getChatMessageAttachments(turn.userMessage) : [];
 
-		const messages =
+		const turnMessages =
 			turn.kind === "reply" && reply
 				? [
 						...reply.closedHistory,
@@ -362,6 +365,9 @@ const runChatTurn = (turn: ChatTurn) =>
 						} as ChatAgentUIMessage,
 					]
 				: turn.history;
+		const messages = yield* Effect.promise(() =>
+			closeInvalidToolParts(turnMessages, turnAgent.agent.tools),
+		);
 
 		const quotaReservation = yield* reserveForAppRequest({
 			organizationId,

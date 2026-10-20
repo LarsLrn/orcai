@@ -74,8 +74,16 @@ const toolHungryModel = () => {
 	};
 };
 
-/** An agent wired like the chat agents, its budget a call option. */
-const runTurn = async (providerKind: ProviderKind, maxSteps = MAX_STEPS) => {
+/**
+ * An agent wired like the chat agents, its budget a call option. With
+ * `activeTools`, it narrows the tools on every step as the assistant's plan
+ * gating does.
+ */
+const runTurn = async (
+	providerKind: ProviderKind,
+	maxSteps = MAX_STEPS,
+	activeTools?: "search"[],
+) => {
 	const { model, calls } = toolHungryModel();
 	const agent = new ToolLoopAgent({
 		model,
@@ -84,18 +92,24 @@ const runTurn = async (providerKind: ProviderKind, maxSteps = MAX_STEPS) => {
 				inputSchema: z.object({}),
 				execute: async () => "a result",
 			}),
+			createBot: tool({
+				inputSchema: z.object({}),
+				execute: async () => "created",
+			}),
 		},
 		callOptionsSchema: stepBudgetOptionsSchema,
 		prepareCall: ({ options, ...settings }) => ({
 			...settings,
 			stopWhen: isStepCount(options.maxSteps),
-			prepareStep: ({ stepNumber, messages }) =>
-				finalStepSettings({
+			prepareStep: ({ stepNumber, messages }) => ({
+				activeTools,
+				...finalStepSettings({
 					stepNumber,
 					maxSteps: options.maxSteps,
 					messages,
 					providerKind,
 				}),
+			}),
 		}),
 	});
 	const result = await agent.generate({
@@ -136,7 +150,7 @@ describe("finalStepSettings", () => {
 		expect(finalCall?.toolChoice).toEqual({
 			type: "none",
 		});
-		expect(finalCall?.tools).toHaveLength(1);
+		expect(finalCall?.tools).toHaveLength(2);
 		expect(lastPromptText(finalCall as CallOptions)).toBe(FINAL_STEP_NOTE);
 	});
 
@@ -146,8 +160,22 @@ describe("finalStepSettings", () => {
 		expect(result.text).toBe("Here is what I found so far.");
 		const finalCall = calls.at(-1) as CallOptions;
 		expect(finalCall.toolChoice?.type).toBe("auto");
-		expect(finalCall.tools).toHaveLength(1);
+		expect(finalCall.tools).toHaveLength(2);
 		expect(lastPromptText(finalCall)).toBe(FINAL_STEP_NOTE);
+	});
+
+	test("the last step keeps the tool narrowing of the steps before it", async () => {
+		const { result, calls } = await runTurn("anthropic", MAX_STEPS, [
+			"search",
+		]);
+
+		expect(result.text).toBe("Here is what I found so far.");
+		for (const call of calls) {
+			expect(call.tools?.map((tool) => tool.name)).toEqual([
+				"search",
+			]);
+		}
+		expect(lastPromptText(calls.at(-1) as CallOptions)).toBe(FINAL_STEP_NOTE);
 	});
 
 	test("a budget capped by the quota still ends with an answer on its last step", async () => {

@@ -590,6 +590,36 @@
 	"assistant_name": "OrcAI Assistant",
 	"assistant_placeholder_description": "Ask the OrcAI Assistant about your work in this organisation. Start a new conversation for each task.",
 	"assistant_placeholder_title": "How can I help?",
+	"assistant_plan_approve": "Approve plan",
+	"assistant_plan_awaiting_approval": "Waiting for your approval",
+	"assistant_plan_collapse": "Hide plan steps",
+	"assistant_plan_expand": "Show plan steps",
+	"assistant_plan_region": "Plan",
+	"assistant_plan_revise": "Revise",
+	"assistant_plan_revise_note_label": "What should change?",
+	"assistant_plan_revise_submit": "Ask for changes",
+	"assistant_plan_status_done": "Done",
+	"assistant_plan_status_in_progress": "In progress",
+	"assistant_plan_status_pending": "Pending",
+	"assistant_plan_status_skipped": "Skipped",
+	"assistant_plan_tally": "{done} of {total} done",
+	"assistant_plan_tally_skipped": [
+		{
+			"declarations": [
+				"input count",
+				"input done",
+				"input total",
+				"local countPlural = count: plural"
+			],
+			"selectors": [
+				"countPlural"
+			],
+			"match": {
+				"countPlural=one": "{done} of {total} done, {count} skipped",
+				"countPlural=other": "{done} of {total} done, {count} skipped"
+			}
+		}
+	],
 	"assistant_starter_create_failed_toast_error": "The conversation was not created. Try sending the message again.",
 	"assistant_tool_add_group_members_active": "Adding group members",
 	"assistant_tool_add_group_members_name": "Add group members",
@@ -1085,6 +1115,9 @@
 	"assistant_tool_update_group_active": "Updating group",
 	"assistant_tool_update_group_name": "Update group",
 	"assistant_tool_update_group_summary": "Update group {name}",
+	"assistant_tool_update_plan_active": "Updating the plan",
+	"assistant_tool_update_plan_name": "Plan",
+	"assistant_tool_update_plan_summary": "Plan {title}: {tally}",
 	"assistant_tool_update_repository_active": "Updating repository",
 	"assistant_tool_update_repository_name": "Update repository",
 	"assistant_tool_update_repository_summary": "Update repository {name}",

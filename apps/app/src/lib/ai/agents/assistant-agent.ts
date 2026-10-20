@@ -47,6 +47,8 @@ export const createAssistantAgent = (
 		userContext: AssistantUserContext;
 		/** The assistant's fixed features, resolved through the Feature catalog. */
 		features: ResolvedFeature[];
+		/** Whether the stored conversation holds an approved plan. */
+		planApproved: boolean;
 		/** The groups the conversation's stored `loadTools` calls loaded. */
 		loadedToolGroups: readonly DeferredToolGroup[];
 		/** The stored conversation, whose tool outputs become summary lines. */
@@ -70,6 +72,9 @@ export const createAssistantAgent = (
 		);
 	}
 
+	// Approval holds for the conversation; a plan approved in an earlier request runs before the first step.
+	let planApproved = params.planApproved;
+
 	// The full set, so stored calls of any tool validate; activeTools narrows what the model sees.
 	const tools = {
 		// Stored readDocs parts keep validating when the docs are switched off.
@@ -81,6 +86,7 @@ export const createAssistantAgent = (
 			context: params.context,
 			turn: params.turn,
 			capabilities: params.userContext.capabilities,
+			isPlanApproved: () => planApproved,
 		}),
 	};
 
@@ -89,6 +95,7 @@ export const createAssistantAgent = (
 		activeAssistantToolNames(
 			params.userContext.capabilities,
 			loadedGroups,
+			planApproved,
 		).filter(
 			(name) =>
 				(name !== "readDocs" || params.docs !== undefined) &&
@@ -104,7 +111,9 @@ export const createAssistantAgent = (
 	return new ToolLoopAgent({
 		model: params.model,
 		tools,
-		toolApproval: assistantToolApproval,
+		toolApproval: assistantToolApproval({
+			isPlanApproved: () => planApproved,
+		}),
 		...aiTelemetry("assistant.agent", params.telemetryIds),
 		callOptionsSchema: stepBudgetOptionsSchema,
 		prepareCall: ({ options, ...settings }) => ({
@@ -152,6 +161,10 @@ export const createAssistantAgent = (
 				toolLines.record([
 					toolOutput,
 				]);
+				// Before approval every updatePlan call is gated, so one that ran was approved.
+				if (toolOutput.toolName === "updatePlan") {
+					planApproved = true;
+				}
 			}
 		},
 		output: Output.text(),

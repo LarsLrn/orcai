@@ -22,6 +22,7 @@ import {
 	turnRequests,
 	VIEWER_TOOLS,
 } from "../../fixtures/assistant/assistant";
+import { withoutCreates } from "../../fixtures/assistant/plan";
 import { ask } from "../../fixtures/chat/chat";
 import { expect, test } from "../../fixtures/inference/fixture";
 
@@ -72,7 +73,7 @@ test("assistant: each role is offered its core tools and no deferred tool before
 	}
 });
 
-test("assistant: a member loading bots gets the bots group, loading people gets nothing", async ({
+test("assistant: a member loading bots gets the bots group but no create tool, loading people gets nothing", async ({
 	api,
 	inference,
 	org,
@@ -94,7 +95,7 @@ test("assistant: a member loading bots gets the bots group, loading people gets 
 	expect(offeredTools(bots[1])).toEqual(
 		sortedNames([
 			...EXPECTED.member,
-			...BOTS_TOOLS,
+			...withoutCreates(BOTS_TOOLS),
 		]),
 	);
 
@@ -110,7 +111,7 @@ test("assistant: a member loading bots gets the bots group, loading people gets 
 	expect(people).toHaveLength(2);
 	const withBots = sortedNames([
 		...EXPECTED.member,
-		...BOTS_TOOLS,
+		...withoutCreates(BOTS_TOOLS),
 	]);
 	expect(offeredTools(people[0])).toEqual(withBots);
 	expect(offeredTools(people[1])).toEqual(withBots);
@@ -139,7 +140,7 @@ test("assistant: a loaded group stays offered in the next turn and after an appr
 	const chatId = await startTitledConversation(member, inference);
 	const withBots = sortedNames([
 		...EXPECTED.member,
-		...BOTS_TOOLS,
+		...withoutCreates(BOTS_TOOLS),
 	]);
 	const withBotsAndSharing = sortedNames([
 		...withBots,

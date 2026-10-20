@@ -1,5 +1,6 @@
 import { isDisplayToolPart } from "@/components/chat/gen-ui/catalog";
 import { isClientToolPart } from "@/lib/ai/tools/assistant/client-tools";
+import { isPlanPart } from "@/lib/ai/tools/assistant/plan/latest-plan";
 import type { ChatAgentUIMessage } from "@/lib/ai/types/chat-agent-message";
 
 export type MessagePart = ChatAgentUIMessage["parts"][number];
@@ -141,7 +142,8 @@ const isBlankReasoning = (part: ReasoningPart, running: boolean) =>
  * work log; other text and display primitives are the answer. A finished
  * turn whose answer would be empty shows its last text as the answer.
  * A paused step's text and the calls it waits on, client calls such as the
- * upload widget included, are the answer too.
+ * upload widget included, are the answer too, except a plan, which the plan
+ * panel approves.
  */
 export const classifyTurn = (
 	parts: readonly MessagePart[],
@@ -156,7 +158,10 @@ export const classifyTurn = (
 ): ClassifiedTurn => {
 	const paused = pausedStep(parts, running, latest);
 	const isPausedAnswer = (part: MessagePart, index: number) =>
-		paused !== undefined && index >= paused.start && pausesTurn(part, latest);
+		paused !== undefined &&
+		index >= paused.start &&
+		pausesTurn(part, latest) &&
+		!isPlanPart(part);
 
 	const interim = new Set<number>();
 	parts.forEach((part, index) => {

@@ -27,6 +27,7 @@ import {
 	startTitledConversation,
 	turnRequests,
 } from "../../fixtures/assistant/assistant";
+import { approvePlan } from "../../fixtures/assistant/plan";
 import { chatName, messageText } from "../../fixtures/chat/chat";
 import { ask } from "../../fixtures/gen-ui/gen-ui";
 import { systemGroup } from "../../fixtures/groups/groups";
@@ -330,6 +331,13 @@ test("assistant: a call approved after a pause sees the bot saved earlier in the
 	const group = await systemGroup(member);
 	const name = chatName("Shared");
 	const chatId = await startTitledConversation(member, inference);
+	await approvePlan(member, chatId, inference, {
+		title: "Set up and share a bot",
+		items: [
+			"Create the bot",
+			"Share it with everyone",
+		],
+	});
 	inference.script(
 		loadTools("bots"),
 		// The pause on the spare bot lets the spec learn the new bot's id.

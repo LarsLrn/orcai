@@ -31,6 +31,7 @@ import { listInvitationsTool } from "./people/list-invitations";
 import { removeGroupMembersTool } from "./people/remove-group-members";
 import { removeMembersTool } from "./people/remove-members";
 import { updateGroupTool } from "./people/update-group";
+import { updatePlanTool } from "./plan/update-plan";
 import type { AssistantToolDeps } from "./procedure-tool";
 import { findPrincipalsTool } from "./sharing/find-principals";
 import { grantAccessTool } from "./sharing/grant-access";
@@ -40,9 +41,11 @@ import { revokeAccessTool } from "./sharing/revoke-access";
 /** Every assistant tool with the caller's context; the agent picks the active ones per step. */
 export const buildAssistantTools = ({
 	capabilities,
+	isPlanApproved,
 	...deps
 }: AssistantToolDeps & {
 	capabilities: CapabilitySet;
+	isPlanApproved: () => boolean;
 }) => ({
 	findBots: findBotsTool(deps),
 	getBot: getBotTool(deps),
@@ -51,7 +54,8 @@ export const buildAssistantTools = ({
 	findAssets: findAssetsTool(deps),
 	listGroups: listGroupsTool(deps),
 	listMembers: listMembersTool(deps),
-	loadTools: loadToolsTool(capabilities),
+	loadTools: loadToolsTool(capabilities, isPlanApproved),
+	updatePlan: updatePlanTool(),
 	createBot: createBotTool(deps),
 	updateBot: updateBotTool(deps),
 	publishBot: publishBotTool(deps),

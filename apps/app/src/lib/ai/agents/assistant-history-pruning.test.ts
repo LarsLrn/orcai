@@ -189,6 +189,72 @@ describe("pruneAssistantHistory", () => {
 		]);
 	});
 
+	test("keeps the newest plan whole while its output becomes the summary line", () => {
+		const plan = {
+			title: "Set up the course",
+			items: [
+				{
+					label: "Create the bot",
+					status: "done",
+				},
+				{
+					label: "Share it",
+					status: "pending",
+				},
+			],
+		};
+		const planCall: ModelMessage = {
+			role: "assistant",
+			content: [
+				{
+					type: "tool-call",
+					toolCallId: "p",
+					toolName: "updatePlan",
+					input: plan,
+				},
+			],
+		};
+		const pruned = pruneAssistantHistory(
+			[
+				planCall,
+				{
+					role: "tool",
+					content: [
+						{
+							type: "tool-result",
+							toolCallId: "p",
+							toolName: "updatePlan",
+							output: {
+								type: "json",
+								value: {
+									updated: true,
+								},
+							},
+						},
+					],
+				},
+				user("go on"),
+				...call("getBot", "c"),
+			],
+			{
+				lines: new Map([
+					[
+						"p",
+						"Plan “Set up the course”: 1 of 2 done",
+					],
+				]),
+				displayToolNames: [],
+				enabledDisplayToolNames: [],
+			},
+		);
+
+		expect(pruned[0]).toEqual(planCall);
+		expect(outputsOf(pruned).p).toEqual({
+			type: "text",
+			value: "Plan “Set up the course”: 1 of 2 done",
+		});
+	});
+
 	test("keeps every output of the turn in progress", () => {
 		const outputs = outputsOf(
 			prune([
@@ -397,6 +463,31 @@ describe("pruneAssistantHistory", () => {
 		]);
 
 		expect(reasoningOf(pruned)).toEqual([
+			"after",
+		]);
+	});
+
+	test("keeps reasoning only from an approved plan's result on", () => {
+		const denied = thought(
+			"denied",
+			call("updatePlan", "d", {
+				type: "tool-result",
+				toolCallId: "d",
+				toolName: "updatePlan",
+				output: {
+					type: "execution-denied",
+				},
+			}),
+		);
+		const pruned = prune([
+			user("plan it"),
+			...thought("proposed", call("updatePlan", "p")),
+			...denied,
+			...thought("after", call("createBot", "c")),
+		]);
+
+		expect(reasoningOf(pruned)).toEqual([
+			"denied",
 			"after",
 		]);
 	});

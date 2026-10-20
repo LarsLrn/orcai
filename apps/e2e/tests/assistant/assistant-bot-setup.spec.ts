@@ -15,6 +15,7 @@ import {
 	toolResultsOf,
 	turnRequests,
 } from "../../fixtures/assistant/assistant";
+import { approvePlan } from "../../fixtures/assistant/plan";
 import { assetRow } from "../../fixtures/authz/resources";
 import { chatName, messageText } from "../../fixtures/chat/chat";
 import { ask, turnFinished } from "../../fixtures/gen-ui/gen-ui";
@@ -50,6 +51,14 @@ test("assistant: a member sets up and publishes a bot in one turn, and the next 
 	const repositoryName = chatName("Repository");
 	const botName = chatName("Bot");
 	const done = "Your bot is published.";
+	await approvePlan(member, chatId, inference, {
+		title: "Set up the syllabus bot",
+		items: [
+			"Create the template and repository",
+			"Create the bot",
+			"Publish the bot",
+		],
+	});
 
 	const page = await pageAs("member");
 	await enterApp(page, org.slug);
@@ -112,14 +121,16 @@ test("assistant: a member sets up and publishes a bot in one turn, and the next 
 		groups: message("assistant_tool_group_bots"),
 	});
 	// The turn in progress keeps its outputs in full.
-	expect(saved[0]).toMatchObject({
-		groups: [
-			{
-				group: "bots",
-				loaded: true,
-			},
-		],
-	});
+	expect(saved).toContainEqual(
+		expect.objectContaining({
+			groups: [
+				expect.objectContaining({
+					group: "bots",
+					loaded: true,
+				}),
+			],
+		}),
+	);
 
 	inference.script(
 		{

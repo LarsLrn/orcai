@@ -15,6 +15,7 @@ export const ASSISTANT_TOOL_GROUPS = {
 		"listGroups",
 		"listMembers",
 		"loadTools",
+		"updatePlan",
 	],
 	bots: [
 		"createBot",
@@ -56,6 +57,59 @@ export type AssistantToolGroup = keyof typeof ASSISTANT_TOOL_GROUPS;
 export type DeferredToolGroup = Exclude<AssistantToolGroup, "core">;
 export type AssistantToolName =
 	(typeof ASSISTANT_TOOL_GROUPS)[AssistantToolGroup][number];
+
+/** What a tool does; create tools stay hidden until the user approved a plan. */
+export type AssistantToolKind =
+	| "read"
+	| "display"
+	| "plan"
+	| "create"
+	| "change"
+	| "widget";
+
+export const ASSISTANT_TOOL_KINDS = {
+	readDocs: "read",
+	showChecklist: "display",
+	showReview: "display",
+	showMatrix: "display",
+	findBots: "read",
+	getBot: "read",
+	getBlock: "read",
+	findBlocks: "read",
+	findAssets: "read",
+	listGroups: "read",
+	listMembers: "read",
+	loadTools: "read",
+	updatePlan: "plan",
+	createBot: "create",
+	updateBot: "change",
+	publishBot: "change",
+	deleteBot: "change",
+	createTemplate: "create",
+	updateTemplate: "change",
+	createRepository: "create",
+	updateRepository: "change",
+	deleteBlock: "change",
+	updateAsset: "change",
+	deleteAsset: "change",
+	retryAsset: "change",
+	requestUpload: "widget",
+	listAccess: "read",
+	findPrincipals: "read",
+	grantAccess: "change",
+	revokeAccess: "change",
+	createGroup: "create",
+	updateGroup: "change",
+	deleteGroup: "change",
+	addGroupMembers: "change",
+	removeGroupMembers: "change",
+	listGroupMembers: "read",
+	changeMemberRole: "change",
+	removeMembers: "change",
+	inviteMembers: "change",
+	listInvitations: "read",
+	cancelInvitation: "change",
+} as const satisfies Record<AssistantToolName, AssistantToolKind>;
 
 export const DEFERRED_TOOL_GROUPS = [
 	"bots",
@@ -160,15 +214,20 @@ export const offeredGroupTools = (
 		isToolOffered(name, capabilities),
 	);
 
-/** The core tools plus those of the loaded groups this user may use. */
+/**
+ * The core tools plus those of the loaded groups this user may use; the
+ * create tools only once the user approved a plan.
+ */
 export const activeAssistantToolNames = (
 	capabilities: CapabilitySet,
 	loadedGroups: readonly DeferredToolGroup[],
-): AssistantToolName[] => [
-	...ASSISTANT_TOOL_GROUPS.core.filter((name) =>
-		isToolOffered(name, capabilities),
-	),
-	...DEFERRED_TOOL_GROUPS.filter((group) =>
-		loadedGroups.includes(group),
-	).flatMap((group) => offeredGroupTools(group, capabilities)),
-];
+	planApproved: boolean,
+): AssistantToolName[] =>
+	[
+		...ASSISTANT_TOOL_GROUPS.core.filter((name) =>
+			isToolOffered(name, capabilities),
+		),
+		...DEFERRED_TOOL_GROUPS.filter((group) =>
+			loadedGroups.includes(group),
+		).flatMap((group) => offeredGroupTools(group, capabilities)),
+	].filter((name) => planApproved || ASSISTANT_TOOL_KINDS[name] !== "create");

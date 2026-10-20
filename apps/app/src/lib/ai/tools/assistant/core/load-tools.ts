@@ -1,5 +1,6 @@
 import { z } from "zod/v4";
 import {
+	ASSISTANT_TOOL_KINDS,
 	type AssistantToolName,
 	type CapabilitySet,
 	DEFERRED_TOOL_GROUPS,
@@ -21,6 +22,8 @@ export type LoadToolsGroupResult =
 			group: DeferredToolGroup;
 			loaded: true;
 			tools: AssistantToolName[];
+			/** Offered tools that stay hidden until the user approved a plan. */
+			lockedUntilPlanApproved?: AssistantToolName[];
 	  }
 	| {
 			group: DeferredToolGroup;
@@ -28,8 +31,32 @@ export type LoadToolsGroupResult =
 			error: string;
 	  };
 
+const loadedGroup = (
+	group: DeferredToolGroup,
+	tools: AssistantToolName[],
+	planApproved: boolean,
+): LoadToolsGroupResult => {
+	const locked = planApproved
+		? []
+		: tools.filter((name) => ASSISTANT_TOOL_KINDS[name] === "create");
+
+	return {
+		group,
+		loaded: true,
+		tools: tools.filter((name) => !locked.includes(name)),
+		...(locked.length > 0
+			? {
+					lockedUntilPlanApproved: locked,
+				}
+			: {}),
+	};
+};
+
 /** Loading is idempotent: the agent derives the loaded groups from these results. */
-export const loadToolsTool = (capabilities: CapabilitySet) =>
+export const loadToolsTool = (
+	capabilities: CapabilitySet,
+	isPlanApproved: () => boolean,
+) =>
 	assistantTool({
 		description:
 			"Load tool groups for the rest of this conversation. Their tools are callable from your next step. Loading a group that is already loaded changes nothing.",
@@ -43,11 +70,11 @@ export const loadToolsTool = (capabilities: CapabilitySet) =>
 				].map(
 					(group): LoadToolsGroupResult =>
 						offered.includes(group)
-							? {
+							? loadedGroup(
 									group,
-									loaded: true,
-									tools: offeredGroupTools(group, capabilities),
-								}
+									offeredGroupTools(group, capabilities),
+									isPlanApproved(),
+								)
 							: {
 									group,
 									loaded: false,

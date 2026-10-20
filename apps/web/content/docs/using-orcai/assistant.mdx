@@ -1,6 +1,6 @@
 ---
 title: OrcAI Assistant
-description: The OrcAI Assistant at /app/assistant, how it answers questions about OrcAI from these docs, what it can do for each role, the actions it asks you to confirm, uploading files in a conversation, its conversations, and when it is unavailable.
+description: The OrcAI Assistant at /app/assistant, how it answers questions about OrcAI from these docs, what it can do for each role, the plans it proposes, the actions it asks you to confirm, uploading files in a conversation, its conversations, and when it is unavailable.
 ---
 
 The OrcAI Assistant is OrcAI's built-in helper. It is part of the platform, not a bot: nobody owns, edits or shares it, and its model is chosen by an administrator of your organisation. Every member can use it, whatever their role.
@@ -39,6 +39,20 @@ Bigger edits, such as a bot's rich description, a behaviour block's content or a
 
 The assistant can answer with structured elements such as checklists, reviews and matrices, as described under [Generative UI](/docs/using-orcai/chat#generative-ui).
 
+## Plans
+
+Before the assistant creates bots, behaviour blocks, repository blocks or groups, it proposes a plan: a short title and the steps it means to take. When something is unclear, such as a new bot's purpose, audience, behaviour, repositories or features, it first asks a few numbered questions, each with a suggested answer. Reply "ok" to take the suggestions, or answer the ones you want to change. Once nothing that matters is open, it proposes the full plan. Changes to things that already exist, such as renaming a bot, and questions need no plan.
+
+The plan sits above the input, with a tally such as "2 of 5 done". Each step shows whether it is pending, in progress, done or skipped, with its specifics below its name, and the assistant ticks the steps off as it works. Select the plan's header to collapse or expand it; it collapses by itself once every step is done or skipped.
+
+A proposed plan waits for your answer:
+
+- **Approve plan** lets the assistant start. From then on it can create things for the rest of the conversation.
+- **Revise** asks what should change. The assistant adjusts the plan and proposes it again.
+- Writing a new message instead also counts as asking for changes; the assistant does not create anything until you approve a plan.
+
+Each plan update also appears in the answer's work log as one line, such as "Plan “Set up the citation bot”: 2 of 5 done". An approved plan does not replace confirmation cards: destructive and access-changing actions still ask first.
+
 ## Confirming actions
 
 Actions that destroy something, take access away, widen access, change a role or send something out pause the answer and show a confirmation card first:
@@ -53,7 +67,7 @@ Actions that destroy something, take access away, widen access, change a role or
 
 The card names the action and offers its button and **Cancel**. Choosing the button runs the action and the assistant continues its answer. Choosing **Cancel** leaves everything as it was and marks the action **Denied**. Writing a new message instead of answering also leaves everything as it was and marks the action **Skipped**. When an answer shows several cards, the assistant continues once every card is answered.
 
-Creating and editing, linking blocks and features to a bot, attaching assets to a repository, retrying an asset and publishing a bot run without a card.
+Creating and editing, linking blocks and features to a bot, attaching assets to a repository, retrying an asset and publishing a bot run without a card. Creating needs an approved [plan](#plans) first.
 
 If you answered every card but the page reloaded before the assistant continued, the answer shows a **Continue** button that picks it up again. If the page reloads while some cards are still unanswered, the answers you already gave are lost; answer those cards again.
 
