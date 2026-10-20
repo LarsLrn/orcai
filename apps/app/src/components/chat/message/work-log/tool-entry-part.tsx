@@ -1,6 +1,8 @@
+import { isSummarisedToolPart } from "@/components/assistant/tool-summaries";
 import type { ToolPart } from "@/components/chat/message/classify-turn";
 import { ToolEntry } from "./tool-entry";
 import { toolLabels } from "./tool-labels";
+import { AssistantTool } from "./tools/assistant-tool";
 import { GetKnowledgeBaseChunks } from "./tools/get-knowledge-base-chunks";
 import { GetKnowledgeBasePage } from "./tools/get-knowledge-base-page";
 import { ListKnowledgeBaseDocuments } from "./tools/list-knowledge-base-documents";
@@ -26,7 +28,9 @@ export const ToolEntryPart = ({ part, running }: ToolEntryPartProps) => {
 		case "tool-readDocs":
 			return <ReadDocs part={part} running={running} />;
 		default:
-			return (
+			return isSummarisedToolPart(part) ? (
+				<AssistantTool part={part} running={running} />
+			) : (
 				<ToolEntry
 					part={part}
 					running={running}

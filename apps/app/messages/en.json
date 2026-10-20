@@ -576,7 +576,14 @@
 		}
 	],
 	"assets_upload_unknown_error": "The files were not uploaded. Try again.",
+	"assistant_ask_action": "Ask the assistant",
+	"assistant_ask_bot_setup_draft": "Help me set up the bot “{name}”",
+	"assistant_ask_groups_draft": "Help me organise the groups in this organisation",
 	"assistant_composer_model_hint": "Chosen by your organisation's admins",
+	"assistant_confirmation_change": "Change",
+	"assistant_confirmation_grant": "Grant",
+	"assistant_confirmation_invite": "Invite",
+	"assistant_confirmation_withdraw": "Withdraw",
 	"assistant_history_empty": "No conversations yet. Start one above.",
 	"assistant_history_show_more_action": "Show older conversations",
 	"assistant_history_title": "Your conversations",
@@ -584,6 +591,490 @@
 	"assistant_placeholder_description": "Ask the OrcAI Assistant about your work in this organisation. Start a new conversation for each task.",
 	"assistant_placeholder_title": "How can I help?",
 	"assistant_starter_create_failed_toast_error": "The conversation was not created. Try sending the message again.",
+	"assistant_tool_add_group_members_active": "Adding group members",
+	"assistant_tool_add_group_members_name": "Add group members",
+	"assistant_tool_add_group_members_summary": "Add {names} to {group}",
+	"assistant_tool_cancel_invitation_active": "Withdrawing invitations",
+	"assistant_tool_cancel_invitation_name": "Withdraw invitations",
+	"assistant_tool_cancel_invitation_summary": [
+		{
+			"declarations": [
+				"input count",
+				"input names",
+				"local countPlural = count: plural"
+			],
+			"selectors": [
+				"countPlural"
+			],
+			"match": {
+				"countPlural=one": "Withdraw the invitation to {names}",
+				"countPlural=other": "Withdraw the invitations to {names}"
+			}
+		}
+	],
+	"assistant_tool_change_member_role_active": "Changing role",
+	"assistant_tool_change_member_role_name": "Change role",
+	"assistant_tool_change_member_role_summary": "Make {name} {role}",
+	"assistant_tool_create_bot_active": "Creating bot",
+	"assistant_tool_create_bot_name": "Create bot",
+	"assistant_tool_create_bot_summary": "Create bot {name}",
+	"assistant_tool_create_group_active": "Creating group",
+	"assistant_tool_create_group_name": "Create group",
+	"assistant_tool_create_group_summary": "Create group {name}",
+	"assistant_tool_create_repository_active": "Creating repository",
+	"assistant_tool_create_repository_name": "Create repository",
+	"assistant_tool_create_repository_summary": "Create repository {name}",
+	"assistant_tool_create_template_active": "Creating behaviour block",
+	"assistant_tool_create_template_name": "Create behaviour block",
+	"assistant_tool_create_template_summary": "Create behaviour block {name}",
+	"assistant_tool_delete_asset_active": "Deleting assets",
+	"assistant_tool_delete_asset_name": "Delete assets",
+	"assistant_tool_delete_asset_summary": [
+		{
+			"declarations": [
+				"input count",
+				"input names",
+				"local countPlural = count: plural"
+			],
+			"selectors": [
+				"countPlural"
+			],
+			"match": {
+				"countPlural=one": "Delete asset {names}",
+				"countPlural=other": "Delete assets {names}"
+			}
+		}
+	],
+	"assistant_tool_delete_block_active": "Deleting blocks",
+	"assistant_tool_delete_block_name": "Delete blocks",
+	"assistant_tool_delete_block_summary": [
+		{
+			"declarations": [
+				"input count",
+				"input names",
+				"local countPlural = count: plural"
+			],
+			"selectors": [
+				"countPlural"
+			],
+			"match": {
+				"countPlural=one": "Delete block {names}",
+				"countPlural=other": "Delete blocks {names}"
+			}
+		}
+	],
+	"assistant_tool_delete_bot_active": "Deleting bots",
+	"assistant_tool_delete_bot_name": "Delete bots",
+	"assistant_tool_delete_bot_summary": [
+		{
+			"declarations": [
+				"input count",
+				"input names",
+				"local countPlural = count: plural"
+			],
+			"selectors": [
+				"countPlural"
+			],
+			"match": {
+				"countPlural=one": "Delete bot {names}",
+				"countPlural=other": "Delete bots {names}"
+			}
+		}
+	],
+	"assistant_tool_delete_group_active": "Deleting groups",
+	"assistant_tool_delete_group_name": "Delete groups",
+	"assistant_tool_delete_group_summary": [
+		{
+			"declarations": [
+				"input count",
+				"input names",
+				"local countPlural = count: plural"
+			],
+			"selectors": [
+				"countPlural"
+			],
+			"match": {
+				"countPlural=one": "Delete group {names}",
+				"countPlural=other": "Delete groups {names}"
+			}
+		}
+	],
+	"assistant_tool_find_assets_active": "Finding assets",
+	"assistant_tool_find_assets_name": "Find assets",
+	"assistant_tool_find_assets_summary": [
+		{
+			"declarations": [
+				"input count",
+				"local countPlural = count: plural"
+			],
+			"selectors": [
+				"countPlural"
+			],
+			"match": {
+				"countPlural=one": "Found {count} asset",
+				"countPlural=other": "Found {count} assets"
+			}
+		}
+	],
+	"assistant_tool_find_assets_summary_query": [
+		{
+			"declarations": [
+				"input count",
+				"input query",
+				"local countPlural = count: plural"
+			],
+			"selectors": [
+				"countPlural"
+			],
+			"match": {
+				"countPlural=one": "Found {count} asset matching {query}",
+				"countPlural=other": "Found {count} assets matching {query}"
+			}
+		}
+	],
+	"assistant_tool_find_assets_summary_query_repository": [
+		{
+			"declarations": [
+				"input count",
+				"input query",
+				"input repository",
+				"local countPlural = count: plural"
+			],
+			"selectors": [
+				"countPlural"
+			],
+			"match": {
+				"countPlural=one": "Found {count} asset matching {query} in {repository}",
+				"countPlural=other": "Found {count} assets matching {query} in {repository}"
+			}
+		}
+	],
+	"assistant_tool_find_assets_summary_repository": [
+		{
+			"declarations": [
+				"input count",
+				"input repository",
+				"local countPlural = count: plural"
+			],
+			"selectors": [
+				"countPlural"
+			],
+			"match": {
+				"countPlural=one": "Found {count} asset in {repository}",
+				"countPlural=other": "Found {count} assets in {repository}"
+			}
+		}
+	],
+	"assistant_tool_find_blocks_active": "Finding AI behaviours and repositories",
+	"assistant_tool_find_blocks_name": "Find AI behaviours and repositories",
+	"assistant_tool_find_blocks_summary_repositories": [
+		{
+			"declarations": [
+				"input count",
+				"local countPlural = count: plural"
+			],
+			"selectors": [
+				"countPlural"
+			],
+			"match": {
+				"countPlural=one": "Found {count} repository",
+				"countPlural=other": "Found {count} repositories"
+			}
+		}
+	],
+	"assistant_tool_find_blocks_summary_repositories_query": [
+		{
+			"declarations": [
+				"input count",
+				"input query",
+				"local countPlural = count: plural"
+			],
+			"selectors": [
+				"countPlural"
+			],
+			"match": {
+				"countPlural=one": "Found {count} repository matching {query}",
+				"countPlural=other": "Found {count} repositories matching {query}"
+			}
+		}
+	],
+	"assistant_tool_find_blocks_summary_templates": [
+		{
+			"declarations": [
+				"input count",
+				"local countPlural = count: plural"
+			],
+			"selectors": [
+				"countPlural"
+			],
+			"match": {
+				"countPlural=one": "Found {count} AI behaviour",
+				"countPlural=other": "Found {count} AI behaviours"
+			}
+		}
+	],
+	"assistant_tool_find_blocks_summary_templates_query": [
+		{
+			"declarations": [
+				"input count",
+				"input query",
+				"local countPlural = count: plural"
+			],
+			"selectors": [
+				"countPlural"
+			],
+			"match": {
+				"countPlural=one": "Found {count} AI behaviour matching {query}",
+				"countPlural=other": "Found {count} AI behaviours matching {query}"
+			}
+		}
+	],
+	"assistant_tool_find_bots_active": "Finding bots",
+	"assistant_tool_find_bots_name": "Find bots",
+	"assistant_tool_find_bots_summary": [
+		{
+			"declarations": [
+				"input count",
+				"local countPlural = count: plural"
+			],
+			"selectors": [
+				"countPlural"
+			],
+			"match": {
+				"countPlural=one": "Found {count} bot",
+				"countPlural=other": "Found {count} bots"
+			}
+		}
+	],
+	"assistant_tool_find_bots_summary_query": [
+		{
+			"declarations": [
+				"input count",
+				"input query",
+				"local countPlural = count: plural"
+			],
+			"selectors": [
+				"countPlural"
+			],
+			"match": {
+				"countPlural=one": "Found {count} bot matching {query}",
+				"countPlural=other": "Found {count} bots matching {query}"
+			}
+		}
+	],
+	"assistant_tool_find_principals_active": "Finding people and groups",
+	"assistant_tool_find_principals_name": "Find people and groups",
+	"assistant_tool_find_principals_summary": "Find people and groups for {resource}",
+	"assistant_tool_find_principals_summary_found": [
+		{
+			"declarations": [
+				"input count",
+				"input resource",
+				"local countPlural = count: plural"
+			],
+			"selectors": [
+				"countPlural"
+			],
+			"match": {
+				"countPlural=one": "Found {count} person or group for {resource}",
+				"countPlural=other": "Found {count} people and groups for {resource}"
+			}
+		}
+	],
+	"assistant_tool_get_block_active": "Reading AI behaviour or repository",
+	"assistant_tool_get_block_name": "Read AI behaviour or repository",
+	"assistant_tool_get_block_summary": "Read {name}",
+	"assistant_tool_get_block_summary_repository": "Read repository {name}",
+	"assistant_tool_get_block_summary_template": "Read AI behaviour {name}",
+	"assistant_tool_get_bot_active": "Reading bot",
+	"assistant_tool_get_bot_name": "Read bot",
+	"assistant_tool_get_bot_summary": "Read bot {name}",
+	"assistant_tool_grant_access_active": "Granting access",
+	"assistant_tool_grant_access_name": "Grant access",
+	"assistant_tool_grant_access_summary": "Give {names} {role} access to {resource}",
+	"assistant_tool_group_bots": "Bots",
+	"assistant_tool_group_people": "People",
+	"assistant_tool_group_sharing": "Sharing",
+	"assistant_tool_invite_members_active": "Inviting people",
+	"assistant_tool_invite_members_name": "Invite people",
+	"assistant_tool_invite_members_summary": "Invite {names} as {role}",
+	"assistant_tool_list_access_active": "Checking access",
+	"assistant_tool_list_access_name": "Check access",
+	"assistant_tool_list_access_summary": "Check access to {resource}",
+	"assistant_tool_list_access_summary_found": [
+		{
+			"declarations": [
+				"input count",
+				"input resource",
+				"local countPlural = count: plural"
+			],
+			"selectors": [
+				"countPlural"
+			],
+			"match": {
+				"countPlural=one": "Found {count} direct grant on {resource}",
+				"countPlural=other": "Found {count} direct grants on {resource}"
+			}
+		}
+	],
+	"assistant_tool_list_group_members_active": "Listing group members",
+	"assistant_tool_list_group_members_name": "List group members",
+	"assistant_tool_list_group_members_summary": "List the members of {group}",
+	"assistant_tool_list_group_members_summary_found": [
+		{
+			"declarations": [
+				"input count",
+				"input group",
+				"local countPlural = count: plural"
+			],
+			"selectors": [
+				"countPlural"
+			],
+			"match": {
+				"countPlural=one": "Found {count} member in {group}",
+				"countPlural=other": "Found {count} members in {group}"
+			}
+		}
+	],
+	"assistant_tool_list_groups_active": "Listing groups",
+	"assistant_tool_list_groups_name": "List groups",
+	"assistant_tool_list_groups_summary": [
+		{
+			"declarations": [
+				"input count",
+				"local countPlural = count: plural"
+			],
+			"selectors": [
+				"countPlural"
+			],
+			"match": {
+				"countPlural=one": "Found {count} group",
+				"countPlural=other": "Found {count} groups"
+			}
+		}
+	],
+	"assistant_tool_list_groups_summary_query": [
+		{
+			"declarations": [
+				"input count",
+				"input query",
+				"local countPlural = count: plural"
+			],
+			"selectors": [
+				"countPlural"
+			],
+			"match": {
+				"countPlural=one": "Found {count} group matching {query}",
+				"countPlural=other": "Found {count} groups matching {query}"
+			}
+		}
+	],
+	"assistant_tool_list_invitations_active": "Listing invitations",
+	"assistant_tool_list_invitations_name": "List invitations",
+	"assistant_tool_list_invitations_summary_found": [
+		{
+			"declarations": [
+				"input count",
+				"input status",
+				"local countPlural = count: plural"
+			],
+			"selectors": [
+				"countPlural"
+			],
+			"match": {
+				"countPlural=one": "Found {count} invitation ({status})",
+				"countPlural=other": "Found {count} invitations ({status})"
+			}
+		}
+	],
+	"assistant_tool_list_members_active": "Listing members",
+	"assistant_tool_list_members_name": "List members",
+	"assistant_tool_list_members_summary": [
+		{
+			"declarations": [
+				"input count",
+				"local countPlural = count: plural"
+			],
+			"selectors": [
+				"countPlural"
+			],
+			"match": {
+				"countPlural=one": "Found {count} member",
+				"countPlural=other": "Found {count} members"
+			}
+		}
+	],
+	"assistant_tool_list_members_summary_query": [
+		{
+			"declarations": [
+				"input count",
+				"input query",
+				"local countPlural = count: plural"
+			],
+			"selectors": [
+				"countPlural"
+			],
+			"match": {
+				"countPlural=one": "Found {count} member matching {query}",
+				"countPlural=other": "Found {count} members matching {query}"
+			}
+		}
+	],
+	"assistant_tool_load_tools_active": "Loading tools",
+	"assistant_tool_load_tools_name": "Load tools",
+	"assistant_tool_load_tools_none": "Could not load tools",
+	"assistant_tool_load_tools_summary": "Loaded tools: {groups}",
+	"assistant_tool_name_loading": "…",
+	"assistant_tool_name_unavailable": "an item you cannot see",
+	"assistant_tool_names_more": [
+		{
+			"declarations": [
+				"input count",
+				"input names",
+				"local countPlural = count: plural"
+			],
+			"selectors": [
+				"countPlural"
+			],
+			"match": {
+				"countPlural=one": "{names} and {count} more",
+				"countPlural=other": "{names} and {count} more"
+			}
+		}
+	],
+	"assistant_tool_publish_bot_active": "Publishing bot",
+	"assistant_tool_publish_bot_name": "Publish bot",
+	"assistant_tool_publish_bot_summary": "Publish bot {name}",
+	"assistant_tool_quoted_name": "“{name}”",
+	"assistant_tool_remove_group_members_active": "Removing group members",
+	"assistant_tool_remove_group_members_name": "Remove group members",
+	"assistant_tool_remove_group_members_summary": "Remove {names} from {group}",
+	"assistant_tool_remove_members_active": "Removing members",
+	"assistant_tool_remove_members_name": "Remove members",
+	"assistant_tool_remove_members_summary": "Remove {names} from the organisation",
+	"assistant_tool_retry_asset_active": "Retrying asset job",
+	"assistant_tool_retry_asset_name": "Retry asset job",
+	"assistant_tool_retry_asset_summary_processing": "Retry processing {asset}",
+	"assistant_tool_retry_asset_summary_vectorisation": "Retry vectorisation of {asset} in {repository}",
+	"assistant_tool_revoke_access_active": "Revoking access",
+	"assistant_tool_revoke_access_name": "Revoke access",
+	"assistant_tool_revoke_access_summary": "Remove access to {resource} for {name}",
+	"assistant_tool_update_asset_active": "Updating asset",
+	"assistant_tool_update_asset_name": "Update asset",
+	"assistant_tool_update_asset_summary": "Update asset {name}",
+	"assistant_tool_update_bot_active": "Updating bot",
+	"assistant_tool_update_bot_name": "Update bot",
+	"assistant_tool_update_bot_summary": "Update bot {name}",
+	"assistant_tool_update_group_active": "Updating group",
+	"assistant_tool_update_group_name": "Update group",
+	"assistant_tool_update_group_summary": "Update group {name}",
+	"assistant_tool_update_repository_active": "Updating repository",
+	"assistant_tool_update_repository_name": "Update repository",
+	"assistant_tool_update_repository_summary": "Update repository {name}",
+	"assistant_tool_update_template_active": "Updating behaviour block",
+	"assistant_tool_update_template_name": "Update behaviour block",
+	"assistant_tool_update_template_summary": "Update behaviour block {name}",
+	"assistant_turn_continue_action": "Continue",
 	"assistant_unavailable_admin_action": "Open organisation settings",
 	"assistant_unavailable_description_admin": "Choose an assistant model on the organisation page to turn it on.",
 	"assistant_unavailable_description_member": "Ask an admin of your organisation to choose a model for it.",
@@ -1683,6 +2174,7 @@
 	"chat_work_log_tool_show_matrix_name": "Matrix",
 	"chat_work_log_tool_show_review_active": "Preparing a review",
 	"chat_work_log_tool_show_review_name": "Review",
+	"chat_work_log_tool_status_approved": "Approved",
 	"chat_work_log_tool_status_awaiting_approval": "Awaiting approval",
 	"chat_work_log_tool_status_denied": "Denied",
 	"chat_work_log_tool_status_failed": "Failed",
@@ -1899,6 +2391,8 @@
 	"error_chat_not_found": "Chat not found.",
 	"error_chat_rating_failed": "The rating could not be saved.",
 	"error_chat_template_block_already_attached": "This chat already has an AI behaviour block. Remove it before attaching another one.",
+	"error_chat_turn_decisions_incomplete": "Answer every confirmation of this step before continuing.",
+	"error_chat_turn_not_awaiting": "This step was already answered, for example in another tab. The conversation now shows what happened.",
 	"error_current_password_incorrect": "Current password is incorrect.",
 	"error_default_references_out_of_range": "The default number of references must lie between the minimum and the maximum.",
 	"error_email_already_registered": "An account with this email address already exists.",
@@ -1925,6 +2419,7 @@
 	"error_instance_already_initialised": "The instance is already initialised.",
 	"error_instance_role_invalid": "The instance role is invalid.",
 	"error_invalid_credentials": "Invalid email address or password.",
+	"error_invalid_tool_input": "The assistant called a tool with invalid input.",
 	"error_invitation_already_accepted": "An accepted invitation cannot be rejected.",
 	"error_invitation_changed": "The invitation changed while responding. Try again.",
 	"error_invitation_expired": "The invitation has expired.",
@@ -1968,6 +2463,7 @@
 	"error_sort_key_unsupported": "Sorting by \"{sortKey}\" is not supported.",
 	"error_system_group_immutable": "System groups cannot be changed.",
 	"error_token_invalid": "The link is invalid or has expired.",
+	"error_tool_not_available": "The assistant called a tool that was not available.",
 	"error_upload_file_missing": "The uploaded file was not found in storage.",
 	"error_upload_file_size_mismatch": "The uploaded file size does not match.",
 	"error_upload_file_too_large": "\"{fileName}\" exceeds the maximum file size.",

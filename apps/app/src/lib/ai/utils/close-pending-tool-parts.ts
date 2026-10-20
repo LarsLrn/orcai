@@ -3,7 +3,8 @@ import { getToolName, isToolUIPart, type ToolSet, type UIMessage } from "ai";
 /** Why a pending call was closed, as the sentence the model reads for it. */
 export const TOOL_CLOSE_SENTENCES = {
 	superseded: "Not run: the user sent a new message instead.",
-	interrupted: "Not completed: the turn was interrupted.",
+	interrupted:
+		"Not completed: the turn was interrupted. If the call changes something, it may have been applied; check before retrying.",
 } as const;
 
 export type ToolCloseCode = keyof typeof TOOL_CLOSE_SENTENCES;
@@ -32,6 +33,21 @@ const closePart = (part: Part, tools: ToolSet): Part => {
 					...part.approval,
 					approved: false,
 					reason: TOOL_CLOSE_SENTENCES.superseded,
+				},
+			};
+		case "approval-responded":
+			// An answered call that never ran stays unrun; a denial keeps the user's reason.
+			return {
+				...part,
+				state: "output-denied",
+				approval: {
+					...part.approval,
+					approved: false,
+					...(part.approval.approved
+						? {
+								reason: TOOL_CLOSE_SENTENCES.superseded,
+							}
+						: {}),
 				},
 			};
 		case "input-available": {
@@ -75,3 +91,31 @@ export const closePendingToolParts = (
 		changed: closed.some((part, index) => part !== parts[index]),
 	};
 };
+
+/** Closes the pending tool calls of copied replies, so a copy never runs one. */
+export const closeCopiedToolParts = <
+	Row extends {
+		role: string;
+		parts: unknown[];
+	},
+>(
+	rows: Row[],
+	tools: ToolSet = {},
+): Row[] =>
+	rows.map((row) => {
+		if (row.role !== "assistant") {
+			return row;
+		}
+
+		const closed = closePendingToolParts(
+			row.parts as UIMessage["parts"],
+			tools,
+		);
+
+		return closed.changed
+			? {
+					...row,
+					parts: closed.parts,
+				}
+			: row;
+	});

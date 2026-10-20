@@ -5,6 +5,9 @@ import { userIdSchema } from "../user/ref";
 import { organizationInvitationStatusSchema } from "./parts/status";
 import { organizationInvitationIdSchema } from "./ref";
 
+/** How long a new invitation stays valid unless the inviter picks another date. */
+export const DEFAULT_INVITATION_TTL_DAYS = 7;
+
 export const organizationInvitationFieldsSchema = z.object({
 	organizationId: organizationIdSchema,
 	email: z.email(),

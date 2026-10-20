@@ -3,6 +3,7 @@ import type { ChatId, ChatMessageId } from "@orcai/core";
 import type { ChatBranchLink } from "@orcai/schema";
 import { eventIteratorToUnproxiedDataStream, ORPCError } from "@orpc/client";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
+import { lastAssistantMessageIsCompleteWithApprovalResponses } from "ai";
 import { useEffect, useMemo, useRef, useState } from "react";
 import { toast } from "sonner";
 import {
@@ -14,17 +15,27 @@ import { Shimmer } from "@/components/ai-elements/shimmer";
 import { AssistantComposerGate } from "@/components/assistant/assistant-composer-gate";
 import { assistantLinkSafety } from "@/components/assistant/assistant-link-safety";
 import { AssistantPlaceholder } from "@/components/assistant/assistant-placeholder";
+import {
+	ASSISTANT_TOOL_GROUPS,
+	DEFERRED_TOOL_GROUPS,
+} from "@/lib/ai/tools/assistant/groups";
 import type { ChatAgentUIMessage } from "@/lib/ai/types/chat-agent-message";
 import { clientEnv } from "@/lib/env/client";
-import { describeError, reasonMessageOf } from "@/lib/errors/describe-error";
+import {
+	describeError,
+	errorReasonOf,
+	reasonMessageOf,
+} from "@/lib/errors/describe-error";
 import { client, orpc } from "@/lib/orpc/orpc";
 import { formatCount } from "@/lib/presentation/format-number";
 import { m } from "@/paraglide/messages";
 import { BranchedFrom } from "./branch-links";
 import type { ChatDraft } from "./chat-draft";
+import { toChatAgentMessages } from "./chat-history";
 import { ChatInput } from "./chat-input";
 import { ChatPlaceholder } from "./chat-placeholder";
 import { EarlierMessages } from "./earlier-messages";
+import { isToolPart, pausedStep } from "./message/classify-turn";
 import { MessageBlock } from "./message/message-block";
 import { useBranchChat } from "./message/use-branch-chat";
 
@@ -47,6 +58,98 @@ const waitForStoredReply = async (input: {
 		await new Promise((resolve) => setTimeout(resolve, 250));
 	}
 };
+
+/** Approval ids already answered in stored rows, which the server holds. */
+const storedAnswers = (messages: ChatAgentUIMessage[]) =>
+	messages.flatMap((message) =>
+		message.parts.filter(isToolPart).flatMap((part) =>
+			part.approval && part.state !== "approval-requested"
+				? [
+						part.approval.id,
+					]
+				: [],
+		),
+	);
+
+/** The last step's answers given on this page; a step answered before a reload sends none. */
+const newDecisions = (message: ChatAgentUIMessage, stored: Set<string>) => {
+	const paused = pausedStep(message.parts, false);
+
+	return paused
+		? message.parts
+				.slice(paused.start)
+				.filter(isToolPart)
+				.flatMap((part) =>
+					part.state === "approval-responded" && !stored.has(part.approval.id)
+						? [
+								{
+									approvalId: part.approval.id,
+									approved: part.approval.approved,
+									reason: part.approval.reason,
+								},
+							]
+						: [],
+				)
+		: [];
+};
+
+/**
+ * The server holds the history, so only the new user message travels, or for
+ * an assistant row the answers to its last step.
+ */
+const openTurn = (
+	message: ChatAgentUIMessage | undefined,
+	turn: {
+		chatId: ChatId;
+		zedToken?: string;
+		storedApprovalIds: Set<string>;
+	},
+	options: {
+		signal: AbortSignal;
+	},
+) => {
+	switch (message?.role) {
+		case "user":
+			return client.ai.chat(
+				{
+					chatId: turn.chatId,
+					message: {
+						...message,
+						role: "user",
+					},
+					zedToken: turn.zedToken,
+				},
+				options,
+			);
+		case "assistant":
+			return client.ai.continue(
+				{
+					chatId: turn.chatId,
+					messageId: message.id,
+					approvals: newDecisions(message, turn.storedApprovalIds),
+					zedToken: turn.zedToken,
+				},
+				options,
+			);
+		default:
+			throw new Error("Only a user message or answers can be sent");
+	}
+};
+
+const PLATFORM_TOOL_TYPES = new Set<string>(
+	DEFERRED_TOOL_GROUPS.flatMap((group) => ASSISTANT_TOOL_GROUPS[group]).map(
+		(name) => `tool-${name}`,
+	),
+);
+
+/** A bots, sharing or people tool ran, so pages showing that data are stale. */
+const changedPlatformData = (message: ChatAgentUIMessage) =>
+	message.parts.some(
+		(part) =>
+			PLATFORM_TOOL_TYPES.has(part.type) &&
+			isToolPart(part) &&
+			part.state === "output-available",
+	);
 
 /** Quota is a governance fact, so it sits in the accent, above the composer. */
 const QuotaLine = ({ chatId }: { chatId: ChatId }) => {
@@ -110,6 +213,7 @@ const Chat = ({
 	const loadedMessageIds = useRef(
 		new Set(initialMessages.map((message) => message.id)),
 	);
+	const storedApprovalIds = useRef(new Set(storedAnswers(initialMessages)));
 
 	const { data: chat } = useQuery(
 		orpc.chat.find.queryOptions({
@@ -139,75 +243,118 @@ const Chat = ({
 		},
 	});
 
-	const { messages, status, setMessages, sendMessage, stop } =
-		useChat<ChatAgentUIMessage>({
-			id,
-			generateId: () => crypto.randomUUID(),
-			transport: {
-				async sendMessages(options) {
-					// The server holds the history, so only the new user message travels.
-					const message = options.messages.at(-1);
-					if (message?.role !== "user") {
-						throw new Error("Only a user message can be sent");
-					}
-
-					// Stop cuts the stream only once the server has answered, so the reply is already reserved.
-					const request = new AbortController();
-					const events = await client.ai.chat(
-						{
-							chatId: options.chatId as ChatId,
-							message: {
-								...message,
-								role: "user",
-							},
-							zedToken,
-						},
-						{
-							signal: request.signal,
-						},
-					);
-					if (options.abortSignal?.aborted) {
-						request.abort();
-					}
-					options.abortSignal?.addEventListener("abort", () => request.abort());
-
-					return eventIteratorToUnproxiedDataStream(events);
-				},
-				reconnectToStream() {
-					throw new Error("Unsupported");
-				},
-			},
-			messages: initialMessages,
-			onFinish: async ({ message, isAbort, isDisconnect, isError }) => {
-				// A finished stream closes after the reply is stored; any other ending may still be saving.
-				if (isAbort || isDisconnect || isError) {
-					setIsStoringReply(true);
-					await waitForStoredReply({
-						chatId: id,
-						id: message.id as ChatMessageId,
+	const {
+		messages,
+		status,
+		setMessages,
+		sendMessage,
+		stop,
+		addToolApprovalResponse,
+	} = useChat<ChatAgentUIMessage>({
+		id,
+		generateId: () => crypto.randomUUID(),
+		sendAutomaticallyWhen: lastAssistantMessageIsCompleteWithApprovalResponses,
+		transport: {
+			async sendMessages(options) {
+				// Stop cuts the stream only once the server has answered, so the reply is already reserved.
+				const request = new AbortController();
+				const events = await openTurn(
+					options.messages.at(-1),
+					{
+						chatId: options.chatId as ChatId,
 						zedToken,
-					}).finally(() => setIsStoringReply(false));
+						storedApprovalIds: storedApprovalIds.current,
+					},
+					{
+						signal: request.signal,
+					},
+				);
+				if (options.abortSignal?.aborted) {
+					request.abort();
 				}
-				// Refreshes the chat list and the auto-title once a response lands
+				options.abortSignal?.addEventListener("abort", () => request.abort());
+
+				return eventIteratorToUnproxiedDataStream(events);
+			},
+			reconnectToStream() {
+				throw new Error("Unsupported");
+			},
+		},
+		messages: initialMessages,
+		onFinish: async ({ message, isAbort, isDisconnect, isError }) => {
+			// A finished stream closes after the reply is stored; any other ending may still be saving.
+			if (isAbort || isDisconnect || isError) {
+				setIsStoringReply(true);
+				await waitForStoredReply({
+					chatId: id,
+					id: message.id as ChatMessageId,
+					zedToken,
+				}).finally(() => setIsStoringReply(false));
+			}
+			// Refreshes the chat list and the auto-title once a response lands
+			await queryClient.invalidateQueries({
+				queryKey: orpc.chat.key(),
+				refetchType: "active",
+			});
+			await queryClient.invalidateQueries({
+				queryKey: quotaBadgeQueryOptions.queryKey,
+				refetchType: "active",
+			});
+			if (isAssistant) {
 				await queryClient.invalidateQueries({
-					queryKey: orpc.chat.key(),
+					queryKey: orpc.assistant.key(),
 					refetchType: "active",
 				});
-				await queryClient.invalidateQueries({
-					queryKey: quotaBadgeQueryOptions.queryKey,
-					refetchType: "active",
-				});
-				if (isAssistant) {
-					await queryClient.invalidateQueries({
-						queryKey: orpc.assistant.key(),
-						refetchType: "active",
-					});
-				}
-			},
-			onError: (error) => {
-				setErrorDetail(describeError(error));
-			},
+			}
+			if (changedPlatformData(message)) {
+				await Promise.all(
+					[
+						orpc.bot,
+						orpc.block,
+						orpc.asset,
+						orpc.job,
+						orpc.resource,
+						orpc.group,
+						orpc.organizationMember,
+						orpc.organizationInvitation,
+						orpc.user,
+						orpc.authorization,
+					].map((namespace) =>
+						queryClient.invalidateQueries({
+							queryKey: namespace.key(),
+							refetchType: "active",
+						}),
+					),
+				);
+			}
+		},
+		onError: (error) => {
+			setErrorDetail(describeError(error));
+			if (errorReasonOf(error)?.reason === "CHAT_TURN_NOT_AWAITING") {
+				void reloadLatestMessages();
+			}
+		},
+	});
+
+	/** Replaces the newest page with the stored rows, as another tab left them. */
+	const reloadLatestMessages = async () => {
+		const page = await client.chatMessage.list({
+			chatId: id,
+			zedToken,
 		});
+		const stored = toChatAgentMessages(page.data);
+		const storedIds = new Set(stored.map((message) => message.id));
+		for (const message of stored) {
+			loadedMessageIds.current.add(message.id);
+		}
+		for (const approvalId of storedAnswers(stored)) {
+			storedApprovalIds.current.add(approvalId);
+		}
+		setMessages((current) => [
+			...current.filter((message) => !storedIds.has(message.id)),
+			...stored,
+		]);
+	};
 
 	const canBranch = !isAssistant && (status === "ready" || status === "error");
 	const branchFrom = (messageId: string) => {
@@ -303,6 +450,17 @@ const Chat = ({
 								branchChat.isPending && branchChat.variables?.messageId === m.id
 							}
 							linkSafety={isAssistant ? assistantLinks : undefined}
+							addToolApprovalResponse={
+								index === messages.length - 1
+									? addToolApprovalResponse
+									: undefined
+							}
+							onContinue={
+								index === messages.length - 1 &&
+								(status === "ready" || status === "error")
+									? () => void sendMessage()
+									: undefined
+							}
 						/>
 					))}
 					{messages.length === 0 &&

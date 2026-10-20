@@ -2,6 +2,7 @@ import { z } from "zod/v4";
 import { assetIdSchema } from "../asset/ref";
 import { botIdSchema } from "../bot/ref";
 import { paginationInputSchema, zedTokenSchema } from "../shared";
+import { searchFilterSchema } from "../shared/filters";
 import { publicationStatusSchema } from "../shared/primitives/publication-status";
 import { createUniqueRefsInputSchema } from "../shared/ref-list";
 import { blockIdSchema } from "./ref";
@@ -61,6 +62,7 @@ export const listBlocksInputSchema = paginationInputSchema.extend({
 			botId: botIdSchema.optional(),
 			type: blockTypeSchema.optional(),
 			status: publicationStatusSchema.optional(),
+			...searchFilterSchema.shape,
 		})
 		.optional(),
 });

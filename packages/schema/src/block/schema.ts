@@ -70,6 +70,17 @@ export const databaseBlockSchema = z.object({
 	}),
 });
 
+/** The retrieval settings a new repository starts with. */
+export const defaultDatabaseBlockConfig = {
+	minReferences: 1,
+	maxReferences: 8,
+	defaultReferences: 4,
+	retrievalMode: "hybrid",
+	scoreThreshold: 0.2,
+	candidateLimit: 40,
+	maxPerAsset: 6,
+} as const satisfies z.infer<typeof databaseBlockSchema.shape.config>;
+
 export const blockFieldsSchema = z.object({
 	name: z.string(),
 	description: z.string().max(500).nullable(),

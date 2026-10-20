@@ -1,4 +1,6 @@
 import { randomUUID } from "node:crypto";
+import { readFileSync } from "node:fs";
+import { join } from "node:path";
 import type { ChatId, ModelId, ProviderId } from "@orcai/core";
 import type { ORPCError } from "@orpc/client";
 import { expect, type Page } from "@playwright/test";
@@ -127,8 +129,82 @@ export const reasonOf = (error: ORPCError<string, unknown>): unknown =>
 		? error.data.reason
 		: undefined;
 
-const isRecord = (value: unknown): value is Record<string, unknown> =>
+export const isRecord = (value: unknown): value is Record<string, unknown> =>
 	value !== null && typeof value === "object";
+
+export const quoted = (name: string): string =>
+	message("assistant_tool_quoted_name", {
+		name,
+	});
+
+const catalogue = JSON.parse(
+	readFileSync(
+		join(import.meta.dirname, "../../../app/messages/en.json"),
+		"utf8",
+	),
+) as Record<string, unknown>;
+
+/** The texts of a message's variants, by their selector. */
+const variantsOf = (key: string): Record<string, string> => {
+	const value = catalogue[key];
+	const [variant] = Array.isArray(value) ? value : [];
+	if (!isRecord(variant) || !isRecord(variant.match)) {
+		throw new Error(`Message "${key}" has no variants.`);
+	}
+
+	return variant.match as Record<string, string>;
+};
+
+/** The English text of a message pluralised on `count`. */
+export const pluralMessage = (
+	key: string,
+	variables: Record<string, string | number> & {
+		count: number;
+	},
+): string => {
+	const category = new Intl.PluralRules("en").select(variables.count);
+	const text = Object.entries(variantsOf(key)).find(([selector]) =>
+		selector.endsWith(`=${category}`),
+	)?.[1];
+	if (text === undefined) {
+		throw new Error(`Message "${key}" has no "${category}" variant.`);
+	}
+
+	return text.replace(/\{(\w+)\}/g, (_match, name: string) =>
+		String(variables[name]),
+	);
+};
+
+const escapeRegExp = (text: string): string =>
+	text.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
+
+/** Any English rendering of the messages, whatever their variables hold. */
+export const messagePattern = (...keys: string[]): RegExp =>
+	new RegExp(
+		`^(?:${keys
+			.flatMap((key) => {
+				const value = catalogue[key];
+
+				return typeof value === "string"
+					? [
+							value,
+						]
+					: Object.values(variantsOf(key));
+			})
+			.map((text) =>
+				text
+					.split(/\{\w+\}/)
+					.map(escapeRegExp)
+					.join(".+"),
+			)
+			.join("|")})$`,
+	);
+
+/** Names sorted for set comparison. */
+export const sortedNames = (names: string[]): string[] =>
+	[
+		...names,
+	].sort();
 
 /** The streamed completion requests of turns; title generation does not stream. */
 export const turnRequests = (
@@ -306,4 +382,118 @@ export const startTitledConversation = async (
 	inference.reset();
 
 	return chatId;
+};
+
+/** The core tools every role is offered, `listMembers` and `loadTools` aside. */
+export const VIEWER_TOOLS = [
+	"readDocs",
+	"showChecklist",
+	"showReview",
+	"showMatrix",
+	"findBots",
+	"getBot",
+	"getBlock",
+	"findBlocks",
+	"findAssets",
+	"listGroups",
+];
+
+export const BOTS_TOOLS = [
+	"createBot",
+	"updateBot",
+	"publishBot",
+	"deleteBot",
+	"createTemplate",
+	"updateTemplate",
+	"createRepository",
+	"updateRepository",
+	"deleteBlock",
+	"updateAsset",
+	"deleteAsset",
+	"retryAsset",
+];
+
+export const SHARING_TOOLS = [
+	"listAccess",
+	"findPrincipals",
+	"grantAccess",
+	"revokeAccess",
+];
+
+export const PEOPLE_TOOLS = [
+	"createGroup",
+	"updateGroup",
+	"deleteGroup",
+	"addGroupMembers",
+	"removeGroupMembers",
+	"listGroupMembers",
+	"changeMemberRole",
+	"removeMembers",
+	"inviteMembers",
+	"listInvitations",
+	"cancelInvitation",
+];
+
+/** The names of the tools a request offers, sorted for set comparison. */
+export const offeredTools = (body: unknown): string[] =>
+	sortedNames(offeredToolsOf(body));
+
+/** The parsed JSON of each tool message a request carries; text results stay strings. */
+export const toolMessages = (body: unknown): unknown[] =>
+	toolResultsOf(body).map((content) => {
+		try {
+			return JSON.parse(content) as unknown;
+		} catch {
+			return content;
+		}
+	});
+
+/** The names of the tool calls a request's history carries, oldest first. */
+export const historyToolCallsOf = (body: unknown): string[] =>
+	messagesOf(body).flatMap((entry) =>
+		Array.isArray(entry.tool_calls)
+			? entry.tool_calls.flatMap((call: unknown) =>
+					isRecord(call) &&
+					isRecord(call.function) &&
+					typeof call.function.name === "string"
+						? [
+								call.function.name,
+							]
+						: [],
+				)
+			: [],
+	);
+
+/**
+ * Wait until the turn's `count`th request arrived and its scripted response
+ * is held, so a spec can script the next steps from what it carries.
+ */
+export const heldTurnRequest = async (
+	inference: InferenceMock,
+	count: number,
+): Promise<Record<string, unknown>> => {
+	await expect
+		.poll(() => turnRequests(inference).length >= count && inference.held())
+		.toBe(1);
+	const request = turnRequests(inference)[count - 1];
+	if (!request) throw new Error(`Missing turn request ${String(count)}`);
+
+	return request;
+};
+
+/** The header of the newest work log, which opens it. */
+export const workLogToggle = (page: Page) =>
+	page
+		.getByRole("log")
+		.getByRole("button", {
+			name: messagePattern(
+				"chat_work_log_header_steps",
+				"chat_work_log_header_steps_failed",
+			),
+		})
+		.last();
+
+/** Expand the newest turn's folded work log. */
+export const expandWorkLog = async (page: Page): Promise<void> => {
+	await workLogToggle(page).click();
 };

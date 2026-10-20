@@ -1,6 +1,11 @@
 import { context as otelContext } from "@opentelemetry/api";
 import { AiError } from "@orcai/ai";
-import type { ChatMessageId } from "@orcai/core";
+import type {
+	ChatId,
+	ChatMessageId,
+	OrganizationId,
+	UserId,
+} from "@orcai/core";
 import { DB, dbSchema } from "@orcai/db";
 import {
 	finalizeAppRequestQuota,
@@ -8,9 +13,11 @@ import {
 	reserveForAppRequest,
 } from "@orcai/quota";
 import type {
+	AiChatInput,
 	ChatMessageMetadata,
 	DatabaseBlock,
 	TemplateBlock,
+	ToolApprovalDecision,
 } from "@orcai/schema";
 import { streamToEventIterator } from "@orpc/client";
 import {
@@ -21,6 +28,8 @@ import {
 	type TextStreamPart,
 	type TextUIPart,
 	type ToolSet,
+	type UIMessage,
+	type UIMessageStreamOutcome,
 } from "ai";
 import { asc, eq } from "drizzle-orm";
 import * as Cause from "effect/Cause";
@@ -30,28 +39,38 @@ import { createAssistantAgent } from "@/lib/ai/agents/assistant-agent";
 import { createChatAgent } from "@/lib/ai/agents/chat-agent";
 import { forkChatTitleGenerationIfNeeded } from "@/lib/ai/effects/fork-chat-title-generation";
 import { quotaDenialError } from "@/lib/ai/effects/generate-text-with-quota";
+import { resolveFeatures } from "@/lib/ai/features/resolve-features";
+import { loadedToolGroupsOf } from "@/lib/ai/tools/assistant/core/load-tools";
+import { createAssistantTurn } from "@/lib/ai/tools/assistant/turn-state";
 import type { ChatAgentUIMessage } from "@/lib/ai/types/chat-agent-message";
 import { getChatMessageAttachments } from "@/lib/ai/types/chat-attachment";
+import {
+	applyTurnDecisions,
+	withoutContinuationClaim,
+} from "@/lib/ai/utils/apply-turn-decisions";
 import { buildAttachmentPromptPartCached } from "@/lib/ai/utils/chat-attachment-parts";
 import { closePendingToolParts } from "@/lib/ai/utils/close-pending-tool-parts";
 import { getChatAiSettings } from "@/lib/ai/utils/get-chat-ai-settings";
 import { loadAssistantUserContext } from "@/lib/ai/utils/load-assistant-user-context";
 import { loadTurnChat } from "@/lib/ai/utils/load-turn-chat";
 import { resolveTurnModel } from "@/lib/ai/utils/resolve-turn-model";
-import { streamErrorReason } from "@/lib/ai/utils/stream-error-reason";
+import { streamErrorText } from "@/lib/ai/utils/stream-error-text";
 import { getZedToken } from "@/lib/authz/zed-token";
 import { runPromise } from "@/lib/effect/runtime";
 import { AppConfigService } from "@/lib/effect/services/config";
 import * as AppErrors from "@/lib/effect/utils/errors";
 import { authed } from "@/lib/orpc/implementation/authed";
+import type { ORPCContext } from "@/lib/orpc/implementation/os";
 import { requireActiveOrganizationMiddleware } from "@/lib/orpc/middlewares/auth";
 import { requireEntityPermission } from "@/lib/orpc/middlewares/permission";
 import { chatBlockProcedures } from "./chat-block";
 import {
 	appendChatMessages,
 	isEmptyReply,
+	persistTurnDecisions,
 	settleChatReply,
 	storeClosedToolParts,
+	turnNotAwaiting,
 } from "./chat-message";
 
 const isRecord = (value: unknown): value is Record<string, unknown> =>
@@ -60,8 +79,8 @@ const isRecord = (value: unknown): value is Record<string, unknown> =>
 const getOptionalNumber = (value: unknown): number | undefined =>
 	typeof value === "number" && Number.isFinite(value) ? value : undefined;
 
-const getTokenUsageFromMetadata = (metadata: unknown) => {
-	if (!isRecord(metadata) || !isRecord(metadata.totalUsage)) {
+const getTokenUsage = (totalUsage: unknown) => {
+	if (!isRecord(totalUsage)) {
 		return {
 			inputTokens: undefined,
 			outputTokens: undefined,
@@ -70,9 +89,9 @@ const getTokenUsageFromMetadata = (metadata: unknown) => {
 	}
 
 	return {
-		inputTokens: getOptionalNumber(metadata.totalUsage.inputTokens),
-		outputTokens: getOptionalNumber(metadata.totalUsage.outputTokens),
-		totalTokens: getOptionalNumber(metadata.totalUsage.totalTokens),
+		inputTokens: getOptionalNumber(totalUsage.inputTokens),
+		outputTokens: getOptionalNumber(totalUsage.outputTokens),
+		totalTokens: getOptionalNumber(totalUsage.totalTokens),
 	};
 };
 
@@ -135,110 +154,156 @@ const closeLastReply = (history: ChatAgentUIMessage[], tools: ToolSet) => {
 	};
 };
 
-const aiChat = authed.ai.chat
-	.use(requireActiveOrganizationMiddleware)
-	.use(
-		requireEntityPermission("chat", "edit", {
-			entityId: "chatId",
-			zedToken: "zedToken",
-		}),
-	)
-	.effect(function* ({ input, context, signal }) {
-		return yield* Effect.gen(function* () {
-			const zedToken = getZedToken(context, input);
-			const requestContext = {
-				...context,
-				meta: {
-					...context.meta,
-					zedToken,
-				},
-			};
-			const userMessage = input.message;
-			const userMessageAttachments = getChatMessageAttachments(userMessage);
+const loadChatRows = (chatId: ChatId) =>
+	Effect.gen(function* () {
+		const db = yield* DB;
 
-			const db = yield* DB;
-			const organizationId = context.auth.session.activeOrganizationId;
-			const chatRecord = yield* loadTurnChat({
-				chatId: input.chatId,
-				activeOrganizationId: organizationId,
-			});
-			const isAssistant = chatRecord.kind === "assistant";
-			const chatConfig = isAssistant ? null : chatRecord.config;
+		return yield* db
+			.select()
+			.from(dbSchema.chatMessage)
+			.where(eq(dbSchema.chatMessage.chatId, chatId))
+			.orderBy(asc(dbSchema.chatMessage.position));
+	});
 
-			const { providerId, modelId } = yield* resolveTurnModel({
-				chat: chatRecord,
-				organizationId,
-			});
+const toAgentMessage = (row: typeof dbSchema.chatMessage.$inferSelect) =>
+	({
+		id: row.id,
+		role: row.role,
+		parts: row.parts,
+		metadata: row.metadata,
+		attachments: row.attachments,
+	}) as ChatAgentUIMessage;
 
-			const assistantUserContext = isAssistant
-				? yield* loadAssistantUserContext({
-						user: {
-							id: context.auth.user.id,
-							name: context.auth.user.name,
-							email: context.auth.user.email,
+/** The assistant's fixed features. */
+const ASSISTANT_FEATURES = {
+	generativeUi: {},
+};
+
+type ChatTurn = {
+	chat: typeof dbSchema.chat.$inferSelect;
+	organizationId: OrganizationId;
+	/** The signed-in user, who the assistant works for. */
+	user: {
+		id: UserId;
+		name: string;
+		email: string;
+	};
+	/** The request's context, reading at the request's zedToken. */
+	context: ORPCContext;
+	signal: AbortSignal | undefined;
+	/** The chat's stored messages without empty replies. */
+	history: ChatAgentUIMessage[];
+	/** Where the assistant's procedure calls start reading. */
+	turnZedToken: string | undefined;
+} & (
+	| {
+			kind: "reply";
+			userMessage: AiChatInput["message"];
+	  }
+	| {
+			/** Resumes the last row of `history` after its approvals were answered. */
+			kind: "continuation";
+			replyId: ChatMessageId;
+			decisions: ToolApprovalDecision[];
+	  }
+);
+
+/**
+ * One model turn: resolves model and settings, builds the agent, reserves
+ * quota, persists the turn's rows, then streams onto the reply and settles it.
+ */
+const runChatTurn = (turn: ChatTurn) =>
+	Effect.gen(function* () {
+		const { chat, organizationId, user, context } = turn;
+		const userId = user.id;
+		const zedToken = context.meta?.zedToken;
+		const isAssistant = chat.kind === "assistant";
+		const chatConfig = isAssistant ? null : chat.config;
+
+		const { providerId, modelId } = yield* resolveTurnModel({
+			chat,
+			organizationId,
+		});
+
+		const assistantUserContext = isAssistant
+			? yield* loadAssistantUserContext({
+					user,
+					organizationId,
+					context,
+				})
+			: undefined;
+
+		const chatBlocks = isAssistant
+			? []
+			: (yield* chatBlockProcedures
+					.list(
+						{
+							chatId: chat.id,
+							zedToken,
 						},
-						organizationId,
-						context: requestContext,
-					})
-				: undefined;
+						{
+							context,
+						},
+					)
+					.pipe(
+						Effect.mapError(
+							(cause) =>
+								new AppErrors.BadRequestError({
+									reason: "CHAT_BLOCKS_UNAVAILABLE",
+									message: "Failed to fetch chat blocks",
+									cause,
+								}),
+						),
+					)).data;
 
-			const chatBlocks = isAssistant
-				? []
-				: (yield* chatBlockProcedures
-						.list(
-							{
-								chatId: input.chatId,
-								zedToken,
-							},
-							{
-								context: requestContext,
-							},
-						)
-						.pipe(
-							Effect.mapError(
-								(cause) =>
-									new AppErrors.BadRequestError({
-										reason: "CHAT_BLOCKS_UNAVAILABLE",
-										message: "Failed to fetch chat blocks",
-										cause,
-									}),
-							),
-						)).data;
+		const chatAiSettings = yield* getChatAiSettings({
+			providerId,
+			modelId,
+			botId: chat.botId,
+			chatConfig,
+			userId,
+			context,
+		});
 
-			const chatAiSettings = yield* getChatAiSettings({
-				providerId,
-				modelId,
-				botId: chatRecord.botId,
-				chatConfig,
-				userId: context.auth.user.id,
-				context: requestContext,
-			});
+		const attachedDatabaseBlocks = chatBlocks.filter(
+			(block): block is DatabaseBlock => block.type === "database",
+		);
+		const attachedTemplateBlock = chatBlocks.find(
+			(block): block is TemplateBlock => block.type === "template",
+		);
 
-			const attachedDatabaseBlocks = chatBlocks.filter(
-				(block): block is DatabaseBlock => block.type === "database",
-			);
-			const attachedTemplateBlock = chatBlocks.find(
-				(block): block is TemplateBlock => block.type === "template",
-			);
+		const systemPrompt = !chat.botId
+			? (attachedTemplateBlock?.config.systemPrompt ??
+				chatAiSettings.systemPrompt)
+			: chatAiSettings.systemPrompt;
 
-			const systemPrompt = !chatRecord.botId
-				? (attachedTemplateBlock?.config.systemPrompt ??
-					chatAiSettings.systemPrompt)
-				: chatAiSettings.systemPrompt;
+		const allDatabaseBlocks = mergeDatabaseBlocks({
+			baseBlocks: chatAiSettings.databaseBlocks,
+			attachedBlocks: attachedDatabaseBlocks,
+		});
 
-			const allDatabaseBlocks = mergeDatabaseBlocks({
-				baseBlocks: chatAiSettings.databaseBlocks,
-				attachedBlocks: attachedDatabaseBlocks,
-			});
+		const telemetryIds = {
+			organizationId,
+			chatId: chat.id,
+			providerId,
+			modelId,
+		};
 
-			const telemetryIds = {
-				organizationId,
-				chatId: input.chatId,
-				providerId,
-				modelId,
-			};
-			const { docs } = yield* AppConfigService;
-			const turnAgent = assistantUserContext
+		const { docs } = yield* AppConfigService;
+
+		const assistantMessageId =
+			turn.kind === "reply" ? (uuidv4() as ChatMessageId) : turn.replyId;
+
+		const assistantTurn = assistantUserContext
+			? createAssistantTurn({
+					zedToken: turn.turnZedToken,
+					chatId: chat.id,
+					replyId: assistantMessageId,
+				})
+			: undefined;
+
+		const turnAgent =
+			assistantUserContext && assistantTurn
 				? {
 						kind: "assistant" as const,
 						agent: createAssistantAgent({
@@ -246,7 +311,12 @@ const aiChat = authed.ai.chat
 							generationParams: chatAiSettings.generationParams,
 							docs,
 							userContext: assistantUserContext,
+							features: yield* resolveFeatures(ASSISTANT_FEATURES),
+							loadedToolGroups: loadedToolGroupsOf(turn.history),
+							history: turn.history,
 							telemetryIds,
+							context,
+							turn: assistantTurn,
 						}),
 					}
 				: {
@@ -258,141 +328,123 @@ const aiChat = authed.ai.chat
 							features: chatAiSettings.features,
 							generationParams: chatAiSettings.generationParams,
 							telemetryIds,
-							context: requestContext,
+							context,
 						}),
 					};
 
-			const [takenMessage] = yield* db
-				.select({
-					id: dbSchema.chatMessage.id,
-				})
-				.from(dbSchema.chatMessage)
-				.where(eq(dbSchema.chatMessage.id, userMessage.id))
-				.limit(1);
+		const reply =
+			turn.kind === "reply"
+				? closeLastReply(turn.history, turnAgent.agent.tools)
+				: undefined;
+		const userMessageAttachments =
+			turn.kind === "reply" ? getChatMessageAttachments(turn.userMessage) : [];
 
-			if (takenMessage) {
-				return yield* Effect.fail(messageIdTakenError());
-			}
+		const messages =
+			turn.kind === "reply" && reply
+				? [
+						...reply.closedHistory,
+						{
+							id: turn.userMessage.id,
+							role: "user",
+							parts: turn.userMessage.parts,
+							metadata: turn.userMessage.metadata,
+							attachments: userMessageAttachments,
+						} as ChatAgentUIMessage,
+					]
+				: turn.history;
 
-			const history = (yield* db
-				.select()
-				.from(dbSchema.chatMessage)
-				.where(eq(dbSchema.chatMessage.chatId, input.chatId))
-				.orderBy(asc(dbSchema.chatMessage.position))).filter(
-				(row) => !isEmptyReply(row),
+		const quotaReservation = yield* reserveForAppRequest({
+			organizationId,
+			userId,
+			providerId,
+			providerModelId: modelId,
+			appRequestId: assistantMessageId,
+			messages,
+			isFirstTurn: turn.kind === "reply" && turn.history.length === 0,
+		});
+
+		if (
+			!quotaReservation.allowed ||
+			quotaReservation.reservation === undefined
+		) {
+			return yield* Effect.fail(
+				quotaDenialError(quotaReservation.denialReason),
 			);
+		}
 
-			const storedMessages = history.map(
-				(row) =>
-					({
-						id: row.id,
-						role: row.role,
-						parts: row.parts,
-						metadata: row.metadata,
-						attachments: row.attachments,
-					}) as ChatAgentUIMessage,
-			);
-
-			const { closedHistory, closedReply } = closeLastReply(
-				storedMessages,
-				turnAgent.agent.tools,
-			);
-
-			const messages = [
-				...closedHistory,
-				{
-					id: userMessage.id,
-					role: "user",
-					parts: userMessage.parts,
-					metadata: userMessage.metadata,
-					attachments: userMessageAttachments,
-				} as ChatAgentUIMessage,
-			];
-
-			const assistantMessageId = uuidv4() as ChatMessageId;
-
-			const quotaReservation = yield* reserveForAppRequest({
-				organizationId,
-				userId: context.auth.user.id,
-				providerId,
-				providerModelId: modelId,
-				appRequestId: assistantMessageId,
-				messages,
-				isFirstTurn: history.length === 0,
-			});
-
-			if (
-				!quotaReservation.allowed ||
-				quotaReservation.reservation === undefined
-			) {
-				return yield* Effect.fail(
-					quotaDenialError(quotaReservation.denialReason),
-				);
-			}
-
-			const reservation = quotaReservation.reservation;
-			const releaseOnFailure = <A, E, R>(effect: Effect.Effect<A, E, R>) =>
-				effect.pipe(
-					Effect.catch((error) =>
-						releaseAppRequestQuota({
-							reservation,
-							reason: "app_failure",
-						}).pipe(
-							Effect.catch(() => Effect.void),
-							Effect.andThen(Effect.fail(error)),
-						),
+		const reservation = quotaReservation.reservation;
+		const releaseOnFailure = <A, E, R>(effect: Effect.Effect<A, E, R>) =>
+			effect.pipe(
+				Effect.catch((error) =>
+					releaseAppRequestQuota({
+						reservation,
+						reason: "app_failure",
+					}).pipe(
+						Effect.catch(() => Effect.void),
+						Effect.andThen(Effect.fail(error)),
 					),
-				);
-
-			const attachmentPartCache = new Map<string, FileUIPart | TextUIPart>();
-			const messagesWithAttachmentParts = yield* Effect.forEach(
-				messages,
-				(message) =>
-					Effect.gen(function* () {
-						if (message.role !== "user") {
-							return message;
-						}
-
-						const messageAttachments = getChatMessageAttachments(message);
-						if (messageAttachments.length === 0) {
-							return message;
-						}
-
-						const attachmentParts = yield* Effect.forEach(
-							messageAttachments,
-							(attachment) =>
-								buildAttachmentPromptPartCached({
-									attachment,
-									cache: attachmentPartCache,
-								}),
-							{
-								concurrency: 3,
-							},
-						);
-
-						return {
-							...message,
-							parts: [
-								...message.parts,
-								...attachmentParts,
-							],
-						};
-					}),
-				{
-					concurrency: "unbounded",
-				},
+				),
 			);
 
-			if (closedReply) {
+		const attachmentPartCache = new Map<string, FileUIPart | TextUIPart>();
+		const messagesWithAttachmentParts = yield* Effect.forEach(
+			messages,
+			(message) =>
+				Effect.gen(function* () {
+					if (message.role !== "user") {
+						return message;
+					}
+
+					const messageAttachments = getChatMessageAttachments(message);
+					if (messageAttachments.length === 0) {
+						return message;
+					}
+
+					const attachmentParts = yield* Effect.forEach(
+						messageAttachments,
+						(attachment) =>
+							buildAttachmentPromptPartCached({
+								attachment,
+								cache: attachmentPartCache,
+							}),
+						{
+							concurrency: 3,
+						},
+					);
+
+					return {
+						...message,
+						parts: [
+							...message.parts,
+							...attachmentParts,
+						],
+					};
+				}),
+			{
+				concurrency: "unbounded",
+			},
+		).pipe(releaseOnFailure);
+
+		let claimedReply:
+			| {
+					parts: UIMessage["parts"];
+					metadata: ChatMessageMetadata;
+			  }
+			| undefined;
+
+		if (turn.kind === "reply") {
+			const { userMessage } = turn;
+
+			if (reply?.closedReply) {
 				yield* storeClosedToolParts({
-					id: closedReply.id,
-					chatId: input.chatId,
-					parts: closedReply.parts,
+					id: reply.closedReply.id,
+					chatId: chat.id,
+					parts: reply.closedReply.parts,
 				}).pipe(releaseOnFailure);
 			}
 
 			// The reply is reserved with the question, so a later turn always lands after it.
-			const [persistedUserMessage] = yield* appendChatMessages(input.chatId, [
+			const [persistedUserMessage] = yield* appendChatMessages(chat.id, [
 				{
 					id: userMessage.id,
 					role: "user",
@@ -422,163 +474,242 @@ const aiChat = authed.ai.chat
 			);
 
 			yield* forkChatTitleGenerationIfNeeded({
-				chatId: input.chatId,
-				currentTitle: chatRecord.title,
+				chatId: chat.id,
+				currentTitle: chat.title,
 				model: chatAiSettings.model,
 				organizationId,
 				providerId,
 				providerModelId: modelId,
-				userId: context.auth.user.id,
+				userId,
 				userMessage: {
 					id: persistedUserMessage.id,
 					role: persistedUserMessage.role,
 					parts: persistedUserMessage.parts,
 				},
 			});
+		} else {
+			claimedReply = yield* persistTurnDecisions({
+				id: assistantMessageId,
+				chatId: chat.id,
+				decisions: turn.decisions,
+			}).pipe(releaseOnFailure);
+		}
 
-			let actualProviderRequestCount = 0;
+		let actualProviderRequestCount = 0;
+		// A continuation's reply still carries the paused turn's usage until this one finishes.
+		let finishedUsage: unknown;
 
-			// The stream outlives the handler; its callbacks rejoin the request trace.
-			const traceContext = otelContext.active();
+		// The stream outlives the handler; its callbacks rejoin the request trace.
+		const traceContext = otelContext.active();
 
-			const turnStream = {
-				uiMessages: messagesWithAttachmentParts,
-				// Stop and disconnects abort the model call and running tools.
-				abortSignal: signal,
-				generateMessageId: () => assistantMessageId,
-				onStepEnd: () => {
-					actualProviderRequestCount += 1;
-				},
-				onEnd: ({
-					responseMessage,
-				}: {
-					responseMessage: Pick<ChatAgentUIMessage, "parts" | "metadata">;
-				}) =>
-					otelContext.with(traceContext, async () => {
-						const usage = getTokenUsageFromMetadata(responseMessage.metadata);
+		const logQuotaFailure = (message: string) => (error: unknown) =>
+			runPromise(
+				Effect.logError({
+					appRequestId: reservation.appRequestId,
+					error: error instanceof Error ? error.message : String(error),
+					message,
+					reservationKey: reservation.reservationKey,
+				}),
+			).catch(() => undefined);
 
+		const turnStream = {
+			uiMessages: messagesWithAttachmentParts,
+			// Stop and disconnects abort the model call and running tools.
+			abortSignal: turn.signal,
+			generateMessageId: () => assistantMessageId,
+			onStepEnd: () => {
+				actualProviderRequestCount += 1;
+			},
+			onEnd: ({
+				responseMessage,
+				outcome,
+			}: {
+				responseMessage: Pick<ChatAgentUIMessage, "parts" | "metadata">;
+				outcome: UIMessageStreamOutcome;
+			}) =>
+				otelContext.with(traceContext, async () => {
+					const usage = getTokenUsage(finishedUsage);
+
+					await runPromise(
+						settleChatReply({
+							id: assistantMessageId,
+							chatId: chat.id,
+							parts: responseMessage.parts,
+							metadata: {
+								...withoutContinuationClaim(responseMessage.metadata ?? {}),
+								// A continuation reads on from what this turn wrote.
+								...(assistantTurn?.zedToken === undefined
+									? {}
+									: {
+											zedToken: assistantTurn.zedToken,
+										}),
+							},
+						}),
+					);
+
+					if (outcome.status === "failed") {
 						await runPromise(
-							settleChatReply({
-								id: assistantMessageId,
-								chatId: input.chatId,
-								parts: responseMessage.parts,
-								metadata: responseMessage.metadata ?? {},
-							}),
-						);
-
-						await runPromise(
-							finalizeAppRequestQuota({
-								reservation,
-								actualRequestCount: actualProviderRequestCount,
-								inputTokens: usage.inputTokens,
-								outputTokens: usage.outputTokens,
-								totalTokens: usage.totalTokens,
-							}),
-						).catch((error) =>
-							runPromise(
-								Effect.logError({
-									appRequestId: reservation.appRequestId,
-									error: error instanceof Error ? error.message : String(error),
-									message: "quota.finalize.failed",
-									reservationKey: reservation.reservationKey,
-								}),
-							).catch(() => undefined),
-						);
-					}),
-				onError: (error: unknown) =>
-					otelContext.with(traceContext, () => {
-						runPromise(
 							releaseAppRequestQuota({
 								reservation,
 								reason: "provider_failure",
 							}),
-						).catch((releaseError) =>
-							runPromise(
-								Effect.logError({
-									appRequestId: reservation.appRequestId,
-									error:
-										releaseError instanceof Error
-											? releaseError.message
-											: String(releaseError),
-									message: "quota.release.failed",
-									reservationKey: reservation.reservationKey,
-								}),
-							).catch(() => undefined),
-						);
-						runPromise(
-							Effect.logError({
-								error: error instanceof Error ? error.message : String(error),
-								message: "AI stream error",
-							}),
-						).catch(() => undefined);
-						return streamErrorReason(error, "AI_STREAM_FAILED");
-					}),
-				messageMetadata: <Tools extends ToolSet>({
-					part,
-				}: {
-					part: TextStreamPart<Tools>;
-				}) => {
-					if (part.type === "finish-step") {
-						return {
-							model: part.response.modelId,
-						};
+						).catch(logQuotaFailure("quota.release.failed"));
+						return;
 					}
-					if (part.type === "finish") {
-						return {
-							totalUsage: part.totalUsage,
-						};
-					}
-				},
-			};
-			const wordStream = <Tools extends ToolSet>() =>
-				smoothStream<Tools>({
-					delayInMs: 20,
-					chunking: "word",
-				});
 
-			const stream = yield* Effect.tryPromise({
-				try: async () =>
-					turnAgent.kind === "assistant"
-						? createAgentUIStream({
-								...turnStream,
-								agent: turnAgent.agent,
-								// Each chat kind stores only its own agent's tool parts.
-								originalMessages: messages as InferAgentUIMessage<
-									ReturnType<typeof createAssistantAgent>,
-									ChatMessageMetadata
-								>[],
-								experimental_transform: wordStream(),
-							})
-						: createAgentUIStream({
-								...turnStream,
-								agent: turnAgent.agent,
-								originalMessages: messages as InferAgentUIMessage<
-									ReturnType<typeof createChatAgent>,
-									ChatMessageMetadata
-								>[],
-								experimental_transform: wordStream(),
-							}),
-				catch: (cause) =>
-					new AiError({
-						operation: "aiChat.handler",
-						cause,
-					}),
-			}).pipe(
-				Effect.catch((error) =>
-					Effect.all([
-						releaseAppRequestQuota({
+					await runPromise(
+						finalizeAppRequestQuota({
 							reservation,
-							reason: "app_failure",
-						}).pipe(Effect.ignore),
-						settleChatReply({
-							id: assistantMessageId,
-							chatId: input.chatId,
-							parts: [],
-							metadata: {},
-						}).pipe(Effect.ignore),
-					]).pipe(Effect.andThen(Effect.fail(error))),
-				),
-			);
+							actualRequestCount: actualProviderRequestCount,
+							inputTokens: usage.inputTokens,
+							outputTokens: usage.outputTokens,
+							totalTokens: usage.totalTokens,
+						}),
+					).catch(logQuotaFailure("quota.finalize.failed"));
+				}),
+			// Also called for every failed tool call, whose error text it returns.
+			onError: (error: unknown) =>
+				otelContext.with(traceContext, () => {
+					runPromise(
+						Effect.logError({
+							error: error instanceof Error ? error.message : String(error),
+							message: "AI stream error",
+						}),
+					).catch(() => undefined);
+					return streamErrorText(error);
+				}),
+			messageMetadata: <Tools extends ToolSet>({
+				part,
+			}: {
+				part: TextStreamPart<Tools>;
+			}) => {
+				if (part.type === "finish-step") {
+					return {
+						model: part.response.modelId,
+						// Lets the client read what the turn wrote, such as the names on its cards.
+						...(assistantTurn?.zedToken === undefined
+							? {}
+							: {
+									zedToken: assistantTurn.zedToken,
+								}),
+					};
+				}
+				if (part.type === "finish") {
+					finishedUsage = part.totalUsage;
+					return {
+						totalUsage: part.totalUsage,
+					};
+				}
+			},
+		};
+		const wordStream = <Tools extends ToolSet>() =>
+			smoothStream<Tools>({
+				delayInMs: 20,
+				chunking: "word",
+			});
+
+		return yield* Effect.tryPromise({
+			try: async () =>
+				turnAgent.kind === "assistant"
+					? createAgentUIStream({
+							...turnStream,
+							agent: turnAgent.agent,
+							// Each chat kind stores only its own agent's tool parts.
+							originalMessages: messages as InferAgentUIMessage<
+								ReturnType<typeof createAssistantAgent>,
+								ChatMessageMetadata
+							>[],
+							experimental_transform: wordStream(),
+						})
+					: createAgentUIStream({
+							...turnStream,
+							agent: turnAgent.agent,
+							originalMessages: messages as InferAgentUIMessage<
+								ReturnType<typeof createChatAgent>,
+								ChatMessageMetadata
+							>[],
+							experimental_transform: wordStream(),
+						}),
+			catch: (cause) =>
+				new AiError({
+					operation:
+						turn.kind === "reply" ? "aiChat.handler" : "aiContinue.handler",
+					cause,
+				}),
+		}).pipe(
+			Effect.catch((error) =>
+				Effect.all([
+					releaseAppRequestQuota({
+						reservation,
+						reason: "app_failure",
+					}).pipe(Effect.ignore),
+					// A continuation keeps its decisions and drops its claim, so it can be retried.
+					settleChatReply({
+						id: assistantMessageId,
+						chatId: chat.id,
+						parts: claimedReply?.parts ?? [],
+						metadata: claimedReply
+							? withoutContinuationClaim(claimedReply.metadata)
+							: {},
+					}).pipe(Effect.ignore),
+				]).pipe(Effect.andThen(Effect.fail(error))),
+			),
+		);
+	});
+
+const aiChat = authed.ai.chat
+	.use(requireActiveOrganizationMiddleware)
+	.use(
+		requireEntityPermission("chat", "edit", {
+			entityId: "chatId",
+			zedToken: "zedToken",
+		}),
+	)
+	.effect(function* ({ input, context, signal }) {
+		return yield* Effect.gen(function* () {
+			const zedToken = getZedToken(context, input);
+			const organizationId = context.auth.session.activeOrganizationId;
+			const chat = yield* loadTurnChat({
+				chatId: input.chatId,
+				activeOrganizationId: organizationId,
+			});
+
+			const db = yield* DB;
+			const [takenMessage] = yield* db
+				.select({
+					id: dbSchema.chatMessage.id,
+				})
+				.from(dbSchema.chatMessage)
+				.where(eq(dbSchema.chatMessage.id, input.message.id))
+				.limit(1);
+
+			if (takenMessage) {
+				return yield* Effect.fail(messageIdTakenError());
+			}
+
+			const rows = yield* loadChatRows(input.chatId);
+
+			const stream = yield* runChatTurn({
+				kind: "reply",
+				chat,
+				organizationId,
+				user: {
+					id: context.auth.user.id,
+					name: context.auth.user.name,
+					email: context.auth.user.email,
+				},
+				context: {
+					...context,
+					meta: {
+						...context.meta,
+						zedToken,
+					},
+				},
+				signal,
+				history: rows.filter((row) => !isEmptyReply(row)).map(toAgentMessage),
+				turnZedToken: zedToken,
+				userMessage: input.message,
+			});
 
 			return streamToEventIterator(stream);
 		}).pipe(
@@ -588,6 +719,100 @@ const aiChat = authed.ai.chat
 		);
 	});
 
+const aiContinue = authed.ai.continue
+	.use(requireActiveOrganizationMiddleware)
+	.use(
+		requireEntityPermission("chat", "edit", {
+			entityId: "chatId",
+			zedToken: "zedToken",
+		}),
+	)
+	.effect(function* ({ input, context, signal }) {
+		return yield* Effect.gen(function* () {
+			const zedToken = getZedToken(context, input);
+			const organizationId = context.auth.session.activeOrganizationId;
+			const chat = yield* loadTurnChat({
+				chatId: input.chatId,
+				activeOrganizationId: organizationId,
+			});
+
+			if (chat.kind !== "assistant") {
+				return yield* Effect.fail(
+					turnNotAwaiting("Only assistant replies wait for approvals."),
+				);
+			}
+
+			const rows = yield* loadChatRows(input.chatId);
+			const lastRow = rows.at(-1);
+			const applied = applyTurnDecisions({
+				messageId: input.messageId,
+				lastMessage: lastRow && {
+					id: lastRow.id,
+					role: lastRow.role,
+					parts: lastRow.parts as UIMessage["parts"],
+					continuedAt: lastRow.metadata.continuedAt,
+				},
+				decisions: input.approvals,
+				now: new Date(),
+			});
+
+			if (!applied.ok) {
+				return yield* Effect.fail(
+					applied.reason === "CHAT_TURN_NOT_AWAITING"
+						? turnNotAwaiting(applied.message)
+						: new AppErrors.BadRequestError({
+								reason: applied.reason,
+								message: applied.message,
+							}),
+				);
+			}
+
+			const history = rows
+				.filter((row) => !isEmptyReply(row))
+				.map((row) =>
+					toAgentMessage(
+						row.id === input.messageId
+							? {
+									...row,
+									parts: applied.parts,
+								}
+							: row,
+					),
+				);
+
+			const stream = yield* runChatTurn({
+				kind: "continuation",
+				chat,
+				organizationId,
+				user: {
+					id: context.auth.user.id,
+					name: context.auth.user.name,
+					email: context.auth.user.email,
+				},
+				context: {
+					...context,
+					meta: {
+						...context.meta,
+						zedToken,
+					},
+				},
+				signal,
+				history,
+				// The client never saw what the paused turn wrote, so read on from there.
+				turnZedToken: lastRow?.metadata.zedToken ?? zedToken,
+				replyId: input.messageId,
+				decisions: input.approvals,
+			});
+
+			return streamToEventIterator(stream);
+		}).pipe(
+			Effect.tapCause((cause) =>
+				Effect.logError(`[ai.continue] handler failed ${Cause.pretty(cause)}`),
+			),
+		);
+	});
+
 export const aiRouter = {
 	chat: aiChat,
+	continue: aiContinue,
 };

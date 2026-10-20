@@ -77,6 +77,8 @@ A response without `meta.zedToken` means the request wrote nothing to SpiceDB in
 
 Chat generation uses configured providers and models. Retrieval tools can search knowledge-base content, list documents, and fetch pages or chunks before the assistant response is generated.
 
+The OrcAI Assistant's tools call the platform's procedures as the signed-in user through the per-namespace Effect clients, so every middleware and authorization check runs as it does for the app. Core tools are always offered; the bots, sharing and people groups are deferred and load through tool search, filtered by the user's organisation capabilities. Tools that destroy, revoke, widen access, change a role or send something out need approval: the turn pauses, and once the user answers it resumes on the same message through `ai.continue`.
+
 Image-related processing can use `GENERAL_MODEL` to describe images during asset processing.
 
 <Callout title="TODO" type="idea">

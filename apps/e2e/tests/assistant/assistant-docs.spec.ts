@@ -128,9 +128,7 @@ test("assistant: a member's question is answered from the docs with app and docs
 
 	const requests = turnRequests(inference);
 	expect(requests).toHaveLength(3);
-	expect(offeredToolsOf(requests[0])).toEqual([
-		"readDocs",
-	]);
+	expect(offeredToolsOf(requests[0])).toContain("readDocs");
 	const index = await servedDocs("/llms.txt");
 	const botsPage = await servedDocs(`${BOTS_PATH}.md`);
 	expect(docsContentsOf(requests[1])).toEqual([
@@ -195,9 +193,14 @@ test("assistant: the user's identity and role section end the system prompt afte
 		const prompt = systemPromptOf(request);
 		const at = prompt.lastIndexOf("\n\nCurrent user:\n");
 		expect(at).toBeGreaterThan(0);
+		// The tool groups, offered by role, are the first variable section.
+		const groups = prompt.indexOf("\n\nTool groups:\n");
+		const variable = groups === -1 ? at : groups;
+		expect(variable).toBeLessThanOrEqual(at);
 
 		return {
-			stable: prompt.slice(0, at),
+			stable: prompt.slice(0, variable),
+			groups: groups === -1 ? [] : prompt.slice(groups + 2, at).split("\n"),
 			section: prompt.slice(at + 2).split("\n"),
 		};
 	};
@@ -206,6 +209,13 @@ test("assistant: the user's identity and role section end the system prompt afte
 	const admin = await promptOf("admin");
 
 	expect(viewer.stable).toBe(admin.stable);
+	expect(viewer.groups).toEqual([]);
+	expect(admin.groups[0]).toBe("Tool groups:");
+	expect(admin.groups.filter((line) => line.startsWith("- "))).toEqual([
+		expect.stringMatching(/^- bots: /),
+		expect.stringMatching(/^- sharing: /),
+		expect.stringMatching(/^- people: /),
+	]);
 	for (const [role, { section }] of [
 		[
 			"viewer",

@@ -1,5 +1,5 @@
 import { describe, expect, test } from "bun:test";
-import { classifyTurn, type MessagePart } from "./classify-turn";
+import { classifyTurn, type MessagePart, pausedStep } from "./classify-turn";
 
 const text = (content: string) =>
 	({
@@ -35,6 +35,39 @@ const checklist = (state = "output-available") =>
 		state,
 		input: {
 			items: [],
+		},
+	}) as unknown as MessagePart;
+
+const stepStart = () =>
+	({
+		type: "step-start",
+	}) as unknown as MessagePart;
+
+const deleteBot = (state: string, approved?: boolean) =>
+	({
+		type: "tool-deleteBot",
+		toolCallId: `delete-${state}-${approved}`,
+		state,
+		input: {
+			ids: [
+				"bot-1",
+			],
+		},
+		...(state === "output-available"
+			? {
+					output: {
+						deleted: [],
+						skipped: [],
+					},
+				}
+			: {}),
+		approval: {
+			id: `approval-${state}`,
+			...(approved === undefined
+				? {}
+				: {
+						approved,
+					}),
 		},
 	}) as unknown as MessagePart;
 
@@ -305,5 +338,111 @@ describe("classifyTurn", () => {
 			text("lead-in"),
 			text("answer"),
 		]);
+	});
+});
+
+describe("paused step", () => {
+	const pausedTurn = (state: string, approved?: boolean) => [
+		stepStart(),
+		text("let me look"),
+		search(),
+		stepStart(),
+		text("I will delete it"),
+		search(),
+		deleteBot(state, approved),
+	];
+
+	test("a requested approval puts the step's text and card in the answer", () => {
+		const parts = pausedTurn("approval-requested");
+		const turn = classifyTurn(parts);
+
+		expect(
+			turn.entries.map((entry) => [
+				entry.id,
+				entry.kind,
+			]),
+		).toEqual([
+			[
+				"1",
+				"text",
+			],
+			[
+				"2",
+				"tool",
+			],
+			[
+				"5",
+				"tool",
+			],
+		]);
+		expect(turn.answerParts).toEqual([
+			text("I will delete it"),
+			deleteBot("approval-requested"),
+		]);
+		expect(pausedStep(parts, false)).toEqual({
+			start: 4,
+			answered: false,
+		});
+	});
+
+	test("an answered step that has not run stays in the answer", () => {
+		const parts = pausedTurn("approval-responded", true);
+		const turn = classifyTurn(parts);
+
+		expect(turn.answerParts).toEqual([
+			text("I will delete it"),
+			deleteBot("approval-responded", true),
+		]);
+		expect(pausedStep(parts, false)?.answered).toBe(true);
+	});
+
+	test("a partly answered step is not answered", () => {
+		const parts = [
+			...pausedTurn("approval-responded", true),
+			deleteBot("approval-requested"),
+		];
+
+		expect(pausedStep(parts, false)?.answered).toBe(false);
+	});
+
+	test("while streaming the normal rule applies", () => {
+		const parts = pausedTurn("approval-responded", true);
+
+		expect(pausedStep(parts, true)).toBeUndefined();
+		expect(
+			classifyTurn(parts, {
+				running: true,
+			}).answerParts,
+		).toEqual([]);
+	});
+
+	test("once resumed the card folds into the work log", () => {
+		const turn = classifyTurn([
+			...pausedTurn("output-available", true),
+			stepStart(),
+			text("Deleted."),
+		]);
+
+		expect(turn.entries.map((entry) => entry.part.type)).toEqual([
+			"text",
+			"tool-searchKnowledgeBase",
+			"text",
+			"tool-searchKnowledgeBase",
+			"tool-deleteBot",
+		]);
+		expect(turn.answerParts).toEqual([
+			text("Deleted."),
+		]);
+	});
+
+	test("an earlier step's approval does not pause the turn", () => {
+		const parts = [
+			stepStart(),
+			deleteBot("approval-requested"),
+			stepStart(),
+			text("answer"),
+		];
+
+		expect(pausedStep(parts, false)).toBeUndefined();
 	});
 });

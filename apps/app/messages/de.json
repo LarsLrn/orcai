@@ -576,7 +576,14 @@
 		}
 	],
 	"assets_upload_unknown_error": "Die Dateien wurden nicht hochgeladen. Versuchen Sie es erneut.",
+	"assistant_ask_action": "Assistant fragen",
+	"assistant_ask_bot_setup_draft": "Helfen Sie mir, den Bot „{name}“ einzurichten",
+	"assistant_ask_groups_draft": "Helfen Sie mir, die Gruppen in dieser Organisation zu ordnen",
 	"assistant_composer_model_hint": "Von den Admins Ihrer Organisation festgelegt",
+	"assistant_confirmation_change": "Ändern",
+	"assistant_confirmation_grant": "Gewähren",
+	"assistant_confirmation_invite": "Einladen",
+	"assistant_confirmation_withdraw": "Zurückziehen",
 	"assistant_history_empty": "Noch keine Unterhaltungen. Beginnen Sie oben eine.",
 	"assistant_history_show_more_action": "Ältere Unterhaltungen anzeigen",
 	"assistant_history_title": "Ihre Unterhaltungen",
@@ -584,6 +591,490 @@
 	"assistant_placeholder_description": "Fragen Sie den OrcAI Assistant zu Ihrer Arbeit in dieser Organisation. Beginnen Sie für jede Aufgabe eine neue Unterhaltung.",
 	"assistant_placeholder_title": "Wie kann ich helfen?",
 	"assistant_starter_create_failed_toast_error": "Die Unterhaltung wurde nicht erstellt. Senden Sie die Nachricht erneut.",
+	"assistant_tool_add_group_members_active": "Gruppenmitglieder werden hinzugefügt",
+	"assistant_tool_add_group_members_name": "Gruppenmitglieder hinzufügen",
+	"assistant_tool_add_group_members_summary": "{names} zu {group} hinzufügen",
+	"assistant_tool_cancel_invitation_active": "Einladungen werden zurückgezogen",
+	"assistant_tool_cancel_invitation_name": "Einladungen zurückziehen",
+	"assistant_tool_cancel_invitation_summary": [
+		{
+			"declarations": [
+				"input count",
+				"input names",
+				"local countPlural = count: plural"
+			],
+			"selectors": [
+				"countPlural"
+			],
+			"match": {
+				"countPlural=one": "Einladung an {names} zurückziehen",
+				"countPlural=other": "Einladungen an {names} zurückziehen"
+			}
+		}
+	],
+	"assistant_tool_change_member_role_active": "Rolle wird geändert",
+	"assistant_tool_change_member_role_name": "Rolle ändern",
+	"assistant_tool_change_member_role_summary": "{name} die Rolle {role} geben",
+	"assistant_tool_create_bot_active": "Bot wird erstellt",
+	"assistant_tool_create_bot_name": "Bot erstellen",
+	"assistant_tool_create_bot_summary": "Bot {name} erstellen",
+	"assistant_tool_create_group_active": "Gruppe wird erstellt",
+	"assistant_tool_create_group_name": "Gruppe erstellen",
+	"assistant_tool_create_group_summary": "Gruppe {name} erstellen",
+	"assistant_tool_create_repository_active": "Repository wird erstellt",
+	"assistant_tool_create_repository_name": "Repository erstellen",
+	"assistant_tool_create_repository_summary": "Repository {name} erstellen",
+	"assistant_tool_create_template_active": "Verhaltensblock wird erstellt",
+	"assistant_tool_create_template_name": "Verhaltensblock erstellen",
+	"assistant_tool_create_template_summary": "Verhaltensblock {name} erstellen",
+	"assistant_tool_delete_asset_active": "Assets werden gelöscht",
+	"assistant_tool_delete_asset_name": "Assets löschen",
+	"assistant_tool_delete_asset_summary": [
+		{
+			"declarations": [
+				"input count",
+				"input names",
+				"local countPlural = count: plural"
+			],
+			"selectors": [
+				"countPlural"
+			],
+			"match": {
+				"countPlural=one": "Asset {names} löschen",
+				"countPlural=other": "Assets {names} löschen"
+			}
+		}
+	],
+	"assistant_tool_delete_block_active": "Blöcke werden gelöscht",
+	"assistant_tool_delete_block_name": "Blöcke löschen",
+	"assistant_tool_delete_block_summary": [
+		{
+			"declarations": [
+				"input count",
+				"input names",
+				"local countPlural = count: plural"
+			],
+			"selectors": [
+				"countPlural"
+			],
+			"match": {
+				"countPlural=one": "Block {names} löschen",
+				"countPlural=other": "Blöcke {names} löschen"
+			}
+		}
+	],
+	"assistant_tool_delete_bot_active": "Bots werden gelöscht",
+	"assistant_tool_delete_bot_name": "Bots löschen",
+	"assistant_tool_delete_bot_summary": [
+		{
+			"declarations": [
+				"input count",
+				"input names",
+				"local countPlural = count: plural"
+			],
+			"selectors": [
+				"countPlural"
+			],
+			"match": {
+				"countPlural=one": "Bot {names} löschen",
+				"countPlural=other": "Bots {names} löschen"
+			}
+		}
+	],
+	"assistant_tool_delete_group_active": "Gruppen werden gelöscht",
+	"assistant_tool_delete_group_name": "Gruppen löschen",
+	"assistant_tool_delete_group_summary": [
+		{
+			"declarations": [
+				"input count",
+				"input names",
+				"local countPlural = count: plural"
+			],
+			"selectors": [
+				"countPlural"
+			],
+			"match": {
+				"countPlural=one": "Gruppe {names} löschen",
+				"countPlural=other": "Gruppen {names} löschen"
+			}
+		}
+	],
+	"assistant_tool_find_assets_active": "Assets werden gesucht",
+	"assistant_tool_find_assets_name": "Assets suchen",
+	"assistant_tool_find_assets_summary": [
+		{
+			"declarations": [
+				"input count",
+				"local countPlural = count: plural"
+			],
+			"selectors": [
+				"countPlural"
+			],
+			"match": {
+				"countPlural=one": "{count} Asset gefunden",
+				"countPlural=other": "{count} Assets gefunden"
+			}
+		}
+	],
+	"assistant_tool_find_assets_summary_query": [
+		{
+			"declarations": [
+				"input count",
+				"input query",
+				"local countPlural = count: plural"
+			],
+			"selectors": [
+				"countPlural"
+			],
+			"match": {
+				"countPlural=one": "{count} Asset zu {query} gefunden",
+				"countPlural=other": "{count} Assets zu {query} gefunden"
+			}
+		}
+	],
+	"assistant_tool_find_assets_summary_query_repository": [
+		{
+			"declarations": [
+				"input count",
+				"input query",
+				"input repository",
+				"local countPlural = count: plural"
+			],
+			"selectors": [
+				"countPlural"
+			],
+			"match": {
+				"countPlural=one": "{count} Asset zu {query} in {repository} gefunden",
+				"countPlural=other": "{count} Assets zu {query} in {repository} gefunden"
+			}
+		}
+	],
+	"assistant_tool_find_assets_summary_repository": [
+		{
+			"declarations": [
+				"input count",
+				"input repository",
+				"local countPlural = count: plural"
+			],
+			"selectors": [
+				"countPlural"
+			],
+			"match": {
+				"countPlural=one": "{count} Asset in {repository} gefunden",
+				"countPlural=other": "{count} Assets in {repository} gefunden"
+			}
+		}
+	],
+	"assistant_tool_find_blocks_active": "KI-Verhalten und Repositories werden gesucht",
+	"assistant_tool_find_blocks_name": "KI-Verhalten und Repositories suchen",
+	"assistant_tool_find_blocks_summary_repositories": [
+		{
+			"declarations": [
+				"input count",
+				"local countPlural = count: plural"
+			],
+			"selectors": [
+				"countPlural"
+			],
+			"match": {
+				"countPlural=one": "{count} Repository gefunden",
+				"countPlural=other": "{count} Repositories gefunden"
+			}
+		}
+	],
+	"assistant_tool_find_blocks_summary_repositories_query": [
+		{
+			"declarations": [
+				"input count",
+				"input query",
+				"local countPlural = count: plural"
+			],
+			"selectors": [
+				"countPlural"
+			],
+			"match": {
+				"countPlural=one": "{count} Repository zu {query} gefunden",
+				"countPlural=other": "{count} Repositories zu {query} gefunden"
+			}
+		}
+	],
+	"assistant_tool_find_blocks_summary_templates": [
+		{
+			"declarations": [
+				"input count",
+				"local countPlural = count: plural"
+			],
+			"selectors": [
+				"countPlural"
+			],
+			"match": {
+				"countPlural=one": "{count} KI-Verhalten gefunden",
+				"countPlural=other": "{count} KI-Verhalten gefunden"
+			}
+		}
+	],
+	"assistant_tool_find_blocks_summary_templates_query": [
+		{
+			"declarations": [
+				"input count",
+				"input query",
+				"local countPlural = count: plural"
+			],
+			"selectors": [
+				"countPlural"
+			],
+			"match": {
+				"countPlural=one": "{count} KI-Verhalten zu {query} gefunden",
+				"countPlural=other": "{count} KI-Verhalten zu {query} gefunden"
+			}
+		}
+	],
+	"assistant_tool_find_bots_active": "Bots werden gesucht",
+	"assistant_tool_find_bots_name": "Bots suchen",
+	"assistant_tool_find_bots_summary": [
+		{
+			"declarations": [
+				"input count",
+				"local countPlural = count: plural"
+			],
+			"selectors": [
+				"countPlural"
+			],
+			"match": {
+				"countPlural=one": "{count} Bot gefunden",
+				"countPlural=other": "{count} Bots gefunden"
+			}
+		}
+	],
+	"assistant_tool_find_bots_summary_query": [
+		{
+			"declarations": [
+				"input count",
+				"input query",
+				"local countPlural = count: plural"
+			],
+			"selectors": [
+				"countPlural"
+			],
+			"match": {
+				"countPlural=one": "{count} Bot zu {query} gefunden",
+				"countPlural=other": "{count} Bots zu {query} gefunden"
+			}
+		}
+	],
+	"assistant_tool_find_principals_active": "Personen und Gruppen werden gesucht",
+	"assistant_tool_find_principals_name": "Personen und Gruppen suchen",
+	"assistant_tool_find_principals_summary": "Personen und Gruppen für {resource} suchen",
+	"assistant_tool_find_principals_summary_found": [
+		{
+			"declarations": [
+				"input count",
+				"input resource",
+				"local countPlural = count: plural"
+			],
+			"selectors": [
+				"countPlural"
+			],
+			"match": {
+				"countPlural=one": "{count} Person oder Gruppe für {resource} gefunden",
+				"countPlural=other": "{count} Personen und Gruppen für {resource} gefunden"
+			}
+		}
+	],
+	"assistant_tool_get_block_active": "KI-Verhalten oder Repository wird gelesen",
+	"assistant_tool_get_block_name": "KI-Verhalten oder Repository lesen",
+	"assistant_tool_get_block_summary": "{name} gelesen",
+	"assistant_tool_get_block_summary_repository": "Repository {name} gelesen",
+	"assistant_tool_get_block_summary_template": "KI-Verhalten {name} gelesen",
+	"assistant_tool_get_bot_active": "Bot wird gelesen",
+	"assistant_tool_get_bot_name": "Bot lesen",
+	"assistant_tool_get_bot_summary": "Bot {name} gelesen",
+	"assistant_tool_grant_access_active": "Zugriff wird gewährt",
+	"assistant_tool_grant_access_name": "Zugriff gewähren",
+	"assistant_tool_grant_access_summary": "{names} Zugriff als {role} auf {resource} geben",
+	"assistant_tool_group_bots": "Bots",
+	"assistant_tool_group_people": "Personen",
+	"assistant_tool_group_sharing": "Freigaben",
+	"assistant_tool_invite_members_active": "Personen werden eingeladen",
+	"assistant_tool_invite_members_name": "Personen einladen",
+	"assistant_tool_invite_members_summary": "{names} als {role} einladen",
+	"assistant_tool_list_access_active": "Zugriff wird geprüft",
+	"assistant_tool_list_access_name": "Zugriff prüfen",
+	"assistant_tool_list_access_summary": "Zugriff auf {resource} prüfen",
+	"assistant_tool_list_access_summary_found": [
+		{
+			"declarations": [
+				"input count",
+				"input resource",
+				"local countPlural = count: plural"
+			],
+			"selectors": [
+				"countPlural"
+			],
+			"match": {
+				"countPlural=one": "{count} direkte Freigabe für {resource} gefunden",
+				"countPlural=other": "{count} direkte Freigaben für {resource} gefunden"
+			}
+		}
+	],
+	"assistant_tool_list_group_members_active": "Gruppenmitglieder werden aufgelistet",
+	"assistant_tool_list_group_members_name": "Gruppenmitglieder auflisten",
+	"assistant_tool_list_group_members_summary": "Mitglieder von {group} auflisten",
+	"assistant_tool_list_group_members_summary_found": [
+		{
+			"declarations": [
+				"input count",
+				"input group",
+				"local countPlural = count: plural"
+			],
+			"selectors": [
+				"countPlural"
+			],
+			"match": {
+				"countPlural=one": "{count} Mitglied in {group} gefunden",
+				"countPlural=other": "{count} Mitglieder in {group} gefunden"
+			}
+		}
+	],
+	"assistant_tool_list_groups_active": "Gruppen werden aufgelistet",
+	"assistant_tool_list_groups_name": "Gruppen auflisten",
+	"assistant_tool_list_groups_summary": [
+		{
+			"declarations": [
+				"input count",
+				"local countPlural = count: plural"
+			],
+			"selectors": [
+				"countPlural"
+			],
+			"match": {
+				"countPlural=one": "{count} Gruppe gefunden",
+				"countPlural=other": "{count} Gruppen gefunden"
+			}
+		}
+	],
+	"assistant_tool_list_groups_summary_query": [
+		{
+			"declarations": [
+				"input count",
+				"input query",
+				"local countPlural = count: plural"
+			],
+			"selectors": [
+				"countPlural"
+			],
+			"match": {
+				"countPlural=one": "{count} Gruppe zu {query} gefunden",
+				"countPlural=other": "{count} Gruppen zu {query} gefunden"
+			}
+		}
+	],
+	"assistant_tool_list_invitations_active": "Einladungen werden aufgelistet",
+	"assistant_tool_list_invitations_name": "Einladungen auflisten",
+	"assistant_tool_list_invitations_summary_found": [
+		{
+			"declarations": [
+				"input count",
+				"input status",
+				"local countPlural = count: plural"
+			],
+			"selectors": [
+				"countPlural"
+			],
+			"match": {
+				"countPlural=one": "{count} Einladung gefunden ({status})",
+				"countPlural=other": "{count} Einladungen gefunden ({status})"
+			}
+		}
+	],
+	"assistant_tool_list_members_active": "Mitglieder werden aufgelistet",
+	"assistant_tool_list_members_name": "Mitglieder auflisten",
+	"assistant_tool_list_members_summary": [
+		{
+			"declarations": [
+				"input count",
+				"local countPlural = count: plural"
+			],
+			"selectors": [
+				"countPlural"
+			],
+			"match": {
+				"countPlural=one": "{count} Mitglied gefunden",
+				"countPlural=other": "{count} Mitglieder gefunden"
+			}
+		}
+	],
+	"assistant_tool_list_members_summary_query": [
+		{
+			"declarations": [
+				"input count",
+				"input query",
+				"local countPlural = count: plural"
+			],
+			"selectors": [
+				"countPlural"
+			],
+			"match": {
+				"countPlural=one": "{count} Mitglied zu {query} gefunden",
+				"countPlural=other": "{count} Mitglieder zu {query} gefunden"
+			}
+		}
+	],
+	"assistant_tool_load_tools_active": "Tools werden geladen",
+	"assistant_tool_load_tools_name": "Tools laden",
+	"assistant_tool_load_tools_none": "Tools konnten nicht geladen werden",
+	"assistant_tool_load_tools_summary": "Geladene Tools: {groups}",
+	"assistant_tool_name_loading": "…",
+	"assistant_tool_name_unavailable": "ein Element, das Sie nicht sehen können",
+	"assistant_tool_names_more": [
+		{
+			"declarations": [
+				"input count",
+				"input names",
+				"local countPlural = count: plural"
+			],
+			"selectors": [
+				"countPlural"
+			],
+			"match": {
+				"countPlural=one": "{names} und {count} weiteres",
+				"countPlural=other": "{names} und {count} weitere"
+			}
+		}
+	],
+	"assistant_tool_publish_bot_active": "Bot wird veröffentlicht",
+	"assistant_tool_publish_bot_name": "Bot veröffentlichen",
+	"assistant_tool_publish_bot_summary": "Bot {name} veröffentlichen",
+	"assistant_tool_quoted_name": "„{name}“",
+	"assistant_tool_remove_group_members_active": "Gruppenmitglieder werden entfernt",
+	"assistant_tool_remove_group_members_name": "Gruppenmitglieder entfernen",
+	"assistant_tool_remove_group_members_summary": "{names} aus {group} entfernen",
+	"assistant_tool_remove_members_active": "Mitglieder werden entfernt",
+	"assistant_tool_remove_members_name": "Mitglieder entfernen",
+	"assistant_tool_remove_members_summary": "{names} aus der Organisation entfernen",
+	"assistant_tool_retry_asset_active": "Asset-Auftrag wird wiederholt",
+	"assistant_tool_retry_asset_name": "Asset-Auftrag wiederholen",
+	"assistant_tool_retry_asset_summary_processing": "Verarbeitung von {asset} wiederholen",
+	"assistant_tool_retry_asset_summary_vectorisation": "Vektorisierung von {asset} in {repository} wiederholen",
+	"assistant_tool_revoke_access_active": "Zugriff wird entzogen",
+	"assistant_tool_revoke_access_name": "Zugriff entziehen",
+	"assistant_tool_revoke_access_summary": "{name} den Zugriff auf {resource} entziehen",
+	"assistant_tool_update_asset_active": "Asset wird aktualisiert",
+	"assistant_tool_update_asset_name": "Asset aktualisieren",
+	"assistant_tool_update_asset_summary": "Asset {name} aktualisieren",
+	"assistant_tool_update_bot_active": "Bot wird aktualisiert",
+	"assistant_tool_update_bot_name": "Bot aktualisieren",
+	"assistant_tool_update_bot_summary": "Bot {name} aktualisieren",
+	"assistant_tool_update_group_active": "Gruppe wird aktualisiert",
+	"assistant_tool_update_group_name": "Gruppe aktualisieren",
+	"assistant_tool_update_group_summary": "Gruppe {name} aktualisieren",
+	"assistant_tool_update_repository_active": "Repository wird aktualisiert",
+	"assistant_tool_update_repository_name": "Repository aktualisieren",
+	"assistant_tool_update_repository_summary": "Repository {name} aktualisieren",
+	"assistant_tool_update_template_active": "Verhaltensblock wird aktualisiert",
+	"assistant_tool_update_template_name": "Verhaltensblock aktualisieren",
+	"assistant_tool_update_template_summary": "Verhaltensblock {name} aktualisieren",
+	"assistant_turn_continue_action": "Fortfahren",
 	"assistant_unavailable_admin_action": "Organisationseinstellungen öffnen",
 	"assistant_unavailable_description_admin": "Wählen Sie auf der Organisationsseite ein Assistant-Modell, um ihn einzuschalten.",
 	"assistant_unavailable_description_member": "Bitten Sie einen Admin Ihrer Organisation, ein Modell dafür auszuwählen.",
@@ -1683,6 +2174,7 @@
 	"chat_work_log_tool_show_matrix_name": "Matrix",
 	"chat_work_log_tool_show_review_active": "Prüfung wird erstellt",
 	"chat_work_log_tool_show_review_name": "Prüfung",
+	"chat_work_log_tool_status_approved": "Genehmigt",
 	"chat_work_log_tool_status_awaiting_approval": "Warten auf Genehmigung",
 	"chat_work_log_tool_status_denied": "Abgelehnt",
 	"chat_work_log_tool_status_failed": "Fehlgeschlagen",
@@ -1899,6 +2391,8 @@
 	"error_chat_not_found": "Chat nicht gefunden.",
 	"error_chat_rating_failed": "Die Bewertung konnte nicht gespeichert werden.",
 	"error_chat_template_block_already_attached": "Dieser Chat hat bereits einen KI-Verhaltensblock. Entfernen Sie ihn, bevor Sie einen anderen hinzufügen.",
+	"error_chat_turn_decisions_incomplete": "Beantworten Sie jede Bestätigung dieses Schritts, bevor Sie fortfahren.",
+	"error_chat_turn_not_awaiting": "Dieser Schritt wurde bereits beantwortet, zum Beispiel in einem anderen Tab. Die Unterhaltung zeigt jetzt, was geschehen ist.",
 	"error_current_password_incorrect": "Das aktuelle Passwort ist falsch.",
 	"error_default_references_out_of_range": "Die Standardanzahl an Verweisen muss zwischen dem Minimum und dem Maximum liegen.",
 	"error_email_already_registered": "Es gibt bereits ein Konto mit dieser E-Mail-Adresse.",
@@ -1925,6 +2419,7 @@
 	"error_instance_already_initialised": "Die Instanz ist bereits initialisiert.",
 	"error_instance_role_invalid": "Die Instanzrolle ist ungültig.",
 	"error_invalid_credentials": "E-Mail-Adresse oder Passwort ist ungültig.",
+	"error_invalid_tool_input": "Der Assistent hat ein Tool mit ungültigen Eingaben aufgerufen.",
 	"error_invitation_already_accepted": "Eine angenommene Einladung kann nicht abgelehnt werden.",
 	"error_invitation_changed": "Die Einladung hat sich während Ihrer Antwort geändert. Versuchen Sie es erneut.",
 	"error_invitation_expired": "Die Einladung ist abgelaufen.",
@@ -1968,6 +2463,7 @@
 	"error_sort_key_unsupported": "Sortieren nach „{sortKey}“ wird nicht unterstützt.",
 	"error_system_group_immutable": "Systemgruppen können nicht geändert werden.",
 	"error_token_invalid": "Der Link ist ungültig oder abgelaufen.",
+	"error_tool_not_available": "Der Assistent hat ein Tool aufgerufen, das nicht verfügbar war.",
 	"error_upload_file_missing": "Die hochgeladene Datei wurde im Speicher nicht gefunden.",
 	"error_upload_file_size_mismatch": "Die Größe der hochgeladenen Datei stimmt nicht überein.",
 	"error_upload_file_too_large": "„{fileName}“ überschreitet die maximale Dateigröße.",

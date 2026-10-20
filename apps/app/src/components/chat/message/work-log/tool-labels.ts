@@ -10,6 +10,11 @@ import {
 	SpellCheckIcon,
 	WrenchIcon,
 } from "lucide-react";
+import {
+	isSummarisedToolPart,
+	type SummarisedToolName,
+	toolSummaryOf,
+} from "@/components/assistant/tool-summaries";
 import type { ToolPart } from "@/components/chat/message/classify-turn";
 import { m } from "@/paraglide/messages";
 
@@ -20,7 +25,11 @@ export interface ToolLabels {
 	icon: LucideIcon;
 }
 
-type KnownToolType = Extract<ToolPart["type"], `tool-${string}`>;
+// Assistant tools take theirs from their summaries.
+type KnownToolType = Exclude<
+	Extract<ToolPart["type"], `tool-${string}`>,
+	`tool-${SummarisedToolName}`
+>;
 
 const knownToolLabels: Record<KnownToolType, () => ToolLabels> = {
 	"tool-getKnowledgeBaseChunks": () => ({
@@ -77,6 +86,16 @@ export const toolLabels = (part: ToolPart): ToolLabels => {
 				tool: part.toolName,
 			}),
 			icon: WrenchIcon,
+		};
+	}
+
+	if (isSummarisedToolPart(part)) {
+		const summary = toolSummaryOf(part);
+
+		return {
+			name: summary.name(),
+			active: summary.active(),
+			icon: summary.icon,
 		};
 	}
 
