@@ -1,12 +1,7 @@
 import type { DeepPartial } from "ai";
 import type { ChecklistInput } from "@/components/chat/gen-ui/checklist/schema";
+import { indent } from "@/components/chat/gen-ui/markdown";
 import { statusLabel, statusSchema } from "@/components/chat/gen-ui/status";
-
-const indent = (text: string, prefix: string) =>
-	text
-		.split("\n")
-		.map((line) => (line === "" ? prefix.trimEnd() : `${prefix}${line}`))
-		.join("\n");
 
 type ChecklistItem = NonNullable<
 	NonNullable<DeepPartial<ChecklistInput>["items"]>[number]

@@ -1676,6 +1676,10 @@
 	],
 	"chat_work_log_tool_show_checklist_active": "Preparing a checklist",
 	"chat_work_log_tool_show_checklist_name": "Checklist",
+	"chat_work_log_tool_show_matrix_active": "Preparing a matrix",
+	"chat_work_log_tool_show_matrix_name": "Matrix",
+	"chat_work_log_tool_show_review_active": "Preparing a review",
+	"chat_work_log_tool_show_review_name": "Review",
 	"chat_work_log_tool_status_awaiting_approval": "Awaiting approval",
 	"chat_work_log_tool_status_denied": "Denied",
 	"chat_work_log_tool_status_failed": "Failed",
@@ -2042,6 +2046,32 @@
 	"forms_validation_errors_summary": "Correct the {count} errors above.",
 	"forms_validation_errors_title": "Please fix the following errors:",
 	"gen_ui_cannot_display": "This result can't be displayed.",
+	"gen_ui_matrix_notes": [
+		{
+			"declarations": [
+				"input count",
+				"local countPlural = count: plural"
+			],
+			"selectors": [
+				"countPlural"
+			],
+			"match": {
+				"countPlural=one": "{count} note",
+				"countPlural=other": "{count} notes"
+			}
+		}
+	],
+	"gen_ui_review_copy_all": "Copy all",
+	"gen_ui_review_copy_revision": "Copy revision",
+	"gen_ui_review_no_findings": "No findings",
+	"gen_ui_review_overall": "Overall",
+	"gen_ui_review_view_changes": "Changes",
+	"gen_ui_review_view_findings": "Findings",
+	"gen_ui_review_view_label": "View",
+	"gen_ui_review_view_revised": "Revised",
+	"gen_ui_severity_error": "Error",
+	"gen_ui_severity_info": "Info",
+	"gen_ui_severity_warning": "Warning",
 	"gen_ui_status_met": "Met",
 	"gen_ui_status_n_a": "Not checkable",
 	"gen_ui_status_not_met": "Not met",

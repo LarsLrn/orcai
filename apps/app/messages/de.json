@@ -1676,6 +1676,10 @@
 	],
 	"chat_work_log_tool_show_checklist_active": "Checkliste wird erstellt",
 	"chat_work_log_tool_show_checklist_name": "Checkliste",
+	"chat_work_log_tool_show_matrix_active": "Matrix wird erstellt",
+	"chat_work_log_tool_show_matrix_name": "Matrix",
+	"chat_work_log_tool_show_review_active": "Prüfung wird erstellt",
+	"chat_work_log_tool_show_review_name": "Prüfung",
 	"chat_work_log_tool_status_awaiting_approval": "Warten auf Genehmigung",
 	"chat_work_log_tool_status_denied": "Abgelehnt",
 	"chat_work_log_tool_status_failed": "Fehlgeschlagen",
@@ -2042,6 +2046,32 @@
 	"forms_validation_errors_summary": "Korrigieren Sie die {count} Fehler oben.",
 	"forms_validation_errors_title": "Bitte beheben Sie die folgenden Fehler:",
 	"gen_ui_cannot_display": "Dieses Ergebnis kann nicht angezeigt werden.",
+	"gen_ui_matrix_notes": [
+		{
+			"declarations": [
+				"input count",
+				"local countPlural = count: plural"
+			],
+			"selectors": [
+				"countPlural"
+			],
+			"match": {
+				"countPlural=one": "{count} Anmerkung",
+				"countPlural=other": "{count} Anmerkungen"
+			}
+		}
+	],
+	"gen_ui_review_copy_all": "Alle kopieren",
+	"gen_ui_review_copy_revision": "Überarbeitung kopieren",
+	"gen_ui_review_no_findings": "Keine Befunde",
+	"gen_ui_review_overall": "Insgesamt",
+	"gen_ui_review_view_changes": "Änderungen",
+	"gen_ui_review_view_findings": "Befunde",
+	"gen_ui_review_view_label": "Ansicht",
+	"gen_ui_review_view_revised": "Überarbeitet",
+	"gen_ui_severity_error": "Fehler",
+	"gen_ui_severity_info": "Hinweis",
+	"gen_ui_severity_warning": "Warnung",
 	"gen_ui_status_met": "Erfüllt",
 	"gen_ui_status_n_a": "Nicht prüfbar",
 	"gen_ui_status_not_met": "Nicht erfüllt",

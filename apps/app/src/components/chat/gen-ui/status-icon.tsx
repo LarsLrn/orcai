@@ -28,15 +28,18 @@ const statusIcon: Record<Status, LucideIcon> = {
 };
 
 /**
- * The icon for `status`; without one, a pulsing placeholder when `pending`
- * and an empty spacer of the same size otherwise.
+ * The icon for `status`, named by `label` or the status label; without one, a
+ * pulsing placeholder when `pending` and an empty spacer of the same size
+ * otherwise.
  */
 export const StatusIcon = ({
 	status,
+	label,
 	pending = false,
 	className,
 }: {
 	status?: Status;
+	label?: string;
 	pending?: boolean;
 	className?: string;
 }) => {
@@ -45,7 +48,7 @@ export const StatusIcon = ({
 		return (
 			<Icon
 				role="img"
-				aria-label={statusLabel(status)}
+				aria-label={label ?? statusLabel(status)}
 				data-status={status}
 				className={cn("size-4 shrink-0", statusTone[status], className)}
 			/>
