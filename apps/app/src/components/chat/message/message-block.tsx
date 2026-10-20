@@ -1,7 +1,7 @@
 import type { UseChatHelpers } from "@ai-sdk/react";
 import type { ChatId } from "@orcai/core";
 import type { ChatBranchLink } from "@orcai/schema";
-import type { ReactNode } from "react";
+import { type ReactNode, useRef, useState } from "react";
 import {
 	Message,
 	MessageContent,
@@ -10,7 +10,11 @@ import {
 import { Shimmer } from "@/components/ai-elements/shimmer";
 import { MessageBranches } from "@/components/chat/branch-links";
 import { classifyTurn } from "@/components/chat/message/classify-turn";
-import { WorkLog } from "@/components/chat/message/work-log/work-log";
+import { ActivityLine } from "@/components/chat/message/work-log/activity-line";
+import {
+	activeStepLabel,
+	WorkLog,
+} from "@/components/chat/message/work-log/work-log";
 import { InView } from "@/components/ui/motion/in-view";
 import type { ChatAgentUIMessage } from "@/lib/ai/types/chat-agent-message";
 import { getChatMessageAttachments } from "@/lib/ai/types/chat-attachment";
@@ -83,8 +87,27 @@ export const MessageBlock = ({
 	const variant = message.role === "user" ? "sent" : "received";
 	const messageAttachments = getChatMessageAttachments(message);
 
-	const { entries, answerParts } = classifyTurn(message.parts);
 	const running = isLatest && status === "streaming";
+	const { entries, answerParts } = classifyTurn(message.parts, {
+		running,
+	});
+	const [workLogOpen, setWorkLogOpen] = useState(false);
+	const workLogRef = useRef<HTMLDivElement>(null);
+
+	const lastPart = message.parts.at(-1);
+	const writing = lastPart?.type === "text" && lastPart.state === "streaming";
+	const activity =
+		running && !writing
+			? (activeStepLabel(entries, running) ?? m.chat_work_log_working())
+			: null;
+
+	const showSteps = () => {
+		setWorkLogOpen(true);
+		workLogRef.current?.scrollIntoView({
+			behavior: "smooth",
+			block: "start",
+		});
+	};
 
 	// A reply exists from the first chunk on, before the model has written anything.
 	if (message.role === "assistant" && message.parts.length === 0) {
@@ -105,14 +128,27 @@ export const MessageBlock = ({
 				<MessageContent>
 					<ChatMessageAttachments attachments={messageAttachments} />
 					{entries.length > 0 && (
-						<WorkLog entries={entries} running={running} />
+						<WorkLog
+							ref={workLogRef}
+							entries={entries}
+							running={running}
+							open={workLogOpen}
+							onOpenChange={setWorkLogOpen}
+						/>
 					)}
 					{answerParts.map((part, i) => (
 						<MessagePartRenderer
 							key={`${part.type}${message.id}${i}`}
 							part={part}
+							running={running}
 						/>
 					))}
+					{running && (
+						<ActivityLine
+							label={activity}
+							onShowSteps={entries.length > 0 ? showSteps : undefined}
+						/>
+					)}
 				</MessageContent>
 				<MessageToolbar>
 					<MessageActions

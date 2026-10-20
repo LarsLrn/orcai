@@ -7,6 +7,7 @@ import {
 	databaseBlockSchema,
 	templateBlockSchema,
 } from "../block/schema";
+import { featuresSchema } from "../feature/schema";
 import { publicationStatusSchema } from "../shared/primitives/publication-status";
 import { userIdSchema } from "../user/ref";
 import { botIdSchema } from "./ref";
@@ -24,6 +25,7 @@ export const botFieldsSchema = z.object({
 	status: publicationStatusSchema,
 	forkedFromId: botIdSchema.nullable(),
 	version: z.number().int(),
+	features: featuresSchema,
 });
 
 export const botMutableFieldsSchema = botFieldsSchema.partial();
@@ -77,6 +79,7 @@ export const botEditorSchema = z.object({
 	status: publicationStatusSchema,
 	templateBlock: botEditorTemplateBlockSchema,
 	databaseBlocks: z.array(botEditorDatabaseBlockSchema),
+	features: featuresSchema.default({}),
 	capabilities: entityCapabilitiesSchema,
 });
 

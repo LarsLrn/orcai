@@ -36,6 +36,7 @@ import {
 	createDatabaseBlockBuilderFieldMap,
 	DatabaseBlockFieldGroup,
 } from "@/components/blocks/database-block/form/database-block-field-group";
+import { FeaturesSection } from "@/components/features/features-section";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import {
@@ -435,6 +436,7 @@ const BotEditorShell = ({
 			status: status ?? editor.status,
 			templateBlockId: linkedBlocks.templateBlockId,
 			databaseBlockIds: linkedBlocks.databaseBlockIds,
+			features: editor.features,
 		};
 
 		const result = await saveBot(payload);
@@ -853,6 +855,20 @@ const BotEditorShell = ({
 									</CardContent>
 								</Card>
 							)}
+
+							<Card className="min-w-0 rounded-2xl">
+								<CardContent className="p-6">
+									<form.Field
+										name="features"
+										children={(field) => (
+											<FeaturesSection
+												value={field.state.value}
+												onChange={field.handleChange}
+											/>
+										)}
+									/>
+								</CardContent>
+							</Card>
 
 							<BlockSelectorDialog
 								open={isTemplateBlockLibraryOpen}

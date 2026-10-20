@@ -18,7 +18,10 @@ export const createAssistantAgent = (params: {
 		model: params.model,
 		...aiTelemetry("assistant.agent", params.telemetryIds),
 		prepareCall: ({ options, ...settings }) => ({
-			...applyToolHistoryPruning(settings),
+			...applyToolHistoryPruning(settings, {
+				displayToolNames: [],
+				enabledDisplayToolNames: [],
+			}),
 			temperature: params.generationParams?.temperature,
 			maxTokens: params.generationParams?.maxTokens,
 			topP: params.generationParams?.topP,

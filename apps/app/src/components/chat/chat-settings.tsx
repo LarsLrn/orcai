@@ -1,5 +1,5 @@
 import type { ChatId } from "@orcai/core";
-import type { ChatConfig, Model, Provider } from "@orcai/schema";
+import type { ChatConfig, Features, Model, Provider } from "@orcai/schema";
 import {
 	useMutation,
 	useQuery,
@@ -15,6 +15,7 @@ import { BlockSelectorDialog } from "@/components/blocks/block-selector-dialog";
 import { BotCard } from "@/components/bot/bot-card";
 import { chatConfigFormOptions } from "@/components/chat/form/chat-config-form-options";
 import { ModelSelectorButton } from "@/components/chat/model-selector";
+import { FeaturesSection } from "@/components/features/features-section";
 import { Button } from "@/components/ui/button";
 import {
 	Collapsible,
@@ -90,17 +91,27 @@ const ChatSettings = ({
 						)}
 
 						{chat &&
-							(isBotLinked ? (
+							(chat.data.botId ? (
 								<>
 									<Separator />
-									<div className="text-muted-foreground text-sm">
-										{m.chat_settings_blocks_bot_managed_notice()}
+									<Suspense fallback={<Skeleton className="h-24 w-full" />}>
+										<BotFeatures botId={chat.data.botId} />
+									</Suspense>
+									<Separator />
+									<div className="flex flex-col gap-2 text-muted-foreground text-sm">
+										<p>{m.chat_settings_blocks_bot_managed_notice()}</p>
+										<p>{m.chat_settings_features_bot_managed_notice()}</p>
 									</div>
 								</>
 							) : (
 								<>
 									<Separator />
 									<ChatBlocksEditor chatId={chatId} zedToken={zedToken} />
+									<Separator />
+									<ChatFeaturesEditor
+										chatId={chatId}
+										features={config?.features ?? {}}
+									/>
 								</>
 							))}
 					</div>
@@ -468,6 +479,61 @@ const ChatBlocksEditor = ({
 			/>
 		</div>
 	);
+};
+
+const ChatFeaturesEditor = ({
+	chatId,
+	features,
+}: {
+	chatId: ChatId;
+	features: Features;
+}) => {
+	const queryClient = useQueryClient();
+	const updateMutation = useMutation(
+		orpc.chat.update.mutationOptions({
+			// Returning the refetch keeps the switch on its new value until the chat reloads.
+			onSuccess: () =>
+				queryClient.invalidateQueries({
+					queryKey: orpc.chat.key(),
+				}),
+			onError: (error) => {
+				toast.error(m.chat_settings_feature_update_failed_toast_error(), {
+					description: reasonMessageOf(error),
+				});
+			},
+		}),
+	);
+
+	return (
+		<FeaturesSection
+			value={
+				updateMutation.isPending
+					? (updateMutation.variables.config?.features ?? {})
+					: features
+			}
+			onChange={(next) =>
+				updateMutation.mutate({
+					id: chatId,
+					config: {
+						features: next,
+					},
+				})
+			}
+			disabled={updateMutation.isPending}
+		/>
+	);
+};
+
+const BotFeatures = ({ botId }: { botId: string }) => {
+	const { data: bot } = useSuspenseQuery(
+		orpc.bot.find.queryOptions({
+			input: {
+				id: botId,
+			},
+		}),
+	);
+
+	return <FeaturesSection value={bot.data.features} />;
 };
 
 const BotDetails = ({ botId }: { botId: string }) => {

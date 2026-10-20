@@ -49,9 +49,12 @@ export const buildFormattingGuidance = () =>
 export const buildChatAgentSystemPrompt = ({
 	systemPrompt,
 	hasKnowledgeBaseBlocks,
+	featurePrompts,
 }: {
 	systemPrompt: string;
 	hasKnowledgeBaseBlocks: boolean;
+	/** Prompt fragments of the features enabled this turn. */
+	featurePrompts: readonly string[];
 }) => {
 	const sections = [
 		normalize(systemPrompt),
@@ -60,6 +63,8 @@ export const buildChatAgentSystemPrompt = ({
 	if (hasKnowledgeBaseBlocks) {
 		sections.push(buildKnowledgeBaseGuidance());
 	}
+
+	sections.push(...featurePrompts.map(normalize));
 
 	sections.push(buildFormattingGuidance());
 

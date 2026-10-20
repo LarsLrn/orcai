@@ -7,6 +7,7 @@ import type {
 	ProviderId,
 	UserId,
 } from "@orcai/core";
+import type { Features } from "@orcai/schema";
 import { sql } from "drizzle-orm";
 import {
 	type AnyPgColumn,
@@ -87,4 +88,5 @@ export interface ChatConfig {
 	topP?: number;
 	frequencyPenalty?: number;
 	presencePenalty?: number;
+	features?: Features;
 }

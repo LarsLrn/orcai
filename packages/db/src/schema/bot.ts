@@ -1,5 +1,5 @@
 import type { BlockId, BotId, UserId } from "@orcai/core";
-import type { PublicationStatus } from "@orcai/schema";
+import type { Features, PublicationStatus } from "@orcai/schema";
 import {
 	type AnyPgColumn,
 	integer,
@@ -35,6 +35,7 @@ export const bot = pgTable("bot", {
 			onDelete: "set null",
 		}),
 	version: integer("version").notNull().default(1),
+	features: json("features").$type<Features>().notNull().default({}),
 	createdAt: timestamp("created_at").defaultNow(),
 	updatedAt: timestamp("updated_at").defaultNow(),
 });

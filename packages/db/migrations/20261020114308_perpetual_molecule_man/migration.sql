@@ -1,0 +1,1 @@
+ALTER TABLE "bot" ADD COLUMN "features" json DEFAULT '{}' NOT NULL;

@@ -7,6 +7,7 @@ import {
 	MessageActions as Actions,
 	type MessageActionsProps,
 } from "@/components/ai-elements/message";
+import { messageToMarkdown } from "@/components/chat/message/message-markdown";
 import { MessageRate } from "@/components/chat/message/message-rate";
 import type { ChatAgentUIMessage } from "@/lib/ai/types/chat-agent-message";
 import { reasonMessageOf } from "@/lib/errors/describe-error";
@@ -31,9 +32,7 @@ export const MessageActions = ({
 	const [, copy] = useCopyToClipboard();
 
 	const handleCopy = () => {
-		const textContent =
-			message.parts?.find((part) => part.type === "text")?.text ?? "";
-		toast.promise(copy(textContent), {
+		toast.promise(copy(messageToMarkdown(message)), {
 			loading: m.chat_message_copy_toast_loading(),
 			success: m.chat_message_copy_toast_success(),
 			error: (error) => ({

@@ -6,7 +6,7 @@ import {
 	Loader2Icon,
 	MessageSquareTextIcon,
 } from "lucide-react";
-import { useState } from "react";
+import type { Ref } from "react";
 import type { WorkEntry } from "@/components/chat/message/classify-turn";
 import {
 	Collapsible,
@@ -25,6 +25,9 @@ interface WorkLogProps {
 	entries: WorkEntry[];
 	/** Whether the turn is still streaming. Decides running versus orphaned. */
 	running: boolean;
+	open: boolean;
+	onOpenChange: (open: boolean) => void;
+	ref?: Ref<HTMLDivElement>;
 }
 
 const failedCount = (entries: WorkEntry[], running: boolean) =>
@@ -33,8 +36,11 @@ const failedCount = (entries: WorkEntry[], running: boolean) =>
 			entry.kind === "tool" && isFailedStatus(toolStatus(entry.part, running)),
 	).length;
 
-/** The active step while one runs; otherwise the tally so far. */
-const headerLabel = (entries: WorkEntry[], running: boolean) => {
+/** What the turn is doing right now, if a step is under way. */
+export const activeStepLabel = (
+	entries: WorkEntry[],
+	running: boolean,
+): string | null => {
 	const last = entries.at(-1);
 
 	if (running && last?.kind === "tool" && toolStatus(last.part, true)) {
@@ -47,6 +53,17 @@ const headerLabel = (entries: WorkEntry[], running: boolean) => {
 		last.part.state === "streaming"
 	) {
 		return m.chat_work_log_thinking();
+	}
+
+	return null;
+};
+
+/** The active step while one runs; otherwise the tally so far. */
+const headerLabel = (entries: WorkEntry[], running: boolean) => {
+	const active = activeStepLabel(entries, running);
+
+	if (active) {
+		return active;
 	}
 
 	const failed = failedCount(entries, running);
@@ -101,14 +118,20 @@ const Entry = ({ entry, running }: { entry: WorkEntry; running: boolean }) => {
 };
 
 /** Everything a turn did before its answer, folded behind one header. */
-export const WorkLog = ({ entries, running }: WorkLogProps) => {
-	const [open, setOpen] = useState(false);
+export const WorkLog = ({
+	entries,
+	running,
+	open,
+	onOpenChange,
+	ref,
+}: WorkLogProps) => {
 	const failed = failedCount(entries, running);
 
 	return (
 		<Collapsible
+			ref={ref}
 			open={open}
-			onOpenChange={setOpen}
+			onOpenChange={onOpenChange}
 			className="not-prose w-full min-w-0 shrink-0 overflow-hidden rounded-xl border border-border/60 bg-muted/20"
 		>
 			<CollapsibleTrigger className="flex w-full items-center gap-2 px-3 py-2 text-left text-muted-foreground text-sm transition-colors duration-150 hover:text-foreground">

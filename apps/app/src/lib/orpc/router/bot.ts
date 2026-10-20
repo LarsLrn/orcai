@@ -13,6 +13,7 @@ import {
 } from "@orcai/spice-db";
 import { and, count, eq, getColumns, ilike, inArray } from "drizzle-orm";
 import * as Effect from "effect/Effect";
+import { checkFeatureRequirements } from "@/lib/ai/features/requirements";
 import { emptyCapabilities } from "@/lib/authz/capabilities";
 import { calculateRelationDelta } from "@/lib/authz/relation-delta";
 import {
@@ -24,6 +25,7 @@ import { AuthzService } from "@/lib/effect/services/authz";
 import * as AppErrors from "@/lib/effect/utils/errors";
 import { NotFoundError } from "@/lib/effect/utils/errors";
 import { authed } from "@/lib/orpc/implementation/authed";
+import { createProcedures } from "@/lib/orpc/implementation/procedures";
 import { requireActiveOrganizationMiddleware } from "@/lib/orpc/middlewares/auth";
 import {
 	type CheckManyPermissionInputFor,
@@ -204,6 +206,7 @@ const loadBotEditor = (params: {
 						}
 					: null,
 				databaseBlocks: databaseBlocksWithAssets,
+				features: bot.features,
 				capabilities: botCapabilities,
 			},
 		};
@@ -333,6 +336,7 @@ const resolveBot = (params: {
 					contentJson: params.input.contentJson,
 					contentHtml: params.input.contentHtml,
 					status: currentStatus,
+					features: params.input.features,
 					updatedAt: new Date(),
 				})
 				.where(eq(dbSchema.bot.id, params.input.id));
@@ -355,6 +359,7 @@ const resolveBot = (params: {
 				contentJson: params.input.contentJson,
 				contentHtml: params.input.contentHtml,
 				status: currentStatus,
+				features: params.input.features,
 				userId: params.userId,
 				createdAt: new Date(),
 				updatedAt: new Date(),
@@ -597,6 +602,8 @@ const saveBot = authed.bot.save
 			}
 		}
 
+		yield* checkFeatureRequirements(input.features);
+
 		return yield* saveBotGraph({
 			input,
 			userId: context.auth.user.id,
@@ -636,6 +643,8 @@ const publishBot = authed.bot.publish
 				}),
 			);
 		}
+
+		yield* checkFeatureRequirements(editor.data.features);
 
 		for (const databaseBlock of editor.data.databaseBlocks) {
 			if (databaseBlock.status !== "ready") {
@@ -722,3 +731,5 @@ export const botRouter = {
 	publish: publishBot,
 	delete: deleteBots,
 };
+
+export const botProcedures = createProcedures("bot", botRouter);

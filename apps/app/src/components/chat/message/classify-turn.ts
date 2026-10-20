@@ -1,3 +1,4 @@
+import { isDisplayToolPart } from "@/components/chat/gen-ui/catalog";
 import type { ChatAgentUIMessage } from "@/lib/ai/types/chat-agent-message";
 
 export type MessagePart = ChatAgentUIMessage["parts"][number];
@@ -45,25 +46,73 @@ export interface ClassifiedTurn {
 export const isToolPart = (part: MessagePart): part is ToolPart =>
 	part.type === "dynamic-tool" || part.type.startsWith("tool-");
 
-const isStepPart = (part: MessagePart): part is ReasoningPart | ToolPart =>
-	part.type === "reasoning" || isToolPart(part);
+/** A tool that does work, as opposed to a display primitive. */
+const isWorkToolPart = (part: MessagePart) =>
+	isToolPart(part) && !isDisplayToolPart(part);
+
+const isAnswerDisplayPart = (part: MessagePart) =>
+	isDisplayToolPart(part) && part.state !== "output-error";
+
+/** Text is interim when the next part, past reasoning and text, is a tool call that does work. */
+const isInterimText = (parts: readonly MessagePart[], index: number) => {
+	const next = parts
+		.slice(index + 1)
+		.find(
+			(part) =>
+				part.type !== "reasoning" &&
+				part.type !== "text" &&
+				part.type !== "step-start",
+		);
+	return next !== undefined && isWorkToolPart(next);
+};
+
+const isBlankText = (part: MessagePart) =>
+	part.type === "text" && part.text.trim() === "";
 
 /**
- * Splits a turn's parts into the work log and the answer. Parts arrive in
- * stream order, so text before the last step is an intermediate response and
- * text after it is the answer.
+ * Splits a turn's parts into the work log and the answer, both in stream
+ * order. Text right before a working tool call is progress and goes to the
+ * work log; other text and display primitives are the answer. A finished
+ * turn whose answer would be empty shows its last text as the answer.
  */
-export const classifyTurn = (parts: readonly MessagePart[]): ClassifiedTurn => {
-	let lastStepIndex = -1;
+export const classifyTurn = (
+	parts: readonly MessagePart[],
+	{
+		running = false,
+	}: {
+		running?: boolean;
+	} = {},
+): ClassifiedTurn => {
+	const interim = new Set<number>();
 	parts.forEach((part, index) => {
-		if (isStepPart(part)) {
-			lastStepIndex = index;
+		if (part.type === "text" && isInterimText(parts, index)) {
+			interim.add(index);
 		}
 	});
 
-	const entries: WorkEntry[] = [];
-	const answerParts: MessagePart[] = [];
+	const answerIndexes = parts.flatMap((part, index) =>
+		(part.type === "text" && !interim.has(index) && !isBlankText(part)) ||
+		part.type === "file" ||
+		isAnswerDisplayPart(part)
+			? [
+					index,
+				]
+			: [],
+	);
 
+	if (!running && answerIndexes.length === 0) {
+		const lastText = parts.reduce(
+			(found, part, index) =>
+				part.type === "text" && !isBlankText(part) ? index : found,
+			-1,
+		);
+		if (lastText !== -1) {
+			interim.delete(lastText);
+			answerIndexes.push(lastText);
+		}
+	}
+
+	const entries: WorkEntry[] = [];
 	parts.forEach((part, index) => {
 		const id = String(index);
 
@@ -73,27 +122,27 @@ export const classifyTurn = (parts: readonly MessagePart[]): ClassifiedTurn => {
 				kind: "reasoning",
 				part,
 			});
-		} else if (isToolPart(part)) {
+		} else if (isToolPart(part) && !isAnswerDisplayPart(part)) {
 			entries.push({
 				id,
 				kind: "tool",
 				part,
 			});
-		} else if (part.type === "text" && index < lastStepIndex) {
-			if (part.text.trim() !== "") {
-				entries.push({
-					id,
-					kind: "text",
-					part,
-				});
-			}
-		} else if (part.type === "text" || part.type === "file") {
-			answerParts.push(part);
+		} else if (
+			part.type === "text" &&
+			interim.has(index) &&
+			!isBlankText(part)
+		) {
+			entries.push({
+				id,
+				kind: "text",
+				part,
+			});
 		}
 	});
 
 	return {
 		entries,
-		answerParts,
+		answerParts: answerIndexes.map((index) => parts[index]),
 	};
 };

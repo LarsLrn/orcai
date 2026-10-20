@@ -5,12 +5,14 @@ import type { ChatConfig, DatabaseBlock, TemplateBlock } from "@orcai/schema";
 import { checkManyEntityPermissions, hasPermission } from "@orcai/spice-db";
 import { extractReasoningMiddleware, wrapLanguageModel } from "ai";
 import * as Effect from "effect/Effect";
+import { resolveFeatures } from "@/lib/ai/features/resolve-features";
 import { resolveChatGenerationParams } from "@/lib/ai/utils/chat-generation-defaults";
 import { getZedToken } from "@/lib/authz/zed-token";
 import { BadRequestError } from "@/lib/effect/utils/errors";
 import { providerApiKey } from "@/lib/encryption";
 import type { ORPCContext } from "@/lib/orpc/implementation/os";
 import { blockProcedures } from "@/lib/orpc/router/block";
+import { botProcedures } from "@/lib/orpc/router/bot";
 import { modelProcedures } from "@/lib/orpc/router/model";
 import { providerProcedures } from "@/lib/orpc/router/provider";
 
@@ -35,29 +37,57 @@ export const getChatAiSettings = ({
 		const zedToken = getZedToken(context);
 		let templateBlock: TemplateBlock | undefined;
 		let databaseBlocks: DatabaseBlock[] = [];
+		let storedFeatures: unknown = chatConfig?.features;
 
 		if (botId) {
-			const blocks = yield* blockProcedures
-				.list(
-					{
-						filters: {
-							botId,
-						},
-						zedToken,
-					},
-					{
-						context,
-					},
-				)
-				.pipe(
-					Effect.mapError(
-						(cause) =>
-							new AiError({
-								operation: "chatAgent.getChatAiSettings.fetch.blocks",
-								cause,
-							}),
-					),
-				);
+			const [blocks, { data: bot }] = yield* Effect.all(
+				[
+					blockProcedures
+						.list(
+							{
+								filters: {
+									botId,
+								},
+								zedToken,
+							},
+							{
+								context,
+							},
+						)
+						.pipe(
+							Effect.mapError(
+								(cause) =>
+									new AiError({
+										operation: "chatAgent.getChatAiSettings.fetch.blocks",
+										cause,
+									}),
+							),
+						),
+					botProcedures
+						.find(
+							{
+								id: botId,
+								zedToken,
+							},
+							{
+								context,
+							},
+						)
+						.pipe(
+							Effect.mapError(
+								(cause) =>
+									new AiError({
+										operation: "chatAgent.getChatAiSettings.fetch.bot",
+										cause,
+									}),
+							),
+						),
+				],
+				{
+					concurrency: "unbounded",
+				},
+			);
+			storedFeatures = bot.features;
 
 			const foundTemplateBlock = blocks.data.find(
 				(block) => block.type === "template",
@@ -106,6 +136,8 @@ export const getChatAiSettings = ({
 				);
 			}
 		}
+
+		const features = yield* resolveFeatures(storedFeatures);
 
 		const systemPrompt =
 			templateBlock?.config.systemPrompt ??
@@ -221,6 +253,7 @@ export const getChatAiSettings = ({
 			model,
 			systemPrompt,
 			databaseBlocks,
+			features,
 			generationParams,
 		};
 	});

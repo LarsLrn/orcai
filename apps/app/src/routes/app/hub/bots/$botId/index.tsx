@@ -14,6 +14,10 @@ import {
 	ContentRenderer,
 	isContentEmpty,
 } from "@/components/editor/content-renderer";
+import {
+	enabledFeatureIds,
+	FeatureBadges,
+} from "@/components/features/feature-badges";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import {
@@ -120,9 +124,13 @@ function RouteComponent() {
 			<PageHeader>
 				<PageTitle>{bot.data.name}</PageTitle>
 				<PageDescription>{bot.data.description}</PageDescription>
-				{bot.data.status === "draft" ? (
-					<div>
-						<Badge variant="outline">{m.bots_detail_draft_badge()}</Badge>
+				{bot.data.status === "draft" ||
+				enabledFeatureIds(bot.data.features).length > 0 ? (
+					<div className="flex flex-wrap gap-1.5">
+						{bot.data.status === "draft" ? (
+							<Badge variant="outline">{m.bots_detail_draft_badge()}</Badge>
+						) : null}
+						<FeatureBadges features={bot.data.features} className="contents" />
 					</div>
 				) : null}
 				<PageAction>

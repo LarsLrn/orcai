@@ -101,10 +101,32 @@ For bot-linked chats:
 
 - System prompt is locked to the bot template block
 - Attached blocks are managed by the bot, not directly in chat settings
+- Features are managed by the bot; the settings show them read-only
 
 For non-bot chats:
 
 - You can attach one behaviour block and multiple content collection blocks directly to the chat
+- You can turn features such as Generative UI on and off; each switch saves immediately
+- Generative UI is on by default for new chats
+
+## Generative UI
+
+With the Generative UI feature enabled, the model can place structured elements, called primitives, in its answer. A primitive appears where the model places it, between the paragraphs of the answer, and fills in while the answer streams. Primitives only show content; they never ask for input.
+
+### Checklist
+
+A checklist is a card with one row per item. Rows can expand to show an explanation and a quoted passage; several rows can be open at once.
+
+- With statuses, each row shows Met, Partly met, Not met or Not checkable, and the header counts the outcomes. This suits checking something against a list of criteria.
+- Without statuses, the checklist is a plain accordion of expandable points.
+
+### Turning The Feature Off
+
+Primitives already stored in a chat keep rendering after Generative UI is turned off. The model just stops placing new ones.
+
+### Copy And Download
+
+Copying an answer and downloading the conversation include primitives as markdown, in the order they appear in the answer. A checklist becomes a list with each row's status, summary, quote and explanation.
 
 ## Quota Badge
 

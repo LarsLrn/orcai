@@ -23,6 +23,7 @@ import {
 } from "drizzle-orm";
 import * as Effect from "effect/Effect";
 import { v4 as uuidv4 } from "uuid";
+import { checkFeatureRequirements } from "@/lib/ai/features/requirements";
 import { getZedToken } from "@/lib/authz/zed-token";
 import {
 	AuthzService,
@@ -277,16 +278,29 @@ const findChat = authed.chat.find
 		};
 	});
 
+const botFeaturesImmutable = () =>
+	new AppErrors.BadRequestError({
+		reason: "CHAT_BOT_FEATURES_IMMUTABLE",
+		message: "Cannot set features on chats linked to a bot.",
+	});
+
 const createChat = authed.chat.create.effect(function* ({ input, context }) {
 	const db = yield* DB;
 	const authz = yield* AuthzService;
+	const features = input.config?.features;
 
 	if (input.botId) {
+		if (features !== undefined) {
+			return yield* botFeaturesImmutable();
+		}
+
 		yield* requireBotUse({
 			botId: input.botId,
 			userId: context.auth.user.id,
 			zedToken: getZedToken(context),
 		});
+	} else if (features) {
+		yield* checkFeatureRequirements(features);
 	}
 
 	const [chat] = yield* db
@@ -323,6 +337,17 @@ const updateChat = authed.chat.update
 				},
 			},
 		});
+		const features = input.config?.features;
+
+		if (features !== undefined) {
+			if (existingChat?.botId) {
+				return yield* botFeaturesImmutable();
+			}
+
+			if (features) {
+				yield* checkFeatureRequirements(features);
+			}
+		}
 
 		if (existingChat?.kind === "assistant" && input.config !== undefined) {
 			return yield* Effect.fail(assistantConversationImmutable());
