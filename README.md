@@ -128,8 +128,8 @@ Prerequisites:
 Steps:
 1. Open the repository in VS Code.
 2. Run `Dev Containers: Reopen in Container`.
-3. Wait for `bun install --frozen-lockfile` to finish.
-4. Start the app, documentation site, and workers with `bun run dev:all`.
+3. Wait for `bun install --frozen-lockfile` and the post-create step, which writes `.devcontainer/.env` once.
+4. Start the app, documentation site, and workers with `bun run dev:all`. The app listens on port 3000 and the docs on 3001.
 5. Open [http://localhost:3000](http://localhost:3000).
 
 What starts automatically:
@@ -144,10 +144,13 @@ What starts automatically:
 - A Bun workspace container with the repository mounted
 
 Notes:
-- The devcontainer fixes internal service addresses on the Compose network.
+- The container never reads the checkout's `.env`, which belongs to `bun run stack`. Service addresses and dev credentials are fixed in the Compose override.
+- `.devcontainer/.env` holds the secrets, the ports and the inference settings, and overrides Compose values. Put a real `OPENAI_COMPATIBLE_*` endpoint, `SMTP_*` and `OTEL_*` there, then restart `bun run dev:all`. If VS Code forwards SeaweedFS to a port other than 8333, set `S3_PUBLIC_ENDPOINT` there.
+- Deleting `.devcontainer/.env` and running `bun scripts/devcontainer-env.ts` makes new secrets. Stored provider keys become unreadable and sessions end.
+- `bun run dev`, `dev:all` and `bun run stack workers|web|exec|migrate` work in the container. The Docker-driven stack commands are host-only, and `bun run stack env --reset` must not run in the container, because it would write host-stack values into `.devcontainer/.env`.
 - A one-shot `deps` service runs `bun install --frozen-lockfile` before the workspace container starts.
 - Application services are started manually in the workspace, so changing them does not require rebuilding or restarting the devcontainer.
-- It defaults to an Ollama-compatible endpoint at `http://localhost:11434/v1` for `OPENAI_COMPATIBLE_BASE_URL`.
+- `.devcontainer/.env` defaults `OPENAI_COMPATIBLE_BASE_URL` to an Ollama-compatible endpoint on the Docker host at `http://host.docker.internal:11434/v1`.
 - OCR-backed asset processing runs in the worker process and requires Tesseract plus the `eng` and `deu` language packs when you run workers outside Docker.
 - OCR language defaults to `eng` on host setups. Set `KREUZBERG_OCR_LANGUAGE=eng+deu` only where both Tesseract packs are installed.
 - Email delivery stays in log-only mode unless `SMTP_HOST` and `SMTP_FROM` are both configured.

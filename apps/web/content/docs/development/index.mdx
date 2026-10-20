@@ -15,7 +15,7 @@ The OrcAI repository is a Bun workspace with applications under `apps/*` and sha
 
 Run `bun install --frozen-lockfile`, then `bun run stack up`. This starts an isolated Docker Compose project for the checkout, writes a gitignored `.env` with per-worktree ports, applies migrations, and applies the SpiceDB schema. SeaweedFS creates the object storage buckets on startup. Start the app with `bun run stack dev` or everything with `bun run stack dev --all`. Several checkouts or worktrees can run at the same time without port conflicts.
 
-The repository also includes a VS Code devcontainer that provides the same infrastructure inside Compose. For details on either path, see the [README](https://github.com/LarsLrn/orcai#development-workflows) and the [Commands](/docs/development/commands) page.
+The repository also includes a VS Code devcontainer that provides the same infrastructure inside Compose. The container keeps its own environment in `.devcontainer/.env`, never the checkout's `.env`, and `bun run dev:all` serves the app on port 3000 and the docs on 3001. For details on either path, see the [README](https://github.com/LarsLrn/orcai#development-workflows) and the [Commands](/docs/development/commands) page.
 
 ## Developer Pages
 

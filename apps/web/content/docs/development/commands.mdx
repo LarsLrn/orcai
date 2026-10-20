@@ -13,6 +13,8 @@ Run these commands from the repository root unless noted otherwise.
 
 Each checkout owns an isolated Docker Compose project with per-worktree ports stored in a gitignored `.env`.
 
+Inside the devcontainer, `ORCAI_ENV_FILE` points the runner at `.devcontainer/.env`. Only `dev`, `workers`, `web`, `exec` and `migrate` apply there.
+
 | Command | Purpose |
 | --- | --- |
 | `bun run stack up` | Start infrastructure, write `.env`, apply migrations and the SpiceDB schema. |
