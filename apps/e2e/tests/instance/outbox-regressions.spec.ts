@@ -101,8 +101,7 @@ test("deletion transactions roll back with their outbox and committed cleanup re
 	const makeUser = () =>
 		signUpInvited({
 			baseURL: appBaseURL,
-			admin: api.asWellKnownAdmin(),
-			organisation: org,
+			admin: api.as("admin"),
 			role: "viewer",
 			name: "Outbox failure injection",
 			email: `outbox-${randomUUID()}@e2e.orcai.test`,
@@ -115,7 +114,6 @@ test("deletion transactions roll back with their outbox and committed cleanup re
 	const admin = api.asWellKnownAdmin();
 	const removeMember = () =>
 		api.as("admin").organizationMember.delete({
-			organizationId: org.id,
 			refs: [
 				{
 					userId: userIdSchema.parse(member.userId),
@@ -201,8 +199,7 @@ test("deletion transactions roll back with their outbox and committed cleanup re
 	// A failed sign-up acceptance keeps its account and invitation recoverable.
 	const email = `signup-rollback-${randomUUID()}@e2e.orcai.test`;
 	const invitation = (
-		await admin.organizationInvitation.create({
-			organizationId: doomed.id,
+		await api.as("admin", doomed).organizationInvitation.create({
 			role: "manager",
 			expiresAt: new Date(Date.now() + 86400000),
 			items: [
@@ -250,7 +247,6 @@ test("deletion transactions roll back with their outbox and committed cleanup re
 	await fault("none", "delay");
 	const asViewer = (
 		await api.as("admin", doomed).organizationInvitation.create({
-			organizationId: doomed.id,
 			role: "viewer",
 			expiresAt: new Date(Date.now() + 86400000),
 			items: [
@@ -293,7 +289,6 @@ test("deletion transactions roll back with their outbox and committed cleanup re
 		.toBe("processed");
 	await fault("none", "delay");
 	await api.as("admin", doomed).organizationMember.delete({
-		organizationId: doomed.id,
 		refs: [
 			{
 				userId: userIdSchema.parse(survivor.userId),

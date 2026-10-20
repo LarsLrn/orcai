@@ -16,7 +16,6 @@ export const invitationsPageInput = (params?: {
 	status?: OrganizationInvitationStatus;
 }) => ({
 	filters: {
-		recipient: "me" as const,
 		status: params?.status,
 	},
 	pageIndex: params?.pageIndex ?? 0,
@@ -60,7 +59,7 @@ function InvitationPage({
 }) {
 	const [pageIndex, setPageIndex] = useState(0);
 	const { data: response } = useSuspenseQuery(
-		orpc.organizationInvitation.list.queryOptions({
+		orpc.organizationInvitation.listMine.queryOptions({
 			input: invitationsPageInput({
 				pageIndex,
 				status,

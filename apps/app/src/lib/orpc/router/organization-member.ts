@@ -11,11 +11,7 @@ import {
 } from "@/lib/effect/services/authz";
 import * as AppErrors from "@/lib/effect/utils/errors";
 import { authed } from "@/lib/orpc/implementation/authed";
-import {
-	type CheckManyPermissionInputFor,
-	checkManyPermissionMiddleware,
-	requireEntityPermission,
-} from "@/lib/orpc/middlewares/permission";
+import { requireOrganizationPermission } from "@/lib/orpc/middlewares/permission";
 import {
 	assertAdminRemainsAfterRemoving,
 	assertCanManageOrganizationAdmins,
@@ -24,20 +20,17 @@ import {
 } from "./helpers/organization-role-policy";
 
 const listOrganizationMembers = authed.organizationMember.list
-	.use(
-		requireEntityPermission("organization", "read", {
-			entityId: "organizationId",
-		}),
-	)
-	.effect(function* ({ input }) {
+	.use(requireOrganizationPermission("read"))
+	.effect(function* ({ input, context }) {
 		const db = yield* DB;
+		const organizationId = context.auth.session.activeOrganizationId;
 
 		const [data, [rowCount]] = yield* Effect.all(
 			[
 				db.query.member.findMany({
 					where: {
 						organizationId: {
-							eq: input.organizationId,
+							eq: organizationId,
 						},
 					},
 					limit: input.pageSize,
@@ -48,7 +41,7 @@ const listOrganizationMembers = authed.organizationMember.list
 						count: count(),
 					})
 					.from(dbSchema.member)
-					.where(eq(dbSchema.member.organizationId, input.organizationId)),
+					.where(eq(dbSchema.member.organizationId, organizationId)),
 			],
 			{
 				concurrency: "unbounded",
@@ -62,13 +55,10 @@ const listOrganizationMembers = authed.organizationMember.list
 	});
 
 const findOrganizationMember = authed.organizationMember.find
-	.use(
-		requireEntityPermission("organization", "read", {
-			entityId: "organizationId",
-		}),
-	)
-	.effect(function* ({ input }) {
+	.use(requireOrganizationPermission("read"))
+	.effect(function* ({ input, context }) {
 		const db = yield* DB;
+		const organizationId = context.auth.session.activeOrganizationId;
 
 		return yield* db.query.member
 			.findFirst({
@@ -81,7 +71,7 @@ const findOrganizationMember = authed.organizationMember.find
 						},
 						{
 							organizationId: {
-								eq: input.organizationId,
+								eq: organizationId,
 							},
 						},
 					],
@@ -106,13 +96,10 @@ const findOrganizationMember = authed.organizationMember.find
 	});
 
 const updateOrganizationMember = authed.organizationMember.update
-	.use(
-		requireEntityPermission("organization", "manage_members", {
-			entityId: "organizationId",
-		}),
-	)
+	.use(requireOrganizationPermission("manage_members"))
 	.effect(function* ({ input, context }) {
 		const db = yield* DB;
+		const organizationId = context.auth.session.activeOrganizationId;
 
 		const { existing, member } = yield* db.transaction((tx) =>
 			Effect.gen(function* () {
@@ -125,7 +112,7 @@ const updateOrganizationMember = authed.organizationMember.update
 					.from(dbSchema.member)
 					.where(
 						and(
-							eq(dbSchema.member.organizationId, input.organizationId),
+							eq(dbSchema.member.organizationId, organizationId),
 							eq(dbSchema.member.userId, input.userId),
 						),
 					)
@@ -146,7 +133,7 @@ const updateOrganizationMember = authed.organizationMember.update
 					organizationRoleRequiresAdminControl(input.role)
 				) {
 					yield* assertCanManageOrganizationAdmins({
-						organizationId: input.organizationId,
+						organizationId,
 						userId: context.auth.user.id,
 						zedToken: getZedToken(context),
 					});
@@ -164,7 +151,7 @@ const updateOrganizationMember = authed.organizationMember.update
 						.from(dbSchema.member)
 						.where(
 							and(
-								eq(dbSchema.member.organizationId, input.organizationId),
+								eq(dbSchema.member.organizationId, organizationId),
 								eq(dbSchema.member.role, ORGANIZATION_ADMIN_ROLE),
 							),
 						);
@@ -179,7 +166,7 @@ const updateOrganizationMember = authed.organizationMember.update
 					.set(input)
 					.where(
 						and(
-							eq(dbSchema.member.organizationId, input.organizationId),
+							eq(dbSchema.member.organizationId, organizationId),
 							eq(dbSchema.member.userId, input.userId),
 						),
 					)
@@ -217,7 +204,7 @@ const updateOrganizationMember = authed.organizationMember.update
 		if (existing && existing.role !== member.role)
 			yield* syncRelationshipTransition({
 				resourceType: "organization",
-				resourceId: input.organizationId,
+				resourceId: organizationId,
 				subjectType: "user",
 				subjectId: input.userId,
 				oldRelation: existing.role,
@@ -230,18 +217,10 @@ const updateOrganizationMember = authed.organizationMember.update
 	});
 
 const deleteOrganizationMembers = authed.organizationMember.delete
-	.use(
-		checkManyPermissionMiddleware("organization").adaptInput(
-			(input): CheckManyPermissionInputFor<"organization"> => ({
-				entityIds: [
-					input.organizationId,
-				],
-				permission: "manage_members",
-			}),
-		),
-	)
+	.use(requireOrganizationPermission("manage_members"))
 	.effect(function* ({ input, context }) {
 		const db = yield* DB;
+		const organizationId = context.auth.session.activeOrganizationId;
 		const authz = yield* AuthzService;
 		const now = new Date();
 
@@ -258,7 +237,7 @@ const deleteOrganizationMembers = authed.organizationMember.delete
 					.from(dbSchema.member)
 					.where(
 						and(
-							eq(dbSchema.member.organizationId, input.organizationId),
+							eq(dbSchema.member.organizationId, organizationId),
 							inArray(dbSchema.member.userId, userIds),
 						),
 					);
@@ -268,7 +247,7 @@ const deleteOrganizationMembers = authed.organizationMember.delete
 				});
 				if (removedAdminCount > 0) {
 					yield* assertCanManageOrganizationAdmins({
-						organizationId: input.organizationId,
+						organizationId,
 						userId: context.auth.user.id,
 						zedToken: getZedToken(context),
 					});
@@ -280,7 +259,7 @@ const deleteOrganizationMembers = authed.organizationMember.delete
 						.from(dbSchema.member)
 						.where(
 							and(
-								eq(dbSchema.member.organizationId, input.organizationId),
+								eq(dbSchema.member.organizationId, organizationId),
 								eq(dbSchema.member.role, ORGANIZATION_ADMIN_ROLE),
 							),
 						);
@@ -294,7 +273,7 @@ const deleteOrganizationMembers = authed.organizationMember.delete
 					.delete(dbSchema.member)
 					.where(
 						and(
-							eq(dbSchema.member.organizationId, input.organizationId),
+							eq(dbSchema.member.organizationId, organizationId),
 							inArray(dbSchema.member.userId, userIds),
 						),
 					);
@@ -311,14 +290,14 @@ const deleteOrganizationMembers = authed.organizationMember.delete
 									dbSchema.session.userId,
 									existingMembers.map((member) => member.userId),
 								),
-								eq(dbSchema.session.activeOrganizationId, input.organizationId),
+								eq(dbSchema.session.activeOrganizationId, organizationId),
 							),
 						);
 				}
 
 				const detached = yield* detachOrganizationAccess({
 					tx,
-					organizationId: input.organizationId,
+					organizationId,
 					userIds: existingMembers.map((member) => member.userId),
 					now,
 				});
@@ -328,7 +307,7 @@ const deleteOrganizationMembers = authed.organizationMember.delete
 					mutations: [
 						...existingMembers.map((member) => ({
 							resourceType: "organization" as const,
-							resourceId: input.organizationId,
+							resourceId: organizationId,
 							relation: member.role,
 							subjectType: "user" as const,
 							subjectId: member.userId,

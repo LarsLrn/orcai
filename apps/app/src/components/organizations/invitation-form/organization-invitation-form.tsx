@@ -22,6 +22,7 @@ import {
 	DialogTitle,
 	DialogTrigger,
 } from "@/components/ui/dialog";
+import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { useOrganizationCapabilities } from "@/hooks/authz/use-capabilities";
@@ -45,26 +46,22 @@ const OrganizationInvitationForm = () => {
 
 	const bulkEmailsId = useId();
 
-	const { data: organizations } = useSuspenseQuery(
-		orpc.organization.list.queryOptions({
+	const organizationNameId = useId();
+
+	const { data: organization } = useSuspenseQuery(
+		orpc.organization.find.queryOptions({
 			input: {
-				pageIndex: 0,
-				pageSize: 100,
+				id: auth.session.activeOrganizationId,
 			},
 		}),
 	);
-	const initialOrganizationId = organizations.data.some(
-		(organization) => organization.id === auth.session.activeOrganizationId,
-	)
-		? auth.session.activeOrganizationId
-		: undefined;
 	const assignableRoles = getAssignableOrganizationRoles({
 		canManageOrganization:
 			capabilities?.data.capabilities.manage_organization === true,
 	});
 
 	const form = useAppForm({
-		...organizationInvitationFormOptions(initialOrganizationId),
+		...organizationInvitationFormOptions(),
 		onSubmit: async ({ value }) => {
 			await createInvitation({
 				...value,
@@ -110,19 +107,16 @@ const OrganizationInvitationForm = () => {
 					</CardDescription>
 				</CardHeader>
 				<CardContent className="flex flex-col gap-4">
-					<form.AppField
-						name="organizationId"
-						children={(field) => (
-							<field.SelectField
-								label={m.orgs_invitation_form_organisation_label()}
-								placeholder={m.orgs_invitation_form_organisation_placeholder()}
-								options={organizations.data.map((organization) => ({
-									label: organization.name,
-									value: organization.id,
-								}))}
-							/>
-						)}
-					/>
+					<div className="space-y-2">
+						<Label htmlFor={organizationNameId}>
+							{m.orgs_invitation_form_organisation_label()}
+						</Label>
+						<Input
+							id={organizationNameId}
+							value={organization.data.name}
+							readOnly
+						/>
+					</div>
 
 					<form.AppField
 						name="role"

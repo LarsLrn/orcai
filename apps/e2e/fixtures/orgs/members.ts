@@ -1,4 +1,4 @@
-import type { OrganizationId, UserId } from "@orcai/core";
+import type { UserId } from "@orcai/core";
 import { userIdSchema } from "@orcai/schema";
 import { type ApiClient, createApiClient, type ZedTokenStore } from "../api";
 import type { Session } from "../auth";
@@ -41,11 +41,10 @@ export const createOrgsUser = async (
 	};
 };
 
-/** Add a user to an organisation: invite the address, then accept as the user. */
+/** Add a user to the active organisation of `api`: invite the address, then accept as the user. */
 export const addMember = async (
 	api: ApiClient,
 	membership: {
-		organizationId: OrganizationId;
 		user: OrgsUser;
 		role: Role;
 		/** The test's zedToken memory, so its later reads see the acceptance. */
@@ -53,7 +52,6 @@ export const addMember = async (
 	},
 ): Promise<void> => {
 	const invitation = await inviteEmail(api, {
-		organizationId: membership.organizationId,
 		email: membership.user.email,
 		role: membership.role,
 	});
@@ -68,11 +66,10 @@ export const addMember = async (
 	});
 };
 
-/** The role a user holds in an organisation, as the members list reports it. */
+/** The role a user holds in the active organisation of `api`, as the members list reports it. */
 export const memberRole = async (
 	api: ApiClient,
 	membership: {
-		organizationId: OrganizationId;
 		userId: UserId;
 	},
 ): Promise<Role | undefined> => {

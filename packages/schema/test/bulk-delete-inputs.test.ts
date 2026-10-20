@@ -69,9 +69,6 @@ const deleteSchemas = [
 	createIdRefCase(
 		"organization invitations",
 		deleteOrganizationInvitationsInputSchema,
-		{
-			organizationId: ids[0],
-		},
 	),
 	createIdRefCase("organizations", deleteOrganizationsInputSchema),
 	createIdRefCase("providers", deleteProviderInputSchema),
@@ -79,13 +76,11 @@ const deleteSchemas = [
 		name: "organization members",
 		schema: deleteOrganizationMembersInputSchema,
 		valid: {
-			organizationId: ids[0],
 			refs: ids.map((userId) => ({
 				userId,
 			})),
 		},
 		duplicate: {
-			organizationId: ids[0],
 			refs: [
 				{
 					userId: ids[1],
@@ -96,7 +91,6 @@ const deleteSchemas = [
 			],
 		},
 		empty: {
-			organizationId: ids[0],
 			refs: [],
 		},
 	},

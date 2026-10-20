@@ -33,13 +33,12 @@ export const Route = createFileRoute("/app/users/invites")({
 		sort,
 	}),
 	loader: async ({
-		context: { auth, queryClient },
+		context: { queryClient },
 		deps: { pageIndex, pageSize, sort },
 	}) => {
 		return await queryClient.query(
 			orpc.organizationInvitation.list.queryOptions({
 				input: {
-					organizationId: auth.session.activeOrganizationId,
 					pageIndex,
 					pageSize,
 					sort,
@@ -59,12 +58,10 @@ export const Route = createFileRoute("/app/users/invites")({
 });
 
 function RouteComponent() {
-	const { auth } = Route.useRouteContext();
 	const { pageIndex, pageSize, sort } = Route.useSearch();
 	const { data: invitations } = useSuspenseQuery(
 		orpc.organizationInvitation.list.queryOptions({
 			input: {
-				organizationId: auth.session.activeOrganizationId,
 				pageIndex,
 				pageSize,
 				sort,

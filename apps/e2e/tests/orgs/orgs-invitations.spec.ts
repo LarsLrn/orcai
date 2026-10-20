@@ -1,4 +1,5 @@
 import { waitForLink } from "../../fixtures/auth/outbox";
+import { expectForbidden } from "../../fixtures/authorization";
 import { USER_PASSWORD } from "../../fixtures/constants";
 import { submitForm } from "../../fixtures/forms";
 import { expect, test } from "../../fixtures/index";
@@ -29,8 +30,8 @@ test("orgs: an admin invites an address through the form and the link reaches th
 	await enterApp(page, org.slug);
 	await openGuarded(page, "/app/users/add", message("users_add_page_title"));
 
-	// The form starts on the active organisation and on "Member"; only the
-	// role and the address are worth saying out loud.
+	// The form starts on "Member"; only the role and the address are worth
+	// saying out loud.
 	await chooseRole(page, "member", "viewer");
 
 	await submitForm(page, {
@@ -54,14 +55,18 @@ test("orgs: an admin invites an address through the form and the link reaches th
 	expect(queued?.payload.role).toBe("viewer");
 	expect(queued?.payload.organizationName).toBe(org.name);
 
-	// The invitation the form created is the admin's own, so the list it
-	// landed on shows it.
+	// The list the form lands on is newest first, so it shows the invitation.
 	await expect(page.getByText(email)).toBeVisible();
 
 	const invitations = await api.as("admin").organizationInvitation.list({
-		organizationId: org.id,
 		pageIndex: 0,
 		pageSize: 100,
+		sort: [
+			{
+				id: "createdAt",
+				desc: true,
+			},
+		],
 	});
 	const created = invitations.data.find(
 		(invitation) => invitation.email === email,
@@ -80,7 +85,6 @@ test("orgs: an invited visitor registers from the link and joins with the invite
 
 	const email = invitationEmail("register");
 	await inviteEmail(api.as("admin"), {
-		organizationId: org.id,
 		email,
 		role: "viewer",
 	});
@@ -126,7 +130,6 @@ test("orgs: an existing user accepts a pending invitation from the selection pag
 
 	const user = await createOrgsUser(appBaseURL, "invited-existing");
 	await inviteEmail(api.as("admin"), {
-		organizationId: org.id,
 		email: user.email,
 		role: "manager",
 	});
@@ -178,7 +181,6 @@ test("orgs: a revoked invitation no longer opens the registration form", async (
 
 	const email = invitationEmail("revoked");
 	const invitation = await inviteEmail(api.as("admin"), {
-		organizationId: org.id,
 		email,
 		role: "member",
 	});
@@ -247,7 +249,7 @@ test("orgs: a revoked invitation no longer opens the registration form", async (
 	}
 });
 
-test("orgs: the invitations list carries only the inviter's own invitations", async ({
+test("orgs: the invitations list carries every invitation of the active organisation", async ({
 	api,
 	org,
 	pageAs,
@@ -256,37 +258,36 @@ test("orgs: the invitations list carries only the inviter's own invitations", as
 
 	const mine = invitationEmail("mine");
 	await inviteEmail(api.as("admin"), {
-		organizationId: org.id,
 		email: mine,
 		role: "member",
 	});
 
-	// A manager may invite too, and the list is scoped to what the caller sent
-	// or received, so this one stays out of the admin's view.
 	const theirs = invitationEmail("theirs");
 	await inviteEmail(api.as("manager"), {
-		organizationId: org.id,
 		email: theirs,
 		role: "member",
 	});
 
-	const listed = await api.as("admin").organizationInvitation.list({
-		organizationId: org.id,
+	const newestFirst = {
 		pageIndex: 0,
 		pageSize: 100,
-	});
-	const emails = listed.data.map((invitation) => invitation.email);
-	expect(emails).toContain(mine);
-	expect(emails).not.toContain(theirs);
+		sort: [
+			{
+				id: "createdAt" as const,
+				desc: true,
+			},
+		],
+	};
 
-	const byManager = await api.as("manager").organizationInvitation.list({
-		organizationId: org.id,
-		pageIndex: 0,
-		pageSize: 100,
-	});
-	expect(byManager.data.map((invitation) => invitation.email)).toContain(
-		theirs,
-	);
+	for (const role of [
+		"admin",
+		"manager",
+	] as const) {
+		const listed = await api.as(role).organizationInvitation.list(newestFirst);
+		const emails = listed.data.map((invitation) => invitation.email);
+		expect(emails).toContain(mine);
+		expect(emails).toContain(theirs);
+	}
 
 	const page = await pageAs("admin");
 	await enterApp(page, org.slug);
@@ -296,8 +297,48 @@ test("orgs: the invitations list carries only the inviter's own invitations", as
 		message("users_invites_page_title"),
 	);
 
-	// Both invitations are newer than anything else this admin sent, so the
-	// first page of the list settles the question.
+	// Both invitations are the newest of the organisation, so the first page
+	// of the list settles the question.
 	await expect(page.getByText(mine)).toBeVisible();
-	await expect(page.getByText(theirs)).toHaveCount(0);
+	await expect(page.getByText(theirs)).toBeVisible();
+});
+
+test("orgs: members and viewers are refused the invitations list", async ({
+	api,
+}) => {
+	for (const role of [
+		"member",
+		"viewer",
+	] as const) {
+		await expectForbidden(
+			api.as(role).organizationInvitation.list({
+				pageIndex: 0,
+				pageSize: 10,
+			}),
+		);
+	}
+});
+
+test("orgs: the home People panel leaves the invitations out for a viewer", async ({
+	org,
+	pageAs,
+}) => {
+	const page = await pageAs("viewer");
+	await enterApp(page, org.slug);
+	await page
+		.getByRole("tab", {
+			name: message("home_view_manage_tab"),
+		})
+		.click();
+
+	await expect(
+		page.getByText(message("home_people_members_label"), {
+			exact: true,
+		}),
+	).toBeVisible();
+	await expect(
+		page.getByText(message("home_people_invitations_label"), {
+			exact: true,
+		}),
+	).toHaveCount(0);
 });

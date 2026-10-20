@@ -20,7 +20,6 @@ const UsersDataTableSelectActions = () => {
 			table.resetRowSelection();
 		},
 	});
-	const organizationId = auth.session.activeOrganizationId;
 	const canManageOrganization =
 		capabilities?.data.capabilities.manage_organization === true;
 	const selectedRows = table.getSelectedRowModel().rows;
@@ -35,7 +34,7 @@ const UsersDataTableSelectActions = () => {
 		<DataTableBulkActions<UserWithOrganizationRole>
 			isPending={removeMembers.isPending}
 			actions={
-				hasProtectedSelection || !organizationId
+				hasProtectedSelection
 					? []
 					: [
 							{
@@ -43,7 +42,6 @@ const UsersDataTableSelectActions = () => {
 								variant: "destructive",
 								onSelect: ({ selectedRows }) =>
 									removeMembers.mutate({
-										organizationId,
 										refs: selectedRows.map((row) => ({
 											userId: row.original.id,
 										})),

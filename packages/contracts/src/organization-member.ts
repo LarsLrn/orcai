@@ -16,8 +16,8 @@ export const organizationMemberContracts = {
 		.meta(
 			openapi({
 				method: "GET",
-				path: "/organizations/{organizationId}/members",
-				summary: "List all members of an organization",
+				path: "/members",
+				summary: "List members of the active organization",
 				tags: [
 					"Organization Members",
 				],
@@ -29,8 +29,8 @@ export const organizationMemberContracts = {
 		.meta(
 			openapi({
 				method: "GET",
-				path: "/organizations/{organizationId}/members/{userId}",
-				summary: "Find a member of an organization",
+				path: "/members/{userId}",
+				summary: "Find a member of the active organization",
 				tags: [
 					"Organization Members",
 				],
@@ -42,8 +42,8 @@ export const organizationMemberContracts = {
 		.meta(
 			openapi({
 				method: "PUT",
-				path: "/organizations/{organizationId}/members/{userId}",
-				summary: "Update a member of an organization",
+				path: "/members/{userId}",
+				summary: "Update a member of the active organization",
 				tags: [
 					"Organization Members",
 				],
@@ -55,8 +55,8 @@ export const organizationMemberContracts = {
 		.meta(
 			openapi({
 				method: "DELETE",
-				path: "/organizations/{organizationId}/members",
-				summary: "Delete a member of an organization",
+				path: "/members",
+				summary: "Remove members from the active organization",
 				tags: [
 					"Organization Members",
 				],

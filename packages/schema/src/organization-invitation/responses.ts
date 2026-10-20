@@ -12,6 +12,9 @@ import {
 } from "./schema";
 
 export const listOrganizationInvitationsResponseSchema =
+	createListResponseSchema(organizationInvitationSchema);
+
+export const listMyOrganizationInvitationsResponseSchema =
 	createListResponseSchema(organizationInvitationListItemSchema);
 
 export const createOrganizationInvitationsResponseSchema =

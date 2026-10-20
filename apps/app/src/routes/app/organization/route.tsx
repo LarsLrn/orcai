@@ -3,7 +3,7 @@ import { LoadingPage } from "@/components/app/loading/loading-page";
 import { ensureOrganizationCapability } from "@/lib/authz/route-guards";
 import { m } from "@/paraglide/messages";
 
-export const Route = createFileRoute("/app/orgs")({
+export const Route = createFileRoute("/app/organization")({
 	loader: async ({ context: { queryClient } }) => {
 		await ensureOrganizationCapability({
 			queryClient,
@@ -14,7 +14,7 @@ export const Route = createFileRoute("/app/orgs")({
 	head: () => ({
 		meta: [
 			{
-				title: m.orgs_page_title(),
+				title: m.orgs_settings_page_title(),
 			},
 		],
 	}),

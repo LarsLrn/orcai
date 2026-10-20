@@ -1,7 +1,7 @@
 import { randomBytes } from "node:crypto";
 import type { OrganizationId, UserId } from "@orcai/core";
 import { organizationIdSchema, userIdSchema } from "@orcai/schema";
-import { createApiClient, createZedTokenStore } from "./api";
+import { type ApiClient, createApiClient, createZedTokenStore } from "./api";
 import { type Session, type StorageState, signIn, signUpInvited } from "./auth";
 import {
 	EMAIL_DOMAIN,
@@ -77,6 +77,24 @@ let openedAdminSession: Promise<Session> | undefined;
 export const adminSession = (baseURL: string): Promise<Session> =>
 	(openedAdminSession ??= openAdminSession(baseURL));
 
+/**
+ * A well-known admin client on a session of its own with `organizationId`
+ * active, so the shared session keeps the instance organisation.
+ */
+const adminClientFor = async (
+	baseURL: string,
+	organizationId: OrganizationId,
+): Promise<ApiClient> => {
+	const session = await signIn(baseURL, WELL_KNOWN_ADMIN);
+	const api = adminApiClient(baseURL, session.cookieHeader);
+
+	await api.user.setActiveOrganization({
+		organizationId,
+	});
+
+	return api;
+};
+
 /** Create an organisation owned by the well-known admin with one user per role. */
 export const createWorkerOrganisation = async (params: {
 	baseURL: string;
@@ -92,6 +110,7 @@ export const createWorkerOrganisation = async (params: {
 	});
 
 	const organizationId = organizationIdSchema.parse(created.data.id);
+	const inviter = await adminClientFor(params.baseURL, organizationId);
 
 	const members = [];
 
@@ -99,10 +118,7 @@ export const createWorkerOrganisation = async (params: {
 		const email = `${params.slug}-${role}@${EMAIL_DOMAIN}`;
 		const session = await signUpInvited({
 			baseURL: params.baseURL,
-			admin: adminApi,
-			organisation: {
-				id: organizationId,
-			},
+			admin: inviter,
 			role,
 			name: `E2E ${role}`,
 			email,
@@ -148,7 +164,7 @@ export const createWorkerOrganisation = async (params: {
 /** The organisation an unaffiliated user joins and leaves again; never asserted on. */
 const openThrowawayOrganisation = async (
 	baseURL: string,
-): Promise<OrganizationId> => {
+): Promise<ApiClient> => {
 	const admin = await adminSession(baseURL);
 	const created = await adminApiClient(
 		baseURL,
@@ -158,13 +174,16 @@ const openThrowawayOrganisation = async (
 		slug: `e2e-unaffiliated-${runId()}-${runId()}`,
 	});
 
-	return organizationIdSchema.parse(created.data.id);
+	return await adminClientFor(
+		baseURL,
+		organizationIdSchema.parse(created.data.id),
+	);
 };
 
-let openedThrowawayOrganisation: Promise<OrganizationId> | undefined;
+let openedThrowawayOrganisation: Promise<ApiClient> | undefined;
 
-/** The throwaway organisation, created once per Playwright worker process. */
-const throwawayOrganisation = (baseURL: string): Promise<OrganizationId> =>
+/** The well-known admin of the throwaway organisation, set up once per Playwright worker process. */
+const throwawayAdmin = (baseURL: string): Promise<ApiClient> =>
 	(openedThrowawayOrganisation ??= openThrowawayOrganisation(baseURL));
 
 /** Create a user with no organisation: joins the throwaway organisation, then is removed. */
@@ -174,16 +193,11 @@ export const signUpUnaffiliated = async (params: {
 	email: string;
 	password?: string;
 }): Promise<Session> => {
-	const admin = await adminSession(params.baseURL);
-	const adminApi = adminApiClient(params.baseURL, admin.cookieHeader);
-	const organizationId = await throwawayOrganisation(params.baseURL);
+	const adminApi = await throwawayAdmin(params.baseURL);
 
 	const session = await signUpInvited({
 		baseURL: params.baseURL,
 		admin: adminApi,
-		organisation: {
-			id: organizationId,
-		},
 		role: "member",
 		name: params.name,
 		email: params.email,
@@ -193,7 +207,6 @@ export const signUpUnaffiliated = async (params: {
 	if (session.zedToken) workerZedTokens.write(session.zedToken);
 
 	await adminApi.organizationMember.delete({
-		organizationId,
 		refs: [
 			{
 				userId: userIdSchema.parse(session.userId),

@@ -139,9 +139,6 @@ const UserActions = ({ user }: { user: UserWithOrganizationRole }) => {
 };
 
 const RemoveItem = ({ user }: { user: UserWithOrganizationRole }) => {
-	const { auth } = useRouteContext({
-		from: "/app",
-	});
 	const { mutate: removeMembers } = useDeleteOrganizationMembersMutation(
 		{},
 		{
@@ -150,18 +147,11 @@ const RemoveItem = ({ user }: { user: UserWithOrganizationRole }) => {
 			],
 		},
 	);
-	const organizationId = auth.session.activeOrganizationId;
-
-	if (!organizationId) {
-		return null;
-	}
-
 	return (
 		<DropdownMenuItem
 			variant="destructive"
 			onClick={() =>
 				removeMembers({
-					organizationId,
 					refs: [
 						{
 							userId: user.id,

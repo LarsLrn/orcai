@@ -35,14 +35,13 @@ test("the well-known admin signs in and reads instance data", async ({
 
 	await enterApp(page, INSTANCE_ORGANISATION.slug);
 
-	await open(page, "/app/orgs");
+	await open(page, "/app/organization");
 	await expect(
 		page.getByRole("heading", {
-			name: message("instance_organizations_page_title"),
+			name: message("orgs_settings_page_title"),
 		}),
 	).toBeVisible();
-	// The active organisation in the sidebar comes from the database; the table
-	// itself paginates, so its rows are not a stable place to look for a name.
+	// The active organisation in the sidebar comes from the database.
 	await expect(
 		page.getByRole("button", {
 			name: INSTANCE_ORGANISATION.name,

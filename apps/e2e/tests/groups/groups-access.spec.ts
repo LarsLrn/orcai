@@ -334,8 +334,7 @@ test("groups: listPrincipals and listGrants reflect the group grants", async ({
 	// grant to it: members share with the groups they belong to, plus All
 	// Members.
 	const outsider = await outsiderMember({
-		admin: api.asWellKnownAdmin(),
-		organisation: org,
+		admin: api.as("admin"),
 		zedTokens,
 	});
 	// The sign-up hook makes the new user a member, and no response carries the

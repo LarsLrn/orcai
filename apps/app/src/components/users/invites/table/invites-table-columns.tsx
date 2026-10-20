@@ -153,7 +153,6 @@ const DeleteItem = ({ invitation }: { invitation: OrganizationInvitation }) => {
 
 	const handleDelete = (id: OrganizationInvitationId) => {
 		deleteInvitations({
-			organizationId: invitation.organizationId,
 			refs: [
 				{
 					id,

@@ -26,12 +26,10 @@ const VERIFY_COPY = {
 test("auth: registering from a German browser queues a German verification email", async ({
 	api,
 	browser,
-	org,
 	outbox,
 }) => {
 	const email = invitationEmail("verify-de");
 	await inviteEmail(api.as("admin"), {
-		organizationId: org.id,
 		email,
 		role: "viewer",
 	});
@@ -89,13 +87,11 @@ test("auth: registering from a German browser queues a German verification email
 
 test("auth: registering from an English browser queues an English verification email", async ({
 	api,
-	org,
 	outbox,
 	page,
 }) => {
 	const email = invitationEmail("verify-en");
 	await inviteEmail(api.as("admin"), {
-		organizationId: org.id,
 		email,
 		role: "viewer",
 	});

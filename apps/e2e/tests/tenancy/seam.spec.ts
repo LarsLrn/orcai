@@ -50,17 +50,19 @@ for (const role of ROLES) {
 			).code,
 		);
 
-		expect(DENIED).toContain(
-			(
-				await rejection(
-					api.as(role).organizationMember.list({
-						organizationId: other.id,
-						pageIndex: 0,
-						pageSize: 100,
-					}),
-				)
-			).code,
+		const ownMembers = await api.as(role).organizationMember.list({
+			pageIndex: 0,
+			pageSize: 100,
+		});
+		expect(ownMembers.rowCount).toBeGreaterThan(0);
+		const neighbourUserIds: string[] = Object.values(other.users).map(
+			(user) => user.id,
 		);
+		expect(
+			ownMembers.data
+				.map((member) => member.userId)
+				.filter((userId) => neighbourUserIds.includes(userId)),
+		).toStrictEqual([]);
 
 		// Every organisation gets an "All Members" group when it is created, so
 		// the neighbour always has at least one group that could leak. The

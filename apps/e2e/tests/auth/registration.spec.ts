@@ -71,8 +71,7 @@ test("sign-up consumes the invitation and enters the organisation", async ({
 	const email = freshEmail("invited");
 	const session = await signUpInvited({
 		baseURL: appBaseURL,
-		admin: api.asWellKnownAdmin(),
-		organisation: org,
+		admin: api.as("admin"),
 		role: "viewer",
 		name: "E2E Invited",
 		email,

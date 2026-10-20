@@ -26,7 +26,6 @@ test("orgs: an admin changes a member's role from the member's page", async ({
 
 	const user = await createOrgsUser(appBaseURL, "promoted");
 	await addMember(api.as("admin"), {
-		organizationId: org.id,
 		user,
 		role: "member",
 		zedTokens,
@@ -45,7 +44,6 @@ test("orgs: an admin changes a member's role from the member's page", async ({
 	await expect(rolePicker(page, "manager")).toBeVisible();
 	expect(
 		await memberRole(api.as("admin"), {
-			organizationId: org.id,
 			userId: user.id,
 		}),
 	).toBe("manager");
@@ -62,7 +60,6 @@ test("orgs: a manager changes roles but is not offered the admin role", async ({
 
 	const user = await createOrgsUser(appBaseURL, "demoted");
 	await addMember(api.as("admin"), {
-		organizationId: org.id,
 		user,
 		role: "member",
 		zedTokens,
@@ -81,7 +78,6 @@ test("orgs: a manager changes roles but is not offered the admin role", async ({
 	await expect(rolePicker(page, "viewer")).toBeVisible();
 	expect(
 		await memberRole(api.as("admin"), {
-			organizationId: org.id,
 			userId: user.id,
 		}),
 	).toBe("viewer");
@@ -104,7 +100,6 @@ test("orgs: a manager changes roles but is not offered the admin role", async ({
 	// thing standing between a manager and an admin.
 	await expectForbidden(
 		api.as("manager").organizationMember.update({
-			organizationId: org.id,
 			userId: user.id,
 			role: "admin",
 		}),
@@ -122,7 +117,6 @@ test("orgs: an admin removes a member from the organisation", async ({
 
 	const user = await createOrgsUser(appBaseURL, "removed");
 	await addMember(api.as("admin"), {
-		organizationId: org.id,
 		user,
 		role: "member",
 		zedTokens,
@@ -132,7 +126,6 @@ test("orgs: an admin removes a member from the organisation", async ({
 	// user-wide delete, so the removal itself goes over the API the interface
 	// would call.
 	const removed = await api.as("admin").organizationMember.delete({
-		organizationId: org.id,
 		refs: [
 			{
 				userId: user.id,
@@ -143,7 +136,6 @@ test("orgs: an admin removes a member from the organisation", async ({
 
 	await expectDenied(
 		api.as("admin").organizationMember.find({
-			organizationId: org.id,
 			userId: user.id,
 		}),
 	);

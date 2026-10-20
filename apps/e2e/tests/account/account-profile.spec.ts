@@ -14,13 +14,11 @@ test("account: a user changes the display name through the profile card", async 
 	api,
 	appBaseURL,
 	browser,
-	org,
 }) => {
 	const user = await createAccountUser({
 		baseURL: appBaseURL,
 		label: "profile",
 		admin: api.as("admin"),
-		organisation: org,
 	});
 	const newName = `E2E Account Renamed ${runId()}`;
 	const { context, page } = await pageForSession(browser, user.session);
@@ -54,13 +52,11 @@ test("account: saving the profile reports that it succeeded", async ({
 	api,
 	appBaseURL,
 	browser,
-	org,
 }) => {
 	const user = await createAccountUser({
 		baseURL: appBaseURL,
 		label: "profile-toast",
 		admin: api.as("admin"),
-		organisation: org,
 	});
 	const newName = `E2E Account Toast ${runId()}`;
 	const { context, page } = await pageForSession(browser, user.session);
@@ -84,13 +80,11 @@ test("account: an empty display name is refused", async ({
 	api,
 	appBaseURL,
 	browser,
-	org,
 }) => {
 	const user = await createAccountUser({
 		baseURL: appBaseURL,
 		label: "profile-empty",
 		admin: api.as("admin"),
-		organisation: org,
 	});
 	const { context, page } = await pageForSession(browser, user.session);
 

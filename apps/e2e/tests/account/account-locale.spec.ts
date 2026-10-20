@@ -17,13 +17,11 @@ test("account: a user switches the interface language to German and back", async
 	api,
 	appBaseURL,
 	browser,
-	org,
 }) => {
 	const user = await createAccountUser({
 		baseURL: appBaseURL,
 		label: "locale",
 		admin: api.as("admin"),
-		organisation: org,
 	});
 
 	// The app home starts the initial tour for a user who has not seen it, and
@@ -66,13 +64,11 @@ test("account: a language chosen in the header follows the user into a new brows
 	api,
 	appBaseURL,
 	browser,
-	org,
 }) => {
 	const user = await createAccountUser({
 		baseURL: appBaseURL,
 		label: "locale-follow",
 		admin: api.as("admin"),
-		organisation: org,
 	});
 
 	// The tour card would cover the header the switcher sits in.

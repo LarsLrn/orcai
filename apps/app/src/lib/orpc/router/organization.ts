@@ -67,17 +67,10 @@ const listOrganizations = authed.organization.list.effect(function* ({
 	);
 
 	const allowedSet = new Set(allowedIds);
-	const roleFilter = input.filters?.role;
-	const visibleIds = roleFilter
-		? unique(
-				memberships
-					.filter((membership) => membership.role === roleFilter)
-					.map((membership) => membership.organizationId),
-			)
-		: unique([
-				...allowedIds,
-				...memberships.map((membership) => membership.organizationId),
-			]);
+	const visibleIds = unique([
+		...allowedIds,
+		...memberships.map((membership) => membership.organizationId),
+	]);
 
 	const missingMemberships = memberships.filter(
 		(membership) => !allowedSet.has(membership.organizationId),

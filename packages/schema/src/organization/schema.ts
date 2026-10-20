@@ -1,6 +1,5 @@
 import { z } from "zod/v4";
 import { searchFilterSchema } from "../shared/filters";
-import { organizationRoleSchema } from "./parts/role";
 import { organizationIdSchema } from "./ref";
 
 export const organizationFieldsSchema = z.object({
@@ -20,11 +19,8 @@ export const organizationSchema = organizationFieldsSchema.extend({
 
 export type Organization = z.infer<typeof organizationSchema>;
 
-/** Narrows the organisations the caller sees, by its membership role or by name. */
-export const organizationFiltersSchema = z.object({
-	role: organizationRoleSchema.optional(),
-	...searchFilterSchema.shape,
-});
+/** Narrows the organisations the caller sees by name. */
+export const organizationFiltersSchema = searchFilterSchema;
 
 /** An organisation plus how many members it has, for the instance list. */
 export const organizationWithMemberCountSchema = organizationSchema.extend({

@@ -1,4 +1,4 @@
-import type { OrganizationId, OrganizationInvitationId } from "@orcai/core";
+import type { OrganizationInvitationId } from "@orcai/core";
 import type { BrowserContextOptions } from "@playwright/test";
 import { type ApiClient, ZED_TOKEN_COOKIE } from "./api";
 import { type Role, USER_PASSWORD } from "./constants";
@@ -177,17 +177,15 @@ export const attemptSignUp = async (
 const ONE_WEEK = 7 * 24 * 60 * 60 * 1000;
 
 /**
- * Invite an address as `admin`, then sign it up. The user comes back a member
- * with the invited role and, if this is its only organisation, inside it. The
- * sign-up response carries the `zedToken` of the granted membership, so a
- * caller that keeps it reads the membership without waiting.
+ * Invite an address into the active organisation of `admin`, then sign it up.
+ * The user comes back a member with the invited role and, if this is its only
+ * organisation, inside it. The sign-up response carries the `zedToken` of the
+ * granted membership, so a caller that keeps it reads the membership without
+ * waiting.
  */
 export const signUpInvited = async (params: {
 	baseURL: string;
 	admin: ApiClient;
-	organisation: {
-		id: OrganizationId;
-	};
 	role: Role;
 	name: string;
 	email: string;
@@ -199,7 +197,6 @@ export const signUpInvited = async (params: {
 > => {
 	const password = params.password ?? USER_PASSWORD;
 	const created = await params.admin.organizationInvitation.create({
-		organizationId: params.organisation.id,
 		role: params.role,
 		expiresAt: new Date(Date.now() + ONE_WEEK),
 		items: [

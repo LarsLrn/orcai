@@ -1,4 +1,3 @@
-import type { OrganizationId } from "@orcai/core";
 import type { OrganizationInvitation } from "@orcai/schema";
 import { expect, type Page } from "@playwright/test";
 import type { ApiClient } from "../api";
@@ -18,17 +17,15 @@ export const invitationEmail = (label: string): string =>
 /** How long the app's own form gives an invitation. */
 const ONE_WEEK = 7 * 24 * 60 * 60 * 1000;
 
-/** Invite one address over the API and return the invitation. */
+/** Invite one address into the active organisation of `api` and return the invitation. */
 export const inviteEmail = async (
 	api: ApiClient,
 	invitation: {
-		organizationId: OrganizationId;
 		email: string;
 		role: Role;
 	},
 ): Promise<OrganizationInvitation> => {
 	const created = await api.organizationInvitation.create({
-		organizationId: invitation.organizationId,
 		role: invitation.role,
 		expiresAt: new Date(Date.now() + ONE_WEEK),
 		items: [

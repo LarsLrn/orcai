@@ -162,7 +162,6 @@ test("users: an admin changes a user's organisation role", async ({
 	).toBeVisible();
 
 	const member = await api.as("admin").organizationMember.find({
-		organizationId: org.id,
 		userId: user.id,
 	});
 	expect(member.data.role).toBe("manager");
@@ -208,7 +207,6 @@ test("users: a manager may not hand out the admin role", async ({
 
 test("users: a role change is refused for someone who is not a member", async ({
 	api,
-	org,
 }) => {
 	const outsider = await createThrowawayUser(baseURL(), "outsider");
 
@@ -216,7 +214,6 @@ test("users: a role change is refused for someone who is not a member", async ({
 	// membership of this organisation to change.
 	await expectDenied(
 		api.as("admin").organizationMember.update({
-			organizationId: org.id,
 			userId: outsider.id,
 			role: "manager",
 		}),

@@ -63,7 +63,6 @@ test("a member signs in through the login form, then signs out and loses access"
 test("a user with one organisation signs in straight into the app", async ({
 	api,
 	appBaseURL,
-	org,
 	page,
 }) => {
 	test.slow();
@@ -71,8 +70,7 @@ test("a user with one organisation signs in straight into the app", async ({
 	const email = `auth-sole-org-${randomBytes(3).toString("hex")}@${EMAIL_DOMAIN}`;
 	await signUpInvited({
 		baseURL: appBaseURL,
-		admin: api.asWellKnownAdmin(),
-		organisation: org,
+		admin: api.as("admin"),
 		role: "member",
 		name: "E2E Sole Org",
 		email,
