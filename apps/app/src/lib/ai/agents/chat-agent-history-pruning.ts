@@ -1,4 +1,5 @@
 import { type ModelMessage, pruneMessages } from "ai";
+import { dropEarlierReasoning } from "@/lib/ai/agents/turn-history";
 
 export interface ToolHistoryPruningOptions {
 	/** Every display tool name, enabled or not. */
@@ -99,17 +100,20 @@ export const applyToolHistoryPruning = <
 	settings: T,
 	options: ToolHistoryPruningOptions,
 ): T => {
+	const prune = (messages: ModelMessage[]) =>
+		dropEarlierReasoning(pruneToolHistory(messages, options));
+
 	if (settings.messages) {
 		return {
 			...settings,
-			messages: pruneToolHistory(settings.messages, options),
+			messages: prune(settings.messages),
 		};
 	}
 
 	if (Array.isArray(settings.prompt)) {
 		return {
 			...settings,
-			prompt: pruneToolHistory(settings.prompt, options),
+			prompt: prune(settings.prompt),
 		};
 	}
 

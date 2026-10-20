@@ -111,8 +111,15 @@ test("assistant: a member sets up and publishes a bot in one turn, and the next 
 	const loadedLine = message("assistant_tool_load_tools_summary", {
 		groups: message("assistant_tool_group_bots"),
 	});
-	// Outside the latest step, an output is its summary line.
-	expect(saved[0]).toBe(loadedLine);
+	// The turn in progress keeps its outputs in full.
+	expect(saved[0]).toMatchObject({
+		groups: [
+			{
+				group: "bots",
+				loaded: true,
+			},
+		],
+	});
 
 	inference.script(
 		{
@@ -161,8 +168,7 @@ test("assistant: a member sets up and publishes a bot in one turn, and the next 
 	const templateLine = message("assistant_tool_create_template_summary", {
 		name: quoted(templateName),
 	});
-	expect(created).toContain(templateLine);
-	expect(created).not.toContainEqual(template);
+	expect(created).toContainEqual(template);
 
 	inference.script(
 		{

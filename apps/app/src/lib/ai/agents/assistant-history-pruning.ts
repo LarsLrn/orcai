@@ -1,4 +1,8 @@
 import { type ModelMessage, pruneMessages } from "ai";
+import {
+	currentTurnStart,
+	dropEarlierReasoning,
+} from "@/lib/ai/agents/turn-history";
 
 export interface AssistantHistoryPruningOptions {
 	/** Summary line per tool call id. */
@@ -16,9 +20,11 @@ const SUMMARISED_OUTPUT_TYPES = new Set([
 ]);
 
 /**
- * Keeps every tool call and input but replaces the outputs outside the latest
- * step (the last assistant message's calls) with their summary line. Errors,
+ * Keeps every tool call and input but replaces the outputs of finished turns
+ * with their summary line; the turn in progress stays as sent. Errors,
  * denials and approvals stay; calls of disabled display tools are dropped.
+ * Reasoning survives only from the turn's latest `loadTools` result on, as
+ * loading tools changes what earlier reasoning was produced with.
  */
 export const pruneAssistantHistory = (
 	messages: ModelMessage[],
@@ -45,44 +51,42 @@ export const pruneAssistantHistory = (
 				})
 			: messages;
 
-	const latest = pruned
-		.slice()
-		.reverse()
-		.find((message) => message.role === "assistant");
-	const latestCallIds = new Set(
-		latest && Array.isArray(latest.content)
-			? latest.content.flatMap((part) =>
-					part.type === "tool-call"
-						? [
-								part.toolCallId,
-							]
-						: [],
-				)
-			: [],
-	);
+	const turnStart = currentTurnStart(pruned);
+	const latestLoad = pruned
+		.map(
+			(message) =>
+				message.role === "tool" &&
+				message.content.some(
+					(part) =>
+						part.type === "tool-result" && part.toolName === "loadTools",
+				),
+		)
+		.lastIndexOf(true);
 	const enabledDisplay = new Set(enabledDisplayToolNames);
 
-	return pruned.map((message) =>
-		message.role === "tool"
-			? {
-					...message,
-					content: message.content.map((part) =>
-						part.type === "tool-result" &&
-						SUMMARISED_OUTPUT_TYPES.has(part.output.type) &&
-						!latestCallIds.has(part.toolCallId) &&
-						!enabledDisplay.has(part.toolName)
-							? {
-									...part,
-									output: {
-										type: "text" as const,
-										value:
-											lines.get(part.toolCallId) ??
-											`Called ${part.toolName}; its output is no longer available`,
-									},
-								}
-							: part,
-					),
-				}
-			: message,
+	return dropEarlierReasoning(
+		pruned.map((message, index) =>
+			message.role === "tool" && index < turnStart
+				? {
+						...message,
+						content: message.content.map((part) =>
+							part.type === "tool-result" &&
+							SUMMARISED_OUTPUT_TYPES.has(part.output.type) &&
+							!enabledDisplay.has(part.toolName)
+								? {
+										...part,
+										output: {
+											type: "text" as const,
+											value:
+												lines.get(part.toolCallId) ??
+												`Called ${part.toolName}; its output is no longer available`,
+										},
+									}
+								: part,
+						),
+					}
+				: message,
+		),
+		Math.max(turnStart, latestLoad),
 	);
 };
