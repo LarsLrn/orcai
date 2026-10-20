@@ -92,6 +92,36 @@ export const closePendingToolParts = (
 	};
 };
 
+/** Closes the pending tool calls of the last reply, which the model would reject. */
+export const closeLastReply = <Message extends UIMessage>(
+	history: Message[],
+	tools: ToolSet,
+) => {
+	const lastReply = history
+		.filter((message) => message.role === "assistant")
+		.at(-1);
+	const closed = lastReply && closePendingToolParts(lastReply.parts, tools);
+
+	if (!lastReply || !closed?.changed) {
+		return {
+			closedHistory: history,
+			closedReply: undefined,
+		};
+	}
+
+	const closedReply = {
+		...lastReply,
+		parts: closed.parts as Message["parts"],
+	};
+
+	return {
+		closedHistory: history.map((message) =>
+			message === lastReply ? closedReply : message,
+		),
+		closedReply,
+	};
+};
+
 /** Closes the pending tool calls of copied replies, so a copy never runs one. */
 export const closeCopiedToolParts = <
 	Row extends {
