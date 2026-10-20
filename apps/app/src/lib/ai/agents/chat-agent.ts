@@ -20,15 +20,8 @@ import {
 } from "@/lib/ai/agents/repair-tool-call";
 import type { ResolvedFeature } from "@/lib/ai/features/resolve-features";
 import { buildKnowledgeBaseTools } from "@/lib/ai/tools/rag/toolset";
+import type { ChatCallSettings } from "@/lib/ai/utils/chat-call-settings";
 import type { ORPCContext } from "@/lib/orpc/implementation/os";
-
-export interface ChatAgentGenerationParams {
-	temperature?: number;
-	maxTokens?: number;
-	topP?: number;
-	frequencyPenalty?: number;
-	presencePenalty?: number;
-}
 
 export const createChatAgent = (params: {
 	model: LanguageModel;
@@ -36,7 +29,7 @@ export const createChatAgent = (params: {
 	systemPrompt: string;
 	databaseBlocks: DatabaseBlock[];
 	features: ResolvedFeature[];
-	generationParams?: ChatAgentGenerationParams;
+	callSettings: ChatCallSettings;
 	telemetryIds: {
 		organizationId: string;
 		chatId: string;
@@ -90,11 +83,7 @@ export const createChatAgent = (params: {
 
 			return {
 				...preparedSettings,
-				temperature: params.generationParams?.temperature,
-				maxTokens: params.generationParams?.maxTokens,
-				topP: params.generationParams?.topP,
-				frequencyPenalty: params.generationParams?.frequencyPenalty,
-				presencePenalty: params.generationParams?.presencePenalty,
+				...params.callSettings,
 				instructions: buildSystemInstructions(params.providerKind, {
 					stable: systemPrompt,
 				}),

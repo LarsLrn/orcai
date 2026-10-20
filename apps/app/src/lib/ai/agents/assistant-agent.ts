@@ -20,7 +20,6 @@ import {
 	createToolLines,
 	type StoredMessage,
 } from "@/lib/ai/agents/assistant-tool-lines";
-import type { ChatAgentGenerationParams } from "@/lib/ai/agents/chat-agent";
 import type { ResolvedFeature } from "@/lib/ai/features/resolve-features";
 import { assistantToolApproval } from "@/lib/ai/tools/assistant/approval";
 import { groupsLoadedBy } from "@/lib/ai/tools/assistant/core/load-tools";
@@ -32,13 +31,14 @@ import {
 import type { AssistantToolDeps } from "@/lib/ai/tools/assistant/procedure-tool";
 import { buildAssistantTools } from "@/lib/ai/tools/assistant/toolset";
 import { readDocsTool } from "@/lib/ai/tools/docs/read-docs";
+import type { ChatCallSettings } from "@/lib/ai/utils/chat-call-settings";
 import type { DocsConfig } from "@/lib/effect/services/config";
 
 export const createAssistantAgent = (
 	params: AssistantToolDeps & {
 		model: LanguageModel;
 		providerKind: ProviderKind;
-		generationParams?: ChatAgentGenerationParams;
+		callSettings: ChatCallSettings;
 		docs: DocsConfig | undefined;
 		userContext: AssistantUserContext;
 		/** The assistant's fixed features, resolved through the Feature catalog. */
@@ -104,11 +104,7 @@ export const createAssistantAgent = (
 		...aiTelemetry("assistant.agent", params.telemetryIds),
 		prepareCall: ({ options, ...settings }) => ({
 			...settings,
-			temperature: params.generationParams?.temperature,
-			maxTokens: params.generationParams?.maxTokens,
-			topP: params.generationParams?.topP,
-			frequencyPenalty: params.generationParams?.frequencyPenalty,
-			presencePenalty: params.generationParams?.presencePenalty,
+			...params.callSettings,
 			instructions: buildSystemInstructions(
 				params.providerKind,
 				buildAssistantSystemPrompt({

@@ -12,7 +12,6 @@ import {
 	type ChatModelAvailability,
 	useDefaultChatModel,
 } from "@/components/chat/use-default-chat-model";
-import { DEFAULT_CHAT_GENERATION_PARAMS } from "@/lib/ai/utils/chat-generation-defaults";
 import { reasonMessageOf } from "@/lib/errors/describe-error";
 import { client, orpc } from "@/lib/orpc/orpc";
 import { m } from "@/paraglide/messages";
@@ -92,7 +91,6 @@ const useChatStarter = ({
 				const config: ChatConfig = {
 					modelId: selectedModel.id,
 					providerId: selectedProvider.id,
-					...DEFAULT_CHAT_GENERATION_PARAMS,
 					// Bot chats use the bot's features and reject their own.
 					...(selectedBotId
 						? {}

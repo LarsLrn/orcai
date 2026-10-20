@@ -309,7 +309,7 @@ const runChatTurn = (turn: ChatTurn) =>
 						agent: createAssistantAgent({
 							model: chatAiSettings.model,
 							providerKind: chatAiSettings.provider.kind,
-							generationParams: chatAiSettings.generationParams,
+							callSettings: chatAiSettings.callSettings,
 							docs,
 							userContext: assistantUserContext,
 							features: yield* resolveFeatures(ASSISTANT_FEATURES),
@@ -328,7 +328,7 @@ const runChatTurn = (turn: ChatTurn) =>
 							systemPrompt,
 							databaseBlocks: allDatabaseBlocks,
 							features: chatAiSettings.features,
-							generationParams: chatAiSettings.generationParams,
+							callSettings: chatAiSettings.callSettings,
 							telemetryIds,
 							context,
 						}),
