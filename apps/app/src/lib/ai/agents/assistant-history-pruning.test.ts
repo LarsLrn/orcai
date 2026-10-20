@@ -85,13 +85,58 @@ const prune = (messages: ModelMessage[], enabledDisplayToolNames = []) =>
 		enabledDisplayToolNames,
 	});
 
+const full = {
+	type: "json",
+	value: {
+		full: true,
+	},
+};
+
+const reasoning = (text: string) => ({
+	type: "reasoning" as const,
+	text,
+	providerOptions: {
+		anthropic: {
+			signature: `signed ${text}`,
+		},
+	},
+});
+
+const thought = (text: string, messages: ModelMessage[]): ModelMessage[] =>
+	messages.map((message) =>
+		message.role === "assistant" && Array.isArray(message.content)
+			? {
+					...message,
+					content: [
+						reasoning(text),
+						...message.content,
+					],
+				}
+			: message,
+	);
+
+const reasoningOf = (messages: ModelMessage[]) =>
+	messages.flatMap((message) =>
+		message.role === "assistant" && Array.isArray(message.content)
+			? message.content.flatMap((part) =>
+					part.type === "reasoning"
+						? [
+								part.text,
+							]
+						: [],
+				)
+			: [],
+	);
+
 describe("pruneAssistantHistory", () => {
-	test("replaces outputs before the latest step with their summary line", () => {
+	test("replaces outputs of finished turns with their summary line", () => {
 		const outputs = outputsOf(
 			prune([
 				user("hi"),
 				...call("findBots", "a"),
+				user("and the docs?"),
 				...call("readDocs", "b"),
+				user("and that bot?"),
 				...call("getBot", "c"),
 			]),
 		);
@@ -142,6 +187,25 @@ describe("pruneAssistantHistory", () => {
 				},
 			},
 		]);
+	});
+
+	test("keeps every output of the turn in progress", () => {
+		const outputs = outputsOf(
+			prune([
+				user("hi"),
+				...call("findBots", "a"),
+				user("and that bot?"),
+				...call("readDocs", "b"),
+				...call("getBot", "c"),
+			]),
+		);
+
+		expect(outputs.a).toEqual({
+			type: "text",
+			value: "Found 3 bots",
+		});
+		expect(outputs.b).toEqual(full);
+		expect(outputs.c).toEqual(full);
 	});
 
 	test("summarises every output once the latest assistant message is text", () => {
@@ -224,6 +288,7 @@ describe("pruneAssistantHistory", () => {
 				...call("deleteBot", "e", error),
 				...call("deleteBot", "d", denied),
 				...approved,
+				user("go on"),
 				...call("getBot", "c"),
 			]),
 		);
@@ -241,6 +306,7 @@ describe("pruneAssistantHistory", () => {
 		const outputs = outputsOf(
 			prune([
 				...call("mysteryTool", "x"),
+				user("go on"),
 				...call("getBot", "c"),
 			]),
 		);
@@ -254,6 +320,7 @@ describe("pruneAssistantHistory", () => {
 	test("keeps enabled display calls and drops disabled ones", () => {
 		const messages = [
 			...call("showChecklist", "s"),
+			user("go on"),
 			...call("getBot", "c"),
 		];
 
@@ -276,5 +343,61 @@ describe("pruneAssistantHistory", () => {
 				full: true,
 			},
 		});
+	});
+
+	test("keeps reasoning only in the turn in progress", () => {
+		const turn = [
+			...thought("b", call("readDocs", "b")),
+			...thought("c", call("getBot", "c")),
+		];
+		const pruned = prune([
+			user("hi"),
+			...thought("a", call("findBots", "a")),
+			user("and the docs?"),
+			...turn,
+		]);
+
+		expect(reasoningOf(pruned)).toEqual([
+			"b",
+			"c",
+		]);
+		expect(pruned.slice(-turn.length)).toEqual(turn);
+	});
+
+	test("drops the reasoning of a reply whose pending approval a new message closed", () => {
+		const closed = thought(
+			"plan",
+			call("deleteBot", "d", {
+				type: "tool-result",
+				toolCallId: "d",
+				toolName: "deleteBot",
+				output: {
+					type: "execution-denied",
+					reason: "The user moved on.",
+				},
+			}),
+		);
+
+		expect(
+			reasoningOf(
+				prune([
+					user("delete my bot"),
+					...closed,
+					user("take a step back"),
+				]),
+			),
+		).toEqual([]);
+	});
+
+	test("keeps reasoning only from the turn's latest loadTools result on", () => {
+		const pruned = prune([
+			user("hi"),
+			...thought("before", call("loadTools", "l")),
+			...thought("after", call("getBot", "c")),
+		]);
+
+		expect(reasoningOf(pruned)).toEqual([
+			"after",
+		]);
 	});
 });

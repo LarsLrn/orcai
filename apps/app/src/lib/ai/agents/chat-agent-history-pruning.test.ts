@@ -1,6 +1,9 @@
 import { describe, expect, test } from "bun:test";
 import type { ModelMessage } from "ai";
-import { pruneToolHistory } from "./chat-agent-history-pruning";
+import {
+	applyToolHistoryPruning,
+	pruneToolHistory,
+} from "./chat-agent-history-pruning";
 
 const user = (text: string): ModelMessage => ({
 	role: "user",
@@ -176,5 +179,48 @@ describe("pruneToolHistory", () => {
 				enabledDisplayToolNames: [],
 			}),
 		).toEqual(messages);
+	});
+});
+
+describe("applyToolHistoryPruning", () => {
+	test("drops earlier turns' reasoning", () => {
+		const thinking = (value: string): ModelMessage => ({
+			role: "assistant",
+			content: [
+				{
+					type: "reasoning",
+					text: "thinking",
+					providerOptions: {
+						anthropic: {
+							signature: "signed",
+						},
+					},
+				},
+				{
+					type: "text",
+					text: value,
+				},
+			],
+		});
+
+		expect(
+			applyToolHistoryPruning(
+				{
+					messages: [
+						user("hi"),
+						thinking("hello"),
+						user("bye"),
+					],
+				},
+				{
+					displayToolNames,
+					enabledDisplayToolNames: [],
+				},
+			).messages,
+		).toEqual([
+			user("hi"),
+			text("hello"),
+			user("bye"),
+		]);
 	});
 });
