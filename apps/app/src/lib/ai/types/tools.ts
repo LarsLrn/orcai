@@ -1,5 +1,4 @@
 import type { InferUITool, ToolUIPart } from "ai";
-import type { generateImageTool } from "@/lib/ai/tools/generate-image";
 import type { getKnowledgeBaseChunksTool } from "@/lib/ai/tools/rag/get-knowledge-base-chunk";
 import type { getKnowledgeBasePageTool } from "@/lib/ai/tools/rag/get-knowledge-base-page";
 import type { listKnowledgeBaseDocumentsTool } from "@/lib/ai/tools/rag/list-knowledge-base-documents";
@@ -34,13 +33,4 @@ type GetKnowledgeBasePageUITool = InferUITool<
 >;
 export type GetKnowledgeBasePageToolPart = ToolUIPart<{
 	getKnowledgeBasePage: GetKnowledgeBasePageUITool;
-}>;
-
-/**
- * Image Generation Tool Part
- */
-
-type GenerateImageUITool = InferUITool<ReturnType<typeof generateImageTool>>;
-export type GenerateImageToolPart = ToolUIPart<{
-	generateImage: GenerateImageUITool;
 }>;

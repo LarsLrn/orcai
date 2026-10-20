@@ -1,5 +1,5 @@
 import type { BlockId } from "@orcai/core";
-import type { Block } from "@orcai/schema";
+import type { Block, BlockType } from "@orcai/schema";
 import { useQuery } from "@tanstack/react-query";
 import { BookOpenIcon, SparklesIcon } from "lucide-react";
 import { useEffect, useMemo, useState } from "react";
@@ -23,9 +23,7 @@ import { m } from "@/paraglide/messages";
 
 const BLOCK_PAGE_SIZE = 12;
 
-type SupportedBlockType = Extract<Block["type"], "template" | "database">;
-
-const getCopy = (type: SupportedBlockType) =>
+const getCopy = (type: BlockType) =>
 	type === "template"
 		? {
 				title: m.blocks_selector_dialog_template_title(),
@@ -42,7 +40,7 @@ const getCopy = (type: SupportedBlockType) =>
 				empty: m.blocks_selector_dialog_database_empty_state_title(),
 			};
 
-const iconByType: Record<SupportedBlockType, typeof SparklesIcon> = {
+const iconByType: Record<BlockType, typeof SparklesIcon> = {
 	template: SparklesIcon,
 	database: BookOpenIcon,
 };
@@ -63,7 +61,7 @@ const BlockSelectorDialog = ({
 }: {
 	open: boolean;
 	onOpenChange: (open: boolean) => void;
-	type: SupportedBlockType;
+	type: BlockType;
 	selectedIds?: BlockId[];
 	disabledIds?: BlockId[];
 	includeDrafts?: boolean;

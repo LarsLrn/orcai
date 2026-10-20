@@ -4,10 +4,9 @@ import {
 	stripSearchParams,
 	useNavigate,
 } from "@tanstack/react-router";
-import { BookOpenIcon, ImageIcon, SparklesIcon } from "lucide-react";
+import { BookOpenIcon, SparklesIcon } from "lucide-react";
 import { z } from "zod/v4";
 import { DatabaseBlockForm } from "@/components/blocks/database-block/form/database-block-form";
-import { ImageGenerationBlockForm } from "@/components/blocks/image-generation-block/form/image-generation-block-form";
 import { TemplateBlockForm } from "@/components/blocks/template-block/form/template-block-form";
 import {
 	Card,
@@ -72,7 +71,7 @@ function RouteComponent() {
 				<PageDescription>{m.blocks_add_page_description()}</PageDescription>
 			</PageHeader>
 			<PageContent className="space-y-6">
-				<div className="grid gap-4 md:grid-cols-3">
+				<div className="grid gap-4 md:grid-cols-2">
 					{[
 						{
 							type: "template" as const,
@@ -85,12 +84,6 @@ function RouteComponent() {
 							title: m.blocks_add_database_option_title(),
 							description: m.blocks_add_database_option_description(),
 							icon: BookOpenIcon,
-						},
-						{
-							type: "imageGeneration" as const,
-							title: m.blocks_add_image_generation_option_title(),
-							description: m.blocks_add_image_generation_option_description(),
-							icon: ImageIcon,
 						},
 					].map((option) => {
 						const Icon = option.icon;
@@ -126,24 +119,17 @@ function RouteComponent() {
 						<CardTitle>
 							{type === "template"
 								? m.blocks_add_template_option_title()
-								: type === "database"
-									? m.blocks_add_database_option_title()
-									: m.blocks_add_image_generation_option_title()}
+								: m.blocks_add_database_option_title()}
 						</CardTitle>
 						<CardDescription>
 							{type === "template"
 								? m.blocks_add_template_form_description()
-								: type === "database"
-									? m.blocks_add_database_form_description()
-									: m.blocks_add_image_generation_form_description()}
+								: m.blocks_add_database_form_description()}
 						</CardDescription>
 					</CardHeader>
 					<CardContent>
 						{type === "template" ? <TemplateBlockForm action="create" /> : null}
 						{type === "database" ? <DatabaseBlockForm action="create" /> : null}
-						{type === "imageGeneration" ? (
-							<ImageGenerationBlockForm action="create" />
-						) : null}
 					</CardContent>
 				</Card>
 			</PageContent>

@@ -10,7 +10,6 @@ import {
 	blockTypeSchema,
 	contentJsonSchema,
 	databaseBlockSchema,
-	imageGenerationBlockSchema,
 	templateBlockSchema,
 } from "./schema";
 
@@ -32,13 +31,9 @@ export const createDatabaseBlockInputSchema = blockWriteFieldsSchema.extend({
 	assets: z.array(assetIdSchema).default([]),
 });
 
-export const createImageGenerationBlockInputSchema =
-	blockWriteFieldsSchema.extend(imageGenerationBlockSchema.shape);
-
 export const createBlockInputSchema = z.discriminatedUnion("type", [
 	createTemplateBlockInputSchema,
 	createDatabaseBlockInputSchema,
-	createImageGenerationBlockInputSchema,
 ]);
 
 const updateBlockFieldsSchema = blockWriteFieldsSchema.extend({
@@ -54,13 +49,9 @@ export const updateDatabaseBlockInputSchema = updateBlockFieldsSchema.extend({
 	assets: z.array(assetIdSchema).default([]),
 });
 
-export const updateImageGenerationBlockInputSchema =
-	updateBlockFieldsSchema.extend(imageGenerationBlockSchema.shape);
-
 export const updateBlockInputSchema = z.discriminatedUnion("type", [
 	updateTemplateBlockInputSchema,
 	updateDatabaseBlockInputSchema,
-	updateImageGenerationBlockInputSchema,
 ]);
 
 export const listBlocksInputSchema = paginationInputSchema.extend({

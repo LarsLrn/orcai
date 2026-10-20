@@ -47,8 +47,6 @@ const getBlockTypeLabel = (type: string) => {
 			return m.blocks_detail_type_template();
 		case "database":
 			return m.blocks_detail_type_database();
-		case "imageGeneration":
-			return m.blocks_detail_type_image_generation();
 		default:
 			return type;
 	}

@@ -11,25 +11,9 @@ export const contentJsonSchema = z.custom<object>(
 		value !== null && typeof value === "object" && !Array.isArray(value),
 );
 
-export const BLOCK_TYPES = [
-	{
-		label: "Template",
-		value: "template",
-	},
-	{
-		label: "Database",
-		value: "database",
-	},
-	{
-		label: "Image Generation",
-		value: "imageGeneration",
-	},
-] as const;
-
 export const blockTypeSchema = z.enum([
 	"template",
 	"database",
-	"imageGeneration",
 ]);
 
 export const referencesConfigSchema = z
@@ -86,15 +70,6 @@ export const databaseBlockSchema = z.object({
 	}),
 });
 
-export const imageGenerationBlockSchema = z.object({
-	type: z.literal("imageGeneration"),
-	config: z.object({
-		provider: z.string(),
-		model: z.string(),
-		prompt: z.string().optional(),
-	}),
-});
-
 export const blockFieldsSchema = z.object({
 	name: z.string(),
 	description: z.string().max(500).nullable(),
@@ -119,7 +94,6 @@ const blockBaseSchema = blockFieldsSchema.extend({
 export const blockSchema = z.discriminatedUnion("type", [
 	blockBaseSchema.extend(templateBlockSchema.shape),
 	blockBaseSchema.extend(databaseBlockSchema.shape),
-	blockBaseSchema.extend(imageGenerationBlockSchema.shape),
 ]);
 
 export const blockWithCapabilitiesSchema = z.intersection(
@@ -134,8 +108,7 @@ export type BlockWithCapabilities = z.infer<typeof blockWithCapabilitiesSchema>;
 
 export type BlockConfigType =
 	| z.infer<typeof templateBlockSchema.shape.config>
-	| z.infer<typeof databaseBlockSchema.shape.config>
-	| z.infer<typeof imageGenerationBlockSchema.shape.config>;
+	| z.infer<typeof databaseBlockSchema.shape.config>;
 
 export type BlockType = z.infer<typeof blockTypeSchema>;
 
@@ -151,12 +124,6 @@ export type DatabaseBlock = Extract<
 		type: "database";
 	}
 >;
-export type ImageGenerationBlock = Extract<
-	Block,
-	{
-		type: "imageGeneration";
-	}
->;
 
 export function isTemplateBlock(block: Block): block is TemplateBlock {
 	return block.type === "template";
@@ -164,10 +131,4 @@ export function isTemplateBlock(block: Block): block is TemplateBlock {
 
 export function isDatabaseBlock(block: Block): block is DatabaseBlock {
 	return block.type === "database";
-}
-
-export function isImageGenerationBlock(
-	block: Block,
-): block is ImageGenerationBlock {
-	return block.type === "imageGeneration";
 }

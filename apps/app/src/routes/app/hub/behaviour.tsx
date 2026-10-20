@@ -50,32 +50,6 @@ export const Route = createFileRoute("/app/hub/behaviour")({
 					staleTime: "static",
 				}),
 			),
-			queryClient.query(
-				orpc.block.list.queryOptions({
-					input: {
-						pageIndex: 0,
-						pageSize: PAGE_SIZE,
-						filters: {
-							type: "imageGeneration",
-							status: "ready",
-						},
-					},
-					staleTime: "static",
-				}),
-			),
-			queryClient.query(
-				orpc.block.list.queryOptions({
-					input: {
-						pageIndex: 0,
-						pageSize: PAGE_SIZE,
-						filters: {
-							type: "imageGeneration",
-							status: "draft",
-						},
-					},
-					staleTime: "static",
-				}),
-			),
 		]);
 	},
 	component: RouteComponent,
@@ -121,47 +95,6 @@ function RouteComponent() {
 			},
 		}),
 	);
-	const { data: imageGenReadyBlocks } = useSuspenseQuery(
-		orpc.block.list.queryOptions({
-			input: {
-				pageIndex: 0,
-				pageSize: PAGE_SIZE,
-				filters: {
-					type: "imageGeneration",
-					status: "ready",
-				},
-			},
-		}),
-	);
-	const { data: imageGenDraftBlocks } = useSuspenseQuery(
-		orpc.block.list.queryOptions({
-			input: {
-				pageIndex: 0,
-				pageSize: PAGE_SIZE,
-				filters: {
-					type: "imageGeneration",
-					status: "draft",
-				},
-			},
-		}),
-	);
-
-	const getCreatedAtValue = (createdAt: Date | null) =>
-		createdAt ? +new Date(createdAt) : 0;
-
-	const publishedBehaviourBlocks = [
-		...templateReadyBlocks.data,
-		...imageGenReadyBlocks.data,
-	].sort(
-		(a, b) => getCreatedAtValue(b.createdAt) - getCreatedAtValue(a.createdAt),
-	);
-	const draftBehaviourBlocks = [
-		...templateDraftBlocks.data,
-		...imageGenDraftBlocks.data,
-	].sort(
-		(a, b) => getCreatedAtValue(b.createdAt) - getCreatedAtValue(a.createdAt),
-	);
-
 	return (
 		<div className="space-y-12">
 			<Section>
@@ -185,7 +118,7 @@ function RouteComponent() {
 					) : null}
 				</SectionHeader>
 				<SectionContent>
-					{publishedBehaviourBlocks.length === 0 ? (
+					{templateReadyBlocks.data.length === 0 ? (
 						<Placeholder
 							Icon={BrainCircuitIcon}
 							tone="behaviour"
@@ -209,7 +142,7 @@ function RouteComponent() {
 						/>
 					) : (
 						<SectionGrid layout="3">
-							{publishedBehaviourBlocks.map((block) => (
+							{templateReadyBlocks.data.map((block) => (
 								<BlockCard
 									key={block.id}
 									block={block}
@@ -223,7 +156,7 @@ function RouteComponent() {
 				</SectionContent>
 			</Section>
 
-			{draftBehaviourBlocks.length > 0 && (
+			{templateDraftBlocks.data.length > 0 && (
 				<Section>
 					<SectionHeader>
 						<SectionTitle>{m.behaviour_drafts_title()}</SectionTitle>
@@ -233,7 +166,7 @@ function RouteComponent() {
 					</SectionHeader>
 					<SectionContent>
 						<SectionGrid layout="3">
-							{draftBehaviourBlocks.map((block) => (
+							{templateDraftBlocks.data.map((block) => (
 								<DraftBehaviourCard key={block.id} block={block} />
 							))}
 						</SectionGrid>

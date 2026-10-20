@@ -1,12 +1,7 @@
-import {
-	isDatabaseBlock,
-	isImageGenerationBlock,
-	isTemplateBlock,
-} from "@orcai/schema";
+import { isDatabaseBlock, isTemplateBlock } from "@orcai/schema";
 import { useSuspenseQuery } from "@tanstack/react-query";
 import { createFileRoute } from "@tanstack/react-router";
 import { DatabaseBlockForm } from "@/components/blocks/database-block/form/database-block-form";
-import { ImageGenerationBlockForm } from "@/components/blocks/image-generation-block/form/image-generation-block-form";
 import { TemplateBlockForm } from "@/components/blocks/template-block/form/template-block-form";
 import {
 	Page,
@@ -54,9 +49,7 @@ function RouteComponent() {
 				<PageTitle>
 					{isTemplateBlock(block.data)
 						? m.blocks_edit_template_page_title()
-						: isDatabaseBlock(block.data)
-							? m.blocks_edit_database_page_title()
-							: m.blocks_edit_image_generation_page_title()}
+						: m.blocks_edit_database_page_title()}
 				</PageTitle>
 			</PageHeader>
 			<PageContent>
@@ -69,9 +62,6 @@ function RouteComponent() {
 						block={block.data}
 						assets={block.assets}
 					/>
-				) : null}
-				{isImageGenerationBlock(block.data) ? (
-					<ImageGenerationBlockForm action="update" block={block.data} />
 				) : null}
 			</PageContent>
 		</Page>
