@@ -342,3 +342,86 @@ test("orgs: the home People panel leaves the invitations out for a viewer", asyn
 		}),
 	).toHaveCount(0);
 });
+
+test("orgs: a manager is not offered to delete an admin invitation", async ({
+	api,
+	org,
+	pageAs,
+}) => {
+	test.slow();
+
+	const adminEmail = invitationEmail("ui-admin-role");
+	await inviteEmail(api.as("admin"), {
+		email: adminEmail,
+		role: "admin",
+	});
+	const memberEmail = invitationEmail("ui-member-role");
+	await inviteEmail(api.as("admin"), {
+		email: memberEmail,
+		role: "member",
+	});
+
+	const page = await pageAs("manager");
+	await enterApp(page, org.slug);
+	await openGuarded(
+		page,
+		"/app/users/invites",
+		message("users_invites_page_title"),
+	);
+
+	const rowOf = (email: string) =>
+		page.getByRole("row").filter({
+			hasText: email,
+		});
+	const copyLinkItem = page.getByRole("menuitem", {
+		name: message("users_invites_table_copy_link_action"),
+	});
+	const openRowMenu = async (email: string) => {
+		await rowOf(email)
+			.getByRole("button", {
+				name: message("common_row_menu_trigger"),
+			})
+			.click();
+		await expect(copyLinkItem).toBeVisible();
+	};
+	const closeRowMenu = async () => {
+		await page.keyboard.press("Escape");
+		await expect(copyLinkItem).toHaveCount(0);
+	};
+	const deleteItem = page.getByRole("menuitem", {
+		name: message("users_invites_table_delete_action"),
+	});
+
+	await openRowMenu(memberEmail);
+	await expect(deleteItem).toBeVisible();
+	await closeRowMenu();
+
+	await openRowMenu(adminEmail);
+	await expect(deleteItem).toHaveCount(0);
+	await closeRowMenu();
+
+	// An admin invitation cannot be selected, so selecting the page leaves
+	// it out and bulk delete stays on offer for the rest.
+	const selectBox = (email: string) =>
+		rowOf(email).getByRole("checkbox", {
+			name: message("data_table_select_row_label"),
+		});
+	await expect(selectBox(adminEmail)).toBeDisabled();
+	await page
+		.getByRole("checkbox", {
+			name: message("data_table_select_all_rows_label"),
+		})
+		.click();
+	await expect(selectBox(memberEmail)).toBeChecked();
+	await expect(selectBox(adminEmail)).not.toBeChecked();
+	await page
+		.getByRole("button", {
+			name: message("data_table_bulk_actions_trigger"),
+		})
+		.click();
+	await expect(
+		page.getByRole("menuitem", {
+			name: message("common_delete_selected_action"),
+		}),
+	).toBeVisible();
+});

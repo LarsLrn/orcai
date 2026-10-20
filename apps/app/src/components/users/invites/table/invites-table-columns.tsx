@@ -1,4 +1,7 @@
-import type { OrganizationInvitationId } from "@orcai/core";
+import {
+	ORGANIZATION_ADMIN_ROLE,
+	type OrganizationInvitationId,
+} from "@orcai/core";
 import type { OrganizationInvitation } from "@orcai/schema";
 import { useRouter } from "@tanstack/react-router";
 import { createColumnHelper } from "@tanstack/react-table";
@@ -15,6 +18,7 @@ import {
 	DropdownMenuSeparator,
 	DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
+import { useOrganizationCapabilities } from "@/hooks/authz/use-capabilities";
 import { useDeleteOrganizationInvitationsMutation } from "@/hooks/mutations/use-organization-invitation-mutations";
 import { clientEnv } from "@/lib/env/client";
 import { reasonMessageOf } from "@/lib/errors/describe-error";
@@ -98,6 +102,12 @@ const ActionsCell = ({
 	invitation: OrganizationInvitation;
 }) => {
 	const router = useRouter();
+	const { data: capabilities } = useOrganizationCapabilities([
+		"manage_organization",
+	]);
+	const canDeleteInvitation =
+		invitation.role !== ORGANIZATION_ADMIN_ROLE ||
+		capabilities?.data.capabilities.manage_organization === true;
 
 	const handleCopyLink = (id: OrganizationInvitationId) => {
 		const location = router.buildLocation({
@@ -133,8 +143,12 @@ const ActionsCell = ({
 				<DropdownMenuItem onClick={() => handleCopyLink(invitation.id)}>
 					{m.users_invites_table_copy_link_action()}
 				</DropdownMenuItem>
-				<DropdownMenuSeparator />
-				<DeleteItem invitation={invitation} />
+				{canDeleteInvitation ? (
+					<>
+						<DropdownMenuSeparator />
+						<DeleteItem invitation={invitation} />
+					</>
+				) : null}
 			</DropdownMenuContent>
 		</DropdownMenu>
 	);
