@@ -6,8 +6,8 @@ Effect-based services).
 
 ## Verification
 
-`bun run verify` runs Biome, TypeScript, and the unit tests without any
-infrastructure. `bun run ci` adds ESLint, the docs type check, and the
+`bun run verify` runs Biome, TypeScript, the Drizzle migration check, and the
+unit tests without any infrastructure. `bun run ci` adds ESLint, the docs type check, and the
 production build; it is what GitHub Actions runs.
 
 Need the running app, workers, databases, or migrations? Use the `dev-stack`
