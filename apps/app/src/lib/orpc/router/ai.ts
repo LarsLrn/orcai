@@ -234,6 +234,7 @@ const aiChat = authed.ai.chat
 							model: chatAiSettings.model,
 							systemPrompt,
 							databaseBlocks: allDatabaseBlocks,
+							features: chatAiSettings.features,
 							generationParams: chatAiSettings.generationParams,
 							telemetryIds,
 							context: requestContext,

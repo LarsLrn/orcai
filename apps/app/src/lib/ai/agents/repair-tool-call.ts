@@ -3,10 +3,12 @@ import {
 	NoSuchToolError,
 	type ToolCallRepairFunction,
 } from "ai";
+import type { GenUiTools } from "@/components/chat/gen-ui/catalog";
 import type { buildKnowledgeBaseTools } from "@/lib/ai/tools/rag/toolset";
 import { RETRIEVAL_LIMITS } from "@/settings/constants";
 
-type KnowledgeBaseToolSet = ReturnType<typeof buildKnowledgeBaseTools>;
+export type ChatAgentTools = ReturnType<typeof buildKnowledgeBaseTools> &
+	GenUiTools;
 
 const isRecord = (value: unknown): value is Record<string, unknown> =>
 	value !== null && typeof value === "object" && !Array.isArray(value);
@@ -248,8 +250,9 @@ const repairToolInput = ({
 	}
 };
 
+/** Repairs knowledge-base tool input only; other calls are left as they are. */
 export const repairKnowledgeBaseToolCall: ToolCallRepairFunction<
-	KnowledgeBaseToolSet
+	ChatAgentTools
 > = ({ toolCall, error }) => {
 	if (NoSuchToolError.isInstance(error)) {
 		return Promise.resolve(null);

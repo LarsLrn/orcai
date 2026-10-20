@@ -1,5 +1,6 @@
 import { z } from "zod/v4";
 import { blockIdSchema } from "../block/ref";
+import { featuresSchema } from "../feature/schema";
 import { paginationInputSchema, zedTokenSchema } from "../shared";
 import { publicationStatusSchema } from "../shared/primitives/publication-status";
 import { createUniqueRefsInputSchema } from "../shared/ref-list";
@@ -31,6 +32,7 @@ export const saveBotInputSchema = z.object({
 	status: publicationStatusSchema,
 	templateBlockId: blockIdSchema.nullable().default(null),
 	databaseBlockIds: z.array(blockIdSchema).default([]),
+	features: featuresSchema.default({}),
 });
 
 export const publishBotInputSchema = z.object({

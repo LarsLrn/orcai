@@ -41,6 +41,8 @@ Name the bot and define the high-level metadata users will see.
 
 Choose or create the behaviour block that controls the bot's response style and instructions.
 
+Below the behaviour block, the Features section lists the built-in features the bot can enable. See [Features](#features).
+
 ### Content [step]
 
 Attach ready repository blocks that provide retrieval context.
@@ -59,6 +61,18 @@ The editor supports:
 - Linking existing blocks from block libraries; linked blocks you cannot edit appear read-only
 - Persisting linked blocks while progressing
 - Publishing when validation rules pass
+
+## Features
+
+Features are built-in behaviours that work alongside the template and repositories. They belong to the bot, not to its behaviour block: switching the template keeps the bot's features, and the same template can be used with or without them. Each feature is a switch in the Features section of the AI Behaviour step and is saved with the bot.
+
+Available features:
+
+- Generative UI: lets the model show structured results, such as checklists, in its answer. It is on by default for new bots. See [Generative UI](/docs/using-orcai/chat#generative-ui).
+
+Chats started from the bot use the bot's features. They cannot be changed in the chat settings.
+
+Bot cards and the bot page show the bot's enabled features.
 
 ## Publish Readiness Rules
 

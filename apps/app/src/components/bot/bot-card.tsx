@@ -1,5 +1,6 @@
 import type { BotWithCapabilities } from "@orcai/schema";
 import { BotIcon, EditIcon, EyeIcon } from "lucide-react";
+import { FeatureBadges } from "@/components/features/feature-badges";
 import {
 	DropdownMenu,
 	DropdownMenuContent,
@@ -139,7 +140,10 @@ const BotCard = ({
 					) : null}
 				</ResourceCardHeader>
 				<ResourceCardContent>
-					<ResourceCardBadges badges={badges} />
+					<div className="flex flex-wrap gap-1.5">
+						<ResourceCardBadges badges={badges} className="contents" />
+						<FeatureBadges features={bot.features} className="contents" />
+					</div>
 					<ResourceCardMeta meta={meta} />
 				</ResourceCardContent>
 			</ResourceCardBody>

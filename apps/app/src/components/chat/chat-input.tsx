@@ -24,6 +24,7 @@ import { ChatAssetPicker } from "@/components/chat/chat-asset-picker";
 import type { ChatDraft } from "@/components/chat/chat-draft";
 import { fetchWholeChat } from "@/components/chat/chat-history";
 import { ChatSettings } from "@/components/chat/chat-settings";
+import { messageToTranscriptMarkdown } from "@/components/chat/message/message-markdown";
 import { ModelSelectorButton } from "@/components/chat/model-selector";
 import { AppTourButton } from "@/components/next-step/app-tour-button";
 import { Button } from "@/components/ui/button";
@@ -190,6 +191,7 @@ const ChatInput = ({
 					chatId,
 					zedToken,
 				}),
+				messageToTranscriptMarkdown,
 			);
 		} catch (error) {
 			toast.error(m.chat_download_failed_toast_error(), {

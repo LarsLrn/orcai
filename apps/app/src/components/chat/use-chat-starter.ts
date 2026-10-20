@@ -1,5 +1,10 @@
 import type { BotId, ChatId } from "@orcai/core";
-import type { ChatConfig, Model, Provider } from "@orcai/schema";
+import {
+	type ChatConfig,
+	DEFAULT_FEATURES,
+	type Model,
+	type Provider,
+} from "@orcai/schema";
 import { skipToken, useQuery, useQueryClient } from "@tanstack/react-query";
 import { useCallback, useEffect, useState } from "react";
 import { toast } from "sonner";
@@ -88,6 +93,12 @@ const useChatStarter = ({
 					modelId: selectedModel.id,
 					providerId: selectedProvider.id,
 					...DEFAULT_CHAT_GENERATION_PARAMS,
+					// Bot chats use the bot's features and reject their own.
+					...(selectedBotId
+						? {}
+						: {
+								features: DEFAULT_FEATURES,
+							}),
 				};
 
 				const result = await client.chat.create({

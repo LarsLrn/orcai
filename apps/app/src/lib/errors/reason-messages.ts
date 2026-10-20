@@ -4,6 +4,7 @@ import type {
 	GrantRejection,
 	GrantRejectionReason,
 } from "@orcai/schema";
+import { featureLabel } from "@/components/features/feature-labels";
 import { formatList } from "@/lib/presentation/format-list";
 import { m } from "@/paraglide/messages";
 
@@ -62,6 +63,7 @@ const reasonMessages: ReasonMessages = {
 		}),
 	CHAT_BLOCKS_UNAVAILABLE: m.error_chat_blocks_unavailable,
 	CHAT_BOT_BLOCKS_IMMUTABLE: m.error_chat_bot_blocks_immutable,
+	CHAT_BOT_FEATURES_IMMUTABLE: m.error_chat_bot_features_immutable,
 	CHAT_MESSAGE_CREATE_FAILED: m.error_chat_message_create_failed,
 	CHAT_MESSAGE_ID_TAKEN: m.error_chat_message_id_taken,
 	CHAT_MESSAGE_NOT_FOUND: m.error_chat_message_not_found,
@@ -75,6 +77,11 @@ const reasonMessages: ReasonMessages = {
 	EMAIL_ALREADY_REGISTERED: m.error_email_already_registered,
 	EMAIL_NOT_VERIFIED: m.error_email_not_verified,
 	ENTITY_IDS_REQUIRED: m.error_entity_ids_required,
+	FEATURE_REQUIREMENT_MISSING: ({ feature, requirement }) =>
+		m.error_feature_requirement_missing({
+			feature: featureLabel(feature),
+			requirement: featureLabel(requirement),
+		}),
 	GRANT_NOT_RECORDED: m.error_grant_not_recorded,
 	GRANT_PRINCIPALS_INVALID: ({ rejections }) =>
 		[

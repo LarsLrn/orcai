@@ -2,6 +2,7 @@ import {
 	BookMarkedIcon,
 	FileTextIcon,
 	LibraryIcon,
+	ListChecksIcon,
 	type LucideIcon,
 	SearchIcon,
 	WrenchIcon,
@@ -38,6 +39,11 @@ const knownToolLabels: Record<KnownToolType, () => ToolLabels> = {
 		name: m.chat_work_log_tool_search_name(),
 		active: m.chat_work_log_tool_search_active(),
 		icon: SearchIcon,
+	}),
+	"tool-showChecklist": () => ({
+		name: m.chat_work_log_tool_show_checklist_name(),
+		active: m.chat_work_log_tool_show_checklist_active(),
+		icon: ListChecksIcon,
 	}),
 };
 

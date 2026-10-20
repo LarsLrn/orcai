@@ -1,4 +1,5 @@
 import { z } from "zod/v4";
+import type { FeatureId } from "../feature/schema";
 
 /** Stable codes the client translates; the server never sends user-facing prose. */
 export const ERROR_REASONS = [
@@ -29,6 +30,7 @@ export const ERROR_REASONS = [
 	"BOT_REPOSITORY_NOT_READY",
 	"CHAT_BLOCKS_UNAVAILABLE",
 	"CHAT_BOT_BLOCKS_IMMUTABLE",
+	"CHAT_BOT_FEATURES_IMMUTABLE",
 	"CHAT_MESSAGE_CREATE_FAILED",
 	"CHAT_MESSAGE_ID_TAKEN",
 	"CHAT_MESSAGE_NOT_FOUND",
@@ -41,6 +43,7 @@ export const ERROR_REASONS = [
 	"EMAIL_ALREADY_REGISTERED",
 	"EMAIL_NOT_VERIFIED",
 	"ENTITY_IDS_REQUIRED",
+	"FEATURE_REQUIREMENT_MISSING",
 	"GRANT_NOT_RECORDED",
 	"GRANT_PRINCIPALS_INVALID",
 	"GROUP_MEMBERS_INVALID",
@@ -137,6 +140,10 @@ export type ErrorReasonParams = {
 	};
 	BOT_REPOSITORY_NOT_READY: {
 		blockName: string;
+	};
+	FEATURE_REQUIREMENT_MISSING: {
+		feature: FeatureId;
+		requirement: FeatureId;
 	};
 	GRANT_PRINCIPALS_INVALID: {
 		rejections: GrantRejection[];

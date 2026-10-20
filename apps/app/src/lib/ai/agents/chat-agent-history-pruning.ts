@@ -1,34 +1,87 @@
 import { type ModelMessage, pruneMessages } from "ai";
 
-const ASSISTANT_TOOL_PART_TYPES = new Set([
-	"tool-call",
-	"tool-result",
-	"tool-approval-request",
-]);
+export interface ToolHistoryPruningOptions {
+	/** Every display tool name, enabled or not. */
+	displayToolNames: readonly string[];
+	/** Display tools offered this turn; their calls stay in history. */
+	enabledDisplayToolNames: readonly string[];
+}
 
-const isToolBearingAssistantMessage = (message: ModelMessage): boolean =>
-	message.role === "assistant" &&
-	Array.isArray(message.content) &&
-	message.content.some((part) => ASSISTANT_TOOL_PART_TYPES.has(part.type));
+type ToolCallsRule = Extract<
+	Parameters<typeof pruneMessages>[0]["toolCalls"],
+	unknown[]
+>[number];
 
-export const pruneToolHistory = (messages: ModelMessage[]): ModelMessage[] => {
+const toolPartsOf = (message: ModelMessage) =>
+	(message.role === "assistant" || message.role === "tool") &&
+	Array.isArray(message.content)
+		? message.content
+		: [];
+
+export const pruneToolHistory = (
+	messages: ModelMessage[],
+	{ displayToolNames, enabledDisplayToolNames }: ToolHistoryPruningOptions,
+): ModelMessage[] => {
+	const display = new Set(displayToolNames);
+	const toolNameById = new Map<string, string>();
+	for (const message of messages) {
+		for (const part of toolPartsOf(message)) {
+			if (part.type === "tool-call" || part.type === "tool-result") {
+				toolNameById.set(part.toolCallId, part.toolName);
+			}
+		}
+	}
+
+	const otherToolNames = [
+		...new Set(toolNameById.values()),
+	].filter((name) => !display.has(name));
+
+	const isOtherToolBearingAssistantMessage = (message: ModelMessage) =>
+		message.role === "assistant" &&
+		toolPartsOf(message).some((part) => {
+			if (part.type === "tool-call" || part.type === "tool-result") {
+				return !display.has(part.toolName);
+			}
+			if (part.type === "tool-approval-request") {
+				const name = toolNameById.get(part.toolCallId);
+				return name === undefined || !display.has(name);
+			}
+			return false;
+		});
+
+	const toolCalls: ToolCallsRule[] = [];
+
+	const disabledDisplayToolNames = displayToolNames.filter(
+		(name) => !enabledDisplayToolNames.includes(name),
+	);
+	if (disabledDisplayToolNames.length > 0) {
+		toolCalls.push({
+			type: "all",
+			tools: disabledDisplayToolNames,
+		});
+	}
+
 	let latestToolAssistantIndex = -1;
 	for (let index = messages.length - 1; index >= 0; index -= 1) {
-		if (isToolBearingAssistantMessage(messages[index])) {
+		if (isOtherToolBearingAssistantMessage(messages[index])) {
 			latestToolAssistantIndex = index;
 			break;
 		}
 	}
-
-	if (latestToolAssistantIndex === -1) {
-		return messages;
+	if (latestToolAssistantIndex !== -1 && otherToolNames.length > 0) {
+		const keptMessageCount = messages.length - latestToolAssistantIndex;
+		toolCalls.push({
+			type:
+				keptMessageCount === 1
+					? "before-last-message"
+					: `before-last-${keptMessageCount}-messages`,
+			tools: otherToolNames,
+		});
 	}
 
-	const keptMessageCount = messages.length - latestToolAssistantIndex;
-	const toolCalls =
-		keptMessageCount === 1
-			? "before-last-message"
-			: (`before-last-${keptMessageCount}-messages` as const);
+	if (toolCalls.length === 0) {
+		return messages;
+	}
 
 	return pruneMessages({
 		messages,
@@ -44,18 +97,19 @@ export const applyToolHistoryPruning = <
 	},
 >(
 	settings: T,
+	options: ToolHistoryPruningOptions,
 ): T => {
 	if (settings.messages) {
 		return {
 			...settings,
-			messages: pruneToolHistory(settings.messages),
+			messages: pruneToolHistory(settings.messages, options),
 		};
 	}
 
 	if (Array.isArray(settings.prompt)) {
 		return {
 			...settings,
-			prompt: pruneToolHistory(settings.prompt),
+			prompt: pruneToolHistory(settings.prompt, options),
 		};
 	}
 

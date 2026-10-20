@@ -1,4 +1,5 @@
 import { z } from "zod/v4";
+import { featuresSchema } from "../../feature/schema";
 import { modelIdSchema } from "../../model/ref";
 import { providerIdSchema } from "../../provider/ref";
 
@@ -11,6 +12,7 @@ export const chatConfigSchema = z.object({
 	topP: z.number().min(0).max(1).optional(),
 	frequencyPenalty: z.number().min(-2).max(2).optional(),
 	presencePenalty: z.number().min(-2).max(2).optional(),
+	features: featuresSchema.optional(),
 });
 
 export const chatConfigPatchSchema = z.object({
@@ -22,6 +24,7 @@ export const chatConfigPatchSchema = z.object({
 	topP: z.number().min(0).max(1).nullable().optional(),
 	frequencyPenalty: z.number().min(-2).max(2).nullable().optional(),
 	presencePenalty: z.number().min(-2).max(2).nullable().optional(),
+	features: featuresSchema.nullable().optional(),
 });
 
 export type ChatConfig = z.infer<typeof chatConfigSchema>;

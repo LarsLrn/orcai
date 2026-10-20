@@ -1,11 +1,13 @@
 import type { BlockId, BotId } from "@orcai/core";
-import type {
-	AssetWithCapabilities,
-	BotEditor,
-	DatabaseBlock,
-	EntityCapabilities,
-	PublicationStatus,
-	TemplateBlock,
+import {
+	type AssetWithCapabilities,
+	type BotEditor,
+	type DatabaseBlock,
+	DEFAULT_FEATURES,
+	type EntityCapabilities,
+	type FeatureId,
+	type PublicationStatus,
+	type TemplateBlock,
 } from "@orcai/schema";
 import { formOptions } from "@tanstack/react-form";
 import { createDefaultDatabaseBlock } from "@/components/authoring/database-block-editor";
@@ -38,6 +40,12 @@ type BotEditorDatabaseBlock = {
 	assets: AssetWithCapabilities[];
 };
 
+// zod infers `Record<string, never>` for empty settings, which TanStack Form's
+// DeepKeys collapses to never, dropping the `features` field name.
+type BotEditorFeatures = {
+	[Id in FeatureId]?: Record<never, never>;
+};
+
 export type BotEditorFormValues = {
 	id?: BotId;
 	name: string;
@@ -48,6 +56,7 @@ export type BotEditorFormValues = {
 	capabilities: EntityCapabilities<"bot">;
 	templateBlock: BotEditorTemplateBlock | null;
 	databaseBlocks: BotEditorDatabaseBlock[];
+	features: BotEditorFeatures;
 };
 
 const toBotEditorFormValues = (editor?: BotEditor): BotEditorFormValues => ({
@@ -81,6 +90,7 @@ const toBotEditorFormValues = (editor?: BotEditor): BotEditorFormValues => ({
 			contentHtml: databaseBlock.contentHtml ?? "",
 			assetIds: databaseBlock.assetIds ?? [],
 		})) ?? [],
+	features: editor ? editor.features : DEFAULT_FEATURES,
 });
 
 export const botEditorFormOptions = (editor?: BotEditor) =>
