@@ -56,7 +56,7 @@ export const Route = createFileRoute("/_pathlessLayout/select-organization")({
 		);
 
 		const invitations = await queryClient.query(
-			orpc.organizationInvitation.list.queryOptions({
+			orpc.organizationInvitation.listMine.queryOptions({
 				input: invitationsPageInput({
 					status: "pending",
 				}),
@@ -87,7 +87,7 @@ function PendingInvitationsSection({
 	onAccepted: () => void | Promise<void>;
 }) {
 	const { data: invitations } = useSuspenseQuery(
-		orpc.organizationInvitation.list.queryOptions({
+		orpc.organizationInvitation.listMine.queryOptions({
 			input: invitationsPageInput({
 				status: "pending",
 			}),

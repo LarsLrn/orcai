@@ -16,14 +16,12 @@ test("account: a user sends the verification email and the link verifies the add
 	api,
 	appBaseURL,
 	browser,
-	org,
 	outbox,
 }) => {
 	const user = await createAccountUser({
 		baseURL: appBaseURL,
 		label: "verify",
 		admin: api.as("admin"),
-		organisation: org,
 	});
 
 	// Signing up already queued one verification mail, so the resend is only

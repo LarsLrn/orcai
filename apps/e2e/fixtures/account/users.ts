@@ -2,7 +2,7 @@ import { type ApiClient, createApiClient } from "../api";
 import { type Session, signUpInvited } from "../auth";
 import { untilAllowed } from "../authorization";
 import { EMAIL_DOMAIN, USER_PASSWORD } from "../constants";
-import { runId, type WorkerOrganisation } from "../organisation";
+import { runId } from "../organisation";
 
 /** A user owned by the account slice.
  * Each spec changes the account it signs in with. */
@@ -20,9 +20,8 @@ export const createAccountUser = async (params: {
 	baseURL: string;
 	/** Goes into the address and the display name, so failures name the spec. */
 	label: string;
-	/** Client of an admin of `organisation`, which sends the invitation. */
+	/** Client whose active organisation the user joins; it sends the invitation. */
 	admin: ApiClient;
-	organisation: WorkerOrganisation;
 }): Promise<AccountUser> => {
 	const name = `E2E Account ${params.label}`;
 	const email = `account-${params.label}-${runId()}@${EMAIL_DOMAIN}`;
@@ -30,7 +29,6 @@ export const createAccountUser = async (params: {
 	const session = await signUpInvited({
 		baseURL: params.baseURL,
 		admin: params.admin,
-		organisation: params.organisation,
 		role: "member",
 		name,
 		email,
@@ -43,7 +41,6 @@ export const createAccountUser = async (params: {
 	// here for it to be readable; every later read of this user sees it.
 	await untilAllowed(() =>
 		api.organizationMember.list({
-			organizationId: params.organisation.id,
 			pageIndex: 0,
 			pageSize: 1,
 		}),

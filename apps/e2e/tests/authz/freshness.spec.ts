@@ -117,7 +117,6 @@ test("a session that has never seen a zedToken still reads what it was granted",
 	// one in the file that is repeated.
 	const members = await untilAllowed(() =>
 		viewer.organizationMember.list({
-			organizationId: org.id,
 			pageIndex: 0,
 			pageSize: 100,
 		}),

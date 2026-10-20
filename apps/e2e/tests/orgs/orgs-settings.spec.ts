@@ -5,51 +5,59 @@ import { enterApp } from "../../fixtures/navigation";
 import { runId } from "../../fixtures/organisation";
 import { openGuarded } from "../../fixtures/orgs/navigation";
 
-/** The id the app puts in the detail URL once an organisation exists. */
-const ORGANISATION_URL = /\/app\/orgs\/([0-9a-f-]{36})$/;
-
-test("orgs: an admin edits the settings of its organisation", async ({
+test("orgs: an admin edits the settings of its active organisation", async ({
 	api,
 	orgs,
 	pageAs,
 }) => {
 	test.slow();
 
-	// Creating an organisation is an instance action, so the organisation comes
-	// from the fixture, which runs as the well-known admin. A throwaway one,
-	// because renaming the worker's own would confuse the rest of the slice.
+	// A throwaway organisation, because renaming the worker's own would confuse
+	// the rest of the slice.
 	const created = await orgs.create(`E2E Orgs Settings ${runId()}`);
 	const page = await pageAs("admin", created);
 
 	await enterApp(page, created.slug);
-
-	// Reached by id; the detail page is the only place the slug is shown.
-	await openGuarded(page, `/app/orgs/${created.id}`, created.name);
-	await expect(page.getByText(created.slug)).toBeVisible();
-
-	const renamed = `${created.name} Renamed`;
-
 	await openGuarded(
 		page,
-		`/app/orgs/${created.id}/edit`,
-		message("orgs_edit_page_title"),
+		"/app/organization",
+		message("orgs_settings_page_title"),
 	);
 
-	// Saving sends the browser back to the detail page it came from.
+	const name = page.getByLabel(message("orgs_form_name_label"));
+	const slug = page.getByLabel(message("orgs_form_slug_label"));
+	const logo = page.getByLabel(message("orgs_form_logo_label"));
+
+	await expect(name).toHaveValue(created.name);
+	await expect(slug).toHaveValue(created.slug);
+	await expect(page.getByText(created.id)).toBeVisible();
+
+	const renamed = `${created.name} Renamed`;
+	const reslugged = `${created.slug}-renamed`;
+	const logoUrl = `https://example.org/${reslugged}.svg`;
+
 	await submitForm(page, {
 		fill: async () => {
-			await page.getByLabel(message("orgs_form_name_label")).fill(renamed);
-			await page.getByLabel(message("orgs_form_slug_label")).fill(created.slug);
+			await name.fill(renamed);
+			await slug.fill(reslugged);
+			await logo.fill(logoUrl);
 		},
 		submit: message("orgs_form_submit_button"),
-		until: ORGANISATION_URL,
+		until: /\/app\/organization$/,
 	});
 
-	await openGuarded(page, `/app/orgs/${created.id}`, renamed);
+	// The sidebar's user menu carries the organisation name.
+	await expect(
+		page.getByRole("button", {
+			name: renamed,
+		}),
+	).toBeVisible();
+	await expect(name).toHaveValue(renamed);
 
 	const found = await api.as("admin", created).organization.find({
 		id: created.id,
 	});
 	expect(found.data.name).toBe(renamed);
-	expect(found.data.slug).toBe(created.slug);
+	expect(found.data.slug).toBe(reslugged);
+	expect(found.data.logo).toBe(logoUrl);
 });

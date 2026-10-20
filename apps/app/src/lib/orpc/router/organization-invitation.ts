@@ -1,11 +1,23 @@
-import { normalizeEmail, type UserId } from "@orcai/core";
+import { normalizeEmail } from "@orcai/core";
 import { DB, dbSchema } from "@orcai/db";
 import {
 	notificationOutboxValues,
 	wakeNotificationWorker,
 } from "@orcai/notifications";
-import type { OrganizationInvitationSortKey } from "@orcai/schema";
-import { and, count, desc, eq, getColumns, inArray, or } from "drizzle-orm";
+import type {
+	ListOrganizationInvitationsInput,
+	OrganizationInvitationSortKey,
+} from "@orcai/schema";
+import {
+	and,
+	count,
+	desc,
+	eq,
+	getColumns,
+	inArray,
+	or,
+	type SQL,
+} from "drizzle-orm";
 import * as Effect from "effect/Effect";
 import {
 	acceptInvitation as acceptInvitedMembership,
@@ -16,62 +28,49 @@ import { AppConfigService } from "@/lib/effect/services/config";
 import * as AppErrors from "@/lib/effect/utils/errors";
 import { authed } from "@/lib/orpc/implementation/authed";
 import { os } from "@/lib/orpc/implementation/os";
-import { requireActiveOrganizationMiddleware } from "@/lib/orpc/middlewares/auth";
-import {
-	type CheckManyPermissionInputFor,
-	checkManyPermissionMiddleware,
-	requireEntityPermission,
-} from "@/lib/orpc/middlewares/permission";
+import { requireOrganizationPermission } from "@/lib/orpc/middlewares/permission";
 import {
 	assertCanManageOrganizationAdmins,
 	organizationRoleRequiresAdminControl,
 } from "./helpers/organization-role-policy";
 import { buildOrderBy, type SortExpression } from "./helpers/sorting";
 
-/** Invitations the caller was sent or sent themselves. */
-const invitationScope = (user: { id: UserId; email: string }) =>
-	or(
-		invitationAddressedTo(user.email),
-		eq(dbSchema.invitation.inviterId, user.id),
-	);
+const invitationOrderBy = (sort: ListOrganizationInvitationsInput["sort"]) =>
+	buildOrderBy({
+		sort,
+		allowlist: {
+			email: dbSchema.invitation.email,
+			id: dbSchema.invitation.id,
+			expiresAt: dbSchema.invitation.expiresAt,
+			status: dbSchema.invitation.status,
+			role: dbSchema.invitation.role,
+			createdAt: dbSchema.invitation.createdAt,
+		} satisfies Record<OrganizationInvitationSortKey, SortExpression>,
+		defaultOrder: [
+			desc(dbSchema.invitation.createdAt),
+		],
+		tieBreaker: {
+			id: "id",
+			expression: dbSchema.invitation.id,
+		},
+	});
 
-const listOrganizationInvitations = authed.organizationInvitation.list.effect(
-	function* ({ input, context }) {
+/** One page of the invitations in `scope`, with the organisation's name and slug. */
+const listInvitations = (
+	scope: SQL | undefined,
+	input: ListOrganizationInvitationsInput,
+) =>
+	Effect.gen(function* () {
 		const db = yield* DB;
 
-		const baseScopeClause =
-			input.filters?.recipient === "me"
-				? invitationAddressedTo(context.auth.user.email)
-				: invitationScope(context.auth.user);
-
 		const whereClause = and(
-			baseScopeClause,
-			input.organizationId
-				? eq(dbSchema.invitation.organizationId, input.organizationId)
-				: undefined,
+			scope,
 			input.filters?.status
 				? eq(dbSchema.invitation.status, input.filters.status)
 				: undefined,
 		);
 
-		const orderBy = yield* buildOrderBy({
-			sort: input.sort,
-			allowlist: {
-				email: dbSchema.invitation.email,
-				id: dbSchema.invitation.id,
-				expiresAt: dbSchema.invitation.expiresAt,
-				status: dbSchema.invitation.status,
-				role: dbSchema.invitation.role,
-				createdAt: dbSchema.invitation.createdAt,
-			} satisfies Record<OrganizationInvitationSortKey, SortExpression>,
-			defaultOrder: [
-				desc(dbSchema.invitation.createdAt),
-			],
-			tieBreaker: {
-				id: "id",
-				expression: dbSchema.invitation.id,
-			},
-		});
+		const orderBy = yield* invitationOrderBy(input.sort);
 
 		const [data, [rowCount]] = yield* Effect.all(
 			[
@@ -106,8 +105,27 @@ const listOrganizationInvitations = authed.organizationInvitation.list.effect(
 			data,
 			rowCount: rowCount.count,
 		};
-	},
-);
+	});
+
+const listOrganizationInvitations = authed.organizationInvitation.list
+	.use(requireOrganizationPermission("invite_members"))
+	.effect(function* ({ input, context }) {
+		return yield* listInvitations(
+			eq(
+				dbSchema.invitation.organizationId,
+				context.auth.session.activeOrganizationId,
+			),
+			input,
+		);
+	});
+
+const listMyOrganizationInvitations =
+	authed.organizationInvitation.listMine.effect(function* ({ input, context }) {
+		return yield* listInvitations(
+			invitationAddressedTo(context.auth.user.email),
+			input,
+		);
+	});
 
 const findOrganizationInvitation = authed.organizationInvitation.find.effect(
 	function* ({ input, context }) {
@@ -121,7 +139,10 @@ const findOrganizationInvitation = authed.organizationInvitation.find.effect(
 			.where(
 				and(
 					eq(dbSchema.invitation.id, input.id),
-					invitationScope(context.auth.user),
+					or(
+						invitationAddressedTo(context.auth.user.email),
+						eq(dbSchema.invitation.inviterId, context.auth.user.id),
+					),
 				),
 			)
 			.limit(1);
@@ -203,19 +224,15 @@ const validateOrganizationInvitation =
 	});
 
 const createOrganizationInvitations = authed.organizationInvitation.create
-	.use(requireActiveOrganizationMiddleware)
-	.use(
-		requireEntityPermission("organization", "invite_members", {
-			entityId: "organizationId",
-		}),
-	)
+	.use(requireOrganizationPermission("invite_members"))
 	.effect(function* ({ input, context }) {
 		const db = yield* DB;
 		const { config } = yield* AppConfigService;
+		const organizationId = context.auth.session.activeOrganizationId;
 		const organization = yield* db.query.organization.findFirst({
 			where: {
 				id: {
-					eq: input.organizationId,
+					eq: organizationId,
 				},
 			},
 		});
@@ -230,7 +247,7 @@ const createOrganizationInvitations = authed.organizationInvitation.create
 
 		if (organizationRoleRequiresAdminControl(input.role)) {
 			yield* assertCanManageOrganizationAdmins({
-				organizationId: input.organizationId,
+				organizationId,
 				userId: context.auth.user.id,
 				zedToken: getZedToken(context),
 			});
@@ -238,7 +255,7 @@ const createOrganizationInvitations = authed.organizationInvitation.create
 
 		const invitations = input.items.map((item) => ({
 			email: item.email,
-			organizationId: input.organizationId,
+			organizationId,
 			role: input.role,
 			status: "pending" as const,
 			expiresAt: input.expiresAt,
@@ -287,12 +304,8 @@ const createOrganizationInvitations = authed.organizationInvitation.create
 	});
 
 const updateOrganizationInvitation = authed.organizationInvitation.update
-	.use(
-		requireEntityPermission("organization", "invite_members", {
-			entityId: "organizationId",
-		}),
-	)
-	.effect(function* ({ input }) {
+	.use(requireOrganizationPermission("invite_members"))
+	.effect(function* ({ input, context }) {
 		const db = yield* DB;
 
 		const [invitation] = yield* db
@@ -305,7 +318,10 @@ const updateOrganizationInvitation = authed.organizationInvitation.update
 			.where(
 				and(
 					eq(dbSchema.invitation.id, input.id),
-					eq(dbSchema.invitation.organizationId, input.organizationId),
+					eq(
+						dbSchema.invitation.organizationId,
+						context.auth.session.activeOrganizationId,
+					),
 				),
 			)
 			.returning({
@@ -328,18 +344,10 @@ const updateOrganizationInvitation = authed.organizationInvitation.update
 	});
 
 const deleteOrganizationInvitations = authed.organizationInvitation.delete
-	.use(
-		checkManyPermissionMiddleware("organization").adaptInput(
-			(input): CheckManyPermissionInputFor<"organization"> => ({
-				entityIds: [
-					input.organizationId,
-				],
-				permission: "invite_members",
-			}),
-		),
-	)
-	.effect(function* ({ input }) {
+	.use(requireOrganizationPermission("invite_members"))
+	.effect(function* ({ input, context }) {
 		const db = yield* DB;
+		const organizationId = context.auth.session.activeOrganizationId;
 
 		const ids = input.refs.map((ref) => ref.id);
 		const existingInvitations = yield* db
@@ -349,7 +357,7 @@ const deleteOrganizationInvitations = authed.organizationInvitation.delete
 			.from(dbSchema.invitation)
 			.where(
 				and(
-					eq(dbSchema.invitation.organizationId, input.organizationId),
+					eq(dbSchema.invitation.organizationId, organizationId),
 					inArray(dbSchema.invitation.id, ids),
 				),
 			);
@@ -367,7 +375,7 @@ const deleteOrganizationInvitations = authed.organizationInvitation.delete
 			.delete(dbSchema.invitation)
 			.where(
 				and(
-					eq(dbSchema.invitation.organizationId, input.organizationId),
+					eq(dbSchema.invitation.organizationId, organizationId),
 					inArray(dbSchema.invitation.id, ids),
 				),
 			);
@@ -507,6 +515,7 @@ const respondToOrganizationInvitation =
 
 export const organizationInvitationRouter = {
 	list: listOrganizationInvitations,
+	listMine: listMyOrganizationInvitations,
 	create: createOrganizationInvitations,
 	find: findOrganizationInvitation,
 	validate: validateOrganizationInvitation,

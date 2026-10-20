@@ -5,6 +5,8 @@ import {
 	deleteOrganizationInvitationsResponseSchema,
 	findOrganizationInvitationInputSchema,
 	findOrganizationInvitationResponseSchema,
+	listMyOrganizationInvitationsInputSchema,
+	listMyOrganizationInvitationsResponseSchema,
 	listOrganizationInvitationsInputSchema,
 	listOrganizationInvitationsResponseSchema,
 	respondToOrganizationInvitationInputSchema,
@@ -22,8 +24,8 @@ export const organizationInvitationContracts = {
 		.meta(
 			openapi({
 				method: "GET",
-				path: "/organizations/invitations",
-				summary: "List all organization invitations",
+				path: "/invitations",
+				summary: "List invitations of the active organization",
 				tags: [
 					"Organization Invitations",
 				],
@@ -31,12 +33,25 @@ export const organizationInvitationContracts = {
 		)
 		.input(listOrganizationInvitationsInputSchema)
 		.output(listOrganizationInvitationsResponseSchema),
+	listMine: base
+		.meta(
+			openapi({
+				method: "GET",
+				path: "/users/me/invitations",
+				summary: "List invitations addressed to the current user",
+				tags: [
+					"Organization Invitations",
+				],
+			}),
+		)
+		.input(listMyOrganizationInvitationsInputSchema)
+		.output(listMyOrganizationInvitationsResponseSchema),
 	create: base
 		.meta(
 			openapi({
 				method: "POST",
-				path: "/organizations/{organizationId}/invitations",
-				summary: "Create many organization invitations",
+				path: "/invitations",
+				summary: "Invite many users to the active organization",
 				tags: [
 					"Organization Invitations",
 				],
@@ -74,8 +89,8 @@ export const organizationInvitationContracts = {
 		.meta(
 			openapi({
 				method: "PUT",
-				path: "/organizations/{organizationId}/invitations/{id}",
-				summary: "Update an organization invitation",
+				path: "/invitations/{id}",
+				summary: "Update an invitation of the active organization",
 				tags: [
 					"Organization Invitations",
 				],
@@ -87,8 +102,8 @@ export const organizationInvitationContracts = {
 		.meta(
 			openapi({
 				method: "DELETE",
-				path: "/organizations/{organizationId}/invitations",
-				summary: "Delete organization invitations",
+				path: "/invitations",
+				summary: "Delete invitations of the active organization",
 				tags: [
 					"Organization Invitations",
 				],

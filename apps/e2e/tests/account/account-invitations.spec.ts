@@ -14,21 +14,18 @@ test("account: the invitations card shows a pending invitation and accepting it 
 	api,
 	appBaseURL,
 	browser,
-	org,
 	orgs,
 }) => {
 	const user = await createAccountUser({
 		baseURL: appBaseURL,
 		label: "invite",
 		admin: api.as("admin"),
-		organisation: org,
 	});
 
 	// The invitation has to come from an organisation the user is not in yet.
 	const second = await orgs.create("Account Invitations");
 
 	await api.as("admin", second).organizationInvitation.create({
-		organizationId: second.id,
 		role: "member",
 		expiresAt: new Date(Date.now() + ONE_WEEK),
 		items: [
@@ -89,19 +86,16 @@ test("account: the invitations card names the inviting organisation", async ({
 	api,
 	appBaseURL,
 	browser,
-	org,
 	orgs,
 }) => {
 	const user = await createAccountUser({
 		baseURL: appBaseURL,
 		label: "invite-name",
 		admin: api.as("admin"),
-		organisation: org,
 	});
 	const second = await orgs.create("Account Invitation Name");
 
 	await api.as("admin", second).organizationInvitation.create({
-		organizationId: second.id,
 		role: "member",
 		expiresAt: new Date(Date.now() + ONE_WEEK),
 		items: [

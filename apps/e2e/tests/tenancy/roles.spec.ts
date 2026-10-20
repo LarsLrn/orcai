@@ -1,4 +1,4 @@
-import type { OrganizationId, UserId } from "@orcai/core";
+import type { UserId } from "@orcai/core";
 import { userIdSchema } from "@orcai/schema";
 import type { ApiClient } from "../../fixtures/api";
 import { signUpInvited } from "../../fixtures/auth";
@@ -33,18 +33,14 @@ const BELOW_ADMIN = [
 	...UNPRIVILEGED,
 ] as const;
 
-/** A new user invited into an organisation as a member, for membership mutations to aim at. */
+/** A new user invited into the active organisation of `admin` as a member, for membership mutations to aim at. */
 const invitedMember = async (
 	admin: ApiClient,
-	organizationId: OrganizationId,
 	label: string,
 ): Promise<UserId> => {
 	const session = await signUpInvited({
 		baseURL: baseURL(),
 		admin,
-		organisation: {
-			id: organizationId,
-		},
 		role: "member",
 		name: `E2E Tenancy ${label}`,
 		email: `e2e-tenancy-${label}-${runId()}@${EMAIL_DOMAIN}`,
@@ -64,7 +60,6 @@ test("every role reads its own organisation and its members", async ({
 		expect(found.data.slug).toBe(org.slug);
 
 		const members = await api.as(role).organizationMember.list({
-			organizationId: org.id,
 			pageIndex: 0,
 			pageSize: 100,
 		});
@@ -132,18 +127,21 @@ test("no organisation role may delete an organisation", async ({
 test("the instance admin deletes an organisation", async ({ api, orgs }) => {
 	const throwaway = await orgs.create("E2E Instance Admin Deletes");
 	const invitee = `e2e-tenancy-deleted-org-${runId()}@${EMAIL_DOMAIN}`;
-	await invitedMember(api.asWellKnownAdmin(), throwaway.id, "deleted-org");
-
-	await api.asWellKnownAdmin().organizationInvitation.create({
-		organizationId: throwaway.id,
-		role: "member",
-		expiresAt: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000),
-		items: [
-			{
-				email: invitee,
-			},
-		],
-	});
+	// Invitations go to the caller's active organisation. The throwaway admin's
+	// membership comes from the sign-up hook, which answers no zedToken.
+	const throwawayAdmin = api.as("admin", throwaway);
+	await untilAllowed(() =>
+		throwawayAdmin.organizationInvitation.create({
+			role: "member",
+			expiresAt: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000),
+			items: [
+				{
+					email: invitee,
+				},
+			],
+		}),
+	);
+	await invitedMember(throwawayAdmin, "deleted-org");
 
 	const impact = await api.asWellKnownAdmin().organization.deletionImpact({
 		id: throwaway.id,
@@ -193,13 +191,12 @@ test("only the instance admin creates an organisation", async ({ api }) => {
 	expect(created.data.slug).toBe(slug);
 });
 
-test("only managers and admins change members", async ({ api, org }) => {
-	const userId = await invitedMember(api.as("admin"), org.id, "changed");
+test("only managers and admins change members", async ({ api }) => {
+	const userId = await invitedMember(api.as("admin"), "changed");
 
 	for (const role of UNPRIVILEGED) {
 		await expectForbidden(
 			api.as(role).organizationMember.update({
-				organizationId: org.id,
 				userId,
 				role: "viewer",
 			}),
@@ -207,7 +204,6 @@ test("only managers and admins change members", async ({ api, org }) => {
 	}
 
 	const demoted = await api.as("manager").organizationMember.update({
-		organizationId: org.id,
 		userId,
 		role: "viewer",
 	});
@@ -217,21 +213,18 @@ test("only managers and admins change members", async ({ api, org }) => {
 	// does not have.
 	await expectForbidden(
 		api.as("manager").organizationMember.update({
-			organizationId: org.id,
 			userId,
 			role: "admin",
 		}),
 	);
 
 	const promoted = await api.as("admin").organizationMember.update({
-		organizationId: org.id,
 		userId,
 		role: "admin",
 	});
 	expect(promoted.data.role).toBe("admin");
 
 	await api.as("admin").organizationMember.delete({
-		organizationId: org.id,
 		refs: [
 			{
 				userId,
@@ -242,21 +235,11 @@ test("only managers and admins change members", async ({ api, org }) => {
 
 test("only managers and admins remove members, and only an admin removes an admin", async ({
 	api,
-	org,
 }) => {
-	const memberUserId = await invitedMember(
-		api.as("admin"),
-		org.id,
-		"removed-member",
-	);
-	const adminUserId = await invitedMember(
-		api.as("admin"),
-		org.id,
-		"removed-admin",
-	);
+	const memberUserId = await invitedMember(api.as("admin"), "removed-member");
+	const adminUserId = await invitedMember(api.as("admin"), "removed-admin");
 
 	await api.as("admin").organizationMember.update({
-		organizationId: org.id,
 		userId: adminUserId,
 		role: "admin",
 	});
@@ -264,7 +247,6 @@ test("only managers and admins remove members, and only an admin removes an admi
 	for (const role of UNPRIVILEGED) {
 		await expectForbidden(
 			api.as(role).organizationMember.delete({
-				organizationId: org.id,
 				refs: [
 					{
 						userId: memberUserId,
@@ -275,7 +257,6 @@ test("only managers and admins remove members, and only an admin removes an admi
 	}
 
 	const removed = await api.as("manager").organizationMember.delete({
-		organizationId: org.id,
 		refs: [
 			{
 				userId: memberUserId,
@@ -286,7 +267,6 @@ test("only managers and admins remove members, and only an admin removes an admi
 
 	await expectForbidden(
 		api.as("manager").organizationMember.delete({
-			organizationId: org.id,
 			refs: [
 				{
 					userId: adminUserId,
@@ -296,7 +276,6 @@ test("only managers and admins remove members, and only an admin removes an admi
 	);
 
 	const removedAdmin = await api.as("admin").organizationMember.delete({
-		organizationId: org.id,
 		refs: [
 			{
 				userId: adminUserId,

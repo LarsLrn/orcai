@@ -5,8 +5,8 @@ import { enterApp, open } from "../../fixtures/navigation";
 /** The management pages and the heading each one puts on the screen. */
 const MANAGEMENT_PAGES = [
 	{
-		path: "/app/orgs",
-		heading: "Organisations",
+		path: "/app/organization",
+		heading: "Organisation",
 	},
 	{
 		path: "/app/users",

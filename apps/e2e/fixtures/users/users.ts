@@ -72,7 +72,6 @@ export const addMember = async (
 	const invited = await api
 		.as("admin", organisation)
 		.organizationInvitation.create({
-			organizationId: organisation.id,
 			role,
 			expiresAt: new Date(Date.now() + ONE_WEEK),
 			items: [

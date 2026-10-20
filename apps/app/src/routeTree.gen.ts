@@ -28,7 +28,7 @@ import { Route as AppChatRouteRouteImport } from './routes/app/chat/route'
 import { Route as AppGroupsRouteRouteImport } from './routes/app/groups/route'
 import { Route as AppHubRouteRouteImport } from './routes/app/hub/route'
 import { Route as AppModelsRouteRouteImport } from './routes/app/models/route'
-import { Route as AppOrgsRouteRouteImport } from './routes/app/orgs/route'
+import { Route as AppOrganizationRouteRouteImport } from './routes/app/organization/route'
 import { Route as AppProvidersRouteRouteImport } from './routes/app/providers/route'
 import { Route as AppQuotasRouteRouteImport } from './routes/app/quotas/route'
 import { Route as AppUsersRouteRouteImport } from './routes/app/users/route'
@@ -50,8 +50,7 @@ import { Route as AppHubBotsRouteRouteImport } from './routes/app/hub/bots/route
 import { Route as AppModelsIndexRouteImport } from './routes/app/models/index'
 import { Route as AppModelsModelIdRouteRouteImport } from './routes/app/models/$modelId/route'
 import { Route as AppModelsAddRouteImport } from './routes/app/models/add'
-import { Route as AppOrgsIndexRouteImport } from './routes/app/orgs/index'
-import { Route as AppOrgsOrgIdRouteRouteImport } from './routes/app/orgs/$orgId/route'
+import { Route as AppOrganizationIndexRouteImport } from './routes/app/organization/index'
 import { Route as AppProvidersIndexRouteImport } from './routes/app/providers/index'
 import { Route as AppProvidersProviderIdRouteRouteImport } from './routes/app/providers/$providerId/route'
 import { Route as AppProvidersAddRouteImport } from './routes/app/providers/add'
@@ -78,8 +77,6 @@ import { Route as AppHubBotsAddRouteImport } from './routes/app/hub/bots/add'
 import { Route as AppHubRepositoriesIndexRouteImport } from './routes/app/hub/repositories/index'
 import { Route as AppModelsModelIdIndexRouteImport } from './routes/app/models/$modelId/index'
 import { Route as AppModelsModelIdEditRouteImport } from './routes/app/models/$modelId/edit'
-import { Route as AppOrgsOrgIdIndexRouteImport } from './routes/app/orgs/$orgId/index'
-import { Route as AppOrgsOrgIdEditRouteImport } from './routes/app/orgs/$orgId/edit'
 import { Route as AppProvidersProviderIdIndexRouteImport } from './routes/app/providers/$providerId/index'
 import { Route as AppProvidersProviderIdEditRouteImport } from './routes/app/providers/$providerId/edit'
 import { Route as AppQuotasQuotaPoolIdIndexRouteImport } from './routes/app/quotas/$quotaPoolId/index'
@@ -193,9 +190,9 @@ const AppModelsRouteRoute = AppModelsRouteRouteImport.update({
   path: '/models',
   getParentRoute: () => AppRouteRoute,
 } as any)
-const AppOrgsRouteRoute = AppOrgsRouteRouteImport.update({
-  id: '/orgs',
-  path: '/orgs',
+const AppOrganizationRouteRoute = AppOrganizationRouteRouteImport.update({
+  id: '/organization',
+  path: '/organization',
   getParentRoute: () => AppRouteRoute,
 } as any)
 const AppProvidersRouteRoute = AppProvidersRouteRouteImport.update({
@@ -303,15 +300,10 @@ const AppModelsAddRoute = AppModelsAddRouteImport.update({
   path: '/add',
   getParentRoute: () => AppModelsRouteRoute,
 } as any)
-const AppOrgsIndexRoute = AppOrgsIndexRouteImport.update({
+const AppOrganizationIndexRoute = AppOrganizationIndexRouteImport.update({
   id: '/',
   path: '/',
-  getParentRoute: () => AppOrgsRouteRoute,
-} as any)
-const AppOrgsOrgIdRouteRoute = AppOrgsOrgIdRouteRouteImport.update({
-  id: '/$orgId',
-  path: '/$orgId',
-  getParentRoute: () => AppOrgsRouteRoute,
+  getParentRoute: () => AppOrganizationRouteRoute,
 } as any)
 const AppProvidersIndexRoute = AppProvidersIndexRouteImport.update({
   id: '/',
@@ -448,16 +440,6 @@ const AppModelsModelIdEditRoute = AppModelsModelIdEditRouteImport.update({
   path: '/edit',
   getParentRoute: () => AppModelsModelIdRouteRoute,
 } as any)
-const AppOrgsOrgIdIndexRoute = AppOrgsOrgIdIndexRouteImport.update({
-  id: '/',
-  path: '/',
-  getParentRoute: () => AppOrgsOrgIdRouteRoute,
-} as any)
-const AppOrgsOrgIdEditRoute = AppOrgsOrgIdEditRouteImport.update({
-  id: '/edit',
-  path: '/edit',
-  getParentRoute: () => AppOrgsOrgIdRouteRoute,
-} as any)
 const AppProvidersProviderIdIndexRoute =
   AppProvidersProviderIdIndexRouteImport.update({
     id: '/',
@@ -546,7 +528,7 @@ export interface FileRoutesByFullPath {
   '/app/groups': typeof AppGroupsRouteRouteWithChildren
   '/app/hub': typeof AppHubRouteRouteWithChildren
   '/app/models': typeof AppModelsRouteRouteWithChildren
-  '/app/orgs': typeof AppOrgsRouteRouteWithChildren
+  '/app/organization': typeof AppOrganizationRouteRouteWithChildren
   '/app/providers': typeof AppProvidersRouteRouteWithChildren
   '/app/quotas': typeof AppQuotasRouteRouteWithChildren
   '/app/users': typeof AppUsersRouteRouteWithChildren
@@ -566,7 +548,6 @@ export interface FileRoutesByFullPath {
   '/app/hub/blocks': typeof AppHubBlocksRouteRouteWithChildren
   '/app/hub/bots': typeof AppHubBotsRouteRouteWithChildren
   '/app/models/$modelId': typeof AppModelsModelIdRouteRouteWithChildren
-  '/app/orgs/$orgId': typeof AppOrgsOrgIdRouteRouteWithChildren
   '/app/providers/$providerId': typeof AppProvidersProviderIdRouteRouteWithChildren
   '/app/quotas/$quotaPoolId': typeof AppQuotasQuotaPoolIdRouteRouteWithChildren
   '/app/users/$userId': typeof AppUsersUserIdRouteRouteWithChildren
@@ -586,7 +567,7 @@ export interface FileRoutesByFullPath {
   '/app/groups/': typeof AppGroupsIndexRoute
   '/app/hub/': typeof AppHubIndexRoute
   '/app/models/': typeof AppModelsIndexRoute
-  '/app/orgs/': typeof AppOrgsIndexRoute
+  '/app/organization/': typeof AppOrganizationIndexRoute
   '/app/providers/': typeof AppProvidersIndexRoute
   '/app/quotas/': typeof AppQuotasIndexRoute
   '/app/users/': typeof AppUsersIndexRoute
@@ -599,7 +580,6 @@ export interface FileRoutesByFullPath {
   '/app/hub/blocks/add': typeof AppHubBlocksAddRoute
   '/app/hub/bots/add': typeof AppHubBotsAddRoute
   '/app/models/$modelId/edit': typeof AppModelsModelIdEditRoute
-  '/app/orgs/$orgId/edit': typeof AppOrgsOrgIdEditRoute
   '/app/providers/$providerId/edit': typeof AppProvidersProviderIdEditRoute
   '/app/quotas/$quotaPoolId/edit': typeof AppQuotasQuotaPoolIdEditRoute
   '/app/users/$userId/edit': typeof AppUsersUserIdEditRoute
@@ -610,7 +590,6 @@ export interface FileRoutesByFullPath {
   '/app/hub/bots/': typeof AppHubBotsIndexRoute
   '/app/hub/repositories/': typeof AppHubRepositoriesIndexRoute
   '/app/models/$modelId/': typeof AppModelsModelIdIndexRoute
-  '/app/orgs/$orgId/': typeof AppOrgsOrgIdIndexRoute
   '/app/providers/$providerId/': typeof AppProvidersProviderIdIndexRoute
   '/app/quotas/$quotaPoolId/': typeof AppQuotasQuotaPoolIdIndexRoute
   '/app/users/$userId/': typeof AppUsersUserIdIndexRoute
@@ -652,7 +631,7 @@ export interface FileRoutesByTo {
   '/app/groups': typeof AppGroupsIndexRoute
   '/app/hub': typeof AppHubIndexRoute
   '/app/models': typeof AppModelsIndexRoute
-  '/app/orgs': typeof AppOrgsIndexRoute
+  '/app/organization': typeof AppOrganizationIndexRoute
   '/app/providers': typeof AppProvidersIndexRoute
   '/app/quotas': typeof AppQuotasIndexRoute
   '/app/users': typeof AppUsersIndexRoute
@@ -662,7 +641,6 @@ export interface FileRoutesByTo {
   '/app/hub/blocks/add': typeof AppHubBlocksAddRoute
   '/app/hub/bots/add': typeof AppHubBotsAddRoute
   '/app/models/$modelId/edit': typeof AppModelsModelIdEditRoute
-  '/app/orgs/$orgId/edit': typeof AppOrgsOrgIdEditRoute
   '/app/providers/$providerId/edit': typeof AppProvidersProviderIdEditRoute
   '/app/quotas/$quotaPoolId/edit': typeof AppQuotasQuotaPoolIdEditRoute
   '/app/users/$userId/edit': typeof AppUsersUserIdEditRoute
@@ -673,7 +651,6 @@ export interface FileRoutesByTo {
   '/app/hub/bots': typeof AppHubBotsIndexRoute
   '/app/hub/repositories': typeof AppHubRepositoriesIndexRoute
   '/app/models/$modelId': typeof AppModelsModelIdIndexRoute
-  '/app/orgs/$orgId': typeof AppOrgsOrgIdIndexRoute
   '/app/providers/$providerId': typeof AppProvidersProviderIdIndexRoute
   '/app/quotas/$quotaPoolId': typeof AppQuotasQuotaPoolIdIndexRoute
   '/app/users/$userId': typeof AppUsersUserIdIndexRoute
@@ -697,7 +674,7 @@ export interface FileRoutesById {
   '/app/groups': typeof AppGroupsRouteRouteWithChildren
   '/app/hub': typeof AppHubRouteRouteWithChildren
   '/app/models': typeof AppModelsRouteRouteWithChildren
-  '/app/orgs': typeof AppOrgsRouteRouteWithChildren
+  '/app/organization': typeof AppOrganizationRouteRouteWithChildren
   '/app/providers': typeof AppProvidersRouteRouteWithChildren
   '/app/quotas': typeof AppQuotasRouteRouteWithChildren
   '/app/users': typeof AppUsersRouteRouteWithChildren
@@ -717,7 +694,6 @@ export interface FileRoutesById {
   '/app/hub/blocks': typeof AppHubBlocksRouteRouteWithChildren
   '/app/hub/bots': typeof AppHubBotsRouteRouteWithChildren
   '/app/models/$modelId': typeof AppModelsModelIdRouteRouteWithChildren
-  '/app/orgs/$orgId': typeof AppOrgsOrgIdRouteRouteWithChildren
   '/app/providers/$providerId': typeof AppProvidersProviderIdRouteRouteWithChildren
   '/app/quotas/$quotaPoolId': typeof AppQuotasQuotaPoolIdRouteRouteWithChildren
   '/app/users/$userId': typeof AppUsersUserIdRouteRouteWithChildren
@@ -737,7 +713,7 @@ export interface FileRoutesById {
   '/app/groups/': typeof AppGroupsIndexRoute
   '/app/hub/': typeof AppHubIndexRoute
   '/app/models/': typeof AppModelsIndexRoute
-  '/app/orgs/': typeof AppOrgsIndexRoute
+  '/app/organization/': typeof AppOrganizationIndexRoute
   '/app/providers/': typeof AppProvidersIndexRoute
   '/app/quotas/': typeof AppQuotasIndexRoute
   '/app/users/': typeof AppUsersIndexRoute
@@ -750,7 +726,6 @@ export interface FileRoutesById {
   '/app/hub/blocks/add': typeof AppHubBlocksAddRoute
   '/app/hub/bots/add': typeof AppHubBotsAddRoute
   '/app/models/$modelId/edit': typeof AppModelsModelIdEditRoute
-  '/app/orgs/$orgId/edit': typeof AppOrgsOrgIdEditRoute
   '/app/providers/$providerId/edit': typeof AppProvidersProviderIdEditRoute
   '/app/quotas/$quotaPoolId/edit': typeof AppQuotasQuotaPoolIdEditRoute
   '/app/users/$userId/edit': typeof AppUsersUserIdEditRoute
@@ -761,7 +736,6 @@ export interface FileRoutesById {
   '/app/hub/bots/': typeof AppHubBotsIndexRoute
   '/app/hub/repositories/': typeof AppHubRepositoriesIndexRoute
   '/app/models/$modelId/': typeof AppModelsModelIdIndexRoute
-  '/app/orgs/$orgId/': typeof AppOrgsOrgIdIndexRoute
   '/app/providers/$providerId/': typeof AppProvidersProviderIdIndexRoute
   '/app/quotas/$quotaPoolId/': typeof AppQuotasQuotaPoolIdIndexRoute
   '/app/users/$userId/': typeof AppUsersUserIdIndexRoute
@@ -785,7 +759,7 @@ export interface FileRouteTypes {
     | '/app/groups'
     | '/app/hub'
     | '/app/models'
-    | '/app/orgs'
+    | '/app/organization'
     | '/app/providers'
     | '/app/quotas'
     | '/app/users'
@@ -805,7 +779,6 @@ export interface FileRouteTypes {
     | '/app/hub/blocks'
     | '/app/hub/bots'
     | '/app/models/$modelId'
-    | '/app/orgs/$orgId'
     | '/app/providers/$providerId'
     | '/app/quotas/$quotaPoolId'
     | '/app/users/$userId'
@@ -825,7 +798,7 @@ export interface FileRouteTypes {
     | '/app/groups/'
     | '/app/hub/'
     | '/app/models/'
-    | '/app/orgs/'
+    | '/app/organization/'
     | '/app/providers/'
     | '/app/quotas/'
     | '/app/users/'
@@ -838,7 +811,6 @@ export interface FileRouteTypes {
     | '/app/hub/blocks/add'
     | '/app/hub/bots/add'
     | '/app/models/$modelId/edit'
-    | '/app/orgs/$orgId/edit'
     | '/app/providers/$providerId/edit'
     | '/app/quotas/$quotaPoolId/edit'
     | '/app/users/$userId/edit'
@@ -849,7 +821,6 @@ export interface FileRouteTypes {
     | '/app/hub/bots/'
     | '/app/hub/repositories/'
     | '/app/models/$modelId/'
-    | '/app/orgs/$orgId/'
     | '/app/providers/$providerId/'
     | '/app/quotas/$quotaPoolId/'
     | '/app/users/$userId/'
@@ -891,7 +862,7 @@ export interface FileRouteTypes {
     | '/app/groups'
     | '/app/hub'
     | '/app/models'
-    | '/app/orgs'
+    | '/app/organization'
     | '/app/providers'
     | '/app/quotas'
     | '/app/users'
@@ -901,7 +872,6 @@ export interface FileRouteTypes {
     | '/app/hub/blocks/add'
     | '/app/hub/bots/add'
     | '/app/models/$modelId/edit'
-    | '/app/orgs/$orgId/edit'
     | '/app/providers/$providerId/edit'
     | '/app/quotas/$quotaPoolId/edit'
     | '/app/users/$userId/edit'
@@ -912,7 +882,6 @@ export interface FileRouteTypes {
     | '/app/hub/bots'
     | '/app/hub/repositories'
     | '/app/models/$modelId'
-    | '/app/orgs/$orgId'
     | '/app/providers/$providerId'
     | '/app/quotas/$quotaPoolId'
     | '/app/users/$userId'
@@ -935,7 +904,7 @@ export interface FileRouteTypes {
     | '/app/groups'
     | '/app/hub'
     | '/app/models'
-    | '/app/orgs'
+    | '/app/organization'
     | '/app/providers'
     | '/app/quotas'
     | '/app/users'
@@ -955,7 +924,6 @@ export interface FileRouteTypes {
     | '/app/hub/blocks'
     | '/app/hub/bots'
     | '/app/models/$modelId'
-    | '/app/orgs/$orgId'
     | '/app/providers/$providerId'
     | '/app/quotas/$quotaPoolId'
     | '/app/users/$userId'
@@ -975,7 +943,7 @@ export interface FileRouteTypes {
     | '/app/groups/'
     | '/app/hub/'
     | '/app/models/'
-    | '/app/orgs/'
+    | '/app/organization/'
     | '/app/providers/'
     | '/app/quotas/'
     | '/app/users/'
@@ -988,7 +956,6 @@ export interface FileRouteTypes {
     | '/app/hub/blocks/add'
     | '/app/hub/bots/add'
     | '/app/models/$modelId/edit'
-    | '/app/orgs/$orgId/edit'
     | '/app/providers/$providerId/edit'
     | '/app/quotas/$quotaPoolId/edit'
     | '/app/users/$userId/edit'
@@ -999,7 +966,6 @@ export interface FileRouteTypes {
     | '/app/hub/bots/'
     | '/app/hub/repositories/'
     | '/app/models/$modelId/'
-    | '/app/orgs/$orgId/'
     | '/app/providers/$providerId/'
     | '/app/quotas/$quotaPoolId/'
     | '/app/users/$userId/'
@@ -1158,11 +1124,11 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AppModelsRouteRouteImport
       parentRoute: typeof AppRouteRoute
     }
-    '/app/orgs': {
-      id: '/app/orgs'
-      path: '/orgs'
-      fullPath: '/app/orgs'
-      preLoaderRoute: typeof AppOrgsRouteRouteImport
+    '/app/organization': {
+      id: '/app/organization'
+      path: '/organization'
+      fullPath: '/app/organization'
+      preLoaderRoute: typeof AppOrganizationRouteRouteImport
       parentRoute: typeof AppRouteRoute
     }
     '/app/providers': {
@@ -1312,19 +1278,12 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AppModelsAddRouteImport
       parentRoute: typeof AppModelsRouteRoute
     }
-    '/app/orgs/': {
-      id: '/app/orgs/'
+    '/app/organization/': {
+      id: '/app/organization/'
       path: '/'
-      fullPath: '/app/orgs/'
-      preLoaderRoute: typeof AppOrgsIndexRouteImport
-      parentRoute: typeof AppOrgsRouteRoute
-    }
-    '/app/orgs/$orgId': {
-      id: '/app/orgs/$orgId'
-      path: '/$orgId'
-      fullPath: '/app/orgs/$orgId'
-      preLoaderRoute: typeof AppOrgsOrgIdRouteRouteImport
-      parentRoute: typeof AppOrgsRouteRoute
+      fullPath: '/app/organization/'
+      preLoaderRoute: typeof AppOrganizationIndexRouteImport
+      parentRoute: typeof AppOrganizationRouteRoute
     }
     '/app/providers/': {
       id: '/app/providers/'
@@ -1507,20 +1466,6 @@ declare module '@tanstack/react-router' {
       fullPath: '/app/models/$modelId/edit'
       preLoaderRoute: typeof AppModelsModelIdEditRouteImport
       parentRoute: typeof AppModelsModelIdRouteRoute
-    }
-    '/app/orgs/$orgId/': {
-      id: '/app/orgs/$orgId/'
-      path: '/'
-      fullPath: '/app/orgs/$orgId/'
-      preLoaderRoute: typeof AppOrgsOrgIdIndexRouteImport
-      parentRoute: typeof AppOrgsOrgIdRouteRoute
-    }
-    '/app/orgs/$orgId/edit': {
-      id: '/app/orgs/$orgId/edit'
-      path: '/edit'
-      fullPath: '/app/orgs/$orgId/edit'
-      preLoaderRoute: typeof AppOrgsOrgIdEditRouteImport
-      parentRoute: typeof AppOrgsOrgIdRouteRoute
     }
     '/app/providers/$providerId/': {
       id: '/app/providers/$providerId/'
@@ -1856,32 +1801,16 @@ const AppModelsRouteRouteWithChildren = AppModelsRouteRoute._addFileChildren(
   AppModelsRouteRouteChildren,
 )
 
-interface AppOrgsOrgIdRouteRouteChildren {
-  AppOrgsOrgIdEditRoute: typeof AppOrgsOrgIdEditRoute
-  AppOrgsOrgIdIndexRoute: typeof AppOrgsOrgIdIndexRoute
+interface AppOrganizationRouteRouteChildren {
+  AppOrganizationIndexRoute: typeof AppOrganizationIndexRoute
 }
 
-const AppOrgsOrgIdRouteRouteChildren: AppOrgsOrgIdRouteRouteChildren = {
-  AppOrgsOrgIdEditRoute: AppOrgsOrgIdEditRoute,
-  AppOrgsOrgIdIndexRoute: AppOrgsOrgIdIndexRoute,
+const AppOrganizationRouteRouteChildren: AppOrganizationRouteRouteChildren = {
+  AppOrganizationIndexRoute: AppOrganizationIndexRoute,
 }
 
-const AppOrgsOrgIdRouteRouteWithChildren =
-  AppOrgsOrgIdRouteRoute._addFileChildren(AppOrgsOrgIdRouteRouteChildren)
-
-interface AppOrgsRouteRouteChildren {
-  AppOrgsOrgIdRouteRoute: typeof AppOrgsOrgIdRouteRouteWithChildren
-  AppOrgsIndexRoute: typeof AppOrgsIndexRoute
-}
-
-const AppOrgsRouteRouteChildren: AppOrgsRouteRouteChildren = {
-  AppOrgsOrgIdRouteRoute: AppOrgsOrgIdRouteRouteWithChildren,
-  AppOrgsIndexRoute: AppOrgsIndexRoute,
-}
-
-const AppOrgsRouteRouteWithChildren = AppOrgsRouteRoute._addFileChildren(
-  AppOrgsRouteRouteChildren,
-)
+const AppOrganizationRouteRouteWithChildren =
+  AppOrganizationRouteRoute._addFileChildren(AppOrganizationRouteRouteChildren)
 
 interface AppProvidersProviderIdRouteRouteChildren {
   AppProvidersProviderIdEditRoute: typeof AppProvidersProviderIdEditRoute
@@ -1984,7 +1913,7 @@ interface AppRouteRouteChildren {
   AppGroupsRouteRoute: typeof AppGroupsRouteRouteWithChildren
   AppHubRouteRoute: typeof AppHubRouteRouteWithChildren
   AppModelsRouteRoute: typeof AppModelsRouteRouteWithChildren
-  AppOrgsRouteRoute: typeof AppOrgsRouteRouteWithChildren
+  AppOrganizationRouteRoute: typeof AppOrganizationRouteRouteWithChildren
   AppProvidersRouteRoute: typeof AppProvidersRouteRouteWithChildren
   AppQuotasRouteRoute: typeof AppQuotasRouteRouteWithChildren
   AppUsersRouteRoute: typeof AppUsersRouteRouteWithChildren
@@ -1997,7 +1926,7 @@ const AppRouteRouteChildren: AppRouteRouteChildren = {
   AppGroupsRouteRoute: AppGroupsRouteRouteWithChildren,
   AppHubRouteRoute: AppHubRouteRouteWithChildren,
   AppModelsRouteRoute: AppModelsRouteRouteWithChildren,
-  AppOrgsRouteRoute: AppOrgsRouteRouteWithChildren,
+  AppOrganizationRouteRoute: AppOrganizationRouteRouteWithChildren,
   AppProvidersRouteRoute: AppProvidersRouteRouteWithChildren,
   AppQuotasRouteRoute: AppQuotasRouteRouteWithChildren,
   AppUsersRouteRoute: AppUsersRouteRouteWithChildren,

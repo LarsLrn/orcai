@@ -37,13 +37,11 @@ test("account: skipping the app tour is remembered for the user", async ({
 	api,
 	appBaseURL,
 	browser,
-	org,
 }) => {
 	const user = await createAccountUser({
 		baseURL: appBaseURL,
 		label: "tour",
 		admin: api.as("admin"),
-		organisation: org,
 	});
 	const { context, page } = await pageForSession(browser, user.session);
 

@@ -116,10 +116,10 @@ export const sidebarMenu: SidebarMenuItem[] = [
 				icon: CpuIcon,
 			},
 			{
-				title: m.sidebar_menu_organisations_item,
+				title: m.sidebar_menu_organisation_item,
 				requires: "manage_organization",
 				linkProps: {
-					to: "/app/orgs",
+					to: "/app/organization",
 				},
 				icon: Building2Icon,
 			},

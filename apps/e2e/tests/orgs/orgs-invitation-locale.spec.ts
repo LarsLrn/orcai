@@ -143,7 +143,6 @@ test("orgs: an API invitation without a language uses the inviter's stored langu
 	// A dedicated inviter, so the worker's shared admin keeps its language.
 	const inviter = await createOrgsUser(appBaseURL, "locale-inviter");
 	await addMember(api.as("admin"), {
-		organizationId: org.id,
 		user: inviter,
 		role: "admin",
 		zedTokens,
@@ -154,7 +153,6 @@ test("orgs: an API invitation without a language uses the inviter's stored langu
 	await inviteEmail(
 		createApiClient(appBaseURL, inviter.session.cookieHeader, zedTokens),
 		{
-			organizationId: org.id,
 			email,
 			role: "viewer",
 		},

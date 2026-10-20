@@ -38,16 +38,21 @@ export const OrganizationForm = ({
 			? {
 					name: organization.name,
 					slug: organization.slug,
+					logo: organization.logo,
 				}
 			: organizationFormOptions.defaultValues,
 		onSubmit: async ({ value }) => {
+			const fields = {
+				...value,
+				logo: value.logo?.trim() || null,
+			};
 			if (action === "update") {
 				await updateOrganization({
-					...value,
+					...fields,
 					id: organization.id,
 				});
 			} else {
-				await createOrganization(value);
+				await createOrganization(fields);
 			}
 		},
 	});
@@ -75,6 +80,15 @@ export const OrganizationForm = ({
 					<field.TextField
 						label={m.orgs_form_slug_label()}
 						placeholder={m.orgs_form_slug_placeholder()}
+					/>
+				)}
+			/>
+			<form.AppField
+				name="logo"
+				children={(field) => (
+					<field.TextField
+						label={m.orgs_form_logo_label()}
+						placeholder={m.orgs_form_logo_placeholder()}
 					/>
 				)}
 			/>

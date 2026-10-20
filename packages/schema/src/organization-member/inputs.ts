@@ -7,23 +7,18 @@ import {
 	organizationMemberSchema,
 } from "./schema";
 
-export const listOrganizationMembersInputSchema = paginationInputSchema.extend({
-	organizationId: organizationMemberSchema.shape.organizationId,
-});
+export const listOrganizationMembersInputSchema = paginationInputSchema;
 
 export const findOrganizationMemberInputSchema = organizationMemberSchema.pick({
 	userId: true,
-	organizationId: true,
 });
 
 export const updateOrganizationMemberInputSchema =
 	organizationMemberMutableFieldsSchema.extend({
-		organizationId: organizationMemberSchema.shape.organizationId,
 		userId: organizationMemberSchema.shape.userId,
 	});
 
 export const deleteOrganizationMembersInputSchema = z.object({
-	organizationId: organizationMemberSchema.shape.organizationId,
 	refs: createUniqueRefsInputSchema({
 		key: "userId",
 		value: userIdSchema,

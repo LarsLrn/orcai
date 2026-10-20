@@ -42,7 +42,6 @@ const ManageUser = ({ user }: { user: UserWithOrganizationRole }) => {
 			],
 		},
 	);
-	const organizationId = auth.session.activeOrganizationId;
 	const canManageOrganization =
 		capabilities?.data.capabilities.manage_organization === true;
 	const canManageProtectedUser =
@@ -53,12 +52,7 @@ const ManageUser = ({ user }: { user: UserWithOrganizationRole }) => {
 		user.organizationRole === ORGANIZATION_ADMIN_ROLE && !canManageOrganization;
 
 	const handleRemoveFromOrganisation = async () => {
-		if (!organizationId) {
-			return;
-		}
-
 		const result = await removeMember.mutateAsync({
-			organizationId,
 			refs: [
 				{
 					userId: user.id,
@@ -137,27 +131,20 @@ const ManageUser = ({ user }: { user: UserWithOrganizationRole }) => {
 						</p>
 						<OrganizationRolePicker
 							value={user.organizationRole}
-							onValueChange={(nextRole) => {
-								if (!organizationId) {
-									return;
-								}
-
+							onValueChange={(nextRole) =>
 								updateMember.mutate({
-									organizationId,
 									userId: user.id,
 									role: nextRole,
-								});
-							}}
-							variant="full"
-							disabled={
-								updateMember.isPending || !organizationId || isProtectedAdmin
+								})
 							}
+							variant="full"
+							disabled={updateMember.isPending || isProtectedAdmin}
 							title={m.users_manage_role_picker_title()}
 							roles={assignableRoles}
 						/>
 					</div>
 
-					{canMutateUserAccount && organizationId ? (
+					{canMutateUserAccount ? (
 						<div className="flex flex-wrap gap-2">
 							<Button
 								variant="destructive"

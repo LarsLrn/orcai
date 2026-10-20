@@ -33,10 +33,8 @@ export type OrganizationInvitation = z.infer<
 	typeof organizationInvitationSchema
 >;
 
-/** Narrows the invitations the caller sees; `recipient: "me"` keeps only those it received. */
 export const organizationInvitationFiltersSchema = z.object({
 	status: organizationInvitationStatusSchema.optional(),
-	recipient: z.literal("me").optional(),
 });
 
 /** An invitation plus the name and slug of an organisation the invitee cannot read yet. */

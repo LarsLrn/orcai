@@ -1,5 +1,4 @@
 import { z } from "zod/v4";
-import { organizationIdSchema } from "../organization/ref";
 import { paginationInputSchema } from "../shared";
 import type { ErrorReason } from "../shared/error-reason";
 import { localeSchema } from "../shared/primitives/locale";
@@ -24,13 +23,14 @@ export const organizationInvitationSortKeySchema = z.enum([
 
 export const listOrganizationInvitationsInputSchema =
 	paginationInputSchema.extend({
-		organizationId: organizationIdSchema.optional(),
 		filters: organizationInvitationFiltersSchema.optional(),
 		...createSortingInputSchema(organizationInvitationSortKeySchema).shape,
 	});
 
+export const listMyOrganizationInvitationsInputSchema =
+	listOrganizationInvitationsInputSchema;
+
 export const createOrganizationInvitationsInputSchema = z.object({
-	organizationId: z.string().min(1).pipe(organizationIdSchema),
 	role: organizationInvitationSchema.shape.role,
 	expiresAt: z.date(),
 	/** Language of the invitation emails. */
@@ -75,7 +75,6 @@ export const validateOrganizationInvitationInputSchema =
 export const updateOrganizationInvitationInputSchema =
 	organizationInvitationMutableFieldsSchema
 		.extend({
-			organizationId: organizationInvitationSchema.shape.organizationId,
 			id: organizationInvitationSchema.shape.id,
 			expiresAt: z.date().optional(),
 		})
@@ -95,7 +94,6 @@ export const updateOrganizationInvitationInputSchema =
 		});
 
 export const deleteOrganizationInvitationsInputSchema = z.object({
-	organizationId: organizationInvitationSchema.shape.organizationId,
 	refs: createUniqueRefsInputSchema({
 		key: "id",
 		value: organizationInvitationIdSchema,

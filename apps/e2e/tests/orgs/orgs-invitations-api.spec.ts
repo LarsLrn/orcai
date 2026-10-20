@@ -21,7 +21,6 @@ test("orgs: validating an invitation reports why it cannot be used", async ({
 
 	const email = invitationEmail("validate");
 	const invitation = await inviteEmail(api.as("admin"), {
-		organizationId: org.id,
 		email,
 		role: "member",
 	});
@@ -38,7 +37,6 @@ test("orgs: validating an invitation reports why it cannot be used", async ({
 	expect(pending.data.organizationSlug).toBe(org.slug);
 
 	await api.as("admin").organizationInvitation.delete({
-		organizationId: org.id,
 		refs: [
 			{
 				id: invitation.id,
@@ -58,12 +56,10 @@ test("orgs: validating an invitation reports why it cannot be used", async ({
 test("orgs: accepting an invitation makes the invitee a member with the invited role", async ({
 	api,
 	appBaseURL,
-	org,
 	zedTokens,
 }) => {
 	const user = await createOrgsUser(appBaseURL, "accepts");
 	const invitation = await inviteEmail(api.as("admin"), {
-		organizationId: org.id,
 		email: user.email,
 		role: "viewer",
 	});
@@ -82,7 +78,6 @@ test("orgs: accepting an invitation makes the invitee a member with the invited 
 
 	expect(
 		await memberRole(api.as("admin"), {
-			organizationId: org.id,
 			userId: user.id,
 		}),
 	).toBe("viewer");
@@ -121,12 +116,10 @@ test("orgs: accepting an invitation makes the invitee a member with the invited 
 test("orgs: a spent invitation does not return a removed member", async ({
 	api,
 	appBaseURL,
-	org,
 	zedTokens,
 }) => {
 	const user = await createOrgsUser(appBaseURL, "removed-after-accept");
 	const invitation = await inviteEmail(api.as("admin"), {
-		organizationId: org.id,
 		email: user.email,
 		role: "member",
 	});
@@ -143,7 +136,6 @@ test("orgs: a spent invitation does not return a removed member", async ({
 	expect(accepted.success).toBe(true);
 
 	await api.as("admin").organizationMember.delete({
-		organizationId: org.id,
 		refs: [
 			{
 				userId: user.id,
@@ -168,7 +160,6 @@ test("orgs: a spent invitation does not return a removed member", async ({
 		(
 			await rejection(
 				api.as("admin").organizationMember.find({
-					organizationId: org.id,
 					userId: user.id,
 				}),
 			)
@@ -179,12 +170,10 @@ test("orgs: a spent invitation does not return a removed member", async ({
 test("orgs: rejecting an invitation leaves the invitee outside the organisation", async ({
 	api,
 	appBaseURL,
-	org,
 	zedTokens,
 }) => {
 	const user = await createOrgsUser(appBaseURL, "rejects");
 	const invitation = await inviteEmail(api.as("admin"), {
-		organizationId: org.id,
 		email: user.email,
 		role: "member",
 	});
@@ -222,7 +211,6 @@ test("orgs: rejecting an invitation leaves the invitee outside the organisation"
 		(
 			await rejection(
 				api.as("admin").organizationMember.find({
-					organizationId: org.id,
 					userId: user.id,
 				}),
 			)
@@ -233,12 +221,10 @@ test("orgs: rejecting an invitation leaves the invitee outside the organisation"
 test("orgs: only the invited address may respond to an invitation", async ({
 	api,
 	appBaseURL,
-	org,
 	zedTokens,
 }) => {
 	const invited = invitationEmail("stranger-target");
 	const invitation = await inviteEmail(api.as("admin"), {
-		organizationId: org.id,
 		email: invited,
 		role: "member",
 	});
@@ -270,18 +256,15 @@ test("orgs: only the invited address may respond to an invitation", async ({
 test("orgs: an expired invitation cannot be accepted", async ({
 	api,
 	appBaseURL,
-	org,
 	zedTokens,
 }) => {
 	const user = await createOrgsUser(appBaseURL, "expired");
 	const invitation = await inviteEmail(api.as("admin"), {
-		organizationId: org.id,
 		email: user.email,
 		role: "member",
 	});
 
 	await api.as("admin").organizationInvitation.update({
-		organizationId: org.id,
 		id: invitation.id,
 		expiresAt: new Date(Date.now() - 60_000),
 	});
@@ -313,7 +296,6 @@ test("orgs: an expired invitation cannot be accepted", async ({
 test("orgs: an invitation reaches the invitee whatever case it was sent to", async ({
 	api,
 	appBaseURL,
-	org,
 	zedTokens,
 }) => {
 	const user = await createOrgsUser(appBaseURL, "mixed-case");
@@ -321,7 +303,6 @@ test("orgs: an invitation reaches the invitee whatever case it was sent to", asy
 	const mixedCase = `${local.toUpperCase()}@${domain}`;
 
 	const invitation = await inviteEmail(api.as("admin"), {
-		organizationId: org.id,
 		email: mixedCase,
 		role: "member",
 	});
@@ -333,7 +314,7 @@ test("orgs: an invitation reaches the invitee whatever case it was sent to", asy
 		user.session.cookieHeader,
 		zedTokens,
 	);
-	const listed = await asUser.organizationInvitation.list({
+	const listed = await asUser.organizationInvitation.listMine({
 		pageIndex: 0,
 		pageSize: 100,
 		filters: {
@@ -354,12 +335,10 @@ test("orgs: an invitation reaches the invitee whatever case it was sent to", asy
 test("orgs: finding an invitation is scoped to the caller", async ({
 	api,
 	appBaseURL,
-	org,
 	zedTokens,
 }) => {
 	const email = invitationEmail("find-scope");
 	const invitation = await inviteEmail(api.as("admin"), {
-		organizationId: org.id,
 		email,
 		role: "member",
 	});
@@ -405,7 +384,7 @@ test("orgs: finding an invitation is scoped to the caller", async ({
 	}
 });
 
-test("orgs: the recipient filter leaves out what the caller sent", async ({
+test("orgs: listMine carries the invitations addressed to the caller, not those it sent", async ({
 	api,
 	appBaseURL,
 	org,
@@ -413,45 +392,68 @@ test("orgs: the recipient filter leaves out what the caller sent", async ({
 }) => {
 	const sent = invitationEmail("sent-by-me");
 	const sentInvitation = await inviteEmail(api.as("admin"), {
-		organizationId: org.id,
 		email: sent,
 		role: "member",
 	});
 
-	const user = await createOrgsUser(appBaseURL, "recipient-filter");
+	const user = await createOrgsUser(appBaseURL, "list-mine");
 	const received = await inviteEmail(api.as("admin"), {
-		organizationId: org.id,
 		email: user.email,
 		role: "member",
 	});
 
-	// Unfiltered, the admin's list carries everything it sent.
-	const all = await api.as("admin").organizationInvitation.list({
-		organizationId: org.id,
+	const mine = await api.as("admin").organizationInvitation.listMine({
 		pageIndex: 0,
 		pageSize: 100,
 	});
-	expect(all.data.map((row) => String(row.id))).toContain(
+	expect(mine.data.map((row) => String(row.id))).not.toContain(
 		String(sentInvitation.id),
 	);
 
-	// The account card and the selection page only ever show what the caller
-	// was sent, so the server narrows it rather than a loaded page. Read as the
-	// invitee, whose list is the one that has something in it.
+	// The invitee belongs to no organisation yet, so nothing is active; the
+	// rows carry the name and slug it cannot read otherwise.
 	const asUser = createApiClient(
 		appBaseURL,
 		user.session.cookieHeader,
 		zedTokens,
 	);
-	const theirs = await asUser.organizationInvitation.list({
+	const theirs = await asUser.organizationInvitation.listMine({
 		pageIndex: 0,
 		pageSize: 100,
-		filters: {
-			recipient: "me",
-		},
 	});
-	const theirIds = theirs.data.map((row) => String(row.id));
-	expect(theirIds).toContain(String(received.id));
-	expect(theirIds).not.toContain(String(sentInvitation.id));
+	const row = theirs.data.find((entry) => entry.id === received.id);
+	expect(row?.organizationName).toBe(org.name);
+	expect(row?.organizationSlug).toBe(org.slug);
+	expect(theirs.data.map((entry) => String(entry.id))).not.toContain(
+		String(sentInvitation.id),
+	);
 	expect(theirs.rowCount).toBe(theirs.data.length);
+});
+
+test("orgs: member and invitation procedures need an active organisation", async ({
+	appBaseURL,
+	zedTokens,
+}) => {
+	const user = await createOrgsUser(appBaseURL, "no-active");
+	const asUser = createApiClient(
+		appBaseURL,
+		user.session.cookieHeader,
+		zedTokens,
+	);
+
+	const page = {
+		pageIndex: 0,
+		pageSize: 10,
+	};
+
+	for (const call of [
+		() => asUser.organizationMember.list(page),
+		() => asUser.organizationInvitation.list(page),
+	]) {
+		const refused = await rejection(call());
+		expect(refused.code).toBe("BAD_REQUEST");
+		expect(refused.data).toMatchObject({
+			reason: "ACTIVE_ORGANIZATION_REQUIRED",
+		});
+	}
 });

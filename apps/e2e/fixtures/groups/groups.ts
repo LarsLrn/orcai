@@ -1,4 +1,4 @@
-import type { AssetId, BlockId, BotId, OrganizationId } from "@orcai/core";
+import type { AssetId, BlockId, BotId } from "@orcai/core";
 import { type Group, userIdSchema } from "@orcai/schema";
 import { expect, type Locator, type Page } from "@playwright/test";
 import { type ApiClient, createApiClient, type ZedTokenStore } from "../api";
@@ -195,12 +195,9 @@ export const memberRow = (page: Page, email: string): Locator =>
 			}),
 		});
 
-/** A member of the organisation that belongs to no group. Shares the test's zedToken memory. */
+/** A member of the active organisation of `admin` that belongs to no group. Shares the test's zedToken memory. */
 export const outsiderMember = async (params: {
 	admin: ApiClient;
-	organisation: {
-		id: OrganizationId;
-	};
 	zedTokens?: ZedTokenStore;
 }): Promise<{
 	client: ApiClient;
@@ -210,7 +207,6 @@ export const outsiderMember = async (params: {
 	const session = await signUpInvited({
 		baseURL: url,
 		admin: params.admin,
-		organisation: params.organisation,
 		role: "member",
 		name: "E2E Groups Outsider",
 		email: `e2e-groups-outsider-${runId()}@${EMAIL_DOMAIN}`,

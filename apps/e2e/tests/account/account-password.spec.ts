@@ -13,13 +13,11 @@ test("account: a wrong current password is refused, a valid change replaces the 
 	api,
 	appBaseURL,
 	browser,
-	org,
 }) => {
 	const user = await createAccountUser({
 		baseURL: appBaseURL,
 		label: "password",
 		admin: api.as("admin"),
-		organisation: org,
 	});
 	const newPassword = `${user.password}-changed`;
 

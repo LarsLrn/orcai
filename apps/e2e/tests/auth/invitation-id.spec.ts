@@ -22,7 +22,6 @@ test("registration validates the selected invitation and leaves the others pendi
 	const invite = async (organisation: WorkerOrganisation) =>
 		(
 			await api.as("admin", organisation).organizationInvitation.create({
-				organizationId: organisation.id,
 				role: "viewer",
 				expiresAt: new Date(Date.now() + 86400000),
 				items: [
@@ -70,7 +69,6 @@ test("registration validates the selected invitation and leaves the others pendi
 		},
 	]) {
 		await api.as("admin").organizationInvitation.update({
-			organizationId: org.id,
 			id: firstId,
 			...patch,
 		});
@@ -83,7 +81,6 @@ test("registration validates the selected invitation and leaves the others pendi
 			).ok,
 		).toBe(false);
 		await api.as("admin").organizationInvitation.update({
-			organizationId: org.id,
 			id: firstId,
 			status: "pending",
 			expiresAt: new Date(Date.now() + 86400000),
@@ -161,7 +158,6 @@ test("registration lands on the picker when another invitation is pending", asyn
 	const invite = async (organisation: WorkerOrganisation) =>
 		(
 			await api.as("admin", organisation).organizationInvitation.create({
-				organizationId: organisation.id,
 				role: "viewer",
 				expiresAt: new Date(Date.now() + 86400000),
 				items: [

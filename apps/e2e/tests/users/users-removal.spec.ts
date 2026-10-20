@@ -98,7 +98,6 @@ test("users: a removed user loses the organisation it was signed in to", async (
 		).toBeVisible();
 
 		await api.as("admin").organizationMember.delete({
-			organizationId: org.id,
 			refs: [
 				{
 					userId: user.id,
@@ -280,7 +279,6 @@ test("users: a removed user loses the access its groups and grants gave it", asy
 	});
 
 	await api.as("admin").organizationMember.delete({
-		organizationId: org.id,
 		refs: [
 			{
 				userId: user.id,
