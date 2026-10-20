@@ -81,20 +81,33 @@ test("users: the add form refuses an invalid email", async ({
 });
 
 /**
- * A context change above the route while its lazy fields still load makes
- * React drop the server-rendered form and render a second copy.
+ * A context change above the route while its lazy fields still load, or text
+ * the browser renders differently from the server, makes React drop the
+ * server-rendered form and render a second copy. The default expiry date is
+ * such text when the minute changes between rendering and hydration. Any
+ * mismatch, in the form or the app shell, surfaces as a page error.
  */
-for (const { theme, colorScheme } of [
+for (const { condition, theme, colorScheme, clockAheadMs } of [
 	{
+		condition: "the dark theme",
 		theme: "dark",
 		colorScheme: "light",
+		clockAheadMs: 0,
 	},
 	{
+		condition: "the system theme",
 		theme: "system",
 		colorScheme: "dark",
+		clockAheadMs: 0,
+	},
+	{
+		condition: "a browser clock ahead of the server",
+		theme: "system",
+		colorScheme: "dark",
+		clockAheadMs: 60 * 60 * 1000,
 	},
 ] as const) {
-	test(`users: the add form keeps its server-rendered form through hydration with the ${theme} theme`, async ({
+	test(`users: the add form keeps its server-rendered form through hydration with ${condition}`, async ({
 		org,
 		pageAs,
 	}) => {
@@ -103,6 +116,9 @@ for (const { theme, colorScheme } of [
 		await page.emulateMedia({
 			colorScheme,
 		});
+		if (clockAheadMs > 0) {
+			await page.clock.setFixedTime(Date.now() + clockAheadMs);
+		}
 		await page.context().addCookies([
 			{
 				name: "theme",
@@ -110,6 +126,9 @@ for (const { theme, colorScheme } of [
 				url: new URL(page.url()).origin,
 			},
 		]);
+
+		const pageErrors: string[] = [];
+		page.on("pageerror", (error) => pageErrors.push(error.message));
 
 		// Scripts are held back until the server-rendered form is in hand.
 		let releaseScripts!: () => void;
@@ -138,5 +157,12 @@ for (const { theme, colorScheme } of [
 
 		expect(await serverForm?.isVisible()).toBe(true);
 		await expect(page.locator("form")).toHaveCount(1);
+		// The user menu names the organisation once its part of the shell hydrated.
+		await expect(
+			page.getByRole("button", {
+				name: org.name,
+			}),
+		).toBeVisible();
+		expect(pageErrors).toEqual([]);
 	});
 }

@@ -1,3 +1,4 @@
+import { useHydrated } from "@tanstack/react-router";
 import { useSelector } from "@tanstack/react-store";
 import { format } from "date-fns";
 import { CalendarIcon, XIcon } from "lucide-react";
@@ -45,6 +46,8 @@ const DatetimeField = ({
 	const field = useFieldContext<Date | null>();
 	useFieldLabel(field, label);
 	const id = useId();
+	// The server does not know the browser's timezone or clock, so it renders no date.
+	const hydrated = useHydrated();
 
 	const errors = useSelector(field.store, (state) => state.meta.errors);
 	const isInvalid = useSelector(
@@ -121,7 +124,11 @@ const DatetimeField = ({
 								)}
 								aria-invalid={isInvalid}
 							>
-								{value ? formatDate(value) : <span>{placeholder}</span>}
+								{value ? (
+									hydrated && formatDate(value)
+								) : (
+									<span>{placeholder}</span>
+								)}
 								<CalendarIcon
 									className="ml-auto h-4 w-4 opacity-50"
 									aria-hidden="true"
