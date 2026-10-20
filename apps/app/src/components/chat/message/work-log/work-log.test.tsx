@@ -4,7 +4,13 @@ import type { WorkEntry } from "@/components/chat/message/classify-turn";
 import { m } from "@/paraglide/messages";
 import { ActivityLine } from "./activity-line";
 import { ReasoningEntry } from "./reasoning-entry";
-import { activeStepLabel } from "./work-log";
+
+// The real client resolves server configuration at import time.
+mock.module("@/lib/orpc/orpc", () => ({
+	orpc: {},
+}));
+
+const { activeStepLabel } = await import("./work-log");
 
 afterEach(() => {
 	cleanup();

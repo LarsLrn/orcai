@@ -3,8 +3,8 @@ import { type ValkeyClient, ValkeyService } from "@orcai/valkey";
 import * as Effect from "effect/Effect";
 
 /**
- * `mock.module` is process-wide, so every assistant tool test mocks the
- * procedure clients here, once and with one shape, and sets `answers` per test.
+ * Every assistant tool test mocks the procedure clients here, with one shape,
+ * and sets `answers` per test.
  */
 
 type Answer = (input: never) => Effect.Effect<unknown, unknown>;
