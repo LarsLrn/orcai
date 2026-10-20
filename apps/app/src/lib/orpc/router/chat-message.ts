@@ -186,6 +186,32 @@ export const settleChatReply = ({
 			.where(where);
 	});
 
+/** Stores a row's parts after its pending tool calls were closed. */
+export const storeClosedToolParts = ({
+	id,
+	chatId,
+	parts,
+}: {
+	id: ChatMessageId;
+	chatId: ChatId;
+	parts: UIMessage["parts"];
+}) =>
+	Effect.gen(function* () {
+		const db = yield* DB;
+
+		yield* db
+			.update(dbSchema.chatMessage)
+			.set({
+				parts,
+			})
+			.where(
+				and(
+					eq(dbSchema.chatMessage.id, id),
+					eq(dbSchema.chatMessage.chatId, chatId),
+				),
+			);
+	});
+
 const createChatMessage = authed.chatMessage.create
 	.use(
 		requireEntityPermission("chat", "edit", {
