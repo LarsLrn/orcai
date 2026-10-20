@@ -1,61 +1,68 @@
 ---
 title: Chat
-description: Start conversations, select bots and models, and manage per-chat behaviour.
+description: Starting chats with or without a bot, the chat list, message actions, branching, attachments, chat settings, quota, retrieval and citations, and deleting chats.
 ---
 
-Chat is the core end-user workflow in OrcAI. You can start chats from scratch, start from a bot, attach sources, branch a conversation, and tune per-chat settings.
+Chat is the core end-user workflow in OrcAI. You can start chats with or without a bot, attach sources, branch a conversation, and tune per-chat settings.
 
 Conversations with the [OrcAI Assistant](/docs/using-orcai/assistant) live on their own page, not in the chat list.
 
 ## Entry Points
 
-- Sidebar action: Start a chat
-- Chat index page: Start a chat
-- Direct path: `/app/chat/setup`
+- **Start a chat** in the sidebar, or on the chat list (`/app/chat`), opens the chat setup page (`/app/chat/setup`).
+- The **Ask a question** composer on the Use tab of Home (`/app`) starts a chat directly, with bot and model pickers.
+- **Start chat** on a bot's page (`/app/hub/bots/<bot id>`) starts a chat with that bot.
 
-The setup page offers two options:
+The setup page (`/app/chat/setup`) offers two options:
 
-- Use a bot: open a selector dialog and choose from available bots.
-- Start fresh: no preselected bot.
+- **Use a bot**: opens the **Select a bot** dialog, which lists published bots you can access. **Start chat** continues with the chosen bot.
+- **Chat without a bot**: answers come from the model alone.
 
-Both paths go to the new chat composer where you send the first prompt.
+Both go to the new chat page (`/app/chat/new`, with `?botId=<bot id>` when a bot was chosen), where you send the first message.
 
 ## Starting A New Chat
 
 ### Choose A Starting Point [step]
 
-Use a published bot when you want a predefined behaviour and knowledge setup. Start fresh when you want to choose the model and sources directly.
+Use a bot when you want a predefined behaviour and set of repositories. Chat without a bot when you want answers from the model alone. On the new chat page (`/app/chat/new`) the composer still lets you change the bot, including **No bot**.
 
 ### Configure The First Message [step]
 
-Before sending the first message, you can configure:
+Before sending the first message, choose:
 
 - Bot (optional)
-- Model and provider (required)
+- Model (required). OrcAI preselects the first chat model it finds; change it with the model picker in the composer.
+
+The first message is text only. Attachments, behaviour and repositories are added once the chat exists.
+
+The composer is disabled with a notice when no chat model is available (a model needs Text and Tool calling) or when no quota pool covers the chosen model for you. Members who can fix it get a link: **Set up a model** to Models (`/app/models`) or **Create a quota pool** to `/app/quotas/add`. Everyone else is asked to contact an organisation admin.
 
 ### Send And Continue [step]
 
-When you send the first message, OrcAI creates the chat and opens the conversation view.
+When you send the first message, OrcAI creates the chat and opens it at `/app/chat/<chat id>`.
 
 ## Chat List
 
-The chat list supports:
+The chat list (`/app/chat`) shows all your chats in a table and supports:
 
 - Search by text
 - Filter by bot
 - Sorting and pagination
-- Table actions (bulk actions depend on capabilities)
+- Rename and delete per chat, from the row menu
+- **Delete selected** as the only bulk action, available for any chats you select
+
+The sidebar's **Chats** group shows your 40 most recent chats, with the same rename and delete actions.
 
 ## In-Conversation Features
 
-In an active chat, OrcAI supports:
+In a chat (`/app/chat/<chat id>`), OrcAI supports:
 
-- Streaming model responses
-- Message actions: copy, rate and branch from here
+- Streaming model responses, with Stop while an answer is generated
+- Message actions: **Copy** and **Branch from here** on your questions; **Copy**, **Branch from here** and **Rate response** on answers
 - Usage metadata on assistant messages
-- Download conversation (always the whole chat)
+- Switching the model with the model picker in the composer
+- The composer's **More chat actions** menu, with **Start tour**, **Chat settings** and **Download chat** (always the whole chat)
 - Older messages load as you scroll up; a chat opens on its newest 20
-- Chat tour trigger
 
 ## Branching
 
@@ -68,46 +75,45 @@ Branches are ordinary chats. They keep the original title, show a branch icon in
 
 ## Attachments In Chat
 
-Chat supports two attachment sources:
+Attachments are added to messages in an existing chat, not to the first message. Use **Add file** in the composer:
 
-- Local uploads during composition
-- Existing content from the content library
+- **Upload file**: upload a file from your device.
+- **From assets**: pick assets from the Library (**Select existing assets**). The asset is attached to that one message only, not to the chat.
 
-Current hard limits and accepted formats in the app settings:
+Limits:
 
-- Max attachments per message: 8
-- Accepted patterns: image/*, application/pdf, text/*, DOCX, PPTX
+- Up to 8 attachments per message
+- Up to 25 MB per uploaded file
+- Accepted types: images, PDF, text files, DOCX and PPTX
+- Text extracted from an attached document is cut off after 20,000 characters
 
-The send button allows either:
-
-- Text only
-- Attachments only
-- Text plus attachments
+You can send text only, attachments only, or text with attachments.
 
 ## Chat Settings
 
-Each chat has a settings dialog where you can configure:
+Open **Chat settings** from the composer's **More chat actions** menu. You can configure:
 
-- Model/provider
-- System prompt (only for chats not locked to a bot)
-- Advanced generation settings
-	- temperature
-	- top-p
-	- max tokens
-	- frequency penalty
-	- presence penalty
+- Model
+- System prompt (only for chats not linked to a bot)
+- **Advanced generation settings**
+	- Temperature
+	- Top P
+	- Max tokens
+	- Frequency penalty
+	- Presence penalty
 
 For bot-linked chats:
 
-- System prompt is locked to the bot template block
-- Attached blocks are managed by the bot, not directly in chat settings
+- The system prompt is locked to the bot's template block
+- Attached blocks are managed by the bot, not in chat settings
 - Features are managed by the bot; the settings show them read-only
 
-For non-bot chats:
+For chats without a bot, **Chat blocks** holds:
 
-- You can attach one behaviour block and multiple content collection blocks directly to the chat
-- You can turn features such as Generative UI on and off; each switch saves immediately
-- Generative UI is on by default for new chats
+- **Add behaviour**: attach one behaviour block. Remove it to attach another.
+- **Add repository**: attach one or more repositories to retrieve from.
+
+In such a chat you can also turn features such as Generative UI on and off; each switch saves immediately. Generative UI is on by default for new chats.
 
 ## Generative UI
 
@@ -140,19 +146,20 @@ Primitives already stored in a chat keep rendering after Generative UI is turned
 
 Copying an answer and downloading the conversation include primitives as markdown, in the order they appear in the answer. A checklist becomes a list with each row's status, summary, quote and explanation; a review becomes each text as a quote with its findings and revision; a matrix becomes a table of statuses followed by its notes.
 
-## Quota Badge
+## Quota Line
 
-When quota data is available, the chat header shows remaining amount for the assigned pool.
-
-The badge can represent either:
-
-- Requests
-- Tokens
+When quota data is available, a line above the composer shows the pool that covers the chat's model and what is left in it, either requests or tokens.
 
 ## Retrieval And Citations
 
-Responses can include tool-driven retrieval output and source-aware rendering (for example citations and knowledge lookups) through message part renderers.
+When a chat has repositories, through its bot or its chat settings, the model can search them before it answers, but it may also answer directly. An answer that took steps shows one work log above it, listing the steps, such as **Searched the sources**, **Read the passages** and **Read a page**, and any interim text the model wrote between them; the text after the last step is the answer. While a step runs, a line under the answer names it. Expand a step to see its details and the passages found.
+
+Answers cite their sources inline. A citation shows the asset's title and page, and opening it shows the source details with an **Open asset** link to the asset's page (`/app/hub/assets/<asset id>`).
+
+## Deleting Chats
+
+Deleting a chat removes it and its messages for good. Chats branched from it stay, without the **Branched from** link.
 
 <Callout title="TODO" type="idea">
-	Document exact citation interaction patterns in the UI with screenshots, and document retention/deletion behaviour for chats and messages.
+	Add screenshots of the work log and citation interactions.
 </Callout>

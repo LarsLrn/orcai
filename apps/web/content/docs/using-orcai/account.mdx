@@ -1,46 +1,45 @@
 ---
 title: Account
-description: Manage your personal profile, credentials, invitations, and account-level status.
+description: The Account page and related flows, covering your name, email verification, password change and reset, organisation invitations, registration, switching organisation, and legal links.
 ---
 
-The account page is your personal control panel inside the active organisation context.
+The Account page (`/app/account`) holds your personal settings. Open it from **Account** in the user menu at the bottom of the sidebar.
 
 ## Available Sections
 
-- User stats summary card
-- Email verification status and resend action
-- Change password form
-- Profile form
-- Organisation invitations list, with Pending, Accepted, and Rejected tabs and
-  Previous/Next pagination within each tab
-- Legal links (privacy policy and terms of use)
+- A summary card with your Name and Email
+- **Email verification**
+- **Change password**
+- **Your profile**
+- **Organisation invitations**, with Pending, Accepted and Rejected tabs
+- **Legal**, with links to the privacy policy and terms of use
+
+## Summary Card
+
+The card at the top shows your Name and Email as stored on your account. It shows no usage figures. Quota usage appears in each chat above the composer.
 
 ## Email Verification
 
-The account screen displays whether your email is verified.
+The **Email verification** card says whether your email address is verified.
 
-If not verified, you can trigger Send Verification Email directly from the page.
+While it is not verified, the card offers **Send verification email**, which sends a new verification link. Once verified, the button no longer shows. Verification is optional for access.
 
 ## Profile
 
-Profile data is editable from the Your Profile card.
-
-<Callout title="TODO" type="idea">
-	Document exact editable fields and avatar update flow.
-</Callout>
+The **Your profile** card edits your Name. Save it with **Save profile**. There is no avatar upload, and your email address cannot be changed here.
 
 ## Password
 
-Password changes are handled inline through the Change Password form.
+The **Change password** card asks for your Current password, a New password and Confirm new password. Submitting with **Change password** asks you to confirm before the password changes.
 
-For forgotten passwords, the app also has a dedicated forgot/reset flow outside the authenticated area.
+If you have forgotten your password, use **Forgot password?** on the sign-in page. It opens `/forgot-password`, where you request a reset email. The link in that email opens `/reset-password`, where you choose a new password.
 
 ## Invitations
 
 Registration is by invitation. An account is created from an invitation link
 sent by an administrator of the organisation you are joining; there is no open
-sign-up. The register page names the inviting organisation, and the address is
-fixed by the invitation.
+sign-up. The link opens the register page (`/register`), which names the
+inviting organisation, and the address is fixed by the invitation.
 
 Signing up requires the invitation ID from the link and a matching address.
 It accepts only that invitation. Other pending invitations stay visible in the
@@ -48,28 +47,18 @@ organisation picker, even with one active organisation. With one active
 organisation and no pending invitations you enter it directly. Email
 verification remains optional for access.
 
-Invitations that arrive after your account exists are listed on the account
-page and in the organisation selection flow, where you accept or reject them.
-
-## Stats And Usage
-
-The account page includes a user stats card loaded asynchronously.
-
-<Callout title="TODO" type="idea">
-	Document exact metrics and calculation windows shown in user stats.
-</Callout>
+Invitations that arrive after your account exists are listed in the
+**Organisation invitations** card on the Account page and on the organisation
+selection page (`/select-organization`), where you **Accept** or **Reject**
+them. The card shows Pending first, with 12 invitations per page and Previous
+and Next buttons within each tab.
 
 ## Organisation Context And Switching
 
-The user menu (bottom sidebar profile menu) shows your active organisation and includes a Switch Organisation action.
+The user menu at the bottom of the sidebar shows your active organisation and includes **Switch organisation**.
 
-Switching organisation takes you to the organisation selection page.
+**Switch organisation** opens **Select your organisation** (`/select-organization`), where you pick another organisation you belong to and see pending invitations. Instance administrators also find a **Manage instance** link there.
 
 ## Legal
 
-The account page links to:
-
-- Privacy policy
-- Terms of use
-
-These open in separate browser tabs.
+The **Legal** section links to the Privacy policy (`/privacy`) and the Terms of use (`/tou`). Both open in a new browser tab.

@@ -119,6 +119,7 @@ services:
       BETTER_AUTH_URL: ${BETTER_AUTH_URL:-}
       VITE_BASE_URL: ${VITE_BASE_URL:-}
       VITE_WEB_URL: ${VITE_WEB_URL:-}
+      WEB_INTERNAL_URL: ${WEB_INTERNAL_URL:-http://web:3001}
 
       # Secrets (from environment)
       BETTER_AUTH_SECRET: ${BETTER_AUTH_SECRET:-}

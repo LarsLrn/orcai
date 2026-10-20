@@ -1,6 +1,6 @@
 ---
 title: Platform Overview
-description: What OrcAI is, who it is for, and how the platform fits together.
+description: What OrcAI is, who it is for, how retrieval-backed chat works, and the main areas of the app with their paths.
 ---
 
 OrcAI is a self-hostable platform for governed, retrieval-backed AI assistants. It originated in the [SokratesT project](https://github.com/SokratesT/sokratest) and still supports learning workflows where instructors curate material and students interact with a grounded AI tutor. OrcAI has since moved beyond a fixed instructor–student model: individuals and groups can build specialised knowledge bases and assistants for their own domains.
@@ -22,11 +22,13 @@ OrcAI combines content ingestion, semantic search, and chat:
 
 ## Core Areas
 
-- Chat: user-facing AI conversations, optionally started from configured bots.
-- Content library: uploaded files and processed assets used as knowledge sources.
-- Bots and blocks: reusable AI behavior and knowledge configurations.
-- Access control: organizations, users, groups, invitations, and resource sharing.
-- Administration: providers, models, quotas, jobs, and platform configuration.
+- Home (`/app`): the start page after sign-in, with a Use tab for asking questions and a Manage tab with an overview of the organisation.
+- Chat (`/app/chat`): AI conversations, optionally started from a bot.
+- Library (`/app/hub`): reusable resources, with Bots, Behaviour, Repositories and Assets.
+- OrcAI Assistant (`/app/assistant`): the built-in helper for questions about your work and about OrcAI.
+- Access control: organisations, roles, groups, invitations and resource sharing.
+- Administration: Users, Groups, Quotas, Providers, Models and Organisation for the active organisation, shown to members whose role allows them.
+- Instance management (`/instance`): organisations and accounts across the whole instance, for instance administrators.
 
 ## Suggested Reading
 

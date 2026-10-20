@@ -24,6 +24,16 @@ config throws when the stack environment is missing.
   the API, call `seedZedToken(page)` before the browser reads; retry calls that
   are safe to repeat with `untilAllowed`, `expect.poll` or `toPass`.
 
+## Servers
+
+`playwright.config.ts` starts three `webServer` entries in order: the mock
+inference server (`fixtures/inference/serve.ts`), the app's production build
+on `PORT`, and the docs site's production build on `WEB_PORT`. The assistant
+reads that docs site through `WEB_INTERNAL_URL`, so assistant specs fetch what
+it serves rather than pinning docs text. The app and the docs site reuse a
+server already listening on their port, such as `bun run stack dev` or
+`bun run stack web`.
+
 ## Layout
 
 `fixtures/*.ts` and `playwright.config.ts` are the foundation. `fixtures/<area>/`

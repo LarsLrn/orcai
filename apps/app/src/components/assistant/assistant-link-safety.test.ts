@@ -1,0 +1,59 @@
+import { describe, expect, test } from "bun:test";
+import { isTrustedAssistantLink } from "./assistant-link-safety";
+
+const origins = {
+	appOrigin: "https://orcai.example.org",
+	docsUrl: "https://docs.example.org",
+};
+
+describe("isTrustedAssistantLink", () => {
+	test.each([
+		"/app",
+		"/app/hub/bots",
+		"/app/hub/bots/123?tab=access",
+		"https://orcai.example.org/app/organization",
+		"https://docs.example.org",
+		"https://docs.example.org/docs/using-orcai/bots",
+	])("trusts %p", (url) => {
+		expect(isTrustedAssistantLink(url, origins)).toBe(true);
+	});
+
+	test.each([
+		"/instance/users",
+		"/application",
+		"//evil.example/app/hub",
+		"https://evil.example/app/hub",
+		"http://docs.example.org/docs",
+		"https://docs.example.org.evil.example/docs",
+		"javascript:alert(1)",
+		"mailto:someone@example.org",
+	])("asks before opening %p", (url) => {
+		expect(isTrustedAssistantLink(url, origins)).toBe(false);
+	});
+
+	test("trusts only paths under a docs URL with a path", () => {
+		const docsUnderPath = {
+			...origins,
+			docsUrl: "https://example.org/orcai-docs/",
+		};
+
+		expect(
+			isTrustedAssistantLink(
+				"https://example.org/orcai-docs/docs/using-orcai",
+				docsUnderPath,
+			),
+		).toBe(true);
+		expect(
+			isTrustedAssistantLink("https://example.org/other", docsUnderPath),
+		).toBe(false);
+	});
+
+	test("trusts no docs links without a docs URL", () => {
+		expect(
+			isTrustedAssistantLink("https://docs.example.org/docs", {
+				...origins,
+				docsUrl: undefined,
+			}),
+		).toBe(false);
+	});
+});

@@ -1,59 +1,79 @@
 ---
 title: Bots and Behaviour
-description: Build reusable AI experiences with bots, behaviour blocks, and content collections.
+description: The Library's bots, behaviour and repository blocks; the bot editor's steps, publishing rules, block pages, vector store actions, the repository playground and resource roles.
 ---
 
-Bots are reusable AI configurations that can be selected at chat start. They are authored in the Library area and combine behaviour, retrieval context, and sharing settings.
+Bots are reusable AI configurations that can be selected at chat start. They are authored in the Library (`/app/hub`) and combine behaviour, retrieval context, and sharing settings.
 
 ## Library Sections
 
-The Library route includes four major sections:
+The Library (`/app/hub`) has five tabs:
 
-- Bots
-- Behaviour
-- Repositories
-- Content
+- All (`/app/hub`)
+- Bots (`/app/hub/bots`)
+- Behaviour (`/app/hub/behaviour`)
+- Repositories (`/app/hub/repositories`)
+- Assets (`/app/hub/assets`), described in [Content Library](/docs/using-orcai/content-library)
+
+The sidebar lists the same sections under Library. Each needs the organisation's `read` permission, which every role has.
 
 ## Core Concepts
 
 - Bots: named AI setups users can select when starting a chat.
 - Blocks: reusable building blocks used by bots and chats.
-- Behaviour blocks: template blocks used to define response style/logic.
-- Repository blocks: database blocks that package content and retrieval settings.
-- Content items: uploaded assets that can be attached to repository blocks and chats.
+- Behaviour blocks: AI behaviour blocks, whose system prompt sets the bot's role, tone and limits.
+- Repository blocks: database blocks that package assets with retrieval settings.
+- Assets: uploaded files that can be attached to repository blocks and chats.
+
+A bot fixes no model and no quota pool. Each chat runs on the provider and model chosen in that chat, and usage is charged to the quota pool that covers the chatting person and that provider.
 
 ## Bot Lifecycle
 
-Bots have draft and published states:
+Bots (`/app/hub/bots`) have draft and published states, shown as two sections:
 
-- Published bots appear as ready-to-use options for chat setup.
-- Draft bots appear in Your Drafts and can be edited or deleted (depending on capabilities).
+- **Published** lists the bots ready to use in chats that you can read.
+- **Your drafts** lists bots not yet published, with **Edit draft** and **Delete draft** where your role on the bot allows them.
+
+**Create bot** appears for roles with `create_bot` (admins, managers and members).
+
+A bot is private until it is shared. Publishing does not share it: a published bot is usable only by the people and groups it was granted to, or by everyone when it is public. See [Access Control](/docs/using-orcai/access-control#resource-sharing).
+
+## The Bot Page
+
+A bot's page (`/app/hub/bots/<bot id>`) shows its behaviour and repositories. Depending on your role on the bot it offers:
+
+- **Start chat**, for anyone who can use the bot
+- **Access & groups**, which opens the access dialog
+- **Edit bot**, which opens the editor
+- **Delete bot**
 
 ## Creating Or Editing A Bot
+
+**Create bot** opens the editor at `/app/hub/bots/add`. The first save creates a draft and moves the editor to `/app/hub/bots/<bot id>/setup`, the same place **Edit bot** opens. The later steps unlock after that first save, and moving between steps saves your changes.
 
 The bot editor is a guided wizard with five steps:
 
 ### Bot Basics [step]
 
-Name the bot and define the high-level metadata users will see.
+Name the bot and give it a short description and a longer bot description for teammates who maintain it.
 
 ### AI Behaviour [step]
 
-Choose or create the behaviour block that controls the bot's response style and instructions.
+Write a new AI behaviour, start from an example, or choose **Use existing AI behaviour**. The system prompt has no default.
 
 Below the behaviour block, the Features section lists the built-in features the bot can enable. See [Features](#features).
 
-### Content [step]
+### Repositories [step]
 
-Attach ready repository blocks that provide retrieval context.
+Attach ready repository blocks that provide retrieval context. Repositories are optional: create one, choose **Add existing repository**, or attach none.
 
 ### Sharing And Access [step]
 
 Configure visibility, groups, and direct grants for the intended audience. Giving someone edit or manage on the bot also offers edit on its blocks, for the blocks you can share.
 
-### Review And Launch [step]
+### Review And Publish [step]
 
-Review validation results and publish when the bot is ready.
+Review the publishing checks, then choose **Save draft** to keep the bot as a draft or **Publish bot**. Publishing asks for confirmation and summarises who gains access, and that the bot fixes neither a provider and model nor a quota pool.
 
 The editor supports:
 
@@ -76,30 +96,47 @@ Bot cards and the bot page show the bot's enabled features.
 
 ## Publish Readiness Rules
 
-From current editor behaviour, launching requires:
+**Publish bot** stays disabled until:
 
-- A template behaviour block exists
-- Template behaviour block status is Ready
-- Every linked database block status is Ready
-- Every linked database block has at least one attached asset
+- An AI behaviour block is linked
+- The AI behaviour block is marked Ready
+- Every linked repository block is marked Ready
+- Every linked repository block has at least one attached asset
 
 ## Block Types
 
-The block creation flow currently supports two types:
+**Add behaviour** on the Behaviour tab and **Add repository** on the Repositories tab open `/app/hub/blocks/add`, where one of two types is chosen. `/app/hub/blocks/add?type=database` opens it on the repository type.
 
-- Template block (AI Behaviour)
-- Database block (Content Collection / Repository)
+- AI behaviour (template block)
+- Repository (database block)
+
+A bot links one AI behaviour block and any number of repository blocks.
 
 Each block can have:
 
-- Draft or Ready status
+- Draft or Ready publication status
 - Metadata and versioning
 - Visibility and grants
 - Capability-based actions (edit, delete, manage access)
 
+A block's page is `/app/hub/blocks/<block id>`. Its **More options** menu holds **Access & groups**, **Edit block** (`/app/hub/blocks/<block id>/edit`) and **Delete block**.
+
+## Repository Blocks
+
+A repository block's page lists its attached assets and its retrieval configuration:
+
+- **Retrieval mode**: Dense, Sparse or Hybrid
+- **References**: Minimum, Default and Maximum
+- **Max per asset**, **Candidate limit** and **Score threshold**, under the advanced settings
+
+Above the assets, **Jobs** opens the vectorisation job history for the repository. The **More options** menu next to it holds the vector store actions:
+
+- **Create vector store** queues a vectorisation job for the repository's assets, after a confirmation.
+- **View vector points** opens the indexed passages at `/app/hub/blocks/<block id>/points`.
+
 ## Repository Playground
 
-Ready database blocks expose a playground where users can test retrieval queries directly against that repository.
+Published repositories expose a playground where users can test retrieval queries directly against that repository. Open it with **Playground** on a repository under Repositories > Published; it lives at `/app/hub/repositories/<block id>/playground` and lets you choose the retrieval mode for each search.
 
 This is useful for:
 
@@ -109,10 +146,14 @@ This is useful for:
 
 ## Sharing And Access
 
-Bots and blocks expose access dialogs for visibility, groups, and direct grants.
+Bots, blocks and assets expose the same access dialog, **Access & groups**, for visibility, groups, and direct grants. The bot editor's sharing step embeds it.
 
-The same patterns are reused across assets, blocks, and bots.
+A grant gives one of three resource roles:
 
-<Callout title="TODO" type="idea">
-	Document the exact share permission matrix for bot use vs bot edit and add an end-to-end bot creation example.
-</Callout>
+- **Viewer** can find, use and read the resource. On a bot this is enough to chat with it.
+- **Editor** can also edit the resource.
+- **Manager** can also delete the resource and manage its access.
+
+The person who creates a resource owns it and holds every action on it. Details, including how access passes from a bot to its blocks and assets, are in [Access Control](/docs/using-orcai/access-control).
+
+For a full setup sequence from assets to a published bot, see [Workspace Setup For Admins](/docs/using-orcai/workspace-setup).

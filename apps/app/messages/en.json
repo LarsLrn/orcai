@@ -1657,6 +1657,9 @@
 		}
 	],
 	"chat_work_log_tool_parameters_label": "Parameters",
+	"chat_work_log_tool_read_docs_active": "Reading the docs",
+	"chat_work_log_tool_read_docs_index": "Read the docs index",
+	"chat_work_log_tool_read_docs_page": "Read “{title}”",
 	"chat_work_log_tool_search_active": "Searching the sources",
 	"chat_work_log_tool_search_name": "Searched the sources",
 	"chat_work_log_tool_search_result": [

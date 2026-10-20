@@ -1,5 +1,6 @@
 import {
 	BookMarkedIcon,
+	BookOpenIcon,
 	FileTextIcon,
 	Grid3x3Icon,
 	LibraryIcon,
@@ -36,6 +37,11 @@ const knownToolLabels: Record<KnownToolType, () => ToolLabels> = {
 		name: m.chat_work_log_tool_list_documents_name(),
 		active: m.chat_work_log_tool_list_documents_active(),
 		icon: LibraryIcon,
+	}),
+	"tool-readDocs": () => ({
+		name: m.chat_work_log_tool_read_docs_index(),
+		active: m.chat_work_log_tool_read_docs_active(),
+		icon: BookOpenIcon,
 	}),
 	"tool-searchKnowledgeBase": () => ({
 		name: m.chat_work_log_tool_search_name(),

@@ -57,7 +57,8 @@ The setup project initialises a reset instance through the first-run UI with
 the well-known admin. Each parallel worker creates and mutates only its own
 organisations through the public API. Instance-level specs run serially before
 parallel specs. The mock inference server is used for e2e; do not call a real
-provider. Workers, email delivery, and OCR are outside the suite unless a task
+provider. Playwright also builds and serves the docs site on `WEB_PORT` for
+the assistant, reusing a running `bun run stack web`. Workers, email delivery, and OCR are outside the suite unless a task
 explicitly adds them.
 
 Import the shared fixtures from `apps/e2e/fixtures/index.ts`; use the

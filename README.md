@@ -211,7 +211,9 @@ The stack subcommands only load `.env` and run the workspace scripts; they do no
 Use `bun run build && bun run start` for the app and `bun run workers:start` for the workers.
 
 The e2e inference mock starts fresh and its worker-local scenarios reset before
-and after each test. Admin browser pages use sessions separate from API clients.
+and after each test. Playwright also builds and serves the docs site on
+`WEB_PORT`, which the assistant reads through `WEB_INTERNAL_URL` during
+`bun run stack e2e`. Admin browser pages use sessions separate from API clients.
 Stack flags before `--` are validated; delegated flags belong after `--`.
 
 ## Configuration
@@ -232,7 +234,8 @@ Runtime configuration is loaded across app and package config modules:
 - `BASE_URL`: Compatibility fallback used by some auth tooling. Keep this aligned with `BETTER_AUTH_URL` when set.
 - `BETTER_AUTH_URL`: Public auth callback base URL.
 - `VITE_BASE_URL`: Public frontend base URL used in client-side links.
-- `VITE_WEB_URL`: Public docs site base URL used by the app dashboard (optional).
+- `VITE_WEB_URL`: Public docs site base URL used by the app dashboard and the assistant's docs links (optional). The assistant also reads the docs from it unless `WEB_INTERNAL_URL` is set; without it the assistant cannot read the docs.
+- `WEB_INTERNAL_URL`: Docs site origin the app server fetches for the assistant (optional, defaults to `VITE_WEB_URL`; Docker Compose sets `http://web:3001`).
 - `BETTER_AUTH_SECRET`: Better Auth signing secret.
 - `ENCRYPTION_KEY`: 32 to 64 character application encryption key.
 
