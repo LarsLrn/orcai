@@ -51,7 +51,6 @@ export const streamedText = async (
 export const setUpChatModel = async (
 	api: Api,
 	inference: InferenceMock,
-	endpoint = inference.url,
 ): Promise<ChatModel> => {
 	const admin = api.as("admin");
 	// The `org` fixture's admin joined through the sign-up hook, whose grant no
@@ -60,7 +59,7 @@ export const setUpChatModel = async (
 		admin.provider.create({
 			name: chatName("Provider"),
 			description: "Mock OpenAI-compatible endpoint for the chat slice.",
-			endpoint,
+			endpoint: inference.url,
 			compatibility: "openai",
 			meteringMode: "tokens",
 			apiKey: "e2e-mock-key",

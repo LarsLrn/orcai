@@ -52,9 +52,30 @@ a 401.
   error, whatever the endpoint. Queue several to fail several.
 - `requests` holds every request the mock saw: `method`, `path`, parsed JSON
   `body`, and the `authorization` and `contentType` headers.
-- `reset()` clears requests, scripted replies, and scripted failures. Call it
-  at the top of a spec: the fixture is worker-scoped, so the mock outlives a
-  single test.
+- `script(...steps)` queues one-shot steps; each chat completion answers the
+  next one, and an empty queue falls back to `respondWith`, then the echo. A
+  failure from `failNext` answers first and leaves the queue alone. A step is
+  `{ text?, toolCalls?, finishReason?, hold? }`, with neither `text` nor
+  `toolCalls` it answers the standing reply. A tool call is
+  `{ name, input, id? }`: `input` is any JSON value, sent as
+  `JSON.stringify(input)`, and the id defaults to `call_e2e_<n>`, counting up
+  per mock. `finish_reason` is `tool_calls` when the step has calls, else
+  `stop`, unless `finishReason` says otherwise. Streamed, the text comes first,
+  one delta per word, then each call: a delta with `id`, `type` and
+  `function.name`, then its arguments over at least two deltas. Not streamed,
+  `message.tool_calls` carries the calls whole and `message.content` is `null`
+  without text. `completion_tokens` counts the words of the text and of each
+  arguments string.
+- `hold: "response"` sends nothing until `release()`. `hold: "end"` streams
+  every chunk, `[DONE]` included, and keeps the body open until `release()`,
+  so a call stays `input-streaming`; without `stream: true` it holds like
+  `"response"`. The request is in `requests` before the hold.
+- `release()` lets every held response go; later steps hold again. `held()`
+  counts responses still waiting, `abandoned()` counts requests the client
+  closed before their response ended, on any endpoint.
+- `reset()` clears requests, scripted replies, failures, and steps, destroys
+  held responses, and restarts the counters. Call it at the top of a spec: the
+  fixture is worker-scoped, so the mock outlives a single test.
 
 ## The global endpoint
 

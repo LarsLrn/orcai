@@ -7,15 +7,98 @@ import {
 	test,
 } from "../../fixtures/inference/fixture";
 
-const jsonPost = async (url: string, body: unknown, apiKey = "e2e-mock-key") =>
+const jsonPost = async (url: string, body: unknown, signal?: AbortSignal) =>
 	await fetch(url, {
 		method: "POST",
 		headers: {
 			"content-type": "application/json",
-			authorization: `Bearer ${apiKey}`,
+			authorization: "Bearer e2e-mock-key",
 		},
 		body: JSON.stringify(body),
+		signal,
 	});
+
+const ask = (content: string, stream = false) => ({
+	model: INFERENCE_MOCK_MODELS.chat,
+	stream,
+	stream_options: stream
+		? {
+				include_usage: true,
+			}
+		: undefined,
+	messages: [
+		{
+			role: "user",
+			content,
+		},
+	],
+});
+
+type StreamedChunk = {
+	choices: {
+		delta?: {
+			content?: string;
+			tool_calls?: {
+				index: number;
+				id?: string;
+				type?: string;
+				function: {
+					name?: string;
+					arguments: string;
+				};
+			}[];
+		};
+		finish_reason: string | null;
+	}[];
+	usage?: {
+		completion_tokens: number;
+		total_tokens: number;
+	};
+};
+
+const streamedChunks = (body: string): StreamedChunk[] =>
+	body
+		.split("\n\n")
+		.map((event) => event.replace(/^data: /, "").trim())
+		.filter((event) => event.length > 0 && event !== "[DONE]")
+		.map((event) => JSON.parse(event) as StreamedChunk);
+
+type Completion = {
+	choices: {
+		message: {
+			content: string | null;
+			tool_calls?: {
+				id: string;
+				type: string;
+				function: {
+					name: string;
+					arguments: string;
+				};
+			}[];
+		};
+		finish_reason: string;
+	}[];
+	usage: {
+		completion_tokens: number;
+	};
+};
+
+const completionOf = async (response: Response): Promise<Completion> =>
+	(await response.json()) as Completion;
+
+const contentOf = async (response: Response): Promise<string | null> =>
+	(await completionOf(response)).choices[0].message.content;
+
+const finishReasons = (chunks: StreamedChunk[]): string[] =>
+	chunks
+		.flatMap((chunk) => chunk.choices)
+		.flatMap((choice) =>
+			choice.finish_reason
+				? [
+						choice.finish_reason,
+					]
+				: [],
+		);
 
 test("the inference mock lists its models", async ({ inference }) => {
 	inference.reset();
@@ -171,25 +254,7 @@ test("the inference mock streams a chat completion", async ({ inference }) => {
 
 	expect(body).toContain("data: [DONE]");
 
-	const events = body
-		.split("\n\n")
-		.map((event) => event.replace(/^data: /, "").trim())
-		.filter((event) => event.length > 0 && event !== "[DONE]")
-		.map(
-			(event) =>
-				JSON.parse(event) as {
-					object: string;
-					choices: {
-						delta?: {
-							content?: string;
-						};
-						finish_reason: string | null;
-					}[];
-					usage?: {
-						total_tokens: number;
-					};
-				},
-		);
+	const events = streamedChunks(body);
 
 	const text = events
 		.flatMap((event) => event.choices)
@@ -197,12 +262,363 @@ test("the inference mock streams a chat completion", async ({ inference }) => {
 		.join("");
 
 	expect(text).toBe("Mock inference reply to: Stream to me");
-	expect(
-		events
-			.flatMap((event) => event.choices)
-			.map((choice) => choice.finish_reason),
-	).toContain("stop");
+	expect(finishReasons(events)).toEqual([
+		"stop",
+	]);
 	expect(events.at(-1)?.usage?.total_tokens).toBeGreaterThan(0);
+});
+
+test("the inference mock answers scripted steps in order, then falls back", async ({
+	inference,
+}) => {
+	inference.reset();
+	inference.respondWith({
+		text: "Standing reply",
+	});
+	inference.script(
+		{
+			text: "First step",
+		},
+		{
+			text: "Second step",
+		},
+	);
+	inference.failNext({
+		status: 500,
+	});
+
+	const url = `${inference.url}/chat/completions`;
+
+	expect((await jsonPost(url, ask("One"))).status).toBe(500);
+	expect(await contentOf(await jsonPost(url, ask("Two")))).toBe("First step");
+	expect(await contentOf(await jsonPost(url, ask("Three")))).toBe(
+		"Second step",
+	);
+	expect(await contentOf(await jsonPost(url, ask("Four")))).toBe(
+		"Standing reply",
+	);
+
+	inference.reset();
+	inference.script({});
+
+	expect(await contentOf(await jsonPost(url, ask("Five")))).toBe(
+		"Mock inference reply to: Five",
+	);
+	expect(await contentOf(await jsonPost(url, ask("Six")))).toBe(
+		"Mock inference reply to: Six",
+	);
+});
+
+test("the inference mock streams scripted text and tool calls", async ({
+	inference,
+}) => {
+	inference.reset();
+
+	const lookup = {
+		query: "quarterly report",
+		limit: 3,
+	};
+	const notify = [
+		"alice",
+		"bob",
+	];
+
+	inference.script({
+		text: "Let me check.",
+		toolCalls: [
+			{
+				name: "lookup",
+				input: lookup,
+			},
+			{
+				name: "notify",
+				input: notify,
+				id: "call_given",
+			},
+		],
+	});
+
+	const response = await jsonPost(
+		`${inference.url}/chat/completions`,
+		ask("Use tools", true),
+	);
+	const body = await response.text();
+	const chunks = streamedChunks(body);
+	const deltas = chunks.flatMap((chunk) =>
+		chunk.choices.map((choice) => choice.delta ?? {}),
+	);
+	const firstCall = deltas.findIndex((delta) => delta.tool_calls);
+
+	expect(body.endsWith("data: [DONE]\n\n")).toBe(true);
+	expect(
+		deltas
+			.slice(0, firstCall)
+			.map((delta) => delta.content ?? "")
+			.join(""),
+	).toBe("Let me check.");
+	expect(
+		deltas.slice(firstCall).every((delta) => delta.content === undefined),
+	).toBe(true);
+
+	const calls = deltas
+		.slice(firstCall)
+		.flatMap((delta) => delta.tool_calls ?? []);
+
+	expect(calls.every((call) => typeof call.function === "object")).toBe(true);
+	expect([
+		...new Set(calls.map((call) => call.index)),
+	]).toEqual([
+		0,
+		1,
+	]);
+
+	for (const [index, expected] of [
+		{
+			id: "call_e2e_1",
+			name: "lookup",
+			input: lookup,
+		},
+		{
+			id: "call_given",
+			name: "notify",
+			input: notify,
+		},
+	].entries()) {
+		const [first, ...rest] = calls.filter((call) => call.index === index);
+
+		expect(first).toEqual({
+			index,
+			id: expected.id,
+			type: "function",
+			function: {
+				name: expected.name,
+				arguments: "",
+			},
+		});
+		expect(rest.length).toBeGreaterThanOrEqual(2);
+		expect(rest.every((call) => call.id === undefined)).toBe(true);
+		expect(rest.map((call) => call.function.arguments).join("")).toBe(
+			JSON.stringify(expected.input),
+		);
+	}
+
+	expect(finishReasons(chunks)).toEqual([
+		"tool_calls",
+	]);
+	// Three words of text, two in the first arguments, one in the second.
+	expect(chunks.at(-1)?.usage?.completion_tokens).toBe(6);
+});
+
+test("the inference mock answers scripted tool calls without streaming", async ({
+	inference,
+}) => {
+	inference.reset();
+	inference.script(
+		{
+			toolCalls: [
+				{
+					name: "lookup",
+					input: {
+						query: "one",
+					},
+				},
+			],
+		},
+		{
+			text: "Cut short",
+			toolCalls: [
+				{
+					name: "lookup",
+					input: {
+						query: "two",
+					},
+					id: "call_given",
+				},
+			],
+			finishReason: "length",
+		},
+	);
+
+	const url = `${inference.url}/chat/completions`;
+	const first = await completionOf(await jsonPost(url, ask("One")));
+
+	expect(first.choices[0]).toEqual({
+		index: 0,
+		message: {
+			role: "assistant",
+			content: null,
+			tool_calls: [
+				{
+					id: "call_e2e_1",
+					type: "function",
+					function: {
+						name: "lookup",
+						arguments: '{"query":"one"}',
+					},
+				},
+			],
+		},
+		logprobs: null,
+		finish_reason: "tool_calls",
+	});
+	expect(first.usage.completion_tokens).toBe(1);
+
+	const second = await completionOf(await jsonPost(url, ask("Two")));
+
+	expect(second.choices[0].message.content).toBe("Cut short");
+	expect(second.choices[0].message.tool_calls?.[0].id).toBe("call_given");
+	expect(second.choices[0].finish_reason).toBe("length");
+
+	inference.script({
+		text: "Overridden",
+		finishReason: "content_filter",
+	});
+
+	const streamed = streamedChunks(
+		await (await jsonPost(url, ask("Three", true))).text(),
+	);
+
+	expect(finishReasons(streamed)).toEqual([
+		"content_filter",
+	]);
+});
+
+test("the inference mock holds a response until release", async ({
+	inference,
+}) => {
+	inference.reset();
+	inference.script({
+		text: "Held reply",
+		hold: "response",
+	});
+
+	let answered = false;
+	const pending = jsonPost(
+		`${inference.url}/chat/completions`,
+		ask("Hold me"),
+	).then((response) => {
+		answered = true;
+
+		return response;
+	});
+
+	await expect.poll(() => inference.held()).toBe(1);
+	expect(answered).toBe(false);
+	expect(inference.requests.at(-1)).toMatchObject({
+		method: "POST",
+		path: "/v1/chat/completions",
+	});
+
+	inference.release();
+
+	expect(await contentOf(await pending)).toBe("Held reply");
+	expect(inference.held()).toBe(0);
+});
+
+test("the inference mock holds the end of a stream until release", async ({
+	inference,
+}) => {
+	inference.reset();
+	inference.script({
+		toolCalls: [
+			{
+				name: "lookup",
+				input: {
+					query: "open",
+				},
+			},
+		],
+		hold: "end",
+	});
+
+	const response = await jsonPost(
+		`${inference.url}/chat/completions`,
+		ask("Keep it open", true),
+	);
+	const reader = response.body?.getReader();
+
+	if (!reader) {
+		throw new Error("Missing response body");
+	}
+
+	const decoder = new TextDecoder();
+	let body = "";
+
+	while (!body.includes("data: [DONE]")) {
+		const { value } = await reader.read();
+
+		body += decoder.decode(value, {
+			stream: true,
+		});
+	}
+
+	expect(inference.held()).toBe(1);
+
+	let ended = false;
+	const end = reader.read().then((result) => {
+		ended = true;
+
+		return result;
+	});
+
+	await expect.poll(() => inference.held()).toBe(1);
+	expect(ended).toBe(false);
+
+	inference.release();
+
+	expect((await end).done).toBe(true);
+	expect(inference.held()).toBe(0);
+	expect(inference.abandoned()).toBe(0);
+});
+
+test("the inference mock counts a held request the client abandons", async ({
+	inference,
+}) => {
+	inference.reset();
+	inference.script({
+		hold: "response",
+	});
+
+	const controller = new AbortController();
+	const pending = jsonPost(
+		`${inference.url}/chat/completions`,
+		ask("Never mind"),
+		controller.signal,
+	).catch((cause: unknown) => cause);
+
+	await expect.poll(() => inference.held()).toBe(1);
+	controller.abort();
+
+	expect(await pending).toBeInstanceOf(Error);
+	await expect.poll(() => inference.abandoned()).toBe(1);
+	expect(inference.held()).toBe(0);
+});
+
+test("the inference mock reset drops queued steps and held responses", async ({
+	inference,
+}) => {
+	inference.reset();
+	inference.script(
+		{
+			hold: "response",
+		},
+		{
+			text: "Queued step",
+		},
+	);
+
+	const url = `${inference.url}/chat/completions`;
+	const pending = jsonPost(url, ask("Held")).catch((cause: unknown) => cause);
+
+	await expect.poll(() => inference.held()).toBe(1);
+	inference.reset();
+
+	expect(await pending).toBeInstanceOf(Error);
+	expect(inference.held()).toBe(0);
+	expect(inference.abandoned()).toBe(0);
+	expect(await contentOf(await jsonPost(url, ask("After reset")))).toBe(
+		"Mock inference reply to: After reset",
+	);
 });
 
 test("the inference mock embeds a string and an array", async ({
