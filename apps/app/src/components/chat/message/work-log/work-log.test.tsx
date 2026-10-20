@@ -3,6 +3,7 @@ import { cleanup, fireEvent, render, screen } from "@testing-library/react";
 import type { WorkEntry } from "@/components/chat/message/classify-turn";
 import { m } from "@/paraglide/messages";
 import { ActivityLine } from "./activity-line";
+import { ReasoningEntry } from "./reasoning-entry";
 import { activeStepLabel } from "./work-log";
 
 afterEach(() => {
@@ -115,5 +116,21 @@ describe("ActivityLine", () => {
 
 		rerender(<ActivityLine label="Thinking" />);
 		expect(status.textContent).toBe("Thinking");
+	});
+});
+
+describe("ReasoningEntry", () => {
+	const part = {
+		type: "reasoning",
+		text: "a",
+		state: "streaming",
+	} as const;
+
+	test("thinks only while the turn runs", () => {
+		const { rerender } = render(<ReasoningEntry part={part} running />);
+		expect(screen.getByText(m.chat_work_log_thinking())).toBeTruthy();
+
+		rerender(<ReasoningEntry part={part} running={false} />);
+		expect(screen.queryByText(m.chat_work_log_thinking())).toBeNull();
 	});
 });

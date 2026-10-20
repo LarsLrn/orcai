@@ -20,6 +20,10 @@ import {
 	createToolLines,
 	type StoredMessage,
 } from "@/lib/ai/agents/assistant-tool-lines";
+import {
+	finalStepSettings,
+	stepBudgetOptionsSchema,
+} from "@/lib/ai/agents/step-budget";
 import type { ResolvedFeature } from "@/lib/ai/features/resolve-features";
 import { assistantToolApproval } from "@/lib/ai/tools/assistant/approval";
 import { groupsLoadedBy } from "@/lib/ai/tools/assistant/core/load-tools";
@@ -102,6 +106,7 @@ export const createAssistantAgent = (
 		tools,
 		toolApproval: assistantToolApproval,
 		...aiTelemetry("assistant.agent", params.telemetryIds),
+		callOptionsSchema: stepBudgetOptionsSchema,
 		prepareCall: ({ options, ...settings }) => ({
 			...settings,
 			...params.callSettings,
@@ -114,7 +119,32 @@ export const createAssistantAgent = (
 					toolGroups,
 				}),
 			),
-			stopWhen: isStepCount(20),
+			stopWhen: isStepCount(options.maxSteps),
+			// Loaded groups stay active for the conversation, including this generation's loads.
+			prepareStep: ({ stepNumber, steps, messages }) => {
+				const prunedMessages = pruneAssistantHistory(messages, {
+					lines: toolLines.lines,
+					displayToolNames: GEN_UI_TOOL_NAMES,
+					enabledDisplayToolNames,
+				});
+				return {
+					messages: prunedMessages,
+					activeTools: activeToolsFor([
+						...params.loadedToolGroups,
+						...steps.flatMap((step) =>
+							step.toolResults
+								.filter((result) => result.toolName === "loadTools")
+								.flatMap((result) => groupsLoadedBy(result.output)),
+						),
+					]),
+					...finalStepSettings({
+						stepNumber,
+						maxSteps: options.maxSteps,
+						messages: prunedMessages,
+						providerKind: params.providerKind,
+					}),
+				};
+			},
 		}),
 		// Also sees tools approved in an earlier request, which run before the first step.
 		onToolExecutionEnd: ({ toolOutput }) => {
@@ -124,22 +154,6 @@ export const createAssistantAgent = (
 				]);
 			}
 		},
-		// Loaded groups stay active for the conversation, including this generation's loads.
-		prepareStep: ({ steps, messages }) => ({
-			messages: pruneAssistantHistory(messages, {
-				lines: toolLines.lines,
-				displayToolNames: GEN_UI_TOOL_NAMES,
-				enabledDisplayToolNames,
-			}),
-			activeTools: activeToolsFor([
-				...params.loadedToolGroups,
-				...steps.flatMap((step) =>
-					step.toolResults
-						.filter((result) => result.toolName === "loadTools")
-						.flatMap((result) => groupsLoadedBy(result.output)),
-				),
-			]),
-		}),
 		output: Output.text(),
 	});
 };

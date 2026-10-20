@@ -16,6 +16,7 @@ import { MessageBranches } from "@/components/chat/branch-links";
 import type { ClientToolActions } from "@/components/chat/continue-turn";
 import {
 	classifyTurn,
+	missingAnswer,
 	pausedStep,
 } from "@/components/chat/message/classify-turn";
 import { ActivityLine } from "@/components/chat/message/work-log/activity-line";
@@ -134,14 +135,22 @@ export const MessageBlock = ({
 		onContinue !== undefined &&
 		message.role === "assistant" &&
 		pausedStep(message.parts, running, isLatest)?.answered === true;
+	const missing = missingAnswer(message, {
+		running,
+		settled: !isLatest || (status !== "submitted" && status !== "streaming"),
+		answerParts,
+	});
 
 	// A reply exists from the first chunk on, before the model has written anything.
-	if (message.role === "assistant" && message.parts.length === 0) {
-		return running ? (
+	if (missing === "waiting") {
+		return (
 			<div className="w-full text-foreground">
 				<Shimmer>{m.chat_waiting_for_model()}</Shimmer>
 			</div>
-		) : null;
+		);
+	}
+	if (missing === "pending") {
+		return null;
 	}
 
 	return (
@@ -174,6 +183,13 @@ export const MessageBlock = ({
 								disabled={status === "submitted" || status === "streaming"}
 							/>
 						))}
+						{(missing === "step-limit" || missing === "no-answer") && (
+							<p className="text-muted-foreground text-sm">
+								{missing === "step-limit"
+									? m.chat_reply_step_limit()
+									: m.chat_reply_no_answer()}
+							</p>
+						)}
 						{canContinue && (
 							<Button
 								variant="outline"

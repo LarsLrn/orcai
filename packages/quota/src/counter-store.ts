@@ -53,21 +53,24 @@ end
 return 1
 `;
 
+// Grants up to the amount asked for, and nothing below the minimum.
 const RESERVE_COUNTERS_SCRIPT = `
 local remainingKey = KEYS[1]
 local reservedKey = KEYS[2]
 local amount = tonumber(ARGV[1])
-local ttl = tonumber(ARGV[2])
+local minimum = tonumber(ARGV[2])
+local ttl = tonumber(ARGV[3])
 local remaining = tonumber(redis.call("GET", remainingKey) or "0")
+local granted = math.min(amount, remaining)
 
-if remaining < amount then
-  return {0, remaining}
+if granted < minimum or granted <= 0 then
+  return {0, remaining, 0}
 end
 
-local nextRemaining = remaining - amount
+local nextRemaining = remaining - granted
 redis.call("SET", remainingKey, tostring(nextRemaining), "EX", ttl)
-redis.call("SET", reservedKey, tostring(tonumber(redis.call("GET", reservedKey) or "0") + amount), "EX", ttl)
-return {1, nextRemaining}
+redis.call("SET", reservedKey, tostring(tonumber(redis.call("GET", reservedKey) or "0") + granted), "EX", ttl)
+return {1, nextRemaining, granted}
 `;
 
 const parseNumber = (value: string | null | undefined) => {
@@ -123,6 +126,7 @@ const reserveCountersAtomically = async (params: {
 	poolId: QuotaPoolId;
 	periodId: QuotaPeriodId;
 	amount: number;
+	minimumAmount: number;
 }) => {
 	const keys = makeCounterKeys(params.poolId, params.periodId);
 	const result = await params.client.eval(RESERVE_COUNTERS_SCRIPT, {
@@ -132,14 +136,16 @@ const reserveCountersAtomically = async (params: {
 		],
 		arguments: [
 			String(params.amount),
+			String(params.minimumAmount),
 			String(DAYS_30_SECONDS),
 		],
 	});
 
-	if (!Array.isArray(result) || result.length < 2) {
+	if (!Array.isArray(result) || result.length < 3) {
 		return {
 			allowed: false,
 			remaining: parseNumber(await params.client.get(keys.remaining)),
+			reservedAmount: 0,
 		};
 	}
 
@@ -148,6 +154,7 @@ const reserveCountersAtomically = async (params: {
 		remaining: Number.isFinite(Number(result[1]))
 			? Number(result[1])
 			: parseNumber(await params.client.get(keys.remaining)),
+		reservedAmount: parseNumber(String(result[2])),
 	};
 };
 
@@ -158,7 +165,10 @@ export class QuotaCounterStore extends Context.Service<
 			poolId: QuotaPoolId;
 			periodId: QuotaPeriodId;
 			reservationKey: string;
+			/** The most to reserve; less is granted when less remains. */
 			amount: number;
+			/** The least worth reserving; below it the reservation is refused. */
+			minimumAmount: number;
 			initialState: {
 				remaining: number;
 				reserved: number;
@@ -171,6 +181,7 @@ export class QuotaCounterStore extends Context.Service<
 			{
 				allowed: boolean;
 				remaining: number;
+				reservedAmount: number;
 			},
 			QuotaCounterStoreError,
 			never
@@ -218,6 +229,7 @@ export const QuotaCounterStoreLive = Layer.effect(
 			periodId: QuotaPeriodId;
 			reservationKey: string;
 			amount: number;
+			minimumAmount: number;
 			initialState: {
 				remaining: number;
 				reserved: number;
@@ -245,19 +257,15 @@ export const QuotaCounterStoreLive = Layer.effect(
 						await client.get(reservationStorageKey),
 					);
 
-					if (existingRecord?.status === "reserved") {
+					if (
+						existingRecord?.status === "reserved" ||
+						existingRecord?.status === "finalized"
+					) {
 						const keys = makeCounterKeys(input.poolId, input.periodId);
 						return {
 							allowed: true,
 							remaining: parseNumber(await client.get(keys.remaining)),
-						};
-					}
-
-					if (existingRecord?.status === "finalized") {
-						const keys = makeCounterKeys(input.poolId, input.periodId);
-						return {
-							allowed: true,
-							remaining: parseNumber(await client.get(keys.remaining)),
+							reservedAmount: existingRecord.reservedAmount,
 						};
 					}
 
@@ -286,9 +294,13 @@ export const QuotaCounterStoreLive = Layer.effect(
 
 					if (pendingSet !== "OK") {
 						const keys = makeCounterKeys(input.poolId, input.periodId);
+						const concurrentRecord = parseReservationRecord(
+							await client.get(reservationStorageKey),
+						);
 						return {
 							allowed: true,
 							remaining: parseNumber(await client.get(keys.remaining)),
+							reservedAmount: concurrentRecord?.reservedAmount ?? input.amount,
 						};
 					}
 
@@ -297,20 +309,19 @@ export const QuotaCounterStoreLive = Layer.effect(
 						poolId: input.poolId,
 						periodId: input.periodId,
 						amount: input.amount,
+						minimumAmount: input.minimumAmount,
 					});
 
 					if (!reserved.allowed) {
 						await client.del(reservationStorageKey);
-						return {
-							allowed: false,
-							remaining: reserved.remaining,
-						};
+						return reserved;
 					}
 
 					await client.set(
 						reservationStorageKey,
 						JSON.stringify({
 							...pendingRecord,
+							reservedAmount: reserved.reservedAmount,
 							status: "reserved",
 						} satisfies ReservationRecord),
 						{
@@ -321,10 +332,7 @@ export const QuotaCounterStoreLive = Layer.effect(
 						},
 					);
 
-					return {
-						allowed: true,
-						remaining: reserved.remaining,
-					};
+					return reserved;
 				},
 				catch: (cause) =>
 					new QuotaCounterStoreError({

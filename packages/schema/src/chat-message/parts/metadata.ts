@@ -31,6 +31,8 @@ export const chatMessageMetadataSchema = z.object({
 	zedToken: z.string().optional(),
 	/** When a running continuation claimed the reply (ISO string). */
 	continuedAt: z.string().optional(),
+	/** The turn used up its steps on a step that still called tools. */
+	stepLimitReached: z.boolean().optional(),
 });
 
 export type ChatMessageMetadata = z.infer<typeof chatMessageMetadataSchema>;

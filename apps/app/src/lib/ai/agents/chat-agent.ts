@@ -18,6 +18,10 @@ import {
 	type ChatAgentTools,
 	repairKnowledgeBaseToolCall,
 } from "@/lib/ai/agents/repair-tool-call";
+import {
+	finalStepSettings,
+	stepBudgetOptionsSchema,
+} from "@/lib/ai/agents/step-budget";
 import type { ResolvedFeature } from "@/lib/ai/features/resolve-features";
 import { buildKnowledgeBaseTools } from "@/lib/ai/tools/rag/toolset";
 import type { ChatCallSettings } from "@/lib/ai/utils/chat-call-settings";
@@ -50,6 +54,7 @@ export const createChatAgent = (params: {
 		} satisfies ChatAgentTools,
 		...aiTelemetry("chat.agent", params.telemetryIds),
 		experimental_repairToolCall: repairKnowledgeBaseToolCall,
+		callOptionsSchema: stepBudgetOptionsSchema,
 		prepareCall: ({ options, ...settings }) => {
 			const hasKnowledgeBaseBlocks = params.databaseBlocks.length > 0;
 			const tools: ToolSet = {
@@ -90,7 +95,14 @@ export const createChatAgent = (params: {
 				// A subset of the typed set; no tools at all when nothing is offered.
 				tools:
 					Object.keys(tools).length > 0 ? (tools as ChatAgentTools) : undefined,
-				stopWhen: isStepCount(10),
+				stopWhen: isStepCount(options.maxSteps),
+				prepareStep: ({ stepNumber, messages }) =>
+					finalStepSettings({
+						stepNumber,
+						maxSteps: options.maxSteps,
+						messages,
+						providerKind: params.providerKind,
+					}),
 			};
 		},
 		output: Output.text(),

@@ -127,9 +127,13 @@ export const pausedStep = (
 	};
 };
 
-/** Finished reasoning without text, as models that omit their thinking send it. */
-const isBlankReasoning = (part: ReasoningPart) =>
-	part.state !== "streaming" && part.text.trim() === "";
+/** Reasoning still arriving; a part left streaming after the turn ended is not. */
+export const isLiveReasoning = (part: ReasoningPart, running: boolean) =>
+	running && part.state === "streaming";
+
+/** Settled reasoning without text, as models that omit their thinking send it. */
+const isBlankReasoning = (part: ReasoningPart, running: boolean) =>
+	!isLiveReasoning(part, running) && part.text.trim() === "";
 
 /**
  * Splits a turn's parts into the work log and the answer, both in stream
@@ -193,7 +197,7 @@ export const classifyTurn = (
 		const id = String(index);
 
 		if (part.type === "reasoning") {
-			if (isBlankReasoning(part)) return;
+			if (isBlankReasoning(part, running)) return;
 			entries.push({
 				id,
 				kind: "reasoning",
@@ -226,4 +230,35 @@ export const classifyTurn = (
 		entries,
 		answerParts: answerIndexes.map((index) => parts[index]),
 	};
+};
+
+/**
+ * What a reply shows where its answer would be: the wait for its first part
+ * while it runs, nothing until its request settles, or why a settled reply
+ * has no answer.
+ */
+export const missingAnswer = (
+	message: Pick<ChatAgentUIMessage, "role" | "parts" | "metadata">,
+	{
+		running,
+		settled,
+		answerParts,
+	}: {
+		running: boolean;
+		/** The chat is no longer sending or streaming this reply. */
+		settled: boolean;
+		answerParts: readonly MessagePart[];
+	},
+): "waiting" | "pending" | "step-limit" | "no-answer" | undefined => {
+	if (message.role !== "assistant") {
+		return undefined;
+	}
+	if (!settled) {
+		if (message.parts.length > 0) return undefined;
+		return running ? "waiting" : "pending";
+	}
+	if (answerParts.length > 0) {
+		return undefined;
+	}
+	return message.metadata?.stepLimitReached ? "step-limit" : "no-answer";
 };

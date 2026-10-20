@@ -3,35 +3,19 @@ import { estimateQuotaReservationAmount } from "../src/estimator";
 
 describe("estimateQuotaReservationAmount", () => {
 	describe("requests metering", () => {
-		test("uses the explicit maximum provider requests when provided", () => {
+		test("reserves the maximum provider requests of the call", () => {
 			const result = estimateQuotaReservationAmount({
 				meteringMode: "requests",
-				isFirstTurn: true,
-				maxExpectedProviderRequests: 5,
-				messages: [],
+				maxExpectedProviderRequests: 25,
+				messages: [
+					{
+						role: "user",
+						content: "hello",
+					},
+				],
 			});
 
-			expect(result).toBe(5);
-		});
-
-		test("falls back to agent steps plus one on the first turn", () => {
-			const result = estimateQuotaReservationAmount({
-				meteringMode: "requests",
-				isFirstTurn: true,
-				messages: [],
-			});
-
-			expect(result).toBe(11);
-		});
-
-		test("falls back to agent steps on subsequent turns", () => {
-			const result = estimateQuotaReservationAmount({
-				meteringMode: "requests",
-				isFirstTurn: false,
-				messages: [],
-			});
-
-			expect(result).toBe(10);
+			expect(result).toBe(25);
 		});
 	});
 
@@ -39,7 +23,7 @@ describe("estimateQuotaReservationAmount", () => {
 		test("uses the default output cap when the prompt estimate is tiny", () => {
 			const result = estimateQuotaReservationAmount({
 				meteringMode: "tokens",
-				isFirstTurn: true,
+				maxExpectedProviderRequests: 25,
 				messages: [],
 			});
 
@@ -57,7 +41,7 @@ describe("estimateQuotaReservationAmount", () => {
 
 			const result = estimateQuotaReservationAmount({
 				meteringMode: "tokens",
-				isFirstTurn: true,
+				maxExpectedProviderRequests: 25,
 				messages,
 			});
 
@@ -75,7 +59,7 @@ describe("estimateQuotaReservationAmount", () => {
 
 			const result = estimateQuotaReservationAmount({
 				meteringMode: "tokens",
-				isFirstTurn: false,
+				maxExpectedProviderRequests: 25,
 				maxExpectedOutputTokens: 256,
 				messages,
 			});
@@ -86,7 +70,7 @@ describe("estimateQuotaReservationAmount", () => {
 		test("respects the minimum token reservation", () => {
 			const result = estimateQuotaReservationAmount({
 				meteringMode: "tokens",
-				isFirstTurn: false,
+				maxExpectedProviderRequests: 25,
 				maxExpectedOutputTokens: 1,
 				messages: [
 					{

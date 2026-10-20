@@ -38,6 +38,10 @@ import * as Effect from "effect/Effect";
 import { v4 as uuidv4 } from "uuid";
 import { createAssistantAgent } from "@/lib/ai/agents/assistant-agent";
 import { createChatAgent } from "@/lib/ai/agents/chat-agent";
+import {
+	ASSISTANT_AGENT_MAX_STEPS,
+	CHAT_AGENT_MAX_STEPS,
+} from "@/lib/ai/agents/step-budget";
 import { forkChatTitleGenerationIfNeeded } from "@/lib/ai/effects/fork-chat-title-generation";
 import { quotaDenialError } from "@/lib/ai/effects/generate-text-with-quota";
 import { resolveFeatures } from "@/lib/ai/features/resolve-features";
@@ -308,6 +312,7 @@ const runChatTurn = (turn: ChatTurn) =>
 			assistantUserContext && assistantTurn
 				? {
 						kind: "assistant" as const,
+						maxSteps: ASSISTANT_AGENT_MAX_STEPS,
 						agent: createAssistantAgent({
 							model: chatAiSettings.model,
 							providerKind: chatAiSettings.provider.kind,
@@ -324,6 +329,7 @@ const runChatTurn = (turn: ChatTurn) =>
 					}
 				: {
 						kind: "chat" as const,
+						maxSteps: CHAT_AGENT_MAX_STEPS,
 						agent: createChatAgent({
 							model: chatAiSettings.model,
 							providerKind: chatAiSettings.provider.kind,
@@ -363,8 +369,8 @@ const runChatTurn = (turn: ChatTurn) =>
 			providerId,
 			providerModelId: modelId,
 			appRequestId: assistantMessageId,
+			maxExpectedProviderRequests: turnAgent.maxSteps,
 			messages,
-			isFirstTurn: turn.kind === "reply" && turn.history.length === 0,
 		});
 
 		if (
@@ -377,6 +383,11 @@ const runChatTurn = (turn: ChatTurn) =>
 		}
 
 		const reservation = quotaReservation.reservation;
+		// The answer step falls within what the pool granted, so a reply never runs past it.
+		const maxSteps =
+			reservation.meteringMode === "requests"
+				? reservation.reservedAmount
+				: turnAgent.maxSteps;
 		const releaseOnFailure = <A, E, R>(effect: Effect.Effect<A, E, R>) =>
 			effect.pipe(
 				Effect.catch((error) =>
@@ -603,6 +614,10 @@ const runChatTurn = (turn: ChatTurn) =>
 					finishedUsage = part.totalUsage;
 					return {
 						totalUsage: part.totalUsage,
+						...(part.finishReason === "tool-calls" &&
+							actualProviderRequestCount >= maxSteps && {
+								stepLimitReached: true,
+							}),
 					};
 				}
 			},
@@ -619,6 +634,9 @@ const runChatTurn = (turn: ChatTurn) =>
 					? createAgentUIStream({
 							...turnStream,
 							agent: turnAgent.agent,
+							options: {
+								maxSteps,
+							},
 							// Each chat kind stores only its own agent's tool parts.
 							originalMessages: messages as InferAgentUIMessage<
 								ReturnType<typeof createAssistantAgent>,
@@ -629,6 +647,9 @@ const runChatTurn = (turn: ChatTurn) =>
 					: createAgentUIStream({
 							...turnStream,
 							agent: turnAgent.agent,
+							options: {
+								maxSteps,
+							},
 							originalMessages: messages as InferAgentUIMessage<
 								ReturnType<typeof createChatAgent>,
 								ChatMessageMetadata

@@ -24,9 +24,9 @@ interface ReserveQuotaInput {
 	providerModelId?: string | null;
 	appRequestId: string;
 	maxExpectedOutputTokens?: number;
-	maxExpectedProviderRequests?: number;
+	/** With requests metering, fewer are reserved when fewer remain. */
+	maxExpectedProviderRequests: number;
 	messages: unknown[];
-	isFirstTurn: boolean;
 }
 
 export interface ReservedQuotaContext {
@@ -71,7 +71,6 @@ export const reserveForAppRequest: (
 
 		const reservationAmount = estimateQuotaReservationAmount({
 			meteringMode: winning.meteringMode,
-			isFirstTurn: input.isFirstTurn,
 			maxExpectedOutputTokens: input.maxExpectedOutputTokens,
 			maxExpectedProviderRequests: input.maxExpectedProviderRequests,
 			messages: input.messages,
@@ -85,6 +84,9 @@ export const reserveForAppRequest: (
 			periodId: winning.period.id,
 			reservationKey,
 			amount: reservationAmount,
+			// A request-metered call can run with fewer requests; tokens are all or nothing.
+			minimumAmount:
+				winning.meteringMode === "requests" ? 1 : reservationAmount,
 			initialState: {
 				remaining: winning.ledger.remainingAmount,
 				reserved: winning.ledger.reservedAmount,
@@ -101,6 +103,7 @@ export const reserveForAppRequest: (
 				denialReason: "exhausted",
 			} satisfies ReserveQuotaResult;
 		}
+		const { reservedAmount } = counterReservation;
 
 		const durableReservation = yield* reserveQuotaLedger({
 			organizationId: input.organizationId,
@@ -112,7 +115,7 @@ export const reserveForAppRequest: (
 			appRequestId: input.appRequestId,
 			reservationKey,
 			meteringMode: winning.meteringMode,
-			reservedAmount: reservationAmount,
+			reservedAmount,
 			metadata: {
 				orderedCandidatePoolIds: resolution.orderedCandidatePoolIds,
 			},
@@ -142,7 +145,7 @@ export const reserveForAppRequest: (
 					providerId: winning.pool.providerId,
 					providerModelId: winning.pool.providerModelId,
 					meteringMode: winning.meteringMode,
-					reservedAmount: reservationAmount,
+					reservedAmount,
 					budgetAmount: winning.ledger.budgetAmount,
 					periodEndsAt: winning.period.endsAt,
 				},
@@ -159,7 +162,7 @@ export const reserveForAppRequest: (
 				providerId: winning.pool.providerId,
 				providerModelId: winning.pool.providerModelId,
 				meteringMode: winning.meteringMode,
-				reservedAmount: reservationAmount,
+				reservedAmount,
 				budgetAmount: winning.ledger.budgetAmount,
 				periodEndsAt: winning.period.endsAt,
 			},

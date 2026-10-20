@@ -19,6 +19,7 @@ export {
 	buildSystemInstructions,
 	createProviderLanguageModel,
 	listProviderModels,
+	withholdToolCalls,
 } from "./provider-kinds/registry";
 export type { SystemPrompt } from "./provider-kinds/types";
 export { AiTelemetryLive, aiTelemetry } from "./telemetry";
