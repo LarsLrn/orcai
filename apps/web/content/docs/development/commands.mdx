@@ -46,15 +46,21 @@ Inside the devcontainer, `ORCAI_ENV_FILE` points the runner at `.devcontainer/.e
 
 | Command | Purpose |
 | --- | --- |
-| `bun run verify` | Run Biome, TypeScript checks, and unit tests. |
+| `bun run verify` | Run Biome, TypeScript checks, the migration check, and unit tests. |
 | `bun run e2e` | Alias for `bun run stack e2e`. |
-| `bun run lint` | Run Biome and TypeScript checks. |
-| `bun run lint-full` | Run Biome, TypeScript checks, and ESLint. |
+| `bun run lint` | Run Biome, TypeScript checks, and the migration check. |
+| `bun run lint-full` | Run Biome, TypeScript checks, the migration check, and ESLint. |
 | `bun run knip` | Run unused dependency/export analysis. |
 | `bun run prepush` | Run the full pre-push check. |
 
 The TypeScript check passes `--force` to `tsgo --build`, so stale build info
 cannot hide an error that a fresh CI checkout reports.
+
+The migration check is `drizzle-kit check` on `packages/db/migrations`. It
+needs no database and fails when two migrations branch from the same parent
+and change the same table, column, or other entity. That happens when a branch
+with a new migration is rebased onto a `main` that gained one; regenerate the
+branch's migration on top.
 
 `lint:eslint`, which `lint-full` runs, enumerates the workspaces
 (`apps/app`, `apps/web`, then `apps/e2e`, `apps/workers`, `packages`) because

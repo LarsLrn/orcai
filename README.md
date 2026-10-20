@@ -290,7 +290,7 @@ See [.env.example](.env.example) for a current baseline.
 
 - `bun run stack up`: start this checkout's infrastructure and apply migrations
 - `bun run dev`: start the development server (alias for `bun run stack dev`)
-- `bun run verify`: run lint and unit tests
+- `bun run verify`: run lint, the migration check, and unit tests
 - `bun run e2e`: reset the stack and run the end-to-end suite
 - `bun run build`: build the app and documentation site
 - `bun run build:app`: build only the main app
@@ -298,10 +298,11 @@ See [.env.example](.env.example) for a current baseline.
 - `bun run start`: run the production server from `dist`
 - `bun run workers:dev`: start worker process directly on the host
 - `bun run workers:start`: run worker process in production mode
-- `bun run lint`: run Biome and TypeScript checks
-- `bun run ci`: run the same lint, test, docs type-check, and build suite used by GitHub Actions
+- `bun run lint`: run Biome, TypeScript checks, and the migration check
+- `bun run ci`: run the same lint, migration check, test, docs type-check, and build suite used by GitHub Actions
 - `bun run stack migrate`: apply SQL migrations and the SpiceDB schema
 - `bun run stack exec -- bun run --filter @orcai/db generate`: generate a new Drizzle migration
+- `bun run --filter @orcai/db check`: fail when two migrations branch from the same parent and change the same entity; after a rebase onto `main`, regenerate the branch's migration
 - `bun run stack exec -- bun run --filter @orcai/db studio`: open Drizzle Studio
 - `bun run stack exec -- bun run --filter @orcai/spice-db status`: inspect SpiceDB schema migration status
 
