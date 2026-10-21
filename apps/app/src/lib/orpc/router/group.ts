@@ -28,7 +28,6 @@ import {
 	scopedResourceRef,
 } from "@/lib/authz/scoped-resource-id";
 import { getZedToken } from "@/lib/authz/zed-token";
-import { AuthzService } from "@/lib/effect/services/authz";
 import * as AppErrors from "@/lib/effect/utils/errors";
 import { authed } from "@/lib/orpc/implementation/authed";
 import { createProcedures } from "@/lib/orpc/implementation/procedures";
@@ -228,37 +227,40 @@ const createGroup = authed.group.create
 	.use(requireOrganizationPermission("manage_groups"))
 	.effect(function* ({ input, context }) {
 		const db = yield* DB;
-		const authz = yield* AuthzService;
 		const organizationId = context.auth.session.activeOrganizationId;
 		const now = new Date();
 
-		const [created] = yield* db
-			.insert(dbSchema.group)
-			.values({
-				organizationId,
-				name: input.name,
-				description: input.description,
-				kind: "custom",
-				systemKey: null,
-				createdBy: context.auth.user.id,
-				createdAt: now,
-				updatedAt: now,
-				deletedAt: null,
-			})
-			.returning();
-
-		yield* authz.applyRelationshipMutations({
-			mutations: [
-				{
-					resourceType: "group",
-					resourceId: created.id,
-					relation: "organization",
-					subjectType: "organization",
-					subjectId: organizationId,
-					operation: "touch",
-				},
-			],
-		});
+		const { result: created } = yield* writeRelationships(
+			{
+				organizationIds: [
+					organizationId,
+				],
+			},
+			Effect.gen(function* () {
+				const [created] = yield* db
+					.insert(dbSchema.group)
+					.values({
+						organizationId,
+						name: input.name,
+						description: input.description,
+						kind: "custom",
+						systemKey: null,
+						createdBy: context.auth.user.id,
+						createdAt: now,
+						updatedAt: now,
+						deletedAt: null,
+					})
+					.returning();
+				yield* recordRelationshipFacts(
+					RelationshipFact.GroupCreated({
+						groupId: created.id,
+						organizationId,
+						allMembers: false,
+					}),
+				);
+				return created;
+			}),
+		);
 
 		return {
 			data: created,
@@ -437,6 +439,7 @@ const deleteGroups = authed.group.delete
 						RelationshipFact.GroupDeleted({
 							groupId,
 							organizationId,
+							allMembers: false,
 						}),
 					),
 					...membersToRemove.map((member) =>
@@ -682,47 +685,51 @@ const addGroupMembers = authed.group.addMembers
 	.use(requireOrganizationPermission("manage_groups"))
 	.effect(function* ({ input, context }) {
 		const db = yield* DB;
-		const authz = yield* AuthzService;
 		const organizationId = context.auth.session.activeOrganizationId;
 		const now = new Date();
 
-		yield* requireCustomGroup({
-			groupId: input.groupId,
-			organizationId,
-		});
-
-		const members = yield* db
-			.select({
-				userId: dbSchema.member.userId,
-			})
-			.from(dbSchema.member)
-			.where(
-				and(
-					eq(dbSchema.member.organizationId, organizationId),
-					inArray(dbSchema.member.userId, input.userIds),
-				),
-			);
-
-		const validUserIds = new Set(members.map((item) => item.userId));
-		const rejectedUserIds = input.userIds.filter(
-			(userId) => !validUserIds.has(userId),
-		);
-
-		if (rejectedUserIds.length > 0) {
-			return yield* Effect.fail(
-				new AppErrors.BadRequestError({
-					reason: "GROUP_MEMBERS_INVALID",
-					params: {
-						userIds: rejectedUserIds,
-					},
-					message: "Group members must belong to this organisation",
-				}),
-			);
-		}
-
-		yield* db.transaction((tx) =>
+		yield* writeRelationships(
+			{
+				organizationIds: [
+					organizationId,
+				],
+			},
 			Effect.gen(function* () {
-				const existing = yield* tx
+				yield* requireCustomGroup({
+					groupId: input.groupId,
+					organizationId,
+				});
+
+				const members = yield* db
+					.select({
+						userId: dbSchema.member.userId,
+					})
+					.from(dbSchema.member)
+					.where(
+						and(
+							eq(dbSchema.member.organizationId, organizationId),
+							inArray(dbSchema.member.userId, input.userIds),
+						),
+					);
+
+				const validUserIds = new Set(members.map((item) => item.userId));
+				const rejectedUserIds = input.userIds.filter(
+					(userId) => !validUserIds.has(userId),
+				);
+
+				if (rejectedUserIds.length > 0) {
+					return yield* Effect.fail(
+						new AppErrors.BadRequestError({
+							reason: "GROUP_MEMBERS_INVALID",
+							params: {
+								userIds: rejectedUserIds,
+							},
+							message: "Group members must belong to this organisation",
+						}),
+					);
+				}
+
+				const existing = yield* db
 					.select({
 						userId: dbSchema.groupMember.userId,
 						removedAt: dbSchema.groupMember.removedAt,
@@ -749,7 +756,7 @@ const addGroupMembers = authed.group.addMembers
 				);
 
 				if (toRestore.length > 0) {
-					yield* tx
+					yield* db
 						.update(dbSchema.groupMember)
 						.set({
 							removedAt: null,
@@ -765,7 +772,7 @@ const addGroupMembers = authed.group.addMembers
 				}
 
 				if (toInsert.length > 0) {
-					yield* tx.insert(dbSchema.groupMember).values(
+					yield* db.insert(dbSchema.groupMember).values(
 						toInsert.map((userId) => ({
 							groupId: input.groupId,
 							userId,
@@ -775,19 +782,21 @@ const addGroupMembers = authed.group.addMembers
 						})),
 					);
 				}
+
+				yield* recordRelationshipFacts(
+					...[
+						...toInsert,
+						...toRestore,
+					].map((userId) =>
+						RelationshipFact.GroupMembershipChanged({
+							groupId: input.groupId,
+							userId,
+							member: true,
+						}),
+					),
+				);
 			}),
 		);
-
-		yield* authz.applyRelationshipMutations({
-			mutations: input.userIds.map((userId) => ({
-				resourceType: "group" as const,
-				resourceId: input.groupId,
-				relation: "member" as const,
-				subjectType: "user" as const,
-				subjectId: userId,
-				operation: "touch" as const,
-			})),
-		});
 
 		return {
 			success: true,
@@ -799,61 +808,56 @@ const removeGroupMembers = authed.group.removeMembers
 	.use(requireOrganizationPermission("manage_groups"))
 	.effect(function* ({ input, context }) {
 		const db = yield* DB;
-		const authz = yield* AuthzService;
-
 		const organizationId = context.auth.session.activeOrganizationId;
 		const now = new Date();
 
-		yield* requireCustomGroup({
-			groupId: input.groupId,
-			organizationId,
-		});
+		const { result: removedUserIds } = yield* writeRelationships(
+			{
+				organizationIds: [
+					organizationId,
+				],
+			},
+			Effect.gen(function* () {
+				yield* requireCustomGroup({
+					groupId: input.groupId,
+					organizationId,
+				});
 
-		const activeMembers = yield* db
-			.select({
-				userId: dbSchema.groupMember.userId,
-			})
-			.from(dbSchema.groupMember)
-			.where(
-				and(
-					eq(dbSchema.groupMember.groupId, input.groupId),
-					inArray(dbSchema.groupMember.userId, input.userIds),
-					isNull(dbSchema.groupMember.removedAt),
-				),
-			);
+				const removed = yield* db
+					.update(dbSchema.groupMember)
+					.set({
+						removedAt: now,
+					})
+					.where(
+						and(
+							eq(dbSchema.groupMember.groupId, input.groupId),
+							inArray(dbSchema.groupMember.userId, input.userIds),
+							isNull(dbSchema.groupMember.removedAt),
+						),
+					)
+					.returning({
+						userId: dbSchema.groupMember.userId,
+					});
 
-		if (activeMembers.length === 0) {
+				yield* recordRelationshipFacts(
+					...removed.map(({ userId }) =>
+						RelationshipFact.GroupMembershipChanged({
+							groupId: input.groupId,
+							userId,
+							member: false,
+						}),
+					),
+				);
+				return removed.map(({ userId }) => userId);
+			}),
+		);
+
+		if (removedUserIds.length === 0) {
 			return {
 				success: true,
 				message: "No active members to remove",
 			};
 		}
-
-		const removedUserIds = activeMembers.map((member) => member.userId);
-
-		yield* db
-			.update(dbSchema.groupMember)
-			.set({
-				removedAt: now,
-			})
-			.where(
-				and(
-					eq(dbSchema.groupMember.groupId, input.groupId),
-					inArray(dbSchema.groupMember.userId, removedUserIds),
-					isNull(dbSchema.groupMember.removedAt),
-				),
-			);
-
-		yield* authz.applyRelationshipMutations({
-			mutations: removedUserIds.map((userId) => ({
-				resourceType: "group" as const,
-				resourceId: input.groupId,
-				relation: "member" as const,
-				subjectType: "user" as const,
-				subjectId: userId,
-				operation: "delete" as const,
-			})),
-		});
 
 		return {
 			success: true,

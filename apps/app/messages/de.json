@@ -2427,7 +2427,6 @@
 	"error_block_in_use_by_ready_bots": "Dieser Block kann nicht in den Entwurf zurückgesetzt werden, weil bereite Bots ihn verwenden: {botNames}.",
 	"error_block_link_forbidden": "Sie haben keinen Zugriff auf einen oder mehrere der ausgewählten Blöcke.",
 	"error_block_not_found": "Block nicht gefunden.",
-	"error_bootstrap_organization_create_failed": "Die Organisation konnte nicht erstellt werden.",
 	"error_bootstrap_user_create_failed": "Der Benutzer konnte nicht erstellt werden.",
 	"error_bot_behaviour_block_not_ready": "Setzen Sie den KI-Verhaltensblock auf Bereit, bevor Sie diesen Bot veröffentlichen.",
 	"error_bot_behaviour_block_required": "Bots benötigen einen KI-Verhaltensblock, bevor sie veröffentlicht werden können.",

@@ -206,17 +206,39 @@ describe("projectRelationshipFacts", () => {
 		});
 	});
 
-	test("a deleted group leaves its organization", () => {
-		expect(
-			project(
-				RelationshipFact.GroupDeleted({
-					groupId,
-					organizationId,
-				}),
-			),
-		).toEqual([
+	test("a group joins and leaves its organization", () => {
+		const group = {
+			groupId,
+			organizationId,
+			allMembers: false,
+		};
+		expect(project(RelationshipFact.GroupCreated(group))).toEqual([
+			`touch group:${groupId}#organization@organization:${organizationId}`,
+		]);
+		expect(project(RelationshipFact.GroupDeleted(group))).toEqual([
 			`delete group:${groupId}#organization@organization:${organizationId}`,
 		]);
+	});
+
+	test("the All Members group's members are every organization role", () => {
+		const group = {
+			groupId,
+			organizationId,
+			allMembers: true,
+		};
+		const tuples = [
+			`group:${groupId}#organization@organization:${organizationId}`,
+			`group:${groupId}#member@organization:${organizationId}#admin`,
+			`group:${groupId}#member@organization:${organizationId}#manager`,
+			`group:${groupId}#member@organization:${organizationId}#member`,
+			`group:${groupId}#member@organization:${organizationId}#viewer`,
+		];
+		expect(project(RelationshipFact.GroupCreated(group))).toEqual(
+			tuples.map((tuple) => `touch ${tuple}`),
+		);
+		expect(project(RelationshipFact.GroupDeleted(group))).toEqual(
+			tuples.map((tuple) => `delete ${tuple}`),
+		);
 	});
 
 	test("group membership touches or deletes the member tuple", () => {
@@ -549,10 +571,18 @@ const samples: Record<RelationshipFact["_tag"], RelationshipFact[]> = {
 			to,
 		}),
 	),
+	GroupCreated: [
+		RelationshipFact.GroupCreated({
+			groupId,
+			organizationId,
+			allMembers: true,
+		}),
+	],
 	GroupDeleted: [
 		RelationshipFact.GroupDeleted({
 			groupId,
 			organizationId,
+			allMembers: true,
 		}),
 	],
 	GroupMembershipChanged: [

@@ -1,14 +1,8 @@
-import {
-	type ModelId,
-	ORGANIZATION_ADMIN_ROLE,
-	ORGANIZATION_ROLES,
-	type OrganizationId,
-} from "@orcai/core";
+import type { ModelId, OrganizationId } from "@orcai/core";
 import { DB, dbSchema } from "@orcai/db";
-import {
-	ALL_MEMBERS_GROUP_SYSTEM_KEY,
-	type InstanceOrganizationSortKey,
-	type OrganizationSortKey,
+import type {
+	InstanceOrganizationSortKey,
+	OrganizationSortKey,
 } from "@orcai/schema";
 import { lookupEntitiesByPermission } from "@orcai/spice-db";
 import {
@@ -29,12 +23,13 @@ import {
 } from "drizzle-orm";
 import * as Effect from "effect/Effect";
 import { modelUnusableReason } from "@/lib/ai/turn/model-usability";
-import { parseScopedResourceId } from "@/lib/authz/scoped-resource-id";
-import { getZedToken } from "@/lib/authz/zed-token";
 import {
-	AuthzService,
-	enqueueRelationshipMutations,
-} from "@/lib/effect/services/authz";
+	deleteOrganizationsWithAuthorization,
+	insertOrganization,
+	touchOrganizationRoles,
+} from "@/lib/authz/organization-lifecycle";
+import { writeRelationships } from "@/lib/authz/relationship-write";
+import { getZedToken } from "@/lib/authz/zed-token";
 import * as AppErrors from "@/lib/effect/utils/errors";
 import { authed } from "@/lib/orpc/implementation/authed";
 import { createProcedures } from "@/lib/orpc/implementation/procedures";
@@ -49,7 +44,6 @@ const listOrganizations = authed.organization.list.effect(function* ({
 	context,
 }) {
 	const db = yield* DB;
-	const authz = yield* AuthzService;
 
 	const memberships = yield* db
 		.select({
@@ -76,24 +70,18 @@ const listOrganizations = authed.organization.list.effect(function* ({
 		(membership) => !allowedSet.has(membership.organizationId),
 	);
 	if (missingMemberships.length > 0) {
-		yield* authz
-			.applyRelationshipMutations({
-				mutations: missingMemberships.map((membership) => ({
-					resourceType: "organization",
-					resourceId: membership.organizationId,
-					relation: membership.role,
-					subjectType: "user",
-					subjectId: context.auth.user.id,
-					operation: "touch" as const,
-				})),
-			})
-			.pipe(
-				Effect.catch((error) =>
-					Effect.logWarning(
-						`organization.membership_repair_failed userId=${context.auth.user.id} cause=${String(error)}`,
-					),
+		yield* touchOrganizationRoles({
+			userId: context.auth.user.id,
+			organizationIds: missingMemberships.map(
+				(membership) => membership.organizationId,
+			),
+		}).pipe(
+			Effect.catch((error) =>
+				Effect.logWarning(
+					`organization.membership_repair_failed userId=${context.auth.user.id} cause=${String(error)}`,
 				),
-			);
+			),
+		);
 	}
 
 	if (visibleIds.length === 0) {
@@ -252,118 +240,19 @@ const findOrganization = authed.organization.find
 const createOrganization = authed.organization.create
 	.use(requireInstanceAdminMiddleware)
 	.effect(function* ({ input, context }) {
-		const db = yield* DB;
-		const authz = yield* AuthzService;
-		const now = new Date();
-
-		const { organization: newOrganization, allMembersGroupId } =
-			yield* db.transaction((tx) =>
-				Effect.gen(function* () {
-					const [createdOrganization] = yield* tx
-						.insert(dbSchema.organization)
-						.values({
-							...input,
-							createdAt: now,
-						})
-						.returning({
-							...getColumns(dbSchema.organization),
-						});
-
-					yield* tx.insert(dbSchema.member).values({
-						organizationId: createdOrganization.id,
-						userId: context.auth.user.id,
-						role: ORGANIZATION_ADMIN_ROLE,
-						createdAt: now,
-					});
-
-					const [allMembersGroup] = yield* tx
-						.insert(dbSchema.group)
-						.values({
-							organizationId: createdOrganization.id,
-							name: "All Members",
-							description: "System group containing all organization members",
-							kind: "system",
-							systemKey: ALL_MEMBERS_GROUP_SYSTEM_KEY,
-							createdBy: context.auth.user.id,
-							createdAt: now,
-							updatedAt: now,
-							deletedAt: null,
-						})
-						.returning({
-							id: dbSchema.group.id,
-						});
-
-					return {
-						organization: createdOrganization,
-						allMembersGroupId: allMembersGroup.id,
-					};
-				}),
-			);
-
-		yield* authz.applyRelationshipMutations({
-			mutations: [
-				{
-					resourceType: "organization",
-					resourceId: newOrganization.id,
-					relation: "admin",
-					subjectType: "user",
-					subjectId: context.auth.user.id,
-					operation: "touch",
-				},
-			],
-		});
-
-		yield* authz.applyRelationshipMutations({
-			mutations: [
-				{
-					resourceType: "group",
-					resourceId: allMembersGroupId,
-					relation: "organization",
-					subjectType: "organization",
-					subjectId: newOrganization.id,
-					operation: "touch",
-				},
-				{
-					resourceType: "group",
-					resourceId: allMembersGroupId,
-					relation: "member",
-					subjectType: "organization",
-					subjectId: newOrganization.id,
-					subjectRelation: "admin",
-					operation: "touch",
-				},
-				{
-					resourceType: "group",
-					resourceId: allMembersGroupId,
-					relation: "member",
-					subjectType: "organization",
-					subjectId: newOrganization.id,
-					subjectRelation: "manager",
-					operation: "touch",
-				},
-				{
-					resourceType: "group",
-					resourceId: allMembersGroupId,
-					relation: "member",
-					subjectType: "organization",
-					subjectId: newOrganization.id,
-					subjectRelation: "member",
-					operation: "touch",
-				},
-				{
-					resourceType: "group",
-					resourceId: allMembersGroupId,
-					relation: "member",
-					subjectType: "organization",
-					subjectId: newOrganization.id,
-					subjectRelation: "viewer",
-					operation: "touch",
-				},
-			],
-		});
+		const { result: organization } = yield* writeRelationships(
+			{
+				organizationIds: [],
+			},
+			insertOrganization({
+				values: input,
+				adminUserId: context.auth.user.id,
+				now: new Date(),
+			}),
+		);
 
 		return {
-			data: newOrganization,
+			data: organization,
 		};
 	});
 
@@ -563,179 +452,12 @@ const getOrganizationDeletionImpact = authed.organization.deletionImpact
 		};
 	});
 
-/** Reads every tuple the organisation owns before the cascading delete, since SpiceDB cannot list them afterwards. */
 const deleteOrganizations = authed.organization.delete
 	.use(requireInstanceAdminMiddleware)
 	.effect(function* ({ input }) {
-		const db = yield* DB;
-		const authz = yield* AuthzService;
-		const organizationIds = input.refs.map((ref) => ref.id);
-		const now = new Date();
-
-		const eventIds = yield* db.transaction((tx) =>
-			Effect.gen(function* () {
-				const existingOrganizations = yield* tx
-					.select({
-						id: dbSchema.organization.id,
-					})
-					.from(dbSchema.organization)
-					.where(inArray(dbSchema.organization.id, organizationIds));
-
-				if (existingOrganizations.length !== organizationIds.length) {
-					return yield* Effect.fail(
-						new AppErrors.NotFoundError({
-							reason: "ORGANIZATION_NOT_FOUND",
-							message: "One or more organizations were not found",
-						}),
-					);
-				}
-
-				const memberships = yield* tx
-					.select({
-						organizationId: dbSchema.member.organizationId,
-						userId: dbSchema.member.userId,
-						role: dbSchema.member.role,
-					})
-					.from(dbSchema.member)
-					.where(inArray(dbSchema.member.organizationId, organizationIds));
-
-				const groups = yield* tx
-					.select({
-						id: dbSchema.group.id,
-						organizationId: dbSchema.group.organizationId,
-						systemKey: dbSchema.group.systemKey,
-					})
-					.from(dbSchema.group)
-					.where(
-						and(
-							inArray(dbSchema.group.organizationId, organizationIds),
-							isNull(dbSchema.group.deletedAt),
-						),
-					);
-
-				const groupIds = groups.map((group) => group.id);
-
-				const groupMembers =
-					groupIds.length === 0
-						? []
-						: yield* tx
-								.select({
-									groupId: dbSchema.groupMember.groupId,
-									userId: dbSchema.groupMember.userId,
-								})
-								.from(dbSchema.groupMember)
-								.where(
-									and(
-										inArray(dbSchema.groupMember.groupId, groupIds),
-										isNull(dbSchema.groupMember.removedAt),
-									),
-								);
-
-				const groupGrants =
-					groupIds.length === 0
-						? []
-						: yield* tx
-								.select({
-									resourceType: dbSchema.resourceGrant.resourceType,
-									resourceId: dbSchema.resourceGrant.resourceId,
-									role: dbSchema.resourceGrant.role,
-									principalId: dbSchema.resourceGrant.principalId,
-								})
-								.from(dbSchema.resourceGrant)
-								.where(
-									and(
-										eq(dbSchema.resourceGrant.principalType, "group"),
-										inArray(dbSchema.resourceGrant.principalId, groupIds),
-										isNull(dbSchema.resourceGrant.revokedAt),
-									),
-								);
-
-				if (groupIds.length > 0) {
-					yield* tx
-						.update(dbSchema.resourceGrant)
-						.set({
-							revokedAt: now,
-						})
-						.where(
-							and(
-								eq(dbSchema.resourceGrant.principalType, "group"),
-								inArray(dbSchema.resourceGrant.principalId, groupIds),
-								isNull(dbSchema.resourceGrant.revokedAt),
-							),
-						);
-				}
-
-				yield* tx
-					.delete(dbSchema.organization)
-					.where(inArray(dbSchema.organization.id, organizationIds));
-
-				yield* tx
-					.update(dbSchema.session)
-					.set({
-						activeOrganizationId: null,
-					})
-					.where(
-						inArray(dbSchema.session.activeOrganizationId, organizationIds),
-					);
-
-				return yield* enqueueRelationshipMutations([
-					...memberships.map((membership) => ({
-						resourceType: "organization" as const,
-						resourceId: membership.organizationId,
-						relation: membership.role,
-						subjectType: "user" as const,
-						subjectId: membership.userId,
-						operation: "delete" as const,
-					})),
-					...groups.map((group) => ({
-						resourceType: "group" as const,
-						resourceId: group.id,
-						relation: "organization" as const,
-						subjectType: "organization" as const,
-						subjectId: group.organizationId,
-						operation: "delete" as const,
-					})),
-					...groups
-						.filter((group) => group.systemKey === ALL_MEMBERS_GROUP_SYSTEM_KEY)
-						.flatMap((group) =>
-							ORGANIZATION_ROLES.map((role) => ({
-								resourceType: "group" as const,
-								resourceId: group.id,
-								relation: "member" as const,
-								subjectType: "organization" as const,
-								subjectId: group.organizationId,
-								subjectRelation: role,
-								operation: "delete" as const,
-							})),
-						),
-					...groupMembers.map((groupMember) => ({
-						resourceType: "group" as const,
-						resourceId: groupMember.groupId,
-						relation: "member" as const,
-						subjectType: "user" as const,
-						subjectId: groupMember.userId,
-						operation: "delete" as const,
-					})),
-					...groupGrants.map((grant) => ({
-						resourceType: grant.resourceType,
-						resourceId: parseScopedResourceId(grant),
-						relation: grant.role,
-						subjectType: "group" as const,
-						subjectId: grant.principalId,
-						subjectRelation: "member" as const,
-						operation: "delete" as const,
-					})),
-				]);
-			}),
+		yield* deleteOrganizationsWithAuthorization(
+			input.refs.map((ref) => ref.id),
 		);
-
-		yield* authz
-			.deliverRelationshipEvents(eventIds)
-			.pipe(
-				Effect.catch((cause) =>
-					Effect.logError(`authz.delivery_failed cause=${String(cause)}`),
-				),
-			);
 
 		return {
 			success: true,

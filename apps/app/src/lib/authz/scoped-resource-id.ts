@@ -29,12 +29,6 @@ export const scopedResourceRef = (resource: {
 	}
 };
 
-/** Recovers the branded resource id from a plain `(resourceType, resourceId)` row. */
-export const parseScopedResourceId = (resource: {
-	resourceType: "asset" | "block" | "bot";
-	resourceId: string;
-}) => scopedResourceRef(resource).resourceId;
-
 /** The typed principal of a `resource_grant` row. */
 export const grantPrincipal = (grant: {
 	principalType: "user" | "group";

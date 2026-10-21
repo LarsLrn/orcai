@@ -308,11 +308,11 @@ test("deletion transactions roll back with their outbox and committed cleanup re
 			])
 		).rowCount,
 	).toBe(0);
-	await fault(account.userId, "fail");
+	await fault(account.userId, "delay");
 	await deleteAccount();
-	const failed = await latest(account.userId);
-	expect(failed.status).toBe("failed");
-	// Delivery is ordered, so a failing event holds back every newer one.
+	const retrying = await latest(account.userId);
+	expect(retrying.status).toBe("pending");
+	// Delivery is ordered, so an event waiting out its backoff holds back every newer one.
 	const blocked = await api.as("admin").group.create({
 		name: `Outbox blocked ${randomUUID()}`,
 	});
@@ -325,9 +325,9 @@ test("deletion transactions roll back with their outbox and committed cleanup re
 		).rowCount,
 	).toBe(0);
 	await db.query(
-		"UPDATE authz_outbox SET payload_json = payload_json->'original', next_attempt_at = NULL WHERE id = $1",
+		"UPDATE authz_outbox SET next_attempt_at = NULL WHERE id = $1",
 		[
-			failed.id,
+			retrying.id,
 		],
 	);
 	for (const target of [
@@ -339,6 +339,30 @@ test("deletion transactions roll back with their outbox and committed cleanup re
 				timeout: 30_000,
 			})
 			.toBe("processed");
+	// An event SpiceDB rejects is dead-lettered at once and delivery moves on.
+	await fault(doomed.id, "fail");
+	const rejected = await api.as("admin", doomed).group.create({
+		name: `Outbox rejected ${randomUUID()}`,
+	});
+	await fault("none", "delay");
+	const next = await api.as("admin", doomed).group.create({
+		name: `Outbox next ${randomUUID()}`,
+	});
+	for (const [target, status] of [
+		[
+			rejected.data.id,
+			"dead_letter",
+		],
+		[
+			next.data.id,
+			"processed",
+		],
+	])
+		await expect
+			.poll(async () => (await latest(target)).status, {
+				timeout: 30_000,
+			})
+			.toBe(status);
 	await fault(doomed.id, "delay");
 	await deleteOrg();
 	expect((await latest(doomed.id)).status).toBe("pending");

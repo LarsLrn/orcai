@@ -9,9 +9,6 @@ import type {
 } from "@orcai/schema";
 import {
 	ALL_MEMBERS_GROUP_SYSTEM_KEY,
-	assetIdSchema,
-	blockIdSchema,
-	botIdSchema,
 	groupIdSchema,
 	RESOURCE_GRANT_SOURCE,
 	userIdSchema,
@@ -38,7 +35,10 @@ import {
 	writeRelationships,
 } from "@/lib/authz/relationship-write";
 import { resourceOrganizations } from "@/lib/authz/resource-lifecycle";
-import { grantPrincipal } from "@/lib/authz/scoped-resource-id";
+import {
+	grantPrincipal,
+	scopedResourceRef,
+} from "@/lib/authz/scoped-resource-id";
 import { getZedToken } from "@/lib/authz/zed-token";
 import * as AppErrors from "@/lib/effect/utils/errors";
 import { authed } from "@/lib/orpc/implementation/authed";
@@ -64,29 +64,6 @@ const grantSourceForGroup = (
 	params.kind === "system" && params.systemKey === ALL_MEMBERS_GROUP_SYSTEM_KEY
 		? RESOURCE_GRANT_SOURCE.DIRECT_GROUP_ALL_MEMBERS
 		: RESOURCE_GRANT_SOURCE.DIRECT_GROUP;
-
-const parseResourceIdentity = (resource: {
-	resourceType: ResourceGrantView["resourceType"];
-	resourceId: string;
-}) => {
-	switch (resource.resourceType) {
-		case "asset":
-			return {
-				resourceType: "asset" as const,
-				resourceId: assetIdSchema.parse(resource.resourceId),
-			};
-		case "block":
-			return {
-				resourceType: "block" as const,
-				resourceId: blockIdSchema.parse(resource.resourceId),
-			};
-		case "bot":
-			return {
-				resourceType: "bot" as const,
-				resourceId: botIdSchema.parse(resource.resourceId),
-			};
-	}
-};
 
 type ActiveGrant = typeof dbSchema.resourceGrant.$inferSelect;
 type AncestorRef = AccessAncestor extends infer Ancestor
@@ -204,7 +181,7 @@ const hydrateGrants = (params: {
 
 		const data: ResourceGrantView[] = [];
 		for (const grant of params.grants) {
-			const resourceIdentity = parseResourceIdentity(grant);
+			const resourceIdentity = scopedResourceRef(grant);
 
 			if (grant.principalType === "user") {
 				const principal = userById.get(String(grant.principalId));

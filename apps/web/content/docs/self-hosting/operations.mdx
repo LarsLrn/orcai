@@ -32,12 +32,22 @@ SpiceDB relationship changes to the `authz_outbox` table in the same
 transaction. The app delivers them to SpiceDB in commit order, one deliverer
 at a time, right after the request and every 10 seconds in the background.
 
-A failing event holds back every newer one, so permissions stay consistent
-with the database but stop updating while it fails. It retries with backoff up
-to 8 minutes apart and moves to `dead_letter` after 20 attempts, which lets
-delivery continue. Watch the `authz.projection_failed`,
-`authz.delivery_blocked`, and `authz.dead_letter` log lines; a dead-lettered
-event means SpiceDB is missing that change.
+When SpiceDB is unreachable, times out, or refuses the app's credentials, every
+event would fail alike. The failing event retries with backoff up to 8 minutes
+apart until it is delivered, and holds back every newer one meanwhile, so
+permissions stay consistent with the database but stop updating. Watch the
+`authz.projection_failed` and `authz.delivery_blocked` log lines.
+
+When SpiceDB rejects the event itself, for example because it names a relation
+the applied schema lacks, retrying cannot help. The event moves to
+`dead_letter` at once, delivery continues with the next one, and an
+`authz.dead_letter` line is logged at error level. A dead-lettered event means
+SpiceDB is missing that change. Correct the cause the log line names, for
+example by applying the SpiceDB schema, then set the event's `status` back to
+`pending` to deliver it again. It is then delivered after
+every newer event, so first check that no newer processed event changed the
+same relationships; otherwise the replay can restore access revoked since, or
+remove access granted since.
 
 ## Migrations
 
