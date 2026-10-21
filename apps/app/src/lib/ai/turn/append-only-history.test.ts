@@ -175,8 +175,54 @@ const fromOpenAI = (body: Body): ModelRequest => {
 	};
 };
 
+type ResponsesItem = {
+	type?: string;
+	role?: string;
+	content?: unknown;
+	id?: string;
+	call_id?: string;
+	name?: string;
+};
+
+const RESPONSES_KINDS: Record<string, BlockKind> = {
+	reasoning: "reasoning",
+	function_call: "tool-call",
+	function_call_output: "tool-result",
+};
+
+const fromResponses = (body: Body): ModelRequest => {
+	const items = body.input as ResponsesItem[];
+	const isSystem = ({ role }: ResponsesItem) =>
+		role === "system" || role === "developer";
+
+	return {
+		system: items.filter(isSystem),
+		tools: (body.tools as unknown[] | undefined) ?? [],
+		blocks: namedResults(
+			items
+				.filter((item) => !isSystem(item))
+				.map((item) => ({
+					role:
+						item.role ??
+						(item.type === "function_call_output" ? "tool" : "assistant"),
+					kind:
+						item.role !== undefined
+							? "text"
+							: (RESPONSES_KINDS[item.type ?? ""] ?? "other"),
+					toolCallId: item.call_id,
+					toolName: item.name,
+					content: item,
+				})),
+		),
+	};
+};
+
 const toModelRequest = (kind: ProviderKind, body: Body) =>
-	kind === "anthropic" ? fromAnthropic(body) : fromOpenAI(body);
+	kind === "anthropic"
+		? fromAnthropic(body)
+		: kind === "openai"
+			? fromResponses(body)
+			: fromOpenAI(body);
 
 /* The rewrites allowed on purpose. */
 
@@ -275,6 +321,18 @@ const PLAN_IN_INSTRUCTIONS: Exception = {
 	marker: () => false,
 	compared: (block) => block,
 	system: withoutPlan,
+};
+
+const COMPACTED_HISTORY: Exception = {
+	name: "history before the latest compaction is not sent",
+	marker: (block) =>
+		block.kind === "other" &&
+		(
+			block.content as {
+				type?: string;
+			}
+		).type === "compaction",
+	compared: () => undefined,
 };
 
 /** The results first sent in a request whose tool list differs from the previous one. */
@@ -496,6 +554,7 @@ const chatConversation = async (kind: ProviderKind, modelId: string) => {
 
 	chat.script([
 		{
+			compaction: "Alpha and beta are not in the knowledge base.",
 			reasoning: "Search gamma.",
 			calls: [
 				search("gamma"),
@@ -765,11 +824,21 @@ describe.each([
 		"claude-opus-5-5",
 	],
 	[
+		"openai",
+		"gpt-5.5",
+	],
+	[
 		"openai-compatible",
 		"model",
 	],
 ] as const)("a chat on %s", (kind, modelId) => {
+	// The cut comes first, so the other exceptions count turns from it.
 	const exceptions = [
+		...(kind === "openai-compatible"
+			? []
+			: [
+					COMPACTED_HISTORY,
+				]),
 		FINISHED_TURN_REASONING,
 		FINISHED_TURN_TOOL_CALLS,
 	];

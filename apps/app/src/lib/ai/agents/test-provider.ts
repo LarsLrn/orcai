@@ -7,6 +7,8 @@ export type ToolCall = {
 };
 /** One scripted model response. */
 export type Step = {
+	/** A summary the provider compacted the prompt into before answering. */
+	compaction?: string;
 	reasoning?: string;
 	text?: string;
 	calls?: ToolCall[];
@@ -117,12 +119,28 @@ const openAIReply = ({ reasoning, text, calls, inputTokens = 1 }: Reply) => ({
 });
 
 const anthropicEvents = ({
+	compaction,
 	reasoning,
 	text,
 	calls,
 	inputTokens = 1,
 }: Reply) => {
 	const blocks = [
+		...(compaction
+			? [
+					{
+						start: {
+							type: "compaction",
+						},
+						deltas: [
+							{
+								type: "compaction_delta",
+								content: compaction,
+							},
+						],
+					},
+				]
+			: []),
 		...(reasoning
 			? [
 					{
@@ -295,6 +313,146 @@ const openAIEvents = ({ reasoning, text, calls, inputTokens = 1 }: Reply) => {
 		.concat("data: [DONE]\n\n");
 };
 
+let itemCount = 0;
+
+/** The Responses API of the `openai` kind. */
+const responsesEvents = ({
+	compaction,
+	reasoning,
+	text,
+	calls,
+	inputTokens = 1,
+}: Reply) => {
+	const itemId = (prefix: string) => `${prefix}_${++itemCount}`;
+	const reasoningId = itemId("rs");
+	const messageId = itemId("msg");
+	const items = [
+		...(compaction
+			? [
+					{
+						added: undefined,
+						deltas: [],
+						done: {
+							type: "compaction",
+							id: "cmp_1",
+							encrypted_content: `sealed:${compaction}`,
+						},
+					},
+				]
+			: []),
+		...(reasoning
+			? [
+					{
+						added: {
+							type: "reasoning",
+							id: reasoningId,
+							encrypted_content: null,
+						},
+						deltas: [
+							{
+								type: "response.reasoning_summary_part.added",
+								item_id: reasoningId,
+								summary_index: 0,
+							},
+							{
+								type: "response.reasoning_summary_text.delta",
+								item_id: reasoningId,
+								summary_index: 0,
+								delta: reasoning,
+							},
+							{
+								type: "response.reasoning_summary_part.done",
+								item_id: reasoningId,
+								summary_index: 0,
+							},
+						],
+						done: {
+							type: "reasoning",
+							id: reasoningId,
+							// Binds the reasoning to what came before it.
+							encrypted_content: `sealed:${reasoning}`,
+						},
+					},
+				]
+			: []),
+		...(text
+			? [
+					{
+						added: {
+							type: "message",
+							id: messageId,
+						},
+						deltas: [
+							{
+								type: "response.output_text.delta",
+								item_id: messageId,
+								delta: text,
+							},
+						],
+						done: {
+							type: "message",
+							id: messageId,
+						},
+					},
+				]
+			: []),
+		...calls.map(({ id, name, input }) => ({
+			added: {
+				type: "function_call",
+				id: `fc_${id}`,
+				call_id: id,
+				name,
+				arguments: "",
+			},
+			deltas: [],
+			done: {
+				type: "function_call",
+				id: `fc_${id}`,
+				call_id: id,
+				name,
+				arguments: JSON.stringify(input),
+				status: "completed",
+			},
+		})),
+	];
+	return [
+		{
+			type: "response.created",
+			response: {
+				id: "resp",
+				created_at: 0,
+				model: "gpt",
+			},
+		},
+		...items.flatMap(({ added, deltas, done }, index) => [
+			...(added
+				? [
+						{
+							type: "response.output_item.added",
+							output_index: index,
+							item: added,
+						},
+					]
+				: []),
+			...deltas,
+			{
+				type: "response.output_item.done",
+				output_index: index,
+				item: done,
+			},
+		]),
+		{
+			type: "response.completed",
+			response: {
+				usage: {
+					input_tokens: inputTokens,
+					output_tokens: 1,
+				},
+			},
+		},
+	].map((event) => `data: ${JSON.stringify(event)}\n\n`);
+};
+
 const eventStream = (events: string[]) => {
 	const encoder = new TextEncoder();
 	const body = new ReadableStream<Uint8Array>({
@@ -330,7 +488,11 @@ export const scriptedFetch = (kind: ProviderKind) => {
 		if (body.stream === true) {
 			return Promise.resolve(
 				eventStream(
-					kind === "anthropic" ? anthropicEvents(reply) : openAIEvents(reply),
+					kind === "anthropic"
+						? anthropicEvents(reply)
+						: kind === "openai"
+							? responsesEvents(reply)
+							: openAIEvents(reply),
 				),
 			);
 		}

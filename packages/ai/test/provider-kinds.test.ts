@@ -5,6 +5,7 @@ import {
 	buildSystemInstructions,
 	createProviderLanguageModel,
 	listProviderModels,
+	providerCompaction,
 	providerKindServerEntries,
 	providerToolLoading,
 	withholdToolCalls,
@@ -494,5 +495,85 @@ describe("buildSystemInstructions", () => {
 				},
 			]);
 		}
+	});
+});
+
+describe("providerCompaction", () => {
+	/** What a call of `kind` with the compaction's options sends. */
+	const sent = async (kind: ProviderKind, trigger: number) => {
+		const { fetch, requests } = fakeFetch();
+		const model = createProviderLanguageModel(
+			kind,
+			{
+				apiKey: "key",
+				endpoint: "https://llm.example.org/v1",
+				fetch,
+			},
+			"some-model",
+		);
+		await Promise.resolve(
+			model.doGenerate({
+				prompt,
+				providerOptions: providerCompaction(kind, trigger).providerOptions,
+			}),
+		).catch(() => undefined);
+		const [request] = requests;
+		return {
+			body: request?.body as Record<string, unknown>,
+			betas: request?.headers.get("anthropic-beta") ?? "",
+		};
+	};
+
+	test("Anthropic compacts on its server at the trigger, with our instructions", async () => {
+		const { body, betas } = await sent("anthropic", 80_000);
+
+		expect(body.context_management).toEqual({
+			edits: [
+				expect.objectContaining({
+					type: "compact_20260112",
+					trigger: {
+						type: "input_tokens",
+						value: 80_000,
+					},
+					instructions: expect.stringContaining("Do not call tools."),
+				}),
+			],
+		});
+		expect(betas).toContain("compact-2026-01-12");
+		expect(providerCompaction("anthropic", 80_000)).toMatchObject({
+			native: true,
+		});
+	});
+
+	test("Anthropic below its 50000 minimum trigger falls back to our own summary", () => {
+		const compaction = providerCompaction("anthropic", 40_000);
+
+		expect(compaction.native).toBe(false);
+		expect(compaction.providerOptions).toBeUndefined();
+		expect(compaction.reads("summary")).toBe(true);
+		expect(compaction.reads("anthropic")).toBe(false);
+	});
+
+	test("OpenAI compacts on its server and stores nothing there", async () => {
+		const { body } = await sent("openai", 80_000);
+
+		expect(body.store).toBe(false);
+		expect(body.context_management).toEqual([
+			{
+				type: "compaction",
+				compact_threshold: 80_000,
+			},
+		]);
+	});
+
+	test("OpenAI-compatible endpoints always get our own summary", () => {
+		const compaction = providerCompaction("openai-compatible", 80_000);
+
+		expect(compaction).toMatchObject({
+			native: false,
+			providerOptions: undefined,
+		});
+		expect(compaction.reads("openai")).toBe(false);
+		expect(compaction.reads("summary")).toBe(true);
 	});
 });

@@ -1,7 +1,12 @@
 import { describe, expect, test } from "bun:test";
+import { providerCompaction } from "@orcai/ai";
 import type { ChatMessageMetadata } from "@orcai/schema";
 import type { UIMessage } from "ai";
-import { fitContextWindow } from "./context-window";
+import {
+	fitContextWindow,
+	promptBudget,
+	SUMMARY_PREFIX,
+} from "./context-window";
 
 type Message = UIMessage<ChatMessageMetadata>;
 
@@ -32,16 +37,31 @@ const reply = (
 	metadata,
 });
 
+const anthropic = providerCompaction("anthropic", 100_000);
+const ownSummary = providerCompaction("openai-compatible", 100_000);
+
 const fit = (
 	messages: Message[],
-	options: Partial<Parameters<typeof fitContextWindow>[0]> = {},
+	{
+		contextWindow = 10_000,
+		reservedOutputTokens = 0,
+		...options
+	}: Partial<
+		Parameters<typeof fitContextWindow>[0] & {
+			contextWindow: number | null;
+			reservedOutputTokens: number;
+		}
+	> = {},
 ) =>
 	fitContextWindow({
 		messages,
 		replyId: "next",
 		requestTokens: 0,
-		contextWindow: 10_000,
-		reservedOutputTokens: 0,
+		budget: promptBudget({
+			contextWindow,
+			reservedOutputTokens,
+		}),
+		compaction: anthropic,
 		...options,
 	});
 
@@ -56,6 +76,59 @@ const conversation = [
 	user("u3", 1_000),
 ];
 
+const anthropicCompaction = (id: string, summary: string): Message => ({
+	id,
+	role: "assistant",
+	parts: [
+		{
+			type: "step-start",
+		},
+		{
+			type: "text",
+			text: summary,
+			providerMetadata: {
+				anthropic: {
+					type: "compaction",
+				},
+			},
+		},
+		text(500),
+	],
+});
+const openAICompaction = (id: string): Message => ({
+	id,
+	role: "assistant",
+	parts: [
+		{
+			type: "custom",
+			kind: "openai.compaction",
+			providerMetadata: {
+				openai: {
+					type: "compaction",
+					itemId: "cmp_1",
+					encryptedContent: "sealed",
+				},
+			},
+		},
+		text(500),
+	],
+});
+const summarized = (id: string, summary: string): Message => ({
+	id,
+	role: "assistant",
+	parts: [
+		{
+			type: "text",
+			text: summary,
+			providerMetadata: {
+				orcai: {
+					type: "compaction",
+				},
+			},
+		},
+		text(500),
+	],
+});
 describe("fitContextWindow", () => {
 	test("sends everything that fits, with its estimate", () => {
 		const result = fit(conversation, {
@@ -234,5 +307,197 @@ describe("fitContextWindow", () => {
 		);
 
 		expect(result.fits && result.estimate).toBe(1_000);
+	});
+
+	describe("after a compaction", () => {
+		const partTypes = (result: ReturnType<typeof fit>) =>
+			result.fits
+				? result.messages.map(({ id, parts }) => [
+						id,
+						parts.map((part) => part.type),
+					])
+				: "refused";
+
+		test("an Anthropic compaction block starts the prompt, in its reply", () => {
+			const result = fit([
+				...conversation.slice(0, 4),
+				user("u3", 1_000),
+				anthropicCompaction("a3", "The story so far."),
+				user("u4", 100),
+			]);
+
+			expect(partTypes(result)).toEqual([
+				[
+					"a3",
+					[
+						"text",
+						"text",
+					],
+				],
+				[
+					"u4",
+					[
+						"text",
+					],
+				],
+			]);
+		});
+
+		test("an OpenAI compaction item starts the prompt for the openai kind, and is left out elsewhere", () => {
+			const messages = [
+				...conversation.slice(0, 4),
+				openAICompaction("a3"),
+				user("u4", 100),
+			];
+
+			expect(
+				keptIds(
+					fit(messages, {
+						compaction: providerCompaction("openai", 100_000),
+					}),
+				),
+			).toEqual([
+				"a3",
+				"u4",
+			]);
+			expect(partTypes(fit(messages)).slice(-2)).toEqual([
+				[
+					"a3",
+					[
+						"text",
+					],
+				],
+				[
+					"u4",
+					[
+						"text",
+					],
+				],
+			]);
+		});
+
+		test("our own summary goes ahead of the turn it was written in, as a user message", () => {
+			const result = fit(
+				[
+					...conversation.slice(0, 4),
+					user("u3", 1_000),
+					summarized("a3", "The story so far."),
+					user("u4", 100),
+				],
+				{
+					compaction: ownSummary,
+				},
+			);
+
+			expect(result.fits && result.messages).toEqual([
+				{
+					id: "a3-summary",
+					role: "user",
+					parts: [
+						{
+							type: "text",
+							text: `${SUMMARY_PREFIX}The story so far.`,
+						},
+					],
+				},
+				user("u3", 1_000),
+				reply("a3", 500),
+				user("u4", 100),
+			]);
+		});
+
+		test("calibrates by the replies after it, not by the one that compacted", () => {
+			const recorded = (id: string, tokens: number) =>
+				reply(id, 1_000, {
+					contextTokens: tokens,
+					contextEstimate: 1_000,
+				});
+			const compacting = {
+				...anthropicCompaction("a3", "The story so far."),
+				metadata: {
+					contextTokens: 50_000,
+					contextEstimate: 1_000,
+				},
+			};
+
+			// Counted as estimated after the compaction; the compacting reply counted its summary too.
+			expect(
+				keptIds(
+					fit(
+						[
+							user("u1", 1_000),
+							compacting,
+							user("u2", 1_000),
+							recorded("a2", 2_000),
+							user("u3", 1_000),
+						],
+						{
+							contextWindow: 6_000,
+						},
+					),
+				),
+			).toEqual([
+				"a3",
+				"u2",
+				"a2",
+				"u3",
+			]);
+		});
+		test("our own summary's reply calibrates the prompt that starts at it", () => {
+			// a2 counted half its estimate: 1 755 in all, where the estimate alone is 2 510.
+			const result = fit(
+				[
+					user("u1", 1_000),
+					reply("a1", 1_000),
+					user("u2", 1_000),
+					{
+						...summarized("a2", "The story so far."),
+						metadata: {
+							contextTokens: 1_000,
+							contextEstimate: 1_500,
+						},
+					},
+					user("u3", 1_000),
+				],
+				{
+					contextWindow: 2_000,
+					compaction: ownSummary,
+				},
+			);
+
+			expect(keptIds(result)).toEqual([
+				"a2-summary",
+				"u2",
+				"a2",
+				"u3",
+			]);
+			expect(result.fits && result.trimmed).toBe(false);
+		});
+
+		test("calibrates the request by a reply before it until one follows", () => {
+			// a1 counted half its estimate, which the request keeps: 4 000 of it, not 8 000, fit beside the rest.
+			const result = fit(
+				[
+					user("u1", 1_000),
+					reply("a1", 1_000, {
+						contextTokens: 1_500,
+						contextEstimate: 2_000,
+					}),
+					user("u2", 1_000),
+					anthropicCompaction("a2", "The story so far."),
+					user("u3", 1_000),
+				],
+				{
+					requestTokens: 8_000,
+					contextWindow: 6_000,
+				},
+			);
+
+			expect(keptIds(result)).toEqual([
+				"a2",
+				"u3",
+			]);
+			expect(result.fits && result.trimmed).toBe(false);
+		});
 	});
 });

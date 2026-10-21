@@ -15,10 +15,13 @@ export {
 	generateManyEmbeddings,
 } from "./generate-embedding";
 export { generateTextEffect } from "./generate-text";
+export { COMPACTION_INSTRUCTIONS } from "./provider-kinds/compaction";
 export {
 	buildSystemInstructions,
 	createProviderLanguageModel,
 	listProviderModels,
+	type ProviderCompaction,
+	providerCompaction,
 	providerToolLoading,
 	type ToolLoading,
 	withholdToolCalls,
