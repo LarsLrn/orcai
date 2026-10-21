@@ -17,14 +17,6 @@ export const organizationInvitationFieldsSchema = z.object({
 	inviterId: userIdSchema,
 });
 
-export const organizationInvitationMutableFieldsSchema =
-	organizationInvitationFieldsSchema
-		.pick({
-			status: true,
-			expiresAt: true,
-		})
-		.partial();
-
 export const organizationInvitationSchema =
 	organizationInvitationFieldsSchema.extend({
 		id: organizationInvitationIdSchema,

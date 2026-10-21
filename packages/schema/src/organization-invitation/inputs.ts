@@ -5,10 +5,10 @@ import { localeSchema } from "../shared/primitives/locale";
 import { createUniqueRefsInputSchema } from "../shared/ref-list";
 import { createSortingInputSchema } from "../shared/sorting";
 import { organizationInvitationResponseActionSchema } from "./parts/response-action";
+import { organizationInvitationStatusSchema } from "./parts/status";
 import { organizationInvitationIdSchema } from "./ref";
 import {
 	organizationInvitationFiltersSchema,
-	organizationInvitationMutableFieldsSchema,
 	organizationInvitationSchema,
 } from "./schema";
 
@@ -72,26 +72,33 @@ export const validateOrganizationInvitationInputSchema =
 		id: true,
 	});
 
-export const updateOrganizationInvitationInputSchema =
-	organizationInvitationMutableFieldsSchema
-		.extend({
-			id: organizationInvitationSchema.shape.id,
-			expiresAt: z.date().optional(),
-		})
-		.check((ctx) => {
-			if (ctx.value.status === undefined && ctx.value.expiresAt === undefined) {
-				ctx.issues.push({
-					code: "custom",
-					params: {
-						reason: "MUTABLE_FIELD_REQUIRED" satisfies ErrorReason,
-					},
-					path: [
-						"root",
-					],
-					input: "",
-				});
-			}
-		});
+/** An admin reopens or revokes an invitation; only accepting it consumes one. */
+const organizationInvitationReopenStatusSchema =
+	organizationInvitationStatusSchema.extract([
+		"pending",
+		"rejected",
+	]);
+
+export const updateOrganizationInvitationInputSchema = z
+	.object({
+		id: organizationInvitationSchema.shape.id,
+		status: organizationInvitationReopenStatusSchema.optional(),
+		expiresAt: z.date().optional(),
+	})
+	.check((ctx) => {
+		if (ctx.value.status === undefined && ctx.value.expiresAt === undefined) {
+			ctx.issues.push({
+				code: "custom",
+				params: {
+					reason: "MUTABLE_FIELD_REQUIRED" satisfies ErrorReason,
+				},
+				path: [
+					"root",
+				],
+				input: "",
+			});
+		}
+	});
 
 export const deleteOrganizationInvitationsInputSchema = z.object({
 	refs: createUniqueRefsInputSchema({

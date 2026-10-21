@@ -65,7 +65,7 @@ test("registration validates the selected invitation and leaves the others pendi
 			expiresAt: new Date(Date.now() - 60_000),
 		},
 		{
-			status: "accepted" as const,
+			status: "rejected" as const,
 		},
 	]) {
 		await api.as("admin").organizationInvitation.update({
