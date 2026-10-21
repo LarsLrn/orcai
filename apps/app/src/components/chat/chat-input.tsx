@@ -25,7 +25,7 @@ import { fetchWholeChat } from "@/components/chat/chat-history";
 import { ChatSettings } from "@/components/chat/chat-settings";
 import { messageToTranscriptMarkdown } from "@/components/chat/message/message-markdown";
 import { ModelSelectorButton } from "@/components/chat/model-selector";
-import { AppTourButton } from "@/components/next-step/app-tour-button";
+import { TourButton } from "@/components/tour/tour-button";
 import { Button } from "@/components/ui/button";
 import {
 	DropdownMenu,
@@ -294,7 +294,7 @@ const ChatInput = ({
 									<DropdownMenuContent align="start" className="w-56">
 										{!isAssistant && (
 											<>
-												<AppTourButton
+												<TourButton
 													tour="chatTour"
 													type="button"
 													variant="ghost"
@@ -304,7 +304,7 @@ const ChatInput = ({
 												>
 													<CompassIcon className="size-4" />{" "}
 													{m.chat_composer_start_tour_action()}
-												</AppTourButton>
+												</TourButton>
 												<DropdownMenuItem onClick={() => setSettingsOpen(true)}>
 													<SettingsIcon /> {m.chat_composer_settings_action()}
 												</DropdownMenuItem>

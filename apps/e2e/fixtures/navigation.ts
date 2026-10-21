@@ -175,12 +175,13 @@ const activateOverApi = async (
 };
 
 /**
- * Skip the initial tour, whose overlay swallows every click. The skip is
- * remembered for the user; the card mounts after idle, hence the bounded wait.
+ * Skip the initial tour, whose modal card blocks the page. The skip is
+ * remembered for the user; the card opens once the user's preferences have
+ * loaded, hence the bounded wait.
  */
 const skipInitialTour = async (page: Page): Promise<void> => {
 	const skip = page.getByRole("button", {
-		name: message("next_step_card_skip_button"),
+		name: message("tour_card_skip_button"),
 	});
 
 	const appeared = await skip

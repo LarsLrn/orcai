@@ -5,11 +5,10 @@ import { createServerFn } from "@tanstack/react-start";
 import { getRequest } from "@tanstack/react-start/server";
 import { and, eq } from "drizzle-orm";
 import * as Effect from "effect/Effect";
-import { NextStepProvider } from "nextstepjs";
 import { Header } from "@/components/app/header";
 import { LoadingPage } from "@/components/app/loading/loading-page";
 import { AppSidebar } from "@/components/app/sidebar/app-sidebar";
-import { NextStepTours } from "@/components/next-step/next-step-tours";
+import { TourProvider } from "@/components/tour/tour-provider";
 import { SidebarInset, SidebarProvider } from "@/components/ui/sidebar";
 import { useUmami } from "@/hooks/use-umami";
 import { auth } from "@/lib/auth/auth";
@@ -123,18 +122,16 @@ function RouteComponent() {
 	});
 
 	return (
-		<NextStepProvider>
-			<SidebarProvider>
+		<SidebarProvider>
+			<TourProvider>
 				<AppSidebar />
 				<SidebarInset className="max-w-full">
 					<Header />
-					<NextStepTours>
-						<div className="z-10 mx-auto flex w-full flex-1 flex-col px-2 py-6 md:px-6">
-							<Outlet />
-						</div>
-					</NextStepTours>
+					<div className="z-10 mx-auto flex w-full flex-1 flex-col px-2 py-6 md:px-6">
+						<Outlet />
+					</div>
 				</SidebarInset>
-			</SidebarProvider>
-		</NextStepProvider>
+			</TourProvider>
+		</SidebarProvider>
 	);
 }

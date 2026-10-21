@@ -28,9 +28,9 @@ test("account: the user menu stays beside its trigger when the page scrolls unde
 
 	await expect(item).toBeVisible();
 
-	// The trigger sits in the fixed sidebar, so a page scroll (a tour ending,
-	// a test runner scrolling a target into view) must not move the menu, not
-	// even for the frame before it is positioned again. Read synchronously.
+	// The trigger sits in the fixed sidebar, so a page scroll (a test runner
+	// scrolling a target into view) must not move the menu, not even for the
+	// frame before it is positioned again. Read synchronously.
 	const { scrolled, shift } = await item.evaluate((element) => {
 		const target = element as unknown as Measured;
 		const view = globalThis as unknown as Viewport;
