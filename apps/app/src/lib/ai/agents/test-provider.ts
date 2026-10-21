@@ -10,6 +10,8 @@ export type Step = {
 	reasoning?: string;
 	text?: string;
 	calls?: ToolCall[];
+	/** The prompt tokens the provider reports; 1 unless set. */
+	inputTokens?: number;
 };
 
 export type Body = Record<string, unknown>;
@@ -31,7 +33,12 @@ const identify = ({ calls = [], ...step }: Step, prefix: string): Reply => ({
 	})),
 });
 
-const anthropicReply = ({ reasoning, text, calls }: Reply) => ({
+const anthropicReply = ({
+	reasoning,
+	text,
+	calls,
+	inputTokens = 1,
+}: Reply) => ({
 	id: "msg",
 	type: "message",
 	role: "assistant",
@@ -65,12 +72,12 @@ const anthropicReply = ({ reasoning, text, calls }: Reply) => ({
 	stop_reason: calls.length > 0 ? "tool_use" : "end_turn",
 	stop_sequence: null,
 	usage: {
-		input_tokens: 1,
+		input_tokens: inputTokens,
 		output_tokens: 1,
 	},
 });
 
-const openAIReply = ({ reasoning, text, calls }: Reply) => ({
+const openAIReply = ({ reasoning, text, calls, inputTokens = 1 }: Reply) => ({
 	id: "chatcmpl",
 	object: "chat.completion",
 	created: 0,
@@ -103,13 +110,18 @@ const openAIReply = ({ reasoning, text, calls }: Reply) => ({
 		},
 	],
 	usage: {
-		prompt_tokens: 1,
+		prompt_tokens: inputTokens,
 		completion_tokens: 1,
-		total_tokens: 2,
+		total_tokens: inputTokens + 1,
 	},
 });
 
-const anthropicEvents = ({ reasoning, text, calls }: Reply) => {
+const anthropicEvents = ({
+	reasoning,
+	text,
+	calls,
+	inputTokens = 1,
+}: Reply) => {
 	const blocks = [
 		...(reasoning
 			? [
@@ -174,7 +186,7 @@ const anthropicEvents = ({ reasoning, text, calls }: Reply) => {
 				stop_reason: null,
 				stop_sequence: null,
 				usage: {
-					input_tokens: 1,
+					input_tokens: inputTokens,
 					output_tokens: 0,
 				},
 			},
@@ -211,7 +223,7 @@ const anthropicEvents = ({ reasoning, text, calls }: Reply) => {
 	].map((event) => `event: ${event.type}\ndata: ${JSON.stringify(event)}\n\n`);
 };
 
-const openAIEvents = ({ reasoning, text, calls }: Reply) => {
+const openAIEvents = ({ reasoning, text, calls, inputTokens = 1 }: Reply) => {
 	const chunk = (choices: unknown[], usage?: unknown) => ({
 		id: "chatcmpl",
 		object: "chat.completion.chunk",
@@ -274,9 +286,9 @@ const openAIEvents = ({ reasoning, text, calls }: Reply) => {
 			},
 		]),
 		chunk([], {
-			prompt_tokens: 1,
+			prompt_tokens: inputTokens,
 			completion_tokens: 1,
-			total_tokens: 2,
+			total_tokens: inputTokens + 1,
 		}),
 	]
 		.map((event) => `data: ${JSON.stringify(event)}\n\n`)

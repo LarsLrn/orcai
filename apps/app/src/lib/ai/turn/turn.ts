@@ -2,6 +2,7 @@ import { context as otelContext } from "@opentelemetry/api";
 import { AiError } from "@orcai/ai";
 import type { ChatId, ChatMessageId } from "@orcai/core";
 import { withActiveSpan } from "@orcai/observability";
+import { reservedOutputTokens } from "@orcai/quota";
 import type {
 	AiChatInput,
 	ChatMessageMetadata,
@@ -15,6 +16,7 @@ import {
 	type FileUIPart,
 	type InferAgentUIMessage,
 	type LanguageModelUsage,
+	type SystemModelMessage,
 	smoothStream,
 	type TextStreamPart,
 	type TextUIPart,
@@ -38,6 +40,7 @@ import {
 	type AssistantTurn,
 	createAssistantTurn,
 } from "@/lib/ai/tools/assistant/turn-state";
+import { isPlanPart } from "@/lib/ai/turn-view/plan";
 import type { ChatAgentUIMessage } from "@/lib/ai/types/chat-agent-message";
 import { getChatMessageAttachments } from "@/lib/ai/types/chat-attachment";
 import { buildAttachmentPromptPartCached } from "@/lib/ai/utils/chat-attachment-parts";
@@ -50,6 +53,7 @@ import {
 	applyTurnDecisions,
 	withoutContinuationClaim,
 } from "./apply-turn-decisions";
+import { fitContextWindow, requestTokens } from "./context-window";
 import {
 	isEmptyReply,
 	type ReplyContent,
@@ -84,20 +88,26 @@ type TurnStreamOptions = {
 /** An agent of either chat kind, streamed the same way. */
 type TurnAgent = {
 	tools: ToolSet;
+	instructions: SystemModelMessage[];
 	stream: (
 		options: TurnStreamOptions,
 	) => Promise<AsyncIterableStream<UIMessageChunk>>;
 };
 
-const turnAgent = <Tools extends ToolSet>(
+const turnAgent = <Tools extends ToolSet>({
+	agent,
+	instructions,
+}: {
 	agent: Agent<
 		{
 			maxSteps: number;
 		},
 		Tools
-	>,
-): TurnAgent => ({
+	>;
+	instructions: SystemModelMessage[];
+}): TurnAgent => ({
 	tools: agent.tools,
+	instructions,
 	stream: (options) =>
 		createAgentUIStream({
 			agent,
@@ -289,6 +299,42 @@ const withAttachmentParts = (messages: ChatAgentUIMessage[]) => {
 	);
 };
 
+/** The prompt within the model's context window, refused when even its latest turn does not fit. */
+const fitPrompt = ({
+	setup,
+	agent,
+	prompt,
+	replyId,
+}: {
+	setup: TurnSetup;
+	agent: TurnAgent;
+	prompt: ChatAgentUIMessage[];
+	replyId: ChatMessageId;
+}) =>
+	Effect.gen(function* () {
+		const fit = fitContextWindow({
+			messages: prompt,
+			replyId,
+			// The assistant's plan stays in view however long the conversation gets.
+			pinnedId: prompt
+				.filter((message) => message.parts.some(isPlanPart))
+				.at(-1)?.id,
+			requestTokens: yield* Effect.promise(() => requestTokens(agent)),
+			contextWindow: setup.tokenLimits.contextWindow,
+			reservedOutputTokens: reservedOutputTokens({
+				maxExpectedOutputTokens: setup.callSettings.maxOutputTokens,
+				modelMaxOutputTokens: setup.tokenLimits.maxOutputTokens,
+			}),
+		});
+		if (!fit.fits) {
+			return yield* new AppErrors.BadRequestError({
+				reason: "CHAT_CONTEXT_TOO_LONG",
+				message: "The latest turn does not fit the model's context window.",
+			});
+		}
+		return fit;
+	});
+
 const meteredOutcome = (
 	status: UIMessageStreamOutcome["status"],
 ): MeteredCallOutcome =>
@@ -305,7 +351,7 @@ const streamTurn = ({
 	input,
 	replyId,
 	messages,
-	prompt,
+	fit,
 	meter,
 	contextWindow,
 	operation,
@@ -315,7 +361,11 @@ const streamTurn = ({
 	input: TurnInput;
 	replyId: ChatMessageId;
 	messages: ChatAgentUIMessage[];
-	prompt: ChatAgentUIMessage[];
+	fit: {
+		messages: ChatAgentUIMessage[];
+		trimmed: boolean;
+		estimate: number;
+	};
 	meter: Meter;
 	contextWindow: number | null;
 	operation: string;
@@ -356,7 +406,7 @@ const streamTurn = ({
 		return yield* Effect.tryPromise({
 			try: () =>
 				agent.stream({
-					uiMessages: prompt,
+					uiMessages: fit.messages,
 					originalMessages: messages as UIMessage<ChatMessageMetadata>[],
 					abortSignal: input.stop,
 					maxSteps: meter.maxSteps,
@@ -405,6 +455,10 @@ const streamTurn = ({
 								totalUsage: part.totalUsage,
 								...(contextWindow !== null && {
 									contextWindow,
+								}),
+								contextEstimate: fit.estimate,
+								...(fit.trimmed && {
+									historyTrimmed: true,
 								}),
 								...(part.finishReason === "tool-calls" &&
 									meter.spent() && {
@@ -460,16 +514,20 @@ export const startTurn = (
 			),
 		);
 
+		const fit = yield* fitPrompt({
+			setup,
+			agent,
+			prompt: yield* withAttachmentParts(messages),
+			replyId,
+		});
 		const meter = yield* meterTurn({
 			setup,
 			input,
 			replyId,
-			messages,
+			messages: fit.messages,
 		});
 
 		return yield* Effect.gen(function* () {
-			const prompt = yield* withAttachmentParts(messages);
-
 			// The reply is reserved with the question, so a later turn always lands after it.
 			yield* store
 				.reserve({
@@ -510,7 +568,7 @@ export const startTurn = (
 				input,
 				replyId,
 				messages,
-				prompt,
+				fit,
 				meter,
 				contextWindow: setup.tokenLimits.contextWindow,
 				operation: "chatTurn.start",
@@ -548,12 +606,25 @@ export const continueTurn = (
 			return yield* turnNotAwaiting("Only assistant replies wait for answers.");
 		}
 		const setup = yield* turnSetup(chat, input);
-		// Quota comes before the claim, so a refused continuation stores nothing.
+		// Quota and the fit come before the claim, so a refused continuation stores nothing.
+		const unclaimed = historyOf(stored);
+		const unclaimedFit = yield* fitPrompt({
+			setup,
+			agent: buildAgent({
+				setup,
+				input,
+				history: unclaimed,
+				replyId: input.replyId,
+				turnZedToken: undefined,
+			}).agent,
+			prompt: unclaimed,
+			replyId: input.replyId,
+		});
 		const meter = yield* meterTurn({
 			setup,
 			input,
 			replyId: input.replyId,
-			messages: historyOf(stored),
+			messages: unclaimedFit.messages,
 		});
 
 		return yield* Effect.gen(function* () {
@@ -618,7 +689,12 @@ export const continueTurn = (
 				const messages = yield* Effect.promise(() =>
 					closeInvalidToolParts(history, agent.tools),
 				);
-				const prompt = yield* withAttachmentParts(messages);
+				const fit = yield* fitPrompt({
+					setup,
+					agent,
+					prompt: yield* withAttachmentParts(messages),
+					replyId: input.replyId,
+				});
 
 				return yield* streamTurn({
 					agent,
@@ -626,7 +702,7 @@ export const continueTurn = (
 					input,
 					replyId: input.replyId,
 					messages,
-					prompt,
+					fit,
 					meter,
 					contextWindow: setup.tokenLimits.contextWindow,
 					operation: "chatTurn.continue",

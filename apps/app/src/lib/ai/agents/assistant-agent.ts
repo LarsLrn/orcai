@@ -94,7 +94,17 @@ export const createAssistantAgent = (
 			}),
 	});
 
-	return new ToolLoopAgent({
+	const instructions = buildSystemInstructions(
+		params.model.kind,
+		buildAssistantSystemPrompt({
+			docs: params.docs,
+			userContext: params.userContext,
+			featurePrompts: params.features.map(({ entry }) => entry.prompt),
+			toolGroups,
+		}),
+	);
+
+	const agent = new ToolLoopAgent({
 		model: params.model.language,
 		tools,
 		toolApproval: session.toolApproval,
@@ -105,15 +115,7 @@ export const createAssistantAgent = (
 			return {
 				...settings,
 				...params.callSettings,
-				instructions: buildSystemInstructions(
-					params.model.kind,
-					buildAssistantSystemPrompt({
-						docs: params.docs,
-						userContext: params.userContext,
-						featurePrompts: params.features.map(({ entry }) => entry.prompt),
-						toolGroups,
-					}),
-				),
+				instructions,
 				stopWhen: isStepCount(options.maxSteps),
 				prepareStep: (step) => ({
 					...shapeStep(step),
@@ -133,4 +135,9 @@ export const createAssistantAgent = (
 		},
 		output: Output.text(),
 	});
+
+	return {
+		agent,
+		instructions,
+	};
 };

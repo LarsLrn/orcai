@@ -191,7 +191,8 @@ ID** the endpoint expects, its **Capabilities**, a **Deprecated** flag, and
 two token limits, empty when unknown:
 
 - **Context window**: how many tokens the model reads at once. A chat reply
-  shows how full it was.
+  shows how full it was, and a long chat sends only the newest turns that fit.
+  Empty means 128,000. A reply without max tokens asks for at most half of it.
 - **Max output tokens**: how many tokens the model writes per reply at most. A
   chat's max tokens cannot be set higher, a reply asks for no more, and a
   limit below 16,384 lowers the quota reservation of a chat without max tokens.

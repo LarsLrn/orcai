@@ -281,7 +281,7 @@ describe("a stored loadTools result replayed on Anthropic", () => {
 		capabilities: Record<OrganizationCapability, boolean>,
 		storedTools: readonly string[],
 	) => {
-		const agent = createAssistantAgent({
+		const { agent } = createAssistantAgent({
 			model: agentModel({
 				kind: "anthropic",
 				connection: {

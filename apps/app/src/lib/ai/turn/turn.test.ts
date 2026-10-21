@@ -306,6 +306,130 @@ describe("startTurn", () => {
 	});
 });
 
+describe("context window", () => {
+	/** A question the estimate counts as about 10 000 tokens. */
+	const long = (letter: string) => letter.repeat(40_000);
+
+	const narrowModel = (contextWindow: number) =>
+		answerSetup({
+			providerKind: "anthropic",
+			providerModelId: "claude-opus-5-5",
+			model: {
+				contextWindow,
+				maxOutputTokens: 1_000,
+			},
+		});
+
+	test("leaves out the oldest turns once the history outgrows the window, and marks the reply", async () => {
+		narrowModel(30_000);
+		const chat = await conversation(chatRow(), "anthropic");
+		// The provider counts what each request sent, which the next turn reads back.
+		chat.script([
+			{
+				text: "One.",
+				inputTokens: 10_050,
+			},
+			{
+				text: "Two.",
+				inputTokens: 20_100,
+			},
+			{
+				text: "Three.",
+			},
+		]);
+
+		await chat.send(long("a"));
+		await chat.send(long("b"));
+		await chat.send(long("c"));
+
+		const sent = chat.bodies.map((body) => JSON.stringify(body.messages));
+		expect(sent[1]).toContain(long("a"));
+		expect(sent[2]).not.toContain(long("a"));
+		expect(sent[2]).toContain(long("b"));
+		expect(sent[2]).toContain(long("c"));
+		expect(
+			chat
+				.messages()
+				.filter((message) => message.role === "assistant")
+				.map((message) => message.metadata.historyTrimmed ?? false),
+		).toEqual([
+			false,
+			false,
+			true,
+		]);
+	});
+
+	test("a small model without an output cap asks for at most half its window", async () => {
+		answerSetup({
+			providerKind: "anthropic",
+			providerModelId: "claude-opus-5-5",
+			model: {
+				contextWindow: 8_000,
+			},
+		});
+		const chat = await conversation(chatRow(), "anthropic");
+		chat.script([
+			{
+				text: "Hello.",
+			},
+		]);
+
+		await chat.send("Hi");
+
+		expect(chat.bodies[0]?.max_tokens).toBe(4_000);
+		expect(quota.calls.reserve[0]?.maxExpectedOutputTokens).toBe(4_000);
+	});
+
+	test("meters a continuation by the prompt that fits, before claiming the reply", async () => {
+		narrowModel(30_000);
+		const chat = await conversation(assistantRow(), "anthropic");
+		chat.script([
+			{
+				text: "One.",
+				inputTokens: 10_050,
+			},
+			{
+				text: "Two.",
+				inputTokens: 20_100,
+			},
+			{
+				calls: [
+					deleteDraft,
+				],
+				inputTokens: 30_150,
+			},
+			{
+				text: "Kept.",
+			},
+		]);
+		await chat.send(long("a"));
+		await chat.send(long("b"));
+		await chat.send(long("c"));
+
+		await chat.decide(false);
+
+		const metered = JSON.stringify(quota.calls.reserve.at(-1)?.messages);
+		expect(metered).not.toContain(long("a"));
+		expect(metered).toContain(long("c"));
+		expect(JSON.stringify(chat.bodies.at(-1)?.messages)).not.toContain(
+			long("a"),
+		);
+		expect(chat.messages().at(-1)?.metadata.historyTrimmed).toBe(true);
+	});
+
+	test("refuses a message that alone outgrows the window, before storing or reserving anything", async () => {
+		narrowModel(5_000);
+		const chat = await conversation(chatRow(), "anthropic");
+
+		expect(await refusal(() => chat.send(long("a")))).toBe(
+			"BadRequestError: CHAT_CONTEXT_TOO_LONG",
+		);
+		expect(chat.messages()).toEqual([]);
+		expect(chat.bodies).toEqual([]);
+		expect(quota.calls.reserve).toEqual([]);
+	});
+});
+
 describe("continueTurn", () => {
 	test("applies the decisions under the chat's lock and runs the approved call", async () => {
 		const chat = await pausedAssistant();

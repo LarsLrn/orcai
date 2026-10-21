@@ -98,6 +98,8 @@ export const answerSetup = ({
 	model?: Partial<{
 		isDeprecated: boolean;
 		capabilities: string[];
+		contextWindow: number;
+		maxOutputTokens: number;
 	}>;
 	chatBlocks?: unknown[];
 }) => {

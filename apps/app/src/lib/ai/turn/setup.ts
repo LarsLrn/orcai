@@ -1,5 +1,6 @@
 import { AiError } from "@orcai/ai";
 import type { ModelId, OrganizationId, ProviderId, UserId } from "@orcai/core";
+import { reservedOutputTokens } from "@orcai/quota";
 import type { DatabaseBlock, ModelTokenLimits } from "@orcai/schema";
 import { permittedEntityIds } from "@orcai/spice-db";
 import { ORPCError } from "@orpc/client";
@@ -28,6 +29,7 @@ import * as AppErrors from "@/lib/effect/utils/errors";
 import { providerApiKey } from "@/lib/encryption";
 import type { ORPCContext } from "@/lib/orpc/implementation/os";
 import { Procedures } from "@/lib/orpc/implementation/procedures";
+import { DEFAULT_CONTEXT_WINDOW } from "./context-window";
 import {
 	type ModelUnusableReason,
 	modelUnusableReason,
@@ -454,6 +456,28 @@ const assistantSetup = ({ organizationId, user, context }: TurnRequester) =>
 		} satisfies TurnSetup;
 	});
 
+/**
+ * Without its own cap a call reserves a guess at its output, which leaves at
+ * least half the context window to the prompt; the call then asks for no more.
+ */
+const withinContextWindow = (setup: TurnSetup): TurnSetup => {
+	const half = Math.floor(
+		(setup.tokenLimits.contextWindow ?? DEFAULT_CONTEXT_WINDOW) / 2,
+	);
+	return setup.callSettings.maxOutputTokens === undefined &&
+		reservedOutputTokens({
+			modelMaxOutputTokens: setup.tokenLimits.maxOutputTokens,
+		}) > half
+		? {
+				...setup,
+				callSettings: {
+					...setup.callSettings,
+					maxOutputTokens: half,
+				},
+			}
+		: setup;
+};
+
 /** Reads what a turn on `chat` runs with: the chat's own model, or the organisation's assistant model. */
 export const turnSetup = (
 	chat: StoredChat,
@@ -463,6 +487,7 @@ export const turnSetup = (
 	Effect.Error<ReturnType<typeof chatSetup | typeof assistantSetup>>,
 	Effect.Services<ReturnType<typeof chatSetup | typeof assistantSetup>>
 > =>
-	chat.kind === "assistant"
+	(chat.kind === "assistant"
 		? assistantSetup(requester)
-		: chatSetup(chat, requester);
+		: chatSetup(chat, requester)
+	).pipe(Effect.map(withinContextWindow));
