@@ -98,7 +98,10 @@ type TurnStreamOptions = {
 
 /** An agent of either chat kind, streamed the same way. */
 type TurnAgent = {
+	/** Every tool its stored calls may name. */
 	tools: ToolSet;
+	/** The tools its requests may send this turn. */
+	offeredTools: () => ToolSet;
 	instructions: SystemModelMessage[];
 	/** Whether the turn stopped because its next step would not fit. */
 	contextFull: () => boolean;
@@ -110,6 +113,7 @@ type TurnAgent = {
 const turnAgent = <Tools extends ToolSet>({
 	agent,
 	instructions,
+	offeredTools,
 	contextFull,
 }: {
 	agent: Agent<
@@ -120,9 +124,11 @@ const turnAgent = <Tools extends ToolSet>({
 		Tools
 	>;
 	instructions: SystemModelMessage[];
+	offeredTools: () => ToolSet;
 	contextFull: () => boolean;
 }): TurnAgent => ({
 	tools: agent.tools,
+	offeredTools,
 	instructions,
 	contextFull,
 	stream: (options) =>
@@ -301,7 +307,12 @@ const fitPrompt = ({
 	replyId: ChatMessageId;
 }) =>
 	Effect.gen(function* () {
-		const request = yield* Effect.promise(() => requestTokens(agent));
+		const request = yield* Effect.promise(() =>
+			requestTokens({
+				instructions: agent.instructions,
+				tools: agent.offeredTools(),
+			}),
+		);
 		const fit = fitContextWindow({
 			messages: prompt,
 			replyId,
