@@ -1,4 +1,3 @@
-import type { GroupId, OrganizationId } from "@orcai/core";
 import { DB, dbSchema } from "@orcai/db";
 import { ALL_MEMBERS_GROUP_SYSTEM_KEY, type GroupSortKey } from "@orcai/schema";
 import {
@@ -14,6 +13,11 @@ import {
 	sql,
 } from "drizzle-orm";
 import * as Effect from "effect/Effect";
+import {
+	addGroupMembers,
+	findOrganizationGroup,
+	removeGroupMembers,
+} from "@/lib/authz/group-membership";
 import {
 	hasManageGroups,
 	visibleGroupScope,
@@ -56,60 +60,6 @@ const userColumns = (canSeeEmail: boolean) => ({
 		: {}),
 	image: dbSchema.user.image,
 });
-
-const findOrganizationGroup = (params: {
-	groupId: GroupId;
-	organizationId: OrganizationId;
-}) =>
-	Effect.gen(function* () {
-		const db = yield* DB;
-
-		const [group] = yield* db
-			.select({
-				id: dbSchema.group.id,
-				kind: dbSchema.group.kind,
-			})
-			.from(dbSchema.group)
-			.where(
-				and(
-					eq(dbSchema.group.id, params.groupId),
-					eq(dbSchema.group.organizationId, params.organizationId),
-					isNull(dbSchema.group.deletedAt),
-				),
-			)
-			.limit(1);
-
-		if (!group) {
-			return yield* Effect.fail(
-				new AppErrors.NotFoundError({
-					reason: "GROUP_NOT_FOUND",
-					message: "Group not found",
-				}),
-			);
-		}
-
-		return group;
-	});
-
-/** The custom group of this organisation, or a failure explaining why it cannot be edited. */
-const requireCustomGroup = (params: {
-	groupId: GroupId;
-	organizationId: OrganizationId;
-}) =>
-	Effect.gen(function* () {
-		const group = yield* findOrganizationGroup(params);
-
-		if (group.kind === "system") {
-			return yield* Effect.fail(
-				new AppErrors.BadRequestError({
-					reason: "SYSTEM_GROUP_IMMUTABLE",
-					message: "System groups cannot be modified",
-				}),
-			);
-		}
-
-		return group;
-	});
 
 const listGroups = authed.group.list
 	.use(requireActiveOrganizationMiddleware)
@@ -641,122 +591,15 @@ const listGroupCandidates = authed.group.listCandidates
 		};
 	});
 
-const addGroupMembers = authed.group.addMembers
+const addMembers = authed.group.addMembers
 	.use(requireOrganizationPermission("manage_groups"))
 	.effect(function* ({ input, context }) {
-		const db = yield* DB;
-		const organizationId = context.auth.session.activeOrganizationId;
-		const now = new Date();
-
-		yield* writeRelationships(
-			{
-				organizationIds: [
-					organizationId,
-				],
-			},
-			Effect.gen(function* () {
-				yield* requireCustomGroup({
-					groupId: input.groupId,
-					organizationId,
-				});
-
-				const members = yield* db
-					.select({
-						userId: dbSchema.member.userId,
-					})
-					.from(dbSchema.member)
-					.where(
-						and(
-							eq(dbSchema.member.organizationId, organizationId),
-							inArray(dbSchema.member.userId, input.userIds),
-						),
-					);
-
-				const validUserIds = new Set(members.map((item) => item.userId));
-				const rejectedUserIds = input.userIds.filter(
-					(userId) => !validUserIds.has(userId),
-				);
-
-				if (rejectedUserIds.length > 0) {
-					return yield* Effect.fail(
-						new AppErrors.BadRequestError({
-							reason: "GROUP_MEMBERS_INVALID",
-							params: {
-								userIds: rejectedUserIds,
-							},
-							message: "Group members must belong to this organisation",
-						}),
-					);
-				}
-
-				const existing = yield* db
-					.select({
-						userId: dbSchema.groupMember.userId,
-						removedAt: dbSchema.groupMember.removedAt,
-					})
-					.from(dbSchema.groupMember)
-					.where(
-						and(
-							eq(dbSchema.groupMember.groupId, input.groupId),
-							inArray(dbSchema.groupMember.userId, input.userIds),
-						),
-					);
-
-				const existingByUserId = new Map(
-					existing.map((row) => [
-						row.userId,
-						row,
-					]),
-				);
-				const toInsert = input.userIds.filter(
-					(userId) => !existingByUserId.has(userId),
-				);
-				const toRestore = input.userIds.filter(
-					(userId) => existingByUserId.get(userId)?.removedAt != null,
-				);
-
-				if (toRestore.length > 0) {
-					yield* db
-						.update(dbSchema.groupMember)
-						.set({
-							removedAt: null,
-							addedBy: context.auth.user.id,
-							createdAt: now,
-						})
-						.where(
-							and(
-								eq(dbSchema.groupMember.groupId, input.groupId),
-								inArray(dbSchema.groupMember.userId, toRestore),
-							),
-						);
-				}
-
-				if (toInsert.length > 0) {
-					yield* db.insert(dbSchema.groupMember).values(
-						toInsert.map((userId) => ({
-							groupId: input.groupId,
-							userId,
-							addedBy: context.auth.user.id,
-							createdAt: now,
-							removedAt: null,
-						})),
-					);
-				}
-
-				yield* recordRelationshipFacts(
-					...[
-						...toInsert,
-						...toRestore,
-					].map((userId) =>
-						RelationshipFact.GroupMembershipChanged({
-							groupId: input.groupId,
-							userId,
-							member: true,
-						}),
-					),
-				);
-			}),
-		);
+		yield* addGroupMembers({
+			groupId: input.groupId,
+			organizationId: context.auth.session.activeOrganizationId,
+			userIds: input.userIds,
+			actorId: context.auth.user.id,
+		});
 
 		return {
 			success: true,
@@ -764,53 +607,14 @@ const addGroupMembers = authed.group.addMembers
 		};
 	});
 
-const removeGroupMembers = authed.group.removeMembers
+const removeMembers = authed.group.removeMembers
 	.use(requireOrganizationPermission("manage_groups"))
 	.effect(function* ({ input, context }) {
-		const db = yield* DB;
-		const organizationId = context.auth.session.activeOrganizationId;
-		const now = new Date();
-
-		const { result: removedUserIds } = yield* writeRelationships(
-			{
-				organizationIds: [
-					organizationId,
-				],
-			},
-			Effect.gen(function* () {
-				yield* requireCustomGroup({
-					groupId: input.groupId,
-					organizationId,
-				});
-
-				const removed = yield* db
-					.update(dbSchema.groupMember)
-					.set({
-						removedAt: now,
-					})
-					.where(
-						and(
-							eq(dbSchema.groupMember.groupId, input.groupId),
-							inArray(dbSchema.groupMember.userId, input.userIds),
-							isNull(dbSchema.groupMember.removedAt),
-						),
-					)
-					.returning({
-						userId: dbSchema.groupMember.userId,
-					});
-
-				yield* recordRelationshipFacts(
-					...removed.map(({ userId }) =>
-						RelationshipFact.GroupMembershipChanged({
-							groupId: input.groupId,
-							userId,
-							member: false,
-						}),
-					),
-				);
-				return removed.map(({ userId }) => userId);
-			}),
-		);
+		const removedUserIds = yield* removeGroupMembers({
+			groupId: input.groupId,
+			organizationId: context.auth.session.activeOrganizationId,
+			userIds: input.userIds,
+		});
 
 		if (removedUserIds.length === 0) {
 			return {
@@ -833,6 +637,6 @@ export const groupRouter = {
 	delete: deleteGroups,
 	listMembers: listGroupMembers,
 	listCandidates: listGroupCandidates,
-	addMembers: addGroupMembers,
-	removeMembers: removeGroupMembers,
+	addMembers,
+	removeMembers,
 };

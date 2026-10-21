@@ -2,7 +2,6 @@ import type { BlockId, UserId } from "@orcai/core";
 import { DB, dbSchema } from "@orcai/db";
 import type {
 	AccessAncestor,
-	BlockType,
 	ResourceGrant as ResourceGrantView,
 	ResourceIdentity,
 	ResourcePrincipal,
@@ -13,10 +12,7 @@ import {
 	RESOURCE_GRANT_SOURCE,
 	userIdSchema,
 } from "@orcai/schema";
-import {
-	lookupEntitiesByPermission,
-	permittedEntityIds,
-} from "@orcai/spice-db";
+import { permittedEntityIds } from "@orcai/spice-db";
 import {
 	and,
 	desc,
@@ -39,8 +35,8 @@ import { scopedResourceRef } from "@/lib/authz/scoped-resource-id";
 import { getZedToken } from "@/lib/authz/zed-token";
 import { authed } from "@/lib/orpc/implementation/authed";
 import { requireResourcePermission } from "@/lib/orpc/middlewares/permission";
+import { recentResources } from "@/lib/resources/recents";
 import { canSeeEmailIn, canSeeEmailOn } from "./helpers/can-see-email";
-import { changedAt } from "./helpers/changed-at";
 import { literalSearch } from "./helpers/literal-search";
 
 type GroupPrincipal = Extract<
@@ -629,104 +625,15 @@ const setVisibility = authed.resource.setVisibility
 		};
 	});
 
-/** Postgres returns the coalesced timestamp as text, so normalise before comparing. */
-const toTime = (value: Date | string) => new Date(value).getTime();
-
 const listRecentResources = authed.resource.listRecent.effect(function* ({
 	input,
 	context,
 }) {
-	const db = yield* DB;
-	const userId = context.auth.user.id;
-	const zedToken = getZedToken(context, input);
-
-	const readableIds = <TEntity extends "asset" | "block" | "bot">(
-		entityType: TEntity,
-	) =>
-		lookupEntitiesByPermission({
-			entityType,
-			permission: "read",
-			userId,
-			zedToken,
-		});
-
-	const [bots, blocks, assets] = yield* Effect.all(
-		[
-			readableIds("bot").pipe(
-				Effect.flatMap((ids) =>
-					ids.length === 0
-						? Effect.succeed([])
-						: db
-								.select({
-									resourceId: dbSchema.bot.id,
-									name: dbSchema.bot.name,
-									status: dbSchema.bot.status,
-									changedAt: changedAt(dbSchema.bot),
-								})
-								.from(dbSchema.bot)
-								.where(inArray(dbSchema.bot.id, ids))
-								.orderBy(desc(changedAt(dbSchema.bot)))
-								.limit(input.limit),
-				),
-			),
-			readableIds("block").pipe(
-				Effect.flatMap((ids) =>
-					ids.length === 0
-						? Effect.succeed([])
-						: db
-								.select({
-									resourceId: dbSchema.block.id,
-									name: dbSchema.block.name,
-									blockType: dbSchema.block.type,
-									status: dbSchema.block.status,
-									changedAt: changedAt(dbSchema.block),
-								})
-								.from(dbSchema.block)
-								.where(inArray(dbSchema.block.id, ids))
-								.orderBy(desc(changedAt(dbSchema.block)))
-								.limit(input.limit),
-				),
-			),
-			readableIds("asset").pipe(
-				Effect.flatMap((ids) =>
-					ids.length === 0
-						? Effect.succeed([])
-						: db
-								.select({
-									resourceId: dbSchema.asset.id,
-									name: dbSchema.asset.title,
-									processingStatus: dbSchema.asset.processingStatus,
-									changedAt: changedAt(dbSchema.asset),
-								})
-								.from(dbSchema.asset)
-								.where(inArray(dbSchema.asset.id, ids))
-								.orderBy(desc(changedAt(dbSchema.asset)))
-								.limit(input.limit),
-				),
-			),
-		],
-		{
-			concurrency: "unbounded",
-		},
-	);
-
-	const data = [
-		...bots.map((bot) => ({
-			resourceType: "bot" as const,
-			...bot,
-		})),
-		...blocks.map((block) => ({
-			resourceType: "block" as const,
-			...block,
-			blockType: block.blockType as BlockType,
-		})),
-		...assets.map((asset) => ({
-			resourceType: "asset" as const,
-			...asset,
-		})),
-	]
-		.sort((left, right) => toTime(right.changedAt) - toTime(left.changedAt))
-		.slice(0, input.limit);
+	const data = yield* recentResources({
+		userId: context.auth.user.id,
+		limit: input.limit,
+		zedToken: getZedToken(context, input),
+	});
 
 	return {
 		data,
