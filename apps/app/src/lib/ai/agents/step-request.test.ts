@@ -1,13 +1,11 @@
 import { describe, expect, test } from "bun:test";
 import type { ProviderKind } from "@orcai/core";
-import { isStepCount, ToolLoopAgent, tool } from "ai";
+import { isStepCount, type ModelMessage, ToolLoopAgent, tool } from "ai";
 import { MockLanguageModelV4 } from "ai/test";
 import { z } from "zod/v4";
-import {
-	FINAL_STEP_NOTE,
-	finalStepSettings,
-	stepBudgetOptionsSchema,
-} from "./step-budget";
+import { AssistantToolError } from "@/lib/ai/tools/tool-error";
+import { stepBudgetOptionsSchema } from "./step-budget";
+import { createStepShaper, FINAL_STEP_NOTE } from "./step-request";
 
 const MAX_STEPS = 3;
 
@@ -34,7 +32,7 @@ const lastPromptText = (options: CallOptions) => {
 		: undefined;
 };
 
-/** Calls the search tool until tools are ruled out or the note asks for an answer. */
+/** Calls the search tool, failing on the first call, until tools are ruled out or the note asks for an answer. */
 const toolHungryModel = () => {
 	const calls: CallOptions[] = [];
 	const model = new MockLanguageModelV4({
@@ -75,9 +73,9 @@ const toolHungryModel = () => {
 };
 
 /**
- * An agent wired like the chat agents, its budget a call option. With
- * `activeTools`, it narrows the tools on every step as the assistant's plan
- * gating does.
+ * An agent wired like the chat agents, its budget a call option; `pruned`
+ * holds what the pruning policy saw on each step. With `activeTools`, it
+ * narrows the tools on every step as the assistant's plan gating does.
  */
 const runTurn = async (
 	providerKind: ProviderKind,
@@ -85,12 +83,28 @@ const runTurn = async (
 	activeTools?: "search"[],
 ) => {
 	const { model, calls } = toolHungryModel();
+	const pruned: ModelMessage[][] = [];
+	const steps = createStepShaper({
+		providerKind,
+		prune: (messages) => {
+			pruned.push(messages);
+			return messages;
+		},
+	});
+	let searches = 0;
 	const agent = new ToolLoopAgent({
 		model,
 		tools: {
 			search: tool({
 				inputSchema: z.object({}),
-				execute: async () => "a result",
+				execute: () => {
+					searches += 1;
+					return searches === 1
+						? Promise.reject(
+								new AssistantToolError("SEARCH_FAILED: Try again."),
+							)
+						: Promise.resolve("a result");
+				},
 			}),
 			createBot: tool({
 				inputSchema: z.object({}),
@@ -98,19 +112,18 @@ const runTurn = async (
 			}),
 		},
 		callOptionsSchema: stepBudgetOptionsSchema,
-		prepareCall: ({ options, ...settings }) => ({
-			...settings,
-			stopWhen: isStepCount(options.maxSteps),
-			prepareStep: ({ stepNumber, messages }) => ({
-				activeTools,
-				...finalStepSettings({
-					stepNumber,
-					maxSteps: options.maxSteps,
-					messages,
-					providerKind,
+		prepareCall: ({ options, ...settings }) => {
+			const shapeStep = steps.prepareStep(options.maxSteps);
+			return {
+				...settings,
+				stopWhen: isStepCount(options.maxSteps),
+				prepareStep: (step) => ({
+					...shapeStep(step),
+					activeTools,
 				}),
-			}),
-		}),
+			};
+		},
+		onToolExecutionEnd: ({ toolOutput }) => steps.recordExecution(toolOutput),
 	});
 	const result = await agent.generate({
 		prompt: "Check every citation.",
@@ -121,19 +134,34 @@ const runTurn = async (
 	return {
 		result,
 		calls,
+		pruned,
 	};
 };
 
-describe("finalStepSettings", () => {
-	test("leaves the steps before the last one alone", () => {
-		expect(
-			finalStepSettings({
-				stepNumber: MAX_STEPS - 2,
-				maxSteps: MAX_STEPS,
-				messages: [],
-				providerKind: "openai",
-			}),
-		).toBeUndefined();
+const errorTexts = (messages: ModelMessage[]) =>
+	messages.flatMap((message) =>
+		message.role === "tool"
+			? message.content.flatMap((part) =>
+					part.type === "tool-result" && part.output.type === "error-text"
+						? [
+								part.output.value,
+							]
+						: [],
+				)
+			: [],
+	);
+
+describe("createStepShaper", () => {
+	test("prunes failures as the reply stores them, before the final-step note", async () => {
+		const { pruned } = await runTurn("openai");
+
+		expect(pruned).toHaveLength(MAX_STEPS);
+		expect(errorTexts(pruned.at(-1) ?? [])).toEqual([
+			"SEARCH_FAILED: Try again.",
+		]);
+		for (const messages of pruned) {
+			expect(messages.at(-1)?.content).not.toBe(FINAL_STEP_NOTE);
+		}
 	});
 
 	test("a turn that keeps calling tools ends with an answer on the last step", async () => {

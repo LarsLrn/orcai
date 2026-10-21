@@ -6,20 +6,14 @@ import {
 	GEN_UI_TOOL_NAMES,
 } from "@/components/chat/gen-ui/catalog";
 import type { AgentModel } from "@/lib/ai/agents/agent-model";
-import { applyToolHistoryPruning } from "@/lib/ai/agents/chat-agent-history-pruning";
+import { pruneChatHistory } from "@/lib/ai/agents/chat-agent-history-pruning";
 import { buildChatAgentSystemPrompt } from "@/lib/ai/agents/chat-agent-system-prompt";
 import {
 	type ChatAgentTools,
 	repairKnowledgeBaseToolCall,
 } from "@/lib/ai/agents/repair-tool-call";
-import {
-	finalStepSettings,
-	stepBudgetOptionsSchema,
-} from "@/lib/ai/agents/step-budget";
-import {
-	stepFailures,
-	withStoredToolFailures,
-} from "@/lib/ai/agents/turn-history";
+import { stepBudgetOptionsSchema } from "@/lib/ai/agents/step-budget";
+import { createStepShaper } from "@/lib/ai/agents/step-request";
 import type { ResolvedFeature } from "@/lib/ai/features/resolve-features";
 import { buildKnowledgeBaseTools } from "@/lib/ai/tools/rag/toolset";
 import type { ChatCallSettings } from "@/lib/ai/utils/chat-call-settings";
@@ -38,8 +32,37 @@ export const createChatAgent = (params: {
 		modelId: string;
 	};
 	context: ORPCContext;
-}) =>
-	new ToolLoopAgent({
+}) => {
+	const hasKnowledgeBaseBlocks = params.databaseBlocks.length > 0;
+	const offeredTools: ToolSet = {
+		...(hasKnowledgeBaseBlocks
+			? buildKnowledgeBaseTools({
+					blocks: params.databaseBlocks,
+					context: params.context,
+				})
+			: {}),
+	};
+	for (const { entry, settings } of params.features) {
+		Object.assign(
+			offeredTools,
+			entry.buildTools({
+				context: params.context,
+				settings,
+			}),
+		);
+	}
+	const steps = createStepShaper({
+		providerKind: params.model.kind,
+		prune: (messages) =>
+			pruneChatHistory(messages, {
+				displayToolNames: GEN_UI_TOOL_NAMES,
+				enabledDisplayToolNames: GEN_UI_TOOL_NAMES.filter((name) =>
+					Object.hasOwn(offeredTools, name),
+				),
+			}),
+	});
+
+	return new ToolLoopAgent({
 		model: params.model.language,
 		// The typed tool set; prepareCall swaps in the tools offered this turn.
 		tools: {
@@ -52,63 +75,25 @@ export const createChatAgent = (params: {
 		...aiTelemetry("chat.agent", params.telemetryIds),
 		experimental_repairToolCall: repairKnowledgeBaseToolCall,
 		callOptionsSchema: stepBudgetOptionsSchema,
-		prepareCall: ({ options, ...settings }) => {
-			const hasKnowledgeBaseBlocks = params.databaseBlocks.length > 0;
-			const tools: ToolSet = {
-				...(hasKnowledgeBaseBlocks
-					? buildKnowledgeBaseTools({
-							blocks: params.databaseBlocks,
-							context: params.context,
-						})
-					: {}),
-			};
-			for (const { entry, settings: featureSettings } of params.features) {
-				Object.assign(
-					tools,
-					entry.buildTools({
-						context: params.context,
-						settings: featureSettings,
-					}),
-				);
-			}
-			const preparedSettings = applyToolHistoryPruning(settings, {
-				displayToolNames: GEN_UI_TOOL_NAMES,
-				enabledDisplayToolNames: GEN_UI_TOOL_NAMES.filter((name) =>
-					Object.hasOwn(tools, name),
-				),
-			});
-			const systemPrompt = buildChatAgentSystemPrompt({
-				systemPrompt: params.systemPrompt,
-				hasKnowledgeBaseBlocks,
-				featurePrompts: params.features.map(({ entry }) => entry.prompt),
-			});
-
-			return {
-				...preparedSettings,
-				...params.callSettings,
-				instructions: buildSystemInstructions(params.model.kind, {
-					stable: systemPrompt,
+		prepareCall: ({ options, ...settings }) => ({
+			...settings,
+			...params.callSettings,
+			instructions: buildSystemInstructions(params.model.kind, {
+				stable: buildChatAgentSystemPrompt({
+					systemPrompt: params.systemPrompt,
+					hasKnowledgeBaseBlocks,
+					featurePrompts: params.features.map(({ entry }) => entry.prompt),
 				}),
-				// A subset of the typed set; no tools at all when nothing is offered.
-				tools:
-					Object.keys(tools).length > 0 ? (tools as ChatAgentTools) : undefined,
-				stopWhen: isStepCount(options.maxSteps),
-				prepareStep: ({ stepNumber, messages, steps }) => {
-					const sentMessages = withStoredToolFailures(
-						messages,
-						stepFailures(steps),
-					);
-					return {
-						messages: sentMessages,
-						...finalStepSettings({
-							stepNumber,
-							maxSteps: options.maxSteps,
-							messages: sentMessages,
-							providerKind: params.model.kind,
-						}),
-					};
-				},
-			};
-		},
+			}),
+			// A subset of the typed set; no tools at all when nothing is offered.
+			tools:
+				Object.keys(offeredTools).length > 0
+					? (offeredTools as ChatAgentTools)
+					: undefined,
+			stopWhen: isStepCount(options.maxSteps),
+			prepareStep: steps.prepareStep(options.maxSteps),
+		}),
+		onToolExecutionEnd: ({ toolOutput }) => steps.recordExecution(toolOutput),
 		output: Output.text(),
 	});
+};

@@ -1,7 +1,7 @@
 import { describe, expect, test } from "bun:test";
 import type { ModelMessage } from "ai";
 import {
-	applyToolHistoryPruning,
+	pruneChatHistory,
 	pruneToolHistory,
 } from "./chat-agent-history-pruning";
 
@@ -182,7 +182,7 @@ describe("pruneToolHistory", () => {
 	});
 });
 
-describe("applyToolHistoryPruning", () => {
+describe("pruneChatHistory", () => {
 	test("drops earlier turns' reasoning", () => {
 		const thinking = (value: string): ModelMessage => ({
 			role: "assistant",
@@ -204,23 +204,54 @@ describe("applyToolHistoryPruning", () => {
 		});
 
 		expect(
-			applyToolHistoryPruning(
-				{
-					messages: [
-						user("hi"),
-						thinking("hello"),
-						user("bye"),
-					],
-				},
+			pruneChatHistory(
+				[
+					user("hi"),
+					thinking("hello"),
+					user("bye"),
+				],
 				{
 					displayToolNames,
 					enabledDisplayToolNames: [],
 				},
-			).messages,
+			),
 		).toEqual([
 			user("hi"),
 			text("hello"),
 			user("bye"),
 		]);
+	});
+
+	test("prunes finished turns and leaves the turn in progress as sent", () => {
+		const turn = [
+			...call("searchKnowledgeBase", "s2"),
+			...call("showChecklist", "c2"),
+			...call("getKnowledgeBaseChunks", "g1"),
+		];
+		const options = {
+			displayToolNames,
+			enabledDisplayToolNames: [],
+		};
+		const pruned = pruneChatHistory(
+			[
+				user("first"),
+				...call("searchKnowledgeBase", "s1"),
+				...call("searchKnowledgeBase", "s0"),
+				text("one"),
+				user("second"),
+				...turn,
+			],
+			options,
+		);
+
+		expect(summarize(pruned)).toEqual([
+			"user first",
+			"call searchKnowledgeBase s0",
+			"result searchKnowledgeBase s0",
+			"assistant one",
+			"user second",
+			...summarize(turn),
+		]);
+		expect(pruneChatHistory(pruned, options)).toEqual(pruned);
 	});
 });
