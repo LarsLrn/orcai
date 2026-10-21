@@ -1,5 +1,4 @@
 import { describe, expect, test } from "bun:test";
-import { connect } from "node:net";
 import type {
 	OrganizationId,
 	QuotaPeriodId,
@@ -11,27 +10,6 @@ import * as Effect from "effect/Effect";
 import * as Layer from "effect/Layer";
 import { v4 as uuidv4 } from "uuid";
 import { QuotaCounterStore, QuotaCounterStoreLive } from "../src/counter-store";
-
-/** Whether the stack's Valkey answers; the store's scripts need a real one. */
-const valkeyReachable = (url: string | undefined) =>
-	new Promise<boolean>((resolve) => {
-		if (!url) {
-			resolve(false);
-			return;
-		}
-		const { hostname, port } = new URL(url);
-		const socket = connect(Number(port || 6379), hostname);
-		socket.setTimeout(500);
-		const settle = (reachable: boolean) => {
-			socket.destroy();
-			resolve(reachable);
-		};
-		socket.once("connect", () => settle(true));
-		socket.once("timeout", () => settle(false));
-		socket.once("error", () => settle(false));
-	});
-
-const reachable = await valkeyReachable(process.env.VALKEY_URL);
 
 const reserve = (input: {
 	remaining: number;
@@ -71,7 +49,7 @@ const reserve = (input: {
 		),
 	);
 
-describe.skipIf(!reachable)("QuotaCounterStore.reserve", () => {
+describe("QuotaCounterStore.reserve", () => {
 	test("grants the whole amount when enough remains", async () => {
 		const { result, state } = await reserve({
 			remaining: 30,
