@@ -22,6 +22,7 @@ import {
 import * as Effect from "effect/Effect";
 import { v4 as uuidv4 } from "uuid";
 import { checkFeatureRequirements } from "@/lib/ai/features/requirements";
+import { isEmptyReply } from "@/lib/ai/turn/reply-store";
 import { closeCopiedToolParts } from "@/lib/ai/utils/close-pending-tool-parts";
 import { getZedToken } from "@/lib/authz/zed-token";
 import {
@@ -36,7 +37,6 @@ import {
 	requireEntityPermission,
 	requirePermission,
 } from "@/lib/orpc/middlewares/permission";
-import { isEmptyReply } from "./chat-message";
 import { assistantConversationImmutable } from "./helpers/assistant-conversation";
 import { literalSearch } from "./helpers/literal-search";
 import { buildOrderBy, type SortExpression } from "./helpers/sorting";

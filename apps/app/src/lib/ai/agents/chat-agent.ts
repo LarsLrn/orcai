@@ -1,17 +1,11 @@
 import { aiTelemetry, buildSystemInstructions } from "@orcai/ai";
-import type { ProviderKind } from "@orcai/core";
 import type { DatabaseBlock } from "@orcai/schema";
-import {
-	isStepCount,
-	type LanguageModel,
-	Output,
-	ToolLoopAgent,
-	type ToolSet,
-} from "ai";
+import { isStepCount, Output, ToolLoopAgent, type ToolSet } from "ai";
 import {
 	buildGenUiTools,
 	GEN_UI_TOOL_NAMES,
 } from "@/components/chat/gen-ui/catalog";
+import type { AgentModel } from "@/lib/ai/agents/agent-model";
 import { applyToolHistoryPruning } from "@/lib/ai/agents/chat-agent-history-pruning";
 import { buildChatAgentSystemPrompt } from "@/lib/ai/agents/chat-agent-system-prompt";
 import {
@@ -32,8 +26,7 @@ import type { ChatCallSettings } from "@/lib/ai/utils/chat-call-settings";
 import type { ORPCContext } from "@/lib/orpc/implementation/os";
 
 export const createChatAgent = (params: {
-	model: LanguageModel;
-	providerKind: ProviderKind;
+	model: AgentModel;
 	systemPrompt: string;
 	databaseBlocks: DatabaseBlock[];
 	features: ResolvedFeature[];
@@ -47,7 +40,7 @@ export const createChatAgent = (params: {
 	context: ORPCContext;
 }) =>
 	new ToolLoopAgent({
-		model: params.model,
+		model: params.model.language,
 		// The typed tool set; prepareCall swaps in the tools offered this turn.
 		tools: {
 			...buildKnowledgeBaseTools({
@@ -93,7 +86,7 @@ export const createChatAgent = (params: {
 			return {
 				...preparedSettings,
 				...params.callSettings,
-				instructions: buildSystemInstructions(params.providerKind, {
+				instructions: buildSystemInstructions(params.model.kind, {
 					stable: systemPrompt,
 				}),
 				// A subset of the typed set; no tools at all when nothing is offered.
@@ -111,7 +104,7 @@ export const createChatAgent = (params: {
 							stepNumber,
 							maxSteps: options.maxSteps,
 							messages: sentMessages,
-							providerKind: params.providerKind,
+							providerKind: params.model.kind,
 						}),
 					};
 				},

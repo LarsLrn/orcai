@@ -18,7 +18,7 @@ import {
 import {
 	type ModelUnusableReason,
 	modelUnusableReason,
-} from "@/lib/ai/utils/model-usability";
+} from "@/lib/ai/turn/model-usability";
 import { orpc } from "@/lib/orpc/orpc";
 import { m } from "@/paraglide/messages";
 import { organizationFormOptions } from "./organization-form-options";

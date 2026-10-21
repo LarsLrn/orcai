@@ -23,5 +23,5 @@ export {
 	type ToolLoading,
 	withholdToolCalls,
 } from "./provider-kinds/registry";
-export type { SystemPrompt } from "./provider-kinds/types";
+export type { ProviderConnection, SystemPrompt } from "./provider-kinds/types";
 export { AiTelemetryLive, aiTelemetry } from "./telemetry";

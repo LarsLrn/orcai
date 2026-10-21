@@ -74,12 +74,24 @@ for (const [file, namespace] of [
 		"bot",
 	],
 	[
+		"chat-block",
+		"chatBlock",
+	],
+	[
 		"group",
 		"group",
 	],
 	[
 		"job",
 		"job",
+	],
+	[
+		"model",
+		"model",
+	],
+	[
+		"organization",
+		"organization",
 	],
 	[
 		"organization-invitation",
@@ -88,6 +100,10 @@ for (const [file, namespace] of [
 	[
 		"organization-member",
 		"organizationMember",
+	],
+	[
+		"provider",
+		"provider",
 	],
 	[
 		"resource",

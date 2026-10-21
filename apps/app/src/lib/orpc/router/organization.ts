@@ -28,7 +28,7 @@ import {
 	sql,
 } from "drizzle-orm";
 import * as Effect from "effect/Effect";
-import { modelUnusableReason } from "@/lib/ai/utils/model-usability";
+import { modelUnusableReason } from "@/lib/ai/turn/model-usability";
 import { getZedToken } from "@/lib/authz/zed-token";
 import {
 	AuthzService,
