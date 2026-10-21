@@ -66,7 +66,7 @@ In a chat (`/app/chat/<chat id>`), OrcAI supports:
 
 ### Long Chats
 
-When a chat outgrows the model's context window, the model reads only the newest turns that fit, after room for its reply, its instructions and its tools. A reply that was written without the oldest turns says so under it. The chat keeps every message. A model without a known context window is assumed to read 128,000 tokens. If your message alone does not fit, it is not sent: shorten it, remove attachments, or start a new chat.
+When a chat outgrows the model's context window, the model reads only the newest turns that fill about three quarters of it, after room for its reply, its instructions and its tools, so the next replies have room before trimming again. A reply that was written without the oldest turns says so under it. The chat keeps every message. A model without a known context window is assumed to read 128,000 tokens. If your message alone does not fit, it is not sent: shorten it, remove attachments, or start a new chat.
 
 ## Branching
 
