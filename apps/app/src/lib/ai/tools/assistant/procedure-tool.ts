@@ -4,6 +4,7 @@ import { COMMON_ERROR_STATUS_MAP, ORPCError } from "@orpc/client";
 import { type Tool, type ToolExecuteFunction, tool } from "ai";
 import * as Cause from "effect/Cause";
 import * as Effect from "effect/Effect";
+import * as Semaphore from "effect/Semaphore";
 import type { ORPCContext } from "@/lib/orpc/implementation/os";
 import { AssistantToolError, isRecord, toolErrorText } from "../tool-error";
 import type { AssistantTurn } from "./turn-state";
@@ -211,7 +212,7 @@ const zedTokenOf = (output: unknown) =>
 
 /**
  * Calls a procedure as the user, reading at the turn's newest zedToken, and
- * keeps the zedToken its output carries.
+ * keeps the zedToken its output carries. The turn's calls run one at a time.
  */
 export const callProcedure = <A, E>(
 	{ context, turn }: AssistantToolDeps,
@@ -233,6 +234,7 @@ export const callProcedure = <A, E>(
 				turn.zedToken = zedTokenOf(output) ?? turn.zedToken;
 			}),
 		),
+		Semaphore.withPermit(turn.calls),
 	);
 
 const statusOf = (code: string): number | undefined =>
