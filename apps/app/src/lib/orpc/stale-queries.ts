@@ -92,6 +92,9 @@ const staleQueriesOf = (orpc: AppUtils): StaleQueries => {
 			publish: () => [
 				orpc.bot.key(),
 			],
+			setFavourite: () => [
+				orpc.bot.key(),
+			],
 			delete: () => [
 				orpc.bot.key(),
 			],

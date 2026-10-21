@@ -1,8 +1,10 @@
+import { z } from "zod/v4";
 import {
 	createDataResponseSchema,
 	createDeleteResponseSchema,
 	createListResponseSchema,
 } from "../shared";
+import { botIdSchema } from "./ref";
 import {
 	botEditorSchema,
 	botWithBlocksSchema,
@@ -26,6 +28,13 @@ export const publishBotResponseSchema =
 
 export const listDraftBotsResponseSchema = createListResponseSchema(
 	botWithCapabilitiesSchema,
+);
+
+export const setBotFavouriteResponseSchema = createDataResponseSchema(
+	z.object({
+		id: botIdSchema,
+		favourite: z.boolean(),
+	}),
 );
 
 export const deleteBotsResponseSchema = createDeleteResponseSchema();

@@ -7,6 +7,11 @@ import { getEntityCapabilities } from "@/lib/authz/entity-capabilities";
 import { deleteResourcesWithAuthorization } from "@/lib/authz/resource-lifecycle";
 import { getZedToken } from "@/lib/authz/zed-token";
 import {
+	favouriteOf,
+	isFavourite,
+	setBotFavourite,
+} from "@/lib/bots/bot-favourites";
+import {
 	listBotsByStatus,
 	loadBotEditor,
 	saveBotGraph,
@@ -28,6 +33,8 @@ const listBots = authed.bot.list.effect(function* ({ input, context }) {
 		pageIndex: input.pageIndex,
 		pageSize: input.pageSize,
 		search: input.search,
+		favourite: input.filters?.favourite,
+		sort: input.sort,
 		zedToken: getZedToken(context, input),
 		permission: "read",
 	});
@@ -61,8 +68,10 @@ const findBot = authed.bot.find
 		const [bot] = yield* db
 			.select({
 				...getColumns(dbSchema.bot),
+				isFavourite,
 			})
 			.from(dbSchema.bot)
+			.leftJoin(dbSchema.botFavourite, favouriteOf(context.auth.user.id))
 			.where(eq(dbSchema.bot.id, input.id));
 
 		if (!bot) {
@@ -232,6 +241,20 @@ const publishBot = authed.bot.publish
 		};
 	});
 
+const setFavourite = authed.bot.setFavourite
+	.use(
+		requireEntityPermission("bot", "read", {
+			entityId: "id",
+		}),
+	)
+	.effect(function* ({ input, context }) {
+		return yield* setBotFavourite({
+			botId: input.id,
+			userId: context.auth.user.id,
+			favourite: input.favourite,
+		});
+	});
+
 const deleteBots = authed.bot.delete
 	.use(
 		checkManyPermissionMiddleware("bot").adaptInput(
@@ -269,5 +292,6 @@ export const botRouter = {
 	findEditor: findBotEditor,
 	save: saveBot,
 	publish: publishBot,
+	setFavourite,
 	delete: deleteBots,
 };

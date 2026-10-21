@@ -3,6 +3,7 @@ import { DB, dbSchema } from "@orcai/db";
 import type {
 	Block,
 	Bot,
+	BotListSort,
 	PublicationStatus,
 	SaveBotInput,
 } from "@orcai/schema";
@@ -10,7 +11,18 @@ import {
 	lookupEntitiesByPermission,
 	permittedEntityIds,
 } from "@orcai/spice-db";
-import { and, count, eq, getColumns, ilike, inArray } from "drizzle-orm";
+import {
+	and,
+	asc,
+	count,
+	desc,
+	eq,
+	getColumns,
+	ilike,
+	inArray,
+	isNotNull,
+	isNull,
+} from "drizzle-orm";
 import * as Effect from "effect/Effect";
 import { emptyCapabilities } from "@/lib/authz/capabilities";
 import {
@@ -27,6 +39,7 @@ import {
 	resourceOrganizations,
 } from "@/lib/authz/resource-lifecycle";
 import { loadDatabaseBlockAssets } from "@/lib/blocks/database-block";
+import { favouriteOf, isFavourite } from "@/lib/bots/bot-favourites";
 import * as AppErrors from "@/lib/effect/utils/errors";
 import { literalSearch } from "@/lib/utils/literal-search";
 
@@ -36,6 +49,8 @@ export const listBotsByStatus = (params: {
 	pageIndex: number;
 	pageSize: number;
 	search?: string;
+	favourite?: boolean;
+	sort?: BotListSort;
 	zedToken?: string;
 	permission: "read" | "edit";
 }) =>
@@ -60,14 +75,34 @@ export const listBotsByStatus = (params: {
 			);
 		}
 
+		if (params.favourite !== undefined) {
+			whereConditions.push(
+				params.favourite
+					? isNotNull(dbSchema.botFavourite.botId)
+					: isNull(dbSchema.botFavourite.botId),
+			);
+		}
+
+		const order = [
+			asc(dbSchema.bot.name),
+			asc(dbSchema.bot.id),
+		];
+
+		if (params.sort === "favouritesFirst") {
+			order.unshift(desc(isFavourite));
+		}
+
 		return yield* Effect.all(
 			[
 				db
 					.select({
 						...getColumns(dbSchema.bot),
+						isFavourite,
 					})
 					.from(dbSchema.bot)
+					.leftJoin(dbSchema.botFavourite, favouriteOf(params.userId))
 					.where(and(...whereConditions))
+					.orderBy(...order)
 					.limit(params.pageSize)
 					.offset(params.pageIndex * params.pageSize),
 				db
@@ -75,6 +110,7 @@ export const listBotsByStatus = (params: {
 						count: count(),
 					})
 					.from(dbSchema.bot)
+					.leftJoin(dbSchema.botFavourite, favouriteOf(params.userId))
 					.where(and(...whereConditions)),
 			],
 			{

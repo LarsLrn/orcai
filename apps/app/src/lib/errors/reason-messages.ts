@@ -53,6 +53,7 @@ const reasonMessages: ReasonMessages = {
 	BOT_BEHAVIOUR_BLOCK_NOT_READY: m.error_bot_behaviour_block_not_ready,
 	BOT_BEHAVIOUR_BLOCK_REQUIRED: m.error_bot_behaviour_block_required,
 	BOT_NOT_FOUND: m.error_bot_not_found,
+	BOT_NOT_PUBLISHED: m.error_bot_not_published,
 	BOT_REPOSITORY_EMPTY: ({ blockName }) =>
 		m.error_bot_repository_empty({
 			blockName,
