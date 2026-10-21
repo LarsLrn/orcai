@@ -1,22 +1,25 @@
 import type { DynamicToolUIPart, ToolUIPart } from "ai";
 import type { ComponentProps } from "react";
+import { CodeBlock, CodeBlockContent } from "@/components/ui/code-block";
 import { describeError } from "@/lib/errors/describe-error";
 import { cn } from "@/lib/utils";
 import { m } from "@/paraglide/messages";
 
-export type ToolPart = ToolUIPart | DynamicToolUIPart;
+type ToolPart = ToolUIPart | DynamicToolUIPart;
 
 const fieldLabelClassName =
 	"mb-1 font-medium text-[0.625rem] text-muted-foreground uppercase tracking-wide";
 
 /** Raw values wrap instead of scrolling so the log stays readable when narrow. */
-export const ToolJson = ({ value }: { value: unknown }) => (
-	<pre className="wrap-anywhere whitespace-pre-wrap rounded-md bg-background p-2 font-mono text-[0.6875rem] leading-relaxed">
-		{typeof value === "string" ? value : JSON.stringify(value, null, 2)}
-	</pre>
+const ToolJson = ({ value }: { value: unknown }) => (
+	<CodeBlock size="sm">
+		<CodeBlockContent wrap className="wrap-anywhere">
+			{typeof value === "string" ? value : JSON.stringify(value, null, 2)}
+		</CodeBlockContent>
+	</CodeBlock>
 );
 
-export const ToolField = ({
+const ToolField = ({
 	label,
 	className,
 	children,
