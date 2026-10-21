@@ -2308,6 +2308,30 @@
 	"data_table_view_options_trigger": "Ansicht",
 	"dialog_select_empty_state": "Keine Ergebnisse gefunden.",
 	"dialog_select_filter_placeholder": "Filter",
+	"documents_panel_collapse": "Repositories ausblenden",
+	"documents_panel_expand": "Repositories anzeigen",
+	"documents_panel_failed_title": [
+		{
+			"declarations": [
+				"input count",
+				"local countPlural = count: plural"
+			],
+			"selectors": [
+				"countPlural"
+			],
+			"match": {
+				"countPlural=one": "1 Dokument konnte nicht vorbereitet werden",
+				"countPlural=other": "{count} Dokumente konnten nicht vorbereitet werden"
+			}
+		}
+	],
+	"documents_panel_preparing_title": "Dokumente werden vorbereitet",
+	"documents_panel_region": "Dokumentvorbereitung",
+	"documents_panel_repository_count": "{ready} von {total}",
+	"documents_panel_repository_failed": "Einige Dokumente konnten nicht vorbereitet werden",
+	"documents_panel_repository_failed_count": "{count} fehlgeschlagen",
+	"documents_panel_repository_preparing": "Dokumente werden vorbereitet",
+	"documents_panel_repository_ready": "Alle Dokumente bereit",
 	"editor_colour_blue_option": "Blau",
 	"editor_colour_brown_option": "Braun",
 	"editor_colour_default_option": "Standard",

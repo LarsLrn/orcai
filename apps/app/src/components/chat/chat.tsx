@@ -13,6 +13,8 @@ import { AssistantComposerGate } from "@/components/assistant/assistant-composer
 import { assistantLinkSafety } from "@/components/assistant/assistant-link-safety";
 import { AssistantPlaceholder } from "@/components/assistant/assistant-placeholder";
 import { PlanPanel } from "@/components/assistant/plan-panel";
+import { DocumentsPanel } from "@/components/documents/readiness/documents-panel";
+import { useChatRepositoryIds } from "@/components/documents/readiness/use-repository-readiness";
 import { MessageScrollerItem } from "@/components/ui/message-scroller";
 import { turnView } from "@/lib/ai/turn-view/turn-view";
 import { clientEnv } from "@/lib/env/client";
@@ -110,6 +112,10 @@ const Chat = ({
 		chat?.data.branches,
 	]);
 	const branchChat = useBranchChat();
+	const repositoryIds = useChatRepositoryIds({
+		chatId: id,
+		botId: chat?.data.botId,
+	});
 
 	const view = turnView(messages, phase);
 	const canBranch = !isAssistant && !view.busy;
@@ -222,10 +228,14 @@ const Chat = ({
 					{isAssistant ? (
 						<>
 							<PlanPanel plan={view.plan} busy={view.busy} />
+							<DocumentsPanel blockIds={repositoryIds} />
 							<AssistantComposerGate>{composer}</AssistantComposerGate>
 						</>
 					) : (
-						composer
+						<>
+							<DocumentsPanel blockIds={repositoryIds} />
+							{composer}
+						</>
 					)}
 				</div>
 			</div>
