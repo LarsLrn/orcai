@@ -7,7 +7,6 @@ import {
 } from "@/components/assistant/tool-summaries";
 import {
 	isFailedStatus,
-	toolStatus,
 	toolStatusLabel,
 } from "@/components/chat/message/work-log/tool-status";
 import { Badge } from "@/components/ui/badge";
@@ -20,6 +19,7 @@ import {
 	ItemTitle,
 } from "@/components/ui/item";
 import type { ConfirmationVerb } from "@/lib/ai/tools/assistant/summary";
+import type { ToolStatus } from "@/lib/ai/turn-view/turn-view";
 import type { ChatAgentUIMessage } from "@/lib/ai/types/chat-agent-message";
 import { m } from "@/paraglide/messages";
 
@@ -45,11 +45,13 @@ const destructiveVerbs = new Set<ConfirmationVerb>([
 /** A gated call waiting for the user: its summary line, its verb and Cancel. */
 export const ConfirmationCard = ({
 	part,
+	status,
 	addToolApprovalResponse,
 }: {
 	part: SummarisedToolPart;
-	/** Only the latest row's cards can be answered; a later message skipped the others. */
-	addToolApprovalResponse?: AddToolApprovalResponse;
+	status: ToolStatus | null;
+	/** Left out unless the card can be answered. */
+	addToolApprovalResponse: AddToolApprovalResponse | undefined;
 }) => {
 	const summary = toolSummaryOf(part);
 	const line = useToolSummaryLine(part);
@@ -57,8 +59,6 @@ export const ConfirmationCard = ({
 	const titleId = useId();
 	const answerable =
 		part.state === "approval-requested" && addToolApprovalResponse;
-	const status =
-		part.state === "approval-requested" ? "skipped" : toolStatus(part, false);
 	const respond = (approved: boolean) => {
 		if (part.state !== "approval-requested") return;
 		void addToolApprovalResponse?.({

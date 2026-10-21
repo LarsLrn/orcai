@@ -40,16 +40,16 @@ import {
 } from "@/lib/ai/tools/assistant/turn-state";
 import type { ChatAgentUIMessage } from "@/lib/ai/types/chat-agent-message";
 import { getChatMessageAttachments } from "@/lib/ai/types/chat-attachment";
-import {
-	applyTurnDecisions,
-	withoutContinuationClaim,
-} from "@/lib/ai/utils/apply-turn-decisions";
 import { buildAttachmentPromptPartCached } from "@/lib/ai/utils/chat-attachment-parts";
 import { closeInvalidToolParts } from "@/lib/ai/utils/close-invalid-tool-parts";
 import { closeLastReply } from "@/lib/ai/utils/close-pending-tool-parts";
 import { streamErrorText } from "@/lib/ai/utils/stream-error-text";
 import { getZedToken } from "@/lib/authz/zed-token";
 import * as AppErrors from "@/lib/effect/utils/errors";
+import {
+	applyTurnDecisions,
+	withoutContinuationClaim,
+} from "./apply-turn-decisions";
 import {
 	isEmptyReply,
 	type ReplyContent,

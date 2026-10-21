@@ -9,20 +9,20 @@ import {
 } from "@/components/ai-elements/message";
 import { messageToMarkdown } from "@/components/chat/message/message-markdown";
 import { MessageRate } from "@/components/chat/message/message-rate";
-import type { ChatAgentUIMessage } from "@/lib/ai/types/chat-agent-message";
+import type { MessageView } from "@/lib/ai/turn-view/turn-view";
 import { reasonMessageOf } from "@/lib/errors/describe-error";
 import { cn } from "@/lib/utils";
 import { m } from "@/paraglide/messages";
 
 export const MessageActions = ({
-	message,
+	view,
 	variant,
 	chatId,
 	onBranch,
 	branching = false,
 	className,
 }: {
-	message: ChatAgentUIMessage;
+	view: MessageView;
 	variant: "sent" | "received";
 	chatId: ChatId;
 	/** Left out while the message can't be branched from yet. */
@@ -32,7 +32,7 @@ export const MessageActions = ({
 	const [, copy] = useCopyToClipboard();
 
 	const handleCopy = () => {
-		toast.promise(copy(messageToMarkdown(message)), {
+		toast.promise(copy(messageToMarkdown(view)), {
 			loading: m.chat_message_copy_toast_loading(),
 			success: m.chat_message_copy_toast_success(),
 			error: (error) => ({
@@ -78,7 +78,7 @@ export const MessageActions = ({
 				<CopyIcon className="size-3" />
 			</Action>
 			{branchAction}
-			<MessageRate chatId={chatId} messageId={message.id} />
+			<MessageRate chatId={chatId} messageId={view.message.id} />
 		</Actions>
 	);
 };

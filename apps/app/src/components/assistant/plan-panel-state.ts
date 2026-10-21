@@ -1,5 +1,5 @@
-import type { ShownPlanPart } from "@/lib/ai/tools/assistant/plan/latest-plan";
 import { isPlanFinished } from "@/lib/ai/tools/assistant/plan/plan-tally";
+import type { ShownPlanPart } from "@/lib/ai/turn-view/turn-view";
 
 export interface PlanView {
 	title: string;

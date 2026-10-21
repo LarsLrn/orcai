@@ -1,4 +1,3 @@
-import type { UseChatHelpers } from "@ai-sdk/react";
 import {
 	ChevronDownIcon,
 	CircleCheckIcon,
@@ -21,14 +20,9 @@ import { Label } from "@/components/ui/label";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { Spinner } from "@/components/ui/spinner";
 import { Textarea } from "@/components/ui/textarea";
-import {
-	isPlanUpdating,
-	latestPlanPart,
-	pendingPlanApprovalIds,
-} from "@/lib/ai/tools/assistant/plan/latest-plan";
 import type { PlanItemStatus } from "@/lib/ai/tools/assistant/plan/plan";
 import { planTally } from "@/lib/ai/tools/assistant/plan/plan-tally";
-import type { ChatAgentUIMessage } from "@/lib/ai/types/chat-agent-message";
+import type { TurnPlan } from "@/lib/ai/turn-view/turn-view";
 import { cn } from "@/lib/utils";
 import { m } from "@/paraglide/messages";
 import {
@@ -166,36 +160,28 @@ const PlanApproval = ({
 };
 
 /**
- * The conversation's plan, pinned above the composer: the newest `updatePlan`
- * call of the loaded messages. A proposal is approved or revised here.
+ * The conversation's plan, pinned above the composer. A proposal is approved
+ * or revised here.
  */
 export const PlanPanel = ({
-	messages,
-	status,
+	plan,
+	busy,
 	addToolApprovalResponse,
 }: {
-	messages: ChatAgentUIMessage[];
-	status: UseChatHelpers<ChatAgentUIMessage>["status"];
+	plan: TurnPlan | undefined;
+	/** A turn is being sent or streamed. */
+	busy: boolean;
 	addToolApprovalResponse: AddToolApprovalResponse;
 }) => {
-	const part = latestPlanPart(messages);
-	const [open, setOpen] = usePlanOpen(part && planViewOf(part));
+	const [open, setOpen] = usePlanOpen(plan && planViewOf(plan.part));
 	const regionId = useId();
 
-	if (!part) {
+	if (!plan) {
 		return null;
 	}
 
-	const { title, items } = part.input;
-	const running = status === "streaming" || status === "submitted";
-	const lastMessage = messages.at(-1);
-	const updating =
-		running && lastMessage !== undefined && isPlanUpdating(lastMessage);
-	// Only the latest reply's proposals can be answered.
-	const approvalIds =
-		!running && lastMessage?.role === "assistant"
-			? pendingPlanApprovalIds(lastMessage)
-			: [];
+	const { updating, approvalIds } = plan;
+	const { title, items } = plan.part.input;
 	const current = items.find((item) => item.status === "in_progress");
 
 	return (
@@ -253,7 +239,7 @@ export const PlanPanel = ({
 														"text-muted-foreground line-through",
 												)}
 											>
-												{item.status === "in_progress" && running ? (
+												{item.status === "in_progress" && busy ? (
 													<Shimmer>{item.label}</Shimmer>
 												) : (
 													item.label

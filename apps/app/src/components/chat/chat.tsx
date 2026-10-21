@@ -1,8 +1,9 @@
 import { useChat } from "@ai-sdk/react";
 import type { ChatId, ChatMessageId } from "@orcai/core";
-import type { ChatBranchLink, ClientToolOutput } from "@orcai/schema";
+import type { ChatBranchLink } from "@orcai/schema";
 import { eventIteratorToUnproxiedDataStream, ORPCError } from "@orpc/client";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
+import { isToolUIPart } from "ai";
 import { useEffect, useMemo, useRef, useState } from "react";
 import { toast } from "sonner";
 import {
@@ -16,13 +17,11 @@ import { assistantLinkSafety } from "@/components/assistant/assistant-link-safet
 import { AssistantPlaceholder } from "@/components/assistant/assistant-placeholder";
 import { PlanPanel } from "@/components/assistant/plan-panel";
 import {
-	hasClientToolOutput,
-	isClientToolPart,
-} from "@/lib/ai/tools/assistant/client-tools";
-import {
 	ASSISTANT_TOOL_GROUPS,
 	DEFERRED_TOOL_GROUPS,
 } from "@/lib/ai/tools/assistant/groups";
+import { pausedStep } from "@/lib/ai/turn-view/paused-step";
+import { turnView } from "@/lib/ai/turn-view/turn-view";
 import type { ChatAgentUIMessage } from "@/lib/ai/types/chat-agent-message";
 import { clientEnv } from "@/lib/env/client";
 import {
@@ -38,9 +37,7 @@ import type { ChatDraft } from "./chat-draft";
 import { toChatAgentMessages } from "./chat-history";
 import { ChatInput } from "./chat-input";
 import { ChatPlaceholder } from "./chat-placeholder";
-import { shouldContinueTurn } from "./continue-turn";
 import { EarlierMessages } from "./earlier-messages";
-import { isToolPart, pausedStep } from "./message/classify-turn";
 import { MessageBlock } from "./message/message-block";
 import { useBranchChat } from "./message/use-branch-chat";
 
@@ -64,81 +61,6 @@ const waitForStoredReply = async (input: {
 	}
 };
 
-/** Approval and client call ids already answered in stored rows, which the server holds. */
-const storedAnswers = (messages: ChatAgentUIMessage[]) =>
-	messages.flatMap((message) =>
-		message.parts.filter(isToolPart).flatMap((part) => {
-			if (part.approval && part.state !== "approval-requested") {
-				return [
-					part.approval.id,
-				];
-			}
-
-			return hasClientToolOutput(part)
-				? [
-						part.toolCallId,
-					]
-				: [];
-		}),
-	);
-
-/** The last step's answers given on this page; a step answered before a reload sends none. */
-const newDecisions = (message: ChatAgentUIMessage, stored: Set<string>) => {
-	const paused = pausedStep(message.parts, false);
-
-	return paused
-		? message.parts
-				.slice(paused.start)
-				.filter(isToolPart)
-				.flatMap((part) =>
-					part.state === "approval-responded" && !stored.has(part.approval.id)
-						? [
-								{
-									approvalId: part.approval.id,
-									approved: part.approval.approved,
-									reason: part.approval.reason,
-								},
-							]
-						: [],
-				)
-		: [];
-};
-
-/** The last step's client call results given on this page, never the parts themselves. */
-const newToolOutputs = (message: ChatAgentUIMessage, stored: Set<string>) => {
-	const paused = pausedStep(message.parts, false);
-
-	return paused
-		? message.parts
-				.slice(paused.start)
-				.filter(isClientToolPart)
-				.flatMap((part): ClientToolOutput[] => {
-					if (stored.has(part.toolCallId)) {
-						return [];
-					}
-
-					switch (part.state) {
-						case "output-available":
-							return [
-								{
-									toolCallId: part.toolCallId,
-									output: part.output,
-								},
-							];
-						case "output-error":
-							return [
-								{
-									toolCallId: part.toolCallId,
-									errorText: part.errorText,
-								},
-							];
-						default:
-							return [];
-					}
-				})
-		: [];
-};
-
 /**
  * The server holds the history, so only the new user message travels, or for
  * an assistant row the answers to its last step.
@@ -150,7 +72,6 @@ const openTurn = (
 		zedToken?: string;
 		/** What a client call's write returned while answering the step. */
 		answerZedToken?: string;
-		storedAnswerIds: Set<string>;
 	},
 	options: {
 		signal: AbortSignal;
@@ -169,17 +90,19 @@ const openTurn = (
 				},
 				options,
 			);
-		case "assistant":
+		case "assistant": {
+			const answers = pausedStep(message)?.answers;
 			return client.ai.continue(
 				{
 					chatId: turn.chatId,
 					messageId: message.id,
-					approvals: newDecisions(message, turn.storedAnswerIds),
-					toolOutputs: newToolOutputs(message, turn.storedAnswerIds),
+					approvals: answers?.approvals ?? [],
+					toolOutputs: answers?.toolOutputs ?? [],
 					zedToken: turn.answerZedToken,
 				},
 				options,
 			);
+		}
 		default:
 			throw new Error("Only a user message or answers can be sent");
 	}
@@ -196,7 +119,7 @@ const changedPlatformData = (message: ChatAgentUIMessage) =>
 	message.parts.some(
 		(part) =>
 			PLATFORM_TOOL_TYPES.has(part.type) &&
-			isToolPart(part) &&
+			isToolUIPart(part) &&
 			part.state === "output-available",
 	);
 
@@ -262,7 +185,6 @@ const Chat = ({
 	const loadedMessageIds = useRef(
 		new Set(initialMessages.map((message) => message.id)),
 	);
-	const storedAnswerIds = useRef(new Set(storedAnswers(initialMessages)));
 	// The newest token seen: the page's, a turn's, then a widget's write.
 	const newestZedToken = useRef(zedToken);
 	// A widget's write in the paused step; its token also covers the paused turn's writes.
@@ -323,7 +245,11 @@ const Chat = ({
 	} = useChat<ChatAgentUIMessage>({
 		id,
 		generateId: () => crypto.randomUUID(),
-		sendAutomaticallyWhen: shouldContinueTurn,
+		// Continues a turn once every call its paused step waits on is answered.
+		sendAutomaticallyWhen: ({ messages }) => {
+			const last = messages.at(-1);
+			return last !== undefined && pausedStep(last)?.answered === true;
+		},
 		transport: {
 			async sendMessages(options) {
 				// Stop cuts the stream only once the server has answered, so the reply is already reserved.
@@ -334,7 +260,6 @@ const Chat = ({
 						chatId: options.chatId as ChatId,
 						zedToken: newestZedToken.current,
 						answerZedToken: answerZedToken.current,
-						storedAnswerIds: storedAnswerIds.current,
 					},
 					{
 						signal: request.signal,
@@ -422,16 +347,18 @@ const Chat = ({
 		for (const message of stored) {
 			loadedMessageIds.current.add(message.id);
 		}
-		for (const answerId of storedAnswers(stored)) {
-			storedAnswerIds.current.add(answerId);
-		}
 		setMessages((current) => [
 			...current.filter((message) => !storedIds.has(message.id)),
 			...stored,
 		]);
 	};
 
-	const canBranch = !isAssistant && (status === "ready" || status === "error");
+	const view = turnView(messages, status);
+	const clientToolActions = {
+		addToolOutput,
+		keepZedToken: keepAnswerZedToken,
+	};
+	const canBranch = !isAssistant && !view.busy;
 	const branchFrom = (messageId: string) => {
 		if (branchChat.isPending) return;
 		branchChat.mutate({
@@ -511,41 +438,27 @@ const Chat = ({
 						firstMessageId={messages[0]?.id}
 						onLoad={prependMessages}
 					/>
-					{messages.map((m, index) => (
-						<MessageBlock
-							key={m.id}
-							message={m}
-							chatId={id}
-							status={status}
-							isLatest={index === messages.length - 1}
-							animate={!loadedMessageIds.current.has(m.id)}
-							branches={branchesByMessage.get(m.id)}
-							onBranch={canBranch ? () => branchFrom(m.id) : undefined}
-							branching={
-								branchChat.isPending && branchChat.variables?.messageId === m.id
-							}
-							linkSafety={isAssistant ? assistantLinks : undefined}
-							addToolApprovalResponse={
-								index === messages.length - 1
-									? addToolApprovalResponse
-									: undefined
-							}
-							clientToolActions={
-								index === messages.length - 1
-									? {
-											addToolOutput,
-											keepZedToken: keepAnswerZedToken,
-										}
-									: undefined
-							}
-							onContinue={
-								index === messages.length - 1 &&
-								(status === "ready" || status === "error")
-									? () => void sendMessage()
-									: undefined
-							}
-						/>
-					))}
+					{view.messages.map((messageView) => {
+						const { id: messageId } = messageView.message;
+						return (
+							<MessageBlock
+								key={messageId}
+								view={messageView}
+								chatId={id}
+								animate={!loadedMessageIds.current.has(messageId)}
+								branches={branchesByMessage.get(messageId)}
+								onBranch={canBranch ? () => branchFrom(messageId) : undefined}
+								branching={
+									branchChat.isPending &&
+									branchChat.variables?.messageId === messageId
+								}
+								linkSafety={isAssistant ? assistantLinks : undefined}
+								addToolApprovalResponse={addToolApprovalResponse}
+								clientToolActions={clientToolActions}
+								onContinue={() => void sendMessage()}
+							/>
+						);
+					})}
 					{messages.length === 0 &&
 						(isAssistant ? (
 							<AssistantPlaceholder className="h-full justify-center" />
@@ -579,8 +492,8 @@ const Chat = ({
 				{isAssistant ? (
 					<>
 						<PlanPanel
-							messages={messages}
-							status={status}
+							plan={view.plan}
+							busy={view.busy}
 							addToolApprovalResponse={addToolApprovalResponse}
 						/>
 						<AssistantComposerGate>{composer}</AssistantComposerGate>

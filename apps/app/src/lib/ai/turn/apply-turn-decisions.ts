@@ -7,8 +7,8 @@ import { getToolName, isToolUIPart, type UIMessage } from "ai";
 import {
 	CLIENT_TOOL_OUTPUT_SCHEMAS,
 	hasClientToolOutput,
-	isClientToolPart,
 } from "@/lib/ai/tools/assistant/client-tools";
+import { pausedStep } from "@/lib/ai/turn-view/paused-step";
 
 type Parts = UIMessage["parts"];
 type Part = Parts[number];
@@ -40,10 +40,6 @@ const reject = (
 
 const approvalIdOf = (part: Part) =>
 	isToolUIPart(part) ? part.approval?.id : undefined;
-
-/** A client tool's call still waiting for the browser's result. */
-const isAwaitingClientOutput = (part: Part) =>
-	isClientToolPart(part) && part.state === "input-available";
 
 /** How long a started continuation holds its reply before a retry may take over. */
 export const CONTINUATION_LEASE_MS = 10 * 60_000;
@@ -111,33 +107,22 @@ export const applyTurnDecisions = ({
 	}
 
 	const { parts } = lastMessage;
-	const stepStart = parts.reduce(
-		(start, part, index) => (part.type === "step-start" ? index + 1 : start),
-		0,
-	);
-	const lastStep = parts.slice(stepStart).filter(isToolUIPart);
-	const requested = lastStep.filter(
-		(part) => part.state === "approval-requested",
-	);
-	const awaitingOutput = lastStep.filter(isAwaitingClientOutput);
+	const paused = pausedStep(lastMessage);
+
+	if (!paused) {
+		return reject("CHAT_TURN_NOT_AWAITING", "The reply is not waiting to run.");
+	}
 
 	if (decisions.length === 0 && toolOutputs.length === 0) {
-		if (requested.length > 0 || awaitingOutput.length > 0) {
-			return reject(
-				"CHAT_TURN_DECISIONS_INCOMPLETE",
-				"Every pending call needs an answer.",
-			);
-		}
-
-		return lastStep.some(
-			(part) =>
-				part.state === "approval-responded" || hasClientToolOutput(part),
-		)
+		return paused.answered
 			? {
 					ok: true,
 					parts,
 				}
-			: reject("CHAT_TURN_NOT_AWAITING", "The reply is not waiting to run.");
+			: reject(
+					"CHAT_TURN_DECISIONS_INCOMPLETE",
+					"Every pending call needs an answer.",
+				);
 	}
 
 	const decisionById = new Map(
@@ -156,7 +141,7 @@ export const applyTurnDecisions = ({
 
 	const knownIds = new Set(parts.map(approvalIdOf));
 	const lastStepById = new Map(
-		lastStep.flatMap((part) =>
+		paused.calls.flatMap((part) =>
 			part.approval
 				? [
 						[
@@ -200,10 +185,10 @@ export const applyTurnDecisions = ({
 			);
 		}
 
-		const part = awaitingOutput.find(
+		const part = paused.awaiting.find(
 			(candidate) => candidate.toolCallId === answer.toolCallId,
 		);
-		const stored = lastStep.find(
+		const stored = paused.calls.find(
 			(candidate) =>
 				candidate.toolCallId === answer.toolCallId &&
 				hasClientToolOutput(candidate),
@@ -251,8 +236,8 @@ export const applyTurnDecisions = ({
 	}
 
 	if (
-		requested.some((part) => !decisionById.has(part.approval.id)) ||
-		awaitingOutput.some((part) => !outputById.has(part.toolCallId))
+		paused.approvals.some((part) => !decisionById.has(part.approval.id)) ||
+		paused.awaiting.some((part) => !outputById.has(part.toolCallId))
 	) {
 		return reject(
 			"CHAT_TURN_DECISIONS_INCOMPLETE",
@@ -263,7 +248,7 @@ export const applyTurnDecisions = ({
 	return {
 		ok: true,
 		parts: parts.map((part, index): Part => {
-			if (index < stepStart || !isToolUIPart(part)) {
+			if (index < paused.start || !isToolUIPart(part)) {
 				return part;
 			}
 

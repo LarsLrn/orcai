@@ -1,5 +1,4 @@
 import type { DisplayToolName } from "@/components/chat/gen-ui/catalog";
-import type { ToolPart } from "@/components/chat/message/classify-turn";
 import { createBotSummary } from "@/lib/ai/tools/assistant/bots/create-bot.summary";
 import { createRepositorySummary } from "@/lib/ai/tools/assistant/bots/create-repository.summary";
 import { createTemplateSummary } from "@/lib/ai/tools/assistant/bots/create-template.summary";
@@ -42,6 +41,7 @@ import type {
 	AssistantToolPart,
 	AssistantToolSummary,
 } from "@/lib/ai/tools/assistant/summary";
+import type { ToolPart } from "@/lib/ai/turn-view/turn-view";
 
 /** The assistant tools with a summary; `readDocs` and the display tools have their own renderers. */
 export type SummarisedToolName = Exclude<

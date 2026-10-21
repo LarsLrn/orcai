@@ -1,88 +1,11 @@
 import { afterEach, describe, expect, mock, test } from "bun:test";
 import { cleanup, fireEvent, render, screen } from "@testing-library/react";
-import type { WorkEntry } from "@/components/chat/message/classify-turn";
 import { m } from "@/paraglide/messages";
 import { ActivityLine } from "./activity-line";
 import { ReasoningEntry } from "./reasoning-entry";
 
-// The real client resolves server configuration at import time.
-mock.module("@/lib/orpc/orpc", () => ({
-	orpc: {},
-}));
-
-const { activeStepLabel } = await import("./work-log");
-
 afterEach(() => {
 	cleanup();
-});
-
-const searchEntry = (state: string) =>
-	({
-		id: "0",
-		kind: "tool",
-		part: {
-			type: "tool-searchKnowledgeBase",
-			toolCallId: "call-1",
-			state,
-			input: {
-				query: "x",
-			},
-		},
-	}) as unknown as WorkEntry;
-
-const reasoningEntry = (state: string) =>
-	({
-		id: "1",
-		kind: "reasoning",
-		part: {
-			type: "reasoning",
-			text: "a",
-			state,
-		},
-	}) as unknown as WorkEntry;
-
-describe("activeStepLabel", () => {
-	test("names a running tool call by its active label", () => {
-		expect(
-			activeStepLabel(
-				[
-					searchEntry("input-available"),
-				],
-				true,
-			),
-		).toBe(m.chat_work_log_tool_search_active());
-	});
-
-	test("names streaming reasoning as thinking", () => {
-		expect(
-			activeStepLabel(
-				[
-					searchEntry("output-available"),
-					reasoningEntry("streaming"),
-				],
-				true,
-			),
-		).toBe(m.chat_work_log_thinking());
-	});
-
-	test("is null between steps and once the turn ends", () => {
-		expect(
-			activeStepLabel(
-				[
-					searchEntry("output-available"),
-				],
-				true,
-			),
-		).toBeNull();
-		expect(
-			activeStepLabel(
-				[
-					searchEntry("input-available"),
-				],
-				false,
-			),
-		).toBeNull();
-	});
 });
 
 describe("ActivityLine", () => {
@@ -132,11 +55,11 @@ describe("ReasoningEntry", () => {
 		state: "streaming",
 	} as const;
 
-	test("thinks only while the turn runs", () => {
-		const { rerender } = render(<ReasoningEntry part={part} running />);
+	test("thinks only while live", () => {
+		const { rerender } = render(<ReasoningEntry part={part} live />);
 		expect(screen.getByText(m.chat_work_log_thinking())).toBeTruthy();
 
-		rerender(<ReasoningEntry part={part} running={false} />);
+		rerender(<ReasoningEntry part={part} live={false} />);
 		expect(screen.queryByText(m.chat_work_log_thinking())).toBeNull();
 	});
 });

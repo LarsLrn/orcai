@@ -1,9 +1,9 @@
+import type { AssistantToolPart } from "@/lib/ai/tools/assistant/summary";
 import type { ChatAgentUIMessage } from "@/lib/ai/types/chat-agent-message";
-import type { AssistantToolPart } from "../summary";
 
 type MessagePart = ChatAgentUIMessage["parts"][number];
 
-export type PlanPart = AssistantToolPart<"updatePlan">;
+type PlanPart = AssistantToolPart<"updatePlan">;
 
 /** A complete call that holds the plan: run, waiting for approval, or approved. */
 export type ShownPlanPart = Extract<
@@ -29,7 +29,7 @@ const isShownPlanPart = (
 
 /** The plan of the conversation: its newest shown `updatePlan` call. */
 export const latestPlanPart = (
-	messages: readonly Pick<ChatAgentUIMessage, "parts">[],
+	messages: readonly ChatAgentUIMessage[],
 ): ShownPlanPart | undefined =>
 	messages
 		.flatMap((message, index) =>
@@ -39,22 +39,8 @@ export const latestPlanPart = (
 		)
 		.at(-1);
 
-/** The approval ids of the proposals a reply waits on. */
-export const pendingPlanApprovalIds = (
-	message: Pick<ChatAgentUIMessage, "parts">,
-): string[] =>
-	message.parts.filter(isPlanPart).flatMap((part) =>
-		part.state === "approval-requested"
-			? [
-					part.approval.id,
-				]
-			: [],
-	);
-
 /** Whether a reply's newest `updatePlan` call is still arriving or running. */
-export const isPlanUpdating = (
-	message: Pick<ChatAgentUIMessage, "parts">,
-): boolean => {
+export const isPlanUpdating = (message: ChatAgentUIMessage): boolean => {
 	const state = message.parts.filter(isPlanPart).at(-1)?.state;
 
 	return state === "input-streaming" || state === "input-available";

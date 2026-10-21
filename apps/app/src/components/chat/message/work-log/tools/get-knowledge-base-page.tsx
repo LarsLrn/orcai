@@ -1,3 +1,4 @@
+import type { ToolStatus } from "@/lib/ai/turn-view/turn-view";
 import type { GetKnowledgeBasePageToolPart } from "@/lib/ai/types/tools";
 import { m } from "@/paraglide/messages";
 import {
@@ -27,10 +28,10 @@ const pageLabel = (output: GetKnowledgeBasePageToolPart["output"]) => {
 
 export const GetKnowledgeBasePage = ({
 	part,
-	running,
+	status,
 }: {
 	part: GetKnowledgeBasePageToolPart;
-	running: boolean;
+	status: ToolStatus | null;
 }) => {
 	const chunks = part.output?.chunks ?? [];
 	const showBlockName = spansMultipleBlocks(
@@ -38,7 +39,7 @@ export const GetKnowledgeBasePage = ({
 	);
 
 	return (
-		<ToolEntry part={part} running={running} label={pageLabel(part.output)}>
+		<ToolEntry part={part} status={status} label={pageLabel(part.output)}>
 			{chunks.length > 0 && (
 				<SourcePassageList>
 					{chunks.map((chunk) => (

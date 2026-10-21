@@ -1,5 +1,6 @@
 import { describe, expect, test } from "bun:test";
 import { displayToolMarkdown } from "@/components/chat/gen-ui/catalog";
+import { type MessageView, turnView } from "@/lib/ai/turn-view/turn-view";
 import type { ChatAgentUIMessage } from "@/lib/ai/types/chat-agent-message";
 import {
 	messageToMarkdown,
@@ -18,11 +19,16 @@ const checklistInput = {
 };
 
 const message = (role: "user" | "assistant", parts: unknown[]) =>
-	({
-		id: "message-1",
-		role,
-		parts,
-	}) as unknown as ChatAgentUIMessage;
+	turnView(
+		[
+			{
+				id: "message-1",
+				role,
+				parts,
+			} as unknown as ChatAgentUIMessage,
+		],
+		"ready",
+	).messages[0] as MessageView;
 
 const text = (content: string) => ({
 	type: "text",

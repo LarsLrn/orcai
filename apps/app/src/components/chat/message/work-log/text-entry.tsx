@@ -1,4 +1,4 @@
-import type { TextPart } from "@/components/chat/message/classify-turn";
+import type { TextPart } from "@/lib/ai/turn-view/turn-view";
 import { ClampedText } from "./clamped-text";
 
 /** An intermediate response the model emitted before its answer. */

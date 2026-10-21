@@ -40,6 +40,7 @@ import {
 	InputGroupTextarea,
 } from "@/components/ui/input-group";
 import { useUpdateChatMutation } from "@/hooks/mutations/use-chat-mutation";
+import { turnView } from "@/lib/ai/turn-view/turn-view";
 import type { ChatAgentUIMessage } from "@/lib/ai/types/chat-agent-message";
 import { reasonMessageOf } from "@/lib/errors/describe-error";
 import { orpc } from "@/lib/orpc/orpc";
@@ -186,11 +187,12 @@ const ChatInput = ({
 
 	const handleDownload = async () => {
 		try {
+			const messages = await fetchWholeChat({
+				chatId,
+				zedToken,
+			});
 			downloadConversation(
-				await fetchWholeChat({
-					chatId,
-					zedToken,
-				}),
+				turnView(messages, "ready").messages,
 				messageToTranscriptMarkdown,
 			);
 		} catch (error) {
