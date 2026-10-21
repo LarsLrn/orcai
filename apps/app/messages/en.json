@@ -221,6 +221,7 @@
 	"assets_card_chapter_description": "Chapter: {name}",
 	"assets_card_created_label": "Created",
 	"assets_card_edit_action": "Edit asset",
+	"assets_card_retry_action": "Retry",
 	"assets_card_view_action": "View",
 	"assets_delete_confirm_button": [
 		{
@@ -1380,10 +1381,13 @@
 	"blocks_database_config_max_per_asset_label": "Max per asset",
 	"blocks_database_config_max_references_label": "Maximum",
 	"blocks_database_config_min_references_label": "Minimum",
+	"blocks_database_config_readiness_failed": "{count} failed",
+	"blocks_database_config_readiness_summary": "{ready} of {total} documents ready",
 	"blocks_database_config_references_title": "References",
 	"blocks_database_config_retrieval_description": "These settings control how the AI searches attached content.",
 	"blocks_database_config_retrieval_mode_label": "Retrieval mode",
 	"blocks_database_config_retrieval_title": "Retrieval configuration",
+	"blocks_database_config_retry_failed_action": "Retry failed",
 	"blocks_database_config_score_threshold_label": "Score threshold",
 	"blocks_database_config_view_vector_points_action": "View vector points",
 	"blocks_database_form_candidate_limit_label": "Candidate limit",
@@ -1568,6 +1572,26 @@
 	"blocks_retrieval_mode_dense_label": "Dense",
 	"blocks_retrieval_mode_hybrid_label": "Hybrid",
 	"blocks_retrieval_mode_sparse_label": "Sparse",
+	"blocks_retry_document_toast_error": "Failed to retry the document",
+	"blocks_retry_document_toast_loading": "Retrying document...",
+	"blocks_retry_document_toast_success": "Document queued again",
+	"blocks_retry_failed_toast_error": "Failed to retry the failed documents",
+	"blocks_retry_failed_toast_loading": "Retrying failed documents...",
+	"blocks_retry_failed_toast_success": [
+		{
+			"declarations": [
+				"input count",
+				"local countPlural = count: plural"
+			],
+			"selectors": [
+				"countPlural"
+			],
+			"match": {
+				"countPlural=one": "1 document queued again",
+				"countPlural=other": "{count} documents queued again"
+			}
+		}
+	],
 	"blocks_selector_dialog_added_label": "Added",
 	"blocks_selector_dialog_database_description": "Select a reusable repository block for retrieval-based answers.",
 	"blocks_selector_dialog_database_empty_state_title": "No repository blocks found.",
@@ -2308,6 +2332,11 @@
 	"data_table_view_options_trigger": "View",
 	"dialog_select_empty_state": "No results found.",
 	"dialog_select_filter_placeholder": "Filter",
+	"document_state_failed_label": "Failed",
+	"document_state_indexing_label": "Indexing",
+	"document_state_processing_label": "Processing",
+	"document_state_queued_label": "Queued",
+	"document_state_ready_label": "Ready",
 	"documents_panel_collapse": "Hide repositories",
 	"documents_panel_expand": "Show repositories",
 	"documents_panel_failed_title": [
@@ -3282,6 +3311,11 @@
 			}
 		}
 	],
+	"pipeline_failure_empty": "No text or images were found in this file, so retrying will not help.",
+	"pipeline_failure_extraction": "The file could not be read.",
+	"pipeline_failure_other": "Preparing the file failed.",
+	"pipeline_failure_timeout": "Preparing the file took too long.",
+	"pipeline_failure_unsupported": "OrcAI cannot read this file type, so retrying will not help.",
 	"tour_card_finish_button": "Finish",
 	"tour_card_previous_button": "Previous",
 	"tour_card_progress": "{current} of {total}",

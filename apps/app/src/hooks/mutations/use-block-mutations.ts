@@ -146,3 +146,28 @@ export const useUpdateBlockInlineMutation = (
 		},
 	});
 };
+
+export const useRetryDocumentMutation = () => {
+	return useMutationAction({
+		mutationOptions: () => orpc.block.retryDocument.mutationOptions(),
+		messages: {
+			loading: m.blocks_retry_document_toast_loading(),
+			success: m.blocks_retry_document_toast_success(),
+			error: m.blocks_retry_document_toast_error(),
+		},
+	});
+};
+
+export const useRetryFailedDocumentsMutation = () => {
+	return useMutationAction({
+		mutationOptions: () => orpc.block.retryFailed.mutationOptions(),
+		messages: {
+			loading: m.blocks_retry_failed_toast_loading(),
+			success: ({ data }) =>
+				m.blocks_retry_failed_toast_success({
+					count: data.processing + data.indexing,
+				}),
+			error: m.blocks_retry_failed_toast_error(),
+		},
+	});
+};

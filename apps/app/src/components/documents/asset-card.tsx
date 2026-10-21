@@ -1,10 +1,9 @@
-import type { Asset, AssetWithCapabilities } from "@orcai/schema";
-import {
-	EditIcon,
-	EyeIcon,
-	FileTextIcon,
-	LoaderCircleIcon,
-} from "lucide-react";
+import type {
+	Asset,
+	AssetWithCapabilities,
+	DocumentReadiness,
+} from "@orcai/schema";
+import { EditIcon, EyeIcon, FileTextIcon, RotateCwIcon } from "lucide-react";
 import {
 	DropdownMenu,
 	DropdownMenuContent,
@@ -31,17 +30,20 @@ import {
 	ResourceCardTitle,
 } from "@/components/ui/shell/resource-card";
 import { hasCapability } from "@/lib/authz/capabilities";
+import {
+	documentStateBadge,
+	getPipelineFailureDescription,
+} from "@/lib/presentation/document-state";
 import { getFileTypeLabel } from "@/lib/presentation/file-type";
 import { formatDisplayDate } from "@/lib/presentation/format-timestamp";
-import {
-	getProcessingStatusLabel,
-	getProcessingStatusVariant,
-} from "@/lib/presentation/processing-status";
+import { processingStatusBadge } from "@/lib/presentation/processing-status";
 import { m } from "@/paraglide/messages";
 
 const AssetCard = ({
 	asset,
 	actions,
+	document,
+	onRetry,
 	className,
 }: {
 	asset:
@@ -54,6 +56,10 @@ const AssetCard = ({
 		footer?: ResourceCardActionItem[];
 		primary?: ResourceCardPrimaryAction;
 	};
+	/** Its state in a repository; the card shows it instead of processing. */
+	document?: Pick<DocumentReadiness, "state" | "failure">;
+	/** Offers Retry, for a failed document retrying can help. */
+	onRetry?: () => void;
 	className?: string;
 }) => {
 	const meta: ResourceCardMetaItem[] = [];
@@ -64,7 +70,7 @@ const AssetCard = ({
 		});
 	}
 
-	const footerActions: ResourceCardActionItem[] = actions?.footer ?? [
+	let footerActions: ResourceCardActionItem[] = actions?.footer ?? [
 		{
 			key: "view",
 			label: m.assets_card_view_action(),
@@ -94,6 +100,18 @@ const AssetCard = ({
 			: []),
 	];
 
+	if (onRetry) {
+		footerActions = [
+			...footerActions,
+			{
+				key: "retry",
+				label: m.assets_card_retry_action(),
+				icon: RotateCwIcon,
+				onClick: onRetry,
+			},
+		];
+	}
+
 	const dropdownActions: ResourceCardActionItem[] = actions?.dropdown ?? [];
 
 	const badges: ResourceCardBadgeItem[] = [
@@ -110,13 +128,11 @@ const AssetCard = ({
 		});
 	}
 
-	badges.push({
-		label: getProcessingStatusLabel(asset.processingStatus),
-		variant: getProcessingStatusVariant(asset.processingStatus),
-		icon: asset.processingStatus === "active" ? LoaderCircleIcon : undefined,
-		className:
-			asset.processingStatus === "active" ? "[&>svg]:animate-spin" : undefined,
-	});
+	badges.push(
+		document
+			? documentStateBadge(document.state)
+			: processingStatusBadge(asset.processingStatus),
+	);
 
 	const primaryAction = actions?.primary ?? {
 		linkProps: {
@@ -128,7 +144,9 @@ const AssetCard = ({
 	};
 
 	let description: string | undefined;
-	if (asset.metadata.chapterTitle) {
+	if (document?.failure) {
+		description = getPipelineFailureDescription(document.failure.kind);
+	} else if (asset.metadata.chapterTitle) {
 		description = m.assets_card_chapter_description({
 			name: asset.metadata.chapterTitle,
 		});

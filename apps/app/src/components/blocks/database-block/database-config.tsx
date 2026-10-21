@@ -1,13 +1,21 @@
 import type { BlockId } from "@orcai/core";
-import type { Asset, DatabaseBlock } from "@orcai/schema";
+import {
+	type Asset,
+	type DatabaseBlock,
+	type DocumentReadiness,
+	isRetryableFailure,
+	type RepositoryReadiness,
+} from "@orcai/schema";
 import { useNavigate } from "@tanstack/react-router";
 import {
 	ChevronDownIcon,
 	ExternalLinkIcon,
 	MoreVerticalIcon,
+	RotateCwIcon,
 } from "lucide-react";
 import { useState } from "react";
 import { AssetCard } from "@/components/documents/asset-card";
+import { useRepositoryReadiness } from "@/components/documents/readiness/use-repository-readiness";
 import { ContentRenderer } from "@/components/editor/content-renderer";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -33,6 +41,11 @@ import {
 	SectionHeader,
 	SectionTitle,
 } from "@/components/ui/shell/section";
+import { Spinner } from "@/components/ui/spinner";
+import {
+	useRetryDocumentMutation,
+	useRetryFailedDocumentsMutation,
+} from "@/hooks/mutations/use-block-mutations";
 import { m } from "@/paraglide/messages";
 
 const getRetrievalModeLabel = (
@@ -189,6 +202,25 @@ const AssetSection = ({
 	blockId: BlockId;
 }) => {
 	const navigate = useNavigate();
+	const { data } = useRepositoryReadiness([
+		blockId,
+	]);
+	const readiness = data?.data[0];
+	const canEdit = readiness?.capabilities.edit === true;
+	const documentById = new Map(
+		readiness?.documents.map((document) => [
+			document.assetId,
+			document,
+		]),
+	);
+	const retryable = (document: DocumentReadiness | undefined) =>
+		canEdit &&
+		Boolean(document?.failure) &&
+		isRetryableFailure(document?.failure?.kind ?? "other");
+	const { mutate: retryDocument, isPending: retryingDocument } =
+		useRetryDocumentMutation();
+	const { mutate: retryFailed, isPending: retryingFailed } =
+		useRetryFailedDocumentsMutation();
 
 	return (
 		<Section>
@@ -202,6 +234,21 @@ const AssetSection = ({
 					{m.blocks_database_config_assets_description()}
 				</SectionDescription>
 				<SectionAction>
+					{readiness?.documents.some(retryable) && (
+						<Button
+							variant="outline"
+							size="sm"
+							disabled={retryingFailed}
+							onClick={() =>
+								retryFailed({
+									blockId,
+								})
+							}
+						>
+							<RotateCwIcon />
+							{m.blocks_database_config_retry_failed_action()}
+						</Button>
+					)}
 					<DropdownMenu>
 						<DropdownMenuTrigger
 							render={
@@ -231,15 +278,63 @@ const AssetSection = ({
 					</DropdownMenu>
 				</SectionAction>
 			</SectionHeader>
+			{readiness && readiness.totals.total > 0 && (
+				<ReadinessSummary totals={readiness.totals} />
+			)}
 			<SectionContent>
 				<SectionGrid>
-					{assets.map((entry) => (
-						<AssetCard key={entry.id} asset={entry} />
-					))}
+					{assets.map((entry) => {
+						const document = documentById.get(entry.id);
+						return (
+							<AssetCard
+								key={entry.id}
+								asset={entry}
+								document={document}
+								onRetry={
+									retryable(document)
+										? () => {
+												if (retryingDocument) return;
+												retryDocument({
+													blockId,
+													assetId: entry.id,
+												});
+											}
+										: undefined
+								}
+							/>
+						);
+					})}
 				</SectionGrid>
 			</SectionContent>
 		</Section>
 	);
 };
+
+/** How many of the repository's documents are searchable, preparing or failed. */
+const ReadinessSummary = ({
+	totals,
+}: {
+	totals: RepositoryReadiness["totals"];
+}) => (
+	<p
+		role="status"
+		className="flex items-center gap-2 text-muted-foreground text-sm"
+	>
+		{totals.preparing > 0 && <Spinner className="size-3.5" />}
+		<span>
+			{m.blocks_database_config_readiness_summary({
+				ready: totals.ready,
+				total: totals.total,
+			})}
+		</span>
+		{totals.failed > 0 && (
+			<span className="text-status-danger">
+				{m.blocks_database_config_readiness_failed({
+					count: totals.failed,
+				})}
+			</span>
+		)}
+	</p>
+);
 
 export { DatabaseBlockConfigCard };
