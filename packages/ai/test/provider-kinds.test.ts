@@ -545,11 +545,25 @@ describe("providerCompaction", () => {
 		});
 	});
 
-	test("Anthropic below its 50000 minimum trigger falls back to our own summary", () => {
+	test("Anthropic caches every call's prompt automatically, compacting or not", async () => {
+		for (const trigger of [
+			80_000,
+			40_000,
+		]) {
+			const { body } = await sent("anthropic", trigger);
+
+			expect(body.cache_control).toEqual({
+				type: "ephemeral",
+			});
+		}
+	});
+
+	test("Anthropic below its 50000 minimum trigger falls back to our own summary", async () => {
 		const compaction = providerCompaction("anthropic", 40_000);
+		const { body } = await sent("anthropic", 40_000);
 
 		expect(compaction.native).toBe(false);
-		expect(compaction.providerOptions).toBeUndefined();
+		expect(body.context_management).toBeUndefined();
 		expect(compaction.reads("summary")).toBe(true);
 		expect(compaction.reads("anthropic")).toBe(false);
 	});

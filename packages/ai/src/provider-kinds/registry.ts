@@ -178,6 +178,14 @@ export const providerKindServerEntries: Record<
 				},
 			},
 		},
+		// Each call caches up to its last block, so a turn's steps read the history from cache.
+		callProviderOptions: {
+			anthropic: {
+				cacheControl: {
+					type: "ephemeral",
+				},
+			},
+		},
 		toolChoiceNoneKeepsTools: false,
 		toolLoading: (modelId) =>
 			ANTHROPIC_MODELS_WITHOUT_TOOL_SEARCH.test(modelId)
