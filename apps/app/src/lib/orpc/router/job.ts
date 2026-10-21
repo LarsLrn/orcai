@@ -1,6 +1,5 @@
 import { DB, dbSchema } from "@orcai/db";
 import { getJobsByResource, sendJobBatch } from "@orcai/pg-boss";
-import { getFileTypeFromMime } from "@orcai/s3";
 import {
 	PROCESS_ASSET_JOB_NAME,
 	VECTORIZE_ASSET_JOB_NAME,
@@ -131,7 +130,7 @@ const retryProcessing = authed.job.retryProcessing
 							bucket: asset.bucket,
 							prefix: asset.prefix,
 							id: asset.id,
-							type: getFileTypeFromMime(asset.fileType),
+							type: asset.fileType,
 						},
 					},
 				},

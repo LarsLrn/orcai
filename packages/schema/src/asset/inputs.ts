@@ -1,6 +1,7 @@
 import { z } from "zod/v4";
 import { paginationInputSchema, zedTokenSchema } from "../shared";
 import type { ErrorReason } from "../shared/error-reason";
+import { assetFileTypeSchema } from "../shared/primitives/file-type";
 import { createUniqueRefsInputSchema } from "../shared/ref-list";
 import { bucketSchema } from "../storage/parts/buckets";
 import { processingStatusSchema } from "./parts/processing-status";
@@ -28,7 +29,7 @@ export const createAssetInputSchema = assetFieldsSchema.extend({
 	metadata: assetFieldsSchema.shape.metadata.optional(),
 	size: z.number().int(),
 	processingStatus: processingStatusSchema.optional(),
-	fileType: z.string(),
+	fileType: assetFileTypeSchema,
 	bucket: bucketSchema.optional(),
 });
 

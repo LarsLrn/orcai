@@ -49,7 +49,7 @@ export const databaseBlockUpdate = (
 export const assetRow = (title: string) => ({
 	title,
 	size: 1024,
-	fileType: "text/plain",
+	fileType: "txt" as const,
 });
 
 /** `asset.save` input renaming an existing asset. */

@@ -1,5 +1,4 @@
-import { getFileTypeFromMime } from "@orcai/s3";
-import type { Asset } from "@orcai/schema";
+import type { Asset, AssetFileType } from "@orcai/schema";
 import { useQuery } from "@tanstack/react-query";
 import { SmartphoneIcon } from "lucide-react";
 import { useState } from "react";
@@ -91,16 +90,15 @@ const Viewport = ({
 	className,
 }: {
 	title: string;
-	fileType: string;
+	fileType: AssetFileType;
 	filePath: string;
 	className?: string;
 }) => {
 	const [isLoading, setIsLoading] = useState(true);
 
-	const extension = getFileTypeFromMime(fileType);
-
-	switch (extension) {
+	switch (fileType) {
 		case "png":
+		case "jpg":
 		case "jpeg":
 			return (
 				<>
