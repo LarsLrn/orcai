@@ -2460,7 +2460,6 @@
 	"error_generic_unauthorized": "Melden Sie sich an, um fortzufahren.",
 	"error_generic_unknown": "Etwas ist schiefgelaufen.",
 	"error_generic_validation": "Einige der eingegebenen Werte sind ungültig.",
-	"error_grant_not_recorded": "Die Freigabe konnte nicht gespeichert werden.",
 	"error_grant_principals_invalid": "Einer oder mehreren der ausgewählten Personen oder Gruppen konnte kein Zugriff gewährt werden.",
 	"error_grant_rejection_all_members_viewer_only": "All Members kann nur Zugriff als Betrachter erhalten.",
 	"error_grant_rejection_group_not_in_scope": "Eine Gruppe gehört nicht zur Organisation dieser Ressource.",

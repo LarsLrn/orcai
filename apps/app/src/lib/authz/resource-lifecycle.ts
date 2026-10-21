@@ -89,6 +89,28 @@ const groupLinks = <Parent extends string, Child extends string>(
 	];
 };
 
+/**
+ * Whether the resource row still exists, locked against its deletion until the
+ * transaction ends.
+ */
+export const lockExistingResource = (resource: ResourceRef) =>
+	Effect.gen(function* () {
+		const db = yield* DB;
+		const table = resourceTables[resource.resourceType];
+		const rows = yield* db
+			.select({
+				id: table.id,
+			})
+			.from(table)
+			.where(
+				inArray(table.id, [
+					resource.resourceId,
+				] as (typeof table.id._.data)[]),
+			)
+			.for("key share");
+		return rows.length > 0;
+	});
+
 /** The link facts that unlink the resources from bots, blocks and chats. */
 const readLinkFacts = (resourceType: ResourceType, ids: readonly string[]) =>
 	Effect.gen(function* () {

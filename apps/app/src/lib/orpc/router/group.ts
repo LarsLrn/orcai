@@ -23,10 +23,7 @@ import {
 	recordRelationshipFacts,
 	writeRelationships,
 } from "@/lib/authz/relationship-write";
-import {
-	grantPrincipal,
-	scopedResourceRef,
-} from "@/lib/authz/scoped-resource-id";
+import { detachGroups } from "@/lib/authz/resource-access";
 import { getZedToken } from "@/lib/authz/zed-token";
 import * as AppErrors from "@/lib/effect/utils/errors";
 import { authed } from "@/lib/orpc/implementation/authed";
@@ -384,23 +381,6 @@ const deleteGroups = authed.group.delete
 						),
 					);
 
-				const activeGrants = yield* db
-					.select({
-						id: dbSchema.resourceGrant.id,
-						resourceType: dbSchema.resourceGrant.resourceType,
-						resourceId: dbSchema.resourceGrant.resourceId,
-						role: dbSchema.resourceGrant.role,
-						principalId: dbSchema.resourceGrant.principalId,
-					})
-					.from(dbSchema.resourceGrant)
-					.where(
-						and(
-							eq(dbSchema.resourceGrant.principalType, "group"),
-							inArray(dbSchema.resourceGrant.principalId, existingGroupIds),
-							isNull(dbSchema.resourceGrant.revokedAt),
-						),
-					);
-
 				yield* db
 					.update(dbSchema.groupMember)
 					.set({
@@ -413,18 +393,10 @@ const deleteGroups = authed.group.delete
 						),
 					);
 
-				yield* db
-					.update(dbSchema.resourceGrant)
-					.set({
-						revokedAt: now,
-					})
-					.where(
-						and(
-							eq(dbSchema.resourceGrant.principalType, "group"),
-							inArray(dbSchema.resourceGrant.principalId, existingGroupIds),
-							isNull(dbSchema.resourceGrant.revokedAt),
-						),
-					);
+				yield* detachGroups({
+					groupIds: existingGroupIds,
+					now,
+				});
 
 				yield* db
 					.update(dbSchema.group)
@@ -447,17 +419,6 @@ const deleteGroups = authed.group.delete
 							groupId: member.groupId,
 							userId: member.userId,
 							member: false,
-						}),
-					),
-					...activeGrants.map((grant) =>
-						RelationshipFact.ResourceGrantChanged({
-							resource: scopedResourceRef(grant),
-							principal: grantPrincipal({
-								principalType: "group",
-								principalId: grant.principalId,
-							}),
-							from: grant.role,
-							to: null,
 						}),
 					),
 				);

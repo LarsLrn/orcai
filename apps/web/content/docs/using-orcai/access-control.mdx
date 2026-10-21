@@ -164,6 +164,12 @@ Several people and groups can be selected and granted the same role together.
 If any of them cannot be granted, none of them are, and the error names each
 one that failed.
 
+A resource that has managers keeps at least one: a grant or revoke that would
+take away its last manager is refused. A person or group that leaves still
+loses its grants, even the last manager's, when they are removed from the
+organisation, their account is deleted or the group is deleted. The owner keeps
+managing the resource.
+
 A private resource is reachable only by those it was granted to. Grants go
 only to members and groups of the resource's organisation, but access follows
 the person: someone who belongs to two organisations uses and links what they

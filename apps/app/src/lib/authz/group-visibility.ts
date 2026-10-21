@@ -25,7 +25,7 @@ export const hasManageGroups = (
 		zedToken: params.zedToken,
 	});
 
-const organizationsWithManageGroups = (
+export const organizationsWithManageGroups = (
 	params: PermissionParams & {
 		organizationIds: readonly OrganizationId[];
 	},

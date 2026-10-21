@@ -23,6 +23,10 @@ import {
 	acceptInvitation as acceptInvitedMembership,
 	invitationAddressedTo,
 } from "@/lib/auth/invitation-signup";
+import {
+	assertCanManageOrganizationAdmins,
+	organizationRoleRequiresAdminControl,
+} from "@/lib/authz/organization-membership";
 import { getZedToken } from "@/lib/authz/zed-token";
 import { AppConfigService } from "@/lib/effect/services/config";
 import * as AppErrors from "@/lib/effect/utils/errors";
@@ -30,10 +34,6 @@ import { authed } from "@/lib/orpc/implementation/authed";
 import { os } from "@/lib/orpc/implementation/os";
 import { createProcedures } from "@/lib/orpc/implementation/procedures";
 import { requireOrganizationPermission } from "@/lib/orpc/middlewares/permission";
-import {
-	assertCanManageOrganizationAdmins,
-	organizationRoleRequiresAdminControl,
-} from "./helpers/organization-role-policy";
 import { buildOrderBy, type SortExpression } from "./helpers/sorting";
 
 const invitationOrderBy = (sort: ListOrganizationInvitationsInput["sort"]) =>
@@ -247,8 +247,7 @@ const createOrganizationInvitations = authed.organizationInvitation.create
 		}
 
 		if (organizationRoleRequiresAdminControl(input.role)) {
-			yield* assertCanManageOrganizationAdmins({
-				organizationId,
+			yield* assertCanManageOrganizationAdmins(organizationId, {
 				userId: context.auth.user.id,
 				zedToken: getZedToken(context),
 			});
@@ -335,8 +334,7 @@ const updateOrganizationInvitation = authed.organizationInvitation.update
 				}
 
 				if (organizationRoleRequiresAdminControl(existing.role)) {
-					yield* assertCanManageOrganizationAdmins({
-						organizationId,
+					yield* assertCanManageOrganizationAdmins(organizationId, {
 						userId: context.auth.user.id,
 						zedToken: getZedToken(context),
 					});
@@ -399,8 +397,7 @@ const deleteOrganizationInvitations = authed.organizationInvitation.delete
 				organizationRoleRequiresAdminControl(invitation.role),
 			)
 		) {
-			yield* assertCanManageOrganizationAdmins({
-				organizationId,
+			yield* assertCanManageOrganizationAdmins(organizationId, {
 				userId: context.auth.user.id,
 				zedToken: getZedToken(context),
 			});

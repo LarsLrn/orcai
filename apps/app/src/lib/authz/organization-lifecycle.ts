@@ -12,10 +12,7 @@ import {
 	recordRelationshipFacts,
 	writeRelationships,
 } from "@/lib/authz/relationship-write";
-import {
-	grantPrincipal,
-	scopedResourceRef,
-} from "@/lib/authz/scoped-resource-id";
+import { detachGroups, detachMembers } from "@/lib/authz/resource-access";
 import * as AppErrors from "@/lib/effect/utils/errors";
 
 /**
@@ -83,7 +80,8 @@ export const insertOrganization = (params: {
 
 /**
  * Deletes organizations with their memberships, groups and group grants, and
- * the tuples of all three. Resources scoped to them stay.
+ * the tuples of all three. Members are detached as when they are removed, so
+ * resources scoped only to these organizations stay with their owners.
  */
 export const deleteOrganizationsWithAuthorization = (
 	organizationIds: readonly OrganizationId[],
@@ -116,13 +114,33 @@ export const deleteOrganizationsWithAuthorization = (
 			}
 
 			const memberships = yield* db
-				.select({
+				.delete(dbSchema.member)
+				.where(inArray(dbSchema.member.organizationId, ids))
+				.returning({
 					organizationId: dbSchema.member.organizationId,
 					userId: dbSchema.member.userId,
 					role: dbSchema.member.role,
-				})
-				.from(dbSchema.member)
-				.where(inArray(dbSchema.member.organizationId, ids));
+				});
+			yield* recordRelationshipFacts(
+				...memberships.map((membership) =>
+					RelationshipFact.OrganizationRoleChanged({
+						organizationId: membership.organizationId,
+						userId: membership.userId,
+						from: membership.role,
+						to: null,
+					}),
+				),
+			);
+			for (const organizationId of ids)
+				yield* detachMembers({
+					organizationId,
+					userIds: memberships
+						.filter(
+							(membership) => membership.organizationId === organizationId,
+						)
+						.map((membership) => membership.userId),
+					now,
+				});
 
 			const groups = yield* db
 				.select({
@@ -138,7 +156,6 @@ export const deleteOrganizationsWithAuthorization = (
 					),
 				);
 			const groupIds = groups.map((group) => group.id);
-
 			const groupMembers =
 				groupIds.length === 0
 					? []
@@ -154,29 +171,10 @@ export const deleteOrganizationsWithAuthorization = (
 									isNull(dbSchema.groupMember.removedAt),
 								),
 							);
-
-			const groupGrants =
-				groupIds.length === 0
-					? []
-					: yield* db
-							.update(dbSchema.resourceGrant)
-							.set({
-								revokedAt: now,
-							})
-							.where(
-								and(
-									eq(dbSchema.resourceGrant.principalType, "group"),
-									inArray(dbSchema.resourceGrant.principalId, groupIds),
-									isNull(dbSchema.resourceGrant.revokedAt),
-								),
-							)
-							.returning({
-								resourceType: dbSchema.resourceGrant.resourceType,
-								resourceId: dbSchema.resourceGrant.resourceId,
-								role: dbSchema.resourceGrant.role,
-								principalType: dbSchema.resourceGrant.principalType,
-								principalId: dbSchema.resourceGrant.principalId,
-							});
+			yield* detachGroups({
+				groupIds,
+				now,
+			});
 
 			yield* db
 				.delete(dbSchema.organization)
@@ -190,14 +188,6 @@ export const deleteOrganizationsWithAuthorization = (
 				.where(inArray(dbSchema.session.activeOrganizationId, ids));
 
 			yield* recordRelationshipFacts(
-				...memberships.map((membership) =>
-					RelationshipFact.OrganizationRoleChanged({
-						organizationId: membership.organizationId,
-						userId: membership.userId,
-						from: membership.role,
-						to: null,
-					}),
-				),
 				...groups.map((group) =>
 					RelationshipFact.GroupDeleted({
 						groupId: group.id,
@@ -210,14 +200,6 @@ export const deleteOrganizationsWithAuthorization = (
 						groupId: groupMember.groupId,
 						userId: groupMember.userId,
 						member: false,
-					}),
-				),
-				...groupGrants.map((grant) =>
-					RelationshipFact.ResourceGrantChanged({
-						resource: scopedResourceRef(grant),
-						principal: grantPrincipal(grant),
-						from: grant.role,
-						to: null,
 					}),
 				),
 			);

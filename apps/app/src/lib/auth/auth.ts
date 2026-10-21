@@ -56,10 +56,13 @@ export const auth = betterAuth({
 	telemetry: {
 		enabled: false,
 	},
-	// The app's own account deletion runs the last-admin guard, the permission
-	// outbox and the session cleanup.
+	// The app's own account deletion and ban keep the last organization admin
+	// who can sign in; deletion also runs the permission outbox and the
+	// session cleanup.
 	disabledPaths: [
 		"/admin/remove-user",
+		"/admin/ban-user",
+		"/admin/update-user",
 	],
 	trustedOrigins: [
 		cfg.auth.url,

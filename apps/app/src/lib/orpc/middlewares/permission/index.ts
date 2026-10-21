@@ -1,10 +1,6 @@
 export { checkManyPermissionMiddleware } from "./checks";
 export { permissionDenied, requirePermission } from "./core";
 export {
-	type AssertCanGrantPrincipalInput,
-	assertCanGrantPrincipalMiddleware,
-} from "./grants";
-export {
 	requireEntityPermission,
 	requireOrganizationPermission,
 	requireResourcePermission,

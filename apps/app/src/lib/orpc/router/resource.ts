@@ -29,24 +29,17 @@ import {
 } from "drizzle-orm";
 import * as Effect from "effect/Effect";
 import { visibleGroupScope } from "@/lib/authz/group-visibility";
-import { RelationshipFact } from "@/lib/authz/relationship-facts";
 import {
-	recordRelationshipFacts,
-	writeRelationships,
-} from "@/lib/authz/relationship-write";
-import { resourceOrganizations } from "@/lib/authz/resource-lifecycle";
-import {
-	grantPrincipal,
-	scopedResourceRef,
-} from "@/lib/authz/scoped-resource-id";
+	activeGrants,
+	grantResourceAccess,
+	revokeResourceAccess,
+	setResourceVisibility,
+} from "@/lib/authz/resource-access";
+import { scopedResourceRef } from "@/lib/authz/scoped-resource-id";
 import { getZedToken } from "@/lib/authz/zed-token";
-import * as AppErrors from "@/lib/effect/utils/errors";
 import { authed } from "@/lib/orpc/implementation/authed";
 import { createProcedures } from "@/lib/orpc/implementation/procedures";
-import {
-	assertCanGrantPrincipalMiddleware,
-	requireResourcePermission,
-} from "@/lib/orpc/middlewares/permission";
+import { requireResourcePermission } from "@/lib/orpc/middlewares/permission";
 import { canSeeEmailIn, canSeeEmailOn } from "./helpers/can-see-email";
 import { changedAt } from "./helpers/changed-at";
 import { literalSearch } from "./helpers/literal-search";
@@ -72,11 +65,6 @@ type AncestorRef = AccessAncestor extends infer Ancestor
 		: never
 	: never;
 
-const principalKey = (principal: {
-	principalType: string;
-	principalId: string;
-}) => `${principal.principalType}:${principal.principalId}`;
-
 const splitPrincipalIds = (
 	principals: readonly {
 		principalType: string;
@@ -98,21 +86,6 @@ const splitPrincipalIds = (
 				.map((principal) => principal.principalId),
 		),
 });
-
-const activeGrantsFor = (resource: ResourceIdentity) =>
-	Effect.gen(function* () {
-		const db = yield* DB;
-		return yield* db
-			.select()
-			.from(dbSchema.resourceGrant)
-			.where(
-				and(
-					eq(dbSchema.resourceGrant.resourceType, resource.resourceType),
-					eq(dbSchema.resourceGrant.resourceId, resource.resourceId),
-					isNull(dbSchema.resourceGrant.revokedAt),
-				),
-			);
-	});
 
 /** Attaches the principal and source to grant rows; rows whose principal is gone are dropped. */
 const hydrateGrants = (params: {
@@ -214,61 +187,6 @@ const hydrateGrants = (params: {
 		}
 
 		return data;
-	});
-
-const lastManagerError = () =>
-	new AppErrors.BadRequestError({
-		reason: "LAST_MANAGER_REQUIRED",
-		message: "At least one manager must remain on this resource",
-	});
-
-/** Fails when a managed resource would end up with no manager after `change` is applied. */
-const ensureManagerRemains = (
-	active: ActiveGrant[],
-	change: (managers: Set<string>) => void,
-) => {
-	const before = new Set(
-		active
-			.filter((grant) => grant.role === "manager")
-			.map((grant) => principalKey(grant)),
-	);
-	const after = new Set(before);
-	change(after);
-
-	return before.size > 0 && after.size === 0
-		? Effect.fail(lastManagerError())
-		: Effect.void;
-};
-
-/** Runs a grant or visibility change under the resource's organization lock, while the resource exists. */
-const writeResourceAccess = <A, E, R>(
-	resource: ResourceIdentity,
-	body: Effect.Effect<A, E, R>,
-) =>
-	Effect.gen(function* () {
-		const organizationIds = yield* resourceOrganizations([
-			resource,
-		]);
-		return yield* writeRelationships(
-			{
-				organizationIds,
-			},
-			Effect.gen(function* () {
-				// A deletion that held the lock first leaves no scope behind.
-				if (
-					(yield* resourceOrganizations([
-						resource,
-					])).length === 0
-				)
-					return yield* Effect.fail(
-						new AppErrors.NotFoundError({
-							id: resource.resourceId,
-							message: "Resource not found",
-						}),
-					);
-				return yield* body;
-			}),
-		);
 	});
 
 /** Ancestors named in the summary; the rest are only counted. */
@@ -476,7 +394,7 @@ const getInheritedAccess = authed.resource.inheritedAccess
 const listResourceGrants = authed.resource.listGrants
 	.use(requireResourcePermission("manage_access"))
 	.effect(function* ({ input, context }) {
-		const grants = yield* activeGrantsFor(input);
+		const grants = yield* activeGrants(input);
 		const data = yield* hydrateGrants({
 			grants,
 			resource: input,
@@ -631,86 +549,18 @@ const listResourcePrincipals = authed.resource.listPrincipals
 		};
 	});
 
-const grantResourceAccess = authed.resource.grant
-	.use(assertCanGrantPrincipalMiddleware)
+const grantAccess = authed.resource.grant
+	.use(requireResourcePermission("manage_access"))
 	.effect(function* ({ input, context }) {
-		const db = yield* DB;
-		const now = new Date();
-
-		const { result: grants, zedToken } = yield* writeResourceAccess(
-			input,
-			Effect.gen(function* () {
-				const active = yield* activeGrantsFor(input);
-				const existingByPrincipal = new Map(
-					active.map((grant) => [
-						principalKey(grant),
-						grant,
-					]),
-				);
-
-				yield* ensureManagerRemains(active, (managers) => {
-					for (const principal of input.principals) {
-						if (input.role === "manager") {
-							managers.add(principalKey(principal));
-						} else {
-							managers.delete(principalKey(principal));
-						}
-					}
-				});
-
-				const written: ActiveGrant[] = [];
-
-				for (const principal of input.principals) {
-					const existing = existingByPrincipal.get(principalKey(principal));
-
-					if (existing) {
-						yield* db
-							.update(dbSchema.resourceGrant)
-							.set({
-								revokedAt: now,
-							})
-							.where(eq(dbSchema.resourceGrant.id, existing.id));
-					}
-
-					const [grant] = yield* db
-						.insert(dbSchema.resourceGrant)
-						.values({
-							resourceType: input.resourceType,
-							resourceId: input.resourceId,
-							principalType: principal.principalType,
-							principalId: principal.principalId,
-							role: input.role,
-							grantedBy: context.auth.user.id,
-							createdAt: now,
-							revokedAt: null,
-						})
-						.returning();
-
-					if (!grant) {
-						return yield* Effect.fail(
-							new AppErrors.BadRequestError({
-								reason: "GRANT_NOT_RECORDED",
-								message: "Grant could not be recorded",
-							}),
-						);
-					}
-
-					written.push(grant);
-
-					yield* recordRelationshipFacts(
-						RelationshipFact.ResourceGrantChanged({
-							resource: input,
-							principal: grantPrincipal(principal),
-							from: existing?.role ?? null,
-							to: input.role,
-						}),
-					);
-				}
-
-				return written;
-			}),
-		);
-
+		const { grants, zedToken } = yield* grantResourceAccess({
+			resource: input,
+			principals: input.principals,
+			role: input.role,
+			actor: {
+				userId: context.auth.user.id,
+				zedToken: getZedToken(context),
+			},
+		});
 		const data = yield* hydrateGrants({
 			grants,
 			resource: input,
@@ -724,61 +574,21 @@ const grantResourceAccess = authed.resource.grant
 		};
 	});
 
-const revokeResourceAccess = authed.resource.revoke
+const revokeAccess = authed.resource.revoke
 	.use(requireResourcePermission("manage_access"))
 	.effect(function* ({ input }) {
-		const db = yield* DB;
+		const revoked = yield* revokeResourceAccess({
+			resource: input,
+			principal: input,
+		});
 
-		const { result: revokedCount } = yield* writeResourceAccess(
-			input,
-			Effect.gen(function* () {
-				const active = yield* activeGrantsFor(input);
-				const revoked = active.filter(
-					(grant) => principalKey(grant) === principalKey(input),
-				);
-
-				if (revoked.length === 0) return 0;
-
-				yield* ensureManagerRemains(active, (managers) => {
-					managers.delete(principalKey(input));
-				});
-
-				yield* db
-					.update(dbSchema.resourceGrant)
-					.set({
-						revokedAt: new Date(),
-					})
-					.where(
-						inArray(
-							dbSchema.resourceGrant.id,
-							revoked.map((grant) => grant.id),
-						),
-					);
-
-				yield* recordRelationshipFacts(
-					...revoked.map((grant) =>
-						RelationshipFact.ResourceGrantChanged({
-							resource: input,
-							principal: grantPrincipal(grant),
-							from: grant.role,
-							to: null,
-						}),
-					),
-				);
-
-				return revoked.length;
-			}),
-		);
-
-		return revokedCount === 0
-			? {
-					success: true,
-					message: "No active grant to revoke",
-				}
-			: {
-					success: true,
-					message: "Access revoked successfully",
-				};
+		return {
+			success: true,
+			message:
+				revoked === 0
+					? "No active grant to revoke"
+					: "Access revoked successfully",
+		};
 	});
 
 const getResourceVisibility = authed.resource.getVisibility
@@ -806,47 +616,14 @@ const getResourceVisibility = authed.resource.getVisibility
 		};
 	});
 
-const setResourceVisibility = authed.resource.setVisibility
+const setVisibility = authed.resource.setVisibility
 	.use(requireResourcePermission("manage_access"))
 	.effect(function* ({ input, context }) {
-		const db = yield* DB;
-		const now = new Date();
-
-		const { result: data } = yield* writeResourceAccess(
-			input,
-			Effect.gen(function* () {
-				const [data] = yield* db
-					.insert(dbSchema.resourceVisibility)
-					.values({
-						resourceType: input.resourceType,
-						resourceId: input.resourceId,
-						visibility: input.visibility,
-						updatedBy: context.auth.user.id,
-						updatedAt: now,
-					})
-					.onConflictDoUpdate({
-						target: [
-							dbSchema.resourceVisibility.resourceType,
-							dbSchema.resourceVisibility.resourceId,
-						],
-						set: {
-							visibility: input.visibility,
-							updatedAt: now,
-							updatedBy: context.auth.user.id,
-						},
-					})
-					.returning();
-
-				yield* recordRelationshipFacts(
-					RelationshipFact.ResourceVisibilitySet({
-						resource: input,
-						visibility: input.visibility,
-					}),
-				);
-
-				return data;
-			}),
-		);
+		const data = yield* setResourceVisibility({
+			resource: input,
+			visibility: input.visibility,
+			actorId: context.auth.user.id,
+		});
 
 		return {
 			data,
@@ -963,10 +740,10 @@ export const resourceRouter = {
 	inheritedAccess: getInheritedAccess,
 	listPrincipals: listResourcePrincipals,
 	listRecent: listRecentResources,
-	grant: grantResourceAccess,
-	revoke: revokeResourceAccess,
+	grant: grantAccess,
+	revoke: revokeAccess,
 	getVisibility: getResourceVisibility,
-	setVisibility: setResourceVisibility,
+	setVisibility,
 };
 
 export const resourceProcedures = createProcedures("resource", resourceRouter);
