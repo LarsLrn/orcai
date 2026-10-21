@@ -1,4 +1,8 @@
-import type { ResourceGrant, ResourceGrantRole } from "@orcai/schema";
+import type {
+	RepositoryReadiness,
+	ResourceGrant,
+	ResourceGrantRole,
+} from "@orcai/schema";
 import {
 	ALL_MEMBERS_GROUP_SYSTEM_KEY,
 	RESOURCE_GRANT_SOURCE,
@@ -59,11 +63,17 @@ const PublishSummary = ({
 	visibility,
 	grants,
 	grantsAvailable,
+	repositories = [],
 }: {
 	visibility?: "private" | "public";
 	grants: ResourceGrant[];
 	grantsAvailable: boolean;
+	/** Readiness of the bot's repositories; one not fully ready gets a note. */
+	repositories?: RepositoryReadiness[];
 }) => {
+	const unready = repositories.filter(
+		({ totals }) => totals.ready < totals.total,
+	);
 	const directGrants = grants.filter(isDirectGrant);
 	const groupGrants = directGrants.filter(
 		(grant) => grant.principal.type === "group",
@@ -117,6 +127,26 @@ const PublishSummary = ({
 					<p>{m.authoring_publish_summary_grants_unavailable()}</p>
 				)}
 			</Fact>
+
+			{unready.length > 0 ? (
+				<Fact label={m.authoring_publish_summary_documents_fact_label()}>
+					{unready.map(({ blockId, name, totals }) => (
+						<p key={blockId}>
+							{m.authoring_publish_summary_documents_ready({
+								name,
+								ready: totals.ready,
+								total: totals.total,
+							})}
+							{totals.failed > 0
+								? ` ${m.authoring_publish_summary_documents_failed({
+										count: totals.failed,
+									})}`
+								: null}
+						</p>
+					))}
+					<p>{m.authoring_publish_summary_documents_description()}</p>
+				</Fact>
+			) : null}
 
 			<Fact label={m.authoring_publish_summary_provider_fact_label()}>
 				<p>{m.authoring_publish_summary_provider_description()}</p>
