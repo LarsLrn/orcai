@@ -110,10 +110,6 @@ describe("knowledge base model output", () => {
 								assetId: "asset-a",
 								title: "Refund policy",
 								citation: "Finance, 2024",
-								block: {
-									id: "block-1",
-									name: "Handbook",
-								},
 							},
 						],
 					},
@@ -138,10 +134,6 @@ describe("knowledge base model output", () => {
 							{
 								assetId: "asset-a",
 								title: "Refund policy",
-								block: {
-									id: "block-1",
-									name: "Handbook",
-								},
 							},
 						],
 					},

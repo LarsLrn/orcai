@@ -208,26 +208,20 @@ export const loadDocumentCatalog = ({
 			),
 		);
 
-		return blockAssetRefs.flatMap(({ block, assetIds }) =>
-			assetIds
-				.map((assetId) => {
-					const asset = assetById.get(assetId);
-					if (!asset) return null;
-					const metadata = asset.metadata as {
-						citation?: string;
-					} | null;
-					return {
-						assetId,
-						title: asset.title,
-						citation: metadata?.citation ?? undefined,
-						block: {
-							id: block.id,
-							name: block.name,
-						},
-					} satisfies KnowledgeBaseDocument;
-				})
-				.filter((entry) => entry !== null),
-		);
+		return uniqueAssetIds.flatMap((assetId): KnowledgeBaseDocument[] => {
+			const asset = assetById.get(assetId);
+			if (!asset) return [];
+			const metadata = asset.metadata as {
+				citation?: string;
+			} | null;
+			return [
+				{
+					assetId,
+					title: asset.title,
+					citation: metadata?.citation ?? undefined,
+				},
+			];
+		});
 	});
 
 export const compareByPageAssetChunk = (

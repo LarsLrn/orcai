@@ -43,6 +43,9 @@ const SourcePassage = ({
 	);
 };
 
+const spansMultipleBlocks = (blockNames: string[]) =>
+	new Set(blockNames).size > 1;
+
 /** Block names only disambiguate when the passages span several blocks. */
 export const SourcePassages = ({ passages }: { passages: Passage[] }) => {
 	const showBlockName = spansMultipleBlocks(
@@ -69,6 +72,3 @@ export const SourcePassageList = ({
 }: {
 	children: React.ReactNode;
 }) => <div className="mt-2 flex flex-col gap-1">{children}</div>;
-
-export const spansMultipleBlocks = (blockNames: string[]) =>
-	new Set(blockNames).size > 1;

@@ -23,18 +23,15 @@ import {
 const normalizeQueries = ({
 	query,
 	queryVariants,
-	queries,
 }: {
 	query?: string;
 	queryVariants?: string[];
-	queries?: string[];
 }) =>
 	Array.from(
 		new Set(
 			[
 				query,
 				...(queryVariants ?? []),
-				...(queries ?? []),
 			]
 				.map((value) => value?.trim())
 				.filter((value): value is string =>
@@ -80,17 +77,6 @@ export const searchKnowledgeBaseTool = ({
 				.describe(
 					"Optional short alternate phrasings. Use only when one query may miss synonyms or aliases.",
 				),
-			queries: z
-				.array(
-					z
-						.string()
-						.min(2)
-						.describe(
-							"Legacy alias for query variants. Prefer query and queryVariants for new calls.",
-						),
-				)
-				.max(5)
-				.optional(),
 			assetIds: z
 				.array(assetIdSchema)
 				.max(20)
@@ -102,13 +88,12 @@ export const searchKnowledgeBaseTool = ({
 				.optional()
 				.describe("Optional block ID to search only one knowledge base block."),
 		}),
-		run: ({ query, queryVariants, queries, assetIds, blockId }) =>
+		run: ({ query, queryVariants, assetIds, blockId }) =>
 			Effect.gen(function* () {
 				const procedures = yield* Procedures;
 				const normalizedQueries = normalizeQueries({
 					query,
 					queryVariants,
-					queries,
 				});
 				if (normalizedQueries.length === 0) {
 					return yield* Effect.fail(
@@ -127,8 +112,6 @@ export const searchKnowledgeBaseTool = ({
 				if (targetBlocks.length === 0) {
 					return {
 						results: [] as Passage[],
-						noNewEvidence: true,
-						nextAction: "refineSearchOrListDocuments" as const,
 					};
 				}
 
@@ -180,17 +163,6 @@ export const searchKnowledgeBaseTool = ({
 
 				return {
 					results: boundedResults,
-					noNewEvidence: boundedResults.length === 0,
-					nextAction:
-						boundedResults.length > 0
-							? ("getKnowledgeBaseChunks" as const)
-							: ("refineSearchOrListDocuments" as const),
-					stats: {
-						queryCount: normalizedQueries.length,
-						returnedCount: boundedResults.length,
-						searchedBlockCount: targetBlocks.length,
-						assetScopeCount: assetIds?.length ?? 0,
-					},
 				};
 			}),
 		toModelOutput: searchModelOutput,
