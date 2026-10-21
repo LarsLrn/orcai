@@ -28,12 +28,6 @@ export const Route = createFileRoute("/app/")({
 				}),
 			),
 			queryClient.query(
-				orpc.block.list.queryOptions({
-					input: SUMMARY_PARAMS,
-					staleTime: "static",
-				}),
-			),
-			queryClient.query(
 				orpc.asset.list.queryOptions({
 					input: SUMMARY_PARAMS,
 					staleTime: "static",

@@ -5,7 +5,6 @@ import {
 	type LucideIcon,
 	UsersIcon,
 } from "lucide-react";
-import { Suspense } from "react";
 import { NavUser } from "@/components/account/nav-user";
 import { SidebarLogo } from "@/components/app/sidebar/sidebar-logo";
 import {
@@ -21,7 +20,6 @@ import {
 	SidebarMenuItem,
 	useSidebar,
 } from "@/components/ui/sidebar";
-import { Skeleton } from "@/components/ui/skeleton";
 import { m } from "@/paraglide/messages";
 
 const InstanceSidebar = () => {
@@ -89,9 +87,7 @@ const InstanceSidebar = () => {
 						/>
 					</SidebarMenuItem>
 				</SidebarMenu>
-				<Suspense fallback={<Skeleton className="h-12 w-full" />}>
-					<NavUser />
-				</Suspense>
+				<NavUser />
 			</SidebarFooter>
 		</Sidebar>
 	);

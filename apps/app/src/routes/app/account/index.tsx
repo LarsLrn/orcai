@@ -40,9 +40,7 @@ function RouteComponent() {
 			<PageContent className="space-y-8">
 				<div className="flex flex-col gap-4 lg:flex-row lg:items-start">
 					<div className="flex flex-1 flex-col gap-4">
-						<Suspense fallback={<Skeleton className="h-21.5 w-full" />}>
-							<UserStats />
-						</Suspense>
+						<UserStats />
 						<Card>
 							<CardHeader>
 								<CardTitle>{m.account_verification_card_title()}</CardTitle>

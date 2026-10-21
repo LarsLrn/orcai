@@ -1,7 +1,5 @@
 import { Link } from "@tanstack/react-router";
-import { Suspense } from "react";
 import { NavUser } from "@/components/account/nav-user";
-import { SkeletonsArray } from "@/components/placeholders/skeletons-array";
 import { buttonVariants } from "@/components/ui/button";
 import {
 	Sidebar,
@@ -13,7 +11,6 @@ import {
 	SidebarHeader,
 	useSidebar,
 } from "@/components/ui/sidebar";
-import { Skeleton } from "@/components/ui/skeleton";
 import { m } from "@/paraglide/messages";
 import { ChatSidebarMenu } from "./chat-sidebar-menu";
 import { ManageSidebarGroup } from "./manage-sidebar-group";
@@ -45,24 +42,16 @@ const AppSidebar = () => {
 						</Link>
 					</SidebarGroupLabel>
 					<SidebarGroupContent>
-						<Suspense
-							fallback={<SkeletonsArray className="mt-2 max-h-8" count={6} />}
-						>
-							<ChatSidebarMenu />
-						</Suspense>
+						<ChatSidebarMenu />
 					</SidebarGroupContent>
 				</SidebarGroup>
 			</SidebarContent>
 
 			<SidebarFooter>
 				<SidebarContent>
-					<Suspense>
-						<ManageSidebarGroup />
-					</Suspense>
+					<ManageSidebarGroup />
 				</SidebarContent>
-				<Suspense fallback={<Skeleton className="h-12 w-full" />}>
-					<NavUser />
-				</Suspense>
+				<NavUser />
 			</SidebarFooter>
 		</Sidebar>
 	);

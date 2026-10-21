@@ -6,7 +6,7 @@ import {
 	useNavigate,
 } from "@tanstack/react-router";
 import { BuildingIcon } from "lucide-react";
-import { Suspense, useState } from "react";
+import { useState } from "react";
 import {
 	invitationsPageInput,
 	OrganizationInvitationsList,
@@ -15,7 +15,6 @@ import { OrganizationCard } from "@/components/organizations/organization-card";
 import { Button, buttonVariants } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { DataTableSearch } from "@/components/ui/data-table/data-table-search";
-import { Skeleton } from "@/components/ui/skeleton";
 import { useSetActiveOrganizationMutation } from "@/hooks/mutations/use-user-mutations";
 import { authClient } from "@/lib/auth/auth-client";
 import { isInstanceAdminRole } from "@/lib/authz/instance-role";
@@ -211,9 +210,7 @@ function RouteComponent() {
 				</div>
 			) : null}
 
-			<Suspense fallback={<Skeleton className="h-28 w-full" />}>
-				<PendingInvitationsSection onAccepted={handleInvitationAccepted} />
-			</Suspense>
+			<PendingInvitationsSection onAccepted={handleInvitationAccepted} />
 
 			{rowCount === 0 && trimmedSearch ? (
 				<p className="text-center text-muted-foreground text-sm">

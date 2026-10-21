@@ -2,7 +2,6 @@ import { useSuspenseQuery } from "@tanstack/react-query";
 import { Link, useNavigate } from "@tanstack/react-router";
 import { BotIcon, SparklesIcon } from "lucide-react";
 import { Placeholder } from "@/components/placeholders/placeholder";
-import { SkeletonsArray } from "@/components/placeholders/skeletons-array";
 import { buttonVariants } from "@/components/ui/button";
 import {
 	Section,
@@ -13,7 +12,6 @@ import {
 	SectionHeader,
 	SectionTitle,
 } from "@/components/ui/shell/section";
-import { Skeleton } from "@/components/ui/skeleton";
 import { useOrganizationCapabilities } from "@/hooks/authz/use-capabilities";
 import { hasCapability } from "@/lib/authz/capabilities";
 import { orpc } from "@/lib/orpc/orpc";
@@ -110,17 +108,4 @@ const BotsShowcase = ({ limit = 6 }: { limit?: number }) => {
 	);
 };
 
-const BotsShowcaseSkeleton = () => (
-	<section className="space-y-4">
-		<div className="space-y-2">
-			<Skeleton className="h-7 w-40" />
-			<Skeleton className="h-4 w-64" />
-		</div>
-		<Skeleton className="h-9 w-32" />
-		<div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-3">
-			<SkeletonsArray className="h-48 w-full" count={3} />
-		</div>
-	</section>
-);
-
-export { BotsShowcase, BotsShowcaseSkeleton };
+export { BotsShowcase };
