@@ -79,8 +79,14 @@ export const deleteBlocksInputSchema = z.object({
 	}),
 });
 
+export const blockReadinessInputSchema = z.object({
+	blockIds: z.array(blockIdSchema).max(100),
+	...zedTokenSchema.shape,
+});
+
 export type ListBlocksInput = z.infer<typeof listBlocksInputSchema>;
 export type CreateBlockInput = z.infer<typeof createBlockInputSchema>;
 export type FindBlockInput = z.infer<typeof findBlockInputSchema>;
 export type UpdateBlockInput = z.infer<typeof updateBlockInputSchema>;
 export type DeleteBlocksInput = z.infer<typeof deleteBlocksInputSchema>;
+export type BlockReadinessInput = z.infer<typeof blockReadinessInputSchema>;

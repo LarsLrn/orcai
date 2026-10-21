@@ -6,7 +6,11 @@ import {
 	createListResponseSchema,
 	statusResponseSchema,
 } from "../shared";
-import { blockSchema, blockWithCapabilitiesSchema } from "./schema";
+import {
+	blockSchema,
+	blockWithCapabilitiesSchema,
+	repositoryReadinessSchema,
+} from "./schema";
 
 export const listBlocksResponseSchema = createListResponseSchema(
 	blockWithCapabilitiesSchema,
@@ -31,3 +35,8 @@ export const updateBlockResponseSchema = createDataResponseSchema(
 });
 
 export const deleteBlocksResponseSchema = statusResponseSchema;
+
+/** The readable repositories among the requested ones, in request order. */
+export const blockReadinessResponseSchema = createDataResponseSchema(
+	z.array(repositoryReadinessSchema),
+);
