@@ -20,8 +20,5 @@
 		"lib": "@/lib",
 		"hooks": "@/hooks"
 	},
-	"rtl": false,
-	"registries": {
-		"@ai-elements": "https://ai-sdk.dev/elements/api/registry/{name}.json"
-	}
+	"rtl": false
 }
