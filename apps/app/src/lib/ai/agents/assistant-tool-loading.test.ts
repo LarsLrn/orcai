@@ -1,4 +1,5 @@
 import { describe, expect, test } from "bun:test";
+import { providerCompaction } from "@orcai/ai";
 import type { ProviderKind } from "@orcai/core";
 import type { OrganizationCapability } from "@orcai/schema";
 import type { ORPCContext } from "@/lib/orpc/implementation/os";
@@ -291,6 +292,7 @@ describe("a stored loadTools result replayed on Anthropic", () => {
 				providerModelId: "claude-opus-5-5",
 			}),
 			callSettings: {},
+			compaction: providerCompaction("anthropic", 100_000),
 			docs: undefined,
 			userContext: {
 				user: {

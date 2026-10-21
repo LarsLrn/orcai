@@ -1,5 +1,9 @@
 import { describe, expect, test } from "bun:test";
-import { providerToolLoading, type ToolLoading } from "@orcai/ai";
+import {
+	providerCompaction,
+	providerToolLoading,
+	type ToolLoading,
+} from "@orcai/ai";
 import { tool } from "ai";
 import { z } from "zod/v4";
 import {
@@ -120,6 +124,7 @@ const sessionOf = (
 		],
 		capabilities,
 		toolLoading,
+		compaction: providerCompaction("anthropic", 100_000),
 	});
 
 /** The active tools once `groups` are loaded, with or without an approved plan. */

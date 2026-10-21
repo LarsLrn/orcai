@@ -1,4 +1,5 @@
 import { describe, expect, test } from "bun:test";
+import { providerCompaction } from "@orcai/ai";
 import { asSchema, type ToolSet } from "ai";
 import { createAssistantSession } from "@/lib/ai/agents/assistant-session";
 import type { ORPCContext } from "@/lib/orpc/implementation/os";
@@ -25,6 +26,7 @@ const tools: ToolSet = buildAssistantTools({
 		toolLoading: {
 			type: "active-tools",
 		},
+		compaction: providerCompaction("openai-compatible", 100_000),
 	}),
 });
 

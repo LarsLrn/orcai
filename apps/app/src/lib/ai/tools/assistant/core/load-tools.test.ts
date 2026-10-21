@@ -1,4 +1,5 @@
 import { describe, expect, test } from "bun:test";
+import { providerCompaction } from "@orcai/ai";
 import { createAssistantSession } from "@/lib/ai/agents/assistant-session";
 import type { CapabilitySet } from "../groups";
 import "../test-procedures";
@@ -35,6 +36,7 @@ const load = (groups: ("bots" | "sharing" | "people")[], planApproved = true) =>
 			toolLoading: {
 				type: "active-tools",
 			},
+			compaction: providerCompaction("openai-compatible", 100_000),
 		}),
 	).execute(
 		{

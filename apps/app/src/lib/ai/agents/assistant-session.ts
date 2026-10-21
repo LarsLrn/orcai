@@ -1,4 +1,5 @@
-import type { ToolLoading } from "@orcai/ai";
+import type { ProviderCompaction, ToolLoading } from "@orcai/ai";
+import { compactionPoint } from "@orcai/core";
 import type { JSONValue, ToolResultPart, ToolSet } from "ai";
 import {
 	type StoredMessage,
@@ -60,7 +61,9 @@ const activeToolsAdapter = (capabilities: CapabilitySet): LoadingAdapter => ({
 /**
  * Every offered tool is declared from the start, the group tools deferred;
  * results reference the tools they make callable, which loads them. Stored
- * outputs replay with the lists of their time.
+ * outputs replay with the lists of their time. The references before a
+ * compaction no longer load anything, so the tools they loaded are declared
+ * loaded.
  */
 const referencesAdapter = (
 	capabilities: CapabilitySet,
@@ -70,12 +73,13 @@ const referencesAdapter = (
 			type: "references";
 		}
 	>,
+	compacted: ReadonlySet<string>,
 ): LoadingAdapter => ({
 	declare: <T extends ToolSet>(tools: T) =>
 		Object.fromEntries(
 			Object.entries(tools).map(([name, tool]) => [
 				name,
-				DEFERRED_TOOL_NAMES.has(name)
+				DEFERRED_TOOL_NAMES.has(name) && !compacted.has(name)
 					? {
 							...tool,
 							providerOptions: {
@@ -194,14 +198,29 @@ export const createAssistantSession = ({
 	history,
 	capabilities,
 	toolLoading,
+	compaction,
 }: {
 	history: readonly StoredMessage[];
 	capabilities: CapabilitySet;
 	toolLoading: ToolLoading;
+	compaction: Pick<ProviderCompaction, "reads">;
 }): AssistantSession => {
+	const point = compactionPoint(history, compaction.reads);
+	const compacted = point
+		? storedExecutions([
+				...history.slice(0, point.message),
+				{
+					parts: history[point.message].parts.slice(0, point.part),
+				},
+			]).flatMap(({ toolName, output }) =>
+				toolName === "loadTools"
+					? loadedGroupTools(capabilities, new Set(groupsLoadedBy(output)))
+					: [],
+			)
+		: [];
 	const adapter =
 		toolLoading.type === "references"
-			? referencesAdapter(capabilities, toolLoading)
+			? referencesAdapter(capabilities, toolLoading, new Set(compacted))
 			: activeToolsAdapter(capabilities);
 	const loadedGroups = new Set<DeferredToolGroup>();
 	const state = {

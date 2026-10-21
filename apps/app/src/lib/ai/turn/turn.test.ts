@@ -307,9 +307,10 @@ describe("startTurn", () => {
 });
 
 describe("context window", () => {
-	/** A question the estimate counts as about 10 000 tokens. */
-	const long = (letter: string) => letter.repeat(40_000);
+	/** A question the estimate counts as about 30 000 tokens. */
+	const long = (letter: string) => letter.repeat(120_000);
 
+	/** At least 63 000 tokens, so Anthropic compacts natively and only trimming makes room. */
 	const narrowModel = (contextWindow: number) =>
 		answerSetup({
 			providerKind: "anthropic",
@@ -321,17 +322,17 @@ describe("context window", () => {
 		});
 
 	test("leaves out the oldest turns once the history outgrows the window, and marks the reply", async () => {
-		narrowModel(30_000);
+		narrowModel(90_000);
 		const chat = await conversation(chatRow(), "anthropic");
 		// The provider counts what each request sent, which the next turn reads back.
 		chat.script([
 			{
 				text: "One.",
-				inputTokens: 10_050,
+				inputTokens: 30_150,
 			},
 			{
 				text: "Two.",
-				inputTokens: 20_100,
+				inputTokens: 60_300,
 			},
 			{
 				text: "Three.",
@@ -381,22 +382,22 @@ describe("context window", () => {
 	});
 
 	test("meters a continuation by the prompt that fits, before claiming the reply", async () => {
-		narrowModel(30_000);
+		narrowModel(90_000);
 		const chat = await conversation(assistantRow(), "anthropic");
 		chat.script([
 			{
 				text: "One.",
-				inputTokens: 10_050,
+				inputTokens: 30_150,
 			},
 			{
 				text: "Two.",
-				inputTokens: 20_100,
+				inputTokens: 60_300,
 			},
 			{
 				calls: [
 					deleteDraft,
 				],
-				inputTokens: 25_000,
+				inputTokens: 75_000,
 			},
 			{
 				text: "Kept.",
@@ -473,7 +474,7 @@ describe("context window", () => {
 	});
 
 	test("refuses a message that alone outgrows the window, before storing or reserving anything", async () => {
-		narrowModel(5_000);
+		narrowModel(15_000);
 		const chat = await conversation(chatRow(), "anthropic");
 
 		expect(await refusal(() => chat.send(long("a")))).toBe(
@@ -482,6 +483,188 @@ describe("context window", () => {
 		expect(chat.messages()).toEqual([]);
 		expect(chat.bodies).toEqual([]);
 		expect(quota.calls.reserve).toEqual([]);
+	});
+});
+
+describe("compaction", () => {
+	const model = (
+		providerKind: "anthropic" | "openai" | "openai-compatible",
+		contextWindow: number,
+	) =>
+		answerSetup({
+			providerKind,
+			providerModelId: providerKind === "anthropic" ? "claude-opus-5-5" : "gpt",
+			model: {
+				contextWindow,
+				maxOutputTokens: 1_000,
+			},
+		});
+
+	const partsOf = (
+		index: number,
+		chat: Awaited<ReturnType<typeof conversation>>,
+	) =>
+		chat.messages()[index]?.parts as {
+			type: string;
+			text?: string;
+			providerMetadata?: unknown;
+		}[];
+
+	test("Anthropic compacts on its server; the next turn starts at the compaction block", async () => {
+		model("anthropic", 200_000);
+		const chat = await conversation(chatRow(), "anthropic");
+		chat.script([
+			{
+				text: "One.",
+			},
+			{
+				compaction: "The story so far.",
+				text: "Two.",
+			},
+			{
+				text: "Three.",
+			},
+		]);
+
+		await chat.send("Hi");
+		await chat.send("Go on");
+		await chat.send("And then?");
+
+		expect(chat.bodies[1]?.context_management).toEqual({
+			edits: [
+				expect.objectContaining({
+					type: "compact_20260112",
+					trigger: {
+						type: "input_tokens",
+						value: 159_200,
+					},
+				}),
+			],
+		});
+		expect(partsOf(3, chat)).toContainEqual(
+			expect.objectContaining({
+				type: "text",
+				text: "The story so far.",
+				providerMetadata: {
+					anthropic: {
+						type: "compaction",
+					},
+				},
+			}),
+		);
+		expect(chat.bodies[2]?.messages).toEqual([
+			{
+				role: "assistant",
+				content: [
+					expect.objectContaining({
+						type: "compaction",
+						content: "The story so far.",
+					}),
+					expect.objectContaining({
+						type: "text",
+						text: "Two.",
+					}),
+				],
+			},
+			{
+				role: "user",
+				content: [
+					expect.objectContaining({
+						text: "And then?",
+					}),
+				],
+			},
+		]);
+	});
+
+	test("OpenAI compacts on its server; the item replays from what we stored", async () => {
+		model("openai", 200_000);
+		const chat = await conversation(chatRow(), "openai");
+		chat.script([
+			{
+				compaction: "The story so far.",
+				text: "One.",
+			},
+			{
+				text: "Two.",
+			},
+		]);
+
+		await chat.send("Hi");
+		await chat.send("Go on");
+
+		expect(chat.bodies.map((body) => body.store)).toEqual([
+			false,
+			false,
+		]);
+		expect(chat.bodies[0]?.context_management).toEqual([
+			{
+				type: "compaction",
+				compact_threshold: 159_200,
+			},
+		]);
+		expect(partsOf(1, chat)).toContainEqual(
+			expect.objectContaining({
+				type: "custom",
+				kind: "openai.compaction",
+			}),
+		);
+		const input = chat.bodies[1]?.input as unknown[];
+		// The system prompt comes first.
+		expect(input.at(1)).toEqual({
+			type: "compaction",
+			id: "cmp_1",
+			encrypted_content: "sealed:The story so far.",
+		});
+		expect(JSON.stringify(input)).not.toContain("Hi");
+	});
+
+	test("OpenAI replays a step's reasoning within the turn from its encrypted content", async () => {
+		answerSetup({
+			providerKind: "openai",
+			providerModelId: "gpt-5.5",
+		});
+		const chat = await conversation(
+			chatRow({
+				config: {
+					...chatRow().config,
+					features: {
+						generativeUi: {},
+					},
+				} as never,
+			}),
+			"openai",
+		);
+		chat.script([
+			{
+				reasoning: "List the scope.",
+				calls: [
+					{
+						name: "showChecklist",
+						input: {
+							items: [
+								{
+									label: "Scope",
+								},
+							],
+						},
+					},
+				],
+			},
+			{
+				text: "Listed.",
+			},
+		]);
+
+		await chat.send("Check it");
+
+		expect(chat.bodies[0]?.include).toContain("reasoning.encrypted_content");
+		expect(chat.bodies[1]?.input).toContainEqual(
+			expect.objectContaining({
+				type: "reasoning",
+				encrypted_content: "sealed:List the scope.",
+			}),
+		);
 	});
 });
 

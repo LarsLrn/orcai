@@ -208,6 +208,7 @@ const buildAgent = ({
 					databaseBlocks: setup.agent.databaseBlocks,
 					features: setup.agent.features,
 					callSettings: setup.callSettings,
+					compaction: setup.compaction,
 					telemetryIds,
 					context: input.context,
 				}),
@@ -226,6 +227,7 @@ const buildAgent = ({
 			createAssistantAgent({
 				model: setup.model,
 				callSettings: setup.callSettings,
+				compaction: setup.compaction,
 				docs: setup.agent.docs,
 				userContext: setup.agent.userContext,
 				features: setup.agent.features,
@@ -315,8 +317,8 @@ const fitPrompt = ({
 			messages: prompt,
 			replyId,
 			requestTokens: yield* Effect.promise(() => requestTokens(agent)),
-			contextWindow: setup.tokenLimits.contextWindow,
-			reservedOutputTokens: setup.callSettings.maxOutputTokens,
+			budget: setup.budget,
+			compaction: setup.compaction,
 		});
 		if (!fit.fits) {
 			return yield* new AppErrors.BadRequestError({

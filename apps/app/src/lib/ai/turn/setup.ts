@@ -1,4 +1,8 @@
-import { AiError } from "@orcai/ai";
+import {
+	AiError,
+	type ProviderCompaction,
+	providerCompaction,
+} from "@orcai/ai";
 import type { ModelId, OrganizationId, ProviderId, UserId } from "@orcai/core";
 import { reservedOutputTokens } from "@orcai/quota";
 import type { DatabaseBlock, ModelTokenLimits } from "@orcai/schema";
@@ -29,7 +33,11 @@ import * as AppErrors from "@/lib/effect/utils/errors";
 import { providerApiKey } from "@/lib/encryption";
 import type { ORPCContext } from "@/lib/orpc/implementation/os";
 import { Procedures } from "@/lib/orpc/implementation/procedures";
-import { DEFAULT_CONTEXT_WINDOW } from "./context-window";
+import {
+	compactionTrigger,
+	DEFAULT_CONTEXT_WINDOW,
+	promptBudget,
+} from "./context-window";
 import {
 	type ModelUnusableReason,
 	modelUnusableReason,
@@ -92,6 +100,9 @@ export type TurnSetup = RequestedSetup & {
 	callSettings: {
 		maxOutputTokens: number;
 	};
+	/** The tokens the prompt may take. */
+	budget: number;
+	compaction: ProviderCompaction;
 };
 
 const badRequest = (
@@ -465,25 +476,32 @@ const assistantSetup = ({ organizationId, user, context }: TurnRequester) =>
 
 /**
  * Without its own cap a call reserves a guess at its output, which leaves at
- * least half the context window to the prompt.
+ * least half the context window to the prompt. The rest is the budget, which
+ * sets where the conversation compacts.
  */
-const withOutputCap = (setup: RequestedSetup): TurnSetup => {
-	const half = Math.floor(
-		(setup.tokenLimits.contextWindow ?? DEFAULT_CONTEXT_WINDOW) / 2,
-	);
+const withLimits = (setup: RequestedSetup): TurnSetup => {
+	const { contextWindow } = setup.tokenLimits;
+	const half = Math.floor((contextWindow ?? DEFAULT_CONTEXT_WINDOW) / 2);
+	const maxOutputTokens =
+		setup.callSettings.maxOutputTokens ??
+		Math.min(
+			half,
+			reservedOutputTokens({
+				modelMaxOutputTokens: setup.tokenLimits.maxOutputTokens,
+			}),
+		);
+	const budget = promptBudget({
+		contextWindow,
+		reservedOutputTokens: maxOutputTokens,
+	});
 	return {
 		...setup,
 		callSettings: {
 			...setup.callSettings,
-			maxOutputTokens:
-				setup.callSettings.maxOutputTokens ??
-				Math.min(
-					half,
-					reservedOutputTokens({
-						modelMaxOutputTokens: setup.tokenLimits.maxOutputTokens,
-					}),
-				),
+			maxOutputTokens,
 		},
+		budget,
+		compaction: providerCompaction(setup.model.kind, compactionTrigger(budget)),
 	};
 };
 
@@ -499,4 +517,4 @@ export const turnSetup = (
 	(chat.kind === "assistant"
 		? assistantSetup(requester)
 		: chatSetup(chat, requester)
-	).pipe(Effect.map(withOutputCap));
+	).pipe(Effect.map(withLimits));

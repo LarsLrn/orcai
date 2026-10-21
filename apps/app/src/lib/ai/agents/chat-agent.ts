@@ -1,4 +1,8 @@
-import { aiTelemetry, buildSystemInstructions } from "@orcai/ai";
+import {
+	aiTelemetry,
+	buildSystemInstructions,
+	type ProviderCompaction,
+} from "@orcai/ai";
 import type { DatabaseBlock } from "@orcai/schema";
 import { isStepCount, Output, ToolLoopAgent, type ToolSet } from "ai";
 import { buildGenUiTools } from "@/components/chat/gen-ui/catalog";
@@ -23,6 +27,7 @@ export const createChatAgent = (params: {
 	databaseBlocks: DatabaseBlock[];
 	features: ResolvedFeature[];
 	callSettings: ChatCallSettings;
+	compaction: ProviderCompaction;
 	telemetryIds: {
 		organizationId: string;
 		chatId: string;
@@ -85,6 +90,7 @@ export const createChatAgent = (params: {
 		prepareCall: ({ options, ...settings }) => ({
 			...settings,
 			...params.callSettings,
+			providerOptions: params.compaction.providerOptions,
 			instructions,
 			// A subset of the typed set; no tools at all when nothing is offered.
 			tools:

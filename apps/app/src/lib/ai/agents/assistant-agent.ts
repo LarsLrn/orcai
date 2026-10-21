@@ -1,4 +1,8 @@
-import { aiTelemetry, buildSystemInstructions } from "@orcai/ai";
+import {
+	aiTelemetry,
+	buildSystemInstructions,
+	type ProviderCompaction,
+} from "@orcai/ai";
 import { isStepCount, Output, ToolLoopAgent, type ToolSet } from "ai";
 import type { AgentModel } from "@/lib/ai/agents/agent-model";
 import { pruneAssistantHistory } from "@/lib/ai/agents/assistant-history-pruning";
@@ -26,6 +30,7 @@ export const createAssistantAgent = (
 	params: AssistantToolDeps & {
 		model: AgentModel;
 		callSettings: ChatCallSettings;
+		compaction: ProviderCompaction;
 		docs: DocsConfig | undefined;
 		userContext: AssistantUserContext;
 		/** The assistant's fixed features, resolved through the Feature catalog. */
@@ -57,6 +62,7 @@ export const createAssistantAgent = (
 		history: params.history,
 		capabilities: params.userContext.capabilities,
 		toolLoading: params.model.toolLoading,
+		compaction: params.compaction,
 	});
 	// Every tool, so stored calls validate with the docs or a feature off; activeTools narrows what the model sees.
 	const tools = session.declare(
@@ -119,6 +125,7 @@ export const createAssistantAgent = (
 			return {
 				...settings,
 				...params.callSettings,
+				providerOptions: params.compaction.providerOptions,
 				instructions,
 				stopWhen: isStepCount(options.maxSteps),
 				prepareStep: (step) => ({

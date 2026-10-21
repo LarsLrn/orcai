@@ -19,6 +19,9 @@ export interface StoredMessage {
 		state?: string;
 		input?: unknown;
 		output?: unknown;
+		text?: string;
+		kind?: string;
+		providerMetadata?: unknown;
 	}[];
 }
 

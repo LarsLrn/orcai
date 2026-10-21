@@ -1,9 +1,13 @@
 import { createAnthropic } from "@ai-sdk/anthropic";
 import { createOpenAI } from "@ai-sdk/openai";
 import { createOpenAICompatible } from "@ai-sdk/openai-compatible";
-import type { LanguageModelV4 } from "@ai-sdk/provider";
-import type { ProviderKind } from "@orcai/core";
+import type {
+	LanguageModelV4,
+	SharedV4ProviderOptions,
+} from "@ai-sdk/provider";
+import type { CompactionSource, ProviderKind } from "@orcai/core";
 import type { SystemModelMessage, Tool, ToolResultPart } from "ai";
+import { COMPACTION_INSTRUCTIONS } from "./compaction";
 import { listAnthropicModels } from "./list-anthropic-models";
 import { listOpenAIModels } from "./list-openai-models";
 import type {
@@ -60,6 +64,14 @@ const anthropicReferences: ToolLoading = {
 	}),
 };
 
+/** Compaction on the provider's server once a prompt reaches the trigger. */
+interface NativeCompaction {
+	readonly source: Exclude<CompactionSource, "summary">;
+	/** The smallest trigger the provider accepts. */
+	readonly minimumTrigger: number;
+	readonly providerOptions: (trigger: number) => SharedV4ProviderOptions;
+}
+
 export interface ProviderKindServerEntry {
 	readonly createLanguageModel: (
 		connection: ProviderConnection,
@@ -78,6 +90,10 @@ export interface ProviderKindServerEntry {
 	readonly toolChoiceNoneKeepsTools: boolean;
 	/** Defaults to active tools. */
 	readonly toolLoading?: (modelId: string) => ToolLoading;
+	/** Sent with every call of the kind. */
+	readonly callProviderOptions?: SharedV4ProviderOptions;
+	/** Without it, our own summary compacts. */
+	readonly compaction?: NativeCompaction;
 }
 
 const requireEndpoint = ({ endpoint }: ProviderConnection) => {
@@ -120,6 +136,26 @@ export const providerKindServerEntries: Record<
 				fetch,
 			}),
 		toolChoiceNoneKeepsTools: true,
+		// Replays compaction and reasoning from what we stored, not from OpenAI's copy.
+		callProviderOptions: {
+			openai: {
+				store: false,
+			},
+		},
+		compaction: {
+			source: "openai",
+			minimumTrigger: 0,
+			providerOptions: (trigger) => ({
+				openai: {
+					contextManagement: [
+						{
+							type: "compaction",
+							compactThreshold: trigger,
+						},
+					],
+				},
+			}),
+		},
 	},
 	anthropic: {
 		createLanguageModel: ({ apiKey, fetch }, modelId) =>
@@ -140,6 +176,26 @@ export const providerKindServerEntries: Record<
 			ANTHROPIC_MODELS_WITHOUT_TOOL_SEARCH.test(modelId)
 				? activeToolsLoading
 				: anthropicReferences,
+		compaction: {
+			source: "anthropic",
+			minimumTrigger: 50_000,
+			providerOptions: (trigger) => ({
+				anthropic: {
+					contextManagement: {
+						edits: [
+							{
+								type: "compact_20260112",
+								trigger: {
+									type: "input_tokens",
+									value: trigger,
+								},
+								instructions: COMPACTION_INSTRUCTIONS,
+							},
+						],
+					},
+				},
+			}),
+		},
 	},
 };
 
@@ -211,4 +267,49 @@ export const buildSystemInstructions = (
 				]
 			: []),
 	];
+};
+
+/** How a kind's turn compacts a prompt that reaches `trigger` tokens. */
+export interface ProviderCompaction {
+	/** The provider compacts; otherwise our own summary does. */
+	readonly native: boolean;
+	/** What every call of the turn sends. */
+	readonly providerOptions: SharedV4ProviderOptions | undefined;
+	/** The compaction parts the turn reads back: our summaries, and its own native ones. */
+	readonly reads: (source: CompactionSource) => boolean;
+}
+
+export const providerCompaction = (
+	kind: ProviderKind,
+	trigger: number,
+): ProviderCompaction => {
+	const { callProviderOptions, compaction } = providerKindServerEntries[kind];
+	const native =
+		compaction !== undefined && trigger >= compaction.minimumTrigger
+			? compaction
+			: undefined;
+	const nativeOptions = native?.providerOptions(trigger);
+	const providers = new Set([
+		...Object.keys(callProviderOptions ?? {}),
+		...Object.keys(nativeOptions ?? {}),
+	]);
+
+	return {
+		native: native !== undefined,
+		providerOptions:
+			providers.size === 0
+				? undefined
+				: Object.fromEntries(
+						[
+							...providers,
+						].map((provider) => [
+							provider,
+							{
+								...callProviderOptions?.[provider],
+								...nativeOptions?.[provider],
+							},
+						]),
+					),
+		reads: (source) => source === "summary" || source === native?.source,
+	};
 };
