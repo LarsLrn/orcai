@@ -3,6 +3,7 @@ import { organizationIdSchema } from "../organization/ref";
 import { paginationInputSchema, zedTokenSchema } from "../shared";
 import { sharedSchemas } from "../shared/forms/shared";
 import { createSortingInputSchema } from "../shared/sorting";
+import { tourIdSchema, tourStateSchema } from "./parts/preferences";
 import { userIdSchema } from "./ref";
 import { userFiltersSchema } from "./schema";
 
@@ -65,12 +66,8 @@ export const setActiveOrganizationInputSchema = z.object({
 });
 
 export const setTourStateInputSchema = z.object({
-	tourId: z.string(),
-	state: z.enum([
-		"skipped",
-		"completed",
-		"pending",
-	]),
+	tourId: tourIdSchema,
+	state: tourStateSchema,
 });
 
 export type ListUsersInput = z.infer<typeof listUsersInputSchema>;
