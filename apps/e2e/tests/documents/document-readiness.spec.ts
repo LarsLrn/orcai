@@ -14,9 +14,9 @@ import { message } from "../../fixtures/messages";
 import { enterApp, open } from "../../fixtures/navigation";
 
 /**
- * A repository of the client's own holding one uploaded document. The suite
- * runs no workers, so queueing its processing fails and the document fails
- * with kind `other`.
+ * A repository of the client's own holding one uploaded document. Outside the
+ * pipeline specs no workers run, so queueing its processing fails and the
+ * document fails with kind `other`.
  */
 const repositoryWithFailedDocument = async (client: ApiClient) => {
 	const asset = await uploadAsset(client, chatName("Unprepared Asset"));

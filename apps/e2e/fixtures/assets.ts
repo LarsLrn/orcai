@@ -3,24 +3,32 @@ import { expect, type Page } from "@playwright/test";
 import type { ApiClient } from "./api";
 
 /**
- * A text asset named `title`, uploaded and created as the app does: sign the
- * upload, put the bytes, create the asset. Its processing job stays queued,
- * since the suite runs no workers. The `chatAttachment` route makes it a chat
+ * An asset named `title`, uploaded and created as the app does: sign the
+ * upload, put the bytes, create the asset. Only the pipeline specs run
+ * workers; elsewhere the processing queue does not exist, so queueing fails
+ * and the asset ends up failed. The `chatAttachment` route makes it a chat
  * upload.
  */
 export const uploadAsset = async (
 	client: ApiClient,
 	title: string,
-	route: StorageUploadRoute = "asset",
+	{
+		route = "asset",
+		content = `Uploaded by the e2e suite as ${title}.`,
+		type = "text/plain",
+	}: {
+		route?: StorageUploadRoute;
+		content?: string;
+		type?: string;
+	} = {},
 ): Promise<Asset> => {
-	const content = `Uploaded by the e2e suite as ${title}.`;
 	const signed = await client.storage.createUploadUrls({
 		route,
 		files: [
 			{
 				name: title,
 				size: Buffer.byteLength(content),
-				type: "text/plain",
+				type,
 			},
 		],
 	});

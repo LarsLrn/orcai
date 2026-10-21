@@ -46,6 +46,7 @@ bun run stack e2e --yes -- --grep auth    # one area
 bun run stack e2e --yes -- --ui           # Playwright UI mode
 bun run stack e2e --no-reset -- --grep smoke   # no reset, so no confirmation
 bun run stack e2e --yes --no-integration  # Playwright only
+bun run stack e2e --yes --pipeline        # the pipeline specs, with workers
 ```
 
 Everything after `--` is passed to Playwright. After Playwright the run
@@ -60,8 +61,18 @@ the well-known admin. Each parallel worker creates and mutates only its own
 organisations through the public API. Instance-level specs run serially before
 parallel specs. The mock inference server is used for e2e; do not call a real
 provider. Playwright also builds and serves the docs site on `WEB_PORT` for
-the assistant, reusing a running `bun run stack web`. Workers, email delivery, and OCR are outside the suite unless a task
-explicitly adds them.
+the assistant, reusing a running `bun run stack web`. Email delivery and OCR
+are outside the suite.
+
+Only `--pipeline` runs the background workers, polling every half second (in
+place of the docs site), and only the specs in `apps/e2e/tests/pipeline/`;
+every other run has no pg-boss
+queues, so queueing fails and uploads end up failed, which other specs rely
+on. Put a spec that needs a document processed, indexed, or searched there,
+with txt or md content; the mock serves the embeddings. A pipeline run leaves
+queues behind, so the next other run must reset. CI runs the pipeline specs
+in their own job; a full local run is `bun run stack e2e --yes`, then
+`bun run stack e2e --yes --pipeline`.
 
 Import the shared fixtures from `apps/e2e/fixtures/index.ts`; use the
 inference fixture for specs that need a provider endpoint. Open pages and
@@ -72,12 +83,10 @@ An e2e slice owns `apps/e2e/tests/<area>/` and may add
 `apps/e2e/fixtures/<area>/`. The Playwright config, core fixtures, stack
 script, this skill, `AGENTS.md`, `README.md`, and public development docs are
 foundation files. Stop and report when a slice needs one of them changed.
-Create test data through fixtures. There are three direct-store exceptions,
+Create test data through fixtures. There are two direct-store exceptions,
 because no public API can produce their data: the serial outbox
-failure-injection spec; the chat migration spec, which seeds legacy rows in
-a throwaway database; and `fixtures/chat/knowledge-base.ts`, which upserts one
-chunk into Qdrant for a fresh asset, since the suite runs no workers. Keep such
-setup isolated and clean it up reliably.
+failure-injection spec, and the chat migration spec, which seeds legacy rows
+in a throwaway database. Keep such setup isolated and clean it up reliably.
 
 Locate elements by role and accessible English name; add a test id only when
 no accessible name exists. Pin a current defect with `test.fail()` while

@@ -24,7 +24,9 @@ test("assets: chat uploads have their own tab until added to the library", async
 	const libraryTitle = `E2E Library ${runId()}`;
 	const chatTitle = `E2E Chat Upload ${runId()}`;
 	await uploadAsset(member, libraryTitle);
-	await uploadAsset(member, chatTitle, "chatAttachment");
+	await uploadAsset(member, chatTitle, {
+		route: "chatAttachment",
+	});
 
 	const page = await pageAs("member");
 	await enterApp(page, org.slug);
