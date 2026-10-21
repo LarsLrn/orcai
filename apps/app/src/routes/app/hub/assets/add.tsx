@@ -1,4 +1,4 @@
-import { createFileRoute } from "@tanstack/react-router";
+import { createFileRoute, useNavigate } from "@tanstack/react-router";
 import { AssetIntakeFlow } from "@/components/documents/shared/asset-intake-flow";
 import {
 	Page,
@@ -29,6 +29,8 @@ export const Route = createFileRoute("/app/hub/assets/add")({
 });
 
 function RouteComponent() {
+	const navigate = useNavigate();
+
 	return (
 		<Page>
 			<PageHeader>
@@ -36,7 +38,13 @@ function RouteComponent() {
 				<PageDescription>{m.assets_add_page_description()}</PageDescription>
 			</PageHeader>
 			<PageContent>
-				<AssetIntakeFlow submitLabel={m.assets_add_submit_button()} />
+				<AssetIntakeFlow
+					onDone={() =>
+						void navigate({
+							to: "/app/hub/assets",
+						})
+					}
+				/>
 			</PageContent>
 		</Page>
 	);

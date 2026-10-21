@@ -17,8 +17,8 @@ Assets (Library > Assets, `/app/hub/assets`) are the reusable source material Or
 
 ## End-To-End Flow
 
-1. Upload files and add metadata on **Add assets** (`/app/hub/assets/add`).
-2. OrcAI stores the original file in S3-compatible object storage.
+1. Upload files on **Add assets** (`/app/hub/assets/add`). Each file becomes an asset as soon as its upload finishes, and OrcAI keeps the original in S3-compatible object storage.
+2. Add metadata to the new assets, right away or later.
 3. A background job processes the file and extracts its text, or describes its images.
 4. Add the asset to one or more repositories, from the repository editor or the bot editor's Repositories step.
 5. For each repository the asset belongs to, a background job vectorises it into that repository's index. This runs when processing finishes and when the asset is added to a repository.
@@ -28,12 +28,14 @@ Assets (Library > Assets, `/app/hub/assets`) are the reusable source material Or
 
 **Add assets** on the Assets page opens `/app/hub/assets/add`. It needs the `create_asset` permission.
 
-Intake is file upload only, in two steps:
+Intake is file upload only:
 
-1. **Upload assets**: select files and **Upload files**, then **Next**.
-2. **Review uploaded files**: open **Add metadata** for each file to fill in its **Source details**, then **Save assets**.
+1. **Upload assets**: select files and **Upload files**. Each file becomes an asset as soon as its upload finishes; there is nothing else to save.
+2. **Uploaded assets**: the new assets are listed. **Metadata** opens a file's **Source details**, and **Save** stores them at once. Files that could not be added are listed with the reason. **Upload more** returns to the upload step, and **Done** goes to the Assets page.
 
-The same two steps also run inside an [OrcAI Assistant](/docs/using-orcai/assistant#uploads) conversation when the assistant asks for files.
+Leaving the page while files are still uploading asks first; leaving anyway stops the upload, and those files are not added. Once a file's asset exists, leaving loses nothing.
+
+The same flow runs inside an [OrcAI Assistant](/docs/using-orcai/assistant#uploads) conversation when the assistant asks for files, and in the repository editor's **Upload new assets** dialog, which also adds the new assets to the repository.
 
 Accepted file types:
 

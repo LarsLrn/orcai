@@ -9,13 +9,13 @@ import {
 	uploadFiles,
 } from "@orcai/s3/client";
 import { useMutation } from "@tanstack/react-query";
-import { useCallback, useMemo, useState } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import {
 	describeError,
 	errorReasonOf,
 	reasonMessageOf,
 } from "@/lib/errors/describe-error";
-import { orpc } from "@/lib/orpc/orpc";
+import { client, orpc } from "@/lib/orpc/orpc";
 import { m } from "@/paraglide/messages";
 
 const createNoFilesError = () =>
@@ -95,7 +95,6 @@ export function useUploadFiles({
 	route = "asset",
 	uploadBatchSize,
 	multipartBatchSize,
-	signal,
 	onError,
 	onBeforeUpload,
 	onUploadBegin,
@@ -115,8 +114,13 @@ export function useUploadFiles({
 	const { mutateAsync: completeMultipartUpload } = useMutation(
 		orpc.storage.completeMultipartUpload.mutationOptions(),
 	);
-	const { mutateAsync: abortMultipartUpload } = useMutation(
-		orpc.storage.abortMultipartUpload.mutationOptions(),
+	// Unmounting mid-upload stops the transfers and aborts open multipart uploads.
+	const abortController = useRef<AbortController | null>(null);
+	useEffect(
+		() => () => {
+			abortController.current?.abort();
+		},
+		[],
 	);
 
 	const [isPending, setIsPending] = useState(false);
@@ -202,6 +206,9 @@ export function useUploadFiles({
 			reset();
 
 			setIsPending(true);
+			abortController.current?.abort();
+			const controller = new AbortController();
+			abortController.current = controller;
 
 			const fileArray = Array.from(files);
 
@@ -251,7 +258,7 @@ export function useUploadFiles({
 					files: filesToUpload,
 					uploadBatchSize,
 					multipartBatchSize,
-					signal,
+					signal: controller.signal,
 					onUploadBegin,
 					onMultipartComplete: (data) =>
 						completeMultipartUpload({
@@ -261,7 +268,7 @@ export function useUploadFiles({
 							parts: data.parts,
 						}),
 					onMultipartAbort: (data) =>
-						abortMultipartUpload({
+						client.storage.abortMultipartUpload({
 							route: data.route,
 							uploadId: data.uploadId,
 							file: data.file,
@@ -316,7 +323,6 @@ export function useUploadFiles({
 			getPresignedUrls,
 			uploadBatchSize,
 			multipartBatchSize,
-			signal,
 			onError,
 			onBeforeUpload,
 			onUploadBegin,
@@ -325,7 +331,6 @@ export function useUploadFiles({
 			onUploadProgress,
 			onUploadSettle,
 			completeMultipartUpload,
-			abortMultipartUpload,
 			reset,
 		],
 	);

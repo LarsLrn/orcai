@@ -1,4 +1,5 @@
 import {
+	type Asset,
 	type AssetWithCapabilities,
 	type DatabaseBlock,
 	defaultDatabaseBlockConfig,
@@ -110,6 +111,18 @@ const DatabaseBlockEditor = ({
 	const [isUploadOpen, setIsUploadOpen] = useState(false);
 	const [hasPendingUploads, setHasPendingUploads] = useState(false);
 	const confirmDiscard = useConfirmDiscard();
+
+	const updateAsset = (asset: Asset) =>
+		onAssetsChange(
+			assets.map((existing) =>
+				existing.id === asset.id
+					? {
+							...asset,
+							capabilities: existing.capabilities,
+						}
+					: existing,
+			),
+		);
 
 	const handleUploadOpenChange = async (open: boolean) => {
 		if (!open && hasPendingUploads && !(await confirmDiscard())) {
@@ -224,19 +237,19 @@ const DatabaseBlockEditor = ({
 							</DialogHeader>
 							<AssetIntakeFlow
 								onPendingChange={setHasPendingUploads}
-								submitLabel={m.authoring_database_block_save_assets_button()}
-								onAssetsSaved={(savedAssets) => {
+								onAssetsCreated={(createdAssets) => {
 									const nextAssets = mergeAssets(
 										assets,
-										savedAssets.map((asset) => ({
+										createdAssets.map((asset) => ({
 											...asset,
 											capabilities: ownerCapabilities("asset"),
 										})),
 									);
 									onAssetsChange(nextAssets);
 									onAssetIdsChange(nextAssets.map((asset) => asset.id));
-									setIsUploadOpen(false);
 								}}
+								onAssetUpdated={updateAsset}
+								onDone={() => setIsUploadOpen(false)}
 							/>
 						</DialogContent>
 					</Dialog>
@@ -266,18 +279,7 @@ const DatabaseBlockEditor = ({
 								onAssetIdsChange(assetIds.filter((id) => id !== assetId));
 								onAssetsChange(assets.filter((asset) => asset.id !== assetId));
 							}}
-							onAssetUpdated={(asset) =>
-								onAssetsChange(
-									assets.map((existing) =>
-										existing.id === asset.id
-											? {
-													...asset,
-													capabilities: existing.capabilities,
-												}
-											: existing,
-									),
-								)
-							}
+							onAssetUpdated={updateAsset}
 						/>
 					) : (
 						<div className="rounded-xl border border-dashed bg-muted/10 p-6 text-center text-muted-foreground text-sm">
