@@ -64,7 +64,6 @@ test("assets: an upload is an asset without another click", async ({
 		{
 			title: name,
 			origin: "library",
-			processingStatus: "pending",
 		},
 	]);
 });

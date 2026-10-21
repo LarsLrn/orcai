@@ -76,7 +76,8 @@ export const requireReadableAssets = (params: {
 	});
 
 /**
- * Replaces a database block's asset links and records the change. Call it in
+ * Replaces a database block's asset links and records the change. Kept links
+ * keep their index state; new ones start pending. Call it in
  * `writeRelationships`, then pass the result to {@link reindexBlockAssets}.
  */
 export const replaceBlockAssets = (params: {
@@ -85,39 +86,112 @@ export const replaceBlockAssets = (params: {
 }) =>
 	Effect.gen(function* () {
 		const db = yield* DB;
+		const assetIds = Arr.dedupe(params.assetIds);
 
 		const previousAssetIds = (yield* db
-			.delete(dbSchema.blockAsset)
-			.where(eq(dbSchema.blockAsset.blockId, params.blockId))
-			.returning({
+			.select({
 				assetId: dbSchema.blockAsset.assetId,
-			})).map((asset) => asset.assetId);
+			})
+			.from(dbSchema.blockAsset)
+			.where(eq(dbSchema.blockAsset.blockId, params.blockId))).map(
+			(link) => link.assetId,
+		);
+		const addedIds = Arr.difference(assetIds, previousAssetIds);
+		const removedIds = Arr.difference(previousAssetIds, assetIds);
 
-		if (params.assetIds.length > 0) {
-			yield* db.insert(dbSchema.blockAsset).values(
-				params.assetIds.map((assetId) => ({
-					blockId: params.blockId,
-					assetId,
-				})),
-			);
+		if (removedIds.length > 0) {
+			yield* db
+				.delete(dbSchema.blockAsset)
+				.where(
+					and(
+						eq(dbSchema.blockAsset.blockId, params.blockId),
+						inArray(dbSchema.blockAsset.assetId, removedIds),
+					),
+				);
+		}
+
+		if (addedIds.length > 0) {
+			yield* db
+				.insert(dbSchema.blockAsset)
+				.values(
+					addedIds.map((assetId) => ({
+						blockId: params.blockId,
+						assetId,
+					})),
+				)
+				.onConflictDoNothing();
 		}
 
 		yield* recordRelationshipFacts(
 			RelationshipFact.BlockAssetsChanged({
 				blockId: params.blockId,
 				before: previousAssetIds,
-				after: params.assetIds,
+				after: assetIds,
 			}),
 		);
 
 		return {
 			blockId: params.blockId,
-			addedIds: Arr.difference(params.assetIds, previousAssetIds),
-			removedIds: Arr.difference(previousAssetIds, params.assetIds),
+			addedIds,
+			removedIds,
 		};
 	});
 
-/** Drops the vectors of unlinked assets and indexes the newly linked, processed ones. */
+/**
+ * Queues indexing of processed assets in one repository and marks their links
+ * pending. A failed enqueue marks the links failed, so Retry shows.
+ */
+export const enqueueIndexing = (params: {
+	blockId: BlockId;
+	assetIds: readonly AssetId[];
+}) =>
+	Effect.gen(function* () {
+		if (params.assetIds.length === 0) return;
+		const db = yield* DB;
+		const links = and(
+			eq(dbSchema.blockAsset.blockId, params.blockId),
+			inArray(dbSchema.blockAsset.assetId, [
+				...params.assetIds,
+			]),
+		);
+
+		yield* db
+			.update(dbSchema.blockAsset)
+			.set({
+				indexStatus: "pending",
+				indexFailure: null,
+			})
+			.where(links);
+
+		yield* sendJobBatch({
+			jobName: VECTORIZE_ASSET_JOB_NAME,
+			jobs: params.assetIds.map((assetId) => ({
+				data: {
+					assetId,
+					blockId: params.blockId,
+				},
+			})),
+			resourceOptions: {
+				resourceId: params.blockId,
+				resourceType: "block",
+			},
+		}).pipe(
+			Effect.tapError(() =>
+				db
+					.update(dbSchema.blockAsset)
+					.set({
+						indexStatus: "failed",
+						indexFailure: "other",
+					})
+					.where(links),
+			),
+		);
+	});
+
+/**
+ * Drops the vectors of unlinked assets and indexes the newly linked, processed
+ * ones. The rest are indexed once their processing completes.
+ */
 export const reindexBlockAssets = (params: {
 	blockId: BlockId;
 	addedIds: readonly AssetId[];
@@ -155,20 +229,8 @@ export const reindexBlockAssets = (params: {
 				),
 			);
 
-		if (completedAssets.length === 0) return;
-
-		yield* sendJobBatch({
-			jobName: VECTORIZE_ASSET_JOB_NAME,
-			jobs: completedAssets.map((asset) => ({
-				data: {
-					prefix: asset.id,
-					assetId: asset.id,
-					blockId: params.blockId,
-				},
-			})),
-			resourceOptions: {
-				resourceId: params.blockId,
-				resourceType: "block",
-			},
+		yield* enqueueIndexing({
+			blockId: params.blockId,
+			assetIds: completedAssets.map((asset) => asset.id),
 		});
 	});
