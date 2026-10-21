@@ -4,7 +4,12 @@ import { ORPCError } from "@orpc/client";
 import * as Effect from "effect/Effect";
 import type { ORPCContext } from "@/lib/orpc/implementation/os";
 import { cookieName } from "@/paraglide/runtime";
-import { answers, procedureCalls, resetProcedures } from "../test-procedures";
+import {
+	answers,
+	procedureCalls,
+	resetProcedures,
+	runPromise,
+} from "../test-procedures";
 
 const id = (index: number) =>
 	`6a1f1c1e-2a3f-4c1d-9e8f-0a1b2c3d4e${String(index).padStart(2, "0")}`;
@@ -96,7 +101,7 @@ const callNames = () => procedureCalls.map(({ procedure }) => procedure);
 
 describe("deleteGroup", () => {
 	test("returns the names read before the delete", async () => {
-		const output = await Effect.runPromise(
+		const output = await runPromise(
 			deleteGroups(deps(), [
 				id(1) as GroupId,
 				id(9) as GroupId,
@@ -143,7 +148,7 @@ describe("deleteGroup with a wrong id", () => {
 				}),
 			);
 
-		const error = await Effect.runPromise(
+		const error = await runPromise(
 			Effect.flip(
 				deleteGroups(deps(), [
 					id(1) as GroupId,
@@ -160,7 +165,7 @@ describe("deleteGroup with a wrong id", () => {
 
 describe("removeMembers", () => {
 	test("returns the names read before the removal and maps ids to refs", async () => {
-		const output = await Effect.runPromise(
+		const output = await runPromise(
 			removeMembers(deps(), [
 				id(2) as UserId,
 			]),
@@ -198,7 +203,7 @@ describe("removeMembers", () => {
 
 describe("cancelInvitation", () => {
 	test("returns the emails read before the invitations are withdrawn", async () => {
-		const output = await Effect.runPromise(
+		const output = await runPromise(
 			cancelInvitations(deps(), [
 				id(3) as OrganizationInvitationId,
 				id(4) as OrganizationInvitationId,
@@ -229,7 +234,7 @@ describe("cancelInvitation", () => {
 describe("inviteMembers", () => {
 	test("sends a week's expiry and the caller's locale", async () => {
 		const now = new Date("2026-10-20T08:00:00.000Z");
-		const output = await Effect.runPromise(
+		const output = await runPromise(
 			inviteMembers(
 				deps(
 					new Headers({
@@ -284,7 +289,7 @@ describe("inviteMembers", () => {
 	});
 
 	test("leaves the locale to the procedure without request headers", async () => {
-		await Effect.runPromise(
+		await runPromise(
 			inviteMembers(
 				deps(),
 				{

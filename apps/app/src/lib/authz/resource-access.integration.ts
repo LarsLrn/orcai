@@ -21,7 +21,7 @@ import {
 	revokeResourceAccess,
 	setResourceVisibility,
 } from "@/lib/authz/resource-access";
-import { groupProcedures } from "@/lib/orpc/router/group";
+import { Procedures } from "@/lib/orpc/implementation/procedures";
 
 const {
 	run,
@@ -284,9 +284,10 @@ describe("grant and revoke", () => {
 	test(
 		"a grant queued after its group's deletion is rejected",
 		async () => {
+			const procedures = await run(Procedures);
 			const { organizationId, owner, blockId, zedToken } = await ownedBlock([]);
 			const { data: group } = await run(
-				groupProcedures.create(
+				procedures.group.create(
 					{
 						name: "Integration group",
 						description: null,
@@ -303,7 +304,7 @@ describe("grant and revoke", () => {
 				organizationId,
 				async () =>
 					run(
-						groupProcedures.delete(
+						procedures.group.delete(
 							{
 								refs: [
 									{

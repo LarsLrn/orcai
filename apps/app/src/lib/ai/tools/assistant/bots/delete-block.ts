@@ -1,6 +1,5 @@
 import { blockIdSchema } from "@orcai/schema";
 import { z } from "zod/v4";
-import { blockProcedures } from "@/lib/orpc/router/block";
 import { deleteNamed } from "../named-delete";
 import { type AssistantToolDeps, effectTool } from "../procedure-tool";
 
@@ -22,8 +21,8 @@ export const deleteBlockTool = (deps: AssistantToolDeps) =>
 		run: ({ ids }) =>
 			deleteNamed(deps, ids, {
 				type: "block",
-				find: (id, options) =>
-					blockProcedures.find(
+				find: (id, procedures, options) =>
+					procedures.block.find(
 						{
 							id,
 						},
@@ -34,8 +33,8 @@ export const deleteBlockTool = (deps: AssistantToolDeps) =>
 				name: ({ data }) => data.name,
 				canDelete: ({ data }) => data.capabilities.delete === true,
 				verify: "findBlocks",
-				remove: (ids, options) =>
-					blockProcedures.delete(
+				remove: (ids, procedures, options) =>
+					procedures.block.delete(
 						{
 							refs: ids.map((id) => ({
 								id,

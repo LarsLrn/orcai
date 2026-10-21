@@ -40,7 +40,6 @@ import {
 import { getZedToken } from "@/lib/authz/zed-token";
 import * as AppErrors from "@/lib/effect/utils/errors";
 import { authed } from "@/lib/orpc/implementation/authed";
-import { createProcedures } from "@/lib/orpc/implementation/procedures";
 import {
 	requireActiveOrganizationMiddleware,
 	requireInstanceAdminMiddleware,
@@ -964,5 +963,3 @@ export const userRouter = {
 	setTourState,
 	setActiveOrganization,
 };
-
-export const userProcedures = createProcedures("user", userRouter);

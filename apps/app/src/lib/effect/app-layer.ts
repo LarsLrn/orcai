@@ -7,6 +7,7 @@ import { S3Live } from "@orcai/s3/server";
 import { SpiceDbLive } from "@orcai/spice-db";
 import { ValkeyLive } from "@orcai/valkey";
 import * as Layer from "effect/Layer";
+import { ProceduresLive } from "@/lib/orpc/implementation/procedures";
 import { AuthzLive } from "./services/authz";
 import { AppConfigLive } from "./services/config";
 import { ObservabilityLive } from "./services/observability";
@@ -29,5 +30,6 @@ const AppInfra = Layer.mergeAll(AuthzLive, QuotaCounterStoreLive).pipe(
 export const AppLayer = Layer.mergeAll(
 	ObservabilityLive,
 	AiTelemetryLive,
+	ProceduresLive,
 	AppInfra,
 );

@@ -8,8 +8,6 @@ import { ORPCError } from "@orpc/client";
 import * as Effect from "effect/Effect";
 import { z } from "zod/v4";
 import { AssistantToolError } from "@/lib/ai/tools/tool-error";
-import { blockProcedures } from "@/lib/orpc/router/block";
-import { jobProcedures } from "@/lib/orpc/router/job";
 import {
 	type AssistantToolDeps,
 	callProcedure,
@@ -38,8 +36,8 @@ const vectorisationOf = (state: JobState | undefined) => {
 
 /** The newest vectorisation job state per asset in one repository. */
 const vectorisationStates = (deps: AssistantToolDeps, repositoryId: BlockId) =>
-	callProcedure(deps, (options) =>
-		jobProcedures.list(
+	callProcedure(deps, (procedures, options) =>
+		procedures.job.list(
 			{
 				resourceType: "block",
 				resourceId: repositoryId,
@@ -85,8 +83,8 @@ export const getBlockTool = (deps: AssistantToolDeps) =>
 
 				const { data: block, assets = [] } = yield* callProcedure(
 					deps,
-					(options) =>
-						blockProcedures.find(
+					(procedures, options) =>
+						procedures.block.find(
 							{
 								id,
 							},

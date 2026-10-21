@@ -3,7 +3,7 @@ import * as Effect from "effect/Effect";
 import { z } from "zod/v4";
 import { effectTool } from "@/lib/ai/tools/assistant/procedure-tool";
 import type { ORPCContext } from "@/lib/orpc/implementation/os";
-import { assetPointProcedures } from "@/lib/orpc/router/asset-point";
+import { Procedures } from "@/lib/orpc/implementation/procedures";
 import { RETRIEVAL_LIMITS } from "@/settings/constants";
 import type { ChunkResult, PointWithBlock } from "./types";
 import {
@@ -60,6 +60,7 @@ export const getKnowledgeBaseChunksTool = ({
 		}),
 		run: ({ ids, limit, blockId, includeAdjacent }) =>
 			Effect.gen(function* () {
+				const procedures = yield* Procedures;
 				const targetBlocks = resolveSearchBlocks({
 					blocks,
 					blockId,
@@ -99,7 +100,7 @@ export const getKnowledgeBaseChunksTool = ({
 				const blockResponses = yield* Effect.forEach(
 					targetBlocks,
 					(block) =>
-						assetPointProcedures
+						procedures.assetPoint
 							.searchRepository(
 								{
 									repositoryId: block.id,
@@ -138,6 +139,7 @@ export const getKnowledgeBaseChunksTool = ({
 						orderedCandidates,
 						(candidate) =>
 							Effect.gen(function* () {
+								const procedures = yield* Procedures;
 								const neighboringChunkIndexes = [];
 								for (let offset = 1; offset <= includeAdjacent; offset += 1) {
 									const previous = candidate.payload.chunk_index - offset;
@@ -153,7 +155,7 @@ export const getKnowledgeBaseChunksTool = ({
 									};
 								}
 
-								const response = yield* assetPointProcedures.searchRepository(
+								const response = yield* procedures.assetPoint.searchRepository(
 									{
 										repositoryId: candidate.sourceBlock.id,
 										filters: {

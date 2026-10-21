@@ -1,6 +1,5 @@
 import * as Effect from "effect/Effect";
 import { z } from "zod/v4";
-import { resourceProcedures } from "@/lib/orpc/router/resource";
 import {
 	type AssistantToolDeps,
 	callProcedure,
@@ -25,11 +24,11 @@ export const listAccessTool = (deps: AssistantToolDeps) =>
 				const resource = toResourceIdentity(input);
 				const [grants, inherited] = yield* Effect.all(
 					[
-						callProcedure(deps, (options) =>
-							resourceProcedures.listGrants(resource, options),
+						callProcedure(deps, (procedures, options) =>
+							procedures.resource.listGrants(resource, options),
 						).pipe(expectResource(input)),
-						callProcedure(deps, (options) =>
-							resourceProcedures.inheritedAccess(resource, options),
+						callProcedure(deps, (procedures, options) =>
+							procedures.resource.inheritedAccess(resource, options),
 						).pipe(expectResource(input)),
 					],
 					{

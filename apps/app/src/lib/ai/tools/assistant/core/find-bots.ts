@@ -1,6 +1,5 @@
 import * as Effect from "effect/Effect";
 import { z } from "zod/v4";
-import { botProcedures } from "@/lib/orpc/router/bot";
 import {
 	type AssistantToolDeps,
 	callProcedure,
@@ -41,11 +40,11 @@ export const findBotsTool = (deps: AssistantToolDeps) =>
 				};
 				const [ready, drafts] = yield* Effect.all(
 					[
-						callProcedure(deps, (options) =>
-							botProcedures.list(input, options),
+						callProcedure(deps, (procedures, options) =>
+							procedures.bot.list(input, options),
 						),
-						callProcedure(deps, (options) =>
-							botProcedures.listDrafts(input, options),
+						callProcedure(deps, (procedures, options) =>
+							procedures.bot.listDrafts(input, options),
 						),
 					],
 					{

@@ -7,7 +7,6 @@ import {
 } from "@orcai/schema";
 import * as Effect from "effect/Effect";
 import { z } from "zod/v4";
-import { botProcedures } from "@/lib/orpc/router/bot";
 import {
 	type AssistantToolDeps,
 	callProcedure,
@@ -65,8 +64,8 @@ export const createBotTool = (deps: AssistantToolDeps) =>
 					input,
 				},
 				{
-					create: callProcedure(deps, (options) =>
-						botProcedures.save(payload, options),
+					create: callProcedure(deps, (procedures, options) =>
+						procedures.bot.save(payload, options),
 					).pipe(
 						mutation("findBots"),
 						expectType("block", [
@@ -85,8 +84,8 @@ export const createBotTool = (deps: AssistantToolDeps) =>
 						bot.id,
 					],
 					replay: ([botId]) =>
-						callProcedure(deps, (options) =>
-							botProcedures.findEditor(
+						callProcedure(deps, (procedures, options) =>
+							procedures.bot.findEditor(
 								{
 									id: botId as BotId,
 								},

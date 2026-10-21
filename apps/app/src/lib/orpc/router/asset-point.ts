@@ -17,7 +17,6 @@ import { clamp } from "effect/Number";
 import type { z } from "zod/v4";
 import * as AppErrors from "@/lib/effect/utils/errors";
 import { authed } from "@/lib/orpc/implementation/authed";
-import { createProcedures } from "@/lib/orpc/implementation/procedures";
 import { requireEntityPermission } from "@/lib/orpc/middlewares/permission";
 
 const retrieveAssetPoints = (
@@ -303,8 +302,3 @@ export const assetPointRouter = {
 	list: listAssetPoint,
 	searchRepository: searchRepositoryAssetPoint,
 };
-
-export const assetPointProcedures = createProcedures(
-	"assetPoint",
-	assetPointRouter,
-);

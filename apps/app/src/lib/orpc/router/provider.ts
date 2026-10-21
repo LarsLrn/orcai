@@ -5,7 +5,6 @@ import * as Effect from "effect/Effect";
 import * as AppErrors from "@/lib/effect/utils/errors";
 import { encryptApiKey } from "@/lib/encryption";
 import { authed } from "@/lib/orpc/implementation/authed";
-import { createProcedures } from "@/lib/orpc/implementation/procedures";
 import { requireOrganizationPermission } from "@/lib/orpc/middlewares/permission";
 import { buildOrderBy, type SortExpression } from "./helpers/sorting";
 
@@ -256,5 +255,3 @@ export const providerRouter = {
 	update: updateProvider,
 	delete: deleteProviders,
 };
-
-export const providerProcedures = createProcedures("provider", providerRouter);

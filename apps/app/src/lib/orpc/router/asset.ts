@@ -27,7 +27,6 @@ import {
 import { getZedToken } from "@/lib/authz/zed-token";
 import * as AppErrors from "@/lib/effect/utils/errors";
 import { authed } from "@/lib/orpc/implementation/authed";
-import { createProcedures } from "@/lib/orpc/implementation/procedures";
 import {
 	type CheckManyPermissionInputFor,
 	checkManyPermissionMiddleware,
@@ -480,5 +479,3 @@ export const assetRouter = {
 	find: findAsset,
 	delete: deleteAssets,
 };
-
-export const assetProcedures = createProcedures("asset", assetRouter);

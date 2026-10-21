@@ -38,7 +38,6 @@ import {
 import { scopedResourceRef } from "@/lib/authz/scoped-resource-id";
 import { getZedToken } from "@/lib/authz/zed-token";
 import { authed } from "@/lib/orpc/implementation/authed";
-import { createProcedures } from "@/lib/orpc/implementation/procedures";
 import { requireResourcePermission } from "@/lib/orpc/middlewares/permission";
 import { canSeeEmailIn, canSeeEmailOn } from "./helpers/can-see-email";
 import { changedAt } from "./helpers/changed-at";
@@ -745,5 +744,3 @@ export const resourceRouter = {
 	getVisibility: getResourceVisibility,
 	setVisibility,
 };
-
-export const resourceProcedures = createProcedures("resource", resourceRouter);

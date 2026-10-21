@@ -8,7 +8,6 @@ import {
 import { getZedToken } from "@/lib/authz/zed-token";
 import * as AppErrors from "@/lib/effect/utils/errors";
 import { authed } from "@/lib/orpc/implementation/authed";
-import { createProcedures } from "@/lib/orpc/implementation/procedures";
 import { requireOrganizationPermission } from "@/lib/orpc/middlewares/permission";
 
 const listOrganizationMembers = authed.organizationMember.list
@@ -129,8 +128,3 @@ export const organizationMemberRouter = {
 	update: updateOrganizationMember,
 	delete: deleteOrganizationMembers,
 };
-
-export const organizationMemberProcedures = createProcedures(
-	"organizationMember",
-	organizationMemberRouter,
-);

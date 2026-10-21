@@ -9,7 +9,6 @@ import {
 } from "@orcai/schema";
 import * as Effect from "effect/Effect";
 import { z } from "zod/v4";
-import { botProcedures } from "@/lib/orpc/router/bot";
 import {
 	type AssistantToolDeps,
 	callProcedure,
@@ -95,19 +94,21 @@ export const updateBotTool = (deps: AssistantToolDeps) =>
 		run: (input) =>
 			Effect.gen(function* () {
 				const { id } = input;
-				const { data: current } = yield* callProcedure(deps, (options) =>
-					botProcedures.findEditor(
-						{
-							id,
-						},
-						options,
-					),
+				const { data: current } = yield* callProcedure(
+					deps,
+					(procedures, options) =>
+						procedures.bot.findEditor(
+							{
+								id,
+							},
+							options,
+						),
 				).pipe(expectType("bot", id));
 				const payload = updateBotPayload(input, current);
 				const { templateBlockId, databaseBlockIds } = payload;
 
-				return yield* callProcedure(deps, (options) =>
-					botProcedures.save(payload, options),
+				return yield* callProcedure(deps, (procedures, options) =>
+					procedures.bot.save(payload, options),
 				).pipe(
 					mutation("getBot"),
 					expectType("block", [

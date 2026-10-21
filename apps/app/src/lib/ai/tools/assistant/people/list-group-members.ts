@@ -1,6 +1,5 @@
 import { listGroupMembersInputSchema as groupMembersQuerySchema } from "@orcai/schema";
 import * as Effect from "effect/Effect";
-import { groupProcedures } from "@/lib/orpc/router/group";
 import { listLimitSchema } from "../core/list-input";
 import {
 	type AssistantToolDeps,
@@ -27,8 +26,8 @@ export const listGroupMembersTool = (deps: AssistantToolDeps) =>
 			"List the members of a group. Members of the All Members group are every organisation member (source implicit).",
 		inputSchema: listGroupMembersInputSchema,
 		run: ({ groupId, query, limit }) =>
-			callProcedure(deps, (options) =>
-				groupProcedures.listMembers(
+			callProcedure(deps, (procedures, options) =>
+				procedures.group.listMembers(
 					{
 						groupId,
 						query,

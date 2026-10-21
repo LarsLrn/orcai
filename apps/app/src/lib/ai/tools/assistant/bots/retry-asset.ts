@@ -1,7 +1,6 @@
 import { assetIdSchema, blockIdSchema } from "@orcai/schema";
 import * as Effect from "effect/Effect";
 import { z } from "zod/v4";
-import { jobProcedures } from "@/lib/orpc/router/job";
 import {
 	type AssistantToolDeps,
 	callProcedure,
@@ -26,8 +25,8 @@ export const retryAssetTool = (deps: AssistantToolDeps) =>
 		inputSchema: retryAssetInputSchema,
 		run: ({ assetId, repositoryId }) =>
 			(repositoryId
-				? callProcedure(deps, (options) =>
-						jobProcedures.retryVectorization(
+				? callProcedure(deps, (procedures, options) =>
+						procedures.job.retryVectorization(
 							{
 								assetId,
 								blockId: repositoryId,
@@ -35,8 +34,8 @@ export const retryAssetTool = (deps: AssistantToolDeps) =>
 							options,
 						),
 					)
-				: callProcedure(deps, (options) =>
-						jobProcedures.retryProcessing(
+				: callProcedure(deps, (procedures, options) =>
+						procedures.job.retryProcessing(
 							{
 								assetId,
 							},

@@ -1,6 +1,5 @@
 import { describe, expect, test } from "bun:test";
 import {
-	deleteAssetPointInputSchema,
 	deleteAssetsInputSchema,
 	deleteBlocksInputSchema,
 	deleteBotsInputSchema,
@@ -58,9 +57,6 @@ const createIdRefCase = (
 
 const deleteSchemas = [
 	createIdRefCase("assets", deleteAssetsInputSchema),
-	createIdRefCase("asset points", deleteAssetPointInputSchema, {
-		assetId: ids[0],
-	}),
 	createIdRefCase("blocks", deleteBlocksInputSchema),
 	createIdRefCase("bots", deleteBotsInputSchema),
 	createIdRefCase("chats", deleteChatInputSchema),

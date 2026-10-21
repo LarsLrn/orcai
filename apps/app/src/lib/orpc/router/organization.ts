@@ -32,7 +32,6 @@ import { writeRelationships } from "@/lib/authz/relationship-write";
 import { getZedToken } from "@/lib/authz/zed-token";
 import * as AppErrors from "@/lib/effect/utils/errors";
 import { authed } from "@/lib/orpc/implementation/authed";
-import { createProcedures } from "@/lib/orpc/implementation/procedures";
 import { requireInstanceAdminMiddleware } from "@/lib/orpc/middlewares/auth";
 import { requireEntityPermission } from "@/lib/orpc/middlewares/permission";
 import { unique } from "@/lib/utils/array-utils";
@@ -474,8 +473,3 @@ export const organizationRouter = {
 	delete: deleteOrganizations,
 	deletionImpact: getOrganizationDeletionImpact,
 };
-
-export const organizationProcedures = createProcedures(
-	"organization",
-	organizationRouter,
-);

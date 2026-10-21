@@ -1,8 +1,6 @@
 import { botIdSchema } from "@orcai/schema";
 import * as Effect from "effect/Effect";
 import { z } from "zod/v4";
-import { blockProcedures } from "@/lib/orpc/router/block";
-import { botProcedures } from "@/lib/orpc/router/bot";
 import {
 	type AssistantToolDeps,
 	callProcedure,
@@ -22,18 +20,20 @@ export const getBotTool = (deps: AssistantToolDeps) =>
 		inputSchema: getBotInputSchema,
 		run: ({ id }) =>
 			Effect.gen(function* () {
-				const { data: bot } = yield* callProcedure(deps, (options) =>
-					botProcedures.find(
-						{
-							id,
-						},
-						options,
-					),
+				const { data: bot } = yield* callProcedure(
+					deps,
+					(procedures, options) =>
+						procedures.bot.find(
+							{
+								id,
+							},
+							options,
+						),
 				).pipe(expectType("bot", id));
 
 				const links = bot.capabilities.edit
-					? yield* callProcedure(deps, (options) =>
-							botProcedures.findEditor(
+					? yield* callProcedure(deps, (procedures, options) =>
+							procedures.bot.findEditor(
 								{
 									id,
 								},
@@ -54,8 +54,8 @@ export const getBotTool = (deps: AssistantToolDeps) =>
 					: yield* Effect.forEach(
 							bot.blockIds,
 							(blockId) =>
-								callProcedure(deps, (options) =>
-									blockProcedures.find(
+								callProcedure(deps, (procedures, options) =>
+									procedures.block.find(
 										{
 											id: blockId,
 										},

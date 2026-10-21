@@ -1,6 +1,5 @@
 import { assetIdSchema } from "@orcai/schema";
 import { z } from "zod/v4";
-import { assetProcedures } from "@/lib/orpc/router/asset";
 import { deleteNamed } from "../named-delete";
 import { type AssistantToolDeps, effectTool } from "../procedure-tool";
 
@@ -20,8 +19,8 @@ export const deleteAssetTool = (deps: AssistantToolDeps) =>
 		run: ({ ids }) =>
 			deleteNamed(deps, ids, {
 				type: "asset",
-				find: (id, options) =>
-					assetProcedures.find(
+				find: (id, procedures, options) =>
+					procedures.asset.find(
 						{
 							id,
 						},
@@ -30,8 +29,8 @@ export const deleteAssetTool = (deps: AssistantToolDeps) =>
 				name: ({ data }) => data.title,
 				canDelete: ({ data }) => data.capabilities.delete === true,
 				verify: "findAssets",
-				remove: (ids, options) =>
-					assetProcedures.delete(
+				remove: (ids, procedures, options) =>
+					procedures.asset.delete(
 						{
 							refs: ids.map((id) => ({
 								id,

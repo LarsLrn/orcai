@@ -27,7 +27,6 @@ import { detachGroups } from "@/lib/authz/resource-access";
 import { getZedToken } from "@/lib/authz/zed-token";
 import * as AppErrors from "@/lib/effect/utils/errors";
 import { authed } from "@/lib/orpc/implementation/authed";
-import { createProcedures } from "@/lib/orpc/implementation/procedures";
 import { requireActiveOrganizationMiddleware } from "@/lib/orpc/middlewares/auth";
 import { requireOrganizationPermission } from "@/lib/orpc/middlewares/permission";
 import { literalSearch } from "./helpers/literal-search";
@@ -837,5 +836,3 @@ export const groupRouter = {
 	addMembers: addGroupMembers,
 	removeMembers: removeGroupMembers,
 };
-
-export const groupProcedures = createProcedures("group", groupRouter);

@@ -1,32 +1,38 @@
 import type { contracts } from "@orcai/contracts";
-import { createEffectClient } from "@orpc/experimental-effect";
+import type { ContractRouterClient } from "@orpc/contract";
 import {
-	type AnyRouter,
-	type ContractedRouter,
-	createRouterClient,
-	type InferRouterInitialContext,
-} from "@orpc/server";
+	createEffectClient,
+	type EffectClient,
+} from "@orpc/experimental-effect";
+import { createRouterClient } from "@orpc/server";
+import * as Context from "effect/Context";
+import * as Effect from "effect/Effect";
+import * as Layer from "effect/Layer";
+import type { ORPCContext } from "./os";
 
-type Contracts = typeof contracts;
+/**
+ * Every procedure as an effect, called in the caller's context so middlewares
+ * and validation still apply. Typed from the contracts: the router's own type
+ * depends on code that calls procedures.
+ */
+export type ProcedureClients = EffectClient<
+	ContractRouterClient<typeof contracts, ORPCContext>
+>;
 
-/** Procedures of a contract namespace; some contracts have procedures the server leaves out. */
-type NamespaceRouter<K extends keyof Contracts, T> = AnyRouter &
-	Partial<ContractedRouter<Contracts[K], any>> &
-	Record<Exclude<keyof T, keyof Contracts[K]>, never>;
+export class Procedures extends Context.Service<Procedures, ProcedureClients>()(
+	"Procedures",
+) {}
 
-/** Calls a namespace's procedures as effects in the caller's context, so middlewares and validation still apply. */
-export const createProcedures = <
-	K extends keyof Contracts,
-	T extends NamespaceRouter<K, T>,
->(
-	namespace: K,
-	router: T,
-) =>
-	createEffectClient(
-		createRouterClient(router, {
-			path: [
-				namespace,
-			],
-			context: (context: InferRouterInitialContext<T>) => context,
-		}),
-	);
+// The router imports code that calls procedures, so it loads when the layer builds.
+export const ProceduresLive: Layer.Layer<Procedures> = Layer.effect(
+	Procedures,
+	Effect.promise(() => import("@/lib/orpc/router")).pipe(
+		Effect.map(({ router }) =>
+			createEffectClient(
+				createRouterClient(router, {
+					context: (context: ORPCContext) => context,
+				}),
+			),
+		),
+	),
+);

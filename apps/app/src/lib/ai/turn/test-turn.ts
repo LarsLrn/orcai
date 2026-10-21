@@ -22,7 +22,7 @@ import { AppConfigService } from "@/lib/effect/services/config";
 import type { ORPCContext } from "@/lib/orpc/implementation/os";
 import { memberCapabilities, scriptedFetch } from "../agents/test-provider";
 import { withQuotaServices } from "../metered-call/test-quota";
-import { answers } from "../tools/assistant/test-procedures";
+import { answers, FakeServices } from "../tools/assistant/test-procedures";
 import type { ReplyStore, StoredChat } from "./reply-store";
 
 /**
@@ -163,7 +163,7 @@ export const runTurn = <A, E>(
 	Effect.runPromise(
 		withQuotaServices(
 			effect.pipe(
-				Effect.provide(Layer.merge(store, AppConfigTest)),
+				Effect.provide(Layer.mergeAll(store, AppConfigTest, FakeServices)),
 			) as Effect.Effect<A, E, never>,
 		),
 	);

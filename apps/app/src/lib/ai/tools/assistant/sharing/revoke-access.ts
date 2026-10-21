@@ -1,6 +1,5 @@
 import * as Effect from "effect/Effect";
 import { z } from "zod/v4";
-import { resourceProcedures } from "@/lib/orpc/router/resource";
 import {
 	type AssistantToolDeps,
 	callProcedure,
@@ -33,8 +32,8 @@ export const revokeAccessTool = (deps: AssistantToolDeps) =>
 					principalType,
 					principalId,
 				});
-				const { message } = yield* callProcedure(deps, (options) =>
-					resourceProcedures.revoke(
+				const { message } = yield* callProcedure(deps, (procedures, options) =>
+					procedures.resource.revoke(
 						{
 							...resource,
 							...principal,

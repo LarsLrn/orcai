@@ -20,7 +20,7 @@ import * as Layer from "effect/Layer";
 import * as ManagedRuntime from "effect/ManagedRuntime";
 import { Client } from "pg";
 import { AppLayer } from "@/lib/effect/app-layer";
-import { blockProcedures } from "@/lib/orpc/router/block";
+import { Procedures } from "@/lib/orpc/implementation/procedures";
 
 const ORGANIZATION_LOCK_SPACE = 72370906;
 export const TIMEOUT = 30_000;
@@ -207,8 +207,9 @@ export const authzIntegration = () => {
 	};
 
 	const createBlock = async (owner: Actor, zedToken?: string) => {
+		const procedures = await run(Procedures);
 		const { data, meta } = await run(
-			blockProcedures.create(
+			procedures.block.create(
 				{
 					type: "template",
 					name: "Integration block",

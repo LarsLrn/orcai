@@ -1,7 +1,6 @@
 import * as Effect from "effect/Effect";
 import { z } from "zod/v4";
 import { blockTypeOf } from "@/lib/ai/tools/entity-kind";
-import { blockProcedures } from "@/lib/orpc/router/block";
 import {
 	type AssistantToolDeps,
 	callProcedure,
@@ -35,8 +34,8 @@ export const findBlocksTool = (deps: AssistantToolDeps) =>
 						"draft",
 					] as const,
 					(status) =>
-						callProcedure(deps, (options) =>
-							blockProcedures.list(
+						callProcedure(deps, (procedures, options) =>
+							procedures.block.list(
 								{
 									pageSize: limit,
 									filters: {

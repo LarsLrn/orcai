@@ -1,6 +1,5 @@
 import * as Effect from "effect/Effect";
 import { z } from "zod/v4";
-import { userProcedures } from "@/lib/orpc/router/user";
 import {
 	type AssistantToolDeps,
 	callProcedure,
@@ -24,8 +23,8 @@ export const listMembersTool = (deps: AssistantToolDeps) =>
 			"List the members of the active organisation with their names, emails and organisation roles.",
 		inputSchema: listMembersInputSchema,
 		run: ({ query, limit }) =>
-			callProcedure(deps, (options) =>
-				userProcedures.list(
+			callProcedure(deps, (procedures, options) =>
+				procedures.user.list(
 					{
 						pageSize: limit,
 						filters: {

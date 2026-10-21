@@ -2,7 +2,6 @@ import type { BlockId } from "@orcai/core";
 import { blockFieldsSchema, publicationStatusSchema } from "@orcai/schema";
 import * as Effect from "effect/Effect";
 import { z } from "zod/v4";
-import { blockProcedures } from "@/lib/orpc/router/block";
 import {
 	type AssistantToolDeps,
 	callProcedure,
@@ -39,8 +38,8 @@ export const createTemplateTool = (deps: AssistantToolDeps) =>
 					input,
 				},
 				{
-					create: callProcedure(deps, (options) =>
-						blockProcedures.create(
+					create: callProcedure(deps, (procedures, options) =>
+						procedures.block.create(
 							{
 								type: "template",
 								name: input.name,
@@ -65,8 +64,8 @@ export const createTemplateTool = (deps: AssistantToolDeps) =>
 						template.id,
 					],
 					replay: ([templateId]) =>
-						callProcedure(deps, (options) =>
-							blockProcedures.find(
+						callProcedure(deps, (procedures, options) =>
+							procedures.block.find(
 								{
 									id: templateId as BlockId,
 								},

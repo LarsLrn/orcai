@@ -7,7 +7,7 @@ import * as Effect from "effect/Effect";
 import z from "zod/v4";
 import { effectTool } from "@/lib/ai/tools/assistant/procedure-tool";
 import type { ORPCContext } from "@/lib/orpc/implementation/os";
-import { assetPointProcedures } from "@/lib/orpc/router/asset-point";
+import { Procedures } from "@/lib/orpc/implementation/procedures";
 import type { ChunkResult, KnowledgeBaseDocument } from "./types";
 import {
 	compareByPageAssetChunk,
@@ -76,6 +76,7 @@ export const getKnowledgeBasePageTool = ({
 			limit,
 		}) =>
 			Effect.gen(function* () {
+				const procedures = yield* Procedures;
 				const targetBlocks = resolveSearchBlocks({
 					blocks,
 					blockId,
@@ -134,7 +135,7 @@ export const getKnowledgeBasePageTool = ({
 				const blockResponses = yield* Effect.forEach(
 					targetBlocks,
 					(block) =>
-						assetPointProcedures
+						procedures.assetPoint
 							.searchRepository(
 								{
 									repositoryId: block.id,

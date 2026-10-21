@@ -2,7 +2,6 @@ import type { OrganizationInvitationId } from "@orcai/core";
 import { createOrganizationInvitationsInputSchema } from "@orcai/schema";
 import * as Effect from "effect/Effect";
 import { z } from "zod/v4";
-import { organizationInvitationProcedures } from "@/lib/orpc/router/organization-invitation";
 import {
 	type AssistantToolDeps,
 	callProcedure,
@@ -33,8 +32,8 @@ export const inviteMembers = (
 			now,
 			locale: requestLocale(deps.context.reqHeaders),
 		});
-		const { data } = yield* callProcedure(deps, (options) =>
-			organizationInvitationProcedures.create(request, options),
+		const { data } = yield* callProcedure(deps, (procedures, options) =>
+			procedures.organizationInvitation.create(request, options),
 		).pipe(mutation("listInvitations"));
 
 		return {
@@ -65,8 +64,8 @@ export const inviteMembersTool = (deps: AssistantToolDeps) =>
 					ids: ({ invited }) => invited.map((invitation) => invitation.id),
 					replay: (ids) =>
 						Effect.forEach(ids, (id) =>
-							callProcedure(deps, (options) =>
-								organizationInvitationProcedures.find(
+							callProcedure(deps, (procedures, options) =>
+								procedures.organizationInvitation.find(
 									{
 										id: id as OrganizationInvitationId,
 									},

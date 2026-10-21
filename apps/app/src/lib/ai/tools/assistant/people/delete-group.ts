@@ -2,7 +2,6 @@ import type { GroupId } from "@orcai/core";
 import { groupIdSchema } from "@orcai/schema";
 import * as Effect from "effect/Effect";
 import { z } from "zod/v4";
-import { groupProcedures } from "@/lib/orpc/router/group";
 import { deleteNamed } from "../named-delete";
 import { type AssistantToolDeps, effectTool } from "../procedure-tool";
 
@@ -17,8 +16,8 @@ const deleteGroupInputSchema = z.object({
 export const deleteGroups = (deps: AssistantToolDeps, ids: GroupId[]) =>
 	deleteNamed(deps, ids, {
 		type: "group",
-		find: (id, options) =>
-			groupProcedures.find(
+		find: (id, procedures, options) =>
+			procedures.group.find(
 				{
 					id,
 				},
@@ -26,8 +25,8 @@ export const deleteGroups = (deps: AssistantToolDeps, ids: GroupId[]) =>
 			),
 		name: ({ data }) => data.name,
 		verify: "listGroups",
-		remove: (ids, options) =>
-			groupProcedures.delete(
+		remove: (ids, procedures, options) =>
+			procedures.group.delete(
 				{
 					refs: ids.map((id) => ({
 						id,

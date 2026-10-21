@@ -7,8 +7,7 @@ import {
 import type { AssetPoint, DatabaseBlock } from "@orcai/schema";
 import * as Effect from "effect/Effect";
 import type { ORPCContext } from "@/lib/orpc/implementation/os";
-import { assetProcedures } from "@/lib/orpc/router/asset";
-import { blockProcedures } from "@/lib/orpc/router/block";
+import { Procedures } from "@/lib/orpc/implementation/procedures";
 import { RETRIEVAL_LIMITS } from "@/settings/constants";
 import type {
 	ChunkResult,
@@ -255,10 +254,11 @@ export const loadDocumentCatalog = ({
 	context: ORPCContext;
 }) =>
 	Effect.gen(function* () {
+		const procedures = yield* Procedures;
 		const blockAssetRefs = yield* Effect.forEach(
 			blocks,
 			(block) =>
-				blockProcedures
+				procedures.block
 					.find(
 						{
 							id: block.id,
@@ -286,7 +286,7 @@ export const loadDocumentCatalog = ({
 			return [];
 		}
 
-		const assetResponse = yield* assetProcedures.list(
+		const assetResponse = yield* procedures.asset.list(
 			{
 				pageIndex: 0,
 				pageSize: Math.min(1000, Math.max(uniqueAssetIds.length, 20)),
