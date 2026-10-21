@@ -9,11 +9,7 @@ import * as Effect from "effect/Effect";
 import type { ORPCContext } from "@/lib/orpc/implementation/os";
 import { Procedures } from "@/lib/orpc/implementation/procedures";
 import { joinOverlapping } from "./passages";
-import type {
-	ChunkResult,
-	KnowledgeBaseDocument,
-	PointWithBlock,
-} from "./types";
+import type { KnowledgeBaseDocument, Passage, PointWithBlock } from "./types";
 
 export const resolveSearchBlocks = ({
 	blocks,
@@ -88,85 +84,23 @@ export const flattenBlockResponses = (
 		}),
 	);
 
-const escapeHtmlAttribute = (value: string) =>
-	value.replaceAll("&", "&amp;").replaceAll('"', "&quot;");
-
-const buildCitationRef = ({
-	assetId,
-	title,
-	pageStart,
-	pageEnd,
-}: {
-	assetId: AssetId;
-	title: string;
-	pageStart?: number;
-	pageEnd?: number;
-}) => {
-	const page = pageStart === pageEnd ? pageStart : undefined;
-	const attributes = [
-		`assetid="${escapeHtmlAttribute(assetId)}"`,
-		`title="${escapeHtmlAttribute(title)}"`,
-		...(typeof page === "number"
-			? [
-					`page="${String(page)}"`,
-				]
-			: []),
-	].join(" ");
-	const openTag = `<cite ${attributes}>`;
-
-	return {
-		assetId,
-		title,
-		page,
-		openTag,
-		closeTag: "</cite>" as const,
-		example: `${openTag}quoted text${"</cite>"}`,
-	};
-};
-
-const pagesOf = (run: PointWithBlock[]) => {
+/** A run of neighbouring chunks of one document as one passage. */
+export const toPassage = (run: PointWithBlock[]): Passage => {
+	const [first] = run;
 	const starts = run.flatMap((point) => point.payload.chunkPageStart ?? []);
 	const ends = run.flatMap((point) => point.payload.chunkPageEnd ?? []);
 
 	return {
+		id: first.id,
+		assetId: first.payload.asset_id,
+		title: first.payload.title,
+		blockName: first.sourceBlock.name,
 		pageStart: starts.length > 0 ? Math.min(...starts) : undefined,
 		pageEnd: ends.length > 0 ? Math.max(...ends) : undefined,
-	};
-};
-
-/** A run of neighbouring chunks of one document as one result. */
-export const toChunkResult = (run: PointWithBlock[]): ChunkResult => {
-	const [first] = run;
-	const { pageStart, pageEnd } = pagesOf(run);
-
-	return {
-		id: first.id,
-		score: first.score,
-		title: first.payload.title,
+		totalPages: first.payload.documentTotalPages,
 		text: run
 			.map((point) => point.payload.text)
 			.reduce((text, next) => joinOverlapping(text, next)),
-		source: {
-			block: first.sourceBlock,
-			document: {
-				assetId: first.payload.asset_id,
-				title: first.payload.title,
-				totalPages: first.payload.documentTotalPages,
-			},
-			chunk: {
-				index: first.payload.chunk_index,
-				count: first.payload.chunkCount,
-				pageStart,
-				pageEnd,
-			},
-			citation: buildCitationRef({
-				assetId: first.payload.asset_id,
-				title: first.payload.title,
-				pageStart,
-				pageEnd,
-			}),
-			createdAt: first.payload.createdAt,
-		},
 	};
 };
 

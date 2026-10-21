@@ -2130,7 +2130,6 @@
 		}
 	],
 	"chat_work_log_reasoning_duration_unknown": "Thought for a few seconds",
-	"chat_work_log_source_block_and_pages": "{block} · p. {range}",
 	"chat_work_log_source_pages": "p. {range}",
 	"chat_work_log_thinking": "Thinking",
 	"chat_work_log_compacting": "Compacting conversation…",

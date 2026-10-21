@@ -3,6 +3,7 @@ import * as Effect from "effect/Effect";
 import z from "zod/v4";
 import { effectTool } from "@/lib/ai/tools/assistant/procedure-tool";
 import type { ORPCContext } from "@/lib/orpc/implementation/os";
+import { listModelOutput } from "./outputs";
 import type { KnowledgeBaseDocument } from "./types";
 import {
 	loadDocumentCatalog,
@@ -71,4 +72,5 @@ export const listKnowledgeBaseDocumentsTool = ({
 					},
 				};
 			}),
+		toModelOutput: listModelOutput,
 	});

@@ -10,12 +10,13 @@ import { AssistantToolError } from "@/lib/ai/tools/tool-error";
 import type { ORPCContext } from "@/lib/orpc/implementation/os";
 import { Procedures } from "@/lib/orpc/implementation/procedures";
 import { RETRIEVAL_LIMITS } from "@/settings/constants";
-import type { ChunkResult } from "./types";
+import { searchModelOutput } from "./outputs";
+import type { Passage } from "./types";
 import {
 	flattenBlockResponses,
 	mergeAndSortCandidates,
 	resolveSearchBlocks,
-	toChunkResult,
+	toPassage,
 } from "./utils";
 
 const normalizeQueries = ({
@@ -122,7 +123,7 @@ export const searchKnowledgeBaseTool = ({
 
 				if (targetBlocks.length === 0) {
 					return {
-						results: [] as ChunkResult[],
+						results: [] as Passage[],
 						noNewEvidence: true,
 						nextAction: "refineSearchOrListDocuments" as const,
 					};
@@ -164,10 +165,10 @@ export const searchKnowledgeBaseTool = ({
 				const candidates = mergeAndSortCandidates(
 					flattenBlockResponses(blockResponses),
 				);
-				const boundedResults: ChunkResult[] = candidates
+				const boundedResults: Passage[] = candidates
 					.slice(0, Math.min(limit, RETRIEVAL_LIMITS.maxSnippetResultsPerCall))
 					.map((point) =>
-						toChunkResult([
+						toPassage([
 							point,
 						]),
 					);
@@ -187,4 +188,5 @@ export const searchKnowledgeBaseTool = ({
 					},
 				};
 			}),
+		toModelOutput: searchModelOutput,
 	});

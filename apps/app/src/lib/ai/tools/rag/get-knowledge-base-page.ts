@@ -8,8 +8,9 @@ import z from "zod/v4";
 import { effectTool } from "@/lib/ai/tools/assistant/procedure-tool";
 import type { ORPCContext } from "@/lib/orpc/implementation/os";
 import { Procedures } from "@/lib/orpc/implementation/procedures";
+import { pageModelOutput } from "./outputs";
 import { neighbouringRuns } from "./passages";
-import type { ChunkResult, KnowledgeBaseDocument } from "./types";
+import type { KnowledgeBaseDocument, Passage } from "./types";
 import {
 	compareByPageAssetChunk,
 	flattenBlockResponses,
@@ -17,7 +18,7 @@ import {
 	mergeAndSortCandidates,
 	rankDocumentsByQuery,
 	resolveSearchBlocks,
-	toChunkResult,
+	toPassage,
 } from "./utils";
 
 export const getKnowledgeBasePageTool = ({
@@ -84,7 +85,7 @@ export const getKnowledgeBasePageTool = ({
 				});
 				if (targetBlocks.length === 0) {
 					return {
-						passages: [] as ChunkResult[],
+						passages: [] as Passage[],
 						matchedDocuments: [] as KnowledgeBaseDocument[],
 						nextAction: "listKnowledgeBaseDocuments" as const,
 					};
@@ -119,7 +120,7 @@ export const getKnowledgeBasePageTool = ({
 
 				if (matchedAssetIds.length === 0) {
 					return {
-						passages: [] as ChunkResult[],
+						passages: [] as Passage[],
 						matchedDocuments: [] as KnowledgeBaseDocument[],
 						nextAction: "listKnowledgeBaseDocuments" as const,
 					};
@@ -169,7 +170,7 @@ export const getKnowledgeBasePageTool = ({
 					.slice(0, limit);
 
 				return {
-					passages: neighbouringRuns(points).map(toChunkResult),
+					passages: neighbouringRuns(points).map(toPassage),
 					matchedDocuments: matchedDocuments.slice(0, 20),
 					nextAction:
 						points.length > 0
@@ -187,4 +188,5 @@ export const getKnowledgeBasePageTool = ({
 					},
 				};
 			}),
+		toModelOutput: pageModelOutput,
 	});

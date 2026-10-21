@@ -1,61 +1,37 @@
-import type { AssetId, BlockId } from "@orcai/core";
+import type { BlockId } from "@orcai/core";
 import type { AssetPoint, DatabaseBlock } from "@orcai/schema";
+import { z } from "zod/v4";
 
-type KnowledgeBaseBlockRef = {
-	id: BlockId;
-	name: DatabaseBlock["name"];
-};
+/** Text of one document read as one piece: a chunk, or neighbouring chunks joined. */
+export const passageSchema = z.object({
+	/** The first chunk's point id. */
+	id: z.string(),
+	assetId: z.string(),
+	title: z.string(),
+	blockName: z.string(),
+	pageStart: z.number().optional(),
+	pageEnd: z.number().optional(),
+	totalPages: z.number().optional(),
+	text: z.string(),
+});
 
-type KnowledgeBaseDocumentRef = {
-	assetId: AssetId;
-	title: string;
-	citation?: string;
-	totalPages?: number;
-};
+export type Passage = z.infer<typeof passageSchema>;
 
-type KnowledgeBaseChunkRef = {
-	index: number;
-	count: number;
-	pageStart?: number;
-	pageEnd?: number;
-};
+export const knowledgeBaseDocumentSchema = z.object({
+	assetId: z.string(),
+	title: z.string(),
+	citation: z.string().optional(),
+	block: z.object({
+		id: z.string(),
+		name: z.string(),
+	}),
+});
 
-type KnowledgeBaseCitationRef = {
-	assetId: AssetId;
-	title: string;
-	page?: number;
-	openTag: string;
-	closeTag: "</cite>";
-	example: string;
-};
-
-export type ResultSource = {
-	block: KnowledgeBaseBlockRef;
-	document: KnowledgeBaseDocumentRef;
-	chunk: KnowledgeBaseChunkRef;
-	citation: KnowledgeBaseCitationRef;
-	createdAt: string;
-};
-
-type BaseResult = {
-	id: string;
-	score?: number;
-	title: string;
-	source: ResultSource;
-};
-
-export type ChunkResult = BaseResult & {
-	text: string;
-};
+export type KnowledgeBaseDocument = z.infer<typeof knowledgeBaseDocumentSchema>;
 
 export type PointWithBlock = AssetPoint & {
-	sourceBlock: KnowledgeBaseBlockRef;
-};
-
-export type KnowledgeBaseDocument = {
-	assetId: string;
-	title: string;
-	citation?: string;
-	documentTotalPages?: number;
-	block: KnowledgeBaseBlockRef;
+	sourceBlock: {
+		id: BlockId;
+		name: DatabaseBlock["name"];
+	};
 };
