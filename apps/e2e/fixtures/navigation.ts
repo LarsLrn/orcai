@@ -10,66 +10,134 @@ import {
 import { message } from "./messages";
 
 /**
+ * What keeps the page from being hydrated, or null once nothing does. Reads
+ * React internals: the `__reactContainer$` key on the document leads to the
+ * committed fiber tree, where a Suspense boundary holds state while it is
+ * dehydrated (`<!--$-->` waiting, `<!--$?-->` still streaming, `<!--$!-->`
+ * failed on the server) or showing its fallback.
+ */
+const hydrationGap = (): string | null => {
+	type Node = {
+		nodeType: number;
+		data?: string;
+		localName?: string;
+		textContent: string | null;
+		getAttribute?: (name: string) => string | null;
+		nextSibling: Node | null;
+	};
+	type Fiber = {
+		tag: number;
+		stateNode: Node | null;
+		memoizedState: {
+			dehydrated?: Node | null;
+		} | null;
+		child: Fiber | null;
+		sibling: Fiber | null;
+	};
+
+	const document = (
+		globalThis as unknown as {
+			document: Record<
+				string,
+				| {
+						stateNode: {
+							current: Fiber;
+						};
+				  }
+				| undefined
+			>;
+		}
+	).document;
+	const container = Object.keys(document).find((key) =>
+		key.startsWith("__reactContainer$"),
+	);
+	const root = container ? document[container]?.stateNode.current : undefined;
+
+	if (!root?.child) {
+		return "React has not committed the shell";
+	}
+
+	const describe = (element: Node | null | undefined) => {
+		if (!element?.getAttribute) return "nothing rendered";
+
+		const attributes = [
+			"id",
+			"data-slot",
+			"role",
+			"aria-label",
+		]
+			.map((name) => [
+				name,
+				element.getAttribute?.(name),
+			])
+			.filter(([, value]) => value)
+			.map(([name, value]) => ` ${name}="${value}"`)
+			.join("");
+		const text = element.textContent?.trim().slice(0, 80);
+
+		return `<${element.localName}${attributes}>${text ? ` "${text}"` : ""}`;
+	};
+	const firstElement = (fiber: Fiber | null): Node | null => {
+		for (let child = fiber; child; child = child.sibling) {
+			const element =
+				child.tag === 5 ? child.stateNode : firstElement(child.child);
+
+			if (element) return element;
+		}
+
+		return null;
+	};
+	const fibers: Fiber[] = [
+		root.child,
+	];
+
+	for (let fiber = fibers.pop(); fiber; fiber = fibers.pop()) {
+		const dehydrated = fiber.memoizedState?.dehydrated;
+
+		if ((fiber.tag === 13 || fiber.tag === 31) && dehydrated) {
+			let element = dehydrated.nextSibling;
+
+			while (element && element.nodeType !== 1) element = element.nextSibling;
+
+			return `boundary <!--${dehydrated.data}--> is not hydrated: ${describe(element)}`;
+		}
+
+		if (fiber.tag === 13 && fiber.memoizedState) {
+			return `boundary shows its fallback: ${describe(firstElement(fiber.child?.sibling ?? null))}`;
+		}
+
+		if (fiber.sibling) fibers.push(fiber.sibling);
+		if (fiber.child) fibers.push(fiber.child);
+	}
+
+	return null;
+};
+
+/**
  * Wait until React has hydrated the whole page, so clicks, fills and scroll
- * listeners register. React hydrates each Suspense boundary in its own pass
- * after the shell and has no public signal for the last one, so this waits
- * until React owns every element the server rendered between a boundary's
- * `<!--$-->` and `<!--/$-->` markers.
+ * listeners register. React hydrates each Suspense boundary in its own
+ * time-sliced pass after the shell and has no public signal for the last one,
+ * so this polls the committed tree, then lets one posted-message task run,
+ * which is where React's scheduler flushes the commit's passive effects.
  */
 export const awaitHydration = async (page: Page): Promise<void> => {
-	await page.waitForFunction(() => {
-		type Rendered = Record<string, unknown> & {
-			nodeType: number;
-			data: string;
-			nextSibling: Rendered | null;
-		};
-
-		const ownedByReact = (node: Rendered) =>
-			Object.keys(node).some((key) => key.startsWith("__reactFiber$"));
-		const document = (
-			globalThis as unknown as {
-				document: {
-					body: Rendered;
-					createTreeWalker: (
-						root: Rendered,
-						whatToShow: number,
-					) => {
-						nextNode: () => Rendered | null;
-					};
-				};
-			}
-		).document;
-
-		if (!ownedByReact(document.body)) {
-			return false;
-		}
-
-		const comments = document.createTreeWalker(document.body, 0x80);
-
-		for (
-			let comment = comments.nextNode();
-			comment;
-			comment = comments.nextNode()
-		) {
-			if (!comment.data.startsWith("$")) {
-				continue;
-			}
-
-			for (
-				let node = comment.nextSibling, depth = 0;
-				node && !(node.nodeType === 8 && node.data === "/$" && depth === 0);
-				node = node.nextSibling
-			) {
-				if (node.nodeType === 8) {
-					depth += node.data.startsWith("$") ? 1 : node.data === "/$" ? -1 : 0;
-				} else if (node.nodeType === 1 && !ownedByReact(node)) {
-					return false;
-				}
-			}
-		}
-
-		return true;
+	await expect(async () => {
+		expect(await page.evaluate(hydrationGap), "page hydrated").toBeNull();
+	}).toPass({
+		timeout: 15_000,
+		intervals: [
+			50,
+		],
 	});
+	await page.evaluate(
+		() =>
+			new Promise<void>((resolve) => {
+				const channel = new MessageChannel();
+
+				channel.port1.onmessage = () => resolve();
+				channel.port2.postMessage(null);
+			}),
+	);
 };
 
 /** Open a page and wait for it to hydrate. */
