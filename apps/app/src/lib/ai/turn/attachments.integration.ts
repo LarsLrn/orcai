@@ -6,7 +6,7 @@ import {
 	type UserId,
 } from "@orcai/core";
 import { DB, dbSchema } from "@orcai/db";
-import { S3Live } from "@orcai/s3/server";
+import { S3Live, sendPutObjectCommand } from "@orcai/s3/server";
 import { writeRelationshipMutations } from "@orcai/spice-db";
 import { createUser, integrationRuntime } from "@orcai/testing";
 import { eq } from "drizzle-orm";
@@ -23,8 +23,21 @@ const run = <A, E, R>(effect: Effect.Effect<A, E, R>) =>
 
 const newUser = () => run(createUser().pipe(Effect.map((user) => user.id)));
 
+// A 1x1 PNG.
+const PIXEL =
+	"iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mP8z8BQDwAEhQGAhKmMIQAAAABJRU5ErkJggg==";
+
 /** An image asset only its owner can read, and the token of that write. */
-const privateImage = async (owner: UserId) => {
+const privateImage = async (
+	owner: UserId,
+	{
+		title = "Floor plan",
+		size = 70,
+	}: {
+		title?: string;
+		size?: number;
+	} = {},
+) => {
 	const asset = await run(
 		Effect.gen(function* () {
 			const [row] = yield* (yield* DB)
@@ -32,12 +45,18 @@ const privateImage = async (owner: UserId) => {
 				.values({
 					bucket: buckets.main.name,
 					prefix: `users/${owner}/chatAttachment/2026/10`,
-					title: "Floor plan",
+					title,
 					fileType: "png",
-					size: 128,
+					size,
 					userId: owner,
 				})
 				.returning();
+			yield* sendPutObjectCommand({
+				bucket: row.bucket,
+				key: `${row.prefix}/${row.id}.png`,
+				body: Buffer.from(PIXEL, "base64"),
+				contentType: "image/png",
+			});
 			return row;
 		}),
 	);
@@ -150,7 +169,7 @@ describe("chat attachments", () => {
 				assetId: asset.id,
 				title: "Floor plan",
 				fileType: "image/png",
-				size: 128,
+				size: 70,
 			},
 		]);
 	});
@@ -175,17 +194,18 @@ describe("chat attachments", () => {
 		);
 		const message = question(attachments);
 
-		const [before] = await attachmentPartsOf(message, {
+		const before = await attachmentPartsOf(message, {
 			userId: viewer,
 			zedToken: shared.zedToken,
 		});
-		expect(before).toMatchObject({
-			type: "file",
-			mediaType: "image/png",
-		});
-		expect(before.type === "file" && before.url).toContain(
-			`${asset.prefix}/${asset.id}.png`,
-		);
+		expect(before).toEqual([
+			{
+				type: "file",
+				mediaType: "image/png",
+				filename: "Floor plan",
+				url: `data:image/png;base64,${PIXEL}`,
+			},
+		]);
 
 		const revoked = await relate(asset.id, "viewer", viewer, "delete");
 		const after = await attachmentPartsOf(message, {
@@ -234,6 +254,63 @@ describe("chat attachments", () => {
 			{
 				type: "text",
 				text: 'Attachment "Floor plan" is no longer available.',
+			},
+		]);
+	});
+
+	test("images past the turn's image budget become a note, oldest first", async () => {
+		const owner = await newUser();
+		const older = await privateImage(owner, {
+			title: "Old plan",
+			size: 15 * 1024 * 1024,
+		});
+		const newer = await privateImage(owner, {
+			title: "New plan",
+			size: 10 * 1024 * 1024,
+		});
+		const reader = {
+			userId: owner,
+			zedToken: newer.zedToken,
+		};
+		const history = [
+			question(
+				await run(
+					attachAssets(
+						[
+							{
+								assetId: older.asset.id,
+							},
+						],
+						reader,
+					),
+				),
+			),
+			question(
+				await run(
+					attachAssets(
+						[
+							{
+								assetId: newer.asset.id,
+							},
+						],
+						reader,
+					),
+				),
+			),
+		];
+
+		const prompt = await run(withAttachmentParts(history, reader));
+
+		expect(prompt.map((message) => message.parts.at(-1))).toEqual([
+			{
+				type: "text",
+				text: 'Attachment "Old plan" is left out to keep the request small.',
+			},
+			{
+				type: "file",
+				mediaType: "image/png",
+				filename: "New plan",
+				url: `data:image/png;base64,${PIXEL}`,
 			},
 		]);
 	});
