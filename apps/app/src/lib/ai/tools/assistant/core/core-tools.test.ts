@@ -36,11 +36,17 @@ const run = async <Input, Output>(
 
 const id = <Id extends string>() => crypto.randomUUID() as Id;
 
-const bot = (name: string, status: "draft" | "ready", canEdit: boolean) => ({
+const bot = (
+	name: string,
+	status: "draft" | "ready",
+	canEdit: boolean,
+	isFavourite = false,
+) => ({
 	id: id<BotId>(),
 	name,
 	description: `${name} description.`,
 	status,
+	isFavourite,
 	contentJson: {
 		type: "doc",
 	},
@@ -75,7 +81,7 @@ beforeEach(resetProcedures);
 describe("findBots", () => {
 	const ready = [
 		bot("Citation check", "ready", false),
-		bot("Citation style", "ready", true),
+		bot("Citation style", "ready", true, true),
 	];
 	const draft = bot("Citation draft", "draft", true);
 
@@ -111,6 +117,7 @@ describe("findBots", () => {
 				description: found.description,
 				status: found.status,
 				canEdit: found.capabilities.edit,
+				favourite: found.isFavourite,
 			})),
 			total: 6,
 		});

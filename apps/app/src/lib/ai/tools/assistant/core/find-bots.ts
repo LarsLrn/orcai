@@ -17,6 +17,7 @@ const toFoundBot = (bot: {
 	name: string;
 	description: string;
 	status: "draft" | "ready";
+	isFavourite: boolean;
 	capabilities: Record<string, boolean>;
 }) => ({
 	type: "bot" as const,
@@ -25,12 +26,13 @@ const toFoundBot = (bot: {
 	description: bot.description,
 	status: bot.status,
 	canEdit: bot.capabilities.edit === true,
+	favourite: bot.isFavourite,
 });
 
 export const findBotsTool = (deps: AssistantToolDeps) =>
 	effectTool({
 		description:
-			"Find bots by name: published bots the user can use and drafts they can edit. Without a query it lists them all.",
+			"Find bots by name: published bots the user can use and drafts they can edit. Without a query it lists them all. `favourite` marks the published bots the user starred.",
 		inputSchema: findBotsInputSchema,
 		run: ({ query, limit }) =>
 			Effect.gen(function* () {
