@@ -45,7 +45,7 @@ export const model = pgTable(
 		contextWindow: integer("context_window"),
 		maxOutputTokens: integer("max_output_tokens"),
 		createdAt: timestamp("created_at").defaultNow(),
-		// TODO: Add updatedAt field and trigger to update it on change
+		updatedAt: timestamp("updated_at").defaultNow(),
 	},
 	(table) => [
 		unique("provider_model_id_provider_id_unique").on(

@@ -21,6 +21,7 @@ export function toModelDto(row: ModelRow): Model {
 		contextWindow: row.contextWindow,
 		maxOutputTokens: row.maxOutputTokens,
 		createdAt: row.createdAt ?? null,
+		updatedAt: row.updatedAt ?? null,
 	};
 }
 
@@ -61,5 +62,6 @@ export function mapUpdateModelInputToModelUpdateValues(
 		capabilities: input.capabilities,
 		contextWindow: input.contextWindow,
 		maxOutputTokens: input.maxOutputTokens,
+		updatedAt: new Date(),
 	};
 }
