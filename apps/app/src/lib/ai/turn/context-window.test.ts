@@ -143,6 +143,27 @@ describe("fitContextWindow", () => {
 		).toBe("refused");
 	});
 
+	test("cuts down to three quarters of the budget, so the next turns do not trim again", () => {
+		const result = fit(
+			[
+				...conversation.slice(0, 4),
+				user("u3", 3_000),
+				reply("a3", 1_000),
+				user("u4", 1_000),
+			],
+			{
+				contextWindow: 10_000,
+			},
+		);
+
+		// Leaving out u1 and a1 fits at 9 000, still above 7 500.
+		expect(keptIds(result)).toEqual([
+			"u3",
+			"a3",
+			"u4",
+		]);
+	});
+
 	test("a model without a known context window gets 128000 tokens", () => {
 		const long = [
 			user("u1", 100_000),
@@ -221,7 +242,7 @@ describe("fitContextWindow", () => {
 		test("trims when the provider counted more than the estimate", () => {
 			// Counted twice the estimate: 17 000 in all, 9 000 once u1 and a1 are gone.
 			const result = fit(recorded(16_000), {
-				contextWindow: 9_000,
+				contextWindow: 12_000,
 			});
 
 			expect(keptIds(result)).toEqual([

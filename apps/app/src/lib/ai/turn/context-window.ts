@@ -9,6 +9,9 @@ import {
 /** What a model without a recorded context window is assumed to hold. */
 export const DEFAULT_CONTEXT_WINDOW = 128_000;
 
+/** Trimming cuts below the budget, so the next turns keep the cached prefix instead of trimming again. */
+const TRIM_TARGET = 0.75;
+
 /** Providers bill an image by its size; this covers a large one. */
 const IMAGE_TOKENS = 1_600;
 
@@ -56,8 +59,8 @@ export type ContextFit<M> =
 
 /**
  * Leaves out the oldest whole turns until the prompt fits the context window
- * minus the reserved output. The latest turn and the pinned message's turn
- * stay. Sizes are char estimates, calibrated by the context tokens the latest
+ * minus the reserved output, down to three quarters of it. The latest turn
+ * and the pinned message's turn stay. Sizes are char estimates, calibrated by the context tokens the latest
  * reply recorded, so the history it covers counts what the provider counted.
  */
 export const fitContextWindow = <M extends UIMessage<ChatMessageMetadata>>({
@@ -123,14 +126,16 @@ export const fitContextWindow = <M extends UIMessage<ChatMessageMetadata>>({
 	let total =
 		requestTokens * scale + turns.reduce((sum, turn) => sum + turn.cost, 0);
 	const dropped = new Set<number>();
-	for (const turn of turns.slice(0, -1)) {
-		if (total <= budget) {
-			break;
-		}
-		if (!turn.pinned) {
-			total -= turn.cost;
-			for (const index of turn.indices) {
-				dropped.add(index);
+	if (total > budget) {
+		for (const turn of turns.slice(0, -1)) {
+			if (total <= budget * TRIM_TARGET) {
+				break;
+			}
+			if (!turn.pinned) {
+				total -= turn.cost;
+				for (const index of turn.indices) {
+					dropped.add(index);
+				}
 			}
 		}
 	}

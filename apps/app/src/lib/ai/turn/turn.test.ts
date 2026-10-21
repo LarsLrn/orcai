@@ -396,7 +396,7 @@ describe("context window", () => {
 				calls: [
 					deleteDraft,
 				],
-				inputTokens: 30_150,
+				inputTokens: 25_000,
 			},
 			{
 				text: "Kept.",
