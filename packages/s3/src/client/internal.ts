@@ -89,7 +89,6 @@ export type UploadHookProps<TRoute extends string, T extends boolean> = {
 					file: FileUploadInfo<"complete">;
 				}),
 	) => void | Promise<void>;
-	signal?: AbortSignal;
 } & (T extends true
 	? {
 			uploadBatchSize?: number;

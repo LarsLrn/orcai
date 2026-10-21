@@ -1,12 +1,12 @@
-import { ASSET_UPLOAD_ACCEPT, type DirectUploadResult } from "@orcai/s3/client";
-import type { FinalizedUploadFile, StorageUploadRoute } from "@orcai/schema";
-import { useMutation } from "@tanstack/react-query";
+import { ASSET_UPLOAD_ACCEPT } from "@orcai/s3/client";
 import { useMemo, useState } from "react";
-import type { DropzoneProps } from "react-dropzone";
 import { toast } from "sonner";
 import { FileUploader } from "@/components/documents/file-uploader";
 import { UploadProgress } from "@/components/documents/upload-progress";
-import { useUploadFiles } from "@/components/documents/use-upload-files";
+import {
+	type AssetIntakeOutcome,
+	useAssetIntake,
+} from "@/components/documents/use-asset-intake";
 import { Button } from "@/components/ui/button";
 import {
 	Card,
@@ -15,75 +15,32 @@ import {
 	CardHeader,
 	CardTitle,
 } from "@/components/ui/card";
-import { orpc } from "@/lib/orpc/orpc";
 import { m } from "@/paraglide/messages";
-
-type UploadResult = DirectUploadResult<true>;
 
 /** Compact drops the Card chrome and the title, for a message column. */
 type UploadVariant = "page" | "compact";
 
-type UploadComponentProps = {
-	route: StorageUploadRoute;
-	title?: string;
-	description?: string;
-	uploadLabel?: string;
-	accept?: DropzoneProps["accept"];
-	maxSize?: number;
-	maxFileCount?: number;
-	multiple?: boolean;
-	disabled?: boolean;
-	finalizeUpload?: boolean;
-	hidePickerWhenSettled?: boolean;
-	variant?: UploadVariant;
-	completionAction?: {
-		label: string;
-		onClick: () => void;
-		disabled?: boolean;
-	};
-	onReset?: () => void;
-	onUploaded?: (result: {
-		uploadResult: UploadResult;
-		finalizedFiles: FinalizedUploadFile[];
-	}) => void | Promise<void>;
-};
-
-const toFinalizeInputFiles = (result: UploadResult) =>
-	result.files.map((file) => ({
-		objectKey: file.objectKey,
-		objectMetadata: file.objectMetadata,
-		name: file.name,
-		size: file.size,
-		type: file.type,
-	}));
-
+/** Picks files, uploads them and creates their assets in one click. */
 const UploadComponent = ({
-	route,
 	title,
 	description,
 	uploadLabel,
-	accept = {
-		...ASSET_UPLOAD_ACCEPT,
-	},
-	maxSize = 64 * 1024 * 1024,
-	maxFileCount = 100,
-	multiple = true,
-	disabled = false,
-	finalizeUpload: shouldFinalizeUpload = false,
-	hidePickerWhenSettled = false,
 	variant = "page",
-	completionAction,
-	onReset,
-	onUploaded,
-}: UploadComponentProps) => {
+	onPendingChange,
+	onCreated,
+}: {
+	title?: string;
+	description?: string;
+	uploadLabel?: string;
+	variant?: UploadVariant;
+	/** True from the click until the assets exist. */
+	onPendingChange?: (pending: boolean) => void;
+	onCreated: (outcome: AssetIntakeOutcome) => void;
+}) => {
 	const [files, setFiles] = useState<File[]>([]);
-	const [isFinalizing, setIsFinalizing] = useState(false);
-	const { uploadAsync, control, reset } = useUploadFiles({
-		route,
+	const { intake, control, reset, isPending } = useAssetIntake({
+		route: "asset",
 	});
-	const { mutateAsync: finalizeUpload } = useMutation(
-		orpc.storage.finalizeUpload.mutationOptions(),
-	);
 
 	const progresses = useMemo(
 		() =>
@@ -105,45 +62,26 @@ const UploadComponent = ({
 
 		const count = files.length;
 
-		await toast.promise(
-			(async () => {
-				const uploadResult = await uploadAsync(files);
-				setIsFinalizing(true);
-
-				try {
-					const finalizedFiles =
-						shouldFinalizeUpload && uploadResult.files.length > 0
-							? (
-									await finalizeUpload({
-										route,
-										files: toFinalizeInputFiles(uploadResult),
-									})
-								).data
-							: [];
-
-					await onUploaded?.({
-						uploadResult,
-						finalizedFiles,
-					});
-
-					return uploadResult;
-				} finally {
-					setIsFinalizing(false);
-				}
-			})(),
-			{
-				loading: m.assets_upload_toast_loading({
-					count,
-				}),
-				success: () =>
-					m.assets_upload_toast_success({
-						count,
-					}),
-				error: m.assets_upload_toast_error({
-					count,
-				}),
-			},
-		);
+		// Reported in the click, so a close or navigation right after it already asks.
+		onPendingChange?.(true);
+		const outcome = intake(files).finally(() => onPendingChange?.(false));
+		toast.promise(outcome, {
+			loading: m.assets_upload_toast_loading({
+				count,
+			}),
+			success: ({ failures }) =>
+				failures.length === 0
+					? m.assets_upload_toast_success({
+							count,
+						})
+					: m.assets_upload_toast_error({
+							count: failures.length,
+						}),
+			error: m.assets_upload_toast_error({
+				count,
+			}),
+		});
+		await outcome.then(onCreated, () => undefined);
 	};
 
 	const picker = (
@@ -152,11 +90,13 @@ const UploadComponent = ({
 				value={files}
 				onValueChange={setFiles}
 				progresses={progresses}
-				maxFileCount={maxFileCount}
-				maxSize={maxSize}
-				multiple={multiple}
-				accept={accept}
-				disabled={disabled || control.isPending || isFinalizing}
+				maxFileCount={100}
+				maxSize={64 * 1024 * 1024}
+				multiple
+				accept={{
+					...ASSET_UPLOAD_ACCEPT,
+				}}
+				disabled={isPending}
 			/>
 			<div className="mt-4 flex justify-end">
 				<Button
@@ -164,8 +104,8 @@ const UploadComponent = ({
 					onClick={() => {
 						void handleUpload();
 					}}
-					loading={control.isPending || isFinalizing}
-					disabled={files.length === 0 || disabled}
+					loading={isPending}
+					disabled={files.length === 0}
 				>
 					{uploadLabel ?? m.assets_upload_submit_button()}
 				</Button>
@@ -175,21 +115,19 @@ const UploadComponent = ({
 
 	return (
 		<div className={variant === "compact" ? "space-y-4" : "space-y-6"}>
-			{!(hidePickerWhenSettled && control.isSettled) ? (
-				variant === "compact" ? (
-					picker
-				) : (
-					<Card>
-						<CardHeader>
-							<CardTitle>{title ?? m.assets_upload_title()}</CardTitle>
-							<CardDescription>
-								{description ?? m.assets_upload_description()}
-							</CardDescription>
-						</CardHeader>
-						<CardContent>{picker}</CardContent>
-					</Card>
-				)
-			) : null}
+			{variant === "compact" ? (
+				picker
+			) : (
+				<Card>
+					<CardHeader>
+						<CardTitle>{title ?? m.assets_upload_title()}</CardTitle>
+						<CardDescription>
+							{description ?? m.assets_upload_description()}
+						</CardDescription>
+					</CardHeader>
+					<CardContent>{picker}</CardContent>
+				</Card>
+			)}
 
 			{control.isPending || control.isSettled ? (
 				<UploadProgress
@@ -197,21 +135,8 @@ const UploadComponent = ({
 					onReset={() => {
 						setFiles([]);
 						reset();
-						onReset?.();
 					}}
 				/>
-			) : null}
-
-			{control.isSettled && completionAction ? (
-				<div className="flex justify-end">
-					<Button
-						type="button"
-						onClick={completionAction.onClick}
-						disabled={completionAction.disabled}
-					>
-						{completionAction.label}
-					</Button>
-				</div>
 			) : null}
 		</div>
 	);

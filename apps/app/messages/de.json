@@ -211,9 +211,8 @@
 	"app_metadata_card_visibility_label": "Sichtbarkeit",
 	"app_metadata_card_visibility_private": "Privat",
 	"app_metadata_card_visibility_public": "Öffentlich",
-	"assets_add_page_description": "Laden Sie Dateien hoch und bestätigen Sie anschließend die Metadaten, die jedes Asset überallhin begleiten sollen, wo es wiederverwendet wird.",
+	"assets_add_page_description": "Laden Sie Dateien hoch. Jede Datei wird sofort zu einem Asset; die Metadaten, die sie begleiten, können Sie jederzeit ergänzen.",
 	"assets_add_page_title": "Assets hinzufügen",
-	"assets_add_submit_button": "Assets speichern",
 	"assets_card_author_description": "Autor: {name}",
 	"assets_card_chapter_description": "Kapitel: {name}",
 	"assets_card_created_label": "Erstellt",
@@ -349,12 +348,10 @@
 	"assets_file_viewer_unsupported_title": "Nicht unterstützter Dateityp",
 	"assets_form_description": "Bearbeiten Sie die wiederverwendbaren Metadaten, die angezeigt werden, wenn dieser Inhalt in KI-Antworten zitiert wird.",
 	"assets_form_submit_button": "Inhalt speichern",
-	"assets_intake_no_files_toast_error": "Laden Sie mindestens eine Datei hoch, bevor Sie fortfahren.",
-	"assets_intake_review_description": "Ergänzen Sie für jede hochgeladene Datei Metadaten, bevor Sie die endgültigen Inhalte speichern.",
-	"assets_intake_review_metadata_count": [
+	"assets_intake_done_button": "Fertig",
+	"assets_intake_failed_title": [
 		{
 			"declarations": [
-				"input completed",
 				"input count",
 				"local countPlural = count: plural"
 			],
@@ -362,15 +359,16 @@
 				"countPlural"
 			],
 			"match": {
-				"countPlural=one": "{completed} von {count} Datei hat Metadaten erhalten.",
-				"countPlural=other": "{completed} von {count} Dateien haben Metadaten erhalten."
+				"countPlural=one": "{count} Datei wurde nicht hinzugefügt",
+				"countPlural=other": "{count} Dateien wurden nicht hinzugefügt"
 			}
 		}
 	],
-	"assets_intake_review_title": "Hochgeladene Dateien prüfen",
-	"assets_intake_submit_button": "Assets speichern",
+	"assets_intake_review_description": "Diese Dateien sind als Assets gespeichert. Ergänzen Sie die Quellenangaben jetzt oder später in der Bibliothek.",
+	"assets_intake_review_title": "Hochgeladene Assets",
 	"assets_intake_upload_button": "Dateien hochladen",
-	"assets_intake_upload_description": "Wählen Sie Dateien aus, laden Sie sie hoch und ergänzen Sie anschließend für jede Datei die Quellenangaben.",
+	"assets_intake_upload_description": "Wählen Sie Dateien aus und laden Sie sie hoch. Jede Datei wird zu einem Asset, sobald ihr Upload abgeschlossen ist.",
+	"assets_intake_upload_more_button": "Weitere hochladen",
 	"assets_intake_upload_title": "Assets hochladen",
 	"assets_library_picker_search_placeholder": "Bibliothek durchsuchen",
 	"assets_list_add_action": "Assets hinzufügen",
@@ -449,12 +447,6 @@
 	"assets_relevance_high_label": "Hoch",
 	"assets_relevance_low_label": "Niedrig",
 	"assets_relevance_medium_label": "Mittel",
-	"assets_review_list_add_metadata_button": "Metadaten hinzufügen",
-	"assets_review_list_dialog_description": "Legen Sie fest, wie diese hochgeladene Datei in KI-Zitaten und -Verweisen erscheinen soll.",
-	"assets_review_list_dialog_title": "Quellenangaben",
-	"assets_review_list_edit_metadata_button": "Metadaten bearbeiten",
-	"assets_review_list_metadata_added_badge": "Metadaten ergänzt",
-	"assets_review_list_metadata_missing_badge": "Metadaten fehlen",
 	"assets_save_many_toast_error": "Assets konnten nicht gespeichert werden",
 	"assets_save_many_toast_loading": "Assets werden gespeichert...",
 	"assets_save_many_toast_success": "Assets gespeichert",
@@ -1239,9 +1231,8 @@
 	"authoring_database_block_description": "Hängen Sie wiederverwendbare Assets an und passen Sie an, wie der Abruf für diesen Bot funktioniert.",
 	"authoring_database_block_library_dialog_description": "Wählen Sie wiederverwendbare Assets aus der Bibliothek aus und hängen Sie sie an dieses Repository an.",
 	"authoring_database_block_library_dialog_title": "Vorhandene Assets hinzufügen",
-	"authoring_database_block_save_assets_button": "Assets speichern",
 	"authoring_database_block_title": "Repository",
-	"authoring_database_block_upload_dialog_description": "Laden Sie Dateien hoch, vervollständigen Sie deren Metadaten und hängen Sie sie in einem einzigen Ablauf an.",
+	"authoring_database_block_upload_dialog_description": "Laden Sie Dateien hoch. Jede wird zu einem Asset in Ihrer Bibliothek und sofort diesem Repository zugeordnet.",
 	"authoring_database_block_upload_dialog_title": "Neue Assets hochladen",
 	"authoring_database_block_upload_new_action": "Neue hochladen",
 	"authoring_publish_confirm_button": "Veröffentlichen",

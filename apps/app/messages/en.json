@@ -211,9 +211,8 @@
 	"app_metadata_card_visibility_label": "Visibility",
 	"app_metadata_card_visibility_private": "Private",
 	"app_metadata_card_visibility_public": "Public",
-	"assets_add_page_description": "Upload files, then confirm the metadata that should travel with each asset wherever it is reused.",
+	"assets_add_page_description": "Upload files. Each one becomes an asset right away; add the metadata that travels with it whenever you like.",
 	"assets_add_page_title": "Add assets",
-	"assets_add_submit_button": "Save assets",
 	"assets_card_author_description": "Author: {name}",
 	"assets_card_chapter_description": "Chapter: {name}",
 	"assets_card_created_label": "Created",
@@ -349,12 +348,10 @@
 	"assets_file_viewer_unsupported_title": "Unsupported file type",
 	"assets_form_description": "Edit the reusable metadata shown when this content item is cited in AI answers.",
 	"assets_form_submit_button": "Save content",
-	"assets_intake_no_files_toast_error": "Upload at least one file before continuing.",
-	"assets_intake_review_description": "Add metadata to each uploaded file before saving the final content items.",
-	"assets_intake_review_metadata_count": [
+	"assets_intake_done_button": "Done",
+	"assets_intake_failed_title": [
 		{
 			"declarations": [
-				"input completed",
 				"input count",
 				"local countPlural = count: plural"
 			],
@@ -362,15 +359,16 @@
 				"countPlural"
 			],
 			"match": {
-				"countPlural=one": "{completed} of {count} file has metadata added.",
-				"countPlural=other": "{completed} of {count} files have metadata added."
+				"countPlural=one": "{count} file was not added",
+				"countPlural=other": "{count} files were not added"
 			}
 		}
 	],
-	"assets_intake_review_title": "Review uploaded files",
-	"assets_intake_submit_button": "Save assets",
+	"assets_intake_review_description": "These files are saved as assets. Add source details now or later from the library.",
+	"assets_intake_review_title": "Uploaded assets",
 	"assets_intake_upload_button": "Upload files",
-	"assets_intake_upload_description": "Select files, upload them, then add source details for each one.",
+	"assets_intake_upload_description": "Select files and upload them. Each file becomes an asset as soon as its upload finishes.",
+	"assets_intake_upload_more_button": "Upload more",
 	"assets_intake_upload_title": "Upload assets",
 	"assets_library_picker_search_placeholder": "Search the Library",
 	"assets_list_add_action": "Add assets",
@@ -449,12 +447,6 @@
 	"assets_relevance_high_label": "High",
 	"assets_relevance_low_label": "Low",
 	"assets_relevance_medium_label": "Medium",
-	"assets_review_list_add_metadata_button": "Add metadata",
-	"assets_review_list_dialog_description": "Define how this uploaded file should appear in AI citations and references.",
-	"assets_review_list_dialog_title": "Source details",
-	"assets_review_list_edit_metadata_button": "Edit metadata",
-	"assets_review_list_metadata_added_badge": "Metadata added",
-	"assets_review_list_metadata_missing_badge": "Needs metadata",
 	"assets_save_many_toast_error": "Failed to save assets",
 	"assets_save_many_toast_loading": "Saving assets...",
 	"assets_save_many_toast_success": "Assets saved",
@@ -1239,9 +1231,8 @@
 	"authoring_database_block_description": "Attach reusable assets and tune how retrieval works for this bot.",
 	"authoring_database_block_library_dialog_description": "Select reusable assets from the Library and attach them to this repository.",
 	"authoring_database_block_library_dialog_title": "Add existing assets",
-	"authoring_database_block_save_assets_button": "Save assets",
 	"authoring_database_block_title": "Repository",
-	"authoring_database_block_upload_dialog_description": "Upload files, complete their metadata, and attach them in one focused flow.",
+	"authoring_database_block_upload_dialog_description": "Upload files. Each becomes an asset in your library and is attached to this repository right away.",
 	"authoring_database_block_upload_dialog_title": "Upload new assets",
 	"authoring_database_block_upload_new_action": "Upload new",
 	"authoring_publish_confirm_button": "Publish",

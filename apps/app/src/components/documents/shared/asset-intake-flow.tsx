@@ -1,18 +1,12 @@
-import type { Asset, FinalizedUploadFile } from "@orcai/schema";
-import { useEffect, useState } from "react";
-import { toast } from "sonner";
-import {
-	type AssetMetadataDraft,
-	createDefaultAssetMetadata,
-} from "@/components/documents/shared/asset-metadata-editor";
-import {
-	hasMetadataAdded,
-	UploadedFileReviewList,
-} from "@/components/documents/shared/uploaded-file-review-list";
+import type { Asset } from "@orcai/schema";
+import { AlertCircleIcon } from "lucide-react";
+import { useState } from "react";
+import { SelectedAssetList } from "@/components/documents/shared/selected-asset-list";
 import {
 	UploadComponent,
 	type UploadVariant,
 } from "@/components/documents/upload-component";
+import type { UploadFailure } from "@/components/documents/use-asset-intake";
 import { Button } from "@/components/ui/button";
 import {
 	Card,
@@ -21,182 +15,142 @@ import {
 	CardHeader,
 	CardTitle,
 } from "@/components/ui/card";
-import { useSaveManyAssetsMutation } from "@/hooks/mutations/use-asset-mutations";
 import { useUnsavedChangesGuard } from "@/hooks/use-unsaved-changes-guard";
+import { ownerCapabilities } from "@/lib/authz/capabilities";
 import { m } from "@/paraglide/messages";
 
-type IntakeStep = "upload" | "uploaded" | "review";
+type IntakeStep = "upload" | "review";
 
+/**
+ * Uploads files as assets, then lists the created assets for metadata edits
+ * that save at once. Only an upload in flight can be lost, so only then does
+ * leaving ask first; leaving anyway aborts it.
+ */
 const AssetIntakeFlow = ({
-	onAssetsSaved,
+	onAssetsCreated,
+	onAssetUpdated,
 	onPendingChange,
-	onSavingChange,
-	submitLabel,
+	onDone,
 	variant = "page",
 }: {
-	/** Also hands over the save's zedToken, so later reads see the new assets. */
-	onAssetsSaved?: (assets: Asset[], zedToken: string | undefined) => void;
+	/** Also hands over the create call's zedToken, so later reads see the new assets. */
+	onAssetsCreated?: (assets: Asset[], zedToken: string | undefined) => void;
+	onAssetUpdated?: (asset: Asset) => void;
+	/** True while files upload or their assets are being created. */
 	onPendingChange?: (pending: boolean) => void;
-	/** Whether `asset.saveMany` is running. */
-	onSavingChange?: (saving: boolean) => void;
-	submitLabel?: string;
+	/** Shows Done in the review step. */
+	onDone?: () => void;
 	variant?: UploadVariant;
 }) => {
 	const [step, setStep] = useState<IntakeStep>("upload");
-	const [uploadedFiles, setUploadedFiles] = useState<FinalizedUploadFile[]>([]);
-	const [drafts, setDrafts] = useState<Record<string, AssetMetadataDraft>>({});
-	const { mutate: saveManyAssets, isPending } = useSaveManyAssetsMutation({
-		onSuccess: (result) => {
-			onAssetsSaved?.(result.data, result.meta?.zedToken);
-			setUploadedFiles([]);
-			setDrafts({});
-			setStep("upload");
-		},
-	});
+	const [assets, setAssets] = useState<Asset[]>([]);
+	const [failures, setFailures] = useState<UploadFailure[]>([]);
+	const [pending, setPending] = useState(false);
 
-	const hasPending = uploadedFiles.length > 0;
+	useUnsavedChangesGuard(() => pending);
 
-	useUnsavedChangesGuard(() => hasPending);
-
-	useEffect(() => {
-		onSavingChange?.(isPending);
-	}, [
-		isPending,
-		onSavingChange,
-	]);
-
-	useEffect(() => {
-		onPendingChange?.(hasPending);
-	}, [
-		hasPending,
-		onPendingChange,
-	]);
+	const changePending = (value: boolean) => {
+		setPending(value);
+		onPendingChange?.(value);
+	};
 
 	const isCompact = variant === "compact";
 
 	const review = (
 		<>
-			<UploadedFileReviewList
-				files={uploadedFiles}
-				drafts={drafts}
-				onDraftChange={(fileId, nextDraft) =>
-					setDrafts((current) => ({
-						...current,
-						[fileId]: nextDraft,
-					}))
-				}
+			<SelectedAssetList
+				assets={assets.map((asset) => ({
+					...asset,
+					capabilities: ownerCapabilities("asset"),
+				}))}
+				onAssetUpdated={(updated) => {
+					setAssets((current) =>
+						current.map((asset) => (asset.id === updated.id ? updated : asset)),
+					);
+					onAssetUpdated?.(updated);
+				}}
 			/>
 
-			<div className="flex items-center justify-between gap-3 rounded-2xl border bg-muted/15 px-4 py-3">
-				<div className="text-muted-foreground text-sm">
-					{m.assets_intake_review_metadata_count({
-						completed: uploadedFiles.filter((file) =>
-							hasMetadataAdded(
-								drafts[file.id] ?? {
-									title: file.name,
-									metadata: createDefaultAssetMetadata(),
-								},
-								file.name,
-							),
-						).length,
-						count: uploadedFiles.length,
-					})}
+			{failures.length > 0 ? (
+				<div
+					role="alert"
+					className="space-y-1 rounded-2xl border border-status-danger/40 px-4 py-3 text-sm"
+				>
+					<div className="flex items-center gap-2 font-medium">
+						<AlertCircleIcon className="size-4 text-status-danger" />
+						{m.assets_intake_failed_title({
+							count: failures.length,
+						})}
+					</div>
+					<ul className="space-y-0.5 text-muted-foreground">
+						{failures.map((failure, index) => (
+							<li key={`${failure.name}-${index}`}>
+								{failure.name}: {failure.message}
+							</li>
+						))}
+					</ul>
 				</div>
-				<Button
-					loading={isPending}
-					onClick={() => {
-						if (uploadedFiles.length === 0) {
-							toast.error(m.assets_intake_no_files_toast_error());
-							return;
-						}
+			) : null}
 
-						saveManyAssets({
-							assets: uploadedFiles.map((file) => ({
-								title: drafts[file.id]?.title ?? file.name,
-								metadata:
-									drafts[file.id]?.metadata ?? createDefaultAssetMetadata(),
-								upload: file,
-							})),
-						});
+			<div className="flex justify-end gap-2">
+				<Button
+					variant="outline"
+					onClick={() => {
+						setFailures([]);
+						setStep("upload");
 					}}
 				>
-					{submitLabel ?? m.assets_intake_submit_button()}
+					{m.assets_intake_upload_more_button()}
 				</Button>
+				{onDone ? (
+					<Button onClick={onDone}>{m.assets_intake_done_button()}</Button>
+				) : null}
 			</div>
 		</>
 	);
 
 	return (
 		<div className={isCompact ? "space-y-4" : "space-y-6"}>
-			{step !== "review" ? (
+			{step === "upload" ? (
 				<UploadComponent
 					variant={variant}
-					route="asset"
 					title={m.assets_intake_upload_title()}
 					description={m.assets_intake_upload_description()}
 					uploadLabel={m.assets_intake_upload_button()}
-					finalizeUpload
-					hidePickerWhenSettled
-					completionAction={{
-						label: m.common_next_button(),
-						onClick: () => setStep("review"),
-						disabled: uploadedFiles.length === 0,
-					}}
-					onReset={() => {
-						setUploadedFiles([]);
-						setDrafts({});
-						setStep("upload");
-					}}
-					onUploaded={({ finalizedFiles }) => {
-						setUploadedFiles((current) => [
+					onPendingChange={changePending}
+					onCreated={({ assets: created, failures: failed, zedToken }) => {
+						setAssets((current) => [
 							...current,
-							...finalizedFiles.filter(
-								(file) =>
-									!current.some((existingFile) => existingFile.id === file.id),
+							...created.filter(
+								(asset) => !current.some((known) => known.id === asset.id),
 							),
 						]);
-						setDrafts((current) => ({
-							...current,
-							...Object.fromEntries(
-								finalizedFiles
-									.filter((file) => !(file.id in current))
-									.map((file) => [
-										file.id,
-										{
-											title: file.name,
-											metadata: createDefaultAssetMetadata(),
-										},
-									]),
-							),
-						}));
-						setStep("uploaded");
+						setFailures(failed);
+						setStep("review");
+						if (created.length > 0) onAssetsCreated?.(created, zedToken);
 					}}
 				/>
-			) : null}
-
-			{step === "review" && uploadedFiles.length > 0 ? (
-				isCompact ? (
-					<div className="space-y-4">
-						<div className="space-y-1">
-							<p className="font-medium">{m.assets_intake_review_title()}</p>
-							<p className="text-muted-foreground text-sm">
-								{m.assets_intake_review_description()}
-							</p>
-						</div>
-						{review}
+			) : isCompact ? (
+				<div className="space-y-4">
+					<div className="space-y-1">
+						<p className="font-medium">{m.assets_intake_review_title()}</p>
+						<p className="text-muted-foreground text-sm">
+							{m.assets_intake_review_description()}
+						</p>
 					</div>
-				) : (
-					<Card className="border-border/70 bg-background shadow-sm">
-						<CardHeader>
-							<CardTitle>{m.assets_intake_review_title()}</CardTitle>
-							<CardDescription>
-								{m.assets_intake_review_description()}
-							</CardDescription>
-						</CardHeader>
-						<CardContent className="space-y-6">{review}</CardContent>
-					</Card>
-				)
-			) : null}
+					{review}
+				</div>
+			) : (
+				<Card className="border-border/70 bg-background shadow-sm">
+					<CardHeader>
+						<CardTitle>{m.assets_intake_review_title()}</CardTitle>
+						<CardDescription>
+							{m.assets_intake_review_description()}
+						</CardDescription>
+					</CardHeader>
+					<CardContent className="space-y-6">{review}</CardContent>
+				</Card>
+			)}
 		</div>
 	);
 };
