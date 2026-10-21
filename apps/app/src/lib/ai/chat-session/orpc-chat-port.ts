@@ -1,6 +1,7 @@
 import type { ChatId } from "@orcai/core";
 import { eventIteratorToUnproxiedDataStream, ORPCError } from "@orpc/client";
 import type { QueryClient } from "@tanstack/react-query";
+import { isTextUIPart } from "ai";
 import { toChatAgentMessages } from "@/components/chat/chat-history";
 import { staleDataOf } from "@/lib/ai/tools/registry";
 import type { ChatAgentUIMessage } from "@/lib/ai/types/chat-agent-message";
@@ -76,7 +77,10 @@ export const orpcChatPort = ({
 					message: {
 						id: message.id,
 						role: "user",
-						parts: message.parts,
+						parts: message.parts.filter(isTextUIPart).map(({ text }) => ({
+							type: "text",
+							text,
+						})),
 						attachments: getChatMessageAttachments(message).map(
 							({ assetId }) => ({
 								assetId,
