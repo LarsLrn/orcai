@@ -1,16 +1,8 @@
 import { chatIdSchema, zedTokenSchema } from "@orcai/schema";
-import { useQuery } from "@tanstack/react-query";
-import {
-	createFileRoute,
-	notFound,
-	useRouter,
-	useRouterState,
-} from "@tanstack/react-router";
-import { useEffect } from "react";
+import { createFileRoute, notFound } from "@tanstack/react-router";
 import { z } from "zod/v4";
-import { Chat } from "@/components/chat/chat";
-import { orpc } from "@/lib/orpc/orpc";
-import { orNotFound, parseParam } from "@/lib/router/not-found";
+import { ChatPage, loadChatPage } from "@/components/chat/chat-page";
+import { parseParam } from "@/lib/router/not-found";
 import { m } from "@/paraglide/messages";
 
 const searchSchema = z.object({
@@ -27,46 +19,27 @@ export const Route = createFileRoute("/app/assistant/$chatId/")({
 	loaderDeps: ({ search: { zedToken } }) => ({
 		zedToken,
 	}),
-	loader: async ({
+	loader: ({
 		params: { chatId },
 		context: { queryClient, auth },
 		deps: { zedToken },
-	}) => {
-		const chat = await orNotFound(
-			queryClient.query(
-				orpc.chat.find.queryOptions({
-					input: {
-						id: chatId,
-						zedToken,
-					},
-					staleTime: 0,
-				}),
-			),
-		);
-
-		// Readable from any organisation over the API, but only shown in its own.
-		if (
-			chat.data.kind !== "assistant" ||
-			chat.data.organizationId !== auth.session.activeOrganizationId
-		) {
-			throw notFound();
-		}
-
-		const messages = await queryClient.query(
-			orpc.chatMessage.list.queryOptions({
-				input: {
-					chatId,
-					zedToken,
-				},
-				staleTime: 0,
-			}),
-		);
-
-		return {
-			messages,
-			chat,
-		};
-	},
+	}) =>
+		loadChatPage(
+			{
+				queryClient,
+				chatId,
+				zedToken,
+			},
+			(chat) => {
+				// Readable from any organisation over the API, but only shown in its own.
+				if (
+					chat.kind !== "assistant" ||
+					chat.organizationId !== auth.session.activeOrganizationId
+				) {
+					throw notFound();
+				}
+			},
+		),
 	component: RouteComponent,
 	head: ({ loaderData }) => {
 		const chat = loaderData?.chat?.data;
@@ -85,50 +58,14 @@ export const Route = createFileRoute("/app/assistant/$chatId/")({
 
 function RouteComponent() {
 	const { chatId } = Route.useParams();
-	const loaderData = Route.useLoaderData();
 	const { zedToken } = Route.useSearch();
-	const router = useRouter();
-	const { data: chat } = useQuery(
-		orpc.chat.find.queryOptions({
-			input: {
-				id: chatId,
-				zedToken,
-			},
-		}),
-	);
-	const title = chat?.data.title;
-	const loadedTitle = loaderData.chat.data.title;
-
-	// The breadcrumb and document title come from `head`, which only reruns with the loader.
-	useEffect(() => {
-		if (title === undefined || title === loadedTitle) return;
-		void router.invalidate({
-			filter: (match) => match.routeId === Route.id,
-		});
-	}, [
-		title,
-		loadedTitle,
-		router,
-	]);
-
-	const pendingMessage = useRouterState({
-		select: (state) =>
-			typeof state.location.state.pendingMessage === "string"
-				? state.location.state.pendingMessage
-				: undefined,
-	});
 
 	return (
-		// The shell above the outlet takes the 48px header plus its 24px of vertical padding.
-		<div className="flex h-[calc(100dvh-6rem)] min-h-0 flex-col">
-			<Chat
-				key={chatId}
-				id={chatId}
-				page={loaderData.messages}
-				zedToken={zedToken}
-				pendingMessage={pendingMessage}
-				variant="assistant"
-			/>
-		</div>
+		<ChatPage
+			chatId={chatId}
+			zedToken={zedToken}
+			loaded={Route.useLoaderData()}
+			variant="assistant"
+		/>
 	);
 }
