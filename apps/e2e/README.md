@@ -18,8 +18,9 @@ config throws when the stack environment is missing.
 
 ## Waiting
 
-- `open` waits until React has hydrated (`data-hydrated` on `<html>`). After a
-  reload `open` did not make, call `awaitHydration` before interacting.
+- `open` waits until React has hydrated the whole page, every Suspense
+  boundary included. After a reload `open` did not make, call
+  `awaitHydration` before interacting.
 - Permission changes can lag a second or two behind writes. After writing over
   the API, call `seedZedToken(page)` before the browser reads; retry calls that
   are safe to repeat with `untilAllowed`, `expect.poll` or `toPass`.
