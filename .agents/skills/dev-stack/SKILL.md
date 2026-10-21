@@ -1,6 +1,6 @@
 ---
 name: dev-stack
-description: Run OrcAI against real infrastructure in this worktree. Use when starting the app, workers, or docs site, running end-to-end tests, writing Playwright specs, resetting data, applying migrations or the SpiceDB schema, diagnosing an unreachable service, or verifying a change in the browser or with curl. Lint, unit tests, and pure code edits do not need this skill.
+description: Run OrcAI against real infrastructure in this worktree. Use when starting the app, workers, or docs site, running end-to-end or integration tests, writing Playwright specs, resetting data, applying migrations or the SpiceDB schema, diagnosing an unreachable service, or verifying a change in the browser or with curl. Lint, unit tests, and pure code edits do not need this skill.
 ---
 
 # Dev stack
@@ -45,9 +45,11 @@ bun run stack e2e --yes                   # reset, then the full suite
 bun run stack e2e --yes -- --grep auth    # one area
 bun run stack e2e --yes -- --ui           # Playwright UI mode
 bun run stack e2e --no-reset -- --grep smoke   # no reset, so no confirmation
+bun run stack e2e --yes --no-integration  # Playwright only
 ```
 
-Everything after `--` is passed to Playwright. A run without `--no-reset`
+Everything after `--` is passed to Playwright. After Playwright the run
+executes the integration tier on the same stack and fails if either fails. A run without `--no-reset`
 clears this worktree's database, authorisation store, object storage, vector
 store, and cache. Use a second named stack when development data must remain;
 run the two stacks of one checkout one after another because they share the
@@ -79,3 +81,17 @@ Locate elements by role and accessible English name; add a test id only when
 no accessible name exists. Pin a current defect with `test.fail()` while
 asserting the intended behaviour. Finish an area with
 `bun run stack e2e --yes -- --grep <area>` and then a full suite run.
+
+## Integration tests
+
+Test a module that needs PostgreSQL or SpiceDB through its interface in a
+`*.integration.ts` file alongside its unit tests. Run the tier with
+`bun run test:integration`, or one file with
+`bun run stack exec -- bun test ./path/to/file.integration.ts`. It needs no
+reset, but `integrationRuntime()` fails before the instance is initialised;
+run `bun run stack e2e --yes -- --grep <area>` once on a fresh stack.
+
+Use `integrationRuntime()` from `@orcai/testing` for the app's DB and SpiceDB
+layers, and `createUser` and `createOrganization` for data. Create everything
+under fresh ids, never rely on or mutate rows you did not create, and leave
+the data in place.

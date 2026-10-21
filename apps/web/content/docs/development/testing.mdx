@@ -1,6 +1,6 @@
 ---
 title: End-To-End Tests
-description: How the Playwright end-to-end suite is run, isolated, and extended.
+description: How the Playwright end-to-end suite and the integration tier are run, isolated, and extended.
 ---
 
 The end-to-end suite proves that the application works against real infrastructure: a real database, real authorisation store, real object storage. Unit tests (`bun run test`) never touch the stack; the end-to-end suite always does. Each unit test file runs isolated in a pool of worker processes (`bun test --parallel`), so `mock.module` and DOM globals stay within their file.
@@ -23,9 +23,10 @@ bun run e2e                                    # root alias
 bun run stack e2e -- --grep auth               # one spec area
 bun run stack e2e -- --ui                      # Playwright UI mode
 bun run stack e2e --no-reset -- --grep smoke   # fast iteration on existing data
+bun run stack e2e --no-integration             # Playwright only
 ```
 
-Everything after `--` is passed to Playwright.
+Everything after `--` is passed to Playwright. After Playwright, whatever its result, the run executes the [integration tier](#integration-tier) on the same stack; the run fails if either does.
 
 <Callout title="A run wipes the stack's data" type="warn">
 	A run that resets asks for confirmation first. `--yes` answers up front, and a caller without a terminal has to pass it. Unless you pass `--no-reset`, `bun run stack e2e` resets the stack first: it drops and recreates the `app` database, reapplies migrations and the SpiceDB schema, deletes all SpiceDB relationships, empties the object storage buckets, deletes the Qdrant collections, and flushes Valkey. Containers and `.env` are left in place, so a reset takes seconds. The reset refuses unless the database host is loopback, `S3_ENDPOINT` is the stack's own loopback SeaweedFS, the stack is named `orcai-*`, and nothing is listening on the app port. To keep your development data, run the suite against a second stack with `bun run stack --name <name>-e2e --env-file .env.e2e up`, then the same flags on `e2e`. Run the stacks of one checkout one after the other: the production build bakes the stack's base URL into `apps/app/dist`, which both runs would share. Separate worktrees have separate builds and run concurrently.
@@ -40,6 +41,29 @@ The application under test is the production build: Playwright's `webServer` lis
 There is no seed command. A Playwright `setup` project holds one spec that initialises the reset instance through the first-run UI at `/init` with a well-known admin whose credentials and instance organisation are fixed constants. If the instance is already initialised, the spec skips itself with a visible reason. Every other project depends on `setup`, so a full run always exercises first-run setup and always has the well-known admin available.
 
 The reset happens once per run. Beyond the well-known admin, every Playwright worker creates its own organisations and users through the public API, named by worker index, and specs mutate only data inside their own worker's organisations. Users are created through the Better Auth sign-up endpoint and then given a role through the membership procedure. Creating an organisation requires the instance-admin role, so the well-known admin creates every worker organisation and becomes an admin member of each. It does not need an active organisation to perform that instance-scoped action, but membership and invitation procedures act on the active organisation, so the fixtures open a separate well-known admin session per created organisation, activate that organisation on it, and invite and remove members through it. The shared well-known admin session keeps the instance organisation active. Fixture setup still exercises the same paths the interface does. Specs that need instance-level state live in `apps/e2e/tests/instance/`; that project runs serially and completes before the parallel specs start.
+
+## Integration Tier
+
+Modules that need real PostgreSQL and SpiceDB are tested through their interface in `*.integration.ts` files, alongside the unit tests. `bun test` does not discover that suffix, so `bun run test` stays free of infrastructure.
+
+```bash title="Repository root"
+bun run test:integration                                        # every integration file
+bun run stack exec -- bun test ./packages/spice-db/test/schema.integration.ts   # one file
+```
+
+`bun run test:integration` finds every `*.integration.ts` under `apps` and `packages` and runs them with `bun test --parallel` through `bun run stack exec`, so they get the stack environment. The tier needs a migrated stack, nothing else; it runs no reset.
+
+Tests create their own organisations and users under unique ids, so they coexist with development data and with each other. Bootstrap counts any user or organisation as an initialised instance, so a test row on a fresh stack would lock first-run setup; `integrationRuntime()` therefore fails until the instance is initialised through `/init` or a `bun run stack e2e` run.
+
+`@orcai/testing` holds the shared helpers:
+
+| Helper | Provides |
+| --- | --- |
+| `integrationRuntime()` | A `ManagedRuntime` over `IntegrationLive`, the app's `DrizzleLive` and `SpiceDbLive` layers built from the stack environment, disposed after the file's last test. |
+| `createUser({ role })` | A user row with a unique email, instance role `user` unless given. |
+| `createOrganization({ members })` | An organisation with a unique slug whose members hold their role in both the `member` table and SpiceDB, and the `zedToken` of that write. |
+
+`packages/spice-db/test/schema.integration.ts` checks the SpiceDB schema: it writes a fixed set of relationships under per-run ids and asserts which permissions they grant and deny against the stack's applied schema.
 
 ## Fixtures
 
@@ -73,7 +97,7 @@ foundation files shared by every area; coordinate before changing them.
 
 ## Continuous Integration
 
-GitHub Actions runs the suite as a separate blocking `e2e` job, in parallel with `validate`. It installs Chromium with the pinned `apps/e2e` Playwright, starts the stack, runs `bun run stack e2e --yes`, and uploads failure artifacts for seven days.
+GitHub Actions runs the suite as a separate blocking `e2e` job, in parallel with `validate`. It installs Chromium with the pinned `apps/e2e` Playwright, starts the stack, runs `bun run stack e2e --yes`, which includes the integration tier, and uploads failure artifacts for seven days.
 
 Worker-local inference settings reset before and after every test, including
 failed tests; other workers keep their own scenarios. Well-known-admin browser
