@@ -23,6 +23,7 @@ import {
 import { user } from "./auth";
 import { bot } from "./bot";
 import { chatMessage } from "./chat-message";
+import { chatTitleSearchVector } from "./chat-search";
 import { organization } from "./organization";
 
 export const chatKindEnum = pgEnum("chat_kind", [
@@ -75,6 +76,10 @@ export const chat = pgTable(
 			table.organizationId,
 			table.userId,
 			table.updatedAt,
+		),
+		index("chat_title_search_idx").using(
+			"gin",
+			chatTitleSearchVector(table.title),
 		),
 	],
 );

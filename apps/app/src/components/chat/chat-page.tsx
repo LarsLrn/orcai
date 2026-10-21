@@ -1,4 +1,4 @@
-import type { ChatId } from "@orcai/core";
+import type { ChatId, ChatMessageId } from "@orcai/core";
 import { type QueryClient, useQuery } from "@tanstack/react-query";
 import { useMatch, useRouter, useRouterState } from "@tanstack/react-router";
 import { useEffect } from "react";
@@ -18,10 +18,13 @@ export const loadChatPage = async (
 		queryClient,
 		chatId,
 		zedToken,
+		through,
 	}: {
 		queryClient: QueryClient;
 		chatId: ChatId;
 		zedToken?: string;
+		/** A message the first page reaches back to. */
+		through?: ChatMessageId;
 	},
 	admit: (chat: LoadedChat["data"]) => void,
 ) => {
@@ -45,6 +48,7 @@ export const loadChatPage = async (
 				input: {
 					chatId,
 					zedToken,
+					through,
 				},
 				staleTime: 0,
 			}),
@@ -70,11 +74,13 @@ export const loadChatPage = async (
 export const ChatPage = ({
 	chatId,
 	zedToken,
+	focusMessageId,
 	loaded,
 	variant,
 }: {
 	chatId: ChatId;
 	zedToken?: string;
+	focusMessageId?: ChatMessageId;
 	loaded: Awaited<ReturnType<typeof loadChatPage>>;
 	variant?: "chat" | "assistant";
 }) => {
@@ -121,11 +127,13 @@ export const ChatPage = ({
 	return (
 		// The shell above the outlet takes the 48px header plus its 24px of vertical padding.
 		<div className="flex h-[calc(100dvh-6rem)] min-h-0 flex-col">
+			{/* A search hit loads the page reaching back to it, so each opens its own session. */}
 			<Chat
-				key={chatId}
+				key={`${chatId}:${focusMessageId ?? ""}`}
 				id={chatId}
 				page={loaded.messages}
 				zedToken={zedToken}
+				focusMessageId={focusMessageId}
 				pendingMessage={pendingMessage}
 				draft={draft}
 				variant={variant}

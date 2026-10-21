@@ -1,5 +1,5 @@
 import { DB, dbSchema } from "@orcai/db";
-import { and, desc, eq, lt } from "drizzle-orm";
+import { and, count, desc, eq, gte, lt } from "drizzle-orm";
 import * as Effect from "effect/Effect";
 import { isEmptyReply } from "@/lib/ai/turn/reply-store";
 import * as AppErrors from "@/lib/effect/utils/errors";
@@ -15,27 +15,53 @@ const listChatMessages = authed.chatMessage.list
 	)
 	.effect(function* ({ input }) {
 		const db = yield* DB;
+		const inChat = eq(dbSchema.chatMessage.chatId, input.chatId);
+
+		const [through] = input.through
+			? yield* db
+					.select({
+						count: count(),
+					})
+					.from(dbSchema.chatMessage)
+					.where(
+						and(
+							inChat,
+							gte(
+								dbSchema.chatMessage.position,
+								db
+									.select({
+										position: dbSchema.chatMessage.position,
+									})
+									.from(dbSchema.chatMessage)
+									.where(
+										and(inChat, eq(dbSchema.chatMessage.id, input.through)),
+									),
+							),
+						),
+					)
+			: [];
+		const limit = Math.max(input.limit, through?.count ?? 0);
 
 		const rows = yield* db
 			.select()
 			.from(dbSchema.chatMessage)
 			.where(
 				and(
-					eq(dbSchema.chatMessage.chatId, input.chatId),
+					inChat,
 					input.before === undefined
 						? undefined
 						: lt(dbSchema.chatMessage.position, input.before),
 				),
 			)
 			.orderBy(desc(dbSchema.chatMessage.position))
-			.limit(input.limit + 1);
+			.limit(limit + 1);
 
 		return {
 			data: rows
-				.slice(0, input.limit)
+				.slice(0, limit)
 				.reverse()
 				.filter((message) => !isEmptyReply(message)),
-			hasMore: rows.length > input.limit,
+			hasMore: rows.length > limit,
 		};
 	});
 

@@ -1,4 +1,8 @@
-import { chatIdSchema, zedTokenSchema } from "@orcai/schema";
+import {
+	chatIdSchema,
+	chatMessageIdSchema,
+	zedTokenSchema,
+} from "@orcai/schema";
 import { createFileRoute, redirect } from "@tanstack/react-router";
 import { z } from "zod/v4";
 import { ChatPage, loadChatPage } from "@/components/chat/chat-page";
@@ -7,6 +11,8 @@ import { m } from "@/paraglide/messages";
 
 const searchSchema = z.object({
 	...zedTokenSchema.shape,
+	/** A search hit to open the chat on. */
+	message: chatMessageIdSchema.optional(),
 });
 
 export const Route = createFileRoute("/app/chat/$chatId/")({
@@ -16,19 +22,21 @@ export const Route = createFileRoute("/app/chat/$chatId/")({
 			chatId: parseParam(chatIdSchema, params.chatId),
 		}),
 	},
-	loaderDeps: ({ search: { zedToken } }) => ({
+	loaderDeps: ({ search: { zedToken, message } }) => ({
 		zedToken,
+		message,
 	}),
 	loader: ({
 		params: { chatId },
 		context: { queryClient },
-		deps: { zedToken },
+		deps: { zedToken, message },
 	}) =>
 		loadChatPage(
 			{
 				queryClient,
 				chatId,
 				zedToken,
+				through: message,
 			},
 			(chat) => {
 				if (chat.kind === "assistant") {
@@ -39,6 +47,7 @@ export const Route = createFileRoute("/app/chat/$chatId/")({
 						},
 						search: {
 							zedToken,
+							message,
 						},
 					});
 				}
@@ -62,12 +71,13 @@ export const Route = createFileRoute("/app/chat/$chatId/")({
 
 function RouteComponent() {
 	const { chatId } = Route.useParams();
-	const { zedToken } = Route.useSearch();
+	const { zedToken, message } = Route.useSearch();
 
 	return (
 		<ChatPage
 			chatId={chatId}
 			zedToken={zedToken}
+			focusMessageId={message}
 			loaded={Route.useLoaderData()}
 		/>
 	);

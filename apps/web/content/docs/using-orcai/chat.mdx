@@ -1,11 +1,11 @@
 ---
 title: Chat
-description: Starting chats with or without a bot, the chat list, message actions, branching, attachments, chat settings, quota, preparing documents, retrieval and citations, and deleting chats.
+description: Starting chats with or without a bot, the chat list and search, message actions, branching, attachments, chat settings, quota, preparing documents, retrieval and citations, and deleting chats.
 ---
 
 Chat is the core end-user workflow in OrcAI. You can start chats with or without a bot, attach sources, branch a conversation, and tune per-chat settings.
 
-Conversations with the [OrcAI Assistant](/docs/using-orcai/assistant) live on their own page, not in the chat list.
+Conversations with the [OrcAI Assistant](/docs/using-orcai/assistant) live on their own page; the chat list shows them only in search results.
 
 ## Entry Points
 
@@ -45,13 +45,21 @@ When you send the first message, OrcAI creates the chat and opens it at `/app/ch
 
 The chat list (`/app/chat`) shows all your chats in a table and supports:
 
-- Search by text
+- Search across titles and message text
 - Filter by bot
 - Sorting and pagination
 - Rename and delete per chat, from the row menu
 - **Delete selected** as the only bulk action, available for any chats you select
 
 The sidebar's **Chats** group shows your 40 most recent chats, with the same rename and delete actions.
+
+### Search
+
+The search box on the chat list finds your own chats by title and by the text of their messages, questions and answers alike. It also finds your OrcAI Assistant conversations of the active organisation. Tool steps, attachments and source passages are not searched.
+
+- Every word must appear; the last one also matches as the start of a word, so results follow as you type. Case does not matter, and words match exactly in any language, without stemming.
+- Results are ordered by relevance, with title matches first, unless you sort by a column.
+- A result found in a message shows a short excerpt with the matching words marked. Opening it shows the chat at that message, which is highlighted briefly; older messages still load as you scroll up.
 
 ## In-Conversation Features
 

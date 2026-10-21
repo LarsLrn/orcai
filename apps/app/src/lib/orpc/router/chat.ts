@@ -4,7 +4,13 @@ import type {
 	ModelId,
 	OrganizationId,
 } from "@orcai/core";
-import { DB, dbSchema } from "@orcai/db";
+import {
+	chatMessageSearchText,
+	chatMessageSearchVector,
+	chatTitleSearchVector,
+	DB,
+	dbSchema,
+} from "@orcai/db";
 import type { ChatSortKey } from "@orcai/schema";
 import {
 	lookupEntitiesByPermission,
@@ -17,11 +23,13 @@ import {
 	count,
 	desc,
 	eq,
+	exists,
 	getColumns,
-	ilike,
 	inArray,
 	lt,
 	lte,
+	or,
+	sql,
 } from "drizzle-orm";
 import * as Effect from "effect/Effect";
 import { v4 as uuidv4 } from "uuid";
@@ -42,8 +50,12 @@ import {
 	requireEntityPermission,
 	requirePermission,
 } from "@/lib/orpc/middlewares/permission";
-import { literalSearch } from "@/lib/utils/literal-search";
 import { assistantConversationImmutable } from "./helpers/assistant-conversation";
+import {
+	HEADLINE_OPTIONS,
+	prefixTsQuery,
+	snippetOf,
+} from "./helpers/chat-search";
 import { buildOrderBy, type SortExpression } from "./helpers/sorting";
 
 const listChats = authed.chat.list.effect(function* ({ input, context }) {
@@ -55,17 +67,65 @@ const listChats = authed.chat.list.effect(function* ({ input, context }) {
 		entityType: "chat",
 		zedToken: getZedToken(context, input),
 	});
+	const search =
+		input.filters?.search === undefined
+			? undefined
+			: prefixTsQuery(input.filters.search);
+	const tsQuery = sql`to_tsquery('simple', ${search})`;
+	const titleVector = chatTitleSearchVector(dbSchema.chat.title);
+	const messageVector = chatMessageSearchVector(dbSchema.chatMessage.parts);
+	const messageMatches = sql`${messageVector} @@ ${tsQuery}`;
+	const activeOrganizationId = context.auth.session.activeOrganizationId;
+
 	const conditions = [
 		inArray(dbSchema.chat.id, allowedIds),
-		eq(dbSchema.chat.kind, "chat"),
+		// A search also finds the assistant conversations of the active organisation.
+		search && activeOrganizationId
+			? or(
+					eq(dbSchema.chat.kind, "chat"),
+					eq(dbSchema.chat.organizationId, activeOrganizationId),
+				)
+			: eq(dbSchema.chat.kind, "chat"),
 		input.filters?.botId
 			? eq(dbSchema.chat.botId, input.filters.botId)
 			: undefined,
-		input.filters?.search
-			? ilike(dbSchema.chat.title, literalSearch(input.filters.search))
+		search
+			? or(
+					sql`${titleVector} @@ ${tsQuery}`,
+					exists(
+						db
+							.select({
+								id: dbSchema.chatMessage.id,
+							})
+							.from(dbSchema.chatMessage)
+							.where(
+								and(
+									eq(dbSchema.chatMessage.chatId, dbSchema.chat.id),
+									messageMatches,
+								),
+							),
+					),
+				)
 			: undefined,
 	].filter((condition) => condition !== undefined);
 	const whereClause = and(...conditions);
+
+	const bestMessage = db
+		.select({
+			id: dbSchema.chatMessage.id,
+			parts: dbSchema.chatMessage.parts,
+			rank: sql<number>`ts_rank(${messageVector}, ${tsQuery})`.as("rank"),
+		})
+		.from(dbSchema.chatMessage)
+		.where(
+			and(eq(dbSchema.chatMessage.chatId, dbSchema.chat.id), messageMatches),
+		)
+		.orderBy(sql`rank desc`, desc(dbSchema.chatMessage.position))
+		.limit(1)
+		.as("best_message");
+	// A title term weighs ten times one in a message.
+	const rank = sql`greatest(ts_rank(setweight(${titleVector}, 'A'), ${tsQuery}), ${bestMessage.rank})`;
+
 	const orderBy = yield* buildOrderBy({
 		sort: input.sort,
 		allowlist: {
@@ -74,6 +134,11 @@ const listChats = authed.chat.list.effect(function* ({ input, context }) {
 			updatedAt: dbSchema.chat.updatedAt,
 		} satisfies Record<ChatSortKey, SortExpression>,
 		defaultOrder: [
+			...(search
+				? [
+						desc(rank),
+					]
+				: []),
 			desc(dbSchema.chat.updatedAt),
 		],
 		tieBreaker: {
@@ -82,15 +147,24 @@ const listChats = authed.chat.list.effect(function* ({ input, context }) {
 		},
 	});
 
+	const rows = db
+		.select({
+			...getColumns(dbSchema.chat),
+			botName: dbSchema.bot.name,
+			match: search
+				? sql<{
+						messageId: ChatMessageId;
+						headline: string;
+					} | null>`case when ${bestMessage.id} is null then null else json_build_object('messageId', ${bestMessage.id}, 'headline', ts_headline('simple', ${chatMessageSearchText(bestMessage.parts)}, ${tsQuery}, ${HEADLINE_OPTIONS})) end`
+				: sql<null>`null`,
+		})
+		.from(dbSchema.chat)
+		.leftJoin(dbSchema.bot, eq(dbSchema.chat.botId, dbSchema.bot.id))
+		.$dynamic();
+
 	return yield* Effect.all(
 		[
-			db
-				.select({
-					...getColumns(dbSchema.chat),
-					botName: dbSchema.bot.name,
-				})
-				.from(dbSchema.chat)
-				.leftJoin(dbSchema.bot, eq(dbSchema.chat.botId, dbSchema.bot.id))
+			(search ? rows.leftJoinLateral(bestMessage, sql`true`) : rows)
 				.where(whereClause)
 				.orderBy(...orderBy)
 				.limit(input.pageSize)
@@ -100,15 +174,20 @@ const listChats = authed.chat.list.effect(function* ({ input, context }) {
 					count: count(),
 				})
 				.from(dbSchema.chat)
-				.leftJoin(dbSchema.bot, eq(dbSchema.chat.botId, dbSchema.bot.id))
 				.where(whereClause),
 		],
 		{
 			concurrency: "unbounded",
 		},
 	).pipe(
-		Effect.map(([data, [countResult]]) => ({
-			data,
+		Effect.map(([rows, [countResult]]) => ({
+			data: rows.map(({ match, ...chat }) => ({
+				...chat,
+				match: match && {
+					messageId: match.messageId,
+					snippet: snippetOf(match.headline),
+				},
+			})),
 			rowCount: countResult.count,
 		})),
 	);

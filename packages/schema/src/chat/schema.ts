@@ -36,8 +36,23 @@ export const chatFiltersSchema = z.object({
 	...searchFilterSchema.shape,
 });
 
+/** Text around a search hit, the matched terms highlighted. */
+export const chatSearchSnippetSchema = z.array(
+	z.object({
+		text: z.string(),
+		highlighted: z.boolean(),
+	}),
+);
+
 export const chatListRowSchema = chatSchema.extend({
 	botName: z.string().nullable(),
+	/** Under a search, the best matching message; null when only the title matched. */
+	match: z
+		.object({
+			messageId: chatMessageIdSchema,
+			snippet: chatSearchSnippetSchema,
+		})
+		.nullable(),
 });
 
 export const chatLinkSchema = z.object({
@@ -55,3 +70,4 @@ export type Chat = z.infer<typeof chatSchema>;
 export type ChatLink = z.infer<typeof chatLinkSchema>;
 export type ChatBranchLink = z.infer<typeof chatBranchLinkSchema>;
 export type ChatListRow = z.infer<typeof chatListRowSchema>;
+export type ChatSearchSnippet = z.infer<typeof chatSearchSnippetSchema>;
