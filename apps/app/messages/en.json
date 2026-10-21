@@ -177,11 +177,7 @@
 	"account_verification_send_button": "Send verification email",
 	"account_verification_unverified_description": "Your email address is not verified.",
 	"account_verification_verified_description": "Your email address is verified.",
-	"ai_elements_attachment_empty_state": "No attachments",
-	"ai_elements_attachment_fallback_label": "Attachment",
-	"ai_elements_attachment_image_alt": "Image",
-	"ai_elements_attachment_image_fallback_label": "Image",
-	"ai_elements_attachment_source_fallback_label": "Source",
+	"ai_elements_attachment_remove_label": "Remove {name}",
 	"ai_elements_cite_load_error": "The source details could not be loaded.",
 	"ai_elements_cite_loading_label": "Loading the source details",
 	"ai_elements_cite_open_asset_action": "Open asset",
@@ -195,28 +191,9 @@
 	"ai_elements_context_tokens_used_label": "Tokens used",
 	"ai_elements_context_total_tokens_label": "Total tokens",
 	"ai_elements_context_usage_aria_label": "Model context usage",
-	"ai_elements_inline_citation_next_aria_label": "Next",
-	"ai_elements_inline_citation_previous_aria_label": "Previous",
 	"ai_elements_inline_citation_unknown_source_label": "unknown",
 	"ai_elements_prompt_input_stop_aria_label": "Stop",
 	"ai_elements_prompt_input_submit_aria_label": "Submit",
-	"ai_elements_reasoning_duration": [
-		{
-			"declarations": [
-				"input count",
-				"local countPlural = count: plural"
-			],
-			"selectors": [
-				"countPlural"
-			],
-			"match": {
-				"countPlural=one": "Thought for {count} second",
-				"countPlural=other": "Thought for {count} seconds"
-			}
-		}
-	],
-	"ai_elements_reasoning_duration_unknown": "Thought for a few seconds",
-	"ai_elements_reasoning_thinking": "Thinking",
 	"ai_elements_tool_error_label": "Error",
 	"ai_elements_tool_parameters_empty": "No parameters.",
 	"ai_elements_tool_parameters_invalid": "The call did not produce a valid parameter object.",

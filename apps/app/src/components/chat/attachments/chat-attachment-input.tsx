@@ -1,89 +1,9 @@
 import type { AssetId } from "@orcai/core";
 import type { ChatMessageAttachment } from "@orcai/schema";
-import type { FileUIPart, SourceDocumentUIPart } from "ai";
-import {
-	Attachment,
-	type AttachmentData,
-	AttachmentHoverCard,
-	AttachmentHoverCardContent,
-	AttachmentHoverCardTrigger,
-	AttachmentInfo,
-	AttachmentPreview,
-	AttachmentRemove,
-	Attachments,
-} from "@/components/ai-elements/attachments";
+import { FileAttachment } from "@/components/ai-elements/attachments";
+import { AttachmentGroup } from "@/components/ui/attachment";
 import { InputGroupAddon } from "@/components/ui/input-group";
-import { getFileTypeLabel } from "@/lib/presentation/file-type";
-import { formatFileSize } from "@/lib/presentation/format-file-size";
 import type { LocalChatFile } from "./use-chat-attachments";
-
-const localFileToUiPart = (file: LocalChatFile) =>
-	({
-		id: file.id,
-		type: "file",
-		filename: file.file.name,
-		mediaType: file.file.type,
-		url: file.previewUrl,
-	}) satisfies FileUIPart & {
-		id: string;
-	};
-
-const attachmentToUiPart = (attachment: ChatMessageAttachment) =>
-	({
-		id: attachment.assetId,
-		type: "source-document",
-		sourceId: attachment.assetId,
-		mediaType: attachment.fileType,
-		title: attachment.title,
-		filename: attachment.title,
-	}) satisfies SourceDocumentUIPart & {
-		id: string;
-	};
-
-const AttachmentNode = ({
-	key,
-	data,
-	title,
-	fileType,
-	size,
-	onRemove,
-}: {
-	key: string;
-	data: AttachmentData;
-	title: string;
-	fileType: string;
-	size: number;
-	onRemove: () => void;
-}) => {
-	return (
-		<AttachmentHoverCard key={key}>
-			<AttachmentHoverCardTrigger
-				render={
-					<Attachment data={data} onRemove={onRemove}>
-						<div className="relative size-5 shrink-0">
-							<div className="absolute inset-0 transition-opacity group-hover:opacity-0">
-								<AttachmentPreview />
-							</div>
-							<AttachmentRemove className="absolute inset-0" />
-						</div>
-						<AttachmentInfo />
-					</Attachment>
-				}
-			/>
-			<AttachmentHoverCardContent>
-				<div className="space-y-3">
-					<div className="space-y-1 px-0.5">
-						<h4 className="font-semibold text-sm leading-none">{title}</h4>
-
-						<p className="font-mono text-muted-foreground text-xs">
-							{getFileTypeLabel(fileType)} · {formatFileSize(size)}
-						</p>
-					</div>
-				</div>
-			</AttachmentHoverCardContent>
-		</AttachmentHoverCard>
-	);
-};
 
 export const ChatComposerAttachments = ({
 	localFiles,
@@ -101,29 +21,28 @@ export const ChatComposerAttachments = ({
 	}
 
 	return (
-		<InputGroupAddon align="block-end" className="flex-wrap gap-1">
-			<Attachments variant="inline">
+		<InputGroupAddon align="block-end">
+			<AttachmentGroup className="w-full">
 				{localFiles.map((file) => (
-					<AttachmentNode
+					<FileAttachment
 						key={file.id}
-						data={localFileToUiPart(file)}
 						title={file.file.name}
-						fileType={file.file.type}
+						mediaType={file.file.type}
 						size={file.file.size}
+						previewUrl={file.previewUrl}
 						onRemove={() => onRemoveLocalFile(file.id)}
 					/>
 				))}
 				{attachments.map((attachment) => (
-					<AttachmentNode
+					<FileAttachment
 						key={attachment.assetId}
-						data={attachmentToUiPart(attachment)}
 						title={attachment.title}
-						fileType={attachment.fileType}
+						mediaType={attachment.fileType}
 						size={attachment.size}
 						onRemove={() => onRemoveAsset(attachment.assetId)}
 					/>
 				))}
-			</Attachments>
+			</AttachmentGroup>
 		</InputGroupAddon>
 	);
 };
