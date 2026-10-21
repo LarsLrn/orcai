@@ -56,6 +56,9 @@
 			"path": "./packages/notifications"
 		},
 		{
+			"path": "./packages/testing"
+		},
+		{
 			"path": "./scripts"
 		}
 	]

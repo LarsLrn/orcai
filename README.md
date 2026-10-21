@@ -75,7 +75,8 @@ bun run stack dev     # app dev server on the port stored in .env
 Useful commands:
 - `bun run stack status`: container state and a probe per service
 - `bun run stack reset`: empty every store of the stack, leaving containers and `.env` in place (asks first; refuses while an app is listening on the stack's port)
-- `bun run stack e2e`: install the pinned Chromium, reset, then run the end-to-end suite (`bun run e2e` is an alias, asks first)
+- `bun run stack e2e`: install the pinned Chromium, reset, then run the end-to-end suite and the integration tier (`bun run e2e` is an alias, asks first)
+- `bun run test:integration`: run the integration tier against the stack
 - `bun run stack dev --all`: app, workers, and docs together
 - `bun run stack workers` / `bun run stack web`: workers or docs site only
 - `bun run stack migrate`: reapply migrations and the SpiceDB schema
@@ -92,6 +93,7 @@ Notes:
 - [Paseo](https://github.com/getpaseo/paseo) workspaces run `bun install` and `bun run stack up` automatically on creation and `bun run stack down --volumes --yes` when archived, see `paseo.json`.
 - Workers on the host need Tesseract with the `eng` (and optionally `deu`) language packs for OCR.
 - Unit tests (`bun run test`) never touch the stack. Each test file runs isolated in a pool of worker processes (`bun test --parallel`), so `mock.module` and DOM globals stay within their file.
+- Integration tests (`*.integration.ts`, `bun run test:integration`) test modules against the stack's real PostgreSQL and SpiceDB. They create their own organisations and users under unique ids and coexist with dev data, so they need no reset. `@orcai/testing` provides `integrationRuntime()` with the app's DB and SpiceDB layers and the `createUser` and `createOrganization` factories; it refuses to start before the instance is initialised (through `/init` or a `stack e2e` run), because test rows would lock first-run setup.
 
 ### End-to-end tests
 
@@ -103,9 +105,10 @@ bun run e2e                                    # root alias
 bun run stack e2e -- --grep auth               # one area
 bun run stack e2e -- --ui                      # Playwright UI mode
 bun run stack e2e --no-reset -- --grep smoke   # fast iteration on existing data
+bun run stack e2e --no-integration             # Playwright only
 ```
 
-Everything after `--` is passed to Playwright.
+Everything after `--` is passed to Playwright. After Playwright, whatever its result, the run executes the integration tier on the same stack; the run fails if either does.
 
 Notes:
 - The application under test is the production build. With `--no-reset`, a `bun run stack dev` already listening on the stack's port is reused, so local iteration needs no rebuild. A reset refuses while an app is listening, because a running server keeps stale state in memory; stop it first or pass `--no-reset`.
@@ -291,7 +294,8 @@ See [.env.example](.env.example) for a current baseline.
 - `bun run stack up`: start this checkout's infrastructure and apply migrations
 - `bun run dev`: start the development server (alias for `bun run stack dev`)
 - `bun run verify`: run lint, the migration check, and unit tests
-- `bun run e2e`: reset the stack and run the end-to-end suite
+- `bun run test:integration`: run the integration tier against the stack
+- `bun run e2e`: reset the stack and run the end-to-end suite and the integration tier
 - `bun run build`: build the app and documentation site
 - `bun run build:app`: build only the main app
 - `bun run build:web`: build only the documentation site

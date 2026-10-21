@@ -14,8 +14,9 @@
  *   env [--reset]          Print the path and content of the resolved .env.
  *   migrate                Apply database migrations and the SpiceDB schema.
  *   reset                  Empty every store, then reapply migrations.
- *   e2e [--no-reset]       Install the pinned Chromium, reset, then run the
- *                          Playwright suite.
+ *   e2e [--no-reset] [--no-integration]
+ *                          Install the pinned Chromium, reset, run the
+ *                          Playwright suite, then the integration tier.
  *   dev [--all]            Run the app dev server. --all adds workers and web.
  *   workers                Run the background workers.
  *   web                    Run the docs site dev server.
@@ -35,6 +36,8 @@
  * `bun run stack dev`, and skips the production build. An e2e run also starts
  * a mock inference server on E2E_INFERENCE_PORT and points the app's global
  * OpenAI-compatible endpoint at it; a reused app keeps its own endpoint.
+ * After Playwright, `e2e` runs `bun run test:integration` against the same
+ * stack, whatever Playwright's result; `--no-integration` skips it.
  *
  * `reset`, `e2e` without `--no-reset`, and `down --volumes` ask before they
  * destroy anything. `--yes` answers the question up front, and a caller
@@ -129,6 +132,7 @@ export function parseOptions(argv: string[]): Options {
 				![
 					"--help",
 					"--all",
+					"--no-integration",
 					"--no-reset",
 					"--reset",
 					"--volumes",
@@ -538,12 +542,15 @@ async function run(
 	return await proc.exited;
 }
 
+let interrupted = false;
+
 function forwardSignals(proc: Bun.Subprocess): void {
 	for (const signal of [
 		"SIGINT",
 		"SIGTERM",
 	] as const) {
 		process.on(signal, () => {
+			interrupted = true;
 			proc.kill(signal);
 		});
 	}
@@ -935,7 +942,7 @@ async function runE2e(options: Options, env: Env): Promise<number> {
 			...options.args,
 		].join(" "),
 	);
-	return await run(
+	const playwright = await run(
 		[
 			"bunx",
 			"--no-install",
@@ -946,6 +953,23 @@ async function runE2e(options: Options, env: Env): Promise<number> {
 		e2eEnv(env),
 		path.join(repoRoot, "apps", "e2e"),
 	);
+	if (interrupted || options.flags.has("no-integration")) return playwright;
+	// After Playwright: its setup project initializes the reset instance, which
+	// the integration tier requires.
+	log("Running the integration tier");
+	const integration = await run(
+		[
+			"bun",
+			"run",
+			"test:integration",
+		],
+		{
+			...env,
+			ORCAI_ENV_FILE: options.envFile,
+			ORCAI_STACK_NAME: options.stackName,
+		},
+	);
+	return playwright !== 0 ? playwright : integration;
 }
 
 // ---------------------------------------------------------------------------

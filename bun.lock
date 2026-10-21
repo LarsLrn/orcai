@@ -395,6 +395,17 @@
         "effect": "catalog:",
       },
     },
+    "packages/testing": {
+      "name": "@orcai/testing",
+      "version": "0.1.0",
+      "dependencies": {
+        "@orcai/core": "workspace:*",
+        "@orcai/db": "workspace:*",
+        "@orcai/spice-db": "workspace:*",
+        "drizzle-orm": "catalog:",
+        "effect": "catalog:",
+      },
+    },
     "packages/valkey": {
       "name": "@orcai/valkey",
       "version": "0.1.0",
@@ -959,6 +970,8 @@
     "@orcai/schema": ["@orcai/schema@workspace:packages/schema"],
 
     "@orcai/spice-db": ["@orcai/spice-db@workspace:packages/spice-db"],
+
+    "@orcai/testing": ["@orcai/testing@workspace:packages/testing"],
 
     "@orcai/valkey": ["@orcai/valkey@workspace:packages/valkey"],
 

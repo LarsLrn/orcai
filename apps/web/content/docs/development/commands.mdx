@@ -20,7 +20,7 @@ Inside the devcontainer, `ORCAI_ENV_FILE` points the runner at `.devcontainer/.e
 | `bun run stack up` | Start infrastructure, write `.env`, apply migrations and the SpiceDB schema. |
 | `bun run stack status` | Show container state and probe every service. |
 | `bun run stack reset` | Empty every store of the stack, leaving containers and `.env` in place. Asks first. |
-| `bun run stack e2e` | Install the pinned Chromium, reset the stack, then run the end-to-end suite. |
+| `bun run stack e2e` | Install the pinned Chromium, reset the stack, then run the end-to-end suite and the integration tier. |
 | `bun run stack dev` | Start the app development server with the stack environment. |
 | `bun run stack dev --all` | Start the app, workers, and documentation site together. |
 | `bun run stack workers` | Start workers with the stack environment. |
@@ -47,6 +47,7 @@ Inside the devcontainer, `ORCAI_ENV_FILE` points the runner at `.devcontainer/.e
 | Command | Purpose |
 | --- | --- |
 | `bun run verify` | Run Biome, TypeScript checks, the migration check, and unit tests. |
+| `bun run test:integration` | Run the integration tier against the stack. |
 | `bun run e2e` | Alias for `bun run stack e2e`. |
 | `bun run lint` | Run Biome, TypeScript checks, and the migration check. |
 | `bun run lint-full` | Run Biome, TypeScript checks, the migration check, and ESLint. |
@@ -76,6 +77,7 @@ Everything after `--` is passed to Playwright. See [End-To-End Tests](/docs/deve
 | `bun run stack e2e -- --grep auth` | Run one spec area. |
 | `bun run stack e2e -- --ui` | Open Playwright UI mode. |
 | `bun run stack e2e --no-reset -- --grep smoke` | Reuse existing data for fast iteration. |
+| `bun run stack e2e --no-integration` | Run Playwright without the integration tier. |
 
 ## Database And Authorization
 
