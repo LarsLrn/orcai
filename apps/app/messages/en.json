@@ -1040,6 +1040,7 @@
 	"assistant_tool_remove_members_active": "Removing members",
 	"assistant_tool_remove_members_name": "Remove members",
 	"assistant_tool_remove_members_summary": "Remove {names} from the organisation",
+	"assistant_tool_request_upload_edit_metadata_label": "Edit the metadata of {title}",
 	"assistant_tool_request_upload_name": "Upload files",
 	"assistant_tool_request_upload_summary_cancelled": "Upload cancelled",
 	"assistant_tool_request_upload_summary_saved": [

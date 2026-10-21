@@ -18,7 +18,7 @@ import { toolLabels } from "@/lib/ai/tools/registry";
 import type { ClientToolPart, ToolStatus } from "@/lib/ai/turn-view/turn-view";
 import { m } from "@/paraglide/messages";
 
-/** `requestUpload` waiting for the user: the reason, the intake flow and Cancel. */
+/** `requestUpload` waiting for the user: the reason, the intake flow and Cancel. Created assets answer it. */
 export const UploadWidget = ({
 	part,
 	status,
@@ -65,15 +65,13 @@ export const UploadWidget = ({
 					<p className="text-muted-foreground">{awaiting.input.reason}</p>
 					<AssetIntakeFlow
 						variant="compact"
-						onPendingChange={upload.setHasPendingUploads}
-						onSavingChange={upload.setIsSaving}
-						onAssetsSaved={upload.save}
+						onPendingChange={upload.setIsUploading}
+						onAssetsCreated={upload.created}
 					/>
 					<div className="flex justify-end">
 						<Button
 							variant="outline"
 							size="sm"
-							disabled={upload.isSaving}
 							onClick={() => void upload.cancel()}
 						>
 							{m.common_cancel_button()}

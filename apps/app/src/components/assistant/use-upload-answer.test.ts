@@ -40,15 +40,15 @@ const outputs = (output: ReturnType<typeof mock>) =>
 	);
 
 describe("useUploadAnswer", () => {
-	test("a save answers with the assets and the zedToken it returned", () => {
+	test("created assets answer saved with the zedToken the create returned", () => {
 		const { result, output } = setUp();
 
 		act(() => {
-			result.current.save(
+			result.current.created(
 				[
 					asset as never,
 				],
-				"zed-saved",
+				"zed-created",
 			);
 		});
 
@@ -61,39 +61,28 @@ describe("useUploadAnswer", () => {
 					asset,
 				],
 			},
-			zedToken: "zed-saved",
+			zedToken: "zed-created",
 		});
 	});
 
-	test("Cancel waits while the save runs", async () => {
-		const { result, output } = setUp();
+	test("Cancel before any upload answers without asking", async () => {
+		const confirmDiscard = mock(async () => false);
+		const { result, output } = setUp(confirmDiscard);
 
-		act(() => {
-			result.current.setIsSaving(true);
-		});
 		await act(() => result.current.cancel());
-		expect(output).not.toHaveBeenCalled();
 
-		act(() => {
-			result.current.setIsSaving(false);
-			result.current.save(
-				[
-					asset as never,
-				],
-				undefined,
-			);
-		});
+		expect(confirmDiscard).not.toHaveBeenCalled();
 		expect(outputs(output)).toEqual([
-			"saved",
+			"cancelled",
 		]);
 	});
 
-	test("asks before discarding uploads and stays when the user stays", async () => {
+	test("Cancel during an upload asks and stays when the user stays", async () => {
 		const confirmDiscard = mock(async () => false);
 		const { result, output } = setUp(confirmDiscard);
 
 		act(() => {
-			result.current.setHasPendingUploads(true);
+			result.current.setIsUploading(true);
 		});
 		await act(() => result.current.cancel());
 
@@ -101,7 +90,7 @@ describe("useUploadAnswer", () => {
 		expect(output).not.toHaveBeenCalled();
 	});
 
-	test("a save that lands while the discard prompt is open wins", async () => {
+	test("assets created while the discard prompt is open win", async () => {
 		let discard: (value: boolean) => void = () => undefined;
 		const { result, output } = setUp(
 			() =>
@@ -111,18 +100,18 @@ describe("useUploadAnswer", () => {
 		);
 
 		act(() => {
-			result.current.setHasPendingUploads(true);
+			result.current.setIsUploading(true);
 		});
 		let cancelled: Promise<void> = Promise.resolve();
 		act(() => {
 			cancelled = result.current.cancel();
 		});
 		act(() => {
-			result.current.save(
+			result.current.created(
 				[
 					asset as never,
 				],
-				"zed-saved",
+				"zed-created",
 			);
 		});
 		discard(true);
@@ -133,16 +122,16 @@ describe("useUploadAnswer", () => {
 		]);
 	});
 
-	test("a save after Cancel answered changes nothing", async () => {
+	test("assets created after Cancel answered change nothing", async () => {
 		const { result, output } = setUp();
 
 		await act(() => result.current.cancel());
 		act(() => {
-			result.current.save(
+			result.current.created(
 				[
 					asset as never,
 				],
-				"zed-saved",
+				"zed-created",
 			);
 		});
 

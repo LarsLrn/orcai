@@ -73,11 +73,11 @@ If you answered every card but the page reloaded before the assistant continued,
 
 ## Uploads
 
-When you want to add files, the assistant shows an **Upload files** field in the conversation, with a line saying what the files are for. Upload the files, review their metadata and save them, as on **Add assets** (`/app/hub/assets/add`). The assistant gets the new assets and carries on, for example by attaching them to a repository. The field needs the right to create assets, which members, managers and admins have.
+When you want to add files, the assistant shows an **Upload files** field in the conversation, with a line saying what the files are for. Upload the files as on **Add assets** (`/app/hub/assets/add`): each file becomes an asset as soon as its upload finishes, and the assistant gets the new assets right away and carries on, for example by attaching them to a repository. The field needs the right to create assets, which members, managers and admins have.
 
-Choosing **Cancel** tells the assistant that you added nothing; if you uploaded files but did not save them, you are asked first. Writing a new message instead closes the field and marks it **Skipped**. If the page reloads before you save, the files you picked are lost and the field comes back empty.
+Choosing **Cancel** before uploading tells the assistant that you added nothing. During an upload you are asked first, and cancelling stops the upload. Writing a new message instead closes the field and marks it **Skipped**. If the page reloads during an upload, the files still uploading are not added and the field comes back empty.
 
-In the work log the field shows as "Uploaded 2 files" with the file titles, or as "Upload cancelled".
+In the work log the field shows as "Uploaded 2 files" with the file titles, or as "Upload cancelled". **Metadata** next to a title opens the asset's source details, so you can add them after the assistant has carried on.
 
 ## Asking from other pages
 

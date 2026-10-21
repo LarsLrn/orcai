@@ -4,9 +4,10 @@ import type { StepAnswers } from "@/lib/ai/chat-session/chat-session";
 import type { RequestUploadOutput } from "@/lib/ai/tools/assistant/bots/request-upload";
 
 /**
- * Answers one `requestUpload` call. Cancel waits while a save runs and asks
- * first when uploads are unsaved; a save that lands while that prompt is
- * open wins, since only the first answer counts.
+ * Answers one `requestUpload` call: `saved` as soon as assets exist, so no
+ * further click is needed. Cancel answers at once before an upload; while one
+ * is in flight it asks first, and the caller aborts it by unmounting. Only
+ * the first answer counts.
  */
 export const useUploadAnswer = ({
 	toolCallId,
@@ -17,8 +18,7 @@ export const useUploadAnswer = ({
 	answers: StepAnswers | undefined;
 	confirmDiscard: () => Promise<boolean>;
 }) => {
-	const [hasPendingUploads, setHasPendingUploads] = useState(false);
-	const [isSaving, setIsSaving] = useState(false);
+	const [isUploading, setIsUploading] = useState(false);
 	const answered = useRef(false);
 
 	const answer = (output: RequestUploadOutput, zedToken?: string) => {
@@ -33,10 +33,8 @@ export const useUploadAnswer = ({
 	};
 
 	return {
-		isSaving,
-		setIsSaving,
-		setHasPendingUploads,
-		save: (
+		setIsUploading,
+		created: (
 			assets: Pick<Asset, "id" | "title">[],
 			zedToken: string | undefined,
 		) =>
@@ -51,8 +49,7 @@ export const useUploadAnswer = ({
 				zedToken,
 			),
 		cancel: async () => {
-			if (isSaving) return;
-			if (hasPendingUploads && !(await confirmDiscard())) return;
+			if (isUploading && !(await confirmDiscard())) return;
 			answer({
 				status: "cancelled",
 			});
