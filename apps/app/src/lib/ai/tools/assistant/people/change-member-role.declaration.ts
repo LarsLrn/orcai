@@ -18,7 +18,7 @@ export const changeMemberRole = declareTool<typeof changeMemberRoleTool>()({
 		input
 			? [
 					{
-						kind: "user",
+						kind: "member",
 						id: input.userId,
 					},
 				]
@@ -28,7 +28,7 @@ export const changeMemberRole = declareTool<typeof changeMemberRoleTool>()({
 			? m.assistant_tool_change_member_role_summary({
 					name: m.assistant_tool_quoted_name({
 						name: nameOf({
-							kind: "user",
+							kind: "member",
 							id: input.userId,
 						}),
 					}),

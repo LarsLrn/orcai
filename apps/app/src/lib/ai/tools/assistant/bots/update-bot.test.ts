@@ -254,7 +254,7 @@ describe("updateBotTool", () => {
 				name: "Renamed",
 			}),
 		).rejects.toThrow(
-			`BOT_NOT_FOUND: No bot with id ${botId}. Ids of other kinds (templates, repositories, assets, groups, members) are not bot ids.`,
+			`BOT_NOT_FOUND: No bot with id ${botId}. Ids of other kinds (templates, repositories, assets, groups, members, invitations) are not bot ids.`,
 		);
 	});
 

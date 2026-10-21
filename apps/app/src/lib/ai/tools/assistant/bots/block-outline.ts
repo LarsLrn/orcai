@@ -1,7 +1,7 @@
 import type { AssetId, BlockId } from "@orcai/core";
-import type { PublicationStatus } from "@orcai/schema";
+import type { BlockType, PublicationStatus } from "@orcai/schema";
+import { type BlockKind, wrongBlockText } from "@/lib/ai/tools/entity-kind";
 import { AssistantToolError } from "@/lib/ai/tools/tool-error";
-import { wrongIdText } from "../procedure-tool";
 
 /** The editor stores a blank description as null. */
 export const blockDescription = (description: string) =>
@@ -13,19 +13,10 @@ export const uniqueAssetIds = (ids: readonly AssetId[]) => [
 
 /** A block of the other kind, read as a missing one of the expected kind. */
 export const wrongBlockError = (
-	expected: "template" | "repository",
+	expected: BlockKind,
 	id: string,
-	actual: string,
-) =>
-	new AssistantToolError(
-		`${wrongIdText(
-			expected,
-			id,
-			expected === "template"
-				? "BEHAVIOUR_BLOCK_TYPE_INVALID"
-				: "REPOSITORY_BLOCK_TYPE_INVALID",
-		)} That id is a ${actual === "database" ? "repository" : actual}.`,
-	);
+	actual: BlockType,
+) => new AssistantToolError(wrongBlockText(expected, id, actual));
 
 /** What a block tool tells the model about the block it wrote. */
 interface SavedBlock {

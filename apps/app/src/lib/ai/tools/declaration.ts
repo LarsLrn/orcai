@@ -4,6 +4,7 @@ import type { LucideIcon } from "lucide-react";
 import type { z } from "zod/v4";
 import { formatList } from "@/lib/presentation/format-list";
 import { m } from "@/paraglide/messages";
+import type { EntityKind, EntityRef } from "./entity-kind";
 
 /**
  * What a tool does: `display` shows a Gen UI primitive in the answer, `plan`
@@ -31,14 +32,8 @@ export type ConfirmationVerb =
 	| "change"
 	| "invite";
 
-/** An id whose name a summary line shows. */
-export interface NameRef {
-	kind: "bot" | "block" | "asset" | "group" | "user" | "invitation";
-	id: string;
-}
-
 /** Looked-up name, or a placeholder while loading or when it cannot be read. */
-export type NameOf = (ref: NameRef) => string;
+export type NameOf = (ref: EntityRef) => string;
 
 /** A call whose input is complete, as its summary reads it; `output` once it ran. */
 export interface ToolCall<Input, Output> {
@@ -62,7 +57,7 @@ export interface ToolDeclaration<Input = unknown, Output = unknown> {
 	/** Label while the call runs. */
 	active: () => string;
 	/** Ids `line` names; leave out those the output already names. */
-	refs?(call: ToolCall<Input, Output>): NameRef[];
+	refs?(call: ToolCall<Input, Output>): EntityRef[];
 	/** The one line, such as "Delete bot “Citation check”". */
 	line?(call: ToolCall<Input, Output>, nameOf: NameOf): string;
 }
@@ -115,7 +110,7 @@ export const batchSummary = <
 	named,
 	summary,
 }: {
-	kind: NameRef["kind"];
+	kind: EntityKind;
 	ids: (input: Input | undefined) => readonly string[] | undefined;
 	named: (output: Output) => {
 		id: string;

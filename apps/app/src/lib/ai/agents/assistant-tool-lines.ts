@@ -1,4 +1,5 @@
 import type { NameOf } from "@/lib/ai/tools/declaration";
+import { NAME_FIELDS } from "@/lib/ai/tools/entity-kind";
 import { toolSummary } from "@/lib/ai/tools/registry";
 import { getServerAsyncLocalStorage } from "@/paraglide/runtime";
 
@@ -42,11 +43,6 @@ export const storedExecutions = (
 		),
 	);
 
-const NAME_KEYS = [
-	"name",
-	"title",
-	"email",
-] as const;
 const MAX_NAME_DEPTH = 6;
 
 const isRecord = (value: unknown): value is Record<string, unknown> =>
@@ -69,7 +65,7 @@ const collectNames = (
 	}
 
 	if (typeof value.id === "string" && !names.has(value.id)) {
-		const name = NAME_KEYS.map((key) => value[key]).find(
+		const name = NAME_FIELDS.map((key) => value[key]).find(
 			(candidate) => typeof candidate === "string" && candidate !== "",
 		);
 		if (typeof name === "string") {

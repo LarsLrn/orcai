@@ -1,9 +1,6 @@
 import { RotateCwIcon } from "lucide-react";
-import {
-	declareTool,
-	formatNames,
-	type NameRef,
-} from "@/lib/ai/tools/declaration";
+import { declareTool, formatNames } from "@/lib/ai/tools/declaration";
+import type { EntityRef } from "@/lib/ai/tools/entity-kind";
 import { m } from "@/paraglide/messages";
 import { CONTENT_CAPABILITIES } from "../capabilities";
 import type { retryAssetTool } from "./retry-asset";
@@ -21,13 +18,13 @@ export const retryAsset = declareTool<typeof retryAssetTool>()({
 					{
 						kind: "asset",
 						id: input.assetId,
-					} satisfies NameRef,
+					} satisfies EntityRef,
 					...(input.repositoryId
 						? [
 								{
-									kind: "block",
+									kind: "repository",
 									id: input.repositoryId,
-								} satisfies NameRef,
+								} satisfies EntityRef,
 							]
 						: []),
 				]
@@ -49,7 +46,7 @@ export const retryAsset = declareTool<typeof retryAssetTool>()({
 					asset,
 					repository: formatNames([
 						nameOf({
-							kind: "block",
+							kind: "repository",
 							id: input.repositoryId,
 						}),
 					]),

@@ -1,5 +1,6 @@
 import { describe, expect, test } from "bun:test";
-import { formatNames, type NameOf, type NameRef } from "./declaration";
+import { formatNames, type NameOf } from "./declaration";
+import type { EntityRef } from "./entity-kind";
 import { type ToolName, toolLabels, toolSummary } from "./registry";
 
 const id = (n: number) => `00000000-0000-4000-8000-00000000000${n}`;
@@ -14,7 +15,7 @@ const ids = (count: number) =>
 const lookedUp: NameOf = (ref) => `${ref.kind} ${ref.id.slice(-1)}`;
 
 const calls = (nameOf: NameOf) => {
-	const refs: NameRef[] = [];
+	const refs: EntityRef[] = [];
 	const spy: NameOf = (ref) => {
 		refs.push(ref);
 		return nameOf(ref);
@@ -452,7 +453,7 @@ const batches: Partial<
 		},
 		names: five.map((value) =>
 			lookedUp({
-				kind: "user",
+				kind: "member",
 				id: value,
 			}),
 		),
@@ -475,7 +476,7 @@ const batches: Partial<
 		},
 		names: five.map((value) =>
 			lookedUp({
-				kind: "user",
+				kind: "member",
 				id: value,
 			}),
 		),
@@ -487,7 +488,7 @@ const batches: Partial<
 		},
 		names: five.map((value) =>
 			lookedUp({
-				kind: "user",
+				kind: "member",
 				id: value,
 			}),
 		),

@@ -1,9 +1,9 @@
 import * as Effect from "effect/Effect";
+import type { EntityKind } from "@/lib/ai/tools/entity-kind";
 import type { ORPCContext } from "@/lib/orpc/implementation/os";
 import {
 	type AssistantToolDeps,
 	callProcedure,
-	type ExpectedType,
 	expectType,
 	mutation,
 } from "./procedure-tool";
@@ -22,8 +22,8 @@ export const deleteNamed = <
 	Id extends string,
 	Found,
 	E,
-	Type extends ExpectedType,
-	FoundType extends ExpectedType = Type,
+	Kind extends EntityKind,
+	FoundKind extends EntityKind = Kind,
 >(
 	deps: AssistantToolDeps,
 	ids: readonly Id[],
@@ -36,10 +36,10 @@ export const deleteNamed = <
 		remove,
 		verify,
 	}: {
-		/** The targets' type, and the type a missing target is reported as. */
-		type: Type;
-		/** A found target's own type, where `type` covers several. */
-		typeOf?: (found: Found) => FoundType;
+		/** The targets' kind, and the kind a missing target is reported as. */
+		type: Kind;
+		/** A found target's own kind, where `type` covers several. */
+		typeOf?: (found: Found) => FoundKind;
 		find: (id: Id, options: ProcedureOptions) => Effect.Effect<Found, unknown>;
 		name: (found: Found) => string | undefined;
 		canDelete?: (found: Found) => boolean;

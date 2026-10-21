@@ -14,7 +14,7 @@ export const removeMembers = declareTool<typeof removeMembersTool>()({
 	name: () => m.assistant_tool_remove_members_name(),
 	active: () => m.assistant_tool_remove_members_active(),
 	...batchSummary<typeof removeMembersTool>({
-		kind: "user",
+		kind: "member",
 		ids: (input) => input?.userIds,
 		named: (output) => output.removed,
 		summary: m.assistant_tool_remove_members_summary,
