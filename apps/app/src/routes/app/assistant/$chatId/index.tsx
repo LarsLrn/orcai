@@ -9,7 +9,6 @@ import {
 import { useEffect } from "react";
 import { z } from "zod/v4";
 import { Chat } from "@/components/chat/chat";
-import { toChatAgentMessages } from "@/components/chat/chat-history";
 import { orpc } from "@/lib/orpc/orpc";
 import { orNotFound, parseParam } from "@/lib/router/not-found";
 import { m } from "@/paraglide/messages";
@@ -112,7 +111,6 @@ function RouteComponent() {
 		router,
 	]);
 
-	const initialMessages = toChatAgentMessages(loaderData.messages.data);
 	const pendingMessage = useRouterState({
 		select: (state) =>
 			typeof state.location.state.pendingMessage === "string"
@@ -126,9 +124,7 @@ function RouteComponent() {
 			<Chat
 				key={chatId}
 				id={chatId}
-				initialMessages={initialMessages}
-				initialBefore={loaderData.messages.data[0]?.position}
-				initialHasMore={loaderData.messages.hasMore}
+				page={loaderData.messages}
 				zedToken={zedToken}
 				pendingMessage={pendingMessage}
 				variant="assistant"

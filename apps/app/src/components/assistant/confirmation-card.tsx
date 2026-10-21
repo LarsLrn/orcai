@@ -1,4 +1,3 @@
-import type { UseChatHelpers } from "@ai-sdk/react";
 import { getToolName } from "ai";
 import { useId } from "react";
 import { useToolSummaryLine } from "@/components/assistant/tool-summary-line";
@@ -15,14 +14,11 @@ import {
 	ItemMedia,
 	ItemTitle,
 } from "@/components/ui/item";
+import type { StepAnswers } from "@/lib/ai/chat-session/chat-session";
 import type { ConfirmationVerb } from "@/lib/ai/tools/declaration";
 import { toolDeclarationOf, toolLabels } from "@/lib/ai/tools/registry";
 import type { ToolPart, ToolStatus } from "@/lib/ai/turn-view/turn-view";
-import type { ChatAgentUIMessage } from "@/lib/ai/types/chat-agent-message";
 import { m } from "@/paraglide/messages";
-
-export type AddToolApprovalResponse =
-	UseChatHelpers<ChatAgentUIMessage>["addToolApprovalResponse"];
 
 const verbLabels: Record<ConfirmationVerb, () => string> = {
 	delete: m.common_delete_button,
@@ -44,22 +40,21 @@ const destructiveVerbs = new Set<ConfirmationVerb>([
 export const ConfirmationCard = ({
 	part,
 	status,
-	addToolApprovalResponse,
+	answers,
 }: {
 	part: ToolPart;
 	status: ToolStatus | null;
 	/** Left out unless the card can be answered. */
-	addToolApprovalResponse: AddToolApprovalResponse | undefined;
+	answers: StepAnswers | undefined;
 }) => {
 	const verb = toolDeclarationOf(getToolName(part))?.confirm;
 	const line = useToolSummaryLine(part);
 	const Icon = toolLabels(part).icon;
 	const titleId = useId();
-	const answerable =
-		part.state === "approval-requested" && addToolApprovalResponse;
+	const answerable = part.state === "approval-requested" && answers;
 	const respond = (approved: boolean) => {
 		if (part.state !== "approval-requested") return;
-		void addToolApprovalResponse?.({
+		answers?.approve({
 			id: part.approval.id,
 			approved,
 		});

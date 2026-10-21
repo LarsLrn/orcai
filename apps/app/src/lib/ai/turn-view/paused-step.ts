@@ -38,7 +38,7 @@ export interface PausedStep<P extends AnyPart> {
 }
 
 /** A call the turn waits on: asked for approval, or answered but not run yet. */
-export const isPausingCall = (part: AnyPart) =>
+const isPausingCall = (part: AnyPart) =>
 	isToolUIPart(part) &&
 	(part.state === "approval-requested" || part.state === "approval-responded");
 

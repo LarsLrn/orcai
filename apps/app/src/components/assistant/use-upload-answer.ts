@@ -1,6 +1,6 @@
 import type { Asset } from "@orcai/schema";
 import { useRef, useState } from "react";
-import type { ClientToolActions } from "@/components/assistant/client-tool-actions";
+import type { StepAnswers } from "@/lib/ai/chat-session/chat-session";
 import type { RequestUploadOutput } from "@/lib/ai/tools/assistant/bots/request-upload";
 
 /**
@@ -10,11 +10,11 @@ import type { RequestUploadOutput } from "@/lib/ai/tools/assistant/bots/request-
  */
 export const useUploadAnswer = ({
 	toolCallId,
-	actions,
+	answers,
 	confirmDiscard,
 }: {
 	toolCallId: string;
-	actions: ClientToolActions | undefined;
+	answers: StepAnswers | undefined;
 	confirmDiscard: () => Promise<boolean>;
 }) => {
 	const [hasPendingUploads, setHasPendingUploads] = useState(false);
@@ -22,13 +22,13 @@ export const useUploadAnswer = ({
 	const answered = useRef(false);
 
 	const answer = (output: RequestUploadOutput, zedToken?: string) => {
-		if (!actions || answered.current) return;
+		if (!answers || answered.current) return;
 		answered.current = true;
-		actions.keepZedToken(zedToken);
-		void actions.addToolOutput({
+		answers.output({
 			tool: "requestUpload",
 			toolCallId,
 			output,
+			zedToken,
 		});
 	};
 

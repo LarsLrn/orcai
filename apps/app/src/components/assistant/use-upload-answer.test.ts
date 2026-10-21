@@ -8,14 +8,14 @@ const asset = {
 } as const;
 
 const setUp = (confirmDiscard: () => Promise<boolean> = async () => true) => {
-	const addToolOutput = mock(async (_: unknown) => undefined);
-	const keepZedToken = mock((_: string | undefined) => undefined);
+	const output = mock((_: unknown) => undefined);
 	const { result } = renderHook(() =>
 		useUploadAnswer({
 			toolCallId: "upload-1",
-			actions: {
-				addToolOutput: addToolOutput as never,
-				keepZedToken,
+			answers: {
+				approve: () => undefined,
+				output,
+				continue: async () => undefined,
 			},
 			confirmDiscard,
 		}),
@@ -23,13 +23,12 @@ const setUp = (confirmDiscard: () => Promise<boolean> = async () => true) => {
 
 	return {
 		result,
-		addToolOutput,
-		keepZedToken,
+		output,
 	};
 };
 
-const outputs = (addToolOutput: ReturnType<typeof mock>) =>
-	addToolOutput.mock.calls.map(
+const outputs = (output: ReturnType<typeof mock>) =>
+	output.mock.calls.map(
 		([call]) =>
 			(
 				call as {
@@ -41,8 +40,8 @@ const outputs = (addToolOutput: ReturnType<typeof mock>) =>
 	);
 
 describe("useUploadAnswer", () => {
-	test("a save answers with the assets and keeps its zedToken", () => {
-		const { result, addToolOutput, keepZedToken } = setUp();
+	test("a save answers with the assets and the zedToken it returned", () => {
+		const { result, output } = setUp();
 
 		act(() => {
 			result.current.save(
@@ -53,7 +52,7 @@ describe("useUploadAnswer", () => {
 			);
 		});
 
-		expect(addToolOutput.mock.calls[0]?.[0]).toEqual({
+		expect(output.mock.calls[0]?.[0]).toEqual({
 			tool: "requestUpload",
 			toolCallId: "upload-1",
 			output: {
@@ -62,18 +61,18 @@ describe("useUploadAnswer", () => {
 					asset,
 				],
 			},
+			zedToken: "zed-saved",
 		});
-		expect(keepZedToken).toHaveBeenCalledWith("zed-saved");
 	});
 
 	test("Cancel waits while the save runs", async () => {
-		const { result, addToolOutput } = setUp();
+		const { result, output } = setUp();
 
 		act(() => {
 			result.current.setIsSaving(true);
 		});
 		await act(() => result.current.cancel());
-		expect(addToolOutput).not.toHaveBeenCalled();
+		expect(output).not.toHaveBeenCalled();
 
 		act(() => {
 			result.current.setIsSaving(false);
@@ -84,14 +83,14 @@ describe("useUploadAnswer", () => {
 				undefined,
 			);
 		});
-		expect(outputs(addToolOutput)).toEqual([
+		expect(outputs(output)).toEqual([
 			"saved",
 		]);
 	});
 
 	test("asks before discarding uploads and stays when the user stays", async () => {
 		const confirmDiscard = mock(async () => false);
-		const { result, addToolOutput } = setUp(confirmDiscard);
+		const { result, output } = setUp(confirmDiscard);
 
 		act(() => {
 			result.current.setHasPendingUploads(true);
@@ -99,12 +98,12 @@ describe("useUploadAnswer", () => {
 		await act(() => result.current.cancel());
 
 		expect(confirmDiscard).toHaveBeenCalledTimes(1);
-		expect(addToolOutput).not.toHaveBeenCalled();
+		expect(output).not.toHaveBeenCalled();
 	});
 
 	test("a save that lands while the discard prompt is open wins", async () => {
 		let discard: (value: boolean) => void = () => undefined;
-		const { result, addToolOutput } = setUp(
+		const { result, output } = setUp(
 			() =>
 				new Promise((resolve) => {
 					discard = resolve;
@@ -129,13 +128,13 @@ describe("useUploadAnswer", () => {
 		discard(true);
 		await act(() => cancelled);
 
-		expect(outputs(addToolOutput)).toEqual([
+		expect(outputs(output)).toEqual([
 			"saved",
 		]);
 	});
 
 	test("a save after Cancel answered changes nothing", async () => {
-		const { result, addToolOutput, keepZedToken } = setUp();
+		const { result, output } = setUp();
 
 		await act(() => result.current.cancel());
 		act(() => {
@@ -147,9 +146,8 @@ describe("useUploadAnswer", () => {
 			);
 		});
 
-		expect(outputs(addToolOutput)).toEqual([
+		expect(outputs(output)).toEqual([
 			"cancelled",
 		]);
-		expect(keepZedToken).not.toHaveBeenCalledWith("zed-saved");
 	});
 });

@@ -1,5 +1,4 @@
 import { useId } from "react";
-import type { ClientToolActions } from "@/components/assistant/client-tool-actions";
 import { useToolSummaryLine } from "@/components/assistant/tool-summary-line";
 import { useUploadAnswer } from "@/components/assistant/use-upload-answer";
 import { toolStatusLabel } from "@/components/chat/message/work-log/tool-status";
@@ -14,6 +13,7 @@ import {
 	ItemTitle,
 } from "@/components/ui/item";
 import { useConfirmDiscard } from "@/hooks/use-unsaved-changes-guard";
+import type { StepAnswers } from "@/lib/ai/chat-session/chat-session";
 import { toolLabels } from "@/lib/ai/tools/registry";
 import type { ClientToolPart, ToolStatus } from "@/lib/ai/turn-view/turn-view";
 import { m } from "@/paraglide/messages";
@@ -22,12 +22,12 @@ import { m } from "@/paraglide/messages";
 export const UploadWidget = ({
 	part,
 	status,
-	actions,
+	answers,
 }: {
 	part: ClientToolPart;
 	status: ToolStatus | null;
 	/** Left out unless the call can be answered. */
-	actions: ClientToolActions | undefined;
+	answers: StepAnswers | undefined;
 }) => {
 	const titleId = useId();
 	const line = useToolSummaryLine(part);
@@ -35,7 +35,7 @@ export const UploadWidget = ({
 	const awaiting = part.state === "input-available" ? part : undefined;
 	const upload = useUploadAnswer({
 		toolCallId: part.toolCallId,
-		actions,
+		answers,
 		confirmDiscard: useConfirmDiscard(),
 	});
 
@@ -60,7 +60,7 @@ export const UploadWidget = ({
 					<Badge variant="outline">{toolStatusLabel(status)}</Badge>
 				</ItemActions>
 			)}
-			{awaiting && actions && (
+			{awaiting && answers && (
 				<div className="flex min-w-0 basis-full flex-col gap-3">
 					<p className="text-muted-foreground">{awaiting.input.reason}</p>
 					<AssetIntakeFlow

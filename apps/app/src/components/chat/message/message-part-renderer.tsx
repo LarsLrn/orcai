@@ -1,12 +1,10 @@
+import { use } from "react";
 import type { LinkSafetyConfig } from "streamdown";
 import { MessageResponse } from "@/components/ai-elements/message";
-import type { ClientToolActions } from "@/components/assistant/client-tool-actions";
 import { clientToolRenderersOf } from "@/components/assistant/client-tool-renderers";
-import {
-	type AddToolApprovalResponse,
-	ConfirmationCard,
-} from "@/components/assistant/confirmation-card";
+import { ConfirmationCard } from "@/components/assistant/confirmation-card";
 import { DisplayPart } from "@/components/chat/gen-ui/display-part";
+import { StepAnswersContext } from "@/components/chat/step-answers";
 import type { AnswerPart } from "@/lib/ai/turn-view/turn-view";
 import { ImagePart } from "./parts/image-part";
 
@@ -14,15 +12,13 @@ const MessagePartRenderer = ({
 	answer,
 	running,
 	linkSafety,
-	addToolApprovalResponse,
-	clientToolActions,
 }: {
 	answer: AnswerPart;
 	running: boolean;
 	linkSafety?: LinkSafetyConfig;
-	addToolApprovalResponse?: AddToolApprovalResponse;
-	clientToolActions?: ClientToolActions;
 }) => {
+	const answers = use(StepAnswersContext);
+
 	switch (answer.kind) {
 		case "text":
 			return (
@@ -42,7 +38,7 @@ const MessagePartRenderer = ({
 				<Widget
 					part={answer.part}
 					status={answer.status}
-					actions={answer.answerable ? clientToolActions : undefined}
+					answers={answer.answerable ? answers : undefined}
 				/>
 			);
 		}
@@ -51,9 +47,7 @@ const MessagePartRenderer = ({
 				<ConfirmationCard
 					part={answer.part}
 					status={answer.status}
-					addToolApprovalResponse={
-						answer.answerable ? addToolApprovalResponse : undefined
-					}
+					answers={answer.answerable ? answers : undefined}
 				/>
 			);
 	}

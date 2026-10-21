@@ -1,4 +1,3 @@
-import type { UseChatHelpers } from "@ai-sdk/react";
 import type { ChatId } from "@orcai/core";
 import type { Model, Provider } from "@orcai/schema";
 import { useQuery } from "@tanstack/react-query";
@@ -40,8 +39,8 @@ import {
 	InputGroupTextarea,
 } from "@/components/ui/input-group";
 import { useUpdateChatMutation } from "@/hooks/mutations/use-chat-mutation";
-import { turnView } from "@/lib/ai/turn-view/turn-view";
-import type { ChatAgentUIMessage } from "@/lib/ai/types/chat-agent-message";
+import type { ChatSession } from "@/lib/ai/chat-session/chat-session";
+import { type ChatPhase, turnView } from "@/lib/ai/turn-view/turn-view";
 import { reasonMessageOf } from "@/lib/errors/describe-error";
 import { orpc } from "@/lib/orpc/orpc";
 import { cn } from "@/lib/utils";
@@ -51,23 +50,29 @@ import {
 	CHAT_ATTACHMENT_LIMIT,
 } from "@/settings/constants";
 
+const submitStatuses: Record<ChatPhase, ChatStatus> = {
+	idle: "ready",
+	sending: "submitted",
+	streaming: "streaming",
+	storing: "submitted",
+	error: "error",
+};
+
 const ChatInput = ({
 	chatId,
 	zedToken,
-	sendMessage,
+	phase,
+	send,
 	stop,
-	status,
-	isStoringReply,
 	draft,
 	variant = "chat",
 }: {
 	chatId: ChatId;
 	zedToken?: string;
-	sendMessage: UseChatHelpers<ChatAgentUIMessage>["sendMessage"];
-	stop: UseChatHelpers<ChatAgentUIMessage>["stop"];
-	status: UseChatHelpers<ChatAgentUIMessage>["status"];
-	/** A stopped or failed reply is still being saved, so the next message waits. */
-	isStoringReply: boolean;
+	/** While `storing`, a stopped or failed reply is still being saved, so the next message waits. */
+	phase: ChatPhase;
+	send: ChatSession["send"];
+	stop: ChatSession["stop"];
 	/** Prefills the composer, e.g. with the message a branch started from. */
 	draft?: ChatDraft;
 	/** The assistant's model comes from the organisation, and it takes no attachments here. */
@@ -126,9 +131,10 @@ const ChatInput = ({
 		initialAttachments: draft?.attachments,
 	});
 
-	const isGenerating = status === "submitted" || status === "streaming";
+	const isGenerating = phase === "sending" || phase === "streaming";
+	const isStoringReply = phase === "storing";
 	const isBusy = isUploading || isStoringReply;
-	const submitStatus: ChatStatus = isBusy ? "submitted" : status;
+	const submitStatus: ChatStatus = isBusy ? "submitted" : submitStatuses[phase];
 
 	const handleSubmit = async (event: React.FormEvent<HTMLFormElement>) => {
 		event.preventDefault();
@@ -161,7 +167,7 @@ const ChatInput = ({
 				return;
 			}
 
-			const sendPromise = sendMessage({
+			const sendPromise = send({
 				text: hasText
 					? trimmedText
 					: m.chat_composer_attachments_only_message(),
@@ -192,7 +198,7 @@ const ChatInput = ({
 				zedToken,
 			});
 			downloadConversation(
-				turnView(messages, "ready").messages,
+				turnView(messages, "idle").messages,
 				messageToTranscriptMarkdown,
 			);
 		} catch (error) {
@@ -313,7 +319,7 @@ const ChatInput = ({
 
 							<PromptInputSubmit
 								status={submitStatus}
-								onStop={stop}
+								onStop={() => void stop()}
 								disabled={
 									isBusy ||
 									(!isGenerating &&

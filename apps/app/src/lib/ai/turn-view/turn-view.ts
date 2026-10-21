@@ -1,4 +1,3 @@
-import type { ChatStatus } from "ai";
 import {
 	type ClientToolName,
 	isToolOfKind,
@@ -55,6 +54,9 @@ type DisplayPart = ToolPartOf<ToolNameOf<"display">>;
 export type { ClientToolName };
 export type ClientToolPart = ToolPartOf<ClientToolName>;
 export type { ShownPlanPart };
+
+/** Where a chat's turn is: idle, sending, streaming, storing a cut-off reply, or failed. */
+export type ChatPhase = "idle" | "sending" | "streaming" | "storing" | "error";
 
 export type ToolStatus =
 	| "approved"
@@ -164,6 +166,12 @@ export interface TurnView {
 	/** The conversation's plan: its newest shown `updatePlan` call. */
 	plan: TurnPlan | undefined;
 }
+
+const isBusy = (phase: ChatPhase) =>
+	phase === "sending" || phase === "streaming";
+
+/** Answers wait while a turn runs or a cut-off reply is stored. */
+const canAnswer = (phase: ChatPhase) => phase === "idle" || phase === "error";
 
 const isToolPart = (part: MessagePart): part is ToolPart =>
 	part.type === "dynamic-tool" || part.type.startsWith("tool-");
@@ -286,16 +294,16 @@ const viewMessage = (
 	message: ChatAgentUIMessage,
 	{
 		latest,
-		status,
+		phase,
 	}: {
 		latest: boolean;
-		status: ChatStatus;
+		phase: ChatPhase;
 	},
 ): MessageView => {
 	const { parts } = message;
-	const busy = status === "submitted" || status === "streaming";
-	const running = latest && status === "streaming";
-	const idle = latest && !busy;
+	const busy = isBusy(phase);
+	const running = latest && phase === "streaming";
+	const idle = latest && canAnswer(phase);
 	const paused = running ? undefined : stepPause(parts, latest);
 	const isPausedAnswer = (part: MessagePart, index: number) =>
 		paused !== undefined &&
@@ -442,7 +450,7 @@ const viewMessage = (
 
 const planOf = (
 	messages: readonly ChatAgentUIMessage[],
-	busy: boolean,
+	phase: ChatPhase,
 ): TurnPlan | undefined => {
 	const part = latestPlanPart(messages);
 
@@ -452,13 +460,13 @@ const planOf = (
 
 	const last = messages.at(-1);
 	const paused =
-		!busy && last?.role === "assistant"
+		canAnswer(phase) && last?.role === "assistant"
 			? stepPause(last.parts, true)
 			: undefined;
 
 	return {
 		part,
-		updating: busy && last !== undefined && isPlanUpdating(last),
+		updating: isBusy(phase) && last !== undefined && isPlanUpdating(last),
 		approvalIds: (paused?.approvals ?? [])
 			.filter(isPlanPart)
 			.map((call) => call.approval.id),
@@ -466,7 +474,7 @@ const planOf = (
 };
 
 /**
- * How a chat reads at its status: per message the work log with each call's
+ * How a chat reads in its phase: per message the work log with each call's
  * status, the answer with what can still be answered, why an answer is
  * missing, the running activity and whether a paused step can continue; for
  * the conversation its plan. Only the latest message can be running, paused
@@ -474,18 +482,14 @@ const planOf = (
  */
 export const turnView = (
 	messages: readonly ChatAgentUIMessage[],
-	status: ChatStatus,
-): TurnView => {
-	const busy = status === "submitted" || status === "streaming";
-
-	return {
-		messages: messages.map((message, index) =>
-			viewMessage(message, {
-				latest: index === messages.length - 1,
-				status,
-			}),
-		),
-		busy,
-		plan: planOf(messages, busy),
-	};
-};
+	phase: ChatPhase,
+): TurnView => ({
+	messages: messages.map((message, index) =>
+		viewMessage(message, {
+			latest: index === messages.length - 1,
+			phase,
+		}),
+	),
+	busy: isBusy(phase),
+	plan: planOf(messages, phase),
+});
