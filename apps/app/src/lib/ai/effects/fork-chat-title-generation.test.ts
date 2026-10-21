@@ -2,6 +2,7 @@ import { beforeEach, describe, expect, test } from "bun:test";
 import { createProviderLanguageModel } from "@orcai/ai";
 import type {
 	ChatId,
+	ModelId,
 	OrganizationId,
 	ProviderId,
 	ProviderKind,
@@ -38,11 +39,13 @@ const titleRequest = async (providerKind: ProviderKind, modelId: string) => {
 		withQuotaServices(
 			generateChatTitle({
 				chatId: "chat-1" as ChatId,
-				model,
-				providerKind,
+				model: {
+					language: model,
+					kind: providerKind,
+					providerId: "provider-1" as ProviderId,
+					modelId: "model-1" as ModelId,
+				},
 				organizationId: "org-1" as OrganizationId,
-				providerId: "provider-1" as ProviderId,
-				providerModelId: modelId,
 				userId: "user-1" as UserId,
 				userMessageId: "message-1",
 				userMessageText: "How fast are refunds paid?",

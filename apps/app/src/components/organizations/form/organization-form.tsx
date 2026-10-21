@@ -1,4 +1,9 @@
-import { modelIdSchema, type Organization } from "@orcai/schema";
+import type { ModelId } from "@orcai/core";
+import {
+	type ModelCapability,
+	modelIdSchema,
+	type Organization,
+} from "@orcai/schema";
 import { skipToken, useQuery } from "@tanstack/react-query";
 import { TriangleAlertIcon } from "lucide-react";
 import { useId } from "react";
@@ -17,6 +22,7 @@ import {
 } from "@/hooks/mutations/use-organization-mutations";
 import {
 	type ModelUnusableReason,
+	type ModelUse,
 	modelUnusableReason,
 } from "@/lib/ai/turn/model-usability";
 import { orpc } from "@/lib/orpc/orpc";
@@ -36,18 +42,56 @@ type OrganizationFormProps = {
 	  }
 );
 
-const unusableMessages: Record<ModelUnusableReason, () => string> = {
-	PROVIDER_DISABLED: m.orgs_form_assistant_model_unusable_provider_disabled,
-	MODEL_DEPRECATED: m.orgs_form_assistant_model_unusable_deprecated,
-	MODEL_TOOLS_UNSUPPORTED:
-		m.orgs_form_assistant_model_unusable_tools_unsupported,
+type ModelSetting<Use extends ModelUse> = {
+	use: Use;
+	label: () => string;
+	description: () => string;
+	unsetHint: () => string;
+	unusable: Record<ModelUnusableReason<Use>, () => string>;
 };
 
-/** The chat model picker, limited to usable models, warning when the chosen one no longer is. */
-const AssistantModelField = ({
+const assistantModelSetting: ModelSetting<"turn"> = {
+	use: "turn",
+	label: m.orgs_form_assistant_model_label,
+	description: m.orgs_form_assistant_model_description,
+	unsetHint: m.orgs_form_assistant_model_unset_hint,
+	unusable: {
+		PROVIDER_DISABLED: m.orgs_form_assistant_model_unusable_provider_disabled,
+		MODEL_DEPRECATED: m.orgs_form_assistant_model_unusable_deprecated,
+		MODEL_TOOLS_UNSUPPORTED:
+			m.orgs_form_assistant_model_unusable_tools_unsupported,
+	},
+};
+
+const utilityModelSetting: ModelSetting<"text"> = {
+	use: "text",
+	label: m.orgs_form_utility_model_label,
+	description: m.orgs_form_utility_model_description,
+	unsetHint: m.orgs_form_utility_model_unset_hint,
+	unusable: {
+		PROVIDER_DISABLED: m.orgs_form_utility_model_unusable_provider_disabled,
+		MODEL_DEPRECATED: m.orgs_form_utility_model_unusable_deprecated,
+		MODEL_TEXT_UNSUPPORTED: m.orgs_form_utility_model_unusable_text_unsupported,
+	},
+};
+
+const pickerCapabilities: Record<ModelUse, ModelCapability[]> = {
+	turn: [
+		"text",
+		"tool-calling",
+	],
+	text: [
+		"text",
+	],
+};
+
+/** A model picker for an organisation setting, limited to usable models, warning when the chosen one no longer is. */
+const OrganizationModelField = <Use extends ModelUse>({
+	setting,
 	value,
 	onChange,
 }: {
+	setting: ModelSetting<Use>;
 	value: string | null;
 	onChange: (modelId: string | null) => void;
 }) => {
@@ -73,22 +117,21 @@ const AssistantModelField = ({
 	);
 	const unusableReason =
 		model && provider
-			? modelUnusableReason({
-					capabilities: model.data.capabilities,
-					isDeprecated: model.data.isDeprecated,
-					providerEnabled: provider.data.enabled,
-				})
+			? modelUnusableReason(
+					{
+						capabilities: model.data.capabilities,
+						isDeprecated: model.data.isDeprecated,
+						providerEnabled: provider.data.enabled,
+					},
+					setting.use,
+				)
 			: undefined;
 
 	return (
 		<Field aria-labelledby={labelId}>
 			<FieldContent>
-				<FieldLabel id={labelId}>
-					{m.orgs_form_assistant_model_label()}
-				</FieldLabel>
-				<FieldDescription>
-					{m.orgs_form_assistant_model_description()}
-				</FieldDescription>
+				<FieldLabel id={labelId}>{setting.label()}</FieldLabel>
+				<FieldDescription>{setting.description()}</FieldDescription>
 			</FieldContent>
 			<div className="flex items-center gap-2">
 				<ModelSelectorButton
@@ -96,6 +139,7 @@ const AssistantModelField = ({
 					selectedProviderId={providerId}
 					onSelect={(selected) => onChange(selected.id)}
 					excludeDeprecated
+					capabilities={pickerCapabilities[setting.use]}
 					variant="full"
 				/>
 				{value && (
@@ -105,23 +149,35 @@ const AssistantModelField = ({
 						size="sm"
 						onClick={() => onChange(null)}
 					>
-						{m.orgs_form_assistant_model_clear_action()}
+						{m.orgs_form_model_clear_action()}
 					</Button>
 				)}
 			</div>
 			{!value && (
-				<p className="text-muted-foreground text-sm">
-					{m.orgs_form_assistant_model_unset_hint()}
-				</p>
+				<p className="text-muted-foreground text-sm">{setting.unsetHint()}</p>
 			)}
 			{unusableReason && (
 				<p className="flex items-start gap-2 text-destructive text-sm">
 					<TriangleAlertIcon className="mt-0.5 size-4 shrink-0" />
-					{unusableMessages[unusableReason]()}
+					{setting.unusable[unusableReason]()}
 				</p>
 			)}
 		</Field>
 	);
+};
+
+/** The setting's next value, left out when unchanged so an unusable model does not block other edits. */
+const changedModel = <Key extends string>(
+	key: Key,
+	next: string | null,
+	current: ModelId | null,
+) => {
+	const nextId = next === null ? null : modelIdSchema.parse(next);
+	return nextId === current
+		? {}
+		: ({
+				[key]: nextId,
+			} as Record<Key, ModelId | null>);
 };
 
 export const OrganizationForm = ({
@@ -144,28 +200,29 @@ export const OrganizationForm = ({
 					slug: organization.slug,
 					logo: organization.logo,
 					assistantModelId: organization.assistantModelId,
+					utilityModelId: organization.utilityModelId,
 				}
 			: organizationFormOptions.defaultValues,
 		onSubmit: async ({ value }) => {
-			const { assistantModelId, ...rest } = value;
+			const { assistantModelId, utilityModelId, ...rest } = value;
 			const fields = {
 				...rest,
 				logo: rest.logo?.trim() || null,
 			};
 			if (action === "update") {
-				const nextAssistantModelId =
-					assistantModelId === null
-						? null
-						: modelIdSchema.parse(assistantModelId);
 				await updateOrganization({
 					...fields,
 					id: organization.id,
-					// An unchanged model is not revalidated, so an unusable one does not block other edits.
-					...(nextAssistantModelId !== organization.assistantModelId
-						? {
-								assistantModelId: nextAssistantModelId,
-							}
-						: {}),
+					...changedModel(
+						"assistantModelId",
+						assistantModelId,
+						organization.assistantModelId,
+					),
+					...changedModel(
+						"utilityModelId",
+						utilityModelId,
+						organization.utilityModelId,
+					),
 				});
 			} else {
 				await createOrganization(fields);
@@ -209,15 +266,28 @@ export const OrganizationForm = ({
 				)}
 			/>
 			{action === "update" && (
-				<form.AppField
-					name="assistantModelId"
-					children={(field) => (
-						<AssistantModelField
-							value={field.state.value}
-							onChange={field.handleChange}
-						/>
-					)}
-				/>
+				<>
+					<form.AppField
+						name="assistantModelId"
+						children={(field) => (
+							<OrganizationModelField
+								setting={assistantModelSetting}
+								value={field.state.value}
+								onChange={field.handleChange}
+							/>
+						)}
+					/>
+					<form.AppField
+						name="utilityModelId"
+						children={(field) => (
+							<OrganizationModelField
+								setting={utilityModelSetting}
+								value={field.state.value}
+								onChange={field.handleChange}
+							/>
+						)}
+					/>
+				</>
 			)}
 
 			<div className="flex justify-end pt-4">

@@ -22,7 +22,10 @@ import {
 	sql,
 } from "drizzle-orm";
 import * as Effect from "effect/Effect";
-import { modelUnusableReason } from "@/lib/ai/turn/model-usability";
+import {
+	type ModelUse,
+	modelUnusableReason,
+} from "@/lib/ai/turn/model-usability";
 import {
 	deleteOrganizationsWithAuthorization,
 	insertOrganization,
@@ -255,13 +258,15 @@ const createOrganization = authed.organization.create
 		};
 	});
 
-/** The assistant model must be the organisation's own and able to carry a tool-calling turn. */
-const requireUsableAssistantModel = ({
+/** A model setting must name one of the organisation's own models, able to serve `use`. */
+const requireUsableModel = ({
 	organizationId,
 	modelId,
+	use,
 }: {
 	organizationId: OrganizationId;
 	modelId: ModelId;
+	use: ModelUse;
 }) =>
 	Effect.gen(function* () {
 		const db = yield* DB;
@@ -289,17 +294,17 @@ const requireUsableAssistantModel = ({
 				new AppErrors.NotFoundError({
 					reason: "MODEL_NOT_FOUND",
 					id: modelId,
-					message: "The assistant model is not a model of this organisation.",
+					message: "The model is not a model of this organisation.",
 				}),
 			);
 		}
 
-		const unusable = modelUnusableReason(model);
+		const unusable = modelUnusableReason(model, use);
 		if (unusable) {
 			return yield* Effect.fail(
 				new AppErrors.BadRequestError({
 					reason: unusable,
-					message: "The assistant model cannot carry a tool-calling turn.",
+					message: `The model cannot serve ${use} calls.`,
 				}),
 			);
 		}
@@ -315,9 +320,17 @@ const updateOrganization = authed.organization.update
 		const db = yield* DB;
 
 		if (input.assistantModelId) {
-			yield* requireUsableAssistantModel({
+			yield* requireUsableModel({
 				organizationId: input.id,
 				modelId: input.assistantModelId,
+				use: "turn",
+			});
+		}
+		if (input.utilityModelId) {
+			yield* requireUsableModel({
+				organizationId: input.id,
+				modelId: input.utilityModelId,
+				use: "text",
 			});
 		}
 

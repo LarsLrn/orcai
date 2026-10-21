@@ -37,6 +37,11 @@ export const organization = pgTable("organization", {
 		.references((): AnyPgColumn => model.id, {
 			onDelete: "set null",
 		}),
+	utilityModelId: uuid("utility_model_id")
+		.$type<ModelId>()
+		.references((): AnyPgColumn => model.id, {
+			onDelete: "set null",
+		}),
 });
 
 export const member = pgTable(

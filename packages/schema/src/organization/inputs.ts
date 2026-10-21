@@ -49,6 +49,7 @@ export const updateOrganizationInputSchema =
 	organizationMutableFieldsSchema.extend({
 		id: organizationIdSchema,
 		assistantModelId: modelIdSchema.nullable().optional(),
+		utilityModelId: modelIdSchema.nullable().optional(),
 	});
 
 export const deleteOrganizationsInputSchema = z.object({

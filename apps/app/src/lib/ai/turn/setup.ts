@@ -51,7 +51,7 @@ const ASSISTANT_FEATURES = {
 	generativeUi: {},
 };
 
-const UNUSABLE_MESSAGES: Record<ModelUnusableReason, string> = {
+const UNUSABLE_MESSAGES: Record<ModelUnusableReason<"turn">, string> = {
 	PROVIDER_DISABLED:
 		"Selected provider is disabled. Please choose an active provider.",
 	MODEL_DEPRECATED:
@@ -107,7 +107,7 @@ export type TurnSetup = RequestedSetup & {
 
 const badRequest = (
 	reason:
-		| ModelUnusableReason
+		| ModelUnusableReason<"turn">
 		| "MODEL_PROVIDER_MISMATCH"
 		| "CHAT_MODEL_NOT_CONFIGURED"
 		| "ASSISTANT_MODEL_NOT_CONFIGURED",
@@ -176,11 +176,14 @@ const readModel = ({
 			)
 			.pipe(Effect.mapError(failedRead("provider")));
 
-		const unusable = modelUnusableReason({
-			capabilities: model.capabilities,
-			isDeprecated: model.isDeprecated,
-			providerEnabled: provider.enabled,
-		});
+		const unusable = modelUnusableReason(
+			{
+				capabilities: model.capabilities,
+				isDeprecated: model.isDeprecated,
+				providerEnabled: provider.enabled,
+			},
+			"turn",
+		);
 		if (unusable) {
 			return yield* badRequest(unusable, UNUSABLE_MESSAGES[unusable]);
 		}

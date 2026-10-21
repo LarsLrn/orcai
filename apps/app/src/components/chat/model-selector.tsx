@@ -1,4 +1,4 @@
-import type { Model, Provider } from "@orcai/schema";
+import type { Model, ModelCapability, Provider } from "@orcai/schema";
 import { useQuery } from "@tanstack/react-query";
 import { useEffect, useMemo, useState } from "react";
 import {
@@ -20,12 +20,17 @@ import { m } from "@/paraglide/messages";
 
 const PROVIDER_PLACEHOLDER_VALUE = "__select-provider__";
 const MODEL_PAGE_SIZE = 20;
+const CHAT_CAPABILITIES: ModelCapability[] = [
+	"text",
+	"tool-calling",
+];
 
 const ModelSelectorButton = ({
 	selectedModelId,
 	selectedProviderId,
 	onSelect,
 	excludeDeprecated = false,
+	capabilities = CHAT_CAPABILITIES,
 	variant = "compact",
 	className,
 }: {
@@ -34,6 +39,8 @@ const ModelSelectorButton = ({
 	onSelect: (model: Model, provider: Provider) => void;
 	/** Offer only models that are not deprecated. */
 	excludeDeprecated?: boolean;
+	/** The capabilities every offered model has. */
+	capabilities?: ModelCapability[];
 	variant?: "compact" | "full";
 	className?: string;
 }) => {
@@ -70,10 +77,7 @@ const ModelSelectorButton = ({
 				pageSize: MODEL_PAGE_SIZE,
 				filters: {
 					providerId: providerFilterId,
-					capabilities: [
-						"text",
-						"tool-calling",
-					],
+					capabilities,
 					isDeprecated: excludeDeprecated ? false : undefined,
 					search: modelSearch || undefined,
 				},
