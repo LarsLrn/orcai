@@ -42,8 +42,8 @@ import {
 	requireEntityPermission,
 	requirePermission,
 } from "@/lib/orpc/middlewares/permission";
+import { literalSearch } from "@/lib/utils/literal-search";
 import { assistantConversationImmutable } from "./helpers/assistant-conversation";
-import { literalSearch } from "./helpers/literal-search";
 import { buildOrderBy, type SortExpression } from "./helpers/sorting";
 
 const listChats = authed.chat.list.effect(function* ({ input, context }) {

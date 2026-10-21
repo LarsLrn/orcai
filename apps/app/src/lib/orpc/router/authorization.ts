@@ -1,13 +1,13 @@
 import type { CapabilityEntityType } from "@orcai/schema";
 import type { EntityIdFor } from "@orcai/spice-db";
 import * as Effect from "effect/Effect";
-import { getZedToken } from "@/lib/authz/zed-token";
-import * as AppErrors from "@/lib/effect/utils/errors";
-import { authed } from "@/lib/orpc/implementation/authed";
 import {
 	getEntityCapabilities,
 	getManyEntityCapabilities,
-} from "./helpers/capabilities";
+} from "@/lib/authz/entity-capabilities";
+import { getZedToken } from "@/lib/authz/zed-token";
+import * as AppErrors from "@/lib/effect/utils/errors";
+import { authed } from "@/lib/orpc/implementation/authed";
 
 const checkAuthorization = authed.authorization.check.effect(function* ({
 	input,

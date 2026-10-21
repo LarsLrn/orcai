@@ -16,7 +16,7 @@ import {
 	requireEntityPermission,
 	requireOrganizationPermission,
 } from "@/lib/orpc/middlewares/permission";
-import { literalSearch } from "./helpers/literal-search";
+import { literalSearch } from "@/lib/utils/literal-search";
 import { buildOrderBy, type SortExpression } from "./helpers/sorting";
 
 const quotaPoolWriteError = (

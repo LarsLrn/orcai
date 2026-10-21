@@ -33,7 +33,7 @@ import * as AppErrors from "@/lib/effect/utils/errors";
 import { authed } from "@/lib/orpc/implementation/authed";
 import { requireActiveOrganizationMiddleware } from "@/lib/orpc/middlewares/auth";
 import { requireOrganizationPermission } from "@/lib/orpc/middlewares/permission";
-import { literalSearch } from "./helpers/literal-search";
+import { literalSearch } from "@/lib/utils/literal-search";
 import { buildOrderBy, type SortExpression } from "./helpers/sorting";
 
 /** Matches the search term against the user name, and the email when it is visible. */

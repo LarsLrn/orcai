@@ -3,6 +3,7 @@ import type { Bot } from "@orcai/schema";
 import { eq, getColumns } from "drizzle-orm";
 import * as Effect from "effect/Effect";
 import { checkFeatureRequirements } from "@/lib/ai/features/requirements";
+import { getEntityCapabilities } from "@/lib/authz/entity-capabilities";
 import { deleteResourcesWithAuthorization } from "@/lib/authz/resource-lifecycle";
 import { getZedToken } from "@/lib/authz/zed-token";
 import {
@@ -19,7 +20,6 @@ import {
 	requireEntityPermission,
 	requirePermission,
 } from "@/lib/orpc/middlewares/permission";
-import { getEntityCapabilities } from "@/lib/orpc/router/helpers/capabilities";
 
 const listBots = authed.bot.list.effect(function* ({ input, context }) {
 	return yield* listBotsByStatus({

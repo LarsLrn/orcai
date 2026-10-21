@@ -10,11 +10,11 @@ import {
 import * as AppErrors from "@/lib/effect/utils/errors";
 import { authed } from "@/lib/orpc/implementation/authed";
 import { requireInstanceAdminMiddleware } from "@/lib/orpc/middlewares/auth";
-import { literalSearch } from "@/lib/orpc/router/helpers/literal-search";
 import {
 	buildOrderBy,
 	type SortExpression,
 } from "@/lib/orpc/router/helpers/sorting";
+import { literalSearch } from "@/lib/utils/literal-search";
 
 /** Better Auth reads the caller's session from the request headers. */
 const requireRequestHeaders = (headers: Headers | undefined) =>

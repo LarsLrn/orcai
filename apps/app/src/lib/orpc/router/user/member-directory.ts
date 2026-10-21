@@ -8,11 +8,11 @@ import * as AppErrors from "@/lib/effect/utils/errors";
 import { authed } from "@/lib/orpc/implementation/authed";
 import { requireActiveOrganizationMiddleware } from "@/lib/orpc/middlewares/auth";
 import { requirePermission } from "@/lib/orpc/middlewares/permission";
-import { literalSearch } from "@/lib/orpc/router/helpers/literal-search";
 import {
 	buildOrderBy,
 	type SortExpression,
 } from "@/lib/orpc/router/helpers/sorting";
+import { literalSearch } from "@/lib/utils/literal-search";
 
 const listUsers = authed.user.list
 	.use(requireActiveOrganizationMiddleware)

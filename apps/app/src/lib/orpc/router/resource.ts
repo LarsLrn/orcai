@@ -36,8 +36,8 @@ import { getZedToken } from "@/lib/authz/zed-token";
 import { authed } from "@/lib/orpc/implementation/authed";
 import { requireResourcePermission } from "@/lib/orpc/middlewares/permission";
 import { recentResources } from "@/lib/resources/recents";
+import { literalSearch } from "@/lib/utils/literal-search";
 import { canSeeEmailIn, canSeeEmailOn } from "./helpers/can-see-email";
-import { literalSearch } from "./helpers/literal-search";
 
 type GroupPrincipal = Extract<
 	ResourcePrincipal,

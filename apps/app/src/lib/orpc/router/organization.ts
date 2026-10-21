@@ -35,7 +35,7 @@ import { authed } from "@/lib/orpc/implementation/authed";
 import { requireInstanceAdminMiddleware } from "@/lib/orpc/middlewares/auth";
 import { requireEntityPermission } from "@/lib/orpc/middlewares/permission";
 import { unique } from "@/lib/utils/array-utils";
-import { literalSearch } from "./helpers/literal-search";
+import { literalSearch } from "@/lib/utils/literal-search";
 import { buildOrderBy, type SortExpression } from "./helpers/sorting";
 
 const listOrganizations = authed.organization.list.effect(function* ({

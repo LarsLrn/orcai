@@ -27,6 +27,10 @@ import { and, count, desc, eq, getColumns, ilike, inArray } from "drizzle-orm";
 import * as Effect from "effect/Effect";
 import { v4 as uuidv4 } from "uuid";
 import { emptyCapabilities } from "@/lib/authz/capabilities";
+import {
+	getEntityCapabilities,
+	getManyEntityCapabilities,
+} from "@/lib/authz/entity-capabilities";
 import { writeRelationships } from "@/lib/authz/relationship-write";
 import {
 	deleteResourcesWithAuthorization,
@@ -42,11 +46,7 @@ import {
 	requireOrganizationPermission,
 	requirePermission,
 } from "@/lib/orpc/middlewares/permission";
-import {
-	getEntityCapabilities,
-	getManyEntityCapabilities,
-} from "@/lib/orpc/router/helpers/capabilities";
-import { literalSearch } from "./helpers/literal-search";
+import { literalSearch } from "@/lib/utils/literal-search";
 
 const uploadFileType = (upload: FinalizedUploadFile) => {
 	const fileType = assetFileTypeSchema.safeParse(
