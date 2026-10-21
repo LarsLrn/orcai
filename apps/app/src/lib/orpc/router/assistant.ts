@@ -1,11 +1,11 @@
 import { DB, dbSchema } from "@orcai/db";
 import { and, count, desc, eq } from "drizzle-orm";
 import * as Effect from "effect/Effect";
-import { AuthzService } from "@/lib/effect/services/authz";
+import { writeRelationships } from "@/lib/authz/relationship-write";
 import { authed } from "@/lib/orpc/implementation/authed";
 import { requireActiveOrganizationMiddleware } from "@/lib/orpc/middlewares/auth";
 import { requireOrganizationPermission } from "@/lib/orpc/middlewares/permission";
-import { chatRelationships } from "./chat";
+import { insertChat } from "./chat";
 
 /** Assistant conversations are never shared, so the owner column is the whole check. */
 const listAssistantConversations = authed.assistant.list
@@ -52,23 +52,18 @@ const createAssistantConversation = authed.assistant.create
 	.use(requireActiveOrganizationMiddleware)
 	.use(requireOrganizationPermission("read"))
 	.effect(function* ({ context }) {
-		const db = yield* DB;
-		const authz = yield* AuthzService;
-
-		const [chat] = yield* db
-			.insert(dbSchema.chat)
-			.values({
+		const { result: chat } = yield* writeRelationships(
+			{
+				organizationIds: [],
+			},
+			insertChat({
 				kind: "assistant",
 				organizationId: context.auth.session.activeOrganizationId,
 				userId: context.auth.user.id,
 				botId: null,
 				config: {},
-			})
-			.returning();
-
-		yield* authz.applyRelationshipMutations({
-			mutations: chatRelationships(chat),
-		});
+			}),
+		);
 
 		return {
 			data: chat,

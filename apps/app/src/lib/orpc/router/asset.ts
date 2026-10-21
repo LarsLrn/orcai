@@ -19,6 +19,7 @@ import { and, count, desc, eq, getColumns, ilike, inArray } from "drizzle-orm";
 import * as Effect from "effect/Effect";
 import { v4 as uuidv4 } from "uuid";
 import { emptyCapabilities } from "@/lib/authz/capabilities";
+import { writeRelationships } from "@/lib/authz/relationship-write";
 import {
 	deleteResourcesWithAuthorization,
 	initializeResourceAuthorization,
@@ -56,26 +57,39 @@ const createAssetRecord = (params: {
 
 		const assetId = assetIdSchema.parse(params.id ?? uuidv4());
 
-		const [asset] = yield* db
-			.insert(dbSchema.asset)
-			.values({
-				id: assetId,
-				title: params.title,
-				size: params.size,
-				fileType: params.fileType,
-				bucket: params.bucket,
-				prefix: params.prefix,
-				metadata: params.metadata,
-				userId: params.userId,
-			})
-			.returning();
+		const { result: asset } = yield* writeRelationships(
+			{
+				organizationIds: [
+					params.organizationId,
+				],
+			},
+			Effect.gen(function* () {
+				const [asset] = yield* db
+					.insert(dbSchema.asset)
+					.values({
+						id: assetId,
+						title: params.title,
+						size: params.size,
+						fileType: params.fileType,
+						bucket: params.bucket,
+						prefix: params.prefix,
+						metadata: params.metadata,
+						userId: params.userId,
+					})
+					.returning();
 
-		yield* initializeResourceAuthorization({
-			resourceType: "asset",
-			resourceId: asset.id,
-			organizationId: params.organizationId,
-			ownerUserId: params.userId,
-		});
+				yield* initializeResourceAuthorization({
+					resource: {
+						resourceType: "asset",
+						resourceId: asset.id,
+					},
+					organizationId: params.organizationId,
+					ownerUserId: params.userId,
+				});
+
+				return asset;
+			}),
+		);
 
 		return {
 			asset,

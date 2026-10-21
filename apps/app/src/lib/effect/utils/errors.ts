@@ -140,11 +140,7 @@ export const BadRequestError = BadRequestErrorClass as ReasonedConstructor<
 >;
 
 export class AuthzError extends Data.TaggedError(ErrorTags.AUTHZ)<{
-	reason:
-		| "outbox_enqueue_failed"
-		| "projection_failed"
-		| "outbox_finalize_failed";
-	eventId?: string;
+	reason: "outbox_enqueue_failed" | "projection_failed";
 	cause: unknown;
 }> {}
 

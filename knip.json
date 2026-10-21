@@ -32,7 +32,8 @@
 				"src/client.tsx",
 				"src/server.ts",
 				"start-server.ts",
-				"src/**/*.test.{ts,tsx}"
+				"src/**/*.test.{ts,tsx}",
+				"src/**/*.integration.ts"
 			],
 			"project": [
 				"src/**/*.{ts,tsx}"

@@ -3,11 +3,9 @@ import { DB, dbSchema } from "@orcai/db";
 import type {
 	AccessAncestor,
 	BlockType,
-	ResourceGrantRole,
 	ResourceGrant as ResourceGrantView,
 	ResourceIdentity,
 	ResourcePrincipal,
-	ResourcePrincipalIdentity,
 } from "@orcai/schema";
 import {
 	ALL_MEMBERS_GROUP_SYSTEM_KEY,
@@ -18,7 +16,6 @@ import {
 	RESOURCE_GRANT_SOURCE,
 	userIdSchema,
 } from "@orcai/schema";
-import type { TupleMutation } from "@orcai/spice-db";
 import {
 	lookupEntitiesByPermission,
 	permittedEntityIds,
@@ -32,12 +29,17 @@ import {
 	isNull,
 	notInArray,
 	or,
-	sql,
 } from "drizzle-orm";
 import * as Effect from "effect/Effect";
 import { visibleGroupScope } from "@/lib/authz/group-visibility";
+import { RelationshipFact } from "@/lib/authz/relationship-facts";
+import {
+	recordRelationshipFacts,
+	writeRelationships,
+} from "@/lib/authz/relationship-write";
+import { resourceOrganizations } from "@/lib/authz/resource-lifecycle";
+import { grantPrincipal } from "@/lib/authz/scoped-resource-id";
 import { getZedToken } from "@/lib/authz/zed-token";
-import { AuthzService } from "@/lib/effect/services/authz";
 import * as AppErrors from "@/lib/effect/utils/errors";
 import { authed } from "@/lib/orpc/implementation/authed";
 import { createProcedures } from "@/lib/orpc/implementation/procedures";
@@ -55,8 +57,6 @@ type GroupPrincipal = Extract<
 		type: "group";
 	}
 >;
-
-const roleToRelation = (role: ResourceGrantRole) => role;
 
 const grantSourceForGroup = (
 	params: Pick<GroupPrincipal, "kind" | "systemKey">,
@@ -263,21 +263,36 @@ const ensureManagerRemains = (
 		: Effect.void;
 };
 
-const relationMutation = (params: {
-	resource: ResourceIdentity;
-	principal: ResourcePrincipalIdentity;
-	role: ResourceGrantRole;
-	operation: "touch" | "delete";
-}): TupleMutation => ({
-	resourceType: params.resource.resourceType,
-	resourceId: params.resource.resourceId,
-	relation: roleToRelation(params.role),
-	subjectType: params.principal.principalType,
-	subjectId: params.principal.principalId,
-	subjectRelation:
-		params.principal.principalType === "group" ? "member" : undefined,
-	operation: params.operation,
-});
+/** Runs a grant or visibility change under the resource's organization lock, while the resource exists. */
+const writeResourceAccess = <A, E, R>(
+	resource: ResourceIdentity,
+	body: Effect.Effect<A, E, R>,
+) =>
+	Effect.gen(function* () {
+		const organizationIds = yield* resourceOrganizations([
+			resource,
+		]);
+		return yield* writeRelationships(
+			{
+				organizationIds,
+			},
+			Effect.gen(function* () {
+				// A deletion that held the lock first leaves no scope behind.
+				if (
+					(yield* resourceOrganizations([
+						resource,
+					])).length === 0
+				)
+					return yield* Effect.fail(
+						new AppErrors.NotFoundError({
+							id: resource.resourceId,
+							message: "Resource not found",
+						}),
+					);
+				return yield* body;
+			}),
+		);
+	});
 
 /** Ancestors named in the summary; the rest are only counted. */
 const ANCESTOR_NAME_LIMIT = 25;
@@ -643,17 +658,11 @@ const grantResourceAccess = authed.resource.grant
 	.use(assertCanGrantPrincipalMiddleware)
 	.effect(function* ({ input, context }) {
 		const db = yield* DB;
-		const authz = yield* AuthzService;
 		const now = new Date();
 
-		const { grants, mutations } = yield* db.transaction((tx) =>
+		const { result: grants, zedToken } = yield* writeResourceAccess(
+			input,
 			Effect.gen(function* () {
-				// The manager floor is a read followed by a write, so the batch
-				// takes the row lock before counting.
-				yield* tx.execute(
-					sql`LOCK TABLE "resource_grant" IN SHARE ROW EXCLUSIVE MODE`,
-				);
-
 				const active = yield* activeGrantsFor(input);
 				const existingByPrincipal = new Map(
 					active.map((grant) => [
@@ -673,13 +682,12 @@ const grantResourceAccess = authed.resource.grant
 				});
 
 				const written: ActiveGrant[] = [];
-				const mutations: TupleMutation[] = [];
 
 				for (const principal of input.principals) {
 					const existing = existingByPrincipal.get(principalKey(principal));
 
 					if (existing) {
-						yield* tx
+						yield* db
 							.update(dbSchema.resourceGrant)
 							.set({
 								revokedAt: now,
@@ -687,7 +695,7 @@ const grantResourceAccess = authed.resource.grant
 							.where(eq(dbSchema.resourceGrant.id, existing.id));
 					}
 
-					const [grant] = yield* tx
+					const [grant] = yield* db
 						.insert(dbSchema.resourceGrant)
 						.values({
 							resourceType: input.resourceType,
@@ -712,31 +720,17 @@ const grantResourceAccess = authed.resource.grant
 
 					written.push(grant);
 
-					if (existing && existing.role !== input.role) {
-						mutations.push(
-							relationMutation({
-								resource: input,
-								principal,
-								role: existing.role,
-								operation: "delete",
-							}),
-						);
-					}
-
-					mutations.push(
-						relationMutation({
+					yield* recordRelationshipFacts(
+						RelationshipFact.ResourceGrantChanged({
 							resource: input,
-							principal,
-							role: input.role,
-							operation: "touch",
+							principal: grantPrincipal(principal),
+							from: existing?.role ?? null,
+							to: input.role,
 						}),
 					);
 				}
 
-				return {
-					grants: written,
-					mutations,
-				};
+				return written;
 			}),
 		);
 
@@ -744,11 +738,7 @@ const grantResourceAccess = authed.resource.grant
 			grants,
 			resource: input,
 			userId: context.auth.user.id,
-			zedToken: getZedToken(context),
-		});
-
-		yield* authz.applyRelationshipMutations({
-			mutations,
+			zedToken: zedToken ?? getZedToken(context),
 		});
 
 		return {
@@ -761,51 +751,57 @@ const revokeResourceAccess = authed.resource.revoke
 	.use(requireResourcePermission("manage_access"))
 	.effect(function* ({ input }) {
 		const db = yield* DB;
-		const authz = yield* AuthzService;
 
-		const active = yield* activeGrantsFor(input);
-		const revoked = active.filter(
-			(grant) => principalKey(grant) === principalKey(input),
+		const { result: revokedCount } = yield* writeResourceAccess(
+			input,
+			Effect.gen(function* () {
+				const active = yield* activeGrantsFor(input);
+				const revoked = active.filter(
+					(grant) => principalKey(grant) === principalKey(input),
+				);
+
+				if (revoked.length === 0) return 0;
+
+				yield* ensureManagerRemains(active, (managers) => {
+					managers.delete(principalKey(input));
+				});
+
+				yield* db
+					.update(dbSchema.resourceGrant)
+					.set({
+						revokedAt: new Date(),
+					})
+					.where(
+						inArray(
+							dbSchema.resourceGrant.id,
+							revoked.map((grant) => grant.id),
+						),
+					);
+
+				yield* recordRelationshipFacts(
+					...revoked.map((grant) =>
+						RelationshipFact.ResourceGrantChanged({
+							resource: input,
+							principal: grantPrincipal(grant),
+							from: grant.role,
+							to: null,
+						}),
+					),
+				);
+
+				return revoked.length;
+			}),
 		);
 
-		if (revoked.length === 0) {
-			return {
-				success: true,
-				message: "No active grant to revoke",
-			};
-		}
-
-		yield* ensureManagerRemains(active, (managers) => {
-			managers.delete(principalKey(input));
-		});
-
-		yield* db
-			.update(dbSchema.resourceGrant)
-			.set({
-				revokedAt: new Date(),
-			})
-			.where(
-				inArray(
-					dbSchema.resourceGrant.id,
-					revoked.map((grant) => grant.id),
-				),
-			);
-
-		yield* authz.applyRelationshipMutations({
-			mutations: revoked.map((grant) =>
-				relationMutation({
-					resource: input,
-					principal: input,
-					role: grant.role,
-					operation: "delete",
-				}),
-			),
-		});
-
-		return {
-			success: true,
-			message: "Access revoked successfully",
-		};
+		return revokedCount === 0
+			? {
+					success: true,
+					message: "No active grant to revoke",
+				}
+			: {
+					success: true,
+					message: "Access revoked successfully",
+				};
 	});
 
 const getResourceVisibility = authed.resource.getVisibility
@@ -837,31 +833,12 @@ const setResourceVisibility = authed.resource.setVisibility
 	.use(requireResourcePermission("manage_access"))
 	.effect(function* ({ input, context }) {
 		const db = yield* DB;
-		const authz = yield* AuthzService;
 		const now = new Date();
 
-		const [existing] = yield* db
-			.select()
-			.from(dbSchema.resourceVisibility)
-			.where(
-				and(
-					eq(dbSchema.resourceVisibility.resourceType, input.resourceType),
-					eq(dbSchema.resourceVisibility.resourceId, input.resourceId),
-				),
-			)
-			.limit(1);
-
-		const [data] = existing
-			? yield* db
-					.update(dbSchema.resourceVisibility)
-					.set({
-						visibility: input.visibility,
-						updatedAt: now,
-						updatedBy: context.auth.user.id,
-					})
-					.where(eq(dbSchema.resourceVisibility.id, existing.id))
-					.returning()
-			: yield* db
+		const { result: data } = yield* writeResourceAccess(
+			input,
+			Effect.gen(function* () {
+				const [data] = yield* db
 					.insert(dbSchema.resourceVisibility)
 					.values({
 						resourceType: input.resourceType,
@@ -870,20 +847,29 @@ const setResourceVisibility = authed.resource.setVisibility
 						updatedBy: context.auth.user.id,
 						updatedAt: now,
 					})
+					.onConflictDoUpdate({
+						target: [
+							dbSchema.resourceVisibility.resourceType,
+							dbSchema.resourceVisibility.resourceId,
+						],
+						set: {
+							visibility: input.visibility,
+							updatedAt: now,
+							updatedBy: context.auth.user.id,
+						},
+					})
 					.returning();
 
-		yield* authz.applyRelationshipMutations({
-			mutations: [
-				{
-					resourceType: input.resourceType,
-					resourceId: input.resourceId,
-					relation: "public",
-					subjectType: "user",
-					subjectId: "*",
-					operation: input.visibility === "public" ? "touch" : "delete",
-				},
-			],
-		});
+				yield* recordRelationshipFacts(
+					RelationshipFact.ResourceVisibilitySet({
+						resource: input,
+						visibility: input.visibility,
+					}),
+				);
+
+				return data;
+			}),
+		);
 
 		return {
 			data,

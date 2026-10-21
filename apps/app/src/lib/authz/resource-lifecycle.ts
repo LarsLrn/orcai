@@ -2,55 +2,47 @@ import type {
 	AssetId,
 	BlockId,
 	BotId,
-	ChatId,
-	GroupId,
 	OrganizationId,
 	UserId,
 } from "@orcai/core";
 import { DB, dbSchema } from "@orcai/db";
-import type { EntityIdFor, ResourceType, TupleMutation } from "@orcai/spice-db";
+import type { ResourceType } from "@orcai/spice-db";
 import { and, eq, inArray, isNull } from "drizzle-orm";
 import * as Arr from "effect/Array";
 import * as Effect from "effect/Effect";
 import {
-	AuthzService,
-	enqueueRelationshipMutations,
-} from "@/lib/effect/services/authz";
-import { parseScopedResourceId } from "@/lib/orpc/router/helpers/scoped-resource-id";
-import { AUTHZ } from "@/settings/constants";
+	RelationshipFact,
+	type ResourceRef,
+} from "@/lib/authz/relationship-facts";
+import {
+	recordRelationshipFacts,
+	writeRelationships,
+} from "@/lib/authz/relationship-write";
+import {
+	grantPrincipal,
+	scopedResourceRef,
+} from "@/lib/authz/scoped-resource-id";
 
 type ResourceVisibility =
 	typeof dbSchema.resourceVisibility.$inferSelect.visibility;
 
 /**
- * Bootstraps the authorization state for a newly created resource.
- *
- * Writes two categories of data:
- * 1. **DB records** — `resourceScope` (org ownership) and `resourceVisibility`.
- * 2. **SpiceDB tuples** — the creator's `owner` relation, and a
- *    `public@user:*` wildcard when visibility is public.
- *
- * Must be called once, immediately after the resource row is inserted.
- *
- * @param params.visibility - Defaults to `"private"`.
+ * Records a new resource's organization scope, visibility and owner. Call it
+ * in the {@link writeRelationships} that inserts the resource row.
  */
 export const initializeResourceAuthorization = (params: {
-	resourceType: ResourceType;
-	resourceId: EntityIdFor<ResourceType>;
+	resource: ResourceRef;
 	organizationId: OrganizationId;
 	ownerUserId: UserId;
 	visibility?: ResourceVisibility;
 }) =>
 	Effect.gen(function* () {
 		const db = yield* DB;
-		const authz = yield* AuthzService;
 		const now = new Date();
-
 		const visibility = params.visibility ?? "private";
 
 		yield* db.insert(dbSchema.resourceScope).values({
-			resourceType: params.resourceType,
-			resourceId: params.resourceId,
+			...params.resource,
 			organizationId: params.organizationId,
 			isPrimary: true,
 			assignedAt: now,
@@ -59,227 +51,19 @@ export const initializeResourceAuthorization = (params: {
 		});
 
 		yield* db.insert(dbSchema.resourceVisibility).values({
-			resourceType: params.resourceType,
-			resourceId: params.resourceId,
+			...params.resource,
 			visibility,
 			updatedBy: params.ownerUserId,
 			updatedAt: now,
 		});
 
-		const mutations: TupleMutation[] = [
-			{
-				resourceType: params.resourceType,
-				resourceId: params.resourceId,
-				relation: "owner" as const,
-				subjectType: "user" as const,
-				subjectId: params.ownerUserId,
-				operation: "touch" as const,
-			},
-			...(visibility === "public"
-				? [
-						{
-							resourceType: params.resourceType,
-							resourceId: params.resourceId,
-							relation: "public" as const,
-							subjectType: "user" as const,
-							subjectId: "*" as const,
-							operation: "touch" as const,
-						},
-					]
-				: []),
-		];
-
-		return yield* authz.applyRelationshipMutations({
-			mutations,
-		});
-	});
-
-type TransactionLike = Pick<typeof DB.Service, "select" | "delete" | "insert">;
-
-export type TeardownState = {
-	resourceType: ResourceType;
-	resourceIds: readonly string[];
-	owners: readonly {
-		resourceId: string;
-		userId: UserId;
-	}[];
-	activeGrants: readonly {
-		resourceId: string;
-		principalType: "user" | "group";
-		principalId: UserId | GroupId;
-		role: "viewer" | "editor" | "manager";
-	}[];
-	botBlocks: readonly {
-		botId: BotId;
-		blockId: BlockId;
-	}[];
-	botChats: readonly {
-		chatId: ChatId;
-		botId: BotId;
-	}[];
-	blockAssets: readonly {
-		blockId: BlockId;
-		assetId: AssetId;
-	}[];
-};
-
-const mutationKey = (mutation: TupleMutation) =>
-	`${mutation.resourceType}:${mutation.resourceId}#${mutation.relation}@${mutation.subjectType}:${mutation.subjectId}#${mutation.subjectRelation ?? ""}`;
-
-/** The SpiceDB deletions that undo a resource's authorization state, without duplicates. */
-export const buildTeardownMutations = (
-	state: TeardownState,
-): TupleMutation[] => {
-	const resourceId = (id: string) =>
-		parseScopedResourceId({
-			resourceType: state.resourceType,
-			resourceId: id,
-		});
-
-	const mutations: TupleMutation[] = [
-		...state.resourceIds.map(
-			(id): TupleMutation => ({
-				resourceType: state.resourceType,
-				resourceId: resourceId(id),
-				relation: "public",
-				subjectType: "user",
-				subjectId: "*",
+		yield* recordRelationshipFacts(
+			RelationshipFact.ResourceCreated({
+				resource: params.resource,
+				ownerId: params.ownerUserId,
+				visibility,
 			}),
-		),
-		...state.owners.map(
-			(owner): TupleMutation => ({
-				resourceType: state.resourceType,
-				resourceId: resourceId(owner.resourceId),
-				relation: "owner",
-				subjectType: "user",
-				subjectId: owner.userId,
-			}),
-		),
-		...state.activeGrants.map(
-			(grant): TupleMutation =>
-				grant.principalType === "group"
-					? {
-							resourceType: state.resourceType,
-							resourceId: resourceId(grant.resourceId),
-							relation: grant.role,
-							subjectType: "group",
-							subjectId: grant.principalId as GroupId,
-							subjectRelation: "member",
-						}
-					: {
-							resourceType: state.resourceType,
-							resourceId: resourceId(grant.resourceId),
-							relation: grant.role,
-							subjectType: "user",
-							subjectId: grant.principalId as UserId,
-						},
-		),
-		...state.botBlocks.map(
-			(link): TupleMutation => ({
-				resourceType: "block",
-				resourceId: link.blockId,
-				relation: "bot",
-				subjectType: "bot",
-				subjectId: link.botId,
-			}),
-		),
-		...state.botChats.map(
-			(link): TupleMutation => ({
-				resourceType: "chat",
-				resourceId: link.chatId,
-				relation: "bot",
-				subjectType: "bot",
-				subjectId: link.botId,
-			}),
-		),
-		...state.blockAssets.map(
-			(link): TupleMutation => ({
-				resourceType: "asset",
-				resourceId: link.assetId,
-				relation: "block",
-				subjectType: "block",
-				subjectId: link.blockId,
-			}),
-		),
-	];
-
-	return Arr.dedupeWith(
-		mutations,
-		(left, right) => mutationKey(left) === mutationKey(right),
-	).map((mutation) => ({
-		...mutation,
-		operation: "delete" as const,
-	}));
-};
-
-const readLinks = (params: {
-	tx: TransactionLike;
-	resourceType: ResourceType;
-	resourceIds: readonly string[];
-}) =>
-	Effect.gen(function* () {
-		const ids = [
-			...params.resourceIds,
-		];
-
-		switch (params.resourceType) {
-			case "bot":
-				return {
-					botBlocks: yield* params.tx
-						.select({
-							botId: dbSchema.botBlock.botId,
-							blockId: dbSchema.botBlock.blockId,
-						})
-						.from(dbSchema.botBlock)
-						.where(inArray(dbSchema.botBlock.botId, ids as BotId[])),
-					botChats: yield* params.tx
-						.select({
-							chatId: dbSchema.chat.id,
-							botId: dbSchema.chat.botId,
-						})
-						.from(dbSchema.chat)
-						.where(inArray(dbSchema.chat.botId, ids as BotId[]))
-						.pipe(
-							Effect.map((rows) =>
-								rows.flatMap((row) =>
-									row.botId
-										? [
-												{
-													chatId: row.chatId,
-													botId: row.botId,
-												},
-											]
-										: [],
-								),
-							),
-						),
-					blockAssets: [],
-				};
-			case "block":
-				return {
-					botBlocks: yield* params.tx
-						.select({
-							botId: dbSchema.botBlock.botId,
-							blockId: dbSchema.botBlock.blockId,
-						})
-						.from(dbSchema.botBlock)
-						.where(inArray(dbSchema.botBlock.blockId, ids as BlockId[])),
-					botChats: [],
-					blockAssets: [],
-				};
-			case "asset":
-				return {
-					botBlocks: [],
-					botChats: [],
-					blockAssets: yield* params.tx
-						.select({
-							blockId: dbSchema.blockAsset.blockId,
-							assetId: dbSchema.blockAsset.assetId,
-						})
-						.from(dbSchema.blockAsset)
-						.where(inArray(dbSchema.blockAsset.assetId, ids as AssetId[])),
-				};
-		}
+		);
 	});
 
 const resourceTables = {
@@ -288,46 +72,141 @@ const resourceTables = {
 	asset: dbSchema.asset,
 };
 
-const readOwners = (params: {
-	tx: TransactionLike;
-	resourceType: ResourceType;
-	resourceIds: readonly string[];
-}) => {
-	const table = resourceTables[params.resourceType];
-
-	return params.tx
-		.select({
-			resourceId: table.id,
-			userId: table.userId,
-		})
-		.from(table)
-		.where(
-			inArray(table.id, [
-				...params.resourceIds,
-			] as (typeof table.id._.data)[]),
-		);
+const groupLinks = <Parent extends string, Child extends string>(
+	links: readonly {
+		parent: Parent;
+		child: Child;
+	}[],
+) => {
+	const children = new Map<Parent, Child[]>();
+	for (const link of links)
+		children.set(link.parent, [
+			...(children.get(link.parent) ?? []),
+			link.child,
+		]);
+	return [
+		...children,
+	];
 };
 
+/** The link facts that unlink the resources from bots, blocks and chats. */
+const readLinkFacts = (resourceType: ResourceType, ids: readonly string[]) =>
+	Effect.gen(function* () {
+		const db = yield* DB;
+		switch (resourceType) {
+			case "bot": {
+				const botIds = ids as BotId[];
+				const botBlocks = yield* db
+					.select({
+						parent: dbSchema.botBlock.botId,
+						child: dbSchema.botBlock.blockId,
+					})
+					.from(dbSchema.botBlock)
+					.where(inArray(dbSchema.botBlock.botId, botIds));
+				const chats = yield* db
+					.select({
+						chatId: dbSchema.chat.id,
+						botId: dbSchema.chat.botId,
+					})
+					.from(dbSchema.chat)
+					.where(inArray(dbSchema.chat.botId, botIds));
+				return [
+					...groupLinks(botBlocks).map(([parent, children]) =>
+						RelationshipFact.BotBlocksChanged({
+							botId: parent,
+							before: children,
+							after: [],
+						}),
+					),
+					...chats.flatMap((chat) =>
+						chat.botId
+							? [
+									RelationshipFact.ChatBotUnlinked({
+										chatId: chat.chatId,
+										botId: chat.botId,
+									}),
+								]
+							: [],
+					),
+				];
+			}
+			case "block": {
+				const blockIds = ids as BlockId[];
+				const botBlocks = yield* db
+					.select({
+						parent: dbSchema.botBlock.botId,
+						child: dbSchema.botBlock.blockId,
+					})
+					.from(dbSchema.botBlock)
+					.where(inArray(dbSchema.botBlock.blockId, blockIds));
+				const blockAssets = yield* db
+					.select({
+						parent: dbSchema.blockAsset.blockId,
+						child: dbSchema.blockAsset.assetId,
+					})
+					.from(dbSchema.blockAsset)
+					.where(inArray(dbSchema.blockAsset.blockId, blockIds));
+				return [
+					...groupLinks(botBlocks).map(([parent, children]) =>
+						RelationshipFact.BotBlocksChanged({
+							botId: parent,
+							before: children,
+							after: [],
+						}),
+					),
+					...groupLinks(blockAssets).map(([parent, children]) =>
+						RelationshipFact.BlockAssetsChanged({
+							blockId: parent,
+							before: children,
+							after: [],
+						}),
+					),
+				];
+			}
+			case "asset": {
+				const blockAssets = yield* db
+					.select({
+						parent: dbSchema.blockAsset.blockId,
+						child: dbSchema.blockAsset.assetId,
+					})
+					.from(dbSchema.blockAsset)
+					.where(inArray(dbSchema.blockAsset.assetId, ids as AssetId[]));
+				return groupLinks(blockAssets).map(([parent, children]) =>
+					RelationshipFact.BlockAssetsChanged({
+						blockId: parent,
+						before: children,
+						after: [],
+					}),
+				);
+			}
+		}
+	});
+
 /**
- * Removes a resource's grants, visibility and scope rows, the inverse of
- * {@link initializeResourceAuthorization}. Call it in the transaction that
- * deletes the resource rows, before them, so the links are still there to read.
- * Returns the SpiceDB deletions to enqueue in the same transaction.
+ * Removes the resources' grants, visibility and scope rows, the inverse of
+ * {@link initializeResourceAuthorization}, and records the facts that remove
+ * their tuples. Runs before the resource rows go, so the links are still there to read.
  */
 const teardownResourceAuthorization = (params: {
-	tx: TransactionLike;
 	resourceType: ResourceType;
 	resourceIds: readonly string[];
 }) =>
 	Effect.gen(function* () {
-		if (params.resourceIds.length === 0) return [] as TupleMutation[];
-
+		const db = yield* DB;
+		const table = resourceTables[params.resourceType];
 		const resourceIds = [
 			...params.resourceIds,
 		];
-		const owners = yield* readOwners(params);
-		const links = yield* readLinks(params);
-		const activeGrants = yield* params.tx
+
+		const owners = yield* db
+			.select({
+				resourceId: table.id,
+				userId: table.userId,
+			})
+			.from(table)
+			.where(inArray(table.id, resourceIds as (typeof table.id._.data)[]));
+		const linkFacts = yield* readLinkFacts(params.resourceType, resourceIds);
+		const grants = yield* db
 			.select({
 				resourceId: dbSchema.resourceGrant.resourceId,
 				principalType: dbSchema.resourceGrant.principalType,
@@ -343,88 +222,77 @@ const teardownResourceAuthorization = (params: {
 				),
 			);
 
-		yield* params.tx
-			.delete(dbSchema.resourceGrant)
-			.where(
-				and(
-					eq(dbSchema.resourceGrant.resourceType, params.resourceType),
-					inArray(dbSchema.resourceGrant.resourceId, resourceIds),
-				),
-			);
-		yield* params.tx
-			.delete(dbSchema.resourceVisibility)
-			.where(
-				and(
-					eq(dbSchema.resourceVisibility.resourceType, params.resourceType),
-					inArray(dbSchema.resourceVisibility.resourceId, resourceIds),
-				),
-			);
-		yield* params.tx
-			.delete(dbSchema.resourceScope)
-			.where(
-				and(
-					eq(dbSchema.resourceScope.resourceType, params.resourceType),
-					inArray(dbSchema.resourceScope.resourceId, resourceIds),
-				),
-			);
-
-		return buildTeardownMutations({
-			resourceType: params.resourceType,
-			resourceIds,
-			owners,
-			activeGrants,
-			...links,
-		});
-	});
-
-/** Splits mutations into outbox events small enough for one SpiceDB write. */
-export const chunkRelationshipMutations = (
-	mutations: readonly TupleMutation[],
-) => Arr.chunksOf(mutations, AUTHZ.outboxMutationsPerEvent);
-
-/** Enqueues mutations as one outbox event per chunk and returns the event ids. */
-const enqueueChunkedRelationshipMutations = (params: {
-	tx: Pick<typeof DB.Service, "insert">;
-	mutations: readonly TupleMutation[];
-}) =>
-	Effect.forEach(chunkRelationshipMutations(params.mutations), (chunk) =>
-		enqueueRelationshipMutations({
-			tx: params.tx,
-			mutations: [
-				...chunk,
-			],
-		}),
-	).pipe(
-		Effect.map((eventIds) =>
-			eventIds.filter((eventId) => eventId !== undefined),
-		),
-	);
-
-/** Delivers committed outbox events; the outbox loop retries one that fails here. */
-const deliverRelationshipEvents = (eventIds: readonly string[]) =>
-	Effect.gen(function* () {
-		const authz = yield* AuthzService;
-
-		yield* Effect.forEach(
-			eventIds,
-			(eventId) =>
-				authz
-					.deliverRelationshipEvent(eventId)
-					.pipe(
-						Effect.catch((cause) =>
-							Effect.logError(`authz.delivery_failed cause=${String(cause)}`),
-						),
+		for (const scoped of [
+			dbSchema.resourceGrant,
+			dbSchema.resourceVisibility,
+			dbSchema.resourceScope,
+		])
+			yield* db
+				.delete(scoped)
+				.where(
+					and(
+						eq(scoped.resourceType, params.resourceType),
+						inArray(scoped.resourceId, resourceIds),
 					),
-			{
-				discard: true,
-			},
+				);
+
+		const ref = (resourceId: string) =>
+			scopedResourceRef({
+				resourceType: params.resourceType,
+				resourceId,
+			});
+
+		yield* recordRelationshipFacts(
+			...owners.map((owner) =>
+				RelationshipFact.ResourceDeleted({
+					resource: ref(owner.resourceId),
+					ownerId: owner.userId,
+				}),
+			),
+			...grants.map((grant) =>
+				RelationshipFact.ResourceGrantChanged({
+					resource: ref(grant.resourceId),
+					principal: grantPrincipal(grant),
+					from: grant.role,
+					to: null,
+				}),
+			),
+			...linkFacts,
 		);
 	});
 
-/**
- * Deletes resource rows together with their authorization state, then
- * delivers the relationship deletions committed alongside them.
- */
+/** The organizations the resources are scoped to, whose write locks guard them. */
+export const resourceOrganizations = (
+	resources: readonly {
+		resourceType: ResourceType;
+		resourceId: string;
+	}[],
+) =>
+	Effect.gen(function* () {
+		if (resources.length === 0) return [] as OrganizationId[];
+		const db = yield* DB;
+		const rows = yield* db
+			.selectDistinct({
+				organizationId: dbSchema.resourceScope.organizationId,
+			})
+			.from(dbSchema.resourceScope)
+			.where(
+				and(
+					inArray(
+						dbSchema.resourceScope.resourceType,
+						Arr.dedupe(resources.map((resource) => resource.resourceType)),
+					),
+					inArray(
+						dbSchema.resourceScope.resourceId,
+						resources.map((resource) => resource.resourceId),
+					),
+					isNull(dbSchema.resourceScope.endedAt),
+				),
+			);
+		return rows.map((row) => row.organizationId);
+	});
+
+/** Deletes resource rows together with their authorization state and tuples. */
 export const deleteResourcesWithAuthorization = (params: {
 	resourceType: ResourceType;
 	resourceIds: readonly string[];
@@ -432,26 +300,24 @@ export const deleteResourcesWithAuthorization = (params: {
 	Effect.gen(function* () {
 		const db = yield* DB;
 		const table = resourceTables[params.resourceType];
+		const organizationIds = yield* resourceOrganizations(
+			params.resourceIds.map((resourceId) => ({
+				resourceType: params.resourceType,
+				resourceId,
+			})),
+		);
 
-		const eventIds = yield* db.transaction((tx) =>
+		yield* writeRelationships(
+			{
+				organizationIds,
+			},
 			Effect.gen(function* () {
-				const mutations = yield* teardownResourceAuthorization({
-					tx,
-					...params,
-				});
-
-				yield* tx.delete(table).where(
+				yield* teardownResourceAuthorization(params);
+				yield* db.delete(table).where(
 					inArray(table.id, [
 						...params.resourceIds,
 					] as (typeof table.id._.data)[]),
 				);
-
-				return yield* enqueueChunkedRelationshipMutations({
-					tx,
-					mutations,
-				});
 			}),
 		);
-
-		yield* deliverRelationshipEvents(eventIds);
 	});

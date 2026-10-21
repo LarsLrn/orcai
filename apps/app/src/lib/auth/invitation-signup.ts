@@ -6,10 +6,11 @@ import {
 import { DB, dbSchema } from "@orcai/db";
 import { and, eq, gt, sql } from "drizzle-orm";
 import * as Effect from "effect/Effect";
+import { RelationshipFact } from "@/lib/authz/relationship-facts";
 import {
-	AuthzService,
-	enqueueRelationshipMutations,
-} from "@/lib/effect/services/authz";
+	recordRelationshipFacts,
+	writeRelationships,
+} from "@/lib/authz/relationship-write";
 import * as AppErrors from "@/lib/effect/utils/errors";
 
 /** Invitations sent to this address, compared case-insensitively. */
@@ -37,9 +38,7 @@ export const pendingInvitationsFor = (email: string) =>
 			);
 	});
 
-/** Validate and accept exactly one invitation under the membership lock.
- * A transaction failure leaves it pending; committed permissions are replayable.
- */
+/** Validate and accept exactly one invitation under its organization's write lock. */
 export const acceptInvitation = (params: {
 	userId: UserId;
 	email: string;
@@ -47,11 +46,26 @@ export const acceptInvitation = (params: {
 }) =>
 	Effect.gen(function* () {
 		const db = yield* DB;
-		const authz = yield* AuthzService;
-		const eventId = yield* db.transaction((tx) =>
+		const invitationRequired = new AppErrors.BadRequestError({
+			reason: "INVITATION_REQUIRED",
+			message: "A pending, unexpired invitation for this address is required",
+		});
+		const [target] = yield* db
+			.select({
+				organizationId: dbSchema.invitation.organizationId,
+			})
+			.from(dbSchema.invitation)
+			.where(eq(dbSchema.invitation.id, params.invitationId));
+		if (!target) return yield* Effect.fail(invitationRequired);
+
+		const { zedToken } = yield* writeRelationships(
+			{
+				organizationIds: [
+					target.organizationId,
+				],
+			},
 			Effect.gen(function* () {
-				yield* tx.execute(sql`LOCK TABLE "member" IN SHARE ROW EXCLUSIVE MODE`);
-				const [invitation] = yield* tx
+				const [invitation] = yield* db
 					.select()
 					.from(dbSchema.invitation)
 					.where(
@@ -63,15 +77,8 @@ export const acceptInvitation = (params: {
 						),
 					)
 					.for("update");
-				if (!invitation)
-					return yield* Effect.fail(
-						new AppErrors.BadRequestError({
-							reason: "INVITATION_REQUIRED",
-							message:
-								"A pending, unexpired invitation for this address is required",
-						}),
-					);
-				const [existing] = yield* tx
+				if (!invitation) return yield* Effect.fail(invitationRequired);
+				const [existing] = yield* db
 					.select()
 					.from(dbSchema.member)
 					.where(
@@ -82,43 +89,32 @@ export const acceptInvitation = (params: {
 					);
 				const role = existing?.role ?? invitation.role ?? "member";
 				if (!existing)
-					yield* tx.insert(dbSchema.member).values({
+					yield* db.insert(dbSchema.member).values({
 						organizationId: invitation.organizationId,
 						userId: params.userId,
 						role,
 						createdAt: new Date(),
 					});
-				yield* tx
+				yield* db
 					.update(dbSchema.invitation)
 					.set({
 						status: "accepted",
 						updatedAt: new Date(),
 					})
 					.where(eq(dbSchema.invitation.id, invitation.id));
-				return yield* enqueueRelationshipMutations({
-					tx,
-					mutations: [
-						{
-							resourceType: "organization",
-							resourceId: invitation.organizationId,
-							relation: role,
-							subjectType: "user",
-							subjectId: params.userId,
-							operation: "touch",
-						},
-					],
-				});
+				yield* recordRelationshipFacts(
+					RelationshipFact.OrganizationRoleChanged({
+						organizationId: invitation.organizationId,
+						userId: params.userId,
+						from: existing?.role ?? null,
+						to: role,
+					}),
+				);
 			}),
 		);
-		return yield* authz.deliverRelationshipEvent(eventId).pipe(
-			Effect.catch((cause) =>
-				Effect.logError(`authz.delivery_failed cause=${String(cause)}`).pipe(
-					Effect.as({
-						zedToken: undefined,
-					}),
-				),
-			),
-		);
+		return {
+			zedToken,
+		};
 	});
 
 /** The single organisation a user belongs to, or null when it is not one. */

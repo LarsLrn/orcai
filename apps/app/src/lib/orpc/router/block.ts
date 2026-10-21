@@ -1,3 +1,4 @@
+import type { BlockId } from "@orcai/core";
 import { DB, dbSchema } from "@orcai/db";
 import type { Block } from "@orcai/schema";
 import { lookupEntitiesByPermission } from "@orcai/spice-db";
@@ -10,11 +11,14 @@ import {
 	ilike,
 	inArray,
 } from "drizzle-orm";
+import * as Arr from "effect/Array";
 import * as Effect from "effect/Effect";
 import { emptyCapabilities } from "@/lib/authz/capabilities";
+import { writeRelationships } from "@/lib/authz/relationship-write";
 import {
 	deleteResourcesWithAuthorization,
 	initializeResourceAuthorization,
+	resourceOrganizations,
 } from "@/lib/authz/resource-lifecycle";
 import { getZedToken } from "@/lib/authz/zed-token";
 import * as AppErrors from "@/lib/effect/utils/errors";
@@ -32,8 +36,9 @@ import {
 } from "@/lib/orpc/router/helpers/capabilities";
 import {
 	loadDatabaseBlockAssets,
+	reindexBlockAssets,
+	replaceBlockAssets,
 	requireReadableAssets,
-	syncDatabaseBlockAssets,
 } from "@/lib/orpc/router/helpers/database-block";
 import { literalSearch } from "./helpers/literal-search";
 
@@ -188,36 +193,57 @@ const createBlock = authed.block.create
 			});
 		}
 
-		const [block] = yield* db
-			.insert(dbSchema.block)
-			.values({
-				...input,
-				userId: context.auth.user.id,
-				createdAt: new Date(),
-				updatedAt: new Date(),
-			})
-			.returning({
-				...getColumns(dbSchema.block),
-			})
-			.pipe(Effect.map((rows) => rows as Block[]));
+		const organizationId = context.auth.session.activeOrganizationId;
+		const {
+			result: { block, links },
+		} = yield* writeRelationships(
+			{
+				organizationIds: [
+					organizationId,
+				],
+			},
+			Effect.gen(function* () {
+				const [block] = yield* db
+					.insert(dbSchema.block)
+					.values({
+						...input,
+						userId: context.auth.user.id,
+						createdAt: new Date(),
+						updatedAt: new Date(),
+					})
+					.returning({
+						...getColumns(dbSchema.block),
+					})
+					.pipe(Effect.map((rows) => rows as Block[]));
 
-		yield* initializeResourceAuthorization({
-			resourceType: "block",
-			resourceId: block.id,
-			organizationId: context.auth.session.activeOrganizationId,
-			ownerUserId: context.auth.user.id,
-		});
+				yield* initializeResourceAuthorization({
+					resource: {
+						resourceType: "block",
+						resourceId: block.id,
+					},
+					organizationId,
+					ownerUserId: context.auth.user.id,
+				});
 
-		if (input.type === "database") {
-			const syncResult = yield* syncDatabaseBlockAssets({
-				blockId: block.id,
-				assetIds: input.assets,
-				previousAssetIds: [],
-			});
+				return {
+					block,
+					links:
+						input.type === "database"
+							? yield* replaceBlockAssets({
+									blockId: block.id,
+									assetIds: input.assets,
+								})
+							: undefined,
+				};
+			}),
+		);
+
+		if (input.type === "database" && links) {
+			yield* reindexBlockAssets(links);
 
 			return {
 				data: block,
-				assets: syncResult.assetIds,
+				assets: input.assets,
 			};
 		}
 
@@ -287,28 +313,50 @@ const updateBlock = authed.block.update
 			}
 		}
 
-		const [block] = yield* db
-			.update(dbSchema.block)
-			.set({
-				...input,
-				updatedAt: new Date(),
-			})
-			.where(eq(dbSchema.block.id, input.id))
-			.returning({
-				...getColumns(dbSchema.block),
-			})
-			.pipe(Effect.map((rows) => rows as Block[]));
+		const organizationIds = yield* resourceOrganizations([
+			{
+				resourceType: "block",
+				resourceId: input.id,
+			},
+		]);
+		const {
+			result: { block, links },
+		} = yield* writeRelationships(
+			{
+				organizationIds,
+			},
+			Effect.gen(function* () {
+				const [block] = yield* db
+					.update(dbSchema.block)
+					.set({
+						...input,
+						updatedAt: new Date(),
+					})
+					.where(eq(dbSchema.block.id, input.id))
+					.returning({
+						...getColumns(dbSchema.block),
+					})
+					.pipe(Effect.map((rows) => rows as Block[]));
 
-		if (input.type === "database" && block.type === "database") {
-			const syncResult = yield* syncDatabaseBlockAssets({
-				blockId: block.id,
-				assetIds: input.assets,
-				previousAssetIds,
-			});
+				return {
+					block,
+					links:
+						input.type === "database" && block.type === "database"
+							? yield* replaceBlockAssets({
+									blockId: block.id,
+									assetIds: input.assets,
+								})
+							: undefined,
+				};
+			}),
+		);
+
+		if (input.type === "database" && links) {
+			yield* reindexBlockAssets(links);
 
 			return {
 				data: block,
-				assets: syncResult.assetIds,
+				assets: input.assets,
 			};
 		}
 
@@ -338,35 +386,32 @@ const deleteBlocks = authed.block.delete
 			};
 		}
 
-		const databaseBlocks = yield* db
+		const linkedAssets = yield* db
 			.select({
-				id: dbSchema.block.id,
+				blockId: dbSchema.blockAsset.blockId,
+				assetId: dbSchema.blockAsset.assetId,
 			})
-			.from(dbSchema.block)
-			.where(
-				and(
-					inArray(dbSchema.block.id, allowedIds),
-					eq(dbSchema.block.type, "database"),
-				),
-			);
+			.from(dbSchema.blockAsset)
+			.where(inArray(dbSchema.blockAsset.blockId, allowedIds));
+
+		yield* deleteResourcesWithAuthorization({
+			resourceType: "block",
+			resourceIds: allowedIds,
+		});
 
 		yield* Effect.forEach(
-			databaseBlocks,
-			(block) =>
-				syncDatabaseBlockAssets({
-					blockId: block.id,
-					assetIds: [],
+			Object.entries(Arr.groupBy(linkedAssets, (link) => link.blockId)),
+			([blockId, links]) =>
+				reindexBlockAssets({
+					blockId: blockId as BlockId,
+					addedIds: [],
+					removedIds: links.map((link) => link.assetId),
 				}),
 			{
 				concurrency: "unbounded",
 				discard: true,
 			},
 		);
-
-		yield* deleteResourcesWithAuthorization({
-			resourceType: "block",
-			resourceIds: allowedIds,
-		});
 
 		return {
 			success: true,

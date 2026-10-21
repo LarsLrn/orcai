@@ -1,14 +1,10 @@
 import type { GroupId, OrganizationId, UserId } from "@orcai/core";
-import { type DB, dbSchema } from "@orcai/db";
-import type { TupleMutation } from "@orcai/spice-db";
+import { DB, dbSchema } from "@orcai/db";
 import { and, eq, inArray, isNull } from "drizzle-orm";
 import * as Effect from "effect/Effect";
-import { parseScopedResourceId } from "@/lib/orpc/router/helpers/scoped-resource-id";
-
-type TransactionLike = {
-	select: typeof DB.Service.select;
-	update: typeof DB.Service.update;
-};
+import { RelationshipFact } from "@/lib/authz/relationship-facts";
+import { recordRelationshipFacts } from "@/lib/authz/relationship-write";
+import { scopedResourceRef } from "@/lib/authz/scoped-resource-id";
 
 type GrantRow = {
 	id: string;
@@ -18,62 +14,66 @@ type GrantRow = {
 	principalId: UserId | GroupId;
 };
 
-const groupMemberDeletions = (
-	rows: readonly {
-		groupId: (typeof dbSchema.groupMember.$inferSelect)["groupId"];
+const recordDetached = (params: {
+	groupMemberships: readonly {
+		groupId: GroupId;
 		userId: UserId;
-	}[],
-): TupleMutation[] =>
-	rows.map((row) => ({
-		resourceType: "group" as const,
-		resourceId: row.groupId,
-		relation: "member" as const,
-		subjectType: "user" as const,
-		subjectId: row.userId,
-		operation: "delete" as const,
-	}));
-
-const grantDeletions = (rows: readonly GrantRow[]): TupleMutation[] =>
-	rows.map((row) => ({
-		resourceType: row.resourceType,
-		resourceId: parseScopedResourceId(row),
-		relation: row.role,
-		subjectType: "user" as const,
-		subjectId: row.principalId as UserId,
-		operation: "delete" as const,
-	}));
+	}[];
+	grants: readonly GrantRow[];
+}) =>
+	recordRelationshipFacts(
+		...params.groupMemberships.map((row) =>
+			RelationshipFact.GroupMembershipChanged({
+				groupId: row.groupId,
+				userId: row.userId,
+				member: false,
+			}),
+		),
+		...params.grants.map((row) =>
+			RelationshipFact.ResourceGrantChanged({
+				resource: scopedResourceRef(row),
+				principal: {
+					principalType: "user",
+					principalId: row.principalId as UserId,
+				},
+				from: row.role,
+				to: null,
+			}),
+		),
+	);
 
 const activeGroupMemberships = (params: {
-	tx: TransactionLike;
 	organizationId?: OrganizationId;
 	userIds: readonly UserId[];
 }) =>
-	params.tx
-		.select({
-			id: dbSchema.groupMember.id,
-			groupId: dbSchema.groupMember.groupId,
-			userId: dbSchema.groupMember.userId,
-		})
-		.from(dbSchema.groupMember)
-		.innerJoin(
-			dbSchema.group,
-			eq(dbSchema.group.id, dbSchema.groupMember.groupId),
-		)
-		.where(
-			and(
-				inArray(dbSchema.groupMember.userId, [
-					...params.userIds,
-				]),
-				isNull(dbSchema.groupMember.removedAt),
-				isNull(dbSchema.group.deletedAt),
-				params.organizationId
-					? eq(dbSchema.group.organizationId, params.organizationId)
-					: undefined,
-			),
-		);
+	Effect.gen(function* () {
+		const db = yield* DB;
+		return yield* db
+			.select({
+				id: dbSchema.groupMember.id,
+				groupId: dbSchema.groupMember.groupId,
+				userId: dbSchema.groupMember.userId,
+			})
+			.from(dbSchema.groupMember)
+			.innerJoin(
+				dbSchema.group,
+				eq(dbSchema.group.id, dbSchema.groupMember.groupId),
+			)
+			.where(
+				and(
+					inArray(dbSchema.groupMember.userId, [
+						...params.userIds,
+					]),
+					isNull(dbSchema.groupMember.removedAt),
+					isNull(dbSchema.group.deletedAt),
+					params.organizationId
+						? eq(dbSchema.group.organizationId, params.organizationId)
+						: undefined,
+				),
+			);
+	});
 
 const removeGroupMemberships = (params: {
-	tx: TransactionLike;
 	ids: readonly (typeof dbSchema.groupMember.$inferSelect)["id"][];
 	now: Date;
 }) =>
@@ -82,7 +82,8 @@ const removeGroupMemberships = (params: {
 			return;
 		}
 
-		yield* params.tx
+		const db = yield* DB;
+		yield* db
 			.update(dbSchema.groupMember)
 			.set({
 				removedAt: params.now,
@@ -95,7 +96,6 @@ const removeGroupMemberships = (params: {
 	});
 
 const revokeGrants = (params: {
-	tx: TransactionLike;
 	ids: readonly (typeof dbSchema.resourceGrant.$inferSelect)["id"][];
 	now: Date;
 }) =>
@@ -104,7 +104,8 @@ const revokeGrants = (params: {
 			return;
 		}
 
-		yield* params.tx
+		const db = yield* DB;
+		yield* db
 			.update(dbSchema.resourceGrant)
 			.set({
 				revokedAt: params.now,
@@ -123,32 +124,30 @@ const scopeKey = (resource: { resourceType: string; resourceId: string }) =>
  * Remove the users' group memberships and direct grants in one organisation,
  * after their `member` rows are gone. Keep direct grants when another remaining
  * organisation membership still provides access to the resource.
- * Returns the SpiceDB deletions for the caller to apply after the commit.
  */
 export const detachOrganizationAccess = (params: {
-	tx: TransactionLike;
 	organizationId: OrganizationId;
 	userIds: readonly UserId[];
 	now: Date;
 }) =>
 	Effect.gen(function* () {
 		if (params.userIds.length === 0) {
-			return [] as TupleMutation[];
+			return;
 		}
 
+		const db = yield* DB;
+
 		const groupMemberships = yield* activeGroupMemberships({
-			tx: params.tx,
 			organizationId: params.organizationId,
 			userIds: params.userIds,
 		});
 
 		yield* removeGroupMemberships({
-			tx: params.tx,
 			ids: groupMemberships.map((membership) => membership.id),
 			now: params.now,
 		});
 
-		const scopedGrants = yield* params.tx
+		const scopedGrants = yield* db
 			.select({
 				id: dbSchema.resourceGrant.id,
 				resourceType: dbSchema.resourceGrant.resourceType,
@@ -188,10 +187,13 @@ export const detachOrganizationAccess = (params: {
 		}
 
 		if (candidates.size === 0) {
-			return groupMemberDeletions(groupMemberships);
+			return yield* recordDetached({
+				groupMemberships,
+				grants: [],
+			});
 		}
 
-		const remainingMemberships = yield* params.tx
+		const remainingMemberships = yield* db
 			.select({
 				userId: dbSchema.member.userId,
 				organizationId: dbSchema.member.organizationId,
@@ -214,7 +216,7 @@ export const detachOrganizationAccess = (params: {
 			organizationsByUser.set(membership.userId, bucket);
 		}
 
-		const activeScopes = yield* params.tx
+		const activeScopes = yield* db
 			.select({
 				resourceType: dbSchema.resourceScope.resourceType,
 				resourceId: dbSchema.resourceScope.resourceId,
@@ -263,43 +265,40 @@ export const detachOrganizationAccess = (params: {
 		});
 
 		yield* revokeGrants({
-			tx: params.tx,
 			ids: revoked.map((grant) => grant.id),
 			now: params.now,
 		});
 
-		return [
-			...groupMemberDeletions(groupMemberships),
-			...grantDeletions(revoked),
-		];
+		yield* recordDetached({
+			groupMemberships,
+			grants: revoked,
+		});
 	});
 
 /**
  * Remove every group membership and direct grant of accounts being deleted.
- * Returns the SpiceDB deletions for the caller to apply after the commit.
  */
 export const detachAccountAccess = (params: {
-	tx: TransactionLike;
 	userIds: readonly UserId[];
 	now: Date;
 }) =>
 	Effect.gen(function* () {
 		if (params.userIds.length === 0) {
-			return [] as TupleMutation[];
+			return;
 		}
 
+		const db = yield* DB;
+
 		const groupMemberships = yield* activeGroupMemberships({
-			tx: params.tx,
 			userIds: params.userIds,
 		});
 
 		yield* removeGroupMemberships({
-			tx: params.tx,
 			ids: groupMemberships.map((membership) => membership.id),
 			now: params.now,
 		});
 
-		const grants = yield* params.tx
+		const grants = yield* db
 			.select({
 				id: dbSchema.resourceGrant.id,
 				resourceType: dbSchema.resourceGrant.resourceType,
@@ -319,13 +318,12 @@ export const detachAccountAccess = (params: {
 			);
 
 		yield* revokeGrants({
-			tx: params.tx,
 			ids: grants.map((grant) => grant.id),
 			now: params.now,
 		});
 
-		return [
-			...groupMemberDeletions(groupMemberships),
-			...grantDeletions(grants),
-		];
+		yield* recordDetached({
+			groupMemberships,
+			grants,
+		});
 	});

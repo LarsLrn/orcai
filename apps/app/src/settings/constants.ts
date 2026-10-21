@@ -32,7 +32,7 @@ export const AUTHZ = {
 	outboxInlineWaitMs: 25,
 	outboxInlineWaitAttempts: 80,
 	outboxRetryBaseDelayMs: 30_000,
-	outboxProcessingStaleAfterMs: 5 * 60_000,
+	outboxDeliveryTimeoutMs: 10_000,
 	outboxMaxAttempts: 20,
 	outboxMutationsPerEvent: 500,
 };

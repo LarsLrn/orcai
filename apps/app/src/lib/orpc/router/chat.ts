@@ -1,10 +1,9 @@
-import type { BotId, ChatId, ChatMessageId, UserId } from "@orcai/core";
+import type { ChatId, ChatMessageId } from "@orcai/core";
 import { DB, dbSchema } from "@orcai/db";
 import type { ChatSortKey } from "@orcai/schema";
 import {
 	lookupEntitiesByPermission,
 	permittedEntityIds,
-	type TupleMutation,
 } from "@orcai/spice-db";
 import { isTextUIPart, type UIMessage } from "ai";
 import {
@@ -24,11 +23,12 @@ import { v4 as uuidv4 } from "uuid";
 import { checkFeatureRequirements } from "@/lib/ai/features/requirements";
 import { isEmptyReply } from "@/lib/ai/turn/reply-store";
 import { closeCopiedToolParts } from "@/lib/ai/utils/close-pending-tool-parts";
-import { getZedToken } from "@/lib/authz/zed-token";
+import { RelationshipFact } from "@/lib/authz/relationship-facts";
 import {
-	AuthzService,
-	enqueueRelationshipMutations,
-} from "@/lib/effect/services/authz";
+	recordRelationshipFacts,
+	writeRelationships,
+} from "@/lib/authz/relationship-write";
+import { getZedToken } from "@/lib/authz/zed-token";
 import * as AppErrors from "@/lib/effect/utils/errors";
 import { authed } from "@/lib/orpc/implementation/authed";
 import {
@@ -116,32 +116,20 @@ const chatNotFound = (id: ChatId) =>
 		message: "Chat not found",
 	});
 
-export const chatRelationships = (chat: {
-	id: ChatId;
-	userId: UserId;
-	botId: BotId | null;
-}): TupleMutation[] => [
-	{
-		resourceType: "chat",
-		resourceId: chat.id,
-		relation: "owner",
-		subjectType: "user",
-		subjectId: chat.userId,
-		operation: "touch",
-	},
-	...(chat.botId
-		? [
-				{
-					resourceType: "chat" as const,
-					resourceId: chat.id,
-					relation: "bot" as const,
-					subjectType: "bot" as const,
-					subjectId: chat.botId,
-					operation: "touch" as const,
-				},
-			]
-		: []),
-];
+/** Inserts a chat and records its owner and bot; call it in a {@link writeRelationships}. */
+export const insertChat = (values: typeof dbSchema.chat.$inferInsert) =>
+	Effect.gen(function* () {
+		const db = yield* DB;
+		const [chat] = yield* db.insert(dbSchema.chat).values(values).returning();
+		yield* recordRelationshipFacts(
+			RelationshipFact.ChatCreated({
+				chatId: chat.id,
+				ownerId: chat.userId,
+				botId: chat.botId,
+			}),
+		);
+		return chat;
+	});
 
 const findChat = authed.chat.find
 	.use(
@@ -238,8 +226,6 @@ const botFeaturesImmutable = () =>
 	});
 
 const createChat = authed.chat.create.effect(function* ({ input, context }) {
-	const db = yield* DB;
-	const authz = yield* AuthzService;
 	const features = input.config?.features;
 
 	if (input.botId) {
@@ -258,19 +244,17 @@ const createChat = authed.chat.create.effect(function* ({ input, context }) {
 		yield* checkFeatureRequirements(features);
 	}
 
-	const [chat] = yield* db
-		.insert(dbSchema.chat)
-		.values({
+	const { result: chat } = yield* writeRelationships(
+		{
+			organizationIds: [],
+		},
+		insertChat({
 			title: input.title,
 			userId: context.auth.user.id,
 			botId: input.botId,
 			config: input.config ?? {},
-		})
-		.returning();
-
-	yield* authz.applyRelationshipMutations({
-		mutations: chatRelationships(chat),
-	});
+		}),
+	);
 
 	return {
 		data: chat,
@@ -397,7 +381,6 @@ const branchChat = authed.chat.branch
 	)
 	.effect(function* ({ input, context }) {
 		const db = yield* DB;
-		const authz = yield* AuthzService;
 
 		const source = yield* db.query.chat
 			.findFirst({
@@ -461,22 +444,22 @@ const branchChat = authed.chat.branch
 			? lt(dbSchema.chatMessage.position, message.position)
 			: lte(dbSchema.chatMessage.position, message.position);
 
-		const { chat, eventId } = yield* db.transaction((tx) =>
+		const { result: chat } = yield* writeRelationships(
+			{
+				organizationIds: [],
+			},
 			Effect.gen(function* () {
-				const [chat] = yield* tx
-					.insert(dbSchema.chat)
-					.values({
-						title: source.title,
-						userId: context.auth.user.id,
-						botId: source.botId,
-						config: source.config,
-						parentChatId: source.id,
-						branchedFromMessageId: message.id,
-					})
-					.returning();
+				const chat = yield* insertChat({
+					title: source.title,
+					userId: context.auth.user.id,
+					botId: source.botId,
+					config: source.config,
+					parentChatId: source.id,
+					branchedFromMessageId: message.id,
+				});
 
 				const messages = closeCopiedToolParts(
-					(yield* tx
+					(yield* db
 						.select()
 						.from(dbSchema.chatMessage)
 						.where(
@@ -488,7 +471,7 @@ const branchChat = authed.chat.branch
 				);
 
 				if (messages.length > 0) {
-					yield* tx.insert(dbSchema.chatMessage).values(
+					yield* db.insert(dbSchema.chatMessage).values(
 						messages.map((copied, position) => ({
 							...copied,
 							id: uuidv4() as ChatMessageId,
@@ -498,13 +481,13 @@ const branchChat = authed.chat.branch
 					);
 				}
 
-				const blocks = yield* tx
+				const blocks = yield* db
 					.select()
 					.from(dbSchema.chatBlock)
 					.where(eq(dbSchema.chatBlock.chatId, source.id));
 
 				if (blocks.length > 0) {
-					yield* tx.insert(dbSchema.chatBlock).values(
+					yield* db.insert(dbSchema.chatBlock).values(
 						blocks.map((block) => ({
 							...block,
 							chatId: chat.id,
@@ -512,19 +495,9 @@ const branchChat = authed.chat.branch
 					);
 				}
 
-				const eventId = yield* enqueueRelationshipMutations({
-					tx,
-					mutations: chatRelationships(chat),
-				});
-
-				return {
-					chat,
-					eventId,
-				};
+				return chat;
 			}),
 		);
-
-		yield* authz.deliverRelationshipEvent(eventId);
 
 		return {
 			data: chat,

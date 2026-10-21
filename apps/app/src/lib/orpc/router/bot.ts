@@ -14,13 +14,17 @@ import { and, count, eq, getColumns, ilike, inArray } from "drizzle-orm";
 import * as Effect from "effect/Effect";
 import { checkFeatureRequirements } from "@/lib/ai/features/requirements";
 import { emptyCapabilities } from "@/lib/authz/capabilities";
-import { calculateRelationDelta } from "@/lib/authz/relation-delta";
+import { RelationshipFact } from "@/lib/authz/relationship-facts";
+import {
+	recordRelationshipFacts,
+	writeRelationships,
+} from "@/lib/authz/relationship-write";
 import {
 	deleteResourcesWithAuthorization,
 	initializeResourceAuthorization,
+	resourceOrganizations,
 } from "@/lib/authz/resource-lifecycle";
 import { getZedToken } from "@/lib/authz/zed-token";
-import { AuthzService } from "@/lib/effect/services/authz";
 import * as AppErrors from "@/lib/effect/utils/errors";
 import { NotFoundError } from "@/lib/effect/utils/errors";
 import { authed } from "@/lib/orpc/implementation/authed";
@@ -338,11 +342,7 @@ const resolveBot = (params: {
 				})
 				.where(eq(dbSchema.bot.id, params.input.id));
 
-			return {
-				botId: params.input.id,
-				zedToken: undefined as string | undefined,
-				currentStatus,
-			};
+			return params.input.id;
 		}
 
 		const currentStatus =
@@ -365,18 +365,16 @@ const resolveBot = (params: {
 				...getColumns(dbSchema.bot),
 			});
 
-		const { zedToken } = yield* initializeResourceAuthorization({
-			resourceType: "bot",
-			resourceId: bot.id,
+		yield* initializeResourceAuthorization({
+			resource: {
+				resourceType: "bot",
+				resourceId: bot.id,
+			},
 			organizationId: params.organizationId,
 			ownerUserId: params.userId,
 		});
 
-		return {
-			botId: bot.id,
-			zedToken,
-			currentStatus,
-		};
+		return bot.id;
 	});
 
 const saveBotGraph = (params: {
@@ -387,22 +385,6 @@ const saveBotGraph = (params: {
 }) =>
 	Effect.gen(function* () {
 		const db = yield* DB;
-		const authz = yield* AuthzService;
-
-		const { botId, zedToken: resolvedZedToken } = yield* resolveBot(params);
-		const zedToken = resolvedZedToken;
-
-		const existingBlocks = yield* db
-			.select({
-				...getColumns(dbSchema.block),
-			})
-			.from(dbSchema.botBlock)
-			.innerJoin(
-				dbSchema.block,
-				eq(dbSchema.block.id, dbSchema.botBlock.blockId),
-			)
-			.where(eq(dbSchema.botBlock.botId, botId))
-			.pipe(Effect.map((rows) => rows as Block[]));
 
 		const nextBlockIds = yield* resolveLinkedBlocksForSave({
 			input: params.input,
@@ -410,56 +392,58 @@ const saveBotGraph = (params: {
 			zedToken: params.zedToken,
 		});
 
-		const previousBlockIds = existingBlocks.map((block) => block.id);
-		const { removedIds, addedIds } = calculateRelationDelta(
-			previousBlockIds,
-			nextBlockIds,
+		const organizationIds = params.input.id
+			? yield* resourceOrganizations([
+					{
+						resourceType: "bot",
+						resourceId: params.input.id,
+					},
+				])
+			: [
+					params.organizationId,
+				];
+
+		const { result: botId, zedToken } = yield* writeRelationships(
+			{
+				organizationIds,
+			},
+			Effect.gen(function* () {
+				const botId = yield* resolveBot(params);
+
+				const previousBlockIds = (yield* db
+					.delete(dbSchema.botBlock)
+					.where(eq(dbSchema.botBlock.botId, botId))
+					.returning({
+						blockId: dbSchema.botBlock.blockId,
+					})).map((link) => link.blockId);
+
+				if (nextBlockIds.length > 0) {
+					yield* db.insert(dbSchema.botBlock).values(
+						nextBlockIds.map((blockId) => ({
+							botId,
+							blockId,
+							createdAt: new Date(),
+						})),
+					);
+				}
+
+				yield* recordRelationshipFacts(
+					RelationshipFact.BotBlocksChanged({
+						botId,
+						before: previousBlockIds,
+						after: nextBlockIds,
+					}),
+				);
+
+				return botId;
+			}),
 		);
 
-		yield* db
-			.delete(dbSchema.botBlock)
-			.where(eq(dbSchema.botBlock.botId, botId));
-
-		if (nextBlockIds.length > 0) {
-			yield* db.insert(dbSchema.botBlock).values(
-				nextBlockIds.map((blockId) => ({
-					botId,
-					blockId,
-					createdAt: new Date(),
-				})),
-			);
-		}
-
-		if (removedIds.length > 0 || addedIds.length > 0) {
-			yield* authz.applyRelationshipMutations({
-				mutations: [
-					...removedIds.map((blockId) => ({
-						resourceType: "block" as const,
-						resourceId: blockId,
-						relation: "bot" as const,
-						subjectType: "bot" as const,
-						subjectId: botId,
-						operation: "delete" as const,
-					})),
-					...addedIds.map((blockId) => ({
-						resourceType: "block" as const,
-						resourceId: blockId,
-						relation: "bot" as const,
-						subjectType: "bot" as const,
-						subjectId: botId,
-						operation: "touch" as const,
-					})),
-				],
-			});
-		}
-
-		const editor = yield* loadBotEditor({
+		return yield* loadBotEditor({
 			id: botId,
 			userId: params.userId,
 			zedToken: zedToken ?? params.zedToken,
 		});
-
-		return editor;
 	});
 
 const listBots = authed.bot.list.effect(function* ({ input, context }) {
