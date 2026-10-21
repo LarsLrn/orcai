@@ -1,4 +1,5 @@
 import {
+	addAssetToLibraryInputSchema,
 	createAssetsFromUploadsInputSchema,
 	createAssetsFromUploadsResponseSchema,
 	deleteAssetsInputSchema,
@@ -65,6 +66,19 @@ export const assetContracts = {
 			}),
 		)
 		.input(saveAssetInputSchema)
+		.output(saveAssetResponseSchema),
+	addToLibrary: base
+		.meta(
+			openapi({
+				method: "POST",
+				path: "/assets/{id}/add-to-library",
+				summary: "Move a chat upload into the library",
+				tags: [
+					"Assets",
+				],
+			}),
+		)
+		.input(addAssetToLibraryInputSchema)
 		.output(saveAssetResponseSchema),
 	delete: base
 		.meta(

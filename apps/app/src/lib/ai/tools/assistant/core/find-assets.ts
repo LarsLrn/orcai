@@ -21,7 +21,7 @@ const findAssetsInputSchema = z.object({
 export const findAssetsTool = (deps: AssistantToolDeps) =>
 	effectTool({
 		description:
-			"Find assets (uploaded documents) by title among those the user can read, optionally only those attached to one repository. Without a query it lists them all, newest first.",
+			"Find assets (uploaded documents) by title among those the user can read, optionally only those attached to one repository. Without a query it lists them all, newest first. Origin chat marks a file uploaded in a chat rather than to the library.",
 		inputSchema: findAssetsInputSchema,
 		run: ({ query, repositoryId, limit }) =>
 			callProcedure(deps, (procedures, options) =>
@@ -42,6 +42,7 @@ export const findAssetsTool = (deps: AssistantToolDeps) =>
 						id: asset.id,
 						title: asset.title,
 						processingStatus: asset.processingStatus,
+						origin: asset.origin,
 						canEdit: asset.capabilities.edit === true,
 					})),
 					total: rowCount,

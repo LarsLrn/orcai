@@ -1,7 +1,17 @@
-import { paginationInputSchema } from "@orcai/schema";
+import {
+	type AssetOrigin,
+	assetOriginSchema,
+	paginationInputSchema,
+} from "@orcai/schema";
 import { useSuspenseQuery } from "@tanstack/react-query";
-import { createFileRoute, Link } from "@tanstack/react-router";
-import { FileTextIcon, PlusIcon, RefreshCwIcon } from "lucide-react";
+import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
+import {
+	FileTextIcon,
+	LibraryIcon,
+	MessageSquareIcon,
+	PlusIcon,
+	RefreshCwIcon,
+} from "lucide-react";
 import { AssetCard } from "@/components/documents/asset-card";
 import { Placeholder } from "@/components/placeholders/placeholder";
 import { buttonVariants } from "@/components/ui/button";
@@ -14,28 +24,41 @@ import {
 	SectionHeader,
 	SectionTitle,
 } from "@/components/ui/shell/section";
+import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { useOrganizationCapabilities } from "@/hooks/authz/use-capabilities";
+import { useAddAssetToLibraryMutation } from "@/hooks/mutations/use-asset-mutations";
 import { useReprocessAssetMutation } from "@/hooks/mutations/use-job-mutations";
 import { hasCapability } from "@/lib/authz/capabilities";
 import { orpc } from "@/lib/orpc/orpc";
 import { m } from "@/paraglide/messages";
 
+const assetsSearchSchema = paginationInputSchema.extend({
+	origin: assetOriginSchema.default("library"),
+});
+
+const listInput = (search: {
+	pageIndex: number;
+	pageSize: number;
+	origin: AssetOrigin;
+}) => ({
+	pageIndex: search.pageIndex,
+	pageSize: search.pageSize,
+	filters: {
+		origin: search.origin,
+	},
+});
+
 export const Route = createFileRoute("/app/hub/assets/")({
-	validateSearch: paginationInputSchema,
-	loaderDeps: ({ search: { pageIndex, pageSize } }) => ({
+	validateSearch: assetsSearchSchema,
+	loaderDeps: ({ search: { pageIndex, pageSize, origin } }) => ({
 		pageIndex,
 		pageSize,
+		origin,
 	}),
-	loader: async ({
-		context: { queryClient },
-		deps: { pageIndex, pageSize },
-	}) => {
+	loader: async ({ context: { queryClient }, deps }) => {
 		await queryClient.query(
 			orpc.asset.list.queryOptions({
-				input: {
-					pageIndex,
-					pageSize,
-				},
+				input: listInput(deps),
 				staleTime: "static",
 			}),
 		);
@@ -44,8 +67,12 @@ export const Route = createFileRoute("/app/hub/assets/")({
 });
 
 function RouteComponent() {
-	const { pageIndex, pageSize } = Route.useSearch();
+	const search = Route.useSearch();
+	const navigate = useNavigate({
+		from: Route.fullPath,
+	});
 	const { mutate: reprocessAsset } = useReprocessAssetMutation();
+	const { mutate: addToLibrary } = useAddAssetToLibraryMutation();
 	const { data: organizationCapabilities } = useOrganizationCapabilities([
 		"create_asset",
 	]);
@@ -55,12 +82,10 @@ function RouteComponent() {
 	);
 	const { data: assets } = useSuspenseQuery(
 		orpc.asset.list.queryOptions({
-			input: {
-				pageIndex,
-				pageSize,
-			},
+			input: listInput(search),
 		}),
 	);
+	const isChatUploads = search.origin === "chat";
 
 	return (
 		<Section>
@@ -81,15 +106,46 @@ function RouteComponent() {
 					</SectionAction>
 				) : null}
 			</SectionHeader>
-			<SectionContent>
+			<SectionContent className="space-y-6">
+				<Tabs
+					value={search.origin}
+					onValueChange={(origin) =>
+						void navigate({
+							search: {
+								origin: assetOriginSchema.parse(origin),
+								pageIndex: 0,
+								pageSize: search.pageSize,
+							},
+						})
+					}
+				>
+					<TabsList>
+						<TabsTrigger value="library">
+							<LibraryIcon />
+							{m.assets_list_library_tab()}
+						</TabsTrigger>
+						<TabsTrigger value="chat">
+							<MessageSquareIcon />
+							{m.assets_list_chat_uploads_tab()}
+						</TabsTrigger>
+					</TabsList>
+				</Tabs>
 				{assets.data.length === 0 ? (
 					<Placeholder
-						Icon={FileTextIcon}
+						Icon={isChatUploads ? MessageSquareIcon : FileTextIcon}
 						tone="asset"
-						title={m.assets_list_empty_state_title()}
-						description={m.assets_list_empty_state_description()}
+						title={
+							isChatUploads
+								? m.assets_list_chat_uploads_empty_state_title()
+								: m.assets_list_empty_state_title()
+						}
+						description={
+							isChatUploads
+								? m.assets_list_chat_uploads_empty_state_description()
+								: m.assets_list_empty_state_description()
+						}
 						actions={
-							canCreateAsset
+							canCreateAsset && !isChatUploads
 								? [
 										{
 											key: "add",
@@ -111,22 +167,37 @@ function RouteComponent() {
 								key={asset.id}
 								asset={asset}
 								actions={{
-									dropdown:
-										asset.processingStatus === "pending" ||
-										asset.processingStatus === "active" ||
-										!hasCapability(asset.capabilities, "edit")
-											? []
-											: [
-													{
-														key: "reprocess",
-														label: m.assets_list_reprocess_action(),
-														icon: RefreshCwIcon,
-														onClick: () =>
-															reprocessAsset({
-																assetId: asset.id,
-															}),
-													},
-												],
+									dropdown: hasCapability(asset.capabilities, "edit")
+										? [
+												...(asset.origin === "chat"
+													? [
+															{
+																key: "add-to-library",
+																label: m.assets_add_to_library_action(),
+																icon: LibraryIcon,
+																onClick: () =>
+																	addToLibrary({
+																		id: asset.id,
+																	}),
+															},
+														]
+													: []),
+												...(asset.processingStatus === "pending" ||
+												asset.processingStatus === "active"
+													? []
+													: [
+															{
+																key: "reprocess",
+																label: m.assets_list_reprocess_action(),
+																icon: RefreshCwIcon,
+																onClick: () =>
+																	reprocessAsset({
+																		assetId: asset.id,
+																	}),
+															},
+														]),
+											]
+										: [],
 									footer: [],
 								}}
 							/>

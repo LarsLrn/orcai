@@ -335,3 +335,81 @@ describe("createAssetsFromUploads", () => {
 		TIMEOUT,
 	);
 });
+
+describe("chat uploads", () => {
+	const listIds = async (
+		{ actor, zedToken }: Member,
+		origin: "library" | "chat",
+	) => {
+		const procedures = await run(Procedures);
+		const { data } = await run(
+			procedures.asset.list(
+				{
+					pageIndex: 0,
+					pageSize: 100,
+					filters: {
+						origin,
+					},
+				},
+				await procedureOptions(actor, zedToken),
+			),
+		);
+		return data.map((asset) => asset.id);
+	};
+
+	test(
+		"stay out of the library until the owner adds them",
+		async () => {
+			const [owner, other] = await members(2);
+			const file = await upload(owner, "chat.txt", "chatAttachment");
+			const procedures = await run(Procedures);
+			const createdUpload = await run(
+				procedures.asset.createFromUploads(
+					{
+						route: "chatAttachment",
+						files: [
+							file,
+						],
+					},
+					await procedureOptions(owner.actor, owner.zedToken),
+				),
+			);
+			const asset = created(createdUpload.data[0]);
+			const withToken = {
+				...owner,
+				zedToken: createdUpload.meta?.zedToken ?? owner.zedToken,
+			};
+
+			expect(await listIds(withToken, "chat")).toContain(asset.id);
+			expect(await listIds(withToken, "library")).not.toContain(asset.id);
+
+			const refused = await run(
+				procedures.asset
+					.addToLibrary(
+						{
+							id: asset.id,
+						},
+						await procedureOptions(other.actor, other.zedToken),
+					)
+					.pipe(Effect.flip),
+			);
+			expect(refused).toMatchObject({
+				_tag: "ForbiddenError",
+				reason: "PERMISSION_DENIED",
+			});
+
+			const { data } = await run(
+				procedures.asset.addToLibrary(
+					{
+						id: asset.id,
+					},
+					await procedureOptions(owner.actor, withToken.zedToken),
+				),
+			);
+			expect(data.origin).toBe("library");
+			expect(await listIds(withToken, "library")).toContain(asset.id);
+			expect(await listIds(withToken, "chat")).not.toContain(asset.id);
+		},
+		TIMEOUT,
+	);
+});

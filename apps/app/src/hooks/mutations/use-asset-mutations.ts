@@ -19,6 +19,19 @@ export const useSaveAssetMutation = (
 	});
 };
 
+export const useAddAssetToLibraryMutation = (
+	opts: ReturnType<typeof orpc.asset.addToLibrary.mutationOptions> = {},
+) => {
+	return useMutationAction({
+		mutationOptions: () => orpc.asset.addToLibrary.mutationOptions(opts),
+		messages: {
+			loading: () => m.assets_add_to_library_toast_loading(),
+			success: () => m.assets_add_to_library_toast_success(),
+			error: () => m.assets_add_to_library_toast_error(),
+		},
+	});
+};
+
 export const useDeleteAssetsMutation = (
 	opts: ReturnType<typeof orpc.asset.delete.mutationOptions> = {},
 	target?: DestructiveTarget,

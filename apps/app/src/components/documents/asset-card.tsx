@@ -103,6 +103,13 @@ const AssetCard = ({
 		},
 	];
 
+	if (asset.origin === "chat") {
+		badges.push({
+			label: m.assets_origin_chat_badge(),
+			variant: "outline",
+		});
+	}
+
 	badges.push({
 		label: getProcessingStatusLabel(asset.processingStatus),
 		variant: getProcessingStatusVariant(asset.processingStatus),

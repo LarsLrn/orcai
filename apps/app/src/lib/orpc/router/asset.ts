@@ -51,6 +51,10 @@ const listAssets = authed.asset.list.effect(function* ({ input, context }) {
 		);
 	}
 
+	if (input.filters?.origin) {
+		whereConditions.push(eq(dbSchema.asset.origin, input.filters.origin));
+	}
+
 	if (input.filters?.repositoryId) {
 		whereConditions.push(
 			inArray(
@@ -174,6 +178,31 @@ const saveAsset = authed.asset.save
 		};
 	});
 
+const addAssetToLibrary = authed.asset.addToLibrary
+	.use(
+		requireEntityPermission("asset", "edit", {
+			entityId: "id",
+		}),
+	)
+	.effect(function* ({ input }) {
+		const db = yield* DB;
+
+		const [asset] = yield* db
+			.update(dbSchema.asset)
+			.set({
+				origin: "library",
+				updatedAt: new Date(),
+			})
+			.where(eq(dbSchema.asset.id, input.id))
+			.returning({
+				...getColumns(dbSchema.asset),
+			});
+
+		return {
+			data: asset,
+		};
+	});
+
 const createAssetsFromUploadsProcedure = authed.asset.createFromUploads
 	.use(requireOrganizationPermission("create_asset"))
 	.effect(function* ({ input, context }) {
@@ -264,6 +293,7 @@ export const assetRouter = {
 	list: listAssets,
 	save: saveAsset,
 	createFromUploads: createAssetsFromUploadsProcedure,
+	addToLibrary: addAssetToLibrary,
 	find: findAsset,
 	delete: deleteAssets,
 };

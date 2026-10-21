@@ -17,6 +17,9 @@ const PREFETCH_PARAMS = {
 const SUMMARY_PARAMS = {
 	pageIndex: 0,
 	pageSize: 1,
+	filters: {
+		origin: "library",
+	},
 } as const;
 
 export const Route = createFileRoute("/app/")({
