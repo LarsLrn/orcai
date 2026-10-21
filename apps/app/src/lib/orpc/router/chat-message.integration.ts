@@ -3,7 +3,6 @@ import type { ChatMessageId } from "@orcai/core";
 import { DB, dbSchema } from "@orcai/db";
 import { eq } from "drizzle-orm";
 import * as Effect from "effect/Effect";
-import { appendChatMessages } from "@/lib/ai/turn/drizzle-reply-store";
 import {
 	type Actor,
 	authzIntegration,
@@ -38,20 +37,25 @@ const chatWithReply = async () => {
 		),
 	);
 	const [message] = await run(
-		appendChatMessages(chat.id, [
-			{
-				id: crypto.randomUUID() as ChatMessageId,
-				role: "assistant",
-				parts: [
-					{
-						type: "text",
-						text: "Answer",
-					},
-				],
-				attachments: [],
-				metadata: {},
-			},
-		]),
+		Effect.gen(function* () {
+			return yield* (yield* DB)
+				.insert(dbSchema.chatMessage)
+				.values({
+					id: crypto.randomUUID() as ChatMessageId,
+					chatId: chat.id,
+					role: "assistant",
+					parts: [
+						{
+							type: "text",
+							text: "Answer",
+						},
+					],
+					attachments: [],
+					metadata: {},
+					position: 0,
+				})
+				.returning();
+		}),
 	);
 	const token = meta?.zedToken ?? zedToken;
 	const call = async <A>(

@@ -158,17 +158,10 @@ test("a chat already stuck behind a dangling call answers again", async ({
 	const member = api.as("member");
 	const chatId = await createChat(member, model, chatName("Stuck Chat"));
 	await chatWithDanglingCall(member, chatId, inference);
-	await member.chatMessage.create({
-		chatId,
-		role: "user",
-		parts: [
-			{
-				type: "text",
-				text: "A question whose turn failed.",
-			},
-		],
-		metadata: {},
+	inference.failNext({
+		status: 400,
 	});
+	expect(await ask(member, chatId, "A question whose turn failed.")).toBe("");
 
 	expect(await ask(member, chatId, "Are you there?")).toBe(
 		"Mock inference reply to: Are you there?",

@@ -9,9 +9,6 @@ export const listChatMessagesResponseSchema = z.object({
 	hasMore: z.boolean(),
 });
 
-export const createChatMessageResponseSchema =
-	createDataResponseSchema(chatMessageSchema);
-
 export const findChatMessageResponseSchema =
 	createDataResponseSchema(chatMessageSchema);
 

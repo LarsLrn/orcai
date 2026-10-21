@@ -66,26 +66,6 @@ const messageIdTaken = <A, E, R>(effect: Effect.Effect<A, E, R>) =>
 		),
 	);
 
-/** Appends messages in order after the chat's last one. */
-export const appendChatMessages = (
-	chatId: ChatId,
-	messages: Omit<
-		typeof dbSchema.chatMessage.$inferInsert,
-		"chatId" | "position"
-	>[],
-) =>
-	Effect.gen(function* () {
-		const db = yield* DB;
-
-		return yield* db
-			.transaction((tx) =>
-				lockChat(tx, chatId).pipe(
-					Effect.andThen(appendLocked(tx, chatId, messages)),
-				),
-			)
-			.pipe(messageIdTaken);
-	});
-
 const internal =
 	(operation: string) =>
 	<A, E, R>(effect: Effect.Effect<A, E, R>) =>
