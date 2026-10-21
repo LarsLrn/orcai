@@ -16,7 +16,6 @@ import {
 } from "ai";
 import { convertArrayToReadableStream, MockLanguageModelV4 } from "ai/test";
 import { z } from "zod/v4";
-import { assistantToolApproval } from "@/lib/ai/tools/assistant/approval";
 import { planSchema } from "@/lib/ai/tools/assistant/plan/plan";
 import { closeInvalidToolParts } from "./close-invalid-tool-parts";
 
@@ -140,9 +139,10 @@ const agentWith = (model: MockLanguageModelV4) =>
 				},
 			}),
 		},
-		toolApproval: assistantToolApproval({
-			isPlanApproved: () => false,
-		}),
+		toolApproval: {
+			updatePlan: "user-approval",
+			deleteBot: "user-approval",
+		},
 		stopWhen: isStepCount(5),
 	});
 

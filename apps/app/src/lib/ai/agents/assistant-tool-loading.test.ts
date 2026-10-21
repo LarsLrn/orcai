@@ -1,169 +1,27 @@
 import { describe, expect, test } from "bun:test";
 import type { ProviderKind } from "@orcai/core";
 import type { OrganizationCapability } from "@orcai/schema";
-import { convertToModelMessages, type ModelMessage } from "ai";
 import type { ORPCContext } from "@/lib/orpc/implementation/os";
-import "../tools/assistant/test-procedures";
-import type { DeferredToolGroup } from "../tools/assistant/groups";
-import {
-	ASSISTANT_TOOL_GROUPS,
-	DEFERRED_TOOL_NAMES,
-} from "../tools/assistant/groups";
-import { createAssistantTurn } from "../tools/assistant/turn-state";
-import { agentModel } from "./agent-model";
-import {
-	type Body,
-	memberCapabilities,
-	scriptedFetch,
-	type ToolCall,
-} from "./test-provider";
+import { resetProcedures } from "../tools/assistant/test-procedures";
+import { answerSetup, assistantRow, conversation } from "../turn/test-turn";
+import type { Body } from "./test-provider";
 
+const { convertToModelMessages } = await import("ai");
+const { ASSISTANT_TOOL_GROUPS, DEFERRED_TOOL_NAMES } = await import(
+	"../tools/assistant/groups"
+);
+const { createAssistantTurn } = await import("../tools/assistant/turn-state");
+const { agentModel } = await import("./agent-model");
+const { memberCapabilities } = await import("./test-provider");
 const { createAssistantAgent } = await import("./assistant-agent");
 
-/** One model response: tool calls, or the closing text. */
-type Reply = ToolCall[] | string;
-
-const assistantAgent = ({
-	kind,
-	modelId,
-	capabilities = memberCapabilities,
-	planApproved,
-	loadedToolGroups,
-	fetch,
-}: {
-	kind: ProviderKind;
-	modelId: string;
-	capabilities?: Record<OrganizationCapability, boolean>;
-	planApproved: boolean;
-	loadedToolGroups: DeferredToolGroup[];
-	fetch?: typeof globalThis.fetch;
-}) =>
-	createAssistantAgent({
-		model: agentModel({
-			kind,
-			connection: {
-				apiKey: "key",
-				endpoint: kind === "openai-compatible" ? "https://llm.test/v1" : null,
-				fetch,
-			},
-			providerModelId: modelId,
-		}),
-		callSettings: {},
-		docs: undefined,
-		userContext: {
-			user: {
-				id: "user",
-				name: "Ada",
-				email: "ada@example.org",
-			},
-			organizationName: "Org",
-			role: "member",
-			capabilities,
-		},
-		features: [],
-		planApproved,
-		loadedToolGroups,
-		history: [],
-		telemetryIds: {
-			organizationId: "org",
-			chatId: "chat",
-			providerId: "provider",
-			modelId,
-		},
-		context: {
-			secureCookies: false,
-		} as ORPCContext,
-		turn: createAssistantTurn({
-			zedToken: undefined,
-			chatId: "chat",
-			replyId: "reply",
-		}),
+const assistantConversation = (kind: ProviderKind, modelId: string) => {
+	resetProcedures();
+	answerSetup({
+		providerKind: kind,
+		providerModelId: modelId,
 	});
-
-/**
- * Runs one request as the chat route does: a fresh agent over the
- * conversation, whose stored state says whether a plan is approved and which
- * groups are loaded.
- */
-const runRequest = async ({
-	kind,
-	modelId,
-	messages,
-	planApproved,
-	loadedToolGroups,
-	replies,
-}: {
-	kind: ProviderKind;
-	modelId: string;
-	messages: ModelMessage[];
-	planApproved: boolean;
-	loadedToolGroups: DeferredToolGroup[];
-	replies: Reply[];
-}) => {
-	const { fetch, bodies, script } = scriptedFetch(kind);
-	script(
-		replies.map((reply) =>
-			typeof reply === "string"
-				? {
-						text: reply,
-					}
-				: {
-						calls: reply,
-					},
-		),
-	);
-	const agent = assistantAgent({
-		kind,
-		modelId,
-		planApproved,
-		loadedToolGroups,
-		fetch,
-	});
-
-	const result = await agent.generate({
-		messages,
-		options: {
-			maxSteps: 25,
-		},
-	});
-
-	return {
-		bodies,
-		messages: [
-			...messages,
-			...result.responseMessages,
-		],
-	};
-};
-
-const userMessage = (text: string): ModelMessage => ({
-	role: "user",
-	content: text,
-});
-
-/** The user's answer to the pending `updatePlan` call. */
-const answerPlan = (
-	messages: ModelMessage[],
-	approved = true,
-): ModelMessage => {
-	const request = messages
-		.flatMap((message) =>
-			message.role === "assistant" && Array.isArray(message.content)
-				? message.content
-				: [],
-		)
-		.find((part) => part.type === "tool-approval-request");
-
-	return {
-		role: "tool",
-		content: [
-			{
-				type: "tool-approval-response",
-				approvalId: request?.approvalId ?? "missing",
-				approved,
-			},
-		],
-	};
+	return conversation(assistantRow(), kind);
 };
 
 const plan = {
@@ -176,6 +34,21 @@ const plan = {
 	],
 };
 
+const createBot = {
+	name: "createBot",
+	input: {
+		name: "Helper",
+		description: "Helps.",
+	},
+};
+
+const loadTools = (...groups: string[]) => ({
+	name: "loadTools",
+	input: {
+		groups,
+	},
+});
+
 const botTools: readonly string[] = ASSISTANT_TOOL_GROUPS.bots;
 const botCreateTools = [
 	"createBot",
@@ -187,80 +60,43 @@ const botCreateTools = [
  * Loads, tries creating and proposes a plan; resumes once the user approved
  * it; then answers a new message. Five model requests.
  */
-const conversation = async (kind: ProviderKind, modelId: string) => {
-	const first = await runRequest({
-		kind,
-		modelId,
-		messages: [
-			userMessage("Make me a bot"),
-		],
-		planApproved: false,
-		loadedToolGroups: [],
-		replies: [
-			[
-				{
-					name: "loadTools",
-					input: {
-						groups: [
-							"bots",
-							"people",
-						],
-					},
-				},
+const toolLoadingConversation = async (kind: ProviderKind, modelId: string) => {
+	const assistant = await assistantConversation(kind, modelId);
+	assistant.script([
+		{
+			calls: [
+				loadTools("bots", "people"),
 			],
-			[
-				{
-					name: "createBot",
-					input: {
-						name: "Helper",
-						description: "Helps.",
-					},
-				},
+		},
+		{
+			calls: [
+				createBot,
 			],
-			[
+		},
+		{
+			calls: [
 				{
 					name: "updatePlan",
 					input: plan,
 				},
 			],
-		],
-	});
-	const approved = await runRequest({
-		kind,
-		modelId,
-		messages: [
-			...first.messages,
-			answerPlan(first.messages),
-		],
-		planApproved: false,
-		loadedToolGroups: [
-			"bots",
-		],
-		replies: [
-			"Approved, starting.",
-		],
-	});
-	const next = await runRequest({
-		kind,
-		modelId,
-		messages: [
-			...approved.messages,
-			userMessage("Thanks"),
-		],
-		planApproved: true,
-		loadedToolGroups: [
-			"bots",
-		],
-		replies: [
-			"You're welcome.",
-		],
-	});
+		},
+	]);
+	await assistant.send("Make me a bot");
+	assistant.script([
+		{
+			text: "Approved, starting.",
+		},
+	]);
+	await assistant.decide(true);
+	assistant.script([
+		{
+			text: "You're welcome.",
+		},
+	]);
+	await assistant.send("Thanks");
 
-	return [
-		...first.bodies,
-		...approved.bodies,
-		...next.bodies,
-	];
+	return assistant.bodies;
 };
 
 type AnthropicTool = {
@@ -305,11 +141,18 @@ const openAITools = (body: Body) =>
 		}[]
 	).map((tool) => tool.function.name);
 
-const [anthropicBodies, fallbackBodies, openAIBodies] = await Promise.all([
-	conversation("anthropic", "claude-opus-5-5"),
-	conversation("anthropic", "claude-opus-4-1-20250805"),
-	conversation("openai-compatible", "model"),
-]);
+const anthropicBodies = await toolLoadingConversation(
+	"anthropic",
+	"claude-opus-5-5",
+);
+const fallbackBodies = await toolLoadingConversation(
+	"anthropic",
+	"claude-opus-4-1-20250805",
+);
+const openAIBodies = await toolLoadingConversation(
+	"openai-compatible",
+	"model",
+);
 
 describe("assistant tool loading on Anthropic", () => {
 	const bodies = anthropicBodies;
@@ -438,14 +281,43 @@ describe("a stored loadTools result replayed on Anthropic", () => {
 		capabilities: Record<OrganizationCapability, boolean>,
 		storedTools: readonly string[],
 	) => {
-		const agent = assistantAgent({
-			kind: "anthropic",
-			modelId: "claude-opus-5-5",
-			capabilities,
-			planApproved: true,
-			loadedToolGroups: [
-				"people",
-			],
+		const agent = createAssistantAgent({
+			model: agentModel({
+				kind: "anthropic",
+				connection: {
+					apiKey: "key",
+					endpoint: null,
+				},
+				providerModelId: "claude-opus-5-5",
+			}),
+			callSettings: {},
+			docs: undefined,
+			userContext: {
+				user: {
+					id: "user",
+					name: "Ada",
+					email: "ada@example.org",
+				},
+				organizationName: "Org",
+				role: "member",
+				capabilities,
+			},
+			features: [],
+			history: [],
+			telemetryIds: {
+				organizationId: "org",
+				chatId: "chat",
+				providerId: "provider",
+				modelId: "claude-opus-5-5",
+			},
+			context: {
+				secureCookies: false,
+			} as ORPCContext,
+			turn: createAssistantTurn({
+				zedToken: undefined,
+				chatId: "chat",
+				replyId: "reply",
+			}),
 		});
 		const messages = await convertToModelMessages(
 			[
@@ -520,58 +392,35 @@ describe.each([
 	],
 ] as const)("a declined plan on %s", (kind, modelId) => {
 	test("keeps the create tools locked", async () => {
-		const createBot = {
-			name: "createBot",
-			input: {
-				name: "Helper",
-				description: "Helps.",
-			},
-		};
-		const first = await runRequest({
-			kind,
-			modelId,
-			messages: [
-				userMessage("Make me a bot"),
-			],
-			planApproved: false,
-			loadedToolGroups: [],
-			replies: [
-				[
-					{
-						name: "loadTools",
-						input: {
-							groups: [
-								"bots",
-							],
-						},
-					},
+		const assistant = await assistantConversation(kind, modelId);
+		assistant.script([
+			{
+				calls: [
+					loadTools("bots"),
 				],
-				[
+			},
+			{
+				calls: [
 					{
 						name: "updatePlan",
 						input: plan,
 					},
 				],
-			],
-		});
-		const { bodies } = await runRequest({
-			kind,
-			modelId,
-			messages: [
-				...first.messages,
-				answerPlan(first.messages, false),
-			],
-			planApproved: false,
-			loadedToolGroups: [
-				"bots",
-			],
-			replies: [
-				[
+			},
+		]);
+		await assistant.send("Make me a bot");
+		assistant.script([
+			{
+				calls: [
 					createBot,
 				],
-				"I will revise the plan.",
-			],
-		});
+			},
+			{
+				text: "I will revise the plan.",
+			},
+		]);
+		await assistant.decide(false);
+		const bodies = assistant.bodies.slice(2);
 
 		expect(bodies).toHaveLength(2);
 		if (kind === "anthropic") {

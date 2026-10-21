@@ -34,8 +34,6 @@ import {
 	type MeteredCallOutcome,
 	startMeteredCall,
 } from "@/lib/ai/metered-call/metered-call";
-import { loadedToolGroupsOf } from "@/lib/ai/tools/assistant/core/load-tools";
-import { isPlanApproved } from "@/lib/ai/tools/assistant/plan/plan-approval";
 import {
 	type AssistantTurn,
 	createAssistantTurn,
@@ -222,8 +220,6 @@ const buildAgent = ({
 				docs: setup.agent.docs,
 				userContext: setup.agent.userContext,
 				features: setup.agent.features,
-				planApproved: isPlanApproved(history),
-				loadedToolGroups: loadedToolGroupsOf(history),
 				history,
 				telemetryIds,
 				context: input.context,

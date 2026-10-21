@@ -1,8 +1,4 @@
-import {
-	aiTelemetry,
-	buildSystemInstructions,
-	type ToolLoading,
-} from "@orcai/ai";
+import { aiTelemetry, buildSystemInstructions } from "@orcai/ai";
 import { isStepCount, Output, ToolLoopAgent, type ToolSet } from "ai";
 import {
 	buildGenUiTools,
@@ -10,6 +6,7 @@ import {
 } from "@/components/chat/gen-ui/catalog";
 import type { AgentModel } from "@/lib/ai/agents/agent-model";
 import { pruneAssistantHistory } from "@/lib/ai/agents/assistant-history-pruning";
+import { createAssistantSession } from "@/lib/ai/agents/assistant-session";
 import {
 	type AssistantUserContext,
 	buildAssistantSystemPrompt,
@@ -28,42 +25,12 @@ import {
 	withStoredToolFailures,
 } from "@/lib/ai/agents/turn-history";
 import type { ResolvedFeature } from "@/lib/ai/features/resolve-features";
-import { assistantToolApproval } from "@/lib/ai/tools/assistant/approval";
-import { groupsLoadedBy } from "@/lib/ai/tools/assistant/core/load-tools";
-import {
-	activeAssistantToolNames,
-	DEFERRED_TOOL_NAMES,
-	type DeferredToolGroup,
-	offeredAssistantToolNames,
-	offeredToolGroups,
-} from "@/lib/ai/tools/assistant/groups";
+import { offeredToolGroups } from "@/lib/ai/tools/assistant/groups";
 import type { AssistantToolDeps } from "@/lib/ai/tools/assistant/procedure-tool";
 import { buildAssistantTools } from "@/lib/ai/tools/assistant/toolset";
 import { readDocsTool } from "@/lib/ai/tools/docs/read-docs";
 import type { ChatCallSettings } from "@/lib/ai/utils/chat-call-settings";
 import type { DocsConfig } from "@/lib/effect/services/config";
-
-/** Where tools load through references, the deferred groups' tools are declared deferred. */
-const deferGroupTools = <T extends ToolSet>(
-	tools: T,
-	toolLoading: ToolLoading,
-): T =>
-	toolLoading.type === "references"
-		? (Object.fromEntries(
-				Object.entries(tools).map(([name, tool]) => [
-					name,
-					DEFERRED_TOOL_NAMES.has(name)
-						? {
-								...tool,
-								providerOptions: {
-									...tool.providerOptions,
-									...toolLoading.deferredToolOptions,
-								},
-							}
-						: tool,
-				]),
-			) as T)
-		: tools;
 
 export const createAssistantAgent = (
 	params: AssistantToolDeps & {
@@ -73,11 +40,7 @@ export const createAssistantAgent = (
 		userContext: AssistantUserContext;
 		/** The assistant's fixed features, resolved through the Feature catalog. */
 		features: ResolvedFeature[];
-		/** Whether the stored conversation holds an approved plan. */
-		planApproved: boolean;
-		/** The groups the conversation's stored `loadTools` calls loaded. */
-		loadedToolGroups: readonly DeferredToolGroup[];
-		/** The stored conversation, whose tool outputs become summary lines. */
+		/** The stored conversation: its tool calls unlock tools and become summary lines. */
 		history: readonly StoredMessage[];
 		telemetryIds: {
 			organizationId: string;
@@ -98,51 +61,34 @@ export const createAssistantAgent = (
 		);
 	}
 
-	// Approval holds for the conversation; a plan approved in an earlier request runs before the first step.
-	let planApproved = params.planApproved;
-	// Loaded groups stay loaded for the conversation, including this generation's loads.
-	const loadedGroups = new Set(params.loadedToolGroups);
-
+	const session = createAssistantSession({
+		history: params.history,
+		capabilities: params.userContext.capabilities,
+		toolLoading: params.model.toolLoading,
+	});
 	// The full set, so stored calls of any tool validate; activeTools narrows what the model sees.
-	const tools = deferGroupTools(
-		{
-			// Stored readDocs parts keep validating when the docs are switched off.
-			readDocs: readDocsTool({
-				docs: params.docs,
-			}),
-			...buildGenUiTools(),
-			...buildAssistantTools({
-				context: params.context,
-				turn: params.turn,
-				capabilities: params.userContext.capabilities,
-				isPlanApproved: () => planApproved,
-				loadedGroups: () => [
-					...loadedGroups,
-				],
-				toolLoading: params.model.toolLoading,
-			}),
-		},
-		params.model.toolLoading,
-	);
-
+	const tools = session.declare({
+		// Stored readDocs parts keep validating when the docs are switched off.
+		readDocs: readDocsTool({
+			docs: params.docs,
+		}),
+		...buildGenUiTools(),
+		...buildAssistantTools({
+			context: params.context,
+			turn: params.turn,
+			session,
+		}),
+	});
 	const toolGroups = offeredToolGroups(params.userContext.capabilities);
-	// Deferred tools are all declared from the start, so loading and approving leave the list as it is.
 	const activeToolNames = () =>
-		(params.model.toolLoading.type === "references"
-			? offeredAssistantToolNames(params.userContext.capabilities)
-			: activeAssistantToolNames(
-					params.userContext.capabilities,
-					[
-						...loadedGroups,
-					],
-					planApproved,
-				)
-		).filter(
-			(name) =>
-				(name !== "readDocs" || params.docs !== undefined) &&
-				(!GEN_UI_TOOL_NAMES.some((display) => display === name) ||
-					Object.hasOwn(featureTools, name)),
-		);
+		session
+			.activeTools()
+			.filter(
+				(name) =>
+					(name !== "readDocs" || params.docs !== undefined) &&
+					(!GEN_UI_TOOL_NAMES.some((display) => display === name) ||
+						Object.hasOwn(featureTools, name)),
+			);
 
 	const enabledDisplayToolNames = GEN_UI_TOOL_NAMES.filter((name) =>
 		Object.hasOwn(featureTools, name),
@@ -154,9 +100,7 @@ export const createAssistantAgent = (
 	return new ToolLoopAgent({
 		model: params.model.language,
 		tools,
-		toolApproval: assistantToolApproval({
-			isPlanApproved: () => planApproved,
-		}),
+		toolApproval: session.toolApproval,
 		...aiTelemetry("assistant.agent", params.telemetryIds),
 		callOptionsSchema: stepBudgetOptionsSchema,
 		prepareCall: ({ options, ...settings }) => ({
@@ -181,7 +125,7 @@ export const createAssistantAgent = (
 					lines: toolLines.lines,
 					displayToolNames: GEN_UI_TOOL_NAMES,
 					enabledDisplayToolNames,
-					toolListChanges: params.model.toolLoading.type === "active-tools",
+					toolListChanges: session.toolListChanges,
 				});
 				return {
 					messages: prunedMessages,
@@ -204,15 +148,7 @@ export const createAssistantAgent = (
 				toolLines.record([
 					toolOutput,
 				]);
-				// Before approval every updatePlan call is gated, so one that ran was approved.
-				if (toolOutput.toolName === "updatePlan") {
-					planApproved = true;
-				}
-				if (toolOutput.toolName === "loadTools") {
-					for (const group of groupsLoadedBy(toolOutput.output)) {
-						loadedGroups.add(group);
-					}
-				}
+				session.record(toolOutput);
 			}
 		},
 		output: Output.text(),

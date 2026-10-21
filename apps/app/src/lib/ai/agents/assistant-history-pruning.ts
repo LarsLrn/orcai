@@ -11,14 +11,9 @@ export interface AssistantHistoryPruningOptions {
 	displayToolNames: readonly string[];
 	/** Display tools offered this turn; their calls stay in history in full. */
 	enabledDisplayToolNames: readonly string[];
-	/** Whether loading tools or approving a plan changes the request's tool list. */
-	toolListChanges: boolean;
+	/** The calls whose results changed the request's tool list. */
+	toolListChanges: ReadonlySet<string>;
 }
-
-const TOOL_SET_CHANGING_TOOLS = new Set([
-	"loadTools",
-	"updatePlan",
-]);
 
 /** Outputs of calls that ran and succeeded; denials and failures arrive as errors. */
 const SUCCEEDED_OUTPUT_TYPES = new Set([
@@ -62,9 +57,8 @@ const summarisedOutput = (output: ToolOutput, line: string): ToolOutput => {
  * Keeps every tool call and input but replaces the outputs of finished turns
  * with their summary line; the turn in progress stays as sent. Errors,
  * denials and approvals stay; calls of disabled display tools are dropped.
- * Where the tool list changes, reasoning survives only from the turn's latest
- * change on: a `loadTools` result, or an `updatePlan` that ran and so
- * unlocked tools.
+ * Reasoning survives only from the turn's latest result that changed the
+ * tool list on.
  */
 export const pruneAssistantHistory = (
 	messages: ModelMessage[],
@@ -93,15 +87,13 @@ export const pruneAssistantHistory = (
 			: messages;
 
 	const turnStart = currentTurnStart(pruned);
-	const latestLoad = pruned
+	const latestChange = pruned
 		.map(
 			(message) =>
 				message.role === "tool" &&
 				message.content.some(
 					(part) =>
-						part.type === "tool-result" &&
-						TOOL_SET_CHANGING_TOOLS.has(part.toolName) &&
-						SUCCEEDED_OUTPUT_TYPES.has(part.output.type),
+						part.type === "tool-result" && toolListChanges.has(part.toolCallId),
 				),
 		)
 		.lastIndexOf(true);
@@ -129,6 +121,6 @@ export const pruneAssistantHistory = (
 					}
 				: message,
 		),
-		toolListChanges ? Math.max(turnStart, latestLoad) : turnStart,
+		Math.max(turnStart, latestChange),
 	);
 };

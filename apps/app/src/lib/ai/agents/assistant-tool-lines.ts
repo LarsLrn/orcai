@@ -21,6 +21,27 @@ export interface StoredMessage {
 	}[];
 }
 
+/** The stored tool calls that returned an output, in conversation order. */
+export const storedExecutions = (
+	history: readonly StoredMessage[],
+): ToolExecution[] =>
+	history.flatMap((message) =>
+		message.parts.flatMap((part) =>
+			part.type.startsWith("tool-") &&
+			part.toolCallId !== undefined &&
+			part.state === "output-available"
+				? [
+						{
+							toolCallId: part.toolCallId,
+							toolName: part.type.slice("tool-".length),
+							input: part.input,
+							output: part.output,
+						},
+					]
+				: [],
+		),
+	);
+
 const NAME_KEYS = [
 	"name",
 	"title",
@@ -134,24 +155,7 @@ export const createToolLines = (history: readonly StoredMessage[]) => {
 		}
 	};
 
-	record(
-		history.flatMap((message) =>
-			message.parts.flatMap((part) =>
-				part.type.startsWith("tool-") &&
-				part.toolCallId !== undefined &&
-				part.state === "output-available"
-					? [
-							{
-								toolCallId: part.toolCallId,
-								toolName: part.type.slice("tool-".length),
-								input: part.input,
-								output: part.output,
-							},
-						]
-					: [],
-			),
-		),
-	);
+	record(storedExecutions(history));
 
 	return {
 		lines: lines as ReadonlyMap<string, string>,

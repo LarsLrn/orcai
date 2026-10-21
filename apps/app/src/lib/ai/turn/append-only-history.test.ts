@@ -212,11 +212,6 @@ const boundaries = (
 const isUserMessage = (block: Block) =>
 	block.role === "user" && block.kind !== "tool-result";
 
-const TOOL_LIST_CHANGING_TOOLS = new Set([
-	"loadTools",
-	"updatePlan",
-]);
-
 type Exception = {
 	name: string;
 	/** Marks the end of the blocks the rewrite may reach. */
@@ -256,13 +251,36 @@ const FINISHED_TURN_TOOL_CALLS: Exception = {
 			: block,
 };
 
-/** Only a load or plan approval that ran changes the list. */
-const toolListChange = (ran: ReadonlySet<string>): Exception => ({
-	name: "loading tools or approving a plan changes the tool list and drops the turn's reasoning before it",
+/** The results first sent in a request whose tool list differs from the previous one. */
+const toolListChangingResults = (requests: ModelRequest[]) =>
+	new Set(
+		requests.flatMap((request, index) => {
+			const previous = requests[index - 1];
+			if (!previous || isDeepStrictEqual(previous.tools, request.tools)) {
+				return [];
+			}
+			const sent = new Set(
+				previous.blocks
+					.filter((block) => block.kind === "tool-result")
+					.map((block) => block.toolCallId),
+			);
+			return request.blocks.flatMap((block) =>
+				block.kind === "tool-result" &&
+				block.toolCallId &&
+				!sent.has(block.toolCallId)
+					? [
+							block.toolCallId,
+						]
+					: [],
+			);
+		}),
+	);
+
+/** Only a result that came with a new tool list may drop reasoning. */
+const toolListChange = (changing: ReadonlySet<string>): Exception => ({
+	name: "a result that changes the tool list drops the turn's reasoning before it",
 	marker: (block) =>
-		block.kind === "tool-result" &&
-		TOOL_LIST_CHANGING_TOOLS.has(block.toolName ?? "") &&
-		ran.has(block.toolCallId ?? ""),
+		block.kind === "tool-result" && changing.has(block.toolCallId ?? ""),
 	compared: (block) => (block.kind === "reasoning" ? undefined : block),
 	changesTools: true,
 });
@@ -481,7 +499,8 @@ const plan = {
 
 /**
  * Finds, loads, is refused and proposes a plan; resumes once the user
- * approved it, with a call that fails; deletes, failing once approved, and
+ * approved it, with a call that fails and the step marked in progress;
+ * finds, loads the loaded group again and deletes, failing once approved, and
  * retries, which the user denies; asks a third time, which the user
  * supersedes with a new message.
  */
@@ -565,6 +584,23 @@ const assistantConversation = async (kind: ProviderKind, modelId: string) => {
 			],
 		},
 		{
+			reasoning: "Mark the step in progress.",
+			calls: [
+				{
+					name: "updatePlan",
+					input: {
+						...plan,
+						items: [
+							{
+								label: "Create the bot",
+								status: "in_progress",
+							},
+						],
+					},
+				},
+			],
+		},
+		{
 			reasoning: "It failed.",
 			text: "Creating the bot failed.",
 		},
@@ -580,6 +616,28 @@ const assistantConversation = async (kind: ProviderKind, modelId: string) => {
 		},
 	};
 	assistant.script([
+		{
+			reasoning: "Find the draft.",
+			calls: [
+				{
+					name: "findBots",
+					input: {},
+				},
+			],
+		},
+		{
+			reasoning: "Make sure the bot tools are there.",
+			calls: [
+				{
+					name: "loadTools",
+					input: {
+						groups: [
+							"bots",
+						],
+					},
+				},
+			],
+		},
 		{
 			reasoning: "Delete the draft.",
 			calls: [
@@ -728,14 +786,14 @@ describe.each([
 			finishedTurnOutputs(conversation.summarised),
 			...(loading === "active-tools"
 				? [
-						toolListChange(conversation.summarised),
+						toolListChange(toolListChangingResults(requests)),
 					]
 				: []),
 		];
 	});
 
 	test("sends each request as the previous one plus what came after it", () => {
-		expect(requests).toHaveLength(11);
+		expect(requests).toHaveLength(14);
 		expect(requests.some((request) => reasoningIn(request) > 0)).toBe(true);
 		expect(rewrites(requests, exceptions)).toEqual([]);
 	});
