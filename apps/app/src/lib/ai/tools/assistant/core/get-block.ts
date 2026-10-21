@@ -16,7 +16,7 @@ import {
 	effectTool,
 } from "../procedure-tool";
 
-export const getBlockInputSchema = z.object({
+const getBlockInputSchema = z.object({
 	id: blockIdSchema.describe(
 		"Id of the AI behaviour (template) or repository, from findBlocks or getBot.",
 	),

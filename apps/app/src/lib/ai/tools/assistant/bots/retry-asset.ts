@@ -10,7 +10,7 @@ import {
 	mutation,
 } from "../procedure-tool";
 
-export const retryAssetInputSchema = z.object({
+const retryAssetInputSchema = z.object({
 	assetId: assetIdSchema.describe("Id of the asset, from findAssets."),
 	repositoryId: blockIdSchema
 		.optional()

@@ -21,7 +21,7 @@ import {
 	wrongBlockError,
 } from "./block-outline";
 
-export const updateRepositoryInputSchema = z.object({
+const updateRepositoryInputSchema = z.object({
 	id: blockIdSchema.describe("Id of the repository to update."),
 	name: z
 		.string()

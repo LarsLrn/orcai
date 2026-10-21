@@ -13,7 +13,7 @@ import {
 	toResourceIdentity,
 } from "./resource-target";
 
-export const listAccessInputSchema = z.object(resourceTargetShape);
+const listAccessInputSchema = z.object(resourceTargetShape);
 
 export const listAccessTool = (deps: AssistantToolDeps) =>
 	effectTool({

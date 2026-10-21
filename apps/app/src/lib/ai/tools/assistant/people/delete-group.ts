@@ -6,7 +6,7 @@ import { groupProcedures } from "@/lib/orpc/router/group";
 import { deleteNamed } from "../named-delete";
 import { type AssistantToolDeps, effectTool } from "../procedure-tool";
 
-export const deleteGroupInputSchema = z.object({
+const deleteGroupInputSchema = z.object({
 	ids: z
 		.array(groupIdSchema)
 		.min(1)

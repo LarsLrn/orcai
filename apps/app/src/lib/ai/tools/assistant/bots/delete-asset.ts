@@ -4,7 +4,7 @@ import { assetProcedures } from "@/lib/orpc/router/asset";
 import { deleteNamed } from "../named-delete";
 import { type AssistantToolDeps, effectTool } from "../procedure-tool";
 
-export const deleteAssetInputSchema = z.object({
+const deleteAssetInputSchema = z.object({
 	ids: z
 		.array(assetIdSchema)
 		.min(1)
