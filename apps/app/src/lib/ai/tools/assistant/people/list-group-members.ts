@@ -1,5 +1,6 @@
 import { listGroupMembersInputSchema as groupMembersQuerySchema } from "@orcai/schema";
 import * as Effect from "effect/Effect";
+import { runAssistantTool } from "@/lib/ai/tools/tool-error";
 import { groupProcedures } from "@/lib/orpc/router/group";
 import { listLimitSchema } from "../core/list-input";
 import {
@@ -7,7 +8,6 @@ import {
 	assistantTool,
 	callProcedure,
 	expectType,
-	runAssistantTool,
 } from "../procedure-tool";
 
 export const listGroupMembersInputSchema = groupMembersQuerySchema

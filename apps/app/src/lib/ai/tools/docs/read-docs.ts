@@ -2,8 +2,10 @@ import { tool } from "ai";
 import * as Data from "effect/Data";
 import * as Effect from "effect/Effect";
 import { z } from "zod/v4";
-import { AssistantToolError } from "@/lib/ai/tools/assistant/procedure-tool";
-import { runPromise } from "@/lib/effect/runtime";
+import {
+	AssistantToolError,
+	runAssistantTool,
+} from "@/lib/ai/tools/tool-error";
 import type { DocsConfig } from "@/lib/effect/services/config";
 
 const DOCS_PATH = /^\/docs(\/[a-z0-9]+(-[a-z0-9]+)*)*$/;
@@ -19,7 +21,7 @@ export class ReadDocsError extends Data.TaggedError("ReadDocsError")<{
 
 const unavailable = () =>
 	new ReadDocsError({
-		message: "The docs are unavailable right now.",
+		message: "AI_TOOL_FAILED: The docs are unavailable right now.",
 	});
 
 /** The page path without one trailing `/` or `.md`, and the docs site path serving its Markdown. */
@@ -57,7 +59,7 @@ export const readDocs = ({
 
 		if (path !== undefined && !page) {
 			return yield* new ReadDocsError({
-				message: `${path} is not a docs page path.`,
+				message: `INVALID_TOOL_INPUT: ${path} is not a docs page path.`,
 			});
 		}
 
@@ -72,7 +74,7 @@ export const readDocs = ({
 
 		if (response.status === 404 && page) {
 			return yield* new ReadDocsError({
-				message: `No docs page at ${page.path}; read the index (call readDocs without a path) for valid paths.`,
+				message: `NOT_FOUND: No docs page at ${page.path}; read the index (call readDocs without a path) for valid paths.`,
 			});
 		}
 
@@ -125,7 +127,7 @@ export const readDocsTool = ({ docs }: { docs: DocsConfig | undefined }) =>
 				),
 		}),
 		execute: async ({ path }, { abortSignal }) =>
-			runPromise(
+			runAssistantTool(
 				(docs
 					? readDocs({
 							docs,
@@ -136,8 +138,6 @@ export const readDocsTool = ({ docs }: { docs: DocsConfig | undefined }) =>
 				).pipe(
 					Effect.mapError((error) => new AssistantToolError(error.message)),
 				),
-				{
-					signal: abortSignal,
-				},
+				abortSignal,
 			),
 	});

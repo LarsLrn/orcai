@@ -1,13 +1,13 @@
 import { organizationInvitationStatusSchema } from "@orcai/schema";
 import * as Effect from "effect/Effect";
 import { z } from "zod/v4";
+import { runAssistantTool } from "@/lib/ai/tools/tool-error";
 import { organizationInvitationProcedures } from "@/lib/orpc/router/organization-invitation";
 import { listLimitSchema } from "../core/list-input";
 import {
 	type AssistantToolDeps,
 	assistantTool,
 	callProcedure,
-	runAssistantTool,
 } from "../procedure-tool";
 
 export const listInvitationsInputSchema = z.object({

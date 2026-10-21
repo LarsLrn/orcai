@@ -1,5 +1,6 @@
 import { addGroupMembersInputSchema } from "@orcai/schema";
 import * as Effect from "effect/Effect";
+import { runAssistantTool } from "@/lib/ai/tools/tool-error";
 import { groupProcedures } from "@/lib/orpc/router/group";
 import {
 	type AssistantToolDeps,
@@ -7,7 +8,6 @@ import {
 	callProcedure,
 	expectType,
 	mutation,
-	runAssistantTool,
 } from "../procedure-tool";
 
 export const addGroupMembersTool = (deps: AssistantToolDeps) =>

@@ -1,6 +1,6 @@
 import { describe, expect, test } from "bun:test";
 import { InvalidToolInputError, NoSuchToolError } from "ai";
-import { AssistantToolError } from "@/lib/ai/tools/assistant/procedure-tool";
+import { AssistantToolError } from "@/lib/ai/tools/tool-error";
 import { streamErrorText } from "./stream-error-text";
 
 const invalidInput = new InvalidToolInputError({

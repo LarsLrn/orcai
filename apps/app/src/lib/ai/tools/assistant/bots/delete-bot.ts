@@ -1,12 +1,9 @@
 import { botIdSchema } from "@orcai/schema";
 import { z } from "zod/v4";
+import { runAssistantTool } from "@/lib/ai/tools/tool-error";
 import { botProcedures } from "@/lib/orpc/router/bot";
 import { deleteNamed } from "../named-delete";
-import {
-	type AssistantToolDeps,
-	assistantTool,
-	runAssistantTool,
-} from "../procedure-tool";
+import { type AssistantToolDeps, assistantTool } from "../procedure-tool";
 
 export const deleteBotInputSchema = z.object({
 	ids: z

@@ -2,6 +2,7 @@ import type { OrganizationInvitationId } from "@orcai/core";
 import { organizationInvitationIdSchema } from "@orcai/schema";
 import * as Effect from "effect/Effect";
 import { z } from "zod/v4";
+import { runAssistantTool } from "@/lib/ai/tools/tool-error";
 import { organizationInvitationProcedures } from "@/lib/orpc/router/organization-invitation";
 import {
 	type AssistantToolDeps,
@@ -9,7 +10,6 @@ import {
 	callProcedure,
 	expectType,
 	mutation,
-	runAssistantTool,
 } from "../procedure-tool";
 
 export const cancelInvitationInputSchema = z.object({

@@ -1,5 +1,6 @@
 import { organizationMemberSchema } from "@orcai/schema";
 import * as Effect from "effect/Effect";
+import { runAssistantTool } from "@/lib/ai/tools/tool-error";
 import { organizationMemberProcedures } from "@/lib/orpc/router/organization-member";
 import {
 	type AssistantToolDeps,
@@ -7,7 +8,6 @@ import {
 	callProcedure,
 	expectType,
 	mutation,
-	runAssistantTool,
 } from "../procedure-tool";
 
 export const changeMemberRoleInputSchema = organizationMemberSchema

@@ -276,7 +276,7 @@ test("assistant: an unknown docs page is a tool error the turn answers past", as
 	const requests = turnRequests(inference);
 	expect(requests).toHaveLength(2);
 	expect(toolResultsOf(requests[1]).join("\n")).toContain(
-		"No docs page at /docs/missing; read the index (call readDocs without a path) for valid paths.",
+		"NOT_FOUND: No docs page at /docs/missing; read the index (call readDocs without a path) for valid paths.",
 	);
 });
 
