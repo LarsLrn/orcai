@@ -1,5 +1,8 @@
 import { type ModelMessage, pruneMessages } from "ai";
-import { dropEarlierReasoning } from "@/lib/ai/agents/turn-history";
+import {
+	currentTurnStart,
+	dropEarlierReasoning,
+} from "@/lib/ai/agents/turn-history";
 
 export interface ToolHistoryPruningOptions {
 	/** Every display tool name, enabled or not. */
@@ -91,31 +94,17 @@ export const pruneToolHistory = (
 	});
 };
 
-export const applyToolHistoryPruning = <
-	T extends {
-		messages?: ModelMessage[];
-		prompt?: string | ModelMessage[];
-	},
->(
-	settings: T,
+/**
+ * Prunes the finished turns and drops their reasoning; the turn in progress
+ * stays as sent, so every step of a turn gets the same result.
+ */
+export const pruneChatHistory = (
+	messages: ModelMessage[],
 	options: ToolHistoryPruningOptions,
-): T => {
-	const prune = (messages: ModelMessage[]) =>
-		dropEarlierReasoning(pruneToolHistory(messages, options));
-
-	if (settings.messages) {
-		return {
-			...settings,
-			messages: prune(settings.messages),
-		};
-	}
-
-	if (Array.isArray(settings.prompt)) {
-		return {
-			...settings,
-			prompt: prune(settings.prompt),
-		};
-	}
-
-	return settings;
+): ModelMessage[] => {
+	const turnStart = currentTurnStart(messages);
+	return dropEarlierReasoning([
+		...pruneToolHistory(messages.slice(0, turnStart), options),
+		...messages.slice(turnStart),
+	]);
 };

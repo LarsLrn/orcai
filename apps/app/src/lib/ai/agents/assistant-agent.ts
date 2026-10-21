@@ -15,15 +15,8 @@ import {
 	createToolLines,
 	type StoredMessage,
 } from "@/lib/ai/agents/assistant-tool-lines";
-import {
-	finalStepSettings,
-	stepBudgetOptionsSchema,
-} from "@/lib/ai/agents/step-budget";
-import {
-	stepFailures,
-	type ToolFailure,
-	withStoredToolFailures,
-} from "@/lib/ai/agents/turn-history";
+import { stepBudgetOptionsSchema } from "@/lib/ai/agents/step-budget";
+import { createStepShaper } from "@/lib/ai/agents/step-request";
 import type { ResolvedFeature } from "@/lib/ai/features/resolve-features";
 import { offeredToolGroups } from "@/lib/ai/tools/assistant/groups";
 import type { AssistantToolDeps } from "@/lib/ai/tools/assistant/procedure-tool";
@@ -94,8 +87,16 @@ export const createAssistantAgent = (
 		Object.hasOwn(featureTools, name),
 	);
 	const toolLines = createToolLines(params.history);
-	// Calls approved in an earlier request fail before the first step, outside every step's content.
-	const executionFailures: ToolFailure[] = [];
+	const steps = createStepShaper({
+		providerKind: params.model.kind,
+		prune: (messages) =>
+			pruneAssistantHistory(messages, {
+				lines: toolLines.lines,
+				displayToolNames: GEN_UI_TOOL_NAMES,
+				enabledDisplayToolNames,
+				toolListChanges: session.toolListChanges,
+			}),
+	});
 
 	return new ToolLoopAgent({
 		model: params.model.language,
@@ -103,47 +104,30 @@ export const createAssistantAgent = (
 		toolApproval: session.toolApproval,
 		...aiTelemetry("assistant.agent", params.telemetryIds),
 		callOptionsSchema: stepBudgetOptionsSchema,
-		prepareCall: ({ options, ...settings }) => ({
-			...settings,
-			...params.callSettings,
-			instructions: buildSystemInstructions(
-				params.model.kind,
-				buildAssistantSystemPrompt({
-					docs: params.docs,
-					userContext: params.userContext,
-					featurePrompts: params.features.map(({ entry }) => entry.prompt),
-					toolGroups,
-				}),
-			),
-			stopWhen: isStepCount(options.maxSteps),
-			prepareStep: ({ stepNumber, messages, steps }) => {
-				const sentMessages = withStoredToolFailures(messages, [
-					...executionFailures,
-					...stepFailures(steps),
-				]);
-				const prunedMessages = pruneAssistantHistory(sentMessages, {
-					lines: toolLines.lines,
-					displayToolNames: GEN_UI_TOOL_NAMES,
-					enabledDisplayToolNames,
-					toolListChanges: session.toolListChanges,
-				});
-				return {
-					messages: prunedMessages,
-					activeTools: activeToolNames(),
-					...finalStepSettings({
-						stepNumber,
-						maxSteps: options.maxSteps,
-						messages: prunedMessages,
-						providerKind: params.model.kind,
+		prepareCall: ({ options, ...settings }) => {
+			const shapeStep = steps.prepareStep(options.maxSteps);
+			return {
+				...settings,
+				...params.callSettings,
+				instructions: buildSystemInstructions(
+					params.model.kind,
+					buildAssistantSystemPrompt({
+						docs: params.docs,
+						userContext: params.userContext,
+						featurePrompts: params.features.map(({ entry }) => entry.prompt),
+						toolGroups,
 					}),
-				};
-			},
-		}),
+				),
+				stopWhen: isStepCount(options.maxSteps),
+				prepareStep: (step) => ({
+					...shapeStep(step),
+					activeTools: activeToolNames(),
+				}),
+			};
+		},
 		// Also sees tools approved in an earlier request, which run before the first step.
 		onToolExecutionEnd: ({ toolOutput }) => {
-			if (toolOutput.type === "tool-error") {
-				executionFailures.push(toolOutput);
-			}
+			steps.recordExecution(toolOutput);
 			if (toolOutput.type === "tool-result") {
 				toolLines.record([
 					toolOutput,

@@ -83,5 +83,3 @@ export const buildAssistantTools = ({
 	listInvitations: listInvitationsTool(deps),
 	cancelInvitation: cancelInvitationTool(deps),
 });
-
-export type AssistantTools = ReturnType<typeof buildAssistantTools>;
