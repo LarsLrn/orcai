@@ -336,11 +336,7 @@ const discoverModels = authed.model.discover
 			.pipe(
 				Effect.mapError((cause) => {
 					if (cause instanceof ORPCError && cause.code === "FORBIDDEN") {
-						return new AppErrors.ForbiddenError({
-							reason: "PERMISSION_DENIED",
-							message: "Failed to find provider",
-							cause,
-						});
+						return cause;
 					}
 
 					if (cause instanceof ORPCError && cause.code === "NOT_FOUND") {
