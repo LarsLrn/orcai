@@ -1,4 +1,3 @@
-import { useQueryClient } from "@tanstack/react-query";
 import { useRouter } from "@tanstack/react-router";
 import { useMutationAction } from "@/hooks/actions/use-mutation-action";
 import {
@@ -16,17 +15,12 @@ export const useCreateBlockMutation = (
 	opts: ReturnType<typeof orpc.block.create.mutationOptions> = {},
 ) => {
 	const router = useRouter();
-	const queryClient = useQueryClient();
 
 	return useMutationAction({
 		mutationOptions: () => {
 			return orpc.block.create.mutationOptions({
 				...opts,
 				onSuccess: async (result, ...args) => {
-					queryClient.invalidateQueries({
-						queryKey: orpc.block.key(),
-					});
-
 					await router.navigate({
 						to: "/app/hub/blocks/$blockId",
 						params: {
@@ -35,14 +29,7 @@ export const useCreateBlockMutation = (
 						ignoreBlocker: true,
 					});
 
-					try {
-						await opts.onSuccess?.(result, ...args);
-					} catch (error) {
-						console.error(
-							"useCreateBlockMutation onSuccess callback failed:",
-							error,
-						);
-					}
+					await opts.onSuccess?.(result, ...args);
 				},
 			});
 		},
@@ -57,27 +44,8 @@ export const useCreateBlockMutation = (
 export const useUpdateBlockMutation = (
 	opts: ReturnType<typeof orpc.block.update.mutationOptions> = {},
 ) => {
-	const queryClient = useQueryClient();
-
 	return useMutationAction({
-		mutationOptions: () =>
-			orpc.block.update.mutationOptions({
-				...opts,
-				onSuccess: async (...args) => {
-					queryClient.invalidateQueries({
-						queryKey: orpc.block.key(),
-					});
-
-					try {
-						await opts.onSuccess?.(...args);
-					} catch (error) {
-						console.error(
-							"useUpdateBlockMutation onSuccess callback failed:",
-							error,
-						);
-					}
-				},
-			}),
+		mutationOptions: () => orpc.block.update.mutationOptions(opts),
 		messages: {
 			loading: () => m.blocks_update_toast_loading(),
 			success: () => m.blocks_update_toast_success(),
@@ -90,27 +58,8 @@ export const useDeleteBlocksMutation = (
 	opts: ReturnType<typeof orpc.block.delete.mutationOptions> = {},
 	target?: BlockDeleteTarget,
 ) => {
-	const queryClient = useQueryClient();
-
 	return useMutationAction({
-		mutationOptions: () =>
-			orpc.block.delete.mutationOptions({
-				...opts,
-				onSuccess: async (...args) => {
-					queryClient.invalidateQueries({
-						queryKey: orpc.block.key(),
-					});
-
-					try {
-						await opts.onSuccess?.(...args);
-					} catch (error) {
-						console.error(
-							"useDeleteBlocksMutation onSuccess callback failed:",
-							error,
-						);
-					}
-				},
-			}),
+		mutationOptions: () => orpc.block.delete.mutationOptions(opts),
 		messages: {
 			loading: ({ input }) =>
 				m.blocks_delete_toast_loading({
@@ -159,27 +108,8 @@ export const useDeleteBlocksMutation = (
 export const useSetBlockStatusMutation = (
 	opts: ReturnType<typeof orpc.block.update.mutationOptions> = {},
 ) => {
-	const queryClient = useQueryClient();
-
 	return useMutationAction({
-		mutationOptions: () =>
-			orpc.block.update.mutationOptions({
-				...opts,
-				onSuccess: async (...args) => {
-					queryClient.invalidateQueries({
-						queryKey: orpc.block.key(),
-					});
-
-					try {
-						await opts.onSuccess?.(...args);
-					} catch (error) {
-						console.error(
-							"useSetBlockStatusMutation onSuccess callback failed:",
-							error,
-						);
-					}
-				},
-			}),
+		mutationOptions: () => orpc.block.update.mutationOptions(opts),
 		messages: {
 			loading: () => m.blocks_status_toast_loading(),
 			success: ({ input }) =>
@@ -194,27 +124,8 @@ export const useSetBlockStatusMutation = (
 export const useCreateBlockInlineMutation = (
 	opts: ReturnType<typeof orpc.block.create.mutationOptions> = {},
 ) => {
-	const queryClient = useQueryClient();
-
 	return useMutationAction({
-		mutationOptions: () =>
-			orpc.block.create.mutationOptions({
-				...opts,
-				onSuccess: async (...args) => {
-					queryClient.invalidateQueries({
-						queryKey: orpc.block.key(),
-					});
-
-					try {
-						await opts.onSuccess?.(...args);
-					} catch (error) {
-						console.error(
-							"useCreateBlockInlineMutation onSuccess callback failed:",
-							error,
-						);
-					}
-				},
-			}),
+		mutationOptions: () => orpc.block.create.mutationOptions(opts),
 		messages: {
 			loading: () => m.blocks_create_inline_toast_loading(),
 			success: () => m.blocks_create_inline_toast_success(),
@@ -226,27 +137,8 @@ export const useCreateBlockInlineMutation = (
 export const useUpdateBlockInlineMutation = (
 	opts: ReturnType<typeof orpc.block.update.mutationOptions> = {},
 ) => {
-	const queryClient = useQueryClient();
-
 	return useMutationAction({
-		mutationOptions: () =>
-			orpc.block.update.mutationOptions({
-				...opts,
-				onSuccess: async (...args) => {
-					queryClient.invalidateQueries({
-						queryKey: orpc.block.key(),
-					});
-
-					try {
-						await opts.onSuccess?.(...args);
-					} catch (error) {
-						console.error(
-							"useUpdateBlockInlineMutation onSuccess callback failed:",
-							error,
-						);
-					}
-				},
-			}),
+		mutationOptions: () => orpc.block.update.mutationOptions(opts),
 		messages: {
 			loading: () => m.blocks_update_inline_toast_loading(),
 			success: () => m.blocks_update_inline_toast_success(),

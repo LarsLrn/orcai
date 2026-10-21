@@ -1,6 +1,4 @@
-import type { GroupId } from "@orcai/core";
 import type { listGroupCandidatesResponseSchema } from "@orcai/schema";
-import type { QueryClient } from "@tanstack/react-query";
 import { useQueryClient } from "@tanstack/react-query";
 import type { z } from "zod/v4";
 import { useMutationAction } from "@/hooks/actions/use-mutation-action";
@@ -13,50 +11,11 @@ import { m } from "@/paraglide/messages";
 
 type GroupCandidates = z.infer<typeof listGroupCandidatesResponseSchema>;
 
-const invalidateGroupMembership = (
-	queryClient: QueryClient,
-	groupId: GroupId,
-) => {
-	queryClient.invalidateQueries({
-		queryKey: orpc.group.listMembers.key({
-			input: {
-				groupId,
-			},
-		}),
-	});
-	queryClient.invalidateQueries({
-		queryKey: orpc.group.listCandidates.key({
-			input: {
-				groupId,
-			},
-		}),
-	});
-};
-
 export const useCreateGroupMutation = (
 	opts: ReturnType<typeof orpc.group.create.mutationOptions> = {},
 ) => {
-	const queryClient = useQueryClient();
-
 	return useMutationAction({
-		mutationOptions: () =>
-			orpc.group.create.mutationOptions({
-				...opts,
-				onSuccess: async (...args) => {
-					queryClient.invalidateQueries({
-						queryKey: orpc.group.key(),
-					});
-
-					try {
-						await opts.onSuccess?.(...args);
-					} catch (error) {
-						console.error(
-							"useCreateGroupMutation onSuccess callback failed:",
-							error,
-						);
-					}
-				},
-			}),
+		mutationOptions: () => orpc.group.create.mutationOptions(opts),
 		messages: {
 			loading: m.groups_create_toast_loading(),
 			success: m.groups_create_toast_success(),
@@ -68,27 +27,8 @@ export const useCreateGroupMutation = (
 export const useUpdateGroupMutation = (
 	opts: ReturnType<typeof orpc.group.update.mutationOptions> = {},
 ) => {
-	const queryClient = useQueryClient();
-
 	return useMutationAction({
-		mutationOptions: () =>
-			orpc.group.update.mutationOptions({
-				...opts,
-				onSuccess: async (...args) => {
-					queryClient.invalidateQueries({
-						queryKey: orpc.group.key(),
-					});
-
-					try {
-						await opts.onSuccess?.(...args);
-					} catch (error) {
-						console.error(
-							"useUpdateGroupMutation onSuccess callback failed:",
-							error,
-						);
-					}
-				},
-			}),
+		mutationOptions: () => orpc.group.update.mutationOptions(opts),
 		messages: {
 			loading: m.groups_update_toast_loading(),
 			success: m.groups_update_toast_success(),
@@ -101,27 +41,8 @@ export const useDeleteGroupsMutation = (
 	opts: ReturnType<typeof orpc.group.delete.mutationOptions> = {},
 	target?: DestructiveTarget,
 ) => {
-	const queryClient = useQueryClient();
-
 	return useMutationAction({
-		mutationOptions: () =>
-			orpc.group.delete.mutationOptions({
-				...opts,
-				onSuccess: async (...args) => {
-					queryClient.invalidateQueries({
-						queryKey: orpc.group.key(),
-					});
-
-					try {
-						await opts.onSuccess?.(...args);
-					} catch (error) {
-						console.error(
-							"useDeleteGroupsMutation onSuccess callback failed:",
-							error,
-						);
-					}
-				},
-			}),
+		mutationOptions: () => orpc.group.delete.mutationOptions(opts),
 		messages: {
 			loading: ({ input }) =>
 				m.groups_delete_toast_loading({
@@ -158,16 +79,16 @@ export const useDeleteGroupsMutation = (
 	});
 };
 
-export const useAddGroupMembersMutation = (groupId: GroupId) => {
+export const useAddGroupMembersMutation = () => {
 	const queryClient = useQueryClient();
 
 	return useMutationAction({
 		mutationOptions: () =>
 			orpc.group.addMembers.mutationOptions({
-				onSuccess: (_data, input) => {
+				onSuccess: (_data, { groupId, userIds }) => {
 					// Added users leave the picker at once rather than when its
 					// refetch lands.
-					const added = new Set(input.userIds);
+					const added = new Set(userIds);
 
 					queryClient.setQueriesData<GroupCandidates>(
 						{
@@ -194,7 +115,6 @@ export const useAddGroupMembersMutation = (groupId: GroupId) => {
 							};
 						},
 					);
-					invalidateGroupMembership(queryClient, groupId);
 				},
 			}),
 		messages: {
@@ -205,16 +125,9 @@ export const useAddGroupMembersMutation = (groupId: GroupId) => {
 	});
 };
 
-export const useRemoveGroupMembersMutation = (groupId: GroupId) => {
-	const queryClient = useQueryClient();
-
-	return useMutationAction({
-		mutationOptions: () =>
-			orpc.group.removeMembers.mutationOptions({
-				onSuccess: () => {
-					invalidateGroupMembership(queryClient, groupId);
-				},
-			}),
+export const useRemoveGroupMembersMutation = () =>
+	useMutationAction({
+		mutationOptions: () => orpc.group.removeMembers.mutationOptions(),
 		messages: {
 			loading: m.groups_members_remove_toast_loading(),
 			success: m.groups_members_remove_toast_success(),
@@ -235,4 +148,3 @@ export const useRemoveGroupMembersMutation = (groupId: GroupId) => {
 			};
 		},
 	});
-};

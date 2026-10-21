@@ -1,4 +1,3 @@
-import { useQueryClient } from "@tanstack/react-query";
 import { useRouter } from "@tanstack/react-router";
 import { useMutationAction } from "@/hooks/actions/use-mutation-action";
 import {
@@ -11,27 +10,8 @@ import { m } from "@/paraglide/messages";
 export const useSaveBotMutation = (
 	opts: ReturnType<typeof orpc.bot.save.mutationOptions> = {},
 ) => {
-	const queryClient = useQueryClient();
-
 	return useMutationAction({
-		mutationOptions: () =>
-			orpc.bot.save.mutationOptions({
-				...opts,
-				onSuccess: async (...args) => {
-					queryClient.invalidateQueries({
-						queryKey: orpc.bot.key(),
-					});
-
-					try {
-						await opts.onSuccess?.(...args);
-					} catch (error) {
-						console.error(
-							"useSaveBotMutation onSuccess callback failed:",
-							error,
-						);
-					}
-				},
-			}),
+		mutationOptions: () => orpc.bot.save.mutationOptions(opts),
 		messages: {
 			loading: () => m.bots_save_toast_loading(),
 			success: () => m.bots_save_toast_success(),
@@ -44,17 +24,12 @@ export const usePublishBotMutation = (
 	opts: ReturnType<typeof orpc.bot.publish.mutationOptions> = {},
 ) => {
 	const router = useRouter();
-	const queryClient = useQueryClient();
 
 	return useMutationAction({
 		mutationOptions: () =>
 			orpc.bot.publish.mutationOptions({
 				...opts,
 				onSuccess: async (result, ...args) => {
-					queryClient.invalidateQueries({
-						queryKey: orpc.bot.key(),
-					});
-
 					await router.navigate({
 						to: "/app/hub/bots/$botId",
 						params: {
@@ -63,14 +38,7 @@ export const usePublishBotMutation = (
 						ignoreBlocker: true,
 					});
 
-					try {
-						await opts.onSuccess?.(result, ...args);
-					} catch (error) {
-						console.error(
-							"usePublishBotMutation onSuccess callback failed:",
-							error,
-						);
-					}
+					await opts.onSuccess?.(result, ...args);
 				},
 			}),
 		messages: {
@@ -85,27 +53,8 @@ export const useDeleteBotsMutation = (
 	opts: ReturnType<typeof orpc.bot.delete.mutationOptions> = {},
 	target?: DestructiveTarget,
 ) => {
-	const queryClient = useQueryClient();
-
 	return useMutationAction({
-		mutationOptions: () =>
-			orpc.bot.delete.mutationOptions({
-				...opts,
-				onSuccess: async (...args) => {
-					queryClient.invalidateQueries({
-						queryKey: orpc.bot.key(),
-					});
-
-					try {
-						await opts.onSuccess?.(...args);
-					} catch (error) {
-						console.error(
-							"useDeleteBotsMutation onSuccess callback failed:",
-							error,
-						);
-					}
-				},
-			}),
+		mutationOptions: () => orpc.bot.delete.mutationOptions(opts),
 		messages: {
 			loading: ({ input }) =>
 				m.bots_delete_toast_loading({

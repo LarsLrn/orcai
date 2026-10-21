@@ -4,7 +4,6 @@ import type {
 	ResourcePrincipalIdentity,
 	ResourceRef,
 } from "@orcai/schema";
-import type { QueryClient } from "@tanstack/react-query";
 import {
 	skipToken,
 	useMutation,
@@ -13,7 +12,7 @@ import {
 } from "@tanstack/react-query";
 import { toast } from "sonner";
 import { useMutationAction } from "@/hooks/actions/use-mutation-action";
-import { client, orpc } from "@/lib/orpc/orpc";
+import { orpc } from "@/lib/orpc/orpc";
 import { formatList } from "@/lib/presentation/format-list";
 import { m } from "@/paraglide/messages";
 
@@ -42,31 +41,12 @@ const getGrantsOptions = (resourceRef: ResourceRef) =>
 		input: getResourceInput(resourceRef),
 	});
 
-const invalidateResourceAccess = (
-	queryClient: QueryClient,
-	resourceRef: ResourceRef,
-) => {
-	queryClient.invalidateQueries({
-		queryKey: getGrantsOptions(resourceRef).queryKey,
-	});
-	queryClient.invalidateQueries({
-		queryKey: orpc.resource.listPrincipals.key({
-			input: getResourceInput(resourceRef),
-		}),
-	});
-};
-
 export const useInheritedAccess = (resourceRef: ResourceRef) =>
 	useQuery(
 		orpc.resource.inheritedAccess.queryOptions({
 			input: getResourceInput(resourceRef),
 		}),
 	);
-
-const getVisibilityOptions = (resourceRef: ResourceRef) =>
-	orpc.resource.getVisibility.queryOptions({
-		input: getResourceInput(resourceRef),
-	});
 
 export const useResourceGrants = (
 	resourceRef: ResourceRef | undefined,
@@ -114,34 +94,19 @@ export const useResourceVisibility = (
 		}),
 	);
 
-export const useGrantResourceAccess = (resourceRef: ResourceRef) => {
-	const queryClient = useQueryClient();
-
-	return useMutationAction({
-		mutationOptions: () =>
-			orpc.resource.grant.mutationOptions({
-				onSuccess: () => {
-					invalidateResourceAccess(queryClient, resourceRef);
-				},
-			}),
+export const useGrantResourceAccess = () =>
+	useMutationAction({
+		mutationOptions: () => orpc.resource.grant.mutationOptions(),
 		messages: {
 			loading: m.access_grant_toast_loading(),
 			success: m.access_grant_toast_success(),
 			error: m.access_grant_toast_error(),
 		},
 	});
-};
 
-export const useRevokeResourceAccess = (resourceRef: ResourceRef) => {
-	const queryClient = useQueryClient();
-
-	return useMutationAction({
-		mutationOptions: () =>
-			orpc.resource.revoke.mutationOptions({
-				onSuccess: () => {
-					invalidateResourceAccess(queryClient, resourceRef);
-				},
-			}),
+export const useRevokeResourceAccess = () =>
+	useMutationAction({
+		mutationOptions: () => orpc.resource.revoke.mutationOptions(),
 		messages: {
 			loading: m.access_revoke_toast_loading(),
 			success: m.access_revoke_toast_success(),
@@ -154,21 +119,10 @@ export const useRevokeResourceAccess = (resourceRef: ResourceRef) => {
 			cancelText: m.common_cancel_button(),
 		},
 	});
-};
 
-export const useSetResourceVisibility = (resourceRef: ResourceRef) => {
-	const queryClient = useQueryClient();
-	const visibilityOptions = getVisibilityOptions(resourceRef);
-
-	return useMutationAction({
-		mutationOptions: () =>
-			orpc.resource.setVisibility.mutationOptions({
-				onSuccess: () => {
-					queryClient.invalidateQueries({
-						queryKey: visibilityOptions.queryKey,
-					});
-				},
-			}),
+export const useSetResourceVisibility = () =>
+	useMutationAction({
+		mutationOptions: () => orpc.resource.setVisibility.mutationOptions(),
 		messages: {
 			loading: m.access_visibility_toast_loading(),
 			success: ({ input }) =>
@@ -192,7 +146,6 @@ export const useSetResourceVisibility = (resourceRef: ResourceRef) => {
 						cancelText: m.common_cancel_button(),
 					},
 	});
-};
 
 const principalKey = (principal: {
 	principalType: PrincipalType;
@@ -206,6 +159,9 @@ const principalKey = (principal: {
  */
 export const useGrantBlockEdit = () => {
 	const queryClient = useQueryClient();
+	const { mutateAsync: grant } = useMutation(
+		orpc.resource.grant.mutationOptions(),
+	);
 
 	return useMutation({
 		mutationFn: async ({
@@ -243,13 +199,12 @@ export const useGrantBlockEdit = () => {
 						return;
 					}
 
-					await client.resource.grant({
+					await grant({
 						resourceType: "block",
 						resourceId: block.id,
 						principals: missing,
 						role: "editor",
 					});
-					invalidateResourceAccess(queryClient, resourceRef);
 				}),
 			);
 

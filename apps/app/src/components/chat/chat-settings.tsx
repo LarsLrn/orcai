@@ -37,7 +37,7 @@ import { useAppForm } from "@/hooks/form";
 import { useUpdateChatMutation } from "@/hooks/mutations/use-chat-mutation";
 import { reasonMessageOf } from "@/lib/errors/describe-error";
 import { reasonMessage } from "@/lib/errors/reason-messages";
-import { client, orpc } from "@/lib/orpc/orpc";
+import { orpc } from "@/lib/orpc/orpc";
 import { formatCount } from "@/lib/presentation/format-number";
 import { m } from "@/paraglide/messages";
 
@@ -360,8 +360,6 @@ const ChatBlocksEditor = ({
 }) => {
 	const [isTemplatePickerOpen, setIsTemplatePickerOpen] = useState(false);
 	const [isDatabasePickerOpen, setIsDatabasePickerOpen] = useState(false);
-	const queryClient = useQueryClient();
-
 	const { data: attachedBlocks } = useQuery(
 		orpc.chatBlock.list.queryOptions({
 			input: {
@@ -371,51 +369,23 @@ const ChatBlocksEditor = ({
 		}),
 	);
 
-	const attachMutation = useMutation({
-		mutationFn: (blockId: string) =>
-			client.chatBlock.attach({
-				chatId,
-				blockId,
-				zedToken,
-			}),
-		onSuccess: () => {
-			queryClient.invalidateQueries({
-				queryKey: orpc.chatBlock.list.key({
-					input: {
-						chatId,
-						zedToken,
-					},
-				}),
-			});
-		},
-		onError: (error) => {
-			toast.error(m.chat_settings_block_attach_failed_toast_error(), {
-				description: reasonMessageOf(error),
-			});
-		},
-	});
+	const attachMutation = useMutation(
+		orpc.chatBlock.attach.mutationOptions({
+			onError: (error) => {
+				toast.error(m.chat_settings_block_attach_failed_toast_error(), {
+					description: reasonMessageOf(error),
+				});
+			},
+		}),
+	);
 
-	const detachMutation = useMutation({
-		mutationFn: (blockId: string) =>
-			client.chatBlock.detach({
-				chatId,
-				blockId,
-				zedToken,
-			}),
-		onSuccess: () => {
-			queryClient.invalidateQueries({
-				queryKey: orpc.chatBlock.list.key({
-					input: {
-						chatId,
-						zedToken,
-					},
-				}),
-			});
-		},
-		onError: () => {
-			toast.error(m.chat_settings_block_detach_failed_toast_error());
-		},
-	});
+	const detachMutation = useMutation(
+		orpc.chatBlock.detach.mutationOptions({
+			onError: () => {
+				toast.error(m.chat_settings_block_detach_failed_toast_error());
+			},
+		}),
+	);
 
 	const attached = attachedBlocks?.data ?? [];
 	const attachedTemplateBlock = attached.find(
@@ -482,13 +452,20 @@ const ChatBlocksEditor = ({
 						size="icon"
 						className="shrink-0"
 						loading={
-							detachMutation.isPending && detachMutation.variables === block.id
+							detachMutation.isPending &&
+							detachMutation.variables.blockId === block.id
 						}
 						disabled={detachMutation.isPending}
 						aria-label={m.chat_settings_attached_block_remove_aria_label({
 							name: block.name,
 						})}
-						onClick={() => detachMutation.mutate(block.id)}
+						onClick={() =>
+							detachMutation.mutate({
+								chatId,
+								blockId: block.id,
+								zedToken,
+							})
+						}
 					>
 						<XIcon className="size-4" aria-hidden="true" />
 					</Button>
@@ -501,7 +478,11 @@ const ChatBlocksEditor = ({
 				type="template"
 				selectedIds={attachedTemplateIds}
 				onSelect={async (block) => {
-					await attachMutation.mutateAsync(block.id);
+					await attachMutation.mutateAsync({
+						chatId,
+						blockId: block.id,
+						zedToken,
+					});
 				}}
 				title={m.chat_settings_behaviour_dialog_title()}
 				description={m.chat_settings_behaviour_dialog_description()}
@@ -512,7 +493,11 @@ const ChatBlocksEditor = ({
 				type="database"
 				selectedIds={attachedDatabaseIds}
 				onSelect={async (block) => {
-					await attachMutation.mutateAsync(block.id);
+					await attachMutation.mutateAsync({
+						chatId,
+						blockId: block.id,
+						zedToken,
+					});
 				}}
 				title={m.chat_settings_repository_dialog_title()}
 				description={m.chat_settings_repository_dialog_description()}
@@ -531,11 +516,17 @@ const ChatFeaturesEditor = ({
 	const queryClient = useQueryClient();
 	const updateMutation = useMutation(
 		orpc.chat.update.mutationOptions({
-			// Returning the refetch keeps the switch on its new value until the chat reloads.
+			// Waiting for the chat's refetch keeps the switch on its new value until it lands.
 			onSuccess: () =>
-				queryClient.invalidateQueries({
-					queryKey: orpc.chat.key(),
-				}),
+				queryClient.refetchQueries(
+					{
+						queryKey: orpc.chat.find.key(),
+						type: "active",
+					},
+					{
+						cancelRefetch: false,
+					},
+				),
 			onError: (error) => {
 				toast.error(m.chat_settings_feature_update_failed_toast_error(), {
 					description: reasonMessageOf(error),

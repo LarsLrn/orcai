@@ -78,10 +78,10 @@ const AccessManagerContent = ({
 	const inherited = useInheritedAccess(resourceRef);
 	const visibility = useResourceVisibility(resourceRef);
 
-	const grantAccess = useGrantResourceAccess(resourceRef);
-	const changeGrantRole = useGrantResourceAccess(resourceRef);
-	const revokeAccess = useRevokeResourceAccess(resourceRef);
-	const setVisibility = useSetResourceVisibility(resourceRef);
+	const grantAccess = useGrantResourceAccess();
+	const changeGrantRole = useGrantResourceAccess();
+	const revokeAccess = useRevokeResourceAccess();
+	const setVisibility = useSetResourceVisibility();
 	const grantBlockEdit = useGrantBlockEdit();
 
 	const isGranting = grantAccess.isPending || grantBlockEdit.isPending;

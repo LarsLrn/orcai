@@ -36,8 +36,8 @@ const GroupMembersContent = ({ group }: { group: Group }) => {
 			},
 		}),
 	);
-	const addMembers = useAddGroupMembersMutation(groupId);
-	const removeMembers = useRemoveGroupMembersMutation(groupId);
+	const addMembers = useAddGroupMembersMutation();
+	const removeMembers = useRemoveGroupMembersMutation();
 
 	const isSystemGroup = group.kind === "system";
 	const isMutating = addMembers.isPending || removeMembers.isPending;

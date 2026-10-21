@@ -1,4 +1,3 @@
-import { useQueryClient } from "@tanstack/react-query";
 import { useMutationAction } from "@/hooks/actions/use-mutation-action";
 import {
 	type DestructiveTarget,
@@ -10,30 +9,8 @@ import { m } from "@/paraglide/messages";
 export const useUpdateChatMutation = (
 	opts: ReturnType<typeof orpc.chat.update.mutationOptions> = {},
 ) => {
-	const queryClient = useQueryClient();
-
 	return useMutationAction({
-		mutationOptions: () =>
-			orpc.chat.update.mutationOptions({
-				...opts,
-				onSuccess: async (...args) => {
-					queryClient.invalidateQueries({
-						queryKey: orpc.chat.key(),
-					});
-					queryClient.invalidateQueries({
-						queryKey: orpc.assistant.key(),
-					});
-
-					try {
-						await opts.onSuccess?.(...args);
-					} catch (error) {
-						console.error(
-							"useUpdateChatMutation onSuccess callback failed:",
-							error,
-						);
-					}
-				},
-			}),
+		mutationOptions: () => orpc.chat.update.mutationOptions(opts),
 		messages: {
 			loading: m.chat_update_toast_loading(),
 			success: m.chat_update_toast_success(),
@@ -46,30 +23,8 @@ export const useDeleteChatsMutation = (
 	opts: ReturnType<typeof orpc.chat.delete.mutationOptions> = {},
 	target?: DestructiveTarget,
 ) => {
-	const queryClient = useQueryClient();
-
 	return useMutationAction({
-		mutationOptions: () =>
-			orpc.chat.delete.mutationOptions({
-				...opts,
-				onSuccess: async (...args) => {
-					queryClient.invalidateQueries({
-						queryKey: orpc.chat.key(),
-					});
-					queryClient.invalidateQueries({
-						queryKey: orpc.assistant.key(),
-					});
-
-					try {
-						await opts.onSuccess?.(...args);
-					} catch (error) {
-						console.error(
-							"useDeleteChatsMutation onSuccess callback failed:",
-							error,
-						);
-					}
-				},
-			}),
+		mutationOptions: () => orpc.chat.delete.mutationOptions(opts),
 		messages: {
 			loading: ({ input }) =>
 				m.chat_delete_toast_loading({

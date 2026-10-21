@@ -1,5 +1,5 @@
 import type { ChatId } from "@orcai/core";
-import { skipToken, useQuery, useQueryClient } from "@tanstack/react-query";
+import { skipToken, useMutation, useQuery } from "@tanstack/react-query";
 import { useCallback, useState } from "react";
 import { toast } from "sonner";
 import {
@@ -7,7 +7,7 @@ import {
 	useAssistantModel,
 } from "@/components/assistant/use-assistant-model";
 import { reasonMessageOf } from "@/lib/errors/describe-error";
-import { client, orpc } from "@/lib/orpc/orpc";
+import { orpc } from "@/lib/orpc/orpc";
 import { m } from "@/paraglide/messages";
 
 type AssistantStarterAvailability = AssistantModelAvailability | "no-quota";
@@ -21,7 +21,9 @@ const useAssistantStarter = ({
 		zedToken?: string,
 	) => void | Promise<void>;
 }) => {
-	const queryClient = useQueryClient();
+	const { mutateAsync: createConversation } = useMutation(
+		orpc.assistant.create.mutationOptions(),
+	);
 	const [isCreating, setIsCreating] = useState(false);
 	const { availability, modelId, providerId } = useAssistantModel();
 	const { data: quotaAvailability } = useQuery(
@@ -48,12 +50,7 @@ const useAssistantStarter = ({
 			setIsCreating(true);
 
 			try {
-				const result = await client.assistant.create({});
-
-				void queryClient.invalidateQueries({
-					queryKey: orpc.assistant.key(),
-					refetchType: "all",
-				});
+				const result = await createConversation({});
 
 				await Promise.resolve(
 					onConversationCreated(result.data.id, text, result.meta?.zedToken),
@@ -69,7 +66,7 @@ const useAssistantStarter = ({
 		},
 		[
 			isCreating,
-			queryClient,
+			createConversation,
 			onConversationCreated,
 		],
 	);

@@ -1,4 +1,3 @@
-import { useQueryClient } from "@tanstack/react-query";
 import { useMutationAction } from "@/hooks/actions/use-mutation-action";
 import {
 	type DestructiveTarget,
@@ -11,27 +10,8 @@ export const useDeleteUsersMutation = (
 	opts: ReturnType<typeof orpc.user.delete.mutationOptions> = {},
 	target?: DestructiveTarget,
 ) => {
-	const queryClient = useQueryClient();
-
 	return useMutationAction({
-		mutationOptions: () =>
-			orpc.user.delete.mutationOptions({
-				...opts,
-				onSuccess: async (...args) => {
-					queryClient.invalidateQueries({
-						queryKey: orpc.user.key(),
-					});
-
-					try {
-						await opts.onSuccess?.(...args);
-					} catch (error) {
-						console.error(
-							"useDeleteUsersMutation onSuccess callback failed:",
-							error,
-						);
-					}
-				},
-			}),
+		mutationOptions: () => orpc.user.delete.mutationOptions(opts),
 		messages: {
 			loading: ({ input }) =>
 				m.users_delete_toast_loading({
@@ -72,28 +52,10 @@ export const useBanUserMutation = (
 	opts: ReturnType<typeof orpc.user.ban.mutationOptions> = {},
 	target?: DestructiveTarget,
 ) => {
-	const queryClient = useQueryClient();
 	const name = singleTargetName(1, target);
 
 	return useMutationAction({
-		mutationOptions: () =>
-			orpc.user.ban.mutationOptions({
-				...opts,
-				onSuccess: async (...args) => {
-					queryClient.invalidateQueries({
-						queryKey: orpc.user.key(),
-					});
-
-					try {
-						await opts.onSuccess?.(...args);
-					} catch (error) {
-						console.error(
-							"useBanUserMutation onSuccess callback failed:",
-							error,
-						);
-					}
-				},
-			}),
+		mutationOptions: () => orpc.user.ban.mutationOptions(opts),
 		messages: {
 			loading: m.users_ban_toast_loading(),
 			success: m.users_ban_toast_success(),
@@ -115,27 +77,8 @@ export const useBanUserMutation = (
 export const useUnbanUserMutation = (
 	opts: ReturnType<typeof orpc.user.unban.mutationOptions> = {},
 ) => {
-	const queryClient = useQueryClient();
-
 	return useMutationAction({
-		mutationOptions: () =>
-			orpc.user.unban.mutationOptions({
-				...opts,
-				onSuccess: async (...args) => {
-					queryClient.invalidateQueries({
-						queryKey: orpc.user.key(),
-					});
-
-					try {
-						await opts.onSuccess?.(...args);
-					} catch (error) {
-						console.error(
-							"useUnbanUserMutation onSuccess callback failed:",
-							error,
-						);
-					}
-				},
-			}),
+		mutationOptions: () => orpc.user.unban.mutationOptions(opts),
 		messages: {
 			loading: m.users_unban_toast_loading(),
 			success: m.users_unban_toast_success(),

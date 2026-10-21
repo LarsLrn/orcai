@@ -1,4 +1,4 @@
-import { useMutation, useQueryClient } from "@tanstack/react-query";
+import { useMutation } from "@tanstack/react-query";
 import { useNavigate } from "@tanstack/react-router";
 import { toast } from "sonner";
 import { reasonMessageOf } from "@/lib/errors/describe-error";
@@ -7,16 +7,11 @@ import { m } from "@/paraglide/messages";
 
 /** Copies the chat up to a message into a new chat and opens it. */
 export const useBranchChat = () => {
-	const queryClient = useQueryClient();
 	const navigate = useNavigate();
 
 	return useMutation(
 		orpc.chat.branch.mutationOptions({
 			onSuccess: async ({ data, draft, meta }) => {
-				void queryClient.invalidateQueries({
-					queryKey: orpc.chat.key(),
-				});
-
 				await navigate({
 					to: "/app/chat/$chatId",
 					params: {
