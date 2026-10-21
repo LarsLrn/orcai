@@ -1,4 +1,5 @@
 import type { AssetId } from "@orcai/core";
+import { getMimeTypeFromFileType } from "@orcai/s3";
 import type { Asset, ChatMessageAttachment } from "@orcai/schema";
 import { useMutation } from "@tanstack/react-query";
 import { nanoid } from "nanoid";
@@ -26,7 +27,7 @@ const toChatAttachment = ({
 }): ChatMessageAttachment => ({
 	assetId: asset.id,
 	title: asset.title,
-	fileType: asset.fileType,
+	fileType: getMimeTypeFromFileType(asset.fileType),
 	size: asset.size,
 	bucket: asset.bucket,
 	prefix: asset.prefix,

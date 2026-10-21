@@ -12,8 +12,16 @@ import {
 	deletePrefixRecursively,
 	sendDeleteObjectCommand,
 } from "@orcai/s3/server";
-import type { BucketName } from "@orcai/schema";
-import { assetIdSchema, PROCESS_ASSET_JOB_NAME } from "@orcai/schema";
+import type {
+	AssetFileType,
+	BucketName,
+	FinalizedUploadFile,
+} from "@orcai/schema";
+import {
+	assetFileTypeSchema,
+	assetIdSchema,
+	PROCESS_ASSET_JOB_NAME,
+} from "@orcai/schema";
 import { lookupEntitiesByPermission } from "@orcai/spice-db";
 import { and, count, desc, eq, getColumns, ilike, inArray } from "drizzle-orm";
 import * as Effect from "effect/Effect";
@@ -40,11 +48,29 @@ import {
 } from "@/lib/orpc/router/helpers/capabilities";
 import { literalSearch } from "./helpers/literal-search";
 
+const uploadFileType = (upload: FinalizedUploadFile) => {
+	const fileType = assetFileTypeSchema.safeParse(
+		getFileTypeFromMime(upload.type),
+	);
+	return fileType.success
+		? Effect.succeed(fileType.data)
+		: Effect.fail(
+				new AppErrors.BadRequestError({
+					reason: "UPLOAD_FILE_TYPE_INVALID",
+					params: {
+						fileName: upload.name,
+						fileType: upload.type,
+					},
+					message: `File type "${upload.type}" is not allowed.`,
+				}),
+			);
+};
+
 const createAssetRecord = (params: {
 	id?: AssetId;
 	title: string;
 	size: number;
-	fileType: string;
+	fileType: AssetFileType;
 	bucket: BucketName;
 	prefix: string;
 	metadata?: any;
@@ -99,7 +125,7 @@ const dispatchProcessJob = (asset: {
 	id: string;
 	bucket: BucketName;
 	prefix: string;
-	fileType: string;
+	fileType: AssetFileType;
 }) =>
 	sendJobBatch({
 		jobName: PROCESS_ASSET_JOB_NAME,
@@ -110,7 +136,7 @@ const dispatchProcessJob = (asset: {
 						bucket: asset.bucket,
 						prefix: asset.prefix,
 						id: asset.id,
-						type: getFileTypeFromMime(asset.fileType),
+						type: asset.fileType,
 					},
 				},
 			},
@@ -328,7 +354,7 @@ const saveAsset = authed.asset.save.effect(function* ({ input, context }) {
 		id: input.upload.id,
 		title: input.title,
 		size: input.upload.size,
-		fileType: input.upload.type,
+		fileType: yield* uploadFileType(input.upload),
 		bucket: input.upload.bucket,
 		prefix: input.upload.prefix,
 		metadata: input.metadata,
@@ -346,9 +372,14 @@ const saveAsset = authed.asset.save.effect(function* ({ input, context }) {
 const saveManyAssets = authed.asset.saveMany
 	.use(requireOrganizationPermission("create_asset"))
 	.effect(function* ({ input, context }) {
+		const fileTypes = yield* Effect.forEach(input.assets, (assetInput) =>
+			assetInput.upload
+				? uploadFileType(assetInput.upload)
+				: Effect.succeed(undefined),
+		);
 		const results = yield* Effect.forEach(
 			input.assets,
-			(assetInput) =>
+			(assetInput, index) =>
 				Effect.gen(function* () {
 					if (assetInput.id) {
 						yield* requirePermission({
@@ -378,7 +409,8 @@ const saveManyAssets = authed.asset.saveMany
 						};
 					}
 
-					if (!assetInput.upload) {
+					const fileType = fileTypes[index];
+					if (!assetInput.upload || !fileType) {
 						return yield* Effect.fail(
 							new AppErrors.BadRequestError({
 								reason: "ASSET_UPLOAD_REQUIRED",
@@ -392,7 +424,7 @@ const saveManyAssets = authed.asset.saveMany
 						id: assetInput.upload.id,
 						title: assetInput.title,
 						size: assetInput.upload.size,
-						fileType: assetInput.upload.type,
+						fileType,
 						bucket: assetInput.upload.bucket,
 						prefix: assetInput.upload.prefix,
 						metadata: assetInput.metadata,
@@ -439,11 +471,9 @@ const deleteAssets = authed.asset.delete
 		yield* Effect.all(
 			assetsToDelete.map((asset) =>
 				Effect.gen(function* () {
-					const extension = getFileTypeFromMime(asset.fileType);
-
 					yield* sendDeleteObjectCommand({
 						bucket: asset.bucket,
-						key: `${asset.prefix}/${asset.id}.${extension}`,
+						key: `${asset.prefix}/${asset.id}.${asset.fileType}`,
 					});
 					yield* deletePointsByIdentifier({
 						assetId: asset.id,

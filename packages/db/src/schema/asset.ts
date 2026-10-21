@@ -1,14 +1,21 @@
 import type { AssetId, UserId } from "@orcai/core";
-import type { AssetMetadataType, BucketName } from "@orcai/schema";
+import {
+	ASSET_FILE_TYPES,
+	type AssetMetadataType,
+	type BucketName,
+} from "@orcai/schema";
 import {
 	integer,
 	json,
+	pgEnum,
 	pgTable,
 	text,
 	timestamp,
 	uuid,
 } from "drizzle-orm/pg-core";
 import { user } from "./auth";
+
+export const assetFileTypeEnum = pgEnum("asset_file_type", ASSET_FILE_TYPES);
 
 export const asset = pgTable("asset", {
 	id: uuid("id").$type<AssetId>().primaryKey().defaultRandom(),
@@ -24,8 +31,7 @@ export const asset = pgTable("asset", {
 		.notNull()
 		.default("pending")
 		.$type<"pending" | "active" | "completed" | "failed">(),
-	// TODO: Should probably be an enum
-	fileType: text("file_type").notNull(),
+	fileType: assetFileTypeEnum("file_type").notNull(),
 	// TODO: Check what should be done if user deletes account
 	userId: uuid("user_id")
 		.$type<UserId>()

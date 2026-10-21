@@ -24,3 +24,26 @@ export const fileTypeSchema = z.enum([
 ]);
 
 export type FileType = z.infer<typeof fileTypeSchema>;
+
+/** The file types an asset upload accepts. */
+export const ASSET_FILE_TYPES = [
+	"pdf",
+	"jpeg",
+	"jpg",
+	"png",
+	"gif",
+	"webp",
+	"doc",
+	"docx",
+	"xls",
+	"xlsx",
+	"ppt",
+	"pptx",
+	"txt",
+	"csv",
+	"md",
+] as const satisfies readonly FileType[];
+
+export const assetFileTypeSchema = z.enum(ASSET_FILE_TYPES);
+
+export type AssetFileType = z.infer<typeof assetFileTypeSchema>;

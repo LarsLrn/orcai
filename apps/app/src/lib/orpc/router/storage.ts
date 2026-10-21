@@ -317,8 +317,7 @@ const createDownloadUrl = authed.storage.createDownloadUrl
 			);
 		const filePath = (() => {
 			if (!input.objectKey) {
-				const extension = getFileTypeFromMime(asset.fileType);
-				return `${asset.prefix}/${input.id}.${extension}`;
+				return `${asset.prefix}/${input.id}.${asset.fileType}`;
 			}
 
 			const processedAssetPrefix = `${input.id}/`;

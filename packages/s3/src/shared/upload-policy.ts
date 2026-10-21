@@ -1,8 +1,8 @@
 import { buckets } from "@orcai/core";
-import type { BucketName, FileType } from "@orcai/schema";
+import type { AssetFileType, BucketName } from "@orcai/schema";
 
 type UploadFileTypeDefinition = {
-	fileType: Exclude<FileType, "unknown">;
+	fileType: AssetFileType;
 	mimeType: string;
 	aliases?: readonly string[];
 };

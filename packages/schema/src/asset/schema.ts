@@ -1,6 +1,7 @@
 import { z } from "zod/v4";
 import { entityCapabilitiesSchema } from "../authorization";
 import { blockIdSchema } from "../block/ref";
+import { assetFileTypeSchema } from "../shared/primitives/file-type";
 import { bucketSchema } from "../storage/parts/buckets";
 import { userIdSchema } from "../user/ref";
 import { metadataSchema } from "./parts/metadata";
@@ -20,7 +21,7 @@ export const assetSchema = assetFieldsSchema.extend({
 	prefix: z.string(),
 	size: z.number().int(),
 	processingStatus: processingStatusSchema,
-	fileType: z.string(),
+	fileType: assetFileTypeSchema,
 	userId: userIdSchema,
 	createdAt: z.coerce.date().nullable(),
 	updatedAt: z.coerce.date().nullable(),

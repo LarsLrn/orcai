@@ -55,6 +55,10 @@ export function getFileTypeFromMime(mimeType: string): FileType {
 }
 
 export function getMimeTypeFromFileType(
+	fileType: Exclude<FileType, "unknown">,
+): string;
+export function getMimeTypeFromFileType(fileType: FileType): string | undefined;
+export function getMimeTypeFromFileType(
 	fileType: FileType,
 ): string | undefined {
 	if (fileType === "unknown") return undefined;
