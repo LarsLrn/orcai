@@ -15,7 +15,7 @@ export const useTable = <TData extends RowData = RowData>() => {
 		throw new Error("useTable must be used within a TableProvider");
 	}
 	return {
-		table: table as unknown as DataTableInstance<TData>,
+		table: table as DataTableInstance<TData>,
 	};
 };
 
@@ -26,7 +26,7 @@ const TableProvider = <TData extends RowData>({
 	children: React.ReactNode;
 	table: DataTableInstance<TData>;
 }) => (
-	<TableContext.Provider value={table as unknown as DataTableInstance<RowData>}>
+	<TableContext.Provider value={table as DataTableInstance<RowData>}>
 		{children}
 	</TableContext.Provider>
 );

@@ -1,4 +1,3 @@
-import type { User } from "@orcai/schema";
 import { useRouteContext } from "@tanstack/react-router";
 import { profileFormOptions } from "@/components/users/profile/form/profile-form-options";
 import { useAppForm } from "@/hooks/form";
@@ -12,12 +11,9 @@ const ProfileForm = () => {
 	const { mutateAsync: updateProfile } = useUpdateProfileMutation();
 
 	const form = useAppForm({
-		// TODO: Improve type after refactoring schemas
-		...profileFormOptions(auth.user as Omit<User, "preferences">),
+		...profileFormOptions(auth.user.name),
 		onSubmit: async ({ value }) => {
-			await updateProfile({
-				name: value.name ?? "",
-			}); // FIXME: Check why name can be undefined
+			await updateProfile(value);
 		},
 	});
 

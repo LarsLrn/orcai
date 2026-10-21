@@ -22,7 +22,7 @@ const TextField = ({
 	description?: string;
 	unit?: string;
 } & React.ComponentProps<"input">) => {
-	const field = useFieldContext<string | number>();
+	const field = useFieldContext<string | number | undefined>();
 	useFieldLabel(field, label);
 	const id = useId();
 
@@ -35,9 +35,7 @@ const TextField = ({
 	const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
 		const value = e.target.value;
 		if (type === "number") {
-			field.handleChange(
-				value === "" ? (undefined as unknown as number) : Number(value),
-			);
+			field.handleChange(value === "" ? undefined : Number(value));
 		} else {
 			field.handleChange(value);
 		}

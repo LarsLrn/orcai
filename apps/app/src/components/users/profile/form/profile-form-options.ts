@@ -1,17 +1,16 @@
-import { type User, userMutableFieldsSchema } from "@orcai/schema";
+import { userFieldsSchema } from "@orcai/schema";
 import { formOptions } from "@tanstack/react-form";
-import type { z } from "zod/v4";
 
-const defaultValues = (
-	user: Omit<User, "preferences">,
-): z.input<typeof userMutableFieldsSchema> => ({
-	name: user.name,
+const profileSchema = userFieldsSchema.pick({
+	name: true,
 });
 
-export const profileFormOptions = (user: Omit<User, "preferences">) =>
+export const profileFormOptions = (name: string) =>
 	formOptions({
-		defaultValues: defaultValues(user),
+		defaultValues: {
+			name,
+		},
 		validators: {
-			onChange: userMutableFieldsSchema,
+			onChange: profileSchema,
 		},
 	});

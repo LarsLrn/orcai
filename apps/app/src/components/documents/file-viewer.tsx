@@ -57,7 +57,11 @@ const FileViewer = ({ asset }: { asset: Asset }) => {
 							Icon={SmartphoneIcon}
 						/>
 					) : (
-						<Viewport fileType={asset.fileType} filePath={file.url} />
+						<Viewport
+							title={asset.title}
+							fileType={asset.fileType}
+							filePath={file.url}
+						/>
 					)}
 				</div>
 				<div className="col-span-1 flex flex-col gap-4">
@@ -81,10 +85,12 @@ const FileViewer = ({ asset }: { asset: Asset }) => {
 };
 
 const Viewport = ({
+	title,
 	fileType,
 	filePath,
 	className,
 }: {
+	title: string;
 	fileType: string;
 	filePath: string;
 	className?: string;
@@ -112,7 +118,7 @@ const Viewport = ({
 					>
 						<img
 							src={filePath}
-							alt="test" // FIXME: Add proper alt text
+							alt={title}
 							width={1000}
 							height={500}
 							className={cn("w-auto object-contain")}
