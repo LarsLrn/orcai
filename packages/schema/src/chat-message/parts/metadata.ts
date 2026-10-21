@@ -23,6 +23,10 @@ export const chatMessageMetadataSchema = z.object({
 			totalTokens: z.number().optional(),
 		})
 		.optional(),
+	/** What the reply's last step took and wrote, so what its context held. */
+	contextTokens: z.number().optional(),
+	/** The context window of the reply's model, when known. */
+	contextWindow: z.number().optional(),
 	siblingCount: z.number().optional(),
 	siblingIndex: z.number().optional(),
 	siblingIds: z.array(z.string()).optional(),

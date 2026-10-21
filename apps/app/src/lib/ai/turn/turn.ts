@@ -249,6 +249,7 @@ const meterTurn = ({
 		providerModelId: setup.modelId,
 		maxSteps: setup.maxSteps,
 		maxOutputTokens: setup.callSettings.maxOutputTokens,
+		modelMaxOutputTokens: setup.tokenLimits.maxOutputTokens,
 		messages,
 	});
 
@@ -306,6 +307,7 @@ const streamTurn = ({
 	messages,
 	prompt,
 	meter,
+	contextWindow,
 	operation,
 }: {
 	agent: TurnAgent;
@@ -315,6 +317,7 @@ const streamTurn = ({
 	messages: ChatAgentUIMessage[];
 	prompt: ChatAgentUIMessage[];
 	meter: Meter;
+	contextWindow: number | null;
 	operation: string;
 }) =>
 	Effect.gen(function* () {
@@ -390,6 +393,9 @@ const streamTurn = ({
 						if (part.type === "finish-step") {
 							return {
 								model: part.response.modelId,
+								...(part.usage.totalTokens !== undefined && {
+									contextTokens: part.usage.totalTokens,
+								}),
 								// Lets the client read what the turn wrote, such as the names on its cards.
 								...writtenZedToken(),
 							};
@@ -397,6 +403,9 @@ const streamTurn = ({
 						if (part.type === "finish") {
 							return {
 								totalUsage: part.totalUsage,
+								...(contextWindow !== null && {
+									contextWindow,
+								}),
 								...(part.finishReason === "tool-calls" &&
 									meter.spent() && {
 										stepLimitReached: true,
@@ -503,6 +512,7 @@ export const startTurn = (
 				messages,
 				prompt,
 				meter,
+				contextWindow: setup.tokenLimits.contextWindow,
 				operation: "chatTurn.start",
 			}).pipe(
 				Effect.onError(() =>
@@ -618,6 +628,7 @@ export const continueTurn = (
 					messages,
 					prompt,
 					meter,
+					contextWindow: setup.tokenLimits.contextWindow,
 					operation: "chatTurn.continue",
 				});
 			}).pipe(

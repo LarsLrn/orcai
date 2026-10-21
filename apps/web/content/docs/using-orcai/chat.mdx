@@ -59,7 +59,7 @@ In a chat (`/app/chat/<chat id>`), OrcAI supports:
 
 - Streaming model responses, with Stop while an answer is generated
 - Message actions: **Copy** and **Branch from here** on your questions; **Copy**, **Branch from here** and **Rate response** on answers
-- Usage metadata on assistant messages
+- Usage metadata on assistant messages: the tokens a reply used, and how full the model's context window was when the model's context window is known
 - Switching the model with the model picker in the composer
 - The composer's **More chat actions** menu, with **Start tour**, **Chat settings** and **Download chat** (always the whole chat)
 - Older messages load as you scroll up; a chat opens on its newest 20
@@ -103,6 +103,8 @@ Open **Chat settings** from the composer's **More chat actions** menu. You can c
 	- Presence penalty
 
 A generation setting you leave empty is not sent, so the provider's own default applies. Clear a setting to return it to the provider default.
+
+Max tokens cannot exceed the model's max output tokens when the model has them set. If the model changes or its limit is lowered later, a reply asks for the model's max output tokens instead.
 
 For bot-linked chats:
 

@@ -10,6 +10,9 @@ export interface DiscoveredModel {
 	readonly providerModelId: string;
 	readonly name: string;
 	readonly description: string;
+	/** Null where the provider does not say. */
+	readonly contextWindow: number | null;
+	readonly maxOutputTokens: number | null;
 }
 
 /** A system prompt split by how often it changes. */

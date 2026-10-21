@@ -61,6 +61,8 @@ export const startMeteredCall = (input: {
 	/** Provider requests the call may make at most. */
 	maxSteps: number;
 	maxOutputTokens?: number;
+	/** Can lower the reservation of a call without its own cap. */
+	modelMaxOutputTokens?: number | null;
 	/** What the call sends, for the token estimate. */
 	messages: unknown[];
 }): Effect.Effect<Meter, unknown, QuotaCounterStore | DB> =>
@@ -72,6 +74,7 @@ export const startMeteredCall = (input: {
 			providerModelId: input.providerModelId,
 			appRequestId: input.appRequestId,
 			maxExpectedOutputTokens: input.maxOutputTokens,
+			modelMaxOutputTokens: input.modelMaxOutputTokens,
 			maxExpectedProviderRequests: input.maxSteps,
 			messages: input.messages,
 		});

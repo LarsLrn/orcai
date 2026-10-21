@@ -34,4 +34,39 @@ describe("chatCallSettings", () => {
 			presencePenalty: -0.5,
 		});
 	});
+
+	test("max tokens stay within the model's max output", () => {
+		expect(
+			chatCallSettings(
+				{
+					maxTokens: 4096,
+				},
+				{
+					maxOutputTokens: 1024,
+				},
+			),
+		).toStrictEqual({
+			maxOutputTokens: 1024,
+		});
+		expect(
+			chatCallSettings(
+				{
+					maxTokens: 512,
+				},
+				{
+					maxOutputTokens: 1024,
+				},
+			),
+		).toStrictEqual({
+			maxOutputTokens: 512,
+		});
+		expect(
+			chatCallSettings(
+				{},
+				{
+					maxOutputTokens: 1024,
+				},
+			),
+		).toStrictEqual({});
+	});
 });

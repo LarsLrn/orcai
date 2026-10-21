@@ -36,6 +36,8 @@ const startEffect = (maxSteps = 5) =>
 			providerId: "provider-1" as ProviderId,
 			providerModelId: "model-1",
 			maxSteps,
+			maxOutputTokens: 512,
+			modelMaxOutputTokens: 128_000,
 			messages: [],
 		}),
 	);
@@ -115,6 +117,15 @@ describe("startMeteredCall", () => {
 		};
 
 		expect((await start(5)).maxSteps).toBe(5);
+	});
+
+	test("the reservation knows the call's output cap and the model's max output", async () => {
+		await start(5);
+
+		expect(quota.calls.reserve[0]).toMatchObject({
+			maxExpectedOutputTokens: 512,
+			modelMaxOutputTokens: 128_000,
+		});
 	});
 
 	test("a completed call is charged its summed usage and step count", async () => {

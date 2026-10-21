@@ -67,6 +67,51 @@ describe("estimateQuotaReservationAmount", () => {
 			expect(result).toBe(Math.max(512, promptEstimate + 256));
 		});
 
+		test("a smaller model max output lowers the default output cap", () => {
+			const result = estimateQuotaReservationAmount({
+				meteringMode: "tokens",
+				maxExpectedProviderRequests: 25,
+				modelMaxOutputTokens: 4_096,
+				messages: [],
+			});
+
+			expect(result).toBe(4_097);
+		});
+
+		test("a larger model max output keeps the default output cap", () => {
+			const result = estimateQuotaReservationAmount({
+				meteringMode: "tokens",
+				maxExpectedProviderRequests: 25,
+				modelMaxOutputTokens: 128_000,
+				messages: [],
+			});
+
+			expect(result).toBe(16_385);
+		});
+
+		test("prefers the call's cap over the model's max output", () => {
+			const result = estimateQuotaReservationAmount({
+				meteringMode: "tokens",
+				maxExpectedProviderRequests: 25,
+				maxExpectedOutputTokens: 1_000,
+				modelMaxOutputTokens: 128_000,
+				messages: [],
+			});
+
+			expect(result).toBe(1_001);
+		});
+
+		test("uses the default output cap when the model's max output is unknown", () => {
+			const result = estimateQuotaReservationAmount({
+				meteringMode: "tokens",
+				maxExpectedProviderRequests: 25,
+				modelMaxOutputTokens: null,
+				messages: [],
+			});
+
+			expect(result).toBe(16_385);
+		});
+
 		test("respects the minimum token reservation", () => {
 			const result = estimateQuotaReservationAmount({
 				meteringMode: "tokens",

@@ -7,6 +7,7 @@ import type {
 } from "@orcai/schema";
 import { featureLabel } from "@/components/features/feature-labels";
 import { formatList } from "@/lib/presentation/format-list";
+import { formatCount } from "@/lib/presentation/format-number";
 import { m } from "@/paraglide/messages";
 
 type ReasonMessages = {
@@ -63,6 +64,10 @@ const reasonMessages: ReasonMessages = {
 	CHAT_BLOCKS_UNAVAILABLE: m.error_chat_blocks_unavailable,
 	CHAT_BOT_BLOCKS_IMMUTABLE: m.error_chat_bot_blocks_immutable,
 	CHAT_BOT_FEATURES_IMMUTABLE: m.error_chat_bot_features_immutable,
+	CHAT_MAX_TOKENS_EXCEEDS_MODEL: ({ maxOutputTokens }) =>
+		m.error_chat_max_tokens_exceeds_model({
+			maxOutputTokens: formatCount(maxOutputTokens),
+		}),
 	CHAT_MESSAGE_CREATE_FAILED: m.error_chat_message_create_failed,
 	CHAT_MESSAGE_ID_TAKEN: m.error_chat_message_id_taken,
 	CHAT_MESSAGE_NOT_FOUND: m.error_chat_message_not_found,
@@ -179,6 +184,7 @@ const reasonsWithParams: Record<ErrorReasonWithParams, true> = {
 	BLOCK_IN_USE_BY_READY_BOTS: true,
 	BOT_REPOSITORY_EMPTY: true,
 	BOT_REPOSITORY_NOT_READY: true,
+	CHAT_MAX_TOKENS_EXCEEDS_MODEL: true,
 	FEATURE_REQUIREMENT_MISSING: true,
 	GRANT_PRINCIPALS_INVALID: true,
 	GROUP_MEMBERS_INVALID: true,

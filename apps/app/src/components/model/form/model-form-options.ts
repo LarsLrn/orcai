@@ -11,6 +11,8 @@ const defaultValues = (
 	name: model?.name ?? "",
 	description: model?.description ?? "",
 	isDeprecated: model?.isDeprecated ?? false,
+	contextWindow: model?.contextWindow ?? null,
+	maxOutputTokens: model?.maxOutputTokens ?? null,
 });
 
 export const modelFormOptions = (model?: Model) =>

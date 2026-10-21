@@ -1,4 +1,5 @@
 import { z } from "zod/v4";
+import { reportedTokenCount } from "./reported-token-count";
 import type { DiscoveredModel, ProviderConnection } from "./types";
 
 const ANTHROPIC_API_URL = "https://api.anthropic.com/v1";
@@ -9,6 +10,8 @@ const modelsPageSchema = z.object({
 		z.object({
 			id: z.string(),
 			display_name: z.string(),
+			max_input_tokens: reportedTokenCount,
+			max_tokens: reportedTokenCount,
 		}),
 	),
 	has_more: z.boolean(),
@@ -46,6 +49,8 @@ export const listAnthropicModels = async ({
 				providerModelId: model.id,
 				name: model.display_name,
 				description: `Model ID: ${model.id}`,
+				contextWindow: model.max_input_tokens,
+				maxOutputTokens: model.max_tokens,
 			})),
 		);
 		if (!page.has_more) {

@@ -34,7 +34,7 @@ available. Import from here only when a spec needs an endpoint that answers.
 
 | Endpoint | Behaviour |
 | --- | --- |
-| `GET /v1/models` | `e2e-mock-chat` and `e2e-mock-embedding`, both owned by `orcai-e2e`. |
+| `GET /v1/models` | `e2e-mock-chat` and `e2e-mock-embedding`, both owned by `orcai-e2e`. The chat model reports a context window of 32,768 tokens in vLLM's `max_model_len`. |
 | `POST /v1/chat/completions` | `Mock inference reply to: <last user message>`, `finish_reason: "stop"`, usage in every response. `stream: true` sends the same text as Server-Sent Events, one delta per word, then `[DONE]`; `stream_options.include_usage` adds a final usage chunk. |
 | `POST /v1/embeddings` | A vector per input, single string or array. Length is the request's `dimensions`, else the `embeddingDimensions` option, else 1024. The same input always yields the same vector. |
 | anything else | 404 with an OpenAI-style error body. |

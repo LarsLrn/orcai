@@ -376,19 +376,32 @@ const discoverModels = authed.model.discover
 			capabilities: [],
 		}));
 
-		const insertedModels =
+		const { contextWindow, maxOutputTokens } = dbSchema.model;
+		// Known models only gain the limits they lack, so edited ones keep theirs.
+		const writtenModels =
 			modelsToInsert.length === 0
 				? []
 				: yield* db
 						.insert(dbSchema.model)
 						.values(modelsToInsert)
-						.onConflictDoNothing()
+						.onConflictDoUpdate({
+							target: [
+								dbSchema.model.providerModelId,
+								dbSchema.model.providerId,
+							],
+							set: {
+								contextWindow: sql`coalesce(${contextWindow}, excluded.context_window)`,
+								maxOutputTokens: sql`coalesce(${maxOutputTokens}, excluded.max_output_tokens)`,
+							},
+							setWhere: sql`(${contextWindow} is null and excluded.context_window is not null) or (${maxOutputTokens} is null and excluded.max_output_tokens is not null)`,
+						})
 						.returning({
-							id: dbSchema.model.id,
+							// Postgres leaves xmax at 0 on a row the statement inserted.
+							inserted: sql<boolean>`xmax = 0`,
 						});
 
 		const foundCount = modelsToInsert.length;
-		const addedCount = insertedModels.length;
+		const addedCount = writtenModels.filter(({ inserted }) => inserted).length;
 		const alreadyExistedCount = foundCount - addedCount;
 
 		return {

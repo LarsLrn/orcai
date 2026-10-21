@@ -157,12 +157,83 @@ describe("provider kind registry", () => {
 				providerModelId: "gpt-x",
 				name: "gpt-x",
 				description: "Model ID: gpt-x | Owned by openai",
+				contextWindow: null,
+				maxOutputTokens: null,
 			},
 		]);
 		expect(compatible.requests[0]?.url).toBe(
 			"https://llm.example.org/v1/models",
 		);
 		expect(official.requests[0]?.url).toBe("https://api.openai.com/v1/models");
+	});
+
+	test("OpenAI-compatible servers report token limits in their own fields", async () => {
+		const model = (id: string, limits: Record<string, unknown>) => ({
+			id,
+			object: "model",
+			created: 0,
+			owned_by: "someone",
+			...limits,
+		});
+		const { fetch } = fakeFetch({
+			object: "list",
+			data: [
+				model("openrouter", {
+					context_length: 200_000,
+					top_provider: {
+						context_length: 200_000,
+						max_completion_tokens: 64_000,
+					},
+				}),
+				model("vllm", {
+					max_model_len: 32_768,
+				}),
+				model("groq", {
+					context_window: 131_072,
+					max_completion_tokens: 8_192,
+				}),
+				model("implausible", {
+					context_length: "large",
+					top_provider: null,
+					max_completion_tokens: 0,
+				}),
+			],
+		});
+
+		const models = await listProviderModels("openai-compatible", {
+			apiKey: "key",
+			endpoint: "https://llm.example.org/v1",
+			fetch,
+		});
+
+		expect(
+			models.map(({ providerModelId, contextWindow, maxOutputTokens }) => ({
+				providerModelId,
+				contextWindow,
+				maxOutputTokens,
+			})),
+		).toEqual([
+			{
+				providerModelId: "openrouter",
+				contextWindow: 200_000,
+				maxOutputTokens: 64_000,
+			},
+			{
+				providerModelId: "vllm",
+				contextWindow: 32_768,
+				maxOutputTokens: null,
+			},
+			{
+				providerModelId: "groq",
+				contextWindow: 131_072,
+				maxOutputTokens: 8_192,
+			},
+			{
+				providerModelId: "implausible",
+				contextWindow: null,
+				maxOutputTokens: null,
+			},
+		]);
 	});
 });
 
@@ -214,7 +285,7 @@ describe("providerToolLoading", () => {
 });
 
 describe("listAnthropicModels", () => {
-	test("maps every page of the Models API", async () => {
+	test("maps every page of the Models API with the token limits it reports", async () => {
 		const { fetch, requests } = fakeFetch(
 			{
 				data: [
@@ -223,6 +294,8 @@ describe("listAnthropicModels", () => {
 						id: "claude-a",
 						display_name: "Claude A",
 						created_at: "2026-01-01T00:00:00Z",
+						max_input_tokens: 1_000_000,
+						max_tokens: 128_000,
 					},
 				],
 				has_more: true,
@@ -255,11 +328,15 @@ describe("listAnthropicModels", () => {
 				providerModelId: "claude-a",
 				name: "Claude A",
 				description: "Model ID: claude-a",
+				contextWindow: 1_000_000,
+				maxOutputTokens: 128_000,
 			},
 			{
 				providerModelId: "claude-b",
 				name: "Claude B",
 				description: "Model ID: claude-b",
+				contextWindow: null,
+				maxOutputTokens: null,
 			},
 		]);
 		expect(requests.map(({ url }) => new URL(url).search)).toEqual([

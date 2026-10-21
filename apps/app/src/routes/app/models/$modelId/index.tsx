@@ -5,9 +5,11 @@ import {
 	BadgeX,
 	EditIcon,
 	LinkIcon,
+	ScanTextIcon,
 	ServerIcon,
 	SparklesIcon,
 	TagIcon,
+	TextCursorInputIcon,
 } from "lucide-react";
 import { MetadataCard } from "@/components/app/metadata-card";
 import { Badge } from "@/components/ui/badge";
@@ -29,6 +31,7 @@ import {
 	PageTitle,
 } from "@/components/ui/shell/page";
 import { orpc } from "@/lib/orpc/orpc";
+import { formatNumber } from "@/lib/presentation/format-number";
 import { getModelCapabilityLabel } from "@/lib/presentation/model-capability";
 import {
 	getModelStatusLabel,
@@ -157,6 +160,32 @@ function RouteComponent() {
 									{m.models_detail_provider_kind_label()}
 								</div>
 								<span className="font-medium">{kindLabel}</span>
+							</div>
+							<Separator />
+							<div className="flex items-start justify-between gap-4">
+								<div className="flex items-center gap-2 text-muted-foreground text-sm">
+									<ScanTextIcon className="h-4 w-4" />
+									{m.models_form_context_window_label()}
+								</div>
+								<span className="font-medium tabular-nums">
+									{formatNumber(
+										model.contextWindow,
+										m.models_detail_token_limit_unknown(),
+									)}
+								</span>
+							</div>
+							<Separator />
+							<div className="flex items-start justify-between gap-4">
+								<div className="flex items-center gap-2 text-muted-foreground text-sm">
+									<TextCursorInputIcon className="h-4 w-4" />
+									{m.models_form_max_output_tokens_label()}
+								</div>
+								<span className="font-medium tabular-nums">
+									{formatNumber(
+										model.maxOutputTokens,
+										m.models_detail_token_limit_unknown(),
+									)}
+								</span>
 							</div>
 						</CardContent>
 					</Card>

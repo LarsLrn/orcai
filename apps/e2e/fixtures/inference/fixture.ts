@@ -63,6 +63,7 @@ export type {
 } from "./server";
 export {
 	DEFAULT_EMBEDDING_DIMENSIONS,
+	INFERENCE_MOCK_CONTEXT_WINDOW,
 	INFERENCE_MOCK_MODELS,
 	startInferenceMock,
 } from "./server";
