@@ -21,9 +21,7 @@ import {
 	AuthzService,
 	enqueueRelationshipMutations,
 } from "@/lib/effect/services/authz";
-import { groupProcedures } from "@/lib/orpc/router/group";
-import { organizationProcedures } from "@/lib/orpc/router/organization";
-import { organizationMemberProcedures } from "@/lib/orpc/router/organization-member";
+import { Procedures } from "@/lib/orpc/implementation/procedures";
 import { AUTHZ } from "@/settings/constants";
 
 const {
@@ -127,11 +125,12 @@ describe("organization lifecycle", () => {
 	test(
 		"a created organization has its admin and an All Members group of every role, and deletion removes both",
 		async () => {
+			const procedures = await run(Procedures);
 			const { organizationId: homeId } = await organizationWith([]);
 			const admin = await instanceAdmin(homeId);
 			const suffix = crypto.randomUUID();
 			const { data: organization } = await run(
-				organizationProcedures.create(
+				procedures.organization.create(
 					{
 						name: `Lifecycle ${suffix}`,
 						slug: `lifecycle-${suffix}`,
@@ -163,7 +162,7 @@ describe("organization lifecycle", () => {
 			]);
 
 			await run(
-				organizationProcedures.delete(
+				procedures.organization.delete(
 					{
 						refs: [
 							{
@@ -194,6 +193,7 @@ describe("organization lifecycle", () => {
 	test(
 		"deleting an organization queued after a role change leaves no role in SpiceDB",
 		async () => {
+			const procedures = await run(Procedures);
 			const {
 				organizationId,
 				actors: [admin, member],
@@ -207,7 +207,7 @@ describe("organization lifecycle", () => {
 				organizationId,
 				async () =>
 					run(
-						organizationMemberProcedures.update(
+						procedures.organizationMember.update(
 							{
 								userId: member.user.id,
 								role: "viewer",
@@ -217,7 +217,7 @@ describe("organization lifecycle", () => {
 					),
 				async () =>
 					run(
-						organizationProcedures.delete(
+						procedures.organization.delete(
 							{
 								refs: [
 									{
@@ -263,6 +263,7 @@ describe("group membership", () => {
 	test(
 		"added and removed members are mirrored in SpiceDB",
 		async () => {
+			const procedures = await run(Procedures);
 			const {
 				actors: [admin, member],
 				zedToken,
@@ -271,7 +272,7 @@ describe("group membership", () => {
 				"member",
 			]);
 			const { data: group } = await run(
-				groupProcedures.create(
+				procedures.group.create(
 					{
 						name: "Integration group",
 						description: null,
@@ -286,7 +287,7 @@ describe("group membership", () => {
 				],
 			};
 			await run(
-				groupProcedures.addMembers(
+				procedures.group.addMembers(
 					membership,
 					await procedureOptions(admin, zedToken),
 				),
@@ -303,7 +304,7 @@ describe("group membership", () => {
 			]);
 
 			await run(
-				groupProcedures.removeMembers(
+				procedures.group.removeMembers(
 					membership,
 					await procedureOptions(admin, zedToken),
 				),
@@ -325,6 +326,7 @@ describe("group membership", () => {
 	test(
 		"adding a member queued after their removal from the organization is rejected",
 		async () => {
+			const procedures = await run(Procedures);
 			const {
 				organizationId,
 				actors: [admin, member],
@@ -334,7 +336,7 @@ describe("group membership", () => {
 				"member",
 			]);
 			const { data: group } = await run(
-				groupProcedures.create(
+				procedures.group.create(
 					{
 						name: "Integration group",
 						description: null,
@@ -347,7 +349,7 @@ describe("group membership", () => {
 				organizationId,
 				async () =>
 					run(
-						organizationMemberProcedures.delete(
+						procedures.organizationMember.delete(
 							{
 								refs: [
 									{
@@ -360,7 +362,7 @@ describe("group membership", () => {
 					),
 				async () =>
 					run(
-						groupProcedures.addMembers(
+						procedures.group.addMembers(
 							{
 								groupId: group.id,
 								userIds: [

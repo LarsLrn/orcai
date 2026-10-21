@@ -4,7 +4,6 @@ import * as Effect from "effect/Effect";
 import { getZedToken } from "@/lib/authz/zed-token";
 import * as AppErrors from "@/lib/effect/utils/errors";
 import { authed } from "@/lib/orpc/implementation/authed";
-import { createProcedures } from "@/lib/orpc/implementation/procedures";
 import {
 	getEntityCapabilities,
 	getManyEntityCapabilities,
@@ -85,8 +84,3 @@ export const authorizationRouter = {
 	checkMany: checkManyAuthorization,
 	organizationCapabilities,
 };
-
-export const authorizationProcedures = createProcedures(
-	"authorization",
-	authorizationRouter,
-);

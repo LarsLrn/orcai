@@ -1,7 +1,6 @@
 import { blockIdSchema } from "@orcai/schema";
 import * as Effect from "effect/Effect";
 import { z } from "zod/v4";
-import { assetProcedures } from "@/lib/orpc/router/asset";
 import {
 	type AssistantToolDeps,
 	callProcedure,
@@ -25,8 +24,8 @@ export const findAssetsTool = (deps: AssistantToolDeps) =>
 			"Find assets (uploaded documents) by title among those the user can read, optionally only those attached to one repository. Without a query it lists them all, newest first.",
 		inputSchema: findAssetsInputSchema,
 		run: ({ query, repositoryId, limit }) =>
-			callProcedure(deps, (options) =>
-				assetProcedures.list(
+			callProcedure(deps, (procedures, options) =>
+				procedures.asset.list(
 					{
 						pageSize: limit,
 						filters: {

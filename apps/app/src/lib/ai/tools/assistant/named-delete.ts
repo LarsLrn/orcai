@@ -1,16 +1,13 @@
 import * as Effect from "effect/Effect";
 import type { EntityKind } from "@/lib/ai/tools/entity-kind";
-import type { ORPCContext } from "@/lib/orpc/implementation/os";
+import type { ProcedureClients } from "@/lib/orpc/implementation/procedures";
 import {
 	type AssistantToolDeps,
 	callProcedure,
 	expectType,
 	mutation,
+	type ProcedureOptions,
 } from "./procedure-tool";
-
-type ProcedureOptions = {
-	context: ORPCContext;
-};
 
 /**
  * Deletes a batch and returns the targets' names, read beforehand so the
@@ -40,10 +37,18 @@ export const deleteNamed = <
 		type: Kind;
 		/** A found target's own kind, where `type` covers several. */
 		typeOf?: (found: Found) => FoundKind;
-		find: (id: Id, options: ProcedureOptions) => Effect.Effect<Found, unknown>;
+		find: (
+			id: Id,
+			procedures: ProcedureClients,
+			options: ProcedureOptions,
+		) => Effect.Effect<Found, unknown>;
 		name: (found: Found) => string | undefined;
 		canDelete?: (found: Found) => boolean;
-		remove: (ids: Id[], options: ProcedureOptions) => Effect.Effect<unknown, E>;
+		remove: (
+			ids: Id[],
+			procedures: ProcedureClients,
+			options: ProcedureOptions,
+		) => Effect.Effect<unknown, E>;
 		/** The read tool that shows whether a failed delete went through. */
 		verify: string;
 	},
@@ -55,7 +60,9 @@ export const deleteNamed = <
 		const targets = yield* Effect.forEach(
 			unique,
 			(id) =>
-				callProcedure(deps, (options) => find(id, options)).pipe(
+				callProcedure(deps, (procedures, options) =>
+					find(id, procedures, options),
+				).pipe(
 					Effect.map((found) => ({
 						type: typeOf?.(found) ?? type,
 						id,
@@ -84,7 +91,9 @@ export const deleteNamed = <
 			.map((target) => target.id);
 
 		if (sent.length > 0) {
-			yield* callProcedure(deps, (options) => remove(sent, options)).pipe(
+			yield* callProcedure(deps, (procedures, options) =>
+				remove(sent, procedures, options),
+			).pipe(
 				mutation(verify),
 				expectType(type, missing.length > 0 ? missing : sent),
 			);

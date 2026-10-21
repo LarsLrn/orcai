@@ -6,7 +6,6 @@ import {
 } from "@orcai/schema";
 import * as Effect from "effect/Effect";
 import { z } from "zod/v4";
-import { blockProcedures } from "@/lib/orpc/router/block";
 import {
 	type AssistantToolDeps,
 	callProcedure,
@@ -56,8 +55,8 @@ export const updateRepositoryTool = (deps: AssistantToolDeps) =>
 			Effect.gen(function* () {
 				const { id } = input;
 				const { data: current, assets: currentAssets = [] } =
-					yield* callProcedure(deps, (options) =>
-						blockProcedures.find(
+					yield* callProcedure(deps, (procedures, options) =>
+						procedures.block.find(
 							{
 								id,
 							},
@@ -71,8 +70,8 @@ export const updateRepositoryTool = (deps: AssistantToolDeps) =>
 					);
 				}
 
-				const saved = yield* callProcedure(deps, (options) =>
-					blockProcedures.update(
+				const saved = yield* callProcedure(deps, (procedures, options) =>
+					procedures.block.update(
 						{
 							id,
 							type: "database",

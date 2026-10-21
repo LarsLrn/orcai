@@ -1,6 +1,5 @@
 import * as Effect from "effect/Effect";
 import { z } from "zod/v4";
-import { groupProcedures } from "@/lib/orpc/router/group";
 import {
 	type AssistantToolDeps,
 	callProcedure,
@@ -19,8 +18,8 @@ export const listGroupsTool = (deps: AssistantToolDeps) =>
 			"List the groups of the active organisation that the user can see, by name. System groups such as All Members are managed by OrcAI.",
 		inputSchema: listGroupsInputSchema,
 		run: ({ query, limit }) =>
-			callProcedure(deps, (options) =>
-				groupProcedures.list(
+			callProcedure(deps, (procedures, options) =>
+				procedures.group.list(
 					{
 						pageSize: limit,
 						filters: {

@@ -8,7 +8,7 @@ import { z } from "zod/v4";
 import { effectTool } from "@/lib/ai/tools/assistant/procedure-tool";
 import { AssistantToolError } from "@/lib/ai/tools/tool-error";
 import type { ORPCContext } from "@/lib/orpc/implementation/os";
-import { assetPointProcedures } from "@/lib/orpc/router/asset-point";
+import { Procedures } from "@/lib/orpc/implementation/procedures";
 import { RETRIEVAL_LIMITS } from "@/settings/constants";
 import type { SearchResult } from "./types";
 import {
@@ -100,6 +100,7 @@ export const searchKnowledgeBaseTool = ({
 		}),
 		run: ({ query, queryVariants, queries, assetIds, blockId }) =>
 			Effect.gen(function* () {
+				const procedures = yield* Procedures;
 				const normalizedQueries = normalizeQueries({
 					query,
 					queryVariants,
@@ -130,7 +131,7 @@ export const searchKnowledgeBaseTool = ({
 				const blockResponses = yield* Effect.forEach(
 					targetBlocks,
 					(block) =>
-						assetPointProcedures
+						procedures.assetPoint
 							.searchRepository(
 								{
 									repositoryId: block.id,

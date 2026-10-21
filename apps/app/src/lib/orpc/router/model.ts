@@ -18,7 +18,7 @@ import * as Effect from "effect/Effect";
 import * as AppErrors from "@/lib/effect/utils/errors";
 import { providerApiKey } from "@/lib/encryption";
 import { authed } from "@/lib/orpc/implementation/authed";
-import { createProcedures } from "@/lib/orpc/implementation/procedures";
+import { Procedures } from "@/lib/orpc/implementation/procedures";
 import { requireOrganizationPermission } from "@/lib/orpc/middlewares/permission";
 import { literalSearch } from "./helpers/literal-search";
 import { buildOrderBy, type SortExpression } from "./helpers/sorting";
@@ -28,7 +28,6 @@ import {
 	toModelDto,
 	toModelListRowDto,
 } from "./mappers/model";
-import { providerProcedures } from "./provider";
 
 const listModels = authed.model.list
 	.use(requireOrganizationPermission("read"))
@@ -324,7 +323,8 @@ const discoverModels = authed.model.discover
 	.effect(function* ({ input, context }) {
 		const db = yield* DB;
 
-		const { data: provider } = yield* providerProcedures
+		const procedures = yield* Procedures;
+		const { data: provider } = yield* procedures.provider
 			.find(
 				{
 					id: input.providerId,
@@ -408,5 +408,3 @@ export const modelRouter = {
 	delete: deleteModel,
 	discover: discoverModels,
 };
-
-export const modelProcedures = createProcedures("model", modelRouter);

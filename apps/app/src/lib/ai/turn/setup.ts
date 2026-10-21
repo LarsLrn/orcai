@@ -27,14 +27,7 @@ import {
 import * as AppErrors from "@/lib/effect/utils/errors";
 import { providerApiKey } from "@/lib/encryption";
 import type { ORPCContext } from "@/lib/orpc/implementation/os";
-import { authorizationProcedures } from "@/lib/orpc/router/authorization";
-import { blockProcedures } from "@/lib/orpc/router/block";
-import { botProcedures } from "@/lib/orpc/router/bot";
-import { chatBlockProcedures } from "@/lib/orpc/router/chat-block";
-import { modelProcedures } from "@/lib/orpc/router/model";
-import { organizationProcedures } from "@/lib/orpc/router/organization";
-import { organizationMemberProcedures } from "@/lib/orpc/router/organization-member";
-import { providerProcedures } from "@/lib/orpc/router/provider";
+import { Procedures } from "@/lib/orpc/implementation/procedures";
 import {
 	type ModelUnusableReason,
 	modelUnusableReason,
@@ -121,7 +114,8 @@ const readModel = ({
 	context: ORPCContext;
 }) =>
 	Effect.gen(function* () {
-		const { data: model } = yield* modelProcedures
+		const procedures = yield* Procedures;
+		const { data: model } = yield* procedures.model
 			.find(
 				{
 					id: modelId,
@@ -150,7 +144,7 @@ const readModel = ({
 			);
 		}
 
-		const { data: provider } = yield* providerProcedures
+		const { data: provider } = yield* procedures.provider
 			.find(
 				{
 					id: model.providerId,
@@ -220,10 +214,11 @@ const botSettings = ({
 	context: ORPCContext;
 }) =>
 	Effect.gen(function* () {
+		const procedures = yield* Procedures;
 		const zedToken = getZedToken(context);
 		const [blocks, { data: bot }] = yield* Effect.all(
 			[
-				blockProcedures
+				procedures.block
 					.list(
 						{
 							filters: {
@@ -236,7 +231,7 @@ const botSettings = ({
 						},
 					)
 					.pipe(Effect.mapError(failedRead("botBlocks"))),
-				botProcedures
+				procedures.bot
 					.find(
 						{
 							id: botId,
@@ -308,6 +303,7 @@ const mergeDatabaseBlocks = (
 
 const chatSetup = (chat: StoredChat, { user, context }: TurnRequester) =>
 	Effect.gen(function* () {
+		const procedures = yield* Procedures;
 		const config = chat.config;
 		if (!config?.providerId || !config.modelId) {
 			return yield* badRequest(
@@ -330,7 +326,7 @@ const chatSetup = (chat: StoredChat, { user, context }: TurnRequester) =>
 							context,
 						})
 					: Effect.succeed(undefined),
-				chatBlockProcedures
+				procedures.chatBlock
 					.list(
 						{
 							chatId: chat.id,
@@ -386,7 +382,8 @@ const chatSetup = (chat: StoredChat, { user, context }: TurnRequester) =>
 
 const assistantSetup = ({ organizationId, user, context }: TurnRequester) =>
 	Effect.gen(function* () {
-		const { data: organization } = yield* organizationProcedures.find(
+		const procedures = yield* Procedures;
+		const { data: organization } = yield* procedures.organization.find(
 			{
 				id: organizationId,
 			},
@@ -408,7 +405,7 @@ const assistantSetup = ({ organizationId, user, context }: TurnRequester) =>
 					requestedProviderId: undefined,
 					context,
 				}),
-				organizationMemberProcedures.find(
+				procedures.organizationMember.find(
 					{
 						userId: user.id,
 					},
@@ -416,7 +413,7 @@ const assistantSetup = ({ organizationId, user, context }: TurnRequester) =>
 						context,
 					},
 				),
-				authorizationProcedures.organizationCapabilities(
+				procedures.authorization.organizationCapabilities(
 					{},
 					{
 						context,

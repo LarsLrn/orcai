@@ -2,7 +2,6 @@ import type { OrganizationInvitationId } from "@orcai/core";
 import { organizationInvitationIdSchema } from "@orcai/schema";
 import * as Effect from "effect/Effect";
 import { z } from "zod/v4";
-import { organizationInvitationProcedures } from "@/lib/orpc/router/organization-invitation";
 import {
 	type AssistantToolDeps,
 	callProcedure,
@@ -31,8 +30,8 @@ export const cancelInvitations = (
 		const unique = [
 			...new Set(ids),
 		];
-		const emails = yield* callProcedure(deps, (options) =>
-			organizationInvitationProcedures.list(
+		const emails = yield* callProcedure(deps, (procedures, options) =>
+			procedures.organizationInvitation.list(
 				{
 					pageSize: INVITATION_LOOKUP_LIMIT,
 				},
@@ -51,8 +50,8 @@ export const cancelInvitations = (
 			Effect.orElseSucceed(() => new Map<string, string>()),
 		);
 
-		yield* callProcedure(deps, (options) =>
-			organizationInvitationProcedures.delete(
+		yield* callProcedure(deps, (procedures, options) =>
+			procedures.organizationInvitation.delete(
 				{
 					refs: unique.map((id) => ({
 						id,

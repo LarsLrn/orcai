@@ -1,7 +1,6 @@
 import { organizationInvitationStatusSchema } from "@orcai/schema";
 import * as Effect from "effect/Effect";
 import { z } from "zod/v4";
-import { organizationInvitationProcedures } from "@/lib/orpc/router/organization-invitation";
 import { listLimitSchema } from "../core/list-input";
 import {
 	type AssistantToolDeps,
@@ -20,8 +19,8 @@ export const listInvitationsTool = (deps: AssistantToolDeps) =>
 			"List the invitations of the active organisation, newest first. A pending invitation past its expiry can no longer be accepted.",
 		inputSchema: listInvitationsInputSchema,
 		run: ({ status, limit }) =>
-			callProcedure(deps, (options) =>
-				organizationInvitationProcedures.list(
+			callProcedure(deps, (procedures, options) =>
+				procedures.organizationInvitation.list(
 					{
 						pageSize: limit,
 						filters: {

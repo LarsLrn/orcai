@@ -20,12 +20,20 @@ import {
 import type { AppRuntimeContext } from "@/lib/effect/runtime";
 import type { ORPCContext } from "@/lib/orpc/implementation/os";
 import {
+	type ProcedureClients,
+	Procedures,
+} from "@/lib/orpc/implementation/procedures";
+import {
 	AssistantToolError,
 	isRecord,
 	runAssistantTool,
 	toolErrorText,
 } from "../tool-error";
 import type { AssistantTurn } from "./turn-state";
+
+export interface ProcedureOptions {
+	context: ORPCContext;
+}
 
 export interface AssistantToolDeps {
 	context: ORPCContext;
@@ -87,10 +95,13 @@ const zedTokenOf = (output: unknown) =>
  */
 export const callProcedure = <A, E>(
 	{ context, turn }: AssistantToolDeps,
-	call: (options: { context: ORPCContext }) => Effect.Effect<A, E>,
-): Effect.Effect<A, E> =>
-	Effect.suspend(() =>
-		call({
+	call: (
+		procedures: ProcedureClients,
+		options: ProcedureOptions,
+	) => Effect.Effect<A, E>,
+): Effect.Effect<A, E, Procedures> =>
+	Procedures.use((procedures) =>
+		call(procedures, {
 			context: {
 				...context,
 				meta: {

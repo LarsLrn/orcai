@@ -1,7 +1,6 @@
 import { resourceListPrincipalsInputSchema } from "@orcai/schema";
 import * as Effect from "effect/Effect";
 import { z } from "zod/v4";
-import { resourceProcedures } from "@/lib/orpc/router/resource";
 import { listLimitSchema } from "../core/list-input";
 import {
 	type AssistantToolDeps,
@@ -36,8 +35,8 @@ export const findPrincipalsTool = (deps: AssistantToolDeps) =>
 			"Find the users and groups that could be given access to a bot, block or asset, by name. Use it to resolve names to ids before grantAccess. Needs manage access on the resource.",
 		inputSchema: findPrincipalsInputSchema,
 		run: ({ principalType, query, excludeGranted, limit, ...target }) =>
-			callProcedure(deps, (options) =>
-				resourceProcedures.listPrincipals(
+			callProcedure(deps, (procedures, options) =>
+				procedures.resource.listPrincipals(
 					{
 						...toResourceIdentity(target),
 						principalType,

@@ -1,7 +1,6 @@
 import { resourceGrantRoleSchema } from "@orcai/schema";
 import * as Effect from "effect/Effect";
 import { z } from "zod/v4";
-import { resourceProcedures } from "@/lib/orpc/router/resource";
 import {
 	type AssistantToolDeps,
 	callProcedure,
@@ -43,8 +42,8 @@ export const grantAccessTool = (deps: AssistantToolDeps) =>
 						toPrincipalIdentity(principal),
 					]),
 				);
-				const { data } = yield* callProcedure(deps, (options) =>
-					resourceProcedures.grant(
+				const { data } = yield* callProcedure(deps, (procedures, options) =>
+					procedures.resource.grant(
 						{
 							...resource,
 							principals: [

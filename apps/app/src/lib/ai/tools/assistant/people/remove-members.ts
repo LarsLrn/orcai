@@ -2,8 +2,6 @@ import type { UserId } from "@orcai/core";
 import { userIdSchema } from "@orcai/schema";
 import * as Effect from "effect/Effect";
 import { z } from "zod/v4";
-import { organizationMemberProcedures } from "@/lib/orpc/router/organization-member";
-import { userProcedures } from "@/lib/orpc/router/user";
 import { deleteNamed } from "../named-delete";
 import { type AssistantToolDeps, effectTool } from "../procedure-tool";
 
@@ -18,8 +16,8 @@ const removeMembersInputSchema = z.object({
 export const removeMembers = (deps: AssistantToolDeps, userIds: UserId[]) =>
 	deleteNamed(deps, userIds, {
 		type: "member",
-		find: (id, options) =>
-			userProcedures.find(
+		find: (id, procedures, options) =>
+			procedures.user.find(
 				{
 					id,
 				},
@@ -27,8 +25,8 @@ export const removeMembers = (deps: AssistantToolDeps, userIds: UserId[]) =>
 			),
 		name: ({ data }) => data.name,
 		verify: "listMembers",
-		remove: (ids, options) =>
-			organizationMemberProcedures.delete(
+		remove: (ids, procedures, options) =>
+			procedures.organizationMember.delete(
 				{
 					refs: ids.map((userId) => ({
 						userId,

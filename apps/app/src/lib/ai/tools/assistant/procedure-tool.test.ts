@@ -2,7 +2,9 @@ import { describe, expect, test } from "bun:test";
 import { ORPCError } from "@orpc/client";
 import * as Effect from "effect/Effect";
 import type { ORPCContext } from "@/lib/orpc/implementation/os";
-import "./test-procedures";
+import type { ProcedureClients } from "@/lib/orpc/implementation/procedures";
+import type { ProcedureOptions } from "./procedure-tool";
+import { runPromise } from "./test-procedures";
 import { createAssistantTurn } from "./turn-state";
 
 const { callProcedure, expectType, mutation } = await import(
@@ -33,13 +35,14 @@ describe("callProcedure", () => {
 			}),
 		};
 		const seen: (string | undefined)[] = [];
-		const call = (output: unknown) => (options: { context: ORPCContext }) =>
-			Effect.sync(() => {
-				seen.push(options.context.meta?.zedToken);
-				return output;
-			});
+		const call =
+			(output: unknown) => (_: ProcedureClients, options: ProcedureOptions) =>
+				Effect.sync(() => {
+					seen.push(options.context.meta?.zedToken);
+					return output;
+				});
 
-		await Effect.runPromise(
+		await runPromise(
 			Effect.gen(function* () {
 				yield* callProcedure(
 					deps,
@@ -85,7 +88,7 @@ describe("callProcedure", () => {
 		};
 		const seen: (string | undefined)[] = [];
 		const save = (zedToken: string, delay: number) =>
-			callProcedure(deps, (options) =>
+			callProcedure(deps, (_, options) =>
 				Effect.sync(() => seen.push(options.context.meta?.zedToken)).pipe(
 					Effect.andThen(Effect.sleep(delay)),
 					Effect.as({
@@ -97,7 +100,7 @@ describe("callProcedure", () => {
 				),
 			);
 
-		await Effect.runPromise(
+		await runPromise(
 			Effect.all(
 				[
 					save("first-save", 20),

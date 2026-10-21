@@ -1,9 +1,14 @@
 import { mock } from "bun:test";
 import { type ValkeyClient, ValkeyService } from "@orcai/valkey";
 import * as Effect from "effect/Effect";
+import * as Layer from "effect/Layer";
+import {
+	type ProcedureClients,
+	Procedures,
+} from "@/lib/orpc/implementation/procedures";
 
 /**
- * Every assistant tool test mocks the procedure clients here, with one shape,
+ * Every assistant tool test fakes the procedure clients here, with one shape,
  * and sets `answers` per test.
  */
 
@@ -29,7 +34,7 @@ export const resetProcedures = () => {
 	}
 };
 
-const fakeProcedures = (namespace: string) =>
+const fakeNamespace = (namespace: string) =>
 	new Proxy(
 		{},
 		{
@@ -52,73 +57,13 @@ const fakeProcedures = (namespace: string) =>
 		},
 	);
 
-for (const [file, namespace] of [
-	[
-		"asset",
-		"asset",
-	],
-	[
-		"asset-point",
-		"assetPoint",
-	],
-	[
-		"authorization",
-		"authorization",
-	],
-	[
-		"block",
-		"block",
-	],
-	[
-		"bot",
-		"bot",
-	],
-	[
-		"chat-block",
-		"chatBlock",
-	],
-	[
-		"group",
-		"group",
-	],
-	[
-		"job",
-		"job",
-	],
-	[
-		"model",
-		"model",
-	],
-	[
-		"organization",
-		"organization",
-	],
-	[
-		"organization-invitation",
-		"organizationInvitation",
-	],
-	[
-		"organization-member",
-		"organizationMember",
-	],
-	[
-		"provider",
-		"provider",
-	],
-	[
-		"resource",
-		"resource",
-	],
-	[
-		"user",
-		"user",
-	],
-] as const) {
-	mock.module(`@/lib/orpc/router/${file}`, () => ({
-		[`${namespace}Router`]: {},
-		[`${namespace}Procedures`]: fakeProcedures(namespace),
-	}));
-}
+const fakeProcedures = new Proxy(
+	{},
+	{
+		get: (_, namespace) =>
+			typeof namespace === "string" ? fakeNamespace(namespace) : undefined,
+	},
+) as ProcedureClients;
 
 const fakeValkey = {
 	client: {
@@ -130,15 +75,17 @@ const fakeValkey = {
 	} as unknown as ValkeyClient,
 };
 
-// The real runtime builds the app's layers, which need its configuration.
-const runPromise = <A, E>(
-	effect: Effect.Effect<A, E, ValkeyService>,
+/** The fake Valkey and procedure clients. */
+export const FakeServices = Layer.mergeAll(
+	Layer.succeed(ValkeyService, fakeValkey),
+	Layer.succeed(Procedures, fakeProcedures),
+);
+
+/** Runs with the fakes; the real runtime builds the app's layers, which need its configuration. */
+export const runPromise = <A, E>(
+	effect: Effect.Effect<A, E, ValkeyService | Procedures>,
 	options?: Effect.RunOptions,
-) =>
-	Effect.runPromise(
-		Effect.provideService(effect, ValkeyService, fakeValkey),
-		options,
-	);
+) => Effect.runPromise(Effect.provide(effect, FakeServices), options);
 
 mock.module("@/lib/effect/runtime", () => ({
 	runtime: {

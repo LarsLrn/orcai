@@ -1,6 +1,5 @@
 import { addGroupMembersInputSchema } from "@orcai/schema";
 import * as Effect from "effect/Effect";
-import { groupProcedures } from "@/lib/orpc/router/group";
 import {
 	type AssistantToolDeps,
 	callProcedure,
@@ -15,8 +14,8 @@ export const addGroupMembersTool = (deps: AssistantToolDeps) =>
 			"Add members of the active organisation to a custom group, by user id (from listMembers). They gain the access the group holds.",
 		inputSchema: addGroupMembersInputSchema,
 		run: (input) =>
-			callProcedure(deps, (options) =>
-				groupProcedures.addMembers(input, options),
+			callProcedure(deps, (procedures, options) =>
+				procedures.group.addMembers(input, options),
 			).pipe(
 				mutation("listGroupMembers"),
 				expectType("group", input.groupId),

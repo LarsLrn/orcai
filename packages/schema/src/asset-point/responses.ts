@@ -1,8 +1,4 @@
 import { z } from "zod/v4";
-import {
-	createDataResponseSchema,
-	createDeleteResponseSchema,
-} from "../shared";
 import { retrievalModeSchema } from "../shared/primitives/retrieval-mode";
 import { assetPointSchema } from "./schema";
 
@@ -17,14 +13,3 @@ export const listAssetPointsResponseSchema = z.object({
 		})
 		.optional(),
 });
-
-export const findAssetPointResponseSchema =
-	createDataResponseSchema(assetPointSchema);
-
-export const createAssetPointResponseSchema =
-	createDataResponseSchema(assetPointSchema);
-
-export const updateAssetPointResponseSchema =
-	createDataResponseSchema(assetPointSchema);
-
-export const deleteAssetPointResponseSchema = createDeleteResponseSchema();

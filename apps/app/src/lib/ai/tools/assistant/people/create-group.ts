@@ -1,7 +1,6 @@
 import type { GroupId } from "@orcai/core";
 import { groupFieldsSchema } from "@orcai/schema";
 import * as Effect from "effect/Effect";
-import { groupProcedures } from "@/lib/orpc/router/group";
 import {
 	type AssistantToolDeps,
 	callProcedure,
@@ -26,8 +25,8 @@ export const createGroupTool = (deps: AssistantToolDeps) =>
 					input,
 				},
 				{
-					create: callProcedure(deps, (options) =>
-						groupProcedures.create(
+					create: callProcedure(deps, (procedures, options) =>
+						procedures.group.create(
 							{
 								name: input.name,
 								description: input.description,
@@ -39,8 +38,8 @@ export const createGroupTool = (deps: AssistantToolDeps) =>
 						group.id,
 					],
 					replay: ([groupId]) =>
-						callProcedure(deps, (options) =>
-							groupProcedures.find(
+						callProcedure(deps, (procedures, options) =>
+							procedures.group.find(
 								{
 									id: groupId as GroupId,
 								},

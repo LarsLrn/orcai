@@ -7,7 +7,6 @@ import {
 } from "@orcai/schema";
 import * as Effect from "effect/Effect";
 import { z } from "zod/v4";
-import { blockProcedures } from "@/lib/orpc/router/block";
 import {
 	type AssistantToolDeps,
 	callProcedure,
@@ -50,8 +49,8 @@ export const createRepositoryTool = (deps: AssistantToolDeps) =>
 					input,
 				},
 				{
-					create: callProcedure(deps, (options) =>
-						blockProcedures.create(
+					create: callProcedure(deps, (procedures, options) =>
+						procedures.block.create(
 							{
 								type: "database",
 								name: input.name,
@@ -78,8 +77,8 @@ export const createRepositoryTool = (deps: AssistantToolDeps) =>
 						repository.id,
 					],
 					replay: ([repositoryId]) =>
-						callProcedure(deps, (options) =>
-							blockProcedures.find(
+						callProcedure(deps, (procedures, options) =>
+							procedures.block.find(
 								{
 									id: repositoryId as BlockId,
 								},

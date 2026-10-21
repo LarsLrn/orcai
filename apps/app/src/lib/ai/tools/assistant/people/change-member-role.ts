@@ -1,6 +1,5 @@
 import { organizationMemberSchema } from "@orcai/schema";
 import * as Effect from "effect/Effect";
-import { organizationMemberProcedures } from "@/lib/orpc/router/organization-member";
 import {
 	type AssistantToolDeps,
 	callProcedure,
@@ -26,8 +25,8 @@ export const changeMemberRoleTool = (deps: AssistantToolDeps) =>
 			"Change a member's role in the active organisation. Only admins can make or unmake admins, and the last admin keeps the role.",
 		inputSchema: changeMemberRoleInputSchema,
 		run: ({ userId, role }) =>
-			callProcedure(deps, (options) =>
-				organizationMemberProcedures.update(
+			callProcedure(deps, (procedures, options) =>
+				procedures.organizationMember.update(
 					{
 						userId,
 						role,

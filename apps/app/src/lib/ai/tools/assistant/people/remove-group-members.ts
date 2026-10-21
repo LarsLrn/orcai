@@ -1,6 +1,5 @@
 import { removeGroupMembersInputSchema } from "@orcai/schema";
 import * as Effect from "effect/Effect";
-import { groupProcedures } from "@/lib/orpc/router/group";
 import {
 	type AssistantToolDeps,
 	callProcedure,
@@ -15,8 +14,8 @@ export const removeGroupMembersTool = (deps: AssistantToolDeps) =>
 			"Remove users from a custom group, by user id (from listGroupMembers). They lose the access the group holds; their organisation membership stays.",
 		inputSchema: removeGroupMembersInputSchema,
 		run: (input) =>
-			callProcedure(deps, (options) =>
-				groupProcedures.removeMembers(input, options),
+			callProcedure(deps, (procedures, options) =>
+				procedures.group.removeMembers(input, options),
 			).pipe(
 				mutation("listGroupMembers"),
 				expectType("group", input.groupId),

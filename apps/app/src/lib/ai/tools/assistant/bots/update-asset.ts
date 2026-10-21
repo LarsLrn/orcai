@@ -6,7 +6,6 @@ import {
 } from "@orcai/schema";
 import * as Effect from "effect/Effect";
 import { z } from "zod/v4";
-import { assetProcedures } from "@/lib/orpc/router/asset";
 import {
 	type AssistantToolDeps,
 	callProcedure,
@@ -47,17 +46,19 @@ export const updateAssetTool = (deps: AssistantToolDeps) =>
 		inputSchema: updateAssetInputSchema,
 		run: ({ id, title, metadata }) =>
 			Effect.gen(function* () {
-				const { data: current } = yield* callProcedure(deps, (options) =>
-					assetProcedures.find(
-						{
-							id,
-						},
-						options,
-					),
+				const { data: current } = yield* callProcedure(
+					deps,
+					(procedures, options) =>
+						procedures.asset.find(
+							{
+								id,
+							},
+							options,
+						),
 				).pipe(expectType("asset", id));
 
-				const { data } = yield* callProcedure(deps, (options) =>
-					assetProcedures.save(
+				const { data } = yield* callProcedure(deps, (procedures, options) =>
+					procedures.asset.save(
 						{
 							id,
 							title: title ?? current.title,

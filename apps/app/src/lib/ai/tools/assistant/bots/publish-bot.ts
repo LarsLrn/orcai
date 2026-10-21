@@ -1,6 +1,5 @@
 import { publishBotInputSchema } from "@orcai/schema";
 import * as Effect from "effect/Effect";
-import { botProcedures } from "@/lib/orpc/router/bot";
 import {
 	type AssistantToolDeps,
 	callProcedure,
@@ -16,8 +15,8 @@ export const publishBotTool = (deps: AssistantToolDeps) =>
 			"Publish a draft bot so its audience can chat with it. Needs a ready behaviour block, and every linked repository ready with at least one asset; otherwise the error names what is missing.",
 		inputSchema: publishBotInputSchema,
 		run: ({ id }) =>
-			callProcedure(deps, (options) =>
-				botProcedures.publish(
+			callProcedure(deps, (procedures, options) =>
+				procedures.bot.publish(
 					{
 						id,
 					},

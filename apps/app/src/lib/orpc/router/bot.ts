@@ -28,7 +28,6 @@ import { getZedToken } from "@/lib/authz/zed-token";
 import * as AppErrors from "@/lib/effect/utils/errors";
 import { NotFoundError } from "@/lib/effect/utils/errors";
 import { authed } from "@/lib/orpc/implementation/authed";
-import { createProcedures } from "@/lib/orpc/implementation/procedures";
 import { requireActiveOrganizationMiddleware } from "@/lib/orpc/middlewares/auth";
 import {
 	type CheckManyPermissionInputFor,
@@ -696,5 +695,3 @@ export const botRouter = {
 	publish: publishBot,
 	delete: deleteBots,
 };
-
-export const botProcedures = createProcedures("bot", botRouter);

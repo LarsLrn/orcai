@@ -5,7 +5,6 @@ import {
 } from "@orcai/schema";
 import * as Effect from "effect/Effect";
 import { z } from "zod/v4";
-import { blockProcedures } from "@/lib/orpc/router/block";
 import {
 	type AssistantToolDeps,
 	callProcedure,
@@ -53,13 +52,15 @@ export const updateTemplateTool = (deps: AssistantToolDeps) =>
 		run: (input) =>
 			Effect.gen(function* () {
 				const { id } = input;
-				const { data: current } = yield* callProcedure(deps, (options) =>
-					blockProcedures.find(
-						{
-							id,
-						},
-						options,
-					),
+				const { data: current } = yield* callProcedure(
+					deps,
+					(procedures, options) =>
+						procedures.block.find(
+							{
+								id,
+							},
+							options,
+						),
 				).pipe(expectType("template", id));
 
 				if (current.type !== "template") {
@@ -68,8 +69,8 @@ export const updateTemplateTool = (deps: AssistantToolDeps) =>
 					);
 				}
 
-				const { data } = yield* callProcedure(deps, (options) =>
-					blockProcedures.update(
+				const { data } = yield* callProcedure(deps, (procedures, options) =>
+					procedures.block.update(
 						{
 							id,
 							type: "template",

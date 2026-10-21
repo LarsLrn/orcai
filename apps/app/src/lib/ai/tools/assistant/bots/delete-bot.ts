@@ -1,6 +1,5 @@
 import { botIdSchema } from "@orcai/schema";
 import { z } from "zod/v4";
-import { botProcedures } from "@/lib/orpc/router/bot";
 import { deleteNamed } from "../named-delete";
 import { type AssistantToolDeps, effectTool } from "../procedure-tool";
 
@@ -20,8 +19,8 @@ export const deleteBotTool = (deps: AssistantToolDeps) =>
 		run: ({ ids }) =>
 			deleteNamed(deps, ids, {
 				type: "bot",
-				find: (id, options) =>
-					botProcedures.find(
+				find: (id, procedures, options) =>
+					procedures.bot.find(
 						{
 							id,
 						},
@@ -30,8 +29,8 @@ export const deleteBotTool = (deps: AssistantToolDeps) =>
 				name: ({ data }) => data.name,
 				canDelete: ({ data }) => data.capabilities.delete === true,
 				verify: "findBots",
-				remove: (ids, options) =>
-					botProcedures.delete(
+				remove: (ids, procedures, options) =>
+					procedures.bot.delete(
 						{
 							refs: ids.map((id) => ({
 								id,
