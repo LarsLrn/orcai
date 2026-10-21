@@ -2003,7 +2003,7 @@
 	"chat_list_empty_state_title": "No chats yet",
 	"chat_list_page_empty_description": "Start a chat with a bot or a model, and it is listed here.",
 	"chat_list_page_title": "Chats",
-	"chat_list_search_placeholder": "Search chats...",
+	"chat_list_search_placeholder": "Search titles and messages...",
 	"chat_message_branch_action": "Branch from here",
 	"chat_message_branches_label": "Branches:",
 	"chat_message_copy_citation_with_page": "{title}, p. {page}",

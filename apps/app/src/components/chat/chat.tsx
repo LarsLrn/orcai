@@ -1,7 +1,13 @@
 import type { ChatId } from "@orcai/core";
 import type { ChatBranchLink } from "@orcai/schema";
 import { useQuery } from "@tanstack/react-query";
-import { useEffect, useMemo } from "react";
+import {
+	useEffect,
+	useEffectEvent,
+	useLayoutEffect,
+	useMemo,
+	useState,
+} from "react";
 import { toast } from "sonner";
 import {
 	Conversation,
@@ -15,12 +21,16 @@ import { AssistantPlaceholder } from "@/components/assistant/assistant-placehold
 import { PlanPanel } from "@/components/assistant/plan-panel";
 import { DocumentsPanel } from "@/components/documents/readiness/documents-panel";
 import { useChatRepositoryIds } from "@/components/documents/readiness/use-repository-readiness";
-import { MessageScrollerItem } from "@/components/ui/message-scroller";
+import {
+	MessageScrollerItem,
+	useMessageScroller,
+} from "@/components/ui/message-scroller";
 import { turnView } from "@/lib/ai/turn-view/turn-view";
 import { clientEnv } from "@/lib/env/client";
 import { describeError, reasonMessageOf } from "@/lib/errors/describe-error";
 import { orpc } from "@/lib/orpc/orpc";
 import { formatCount } from "@/lib/presentation/format-number";
+import { cn } from "@/lib/utils";
 import { m } from "@/paraglide/messages";
 import { BranchedFrom } from "./branch-links";
 import type { ChatDraft } from "./chat-draft";
@@ -66,10 +76,30 @@ const QuotaLine = ({ chatId }: { chatId: ChatId }) => {
 	);
 };
 
+const HIGHLIGHT_MS = 2000;
+
+/** Opens the conversation on a message instead of its end. */
+const ScrollToMessage = ({ messageId }: { messageId: string }) => {
+	const { scrollToMessage } = useMessageScroller();
+	const scroll = useEffectEvent(() =>
+		scrollToMessage(messageId, {
+			align: "center",
+		}),
+	);
+
+	// Before paint, so the conversation never shows its end first.
+	useLayoutEffect(() => {
+		scroll();
+	}, []);
+
+	return null;
+};
+
 const Chat = ({
 	id,
 	page,
 	zedToken,
+	focusMessageId,
 	pendingMessage,
 	draft,
 	variant = "chat",
@@ -78,6 +108,8 @@ const Chat = ({
 	/** The newest page as the loader fetched it. */
 	page: Parameters<typeof useChatSession>[0]["page"];
 	zedToken?: string;
+	/** A message to open on and highlight briefly. */
+	focusMessageId?: string;
 	pendingMessage?: string;
 	draft?: ChatDraft;
 	/** Assistant conversations drop the chat-only controls. */
@@ -116,6 +148,15 @@ const Chat = ({
 		chatId: id,
 		botId: chat?.data.botId,
 	});
+
+	const [highlightedId, setHighlightedId] = useState(focusMessageId);
+	useEffect(() => {
+		if (!highlightedId) return;
+		const timeout = setTimeout(() => setHighlightedId(undefined), HIGHLIGHT_MS);
+		return () => clearTimeout(timeout);
+	}, [
+		highlightedId,
+	]);
 
 	const view = turnView(messages, phase);
 	const canBranch = !isAssistant && !view.busy;
@@ -174,6 +215,11 @@ const Chat = ({
 									key={messageId}
 									messageId={messageId}
 									scrollAnchor={role === "user"}
+									data-highlighted={messageId === highlightedId || undefined}
+									className={cn(
+										focusMessageId &&
+											"rounded-xl transition-colors duration-700 data-highlighted:bg-accent-brand/10",
+									)}
 								>
 									<MessageBlock
 										view={messageView}
@@ -221,6 +267,7 @@ const Chat = ({
 						)}
 					</ConversationContent>
 					<ConversationScrollButton />
+					{focusMessageId && <ScrollToMessage messageId={focusMessageId} />}
 				</Conversation>
 
 				<div className="mx-auto flex w-full flex-col gap-2 px-4 pt-2 pb-6 md:max-w-3xl md:pb-2">

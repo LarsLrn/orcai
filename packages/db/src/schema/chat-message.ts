@@ -5,6 +5,7 @@ import type {
 	ChatMessageParts,
 } from "@orcai/schema";
 import {
+	index,
 	integer,
 	json,
 	pgEnum,
@@ -17,6 +18,7 @@ import {
 } from "drizzle-orm/pg-core";
 import { user } from "./auth";
 import { chat } from "./chat";
+import { chatMessageSearchVector } from "./chat-search";
 
 export const chatMessage = pgTable(
 	"chat_message",
@@ -43,6 +45,10 @@ export const chatMessage = pgTable(
 		uniqueIndex("chat_message_chat_position_unique").on(
 			table.chatId,
 			table.position,
+		),
+		index("chat_message_search_idx").using(
+			"gin",
+			chatMessageSearchVector(table.parts),
 		),
 	],
 );

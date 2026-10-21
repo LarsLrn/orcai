@@ -2,11 +2,15 @@ import { z } from "zod/v4";
 import { zedTokenSchema } from "../shared";
 import { chatMessageRatingSchema, chatMessageSchema } from "./schema";
 
-/** The newest `limit` messages below `before`, by `position`. */
+/**
+ * The newest `limit` messages below `before`, by `position`. With `through`,
+ * at least every message from that one to the newest, so it opens in view.
+ */
 export const listChatMessagesInputSchema = z.object({
 	...zedTokenSchema.shape,
 	chatId: chatMessageSchema.shape.chatId,
 	before: z.number().int().nonnegative().optional(),
+	through: chatMessageSchema.shape.id.optional(),
 	limit: z.number().int().min(1).max(100).default(20),
 });
 

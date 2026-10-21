@@ -1,0 +1,2 @@
+CREATE INDEX "chat_message_search_idx" ON "chat_message" USING gin (to_tsvector('simple', jsonb_path_query_array("parts"::jsonb, '$[*] ? (@.type == "text").text')));--> statement-breakpoint
+CREATE INDEX "chat_title_search_idx" ON "chat" USING gin (to_tsvector('simple', "title"));
