@@ -1,14 +1,19 @@
 import {
 	AbortMultipartUploadCommand,
 	CompleteMultipartUploadCommand,
+	CopyObjectCommand,
 	CreateBucketCommand,
 	CreateMultipartUploadCommand,
 	DeleteObjectCommand,
+	GetBucketLifecycleConfigurationCommand,
 	GetObjectCommand,
 	HeadBucketCommand,
 	HeadObjectCommand,
+	type LifecycleRule,
 	ListObjectsV2Command,
+	PutBucketLifecycleConfigurationCommand,
 	PutObjectCommand,
+	type TransitionDefaultMinimumObjectSize,
 } from "@aws-sdk/client-s3";
 import * as Effect from "effect/Effect";
 import { S3Error } from "./errors";
@@ -199,5 +204,62 @@ export const sendGetObjectCommand = (params: { bucket: string; key: string }) =>
 		return yield* trySend({
 			send: () => client.send(command),
 			operation: "sendGetObjectCommand",
+		});
+	});
+
+export const sendCopyObjectCommand = (params: {
+	bucket: string;
+	sourceKey: string;
+	key: string;
+}) =>
+	Effect.gen(function* () {
+		const { client } = yield* S3Service;
+		const command = new CopyObjectCommand({
+			Bucket: params.bucket,
+			CopySource: encodeURI(`${params.bucket}/${params.sourceKey}`),
+			Key: params.key,
+		});
+
+		return yield* trySend({
+			send: () => client.send(command),
+			operation: "sendCopyObjectCommand",
+		});
+	});
+
+export const sendGetBucketLifecycleConfigurationCommand = (params: {
+	bucket: string;
+}) =>
+	Effect.gen(function* () {
+		const { client } = yield* S3Service;
+		const command = new GetBucketLifecycleConfigurationCommand({
+			Bucket: params.bucket,
+		});
+
+		return yield* trySend({
+			send: () => client.send(command),
+			operation: "sendGetBucketLifecycleConfigurationCommand",
+		});
+	});
+
+/** Replaces the bucket's whole lifecycle configuration. */
+export const sendPutBucketLifecycleConfigurationCommand = (params: {
+	bucket: string;
+	rules: LifecycleRule[];
+	transitionDefaultMinimumObjectSize?: TransitionDefaultMinimumObjectSize;
+}) =>
+	Effect.gen(function* () {
+		const { client } = yield* S3Service;
+		const command = new PutBucketLifecycleConfigurationCommand({
+			Bucket: params.bucket,
+			LifecycleConfiguration: {
+				Rules: params.rules,
+			},
+			TransitionDefaultMinimumObjectSize:
+				params.transitionDefaultMinimumObjectSize,
+		});
+
+		return yield* trySend({
+			send: () => client.send(command),
+			operation: "sendPutBucketLifecycleConfigurationCommand",
 		});
 	});

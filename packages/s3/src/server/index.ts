@@ -1,6 +1,7 @@
 export {
 	sendAbortMultipartUploadCommand,
 	sendCompleteMultipartUploadCommand,
+	sendCopyObjectCommand,
 	sendCreateBucketCommand,
 	sendCreateMultipartUploadCommand,
 	sendDeleteObjectCommand,
@@ -20,6 +21,10 @@ export {
 	getObjectAsString,
 } from "./object-helpers";
 export { S3Live, S3Service, S3ServiceLive } from "./service";
+export {
+	ensureUploadLifecycle,
+	UPLOAD_LIFECYCLE_RULES,
+} from "./upload-lifecycle";
 export {
 	createBucketIfNotExists,
 	normalizeUploadId,

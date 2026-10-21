@@ -350,7 +350,6 @@ const createDownloadUrl = authed.storage.createDownloadUrl
 
 const completeMultipartUpload = authed.storage.completeMultipartUpload.effect(
 	function* ({ input, context }) {
-		const uploadRoute = UPLOAD_ROUTES[input.route];
 		const uploadId = normalizeUploadId(input.uploadId);
 
 		if (!uploadId) {
@@ -364,10 +363,8 @@ const completeMultipartUpload = authed.storage.completeMultipartUpload.effect(
 
 		const validated = yield* validateUploadEnvelope({
 			file: input.file,
-			inputRoute: input.route,
-			authUserId: context.auth.user.id,
-			expectedBucket: uploadRoute.bucket,
-			requireKey: true,
+			route: input.route,
+			userId: context.auth.user.id,
 		}).pipe(
 			Effect.mapError(
 				() =>
@@ -389,7 +386,7 @@ const completeMultipartUpload = authed.storage.completeMultipartUpload.effect(
 
 		yield* sendCompleteMultipartUploadCommand({
 			bucket: validated.bucket,
-			key: validated.expectedKey,
+			key: validated.stagingKey,
 			uploadId,
 			parts: sortedParts,
 		});
@@ -402,7 +399,6 @@ const completeMultipartUpload = authed.storage.completeMultipartUpload.effect(
 
 const abortMultipartUpload = authed.storage.abortMultipartUpload.effect(
 	function* ({ input, context }) {
-		const uploadRoute = UPLOAD_ROUTES[input.route];
 		const uploadId = normalizeUploadId(input.uploadId);
 
 		if (!uploadId) {
@@ -416,10 +412,8 @@ const abortMultipartUpload = authed.storage.abortMultipartUpload.effect(
 
 		const validated = yield* validateUploadEnvelope({
 			file: input.file,
-			inputRoute: input.route,
-			authUserId: context.auth.user.id,
-			expectedBucket: uploadRoute.bucket,
-			requireKey: true,
+			route: input.route,
+			userId: context.auth.user.id,
 		}).pipe(
 			Effect.mapError(
 				() =>
@@ -432,7 +426,7 @@ const abortMultipartUpload = authed.storage.abortMultipartUpload.effect(
 
 		yield* sendAbortMultipartUploadCommand({
 			bucket: validated.bucket,
-			key: validated.expectedKey,
+			key: validated.stagingKey,
 			uploadId,
 		});
 
@@ -445,17 +439,14 @@ const abortMultipartUpload = authed.storage.abortMultipartUpload.effect(
 const finalizeUpload = authed.storage.finalizeUpload
 	.use(requireOrganizationPermission("create_asset"))
 	.effect(function* ({ input, context }) {
-		const uploadRoute = UPLOAD_ROUTES[input.route];
-
 		const results = yield* Effect.forEach(
 			input.files,
 			(file) =>
 				Effect.gen(function* () {
 					const validated = yield* validateUploadEnvelope({
 						file,
-						inputRoute: input.route,
-						authUserId: context.auth.user.id,
-						expectedBucket: uploadRoute.bucket,
+						route: input.route,
+						userId: context.auth.user.id,
 					}).pipe(
 						Effect.mapError(
 							() =>
@@ -468,7 +459,7 @@ const finalizeUpload = authed.storage.finalizeUpload
 
 					const headObject = yield* sendHeadObjectCommand({
 						bucket: validated.bucket,
-						key: validated.expectedKey,
+						key: validated.stagingKey,
 					}).pipe(
 						Effect.mapError((error) =>
 							isS3NotFound(error.cause)
@@ -496,7 +487,7 @@ const finalizeUpload = authed.storage.finalizeUpload
 						id: validated.id,
 						bucket: validated.bucket,
 						prefix: validated.prefix,
-						objectKey: validated.expectedKey,
+						objectKey: validated.stagingKey,
 						name: file.name,
 						size: file.size,
 						type: file.type,

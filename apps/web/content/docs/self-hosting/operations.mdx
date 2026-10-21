@@ -97,6 +97,14 @@ bun run --filter @orcai/spice-db status
 
 Keep workers running alongside the app. If workers are stopped, uploads and scheduled maintenance jobs may remain queued.
 
+## Upload Storage Lifecycle
+
+Uploads land under `staging/` in the `uploads` bucket. Creating the asset moves the file to its final key, so `staging/` only holds files no asset was created from, such as an upload abandoned mid-flight.
+
+Each time the workers start, they put one lifecycle rule (`expire-staged-uploads`) for `staging/` on the `uploads` bucket: objects expire one day after upload, and incomplete multipart uploads are aborted one day after they started. Other lifecycle rules on the bucket stay as they are. The rule never matches an asset's file. If the storage provider rejects the rule, the workers log the error and keep running.
+
+The storage provider enforces the rule, not OrcAI. SeaweedFS runs lifecycle in its plugin worker, which `weed mini` starts by default, once a day, so a staged file can stay up to about two days. A storage provider without bucket lifecycle support keeps staged leftovers until you remove them.
+
 ## Asset Processing
 
 If OCR or extraction fails, verify:
