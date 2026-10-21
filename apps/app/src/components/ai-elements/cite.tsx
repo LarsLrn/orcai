@@ -13,12 +13,12 @@ import {
 	InlineCitationCardTrigger,
 	InlineCitationText,
 } from "@/components/ai-elements/inline-citation";
-import { formatAssetTitle } from "@/components/chat/message/asset-title";
 import { Badge } from "@/components/ui/badge";
 import { buttonVariants } from "@/components/ui/button";
 import { Spinner } from "@/components/ui/spinner";
 import type { Citations } from "@/lib/ai/tools/rag/citations";
 import { orpc } from "@/lib/orpc/orpc";
+import { formatAssetTitle } from "@/lib/presentation/asset-title";
 import { m } from "@/paraglide/messages";
 
 const CiteCardShell = ({

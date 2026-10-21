@@ -1,8 +1,8 @@
 import { displayToolMarkdown } from "@/components/chat/gen-ui/catalog";
-import { formatAssetTitle } from "@/components/chat/message/asset-title";
 import { type Citations, messageCitations } from "@/lib/ai/tools/rag/citations";
 import { toolNameOf } from "@/lib/ai/tools/registry";
 import type { AnswerPart, MessageView } from "@/lib/ai/turn-view/turn-view";
+import { formatAssetTitle } from "@/lib/presentation/asset-title";
 import { m } from "@/paraglide/messages";
 
 const CITE = /<cite\b([^>]*)>([\s\S]*?)<\/cite>/g;

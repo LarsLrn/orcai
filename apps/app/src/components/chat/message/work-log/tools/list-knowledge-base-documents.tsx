@@ -1,7 +1,7 @@
-import { formatAssetTitle } from "@/components/chat/message/asset-title";
 import { listOutputSchema } from "@/lib/ai/tools/rag/outputs";
 import type { ToolStatus } from "@/lib/ai/turn-view/turn-view";
 import type { ListKnowledgeBaseDocumentsToolPart } from "@/lib/ai/types/tools";
+import { formatAssetTitle } from "@/lib/presentation/asset-title";
 import { m } from "@/paraglide/messages";
 import { SourcePassageList } from "../source-passage";
 import { ToolEntry } from "../tool-entry";
