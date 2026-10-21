@@ -10,7 +10,7 @@ import { pausedStep } from "@/lib/ai/turn-view/paused-step";
 type Parts = UIMessage["parts"];
 type Part = Parts[number];
 
-export type TurnDecisionsRejection =
+type TurnDecisionsRejection =
 	| "CHAT_TOOL_OUTPUT_INVALID"
 	| "CHAT_TURN_DECISIONS_INCOMPLETE"
 	| "CHAT_TURN_NOT_AWAITING";

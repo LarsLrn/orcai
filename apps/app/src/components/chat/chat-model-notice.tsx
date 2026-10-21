@@ -91,4 +91,4 @@ const ChatModelNotice = ({
 	);
 };
 
-export { ChatModelNotice, type ChatModelNoticeReason };
+export { ChatModelNotice };

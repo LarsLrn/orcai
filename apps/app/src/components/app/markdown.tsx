@@ -8,7 +8,7 @@ import type { BundledLanguage } from "shiki";
 import { CodeBlock } from "@/components/ai-elements/code-block";
 import { cn } from "@/lib/utils";
 
-export const reactMarkdownPlugins = {
+const reactMarkdownPlugins = {
 	rehypePlugins: [
 		rehypeKatex,
 	],
@@ -19,7 +19,7 @@ export const reactMarkdownPlugins = {
 	],
 };
 
-export const components: Options["components"] = {
+const components: Options["components"] = {
 	ol: ({ node, children, className, ...props }) => (
 		<ol className={cn("ml-4 list-outside list-decimal", className)} {...props}>
 			{children}

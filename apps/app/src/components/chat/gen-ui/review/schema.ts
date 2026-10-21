@@ -26,8 +26,6 @@ const findingSchema = z.object({
 		),
 });
 
-export type Finding = z.infer<typeof findingSchema>;
-
 export const reviewSchema = z.object({
 	title: z.string().describe("Short heading, plain text."),
 	summary: z

@@ -1,6 +1,6 @@
 import * as Data from "effect/Data";
 
-export const ErrorTags = {
+const ErrorTags = {
 	AI: "AiError",
 } as const;
 

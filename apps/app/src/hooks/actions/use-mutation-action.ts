@@ -18,7 +18,7 @@ const isDefinedORPCError = (error: unknown) => {
 	return isDefinedError(maybeError);
 };
 
-export const MUTATION_ACTION_CANCELLED = "cancelled" as const;
+const MUTATION_ACTION_CANCELLED = "cancelled" as const;
 
 export type MutationActionCancelled = {
 	status: typeof MUTATION_ACTION_CANCELLED;
@@ -29,13 +29,13 @@ export type MutationActionSuccess<TData> = {
 	data: TData;
 };
 
-export type MutationActionDefinedError<TError> = {
+type MutationActionDefinedError<TError> = {
 	status: "error";
 	error: Extract<TError, ORPCError<string, unknown>>;
 	isDefinedError: true;
 };
 
-export type MutationActionUnhandledError<TError> = {
+type MutationActionUnhandledError<TError> = {
 	status: "error";
 	error: TError;
 	isDefinedError: false;

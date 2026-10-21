@@ -111,7 +111,7 @@ const appErrorToORPCError = (error: AppError): AnyORPCError => {
 	}
 };
 
-export const unknownToORPCError = (error: unknown): AnyORPCError => {
+const unknownToORPCError = (error: unknown): AnyORPCError => {
 	if (error instanceof ORPCError) {
 		return error as AnyORPCError;
 	}
@@ -131,7 +131,7 @@ export const isClientErrorCode = (code: string): boolean =>
 	COMMON_ERROR_STATUS_MAP[code as keyof typeof COMMON_ERROR_STATUS_MAP] < 500;
 
 /** A defect wins over failures alongside it, so the request answers 500. */
-export const causeToORPCError = (cause: Cause.Cause<unknown>): AnyORPCError => {
+const causeToORPCError = (cause: Cause.Cause<unknown>): AnyORPCError => {
 	const defect = Cause.findDefect(cause);
 	if (Result.isSuccess(defect)) {
 		return unknownToORPCError(defect.success);

@@ -5,8 +5,4 @@ export {
 	requireOrganizationPermission,
 	requireResourcePermission,
 } from "./require";
-export type {
-	CheckManyPermissionInputFor,
-	CheckPermissionInput,
-	CheckPermissionInputFor,
-} from "./types";
+export type { CheckManyPermissionInputFor } from "./types";

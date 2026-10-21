@@ -81,4 +81,4 @@ const useAssistantStarter = ({
 	};
 };
 
-export { type AssistantStarterAvailability, useAssistantStarter };
+export { useAssistantStarter };

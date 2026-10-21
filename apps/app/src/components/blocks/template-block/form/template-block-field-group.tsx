@@ -18,14 +18,6 @@ const templateBlockTopLevelFieldMap = {
 	systemPrompt: "config.systemPrompt",
 } as const;
 
-const templateBlockBuilderFieldMap = {
-	name: "templateBlock.name",
-	description: "templateBlock.description",
-	contentJson: "templateBlock.contentJson",
-	contentHtml: "templateBlock.contentHtml",
-	systemPrompt: "templateBlock.config.systemPrompt",
-} as const;
-
 const TemplateBlockFieldGroup = withFieldGroup({
 	defaultValues: templateBlockGroupDefaultValues,
 	render: function Render({ group }) {
@@ -82,8 +74,4 @@ const TemplateBlockFieldGroup = withFieldGroup({
 	},
 });
 
-export {
-	TemplateBlockFieldGroup,
-	templateBlockBuilderFieldMap,
-	templateBlockTopLevelFieldMap,
-};
+export { TemplateBlockFieldGroup, templateBlockTopLevelFieldMap };

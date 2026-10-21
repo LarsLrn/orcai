@@ -73,7 +73,7 @@ const toolGroupLines: Record<DeferredToolGroup, string> = {
 };
 
 /** The deferred tool groups this user may load; nothing when there are none. */
-export const buildAssistantToolGroupsSection = (
+const buildAssistantToolGroupsSection = (
 	groups: readonly DeferredToolGroup[],
 ) =>
 	groups.length > 0
@@ -134,7 +134,7 @@ const quoted = (value: string) =>
 const listOrNone = (values: string[]) =>
 	values.length > 0 ? values.join(", ") : "nothing";
 
-export const buildAssistantRoleSection = ({
+const buildAssistantRoleSection = ({
 	user,
 	organizationName,
 	role,

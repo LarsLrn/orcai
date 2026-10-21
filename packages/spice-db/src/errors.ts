@@ -1,6 +1,6 @@
 import * as Data from "effect/Data";
 
-export const ErrorTags = {
+const ErrorTags = {
 	SPICE_DB: "SpiceDbError",
 	SPICE_DB_CLI: "SpiceDbCliError",
 } as const;
