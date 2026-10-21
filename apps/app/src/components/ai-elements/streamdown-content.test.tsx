@@ -106,6 +106,82 @@ describe("normaliseMathDelimiters", () => {
 			"~~~\n```\n\\(x\\)\n```\n~~~",
 		],
 		[
+			"an indented code block",
+			"Example:\n\n    \\(x\\)\n    \\[y\\]\n\nDone.",
+		],
+		[
+			"a tab indented code block",
+			"\t\\(x\\)",
+		],
+		[
+			"an indented code block with blank lines inside",
+			"    \\(x\\)\n\n    \\(y\\)",
+		],
+		[
+			"an indented code block in a list item",
+			"- item\n\n      \\(x\\)",
+		],
+		[
+			"an indented code block in a numbered list item",
+			"1. item\n\n       \\(x\\)",
+		],
+		[
+			"an indented code block right after a heading",
+			"# Example\n    \\(x\\)",
+		],
+		[
+			"an indented code block in an item after a nested list",
+			"- a\n  - b\n\n  more\n\n      \\(x\\)",
+		],
+		[
+			"an indented code block after a heading that ends a list",
+			"- item\n# Heading\n    \\(x\\)",
+		],
+		[
+			"an indented code block after a thematic break that ends a list",
+			"- item\n***\n    \\(x\\)",
+		],
+		[
+			"an indented code block after a fence that ends a list",
+			"- item\n```\ncode\n```\n    \\(x\\)",
+		],
+		[
+			"an indented code block after a quote that ends a list",
+			"- item\n> quote\n\n    \\(x\\)",
+		],
+		[
+			"an indented code block in a block quote",
+			"> Example:\n>\n>     \\(x\\)",
+		],
+		[
+			"an indented code block in a list inside a block quote",
+			"> - item\n>\n>       \\(x\\)",
+		],
+		[
+			"a tab indented code block in a block quote",
+			"> Example:\n>\n>\t\t\\(x\\)",
+		],
+		[
+			"an indented code block after a heading in a wide list item",
+			"10. item\n    # Heading\n        \\(x\\)",
+		],
+		[
+			"an indented code block after a setext heading",
+			"Heading\n===\n    \\(x\\)",
+		],
+		[
+			"an indented code block that ends a wide list item",
+			"10000. item\n\n    ```\n    \\(literal\\)",
+		],
+		[
+			"an indented code block in a list item whose marker is followed by a tab",
+			"-\titem\n\n\t\t\\(x\\)",
+		],
+		[
+			"an indented code block in a quoted list item whose marker is followed by a tab",
+			"> -\titem\n>\n>       \\(x\\)",
+		],
+		[
 			"a fenced block in a list item",
 			"- Code:\n  ```\n  \\(x\\)\n  ```",
 		],
@@ -119,6 +195,35 @@ describe("normaliseMathDelimiters", () => {
 				"`\\(a\\)` and \\(b\\)\n```\n\\(c\\)\n```\nThen \\(d\\)",
 			),
 		).toBe("`\\(a\\)` and $$b$$\n```\n\\(c\\)\n```\nThen $$d$$");
+	});
+
+	test("converts math after an indented code block and in indented continuations", () => {
+		expect(normaliseMathDelimiters("    \\(a\\)\n\nThen \\(b\\)")).toBe(
+			"    \\(a\\)\n\nThen $$b$$",
+		);
+		expect(normaliseMathDelimiters("Line\n    \\(c\\) continues")).toBe(
+			"Line\n    $$c$$ continues",
+		);
+		expect(normaliseMathDelimiters("\tcode\tx\n\n  \\(e\\)")).toBe(
+			"\tcode\tx\n\n  $$e$$",
+		);
+		expect(normaliseMathDelimiters("- item\n\n    \\(d\\)")).toBe(
+			"- item\n\n    $$d$$",
+		);
+	});
+
+	test("converts math in a quote and in prose after it", () => {
+		expect(normaliseMathDelimiters("> Then \\(a\\)\n\nAnd \\(b\\)")).toBe(
+			"> Then $$a$$\n\nAnd $$b$$",
+		);
+	});
+
+	test("converts math after an indented fence-like block ends a wide list item", () => {
+		expect(
+			normaliseMathDelimiters(
+				"10000. item\n\n    ```\n    \\(literal\\)\n\nFollowing \\(math\\)",
+			),
+		).toBe("10000. item\n\n    ```\n    \\(literal\\)\n\nFollowing $$math$$");
 	});
 
 	test("keeps currency as text beside converted math", () => {

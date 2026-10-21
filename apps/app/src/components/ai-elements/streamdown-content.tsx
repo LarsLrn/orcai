@@ -22,6 +22,18 @@ const fenceOpen =
 const fenceClose = /^(?:[ \t]*>[ \t]?)*[ \t]*(`{3,}|~{3,})[ \t]*$/;
 const containerPrefix =
 	/^((?:[ \t]*>[ \t]?)*)([ \t]*(?:(?:[-*+]|\d{1,9}[.)])[ \t]+)?)/;
+const quotePrefix = /^(?: {0,3}>[ \t]?)+/;
+const listMarker = /^([ \t]*(?:[-*+]|\d{1,9}[.)]))([ \t]+)\S/;
+const blockBoundary =
+	/^(?:#{1,6}(?:[ \t]|$)|([-*_])(?:[ \t]*\1){2,}[ \t]*$|=+[ \t]*$|`{3,}|~{3,})/;
+// Columns `text` spans when it starts at column `start`, with tabs advancing to the next multiple of four.
+const widthOf = (text: string, start = 0) => {
+	let column = start;
+	for (const char of text) column += char === "\t" ? 4 - (column % 4) : 1;
+	return column - start;
+};
+const indentOf = (text: string, start = 0) =>
+	widthOf(/^[ \t]*/.exec(text)?.[0] ?? "", start);
 const blankLine = /\n[ \t]*\n/g;
 const backticks = /`+/g;
 
@@ -125,25 +137,70 @@ export const normaliseMathDelimiters = (markdown: string) => {
 	const output: string[] = [];
 	let prose: string[] = [];
 	let fence: string | undefined;
+	let afterBlank = true;
+	// Content indents of the open list items, outermost first.
+	const lists: number[] = [];
+	let indentedCode = false;
+	let quoteDepth = 0;
 	const flush = () => {
 		if (prose.length > 0) output.push(rewriteProse(prose.join("\n")));
 		prose = [];
 	};
 	for (const line of lines) {
+		const quote = quotePrefix.exec(line)?.[0] ?? "";
+		// Block structure is read inside the quotes; a change of quote depth starts a new container.
+		const body = line.slice(quote.length);
+		const blank = body.trim() === "";
 		if (fence) {
 			output.push(line);
 			const closing = fenceClose.exec(line)?.[1];
 			if (closing?.[0] === fence[0] && closing.length >= fence.length) {
 				fence = undefined;
+				afterBlank = true;
 			}
+			continue;
+		}
+		const depth = quote.split(">").length - 1;
+		if (depth !== quoteDepth) {
+			quoteDepth = depth;
+			lists.length = 0;
+			indentedCode = false;
+			afterBlank = true;
+		}
+		const origin = widthOf(quote);
+		const lineIndent = indentOf(body, origin);
+		const relativeIndent = lineIndent - (lists.at(-1) ?? 0);
+		const boundary = relativeIndent < 4 && blockBoundary.test(body.trimStart());
+		if (!blank && (afterBlank || boundary)) {
+			while ((lists.at(-1) ?? 0) > lineIndent) lists.pop();
+		}
+		const codeIndent = (lists.at(-1) ?? 0) + 4;
+		if (indentedCode && (blank || lineIndent >= codeIndent)) {
+			output.push(line);
+			afterBlank = blank;
+			continue;
+		}
+		indentedCode = false;
+		if (!blank && afterBlank && lineIndent >= codeIndent) {
+			flush();
+			output.push(line);
+			indentedCode = true;
+			continue;
+		}
+		const marker = blank ? null : listMarker.exec(body);
+		if (marker && lineIndent < codeIndent && !boundary) {
+			while ((lists.at(-1) ?? 0) > lineIndent) lists.pop();
+			const markerEnd = widthOf(marker[1], origin);
+			const gap = widthOf(marker[1] + marker[2], origin) - markerEnd;
+			lists.push(gap > 4 ? markerEnd + 1 : markerEnd + gap);
+		}
+		afterBlank = blank || boundary;
+		fence = lineIndent < codeIndent ? fenceOpen.exec(line)?.[1] : undefined;
+		if (fence) {
+			flush();
+			output.push(line);
 		} else {
-			fence = fenceOpen.exec(line)?.[1];
-			if (fence) {
-				flush();
-				output.push(line);
-			} else {
-				prose.push(line);
-			}
+			prose.push(line);
 		}
 	}
 	flush();
