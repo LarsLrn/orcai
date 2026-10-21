@@ -1,5 +1,6 @@
 import type {
 	BotEditor,
+	DocumentState,
 	PublicationStatus,
 	ResourceGrant,
 	SaveBotInput,
@@ -37,6 +38,7 @@ import {
 	createDatabaseBlockBuilderFieldMap,
 	DatabaseBlockFieldGroup,
 } from "@/components/blocks/database-block/form/database-block-field-group";
+import { useRepositoryReadiness } from "@/components/documents/readiness/use-repository-readiness";
 import { FeaturesSection } from "@/components/features/features-section";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -68,7 +70,7 @@ import {
 import { useUnsavedChangesGuard } from "@/hooks/use-unsaved-changes-guard";
 import { hasCapability, ownerCapabilities } from "@/lib/authz/capabilities";
 import { orpc } from "@/lib/orpc/orpc";
-import { getProcessingStatusLabel } from "@/lib/presentation/processing-status";
+import { documentStateBadge } from "@/lib/presentation/document-state";
 import { getPublicationStatusOptions } from "@/lib/presentation/publication-status";
 import { cn } from "@/lib/utils";
 import { m } from "@/paraglide/messages";
@@ -211,6 +213,15 @@ const BotEditorShell = ({
 		[
 			editor,
 		],
+	);
+	const readiness = useRepositoryReadiness(
+		editor.databaseBlocks.flatMap((block) =>
+			block.id
+				? [
+						block.id,
+					]
+				: [],
+		),
 	);
 
 	useEffect(() => {
@@ -503,6 +514,7 @@ const BotEditorShell = ({
 					visibility={visibility.data?.data.visibility}
 					grants={grants.data?.data ?? []}
 					grantsAvailable={grants.isSuccess}
+					repositories={readiness.data?.data}
 				/>
 			),
 			confirmText: m.authoring_publish_confirm_button(),
@@ -1407,6 +1419,17 @@ const ReadOnlyTemplateCard = ({
 	);
 };
 
+/** A document's state in the repository; nothing once it is ready. */
+const DocumentStateBadge = ({
+	state,
+}: {
+	state: DocumentState | undefined;
+}) => {
+	if (!state || state === "ready") return null;
+	const { label, variant } = documentStateBadge(state);
+	return <Badge variant={variant}>{label}</Badge>;
+};
+
 const ReadOnlyDatabaseCard = ({
 	block,
 	onDetach,
@@ -1415,6 +1438,19 @@ const ReadOnlyDatabaseCard = ({
 	onDetach: () => void;
 }) => {
 	const navigate = useNavigate();
+	const { data: readiness } = useRepositoryReadiness(
+		block.id
+			? [
+					block.id,
+				]
+			: [],
+	);
+	const stateById = new Map(
+		readiness?.data[0]?.documents.map((document) => [
+			document.assetId,
+			document.state,
+		]),
+	);
 
 	return (
 		<Card className="min-w-0 rounded-2xl">
@@ -1443,11 +1479,7 @@ const ReadOnlyDatabaseCard = ({
 								className="flex items-center justify-between gap-2"
 							>
 								<span className="truncate">{asset.title}</span>
-								{asset.processingStatus === "completed" ? null : (
-									<Badge variant="secondary">
-										{getProcessingStatusLabel(asset.processingStatus)}
-									</Badge>
-								)}
+								<DocumentStateBadge state={stateById.get(asset.id)} />
 							</li>
 						))}
 					</ul>

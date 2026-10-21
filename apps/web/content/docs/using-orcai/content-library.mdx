@@ -86,22 +86,24 @@ Actions, depending on your access to the asset:
 
 ## Processing Status And Reprocessing
 
-Asset cards and the **Preparation status** panel show one of these states:
+Outside a repository, asset cards, the recent changes on Home and the **Preparation status** card on the asset page show how far processing of the file is:
 
 | Status | Meaning |
 | --- | --- |
-| Queued | Waiting to be prepared for search and citations. |
-| Processing | Currently being prepared for search and citations. |
-| Ready | Ready to be used in search, retrieval, and citations. |
-| Needs attention | Preparation failed. Retry processing, or replace a file that cannot be read. |
+| Queued | Waiting to be read. |
+| Processing | The file is being read. |
+| Ready | The file has been read and can be indexed by its repositories. |
+| Failed | Reading the file failed after its retries. |
 
-A failing step is retried automatically, so an asset stays Processing until its last attempt has failed. A file of a type OrcAI cannot read, or one without any text or images (for example a scanned PDF whose text cannot be recognised), needs attention at once, since retrying cannot help.
+Inside a repository, each asset also has an indexing step, so its card on the repository page shows one more state, **Indexing**, between Processing and Ready, and Ready means searchable in that repository. See [Repository Blocks](/docs/using-orcai/bots#repository-blocks).
 
-On the **Preparation status** panel, **Retry** appears when the status is Needs attention and queues processing again.
+A failing step is retried automatically, so an asset stays Processing until its last attempt has failed. A failed asset says why: OrcAI cannot read the file type, no text or images were found (for example a scanned PDF whose text cannot be recognised), the file could not be read, preparing it took too long, or another error. The first two fail at once, since retrying cannot help.
 
-**Reprocess** is available from the card menu on the Assets page and from the asset page, when the asset is not Queued or Processing and you can edit it. It asks for confirmation, then reruns processing and refreshes the vector data for the repositories the asset belongs to. Reprocess is useful after parser or configuration changes.
+On the **Preparation status** card, **Retry** appears for a failed asset you can edit, unless retrying cannot help, and queues processing again.
 
-Each repository keeps the indexing state of each of its assets. Editing a repository indexes only the assets it adds; the assets it keeps stay as they are.
+**Reprocess** is available from the card menu on the Assets page and from the asset page, when the asset is not Queued or Processing and you can edit it. It asks for confirmation, then reruns processing; the asset's repositories index it again afterwards. Reprocess is useful after parser or configuration changes.
+
+Each repository keeps the indexing state of each of its assets. Editing a repository indexes only the assets it adds; the assets it keeps stay as they are. There is no job history in the app; operators find failed jobs in the worker logs and the pg-boss tables.
 
 ## Permissions And Access
 

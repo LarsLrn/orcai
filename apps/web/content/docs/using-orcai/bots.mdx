@@ -116,6 +116,8 @@ Bot cards and the bot page show the bot's enabled features.
 - Every linked repository block is marked Ready
 - Every linked repository block has at least one attached asset
 
+Documents that are still being prepared or that failed do not hold publishing back. When a linked repository has such documents, the publish confirmation adds a **Documents** note per repository, for example "Handbook: 38 of 120 documents ready. 2 failed.", since only ready documents are searchable. A repository linked read-only in the editor marks each document that is not ready with its state.
+
 ## Block Types
 
 **Add behaviour** on the Behaviour tab and **Add repository** on the Repositories tab open `/app/hub/blocks/add`, where one of two types is chosen. `/app/hub/blocks/add?type=database` opens it on the repository type.

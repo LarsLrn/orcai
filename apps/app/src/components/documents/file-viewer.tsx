@@ -1,18 +1,19 @@
-import type { Asset, AssetFileType } from "@orcai/schema";
+import type { AssetFileType, AssetWithCapabilities } from "@orcai/schema";
 import { useQuery } from "@tanstack/react-query";
 import { SmartphoneIcon } from "lucide-react";
 import { useState } from "react";
-import { JobStatusPanel } from "@/components/jobs/job-status-panel";
 import { Placeholder } from "@/components/placeholders/placeholder";
 import { Card } from "@/components/ui/card";
 import { Spinner } from "@/components/ui/spinner";
 import { useIsMobile } from "@/hooks/use-mobile";
+import { hasCapability } from "@/lib/authz/capabilities";
 import { orpc } from "@/lib/orpc/orpc";
 import { cn } from "@/lib/utils";
 import { m } from "@/paraglide/messages";
 import { AssetMeta } from "./asset-meta";
+import { AssetProcessingCard } from "./asset-processing-card";
 
-const FileViewer = ({ asset }: { asset: Asset }) => {
+const FileViewer = ({ asset }: { asset: AssetWithCapabilities }) => {
 	const isMobile = useIsMobile();
 
 	const { data: file, status } = useQuery(
@@ -66,9 +67,9 @@ const FileViewer = ({ asset }: { asset: Asset }) => {
 				<div className="col-span-1 flex flex-col gap-4">
 					<AssetMeta asset={asset} />
 					<div className="mb-3 flex items-center gap-3">
-						<JobStatusPanel
-							processingStatus={asset.processingStatus}
-							assetId={asset.id}
+						<AssetProcessingCard
+							asset={asset}
+							canEdit={hasCapability(asset.capabilities, "edit")}
 							className="w-full"
 						/>
 					</div>
