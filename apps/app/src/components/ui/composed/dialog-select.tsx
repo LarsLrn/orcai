@@ -304,6 +304,32 @@ function DialogSelectList({
 }
 
 // ---------------------------------------------------------------------------
+// Group
+// ---------------------------------------------------------------------------
+
+function DialogSelectGroup({
+	label,
+	className,
+	children,
+	...props
+}: React.ComponentProps<"fieldset"> & {
+	label: string;
+}) {
+	return (
+		<fieldset
+			data-slot="dialog-select-group"
+			className={cn("flex min-w-0 flex-col gap-1", className)}
+			{...props}
+		>
+			<legend className="mb-1 px-3.5 pt-2 font-medium text-muted-foreground text-xs">
+				{label}
+			</legend>
+			{children}
+		</fieldset>
+	);
+}
+
+// ---------------------------------------------------------------------------
 // Item
 // ---------------------------------------------------------------------------
 
@@ -477,6 +503,7 @@ export {
 	DialogSelectEmpty,
 	DialogSelectFilter,
 	DialogSelectFilters,
+	DialogSelectGroup,
 	DialogSelectItem,
 	DialogSelectList,
 	DialogSelectLoading,

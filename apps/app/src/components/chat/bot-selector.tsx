@@ -1,11 +1,17 @@
 import type { BotId } from "@orcai/core";
+import type { BotWithCapabilities } from "@orcai/schema";
 import { useQuery } from "@tanstack/react-query";
 import { BotIcon, MessageSquareIcon } from "lucide-react";
 import { useState } from "react";
 import {
+	BotFavouriteStar,
+	FAVOURITE_BOTS_INPUT,
+} from "@/components/bot/bot-favourites";
+import {
 	DialogSelect,
 	DialogSelectContent,
 	DialogSelectEmpty,
+	DialogSelectGroup,
 	DialogSelectItem,
 	DialogSelectList,
 	DialogSelectPagination,
@@ -18,6 +24,16 @@ import { m } from "@/paraglide/messages";
 
 const BOT_PAGE_SIZE = 20;
 const NO_BOT_VALUE = "__no_bot__";
+
+const BotItem = ({ bot }: { bot: BotWithCapabilities }) => (
+	<DialogSelectItem
+		value={bot.id}
+		title={bot.name}
+		description={bot.description || undefined}
+		icon={<BotIcon className="size-4" />}
+		trailing={bot.isFavourite ? <BotFavouriteStar /> : undefined}
+	/>
+);
 
 const BotSelectorButton = ({
 	selectedBotId,
@@ -49,6 +65,14 @@ const BotSelectorButton = ({
 		}),
 	);
 
+	const showFavourites = !search;
+	const favouritesQuery = useQuery(
+		orpc.bot.list.queryOptions({
+			input: FAVOURITE_BOTS_INPUT,
+			enabled: dialogOpen && showFavourites,
+		}),
+	);
+
 	const { data: selectedBotResult } = useQuery(
 		orpc.bot.find.queryOptions({
 			input: {
@@ -59,6 +83,12 @@ const BotSelectorButton = ({
 	);
 
 	const bots = botsResult?.data ?? [];
+	const favourites = showFavourites ? (favouritesQuery.data?.data ?? []) : [];
+	const loading =
+		isLoading ||
+		isFetching ||
+		(showFavourites &&
+			(favouritesQuery.isLoading || favouritesQuery.isFetching));
 	const pageCount = Math.ceil((botsResult?.rowCount ?? 0) / BOT_PAGE_SIZE);
 	const triggerLabel =
 		selectedBotResult?.data.name ?? m.chat_bot_selector_no_bot_title();
@@ -96,23 +126,30 @@ const BotSelectorButton = ({
 					}}
 					placeholder={m.chat_bot_selector_search_placeholder()}
 				/>
-				<DialogSelectList loading={isLoading || isFetching}>
+				<DialogSelectList loading={loading}>
 					<DialogSelectItem
 						value={NO_BOT_VALUE}
 						title={m.chat_bot_selector_no_bot_title()}
 						description={m.chat_bot_selector_no_bot_description()}
 						icon={<MessageSquareIcon className="size-4" />}
 					/>
-					{bots.map((bot) => (
-						<DialogSelectItem
-							key={bot.id}
-							value={bot.id}
-							title={bot.name}
-							description={bot.description || undefined}
-							icon={<BotIcon className="size-4" />}
-						/>
-					))}
-					{!isLoading && !isFetching && bots.length === 0 && (
+					{favourites.length > 0 ? (
+						<>
+							<DialogSelectGroup label={m.bots_favourites_group_label()}>
+								{favourites.map((bot) => (
+									<BotItem key={bot.id} bot={bot} />
+								))}
+							</DialogSelectGroup>
+							<DialogSelectGroup label={m.bots_all_group_label()}>
+								{bots.map((bot) => (
+									<BotItem key={bot.id} bot={bot} />
+								))}
+							</DialogSelectGroup>
+						</>
+					) : (
+						bots.map((bot) => <BotItem key={bot.id} bot={bot} />)
+					)}
+					{!loading && bots.length === 0 && (
 						<DialogSelectEmpty>
 							{m.chat_bot_selector_empty_state()}
 						</DialogSelectEmpty>

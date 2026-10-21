@@ -2,6 +2,7 @@ import { useSuspenseQuery } from "@tanstack/react-query";
 import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
 import { BotIcon, EditIcon, PlusIcon, TrashIcon } from "lucide-react";
 import { BotCard } from "@/components/bot/bot-card";
+import { FAVOURITE_BOTS_INPUT } from "@/components/bot/bot-favourites";
 import { Placeholder } from "@/components/placeholders/placeholder";
 import { buttonVariants } from "@/components/ui/button";
 import {
@@ -22,6 +23,12 @@ import { m } from "@/paraglide/messages";
 export const Route = createFileRoute("/app/hub/bots/")({
 	loader: async ({ context: { queryClient } }) => {
 		await Promise.all([
+			queryClient.query(
+				orpc.bot.list.queryOptions({
+					input: FAVOURITE_BOTS_INPUT,
+					staleTime: "static",
+				}),
+			),
 			queryClient.query(
 				orpc.bot.list.queryOptions({
 					input: {
@@ -46,6 +53,11 @@ export const Route = createFileRoute("/app/hub/bots/")({
 });
 
 function RouteComponent() {
+	const { data: favourites } = useSuspenseQuery(
+		orpc.bot.list.queryOptions({
+			input: FAVOURITE_BOTS_INPUT,
+		}),
+	);
 	const { data: bots } = useSuspenseQuery(
 		orpc.bot.list.queryOptions({
 			input: {
@@ -72,6 +84,30 @@ function RouteComponent() {
 
 	return (
 		<div className="space-y-12">
+			{favourites.data.length > 0 && (
+				<Section>
+					<SectionHeader>
+						<SectionTitle>{m.bots_list_favourites_title()}</SectionTitle>
+						<SectionDescription>
+							{m.bots_list_favourites_description()}
+						</SectionDescription>
+					</SectionHeader>
+					<SectionContent>
+						<SectionGrid layout="3">
+							{favourites.data.map((bot) => (
+								<BotCard
+									key={bot.id}
+									bot={bot}
+									actions={{
+										footer: [],
+									}}
+								/>
+							))}
+						</SectionGrid>
+					</SectionContent>
+				</Section>
+			)}
+
 			<Section>
 				<SectionHeader>
 					<SectionTitle>{m.bots_list_published_title()}</SectionTitle>

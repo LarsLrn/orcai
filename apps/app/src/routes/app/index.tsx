@@ -11,6 +11,7 @@ import { m } from "@/paraglide/messages";
 const PREFETCH_PARAMS = {
 	pageIndex: 0,
 	pageSize: 6,
+	sort: "favouritesFirst",
 } as const;
 
 const SUMMARY_PARAMS = {

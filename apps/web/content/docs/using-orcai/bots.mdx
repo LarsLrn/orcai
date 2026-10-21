@@ -29,8 +29,9 @@ A bot fixes no model and no quota pool. Each chat runs on the provider and model
 
 ## Bot Lifecycle
 
-Bots (`/app/hub/bots`) have draft and published states, shown as two sections:
+Bots (`/app/hub/bots`) have draft and published states, shown as sections:
 
+- **Favourites** lists the published bots you starred, when there are any. See [Favourites](#favourites).
 - **Published** lists the bots ready to use in chats that you can read.
 - **Your drafts** lists bots not yet published, with **Edit draft** and **Delete draft** where your role on the bot allows them.
 
@@ -46,6 +47,18 @@ A bot's page (`/app/hub/bots/<bot id>`) shows its behaviour and repositories. De
 - **Access & groups**, which opens the access dialog
 - **Edit bot**, which opens the editor
 - **Delete bot**
+
+## Favourites
+
+The star on a published bot's card and next to **Start chat** on its page adds the bot to your favourites; selecting it again removes it. Favourites are personal: nobody else sees them.
+
+Your favourites show up in three places:
+
+- The **Favourites** section above **Published** on the Bots tab
+- First among the bots on the home page
+- In a **Favourites** group above **All bots** when you choose a bot for a new chat, until you search
+
+A favourite disappears while you cannot read the bot or while it is unpublished, and comes back when it is shared with you or published again.
 
 ## Creating Or Editing A Bot
 
