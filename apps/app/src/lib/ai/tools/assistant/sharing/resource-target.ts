@@ -8,6 +8,7 @@ import {
 import type * as Effect from "effect/Effect";
 import { z } from "zod/v4";
 import { expectType } from "../procedure-tool";
+import { principalRef } from "./summary-refs";
 
 /**
  * The resource as flat fields: the contract's discriminated unions convert to
@@ -43,21 +44,16 @@ export const expectPrincipals =
 			principalId: string;
 		}[],
 	) =>
-	<A, E, R>(effect: Effect.Effect<A, E, R>) =>
-		effect.pipe(
-			expectType(
-				"member",
-				principals
-					.filter((principal) => principal.principalType === "user")
-					.map((principal) => principal.principalId),
-			),
-			expectType(
-				"group",
-				principals
-					.filter((principal) => principal.principalType === "group")
-					.map((principal) => principal.principalId),
-			),
+	<A, E, R>(effect: Effect.Effect<A, E, R>) => {
+		const refs = principals.map(principalRef);
+		const idsOf = (kind: "member" | "group") =>
+			refs.filter((ref) => ref.kind === kind).map((ref) => ref.id);
+
+		return effect.pipe(
+			expectType("member", idsOf("member")),
+			expectType("group", idsOf("group")),
 		);
+	};
 
 export const toResourceIdentity = (input: {
 	resourceType: ResourceType;

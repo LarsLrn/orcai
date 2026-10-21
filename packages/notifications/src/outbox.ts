@@ -22,7 +22,7 @@ export const notificationOutboxValues = (
 		type: parsed.type,
 		recipient: parsed.recipient.trim().toLowerCase(),
 		payloadVersion: 1,
-		payload: parsed as unknown as Record<string, unknown>,
+		payload: parsed,
 		deduplicationKey,
 	};
 };
