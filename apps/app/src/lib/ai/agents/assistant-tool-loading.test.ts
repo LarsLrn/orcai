@@ -1,5 +1,4 @@
 import { describe, expect, test } from "bun:test";
-import { createProviderLanguageModel, providerToolLoading } from "@orcai/ai";
 import type { ProviderKind } from "@orcai/core";
 import type { OrganizationCapability } from "@orcai/schema";
 import { convertToModelMessages, type ModelMessage } from "ai";
@@ -11,6 +10,7 @@ import {
 	DEFERRED_TOOL_NAMES,
 } from "../tools/assistant/groups";
 import { createAssistantTurn } from "../tools/assistant/turn-state";
+import { agentModel } from "./agent-model";
 import {
 	type Body,
 	memberCapabilities,
@@ -39,17 +39,15 @@ const assistantAgent = ({
 	fetch?: typeof globalThis.fetch;
 }) =>
 	createAssistantAgent({
-		model: createProviderLanguageModel(
+		model: agentModel({
 			kind,
-			{
+			connection: {
 				apiKey: "key",
 				endpoint: kind === "openai-compatible" ? "https://llm.test/v1" : null,
 				fetch,
 			},
-			modelId,
-		),
-		providerKind: kind,
-		toolLoading: providerToolLoading(kind, modelId),
+			providerModelId: modelId,
+		}),
 		callSettings: {},
 		docs: undefined,
 		userContext: {

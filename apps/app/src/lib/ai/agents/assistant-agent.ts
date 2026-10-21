@@ -3,18 +3,12 @@ import {
 	buildSystemInstructions,
 	type ToolLoading,
 } from "@orcai/ai";
-import type { ProviderKind } from "@orcai/core";
-import {
-	isStepCount,
-	type LanguageModel,
-	Output,
-	ToolLoopAgent,
-	type ToolSet,
-} from "ai";
+import { isStepCount, Output, ToolLoopAgent, type ToolSet } from "ai";
 import {
 	buildGenUiTools,
 	GEN_UI_TOOL_NAMES,
 } from "@/components/chat/gen-ui/catalog";
+import type { AgentModel } from "@/lib/ai/agents/agent-model";
 import { pruneAssistantHistory } from "@/lib/ai/agents/assistant-history-pruning";
 import {
 	type AssistantUserContext,
@@ -73,9 +67,7 @@ const deferGroupTools = <T extends ToolSet>(
 
 export const createAssistantAgent = (
 	params: AssistantToolDeps & {
-		model: LanguageModel;
-		providerKind: ProviderKind;
-		toolLoading: ToolLoading;
+		model: AgentModel;
 		callSettings: ChatCallSettings;
 		docs: DocsConfig | undefined;
 		userContext: AssistantUserContext;
@@ -127,16 +119,16 @@ export const createAssistantAgent = (
 				loadedGroups: () => [
 					...loadedGroups,
 				],
-				toolLoading: params.toolLoading,
+				toolLoading: params.model.toolLoading,
 			}),
 		},
-		params.toolLoading,
+		params.model.toolLoading,
 	);
 
 	const toolGroups = offeredToolGroups(params.userContext.capabilities);
 	// Deferred tools are all declared from the start, so loading and approving leave the list as it is.
 	const activeToolNames = () =>
-		(params.toolLoading.type === "references"
+		(params.model.toolLoading.type === "references"
 			? offeredAssistantToolNames(params.userContext.capabilities)
 			: activeAssistantToolNames(
 					params.userContext.capabilities,
@@ -160,7 +152,7 @@ export const createAssistantAgent = (
 	const executionFailures: ToolFailure[] = [];
 
 	return new ToolLoopAgent({
-		model: params.model,
+		model: params.model.language,
 		tools,
 		toolApproval: assistantToolApproval({
 			isPlanApproved: () => planApproved,
@@ -171,7 +163,7 @@ export const createAssistantAgent = (
 			...settings,
 			...params.callSettings,
 			instructions: buildSystemInstructions(
-				params.providerKind,
+				params.model.kind,
 				buildAssistantSystemPrompt({
 					docs: params.docs,
 					userContext: params.userContext,
@@ -189,7 +181,7 @@ export const createAssistantAgent = (
 					lines: toolLines.lines,
 					displayToolNames: GEN_UI_TOOL_NAMES,
 					enabledDisplayToolNames,
-					toolListChanges: params.toolLoading.type === "active-tools",
+					toolListChanges: params.model.toolLoading.type === "active-tools",
 				});
 				return {
 					messages: prunedMessages,
@@ -198,7 +190,7 @@ export const createAssistantAgent = (
 						stepNumber,
 						maxSteps: options.maxSteps,
 						messages: prunedMessages,
-						providerKind: params.providerKind,
+						providerKind: params.model.kind,
 					}),
 				};
 			},

@@ -1,245 +1,18 @@
-import { afterAll, beforeAll, describe, expect, test } from "bun:test";
-import {
-	ReadableStream,
-	TextDecoderStream,
-	TextEncoderStream,
-	TransformStream,
-	WritableStream,
-} from "node:stream/web";
+import { beforeAll, describe, expect, test } from "bun:test";
 import { isDeepStrictEqual } from "node:util";
-import { createProviderLanguageModel, providerToolLoading } from "@orcai/ai";
 import type { ProviderKind } from "@orcai/core";
 import type { DatabaseBlock } from "@orcai/schema";
-import {
-	type Agent,
-	createAgentUIStream,
-	getToolName,
-	type InferAgentUIMessage,
-	isToolUIPart,
-	simulateStreamingMiddleware,
-	type ToolSet,
-	type UIMessage,
-	wrapLanguageModel,
-} from "ai";
+import type { UIMessage } from "ai";
 import * as Effect from "effect/Effect";
-import type { ResolvedFeature } from "@/lib/ai/features/resolve-features";
-import type { ORPCContext } from "@/lib/orpc/implementation/os";
+import type { Body, ToolCall } from "../agents/test-provider";
 import { answers, resetProcedures } from "../tools/assistant/test-procedures";
-import {
-	type Body,
-	memberCapabilities,
-	scriptedFetch,
-	type ToolCall,
-} from "./test-provider";
+import { answerSetup, assistantRow, chatRow, conversation } from "./test-turn";
 
+const { providerToolLoading } = await import("@orcai/ai");
+const { getToolName, isToolUIPart } = await import("ai");
 const { GEN_UI_TOOL_NAMES } = await import("@/components/chat/gen-ui/catalog");
-const { createAssistantAgent } = await import("./assistant-agent");
-const { createChatAgent } = await import("./chat-agent");
-const { featureCatalog } = await import("@/lib/ai/features/catalog");
-const { applyTurnDecisions } = await import(
-	"@/lib/ai/utils/apply-turn-decisions"
-);
-const { closeInvalidToolParts } = await import(
-	"@/lib/ai/utils/close-invalid-tool-parts"
-);
-const { closeLastReply } = await import(
-	"@/lib/ai/utils/close-pending-tool-parts"
-);
-const { streamErrorText } = await import("@/lib/ai/utils/stream-error-text");
-const { loadedToolGroupsOf } = await import(
-	"../tools/assistant/core/load-tools"
-);
-const { isPlanApproved } = await import(
-	"../tools/assistant/plan/plan-approval"
-);
-const { createAssistantTurn } = await import("../tools/assistant/turn-state");
-
-// happy-dom's stream globals do not mix with the SDK's; this file runs on the native ones.
-const nativeStreams = {
-	ReadableStream,
-	WritableStream,
-	TransformStream,
-	TextDecoderStream,
-	TextEncoderStream,
-};
-const domStreams = Object.fromEntries(
-	Object.keys(nativeStreams).map((name) => [
-		name,
-		globalThis[name as keyof typeof nativeStreams],
-	]),
-);
-beforeAll(() => {
-	Object.assign(globalThis, nativeStreams);
-});
-afterAll(() => {
-	Object.assign(globalThis, domStreams);
-	resetProcedures();
-});
 
 // Each request must start with the previous one unchanged, but for the named exceptions: signed reasoning and cached prefixes are bound to it.
-
-/** A model on the kind's real provider, answering with scripted steps. */
-const scriptedModel = (kind: ProviderKind, modelId: string) => {
-	const { fetch, bodies, script } = scriptedFetch(kind);
-
-	return {
-		// Streams each JSON response, since the provider's stream parsers need native streams.
-		model: wrapLanguageModel({
-			model: createProviderLanguageModel(
-				kind,
-				{
-					apiKey: "key",
-					endpoint: kind === "openai-compatible" ? "https://llm.test/v1" : null,
-					fetch,
-				},
-				modelId,
-			),
-			middleware: simulateStreamingMiddleware(),
-		}),
-		bodies,
-		script,
-	};
-};
-
-const context = {
-	secureCookies: false,
-} as ORPCContext;
-
-const telemetryIds = (modelId: string) => ({
-	organizationId: "org",
-	chatId: "chat",
-	providerId: "provider",
-	modelId,
-});
-
-type TurnAgent<Tools extends ToolSet> = Agent<
-	{
-		maxSteps: number;
-	},
-	Tools
->;
-
-/**
- * Runs a conversation as the chat routes do: each request rebuilds the agent
- * over the stored rows, a new message closes the last reply's pending calls,
- * a continuation applies the user's decisions to the paused reply, and each
- * reply is stored as the UI stream ends.
- */
-const conversation = <Tools extends ToolSet>(
-	agentFor: (history: UIMessage[]) => TurnAgent<Tools>,
-) => {
-	let rows: UIMessage[] = [];
-	let messageCount = 0;
-
-	const stream = async (
-		agent: TurnAgent<Tools>,
-		messages: UIMessage[],
-		replyId: string,
-	) => {
-		let reply: UIMessage | undefined;
-		const chunks = await createAgentUIStream({
-			agent,
-			uiMessages: messages,
-			options: {
-				maxSteps: 20,
-			},
-			originalMessages: messages as InferAgentUIMessage<TurnAgent<Tools>>[],
-			generateMessageId: () => replyId,
-			onError: streamErrorText,
-			onEnd: ({ responseMessage }) => {
-				reply = responseMessage;
-			},
-		});
-		for await (const _ of chunks) {
-			// Drains the stream, which runs the agent.
-		}
-		if (!reply) {
-			throw new Error("the stream ended without a reply");
-		}
-		return reply;
-	};
-
-	return {
-		rows: () => rows,
-		send: async (text: string) => {
-			const agent = agentFor(rows);
-			const { closedHistory } = closeLastReply(rows, agent.tools);
-			const user: UIMessage = {
-				id: `message-${++messageCount}`,
-				role: "user",
-				parts: [
-					{
-						type: "text",
-						text,
-					},
-				],
-			};
-			const replyId = `message-${++messageCount}`;
-			const messages = await closeInvalidToolParts(
-				[
-					...closedHistory,
-					user,
-				],
-				agent.tools,
-			);
-			const reply = await stream(agent, messages, replyId);
-			rows = [
-				...closedHistory,
-				user,
-				{
-					...reply,
-					id: replyId,
-				},
-			];
-		},
-		/** Answers every approval the paused reply waits for. */
-		decide: async (approved: boolean) => {
-			const last = rows.at(-1);
-			if (!last) {
-				throw new Error("nothing to continue");
-			}
-			const applied = applyTurnDecisions({
-				messageId: last.id,
-				lastMessage: last,
-				decisions: last.parts.flatMap((part) =>
-					isToolUIPart(part) && part.state === "approval-requested"
-						? [
-								{
-									approvalId: part.approval.id,
-									approved,
-								},
-							]
-						: [],
-				),
-				toolOutputs: [],
-				now: new Date(),
-			});
-			if (!applied.ok) {
-				throw new Error(applied.message);
-			}
-			const history = [
-				...rows.slice(0, -1),
-				{
-					...last,
-					parts: applied.parts,
-				},
-			];
-			const agent = agentFor(history);
-			const reply = await stream(
-				agent,
-				await closeInvalidToolParts(history, agent.tools),
-				last.id,
-			);
-			rows = [
-				...rows.slice(0, -1),
-				{
-					...reply,
-					id: last.id,
-				},
-			];
-		},
-	};
-};
 
 /* A request as a provider-independent sequence of content blocks. */
 
@@ -611,12 +384,6 @@ const search = (query?: string): ToolCall => ({
 	},
 });
 
-const genUiFeature: ResolvedFeature = {
-	id: "generativeUi",
-	entry: featureCatalog.generativeUi,
-	settings: {},
-};
-
 const checklist = {
 	items: [
 		{
@@ -628,25 +395,27 @@ const checklist = {
 
 /** A chat whose turns search over several steps, one search failing, and show a checklist. */
 const chatConversation = async (kind: ProviderKind, modelId: string) => {
-	const { model, bodies, script } = scriptedModel(kind, modelId);
-	const chat = conversation(() =>
-		createChatAgent({
-			model,
-			providerKind: kind,
-			systemPrompt: "You help.",
-			databaseBlocks: [
-				knowledgeBase,
-			],
-			features: [
-				genUiFeature,
-			],
-			callSettings: {},
-			telemetryIds: telemetryIds(modelId),
-			context,
+	resetProcedures();
+	answerSetup({
+		providerKind: kind,
+		providerModelId: modelId,
+		chatBlocks: [
+			knowledgeBase,
+		],
+	});
+	const chat = await conversation(
+		chatRow({
+			config: {
+				...chatRow().config,
+				systemPrompt: "You help.",
+				features: {
+					generativeUi: {},
+				},
+			} as never,
 		}),
+		kind,
 	);
-
-	script([
+	chat.script([
 		{
 			reasoning: "Search the first term.",
 			calls: [
@@ -676,7 +445,7 @@ const chatConversation = async (kind: ProviderKind, modelId: string) => {
 	]);
 	await chat.send("What are alpha and beta?");
 
-	script([
+	chat.script([
 		{
 			reasoning: "Search gamma.",
 			calls: [
@@ -689,7 +458,7 @@ const chatConversation = async (kind: ProviderKind, modelId: string) => {
 	]);
 	await chat.send("And gamma?");
 
-	script([
+	chat.script([
 		{
 			reasoning: "Answer from what I found.",
 			text: "I found none of them.",
@@ -697,8 +466,9 @@ const chatConversation = async (kind: ProviderKind, modelId: string) => {
 	]);
 	await chat.send("Which did you look up?");
 
-	return bodies.map((body) => toModelRequest(kind, body));
+	return chat.bodies.map((body: Body) => toModelRequest(kind, body));
 };
+
 const plan = {
 	title: "New bot",
 	items: [
@@ -716,8 +486,11 @@ const plan = {
  * supersedes with a new message.
  */
 const assistantConversation = async (kind: ProviderKind, modelId: string) => {
-	const { model, bodies, script } = scriptedModel(kind, modelId);
-	const toolLoading = providerToolLoading(kind, modelId);
+	resetProcedures();
+	answerSetup({
+		providerKind: kind,
+		providerModelId: modelId,
+	});
 	answers["bot.list"] = () =>
 		Effect.succeed({
 			data: [],
@@ -728,41 +501,9 @@ const assistantConversation = async (kind: ProviderKind, modelId: string) => {
 			data: [],
 			rowCount: 0,
 		});
+	const assistant = await conversation(assistantRow(), kind);
 
-	const assistant = conversation((history) =>
-		createAssistantAgent({
-			model,
-			providerKind: kind,
-			toolLoading,
-			callSettings: {},
-			docs: undefined,
-			userContext: {
-				user: {
-					id: "user",
-					name: "Ada",
-					email: "ada@example.org",
-				},
-				organizationName: "Org",
-				role: "member",
-				capabilities: memberCapabilities,
-			},
-			features: [
-				genUiFeature,
-			],
-			planApproved: isPlanApproved(history),
-			loadedToolGroups: loadedToolGroupsOf(history),
-			history,
-			telemetryIds: telemetryIds(modelId),
-			context,
-			turn: createAssistantTurn({
-				zedToken: undefined,
-				chatId: "chat",
-				replyId: "reply",
-			}),
-		}),
-	);
-
-	script([
+	assistant.script([
 		{
 			reasoning: "Check for existing bots.",
 			calls: [
@@ -810,7 +551,7 @@ const assistantConversation = async (kind: ProviderKind, modelId: string) => {
 	]);
 	await assistant.send("Make me a bot");
 
-	script([
+	assistant.script([
 		{
 			reasoning: "Approved; create it.",
 			calls: [
@@ -838,7 +579,7 @@ const assistantConversation = async (kind: ProviderKind, modelId: string) => {
 			],
 		},
 	};
-	script([
+	assistant.script([
 		{
 			reasoning: "Delete the draft.",
 			calls: [
@@ -849,7 +590,7 @@ const assistantConversation = async (kind: ProviderKind, modelId: string) => {
 	await assistant.send("Delete the old draft");
 
 	// The approved call fails before the first step; the turn pauses again, and the retry is denied.
-	script([
+	assistant.script([
 		{
 			reasoning: "It failed; try again.",
 			calls: [
@@ -859,7 +600,7 @@ const assistantConversation = async (kind: ProviderKind, modelId: string) => {
 	]);
 	await assistant.decide(true);
 
-	script([
+	assistant.script([
 		{
 			reasoning: "Denied; ask once more.",
 			text: "Deleting failed, and you declined the retry.",
@@ -870,7 +611,7 @@ const assistantConversation = async (kind: ProviderKind, modelId: string) => {
 	]);
 	await assistant.decide(false);
 
-	script([
+	assistant.script([
 		{
 			reasoning: "Show a checklist instead.",
 			calls: [
@@ -888,13 +629,13 @@ const assistantConversation = async (kind: ProviderKind, modelId: string) => {
 	await assistant.send("Keep it, show me a checklist instead");
 
 	return {
-		requests: bodies.map((body) => toModelRequest(kind, body)),
-		toolLoading,
+		requests: assistant.bodies.map((body: Body) => toModelRequest(kind, body)),
+		toolLoading: providerToolLoading(kind, modelId),
 		/** The calls whose outputs a later turn reads as summary lines. */
 		summarised: new Set(
 			assistant
-				.rows()
-				.flatMap((row) => row.parts)
+				.messages()
+				.flatMap((row) => row.parts as UIMessage["parts"])
 				.filter(
 					(part) =>
 						isToolUIPart(part) &&

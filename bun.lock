@@ -147,6 +147,7 @@
         "@babel/core": "8.0.7",
         "@happy-dom/global-registrator": "20.14.6",
         "@inlang/cli": "3.3.9",
+        "@orcai/testing": "workspace:*",
         "@rolldown/plugin-babel": "0.2.4",
         "@tanstack/devtools-vite": "0.8.5",
         "@testing-library/dom": "10.4.2",

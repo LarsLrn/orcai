@@ -1,13 +1,9 @@
 import { AiError, aiTelemetry } from "@orcai/ai";
 import type { OrganizationId, ProviderId, UserId } from "@orcai/core";
-import {
-	finalizeAppRequestQuota,
-	releaseAppRequestQuota,
-	reserveForAppRequest,
-} from "@orcai/quota";
 import { generateText, type LanguageModel, type ModelMessage } from "ai";
 import * as Effect from "effect/Effect";
 import * as Exit from "effect/Exit";
+import { startMeteredCall } from "@/lib/ai/metered-call/metered-call";
 import { BadRequestError } from "@/lib/effect/utils/errors";
 
 export interface GenerateTextWithQuotaInput {
@@ -31,28 +27,6 @@ export interface GenerateTextWithQuotaInput {
 	maxExpectedProviderRequests?: number;
 }
 
-export const quotaDenialError = (
-	denialReason: "no_pool" | "exhausted" | "error" | undefined,
-) => {
-	switch (denialReason) {
-		case "no_pool":
-			return new BadRequestError({
-				reason: "QUOTA_POOL_UNAVAILABLE",
-				message: "No quota pool available for this request.",
-			});
-		case "exhausted":
-			return new BadRequestError({
-				reason: "QUOTA_EXHAUSTED",
-				message: "Quota exhausted for this provider/model.",
-			});
-		default:
-			return new BadRequestError({
-				reason: "QUOTA_CHECK_FAILED",
-				message: "Quota check failed.",
-			});
-	}
-};
-
 export const generateTextWithQuota = (input: GenerateTextWithQuotaInput) =>
 	Effect.gen(function* () {
 		const messages = input.messages ?? [];
@@ -64,20 +38,16 @@ export const generateTextWithQuota = (input: GenerateTextWithQuotaInput) =>
 			});
 		}
 
-		const reservation = yield* reserveForAppRequest({
+		const meter = yield* startMeteredCall({
 			organizationId: input.organizationId,
 			userId: input.userId,
 			providerId: input.providerId,
 			providerModelId: input.providerModelId,
 			appRequestId: input.appRequestId,
-			maxExpectedOutputTokens: input.maxOutputTokens,
-			maxExpectedProviderRequests: input.maxExpectedProviderRequests ?? 1,
+			maxOutputTokens: input.maxOutputTokens,
+			maxSteps: input.maxExpectedProviderRequests ?? 1,
 			messages: input.reservationMessages ?? messages,
 		});
-
-		if (!reservation.allowed || !reservation.reservation) {
-			return yield* quotaDenialError(reservation.denialReason);
-		}
 
 		const baseInput = {
 			model: input.model,
@@ -128,26 +98,18 @@ export const generateTextWithQuota = (input: GenerateTextWithQuotaInput) =>
 						),
 					);
 
-		const providerExit = yield* Effect.exit(providerCall);
-
-		if (Exit.isFailure(providerExit)) {
-			yield* releaseAppRequestQuota({
-				reservation: reservation.reservation,
-				reason: "provider_failure",
-			}).pipe(Effect.catch(() => Effect.void));
-
-			return yield* Effect.failCause(providerExit.cause);
-		}
-
-		const response = providerExit.value;
-
-		yield* finalizeAppRequestQuota({
-			reservation: reservation.reservation,
-			actualRequestCount: 1,
-			inputTokens: response.usage.inputTokens,
-			outputTokens: response.usage.outputTokens,
-			totalTokens: response.usage.totalTokens,
-		});
+		const response = yield* providerCall.pipe(
+			Effect.tap((response) =>
+				Effect.sync(() => {
+					for (const step of response.steps) {
+						meter.step(step.usage);
+					}
+				}),
+			),
+			Effect.onExit((exit) =>
+				meter.settle(Exit.isSuccess(exit) ? "completed" : "failed"),
+			),
+		);
 
 		return {
 			text: response.text,
