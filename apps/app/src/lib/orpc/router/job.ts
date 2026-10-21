@@ -1,11 +1,10 @@
 import { DB, dbSchema } from "@orcai/db";
-import { getJobsByResource, sendJobBatch } from "@orcai/pg-boss";
-import {
-	PROCESS_ASSET_JOB_NAME,
-	VECTORIZE_ASSET_JOB_NAME,
-} from "@orcai/schema";
+import { getJobsByResource } from "@orcai/pg-boss";
+import { VECTORIZE_ASSET_JOB_NAME } from "@orcai/schema";
 import { and, eq, getColumns } from "drizzle-orm";
 import * as Effect from "effect/Effect";
+import { enqueueAssetProcessing } from "@/lib/assets/processing";
+import { enqueueIndexing } from "@/lib/blocks/database-block";
 import * as AppErrors from "@/lib/effect/utils/errors";
 import { authed } from "@/lib/orpc/implementation/authed";
 import {
@@ -60,22 +59,10 @@ const createJobs = authed.job.create
 			(asset) => asset.processingStatus === "completed",
 		);
 
-		if (eligibleAssets.length > 0) {
-			yield* sendJobBatch({
-				jobName: VECTORIZE_ASSET_JOB_NAME,
-				jobs: eligibleAssets.map((asset) => ({
-					data: {
-						prefix: asset.id,
-						assetId: asset.id,
-						blockId: input.blockId,
-					},
-				})),
-				resourceOptions: {
-					resourceId: input.blockId,
-					resourceType: "block",
-				},
-			});
-		}
+		yield* enqueueIndexing({
+			blockId: input.blockId,
+			assetIds: eligibleAssets.map((asset) => asset.id),
+		});
 
 		const skippedAssets = assets.length - eligibleAssets.length;
 
@@ -114,32 +101,7 @@ const retryProcessing = authed.job.retryProcessing
 			);
 		}
 
-		yield* db
-			.update(dbSchema.asset)
-			.set({
-				processingStatus: "pending",
-			})
-			.where(eq(dbSchema.asset.id, input.assetId));
-
-		yield* sendJobBatch({
-			jobName: PROCESS_ASSET_JOB_NAME,
-			jobs: [
-				{
-					data: {
-						assetRef: {
-							bucket: asset.bucket,
-							prefix: asset.prefix,
-							id: asset.id,
-							type: asset.fileType,
-						},
-					},
-				},
-			],
-			resourceOptions: {
-				resourceId: asset.id,
-				resourceType: "asset",
-			},
-		});
+		yield* enqueueAssetProcessing(asset);
 
 		return {
 			success: true,
@@ -192,21 +154,11 @@ const retryVectorization = authed.job.retryVectorization
 			);
 		}
 
-		yield* sendJobBatch({
-			jobName: VECTORIZE_ASSET_JOB_NAME,
-			jobs: [
-				{
-					data: {
-						prefix: input.assetId,
-						assetId: input.assetId,
-						blockId: input.blockId,
-					},
-				},
+		yield* enqueueIndexing({
+			blockId: input.blockId,
+			assetIds: [
+				input.assetId,
 			],
-			resourceOptions: {
-				resourceId: input.blockId,
-				resourceType: "block",
-			},
 		});
 
 		return {

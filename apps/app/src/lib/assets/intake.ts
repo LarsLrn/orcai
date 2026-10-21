@@ -1,7 +1,6 @@
 import type { AssetId, OrganizationId, UserId } from "@orcai/core";
 import { DB, dbSchema } from "@orcai/db";
 import { logErrorCause } from "@orcai/observability";
-import { sendJobBatch } from "@orcai/pg-boss";
 import {
 	getFileTypeFromMime,
 	isMimeAllowed,
@@ -22,12 +21,12 @@ import {
 	assetFileTypeSchema,
 	assetIdSchema,
 	type ErrorReasonProps,
-	PROCESS_ASSET_JOB_NAME,
 	type UploadFileObject,
 } from "@orcai/schema";
 import { eq } from "drizzle-orm";
 import * as Data from "effect/Data";
 import * as Effect from "effect/Effect";
+import { enqueueAssetProcessing } from "@/lib/assets/processing";
 import { writeRelationships } from "@/lib/authz/relationship-write";
 import { initializeResourceAuthorization } from "@/lib/authz/resource-lifecycle";
 
@@ -123,27 +122,6 @@ const findAsset = (id: AssetId) =>
 		return asset;
 	});
 
-const dispatchProcessJob = (asset: Asset) =>
-	sendJobBatch({
-		jobName: PROCESS_ASSET_JOB_NAME,
-		jobs: [
-			{
-				data: {
-					assetRef: {
-						bucket: asset.bucket,
-						prefix: asset.prefix,
-						id: asset.id,
-						type: asset.fileType,
-					},
-				},
-			},
-		],
-		resourceOptions: {
-			resourceId: asset.id,
-			resourceType: "asset",
-		},
-	});
-
 const createAssetFromUpload = (intake: Intake, file: UploadFileObject) =>
 	Effect.gen(function* () {
 		const plan = yield* planUpload(intake, file);
@@ -235,7 +213,7 @@ const createAssetFromUpload = (intake: Intake, file: UploadFileObject) =>
 			),
 		);
 
-		yield* dispatchProcessJob(inserted).pipe(
+		yield* enqueueAssetProcessing(inserted).pipe(
 			Effect.catchCause((cause) =>
 				logErrorCause("Asset processing not enqueued", cause),
 			),
