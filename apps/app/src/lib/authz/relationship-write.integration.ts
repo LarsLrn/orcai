@@ -9,6 +9,8 @@ import { and, eq, inArray, isNull, sql } from "drizzle-orm";
 import * as Data from "effect/Data";
 import * as Effect from "effect/Effect";
 import * as Layer from "effect/Layer";
+import * as Logger from "effect/Logger";
+import * as TestClock from "effect/testing/TestClock";
 import {
 	authzIntegration,
 	queueBehindOrganizationLock,
@@ -22,6 +24,7 @@ import {
 import { groupProcedures } from "@/lib/orpc/router/group";
 import { organizationProcedures } from "@/lib/orpc/router/organization";
 import { organizationMemberProcedures } from "@/lib/orpc/router/organization-member";
+import { AUTHZ } from "@/settings/constants";
 
 const {
 	run,
@@ -447,9 +450,121 @@ describe("ordered delivery", () => {
 });
 
 describe("failed delivery", () => {
-	test(
-		"an event SpiceDB rejects is dead-lettered at once and newer events are delivered",
-		async () => {
+	/**
+	 * A SpiceDB whose writes about `subjectId` fail until `recover` is called:
+	 * sent to a closed port, or naming a relation the schema lacks.
+	 */
+	const failingWritesAbout = (
+		subjectId: UserId,
+		failure: "unavailable" | "schema not applied",
+	) => {
+		const unreachable = v1.NewClient(
+			"unreachable",
+			"127.0.0.1:1",
+			v1.ClientSecurity.INSECURE_PLAINTEXT_CREDENTIALS,
+		).promises;
+		let failing = true;
+		const spiceDb = Layer.effect(
+			SpiceDbService,
+			Effect.gen(function* () {
+				const { spice } = yield* SpiceDbService;
+				const writeRelationships = (request: v1.WriteRelationshipsRequest) => {
+					if (
+						!failing ||
+						!request.updates.some(
+							(update) =>
+								update.relationship?.subject?.object?.objectId === subjectId,
+						)
+					)
+						return spice.writeRelationships(request);
+					if (failure === "unavailable")
+						return unreachable.writeRelationships(request);
+					return spice.writeRelationships({
+						...request,
+						updates: request.updates.map((update) => ({
+							...update,
+							relationship: update.relationship && {
+								...update.relationship,
+								relation: "not_yet_in_schema",
+							},
+						})),
+					});
+				};
+				return {
+					spice: new Proxy(spice, {
+						get: (target, key) =>
+							key === "writeRelationships"
+								? writeRelationships
+								: Reflect.get(target, key),
+					}),
+				};
+			}),
+		);
+		return {
+			authz: Layer.fresh(AuthzLive).pipe(Layer.provide(spiceDb)),
+			recover: () => {
+				failing = false;
+			},
+			close: () => {
+				unreachable.close();
+			},
+		};
+	};
+
+	const capturedLogs = () => {
+		const lines: {
+			level: string;
+			message: string;
+		}[] = [];
+		return {
+			lines,
+			layer: Logger.layer([
+				Logger.make(({ logLevel, message }) => {
+					lines.push({
+						level: logLevel,
+						message: [
+							message,
+						]
+							.flat()
+							.join(" "),
+					});
+				}),
+			]),
+		};
+	};
+
+	const retryNow = (eventId: string, attempts?: number) =>
+		Effect.gen(function* () {
+			const db = yield* DB;
+			yield* db
+				.update(dbSchema.authzOutbox)
+				.set({
+					nextAttemptAt: null,
+					...(attempts === undefined
+						? {}
+						: {
+								attempts,
+							}),
+				})
+				.where(eq(dbSchema.authzOutbox.id, eventId));
+		});
+
+	// Every test runs in a rolled-back transaction, so no other test's delivery
+	// waits behind its failing event.
+	test.each([
+		[
+			"SpiceDB is unavailable",
+			"unavailable",
+			"UNAVAILABLE",
+		],
+		[
+			"the SpiceDB schema lacks the relation",
+			"schema not applied",
+			"FAILED_PRECONDITION",
+		],
+	] as const)(
+		"an event retries while %s, holds back newer ones, and is delivered in order once it succeeds",
+		async (_, failure, code) => {
 			const {
 				actors: [owner],
 				zedToken,
@@ -458,143 +573,28 @@ describe("failed delivery", () => {
 			]);
 			const { blockId } = await createBlock(owner, zedToken);
 			const subject = await run(createUser());
+			const spice = failingWritesAbout(subject.id, failure);
+			const logs = capturedLogs();
 
-			const states = await run(
-				Effect.gen(function* () {
-					const db = yield* DB;
-					const authz = yield* AuthzService;
-					const eventIds = (yield* db.transaction(() =>
-						Effect.forEach(
-							[
-								{
-									...viewerTuple(blockId, subject.id),
-									relation: "not_a_relation",
-								},
-								{
-									...viewerTuple(blockId, subject.id),
-									relation: "bot",
-								},
-								viewerTuple(blockId, subject.id),
-							] as TupleMutation[],
-							(mutation) =>
-								enqueueRelationshipMutations([
-									mutation,
-								]),
-						),
-					)).flat();
-					yield* authz.deliverRelationshipEvents(eventIds);
-					return yield* outboxStates(eventIds);
-				}),
-			);
-
-			expect(states).toEqual([
-				{
-					status: "dead_letter",
-					attempts: 1,
-					retrying: null,
-				},
-				{
-					status: "dead_letter",
-					attempts: 1,
-					retrying: null,
-				},
-				{
-					status: "processed",
-					attempts: 1,
-					retrying: null,
-				},
-			]);
-			expect(
-				await readTuples({
-					resourceType: "block",
-					resourceId: blockId,
-					subjectId: subject.id,
-				}),
-			).toEqual([
-				`viewer@user:${subject.id}`,
-			]);
-		},
-		TIMEOUT,
-	);
-
-	test(
-		"an unavailable SpiceDB keeps an event retrying and holds back newer ones",
-		async () => {
-			const {
-				actors: [owner],
-				zedToken,
-			} = await organizationWith([
-				"admin",
-			]);
-			const { blockId } = await createBlock(owner, zedToken);
-			const [unlucky, waiting] = await Promise.all([
-				run(createUser()),
-				run(createUser()),
-			]);
-			const unreachable = v1.NewClient(
-				"unreachable",
-				"127.0.0.1:1",
-				v1.ClientSecurity.INSECURE_PLAINTEXT_CREDENTIALS,
-			).promises;
-			let available = false;
-			// Writes about `unlucky` go to a closed port until SpiceDB is available.
-			const SometimesUnavailable = Layer.effect(
-				SpiceDbService,
-				Effect.gen(function* () {
-					const { spice } = yield* SpiceDbService;
-					return {
-						spice: new Proxy(spice, {
-							get: (target, key) =>
-								key === "writeRelationships"
-									? (request: v1.WriteRelationshipsRequest) =>
-											!available &&
-											request.updates.some(
-												(update) =>
-													update.relationship?.subject?.object?.objectId ===
-													unlucky.id,
-											)
-												? unreachable.writeRelationships(request)
-												: target.writeRelationships(request)
-									: Reflect.get(target, key),
-						}),
-					};
-				}),
-			);
-
-			// Rolled back, so no other test's delivery waits behind the failing event.
 			const states = await run(
 				rolledBack(
 					Effect.gen(function* () {
-						const db = yield* DB;
 						const authz = yield* AuthzService;
 						const eventIds = [
 							...(yield* enqueueRelationshipMutations([
-								viewerTuple(blockId, unlucky.id),
+								viewerTuple(blockId, subject.id),
 							])),
 							...(yield* enqueueRelationshipMutations([
-								viewerTuple(blockId, waiting.id),
+								viewerTuple(blockId, subject.id, "delete"),
 							])),
 						];
-						const retry = (attempts?: number) =>
-							db
-								.update(dbSchema.authzOutbox)
-								.set({
-									nextAttemptAt: null,
-									...(attempts === undefined
-										? {}
-										: {
-												attempts,
-											}),
-								})
-								.where(eq(dbSchema.authzOutbox.id, eventIds[0]));
-
 						yield* authz.deliverRelationshipEvents(eventIds);
 						const first = yield* outboxStates(eventIds);
-						yield* retry(100);
+						yield* retryNow(eventIds[0], 100);
 						yield* authz.deliverRelationshipEvents(eventIds);
 						const later = yield* outboxStates(eventIds);
-						available = true;
-						yield* retry();
+						spice.recover();
+						yield* retryNow(eventIds[0]);
 						yield* authz.deliverRelationshipEvents(eventIds);
 						const recovered = yield* outboxStates(eventIds);
 						return {
@@ -603,14 +603,8 @@ describe("failed delivery", () => {
 							recovered,
 						};
 					}),
-				).pipe(
-					Effect.provide(
-						Layer.fresh(AuthzLive).pipe(Layer.provide(SometimesUnavailable)),
-					),
-				),
-			).finally(() => {
-				unreachable.close();
-			});
+				).pipe(Effect.provide(Layer.mergeAll(spice.authz, logs.layer))),
+			).finally(spice.close);
 
 			const pending = {
 				status: "pending" as const,
@@ -647,6 +641,136 @@ describe("failed delivery", () => {
 					},
 				],
 			});
+			// The touch was applied before the delete.
+			expect(
+				await readTuples({
+					resourceType: "block",
+					resourceId: blockId,
+					subjectId: subject.id,
+				}),
+			).toEqual([]);
+			const blocked = logs.lines.filter(({ message }) =>
+				message.startsWith("authz.delivery_blocked"),
+			);
+			expect(blocked).toHaveLength(2);
+			for (const line of blocked)
+				expect(line).toMatchObject({
+					level: "Warn",
+					message: expect.stringContaining(` code=${code} `),
+				});
+		},
+		TIMEOUT,
+	);
+
+	test(
+		"an unreadable payload is dead-lettered at once and newer events are delivered",
+		async () => {
+			const {
+				actors: [owner],
+				zedToken,
+			} = await organizationWith([
+				"admin",
+			]);
+			const { blockId } = await createBlock(owner, zedToken);
+			const subject = await run(createUser());
+			const logs = capturedLogs();
+
+			const { eventIds, states } = await run(
+				rolledBack(
+					Effect.gen(function* () {
+						const db = yield* DB;
+						const authz = yield* AuthzService;
+						const [unreadable] = yield* db
+							.insert(dbSchema.authzOutbox)
+							.values({
+								eventType: "spice.write-relationships",
+								payloadJson: {
+									mutations: "not a list",
+								},
+							})
+							.returning({
+								id: dbSchema.authzOutbox.id,
+							});
+						const eventIds = [
+							unreadable.id,
+							...(yield* enqueueRelationshipMutations([
+								viewerTuple(blockId, subject.id),
+							])),
+						];
+						yield* authz.deliverRelationshipEvents(eventIds);
+						return {
+							eventIds,
+							states: yield* outboxStates(eventIds),
+						};
+					}),
+				).pipe(Effect.provide(logs.layer)),
+			);
+
+			expect(states).toEqual([
+				{
+					status: "dead_letter",
+					attempts: 1,
+					retrying: null,
+				},
+				{
+					status: "processed",
+					attempts: 1,
+					retrying: null,
+				},
+			]);
+			expect(
+				await readTuples({
+					resourceType: "block",
+					resourceId: blockId,
+					subjectId: subject.id,
+				}),
+			).toEqual([
+				`viewer@user:${subject.id}`,
+			]);
+			expect(logs.lines).toContainEqual({
+				level: "Error",
+				message: expect.stringContaining(
+					`authz.dead_letter eventId=${eventIds[0]} `,
+				),
+			});
+		},
+		TIMEOUT,
+	);
+
+	test(
+		"a blocked event logs at error level once it is older than five minutes",
+		async () => {
+			const subject = await run(createUser());
+			const spice = failingWritesAbout(subject.id, "unavailable");
+			const logs = capturedLogs();
+
+			await run(
+				rolledBack(
+					Effect.gen(function* () {
+						const authz = yield* AuthzService;
+						const eventIds = yield* enqueueRelationshipMutations([
+							viewerTuple(crypto.randomUUID() as BlockId, subject.id),
+						]);
+						yield* authz.deliverRelationshipEvents(eventIds);
+						yield* retryNow(eventIds[0]);
+						yield* Effect.gen(function* () {
+							yield* TestClock.setTime(
+								Date.now() + AUTHZ.outboxBlockedErrorAfterMs,
+							);
+							yield* authz.deliverRelationshipEvents(eventIds);
+						}).pipe(Effect.provide(TestClock.layer()));
+					}),
+				).pipe(Effect.provide(Layer.mergeAll(spice.authz, logs.layer))),
+			).finally(spice.close);
+
+			expect(
+				logs.lines
+					.filter(({ message }) => message.startsWith("authz.delivery_blocked"))
+					.map(({ level }) => level),
+			).toEqual([
+				"Warn",
+				"Error",
+			]);
 		},
 		TIMEOUT,
 	);

@@ -1,7 +1,7 @@
 import { PgClient } from "@effect/sql-pg";
 import { DB, dbSchema, enumSchema } from "@orcai/db";
 import {
-	isPermanentWriteFailure,
+	grpcStatusOf,
 	SpiceDbError,
 	SpiceDbService,
 	type TupleMutation,
@@ -9,10 +9,11 @@ import {
 } from "@orcai/spice-db";
 import { and, asc, eq, inArray, lte } from "drizzle-orm";
 import * as Arr from "effect/Array";
+import * as Clock from "effect/Clock";
 import * as Context from "effect/Context";
-import * as Data from "effect/Data";
 import * as Effect from "effect/Effect";
 import * as Layer from "effect/Layer";
+import { z } from "zod";
 import { recordZedToken } from "@/lib/effect/services/zed-token-mailbox";
 import { AuthzError } from "@/lib/effect/utils/errors";
 import { AUTHZ } from "@/settings/constants";
@@ -85,15 +86,42 @@ export class AuthzService extends Context.Service<
 
 type OutboxEvent = typeof dbSchema.authzOutbox.$inferSelect;
 
-class InvalidOutboxPayload extends Data.TaggedError("InvalidOutboxPayload") {}
+const outboxPayloadSchema = z.object({
+	mutations: z
+		.array(
+			z.object({
+				resourceType: z.string(),
+				resourceId: z.string(),
+				relation: z.string(),
+				subjectType: z.string(),
+				subjectId: z.string(),
+				subjectRelation: z.string().optional(),
+				operation: z
+					.enum([
+						"create",
+						"delete",
+						"touch",
+					])
+					.optional(),
+			}),
+		)
+		.min(1),
+});
 
 const describeFailure = (cause: unknown) =>
-	cause instanceof SpiceDbError ? String(cause.cause) : String(cause);
+	cause instanceof SpiceDbError
+		? `code=${grpcStatusOf(cause) ?? "none"} cause=${String(cause.cause)}`
+		: `code=none cause=${String(cause)}`;
 
-/** The event itself is at fault, so it fails on every retry. */
-const isPermanent = (cause: unknown) =>
-	cause instanceof InvalidOutboxPayload ||
-	(cause instanceof SpiceDbError && isPermanentWriteFailure(cause));
+/** Leaves a row alone once an operator has moved it, for example to `dead_letter`. */
+const undelivered = (event: OutboxEvent) =>
+	and(
+		eq(dbSchema.authzOutbox.id, event.id),
+		inArray(dbSchema.authzOutbox.status, [
+			PENDING,
+			FAILED,
+		]),
+	);
 
 const retryDelayMs = (attempts: number) =>
 	Math.min(AUTHZ.outboxRetryBaseDelayMs * 2 ** Math.min(attempts, 4), 600_000);
@@ -105,67 +133,75 @@ export const AuthzLive = Layer.effect(
 		const pg = yield* PgClient.PgClient;
 		const spiceDb = yield* SpiceDbService;
 
-		const write = (event: OutboxEvent) =>
-			Effect.gen(function* () {
-				const mutations = (
-					event.payloadJson as {
-						mutations?: TupleMutation[];
-					}
-				).mutations;
-				if (!Array.isArray(mutations) || mutations.length === 0)
-					return yield* Effect.fail(new InvalidOutboxPayload());
-				return yield* writeRelationshipMutations(mutations).pipe(
-					Effect.timeout(AUTHZ.outboxDeliveryTimeoutMs),
-					Effect.provideService(SpiceDbService, spiceDb),
-				);
-			});
-
 		/**
-		 * Records the outcome of one write: processed, dead-lettered when the
-		 * event itself is at fault, or failed with backoff and retried until it
-		 * succeeds.
+		 * Records the outcome of one delivery attempt. An unreadable payload is
+		 * dead-lettered; any other failure retries with backoff until it succeeds.
 		 */
 		const settle = (event: OutboxEvent) =>
-			write(event).pipe(
-				Effect.matchEffect({
-					onSuccess: ({ zedToken }) =>
-						db
-							.update(dbSchema.authzOutbox)
-							.set({
-								status: PROCESSED,
-								payloadJson: {
-									...event.payloadJson,
-									zedToken,
-								},
-								attempts: event.attempts + 1,
-								nextAttemptAt: null,
-								updatedAt: new Date(),
-							})
-							.where(eq(dbSchema.authzOutbox.id, event.id))
-							.pipe(Effect.as(PROCESSED)),
-					onFailure: (cause) =>
-						Effect.gen(function* () {
-							const attempts = event.attempts + 1;
-							const deadLetter = isPermanent(cause);
-							const now = new Date();
-							yield* Effect.logError(
-								`authz.${deadLetter ? "dead_letter" : "projection_failed"} eventId=${event.id} attempts=${attempts} cause=${describeFailure(cause)}`,
-							);
-							yield* db
+			Effect.gen(function* () {
+				const now = new Date(yield* Clock.currentTimeMillis);
+				const attempts = event.attempts + 1;
+				const payload = outboxPayloadSchema.safeParse(event.payloadJson);
+				if (!payload.success) {
+					yield* Effect.logError(
+						`authz.dead_letter eventId=${event.id} seq=${event.seq} cause=unreadable payload`,
+					);
+					yield* db
+						.update(dbSchema.authzOutbox)
+						.set({
+							status: DEAD_LETTER,
+							attempts,
+							nextAttemptAt: null,
+							updatedAt: now,
+						})
+						.where(undelivered(event));
+					return DEAD_LETTER;
+				}
+				return yield* writeRelationshipMutations(
+					payload.data.mutations as TupleMutation[],
+				).pipe(
+					Effect.timeout(AUTHZ.outboxDeliveryTimeoutMs),
+					Effect.provideService(SpiceDbService, spiceDb),
+					Effect.matchEffect({
+						onSuccess: ({ zedToken }) =>
+							db
 								.update(dbSchema.authzOutbox)
 								.set({
-									status: deadLetter ? DEAD_LETTER : FAILED,
+									status: PROCESSED,
+									payloadJson: {
+										...event.payloadJson,
+										zedToken,
+									},
 									attempts,
-									nextAttemptAt: deadLetter
-										? null
-										: new Date(now.getTime() + retryDelayMs(event.attempts)),
+									nextAttemptAt: null,
 									updatedAt: now,
 								})
-								.where(eq(dbSchema.authzOutbox.id, event.id));
-							return deadLetter ? DEAD_LETTER : FAILED;
-						}),
-				}),
-			);
+								.where(undelivered(event))
+								.pipe(Effect.as(PROCESSED)),
+						onFailure: (cause) =>
+							Effect.gen(function* () {
+								const ageMs = now.getTime() - event.createdAt.getTime();
+								yield* Effect.logWithLevel(
+									ageMs >= AUTHZ.outboxBlockedErrorAfterMs ? "Error" : "Warn",
+								)(
+									`authz.delivery_blocked eventId=${event.id} seq=${event.seq} attempts=${attempts} ageSeconds=${Math.round(ageMs / 1000)} ${describeFailure(cause)}`,
+								);
+								yield* db
+									.update(dbSchema.authzOutbox)
+									.set({
+										status: FAILED,
+										attempts,
+										nextAttemptAt: new Date(
+											now.getTime() + retryDelayMs(event.attempts),
+										),
+										updatedAt: now,
+									})
+									.where(undelivered(event));
+								return FAILED;
+							}),
+					}),
+				);
+			});
 
 		/**
 		 * One batch in seq order under the delivery lock, up to `through` when
@@ -203,7 +239,7 @@ export const AuthzLive = Layer.effect(
 							)
 							.orderBy(asc(dbSchema.authzOutbox.seq))
 							.limit(BATCH_SIZE);
-						const now = Date.now();
+						const now = yield* Clock.currentTimeMillis;
 						for (const event of events) {
 							if (event.nextAttemptAt && event.nextAttemptAt.getTime() > now) {
 								result.blocked = true;
@@ -258,12 +294,7 @@ export const AuthzLive = Layer.effect(
 						};
 					if (newest.status === DEAD_LETTER) return {};
 					const batch = yield* deliverBatch(newest.seq);
-					if (batch.blocked) {
-						yield* Effect.logWarning(
-							`authz.delivery_blocked eventId=${eventIds.at(-1)}`,
-						);
-						return {};
-					}
+					if (batch.blocked) return {};
 					if (batch.locked && batch.processed + batch.failed > 0) continue;
 					if (attempt >= AUTHZ.outboxInlineWaitAttempts) {
 						yield* Effect.logWarning(
