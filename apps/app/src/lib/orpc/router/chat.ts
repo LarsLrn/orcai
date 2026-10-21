@@ -1,4 +1,9 @@
-import type { ChatId, ChatMessageId } from "@orcai/core";
+import type {
+	ChatId,
+	ChatMessageId,
+	ModelId,
+	OrganizationId,
+} from "@orcai/core";
 import { DB, dbSchema } from "@orcai/db";
 import type { ChatSortKey } from "@orcai/schema";
 import {
@@ -225,6 +230,50 @@ const botFeaturesImmutable = () =>
 		message: "Cannot set features on chats linked to a bot.",
 	});
 
+/** A chat's max tokens stay within its model's max output, where that is known. */
+const checkMaxTokens = ({
+	modelId,
+	maxTokens,
+	organizationId,
+}: {
+	modelId: ModelId | null | undefined;
+	maxTokens: number | null | undefined;
+	organizationId: OrganizationId | undefined;
+}) =>
+	Effect.gen(function* () {
+		if (modelId == null || maxTokens == null || organizationId === undefined) {
+			return;
+		}
+
+		const db = yield* DB;
+		const [model] = yield* db
+			.select({
+				maxOutputTokens: dbSchema.model.maxOutputTokens,
+			})
+			.from(dbSchema.model)
+			.innerJoin(
+				dbSchema.provider,
+				eq(dbSchema.provider.id, dbSchema.model.providerId),
+			)
+			.where(
+				and(
+					eq(dbSchema.model.id, modelId),
+					eq(dbSchema.provider.organizationId, organizationId),
+				),
+			)
+			.limit(1);
+
+		if (model?.maxOutputTokens != null && maxTokens > model.maxOutputTokens) {
+			return yield* new AppErrors.BadRequestError({
+				reason: "CHAT_MAX_TOKENS_EXCEEDS_MODEL",
+				params: {
+					maxOutputTokens: model.maxOutputTokens,
+				},
+				message: "Max tokens exceed the model's max output tokens.",
+			});
+		}
+	});
+
 const createChat = authed.chat.create.effect(function* ({ input, context }) {
 	const features = input.config?.features;
 
@@ -243,6 +292,12 @@ const createChat = authed.chat.create.effect(function* ({ input, context }) {
 	} else if (features) {
 		yield* checkFeatureRequirements(features);
 	}
+
+	yield* checkMaxTokens({
+		modelId: input.config?.modelId,
+		maxTokens: input.config?.maxTokens,
+		organizationId: context.auth.session.activeOrganizationId,
+	});
 
 	const { result: chat } = yield* writeRelationships(
 		{
@@ -267,7 +322,7 @@ const updateChat = authed.chat.update
 			entityId: "id",
 		}),
 	)
-	.effect(function* ({ input }) {
+	.effect(function* ({ input, context }) {
 		const db = yield* DB;
 		const existingChat = yield* db.query.chat.findFirst({
 			where: {
@@ -321,6 +376,18 @@ const updateChat = authed.chat.update
 
 							return nextConfig;
 						})();
+
+		// Only a new max tokens is checked; a model switch keeps it and the turn caps it.
+		if (input.config?.maxTokens != null) {
+			yield* checkMaxTokens({
+				modelId:
+					input.config.modelId === undefined
+						? existingChat?.config?.modelId
+						: input.config.modelId,
+				maxTokens: input.config.maxTokens,
+				organizationId: context.auth.session.activeOrganizationId,
+			});
+		}
 
 		const [updatedChat] = yield* db
 			.update(dbSchema.chat)

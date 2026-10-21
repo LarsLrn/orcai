@@ -11,7 +11,10 @@ const estimatePromptTokens = (messages: unknown[]): number => {
 
 export const estimateQuotaReservationAmount = (params: {
 	meteringMode: (typeof dbSchema.provider.$inferSelect)["meteringMode"];
+	/** The call's own output cap. */
 	maxExpectedOutputTokens?: number;
+	/** Lowers the default output cap for a call without its own. */
+	modelMaxOutputTokens?: number | null;
 	maxExpectedProviderRequests: number;
 	messages: unknown[];
 }) => {
@@ -20,10 +23,11 @@ export const estimateQuotaReservationAmount = (params: {
 	}
 
 	const estimatedPromptTokens = estimatePromptTokens(params.messages);
-	// Conservative fallback: prompt estimate + default output cap.
-	return Math.max(
-		MIN_TOKEN_RESERVATION,
-		estimatedPromptTokens +
-			(params.maxExpectedOutputTokens ?? DEFAULT_MAX_OUTPUT_TOKENS),
-	);
+	const outputTokens =
+		params.maxExpectedOutputTokens ??
+		Math.min(
+			DEFAULT_MAX_OUTPUT_TOKENS,
+			params.modelMaxOutputTokens ?? DEFAULT_MAX_OUTPUT_TOKENS,
+		);
+	return Math.max(MIN_TOKEN_RESERVATION, estimatedPromptTokens + outputTokens);
 };

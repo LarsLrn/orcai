@@ -2,6 +2,7 @@ import { untilAllowed } from "../../fixtures/authorization";
 import {
 	DEFAULT_EMBEDDING_DIMENSIONS,
 	expect,
+	INFERENCE_MOCK_CONTEXT_WINDOW,
 	INFERENCE_MOCK_MODELS,
 	startInferenceMock,
 	test,
@@ -804,10 +805,102 @@ test("the app discovers the inference mock's models through a provider", async (
 		inference.models.map(() => []),
 	);
 
+	const limitsOf = (models: typeof listed.data) =>
+		Object.fromEntries(
+			models.map((model) => [
+				model.providerModelId,
+				{
+					contextWindow: model.contextWindow,
+					maxOutputTokens: model.maxOutputTokens,
+				},
+			]),
+		);
+
+	expect(limitsOf(listed.data)).toEqual({
+		[INFERENCE_MOCK_MODELS.chat]: {
+			contextWindow: INFERENCE_MOCK_CONTEXT_WINDOW,
+			maxOutputTokens: null,
+		},
+		[INFERENCE_MOCK_MODELS.embedding]: {
+			contextWindow: null,
+			maxOutputTokens: null,
+		},
+	});
+
 	const discovery = inference.requests.find(
 		(request) => request.path === "/v1/models",
 	);
 
 	expect(discovery).toBeDefined();
 	expect(discovery?.headers.authorization).toBe(`Bearer ${apiKey}`);
+});
+
+test("rediscovery fills the limits a model lacks and keeps edited ones", async ({
+	api,
+	inference,
+}) => {
+	const admin = api.as("admin");
+	const created = await untilAllowed(() =>
+		admin.provider.create({
+			name: `E2E Inference Mock ${String(Date.now())}`,
+			description: "Mock OpenAI-compatible endpoint for the e2e suite.",
+			endpoint: inference.url,
+			kind: "openai-compatible",
+			meteringMode: "tokens",
+			apiKey: "e2e-mock-provider-key",
+			enabled: true,
+		}),
+	);
+	const providerId = created.data.id;
+	const chatModel = async () => {
+		const listed = await admin.model.list({
+			pageIndex: 0,
+			pageSize: 100,
+			filters: {
+				providerId,
+			},
+		});
+		const model = listed.data.find(
+			({ providerModelId }) => providerModelId === INFERENCE_MOCK_MODELS.chat,
+		);
+		if (!model) throw new Error("Missing mock chat model");
+		return model;
+	};
+
+	await admin.model.discover({
+		providerId,
+	});
+	const { id } = await chatModel();
+
+	await admin.model.update({
+		id,
+		contextWindow: null,
+		maxOutputTokens: 4_096,
+	});
+	const rediscovered = await admin.model.discover({
+		providerId,
+	});
+
+	expect(rediscovered.data).toEqual({
+		foundCount: inference.models.length,
+		addedCount: 0,
+		alreadyExistedCount: inference.models.length,
+	});
+	expect(await chatModel()).toMatchObject({
+		contextWindow: INFERENCE_MOCK_CONTEXT_WINDOW,
+		maxOutputTokens: 4_096,
+	});
+
+	await admin.model.update({
+		id,
+		contextWindow: 8_192,
+	});
+	await admin.model.discover({
+		providerId,
+	});
+
+	expect(await chatModel()).toMatchObject({
+		contextWindow: 8_192,
+		maxOutputTokens: 4_096,
+	});
 });

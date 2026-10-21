@@ -121,7 +121,9 @@ step it may take, 25 in chat and 20 in the OrcAI Assistant, or what the pool
 has left when that is less. A reply starts while at least one request remains,
 gets as many steps as it reserved, and answers on the last of them, so it never
 uses more than the pool has. With tokens metering the pool needs the whole
-estimate remaining.
+estimate remaining: the prompt plus the chat's max tokens, or 16,384 tokens
+when the chat sets none, or the model's max output tokens when that is
+smaller.
 
 **View pool** opens `/app/quotas/<pool id>`, with the current period's
 budget, consumed, reserved and remaining amounts, **Adjust budget** (raising
@@ -158,7 +160,10 @@ key work.
 
 Discovery lists the models the provider offers: `/models` of the endpoint for
 OpenAI-compatible providers and of OpenAI's API for OpenAI providers, and
-Anthropic's Models API for Anthropic providers.
+Anthropic's Models API for Anthropic providers. It also takes each model's
+context window and max output tokens where the provider reports them:
+Anthropic's Models API does, and so do OpenAI-compatible servers such as
+OpenRouter, Together AI, vLLM and Groq. OpenAI's API reports neither.
 
 With an Anthropic provider, OrcAI marks the system prompt for Anthropic's
 prompt caching, so the steps of an answer that uses tools reuse it instead of
@@ -178,12 +183,21 @@ Current models page (`/app/models`) features:
 - Search by model/provider text
 - Provider filter
 - **Add model** (`/app/models/add`)
-- **Discover models**, which lists the models a provider offers and adds the
-  new ones
+- **Discover models**, which lists the models a provider offers, adds the
+  new ones and fills in the token limits a known model still lacks
 
 A model has a name, an optional description, a provider, the **Provider model
-ID** the endpoint expects, its **Capabilities**, and a **Deprecated** flag. A
-model opens at `/app/models/<model id>`, and **Edit model** at
+ID** the endpoint expects, its **Capabilities**, a **Deprecated** flag, and
+two token limits, empty when unknown:
+
+- **Context window**: how many tokens the model reads at once. A chat reply
+  shows how full it was.
+- **Max output tokens**: how many tokens the model writes per reply at most. A
+  chat's max tokens cannot be set higher, a reply asks for no more, and a
+  limit below 16,384 lowers the quota reservation of a chat without max tokens.
+
+Rediscovery never overwrites a limit that is already set, so edited limits
+stay. A model opens at `/app/models/<model id>`, and **Edit model** at
 `/app/models/<model id>/edit`.
 
 <Callout title="Chat Models" type="info">

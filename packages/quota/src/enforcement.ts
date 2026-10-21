@@ -24,6 +24,7 @@ interface ReserveQuotaInput {
 	providerModelId?: string | null;
 	appRequestId: string;
 	maxExpectedOutputTokens?: number;
+	modelMaxOutputTokens?: number | null;
 	/** With requests metering, fewer are reserved when fewer remain. */
 	maxExpectedProviderRequests: number;
 	messages: unknown[];
@@ -72,6 +73,7 @@ export const reserveForAppRequest: (
 		const reservationAmount = estimateQuotaReservationAmount({
 			meteringMode: winning.meteringMode,
 			maxExpectedOutputTokens: input.maxExpectedOutputTokens,
+			modelMaxOutputTokens: input.modelMaxOutputTokens,
 			maxExpectedProviderRequests: input.maxExpectedProviderRequests,
 			messages: input.messages,
 		});

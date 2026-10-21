@@ -1,6 +1,6 @@
 import { AiError } from "@orcai/ai";
 import type { ModelId, OrganizationId, ProviderId, UserId } from "@orcai/core";
-import type { DatabaseBlock } from "@orcai/schema";
+import type { DatabaseBlock, ModelTokenLimits } from "@orcai/schema";
 import { permittedEntityIds } from "@orcai/spice-db";
 import { ORPCError } from "@orpc/client";
 import * as Effect from "effect/Effect";
@@ -67,6 +67,7 @@ export type TurnSetup = {
 	model: AgentModel;
 	providerId: ProviderId;
 	modelId: ModelId;
+	tokenLimits: ModelTokenLimits;
 	callSettings: ChatCallSettings;
 	maxSteps: number;
 	agent:
@@ -178,6 +179,10 @@ const readModel = ({
 			}),
 			providerId: provider.id,
 			modelId,
+			tokenLimits: {
+				contextWindow: model.contextWindow,
+				maxOutputTokens: model.maxOutputTokens,
+			},
 		};
 	});
 
@@ -358,7 +363,7 @@ const chatSetup = (chat: StoredChat, { user, context }: TurnRequester) =>
 
 		return {
 			...model,
-			callSettings: chatCallSettings(config),
+			callSettings: chatCallSettings(config, model.tokenLimits),
 			maxSteps: CHAT_AGENT_MAX_STEPS,
 			agent: {
 				kind: "chat",

@@ -1,6 +1,7 @@
 import type { ChatId } from "@orcai/core";
 import type { Page } from "@playwright/test";
 import { turnRequests } from "../../fixtures/assistant/assistant";
+import { rejection } from "../../fixtures/authorization";
 import {
 	chatName,
 	composer,
@@ -169,4 +170,63 @@ test("chat settings send only the parameters the member set", async ({
 		.toBeUndefined();
 	await send(page, "Back to the default", 3);
 	expect(lastTurnParameters(inference)).toEqual({});
+});
+
+test("max tokens stay within the model's max output", async ({
+	api,
+	inference,
+	org,
+	pageAs,
+}) => {
+	const model = await setUpChatModel(api, inference);
+	const admin = api.as("admin");
+	const member = api.as("member");
+	const chatId = await createChat(member, model, chatName("Max output"));
+	await admin.model.update({
+		id: model.modelId,
+		maxOutputTokens: 1_000,
+	});
+
+	const rejected = await rejection(
+		member.chat.update({
+			id: chatId,
+			config: {
+				maxTokens: 2_000,
+			},
+		}),
+	);
+	expect(rejected.code).toBe("BAD_REQUEST");
+	expect(rejected.data).toMatchObject({
+		reason: "CHAT_MAX_TOKENS_EXCEEDS_MODEL",
+		params: {
+			maxOutputTokens: 1_000,
+		},
+	});
+
+	await member.chat.update({
+		id: chatId,
+		config: {
+			maxTokens: 800,
+		},
+	});
+	// A later edit of the model lowers what the chat may ask for.
+	await admin.model.update({
+		id: model.modelId,
+		maxOutputTokens: 500,
+	});
+
+	const page = await pageAs("member");
+	await enterApp(page, org.slug);
+	await openChat(page, chatId);
+	await send(page, "Keep it short", 1);
+
+	expect(lastTurnParameters(inference)).toEqual({
+		max_tokens: 500,
+	});
+	// The mock reports a context window, so the reply shows how full it is.
+	await expect(
+		page.getByRole("img", {
+			name: message("ai_elements_context_usage_aria_label"),
+		}),
+	).toBeVisible();
 });

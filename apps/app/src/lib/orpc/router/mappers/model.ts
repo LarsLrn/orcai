@@ -18,6 +18,8 @@ export function toModelDto(row: ModelRow): Model {
 		description: row.description,
 		isDeprecated: row.isDeprecated,
 		capabilities: row.capabilities,
+		contextWindow: row.contextWindow,
+		maxOutputTokens: row.maxOutputTokens,
 		createdAt: row.createdAt ?? null,
 	};
 }
@@ -42,6 +44,8 @@ export function mapCreateModelInputToModelInsertValues(
 		description: input.description,
 		isDeprecated: input.isDeprecated,
 		capabilities: input.capabilities,
+		contextWindow: input.contextWindow ?? null,
+		maxOutputTokens: input.maxOutputTokens ?? null,
 	};
 }
 
@@ -55,5 +59,7 @@ export function mapUpdateModelInputToModelUpdateValues(
 		description: input.description,
 		isDeprecated: input.isDeprecated,
 		capabilities: input.capabilities,
+		contextWindow: input.contextWindow,
+		maxOutputTokens: input.maxOutputTokens,
 	};
 }

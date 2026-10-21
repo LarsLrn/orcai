@@ -18,6 +18,9 @@ export const DEFAULT_EMBEDDING_DIMENSIONS = 1024;
 /** `owned_by` of every model the mock lists. */
 const OWNER = "orcai-e2e";
 
+/** The chat model's context window, reported the way vLLM does. */
+export const INFERENCE_MOCK_CONTEXT_WINDOW = 32_768;
+
 /** Fixed `created` timestamp, so two identical runs produce identical bodies. */
 const CREATED = 1_700_000_000;
 
@@ -566,6 +569,9 @@ export const startInferenceMock = async (
 				object: "model",
 				created: CREATED,
 				owned_by: OWNER,
+				...(id === INFERENCE_MOCK_MODELS.chat && {
+					max_model_len: INFERENCE_MOCK_CONTEXT_WINDOW,
+				}),
 			})),
 		});
 	};

@@ -9,6 +9,7 @@ import { sql } from "drizzle-orm";
 import {
 	boolean,
 	index,
+	integer,
 	pgEnum,
 	pgTable,
 	text,
@@ -41,6 +42,8 @@ export const model = pgTable(
 		}).notNull(),
 		isDeprecated: boolean("is_deprecated").notNull().default(false),
 		capabilities: text("capability").$type<ModelCapability>().array().notNull(),
+		contextWindow: integer("context_window"),
+		maxOutputTokens: integer("max_output_tokens"),
 		createdAt: timestamp("created_at").defaultNow(),
 		// TODO: Add updatedAt field and trigger to update it on change
 	},

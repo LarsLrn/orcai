@@ -43,13 +43,19 @@ const ModelForm = ({
 	const form = useAppForm({
 		...modelFormOptions(model),
 		onSubmit: async ({ value }) => {
+			// An emptied limit field is cleared, not left as it was.
+			const values = {
+				...value,
+				contextWindow: value.contextWindow ?? null,
+				maxOutputTokens: value.maxOutputTokens ?? null,
+			};
 			if (action === "update" && model) {
 				await updateModel({
-					...value,
+					...values,
 					id: model.id,
 				});
 			} else {
-				await createModel(value);
+				await createModel(values);
 			}
 		},
 	});
@@ -119,6 +125,34 @@ const ModelForm = ({
 							value: capability,
 							label: getModelCapabilityLabel(capability),
 						}))}
+					/>
+				)}
+			/>
+
+			<form.AppField
+				name="contextWindow"
+				children={(field) => (
+					<field.TextField
+						label={m.models_form_context_window_label()}
+						description={m.models_form_context_window_description()}
+						placeholder={m.models_form_context_window_placeholder()}
+						type="number"
+						min={1}
+						unit={m.models_form_token_limit_unit()}
+					/>
+				)}
+			/>
+
+			<form.AppField
+				name="maxOutputTokens"
+				children={(field) => (
+					<field.TextField
+						label={m.models_form_max_output_tokens_label()}
+						description={m.models_form_max_output_tokens_description()}
+						placeholder={m.models_form_max_output_tokens_placeholder()}
+						type="number"
+						min={1}
+						unit={m.models_form_token_limit_unit()}
 					/>
 				)}
 			/>

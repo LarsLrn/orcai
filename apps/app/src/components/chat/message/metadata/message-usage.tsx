@@ -19,10 +19,21 @@ const MessageUsage = ({ message }: { message: ChatAgentUIMessage }) => {
 
 	if (!message.metadata?.totalUsage?.totalTokens) return null;
 
+	const { contextTokens, contextWindow } = message.metadata;
+	// The share of the context window shows only when the model's window is known.
+	const fill =
+		contextTokens !== undefined && contextWindow !== undefined
+			? {
+					usedTokens: contextTokens,
+					maxTokens: contextWindow,
+				}
+			: {
+					usedTokens: message.metadata.totalUsage.totalTokens,
+				};
+
 	return (
 		<Context
-			maxTokens={128000} // TODO: make dynamic based on model
-			usedTokens={message.metadata.totalUsage.totalTokens}
+			{...fill}
 			usage={{
 				inputTokens: message.metadata.totalUsage?.inputTokens,
 				inputTokenDetails: {

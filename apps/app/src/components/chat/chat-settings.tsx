@@ -36,7 +36,9 @@ import { Skeleton } from "@/components/ui/skeleton";
 import { useAppForm } from "@/hooks/form";
 import { useUpdateChatMutation } from "@/hooks/mutations/use-chat-mutation";
 import { reasonMessageOf } from "@/lib/errors/describe-error";
+import { reasonMessage } from "@/lib/errors/reason-messages";
 import { client, orpc } from "@/lib/orpc/orpc";
+import { formatCount } from "@/lib/presentation/format-number";
 import { m } from "@/paraglide/messages";
 
 const ChatSettings = ({
@@ -162,6 +164,15 @@ const ChatConfigEditor = ({
 		(state) => state.values.providerId,
 	);
 	const isSubmitting = useSelector(form.store, (state) => state.isSubmitting);
+	const { data: selectedModel } = useQuery(
+		orpc.model.find.queryOptions({
+			input: {
+				id: selectedModelId ?? "",
+			},
+			enabled: !!selectedModelId,
+		}),
+	);
+	const modelMaxOutputTokens = selectedModel?.data.maxOutputTokens ?? null;
 
 	return (
 		<form
@@ -258,11 +269,37 @@ const ChatConfigEditor = ({
 
 						<form.AppField
 							name="maxTokens"
+							validators={{
+								onChangeListenTo: [
+									"modelId",
+								],
+								onChange: ({ value }) =>
+									value != null &&
+									modelMaxOutputTokens !== null &&
+									value > modelMaxOutputTokens
+										? {
+												message: reasonMessage(
+													"CHAT_MAX_TOKENS_EXCEEDS_MODEL",
+													{
+														maxOutputTokens: modelMaxOutputTokens,
+													},
+												),
+											}
+										: undefined,
+							}}
 							children={(field) => (
 								<field.TextField
 									label={m.chat_settings_max_tokens_label()}
+									description={
+										modelMaxOutputTokens === null
+											? undefined
+											: m.chat_settings_max_tokens_description({
+													maxOutputTokens: formatCount(modelMaxOutputTokens),
+												})
+									}
 									type="number"
 									min={1}
+									max={modelMaxOutputTokens ?? undefined}
 									placeholder={m.chat_settings_provider_default_placeholder()}
 								/>
 							)}
