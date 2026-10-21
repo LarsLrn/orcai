@@ -106,6 +106,7 @@ bun run stack e2e -- --grep auth               # one area
 bun run stack e2e -- --ui                      # Playwright UI mode
 bun run stack e2e --no-reset -- --grep smoke   # fast iteration on existing data
 bun run stack e2e --no-integration             # Playwright only
+bun run stack e2e --pipeline                   # pipeline specs, with workers
 ```
 
 Everything after `--` is passed to Playwright. After Playwright, whatever its result, the run executes the integration tier on the same stack; the run fails if either does.
@@ -117,7 +118,8 @@ Notes:
 - Each Playwright worker creates its own organisations and users through the public API, so specs run in parallel without sharing data.
 - A mock OpenAI-compatible inference server (`apps/e2e/fixtures/inference`) runs on `E2E_INFERENCE_PORT` for the whole suite; `stack e2e` points the app's global endpoint at it, and specs that configure a provider start their own on an ephemeral port. No run reaches a real provider.
 - To keep your dev data, run the suite against a second stack: `bun run stack --name <name>-e2e --env-file .env.e2e up`, then the same command with those flags. Run the stacks of one checkout one after the other, since both builds would share `apps/app/dist`.
-- GitHub Actions uses the pinned workspace Playwright, splits the suite across three shards with the integration tier on the first, fails on flaky retries, and uploads each failing shard's report. Pull requests that only change `apps/web/content`, the root `LICENSE`, or Markdown outside `apps/app`, `apps/workers`, and `packages` skip the shards; the required `e2e` check still passes.
+- Only `bun run stack e2e --pipeline` starts the background workers (polling every 0.5 s) and runs the upload-to-citation specs in `apps/e2e/tests/pipeline`; every other run has no pg-boss queues, so uploads end up failed. A full local run is `bun run stack e2e`, then `bun run stack e2e --pipeline`.
+- GitHub Actions uses the pinned workspace Playwright, splits the suite across three shards with the integration tier on the first, runs the pipeline specs in a fourth job, fails on flaky retries, and uploads each failing shard's report. Pull requests that only change `apps/web/content`, the root `LICENSE`, or Markdown outside `apps/app`, `apps/workers`, and `packages` skip the shards; the required `e2e` check still passes.
 
 For the e2e workflow and fixture contract, see [Development docs: End-To-End Tests](apps/web/content/docs/development/testing.mdx).
 
@@ -277,6 +279,7 @@ Model-scope note:
 ### Optional variables
 
 - `KREUZBERG_OCR_LANGUAGE`: OCR languages for background asset processing. Defaults to `eng`; use `eng+deu` only where both Tesseract packs are available.
+- `WORKER_POLLING_INTERVAL_SECONDS`: Replaces how often every background worker polls its queue (pg-boss minimum 0.5). Unset, each worker keeps its own interval of 2 to 30 seconds; the e2e pipeline run uses 0.5.
 - `S3_REGION`: Defaults to `eu-central-1`.
 - `S3_PUBLIC_ENDPOINT`: Optional public endpoint for presigned URLs.
 - `SMTP_*`: Optional. If you enable SMTP delivery, `SMTP_HOST` and `SMTP_FROM` must both be set. `SMTP_USERNAME` and `SMTP_PASSWORD` must either both be set or both be omitted. If `SMTP_SECURE` is unset, it is derived from port (`true` for 465, otherwise `false`).

@@ -2,9 +2,11 @@ import { logErrorCause, withActiveSpan } from "@orcai/observability";
 import type { JobWithMetadata } from "@orcai/pg-boss";
 import { PgBossService, PgBossWorkersError } from "@orcai/pg-boss";
 import type { JobQueue } from "@orcai/schema";
+import * as Config from "effect/Config";
 import * as Effect from "effect/Effect";
 import type * as Layer from "effect/Layer";
 import * as ManagedRuntime from "effect/ManagedRuntime";
+import * as Option from "effect/Option";
 import * as Schedule from "effect/Schedule";
 import type { WorkerDefinition } from "@/worker/types";
 
@@ -46,12 +48,20 @@ export const ensureQueue = (
 		yield* Effect.logInfo(`Queue ${name} ready`);
 	});
 
+/** Replaces every worker's polling interval, for test stacks that cannot wait. */
+const pollingIntervalOverride = Config.option(
+	Config.number("WORKER_POLLING_INTERVAL_SECONDS"),
+);
+
 const registerWorkers = <TContext>(
 	definitions: readonly WorkerDefinition<TContext | PgBossService, unknown>[],
 ) =>
 	Effect.gen(function* () {
 		const { boss } = yield* PgBossService;
 		const services = yield* Effect.context<TContext | PgBossService>();
+		const pollingIntervalSeconds = Option.getOrUndefined(
+			yield* pollingIntervalOverride,
+		);
 
 		const runWorkerBatch =
 			(
@@ -93,6 +103,9 @@ const registerWorkers = <TContext>(
 								definition.name,
 								{
 									...definition.workOptions,
+									pollingIntervalSeconds:
+										pollingIntervalSeconds ??
+										definition.workOptions.pollingIntervalSeconds,
 									includeMetadata: true,
 								},
 								runWorkerBatch(definition.name, definition.handler),

@@ -14,9 +14,11 @@
  *   env [--reset]          Print the path and content of the resolved .env.
  *   migrate                Apply database migrations and the SpiceDB schema.
  *   reset                  Empty every store, then reapply migrations.
- *   e2e [--no-reset] [--no-integration]
+ *   e2e [--no-reset] [--no-integration] [--pipeline]
  *                          Install the pinned Chromium, reset, run the
  *                          Playwright suite, then the integration tier.
+ *                          --pipeline runs only the pipeline specs, with
+ *                          workers.
  *   dev [--all]            Run the app dev server. --all adds workers and web.
  *   workers                Run the background workers.
  *   web                    Run the docs site dev server.
@@ -38,6 +40,8 @@
  * OpenAI-compatible endpoint at it; a reused app keeps its own endpoint.
  * After Playwright, `e2e` runs `bun run test:integration` against the same
  * stack, whatever Playwright's result; `--no-integration` skips it.
+ * `e2e --pipeline` runs the specs in `apps/e2e/tests/pipeline` instead of the
+ * rest of the suite, with the background workers polling every half second.
  *
  * `reset`, `e2e` without `--no-reset`, and `down --volumes` ask before they
  * destroy anything. `--yes` answers the question up front, and a caller
@@ -134,6 +138,7 @@ export function parseOptions(argv: string[]): Options {
 					"--all",
 					"--no-integration",
 					"--no-reset",
+					"--pipeline",
 					"--reset",
 					"--volumes",
 					"--yes",
@@ -897,9 +902,10 @@ async function reset(options: Options, env: Env): Promise<void> {
  * Playwright serves on `WEB_PORT` through `WEB_INTERNAL_URL`. Env files written
  * before the port existed get the slot the allocator would have chosen. With
  * `--no-reset` and an app already listening, that app keeps the endpoints it
- * was started with.
+ * was started with. A pipeline run sets `E2E_PIPELINE`, on which the
+ * Playwright config selects the pipeline specs and starts the workers.
  */
-function e2eEnv(env: Env): Env {
+function e2eEnv(env: Env, pipeline: boolean): Env {
 	const inferencePort =
 		env.E2E_INFERENCE_PORT ??
 		String(
@@ -913,6 +919,12 @@ function e2eEnv(env: Env): Env {
 		GENERAL_MODEL: "e2e-mock-chat",
 		EMBEDDING_MODEL: "e2e-mock-embedding",
 		WEB_INTERNAL_URL: `http://127.0.0.1:${envValue(env, "WEB_PORT")}`,
+		...(pipeline
+			? {
+					E2E_PIPELINE: "1",
+					WORKER_POLLING_INTERVAL_SECONDS: "0.5",
+				}
+			: {}),
 	};
 }
 
@@ -952,7 +964,7 @@ async function runE2e(options: Options, env: Env): Promise<number> {
 			"test",
 			...options.args,
 		],
-		e2eEnv(env),
+		e2eEnv(env, options.flags.has("pipeline")),
 		path.join(repoRoot, "apps", "e2e"),
 	);
 	if (interrupted || options.flags.has("no-integration")) return playwright;

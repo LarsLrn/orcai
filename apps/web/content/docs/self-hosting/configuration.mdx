@@ -49,6 +49,7 @@ Primary config modules:
 | `POSTGRES_PORT` | Yes | PostgreSQL port. |
 | `POSTGRES_DB` | Yes | PostgreSQL database name. |
 | `VALKEY_URL` | Yes | Valkey connection URL. |
+| `WORKER_POLLING_INTERVAL_SECONDS` | No | Replaces how often every background worker polls its queue, at least `0.5`. Unset, each worker keeps its own interval of 2 to 30 seconds. |
 
 ## Object Storage
 
