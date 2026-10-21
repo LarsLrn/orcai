@@ -1,6 +1,8 @@
 import {
+	normalizeEmail,
 	ORGANIZATION_ADMIN_ROLE,
 	type OrganizationId,
+	type OrganizationInvitationId,
 	type OrganizationRole,
 	type UserId,
 } from "@orcai/core";
@@ -11,7 +13,6 @@ import { EffectDrizzleQueryError } from "drizzle-orm/effect-core";
 import * as Cause from "effect/Cause";
 import * as Effect from "effect/Effect";
 import { SqlError } from "effect/unstable/sql/SqlError";
-import { auth } from "@/lib/auth/auth";
 import { RelationshipFact } from "@/lib/authz/relationship-facts";
 import {
 	recordRelationshipFacts,
@@ -287,6 +288,112 @@ export const removeMembers = (params: {
 		);
 	});
 
+/**
+ * Accepts an invitation addressed to `email` and adds the user with its role.
+ * A user who is already a member keeps their role.
+ */
+export const acceptInvitation = (params: {
+	invitationId: OrganizationInvitationId;
+	userId: UserId;
+	email: string;
+}) =>
+	Effect.gen(function* () {
+		const db = yield* DB;
+		const notFound = new AppErrors.NotFoundError({
+			reason: "INVITATION_NOT_FOUND",
+			id: params.invitationId,
+			message: "Organization invitation not found",
+		});
+		const [target] = yield* db
+			.select({
+				organizationId: dbSchema.invitation.organizationId,
+			})
+			.from(dbSchema.invitation)
+			.where(eq(dbSchema.invitation.id, params.invitationId));
+		if (!target) return yield* Effect.fail(notFound);
+
+		const { zedToken } = yield* writeRelationships(
+			{
+				organizationIds: [
+					target.organizationId,
+				],
+			},
+			Effect.gen(function* () {
+				const [invitation] = yield* db
+					.select()
+					.from(dbSchema.invitation)
+					.where(eq(dbSchema.invitation.id, params.invitationId))
+					.for("update");
+				if (!invitation) return yield* Effect.fail(notFound);
+				if (normalizeEmail(invitation.email) !== normalizeEmail(params.email))
+					return yield* Effect.fail(
+						new AppErrors.ForbiddenError({
+							reason: "INVITATION_RESPONSE_FORBIDDEN",
+							message: "You are not allowed to respond to this invitation",
+							data: {
+								permission: "respond",
+								entityType: "organizationInvitation",
+							},
+						}),
+					);
+				if (invitation.expiresAt < new Date())
+					return yield* Effect.fail(
+						new AppErrors.BadRequestError({
+							reason: "INVITATION_EXPIRED",
+							message: "Invitation has expired",
+						}),
+					);
+				if (invitation.status !== "pending")
+					return yield* Effect.fail(
+						new AppErrors.BadRequestError({
+							reason: "INVITATION_REQUIRED",
+							message:
+								"A pending, unexpired invitation for this address is required",
+						}),
+					);
+
+				const [existing] = yield* db
+					.select({
+						role: dbSchema.member.role,
+					})
+					.from(dbSchema.member)
+					.where(
+						and(
+							eq(dbSchema.member.organizationId, invitation.organizationId),
+							eq(dbSchema.member.userId, params.userId),
+						),
+					);
+				const role = existing?.role ?? invitation.role;
+				if (!existing)
+					yield* db.insert(dbSchema.member).values({
+						organizationId: invitation.organizationId,
+						userId: params.userId,
+						role,
+						createdAt: new Date(),
+					});
+				yield* db
+					.update(dbSchema.invitation)
+					.set({
+						status: "accepted",
+						updatedAt: new Date(),
+					})
+					.where(eq(dbSchema.invitation.id, invitation.id));
+				yield* recordRelationshipFacts(
+					RelationshipFact.OrganizationRoleChanged({
+						organizationId: invitation.organizationId,
+						userId: params.userId,
+						from: existing?.role ?? null,
+						to: role,
+					}),
+				);
+			}),
+		);
+		return {
+			organizationId: target.organizationId,
+			zedToken,
+		};
+	});
+
 /** The organizations the users are members of. */
 const membershipOrganizations = (userIds: readonly UserId[]) =>
 	Effect.gen(function* () {
@@ -479,40 +586,29 @@ export const banAccount = (params: {
 						],
 					});
 
-				// Written while the locks are held, so a later floor check sees the ban.
-				yield* Effect.tryPromise({
-					try: async () => {
-						const { internalAdapter } = await auth.$context;
-						const user = await internalAdapter.updateUser(params.userId, {
-							banned: true,
-							banReason: params.reason ?? null,
-							banExpires: null,
-							updatedAt: new Date(),
-						});
-						if (!user) return false;
-						await internalAdapter.deleteUserSessions(params.userId);
-						return true;
-					},
-					catch: (error) =>
-						new AppErrors.BadRequestError({
-							reason: "USER_BAN_FAILED",
-							message:
-								error instanceof Error
-									? error.message
-									: "Failed to ban the user.",
-							cause: error,
+				const banned = yield* db
+					.update(dbSchema.user)
+					.set({
+						banned: true,
+						banReason: params.reason ?? null,
+						banExpires: null,
+						updatedAt: new Date(),
+					})
+					.where(eq(dbSchema.user.id, params.userId))
+					.returning({
+						id: dbSchema.user.id,
+					});
+				if (banned.length === 0)
+					return yield* Effect.fail(
+						new AppErrors.NotFoundError({
+							reason: "USER_NOT_FOUND",
+							id: params.userId,
+							message: "User not found",
 						}),
-				}).pipe(
-					Effect.filterOrFail(
-						(banned) => banned,
-						() =>
-							new AppErrors.NotFoundError({
-								reason: "USER_NOT_FOUND",
-								id: params.userId,
-								message: "User not found",
-							}),
-					),
-				);
+					);
+				yield* db
+					.delete(dbSchema.session)
+					.where(eq(dbSchema.session.userId, params.userId));
 			}),
 		);
 	});

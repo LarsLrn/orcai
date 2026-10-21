@@ -19,11 +19,9 @@ import {
 	type SQL,
 } from "drizzle-orm";
 import * as Effect from "effect/Effect";
+import { invitationAddressedTo } from "@/lib/auth/invitation-signup";
 import {
 	acceptInvitation as acceptInvitedMembership,
-	invitationAddressedTo,
-} from "@/lib/auth/invitation-signup";
-import {
 	assertCanManageOrganizationAdmins,
 	organizationRoleRequiresAdminControl,
 } from "@/lib/authz/organization-membership";
@@ -318,42 +316,33 @@ const updateOrganizationInvitation = authed.organizationInvitation.update
 			message: "Organization invitation not found",
 		});
 
-		const invitation = yield* db.transaction((tx) =>
-			Effect.gen(function* () {
-				const [existing] = yield* tx
-					.select({
-						role: dbSchema.invitation.role,
-					})
-					.from(dbSchema.invitation)
-					.where(inOrganization)
-					.limit(1)
-					.for("update");
+		const [existing] = yield* db
+			.select({
+				role: dbSchema.invitation.role,
+			})
+			.from(dbSchema.invitation)
+			.where(inOrganization)
+			.limit(1);
+		if (!existing) return yield* Effect.fail(notFound);
 
-				if (!existing) {
-					return yield* Effect.fail(notFound);
-				}
+		if (organizationRoleRequiresAdminControl(existing.role)) {
+			yield* assertCanManageOrganizationAdmins(organizationId, {
+				userId: context.auth.user.id,
+				zedToken: getZedToken(context),
+			});
+		}
 
-				if (organizationRoleRequiresAdminControl(existing.role)) {
-					yield* assertCanManageOrganizationAdmins(organizationId, {
-						userId: context.auth.user.id,
-						zedToken: getZedToken(context),
-					});
-				}
-
-				const [updated] = yield* tx
-					.update(dbSchema.invitation)
-					.set({
-						status: input.status,
-						expiresAt: input.expiresAt,
-						updatedAt: new Date(),
-					})
-					.where(inOrganization)
-					.returning({
-						...getColumns(dbSchema.invitation),
-					});
-				return updated;
-			}),
-		);
+		const [invitation] = yield* db
+			.update(dbSchema.invitation)
+			.set({
+				status: input.status,
+				expiresAt: input.expiresAt,
+				updatedAt: new Date(),
+			})
+			.where(inOrganization)
+			.returning({
+				...getColumns(dbSchema.invitation),
+			});
 
 		return yield* Effect.fromNullishOr(invitation).pipe(
 			Effect.mapError(() => notFound),
@@ -422,65 +411,18 @@ const respondToOrganizationInvitation =
 	authed.organizationInvitation.respond.effect(function* ({ input, context }) {
 		const db = yield* DB;
 
-		const invitation = yield* db.query.invitation
-			.findFirst({
-				where: {
-					id: {
-						eq: input.id,
-					},
-				},
-			})
-			.pipe(
-				Effect.flatMap((result) =>
-					Effect.fromNullishOr(result).pipe(
-						Effect.mapError(
-							() =>
-								new AppErrors.NotFoundError({
-									reason: "INVITATION_NOT_FOUND",
-									message: "Organization invitation not found",
-								}),
-						),
-					),
-				),
-			);
-
-		if (
-			normalizeEmail(invitation.email) !==
-			normalizeEmail(context.auth.user.email)
-		) {
-			return yield* Effect.fail(
-				new AppErrors.ForbiddenError({
-					reason: "INVITATION_RESPONSE_FORBIDDEN",
-					message: "You are not allowed to respond to this invitation",
-					data: {
-						permission: "respond",
-						entityType: "organizationInvitation",
-					},
-				}),
-			);
-		}
-
-		if (invitation.expiresAt < new Date()) {
-			return yield* Effect.fail(
-				new AppErrors.BadRequestError({
-					reason: "INVITATION_EXPIRED",
-					message: "Invitation has expired",
-				}),
-			);
-		}
-
 		const acceptInvitation = Effect.gen(function* () {
-			yield* acceptInvitedMembership({
+			const { organizationId } = yield* acceptInvitedMembership({
+				invitationId: input.id,
 				userId: context.auth.user.id,
 				email: context.auth.user.email,
-				invitationId: input.id,
 			});
 
 			if (!context.auth.session.activeOrganizationId) {
 				yield* db
 					.update(dbSchema.session)
 					.set({
-						activeOrganizationId: invitation.organizationId,
+						activeOrganizationId: organizationId,
 					})
 					.where(eq(dbSchema.session.id, context.auth.session.id));
 			}
@@ -492,6 +434,53 @@ const respondToOrganizationInvitation =
 		});
 
 		const rejectInvitation = Effect.gen(function* () {
+			const invitation = yield* db.query.invitation
+				.findFirst({
+					where: {
+						id: {
+							eq: input.id,
+						},
+					},
+				})
+				.pipe(
+					Effect.flatMap((result) =>
+						Effect.fromNullishOr(result).pipe(
+							Effect.mapError(
+								() =>
+									new AppErrors.NotFoundError({
+										reason: "INVITATION_NOT_FOUND",
+										message: "Organization invitation not found",
+									}),
+							),
+						),
+					),
+				);
+
+			if (
+				normalizeEmail(invitation.email) !==
+				normalizeEmail(context.auth.user.email)
+			) {
+				return yield* Effect.fail(
+					new AppErrors.ForbiddenError({
+						reason: "INVITATION_RESPONSE_FORBIDDEN",
+						message: "You are not allowed to respond to this invitation",
+						data: {
+							permission: "respond",
+							entityType: "organizationInvitation",
+						},
+					}),
+				);
+			}
+
+			if (invitation.expiresAt < new Date()) {
+				return yield* Effect.fail(
+					new AppErrors.BadRequestError({
+						reason: "INVITATION_EXPIRED",
+						message: "Invitation has expired",
+					}),
+				);
+			}
+
 			if (invitation.status === "accepted") {
 				return yield* Effect.fail(
 					new AppErrors.BadRequestError({

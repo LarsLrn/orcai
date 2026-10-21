@@ -1,6 +1,12 @@
 import { describe, expect, test } from "bun:test";
-import type { OrganizationId, OrganizationRole, UserId } from "@orcai/core";
+import type {
+	OrganizationId,
+	OrganizationInvitationId,
+	OrganizationRole,
+	UserId,
+} from "@orcai/core";
 import { DB, dbSchema } from "@orcai/db";
+import { createUser } from "@orcai/testing";
 import { eq } from "drizzle-orm";
 import * as Effect from "effect/Effect";
 import {
@@ -10,6 +16,7 @@ import {
 	TIMEOUT,
 } from "@/lib/authz/authz-integration";
 import {
+	acceptInvitation,
 	banAccount,
 	changeMemberRole,
 	deleteAccounts,
@@ -370,6 +377,202 @@ describe("account ban and deletion", () => {
 			expect((await rolesOf(organizationId)).members).toContain(
 				`admin@${admin.user.id}`,
 			);
+		},
+		TIMEOUT,
+	);
+});
+
+/** A pending invitation from the organization's first actor. */
+const invite = (
+	organization: Organization,
+	params: {
+		email: string;
+		role: OrganizationRole;
+		expiresAt?: Date;
+	},
+) =>
+	run(
+		Effect.gen(function* () {
+			const db = yield* DB;
+			const [invitation] = yield* db
+				.insert(dbSchema.invitation)
+				.values({
+					organizationId: organization.organizationId,
+					email: params.email,
+					role: params.role,
+					status: "pending",
+					expiresAt: params.expiresAt ?? new Date(Date.now() + 3_600_000),
+					inviterId: organization.actors[0].user.id,
+				})
+				.returning();
+			return invitation;
+		}),
+	);
+
+const accept =
+	(
+		invitationId: OrganizationInvitationId,
+		user: {
+			id: UserId;
+			email: string;
+		},
+	) =>
+	() =>
+		run(
+			acceptInvitation({
+				invitationId,
+				userId: user.id,
+				email: user.email,
+			}),
+		);
+
+const statusOf = (invitationId: OrganizationInvitationId) =>
+	run(
+		Effect.gen(function* () {
+			const db = yield* DB;
+			const [row] = yield* db
+				.select({
+					status: dbSchema.invitation.status,
+				})
+				.from(dbSchema.invitation)
+				.where(eq(dbSchema.invitation.id, invitationId));
+			return row.status;
+		}),
+	);
+
+describe("invitation acceptance", () => {
+	test(
+		"accepting adds the invitee with the invitation's role in both stores",
+		async () => {
+			const organization = await organizationWith([
+				"admin",
+			]);
+			const {
+				organizationId,
+				actors: [admin],
+			} = organization;
+			const invitee = await run(createUser());
+			const invitation = await invite(organization, {
+				email: ` ${invitee.email.toUpperCase()} `,
+				role: "manager",
+			});
+			const { zedToken } = await accept(invitation.id, invitee)();
+			expect(zedToken).toBeString();
+			expect(await statusOf(invitation.id)).toBe("accepted");
+			expect(await rolesOf(organizationId)).toEqual({
+				members: [
+					`admin@${admin.user.id}`,
+					`manager@${invitee.id}`,
+				].sort(),
+				tuples: [
+					`admin@${admin.user.id}`,
+					`manager@${invitee.id}`,
+				].sort(),
+			});
+		},
+		TIMEOUT,
+	);
+
+	test(
+		"of two acceptances of one invitation, the second is rejected",
+		async () => {
+			const organization = await organizationWith([
+				"admin",
+			]);
+			const {
+				organizationId,
+				actors: [admin],
+			} = organization;
+			const invitee = await run(createUser());
+			const invitation = await invite(organization, {
+				email: invitee.email,
+				role: "member",
+			});
+			const rejected = await secondRejected(
+				organizationId,
+				accept(invitation.id, invitee),
+				accept(invitation.id, invitee),
+			);
+			expect(rejected).toMatchObject({
+				reason: "INVITATION_REQUIRED",
+			});
+			expect(await rolesOf(organizationId)).toEqual({
+				members: [
+					`admin@${admin.user.id}`,
+					`member@${invitee.id}`,
+				].sort(),
+				tuples: [
+					`admin@${admin.user.id}`,
+					`member@${invitee.id}`,
+				].sort(),
+			});
+		},
+		TIMEOUT,
+	);
+
+	test(
+		"a member who accepts keeps their role",
+		async () => {
+			const organization = await organizationWith([
+				"admin",
+				"manager",
+			]);
+			const {
+				organizationId,
+				actors: [admin, manager],
+			} = organization;
+			const invitation = await invite(organization, {
+				email: manager.user.email,
+				role: "member",
+			});
+			await accept(invitation.id, manager.user)();
+			expect(await statusOf(invitation.id)).toBe("accepted");
+			expect(await rolesOf(organizationId)).toEqual({
+				members: [
+					`admin@${admin.user.id}`,
+					`manager@${manager.user.id}`,
+				].sort(),
+				tuples: [
+					`admin@${admin.user.id}`,
+					`manager@${manager.user.id}`,
+				].sort(),
+			});
+		},
+		TIMEOUT,
+	);
+
+	test(
+		"another address or an expired invitation is rejected and stays pending",
+		async () => {
+			const organization = await organizationWith([
+				"admin",
+			]);
+			const {
+				organizationId,
+				actors: [admin],
+			} = organization;
+			const invitee = await run(createUser());
+			const stranger = await run(createUser());
+			const invitation = await invite(organization, {
+				email: invitee.email,
+				role: "member",
+			});
+			const expired = await invite(organization, {
+				email: invitee.email,
+				role: "member",
+				expiresAt: new Date(Date.now() - 60_000),
+			});
+			expect(await rejection(accept(invitation.id, stranger)())).toMatchObject({
+				reason: "INVITATION_RESPONSE_FORBIDDEN",
+			});
+			expect(await rejection(accept(expired.id, invitee)())).toMatchObject({
+				reason: "INVITATION_EXPIRED",
+			});
+			expect(await statusOf(invitation.id)).toBe("pending");
+			expect(await statusOf(expired.id)).toBe("pending");
+			expect((await rolesOf(organizationId)).members).toEqual([
+				`admin@${admin.user.id}`,
+			]);
 		},
 		TIMEOUT,
 	);
