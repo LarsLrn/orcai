@@ -304,6 +304,7 @@ describe("a stored loadTools result replayed on Anthropic", () => {
 			},
 			features: [],
 			history: [],
+			plan: undefined,
 			telemetryIds: {
 				organizationId: "org",
 				chatId: "chat",

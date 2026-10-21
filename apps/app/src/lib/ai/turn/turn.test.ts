@@ -510,6 +510,61 @@ describe("continueTurn", () => {
 		);
 	});
 
+	test("keeps the approved plan in the instructions, and drops a proposal the user moved past", async () => {
+		const chat = await conversation(assistantRow(), "anthropic");
+		const proposal = {
+			name: "updatePlan",
+			input: {
+				title: "Support bot",
+				items: [
+					{
+						label: "Create the bot",
+						status: "pending",
+					},
+				],
+			},
+		};
+		chat.script([
+			{
+				calls: [
+					proposal,
+				],
+			},
+			{
+				text: "Sure.",
+			},
+			{
+				calls: [
+					proposal,
+				],
+			},
+			{
+				text: "Starting.",
+			},
+			{
+				text: "Still on it.",
+			},
+		]);
+		const planShown = () =>
+			chat.bodies.map((body) =>
+				JSON.stringify(body.system).includes('Title: \\"Support bot\\"'),
+			);
+
+		await chat.send("Make a support bot");
+		await chat.send("Actually, what can you do?");
+		await chat.send("Make a support bot");
+		await chat.decide(true);
+		await chat.send("How far are you?");
+
+		expect(planShown()).toEqual([
+			false,
+			false,
+			false,
+			true,
+			true,
+		]);
+	});
+
 	test("refuses a reply that is no longer the last message", async () => {
 		const chat = await pausedAssistant();
 		const [, paused] = chat.messages();

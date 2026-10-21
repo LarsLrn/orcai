@@ -39,7 +39,7 @@ import {
 	type AssistantTurn,
 	createAssistantTurn,
 } from "@/lib/ai/tools/assistant/turn-state";
-import { isPlanPart } from "@/lib/ai/turn-view/plan";
+import { latestPlanPart } from "@/lib/ai/turn-view/plan";
 import type { ChatAgentUIMessage } from "@/lib/ai/types/chat-agent-message";
 import { getChatMessageAttachments } from "@/lib/ai/types/chat-attachment";
 import { buildAttachmentPromptPartCached } from "@/lib/ai/utils/chat-attachment-parts";
@@ -230,6 +230,7 @@ const buildAgent = ({
 				userContext: setup.agent.userContext,
 				features: setup.agent.features,
 				history,
+				plan: latestPlanPart(history)?.input,
 				telemetryIds,
 				context: input.context,
 				turn: assistantTurn,
@@ -313,10 +314,6 @@ const fitPrompt = ({
 		const fit = fitContextWindow({
 			messages: prompt,
 			replyId,
-			// The assistant's plan stays in view however long the conversation gets.
-			pinnedId: prompt
-				.filter((message) => message.parts.some(isPlanPart))
-				.at(-1)?.id,
 			requestTokens: yield* Effect.promise(() => requestTokens(agent)),
 			contextWindow: setup.tokenLimits.contextWindow,
 			reservedOutputTokens: setup.callSettings.maxOutputTokens,
@@ -483,14 +480,6 @@ export const startTurn = (
 		const setup = yield* turnSetup(chat, input);
 		const replyId = uuidv4() as ChatMessageId;
 		const history = historyOf(stored);
-		const { agent, assistantTurn } = buildAgent({
-			setup,
-			input,
-			history,
-			replyId,
-			turnZedToken: getZedToken(input.context),
-		});
-
 		const question = {
 			id: input.message.id,
 			role: "user",
@@ -498,6 +487,17 @@ export const startTurn = (
 			metadata: input.message.metadata ?? {},
 			attachments: getChatMessageAttachments(input.message),
 		};
+		const { agent, assistantTurn } = buildAgent({
+			setup,
+			input,
+			// The question supersedes a plan the last reply still proposes.
+			history: [
+				...history,
+				question as ChatAgentUIMessage,
+			],
+			replyId,
+			turnZedToken: getZedToken(input.context),
+		});
 		const { closedHistory, closedReply } = closeLastReply(history, agent.tools);
 		const messages = yield* Effect.promise(() =>
 			closeInvalidToolParts(
