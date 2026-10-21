@@ -33,7 +33,7 @@ export const GetKnowledgeBasePage = ({
 	part: GetKnowledgeBasePageToolPart;
 	status: ToolStatus | null;
 }) => {
-	const chunks = part.output?.chunks ?? [];
+	const chunks = part.output?.passages ?? [];
 	const showBlockName = spansMultipleBlocks(
 		chunks.map((chunk) => chunk.source.block.name),
 	);

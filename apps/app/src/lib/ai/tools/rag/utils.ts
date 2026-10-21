@@ -8,13 +8,11 @@ import type { AssetPoint, DatabaseBlock } from "@orcai/schema";
 import * as Effect from "effect/Effect";
 import type { ORPCContext } from "@/lib/orpc/implementation/os";
 import { Procedures } from "@/lib/orpc/implementation/procedures";
-import { RETRIEVAL_LIMITS } from "@/settings/constants";
+import { joinOverlapping } from "./passages";
 import type {
 	ChunkResult,
 	KnowledgeBaseDocument,
 	PointWithBlock,
-	ResultSource,
-	SearchResult,
 } from "./types";
 
 export const resolveSearchBlocks = ({
@@ -28,7 +26,7 @@ export const resolveSearchBlocks = ({
 	return blocks.filter((block) => block.id === blockId);
 };
 
-export const toSearchKey = (point: PointWithBlock): string =>
+const toSearchKey = (point: PointWithBlock): string =>
 	`${point.payload.block_id}:${String(point.id)}`;
 
 export const mergeAndSortCandidates = (points: PointWithBlock[]) =>
@@ -90,68 +88,21 @@ export const flattenBlockResponses = (
 		}),
 	);
 
-const toSnippet = ({
-	text,
-	maxChars,
-	queries,
-}: {
-	text: string;
-	maxChars: number;
-	queries: string[];
-}) => {
-	const normalized = normalizeText(text);
-	if (normalized.length <= maxChars) return normalized;
-
-	const queryTokens = queries
-		.flatMap(tokenize)
-		.filter((token) => token.length > 2)
-		.sort((a, b) => b.length - a.length);
-	const lowerText = normalized.toLowerCase();
-	let matchIndex = -1;
-	for (const token of queryTokens) {
-		const index = lowerText.indexOf(token);
-		if (index >= 0) {
-			matchIndex = index;
-			break;
-		}
-	}
-
-	if (matchIndex >= 0) {
-		// Center snippet around matched query term to avoid front-only bias.
-		const halfWindow = Math.floor(maxChars / 2);
-		let start = Math.max(0, matchIndex - halfWindow);
-		const end = Math.min(normalized.length, start + maxChars);
-
-		if (end - start < maxChars) {
-			start = Math.max(0, end - maxChars);
-		}
-
-		const window = normalized.slice(start, end);
-		const prefix = start > 0 ? "…" : "";
-		const suffix = end < normalized.length ? "…" : "";
-		return `${prefix}${window}${suffix}`;
-	}
-
-	// If there is no query-token hit, preserve both beginning and end.
-	const bridge = " … ";
-	const available = maxChars - bridge.length;
-	const lead = Math.floor(available * 0.6);
-	const tail = Math.max(0, available - lead);
-	const headText = normalized.slice(0, lead).trimEnd();
-	const tailText = normalized.slice(normalized.length - tail).trimStart();
-	return `${headText}${bridge}${tailText}`;
-};
-
 const escapeHtmlAttribute = (value: string) =>
 	value.replaceAll("&", "&amp;").replaceAll('"', "&quot;");
 
-const buildCitationRef = (point: PointWithBlock) => {
-	const page =
-		point.payload.chunkPageStart === point.payload.chunkPageEnd
-			? point.payload.chunkPageStart
-			: undefined;
-	const assetId = point.payload.asset_id;
-	const title = point.payload.title;
+const buildCitationRef = ({
+	assetId,
+	title,
+	pageStart,
+	pageEnd,
+}: {
+	assetId: AssetId;
+	title: string;
+	pageStart?: number;
+	pageEnd?: number;
+}) => {
+	const page = pageStart === pageEnd ? pageStart : undefined;
 	const attributes = [
 		`assetid="${escapeHtmlAttribute(assetId)}"`,
 		`title="${escapeHtmlAttribute(title)}"`,
@@ -173,42 +124,51 @@ const buildCitationRef = (point: PointWithBlock) => {
 	};
 };
 
-const toSource = (point: PointWithBlock): ResultSource => {
+const pagesOf = (run: PointWithBlock[]) => {
+	const starts = run.flatMap((point) => point.payload.chunkPageStart ?? []);
+	const ends = run.flatMap((point) => point.payload.chunkPageEnd ?? []);
+
 	return {
-		block: point.sourceBlock,
-		document: {
-			assetId: point.payload.asset_id,
-			title: point.payload.title,
-			totalPages: point.payload.documentTotalPages,
-		},
-		chunk: {
-			index: point.payload.chunk_index,
-			count: point.payload.chunkCount,
-			pageStart: point.payload.chunkPageStart,
-			pageEnd: point.payload.chunkPageEnd,
-		},
-		citation: buildCitationRef(point),
-		createdAt: point.payload.createdAt,
+		pageStart: starts.length > 0 ? Math.min(...starts) : undefined,
+		pageEnd: ends.length > 0 ? Math.max(...ends) : undefined,
 	};
 };
 
-export const toSearchResult = ({
-	point,
-	queries,
-}: {
-	point: PointWithBlock;
-	queries: string[];
-}): SearchResult => ({
-	id: point.id,
-	score: point.score,
-	title: point.payload.title,
-	snippet: toSnippet({
-		text: point.payload.text,
-		maxChars: RETRIEVAL_LIMITS.snippetLengthChars,
-		queries,
-	}),
-	source: toSource(point),
-});
+/** A run of neighbouring chunks of one document as one result. */
+export const toChunkResult = (run: PointWithBlock[]): ChunkResult => {
+	const [first] = run;
+	const { pageStart, pageEnd } = pagesOf(run);
+
+	return {
+		id: first.id,
+		score: first.score,
+		title: first.payload.title,
+		text: run
+			.map((point) => point.payload.text)
+			.reduce((text, next) => joinOverlapping(text, next)),
+		source: {
+			block: first.sourceBlock,
+			document: {
+				assetId: first.payload.asset_id,
+				title: first.payload.title,
+				totalPages: first.payload.documentTotalPages,
+			},
+			chunk: {
+				index: first.payload.chunk_index,
+				count: first.payload.chunkCount,
+				pageStart,
+				pageEnd,
+			},
+			citation: buildCitationRef({
+				assetId: first.payload.asset_id,
+				title: first.payload.title,
+				pageStart,
+				pageEnd,
+			}),
+			createdAt: first.payload.createdAt,
+		},
+	};
+};
 
 export const rankDocumentsByQuery = ({
 	documents,
@@ -331,14 +291,6 @@ export const loadDocumentCatalog = ({
 		);
 	});
 
-export const toChunkResult = (point: PointWithBlock): ChunkResult => ({
-	id: point.id,
-	score: point.score,
-	title: point.payload.title,
-	text: point.payload.text,
-	source: toSource(point),
-});
-
 export const compareByPageAssetChunk = (
 	a: PointWithBlock,
 	b: PointWithBlock,
@@ -356,26 +308,4 @@ export const compareByPageAssetChunk = (
 		return a.payload.asset_id.localeCompare(b.payload.asset_id);
 	}
 	return a.payload.chunk_index - b.payload.chunk_index;
-};
-
-export const selectByIds = ({
-	candidates,
-	ids,
-}: {
-	candidates: PointWithBlock[];
-	ids: string[];
-}) => {
-	const idOrder = new Map(
-		ids.map((id, index) => [
-			id,
-			index,
-		]),
-	);
-	return candidates
-		.filter((candidate) => idOrder.has(candidate.id))
-		.sort(
-			(a, b) =>
-				(idOrder.get(a.id) ?? Number.MAX_SAFE_INTEGER) -
-				(idOrder.get(b.id) ?? Number.MAX_SAFE_INTEGER),
-		);
 };

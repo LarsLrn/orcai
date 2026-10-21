@@ -43,7 +43,7 @@ export const SearchKnowledgeBase = ({
 							pageStart={result.source.chunk.pageStart}
 							pageEnd={result.source.chunk.pageEnd}
 							totalPages={result.source.document.totalPages}
-							text={result.snippet}
+							text={result.text}
 						/>
 					))}
 				</SourcePassageList>

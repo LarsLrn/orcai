@@ -15,7 +15,7 @@ export const GetKnowledgeBaseChunks = ({
 	part: GetKnowledgeBaseChunksToolPart;
 	status: ToolStatus | null;
 }) => {
-	const chunks = part.output?.chunks ?? [];
+	const chunks = part.output?.passages ?? [];
 	const showBlockName = spansMultipleBlocks(
 		chunks.map((chunk) => chunk.source.block.name),
 	);

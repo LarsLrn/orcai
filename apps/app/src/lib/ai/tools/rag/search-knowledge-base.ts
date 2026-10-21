@@ -10,12 +10,12 @@ import { AssistantToolError } from "@/lib/ai/tools/tool-error";
 import type { ORPCContext } from "@/lib/orpc/implementation/os";
 import { Procedures } from "@/lib/orpc/implementation/procedures";
 import { RETRIEVAL_LIMITS } from "@/settings/constants";
-import type { SearchResult } from "./types";
+import type { ChunkResult } from "./types";
 import {
 	flattenBlockResponses,
 	mergeAndSortCandidates,
 	resolveSearchBlocks,
-	toSearchResult,
+	toChunkResult,
 } from "./utils";
 
 const normalizeQueries = ({
@@ -55,7 +55,7 @@ export const searchKnowledgeBaseTool = ({
 }) =>
 	effectTool({
 		description:
-			"Search the knowledge base by topic, entity, quote, or claim and return short relevance snippets. Use this to shortlist evidence, then call getKnowledgeBaseChunks to read the full chunk text before giving a factual answer.",
+			"Search the knowledge base by topic, entity, quote, or claim and return the full text of the best matching chunks. Call getKnowledgeBaseChunks only when you need the text around a chunk.",
 		inputSchema: z.object({
 			query: z
 				.string()
@@ -122,7 +122,7 @@ export const searchKnowledgeBaseTool = ({
 
 				if (targetBlocks.length === 0) {
 					return {
-						results: [] as SearchResult[],
+						results: [] as ChunkResult[],
 						noNewEvidence: true,
 						nextAction: "refineSearchOrListDocuments" as const,
 					};
@@ -164,13 +164,12 @@ export const searchKnowledgeBaseTool = ({
 				const candidates = mergeAndSortCandidates(
 					flattenBlockResponses(blockResponses),
 				);
-				const boundedResults: SearchResult[] = candidates
+				const boundedResults: ChunkResult[] = candidates
 					.slice(0, Math.min(limit, RETRIEVAL_LIMITS.maxSnippetResultsPerCall))
 					.map((point) =>
-						toSearchResult({
+						toChunkResult([
 							point,
-							queries: normalizedQueries,
-						}),
+						]),
 					);
 
 				return {
