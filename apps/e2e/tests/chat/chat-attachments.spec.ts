@@ -24,6 +24,7 @@ for (const file of [
 		mimeType: "text/plain",
 		buffer: Buffer.from("The field trip leaves at eight from the north gate."),
 		fileType: "txt",
+		modelReads: "The field trip leaves at eight from the north gate.",
 	},
 	{
 		kind: "image",
@@ -31,9 +32,10 @@ for (const file of [
 		mimeType: "image/png",
 		buffer: PIXEL,
 		fileType: "png",
+		modelReads: `data:image/png;base64,${PIXEL.toString("base64")}`,
 	},
 ] as const) {
-	test(`chat: an uploaded ${file.kind} attachment is a chat-origin asset`, async ({
+	test(`chat: an uploaded ${file.kind} attachment is a chat-origin asset the model reads`, async ({
 		api,
 		inference,
 		org,
@@ -86,9 +88,17 @@ for (const file of [
 			{
 				title: file.name,
 				fileType: file.mimeType,
-				source: "upload",
 			},
 		]);
+		await expect
+			.poll(() =>
+				inference.requests.some(
+					(request) =>
+						request.path === "/v1/chat/completions" &&
+						JSON.stringify(request.body).includes(file.modelReads),
+				),
+			)
+			.toBe(true);
 		const [attachment] = (await sentAttachments()) ?? [];
 		if (!attachment) throw new Error("The message has no attachment");
 
@@ -100,7 +110,6 @@ for (const file of [
 			title: file.name,
 			fileType: file.fileType,
 			origin: "chat",
-			prefix: attachment.prefix,
 		});
 	});
 }
