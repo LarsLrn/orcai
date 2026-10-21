@@ -1,5 +1,5 @@
 import { FileText, Upload, X } from "lucide-react";
-import { useCallback, useEffect } from "react";
+import { useCallback, useEffect, useRef } from "react";
 import Dropzone, {
 	type DropzoneProps,
 	type FileRejection,
@@ -194,18 +194,23 @@ const FileUploader = (props: FileUploaderProps) => {
 		onValueChange?.(newFiles);
 	}
 
-	// Revoke preview url when component unmounts
-	// biome-ignore lint/correctness/useExhaustiveDependencies: <FIXME: Check later>
+	// Preview URLs live until unmount, so the cleanup reads the latest files.
+	const filesRef = useRef(files);
 	useEffect(() => {
-		return () => {
-			if (!files) return;
-			files.forEach((file) => {
+		filesRef.current = files;
+	}, [
+		files,
+	]);
+	useEffect(
+		() => () => {
+			for (const file of filesRef.current ?? []) {
 				if (isFileWithPreview(file)) {
 					URL.revokeObjectURL(file.preview);
 				}
-			});
-		};
-	}, []);
+			}
+		},
+		[],
+	);
 
 	const isDisabled = disabled || (files?.length ?? 0) >= maxFileCount;
 

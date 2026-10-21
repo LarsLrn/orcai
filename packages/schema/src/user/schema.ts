@@ -24,14 +24,6 @@ export const userFieldsSchema = z.object({
 	preferences: preferencesSchema.optional(),
 });
 
-export const userMutableFieldsSchema = userFieldsSchema
-	.pick({
-		name: true,
-		image: true,
-		preferences: true,
-	})
-	.partial();
-
 export const userSchema = userFieldsSchema.extend({
 	id: userIdSchema,
 	createdAt: z.coerce.date(),
