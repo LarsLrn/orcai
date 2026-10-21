@@ -1,6 +1,8 @@
 import { z } from "zod/v4";
+import { assetIdSchema } from "../asset/ref";
 import { entityCapabilitiesSchema } from "../authorization";
 import type { ErrorReason } from "../shared/error-reason";
+import { pipelineFailureSchema } from "../shared/primitives/pipeline-status";
 import { publicationStatusSchema } from "../shared/primitives/publication-status";
 import { retrievalModeSchema } from "../shared/primitives/retrieval-mode";
 import { userIdSchema } from "../user/ref";
@@ -143,3 +145,46 @@ export function isTemplateBlock(block: Block): block is TemplateBlock {
 export function isDatabaseBlock(block: Block): block is DatabaseBlock {
 	return block.type === "database";
 }
+
+/** How far one document in a repository is from being searchable. */
+export const documentStateSchema = z.enum([
+	"queued",
+	"processing",
+	"indexing",
+	"ready",
+	"failed",
+]);
+
+export const documentReadinessSchema = z.object({
+	assetId: assetIdSchema,
+	title: z.string(),
+	state: documentStateSchema,
+	/** Set when `state` is failed: the stage that failed and why. */
+	failure: z
+		.object({
+			stage: z.enum([
+				"processing",
+				"indexing",
+			]),
+			kind: pipelineFailureSchema,
+		})
+		.nullable(),
+});
+
+export const repositoryReadinessSchema = z.object({
+	blockId: blockIdSchema,
+	name: z.string(),
+	capabilities: entityCapabilitiesSchema,
+	totals: z.object({
+		total: z.number().int(),
+		ready: z.number().int(),
+		/** Queued, processing or indexing. */
+		preparing: z.number().int(),
+		failed: z.number().int(),
+	}),
+	documents: z.array(documentReadinessSchema),
+});
+
+export type DocumentState = z.infer<typeof documentStateSchema>;
+export type DocumentReadiness = z.infer<typeof documentReadinessSchema>;
+export type RepositoryReadiness = z.infer<typeof repositoryReadinessSchema>;

@@ -31,6 +31,7 @@ import {
 	replaceBlockAssets,
 	requireReadableAssets,
 } from "@/lib/blocks/database-block";
+import { loadRepositoryReadiness } from "@/lib/blocks/readiness";
 import * as AppErrors from "@/lib/effect/utils/errors";
 import { authed } from "@/lib/orpc/implementation/authed";
 import {
@@ -418,10 +419,24 @@ const deleteBlocks = authed.block.delete
 		};
 	});
 
+const blockReadiness = authed.block.readiness.effect(function* ({
+	input,
+	context,
+}) {
+	return {
+		data: yield* loadRepositoryReadiness({
+			blockIds: input.blockIds,
+			userId: context.auth.user.id,
+			zedToken: getZedToken(context, input),
+		}),
+	};
+});
+
 export const blockRouter = {
 	list: listBlocks,
 	create: createBlock,
 	find: findBlock,
 	update: updateBlock,
 	delete: deleteBlocks,
+	readiness: blockReadiness,
 };

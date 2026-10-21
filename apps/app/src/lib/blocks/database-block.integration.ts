@@ -305,3 +305,62 @@ describe("reset rules", () => {
 		TIMEOUT,
 	);
 });
+
+describe("block.readiness", () => {
+	test(
+		"reports each readable repository's documents and leaves out the rest",
+		async () => {
+			const { owner, assets, blockId, zedToken } = await repositoryWith(3);
+			const [ready, failed] = assets;
+			await setStatus({
+				assetId: ready,
+				processing: "completed",
+				index: {
+					blockId,
+					status: "completed",
+				},
+			});
+			await setStatus({
+				assetId: failed,
+				processing: "failed",
+			});
+			const {
+				actors: [stranger],
+			} = await organizationWith([
+				"member",
+			]);
+			const procedures = await run(Procedures);
+			const readiness = async (actor: Actor) =>
+				(
+					await run(
+						procedures.block.readiness(
+							{
+								blockIds: [
+									blockId,
+								],
+							},
+							await procedureOptions(actor, zedToken),
+						),
+					)
+				).data;
+
+			const [repository] = await readiness(owner);
+			expect(repository.totals).toEqual({
+				total: 3,
+				ready: 1,
+				preparing: 1,
+				failed: 1,
+			});
+			expect(repository.capabilities.edit).toBe(true);
+			expect(
+				repository.documents.find((document) => document.assetId === failed)
+					?.failure,
+			).toEqual({
+				stage: "processing",
+				kind: "other",
+			});
+			expect(await readiness(stranger)).toEqual([]);
+		},
+		TIMEOUT,
+	);
+});

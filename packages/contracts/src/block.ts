@@ -1,4 +1,6 @@
 import {
+	blockReadinessInputSchema,
+	blockReadinessResponseSchema,
 	createBlockInputSchema,
 	createBlockResponseSchema,
 	deleteBlocksInputSchema,
@@ -79,4 +81,17 @@ export const blockContracts = {
 		)
 		.input(deleteBlocksInputSchema)
 		.output(deleteBlocksResponseSchema),
+	readiness: base
+		.meta(
+			openapi({
+				method: "POST",
+				path: "/blocks/readiness",
+				summary: "Document readiness of repositories",
+				tags: [
+					"Blocks",
+				],
+			}),
+		)
+		.input(blockReadinessInputSchema)
+		.output(blockReadinessResponseSchema),
 };
