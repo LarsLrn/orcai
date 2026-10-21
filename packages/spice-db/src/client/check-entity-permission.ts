@@ -12,30 +12,28 @@ import {
 	createSubjectReference,
 } from "../utils";
 
+/** Whether the user holds `permission` on one entity. */
 export const checkEntityPermission = <Entity extends EntityType>(params: {
 	entityId: EntityIdFor<Entity>;
 	entityType: Entity;
 	permission: PermissionFor<Entity>;
 	userId: UserId;
-	zedToken: v1.ZedToken["token"] | null | undefined;
+	zedToken?: string | null | undefined;
 }) =>
 	Effect.gen(function* () {
 		const { spice } = yield* SpiceDbService;
 
-		const resource = createResourceReference({
-			entityType: params.entityType,
-			entityId: params.entityId,
-		});
-		const consistency = createConsistency({
-			zedToken: params.zedToken,
-		});
-
-		return yield* Effect.tryPromise({
+		const response = yield* Effect.tryPromise({
 			try: () =>
 				spice.checkPermission(
 					v1.CheckPermissionRequest.create({
-						consistency,
-						resource,
+						consistency: createConsistency({
+							zedToken: params.zedToken,
+						}),
+						resource: createResourceReference({
+							entityType: params.entityType,
+							entityId: params.entityId,
+						}),
 						permission: params.permission,
 						subject: createSubjectReference({
 							entityType: "user",
@@ -49,4 +47,9 @@ export const checkEntityPermission = <Entity extends EntityType>(params: {
 					cause: error,
 				}),
 		});
+
+		return (
+			response.permissionship ===
+			v1.CheckPermissionResponse_Permissionship.HAS_PERMISSION
+		);
 	});

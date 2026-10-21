@@ -1,10 +1,11 @@
 import type { EntityIdFor, EntityType, PermissionFor } from "@orcai/spice-db";
 import { middlewareGen } from "@orpc/experimental-effect";
 import * as Effect from "effect/Effect";
+import { getZedToken } from "@/lib/authz/zed-token";
 import * as AppErrors from "@/lib/effect/utils/errors";
 import { withName } from "@/lib/orpc/middlewares/utils";
 import { checkPermissionMiddleware } from "./checks";
-import { ensurePermission, permissionBase } from "./core";
+import { permissionBase, requirePermission } from "./core";
 import {
 	createResourcePermissionInput,
 	type ResourcePermissionSource,
@@ -116,13 +117,12 @@ export const requireOrganizationPermission = (
 					);
 				}
 
-				yield* ensurePermission({
-					context: opts.context,
-					input: {
-						entityType: "organization",
-						entityId: activeOrganizationId,
-						permission,
-					},
+				yield* requirePermission({
+					entityType: "organization",
+					entityId: activeOrganizationId,
+					permission,
+					userId: opts.context.auth.user.id,
+					zedToken: getZedToken(opts.context),
 				});
 
 				return yield* opts.next({

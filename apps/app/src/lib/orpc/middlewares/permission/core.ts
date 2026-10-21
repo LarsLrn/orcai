@@ -1,11 +1,11 @@
-import { checkEntityPermission, hasPermission } from "@orcai/spice-db";
+import type { UserId } from "@orcai/core";
+import { checkEntityPermission, type EntityType } from "@orcai/spice-db";
 import { os } from "@orpc/server";
 import * as Effect from "effect/Effect";
-import { getZedToken } from "@/lib/authz/zed-token";
 import * as AppErrors from "@/lib/effect/utils/errors";
 import type { AppEffectContext } from "@/lib/orpc/implementation/os";
 import type { AuthContext } from "@/lib/orpc/middlewares/auth";
-import type { CheckPermissionInput, PermissionContext } from "./types";
+import type { CheckPermissionInputFor } from "./types";
 
 export const permissionBase = os.$context<
 	AppEffectContext &
@@ -16,13 +16,15 @@ export const permissionBase = os.$context<
 		}
 >();
 
-export const forbiddenPermissionError = (params: {
-	entityType: CheckPermissionInput["entityType"];
+/** The denial every permission check fails with; the message is what the assistant's model reads. */
+export const permissionDenied = (params: {
+	entityType: EntityType;
 	permission: string;
 	zedToken?: string;
 }) =>
 	new AppErrors.ForbiddenError({
 		reason: "PERMISSION_DENIED",
+		message: `You do not have the "${params.permission}" permission on this ${params.entityType}.`,
 		data: {
 			entityType: params.entityType,
 			permission: params.permission,
@@ -30,30 +32,16 @@ export const forbiddenPermissionError = (params: {
 		},
 	});
 
-export const ensurePermission = (params: {
-	context: PermissionContext;
-	input: CheckPermissionInput;
-}) => {
-	const zedToken = getZedToken(params.context, params.input);
-
-	return checkEntityPermission({
-		entityId: params.input.entityId,
-		entityType: params.input.entityType,
-		permission: params.input.permission,
-		userId: params.context.auth.user.id,
-		zedToken,
-	}).pipe(
+/** Fails with `permissionDenied` unless the user holds the permission. */
+export const requirePermission = <Entity extends EntityType>(
+	check: CheckPermissionInputFor<Entity> & {
+		userId: UserId;
+	},
+) =>
+	checkEntityPermission(check).pipe(
 		Effect.filterOrFail(
-			({ permissionship }) =>
-				hasPermission({
-					permissionship,
-				}),
-			() =>
-				forbiddenPermissionError({
-					entityType: params.input.entityType,
-					permission: params.input.permission,
-					zedToken,
-				}),
+			(allowed) => allowed,
+			() => permissionDenied(check),
 		),
+		Effect.asVoid,
 	);
-};

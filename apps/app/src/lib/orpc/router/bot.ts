@@ -7,9 +7,8 @@ import type {
 	SaveBotInput,
 } from "@orcai/schema";
 import {
-	checkEntityPermission,
-	hasPermission,
 	lookupEntitiesByPermission,
+	permittedEntityIds,
 } from "@orcai/spice-db";
 import { and, count, eq, getColumns, ilike, inArray } from "drizzle-orm";
 import * as Effect from "effect/Effect";
@@ -31,11 +30,11 @@ import {
 	type CheckManyPermissionInputFor,
 	checkManyPermissionMiddleware,
 	requireEntityPermission,
+	requirePermission,
 } from "@/lib/orpc/middlewares/permission";
 import {
 	getEntityCapabilities,
 	getManyEntityCapabilities,
-	permittedEntityIds,
 } from "@/lib/orpc/router/helpers/capabilities";
 import { loadDatabaseBlockAssets } from "@/lib/orpc/router/helpers/database-block";
 import { literalSearch } from "./helpers/literal-search";
@@ -57,9 +56,7 @@ const listBotsByStatus = (params: {
 			permission: params.permission,
 			entityType: "bot",
 			zedToken: params.zedToken,
-		}).pipe(
-			Effect.map((response) => response.map((item) => item.resourceObjectId)),
-		);
+		});
 
 		const whereConditions = [
 			inArray(dbSchema.bot.id, allowedIds),
@@ -569,37 +566,21 @@ const saveBot = authed.bot.save
 		const resolvedZedToken = getZedToken(context, input);
 
 		if (input.id) {
-			const permission = yield* checkEntityPermission({
+			yield* requirePermission({
 				entityId: input.id,
 				entityType: "bot",
 				permission: "edit",
 				userId: context.auth.user.id,
 				zedToken: resolvedZedToken,
 			});
-			if (!hasPermission(permission)) {
-				return yield* Effect.fail(
-					new AppErrors.ForbiddenError({
-						reason: "PERMISSION_DENIED",
-						message: "You do not have permission to edit this bot.",
-					}),
-				);
-			}
 		} else {
-			const permission = yield* checkEntityPermission({
+			yield* requirePermission({
 				entityId: context.auth.session.activeOrganizationId,
 				entityType: "organization",
 				permission: "create_bot",
 				userId: context.auth.user.id,
 				zedToken: resolvedZedToken,
 			});
-			if (!hasPermission(permission)) {
-				return yield* Effect.fail(
-					new AppErrors.ForbiddenError({
-						reason: "PERMISSION_DENIED",
-						message: "You do not have permission to create bots.",
-					}),
-				);
-			}
 		}
 
 		yield* checkFeatureRequirements(input.features);

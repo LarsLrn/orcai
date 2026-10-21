@@ -19,7 +19,10 @@ import {
 	userIdSchema,
 } from "@orcai/schema";
 import type { TupleMutation } from "@orcai/spice-db";
-import { lookupEntitiesByPermission } from "@orcai/spice-db";
+import {
+	lookupEntitiesByPermission,
+	permittedEntityIds,
+} from "@orcai/spice-db";
 import {
 	and,
 	desc,
@@ -43,7 +46,6 @@ import {
 	requireResourcePermission,
 } from "@/lib/orpc/middlewares/permission";
 import { canSeeEmailIn, canSeeEmailOn } from "./helpers/can-see-email";
-import { permittedEntityIds } from "./helpers/capabilities";
 import { changedAt } from "./helpers/changed-at";
 import { literalSearch } from "./helpers/literal-search";
 
@@ -907,11 +909,7 @@ const listRecentResources = authed.resource.listRecent.effect(function* ({
 			permission: "read",
 			userId,
 			zedToken,
-		}).pipe(
-			Effect.map((entities) =>
-				entities.map((entity) => entity.resourceObjectId),
-			),
-		);
+		});
 
 	const [bots, blocks, assets] = yield* Effect.all(
 		[

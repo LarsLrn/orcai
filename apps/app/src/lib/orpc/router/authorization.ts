@@ -1,104 +1,49 @@
-import type { UserId } from "@orcai/core";
-import type {
-	Capability,
-	CapabilityEntityType,
-	OrganizationCapability,
-} from "@orcai/schema";
-import {
-	checkEntityPermission,
-	checkManyEntityPermissions,
-	type EntityIdFor,
-	type EntityType,
-	hasPermission,
-	type PermissionFor,
-} from "@orcai/spice-db";
+import type { CapabilityEntityType } from "@orcai/schema";
+import type { EntityIdFor } from "@orcai/spice-db";
 import * as Effect from "effect/Effect";
-import { capabilitySets } from "@/lib/authz/capabilities";
 import { getZedToken } from "@/lib/authz/zed-token";
 import * as AppErrors from "@/lib/effect/utils/errors";
 import { authed } from "@/lib/orpc/implementation/authed";
 import { createProcedures } from "@/lib/orpc/implementation/procedures";
-
-const toSpiceEntityType = (entityType: CapabilityEntityType): EntityType =>
-	entityType;
-
-const checkCapability = (params: {
-	entityType: CapabilityEntityType;
-	entityId: string;
-	permission: Capability;
-	userId: string;
-	zedToken?: string;
-}) =>
-	checkEntityPermission({
-		entityType: toSpiceEntityType(params.entityType),
-		entityId: params.entityId as EntityIdFor<EntityType>,
-		permission: params.permission as PermissionFor<EntityType>,
-		userId: params.userId as UserId,
-		zedToken: params.zedToken,
-	}).pipe(Effect.map((result) => hasPermission(result)));
+import {
+	getEntityCapabilities,
+	getManyEntityCapabilities,
+} from "./helpers/capabilities";
 
 const checkAuthorization = authed.authorization.check.effect(function* ({
 	input,
 	context,
 }) {
-	const allowed = yield* checkCapability({
+	const capabilities = yield* getEntityCapabilities({
 		entityType: input.entityType,
-		entityId: input.entityId,
-		permission: input.permission,
+		entityId: input.entityId as EntityIdFor<CapabilityEntityType>,
+		permissions: [
+			input.permission,
+		],
 		userId: context.auth.user.id,
 		zedToken: getZedToken(context, input),
 	});
 
 	return {
 		data: {
-			allowed,
+			allowed: capabilities[input.permission] === true,
 		},
 	};
 });
 
 const checkManyAuthorization = authed.authorization.checkMany.effect(
 	function* ({ input, context }) {
-		const entities: Record<
-			string,
-			Record<string, boolean>
-		> = Object.fromEntries(
-			input.entityIds.map((entityId) => [
-				entityId,
-				Object.fromEntries(
-					input.permissions.map((permission) => [
-						permission,
-						false,
-					]),
-				),
-			]),
-		);
-
-		for (const permission of input.permissions) {
-			const result = yield* checkManyEntityPermissions({
-				entityType: toSpiceEntityType(input.entityType),
-				entityIds: input.entityIds as EntityIdFor<EntityType>[],
-				permission: permission as PermissionFor<EntityType>,
-				userId: context.auth.user.id as UserId,
-				zedToken: getZedToken(context, input),
-			});
-
-			for (const pair of result.pairs) {
-				const entityId = pair.request?.resource?.objectId;
-				if (!entityId || !entities[entityId]) {
-					continue;
-				}
-
-				entities[entityId][permission] =
-					pair.response.oneofKind === "item" &&
-					hasPermission({
-						permissionship: pair.response.item.permissionship,
-					});
-			}
-		}
+		const capabilities = yield* getManyEntityCapabilities({
+			entityType: input.entityType,
+			entityIds: input.entityIds as EntityIdFor<CapabilityEntityType>[],
+			permissions: input.permissions,
+			userId: context.auth.user.id,
+			zedToken: getZedToken(context, input),
+		});
 
 		return {
 			data: {
-				entities,
+				entities: Object.fromEntries(capabilities),
 			},
 		};
 	},
@@ -120,20 +65,13 @@ const organizationCapabilities =
 			);
 		}
 
-		const permissions = input.permissions ?? [
-			...capabilitySets.organization,
-		];
-		const capabilities: Record<string, boolean> = {};
-
-		for (const permission of permissions) {
-			capabilities[permission] = yield* checkCapability({
-				entityType: "organization",
-				entityId: organizationId,
-				permission: permission as OrganizationCapability,
-				userId: context.auth.user.id,
-				zedToken: getZedToken(context, input),
-			});
-		}
+		const capabilities = yield* getEntityCapabilities({
+			entityType: "organization",
+			entityId: organizationId,
+			permissions: input.permissions,
+			userId: context.auth.user.id,
+			zedToken: getZedToken(context, input),
+		});
 
 		return {
 			data: {

@@ -64,10 +64,7 @@ const listOrganizations = authed.organization.list.effect(function* ({
 		permission: "read",
 		entityType: "organization",
 		zedToken: getZedToken(context),
-	}).pipe(
-		Effect.map((response) => response.map((item) => item.resourceObjectId)),
-		Effect.catch(() => Effect.succeed([])),
-	);
+	}).pipe(Effect.catch(() => Effect.succeed([])));
 
 	const allowedSet = new Set(allowedIds);
 	const visibleIds = unique([

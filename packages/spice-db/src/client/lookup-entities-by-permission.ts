@@ -8,11 +8,12 @@ import type { EntityType } from "../types/entity-type";
 import type { PermissionFor } from "../types/permissions";
 import { createConsistency, createSubjectReference } from "../utils";
 
+/** The ids of every `entityType` entity the user holds `permission` on. */
 export const lookupEntitiesByPermission = <Entity extends EntityType>(params: {
 	entityType: Entity;
 	permission: PermissionFor<Entity>;
 	userId: UserId;
-	zedToken?: v1.ZedToken["token"] | null | undefined;
+	zedToken?: string | null | undefined;
 }) =>
 	Effect.gen(function* () {
 		const { spice } = yield* SpiceDbService;
@@ -41,13 +42,5 @@ export const lookupEntitiesByPermission = <Entity extends EntityType>(params: {
 				}),
 		});
 
-		return response.map(
-			(item) =>
-				({
-					...item,
-					resourceObjectId: item.resourceObjectId as EntityIdFor<Entity>,
-				}) satisfies {
-					resourceObjectId: EntityIdFor<Entity>;
-				},
-		);
+		return response.map((item) => item.resourceObjectId as EntityIdFor<Entity>);
 	});

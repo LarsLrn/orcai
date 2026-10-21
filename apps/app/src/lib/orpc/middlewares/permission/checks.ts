@@ -1,15 +1,11 @@
 import type { EntityIdFor, EntityType } from "@orcai/spice-db";
-import { checkManyEntityPermissions, hasPermission } from "@orcai/spice-db";
+import { permittedEntityIds } from "@orcai/spice-db";
 import { middlewareGen } from "@orpc/experimental-effect";
 import * as Effect from "effect/Effect";
 import { getZedToken } from "@/lib/authz/zed-token";
 import * as AppErrors from "@/lib/effect/utils/errors";
 import { unique } from "@/lib/utils/array-utils";
-import {
-	ensurePermission,
-	forbiddenPermissionError,
-	permissionBase,
-} from "./core";
+import { permissionBase, permissionDenied, requirePermission } from "./core";
 import type {
 	CheckManyPermissionInputFor,
 	CheckPermissionInput,
@@ -22,9 +18,10 @@ const normalizeEntityIds = <Entity extends EntityType>(
 // Named on the generator: `adaptInput` copies that name, not a decorated one.
 export const checkPermissionMiddleware = permissionBase.middleware(
 	middlewareGen(function* checkPermission(opts, input: CheckPermissionInput) {
-		yield* ensurePermission({
-			context: opts.context,
-			input,
+		yield* requirePermission({
+			...input,
+			userId: opts.context.auth.user.id,
+			zedToken: getZedToken(opts.context, input),
 		});
 		return yield* opts.next();
 	}),
@@ -40,9 +37,8 @@ export const checkManyPermissionMiddleware = <Entity extends EntityType>(
 		) {
 			const zedToken = getZedToken(opts.context, input);
 			const requestedIds = normalizeEntityIds(input.entityIds);
-			const requestedSet = new Set<string>(requestedIds);
 
-			const relation = yield* checkManyEntityPermissions({
+			const permittedIds = yield* permittedEntityIds({
 				entityIds: requestedIds,
 				entityType,
 				permission: input.permission,
@@ -50,28 +46,9 @@ export const checkManyPermissionMiddleware = <Entity extends EntityType>(
 				zedToken,
 			});
 
-			const allowedSet = new Set<string>(
-				relation.pairs.flatMap((pair) => {
-					const allowed =
-						pair.response.oneofKind === "item" &&
-						hasPermission({
-							permissionship: pair.response.item.permissionship,
-						}) === true;
-					const requestedId = pair.request?.resource?.objectId;
-
-					return allowed && requestedId && requestedSet.has(requestedId)
-						? [
-								requestedId,
-							]
-						: [];
-				}),
-			);
-
-			const allowedIds = requestedIds.filter((id) => allowedSet.has(id));
-
-			if (allowedIds.length !== requestedIds.length) {
+			if (requestedIds.some((id) => !permittedIds.has(id))) {
 				return yield* Effect.fail(
-					forbiddenPermissionError({
+					permissionDenied({
 						entityType,
 						permission: input.permission,
 						zedToken,
@@ -79,7 +56,7 @@ export const checkManyPermissionMiddleware = <Entity extends EntityType>(
 				);
 			}
 
-			if (allowedIds.length === 0) {
+			if (requestedIds.length === 0) {
 				return yield* Effect.fail(
 					new AppErrors.BadRequestError({
 						reason: "ENTITY_IDS_REQUIRED",
@@ -90,7 +67,7 @@ export const checkManyPermissionMiddleware = <Entity extends EntityType>(
 
 			return yield* opts.next({
 				context: {
-					allowedIds,
+					allowedIds: requestedIds,
 				},
 			});
 		}),

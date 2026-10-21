@@ -45,9 +45,7 @@ const listBlocks = authed.block.list.effect(function* ({ input, context }) {
 		permission: "read",
 		entityType: "block",
 		zedToken: getZedToken(context, input),
-	}).pipe(
-		Effect.map((response) => response.map((item) => item.resourceObjectId)),
-	);
+	});
 
 	const whereConditions = [
 		inArray(dbSchema.block.id, allowedIds),

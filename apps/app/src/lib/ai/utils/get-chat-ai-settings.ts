@@ -5,7 +5,7 @@ import {
 } from "@orcai/ai";
 import type { BotId, ModelId, ProviderId, UserId } from "@orcai/core";
 import type { ChatConfig, DatabaseBlock, TemplateBlock } from "@orcai/schema";
-import { checkManyEntityPermissions, hasPermission } from "@orcai/spice-db";
+import { permittedEntityIds } from "@orcai/spice-db";
 import { extractReasoningMiddleware, wrapLanguageModel } from "ai";
 import * as Effect from "effect/Effect";
 import { resolveFeatures } from "@/lib/ai/features/resolve-features";
@@ -112,27 +112,13 @@ export const getChatAiSettings = ({
 			) as DatabaseBlock[];
 
 			if (databaseBlocks.length > 0) {
-				const usePermissionResult = yield* checkManyEntityPermissions({
+				const allowedBlockIds = yield* permittedEntityIds({
 					entityIds: databaseBlocks.map((block) => block.id),
 					entityType: "block",
 					permission: "use",
 					userId,
 					zedToken,
 				});
-
-				const allowedBlockIds = new Set(
-					usePermissionResult.pairs
-						.map((pair) => {
-							const allowed =
-								pair.response.oneofKind === "item" &&
-								hasPermission({
-									permissionship: pair.response.item.permissionship,
-								}) === true;
-							const id = pair.request?.resource?.objectId;
-							return allowed && id ? id : undefined;
-						})
-						.filter((id): id is string => id !== undefined),
-				);
 
 				databaseBlocks = databaseBlocks.filter((block) =>
 					allowedBlockIds.has(block.id),

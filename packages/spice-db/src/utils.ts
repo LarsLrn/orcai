@@ -25,7 +25,7 @@ export const createSubjectReference = <Entity extends EntityType>(params: {
 	});
 
 export const createConsistency = (params: {
-	zedToken: v1.ZedToken["token"] | null | undefined;
+	zedToken: string | null | undefined;
 }) =>
 	v1.Consistency.create({
 		requirement: params.zedToken
