@@ -1,11 +1,11 @@
 import { type Editor, useEditorState } from "@tiptap/react";
 import { createContext, useContext } from "react";
 
-export interface ToolbarContextProps {
+interface ToolbarContextProps {
 	editor: Editor;
 }
 
-export const ToolbarContext = createContext<ToolbarContextProps | null>(null);
+const ToolbarContext = createContext<ToolbarContextProps | null>(null);
 
 interface ToolbarProviderProps {
 	editor: Editor;

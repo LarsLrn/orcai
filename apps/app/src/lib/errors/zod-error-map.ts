@@ -20,7 +20,7 @@ const customParams = (issue: z.core.$ZodRawIssue): unknown =>
 		: undefined;
 
 // Built-in issues get a sentence per kind; custom checks pass `params.reason`.
-export const zodErrorMap: z.core.$ZodErrorMap = (issue) => {
+const zodErrorMap: z.core.$ZodErrorMap = (issue) => {
 	switch (issue.code) {
 		case "invalid_type":
 			return issue.input === undefined

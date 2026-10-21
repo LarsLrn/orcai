@@ -16,9 +16,7 @@ const AUTH_CODE_REASONS: Record<string, ErrorReason> = {
 	USER_NOT_FOUND: "USER_NOT_FOUND",
 };
 
-export const authErrorReason = (
-	code: string | undefined,
-): ErrorReason | undefined => {
+const authErrorReason = (code: string | undefined): ErrorReason | undefined => {
 	if (!code) {
 		return undefined;
 	}

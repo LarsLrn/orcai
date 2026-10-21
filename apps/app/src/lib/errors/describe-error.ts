@@ -11,8 +11,6 @@ import { m } from "@/paraglide/messages";
 
 const ENTITIES = new Set<string>(NOT_FOUND_ENTITIES);
 
-export { isErrorReason };
-
 const isNotFoundEntity = (value: unknown): value is NotFoundEntity =>
 	typeof value === "string" && ENTITIES.has(value);
 

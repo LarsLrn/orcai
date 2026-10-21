@@ -26,7 +26,7 @@ const resourceAccessHints: Record<ResourceType, () => string> = {
 	asset: m.access_resource_asset_hint,
 };
 
-export const RESOURCE_GRANT_ROLES = [
+const RESOURCE_GRANT_ROLES = [
 	"viewer",
 	"editor",
 	"manager",

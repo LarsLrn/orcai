@@ -7,7 +7,7 @@ import type { ExtractionConfig } from "@kreuzberg/node";
  * TODO: Remove this file once @kreuzberg/node ships updated types.
  */
 
-export interface ContentFilterConfig {
+interface ContentFilterConfig {
 	/** Include header text in extracted content. Default: true. */
 	includeHeaders?: boolean;
 	/** Include footer text in extracted content. Default: true. */
@@ -18,7 +18,7 @@ export interface ContentFilterConfig {
 	includeWatermarks?: boolean;
 }
 
-export interface ExpandedChunkingConfig
+interface ExpandedChunkingConfig
 	extends NonNullable<ExtractionConfig["chunking"]> {
 	/**
 	 * Type of chunker: "text" (default), "markdown", or "yaml".

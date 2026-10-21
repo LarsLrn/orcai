@@ -6,13 +6,6 @@ import { AiConfigService } from "./config";
 import { AiError } from "./errors";
 import { aiTelemetry } from "./telemetry";
 
-export interface GenerateTextResult {
-	readonly text: string;
-	readonly usage: {
-		readonly totalTokens?: number;
-	};
-}
-
 const getProvider = Effect.gen(function* () {
 	const { config } = yield* AiConfigService;
 

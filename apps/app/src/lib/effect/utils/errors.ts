@@ -68,7 +68,7 @@ export class UnauthorizedError extends Data.TaggedError(
 	readonly cause?: unknown;
 }> {}
 
-export class ValidationError extends Data.TaggedError(ErrorTags.VALIDATION)<{
+class ValidationError extends Data.TaggedError(ErrorTags.VALIDATION)<{
 	readonly message: string;
 	readonly fields?: Record<string, string>;
 	readonly cause?: unknown;
@@ -102,7 +102,7 @@ export const ConflictError = ConflictErrorClass as ReasonedConstructor<
 	ConflictProps
 >;
 
-export type ForbiddenData = {
+type ForbiddenData = {
 	readonly permission?: string;
 	readonly entityType?: string;
 	readonly zedToken?: string;

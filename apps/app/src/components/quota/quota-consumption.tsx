@@ -104,5 +104,4 @@ const QuotaRemaining = ({
 	);
 };
 
-export type { QuotaUnit };
 export { QuotaConsumption, QuotaRemaining };

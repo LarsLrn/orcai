@@ -55,4 +55,4 @@ export const useAppForm: typeof formHook.useAppForm = (props) =>
 		},
 	});
 
-export const { withForm, withFieldGroup } = formHook;
+export const { withFieldGroup } = formHook;

@@ -217,9 +217,4 @@ const UploadComponent = ({
 	);
 };
 
-export {
-	UploadComponent,
-	type UploadComponentProps,
-	type UploadResult,
-	type UploadVariant,
-};
+export { UploadComponent, type UploadVariant };
