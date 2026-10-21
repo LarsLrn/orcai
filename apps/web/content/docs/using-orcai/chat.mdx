@@ -106,7 +106,7 @@ Open **Chat settings** from the composer's **More chat actions** menu. You can c
 	- Frequency penalty
 	- Presence penalty
 
-A generation setting you leave empty is not sent, so the provider's own default applies. Clear a setting to return it to the provider default.
+A generation setting you leave empty is not sent, so the provider's own default applies. Clear a setting to return it to the provider default. Max tokens is the exception: it limits what the model writes in each step of a reply, and when it is empty a step writes at most 16,384 tokens, or the model's max output tokens or half its context window when that is smaller.
 
 Max tokens cannot exceed the model's max output tokens when the model has them set. If the model changes or its limit is lowered later, a reply asks for the model's max output tokens instead.
 

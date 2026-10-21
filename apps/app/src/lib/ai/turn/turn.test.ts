@@ -417,6 +417,61 @@ describe("context window", () => {
 		expect(chat.messages().at(-1)?.metadata.historyTrimmed).toBe(true);
 	});
 
+	test("every step asks for the output the turn reserved", async () => {
+		const chat = await conversation(
+			chatRow({
+				config: {
+					...chatRow().config,
+					features: {
+						generativeUi: {},
+					},
+				} as never,
+			}),
+			"anthropic",
+		);
+		chat.script([
+			{
+				calls: [
+					{
+						name: "showChecklist",
+						input: {
+							items: [
+								{
+									label: "Scope",
+								},
+							],
+						},
+					},
+				],
+			},
+			{
+				text: "Checked.",
+			},
+		]);
+		const assistant = await pausedAssistant();
+		assistant.script([
+			{
+				text: "Kept.",
+			},
+		]);
+
+		await chat.send("Check it");
+		await assistant.decide(false);
+
+		expect(
+			[
+				...chat.bodies,
+				...assistant.bodies,
+			].map((body) => body.max_tokens),
+		).toEqual([
+			16_384,
+			16_384,
+			16_384,
+			16_384,
+		]);
+		expect(quota.calls.reserve.at(-1)?.maxExpectedOutputTokens).toBe(16_384);
+	});
+
 	test("refuses a message that alone outgrows the window, before storing or reserving anything", async () => {
 		narrowModel(5_000);
 		const chat = await conversation(chatRow(), "anthropic");
