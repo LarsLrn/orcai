@@ -57,15 +57,26 @@ export const Route = createFileRoute("/app/chat/$chatId/")({
 			});
 		}
 
-		const messages = await queryClient.query(
-			orpc.chatMessage.list.queryOptions({
-				input: {
-					chatId,
-					zedToken,
-				},
-				staleTime: 0,
-			}),
-		);
+		const [messages] = await Promise.all([
+			queryClient.query(
+				orpc.chatMessage.list.queryOptions({
+					input: {
+						chatId,
+						zedToken,
+					},
+					staleTime: 0,
+				}),
+			),
+			// The settings dialog reads the bot; a bot it cannot load fails only there.
+			chat.data.botId &&
+				queryClient.prefetchQuery(
+					orpc.bot.find.queryOptions({
+						input: {
+							id: chat.data.botId,
+						},
+					}),
+				),
+		]);
 
 		return {
 			messages,

@@ -1,11 +1,7 @@
 import { Link, useNavigate } from "@tanstack/react-router";
 import { BotIcon, PlusIcon } from "lucide-react";
-import { Suspense } from "react";
 import { UserWelcome } from "@/components/app/user-welcome";
-import {
-	BotsShowcase,
-	BotsShowcaseSkeleton,
-} from "@/components/bot/bots-showcase";
+import { BotsShowcase } from "@/components/bot/bots-showcase";
 import { ChatsList } from "@/components/chat/chats-list";
 import { NewChatInput } from "@/components/chat/new-chat-input";
 import { useChatStarter } from "@/components/chat/use-chat-starter";
@@ -140,9 +136,7 @@ const UserHome = () => {
 				</SectionContent>
 			</Section>
 
-			<Suspense fallback={<BotsShowcaseSkeleton />}>
-				<BotsShowcase limit={6} />
-			</Suspense>
+			<BotsShowcase limit={6} />
 		</div>
 	);
 };
