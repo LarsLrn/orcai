@@ -226,24 +226,6 @@ export const offeredGroupTools = (
 		isToolOffered(name, capabilities),
 	);
 
-/**
- * The core tools plus those of the loaded groups this user may use; the
- * create tools only once the user approved a plan.
- */
-export const activeAssistantToolNames = (
-	capabilities: CapabilitySet,
-	loadedGroups: readonly DeferredToolGroup[],
-	planApproved: boolean,
-): AssistantToolName[] =>
-	[
-		...ASSISTANT_TOOL_GROUPS.core.filter((name) =>
-			isToolOffered(name, capabilities),
-		),
-		...DEFERRED_TOOL_GROUPS.filter((group) =>
-			loadedGroups.includes(group),
-		).flatMap((group) => offeredGroupTools(group, capabilities)),
-	].filter((name) => planApproved || ASSISTANT_TOOL_KINDS[name] !== "create");
-
 /** Every tool this user may use, loaded or not, plan or not. */
 export const offeredAssistantToolNames = (
 	capabilities: CapabilitySet,
@@ -255,12 +237,3 @@ export const offeredAssistantToolNames = (
 		offeredGroupTools(group, capabilities),
 	),
 ];
-
-/** The create tools of the loaded groups this user may use. */
-export const offeredCreateTools = (
-	capabilities: CapabilitySet,
-	loadedGroups: readonly DeferredToolGroup[],
-): AssistantToolName[] =>
-	DEFERRED_TOOL_GROUPS.filter((group) => loadedGroups.includes(group))
-		.flatMap((group) => offeredGroupTools(group, capabilities))
-		.filter((name) => ASSISTANT_TOOL_KINDS[name] === "create");

@@ -70,7 +70,7 @@ const outputsOf = (messages: ModelMessage[]) =>
 const prune = (
 	messages: ModelMessage[],
 	enabledDisplayToolNames = [],
-	toolListChanges = true,
+	toolListChanges: string[] = [],
 ) =>
 	pruneAssistantHistory(messages, {
 		lines: new Map([
@@ -87,7 +87,7 @@ const prune = (
 			"showChecklist",
 		],
 		enabledDisplayToolNames,
-		toolListChanges,
+		toolListChanges: new Set(toolListChanges),
 	});
 
 const full = {
@@ -295,7 +295,7 @@ describe("pruneAssistantHistory", () => {
 				]),
 				displayToolNames: [],
 				enabledDisplayToolNames: [],
-				toolListChanges: true,
+				toolListChanges: new Set(),
 			},
 		);
 
@@ -452,7 +452,7 @@ describe("pruneAssistantHistory", () => {
 					enabledDisplayToolNames: [
 						"showChecklist",
 					],
-					toolListChanges: true,
+					toolListChanges: new Set(),
 				}),
 			).s,
 		).toEqual({
@@ -507,7 +507,30 @@ describe("pruneAssistantHistory", () => {
 		).toEqual([]);
 	});
 
-	test("keeps reasoning only from the turn's latest loadTools result on", () => {
+	test("keeps reasoning only from the turn's latest result that changed the tool list", () => {
+		const pruned = prune(
+			[
+				user("hi"),
+				...thought("earlier", call("loadTools", "e")),
+				user("go on"),
+				...thought("before", call("loadTools", "l")),
+				...thought("between", call("updatePlan", "p")),
+				...thought("after", call("getBot", "c")),
+			],
+			[],
+			[
+				"e",
+				"l",
+				"p",
+			],
+		);
+
+		expect(reasoningOf(pruned)).toEqual([
+			"after",
+		]);
+	});
+
+	test("keeps the turn's reasoning where no result changed the tool list", () => {
 		const pruned = prune([
 			user("hi"),
 			...thought("before", call("loadTools", "l")),
@@ -515,49 +538,7 @@ describe("pruneAssistantHistory", () => {
 		]);
 
 		expect(reasoningOf(pruned)).toEqual([
-			"after",
-		]);
-	});
-
-	test("keeps the turn's reasoning where loading leaves the tool list as it is", () => {
-		const pruned = prune(
-			[
-				user("hi"),
-				...thought("before", call("loadTools", "l")),
-				...thought("after", call("getBot", "c")),
-			],
-			[],
-			false,
-		);
-
-		expect(reasoningOf(pruned)).toEqual([
 			"before",
-			"after",
-		]);
-	});
-
-	test("keeps reasoning only from an approved plan's result on", () => {
-		const denied = thought(
-			"denied",
-			call("updatePlan", "d", {
-				type: "tool-result",
-				toolCallId: "d",
-				toolName: "updatePlan",
-				output: {
-					type: "error-text",
-					value: "Tool call execution denied.",
-				},
-			}),
-		);
-		const pruned = prune([
-			user("plan it"),
-			...thought("proposed", call("updatePlan", "p")),
-			...denied,
-			...thought("after", call("createBot", "c")),
-		]);
-
-		expect(reasoningOf(pruned)).toEqual([
-			"denied",
 			"after",
 		]);
 	});

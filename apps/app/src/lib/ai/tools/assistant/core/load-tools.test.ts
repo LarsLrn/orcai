@@ -1,10 +1,9 @@
 import { describe, expect, test } from "bun:test";
+import { createAssistantSession } from "@/lib/ai/agents/assistant-session";
 import type { CapabilitySet } from "../groups";
 import "../test-procedures";
 
-const { groupsLoadedBy, loadedToolGroupsOf, loadToolsTool } = await import(
-	"./load-tools"
-);
+const { loadToolsTool } = await import("./load-tools");
 
 const member: CapabilitySet = {
 	read: true,
@@ -14,13 +13,30 @@ const member: CapabilitySet = {
 };
 
 const load = (groups: ("bots" | "sharing" | "people")[], planApproved = true) =>
-	loadToolsTool({
-		capabilities: member,
-		isPlanApproved: () => planApproved,
-		toolLoading: {
-			type: "active-tools",
-		},
-	}).execute(
+	loadToolsTool(
+		createAssistantSession({
+			history: planApproved
+				? [
+						{
+							parts: [
+								{
+									type: "tool-updatePlan",
+									toolCallId: "plan",
+									state: "output-available",
+									output: {
+										updated: true,
+									},
+								},
+							],
+						},
+					]
+				: [],
+			capabilities: member,
+			toolLoading: {
+				type: "active-tools",
+			},
+		}),
+	).execute(
 		{
 			groups,
 		},
@@ -66,9 +82,6 @@ describe("loadTools", () => {
 				},
 			],
 		});
-		expect(groupsLoadedBy(output)).toEqual([
-			"bots",
-		]);
 	});
 
 	test("lists the create tools as locked until a plan is approved", async () => {
@@ -108,99 +121,17 @@ describe("loadTools", () => {
 			"sharing",
 		]);
 
-		expect(groupsLoadedBy(output)).toEqual([
-			"sharing",
+		expect("groups" in output && output.groups).toEqual([
+			{
+				group: "sharing",
+				loaded: true,
+				tools: [
+					"listAccess",
+					"findPrincipals",
+					"grantAccess",
+					"revokeAccess",
+				],
+			},
 		]);
-		expect("groups" in output && output.groups).toHaveLength(1);
-	});
-});
-
-describe("loadedToolGroupsOf", () => {
-	const loadPart = (state: string, output: unknown) => ({
-		type: "tool-loadTools",
-		toolCallId: "call-1",
-		state,
-		input: {
-			groups: [],
-		},
-		output,
-	});
-
-	test("collects the groups of successful loadTools parts in assistant rows", () => {
-		expect(
-			loadedToolGroupsOf([
-				{
-					role: "user",
-					parts: [
-						{
-							type: "text",
-							text: "Share my bot",
-						},
-					],
-				},
-				{
-					role: "assistant",
-					parts: [
-						loadPart("output-available", {
-							groups: [
-								{
-									group: "sharing",
-									loaded: true,
-									tools: [],
-								},
-								{
-									group: "people",
-									loaded: false,
-									error: "FORBIDDEN",
-								},
-							],
-						}),
-					],
-				},
-				{
-					role: "assistant",
-					parts: [
-						loadPart("output-error", undefined),
-						loadPart("output-available", {
-							groups: [
-								{
-									group: "bots",
-									loaded: true,
-									tools: [],
-								},
-							],
-						}),
-					],
-				},
-			]),
-		).toEqual([
-			"bots",
-			"sharing",
-		]);
-	});
-
-	test("ignores malformed outputs and other tools", () => {
-		expect(
-			loadedToolGroupsOf([
-				{
-					role: "assistant",
-					parts: [
-						loadPart("output-available", "bots"),
-						{
-							type: "tool-findBots",
-							state: "output-available",
-							output: {
-								groups: [
-									{
-										group: "bots",
-										loaded: true,
-									},
-								],
-							},
-						},
-					],
-				},
-			]),
-		).toEqual([]);
 	});
 });

@@ -1,7 +1,8 @@
 import { describe, expect, test } from "bun:test";
 import { asSchema, type ToolSet } from "ai";
+import { createAssistantSession } from "@/lib/ai/agents/assistant-session";
 import type { ORPCContext } from "@/lib/orpc/implementation/os";
-import { assistantToolApproval, GATED_ASSISTANT_TOOLS } from "./approval";
+import { GATED_ASSISTANT_TOOLS } from "./approval";
 import { CLIENT_TOOL_OUTPUT_SCHEMAS } from "./client-tools";
 import { ASSISTANT_TOOL_GROUPS, DEFERRED_TOOL_GROUPS } from "./groups";
 import "./test-procedures";
@@ -18,14 +19,15 @@ const tools: ToolSet = buildAssistantTools({
 		chatId: "chat",
 		replyId: "reply",
 	}),
-	capabilities: {
-		read: true,
-	},
-	isPlanApproved: () => false,
-	loadedGroups: () => [],
-	toolLoading: {
-		type: "active-tools",
-	},
+	session: createAssistantSession({
+		history: [],
+		capabilities: {
+			read: true,
+		},
+		toolLoading: {
+			type: "active-tools",
+		},
+	}),
 });
 
 /** Core tools the toolset builds; readDocs and the display tools come from the agent. */
@@ -111,57 +113,7 @@ describe("client tools", () => {
 	});
 });
 
-const approvalWith = (planApproved: boolean) =>
-	assistantToolApproval({
-		isPlanApproved: () => planApproved,
-	});
-
-describe("assistantToolApproval", () => {
-	test("gates exactly the twelve confirming tools and updatePlan", () => {
-		expect(Object.keys(approvalWith(false)).sort()).toEqual(
-			[
-				"deleteBot",
-				"deleteBlock",
-				"deleteAsset",
-				"deleteGroup",
-				"revokeAccess",
-				"removeGroupMembers",
-				"removeMembers",
-				"cancelInvitation",
-				"grantAccess",
-				"addGroupMembers",
-				"changeMemberRole",
-				"inviteMembers",
-				"updatePlan",
-			].sort(),
-		);
-	});
-
-	test.each([
-		false,
-		true,
-	])(
-		"the gated tools always ask the user (plan approved: %p)",
-		(planApproved) => {
-			const approval: Record<string, unknown> = approvalWith(planApproved);
-
-			for (const name of GATED_ASSISTANT_TOOLS) {
-				expect(approval[name]).toBe("user-approval");
-			}
-		},
-	);
-
-	test("updatePlan asks the user until a plan is approved", () => {
-		let planApproved = false;
-		const approval = assistantToolApproval({
-			isPlanApproved: () => planApproved,
-		});
-
-		expect(approval.updatePlan()).toBe("user-approval");
-		planApproved = true;
-		expect(approval.updatePlan()).toBe("not-applicable");
-	});
-
+describe("gated tools", () => {
 	test("every gated tool is in the toolset", () => {
 		for (const name of GATED_ASSISTANT_TOOLS) {
 			expect(Object.keys(tools)).toContain(name);
