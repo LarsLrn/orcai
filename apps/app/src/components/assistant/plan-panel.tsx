@@ -1,5 +1,4 @@
 import {
-	ChevronDownIcon,
 	CircleCheckIcon,
 	CircleDotIcon,
 	CircleIcon,
@@ -9,15 +8,10 @@ import {
 } from "lucide-react";
 import { use, useId, useState } from "react";
 import { Shimmer } from "@/components/ai-elements/shimmer";
+import { ComposerPanel } from "@/components/chat/composer-panel";
 import { StepAnswersContext } from "@/components/chat/step-answers";
 import { Button } from "@/components/ui/button";
-import {
-	Collapsible,
-	CollapsibleContent,
-	CollapsibleTrigger,
-} from "@/components/ui/collapsible";
 import { Label } from "@/components/ui/label";
-import { ScrollArea } from "@/components/ui/scroll-area";
 import { Spinner } from "@/components/ui/spinner";
 import { Textarea } from "@/components/ui/textarea";
 import type { StepAnswers } from "@/lib/ai/chat-session/chat-session";
@@ -174,8 +168,6 @@ export const PlanPanel = ({
 }) => {
 	const answers = use(StepAnswersContext);
 	const [open, setOpen] = usePlanOpen(plan && planViewOf(plan.part));
-	const regionId = useId();
-
 	if (!plan) {
 		return null;
 	}
@@ -185,86 +177,70 @@ export const PlanPanel = ({
 	const current = items.find((item) => item.status === "in_progress");
 
 	return (
-		<section
-			aria-labelledby={regionId}
-			className="not-prose overflow-hidden rounded-xl border bg-card text-sm"
-		>
-			<h2 id={regionId} className="sr-only">
-				{m.assistant_plan_region()}
-			</h2>
-			<Collapsible open={open} onOpenChange={setOpen}>
-				<CollapsibleTrigger className="group flex w-full items-center gap-2 px-4 py-2.5 text-left hover:bg-muted/50">
-					<ChevronDownIcon
+		<ComposerPanel
+			label={m.assistant_plan_region()}
+			icon={
+				updating ? (
+					<Spinner className="text-muted-foreground" />
+				) : (
+					<ListTodoIcon
 						aria-hidden
-						className="size-4 shrink-0 -rotate-90 text-muted-foreground transition-transform group-data-panel-open:rotate-0"
+						className="size-4 shrink-0 text-muted-foreground"
 					/>
-					{updating ? (
-						<Spinner className="text-muted-foreground" />
-					) : (
-						<ListTodoIcon
-							aria-hidden
-							className="size-4 shrink-0 text-muted-foreground"
-						/>
-					)}
-					<span className="min-w-0 truncate font-medium">{title}</span>
-					<span className="shrink-0 text-muted-foreground text-xs tabular-nums">
-						{planTally(items)}
-					</span>
-					{!open && current && (
-						<span className="min-w-0 flex-1 truncate text-muted-foreground text-xs">
-							{current.label}
-						</span>
-					)}
-					<span className="sr-only">
-						{open ? m.assistant_plan_collapse() : m.assistant_plan_expand()}
-					</span>
-				</CollapsibleTrigger>
-				<CollapsibleContent>
-					<ScrollArea className="border-t [&_[data-slot=scroll-area-viewport]]:max-h-64">
-						<ol className="space-y-1.5 px-4 py-2.5">
-							{items.map((item, index) => {
-								const { icon: Icon, tone, label } = statusIcons[item.status];
+				)
+			}
+			title={title}
+			tally={planTally(items)}
+			summary={current?.label}
+			open={open}
+			onOpenChange={setOpen}
+			expandLabel={m.assistant_plan_expand()}
+			collapseLabel={m.assistant_plan_collapse()}
+			footer={
+				answers &&
+				approvalIds.length > 0 && (
+					<PlanApproval
+						key={approvalIds.join()}
+						approvalIds={approvalIds}
+						answers={answers}
+					/>
+				)
+			}
+		>
+			<ol className="space-y-1.5 px-4 py-2.5">
+				{items.map((item, index) => {
+					const { icon: Icon, tone, label } = statusIcons[item.status];
 
-								return (
-									<li key={index} className="flex items-start gap-2">
-										<Icon
-											role="img"
-											aria-label={label()}
-											className={cn("mt-0.5 size-4 shrink-0", tone)}
-										/>
-										<div className="min-w-0">
-											<span
-												className={cn(
-													item.status === "skipped" &&
-														"text-muted-foreground line-through",
-												)}
-											>
-												{item.status === "in_progress" && busy ? (
-													<Shimmer>{item.label}</Shimmer>
-												) : (
-													item.label
-												)}
-											</span>
-											{item.details && (
-												<p className="wrap-anywhere whitespace-pre-line text-muted-foreground text-xs">
-													{item.details}
-												</p>
-											)}
-										</div>
-									</li>
-								);
-							})}
-						</ol>
-					</ScrollArea>
-				</CollapsibleContent>
-			</Collapsible>
-			{answers && approvalIds.length > 0 && (
-				<PlanApproval
-					key={approvalIds.join()}
-					approvalIds={approvalIds}
-					answers={answers}
-				/>
-			)}
-		</section>
+					return (
+						<li key={index} className="flex items-start gap-2">
+							<Icon
+								role="img"
+								aria-label={label()}
+								className={cn("mt-0.5 size-4 shrink-0", tone)}
+							/>
+							<div className="min-w-0">
+								<span
+									className={cn(
+										item.status === "skipped" &&
+											"text-muted-foreground line-through",
+									)}
+								>
+									{item.status === "in_progress" && busy ? (
+										<Shimmer>{item.label}</Shimmer>
+									) : (
+										item.label
+									)}
+								</span>
+								{item.details && (
+									<p className="wrap-anywhere whitespace-pre-line text-muted-foreground text-xs">
+										{item.details}
+									</p>
+								)}
+							</div>
+						</li>
+					);
+				})}
+			</ol>
+		</ComposerPanel>
 	);
 };
