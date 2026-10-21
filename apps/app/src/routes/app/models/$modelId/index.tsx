@@ -258,7 +258,11 @@ function RouteComponent() {
 				</div>
 
 				<div className="space-y-6">
-					<MetadataCard id={model.id} createdAt={model.createdAt} />
+					<MetadataCard
+						id={model.id}
+						createdAt={model.createdAt}
+						updatedAt={model.updatedAt}
+					/>
 				</div>
 			</PageContent>
 		</Page>

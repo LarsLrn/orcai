@@ -172,13 +172,15 @@ const updateProvider = authed.provider.update
 		}
 
 		const { apiKey, ...inputWithoutApiKey } = input;
-		const updateData =
-			apiKey === undefined
-				? inputWithoutApiKey
+		const updateData = {
+			...inputWithoutApiKey,
+			...(apiKey === undefined
+				? {}
 				: {
-						...inputWithoutApiKey,
 						apiKeyEncrypted: yield* encryptApiKey(apiKey),
-					};
+					}),
+			updatedAt: new Date(),
+		};
 
 		const [provider] = yield* db
 			.update(dbSchema.provider)

@@ -27,6 +27,7 @@ export const modelSchema = modelFieldsSchema.extend({
 	id: modelIdSchema,
 	providerId: providerIdSchema,
 	createdAt: z.coerce.date().nullable(),
+	updatedAt: z.coerce.date().nullable(),
 	...modelTokenLimitsSchema.shape,
 });
 
