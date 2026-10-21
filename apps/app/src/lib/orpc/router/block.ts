@@ -14,6 +14,10 @@ import {
 import * as Arr from "effect/Array";
 import * as Effect from "effect/Effect";
 import { emptyCapabilities } from "@/lib/authz/capabilities";
+import {
+	getEntityCapabilities,
+	getManyEntityCapabilities,
+} from "@/lib/authz/entity-capabilities";
 import { writeRelationships } from "@/lib/authz/relationship-write";
 import {
 	deleteResourcesWithAuthorization,
@@ -21,6 +25,12 @@ import {
 	resourceOrganizations,
 } from "@/lib/authz/resource-lifecycle";
 import { getZedToken } from "@/lib/authz/zed-token";
+import {
+	loadDatabaseBlockAssets,
+	reindexBlockAssets,
+	replaceBlockAssets,
+	requireReadableAssets,
+} from "@/lib/blocks/database-block";
 import * as AppErrors from "@/lib/effect/utils/errors";
 import { authed } from "@/lib/orpc/implementation/authed";
 import {
@@ -29,17 +39,7 @@ import {
 	requireEntityPermission,
 	requireOrganizationPermission,
 } from "@/lib/orpc/middlewares/permission";
-import {
-	getEntityCapabilities,
-	getManyEntityCapabilities,
-} from "@/lib/orpc/router/helpers/capabilities";
-import {
-	loadDatabaseBlockAssets,
-	reindexBlockAssets,
-	replaceBlockAssets,
-	requireReadableAssets,
-} from "@/lib/orpc/router/helpers/database-block";
-import { literalSearch } from "./helpers/literal-search";
+import { literalSearch } from "@/lib/utils/literal-search";
 
 const listBlocks = authed.block.list.effect(function* ({ input, context }) {
 	const db = yield* DB;

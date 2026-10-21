@@ -20,7 +20,7 @@ import { providerApiKey } from "@/lib/encryption";
 import { authed } from "@/lib/orpc/implementation/authed";
 import { Procedures } from "@/lib/orpc/implementation/procedures";
 import { requireOrganizationPermission } from "@/lib/orpc/middlewares/permission";
-import { literalSearch } from "./helpers/literal-search";
+import { literalSearch } from "@/lib/utils/literal-search";
 import { buildOrderBy, type SortExpression } from "./helpers/sorting";
 import {
 	mapCreateModelInputToModelInsertValues,

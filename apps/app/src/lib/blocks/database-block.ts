@@ -8,10 +8,10 @@ import { and, eq, getColumns, inArray } from "drizzle-orm";
 import * as Arr from "effect/Array";
 import * as Effect from "effect/Effect";
 import { emptyCapabilities } from "@/lib/authz/capabilities";
+import { getManyEntityCapabilities } from "@/lib/authz/entity-capabilities";
 import { RelationshipFact } from "@/lib/authz/relationship-facts";
 import { recordRelationshipFacts } from "@/lib/authz/relationship-write";
 import * as AppErrors from "@/lib/effect/utils/errors";
-import { getManyEntityCapabilities } from "@/lib/orpc/router/helpers/capabilities";
 
 export const loadDatabaseBlockAssets = (params: {
 	blockId: BlockId;

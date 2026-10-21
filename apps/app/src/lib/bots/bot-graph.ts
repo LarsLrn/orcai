@@ -13,6 +13,10 @@ import {
 import { and, count, eq, getColumns, ilike, inArray } from "drizzle-orm";
 import * as Effect from "effect/Effect";
 import { emptyCapabilities } from "@/lib/authz/capabilities";
+import {
+	getEntityCapabilities,
+	getManyEntityCapabilities,
+} from "@/lib/authz/entity-capabilities";
 import { RelationshipFact } from "@/lib/authz/relationship-facts";
 import {
 	recordRelationshipFacts,
@@ -22,13 +26,9 @@ import {
 	initializeResourceAuthorization,
 	resourceOrganizations,
 } from "@/lib/authz/resource-lifecycle";
+import { loadDatabaseBlockAssets } from "@/lib/blocks/database-block";
 import * as AppErrors from "@/lib/effect/utils/errors";
-import {
-	getEntityCapabilities,
-	getManyEntityCapabilities,
-} from "@/lib/orpc/router/helpers/capabilities";
-import { loadDatabaseBlockAssets } from "@/lib/orpc/router/helpers/database-block";
-import { literalSearch } from "@/lib/orpc/router/helpers/literal-search";
+import { literalSearch } from "@/lib/utils/literal-search";
 
 export const listBotsByStatus = (params: {
 	userId: UserId;
