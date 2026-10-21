@@ -143,8 +143,11 @@ const userMessage = (text: string): ModelMessage => ({
 	content: text,
 });
 
-/** The user's approval of the pending `updatePlan` call. */
-const approvePlan = (messages: ModelMessage[]): ModelMessage => {
+/** The user's answer to the pending `updatePlan` call. */
+const answerPlan = (
+	messages: ModelMessage[],
+	approved = true,
+): ModelMessage => {
 	const request = messages
 		.flatMap((message) =>
 			message.role === "assistant" && Array.isArray(message.content)
@@ -159,7 +162,7 @@ const approvePlan = (messages: ModelMessage[]): ModelMessage => {
 			{
 				type: "tool-approval-response",
 				approvalId: request?.approvalId ?? "missing",
-				approved: true,
+				approved,
 			},
 		],
 	};
@@ -229,7 +232,7 @@ const conversation = async (kind: ProviderKind, modelId: string) => {
 		modelId,
 		messages: [
 			...first.messages,
-			approvePlan(first.messages),
+			answerPlan(first.messages),
 		],
 		planApproved: false,
 		loadedToolGroups: [
@@ -505,5 +508,85 @@ describe("a stored loadTools result replayed on Anthropic", () => {
 		expect((await replayedReferences(admin, invitationTools)).sort()).toEqual(
 			peopleTools.filter((name) => name !== "createGroup").sort(),
 		);
+	});
+});
+
+describe.each([
+	[
+		"anthropic",
+		"claude-opus-5-5",
+	],
+	[
+		"openai-compatible",
+		"model",
+	],
+] as const)("a declined plan on %s", (kind, modelId) => {
+	test("keeps the create tools locked", async () => {
+		const createBot = {
+			name: "createBot",
+			input: {
+				name: "Helper",
+				description: "Helps.",
+			},
+		};
+		const first = await runRequest({
+			kind,
+			modelId,
+			messages: [
+				userMessage("Make me a bot"),
+			],
+			planApproved: false,
+			loadedToolGroups: [],
+			replies: [
+				[
+					{
+						name: "loadTools",
+						input: {
+							groups: [
+								"bots",
+							],
+						},
+					},
+				],
+				[
+					{
+						name: "updatePlan",
+						input: plan,
+					},
+				],
+			],
+		});
+		const { bodies } = await runRequest({
+			kind,
+			modelId,
+			messages: [
+				...first.messages,
+				answerPlan(first.messages, false),
+			],
+			planApproved: false,
+			loadedToolGroups: [
+				"bots",
+			],
+			replies: [
+				[
+					createBot,
+				],
+				"I will revise the plan.",
+			],
+		});
+
+		expect(bodies).toHaveLength(2);
+		if (kind === "anthropic") {
+			expect(
+				JSON.stringify(anthropicResults(bodies[1] ?? {}).at(-1)),
+			).toContain("PLAN_NOT_APPROVED");
+			expect(referencesIn(anthropicResults(bodies[1] ?? {}))).not.toContain(
+				"createBot",
+			);
+		} else {
+			for (const body of bodies) {
+				expect(openAITools(body)).not.toContain("createBot");
+			}
+		}
 	});
 });
