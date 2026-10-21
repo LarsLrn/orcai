@@ -7,9 +7,9 @@ import {
 	ListTodoIcon,
 	type LucideIcon,
 } from "lucide-react";
-import { useId, useState } from "react";
+import { use, useId, useState } from "react";
 import { Shimmer } from "@/components/ai-elements/shimmer";
-import type { AddToolApprovalResponse } from "@/components/assistant/confirmation-card";
+import { StepAnswersContext } from "@/components/chat/step-answers";
 import { Button } from "@/components/ui/button";
 import {
 	Collapsible,
@@ -20,6 +20,7 @@ import { Label } from "@/components/ui/label";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { Spinner } from "@/components/ui/spinner";
 import { Textarea } from "@/components/ui/textarea";
+import type { StepAnswers } from "@/lib/ai/chat-session/chat-session";
 import type { PlanItemStatus } from "@/lib/ai/tools/assistant/plan/plan";
 import { planTally } from "@/lib/ai/tools/assistant/plan/plan-tally";
 import type { TurnPlan } from "@/lib/ai/turn-view/turn-view";
@@ -91,10 +92,10 @@ const usePlanOpen = (view: PlanView | undefined) => {
 /** Revising declines the proposal with the user's note, which the model reads. */
 const PlanApproval = ({
 	approvalIds,
-	addToolApprovalResponse,
+	answers,
 }: {
 	approvalIds: string[];
-	addToolApprovalResponse: AddToolApprovalResponse;
+	answers: StepAnswers;
 }) => {
 	const [revising, setRevising] = useState(false);
 	const [note, setNote] = useState("");
@@ -104,7 +105,7 @@ const PlanApproval = ({
 			approved,
 			reason,
 		})) {
-			void addToolApprovalResponse(answer);
+			answers.approve(answer);
 		}
 	};
 
@@ -166,13 +167,12 @@ const PlanApproval = ({
 export const PlanPanel = ({
 	plan,
 	busy,
-	addToolApprovalResponse,
 }: {
 	plan: TurnPlan | undefined;
 	/** A turn is being sent or streamed. */
 	busy: boolean;
-	addToolApprovalResponse: AddToolApprovalResponse;
 }) => {
+	const answers = use(StepAnswersContext);
 	const [open, setOpen] = usePlanOpen(plan && planViewOf(plan.part));
 	const regionId = useId();
 
@@ -258,11 +258,11 @@ export const PlanPanel = ({
 					</ScrollArea>
 				</CollapsibleContent>
 			</Collapsible>
-			{approvalIds.length > 0 && (
+			{answers && approvalIds.length > 0 && (
 				<PlanApproval
 					key={approvalIds.join()}
 					approvalIds={approvalIds}
-					addToolApprovalResponse={addToolApprovalResponse}
+					answers={answers}
 				/>
 			)}
 		</section>

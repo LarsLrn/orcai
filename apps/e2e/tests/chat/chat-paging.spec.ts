@@ -51,7 +51,8 @@ test("a long chat opens on its newest page and loads older ones in place on scro
 	await openChat(page, chatId);
 
 	const oldestLoaded = messageText(page, turn(TURNS - PAGE_SIZE / 2).question);
-	await expect(messageText(page, turn(TURNS - 1).reply)).toBeVisible();
+	// Scrolled to the newest message once the conversation has hydrated, which can trail the document's marker.
+	await expect(messageText(page, turn(TURNS - 1).reply)).toBeInViewport();
 	await expect(oldestLoaded).toBeAttached();
 	await expect(branchActions(page)).toHaveCount(PAGE_SIZE);
 	await expect(messageText(page, turn(0).question)).toHaveCount(0);

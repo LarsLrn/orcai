@@ -1,4 +1,3 @@
-import type { ChatId } from "@orcai/core";
 import {
 	useEffect,
 	useEffectEvent,
@@ -9,9 +8,7 @@ import {
 import { useStickToBottomContext } from "use-stick-to-bottom";
 import { Button } from "@/components/ui/button";
 import { Spinner } from "@/components/ui/spinner";
-import type { ChatAgentUIMessage } from "@/lib/ai/types/chat-agent-message";
 import { m } from "@/paraglide/messages";
-import { fetchEarlierMessages } from "./chat-history";
 
 const LOAD_THRESHOLD_PX = 400;
 
@@ -20,25 +17,19 @@ const LOAD_THRESHOLD_PX = 400;
  * messages in place while a page is prepended.
  */
 const EarlierMessages = ({
-	chatId,
-	zedToken,
-	initialBefore,
-	initialHasMore,
+	hasEarlier,
+	loadEarlier: load,
 	firstMessageId,
-	onLoad,
 }: {
-	chatId: ChatId;
-	zedToken?: string;
-	initialBefore?: number;
-	initialHasMore: boolean;
+	hasEarlier: boolean;
+	/** Prepends the previous page, running `beforePrepend` first, and resolves whether more remain. */
+	loadEarlier: (beforePrepend: () => void) => Promise<boolean>;
 	firstMessageId?: string;
-	onLoad: (messages: ChatAgentUIMessage[]) => void;
 }) => {
 	const { scrollRef } = useStickToBottomContext();
 	const [status, setStatus] = useState<"idle" | "loading" | "error" | "done">(
-		initialHasMore && initialBefore !== undefined ? "idle" : "done",
+		hasEarlier ? "idle" : "done",
 	);
-	const before = useRef(initialBefore);
 	const inFlight = useRef(false);
 	const anchor = useRef<{
 		firstMessageId?: string;
@@ -47,7 +38,7 @@ const EarlierMessages = ({
 	} | null>(null);
 
 	const loadEarlier = async () => {
-		if (status === "done" || inFlight.current || before.current === undefined) {
+		if (status === "done" || inFlight.current) {
 			return;
 		}
 
@@ -55,22 +46,17 @@ const EarlierMessages = ({
 		setStatus("loading");
 
 		try {
-			const page = await fetchEarlierMessages({
-				chatId,
-				before: before.current,
-				zedToken,
+			const hasMore = await load(() => {
+				const scroller = scrollRef.current;
+				if (scroller) {
+					anchor.current = {
+						firstMessageId,
+						scrollHeight: scroller.scrollHeight,
+						scrollTop: scroller.scrollTop,
+					};
+				}
 			});
-			const scroller = scrollRef.current;
-			if (scroller) {
-				anchor.current = {
-					firstMessageId,
-					scrollHeight: scroller.scrollHeight,
-					scrollTop: scroller.scrollTop,
-				};
-			}
-			before.current = page.before;
-			onLoad(page.messages);
-			setStatus(page.hasMore && page.before !== undefined ? "idle" : "done");
+			setStatus(hasMore ? "idle" : "done");
 		} catch {
 			setStatus("error");
 		} finally {

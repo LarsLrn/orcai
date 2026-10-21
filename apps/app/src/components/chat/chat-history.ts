@@ -9,28 +9,6 @@ export const toChatAgentMessages = (
 	messages: unknown[],
 ): ChatAgentUIMessage[] => messages as ChatAgentUIMessage[];
 
-export const fetchEarlierMessages = async ({
-	chatId,
-	before,
-	zedToken,
-}: {
-	chatId: ChatId;
-	before: number;
-	zedToken?: string;
-}) => {
-	const page = await client.chatMessage.list({
-		chatId,
-		before,
-		zedToken,
-	});
-
-	return {
-		messages: toChatAgentMessages(page.data),
-		before: page.data[0]?.position,
-		hasMore: page.hasMore,
-	};
-};
-
 export const fetchWholeChat = async ({
 	chatId,
 	zedToken,

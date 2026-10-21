@@ -1,7 +1,7 @@
 import type { ChatId } from "@orcai/core";
 import type { ChatBranchLink } from "@orcai/schema";
 import { PlayIcon } from "lucide-react";
-import { type ReactNode, useRef, useState } from "react";
+import { type ReactNode, use, useRef, useState } from "react";
 import type { LinkSafetyConfig } from "streamdown";
 import {
 	Message,
@@ -9,8 +9,6 @@ import {
 	MessageToolbar,
 } from "@/components/ai-elements/message";
 import { Shimmer } from "@/components/ai-elements/shimmer";
-import type { ClientToolActions } from "@/components/assistant/client-tool-actions";
-import type { AddToolApprovalResponse } from "@/components/assistant/confirmation-card";
 import { TurnZedTokenContext } from "@/components/assistant/tool-summary-line";
 import { MessageBranches } from "@/components/chat/branch-links";
 import { ActivityLine } from "@/components/chat/message/work-log/activity-line";
@@ -18,6 +16,7 @@ import {
 	activityLabel,
 	WorkLog,
 } from "@/components/chat/message/work-log/work-log";
+import { StepAnswersContext } from "@/components/chat/step-answers";
 import { Button } from "@/components/ui/button";
 import { InView } from "@/components/ui/motion/in-view";
 import type { MessageView } from "@/lib/ai/turn-view/turn-view";
@@ -39,12 +38,6 @@ interface MessageBlockProps {
 	branching?: boolean;
 	/** Overrides the default confirmation for links in the answer. */
 	linkSafety?: LinkSafetyConfig;
-	/** Answers the Confirmation cards the view marks answerable. */
-	addToolApprovalResponse?: AddToolApprovalResponse;
-	/** Answers the client calls the view marks answerable, such as the upload widget. */
-	clientToolActions?: ClientToolActions;
-	/** Runs a step whose cards are answered but that has not run, as after a reload. */
-	onContinue?: () => void;
 }
 
 const MessageEntrance = ({
@@ -91,15 +84,13 @@ export const MessageBlock = ({
 	onBranch,
 	branching,
 	linkSafety,
-	addToolApprovalResponse,
-	clientToolActions,
-	onContinue,
 }: MessageBlockProps) => {
 	const { message, running, workLog, answer, missing, activity } = view;
 	const variant = message.role === "user" ? "sent" : "received";
 	const messageAttachments = getChatMessageAttachments(message);
 	const [workLogOpen, setWorkLogOpen] = useState(false);
 	const workLogRef = useRef<HTMLDivElement>(null);
+	const answers = use(StepAnswersContext);
 
 	const showSteps = () => {
 		setWorkLogOpen(true);
@@ -147,8 +138,6 @@ export const MessageBlock = ({
 								answer={part}
 								running={running}
 								linkSafety={linkSafety}
-								addToolApprovalResponse={addToolApprovalResponse}
-								clientToolActions={clientToolActions}
 							/>
 						))}
 						{(missing === "step-limit" || missing === "no-answer") && (
@@ -158,12 +147,12 @@ export const MessageBlock = ({
 									: m.chat_reply_no_answer()}
 							</p>
 						)}
-						{view.canContinue && onContinue && (
+						{view.canContinue && answers && (
 							<Button
 								variant="outline"
 								size="sm"
 								className="w-fit"
-								onClick={onContinue}
+								onClick={() => void answers.continue()}
 							>
 								<PlayIcon data-icon="inline-start" />
 								{m.assistant_turn_continue_action()}

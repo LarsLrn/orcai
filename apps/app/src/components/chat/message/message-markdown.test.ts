@@ -27,7 +27,7 @@ const message = (role: "user" | "assistant", parts: unknown[]) =>
 				parts,
 			} as unknown as ChatAgentUIMessage,
 		],
-		"ready",
+		"idle",
 	).messages[0] as MessageView;
 
 const text = (content: string) => ({

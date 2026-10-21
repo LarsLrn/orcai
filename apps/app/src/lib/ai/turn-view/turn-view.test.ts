@@ -1,9 +1,9 @@
 import { describe, expect, test } from "bun:test";
-import type { ChatStatus } from "ai";
 import type { ChatAgentUIMessage } from "@/lib/ai/types/chat-agent-message";
 import { TOOL_CLOSE_SENTENCES } from "@/lib/ai/utils/close-pending-tool-parts";
 import { pausedStep } from "./paused-step";
 import {
+	type ChatPhase,
 	type ClientToolPart,
 	type MessagePart,
 	type MessageView,
@@ -182,11 +182,11 @@ const question = () =>
 const view = (
 	parts: MessagePart[],
 	{
-		status = "ready",
+		phase = "idle",
 		latest = true,
 		metadata,
 	}: {
-		status?: ChatStatus;
+		phase?: ChatPhase;
 		latest?: boolean;
 		metadata?: {
 			stepLimitReached?: boolean;
@@ -202,12 +202,12 @@ const view = (
 					reply(parts, metadata),
 					question(),
 				],
-		status,
+		phase,
 	).messages[0] as MessageView;
 
 const streaming = (parts: MessagePart[]) =>
 	view(parts, {
-		status: "streaming",
+		phase: "streaming",
 	});
 
 const answerParts = (message: MessageView) =>
@@ -577,7 +577,7 @@ describe("tool status", () => {
 		expect(
 			toolStatuses(
 				view(parts, {
-					status: "submitted",
+					phase: "sending",
 				}),
 			),
 		).toEqual([
@@ -726,21 +726,36 @@ describe("paused step", () => {
 	test("only an idle chat answers or continues", () => {
 		expect(
 			view(pausedTurn("approval-requested"), {
-				status: "submitted",
+				phase: "sending",
 			}).answer[1],
 		).toMatchObject({
 			answerable: false,
 		});
 		expect(
 			view(pausedTurn("approval-requested"), {
-				status: "error",
+				phase: "error",
 			}).answer[1],
 		).toMatchObject({
 			answerable: true,
 		});
 		expect(
 			view(pausedTurn("approval-responded", true), {
-				status: "submitted",
+				phase: "sending",
+			}).canContinue,
+		).toBe(false);
+	});
+
+	test("a cut-off reply being stored is not answered", () => {
+		expect(
+			view(pausedTurn("approval-requested"), {
+				phase: "storing",
+			}).answer[1],
+		).toMatchObject({
+			answerable: false,
+		});
+		expect(
+			view(pausedTurn("approval-responded", true), {
+				phase: "storing",
 			}).canContinue,
 		).toBe(false);
 	});
@@ -1044,7 +1059,7 @@ describe("missing answer", () => {
 		expect(streaming([]).missing).toBe("waiting");
 		expect(
 			view([], {
-				status: "submitted",
+				phase: "sending",
 			}).missing,
 		).toBe("pending");
 	});
@@ -1053,7 +1068,7 @@ describe("missing answer", () => {
 		expect(view([]).missing).toBe("no-answer");
 		expect(
 			view([], {
-				status: "streaming",
+				phase: "streaming",
 				latest: false,
 			}).missing,
 		).toBe("no-answer");
@@ -1091,7 +1106,7 @@ describe("missing answer", () => {
 				[
 					question(),
 				],
-				"ready",
+				"idle",
 			).messages[0]?.missing,
 		).toBe(undefined);
 	});
@@ -1146,10 +1161,10 @@ describe("activity", () => {
 });
 
 describe("plan", () => {
-	const planOf = (messages: MessagePart[][], status: ChatStatus = "ready") =>
+	const planOf = (messages: MessagePart[][], phase: ChatPhase = "idle") =>
 		turnView(
 			messages.map((parts, index) => reply(parts, {}, `reply-${index}`)),
-			status,
+			phase,
 		).plan;
 
 	test("is unset in a conversation without one", () => {
@@ -1269,7 +1284,7 @@ describe("plan", () => {
 					]),
 					question(),
 				],
-				"ready",
+				"idle",
 			).plan?.part,
 		).toBe(earlier as never);
 	});
@@ -1298,7 +1313,7 @@ describe("plan", () => {
 				[
 					parts,
 				],
-				"submitted",
+				"sending",
 			)?.approvalIds,
 		).toEqual([]);
 	});
