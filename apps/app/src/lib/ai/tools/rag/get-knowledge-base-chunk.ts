@@ -1,4 +1,3 @@
-import { AiError } from "@orcai/ai";
 import { blockIdSchema, type DatabaseBlock } from "@orcai/schema";
 import { tool } from "ai";
 import * as Effect from "effect/Effect";
@@ -66,13 +65,6 @@ export const getKnowledgeBaseChunksTool = ({
 		) =>
 			runAssistantTool(
 				Effect.gen(function* () {
-					if (blocks.length === 0) {
-						return yield* new AiError({
-							operation: "getKnowledgeBaseChunksTool",
-							cause: new Error("No database blocks configured for this bot."),
-						});
-					}
-
 					const targetBlocks = resolveSearchBlocks({
 						blocks,
 						blockId,

@@ -1,4 +1,3 @@
-import { AiError } from "@orcai/ai";
 import {
 	assetIdSchema,
 	blockIdSchema,
@@ -108,13 +107,6 @@ export const searchKnowledgeBaseTool = ({
 		) =>
 			runAssistantTool(
 				Effect.gen(function* () {
-					if (blocks.length === 0) {
-						return yield* new AiError({
-							operation: "searchKnowledgeBaseTool",
-							cause: new Error("No database blocks configured for this bot."),
-						});
-					}
-
 					const normalizedQueries = normalizeQueries({
 						query,
 						queryVariants,

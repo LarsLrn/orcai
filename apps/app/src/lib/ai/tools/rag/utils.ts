@@ -46,7 +46,7 @@ export const mergeAndSortCandidates = (points: PointWithBlock[]) =>
 			.values(),
 	).sort((a, b) => b.score - a.score);
 
-export const withBlockSource = ({
+const withBlockSource = ({
 	block,
 	points,
 }: {

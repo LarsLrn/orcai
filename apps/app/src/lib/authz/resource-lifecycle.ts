@@ -22,25 +22,17 @@ import { AUTHZ } from "@/settings/constants";
 type ResourceVisibility =
 	typeof dbSchema.resourceVisibility.$inferSelect.visibility;
 
-type InitialRelation = "owner" | "manager";
-
 /**
  * Bootstraps the authorization state for a newly created resource.
  *
- * Writes three categories of data:
- * 1. **DB records** — `resourceScope` (org ownership), `resourceVisibility`,
- *    and optionally a `resourceGrant` row for the creator.
- * 2. **SpiceDB tuples** — creator relation (`owner` or `manager`), and a
+ * Writes two categories of data:
+ * 1. **DB records** — `resourceScope` (org ownership) and `resourceVisibility`.
+ * 2. **SpiceDB tuples** — the creator's `owner` relation, and a
  *    `public@user:*` wildcard when visibility is public.
  *
  * Must be called once, immediately after the resource row is inserted.
  *
- * @param params.visibility      - Defaults to `"private"`.
- * @param params.initialRelation - Overrides the per-type default (`"owner"` for
- *                                 most types).
- * @param params.writeManagerGrant - Whether to write a `resourceGrant` row for
- *                                   the creator. Defaults to `true` when
- *                                   `initialRelation` is `"manager"`.
+ * @param params.visibility - Defaults to `"private"`.
  */
 export const initializeResourceAuthorization = (params: {
 	resourceType: ResourceType;
@@ -48,8 +40,6 @@ export const initializeResourceAuthorization = (params: {
 	organizationId: OrganizationId;
 	ownerUserId: UserId;
 	visibility?: ResourceVisibility;
-	initialRelation?: InitialRelation;
-	writeManagerGrant?: boolean;
 }) =>
 	Effect.gen(function* () {
 		const db = yield* DB;
@@ -57,9 +47,6 @@ export const initializeResourceAuthorization = (params: {
 		const now = new Date();
 
 		const visibility = params.visibility ?? "private";
-		const initialRelation = params.initialRelation ?? "owner";
-		const writeManagerGrant =
-			params.writeManagerGrant ?? initialRelation === "manager";
 
 		yield* db.insert(dbSchema.resourceScope).values({
 			resourceType: params.resourceType,
@@ -79,24 +66,11 @@ export const initializeResourceAuthorization = (params: {
 			updatedAt: now,
 		});
 
-		if (writeManagerGrant) {
-			yield* db.insert(dbSchema.resourceGrant).values({
-				resourceType: params.resourceType,
-				resourceId: params.resourceId,
-				principalType: "user",
-				principalId: params.ownerUserId,
-				role: "manager",
-				grantedBy: params.ownerUserId,
-				createdAt: now,
-				revokedAt: null,
-			});
-		}
-
 		const mutations: TupleMutation[] = [
 			{
 				resourceType: params.resourceType,
 				resourceId: params.resourceId,
-				relation: initialRelation,
+				relation: "owner" as const,
 				subjectType: "user" as const,
 				subjectId: params.ownerUserId,
 				operation: "touch" as const,
@@ -340,7 +314,7 @@ const readOwners = (params: {
  * deletes the resource rows, before them, so the links are still there to read.
  * Returns the SpiceDB deletions to enqueue in the same transaction.
  */
-export const teardownResourceAuthorization = (params: {
+const teardownResourceAuthorization = (params: {
 	tx: TransactionLike;
 	resourceType: ResourceType;
 	resourceIds: readonly string[];
@@ -409,7 +383,7 @@ export const chunkRelationshipMutations = (
 ) => Arr.chunksOf(mutations, AUTHZ.outboxMutationsPerEvent);
 
 /** Enqueues mutations as one outbox event per chunk and returns the event ids. */
-export const enqueueChunkedRelationshipMutations = (params: {
+const enqueueChunkedRelationshipMutations = (params: {
 	tx: Pick<typeof DB.Service, "insert">;
 	mutations: readonly TupleMutation[];
 }) =>
@@ -427,7 +401,7 @@ export const enqueueChunkedRelationshipMutations = (params: {
 	);
 
 /** Delivers committed outbox events; the outbox loop retries one that fails here. */
-export const deliverRelationshipEvents = (eventIds: readonly string[]) =>
+const deliverRelationshipEvents = (eventIds: readonly string[]) =>
 	Effect.gen(function* () {
 		const authz = yield* AuthzService;
 
