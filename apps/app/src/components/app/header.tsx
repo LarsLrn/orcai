@@ -78,7 +78,7 @@ const Header = ({ homeTo = "/app" }: { homeTo?: "/app" | "/instance" }) => {
 													</Button>
 												}
 											/>
-											<DropdownMenuContent>
+											<DropdownMenuContent positionMethod="fixed">
 												<DropdownMenuGroup>
 													{breadcrumbItems.slice(0, -1).map((item) => (
 														<DropdownMenuItem key={item.href}>
