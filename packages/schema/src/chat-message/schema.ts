@@ -20,5 +20,13 @@ export const chatMessageSchema = chatMessageFieldsSchema.extend({
 	createdAt: z.coerce.date(),
 });
 
+export const chatMessageRatingSchema = z.enum([
+	"very_much",
+	"a_bit",
+	"not_really",
+	"not_at_all",
+]);
+
+export type ChatMessageRating = z.infer<typeof chatMessageRatingSchema>;
 export type ChatMessageParts = z.infer<typeof chatMessagePartsSchema>;
 export type ChatMessage = z.infer<typeof chatMessageSchema>;

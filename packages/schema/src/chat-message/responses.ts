@@ -1,8 +1,7 @@
 import { z } from "zod/v4";
-import { chatIdSchema } from "../chat/ref";
-import { createDataResponseSchema, statusResponseSchema } from "../shared";
+import { createDataResponseSchema } from "../shared";
 import { chatMessageIdSchema } from "./ref";
-import { chatMessageSchema } from "./schema";
+import { chatMessageRatingSchema, chatMessageSchema } from "./schema";
 
 /** One page in ascending `position` order. */
 export const listChatMessagesResponseSchema = z.object({
@@ -16,12 +15,19 @@ export const createChatMessageResponseSchema =
 export const findChatMessageResponseSchema =
 	createDataResponseSchema(chatMessageSchema);
 
+/** The signed-in user's ratings in a chat; unrated messages are absent. */
+export const listChatMessageRatingsResponseSchema = createDataResponseSchema(
+	z.array(
+		z.object({
+			messageId: chatMessageIdSchema,
+			rating: chatMessageRatingSchema,
+		}),
+	),
+);
+
 export const rateChatMessageResponseSchema = createDataResponseSchema(
 	z.object({
-		id: chatMessageIdSchema,
-		chatId: chatIdSchema,
-		sentiment: z.number().min(1).max(5),
+		messageId: chatMessageIdSchema,
+		rating: chatMessageRatingSchema.nullable(),
 	}),
-).extend({
-	...statusResponseSchema.shape,
-});
+);

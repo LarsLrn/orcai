@@ -18,7 +18,11 @@ import {
 import { block, blockAsset, chatBlock } from "./block";
 import { bot, botBlock, botFavourite } from "./bot";
 import { chat, chatKindEnum } from "./chat";
-import { chatMessage } from "./chat-message";
+import {
+	chatMessage,
+	chatMessageRating,
+	chatMessageRatingEnum,
+} from "./chat-message";
 import { model, provider, providerMeteringModeEnum } from "./model";
 import {
 	notificationOutbox,
@@ -51,6 +55,7 @@ export const dbSchema = {
 	botBlock,
 	botFavourite,
 	chatMessage,
+	chatMessageRating,
 	chat,
 	group,
 	groupMember,
@@ -74,6 +79,7 @@ export const dbSchema = {
 export const enumSchema = {
 	authzOutboxStatusEnum,
 	chatKindEnum,
+	chatMessageRatingEnum,
 	groupKindEnum,
 	groupSystemKeyEnum,
 	principalTypeEnum,

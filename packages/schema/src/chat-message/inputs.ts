@@ -1,7 +1,11 @@
 import { z } from "zod/v4";
 import { zedTokenSchema } from "../shared";
 import { chatMessageIdSchema } from "./ref";
-import { chatMessageFieldsSchema, chatMessageSchema } from "./schema";
+import {
+	chatMessageFieldsSchema,
+	chatMessageRatingSchema,
+	chatMessageSchema,
+} from "./schema";
 
 /** The newest `limit` messages below `before`, by `position`. */
 export const listChatMessagesInputSchema = z.object({
@@ -25,12 +29,20 @@ export const findChatMessageInputSchema = z.object({
 export const rateChatMessageInputSchema = z.object({
 	id: chatMessageSchema.shape.id,
 	chatId: chatMessageSchema.shape.chatId,
-	sentiment: z.number().min(1).max(5),
+	rating: chatMessageRatingSchema.nullable(),
+});
+
+export const listChatMessageRatingsInputSchema = z.object({
+	chatId: chatMessageSchema.shape.chatId,
+	...zedTokenSchema.shape,
 });
 
 export type ListChatMessagesInput = z.infer<typeof listChatMessagesInputSchema>;
 export type CreateChatMessageInput = z.infer<
 	typeof createChatMessageInputSchema
+>;
+export type ListChatMessageRatingsInput = z.infer<
+	typeof listChatMessageRatingsInputSchema
 >;
 export type FindChatMessageInput = z.infer<typeof findChatMessageInputSchema>;
 export type RateChatMessageInput = z.infer<typeof rateChatMessageInputSchema>;

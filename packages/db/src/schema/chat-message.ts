@@ -1,4 +1,4 @@
-import type { ChatId, ChatMessageId } from "@orcai/core";
+import type { ChatId, ChatMessageId, UserId } from "@orcai/core";
 import type {
 	ChatMessageAttachment,
 	ChatMessageMetadata,
@@ -7,12 +7,15 @@ import type {
 import {
 	integer,
 	json,
+	pgEnum,
 	pgTable,
+	primaryKey,
 	timestamp,
 	uniqueIndex,
 	uuid,
 	varchar,
 } from "drizzle-orm/pg-core";
+import { user } from "./auth";
 import { chat } from "./chat";
 
 export const chatMessage = pgTable(
@@ -41,5 +44,41 @@ export const chatMessage = pgTable(
 			table.chatId,
 			table.position,
 		),
+	],
+);
+
+export const chatMessageRatingEnum = pgEnum("chat_message_rating_value", [
+	"very_much",
+	"a_bit",
+	"not_really",
+	"not_at_all",
+]);
+
+export const chatMessageRating = pgTable(
+	"chat_message_rating",
+	{
+		messageId: uuid("message_id")
+			.$type<ChatMessageId>()
+			.notNull()
+			.references(() => chatMessage.id, {
+				onDelete: "cascade",
+			}),
+		userId: uuid("user_id")
+			.$type<UserId>()
+			.notNull()
+			.references(() => user.id, {
+				onDelete: "cascade",
+			}),
+		rating: chatMessageRatingEnum("rating").notNull(),
+		createdAt: timestamp("created_at").defaultNow().notNull(),
+		updatedAt: timestamp("updated_at").defaultNow().notNull(),
+	},
+	(table) => [
+		primaryKey({
+			columns: [
+				table.messageId,
+				table.userId,
+			],
+		}),
 	],
 );
