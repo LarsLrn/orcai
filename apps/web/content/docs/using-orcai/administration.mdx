@@ -61,8 +61,10 @@ described under [Invitations](/docs/using-orcai/access-control#invitations).
 
 Admins are protected: only an Admin can give the Admin role, change an Admin's
 role or remove an Admin, so a manager sees an Admin's page without the password
-reset, the role change or the removal. The last Admin of an organisation cannot
-be removed. Your own page offers no password reset and no removal.
+reset, the role change or the removal. An organisation keeps at least one
+Admin who can sign in: the last one cannot be demoted, removed, banned or
+deleted, and a banned Admin does not count. Your own page offers no password
+reset and no removal.
 
 Removing a user from an organisation clears that organisation from the user's
 open sessions, and entering the app rechecks that the membership still exists.
@@ -207,7 +209,9 @@ once the organisation's slug is typed back. The delete then removes the
 memberships, invitations and groups along with the organisation's authorisation
 relationships, and any session that had the organisation active loses it and
 lands back on the organisation selection page. Resources scoped only to the
-deleted organisation stay behind without one for now.
+deleted organisation stay with their owners, without an organisation for now.
+Its former members lose their direct grants on them, as when they are removed
+one by one.
 
 **Users** (`/instance/users`) lists every account of the instance, searchable over name and email,
 with the organisations each account belongs to and its role in them. From here

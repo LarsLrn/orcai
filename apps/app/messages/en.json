@@ -2460,7 +2460,6 @@
 	"error_generic_unauthorized": "Sign in to continue.",
 	"error_generic_unknown": "Something went wrong.",
 	"error_generic_validation": "Some of the entered values are invalid.",
-	"error_grant_not_recorded": "The grant could not be recorded.",
 	"error_grant_principals_invalid": "Access could not be granted to one or more of the selected principals.",
 	"error_grant_rejection_all_members_viewer_only": "All Members can only receive viewer access.",
 	"error_grant_rejection_group_not_in_scope": "A group is not part of the organisation this resource belongs to.",

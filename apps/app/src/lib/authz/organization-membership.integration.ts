@@ -1,0 +1,376 @@
+import { describe, expect, test } from "bun:test";
+import type { OrganizationId, OrganizationRole, UserId } from "@orcai/core";
+import { DB, dbSchema } from "@orcai/db";
+import { eq } from "drizzle-orm";
+import * as Effect from "effect/Effect";
+import {
+	type Actor,
+	authzIntegration,
+	queueBehindOrganizationLock,
+	TIMEOUT,
+} from "@/lib/authz/authz-integration";
+import {
+	banAccount,
+	changeMemberRole,
+	deleteAccounts,
+	removeMembers,
+} from "@/lib/authz/organization-membership";
+
+const { run, organizationWith, outboxDelivered, readTuples, instanceAdmin } =
+	authzIntegration();
+
+const rejection = (operation: Promise<unknown>) =>
+	operation.then(
+		() => undefined,
+		(error: unknown) => error,
+	);
+
+type Organization = Awaited<ReturnType<typeof organizationWith>>;
+
+/** The actor, reading the organization's roles at least as new as its creation. */
+const actorOf = (organization: Organization, actor: Actor) => ({
+	userId: actor.user.id,
+	zedToken: organization.zedToken,
+});
+
+const changeRole =
+	(
+		organization: Organization,
+		actor: Actor,
+		target: Actor,
+		role: OrganizationRole,
+	) =>
+	() =>
+		run(
+			changeMemberRole({
+				organizationId: organization.organizationId,
+				userId: target.user.id,
+				role,
+				actor: actorOf(organization, actor),
+			}),
+		);
+
+const remove =
+	(organization: Organization, actor: Actor, target: Actor) => () =>
+		run(
+			removeMembers({
+				organizationId: organization.organizationId,
+				userIds: [
+					target.user.id,
+				],
+				actor: actorOf(organization, actor),
+			}),
+		);
+
+const ban = (target: Actor, actorId: UserId) => () =>
+	run(
+		banAccount({
+			userId: target.user.id,
+			reason: undefined,
+			actorId,
+		}),
+	);
+
+/** Each member's role, in both stores, as `role@userId`. */
+const rolesOf = async (organizationId: OrganizationId) => {
+	await outboxDelivered(organizationId);
+	const members = await run(
+		Effect.gen(function* () {
+			const db = yield* DB;
+			return yield* db
+				.select({
+					role: dbSchema.member.role,
+					userId: dbSchema.member.userId,
+				})
+				.from(dbSchema.member)
+				.where(eq(dbSchema.member.organizationId, organizationId));
+		}),
+	);
+	return {
+		members: members.map((member) => `${member.role}@${member.userId}`).sort(),
+		tuples: (
+			await readTuples({
+				resourceType: "organization",
+				resourceId: organizationId,
+			})
+		).map((tuple) => tuple.replace("user:", "")),
+	};
+};
+
+const isBanned = (actor: Actor) =>
+	run(
+		Effect.gen(function* () {
+			const db = yield* DB;
+			const [row] = yield* db
+				.select({
+					banned: dbSchema.user.banned,
+				})
+				.from(dbSchema.user)
+				.where(eq(dbSchema.user.id, actor.user.id));
+			return row.banned === true;
+		}),
+	);
+
+/** Runs `first` then `second` behind the lock and returns the second's error. */
+const secondRejected = async (
+	organizationId: OrganizationId,
+	first: () => Promise<unknown>,
+	second: () => Promise<unknown>,
+) => {
+	let rejected: unknown;
+	await queueBehindOrganizationLock(organizationId, first, async () => {
+		rejected = await rejection(second());
+	});
+	return rejected;
+};
+
+describe("role change and removal", () => {
+	test(
+		"removing a member queued after a demotion leaves no role in either store",
+		async () => {
+			const organization = await organizationWith([
+				"admin",
+				"admin",
+			]);
+			const {
+				organizationId,
+				actors: [admin, demoted],
+			} = organization;
+			await queueBehindOrganizationLock(
+				organizationId,
+				changeRole(organization, admin, demoted, "member"),
+				remove(organization, admin, demoted),
+			);
+			expect(await rolesOf(organizationId)).toEqual({
+				members: [
+					`admin@${admin.user.id}`,
+				],
+				tuples: [
+					`admin@${admin.user.id}`,
+				],
+			});
+		},
+		TIMEOUT,
+	);
+
+	test(
+		"of two admins demoting each other, the second is rejected",
+		async () => {
+			const organization = await organizationWith([
+				"admin",
+				"admin",
+			]);
+			const {
+				organizationId,
+				actors: [first, second],
+			} = organization;
+			const rejected = await secondRejected(
+				organizationId,
+				changeRole(organization, first, second, "member"),
+				changeRole(organization, second, first, "member"),
+			);
+			expect(rejected).toMatchObject({
+				reason: "LAST_ORGANIZATION_ADMIN_REQUIRED",
+			});
+			expect(await rolesOf(organizationId)).toEqual({
+				members: [
+					`admin@${first.user.id}`,
+					`member@${second.user.id}`,
+				].sort(),
+				tuples: [
+					`admin@${first.user.id}`,
+					`member@${second.user.id}`,
+				].sort(),
+			});
+		},
+		TIMEOUT,
+	);
+
+	test(
+		"a removal queued after a role change that left one admin is rejected",
+		async () => {
+			const organization = await organizationWith([
+				"admin",
+				"admin",
+			]);
+			const {
+				organizationId,
+				actors: [first, second],
+			} = organization;
+			const rejected = await secondRejected(
+				organizationId,
+				changeRole(organization, first, second, "manager"),
+				remove(organization, second, first),
+			);
+			expect(rejected).toMatchObject({
+				reason: "LAST_ORGANIZATION_ADMIN_REQUIRED",
+			});
+			expect(await rolesOf(organizationId)).toEqual({
+				members: [
+					`admin@${first.user.id}`,
+					`manager@${second.user.id}`,
+				].sort(),
+				tuples: [
+					`admin@${first.user.id}`,
+					`manager@${second.user.id}`,
+				].sort(),
+			});
+		},
+		TIMEOUT,
+	);
+
+	test(
+		"of two removals of the last two admins, the second is rejected",
+		async () => {
+			const organization = await organizationWith([
+				"admin",
+				"admin",
+			]);
+			const {
+				organizationId,
+				actors: [first, second],
+			} = organization;
+			const rejected = await secondRejected(
+				organizationId,
+				remove(organization, second, first),
+				remove(organization, first, second),
+			);
+			expect(rejected).toMatchObject({
+				reason: "LAST_ORGANIZATION_ADMIN_REQUIRED",
+			});
+			expect(await rolesOf(organizationId)).toEqual({
+				members: [
+					`admin@${second.user.id}`,
+				],
+				tuples: [
+					`admin@${second.user.id}`,
+				],
+			});
+		},
+		TIMEOUT,
+	);
+
+	test(
+		"a manager cannot change an admin's role",
+		async () => {
+			const organization = await organizationWith([
+				"admin",
+				"manager",
+			]);
+			const {
+				actors: [admin, manager],
+			} = organization;
+			expect(
+				await rejection(changeRole(organization, manager, admin, "member")()),
+			).toMatchObject({
+				reason: "ORGANIZATION_ADMIN_REQUIRED",
+			});
+		},
+		TIMEOUT,
+	);
+});
+
+describe("account ban and deletion", () => {
+	test(
+		"banning the last admin who can sign in is rejected",
+		async () => {
+			const organization = await organizationWith([
+				"admin",
+				"member",
+			]);
+			const {
+				organizationId,
+				actors: [admin],
+			} = organization;
+			const instance = await instanceAdmin(organizationId);
+			expect(await rejection(ban(admin, instance.user.id)())).toMatchObject({
+				reason: "LAST_ORGANIZATION_ADMIN_REQUIRED",
+			});
+			expect(await isBanned(admin)).toBe(false);
+		},
+		TIMEOUT,
+	);
+
+	test(
+		"a banned admin does not count towards the floor",
+		async () => {
+			const organization = await organizationWith([
+				"admin",
+				"admin",
+			]);
+			const {
+				organizationId,
+				actors: [banned, remaining],
+			} = organization;
+			const instance = await instanceAdmin(organizationId);
+			await ban(banned, instance.user.id)();
+			expect(await isBanned(banned)).toBe(true);
+			expect(
+				await rejection(
+					changeRole(organization, remaining, remaining, "member")(),
+				),
+			).toMatchObject({
+				reason: "LAST_ORGANIZATION_ADMIN_REQUIRED",
+			});
+		},
+		TIMEOUT,
+	);
+
+	test(
+		"a ban queued after a demotion of the other admin is rejected",
+		async () => {
+			const organization = await organizationWith([
+				"admin",
+				"admin",
+			]);
+			const {
+				organizationId,
+				actors: [first, second],
+			} = organization;
+			const instance = await instanceAdmin(organizationId);
+			const rejected = await secondRejected(
+				organizationId,
+				changeRole(organization, first, second, "member"),
+				ban(first, instance.user.id),
+			);
+			expect(rejected).toMatchObject({
+				reason: "LAST_ORGANIZATION_ADMIN_REQUIRED",
+			});
+			expect(await isBanned(first)).toBe(false);
+		},
+		TIMEOUT,
+	);
+
+	test(
+		"deleting the last admin's account is rejected",
+		async () => {
+			const organization = await organizationWith([
+				"admin",
+				"member",
+			]);
+			const {
+				organizationId,
+				actors: [admin],
+			} = organization;
+			const instance = await instanceAdmin(organizationId);
+			expect(
+				await rejection(
+					run(
+						deleteAccounts({
+							userIds: [
+								admin.user.id,
+							],
+							actorId: instance.user.id,
+						}),
+					),
+				),
+			).toMatchObject({
+				reason: "LAST_ORGANIZATION_ADMIN_REQUIRED",
+			});
+			expect((await rolesOf(organizationId)).members).toContain(
+				`admin@${admin.user.id}`,
+			);
+		},
+		TIMEOUT,
+	);
+});

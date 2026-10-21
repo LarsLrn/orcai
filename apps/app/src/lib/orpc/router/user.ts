@@ -1,4 +1,3 @@
-import { ORGANIZATION_ADMIN_ROLE } from "@orcai/core";
 import { DB, dbSchema } from "@orcai/db";
 import {
 	ALL_MEMBERS_GROUP_SYSTEM_KEY,
@@ -31,18 +30,13 @@ import {
 	ne,
 	or,
 } from "drizzle-orm";
-import { EffectDrizzleQueryError } from "drizzle-orm/effect-core";
-import * as Cause from "effect/Cause";
 import * as Effect from "effect/Effect";
-import { SqlError } from "effect/unstable/sql/SqlError";
 import { auth } from "@/lib/auth/auth";
-import { detachAccountAccess } from "@/lib/authz/membership-detach";
 import { touchOrganizationRoles } from "@/lib/authz/organization-lifecycle";
-import { RelationshipFact } from "@/lib/authz/relationship-facts";
 import {
-	recordRelationshipFacts,
-	writeRelationships,
-} from "@/lib/authz/relationship-write";
+	banAccount,
+	deleteAccounts,
+} from "@/lib/authz/organization-membership";
 import { getZedToken } from "@/lib/authz/zed-token";
 import * as AppErrors from "@/lib/effect/utils/errors";
 import { authed } from "@/lib/orpc/implementation/authed";
@@ -58,10 +52,6 @@ import {
 } from "@/lib/orpc/middlewares/permission";
 import { unique } from "@/lib/utils/array-utils";
 import { literalSearch } from "./helpers/literal-search";
-import {
-	assertAdminRemainsAfterRemoving,
-	countRemovedAdmins,
-} from "./helpers/organization-role-policy";
 import { buildOrderBy, type SortExpression } from "./helpers/sorting";
 
 /** Better Auth reads the caller's session from the request headers. */
@@ -75,22 +65,6 @@ const requireRequestHeaders = (headers: Headers | undefined) =>
 				}),
 		),
 	);
-
-/** Match database constraint violations through nested Effect SQL causes */
-const isConstraintViolation = (error: unknown) => {
-	if (
-		!(error instanceof EffectDrizzleQueryError) ||
-		!Cause.isCause(error.cause)
-	) {
-		return false;
-	}
-
-	const failure = Cause.squash(error.cause);
-
-	return (
-		failure instanceof SqlError && failure.reason._tag === "ConstraintError"
-	);
-};
 
 const listUsers = authed.user.list
 	.use(requireActiveOrganizationMiddleware)
@@ -265,33 +239,10 @@ const listAllUsers = authed.user.listAll
 const banUser = authed.user.ban
 	.use(requireInstanceAdminMiddleware)
 	.effect(function* ({ input, context }) {
-		if (input.userId === context.auth.user.id) {
-			return yield* Effect.fail(
-				new AppErrors.BadRequestError({
-					reason: "SELF_BAN_FORBIDDEN",
-					message: "You cannot ban your own account.",
-				}),
-			);
-		}
-
-		const headers = yield* requireRequestHeaders(context.reqHeaders);
-
-		yield* Effect.tryPromise({
-			try: () =>
-				auth.api.banUser({
-					body: {
-						userId: input.userId,
-						banReason: input.reason,
-					},
-					headers,
-				}),
-			catch: (error) =>
-				new AppErrors.BadRequestError({
-					reason: "USER_BAN_FAILED",
-					message:
-						error instanceof Error ? error.message : "Failed to ban the user.",
-					cause: error,
-				}),
+		yield* banAccount({
+			userId: input.userId,
+			reason: input.reason,
+			actorId: context.auth.user.id,
 		});
 
 		return {
@@ -811,153 +762,14 @@ const listUserAccess = authed.user.listAccess
 const deleteUsers = authed.user.delete
 	.use(requireInstanceAdminMiddleware)
 	.effect(function* ({ input, context }) {
-		const db = yield* DB;
-		const now = new Date();
-		const userIds = Array.from(new Set(input.userIds));
-
-		if (userIds.length !== input.userIds.length) {
-			return yield* Effect.fail(
-				new AppErrors.BadRequestError({
-					reason: "ITEMS_NOT_UNIQUE",
-					message: "Selected users must be unique",
-				}),
-			);
-		}
-
-		if (userIds.includes(context.auth.user.id)) {
-			return yield* Effect.fail(
-				new AppErrors.BadRequestError({
-					reason: "SELF_DELETE_FORBIDDEN",
-					message: "You cannot delete your own account.",
-				}),
-			);
-		}
-
-		const organizationIds = (yield* db
-			.selectDistinct({
-				organizationId: dbSchema.member.organizationId,
-			})
-			.from(dbSchema.member)
-			.where(inArray(dbSchema.member.userId, userIds))).map(
-			(membership) => membership.organizationId,
-		);
-
-		yield* writeRelationships(
-			{
-				organizationIds,
-			},
-			Effect.gen(function* () {
-				const existingUsers = yield* db
-					.select({
-						id: dbSchema.user.id,
-					})
-					.from(dbSchema.user)
-					.where(inArray(dbSchema.user.id, userIds));
-
-				if (existingUsers.length !== userIds.length) {
-					return yield* Effect.fail(
-						new AppErrors.NotFoundError({
-							reason: "USER_NOT_FOUND",
-							message: "One or more selected users do not exist.",
-						}),
-					);
-				}
-
-				const memberships = yield* db
-					.select({
-						organizationId: dbSchema.member.organizationId,
-						userId: dbSchema.member.userId,
-						role: dbSchema.member.role,
-					})
-					.from(dbSchema.member)
-					.where(inArray(dbSchema.member.userId, userIds));
-
-				const byOrganization = new Map<
-					(typeof memberships)[number]["organizationId"],
-					typeof memberships
-				>();
-				for (const membership of memberships) {
-					const bucket = byOrganization.get(membership.organizationId) ?? [];
-					bucket.push(membership);
-					byOrganization.set(membership.organizationId, bucket);
-				}
-
-				for (const [organizationId, members] of byOrganization) {
-					const removedAdminCount = countRemovedAdmins({
-						members,
-					});
-					if (removedAdminCount === 0) {
-						continue;
-					}
-
-					const [adminCountResult] = yield* db
-						.select({
-							count: count(),
-						})
-						.from(dbSchema.member)
-						.where(
-							and(
-								eq(dbSchema.member.organizationId, organizationId),
-								eq(dbSchema.member.role, ORGANIZATION_ADMIN_ROLE),
-							),
-						);
-					yield* assertAdminRemainsAfterRemoving({
-						adminCount: Number(adminCountResult?.count ?? 0),
-						removedAdminCount,
-					});
-				}
-
-				if (memberships.length > 0) {
-					yield* db
-						.delete(dbSchema.member)
-						.where(inArray(dbSchema.member.userId, userIds));
-				}
-
-				yield* recordRelationshipFacts(
-					...memberships.map((membership) =>
-						RelationshipFact.OrganizationRoleChanged({
-							organizationId: membership.organizationId,
-							userId: membership.userId,
-							from: membership.role,
-							to: null,
-						}),
-					),
-				);
-
-				yield* detachAccountAccess({
-					userIds,
-					now,
-				});
-
-				yield* db
-					.delete(dbSchema.session)
-					.where(inArray(dbSchema.session.userId, userIds));
-
-				yield* db
-					.delete(dbSchema.account)
-					.where(inArray(dbSchema.account.userId, userIds));
-
-				yield* db
-					.delete(dbSchema.user)
-					.where(inArray(dbSchema.user.id, userIds))
-					.pipe(
-						Effect.catchIf(isConstraintViolation, (cause) =>
-							Effect.fail(
-								new AppErrors.ConflictError({
-									reason: "USER_OWNS_CONTENT",
-									message:
-										"This account still owns groups, resources, grants or invitations, so it cannot be deleted yet. Hand that content over first.",
-									cause,
-								}),
-							),
-						),
-					);
-			}),
-		);
+		const deletedCount = yield* deleteAccounts({
+			userIds: input.userIds,
+			actorId: context.auth.user.id,
+		});
 
 		return {
 			success: true,
-			deletedCount: userIds.length,
+			deletedCount,
 		};
 	});
 

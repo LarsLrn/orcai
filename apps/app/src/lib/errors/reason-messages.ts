@@ -84,7 +84,6 @@ const reasonMessages: ReasonMessages = {
 			feature: featureLabel(feature),
 			requirement: featureLabel(requirement),
 		}),
-	GRANT_NOT_RECORDED: m.error_grant_not_recorded,
 	GRANT_PRINCIPALS_INVALID: ({ rejections }) =>
 		[
 			m.error_grant_principals_invalid(),
