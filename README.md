@@ -117,7 +117,7 @@ Notes:
 - Each Playwright worker creates its own organisations and users through the public API, so specs run in parallel without sharing data.
 - A mock OpenAI-compatible inference server (`apps/e2e/fixtures/inference`) runs on `E2E_INFERENCE_PORT` for the whole suite; `stack e2e` points the app's global endpoint at it, and specs that configure a provider start their own on an ephemeral port. No run reaches a real provider.
 - To keep your dev data, run the suite against a second stack: `bun run stack --name <name>-e2e --env-file .env.e2e up`, then the same command with those flags. Run the stacks of one checkout one after the other, since both builds would share `apps/app/dist`.
-- GitHub Actions uses the pinned workspace Playwright, fails on flaky retries, and uploads the report on failure.
+- GitHub Actions uses the pinned workspace Playwright, splits the suite across three shards with the integration tier on the first, fails on flaky retries, and uploads each failing shard's report. Pull requests that only change `apps/web/content`, the root `LICENSE`, or Markdown outside `apps/app`, `apps/workers`, and `packages` skip the shards; the required `e2e` check still passes.
 
 For the e2e workflow and fixture contract, see [Development docs: End-To-End Tests](apps/web/content/docs/development/testing.mdx).
 

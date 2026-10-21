@@ -97,7 +97,9 @@ foundation files shared by every area; coordinate before changing them.
 
 ## Continuous Integration
 
-GitHub Actions runs the suite as a separate blocking `e2e` job, in parallel with `validate`. It installs Chromium with the pinned `apps/e2e` Playwright, starts the stack, runs `bun run stack e2e --yes`, which includes the integration tier, and uploads failure artifacts for seven days.
+GitHub Actions runs the suite in parallel with `validate`, split across three shard jobs with Playwright's `--shard`. Each shard installs Chromium with the pinned `apps/e2e` Playwright, starts its own stack, runs `bun run stack e2e --yes -- --shard=<i>/3`, and uploads its failure artifacts for seven days. Shard 1 also runs the integration tier; shards 2 and 3 pass `--no-integration`. The `setup` and `instance` projects are dependencies, so every shard runs them before its share of the rest. The required `e2e` job passes when every shard passed.
+
+Pull requests that only change docs content (`apps/web/content`), `LICENSE`, or Markdown outside `apps/app`, `apps/workers`, and `packages` skip the shards; `e2e` still reports success. Pushes to `main` always run the full suite.
 
 Worker-local inference settings reset before and after every test, including
 failed tests; other workers keep their own scenarios. Well-known-admin browser

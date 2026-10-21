@@ -34,9 +34,41 @@ jobs:
         env:
           NODE_OPTIONS: --max-old-space-size=4096
 
-  e2e:
+  changes:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    outputs:
+      e2e: ${{ steps.filter.outputs.e2e }}
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@v7
+        with:
+          fetch-depth: 2
+
+      # Pull requests whose changes are all docs content or Markdown outside
+      # the runtime packages skip e2e; everything else runs it.
+      - name: Decide whether e2e runs
+        id: filter
+        run: |
+          if [ "$GITHUB_EVENT_NAME" != pull_request ]; then
+            echo e2e=true >> "$GITHUB_OUTPUT"
+            exit 0
+          fi
+          runtime=$(git diff --name-only --no-renames HEAD^1 HEAD | awk '
+            !/^apps\/web\/content\// && !/^LICENSE$/ &&
+            !(/\.md$/ && !/^(apps\/(app|workers)|packages)\//)')
+          echo "e2e=$([ -n "$runtime" ] && echo true || echo false)" >> "$GITHUB_OUTPUT"
+
+  e2e-shard:
+    name: e2e ${{ matrix.shard }}/3
+    needs: changes
+    if: needs.changes.outputs.e2e == 'true'
     runs-on: ubuntu-latest
     timeout-minutes: 30
+    strategy:
+      fail-fast: false
+      matrix:
+        shard: [1, 2, 3]
     steps:
       - name: Check out repository
         uses: actions/checkout@v7
@@ -57,7 +89,8 @@ jobs:
         run: bun run stack up
 
       - name: Run end-to-end tests
-        run: bun run stack e2e --yes
+        # The integration tier runs once, on shard 1.
+        run: bun run stack e2e --yes ${{ matrix.shard != 1 && '--no-integration' || '' }} -- --shard=${{ matrix.shard }}/3
         env:
           CI: true
           NODE_OPTIONS: --max-old-space-size=4096
@@ -66,8 +99,20 @@ jobs:
         if: failure()
         uses: actions/upload-artifact@v7
         with:
-          name: playwright-report
+          name: playwright-report-${{ matrix.shard }}
           path: |
             apps/e2e/playwright-report
             apps/e2e/test-results
           retention-days: 7
+
+  # The required check: passes when every shard passed or e2e was skipped.
+  e2e:
+    needs: [changes, e2e-shard]
+    if: ${{ !cancelled() }}
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - name: Check shard results
+        run: |
+          [ "${{ needs.changes.result }}" = success ]
+          [[ "${{ needs.e2e-shard.result }}" =~ ^(success|skipped)$ ]]
