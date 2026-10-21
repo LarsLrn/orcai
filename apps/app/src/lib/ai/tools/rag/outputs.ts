@@ -26,6 +26,35 @@ export const listOutputSchema = z.object({
 	documents: z.array(knowledgeBaseDocumentSchema),
 });
 
+const passageOutputs: Record<string, z.ZodType<Passage[]>> = {
+	searchKnowledgeBase: searchOutputSchema.transform(({ results }) => results),
+	getKnowledgeBaseChunks: chunksOutputSchema.transform(
+		({ passages }) => passages,
+	),
+	getKnowledgeBasePage: pageOutputSchema.transform(({ passages }) => passages),
+};
+
+/** The passages a knowledge base call returned; none for other tools and older shapes. */
+export const passagesOf = (toolName: string, output: unknown): Passage[] =>
+	(Object.hasOwn(passageOutputs, toolName)
+		? passageOutputs[toolName].safeParse(output).data
+		: undefined) ?? [];
+
+/** The passages of a message's finished knowledge base calls. */
+export const passagesOfParts = (
+	parts: readonly {
+		type: string;
+	}[],
+) =>
+	parts.flatMap((part) =>
+		part.type.startsWith("tool-") &&
+		"state" in part &&
+		part.state === "output-available" &&
+		"output" in part
+			? passagesOf(part.type.slice("tool-".length), part.output)
+			: [],
+	);
+
 const pagesLabel = ({ pageStart, pageEnd }: Passage) => {
 	if (pageStart === undefined) {
 		return undefined;
@@ -39,7 +68,7 @@ const pagesLabel = ({ pageStart, pageEnd }: Passage) => {
 const passageText = (passage: Passage) =>
 	[
 		[
-			`[${passage.id}] ${passage.title} (asset ${passage.assetId})`,
+			`[${passage.ref}] ${passage.title}`,
 			pagesLabel(passage),
 		]
 			.filter(Boolean)

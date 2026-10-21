@@ -1,6 +1,16 @@
 import { z } from "zod/v4";
 import { chatMessageAttachmentSchema } from "./attachment";
 
+/** The source a `<cite chunk>` ref of the reply names. */
+export const chatMessageCitationSchema = z.object({
+	assetId: z.string(),
+	title: z.string(),
+	/** Set when the cited passage lies on one page. */
+	page: z.number().optional(),
+});
+
+export type ChatMessageCitation = z.infer<typeof chatMessageCitationSchema>;
+
 export const chatMessageMetadataSchema = z.object({
 	model: z.string().optional(),
 	totalUsage: z
@@ -43,6 +53,8 @@ export const chatMessageMetadataSchema = z.object({
 	stepLimitReached: z.boolean().optional(),
 	/** The turn stopped because its next step would not fit the context window. */
 	contextLimitReached: z.boolean().optional(),
+	/** The sources of the chunk refs the reply cites, by ref. */
+	citations: z.record(z.string(), chatMessageCitationSchema).optional(),
 });
 
 export type ChatMessageMetadata = z.infer<typeof chatMessageMetadataSchema>;

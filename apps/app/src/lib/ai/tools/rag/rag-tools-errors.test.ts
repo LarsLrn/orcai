@@ -4,6 +4,7 @@ import { ORPCError } from "@orpc/client";
 import * as Effect from "effect/Effect";
 import type { ORPCContext } from "@/lib/orpc/implementation/os";
 import { answers, resetProcedures } from "../assistant/test-procedures";
+import { chunkIds } from "./chunk-ref";
 
 const { getKnowledgeBaseChunksTool } = await import(
 	"./get-knowledge-base-chunk"
@@ -25,6 +26,7 @@ const deps = {
 	context: {
 		secureCookies: false,
 	} as ORPCContext,
+	chunks: chunkIds([]),
 };
 
 const options = {
@@ -83,7 +85,7 @@ describe("knowledge base tool errors", () => {
 		const run = getKnowledgeBaseChunksTool(deps).execute?.(
 			{
 				chunks: [
-					"chunk-1",
+					"101",
 				],
 				neighbours: 0,
 			},

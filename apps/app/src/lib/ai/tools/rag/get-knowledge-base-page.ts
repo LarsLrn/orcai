@@ -8,6 +8,7 @@ import z from "zod/v4";
 import { effectTool } from "@/lib/ai/tools/assistant/procedure-tool";
 import type { ORPCContext } from "@/lib/orpc/implementation/os";
 import { Procedures } from "@/lib/orpc/implementation/procedures";
+import type { ChunkIds } from "./chunk-ref";
 import { pageModelOutput } from "./outputs";
 import { neighbouringRuns } from "./passages";
 import type { KnowledgeBaseDocument, Passage } from "./types";
@@ -24,9 +25,11 @@ import {
 export const getKnowledgeBasePageTool = ({
 	blocks,
 	context,
+	chunks,
 }: {
 	blocks: DatabaseBlock[];
 	context: ORPCContext;
+	chunks: ChunkIds;
 }) =>
 	effectTool({
 		description:
@@ -169,8 +172,11 @@ export const getKnowledgeBasePageTool = ({
 					.sort(compareByPageAssetChunk)
 					.slice(0, limit);
 
+				const passages = neighbouringRuns(points).map((run) => toPassage(run));
+				chunks.add(passages);
+
 				return {
-					passages: neighbouringRuns(points).map(toPassage),
+					passages,
 					matchedDocuments: matchedDocuments.slice(0, 20),
 					nextAction:
 						points.length > 0

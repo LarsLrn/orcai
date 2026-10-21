@@ -15,16 +15,11 @@ const buildKnowledgeBaseGuidance = () =>
 		"- If your final answer uses knowledge-base evidence, citations are required.",
 		"- Every substantive factual claim grounded in retrieved content should have an inline citation on the supporting sentence or clause. Do not leave all citations to the end.",
 		"- The only supported citation syntax is an inline HTML <cite> tag. Do not use markdown footnotes, bracketed references, or a separate Sources section.",
-		'- Required shape: <cite assetid="<asset id>" title="<document title>" page="<page number>">cited text</cite>',
-		"- Use the attribute name assetid exactly in lowercase.",
-		"- Take assetid and title from the passage header, which reads [chunk id] title (asset id), p. N.",
-		"- If the passage lies on one page, include page. Otherwise omit the page attribute entirely.",
-		"- Do not invent citation labels, asset IDs, or page numbers.",
-		"- Do not cite facts that were not retrieved from the knowledge base.",
+		'- Each passage starts with its ref in brackets, such as [k7f3a2]. Cite it as <cite chunk="k7f3a2">cited text</cite>.',
+		"- Use only refs from retrieved passages. Do not invent refs, and do not cite facts that were not retrieved from the knowledge base.",
 		"",
-		"Examples:",
-		'- <cite assetid="a1b2c3" title="Introduction to Environmental Science" page="2">Carbon dioxide levels have risen by 50%</cite>',
-		'- <cite assetid="d4e5f6" title="Miller, 2023">Sustainability requires systemic change</cite>',
+		"Example:",
+		'- <cite chunk="k7f3a2">Carbon dioxide levels have risen by 50%</cite>',
 	].join("\n");
 
 export const buildFormattingGuidance = () =>

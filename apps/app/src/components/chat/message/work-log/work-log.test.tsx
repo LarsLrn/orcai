@@ -83,6 +83,7 @@ describe("SearchKnowledgeBase", () => {
 				part={searchPart({
 					results: [
 						{
+							ref: "k000001",
 							id: "c1",
 							assetId: "asset-a",
 							title: "Refund policy",

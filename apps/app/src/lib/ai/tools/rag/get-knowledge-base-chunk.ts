@@ -5,6 +5,7 @@ import { effectTool } from "@/lib/ai/tools/assistant/procedure-tool";
 import type { ORPCContext } from "@/lib/orpc/implementation/os";
 import { Procedures } from "@/lib/orpc/implementation/procedures";
 import { RETRIEVAL_LIMITS } from "@/settings/constants";
+import type { ChunkIds } from "./chunk-ref";
 import { chunksModelOutput } from "./outputs";
 import { neighbouringRuns } from "./passages";
 import type { PointWithBlock } from "./types";
@@ -27,9 +28,11 @@ const neighbourIndexes = (point: PointWithBlock, neighbours: number) =>
 export const getKnowledgeBaseChunksTool = ({
 	blocks,
 	context,
+	chunks: known,
 }: {
 	blocks: DatabaseBlock[];
 	context: ORPCContext;
+	chunks: ChunkIds;
 }) =>
 	effectTool({
 		description:
@@ -39,7 +42,7 @@ export const getKnowledgeBaseChunksTool = ({
 				.array(z.string())
 				.min(1)
 				.max(RETRIEVAL_LIMITS.maxFullChunkFetches)
-				.describe("Chunk ids from earlier results."),
+				.describe("Refs of passages from earlier results, such as k7f3a2."),
 			neighbours: z.coerce
 				.number()
 				.int()
@@ -51,11 +54,13 @@ export const getKnowledgeBaseChunksTool = ({
 		run: ({ chunks, neighbours }) =>
 			Effect.gen(function* () {
 				const procedures = yield* Procedures;
-				const ids = Array.from(new Set(chunks));
+				const ids = Array.from(
+					new Set(chunks.flatMap((chunk) => known.idOf(chunk) ?? [])),
+				);
 
 				const found = flattenBlockResponses(
 					yield* Effect.forEach(
-						blocks,
+						ids.length > 0 ? blocks : [],
 						(block) =>
 							procedures.assetPoint
 								.searchRepository(
@@ -120,7 +125,8 @@ export const getKnowledgeBaseChunksTool = ({
 										chunkIndices: [
 											...indexes,
 										],
-										limit: indexes.size,
+										// Text and image chunks of one asset share indexes.
+										limit: indexes.size * 2,
 									},
 								},
 								{
@@ -147,9 +153,15 @@ export const getKnowledgeBaseChunksTool = ({
 				const passages = neighbouringRuns([
 					...requested,
 					...around.flat(),
-				]).map(toPassage);
-				const missing = ids.filter(
-					(id) => !requested.some((point) => point.id === id),
+				]).map((run) =>
+					toPassage(
+						run,
+						run.find((point) => requested.includes(point)),
+					),
+				);
+				known.add(passages);
+				const missing = chunks.filter(
+					(chunk) => !requested.some((point) => point.id === known.idOf(chunk)),
 				);
 
 				return {

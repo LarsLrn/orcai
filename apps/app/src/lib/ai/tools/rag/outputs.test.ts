@@ -8,6 +8,7 @@ import {
 import type { Passage } from "./types";
 
 const passage = (fields: Partial<Passage> = {}): Passage => ({
+	ref: "k000001",
 	id: "c1",
 	assetId: "asset-a",
 	title: "Refund policy",
@@ -30,6 +31,7 @@ describe("knowledge base model output", () => {
 						results: [
 							passage(),
 							passage({
+								ref: "k000007",
 								id: "c7",
 								title: "Travel policy",
 								pageStart: 2,
@@ -37,6 +39,7 @@ describe("knowledge base model output", () => {
 								text: "Book trains over flights.",
 							}),
 							passage({
+								ref: "k000009",
 								id: "c9",
 								pageStart: undefined,
 								pageEnd: undefined,
@@ -48,13 +51,13 @@ describe("knowledge base model output", () => {
 			),
 		).toBe(
 			[
-				"[c1] Refund policy (asset asset-a), p. 4",
+				"[k000001] Refund policy, p. 4",
 				"Refunds are paid within 14 days.",
 				"",
-				"[c7] Travel policy (asset asset-a), pp. 2-3",
+				"[k000007] Travel policy, pp. 2-3",
 				"Book trains over flights.",
 				"",
-				"[c9] Refund policy (asset asset-a)",
+				"[k000009] Refund policy",
 				"No pages here.",
 			].join("\n"),
 		);
@@ -88,7 +91,7 @@ describe("knowledge base model output", () => {
 			),
 		).toBe(
 			[
-				"[c1] Refund policy (asset asset-a), p. 4",
+				"[k000001] Refund policy, p. 4",
 				"Refunds are paid within 14 days.",
 				"",
 				"Not found: gone",

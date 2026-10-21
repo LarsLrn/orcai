@@ -2,7 +2,12 @@ import { afterEach, describe, expect, test } from "bun:test";
 import type { AssetPoint, DatabaseBlock } from "@orcai/schema";
 import * as Effect from "effect/Effect";
 import type { ORPCContext } from "@/lib/orpc/implementation/os";
-import { answers, resetProcedures } from "../assistant/test-procedures";
+import {
+	answers,
+	procedureCalls,
+	resetProcedures,
+} from "../assistant/test-procedures";
+import { chunkIds, chunkRef } from "./chunk-ref";
 import { assetPoint } from "./test-points";
 
 const { getKnowledgeBaseChunksTool } = await import(
@@ -21,6 +26,7 @@ const deps = {
 	context: {
 		secureCookies: false,
 	} as ORPCContext,
+	chunks: chunkIds([]),
 };
 
 const options = {
@@ -33,20 +39,20 @@ const longText = `${"Refunds are paid within fourteen days. ".repeat(25)}End.`;
 
 const chunks = [
 	assetPoint({
-		id: "c1",
+		id: "101",
 		index: 1,
 		text: "Chapter 3. Refunds. Refunds are paid within 14 days of the request being approved.",
 		pageStart: 4,
 	}),
 	assetPoint({
-		id: "c2",
+		id: "102",
 		index: 2,
 		text: "of the request being approved. Late refunds earn interest at 2%.",
 		pageStart: 4,
 		pageEnd: 5,
 	}),
 	assetPoint({
-		id: "c3",
+		id: "103",
 		index: 3,
 		text: "Interest is paid with the refund.",
 		pageStart: 5,
@@ -106,13 +112,26 @@ describe("searchKnowledgeBase", () => {
 });
 
 describe("getKnowledgeBaseChunks", () => {
-	test("reads a chunk with its neighbours as one passage", async () => {
+	test("reads around a chunk named by its ref as one passage", async () => {
 		answers["assetPoint.searchRepository"] = searchChunks;
+		const ref = chunkRef("102");
 
-		const output = await getKnowledgeBaseChunksTool(deps).execute?.(
+		const output = await getKnowledgeBaseChunksTool({
+			...deps,
+			chunks: chunkIds([
+				{
+					ref,
+					id: "102",
+					assetId: "asset-a",
+					title: "Refund policy",
+					blockName: "Handbook",
+					text: "of the request being approved.",
+				},
+			]),
+		}).execute?.(
 			{
 				chunks: [
-					"c2",
+					ref,
 				],
 				neighbours: 1,
 			},
@@ -122,7 +141,8 @@ describe("getKnowledgeBaseChunks", () => {
 		expect(output).toEqual({
 			passages: [
 				{
-					id: "c1",
+					ref,
+					id: "102",
 					assetId: "asset-a",
 					title: "Refund policy",
 					blockName: "Handbook",
@@ -135,14 +155,14 @@ describe("getKnowledgeBaseChunks", () => {
 		});
 	});
 
-	test("names the chunks it could not find", async () => {
+	test("names the chunks it could not find, without asking for unknown refs", async () => {
 		answers["assetPoint.searchRepository"] = searchChunks;
 
 		const output = await getKnowledgeBaseChunksTool(deps).execute?.(
 			{
 				chunks: [
-					"c1",
-					"gone",
+					"101",
+					"k999999",
 				],
 				neighbours: 0,
 			},
@@ -152,12 +172,20 @@ describe("getKnowledgeBaseChunks", () => {
 		expect(output).toMatchObject({
 			passages: [
 				{
-					id: "c1",
+					ref: chunkRef("101"),
+					id: "101",
 				},
 			],
 			missing: [
-				"gone",
+				"k999999",
 			],
+		});
+		expect(procedureCalls[0]?.input).toMatchObject({
+			filters: {
+				pointIds: [
+					"101",
+				],
+			},
 		});
 	});
 });

@@ -4,7 +4,9 @@ import { z } from "zod/v4";
 
 /** Text of one document read as one piece: a chunk, or neighbouring chunks joined. */
 export const passageSchema = z.object({
-	/** The first chunk's point id. */
+	/** What the model cites the passage by. */
+	ref: z.string(),
+	/** The point id of the chunk the passage was read for. */
 	id: z.string(),
 	assetId: z.string(),
 	title: z.string(),

@@ -5,7 +5,7 @@ import { useQuery } from "@tanstack/react-query";
 import { Link } from "@tanstack/react-router";
 import { ExternalLinkIcon } from "lucide-react";
 import type { ReactNode } from "react";
-import { useState } from "react";
+import { createContext, use, useState } from "react";
 import {
 	InlineCitation,
 	InlineCitationCard,
@@ -17,6 +17,7 @@ import { formatAssetTitle } from "@/components/chat/message/asset-title";
 import { Badge } from "@/components/ui/badge";
 import { buttonVariants } from "@/components/ui/button";
 import { Spinner } from "@/components/ui/spinner";
+import type { Citations } from "@/lib/ai/tools/rag/citations";
 import { orpc } from "@/lib/orpc/orpc";
 import { m } from "@/paraglide/messages";
 
@@ -117,39 +118,32 @@ const CiteCardContent = ({
 	);
 };
 
-export const CiteComponent = ({
-	assetid,
-	assetId,
-	asset_id,
+/** The sources of the chunk refs the message cites. */
+export const CitationsContext = createContext<Citations>({});
+
+const CitePill = ({
+	rawAssetId,
 	title,
 	page,
-	pageNumber,
-	page_number,
 	children,
 }: {
-	assetid?: string;
-	assetId?: string;
-	asset_id?: string;
-	title?: string;
-	page?: string;
-	pageNumber?: string;
-	page_number?: string;
+	rawAssetId: string | undefined;
+	title: string | undefined;
+	page: number | null;
 	children?: ReactNode;
 }) => {
 	const [hasOpened, setHasOpened] = useState(false);
-	const resolvedAssetId = (() => {
-		const raw = assetid ?? assetId ?? asset_id;
-		const result = assetIdSchema.safeParse(raw);
-		return result.success ? result.data : undefined;
-	})();
-	const resolvedPage = parsePageNumber(page ?? pageNumber ?? page_number);
+	const parsedAssetId = assetIdSchema.safeParse(rawAssetId);
+	const resolvedAssetId = parsedAssetId.success
+		? parsedAssetId.data
+		: undefined;
 	const assetTitle = formatAssetTitle(title) ?? m.chat_source_fallback_title();
 	const pillLabel =
-		resolvedPage == null
+		page == null
 			? assetTitle
 			: m.ai_elements_cite_pill_label_with_page({
 					title: assetTitle,
-					page: resolvedPage,
+					page,
 				});
 
 	return (
@@ -172,10 +166,10 @@ export const CiteComponent = ({
 						<CiteCardContent
 							assetId={resolvedAssetId}
 							title={assetTitle}
-							page={resolvedPage}
+							page={page}
 						/>
 					) : (
-						<CiteCardShell title={assetTitle} page={resolvedPage}>
+						<CiteCardShell title={assetTitle} page={page}>
 							<p className="text-muted-foreground text-xs">
 								{m.ai_elements_cite_unknown_source()}
 							</p>
@@ -184,6 +178,62 @@ export const CiteComponent = ({
 				</InlineCitationCardBody>
 			</InlineCitationCard>
 		</InlineCitation>
+	);
+};
+
+/**
+ * A citation by chunk ref, resolved from the message's citations, or by the
+ * asset id, title and page of older answers. An unknown ref is plain text.
+ */
+export const CiteComponent = ({
+	chunk,
+	assetid,
+	assetId,
+	asset_id,
+	title,
+	page,
+	pageNumber,
+	page_number,
+	children,
+}: {
+	chunk?: string;
+	assetid?: string;
+	assetId?: string;
+	asset_id?: string;
+	title?: string;
+	page?: string;
+	pageNumber?: string;
+	page_number?: string;
+	children?: ReactNode;
+}) => {
+	const citations = use(CitationsContext);
+
+	if (chunk === undefined) {
+		return (
+			<CitePill
+				rawAssetId={assetid ?? assetId ?? asset_id}
+				title={title}
+				page={parsePageNumber(page ?? pageNumber ?? page_number)}
+			>
+				{children}
+			</CitePill>
+		);
+	}
+
+	const citation = Object.hasOwn(citations, chunk)
+		? citations[chunk]
+		: undefined;
+
+	return citation ? (
+		<CitePill
+			rawAssetId={citation.assetId}
+			title={citation.title}
+			page={citation.page ?? null}
+		>
+			{children}
+		</CitePill>
+	) : (
+		children
 	);
 };
 

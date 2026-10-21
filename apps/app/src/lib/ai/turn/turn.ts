@@ -42,6 +42,7 @@ import {
 	type AssistantTurn,
 	createAssistantTurn,
 } from "@/lib/ai/tools/assistant/turn-state";
+import { turnCitations } from "@/lib/ai/tools/rag/citations";
 import { latestPlanPart } from "@/lib/ai/turn-view/plan";
 import type { ChatAgentUIMessage } from "@/lib/ai/types/chat-agent-message";
 import { getChatMessageAttachments } from "@/lib/ai/types/chat-attachment";
@@ -71,6 +72,15 @@ type TurnInput = TurnRequester & {
 	stop: AbortSignal | undefined;
 };
 
+type TurnStep = {
+	usage: LanguageModelUsage;
+	text: string;
+	toolResults: readonly {
+		toolName: string;
+		output: unknown;
+	}[];
+};
+
 type TurnStreamOptions = {
 	uiMessages: UIMessage[];
 	originalMessages: UIMessage<ChatMessageMetadata>[];
@@ -78,7 +88,7 @@ type TurnStreamOptions = {
 	maxSteps: number;
 	promptTokens: number | undefined;
 	replyId: ChatMessageId;
-	onStepEnd: (usage: LanguageModelUsage) => void;
+	onStepEnd: (step: TurnStep) => void;
 	onEnd: (event: {
 		responseMessage: UIMessage<ChatMessageMetadata>;
 		outcome: UIMessageStreamOutcome;
@@ -137,7 +147,7 @@ const turnAgent = <Tools extends ToolSet>({
 				delayInMs: 20,
 				chunking: "word",
 			}),
-			onStepEnd: (step) => options.onStepEnd(step.usage),
+			onStepEnd: options.onStepEnd,
 			onEnd: options.onEnd,
 			onError: options.onError,
 			messageMetadata: ({ part }) => options.messageMetadata(part),
@@ -223,6 +233,7 @@ const buildAgent = ({
 					compaction: setup.compaction,
 					telemetryIds,
 					context: input.context,
+					history,
 				}),
 			),
 			assistantTurn: undefined,
@@ -414,6 +425,8 @@ const streamTurn = ({
 					};
 		};
 
+		const steps: TurnStep[] = [];
+
 		const settledReply = ({
 			parts,
 			metadata,
@@ -438,7 +451,10 @@ const streamTurn = ({
 				maxSteps: meter.maxSteps,
 				promptTokens: sent.promptTokens,
 				replyId,
-				onStepEnd: meter.step,
+				onStepEnd: (step) => {
+					steps.push(step);
+					meter.step(step.usage);
+				},
 				onEnd: ({ responseMessage, outcome }) =>
 					run(
 						store
@@ -478,8 +494,16 @@ const streamTurn = ({
 						};
 					}
 					if (part.type === "finish") {
+						const cited = turnCitations({
+							prompt: sent.messages,
+							replyId,
+							steps,
+						});
 						return {
 							totalUsage: part.totalUsage,
+							...(cited && {
+								citations: cited,
+							}),
 							...(contextWindow !== null && {
 								contextWindow,
 							}),
