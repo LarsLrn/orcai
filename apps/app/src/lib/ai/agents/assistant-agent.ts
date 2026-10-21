@@ -1,9 +1,5 @@
 import { aiTelemetry, buildSystemInstructions } from "@orcai/ai";
 import { isStepCount, Output, ToolLoopAgent, type ToolSet } from "ai";
-import {
-	buildGenUiTools,
-	GEN_UI_TOOL_NAMES,
-} from "@/components/chat/gen-ui/catalog";
 import type { AgentModel } from "@/lib/ai/agents/agent-model";
 import { pruneAssistantHistory } from "@/lib/ai/agents/assistant-history-pruning";
 import { createAssistantSession } from "@/lib/ai/agents/assistant-session";
@@ -21,7 +17,7 @@ import type { ResolvedFeature } from "@/lib/ai/features/resolve-features";
 import { offeredToolGroups } from "@/lib/ai/tools/assistant/groups";
 import type { AssistantToolDeps } from "@/lib/ai/tools/assistant/procedure-tool";
 import { buildAssistantTools } from "@/lib/ai/tools/assistant/toolset";
-import { readDocsTool } from "@/lib/ai/tools/docs/read-docs";
+import { toolNamesOf } from "@/lib/ai/tools/registry";
 import type { ChatCallSettings } from "@/lib/ai/utils/chat-call-settings";
 import type { DocsConfig } from "@/lib/effect/services/config";
 
@@ -59,40 +55,40 @@ export const createAssistantAgent = (
 		capabilities: params.userContext.capabilities,
 		toolLoading: params.model.toolLoading,
 	});
-	// The full set, so stored calls of any tool validate; activeTools narrows what the model sees.
-	const tools = session.declare({
-		// Stored readDocs parts keep validating when the docs are switched off.
-		readDocs: readDocsTool({
-			docs: params.docs,
-		}),
-		...buildGenUiTools(),
-		...buildAssistantTools({
+	// Every tool, so stored calls validate with the docs or a feature off; activeTools narrows what the model sees.
+	const tools = session.declare(
+		buildAssistantTools({
 			context: params.context,
 			turn: params.turn,
 			session,
+			docs: params.docs,
 		}),
-	});
+	);
 	const toolGroups = offeredToolGroups(params.userContext.capabilities);
-	const activeToolNames = () =>
-		session
-			.activeTools()
-			.filter(
-				(name) =>
-					(name !== "readDocs" || params.docs !== undefined) &&
-					(!GEN_UI_TOOL_NAMES.some((display) => display === name) ||
-						Object.hasOwn(featureTools, name)),
-			);
-
-	const enabledDisplayToolNames = GEN_UI_TOOL_NAMES.filter((name) =>
+	const displayToolNames = toolNamesOf("display");
+	const enabledDisplayToolNames = displayToolNames.filter((name) =>
 		Object.hasOwn(featureTools, name),
 	);
+	const disabled = new Set<string>([
+		...displayToolNames.filter(
+			(name) => !enabledDisplayToolNames.includes(name),
+		),
+		...(params.docs === undefined
+			? [
+					"readDocs",
+				]
+			: []),
+	]);
+	const activeToolNames = () =>
+		session.activeTools().filter((name) => !disabled.has(name));
+
 	const toolLines = createToolLines(params.history);
 	const steps = createStepShaper({
 		providerKind: params.model.kind,
 		prune: (messages) =>
 			pruneAssistantHistory(messages, {
 				lines: toolLines.lines,
-				displayToolNames: GEN_UI_TOOL_NAMES,
+				displayToolNames,
 				enabledDisplayToolNames,
 				toolListChanges: session.toolListChanges,
 			}),

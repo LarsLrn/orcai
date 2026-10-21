@@ -8,7 +8,7 @@ import {
 	offeredGroupTools,
 	offeredToolGroups,
 } from "../groups";
-import { assistantTool } from "../procedure-tool";
+import { type AssistantTool, assistantTool } from "../procedure-tool";
 
 export const loadToolsInputSchema = z.object({
 	groups: z
@@ -17,13 +17,13 @@ export const loadToolsInputSchema = z.object({
 		.describe("Every tool group this request needs, in one call."),
 });
 
-export type LoadToolsGroupResult =
+type LoadToolsGroupResult =
 	| {
 			group: DeferredToolGroup;
 			loaded: true;
-			tools: AssistantToolName[];
+			tools: string[];
 			/** Offered tools that stay hidden until the user approved a plan. */
-			lockedUntilPlanApproved?: AssistantToolName[];
+			lockedUntilPlanApproved?: string[];
 	  }
 	| {
 			group: DeferredToolGroup;
@@ -51,7 +51,13 @@ const loadedGroup = (
 };
 
 /** Loading is idempotent: the session derives the loaded groups from these results. */
-export const loadToolsTool = (session: AssistantSession) =>
+type LoadToolsOutput = {
+	groups: LoadToolsGroupResult[];
+};
+
+export const loadToolsTool = (
+	session: AssistantSession,
+): AssistantTool<z.infer<typeof loadToolsInputSchema>, LoadToolsOutput> =>
 	assistantTool({
 		description:
 			"Load tool groups for the rest of this conversation. Their tools are callable from your next step. Loading a group that is already loaded changes nothing.",

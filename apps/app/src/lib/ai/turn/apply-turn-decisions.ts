@@ -4,10 +4,7 @@ import type {
 	ToolApprovalDecision,
 } from "@orcai/schema";
 import { getToolName, isToolUIPart, type UIMessage } from "ai";
-import {
-	CLIENT_TOOL_OUTPUT_SCHEMAS,
-	hasClientToolOutput,
-} from "@/lib/ai/tools/assistant/client-tools";
+import { clientOutputSchema, toolKindOf } from "@/lib/ai/tools/registry";
 import { pausedStep } from "@/lib/ai/turn-view/paused-step";
 
 type Parts = UIMessage["parts"];
@@ -191,7 +188,9 @@ export const applyTurnDecisions = ({
 		const stored = paused.calls.find(
 			(candidate) =>
 				candidate.toolCallId === answer.toolCallId &&
-				hasClientToolOutput(candidate),
+				toolKindOf(candidate) === "client" &&
+				(candidate.state === "output-available" ||
+					candidate.state === "output-error"),
 		);
 
 		// A retry after a failed stream repeats outputs the reply already holds.
@@ -217,11 +216,9 @@ export const applyTurnDecisions = ({
 		}
 
 		const toolName = getToolName(part);
-		const parsed = CLIENT_TOOL_OUTPUT_SCHEMAS[
-			toolName as keyof typeof CLIENT_TOOL_OUTPUT_SCHEMAS
-		].safeParse(answer.output);
+		const parsed = clientOutputSchema(toolName)?.safeParse(answer.output);
 
-		if (!parsed.success) {
+		if (!parsed?.success) {
 			return reject(
 				"CHAT_TOOL_OUTPUT_INVALID",
 				`The result for call ${answer.toolCallId} does not match ${toolName}'s output.`,

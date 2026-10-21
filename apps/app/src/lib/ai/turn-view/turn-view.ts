@@ -1,13 +1,10 @@
 import type { ChatStatus } from "ai";
 import {
-	type DisplayToolName,
-	isDisplayToolPart,
-} from "@/components/chat/gen-ui/catalog";
-import {
-	type CLIENT_TOOL_OUTPUT_SCHEMAS,
-	isClientToolPart,
-} from "@/lib/ai/tools/assistant/client-tools";
-import type { AssistantToolPart } from "@/lib/ai/tools/assistant/summary";
+	type ClientToolName,
+	isToolOfKind,
+	type ToolName,
+	type ToolNameOf,
+} from "@/lib/ai/tools/registry";
 import type { ChatAgentUIMessage } from "@/lib/ai/types/chat-agent-message";
 import {
 	type ToolCloseCode,
@@ -46,14 +43,17 @@ type FilePart = Extract<
 		type: "file";
 	}
 >;
-type DisplayPart = Extract<
+/** The part of a call of tool `Name`. */
+export type ToolPartOf<Name extends ToolName> = Extract<
 	MessagePart,
 	{
-		type: `tool-${DisplayToolName}`;
+		type: `tool-${Name}`;
 	}
 >;
-export type ClientToolName = keyof typeof CLIENT_TOOL_OUTPUT_SCHEMAS;
-export type ClientToolPart = AssistantToolPart<ClientToolName>;
+type DisplayPart = ToolPartOf<ToolNameOf<"display">>;
+
+export type { ClientToolName };
+export type ClientToolPart = ToolPartOf<ClientToolName>;
 export type { ShownPlanPart };
 
 export type ToolStatus =
@@ -168,16 +168,12 @@ export interface TurnView {
 const isToolPart = (part: MessagePart): part is ToolPart =>
 	part.type === "dynamic-tool" || part.type.startsWith("tool-");
 
-/** A call the browser answers, typed by the client tool registry. */
-export const isClientToolCall = (part: MessagePart): part is ClientToolPart =>
-	isClientToolPart(part);
-
 /** A tool that does work, as opposed to a display primitive. */
 const isWorkToolPart = (part: MessagePart) =>
-	isToolPart(part) && !isDisplayToolPart(part);
+	isToolPart(part) && !isToolOfKind(part, "display");
 
 const isAnswerDisplayPart = (part: MessagePart) =>
-	isDisplayToolPart(part) && part.state !== "output-error";
+	isToolOfKind(part, "display") && part.state !== "output-error";
 
 /** Text is interim when the next part, past reasoning and text, is a tool call that does work. */
 const isInterimText = (parts: readonly MessagePart[], index: number) => {
@@ -228,7 +224,7 @@ const toolStatus = (
 			return running ? "running" : "approved";
 		default:
 			if (running) return "running";
-			if (part.state === "input-available" && isClientToolPart(part)) {
+			if (part.state === "input-available" && isToolOfKind(part, "client")) {
 				return latest ? "awaiting-input" : "skipped";
 			}
 			return "interrupted";
@@ -341,7 +337,7 @@ const viewMessage = (
 			return undefined;
 		}
 		if (isPausedAnswer(part, index)) {
-			return isClientToolCall(part)
+			return isToolOfKind(part, "client")
 				? {
 						kind: "client",
 						part,
@@ -355,7 +351,7 @@ const viewMessage = (
 						answerable: idle && part.state === "approval-requested",
 					};
 		}
-		return isDisplayToolPart(part) && part.state !== "output-error"
+		return isAnswerDisplayPart(part)
 			? {
 					kind: "display",
 					part,

@@ -1,12 +1,25 @@
 import { createHash } from "node:crypto";
 import { ValkeyService } from "@orcai/valkey";
 import { COMMON_ERROR_STATUS_MAP, ORPCError } from "@orpc/client";
-import { type Tool, type ToolExecuteFunction, tool } from "ai";
+import {
+	type FlexibleSchema,
+	type Tool,
+	type ToolExecuteFunction,
+	type ToolExecutionOptions,
+	type ToolResultPart,
+	tool,
+} from "ai";
 import * as Cause from "effect/Cause";
 import * as Effect from "effect/Effect";
 import * as Semaphore from "effect/Semaphore";
+import type { AppRuntimeContext } from "@/lib/effect/runtime";
 import type { ORPCContext } from "@/lib/orpc/implementation/os";
-import { AssistantToolError, isRecord, toolErrorText } from "../tool-error";
+import {
+	AssistantToolError,
+	isRecord,
+	runAssistantTool,
+	toolErrorText,
+} from "../tool-error";
 import type { AssistantTurn } from "./turn-state";
 
 export interface AssistantToolDeps {
@@ -289,20 +302,14 @@ export const mutation =
 export interface AssistantToolCall {
 	/** The turn's scope; providers may reuse call ids across turns. */
 	scope: string;
-	toolName: string;
 	toolCallId: string;
 	input: unknown;
 }
 
 const CREATED_TTL_SECONDS = 24 * 60 * 60;
 
-const createdKey = ({
-	scope,
-	toolName,
-	toolCallId,
-	input,
-}: AssistantToolCall) =>
-	`assistant:created:${toolName}:${createHash("sha256")
+const createdKey = ({ scope, toolCallId, input }: AssistantToolCall) =>
+	`assistant:created:${createHash("sha256")
 		.update(`${scope}\u0000${toolCallId}\u0000${JSON.stringify(input) ?? ""}`)
 		.digest("hex")}`;
 
@@ -396,8 +403,41 @@ export const createOnce = <A, E, R, E2, R2>(
  */
 export type NoToolContext = Record<string, never>;
 
+export type AssistantTool<Input, Output> = Tool<
+	Input,
+	Output,
+	NoToolContext
+> & {
+	execute: ToolExecuteFunction<Input, Output, NoToolContext>;
+};
+
 export const assistantTool = <Input, Output>(
-	definition: Tool<Input, Output, NoToolContext> & {
-		execute: ToolExecuteFunction<Input, Output, NoToolContext>;
-	},
-) => tool(definition);
+	definition: AssistantTool<Input, Output>,
+): AssistantTool<Input, Output> => tool(definition);
+
+/**
+ * A tool whose call runs `run` with the call's abort signal. A failure or
+ * defect becomes the tool error the model reads.
+ */
+export const effectTool = <Input, Output>({
+	run,
+	...definition
+}: {
+	description: string;
+	inputSchema: FlexibleSchema<Input>;
+	run: (
+		input: Input,
+		options: ToolExecutionOptions<NoToolContext>,
+	) => Effect.Effect<Output, unknown, AppRuntimeContext>;
+	toModelOutput?: (options: {
+		toolCallId: string;
+		input: Input;
+		output: Output;
+	}) => ToolResultPart["output"];
+}): AssistantTool<Input, Output> =>
+	// The SDK's conditional tool types do not resolve over a generic Input and Output.
+	({
+		...definition,
+		execute: (input: Input, options: ToolExecutionOptions<NoToolContext>) =>
+			runAssistantTool(run(input, options), options.abortSignal),
+	}) as unknown as AssistantTool<Input, Output>;

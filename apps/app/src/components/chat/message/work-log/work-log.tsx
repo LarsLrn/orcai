@@ -12,13 +12,13 @@ import {
 	CollapsibleContent,
 	CollapsibleTrigger,
 } from "@/components/ui/collapsible";
+import { toolLabels } from "@/lib/ai/tools/registry";
 import type { Activity, WorkEntry } from "@/lib/ai/turn-view/turn-view";
 import { cn } from "@/lib/utils";
 import { m } from "@/paraglide/messages";
 import { ReasoningEntry } from "./reasoning-entry";
 import { TextEntry } from "./text-entry";
 import { ToolEntryPart } from "./tool-entry-part";
-import { toolLabels } from "./tool-labels";
 import { isFailedStatus } from "./tool-status";
 
 interface WorkLogProps {

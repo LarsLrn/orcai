@@ -61,7 +61,7 @@ const rowOf =
 	};
 
 /** Partial or stored input, with malformed entries left out. */
-export const matrixOf = (input: unknown) => {
+export const readMatrix = (input: unknown) => {
 	const matrix = isRecord(input) ? input : {};
 	const columns = listOf(matrix.columns).flatMap(columnOf);
 	return {
@@ -70,6 +70,8 @@ export const matrixOf = (input: unknown) => {
 		rows: listOf(matrix.rows).flatMap(rowOf(columns)),
 	};
 };
+
+export type MatrixView = ReturnType<typeof readMatrix>;
 
 /** Notes worth showing: those on cells with a status other than met. */
 export const rowNotes = (row: MatrixRow) =>

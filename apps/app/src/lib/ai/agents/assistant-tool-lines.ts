@@ -1,5 +1,5 @@
-import { toolSummaryByName } from "@/components/assistant/tool-summary-registry";
-import type { NameOf } from "@/lib/ai/tools/assistant/summary";
+import type { NameOf } from "@/lib/ai/tools/declaration";
+import { toolSummary } from "@/lib/ai/tools/registry";
 import { getServerAsyncLocalStorage } from "@/paraglide/runtime";
 
 /** One tool call that returned an output. */
@@ -83,7 +83,7 @@ const collectNames = (
 };
 
 /** The model reads English; the request's locale lives in Paraglide's AsyncLocalStorage. */
-const inEnglish = (line: () => string): string => {
+const inEnglish = <A>(line: () => A): A => {
 	const storage = getServerAsyncLocalStorage();
 
 	return storage
@@ -97,40 +97,13 @@ const inEnglish = (line: () => string): string => {
 		: line();
 };
 
-const docsLine = (output: unknown) => {
-	if (!isRecord(output) || typeof output.path !== "string") {
-		return "Read the docs index";
-	}
+const lineOf = ({ toolName, input, output }: ToolExecution, nameOf: NameOf) => {
+	const summary = toolSummary(toolName, {
+		input,
+		output,
+	});
 
-	return typeof output.title === "string"
-		? `Read the docs page “${output.title}” (${output.path})`
-		: `Read the docs page ${output.path}`;
-};
-
-const lineOf = (execution: ToolExecution, nameOf: NameOf) => {
-	if (execution.toolName === "readDocs") {
-		return docsLine(execution.output);
-	}
-
-	const summary = toolSummaryByName(execution.toolName);
-	if (!summary) {
-		return undefined;
-	}
-
-	const part = {
-		type: `tool-${execution.toolName}`,
-		toolCallId: execution.toolCallId,
-		state: "output-available",
-		input: execution.input,
-		output: execution.output,
-	} as unknown as Parameters<typeof summary.line>[0];
-
-	try {
-		return inEnglish(() => summary.line(part, nameOf));
-	} catch {
-		// Stored outputs of an older shape fall back to the generic line.
-		return undefined;
-	}
+	return summary && inEnglish(() => summary.line(nameOf));
 };
 
 /**

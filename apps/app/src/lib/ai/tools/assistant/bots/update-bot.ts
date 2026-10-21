@@ -9,12 +9,11 @@ import {
 } from "@orcai/schema";
 import * as Effect from "effect/Effect";
 import { z } from "zod/v4";
-import { runAssistantTool } from "@/lib/ai/tools/tool-error";
 import { botProcedures } from "@/lib/orpc/router/bot";
 import {
 	type AssistantToolDeps,
-	assistantTool,
 	callProcedure,
+	effectTool,
 	expectType,
 	mutation,
 } from "../procedure-tool";
@@ -89,46 +88,39 @@ export const updateBotPayload = (
 });
 
 export const updateBotTool = (deps: AssistantToolDeps) =>
-	assistantTool({
+	effectTool({
 		description:
 			"Update an existing bot: name, description, behaviour block, repositories and features. Give only the fields that change; everything else, including status and rich content, is kept. To create a bot, use createBot.",
 		inputSchema: updateBotInputSchema,
-		execute: (input, { abortSignal }) =>
-			runAssistantTool(
-				Effect.gen(function* () {
-					const { id } = input;
-					const { data: current } = yield* callProcedure(deps, (options) =>
-						botProcedures.findEditor(
-							{
-								id,
-							},
-							options,
-						),
-					).pipe(expectType("bot", id));
-					const payload = updateBotPayload(input, current);
-					const { templateBlockId, databaseBlockIds } = payload;
+		run: (input) =>
+			Effect.gen(function* () {
+				const { id } = input;
+				const { data: current } = yield* callProcedure(deps, (options) =>
+					botProcedures.findEditor(
+						{
+							id,
+						},
+						options,
+					),
+				).pipe(expectType("bot", id));
+				const payload = updateBotPayload(input, current);
+				const { templateBlockId, databaseBlockIds } = payload;
 
-					return yield* callProcedure(deps, (options) =>
-						botProcedures.save(payload, options),
-					).pipe(
-						mutation("getBot"),
-						expectType("block", [
-							...(templateBlockId
-								? [
-										templateBlockId,
-									]
-								: []),
-							...databaseBlockIds,
-						]),
-						expectType("template", templateBlockId ?? []),
-						expectType("repository", databaseBlockIds),
-						Effect.map(({ data }) => botOutline(data)),
-					);
-				}),
-				abortSignal,
-			),
-		toModelOutput: ({ output }) => ({
-			type: "json",
-			value: output,
-		}),
+				return yield* callProcedure(deps, (options) =>
+					botProcedures.save(payload, options),
+				).pipe(
+					mutation("getBot"),
+					expectType("block", [
+						...(templateBlockId
+							? [
+									templateBlockId,
+								]
+							: []),
+						...databaseBlockIds,
+					]),
+					expectType("template", templateBlockId ?? []),
+					expectType("repository", databaseBlockIds),
+					Effect.map(({ data }) => botOutline(data)),
+				);
+			}),
 	});

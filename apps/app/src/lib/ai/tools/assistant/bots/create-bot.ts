@@ -7,13 +7,12 @@ import {
 } from "@orcai/schema";
 import * as Effect from "effect/Effect";
 import { z } from "zod/v4";
-import { runAssistantTool } from "@/lib/ai/tools/tool-error";
 import { botProcedures } from "@/lib/orpc/router/bot";
 import {
 	type AssistantToolDeps,
-	assistantTool,
 	callProcedure,
 	createOnce,
+	effectTool,
 	expectType,
 	mutation,
 } from "../procedure-tool";
@@ -51,58 +50,50 @@ export const createBotPayload = (
 });
 
 export const createBotTool = (deps: AssistantToolDeps) =>
-	assistantTool({
+	effectTool({
 		description:
 			"Create a new draft bot: name and description, optionally its behaviour block, repositories and features. To change an existing bot, use updateBot. Publish with publishBot.",
 		inputSchema: createBotInputSchema,
-		execute: (input, { abortSignal, toolCallId }) => {
+		run: (input, { toolCallId }) => {
 			const payload = createBotPayload(input);
 			const { templateBlockId, databaseBlockIds } = payload;
 
-			return runAssistantTool(
-				createOnce(
-					{
-						scope: deps.turn.scope,
-						toolName: "createBot",
-						toolCallId,
-						input,
-					},
-					{
-						create: callProcedure(deps, (options) =>
-							botProcedures.save(payload, options),
-						).pipe(
-							mutation("findBots"),
-							expectType("block", [
-								...(templateBlockId
-									? [
-											templateBlockId,
-										]
-									: []),
-								...databaseBlockIds,
-							]),
-							expectType("template", templateBlockId ?? []),
-							expectType("repository", databaseBlockIds),
-							Effect.map(({ data }) => botOutline(data)),
-						),
-						ids: (bot) => [
-							bot.id,
-						],
-						replay: ([botId]) =>
-							callProcedure(deps, (options) =>
-								botProcedures.findEditor(
-									{
-										id: botId as BotId,
-									},
-									options,
-								),
-							).pipe(Effect.map(({ data }) => botOutline(data))),
-					},
-				),
-				abortSignal,
+			return createOnce(
+				{
+					scope: deps.turn.scope,
+					toolCallId,
+					input,
+				},
+				{
+					create: callProcedure(deps, (options) =>
+						botProcedures.save(payload, options),
+					).pipe(
+						mutation("findBots"),
+						expectType("block", [
+							...(templateBlockId
+								? [
+										templateBlockId,
+									]
+								: []),
+							...databaseBlockIds,
+						]),
+						expectType("template", templateBlockId ?? []),
+						expectType("repository", databaseBlockIds),
+						Effect.map(({ data }) => botOutline(data)),
+					),
+					ids: (bot) => [
+						bot.id,
+					],
+					replay: ([botId]) =>
+						callProcedure(deps, (options) =>
+							botProcedures.findEditor(
+								{
+									id: botId as BotId,
+								},
+								options,
+							),
+						).pipe(Effect.map(({ data }) => botOutline(data))),
+				},
 			);
 		},
-		toModelOutput: ({ output }) => ({
-			type: "json",
-			value: output,
-		}),
 	});

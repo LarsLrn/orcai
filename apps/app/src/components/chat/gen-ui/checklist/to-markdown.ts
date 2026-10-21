@@ -1,17 +1,14 @@
-import type { DeepPartial } from "ai";
-import type { ChecklistInput } from "@/components/chat/gen-ui/checklist/schema";
+import type {
+	ChecklistItem,
+	ChecklistView,
+} from "@/components/chat/gen-ui/checklist/read";
 import { indent } from "@/components/chat/gen-ui/markdown";
-import { statusLabel, statusSchema } from "@/components/chat/gen-ui/status";
-
-type ChecklistItem = NonNullable<
-	NonNullable<DeepPartial<ChecklistInput>["items"]>[number]
->;
+import { statusLabel } from "@/components/chat/gen-ui/status";
 
 const itemToMarkdown = (item: ChecklistItem) => {
-	const status = statusSchema.safeParse(item.status);
 	const head = [
 		item.label ? `**${item.label}**` : undefined,
-		status.success ? `(${statusLabel(status.data)})` : undefined,
+		item.status ? `(${statusLabel(item.status)})` : undefined,
 	]
 		.filter(Boolean)
 		.join(" ");
@@ -33,21 +30,16 @@ const itemToMarkdown = (item: ChecklistItem) => {
 	].join("\n\n");
 };
 
-export const checklistToMarkdown = (
-	input: DeepPartial<ChecklistInput>,
-): string => {
-	const items = (input.items ?? []).flatMap((item) => {
-		const markdown = item ? itemToMarkdown(item) : undefined;
-		return markdown
-			? [
-					markdown,
-				]
-			: [];
-	});
+export const checklistToMarkdown = ({
+	title,
+	description,
+	items,
+}: ChecklistView): string => {
+	const lines = items.flatMap((item) => itemToMarkdown(item) ?? []);
 	return [
-		input.title ? `### ${input.title}` : undefined,
-		input.description,
-		items.join(items.some((item) => item.includes("\n")) ? "\n\n" : "\n"),
+		title ? `### ${title}` : undefined,
+		description,
+		lines.join(lines.some((line) => line.includes("\n")) ? "\n\n" : "\n"),
 	]
 		.filter(Boolean)
 		.join("\n\n");

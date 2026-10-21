@@ -2,12 +2,11 @@ import type { OrganizationInvitationId } from "@orcai/core";
 import { organizationInvitationIdSchema } from "@orcai/schema";
 import * as Effect from "effect/Effect";
 import { z } from "zod/v4";
-import { runAssistantTool } from "@/lib/ai/tools/tool-error";
 import { organizationInvitationProcedures } from "@/lib/orpc/router/organization-invitation";
 import {
 	type AssistantToolDeps,
-	assistantTool,
 	callProcedure,
+	effectTool,
 	expectType,
 	mutation,
 } from "../procedure-tool";
@@ -81,14 +80,9 @@ export const cancelInvitations = (
 	});
 
 export const cancelInvitationTool = (deps: AssistantToolDeps) =>
-	assistantTool({
+	effectTool({
 		description:
-			"Withdraw invitations to the active organisation, so their links stop working. The user confirms before it runs.",
+			"Withdraw invitations to the active organisation, so their links stop working.",
 		inputSchema: cancelInvitationInputSchema,
-		execute: ({ ids }, { abortSignal }) =>
-			runAssistantTool(cancelInvitations(deps, ids), abortSignal),
-		toModelOutput: ({ output }) => ({
-			type: "json",
-			value: output,
-		}),
+		run: ({ ids }) => cancelInvitations(deps, ids),
 	});

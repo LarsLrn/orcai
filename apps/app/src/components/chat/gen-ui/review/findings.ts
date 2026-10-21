@@ -53,7 +53,7 @@ const itemOf = (value: unknown): StreamedItem[] =>
 		: [];
 
 /** Partial or stored input, with malformed entries left out. */
-export const reviewOf = (input: unknown) => {
+export const readReview = (input: unknown) => {
 	const review = isRecord(input) ? input : {};
 	return {
 		title: textOf(review.title),
@@ -62,6 +62,8 @@ export const reviewOf = (input: unknown) => {
 		general: findingsOf(review.general) ?? [],
 	};
 };
+
+export type ReviewView = ReturnType<typeof readReview>;
 
 export const severityStatus: Record<Severity, Status> = {
 	error: "not_met",

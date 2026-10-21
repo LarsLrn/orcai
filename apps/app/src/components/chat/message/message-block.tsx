@@ -11,7 +11,7 @@ import {
 import { Shimmer } from "@/components/ai-elements/shimmer";
 import type { ClientToolActions } from "@/components/assistant/client-tool-actions";
 import type { AddToolApprovalResponse } from "@/components/assistant/confirmation-card";
-import { TurnZedTokenContext } from "@/components/assistant/tool-summaries";
+import { TurnZedTokenContext } from "@/components/assistant/tool-summary-line";
 import { MessageBranches } from "@/components/chat/branch-links";
 import { ActivityLine } from "@/components/chat/message/work-log/activity-line";
 import {

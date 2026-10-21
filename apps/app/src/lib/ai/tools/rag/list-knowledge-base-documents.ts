@@ -1,8 +1,7 @@
 import { blockIdSchema, type DatabaseBlock } from "@orcai/schema";
-import { tool } from "ai";
 import * as Effect from "effect/Effect";
 import z from "zod/v4";
-import { runAssistantTool } from "@/lib/ai/tools/tool-error";
+import { effectTool } from "@/lib/ai/tools/assistant/procedure-tool";
 import type { ORPCContext } from "@/lib/orpc/implementation/os";
 import type { KnowledgeBaseDocument } from "./types";
 import {
@@ -18,7 +17,7 @@ export const listKnowledgeBaseDocumentsTool = ({
 	blocks: DatabaseBlock[];
 	context: ORPCContext;
 }) =>
-	tool({
+	effectTool({
 		description:
 			"List knowledge base documents and their asset IDs. Use this before page-specific retrieval or when the user mentions a document title and you need to identify the right asset.",
 		inputSchema: z.object({
@@ -37,42 +36,39 @@ export const listKnowledgeBaseDocumentsTool = ({
 				.default(30)
 				.describe("Maximum number of documents to return."),
 		}),
-		execute: async ({ query, blockId, limit }, { abortSignal }) =>
-			runAssistantTool(
-				Effect.gen(function* () {
-					const targetBlocks = resolveSearchBlocks({
-						blocks,
-						blockId,
-					});
-					if (targetBlocks.length === 0) {
-						return {
-							documents: [] as KnowledgeBaseDocument[],
-							nextAction: "searchKnowledgeBase" as const,
-						};
-					}
-
-					const documents = yield* loadDocumentCatalog({
-						blocks: targetBlocks,
-						context,
-					});
-
-					const ranked = query
-						? rankDocumentsByQuery({
-								documents,
-								query,
-							})
-						: documents.slice().sort((a, b) => a.title.localeCompare(b.title));
-
+		run: ({ query, blockId, limit }) =>
+			Effect.gen(function* () {
+				const targetBlocks = resolveSearchBlocks({
+					blocks,
+					blockId,
+				});
+				if (targetBlocks.length === 0) {
 					return {
-						documents: ranked.slice(0, limit),
-						nextAction: "getKnowledgeBasePageOrSearch" as const,
-						stats: {
-							totalDocuments: documents.length,
-							returnedCount: Math.min(limit, ranked.length),
-							queryApplied: Boolean(query?.trim()),
-						},
+						documents: [] as KnowledgeBaseDocument[],
+						nextAction: "searchKnowledgeBase" as const,
 					};
-				}),
-				abortSignal,
-			),
+				}
+
+				const documents = yield* loadDocumentCatalog({
+					blocks: targetBlocks,
+					context,
+				});
+
+				const ranked = query
+					? rankDocumentsByQuery({
+							documents,
+							query,
+						})
+					: documents.slice().sort((a, b) => a.title.localeCompare(b.title));
+
+				return {
+					documents: ranked.slice(0, limit),
+					nextAction: "getKnowledgeBasePageOrSearch" as const,
+					stats: {
+						totalDocuments: documents.length,
+						returnedCount: Math.min(limit, ranked.length),
+						queryApplied: Boolean(query?.trim()),
+					},
+				};
+			}),
 	});

@@ -2,10 +2,9 @@ import type { GroupId } from "@orcai/core";
 import { groupIdSchema } from "@orcai/schema";
 import * as Effect from "effect/Effect";
 import { z } from "zod/v4";
-import { runAssistantTool } from "@/lib/ai/tools/tool-error";
 import { groupProcedures } from "@/lib/orpc/router/group";
 import { deleteNamed } from "../named-delete";
-import { type AssistantToolDeps, assistantTool } from "../procedure-tool";
+import { type AssistantToolDeps, effectTool } from "../procedure-tool";
 
 export const deleteGroupInputSchema = z.object({
 	ids: z
@@ -43,14 +42,9 @@ export const deleteGroups = (deps: AssistantToolDeps, ids: GroupId[]) =>
 	);
 
 export const deleteGroupTool = (deps: AssistantToolDeps) =>
-	assistantTool({
+	effectTool({
 		description:
-			"Delete groups of the active organisation. Their members lose the access the groups granted. System groups cannot be deleted. The user confirms before it runs.",
+			"Delete groups of the active organisation. Their members lose the access the groups granted. System groups cannot be deleted.",
 		inputSchema: deleteGroupInputSchema,
-		execute: ({ ids }, { abortSignal }) =>
-			runAssistantTool(deleteGroups(deps, ids), abortSignal),
-		toModelOutput: ({ output }) => ({
-			type: "json",
-			value: output,
-		}),
+		run: ({ ids }) => deleteGroups(deps, ids),
 	});

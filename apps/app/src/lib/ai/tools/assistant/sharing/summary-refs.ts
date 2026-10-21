@@ -1,5 +1,5 @@
+import type { NameRef } from "@/lib/ai/tools/declaration";
 import { m } from "@/paraglide/messages";
-import type { NameRef } from "../summary";
 
 export const resourceRef = (input: {
 	resourceType: "bot" | "block" | "asset";

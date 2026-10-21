@@ -1,4 +1,3 @@
-import type { DeepPartial } from "ai";
 import { CopyIcon } from "lucide-react";
 import { type ReactNode, useState } from "react";
 import { MessageResponse } from "@/components/ai-elements/message";
@@ -6,17 +5,14 @@ import { copyRevision } from "@/components/chat/gen-ui/review/copy";
 import {
 	anchorFindings,
 	itemStatus,
-	reviewOf,
+	type ReviewView,
 	type StreamedFinding,
 	type StreamedItem,
 	severityLabel,
 	severityStatus,
 	stripEmphasis,
 } from "@/components/chat/gen-ui/review/findings";
-import type {
-	ReviewInput,
-	Severity,
-} from "@/components/chat/gen-ui/review/schema";
+import type { Severity } from "@/components/chat/gen-ui/review/schema";
 import {
 	retainedShare,
 	wordDiff,
@@ -162,21 +158,21 @@ const CopyRevisionButton = ({ markdown }: { markdown: string }) => (
 	</Button>
 );
 
-const VIEWS = [
+const TABS = [
 	"findings",
 	"changes",
 	"revised",
 ] as const;
 
-type View = (typeof VIEWS)[number];
+type Tab = (typeof TABS)[number];
 
 const ItemRow = ({
 	item,
-	view,
+	tab,
 	streaming,
 }: {
 	item: StreamedItem;
-	view: Exclude<View, "revised">;
+	tab: Exclude<Tab, "revised">;
 	streaming: boolean;
 }) => {
 	const text = item.text ?? "";
@@ -201,14 +197,14 @@ const ItemRow = ({
 			</div>
 			{text && (
 				<div className="pl-6">
-					{view === "changes" && item.revised ? (
+					{tab === "changes" && item.revised ? (
 						<Diff before={text} after={item.revised} />
 					) : (
 						<Annotated text={text} findings={findings} />
 					)}
 				</div>
 			)}
-			{view === "findings" && findings.length > 0 && (
+			{tab === "findings" && findings.length > 0 && (
 				<div className="pl-6">
 					<Findings findings={findings} numbers={numbers} />
 				</div>
@@ -248,16 +244,16 @@ const RevisedView = ({ items }: { items: readonly StreamedItem[] }) => {
 };
 
 export const Review = ({
-	input,
+	view,
 	streaming,
 }: {
-	input: DeepPartial<ReviewInput>;
+	view: ReviewView;
 	streaming: boolean;
 }) => {
-	const [view, setView] = useState<View>("findings");
-	const { title, summary, items, general } = reviewOf(input);
+	const [tab, setTab] = useState<Tab>("findings");
+	const { title, summary, items, general } = view;
 	const hasRevisions = items.some((item) => item.revised);
-	const shown = hasRevisions ? view : "findings";
+	const shown = hasRevisions ? tab : "findings";
 
 	return (
 		<div className="overflow-hidden rounded-xl border bg-card">
@@ -277,9 +273,9 @@ export const Review = ({
 							shown,
 						]}
 						onValueChange={(value) => {
-							const next = VIEWS.find((candidate) => candidate === value[0]);
+							const next = TABS.find((candidate) => candidate === value[0]);
 							if (next) {
-								setView(next);
+								setTab(next);
 							}
 						}}
 						variant="outline"
@@ -312,7 +308,7 @@ export const Review = ({
 						<ItemRow
 							key={index}
 							item={item}
-							view={shown}
+							tab={shown}
 							streaming={streaming}
 						/>
 					))}

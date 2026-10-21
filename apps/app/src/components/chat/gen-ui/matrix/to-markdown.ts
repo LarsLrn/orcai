@@ -1,6 +1,7 @@
-import type { DeepPartial } from "ai";
-import { matrixOf, rowNotes } from "@/components/chat/gen-ui/matrix/cells";
-import type { MatrixInput } from "@/components/chat/gen-ui/matrix/schema";
+import {
+	type MatrixView,
+	rowNotes,
+} from "@/components/chat/gen-ui/matrix/cells";
 import { statusLabel } from "@/components/chat/gen-ui/status";
 
 const tableCell = (text: string) =>
@@ -9,8 +10,11 @@ const tableCell = (text: string) =>
 const tableRow = (cells: readonly string[]) =>
 	`| ${cells.map(tableCell).join(" | ")} |`;
 
-export const matrixToMarkdown = (input: DeepPartial<MatrixInput>): string => {
-	const { title, columns, rows } = matrixOf(input);
+export const matrixToMarkdown = ({
+	title,
+	columns,
+	rows,
+}: MatrixView): string => {
 	const table =
 		columns.length > 0
 			? [

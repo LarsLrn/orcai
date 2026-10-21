@@ -1,17 +1,16 @@
-import type { DeepPartial, ToolUIPart } from "ai";
+import type { ToolUIPart } from "ai";
 import type { ComponentType } from "react";
 import { MessageResponse } from "@/components/ai-elements/message";
 import {
-	type DisplayToolInput,
 	type DisplayToolName,
 	displayToolMarkdown,
-	displayToolNameOf,
 	primitiveCatalog,
 } from "@/components/chat/gen-ui/catalog";
 import {
 	type DisplayRendererProps,
 	displayRenderers,
 } from "@/components/chat/gen-ui/renderers";
+import { toolNameOf } from "@/lib/ai/tools/registry";
 import { m } from "@/paraglide/messages";
 
 export type DisplayToolPart = {
@@ -46,24 +45,15 @@ const DisplayRenderer = <Name extends DisplayToolName>({
 }) => {
 	const Renderer: ComponentType<DisplayRendererProps<Name>> =
 		displayRenderers[name];
+	const { schema, read } = primitiveCatalog[name];
 	if (streaming) {
-		return (
-			<Renderer
-				input={(input ?? {}) as DeepPartial<DisplayToolInput<Name>>}
-				streaming
-			/>
-		);
+		return <Renderer view={read(input)} streaming />;
 	}
-	const parsed = primitiveCatalog[name].schema.safeParse(input);
+	const parsed = schema.safeParse(input);
 	if (!parsed.success) {
 		return <DisplayFallback name={name} input={input} />;
 	}
-	return (
-		<Renderer
-			input={parsed.data as DeepPartial<DisplayToolInput<Name>>}
-			streaming={false}
-		/>
-	);
+	return <Renderer view={read(parsed.data)} streaming={false} />;
 };
 
 /** Partial input while the call streams; validated input or a fallback after. */
@@ -74,13 +64,12 @@ export const DisplayPart = ({
 	part: DisplayToolPart;
 	running: boolean;
 }) => {
-	const name = displayToolNameOf(part.type);
-	if (!name || part.state === "output-error") {
+	if (part.state === "output-error") {
 		return null;
 	}
 	return (
 		<DisplayRenderer
-			name={name}
+			name={toolNameOf(part)}
 			input={part.input}
 			streaming={part.state === "input-streaming" && running}
 		/>

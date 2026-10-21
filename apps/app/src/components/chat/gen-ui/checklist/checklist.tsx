@@ -1,19 +1,12 @@
-import type { DeepPartial } from "ai";
 import { ChevronDownIcon } from "lucide-react";
 import { MessageResponse } from "@/components/ai-elements/message";
-import type { ChecklistInput } from "@/components/chat/gen-ui/checklist/schema";
+import type { ChecklistView } from "@/components/chat/gen-ui/checklist/read";
 import { statusLabel } from "@/components/chat/gen-ui/status";
 import {
 	StatusIcon,
 	statusTone,
 	Tally,
 } from "@/components/chat/gen-ui/status-icon";
-import {
-	isRecord,
-	listOf,
-	statusOf,
-	textOf,
-} from "@/components/chat/gen-ui/streamed";
 import {
 	Collapsible,
 	CollapsibleContent,
@@ -22,28 +15,15 @@ import {
 import { Skeleton } from "@/components/ui/skeleton";
 import { cn } from "@/lib/utils";
 
-const itemOf = (value: unknown) =>
-	isRecord(value)
-		? {
-				label: textOf(value.label),
-				status: statusOf(value.status),
-				summary: textOf(value.summary),
-				body: textOf(value.body),
-				quote: textOf(value.quote),
-			}
-		: undefined;
-
 export const Checklist = ({
-	input,
+	view,
 	streaming,
 }: {
-	input: DeepPartial<ChecklistInput>;
+	view: ChecklistView;
 	streaming: boolean;
 }) => {
-	const title = textOf(input.title);
-	const description = textOf(input.description);
-	const items = listOf(input.items).map(itemOf);
-	const statuses = items.map((item) => item?.status);
+	const { title, description, items } = view;
+	const statuses = items.map((item) => item.status);
 	const withStatus = statuses.some(Boolean);
 	const withHeader = Boolean(title || description || withStatus);
 
@@ -62,9 +42,6 @@ export const Checklist = ({
 			)}
 			<ul className="divide-y">
 				{items.map((item, index) => {
-					if (!item) {
-						return null;
-					}
 					const { status } = item;
 					const expandable = Boolean(item.body || item.quote);
 					return (

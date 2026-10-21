@@ -6,12 +6,11 @@ import {
 } from "@orcai/schema";
 import * as Effect from "effect/Effect";
 import { z } from "zod/v4";
-import { runAssistantTool } from "@/lib/ai/tools/tool-error";
 import { assetProcedures } from "@/lib/orpc/router/asset";
 import {
 	type AssistantToolDeps,
-	assistantTool,
 	callProcedure,
+	effectTool,
 	expectType,
 	mutation,
 } from "../procedure-tool";
@@ -42,44 +41,37 @@ export const mergeAssetMetadata = (
 });
 
 export const updateAssetTool = (deps: AssistantToolDeps) =>
-	assistantTool({
+	effectTool({
 		description:
 			"Change an asset's title or citation metadata. Only the given metadata fields change. Uploading new assets happens on the upload page, not here.",
 		inputSchema: updateAssetInputSchema,
-		execute: ({ id, title, metadata }, { abortSignal }) =>
-			runAssistantTool(
-				Effect.gen(function* () {
-					const { data: current } = yield* callProcedure(deps, (options) =>
-						assetProcedures.find(
-							{
-								id,
-							},
-							options,
-						),
-					).pipe(expectType("asset", id));
+		run: ({ id, title, metadata }) =>
+			Effect.gen(function* () {
+				const { data: current } = yield* callProcedure(deps, (options) =>
+					assetProcedures.find(
+						{
+							id,
+						},
+						options,
+					),
+				).pipe(expectType("asset", id));
 
-					const { data } = yield* callProcedure(deps, (options) =>
-						assetProcedures.save(
-							{
-								id,
-								title: title ?? current.title,
-								metadata: mergeAssetMetadata(current.metadata, metadata),
-							},
-							options,
-						),
-					).pipe(mutation("findAssets"));
+				const { data } = yield* callProcedure(deps, (options) =>
+					assetProcedures.save(
+						{
+							id,
+							title: title ?? current.title,
+							metadata: mergeAssetMetadata(current.metadata, metadata),
+						},
+						options,
+					),
+				).pipe(mutation("findAssets"));
 
-					return {
-						type: "asset" as const,
-						id: data.id,
-						title: data.title,
-						metadata: data.metadata,
-					};
-				}),
-				abortSignal,
-			),
-		toModelOutput: ({ output }) => ({
-			type: "json",
-			value: output,
-		}),
+				return {
+					type: "asset" as const,
+					id: data.id,
+					title: data.title,
+					metadata: data.metadata,
+				};
+			}),
 	});

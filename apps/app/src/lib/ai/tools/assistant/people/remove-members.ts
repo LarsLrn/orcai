@@ -2,11 +2,10 @@ import type { UserId } from "@orcai/core";
 import { userIdSchema } from "@orcai/schema";
 import * as Effect from "effect/Effect";
 import { z } from "zod/v4";
-import { runAssistantTool } from "@/lib/ai/tools/tool-error";
 import { organizationMemberProcedures } from "@/lib/orpc/router/organization-member";
 import { userProcedures } from "@/lib/orpc/router/user";
 import { deleteNamed } from "../named-delete";
-import { type AssistantToolDeps, assistantTool } from "../procedure-tool";
+import { type AssistantToolDeps, effectTool } from "../procedure-tool";
 
 export const removeMembersInputSchema = z.object({
 	userIds: z
@@ -44,14 +43,9 @@ export const removeMembers = (deps: AssistantToolDeps, userIds: UserId[]) =>
 	);
 
 export const removeMembersTool = (deps: AssistantToolDeps) =>
-	assistantTool({
+	effectTool({
 		description:
-			"Remove members from the active organisation. They lose their role, their group memberships and the access granted to them there. Only admins can remove admins, and the last admin stays. The user confirms before it runs.",
+			"Remove members from the active organisation. They lose their role, their group memberships and the access granted to them there. Only admins can remove admins, and the last admin stays.",
 		inputSchema: removeMembersInputSchema,
-		execute: ({ userIds }, { abortSignal }) =>
-			runAssistantTool(removeMembers(deps, userIds), abortSignal),
-		toModelOutput: ({ output }) => ({
-			type: "json",
-			value: output,
-		}),
+		run: ({ userIds }) => removeMembers(deps, userIds),
 	});

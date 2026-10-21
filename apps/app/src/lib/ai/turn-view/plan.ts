@@ -1,9 +1,8 @@
-import type { AssistantToolPart } from "@/lib/ai/tools/assistant/summary";
+import { isToolOfKind, type ToolNameOf } from "@/lib/ai/tools/registry";
 import type { ChatAgentUIMessage } from "@/lib/ai/types/chat-agent-message";
+import type { MessagePart, ToolPartOf } from "./turn-view";
 
-type MessagePart = ChatAgentUIMessage["parts"][number];
-
-type PlanPart = AssistantToolPart<"updatePlan">;
+type PlanPart = ToolPartOf<ToolNameOf<"plan">>;
 
 /** A complete call that holds the plan: run, waiting for approval, or approved. */
 export type ShownPlanPart = Extract<
@@ -14,7 +13,7 @@ export type ShownPlanPart = Extract<
 >;
 
 export const isPlanPart = (part: MessagePart): part is PlanPart =>
-	part.type === "tool-updatePlan";
+	isToolOfKind(part, "plan");
 
 /** A proposal counts only on the latest reply; a later message superseded it. */
 const isShownPlanPart = (

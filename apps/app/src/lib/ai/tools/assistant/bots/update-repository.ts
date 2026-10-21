@@ -6,12 +6,11 @@ import {
 } from "@orcai/schema";
 import * as Effect from "effect/Effect";
 import { z } from "zod/v4";
-import { runAssistantTool } from "@/lib/ai/tools/tool-error";
 import { blockProcedures } from "@/lib/orpc/router/block";
 import {
 	type AssistantToolDeps,
-	assistantTool,
 	callProcedure,
+	effectTool,
 	expectType,
 	mutation,
 } from "../procedure-tool";
@@ -49,61 +48,51 @@ export const updateRepositoryInputSchema = z.object({
 });
 
 export const updateRepositoryTool = (deps: AssistantToolDeps) =>
-	assistantTool({
+	effectTool({
 		description:
 			"Update an existing repository (database block): name, description, status and which assets it holds. Give only the fields that change; everything else, including retrieval settings and rich content, is kept. To add or remove one asset, read the current ones with findAssets (repositoryId) and send the full new assetIds. To create one, use createRepository.",
 		inputSchema: updateRepositoryInputSchema,
-		execute: (input, { abortSignal }) =>
-			runAssistantTool(
-				Effect.gen(function* () {
-					const { id } = input;
-					const { data: current, assets: currentAssets = [] } =
-						yield* callProcedure(deps, (options) =>
-							blockProcedures.find(
-								{
-									id,
-								},
-								options,
-							),
-						).pipe(expectType("repository", id));
-
-					if (current.type !== "database") {
-						return yield* Effect.fail(
-							wrongBlockError("repository", id, current.type),
-						);
-					}
-
-					const saved = yield* callProcedure(deps, (options) =>
-						blockProcedures.update(
+		run: (input) =>
+			Effect.gen(function* () {
+				const { id } = input;
+				const { data: current, assets: currentAssets = [] } =
+					yield* callProcedure(deps, (options) =>
+						blockProcedures.find(
 							{
 								id,
-								type: "database",
-								name: input.name ?? current.name,
-								description:
-									input.description === undefined
-										? current.description
-										: blockDescription(input.description),
-								contentJson: current.contentJson,
-								contentHtml: current.contentHtml,
-								status: input.status ?? current.status,
-								config: current.config,
-								assets: uniqueAssetIds(
-									input.assetIds ?? currentAssets.map((asset) => asset.id),
-								),
 							},
 							options,
 						),
-					).pipe(
-						mutation("getBlock"),
-						expectType("asset", input.assetIds ?? []),
-					);
+					).pipe(expectType("repository", id));
 
-					return repositoryOutline(saved);
-				}),
-				abortSignal,
-			),
-		toModelOutput: ({ output }) => ({
-			type: "json",
-			value: output,
-		}),
+				if (current.type !== "database") {
+					return yield* Effect.fail(
+						wrongBlockError("repository", id, current.type),
+					);
+				}
+
+				const saved = yield* callProcedure(deps, (options) =>
+					blockProcedures.update(
+						{
+							id,
+							type: "database",
+							name: input.name ?? current.name,
+							description:
+								input.description === undefined
+									? current.description
+									: blockDescription(input.description),
+							contentJson: current.contentJson,
+							contentHtml: current.contentHtml,
+							status: input.status ?? current.status,
+							config: current.config,
+							assets: uniqueAssetIds(
+								input.assetIds ?? currentAssets.map((asset) => asset.id),
+							),
+						},
+						options,
+					),
+				).pipe(mutation("getBlock"), expectType("asset", input.assetIds ?? []));
+
+				return repositoryOutline(saved);
+			}),
 	});

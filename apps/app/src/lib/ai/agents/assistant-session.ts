@@ -5,11 +5,10 @@ import {
 	storedExecutions,
 	type ToolExecution,
 } from "@/lib/ai/agents/assistant-tool-lines";
-import { GATED_ASSISTANT_TOOLS } from "@/lib/ai/tools/assistant/approval";
 import {
-	ASSISTANT_TOOL_GROUPS,
 	type AssistantToolName,
 	type CapabilitySet,
+	CONFIRMED_TOOLS,
 	DEFERRED_TOOL_GROUPS,
 	DEFERRED_TOOL_NAMES,
 	type DeferredToolGroup,
@@ -32,14 +31,9 @@ interface LoadingAdapter {
 	/** The model output of a result that makes `tools` callable. */
 	modelOutput: (
 		output: JSONValue,
-		tools: readonly AssistantToolName[],
+		tools: readonly string[],
 	) => ToolResultPart["output"];
 }
-
-const coreTools = (capabilities: CapabilitySet) =>
-	ASSISTANT_TOOL_GROUPS.core.filter((name) =>
-		isToolOffered(name, capabilities),
-	);
 
 const loadedGroupTools = (
 	capabilities: CapabilitySet,
@@ -54,7 +48,7 @@ const activeToolsAdapter = (capabilities: CapabilitySet): LoadingAdapter => ({
 	declare: (tools) => tools,
 	activeTools: ({ planApproved, loadedGroups }) =>
 		[
-			...coreTools(capabilities),
+			...offeredGroupTools("core", capabilities),
 			...loadedGroupTools(capabilities, loadedGroups),
 		].filter((name) => planApproved || !isCreateTool(name)),
 	modelOutput: (output) => ({
@@ -160,6 +154,35 @@ const guardCreateTools = <T extends ToolSet>(
 		}),
 	) as T;
 
+export interface AssistantSession {
+	capabilities: CapabilitySet;
+	isPlanApproved: () => boolean;
+	/** Records a tool call that ran, from the stored conversation or this request. */
+	record: (
+		execution: Pick<ToolExecution, "toolCallId" | "toolName" | "output">,
+	) => void;
+	/** The tools as the request declares them, every one, so stored calls of any tool validate. */
+	declare: <T extends ToolSet>(tools: T) => T;
+	/** The tools the model may call in the next step. */
+	activeTools: () => AssistantToolName[];
+	/** The calls whose results changed the active tools. */
+	toolListChanges: ReadonlySet<string>;
+	/** The create tools approving the plan now would unlock; none once a plan is approved. */
+	unlockedByApproval: () => AssistantToolName[];
+	/** The model output of a result that makes `tools` callable. */
+	modelOutput: LoadingAdapter["modelOutput"];
+	/**
+	 * The confirmed tools always pause; `updatePlan` pauses until the user
+	 * approved a plan, read as each call comes up.
+	 */
+	toolApproval: Record<
+		string,
+		"user-approval" | (() => "user-approval" | "not-applicable")
+	> & {
+		updatePlan: () => "user-approval" | "not-applicable";
+	};
+}
+
 /**
  * What an assistant conversation has unlocked: whether the user approved a
  * plan and which tool groups are loaded, read from the stored conversation
@@ -175,7 +198,7 @@ export const createAssistantSession = ({
 	history: readonly StoredMessage[];
 	capabilities: CapabilitySet;
 	toolLoading: ToolLoading;
-}) => {
+}): AssistantSession => {
 	const adapter =
 		toolLoading.type === "references"
 			? referencesAdapter(capabilities, toolLoading)
@@ -188,9 +211,7 @@ export const createAssistantSession = ({
 	const toolListChanges = new Set<string>();
 	const isPlanApproved = () => state.planApproved;
 
-	const record = (
-		execution: Pick<ToolExecution, "toolCallId" | "toolName" | "output">,
-	) => {
+	const record: AssistantSession["record"] = (execution) => {
 		const before = adapter.activeTools(state);
 		// updatePlan runs only once approved: the first call waits for the user.
 		if (execution.toolName === "updatePlan") {
@@ -217,38 +238,27 @@ export const createAssistantSession = ({
 	return {
 		capabilities,
 		isPlanApproved,
-		/** Records a tool call that ran, from the stored conversation or this request. */
 		record,
-		/** The tools as the request declares them, every one, so stored calls of any tool validate. */
-		declare: <T extends ToolSet>(tools: T): T =>
+		declare: (tools) =>
 			guardCreateTools(adapter.declare(tools), isPlanApproved),
-		/** The tools the model may call in the next step. */
 		activeTools: () => adapter.activeTools(state),
-		/** The calls whose results changed the active tools. */
-		toolListChanges: toolListChanges as ReadonlySet<string>,
-		/** The create tools approving the plan now would unlock; none once a plan is approved. */
-		unlockedByApproval: (): AssistantToolName[] =>
+		toolListChanges,
+		unlockedByApproval: () =>
 			state.planApproved
 				? []
 				: loadedGroupTools(capabilities, loadedGroups).filter(isCreateTool),
 		modelOutput: adapter.modelOutput,
-		/**
-		 * The gated tools always pause; `updatePlan` pauses until the user
-		 * approved a plan, read as each call comes up.
-		 */
 		toolApproval: {
-			...(Object.fromEntries(
-				GATED_ASSISTANT_TOOLS.map((name) => [
+			...Object.fromEntries(
+				[
+					...CONFIRMED_TOOLS.keys(),
+				].map((name) => [
 					name,
-					"user-approval",
+					"user-approval" as const,
 				]),
-			) as Record<(typeof GATED_ASSISTANT_TOOLS)[number], "user-approval">),
+			),
 			updatePlan: () =>
-				state.planApproved
-					? ("not-applicable" as const)
-					: ("user-approval" as const),
+				state.planApproved ? "not-applicable" : "user-approval",
 		},
 	};
 };
-
-export type AssistantSession = ReturnType<typeof createAssistantSession>;
