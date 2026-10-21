@@ -1,11 +1,20 @@
-import { type HTMLAttributes, memo } from "react";
+import {
+	type HTMLAttributes,
+	isValidElement,
+	memo,
+	type ReactNode,
+} from "react";
 import ReactMarkdown, { type Options } from "react-markdown";
 import rehypeKatex from "rehype-katex";
 import remarkGfm from "remark-gfm";
 import remarkMath from "remark-math";
 import supersub from "remark-supersub";
-import type { BundledLanguage } from "shiki";
-import { CodeBlock } from "@/components/ai-elements/code-block";
+import {
+	CodeBlock,
+	CodeBlockContent,
+	CodeBlockLine,
+} from "@/components/ui/code-block";
+import { useHighlightedCode } from "@/hooks/use-highlighted-code";
 import { cn } from "@/lib/utils";
 
 const reactMarkdownPlugins = {
@@ -17,6 +26,26 @@ const reactMarkdownPlugins = {
 		supersub,
 		remarkMath,
 	],
+};
+
+const MarkdownCode = ({
+	code,
+	language,
+}: {
+	code: string;
+	language: string;
+}) => {
+	const lines = useHighlightedCode(code, language);
+
+	return (
+		<CodeBlock>
+			<CodeBlockContent>
+				{lines.map((line, index) => (
+					<CodeBlockLine key={index}>{line}</CodeBlockLine>
+				))}
+			</CodeBlockContent>
+		</CodeBlock>
+	);
 };
 
 const components: Options["components"] = {
@@ -89,20 +118,33 @@ const components: Options["components"] = {
 			{children}
 		</h6>
 	),
-	code: ({ node, className, children, ...props }) => {
-		const match = /language-(\w+)/.exec(className || "");
-		const language = (match ? match[1] : "text") as BundledLanguage;
+	code: ({ node, className, ...props }) => (
+		<code
+			className={cn(
+				"rounded bg-muted px-1 py-0.5 font-mono text-[0.9em]",
+				className,
+			)}
+			{...props}
+		/>
+	),
+	pre: ({ node, children, ...props }) => {
+		if (
+			!isValidElement<{
+				className?: string;
+				children?: ReactNode;
+			}>(children)
+		) {
+			return <pre {...props}>{children}</pre>;
+		}
+		const { className, children: code } = children.props;
 
 		return (
-			<CodeBlock
-				code={String(children)}
-				className={className || ""}
-				language={language}
-				{...props}
+			<MarkdownCode
+				code={String(code)}
+				language={/language-(\w+)/.exec(className ?? "")?.[1] ?? "text"}
 			/>
 		);
 	},
-	pre: ({ children }) => <>{children}</>,
 };
 
 export const Markdown = memo(

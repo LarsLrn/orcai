@@ -2224,6 +2224,8 @@
 	"chat_work_log_tool_status_running": "Wird ausgeführt",
 	"chat_work_log_tool_status_skipped": "Übersprungen",
 	"chat_work_log_working": "Wird bearbeitet",
+	"code_block_copied_label": "Kopiert",
+	"code_block_copy_label": "Kopieren",
 	"common_actions_column_header": "Aktionen",
 	"common_add_button": "Hinzufügen",
 	"common_back_button": "Zurück",
