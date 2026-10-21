@@ -1,6 +1,7 @@
 import type { AssetId, UserId } from "@orcai/core";
 import {
 	ASSET_FILE_TYPES,
+	ASSET_ORIGINS,
 	type AssetMetadataType,
 	type BucketName,
 } from "@orcai/schema";
@@ -17,6 +18,8 @@ import { user } from "./auth";
 
 export const assetFileTypeEnum = pgEnum("asset_file_type", ASSET_FILE_TYPES);
 
+export const assetOriginEnum = pgEnum("asset_origin", ASSET_ORIGINS);
+
 export const asset = pgTable("asset", {
 	id: uuid("id").$type<AssetId>().primaryKey().defaultRandom(),
 	bucket: text("bucket").$type<BucketName>().notNull(),
@@ -32,6 +35,7 @@ export const asset = pgTable("asset", {
 		.default("pending")
 		.$type<"pending" | "active" | "completed" | "failed">(),
 	fileType: assetFileTypeEnum("file_type").notNull(),
+	origin: assetOriginEnum("origin").notNull().default("library"),
 	// TODO: Check what should be done if user deletes account
 	userId: uuid("user_id")
 		.$type<UserId>()

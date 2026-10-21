@@ -2497,6 +2497,7 @@
 	"error_system_group_immutable": "System groups cannot be changed.",
 	"error_token_invalid": "The link is invalid or has expired.",
 	"error_tool_not_available": "The assistant called a tool that was not available.",
+	"error_upload_create_failed": "The file could not be added. Try again.",
 	"error_upload_file_missing": "The uploaded file was not found in storage.",
 	"error_upload_file_size_mismatch": "The uploaded file size does not match.",
 	"error_upload_file_too_large": "\"{fileName}\" exceeds the maximum file size.",

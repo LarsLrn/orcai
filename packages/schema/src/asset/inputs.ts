@@ -4,6 +4,10 @@ import type { ErrorReason } from "../shared/error-reason";
 import { assetFileTypeSchema } from "../shared/primitives/file-type";
 import { createUniqueRefsInputSchema } from "../shared/ref-list";
 import { bucketSchema } from "../storage/parts/buckets";
+import {
+	storageUploadRouteSchema,
+	uploadFileObjectSchema,
+} from "../storage/schema";
 import { processingStatusSchema } from "./parts/processing-status";
 import { assetIdSchema } from "./ref";
 import {
@@ -64,6 +68,11 @@ export const saveManyAssetsInputSchema = z.object({
 	assets: z.array(saveAssetInputSchema).min(1),
 });
 
+export const createAssetsFromUploadsInputSchema = z.object({
+	route: storageUploadRouteSchema,
+	files: z.array(uploadFileObjectSchema).min(1),
+});
+
 export const deleteAssetsInputSchema = z.object({
 	refs: createUniqueRefsInputSchema({
 		key: "id",
@@ -77,4 +86,7 @@ export type CreateAssetInput = z.infer<typeof createAssetInputSchema>;
 export type UpdateAssetInput = z.infer<typeof updateAssetInputSchema>;
 export type SaveAssetInput = z.infer<typeof saveAssetInputSchema>;
 export type SaveManyAssetsInput = z.infer<typeof saveManyAssetsInputSchema>;
+export type CreateAssetsFromUploadsInput = z.infer<
+	typeof createAssetsFromUploadsInputSchema
+>;
 export type DeleteAssetsInput = z.infer<typeof deleteAssetsInputSchema>;

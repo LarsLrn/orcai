@@ -13,6 +13,7 @@ import {
 	getDownloadUrl,
 	getSignedPartUploadUrl,
 	getSignedUploadUrl,
+	isS3NotFound,
 	normalizeUploadId,
 	sendAbortMultipartUploadCommand,
 	sendCompleteMultipartUploadCommand,
@@ -28,53 +29,6 @@ import {
 	requireEntityPermission,
 	requireOrganizationPermission,
 } from "@/lib/orpc/middlewares/permission";
-
-type S3LikeCause = {
-	name?: string;
-	code?: string;
-	Code?: string;
-	$metadata?: {
-		httpStatusCode?: number;
-	};
-};
-
-const isS3LikeCause = (cause: unknown): cause is S3LikeCause =>
-	cause !== null && typeof cause === "object";
-
-const getS3StatusCode = (cause: unknown) =>
-	isS3LikeCause(cause) ? cause.$metadata?.httpStatusCode : undefined;
-
-const getS3Code = (cause: unknown) => {
-	if (!isS3LikeCause(cause)) {
-		return undefined;
-	}
-
-	if (typeof cause.Code === "string") {
-		return cause.Code;
-	}
-
-	if (typeof cause.code === "string") {
-		return cause.code;
-	}
-
-	if (typeof cause.name === "string") {
-		return cause.name;
-	}
-
-	return undefined;
-};
-
-const isS3NotFound = (cause: unknown) => {
-	const statusCode = getS3StatusCode(cause);
-	const code = getS3Code(cause);
-	return (
-		statusCode === 404 ||
-		code === "NotFound" ||
-		code === "NoSuchKey" ||
-		code === "NoSuchUpload" ||
-		code === "NoSuchBucket"
-	);
-};
 
 const createUploadUrls = authed.storage.createUploadUrls.effect(function* ({
 	input,
@@ -462,7 +416,7 @@ const finalizeUpload = authed.storage.finalizeUpload
 						key: validated.stagingKey,
 					}).pipe(
 						Effect.mapError((error) =>
-							isS3NotFound(error.cause)
+							isS3NotFound(error)
 								? new AppErrors.BadRequestError({
 										reason: "UPLOAD_FILE_MISSING",
 										message: "Uploaded file not found in storage.",

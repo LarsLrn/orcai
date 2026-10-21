@@ -7,7 +7,11 @@ import {
 import { DB, dbSchema } from "@orcai/db";
 import { sendJobBatch } from "@orcai/pg-boss";
 import { deletePointsByIdentifier } from "@orcai/qdrant";
-import { buildUploadPrefix, getFileTypeFromMime } from "@orcai/s3";
+import {
+	buildUploadPrefix,
+	getFileTypeFromMime,
+	UPLOAD_ROUTES,
+} from "@orcai/s3";
 import {
 	deletePrefixRecursively,
 	sendDeleteObjectCommand,
@@ -26,6 +30,7 @@ import { lookupEntitiesByPermission } from "@orcai/spice-db";
 import { and, count, desc, eq, getColumns, ilike, inArray } from "drizzle-orm";
 import * as Effect from "effect/Effect";
 import { v4 as uuidv4 } from "uuid";
+import { createAssetsFromUploads } from "@/lib/assets/intake";
 import { emptyCapabilities } from "@/lib/authz/capabilities";
 import {
 	getEntityCapabilities,
@@ -442,6 +447,33 @@ const saveManyAssets = authed.asset.saveMany
 		};
 	});
 
+const createAssetsFromUploadsProcedure = authed.asset.createFromUploads
+	.use(requireOrganizationPermission("create_asset"))
+	.effect(function* ({ input, context }) {
+		const route = UPLOAD_ROUTES[input.route];
+
+		if (input.files.length > route.maxFiles) {
+			return yield* Effect.fail(
+				new AppErrors.BadRequestError({
+					reason: "UPLOAD_TOO_MANY_FILES",
+					params: {
+						maxFiles: route.maxFiles,
+					},
+					message: `Too many files. Max allowed: ${route.maxFiles}.`,
+				}),
+			);
+		}
+
+		return {
+			data: yield* createAssetsFromUploads({
+				route: input.route,
+				files: input.files,
+				userId: context.auth.user.id,
+				organizationId: context.auth.session.activeOrganizationId,
+			}),
+		};
+	});
+
 const deleteAssets = authed.asset.delete
 	.use(
 		checkManyPermissionMiddleware("asset").adaptInput(
@@ -506,6 +538,7 @@ export const assetRouter = {
 	save: saveAsset,
 	saveMany: saveManyAssets,
 	create: createAsset,
+	createFromUploads: createAssetsFromUploadsProcedure,
 	find: findAsset,
 	delete: deleteAssets,
 };

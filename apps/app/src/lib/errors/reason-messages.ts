@@ -152,6 +152,7 @@ const reasonMessages: ReasonMessages = {
 	SYSTEM_GROUP_IMMUTABLE: m.error_system_group_immutable,
 	TOKEN_INVALID: m.error_token_invalid,
 	TOOL_NOT_AVAILABLE: m.error_tool_not_available,
+	UPLOAD_CREATE_FAILED: m.error_upload_create_failed,
 	UPLOAD_FILE_MISSING: m.error_upload_file_missing,
 	UPLOAD_FILE_SIZE_MISMATCH: m.error_upload_file_size_mismatch,
 	UPLOAD_FILE_TOO_LARGE: ({ fileName }) =>
