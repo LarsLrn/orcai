@@ -59,14 +59,18 @@ In a chat (`/app/chat/<chat id>`), OrcAI supports:
 
 - Streaming model responses, with Stop while an answer is generated
 - Message actions: **Copy** and **Branch from here** on your questions; **Copy**, **Branch from here** and **Rate response** on answers
-- Usage metadata on assistant messages: the tokens a reply used, and how full the model's context window was when the model's context window is known
+- Usage metadata on assistant messages: the tokens a reply used, and how full the model's context window was when the model's context window is known; a reply that summarized the chat counts the summary too
 - Switching the model with the model picker in the composer
 - The composer's **More chat actions** menu, with **Start tour**, **Chat settings** and **Download chat** (always the whole chat)
 - Older messages load as you scroll up; a chat opens on its newest 20
 
 ### Long Chats
 
-When a chat outgrows the model's context window, the model reads only the newest turns that fill about three quarters of it, after room for its reply, its instructions and its tools, so the next replies have room before trimming again. A reply that was written without the oldest turns says so under it. The chat keeps every message. A model without a known context window is assumed to read 128,000 tokens. If your message alone does not fit, it is not sent: shorten it, remove attachments, or start a new chat.
+When a chat fills 80% of the model's context window, after room for the reply, its instructions and its tools, the earlier conversation is summarized for the model. While the summary is written, the reply shows **Compacting conversation…**; afterwards a divider **Earlier messages summarized** marks where the model's view starts from the summary. The summary itself is not shown, and the chat keeps every message. OpenAI models, and Anthropic models whose budget allows a trigger of at least 50,000 tokens, summarize on the provider's side, also in the middle of a long answer. Other models write the summary as a separate call before the answer, which counts against your quota like the reply.
+
+If a summary cannot be written, the model reads only the newest turns that fill about three quarters of the window, and the reply says so under it. A reply whose next step would not fit stops with a notice; send a message to continue. If your message alone does not fit, it is not sent: shorten it, remove attachments, or start a new chat.
+
+A model without a known context window is assumed to read 128,000 tokens. Admins can set a smaller **Context window** on the model to summarize earlier.
 
 ## Branching
 

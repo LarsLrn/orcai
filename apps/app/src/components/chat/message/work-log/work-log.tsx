@@ -42,6 +42,8 @@ export const activityLabel = (activity: Activity) => {
 			return toolLabels(activity.part).active;
 		case "thinking":
 			return m.chat_work_log_thinking();
+		case "compacting":
+			return m.chat_work_log_compacting();
 		case "working":
 			return m.chat_work_log_working();
 	}
