@@ -44,7 +44,7 @@ The reset happens once per run. Beyond the well-known admin, every Playwright wo
 
 ## Integration Tier
 
-Modules that need real PostgreSQL and SpiceDB are tested through their interface in `*.integration.ts` files, alongside the unit tests. `bun test` does not discover that suffix, so `bun run test` stays free of infrastructure.
+Modules that need real PostgreSQL, SpiceDB, or Valkey are tested through their interface in `*.integration.ts` files, alongside the unit tests. `bun test` does not discover that suffix, so `bun run test` stays free of infrastructure.
 
 ```bash title="Repository root"
 bun run test:integration                                        # every integration file
