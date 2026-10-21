@@ -18,11 +18,6 @@ export const createDownloadUrlInputSchema = z.object({
 	objectKey: z.string().min(1).optional(),
 });
 
-export const finalizeUploadInputSchema = z.object({
-	route: storageUploadRouteSchema.default("asset"),
-	files: z.array(uploadFileObjectSchema).min(1),
-});
-
 const multipartControlBaseSchema = z.object({
 	route: storageUploadRouteSchema.default("asset"),
 	uploadId: z.string().min(1),
@@ -40,7 +35,6 @@ export type CreateUploadUrlsInput = z.infer<typeof createUploadUrlsInputSchema>;
 export type CreateDownloadUrlInput = z.infer<
 	typeof createDownloadUrlInputSchema
 >;
-export type FinalizeUploadInput = z.infer<typeof finalizeUploadInputSchema>;
 export type CompleteMultipartUploadInput = z.infer<
 	typeof completeMultipartUploadInputSchema
 >;

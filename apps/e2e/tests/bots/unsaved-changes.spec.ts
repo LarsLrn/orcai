@@ -1,4 +1,5 @@
-import type { Page } from "@playwright/test";
+import type { Locator, Page } from "@playwright/test";
+import { holdUploads } from "../../fixtures/assets";
 import { type Api, expect, test } from "../../fixtures/index";
 import { message } from "../../fixtures/messages";
 import { enterApp, open } from "../../fixtures/navigation";
@@ -107,16 +108,7 @@ const memberBot = async (api: Api, withTemplate = false) => {
 	return bot.data;
 };
 
-test("bots: closing the upload dialog with an uploaded file asks first", async ({
-	api,
-	org,
-	pageAs,
-}) => {
-	const bot = await memberBot(api);
-	const page = await pageAs("member");
-	await enterApp(page, org.slug);
-	await open(page, `/app/hub/bots/${bot.id}/setup?step=2`);
-
+const openUploadDialog = async (page: Page) => {
 	await page
 		.getByRole("button", {
 			name: message("authoring_repositories_create_action"),
@@ -127,28 +119,36 @@ test("bots: closing the upload dialog with an uploaded file asks first", async (
 			name: message("authoring_database_block_upload_new_action"),
 		})
 		.click();
-	const uploadDialog = page.getByRole("dialog", {
+	return page.getByRole("dialog", {
 		name: message("authoring_database_block_upload_dialog_title"),
 	});
-	await uploadDialog.locator('input[type="file"]').setInputFiles({
-		name: "unsaved-notes.txt",
+};
+
+const uploadNotes = async (dialog: Locator, name: string) => {
+	await dialog.locator('input[type="file"]').setInputFiles({
+		name,
 		mimeType: "text/plain",
 		buffer: Buffer.from("Uploaded by the unsaved changes spec."),
 	});
-	await uploadDialog
+	await dialog
 		.getByRole("button", {
 			name: message("assets_intake_upload_button"),
 		})
 		.click();
-	await uploadDialog
-		.getByRole("button", {
-			name: message("common_next_button"),
-		})
-		.click();
-	const reviewTitle = uploadDialog.getByText(
-		message("assets_intake_review_title"),
-	);
-	await expect(reviewTitle).toBeVisible();
+};
+
+test("bots: closing the upload dialog asks only while an upload is in flight", async ({
+	api,
+	org,
+	pageAs,
+}) => {
+	const bot = await memberBot(api);
+	const page = await pageAs("member");
+	await enterApp(page, org.slug);
+	await open(page, `/app/hub/bots/${bot.id}/setup?step=2`);
+	const uploadDialog = await openUploadDialog(page);
+	const uploads = await holdUploads(page);
+	await uploadNotes(uploadDialog, "unsaved-notes.txt");
 
 	const discardDialog = page.getByRole("alertdialog", {
 		name: message("common_unsaved_changes_discard_title"),
@@ -160,7 +160,7 @@ test("bots: closing the upload dialog with an uploaded file asks first", async (
 		})
 		.click();
 	await expect(discardDialog).toHaveCount(0);
-	await expect(reviewTitle).toBeVisible();
+	await expect(uploadDialog).toBeVisible();
 
 	await page.keyboard.press("Escape");
 	await discardDialog
@@ -169,6 +169,59 @@ test("bots: closing the upload dialog with an uploaded file asks first", async (
 		})
 		.click();
 	await expect(uploadDialog).toHaveCount(0);
+	uploads.release();
+
+	await page
+		.getByRole("button", {
+			name: message("authoring_database_block_upload_new_action"),
+		})
+		.click();
+	await uploadNotes(uploadDialog, "kept-notes.txt");
+	await expect(
+		uploadDialog.getByText(message("assets_intake_review_title")),
+	).toBeVisible();
+	await page.keyboard.press("Escape");
+	await expect(discardDialog).toHaveCount(0);
+	await expect(uploadDialog).toHaveCount(0);
+});
+
+test("bots: assets uploaded in the repository dialog are selected at once", async ({
+	api,
+	org,
+	pageAs,
+}) => {
+	const bot = await memberBot(api);
+	const page = await pageAs("member");
+	await enterApp(page, org.slug);
+	await open(page, `/app/hub/bots/${bot.id}/setup?step=2`);
+	const uploadDialog = await openUploadDialog(page);
+	const name = `E2E Selected ${runId()}.txt`;
+
+	await uploadNotes(uploadDialog, name);
+	const done = uploadDialog.getByRole("button", {
+		name: message("assets_intake_done_button"),
+	});
+	await expect(done).toBeVisible();
+	await expect(
+		uploadDialog.getByText(name, {
+			exact: true,
+		}),
+	).toBeVisible();
+	await done.click();
+
+	await expect(uploadDialog).toHaveCount(0);
+	await expect(
+		page.getByText(name, {
+			exact: true,
+		}),
+	).toBeVisible();
+	await expect(
+		page.getByText(
+			message("authoring_database_block_attached_badge", {
+				count: 1,
+			}),
+		),
+	).toBeVisible();
 });
 
 test("bots: publishing saves the edits on screen first", async ({

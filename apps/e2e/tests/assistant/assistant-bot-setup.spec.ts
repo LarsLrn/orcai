@@ -1,4 +1,5 @@
 import type { BlockId, BotId } from "@orcai/core";
+import { uploadAsset } from "../../fixtures/assets";
 import { lastRow, loadTools } from "../../fixtures/assistant/approval";
 import {
 	BOTS_TOOLS,
@@ -16,7 +17,6 @@ import {
 	turnRequests,
 } from "../../fixtures/assistant/assistant";
 import { approvePlan } from "../../fixtures/assistant/plan";
-import { assetRow } from "../../fixtures/authz/resources";
 import { chatName, messageText } from "../../fixtures/chat/chat";
 import { ask, turnFinished } from "../../fixtures/gen-ui/gen-ui";
 import { expect, test } from "../../fixtures/inference/fixture";
@@ -46,7 +46,7 @@ test("assistant: a member sets up and publishes a bot in one turn, and the next 
 	await setUpAssistantModel(api, org, inference);
 	const member = api.as("member");
 	const chatId = await startTitledConversation(member, inference);
-	const asset = await member.asset.create(assetRow(chatName("Syllabus")));
+	const asset = await uploadAsset(member, chatName("Syllabus"));
 	const templateName = chatName("Template");
 	const repositoryName = chatName("Repository");
 	const botName = chatName("Bot");
@@ -82,7 +82,7 @@ test("assistant: a member sets up and publishes a bot in one turn, and the next 
 						name: repositoryName,
 						status: "ready",
 						assetIds: [
-							asset.data.id,
+							asset.id,
 						],
 					},
 				},
@@ -243,7 +243,7 @@ test("assistant: a member sets up and publishes a bot in one turn, and the next 
 		id: repositoryId,
 	});
 	expect(assets?.map((attached) => attached.id)).toEqual([
-		asset.data.id,
+		asset.id,
 	]);
 
 	await expandWorkLog(page);

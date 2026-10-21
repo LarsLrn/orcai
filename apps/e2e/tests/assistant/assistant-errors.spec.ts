@@ -1,3 +1,4 @@
+import { uploadAsset } from "../../fixtures/assets";
 import {
 	continueTurn,
 	lastRow,
@@ -15,7 +16,6 @@ import {
 	turnRequests,
 } from "../../fixtures/assistant/assistant";
 import { approvePlan } from "../../fixtures/assistant/plan";
-import { assetRow } from "../../fixtures/authz/resources";
 import { ask, chatName, messageText } from "../../fixtures/chat/chat";
 import { createBot } from "../../fixtures/gen-ui/gen-ui";
 import { expect, test } from "../../fixtures/inference/fixture";
@@ -125,9 +125,10 @@ test("assistant: attaching an asset the member cannot read relays ASSET_LINK_FOR
 	await setUpAssistantModel(api, org, inference);
 	const member = api.as("member");
 	const chatId = await startTitledConversation(member, inference);
-	const foreign = await api
-		.as("manager")
-		.asset.create(assetRow(chatName("Private Asset")));
+	const foreign = await uploadAsset(
+		api.as("manager"),
+		chatName("Private Asset"),
+	);
 	const name = chatName("Repository");
 	const relayed = "You cannot attach that asset.";
 	await approvePlan(member, chatId, inference, {
@@ -146,7 +147,7 @@ test("assistant: attaching an asset the member cannot read relays ASSET_LINK_FOR
 					input: {
 						name,
 						assetIds: [
-							foreign.data.id,
+							foreign.id,
 						],
 					},
 				},

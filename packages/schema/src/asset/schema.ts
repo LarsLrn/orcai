@@ -14,8 +14,6 @@ export const assetFieldsSchema = z.object({
 	metadata: metadataSchema,
 });
 
-export const assetMutableFieldsSchema = assetFieldsSchema.partial();
-
 export const assetSchema = assetFieldsSchema.extend({
 	id: assetIdSchema,
 	bucket: bucketSchema,
@@ -40,20 +38,5 @@ export const assetFiltersSchema = z.object({
 	repositoryId: blockIdSchema.optional(),
 });
 
-/**
- * Describes a file that has been uploaded to storage and is ready to be
- * persisted as an asset. Used in the save/finalize upload flow.
- */
-export const finalizedUploadFileSchema = z.object({
-	id: assetIdSchema,
-	bucket: bucketSchema,
-	prefix: z.string(),
-	objectKey: z.string(),
-	name: z.string(),
-	size: z.number().int().min(1),
-	type: z.string().min(1),
-});
-
 export type Asset = z.infer<typeof assetSchema>;
 export type AssetWithCapabilities = z.infer<typeof assetWithCapabilitiesSchema>;
-export type FinalizedUploadFile = z.infer<typeof finalizedUploadFileSchema>;

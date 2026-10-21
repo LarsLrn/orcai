@@ -45,13 +45,6 @@ export const databaseBlockUpdate = (
 	...databaseBlock(name, assets),
 });
 
-/** An asset row without an upload: `asset.create` needs no bytes and no worker. */
-export const assetRow = (title: string) => ({
-	title,
-	size: 1024,
-	fileType: "txt" as const,
-});
-
 /** `asset.save` input renaming an existing asset. */
 export const assetRename = (id: AssetId, title: string) => ({
 	id,

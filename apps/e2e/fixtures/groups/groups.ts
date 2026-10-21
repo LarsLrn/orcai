@@ -2,6 +2,7 @@ import type { AssetId, BlockId, BotId } from "@orcai/core";
 import { type Group, userIdSchema } from "@orcai/schema";
 import { expect, type Locator, type Page } from "@playwright/test";
 import { type ApiClient, createApiClient, type ZedTokenStore } from "../api";
+import { uploadAsset } from "../assets";
 import { signUpInvited } from "../auth";
 import { EMAIL_DOMAIN } from "../constants";
 import { baseURL } from "../env";
@@ -39,13 +40,6 @@ export const databaseBlock = (name: string, assets: AssetId[] = []) => ({
 	},
 });
 
-/** An asset row without an upload: `asset.create` needs no bytes and no worker. */
-export const assetRow = (title: string) => ({
-	title,
-	size: 1024,
-	fileType: "txt" as const,
-});
-
 /**
  * The inheritance chain the authz schema cascades over: a bot linking a
  * template block and a database block, and an asset inside that database
@@ -65,12 +59,13 @@ export const inheritanceChain = async (params: {
 	const template = await params.api.block.create(
 		templateBlock(groupsName(`${params.label} Template`)),
 	);
-	const asset = await params.api.asset.create(
-		assetRow(groupsName(`${params.label} Asset`)),
+	const asset = await uploadAsset(
+		params.api,
+		groupsName(`${params.label} Asset`),
 	);
 	const database = await params.api.block.create(
 		databaseBlock(groupsName(`${params.label} Database`), [
-			asset.data.id,
+			asset.id,
 		]),
 	);
 	const botName = groupsName(`${params.label} Bot`);
@@ -89,7 +84,7 @@ export const inheritanceChain = async (params: {
 		botName,
 		templateBlockId: template.data.id,
 		databaseBlockId: database.data.id,
-		assetId: asset.data.id,
+		assetId: asset.id,
 	};
 };
 

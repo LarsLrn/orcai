@@ -1,6 +1,4 @@
 import {
-	createAssetInputSchema,
-	createAssetResponseSchema,
 	createAssetsFromUploadsInputSchema,
 	createAssetsFromUploadsResponseSchema,
 	deleteAssetsInputSchema,
@@ -11,8 +9,6 @@ import {
 	listAssetsResponseSchema,
 	saveAssetInputSchema,
 	saveAssetResponseSchema,
-	saveManyAssetsInputSchema,
-	saveManyAssetsResponseSchema,
 } from "@orcai/schema";
 import { openapi } from "@orpc/openapi";
 import { base } from "./base";
@@ -31,19 +27,6 @@ export const assetContracts = {
 		)
 		.input(listAssetsInputSchema)
 		.output(listAssetsResponseSchema),
-	create: base
-		.meta(
-			openapi({
-				method: "POST",
-				path: "/assets",
-				summary: "Create an asset",
-				tags: [
-					"Assets",
-				],
-			}),
-		)
-		.input(createAssetInputSchema)
-		.output(createAssetResponseSchema),
 	createFromUploads: base
 		.meta(
 			openapi({
@@ -75,7 +58,7 @@ export const assetContracts = {
 			openapi({
 				method: "PUT",
 				path: "/assets/save",
-				summary: "Create or update an asset",
+				summary: "Update an asset's title and metadata",
 				tags: [
 					"Assets",
 				],
@@ -83,19 +66,6 @@ export const assetContracts = {
 		)
 		.input(saveAssetInputSchema)
 		.output(saveAssetResponseSchema),
-	saveMany: base
-		.meta(
-			openapi({
-				method: "PUT",
-				path: "/assets/save-many",
-				summary: "Create many assets from uploaded files",
-				tags: [
-					"Assets",
-				],
-			}),
-		)
-		.input(saveManyAssetsInputSchema)
-		.output(saveManyAssetsResponseSchema),
 	delete: base
 		.meta(
 			openapi({

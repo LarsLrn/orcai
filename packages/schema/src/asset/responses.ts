@@ -15,13 +15,7 @@ export const findAssetResponseSchema = createDataResponseSchema(
 	assetWithCapabilitiesSchema,
 );
 
-export const createAssetResponseSchema = createDataResponseSchema(assetSchema);
-
 export const saveAssetResponseSchema = createDataResponseSchema(assetSchema);
-
-export const saveManyAssetsResponseSchema = createDataResponseSchema(
-	z.array(assetSchema),
-);
 
 /** One uploaded file's outcome, keyed by the `objectKey` its upload was signed with. */
 export const assetIntakeResultSchema = z.discriminatedUnion("status", [
