@@ -10,6 +10,13 @@ import {
 /** What the knowledge base tools store; a stored output of an older shape fails to parse. */
 export const searchOutputSchema = z.object({
 	results: z.array(passageSchema),
+	notSearchable: z
+		.array(
+			z.object({
+				note: z.string(),
+			}),
+		)
+		.optional(),
 });
 
 export const chunksOutputSchema = z.object({
@@ -81,12 +88,21 @@ const passagesText = (passages: Passage[]) =>
 		? passages.map(passageText).join("\n\n")
 		: "No matching passages.";
 
+const documentState = ({
+	state,
+	failure,
+}: Pick<KnowledgeBaseDocument, "state" | "failure">) => {
+	if (state === "ready") return "";
+	if (failure) return ` [failed in ${failure.stage}: ${failure.kind}]`;
+	return ` [${state}, not searchable yet]`;
+};
+
 const documentsText = (documents: KnowledgeBaseDocument[]) =>
 	documents.length > 0
 		? documents
 				.map(
-					({ assetId, title, citation }) =>
-						`- ${assetId}: ${title}${citation ? ` (${citation})` : ""}`,
+					(document) =>
+						`- ${document.assetId}: ${document.title}${document.citation ? ` (${document.citation})` : ""}${documentState(document)}`,
 				)
 				.join("\n")
 		: "No documents.";
@@ -108,8 +124,17 @@ const modelText =
 		};
 	};
 
-export const searchModelOutput = modelText(searchOutputSchema, ({ results }) =>
-	passagesText(results),
+export const searchModelOutput = modelText(
+	searchOutputSchema,
+	({ results, notSearchable }) =>
+		[
+			passagesText(results),
+			...(notSearchable && notSearchable.length > 0
+				? [
+						`Not searchable yet:\n${notSearchable.map(({ note }) => `- ${note}`).join("\n")}`,
+					]
+				: []),
+		].join("\n\n"),
 );
 
 export const chunksModelOutput = modelText(

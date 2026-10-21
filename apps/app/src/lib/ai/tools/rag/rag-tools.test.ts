@@ -1,4 +1,4 @@
-import { afterEach, describe, expect, test } from "bun:test";
+import { afterEach, beforeEach, describe, expect, test } from "bun:test";
 import type { AssetPoint, DatabaseBlock } from "@orcai/schema";
 import * as Effect from "effect/Effect";
 import type { ORPCContext } from "@/lib/orpc/implementation/os";
@@ -75,6 +75,13 @@ const searchChunks = ({ filters }: SearchInput) =>
 				filters.chunkIndices?.includes(chunk.payload.chunk_index),
 		),
 	});
+
+beforeEach(() => {
+	answers["block.readiness"] = () =>
+		Effect.succeed({
+			data: [],
+		});
+});
 
 afterEach(resetProcedures);
 
@@ -193,11 +200,26 @@ describe("getKnowledgeBaseChunks", () => {
 
 describe("getKnowledgeBasePage", () => {
 	const answerCatalog = (pages: AssetPoint[]) => {
-		answers["block.find"] = () =>
+		answers["block.readiness"] = () =>
 			Effect.succeed({
-				assets: [
+				data: [
 					{
-						id: "asset-a",
+						blockId: "block-1",
+						name: "Handbook",
+						totals: {
+							total: 1,
+							ready: 1,
+							preparing: 0,
+							failed: 0,
+						},
+						documents: [
+							{
+								assetId: "asset-a",
+								title: "Refund policy",
+								state: "ready",
+								failure: null,
+							},
+						],
 					},
 				],
 			});
@@ -251,6 +273,7 @@ describe("getKnowledgeBasePage", () => {
 				{
 					assetId: "asset-a",
 					title: "Refund policy",
+					state: "ready",
 				},
 			],
 		});

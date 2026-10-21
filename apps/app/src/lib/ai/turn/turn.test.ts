@@ -1066,6 +1066,10 @@ describe("turn setup", () => {
 				},
 			],
 		});
+		answers["block.readiness"] = () =>
+			Effect.succeed({
+				data: [],
+			});
 		answers["assetPoint.searchRepository"] = () =>
 			Effect.succeed({
 				data: [

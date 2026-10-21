@@ -1,4 +1,4 @@
-import { afterEach, describe, expect, test } from "bun:test";
+import { afterEach, beforeEach, describe, expect, test } from "bun:test";
 import type { DatabaseBlock } from "@orcai/schema";
 import { ORPCError } from "@orpc/client";
 import * as Effect from "effect/Effect";
@@ -52,6 +52,13 @@ const errorText = (run: Promise<unknown> | undefined) =>
 		},
 		(error: unknown) => (error as Error).message,
 	);
+
+beforeEach(() => {
+	answers["block.readiness"] = () =>
+		Effect.succeed({
+			data: [],
+		});
+});
 
 afterEach(resetProcedures);
 
@@ -113,15 +120,7 @@ describe("knowledge base tool errors", () => {
 	});
 
 	test("a failed document lookup keeps the procedure's reason", async () => {
-		answers["block.find"] = () =>
-			Effect.fail(
-				new ORPCError("NOT_FOUND", {
-					message: "Block not found",
-					data: {
-						reason: "BLOCK_NOT_FOUND",
-					},
-				}),
-			);
+		answers["block.readiness"] = denied;
 
 		const run = listKnowledgeBaseDocumentsTool(deps).execute?.(
 			{
@@ -131,12 +130,12 @@ describe("knowledge base tool errors", () => {
 		);
 
 		expect(await errorText(run as Promise<unknown>)).toBe(
-			"BLOCK_NOT_FOUND: Block not found",
+			"PERMISSION_DENIED: You do not have permission to read this repository.",
 		);
 	});
 
 	test("a failed page read keeps the procedure's reason", async () => {
-		answers["block.find"] = denied;
+		answers["block.readiness"] = denied;
 
 		const run = getKnowledgeBasePageTool(deps).execute?.(
 			{
