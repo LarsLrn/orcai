@@ -67,8 +67,14 @@ const denied = [
 	"group:group1#manage@user:member1",
 ];
 
-// Ids get a per-run prefix so runs coexist with each other and with dev data.
-const run = crypto.randomUUID();
+// Each name maps to a fresh UUID per run, so runs coexist with each other and
+// with app data, whose lookups read these ids as UUIDs.
+const ids = new Map<string, string>();
+const idOf = (name: string) => {
+	const id = ids.get(name) ?? crypto.randomUUID();
+	ids.set(name, id);
+	return id;
+};
 const tuplePattern = /^(\w+):(\w+)#(\w+)@(\w+):(\w+|\*)(?:#(\w+))?$/;
 
 const parse = (tuple: string) => {
@@ -79,13 +85,13 @@ const parse = (tuple: string) => {
 	return {
 		resource: v1.ObjectReference.create({
 			objectType: resourceType,
-			objectId: `${run}-${resourceId}`,
+			objectId: idOf(resourceId),
 		}),
 		relation,
 		subject: v1.SubjectReference.create({
 			object: v1.ObjectReference.create({
 				objectType: subjectType,
-				objectId: subjectId === "*" ? "*" : `${run}-${subjectId}`,
+				objectId: subjectId === "*" ? "*" : idOf(subjectId),
 			}),
 			optionalRelation: sub,
 		}),
