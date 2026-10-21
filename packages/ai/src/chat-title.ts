@@ -36,6 +36,7 @@ ${userMessageText}`;
 export const sanitizeGeneratedChatTitle = (title: string) => {
 	const sanitized = title
 		.trim()
+		.replaceAll(/\\[()[\]]/g, "")
 		.replaceAll(/^["'`]+|["'`]+$/g, "")
 		.replaceAll(/\s+/g, " ")
 		.trim()
