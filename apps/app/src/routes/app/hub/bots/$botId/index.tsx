@@ -10,6 +10,7 @@ import { useState } from "react";
 import { AccessDialog } from "@/components/access/access-dialog";
 import { MetadataCard } from "@/components/app/metadata-card";
 import { BotBlocks } from "@/components/bot/bot-blocks";
+import { BotFavouriteToggle } from "@/components/bot/bot-favourites";
 import {
 	ContentRenderer,
 	isContentEmpty,
@@ -134,6 +135,9 @@ function RouteComponent() {
 					</div>
 				) : null}
 				<PageAction>
+					{bot.data.status === "ready" ? (
+						<BotFavouriteToggle bot={bot.data} />
+					) : null}
 					{canUse ? (
 						<Button
 							onClick={() =>

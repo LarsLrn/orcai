@@ -25,6 +25,7 @@ const BotsShowcase = ({ limit = 6 }: { limit?: number }) => {
 			input: {
 				pageIndex: 0,
 				pageSize: limit,
+				sort: "favouritesFirst",
 			},
 		}),
 	);

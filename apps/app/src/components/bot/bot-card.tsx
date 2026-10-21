@@ -1,5 +1,6 @@
 import type { BotWithCapabilities } from "@orcai/schema";
 import { BotIcon, EditIcon, EyeIcon } from "lucide-react";
+import { BotFavouriteToggle } from "@/components/bot/bot-favourites";
 import { FeatureBadges } from "@/components/features/feature-badges";
 import {
 	DropdownMenu,
@@ -41,6 +42,7 @@ const BotCard = ({
 		primary?: ResourceCardPrimaryAction;
 	};
 }) => {
+	const isPublished = bot.status === "ready";
 	const meta: ResourceCardMetaItem[] = [];
 	if (bot.createdAt) {
 		meta.push({
@@ -83,11 +85,10 @@ const BotCard = ({
 
 	const badges: ResourceCardBadgeItem[] = [
 		{
-			label:
-				bot.status === "ready"
-					? m.bots_card_published_badge()
-					: m.bots_card_draft_badge(),
-			variant: bot.status === "ready" ? "success" : "outline",
+			label: isPublished
+				? m.bots_card_published_badge()
+				: m.bots_card_draft_badge(),
+			variant: isPublished ? "success" : "outline",
 		},
 		{
 			label: `v${bot.version}`,
@@ -104,33 +105,38 @@ const BotCard = ({
 		},
 	};
 
+	const hasMenu = isPublished || dropdownActions.length > 0;
+
 	return (
 		<ResourceCard>
-			{dropdownActions.length > 0 ? (
+			{hasMenu ? (
 				<ResourceCardMenu>
-					<DropdownMenu>
-						<DropdownMenuTrigger render={<ResourceCardMenuTrigger />} />
-						<DropdownMenuContent align="end" className="w-40">
-							{dropdownActions.map((action) => (
-								<DropdownMenuItem
-									key={action.key}
-									onClick={() => {
-										if (action.onClick) {
-											action.onClick();
-										}
-									}}
-								>
-									{action.icon ? <action.icon /> : null}
-									{action.label}
-								</DropdownMenuItem>
-							))}
-						</DropdownMenuContent>
-					</DropdownMenu>
+					{isPublished ? <BotFavouriteToggle bot={bot} /> : null}
+					{dropdownActions.length > 0 ? (
+						<DropdownMenu>
+							<DropdownMenuTrigger render={<ResourceCardMenuTrigger />} />
+							<DropdownMenuContent align="end" className="w-40">
+								{dropdownActions.map((action) => (
+									<DropdownMenuItem
+										key={action.key}
+										onClick={() => {
+											if (action.onClick) {
+												action.onClick();
+											}
+										}}
+									>
+										{action.icon ? <action.icon /> : null}
+										{action.label}
+									</DropdownMenuItem>
+								))}
+							</DropdownMenuContent>
+						</DropdownMenu>
+					) : null}
 				</ResourceCardMenu>
 			) : null}
 
 			<ResourceCardBody action={primaryAction}>
-				<ResourceCardHeader>
+				<ResourceCardHeader className={hasMenu ? "pr-10" : undefined}>
 					<ResourceCardMedia variant="icon" tone="bot">
 						<BotIcon />
 					</ResourceCardMedia>

@@ -1,7 +1,11 @@
-import type { Bot } from "@orcai/schema";
+import type { Bot, BotWithCapabilities } from "@orcai/schema";
 import { useQuery } from "@tanstack/react-query";
 import { BotIcon, SearchIcon } from "lucide-react";
 import { useDebounceValue } from "usehooks-ts";
+import {
+	BotFavouriteStar,
+	FAVOURITE_BOTS_INPUT,
+} from "@/components/bot/bot-favourites";
 import { Badge } from "@/components/ui/badge";
 import { Card, CardHeader } from "@/components/ui/card";
 import {
@@ -23,14 +27,91 @@ interface BotSelectProps {
 	selectedBot?: Bot | null;
 }
 
+const BotRadioGroup = ({
+	id,
+	label,
+	heading = false,
+	bots,
+	selectedBot,
+	onBotSelect,
+}: {
+	id: string;
+	label: string;
+	heading?: boolean;
+	bots: BotWithCapabilities[];
+	selectedBot?: Bot | null;
+	onBotSelect: (bot: Bot | null) => void;
+}) => (
+	<div className="flex flex-col gap-2">
+		{heading ? (
+			<h3
+				id={`bot-select-${id}`}
+				className="font-medium text-muted-foreground text-xs"
+			>
+				{label}
+			</h3>
+		) : null}
+		<RadioGroup
+			aria-label={heading ? undefined : label}
+			aria-labelledby={heading ? `bot-select-${id}` : undefined}
+			value={selectedBot?.id ?? null}
+			onValueChange={(botId) =>
+				onBotSelect(bots.find((bot) => bot.id === botId) ?? null)
+			}
+			className="gap-2"
+		>
+			{bots.map((bot) => {
+				const itemId = `bot-select-${id}-${bot.id}`;
+
+				return (
+					<FieldLabel
+						key={bot.id}
+						htmlFor={itemId}
+						className="cursor-pointer transition-colors hover:bg-muted/50 has-data-checked:border-primary has-focus-visible:border-ring has-data-checked:bg-primary/5 has-focus-visible:ring-3 has-focus-visible:ring-ring/30"
+					>
+						<Field orientation="horizontal">
+							<RadioGroupItem
+								value={bot.id}
+								id={itemId}
+								aria-labelledby={`${itemId}-name`}
+								aria-describedby={`${itemId}-description`}
+							/>
+							<FieldContent className="min-w-0">
+								<FieldTitle className="w-full min-w-0 text-base">
+									<BotIcon className="size-4 shrink-0" aria-hidden="true" />
+									<span id={`${itemId}-name`} className="truncate">
+										{bot.name}
+									</span>
+									{bot.isFavourite ? (
+										<BotFavouriteStar className="shrink-0" />
+									) : null}
+									<Badge
+										variant="secondary"
+										className="ml-auto shrink-0 text-xs"
+									>
+										v{bot.version}
+									</Badge>
+								</FieldTitle>
+								<FieldDescription
+									id={`${itemId}-description`}
+									className="line-clamp-2"
+								>
+									{bot.description}
+								</FieldDescription>
+							</FieldContent>
+						</Field>
+					</FieldLabel>
+				);
+			})}
+		</RadioGroup>
+	</div>
+);
+
 const BotSelect = ({ onBotSelect, selectedBot }: BotSelectProps) => {
 	const [searchQuery, setSearchQuery] = useDebounceValue("", 300);
+	const showFavourites = !searchQuery;
 
-	const {
-		data: bots,
-		status,
-		error,
-	} = useQuery(
+	const botsQuery = useQuery(
 		orpc.bot.list.queryOptions({
 			input: {
 				pageSize: 50,
@@ -39,6 +120,28 @@ const BotSelect = ({ onBotSelect, selectedBot }: BotSelectProps) => {
 			},
 		}),
 	);
+	const favouritesQuery = useQuery(
+		orpc.bot.list.queryOptions({
+			input: FAVOURITE_BOTS_INPUT,
+			enabled: showFavourites,
+		}),
+	);
+	const queries = showFavourites
+		? [
+				botsQuery,
+				favouritesQuery,
+			]
+		: [
+				botsQuery,
+			];
+	const error = queries.find((query) => query.status === "error")?.error;
+	const status = error
+		? "error"
+		: queries.some((query) => query.status === "pending")
+			? "pending"
+			: "success";
+	const bots = botsQuery.data?.data ?? [];
+	const favourites = showFavourites ? (favouritesQuery.data?.data ?? []) : [];
 
 	return (
 		<div className="flex min-h-0 flex-1 flex-col gap-4">
@@ -97,7 +200,7 @@ const BotSelect = ({ onBotSelect, selectedBot }: BotSelectProps) => {
 
 				{status === "success" && (
 					<div className="flex flex-col gap-2 p-1">
-						{bots.data.length === 0 ? (
+						{bots.length === 0 ? (
 							<div className="py-8 text-center text-muted-foreground">
 								{searchQuery
 									? m.bots_select_no_results({
@@ -105,58 +208,33 @@ const BotSelect = ({ onBotSelect, selectedBot }: BotSelectProps) => {
 										})
 									: m.bots_select_empty_state_title()}
 							</div>
+						) : favourites.length > 0 ? (
+							<>
+								<BotRadioGroup
+									id="favourites"
+									label={m.bots_favourites_group_label()}
+									heading
+									bots={favourites}
+									selectedBot={selectedBot}
+									onBotSelect={onBotSelect}
+								/>
+								<BotRadioGroup
+									id="all"
+									label={m.bots_all_group_label()}
+									heading
+									bots={bots}
+									selectedBot={selectedBot}
+									onBotSelect={onBotSelect}
+								/>
+							</>
 						) : (
-							<RadioGroup
-								aria-label={m.bots_select_group_aria_label()}
-								value={selectedBot?.id ?? null}
-								onValueChange={(id) =>
-									onBotSelect(bots.data.find((bot) => bot.id === id) ?? null)
-								}
-								className="gap-2"
-							>
-								{bots.data.map((bot: Bot) => (
-									<FieldLabel
-										key={bot.id}
-										htmlFor={`bot-select-${bot.id}`}
-										className="cursor-pointer transition-colors hover:bg-muted/50 has-data-checked:border-primary has-focus-visible:border-ring has-data-checked:bg-primary/5 has-focus-visible:ring-3 has-focus-visible:ring-ring/30"
-									>
-										<Field orientation="horizontal">
-											<RadioGroupItem
-												value={bot.id}
-												id={`bot-select-${bot.id}`}
-												aria-labelledby={`bot-select-${bot.id}-name`}
-												aria-describedby={`bot-select-${bot.id}-description`}
-											/>
-											<FieldContent className="min-w-0">
-												<FieldTitle className="w-full min-w-0 text-base">
-													<BotIcon
-														className="size-4 shrink-0"
-														aria-hidden="true"
-													/>
-													<span
-														id={`bot-select-${bot.id}-name`}
-														className="truncate"
-													>
-														{bot.name}
-													</span>
-													<Badge
-														variant="secondary"
-														className="ml-auto shrink-0 text-xs"
-													>
-														v{bot.version}
-													</Badge>
-												</FieldTitle>
-												<FieldDescription
-													id={`bot-select-${bot.id}-description`}
-													className="line-clamp-2"
-												>
-													{bot.description}
-												</FieldDescription>
-											</FieldContent>
-										</Field>
-									</FieldLabel>
-								))}
-							</RadioGroup>
+							<BotRadioGroup
+								id="all"
+								label={m.bots_select_group_aria_label()}
+								bots={bots}
+								selectedBot={selectedBot}
+								onBotSelect={onBotSelect}
+							/>
 						)}
 					</div>
 				)}
