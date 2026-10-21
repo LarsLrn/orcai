@@ -8,7 +8,7 @@ import {
 } from "../procedure-tool";
 import { listLimitSchema, listQuerySchema } from "./list-input";
 
-export const listGroupsInputSchema = z.object({
+const listGroupsInputSchema = z.object({
 	query: listQuerySchema,
 	limit: listLimitSchema,
 });

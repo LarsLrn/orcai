@@ -9,7 +9,7 @@ import {
 	mutation,
 } from "../procedure-tool";
 
-export const changeMemberRoleInputSchema = organizationMemberSchema
+const changeMemberRoleInputSchema = organizationMemberSchema
 	.pick({
 		userId: true,
 		role: true,

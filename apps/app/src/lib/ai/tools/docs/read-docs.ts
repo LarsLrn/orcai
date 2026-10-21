@@ -12,7 +12,7 @@ const DOCS_CONTENT_TYPES = new Set([
 	"text/plain",
 ]);
 
-export class ReadDocsError extends Data.TaggedError("ReadDocsError")<{
+class ReadDocsError extends Data.TaggedError("ReadDocsError")<{
 	message: string;
 }> {}
 

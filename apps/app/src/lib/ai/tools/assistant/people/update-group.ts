@@ -10,7 +10,7 @@ import {
 } from "../procedure-tool";
 import { groupOutline } from "./group-outline";
 
-export const updateGroupInputSchema = updateGroupProcedureInputSchema.extend({
+const updateGroupInputSchema = updateGroupProcedureInputSchema.extend({
 	id: updateGroupProcedureInputSchema.shape.id.describe(
 		"Id of the group to update.",
 	),

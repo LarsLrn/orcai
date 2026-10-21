@@ -10,8 +10,6 @@ import {
 } from "../procedure-tool";
 import { botOutline } from "./bot-outline";
 
-export { publishBotInputSchema };
-
 export const publishBotTool = (deps: AssistantToolDeps) =>
 	effectTool({
 		description:

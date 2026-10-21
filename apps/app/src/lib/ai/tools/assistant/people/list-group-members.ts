@@ -9,7 +9,7 @@ import {
 	expectType,
 } from "../procedure-tool";
 
-export const listGroupMembersInputSchema = groupMembersQuerySchema
+const listGroupMembersInputSchema = groupMembersQuerySchema
 	.pick({
 		groupId: true,
 		query: true,

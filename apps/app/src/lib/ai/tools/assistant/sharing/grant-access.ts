@@ -17,7 +17,7 @@ import {
 	toResourceIdentity,
 } from "./resource-target";
 
-export const grantAccessInputSchema = z.object({
+const grantAccessInputSchema = z.object({
 	...resourceTargetShape,
 	principals: z
 		.array(z.object(principalShape))

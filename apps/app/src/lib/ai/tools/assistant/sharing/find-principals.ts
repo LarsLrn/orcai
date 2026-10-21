@@ -16,7 +16,7 @@ import {
 
 const principalFilters = resourceListPrincipalsInputSchema.options[0].shape;
 
-export const findPrincipalsInputSchema = z.object({
+const findPrincipalsInputSchema = z.object({
 	...resourceTargetShape,
 	principalType: principalFilters.principalType.describe(
 		"Only users or only groups; leave out for both.",

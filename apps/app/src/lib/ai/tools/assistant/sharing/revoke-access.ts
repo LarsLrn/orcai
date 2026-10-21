@@ -16,7 +16,7 @@ import {
 	toResourceIdentity,
 } from "./resource-target";
 
-export const revokeAccessInputSchema = z.object({
+const revokeAccessInputSchema = z.object({
 	...resourceTargetShape,
 	...principalShape,
 });

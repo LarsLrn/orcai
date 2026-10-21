@@ -17,7 +17,7 @@ import {
 
 const assetMetadataPatchSchema = metadataSchema.partial();
 
-export const updateAssetInputSchema = z.object({
+const updateAssetInputSchema = z.object({
 	id: assetIdSchema.describe("Id of the asset, from findAssets."),
 	title: assetFieldsSchema.shape.title
 		.optional()

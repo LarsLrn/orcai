@@ -4,7 +4,7 @@ import { botProcedures } from "@/lib/orpc/router/bot";
 import { deleteNamed } from "../named-delete";
 import { type AssistantToolDeps, effectTool } from "../procedure-tool";
 
-export const deleteBotInputSchema = z.object({
+const deleteBotInputSchema = z.object({
 	ids: z
 		.array(botIdSchema)
 		.min(1)

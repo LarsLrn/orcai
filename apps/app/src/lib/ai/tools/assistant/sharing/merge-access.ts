@@ -55,5 +55,3 @@ export const mergeAccess = (
 					public: inherited.throughPublic,
 				},
 });
-
-export type MergedAccess = ReturnType<typeof mergeAccess>;

@@ -19,7 +19,7 @@ import {
 	wrongBlockError,
 } from "./block-outline";
 
-export const updateTemplateInputSchema = z.object({
+const updateTemplateInputSchema = z.object({
 	id: blockIdSchema.describe("Id of the behaviour block to update."),
 	name: z
 		.string()

@@ -4,7 +4,7 @@ import { blockProcedures } from "@/lib/orpc/router/block";
 import { deleteNamed } from "../named-delete";
 import { type AssistantToolDeps, effectTool } from "../procedure-tool";
 
-export const deleteBlockInputSchema = z.object({
+const deleteBlockInputSchema = z.object({
 	ids: z
 		.array(blockIdSchema)
 		.min(1)

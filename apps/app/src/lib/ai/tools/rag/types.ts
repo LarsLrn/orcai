@@ -1,26 +1,26 @@
 import type { AssetId, BlockId } from "@orcai/core";
 import type { AssetPoint, DatabaseBlock } from "@orcai/schema";
 
-export type KnowledgeBaseBlockRef = {
+type KnowledgeBaseBlockRef = {
 	id: BlockId;
 	name: DatabaseBlock["name"];
 };
 
-export type KnowledgeBaseDocumentRef = {
+type KnowledgeBaseDocumentRef = {
 	assetId: AssetId;
 	title: string;
 	citation?: string;
 	totalPages?: number;
 };
 
-export type KnowledgeBaseChunkRef = {
+type KnowledgeBaseChunkRef = {
 	index: number;
 	count: number;
 	pageStart?: number;
 	pageEnd?: number;
 };
 
-export type KnowledgeBaseCitationRef = {
+type KnowledgeBaseCitationRef = {
 	assetId: AssetId;
 	title: string;
 	page?: number;

@@ -7,7 +7,7 @@ import { userProcedures } from "@/lib/orpc/router/user";
 import { deleteNamed } from "../named-delete";
 import { type AssistantToolDeps, effectTool } from "../procedure-tool";
 
-export const removeMembersInputSchema = z.object({
+const removeMembersInputSchema = z.object({
 	userIds: z
 		.array(userIdSchema)
 		.min(1)
