@@ -1,14 +1,14 @@
 import type { ChatId, ChatMessageId } from "@orcai/core";
 import type { ChatMessageRating } from "@orcai/schema";
 import { useQuery } from "@tanstack/react-query";
-import { CheckIcon, StarIcon } from "lucide-react";
+import { StarIcon } from "lucide-react";
 import { MessageAction as Action } from "@/components/ai-elements/message";
 import {
 	DropdownMenu,
 	DropdownMenuContent,
-	DropdownMenuGroup,
-	DropdownMenuItem,
 	DropdownMenuLabel,
+	DropdownMenuRadioGroup,
+	DropdownMenuRadioItem,
 	DropdownMenuSeparator,
 	DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
@@ -90,28 +90,26 @@ const MessageRate = ({
 				}
 			/>
 			<DropdownMenuContent align="start" className="w-48">
-				<DropdownMenuGroup>
+				<DropdownMenuRadioGroup value={score ?? null}>
 					<DropdownMenuLabel className="text-xs">
 						{m.chat_message_rate_prompt()}
 					</DropdownMenuLabel>
 					<DropdownMenuSeparator />
-
 					{options.map((rating) => (
-						<DropdownMenuItem
+						<DropdownMenuRadioItem
 							key={rating.value}
+							value={rating.value}
+							closeOnClick
 							onClick={() => handleRate(rating.value)}
 							className={cn(
 								"cursor-pointer",
 								score === rating.value && "bg-primary/10 text-primary",
 							)}
 						>
-							<span className="flex items-center gap-2">
-								{score === rating.value && <CheckIcon className="size-3" />}
-								{rating.label}
-							</span>
-						</DropdownMenuItem>
+							{rating.label}
+						</DropdownMenuRadioItem>
 					))}
-				</DropdownMenuGroup>
+				</DropdownMenuRadioGroup>
 			</DropdownMenuContent>
 		</DropdownMenu>
 	);
