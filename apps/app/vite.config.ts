@@ -20,6 +20,10 @@ export default defineConfig({
 		},
 	},
 	ssr: {
+		// Loads its native bindings relative to its own files.
+		external: [
+			"@kreuzberg/node",
+		],
 		noExternal: [
 			// Bundled with the workspace packages so the server holds one OpenTelemetry SDK.
 			"@effect/opentelemetry",

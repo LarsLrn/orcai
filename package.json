@@ -12,6 +12,7 @@
 			"@effect/opentelemetry": "4.0.0-beta.103",
 			"@effect/sql-pg": "4.0.0-beta.103",
 			"@inlang/paraglide-js": "2.27.0",
+			"@kreuzberg/node": "4.10.2",
 			"@orpc/contract": "2.0.0-beta.40",
 			"@orpc/openapi": "2.0.0-beta.40",
 			"@qdrant/qdrant-js": "1.19.0",
