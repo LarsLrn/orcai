@@ -27,6 +27,12 @@ const PREVIEW_INPUT = {
 	pageIndex: 0,
 	pageSize: 6,
 } as const;
+const ASSETS_PREVIEW_INPUT = {
+	...PREVIEW_INPUT,
+	filters: {
+		origin: "library",
+	},
+} as const;
 const BLOCKS_PREVIEW_INPUT = {
 	pageIndex: 0,
 	pageSize: 3,
@@ -70,7 +76,7 @@ export const Route = createFileRoute("/app/hub/")({
 			),
 			queryClient.query(
 				orpc.asset.list.queryOptions({
-					input: PREVIEW_INPUT,
+					input: ASSETS_PREVIEW_INPUT,
 					staleTime: "static",
 				}),
 			),
@@ -107,7 +113,7 @@ function RouteComponent() {
 	);
 	const { data: assets } = useSuspenseQuery(
 		orpc.asset.list.queryOptions({
-			input: PREVIEW_INPUT,
+			input: ASSETS_PREVIEW_INPUT,
 		}),
 	);
 	const { data: organizationCapabilities } = useOrganizationCapabilities([

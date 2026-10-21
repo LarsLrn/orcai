@@ -1,19 +1,21 @@
-import type { Asset } from "@orcai/schema";
+import type { Asset, StorageUploadRoute } from "@orcai/schema";
 import { expect, type Page } from "@playwright/test";
 import type { ApiClient } from "./api";
 
 /**
  * A text asset named `title`, uploaded and created as the app does: sign the
  * upload, put the bytes, create the asset. Its processing job stays queued,
- * since the suite runs no workers.
+ * since the suite runs no workers. The `chatAttachment` route makes it a chat
+ * upload.
  */
 export const uploadAsset = async (
 	client: ApiClient,
 	title: string,
+	route: StorageUploadRoute = "asset",
 ): Promise<Asset> => {
 	const content = `Uploaded by the e2e suite as ${title}.`;
 	const signed = await client.storage.createUploadUrls({
-		route: "asset",
+		route,
 		files: [
 			{
 				name: title,
@@ -35,7 +37,7 @@ export const uploadAsset = async (
 	const {
 		data: [result],
 	} = await client.asset.createFromUploads({
-		route: "asset",
+		route,
 		files: [
 			target.file,
 		],

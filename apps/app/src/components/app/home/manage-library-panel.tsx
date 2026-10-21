@@ -47,7 +47,12 @@ const ManageLibraryPanel = () => {
 					},
 				}),
 				orpc.asset.list.queryOptions({
-					input: COUNT_INPUT,
+					input: {
+						...COUNT_INPUT,
+						filters: {
+							origin: "library",
+						},
+					},
 				}),
 			],
 		});

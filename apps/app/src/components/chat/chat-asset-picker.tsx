@@ -6,6 +6,7 @@ import { useState } from "react";
 import { useDebounceValue } from "usehooks-ts";
 import { StatePagination } from "@/components/blocks/state-pagination";
 import { Placeholder } from "@/components/placeholders/placeholder";
+import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import {
 	Dialog,
@@ -91,8 +92,15 @@ export const ChatAssetPicker = ({
 								className="flex items-center justify-between gap-3 p-3"
 							>
 								<div className="min-w-0">
-									<div className="truncate font-medium text-sm">
-										{asset.title}
+									<div className="flex min-w-0 items-center gap-2">
+										<span className="truncate font-medium text-sm">
+											{asset.title}
+										</span>
+										{asset.origin === "chat" ? (
+											<Badge variant="outline" className="shrink-0">
+												{m.assets_origin_chat_badge()}
+											</Badge>
+										) : null}
 									</div>
 									<div className="truncate text-muted-foreground text-xs">
 										{getFileTypeLabel(asset.fileType)} ·{" "}

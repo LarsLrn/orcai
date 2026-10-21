@@ -23,6 +23,10 @@ export const saveAssetInputSchema = assetFieldsSchema.extend({
 	id: assetIdSchema,
 });
 
+export const addAssetToLibraryInputSchema = z.object({
+	id: assetIdSchema,
+});
+
 export const createAssetsFromUploadsInputSchema = z.object({
 	route: storageUploadRouteSchema,
 	files: z.array(uploadFileObjectSchema).min(1),
@@ -38,6 +42,9 @@ export const deleteAssetsInputSchema = z.object({
 export type ListAssetsInput = z.infer<typeof listAssetsInputSchema>;
 export type FindAssetInput = z.infer<typeof findAssetInputSchema>;
 export type SaveAssetInput = z.infer<typeof saveAssetInputSchema>;
+export type AddAssetToLibraryInput = z.infer<
+	typeof addAssetToLibraryInputSchema
+>;
 export type CreateAssetsFromUploadsInput = z.infer<
 	typeof createAssetsFromUploadsInputSchema
 >;

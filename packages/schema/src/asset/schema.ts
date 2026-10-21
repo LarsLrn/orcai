@@ -36,6 +36,8 @@ export const assetFiltersSchema = z.object({
 	search: z.string().optional(),
 	/** Only assets attached to this repository. */
 	repositoryId: blockIdSchema.optional(),
+	/** Only assets of this origin; both when left out. */
+	origin: assetOriginSchema.optional(),
 });
 
 export type Asset = z.infer<typeof assetSchema>;
