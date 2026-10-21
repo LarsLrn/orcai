@@ -2527,7 +2527,6 @@
 	"error_upload_init_failed": "The upload could not be started. Try again.",
 	"error_upload_request_invalid": "The upload request is invalid.",
 	"error_upload_too_many_files": "Too many files. Upload at most {maxFiles}.",
-	"error_user_ban_failed": "The user could not be banned.",
 	"error_user_banned": "This account is banned.",
 	"error_user_not_found": "User not found.",
 	"error_user_not_member": "The user is not a member of the active organisation.",

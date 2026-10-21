@@ -22,11 +22,11 @@ import * as Redacted from "effect/Redacted";
 import { v4 as uuidv4 } from "uuid";
 import { authDb } from "@/lib/auth/auth-db";
 import {
-	acceptInvitation,
 	activateSoleOrganizationForSessions,
 	pendingInvitationsFor,
 	soleOrganizationOf,
 } from "@/lib/auth/invitation-signup";
+import { acceptInvitation } from "@/lib/authz/organization-membership";
 import { secureCookiesFor, zedTokenCookieOptions } from "@/lib/authz/zed-token";
 import { runPromise } from "@/lib/effect/runtime";
 import { loadAppConfigSync } from "@/lib/effect/services/config";

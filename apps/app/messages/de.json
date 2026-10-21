@@ -2527,7 +2527,6 @@
 	"error_upload_init_failed": "Der Upload konnte nicht gestartet werden. Versuchen Sie es erneut.",
 	"error_upload_request_invalid": "Die Upload-Anfrage ist ungültig.",
 	"error_upload_too_many_files": "Zu viele Dateien. Laden Sie höchstens {maxFiles} hoch.",
-	"error_user_ban_failed": "Der Benutzer konnte nicht gesperrt werden.",
 	"error_user_banned": "Dieses Konto ist gesperrt.",
 	"error_user_not_found": "Benutzer nicht gefunden.",
 	"error_user_not_member": "Der Benutzer ist kein Mitglied der aktiven Organisation.",

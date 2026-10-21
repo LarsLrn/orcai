@@ -162,7 +162,6 @@ const reasonMessages: ReasonMessages = {
 		m.error_upload_too_many_files({
 			maxFiles,
 		}),
-	USER_BAN_FAILED: m.error_user_ban_failed,
 	USER_BANNED: m.error_user_banned,
 	USER_NOT_FOUND: m.error_user_not_found,
 	USER_NOT_MEMBER: m.error_user_not_member,
