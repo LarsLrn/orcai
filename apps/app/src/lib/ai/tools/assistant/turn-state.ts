@@ -1,16 +1,8 @@
-import * as Semaphore from "effect/Semaphore";
+import { createTurnZedToken, type TurnZedToken } from "@/lib/authz/zed-token";
 
-/**
- * The newest zedToken of one assistant turn, so every procedure call sees
- * what earlier calls of the turn wrote.
- */
 export interface AssistantTurn {
-	zedToken: string | undefined;
-	/**
-	 * Runs the turn's procedure calls one at a time. Concurrent writes could
-	 * record an older token last, and zedTokens cannot be compared.
-	 */
-	calls: Semaphore.Semaphore;
+	/** The turn's newest zedToken, which its procedure calls read at. */
+	zedToken: TurnZedToken;
 	/** The chat and reply the turn writes, which scope its tool call ids. */
 	scope: string;
 }
@@ -24,7 +16,6 @@ export const createAssistantTurn = ({
 	chatId: string;
 	replyId: string;
 }): AssistantTurn => ({
-	zedToken,
-	calls: Semaphore.makeUnsafe(1),
+	zedToken: createTurnZedToken(zedToken),
 	scope: `${chatId}:${replyId}`,
 });

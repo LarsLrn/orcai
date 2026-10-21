@@ -14,7 +14,7 @@ import * as Context from "effect/Context";
 import * as Effect from "effect/Effect";
 import * as Layer from "effect/Layer";
 import { z } from "zod";
-import { recordZedToken } from "@/lib/effect/services/zed-token-mailbox";
+import { recordZedToken } from "@/lib/authz/zed-token";
 import { AuthzError } from "@/lib/effect/utils/errors";
 import { AUTHZ } from "@/settings/constants";
 

@@ -1,12 +1,15 @@
 import { describe, expect, test } from "bun:test";
 import * as Context from "effect/Context";
 import * as Effect from "effect/Effect";
-import { recordZedToken } from "@/lib/effect/services/zed-token-mailbox";
-import { zedTokenResponseMiddleware } from "./zed-token";
+import {
+	createTurnZedToken,
+	recordZedToken,
+	zedTokenResponseMiddleware,
+} from "./zed-token";
 
-/** Runs the middleware around a handler that writes `zedToken` through the Effect context. */
+/** Runs the middleware around a handler that writes `zedTokens` through the Effect context. */
 const run = async (params: {
-	zedToken?: string;
+	zedTokens?: (string | undefined)[];
 	output: unknown;
 	secureCookies?: boolean;
 }) => {
@@ -34,7 +37,7 @@ const run = async (params: {
 		},
 		next: ({ context }) => {
 			Effect.runSync(
-				recordZedToken(params.zedToken).pipe(
+				Effect.forEach(params.zedTokens ?? [], recordZedToken).pipe(
 					Effect.provide(context["effect/context"]),
 				),
 			);
@@ -55,7 +58,9 @@ const run = async (params: {
 describe("zedTokenResponseMiddleware", () => {
 	test("adds the token to the output and the response cookie", async () => {
 		const { output, setCookie } = await run({
-			zedToken: "token-1",
+			zedTokens: [
+				"token-1",
+			],
 			output: {
 				data: {
 					id: "chat-1",
@@ -81,7 +86,9 @@ describe("zedTokenResponseMiddleware", () => {
 
 	test("keeps the other meta keys", async () => {
 		const { output } = await run({
-			zedToken: "token-2",
+			zedTokens: [
+				"token-2",
+			],
 			output: {
 				data: [],
 				meta: {
@@ -118,7 +125,9 @@ describe("zedTokenResponseMiddleware", () => {
 			yield 1;
 		})();
 		const result = await run({
-			zedToken: "token-3",
+			zedTokens: [
+				"token-3",
+			],
 			output: stream,
 		});
 
@@ -126,9 +135,31 @@ describe("zedTokenResponseMiddleware", () => {
 		expect(result.setCookie).toContain("zed_token=token-3");
 	});
 
+	test("publishes the last token written, ignoring writes without one", async () => {
+		const { output } = await run({
+			zedTokens: [
+				"first",
+				"second",
+				undefined,
+			],
+			output: {
+				data: null,
+			},
+		});
+
+		expect(output).toEqual({
+			data: null,
+			meta: {
+				zedToken: "second",
+			},
+		});
+	});
+
 	test("marks the cookie Secure over https", async () => {
 		const { setCookie } = await run({
-			zedToken: "token-4",
+			zedTokens: [
+				"token-4",
+			],
 			output: {
 				data: null,
 			},
@@ -136,5 +167,74 @@ describe("zedTokenResponseMiddleware", () => {
 		});
 
 		expect(setCookie).toContain("Secure");
+	});
+});
+
+describe("createTurnZedToken", () => {
+	const save = (zedToken?: string) =>
+		Effect.succeed({
+			data: {},
+			...(zedToken
+				? {
+						meta: {
+							zedToken,
+						},
+					}
+				: {}),
+		});
+
+	test("each call reads at the newest token of the turn", async () => {
+		const turn = createTurnZedToken("request-token");
+		const seen: (string | undefined)[] = [];
+		const call = (written?: string) =>
+			turn.run((zedToken) => {
+				seen.push(zedToken);
+				return save(written);
+			});
+
+		await Effect.runPromise(
+			Effect.gen(function* () {
+				yield* call("after-save");
+				yield* call();
+				yield* call();
+			}),
+		);
+
+		expect(seen).toEqual([
+			"request-token",
+			"after-save",
+			"after-save",
+		]);
+		expect(turn.current()).toBe("after-save");
+	});
+
+	test("concurrent calls run one at a time, so a slow write cannot roll the token back", async () => {
+		const turn = createTurnZedToken("request-token");
+		const seen: (string | undefined)[] = [];
+		const slowSave = (written: string, delay: number) =>
+			turn.run((zedToken) =>
+				Effect.sync(() => seen.push(zedToken)).pipe(
+					Effect.andThen(Effect.sleep(delay)),
+					Effect.andThen(save(written)),
+				),
+			);
+
+		await Effect.runPromise(
+			Effect.all(
+				[
+					slowSave("first-save", 20),
+					slowSave("second-save", 0),
+				],
+				{
+					concurrency: "unbounded",
+				},
+			),
+		);
+
+		expect(seen).toEqual([
+			"request-token",
+			"first-save",
+		]);
+		expect(turn.current()).toBe("second-save");
 	});
 });
