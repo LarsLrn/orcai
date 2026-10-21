@@ -24,6 +24,7 @@ export {
 	providerCompaction,
 	providerToolLoading,
 	type ToolLoading,
+	titleCallSettings,
 	withholdToolCalls,
 } from "./provider-kinds/registry";
 export type { ProviderConnection, SystemPrompt } from "./provider-kinds/types";

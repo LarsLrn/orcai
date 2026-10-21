@@ -19,6 +19,7 @@ export interface GenerateTextWithQuotaInput {
 	system?: string;
 	prompt?: string;
 	maxOutputTokens?: number;
+	reasoning?: Parameters<typeof generateText>[0]["reasoning"];
 	temperature?: number;
 	topP?: number;
 	frequencyPenalty?: number;
@@ -54,6 +55,7 @@ export const generateTextWithQuota = (input: GenerateTextWithQuotaInput) =>
 			model: input.model,
 			instructions: input.system,
 			maxOutputTokens: input.maxOutputTokens,
+			reasoning: input.reasoning,
 			temperature: input.temperature,
 			topP: input.topP,
 			frequencyPenalty: input.frequencyPenalty,

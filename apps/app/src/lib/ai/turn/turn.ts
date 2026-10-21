@@ -671,6 +671,7 @@ export const startTurn = (
 				chatId: chat.id,
 				currentTitle: chat.title,
 				model: setup.model.language,
+				providerKind: setup.model.kind,
 				organizationId: input.organizationId,
 				providerId: setup.providerId,
 				providerModelId: setup.modelId,
