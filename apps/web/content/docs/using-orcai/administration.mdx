@@ -1,6 +1,6 @@
 ---
 title: Workspace Administration
-description: The Administration pages for users, invitations, groups, quota pools, providers, models and the Organisation page with its assistant model, plus Manage instance and the instance administrator.
+description: The Administration pages for users, invitations, groups, quota pools, providers, models and the Organisation page with its assistant and utility models, plus Manage instance and the instance administrator.
 ---
 
 The Administration area is capability-gated and appears in the sidebar's "Your workspace" group.
@@ -132,7 +132,7 @@ and the recent usage events. **Edit pool** opens `/app/quotas/<pool id>/edit`.
 
 In chat, users may see remaining quota badges by pool name and metering mode.
 
-The OrcAI Assistant draws on the same pools as chat, through the organisation's assistant model. For a separate assistant budget, create a pool for that model alone and assign it to All Members; a model-specific pool wins over the provider's pools. An exhausted pool blocks the assistant like any chat.
+The OrcAI Assistant draws on the same pools as chat, through the organisation's assistant model. Chat and conversation titles draw on the pools of the organisation's [utility model](#utility-model) when one is set. For a separate assistant budget, create a pool for that model alone and assign it to All Members; a model-specific pool wins over the provider's pools. An exhausted pool blocks the assistant like any chat.
 
 ## Providers
 
@@ -283,6 +283,20 @@ organisation. Deleting the model, or its provider, clears the setting. If the
 chosen model later becomes unusable, because it is deprecated, loses tool
 calling or its provider is disabled, the setting stays, the page warns with the
 reason, and the assistant's replies fail until another model is chosen.
+
+### Utility model
+
+The **Utility model** picker chooses the model that writes the titles of new
+chats and assistant conversations, so a small, inexpensive model can do this
+work instead of each chat's own model. It offers text models that are not
+deprecated, on an enabled provider; tool calling is not required. **Clear**
+removes the choice.
+
+Title calls draw on the quota pools of the utility model, like any chat on
+that model. While no utility model is set, each chat's title is written by its
+own model. If the chosen model becomes unusable, the page warns and titles fall
+back to each chat's own model until another is chosen. Deleting the model, or
+its provider, clears the setting.
 
 ## Operational Guidance
 

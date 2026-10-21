@@ -116,6 +116,7 @@ const reasonMessages: ReasonMessages = {
 	MODEL_DEPRECATED: m.error_model_deprecated,
 	MODEL_NOT_FOUND: m.error_model_not_found,
 	MODEL_PROVIDER_MISMATCH: m.error_model_provider_mismatch,
+	MODEL_TEXT_UNSUPPORTED: m.error_model_text_unsupported,
 	MODEL_TOOLS_UNSUPPORTED: m.error_model_tools_unsupported,
 	MUTABLE_FIELD_REQUIRED: m.error_mutable_field_required,
 	ORGANIZATION_ADMIN_REQUIRED: m.error_organization_admin_required,

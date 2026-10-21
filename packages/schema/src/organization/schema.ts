@@ -16,6 +16,7 @@ export const organizationMutableFieldsSchema =
 export const organizationSchema = organizationFieldsSchema.extend({
 	id: organizationIdSchema,
 	assistantModelId: modelIdSchema.nullable(),
+	utilityModelId: modelIdSchema.nullable(),
 	createdAt: z.coerce.date(),
 });
 

@@ -681,11 +681,13 @@ export const startTurn = (
 			yield* forkChatTitleGenerationIfNeeded({
 				chatId: chat.id,
 				currentTitle: chat.title,
-				model: setup.model.language,
-				providerKind: setup.model.kind,
+				chatModel: {
+					language: setup.model.language,
+					kind: setup.model.kind,
+					providerId: setup.providerId,
+					modelId: setup.modelId,
+				},
 				organizationId: input.organizationId,
-				providerId: setup.providerId,
-				providerModelId: setup.modelId,
 				userId: input.user.id,
 				userMessage: question,
 			});

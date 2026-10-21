@@ -217,7 +217,7 @@ test("assistant: an admin chooses, keeps an unusable, and clears the assistant m
 		fill: () =>
 			assistantModelField(page)
 				.getByRole("button", {
-					name: message("orgs_form_assistant_model_clear_action"),
+					name: message("orgs_form_model_clear_action"),
 				})
 				.click(),
 		submit: message("orgs_form_submit_button"),

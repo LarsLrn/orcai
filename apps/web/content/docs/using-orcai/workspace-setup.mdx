@@ -1,6 +1,6 @@
 ---
 title: Workspace Setup For Admins
-description: Checklist for preparing an organisation before people start chatting, from provider, model, quota pool and assistant model to assets, repositories, bots, groups and invitations, with the app path for each step.
+description: Checklist for preparing an organisation before people start chatting, from provider, model, quota pool, assistant and utility models to assets, repositories, bots, groups and invitations, with the app path for each step.
 ---
 
 Use this page as a practical runbook for preparing a new OrcAI workspace. Most steps need the Admin role; see [Access Control](/docs/using-orcai/access-control#organisation-roles).
@@ -64,13 +64,14 @@ Recommended validation:
 - Select the newly added model.
 - Send a simple test prompt and confirm a successful response.
 
-## 5. Choose The Assistant Model
+## 5. Choose The Assistant And Utility Models
 
 Go to Administration > Organisation (`/app/organization`).
 
 - Choose a model in **Assistant model** and save. Only models with tool calling, not deprecated, on an enabled provider are listed.
 - Until a model is chosen, the [OrcAI Assistant](/docs/using-orcai/assistant) is unavailable to everyone in the organisation.
 - The assistant draws on the same quota pools as chat. For a separate assistant budget, add a pool for that model alone.
+- Optionally choose a small, inexpensive model in **Utility model** to write chat and conversation titles. Without one, each chat's own model writes its title.
 
 ## 6. Prepare Assets And Retrieval
 
