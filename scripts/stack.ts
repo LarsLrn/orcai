@@ -346,8 +346,10 @@ function requireEnv(options: Options): Env {
 // Port allocation
 // ---------------------------------------------------------------------------
 
+// Below Linux's ephemeral range (32768+), where a client's source port can
+// hold a stack port and make the server fail to bind.
 const portRangeStart = 20000;
-const portRangeEnd = 60000;
+const portRangeEnd = 32760;
 const portBlockSize = 20;
 
 async function allocatePorts(stackName: string): Promise<Ports> {
