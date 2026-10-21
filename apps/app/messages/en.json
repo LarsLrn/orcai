@@ -1076,6 +1076,8 @@
 	"assistant_tool_publish_bot_name": "Publish bot",
 	"assistant_tool_publish_bot_summary": "Publish bot {name}",
 	"assistant_tool_quoted_name": "“{name}”",
+	"assistant_tool_read_docs_summary": "Read the docs page {title} ({path})",
+	"assistant_tool_read_docs_summary_path": "Read the docs page {path}",
 	"assistant_tool_remove_group_members_active": "Removing group members",
 	"assistant_tool_remove_group_members_name": "Remove group members",
 	"assistant_tool_remove_group_members_summary": "Remove {names} from {group}",

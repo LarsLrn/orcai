@@ -6,7 +6,6 @@ import {
 	type AddToolApprovalResponse,
 	ConfirmationCard,
 } from "@/components/assistant/confirmation-card";
-import { isSummarisedToolPart } from "@/components/assistant/tool-summaries";
 import { DisplayPart } from "@/components/chat/gen-ui/display-part";
 import type { AnswerPart } from "@/lib/ai/turn-view/turn-view";
 import { ImagePart } from "./parts/image-part";
@@ -48,7 +47,7 @@ const MessagePartRenderer = ({
 			);
 		}
 		case "approval":
-			return isSummarisedToolPart(answer.part) ? (
+			return (
 				<ConfirmationCard
 					part={answer.part}
 					status={answer.status}
@@ -56,7 +55,7 @@ const MessagePartRenderer = ({
 						answer.answerable ? addToolApprovalResponse : undefined
 					}
 				/>
-			) : null;
+			);
 	}
 };
 

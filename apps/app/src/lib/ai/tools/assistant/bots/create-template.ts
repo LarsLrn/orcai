@@ -2,13 +2,12 @@ import type { BlockId } from "@orcai/core";
 import { blockFieldsSchema, publicationStatusSchema } from "@orcai/schema";
 import * as Effect from "effect/Effect";
 import { z } from "zod/v4";
-import { runAssistantTool } from "@/lib/ai/tools/tool-error";
 import { blockProcedures } from "@/lib/orpc/router/block";
 import {
 	type AssistantToolDeps,
-	assistantTool,
 	callProcedure,
 	createOnce,
+	effectTool,
 	mutation,
 } from "../procedure-tool";
 import { blockDescription, templateOutline } from "./block-outline";
@@ -28,60 +27,52 @@ export const createTemplateInputSchema = z.object({
 });
 
 export const createTemplateTool = (deps: AssistantToolDeps) =>
-	assistantTool({
+	effectTool({
 		description:
 			"Create a new behaviour block (template): the reusable system prompt a bot follows. To change an existing one, use updateTemplate.",
 		inputSchema: createTemplateInputSchema,
-		execute: (input, { abortSignal, toolCallId }) =>
-			runAssistantTool(
-				createOnce(
-					{
-						scope: deps.turn.scope,
-						toolName: "createTemplate",
-						toolCallId,
-						input,
-					},
-					{
-						create: callProcedure(deps, (options) =>
-							blockProcedures.create(
+		run: (input, { toolCallId }) =>
+			createOnce(
+				{
+					scope: deps.turn.scope,
+					toolCallId,
+					input,
+				},
+				{
+					create: callProcedure(deps, (options) =>
+						blockProcedures.create(
+							{
+								type: "template",
+								name: input.name,
+								description:
+									input.description === undefined
+										? null
+										: blockDescription(input.description),
+								contentJson: null,
+								contentHtml: null,
+								status: input.status ?? "draft",
+								config: {
+									systemPrompt: input.systemPrompt,
+								},
+							},
+							options,
+						),
+					).pipe(
+						mutation("findBlocks"),
+						Effect.map(({ data }) => templateOutline(data)),
+					),
+					ids: (template) => [
+						template.id,
+					],
+					replay: ([templateId]) =>
+						callProcedure(deps, (options) =>
+							blockProcedures.find(
 								{
-									type: "template",
-									name: input.name,
-									description:
-										input.description === undefined
-											? null
-											: blockDescription(input.description),
-									contentJson: null,
-									contentHtml: null,
-									status: input.status ?? "draft",
-									config: {
-										systemPrompt: input.systemPrompt,
-									},
+									id: templateId as BlockId,
 								},
 								options,
 							),
-						).pipe(
-							mutation("findBlocks"),
-							Effect.map(({ data }) => templateOutline(data)),
-						),
-						ids: (template) => [
-							template.id,
-						],
-						replay: ([templateId]) =>
-							callProcedure(deps, (options) =>
-								blockProcedures.find(
-									{
-										id: templateId as BlockId,
-									},
-									options,
-								),
-							).pipe(Effect.map(({ data }) => templateOutline(data))),
-					},
-				),
-				abortSignal,
+						).pipe(Effect.map(({ data }) => templateOutline(data))),
+				},
 			),
-		toModelOutput: ({ output }) => ({
-			type: "json",
-			value: output,
-		}),
 	});

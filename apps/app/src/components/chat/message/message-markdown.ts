@@ -1,7 +1,5 @@
-import {
-	displayToolMarkdown,
-	displayToolNameOf,
-} from "@/components/chat/gen-ui/catalog";
+import { displayToolMarkdown } from "@/components/chat/gen-ui/catalog";
+import { toolNameOf } from "@/lib/ai/tools/registry";
 import type { AnswerPart, MessageView } from "@/lib/ai/turn-view/turn-view";
 import { m } from "@/paraglide/messages";
 
@@ -9,13 +7,11 @@ const answerPartMarkdown = (answer: AnswerPart): string | undefined => {
 	switch (answer.kind) {
 		case "text":
 			return answer.part.text;
-		case "display": {
-			const name = displayToolNameOf(answer.part.type);
-			return name === undefined
-				? undefined
-				: (displayToolMarkdown(name, answer.part.input) ??
-						m.gen_ui_cannot_display());
-		}
+		case "display":
+			return (
+				displayToolMarkdown(toolNameOf(answer.part), answer.part.input) ??
+				m.gen_ui_cannot_display()
+			);
 		default:
 			return undefined;
 	}

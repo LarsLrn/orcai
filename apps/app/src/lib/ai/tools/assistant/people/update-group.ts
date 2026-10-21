@@ -1,11 +1,10 @@
 import { updateGroupInputSchema as updateGroupProcedureInputSchema } from "@orcai/schema";
 import * as Effect from "effect/Effect";
-import { runAssistantTool } from "@/lib/ai/tools/tool-error";
 import { groupProcedures } from "@/lib/orpc/router/group";
 import {
 	type AssistantToolDeps,
-	assistantTool,
 	callProcedure,
+	effectTool,
 	expectType,
 	mutation,
 } from "../procedure-tool";
@@ -24,30 +23,23 @@ export const updateGroupInputSchema = updateGroupProcedureInputSchema.extend({
 });
 
 export const updateGroupTool = (deps: AssistantToolDeps) =>
-	assistantTool({
+	effectTool({
 		description:
 			"Rename an existing group or change its description. Give only the fields that change. System groups such as All Members cannot be changed. To create a group, use createGroup.",
 		inputSchema: updateGroupInputSchema,
-		execute: ({ id, name, description }, { abortSignal }) =>
-			runAssistantTool(
-				callProcedure(deps, (options) =>
-					groupProcedures.update(
-						{
-							id,
-							name,
-							description,
-						},
-						options,
-					),
-				).pipe(
-					mutation("listGroups"),
-					expectType("group", id),
-					Effect.map(groupOutline),
+		run: ({ id, name, description }) =>
+			callProcedure(deps, (options) =>
+				groupProcedures.update(
+					{
+						id,
+						name,
+						description,
+					},
+					options,
 				),
-				abortSignal,
+			).pipe(
+				mutation("listGroups"),
+				expectType("group", id),
+				Effect.map(groupOutline),
 			),
-		toModelOutput: ({ output }) => ({
-			type: "json",
-			value: output,
-		}),
 	});

@@ -1,11 +1,8 @@
-import { tool } from "ai";
 import * as Data from "effect/Data";
 import * as Effect from "effect/Effect";
 import { z } from "zod/v4";
-import {
-	AssistantToolError,
-	runAssistantTool,
-} from "@/lib/ai/tools/tool-error";
+import { effectTool } from "@/lib/ai/tools/assistant/procedure-tool";
+import { AssistantToolError } from "@/lib/ai/tools/tool-error";
 import type { DocsConfig } from "@/lib/effect/services/config";
 
 const DOCS_PATH = /^\/docs(\/[a-z0-9]+(-[a-z0-9]+)*)*$/;
@@ -111,7 +108,7 @@ export const readDocs = ({
 	);
 
 export const readDocsTool = ({ docs }: { docs: DocsConfig | undefined }) =>
-	tool({
+	effectTool({
 		description:
 			"Read the OrcAI docs: without a path the index of all pages with their descriptions, with a path one page as Markdown.",
 		inputSchema: z.object({
@@ -126,18 +123,13 @@ export const readDocsTool = ({ docs }: { docs: DocsConfig | undefined }) =>
 					"A docs page path exactly as listed in the docs index, for example `/docs/using-orcai/bots`. Omit it to read the index.",
 				),
 		}),
-		execute: async ({ path }, { abortSignal }) =>
-			runAssistantTool(
-				(docs
-					? readDocs({
-							docs,
-							path,
-							fetch: globalThis.fetch,
-						})
-					: Effect.fail(unavailable())
-				).pipe(
-					Effect.mapError((error) => new AssistantToolError(error.message)),
-				),
-				abortSignal,
-			),
+		run: ({ path }) =>
+			(docs
+				? readDocs({
+						docs,
+						path,
+						fetch: globalThis.fetch,
+					})
+				: Effect.fail(unavailable())
+			).pipe(Effect.mapError((error) => new AssistantToolError(error.message))),
 	});

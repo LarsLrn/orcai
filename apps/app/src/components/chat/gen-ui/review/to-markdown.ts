@@ -1,13 +1,11 @@
-import type { DeepPartial } from "ai";
 import { indent } from "@/components/chat/gen-ui/markdown";
 import {
 	itemStatus,
-	reviewOf,
+	type ReviewView,
 	type StreamedFinding,
 	type StreamedItem,
 	severityLabel,
 } from "@/components/chat/gen-ui/review/findings";
-import type { ReviewInput } from "@/components/chat/gen-ui/review/schema";
 import { statusLabel } from "@/components/chat/gen-ui/status";
 import { m } from "@/paraglide/messages";
 
@@ -61,8 +59,12 @@ const itemToMarkdown = (item: StreamedItem) => {
 		.join("\n\n");
 };
 
-export const reviewToMarkdown = (input: DeepPartial<ReviewInput>): string => {
-	const { title, summary, items, general } = reviewOf(input);
+export const reviewToMarkdown = ({
+	title,
+	summary,
+	items,
+	general,
+}: ReviewView): string => {
 	const overall = findingsToMarkdown(general);
 	return [
 		title ? `### ${title}` : undefined,

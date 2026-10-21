@@ -1,12 +1,11 @@
 import { blockIdSchema } from "@orcai/schema";
 import * as Effect from "effect/Effect";
 import { z } from "zod/v4";
-import { runAssistantTool } from "@/lib/ai/tools/tool-error";
 import { assetProcedures } from "@/lib/orpc/router/asset";
 import {
 	type AssistantToolDeps,
-	assistantTool,
 	callProcedure,
+	effectTool,
 } from "../procedure-tool";
 import { listLimitSchema, listQuerySchema } from "./list-input";
 
@@ -21,39 +20,32 @@ export const findAssetsInputSchema = z.object({
 });
 
 export const findAssetsTool = (deps: AssistantToolDeps) =>
-	assistantTool({
+	effectTool({
 		description:
 			"Find assets (uploaded documents) by title among those the user can read, optionally only those attached to one repository. Without a query it lists them all, newest first.",
 		inputSchema: findAssetsInputSchema,
-		execute: ({ query, repositoryId, limit }, { abortSignal }) =>
-			runAssistantTool(
-				callProcedure(deps, (options) =>
-					assetProcedures.list(
-						{
-							pageSize: limit,
-							filters: {
-								search: query,
-								repositoryId,
-							},
+		run: ({ query, repositoryId, limit }) =>
+			callProcedure(deps, (options) =>
+				assetProcedures.list(
+					{
+						pageSize: limit,
+						filters: {
+							search: query,
+							repositoryId,
 						},
-						options,
-					),
-				).pipe(
-					Effect.map(({ data, rowCount }) => ({
-						assets: data.map((asset) => ({
-							type: "asset" as const,
-							id: asset.id,
-							title: asset.title,
-							processingStatus: asset.processingStatus,
-							canEdit: asset.capabilities.edit === true,
-						})),
-						total: rowCount,
-					})),
+					},
+					options,
 				),
-				abortSignal,
+			).pipe(
+				Effect.map(({ data, rowCount }) => ({
+					assets: data.map((asset) => ({
+						type: "asset" as const,
+						id: asset.id,
+						title: asset.title,
+						processingStatus: asset.processingStatus,
+						canEdit: asset.capabilities.edit === true,
+					})),
+					total: rowCount,
+				})),
 			),
-		toModelOutput: ({ output }) => ({
-			type: "json",
-			value: output,
-		}),
 	});

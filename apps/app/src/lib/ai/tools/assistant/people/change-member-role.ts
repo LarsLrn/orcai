@@ -1,11 +1,10 @@
 import { organizationMemberSchema } from "@orcai/schema";
 import * as Effect from "effect/Effect";
-import { runAssistantTool } from "@/lib/ai/tools/tool-error";
 import { organizationMemberProcedures } from "@/lib/orpc/router/organization-member";
 import {
 	type AssistantToolDeps,
-	assistantTool,
 	callProcedure,
+	effectTool,
 	expectType,
 	mutation,
 } from "../procedure-tool";
@@ -22,33 +21,26 @@ export const changeMemberRoleInputSchema = organizationMemberSchema
 	});
 
 export const changeMemberRoleTool = (deps: AssistantToolDeps) =>
-	assistantTool({
+	effectTool({
 		description:
-			"Change a member's role in the active organisation. Only admins can make or unmake admins, and the last admin keeps the role. The user confirms before it runs.",
+			"Change a member's role in the active organisation. Only admins can make or unmake admins, and the last admin keeps the role.",
 		inputSchema: changeMemberRoleInputSchema,
-		execute: ({ userId, role }, { abortSignal }) =>
-			runAssistantTool(
-				callProcedure(deps, (options) =>
-					organizationMemberProcedures.update(
-						{
-							userId,
-							role,
-						},
-						options,
-					),
-				).pipe(
-					mutation("listMembers"),
-					expectType("member", userId),
-					Effect.map(({ data }) => ({
-						type: "member" as const,
-						id: data.userId,
-						role: data.role,
-					})),
+		run: ({ userId, role }) =>
+			callProcedure(deps, (options) =>
+				organizationMemberProcedures.update(
+					{
+						userId,
+						role,
+					},
+					options,
 				),
-				abortSignal,
+			).pipe(
+				mutation("listMembers"),
+				expectType("member", userId),
+				Effect.map(({ data }) => ({
+					type: "member" as const,
+					id: data.userId,
+					role: data.role,
+				})),
 			),
-		toModelOutput: ({ output }) => ({
-			type: "json",
-			value: output,
-		}),
 	});

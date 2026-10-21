@@ -2,9 +2,6 @@ import { describe, expect, test } from "bun:test";
 import { asSchema, type ToolSet } from "ai";
 import { createAssistantSession } from "@/lib/ai/agents/assistant-session";
 import type { ORPCContext } from "@/lib/orpc/implementation/os";
-import { GATED_ASSISTANT_TOOLS } from "./approval";
-import { CLIENT_TOOL_OUTPUT_SCHEMAS } from "./client-tools";
-import { ASSISTANT_TOOL_GROUPS, DEFERRED_TOOL_GROUPS } from "./groups";
 import "./test-procedures";
 import { createAssistantTurn } from "./turn-state";
 
@@ -19,6 +16,7 @@ const tools: ToolSet = buildAssistantTools({
 		chatId: "chat",
 		replyId: "reply",
 	}),
+	docs: undefined,
 	session: createAssistantSession({
 		history: [],
 		capabilities: {
@@ -29,14 +27,6 @@ const tools: ToolSet = buildAssistantTools({
 		},
 	}),
 });
-
-/** Core tools the toolset builds; readDocs and the display tools come from the agent. */
-const coreTools = ASSISTANT_TOOL_GROUPS.core.filter(
-	(name) => name !== "readDocs" && !name.startsWith("show"),
-);
-const deferredTools = DEFERRED_TOOL_GROUPS.flatMap(
-	(group) => ASSISTANT_TOOL_GROUPS[group],
-);
 
 const FORBIDDEN_KEYS = [
 	"zedToken",
@@ -66,21 +56,6 @@ const propertyNames = (schema: unknown): string[] => {
 };
 
 describe("buildAssistantTools", () => {
-	test("builds every core and deferred tool", () => {
-		expect(Object.keys(tools).sort()).toEqual(
-			[
-				...coreTools,
-				...deferredTools,
-			].sort(),
-		);
-	});
-
-	test("builds updatePlan as a core tool, not a deferred one", () => {
-		expect(tools.updatePlan).toBeDefined();
-		expect(coreTools).toContain("updatePlan");
-		expect(deferredTools as string[]).not.toContain("updatePlan");
-	});
-
 	test.each(Object.entries(tools))(
 		"%s has a model-facing input schema",
 		async (_, tool) => {
@@ -92,31 +67,29 @@ describe("buildAssistantTools", () => {
 			}
 		},
 	);
-});
 
-describe("client tools", () => {
-	test("the registry holds exactly the tools without execute, with their output schemas", () => {
-		const clientTools = Object.entries(tools).filter(
-			([, tool]) => tool.execute === undefined,
-		);
+	test("tells the model which tools the user confirms", () => {
+		const confirming = Object.entries(tools)
+			.filter(
+				([, tool]) =>
+					typeof tool.description === "string" &&
+					tool.description.endsWith("The user confirms before it runs."),
+			)
+			.map(([name]) => name);
 
-		expect(clientTools.map(([name]) => name).sort()).toEqual(
-			Object.keys(CLIENT_TOOL_OUTPUT_SCHEMAS).sort(),
-		);
-		for (const [name, tool] of clientTools) {
-			expect(tool.outputSchema).toBe(
-				CLIENT_TOOL_OUTPUT_SCHEMAS[
-					name as keyof typeof CLIENT_TOOL_OUTPUT_SCHEMAS
-				],
-			);
-		}
-	});
-});
-
-describe("gated tools", () => {
-	test("every gated tool is in the toolset", () => {
-		for (const name of GATED_ASSISTANT_TOOLS) {
-			expect(Object.keys(tools)).toContain(name);
-		}
+		expect(confirming).toEqual([
+			"deleteBot",
+			"deleteBlock",
+			"deleteAsset",
+			"grantAccess",
+			"revokeAccess",
+			"deleteGroup",
+			"addGroupMembers",
+			"removeGroupMembers",
+			"changeMemberRole",
+			"removeMembers",
+			"inviteMembers",
+			"cancelInvitation",
+		]);
 	});
 });

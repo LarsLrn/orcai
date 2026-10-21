@@ -1,4 +1,8 @@
+import type { Tool } from "ai";
+import { buildGenUiTools } from "@/components/chat/gen-ui/catalog";
 import type { AssistantSession } from "@/lib/ai/agents/assistant-session";
+import { readDocsTool } from "@/lib/ai/tools/docs/read-docs";
+import type { DocsConfig } from "@/lib/effect/services/config";
 import { createBotTool } from "./bots/create-bot";
 import { createRepositoryTool } from "./bots/create-repository";
 import { createTemplateTool } from "./bots/create-template";
@@ -20,6 +24,11 @@ import { getBotTool } from "./core/get-bot";
 import { listGroupsTool } from "./core/list-groups";
 import { listMembersTool } from "./core/list-members";
 import { loadToolsTool } from "./core/load-tools";
+import {
+	ASSISTANT_TOOL_NAMES,
+	type AssistantToolName,
+	CONFIRMED_TOOLS,
+} from "./groups";
 import { addGroupMembersTool } from "./people/add-group-members";
 import { cancelInvitationTool } from "./people/cancel-invitation";
 import { changeMemberRoleTool } from "./people/change-member-role";
@@ -38,48 +47,78 @@ import { grantAccessTool } from "./sharing/grant-access";
 import { listAccessTool } from "./sharing/list-access";
 import { revokeAccessTool } from "./sharing/revoke-access";
 
-/** Every assistant tool with the caller's context; the agent picks the active ones per step. */
-export const buildAssistantTools = ({
-	session,
-	...deps
-}: AssistantToolDeps & {
+type BuildDeps = AssistantToolDeps & {
 	session: AssistantSession;
-}) => ({
-	findBots: findBotsTool(deps),
-	getBot: getBotTool(deps),
-	getBlock: getBlockTool(deps),
-	findBlocks: findBlocksTool(deps),
-	findAssets: findAssetsTool(deps),
-	listGroups: listGroupsTool(deps),
-	listMembers: listMembersTool(deps),
-	loadTools: loadToolsTool(session),
-	updatePlan: updatePlanTool(session),
-	createBot: createBotTool(deps),
-	updateBot: updateBotTool(deps),
-	publishBot: publishBotTool(deps),
-	deleteBot: deleteBotTool(deps),
-	createTemplate: createTemplateTool(deps),
-	updateTemplate: updateTemplateTool(deps),
-	createRepository: createRepositoryTool(deps),
-	updateRepository: updateRepositoryTool(deps),
-	deleteBlock: deleteBlockTool(deps),
-	updateAsset: updateAssetTool(deps),
-	deleteAsset: deleteAssetTool(deps),
-	retryAsset: retryAssetTool(deps),
-	requestUpload: requestUploadTool,
-	listAccess: listAccessTool(deps),
-	findPrincipals: findPrincipalsTool(deps),
-	grantAccess: grantAccessTool(deps),
-	revokeAccess: revokeAccessTool(deps),
-	createGroup: createGroupTool(deps),
-	updateGroup: updateGroupTool(deps),
-	deleteGroup: deleteGroupTool(deps),
-	addGroupMembers: addGroupMembersTool(deps),
-	removeGroupMembers: removeGroupMembersTool(deps),
-	listGroupMembers: listGroupMembersTool(deps),
-	changeMemberRole: changeMemberRoleTool(deps),
-	removeMembers: removeMembersTool(deps),
-	inviteMembers: inviteMembersTool(deps),
-	listInvitations: listInvitationsTool(deps),
-	cancelInvitation: cancelInvitationTool(deps),
-});
+	docs: DocsConfig | undefined;
+};
+
+const displayTools = buildGenUiTools();
+
+const builds = {
+	readDocs: ({ docs }: BuildDeps) =>
+		readDocsTool({
+			docs,
+		}),
+	showChecklist: () => displayTools.showChecklist,
+	showReview: () => displayTools.showReview,
+	showMatrix: () => displayTools.showMatrix,
+	findBots: findBotsTool,
+	getBot: getBotTool,
+	getBlock: getBlockTool,
+	findBlocks: findBlocksTool,
+	findAssets: findAssetsTool,
+	listGroups: listGroupsTool,
+	listMembers: listMembersTool,
+	loadTools: ({ session }: BuildDeps) => loadToolsTool(session),
+	updatePlan: ({ session }: BuildDeps) => updatePlanTool(session),
+	createBot: createBotTool,
+	updateBot: updateBotTool,
+	publishBot: publishBotTool,
+	deleteBot: deleteBotTool,
+	createTemplate: createTemplateTool,
+	updateTemplate: updateTemplateTool,
+	createRepository: createRepositoryTool,
+	updateRepository: updateRepositoryTool,
+	deleteBlock: deleteBlockTool,
+	updateAsset: updateAssetTool,
+	deleteAsset: deleteAssetTool,
+	retryAsset: retryAssetTool,
+	requestUpload: () => requestUploadTool,
+	listAccess: listAccessTool,
+	findPrincipals: findPrincipalsTool,
+	grantAccess: grantAccessTool,
+	revokeAccess: revokeAccessTool,
+	createGroup: createGroupTool,
+	updateGroup: updateGroupTool,
+	deleteGroup: deleteGroupTool,
+	addGroupMembers: addGroupMembersTool,
+	removeGroupMembers: removeGroupMembersTool,
+	listGroupMembers: listGroupMembersTool,
+	changeMemberRole: changeMemberRoleTool,
+	removeMembers: removeMembersTool,
+	inviteMembers: inviteMembersTool,
+	listInvitations: listInvitationsTool,
+	cancelInvitation: cancelInvitationTool,
+} satisfies Record<AssistantToolName, (deps: BuildDeps) => Tool>;
+
+type AssistantTools = {
+	[Name in AssistantToolName]: ReturnType<(typeof builds)[Name]>;
+};
+
+/** Every assistant tool with the caller's context, in registry order; the session picks the active ones per step. */
+export const buildAssistantTools = (deps: BuildDeps): AssistantTools =>
+	Object.fromEntries(
+		ASSISTANT_TOOL_NAMES.map((name) => {
+			const built: Tool = builds[name](deps);
+
+			return [
+				name,
+				CONFIRMED_TOOLS.has(name)
+					? {
+							...built,
+							description: `${built.description} The user confirms before it runs.`,
+						}
+					: built,
+			];
+		}),
+	) as AssistantTools;

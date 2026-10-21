@@ -1,6 +1,6 @@
 import { useId } from "react";
 import type { ClientToolActions } from "@/components/assistant/client-tool-actions";
-import { useToolSummaryLine } from "@/components/assistant/tool-summaries";
+import { useToolSummaryLine } from "@/components/assistant/tool-summary-line";
 import { useUploadAnswer } from "@/components/assistant/use-upload-answer";
 import { toolStatusLabel } from "@/components/chat/message/work-log/tool-status";
 import { AssetIntakeFlow } from "@/components/documents/shared/asset-intake-flow";
@@ -14,9 +14,8 @@ import {
 	ItemTitle,
 } from "@/components/ui/item";
 import { useConfirmDiscard } from "@/hooks/use-unsaved-changes-guard";
-import { requestUploadSummary } from "@/lib/ai/tools/assistant/bots/request-upload.summary";
-import type { AssistantToolPart } from "@/lib/ai/tools/assistant/summary";
-import type { ToolStatus } from "@/lib/ai/turn-view/turn-view";
+import { toolLabels } from "@/lib/ai/tools/registry";
+import type { ClientToolPart, ToolStatus } from "@/lib/ai/turn-view/turn-view";
 import { m } from "@/paraglide/messages";
 
 /** `requestUpload` waiting for the user: the reason, the intake flow and Cancel. */
@@ -25,14 +24,14 @@ export const UploadWidget = ({
 	status,
 	actions,
 }: {
-	part: AssistantToolPart<"requestUpload">;
+	part: ClientToolPart;
 	status: ToolStatus | null;
 	/** Left out unless the call can be answered. */
 	actions: ClientToolActions | undefined;
 }) => {
 	const titleId = useId();
 	const line = useToolSummaryLine(part);
-	const Icon = requestUploadSummary.icon;
+	const Icon = toolLabels(part).icon;
 	const awaiting = part.state === "input-available" ? part : undefined;
 	const upload = useUploadAnswer({
 		toolCallId: part.toolCallId,

@@ -10,7 +10,7 @@ import { answerSetup, assistantRow, chatRow, conversation } from "./test-turn";
 
 const { providerToolLoading } = await import("@orcai/ai");
 const { getToolName, isToolUIPart } = await import("ai");
-const { GEN_UI_TOOL_NAMES } = await import("@/components/chat/gen-ui/catalog");
+const { toolNamesOf } = await import("@/lib/ai/tools/registry");
 
 // Each request must start with the previous one unchanged, but for the named exceptions: signed reasoning and cached prefixes are bound to it.
 
@@ -698,7 +698,7 @@ const assistantConversation = async (kind: ProviderKind, modelId: string) => {
 					(part) =>
 						isToolUIPart(part) &&
 						part.state === "output-available" &&
-						!GEN_UI_TOOL_NAMES.some((name) => name === getToolName(part)),
+						!toolNamesOf("display").some((name) => name === getToolName(part)),
 				)
 				.map((part) => (isToolUIPart(part) ? part.toolCallId : "")),
 		),

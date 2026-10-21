@@ -4,7 +4,6 @@ import { tool } from "ai";
 import { z } from "zod/v4";
 import {
 	ASSISTANT_TOOL_GROUPS,
-	ASSISTANT_TOOL_KINDS,
 	type AssistantToolName,
 	type CapabilitySet,
 	DEFERRED_TOOL_GROUPS,
@@ -344,7 +343,6 @@ describe("plan approval", () => {
 	);
 
 	test("requestUpload stays available before a plan is approved", () => {
-		expect(ASSISTANT_TOOL_KINDS.requestUpload).toBe("widget");
 		expect(
 			activeWith(
 				member,
@@ -354,19 +352,6 @@ describe("plan approval", () => {
 				false,
 			),
 		).toContain("requestUpload");
-	});
-
-	test("the create kind is exactly the four create tools", () => {
-		expect(
-			Object.entries(ASSISTANT_TOOL_KINDS)
-				.filter(([, kind]) => kind === "create")
-				.map(([name]) => name)
-				.sort(),
-		).toEqual(
-			[
-				...createTools,
-			].sort(),
-		);
 	});
 
 	test.each([

@@ -7,7 +7,7 @@ import {
 	waitFor,
 	within,
 } from "@testing-library/react";
-import type { DeepPartial } from "ai";
+import { readChecklist } from "@/components/chat/gen-ui/checklist/read";
 import {
 	type ChecklistInput,
 	checklistSchema,
@@ -114,7 +114,7 @@ describe("checklistSchema", () => {
 describe("Checklist", () => {
 	test("renders the header with title, description and tally", () => {
 		const { container } = render(
-			<Checklist input={statusList} streaming={false} />,
+			<Checklist view={readChecklist(statusList)} streaming={false} />,
 		);
 
 		expect(
@@ -151,7 +151,7 @@ describe("Checklist", () => {
 	});
 
 	test("renders rows with icons, summaries and non-met status labels", () => {
-		render(<Checklist input={statusList} streaming={false} />);
+		render(<Checklist view={readChecklist(statusList)} streaming={false} />);
 
 		const hattie = within(rowOf("Hattie & Timperley (2007)"));
 		expect(
@@ -181,7 +181,7 @@ describe("Checklist", () => {
 	});
 
 	test("expands a row to the quote above the body", async () => {
-		render(<Checklist input={statusList} streaming={false} />);
+		render(<Checklist view={readChecklist(statusList)} streaming={false} />);
 
 		const trigger = triggerOf("Hattie & Timperley (2007)");
 		expect(trigger.getAttribute("aria-expanded")).toBe("false");
@@ -203,7 +203,7 @@ describe("Checklist", () => {
 	});
 
 	test("opens several rows at once", () => {
-		render(<Checklist input={statusList} streaming={false} />);
+		render(<Checklist view={readChecklist(statusList)} streaming={false} />);
 
 		fireEvent.click(triggerOf("Hattie & Timperley (2007)"));
 		fireEvent.click(triggerOf("Shute (2008)"));
@@ -217,7 +217,7 @@ describe("Checklist", () => {
 	});
 
 	test("disables rows without body or quote", () => {
-		render(<Checklist input={statusList} streaming={false} />);
+		render(<Checklist view={readChecklist(statusList)} streaming={false} />);
 
 		const bare = triggerOf("Reference list order");
 		expect(bare.hasAttribute("disabled")).toBe(true);
@@ -228,7 +228,7 @@ describe("Checklist", () => {
 
 	test("renders a plain accordion without statuses", () => {
 		const { container } = render(
-			<Checklist input={plainList} streaming={false} />,
+			<Checklist view={readChecklist(plainList)} streaming={false} />,
 		);
 
 		expect(screen.getByText("Fixing the common errors")).toBeDefined();
@@ -241,13 +241,13 @@ describe("Checklist", () => {
 	test("renders no header without title, description or statuses", () => {
 		const { container } = render(
 			<Checklist
-				input={{
+				view={readChecklist({
 					items: [
 						{
 							label: "Only a row",
 						},
 					],
-				}}
+				})}
 				streaming={false}
 			/>,
 		);
@@ -265,17 +265,19 @@ describe("Checklist", () => {
 				label: "Not yet",
 			},
 		],
-	} satisfies DeepPartial<ChecklistInput>;
+	};
 
 	test("shows the pending icon only while streaming", () => {
 		const { container, rerender } = render(
-			<Checklist input={missingStatus} streaming />,
+			<Checklist view={readChecklist(missingStatus)} streaming />,
 		);
 		expect(
 			rowOf("Not yet").querySelector('[data-status="pending"]'),
 		).not.toBeNull();
 
-		rerender(<Checklist input={missingStatus} streaming={false} />);
+		rerender(
+			<Checklist view={readChecklist(missingStatus)} streaming={false} />,
+		);
 		expect(container.querySelector('[data-status="pending"]')).toBeNull();
 		expect(within(rowOf("Not yet")).queryByRole("img")).toBeNull();
 	});
@@ -293,9 +295,9 @@ describe("Checklist", () => {
 					status: "not_",
 				},
 			],
-		} as unknown as DeepPartial<ChecklistInput>;
+		};
 
-		render(<Checklist input={cutOff} streaming />);
+		render(<Checklist view={readChecklist(cutOff)} streaming />);
 
 		expect(
 			rowOf("Cut off").querySelector('[data-status="pending"]'),
@@ -306,9 +308,9 @@ describe("Checklist", () => {
 	test("shows skeleton rows while items are empty and streaming", () => {
 		const { container } = render(
 			<Checklist
-				input={{
+				view={readChecklist({
 					title: "APA 7 check",
-				}}
+				})}
 				streaming
 			/>,
 		);
@@ -321,7 +323,7 @@ describe("Checklist", () => {
 	test.each<
 		[
 			string,
-			DeepPartial<ChecklistInput>,
+			unknown,
 		]
 	>([
 		[
@@ -374,7 +376,7 @@ describe("Checklist", () => {
 			{
 				title: "APA",
 				items: "not a list",
-			} as unknown as DeepPartial<ChecklistInput>,
+			},
 		],
 		[
 			"fields of the wrong type",
@@ -400,7 +402,7 @@ describe("Checklist", () => {
 						quote: false,
 					},
 				],
-			} as unknown as DeepPartial<ChecklistInput>,
+			},
 		],
 	])("renders %s without throwing", (_, input) => {
 		for (const streaming of [
@@ -408,7 +410,7 @@ describe("Checklist", () => {
 			false,
 		]) {
 			expect(() =>
-				render(<Checklist input={input} streaming={streaming} />),
+				render(<Checklist view={readChecklist(input)} streaming={streaming} />),
 			).not.toThrow();
 			cleanup();
 		}

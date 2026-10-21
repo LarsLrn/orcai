@@ -1,9 +1,10 @@
-import type { DeepPartial } from "ai";
 import { ChevronDownIcon } from "lucide-react";
 import { Fragment, useState } from "react";
 import { MessageResponse } from "@/components/ai-elements/message";
-import { matrixOf, rowNotes } from "@/components/chat/gen-ui/matrix/cells";
-import type { MatrixInput } from "@/components/chat/gen-ui/matrix/schema";
+import {
+	type MatrixView,
+	rowNotes,
+} from "@/components/chat/gen-ui/matrix/cells";
 import { statusLabel } from "@/components/chat/gen-ui/status";
 import { StatusIcon, Tally } from "@/components/chat/gen-ui/status-icon";
 import { Skeleton } from "@/components/ui/skeleton";
@@ -19,10 +20,10 @@ import { cn } from "@/lib/utils";
 import { m } from "@/paraglide/messages";
 
 export const Matrix = ({
-	input,
+	view,
 	streaming,
 }: {
-	input: DeepPartial<MatrixInput>;
+	view: MatrixView;
 	streaming: boolean;
 }) => {
 	const [open, setOpen] = useState<ReadonlySet<number>>(new Set());
@@ -35,7 +36,7 @@ export const Matrix = ({
 			return next;
 		});
 
-	const { title, columns, rows } = matrixOf(input);
+	const { title, columns, rows } = view;
 	const statuses = rows.flatMap((row) => row.cells.map((cell) => cell.status));
 	const withHeader = Boolean(title) || statuses.some(Boolean);
 

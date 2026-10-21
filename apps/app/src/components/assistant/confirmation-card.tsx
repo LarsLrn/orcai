@@ -1,10 +1,7 @@
 import type { UseChatHelpers } from "@ai-sdk/react";
+import { getToolName } from "ai";
 import { useId } from "react";
-import {
-	type SummarisedToolPart,
-	toolSummaryOf,
-	useToolSummaryLine,
-} from "@/components/assistant/tool-summaries";
+import { useToolSummaryLine } from "@/components/assistant/tool-summary-line";
 import {
 	isFailedStatus,
 	toolStatusLabel,
@@ -18,8 +15,9 @@ import {
 	ItemMedia,
 	ItemTitle,
 } from "@/components/ui/item";
-import type { ConfirmationVerb } from "@/lib/ai/tools/assistant/summary";
-import type { ToolStatus } from "@/lib/ai/turn-view/turn-view";
+import type { ConfirmationVerb } from "@/lib/ai/tools/declaration";
+import { toolDeclarationOf, toolLabels } from "@/lib/ai/tools/registry";
+import type { ToolPart, ToolStatus } from "@/lib/ai/turn-view/turn-view";
 import type { ChatAgentUIMessage } from "@/lib/ai/types/chat-agent-message";
 import { m } from "@/paraglide/messages";
 
@@ -48,14 +46,14 @@ export const ConfirmationCard = ({
 	status,
 	addToolApprovalResponse,
 }: {
-	part: SummarisedToolPart;
+	part: ToolPart;
 	status: ToolStatus | null;
 	/** Left out unless the card can be answered. */
 	addToolApprovalResponse: AddToolApprovalResponse | undefined;
 }) => {
-	const summary = toolSummaryOf(part);
+	const verb = toolDeclarationOf(getToolName(part))?.confirm;
 	const line = useToolSummaryLine(part);
-	const Icon = summary.icon;
+	const Icon = toolLabels(part).icon;
 	const titleId = useId();
 	const answerable =
 		part.state === "approval-requested" && addToolApprovalResponse;
@@ -91,16 +89,12 @@ export const ConfirmationCard = ({
 						</Button>
 						<Button
 							variant={
-								summary.verb && destructiveVerbs.has(summary.verb)
-									? "destructive"
-									: "default"
+								verb && destructiveVerbs.has(verb) ? "destructive" : "default"
 							}
 							size="sm"
 							onClick={() => respond(true)}
 						>
-							{summary.verb
-								? verbLabels[summary.verb]()
-								: m.common_confirm_button()}
+							{verb ? verbLabels[verb]() : m.common_confirm_button()}
 						</Button>
 					</>
 				) : (

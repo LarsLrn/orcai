@@ -1,11 +1,10 @@
 import * as Effect from "effect/Effect";
 import { z } from "zod/v4";
-import { runAssistantTool } from "@/lib/ai/tools/tool-error";
 import { botProcedures } from "@/lib/orpc/router/bot";
 import {
 	type AssistantToolDeps,
-	assistantTool,
 	callProcedure,
+	effectTool,
 } from "../procedure-tool";
 import { listLimitSchema, listQuerySchema } from "./list-input";
 
@@ -30,45 +29,38 @@ const toFoundBot = (bot: {
 });
 
 export const findBotsTool = (deps: AssistantToolDeps) =>
-	assistantTool({
+	effectTool({
 		description:
 			"Find bots by name: published bots the user can use and drafts they can edit. Without a query it lists them all.",
 		inputSchema: findBotsInputSchema,
-		execute: ({ query, limit }, { abortSignal }) =>
-			runAssistantTool(
-				Effect.gen(function* () {
-					const input = {
-						pageSize: limit,
-						search: query,
-					};
-					const [ready, drafts] = yield* Effect.all(
-						[
-							callProcedure(deps, (options) =>
-								botProcedures.list(input, options),
-							),
-							callProcedure(deps, (options) =>
-								botProcedures.listDrafts(input, options),
-							),
-						],
-						{
-							concurrency: "unbounded",
-						},
-					);
+		run: ({ query, limit }) =>
+			Effect.gen(function* () {
+				const input = {
+					pageSize: limit,
+					search: query,
+				};
+				const [ready, drafts] = yield* Effect.all(
+					[
+						callProcedure(deps, (options) =>
+							botProcedures.list(input, options),
+						),
+						callProcedure(deps, (options) =>
+							botProcedures.listDrafts(input, options),
+						),
+					],
+					{
+						concurrency: "unbounded",
+					},
+				);
 
-					return {
-						bots: [
-							...ready.data,
-							...drafts.data,
-						]
-							.slice(0, limit)
-							.map(toFoundBot),
-						total: ready.rowCount + drafts.rowCount,
-					};
-				}),
-				abortSignal,
-			),
-		toModelOutput: ({ output }) => ({
-			type: "json",
-			value: output,
-		}),
+				return {
+					bots: [
+						...ready.data,
+						...drafts.data,
+					]
+						.slice(0, limit)
+						.map(toFoundBot),
+					total: ready.rowCount + drafts.rowCount,
+				};
+			}),
 	});

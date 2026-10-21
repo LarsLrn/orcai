@@ -1,10 +1,10 @@
 import { describe, expect, test } from "bun:test";
-import { checklistToMarkdown } from "@/components/chat/gen-ui/checklist/to-markdown";
+import { displayToolMarkdown } from "@/components/chat/gen-ui/catalog";
 
-describe("checklistToMarkdown", () => {
+describe("showChecklist markdown", () => {
 	test("writes a status list with heading, description, quote and body", () => {
 		expect(
-			checklistToMarkdown({
+			displayToolMarkdown("showChecklist", {
 				title: "APA 7 check",
 				description: "Four references against the manual.",
 				items: [
@@ -53,7 +53,7 @@ describe("checklistToMarkdown", () => {
 
 	test("writes a plain list as a tight list without statuses", () => {
 		expect(
-			checklistToMarkdown({
+			displayToolMarkdown("showChecklist", {
 				items: [
 					{
 						label: "Author lists",
@@ -73,14 +73,14 @@ describe("checklistToMarkdown", () => {
 	});
 
 	test("tolerates missing fields", () => {
-		expect(checklistToMarkdown({})).toBe("");
+		expect(displayToolMarkdown("showChecklist", {})).toBeNull();
 		expect(
-			checklistToMarkdown({
+			displayToolMarkdown("showChecklist", {
 				title: "Only a title",
 			}),
 		).toBe("### Only a title");
 		expect(
-			checklistToMarkdown({
+			displayToolMarkdown("showChecklist", {
 				items: [
 					undefined,
 					{},
@@ -106,7 +106,7 @@ describe("checklistToMarkdown", () => {
 
 	test("ignores a status outside the vocabulary", () => {
 		expect(
-			checklistToMarkdown({
+			displayToolMarkdown("showChecklist", {
 				items: [
 					{
 						label: "Odd",

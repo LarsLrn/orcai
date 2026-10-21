@@ -1,10 +1,10 @@
 import { describe, expect, test } from "bun:test";
-import { reviewToMarkdown } from "@/components/chat/gen-ui/review/to-markdown";
+import { displayToolMarkdown } from "@/components/chat/gen-ui/catalog";
 
-describe("reviewToMarkdown", () => {
+describe("showReview markdown", () => {
 	test("writes items with status, quoted text, findings and revision", () => {
 		expect(
-			reviewToMarkdown({
+			displayToolMarkdown("showReview", {
 				title: "APA 7 check",
 				summary:
 					'Two entries need work. <cite title="APA" page="286">§9.8</cite>',
@@ -73,7 +73,7 @@ describe("reviewToMarkdown", () => {
 
 	test("tolerates partial input", () => {
 		expect(
-			reviewToMarkdown({
+			displayToolMarkdown("showReview", {
 				items: [
 					undefined,
 					{
@@ -98,6 +98,6 @@ describe("reviewToMarkdown", () => {
 				"- Half a note",
 			].join("\n"),
 		);
-		expect(reviewToMarkdown({})).toBe("");
+		expect(displayToolMarkdown("showReview", {})).toBeNull();
 	});
 });

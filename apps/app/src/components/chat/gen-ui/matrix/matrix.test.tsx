@@ -6,12 +6,9 @@ import {
 	screen,
 	within,
 } from "@testing-library/react";
-import type { DeepPartial } from "ai";
+import { readMatrix } from "@/components/chat/gen-ui/matrix/cells";
 import { referenceMatrix } from "@/components/chat/gen-ui/matrix/fixtures";
-import {
-	type MatrixInput,
-	matrixSchema,
-} from "@/components/chat/gen-ui/matrix/schema";
+import { matrixSchema } from "@/components/chat/gen-ui/matrix/schema";
 
 // The real client resolves server configuration at import time.
 mock.module("@/lib/orpc/orpc", () => ({
@@ -71,7 +68,7 @@ describe("matrixSchema", () => {
 describe("Matrix", () => {
 	test("renders column headers in order and a tally over all cells", () => {
 		const { container } = render(
-			<Matrix input={referenceMatrix} streaming={false} />,
+			<Matrix view={readMatrix(referenceMatrix)} streaming={false} />,
 		);
 
 		expect(
@@ -108,7 +105,7 @@ describe("Matrix", () => {
 	});
 
 	test("names cell icons by status, with the label as tooltip", () => {
-		render(<Matrix input={referenceMatrix} streaming={false} />);
+		render(<Matrix view={readMatrix(referenceMatrix)} streaming={false} />);
 
 		expect(cellNames(rowOf("Shute (2008)"))).toEqual([
 			"Met",
@@ -119,7 +116,7 @@ describe("Matrix", () => {
 	});
 
 	test("offers notes only on rows with notes on cells that are not met", () => {
-		render(<Matrix input={referenceMatrix} streaming={false} />);
+		render(<Matrix view={readMatrix(referenceMatrix)} streaming={false} />);
 
 		expect(notesButton("Hattie & Timperley (2007)").textContent).toBe(
 			"3 notes",
@@ -132,7 +129,7 @@ describe("Matrix", () => {
 	});
 
 	test("expands several rows at once, by button or by row", () => {
-		render(<Matrix input={referenceMatrix} streaming={false} />);
+		render(<Matrix view={readMatrix(referenceMatrix)} streaming={false} />);
 
 		const hattie = notesButton("Hattie & Timperley (2007)");
 		expect(hattie.getAttribute("aria-expanded")).toBe("false");
@@ -177,7 +174,7 @@ describe("Matrix", () => {
 	test("ignores unknown cell keys and leaves missing cells empty", () => {
 		render(
 			<Matrix
-				input={{
+				view={readMatrix({
 					columns: referenceMatrix.columns,
 					rows: [
 						{
@@ -193,7 +190,7 @@ describe("Matrix", () => {
 							},
 						},
 					],
-				}}
+				})}
 				streaming={false}
 			/>,
 		);
@@ -214,7 +211,7 @@ describe("Matrix", () => {
 	test("shows pending icons for cells still streaming", () => {
 		render(
 			<Matrix
-				input={{
+				view={readMatrix({
 					columns: referenceMatrix.columns,
 					rows: [
 						{
@@ -226,7 +223,7 @@ describe("Matrix", () => {
 							},
 						},
 					],
-				}}
+				})}
 				streaming
 			/>,
 		);
@@ -241,9 +238,9 @@ describe("Matrix", () => {
 	test("shows a skeleton until the columns arrive", () => {
 		const { container } = render(
 			<Matrix
-				input={{
+				view={readMatrix({
 					title: "APA",
-				}}
+				})}
 				streaming
 			/>,
 		);
@@ -257,7 +254,7 @@ describe("Matrix", () => {
 	test.each<
 		[
 			string,
-			DeepPartial<MatrixInput>,
+			unknown,
 		]
 	>([
 		[
@@ -302,7 +299,7 @@ describe("Matrix", () => {
 				rows: {
 					label: "Not a list",
 				},
-			} as unknown as DeepPartial<MatrixInput>,
+			},
 		],
 		[
 			"fields of the wrong type",
@@ -345,7 +342,7 @@ describe("Matrix", () => {
 						},
 					},
 				],
-			} as unknown as DeepPartial<MatrixInput>,
+			},
 		],
 	])("renders %s without throwing", (_, input) => {
 		for (const streaming of [
@@ -353,7 +350,7 @@ describe("Matrix", () => {
 			false,
 		]) {
 			expect(() =>
-				render(<Matrix input={input} streaming={streaming} />),
+				render(<Matrix view={readMatrix(input)} streaming={streaming} />),
 			).not.toThrow();
 			cleanup();
 		}

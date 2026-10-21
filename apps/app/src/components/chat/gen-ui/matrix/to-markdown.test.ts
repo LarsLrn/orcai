@@ -1,10 +1,10 @@
 import { describe, expect, test } from "bun:test";
+import { displayToolMarkdown } from "@/components/chat/gen-ui/catalog";
 import { referenceMatrix } from "@/components/chat/gen-ui/matrix/fixtures";
-import { matrixToMarkdown } from "@/components/chat/gen-ui/matrix/to-markdown";
 
-describe("matrixToMarkdown", () => {
+describe("showMatrix markdown", () => {
 	test("writes a table of status labels and the notes", () => {
-		expect(matrixToMarkdown(referenceMatrix)).toBe(
+		expect(displayToolMarkdown("showMatrix", referenceMatrix)).toBe(
 			[
 				"### APA 7 reference check",
 				"",
@@ -25,7 +25,7 @@ describe("matrixToMarkdown", () => {
 
 	test("escapes pipes and leaves missing cells empty", () => {
 		expect(
-			matrixToMarkdown({
+			displayToolMarkdown("showMatrix", {
 				columns: [
 					{
 						key: "a",
@@ -55,6 +55,6 @@ describe("matrixToMarkdown", () => {
 				"| Row | Met |  |",
 			].join("\n"),
 		);
-		expect(matrixToMarkdown({})).toBe("");
+		expect(displayToolMarkdown("showMatrix", {})).toBeNull();
 	});
 });

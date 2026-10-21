@@ -1,10 +1,7 @@
 import { aiTelemetry, buildSystemInstructions } from "@orcai/ai";
 import type { DatabaseBlock } from "@orcai/schema";
 import { isStepCount, Output, ToolLoopAgent, type ToolSet } from "ai";
-import {
-	buildGenUiTools,
-	GEN_UI_TOOL_NAMES,
-} from "@/components/chat/gen-ui/catalog";
+import { buildGenUiTools } from "@/components/chat/gen-ui/catalog";
 import type { AgentModel } from "@/lib/ai/agents/agent-model";
 import { pruneChatHistory } from "@/lib/ai/agents/chat-agent-history-pruning";
 import { buildChatAgentSystemPrompt } from "@/lib/ai/agents/chat-agent-system-prompt";
@@ -16,6 +13,7 @@ import { stepBudgetOptionsSchema } from "@/lib/ai/agents/step-budget";
 import { createStepShaper } from "@/lib/ai/agents/step-request";
 import type { ResolvedFeature } from "@/lib/ai/features/resolve-features";
 import { buildKnowledgeBaseTools } from "@/lib/ai/tools/rag/toolset";
+import { toolNamesOf } from "@/lib/ai/tools/registry";
 import type { ChatCallSettings } from "@/lib/ai/utils/chat-call-settings";
 import type { ORPCContext } from "@/lib/orpc/implementation/os";
 
@@ -51,12 +49,13 @@ export const createChatAgent = (params: {
 			}),
 		);
 	}
+	const displayToolNames = toolNamesOf("display");
 	const steps = createStepShaper({
 		providerKind: params.model.kind,
 		prune: (messages) =>
 			pruneChatHistory(messages, {
-				displayToolNames: GEN_UI_TOOL_NAMES,
-				enabledDisplayToolNames: GEN_UI_TOOL_NAMES.filter((name) =>
+				displayToolNames,
+				enabledDisplayToolNames: displayToolNames.filter((name) =>
 					Object.hasOwn(offeredTools, name),
 				),
 			}),

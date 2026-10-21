@@ -2,13 +2,12 @@ import type { OrganizationInvitationId } from "@orcai/core";
 import { createOrganizationInvitationsInputSchema } from "@orcai/schema";
 import * as Effect from "effect/Effect";
 import { z } from "zod/v4";
-import { runAssistantTool } from "@/lib/ai/tools/tool-error";
 import { organizationInvitationProcedures } from "@/lib/orpc/router/organization-invitation";
 import {
 	type AssistantToolDeps,
-	assistantTool,
 	callProcedure,
 	createOnce,
+	effectTool,
 	mutation,
 } from "../procedure-tool";
 import { invitationInput, requestLocale } from "./invitation-input";
@@ -50,49 +49,41 @@ export const inviteMembers = (
 	});
 
 export const inviteMembersTool = (deps: AssistantToolDeps) =>
-	assistantTool({
+	effectTool({
 		description:
-			"Invite people by email to join the active organisation with a role. Each gets an email with a registration link that is valid for 7 days. The user confirms before it runs.",
+			"Invite people by email to join the active organisation with a role. Each gets an email with a registration link that is valid for 7 days.",
 		inputSchema: inviteMembersInputSchema,
-		execute: (input, { abortSignal, toolCallId }) =>
-			runAssistantTool(
-				createOnce(
-					{
-						scope: deps.turn.scope,
-						toolName: "inviteMembers",
-						toolCallId,
-						input,
-					},
-					{
-						create: inviteMembers(deps, input, new Date()),
-						ids: ({ invited }) => invited.map((invitation) => invitation.id),
-						replay: (ids) =>
-							Effect.forEach(ids, (id) =>
-								callProcedure(deps, (options) =>
-									organizationInvitationProcedures.find(
-										{
-											id: id as OrganizationInvitationId,
-										},
-										options,
-									),
+		run: (input, { toolCallId }) =>
+			createOnce(
+				{
+					scope: deps.turn.scope,
+					toolCallId,
+					input,
+				},
+				{
+					create: inviteMembers(deps, input, new Date()),
+					ids: ({ invited }) => invited.map((invitation) => invitation.id),
+					replay: (ids) =>
+						Effect.forEach(ids, (id) =>
+							callProcedure(deps, (options) =>
+								organizationInvitationProcedures.find(
+									{
+										id: id as OrganizationInvitationId,
+									},
+									options,
 								),
-							).pipe(
-								Effect.map((found) => ({
-									invited: found.map(({ data }) => ({
-										type: "invitation" as const,
-										id: data.id,
-										email: data.email,
-									})),
-									role: input.role,
-									expiresAt: found[0].data.expiresAt.toISOString(),
-								})),
 							),
-					},
-				),
-				abortSignal,
+						).pipe(
+							Effect.map((found) => ({
+								invited: found.map(({ data }) => ({
+									type: "invitation" as const,
+									id: data.id,
+									email: data.email,
+								})),
+								role: input.role,
+								expiresAt: found[0].data.expiresAt.toISOString(),
+							})),
+						),
+				},
 			),
-		toModelOutput: ({ output }) => ({
-			type: "json",
-			value: output,
-		}),
 	});

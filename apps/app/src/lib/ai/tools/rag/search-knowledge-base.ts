@@ -3,13 +3,10 @@ import {
 	blockIdSchema,
 	type DatabaseBlock,
 } from "@orcai/schema";
-import { tool } from "ai";
 import * as Effect from "effect/Effect";
 import { z } from "zod/v4";
-import {
-	AssistantToolError,
-	runAssistantTool,
-} from "@/lib/ai/tools/tool-error";
+import { effectTool } from "@/lib/ai/tools/assistant/procedure-tool";
+import { AssistantToolError } from "@/lib/ai/tools/tool-error";
 import type { ORPCContext } from "@/lib/orpc/implementation/os";
 import { assetPointProcedures } from "@/lib/orpc/router/asset-point";
 import { RETRIEVAL_LIMITS } from "@/settings/constants";
@@ -56,7 +53,7 @@ export const searchKnowledgeBaseTool = ({
 	blocks: DatabaseBlock[];
 	context: ORPCContext;
 }) =>
-	tool({
+	effectTool({
 		description:
 			"Search the knowledge base by topic, entity, quote, or claim and return short relevance snippets. Use this to shortlist evidence, then call getKnowledgeBaseChunks to read the full chunk text before giving a factual answer.",
 		inputSchema: z.object({
@@ -101,102 +98,93 @@ export const searchKnowledgeBaseTool = ({
 				.optional()
 				.describe("Optional block ID to search only one knowledge base block."),
 		}),
-		execute: async (
-			{ query, queryVariants, queries, assetIds, blockId },
-			{ abortSignal },
-		) =>
-			runAssistantTool(
-				Effect.gen(function* () {
-					const normalizedQueries = normalizeQueries({
-						query,
-						queryVariants,
-						queries,
-					});
-					if (normalizedQueries.length === 0) {
-						return yield* Effect.fail(
-							new AssistantToolError(
-								"INVALID_TOOL_INPUT: Provide query or queryVariants.",
-							),
-						);
-					}
-
-					const targetBlocks = resolveSearchBlocks({
-						blocks,
-						blockId,
-					});
-					const limit = DEFAULT_SEARCH_RESULT_LIMIT;
-
-					if (targetBlocks.length === 0) {
-						return {
-							results: [] as SearchResult[],
-							noNewEvidence: true,
-							nextAction: "refineSearchOrListDocuments" as const,
-						};
-					}
-
-					const blockResponses = yield* Effect.forEach(
-						targetBlocks,
-						(block) =>
-							assetPointProcedures
-								.searchRepository(
-									{
-										repositoryId: block.id,
-										filters: {
-											queries: normalizedQueries,
-											limit: Math.max(limit * 6, 24),
-											assetIds,
-											retrievalMode: block.config.retrievalMode ?? "hybrid",
-											minScore: block.config.scoreThreshold,
-											candidateLimit:
-												block.config.candidateLimit ?? Math.max(limit * 8, 32),
-											maxPerAsset: block.config.maxPerAsset ?? 2,
-										},
-									},
-									{
-										context,
-									},
-								)
-								.pipe(
-									Effect.map((response) => ({
-										block,
-										response,
-									})),
-								),
-						{
-							concurrency: "unbounded",
-						},
+		run: ({ query, queryVariants, queries, assetIds, blockId }) =>
+			Effect.gen(function* () {
+				const normalizedQueries = normalizeQueries({
+					query,
+					queryVariants,
+					queries,
+				});
+				if (normalizedQueries.length === 0) {
+					return yield* Effect.fail(
+						new AssistantToolError(
+							"INVALID_TOOL_INPUT: Provide query or queryVariants.",
+						),
 					);
+				}
 
-					const candidates = mergeAndSortCandidates(
-						flattenBlockResponses(blockResponses),
-					);
-					const boundedResults: SearchResult[] = candidates
-						.slice(
-							0,
-							Math.min(limit, RETRIEVAL_LIMITS.maxSnippetResultsPerCall),
-						)
-						.map((point) =>
-							toSearchResult({
-								point,
-								queries: normalizedQueries,
-							}),
-						);
+				const targetBlocks = resolveSearchBlocks({
+					blocks,
+					blockId,
+				});
+				const limit = DEFAULT_SEARCH_RESULT_LIMIT;
 
+				if (targetBlocks.length === 0) {
 					return {
-						results: boundedResults,
-						noNewEvidence: boundedResults.length === 0,
-						nextAction:
-							boundedResults.length > 0
-								? ("getKnowledgeBaseChunks" as const)
-								: ("refineSearchOrListDocuments" as const),
-						stats: {
-							queryCount: normalizedQueries.length,
-							returnedCount: boundedResults.length,
-							searchedBlockCount: targetBlocks.length,
-							assetScopeCount: assetIds?.length ?? 0,
-						},
+						results: [] as SearchResult[],
+						noNewEvidence: true,
+						nextAction: "refineSearchOrListDocuments" as const,
 					};
-				}),
-				abortSignal,
-			),
+				}
+
+				const blockResponses = yield* Effect.forEach(
+					targetBlocks,
+					(block) =>
+						assetPointProcedures
+							.searchRepository(
+								{
+									repositoryId: block.id,
+									filters: {
+										queries: normalizedQueries,
+										limit: Math.max(limit * 6, 24),
+										assetIds,
+										retrievalMode: block.config.retrievalMode ?? "hybrid",
+										minScore: block.config.scoreThreshold,
+										candidateLimit:
+											block.config.candidateLimit ?? Math.max(limit * 8, 32),
+										maxPerAsset: block.config.maxPerAsset ?? 2,
+									},
+								},
+								{
+									context,
+								},
+							)
+							.pipe(
+								Effect.map((response) => ({
+									block,
+									response,
+								})),
+							),
+					{
+						concurrency: "unbounded",
+					},
+				);
+
+				const candidates = mergeAndSortCandidates(
+					flattenBlockResponses(blockResponses),
+				);
+				const boundedResults: SearchResult[] = candidates
+					.slice(0, Math.min(limit, RETRIEVAL_LIMITS.maxSnippetResultsPerCall))
+					.map((point) =>
+						toSearchResult({
+							point,
+							queries: normalizedQueries,
+						}),
+					);
+
+				return {
+					results: boundedResults,
+					noNewEvidence: boundedResults.length === 0,
+					nextAction:
+						boundedResults.length > 0
+							? ("getKnowledgeBaseChunks" as const)
+							: ("refineSearchOrListDocuments" as const),
+					stats: {
+						queryCount: normalizedQueries.length,
+						returnedCount: boundedResults.length,
+						searchedBlockCount: targetBlocks.length,
+						assetScopeCount: assetIds?.length ?? 0,
+					},
+				};
+			}),
 	});

@@ -1,6 +1,6 @@
 import type { ClientToolOutput, ToolApprovalDecision } from "@orcai/schema";
-import { isToolUIPart, type UIMessage } from "ai";
-import { isClientToolPart } from "@/lib/ai/tools/assistant/client-tools";
+import { isToolUIPart, type ToolUIPart, type UIMessage } from "ai";
+import { toolKindOf } from "@/lib/ai/tools/registry";
 import { toolCloseCode } from "@/lib/ai/utils/close-pending-tool-parts";
 
 type AnyPart = UIMessage["parts"][number];
@@ -42,12 +42,15 @@ export const isPausingCall = (part: AnyPart) =>
 	isToolUIPart(part) &&
 	(part.state === "approval-requested" || part.state === "approval-responded");
 
+const isClientCall = (part: AnyPart): part is ToolUIPart =>
+	isToolUIPart(part) && toolKindOf(part) === "client";
+
 /**
  * A client call the user can answer or has answered. One the server closed,
  * or whose input never finished streaming, waits on nobody.
  */
 const isUserClientCall = (part: AnyPart) =>
-	isClientToolPart(part) &&
+	isClientCall(part) &&
 	(part.state === "input-available" ||
 		part.state === "output-available" ||
 		(part.state === "output-error" &&
@@ -124,7 +127,7 @@ export const stepPause = <P extends AnyPart>(
 				part.state === "approval-requested",
 		),
 		awaiting: calls.filter(
-			(part) => isClientToolPart(part) && part.state === "input-available",
+			(part) => isClientCall(part) && part.state === "input-available",
 		),
 		answered: !pausing.some(isPending),
 		answers: answersOf(calls),

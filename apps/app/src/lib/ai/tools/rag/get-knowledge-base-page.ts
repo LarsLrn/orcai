@@ -3,10 +3,9 @@ import {
 	blockIdSchema,
 	type DatabaseBlock,
 } from "@orcai/schema";
-import { tool } from "ai";
 import * as Effect from "effect/Effect";
 import z from "zod/v4";
-import { runAssistantTool } from "@/lib/ai/tools/tool-error";
+import { effectTool } from "@/lib/ai/tools/assistant/procedure-tool";
 import type { ORPCContext } from "@/lib/orpc/implementation/os";
 import { assetPointProcedures } from "@/lib/orpc/router/asset-point";
 import type { ChunkResult, KnowledgeBaseDocument } from "./types";
@@ -27,7 +26,7 @@ export const getKnowledgeBasePageTool = ({
 	blocks: DatabaseBlock[];
 	context: ORPCContext;
 }) =>
-	tool({
+	effectTool({
 		description:
 			"Read full chunk text from a specific document page or nearby pages. Use this for explicit page requests after you know the document or have narrowed it down by title.",
 		inputSchema: z.object({
@@ -67,129 +66,123 @@ export const getKnowledgeBasePageTool = ({
 				.default(12)
 				.describe("Maximum number of returned chunks."),
 		}),
-		execute: async (
-			{
-				page,
-				blockId,
-				assetId,
-				documentTitleQuery,
-				documentQuery,
-				includeAdjacentPages,
-				limit,
-			},
-			{ abortSignal },
-		) =>
-			runAssistantTool(
-				Effect.gen(function* () {
-					const targetBlocks = resolveSearchBlocks({
-						blocks,
-						blockId,
-					});
-					if (targetBlocks.length === 0) {
-						return {
-							chunks: [] as ChunkResult[],
-							matchedDocuments: [] as KnowledgeBaseDocument[],
-							nextAction: "listKnowledgeBaseDocuments" as const,
-						};
-					}
-
-					const normalizedDocumentQuery =
-						documentTitleQuery?.trim() || documentQuery?.trim() || undefined;
-
-					const documents = yield* loadDocumentCatalog({
-						blocks: targetBlocks,
-						context,
-					});
-
-					let matchedDocuments: KnowledgeBaseDocument[] = documents;
-					if (assetId) {
-						matchedDocuments = matchedDocuments.filter(
-							(document) => document.assetId === assetId,
-						);
-					}
-
-					if (normalizedDocumentQuery) {
-						matchedDocuments = rankDocumentsByQuery({
-							documents: matchedDocuments,
-							query: normalizedDocumentQuery,
-						});
-					}
-
-					const documentsToSearch = matchedDocuments.slice(0, 5);
-					const matchedAssetIds = Array.from(
-						new Set(documentsToSearch.map((document) => document.assetId)),
-					);
-
-					if (matchedAssetIds.length === 0) {
-						return {
-							chunks: [] as ChunkResult[],
-							matchedDocuments: [] as KnowledgeBaseDocument[],
-							nextAction: "listKnowledgeBaseDocuments" as const,
-						};
-					}
-
-					const normalizedRequestedPage = Math.max(1, page);
-					const pageFrom = Math.max(
-						1,
-						normalizedRequestedPage - includeAdjacentPages,
-					);
-					const pageTo = normalizedRequestedPage + includeAdjacentPages;
-					const queryLimit = Math.max(limit * 4, 40);
-
-					const blockResponses = yield* Effect.forEach(
-						targetBlocks,
-						(block) =>
-							assetPointProcedures
-								.searchRepository(
-									{
-										repositoryId: block.id,
-										filters: {
-											assetIds: matchedAssetIds,
-											pageFrom,
-											pageTo,
-											limit: queryLimit,
-										},
-									},
-									{
-										context,
-									},
-								)
-								.pipe(
-									Effect.map((response) => ({
-										block,
-										response,
-									})),
-								),
-						{
-							concurrency: "unbounded",
-						},
-					);
-
-					const points = mergeAndSortCandidates(
-						flattenBlockResponses(blockResponses),
-					)
-						.sort(compareByPageAssetChunk)
-						.slice(0, limit);
-
+		run: ({
+			page,
+			blockId,
+			assetId,
+			documentTitleQuery,
+			documentQuery,
+			includeAdjacentPages,
+			limit,
+		}) =>
+			Effect.gen(function* () {
+				const targetBlocks = resolveSearchBlocks({
+					blocks,
+					blockId,
+				});
+				if (targetBlocks.length === 0) {
 					return {
-						chunks: points.map(toChunkResult),
-						matchedDocuments: matchedDocuments.slice(0, 20),
-						nextAction:
-							points.length > 0
-								? ("answerFromChunks" as const)
-								: matchedDocuments.length > 1 && !assetId
-									? ("listKnowledgeBaseDocuments" as const)
-									: ("searchKnowledgeBase" as const),
-						stats: {
-							requestedPage: normalizedRequestedPage,
-							pageFrom,
-							pageTo,
-							matchedDocumentCount: matchedDocuments.length,
-							searchedDocumentCount: documentsToSearch.length,
-							returnedChunkCount: Math.min(limit, points.length),
-						},
+						chunks: [] as ChunkResult[],
+						matchedDocuments: [] as KnowledgeBaseDocument[],
+						nextAction: "listKnowledgeBaseDocuments" as const,
 					};
-				}),
-				abortSignal,
-			),
+				}
+
+				const normalizedDocumentQuery =
+					documentTitleQuery?.trim() || documentQuery?.trim() || undefined;
+
+				const documents = yield* loadDocumentCatalog({
+					blocks: targetBlocks,
+					context,
+				});
+
+				let matchedDocuments: KnowledgeBaseDocument[] = documents;
+				if (assetId) {
+					matchedDocuments = matchedDocuments.filter(
+						(document) => document.assetId === assetId,
+					);
+				}
+
+				if (normalizedDocumentQuery) {
+					matchedDocuments = rankDocumentsByQuery({
+						documents: matchedDocuments,
+						query: normalizedDocumentQuery,
+					});
+				}
+
+				const documentsToSearch = matchedDocuments.slice(0, 5);
+				const matchedAssetIds = Array.from(
+					new Set(documentsToSearch.map((document) => document.assetId)),
+				);
+
+				if (matchedAssetIds.length === 0) {
+					return {
+						chunks: [] as ChunkResult[],
+						matchedDocuments: [] as KnowledgeBaseDocument[],
+						nextAction: "listKnowledgeBaseDocuments" as const,
+					};
+				}
+
+				const normalizedRequestedPage = Math.max(1, page);
+				const pageFrom = Math.max(
+					1,
+					normalizedRequestedPage - includeAdjacentPages,
+				);
+				const pageTo = normalizedRequestedPage + includeAdjacentPages;
+				const queryLimit = Math.max(limit * 4, 40);
+
+				const blockResponses = yield* Effect.forEach(
+					targetBlocks,
+					(block) =>
+						assetPointProcedures
+							.searchRepository(
+								{
+									repositoryId: block.id,
+									filters: {
+										assetIds: matchedAssetIds,
+										pageFrom,
+										pageTo,
+										limit: queryLimit,
+									},
+								},
+								{
+									context,
+								},
+							)
+							.pipe(
+								Effect.map((response) => ({
+									block,
+									response,
+								})),
+							),
+					{
+						concurrency: "unbounded",
+					},
+				);
+
+				const points = mergeAndSortCandidates(
+					flattenBlockResponses(blockResponses),
+				)
+					.sort(compareByPageAssetChunk)
+					.slice(0, limit);
+
+				return {
+					chunks: points.map(toChunkResult),
+					matchedDocuments: matchedDocuments.slice(0, 20),
+					nextAction:
+						points.length > 0
+							? ("answerFromChunks" as const)
+							: matchedDocuments.length > 1 && !assetId
+								? ("listKnowledgeBaseDocuments" as const)
+								: ("searchKnowledgeBase" as const),
+					stats: {
+						requestedPage: normalizedRequestedPage,
+						pageFrom,
+						pageTo,
+						matchedDocumentCount: matchedDocuments.length,
+						searchedDocumentCount: documentsToSearch.length,
+						returnedChunkCount: Math.min(limit, points.length),
+					},
+				};
+			}),
 	});

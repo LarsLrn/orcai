@@ -2,7 +2,7 @@ import { describe, expect, test } from "bun:test";
 import {
 	anchorFindings,
 	itemStatus,
-	reviewOf,
+	readReview,
 	type StreamedFinding,
 	stripEmphasis,
 } from "@/components/chat/gen-ui/review/findings";
@@ -170,10 +170,10 @@ describe("anchorFindings", () => {
 	});
 });
 
-describe("reviewOf", () => {
+describe("readReview", () => {
 	test("leaves out malformed entries and cut-off severities", () => {
 		expect(
-			reviewOf({
+			readReview({
 				title: {
 					text: "APA",
 				},
@@ -230,7 +230,7 @@ describe("reviewOf", () => {
 			],
 			general: [],
 		});
-		expect(reviewOf("not an object").items).toEqual([]);
+		expect(readReview("not an object").items).toEqual([]);
 	});
 });
 

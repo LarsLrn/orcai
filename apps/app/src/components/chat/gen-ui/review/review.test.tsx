@@ -7,15 +7,12 @@ import {
 	waitFor,
 	within,
 } from "@testing-library/react";
-import type { DeepPartial } from "ai";
+import { readReview } from "@/components/chat/gen-ui/review/findings";
 import {
 	outcomesReview,
 	referenceReview,
 } from "@/components/chat/gen-ui/review/fixtures";
-import {
-	type ReviewInput,
-	reviewSchema,
-} from "@/components/chat/gen-ui/review/schema";
+import { reviewSchema } from "@/components/chat/gen-ui/review/schema";
 
 // The real client resolves server configuration at import time.
 mock.module("@/lib/orpc/orpc", () => ({
@@ -104,7 +101,7 @@ describe("reviewSchema", () => {
 describe("Review", () => {
 	test("renders the header with title and a tally of item statuses", () => {
 		const { container } = render(
-			<Review input={referenceReview} streaming={false} />,
+			<Review view={readReview(referenceReview)} streaming={false} />,
 		);
 
 		expect(
@@ -137,7 +134,7 @@ describe("Review", () => {
 	});
 
 	test("derives each item's icon from its worst finding", () => {
-		render(<Review input={referenceReview} streaming={false} />);
+		render(<Review view={readReview(referenceReview)} streaming={false} />);
 
 		expect(iconNames(rowOf("Hattie & Timperley (2007)"))[0]).toBe("Not met");
 		expect(iconNames(rowOf("Shute (2008)"))[0]).toBe("Partly met");
@@ -149,7 +146,7 @@ describe("Review", () => {
 	});
 
 	test("names finding icons by severity", () => {
-		render(<Review input={referenceReview} streaming={false} />);
+		render(<Review view={readReview(referenceReview)} streaming={false} />);
 
 		expect(iconNames(rowOf("Shute (2008)")).slice(1)).toEqual([
 			"Warning",
@@ -163,7 +160,7 @@ describe("Review", () => {
 	});
 
 	test("underlines excerpts with footnote numbers in text order", () => {
-		render(<Review input={outcomesReview} streaming={false} />);
+		render(<Review view={readReview(outcomesReview)} streaming={false} />);
 
 		const row = rowOf("Outcome 1");
 		expect(marksOf(row)).toEqual([
@@ -194,7 +191,7 @@ describe("Review", () => {
 	});
 
 	test("leaves an excerpt missing from the text unnumbered", () => {
-		render(<Review input={referenceReview} streaming={false} />);
+		render(<Review view={readReview(referenceReview)} streaming={false} />);
 
 		const row = rowOf("Wisniewski et al. (2020)");
 		expect(marksOf(row)).toEqual([
@@ -207,7 +204,7 @@ describe("Review", () => {
 
 	test("shows the summary and general findings last as Overall", () => {
 		const { container } = render(
-			<Review input={outcomesReview} streaming={false} />,
+			<Review view={readReview(outcomesReview)} streaming={false} />,
 		);
 
 		expect(screen.getByText(/Two outcomes need rewriting/)).toBeDefined();
@@ -219,12 +216,12 @@ describe("Review", () => {
 	test("has no view switch without revisions", () => {
 		render(
 			<Review
-				input={{
+				view={readReview({
 					title: "No revisions",
 					items: [
 						referenceReview.items[1],
 					],
-				}}
+				})}
 				streaming={false}
 			/>,
 		);
@@ -235,7 +232,7 @@ describe("Review", () => {
 
 	test("shows a word diff in Changes, stacked for a rewrite", () => {
 		const { container } = render(
-			<Review input={outcomesReview} streaming={false} />,
+			<Review view={readReview(outcomesReview)} streaming={false} />,
 		);
 
 		fireEvent.click(
@@ -272,7 +269,7 @@ describe("Review", () => {
 	});
 
 	test("strips emphasis markers from the diff", () => {
-		render(<Review input={referenceReview} streaming={false} />);
+		render(<Review view={readReview(referenceReview)} streaming={false} />);
 		fireEvent.click(
 			screen.getByRole("button", {
 				name: "Changes",
@@ -283,7 +280,7 @@ describe("Review", () => {
 	});
 
 	test("shows revisions or the unrevised text in Revised", async () => {
-		render(<Review input={outcomesReview} streaming={false} />);
+		render(<Review view={readReview(outcomesReview)} streaming={false} />);
 		fireEvent.click(
 			screen.getByRole("button", {
 				name: "Revised",
@@ -305,7 +302,7 @@ describe("Review", () => {
 	});
 
 	test("copies a revision as HTML with emphasis and as plain text", async () => {
-		render(<Review input={referenceReview} streaming={false} />);
+		render(<Review view={readReview(referenceReview)} streaming={false} />);
 
 		fireEvent.click(
 			within(rowOf("Shute (2008)")).getByRole("button", {
@@ -321,7 +318,7 @@ describe("Review", () => {
 	});
 
 	test("copies all revisions joined by blank lines", async () => {
-		render(<Review input={referenceReview} streaming={false} />);
+		render(<Review view={readReview(referenceReview)} streaming={false} />);
 		fireEvent.click(
 			screen.getByRole("button", {
 				name: "Revised",
@@ -345,7 +342,7 @@ describe("Review", () => {
 	test("shows the pending icon while findings have not arrived", () => {
 		const { container } = render(
 			<Review
-				input={{
+				view={readReview({
 					title: "Check",
 					items: [
 						{
@@ -353,7 +350,7 @@ describe("Review", () => {
 							text: "Some text",
 						},
 					],
-				}}
+				})}
 				streaming
 			/>,
 		);
@@ -362,7 +359,7 @@ describe("Review", () => {
 	});
 
 	test("shows skeletons until title and items arrive", () => {
-		const { container } = render(<Review input={{}} streaming />);
+		const { container } = render(<Review view={readReview({})} streaming />);
 
 		expect(
 			container.querySelectorAll('[data-slot="skeleton"]').length,
@@ -372,7 +369,7 @@ describe("Review", () => {
 	test.each<
 		[
 			string,
-			DeepPartial<ReviewInput>,
+			unknown,
 		]
 	>([
 		[
@@ -440,7 +437,7 @@ describe("Review", () => {
 				general: {
 					label: "Not a list",
 				},
-			} as unknown as DeepPartial<ReviewInput>,
+			},
 		],
 		[
 			"fields of the wrong type",
@@ -474,7 +471,7 @@ describe("Review", () => {
 						],
 					},
 				],
-			} as unknown as DeepPartial<ReviewInput>,
+			},
 		],
 	])("renders %s without throwing", (_, input) => {
 		for (const streaming of [
@@ -482,7 +479,7 @@ describe("Review", () => {
 			false,
 		]) {
 			expect(() =>
-				render(<Review input={input} streaming={streaming} />),
+				render(<Review view={readReview(input)} streaming={streaming} />),
 			).not.toThrow();
 			cleanup();
 		}

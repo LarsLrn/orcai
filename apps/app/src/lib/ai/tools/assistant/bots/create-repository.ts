@@ -7,13 +7,12 @@ import {
 } from "@orcai/schema";
 import * as Effect from "effect/Effect";
 import { z } from "zod/v4";
-import { runAssistantTool } from "@/lib/ai/tools/tool-error";
 import { blockProcedures } from "@/lib/orpc/router/block";
 import {
 	type AssistantToolDeps,
-	assistantTool,
 	callProcedure,
 	createOnce,
+	effectTool,
 	expectType,
 	mutation,
 } from "../procedure-tool";
@@ -39,62 +38,54 @@ export const createRepositoryInputSchema = z.object({
 });
 
 export const createRepositoryTool = (deps: AssistantToolDeps) =>
-	assistantTool({
+	effectTool({
 		description:
 			"Create a new repository (database block) with the default retrieval settings, optionally holding assets. To change an existing one, use updateRepository.",
 		inputSchema: createRepositoryInputSchema,
-		execute: (input, { abortSignal, toolCallId }) =>
-			runAssistantTool(
-				createOnce(
-					{
-						scope: deps.turn.scope,
-						toolName: "createRepository",
-						toolCallId,
-						input,
-					},
-					{
-						create: callProcedure(deps, (options) =>
-							blockProcedures.create(
+		run: (input, { toolCallId }) =>
+			createOnce(
+				{
+					scope: deps.turn.scope,
+					toolCallId,
+					input,
+				},
+				{
+					create: callProcedure(deps, (options) =>
+						blockProcedures.create(
+							{
+								type: "database",
+								name: input.name,
+								description:
+									input.description === undefined
+										? null
+										: blockDescription(input.description),
+								contentJson: null,
+								contentHtml: null,
+								status: input.status ?? "draft",
+								config: {
+									...defaultDatabaseBlockConfig,
+								},
+								assets: uniqueAssetIds(input.assetIds ?? []),
+							},
+							options,
+						),
+					).pipe(
+						mutation("findBlocks"),
+						expectType("asset", input.assetIds ?? []),
+						Effect.map(repositoryOutline),
+					),
+					ids: (repository) => [
+						repository.id,
+					],
+					replay: ([repositoryId]) =>
+						callProcedure(deps, (options) =>
+							blockProcedures.find(
 								{
-									type: "database",
-									name: input.name,
-									description:
-										input.description === undefined
-											? null
-											: blockDescription(input.description),
-									contentJson: null,
-									contentHtml: null,
-									status: input.status ?? "draft",
-									config: {
-										...defaultDatabaseBlockConfig,
-									},
-									assets: uniqueAssetIds(input.assetIds ?? []),
+									id: repositoryId as BlockId,
 								},
 								options,
 							),
-						).pipe(
-							mutation("findBlocks"),
-							expectType("asset", input.assetIds ?? []),
-							Effect.map(repositoryOutline),
-						),
-						ids: (repository) => [
-							repository.id,
-						],
-						replay: ([repositoryId]) =>
-							callProcedure(deps, (options) =>
-								blockProcedures.find(
-									{
-										id: repositoryId as BlockId,
-									},
-									options,
-								),
-							).pipe(Effect.map(repositoryOutline)),
-					},
-				),
-				abortSignal,
+						).pipe(Effect.map(repositoryOutline)),
+				},
 			),
-		toModelOutput: ({ output }) => ({
-			type: "json",
-			value: output,
-		}),
 	});

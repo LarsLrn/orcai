@@ -1,9 +1,8 @@
 import { blockIdSchema } from "@orcai/schema";
 import { z } from "zod/v4";
-import { runAssistantTool } from "@/lib/ai/tools/tool-error";
 import { blockProcedures } from "@/lib/orpc/router/block";
 import { deleteNamed } from "../named-delete";
-import { type AssistantToolDeps, assistantTool } from "../procedure-tool";
+import { type AssistantToolDeps, effectTool } from "../procedure-tool";
 
 export const deleteBlockInputSchema = z.object({
 	ids: z
@@ -16,38 +15,35 @@ export const deleteBlockInputSchema = z.object({
 });
 
 export const deleteBlockTool = (deps: AssistantToolDeps) =>
-	assistantTool({
+	effectTool({
 		description:
-			"Delete behaviour blocks or repositories for good; bots using them lose the link, the assets in a repository stay. The user confirms before it runs. Skips blocks the user may not delete.",
+			"Delete behaviour blocks or repositories for good; bots using them lose the link, the assets in a repository stay. Skips blocks the user may not delete.",
 		inputSchema: deleteBlockInputSchema,
-		execute: ({ ids }, { abortSignal }) =>
-			runAssistantTool(
-				deleteNamed(deps, ids, {
-					type: "block",
-					find: (id, options) =>
-						blockProcedures.find(
-							{
+		run: ({ ids }) =>
+			deleteNamed(deps, ids, {
+				type: "block",
+				find: (id, options) =>
+					blockProcedures.find(
+						{
+							id,
+						},
+						options,
+					),
+				typeOf: ({ data }) =>
+					data.type === "template" ? "template" : "repository",
+				name: ({ data }) => data.name,
+				canDelete: ({ data }) => data.capabilities.delete === true,
+				verify: "findBlocks",
+				remove: (ids, options) =>
+					blockProcedures.delete(
+						{
+							refs: ids.map((id) => ({
 								id,
-							},
-							options,
-						),
-					typeOf: ({ data }) =>
-						data.type === "template" ? "template" : "repository",
-					name: ({ data }) => data.name,
-					canDelete: ({ data }) => data.capabilities.delete === true,
-					verify: "findBlocks",
-					remove: (ids, options) =>
-						blockProcedures.delete(
-							{
-								refs: ids.map((id) => ({
-									id,
-								})),
-							},
-							options,
-						),
-				}),
-				abortSignal,
-			),
+							})),
+						},
+						options,
+					),
+			}),
 		toModelOutput: ({ output }) => ({
 			type: "json",
 			value: {
