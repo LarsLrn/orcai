@@ -2,7 +2,6 @@ import { context as otelContext } from "@opentelemetry/api";
 import { AiError } from "@orcai/ai";
 import type { ChatId, ChatMessageId } from "@orcai/core";
 import { withActiveSpan } from "@orcai/observability";
-import { reservedOutputTokens } from "@orcai/quota";
 import type {
 	AiChatInput,
 	ChatMessageMetadata,
@@ -259,7 +258,6 @@ const meterTurn = ({
 		providerModelId: setup.modelId,
 		maxSteps: setup.maxSteps,
 		maxOutputTokens: setup.callSettings.maxOutputTokens,
-		modelMaxOutputTokens: setup.tokenLimits.maxOutputTokens,
 		messages,
 	});
 
@@ -321,10 +319,7 @@ const fitPrompt = ({
 				.at(-1)?.id,
 			requestTokens: yield* Effect.promise(() => requestTokens(agent)),
 			contextWindow: setup.tokenLimits.contextWindow,
-			reservedOutputTokens: reservedOutputTokens({
-				maxExpectedOutputTokens: setup.callSettings.maxOutputTokens,
-				modelMaxOutputTokens: setup.tokenLimits.maxOutputTokens,
-			}),
+			reservedOutputTokens: setup.callSettings.maxOutputTokens,
 		});
 		if (!fit.fits) {
 			return yield* new AppErrors.BadRequestError({

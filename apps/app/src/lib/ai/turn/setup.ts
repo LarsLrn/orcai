@@ -64,8 +64,7 @@ export type TurnRequester = {
 	context: ORPCContext;
 };
 
-/** What a turn runs with, read once before it starts. */
-export type TurnSetup = {
+type RequestedSetup = {
 	model: AgentModel;
 	providerId: ProviderId;
 	modelId: ModelId;
@@ -85,6 +84,14 @@ export type TurnSetup = {
 				features: ResolvedFeature[];
 				docs: DocsConfig | undefined;
 		  };
+};
+
+/** What a turn runs with, read once before it starts. */
+export type TurnSetup = RequestedSetup & {
+	/** Every step asks for at most the output that fitting and quota reserve. */
+	callSettings: {
+		maxOutputTokens: number;
+	};
 };
 
 const badRequest = (
@@ -384,7 +391,7 @@ const chatSetup = (chat: StoredChat, { user, context }: TurnRequester) =>
 				),
 				features: yield* resolveFeatures(bot ? bot.features : config.features),
 			},
-		} satisfies TurnSetup;
+		} satisfies RequestedSetup;
 	});
 
 const assistantSetup = ({ organizationId, user, context }: TurnRequester) =>
@@ -453,29 +460,31 @@ const assistantSetup = ({ organizationId, user, context }: TurnRequester) =>
 				features: yield* resolveFeatures(ASSISTANT_FEATURES),
 				docs,
 			},
-		} satisfies TurnSetup;
+		} satisfies RequestedSetup;
 	});
 
 /**
  * Without its own cap a call reserves a guess at its output, which leaves at
- * least half the context window to the prompt; the call then asks for no more.
+ * least half the context window to the prompt.
  */
-const withinContextWindow = (setup: TurnSetup): TurnSetup => {
+const withOutputCap = (setup: RequestedSetup): TurnSetup => {
 	const half = Math.floor(
 		(setup.tokenLimits.contextWindow ?? DEFAULT_CONTEXT_WINDOW) / 2,
 	);
-	return setup.callSettings.maxOutputTokens === undefined &&
-		reservedOutputTokens({
-			modelMaxOutputTokens: setup.tokenLimits.maxOutputTokens,
-		}) > half
-		? {
-				...setup,
-				callSettings: {
-					...setup.callSettings,
-					maxOutputTokens: half,
-				},
-			}
-		: setup;
+	return {
+		...setup,
+		callSettings: {
+			...setup.callSettings,
+			maxOutputTokens:
+				setup.callSettings.maxOutputTokens ??
+				Math.min(
+					half,
+					reservedOutputTokens({
+						modelMaxOutputTokens: setup.tokenLimits.maxOutputTokens,
+					}),
+				),
+		},
+	};
 };
 
 /** Reads what a turn on `chat` runs with: the chat's own model, or the organisation's assistant model. */
@@ -490,4 +499,4 @@ export const turnSetup = (
 	(chat.kind === "assistant"
 		? assistantSetup(requester)
 		: chatSetup(chat, requester)
-	).pipe(Effect.map(withinContextWindow));
+	).pipe(Effect.map(withOutputCap));

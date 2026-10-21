@@ -21,6 +21,11 @@ import { enterApp, open } from "../../fixtures/navigation";
 
 const REPLY = "Provider defaults apply.";
 
+/** What a reply without max tokens asks for. */
+const DEFAULT_MAX_TOKENS = {
+	max_tokens: 16_384,
+};
+
 const GENERATION_KEYS = [
 	"temperature",
 	"top_p",
@@ -91,7 +96,7 @@ const saveSettings = async (page: Page) => {
 	await page.keyboard.press("Escape");
 };
 
-test("a chat started in the page leaves generation parameters to the provider", async ({
+test("a chat started in the page leaves sampling to the provider and caps the output", async ({
 	api,
 	inference,
 	org,
@@ -110,7 +115,7 @@ test("a chat started in the page leaves generation parameters to the provider", 
 	).toBeVisible();
 	await send(page, "Which defaults apply?", 1);
 
-	expect(lastTurnParameters(inference)).toEqual({});
+	expect(lastTurnParameters(inference)).toEqual(DEFAULT_MAX_TOKENS);
 });
 
 test("chat settings send only the parameters the member set", async ({
@@ -142,7 +147,7 @@ test("chat settings send only the parameters the member set", async ({
 		.poll(async () => (await storedConfig(member, chatId))?.temperature)
 		.toBeUndefined();
 	await send(page, "Untouched settings", 1);
-	expect(lastTurnParameters(inference)).toEqual({});
+	expect(lastTurnParameters(inference)).toEqual(DEFAULT_MAX_TOKENS);
 
 	await openSettings(page);
 	await temperature.focus();
@@ -153,6 +158,7 @@ test("chat settings send only the parameters the member set", async ({
 		.toBe(1.1);
 	await send(page, "Warmer, please", 2);
 	expect(lastTurnParameters(inference)).toEqual({
+		...DEFAULT_MAX_TOKENS,
 		temperature: 1.1,
 	});
 
@@ -169,7 +175,7 @@ test("chat settings send only the parameters the member set", async ({
 		.poll(async () => (await storedConfig(member, chatId))?.temperature)
 		.toBeUndefined();
 	await send(page, "Back to the default", 3);
-	expect(lastTurnParameters(inference)).toEqual({});
+	expect(lastTurnParameters(inference)).toEqual(DEFAULT_MAX_TOKENS);
 });
 
 test("max tokens stay within the model's max output", async ({

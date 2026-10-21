@@ -6,7 +6,7 @@ import {
 import { ask } from "../../fixtures/chat/chat";
 import { expect, test } from "../../fixtures/inference/fixture";
 
-test("assistant: a turn leaves generation parameters to the provider", async ({
+test("assistant: a turn leaves sampling to the provider and caps the output", async ({
 	api,
 	inference,
 	org,
@@ -29,8 +29,8 @@ test("assistant: a turn leaves generation parameters to the provider", async ({
 		"top_p",
 		"frequency_penalty",
 		"presence_penalty",
-		"max_tokens",
 	]) {
 		expect(request).not.toHaveProperty(key);
 	}
+	expect(request?.max_tokens).toBe(16_384);
 });

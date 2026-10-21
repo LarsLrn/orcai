@@ -27,8 +27,6 @@ export const estimateQuotaReservationAmount = (params: {
 	meteringMode: (typeof dbSchema.provider.$inferSelect)["meteringMode"];
 	/** The call's own output cap. */
 	maxExpectedOutputTokens?: number;
-	/** Lowers the default output cap for a call without its own. */
-	modelMaxOutputTokens?: number | null;
 	maxExpectedProviderRequests: number;
 	messages: unknown[];
 }) => {
