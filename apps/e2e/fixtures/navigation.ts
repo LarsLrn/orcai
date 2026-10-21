@@ -9,10 +9,66 @@ import {
 } from "./api";
 import { message } from "./messages";
 
-/** Wait until React has hydrated the current document, so clicks and fills register. */
+/**
+ * Wait until React has hydrated the whole page, so clicks, fills and scroll
+ * listeners register. React hydrates each Suspense boundary in its own pass
+ * after the shell and has no public signal for the last one, so this waits
+ * until React owns every element the server rendered between a boundary's
+ * `<!--$-->` and `<!--/$-->` markers.
+ */
 export const awaitHydration = async (page: Page): Promise<void> => {
-	await page.locator("html[data-hydrated]").waitFor({
-		state: "attached",
+	await page.waitForFunction(() => {
+		type Rendered = Record<string, unknown> & {
+			nodeType: number;
+			data: string;
+			nextSibling: Rendered | null;
+		};
+
+		const ownedByReact = (node: Rendered) =>
+			Object.keys(node).some((key) => key.startsWith("__reactFiber$"));
+		const document = (
+			globalThis as unknown as {
+				document: {
+					body: Rendered;
+					createTreeWalker: (
+						root: Rendered,
+						whatToShow: number,
+					) => {
+						nextNode: () => Rendered | null;
+					};
+				};
+			}
+		).document;
+
+		if (!ownedByReact(document.body)) {
+			return false;
+		}
+
+		const comments = document.createTreeWalker(document.body, 0x80);
+
+		for (
+			let comment = comments.nextNode();
+			comment;
+			comment = comments.nextNode()
+		) {
+			if (!comment.data.startsWith("$")) {
+				continue;
+			}
+
+			for (
+				let node = comment.nextSibling, depth = 0;
+				node && !(node.nodeType === 8 && node.data === "/$" && depth === 0);
+				node = node.nextSibling
+			) {
+				if (node.nodeType === 8) {
+					depth += node.data.startsWith("$") ? 1 : node.data === "/$" ? -1 : 0;
+				} else if (node.nodeType === 1 && !ownedByReact(node)) {
+					return false;
+				}
+			}
+		}
+
+		return true;
 	});
 };
 

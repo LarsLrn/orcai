@@ -9,7 +9,6 @@ import {
 	HeadContent,
 	Outlet,
 	Scripts,
-	useHydrated,
 } from "@tanstack/react-router";
 import { TanStackRouterDevtoolsPanel } from "@tanstack/react-router-devtools";
 import { createIsomorphicFn, createServerFn } from "@tanstack/react-start";
@@ -147,7 +146,6 @@ function RootDocument({
 }: Readonly<{
 	children: ReactNode;
 }>) {
-	const hydrated = useHydrated();
 	const theme = Route.useRouteContext({
 		select: (context) => context.theme,
 	});
@@ -158,7 +156,6 @@ function RootDocument({
 	return (
 		<html
 			className={serverTheme}
-			data-hydrated={hydrated ? "" : undefined}
 			lang={getLocale()}
 			style={
 				serverTheme
