@@ -1,4 +1,4 @@
-export type { Job, JobWithMetadata } from "pg-boss";
+export { type Job, type JobWithMetadata, PgBoss } from "pg-boss";
 export * from "./errors";
 export * from "./helpers";
 export * from "./monitoring";

@@ -69,7 +69,8 @@
 		},
 		"apps/workers": {
 			"entry": [
-				"src/start-workers.ts"
+				"src/start-workers.ts",
+				"src/**/*.integration.ts"
 			],
 			"project": [
 				"src/**/*.ts"
