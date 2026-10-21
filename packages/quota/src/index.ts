@@ -5,7 +5,10 @@ export {
 	reserveForAppRequest,
 } from "./enforcement";
 export { QuotaCounterStoreError } from "./errors";
-export { estimateQuotaReservationAmount } from "./estimator";
+export {
+	estimateQuotaReservationAmount,
+	reservedOutputTokens,
+} from "./estimator";
 export {
 	createQuotaPoolWithInitialPeriod,
 	finalizeQuotaLedger,

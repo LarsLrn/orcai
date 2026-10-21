@@ -27,6 +27,10 @@ export const chatMessageMetadataSchema = z.object({
 	contextTokens: z.number().optional(),
 	/** The context window of the reply's model, when known. */
 	contextWindow: z.number().optional(),
+	/** The estimate of the reply's prompt, which its context tokens calibrate. */
+	contextEstimate: z.number().optional(),
+	/** Older turns were left out of the reply's prompt to fit the context window. */
+	historyTrimmed: z.boolean().optional(),
 	siblingCount: z.number().optional(),
 	siblingIndex: z.number().optional(),
 	siblingIds: z.array(z.string()).optional(),

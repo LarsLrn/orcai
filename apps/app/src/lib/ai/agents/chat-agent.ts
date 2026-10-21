@@ -61,7 +61,15 @@ export const createChatAgent = (params: {
 			}),
 	});
 
-	return new ToolLoopAgent({
+	const instructions = buildSystemInstructions(params.model.kind, {
+		stable: buildChatAgentSystemPrompt({
+			systemPrompt: params.systemPrompt,
+			hasKnowledgeBaseBlocks,
+			featurePrompts: params.features.map(({ entry }) => entry.prompt),
+		}),
+	});
+
+	const agent = new ToolLoopAgent({
 		model: params.model.language,
 		// The typed tool set; prepareCall swaps in the tools offered this turn.
 		tools: {
@@ -77,13 +85,7 @@ export const createChatAgent = (params: {
 		prepareCall: ({ options, ...settings }) => ({
 			...settings,
 			...params.callSettings,
-			instructions: buildSystemInstructions(params.model.kind, {
-				stable: buildChatAgentSystemPrompt({
-					systemPrompt: params.systemPrompt,
-					hasKnowledgeBaseBlocks,
-					featurePrompts: params.features.map(({ entry }) => entry.prompt),
-				}),
-			}),
+			instructions,
 			// A subset of the typed set; no tools at all when nothing is offered.
 			tools:
 				Object.keys(offeredTools).length > 0
@@ -95,4 +97,9 @@ export const createChatAgent = (params: {
 		onToolExecutionEnd: ({ toolOutput }) => steps.recordExecution(toolOutput),
 		output: Output.text(),
 	});
+
+	return {
+		agent,
+		instructions,
+	};
 };

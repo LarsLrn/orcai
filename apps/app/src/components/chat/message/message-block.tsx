@@ -26,6 +26,7 @@ import { m } from "@/paraglide/messages";
 import { ChatMessageAttachments } from "./chat-message-attachments";
 import { MessageActions } from "./message-actions";
 import { MessagePartRenderer } from "./message-part-renderer";
+import { MessageHistoryTrimmed } from "./metadata/message-history-trimmed";
 import { MessageUsage } from "./metadata/message-usage";
 
 interface MessageBlockProps {
@@ -179,6 +180,7 @@ export const MessageBlock = ({
 					/>
 					{variant === "received" && (
 						<div className="mt-1 flex items-center justify-end gap-2">
+							<MessageHistoryTrimmed message={message} />
 							<MessageUsage message={message} />
 						</div>
 					)}

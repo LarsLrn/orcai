@@ -64,6 +64,7 @@ const reasonMessages: ReasonMessages = {
 	CHAT_BLOCKS_UNAVAILABLE: m.error_chat_blocks_unavailable,
 	CHAT_BOT_BLOCKS_IMMUTABLE: m.error_chat_bot_blocks_immutable,
 	CHAT_BOT_FEATURES_IMMUTABLE: m.error_chat_bot_features_immutable,
+	CHAT_CONTEXT_TOO_LONG: m.error_chat_context_too_long,
 	CHAT_MAX_TOKENS_EXCEEDS_MODEL: ({ maxOutputTokens }) =>
 		m.error_chat_max_tokens_exceeds_model({
 			maxOutputTokens: formatCount(maxOutputTokens),
