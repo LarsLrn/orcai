@@ -1350,3 +1350,157 @@ describe("plan", () => {
 		).toBe(false);
 	});
 });
+
+describe("compaction", () => {
+	const summary = (content: string, state = "done") =>
+		({
+			type: "text",
+			text: content,
+			state,
+			providerMetadata: {
+				orcai: {
+					type: "compaction",
+				},
+			},
+		}) as unknown as TextPart;
+	const anthropicCompaction = (content: string, state = "done") =>
+		({
+			type: "text",
+			text: content,
+			state,
+			providerMetadata: {
+				anthropic: {
+					type: "compaction",
+				},
+			},
+		}) as unknown as TextPart;
+	const openAICompaction = () =>
+		({
+			type: "custom",
+			kind: "openai.compaction",
+			providerMetadata: {
+				openai: {
+					type: "compaction",
+					itemId: "cmp_1",
+					encryptedContent: "sealed",
+				},
+			},
+		}) as unknown as MessagePart;
+	const dividers = (
+		messages: ChatAgentUIMessage[],
+		phase: ChatPhase = "idle",
+	) =>
+		turnView(messages, phase).messages.map(
+			({
+				message,
+				compactedBefore,
+			}): [
+				string,
+				boolean,
+			] => [
+				message.id,
+				compactedBefore,
+			],
+		);
+
+	test("is the running activity while a summary streams", () => {
+		for (const part of [
+			summary("", "streaming"),
+			anthropicCompaction("The story", "streaming"),
+		]) {
+			expect(
+				streaming([
+					part,
+				]).activity,
+			).toEqual({
+				kind: "compacting",
+			});
+		}
+	});
+
+	test("stays out of the answer and the work log", () => {
+		for (const part of [
+			summary("The story so far."),
+			anthropicCompaction("The story so far."),
+			openAICompaction(),
+		]) {
+			const message = view([
+				part,
+				search(),
+				text("The answer."),
+			]);
+
+			expect(answerParts(message)).toEqual([
+				text("The answer."),
+			]);
+			expect(entryTypes(message)).toEqual([
+				"tool-searchKnowledgeBase",
+			]);
+		}
+		expect(
+			answerParts(
+				view([
+					summary("The story so far."),
+				]),
+			),
+		).toEqual([]);
+	});
+
+	test("a provider's compaction puts the divider above its reply", () => {
+		expect(
+			dividers([
+				question(),
+				reply([
+					stepStart(),
+					anthropicCompaction("The story so far."),
+					text("Two."),
+				]),
+			]),
+		).toEqual([
+			[
+				"question",
+				false,
+			],
+			[
+				"reply",
+				true,
+			],
+		]);
+	});
+
+	test("our own summary puts the divider above the question it answered, once it is written", () => {
+		const messages = (part: MessagePart) => [
+			question(),
+			reply([
+				part,
+				text("Two."),
+			]),
+		];
+
+		expect(dividers(messages(summary("The story so far.")))).toEqual([
+			[
+				"question",
+				true,
+			],
+			[
+				"reply",
+				false,
+			],
+		]);
+		expect(dividers(messages(summary("", "streaming")), "streaming")).toEqual([
+			[
+				"question",
+				false,
+			],
+			[
+				"reply",
+				false,
+			],
+		]);
+		// A summary that failed stays empty.
+		expect(dividers(messages(summary("")))[0]).toEqual([
+			"question",
+			false,
+		]);
+	});
+});

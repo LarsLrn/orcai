@@ -1,3 +1,4 @@
+import { compactionSource, isCompactionPart } from "@orcai/core";
 import {
 	type ClientToolName,
 	isToolOfKind,
@@ -127,6 +128,9 @@ export type Activity =
 			kind: "thinking";
 	  }
 	| {
+			kind: "compacting";
+	  }
+	| {
 			kind: "working";
 	  };
 
@@ -148,6 +152,8 @@ export interface MessageView {
 	activity: Activity | undefined;
 	/** Its paused step is answered but has not run, as after a reload. */
 	canContinue: boolean;
+	/** The messages before it were summarized for the model. */
+	compactedBefore: boolean;
 }
 
 export interface TurnPlan {
@@ -191,13 +197,15 @@ const isInterimText = (parts: readonly MessagePart[], index: number) => {
 			(part) =>
 				part.type !== "reasoning" &&
 				part.type !== "text" &&
-				part.type !== "step-start",
+				part.type !== "step-start" &&
+				part.type !== "custom",
 		);
 	return next !== undefined && isWorkToolPart(next);
 };
 
+/** Text the user reads: not blank, and not a summary written for the model. */
 const isBlankText = (part: MessagePart) =>
-	part.type === "text" && part.text.trim() === "";
+	part.type === "text" && (part.text.trim() === "" || isCompactionPart(part));
 
 const closedStatus = {
 	superseded: "skipped",
@@ -295,9 +303,11 @@ const viewMessage = (
 	{
 		latest,
 		phase,
+		compactedBefore,
 	}: {
 		latest: boolean;
 		phase: ChatPhase;
+		compactedBefore: boolean;
 	},
 ): MessageView => {
 	const { parts } = message;
@@ -425,7 +435,8 @@ const viewMessage = (
 	});
 
 	const lastPart = parts.at(-1);
-	const writing = lastPart?.type === "text" && lastPart.state === "streaming";
+	const streaming = lastPart?.type === "text" && lastPart.state === "streaming";
+	const compacting = streaming && isCompactionPart(lastPart);
 
 	return {
 		message,
@@ -438,14 +449,46 @@ const viewMessage = (
 			answer,
 		}),
 		activity:
-			running && !writing
-				? (activeStep(workLog) ?? {
-						kind: "working",
-					})
+			running && (!streaming || compacting)
+				? compacting
+					? {
+							kind: "compacting",
+						}
+					: (activeStep(workLog) ?? {
+							kind: "working",
+						})
 				: undefined,
 		canContinue:
 			idle && message.role === "assistant" && paused?.answered === true,
+		compactedBefore,
 	};
+};
+
+/** Where a message's finished compaction came from, if it has one. */
+const compactedBy = (message: ChatAgentUIMessage | undefined) => {
+	const part = message?.parts.find(
+		(candidate) =>
+			isCompactionPart(candidate) &&
+			(candidate.type !== "text" ||
+				(candidate.text !== "" && candidate.state !== "streaming")),
+	);
+	return part && compactionSource(part);
+};
+
+/**
+ * A provider's compaction summarizes everything before the reply it is in;
+ * our own summary everything before the turn it was written in.
+ */
+const isCompactedBefore = (
+	messages: readonly ChatAgentUIMessage[],
+	index: number,
+) => {
+	const own = compactedBy(messages[index]);
+	return (
+		(own !== undefined && own !== "summary") ||
+		(messages[index].role === "user" &&
+			compactedBy(messages[index + 1]) === "summary")
+	);
 };
 
 const planOf = (
@@ -488,6 +531,7 @@ export const turnView = (
 		viewMessage(message, {
 			latest: index === messages.length - 1,
 			phase,
+			compactedBefore: isCompactedBefore(messages, index),
 		}),
 	),
 	busy: isBusy(phase),
