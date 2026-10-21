@@ -221,6 +221,7 @@
 	"assets_card_chapter_description": "Kapitel: {name}",
 	"assets_card_created_label": "Erstellt",
 	"assets_card_edit_action": "Asset bearbeiten",
+	"assets_card_retry_action": "Erneut versuchen",
 	"assets_card_view_action": "Ansehen",
 	"assets_delete_confirm_button": [
 		{
@@ -1380,10 +1381,13 @@
 	"blocks_database_config_max_per_asset_label": "Max. pro Asset",
 	"blocks_database_config_max_references_label": "Maximum",
 	"blocks_database_config_min_references_label": "Minimum",
+	"blocks_database_config_readiness_failed": "{count} fehlgeschlagen",
+	"blocks_database_config_readiness_summary": "{ready} von {total} Dokumenten bereit",
 	"blocks_database_config_references_title": "Verweise",
 	"blocks_database_config_retrieval_description": "Diese Einstellungen steuern, wie die KI die angehängten Inhalte durchsucht.",
 	"blocks_database_config_retrieval_mode_label": "Abrufmodus",
 	"blocks_database_config_retrieval_title": "Abruf-Konfiguration",
+	"blocks_database_config_retry_failed_action": "Fehlgeschlagene wiederholen",
 	"blocks_database_config_score_threshold_label": "Score-Schwellenwert",
 	"blocks_database_config_view_vector_points_action": "Vektorpunkte anzeigen",
 	"blocks_database_form_candidate_limit_label": "Kandidatenlimit",
@@ -1568,6 +1572,26 @@
 	"blocks_retrieval_mode_dense_label": "Dense",
 	"blocks_retrieval_mode_hybrid_label": "Hybrid",
 	"blocks_retrieval_mode_sparse_label": "Sparse",
+	"blocks_retry_document_toast_error": "Das Dokument konnte nicht erneut versucht werden",
+	"blocks_retry_document_toast_loading": "Dokument wird erneut versucht...",
+	"blocks_retry_document_toast_success": "Dokument erneut eingereiht",
+	"blocks_retry_failed_toast_error": "Die fehlgeschlagenen Dokumente konnten nicht erneut versucht werden",
+	"blocks_retry_failed_toast_loading": "Fehlgeschlagene Dokumente werden erneut versucht...",
+	"blocks_retry_failed_toast_success": [
+		{
+			"declarations": [
+				"input count",
+				"local countPlural = count: plural"
+			],
+			"selectors": [
+				"countPlural"
+			],
+			"match": {
+				"countPlural=one": "1 Dokument erneut eingereiht",
+				"countPlural=other": "{count} Dokumente erneut eingereiht"
+			}
+		}
+	],
 	"blocks_selector_dialog_added_label": "Hinzugefügt",
 	"blocks_selector_dialog_database_description": "Wählen Sie einen wiederverwendbaren Repository-Block für abrufbasierte Antworten.",
 	"blocks_selector_dialog_database_empty_state_title": "Keine Repository-Blöcke gefunden.",
@@ -2308,6 +2332,11 @@
 	"data_table_view_options_trigger": "Ansicht",
 	"dialog_select_empty_state": "Keine Ergebnisse gefunden.",
 	"dialog_select_filter_placeholder": "Filter",
+	"document_state_failed_label": "Fehlgeschlagen",
+	"document_state_indexing_label": "Wird indiziert",
+	"document_state_processing_label": "Wird verarbeitet",
+	"document_state_queued_label": "In Warteschlange",
+	"document_state_ready_label": "Bereit",
 	"documents_panel_collapse": "Repositories ausblenden",
 	"documents_panel_expand": "Repositories anzeigen",
 	"documents_panel_failed_title": [
@@ -3282,6 +3311,11 @@
 			}
 		}
 	],
+	"pipeline_failure_empty": "In dieser Datei wurden weder Text noch Bilder gefunden, daher hilft ein erneuter Versuch nicht.",
+	"pipeline_failure_extraction": "Die Datei konnte nicht gelesen werden.",
+	"pipeline_failure_other": "Die Vorbereitung der Datei ist fehlgeschlagen.",
+	"pipeline_failure_timeout": "Die Vorbereitung der Datei hat zu lange gedauert.",
+	"pipeline_failure_unsupported": "OrcAI kann diesen Dateityp nicht lesen, daher hilft ein erneuter Versuch nicht.",
 	"tour_card_finish_button": "Fertig",
 	"tour_card_previous_button": "Zurück",
 	"tour_card_progress": "{current} von {total}",

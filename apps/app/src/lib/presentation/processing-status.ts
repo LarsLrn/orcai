@@ -1,5 +1,7 @@
 import type { PipelineStatus } from "@orcai/schema";
+import { LoaderCircleIcon } from "lucide-react";
 import type { Badge } from "@/components/ui/badge";
+import type { ResourceCardBadgeItem } from "@/components/ui/shell/resource-card";
 import { m } from "@/paraglide/messages";
 
 const processingStatusLabels: Record<PipelineStatus, () => string> = {
@@ -35,3 +37,13 @@ const PROCESSING_STATUS_VARIANTS: Record<
 
 export const getProcessingStatusVariant = (status: PipelineStatus) =>
 	PROCESSING_STATUS_VARIANTS[status];
+
+/** The status badge of an asset's processing. */
+export const processingStatusBadge = (
+	status: PipelineStatus,
+): ResourceCardBadgeItem => ({
+	label: getProcessingStatusLabel(status),
+	variant: getProcessingStatusVariant(status),
+	icon: status === "active" ? LoaderCircleIcon : undefined,
+	className: status === "active" ? "[&>svg]:animate-spin" : undefined,
+});
