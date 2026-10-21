@@ -39,7 +39,6 @@ export const listGroupMembersTool = (deps: AssistantToolDeps) =>
 				expectType("group", groupId),
 				Effect.map(({ data, rowCount }) => ({
 					members: data.map((row) => ({
-						type: "member" as const,
 						id: row.user.id,
 						name: row.user.name,
 						email: row.user.email,

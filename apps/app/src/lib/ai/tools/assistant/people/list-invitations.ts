@@ -35,7 +35,6 @@ export const listInvitationsTool = (deps: AssistantToolDeps) =>
 
 					return {
 						invitations: data.map((invitation) => ({
-							type: "invitation" as const,
 							id: invitation.id,
 							email: invitation.email,
 							role: invitation.role,

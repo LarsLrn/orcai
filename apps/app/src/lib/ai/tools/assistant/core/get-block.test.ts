@@ -151,7 +151,6 @@ describe("getBlock", () => {
 			canEdit: true,
 			canDelete: false,
 			canManageAccess: false,
-			retrieval: config,
 			documents: {
 				total: 3,
 				ready: 1,
@@ -160,14 +159,12 @@ describe("getBlock", () => {
 			},
 			assets: [
 				{
-					type: "asset",
 					id: ready,
 					title: "Handbook",
 					state: "ready",
 					failure: undefined,
 				},
 				{
-					type: "asset",
 					id: failed,
 					title: "Slides",
 					state: "failed",
@@ -177,7 +174,6 @@ describe("getBlock", () => {
 					},
 				},
 				{
-					type: "asset",
 					id: queued,
 					title: "Notes",
 					state: "queued",

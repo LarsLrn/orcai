@@ -111,7 +111,6 @@ describe("findBots", () => {
 				...ready,
 				draft,
 			].map((found) => ({
-				type: "bot",
 				id: found.id,
 				name: found.name,
 				description: found.description,
@@ -222,7 +221,6 @@ describe("getBot", () => {
 			},
 			repositories: [
 				{
-					type: "repository",
 					id: repository.id,
 					name: "Sources",
 					status: "draft",
@@ -360,7 +358,6 @@ describe("findBlocks", () => {
 		expect(output).toEqual({
 			blocks: [
 				{
-					type: "repository",
 					id: readyBlock.id,
 					name: "Sources",
 					description: null,
@@ -368,7 +365,6 @@ describe("findBlocks", () => {
 					canEdit: false,
 				},
 				{
-					type: "repository",
 					id: draftBlock.id,
 					name: "Sources draft",
 					description: null,
@@ -428,7 +424,6 @@ describe("findAssets", () => {
 		expect(output).toEqual({
 			assets: [
 				{
-					type: "asset",
 					id: assetId,
 					title: "Handbook",
 					processingStatus: "completed",

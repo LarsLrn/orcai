@@ -31,7 +31,6 @@ export const listGroupsTool = (deps: AssistantToolDeps) =>
 			).pipe(
 				Effect.map(({ data, rowCount }) => ({
 					groups: data.map((group) => ({
-						type: "group" as const,
 						id: group.id,
 						name: group.name,
 						description: group.description,

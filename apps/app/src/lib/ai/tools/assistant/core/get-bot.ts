@@ -43,7 +43,6 @@ export const getBotTool = (deps: AssistantToolDeps) =>
 							Effect.map(({ data }) => ({
 								template: data.templateBlock,
 								repositories: data.databaseBlocks.map((block) => ({
-									type: "repository" as const,
 									id: block.id,
 									name: block.name,
 									status: block.status,
@@ -77,7 +76,6 @@ export const getBotTool = (deps: AssistantToolDeps) =>
 									repositories: readable
 										.filter(({ data }) => data.type === "database")
 										.map(({ data, assets }) => ({
-											type: "repository" as const,
 											id: data.id,
 											name: data.name,
 											status: data.status,

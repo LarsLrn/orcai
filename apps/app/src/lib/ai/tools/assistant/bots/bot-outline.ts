@@ -17,7 +17,6 @@ export const botOutline = (bot: BotEditor) => ({
 			}
 		: null,
 	repositories: bot.databaseBlocks.map((block) => ({
-		type: "repository" as const,
 		id: block.id,
 		name: block.name,
 		status: block.status,
