@@ -2,6 +2,7 @@ import type { BlockId, BotId, UserId } from "@orcai/core";
 import type { Features, PublicationStatus } from "@orcai/schema";
 import {
 	type AnyPgColumn,
+	index,
 	integer,
 	json,
 	pgTable,
@@ -64,5 +65,33 @@ export const botBlock = pgTable(
 				table.botId,
 			],
 		}),
+	],
+);
+
+export const botFavourite = pgTable(
+	"bot_favourite",
+	{
+		userId: uuid("user_id")
+			.$type<UserId>()
+			.notNull()
+			.references(() => user.id, {
+				onDelete: "cascade",
+			}),
+		botId: uuid("bot_id")
+			.$type<BotId>()
+			.notNull()
+			.references(() => bot.id, {
+				onDelete: "cascade",
+			}),
+		createdAt: timestamp("created_at").notNull().defaultNow(),
+	},
+	(table) => [
+		primaryKey({
+			columns: [
+				table.userId,
+				table.botId,
+			],
+		}),
+		index("bot_favourite_bot_idx").on(table.botId),
 	],
 );

@@ -16,7 +16,7 @@ import {
 	resourceVisibilityEnum,
 } from "./authz";
 import { block, blockAsset, chatBlock } from "./block";
-import { bot, botBlock } from "./bot";
+import { bot, botBlock, botFavourite } from "./bot";
 import { chat, chatKindEnum } from "./chat";
 import { chatMessage } from "./chat-message";
 import { model, provider, providerMeteringModeEnum } from "./model";
@@ -49,6 +49,7 @@ export const dbSchema = {
 	blockAsset,
 	bot,
 	botBlock,
+	botFavourite,
 	chatMessage,
 	chat,
 	group,
