@@ -1,12 +1,10 @@
 import type { AssetId } from "@orcai/core";
 import { getMimeTypeFromFileType } from "@orcai/s3";
 import type { Asset, ChatMessageAttachment } from "@orcai/schema";
-import { useMutation } from "@tanstack/react-query";
 import { nanoid } from "nanoid";
 import { useEffect, useMemo, useRef, useState } from "react";
 import { toast } from "sonner";
-import { useUploadFiles } from "@/components/documents/use-upload-files";
-import { orpc } from "@/lib/orpc/orpc";
+import { useAssetIntake } from "@/components/documents/use-asset-intake";
 import { m } from "@/paraglide/messages";
 
 export type LocalChatFile = {
@@ -50,17 +48,14 @@ export const useChatAttachments = ({
 		useState<ChatMessageAttachment[]>(initialAttachments);
 	const [assetPickerOpen, setAssetPickerOpen] = useState(false);
 
+	// Uploads become chat-origin assets when the message is sent.
 	const {
-		uploadAsync,
+		intake,
 		isPending: isUploading,
 		reset: resetUploadState,
-	} = useUploadFiles({
+	} = useAssetIntake({
 		route: "chatAttachment",
 	});
-
-	const { mutateAsync: finalizeUpload } = useMutation(
-		orpc.storage.finalizeUpload.mutationOptions(),
-	);
 
 	const selectedAssetIds = useMemo(
 		() => new Set(selectedAttachments.map((attachment) => attachment.assetId)),
@@ -201,48 +196,23 @@ export const useChatAttachments = ({
 		const uploadedAttachments: ChatMessageAttachment[] = [];
 
 		if (localFiles.length > 0) {
-			const uploadResult = await uploadAsync(
+			const { assets, failures } = await intake(
 				localFiles.map((entry) => entry.file),
 			);
 
-			if (uploadResult.files.length > 0) {
-				await finalizeUpload({
-					route: "chatAttachment",
-					files: uploadResult.files.map((file) => ({
-						objectKey: file.objectKey,
-						objectMetadata: file.objectMetadata,
-						name: file.name,
-						size: file.size,
-						type: file.type,
-					})),
-				});
-			}
+			uploadedAttachments.push(
+				...assets.map((asset) =>
+					toChatAttachment({
+						asset,
+						source: "upload",
+					}),
+				),
+			);
 
-			for (const file of uploadResult.files) {
-				const { objectMetadata } = file;
-				if (
-					!objectMetadata.id ||
-					!objectMetadata.prefix ||
-					!objectMetadata.bucket
-				) {
-					continue;
-				}
-
-				uploadedAttachments.push({
-					assetId: objectMetadata.id as AssetId,
-					title: file.name,
-					fileType: file.type,
-					size: file.size,
-					bucket: objectMetadata.bucket as Asset["bucket"],
-					prefix: objectMetadata.prefix,
-					source: "upload",
-				});
-			}
-
-			if (uploadResult.failedFiles.length > 0) {
+			if (failures.length > 0) {
 				toast.warning(
 					m.chat_attachments_upload_failed_toast_warning({
-						count: uploadResult.failedFiles.length,
+						count: failures.length,
 					}),
 				);
 			}
