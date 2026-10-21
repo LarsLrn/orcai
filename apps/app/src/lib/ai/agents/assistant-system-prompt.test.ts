@@ -7,6 +7,7 @@ import {
 	DEFERRED_TOOL_GROUPS,
 	type DeferredToolGroup,
 } from "@/lib/ai/tools/assistant/groups";
+import type { Plan } from "@/lib/ai/tools/assistant/plan/plan";
 import { capabilitySets } from "@/lib/authz/capabilities";
 import {
 	type AssistantUserContext,
@@ -50,16 +51,19 @@ const promptFor = ({
 	role = "member",
 	organizationName = "Acme",
 	toolGroups = [],
+	plan,
 }: {
 	role?: OrganizationRole;
 	organizationName?: string;
 	toolGroups?: readonly DeferredToolGroup[];
+	plan?: Plan;
 }) =>
 	buildAssistantSystemPrompt({
 		docs,
 		userContext: userContext(role, organizationName),
 		featurePrompts,
 		toolGroups,
+		plan,
 	});
 
 /** The prompt as kinds without a prompt cache receive it, in one message. */
@@ -183,6 +187,37 @@ describe("buildAssistantSystemPrompt", () => {
 		expect(prompt).not.toContain("loadTools");
 	});
 
+	test("shows the plan before the role section, outside the stable part", () => {
+		const prompt = promptFor({
+			plan: {
+				title: "Support bot",
+				items: [
+					{
+						label: "Create the bot",
+						details: 'Named "Helpdesk"\nfor the support team',
+						status: "done",
+					},
+					{
+						label: "Attach the FAQ",
+						status: "in_progress",
+					},
+				],
+			},
+		});
+
+		expect(prompt.stable).not.toContain("Support bot");
+		expect(prompt.variable).toStartWith(
+			[
+				"Current plan, as the user sees it above the input:",
+				'Title: "Support bot"',
+				'1. "Create the bot" (done): "Named \\"Helpdesk\\"\\nfor the support team"',
+				'2. "Attach the FAQ" (in_progress)',
+				"",
+				"Current user:",
+			].join("\n"),
+		);
+	});
+
 	test("ends with the role section", () => {
 		const roleSection = [
 			"Current user:",
@@ -225,6 +260,7 @@ describe("buildAssistantSystemPrompt", () => {
 
 			featurePrompts,
 			toolGroups: [],
+			plan: undefined,
 		});
 		const section = prompt.variable?.split("\n");
 

@@ -220,6 +220,8 @@ type Exception = {
 	compared: (block: Block, next: ModelRequest) => Block | undefined;
 	/** Whether the tool list may change once a new marker appears. */
 	changesTools?: boolean;
+	/** What is left to compare of the system instructions. */
+	system?: (system: unknown) => unknown;
 };
 
 const FINISHED_TURN_REASONING: Exception = {
@@ -249,6 +251,30 @@ const FINISHED_TURN_TOOL_CALLS: Exception = {
 		!next.blocks.some((kept) => kept.toolCallId === block.toolCallId)
 			? undefined
 			: block,
+};
+
+const withoutPlan = (value: unknown): unknown =>
+	typeof value === "string"
+		? value.replace(
+				/Current plan, as the user sees it above the input:\n.*?(\n\n|$)/s,
+				"",
+			)
+		: Array.isArray(value)
+			? value.map(withoutPlan)
+			: typeof value === "object" && value !== null
+				? Object.fromEntries(
+						Object.entries(value).map(([key, entry]) => [
+							key,
+							withoutPlan(entry),
+						]),
+					)
+				: value;
+
+const PLAN_IN_INSTRUCTIONS: Exception = {
+	name: "the instructions show the plan as it is now",
+	marker: () => false,
+	compared: (block) => block,
+	system: withoutPlan,
 };
 
 /** The results first sent in a request whose tool list differs from the previous one. */
@@ -338,7 +364,12 @@ const firstRewrite = (
 		toolsMayChange ||= exception.changesTools === true && boundary.hasNewMarker;
 	}
 
-	if (!isDeepStrictEqual(previous.system, next.system)) {
+	const system = (request: ModelRequest) =>
+		exceptions.reduce(
+			(shown, exception) => exception.system?.(shown) ?? shown,
+			request.system,
+		);
+	if (!isDeepStrictEqual(system(previous), system(next))) {
 		return {
 			at: "system",
 			sent: previous.system,
@@ -784,6 +815,7 @@ describe.each([
 		exceptions = [
 			FINISHED_TURN_REASONING,
 			finishedTurnOutputs(conversation.summarised),
+			PLAN_IN_INSTRUCTIONS,
 			...(loading === "active-tools"
 				? [
 						toolListChange(toolListChangingResults(requests)),

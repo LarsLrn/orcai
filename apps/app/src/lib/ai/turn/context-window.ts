@@ -60,13 +60,12 @@ export type ContextFit<M> =
 /**
  * Leaves out the oldest whole turns until the prompt fits the context window
  * minus the reserved output, down to three quarters of it. The latest turn
- * and the pinned message's turn stay. Sizes are char estimates, calibrated by the context tokens the latest
+ * stays. Sizes are char estimates, calibrated by the context tokens the latest
  * reply recorded, so the history it covers counts what the provider counted.
  */
 export const fitContextWindow = <M extends UIMessage<ChatMessageMetadata>>({
 	messages,
 	replyId,
-	pinnedId,
 	requestTokens,
 	contextWindow,
 	reservedOutputTokens,
@@ -74,7 +73,6 @@ export const fitContextWindow = <M extends UIMessage<ChatMessageMetadata>>({
 	messages: M[];
 	/** The reply the prompt is for, left out of the estimate when it continues. */
 	replyId: string;
-	pinnedId: string | undefined;
 	requestTokens: number;
 	contextWindow: number | null;
 	reservedOutputTokens: number;
@@ -117,7 +115,6 @@ export const fitContextWindow = <M extends UIMessage<ChatMessageMetadata>>({
 		return {
 			indices,
 			cost: indices.reduce((sum, index) => sum + cost(index), 0),
-			pinned: indices.some((index) => messages[index].id === pinnedId),
 		};
 	});
 
@@ -131,11 +128,9 @@ export const fitContextWindow = <M extends UIMessage<ChatMessageMetadata>>({
 			if (total <= budget * TRIM_TARGET) {
 				break;
 			}
-			if (!turn.pinned) {
-				total -= turn.cost;
-				for (const index of turn.indices) {
-					dropped.add(index);
-				}
+			total -= turn.cost;
+			for (const index of turn.indices) {
+				dropped.add(index);
 			}
 		}
 	}

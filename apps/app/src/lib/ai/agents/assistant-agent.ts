@@ -15,6 +15,7 @@ import { stepBudgetOptionsSchema } from "@/lib/ai/agents/step-budget";
 import { createStepShaper } from "@/lib/ai/agents/step-request";
 import type { ResolvedFeature } from "@/lib/ai/features/resolve-features";
 import { offeredToolGroups } from "@/lib/ai/tools/assistant/groups";
+import type { Plan } from "@/lib/ai/tools/assistant/plan/plan";
 import type { AssistantToolDeps } from "@/lib/ai/tools/assistant/procedure-tool";
 import { buildAssistantTools } from "@/lib/ai/tools/assistant/toolset";
 import { toolNamesOf } from "@/lib/ai/tools/registry";
@@ -31,6 +32,8 @@ export const createAssistantAgent = (
 		features: ResolvedFeature[];
 		/** The stored conversation: its tool calls unlock tools and become summary lines. */
 		history: readonly StoredMessage[];
+		/** The conversation's current plan. */
+		plan: Plan | undefined;
 		telemetryIds: {
 			organizationId: string;
 			chatId: string;
@@ -101,6 +104,7 @@ export const createAssistantAgent = (
 			userContext: params.userContext,
 			featurePrompts: params.features.map(({ entry }) => entry.prompt),
 			toolGroups,
+			plan: params.plan,
 		}),
 	);
 

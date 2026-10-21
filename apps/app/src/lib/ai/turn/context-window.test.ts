@@ -39,7 +39,6 @@ const fit = (
 	fitContextWindow({
 		messages,
 		replyId: "next",
-		pinnedId: undefined,
 		requestTokens: 0,
 		contextWindow: 10_000,
 		reservedOutputTokens: 0,
@@ -106,38 +105,6 @@ describe("fitContextWindow", () => {
 				fit(conversation, {
 					contextWindow: 1_500,
 					reservedOutputTokens: 1_000,
-				}),
-			),
-		).toBe("refused");
-	});
-
-	test("keeps the pinned message's turn and leaves out the turns around it", () => {
-		const result = fit(
-			[
-				...conversation.slice(0, 4),
-				user("u3", 3_000),
-				reply("a3", 1_000),
-				user("u4", 1_000),
-			],
-			{
-				contextWindow: 6_000,
-				pinnedId: "a2",
-			},
-		);
-
-		expect(keptIds(result)).toEqual([
-			"u2",
-			"a2",
-			"u4",
-		]);
-	});
-
-	test("refuses rather than leave out the pinned turn", () => {
-		expect(
-			keptIds(
-				fit(conversation, {
-					contextWindow: 4_000,
-					pinnedId: "a1",
 				}),
 			),
 		).toBe("refused");

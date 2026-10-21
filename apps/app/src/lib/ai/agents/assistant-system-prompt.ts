@@ -3,6 +3,7 @@ import type { OrganizationRole } from "@orcai/core";
 import type { OrganizationCapability } from "@orcai/schema";
 import { buildFormattingGuidance } from "@/lib/ai/agents/chat-agent-system-prompt";
 import type { DeferredToolGroup } from "@/lib/ai/tools/assistant/groups";
+import type { Plan } from "@/lib/ai/tools/assistant/plan/plan";
 import type { DocsConfig } from "@/lib/effect/services/config";
 
 /** Who the assistant works for this turn: the signed-in user and their membership. */
@@ -154,17 +155,30 @@ const buildAssistantRoleSection = ({
 	].join("\n");
 };
 
+/** The conversation's plan, in view however much of the conversation the model sees. */
+const buildAssistantPlanSection = ({ title, items }: Plan) =>
+	[
+		"Current plan, as the user sees it above the input:",
+		`Title: ${quoted(title)}`,
+		...items.map(
+			({ label, details, status }, index) =>
+				`${index + 1}. ${quoted(label)} (${status})${details === undefined ? "" : `: ${quoted(details)}`}`,
+		),
+	].join("\n");
+
 /** The stable part first so it caches; the role section stays last. */
 export const buildAssistantSystemPrompt = ({
 	docs,
 	userContext,
 	featurePrompts,
 	toolGroups,
+	plan,
 }: {
 	docs: DocsConfig | undefined;
 	userContext: AssistantUserContext;
 	featurePrompts: readonly string[];
 	toolGroups: readonly DeferredToolGroup[];
+	plan: Plan | undefined;
 }): SystemPrompt => ({
 	stable: buildAssistantStablePrompt({
 		docs,
@@ -172,6 +186,7 @@ export const buildAssistantSystemPrompt = ({
 	}),
 	variable: [
 		buildAssistantToolGroupsSection(toolGroups),
+		plan && buildAssistantPlanSection(plan),
 		buildAssistantRoleSection(userContext),
 	]
 		.filter((section) => section !== undefined)
