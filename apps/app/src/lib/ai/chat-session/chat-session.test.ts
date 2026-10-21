@@ -568,19 +568,15 @@ describe("ChatSession", () => {
 			before: 2,
 			hasMore: true,
 		});
-		let messagesBeforePrepend = 0;
 
 		expect(chat.hasEarlier).toBe(true);
 		const [more] = await Promise.all([
-			chat.loadEarlier(() => {
-				messagesBeforePrepend = chat.chat.messages.length;
-			}),
+			chat.loadEarlier(),
 			chat.loadEarlier(),
 		]);
 
 		expect(more).toBe(false);
 		expect(chat.hasEarlier).toBe(false);
-		expect(messagesBeforePrepend).toBe(2);
 		expect(calls.list).toEqual([
 			{
 				before: 2,

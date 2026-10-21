@@ -13,6 +13,7 @@ import { AssistantComposerGate } from "@/components/assistant/assistant-composer
 import { assistantLinkSafety } from "@/components/assistant/assistant-link-safety";
 import { AssistantPlaceholder } from "@/components/assistant/assistant-placeholder";
 import { PlanPanel } from "@/components/assistant/plan-panel";
+import { MessageScrollerItem } from "@/components/ui/message-scroller";
 import { turnView } from "@/lib/ai/turn-view/turn-view";
 import { clientEnv } from "@/lib/env/client";
 import { describeError, reasonMessageOf } from "@/lib/errors/describe-error";
@@ -153,47 +154,54 @@ const Chat = ({
 						<BranchedFrom parentChat={chat.data.parentChat} />
 					</div>
 				)}
-				<Conversation className="flex w-full" initial="instant">
-					<ConversationContent
-						className="mx-auto w-full max-w-200"
-						scrollClassName="[overflow-anchor:none]"
-					>
-						<EarlierMessages
-							hasEarlier={session.hasEarlier}
-							loadEarlier={session.loadEarlier}
-							firstMessageId={messages[0]?.id}
-						/>
+				<Conversation>
+					<EarlierMessages
+						hasEarlier={session.hasEarlier}
+						loadEarlier={session.loadEarlier}
+						firstMessageId={messages[0]?.id}
+					/>
+					<ConversationContent className="mx-auto w-full max-w-200">
 						{view.messages.map((messageView) => {
-							const { id: messageId } = messageView.message;
+							const { id: messageId, role } = messageView.message;
 							return (
-								<MessageBlock
+								<MessageScrollerItem
 									key={messageId}
-									view={messageView}
-									chatId={id}
-									animate={!session.wasLoaded(messageId)}
-									branches={branchesByMessage.get(messageId)}
-									onBranch={canBranch ? () => branchFrom(messageId) : undefined}
-									branching={
-										branchChat.isPending &&
-										branchChat.variables?.messageId === messageId
-									}
-									linkSafety={isAssistant ? assistantLinks : undefined}
-								/>
+									messageId={messageId}
+									scrollAnchor={role === "user"}
+								>
+									<MessageBlock
+										view={messageView}
+										chatId={id}
+										animate={!session.wasLoaded(messageId)}
+										branches={branchesByMessage.get(messageId)}
+										onBranch={
+											canBranch ? () => branchFrom(messageId) : undefined
+										}
+										branching={
+											branchChat.isPending &&
+											branchChat.variables?.messageId === messageId
+										}
+										linkSafety={isAssistant ? assistantLinks : undefined}
+									/>
+								</MessageScrollerItem>
 							);
 						})}
-						{messages.length === 0 &&
-							(isAssistant ? (
-								<AssistantPlaceholder className="h-full justify-center" />
-							) : (
-								<ChatPlaceholder />
-							))}
+						{messages.length === 0 && (
+							<MessageScrollerItem className="flex flex-1 flex-col justify-center">
+								{isAssistant ? (
+									<AssistantPlaceholder className="h-full justify-center" />
+								) : (
+									<ChatPlaceholder />
+								)}
+							</MessageScrollerItem>
+						)}
 						{phase === "sending" && (
-							<div className="w-full text-foreground">
+							<MessageScrollerItem className="w-full text-foreground">
 								<Shimmer>{m.chat_waiting_for_model()}</Shimmer>
-							</div>
+							</MessageScrollerItem>
 						)}
 						{phase === "error" && (
-							<div
+							<MessageScrollerItem
 								role="alert"
 								className="w-full space-y-1 rounded-xl bg-destructive/10 px-4 py-3 text-sm"
 							>
@@ -203,7 +211,7 @@ const Chat = ({
 										{describeError(error)}
 									</p>
 								)}
-							</div>
+							</MessageScrollerItem>
 						)}
 					</ConversationContent>
 					<ConversationScrollButton />

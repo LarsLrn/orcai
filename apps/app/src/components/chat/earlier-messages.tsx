@@ -1,41 +1,30 @@
-import {
-	useEffect,
-	useEffectEvent,
-	useLayoutEffect,
-	useRef,
-	useState,
-} from "react";
-import { useStickToBottomContext } from "use-stick-to-bottom";
+import { useEffect, useEffectEvent, useRef, useState } from "react";
+import { useConversationViewport } from "@/components/ai-elements/conversation";
 import { Button } from "@/components/ui/button";
 import { Spinner } from "@/components/ui/spinner";
 import { m } from "@/paraglide/messages";
 
 const LOAD_THRESHOLD_PX = 400;
 
-/**
- * Loads older pages when the reader nears the top and keeps the visible
- * messages in place while a page is prepended.
- */
+const statusClassName =
+	"absolute top-2 left-1/2 z-10 flex -translate-x-1/2 items-center gap-2 rounded-full bg-background px-3 py-1.5 text-muted-foreground text-xs shadow-sm ring-1 ring-border";
+
+/** Loads older pages when the reader nears the top, with its status floating above the transcript. */
 const EarlierMessages = ({
 	hasEarlier,
 	loadEarlier: load,
 	firstMessageId,
 }: {
 	hasEarlier: boolean;
-	/** Prepends the previous page, running `beforePrepend` first, and resolves whether more remain. */
-	loadEarlier: (beforePrepend: () => void) => Promise<boolean>;
+	/** Prepends the previous page and resolves whether more remain. */
+	loadEarlier: () => Promise<boolean>;
 	firstMessageId?: string;
 }) => {
-	const { scrollRef } = useStickToBottomContext();
+	const scrollRef = useConversationViewport();
 	const [status, setStatus] = useState<"idle" | "loading" | "error" | "done">(
 		hasEarlier ? "idle" : "done",
 	);
 	const inFlight = useRef(false);
-	const anchor = useRef<{
-		firstMessageId?: string;
-		scrollHeight: number;
-		scrollTop: number;
-	} | null>(null);
 
 	const loadEarlier = async () => {
 		if (status === "done" || inFlight.current) {
@@ -46,16 +35,7 @@ const EarlierMessages = ({
 		setStatus("loading");
 
 		try {
-			const hasMore = await load(() => {
-				const scroller = scrollRef.current;
-				if (scroller) {
-					anchor.current = {
-						firstMessageId,
-						scrollHeight: scroller.scrollHeight,
-						scrollTop: scroller.scrollTop,
-					};
-				}
-			});
+			const hasMore = await load();
 			setStatus(hasMore ? "idle" : "done");
 		} catch {
 			setStatus("error");
@@ -100,20 +80,6 @@ const EarlierMessages = ({
 		scrollRef,
 	]);
 
-	// Hold the previous first message where it was instead of letting the prepended page push it down.
-	useLayoutEffect(() => {
-		const scroller = scrollRef.current;
-		const saved = anchor.current;
-		if (!scroller || !saved || saved.firstMessageId === firstMessageId) return;
-
-		anchor.current = null;
-		scroller.scrollTop =
-			saved.scrollTop + scroller.scrollHeight - saved.scrollHeight;
-	}, [
-		firstMessageId,
-		scrollRef,
-	]);
-
 	useEffect(() => {
 		if (firstMessageId !== undefined) fillViewport();
 	}, [
@@ -122,10 +88,7 @@ const EarlierMessages = ({
 
 	if (status === "loading") {
 		return (
-			<div
-				role="status"
-				className="flex items-center justify-center gap-2 text-muted-foreground text-xs"
-			>
+			<div role="status" className={statusClassName}>
 				<Spinner aria-hidden="true" className="size-3" />
 				{m.chat_earlier_messages_loading()}
 			</div>
@@ -134,10 +97,7 @@ const EarlierMessages = ({
 
 	if (status === "error") {
 		return (
-			<div
-				role="alert"
-				className="flex flex-wrap items-center justify-center gap-2 text-muted-foreground text-xs"
-			>
+			<div role="alert" className={statusClassName}>
 				{m.chat_earlier_messages_failed()}
 				<Button variant="outline" size="xs" onClick={() => void loadEarlier()}>
 					{m.common_retry_button()}

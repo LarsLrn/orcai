@@ -250,16 +250,16 @@ export class ChatSession {
 
 	/**
 	 * Prepends the page before the oldest loaded message and resolves whether
-	 * more remain. `beforePrepend` runs just before the messages change.
+	 * more remain.
 	 */
-	loadEarlier = (beforePrepend?: () => void): Promise<boolean> => {
-		this.#loadingEarlier ??= this.#loadEarlier(beforePrepend).finally(() => {
+	loadEarlier = (): Promise<boolean> => {
+		this.#loadingEarlier ??= this.#loadEarlier().finally(() => {
 			this.#loadingEarlier = undefined;
 		});
 		return this.#loadingEarlier;
 	};
 
-	async #loadEarlier(beforePrepend?: () => void) {
+	async #loadEarlier() {
 		if (!this.hasEarlier) return false;
 		const page = await this.#port.list({
 			chatId: this.#chatId,
@@ -269,7 +269,6 @@ export class ChatSession {
 		this.#before = page.before;
 		this.#hasMore = page.hasMore;
 		this.#markLoaded(page.messages);
-		beforePrepend?.();
 		const current = this.chat.messages;
 		const currentIds = new Set(current.map((message) => message.id));
 		this.chat.messages = [

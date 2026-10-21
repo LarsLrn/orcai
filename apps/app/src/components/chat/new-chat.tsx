@@ -7,6 +7,7 @@ import {
 import { ChatPlaceholder } from "@/components/chat/chat-placeholder";
 import { NewChatInput } from "@/components/chat/new-chat-input";
 import { useChatStarter } from "@/components/chat/use-chat-starter";
+import { MessageScrollerItem } from "@/components/ui/message-scroller";
 
 const NewChat = ({
 	botId,
@@ -35,9 +36,11 @@ const NewChat = ({
 
 	return (
 		<div className="flex size-full min-h-0 min-w-0 flex-col">
-			<Conversation className="flex w-full" initial="instant">
+			<Conversation>
 				<ConversationContent className="mx-auto w-full max-w-200">
-					<ChatPlaceholder botId={selectedBotId} />
+					<MessageScrollerItem className="flex flex-1 flex-col justify-center">
+						<ChatPlaceholder botId={selectedBotId} />
+					</MessageScrollerItem>
 				</ConversationContent>
 				<ConversationScrollButton />
 			</Conversation>
