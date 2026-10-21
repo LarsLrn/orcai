@@ -229,6 +229,7 @@ describe("startTurn", () => {
 						message: {
 							id: question?.id as ChatMessageId,
 							role: "user",
+							attachments: [],
 							parts: [],
 						},
 						stop: undefined,
@@ -291,6 +292,7 @@ describe("startTurn", () => {
 					message: {
 						id: crypto.randomUUID() as ChatMessageId,
 						role: "user",
+						attachments: [],
 						parts: [
 							{
 								type: "text",
@@ -978,6 +980,7 @@ describe("turn setup", () => {
 						message: {
 							id: crypto.randomUUID() as ChatMessageId,
 							role: "user",
+							attachments: [],
 							parts: [],
 						},
 						stop: undefined,

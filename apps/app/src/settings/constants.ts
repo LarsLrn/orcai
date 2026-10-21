@@ -13,8 +13,6 @@ export const HEADERS = {
 
 export const CHAT_ATTACHMENT_MAX_ATTACHMENT_TEXT_LENGTH = 20_000;
 
-export const CHAT_ATTACHMENT_LIMIT = 8;
-
 export const CHAT_ATTACHMENT_ACCEPT =
 	UPLOAD_ROUTES.chatAttachment.allowedMimePatterns.join(",");
 

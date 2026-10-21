@@ -13,23 +13,13 @@ export type LocalChatFile = {
 	previewUrl: string;
 };
 
-const toChatAttachment = ({
-	asset,
-	source,
-}: {
-	asset: Pick<
-		Asset,
-		"id" | "title" | "fileType" | "size" | "bucket" | "prefix"
-	>;
-	source: ChatMessageAttachment["source"];
-}): ChatMessageAttachment => ({
+const toChatAttachment = (
+	asset: Pick<Asset, "id" | "title" | "fileType" | "size">,
+): ChatMessageAttachment => ({
 	assetId: asset.id,
 	title: asset.title,
 	fileType: getMimeTypeFromFileType(asset.fileType),
 	size: asset.size,
-	bucket: asset.bucket,
-	prefix: asset.prefix,
-	source,
 });
 
 export const useChatAttachments = ({
@@ -170,10 +160,7 @@ export const useChatAttachments = ({
 
 		setSelectedAttachments((current) => [
 			...current,
-			toChatAttachment({
-				asset,
-				source: "library",
-			}),
+			toChatAttachment(asset),
 		]);
 	};
 
@@ -201,12 +188,7 @@ export const useChatAttachments = ({
 			);
 
 			uploadedAttachments.push(
-				...assets.map((asset) =>
-					toChatAttachment({
-						asset,
-						source: "upload",
-					}),
-				),
+				...assets.map((asset) => toChatAttachment(asset)),
 			);
 
 			if (failures.length > 0) {

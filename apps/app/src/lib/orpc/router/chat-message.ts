@@ -115,7 +115,7 @@ const createChatMessage = authed.chatMessage.create
 				id: input.id,
 				role: input.role,
 				parts: input.parts,
-				attachments: input.attachments ?? [],
+				attachments: [],
 				metadata: input.metadata,
 			},
 		]);

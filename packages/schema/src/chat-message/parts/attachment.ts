@@ -1,20 +1,19 @@
 import { z } from "zod/v4";
 import { assetIdSchema } from "../../asset/ref";
-import { bucketSchema } from "../../storage/parts/buckets";
 
-const attachmentSourceSchema = z.enum([
-	"upload",
-	"library",
-]);
+export const CHAT_MESSAGE_ATTACHMENT_LIMIT = 8;
 
-export const chatMessageAttachmentSchema = z.object({
+/** An asset a user message attaches; the server reads the rest from the asset. */
+export const chatAttachmentRefSchema = z.object({
 	assetId: assetIdSchema,
+});
+
+/** What a message shows of an attached asset; storage comes from the asset when read. */
+export const chatMessageAttachmentSchema = chatAttachmentRefSchema.extend({
 	title: z.string().min(1),
 	fileType: z.string().min(1),
 	size: z.number().int().nonnegative(),
-	bucket: bucketSchema,
-	prefix: z.string().min(1),
-	source: attachmentSourceSchema,
 });
 
+export type ChatAttachmentRef = z.infer<typeof chatAttachmentRefSchema>;
 export type ChatMessageAttachment = z.infer<typeof chatMessageAttachmentSchema>;

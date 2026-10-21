@@ -223,6 +223,7 @@ export const conversation = async (
 						message: {
 							id: crypto.randomUUID() as ChatMessageId,
 							role: "user",
+							attachments: [],
 							parts: [
 								{
 									type: "text",

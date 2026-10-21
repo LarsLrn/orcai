@@ -44,6 +44,7 @@ export const chatMessageMetadataSchema = z.object({
 	siblingCount: z.number().optional(),
 	siblingIndex: z.number().optional(),
 	siblingIds: z.array(z.string()).optional(),
+	/** A message's attachments while it is sent; stored messages keep them in `attachments`. */
 	attachments: z.array(chatMessageAttachmentSchema).optional(),
 	/** The newest zedToken of the turn that wrote the reply, for its continuation. */
 	zedToken: z.string().optional(),

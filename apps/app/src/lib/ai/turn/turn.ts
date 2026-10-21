@@ -15,13 +15,11 @@ import {
 	type AsyncIterableStream,
 	createAgentUIStream,
 	createUIMessageStream,
-	type FileUIPart,
 	type InferAgentUIMessage,
 	type LanguageModelUsage,
 	type SystemModelMessage,
 	smoothStream,
 	type TextStreamPart,
-	type TextUIPart,
 	type ToolSet,
 	type UIMessage,
 	type UIMessageChunk,
@@ -45,8 +43,6 @@ import {
 import { turnCitations } from "@/lib/ai/tools/rag/citations";
 import { latestPlanPart } from "@/lib/ai/turn-view/plan";
 import type { ChatAgentUIMessage } from "@/lib/ai/types/chat-agent-message";
-import { getChatMessageAttachments } from "@/lib/ai/types/chat-attachment";
-import { buildAttachmentPromptPartCached } from "@/lib/ai/utils/chat-attachment-parts";
 import { closeInvalidToolParts } from "@/lib/ai/utils/close-invalid-tool-parts";
 import { closeLastReply } from "@/lib/ai/utils/close-pending-tool-parts";
 import { streamErrorText } from "@/lib/ai/utils/stream-error-text";
@@ -56,6 +52,7 @@ import {
 	applyTurnDecisions,
 	withoutContinuationClaim,
 } from "./apply-turn-decisions";
+import { attachAssets, withAttachmentParts } from "./attachments";
 import { fitContextWindow, requestTokens } from "./context-window";
 import {
 	isEmptyReply,
@@ -286,42 +283,6 @@ const meterTurn = ({
 		maxOutputTokens: setup.callSettings.maxOutputTokens,
 		messages,
 	});
-
-/** User messages carry their attachments as parts the model reads. */
-const withAttachmentParts = (messages: ChatAgentUIMessage[]) => {
-	const cache = new Map<string, FileUIPart | TextUIPart>();
-	return Effect.forEach(
-		messages,
-		(message) => {
-			const attachments =
-				message.role === "user" ? getChatMessageAttachments(message) : [];
-			return attachments.length === 0
-				? Effect.succeed(message)
-				: Effect.forEach(
-						attachments,
-						(attachment) =>
-							buildAttachmentPromptPartCached({
-								attachment,
-								cache,
-							}),
-						{
-							concurrency: 3,
-						},
-					).pipe(
-						Effect.map((parts) => ({
-							...message,
-							parts: [
-								...message.parts,
-								...parts,
-							],
-						})),
-					);
-		},
-		{
-			concurrency: "unbounded",
-		},
-	);
-};
 
 /**
  * The prompt within the model's context window, refused when even its latest
@@ -635,12 +596,16 @@ export const startTurn = (
 		const setup = yield* turnSetup(chat, input);
 		const replyId = uuidv4() as ChatMessageId;
 		const history = historyOf(stored);
+		const reader = {
+			userId: input.user.id,
+			zedToken: getZedToken(input.context),
+		};
 		const question = {
 			id: input.message.id,
 			role: "user",
 			parts: input.message.parts,
-			metadata: input.message.metadata ?? {},
-			attachments: getChatMessageAttachments(input.message),
+			metadata: {},
+			attachments: yield* attachAssets(input.message.attachments, reader),
 		};
 		const { agent, assistantTurn } = buildAgent({
 			setup,
@@ -664,7 +629,7 @@ export const startTurn = (
 			),
 		);
 
-		const prompt = yield* withAttachmentParts(messages);
+		const prompt = yield* withAttachmentParts(messages, reader);
 		const fit = yield* fitPrompt({
 			setup,
 			agent,
@@ -841,7 +806,10 @@ export const continueTurn = (
 				const messages = yield* Effect.promise(() =>
 					closeInvalidToolParts(history, agent.tools),
 				);
-				const prompt = yield* withAttachmentParts(messages);
+				const prompt = yield* withAttachmentParts(messages, {
+					userId: input.user.id,
+					zedToken: getZedToken(input.context),
+				});
 				const fit = yield* fitPrompt({
 					setup,
 					agent,
