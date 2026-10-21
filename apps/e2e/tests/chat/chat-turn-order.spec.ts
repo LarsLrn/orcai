@@ -10,6 +10,7 @@ import {
 	messageText,
 	openChat,
 	setUpChatModel,
+	turnFinished,
 } from "../../fixtures/chat/chat";
 import type { ApiClient } from "../../fixtures/index";
 import { expect, test } from "../../fixtures/inference/fixture";
@@ -232,6 +233,7 @@ test("a message sent straight after Stop follows the stopped reply and sees it",
 	releaseCheck();
 	await submitButton(page).click();
 	await expect(messageText(page, REPLY)).toBeVisible();
+	await turnFinished(page);
 
 	const stored = await storedTurns(member, chatId);
 	const partial = stored[1]?.text ?? "";

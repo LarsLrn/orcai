@@ -15,7 +15,7 @@ import {
 	setUpAssistantModel,
 	startTitledConversation,
 } from "../../fixtures/assistant/assistant";
-import { messageText } from "../../fixtures/chat/chat";
+import { messageText, turnFinished } from "../../fixtures/chat/chat";
 import { baseURL } from "../../fixtures/env";
 import { ask } from "../../fixtures/gen-ui/gen-ui";
 import { groupsName } from "../../fixtures/groups/groups";
@@ -57,6 +57,7 @@ const confirmThroughCard = async (params: {
 	await expect(cancelButton(card)).toBeVisible();
 	await cardButton(card, verb).click();
 	await expect(messageText(page, DONE)).toBeVisible();
+	await turnFinished(page);
 
 	const [part] = toolParts(await lastRow(client, chatId), call.name);
 	expect(part?.errorText).toBeUndefined();

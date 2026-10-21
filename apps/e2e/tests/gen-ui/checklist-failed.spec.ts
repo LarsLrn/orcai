@@ -1,9 +1,10 @@
-import { chatName, openChat, setUpChatModel } from "../../fixtures/chat/chat";
 import {
-	ask,
-	createGenUiChat,
+	chatName,
+	openChat,
+	setUpChatModel,
 	turnFinished,
-} from "../../fixtures/gen-ui/gen-ui";
+} from "../../fixtures/chat/chat";
+import { ask, createGenUiChat } from "../../fixtures/gen-ui/gen-ui";
 import { expect, test } from "../../fixtures/inference/fixture";
 import { message } from "../../fixtures/messages";
 import { enterApp } from "../../fixtures/navigation";

@@ -28,7 +28,7 @@ import {
 	turnRequests,
 } from "../../fixtures/assistant/assistant";
 import { approvePlan } from "../../fixtures/assistant/plan";
-import { chatName, messageText } from "../../fixtures/chat/chat";
+import { chatName, messageText, turnFinished } from "../../fixtures/chat/chat";
 import { ask } from "../../fixtures/gen-ui/gen-ui";
 import { systemGroup } from "../../fixtures/groups/groups";
 import { expect, test } from "../../fixtures/inference/fixture";
@@ -71,6 +71,7 @@ test("assistant: deleteBot waits for its card and Delete continues the same repl
 
 	await cardButton(card, DELETE).click();
 	await expect(messageText(page, done)).toBeVisible();
+	await turnFinished(page);
 	expect(continuations()).toBe(1);
 
 	const rows = await storedRows(member, chatId);
@@ -115,6 +116,7 @@ test("assistant: Cancel on a card leaves the bot and logs the call as denied", a
 	const card = confirmationCard(page, deleteBotTitle(bot.name));
 	await cancelButton(card).click();
 	await expect(messageText(page, done)).toBeVisible();
+	await turnFinished(page);
 
 	const reply = await lastRow(member, chatId);
 	const [part] = toolParts(reply, "deleteBot");
@@ -155,6 +157,7 @@ test("assistant: a new message instead of an answer skips the call", async ({
 	await expect(cardButton(card, DELETE)).toBeVisible();
 	await ask(page, "Never mind, what can you do?");
 	await expect(messageText(page, done)).toBeVisible();
+	await turnFinished(page);
 	await expect(cardButton(card, DELETE)).toHaveCount(0);
 	await expect(
 		card.getByText(message("chat_work_log_tool_status_skipped"), {
@@ -203,6 +206,7 @@ test("assistant: a paused reply shows its lead-in and card after a reload and ca
 	await ask(page, "Delete my bot");
 	const card = confirmationCard(page, deleteBotTitle(bot.name));
 	await expect(card).toBeVisible();
+	await turnFinished(page);
 
 	await page.reload();
 	await awaitHydration(page);
@@ -299,6 +303,7 @@ test("assistant: a second page answering the same card is refused and nothing ru
 
 	await cardButton(firstCard, DELETE).click();
 	await expect(messageText(first, done)).toBeVisible();
+	await turnFinished(first);
 
 	await cardButton(secondCard, DELETE).click();
 	await expect(
@@ -397,6 +402,7 @@ test("assistant: a call approved after a pause sees the bot saved earlier in the
 	await expect(grantCard).toBeVisible();
 	await cardButton(grantCard, message("assistant_confirmation_grant")).click();
 	await expect(messageText(page, done)).toBeVisible();
+	await turnFinished(page);
 
 	const reply = await lastRow(member, chatId);
 	const [granted] = toolParts(reply, "grantAccess");

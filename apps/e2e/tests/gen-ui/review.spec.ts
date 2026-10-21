@@ -3,6 +3,7 @@ import {
 	messageText,
 	openChat,
 	setUpChatModel,
+	turnFinished,
 } from "../../fixtures/chat/chat";
 import {
 	ask,
@@ -11,7 +12,6 @@ import {
 	historyToolCalls,
 	offeredTools,
 	toolResults,
-	turnFinished,
 } from "../../fixtures/gen-ui/gen-ui";
 import { expect, type JsonValue, test } from "../../fixtures/inference/fixture";
 import { message } from "../../fixtures/messages";

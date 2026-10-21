@@ -10,6 +10,7 @@ import {
 	openChat,
 	sendTurn,
 	setUpChatModel,
+	turnFinished,
 } from "../../fixtures/chat/chat";
 import { expect, test } from "../../fixtures/inference/fixture";
 import { message } from "../../fixtures/messages";
@@ -107,6 +108,7 @@ test("a long chat is summarized, marked with a divider, and keeps answering, als
 		},
 	]);
 
+	await turnFinished(page);
 	await page.reload();
 	await expect(messageText(page, ANSWER)).toBeVisible();
 	await expect(divider).toBeVisible();

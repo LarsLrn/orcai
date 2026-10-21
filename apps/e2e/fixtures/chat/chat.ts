@@ -295,6 +295,22 @@ export const composer = (page: Page) =>
 		name: message("chat_composer_aria_label"),
 	});
 
+/** Wait until the latest turn has finished streaming; its stream ends once the reply is stored. */
+export const turnFinished = async (page: Page): Promise<void> => {
+	await expect(
+		page.getByRole("button", {
+			name: message("ai_elements_prompt_input_stop_aria_label"),
+			exact: true,
+		}),
+	).toHaveCount(0);
+	await expect(
+		page.getByRole("button", {
+			name: message("ai_elements_prompt_input_submit_aria_label"),
+			exact: true,
+		}),
+	).toBeVisible();
+};
+
 /** Every "Branch from here" action, one per message, in chat order. */
 export const branchActions = (page: Page) =>
 	page.getByRole("button", {
