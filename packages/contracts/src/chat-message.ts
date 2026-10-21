@@ -1,6 +1,4 @@
 import {
-	createChatMessageInputSchema,
-	createChatMessageResponseSchema,
 	findChatMessageInputSchema,
 	findChatMessageResponseSchema,
 	listChatMessageRatingsInputSchema,
@@ -27,19 +25,6 @@ export const chatMessageContracts = {
 		)
 		.input(listChatMessagesInputSchema)
 		.output(listChatMessagesResponseSchema),
-	create: base
-		.meta(
-			openapi({
-				method: "POST",
-				path: "/chats/{chatId}/messages",
-				summary: "Create a chat message",
-				tags: [
-					"Chat Messages",
-				],
-			}),
-		)
-		.input(createChatMessageInputSchema)
-		.output(createChatMessageResponseSchema),
 	find: base
 		.meta(
 			openapi({

@@ -6,7 +6,7 @@ import { chatMessageIdSchema } from "./ref";
 
 export const chatMessagePartsSchema = z.array(z.unknown());
 
-export const chatMessageFieldsSchema = z.object({
+const chatMessageFieldsSchema = z.object({
 	chatId: chatIdSchema,
 	role: z.string(),
 	parts: chatMessagePartsSchema,

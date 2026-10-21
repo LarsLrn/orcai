@@ -1,12 +1,10 @@
 import { DB, dbSchema } from "@orcai/db";
 import { and, desc, eq, lt } from "drizzle-orm";
 import * as Effect from "effect/Effect";
-import { appendChatMessages } from "@/lib/ai/turn/drizzle-reply-store";
 import { isEmptyReply } from "@/lib/ai/turn/reply-store";
 import * as AppErrors from "@/lib/effect/utils/errors";
 import { authed } from "@/lib/orpc/implementation/authed";
 import { requireEntityPermission } from "@/lib/orpc/middlewares/permission";
-import { assistantConversationImmutable } from "./helpers/assistant-conversation";
 
 const listChatMessages = authed.chatMessage.list
 	.use(
@@ -85,44 +83,6 @@ const findChatMessage = authed.chatMessage.find
 					data: chat,
 				})),
 			);
-	});
-
-const createChatMessage = authed.chatMessage.create
-	.use(
-		requireEntityPermission("chat", "edit", {
-			entityId: "chatId",
-		}),
-	)
-	.effect(function* ({ input }) {
-		const db = yield* DB;
-		const chat = yield* db.query.chat.findFirst({
-			where: {
-				id: {
-					eq: input.chatId,
-				},
-			},
-			columns: {
-				kind: true,
-			},
-		});
-
-		if (chat?.kind === "assistant") {
-			return yield* Effect.fail(assistantConversationImmutable());
-		}
-
-		const [message] = yield* appendChatMessages(input.chatId, [
-			{
-				id: input.id,
-				role: input.role,
-				parts: input.parts,
-				attachments: [],
-				metadata: input.metadata,
-			},
-		]);
-
-		return {
-			data: message,
-		};
 	});
 
 const listChatMessageRatings = authed.chatMessage.listRatings
@@ -228,7 +188,6 @@ const rateChatMessage = authed.chatMessage.rate
 
 export const chatMessageRouter = {
 	list: listChatMessages,
-	create: createChatMessage,
 	find: findChatMessage,
 	listRatings: listChatMessageRatings,
 	rate: rateChatMessage,

@@ -1,5 +1,5 @@
 import { randomUUID } from "node:crypto";
-import type { BlockId, ChatMessageId } from "@orcai/core";
+import type { BlockId } from "@orcai/core";
 import { createApiClient } from "../../fixtures/api";
 import {
 	reasonOf,
@@ -160,22 +160,6 @@ test("assistant: a conversation can only be renamed or deleted", async ({
 			member.chatBlock.detach({
 				chatId,
 				blockId,
-			}),
-		),
-	).toBe("ASSISTANT_CONVERSATION_IMMUTABLE");
-	expect(
-		await refused(
-			member.chatMessage.create({
-				chatId,
-				id: randomUUID() as ChatMessageId,
-				role: "assistant",
-				parts: [
-					{
-						type: "text",
-						text: "A fabricated reply.",
-					},
-				],
-				metadata: {},
 			}),
 		),
 	).toBe("ASSISTANT_CONVERSATION_IMMUTABLE");
