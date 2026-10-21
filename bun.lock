@@ -28,6 +28,7 @@
       "dependencies": {
         "@ai-sdk/devtools": "1.0.40",
         "@ai-sdk/react": "4.0.140",
+        "@authzed/authzed-node": "catalog:",
         "@base-ui/react": "1.9.0",
         "@better-auth/expo": "1.7.10",
         "@effect/sql-pg": "catalog:",
@@ -144,7 +145,6 @@
         "zod": "catalog:",
       },
       "devDependencies": {
-        "@authzed/authzed-node": "catalog:",
         "@babel/core": "8.0.7",
         "@happy-dom/global-registrator": "20.14.6",
         "@inlang/cli": "3.3.9",
