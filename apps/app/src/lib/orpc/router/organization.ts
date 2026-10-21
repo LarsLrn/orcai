@@ -29,6 +29,7 @@ import {
 } from "drizzle-orm";
 import * as Effect from "effect/Effect";
 import { modelUnusableReason } from "@/lib/ai/turn/model-usability";
+import { parseScopedResourceId } from "@/lib/authz/scoped-resource-id";
 import { getZedToken } from "@/lib/authz/zed-token";
 import {
 	AuthzService,
@@ -41,7 +42,6 @@ import { requireInstanceAdminMiddleware } from "@/lib/orpc/middlewares/auth";
 import { requireEntityPermission } from "@/lib/orpc/middlewares/permission";
 import { unique } from "@/lib/utils/array-utils";
 import { literalSearch } from "./helpers/literal-search";
-import { parseScopedResourceId } from "./helpers/scoped-resource-id";
 import { buildOrderBy, type SortExpression } from "./helpers/sorting";
 
 const listOrganizations = authed.organization.list.effect(function* ({
@@ -572,7 +572,7 @@ const deleteOrganizations = authed.organization.delete
 		const organizationIds = input.refs.map((ref) => ref.id);
 		const now = new Date();
 
-		const eventId = yield* db.transaction((tx) =>
+		const eventIds = yield* db.transaction((tx) =>
 			Effect.gen(function* () {
 				const existingOrganizations = yield* tx
 					.select({
@@ -678,64 +678,59 @@ const deleteOrganizations = authed.organization.delete
 						inArray(dbSchema.session.activeOrganizationId, organizationIds),
 					);
 
-				return yield* enqueueRelationshipMutations({
-					tx,
-					mutations: [
-						...memberships.map((membership) => ({
-							resourceType: "organization" as const,
-							resourceId: membership.organizationId,
-							relation: membership.role,
-							subjectType: "user" as const,
-							subjectId: membership.userId,
-							operation: "delete" as const,
-						})),
-						...groups.map((group) => ({
-							resourceType: "group" as const,
-							resourceId: group.id,
-							relation: "organization" as const,
-							subjectType: "organization" as const,
-							subjectId: group.organizationId,
-							operation: "delete" as const,
-						})),
-						...groups
-							.filter(
-								(group) => group.systemKey === ALL_MEMBERS_GROUP_SYSTEM_KEY,
-							)
-							.flatMap((group) =>
-								ORGANIZATION_ROLES.map((role) => ({
-									resourceType: "group" as const,
-									resourceId: group.id,
-									relation: "member" as const,
-									subjectType: "organization" as const,
-									subjectId: group.organizationId,
-									subjectRelation: role,
-									operation: "delete" as const,
-								})),
-							),
-						...groupMembers.map((groupMember) => ({
-							resourceType: "group" as const,
-							resourceId: groupMember.groupId,
-							relation: "member" as const,
-							subjectType: "user" as const,
-							subjectId: groupMember.userId,
-							operation: "delete" as const,
-						})),
-						...groupGrants.map((grant) => ({
-							resourceType: grant.resourceType,
-							resourceId: parseScopedResourceId(grant),
-							relation: grant.role,
-							subjectType: "group" as const,
-							subjectId: grant.principalId,
-							subjectRelation: "member" as const,
-							operation: "delete" as const,
-						})),
-					],
-				});
+				return yield* enqueueRelationshipMutations([
+					...memberships.map((membership) => ({
+						resourceType: "organization" as const,
+						resourceId: membership.organizationId,
+						relation: membership.role,
+						subjectType: "user" as const,
+						subjectId: membership.userId,
+						operation: "delete" as const,
+					})),
+					...groups.map((group) => ({
+						resourceType: "group" as const,
+						resourceId: group.id,
+						relation: "organization" as const,
+						subjectType: "organization" as const,
+						subjectId: group.organizationId,
+						operation: "delete" as const,
+					})),
+					...groups
+						.filter((group) => group.systemKey === ALL_MEMBERS_GROUP_SYSTEM_KEY)
+						.flatMap((group) =>
+							ORGANIZATION_ROLES.map((role) => ({
+								resourceType: "group" as const,
+								resourceId: group.id,
+								relation: "member" as const,
+								subjectType: "organization" as const,
+								subjectId: group.organizationId,
+								subjectRelation: role,
+								operation: "delete" as const,
+							})),
+						),
+					...groupMembers.map((groupMember) => ({
+						resourceType: "group" as const,
+						resourceId: groupMember.groupId,
+						relation: "member" as const,
+						subjectType: "user" as const,
+						subjectId: groupMember.userId,
+						operation: "delete" as const,
+					})),
+					...groupGrants.map((grant) => ({
+						resourceType: grant.resourceType,
+						resourceId: parseScopedResourceId(grant),
+						relation: grant.role,
+						subjectType: "group" as const,
+						subjectId: grant.principalId,
+						subjectRelation: "member" as const,
+						operation: "delete" as const,
+					})),
+				]);
 			}),
 		);
 
 		yield* authz
-			.deliverRelationshipEvent(eventId)
+			.deliverRelationshipEvents(eventIds)
 			.pipe(
 				Effect.catch((cause) =>
 					Effect.logError(`authz.delivery_failed cause=${String(cause)}`),

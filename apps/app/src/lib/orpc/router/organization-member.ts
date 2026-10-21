@@ -1,14 +1,14 @@
 import { ORGANIZATION_ADMIN_ROLE } from "@orcai/core";
 import { DB, dbSchema } from "@orcai/db";
-import { and, count, eq, getColumns, inArray, sql } from "drizzle-orm";
+import { and, count, eq, getColumns, inArray } from "drizzle-orm";
 import * as Effect from "effect/Effect";
 import { detachOrganizationAccess } from "@/lib/authz/membership-detach";
-import { syncRelationshipTransition } from "@/lib/authz/relationship-transition";
-import { getZedToken } from "@/lib/authz/zed-token";
+import { RelationshipFact } from "@/lib/authz/relationship-facts";
 import {
-	AuthzService,
-	enqueueRelationshipMutations,
-} from "@/lib/effect/services/authz";
+	recordRelationshipFacts,
+	writeRelationships,
+} from "@/lib/authz/relationship-write";
+import { getZedToken } from "@/lib/authz/zed-token";
 import * as AppErrors from "@/lib/effect/utils/errors";
 import { authed } from "@/lib/orpc/implementation/authed";
 import { createProcedures } from "@/lib/orpc/implementation/procedures";
@@ -102,11 +102,14 @@ const updateOrganizationMember = authed.organizationMember.update
 		const db = yield* DB;
 		const organizationId = context.auth.session.activeOrganizationId;
 
-		const { existing, member } = yield* db.transaction((tx) =>
+		const { result: member } = yield* writeRelationships(
+			{
+				organizationIds: [
+					organizationId,
+				],
+			},
 			Effect.gen(function* () {
-				yield* tx.execute(sql`LOCK TABLE "member" IN SHARE ROW EXCLUSIVE MODE`);
-
-				const [existing] = yield* tx
+				const [existing] = yield* db
 					.select({
 						role: dbSchema.member.role,
 					})
@@ -145,7 +148,7 @@ const updateOrganizationMember = authed.organizationMember.update
 					input.role &&
 					!organizationRoleRequiresAdminControl(input.role)
 				) {
-					const [adminCountResult] = yield* tx
+					const [adminCountResult] = yield* db
 						.select({
 							count: count(),
 						})
@@ -162,7 +165,7 @@ const updateOrganizationMember = authed.organizationMember.update
 					});
 				}
 
-				const [member] = yield* tx
+				const [member] = yield* db
 					.update(dbSchema.member)
 					.set(input)
 					.where(
@@ -185,32 +188,18 @@ const updateOrganizationMember = authed.organizationMember.update
 					);
 				}
 
-				return {
-					existing,
-					member,
-				};
+				yield* recordRelationshipFacts(
+					RelationshipFact.OrganizationRoleChanged({
+						organizationId,
+						userId: input.userId,
+						from: existing.role,
+						to: member.role,
+					}),
+				);
+
+				return member;
 			}),
 		);
-
-		if (!member) {
-			return yield* Effect.fail(
-				new AppErrors.NotFoundError({
-					reason: "MEMBER_NOT_FOUND",
-					id: input.userId,
-					message: "Member not found",
-				}),
-			);
-		}
-
-		if (existing && existing.role !== member.role)
-			yield* syncRelationshipTransition({
-				resourceType: "organization",
-				resourceId: organizationId,
-				subjectType: "user",
-				subjectId: input.userId,
-				oldRelation: existing.role,
-				newRelation: member.role,
-			});
 
 		return {
 			data: member,
@@ -222,15 +211,17 @@ const deleteOrganizationMembers = authed.organizationMember.delete
 	.effect(function* ({ input, context }) {
 		const db = yield* DB;
 		const organizationId = context.auth.session.activeOrganizationId;
-		const authz = yield* AuthzService;
 		const now = new Date();
 
-		const eventId = yield* db.transaction((tx) =>
+		yield* writeRelationships(
+			{
+				organizationIds: [
+					organizationId,
+				],
+			},
 			Effect.gen(function* () {
-				yield* tx.execute(sql`LOCK TABLE "member" IN SHARE ROW EXCLUSIVE MODE`);
-
 				const userIds = input.refs.map((ref) => ref.userId);
-				const existingMembers = yield* tx
+				const existingMembers = yield* db
 					.select({
 						userId: dbSchema.member.userId,
 						role: dbSchema.member.role,
@@ -253,7 +244,7 @@ const deleteOrganizationMembers = authed.organizationMember.delete
 						zedToken: getZedToken(context),
 					});
 
-					const [adminCountResult] = yield* tx
+					const [adminCountResult] = yield* db
 						.select({
 							count: count(),
 						})
@@ -270,7 +261,7 @@ const deleteOrganizationMembers = authed.organizationMember.delete
 					});
 				}
 
-				yield* tx
+				yield* db
 					.delete(dbSchema.member)
 					.where(
 						and(
@@ -280,7 +271,7 @@ const deleteOrganizationMembers = authed.organizationMember.delete
 					);
 
 				if (existingMembers.length > 0) {
-					yield* tx
+					yield* db
 						.update(dbSchema.session)
 						.set({
 							activeOrganizationId: null,
@@ -296,37 +287,24 @@ const deleteOrganizationMembers = authed.organizationMember.delete
 						);
 				}
 
-				const detached = yield* detachOrganizationAccess({
-					tx,
+				yield* recordRelationshipFacts(
+					...existingMembers.map((member) =>
+						RelationshipFact.OrganizationRoleChanged({
+							organizationId,
+							userId: member.userId,
+							from: member.role,
+							to: null,
+						}),
+					),
+				);
+
+				yield* detachOrganizationAccess({
 					organizationId,
 					userIds: existingMembers.map((member) => member.userId),
 					now,
 				});
-
-				return yield* enqueueRelationshipMutations({
-					tx,
-					mutations: [
-						...existingMembers.map((member) => ({
-							resourceType: "organization" as const,
-							resourceId: organizationId,
-							relation: member.role,
-							subjectType: "user" as const,
-							subjectId: member.userId,
-							operation: "delete" as const,
-						})),
-						...detached,
-					],
-				});
 			}),
 		);
-
-		yield* authz
-			.deliverRelationshipEvent(eventId)
-			.pipe(
-				Effect.catch((cause) =>
-					Effect.logError(`authz.delivery_failed cause=${String(cause)}`),
-				),
-			);
 
 		return {
 			success: true,

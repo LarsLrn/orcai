@@ -30,7 +30,6 @@ import {
 	isNull,
 	ne,
 	or,
-	sql,
 } from "drizzle-orm";
 import { EffectDrizzleQueryError } from "drizzle-orm/effect-core";
 import * as Cause from "effect/Cause";
@@ -38,11 +37,13 @@ import * as Effect from "effect/Effect";
 import { SqlError } from "effect/unstable/sql/SqlError";
 import { auth } from "@/lib/auth/auth";
 import { detachAccountAccess } from "@/lib/authz/membership-detach";
-import { getZedToken } from "@/lib/authz/zed-token";
+import { RelationshipFact } from "@/lib/authz/relationship-facts";
 import {
-	AuthzService,
-	enqueueRelationshipMutations,
-} from "@/lib/effect/services/authz";
+	recordRelationshipFacts,
+	writeRelationships,
+} from "@/lib/authz/relationship-write";
+import { getZedToken } from "@/lib/authz/zed-token";
+import { AuthzService } from "@/lib/effect/services/authz";
 import * as AppErrors from "@/lib/effect/utils/errors";
 import { authed } from "@/lib/orpc/implementation/authed";
 import { createProcedures } from "@/lib/orpc/implementation/procedures";
@@ -811,7 +812,6 @@ const deleteUsers = authed.user.delete
 	.use(requireInstanceAdminMiddleware)
 	.effect(function* ({ input, context }) {
 		const db = yield* DB;
-		const authz = yield* AuthzService;
 		const now = new Date();
 		const userIds = Array.from(new Set(input.userIds));
 
@@ -833,11 +833,21 @@ const deleteUsers = authed.user.delete
 			);
 		}
 
-		const eventId = yield* db.transaction((tx) =>
-			Effect.gen(function* () {
-				yield* tx.execute(sql`LOCK TABLE "member" IN SHARE ROW EXCLUSIVE MODE`);
+		const organizationIds = (yield* db
+			.selectDistinct({
+				organizationId: dbSchema.member.organizationId,
+			})
+			.from(dbSchema.member)
+			.where(inArray(dbSchema.member.userId, userIds))).map(
+			(membership) => membership.organizationId,
+		);
 
-				const existingUsers = yield* tx
+		yield* writeRelationships(
+			{
+				organizationIds,
+			},
+			Effect.gen(function* () {
+				const existingUsers = yield* db
 					.select({
 						id: dbSchema.user.id,
 					})
@@ -853,7 +863,7 @@ const deleteUsers = authed.user.delete
 					);
 				}
 
-				const memberships = yield* tx
+				const memberships = yield* db
 					.select({
 						organizationId: dbSchema.member.organizationId,
 						userId: dbSchema.member.userId,
@@ -880,7 +890,7 @@ const deleteUsers = authed.user.delete
 						continue;
 					}
 
-					const [adminCountResult] = yield* tx
+					const [adminCountResult] = yield* db
 						.select({
 							count: count(),
 						})
@@ -898,26 +908,36 @@ const deleteUsers = authed.user.delete
 				}
 
 				if (memberships.length > 0) {
-					yield* tx
+					yield* db
 						.delete(dbSchema.member)
 						.where(inArray(dbSchema.member.userId, userIds));
 				}
 
-				const detached = yield* detachAccountAccess({
-					tx,
+				yield* recordRelationshipFacts(
+					...memberships.map((membership) =>
+						RelationshipFact.OrganizationRoleChanged({
+							organizationId: membership.organizationId,
+							userId: membership.userId,
+							from: membership.role,
+							to: null,
+						}),
+					),
+				);
+
+				yield* detachAccountAccess({
 					userIds,
 					now,
 				});
 
-				yield* tx
+				yield* db
 					.delete(dbSchema.session)
 					.where(inArray(dbSchema.session.userId, userIds));
 
-				yield* tx
+				yield* db
 					.delete(dbSchema.account)
 					.where(inArray(dbSchema.account.userId, userIds));
 
-				yield* tx
+				yield* db
 					.delete(dbSchema.user)
 					.where(inArray(dbSchema.user.id, userIds))
 					.pipe(
@@ -932,31 +952,8 @@ const deleteUsers = authed.user.delete
 							),
 						),
 					);
-
-				return yield* enqueueRelationshipMutations({
-					tx,
-					mutations: [
-						...memberships.map((membership) => ({
-							resourceType: "organization" as const,
-							resourceId: membership.organizationId,
-							relation: membership.role,
-							subjectType: "user" as const,
-							subjectId: membership.userId,
-							operation: "delete" as const,
-						})),
-						...detached,
-					],
-				});
 			}),
 		);
-
-		yield* authz
-			.deliverRelationshipEvent(eventId)
-			.pipe(
-				Effect.catch((cause) =>
-					Effect.logError(`authz.delivery_failed cause=${String(cause)}`),
-				),
-			);
 
 		return {
 			success: true,

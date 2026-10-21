@@ -25,6 +25,20 @@ open sign-up to disable, and no setting turns one on.
 - Existing accounts are unaffected. Sign-in, password reset, and invitations to
   further organisations keep working as before.
 
+## Permission delivery
+
+Every change to memberships, groups, grants, and resources commits its
+SpiceDB relationship changes to the `authz_outbox` table in the same
+transaction. The app delivers them to SpiceDB in commit order, one deliverer
+at a time, right after the request and every 10 seconds in the background.
+
+A failing event holds back every newer one, so permissions stay consistent
+with the database but stop updating while it fails. It retries with backoff up
+to 8 minutes apart and moves to `dead_letter` after 20 attempts, which lets
+delivery continue. Watch the `authz.projection_failed`,
+`authz.delivery_blocked`, and `authz.dead_letter` log lines; a dead-lettered
+event means SpiceDB is missing that change.
+
 ## Migrations
 
 Apply application database migrations with:

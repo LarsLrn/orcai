@@ -54,7 +54,6 @@ export const resourceVisibilityEnum = pgEnum("resource_visibility_enum", [
 
 export const authzOutboxStatusEnum = pgEnum("authz_outbox_status", [
 	"pending",
-	"processing",
 	"processed",
 	"failed",
 	"dead_letter",
@@ -237,21 +236,8 @@ export const authzOutbox = pgTable(
 	(table) => [
 		index("authz_outbox_status_idx").on(table.status, table.createdAt),
 		uniqueIndex("authz_outbox_seq_unique").on(table.seq),
-		index("authz_outbox_retry_idx").on(
-			table.status,
-			table.nextAttemptAt,
-			table.seq,
-		),
-		index("authz_outbox_processing_idx").on(
-			table.status,
-			table.updatedAt,
-			table.seq,
-		),
-		index("authz_outbox_pending_retry_idx")
-			.on(table.nextAttemptAt, table.seq)
+		index("authz_outbox_undelivered_idx")
+			.on(table.seq)
 			.where(sql`${table.status} IN ('pending', 'failed')`),
-		index("authz_outbox_processing_stale_idx")
-			.on(table.updatedAt, table.seq)
-			.where(sql`${table.status} = 'processing'`),
 	],
 );

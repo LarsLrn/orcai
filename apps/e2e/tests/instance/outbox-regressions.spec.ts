@@ -312,14 +312,11 @@ test("deletion transactions roll back with their outbox and committed cleanup re
 	await deleteAccount();
 	const failed = await latest(account.userId);
 	expect(failed.status).toBe("failed");
-	const unrelated = await api.as("admin").group.create({
-		name: `Outbox unblocked ${randomUUID()}`,
+	// Delivery is ordered, so a failing event holds back every newer one.
+	const blocked = await api.as("admin").group.create({
+		name: `Outbox blocked ${randomUUID()}`,
 	});
-	await expect
-		.poll(async () => (await latest(unrelated.data.id)).status, {
-			timeout: 30_000,
-		})
-		.toBe("processed");
+	expect((await latest(blocked.data.id)).status).toBe("pending");
 	expect(
 		(
 			await db.query('SELECT * FROM "user" WHERE id = $1', [
@@ -333,11 +330,15 @@ test("deletion transactions roll back with their outbox and committed cleanup re
 			failed.id,
 		],
 	);
-	await expect
-		.poll(async () => (await latest(account.userId)).status, {
-			timeout: 30_000,
-		})
-		.toBe("processed");
+	for (const target of [
+		account.userId,
+		blocked.data.id,
+	])
+		await expect
+			.poll(async () => (await latest(target)).status, {
+				timeout: 30_000,
+			})
+			.toBe("processed");
 	await fault(doomed.id, "delay");
 	await deleteOrg();
 	expect((await latest(doomed.id)).status).toBe("pending");

@@ -18,6 +18,15 @@ import {
 	hasManageGroups,
 	visibleGroupScope,
 } from "@/lib/authz/group-visibility";
+import { RelationshipFact } from "@/lib/authz/relationship-facts";
+import {
+	recordRelationshipFacts,
+	writeRelationships,
+} from "@/lib/authz/relationship-write";
+import {
+	grantPrincipal,
+	scopedResourceRef,
+} from "@/lib/authz/scoped-resource-id";
 import { getZedToken } from "@/lib/authz/zed-token";
 import { AuthzService } from "@/lib/effect/services/authz";
 import * as AppErrors from "@/lib/effect/utils/errors";
@@ -26,7 +35,6 @@ import { createProcedures } from "@/lib/orpc/implementation/procedures";
 import { requireActiveOrganizationMiddleware } from "@/lib/orpc/middlewares/auth";
 import { requireOrganizationPermission } from "@/lib/orpc/middlewares/permission";
 import { literalSearch } from "./helpers/literal-search";
-import { parseScopedResourceId } from "./helpers/scoped-resource-id";
 import { buildOrderBy, type SortExpression } from "./helpers/sorting";
 
 /** Matches the search term against the user name, and the email when it is visible. */
@@ -315,138 +323,143 @@ const deleteGroups = authed.group.delete
 	.use(requireOrganizationPermission("manage_groups"))
 	.effect(function* ({ input, context }) {
 		const db = yield* DB;
-		const authz = yield* AuthzService;
 		const organizationId = context.auth.session.activeOrganizationId;
 		const now = new Date();
 
 		const groupIds = input.refs.map((ref) => ref.id);
 
-		const existingGroups = yield* db
-			.select({
-				id: dbSchema.group.id,
-				kind: dbSchema.group.kind,
-			})
-			.from(dbSchema.group)
-			.where(
-				and(
-					inArray(dbSchema.group.id, groupIds),
-					eq(dbSchema.group.organizationId, organizationId),
-					isNull(dbSchema.group.deletedAt),
-				),
-			);
+		yield* writeRelationships(
+			{
+				organizationIds: [
+					organizationId,
+				],
+			},
+			Effect.gen(function* () {
+				const existingGroups = yield* db
+					.select({
+						id: dbSchema.group.id,
+						kind: dbSchema.group.kind,
+					})
+					.from(dbSchema.group)
+					.where(
+						and(
+							inArray(dbSchema.group.id, groupIds),
+							eq(dbSchema.group.organizationId, organizationId),
+							isNull(dbSchema.group.deletedAt),
+						),
+					);
 
-		if (existingGroups.length !== groupIds.length) {
-			return yield* Effect.fail(
-				new AppErrors.NotFoundError({
-					reason: "GROUP_NOT_FOUND",
-					message: "One or more groups were not found",
-				}),
-			);
-		}
+				if (existingGroups.length !== groupIds.length) {
+					return yield* Effect.fail(
+						new AppErrors.NotFoundError({
+							reason: "GROUP_NOT_FOUND",
+							message: "One or more groups were not found",
+						}),
+					);
+				}
 
-		if (existingGroups.some((group) => group.kind === "system")) {
-			return yield* Effect.fail(
-				new AppErrors.BadRequestError({
-					reason: "SYSTEM_GROUP_IMMUTABLE",
-					message: "System groups cannot be deleted",
-				}),
-			);
-		}
+				if (existingGroups.some((group) => group.kind === "system")) {
+					return yield* Effect.fail(
+						new AppErrors.BadRequestError({
+							reason: "SYSTEM_GROUP_IMMUTABLE",
+							message: "System groups cannot be deleted",
+						}),
+					);
+				}
 
-		const existingGroupIds = existingGroups.map((group) => group.id);
+				const existingGroupIds = existingGroups.map((group) => group.id);
 
-		const membersToRemove = yield* db
-			.select({
-				groupId: dbSchema.groupMember.groupId,
-				userId: dbSchema.groupMember.userId,
-			})
-			.from(dbSchema.groupMember)
-			.where(
-				and(
-					inArray(dbSchema.groupMember.groupId, existingGroupIds),
-					isNull(dbSchema.groupMember.removedAt),
-				),
-			);
+				const membersToRemove = yield* db
+					.select({
+						groupId: dbSchema.groupMember.groupId,
+						userId: dbSchema.groupMember.userId,
+					})
+					.from(dbSchema.groupMember)
+					.where(
+						and(
+							inArray(dbSchema.groupMember.groupId, existingGroupIds),
+							isNull(dbSchema.groupMember.removedAt),
+						),
+					);
 
-		const activeGrants = yield* db
-			.select({
-				id: dbSchema.resourceGrant.id,
-				resourceType: dbSchema.resourceGrant.resourceType,
-				resourceId: dbSchema.resourceGrant.resourceId,
-				role: dbSchema.resourceGrant.role,
-				principalId: dbSchema.resourceGrant.principalId,
-			})
-			.from(dbSchema.resourceGrant)
-			.where(
-				and(
-					eq(dbSchema.resourceGrant.principalType, "group"),
-					inArray(dbSchema.resourceGrant.principalId, existingGroupIds),
-					isNull(dbSchema.resourceGrant.revokedAt),
-				),
-			);
+				const activeGrants = yield* db
+					.select({
+						id: dbSchema.resourceGrant.id,
+						resourceType: dbSchema.resourceGrant.resourceType,
+						resourceId: dbSchema.resourceGrant.resourceId,
+						role: dbSchema.resourceGrant.role,
+						principalId: dbSchema.resourceGrant.principalId,
+					})
+					.from(dbSchema.resourceGrant)
+					.where(
+						and(
+							eq(dbSchema.resourceGrant.principalType, "group"),
+							inArray(dbSchema.resourceGrant.principalId, existingGroupIds),
+							isNull(dbSchema.resourceGrant.revokedAt),
+						),
+					);
 
-		yield* db
-			.update(dbSchema.groupMember)
-			.set({
-				removedAt: now,
-			})
-			.where(
-				and(
-					inArray(dbSchema.groupMember.groupId, existingGroupIds),
-					isNull(dbSchema.groupMember.removedAt),
-				),
-			);
+				yield* db
+					.update(dbSchema.groupMember)
+					.set({
+						removedAt: now,
+					})
+					.where(
+						and(
+							inArray(dbSchema.groupMember.groupId, existingGroupIds),
+							isNull(dbSchema.groupMember.removedAt),
+						),
+					);
 
-		yield* db
-			.update(dbSchema.resourceGrant)
-			.set({
-				revokedAt: now,
-			})
-			.where(
-				and(
-					eq(dbSchema.resourceGrant.principalType, "group"),
-					inArray(dbSchema.resourceGrant.principalId, existingGroupIds),
-					isNull(dbSchema.resourceGrant.revokedAt),
-				),
-			);
+				yield* db
+					.update(dbSchema.resourceGrant)
+					.set({
+						revokedAt: now,
+					})
+					.where(
+						and(
+							eq(dbSchema.resourceGrant.principalType, "group"),
+							inArray(dbSchema.resourceGrant.principalId, existingGroupIds),
+							isNull(dbSchema.resourceGrant.revokedAt),
+						),
+					);
 
-		yield* db
-			.update(dbSchema.group)
-			.set({
-				deletedAt: now,
-				updatedAt: now,
-			})
-			.where(inArray(dbSchema.group.id, existingGroupIds));
+				yield* db
+					.update(dbSchema.group)
+					.set({
+						deletedAt: now,
+						updatedAt: now,
+					})
+					.where(inArray(dbSchema.group.id, existingGroupIds));
 
-		yield* authz.applyRelationshipMutations({
-			mutations: [
-				...existingGroupIds.map((groupId) => ({
-					resourceType: "group" as const,
-					resourceId: groupId,
-					relation: "organization" as const,
-					subjectType: "organization" as const,
-					subjectId: organizationId,
-					operation: "delete" as const,
-				})),
-				...membersToRemove.map((member) => ({
-					resourceType: "group" as const,
-					resourceId: member.groupId,
-					relation: "member" as const,
-					subjectType: "user" as const,
-					subjectId: member.userId,
-					operation: "delete" as const,
-				})),
-				...activeGrants.map((grant) => ({
-					resourceType: grant.resourceType,
-					resourceId: parseScopedResourceId(grant),
-					relation: grant.role,
-					subjectType: "group" as const,
-					subjectId: grant.principalId,
-					subjectRelation: "member" as const,
-					operation: "delete" as const,
-				})),
-			],
-		});
+				yield* recordRelationshipFacts(
+					...existingGroupIds.map((groupId) =>
+						RelationshipFact.GroupDeleted({
+							groupId,
+							organizationId,
+						}),
+					),
+					...membersToRemove.map((member) =>
+						RelationshipFact.GroupMembershipChanged({
+							groupId: member.groupId,
+							userId: member.userId,
+							member: false,
+						}),
+					),
+					...activeGrants.map((grant) =>
+						RelationshipFact.ResourceGrantChanged({
+							resource: scopedResourceRef(grant),
+							principal: grantPrincipal({
+								principalType: "group",
+								principalId: grant.principalId,
+							}),
+							from: grant.role,
+							to: null,
+						}),
+					),
+				);
+			}),
+		);
 
 		return {
 			success: true,

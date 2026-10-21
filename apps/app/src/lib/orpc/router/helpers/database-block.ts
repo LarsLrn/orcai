@@ -2,13 +2,14 @@ import type { AssetId, BlockId, UserId } from "@orcai/core";
 import { DB, dbSchema } from "@orcai/db";
 import { sendJobBatch } from "@orcai/pg-boss";
 import { deletePointsByIdentifier } from "@orcai/qdrant";
-import { assetIdSchema, VECTORIZE_ASSET_JOB_NAME } from "@orcai/schema";
+import { VECTORIZE_ASSET_JOB_NAME } from "@orcai/schema";
 import { permittedEntityIds } from "@orcai/spice-db";
 import { and, eq, getColumns, inArray } from "drizzle-orm";
+import * as Arr from "effect/Array";
 import * as Effect from "effect/Effect";
 import { emptyCapabilities } from "@/lib/authz/capabilities";
-import { calculateRelationDelta } from "@/lib/authz/relation-delta";
-import { AuthzService } from "@/lib/effect/services/authz";
+import { RelationshipFact } from "@/lib/authz/relationship-facts";
+import { recordRelationshipFacts } from "@/lib/authz/relationship-write";
 import * as AppErrors from "@/lib/effect/utils/errors";
 import { getManyEntityCapabilities } from "@/lib/orpc/router/helpers/capabilities";
 
@@ -74,28 +75,23 @@ export const requireReadableAssets = (params: {
 		}
 	});
 
-export const syncDatabaseBlockAssets = (params: {
+/**
+ * Replaces a database block's asset links and records the change. Call it in
+ * `writeRelationships`, then pass the result to {@link reindexBlockAssets}.
+ */
+export const replaceBlockAssets = (params: {
 	blockId: BlockId;
-	assetIds: AssetId[];
-	previousAssetIds?: AssetId[];
+	assetIds: readonly AssetId[];
 }) =>
 	Effect.gen(function* () {
 		const db = yield* DB;
-		const authz = yield* AuthzService;
 
-		const previousAssetIds =
-			params.previousAssetIds ??
-			(yield* db
-				.select({
-					assetId: dbSchema.blockAsset.assetId,
-				})
-				.from(dbSchema.blockAsset)
-				.where(eq(dbSchema.blockAsset.blockId, params.blockId))
-				.pipe(Effect.map((assets) => assets.map((a) => a.assetId))));
-
-		yield* db
+		const previousAssetIds = (yield* db
 			.delete(dbSchema.blockAsset)
-			.where(eq(dbSchema.blockAsset.blockId, params.blockId));
+			.where(eq(dbSchema.blockAsset.blockId, params.blockId))
+			.returning({
+				assetId: dbSchema.blockAsset.assetId,
+			})).map((asset) => asset.assetId);
 
 		if (params.assetIds.length > 0) {
 			yield* db.insert(dbSchema.blockAsset).values(
@@ -106,91 +102,73 @@ export const syncDatabaseBlockAssets = (params: {
 			);
 		}
 
-		const delta = calculateRelationDelta(previousAssetIds, params.assetIds);
-
-		const removedIds = assetIdSchema.array().parse(delta.removedIds);
-		const addedIds = assetIdSchema.array().parse(delta.addedIds);
-
-		if (removedIds.length > 0 || addedIds.length > 0) {
-			yield* authz.applyRelationshipMutations({
-				mutations: [
-					...removedIds.map((assetId) => ({
-						resourceType: "asset" as const,
-						resourceId: assetId,
-						relation: "block" as const,
-						subjectType: "block" as const,
-						subjectId: params.blockId,
-						operation: "delete" as const,
-					})),
-					...addedIds.map((assetId) => ({
-						resourceType: "asset" as const,
-						resourceId: assetId,
-						relation: "block" as const,
-						subjectType: "block" as const,
-						subjectId: params.blockId,
-						operation: "touch" as const,
-					})),
-				],
-			});
-		}
-
-		if (removedIds.length > 0) {
-			yield* Effect.forEach(
-				removedIds,
-				(assetId) =>
-					deletePointsByIdentifier({
-						blockId: params.blockId,
-						assetId,
-					}),
-				{
-					concurrency: "unbounded",
-					discard: true,
-				},
-			);
-		}
-
-		if (addedIds.length > 0) {
-			const completedAddedAssets = yield* db
-				.select({
-					id: dbSchema.asset.id,
-				})
-				.from(dbSchema.asset)
-				.where(
-					and(
-						inArray(dbSchema.asset.id, addedIds),
-						eq(dbSchema.asset.processingStatus, "completed"),
-					),
-				);
-
-			const completedAssetIds = completedAddedAssets.map((asset) => asset.id);
-
-			if (completedAssetIds.length === 0) {
-				return {
-					assetIds: params.assetIds,
-					addedIds,
-					removedIds,
-				};
-			}
-
-			yield* sendJobBatch({
-				jobName: VECTORIZE_ASSET_JOB_NAME,
-				jobs: completedAssetIds.map((assetId) => ({
-					data: {
-						prefix: assetId,
-						assetId,
-						blockId: params.blockId,
-					},
-				})),
-				resourceOptions: {
-					resourceId: params.blockId,
-					resourceType: "block",
-				},
-			});
-		}
+		yield* recordRelationshipFacts(
+			RelationshipFact.BlockAssetsChanged({
+				blockId: params.blockId,
+				before: previousAssetIds,
+				after: params.assetIds,
+			}),
+		);
 
 		return {
-			assetIds: params.assetIds,
-			addedIds,
-			removedIds,
+			blockId: params.blockId,
+			addedIds: Arr.difference(params.assetIds, previousAssetIds),
+			removedIds: Arr.difference(previousAssetIds, params.assetIds),
 		};
+	});
+
+/** Drops the vectors of unlinked assets and indexes the newly linked, processed ones. */
+export const reindexBlockAssets = (params: {
+	blockId: BlockId;
+	addedIds: readonly AssetId[];
+	removedIds: readonly AssetId[];
+}) =>
+	Effect.gen(function* () {
+		const db = yield* DB;
+
+		yield* Effect.forEach(
+			params.removedIds,
+			(assetId) =>
+				deletePointsByIdentifier({
+					blockId: params.blockId,
+					assetId,
+				}),
+			{
+				concurrency: "unbounded",
+				discard: true,
+			},
+		);
+
+		if (params.addedIds.length === 0) return;
+
+		const completedAssets = yield* db
+			.select({
+				id: dbSchema.asset.id,
+			})
+			.from(dbSchema.asset)
+			.where(
+				and(
+					inArray(dbSchema.asset.id, [
+						...params.addedIds,
+					]),
+					eq(dbSchema.asset.processingStatus, "completed"),
+				),
+			);
+
+		if (completedAssets.length === 0) return;
+
+		yield* sendJobBatch({
+			jobName: VECTORIZE_ASSET_JOB_NAME,
+			jobs: completedAssets.map((asset) => ({
+				data: {
+					prefix: asset.id,
+					assetId: asset.id,
+					blockId: params.blockId,
+				},
+			})),
+			resourceOptions: {
+				resourceId: params.blockId,
+				resourceType: "block",
+			},
+		});
 	});
