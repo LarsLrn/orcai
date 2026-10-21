@@ -3,6 +3,7 @@ import { cleanup, fireEvent, render, screen } from "@testing-library/react";
 import { m } from "@/paraglide/messages";
 import { ActivityLine } from "./activity-line";
 import { ReasoningEntry } from "./reasoning-entry";
+import { SearchKnowledgeBase } from "./tools/search-knowledge-base";
 
 afterEach(() => {
 	cleanup();
@@ -61,5 +62,69 @@ describe("ReasoningEntry", () => {
 
 		rerender(<ReasoningEntry part={part} live={false} />);
 		expect(screen.queryByText(m.chat_work_log_thinking())).toBeNull();
+	});
+});
+
+describe("SearchKnowledgeBase", () => {
+	const searchPart = (output: unknown) =>
+		({
+			type: "tool-searchKnowledgeBase",
+			toolCallId: "s1",
+			state: "output-available",
+			input: {
+				query: "refunds",
+			},
+			output,
+		}) as Parameters<typeof SearchKnowledgeBase>[0]["part"];
+
+	test("shows each result's title and text", () => {
+		render(
+			<SearchKnowledgeBase
+				part={searchPart({
+					results: [
+						{
+							id: "c1",
+							assetId: "asset-a",
+							title: "Refund policy",
+							blockName: "Handbook",
+							pageStart: 4,
+							pageEnd: 4,
+							text: "Refunds are paid within 14 days.",
+						},
+					],
+				})}
+				status={null}
+			/>,
+		);
+
+		expect(
+			screen.getByText(
+				m.chat_work_log_tool_search_result({
+					count: 1,
+				}),
+			),
+		).toBeTruthy();
+		expect(screen.getByText("Refund policy")).toBeTruthy();
+		expect(screen.getByText("Refunds are paid within 14 days.")).toBeTruthy();
+	});
+
+	test("shows an output of an older shape without results", () => {
+		render(
+			<SearchKnowledgeBase
+				part={searchPart({
+					results: [
+						{
+							id: "c1",
+							title: "Refund policy",
+							snippet: "refunds are paid within 14 days",
+						},
+					],
+				})}
+				status={null}
+			/>,
+		);
+
+		expect(screen.getByText(m.chat_work_log_tool_search_name())).toBeTruthy();
+		expect(screen.queryByText("Refund policy")).toBeNull();
 	});
 });

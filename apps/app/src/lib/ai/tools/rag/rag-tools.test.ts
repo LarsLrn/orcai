@@ -119,16 +119,17 @@ describe("getKnowledgeBaseChunks", () => {
 			options,
 		);
 
-		expect(output).toMatchObject({
+		expect(output).toEqual({
 			passages: [
 				{
+					id: "c1",
+					assetId: "asset-a",
+					title: "Refund policy",
+					blockName: "Handbook",
+					pageStart: 4,
+					pageEnd: 5,
+					totalPages: 20,
 					text: "Chapter 3. Refunds. Refunds are paid within 14 days of the request being approved. Late refunds earn interest at 2%.\n\nInterest is paid with the refund.",
-					source: {
-						chunk: {
-							pageStart: 4,
-							pageEnd: 5,
-						},
-					},
 				},
 			],
 		});

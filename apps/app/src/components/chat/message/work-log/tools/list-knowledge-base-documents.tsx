@@ -1,4 +1,5 @@
 import { formatAssetTitle } from "@/components/chat/message/asset-title";
+import { listOutputSchema } from "@/lib/ai/tools/rag/outputs";
 import type { ToolStatus } from "@/lib/ai/turn-view/turn-view";
 import type { ListKnowledgeBaseDocumentsToolPart } from "@/lib/ai/types/tools";
 import { m } from "@/paraglide/messages";
@@ -12,7 +13,8 @@ export const ListKnowledgeBaseDocuments = ({
 	part: ListKnowledgeBaseDocumentsToolPart;
 	status: ToolStatus | null;
 }) => {
-	const documents = part.output?.documents ?? [];
+	const documents =
+		listOutputSchema.safeParse(part.output).data?.documents ?? [];
 	const showBlockName = spansMultipleBlocks(
 		documents.map((document) => document.block.name),
 	);

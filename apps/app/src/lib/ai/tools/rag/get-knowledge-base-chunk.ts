@@ -5,9 +5,10 @@ import { effectTool } from "@/lib/ai/tools/assistant/procedure-tool";
 import type { ORPCContext } from "@/lib/orpc/implementation/os";
 import { Procedures } from "@/lib/orpc/implementation/procedures";
 import { RETRIEVAL_LIMITS } from "@/settings/constants";
+import { chunksModelOutput } from "./outputs";
 import { neighbouringRuns } from "./passages";
-import type { ChunkResult, PointWithBlock } from "./types";
-import { flattenBlockResponses, toChunkResult, withSourceBlock } from "./utils";
+import type { PointWithBlock } from "./types";
+import { flattenBlockResponses, toPassage, withSourceBlock } from "./utils";
 
 /** The chunk indexes within `neighbours` of `point`, without its own. */
 const neighbourIndexes = (point: PointWithBlock, neighbours: number) =>
@@ -143,10 +144,10 @@ export const getKnowledgeBaseChunksTool = ({
 					},
 				);
 
-				const passages: ChunkResult[] = neighbouringRuns([
+				const passages = neighbouringRuns([
 					...requested,
 					...around.flat(),
-				]).map(toChunkResult);
+				]).map(toPassage);
 				const missing = ids.filter(
 					(id) => !requested.some((point) => point.id === id),
 				);
@@ -158,4 +159,5 @@ export const getKnowledgeBaseChunksTool = ({
 					}),
 				};
 			}),
+		toModelOutput: chunksModelOutput,
 	});

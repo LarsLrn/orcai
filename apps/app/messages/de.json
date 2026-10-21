@@ -2130,7 +2130,6 @@
 		}
 	],
 	"chat_work_log_reasoning_duration_unknown": "Einige Sekunden nachgedacht",
-	"chat_work_log_source_block_and_pages": "{block} · S. {range}",
 	"chat_work_log_source_pages": "S. {range}",
 	"chat_work_log_thinking": "Denkt nach",
 	"chat_work_log_compacting": "Unterhaltung wird zusammengefasst…",

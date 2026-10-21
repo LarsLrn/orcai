@@ -1,11 +1,8 @@
+import { chunksOutputSchema } from "@/lib/ai/tools/rag/outputs";
 import type { ToolStatus } from "@/lib/ai/turn-view/turn-view";
 import type { GetKnowledgeBaseChunksToolPart } from "@/lib/ai/types/tools";
 import { m } from "@/paraglide/messages";
-import {
-	SourcePassage,
-	SourcePassageList,
-	spansMultipleBlocks,
-} from "../source-passage";
+import { SourcePassages } from "../source-passage";
 import { ToolEntry } from "../tool-entry";
 
 export const GetKnowledgeBaseChunks = ({
@@ -15,39 +12,22 @@ export const GetKnowledgeBaseChunks = ({
 	part: GetKnowledgeBaseChunksToolPart;
 	status: ToolStatus | null;
 }) => {
-	const chunks = part.output?.passages ?? [];
-	const showBlockName = spansMultipleBlocks(
-		chunks.map((chunk) => chunk.source.block.name),
-	);
+	const passages =
+		chunksOutputSchema.safeParse(part.output).data?.passages ?? [];
 
 	return (
 		<ToolEntry
 			part={part}
 			status={status}
 			label={
-				chunks.length > 0
+				passages.length > 0
 					? m.chat_work_log_tool_get_chunks_result({
-							count: chunks.length,
+							count: passages.length,
 						})
 					: m.chat_work_log_tool_get_chunks_name()
 			}
 		>
-			{chunks.length > 0 && (
-				<SourcePassageList>
-					{chunks.map((chunk) => (
-						<SourcePassage
-							key={chunk.id}
-							title={chunk.source.document.title}
-							blockName={chunk.source.block.name}
-							showBlockName={showBlockName}
-							pageStart={chunk.source.chunk.pageStart}
-							pageEnd={chunk.source.chunk.pageEnd}
-							totalPages={chunk.source.document.totalPages}
-							text={chunk.text}
-						/>
-					))}
-				</SourcePassageList>
-			)}
+			<SourcePassages passages={passages} />
 		</ToolEntry>
 	);
 };
