@@ -15,6 +15,7 @@ import {
 	DropdownMenu,
 	DropdownMenuContent,
 	DropdownMenuItem,
+	DropdownMenuLinkItem,
 	DropdownMenuSeparator,
 	DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
@@ -174,26 +175,30 @@ export const quotaPoolTableColumns = columnHelper.columns([
 					}
 				/>
 				<DropdownMenuContent align="end">
-					<Link
-						to="/app/quotas/$quotaPoolId"
-						params={{
-							quotaPoolId: row.original.id,
-						}}
+					<DropdownMenuLinkItem
+						render={
+							<Link
+								to="/app/quotas/$quotaPoolId"
+								params={{
+									quotaPoolId: row.original.id,
+								}}
+							/>
+						}
 					>
-						<DropdownMenuItem>
-							{m.quotas_table_view_menu_item()}
-						</DropdownMenuItem>
-					</Link>
-					<Link
-						to="/app/quotas/$quotaPoolId/edit"
-						params={{
-							quotaPoolId: row.original.id,
-						}}
+						{m.quotas_table_view_menu_item()}
+					</DropdownMenuLinkItem>
+					<DropdownMenuLinkItem
+						render={
+							<Link
+								to="/app/quotas/$quotaPoolId/edit"
+								params={{
+									quotaPoolId: row.original.id,
+								}}
+							/>
+						}
 					>
-						<DropdownMenuItem>
-							{m.quotas_table_edit_menu_item()}
-						</DropdownMenuItem>
-					</Link>
+						{m.quotas_table_edit_menu_item()}
+					</DropdownMenuLinkItem>
 					<DropdownMenuSeparator />
 					<DeactivateItem pool={row.original} />
 				</DropdownMenuContent>

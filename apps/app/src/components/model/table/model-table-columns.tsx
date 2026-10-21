@@ -11,6 +11,7 @@ import {
 	DropdownMenu,
 	DropdownMenuContent,
 	DropdownMenuItem,
+	DropdownMenuLinkItem,
 	DropdownMenuSeparator,
 	DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
@@ -151,26 +152,30 @@ export const modelTableColumns = columnHelper.columns([
 						}
 					/>
 					<DropdownMenuContent align="end">
-						<Link
-							to={"/app/models/$modelId"}
-							params={{
-								modelId: model.id,
-							}}
+						<DropdownMenuLinkItem
+							render={
+								<Link
+									to={"/app/models/$modelId"}
+									params={{
+										modelId: model.id,
+									}}
+								/>
+							}
 						>
-							<DropdownMenuItem>
-								{m.models_table_view_menu_item()}
-							</DropdownMenuItem>
-						</Link>
-						<Link
-							to={"/app/models/$modelId/edit"}
-							params={{
-								modelId: model.id,
-							}}
+							{m.models_table_view_menu_item()}
+						</DropdownMenuLinkItem>
+						<DropdownMenuLinkItem
+							render={
+								<Link
+									to={"/app/models/$modelId/edit"}
+									params={{
+										modelId: model.id,
+									}}
+								/>
+							}
 						>
-							<DropdownMenuItem>
-								{m.models_table_edit_menu_item()}
-							</DropdownMenuItem>
-						</Link>
+							{m.models_table_edit_menu_item()}
+						</DropdownMenuLinkItem>
 						<DropdownMenuSeparator />
 						<DeleteItem model={model} />
 					</DropdownMenuContent>

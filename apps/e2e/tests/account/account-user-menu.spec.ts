@@ -1,6 +1,7 @@
 import { openAccountPage, userMenu } from "../../fixtures/account/navigation";
 import { expect, test } from "../../fixtures/index";
 import { message } from "../../fixtures/messages";
+import { open } from "../../fixtures/navigation";
 
 // The e2e package has no DOM lib; these are the browser members the check reads.
 type Measured = {
@@ -45,4 +46,33 @@ test("account: the user menu stays beside its trigger when the page scrolls unde
 
 	expect(scrolled).toBeGreaterThan(0);
 	expect(shift).toBe(0);
+});
+
+test("account: Enter on a breadcrumb menu entry navigates to it", async ({
+	pageAs,
+}) => {
+	const page = await pageAs("member");
+
+	// The trail collapses into a menu below the lg breakpoint.
+	await page.setViewportSize({
+		width: 800,
+		height: 720,
+	});
+	await open(page, "/app/hub/bots");
+	await page
+		.getByRole("button", {
+			name: message("header_breadcrumb_menu_label"),
+		})
+		.click();
+
+	const entry = page.getByRole("menuitem", {
+		name: message("hub_page_title"),
+	});
+
+	await expect(entry).toBeVisible();
+	await entry.focus();
+	await page.keyboard.press("Enter");
+
+	await expect(page).toHaveURL(/\/app\/hub$/);
+	await expect(entry).toBeHidden();
 });

@@ -13,7 +13,7 @@ import {
 	DropdownMenu,
 	DropdownMenuContent,
 	DropdownMenuGroup,
-	DropdownMenuItem,
+	DropdownMenuLinkItem,
 	DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import { Separator } from "@/components/ui/separator";
@@ -81,15 +81,14 @@ const Header = ({ homeTo = "/app" }: { homeTo?: "/app" | "/instance" }) => {
 											<DropdownMenuContent positionMethod="fixed">
 												<DropdownMenuGroup>
 													{breadcrumbItems.slice(0, -1).map((item) => (
-														<DropdownMenuItem key={item.href}>
-															<Link
-																to={item.href}
-																title={item.label}
-																className="block max-w-72 truncate"
-															>
-																{item.label}
-															</Link>
-														</DropdownMenuItem>
+														<DropdownMenuLinkItem
+															key={item.href}
+															title={item.label}
+															className="block max-w-72 truncate"
+															render={<Link to={item.href} />}
+														>
+															{item.label}
+														</DropdownMenuLinkItem>
 													))}
 												</DropdownMenuGroup>
 											</DropdownMenuContent>
