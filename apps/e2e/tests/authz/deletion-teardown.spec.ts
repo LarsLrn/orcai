@@ -1,7 +1,7 @@
+import { uploadAsset } from "../../fixtures/assets";
 import { expectDenied } from "../../fixtures/authorization";
 import {
 	accessIds,
-	assetRow,
 	authzName,
 	botSave,
 	databaseBlock,
@@ -104,37 +104,33 @@ test("authz: a deleted asset leaves no access entry and no repository link behin
 }) => {
 	const member = api.as("member");
 	const viewer = api.as("viewer");
-	const asset = await member.asset.create(assetRow(authzName("Deleted Asset")));
+	const asset = await uploadAsset(member, authzName("Deleted Asset"));
 	await grantUser(
 		member,
 		{
 			resourceType: "asset",
-			resourceId: asset.data.id,
+			resourceId: asset.id,
 		},
 		org.users.viewer.id,
 		"viewer",
 	);
 	const repository = await member.block.create(
 		databaseBlock(authzName("Deleted Asset Repository"), [
-			asset.data.id,
+			asset.id,
 		]),
 	);
-	expect(await accessIds(viewer, org.users.viewer.id)).toContain(asset.data.id);
+	expect(await accessIds(viewer, org.users.viewer.id)).toContain(asset.id);
 
 	await member.asset.delete({
 		refs: [
 			{
-				id: asset.data.id,
+				id: asset.id,
 			},
 		],
 	});
 
-	expect(await accessIds(member, org.users.member.id)).not.toContain(
-		asset.data.id,
-	);
-	expect(await accessIds(viewer, org.users.viewer.id)).not.toContain(
-		asset.data.id,
-	);
+	expect(await accessIds(member, org.users.member.id)).not.toContain(asset.id);
+	expect(await accessIds(viewer, org.users.viewer.id)).not.toContain(asset.id);
 
 	const found = await member.block.find({
 		id: repository.data.id,

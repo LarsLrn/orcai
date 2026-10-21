@@ -13,22 +13,17 @@ import {
 	getDownloadUrl,
 	getSignedPartUploadUrl,
 	getSignedUploadUrl,
-	isS3NotFound,
 	normalizeUploadId,
 	sendAbortMultipartUploadCommand,
 	sendCompleteMultipartUploadCommand,
 	sendCreateMultipartUploadCommand,
-	sendHeadObjectCommand,
 	validateUploadEnvelope,
 } from "@orcai/s3/server";
 import * as Effect from "effect/Effect";
 import { v4 as uuidv4 } from "uuid";
 import * as AppErrors from "@/lib/effect/utils/errors";
 import { authed } from "@/lib/orpc/implementation/authed";
-import {
-	requireEntityPermission,
-	requireOrganizationPermission,
-} from "@/lib/orpc/middlewares/permission";
+import { requireEntityPermission } from "@/lib/orpc/middlewares/permission";
 
 const createUploadUrls = authed.storage.createUploadUrls.effect(function* ({
 	input,
@@ -390,77 +385,9 @@ const abortMultipartUpload = authed.storage.abortMultipartUpload.effect(
 	},
 );
 
-const finalizeUpload = authed.storage.finalizeUpload
-	.use(requireOrganizationPermission("create_asset"))
-	.effect(function* ({ input, context }) {
-		const results = yield* Effect.forEach(
-			input.files,
-			(file) =>
-				Effect.gen(function* () {
-					const validated = yield* validateUploadEnvelope({
-						file,
-						route: input.route,
-						userId: context.auth.user.id,
-					}).pipe(
-						Effect.mapError(
-							() =>
-								new AppErrors.BadRequestError({
-									reason: "UPLOAD_REQUEST_INVALID",
-									message: "Invalid upload metadata.",
-								}),
-						),
-					);
-
-					const headObject = yield* sendHeadObjectCommand({
-						bucket: validated.bucket,
-						key: validated.stagingKey,
-					}).pipe(
-						Effect.mapError((error) =>
-							isS3NotFound(error)
-								? new AppErrors.BadRequestError({
-										reason: "UPLOAD_FILE_MISSING",
-										message: "Uploaded file not found in storage.",
-									})
-								: error,
-						),
-					);
-
-					if (
-						typeof headObject.ContentLength === "number" &&
-						headObject.ContentLength !== file.size
-					) {
-						return yield* Effect.fail(
-							new AppErrors.BadRequestError({
-								reason: "UPLOAD_FILE_SIZE_MISMATCH",
-								message: "Uploaded file size mismatch.",
-							}),
-						);
-					}
-
-					return {
-						id: validated.id,
-						bucket: validated.bucket,
-						prefix: validated.prefix,
-						objectKey: validated.stagingKey,
-						name: file.name,
-						size: file.size,
-						type: file.type,
-					};
-				}),
-			{
-				concurrency: 10,
-			},
-		);
-
-		return {
-			data: results,
-		};
-	});
-
 export const storageRouter = {
 	createUploadUrls,
 	createDownloadUrl,
-	finalizeUpload,
 	completeMultipartUpload,
 	abortMultipartUpload,
 };

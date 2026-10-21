@@ -1,9 +1,9 @@
 import { randomUUID } from "node:crypto";
 import { assetIdSchema } from "@orcai/schema";
+import { uploadAsset } from "../../fixtures/assets";
 import { expectDenied, expectForbidden } from "../../fixtures/authorization";
 import {
 	assetRename,
-	assetRow,
 	authzName,
 	botSave,
 	databaseBlock,
@@ -116,13 +116,13 @@ test("authz: a repository cannot be created with an asset the caller cannot read
 }) => {
 	const member = api.as("member");
 	const manager = api.as("manager");
-	const asset = await member.asset.create(assetRow(authzName("Private Asset")));
+	const asset = await uploadAsset(member, authzName("Private Asset"));
 	const name = authzName("Rejected Repository");
 
 	await expectAssetLinkForbidden(
 		manager.block.create(
 			databaseBlock(name, [
-				asset.data.id,
+				asset.id,
 			]),
 		),
 	);
@@ -138,7 +138,7 @@ test("authz: a repository cannot be created with an asset the caller cannot read
 
 	await expectDenied(
 		manager.asset.find({
-			id: asset.data.id,
+			id: asset.id,
 		}),
 	);
 });
@@ -148,22 +148,20 @@ test("authz: adding an unreadable asset to a repository leaves it unchanged", as
 }) => {
 	const member = api.as("member");
 	const manager = api.as("manager");
-	const own = await manager.asset.create(assetRow(authzName("Own Asset")));
-	const foreign = await member.asset.create(
-		assetRow(authzName("Foreign Asset")),
-	);
+	const own = await uploadAsset(manager, authzName("Own Asset"));
+	const foreign = await uploadAsset(member, authzName("Foreign Asset"));
 	const name = authzName("Own Repository");
 	const repository = await manager.block.create(
 		databaseBlock(name, [
-			own.data.id,
+			own.id,
 		]),
 	);
 
 	await expectAssetLinkForbidden(
 		manager.block.update(
 			databaseBlockUpdate(repository.data.id, authzName("Renamed"), [
-				own.data.id,
-				foreign.data.id,
+				own.id,
+				foreign.id,
 			]),
 		),
 	);
@@ -173,7 +171,7 @@ test("authz: adding an unreadable asset to a repository leaves it unchanged", as
 	});
 	expect(found.data.name).toBe(name);
 	expect(found.assets?.map((asset) => asset.id)).toEqual([
-		own.data.id,
+		own.id,
 	]);
 });
 
@@ -196,12 +194,12 @@ test("authz: attaching a readable asset passes read on, not edit", async ({
 	const member = api.as("member");
 	const manager = api.as("manager");
 	const title = authzName("Shared Asset");
-	const asset = await member.asset.create(assetRow(title));
+	const asset = await uploadAsset(member, title);
 	await grantUser(
 		member,
 		{
 			resourceType: "asset",
-			resourceId: asset.data.id,
+			resourceId: asset.id,
 		},
 		org.users.manager.id,
 		"viewer",
@@ -209,18 +207,18 @@ test("authz: attaching a readable asset passes read on, not edit", async ({
 
 	const repository = await manager.block.create(
 		databaseBlock(authzName("Attaching Repository"), [
-			asset.data.id,
+			asset.id,
 		]),
 	);
 	const found = await manager.block.find({
 		id: repository.data.id,
 	});
 	expect(found.assets?.map((attached) => attached.id)).toEqual([
-		asset.data.id,
+		asset.id,
 	]);
 
 	const seen = await manager.asset.find({
-		id: asset.data.id,
+		id: asset.id,
 	});
 	expect(seen.data.capabilities).toMatchObject({
 		read: true,
@@ -228,11 +226,11 @@ test("authz: attaching a readable asset passes read on, not edit", async ({
 	});
 
 	await expectForbidden(
-		manager.asset.save(assetRename(asset.data.id, authzName("Hijacked"))),
+		manager.asset.save(assetRename(asset.id, authzName("Hijacked"))),
 	);
 
 	const unchanged = await member.asset.find({
-		id: asset.data.id,
+		id: asset.id,
 	});
 	expect(unchanged.data.title).toBe(title);
 });
@@ -243,10 +241,10 @@ test("authz: an editor of a repository keeps and detaches its assets without edi
 }) => {
 	const member = api.as("member");
 	const manager = api.as("manager");
-	const asset = await member.asset.create(assetRow(authzName("Kept Asset")));
+	const asset = await uploadAsset(member, authzName("Kept Asset"));
 	const repository = await member.block.create(
 		databaseBlock(authzName("Shared Repository"), [
-			asset.data.id,
+			asset.id,
 		]),
 	);
 	await grantUser(
@@ -262,23 +260,23 @@ test("authz: an editor of a repository keeps and detaches its assets without edi
 	const renamed = authzName("Renamed Repository");
 	const kept = await manager.block.update(
 		databaseBlockUpdate(repository.data.id, renamed, [
-			asset.data.id,
+			asset.id,
 		]),
 	);
 	expect(kept.assets).toEqual([
-		asset.data.id,
+		asset.id,
 	]);
 
 	// While attached, the repository passes read on the asset but not edit.
 	const seen = await manager.asset.find({
-		id: asset.data.id,
+		id: asset.id,
 	});
 	expect(seen.data.capabilities).toMatchObject({
 		read: true,
 		edit: false,
 	});
 	await expectForbidden(
-		manager.asset.save(assetRename(asset.data.id, authzName("Hijacked"))),
+		manager.asset.save(assetRename(asset.id, authzName("Hijacked"))),
 	);
 
 	const detached = await manager.block.update(
@@ -287,7 +285,7 @@ test("authz: an editor of a repository keeps and detaches its assets without edi
 	expect(detached.assets ?? []).toEqual([]);
 
 	await expectForbidden(
-		manager.asset.save(assetRename(asset.data.id, authzName("Hijacked"))),
+		manager.asset.save(assetRename(asset.id, authzName("Hijacked"))),
 	);
 });
 
@@ -295,14 +293,14 @@ test("authz: an asset created in one call attaches in the next without a retry",
 	api,
 }) => {
 	const manager = api.as("manager");
-	const asset = await manager.asset.create(assetRow(authzName("Fresh Asset")));
+	const asset = await uploadAsset(manager, authzName("Fresh Asset"));
 
 	const repository = await manager.block.create(
 		databaseBlock(authzName("Fresh Repository"), [
-			asset.data.id,
+			asset.id,
 		]),
 	);
 	expect(repository.assets).toEqual([
-		asset.data.id,
+		asset.id,
 	]);
 });

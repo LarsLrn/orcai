@@ -1,4 +1,5 @@
 import type { AssetId } from "@orcai/core";
+import { holdUploads } from "../../fixtures/assets";
 import {
 	actStep,
 	continueRefusal,
@@ -25,12 +26,10 @@ import {
 import {
 	discardPrompt,
 	requestUploadCall,
-	saveOntoAsset,
-	saveUploadedFiles,
 	uploadTextFile,
 	uploadWidget,
 } from "../../fixtures/assistant/upload";
-import { assetRow } from "../../fixtures/authz/resources";
+import { adoptPageZedToken } from "../../fixtures/authz/resources";
 import { chatName, messageText } from "../../fixtures/chat/chat";
 import { ask } from "../../fixtures/gen-ui/gen-ui";
 import { expect, test } from "../../fixtures/inference/fixture";
@@ -41,11 +40,12 @@ const LEAD_IN = "Upload the files here.";
 const REASON = "Upload the style guides for the repository 'APA rules'";
 const SKIPPED_SENTENCE = "Not run: the user sent a new message instead.";
 
-test("assistant: requestUpload saves the uploaded files and continues the same reply", async ({
+test("assistant: requestUpload answers with the created assets and continues the same reply", async ({
 	api,
 	inference,
 	org,
 	pageAs,
+	zedTokens,
 }) => {
 	await setUpAssistantModel(api, org, inference);
 	const member = api.as("member");
@@ -60,10 +60,7 @@ test("assistant: requestUpload saves the uploaded files and continues the same r
 		},
 	);
 
-	const row = await member.asset.create(assetRow(chatName("Placeholder")));
-
 	const page = await pageAs("member");
-	await saveOntoAsset(page, row.data.id);
 	await enterApp(page, org.slug);
 	await openConversation(page, chatId);
 	const continuations = countContinuations(page);
@@ -85,7 +82,6 @@ test("assistant: requestUpload saves the uploaded files and continues the same r
 	expect(continuations()).toBe(0);
 
 	await uploadTextFile(widget, fileName);
-	await saveUploadedFiles(widget);
 	await expect(messageText(page, done)).toBeVisible();
 	expect(continuations()).toBe(1);
 
@@ -111,11 +107,14 @@ test("assistant: requestUpload saves the uploaded files and continues the same r
 			id: AssetId;
 		}
 	).id;
-	expect(assetId).toBe(row.data.id);
+	await adoptPageZedToken(page, zedTokens);
 	const asset = await member.asset.find({
 		id: assetId,
 	});
-	expect(asset.data.title).toBe(fileName);
+	expect(asset.data).toMatchObject({
+		title: fileName,
+		origin: "library",
+	});
 
 	const reply = await lastRow(member, chatId);
 	expect(toolParts(reply, "requestUpload")).toMatchObject([
@@ -152,9 +151,22 @@ test("assistant: requestUpload saves the uploaded files and continues the same r
 			exact: true,
 		}),
 	).toBeVisible();
+	await stored
+		.getByRole("button", {
+			name: message("assistant_tool_request_upload_edit_metadata_label", {
+				title: fileName,
+			}),
+		})
+		.click();
+	const metadata = page.getByRole("dialog", {
+		name: message("assets_selected_list_dialog_title"),
+	});
+	await expect(
+		metadata.getByLabel(message("assets_metadata_source_title_label")),
+	).toHaveValue(fileName);
 });
 
-test("assistant: Cancel on the upload widget asks before discarding uploads and reports cancelled", async ({
+test("assistant: Cancel during an upload asks, aborts it and reports cancelled", async ({
 	api,
 	inference,
 	org,
@@ -180,6 +192,7 @@ test("assistant: Cancel on the upload widget asks before discarding uploads and 
 	await ask(page, "Add my style guide");
 
 	const widget = uploadWidget(page);
+	const uploads = await holdUploads(page);
 	await uploadTextFile(widget, `${chatName("Discarded")}.txt`);
 	const cancel = widget.getByRole("button", {
 		name: message("common_cancel_button"),
@@ -202,6 +215,7 @@ test("assistant: Cancel on the upload widget asks before discarding uploads and 
 		})
 		.click();
 	await expect(messageText(page, done)).toBeVisible();
+	uploads.release();
 
 	const reply = await lastRow(member, chatId);
 	expect(toolParts(reply, "requestUpload")).toMatchObject([

@@ -65,9 +65,6 @@ const staleQueriesOf = (orpc: AppUtils): StaleQueries => {
 			save: () => [
 				orpc.asset.key(),
 			],
-			saveMany: () => [
-				orpc.asset.key(),
-			],
 			delete: () => [
 				orpc.asset.key(),
 			],
@@ -262,12 +259,6 @@ const staleQueriesOf = (orpc: AppUtils): StaleQueries => {
 			createUploadUrls: () => [
 				orpc.storage.key(),
 			],
-			finalizeUpload: ({ route = "asset" }) =>
-				route === "asset"
-					? [
-							orpc.asset.key(),
-						]
-					: [],
 		},
 		user: {
 			delete: () => [

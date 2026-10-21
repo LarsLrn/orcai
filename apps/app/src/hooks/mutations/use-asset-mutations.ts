@@ -19,19 +19,6 @@ export const useSaveAssetMutation = (
 	});
 };
 
-export const useSaveManyAssetsMutation = (
-	opts: ReturnType<typeof orpc.asset.saveMany.mutationOptions> = {},
-) => {
-	return useMutationAction({
-		mutationOptions: () => orpc.asset.saveMany.mutationOptions(opts),
-		messages: {
-			loading: () => m.assets_save_many_toast_loading(),
-			success: () => m.assets_save_many_toast_success(),
-			error: () => m.assets_save_many_toast_error(),
-		},
-	});
-};
-
 export const useDeleteAssetsMutation = (
 	opts: ReturnType<typeof orpc.asset.delete.mutationOptions> = {},
 	target?: DestructiveTarget,

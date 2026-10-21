@@ -36,8 +36,6 @@ const reasonMessages: ReasonMessages = {
 	ASSET_LINK_FORBIDDEN: m.error_asset_link_forbidden,
 	ASSET_NOT_ATTACHED: m.error_asset_not_attached,
 	ASSET_NOT_FOUND: m.error_asset_not_found,
-	ASSET_SOURCE_REQUIRED: m.error_asset_source_required,
-	ASSET_UPLOAD_REQUIRED: m.error_asset_upload_required,
 	ASSISTANT_CONVERSATION_IMMUTABLE: m.error_assistant_conversation_immutable,
 	ASSISTANT_MODEL_NOT_CONFIGURED: m.error_assistant_model_not_configured,
 	ASSISTANT_ORGANIZATION_MISMATCH: m.error_assistant_organization_mismatch,

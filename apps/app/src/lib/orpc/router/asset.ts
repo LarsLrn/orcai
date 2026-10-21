@@ -1,46 +1,21 @@
-import {
-	type AssetId,
-	buckets,
-	type OrganizationId,
-	type UserId,
-} from "@orcai/core";
+import { buckets } from "@orcai/core";
 import { DB, dbSchema } from "@orcai/db";
-import { sendJobBatch } from "@orcai/pg-boss";
 import { deletePointsByIdentifier } from "@orcai/qdrant";
-import {
-	buildUploadPrefix,
-	getFileTypeFromMime,
-	UPLOAD_ROUTES,
-} from "@orcai/s3";
+import { UPLOAD_ROUTES } from "@orcai/s3";
 import {
 	deletePrefixRecursively,
 	sendDeleteObjectCommand,
 } from "@orcai/s3/server";
-import type {
-	AssetFileType,
-	BucketName,
-	FinalizedUploadFile,
-} from "@orcai/schema";
-import {
-	assetFileTypeSchema,
-	assetIdSchema,
-	PROCESS_ASSET_JOB_NAME,
-} from "@orcai/schema";
 import { lookupEntitiesByPermission } from "@orcai/spice-db";
 import { and, count, desc, eq, getColumns, ilike, inArray } from "drizzle-orm";
 import * as Effect from "effect/Effect";
-import { v4 as uuidv4 } from "uuid";
 import { createAssetsFromUploads } from "@/lib/assets/intake";
 import { emptyCapabilities } from "@/lib/authz/capabilities";
 import {
 	getEntityCapabilities,
 	getManyEntityCapabilities,
 } from "@/lib/authz/entity-capabilities";
-import { writeRelationships } from "@/lib/authz/relationship-write";
-import {
-	deleteResourcesWithAuthorization,
-	initializeResourceAuthorization,
-} from "@/lib/authz/resource-lifecycle";
+import { deleteResourcesWithAuthorization } from "@/lib/authz/resource-lifecycle";
 import { getZedToken } from "@/lib/authz/zed-token";
 import * as AppErrors from "@/lib/effect/utils/errors";
 import { authed } from "@/lib/orpc/implementation/authed";
@@ -49,108 +24,8 @@ import {
 	checkManyPermissionMiddleware,
 	requireEntityPermission,
 	requireOrganizationPermission,
-	requirePermission,
 } from "@/lib/orpc/middlewares/permission";
 import { literalSearch } from "@/lib/utils/literal-search";
-
-const uploadFileType = (upload: FinalizedUploadFile) => {
-	const fileType = assetFileTypeSchema.safeParse(
-		getFileTypeFromMime(upload.type),
-	);
-	return fileType.success
-		? Effect.succeed(fileType.data)
-		: Effect.fail(
-				new AppErrors.BadRequestError({
-					reason: "UPLOAD_FILE_TYPE_INVALID",
-					params: {
-						fileName: upload.name,
-						fileType: upload.type,
-					},
-					message: `File type "${upload.type}" is not allowed.`,
-				}),
-			);
-};
-
-const createAssetRecord = (params: {
-	id?: AssetId;
-	title: string;
-	size: number;
-	fileType: AssetFileType;
-	bucket: BucketName;
-	prefix: string;
-	metadata?: any;
-	userId: UserId;
-	organizationId: OrganizationId;
-}) =>
-	Effect.gen(function* () {
-		const db = yield* DB;
-
-		const assetId = assetIdSchema.parse(params.id ?? uuidv4());
-
-		const { result: asset } = yield* writeRelationships(
-			{
-				organizationIds: [
-					params.organizationId,
-				],
-			},
-			Effect.gen(function* () {
-				const [asset] = yield* db
-					.insert(dbSchema.asset)
-					.values({
-						id: assetId,
-						title: params.title,
-						size: params.size,
-						fileType: params.fileType,
-						bucket: params.bucket,
-						prefix: params.prefix,
-						metadata: params.metadata,
-						userId: params.userId,
-					})
-					.returning();
-
-				yield* initializeResourceAuthorization({
-					resource: {
-						resourceType: "asset",
-						resourceId: asset.id,
-					},
-					organizationId: params.organizationId,
-					ownerUserId: params.userId,
-				});
-
-				return asset;
-			}),
-		);
-
-		return {
-			asset,
-		};
-	});
-
-const dispatchProcessJob = (asset: {
-	id: string;
-	bucket: BucketName;
-	prefix: string;
-	fileType: AssetFileType;
-}) =>
-	sendJobBatch({
-		jobName: PROCESS_ASSET_JOB_NAME,
-		jobs: [
-			{
-				data: {
-					assetRef: {
-						bucket: asset.bucket,
-						prefix: asset.prefix,
-						id: asset.id,
-						type: asset.fileType,
-					},
-				},
-			},
-		],
-		resourceOptions: {
-			resourceId: asset.id,
-			resourceType: "asset",
-		},
-	});
 
 const listAssets = authed.asset.list.effect(function* ({ input, context }) {
 	const db = yield* DB;
@@ -273,42 +148,14 @@ const findAsset = authed.asset.find
 		};
 	});
 
-const createAsset = authed.asset.create
-	.use(requireOrganizationPermission("create_asset"))
-	.effect(function* ({ input, context }) {
-		const prefix = buildUploadPrefix({
-			userId: context.auth.user.id,
-			route: "asset",
-		});
-
-		const { asset } = yield* createAssetRecord({
-			id: input.id,
-			title: input.title ?? "New Asset",
-			size: input.size,
-			fileType: input.fileType,
-			bucket: buckets.main.name,
-			prefix,
-			metadata: input.metadata,
-			userId: context.auth.user.id,
-			organizationId: context.auth.session.activeOrganizationId,
-		});
-
-		return {
-			data: asset,
-		};
-	});
-
-const saveAsset = authed.asset.save.effect(function* ({ input, context }) {
-	const db = yield* DB;
-
-	if (input.id) {
-		yield* requirePermission({
-			entityId: input.id,
-			entityType: "asset",
-			permission: "edit",
-			userId: context.auth.user.id,
-			zedToken: getZedToken(context),
-		});
+const saveAsset = authed.asset.save
+	.use(
+		requireEntityPermission("asset", "edit", {
+			entityId: "id",
+		}),
+	)
+	.effect(function* ({ input }) {
+		const db = yield* DB;
 
 		const [asset] = yield* db
 			.update(dbSchema.asset)
@@ -324,126 +171,6 @@ const saveAsset = authed.asset.save.effect(function* ({ input, context }) {
 
 		return {
 			data: asset,
-		};
-	}
-
-	if (!input.upload) {
-		return yield* Effect.fail(
-			new AppErrors.BadRequestError({
-				reason: "ASSET_UPLOAD_REQUIRED",
-				message: "An uploaded file reference is required to create an asset.",
-			}),
-		);
-	}
-
-	const organizationId = context.auth.session.activeOrganizationId;
-
-	if (!organizationId) {
-		return yield* Effect.fail(
-			new AppErrors.BadRequestError({
-				reason: "ACTIVE_ORGANIZATION_REQUIRED",
-				message: "An active organization is required to create assets.",
-			}),
-		);
-	}
-
-	yield* requirePermission({
-		entityId: organizationId,
-		entityType: "organization",
-		permission: "create_asset",
-		userId: context.auth.user.id,
-		zedToken: getZedToken(context),
-	});
-
-	const { asset } = yield* createAssetRecord({
-		id: input.upload.id,
-		title: input.title,
-		size: input.upload.size,
-		fileType: yield* uploadFileType(input.upload),
-		bucket: input.upload.bucket,
-		prefix: input.upload.prefix,
-		metadata: input.metadata,
-		userId: context.auth.user.id,
-		organizationId,
-	});
-
-	yield* dispatchProcessJob(asset);
-
-	return {
-		data: asset,
-	};
-});
-
-const saveManyAssets = authed.asset.saveMany
-	.use(requireOrganizationPermission("create_asset"))
-	.effect(function* ({ input, context }) {
-		const fileTypes = yield* Effect.forEach(input.assets, (assetInput) =>
-			assetInput.upload
-				? uploadFileType(assetInput.upload)
-				: Effect.succeed(undefined),
-		);
-		const results = yield* Effect.forEach(
-			input.assets,
-			(assetInput, index) =>
-				Effect.gen(function* () {
-					if (assetInput.id) {
-						yield* requirePermission({
-							entityId: assetInput.id,
-							entityType: "asset",
-							permission: "edit",
-							userId: context.auth.user.id,
-							zedToken: getZedToken(context),
-						});
-
-						const db = yield* DB;
-						const [asset] = yield* db
-							.update(dbSchema.asset)
-							.set({
-								title: assetInput.title,
-								metadata: assetInput.metadata,
-								updatedAt: new Date(),
-							})
-							.where(eq(dbSchema.asset.id, assetInput.id))
-							.returning({
-								...getColumns(dbSchema.asset),
-							});
-
-						return {
-							asset,
-							zedToken: undefined,
-						};
-					}
-
-					const fileType = fileTypes[index];
-					if (!assetInput.upload || !fileType) {
-						return yield* Effect.fail(
-							new AppErrors.BadRequestError({
-								reason: "ASSET_UPLOAD_REQUIRED",
-								message:
-									"An uploaded file reference is required to create an asset.",
-							}),
-						);
-					}
-
-					return yield* createAssetRecord({
-						id: assetInput.upload.id,
-						title: assetInput.title,
-						size: assetInput.upload.size,
-						fileType,
-						bucket: assetInput.upload.bucket,
-						prefix: assetInput.upload.prefix,
-						metadata: assetInput.metadata,
-						userId: context.auth.user.id,
-						organizationId: context.auth.session.activeOrganizationId,
-					}).pipe(Effect.tap((result) => dispatchProcessJob(result.asset)));
-				}),
-			{
-				concurrency: 10,
-			},
-		);
-
-		return {
-			data: results.map((result) => result.asset),
 		};
 	});
 
@@ -536,8 +263,6 @@ const deleteAssets = authed.asset.delete
 export const assetRouter = {
 	list: listAssets,
 	save: saveAsset,
-	saveMany: saveManyAssets,
-	create: createAsset,
 	createFromUploads: createAssetsFromUploadsProcedure,
 	find: findAsset,
 	delete: deleteAssets,

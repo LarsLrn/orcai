@@ -5,8 +5,6 @@ import {
 	createDownloadUrlResponseSchema,
 	createUploadUrlsInputSchema,
 	createUploadUrlsResponseSchema,
-	finalizeUploadInputSchema,
-	finalizeUploadResponseSchema,
 	multipartUploadControlResponseSchema,
 } from "@orcai/schema";
 import { openapi } from "@orpc/openapi";
@@ -39,20 +37,6 @@ export const storageContracts = {
 		)
 		.input(createDownloadUrlInputSchema)
 		.output(createDownloadUrlResponseSchema),
-	finalizeUpload: base
-		.meta(
-			openapi({
-				method: "POST",
-				path: "/files/finalize",
-				summary:
-					"Finalize uploaded files and return validated upload references",
-				tags: [
-					"Files",
-				],
-			}),
-		)
-		.input(finalizeUploadInputSchema)
-		.output(finalizeUploadResponseSchema),
 	completeMultipartUpload: base
 		.meta(
 			openapi({
