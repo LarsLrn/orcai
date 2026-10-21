@@ -6,16 +6,15 @@ import { answers, procedureCalls, resetProcedures } from "../test-procedures";
 
 beforeEach(() => {
 	resetProcedures();
-	for (const name of [
-		"retryProcessing",
-		"retryVectorization",
-	]) {
-		answers[`job.${name}`] = () =>
-			Effect.succeed({
-				success: true,
-				message: "",
-			});
-	}
+	answers["asset.reprocess"] = () =>
+		Effect.succeed({
+			success: true,
+			message: "",
+		});
+	answers["block.retryDocument"] = () =>
+		Effect.succeed({
+			retried: "indexing",
+		});
 });
 
 const { retryAssetTool } = await import("./retry-asset");
@@ -50,15 +49,15 @@ describe("retryAssetTool", () => {
 		});
 		expect(procedureCalls).toEqual([
 			{
-				procedure: "job.retryProcessing",
+				procedure: "asset.reprocess",
 				input: {
-					assetId,
+					id: assetId,
 				},
 			},
 		]);
 	});
 
-	test("with a repository it retries vectorisation in that repository", async () => {
+	test("with a repository it retries the document there", async () => {
 		expect(
 			await run({
 				assetId,
@@ -68,11 +67,11 @@ describe("retryAssetTool", () => {
 			type: "asset",
 			id: assetId,
 			repositoryId,
-			retried: "vectorisation",
+			retried: "indexing",
 		});
 		expect(procedureCalls).toEqual([
 			{
-				procedure: "job.retryVectorization",
+				procedure: "block.retryDocument",
 				input: {
 					assetId,
 					blockId: repositoryId,

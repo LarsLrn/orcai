@@ -13,7 +13,3 @@ export const processAssetPayloadSchema = z.object({
 });
 
 export type ProcessAssetPayload = z.infer<typeof processAssetPayloadSchema>;
-
-export const processAssetOutputSchema = z.object({
-	message: z.string().optional(),
-});

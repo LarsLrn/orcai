@@ -49,21 +49,6 @@ const block = (type: "template" | "database", config: object) => ({
 	},
 });
 
-const job = (
-	assetId: AssetId,
-	blockId: BlockId,
-	state: string,
-	createdOn: string,
-) => ({
-	name: "vectorize-asset-job",
-	state,
-	createdOn: new Date(createdOn),
-	data: {
-		assetId,
-		blockId,
-	},
-});
-
 beforeEach(resetProcedures);
 
 describe("getBlock", () => {
@@ -96,7 +81,7 @@ describe("getBlock", () => {
 		]);
 	});
 
-	test("a repository lists each asset with its newest vectorisation state", async () => {
+	test("a repository lists its document totals and each document's state", async () => {
 		const config = {
 			minReferences: 1,
 			maxReferences: 8,
@@ -104,7 +89,7 @@ describe("getBlock", () => {
 			retrievalMode: "hybrid" as const,
 		};
 		const repository = block("database", config);
-		const [indexed, failed, pending] = [
+		const [ready, failed, queued] = [
 			id<AssetId>(),
 			id<AssetId>(),
 			id<AssetId>(),
@@ -112,31 +97,44 @@ describe("getBlock", () => {
 		answers["block.find"] = () =>
 			Effect.succeed({
 				data: repository,
-				assets: [
-					{
-						id: indexed,
-						title: "Handbook",
-						processingStatus: "completed",
-						contentHtml: "<p>Rich</p>",
-					},
-					{
-						id: failed,
-						title: "Slides",
-						processingStatus: "completed",
-					},
-					{
-						id: pending,
-						title: "Notes",
-						processingStatus: "pending",
-					},
-				],
 			});
-		answers["job.list"] = () =>
+		answers["block.readiness"] = () =>
 			Effect.succeed({
 				data: [
-					job(indexed, repository.id, "failed", "2026-10-01"),
-					job(indexed, repository.id, "completed", "2026-10-02"),
-					job(failed, repository.id, "failed", "2026-10-02"),
+					{
+						blockId: repository.id,
+						name: repository.name,
+						capabilities: repository.capabilities,
+						totals: {
+							total: 3,
+							ready: 1,
+							preparing: 1,
+							failed: 1,
+						},
+						documents: [
+							{
+								assetId: ready,
+								title: "Handbook",
+								state: "ready",
+								failure: null,
+							},
+							{
+								assetId: failed,
+								title: "Slides",
+								state: "failed",
+								failure: {
+									stage: "processing",
+									kind: "empty",
+								},
+							},
+							{
+								assetId: queued,
+								title: "Notes",
+								state: "queued",
+								failure: null,
+							},
+						],
+					},
 				],
 			});
 
@@ -154,57 +152,47 @@ describe("getBlock", () => {
 			canDelete: false,
 			canManageAccess: false,
 			retrieval: config,
+			documents: {
+				total: 3,
+				ready: 1,
+				preparing: 1,
+				failed: 1,
+			},
 			assets: [
 				{
 					type: "asset",
-					id: indexed,
+					id: ready,
 					title: "Handbook",
-					processingStatus: "completed",
-					vectorisation: "completed",
+					state: "ready",
+					failure: undefined,
 				},
 				{
 					type: "asset",
 					id: failed,
 					title: "Slides",
-					processingStatus: "completed",
-					vectorisation: "failed",
+					state: "failed",
+					failure: {
+						stage: "processing",
+						kind: "empty",
+					},
 				},
 				{
 					type: "asset",
-					id: pending,
+					id: queued,
 					title: "Notes",
-					processingStatus: "pending",
-					vectorisation: "none",
+					state: "queued",
+					failure: undefined,
 				},
 			],
 		});
 		expect(procedureCalls[1]).toEqual({
-			procedure: "job.list",
+			procedure: "block.readiness",
 			input: {
-				resourceType: "block",
-				resourceId: repository.id,
-				jobQueue: "vectorize-asset-job",
+				blockIds: [
+					repository.id,
+				],
 			},
 		});
-	});
-
-	test("an empty repository reads no jobs", async () => {
-		const repository = block("database", {});
-		answers["block.find"] = () =>
-			Effect.succeed({
-				data: repository,
-				assets: [],
-			});
-
-		const output = await run(getBlockTool(deps()), {
-			id: repository.id,
-		});
-
-		expect(output).toMatchObject({
-			type: "repository",
-			assets: [],
-		});
-		expect(procedureCalls).toHaveLength(1);
 	});
 
 	test("an unknown or unreadable id names the expected types", async () => {

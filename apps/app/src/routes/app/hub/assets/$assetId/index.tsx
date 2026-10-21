@@ -26,8 +26,10 @@ import {
 	SectionHeader,
 	SectionTitle,
 } from "@/components/ui/shell/section";
-import { useDeleteAssetsMutation } from "@/hooks/mutations/use-asset-mutations";
-import { useReprocessAssetMutation } from "@/hooks/mutations/use-job-mutations";
+import {
+	useDeleteAssetsMutation,
+	useReprocessAssetMutation,
+} from "@/hooks/mutations/use-asset-mutations";
 import { hasCapability } from "@/lib/authz/capabilities";
 import { orpc } from "@/lib/orpc/orpc";
 import { m } from "@/paraglide/messages";
@@ -135,7 +137,7 @@ function RouteComponent() {
 										<DropdownMenuItem
 											onClick={() =>
 												reprocessAsset({
-													assetId: asset.data.id,
+													id: asset.data.id,
 												})
 											}
 										>

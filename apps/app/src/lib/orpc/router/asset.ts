@@ -10,6 +10,7 @@ import { lookupEntitiesByPermission } from "@orcai/spice-db";
 import { and, count, desc, eq, getColumns, ilike, inArray } from "drizzle-orm";
 import * as Effect from "effect/Effect";
 import { createAssetsFromUploads } from "@/lib/assets/intake";
+import { reprocessAsset } from "@/lib/assets/processing";
 import { emptyCapabilities } from "@/lib/authz/capabilities";
 import {
 	getEntityCapabilities,
@@ -289,6 +290,39 @@ const deleteAssets = authed.asset.delete
 		};
 	});
 
+const reprocessAssetProcedure = authed.asset.reprocess
+	.use(
+		requireEntityPermission("asset", "edit", {
+			entityId: "id",
+		}),
+	)
+	.effect(function* ({ input }) {
+		const db = yield* DB;
+		const [asset] = yield* db
+			.select()
+			.from(dbSchema.asset)
+			.where(eq(dbSchema.asset.id, input.id));
+
+		if (!asset) {
+			return yield* new AppErrors.NotFoundError({
+				reason: "ASSET_NOT_FOUND",
+				message: "Asset not found",
+			});
+		}
+
+		if (!(yield* reprocessAsset(asset))) {
+			return yield* new AppErrors.BadRequestError({
+				reason: "DOCUMENT_STILL_PREPARING",
+				message: "The asset is still being processed",
+			});
+		}
+
+		return {
+			success: true,
+			message: "Asset queued for processing",
+		};
+	});
+
 export const assetRouter = {
 	list: listAssets,
 	save: saveAsset,
@@ -296,4 +330,5 @@ export const assetRouter = {
 	addToLibrary: addAssetToLibrary,
 	find: findAsset,
 	delete: deleteAssets,
+	reprocess: reprocessAssetProcedure,
 };

@@ -280,7 +280,6 @@ const PLATFORM_DATA = [
 	"bot",
 	"block",
 	"asset",
-	"job",
 	"resource",
 	"group",
 	"organizationMember",

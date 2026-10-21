@@ -75,3 +75,19 @@ export const useDeleteAssetsMutation = (
 		},
 	});
 };
+
+export const useReprocessAssetMutation = () => {
+	return useMutationAction({
+		mutationOptions: () => orpc.asset.reprocess.mutationOptions(),
+		messages: {
+			loading: m.assets_reprocess_toast_loading(),
+			success: m.assets_reprocess_toast_success(),
+			error: m.assets_reprocess_toast_error(),
+		},
+		confirm: {
+			title: m.assets_reprocess_confirm_title(),
+			description: m.assets_reprocess_confirm_description(),
+			confirmText: m.assets_reprocess_confirm_button(),
+		},
+	});
+};

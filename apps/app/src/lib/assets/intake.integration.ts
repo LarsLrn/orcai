@@ -144,7 +144,9 @@ const processJobsFor = (assetId: string) =>
 			return yield* Effect.promise(() =>
 				boss.findJobs(PROCESS_ASSET_JOB_NAME, {
 					data: {
-						resourceId: assetId,
+						assetRef: {
+							id: assetId,
+						},
 					},
 				}),
 			);
