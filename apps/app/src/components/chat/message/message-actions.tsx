@@ -7,8 +7,8 @@ import {
 	MessageActions as Actions,
 	type MessageActionsProps,
 } from "@/components/ai-elements/message";
-import { messageToMarkdown } from "@/components/chat/message/message-markdown";
 import { MessageRate } from "@/components/chat/message/message-rate";
+import { messageToMarkdown } from "@/lib/ai/turn-view/message-markdown";
 import type { MessageView } from "@/lib/ai/turn-view/turn-view";
 import { reasonMessageOf } from "@/lib/errors/describe-error";
 import { cn } from "@/lib/utils";

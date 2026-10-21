@@ -1,6 +1,6 @@
-import { formatAssetTitle } from "@/components/chat/message/asset-title";
 import { formatPageRange } from "@/lib/ai/tools/rag/format-page-range";
 import type { Passage } from "@/lib/ai/tools/rag/types";
+import { formatAssetTitle } from "@/lib/presentation/asset-title";
 import { m } from "@/paraglide/messages";
 import { ClampedText } from "./clamped-text";
 

@@ -27,7 +27,6 @@ import { ChatAssetPicker } from "@/components/chat/chat-asset-picker";
 import type { ChatDraft } from "@/components/chat/chat-draft";
 import { fetchWholeChat } from "@/components/chat/chat-history";
 import { ChatSettings } from "@/components/chat/chat-settings";
-import { messageToTranscriptMarkdown } from "@/components/chat/message/message-markdown";
 import { ModelSelectorButton } from "@/components/chat/model-selector";
 import { TourButton } from "@/components/tour/tour-button";
 import { Button } from "@/components/ui/button";
@@ -44,6 +43,7 @@ import {
 } from "@/components/ui/input-group";
 import { useUpdateChatMutation } from "@/hooks/mutations/use-chat-mutation";
 import type { ChatSession } from "@/lib/ai/chat-session/chat-session";
+import { messageToTranscriptMarkdown } from "@/lib/ai/turn-view/message-markdown";
 import { type ChatPhase, turnView } from "@/lib/ai/turn-view/turn-view";
 import { reasonMessageOf } from "@/lib/errors/describe-error";
 import { orpc } from "@/lib/orpc/orpc";
