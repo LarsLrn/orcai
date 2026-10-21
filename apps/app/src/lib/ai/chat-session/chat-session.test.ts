@@ -1,24 +1,10 @@
-import { afterAll, beforeAll, describe, expect, test } from "bun:test";
-import { TransformStream } from "node:stream/web";
+import { describe, expect, test } from "bun:test";
 import type { ChatId, ChatMessageId } from "@orcai/core";
 import type { ContinueChatInput } from "@orcai/schema";
 import { ORPCError } from "@orpc/client";
 import type { UIMessageChunk } from "ai";
 import type { ChatAgentUIMessage } from "@/lib/ai/types/chat-agent-message";
 import { type ChatPage, type ChatPort, ChatSession } from "./chat-session";
-
-// happy-dom's TransformStream does not mix with the SDK's streams; this file runs on the native one.
-const domTransformStream = globalThis.TransformStream;
-beforeAll(() => {
-	Object.assign(globalThis, {
-		TransformStream,
-	});
-});
-afterAll(() => {
-	Object.assign(globalThis, {
-		TransformStream: domTransformStream,
-	});
-});
 
 const tick = () => new Promise((resolve) => setTimeout(resolve, 0));
 

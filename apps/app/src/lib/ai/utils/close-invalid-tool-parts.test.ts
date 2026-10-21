@@ -1,11 +1,4 @@
-import { afterAll, beforeAll, describe, expect, test } from "bun:test";
-import {
-	ReadableStream,
-	TextDecoderStream,
-	TextEncoderStream,
-	TransformStream,
-	WritableStream,
-} from "node:stream/web";
+import { describe, expect, test } from "bun:test";
 import {
 	createAgentUIStream,
 	isStepCount,
@@ -18,27 +11,6 @@ import { convertArrayToReadableStream, MockLanguageModelV4 } from "ai/test";
 import { z } from "zod/v4";
 import { planSchema } from "@/lib/ai/tools/assistant/plan/plan";
 import { closeInvalidToolParts } from "./close-invalid-tool-parts";
-
-// happy-dom's stream globals do not mix with the SDK's; this file runs on the native ones.
-const nativeStreams = {
-	ReadableStream,
-	WritableStream,
-	TransformStream,
-	TextDecoderStream,
-	TextEncoderStream,
-};
-const domStreams = Object.fromEntries(
-	Object.keys(nativeStreams).map((name) => [
-		name,
-		globalThis[name as keyof typeof nativeStreams],
-	]),
-);
-beforeAll(() => {
-	Object.assign(globalThis, nativeStreams);
-});
-afterAll(() => {
-	Object.assign(globalThis, domStreams);
-});
 
 type LanguageModelV4StreamPart =
 	Awaited<
