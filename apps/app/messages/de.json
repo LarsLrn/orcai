@@ -198,15 +198,8 @@
 	"ai_elements_inline_citation_next_aria_label": "Weiter",
 	"ai_elements_inline_citation_previous_aria_label": "Zurück",
 	"ai_elements_inline_citation_unknown_source_label": "unbekannt",
-	"ai_elements_prompt_input_add_attachments_label": "Fotos oder Dateien hinzufügen",
-	"ai_elements_prompt_input_add_screenshot_label": "Screenshot aufnehmen",
-	"ai_elements_prompt_input_error_accept": "Keine Datei entspricht den zulässigen Dateitypen.",
-	"ai_elements_prompt_input_error_max_file_size": "Alle Dateien überschreiten die maximale Größe.",
-	"ai_elements_prompt_input_error_max_files": "Zu viele Dateien. Einige wurden nicht hinzugefügt.",
-	"ai_elements_prompt_input_file_input_label": "Dateien hochladen",
 	"ai_elements_prompt_input_stop_aria_label": "Stopp",
 	"ai_elements_prompt_input_submit_aria_label": "Senden",
-	"ai_elements_prompt_input_textarea_placeholder": "Was möchten Sie wissen?",
 	"ai_elements_reasoning_duration": [
 		{
 			"declarations": [

@@ -198,15 +198,8 @@
 	"ai_elements_inline_citation_next_aria_label": "Next",
 	"ai_elements_inline_citation_previous_aria_label": "Previous",
 	"ai_elements_inline_citation_unknown_source_label": "unknown",
-	"ai_elements_prompt_input_add_attachments_label": "Add photos or files",
-	"ai_elements_prompt_input_add_screenshot_label": "Take screenshot",
-	"ai_elements_prompt_input_error_accept": "No files match the accepted types.",
-	"ai_elements_prompt_input_error_max_file_size": "All files exceed the maximum size.",
-	"ai_elements_prompt_input_error_max_files": "Too many files. Some were not added.",
-	"ai_elements_prompt_input_file_input_label": "Upload files",
 	"ai_elements_prompt_input_stop_aria_label": "Stop",
 	"ai_elements_prompt_input_submit_aria_label": "Submit",
-	"ai_elements_prompt_input_textarea_placeholder": "What would you like to know?",
 	"ai_elements_reasoning_duration": [
 		{
 			"declarations": [
