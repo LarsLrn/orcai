@@ -125,38 +125,111 @@ const createChatMessage = authed.chatMessage.create
 		};
 	});
 
+const listChatMessageRatings = authed.chatMessage.listRatings
+	.use(
+		requireEntityPermission("chat", "read", {
+			entityId: "chatId",
+			zedToken: "zedToken",
+		}),
+	)
+	.effect(function* ({ input, context }) {
+		const db = yield* DB;
+
+		const data = yield* db
+			.select({
+				messageId: dbSchema.chatMessageRating.messageId,
+				rating: dbSchema.chatMessageRating.rating,
+			})
+			.from(dbSchema.chatMessageRating)
+			.innerJoin(
+				dbSchema.chatMessage,
+				eq(dbSchema.chatMessage.id, dbSchema.chatMessageRating.messageId),
+			)
+			.where(
+				and(
+					eq(dbSchema.chatMessage.chatId, input.chatId),
+					eq(dbSchema.chatMessageRating.userId, context.auth.user.id),
+				),
+			);
+
+		return {
+			data,
+		};
+	});
+
 const rateChatMessage = authed.chatMessage.rate
 	.use(
-		requireEntityPermission("chat", "edit", {
+		requireEntityPermission("chat", "read", {
 			entityId: "chatId",
 		}),
 	)
-	.effect(function* ({ input }) {
-		return yield* Effect.try({
-			try: () =>
-				// TODO: Implement actual rating logic, currently just a placeholder
-				Effect.succeed({
-					success: true,
-					message: "Message rated successfully",
-					data: input,
+	.effect(function* ({ input, context }) {
+		const db = yield* DB;
+		const userId = context.auth.user.id;
+
+		const [message] = yield* db
+			.select({
+				id: dbSchema.chatMessage.id,
+			})
+			.from(dbSchema.chatMessage)
+			.where(
+				and(
+					eq(dbSchema.chatMessage.id, input.id),
+					eq(dbSchema.chatMessage.chatId, input.chatId),
+				),
+			);
+
+		if (!message) {
+			return yield* Effect.fail(
+				new AppErrors.NotFoundError({
+					reason: "CHAT_MESSAGE_NOT_FOUND",
+					id: input.id,
+					message: "Chat message not found",
 				}),
-			catch: () =>
-				new AppErrors.BadRequestError({
-					reason: "CHAT_RATING_FAILED",
-					message: "Error rating message",
-				}),
-		}).pipe(
-			Effect.map(() => ({
-				success: true,
-				message: "Message rated successfully",
-				data: input,
-			})),
-		);
+			);
+		}
+
+		if (input.rating === null) {
+			yield* db
+				.delete(dbSchema.chatMessageRating)
+				.where(
+					and(
+						eq(dbSchema.chatMessageRating.messageId, input.id),
+						eq(dbSchema.chatMessageRating.userId, userId),
+					),
+				);
+		} else {
+			yield* db
+				.insert(dbSchema.chatMessageRating)
+				.values({
+					messageId: input.id,
+					userId,
+					rating: input.rating,
+				})
+				.onConflictDoUpdate({
+					target: [
+						dbSchema.chatMessageRating.messageId,
+						dbSchema.chatMessageRating.userId,
+					],
+					set: {
+						rating: input.rating,
+						updatedAt: new Date(),
+					},
+				});
+		}
+
+		return {
+			data: {
+				messageId: input.id,
+				rating: input.rating,
+			},
+		};
 	});
 
 export const chatMessageRouter = {
 	list: listChatMessages,
 	create: createChatMessage,
 	find: findChatMessage,
+	listRatings: listChatMessageRatings,
 	rate: rateChatMessage,
 };

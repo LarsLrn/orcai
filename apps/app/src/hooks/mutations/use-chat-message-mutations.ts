@@ -3,23 +3,18 @@ import { useUmami } from "@/hooks/use-umami";
 import { orpc } from "@/lib/orpc/orpc";
 import { m } from "@/paraglide/messages";
 
-export const useRateChatMessageMutation = (
-	opts: ReturnType<typeof orpc.chatMessage.rate.mutationOptions> = {},
-) => {
+export const useRateChatMessageMutation = () => {
 	const { trackEvent } = useUmami();
 
 	return useMutationAction({
 		mutationOptions: () =>
 			orpc.chatMessage.rate.mutationOptions({
-				...opts,
-				onSuccess: async (response, input, ...args) => {
+				onSuccess: (_, input) => {
 					trackEvent("message-rate", {
 						messageId: input.id,
-						sentiment: input.sentiment,
+						rating: input.rating,
 						chatId: input.chatId,
 					});
-
-					await opts.onSuccess?.(response, input, ...args);
 				},
 			}),
 		messages: {

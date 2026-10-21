@@ -133,7 +133,7 @@ const staleQueriesOf = (orpc: AppUtils): StaleQueries => {
 		},
 		chatMessage: {
 			rate: ({ chatId }) => [
-				orpc.chatMessage.key({
+				orpc.chatMessage.listRatings.key({
 					input: {
 						chatId,
 					},
